@@ -72,10 +72,61 @@ struct TermDef          *func2fterm (FunctionCode func, int quiet);
 struct FunctionData     *String2Func ( const char *string, struct FunctionData *p_fdata, Bool quiet );
 
 
+#define CONFIG_ID_START					(FUNC_ID_END+1)
+#define CONFIG_root_ID					CONFIG_ID_START
+#define CONFIG_Base_ID					(CONFIG_ID_START+1)
+#define CONFIG_BaseOptions_ID			(CONFIG_ID_START+2)
+ 
+#define CONFIG_ColorScheme_ID			(CONFIG_ID_START+3)
+#define CONFIG_ColorSchemeOptions_ID 	(CONFIG_ID_START+4)
+
+#define CONFIG_Look_ID 					(CONFIG_ID_START+5)
+#define CONFIG_LookMyStyles_ID			(CONFIG_ID_START+6)
+#define CONFIG_LookMyFrames_ID			(CONFIG_ID_START+7)
+#define CONFIG_LookMyBackgrounds_ID		(CONFIG_ID_START+8)
+#define CONFIG_LookTitleButtons_ID		(CONFIG_ID_START+9)
+#define CONFIG_LookOptions_ID			(CONFIG_ID_START+10)
+
+#define CONFIG_Feel_ID					(CONFIG_ID_START+11)
+#define CONFIG_FeelOptions_ID			(CONFIG_ID_START+12)
+#define CONFIG_Pager_ID					(CONFIG_ID_START+13)
+#define CONFIG_PagerOptions_ID			(CONFIG_ID_START+14)
+#define CONFIG_Wharf_ID					(CONFIG_ID_START+15)
+#define CONFIG_WharfOptions_ID			(CONFIG_ID_START+16)
+#define CONFIG_WinList_ID				(CONFIG_ID_START+17)
+#define CONFIG_WinListOptions_ID		(CONFIG_ID_START+18)
+
+#define CONFIG_BaseFile_ID				(CONFIG_ID_START+19)
+#define CONFIG_ColorSchemeFile_ID		(CONFIG_ID_START+20)
+#define CONFIG_FeelFile_ID				(CONFIG_ID_START+21)
+#define CONFIG_AutoExecFile_ID			(CONFIG_ID_START+22)
+#define CONFIG_WorkspaceFile_ID			(CONFIG_ID_START+23)
+#define CONFIG_StartMenuDir_ID			(CONFIG_ID_START+24)
+#define CONFIG_LookFile_ID				(CONFIG_ID_START+25)
+#define CONFIG_ThemeOverrideFile_ID		(CONFIG_ID_START+26)
+#define CONFIG_DatabaseFile_ID			(CONFIG_ID_START+27)
+#define CONFIG_PagerFile_ID				(CONFIG_ID_START+28)
+#define CONFIG_WharfFile_ID				(CONFIG_ID_START+29)
+#define CONFIG_WinListFile_ID			(CONFIG_ID_START+30)
+
+#define CONFIG_LookFiles_ID				(CONFIG_ID_START+31)
+#define CONFIG_FeelFiles_ID				(CONFIG_ID_START+32)
+#define CONFIG_FunctionsFiles_ID		(CONFIG_ID_START+33)
+#define CONFIG_PopupsFiles_ID			(CONFIG_ID_START+34)
+#define CONFIG_PagerFiles_ID			(CONFIG_ID_START+35)
+#define CONFIG_WharfFiles_ID			(CONFIG_ID_START+36)
+#define CONFIG_WinListFiles_ID			(CONFIG_ID_START+37)
+#define CONFIG_BackgroundFiles_ID		(CONFIG_ID_START+38)
+
+#define CONFIG_PrivateFiles_ID			(CONFIG_ID_START+39)
+#define CONFIG_SharedFiles_ID			(CONFIG_ID_START+40)
+ 
+#define CONFIG_ID_END					(CONFIG_ID_START+64)
+
 /***************************************************************************/
 /*                        Base file pasring definitions                    */
 /***************************************************************************/
-#define BASE_ID_START        	(FUNC_ID_END+1)
+#define BASE_ID_START        	(CONFIG_ID_END+1)
 #define BASE_MODULE_PATH_ID     BASE_ID_START
 #define BASE_AUDIO_PATH_ID      BASE_ID_START+1
 #define BASE_ICON_PATH_ID     	BASE_ID_START+2

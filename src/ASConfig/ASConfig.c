@@ -86,17 +86,6 @@
  * 		$(AFTER_DIR)/$(START_DIR)      - user menu	 
  * 		$(AFTER_SHAREDIR)/$(START_DIR) - global menu ( editable by root only )
  * 
- *  Theme : 
- * 		Loaded file :  - as decided by Session
- * 		Available Files : 
- * 			User files : 
- * 				$(AFTER_DIR)/$(THEME_FILE_DIR)/theme.*
- * 			Shared Files : 
- * 				$(AFTER_SHAREDIR)/$(THEME_FILE_DIR)/theme.*	 ( editable by root only )
- * 			Selected default :   
- * 				$(AFTER_DIR)/$(AFTER_NONCF)/0_theme.#scr or :
- * 				$(AFTER_DIR)/$(AFTER_NONCF)/0_theme
- * 
  * 	Theme override :
  * 		$(AFTER_DIR)/$(THEME_OVERRIDE_FILE)
  * 
@@ -119,14 +108,15 @@
  * Possible outcomes : 
  * 
  * Base == Base
- * Look == Colorscheme + Look + Theme + ThemeOverride + ModuleMyStyles
- * Feel == Feel + Theme + ThemeOverride
- * Functions == Feel + Theme + ThemeOverride + Autoexec + WorspaceState
- * Popups == Feel + Theme + ThemeOverride + startmenu
+ * ColorScheme == Colorscheme
+ * Look == Look + ThemeOverride + ModuleMyStyles
+ * Feel == Feel + ThemeOverride
+ * Functions == Feel + ThemeOverride + Autoexec + WorspaceState
+ * Popups == Feel + ThemeOverride + startmenu
  * Database == Database
- * Pager == pager + Theme + ThemeOverride
- * Wharf == wharf + Theme + ThemeOverride
- * WinList == winlist + Theme + ThemeOverride
+ * Pager == pager + Look.ModuleLook + ThemeOverride
+ * Wharf == wharf + Look.ModuleLook + ThemeOverride
+ * WinList == winlist + Look.ModuleLook + ThemeOverride
  * 
  * 
  */
@@ -148,15 +138,30 @@
 
 
 /*************************************************************************/
+typedef enum 
+{
+	ASProp_Phony = 0,
+	ASProp_Integer,
+	ASProp_Data,
+	ASProp_Image,
+	ASProp_Color,
+	ASProp_Gradient,
+	ASProp_File,
+	ASProp_ContentsTypes		   
+}ASPropContentsType;
+
 typedef struct ASProperty {
-	int type ;
-	int contents_type ;
+	unsigned short type ;                 /* same a options IDs from autoconf.h */
+
+	unsigned short contents_type ;
+	char *name ;
 	union {
 		int 		 integer ;
 		ASStorageID  data;			
 		ASImage 	*im ;
 		ARGB32		 argb ;
 		ASGradient  *grad ;
+		ASConfigFile *config_file ;
 	}contents;
 	
 	ASBiDirList *sub_props ;	   
@@ -165,21 +170,132 @@ typedef struct ASProperty {
 typedef struct ASConfigFile {
 	char *dirname ;
 	char *filename ;
-	char *fullname ;
 	char *myname ;
+	
+	char *fullname ;
+	SyntaxDef *syntax ;
+
+	Bool writeable ;
 
 	FreeStorageElem *free_storage ;
 
 }ASConfigFile;
 
-typedef struct ASPropertyRoot {
-	ASConfigFile *source ;
-	ASProperty   *prop ;
-
-	void  (*on_property_changed)(ASProperty *prop);
-}ASPropertyRoot;
-
+/* hiererchy : 
+ * root
+ * 		Base
+ * 			Options
+ * 			File
+ * 
+ * 		ColorScheme
+ * 			Options
+ * 			File
+ * 
+ * 		Look 
+ * 			MyStyles
+ * 				mystyles...
+ * 			MyFrames
+ * 				myframes...
+ * 			MyBackgrounds
+ * 				mybackground...
+ * 			TitleButtons
+ * 				buttons...
+ * 			Options
+ * 			Files
+ * 				look
+ * 				theme-override
+ * 				pager
+ * 				wharf
+ * 				winlist
+ * 		Feel
+ * 			Options
+ * 			Files			
+ * 				feel
+ * 				theme-override
+ * 
+ * 		Functions
+ * 			complex_functions...
+ * 			Files
+ * 				feel
+ * 				theme-override
+ *  			autoexec
+ * 				workspace_state
+ * 
+ * 		Popups
+ * 			menus...
+ * 			Files
+ * 				feel
+ * 				theme-override
+ * 				start
+ * 
+ * 		Database
+ * 			Styles
+ * 				styles...
+ * 			Files
+ * 				database
+ * 
+ * 		Pager
+ * 			Options
+ * 			Files
+ * 				Look
+ * 				theme-override
+ * 				pager
+ * 		Wharf
+ * 			RootFolder
+ * 				entries...
+ * 				[SubFolder]
+ * 			Options
+ * 			Files
+ * 				Look
+ * 				theme-override
+ * 			 	wharf
+ * 		WinList 
+ * 			Options
+ * 			Files
+ * 				Look
+ * 				theme-override
+ * 				winlist
+ * 		PrivateFiles
+ * 			base
+ * 			database
+ * 			autoexec
+ * 			theme_override
+ * 			pager
+ * 			wharf
+ * 			winlist
+ * 			Colorschemes
+ * 				schemes...
+ * 			Looks
+ * 				looks...
+ * 			Feels
+ * 				feels...
+ * 			Backgrounds
+ * 				backgrounds...
+ * 		SharedFiles
+ * 			base
+ * 			database
+ * 			autoexec
+ * 			theme_override
+ * 			pager
+ * 			wharf
+ * 			winlist
+ * 			Colorschemes
+ * 				schemes...
+ * 			Looks
+ * 				looks...
+ * 			Feels
+ * 				feels...
+ * 			Backgrounds
+ * 				backgrounds...
+ */
+  		
 /*************************************************************************/
+
+
+ASProperty *Root = NULL;
+
+
+
 /*************************************************************************/
 void
 DeadPipe (int foo)
@@ -202,6 +318,9 @@ DeadPipe (int foo)
     exit (0);
 }
 
+
+
+
 int
 main (int argc, char **argv)
 {
@@ -209,30 +328,148 @@ main (int argc, char **argv)
     InitMyApp (CLASS_ASCONFIG, argc, argv, NULL, NULL, 0 );
 	InitSession();
 
+	load_hierarchy();
 	
 	if( dpy )   
     	XCloseDisplay (dpy);
     return 0;
 }
 /**************************************************************************/
-void
-load_file()
+ASConfigFile *
+load_config_file(const char *dirname, const char filename, const char *myname, SyntaxDef *syntax )
 {
-	char *configfile = make_session_file(Session, BASE_FILE, False );
-	if( configfile != NULL )
+	ASConfigFile * ascf ;
+		
+	if( (dirname == NULL && filename == NULL) || syntax == NULL ) 
+		return NULL;
+
+	ascf = safecalloc( 1, sizeof(ASConfigFile));
+	if( dirname == NULL ) 
+		parse_file_name(filename, &(ascf->dirname), &(ascf->filename));
+	else
 	{
-		FreeStorageElem *storage = file2free_storage(configfile, "afterstep", &BaseSyntax, NULL );
+		ascf->dirname = mystrdup( dirname );
+		ascf->filename = mystrdup( filename );
+	}	 
 
-		if( storage != NULL )
-			show_progress("BASE configuration loaded from \"%s\" ...", configfile);
-		else
-			show_progress("BASE could not be loaded from \"%s\" ...", configfile);
-		if( configfile != Session->overriding_file )
-			free( configfile );
-	}else
-        show_warning("BASE configuration file cannot be found");
+	ascf->fullname = dirname?make_file_name( dirname, filename ): mystrdup(filename) ;
+	ascf->writeable = (check_file_mode (ascf->fullname, W_OK) == 0);
+	ascf->myname = mystrdup(myname);
 
+	ascf->free_storage = file2free_storage(ascf->fullname, ascf->myname, syntax, NULL );
+	ascf->syntax = syntax ;
+
+	return ascf;
+}	 
+
+void destroy_config_file( ASConfigFile *ascf ) 
+{
+	if( ascf->dirname ) 
+		free( ascf->dirname );
+	if( ascf->filename ) 
+		free( ascf->filename );
+	if( ascf->fullname ) 
+		free( ascf->fullname );
+	if( ascf->myname ) 
+		free( ascf->myname );
+	if( ascf->free_storage ) 
+		DestroyFreeStorage( &(ascf->free_storage) );
+	
+}	 
+
+/*************************************************************************/
+ASProperty *
+create_property( int type, ASPropContentsType contents_type, const char *name, Bool tree )
+{
+	ASProperty *prop = safecalloc( 1, sizeof(ASProperty));
+	prop->type = type ;
+	prop->contents_type = contents_type ;
+	prop->name = mystrdup(name) ;
+	if( tree ) 
+		prop->sub_props = create_asbidirlist( destroy_property ) ;
+}
+
+void destroy_property( void *data )
+{
+	ASProperty *prop = (ASProperty*)data;
+
+	if( prop )
+	{	
+		if( prop->name ) 
+			free( prop->name );
+		switch( prop->contents_type ) 
+		{
+			case ASProp_Phony : break;
+			case ASProp_Integer : break;
+			case ASProp_Data : forget_data(NULL, prop->contents.data); break ;
+			case ASProp_Image : safe_asimage_destroy( prop->contents.im ); break;
+			case ASProp_Color : break;
+			case ASProp_Gradient : destroy_asgradient( &(prop->contents.grad) ); break;
+			case ASProp_File : destroy_config_file( prop->contents.config_file ); break;
+		}	 
+	
+		if( prop->sub_props ) 
+			destroy_asbidirlist( &(prop->sub_props) ); 
+		free( prop );
+	}
+}	 
+
+void 
+free_storage2property_list( FreeStorage *fs, ASProperty *pl )
+{
 	
 	
+}
+
+
+void 
+merge_property_list( ASProperty *src, ASProperty *dst )
+{
+		
+	
+}
+
+/*************************************************************************/
+void 
+load_hierarchy()
+{
+	ASProperty *tmp ;
+	
+	Root = create_property( CONFIG_root_ID, ASProp_Phony, "", True );
+		
+	if( (tmp = load_Base()) != NULL ) 
+		append_bidirelem( Root->sub_props, tmp );
+		
+	
+}
+/*************************************************************************/
+ASProperty* 
+load_Base()
+{
+	ASProperty *base = create_property( CONFIG_Base_ID, ASProp_Phony, "Base", True );
+	char *filename = make_session_file(Session, BASE_FILE, False );
+	ASConfigFile *cf = NULL ;
+
+	if( filename )
+	{	
+		cf = load_config_file(NULL, filename, "afterstep", &BaseSyntax );
+		free( filename );
+	}
+	
+	if( cf ) 
+	{
+		ASProperty *file, *opts ;
+
+		file = create_property( CONFIG_BaseFile_ID, ASProp_File, "File", True );
+		file->content.config_file = cf ;
+		
+		free_storage2property_list( cf->free_storage, file );
+ 		append_bidirelem( base->sub_prop, file );			   
+			
+		opts = create_property( CONFIG_BaseOptions_ID, ASProp_Phony, "Options", True );
+		merge_property_list( file, opts );
+		append_bidirelem( base->sub_prop, opts );			   
+	}	 
+	return base;
 }	 
 
