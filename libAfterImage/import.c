@@ -774,7 +774,7 @@ png2ASImage( const char * path, ASImageImportParams *params )
 					color_type = PNG_COLOR_TYPE_GRAY_ALPHA ;
   */
 				if (png_get_sRGB (png_ptr, info_ptr, &intent))
-                    png_set_sRGB (png_ptr, info_ptr, DEFAULT_PNG_IMAGE_GAMMA);
+                    png_set_gamma (png_ptr, params->gamma, DEFAULT_PNG_IMAGE_GAMMA);
 				else if (png_get_gAMA (png_ptr, info_ptr, &image_gamma))
 					png_set_gamma (png_ptr, params->gamma, image_gamma);
 				else
@@ -1640,7 +1640,7 @@ tiff2ASImage( const char * path, ASImageImportParams *params )
 		return NULL;   
 	}		
 
-	if( rows_per_strip < 0 || rows_per_strip > height ) 
+	if( rows_per_strip == 0 || rows_per_strip > height ) 
 		rows_per_strip = height ;
 	if( depth <= 0 ) 
 		depth = 4 ;
@@ -1670,7 +1670,7 @@ tiff2ASImage( const char * path, ASImageImportParams *params )
 			
 			while( first_row < height ) 
 			{	
-				if (TIFFReadRGBAStrip(tif, first_row, data))
+				if (TIFFReadRGBAStrip(tif, first_row, (void*)data))
 				{
 					register CARD32 *row = data ;
 					int y = first_row + rows_per_strip ;

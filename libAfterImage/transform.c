@@ -629,11 +629,11 @@ check_scale_parameters( ASImage *src, unsigned int *to_width, unsigned int *to_h
 	if( src == NULL )
 		return False;
 
-	if( *to_width < 0 )
+	if( *to_width == 0 )
 		*to_width = src->width ;
 	else if( *to_width < 2 )
 		*to_width = 2 ;
-	if( *to_height < 0 )
+	if( *to_height == 0 )
 		*to_height = src->height ;
 	else if( *to_height < 2 )
 		*to_height = 2 ;
@@ -1853,7 +1853,10 @@ colorize_asimage_vector( ASVisual *asv, ASImage *im,
 			multipliers[y] = safemalloc( last_point*sizeof(double));
 			for( x = 0 ; x < last_point ; ++x )
 			{
-				multipliers[y][x] = (double)(palette->channels[y][x+1] - palette->channels[y][x])/
+				if (points[x+1] == points[x])
+      				multipliers[y][x] = 1;
+				else
+					multipliers[y][x] = (double)(palette->channels[y][x+1] - palette->channels[y][x])/
 				                 	        (points[x+1]-points[x]);
 /*				fprintf( stderr, "%e-%e/%e-%e=%e ", (double)palette->channels[y][x+1], (double)palette->channels[y][x],
 				                 	        points[x+1], points[x], multipliers[y][x] );

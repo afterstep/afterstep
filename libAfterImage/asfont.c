@@ -1128,7 +1128,7 @@ split_freetype_glyph_range( unsigned long min_char, unsigned long max_char, FT_F
 LOCAL_DEBUG_CALLER_OUT( "min_char = %lu, max_char = %lu, face = %p", min_char, max_char, face );
 	while( min_char <= max_char )
 	{
-		register long i = min_char;
+		register unsigned long i = min_char;
 		while( i <= max_char && FT_Get_Char_Index( face, CHAR2UNICODE(i)) == 0 ) i++ ;
 		if( i <= max_char )
 		{
@@ -1176,7 +1176,7 @@ load_freetype_locale_glyph( ASFont *font, UNICODE_CHAR uc )
 static void
 load_freetype_locale_glyphs( unsigned long min_char, unsigned long max_char, ASFont *font )
 {
-	register int i = min_char ;
+	register unsigned long i = min_char ;
 LOCAL_DEBUG_CALLER_OUT( "min_char = %lu, max_char = %lu, font = %p", min_char, max_char, font );
 	if( font->locale_glyphs == NULL )
 		font->locale_glyphs = create_ashash( 0, NULL, NULL, asglyph_destroy );
@@ -1193,7 +1193,6 @@ static int
 load_freetype_glyphs( ASFont *font )
 {
 	int max_ascend = 0, max_descend = 0;
-	unsigned long i ;
 	ASGlyphRange *r ;
 
     /* we preload only codes in range 0x21-0xFF in current charset */
@@ -1214,10 +1213,16 @@ load_freetype_glyphs( ASFont *font )
 	{
 		for( r = font->codemap ; r != NULL ; r = r->above )
 		{
-			int min_char = r->min_char ;
-			int max_char = r->max_char ;
-
-            r->glyphs = safecalloc( ((int)max_char - (int)min_char) + 1, sizeof(ASGlyph));
+			long min_char = r->min_char ;
+			long max_char = r->max_char ;
+			long i ;
+			if( max_char < min_char ) 
+			{
+				i = max_char ; 
+				max_char = min_char ; 
+				min_char = i ;	 
+			}	 
+            r->glyphs = safecalloc( (max_char - min_char) + 1, sizeof(ASGlyph));
 			for( i = min_char ; i < max_char ; ++i )
 			{
 				if( i != ' ' && i != '\t' && i!= '\n' )

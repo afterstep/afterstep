@@ -1034,7 +1034,7 @@ vectorize_asimage( ASImage *im, unsigned int max_colors, unsigned int dither,
 	ASColormap cmap;
 	int *res;
     unsigned int r, g, b, v;
-	int x, y, j ;
+	unsigned int x, y, j ;
 
 	if( im->alt.vector == NULL )
 		im->alt.vector = safemalloc( im->width*im->height*sizeof(double));

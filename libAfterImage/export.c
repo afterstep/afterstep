@@ -543,7 +543,7 @@ void asim_png_write_data(png_structp png_ptr, png_bytep data, png_size_t length)
 	ASImPNGBuffer *buff = (ASImPNGBuffer*) png_get_io_ptr(png_ptr); 
 	if( buff && length > 0 )
 	{
-		if( buff->used_size + length > buff->allocated_size ) 
+		if( buff->used_size + length > (unsigned int)buff->allocated_size ) 
 		{                      /* allocating in 2048 byte increements : */
 			buff->allocated_size = (buff->used_size + length + 2048)&0xFFFFF800 ; 
 			buff->buffer = realloc( buff->buffer, buff->allocated_size );

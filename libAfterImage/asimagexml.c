@@ -747,7 +747,8 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
  *       opacity="value" replace="0|1" delay="mlsecs">
  * ATTRIBUTES
  * id       Optional.  Image will be given this name for future reference.
- * dst      Required.  Name of file image will be saved to.
+ * dst      Optional.  Name of file image will be saved to. If omitted
+ *          image will be dumped into stdout - usefull for CGI apps.
  * format   Optional.  Ouput format of saved image.  Defaults to the
  *          extension of the "dst" parameter.  Valid values are the
  *          standard AS image file formats: xpm, jpg, png, gif, tiff.
