@@ -58,6 +58,7 @@ safemalloc (size_t length)
 
 	if (length <= 0)
 		length = 1;
+#if 0
 #ifdef DEBUG_ALLOCS
 	else if( length > 1000000 )
 	{
@@ -65,6 +66,7 @@ safemalloc (size_t length)
 		print_simple_backtrace();
 		exit(0);
 	}
+#endif
 #endif
 
 	if( length > MAX_BLOCK )
