@@ -364,13 +364,15 @@ list_scanline_merging(FILE* stream, const char *format)
 	register CARD32 *ta = top->alpha, *tr = top->red, *tg = top->green, *tb = top->blue; \
 	register CARD32 *ba = bottom->alpha, *br = bottom->red, *bg = bottom->green, *bb = bottom->blue; \
 	if( offset < 0 ){ \
-		ta -= offset ;	tr -= offset ;	tg -= offset ;	tb -= offset ; \
-		if( top->width+offset < max_i )	max_i = (int)(top->width)+offset ; \
-	}else if( offset > 0 ){ \
-		ba += offset ;	br += offset ;	bg += offset ;	bb += offset ; \
-		max_i -= offset ; \
+		offset = -offset ; \
+		ta += offset ;	tr += offset ;	tg += offset ;	tb += offset ; \
+		if( (int)top->width-offset < max_i )	max_i = (int)(top->width)-offset ; \
+	}else{ \
+		if( offset > 0 ){ \
+			ba += offset ;	br += offset ;	bg += offset ;	bb += offset ; \
+			max_i -= offset ; }	\
 		if( (int)(top->width) < max_i )	max_i = top->width ; \
-	}else if( max_i > top->width ) max_i = top->width;
+	}
 
 
 

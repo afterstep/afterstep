@@ -18,8 +18,8 @@
 
 #include "config.h"
 
-/*#define LOCAL_DEBUG*/
-/*#define DO_CLOCKING*/
+/* #define LOCAL_DEBUG */
+#define DO_CLOCKING
 
 #define USE_64BIT_FPU
 
@@ -856,7 +856,8 @@ LOCAL_DEBUG_CALLER_OUT( "dst_width = %d, dst_height = %d", dst_width, dst_height
 	for( i = 0 ; i < count ; i++ )
 	{
 		/* all laayers but first must have valid image or solid_color ! */
-		if( pcurr->im != NULL || pcurr->solid_color != 0 || i == 0 )
+		if( (pcurr->im != NULL || pcurr->solid_color != 0 || i == 0) &&
+			pcurr->dst_x < (int)dst_width && pcurr->dst_x+(int)pcurr->clip_width > 0 )
 		{
 			imdecs[i] = start_image_decoding(asv, pcurr->im, SCL_DO_ALL,
 				                             pcurr->clip_x, pcurr->clip_y,
@@ -927,7 +928,7 @@ LOCAL_DEBUG_OUT( "min_y = %d, max_y = %d", min_y, max_y );
 			if( imdecs[i] && pcurr->dst_y < min_y  )
 				imdecs[i]->next_line = min_y - pcurr->dst_y ;
 			pcurr = (pcurr->next!=NULL)?pcurr->next:pcurr+1 ;
-		}				
+		}
 		for( ; y < max_y ; ++y  )
 		{
 			if( layers[0].dst_y <= y && bg_bottom > y )
@@ -942,8 +943,7 @@ LOCAL_DEBUG_OUT( "min_y = %d, max_y = %d", min_y, max_y );
 			for( i = 1 ; i < count ; i++ )
 			{
 				if( imdecs[i] && pcurr->dst_y <= y &&
-					pcurr->dst_y+pcurr->clip_height+imdecs[i]->bevel_v_addon > y &&
-					pcurr->dst_x < dst_width && pcurr->dst_x+(int)pcurr->clip_width > 0 )
+					pcurr->dst_y+(int)pcurr->clip_height+(int)imdecs[i]->bevel_v_addon > y )
 				{
 					register ASScanline *b = &(imdecs[i]->buffer);
 					CARD32 tint = pcurr->tint ;
@@ -972,7 +972,9 @@ LOCAL_DEBUG_OUT( "min_y = %d, max_y = %d", min_y, max_y );
 #endif
 	for( i = 0 ; i < count ; i++ )
 		if( imdecs[i] != NULL )
+		{
 			stop_image_decoding( &(imdecs[i]) );
+		}
 	free( imdecs );
 	if( fake_bg )
 	{

@@ -1036,10 +1036,12 @@ CARD32 color2pixel32rgb(ASVisual *asv, CARD32 encoded_color, unsigned long *pixe
 }
 CARD32 color2pixel24bgr(ASVisual *asv, CARD32 encoded_color, unsigned long *pixel)
 {
+	*pixel = encoded_color&0x00FFFFFF;
 	return 0;
 }
 CARD32 color2pixel24rgb(ASVisual *asv, CARD32 encoded_color, unsigned long *pixel)
 {
+	*pixel = encoded_color&0x00FFFFFF;
 	return 0;
 }
 CARD32 color2pixel16bgr(ASVisual *asv, CARD32 encoded_color, unsigned long *pixel)
