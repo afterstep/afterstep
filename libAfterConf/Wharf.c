@@ -155,18 +155,29 @@ DestroyWharfButton (WharfButton **pbtn)
 	if (btn->title != NULL)
 		free (btn->title);
 
-	if (btn->icon != NULL)
+	if( btn->contents )
 	{
-		for (i = 0; btn->icon[i] != NULL; i++)
-			free (btn->icon[i]);
-		free (btn->icon);
+		int k ;
+		for( k = 0 ; k < btn->contents_num ; ++k )
+		{
+			char **icon = btn->contents[k].icon ;
+			FunctionData *function = btn->contents[k].function ;
+			if (icon != NULL)
+			{
+				for (i = 0; icon[i] != NULL; i++)
+					free (icon[i]);
+				free (icon);
+			}
+
+			if (function)
+			{
+				free_func_data (function);
+				free (function);
+			}
+		}
+		free( btn->contents ) ;
 	}
 
-	if (btn->function)
-	{
-		free_func_data (btn->function);
-		free (btn->function);
-	}
 
 	while (btn->folder)
         DestroyWharfButton (&(btn->folder));
@@ -229,16 +240,28 @@ print_wharf_folder( WharfButton *folder, int level )
         show_progress("WHARF.FOLDER[%d].BUTTON[%d].title=\"%s\";", my_level, count, folder->title );
         show_progress("WHARF.FOLDER[%d].BUTTON[%d].width=%d;", my_level, count, folder->width );
         show_progress("WHARF.FOLDER[%d].BUTTON[%d].height=%d;", my_level, count, folder->height );
-        if( folder->icon )
-            while( folder->icon[i] != NULL )
-            {
-                show_progress("WHARF.FOLDER[%d].BUTTON[%d].icon[%d]=\"%s\";", my_level, count, i, folder->icon[i] );
-                ++i;
-            }
-        if( folder->function )
-            print_func_data(__FILE__, __FUNCTION__, __LINE__, folder->function);
-        else
-            show_progress( "no function attached" );
+		if( folder->contents )
+		{
+			int k ;
+			for( k = 0 ; k < folder->contents_num ; ++k )
+			{
+				char **icon = folder->contents[k].icon ;
+				FunctionData *function = folder->contents[k].function ;
+				i = 0 ;
+        		if( icon )
+            		while( icon[i] != NULL )
+            		{
+                		show_progress("WHARF.FOLDER[%d].BUTTON[%d].CONTNTS[%d].icon[%d]=\"%s\";", my_level, count, k, i, icon[i] );
+                		++i;
+            		}
+        		if( function )
+            		print_func_data(__FILE__, __FUNCTION__, __LINE__, function);
+        		else
+            		show_progress( "no function attached" );
+			}
+		}else
+           	show_progress( "no contents attached" );
+
         if( folder->folder )
             level = print_wharf_folder( folder->folder, level+1 );
         ++count ;
@@ -405,6 +428,7 @@ ParseWharfItem (FreeStorageElem * storage, WharfButton **folder)
 {
     WharfButton *wb = *folder, **insert = folder ;
     Bool no_title ;
+	WharfButtonContent wbc = {	NULL, NULL	};
 
     if (storage == NULL || folder == NULL)
         return;
@@ -460,12 +484,7 @@ ParseWharfItem (FreeStorageElem * storage, WharfButton **folder)
             }
         }
 
-        if( new_icon_list != NULL )
-        {
-            if (wb->icon)
-               free (wb->icon);
-            wb->icon = new_icon_list ;
-        }
+		wbc.icon = new_icon_list ;
     }
 
 LOCAL_DEBUG_OUT( "wharf button \"%s\" has substorage set to %p", wb->title, storage->sub );
@@ -501,15 +520,20 @@ LOCAL_DEBUG_OUT( "term for keyword \"%s\" found in substorage", pterm->keyword )
 						item.ok_to_free=1 ;
 					}else
 					{
-						if (wb->function)
-                        	destroy_func_data (&(wb->function));
-                    	wb->function = item.data.function;
+                    	wbc.function = item.data.function;
 						item.ok_to_free = 0 ;
 					}
 					ReadConfigItem( &item, NULL );
 				}
 			}
 		}
+	}
+	if( wbc.function != NULL || wbc.icon != NULL )
+	{
+		int c = wb->contents_num ;
+		++(wb->contents_num);
+		wb->contents = realloc( wb->contents, wb->contents_num * sizeof(WharfButtonContent));
+		wb->contents[c] = wbc ;
 	}
 }
 

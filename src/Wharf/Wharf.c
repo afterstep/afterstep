@@ -696,18 +696,35 @@ build_wharf_button_tbar(WharfButton *wb)
         else
             label_align = ALIGN_LEFT|ALIGN_BOTTOM ;
     }
-    if( wb->icon )
-    {
-        register int i = -1;
-        while( wb->icon[++i] )
-        {
-            ASImage *im = NULL ;
-            /* load image here */
-            im = get_asimage( Scr.image_manager, wb->icon[i], ASFLAGS_EVERYTHING, 100 );
-            if( im )
-                add_astbar_icon( bar, icon_col, icon_row, 0, Config->align_contents, im );
-        }
-    }
+	if( wb->contents )
+	{
+		char ** icon = NULL ;
+		if( wb->selected_content >= 0 && wb->selected_content < wb->contents_num )
+			icon = wb->contents[wb->selected_content].icon ;
+		if( icon == NULL )
+		{
+			register int i ;
+			for( i = 0 ; i < wb->contents_num ; ++i )
+				if( wb->contents[i].icon != NULL )
+				{
+					icon = wb->contents[i].icon ;
+					break;
+				}
+		}
+
+    	if( icon )
+    	{
+        	register int i = -1;
+        	while( icon[++i] )
+        	{
+            	ASImage *im = NULL ;
+            	/* load image here */
+            	im = get_asimage( Scr.image_manager, icon[i], ASFLAGS_EVERYTHING, 100 );
+            	if( im )
+                	add_astbar_icon( bar, icon_col, icon_row, 0, Config->align_contents, im );
+        	}
+    	}
+	}
 
     set_astbar_composition_method( bar, BAR_STATE_UNFOCUSED, Config->composition_method );
 
@@ -764,21 +781,34 @@ build_wharf_folder( WharfButton *list, ASWharfButton *parent, Bool vertical )
     WharfButton *wb = list ;
     while( wb )
     {
-		Bool disabled = False ;
-        if( wb->function )
+		Bool disabled = True ;
+		int i = 0 ;
+		for( i = 0 ; i < wb->contents_num ; ++i )
 		{
-			int func = wb->function->func ;
-			if( func == F_EXEC ||
-				(func >=  F_SWALLOW_FUNC_START &&
-				 func <=  F_SWALLOW_FUNC_END ) )
+			FunctionData *function = wb->contents[i].function ;
+
+	        if( function )
 			{
-			   disabled = (!is_executable_in_path (wb->function->text));
+				int func = function->func ;
+				if( IsSwallowFunc(func) || IsExecFunc(func) )
+				{
+			   		disabled = (!is_executable_in_path (function->text));
+					if( disabled )
+						show_warning( "Application \"%s\" cannot be found in the PATH.", function->text );
+
+				}else
+					disabled = False ;
+			}
+			if( !disabled )
+			{
+				wb->selected_content = i ;
+				break;
 			}
 		}
 		if( disabled )
 		{
 			set_flags( wb->set_flags, WHARF_BUTTON_DISABLED );
-			show_warning( "Application \"%s\" cannot be found in the PATH. Button will be disabled", wb->function->text );
+			show_warning( "None of Applications assigned to the button \"%s\" cannot be found in the PATH. Button will be disabled", wb->title?wb->title:"-" );
 		}else
 			++count ;
         wb = wb->next ;
@@ -796,6 +826,8 @@ build_wharf_folder( WharfButton *list, ASWharfButton *parent, Bool vertical )
         wb = list;
         while( wb )
         {
+			FunctionData *function ;
+
 			if( get_flags( wb->set_flags, WHARF_BUTTON_DISABLED ) )
 			{
 				wb = wb->next ;
@@ -803,10 +835,11 @@ build_wharf_folder( WharfButton *list, ASWharfButton *parent, Bool vertical )
 			}
 
             aswb->name = mystrdup( wb->title );
-            if( wb->function )
+			function = wb->contents[wb->selected_content].function ;
+            if( function )
             {
                 aswb->fdata = safecalloc( 1, sizeof(FunctionData) );
-                dup_func_data( aswb->fdata, wb->function );
+                dup_func_data( aswb->fdata, function );
                 if( IsSwallowFunc(aswb->fdata->func) )
                 {
                     set_flags( aswb->flags, ASW_SwallowTarget );

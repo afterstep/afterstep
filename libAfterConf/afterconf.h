@@ -950,6 +950,12 @@ int WriteDatabaseOptions (const char *filename, char *myname,
 struct WharfFolder;
 struct FunctionData;
 
+typedef struct WharfButtonContent
+{
+	char **icon;
+  	struct FunctionData *function;
+}WharfButtonContent ;
+
 typedef struct WharfButton
 {
 #define WHARF_BUTTON_WIDTH			(0x01<<0)
@@ -960,11 +966,13 @@ typedef struct WharfButton
 
   unsigned long set_flags;
   char *title;
-  char **icon;
-
   unsigned int width, height;
 
-  struct FunctionData *function;
+  /* there could be several functions/icons assigned to the wharf button,
+   * we will use the first available one (non-exec function or exec with available application ) */
+  WharfButtonContent *contents ;
+  int contents_num, selected_content ;
+
   struct WharfButton  *next;
   struct WharfButton  *folder;
 }

@@ -658,7 +658,7 @@ check_availability( MenuDataItem *mdi )
 {
     clear_flags( mdi->flags, MD_Disabled );
 #ifndef NO_AVAILABILITYCHECK
-    if (mdi->fdata->func == F_EXEC)
+    if ( IsSwallowFunc(mdi->fdata->func) || IsExecFunc(mdi->fdata->func) )
     {
         if (!is_executable_in_path (mdi->fdata->text))
         {

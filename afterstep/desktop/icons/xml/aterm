@@ -1,0 +1,4 @@
+<composite>
+	<img src="large/Monitor1"/>
+	<img src="logos/aterm" x=2 y=5/>
+</composite>
