@@ -379,6 +379,63 @@ mystyle_flip_image( ASImage *im, int width, int height, int flip )
 	return im;
 }
 
+static ASImage *
+clip_root_pixmap( Pixmap root_pixmap, int width, int height )
+{
+	ASImage *result = NULL ;
+
+	if (root_pixmap)
+	{
+    	ASImage *tmp_root ;
+		int root_x = 0, root_y = 0 ;
+		int clip_x = Scr.RootClipArea.x ;
+		int clip_y = Scr.RootClipArea.y ;
+
+		while( clip_x < 0 )
+			clip_x += Scr.MyDisplayWidth ;
+		clip_x %= width ;
+		while( clip_y < 0 )
+			clip_y += Scr.MyDisplayHeight ;
+		clip_y %= height ;
+
+		/* at this point clip_x and clip_y fall into root pixmap */
+
+		if( clip_x + Scr.RootClipArea.width  <= width  ) 
+		{
+			root_x = clip_x ; 
+			width = Scr.RootClipArea.width ;
+		}
+		if( clip_y + Scr.RootClipArea.height <= height  ) 
+		{
+			root_y = clip_y ; 
+			height = Scr.RootClipArea.height  ;
+		}
+		/* fprintf( stderr, "RootPixmap2RootImage %dx%d%+d%+d", root_w, root_h, root_x,
+		root_y); */
+    	tmp_root = pixmap2asimage (Scr.asv, root_pixmap, root_x, root_y, width, height, AllPlanes, False, 100);
+
+		LOCAL_DEBUG_OUT ("Root pixmap ASImage = %p, size = %dx%d", tmp_root, tmp_root?tmp_root->width:0, tmp_root?tmp_root->height:0);
+    	if( tmp_root )
+    	{
+        	if( clip_x == root_x && clip_y == root_y &&
+            	Scr.RootClipArea.width == width && Scr.RootClipArea.height == height )
+        	{
+            	result = tmp_root ;
+        	}else
+        	{
+            	result = tile_asimage ( Scr.asv, tmp_root,
+										(clip_x == root_x)?0:Scr.RootClipArea.x, 
+										(clip_y == root_y)?0:Scr.RootClipArea.y,
+                                        Scr.RootClipArea.width, Scr.RootClipArea.height, TINT_NONE,
+                                        ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT);
+            	destroy_asimage( &tmp_root );
+        	}
+    	}
+    }
+	return result;
+}	 
+
+
 ASImage      *
 mystyle_make_image (MyStyle * style, int root_x, int root_y, int width, int height, int flip )
 {
@@ -403,52 +460,9 @@ mystyle_make_image (MyStyle * style, int root_x, int root_y, int width, int heig
 		 {
 			 root_pixmap = ValidatePixmap (None, 1, 1, &root_w, &root_h);
 			 LOCAL_DEBUG_OUT ("obtained Root pixmap = %lX", root_pixmap);
-			 if (root_pixmap)
-			 {
-                ASImage *tmp_root ;
-				int root_x = 0, root_y = 0 ;
-
-				if( Scr.RootClipArea.x + Scr.RootClipArea.width  < (int)root_w  ) 
-				{
-					if( Scr.RootClipArea.x > 0 ) 
-						root_x = Scr.RootClipArea.x ; 
-					root_w = (Scr.RootClipArea.x + Scr.RootClipArea.width) - root_x ;
-					if( root_w < 0 ) 
-						root_w = 1;
-				}
-				if( Scr.RootClipArea.y + Scr.RootClipArea.height  < (int)root_h  ) 
-				{
-					if( Scr.RootClipArea.y > 0 ) 
-						root_y = Scr.RootClipArea.y ; 
-					root_h = (Scr.RootClipArea.y + Scr.RootClipArea.height ) - root_y ;
-					if( root_h < 0 ) 
-						root_h = 1;
-				}
-				/* fprintf( stderr, "RootPixmap2RootImage %dx%d%+d%+d", root_w, root_h, root_x,
-				root_y); */
-                tmp_root = pixmap2asimage (Scr.asv, root_pixmap, root_x, root_y, root_w, root_h, AllPlanes, False, 100);
-
-				LOCAL_DEBUG_OUT ("Root pixmap ASImage = %p, size = %dx%d", tmp_root, tmp_root?tmp_root->width:0, tmp_root?tmp_root->height:0);
-                if( tmp_root )
-                {
-                    if( Scr.RootClipArea.x == root_x && Scr.RootClipArea.y == root_y &&
-                        Scr.RootClipArea.width == root_w && Scr.RootClipArea.height == root_h )
-                    {
-                        Scr.RootImage = tmp_root ;
-                    }else
-                    {
-                        Scr.RootImage = tile_asimage (Scr.asv, tmp_root,
-											(Scr.RootClipArea.x<0)?root_x-Scr.RootClipArea.x: 
-																   Scr.RootClipArea.x - root_x, 
-											(Scr.RootClipArea.y<0)?root_y - Scr.RootClipArea.y:
-																   Scr.RootClipArea.y - root_y,
-                                                    Scr.RootClipArea.width, Scr.RootClipArea.height, TINT_NONE,
-                                                    ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT);
-                        destroy_asimage( &tmp_root );
-                    }
-                }
-             }
-             if( Scr.RootImage == NULL )
+			 Scr.RootImage = clip_root_pixmap( root_pixmap, root_w, root_h );
+             
+			 if( Scr.RootImage == NULL )
              {
                 if( (Scr.RootImage = grab_root_asimage( &Scr, None, False )) != NULL )
                 {
