@@ -62,6 +62,7 @@ install.dyn:
 install.inc:
 		@( \
                 if [ -f $(CONFIG_SCRIPT) ] ; then \
+			echo "$(INSTALL_SCRIPT) $(CONFIG_SCRIPT) $(AFTER_BIN_DIR)"; \
                         $(INSTALL_SCRIPT) $(CONFIG_SCRIPT) $(AFTER_BIN_DIR); \
                 fi; \
                  if [ -d $(AFTER_INC_DIR) ]; then \

@@ -91,7 +91,7 @@ main (int argc, char **argv)
 	Bool bypass_autoexec = False ;
 
 #ifdef LOCAL_DEBUG
-#if 1
+#if 0
 	LOCAL_DEBUG_OUT( "calibrating sleep_a_millisec : %s","" );
 	for( i = 0 ; i < 500 ; ++i )
 		sleep_a_millisec( 10 );
