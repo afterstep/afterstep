@@ -164,7 +164,7 @@ LOCAL_DEBUG_OUT( "result im = %p, im->imman	= %p, my_imman = %p, im->magic = %8.
 		
 		if( my_imman != imman ) 
 		{
-			if( im->imageman == my_imman ) 
+			if( im && im->imageman == my_imman ) 
 				forget_asimage( im );
 			destroy_image_manager(my_imman, False);
 		}
@@ -1656,12 +1656,15 @@ xml_elem_t* xml_parse_parm(const char* parm) {
 	return list;
 }
 
-void xml_print(xml_elem_t* root) {
+/* The recursive version of xml_print(), so we can indent XML. */
+static void xml_print_r(xml_elem_t* root, int depth) {
 	xml_elem_t* child;
 	if (!strcmp(root->tag, cdata_str)) {
-		fprintf(stderr, "%s", root->parm);
+		char* ptr = root->parm;
+		while (isspace(*ptr)) ptr++;
+		fprintf(stderr, "%s", ptr);
 	} else {
-		fprintf(stderr, "<%s", root->tag);
+		fprintf(stderr, "%*s<%s", depth * 2, "", root->tag);
 		if (root->parm) {
 			xml_elem_t* parm = xml_parse_parm(root->parm);
 			while (parm) {
@@ -1673,10 +1676,19 @@ void xml_print(xml_elem_t* root) {
 				parm = p;
 			}
 		}
-		fprintf(stderr, ">");
-		for (child = root->child ; child ; child = child->next) xml_print(child);
-		fprintf(stderr, "</%s>", root->tag);
+		if (root->child) {
+			fprintf(stderr, ">\n");
+			for (child = root->child ; child ; child = child->next)
+				xml_print_r(child, depth + 1);
+			fprintf(stderr, "%*s</%s>\n", depth * 2, "", root->tag);
+		} else {
+			fprintf(stderr, "/>\n");
+		}
 	}
+}
+
+void xml_print(xml_elem_t* root) {
+	xml_print_r(root, 0);
 }
 
 xml_elem_t* xml_elem_new(void) {
