@@ -115,17 +115,25 @@ destroy_ashash_bucket (ASHashBucket * bucket, void (*item_destroy_func) (ASHasha
 }
 
 void
+flush_ashash (ASHashTable * hash)
+{
+LOCAL_DEBUG_CALLER_OUT( " hash = %p, *hash = %p", hash, *hash  );
+	if (hash)
+	{
+		register int  i;
+		for (i = hash->size - 1; i >= 0; i--)
+			if (hash->buckets[i])
+				destroy_ashash_bucket (&(hash->buckets[i]), hash->item_destroy_func);
+	}
+}
+
+void
 destroy_ashash (ASHashTable ** hash)
 {
 LOCAL_DEBUG_CALLER_OUT( " hash = %p, *hash = %p", hash, *hash  );
 	if (*hash)
 	{
-		register int  i;
-
-		for (i = (*hash)->size - 1; i >= 0; i--)
-			if ((*hash)->buckets[i])
-				destroy_ashash_bucket (&((*hash)->buckets[i]), (*hash)->item_destroy_func);
-
+		flush_ashash (*hash);
 		init_ashash (*hash, True);
 		free (*hash);
 		*hash = NULL;

@@ -83,7 +83,7 @@ main( int argc, char **argv )
 	*/
 
 	/* And at long last our main loop : */
-	return run_ascp()
+	return run_ascp();
 }
 
 int
@@ -91,7 +91,7 @@ run_ascp()
 {
 	ASControlPanelUI  ascpui ;
 
-
+	ascpui.show_main_window();
 	return Fl::run() ;
 }
 

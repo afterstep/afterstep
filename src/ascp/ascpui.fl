@@ -6,38 +6,89 @@ class ASControlPanelUI {open
 } {
   Function {ASControlPanelUI()} {open
   } {
-    Fl_Window {} {open
-      xywh {82 243 485 330} visible
+    Fl_Window m_MainWindow {open
+      xywh {310 53 490 425} resizable visible
     } {
-      Fl_Tabs {} {open
-        xywh {5 5 475 320} box EMBOSSED_BOX labeltype NO_LABEL align 5
+      Fl_Menu_Bar m_MainMenu {open
+        xywh {0 0 490 25}
       } {
-        Fl_Group {} {
-          label Look open selected
-          xywh {5 30 475 295} box EMBOSSED_FRAME color 29 selection_color 29
+        submenu {} {
+          label Open open
+          xywh {0 0 100 20}
         } {
-          Fl_Button {} {
-            label {Create New}
-            xywh {10 40 100 25}
+          menuitem {} {
+            label {Look Editor}
+            xywh {0 0 100 20}
           }
-          Fl_Button {} {
-            label {Save As}
-            xywh {10 90 100 25}
+          menuitem {} {
+            label {Feel Editor}
+            xywh {15 15 100 20}
           }
-          Fl_Button {} {
-            label {Load Existing}
-            xywh {10 65 100 25}
+          menuitem {} {
+            label {Database Editor}
+            xywh {0 0 100 20}
+          }
+          menuitem {} {
+            label {Base Config}
+            xywh {0 0 100 20}
+          }
+          menuitem {} {
+            label {Wharf (toolbar) Config}
+            xywh {0 0 100 20}
+          }
+          menuitem {} {
+            label {Window List Config }
+            xywh {0 0 100 20}
+          }
+          menuitem {} {
+            label {Pager Config}
+            xywh {0 0 100 20}
+          }
+          menuitem {} {
+            label {Menu Editor}
+            xywh {0 0 100 20}
           }
         }
-        Fl_Group {} {
-          label {Base config} open
-          xywh {5 30 475 295} hide
-        } {}
-        Fl_Group {} {
-          label Feel open
-          xywh {30 30 450 295} hide
-        } {}
+      }
+      Fl_Group {} {open
+        xywh {0 25 529 395} resizable
+      } {
+        Fl_Box m_MainPreviewBox {
+          xywh {5 25 415 325} box EMBOSSED_FRAME labeltype NO_LABEL resizable
+        }
+        Fl_Text_Display m_MainPreviewText {selected
+          xywh {5 350 415 65}
+        }
+        Fl_Button m_EditLookBtn {
+          label {Edit Look}
+          xywh {425 26 64 64} align 160
+        }
+        Fl_Button m_EditFeelBtn {
+          label {Edit Feel}
+          xywh {425 91 64 64} align 160
+        }
+        Fl_Button m_DatabaseBtn {
+          label Database
+          xywh {425 156 64 64} align 160
+        }
+        Fl_Button m_BaseConfigBtn {
+          label {Base Config}
+          xywh {425 221 64 64} align 176
+        }
+        Fl_Button m_MenuBtn {
+          label Menu
+          xywh {425 286 64 64} align 32
+        }
+        Fl_Button m_ModulesBtn {
+          label Modules
+          xywh {425 351 64 64} align 32
+        }
       }
     }
+  }
+  Function {show_main_window()} {open return_type int
+  } {
+    code {m_MainWindow->show();} {}
+    code {return 1;} {}
   }
 } 

@@ -23,6 +23,9 @@ struct config
   int *arg2;
 };
 
+void register_custom_color(const char* name, CARD32 value);
+void unregister_custom_color(const char* name);
+Bool get_custom_color(const char* name, CARD32 *color);
 const char *parse_argb_color( const char *color, CARD32 *pargb );
 
 char *find_doublequotes (char *ptr);

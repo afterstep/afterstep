@@ -121,3 +121,41 @@ make_ascolor_scheme( ARGB32 base, int angle )
 	return cs;
 }
 
+#if 0
+void
+populate_ascs_colors_rgb( ASColorScheme *cs )
+{
+	base_argb ;
+	inactive1_argb ;
+	inactive2_argb ;
+	active_argb ;
+	inactive_text1_argb ;
+	inactive_text2_argb ;
+
+	active_text_argb ;
+	high_inactive_argb ;
+	high_active_argb ;
+	disabled_text_argb ;
+
+	base_grad[2] ;
+	inactive1_grad[2] ;
+	inactive2_gradb[2] ;
+	active_grad[2] ;
+	high_inactive_grad[2] ;
+	high_active_grad[2] ;
+}
+
+void
+populate_ascs_colors_xml( ASColorScheme *cs )
+{
+
+}
+
+void
+print_ascolor_scheme( ASColorScheme *cs )
+{
+
+
+}
+
+#endif

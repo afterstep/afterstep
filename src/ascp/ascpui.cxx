@@ -2,34 +2,61 @@
 
 #include "ascpui.h"
 
+Fl_Menu_Item ASControlPanelUI::menu_m_MainMenu[] = {
+ {"Open", 0,  0, 0, 64, 0, 0, 14, 56},
+ {"Look Editor", 0,  0, 0, 0, 0, 0, 14, 56},
+ {"Feel Editor", 0,  0, 0, 0, 0, 0, 14, 56},
+ {"Database Editor", 0,  0, 0, 0, 0, 0, 14, 56},
+ {"Base Config", 0,  0, 0, 0, 0, 0, 14, 56},
+ {"Wharf (toolbar) Config", 0,  0, 0, 0, 0, 0, 14, 56},
+ {"Window List Config ", 0,  0, 0, 0, 0, 0, 14, 56},
+ {"Pager Config", 0,  0, 0, 0, 0, 0, 14, 56},
+ {"Menu Editor", 0,  0, 0, 0, 0, 0, 14, 56},
+ {0},
+ {0}
+};
+
 ASControlPanelUI::ASControlPanelUI() {
   Fl_Window* w;
-  { Fl_Window* o = new Fl_Window(485, 330);
+  { Fl_Window* o = m_MainWindow = new Fl_Window(490, 425);
     w = o;
     o->user_data((void*)(this));
-    { Fl_Tabs* o = new Fl_Tabs(5, 5, 475, 320);
-      o->box(FL_EMBOSSED_BOX);
-      o->labeltype(FL_NO_LABEL);
-      o->align(FL_ALIGN_TOP_LEFT);
-      { Fl_Group* o = new Fl_Group(5, 30, 475, 295, "Look");
+    { Fl_Menu_Bar* o = m_MainMenu = new Fl_Menu_Bar(0, 0, 490, 25);
+      o->menu(menu_m_MainMenu);
+    }
+    { Fl_Group* o = new Fl_Group(0, 25, 529, 395);
+      { Fl_Box* o = m_MainPreviewBox = new Fl_Box(5, 25, 415, 325);
         o->box(FL_EMBOSSED_FRAME);
-        o->color(29);
-        o->selection_color(29);
-        new Fl_Button(10, 40, 100, 25, "Create New");
-        new Fl_Button(10, 90, 100, 25, "Save As");
-        new Fl_Button(10, 65, 100, 25, "Load Existing");
-        o->end();
+        o->labeltype(FL_NO_LABEL);
+        Fl_Group::current()->resizable(o);
       }
-      { Fl_Group* o = new Fl_Group(5, 30, 475, 295, "Base config");
-        o->hide();
-        o->end();
+      m_MainPreviewText = new Fl_Text_Display(5, 350, 415, 65);
+      { Fl_Button* o = m_EditLookBtn = new Fl_Button(425, 26, 64, 64, "Edit Look");
+        o->align(160);
       }
-      { Fl_Group* o = new Fl_Group(30, 30, 450, 295, "Feel");
-        o->hide();
-        o->end();
+      { Fl_Button* o = m_EditFeelBtn = new Fl_Button(425, 91, 64, 64, "Edit Feel");
+        o->align(160);
+      }
+      { Fl_Button* o = m_DatabaseBtn = new Fl_Button(425, 156, 64, 64, "Database");
+        o->align(160);
+      }
+      { Fl_Button* o = m_BaseConfigBtn = new Fl_Button(425, 221, 64, 64, "Base Config");
+        o->align(160|FL_ALIGN_INSIDE);
+      }
+      { Fl_Button* o = m_MenuBtn = new Fl_Button(425, 286, 64, 64, "Menu");
+        o->align(FL_ALIGN_TEXT_OVER_IMAGE);
+      }
+      { Fl_Button* o = m_ModulesBtn = new Fl_Button(425, 351, 64, 64, "Modules");
+        o->align(FL_ALIGN_TEXT_OVER_IMAGE);
       }
       o->end();
+      Fl_Group::current()->resizable(o);
     }
     o->end();
   }
+}
+
+int ASControlPanelUI::show_main_window() {
+  m_MainWindow->show();
+  return 1;
 }

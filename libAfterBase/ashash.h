@@ -100,6 +100,9 @@ ASHashResult get_hash_item (ASHashTable * hash, ASHashableValue value,
 ASHashResult remove_hash_item (ASHashTable * hash, ASHashableValue value,
 			       void **trg, Bool destroy);
 
+/* removes all the items from hash table */
+void flush_ashash (ASHashTable * hash);
+
 /* need to run this in order to free up cached memory */
 void flush_ashash_memory_pool();
 

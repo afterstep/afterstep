@@ -11,6 +11,9 @@ LIBS_DEPEND     = $(LIB_AFTERBASE) $(LIB_AFTERIMAGE) $(LIB_AFTERSTEP) \
 
 @MAKEFILECOMMON@
 
+$(PROG):        $(OBJS) $(LIBS_DEPEND)
+		$(CC) $(OBJS) $(LIBS_ALL) -o $(@)
+
 install:	install.bin install.man
 #        ln -s -f Pager $(DESTDIR)$(BINDIR)/WPager
 #        ln -s -f Pager $(DESTDIR)$(BINDIR)/XPager

@@ -31,6 +31,140 @@
 /****************************************************************************
  * parse_argb_color - should be used for all your color parsing needs
  ***************************************************************************/
+ASHashTable *custom_argb_colornames = NULL ;
+
+void
+register_custom_color(const char* name, CARD32 value) {
+	if( name == NULL )
+		return ;
+	if (custom_argb_colornames == NULL )
+    	custom_argb_colornames = create_ashash(0, casestring_hash_value, casestring_compare, casestring_destroy);
+
+    /* Destroy any old data associated with this name. */
+	remove_hash_item(asvar, AS_HASHABLE(name), NULL, False);
+
+    show_progress("Defining color [%s] == #%X.", name, value);
+    add_hash_item(asvar, AS_HASHABLE(mystrdup(name)), value);
+}
+
+void
+unregister_custom_color(const char* name)
+{
+	if( custom_argb_colornames )
+	{
+		if( name == NULL )
+			flush_ashash (custom_argb_colornames);
+		else
+	      	remove_hash_item(custom_argb_colornames, AS_HASHABLE(name), NULL, False);
+	}
+}
+
+Bool
+get_custom_color(const char* name, CARD32 *color) {
+	ASHashableValue value ;
+	if( custom_argb_colornames )
+	{
+      	if( get_hash_item(asvar, AS_HASHABLE(name), (void**)&value) != ASH_Success )
+			if (!value) show_debug(__FILE__, "asvar_get", __LINE__, "Use of undefined variable [%s].", name);
+		else
+		{
+			*color = value ;
+			return True;
+		}
+	}
+	return False ;
+}
+
+const char *parse_argb_dec( const char *color, Bool has_alpha, Bool hsv, CARD32 *pargb )
+{
+	unsigned int val[4] = {0xFF, 0, 0, 0} ;
+	char buf[4] ;
+	int k ;
+	register char *ptr = (char*)&(color[0]);
+	register int i = 0;
+	CARD32 alpha8, red8, green8, blue8 ;
+
+	for( k = has_alpha?0:1 ; k < 4 ; ++k )
+	{
+		for( i = 0 ; i < 3 ; ++i )
+		{
+			if( !isdigit(ptr[i]) )
+				break;
+			buf[i] = ptr[i] ;
+		}
+		buf[i] = '\0' ;
+		val[k] = atoi( &(buf[0]) );
+		if( !isdigit(ptr[i]) )
+		{
+			if( ptr[i] != ',' )
+				break;
+			++i ;
+		}
+		ptr += i ;
+		i = 0 ;
+	}
+	alpha8 = val[0]&0x00FF ;
+	if( hsv )
+	{
+#if 0
+		unsigned int hue = val[1], sat = val[2], val = val[3];
+		while( hue > 360 ) hue -= 360 ;
+		if( sat > 100 )
+			sat = 100 ;
+		if( val > 100 )
+			val = 100 ;
+		if (sat == 0 || hue == 0 )
+		{
+    		blue8 = green8 = red8 = (val<<8)/100;
+		}else
+		{
+			int delta = ((sat*(val/2))*256)/(50*100) ;
+			int max_val = (val<<8)/100;
+			int min_val = max_val - delta;
+			if( hue >= 0 && hue < 60 )
+			{
+				red8   = max_val;
+				green8  = (hue*delta)/60 +min_val;
+				blue8   = min_val;
+			}if( hue >= 60 && hue < 120 )
+			{
+				green8 = max_val;
+				red8   = max_val - ((hue-60)*delta)/60;
+				blue8  = min_val;
+			}if( hue >= 120 && hue < 180 )
+			{
+					(green) = (max_val); (blue)= mid_val+(min_val);	(red)  = (min_val); break; \
+
+			}if( hue >= 180 && hue < 240 )
+			{
+					(blue)  = (max_val); (green)=(max_val)-mid_val; (red)  = (min_val); break; \
+
+			}if( hue >= 240 && hue < 300 )
+			{
+					(blue)  = (max_val); (red)  = mid_val+(min_val);(green)= (min_val); break; \
+			}if( hue >= 300 && hue <= 360 )
+			{
+				(red)   = (max_val); (blue) = (max_val)-mid_val;(green)= (min_val); break; \
+			}
+			switch( range )	{                                              \
+				case HUE_RED_TO_YELLOW :    /* red was max, then green  */ \
+			}                                                                                  \
+		}
+#endif
+	}else
+	{
+		red8   = val[1]&0x00FF ;
+		green8 = val[2]&0x00FF ;
+		blue8  = val[3]&0x00FF ;
+	}
+
+	*pargb = (alpha8<<24)|(red8<<16)|(green8<<8)|blue8;
+
+	if( ptr[i] ==')' )
+		++i ;
+	return &(ptr[i]);
+}
+
 const char *parse_argb_color( const char *color, CARD32 *pargb )
 {
 #define hextoi(h)   (isdigit(h)?((h)-'0'):(isupper(h)?((h)-'A'+10):((h)-'a'+10)))
@@ -81,25 +215,50 @@ const char *parse_argb_color( const char *color, CARD32 *pargb )
 				*pargb = argb ;
 				return ptr;
 			}
-		}else if( *color )
+			return color;
+		}
+
+		if( color[0] == 'h' || color[0] == 'H' )
 		{
-#ifndef X_DISPLAY_MISSING
-			XColor xcol, xcol_scr ;
+			if( mystrncasecmp( &color[1], "sv(", 3) )
+				return parse_argb_dec( &color[4], False, True, pargb );
+		}else if( color[0] == 'r' || color[0] == 'r' )
+		{
+			if( mystrncasecmp( &color[1], "gb(", 3) )
+				return parse_argb_dec( &color[4], False, False, pargb );
+		}else if( color[0] == 'a' || color[0] == 'A' )
+		{
+			if( mystrncasecmp( &color[1], "hsv(", 4) )
+				return parse_argb_dec( &color[5], True, True, pargb );
+			else if( mystrncasecmp( &color[1], "rgb(", 4) )
+				return parse_argb_dec( &color[5], True, False, pargb );
+		}
+
+		/* parsing as named color : */
+		if( color[0] )
+		{
 			register char *ptr = (char*)&(color[0]);
 			register int i = 0;
-			/* does not really matter here what screen to use : */
-			if( AS_ASSERT(dpy) )
-				return color ;
+
 			while( isalnum((int)ptr[i]) ) ++i;
 			if( ptr[i] != '\0' )
 				ptr = mystrndup(&(color[0]), i );
 
-			if( XLookupColor( dpy, DefaultColormap(dpy,DefaultScreen(dpy)), ptr, &xcol, &xcol_scr) )
-				*pargb = 0xFF000000|((xcol.red<<8)&0x00FF0000)|(xcol.green&0x0000FF00)|((xcol.blue>>8)&0x000000FF);
+			if( !get_custom_color( ptr, pargb) )
+			{
+#ifndef X_DISPLAY_MISSING
+				XColor xcol, xcol_scr ;
+				/* does not really matter here what screen to use : */
+				if( AS_ASSERT(dpy) )
+					return color ;
+
+				if( XLookupColor( dpy, DefaultColormap(dpy,DefaultScreen(dpy)), ptr, &xcol, &xcol_scr) )
+					*pargb = 0xFF000000|((xcol.red<<8)&0x00FF0000)|(xcol.green&0x0000FF00)|((xcol.blue>>8)&0x000000FF);
+#endif
+			}
 			if( ptr != &(color[0]) )
 				free( ptr );
 			return &(color[i]);
-#endif
 		}
 	}
 	return color;

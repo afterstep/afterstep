@@ -1,6 +1,10 @@
-OBJS            = ascp.o ascpui.o
+OBJS_ASCP       = ascp.o ascpui.o
 
-PROG		= ascp
+OBJS_ASCOLOR    = ascolor.o
+
+OBJS		= $(OBJS_ASCP) $(OBJS_ASCOLOR)
+
+PROG		= ascp ascolor
 
 INCS_PRIVATE	= @ASCP_INCLUDES@
 
@@ -9,6 +13,14 @@ LIBS_PRIVATE      = $(LIB_AFTERCONF) $(LIB_AFTERSTEP) \
 LIBS_DEPEND     = $(LIB_AFTERBASE) $(LIB_AFTERIMAGE) $(LIB_AFTERSTEP) $(LIB_AFTERCONF)
 
 @MAKEFILECOMMON@
+
+
+ascp:	        $(OBJS_ASCP) $(LIBS_DEPEND)
+		$(CC) $(OBJS_ASCP) $(LIBS_ALL) -o $(@)
+
+ascolor:        $(OBJS_ASCOLOR) $(LIBS_DEPEND)
+		$(CC) $(OBJS_ASCOLOR) $(LIBS_ALL) -o $(@)
+
 
 install:	install.bin install.man
 
