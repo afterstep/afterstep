@@ -1,22 +1,43 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0103
-header_name {.h}
+version 1.0103 
+header_name {.h} 
 code_name {.cxx}
 class ASControlPanelUI {open
 } {
   Function {ASControlPanelUI()} {open
   } {
     Fl_Window {} {open
-      xywh {218 207 363 279} visible
+      xywh {82 243 485 330} visible
     } {
       Fl_Tabs {} {open
-        xywh {-20 5 475 305} box EMBOSSED_BOX labeltype NO_LABEL align 5
+        xywh {5 5 475 320} box EMBOSSED_BOX labeltype NO_LABEL align 5
       } {
-        Fl_Button {} {
-          label {Create new} selected
-          xywh {0 5 95 40}
+        Fl_Group {} {
+          label Look open selected
+          xywh {5 30 475 295} box EMBOSSED_FRAME color 29 selection_color 29
+        } {
+          Fl_Button {} {
+            label {Create New}
+            xywh {10 40 100 25}
+          }
+          Fl_Button {} {
+            label {Save As}
+            xywh {10 90 100 25}
+          }
+          Fl_Button {} {
+            label {Load Existing}
+            xywh {10 65 100 25}
+          }
         }
+        Fl_Group {} {
+          label {Base config} open
+          xywh {5 30 475 295} hide
+        } {}
+        Fl_Group {} {
+          label Feel open
+          xywh {30 30 450 295} hide
+        } {}
       }
     }
   }
-}
+} 

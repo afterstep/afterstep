@@ -4,18 +4,32 @@
 
 ASControlPanelUI::ASControlPanelUI() {
   Fl_Window* w;
-  { Fl_Window* o = new Fl_Window(363, 279);
+  { Fl_Window* o = new Fl_Window(485, 330);
     w = o;
     o->user_data((void*)(this));
-    { Fl_Tabs* o = new Fl_Tabs(-20, 5, 475, 305);
+    { Fl_Tabs* o = new Fl_Tabs(5, 5, 475, 320);
       o->box(FL_EMBOSSED_BOX);
       o->labeltype(FL_NO_LABEL);
       o->align(FL_ALIGN_TOP_LEFT);
-      new Fl_Button(0, 5, 95, 40, "Create new");
+      { Fl_Group* o = new Fl_Group(5, 30, 475, 295, "Look");
+        o->box(FL_EMBOSSED_FRAME);
+        o->color(29);
+        o->selection_color(29);
+        new Fl_Button(10, 40, 100, 25, "Create New");
+        new Fl_Button(10, 90, 100, 25, "Save As");
+        new Fl_Button(10, 65, 100, 25, "Load Existing");
+        o->end();
+      }
+      { Fl_Group* o = new Fl_Group(5, 30, 475, 295, "Base config");
+        o->hide();
+        o->end();
+      }
+      { Fl_Group* o = new Fl_Group(30, 30, 450, 295, "Feel");
+        o->hide();
+        o->end();
+      }
       o->end();
     }
     o->end();
-    o->show();
   }
 }
-
