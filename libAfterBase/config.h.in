@@ -1,4 +1,4 @@
-/* config.h.in.  Generated automatically from configure.in by autoheader.  */
+/* config.h.in.  Generated automatically from libAfterBase/configure.in by autoheader.  */
 
 /* Define if you have the wait3 system call.  */
 #undef HAVE_WAIT3
@@ -16,9 +16,6 @@
 /* Define if the X Window System is missing or not being used.  */
 #undef X_DISPLAY_MISSING
 
-/* defined when inline, __inline__ or __inline keywords are not available    */
-#undef NO_INLINE
-
 #undef I18N
 
 /* debugging options */
@@ -28,9 +25,6 @@
 
 /* self diagnostic signal handler's argument */
 #undef HAVE_SIGCONTEXT
-
-/* self diagnostic SIGSEGV handling (as opposed to dumping core) */
-#undef HAVE_SIGSEGV_HANDLING
 
 /* Define if you have the backtrace_symbols function.  */
 #undef HAVE_BACKTRACE_SYMBOLS

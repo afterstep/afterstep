@@ -259,7 +259,7 @@ socket_write_string (ASSocketBuffer *sb, const char *string)
 /* signal safe socket read operations : 											   */
 /***************************************************************************************/
 
-static ASProtocolResult
+ASProtocolResult
 socket_read_proto_item( ASProtocolState *ps )
 {
 	int curr = ps->curr_item ;

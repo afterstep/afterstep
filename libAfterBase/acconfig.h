@@ -1,6 +1,3 @@
-/* defined when inline, __inline__ or __inline keywords are not available    */
-#undef NO_INLINE
-
 #undef I18N
 
 /* debugging options */
@@ -10,7 +7,4 @@
 
 /* self diagnostic signal handler's argument */
 #undef HAVE_SIGCONTEXT
-
-/* self diagnostic SIGSEGV handling (as opposed to dumping core) */
-#undef HAVE_SIGSEGV_HANDLING
 
