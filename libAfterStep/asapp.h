@@ -83,6 +83,12 @@ struct TermDef;
 #define WAIT_CHILDREN(pstatus)  (*pstatus=-1)
 #endif
 
+struct charstring
+{
+    char key;
+    int value;
+};
+
 /*********************************************************************************/
 /* Some usefull data structures and operations on them :						 */
 /*********************************************************************************/

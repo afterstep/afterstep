@@ -29,6 +29,7 @@
 #define MAGIC_MENU_DATA         0x7A3EDDAF
 #define MAGIC_MENU_DATA_ITEM    0x7A3ED1FE
 #define MAGIC_COMPLEX_FUNC      0x7A3CCF46
+#define MAGIC_ASMENU            0x7A3E78C1
 
 #define MAGIC_MYLOOK_RES_BASE   0x7A311000
 #define MAGIC_MYSTYLE           (MAGIC_MYLOOK_RES_BASE+0)
@@ -285,6 +286,13 @@ struct ASTBarData;
 									 FocusChangeMask 	| \
 								     KeyPressMask 		| \
 									 LeaveWindowMask)
+
+#define AS_MENU_EVENT_MASK         ( ButtonPressMask    | \
+									 ButtonReleaseMask 	| \
+									 EnterWindowMask 	| \
+                                     LeaveWindowMask    | \
+                                     StructureNotifyMask)
+
 
 #define AS_ROOT_EVENT_MASK          (LeaveWindowMask | \
                                      EnterWindowMask | \

@@ -165,6 +165,26 @@ typedef enum {
     AST_OpenLoop = 2
 }ASTabbingReverse;
 
+typedef struct MouseButton
+{
+    int Button;
+    int Context;
+    int Modifier;
+    struct MouseButton *NextButton;
+    struct FunctionData *fdata;
+}MouseButton;
+
+typedef struct FuncKey
+{
+    struct FuncKey *next;	/* next in the list of function keys */
+    char *name;			/* key name */
+    KeyCode keycode;		/* X keycode */
+    int cont;			/* context */
+    int mods;			/* modifiers */
+
+	struct FunctionData *fdata ;
+}FuncKey;
+
 typedef struct ASFeel
 {
     unsigned long magic;

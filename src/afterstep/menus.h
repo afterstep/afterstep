@@ -9,22 +9,21 @@ struct ASEvent;
 struct TermDef;
 struct dirtree_t;
 struct ASCanvas;
+struct ASTBarData;
 
 typedef struct MenuDataItem
   {
 
     unsigned long   magic;
+    struct MenuDataItem  *next;  /* next menu item */
+    struct MenuDataItem  *prev;  /* prev menu item */
+
 #define MD_Disabled        (0x01<<0)
 /* can't think of anything else atm - maybe add something later ? */
     ASFlagType            flags ;
     struct FunctionData  *fdata ;
-#ifndef NO_TEXTURE
-    char                 *minipixmap ;
-#endif
-
-    struct MenuDataItem *next;  /* next menu item */
-    struct MenuDataItem *prev;  /* prev menu item */
-    char *item;			/* the character string displayed on left */
+    char                 *minipixmap ;         /* we always read filename from config !! */
+    char *item;         /* the character string displayed on left */
     char *item2;		/* the character string displayed on right */
 }MenuDataItem;
 
@@ -35,44 +34,21 @@ typedef struct MenuData
 
     struct MenuDataItem *first; /* first item in menu */
     struct MenuDataItem *last;  /* last item in menu */
-
-    short items;        /* number of items in the menu */
+    short items_num;        /* number of items in the menu */
 }MenuData;
-
-typedef struct MouseButton
-{
-    int Button;
-    int Context;
-    int Modifier;
-    struct MouseButton *NextButton;
-    struct FunctionData *fdata;
-}MouseButton;
-
-typedef struct FuncKey
-{
-    struct FuncKey *next;	/* next in the list of function keys */
-    char *name;			/* key name */
-    KeyCode keycode;		/* X keycode */
-    int cont;			/* context */
-    int mods;			/* modifiers */
-
-	struct FunctionData *fdata ;
-}FuncKey;
-
-struct charstring
-{
-    char key;
-    int value;
-};
 
 typedef struct ASMenu
 {
-    ASCanvas *main_canvas;
+    unsigned long magic ;
+    struct ASCanvas *main_canvas;
 
-    int items_num ;
-    ASCanvas   **item_canvas;   /* used only when TextureMenuItemsIndividually is requested */
-    ASTBarData **item_bars;
+    unsigned int items_num ;
+    struct ASTBarData **item_bar;
 
+    unsigned int item_width, item_height ;
+    unsigned int top_item, selected_item ;
+
+    unsigned int visible_items_num ;
 }ASMenu;
 
 /*************************************************************************/
@@ -98,7 +74,7 @@ ComplexFunction *find_complex_func( struct ASHashTable *list, char *name );
 void ExecuteFunction (struct FunctionData *, struct ASEvent *, int);
 void FocusOn (ASWindow *, int, Bool);
 
-MenuData* FindPopup( char* name, int quiet );
+MenuData* FindPopup( const char* name, int quiet );
 
 MenuDataItem* CreateMenuItem();
 MenuDataItem* NewMenuItem(MenuData* menu);

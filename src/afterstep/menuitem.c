@@ -638,10 +638,8 @@ LOCAL_DEBUG_OUT( "freeing func data %p", mdi->fdata );
                 free_func_data( mdi->fdata );
                 free( mdi->fdata );
             }
-#ifndef NO_TEXTURE
             if( mdi->minipixmap )
                 free(mdi->minipixmap);
-#endif
             if (mdi->item != NULL)
                 free (mdi->item);
             if (mdi->item2 != NULL)
@@ -665,26 +663,6 @@ LOCAL_DEBUG_CALLER_OUT( "menu_data_destroy(\"%s\", %p)", (char*)value, data );
         if( md->magic == MAGIC_MENU_DATA )
         {
             md->magic = 0 ;
-
-#if 0
-            /* unmap if necessary */
-            if (md->is_mapped == True)
-                unmap_menu (md);
-#ifndef NO_TEXTURE
-            /*  free background pixmaps */
-            if (md->titlebg != None)
-                XFreePixmap (dpy, md->titlebg);
-            if (md->itembg != None)
-                XFreePixmap (dpy, md->itembg);
-            if (md->itemhibg != None)
-                XFreePixmap (dpy, md->itemhibg);
-#endif
-            if (md->w != None)
-            {
-                XDestroyWindow (dpy, md->w);
-            }
-#endif
-
             if( md->name != (char*)value )
                 free( md->name );
 
@@ -749,21 +727,21 @@ find_menu_data( ASHashTable *list, char *name )
 }
 
 MenuData     *
-FindPopup (char *name, int quiet)
+FindPopup (const char *name, int quiet)
 {
-    MenuData     *mr = NULL;
+    MenuData     *md = NULL;
 
 	if (name == NULL)
 	{
 		if (!quiet)
-			str_error ("%s\n", "Empty Popup name specifyed!");
-		return mr;
+            show_error ("Empty Popup name specifyed");
+        return md;
 	}
 
-    mr = find_menu_data( Scr.Feel.Popups, name );
-    if (!quiet && mr == NULL )
-		str_error ("Popup [%s] not defined!\n", name);
-	return mr;
+    md = find_menu_data( Scr.Feel.Popups, (char*)name );
+    if (!quiet && md == NULL )
+        show_error ("Popup \"%s\" not defined!", name);
+    return md;
 }
 
 MenuDataItem     *
@@ -786,7 +764,7 @@ NewMenuDataItem (MenuData * menu)
 		menu->last->next = item;
 	menu->last = item;
 
-    ++(menu->items);
+    ++(menu->items_num);
 	return item;
 }
 
@@ -811,8 +789,7 @@ MenuDataItemFromFunc (MenuData * menu, FunctionData * fdata)
 
     if( fdata == NULL )
         return ;
-#ifndef NO_TEXTURE
-	if (fdata->func == F_MINIPIXMAP)
+    if (fdata->func == F_MINIPIXMAP)
 	{
 		if (menu->last)
 			item = menu->last;
@@ -822,8 +799,7 @@ MenuDataItemFromFunc (MenuData * menu, FunctionData * fdata)
 			item->fdata = fdata;
 		}
     } else
-#endif /* !NO_TEXTURE */
-	{
+    {
         item = NewMenuDataItem (menu);
 		if (parse_menu_item_name (item, &(fdata->name)) >= 0)
 			item->fdata = fdata;
@@ -852,15 +828,10 @@ MenuDataItemParse (void *data, const char *buf)
         return False;
 	if (fdata->func != F_ENDPOPUP && fdata->func != F_ENDFUNC)
 	{
-#ifndef NO_TEXTURE
-        if (fdata->func != F_MINIPIXMAP && !get_flags( Scr.Look.flags, MenuMiniPixmaps))
-#endif /* !NO_TEXTURE */
-		{
-            MenuDataItemFromFunc (menu, fdata);
-			fdata = NULL ;
-            return True;
-		}
-	}
+        MenuDataItemFromFunc (menu, fdata);
+        fdata = NULL ;
+        return True;
+    }
 	if( fdata )
 	{
 		free_func_data (fdata);
@@ -1101,14 +1072,11 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf)
 	/* We exploit that scan_for_hotkey removes & (marking hotkey) from name */
 	scan_for_hotkey (fdata->name);
     MenuDataItemFromFunc (menu, fdata);
-#ifndef NO_TEXTURE
-    if (get_flags( Scr.Look.flags, MenuMiniPixmaps))
-	{
-		fdata = create_named_function( F_MINIPIXMAP,
-		                               tree->icon != NULL ? tree->icon : "mini-menu.xpm");
+    if (tree->icon != NULL)
+    {/* should default to: "mini-menu.xpm" */
+        fdata = create_named_function( F_MINIPIXMAP, tree->icon);
         MenuDataItemFromFunc (menu, fdata);
 	}
-#endif /* !NO_TEXTURE */
 
 	for (t = tree->child; t != NULL; t = t->next)
 	{
@@ -1139,13 +1107,12 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf)
 				fdata->text = string_from_int (t->flags & DIRTREE_ID);
 
             MenuDataItemFromFunc (menu, fdata);
-#ifndef NO_TEXTURE
-            if (get_flags( Scr.Look.flags, MenuMiniPixmaps))
+            if (t->icon)
 			{
-				fdata = create_named_function( F_MINIPIXMAP, t->icon != NULL ? t->icon : "mini-folder.xpm");
+                /* should default to "mini-folder.xpm" */
+                fdata = create_named_function( F_MINIPIXMAP, t->icon);
                 MenuDataItemFromFunc (menu, fdata);
 			}
-#endif /* !NO_TEXTURE */
 /************* Done creating Popup Title entry : ************************/
 		} else if (t->command.func != F_NOP)
 		{
@@ -1163,14 +1130,12 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf)
 				fdata->text = mystrdup (t->path);
             MenuDataItemFromFunc (menu, fdata);
 
-#ifndef NO_TEXTURE
-            if (get_flags( Scr.Look.flags, MenuMiniPixmaps) && t->icon != NULL)
-			{
+            if (t->icon != NULL)
+            {  /* no defaults !!! */
 				fdata = create_named_function(F_MINIPIXMAP, t->icon);
                 MenuDataItemFromFunc (menu, fdata);
 			}
-#endif /* !NO_TEXTURE */
-		} else
+        } else
 		{
 			FILE         *fp2 = fopen (t->path, "r");
 
@@ -1195,8 +1160,7 @@ LOCAL_DEBUG_OUT( "1:fdata->name = \"%s\"", t->name );
 LOCAL_DEBUG_OUT( "2:fdata->name = %p\"%s\"", fdata->name, fdata->name );
             MenuDataItemFromFunc (menu, fdata);
 LOCAL_DEBUG_OUT( "3:fdata->name = %p\"%s\"", fdata->name, fdata->name );
-#ifndef NO_TEXTURE
-			/* check for a MiniPixmap */
+            /* check for a MiniPixmap */
             if (get_flags( Scr.Look.flags, MenuMiniPixmaps))
 			{
 				int           parsed = 0;
@@ -1222,8 +1186,7 @@ LOCAL_DEBUG_OUT( "3:fdata->name = %p\"%s\"", fdata->name, fdata->name );
                     free(fdata);
                 }
 			}
-#endif /* !NO_TEXTURE */
-			if (fp2)
+            if (fp2)
 				fclose (fp2);
 		}
 	}
