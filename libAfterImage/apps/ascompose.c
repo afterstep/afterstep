@@ -1042,7 +1042,7 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 				int x = 0, y = 0;
 				int clip_x = 0, clip_y = 0;
 				int clip_width = 0, clip_height = 0;
-				ARGB32 tint = 0xffffffff;
+				ARGB32 tint = 0;
 				Bool tile = False ;
 				xml_elem_t* sparm = NULL;
 				if (!strcmp(ptr->tag, cdata_str)) continue;
@@ -1089,7 +1089,7 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 						clip_width = 0 ;
 					if( clip_height_str )
 						clip_height = parse_math(clip_height_str, NULL, clip_height);
-					 if( tile )
+					else if( tile )
 						clip_height = 0 ;
 				}
 				if (layers[num].im) {
@@ -1099,19 +1099,19 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 					layers[num].clip_y = clip_y;
 					layers[num].clip_width = clip_width ;
 					layers[num].clip_height = clip_height ;
-					layers[num].tint = (tint >> 1) & 0x7f7f7f7f;
+					layers[num].tint = tint;
 					layers[num].bevel = 0;
 					layers[num].merge_scanlines = blend_scanlines_name2func(pop);
-					if( clip_width > 0 )
+					if( clip_width + x > 0 )
 					{
-						if( width < clip_width )
-							width = clip_width ;
+						if( width < clip_width + x )
+							width = clip_width + x;
 					}else
 					 	if (width < layers[num].im->width) width = layers[num].im->width;
-					if( clip_height > 0 )
+					if( clip_height + y > 0 )
 					{
-						if( height < clip_height )
-							height = clip_height ;
+						if( height < clip_height + y )
+							height = clip_height + y ;
 					}else
 						if (height < layers[num].im->height) height = layers[num].im->height;
 					num++;

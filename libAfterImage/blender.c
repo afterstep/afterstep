@@ -415,6 +415,7 @@ allanon_scanlines( ASScanline *bottom, ASScanline *top, int offset )
 			br[i] = (br[i]+tr[i])>>1 ;
 			bg[i] = (bg[i]+tg[i])>>1 ;
 			bb[i] = (bb[i]+tb[i])>>1 ;
+			ba[i] = (ba[i]+ta[i])>>1 ;
 		}
 	}
 }
@@ -452,6 +453,9 @@ add_scanlines( ASScanline *bottom, ASScanline *top, int offset )
 			bb[i] = (bb[i]+tb[i]) ;
 			if( bb[i] > 0x0000FFFF )
 				bb[i] = 0x0000FFFF ;
+			ba[i] = (ba[i]+ta[i]) ;
+			if( ba[i] > 0x0000FFFF )
+				ba[i] = 0x0000FFFF ;
 		}
 }
 
