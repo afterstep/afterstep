@@ -200,6 +200,25 @@ LOCAL_DEBUG_CALLER_OUT( "feel %p", feel);
 
 }
 
+/*************************************************************************
+ * WindowBox utility functions
+ *************************************************************************/
+ASWindowBox *create_aswindow_box()
+{
+	return safecalloc( 1, sizeof(ASWindowBox) );
+}
+
+void
+destroy_aswindow_box( ASWindowBox **aswbox )
+{
+	if( aswbox )
+		if( *aswbox )
+		{
+			if( (*aswbox)->name )
+				free( (*aswbox)->name );
+
+		}
+}
 
 
 
