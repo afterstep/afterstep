@@ -113,7 +113,7 @@ int main(int argc, char* argv[])
 				type_3d = atoi(argv[i+1]);
 				if( type_3d >= AST_3DTypes )
 				{
-					fprintf( stderr, "3D type is wrong. Using 2D Plain instead.\n");
+					show_error( "3D type is wrong. Using 2D Plain instead.");
 					type_3d = AST_Plain ;
 				}
 

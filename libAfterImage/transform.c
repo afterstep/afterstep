@@ -19,7 +19,7 @@
 #include "config.h"
 
 /* #define LOCAL_DEBUG */
-#define DO_CLOCKING
+/*#define DO_CLOCKING*/
 
 #define USE_64BIT_FPU
 
@@ -1855,7 +1855,7 @@ ASImage* blur_asimage_gauss(ASVisual* asv, ASImage* src, double horz, double ver
 
 	/* First the horizontal pass. */
 	if (horz >= 1.0) {
-		// My version. -Ethan
+		/* My version. -Ethan */
 		radius = horz;
 		calc_gauss(horz, gauss);
 	}
