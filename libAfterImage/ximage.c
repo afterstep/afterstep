@@ -187,41 +187,84 @@ pixmap2asimage(ASVisual *asv, Pixmap p, int x, int y, unsigned int width, unsign
 #endif
 }
 
+Bool
+asimage2drawable( ASVisual *asv, Drawable d, ASImage *im, GC gc,
+                  int src_x, int src_y, int dest_x, int dest_y,
+        		  unsigned int width, unsigned int height,
+				  Bool use_cached)
+{
+#ifndef X_DISPLAY_MISSING
+	if( im )
+	{
+		XImage       *xim ;
+		Pixmap        p = None;
+		GC 			  my_gc = gc ;
+
+		if( src_x < 0 )
+		{
+			width += src_x ;
+			src_x = 0;
+		}else if( src_x > im->width )
+			return False;
+		if( im->width  > src_x+width )
+			width = im->width - src_x ;
+		if( src_y < 0 )
+		{
+			height+= src_y ;
+			src_y = 0;
+		}else if( src_y > im->height )
+			return False;
+		if( im->height  > src_y+height )
+			height = im->height - src_y ;
+
+		if ( !use_cached || im->alt.ximage == NULL )
+		{
+			if( (xim = asimage2ximage( asv, im )) == NULL )
+			{
+				show_error("cannot export image into XImage.");
+				return None ;
+			}
+		}else
+			xim = im->alt.ximage ;
+		if (xim != NULL )
+		{
+			if( my_gc == NULL )
+			{
+				XGCValues gcv ;
+				my_gc = XCreateGC( asv->dpy, p, 0, &gcv );
+			}
+			XPutImage( asv->dpy, d, my_gc, xim, src_x, src_y, dest_x, dest_y, width, height );
+			if( my_gc != gc )
+				XFreeGC( asv->dpy, my_gc );
+			if( xim != im->alt.ximage )
+				XDestroyImage (xim);
+		}
+		return True;
+	}
+#endif
+	return False ;
+}
+
+
 Pixmap
 asimage2pixmap(ASVisual *asv, Window root, ASImage *im, GC gc, Bool use_cached)
 {
 #ifndef X_DISPLAY_MISSING
-	XImage       *xim ;
-	Pixmap        p = None;
-	GC 			  my_gc = gc ;
+	if( im )
+	{
+		Pixmap        p = None;
 
-	if ( !use_cached || im->alt.ximage == NULL )
-	{
-		if( (xim = asimage2ximage( asv, im )) == NULL )
+		p = create_visual_pixmap( asv, root, im->width, im->height, 0 );
+
+		if( !asimage2drawable( asv, p, im, gc, 0, 0, 0, 0, im->width, im->height, use_cached) )
 		{
-			show_error("cannot export image into XImage.");
-			return None ;
+			XFreePixmap( dpy, p );
+			p = None ;
 		}
-	}else
-		xim = im->alt.ximage ;
-	if (xim != NULL )
-	{
-		p = create_visual_pixmap( asv, root, xim->width, xim->height, 0 );
-		if( my_gc == NULL )
-		{
-			XGCValues gcv ;
-			my_gc = XCreateGC( asv->dpy, p, 0, &gcv );
-		}
-		XPutImage( asv->dpy, p, my_gc, xim, 0, 0, 0, 0, xim->width, xim->height );
-		if( my_gc != gc )
-			XFreeGC( asv->dpy, my_gc );
-		if( xim != im->alt.ximage )
-			XDestroyImage (xim);
+		return p;
 	}
-	return p;
-#else
-	return None ;
 #endif
+	return None ;
 }
 
 Pixmap
@@ -257,7 +300,6 @@ asimage2mask(ASVisual *asv, Window root, ASImage *im, GC gc, Bool use_cached)
 	return None ;
 #endif
 }
-
 
 /* ********************************************************************************/
 /* The end !!!! 																 */

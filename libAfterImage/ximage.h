@@ -122,6 +122,46 @@ ASImage *pixmap2asimage (struct ASVisual *asv, Pixmap p, int x, int y,
  *********/
 /****f* libAfterImage/ximage/asimage2pixmap()
  * SYNOPSIS
+ * Bool	 asimage2drawable( struct ASVisual *asv, Drawable d, ASImage *im,
+ *                         GC gc,
+ *        			       int src_x, int src_y, int dest_x, int dest_y,
+ *       		  		   unsigned int width, unsigned int height,
+ *				  		   Bool use_cached);
+ * INPUTS
+ * asv  		- pointer to valid ASVisual structure
+ * d  			- destination drawable - Pixmap or Window
+ * im    		- source ASImage
+ * gc   		- precreated GC to use for XImage transfer. If NULL,
+ *  			  asimage2drawable() will use DefaultGC.
+ * src_x        - Specifies the offset in X from the left edge of the image
+ *                defined by the ASImage structure.
+ * src_y        - Specifies the offset in Y from the top edge of the image
+ *                defined by the ASImage structure.
+ * dest_x,dest_y- Specify the x and y coordinates, which are relative to
+ *                the origin of the drawable and are the coordinates of
+ *                the subimage.
+ * width,height - Specify the width and height of the subimage, which
+ *                define the dimensions of the rectangle.
+ * use_cached	- If True will make asimage2pixmap() to use XImage
+ *  			  attached to ASImage, instead of creating new one. Only
+ *  			  works if ASImage->ximage data member is not NULL.
+ * RETURN VALUE
+ * On success returns True.
+ * DESCRIPTION
+ * asimage2drawable() creates will copy portion of ASImage onto the X
+ * Drawable. It checks if it needs to encode XImage
+ * from ASImage data, and calls asimage2ximage() if yes, it has to.
+ * It then supplied gc or DefaultGC of the screen to transfer
+ * XImage to the server.
+ * Missing scanlines get filled with black color.
+ * SEE ALSO
+ * asimage2ximage()
+ * asimage2pixmap()
+ * create_visual_pixmap()
+ *********/
+
+/****f* libAfterImage/ximage/asimage2pixmap()
+ * SYNOPSIS
  * Pixmap   asimage2pixmap  ( struct ASVisual *asv, Window root,
  *                            ASImage *im, GC gc, Bool use_cached);
  * INPUTS
@@ -138,15 +178,13 @@ ASImage *pixmap2asimage (struct ASVisual *asv, Pixmap p, int x, int y,
  * None on failure.
  * DESCRIPTION
  * asimage2pixmap() creates new pixmap of exactly same size as
- * supplied ASImage. It then checks if it needs to encode XImage
- * from ASImage data, and calls asimage2ximage() if yes, it has to.
- * It then uses supplied gc or DefaultGC of the screen to transfer
- * XImage to the server and put it on Pixmap.
- * Missing scanlines get filled with black color.
+ * supplied ASImage. It then calls asimage2drawable to copy entire content
+ * of the ASImage onto that created pixmap.
  * EXAMPLE
  * asview.c: ASView.5
  * SEE ALSO
  * asimage2ximage()
+ * asimage2drawable()
  * create_visual_pixmap()
  *********/
 /****f* libAfterImage/ximage/asimage2mask()
@@ -175,6 +213,10 @@ ASImage *pixmap2asimage (struct ASVisual *asv, Pixmap p, int x, int y,
  **********/
 XImage  *asimage2ximage  (struct ASVisual *asv, ASImage *im);
 XImage  *asimage2mask_ximage (struct ASVisual *asv, ASImage *im);
+Bool	 asimage2drawable( struct ASVisual *asv, Drawable d, ASImage *im, GC gc,
+         			       int src_x, int src_y, int dest_x, int dest_y,
+        		  		   unsigned int width, unsigned int height,
+				  		   Bool use_cached);
 Pixmap   asimage2pixmap  (struct ASVisual *asv, Window root, ASImage *im, GC gc, Bool use_cached);
 Pixmap   asimage2mask    (struct ASVisual *asv, Window root, ASImage *im, GC gc, Bool use_cached);
 

@@ -18,6 +18,8 @@ typedef union ASHashableValue
 typedef unsigned long ASHashableValue;
 #endif
 
+#define AS_HASHABLE(v)  ((ASHashableValue)((unsigned long)(v)))
+
 typedef struct ASHashItem
 {
   struct ASHashItem *next;
