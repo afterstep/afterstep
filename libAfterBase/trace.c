@@ -438,7 +438,7 @@ trace_XWindowEvent (Display * dpy, Window w, long event_mask, XEvent * event_ret
 #endif
 
 
-/* libasimage functions */
+/* libasGUI functions */
 #ifdef TRACE_UnloadImage
 #undef UnloadImage
 extern int    UnloadImage (Pixmap pixmap);

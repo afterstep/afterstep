@@ -28,7 +28,7 @@
 #undef TRACE_load_font		/* both load and unload actually */
 #undef TRACE_mystrdup		/* both mystrdup and mystrndup */
 
-/* asimagelib functions */
+/* libasGUI functions */
 #undef TRACE_UnloadImage	/* both UnloadMask and UnloadImage */
 
 /* afterstep functions */
@@ -142,7 +142,7 @@ char *trace_mystrdup (const char *str, const char *file, int line);
 char *trace_mystrndup (const char *str, size_t n, const char *file, int line);
 #endif
 
-/* asimagelib functions */
+/* libasGUI functions */
 #ifdef TRACE_UnloadImage
 #define UnloadImage(a)	trace_UnloadImage(a,__FUNCTION__,__LINE__)
 #define UnloadMask(a)	trace_UnloadMask(a,__FUNCTION__,__LINE__)
