@@ -349,7 +349,7 @@ int main(int argc, char* argv[])
  * Before any text can be rendered using libAfterImage - desired font
  * has to be opened for use. Font opening process is two-step. At first
  * we need to create font manager ( ASFontManager ). That is done once,
- * and same font manger can be used throughout entire application. It
+ * and same font manager can be used throughout entire application. It
  * contains information about used external libraries, hash of opened
  * fonts, and some other info.
  *

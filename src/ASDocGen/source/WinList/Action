@@ -1,5 +1,5 @@
 <varlistentry id="options.Action">
-	<term>Action</term>
+	<term>Action <emphasis remap='I'>[Click]1|2|3|4|5  action</emphasis></term>
 	<listitem>
 		<para>Defines what function should be executed on the window
 		when specific mouse button is clicked over window's button.
