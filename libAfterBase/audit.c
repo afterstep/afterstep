@@ -629,7 +629,7 @@ spool_unfreed_mem (char *filename, const char *comments)
     FILE *spoolfile = fopen(filename, "w+");
     if( spoolfile )
     {
-        fprintf( spoolfile, "%s: Memory Usage Snapshot <%s>", MyName, comments?comments:"no comments" );
+        fprintf( spoolfile, "%s: Memory Usage Snapshot <%s>", MyName, comments?comments:"no comments\n" );
         output_unfreed_mem( spoolfile );
         fclose( spoolfile );
     }
