@@ -57,6 +57,8 @@ AFTER_DIR	= @with_afterdir@
 AFTER_SAVE	= @with_afterdir@/.workspace_state
 AFTER_NONCF	= @with_afterdir@/non-configurable
 
+IMAGE_FORMAT    = @image_format@
+
 #
 # End of Make.defines
 #

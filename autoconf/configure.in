@@ -373,12 +373,15 @@ AFTERIMAGE_LIBS=
 if test "$afterimage_lib" = NO; then
   AFTERIMAGE_LIB=-lAfterImage
   AFTERIMAGE_LIBS=`afterimage-libs --external-only`
+  image_format=`afterimage-libs --preferred-image-format`
 else
   if test -x "libAfterImage/afterimage-libs"; then
      AFTERIMAGE_LIBS=`libAfterImage/afterimage-libs --external-only`
+     image_format=`libAfterImage/afterimage-libs --preferred-image-format`
   else
 	 AFTERIMAGE_LIB="-L$afterimage_lib -lAfterImage"
 	 AFTERIMAGE_LIBS=`$afterimage_lib/afterimage-libs --external-only`
+         image_format=`$afterimage_lib/afterimage-libs --preferred-image-format`
   fi
 fi
 AC_MSG_RESULT($AFTERIMAGE_LIBS)

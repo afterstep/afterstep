@@ -10,8 +10,8 @@ subdirs		= libAfterBase libAfterImage libAfterStep libAfterConf \
 		  src/afterstep \
 		  src/Pager \
 		  src/Wharf \
-		  src/WinList2 
-		  
+		  src/WinList2
+
 #		  src/asetroot \
 #		  src/Animate \
 #		  src/Audio \
@@ -71,34 +71,11 @@ install.data:
 	echo "If you want AfterStep to appear in your Gnome menu, please install as root."; \
 	fi \
 	fi
-	@if [ -d $(AFTER_SHAREDIR) ] ; then \
-	  echo $(RMF) -r $(AFTER_SHAREDIR)_old; \
-	  echo $(MV) $(AFTER_SHAREDIR) $(AFTER_SHAREDIR)_old; \
-	  $(RMF) -r $(AFTER_SHAREDIR)_old; \
-	  $(MV) $(AFTER_SHAREDIR) $(AFTER_SHAREDIR)_old; \
-	fi; \
-	$(MKDIR) -p $(AFTER_SHAREDIR); \
-	$(MKDIR) -p $(AFTER_DOC_DIR)
-	$(CP) -r afterstep $(AFTER_SHAREDIR)/../
-	$(RMF) $(AFTER_SHAREDIR)/*.in
-	$(RMF) $(AFTER_SHAREDIR)/non-configurable/*.in
-	$(RMF) $(AFTER_SHAREDIR)/start/.include.in
-	$(RMF) $(AFTER_SHAREDIR)/start/Desktop/Feel/.include.in
-	$(RMF) $(AFTER_SHAREDIR)/start/Desktop/Look/.include.in
-	$(RMF) $(AFTER_SHAREDIR)/start/Desktop/Theme/.include.in
-	$(RMF) $(AFTER_SHAREDIR)/start/Desktop/Pictures/.include.in
-	$(FIND) $(AFTER_SHAREDIR) -name '*.in' -print | $(XARGS) $(RMF) -r
-	$(FIND) $(AFTER_SHAREDIR) -name '*.orig' -print | $(XARGS) $(RMF) -r
-	$(FIND) $(AFTER_SHAREDIR) -name CVS -print | $(XARGS) $(RMF) -r
-	$(FIND) $(AFTER_SHAREDIR) -name .cvsignore -print | $(XARGS) $(RMF)
+        cd afterstep; ${MAKE} install || exit 1; cd ..
+
 
 uninstall:
 	@for I in ${subdirs}; do (cd $$I; ${MAKE} uninstall || exit 1); done
-	$(RMF) -r $(AFTER_SHAREDIR)
-	@if [ -d $(AFTER_SHAREDIR)_old ] ; then \
-	  echo $(MV) $(AFTER_SHAREDIR)_old $(AFTER_SHAREDIR); \
-	  $(MV) $(AFTER_SHAREDIR)_old $(AFTER_SHAREDIR); \
-	fi
 
 clean:
 	@for I in ${subdirs}; do (cd $$I; ${MAKE} clean || exit 1); done

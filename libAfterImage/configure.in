@@ -210,6 +210,8 @@ fi
 
 dnl# Check for graphics libraries :
 
+image_format="xpm"
+
 AFTERIMAGE_LIBS=
 
 if test "$with_xpm" = no; then
@@ -234,7 +236,7 @@ else
 		AC_DEFINE(HAVE_XPM)
 		AC_DEFINE(HAVE_LIBXPM)
 		AFTERIMAGE_LIBS="$AFTERIMAGE_LIBS -lXpm"
-  	fi
+        fi
   	CPPFLAGS=$SAVED_CFLAGS
   else
 	AC_DEFINE(HAVE_XPM)
@@ -264,17 +266,18 @@ else
 	PNG_CFLAGS="-I$png_includes"
 	CPPFLAGS="$CPPFLAGS $PNG_CFLAGS"
   fi
-	have_png=no
-    AC_CHECK_HEADER(png.h,have_png=yes)
-	if test "$have_png" = yes; then
-	   AC_MSG_CHECKING(for png_get_sRGB in png.h)
-       AC_EGREP_HEADER(png_get_sRGB,png.h,,have_png=no)
-       AC_MSG_RESULT($have_png)
-	fi
-	if test "$have_png" = yes; then
-	   AC_DEFINE(HAVE_PNG)
-	   AFTERIMAGE_LIBS="$AFTERIMAGE_LIBS -lpng"
-	fi
+  have_png=no
+  AC_CHECK_HEADER(png.h,have_png=yes)
+  if test "$have_png" = yes; then
+        AC_MSG_CHECKING(for png_get_sRGB in png.h)
+        AC_EGREP_HEADER(png_get_sRGB,png.h,,have_png=no)
+        AC_MSG_RESULT($have_png)
+  fi
+  if test "$have_png" = yes; then
+        AC_DEFINE(HAVE_PNG)
+        AFTERIMAGE_LIBS="$AFTERIMAGE_LIBS -lpng"
+        image_format="png"
+  fi
   CPPFLAGS=$SAVED_CFLAGS
 fi
 AC_SUBST(PNG_CFLAGS)
@@ -432,7 +435,7 @@ if test "x$have_afterbase" = "xyes"; then
 	AC_MSG_RESULT($AFTERBASE_CFLAGS)
 else
 	AFTERIMAGE_APPS_LIBS="-L../ -lAfterImage $AFTERIMAGE_LIBS_EXTERNAL"
-	if test "$with_afterbase" = "no"; then	
+	if test "$with_afterbase" = "no"; then
 	    AC_MSG_RESULT(disabled)
 	else
 	    AC_MSG_RESULT(none found)
@@ -477,6 +480,8 @@ if test "x$enable_i18n" = "xyes"; then AC_DEFINE(I18N) fi
 if test "x$enable_audit" = "xyes"; then AC_DEFINE(DEBUG_ALLOCS) fi
 
 dnl# Variable strings declaration
+
+AC_SUBST(image_format)
 
 AC_SUBST(CFLAGS)
 AC_SUBST(version)

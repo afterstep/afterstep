@@ -44,7 +44,7 @@
  * ascompose -f file|-s string [-o file] [-t type] [-V]"
  * ascompose -f file|-s string [-o file] [-t type] [-V]"
  * ascompose -f file|-s string [-o file] [-t type] [-V] [-n]"
- * ascompose -f file|-s string [-o file] [-t type] [-V] [-r]"
+ * ascompose -f file|-s string [-o file] [-t type [-c compression_level]] [-V] [-r]"
  * ascompose [-h]
  * ascompose [-v]
  *
@@ -103,6 +103,7 @@
  *                       use. Filenames are meaningless when it comes to
  *                       determining what file type to use.
  *    -t --type type     type of file to output to.
+ *    -c --compress level compression level.
  *    -v --version       display version and exit.
  *    -V --verbose       increase verbosity. To increase verbosity level
  *                       use several of these, like: ascompose -V -V -V.
@@ -156,7 +157,8 @@ void usage(void) {
 		"  -o --output file   output to file\n"
 		"  -s --string string an XML string to use as input\n"
 		"  -t --type type     type of file to output to\n"
-		"  -v --version       display version and exit\n"
+        "  -c --compress level compression level\n"
+        "  -v --version       display version and exit\n"
 		"  -V --verbose       increase verbosity\n"
 		"  -D --debug         show everything and debug messages\n"
 	);
@@ -184,6 +186,7 @@ int main(int argc, char** argv) {
 	char* doc_file = NULL;
 	char* doc_save = NULL;
 	char* doc_save_type = NULL;
+    char *doc_compress = NULL ;
 	int i;
 	int display = 1, onroot = 0;
 
@@ -216,6 +219,8 @@ int main(int argc, char** argv) {
 			doc_save = argv[++i];
 		} else if ((!strcmp(argv[i], "--type") || !strcmp(argv[i], "-t")) && i < argc + 1) {
 			doc_save_type = argv[++i];
+        } else if ((!strcmp(argv[i], "--compress") || !strcmp(argv[i], "-c")) && i < argc + 1) {
+            doc_compress = argv[++i];
 		}
 #ifndef X_DISPLAY_MISSING
 		  else if (!strcmp(argv[i], "--no-display") || !strcmp(argv[i], "-n")) {
@@ -260,7 +265,7 @@ int main(int argc, char** argv) {
 
 	/* Save the result image if desired. */
 	if (doc_save && doc_save_type) {
-		if(!save_asimage_to_file(doc_save, im, doc_save_type, NULL, NULL, 0, 1)) {
+        if(!save_asimage_to_file(doc_save, im, doc_save_type, doc_compress, NULL, 0, 1)) {
 			show_error("Save failed.");
 		} else {
 			show_progress("Save successful.");
