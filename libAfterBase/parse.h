@@ -20,6 +20,7 @@ char *stripcpy2 (const char *source, int tab_sensitive);
 char *stripcpy3 (const char *, Bool);
 char *tokencpy (const char *source);
 struct config *find_config (struct config *, const char *);
+int quotestr (char *dest, const char *src, int maxlen);
 
 /* here we'll strip comments and whitespaces */
 char *stripcomments (char *source);

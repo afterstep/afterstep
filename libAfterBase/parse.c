@@ -224,6 +224,33 @@ find_config (struct config *table, const char *text)
 }
 
 /****************************************************************************
+ * copy src to dest, backslash-escaping all non-alphanumeric characters in
+ * src; write a maximum of maxlen chars to dest, including terminating zero
+ ****************************************************************************/
+int
+quotestr (char *dest, const char *src, int maxlen)
+{
+	int           n = maxlen;
+
+	/* require at least enough space for the terminating zero */
+	if (maxlen < 1)
+		return maxlen - n;
+	n--;
+	while (n && *src)
+	{
+		if (!isalnum (*src) && n > 1)
+		{
+			*dest++ = '\\';
+			n--;
+		}
+		*dest++ = *src++;
+		n--;
+	}
+	*dest = '\0';
+	return maxlen - n;
+}
+
+/****************************************************************************
  *
  * Copies a whitespace separated token into a new, malloc'ed string
  * Strips leading and trailing whitespace
