@@ -955,7 +955,7 @@ set_xrootpmap_id (ASWMProps * wmprops, Pixmap new_pmap)
 {
 	if (wmprops)
 	{
-		set_32bit_property (wmprops->scr->Root, _XROOTPMAP_ID, XA_CARDINAL, new_pmap);
+        set_32bit_property (wmprops->scr->Root, _XROOTPMAP_ID, XA_PIXMAP, new_pmap);
 		XFlush (dpy);
         wmprops->root_pixmap = new_pmap;
 	}

@@ -381,20 +381,11 @@ load_myback_image( int desk, MyBackground *back )
 
     if( im == NULL )
     {
-	    char tmpfile[256], *realfilename ;	
-	    if (Scr.screen == 0)
-  		    sprintf (tmpfile, BACK_FILE, desk);
-	    else
-  		    sprintf (tmpfile, BACK_FILE ".scr%ld", desk, Scr.screen);
-
-  		realfilename = make_session_data_file(Session, False, 0, tmpfile, NULL );
-		LOCAL_DEBUG_OUT( "loading image from \"%s\"", realfilename );
-        //const char *const_configfile = get_session_file (Session, desk, F_CHANGE_BACKGROUND);
-        if( realfilename != NULL )
+        const char *const_configfile = get_session_file (Session, desk, F_CHANGE_BACKGROUND);
+        if( const_configfile != NULL )
         {
-            im = get_asimage( Scr.image_manager, realfilename, 0xFFFFFFFF, 100 );
-            show_progress("BACKGROUND for desktop %d loaded from \"%s\" ...", desk, realfilename);
-			free( realfilename );
+            im = get_asimage( Scr.image_manager, const_configfile, 0xFFFFFFFF, 100 );
+            show_progress("BACKGROUND for desktop %d loaded from \"%s\" ...", desk, const_configfile);
         }else
             show_progress("BACKGROUND file cannot be found for desktop %d", desk );
     }
