@@ -26,9 +26,11 @@
 #define ISMAPPED 0
 #define NOTMAPPED 1
 
+#ifndef get_flags
 #define get_flags(var, val) ((var) & (val))
 #define set_flags(var, val) ((var) |= (val))
 #define clear_flags(var, val) ((var) &= ~(val))
+#endif
 
 typedef struct icon_info icon_info;
 typedef struct button_info button_info;

@@ -1,3 +1,5 @@
+1.8.10 patch 1 (sasha+Geoff Burling+Jan Fedak)
+ o Numerous man page and usage fixes by Geoff Burling.
  o Fixed bug in DefaultGeometry handling where check for USPosition/Size
    should have been negated.
  o Fixed compilation bug in lib/parse.c
