@@ -9,7 +9,7 @@
 #
 ModulePath		@bindir@
 IconPath		@x_includes@/X11/bitmaps/
-PixmapPath		@with_afterdir@/desktop/icons/16bpp/:@datadir@/afterstep/desktop/icons/16bpp/:@with_afterdir@/desktop/icons/common/:@datadir@/afterstep/desktop/icons/common/:@with_afterdir@/desktop/buttons/:@datadir@/afterstep/desktop/buttons/:@with_afterdir@/backgrounds/:@datadir@/afterstep/backgrounds/:@x_includes@/X11/pixmaps/
+PixmapPath		@with_afterdir@/desktop/icons/:@with_afterdir@/desktop/tiles/:@with_afterdir@/desktop/icons/:@datadir@/afterstep/desktop/icons/16bpp/:@with_afterdir@/desktop/icons/common/:@datadir@/afterstep/desktop/icons/common/:@with_afterdir@/desktop/buttons/:@datadir@/afterstep/desktop/buttons/:@with_afterdir@/backgrounds/:@datadir@/afterstep/backgrounds/:@x_includes@/X11/pixmaps/
 CursorPath              @with_afterdir@/desktop/cursors:@datadir@/afterstep/desktop/cursors
 ScriptPath             @with_afterdir@/scripts/:@datadir@/afterstep/scripts/
 #
