@@ -206,7 +206,7 @@
 *MonitorWharf ~Folder
 
 *MonitorWharf asfsm - Swallow "asfsm_lite" asfsm_lite -bg Grey30 -fg Grey70 -bp None -pbg Grey40 -pfg Grey70 -pbp None -i 30 &
-*MonitorWharf loadmonitor - Swallow "asload" asload -shape &
+*MonitorWharf loadmonitor - Swallow "asload" asload -shape -exe "aterm -e top" &
 *MonitorWharf loadmonitor - Swallow "wmcpuload" wmcpuload -bl -w &
 *MonitorWharf asmon  - Swallow "asmon" asmon &
 *MonitorWharf wmtop  - Swallow "wmtop" wmtop &

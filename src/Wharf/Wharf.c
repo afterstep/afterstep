@@ -210,6 +210,8 @@ Bool render_wharf_button( ASWharfButton *aswb );
 void set_wharf_clip_area( ASWharfFolder *aswf, int x, int y );
 void set_withdrawn_clip_area( ASWharfFolder *aswf, int x, int y, unsigned int w, unsigned int h );
 void change_button_focus(ASWharfButton *aswb, Bool focused ); 
+static Bool check_app_click	( ASWharfButton *aswb, XButtonEvent *xbtn );
+
 
 /***********************************************************************
  *   main - start of module
@@ -618,14 +620,38 @@ DispatchEvent (ASEvent * event)
             on_wharf_moveresize( event );
             break;
         case KeyPress :
-            break ;
         case KeyRelease :
+			{	
+			    ASMagic *obj = fetch_object( event->w ) ;
+				if( obj && obj->magic == MAGIC_WHARF_BUTTON )
+    			{
+        			ASWharfButton *aswb = (ASWharfButton*)obj;
+					if( aswb->swallowed ) 
+					{
+            			event->x.xkey.window = aswb->swallowed->current->w;
+   	        			XSendEvent (dpy, aswb->swallowed->current->w, False, KeyPressMask|KeyReleaseMask, &(event->x));
+					}
+				}
+			}
             break ;
         case ButtonPress:
             on_wharf_pressed( event );
             break;
         case ButtonRelease:
             release_pressure();
+			{
+			    ASMagic *obj = fetch_object( event->w ) ;
+				if( obj && obj->magic == MAGIC_WHARF_BUTTON )
+    			{
+        			ASWharfButton *aswb = (ASWharfButton*)obj;
+					if( check_app_click	( aswb, &(event->x.xbutton) ) ) 
+					{
+	            		event->x.xbutton.window = aswb->swallowed->current->w;
+						XSendEvent (dpy, aswb->swallowed->current->w, False, ButtonReleaseMask, &(event->x));	
+						return;
+					}	 
+				}
+			}
             break;
         case MotionNotify :
             break ;
@@ -2554,6 +2580,21 @@ LOCAL_DEBUG_OUT( "pressed button has folder %p (%s)", pressed->folder, get_flags
     }
 }
 
+
+static Bool 
+check_app_click	( ASWharfButton *aswb, XButtonEvent *xbtn )
+{
+	if( aswb->swallowed )
+	{	
+		int sx = aswb->swallowed->current->root_x ;
+		int sy = aswb->swallowed->current->root_y ;
+		return ( sx <= xbtn->x_root && sy <= xbtn->y_root &&
+			 	aswb->swallowed->current->width + sx > xbtn->x_root &&
+			 	aswb->swallowed->current->height + sy > xbtn->y_root );
+	}
+	return False;
+}
+
 void
 on_wharf_pressed( ASEvent *event )
 {
@@ -2567,7 +2608,7 @@ on_wharf_pressed( ASEvent *event )
 
 		if( get_flags( aswb->flags, ASW_Transient ) )
 			return ;
-		        
+
 		if( event->x.xbutton.button == Button3 && aswf == WharfState.root_folder )
 		{	
             if( (WITHDRAW_ON_EDGE(Config) && (&(aswf->buttons[0]) == aswb || &(aswf->buttons[aswf->buttons_num-1]) == aswb)) ||
@@ -2634,6 +2675,12 @@ on_wharf_pressed( ASEvent *event )
             	}
             	return;
         	}
+			if( check_app_click	( aswb, &(event->x.xbutton) ) ) 
+			{
+	            event->x.xbutton.window = aswb->swallowed->current->w;
+				XSendEvent (dpy, aswb->swallowed->current->w, False, ButtonPressMask, &(event->x));	
+				return;
+			}	 
 		}
         press_wharf_button( aswb, event->x.xbutton.state );
     }
