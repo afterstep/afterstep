@@ -78,18 +78,235 @@ make_asstorage_id( int block_id, int slot_id )
 	return id;
 }
 
+static int 
+rlediff_compress_bitmap( CARD8 *buffer,  CARD8* data, int size )
+{
+	return 0;	
+}	 
+
+static int 
+rlediff_compress( CARD8 *buffer,  CARD8* data, int size )
+{
+	int comp_size = 0 ;
+	Bool sign[64] ;
+	CARD8 diff[64], last_val = 0 ;
+	int run_step = 0;
+	int run_size2 = 0;
+	int i = 0;
+
+	while( i < size ) 
+	{
+		int d = (data[i] < last_val)?last_val-data[i]:data[i]-last_val ;
+		if( d == 0 ) 
+		{
+			int zero_size = 0 ;  /* intentionally ! */ 
+			while( ++i < size && zero_size < 127 ) 	 
+			{	
+				if( data[i] != last_val ) 
+					break;
+				++zero_size ;
+			}
+			if( comp_size + 1 > size )
+				return 0; 
+			buffer[comp_size] = RLE_ZERO_SIG | (zero_size&RLE_ZERO_LENGTH) ;
+			++comp_size ;
+		}else if( d <= 8 )  
+		{ /* see if we can pack everything into 2 or 4 bit string */
+			do
+			{
+				if( data[i] == last_val	) 
+					break;
+				sign[run_step] = (data[i] > last_val )?0:1;
+				diff[run_step] = sign[run_step]?last_val-data[i]:data[i]-last_val ;
+				if( diff[run_step] > 8 ) 
+					break;
+				if( run_size2 == run_step ) 
+				{	
+					if( diff[run_step] > 2 && run_size2 >= 4 )
+						break;
+					if( ++run_size2  >= 16 ) 
+					{
+						last_val = data[i] ;
+						++i ;	  
+						break; 
+					}
+				}
+				
+				++run_step ;
+				last_val = data[i] ;
+				++i ;
+			}while( i < size && run_step < 64 ); 	
+			if( run_step > run_size2 ) 
+			{                  /* encoding as 4 bit values */
+				int k = 0;
+				if( comp_size + 1 + run_step/2 > size )
+					return 0; 
+
+				buffer[comp_size] = RLE_NOZERO_SHORT_SIG | ((run_step-1)&RLE_NOZERO_SHORT_LENGTH) ;											   
+				++comp_size;
+				do
+				{
+					buffer[comp_size] = (sign[k]<<7)|((diff[k]-1)<<4) ;
+					if( ++k < run_step )
+					{	
+						buffer[comp_size] |= (sign[k]<<3)|(diff[k]-1) ;
+						++k ;
+					}
+					++comp_size ;
+				}while( k  < run_step );
+			}else	 
+			{					/* encoding as 2 bit values */
+				int k = 0;
+				if( comp_size + 1 + run_size2/4 > size )
+					return 0; 
+
+				buffer[comp_size] = RLE_NOZERO_LONG1_SIG | ((run_size2-1)&RLE_NOZERO_LONG_LENGTH) ;											   
+				++comp_size;
+				do
+				{
+					buffer[comp_size] = (sign[k]<<7)|((diff[k]-1)<<6) ;
+					if( ++k < run_size2 )
+					{	
+						buffer[comp_size] |= (sign[k]<<5)|((diff[k]-1)<<4) ;
+						if( ++k < run_size2 )
+						{
+							buffer[comp_size] |= (sign[k]<<3)|((diff[k]-1)<<2) ;
+							if( ++k < run_size2 )
+							{	
+								buffer[comp_size] |= (sign[k]<<1)|(diff[k]-1) ;
+								++k ;
+							}
+						}
+					}
+					++comp_size ;
+				}while( k  < run_size2 );
+			}	 
+		}else if( d <= 8 )  
+		{                      /* 8 bit strings */
+			int k = 0;
+			do
+			{
+				if( data[i] == last_val	) 
+					break;
+				sign[run_step] = (data[i] > last_val )?0:1;
+				diff[run_step] = sign[run_step]?last_val-data[i]:data[i]-last_val ;
+				if( diff[run_step] > 128 || diff[run_step] <= 8 ) 
+					break;
+				
+				++run_step ;
+				last_val = data[i] ;
+				++i ;
+			}while( i < size && run_step < 16 ); 	
+			
+			if( comp_size + 1 + run_step > size )
+				return 0; 
+
+			buffer[comp_size] = RLE_NOZERO_LONG2_SIG | ((run_step-1)&RLE_NOZERO_LONG_LENGTH) ;											   
+			++comp_size;
+			do
+			{
+				buffer[comp_size] = (sign[k]<<7)|(diff[k]-1) ;
+				++k ;
+				++comp_size ;
+			}while( k  < run_step );
+		}else		 
+		{	
+			int k = 0;		/* 9 bit strings */
+			do
+			{
+				if( data[i] == last_val	) 
+					break;
+				sign[run_step] = (data[i] > last_val )?0:1;
+				diff[run_step] = sign[run_step]?last_val-data[i]:data[i]-last_val ;
+				if( diff[run_step] <= 128 ) 
+					break;
+				
+				++run_step ;
+				last_val = data[i] ;
+				++i ;
+			}while( i < size && run_step < 16 ); 	
+			
+			if( comp_size + 1 + run_step > size )
+				return 0; 
+			if( sign[0] == 0 ) 
+				buffer[comp_size] = RLE_9BIT_SIG | ((run_step-1)&RLE_NOZERO_LONG_LENGTH) ;											   
+			else
+				buffer[comp_size] = RLE_9BIT_NEG_SIG | ((run_step-1)&RLE_NOZERO_LONG_LENGTH) ;											   
+			++comp_size;
+			do
+			{
+				buffer[comp_size] = diff[k]-1 ;
+				++k ;
+				++comp_size ;
+			}while( k  < run_step );
+		} 
+	}	 
+	
+	return comp_size ;
+}	 
+
+static int 
+rlediff_decompress( CARD8 *buffer,  CARD8* data, int size )
+{
+	int out_bytes = 0 ;
+	int in_bytes = 0 ;
+	CARD8 last_val = 0;
+	int count ;
+
+	while( in_bytes < size ) 
+	{
+		CARD8 c = data[in_bytes++] ;
+		if( (c & RLE_ZERO_MASK) == 0 ) 			   
+		{
+			count = (int)c  + 1 ;
+			while( --count >= 0 )  	  
+				buffer[out_bytes++] = 0 ;
+		}else if( (c & RLE_NOZERO_SHORT_MASK ) == RLE_NOZERO_SHORT_SIG ) 
+		{
+			count = c & RLE_NOZERO_SHORT_LENGTH ;
+			++count ;
+		  
+		}else if( (c & RLE_NOZERO_LONG_MASK ) == RLE_NOZERO_LONG1_SIG ) 
+		{
+			 
+		}else if( (c & RLE_NOZERO_LONG_MASK ) == RLE_NOZERO_LONG2_SIG ) 
+		{
+		}else
+		{
+			
+		}	 
+	}	 
+}	 
+
+
 static CARD8* 
 compress_stored_data( ASStorage *storage, CARD8 *data, int size, ASFlagType flags, int *compressed_size )
 {
 	/* TODO: just a stub for now - need to implement compression */
 	int comp_size = size ;
-	if( get_flags( flags, ASStoprage_ZlibCompress ) )
-	{
-		CARD8  *comp_buffer ;
-		size_t 	comp_buf_size ; 
-		size_t	last_zipped_size ;
+	CARD8  *buffer = data ;
+	size_t 	buf_size = size ; 
 	
-		
+	if( get_flags( flags, ASStoprage_RLEDiffCompress ) && size > 8 )
+	{
+		if( storage->comp_buf_size < size ) 
+		{	
+			storage->comp_buf_size = ((size/AS_STORAGE_PAGE_SIZE)+1)*AS_STORAGE_PAGE_SIZE ;
+			storage->comp_buf = realloc( storage->comp_buf, storage->comp_buf_size );
+		}
+		buffer = storage->comp_buf ;
+		buf_size = storage->comp_buf_size ;
+		if( buffer ) 
+		{
+			if( get_flags( flags, ASStorage_Bitmap ) )
+				comp_size = rlediff_compress_bitmap( buffer, data, size );
+			else 
+				comp_size = rlediff_compress( buffer, data, size );
+
+			if( comp_size == 0 )	 
+				buffer = data ;
+		}else
+			buffer = data ;	 
 	}	 
 		
 	if( compressed_size ) 
@@ -125,7 +342,7 @@ add_storage_slots( ASStorageBlock *block )
 static ASStorageBlock *
 create_asstorage_block( int useable_size )
 {
-	int allocate_size = (((sizeof(ASStorageBlock)+sizeof(ASStorageSlot) + useable_size)/4096)+1)*4096 ;
+	int allocate_size = (((sizeof(ASStorageBlock)+sizeof(ASStorageSlot) + useable_size)/AS_STORAGE_PAGE_SIZE)+1)*AS_STORAGE_PAGE_SIZE ;
 #ifndef DEBUG_ALLOCS
 	void *ptr = malloc(allocate_size);
 #else
@@ -794,7 +1011,7 @@ test_asstorage(Bool interactive )
 	ASStorageID id ;
 	int i, kind, test_count;
 	int min_size, max_size ;
-	ASFlagType test_flags = 0 ;
+	ASFlagType test_flags = ASStoprage_RLEDiffCompress ;
 	
 	
 	fprintf(stderr, "Testing storage creation ...");

@@ -2,6 +2,8 @@
 #define ASSTORAGE_H_HEADER_INCLUDED
 
 
+#define AS_STORAGE_PAGE_SIZE		4096
+
 /* 
  *	there could be up to 16 arrays of 1024 pointers to slots each in Storage Block
  *	There could be 2^18 StorageBlocks in ASStorage
@@ -21,16 +23,52 @@
 /* space for slots is allocated in 16 byte increments */
 #define AS_STORAGE_GetNextSlot(slot) ((slot)+1+(ASStorageSlot_USABLE_SIZE(slot)>>4))
 
+
+/* RLE encoding of difference 
+ * We calculate difference between following bytes. If differece is zero - its RLE encoded.
+ * If its +-1 - its encoded as 2 bit values
+ * If Its +-(from 2 to 7) - its encoded using 4 bit values
+ * If Its +-(from 8 to 127) - its encoded using 8 bit values  
+ * If Its +-(from 128 to 255) - its encoded using 9 bit values
+ * 
+ * The hope is that most of the bytes will be reduced to 0 
+ * The next likely value will be from 2 to 7 
+ * and only few cases will fall in other categories
+ * 
+ * */
+
+#define RLE_ZERO_MASK				0x0080  /* M        */  
+#define RLE_ZERO_LENGTH				0x007F  /*  LLLLLLL */  
+#define RLE_ZERO_SIG				0x0000  /* 0LLLLLLL - identical to a string of LLLLLLL zeros */  
+
+#define RLE_NOZERO_SHORT_MASK		0x00D0  /* MM       */  
+#define RLE_NOZERO_SHORT_LENGTH		0x003F  /*   LLLLLL */  
+#define RLE_NOZERO_SHORT_SIG		0x00D0  /* 11LLLLLL followed by stream of LLLLLL 4 or 2 bit values */
+
+#define RLE_NOZERO_LONG_MASK		0x00F0  /* MMMM     */  
+#define RLE_NOZERO_LONG_LENGTH		0x000F  /*     LLLL */  
+#define RLE_NOZERO_LONG1_SIG		0x00A0  /* 1010LLLL followed by stream of LLLL 2 or 4 bit values */  
+#define RLE_NOZERO_LONG2_SIG		0x00B0  /* 1011LLLL followed by stream of LLLL 1 byte values */  
+
+#define RLE_9BIT_SIG				0x0080  /* 1000LLLL followed by stream of LLLL 1 byte values 
+                                               that change sign from byte to byte starting with positive */     
+#define RLE_9BIT_NEG_SIG	  		0x0090  /* 1001LLLL followed by stream of LLLL 1 byte values 
+                                               that change sign from byte to byte starting with negative */     
+
+
 typedef struct ASStorageSlot
 {
 /* Pointer to ASStorageSlot is the pointer to used memory beginning - ASStorageSlot_SIZE 
  * thus we need not to store it separately 
  */
-#define ASStoprage_ZlibCompress		(0x01<<0)
-#define ASStorage_CompressionType	(0x0F<<0) /* allow for 16 compression schemes */
+#define ASStoprage_ZlibCompress		(0x01<<0)  /* do we really want that ? */ 
+#define ASStoprage_RLEDiffCompress 	(0x01<<1)  /* RLE of difference */ 
+
+#define ASStorage_CompressionType	(0x0F<<0)  /* allow for 16 compression schemes */
 #define ASStorage_Used				(0x01<<4)
 #define ASStorage_NotTileable		(0x01<<5)
 #define ASStorage_Reference			(0x01<<6)  /* data is the id of some other slot */ 
+#define ASStorage_Bitmap			(0x01<<7)  /* data is 1 bpp */ 
 
 	CARD16  flags ;
 	CARD16  ref_count ;
@@ -79,9 +117,8 @@ typedef struct ASStorage
 	ASStorageBlock **blocks ;
 	int 			blocks_count;
 
-	CARD8  *comp_buffer ;
+	CARD8  *comp_buf ;
 	size_t 	comp_buf_size ; 
-	size_t	last_zipped_size ;
 
 }ASStorage;
 
