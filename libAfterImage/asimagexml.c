@@ -501,7 +501,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 			if (!strcmp(ptr->tag, "srcid")) srcid = ptr->parm;
 		}
 		if (srcid) {
-			show_progress("Recalling image id [%s].", srcid);
+			show_progress("Recalling image id [%s] from imman %p.", srcid, imman);
 			result = fetch_asimage(imman, srcid );
 			if (!result)
 				show_error("Image recall failed for id [%s].", srcid);
@@ -567,7 +567,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 					fgimage = fetch_asimage(imman, fgimage_str );
 					show_progress("Using image [%s] as foreground.", fgimage_str);
 					if (fgimage) {
-						safe_asimage_destroy( fgimage );
+						release_asimage( fgimage );
 						fgimage = tile_asimage(asv, fgimage, 0, 0, result->width, result->height, 0, ASA_ASImage, 100, ASIMAGE_QUALITY_TOP);
 						move_asimage_channel(fgimage, IC_ALPHA, result, IC_ALPHA);
 						safe_asimage_destroy(result);
@@ -1683,7 +1683,8 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 				if (keep_trans && result && layers[0].im) {
 					copy_asimage_channel(result, IC_ALPHA, layers[0].im, IC_ALPHA);
 				}
-				while (--num >= 0) safe_asimage_destroy(layers[num].im);
+				while (--num >= 0 )
+					safe_asimage_destroy( layers[num].im );
 			}
 			free(layers);
 		}
@@ -1706,7 +1707,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 
 	if (id && result) {
               char* buf = NEW_ARRAY(char, strlen(id) + 1 + 6 + 1);
-		show_progress("Storing image id [%s].", id);
+		show_progress("Storing image id [%s] with image manager %p .", id, imman);
               sprintf(buf, "%s.width", id);
               asxml_var_insert(buf, result->width);
               sprintf(buf, "%s.height", id);
@@ -1714,8 +1715,14 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
               free(buf);
 		if( !store_asimage( imman, result, id ) )
 		{
+			show_warning("Failed to store image id [%s].", id);
 			safe_asimage_destroy(result );
 			result = fetch_asimage( imman, id );
+		}else
+		{
+			/* normally generated image will be destroyed right away, so we need to
+			 * increase ref count, in order to preserve it for future uses : */
+			dup_asimage( result );
 		}
 	}
 

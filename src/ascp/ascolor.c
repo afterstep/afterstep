@@ -193,24 +193,34 @@ void usage(void) {
  * parameters are given :
  * SOURCE
  */
-static char* default_doc_str = "\
+static char* default_doc_str = " \
 	<composite> \
 		<gradient angle=45 width=640 height=480 colors=\"BaseDark BaseLight\"/> \
 		<composite x=20 y=40> \
-			<bevel colors=\"Inactive1Light Inactive1Dark\" border=\"2 2 3 3\" solid=0> \
- 				<gradient angle=90 width=300 height=25 colors=\"Inactive1Dark Inactive1Light\"/> \
+			<bevel id=\"inactive_back_beveled\" colors=\"Inactive1Light Inactive1Dark\" border=\"2 2 3 3\" solid=0> \
+ 				<gradient id=\"inactive_back\" angle=90 width=340 height=25 colors=\"Inactive1Dark Inactive1Light\"/> \
 			</bevel> \
-			<text x=5 y=3 font=\"DefaultBold.ttf\" point=22 fgcolor=\"InactiveText1\" bgcolor=#00000000>Unfocused title bar text</text> \
+			<text x=5 y=3 font=\"DefaultBold.ttf\" point=22 fgcolor=\"InactiveText1\">Unfocused title bar text</text> \
+		</composite> \
+		<composite x=10 y=300> \
+			<recall srcid=\"inactive_back_beveled\"/> \
+			<text x=5 y=3 font=\"DefaultBold.ttf\" point=22 fgcolor=\"InactiveText1\" bgimage=\"inactive_back\">Unfocused title bar text</text> \
+		</composite> \
+		<composite x=300 y=250> \
+			<bevel colors=\"Inactive1Light Inactive1Dark\" border=\"2 2 3 3\" solid=0> \
+ 				<gradient angle=90 width=340 height=25 colors=\"Inactive1Dark Inactive1Light\"/> \
+			</bevel> \
+			<text x=5 y=3 font=\"DefaultBold.ttf\" point=22 fgcolor=\"InactiveText1\" bgimage=\"inactive_back\">Unfocused title bar text</text> \
 		</composite> \
 		<composite x=250 y=80> \
 			<bevel colors=\"Inactive2Light Inactive2Dark\" border=\"2 2 3 3\" solid=0> \
-				<gradient angle=90 width=250 height=25 colors=\"Inactive2Dark Inactive2Light\"/> \
+				<gradient angle=90 width=350 height=25 colors=\"Inactive2Dark Inactive2Light\"/> \
 			</bevel> \
 			<text x=5 y=3 font=\"DefaultBold.ttf\" point=22 fgcolor=\"InactiveText2\" bgcolor=#00000000>Sticky title bar text</text> \
 		</composite> \
 		<composite x=150 y=100> \
 			<bevel colors=\"ActiveLight ActiveDark\" border=\"2 2 3 3\" solid=0> \
-				<gradient angle=90 width=320 height=25 colors=\"ActiveDark ActiveLight\"/> \
+				<gradient angle=90 width=400 height=25 colors=\"ActiveDark ActiveLight\"/> \
 			</bevel> \
 			<text x=5 y=3 font=\"DefaultBold.ttf\" point=22 fgcolor=\"ActiveText\" bgcolor=#00000000>Focused title bar text</text> \
 		</composite> \
@@ -226,7 +236,7 @@ int main(int argc, char** argv) {
     char *doc_compress = NULL ;
 	int i;
 	int display = 1, onroot = 0;
-	ARGB32 base_color = 0xff0000ef;
+	ARGB32 base_color = 0xff00008f;
 	ASColorScheme *cs ;
 	int angle = ASCS_DEFAULT_ANGLE ;
 

@@ -484,11 +484,13 @@ query_asimage( ASImageManager* imageman, const char *name )
 {
 	ASImage *im = NULL ;
 	if( !AS_ASSERT(imageman) && !AS_ASSERT(name) )
+	{
 		if( get_hash_item( imageman->image_hash, (ASHashableValue)((char*)name), (void**)&im) == ASH_Success )
 		{
 			if( im->magic != MAGIC_ASIMAGE )
 				im = NULL ;
         }
+	}
 	return im;
 }
 
@@ -497,8 +499,10 @@ fetch_asimage( ASImageManager* imageman, const char *name )
 {
     ASImage *im = query_asimage( imageman, name );
     if( im )
+	{
         im->ref_count++ ;
-    return im;
+	}
+	return im;
 }
 
 
@@ -511,6 +515,7 @@ dup_asimage( ASImage* im )
 
 	if( !AS_ASSERT(im) && !AS_ASSERT(im->imageman) )
 	{
+/*		fprintf( stderr, __FUNCTION__" on image %p ref_count = %d\n", im, im->ref_count ); */
 		im->ref_count++ ;
 		return im;
 	}
@@ -525,7 +530,7 @@ release_asimage( ASImage *im )
 	{
 		if( im->magic == MAGIC_ASIMAGE )
 		{
-            if( --(im->ref_count) <= 0 )
+			if( --(im->ref_count) <= 0 )
 			{
 				ASImageManager *imman = im->imageman ;
 				if( !AS_ASSERT(imman) )
