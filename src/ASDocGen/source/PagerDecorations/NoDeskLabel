@@ -1,6 +1,6 @@
 <varlistentry id="options.NoDeskLabel">
 	<term>NoDeskLabel</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Turns OFF desk's labeling</para>
 	</listitem>
 </varlistentry>

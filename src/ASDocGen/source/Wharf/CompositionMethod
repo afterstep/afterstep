@@ -1,6 +1,9 @@
 <varlistentry id="options.CompositionMethod">
 	<term>CompositionMethod</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Determines algorithm used to blend all the icons and
+		Wharf background to form the button's image. Valid values are
+		130-145 ( see MyStyles section ). The default value is 131
+		( alpha-blending )</para>
 	</listitem>
 </varlistentry>

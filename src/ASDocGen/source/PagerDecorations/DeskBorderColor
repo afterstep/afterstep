@@ -1,6 +1,7 @@
 <varlistentry id="options.DeskBorderColor">
 	<term>DeskBorderColor</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Defines  the color of the Desk's border. Use it to
+		override default which is the style's foreground color</para>
 	</listitem>
 </varlistentry>

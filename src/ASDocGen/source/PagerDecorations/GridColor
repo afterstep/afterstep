@@ -1,6 +1,8 @@
 <varlistentry id="options.GridColor">
 	<term>GridColor</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Specifies a different color than the fore color to draw
+		grid lines. If this option is unused, then the same color
+		specified with *PagerFore will be used for the grids.</para>
 	</listitem>
 </varlistentry>

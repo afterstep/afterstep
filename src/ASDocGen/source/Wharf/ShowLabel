@@ -1,6 +1,8 @@
 <varlistentry id="options.ShowLabel">
 	<term>ShowLabel</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Flag that tells Wharf to render a label on each
+		of its buttons, effectively immitating the behaviour of
+		the discontinued Zharf module.</para>
 	</listitem>
 </varlistentry>

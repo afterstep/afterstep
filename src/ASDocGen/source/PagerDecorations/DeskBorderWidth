@@ -1,6 +1,7 @@
 <varlistentry id="options.DeskBorderWidth">
 	<term>DeskBorderWidth</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Specifies the width of the border to be drawn around each
+		desk</para>
 	</listitem>
 </varlistentry>

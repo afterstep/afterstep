@@ -1,6 +1,11 @@
 <varlistentry id="options.WithdrawStyle">
 	<term>WithdrawStyle</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Specifies the circumstances under which button  3  should  cause
+		the  Wharf to withdraw to a corner. If style is 0, button 3 will
+		do nothing. If style is 1 (the default), a click on  any  button
+		in  the toplevel bar will cause Wharf to withdraw to the nearest
+		corner. If style is 2, a click on either the first or  the  last
+		button in the toplevel bar will cause the withdrawal.</para>
 	</listitem>
 </varlistentry>

@@ -1,6 +1,7 @@
 <varlistentry id="options.SelectionColor">
 	<term>SelectionColor</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Turns ON highliting of the current  page,  and  specifies
+		color of hilighting</para>
 	</listitem>
 </varlistentry>

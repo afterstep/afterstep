@@ -1,6 +1,9 @@
 <varlistentry id="options.LabelLocation">
 	<term>LabelLocation</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Specifies the location of the label. Correct values are
+		integers from 0-32. label could be drawn on each side of
+		the button and just on top of icon. It could also be aligned to
+		different sides.</para>
 	</listitem>
 </varlistentry>

@@ -1,6 +1,10 @@
 <varlistentry id="options.Inherit">
 	<term>Inherit</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Specifies a MyStyle to inherit options from. Options from
+		style_name will override previously specified options for
+		this style. Inherit is a good way to save memory and network
+		bandwidth if the same BackPixmap is used for several styles,
+		as the pixmap will only be loaded for the inherited style.</para>
 	</listitem>
 </varlistentry>

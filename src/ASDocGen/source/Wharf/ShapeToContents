@@ -1,6 +1,10 @@
 <varlistentry id="options.ShapeToContents">
 	<term>ShapeToContents</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Will cause Wharf to use X Shaped extentions and have a window of
+		non-rectangular shape. Shape is composed from the overall geometry of
+		buttons ( see FitContents ), shape of the MyStyle used to draw Wharf
+		background ( if BackPixmap 126 or 125 is used ), contents of each
+		button - such as swallowed app's shape, label and icons.</para>
 	</listitem>
 </varlistentry>

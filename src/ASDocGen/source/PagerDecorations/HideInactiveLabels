@@ -1,6 +1,8 @@
 <varlistentry id="options.HideInactiveLabels">
 	<term>HideInactiveLabels</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>When  this  option  is  specified - Pager will use shaped
+		extensions to make label of all inactive desks  transpar-
+		ent.</para>
 	</listitem>
 </varlistentry>
