@@ -695,6 +695,20 @@ do_maximized_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry *area)
             }
             selected = i ;
         }
+	if( selected  < 0 ) 
+	{	                       /* we simply select the biggest area available : */
+	    i = PVECTOR_USED(free_space_list);
+	    while( --i >= 0 )
+       	{
+           	if( selected > 0 )
+           	{
+               	if( rects[i].width * rects[i].height < rects[selected].width * rects[selected].height )
+                   	continue;
+           	}
+            selected = i ;
+        }
+	}
+		 
     if( selected >= 0 )
     {
         ASFlagType flags = 0 ;

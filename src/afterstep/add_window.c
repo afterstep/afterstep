@@ -264,9 +264,10 @@ AddWindow (Window w)
         on_window_status_changed( tmp_win, False, True );
         if( !place_aswindow( tmp_win ) )
         {
-            LOCAL_DEBUG_OUT( "window status initialization failed for %lX - destroying it", w );
-            Destroy (tmp_win, False);
-            return NULL;
+            LOCAL_DEBUG_OUT( "window status initialization failed for %lX - will put it where it is", w );
+            /* 	Destroy (tmp_win, False);
+            	return NULL;
+			 */
         }
     }
     /* saving window management properties : */
