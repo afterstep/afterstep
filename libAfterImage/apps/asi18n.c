@@ -1,4 +1,3 @@
-#define I18N
 #include "config.h"
 
 #include <string.h>

@@ -852,11 +852,7 @@ mystyle_merge_font( MyStyle *style, MyFont *font, Bool override, Bool copy)
     {
         if (copy == False)
         {
-#ifdef I18N
-            load_font (font->name, &style->font);
-#else
             style->font = *font;
-#endif
             style->user_flags &= ~F_FONT;
             style->inherit_flags |= F_FONT;
         } else

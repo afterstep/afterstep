@@ -44,7 +44,7 @@ extern const unsigned short *as_current_charset ;
 					as_current_charset[((unsigned short)text[i])&0x007F]:\
 			       ((unsigned char)(c))))
 */
-#ifdef  I18N
+#if 1 /*def  I18N*/
 #define CHAR2UNICODE(c) \
   ((UNICODE_CHAR)(((((unsigned short)(c))&0x0080)!=0)? \
 					as_current_charset[((unsigned short)(c))&0x007F]:\

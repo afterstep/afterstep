@@ -28,10 +28,6 @@
 #include "mystyle_property.h"
 #include "wmprops.h"
 
-#ifdef I18N
-#define MAX_FONTSET_NAME_LENGTH  256
-#endif
-
 void
 mystyle_list_set_property (ASWMProps *wmprops, ASHashTable *list )
 {

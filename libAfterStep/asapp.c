@@ -433,13 +433,11 @@ InitMyApp (  const char *app_class, int argc, char **argv, void (*version_func) 
 
     memset( &MyArgs, 0x00, sizeof(ASProgArgs) );
 	MyArgs.locale = mystrdup(AFTER_LOCALE);
-#ifdef I18N
 	if (strlen(MyArgs.locale) == 0)
 	{
 		free( MyArgs.locale );
 		MyArgs.locale = mystrdup(getenv("LANG"));
 	}
-#endif
 
     MyArgs.mask = opt_mask ;
 #ifndef NO_DEBUG_OUTPUT
@@ -497,10 +495,16 @@ InitMyApp (  const char *app_class, int argc, char **argv, void (*version_func) 
 #ifdef I18N
 		if (strlen(MyArgs.locale) > 0)
 			if (setlocale (LC_CTYPE, MyArgs.locale) == NULL)
+			{
   			    show_error ("unable to set locale");
+			}
 #endif
 	}else
+	{
+#ifdef I18N
 	    show_warning ("LANG environment variable is not set - use -L \"locale\" command line option to define locale");
+#endif
+	}	
 
 #ifdef DEBUG_TRACE_X
     trace_enable_function(MyArgs.trace_calls);
