@@ -883,9 +883,9 @@ ReadConfigItem (ConfigItem * item, FreeStorageElem * stored)
                 {
                     register int i = 0;
                     while( i < 5 && ptr[i] != '\0' ) ++i;
-                    if( ptr[1] == 'W' || ptr[1] == 'w' )
+                    if( ptr[i] == 'W' || ptr[i] == 'w' )
                         item->index = FR_NW ;
-                    else if( ptr[1] == 'E' || ptr[1] == 'e' )
+                    else if( ptr[i] == 'E' || ptr[i] == 'e' )
                         item->index = FR_NE ;
                     else
                         item->index = FR_N ;
@@ -900,9 +900,9 @@ ReadConfigItem (ConfigItem * item, FreeStorageElem * stored)
                 {
                     register int i = 0;
                     while( i < 5 && ptr[i] != '\0' ) ++i;
-                    if( ptr[1] == 'W' || ptr[1] == 'w' )
+                    if( ptr[i] == 'W' || ptr[i] == 'w' )
                         item->index = FR_SW ;
-                    else if( ptr[1] == 'E' || ptr[1] == 'e' )
+                    else if( ptr[i] == 'E' || ptr[i] == 'e' )
                         item->index = FR_SE ;
                     else
                         item->index = FR_S ;
@@ -934,7 +934,10 @@ ReadConfigItem (ConfigItem * item, FreeStorageElem * stored)
 		          break;
          case TT_OPTIONAL_PATHNAME:
              if (!check_avail_args (stored, pos, 1))
-                 return 1;
+             {
+                item->data.string = NULL;
+                return 1;
+             }
          case TT_COLOR:
 		 case TT_FONT:
 		 case TT_FILENAME:

@@ -109,17 +109,17 @@ flag_options_xref BevelFlagsXref[] = {
 
 TermDef       MyFrameTerms[] = {
     {TF_NO_MYNAME_PREPENDING, "MyFrame", 7,     TT_QUOTED_TEXT, MYFRAME_START_ID, NULL},
-    {TF_NO_MYNAME_PREPENDING, "North", 5,       TT_FILENAME,    MYFRAME_North_ID, NULL},
-    {TF_NO_MYNAME_PREPENDING, "South", 5,       TT_FILENAME,    MYFRAME_South_ID, NULL},
-    {TF_NO_MYNAME_PREPENDING, "East", 4,        TT_FILENAME,    MYFRAME_East_ID, NULL},
-    {TF_NO_MYNAME_PREPENDING, "West", 4,        TT_FILENAME,    MYFRAME_West_ID, NULL},
-    {TF_NO_MYNAME_PREPENDING, "NorthWest", 9,   TT_FILENAME,    MYFRAME_NorthWest_ID, NULL},
-    {TF_NO_MYNAME_PREPENDING, "NorthEast", 9,   TT_FILENAME,    MYFRAME_NorthEast_ID, NULL},
-    {TF_NO_MYNAME_PREPENDING, "SouthWest", 9,   TT_FILENAME,    MYFRAME_SouthWest_ID, NULL},
-    {TF_NO_MYNAME_PREPENDING, "SouthEast", 9,   TT_FILENAME,    MYFRAME_SouthEast_ID, NULL},
-    {TF_NO_MYNAME_PREPENDING|TF_DIRECTION_INDEXED, "Side", 4,            TT_FILENAME,    MYFRAME_Side_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "North", 5,       TT_OPTIONAL_PATHNAME,    MYFRAME_North_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "South", 5,       TT_OPTIONAL_PATHNAME,    MYFRAME_South_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "East", 4,        TT_OPTIONAL_PATHNAME,    MYFRAME_East_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "West", 4,        TT_OPTIONAL_PATHNAME,    MYFRAME_West_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "NorthWest", 9,   TT_OPTIONAL_PATHNAME,    MYFRAME_NorthWest_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "NorthEast", 9,   TT_OPTIONAL_PATHNAME,    MYFRAME_NorthEast_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "SouthWest", 9,   TT_OPTIONAL_PATHNAME,    MYFRAME_SouthWest_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "SouthEast", 9,   TT_OPTIONAL_PATHNAME,    MYFRAME_SouthEast_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING|TF_DIRECTION_INDEXED, "Side", 4,            TT_OPTIONAL_PATHNAME,    MYFRAME_Side_ID, NULL},
     {TF_NO_MYNAME_PREPENDING|TF_DIRECTION_INDEXED, "NoSide", 6,          TT_FLAG,    MYFRAME_NoSide_ID, NULL},
-    {TF_NO_MYNAME_PREPENDING|TF_DIRECTION_INDEXED, "Corner", 6,          TT_FILENAME,    MYFRAME_Corner_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING|TF_DIRECTION_INDEXED, "Corner", 6,          TT_OPTIONAL_PATHNAME,    MYFRAME_Corner_ID, NULL},
     {TF_NO_MYNAME_PREPENDING|TF_DIRECTION_INDEXED, "NoCorner", 8,        TT_FLAG,    MYFRAME_NoCorner_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "TitleUnfocusedStyle", 19,TT_QUOTED_TEXT,  MYFRAME_TitleUnfocusedStyle_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "TitleFocusedStyle", 17,  TT_QUOTED_TEXT,  MYFRAME_TitleFocusedStyle_ID, NULL},
@@ -482,6 +482,7 @@ ProcessMyFrameOptions (FreeStorageElem * options, MyFrameDefinition ** tail)
                     default:
                         if (!ReadConfigItem (&item, options))
                             continue;
+                        LOCAL_DEBUG_OUT( "item.index = %d", item.index );
                         if( item.index < 0 || item.index >= FRAME_PARTS )
                         {
                             item.ok_to_free = 1;
@@ -514,8 +515,10 @@ ProcessMyFrameOptions (FreeStorageElem * options, MyFrameDefinition ** tail)
         }
 
 		if (!ReadConfigItem (&item, options))
+        {
+            LOCAL_DEBUG_OUT( "ReadConfigItem has failed%s","");
 			continue;
-
+        }
 		if (*tail == NULL)
             fd = AddMyFrameDefinition (tail);
 
@@ -538,6 +541,7 @@ ProcessMyFrameOptions (FreeStorageElem * options, MyFrameDefinition ** tail)
         }else
         {
             rel_id = item.index ;
+            LOCAL_DEBUG_OUT( "item.index = %d", item.index );
             if( rel_id < 0 || rel_id >= FRAME_PARTS )
                 rel_id = 0 ;
             switch( options->term->id )

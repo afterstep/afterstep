@@ -134,7 +134,7 @@ mystrndup (const char *str, size_t n)
 void
 set_string_value (char **target, char *string, unsigned long *set_flags, unsigned long flag)
 {
-	if (target != NULL && string != NULL)
+    if (target != NULL)
 	{
 		if (*target != string)
 		{

@@ -1030,16 +1030,19 @@ move_resize_frame_bar( ASTBarData *tbar, ASCanvas *canvas, int normal_x, int nor
 }
 
 inline static Bool
-move_resize_corner( ASTBarData *bar, ASCanvas *canvas, ASOrientation *od, int normal_y, unsigned int normal_width,  Bool left, Bool force_render )
+move_resize_corner( ASTBarData *bar, ASCanvas *canvas, ASOrientation *od, int normal_y, unsigned int normal_width, unsigned int normal_height, Bool left, Bool force_render )
 {
     unsigned int w = bar->width;
     unsigned int h = bar->height;
 
     *(od->in_y) = normal_y;
-    /* Do we really need to rotate it ? */
-    *(od->in_width)  = w ;
-    *(od->in_height) = h ;
 
+    if( od == &VertOrientation )
+        w = normal_height ;
+    else
+        h = normal_height ;
+    *(od->in_width) = w ;
+    *(od->in_height) = h ;
     *(od->in_x) = left?0:(normal_width-(*(od->out_width)));
     return move_resize_frame_bar( bar, canvas, *(od->out_x), *(od->out_y), w, h, force_render );
 }
@@ -1088,7 +1091,6 @@ move_resize_frame_bars( ASWindow *asw, int side, ASOrientation *od, unsigned int
     ASCanvas *canvas = asw->frame_sides[side];
     ASTBarData *title = NULL, *corner1 = NULL, *longbar = NULL, *corner2 = NULL;
     Bool vertical = False ;
-    int corner_height1 = 0, corner_height2 = 0 ;
 
     LOCAL_DEBUG_CALLER_OUT("%p,%d, %ux%u, %s", asw, side, normal_width, normal_height, force_render?"force":"don't force" );
     longbar = asw->frame_bars[side];
@@ -1113,30 +1115,25 @@ move_resize_frame_bars( ASWindow *asw, int side, ASOrientation *od, unsigned int
     /* mirror_corner 0 */
     if( corner1 )
     {
-        if( move_resize_corner( corner1, canvas, od, tbar_size, normal_width, True, force_render ) )
+        if( move_resize_corner( corner1, canvas, od, tbar_size, normal_width, normal_height, True, force_render ) )
             rendered = True ;
-
         corner_size1 = *(od->out_width);
-        corner_height1 = *(od->out_height);
     }
     /* mirror_corner 1 */
     if( corner2 )
     {
-        if( move_resize_corner( corner2, canvas, od, tbar_size, normal_width, False, force_render ) )
+        if( move_resize_corner( corner2, canvas, od, tbar_size, normal_width, normal_height, False, force_render ) )
             rendered = True ;
-
         corner_size2 = *(od->out_width);
-        corner_height2 = *(od->out_height);
     }
     /* side */
     if( longbar )
     {
-        if( title == NULL )                    /* we are in the sbar */
+        if( title == NULL && corner_size1>0 && corner_size2 > 0 )                    /* we are in the sbar */
         {
-            tbar_size = (corner_height1 >= corner_height2)?corner_height1:corner_height2 ;
             *(od->in_width) = longbar->width ;
             *(od->in_height) = longbar->height ;
-            tbar_size -= (int)(*(od->out_height));
+            tbar_size = normal_height - (int)(*(od->out_height));
             if( tbar_size < 0 )
                 tbar_size = 0 ;
         }
@@ -1146,6 +1143,7 @@ move_resize_frame_bars( ASWindow *asw, int side, ASOrientation *od, unsigned int
                                  vertical, force_render ) )
             rendered = True;
     }
+
     return rendered;
 }
 
