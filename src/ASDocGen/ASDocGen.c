@@ -67,6 +67,13 @@ const char *StandardOptionsEntry = "_standard_options" ;
 const char *MyStylesOptionsEntry = "_mystyles" ;
 const char *BaseOptionsEntry = "_base_config" ;
 
+const char *PHPXrefFormat = "&nbsp;<? local_doc_url(\"%s.php\",\"%s\",\"%s%s\",$srcunset,$subunset) ?>\n ";
+const char *PHPXrefFormatSetSrc = "&nbsp;<? local_doc_url(\"%s.php\",\"%s\",\"%s%s\",\"%s\",$subunset) ?>\n ";
+const char *PHPXrefFormatUseSrc = "&nbsp;<? if ($src==\"\") $src=\"%s\"; local_doc_url(\"%s.php\",\"%s\",$src,$srcunset,$subunset) ?>\n ";
+const char *PHPCurrPageFormat = "&nbsp;<b>%s</b>\n";
+
+#define OVERVIEW_SIZE_THRESHOLD 1024
+
 typedef enum { 
 	DocType_Plain = 0,
 	DocType_HTML,
@@ -729,7 +736,7 @@ start_doc_file( const char * dest_dir, const char *doc_path, const char *doc_pos
 		return False;
 	}				   
 
-	memset( state, 0x00, sizeof(state));
+	memset( state, 0x00, sizeof(ASXMLInterpreterState));
 	state->flags = ASXMLI_FirstArg ;
 	state->dest_fp = dest_fp ;
 	state->doc_type = doc_type ; 
@@ -833,7 +840,7 @@ gen_syntax_doc( const char *source_dir, const char *dest_dir, SyntaxDef *syntax,
 		 * Overview and Config Options are always present. Others may be ommited if source is missing 
 		 * If Overview is too small - say < 1024 bytes - it could be bundled with Config Options */	   
 		if( syntax == NULL ) 
-		 	overview_size = 1000000 ;	
+		 	overview_size = 0 ;	
 		else
 		{	
 			int tmp ;
@@ -844,18 +851,38 @@ gen_syntax_doc( const char *source_dir, const char *dest_dir, SyntaxDef *syntax,
 			LOCAL_DEBUG_OUT( "Base size = %d", tmp );
 			for( i = 0 ; StandardSourceEntries[i] ; ++i )
 				overview_size += check_source_contents( syntax_dir, StandardSourceEntries[i] );
+			if( syntax == NULL ) 
+				overview_size += 0 ;
 			LOCAL_DEBUG_OUT( "overview size = %d", overview_size );
+			fprintf( state.dest_fp, PHPCurrPageFormat, "Overview" );
+			if( do_base ) 
+				fprintf( state.dest_fp, PHPXrefFormatSetSrc, "visualdoc","Base options", doc_path, BaseOptionsEntry, doc_path );
+			if( do_mystyles ) 
+				fprintf( state.dest_fp, PHPXrefFormatSetSrc, "visualdoc","MyStyles", doc_path, MyStylesOptionsEntry, doc_path );
+			if( overview_size > OVERVIEW_SIZE_THRESHOLD )
+				fprintf( state.dest_fp, PHPXrefFormatSetSrc, "visualdoc", "Configuration", doc_path, "_options", doc_path );
 		}
-		for( i = 0 ; StandardSourceEntries[i] ; ++i ) 
-		{
-			LOCAL_DEBUG_OUT( "converting %s", StandardSourceEntries[i] );
+		i = 0 ;
+		if( syntax == NULL ) 
+		{	
+			convert_source_file( syntax_dir, StandardSourceEntries[0], &state );
+			++i ;
+			convert_source_file( syntax_dir, StandardOptionsEntry, &state );
+		}
+		for( ; StandardSourceEntries[i] ; ++i ) 
 			convert_source_file( syntax_dir, StandardSourceEntries[i], &state );
-			LOCAL_DEBUG_OUT( "done %s", StandardSourceEntries[i] );
-		}
-		if( overview_size > 1024 )
+		
+		if( overview_size > OVERVIEW_SIZE_THRESHOLD )
 		{
 			end_doc_file( syntax, &state );	 	  
 			start_doc_file( dest_dir, doc_path, "_options", syntax, doc_type, &state );
+			fprintf( state.dest_fp, PHPXrefFormatUseSrc, doc_path, "visualdoc", "Overview" );
+			if( do_base ) 
+				fprintf( state.dest_fp, PHPXrefFormat, "visualdoc","Base options", doc_path, BaseOptionsEntry );
+			if( do_mystyles ) 
+				fprintf( state.dest_fp, PHPXrefFormat, "visualdoc","MyStyles", doc_path, MyStylesOptionsEntry );
+			fprintf( state.dest_fp, PHPCurrPageFormat, "Configuration" );
+			fprintf( state.dest_fp, "<UL>\n" );
 		}	 
 	}	 
 	LOCAL_DEBUG_OUT( "starting config_options%s", "" );	
@@ -879,16 +906,31 @@ gen_syntax_doc( const char *source_dir, const char *dest_dir, SyntaxDef *syntax,
 			convert_source_file( syntax_dir, StandardSourceEntries[i], &state );
 	}else if( state.dest_fp )
 	{
+		if( overview_size > OVERVIEW_SIZE_THRESHOLD )
+			fprintf( state.dest_fp, "</UL>\n" );
 		if( do_base )
 		{	
 			end_doc_file( syntax, &state );	 	  	 		
 			start_doc_file( dest_dir, doc_path, BaseOptionsEntry, syntax, doc_type, &state );
+			fprintf( state.dest_fp, PHPXrefFormatUseSrc, doc_path, "visualdoc", "Overview" );
+			fprintf( state.dest_fp, PHPCurrPageFormat, "Base options" );
+			if( do_mystyles ) 
+				fprintf( state.dest_fp, PHPXrefFormat, "visualdoc","MyStyles", doc_path, MyStylesOptionsEntry );
+			if( overview_size > OVERVIEW_SIZE_THRESHOLD ) 
+				fprintf( state.dest_fp, PHPXrefFormat, "visualdoc","Configuration", doc_path, "_options" );
+			
 			convert_source_file( syntax_dir, BaseOptionsEntry, &state );
 		}
 		if( do_mystyles )
 		{	
 			end_doc_file( syntax, &state );	 	  	 		
 			start_doc_file( dest_dir, doc_path, MyStylesOptionsEntry, syntax, doc_type, &state );
+			fprintf( state.dest_fp, PHPXrefFormatUseSrc, doc_path, "visualdoc", "Overview" );
+			if( do_base ) 
+				fprintf( state.dest_fp, PHPXrefFormat, "visualdoc","Base options", doc_path, BaseOptionsEntry );
+			fprintf( state.dest_fp, PHPCurrPageFormat, "MyStyles" );
+			if( overview_size > OVERVIEW_SIZE_THRESHOLD ) 
+				fprintf( state.dest_fp, PHPXrefFormat, "visualdoc","Configuration", doc_path, "_options" );
 			convert_source_file( syntax_dir, MyStylesOptionsEntry, &state );
 		}
 	}		 
@@ -933,7 +975,7 @@ write_syntax_doc_header( SyntaxDef *syntax, ASXMLInterpreterState *state )
 					  		"<h1>%s</h1>\n", display_name, display_name );
 			break;
  		case DocType_PHP :	
-			fputs( "\n<? local_doc_url(\"visualdoc.php\",\"Index\",\"visualselect\",$srcunset,$subunset) ?>\n", state->dest_fp );
+			fprintf( state->dest_fp, PHPXrefFormat, "visualdoc","Index","visualselect", "" );
 		    break ;
 		case DocType_XML :
 			fprintf( state->dest_fp, "<!DOCTYPE article PUBLIC \"-//OASIS//DTD DocBook XML V4.1.2//EN\"\n"
@@ -1233,7 +1275,27 @@ end_varlistentry_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *
 void 
 start_term_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state )
 {
-	close_link(state);
+	char *term_text = NULL ; 
+	if( get_flags( state->flags, ASXMLI_InsideLink ) ) 
+	{                                         
+		xml_elem_t *ptr = doc->child ;
+		while( ptr ) 
+		{	
+			if( ptr->tag_id == XML_CDATA_ID ) 
+			{
+				term_text = ptr->parm ;
+				break;
+			}
+			ptr = ptr->next ;
+		}
+		if( term_text != NULL ) /* need to add glossary term */
+		{
+				
+			
+		}	 
+		
+		close_link(state);
+	}	 
 	if( state->doc_type == DocType_HTML || state->doc_type == DocType_PHP	 )
 		fprintf( state->dest_fp, "<DT class=\"dense\"><B>" );	
 }
