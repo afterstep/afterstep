@@ -1,8 +1,38 @@
-./ascpui.h:
+./asdocview.h:
+
+./fltk/ascpui.h:
 
 ./ascolor.o: \
 		../../configure.h \
 		../../libAfterStep/asapp.h \
 		../../libAfterImage/afterimage.h \
 		../../libAfterStep/afterstep.h \
-		../../libAfterStep/colorscheme.h
+		../../libAfterConf/afterconf.h \
+		../../libAfterStep/colorscheme.h \
+		../../libAfterStep/module.h \
+		../../libAfterStep/event.h \
+		../../libAfterStep/wmprops.h
+
+./ascolor.o: \
+		../../configure.h \
+		../../libAfterStep/asapp.h \
+		../../libAfterImage/afterimage.h \
+		../../libAfterStep/afterstep.h \
+		../../libAfterConf/afterconf.h \
+		../../libAfterStep/colorscheme.h \
+		../../libAfterStep/module.h \
+		../../libAfterStep/event.h \
+		../../libAfterStep/wmprops.h \
+		asdocview.h
+
+./asimbrowser.o: \
+		../../configure.h \
+		../../libAfterStep/asapp.h \
+		../../libAfterImage/afterimage.h \
+		../../libAfterStep/afterstep.h \
+		../../libAfterConf/afterconf.h \
+		../../libAfterStep/colorscheme.h \
+		../../libAfterStep/module.h \
+		../../libAfterStep/event.h \
+		../../libAfterStep/wmprops.h \
+		../../libAfterStep/session.h

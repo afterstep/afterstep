@@ -9,7 +9,8 @@
 		balloon.h \
 		mystyle.h \
 		wmprops.h \
-		../libAfterImage/xpm.h
+		../libAfterImage/xpm.h \
+		../libAfterImage/char2uni.h
 
 ./asdatabase.o : \
 		../configure.h \
@@ -21,7 +22,8 @@
 		asapp.h \
 		afterstep.h \
 		screen.h \
-		asfeel.h
+		asfeel.h \
+		event.h
 
 ./aswindata.o : \
 		../configure.h \
@@ -43,6 +45,14 @@
 		screen.h \
 		decor.h \
 		balloon.h
+
+./canvas.o : \
+		../configure.h \
+		asapp.h \
+		../libAfterImage/afterimage.h \
+		screen.h \
+		shape.h \
+		canvas.h
 
 ./clientprops.o : \
 		../configure.h \
@@ -66,6 +76,7 @@
 		screen.h \
 		../libAfterImage/afterimage.h \
 		myicon.h \
+		canvas.h \
 		decor.h \
 		event.h \
 		balloon.h \
@@ -208,8 +219,6 @@
 ./shape.o : \
 		../configure.h \
 		asapp.h \
-		afterstep.h \
-		screen.h \
 		shape.h
 
 ./wmprops.o : \

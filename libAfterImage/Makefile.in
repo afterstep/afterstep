@@ -34,6 +34,10 @@ ZLIB_OBJS = 	zlib/adler32.o 	zlib/compress.o zlib/crc32.o \
 
 LIBUNGIF_OBJS = libungif/dgif_lib.o libungif/egif_lib.o libungif/gifalloc.o libungif/gif_err.o
 
+AFTERIMAGE_OBJS= @AFTERBASE_C@ asimage.o ascmap.o asfont.o asimagexml.o \
+		asvisual.o blender.o bmp.o char2uni.o export.o import.o \
+		pixmap.o transform.o ungif.o xcf.o ximage.o xpm.o
+
 ################################################################
 # library specifics :
 
@@ -42,10 +46,7 @@ LIB_INCS= afterimage.h config.h afterbase.h ascmap.h asfont.h \
 		export.h import.h pixmap.h transform.h ungif.h \
 		xcf.h ximage.h xpm.h
 
-LIB_OBJS=       @AFTERBASE_C@ @JPEG_OBJS@ @ZLIB_OBJS@ @PNG_OBJS@ @UNGIF_OBJS@ asimage.o \
-		ascmap.o asfont.o asimagexml.o \
-		asvisual.o blender.o bmp.o char2uni.o export.o import.o \
-		pixmap.o transform.o ungif.o xcf.o ximage.o xpm.o
+LIB_OBJS=       @JPEG_OBJS@ @ZLIB_OBJS@ @PNG_OBJS@ @UNGIF_OBJS@ $(AFTERIMAGE_OBJS)
 
 LIB_DOCS= afterimage.h ascmap.h asfont.h asimage.h \
 		  asvisual.h blender.h char2uni.h export.h import.h \
@@ -224,7 +225,7 @@ distclean:
 		cd apps; make distclean; cd ..
 
 indent:
-		@SRCS=`echo "$(LIB_OBJS) " | sed "s/.o /.c /g"`; \
+		@SRCS=`echo "$(AFTERIMAGE_OBJS) " | sed "s/.o /.c /g"`; \
 		if test "x$$SRCS" == "x"; then exit; fi; \
 		for i in $$SRCS; do \
 		  if (indent -di14 -ts4 -i4 -l120 -lc80 -bad -nbbb -bli0 -c48 -cd48 -ce -cli1 -ncs -nbs -nbbo -hnl < $$i > /tmp/$$i); then \
@@ -237,7 +238,7 @@ indent:
 deps:
 		echo -n > .depend ; \
 		buf="" ; \
-		SRCS=`echo "$(LIB_OBJS) " | sed "s/.o /.c /g"`; \
+		SRCS=`echo "$(AFTERIMAGE_OBJS) " | sed "s/.o /.c /g"`; \
 		echo -n $(LIB_NAME)_OBJS = > .shared ; \
 		for file in $$SRCS; do \
 		  echo " \\" >> .shared ; \

@@ -2,17 +2,6 @@
 
 ./OffiX/DragAndDropTypes.h:
 
-./Wharf.h: \
-		../../include/asapp.h \
-		../../include/afterstep.h \
-		../../include/parse.h \
-		../../include/screen.h \
-		../../include/module.h
-
-./icons.o: \
-		../../configure.h \
-		Wharf.h
-
 ./Wharf.o: \
 		../../configure.h \
 		../../libAfterStep/asapp.h \

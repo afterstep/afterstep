@@ -1,10 +1,8 @@
-./Animate.h:
-
 ./Animate.o: \
 		../../configure.h \
-		../../include/aftersteplib.h \
-		../../include/afterstep.h \
-		../../include/style.h \
-		../../include/screen.h \
-		../../include/module.h \
-		Animate.h
+		../../libAfterStep/asapp.h \
+		../../libAfterStep/screen.h \
+		../../libAfterStep/module.h \
+		../../libAfterStep/aswindata.h \
+		../../libAfterStep/event.h \
+		../../libAfterConf/afterconf.h

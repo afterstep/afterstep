@@ -281,6 +281,7 @@ void HandleEvents()
         }
     }
 }
+
 void
 DeadPipe (int nonsense)
 {
@@ -2351,6 +2352,7 @@ LOCAL_DEBUG_OUT( "state(0x%X)->state&ButtonAnyMask(0x%X)", event->x.xbutton.stat
 
 			return ;
 	    case PropertyNotify:
+			handle_wmprop_event (Scr.wmprops, &(event->x));
             if( event->x.xproperty.atom == _XROOTPMAP_ID && event->w == Scr.Root )
             {
                 register int i = PagerState.desks_num ;
@@ -2367,7 +2369,6 @@ LOCAL_DEBUG_OUT( "state(0x%X)->state&ButtonAnyMask(0x%X)", event->x.xbutton.stat
 			{
                 int i = PagerState.desks_num ;
 				LOCAL_DEBUG_OUT( "AS Styles updated!%s","");
-				handle_wmprop_event (Scr.wmprops, &(event->x));
 				mystyle_list_destroy_all(&(Scr.Look.styles_list));
 				LoadColorScheme();
 				CheckConfigSanity();

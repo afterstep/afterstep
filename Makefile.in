@@ -8,17 +8,17 @@ confsdirs= autoconf libAfterBase libAfterImage
 subdirs		= libAfterBase libAfterImage libAfterStep libAfterConf \
 		  doc tools \
 		  src/afterstep \
+		  src/Animate \
+		  src/Banner \
 		  src/Pager \
 		  src/Wharf \
 		  src/WinList2 \
 		  src/WinTabs \
-		  src/Banner \
 		  src/ascp  
 #		  src/ascp/fltk \
 #		  src/ascp/gtk
 
 #		  src/asetroot \
-#		  src/Animate \
 #		  src/Audio \
 #		  src/Cascade \
 #		  src/Clean \

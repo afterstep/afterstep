@@ -423,6 +423,9 @@ ConnectAfterStep (send_data_type message_mask)
 void
 LoadBaseConfig(void (*read_base_options_func) (const char *))
 {
+	if( read_base_options_func == NULL ) 
+		return ;
+
     if( Session == NULL )
     {
         show_error("Session has not been properly initialized. Exiting");

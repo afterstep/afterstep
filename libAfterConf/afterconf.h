@@ -1659,11 +1659,78 @@ void PrintWinTabsConfig (WinTabsConfig * config);
 int WriteWinTabsOptions (const char *filename, char *myname, WinTabsConfig * config, unsigned long flags);
 WinTabsConfig *ParseWinTabsOptions (const char *filename, char *myname);
 /***************************************************************************/
+
+/***************************************************************************/
+/*                        Animate pasring definitions                 */
+/***************************************************************************/
+
+
+#define ANIMATE_ID_START       		(WINTABS_ID_END+1)
+#define ANIMATE_COLOR_ID			ANIMATE_ID_START
+#define ANIMATE_DELAY_ID       		(ANIMATE_ID_START+1)
+#define ANIMATE_ITERATIONS_ID		(ANIMATE_ID_START+2)
+#define ANIMATE_TWIST_ID    		(ANIMATE_ID_START+3)
+#define ANIMATE_WIDTH_ID	        (ANIMATE_ID_START+4)
+#define ANIMATE_RESIZE_ID	        (ANIMATE_ID_START+5)
+
+typedef enum {
+	ART_Twist = 0,
+	ART_Flip,
+	ART_Turn,
+	ART_Zoom,
+	ART_Zoom3D,
+	ART_Random,
+	ART_None
+}AnimateResizeType;
+
+#define ANIMATE_RESIZE_ID_START		(ANIMATE_RESIZE_ID+1)
+#define ANIMATE_ResizeTwist_ID		(ANIMATE_RESIZE_ID_START+ART_Twist)
+#define ANIMATE_ResizeFlip_ID		(ANIMATE_RESIZE_ID_START+ART_Flip)
+#define ANIMATE_ResizeTurn_ID		(ANIMATE_RESIZE_ID_START+ART_Turn)
+#define ANIMATE_ResizeZoom_ID		(ANIMATE_RESIZE_ID_START+ART_Zoom)
+#define ANIMATE_ResizeZoom3D_ID		(ANIMATE_RESIZE_ID_START+ART_Zoom3D)
+#define ANIMATE_ResizeRandom_ID		(ANIMATE_RESIZE_ID_START+ART_Random)
+#define ANIMATE_RESIZE_ID_END		(ANIMATE_RESIZE_ID_START+ART_None)
+
+#define ANIMATE_ID_END        	ANIMATE_ID_START+20
+
+/* config data structure */
+
+typedef struct
+{
+#define ANIMATE_SET_DELAY		(0x01<<0)	
+#define ANIMATE_SET_ITERATIONS	(0x01<<1)	  
+#define ANIMATE_SET_TWIST		(0x01<<2)	  
+#define ANIMATE_SET_WIDTH		(0x01<<3)	  
+#define ANIMATE_SET_RESIZE		(0x01<<4)	  
+	ASFlagType set_flags ;
+	char *color;
+	int delay;
+
+#define ANIMATE_DEFAULT_ITERATIONS 12
+
+	int iterations;
+	int twist;
+	int width;
+	AnimateResizeType resize;
+
+	struct FreeStorageElem *more_stuff;
+
+}AnimateConfig;
+
+AnimateConfig *CreateAnimateConfig ();
+AnimateConfig *ParseAnimateOptions (const char *filename, char *myname);
+int WriteAnimateOptions (const char *filename, char *myname,
+			 AnimateConfig * config, unsigned long flags);
+void DestroyAnimateConfig (AnimateConfig * config);
+
+/**************************************************************************/
+
 /***************************************************************************/
 /* ALL POSSIBLE aFTERsTEP CONFIGS : */
 /***************************************************************************/
 
-#define ASCONFIG_ID_START        		(WINTABS_ID_END+1)
+#define ASCONFIG_ID_START        		(100000)
 #define ASCONFIG_Base_ID				(ASCONFIG_ID_START+1)
 #define ASCONFIG_Colorscheme_ID			(ASCONFIG_ID_START+2)
 #define ASCONFIG_Database_ID			(ASCONFIG_ID_START+3)

@@ -1,73 +1,78 @@
-./ascmap.o : \
+./asimage.o : \
+		win32/config.h \
 		config.h \
-		afterbase.h \
+		asvisual.h \
+		blender.h \
+		asimage.h
+
+./ascmap.o : \
+		win32/config.h \
+		config.h \
 		asimage.h \
 		import.h \
 		export.h \
 		ascmap.h
 
 ./asfont.o : \
+		win32/config.h \
 		config.h \
-		afterbase.h \
 		asfont.h \
 		asimage.h \
-		asvisual.h \
-		char2uni.h
-
-./asimage.o : \
-		config.h \
-		afterbase.h \
-		asvisual.h \
-		blender.h \
-		asimage.h
+		asvisual.h
 
 ./asimagexml.o : \
+		win32/config.h \
 		config.h \
-		afterbase.h \
 		afterimage.h \
 		pixmap.h
 
 ./asvisual.o : \
+		win32/config.h \
 		config.h \
-		afterbase.h \
 		asvisual.h
 
 ./blender.o : \
+		win32/config.h \
 		config.h \
-		afterbase.h \
 		asvisual.h \
 		blender.h
 
+./bmp.o : \
+		bmp.h
+
 ./char2uni.o : \
+		win32/config.h \
 		config.h \
-		afterbase.h \
 		char2uni.h
 
 ./export.o : \
+		win32/config.h \
 		config.h \
-		afterbase.h \
 		asimage.h \
 		xcf.h \
 		xpm.h \
 		ungif.h \
 		import.h \
 		export.h \
-		ascmap.h
+		ascmap.h \
+		bmp.h
 
 ./import.o : \
+		win32/config.h \
 		config.h \
-		afterbase.h \
 		asimage.h \
+		bmp.h \
 		ximage.h \
 		xcf.h \
 		xpm.h \
 		ungif.h \
 		import.h \
-		asimagexml.h
+		asimagexml.h \
+		transform.h
 
 ./pixmap.o : \
+		win32/config.h \
 		config.h \
-		afterbase.h \
 		asvisual.h \
 		blender.h \
 		asimage.h \
@@ -76,37 +81,37 @@
 		pixmap.h
 
 ./transform.o : \
+		win32/config.h \
 		config.h \
-		afterbase.h \
 		asvisual.h \
 		blender.h \
 		asimage.h \
 		transform.h
 
 ./ungif.o : \
+		win32/config.h \
 		config.h \
-		afterbase.h \
 		asimage.h \
 		ascmap.h \
 		ungif.h
 
 ./xcf.o : \
+		win32/config.h \
 		config.h \
-		afterbase.h \
 		asimage.h \
 		xcf.h
 
 ./ximage.o : \
+		win32/config.h \
 		config.h \
-		afterbase.h \
 		asvisual.h \
 		blender.h \
 		asimage.h \
 		ximage.h
 
 ./xpm.o : \
+		win32/config.h \
 		config.h \
-		afterbase.h \
 		asimage.h \
 		ascmap.h \
 		xpm.h

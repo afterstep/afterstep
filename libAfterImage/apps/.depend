@@ -4,44 +4,66 @@
 
 ./ascompose.o: \
 		config.h \
+		../afterbase.h \
+		../afterimage.h \
 		common.h
 
 ./asflip.o: \
 		config.h \
+		../afterbase.h \
+		../afterimage.h \
 		common.h
 
 ./asgrad.o: \
 		config.h \
+		../afterbase.h \
+		../afterimage.h \
 		common.h
 
 ./asi18n.o: \
 		config.h \
+		../afterbase.h \
+		../afterimage.h \
 		common.h \
 		../char2uni.h
 
 ./asmerge.o: \
 		config.h \
+		../afterbase.h \
+		../afterimage.h \
 		common.h
 
 ./asscale.o: \
 		config.h \
+		../afterbase.h \
+		../afterimage.h \
 		common.h
 
 ./astext.o: \
 		config.h \
+		../afterbase.h \
+		../afterimage.h \
 		common.h
 
 ./astile.o: \
 		config.h \
+		../afterbase.h \
+		../afterimage.h \
 		common.h
 
 ./asvector.o: \
 		config.h \
+		../afterbase.h \
+		../afterimage.h \
 		common.h
 
 ./asview.o: \
 		config.h \
+		../afterbase.h \
+		../afterimage.h \
 		common.h
 
 ./common.o: \
-		config.h
+		config.h \
+		../afterbase.h \
+		../afterimage.h

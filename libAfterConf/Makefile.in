@@ -4,9 +4,9 @@
 
 LIB_INCS= afterconf.h
 
-LIB_OBJS        = ASetRoot.o ASConfig.o Base.o balloon.o Color.o Database.o \
-				  Feel.o function.o Look.o MyStyle.o Pager.o \
-				  Wharf.o WinList.o WinTabs.o
+LIB_OBJS        = Animate.o ASetRoot.o ASConfig.o Base.o balloon.o Color.o \
+		Database.o Feel.o function.o Look.o MyStyle.o Pager.o \
+		Wharf.o WinList.o WinTabs.o
 
 LIB_DIR_NAME    = libAfterConf
 LIB_NAME        = LIBAFTERCONF

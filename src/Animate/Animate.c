@@ -26,33 +26,62 @@
 #include "../../libAfterStep/asapp.h"
 #include "../../libAfterStep/screen.h"
 #include "../../libAfterStep/module.h"
+#include "../../libAfterStep/aswindata.h"
+#include "../../libAfterStep/event.h"
+#include "../../libAfterStep/wmprops.h"
+#include "../../libAfterConf/afterconf.h"
 #include <math.h>
 
-#include "Animate.h"
-
 #define AS_PI 3.14159265358979323846
+#define ANIM_DELAY2     20
 
 /* masks for AS pipe */
-#define mask_reg (M_ADD_WINDOW|M_CONFIGURE_WINDOW |M_DESTROY_WINDOW|M_END_WINDOWLIST|M_LOCKONSEND	)
+#define mask_reg (WINDOW_PACKET_MASK|M_NEW_DESKVIEWPORT|M_LOCKONSEND)
 #define mask_off 0
 
-void Loop ();
-void ParseOptions (const char *);
+AnimateConfig *Config = NULL ;
 
-struct ASAnimate Animate =
-{NULL, ANIM_ITERATIONS, ANIM_DELAYMS,
- ANIM_TWIST, ANIM_WIDTH, AnimateResizeTwist};
+struct ASAnimateParams;
+typedef Bool (*animate_iter_func)( struct ASAnimateParams *params );
+
+typedef struct ASAnimateParams
+{
+	animate_iter_func iter_func ;
+
+	int x, y, w, h ;
+	int fx, fy, fw, fh ;
+	float cx, cy, cw, ch;
+	float xstep, ystep, wstep, hstep;
+	float angle, final_angle;
+	int iter ;
+}ASAnimateParams;
 
 
+void CheckConfigSanity();
+void GetBaseOptions (const char *filename/* unused*/);
+void GetOptions (const char *filename);
+void HandleEvents();
+void DispatchEvent (ASEvent * event);
+void process_message (send_data_type type, send_data_type *body);
+
+/*************************************************************************/
+/*************************************************************************/
+/*************************************************************************/
 static void 
 draw_animation_points( XPoint *points, int count ) 
 {
-	XGrabServer (dpy);
+	LOCAL_DEBUG_OUT( "Drawing %d points:", count );	
+#if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
+	{
+		int i ;
+		for( i = 0 ; i < count ; ++i ) 
+			fprintf(stderr, "\t\t%d: %+d%+d\n", i, points[i].x, points[i].y );	
+	}	 
+#endif
 	XDrawLines (dpy, Scr.Root, Scr.DrawGC, points, 5, CoordModeOrigin);
 	XFlush (dpy);
-	sleep_a_little (Animate.delay * 1000);
+	sleep_a_little (Config->delay * 1000);
 	XDrawLines (dpy, Scr.Root, Scr.DrawGC, points, 5, CoordModeOrigin);
-	XUngrabServer (dpy);
 }
 
 /*
@@ -60,59 +89,26 @@ draw_animation_points( XPoint *points, int count )
  * MacOS.  Parameters specify the position and the size of the initial
  * window and the final window
  */
-void
-AnimateResizeTwist (int x, int y, int w, int h, int fx, int fy, int fw, int fh)
+Bool
+AnimateResizeTwist (ASAnimateParams *params)
 {
-  float cx, cy, cw, ch;
-  float xstep, ystep, wstep, hstep;
-  XPoint points[5];
-  float angle, angle_finite, a, d;
+    XPoint points[5];
+	float a = (params->cw == 0)?0:atan (params->ch / params->cw);
+    float d = sqrt ((params->cw / 2) * (params->cw / 2) + (params->ch / 2) * (params->ch / 2));
 
-  x += w / 2;
-  y += h / 2;
-  fx += fw / 2;
-  fy += fh / 2;
-
-  xstep = (float) (fx - x) / Animate.iterations;
-  ystep = (float) (fy - y) / Animate.iterations;
-  wstep = (float) (fw - w) / Animate.iterations;
-  hstep = (float) (fh - h) / Animate.iterations;
-
-  cx = (float) x;
-  cy = (float) y;
-  cw = (float) w;
-  ch = (float) h;
-  a = atan (ch / cw);
-  d = sqrt ((cw / 2) * (cw / 2) + (ch / 2) * (ch / 2));
-
-  angle_finite = 2 * AS_PI * Animate.twist;
-  for (angle = 0;; angle += (float) (2 * AS_PI * Animate.twist / Animate.iterations))
-    {
-      if (angle > angle_finite)
-	angle = angle_finite;
-      points[0].x = cx + cos (angle - a) * d;
-      points[0].y = cy + sin (angle - a) * d;
-      points[1].x = cx + cos (angle + a) * d;
-      points[1].y = cy + sin (angle + a) * d;
-      points[2].x = cx + cos (angle - a + AS_PI) * d;
-      points[2].y = cy + sin (angle - a + AS_PI) * d;
-      points[3].x = cx + cos (angle + a + AS_PI) * d;
-      points[3].y = cy + sin (angle + a + AS_PI) * d;
-      points[4].x = cx + cos (angle - a) * d;
-      points[4].y = cy + sin (angle - a) * d;
+	points[0].x = params->cx + cos (params->angle - a) * d;
+    points[0].y = params->cy + sin (params->angle - a) * d;
+    points[1].x = params->cx + cos (params->angle + a) * d;
+    points[1].y = params->cy + sin (params->angle + a) * d;
+    points[2].x = params->cx + cos (params->angle - a + AS_PI) * d;
+    points[2].y = params->cy + sin (params->angle - a + AS_PI) * d;
+    points[3].x = params->cx + cos (params->angle + a + AS_PI) * d;
+    points[3].y = params->cy + sin (params->angle + a + AS_PI) * d;
+    points[4].x = params->cx + cos (params->angle - a) * d;
+    points[4].y = params->cy + sin (params->angle - a) * d;
       
-	  draw_animation_points( points, 5 );
-      
-	  cx += xstep;
-      cy += ystep;
-      cw += wstep;
-      ch += hstep;
-      a = atan (ch / cw);
-      d = sqrt ((cw / 2) * (cw / 2) + (ch / 2) * (ch / 2));
-      if (angle >= angle_finite)
-	break;
-    }
-  XFlush (dpy);
+	draw_animation_points( points, 5 );
+	return False;
 }
 
  /*
@@ -123,119 +119,54 @@ AnimateResizeTwist (int x, int y, int w, int h, int fx, int fy, int fw, int fh)
   * Idea: how about texture mapped, user definable free 3D movement
   * during a resize? That should get X on its knees all right! :)
   */
-void
-AnimateResizeFlip (int x, int y, int w, int h, int fx, int fy, int fw, int fh)
+Bool
+AnimateResizeFlip (ASAnimateParams *params)
 {
-  float cx, cy, cw, ch;
-  float xstep, ystep, wstep, hstep;
-  XPoint points[5];
+	XPoint points[5];
+	float distortx = (params->cw / 10) - ((params->cw / 5) * sin (params->angle));
+	float distortch = (params->ch / 2) * cos (params->angle);
+	float midy = params->cy + (params->ch / 2);
 
-  float distortx;
-  float distortch;
-  float midy;
+	points[0].x = params->cx + distortx;
+	points[0].y = midy - distortch;
+	points[1].x = params->cx + params->cw - distortx;
+	points[1].y = points[0].y;
+	points[2].x = params->cx + params->cw + distortx;
+	points[2].y = midy + distortch;
+	points[3].x = params->cx - distortx;
+	points[3].y = points[2].y;
+	points[4].x = points[0].x;
+	points[4].y = points[0].y;
 
-  float angle, angle_finite;
-
-  xstep = (float) (fx - x) / Animate.iterations;
-  ystep = (float) (fy - y) / Animate.iterations;
-  wstep = (float) (fw - w) / Animate.iterations;
-  hstep = (float) (fh - h) / Animate.iterations;
-
-  cx = (float) x;
-  cy = (float) y;
-  cw = (float) w;
-  ch = (float) h;
-
-  angle_finite = 2 * AS_PI * Animate.twist;
-  for (angle = 0;; angle += (float) (2 * AS_PI * Animate.twist / Animate.iterations))
-    {
-      if (angle > angle_finite)
-	angle = angle_finite;
-
-      distortx = (cw / 10) - ((cw / 5) * sin (angle));
-      distortch = (ch / 2) * cos (angle);
-      midy = cy + (ch / 2);
-
-      points[0].x = cx + distortx;
-      points[0].y = midy - distortch;
-      points[1].x = cx + cw - distortx;
-      points[1].y = points[0].y;
-      points[2].x = cx + cw + distortx;
-      points[2].y = midy + distortch;
-      points[3].x = cx - distortx;
-      points[3].y = points[2].y;
-      points[4].x = points[0].x;
-      points[4].y = points[0].y;
-
-      draw_animation_points( points, 5 );
-      cx += xstep;
-      cy += ystep;
-      cw += wstep;
-      ch += hstep;
-      if (angle >= angle_finite)
-	break;
-    }
-  XFlush (dpy);
+	draw_animation_points( points, 5 );
+	return False;
 }
 
 
  /*
   * And another one, this time around the Y-axis.
   */
-void
-AnimateResizeTurn (int x, int y, int w, int h, int fx, int fy, int fw, int fh)
+Bool
+AnimateResizeTurn (ASAnimateParams *params)
 {
-  float cx, cy, cw, ch;
-  float xstep, ystep, wstep, hstep;
-  XPoint points[5];
+	XPoint points[5];
+    float distorty = (params->ch / 10) - ((params->ch / 5) * sin (params->angle));
+    float distortcw = (params->cw / 2) * cos (params->angle);
+    float midx = params->cx + (params->cw / 2);
 
-  float distorty;
-  float distortcw;
-  float midx;
+    points[0].x = midx - distortcw;
+    points[0].y = params->cy + distorty;
+    points[1].x = midx + distortcw;
+    points[1].y = params->cy - distorty;
+    points[2].x = points[1].x;
+    points[2].y = params->cy + params->ch + distorty;
+    points[3].x = points[0].x;
+    points[3].y = params->cy + params->ch - distorty;
+    points[4].x = points[0].x;
+    points[4].y = points[0].y;
 
-  float angle, angle_finite;
-
-  xstep = (float) (fx - x) / Animate.iterations;
-  ystep = (float) (fy - y) / Animate.iterations;
-  wstep = (float) (fw - w) / Animate.iterations;
-  hstep = (float) (fh - h) / Animate.iterations;
-
-  cx = (float) x;
-  cy = (float) y;
-  cw = (float) w;
-  ch = (float) h;
-
-  angle_finite = 2 * AS_PI * Animate.twist;
-  for (angle = 0;; angle += (float) (2 * AS_PI * Animate.twist / Animate.iterations))
-    {
-      if (angle > angle_finite)
-	angle = angle_finite;
-
-      distorty = (ch / 10) - ((ch / 5) * sin (angle));
-      distortcw = (cw / 2) * cos (angle);
-      midx = cx + (cw / 2);
-
-      points[0].x = midx - distortcw;
-      points[0].y = cy + distorty;
-      points[1].x = midx + distortcw;
-      points[1].y = cy - distorty;
-      points[2].x = points[1].x;
-      points[2].y = cy + ch + distorty;
-      points[3].x = points[0].x;
-      points[3].y = cy + ch - distorty;
-      points[4].x = points[0].x;
-      points[4].y = points[0].y;
-
-      draw_animation_points( points, 5 );
-      
-	  cx += xstep;
-      cy += ystep;
-      cw += wstep;
-      ch += hstep;
-      if (angle >= angle_finite)
-	break;
-    }
-  XFlush (dpy);
+    draw_animation_points( points, 5 );
+	return False;
 }
 
 
@@ -244,36 +175,14 @@ AnimateResizeTurn (int x, int y, int w, int h, int fx, int fy, int fw, int fh)
  * any other icon animation out there.  Parameters specify the position and
  * the size of the initial window and the final window
  */
-void
-AnimateResizeZoom (int x, int y, int w, int h, int fx, int fy, int fw, int fh)
+Bool
+AnimateResizeZoom (ASAnimateParams *params)
 {
-  float cx, cy, cw, ch;
-  float xstep, ystep, wstep, hstep;
-  int i;
-
-  xstep = (float) (fx - x) / Animate.iterations;
-  ystep = (float) (fy - y) / Animate.iterations;
-  wstep = (float) (fw - w) / Animate.iterations;
-  hstep = (float) (fh - h) / Animate.iterations;
-
-  cx = (float) x;
-  cy = (float) y;
-  cw = (float) w;
-  ch = (float) h;
-  for (i = 0; i < Animate.iterations; i++)
-    {
-      XGrabServer (dpy);
-      XDrawRectangle (dpy, Scr.Root, Scr.DrawGC, (int) cx, (int) cy, (int) cw, (int) ch);
-      XFlush (dpy);
-      sleep_a_little (Animate.delay);
-      XDrawRectangle (dpy, Scr.Root, Scr.DrawGC, (int) cx, (int) cy, (int) cw, (int) ch);
-      XUngrabServer (dpy);
-      cx += xstep;
-      cy += ystep;
-      cw += wstep;
-      ch += hstep;
-    }
-  XFlush (dpy);
+    XDrawRectangle (dpy, Scr.Root, Scr.DrawGC, (int) params->cx, (int) params->cy, (int) params->cw, (int) params->ch);
+    XFlush (dpy);
+    sleep_a_little (Config->delay);
+    XDrawRectangle (dpy, Scr.Root, Scr.DrawGC, (int) params->cx, (int) params->cy, (int) params->cw, (int) params->ch);
+	return False;
 }
 
 /*
@@ -283,86 +192,118 @@ AnimateResizeZoom (int x, int y, int w, int h, int fx, int fy, int fw, int fh)
  *
  * Andy Parker <parker_andy@hotmail.com>
  */
-void
-AnimateResizeZoom3D (int x, int y, int w, int h, int fx, int fy, int fw, int fh)
+Bool
+AnimateResizeZoom3D (ASAnimateParams *params)
 {
-  float cx, cy, cw, ch;
-  float xstep, ystep, wstep, hstep, srca, dsta;
-  int i;
-
-  	xstep = (float) (fx - x) / Animate.iterations;
-  	ystep = (float) (fy - y) / Animate.iterations;
-  	wstep = (float) (fw - w) / Animate.iterations;
-  	hstep = (float) (fh - h) / Animate.iterations;
-  	
-	dsta = (float) (fw + fh);
-  	srca = (float) (w + h);
-
-  	cx = (float) x;
-	cy = (float) y;
-  	cw = (float) w;
-  	ch = (float) h;
-
-	if (dsta <= srca)
-	{
-		x = fx ;
-		y = fy ;
-		w = fw ;
-		h = fh ;	   
-	}	 
-  
-    /* We are going from a Window to an Icon */
-	for (i = 0; i < Animate.iterations; i++)
-	{
-	 	XGrabServer (dpy);
-	  	XDrawRectangle (dpy, Scr.Root, Scr.DrawGC, (int) cx, (int) cy, (int) cw,  (int) ch);
-		XDrawRectangle (dpy, Scr.Root, Scr.DrawGC, x, y, w, h);
-		XDrawLine (dpy, Scr.Root, Scr.DrawGC, (int) cx, (int) cy, x, y);
-		XDrawLine (dpy, Scr.Root, Scr.DrawGC, ((int) cx + (int) cw), (int) cy,(x + w), y);
-	  	XDrawLine (dpy, Scr.Root, Scr.DrawGC, ((int) cx + (int) cw), ((int) cy +(int) ch), (x + w), (y + h));
-		XDrawLine (dpy, Scr.Root, Scr.DrawGC, (int) cx, ((int) cy + (int) ch), x,(y + h));
-		XFlush (dpy);
-	  	sleep_a_little (Animate.delay);
-		XDrawRectangle (dpy, Scr.Root, Scr.DrawGC, (int) cx, (int) cy, (int) cw, (int) ch);
-		XDrawRectangle (dpy, Scr.Root, Scr.DrawGC, x, y, w, h);
-		XDrawLine (dpy, Scr.Root, Scr.DrawGC, (int) cx, (int) cy, x, y);
-		XDrawLine (dpy, Scr.Root, Scr.DrawGC, ((int) cx + (int) cw), (int) cy, (x + w), y);
-		XDrawLine (dpy, Scr.Root, Scr.DrawGC, ((int) cx + (int) cw), ((int) cy + (int) ch), (x + w), (y + h));
-		XDrawLine (dpy, Scr.Root, Scr.DrawGC, (int) cx, ((int) cy + (int) ch), x,(y + h));
-	  	XUngrabServer (dpy);
-	  	cx += xstep;
-	  	cy += ystep;
-	  	cw += wstep;
-	  	ch += hstep;
-	}
+	XDrawRectangle (dpy, Scr.Root, Scr.DrawGC, (int) params->cx, (int) params->cy, (int) params->cw,  (int) params->ch);
+	XDrawRectangle (dpy, Scr.Root, Scr.DrawGC, params->x, params->y, params->w, params->h);
+	XDrawLine (dpy, Scr.Root, Scr.DrawGC, (int) params->cx, (int) params->cy, params->x, params->y);
+	XDrawLine (dpy, Scr.Root, Scr.DrawGC, ((int) params->cx + (int) params->cw), (int) params->cy, (params->x + params->w), params->y);
+	XDrawLine (dpy, Scr.Root, Scr.DrawGC, ((int) params->cx + (int) params->cw), ((int) params->cy +(int) params->ch), (params->x + params->w), (params->y + params->h));
+	XDrawLine (dpy, Scr.Root, Scr.DrawGC, (int) params->cx, ((int) params->cy + (int) params->ch), params->x, (params->y + params->h));
 	XFlush (dpy);
+	sleep_a_little (Config->delay);
+	XDrawRectangle (dpy, Scr.Root, Scr.DrawGC, (int) params->cx, (int) params->cy, (int) params->cw, (int) params->ch);
+	XDrawRectangle (dpy, Scr.Root, Scr.DrawGC, params->x, params->y, params->w, params->h);
+	XDrawLine (dpy, Scr.Root, Scr.DrawGC, (int) params->cx, (int) params->cy, params->x, params->y);
+	XDrawLine (dpy, Scr.Root, Scr.DrawGC, ((int) params->cx + (int) params->cw), (int) params->cy, (params->x + params->w), params->y);
+	XDrawLine (dpy, Scr.Root, Scr.DrawGC, ((int) params->cx + (int) params->cw), ((int) params->cy + (int) params->ch), (params->x + params->w), (params->y + params->h));
+	XDrawLine (dpy, Scr.Root, Scr.DrawGC, (int) params->cx, ((int) params->cy + (int) params->ch), params->x, (params->y + params->h));
+	return False;
 }
 
- /*
-  * This picks one of the above animations.
-  */
-void
-AnimateResizeRandom (int x, int y, int w, int h, int fx, int fy, int fw, int fh)
+static Bool
+prepare_animate_params( ASAnimateParams *params, ASRectangle *from, ASRectangle *to )
 {
-  switch ((rand () + (x * y + w * h + fx)) % 4)
+	AnimateResizeType type = Config->resize ;
+	int iterations = Config->iterations ; 
+
+	if( type == ART_None )
+		return False;
+	if( type == ART_Random ) 
+		type = (rand () + (from->x * from->y + from->width * from->height + to->x)) % ART_Random;
+	switch (type)
     {
-    case 0:
-      AnimateResizeTwist (x, y, w, h, fx, fy, fw, fh);
-      break;
-    case 1:
-      AnimateResizeFlip (x, y, w, h, fx, fy, fw, fh);
-      break;
-    case 2:
-      AnimateResizeTurn (x, y, w, h, fx, fy, fw, fh);
-      break;
-    case 3:
-      AnimateResizeZoom (x, y, w, h, fx, fy, fw, fh);
-      break;
-    default:
-      AnimateResizeZoom3D (x, y, w, h, fx, fy, fw, fh);
-      break;
-    }
+    	case ART_Twist:	params->iter_func = AnimateResizeTwist;	break;
+    	case ART_Flip: params->iter_func = AnimateResizeFlip ;     break;
+    	case ART_Turn: params->iter_func = AnimateResizeTurn ;     break;
+    	case ART_Zoom: params->iter_func = AnimateResizeZoom ;     break;
+    	default: params->iter_func = AnimateResizeZoom3D ;  break;
+    }		
+	params->x = from->x ;
+	params->y = from->y ;
+	params->w = from->width ;
+	params->h = from->height ;
+	params->fx = to->x ;
+	params->fy = to->y ;
+	params->fw = to->width ;
+	params->fh = to->height ;
+
+	if( type == ART_Twist ) 
+	{	
+		params->x += params->w / 2;
+		params->y += params->h / 2;
+		params->fx += params->fw / 2;
+		params->fy += params->fh / 2;
+	}	
+	if( iterations == 0 ) 
+		iterations = ANIMATE_DEFAULT_ITERATIONS ;
+  	params->xstep = (float) (params->fx - params->x) / iterations;
+  	params->ystep = (float) (params->fy - params->y) / iterations;
+  	params->wstep = (float) (params->fw - params->w) / iterations;
+  	params->hstep = (float) (params->fh - params->h) / iterations;
+
+  	params->cx = (float) params->x;
+  	params->cy = (float) params->y;
+  	params->cw = (float) params->w;
+	params->ch = (float) params->h;
+
+	if( type == ART_Zoom3D && to->width + to->height <= from->width + from->height)
+	{
+		params->x = params->fx ;
+		params->y = params->fy ;
+		params->w = params->fw ;
+		params->h = params->fh ;	   
+	}	 
+
+	params->final_angle = 2 * AS_PI * Config->twist;
+  	params->angle = 0;
+	params->iter = 0 ;
+	return True;
 }
+
+void 
+do_animate( ASRectangle *from, ASRectangle *to ) 
+{
+	ASAnimateParams params ;
+	Bool do_brake = False ;
+	int iterations = Config->iterations ; 
+	LOCAL_DEBUG_OUT( "preapring params to animate from %ldx%ld%+ld%+ld to %ldx%ld%+ld%+ld", 
+					 from->width, from->height, from->x, from->y,
+					 to->width, to->height, to->x, to->y );
+	if( !prepare_animate_params( &params, from, to ) )
+		return;
+	if( iterations == 0 ) 
+		iterations = ANIMATE_DEFAULT_ITERATIONS ;
+
+	do
+	{
+		XGrabServer (dpy);
+		do_brake = params.iter_func( &params );
+		XUngrabServer (dpy);
+		ASSync(False);
+					   
+		++params.iter ;
+	  	params.cx += params.xstep;
+      	params.cy += params.ystep;
+      	params.cw += params.wstep;
+      	params.ch += params.hstep;
+	  	params.angle += (float) (2 * AS_PI * Config->twist / iterations);
+
+		LOCAL_DEBUG_OUT( "iter = %d of %d, angle = %f, final = %f", params.iter, iterations, params.angle, params.final_angle );
+	}while( !do_brake && params.iter < iterations && params.angle < params.final_angle );
+	ASFlush ();
+}	  
 
 #if 0
 /*
@@ -414,241 +355,222 @@ AnimateClose (int x, int y, int w, int h)
 void
 DeadPipe (int foo)
 {
-  exit (0);
+    if( Config )
+        DestroyAnimateConfig (Config);
+
+    FreeMyAppResources();
+#ifdef DEBUG_ALLOCS
+    print_unfreed_mem ();
+#endif /* DEBUG_ALLOCS */
+
+    XFlush (dpy);
+    XCloseDisplay (dpy);
+    exit (0);
 }
 
 int
 main (int argc, char **argv)
 {
-  int i;
-  unsigned long color;
-  XGCValues gcv;
-
 	/* Save our program name - for error messages */
     InitMyApp (CLASS_ANIMATE, argc, argv, NULL, NULL, 0 );
 
     ConnectX( &Scr, PropertyChangeMask );
     ConnectAfterStep ( mask_reg);
+	
+	Config = CreateAnimateConfig();
+	
+	LOCAL_DEBUG_OUT("parsing Options ...%s","");
+    LoadBaseConfig (GetBaseOptions);
+	LoadColorScheme();
+    LoadConfig ("animate", GetOptions);
 
-  /* Dead pipe == AS died */
-  signal (SIGPIPE, DeadPipe);
-  signal (SIGQUIT, DeadPipe);
-  signal (SIGSEGV, DeadPipe);
-  signal (SIGTERM, DeadPipe);
+    CheckConfigSanity();
+  
+  	SendInfo ( "Nop \"\"", 0);
+    
+	Scr.Vx = Scr.wmprops->as_current_vx ; 
+	Scr.Vy = Scr.wmprops->as_current_vy ;
+	LOCAL_DEBUG_OUT("Viewport is %+d%+d. Starting The Loop ...",Scr.Vx, Scr.Vy);
+    HandleEvents();
 
-  LoadConfig (global_config_file, "animate", ParseOptions);
+    return 0;
+}
 
-  color = WhitePixel (dpy, screen);
-  if (Animate.color)
+void HandleEvents()
+{
+    ASEvent event;
+    Bool has_x_events = False ;
+    while (True)
     {
-      XColor xcol;
-      if (XParseColor (dpy, DefaultColormap (dpy, screen), Animate.color, &xcol))
-	{
-	  if (XAllocColor (dpy, DefaultColormap (dpy, screen), &xcol))
-	    color = xcol.pixel;
-	  else
-	    color = 0;
-
-	  if (color == 0)
-	    {
-	      fprintf (stderr, "\n%s: could not allocate color '%s' - using WHITE\n",
-		       MyName, Animate.color);
-	      color = WhitePixel (dpy, screen);
-	    }
-
-	}
-      else
-	{
-	  fprintf (stderr, "%s: could not parse color '%s'\n",
-		   MyName, Animate.color);
-	}
+        while((has_x_events = XPending (dpy)) )
+        {
+            if( ASNextEvent (&(event.x), True) )
+            {
+                event.client = NULL ;
+                setup_asevent_from_xevent( &event );
+                DispatchEvent( &event );
+			}
+        }
+        module_wait_pipes_input ( process_message );
     }
+}
+/*************************************************************************/
+/* Config stuff : */
+/*************************************************************************/
+void CheckConfigSanity()
+{
+	ARGB32 argb = ARGB32_White ;
+	long    pixel = Scr.asv->white_pixel ; 
+	XGCValues gcv;
 
-  gcv.line_width = Animate.width;
-  gcv.function = GXxor;
-  gcv.foreground = color;
-  gcv.background = color;
-  gcv.subwindow_mode = IncludeInferiors;
-  DrawGC = XCreateGC (dpy, Scr.Root, GCFunction |
-		      GCForeground |
-		      GCLineWidth |
-		      GCBackground |
-		      GCSubwindowMode,
-		      &gcv);
-  SendInfo (fd, "Nop \"\"", 0);
-  Loop ();
-  return 0;
+	if( Config->color ) 
+		if( parse_argb_color( Config->color, &argb ) != Config->color ) 
+			ARGB2PIXEL(Scr.asv,argb,&pixel);
+
+	if( Config->iterations == 0 ) 
+		Config->iterations = ANIMATE_DEFAULT_ITERATIONS ;
+	if( Config->twist == 0 ) 
+		Config->twist = 1 ;
+	if( Config->delay == 0 ) 
+		Config->delay = 1 ;
+		
+
+	gcv.line_width = Config->width;
+  	gcv.function = GXxor;
+  	gcv.foreground = pixel;
+  	gcv.background = pixel;
+  	gcv.subwindow_mode = IncludeInferiors;
+	if( Scr.DrawGC == NULL ) 
+	{	
+		Scr.DrawGC = XCreateGC (dpy, Scr.Root, 
+								GCFunction|GCForeground|GCLineWidth|GCBackground|GCSubwindowMode,
+								&gcv);
+	}else			
+	{
+		XChangeGC(	dpy, Scr.DrawGC, 
+					GCFunction|GCForeground|GCLineWidth|GCBackground|GCSubwindowMode,
+					&gcv);	
+	}	 
 }
 
 void
-GetWindowSize (Window win, int *x, int *y, int *w, int *h)
+GetBaseOptions (const char *filename/* unused*/)
 {
-  Window root_r;
-  unsigned int bw_r, d_r;
-
-  XGetGeometry (dpy, win, &root_r, x, y, (unsigned int *) w, (unsigned int *) h,
-		&bw_r, &d_r);
-}
-
-/*
- * Wait for some event like iconify, deiconify and stuff.
- * 
- */
-void
-Loop ()
-{
-  int x0, y0, w0, h0, xf, yf, wf, hf;
-  Window win;
-  ASMessage *asmsg = NULL;
-
-  while (1)
-    {
-      asmsg = CheckASMessage (fd[1], -1);
-      if (asmsg)
-	{
-	  switch (asmsg->header[1])
-	    {
-	    case M_DEICONIFY:
-	      win = (Window) * (asmsg->body + 1);
-	      x0 = (int) *(asmsg->body + 3);
-	      y0 = (int) *(asmsg->body + 4);
-
-	      GetWindowSize (win, &xf, &yf, &wf, &hf);
-	      Animate.resize (x0, y0, 64, 64, xf, yf, wf, hf);
-	      DestroyASMessage (asmsg);
-	      break;
-
-	    case M_ICONIFY:
-	      xf = (int) *(asmsg->body + 3);
-	      yf = (int) *(asmsg->body + 4);
-	      if (xf <= -10000)
-		break;
-	      wf = 64;
-	      hf = 64;
-	      DestroyASMessage (asmsg);
-
-	      SendInfo (fd, "UNLOCK 1\n", 0);
-	      asmsg = CheckASMessage (fd[1], -1);
-	      if (!asmsg)
-		break;
-	      if (asmsg->header[1] != M_CONFIGURE_WINDOW)
-		{
-		  DestroyASMessage (asmsg);
-		  break;
-		}
-	      x0 = (int) *(asmsg->body + 3);
-	      y0 = (int) *(asmsg->body + 4);
-	      w0 = (int) *(asmsg->body + 5);
-	      h0 = (int) *(asmsg->body + 6);
-	      Animate.resize (x0, y0, w0, h0, xf, yf, wf, hf);
-	      DestroyASMessage (asmsg);
-	      break;
-	    default:
-	      DestroyASMessage (asmsg);
-	    }
-	}
-      SendInfo (fd, "UNLOCK 1\n", 0);
-    }
-}
-
-/*****************************************************************************
- * 
- * This routine is responsible for reading and parsing the config file
- * Ripped from the Pager.
- *
- ****************************************************************************/
-char *
-strtrim (char *str, char **retbuf)
-{
-  char *beg, *end;
-
-  beg = str;
-  while (isspace (*beg))
-    beg++;
-  end = beg;
-  while ((*end) && (!isspace (*end)) && (*end != '\n'))
-    end++;
-  strncpy (*retbuf, beg, end - beg);
-  *(*retbuf + (end - beg)) = '\0';
-  return (*retbuf);
+    START_TIME(started);
+	ReloadASEnvironment( NULL, NULL, NULL, False );
+    SHOW_TIME("BaseConfigParsingTime",started);
 }
 
 void
-ParseOptions (const char *filename)
+GetOptions (const char *filename)
 {
-  FILE *fd;
-  char *line, *tline;
-  char *parsebuf;
-  unsigned int seed;
-  long curtime;
-  int len;
+    AnimateConfig *config = ParseAnimateOptions (filename, MyName);
+    START_TIME(option_time);
 
-  if ((fd = fopen (filename, "r")) == NULL)
-    {
-      fprintf (stderr, "%s: can't open config file %s", MyName, filename);
-      exit (1);
-    }
-  line = (char *) safemalloc (MAXLINELENGTH);
-  parsebuf = (char *) safemalloc (MAXLINELENGTH);
-  len = strlen (MyName);
-  while (fgets (line, MAXLINELENGTH, fd) != NULL)
-    {
-      if ((*line == '*') && (!mystrncasecmp (line + 1, MyName, len)))
-	{
-	  tline = line + len + 1;
-	  if (!mystrncasecmp (tline, "Color", 5))
-	    {
-	      strtrim (tline + 5, &parsebuf);
-	      if (Animate.color)
-		free (Animate.color);
-	      Animate.color = strdup (parsebuf);
-	    }
-	  else if (!mystrncasecmp (tline, "Delay", 5))
-	    {
-	      Animate.delay = atoi (strtrim (tline + 5, &parsebuf));
-	    }
-	  else if (!mystrncasecmp (tline, "Width", 5))
-	    {
-	      Animate.width = atoi (strtrim (tline + 5, &parsebuf));
-	    }
-	  else if (!mystrncasecmp (tline, "Twist", 5))
-	    {
-	      Animate.twist = atof (strtrim (tline + 5, &parsebuf));
-	    }
-	  else if (!mystrncasecmp (tline, "Iterations", 10))
-	    {
-	      Animate.iterations = atoi (strtrim (tline + 10, &parsebuf));
-	    }
-	  else if (!mystrncasecmp (tline, "Resize", 6))
-	    {
-	      strtrim (tline + 6, &parsebuf);
-	      if (!mystrncasecmp (parsebuf, "Twist", 5))
-		Animate.resize = AnimateResizeTwist;
-	      else if (!mystrncasecmp (parsebuf, "Flip", 4))
-		Animate.resize = AnimateResizeFlip;
-	      else if (!mystrncasecmp (parsebuf, "Turn", 4))
-		Animate.resize = AnimateResizeTurn;
-	      else if (!mystrncasecmp (parsebuf, "Zoom", 4))
-		Animate.resize = AnimateResizeZoom;
-	      else if (!mystrncasecmp (parsebuf, "Zoom3D", 6))
-		Animate.resize = AnimateResizeZoom3D;
-	      else if (!mystrncasecmp (parsebuf, "Random", 6))
-		{
-		  Animate.resize = AnimateResizeRandom;
-		  curtime = time (NULL);
-		  seed = (unsigned) curtime % INT_MAX;
-		  srand (seed);
-		}
-	      else
-		{
-		  Animate.resize = AnimateResizeFlip;
-		  fprintf (stderr, "%s: Bad Resize method '%s'\n", MyName, parsebuf);
-		}
-	    }
-	}
-    }
+    /* Need to merge new config with what we have already :*/
+    /* now lets check the config sanity : */
+    /* mixing set and default flags : */
+    Config->set_flags |= config->set_flags;
 
-  free (parsebuf);
-  free (line);
-  fclose (fd);
+  	if( config->color != NULL ) 
+		set_string_value( &(Config->color), config->color, NULL, 0 );
+    if( get_flags(config->set_flags, ANIMATE_SET_DELAY) )
+        Config->delay = config->delay;
+    if( get_flags(config->set_flags, ANIMATE_SET_ITERATIONS) )
+        Config->iterations = config->iterations;
+    if( get_flags(config->set_flags, ANIMATE_SET_TWIST) )
+        Config->twist = config->twist;
+    if( get_flags(config->set_flags, ANIMATE_SET_WIDTH) )
+        Config->width = config->width;
+    if( get_flags(config->set_flags, ANIMATE_SET_RESIZE) )
+        Config->resize = config->resize;
+
+    DestroyAnimateConfig (config);
+    SHOW_TIME("Config parsing",option_time);
 }
+/*************************************************************************/
+/* event/message processing : 											 */
+/*************************************************************************/
+void
+DispatchEvent (ASEvent * event)
+{
+    SHOW_EVENT_TRACE(event);
+    switch (event->x.type)
+    {
+	    case ClientMessage:
+            LOCAL_DEBUG_OUT("ClientMessage(\"%s\",data=(%lX,%lX,%lX,%lX,%lX)", XGetAtomName( dpy, event->x.xclient.message_type ), event->x.xclient.data.l[0], event->x.xclient.data.l[1], event->x.xclient.data.l[2], event->x.xclient.data.l[3], event->x.xclient.data.l[4]);
+            if ( event->x.xclient.format == 32 &&
+                 event->x.xclient.data.l[0] == _XA_WM_DELETE_WINDOW )
+			{
+                DeadPipe(0);
+            }
+			return ;
+	    case PropertyNotify:
+			handle_wmprop_event (Scr.wmprops, &(event->x));
+			return ;
+        default:
+            return;
+    }
+}
+
+void
+process_message (send_data_type type, send_data_type *body)
+{
+    LOCAL_DEBUG_OUT( "received message %lX", type );
+	
+	if( (type&WINDOW_PACKET_MASK) != 0 )
+	{
+		struct ASWindowData *wd = fetch_window_by_id( body[0] );
+		WindowPacketResult res ;
+        /* saving relevant client info since handle_window_packet could destroy the actuall structure */
+		ASFlagType old_state = wd?wd->state_flags:0 ; 
+			
+        show_activity( "message %lX window %X data %p", type, body[0], wd );
+		res = handle_window_packet( type, body, &wd );
+		LOCAL_DEBUG_OUT( "result = %d", res );
+        if( res == WP_DataCreated )
+		{	
+		}else if( res == WP_DataChanged )
+		{	
+			LOCAL_DEBUG_OUT( "old_flags = %lX, new_flags = %lX", old_state, wd->state_flags );
+			/* lets see if we got iconified or deiconified : */
+			if( get_flags(old_state, AS_Iconic) != get_flags(wd->state_flags, AS_Iconic) )
+			{
+				ASRectangle from, to ;
+
+				if( !get_flags( wd->state_flags, AS_Iconic)	)
+				{                              	/* deiconified :  */
+					from = wd->icon_rect ;
+					to = wd->frame_rect ;
+					if( !get_flags( wd->state_flags, AS_Sticky ) )
+					{	
+						to.x -= Scr.Vx ;
+						to.y -= Scr.Vy ;
+					}
+				}else							/* iconified : */
+				{
+					from = wd->frame_rect ;
+					if( !get_flags( wd->state_flags, AS_Sticky ) )
+					{
+						from.x -= Scr.Vx ;
+						from.y -= Scr.Vy ;
+					}
+					to = wd->icon_rect ;
+				}	 
+				do_animate( &from, &to );
+			}	 
+		}else if( res == WP_DataDeleted )
+        {
+        }
+    }else if( type == M_NEW_DESKVIEWPORT )
+    {
+		LOCAL_DEBUG_OUT("M_NEW_DESKVIEWPORT(desk = %ld,Vx=%ld,Vy=%ld)", body[2], body[0], body[1]);
+		Scr.Vx = body[0] ;
+		Scr.Vy = body[1] ;
+		Scr.CurrentDesk = body[2] ;
+	}
+	
+	SendInfo ("UNLOCK 1\n", 0);
+}
+/*************************************************************************/
+
