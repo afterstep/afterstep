@@ -15,8 +15,8 @@ install.bin:	$(PROG)
 install.man:
 		@for p in $(PROG); do \
 			if test -f $$p.man; then \
-		  		echo $(INSTALL_DATA) $$(p).man $(AFTER_MAN_DIR)/$$(p).1x; \
-		  		$(INSTALL_DATA) $$(p).man $(AFTER_MAN_DIR)/$$(p).1x; \
+		  		echo $(INSTALL_DATA) $$p.man $(AFTER_MAN_DIR)/$$p.1x; \
+		  		$(INSTALL_DATA) $$p.man $(AFTER_MAN_DIR)/$$p.1x; \
 			fi; \
 		done
 
@@ -27,7 +27,7 @@ uninstall.bin:
 
 uninstall.man:
 		@for p in $(PROG); do \
-			$(RMF) $(AFTER_BIN_DIR)/$$(p).1x; \
+			$(RMF) $(AFTER_BIN_DIR)/$$p.1x; \
 		done
 
 clean:
