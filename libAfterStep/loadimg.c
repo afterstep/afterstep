@@ -26,7 +26,6 @@
 #include "../libAfterImage/afterimage.h"
 #include "../include/loadimg.h"
 
-#define SCREEN_GAMMA 1.0					   /* default gamma correction value - */
 /* it can be adjusted via $SCREEN_GAMMA env. variable */
 typedef struct pixmap_ref
 {

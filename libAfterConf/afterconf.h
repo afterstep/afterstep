@@ -41,6 +41,15 @@ typedef struct
 }BaseConfig;
 
 BaseConfig *ParseBaseOptions (const char *filename, char *myname);
+void ExtractPath (BaseConfig * config,
+			 char **module_path,
+			 char **audio_path,
+			 char **icon_path,
+			 char **pixmap_path,
+			 char **font_path,
+			 char **cursor_path,
+			 char **myname_path);
+
 /*
  * all data members that has been used from BaseConfig structure, returned
  * by this call must be set to NULL, or memory allocated for them will be
