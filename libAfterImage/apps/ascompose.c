@@ -760,6 +760,23 @@ Window showimage(ASImage* im, Bool looping, Window main_window, ASComposeWinProp
 	
 		if( !props->mapped ) 
 		{	
+			if( props->geom_flags != 0 ) 
+			{
+				XSizeHints hints ;
+				hints.flags = PWinGravity ; 
+				if( get_flags( props->geom_flags, WidthValue|HeightValue) )
+					hints.flags |= USSize ; 
+				if( get_flags( props->geom_flags, XValue|YValue) )
+					hints.flags |= USPosition ; 
+				hints.win_gravity = NorthWestGravity ;
+				if( get_flags( props->geom_flags, XNegative) && !get_flags( props->geom_flags, YNegative)  )
+					hints.win_gravity = NorthEastGravity ;
+				else if( !get_flags( props->geom_flags, XNegative) && get_flags( props->geom_flags, YNegative)  )
+					hints.win_gravity = SouthWestGravity ;
+				else if( get_flags( props->geom_flags, XNegative) && get_flags( props->geom_flags, YNegative)  )
+					hints.win_gravity = SouthEastGravity ;
+				XSetWMNormalHints( dpy, main_window, &hints );
+			}	 
 			XMapWindow( dpy, main_window);
 			props->mapped = True ;
 		}

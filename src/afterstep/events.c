@@ -774,7 +774,7 @@ HandlePropertyNotify (ASEvent *event)
     if( IsNameProp(atom))
     {
 		char *old_name = get_flags( asw->internal_flags, ASWF_NameChanged )?NULL:mystrdup( ASWIN_NAME(asw) );
-		ASFlagType old_hflags = asw->hints->flags ;
+		/*ASFlagType old_hflags = asw->hints->flags ; */
 		show_debug( __FILE__, __FUNCTION__, __LINE__, "name prop changed..." );
         if( update_property_hints_manager( asw->w, xprop->atom,
                                         Scr.Look.supported_hints,

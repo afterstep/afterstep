@@ -228,14 +228,16 @@ ReadDecorations (PagerConfig * config, FreeStorageElem * pCurr)
 PagerConfig  *
 ParsePagerOptions (const char *filename, char *myname, int desk1, int desk2)
 {
-	ConfigDef    *PagerConfigReader =
-        InitConfigReader (myname, &PagerSyntax, CDT_Filename, (void *)filename, NULL);
+	ConfigData    cd ;
+	ConfigDef    *PagerConfigReader;
 	PagerConfig  *config = CreatePagerConfig ((desk2 - desk1) + 1);
 
 	FreeStorageElem *Storage = NULL, *pCurr;
 	ConfigItem    item;
 	MyStyleDefinition **styles_tail = &(config->style_defs);
 
+	cd.filename = filename ;
+	PagerConfigReader = InitConfigReader (myname, &PagerSyntax, CDT_Filename, cd, NULL);
 	if (!PagerConfigReader)
 		return config;
 

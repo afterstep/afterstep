@@ -163,14 +163,16 @@ PrintWinTabsConfig (WinTabsConfig * config)
 WinTabsConfig *
 ParseWinTabsOptions (const char *filename, char *myname)
 {
-	ConfigDef    *ConfigReader =
-        InitConfigReader (myname, &WinTabsSyntax, CDT_Filename, (void *)filename, NULL);
+	ConfigData cd ;
+	ConfigDef    *ConfigReader;
 	WinTabsConfig *config = CreateWinTabsConfig ();
 
 	FreeStorageElem *Storage = NULL, *pCurr;
 	ConfigItem    item;
 	MyStyleDefinition **styles_tail = &(config->style_defs);
 
+	cd.filename = filename ;
+	ConfigReader = InitConfigReader (myname, &WinTabsSyntax, CDT_Filename, cd, NULL);
 	if (!ConfigReader)
 		return config;
 

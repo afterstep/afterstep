@@ -283,7 +283,7 @@ grab_root_asimage( ScreenInfo *scr, Window target, Bool screenshot )
 		return NULL ;
 
 	attr.background_pixmap = screenshot?None:ParentRelative ;
-	attr.backing_store = Always ;
+	attr.backing_store = NotUseful ;
 	attr.event_mask = ExposureMask ;
 	attr.override_redirect = True ;
 

@@ -6,12 +6,13 @@ dnl#Copyright (c) 1998 Sasha Vasko <sasha at aftercode.net>
 dnl#Copyright (c) 1998 Juergen Sawinski <Juergen.Sawinski@urz.uni-heidelberg.de>
 dnl#Copyright (c) 1997 1998 Guylhem AZNAR <guylhem@oeil.qc.ca>
 
-AC_INIT(afterstep/autoexec.in)
+dnl#AC_INIT(afterstep/autoexec.in)
+AC_INIT(AfterStep,2.00.beta4,as-bugs@afterstep.org,AfterStep.tar)
 AC_CONFIG_AUX_DIR(autoconf)
 AC_CONFIG_HEADER(config.h:autoconf/config.h.in)
 
-version="2.00.beta3"
-app_version="2.00.beta3"
+version=$PACKAGE_VERSION
+app_version=$PACKAGE_VERSION
 libafterstep_version="0.99"
 libafterstep_version_major="0"
 libafterstep_name="LIBAFTERSTEP"
@@ -108,12 +109,12 @@ fi
 echo "checking whether we are compiling in FreeBSD environment... $FBSD"
 
 dnl# Comman stuff : compiler tools, proggies, etc.
-
 AC_PROG_CC
 AC_PROG_CXX
 
 export CC
 export GCC
+
 export prefix
 export exec_prefix
 
@@ -132,6 +133,7 @@ if test "x$CYGWIN" != "xyes" -a "x$GCC" = "xyes" ; then
   if test -z "`echo $CFLAGS | grep '\-fPIC' 2> /dev/null`" ; then
     CFLAGS="$CFLAGS -fPIC"
   fi
+  LDFLAGS="$LDFLAGS -rdynamic"
 fi
 
 dnl# Add -g
@@ -143,7 +145,13 @@ if test "x$enable_gdb" = "xyes"; then
 	LDFLAGS="$LDFLAGS -g"
   fi
 else
-  CFLAGS="$CFLAGS -DNO_DEBUG_OUTPUT"
+  DIRTY_CFLAGS="$CFLAGS"
+  CFLAGS="-DNO_DEBUG_OUTPUT"
+  for f in $DIRTY_CFLAGS; do 
+        if test "x$f" != "x-g"; then
+	   CFLAGS="$CFLAGS $f"
+	fi	 
+  done
 fi
 
 dnl# Add -pg
@@ -155,10 +163,6 @@ fi
 dnl# Add lots more warnings
 if test "x$enable_warn" = "xyes"; then
   CFLAGS="$CFLAGS -Wuninitialized -Wwrite-strings -Wcast-qual -Wbad-function-cast -Wpointer-arith -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wnested-externs -Wconversion -Wcomment -Wcast-align -Winline -Wshadow -Wredundant-decls -Wid-clash-31"
-fi
-
-if test "x$GCC" = "xyes"; then
-   LDFLAGS="$LDFLAGS -rdynamic"
 fi
 
 dnl# done with flags - lets export those for our children to use :

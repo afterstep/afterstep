@@ -354,6 +354,7 @@ windowbox_parse (char *tline, FILE * fd, char **list, int *count)
     FreeStorageElem *Storage = NULL, *more_stuff = NULL;
     ASWindowBox **aswbox_list = (ASWindowBox**)list ;
     ASWindowBox *new_box ;
+	ConfigData cd ;
 
     if( list == NULL || count == NULL )
         return;
@@ -361,7 +362,8 @@ windowbox_parse (char *tline, FILE * fd, char **list, int *count)
     fpd.data = safemalloc( 12+1+strlen(tline)+1+1 ) ;
     sprintf( fpd.data, "WindowBox %s\n", tline );
     LOCAL_DEBUG_OUT( "fd(%p)->tline(\"%s\")->fpd.data(\"%s\")", fd, tline, fpd.data );
-    ConfigReader = InitConfigReader ((char*)get_application_name(), &WindowBoxSyntax, CDT_FilePtrAndData, (void *)&fpd, NULL);
+	cd.fileptranddata = &fpd ;
+    ConfigReader = InitConfigReader ((char*)get_application_name(), &WindowBoxSyntax, CDT_FilePtrAndData, cd, NULL);
     free( fpd.data );
 
     if (!ConfigReader)
@@ -541,12 +543,14 @@ Mouse2FreeStorage( SyntaxDef *syntax, FreeStorageElem **tail, struct MouseButton
 FeelConfig *
 ParseFeelOptions (const char *filename, char *myname)
 {
-    ConfigDef *ConfigReader =
-        InitConfigReader (myname, &FeelSyntax, CDT_Filename, (void *) filename, BindingSpecialFunc);
+    ConfigData cd ; 
+	ConfigDef *ConfigReader;
     FeelConfig *config = CreateFeelConfig ();
 	FreeStorageElem *Storage = NULL, *pCurr;
     ConfigItem item;
 
+	cd.filename = filename ; 
+	ConfigReader = InitConfigReader (myname, &FeelSyntax, CDT_Filename, cd, BindingSpecialFunc);
 	if (!ConfigReader)
   		return config;
 
@@ -922,12 +926,14 @@ DestroyAutoExecConfig (AutoExecConfig * config)
 AutoExecConfig *
 ParseAutoExecOptions (const char *filename, char *myname)
 {
-    ConfigDef *ConfigReader =
-        InitConfigReader (myname, &AutoExecSyntax, CDT_Filename, (void *) filename, NULL);
+    ConfigData cd ;
+	ConfigDef *ConfigReader;
     AutoExecConfig *config = CreateAutoExecConfig ();
 	FreeStorageElem *Storage = NULL, *pCurr;
     ConfigItem item;
 
+	cd.filename = filename ;
+	ConfigReader = InitConfigReader (myname, &AutoExecSyntax, CDT_Filename, cd, NULL);
 	if (!ConfigReader)
   		return config;
 
@@ -978,11 +984,12 @@ WriteAutoExecOptions (const char *filename, char *myname,  AutoExecConfig * conf
 {
     ConfigDef *ConfigWriter = NULL;
     FreeStorageElem *Storage = NULL, **tail = &Storage;
+	ConfigData cd ;
 
 	if (config == NULL)
   		return 1;
-    if ((ConfigWriter = InitConfigWriter (myname, &AutoExecSyntax, CDT_Filename,
-			  (void *) filename)) == NULL)
+	cd.filename = filename ; 
+    if ((ConfigWriter = InitConfigWriter (myname, &AutoExecSyntax, CDT_Filename, cd)) == NULL)
 	    return 2;
 
     CopyFreeStorage (&Storage, config->more_stuff);
@@ -993,7 +1000,8 @@ WriteAutoExecOptions (const char *filename, char *myname,  AutoExecConfig * conf
         tail = ComplexFunction2FreeStorage( &AutoExecSyntax, tail, config->restart );
 
     /* writing config into the file */
-	WriteConfig (ConfigWriter, &Storage, CDT_Filename, (void **) &filename, flags);
+	cd.filename = filename ; 
+	WriteConfig (ConfigWriter, &Storage, CDT_Filename, &cd, flags);
     DestroyConfig (ConfigWriter);
 
 	if (Storage)
@@ -1026,11 +1034,13 @@ ThemeConfig *
 ParseThemeFile (const char *filename, char *myname)
 {
 	ThemeConfig *config ;
-    ConfigDef *ConfigReader =
-        InitConfigReader (myname, &ThemeSyntax, CDT_Filename, (void *) filename, NULL);
+	ConfigData cd ;
+    ConfigDef *ConfigReader;
     FreeStorageElem *Storage = NULL, *pCurr;
     ConfigItem item;
 
+	cd.filename = filename ;
+	ConfigReader = InitConfigReader (myname, &ThemeSyntax, CDT_Filename, cd, NULL)
 	LOCAL_DEBUG_OUT( "ConfigReader is %p", ConfigReader );
     if (!ConfigReader)
         return NULL;

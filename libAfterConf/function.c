@@ -331,6 +331,7 @@ complex_function_parse (char *tline, FILE * fd, char *list, int *count)
     ConfigDef    *ConfigReader ;
     FreeStorageElem *Storage = NULL, *more_stuff = NULL;
     struct ASHashTable *funcs_list = (struct ASHashTable*)list ;
+	ConfigData cd ;
 
     if( list == NULL || count == NULL )
         return;
@@ -338,7 +339,8 @@ complex_function_parse (char *tline, FILE * fd, char *list, int *count)
     fpd.data = safemalloc( 12+1+strlen(tline)+1+1 ) ;
     sprintf( fpd.data, "Function %s\n", tline );
     LOCAL_DEBUG_OUT( "fd(%p)->tline(\"%s\")->fpd.data(\"%s\")", fd, tline, fpd.data );
-    ConfigReader = InitConfigReader ((char*)get_application_name(), &FuncSyntax, CDT_FilePtrAndData, (void *)&fpd, NULL);
+	cd.fileptranddata = &fpd ;
+    ConfigReader = InitConfigReader ((char*)get_application_name(), &FuncSyntax, CDT_FilePtrAndData, cd, NULL);
     free( fpd.data );
 
     if (!ConfigReader)

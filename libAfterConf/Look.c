@@ -493,7 +493,7 @@ bevel_parse(char *tline, FILE * fd, char **myname, int *pbevel)
     FilePtrAndData fpd ;
     ConfigDef    *ConfigReader ;
     FreeStorageElem *Storage = NULL, *more_stuff = NULL;
-
+	ConfigData cd ;
     if( pbevel == NULL )
         return;
 
@@ -501,7 +501,8 @@ bevel_parse(char *tline, FILE * fd, char **myname, int *pbevel)
     fpd.data = safemalloc( strlen(tline)+1+1 ) ;
     sprintf( fpd.data, "%s\n", tline );
 LOCAL_DEBUG_OUT( "fd(%p)->tline(\"%s\")->fpd.data(\"%s\")", fd, tline, fpd.data );
-    ConfigReader = InitConfigReader ((char*)myname, &BevelSyntax, CDT_FilePtrAndData, (void *)&fpd, NULL);
+	cd.fileptranddata = &fpd ;
+    ConfigReader = InitConfigReader ((char*)myname, &BevelSyntax, CDT_FilePtrAndData, cd, NULL);
     free( fpd.data );
 
     if (!ConfigReader)
@@ -830,7 +831,8 @@ void
 myframe_parse (char *tline, FILE * fd, char **myname, int *myframe_list)
 {
     FilePtrAndData fpd ;
-    ConfigDef    *ConfigReader ;
+    ConfigData cd ;
+	ConfigDef    *ConfigReader ;
     FreeStorageElem *Storage = NULL, *more_stuff = NULL;
     MyFrameDefinition **list = (MyFrameDefinition**)myframe_list, **tail ;
 
@@ -842,7 +844,8 @@ myframe_parse (char *tline, FILE * fd, char **myname, int *myframe_list)
     fpd.data = safemalloc( 12+1+strlen(tline)+1+1 ) ;
     sprintf( fpd.data, "MyFrame %s\n", tline );
 LOCAL_DEBUG_OUT( "fd(%p)->tline(\"%s\")->fpd.data(\"%s\")", fd, tline, fpd.data );
-    ConfigReader = InitConfigReader ((char*)myname, &MyFrameSyntax, CDT_FilePtrAndData, (void *)&fpd, NULL);
+    cd.fileptranddata = &fpd ;
+	ConfigReader = InitConfigReader ((char*)myname, &MyFrameSyntax, CDT_FilePtrAndData, cd, NULL);
     free( fpd.data );
 
     if (!ConfigReader)
@@ -1373,8 +1376,8 @@ merge_depreciated_options (LookConfig * config, FreeStorageElem * Storage)
 LookConfig   *
 ParseLookOptions (const char *filename, char *myname)
 {
-	ConfigDef    *ConfigReader = InitConfigReader (myname, &LookSyntax, CDT_Filename, (void *)filename,
-												   NULL);
+	ConfigData cd ;
+	ConfigDef    *ConfigReader;
 	LookConfig   *config = CreateLookConfig ();
 	FreeStorageElem *Storage = NULL, *pCurr;
 	ConfigItem    item;
@@ -1382,6 +1385,8 @@ ParseLookOptions (const char *filename, char *myname)
 	MyFrameDefinition **frames_tail = &(config->frame_defs);
 	MyBackgroundConfig **backs_tail = &(config->back_defs);
 
+	cd.filename = filename ;
+	ConfigReader = InitConfigReader (myname, &LookSyntax, CDT_Filename, cd, NULL);
 	if (!ConfigReader)
 		return config;
 
@@ -1560,13 +1565,15 @@ ParseLookOptions (const char *filename, char *myname)
 int
 WriteLookOptions (const char *filename, char *myname, LookConfig * config, unsigned long flags)
 {
+	ConfigData cd ;
 	ConfigDef    *ConfigWriter = NULL;
 	FreeStorageElem *Storage = NULL, **tail = &Storage;
 	register int  i;
 
 	if (config == NULL)
 		return 1;
-	if ((ConfigWriter = InitConfigWriter (myname, &LookSyntax, CDT_Filename, (void *)filename)) == NULL)
+	cd.filename = filename;
+	if ((ConfigWriter = InitConfigWriter (myname, &LookSyntax, CDT_Filename, cd)) == NULL)
 		return 2;
 
 	CopyFreeStorage (&Storage, config->more_stuff);
@@ -1655,7 +1662,8 @@ WriteLookOptions (const char *filename, char *myname, LookConfig * config, unsig
             tail = ASButton2FreeStorage (&LookSyntax, tail, i, config->icon_buttons[i], LOOK_IconTitleButton_ID);
 
 	/* writing config into the file */
-	WriteConfig (ConfigWriter, &Storage, CDT_Filename, (void **)&filename, flags);
+	cd.filename = filename ;
+	WriteConfig (ConfigWriter, &Storage, CDT_Filename, &cd, flags);
     DestroyConfig (ConfigWriter);
 
 	if (Storage)

@@ -299,9 +299,11 @@ count_find_and_extract (const char *fname, int line, void *ptr, int type)
 
 	if( allocs_hash && ptr )
 	{
+		ASHashData hd ;
 		service_mode++ ;
-		if( remove_hash_item (allocs_hash, (ASHashableValue)ptr, (void**)&m, False) == ASH_Success )
+		if( remove_hash_item (allocs_hash, AS_HASHABLE(ptr), &hd.vptr, False) == ASH_Success )
 		{
+			m = hd.vptr ;
 			if( allocs_hash->items_num <= 0 )
 				destroy_ashash(&allocs_hash);
 			if( (m->type & 0xff) != (type & 0xff) && (m->type & 0xff) != C_IMAGE )
@@ -379,8 +381,11 @@ countrealloc (const char *fname, int line, void *ptr, size_t length)
 
 		if( allocs_hash != NULL )
 		{
+			ASHashData hd ;
 			service_mode++ ;
-			if( remove_hash_item (allocs_hash, (ASHashableValue)ptr, (void**)&m, False) == ASH_Success )
+			if( remove_hash_item (allocs_hash, AS_HASHABLE(ptr), &hd.vptr, False) == ASH_Success )
+			{
+				m = hd.vptr ;	  
 				if( (m->type & 0xff) != C_MEM )
 				{
 					show_error( "while deallocating pointer 0x%lX discovered that it was allocated with different type", ptr );
@@ -389,6 +394,7 @@ countrealloc (const char *fname, int line, void *ptr, size_t length)
 #endif
 					m = NULL ;
 				}
+			}
 			service_mode-- ;
 		}
 		if (m == NULL)

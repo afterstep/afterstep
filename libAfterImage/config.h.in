@@ -1,35 +1,39 @@
 /* config.h.in.  Generated from configure.in by autoheader.  */
-#undef I18N
 
-/* debugging options */
-#undef  DEBUG_ALLOCS
+/* Define if memory allocation logging and debugging is desired */
+#undef DEBUG_ALLOCS
 
-#undef  HAVE_MMX
-#undef  XSHMIMAGE
-
-#undef  HAVE_XPM
-#undef  HAVE_LIBXPM
-#undef  HAVE_LIBXPM_X11
-
-#undef  HAVE_JPEG
-#undef  HAVE_PNG
-#undef  HAVE_GIF
-#undef  HAVE_TIFF
-#undef  HAVE_FREETYPE
-#undef  HAVE_FREETYPE_FREETYPE
-
-#undef  HAVE_AFTERBASE
-
+/* Define if libAfterBase is available */
+#undef HAVE_AFTERBASE
 
 /* Define to 1 if you have the <dirent.h> header file, and it defines `DIR'.
    */
 #undef HAVE_DIRENT_H
 
+/* Define if libFreeType is available */
+#undef HAVE_FREETYPE
+
+/* Define if libFreeType is available */
+#undef HAVE_FREETYPE_FREETYPE
+
 /* Define to 1 if you have the <ft2build.h> header file. */
 #undef HAVE_FT2BUILD_H
 
+/* Define if libgif is available */
+#undef HAVE_GIF
+
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
+
+/* Define if libjpeg is available */
+#undef HAVE_JPEG
+
+/* Define if support for XPM images should be through libXpm */
+#undef HAVE_LIBXPM
+
+/* Define if support for XPM images should be through libXpm library in Xlib
+   */
+#undef HAVE_LIBXPM_X11
 
 /* Define to 1 if you have the <malloc.h> header file. */
 #undef HAVE_MALLOC_H
@@ -37,8 +41,14 @@
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
 
+/* Define if CPU supports MMX instructions */
+#undef HAVE_MMX
+
 /* Define to 1 if you have the <ndir.h> header file, and it defines `DIR'. */
 #undef HAVE_NDIR_H
+
+/* Define if libpng is available */
+#undef HAVE_PNG
 
 /* Define to 1 if you have the <stdint.h> header file. */
 #undef HAVE_STDINT_H
@@ -75,8 +85,17 @@
 /* Define to 1 if you have the <sys/wait.h> header file. */
 #undef HAVE_SYS_WAIT_H
 
+/* Define if libtiff is available */
+#undef HAVE_TIFF
+
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
+
+/* Define if support for XPM images is desired */
+#undef HAVE_XPM
+
+/* Define if locale support in X is needed */
+#undef I18N
 
 /* Define to the address where bug reports for this package should be sent. */
 #undef PACKAGE_BUGREPORT
@@ -105,6 +124,9 @@
 /* Define to 1 if your processor stores words with the most significant byte
    first (like Motorola and SPARC, unlike Intel and VAX). */
 #undef WORDS_BIGENDIAN
+
+/* Define if support for shared memory XImages is available */
+#undef XSHMIMAGE
 
 /* Define to 1 if the X Window System is missing or not being used. */
 #undef X_DISPLAY_MISSING

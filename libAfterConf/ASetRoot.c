@@ -339,13 +339,17 @@ FixDeskBacks (ASetRootConfig * config)
 ASetRootConfig *
 ParseASetRootOptions (const char *filename, char *myname)
 {
-	ConfigDef    *ConfigReader = InitConfigReader (myname, &ASetRootSyntax, CDT_Filename, (void *)filename, NULL);
+	ConfigData    cd ;
+	ConfigDef    *ConfigReader;
 	ASetRootConfig *config = CreateASetRootConfig ();
 	MyBackgroundConfig **backs_tail = &(config->my_backs);
 	DeskBackConfig **desks_tail = &(config->my_desks);
 	MyStyleDefinition **styles_tail = &(config->style_defs);
 	FreeStorageElem *Storage = NULL, *pCurr;
 	ConfigItem    item;
+
+	cd.filename = filename ;
+	ConfigReader = InitConfigReader (myname, &ASetRootSyntax, CDT_Filename, cd, NULL);
 
 	if (!ConfigReader)
 		return config;
@@ -403,6 +407,7 @@ myback_parse (char *tline, FILE * fd, char **myname, int *mylook)
     FreeStorageElem *Storage = NULL, *more_stuff = NULL;
     MyLook *look = (MyLook*)mylook ;
     MyBackground *myback = NULL ;
+	ConfigData cd ;
 
     if( look == NULL )
         look = &(Scr.Look);
@@ -411,7 +416,8 @@ myback_parse (char *tline, FILE * fd, char **myname, int *mylook)
     fpd.data = safemalloc( 12+1+strlen(tline)+1+1 ) ;
     sprintf( fpd.data, "MyBackground %s\n", tline );
 LOCAL_DEBUG_OUT( "fd(%p)->tline(\"%s\")->fpd.data(\"%s\")", fd, tline, fpd.data );
-    ConfigReader = InitConfigReader ((char*)myname, &MyBackgroundSyntax, CDT_FilePtrAndData, (void *)&fpd, NULL);
+	cd.fileptranddata = &fpd ;
+    ConfigReader = InitConfigReader ((char*)myname, &MyBackgroundSyntax, CDT_FilePtrAndData, cd, NULL);
     free( fpd.data );
 
     if (!ConfigReader)

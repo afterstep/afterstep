@@ -88,21 +88,30 @@ myobj_destroy (ASHashableValue value, void *data)
 {
 	if (data)
 	{
-		ASMagic *obj = data ;
+		union
+		{
+			void *vptr;
+			ASMagic *obj ;
+			MyFrame *myframe ;
+			MyBackground *myback ;
+			MyDesktopConfig *mydesk ;
+			MyLook *mylook ;
+		} variant ;
+		variant.vptr = data ;
 
-		switch( obj->magic )
+		switch( variant.obj->magic )
 		{
 			case MAGIC_MYFRAME       :
-                destroy_myframe( (MyFrame**)&obj );
+                destroy_myframe( &variant.myframe );
 				break ;
             case MAGIC_MYBACKGROUND :
-				myback_delete ( (MyBackground**)&obj, NULL );
+				myback_delete ( &variant.myback, NULL );
 			    break ;
 			case MAGIC_MYDESKTOPCONFIG :
-				mydeskconfig_delete ( (MyDesktopConfig**)&obj );
+				mydeskconfig_delete ( &variant.mydesk );
 			    break ;
 			case MAGIC_MYLOOK :
-				mylook_destroy ((MyLook**)&obj );
+				mylook_destroy ( &variant.mylook );
 			    break ;
 		}
 	}

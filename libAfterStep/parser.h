@@ -204,6 +204,16 @@ typedef enum
 }
 ConfigDataType;
 
+typedef union
+{
+	void *vptr ;
+	const char *filename;
+	FILE *fileptr ;
+	int *filedesc ;
+	char *data ;
+	FilePtrAndData *fileptranddata ;
+}ConfigData ;
+
 void BuildHash (SyntaxDef * syntax);
 void PrepareSyntax (SyntaxDef * syntax);
 void FreeSyntaxHash (SyntaxDef * syntax);
@@ -216,12 +226,12 @@ int PopStorage (ConfigDef * config);
 char *GetNextStatement (ConfigDef * config, int my_only);
 
 ConfigDef *InitConfigReader (char *myname, SyntaxDef * syntax,
-			     ConfigDataType type, void *source,
+			     ConfigDataType type, ConfigData source,
 			     SpecialFunc special);
 int ParseConfig (ConfigDef * config, FreeStorageElem ** tail);
 
 ConfigDef *InitConfigWriter (char *myname, SyntaxDef * syntax,
-			     ConfigDataType type, void *source);
+			     ConfigDataType type, ConfigData  source);
 
 #define WF_DISCARD_NONE   	0
 #define WF_DISCARD_PUBLIC	(1<<1)
@@ -230,7 +240,7 @@ ConfigDef *InitConfigWriter (char *myname, SyntaxDef * syntax,
 #define WF_DISCARD_UNKNOWN	(1<<4)
 #define WF_DISCARD_EVERYTHING   0xFFFFFFFF
 long WriteConfig (ConfigDef * config, FreeStorageElem ** storage,
-		  ConfigDataType target_type, void **target,
+		  ConfigDataType target_type, ConfigData *target,
 		  unsigned long flags);
 /* Note: WriteConfig discards FreeStorage if everything is fine,
  *       in which case *storage will be set to NULL

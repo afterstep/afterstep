@@ -166,24 +166,29 @@ read_32bit_proplist (Window w, Atom property, long estimate, CARD32 ** list, lon
 		int           actual_format;
         ASFlagType bytes_after;
 		unsigned long unitems = 0 ;
-		long *buffer = NULL ;
+		union 
+		{
+		 	unsigned char *uc_ptr ;	
+		 	long *long_ptr ;	
+		}buffer;
 
+		buffer.long_ptr = NULL ; 
 		if (estimate <= 0)
 			estimate = 1;
 		res =
 			(XGetWindowProperty
 			 (dpy, w, property, 0, estimate, False, AnyPropertyType,
-			  &actual_type, &actual_format, &unitems, &bytes_after, (unsigned char **)&buffer) == 0);
+			  &actual_type, &actual_format, &unitems, &bytes_after, &buffer.uc_ptr) == 0);
 		/* checking property sanity */
 		res = (res && unitems > 0 && actual_format == 32);
 
 		if (bytes_after > 0 && res)
 		{
-			XFree (buffer);
+			XFree (buffer.long_ptr);
 			res =
 				(XGetWindowProperty
 				 (dpy, w, property, 0, estimate + (bytes_after >> 2), False,
-				  actual_type, &actual_type, &actual_format, &unitems, &bytes_after, (unsigned char **)&buffer) == 0);
+				  actual_type, &actual_type, &actual_format, &unitems, &bytes_after, &buffer.uc_ptr) == 0);
 			res = (res && (unitems > 0));	   /* bad property */
 		}
 
@@ -196,12 +201,12 @@ read_32bit_proplist (Window w, Atom property, long estimate, CARD32 ** list, lon
 			register int i = unitems ;
 			register CARD32 *data32  = safemalloc(unitems*sizeof(CARD32));
 			while( --i >= 0 )
-				data32[i] = buffer[i] ;
+				data32[i] = buffer.long_ptr[i] ;
 			*list = data32 ;
 			*nitems = unitems ;
 		}
-		if ( buffer )
-			XFree (buffer);
+		if ( buffer.long_ptr )
+			XFree (buffer.long_ptr);
 	}
 #endif
 	return res;
@@ -297,21 +302,26 @@ Bool read_32bit_property (Window w, Atom property, CARD32* trg)
 		Atom          actual_type;
 		int           actual_format;
         ASFlagType bytes_after;
-        long *data = NULL;
+		union 
+		{
+			unsigned char *uc_ptr ;
+			long 		  *long_ptr ;
+		}data;
 		unsigned long nitems;
 
+		data.long_ptr = NULL ;
 		res =
 			(XGetWindowProperty
 			 (dpy, w, property, 0, 1, False, AnyPropertyType, &actual_type,
-			  &actual_format, &nitems, &bytes_after, (unsigned char **)&data) == 0);
+			  &actual_format, &nitems, &bytes_after, &data.uc_ptr) == 0);
 
 		/* checking property sanity */
 		res = (res && nitems > 0 && actual_format == 32);
 
 		if (res)
-			trg[0] = data[0];
-		if (data && nitems > 0)
-			XFree (data);
+			trg[0] = data.long_ptr[0];
+		if (data.long_ptr && nitems > 0)
+			XFree (data.long_ptr);
 	}
 #endif
 	return res;
@@ -350,39 +360,47 @@ text_property2string( XTextProperty *tprop)
 long *
 get_as_property ( Window w, Atom property, size_t * data_size, CARD32 *version)
 {
-    long *data = NULL;
+	
+    long *result = NULL;
 #ifndef X_DISPLAY_MISSING
-    long *header;
+	union 
+	{	
+		unsigned char *uc_ptr ;
+		long *long_ptr ;
+	}header, data;
 	int           actual_format;
 	Atom          actual_type;
     unsigned long junk, size;
 
     if( w == None || property == None )
         return False;
+	header.long_ptr = NULL ; 
+	data.long_ptr = NULL ; 
 	/* try to get the property version and data size */
     if (XGetWindowProperty (dpy, w, property, 0, 2, False, AnyPropertyType, &actual_type,
-		 &actual_format, &junk, &junk, (unsigned char **)&header) != Success)
+		 &actual_format, &junk, &junk, &header.uc_ptr) != Success)
         return False;
-	if (header == NULL)
+	if (header.long_ptr == NULL)
         return False;
 
     if( version )
-        *version   = (CARD32)header[0];
-    size = (CARD32)header[1];
+        *version   = (CARD32)header.long_ptr[0];
+    size = (CARD32)header.long_ptr[1];
     if( data_size )
         *data_size = size;
     size /= sizeof(CARD32);
 
-	XFree (header);
+	XFree (header.long_ptr);
 	if (actual_type == XA_INTEGER)
 	{
 		/* try to get the actual information */
         if (XGetWindowProperty(dpy, w, property, 2, size, False,
-                               AnyPropertyType, &actual_type, &actual_format, &size, &junk, (unsigned char **)&data) != Success)
-			data = NULL;
+                               AnyPropertyType, &actual_type, &actual_format, &size, &junk, &data.uc_ptr) != Success)
+			data.uc_ptr = NULL;
 	}
+	result = data.long_ptr ;
 #endif
-	return data ;
+	return result ;
 }
 
 Bool

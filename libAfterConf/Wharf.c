@@ -563,13 +563,15 @@ ParseWharfFolder (FreeStorageElem ** storage_tail, WharfButton ** folder)
 WharfConfig  *
 ParseWharfOptions (const char *filename, char *myname)
 {
-	ConfigDef    *ConfigReader = InitConfigReader (myname, &WharfSyntax, CDT_Filename, (void *)filename,
-												   WharfSpecialFunc);
+	ConfigData    cd ;
+	ConfigDef    *ConfigReader;
 	WharfConfig  *config = CreateWharfConfig ();
 	FreeStorageElem *Storage = NULL, *pCurr;
 	ConfigItem    item;
 	MyStyleDefinition **styles_tail = &(config->style_defs);
 
+	cd.filename = filename ;
+	ConfigReader = InitConfigReader (myname, &WharfSyntax, CDT_Filename, cd, WharfSpecialFunc);
 	if (!ConfigReader)
 		return config;
 

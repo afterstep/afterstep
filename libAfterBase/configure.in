@@ -102,7 +102,13 @@ dnl# we are alone - have to do all the checks ourselves :
 			CFLAGS="$CFLAGS -g"
   		fi
 	else
-  		CFLAGS="$CFLAGS -DNO_DEBUG_OUTPUT"
+  		DIRTY_CFLAGS="$CFLAGS"
+  		CFLAGS="-DNO_DEBUG_OUTPUT"
+  		for f in $DIRTY_CFLAGS; do 
+        		if test "x$f" != "x-g"; then
+	   		CFLAGS="$CFLAGS $f"
+			fi	 
+  		done
 	fi
 
 	dnl# Add -pg

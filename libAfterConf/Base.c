@@ -112,12 +112,14 @@ DestroyBaseConfig (BaseConfig * config)
 BaseConfig   *
 ParseBaseOptions (const char *filename, char *myname)
 {
-	ConfigDef    *ConfigReader = InitConfigReader (myname, &BaseSyntax, CDT_Filename, (void *)filename,
-												   NULL);
+	ConfigData cd ;
+	ConfigDef    *ConfigReader ;
 	BaseConfig   *config = CreateBaseConfig ();
 	FreeStorageElem *Storage = NULL, *pCurr;
 	ConfigItem    item;
 
+	cd.filename = filename ;
+	ConfigReader = InitConfigReader (myname, &BaseSyntax, CDT_Filename, cd, NULL);
 	if (!ConfigReader)
 		return config;
 
@@ -195,10 +197,12 @@ WriteBaseOptions (const char *filename, char *myname, BaseConfig * config, unsig
 {
 	ConfigDef    *BaseConfigWriter = NULL;
 	FreeStorageElem *Storage = NULL, **tail = &Storage;
+	ConfigData cd ;
 
 	if (config == NULL)
 		return 1;
-	if ((BaseConfigWriter = InitConfigWriter (myname, &BaseSyntax, CDT_Filename, (void *)filename)) == NULL)
+	cd.filename = filename ;
+	if ((BaseConfigWriter = InitConfigWriter (myname, &BaseSyntax, CDT_Filename, cd)) == NULL)
 		return 2;
 
 	CopyFreeStorage (&Storage, config->more_stuff);
@@ -229,8 +233,9 @@ WriteBaseOptions (const char *filename, char *myname, BaseConfig * config, unsig
 	/* desktop_scale */
     tail = Integer2FreeStorage (&BaseSyntax, tail, NULL, config->desktop_scale, BASE_DESKTOP_SCALE_ID);
 
+	cd.filename = filename ;
 	/* writing config into the file */
-	WriteConfig (BaseConfigWriter, &Storage, CDT_Filename, (void **)&filename, flags);
+	WriteConfig (BaseConfigWriter, &Storage, CDT_Filename, &cd, flags);
 	DestroyConfig (BaseConfigWriter);
 
 	if (Storage)

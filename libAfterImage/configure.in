@@ -6,14 +6,14 @@ dnl#Copyright (c) 2001,1998 Sasha Vasko <sasha at aftercode.net>
 dnl#Copyright (c) 1998 Juergen Sawinski <Juergen.Sawinski@urz.uni-heidelberg.de>
 dnl#Copyright (c) 1997 1998 Guylhem AZNAR <guylhem@oeil.qc.ca>
 
-AC_INIT(Makefile.in)
+AC_INIT(libAfterImage,0.99,as-bugs@afterstep.org,libAfterImage.tar)
 
 AC_CONFIG_HEADER(config.h:config.h.in)
 
-version="0.99"
+version=$PACKAGE_VERSION
 version_major="0"
 lib_name="LIBAFTERIMAGE"
-lib_file_name="libAfterImage"
+lib_file_name=$PACKAGE_NAME
 
 dnl# Setup command-line options
 
@@ -122,7 +122,13 @@ dnl# we are alone - have to do all the checks ourselves :
 			CFLAGS="$CFLAGS -g"
   		fi
 	else
-  		CFLAGS="$CFLAGS -DNO_DEBUG_OUTPUT"
+  		DIRTY_CFLAGS="$CFLAGS"
+  		CFLAGS="-DNO_DEBUG_OUTPUT"
+  		for f in $DIRTY_CFLAGS; do 
+        		if test "x$f" != "x-g"; then
+	   		CFLAGS="$CFLAGS $f"
+			fi	 
+  		done
 	fi
 	dnl# Add -pg
 	if test "x$enable_gprof" = "xyes"; then
@@ -174,7 +180,7 @@ if test "x$enable_mmx_optimization" = "xyes"; then
                       : /* no input */
 					  : "ebx", "ecx", "edx"
 				);return mmx_available!=0?0:1;}],
-				[AC_DEFINE(HAVE_MMX) AC_MSG_RESULT(yes)],AC_MSG_RESULT(no))
+				[AC_DEFINE(HAVE_MMX,1,[Define if CPU supports MMX instructions]) AC_MSG_RESULT(yes)],AC_MSG_RESULT(no))
   else
 	  AC_MSG_RESULT(skipped)
   fi
@@ -226,7 +232,7 @@ if test "x$enable_shmimage" = "xyes"; then
 	fi
 	if test "x$have_shmimage" = "xyes"; then
 		have_xext_lib=yes
-		AC_DEFINE(XSHMIMAGE)
+		AC_DEFINE(XSHMIMAGE,1,[Define if support for shared memory XImages is available])
 	fi
 fi
 
@@ -260,18 +266,18 @@ else
 	if test "x$have_libxpm" = "xno"; then
 		AC_CHECK_HEADER(X11/xpm.h,have_libxpm_x11="yes")
 		if test "x$have_libxpm_x11" = "xyes"; then
-			 AC_DEFINE(HAVE_LIBXPM_X11)
+			 AC_DEFINE(HAVE_LIBXPM_X11,1,[Define if support for XPM images should be through libXpm library in Xlib])
 			 have_libxpm=yes
 		fi
 	fi
   	if test "x$have_libxpm" = "xyes"; then
-		AC_DEFINE(HAVE_XPM)
-		AC_DEFINE(HAVE_LIBXPM)
+		AC_DEFINE(HAVE_XPM,1,[Define if support for XPM images is desired])
+		AC_DEFINE(HAVE_LIBXPM,1,[Define if support for XPM images should be through libXpm])
 		AFTERIMAGE_LIBS="$AFTERIMAGE_LIBS -lXpm"
         fi
   	CPPFLAGS=$SAVED_CFLAGS
   else
-	AC_DEFINE(HAVE_XPM)
+	AC_DEFINE(HAVE_XPM,1,[Define if support for XPM images is desired])
 	XPM_CFLAGS=
   fi
 fi
@@ -285,7 +291,7 @@ else
 	JPEG_CFLAGS="-I$jpeg_includes"
 	CPPFLAGS="$CPPFLAGS $JPEG_CFLAGS"
   fi
-  AC_CHECK_HEADER(jpeglib.h,[AC_DEFINE(HAVE_JPEG) AFTERIMAGE_LIBS="$AFTERIMAGE_LIBS -ljpeg"])
+  AC_CHECK_HEADER(jpeglib.h,[AC_DEFINE(HAVE_JPEG,1,[Define if libjpeg is available]) AFTERIMAGE_LIBS="$AFTERIMAGE_LIBS -ljpeg"])
   CPPFLAGS=$SAVED_CFLAGS
 fi
 AC_SUBST(JPEG_CFLAGS)
@@ -306,7 +312,7 @@ else
         AC_MSG_RESULT($have_png)
   fi
   if test "$have_png" = yes; then
-        AC_DEFINE(HAVE_PNG)
+        AC_DEFINE(HAVE_PNG,1,[Define if libpng is available])
         AFTERIMAGE_LIBS="$AFTERIMAGE_LIBS -lpng"
         image_format="png"
   fi
@@ -326,7 +332,7 @@ else
   AC_CHECK_HEADER(gif_lib.h,have_gif=yes)
   CPPFLAGS=$SAVED_CFLAGS
   if test "x$have_gif" = "xyes"; then
-	AC_DEFINE(HAVE_GIF)
+	AC_DEFINE(HAVE_GIF,1,[Define if libgif is available])
 	if test "$with_gif" = no; then
 		AFTERIMAGE_LIBS="$AFTERIMAGE_LIBS -lungif"
 	else
@@ -346,7 +352,7 @@ else
 	TIFF_CFLAGS="-I$tiff_includes"
 	CPPFLAGS="$CPPFLAGS $TIFF_CFLAGS"
   fi
-  AC_CHECK_HEADER(tiffio.h,[AC_DEFINE(HAVE_TIFF) AFTERIMAGE_LIBS="-ltiff $AFTERIMAGE_LIBS" have_tiff=yes])
+  AC_CHECK_HEADER(tiffio.h,[AC_DEFINE(HAVE_TIFF,1,[Define if libtiff is available]) AFTERIMAGE_LIBS="-ltiff $AFTERIMAGE_LIBS" have_tiff=yes])
   CPPFLAGS=$SAVED_CFLAGS
 fi
 AC_SUBST(TIFF_CFLAGS)
@@ -403,14 +409,14 @@ else
     	  if test "x$have_freetype_freetype" = "xyes" ; then
 		AC_TRY_RUN([#include <freetype/freetype.h>
                             int main(){FT_Face f; return 0;}],
-	                   [AC_DEFINE(HAVE_FREETYPE_FREETYPE) have_ttf=yes],AC_MSG_RESULT(no))
+	                   [AC_DEFINE(HAVE_FREETYPE_FREETYPE,1,[Define if libFreeType is available]) have_ttf=yes],AC_MSG_RESULT(no))
 	  elif test "x$have_freetype" = "xyes" ; then
 		AC_TRY_RUN([#include <freetype.h>
                             int main(){FT_Face f; return 0;}],
 	                   [have_ttf=yes],AC_MSG_RESULT(no))
 	  fi;
     	  if test "x$have_ttf" = "xyes" ; then
-		AC_DEFINE(HAVE_FREETYPE)
+		AC_DEFINE(HAVE_FREETYPE,1,[Define if libFreeType is available])
                 AC_MSG_RESULT(yes)
 	  fi;
 	  CPPFLAGS=$saved_CPPFLAGS
@@ -423,7 +429,7 @@ else
     fi;
   else
 	TTF_INCLUDES=$ttf_includes
-	AC_DEFINE(HAVE_FREETYPE)
+	AC_DEFINE(HAVE_FREETYPE,1,[Define if libFreeType is available])
     have_ttf=yes
   fi
   if test "$have_ttf" = yes; then
@@ -462,7 +468,7 @@ if test "x$have_afterbase" = "xyes"; then
     	AFTERIMAGE_LIBS="-lAfterBase $AFTERIMAGE_LIBS"
     fi
     AFTERIMAGE_APPS_LIBS="-L../ -L../../libAfterBase -lAfterImage $AFTERIMAGE_LIBS"
-    AC_DEFINE(HAVE_AFTERBASE)
+    AC_DEFINE(HAVE_AFTERBASE,1,[Define if libAfterBase is available])
 	AC_MSG_RESULT(yes  $AFTERBASE_INCS_PATH)
 else
 	AFTERIMAGE_APPS_LIBS="-L../ -lAfterImage $AFTERIMAGE_LIBS_EXTERNAL"
@@ -509,8 +515,8 @@ fi
 
 dnl# Translate enable_* from "yes/no" to "1/0" (for configure.h)
 
-if test "x$enable_i18n" = "xyes"; then AC_DEFINE(I18N) fi
-if test "x$enable_audit" = "xyes"; then AC_DEFINE(DEBUG_ALLOCS) fi
+if test "x$enable_i18n" = "xyes"; then AC_DEFINE(I18N,1,[Define if locale support in X is needed]) fi
+if test "x$enable_audit" = "xyes"; then AC_DEFINE(DEBUG_ALLOCS,1,[Define if memory allocation logging and debugging is desired]) fi
 
 dnl# Variable strings declaration
 

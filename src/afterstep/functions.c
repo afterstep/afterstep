@@ -1420,8 +1420,8 @@ void screenshot_func_handler( FunctionData *data, ASEvent *event, int module )
 			sprintf(&(default_template[0]), DEFAULT_SCREENSHOT_FILE ".%lu.jpg", time(NULL));
 			realfilename = PutHome(&(default_template[0]));
 		}
-
-		if( save_asimage_to_file(realfilename, im, type, NULL, NULL, 0, replace) )
+        
+		if( save_asimage_to_file(realfilename, im, type, "4", NULL, 0, replace) )
 			show_warning( "screenshot saved as \"%s\"", realfilename );
 		free( realfilename ) ;
 	}

@@ -115,12 +115,14 @@ PrintColorConfig (ColorConfig *config )
 ColorConfig *
 ParseColorOptions (const char *filename, char *myname)
 {
-	ConfigDef    *ConfigReader = InitConfigReader (myname, &ColorSyntax, CDT_Filename, (void *)filename,
-												   NULL);
+	ConfigData    cd ;
+	ConfigDef    *ConfigReader;
 	ColorConfig   *config = CreateColorConfig ();
 	FreeStorageElem *Storage = NULL, *pCurr;
 	ConfigItem    item;
 
+	cd.filename = filename ;
+	ConfigReader = InitConfigReader (myname, &ColorSyntax, CDT_Filename, cd, NULL);
 	if (!ConfigReader)
 		return config;
 
@@ -177,13 +179,15 @@ WriteColorOptions (const char *filename, char *myname, ColorConfig * config, uns
 {
 	ConfigDef    *ColorConfigWriter = NULL;
 	FreeStorageElem *Storage = NULL, **tail = &Storage;
+	ConfigData cd ;
 
 	char color_buffer[128] ;
 	int i ;
 
 	if (config == NULL)
 		return 1;
-	if ((ColorConfigWriter = InitConfigWriter (myname, &ColorSyntax, CDT_Filename, (void *)filename)) == NULL)
+	cd.filename = filename ;
+	if ((ColorConfigWriter = InitConfigWriter (myname, &ColorSyntax, CDT_Filename, cd)) == NULL)
 		return 2;
 
 	CopyFreeStorage (&Storage, config->more_stuff);
@@ -225,7 +229,8 @@ WriteColorOptions (const char *filename, char *myname, ColorConfig * config, uns
     	tail = Integer2FreeStorage (&ColorSyntax, tail, NULL, config->angle, COLOR_Angle_ID);
 
 	/* writing config into the file */
-	WriteConfig (ColorConfigWriter, &Storage, CDT_Filename, (void **)&filename, flags);
+	cd.filename = filename ; 
+	WriteConfig (ColorConfigWriter, &Storage, CDT_Filename, &cd, flags);
 	DestroyConfig (ColorConfigWriter);
 
 	if (Storage)

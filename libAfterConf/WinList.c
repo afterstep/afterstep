@@ -200,14 +200,16 @@ PrintWinListConfig (WinListConfig * config)
 WinListConfig *
 ParseWinListOptions (const char *filename, char *myname)
 {
-	ConfigDef    *ConfigReader =
-        InitConfigReader (myname, &WinListSyntax, CDT_Filename, (void *)filename, NULL);
+	ConfigData    cd ;
+	ConfigDef    *ConfigReader;
 	WinListConfig *config = CreateWinListConfig ();
 
 	FreeStorageElem *Storage = NULL, *pCurr;
 	ConfigItem    item;
 	MyStyleDefinition **styles_tail = &(config->style_defs);
 
+	cd.filename = filename ;
+	ConfigReader = InitConfigReader (myname, &WinListSyntax, CDT_Filename, cd, NULL);
 	if (!ConfigReader)
 		return config;
 

@@ -1058,7 +1058,9 @@ LOCAL_DEBUG_CALLER_OUT( "desk(%d)->old_desk(%d)->new_back(%p)->old_back(%p)", de
 		
 		if( new_im->width * new_im->height * 4 >= ASSHM_SAVED_MAX/2 &&
 			/* can't animate if pixmap is tiled - X is slow then */
-			!get_flags( Scr.Feel.flags, DontAnimateBackground) ) 
+			!get_flags( Scr.Feel.flags, DontAnimateBackground) && 
+			/* when we do this for the first time  - we better do it all at once */
+			Scr.wmprops->root_pixmap != None )
 		{	
 			Bool tiled = ( new_im->width < Scr.MyDisplayWidth || new_im->height < Scr.MyDisplayHeight );
 			if( old_pmap != bh->pmap )

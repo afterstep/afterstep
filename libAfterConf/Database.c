@@ -498,12 +498,14 @@ ParseSingleStyle (FreeStorageElem * storage, name_list * style)
 name_list    *
 ParseDatabaseOptions (const char *filename, char *myname)
 {
-	ConfigDef    *ConfigReader = InitConfigReader (myname, &DatabaseSyntax, CDT_Filename, (void *)filename,
-												   NULL);
+	ConfigData    cd ;
+	ConfigDef    *ConfigReader;
 	name_list    *config = NULL, **tail = &config, *curr_style;
 	FreeStorageElem *Storage = NULL, *pCurr, *more_stuff;
 	ConfigItem    item;
 
+	cd.filename = filename ;
+	ConfigReader = InitConfigReader (myname, &DatabaseSyntax, CDT_Filename, cd, NULL);
 	if (!ConfigReader)
 		return config;
 

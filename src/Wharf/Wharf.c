@@ -1980,10 +1980,6 @@ do_wharf_animate_iter( void *vdata )
             else
 				timer_new (10, do_wharf_animate_iter, vdata);	  
         }
-//        while( --i >= 0 )
-//            if( aswf->buttons[i].swallowed )
-//                send_swallowed_configure_notify(&(aswf->buttons[i]));
-
 	}		  
 }
 

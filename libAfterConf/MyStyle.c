@@ -524,6 +524,7 @@ mystyle_parse (char *tline, FILE * fd, char **myname, int *mystyle_list)
     ConfigDef    *ConfigReader ;
     FreeStorageElem *Storage = NULL, *more_stuff = NULL;
     MyStyleDefinition **list = (MyStyleDefinition**)mystyle_list, **tail ;
+	ConfigData cd ;
 
     if( list == NULL )
         return;
@@ -533,7 +534,8 @@ mystyle_parse (char *tline, FILE * fd, char **myname, int *mystyle_list)
     fpd.data = safemalloc( 12+1+strlen(tline)+1+1 ) ;
     sprintf( fpd.data, "MyStyle %s\n", tline );
 	LOCAL_DEBUG_OUT( "fd(%p)->tline(\"%s\")->fpd.data(\"%s\")", fd, tline, fpd.data );
-    ConfigReader = InitConfigReader ((char*)myname, &MyStyleSyntax, CDT_FilePtrAndData, (void *)&fpd, NULL);
+	cd.fileptranddata = &fpd ;
+    ConfigReader = InitConfigReader ((char*)myname, &MyStyleSyntax, CDT_FilePtrAndData, cd, NULL);
     free( fpd.data );
 
     if (!ConfigReader)

@@ -427,7 +427,7 @@ DispatchEvent (ASEvent * event)
                 
                 if( event->w == WinTabsState.main_window ) 
                 {                        
-                    ASFlagType changes = handle_canvas_config( WinTabsState.main_canvas );
+                    ASFlagType changes = handle_canvas_config( mc );
                     if( get_flags( changes, CANVAS_RESIZED ) )
                         rearrange_tabs();
                     else if( get_flags( changes, CANVAS_MOVED ) )

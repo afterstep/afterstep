@@ -2398,7 +2398,13 @@ esac
 			CFLAGS="$CFLAGS -g"
   		fi
 	else
-  		CFLAGS="$CFLAGS -DNO_DEBUG_OUTPUT"
+  		DIRTY_CFLAGS="$CFLAGS"
+  		CFLAGS="-DNO_DEBUG_OUTPUT"
+  		for f in $DIRTY_CFLAGS; do
+        		if test "x$f" != "x-g"; then
+	   		CFLAGS="$CFLAGS $f"
+			fi
+  		done
 	fi
 
 		if test "x$enable_gprof" = "xyes"; then

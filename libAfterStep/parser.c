@@ -249,7 +249,7 @@ config_error (ConfigDef * config, char *error)
 
 /* Creating and Initializing new ConfigDef */
 ConfigDef    *
-NewConfig (char *myname, SyntaxDef * syntax, ConfigDataType type, void *source, SpecialFunc special, int create)
+NewConfig (char *myname, SyntaxDef * syntax, ConfigDataType type, ConfigData  source, SpecialFunc special, int create)
 {
 	ConfigDef    *new_conf;
 
@@ -261,12 +261,12 @@ NewConfig (char *myname, SyntaxDef * syntax, ConfigDataType type, void *source, 
 	new_conf->fd = -1;
 	new_conf->fp = NULL;
     new_conf->flags = 0;
-	if (source)
+	if (source.vptr != NULL )
 		switch (type)
 		{
 		 case CDT_Filename:
 			 {
-				 char         *realfilename = put_file_home ((char *)source);
+				 char         *realfilename = put_file_home (source.filename);
 
 				 if (!realfilename)
 				 {
@@ -284,16 +284,16 @@ NewConfig (char *myname, SyntaxDef * syntax, ConfigDataType type, void *source, 
 			 }
 			 break;
 		 case CDT_FilePtr:
-			 new_conf->fp = (FILE *) source;
+			 new_conf->fp = source.fileptr;
 			 new_conf->fd = fileno (new_conf->fp);
 			 break;
 		 case CDT_FileDesc:
-			 new_conf->fd = *((int *)source);
+			 new_conf->fd = *source.filedesc;
 			 break;
 		 case CDT_Data:
 			 break;
          case CDT_FilePtrAndData :
-             new_conf->fp = ((FilePtrAndData*)source)->fp;
+             new_conf->fp = source.fileptranddata->fp;
 			 new_conf->fd = fileno (new_conf->fp);
              set_flags( new_conf->flags, CP_ReadLines );
             break ;
@@ -331,13 +331,13 @@ NewConfig (char *myname, SyntaxDef * syntax, ConfigDataType type, void *source, 
 
 /* reader initialization */
 ConfigDef    *
-InitConfigReader (char *myname, SyntaxDef * syntax, ConfigDataType type, void *source, SpecialFunc special)
+InitConfigReader (char *myname, SyntaxDef * syntax, ConfigDataType type, ConfigData source, SpecialFunc special)
 {
 	ConfigDef    *new_conf = NewConfig (myname, syntax, type, source, special, False);
 
 	if (new_conf == NULL)
 		return NULL;
-	if (source == NULL)
+	if (source.vptr == NULL)
 	{
 		DestroyConfig (new_conf);
 		return NULL;
@@ -346,13 +346,13 @@ InitConfigReader (char *myname, SyntaxDef * syntax, ConfigDataType type, void *s
 	if (type == CDT_Data)
 	{
 		/* allocate to store entire data */
-		new_conf->buffer_size = strlen ((char *)source) + 1;
+		new_conf->buffer_size = strlen (source.data) + 1;
 		new_conf->buffer = (char *)safemalloc (new_conf->buffer_size);
-		strcpy (new_conf->buffer, (char *)source);
+		strcpy (new_conf->buffer, source.data);
 		new_conf->bytes_in = new_conf->buffer_size - 1;
     } else if( type == CDT_FilePtrAndData )
     {
-        FilePtrAndData *fpd = (FilePtrAndData*)source;
+        FilePtrAndData *fpd = source.fileptranddata;
         int buf_len = fpd->data?strlen( fpd->data ):0;
         if( buf_len < MAXLINELENGTH )
             buf_len = MAXLINELENGTH ;
@@ -829,21 +829,21 @@ FlushConfigBuffer (ConfigDef * config)
 /***************************************************************************/
 /* writer initialization */
 ConfigDef    *
-InitConfigWriter (char *myname, SyntaxDef * syntax, ConfigDataType type, void *source)
+InitConfigWriter (char *myname, SyntaxDef * syntax, ConfigDataType type, ConfigData source)
 {
 #ifdef WITH_CONFIG_WRITER
 	ConfigDef    *new_conf = NewConfig (myname, syntax, type, source, NULL, True);
 
 	if (new_conf == NULL)
 		return NULL;
-	if (source != NULL)
+	if (source.vptr != NULL)
 	{
 		if (type == CDT_Data)
 		{
-			if ((new_conf->buffer_size = strlen (source)) > 0)
+			if ((new_conf->buffer_size = strlen (source.data)) > 0)
 			{
-				new_conf->buffer = (char *)safemalloc (++(new_conf->buffer_size));
-				strcpy (new_conf->buffer, (char *)source);
+				new_conf->buffer = safemalloc (++(new_conf->buffer_size));
+				strcpy (new_conf->buffer, source.data);
 			}
 		} else
 		{									   /* reading entire file in memory here */
@@ -1222,7 +1222,7 @@ ScanAndWriteExistant (ConfigDef * config, FreeStorageElem ** storage, struct Wri
 
 long
 WriteConfig (ConfigDef * config, FreeStorageElem ** storage,
-			 ConfigDataType target_type, void **target, unsigned long flags)
+			 ConfigDataType target_type, ConfigData *target, unsigned long flags)
 {
 #ifdef WITH_CONFIG_WRITER
 	struct WriteBuffer t_buffer;
@@ -1260,17 +1260,17 @@ WriteConfig (ConfigDef * config, FreeStorageElem ** storage,
 	switch (target_type)
 	{
 	 case CDT_Filename:
-		 t_fd = open ((char *)(*target), O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
+		 t_fd = open (target->filename, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
 		 break;
 	 case CDT_FilePtr:
      case CDT_FilePtrAndData:
-         t_fd = fileno ((FILE *) (*target));
+         t_fd = fileno (target->fileptr);
 		 break;
 	 case CDT_FileDesc:
-		 t_fd = *((int *)(*target));
+		 t_fd = *(target->filedesc);
 		 break;
 	 case CDT_Data:
-		 (*target) = (void *)(t_buffer.buffer);
+		 target->data = t_buffer.buffer;
 		 return t_buffer.used;
 	}
 	if (t_fd != -1)

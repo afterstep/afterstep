@@ -1,3 +1,7 @@
+version 2.0 beta4
+	* Reverted cursor settings back to feel file.
+	* Used ascompose as new Banner module
+	* Added to ascompose ability to process files tag by tag, allowing for animation.
 	* Added to look config : 
 		[DontAnimateBackground	0|1]
 		[CoverAnimationSteps   	<steps count>]
