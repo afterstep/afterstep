@@ -69,8 +69,9 @@ typedef struct {
 	unsigned int  width, height ;
 	ASTBarData *widest, *tallest ;
 	unsigned int max_width, max_height ;
+	ASWindowData *focused;
 }ASWinListState ;
-ASWinListState WinListState = { 100, 100, NULL, NULL, 0, 0 };
+ASWinListState WinListState = { 100, 100, NULL, NULL, 0, 0, NULL };
 
 /**********************************************************************/
 /**********************************************************************/
@@ -94,6 +95,7 @@ typedef struct WinListConfig
 	
 	char *unfocused_style ;
 	char *focused_style ;
+	char *sticky_style ;
 	
 	ASNameTypes     show_name_type ; /* 0, 1, 2, 3 */
 	ASAligmentTypes name_aligment ;  
@@ -106,6 +108,7 @@ WinListConfig Config = { 0, 0, 0, 0,
 						  0,
 						  "unfocused_window_style",
 						  "focused_window_style",
+						  "sticky_window_style",
 						  ASN_Name,
 						  ASA_Left };
 /**********************************************************************/
@@ -452,15 +455,29 @@ LOCAL_DEBUG_OUT( "Tbar name \"%s\" width is %d, height is %d", tbar->label_text,
 	if( get_flags(Config.flags, ASWL_RowsFirst) )
 	{
 		cols = (allowed_max_width+1)/max_width ;
-		rows = count / cols ;
-		if( rows * cols < count ) 
-			++rows ;
+		if( cols > count )
+		{
+			cols = count;
+			rows = 1 ;
+		}else
+		{
+			rows = count / cols ;
+			if( rows * cols < count ) 
+				++rows ;
+		}
 	}else
 	{
 		rows = (allowed_max_height+1)/max_height ;
-		cols = count / rows ;
-		if( cols * rows < count )
-			++cols ;
+		if( rows > count ) 
+		{
+			rows = count ;
+			cols = 1 ;
+		}else
+		{
+			cols = count / rows ;
+			if( cols * rows < count )
+				++cols ;
+		}
 	}
 
 	if( WinListState.width  == cols * max_width && 
@@ -475,8 +492,9 @@ LOCAL_DEBUG_OUT( "Tbar name \"%s\" width is %d, height is %d", tbar->label_text,
 	if( WinListState.height <= 0 )
 		WinListState.height = 1 ;
 	
-	LOCAL_DEBUG_OUT("Resizing Winlist window to %dx%d", WinListState.width, WinListState.height );
-	XResizeWindow( dpy, WinListWindow, WinListState.width, WinListState.height );
+	LOCAL_DEBUG_OUT("Resizing Winlist window to (%dx%d) %dx%d max size is (%dx%d)", cols, rows, WinListState.width, WinListState.height, max_width, max_height );
+	if( WinListCanvas )
+		resize_canvas( WinListCanvas, WinListState.width, WinListState.height );
 
 	WinListState.max_width = max_width ;
 	WinListState.max_height = max_height ;
@@ -550,6 +568,30 @@ destroy_winlist_button( void *data )
 	}
 }
 
+static void 
+configure_tbar_props( ASTBarData *tbar, ASWindowData *wd )
+{
+	char *name = get_visible_window_name(wd);
+	set_astbar_style( tbar, BAR_STATE_FOCUSED, Config.focused_style );
+
+	if( get_flags(wd->flags, STICKY) )
+		set_astbar_style( tbar, BAR_STATE_UNFOCUSED, Config.sticky_style );
+	else
+		set_astbar_style( tbar, BAR_STATE_UNFOCUSED, Config.unfocused_style );
+	set_astbar_label( tbar, name);
+	if( wd->focused )
+	{
+		if( WinListState.focused && WinListState.focused != wd ) 
+		{
+			WinListState.focused->focused = False ;
+			refresh_winlist_button( WinListState.focused->data, WinListState.focused ) ;
+		}
+		set_flags( tbar->state, BAR_STATE_FOCUSED );
+		WinListState.focused = wd ;
+	}else
+		clear_flags( tbar->state, BAR_STATE_FOCUSED );
+}
+
 void 
 add_winlist_button( ASTBarData *tbar, ASWindowData *wd )
 {
@@ -557,9 +599,9 @@ add_winlist_button( ASTBarData *tbar, ASWindowData *wd )
 	tbar = append_bidirelem( WinList, tbar );
 	if( tbar ) 
 	{
-		set_astbar_style( tbar, BAR_STATE_UNFOCUSED, Config.unfocused_style );
-		set_astbar_style( tbar, BAR_STATE_FOCUSED, Config.focused_style );
-		set_astbar_label( tbar, get_visible_window_name(wd) );
+		configure_tbar_props( tbar, wd );
+			
+//		LOCAL_DEBUG_OUT( "Added tbar %p with name [%s]", tbar, name);
 		wd->data = tbar ;
 		rearrange_winlist_window();
 	}
@@ -570,7 +612,7 @@ refresh_winlist_button( ASTBarData *tbar, ASWindowData *wd )
 {
 	if( tbar )
 	{
-		set_astbar_label( tbar, get_visible_window_name(wd) );	
+		configure_tbar_props( tbar, wd );
 		if( tbar == WinListState.widest || tbar == WinListState.tallest )
 		{
 			if( !rearrange_winlist_window() )
@@ -585,6 +627,9 @@ refresh_winlist_button( ASTBarData *tbar, ASWindowData *wd )
 void 
 delete_winlist_button( ASTBarData *tbar, ASWindowData *wd )
 {
+	if( WinListState.focused == wd ) 
+		WinListState.focused = NULL ;
+LOCAL_DEBUG_OUT("tbar = %p, wd = %p", tbar, wd );		
 	if( tbar )
 	{
 		discard_bidirelem( WinList, tbar );

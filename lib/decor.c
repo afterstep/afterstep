@@ -193,6 +193,14 @@ void update_canvas_display( ASCanvas *pc )
 	}
 }
 
+void resize_canvas( ASCanvas *pc, unsigned int width, unsigned int height )
+{
+	/* Setting background to None to avoid background pixmap tiling 
+	 * while resizing */
+	if( pc->width < width || pc->height < height )
+		XSetWindowBackgroundPixmap( dpy, pc->w, None );
+	XResizeWindow( dpy, pc->w, width, height );
+}
 
 /********************************************************************/
 /* ASTBarData :                                                     */
@@ -266,7 +274,7 @@ calculate_astbar_height( ASTBarData *tbar )
 	if( tbar == NULL ) 
 		return 0 ;
 	size = get_astbar_label_height( tbar );
-	size += tbar->top_bevel + tbar->bottom_bevel ;
+	size += tbar->top_bevel+2 + tbar->bottom_bevel+2 ;
 	return size;
 }
 
@@ -277,7 +285,7 @@ calculate_astbar_width( ASTBarData *tbar )
 	if( tbar == NULL ) 
 		return 0 ;
 	size = get_astbar_label_width( tbar );
-	size += tbar->left_bevel + tbar->right_bevel ;
+	size += tbar->left_bevel+2 + tbar->right_bevel+2 ;
 	return size;
 }
 
@@ -304,7 +312,7 @@ LOCAL_DEBUG_CALLER_OUT( "resizing TBAR %p from %dx%d to %dx%d", tbar, tbar->widt
 	return changed ;
 }
 
-#define ASTBAR_HILITE	FULL_HILITE
+#define ASTBAR_HILITE	(BOTTOM_HILITE|RIGHT_HILITE)
 
 static void update_astbar_bevel_size( ASTBarData *tbar )
 {
@@ -455,8 +463,8 @@ Bool render_astbar( ASTBarData *tbar, ASCanvas *pc )
 	layers[0].clip_width = tbar->width-(tbar->left_bevel+tbar->right_bevel) ;
 	layers[0].clip_height = tbar->height-(tbar->top_bevel+tbar->bottom_bevel) ;
 	layers[1].im = label_im ;
-	layers[1].dst_x = tbar->left_bevel ;
-	layers[1].dst_y = tbar->right_bevel ;
+	layers[1].dst_x = tbar->left_bevel+2 ;
+	layers[1].dst_y = tbar->right_bevel+2 ;
 	layers[1].clip_width = label_im?label_im->width:tbar->width ;
 	layers[1].clip_height = label_im?label_im->height:tbar->height ;		
 

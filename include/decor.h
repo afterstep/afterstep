@@ -50,6 +50,8 @@ Pixmap get_canvas_canvas( ASCanvas *pc );
 Pixmap get_canvas_mask( ASCanvas *pc );
 Bool draw_canvas_image( ASCanvas *pc, ASImage *im, int x, int y );
 void update_canvas_display( ASCanvas *pc );
+void resize_canvas( ASCanvas *pc, unsigned int width, unsigned int height );
+
 
 
 ASTBarData* create_astbar();
