@@ -21,7 +21,7 @@ manner:
 In case you use asetroot to switch your root backgrounds 
 \fIWait\fP can be used as shown above.  This will insure that the 
 \fBasetroot\fP has set the root background before you start
-any furthur apps (like transparent aterms and Eterms).
+any further apps (like transparent aterms and Eterms).
 .sp
 or from within an afterstep menu file by 'asetroot':
 .nf
@@ -49,7 +49,7 @@ window manager.
 Depending on the options it is started with, \fBasetroot\fP can perform 
 different tasks:
 .sp
-Normal mode: \fBasetroot\fP will load root backgrounds for specifyed 
+Normal mode: \fBasetroot\fP will load root backgrounds for specified 
 range of desks into memory, it will set X property containing
 information  allowing usage of this backgrounds by other
 modules/applications, and will remain resident, tracking desk changes
@@ -57,7 +57,7 @@ and changing root background accordingly. It is recommended that you
 don't use any other apps to switch backgrounds in this mode for this
 particular range of desks.
 .sp
-Load-only mode: \fBasetroot\fP will load root backgrounds for specifyed
+Load-only mode: \fBasetroot\fP will load root backgrounds for specified
 range of desks into memory, it will set X property containing
 information allowing usage of this backgrounds by other
 modules/applications. It will then quit,  leaving all the required
@@ -105,7 +105,7 @@ Print version information and exit successfully.
 
 .IP "n [m]"
 Optional parameter that is limiting \fBasetroot\fP functionality to range 
-of desks. n - specifyes lower desk number, m - upper desk number.
+of desks. n - specifies lower desk number, m - upper desk number.
 
 .SH INITIALIZATION
 During initialization, \fIasetroot\fP will search for a configuration 
@@ -117,7 +117,7 @@ exists.  Else, /usr/local/share/afterstep/asetroot will be used.
 .SH CONFIGURATION OPTIONS
 
 .IP "*asetrootDeskBack  \fIdesk# ""background""\fP\"
-Specifyes what background to use for \fIdesk#\fP. \fI"background"\fP can
+Specifies what background to use for \fIdesk#\fP. \fI"background"\fP can
 be either image filename in doublequotes, or the name of background
 definition (see below).
 
@@ -131,7 +131,7 @@ follow:
 
 .RS
 .IP "Use \fItype  ""data""\fP"
-Specifyes what to use as the root background. Possible \fItype\fP values
+Specifies what to use as the root background. Possible \fItype\fP values
 are :
 .nf
 0: load image from the file. In that case \fI""data""\fP should specify
@@ -153,14 +153,14 @@ remaining options will perform trasformations on the source image,
 in this order: Cut->Tint->Scale->Align->Pad.
 
 .IP "Cut \fIgeometry\fP"
-will cut piece with specifyed \fIgeometry\fP from the source image.
+will cut piece with specified \fIgeometry\fP from the source image.
 
 .IP "Tint \fIcolor\fP"
 will tint image with \fIcolor\fP. Use shades of gray to obtain darkened
 image. Note: this only works on TrueColor displays.
 
 .IP "Scale [\fIgeometry\fP]"
-scale image to specifyed \fIgeometry\fP. If \fIgeometry\fP is omitted
+scale image to specified \fIgeometry\fP. If \fIgeometry\fP is omitted
 asetroot will scale it to the screen size.
 
 .IP "Align [\fItype\fP]"
@@ -175,7 +175,7 @@ Possible values are :
 This option works only in conjunction with the following Pad option.
 
 .IP "Pad [\fItype color\fP]"
-will pad image if it is smaller then screen with specifyed \fIcolor\fP.
+will pad image if it is smaller then screen with specified \fIcolor\fP.
 Possible \fItype\fP values are :
 .nf
 1: - pad horizontally and tile vertically 
