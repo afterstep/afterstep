@@ -766,26 +766,28 @@ MyFrame *add_myframe_from_def( ASHashTable *list, MyFrameDefinition *fd, ASFlagT
         frame->title_sbevel = fd->title_sbevel;
     if( get_flags( fd->set_title_attr, MYFRAME_TitleAlignSet ) )
         frame->title_align = fd->title_align;
-    if( get_flags( fd->set_title_attr, MYFRAME_TitleBackAlignSet ) )
-        frame->title_back_align = fd->title_back_align;
     if( get_flags( fd->set_title_attr, MYFRAME_TitleFCMSet ) )
         frame->title_fcm = fd->title_fcm;
     if( get_flags( fd->set_title_attr, MYFRAME_TitleUCMSet ) )
         frame->title_ucm = fd->title_ucm;
     if( get_flags( fd->set_title_attr, MYFRAME_TitleSCMSet ) )
         frame->title_scm = fd->title_scm;
+	for( i = 0 ; i < MYFRAME_TITLE_BACKS ; ++i )
+	{
+		if( get_flags( fd->set_title_attr, MYFRAME_TitleBackAlignSet_Start<<i ) )
+        	frame->title_backs_align[i] = fd->title_backs_align[i];
 
+    	if( fd->title_backs[i] )
+    	{
+        	set_string_value(&(frame->title_back_filenames[i]), mystrdup(fd->title_backs[i]), NULL, 0 );
+        	if( !get_flags( fd->set_title_attr, MYFRAME_TitleBackAlignSet_Start<<i ) )
+        	{
+            	frame->title_backs_align[i] = FIT_LABEL_SIZE ;
+            	set_flags( fd->set_title_attr, MYFRAME_TitleBackAlignSet_Start<<i );
+        	}
+    	}
+	}
     frame->set_title_attr |= fd->set_title_attr ;
-
-    if( fd->title_back )
-    {
-        set_string_value(&(frame->title_back_filename), mystrdup(fd->title_back), NULL, 0 );
-        if( !get_flags( fd->set_title_attr, MYFRAME_TitleBackAlignSet ) )
-        {
-            frame->title_back_align = FIT_LABEL_SIZE ;
-            set_flags( fd->set_title_attr, MYFRAME_TitleBackAlignSet );
-        }
-    }
 
     /* wee need to make sure that frame has such a
      * neccessary attributes as title align and title bevel : */

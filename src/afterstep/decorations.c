@@ -91,7 +91,7 @@ ASOrientation HorzOrientation =
     &NormalX, &NormalY, &NormalWidth, &NormalHeight,
     &NormalX, &NormalY, &NormalWidth, &NormalHeight,
     0,
-    {0, 1, 2, 3, 4},
+    {0, 1, 2, 3, 4, 5, 6},
     {0, 0, 0, 0, 0}
 };
 
@@ -115,7 +115,7 @@ ASOrientation VertOrientation =
     &NormalY, &NormalX, &NormalHeight, &NormalWidth,
     FLIP_VERTICAL,
     {0, 0, 0, 0, 0},
-    {4, 3, 2, 1, 0}
+    {6, 5, 4, 3, 2, 1, 0}
 };
 
 inline ASOrientation*
@@ -976,25 +976,37 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
                   		        Scr.Look.button_first_right,
                       		    Scr.Look.TitleButtonXOffset, Scr.Look.TitleButtonYOffset, Scr.Look.TitleButtonSpacing,
                           		od->left_btn_order );
+
+			/* really is only 2 iterations - but still  - toghter code this way */
+			for( i = MYFRAME_TITLE_BACK_LBTN ; i <= MYFRAME_TITLE_BACK_LSPACER ; ++i )
+				if( frame->title_backs[i] && frame->title_backs[i]->image )
+				{
+					add_astbar_icon( asw->tbar,
+                             	od->default_tbar_elem_col[ASO_TBAR_ELEM_LBTN+i],
+                             	od->default_tbar_elem_row[ASO_TBAR_ELEM_LBTN+i],
+                             	od->flip, frame->title_backs_align[i],
+                             	frame->title_backs[i]->image);
+      			}
 #if 1
-      		if( frame->title_back && frame->title_back->image )
+      		if( frame->title_backs[MYFRAME_TITLE_BACK_LBL] &&
+				frame->title_backs[MYFRAME_TITLE_BACK_LBL]->image )
       		{
-          	    int title_back_align = frame->title_back_align ;
+          	    int title_back_align = frame->title_backs_align[MYFRAME_TITLE_BACK_LBL] ;
           		LOCAL_DEBUG_OUT( "title_back_align = 0x%X", title_back_align );
           		if( get_flags( title_back_align, FIT_LABEL_SIZE ) )
           		{
               		/* left spacer  - if we have an icon to go under the label if align is right or center */
               		if( get_flags( frame->title_align, ALIGN_RIGHT ) )
                 	    add_astbar_spacer( asw->tbar,
-                                     od->default_tbar_elem_col[ASO_TBAR_ELEM_LSPACER],
-                                     od->default_tbar_elem_row[ASO_TBAR_ELEM_LSPACER],
+                                     od->default_tbar_elem_col[ASO_TBAR_ELEM_LTITLE_SPACER],
+                                     od->default_tbar_elem_row[ASO_TBAR_ELEM_LTITLE_SPACER],
                                      od->flip, PAD_LEFT, 1, 1);
 
               		/* right spacer - if we have an icon to go under the label and align is left or center */
               		if( get_flags( frame->title_align, ALIGN_LEFT ) )
                 	    add_astbar_spacer( asw->tbar,
-                                     od->default_tbar_elem_col[ASO_TBAR_ELEM_RSPACER],
-                                     od->default_tbar_elem_row[ASO_TBAR_ELEM_RSPACER],
+                                     od->default_tbar_elem_col[ASO_TBAR_ELEM_RTITLE_SPACER],
+                                     od->default_tbar_elem_row[ASO_TBAR_ELEM_RTITLE_SPACER],
                                      od->flip, PAD_RIGHT, 1, 1);
             		title_align = 0 ;
           		}
@@ -1008,9 +1020,10 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
                              od->default_tbar_elem_col[ASO_TBAR_ELEM_LBL],
                              od->default_tbar_elem_row[ASO_TBAR_ELEM_LBL],
                              od->flip, title_back_align,
-                             frame->title_back->image);
+                             frame->title_backs[MYFRAME_TITLE_BACK_LBL]->image);
       		}
 #endif
+
 	        /* label ( goes on top of above pixmap ) */
   		    add_astbar_label( asw->tbar,
                           od->default_tbar_elem_col[ASO_TBAR_ELEM_LBL],
@@ -1032,7 +1045,19 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
 		}
 		if( tbar_created )
 		{
-	        /* right buttons : */
+			/* really is only 2 iterations - but still  - toghter code this way */
+			for( i = MYFRAME_TITLE_BACK_RSPACER ; i <= MYFRAME_TITLE_BACK_RBTN ; ++i )
+				if( frame->title_backs[i] && frame->title_backs[i]->image )
+				{
+					int idx = ASO_TBAR_ELEM_RSPACER-MYFRAME_TITLE_BACK_RSPACER+i ;
+					add_astbar_icon( asw->tbar,
+                             	od->default_tbar_elem_col[idx],
+                             	od->default_tbar_elem_row[idx],
+                             	od->flip, frame->title_backs_align[i],
+                             	frame->title_backs[i]->image);
+      			}
+
+			/* right buttons : */
   		    add_astbar_btnblock(asw->tbar,
       		                    od->default_tbar_elem_col[ASO_TBAR_ELEM_RBTN],
           		                od->default_tbar_elem_row[ASO_TBAR_ELEM_RBTN],

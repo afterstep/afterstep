@@ -139,11 +139,6 @@ TermDef       MyFrameTerms[] = {
     {TF_NO_MYNAME_PREPENDING, "FrameFStyle", 11,        TT_QUOTED_TEXT,  MYFRAME_FrameFocusedStyle_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "FrameStickyStyle", 16,   TT_QUOTED_TEXT,  MYFRAME_FrameStickyStyle_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "FrameSStyle", 11,        TT_QUOTED_TEXT,  MYFRAME_FrameStickyStyle_ID, NULL},
-    {TF_NO_MYNAME_PREPENDING, "LeftBtnBackground", 17,  TT_FILENAME,     MYFRAME_LeftBtnBackground_ID, NULL},
-    {TF_NO_MYNAME_PREPENDING, "LeftSpacerBackground", 20,  TT_FILENAME,  MYFRAME_LeftSpacerBackground_ID, NULL},
-    {TF_NO_MYNAME_PREPENDING, "TitleBackground", 15,    TT_FILENAME,     MYFRAME_TitleBackground_ID, NULL},
-    {TF_NO_MYNAME_PREPENDING, "RightSpacerBackground", 21,  TT_FILENAME, MYFRAME_RightSpacerBackground_ID, NULL},
-    {TF_NO_MYNAME_PREPENDING, "RightBtnBackground", 18,  TT_FILENAME,    MYFRAME_RightBtnBackground_ID, NULL},
     {TF_NO_MYNAME_PREPENDING|TF_DIRECTION_INDEXED, "SideSize", 8,        TT_GEOMETRY,MYFRAME_SideSize_ID, NULL},
     {TF_NO_MYNAME_PREPENDING|TF_DIRECTION_INDEXED|TF_NAMED_SUBCONFIG, "SideAlign", 9,       TT_FLAG,    MYFRAME_SideAlign_ID, &AlignSyntax},
     {TF_NO_MYNAME_PREPENDING|TF_DIRECTION_INDEXED|TF_NAMED_SUBCONFIG, "SideBevel", 9,       TT_FLAG,    MYFRAME_SideBevel_ID, &BevelSyntax},
@@ -170,11 +165,6 @@ TermDef       MyFrameTerms[] = {
     {TF_NO_MYNAME_PREPENDING, "TitleUnfocusedBevel", 19, TT_FLAG,         MYFRAME_TitleUBevel_ID, &BevelSyntax},
     {TF_NO_MYNAME_PREPENDING, "TitleStickyBevel", 16,    TT_FLAG,         MYFRAME_TitleSBevel_ID, &BevelSyntax},
     {TF_NO_MYNAME_PREPENDING, "TitleAlign", 10,          TT_FLAG,         MYFRAME_TitleAlign_ID, &AlignSyntax},
-    {TF_NO_MYNAME_PREPENDING, "LeftBtnBackAlign", 16,       TT_FILENAME,     MYFRAME_LeftBtnBackAlign_ID, &AlignSyntax},
-    {TF_NO_MYNAME_PREPENDING, "LeftSpacerBackAlign", 19,    TT_FILENAME,     MYFRAME_LeftSpacerBackAlign_ID, &AlignSyntax},
-	{TF_NO_MYNAME_PREPENDING, "TitleBackgroundAlign", 20,   TT_FLAG,         MYFRAME_TitleBackgroundAlign_ID, &AlignSyntax},
-    {TF_NO_MYNAME_PREPENDING, "RightSpacerBackAlign", 20,   TT_FILENAME,     MYFRAME_RightSpacerBackAlign_ID, &AlignSyntax},
-    {TF_NO_MYNAME_PREPENDING, "RightBtnBackAlign", 17,      TT_FILENAME,     MYFRAME_RightBtnBackAlign_ID, &AlignSyntax},
     {TF_NO_MYNAME_PREPENDING, "TitleCompositionMethod", 22, TT_UINTEGER,    MYFRAME_TitleCM_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "TitleFCompositionMethod", 22, TT_UINTEGER,    MYFRAME_TitleFCM_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "TitleUCompositionMethod", 22, TT_UINTEGER,    MYFRAME_TitleUCM_ID, NULL},
@@ -184,6 +174,16 @@ TermDef       MyFrameTerms[] = {
     {TF_NO_MYNAME_PREPENDING, "TitleStickyCompositionMethod", 27, TT_UINTEGER,    MYFRAME_TitleSCM_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "Inherit", 7, TT_QUOTED_TEXT,              MYFRAME_Inherit_ID, NULL},
     {TF_NO_MYNAME_PREPENDING | TF_SYNTAX_TERMINATOR, "~MyFrame", 8, TT_FLAG, MYFRAME_DONE_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "LeftBtnBackground", 17,  TT_FILENAME,     MYFRAME_LeftBtnBackground_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "LeftSpacerBackground", 20,  TT_FILENAME,  MYFRAME_LeftSpacerBackground_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "TitleBackground", 15,    TT_FILENAME,     MYFRAME_TitleBackground_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "RightSpacerBackground", 21,  TT_FILENAME, MYFRAME_RightSpacerBackground_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "RightBtnBackground", 18,  TT_FILENAME,    MYFRAME_RightBtnBackground_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "LeftBtnBackAlign", 16,       TT_FILENAME,     MYFRAME_LeftBtnBackAlign_ID, &AlignSyntax},
+    {TF_NO_MYNAME_PREPENDING, "LeftSpacerBackAlign", 19,    TT_FILENAME,     MYFRAME_LeftSpacerBackAlign_ID, &AlignSyntax},
+	{TF_NO_MYNAME_PREPENDING, "TitleBackgroundAlign", 20,   TT_FLAG,         MYFRAME_TitleBackgroundAlign_ID, &AlignSyntax},
+    {TF_NO_MYNAME_PREPENDING, "RightSpacerBackAlign", 20,   TT_FILENAME,     MYFRAME_RightSpacerBackAlign_ID, &AlignSyntax},
+    {TF_NO_MYNAME_PREPENDING, "RightBtnBackAlign", 17,      TT_FILENAME,     MYFRAME_RightBtnBackAlign_ID, &AlignSyntax},
 	{0, NULL, 0, 0, 0}
 };
 
@@ -402,8 +402,11 @@ DestroyMyFrameDefinitions (MyFrameDefinition ** list)
             if( fd->frame_styles[i] )
                 free(fd->frame_styles[i]);
         }
-        if( fd->title_back )
-            free( fd->title_back );
+		for( i = 0 ; i < MYFRAME_TITLE_BACKS ; ++i )
+		{
+        	if( fd->title_backs[i] )
+            	free( fd->title_backs[i] );
+		}
         if( fd->inheritance_list )
         {
             i = fd->inheritance_num-1 ;
@@ -437,8 +440,11 @@ PrintMyFrameDefinitions (MyFrameDefinition * list, int index)
         for( i = 0 ; i < BACK_STYLES ; ++i )
             if( list->frame_styles[i])
                 fprintf (stderr, "MyFrame[%d].FrameStyle[%d] = \"%s\";\n", index, i, list->frame_styles[i]);
-        if( list->title_back )
-            fprintf (stderr, "MyFrame[%d].TitleBack = \"%s\";\n", index, list->title_back);
+		for( i = 0 ; i < MYFRAME_TITLE_BACKS ; ++i )
+		{
+	        if( list->title_backs[i] )
+    	        fprintf (stderr, "MyFrame[%d].TitleBack[%d] = \"%s\";\n", index, i, list->title_backs[i]);
+		}
         fprintf (stderr, "MyFrame[%d].set_part_size = 0x%lX;\n", index, list->set_part_size);
         fprintf (stderr, "MyFrame[%d].set_part_bevel = 0x%lX;\n", index, list->set_part_bevel);
         fprintf (stderr, "MyFrame[%d].set_part_align = 0x%lX;\n", index, list->set_part_align);
@@ -456,7 +462,10 @@ PrintMyFrameDefinitions (MyFrameDefinition * list, int index)
         fprintf (stderr, "MyFrame[%d].title_ubevel = 0x%lX;\n", index, list->title_ubevel);
         fprintf (stderr, "MyFrame[%d].title_sbevel = 0x%lX;\n", index, list->title_sbevel);
         fprintf (stderr, "MyFrame[%d].title_align = 0x%lX;\n", index, list->title_align);
-        fprintf (stderr, "MyFrame[%d].title_back_align = 0x%lX;\n", index, list->title_back_align);
+    	for( i = 0 ; i < MYFRAME_TITLE_BACKS ; ++i )
+		{
+	       fprintf (stderr, "MyFrame[%d].title_backs_align[%d] = 0x%lX;\n", index, i, list->title_backs_align[i]);
+		}
         fprintf (stderr, "MyFrame[%d].title_fcm = %d;\n", index, list->title_fcm);
         fprintf (stderr, "MyFrame[%d].title_ucm = %d;\n", index, list->title_ucm);
         fprintf (stderr, "MyFrame[%d].title_scm = %d;\n", index, list->title_scm);
@@ -568,6 +577,16 @@ ProcessMyFrameOptions (FreeStorageElem * options, MyFrameDefinition ** tail)
             {
                 if( options->term->id == MYFRAME_DONE_ID )
                     break;                     /* for loop */
+				if( options->term->id >= MYFRAME_TitleBackgroundAlign_ID_START )
+				{
+					int index = options->term->id - MYFRAME_TitleBackgroundAlign_ID_START ;
+					if( index < MYFRAME_TITLE_BACKS )
+					{
+						fd->title_backs_align[index] = ParseAlignOptions( options->sub );
+                        set_flags( fd->set_title_attr, MYFRAME_TitleBackAlignSet_Start<<index );
+						continue;
+					}
+				}
                 switch( options->term->id )
                 {
                     case MYFRAME_TitleBevel_ID :
@@ -591,10 +610,6 @@ ProcessMyFrameOptions (FreeStorageElem * options, MyFrameDefinition ** tail)
                     case MYFRAME_TitleAlign_ID :
                         fd->title_align = ParseAlignOptions( options->sub );
                         set_flags( fd->set_title_attr, MYFRAME_TitleAlignSet );
-                        break;
-                    case MYFRAME_TitleBackgroundAlign_ID :
-                        fd->title_back_align = ParseAlignOptions( options->sub );
-                        set_flags( fd->set_title_attr, MYFRAME_TitleBackAlignSet );
                         break;
                     default:
                         if (!ReadConfigItem (&item, options))
@@ -705,9 +720,6 @@ ProcessMyFrameOptions (FreeStorageElem * options, MyFrameDefinition ** tail)
                 case MYFRAME_FrameStickyStyle_ID :
                     set_string_value (&(fd->frame_styles[BACK_STICKY]), item.data.string, NULL, 0);
                     break;
-                case MYFRAME_TitleBackground_ID :
-                    set_string_value (&(fd->title_back), item.data.string, NULL, 0);
-                    break;
                 case MYFRAME_SideSize_ID :
                 case MYFRAME_CornerSize_ID :
                     if( get_flags( item.data.geometry.flags, WidthValue) )
@@ -747,8 +759,17 @@ ProcessMyFrameOptions (FreeStorageElem * options, MyFrameDefinition ** tail)
                     }
                     break;
                 default:
-                    item.ok_to_free = 1;
-                    show_warning( "Unexpected MyFrame definition keyword \"%s\" . Ignoring.", options->term->keyword );
+					{
+						int index = options->term->id - MYFRAME_TitleBackground_ID_START ;
+						if( index >= 0 && index < MYFRAME_TITLE_BACKS )
+						{
+		                    set_string_value (&(fd->title_backs[index]), item.data.string, NULL, 0);
+						}else
+						{
+							item.ok_to_free = 1;
+        		            show_warning( "Unexpected MyFrame definition keyword \"%s\" . Ignoring.", options->term->keyword );
+						}
+					}
             }
         }
     }

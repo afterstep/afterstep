@@ -261,12 +261,14 @@ typedef struct ASOrientation
     int *out_x, *out_y;
     unsigned int *out_width, *out_height;
     int flip;
-#define ASO_TBAR_ELEM_LBTN      0
-#define ASO_TBAR_ELEM_LSPACER   1
-#define ASO_TBAR_ELEM_LBL       2
-#define ASO_TBAR_ELEM_RSPACER   3
-#define ASO_TBAR_ELEM_RBTN      4
-#define ASO_TBAR_ELEM_NUM       5
+#define ASO_TBAR_ELEM_LBTN      	   	0
+#define ASO_TBAR_ELEM_LSPACER		   	1
+#define ASO_TBAR_ELEM_LTITLE_SPACER    	2
+#define ASO_TBAR_ELEM_LBL       	   	3
+#define ASO_TBAR_ELEM_RTITLE_SPACER	 	4
+#define ASO_TBAR_ELEM_RSPACER			5
+#define ASO_TBAR_ELEM_RBTN      		6
+#define ASO_TBAR_ELEM_NUM       		7
     unsigned int default_tbar_elem_col[ASO_TBAR_ELEM_NUM];
     unsigned int default_tbar_elem_row[ASO_TBAR_ELEM_NUM];
     ASFlagType left_spacer_needed_align ;

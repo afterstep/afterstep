@@ -381,8 +381,13 @@ inherit_myframe( MyFrame *frame, MyFrame *ancestor )
             if( ancestor->frame_style_names )
                 set_string_value( &(frame->frame_style_names[i]), mystrdup(ancestor->frame_style_names[i]), NULL, 0 );
         }
-        if( ancestor->title_back_filename )
-            set_string_value( &(frame->title_back_filename), mystrdup(ancestor->title_back_filename), NULL, 0 );
+		for( i = 0 ; i < MYFRAME_TITLE_BACKS ; ++i )
+		{
+        	if( ancestor->title_back_filenames[i] )
+            	set_string_value( &(frame->title_back_filenames[i]), mystrdup(ancestor->title_back_filenames[i]), NULL, 0 );
+	        if( get_flags( ancestor->set_title_attr, MYFRAME_TitleBackAlignSet_Start<<i ) )
+    	        frame->title_backs_align[i] = ancestor->title_backs_align[i];
+		}
 
         if( get_flags( ancestor->set_title_attr, MYFRAME_TitleFBevelSet ) )
             frame->title_fbevel = ancestor->title_fbevel;
@@ -393,8 +398,6 @@ inherit_myframe( MyFrame *frame, MyFrame *ancestor )
 
         if( get_flags( ancestor->set_title_attr, MYFRAME_TitleAlignSet ) )
             frame->title_align = ancestor->title_align;
-        if( get_flags( ancestor->set_title_attr, MYFRAME_TitleBackAlignSet ) )
-            frame->title_back_align = ancestor->title_back_align;
 
         if( get_flags( ancestor->set_title_attr, MYFRAME_TitleFCMSet ) )
             frame->title_fcm = ancestor->title_fcm;
@@ -439,18 +442,21 @@ myframe_load ( MyFrame * frame, ASImageManager *imman )
 #endif
 
         }
-    if( frame->title_back_filename )
-    {
-        frame->title_back = safecalloc( 1, sizeof(icon_t));
-        if( !load_icon (frame->title_back, frame->title_back_filename, imman) )
-        {
-            free( frame->title_back );
-            frame->title_back = NULL;
-        }
+	for( i = 0 ; i < MYFRAME_TITLE_BACKS ; ++i )
+	{
+    	if( frame->title_back_filenames[i] )
+    	{
+        	frame->title_backs[i] = safecalloc( 1, sizeof(icon_t));
+        	if( !load_icon (frame->title_backs[i], frame->title_back_filenames[i], imman) )
+        	{
+            	free( frame->title_backs[i] );
+            	frame->title_backs[i] = NULL;
+        	}
 #ifdef LOCAL_DEBUG
-    LOCAL_DEBUG_OUT( "syncing %s","");
-    ASSync(False);
+	    	LOCAL_DEBUG_OUT( "syncing %s","");
+    		ASSync(False);
 #endif
+		}
     }
 }
 
@@ -460,8 +466,6 @@ filename2myframe_part (MyFrame *frame, int part, char *filename)
     char **dst = NULL ;
     if (filename && frame && part>= 0 && part < FRAME_PARTS)
         dst = &(frame->part_filenames[part]);
-    else
-        dst = &(frame->title_back_filename);
     if( dst )
     {
         if( *dst )
@@ -522,11 +526,13 @@ destroy_myframe( MyFrame **pframe )
             if( pf->part_filenames[i] )
                 free( pf->part_filenames[i] );
         }
-
-        if( pf->title_back )
-            destroy_icon( &(pf->title_back) );
-        if( pf->title_back_filename )
-            free( pf->title_back_filename );
+		for( i = 0 ; i < MYFRAME_TITLE_BACKS ; ++i )
+		{
+        	if( pf->title_backs[i] )
+            	destroy_icon( &(pf->title_backs[i]) );
+			if( pf->title_back_filenames[i] )
+            	free( pf->title_back_filenames[i] );
+		}
 
         for( i = 0 ; i < BACK_STYLES ; ++i )
         {

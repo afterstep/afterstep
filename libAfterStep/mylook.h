@@ -134,6 +134,13 @@ typedef struct MyDesktopConfig
 #define FRAME_PARTS_MASK    (FR_N_Mask|FR_E_Mask|FR_S_Mask|FR_W_Mask| \
                              FR_NE_Mask|FR_NW_Mask|FR_SE_Mask|FR_SW_Mask)
 
+#define MYFRAME_TITLE_BACK_LBTN		0
+#define MYFRAME_TITLE_BACK_LSPACER	1
+#define MYFRAME_TITLE_BACK_LBL		2
+#define MYFRAME_TITLE_BACK_RSPACER	3
+#define MYFRAME_TITLE_BACK_RBTN		4
+#define MYFRAME_TITLE_BACKS			5
+
 
 typedef struct MyFrame
 {
@@ -145,8 +152,8 @@ typedef struct MyFrame
     char             *part_filenames[FRAME_PARTS];
     char             *title_style_names[BACK_STYLES];
     char             *frame_style_names[BACK_STYLES];
-    char             *title_back_filename;
-    struct icon_t    *title_back;
+    char             *title_back_filenames[MYFRAME_TITLE_BACKS];
+    struct icon_t    *title_backs[MYFRAME_TITLE_BACKS];
     ASFlagType   set_part_size ;
     unsigned int part_width[FRAME_PARTS];
     unsigned int part_length[FRAME_PARTS];
@@ -174,14 +181,22 @@ typedef struct MyFrame
 #define MYFRAME_TitleSBevelSet      (0x01<<3)
 #define MYFRAME_TitleBevelSet       (MYFRAME_TitleFBevelSet|MYFRAME_TitleUBevelSet|MYFRAME_TitleSBevelSet)
 #define MYFRAME_TitleAlignSet       (0x01<<4)
-#define MYFRAME_TitleBackAlignSet   (0x01<<5)
-#define MYFRAME_TitleFCMSet         (0x01<<6)
-#define MYFRAME_TitleUCMSet         (0x01<<7)
-#define MYFRAME_TitleSCMSet         (0x01<<8)
+#define MYFRAME_TitleFCMSet         (0x01<<5)
+#define MYFRAME_TitleUCMSet         (0x01<<6)
+#define MYFRAME_TitleSCMSet         (0x01<<7)
 #define MYFRAME_TitleCMSet          (MYFRAME_TitleFCMSet|MYFRAME_TitleUCMSet|MYFRAME_TitleSCMSet)
+
+#define MYFRAME_TitleBackAlignSet_Start	(0x01<<8)
+#define MYFRAME_TitleBackAlignSet_LBtn  	(MYFRAME_TitleBackAlignSet_Start<<MYFRAME_TITLE_BACK_LBTN)
+#define MYFRAME_TitleBackAlignSet_LSpacer  	(MYFRAME_TitleBackAlignSet_Start<<MYFRAME_TITLE_BACK_LSPACER)
+#define MYFRAME_TitleBackAlignSet_Lbl  		(MYFRAME_TitleBackAlignSet_Start<<MYFRAME_TITLE_BACK_LBL)
+#define MYFRAME_TitleBackAlignSet_RSpacer  	(MYFRAME_TitleBackAlignSet_Start<<MYFRAME_TITLE_BACK_RSPACER)
+#define MYFRAME_TitleBackAlignSet_RBtn  	(MYFRAME_TitleBackAlignSet_Start<<MYFRAME_TITLE_BACK_RBTN)
+#define MYFRAME_TitleBackAlignSet_End	(MYFRAME_TitleBackAlignSet_Start<<MYFRAME_TITLE_BACKS)
+
     ASFlagType   title_fbevel, title_ubevel, title_sbevel;
-    ASFlagType   title_align, title_back_align;
     unsigned int title_fcm, title_ucm, title_scm ;
+    ASFlagType   title_align, title_backs_align[MYFRAME_TITLE_BACKS];
 
 #define MYFRAME_HOR_MASK    ((0x01<<FR_N)|(0x01<<FR_S))
 #define MYFRAME_VERT_MASK   ((0x01<<FR_W)|(0x01<<FR_E))
