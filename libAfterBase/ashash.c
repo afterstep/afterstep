@@ -267,6 +267,9 @@ sort_hash_items( ASHashTable *hash, ASHashableValue *values, void **data, unsign
       unsigned long count_in = 0;
 	
         if( hash->buckets_used == 0 || hash->items_num == 0 ) return 0;
+	
+	if( max_items == 0 ) max_items = hash->items_num ;
+	
         buckets = safemalloc( hash->buckets_used*sizeof(ASHashBucket) );	    
 	for( i = 0 ; i < hash->size ; i++ )    
 	    if( hash->buckets[i] ) buckets[k++] = hash->buckets[i];
@@ -291,6 +294,29 @@ sort_hash_items( ASHashTable *hash, ASHashableValue *values, void **data, unsign
 	return count_in;
     }
     return 0;
+}
+
+unsigned long
+list_hash_items( ASHashTable *hash, ASHashableValue *values, void **data, unsigned long max_items )
+{
+  unsigned long count_in = 0;
+    if( hash )
+        if( hash->buckets_used > 0 && hash->items_num > 0 )
+	{
+	  register ASHashItem *item ;
+	  ASHashKey i ;
+	    
+	    if( max_items == 0 ) max_items = hash->items_num ;
+	    
+	    for( i = 0 ; i < hash->size ; i++ )
+    		for( item = hash->buckets[i] ; item != NULL ; item = item->next )
+		{
+		    if( values ) *(values++) = item->value ;
+		    if( data )   *(data++) = item->data ;
+		    if( ++count_in >= max_items ) return count_in ;
+		}
+	}
+    return count_in;
 }
 
 /***** Iterator functionality *****/
