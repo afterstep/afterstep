@@ -851,13 +851,14 @@ calculate_desk_height( ASPagerDesk *d )
 void place_desk( ASPagerDesk *d, int x, int y, unsigned int width, unsigned int height )
 {
     int           win_x = 0, win_y = 0;
-    get_canvas_position( d->desk_canvas, NULL, &win_x, &win_y );
+	unsigned int bw ;
+    get_canvas_position( d->desk_canvas, NULL, &win_x, &win_y, &bw );
 
     if( d->desk_canvas->width == width && d->desk_canvas->height == height && win_x == x && win_y == y )
     {
         on_desk_moveresize( d );
     }else
-        moveresize_canvas( d->desk_canvas, x, y, width, height );
+        moveresize_canvas( d->desk_canvas, x-bw, y-bw, width, height );
 }
 
 inline ASPagerDesk *
@@ -1367,7 +1368,8 @@ place_client( ASPagerDesk *d, ASWindowData *wd, Bool force_redraw, Bool dont_upd
         if( wd->canvas )
         {
             ASCanvas *canvas = wd->canvas ;
-            get_canvas_position( canvas, NULL, &curr_x, &curr_y );
+			unsigned int bw = 0 ;
+            get_canvas_position( canvas, NULL, &curr_x, &curr_y, &bw );
             if( curr_x == x && curr_y == y && width == canvas->width && height == canvas->height  )
             {
                 if( force_redraw )
@@ -1376,7 +1378,7 @@ place_client( ASPagerDesk *d, ASWindowData *wd, Bool force_redraw, Bool dont_upd
                     update_canvas_display( canvas );
                 }
             }else
-                moveresize_canvas( canvas, x, y, width, height );
+                moveresize_canvas( canvas, x - bw, y - bw, width, height );
 
             LOCAL_DEBUG_OUT( "+PLACE->canvas(%p)->geom(%dx%d%+d%+d)", wd->canvas, width, height, x, y );
         }

@@ -263,7 +263,7 @@ invalidate_canvas_config( ASCanvas *pc )
 }
 
 Bool
-get_canvas_position( ASCanvas *pc, Window *pparent, int *px, int *py )
+get_canvas_position( ASCanvas *pc, Window *pparent, int *px, int *py, unsigned int *pbw )
 {
     Window wdumm;
     int dumm;
@@ -275,8 +275,10 @@ get_canvas_position( ASCanvas *pc, Window *pparent, int *px, int *py )
         px = &dumm;
     if( py == NULL )
         py = &dumm;
+    if( pbw == NULL )
+        pbw = &udumm;
     if( pc )
-        if( XGetGeometry( dpy, pc->w, pparent, px, py, &udumm, &udumm, &udumm, &udumm ) )
+        if( XGetGeometry( dpy, pc->w, pparent, px, py, &udumm, &udumm, pbw, &udumm ) )
             return True;
     return False;
 }
@@ -749,18 +751,23 @@ quietly_reparent_canvas( ASCanvas *pc, Window dst, long event_mask, Bool use_roo
     if( pc && dst != None )
     {
         int x = 0, y = 0 ;
+		unsigned int bw = 0;
         Window parent = None ;
 
         if( use_root_pos )
         {
             x = pc->root_x ;
             y = pc->root_y ;
+            get_canvas_position( pc, NULL, NULL, NULL, &bw );
         }else
-            get_canvas_position( pc, &parent, &x, &y );
-
+            get_canvas_position( pc, &parent, &x, &y, &bw );
+		
+		x -= (int)bw ;
+		y -= (int)bw ;
+		
         if( parent != dst )
         {
-            LOCAL_DEBUG_OUT( "XReparentWindow( %lX, %lX, %+d%+d )", pc->w, dst, x, y );
+            LOCAL_DEBUG_OUT( "XReparentWindow( %lX, %lX, %+d%+d ), bw = %d", pc->w, dst, x, y, bw );
             quietly_reparent_window( pc->w, dst, x, y, event_mask );
         }
     }
