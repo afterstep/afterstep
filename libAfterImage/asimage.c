@@ -164,6 +164,8 @@ prepare_scanline( unsigned int width, unsigned int shift, ASScanline *reusable_m
 
 	if( sl == NULL )
 		sl = safecalloc( 1, sizeof( ASScanline ) );
+	else
+		memset( sl, 0x00, sizeof(ASScanline));
 
 	sl->width 	= width ;
 	sl->shift   = shift ;
@@ -285,7 +287,8 @@ start_image_output( ScreenInfo *scr, ASImage *im, XImage *xim, Bool to_xim, int 
 		imout->height = xim->height;
 		imout->bpl 	  = xim->bytes_per_line;
 		imout->xim_line = xim->data;
-	}
+	}else
+		imout->height = im->height;
 
 	prepare_scanline( im->width, 0, &(imout->buffer[0]), scr->BGR_mode);
 	prepare_scanline( im->width, 0, &(imout->buffer[1]), scr->BGR_mode);
@@ -334,6 +337,29 @@ void set_image_output_back_color( ASImageOutput *imout, ARGB32 back_color )
 		imout->chan_fill[IC_ALPHA] = ARGB32_ALPHA8(back_color);
 	}
 }
+
+void toggle_image_output_direction( ASImageOutput *imout )
+{
+	if( imout )
+	{
+		if( imout->bottom_to_top )
+		{
+			if( imout->next_line >= imout->height-1 )
+			{
+				imout->next_line = 0 ;
+				if( imout->to_xim )
+					imout->xim_line = imout->xim->data;
+			}
+		}else if( imout->next_line <= 0 )
+		{
+		 	imout->next_line = imout->height-1 ;
+			if( imout->to_xim )
+				imout->xim_line = imout->xim->data+(imout->next_line*imout->bpl);
+		}
+		imout->bottom_to_top = !imout->bottom_to_top ;
+	}
+}
+
 
 void
 stop_image_output( ASImageOutput **pimout )
@@ -769,7 +795,7 @@ asimage_decode_line (ASImage * im, ColorPart color, CARD32 * to_buf, unsigned in
 {
 	register CARD8  *src = im->channels[color][y];
 	/* that thing below is supposedly highly optimized : */
-LOCAL_DEBUG_CALLER_OUT( "im->width = %d, color = %d, y = %d, skip = %d, out_width = %d, src = %p, color_ptr = %p, color_ptr[0] = %p", im->width, color, y, skip, out_width, src, color_ptr, color_ptr[0] );
+LOCAL_DEBUG_CALLER_OUT( "im->width = %d, color = %d, y = %d, skip = %d, out_width = %d, src = %p", im->width, color, y, skip, out_width, src );
 	if( src )
 	{
 		register int i = 0;
@@ -924,7 +950,6 @@ enlarge_component12( register CARD32 *src, register CARD32 *dst, int *scales, in
 {/* expected len >= 2  */
 	register int i = 0, k = 0;
 	register int c1 = src[0], c4;
-LOCAL_DEBUG_OUT( "scaling from %d", len );
 	--len; --len ;
 	while( i < len )
 	{
@@ -959,7 +984,6 @@ enlarge_component23( register CARD32 *src, register CARD32 *dst, int *scales, in
 {/* expected len >= 2  */
 	register int i = 0, k = 0;
 	register int c1 = src[0], c4 = src[1];
-LOCAL_DEBUG_OUT( "scaling from %d", len );
 	if( scales[0] == 1 )
 	{/* special processing for first element - it can be 1 - others can only be 2 or 3 */
 		dst[k] = INTERPOLATE_COLOR1(src[0]) ;
@@ -1022,7 +1046,6 @@ enlarge_component( register CARD32 *src, register CARD32 *dst, int *scales, int 
   * as much as possible */
 	int i = 0;
 	int c1 = src[0];
-LOCAL_DEBUG_OUT( "len = %d", len );
 	--len ;
 	do
 	{
@@ -1062,7 +1085,6 @@ shrink_component( register CARD32 *src, register CARD32 *dst, int *scales, int l
 {/* we skip all checks as it is static function and we want to optimize it
   * as much as possible */
 	register int i = -1, k = -1;
-LOCAL_DEBUG_OUT( "len = %d", len );
 	while( ++k < len )
 	{
 		register int reps = scales[k] ;
@@ -1129,6 +1151,17 @@ copy_component( register CARD32 *src, register CARD32 *dst, int *unused, int len
 
 #endif
 
+}
+
+static inline void
+reverse_component( register CARD32 *src, register CARD32 *dst, int *unused, int len )
+{
+	register int i = 0;
+	src += len-1 ;
+	do
+	{
+		dst[i] = src[-i];
+	}while(++i < len );
 }
 
 static inline void
@@ -1478,32 +1511,29 @@ do{	asimage_add_line((im), IC_RED,   (src).red,   (y)); \
 	if( get_flags((src).flags,SCL_DO_ALPHA))asimage_add_line((im), IC_ALPHA, (src).alpha, (y)); \
   }while(0)
 
-#define SCANLINE_FUNC_slow(f,src,dst,scales,len) \
-do{	f((src).red,  (dst).red,  (scales),(len));		\
-	f((src).green,(dst).green,(scales),(len)); 		\
-	f((src).blue, (dst).blue, (scales),(len));   	\
-	if(get_flags((src).flags,SCL_DO_ALPHA)) f((src).alpha,(dst).alpha,(scales),(len)); \
-  }while(0)
-
 #define SCANLINE_FUNC(f,src,dst,scales,len) \
-do{	f((src).red,  (dst).red,  (scales),(len+(len&0x01))*3);		\
-	if(get_flags((src).flags,SCL_DO_ALPHA)) f((src).alpha,(dst).alpha,(scales),(len)); \
+do{	if( (src).offset_x > 0 || (dst).offset_x > 0 ) \
+		LOCAL_DEBUG_OUT( "(src).offset_x = %d. (dst).offset_x = %d", (src).offset_x, (dst).offset_x ); \
+	f((src).red+(src).offset_x,  (dst).red+(dst).offset_x,  (scales),(len));		\
+	f((src).green+(src).offset_x,(dst).green+(dst).offset_x,(scales),(len)); 		\
+	f((src).blue+(src).offset_x, (dst).blue+(dst).offset_x, (scales),(len));   	\
+	if(get_flags((src).flags,SCL_DO_ALPHA)) f((src).alpha+(src).offset_x,(dst).alpha+(dst).offset_x,(scales),(len)); \
   }while(0)
 
 #define CHOOSE_SCANLINE_FUNC(r,src,dst,scales,len) \
  switch(r)                                              							\
- {  case 0:	SCANLINE_FUNC_slow(shrink_component11,(src),(dst),(scales),(len));break;   	\
-	case 1: SCANLINE_FUNC_slow(shrink_component, (src),(dst),(scales),(len));	break;  \
-	case 2:	SCANLINE_FUNC_slow(enlarge_component12,(src),(dst),(scales),(len));break ; 	\
-	case 3:	SCANLINE_FUNC_slow(enlarge_component23,(src),(dst),(scales),(len));break;  	\
-	default:SCANLINE_FUNC_slow(enlarge_component,  (src),(dst),(scales),(len));        	\
+ {  case 0:	SCANLINE_FUNC(shrink_component11,(src),(dst),(scales),(len));break;   	\
+	case 1: SCANLINE_FUNC(shrink_component, (src),(dst),(scales),(len));	break;  \
+	case 2:	SCANLINE_FUNC(enlarge_component12,(src),(dst),(scales),(len));break ; 	\
+	case 3:	SCANLINE_FUNC(enlarge_component23,(src),(dst),(scales),(len));break;  	\
+	default:SCANLINE_FUNC(enlarge_component,  (src),(dst),(scales),(len));        	\
  }
 
 #define SCANLINE_MOD(f,src,p,len) \
-do{	f((src).red,(p),(len));		\
-	f((src).green,(p),(len));		\
-	f((src).blue,(p),(len));		\
-	if(get_flags((src).flags,SCL_DO_ALPHA)) f((src).alpha,(p),(len));\
+do{	f((src).red+(src).offset_x,(p),(len));		\
+	f((src).green+(src).offset_x,(p),(len));		\
+	f((src).blue+(src).offset_x,(p),(len));		\
+	if(get_flags((src).flags,SCL_DO_ALPHA)) f((src).alpha+(src).offset_x,(p),(len));\
   }while(0)
 
 #define SCANLINE_COMBINE_slow(f,c1,c2,c3,c4,o1,o2,p,len)						   \
@@ -1615,7 +1645,7 @@ decode_image_scanline( ASImageDecoder *imdec )
 void
 encode_image_scanline_xim( ASImageOutput *imout, ASScanline *to_store )
 {
-	if( imout->next_line < imout->xim->height )
+	if( imout->next_line < imout->xim->height && imout->next_line >= 0 )
 	{
 		if( !get_flags(to_store->flags, SCL_DO_RED) )
 			set_component( to_store->red  , ARGB32_RED8(to_store->back_color), 0, to_store->width );
@@ -1628,18 +1658,32 @@ encode_image_scanline_xim( ASImageOutput *imout, ASScanline *to_store )
 		if( imout->tiling_step > 0 )
 		{
 			register int i ;
-			int max_i = imout->im->height - imout->next_line ;
-			for( i = imout->tiling_step ; i < max_i ; i+=imout->tiling_step )
-				memcpy( imout->xim_line+(i*imout->bpl), imout->xim_line, imout->bpl );
+			int step = ( imout->bottom_to_top )? -imout->tiling_step : imout->tiling_step ;
+			int xim_step = step*imout->bpl ;
+			unsigned char *xim_line = imout->xim_line+xim_step ;
+			for( i = imout->next_line+step ; i < imout->height && i >= 0 ; i+=step )
+			{
+				memcpy( xim_line, imout->xim_line, imout->bpl );
+				xim_line += xim_step ;
+			}
 		}
-		imout->xim_line += imout->bpl;
+		if( imout->bottom_to_top )
+		{
+			imout->xim_line -= imout->bpl;
+			--(imout->next_line);
+		}else
+		{
+			imout->xim_line += imout->bpl;
+			++(imout->next_line);
+		}
 	}
 }
 
 void
 encode_image_scanline_asim( ASImageOutput *imout, ASScanline *to_store )
 {
-	if( imout->next_line < imout->im->height )
+LOCAL_DEBUG_CALLER_OUT( "imout->next_line = %d, imout->im->height = %d", imout->next_line, imout->im->height );
+	if( imout->next_line < imout->im->height && imout->next_line >= 0 )
 	{
 		CARD32 chan_fill[4];
 		chan_fill[IC_RED]   = ARGB32_RED8  (to_store->back_color);
@@ -1651,20 +1695,22 @@ encode_image_scanline_asim( ASImageOutput *imout, ASScanline *to_store )
 			int bytes_count ;
 			register int i, color ;
 			int max_i = imout->im->height ;
+			int step = (imout->bottom_to_top)?-imout->tiling_step:imout->tiling_step;
+
 			for( color = 0 ; color < IC_NUM_CHANNELS ; color++ )
 			{
 				if( get_flags(to_store->flags,0x01<<color))
-					bytes_count = asimage_add_line(imout->im, color, to_store->channels[color],   imout->next_line);
+					bytes_count = asimage_add_line(imout->im, color, to_store->channels[color]+to_store->offset_x,   imout->next_line);
 				else if( chan_fill[color] != imout->chan_fill[color] )
 					bytes_count = asimage_add_line_mono( imout->im, color, chan_fill[color], imout->next_line);
 				else
 				{
 					asimage_erase_line( imout->im, color, imout->next_line );
-					for( i = imout->next_line+imout->tiling_step ; i < max_i ; i+=imout->tiling_step )
+					for( i = imout->next_line+step ; i < max_i && i >= 0 ; i+=step )
 						asimage_erase_line( imout->im, color, i );
 					continue;
 				}
-				for( i = imout->next_line+imout->tiling_step ; i < max_i ; i+=imout->tiling_step )
+				for( i = imout->next_line+step ; i < max_i && i >= 0 ; i+=step )
 				{
 /*						fprintf( stderr, "copy-encoding color %d, from lline %d to %d, %d bytes\n", color, imout->next_line, i, bytes_count );*/
 					asimage_dup_line( imout->im, color, imout->next_line, i, bytes_count );
@@ -1675,15 +1721,16 @@ encode_image_scanline_asim( ASImageOutput *imout, ASScanline *to_store )
 			register int color ;
 			for( color = 0 ; color < IC_NUM_CHANNELS ; color++ )
 				if( get_flags(to_store->flags,0x01<<color))
-					asimage_add_line(imout->im, color, to_store->channels[color], imout->next_line);
+					asimage_add_line(imout->im, color, to_store->channels[color]+to_store->offset_x, imout->next_line);
 				else if( chan_fill[color] != imout->chan_fill[color] )
 					asimage_add_line_mono( imout->im, color, chan_fill[color], imout->next_line);
 				else
 					asimage_erase_line( imout->im, color, imout->next_line );
 		}
 	}
-	++(imout->next_line);
+	imout->next_line += imout->bottom_to_top?-1:1;
 }
+
 void
 output_image_line_top( ASImageOutput *imout, ASScanline *new_line, int ratio )
 {
@@ -1692,9 +1739,9 @@ output_image_line_top( ASImageOutput *imout, ASScanline *new_line, int ratio )
 	if( new_line )
 	{
 		if( ratio > 1 )
-			SCANLINE_FUNC(divide_component,*(new_line),*(imout->available),ratio,new_line->width);
+			SCANLINE_FUNC(divide_component,*(new_line),*(imout->available),ratio,imout->available->width);
 		else
-			SCANLINE_FUNC(copy_component,*(new_line),*(imout->available),NULL,new_line->width);
+			SCANLINE_FUNC(copy_component,*(new_line),*(imout->available),NULL,imout->available->width);
 		imout->available->flags = new_line->flags ;
 		imout->available->back_color = new_line->back_color ;
 	}
@@ -1702,7 +1749,7 @@ output_image_line_top( ASImageOutput *imout, ASScanline *new_line, int ratio )
 	if( imout->used != NULL )
 	{
 		if( new_line != NULL )
-			SCANLINE_FUNC(best_output_filter,*(imout->used),*(imout->available),0,new_line->width);
+			SCANLINE_FUNC(best_output_filter,*(imout->used),*(imout->available),0,imout->available->width);
 		else
 			SCANLINE_MOD(fine_output_filter_mod,*(imout->used),0,imout->used->width);
 		to_store = imout->used ;
@@ -1729,7 +1776,7 @@ output_image_line_fine( ASImageOutput *imout, ASScanline *new_line, int ratio )
 	/* caching and preprocessing line into our buffer : */
 	if( new_line )
 	{
-		SCANLINE_FUNC(fine_output_filter, *(new_line),*(imout->available),ratio,new_line->width);
+		SCANLINE_FUNC(fine_output_filter, *(new_line),*(imout->available),ratio,imout->available->width);
 		imout->available->flags = new_line->flags ;
 		imout->available->back_color = new_line->back_color ;
 /*		SCANLINE_MOD(print_component,*(imout->available),0, new_line->width ); */
@@ -1744,7 +1791,7 @@ output_image_line_fast( ASImageOutput *imout, ASScanline *new_line, int ratio )
 	/* caching and preprocessing line into our buffer : */
 	if( new_line )
 	{
-		SCANLINE_FUNC(fast_output_filter,*(new_line),*(imout->available),ratio,new_line->width);
+		SCANLINE_FUNC(fast_output_filter,*(new_line),*(imout->available),ratio,imout->available->width);
 		imout->available->flags = new_line->flags ;
 		imout->available->back_color = new_line->back_color ;
 		imout->encode_image_scanline( imout, imout->available );
@@ -1759,7 +1806,7 @@ output_image_line_direct( ASImageOutput *imout, ASScanline *new_line, int ratio 
 	{
 		if( ratio != 1)
 		{
-			SCANLINE_FUNC(divide_component,*(new_line),*(imout->available),ratio,new_line->width);
+			SCANLINE_FUNC(divide_component,*(new_line),*(imout->available),ratio,imout->available->width);
 			imout->available->flags = new_line->flags ;
 			imout->available->back_color = new_line->back_color ;
 			imout->encode_image_scanline( imout, imout->available );
@@ -2122,7 +2169,7 @@ merge_layers( ScreenInfo *scr,
 	ASImageOutput  *imout ;
 	ASScanline dst_line, tmp_line ;
 	int i ;
-LOCAL_DEBUG_CALLER_OUT( "offset_x = %d, offset_y = %d, to_width = %d, to_height = %d", offset_x, offset_y, to_width, to_height );
+LOCAL_DEBUG_CALLER_OUT( "dst_width = %d, dst_height = %d", dst_width, dst_height );
 	dst = safecalloc(1, sizeof(ASImage));
 	asimage_start (dst, dst_width, dst_height, compression_out);
 	if( to_xim )
@@ -2211,6 +2258,180 @@ LOCAL_DEBUG_OUT( "min_y = %d, max_y = %d", min_y, max_y );
 	return dst;
 }
 
+/***************************************************************************************/
+/* GRADIENT drawing : 																   */
+/***************************************************************************************/
+static void
+make_gradient_left2right( ASImageOutput *imout, ASScanline *dither_lines, int dither_lines_num, ASFlagType filter )
+{
+	int line ;
+
+	imout->tiling_step = dither_lines_num;
+	for( line = 0 ; line < dither_lines_num ; line++ )
+		imout->output_image_scanline( imout, &(dither_lines[line]), 1);
+}
+
+static void
+make_gradient_top2bottom( ASImageOutput *imout, ASScanline *dither_lines, int dither_lines_num, ASFlagType filter )
+{
+	int y, height = imout->height, width = imout->im->width ;
+	int line ;
+	ASScanline result;
+	CARD32 chan_data[MAX_GRADIENT_DITHER_LINES] = {0,0,0,0};
+LOCAL_DEBUG_CALLER_OUT( "width = %d, height = %d, filetr = 0x%lX, dither_count = %d", width, height, filter, dither_lines_num );
+	prepare_scanline( width, QUANT_ERR_BITS, &result, imout->scr->BGR_mode );
+	for( y = 0 ; y < height ; y++ )
+	{
+		int color ;
+
+		result.flags = 0 ;
+		result.back_color = ARGB32_DEFAULT_BACK_COLOR ;
+		for( color = 0 ; color < IC_NUM_CHANNELS ; color++ )
+			if( get_flags( filter, 0x01<<color ) )
+			{
+				Bool dithered = False ;
+				for( line = 0 ; line < dither_lines_num ; line++ )
+				{
+					/* we want to do error diffusion here since in other places it only works
+						* in horisontal direction : */
+					CARD32 c = dither_lines[line].channels[color][y] + ((dither_lines[line].channels[color][y+1]&0xFF)>>1);
+					if( (c&0xFFFF0000) != 0 )
+						chan_data[line] = ( c&0x7F000000 )?0:0x0000FF00;
+					else
+						chan_data[line] = c ;
+
+					if( chan_data[line] != chan_data[0] )
+						dithered = True;
+				}
+				if( !dithered )
+				{
+					result.back_color = (result.back_color&(~MAKE_ARGB32_CHAN8(0xFF,color)))|
+										MAKE_ARGB32_CHAN16(chan_data[0],color);
+				}else
+				{
+					register CARD32  *dst = result.channels[color] ;
+					for( line = 0 ; line  < dither_lines_num ; line++ )
+					{
+						register int x ;
+						register CARD32 d = chan_data[line] ;
+						for( x = line ; x < width ; x+=dither_lines_num )
+							dst[x] = d ;
+					}
+					set_flags(result.flags, 0x01<<color);
+				}
+			}
+		imout->output_image_scanline( imout, &result, 1);
+	}
+	free_scanline( &result, True );
+}
+
+static void
+make_gradient_diag_width( ASImageOutput *imout, ASScanline *dither_lines, int dither_lines_num, ASFlagType filter, Bool from_bottom )
+{
+	int line = 0;
+	/* using bresengham algorithm again to trigger horizontal shift : */
+	unsigned short smaller = imout->im->height;
+	unsigned short bigger  = imout->im->width;
+	register int i = 0;
+	int eps;
+
+	if( from_bottom )
+		toggle_image_output_direction( imout );
+	eps = -(bigger>>1);
+	for ( i = 0 ; i < bigger ; i++ )
+	{
+		eps += smaller;
+		if( (eps << 1) >= bigger )
+		{
+			/* put scanline with the same x offset */
+			dither_lines[line].offset_x = i ;
+			imout->output_image_scanline( imout, &(dither_lines[line]), 1);
+			if( ++line >= dither_lines_num )
+				line = 0;
+			eps -= bigger ;
+		}
+	}
+}
+
+static void
+make_gradient_diag_height( ASImageOutput *imout, ASScanline *dither_lines, int dither_lines_num, ASFlagType filter, Bool from_bottom )
+{
+	int line = 0;
+	unsigned short width = imout->im->width, height = imout->im->height ;
+	/* using bresengham algorithm again to trigger horizontal shift : */
+	unsigned short smaller = width;
+	unsigned short bigger  = height;
+	register int i = 0, k =0;
+	int eps;
+	ASScanline result;
+	int *offsets ;
+
+	prepare_scanline( width, QUANT_ERR_BITS, &result, imout->scr->BGR_mode );
+	offsets = safemalloc( sizeof(int)*width );
+	offsets[0] = 0 ;
+
+	eps = -(bigger>>1);
+	for ( i = 0 ; i < bigger ; i++ )
+	{
+		++offsets[k];
+		eps += smaller;
+		if( (eps << 1) >= bigger )
+		{
+			++k ;
+			if( k < width )
+				offsets[k] = offsets[k-1] ; /* seeding the offset */
+			eps -= bigger ;
+		}
+	}
+
+	if( from_bottom )
+		toggle_image_output_direction( imout );
+
+	result.flags = (filter&SCL_DO_ALL);
+	if( (filter&SCL_DO_ALL) == SCL_DO_ALL )
+	{
+		for( i = 0 ; i < height ; i++ )
+		{
+			for( k = 0 ; k < width ; k++ )
+			{
+				int offset = i+offsets[k] ;
+				CARD32 **src_chan = &(dither_lines[line].channels[0]) ;
+				result.alpha[k] = src_chan[IC_ALPHA][offset] ;
+				result.red  [k] = src_chan[IC_RED]  [offset] ;
+				result.green[k] = src_chan[IC_GREEN][offset] ;
+				result.blue [k] = src_chan[IC_BLUE] [offset] ;
+				if( ++line >= dither_lines_num )
+					line = 0 ;
+			}
+			imout->output_image_scanline( imout, &result, 1);
+		}
+	}else
+	{
+		for( i = 0 ; i < height ; i++ )
+		{
+			for( k = 0 ; k < width ; k++ )
+			{
+				int offset = i+offsets[k] ;
+				CARD32 **src_chan = &(dither_lines[line].channels[0]) ;
+				if( get_flags(filter, SCL_DO_ALPHA) )
+					result.alpha[k] = src_chan[IC_ALPHA][offset] ;
+				if( get_flags(filter, SCL_DO_RED) )
+					result.red[k]   = src_chan[IC_RED]  [offset] ;
+				if( get_flags(filter, SCL_DO_GREEN) )
+					result.green[k] = src_chan[IC_GREEN][offset] ;
+				if( get_flags(filter, SCL_DO_BLUE) )
+					result.blue[k]  = src_chan[IC_BLUE] [offset] ;
+				if( ++line >= dither_lines_num )
+					line = 0 ;
+			}
+			imout->output_image_scanline( imout, &result, 1);
+		}
+	}
+
+	free( offsets );
+	free_scanline( &result, True );
+}
+
 ASImage*
 make_gradient( ScreenInfo *scr, gradient_t *grad,
                unsigned int width, unsigned int height, ASFlagType filter,
@@ -2241,7 +2462,7 @@ make_gradient( ScreenInfo *scr, gradient_t *grad,
 	if( get_flags(grad->type,GRADIENT_TYPE_ORIENTATION) )
 		line_len = height ;
 	if( get_flags(grad->type,GRADIENT_TYPE_DIAG) )
-		line_len += line_len ;
+		line_len = MAX(width,height)<<1 ;
 	if((imout = start_image_output( scr, im, im->ximage, to_xim, QUANT_ERR_BITS, quality)) == NULL )
 	{
 		asimage_init(im, True);
@@ -2249,7 +2470,6 @@ make_gradient( ScreenInfo *scr, gradient_t *grad,
 		im = NULL ;
 	}else
 	{
-#define MAX_GRADIENT_DITHER_LINES 4
 		int dither_lines = MIN(imout->quality+1, MAX_GRADIENT_DITHER_LINES) ;
 		ASScanline *lines;
 		int line;
@@ -2268,70 +2488,20 @@ make_gradient( ScreenInfo *scr, gradient_t *grad,
 		switch( grad->type )
 		{
 			case TEXTURE_Left2Right :
-				imout->tiling_step = dither_lines;
-				for( line = 0 ; line < dither_lines ; line++ )
-					imout->output_image_scanline( imout, &(lines[line]), 1);
+				make_gradient_left2right( imout, lines, dither_lines, filter );
   	    		break ;
 			case TEXTURE_Top2Bottom :
-#if 1
-				{
-					int y ;
-					ASScanline result;
-					CARD32 chan_data[MAX_GRADIENT_DITHER_LINES] = {0,0,0,0};
-
-					prepare_scanline( width, QUANT_ERR_BITS, &result, scr->BGR_mode );
-					for( y = 0 ; y < height ; y++ )
-					{
-						int color ;
-
-						result.flags = 0 ;
-						result.back_color = ARGB32_DEFAULT_BACK_COLOR ;
-						for( color = 0 ; color < IC_NUM_CHANNELS ; color++ )
-							if( get_flags( filter, 0x01<<color ) )
-							{
-								Bool dithered = False ;
-								for( line = 0 ; line < dither_lines ; line++ )
-								{
-									/* we want to do error diffusion here since in other places it only works
-									 * in horisontal direction : */
-									CARD32 c = lines[line].channels[color][y] + ((lines[line].channels[color][y+1]&0xFF)>>1);
-									if( (c&0xFFFF0000) != 0 )
-										chan_data[line] = ( c&0x7F000000 )?0:0x0000FF00;
-									else
-										chan_data[line] = c ;
-
-									if( chan_data[line] != chan_data[0] )
-										dithered = True;
-								}
-								if( !dithered )
-								{
-									result.back_color = (result.back_color&(~MAKE_ARGB32_CHAN8(0xFF,color)))|
-														MAKE_ARGB32_CHAN16(chan_data[0],color);
-								}else
-								{
-									register CARD32  *dst = result.channels[color] ;
-									for( line = 0 ; line  < dither_lines ; line++ )
-									{
-										register int x ;
-										register CARD32 d = chan_data[line] ;
-										for( x = line ; x < width ; x+=dither_lines )
-											dst[x] = d ;
-									}
-									set_flags(result.flags, 0x01<<color);
-								}
-							}
-						imout->output_image_scanline( imout, &result, 1);
-					}
-					free_scanline( &result, True );
-				}
-#endif
+				make_gradient_top2bottom( imout, lines, dither_lines, filter );
 				break ;
 			case TEXTURE_TopLeft2BottomRight :
-
-		    	break ;
 			case TEXTURE_BottomLeft2TopRight :
-
-		    	break ;
+				if( width >= height )
+					make_gradient_diag_width( imout, lines, dither_lines, filter,
+											 (grad->type==TEXTURE_BottomLeft2TopRight));
+				else
+					make_gradient_diag_height( imout, lines, dither_lines, filter,
+											  (grad->type==TEXTURE_BottomLeft2TopRight));
+				break ;
 			default:
 		}
 		stop_image_output( &imout );
@@ -2342,7 +2512,74 @@ make_gradient( ScreenInfo *scr, gradient_t *grad,
 	return im;
 }
 
+/****************************************************************************/
+/* Image flipping(rotation)													*/
+/****************************************************************************/
+ASImage *
+flip_asimage( ScreenInfo *scr, ASImage *src,
+		      int offset_x, int offset_y,
+			  unsigned int to_width,
+			  unsigned int to_height,
+			  int flip,
+			  Bool to_xim, unsigned int compression_out, int quality )
+{
+	ASImage *dst = NULL ;
+	ASImageDecoder *imdec ;
+	ASImageOutput  *imout ;
+LOCAL_DEBUG_CALLER_OUT( "offset_x = %d, offset_y = %d, to_width = %d, to_height = %d", offset_x, offset_y, to_width, to_height );
+	if( (imdec = start_image_decoding(scr, src, SCL_DO_ALL, offset_x, offset_y, to_width)) == NULL )
+		return NULL;
 
+	dst = safecalloc(1, sizeof(ASImage));
+	asimage_start (dst, to_width, to_height, compression_out);
+	if( to_xim )
+		if( (dst->ximage = create_screen_ximage( scr, to_width, to_height, 0 )) == NULL )
+		{
+			show_error( "Unable to create XImage for the screen %d", scr->screen );
+			asimage_init(dst, True);
+			free( dst );
+			stop_image_decoding( &imdec );
+			return NULL ;
+		}
+#ifdef HAVE_MMX
+	mmx_init();
+#endif
+	if((imout = start_image_output( scr, dst, dst->ximage, to_xim, 0, quality)) == NULL )
+	{
+		asimage_init(dst, True);
+		free( dst );
+		dst = NULL ;
+	}else
+	{
+		int y, max_y = to_height;
+LOCAL_DEBUG_OUT("flip-flopping actually...%s", "");
+		if( get_flags( flip, FLIP_VERTICAL ) )
+		{
+		}else
+		{
+			ASScanline result ;
+			CARD32 **src_chan = &(imdec->buffer.channels[0]);
+			toggle_image_output_direction( imout );
+			prepare_scanline( to_width, 0, &result, scr->BGR_mode );
+			for( y = 0 ; y < max_y ; y++  )
+			{
+				decode_image_scanline( imdec );
+				result.flags = imdec->buffer.flags ;
+				result.back_color = imdec->buffer.back_color ;
+				SCANLINE_FUNC(reverse_component,imdec->buffer,result,0,to_width);
+				imout->output_image_scanline( imout, &result, 1);
+			}
+		}
+		stop_image_output( &imout );
+	}
+#ifdef HAVE_MMX
+	mmx_off();
+#endif
+	stop_image_decoding( &imdec );
+	return dst;
+
+
+}
 
 /****************************************************************************/
 /* ASImage->XImage->pixmap->XImage->ASImage conversion						*/

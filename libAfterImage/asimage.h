@@ -90,6 +90,9 @@ typedef struct ASImageDecoder
 #define ASIMAGE_QUALITY_GOOD	2
 #define ASIMAGE_QUALITY_TOP		3
 
+#define MAX_GRADIENT_DITHER_LINES 	ASIMAGE_QUALITY_TOP+1
+
+
 struct ASImageOutput;
 struct ASScanline;
 typedef void (*encode_image_scanline_func)( struct ASImageOutput *imout, ASScanline *to_store );
@@ -109,6 +112,8 @@ typedef struct ASImageOutput
 	int next_line ;
 	unsigned int tiling_step;       /* each line written will be repeated with this
 									 * step untill we exceed image size */
+	Bool bottom_to_top;
+
 	int quality ;/* see above */
 	output_image_scanline_func output_image_scanline ;  /* high level interface -
 														 * division/error diffusion
@@ -119,6 +124,7 @@ typedef struct ASImageOutput
 
 ASImageOutput *start_image_output( ScreenInfo *scr, ASImage *im, XImage *xim, Bool to_xim, int shift, int quality );
 void set_image_output_back_color( ASImageOutput *imout, ARGB32 back_color );
+void toggle_image_output_direction( ASImageOutput *imout );
 void stop_image_output( ASImageOutput **pimout );
 
 
@@ -231,6 +237,10 @@ ASImage *merge_layers ( struct ScreenInfo *scr, ASImageLayer *layers, int count,
 ASImage *make_gradient( struct ScreenInfo *scr, struct gradient_t *grad,
                			unsigned int width, unsigned int height, ASFlagType filter,
   			   			Bool to_xim, unsigned int compression_out, int quality  );
+ASImage *flip_asimage( ScreenInfo *scr, ASImage *src,
+		 		       int offset_x, int offset_y,
+			  		   unsigned int to_width, unsigned int to_height,
+					   int flip, Bool to_xim, unsigned int compression_out, int quality );
 
 
 
