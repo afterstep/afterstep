@@ -1206,7 +1206,6 @@ SetShape (ASWindow *asw, int w)
 		    int child_y = 0 ;
         	unsigned int width, height, bw;
 			XRectangle    rect;
-		    ASOrientation *od = get_orientation_data( asw );
 
 			if( asw->frame_canvas->shape )
 				flush_vector( asw->frame_canvas->shape );
@@ -1222,7 +1221,7 @@ SetShape (ASWindow *asw, int w)
           	for( i = 0 ; i < FRAME_SIDES ; ++i )
               	if( asw->frame_sides[i] )
 				{
-					LOCAL_DEBUG_OUT( " Frame side %d, tbar_side = %d", i, od->tbar_side );
+					LOCAL_DEBUG_OUT( " Frame side %d", i );
                   	combine_canvas_shape( asw->frame_canvas, asw->frame_sides[i] );
 				}
 
@@ -1233,52 +1232,8 @@ SetShape (ASWindow *asw, int w)
 			update_canvas_display_mask (asw->frame_canvas, True);
 			set_flags( asw->internal_flags, ASWF_PendingShapeRemoval );
 
-#if 0    /* no longer needed as we do not put client under titlebar anymore */
-			if( ( ASWIN_GET_FLAGS( asw, AS_Shaded ) || asw->shading_steps > 0 ) && asw->frame_sides[od->tbar_side])
-			{
-				ASCanvas *tbar_canvas = asw->frame_sides[od->tbar_side] ;
-				Bool overlaps_client = False ;
-				if( od->tbar_side != FR_N )
-					overlaps_client = ( tbar_canvas->root_y + tbar_canvas->height > asw->client_canvas->root_y );
-				else
-					overlaps_client = ( tbar_canvas->root_x + tbar_canvas->width > asw->client_canvas->root_x );
-
-				if( overlaps_client )
-				{
-					XShapeCombineRectangles (dpy, tbar_canvas->w, ShapeBounding,
-    					   				     0, 0, &rect, 1, ShapeSubtract, Unsorted);
-					set_flags( tbar_canvas->state, CANVAS_SHAPE_SET );
-				}
-			}
-#endif
         }
     }
-#if 0 /*old code : */
-        int bw = asw->status->border_width ;
-        if( !ASWIN_GET_FLAGS(asw, AS_Dead) )
-            XShapeCombineShape (dpy, asw->frame, ShapeBounding,
-                                asw->status->x + bw,
-                                asw->status->y + bw,
-                                asw->w, ShapeBounding, ShapeSet);
-
-		/* windows with titles */
-		if (ASWIN_HFLAGS(asw,AS_Titlebar) && asw->tbar)
-		{
-			XRectangle    rect;
-
-			rect.x = asw->tbar->win_x - bw;
-			rect.y = asw->tbar->win_y - bw;
-			rect.width  = asw->tbar->width  + 2*bw;
-			rect.height = asw->tbar->height + 2*bw;
-
-			XShapeCombineRectangles (dpy, asw->frame, ShapeBounding,
-									 0, 0, &rect, 1, ShapeUnion, Unsorted);
-		}
-		/* TODO: add frame decorations shape */
-		/* update icon shape */
-        /*if (asw->icon_canvas != NULL)
-            UpdateIconShape (asw); */
-#endif /* old_code */
 #endif /* SHAPE */
 }
 

@@ -80,7 +80,7 @@ txt2func (const char *text, FunctionData * fdata, int quiet)
 		for (; isspace (*text); text++);
 		if (*text)
 		{
-			const char   *ptr = text + strlen (text);
+			const char   *ptr = text + strlen ((char*)text);
 
 			for (; isspace (*(ptr - 1)); ptr--);
 			fdata->text = mystrndup (text, ptr - text);
@@ -785,12 +785,12 @@ print_func_data(const char *file, const char *func, int line, FunctionData *data
     {
         TermDef      *term = func2fterm (data->func, True);
         if( term == NULL )
-            fprintf( stderr, "Invalid Function %ld\n", data->func);
+            fprintf( stderr, "Invalid Function %ld\n",(long) data->func);
         else
         {
             fprintf( stderr, "%s \"%s\" text[%s] ", term->keyword, data->name?data->name:"", data->text?data->text:"" );
-            fprintf( stderr, "val0[%ld%c(%ld)] ", data->func_val[0], (data->unit[0]=='\0')?' ':data->unit[0],data->unit_val[0] );
-            fprintf( stderr, "val1[%ld%c(%ld)] ", data->func_val[1], (data->unit[1]=='\0')?' ':data->unit[1],data->unit_val[1] );
+            fprintf( stderr, "val0[%ld%c(%ld)] ", (long)data->func_val[0], (data->unit[0]=='\0')?' ':data->unit[0],(long)data->unit_val[0] );
+            fprintf( stderr, "val1[%ld%c(%ld)] ", (long)data->func_val[1], (data->unit[1]=='\0')?' ':data->unit[1],(long)data->unit_val[1] );
             fprintf( stderr, "(popup=%p)\n", data->popup );
         }
     }

@@ -176,6 +176,7 @@ get_free_rectangles_iter_func(void *data, void *aux_data)
     return True;
 }
 
+#if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
 static void
 print_rectangles_list( ASVector *list )
 {
@@ -191,6 +192,7 @@ print_rectangles_list( ASVector *list )
         fprintf( stderr, "\tRectangles[%d].height = %d;\n", i, rects[i].height );
     }
 }
+#endif
 
 static ASVector *
 build_free_space_list( ASWindow *to_skip, ASGeometry *area, int min_layer )

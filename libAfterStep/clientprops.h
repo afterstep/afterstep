@@ -528,15 +528,15 @@ typedef struct ASRawHints
   ASParentHints *transient_for;
 
   ASFlagType     wm_protocols;
-  Window        *wm_cmap_windows;
-  int            wm_cmap_win_count;
+  CARD32        *wm_cmap_windows;
+  long           wm_cmap_win_count;
 
   XTextProperty *wm_client_machine ;    /* hostname of the computer on which client was executed */
   int            wm_cmd_argc ;
   char         **wm_cmd_argv ;
 
   INT32          wm_state ;
-  Window         wm_state_icon_win ;
+  CARD32         wm_state_icon_win ;
 
   /* Motif Hints : */
   MwmHints      *motif_hints;

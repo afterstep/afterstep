@@ -178,7 +178,7 @@ void set_as_backgrounds (ASWMProps *wmprops, CARD32 size, CARD32 version, CARD32
 void set_xrootpmap_id (ASWMProps *wmprops, Pixmap new_pmap );
 
 
-unsigned long as_desk2ext_desk( ASWMProps *wmprops, INT32 as_desk );
+CARD32 as_desk2ext_desk( ASWMProps *wmprops, INT32 as_desk );
 void set_desktop_num_prop( ASWMProps *wmprops, INT32 new_desk, Window vroot, Bool add );
 Bool set_current_desk_prop (ASWMProps *wmprops, INT32 new_desk );
 Bool set_current_viewport_prop (ASWMProps * wmprops, CARD32 vx, CARD32 vy, Bool normal);

@@ -209,7 +209,7 @@ WriteColorOptions (const char *filename, char *myname, ColorConfig * config, uns
 		b = b>>8 ;
 		tmp[0] = &(color_buffer[0]) ;
 		sprintf( color_buffer, "#%2.2lX%2.2lX%2.2lX%2.2lX  \t\t# or ahsv(%ld,%ld,%ld,%ld) or argb(%ld,%ld,%ld,%ld)",
-					a, r, g, b, a, h, s, v, a, r, g, b );
+					(unsigned long)a, (unsigned long)r, (unsigned long)g, (unsigned long)b, (long)a, (long)h, (long)s, (long)v, (long)a, (long)r, (long)g, (long)b );
 		pelem = tail ;
 		LOCAL_DEBUG_OUT( "tail  = %p", tail );
 		tail = Strings2FreeStorage ( &ColorSyntax, tail, &(tmp[0]), 1, COLOR_ID_START+i );

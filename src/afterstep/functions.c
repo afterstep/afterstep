@@ -798,7 +798,8 @@ void raiselower_func_handler( FunctionData *data, ASEvent *event, int module )
 
 void raise_it_func_handler( FunctionData *data, ASEvent *event, int module )
 {
-    activate_aswindow( (ASWindow *) (data->func_val[0]), True, True );
+	ASWindow *asw = window2ASWindow( data->func_val[1] );
+    activate_aswindow( asw, True, True );
 }
 
 void setlayer_func_handler( FunctionData *data, ASEvent *event, int module )
@@ -1289,14 +1290,16 @@ void quickrestart_func_handler( FunctionData *data, ASEvent *event, int module )
 Bool
 send_aswindow_data_iter_func(void *data, void *aux_data)
 {
-    int module = (int)aux_data ;
+    union { void *ptr ; int id; } module_id;
     ASWindow *asw = (ASWindow *)data ;
 
-    SendConfig (module, M_CONFIGURE_WINDOW, asw);
-    SendString (module, M_WINDOW_NAME, asw->w,asw->frame, asw, asw->hints->names[0], asw->hints->names_encoding[0]);
-    SendString (module, M_ICON_NAME, asw->w, asw->frame, asw, asw->hints->icon_name, asw->hints->names_encoding[asw->hints->icon_name_idx]);
-    SendString (module, M_RES_CLASS, asw->w, asw->frame, asw, asw->hints->res_class, asw->hints->names_encoding[asw->hints->res_class_idx]);
-    SendString (module, M_RES_NAME,  asw->w, asw->frame, asw, asw->hints->res_name, asw->hints->names_encoding[asw->hints->res_name_idx]);
+	module_id.ptr = aux_data ;
+
+    SendConfig (module_id.id, M_CONFIGURE_WINDOW, asw);
+    SendString (module_id.id, M_WINDOW_NAME, asw->w,asw->frame, asw, asw->hints->names[0], asw->hints->names_encoding[0]);
+    SendString (module_id.id, M_ICON_NAME, asw->w, asw->frame, asw, asw->hints->icon_name, asw->hints->names_encoding[asw->hints->icon_name_idx]);
+    SendString (module_id.id, M_RES_CLASS, asw->w, asw->frame, asw, asw->hints->res_class, asw->hints->names_encoding[asw->hints->res_class_idx]);
+    SendString (module_id.id, M_RES_NAME,  asw->w, asw->frame, asw, asw->hints->res_name, asw->hints->names_encoding[asw->hints->res_name_idx]);
     return True;
 }
 
@@ -1304,9 +1307,11 @@ void send_window_list_func_handler( FunctionData *data, ASEvent *event, int modu
 {
     if (module >= 0)
     {
+		union { void *ptr ; int id; } module_id;
+		module_id.id = module ;
         SendPacket (module, M_TOGGLE_PAGING, 1, DoHandlePageing);
         SendPacket (module, M_NEW_DESKVIEWPORT, 3, Scr.Vx, Scr.Vy, Scr.CurrentDesk);
-        iterate_asbidirlist( Scr.Windows->clients, send_aswindow_data_iter_func, (void*)module, NULL, False );
+        iterate_asbidirlist( Scr.Windows->clients, send_aswindow_data_iter_func, module_id.ptr, NULL, False );
         SendPacket (module, M_END_WINDOWLIST, 0);
         if( IsValidDesk(Scr.CurrentDesk) )
             restack_window_list( Scr.CurrentDesk, True );

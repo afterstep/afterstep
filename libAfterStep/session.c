@@ -158,8 +158,8 @@ find_default_special_file (ASSession *session, const char* file_fmt, const char*
 	int len2 = 0;
 
 	if( file_scr_fmt )
-		len1 = strlen(file_scr_fmt);
-	len2 = strlen(file_fmt);
+		len1 = strlen((char*)file_scr_fmt);
+	len2 = strlen((char*)file_fmt);
 	/* it's more difficult with backgrounds since there could be different extensions */
 	/* first checking only private dir : */
     legacy = safemalloc( max(len1,len2)+11+1+15 );
@@ -188,8 +188,8 @@ find_desk_special_file (ASSession *session, const char* file_fmt, const char* fi
 	int len2 = 0;
 
 	if( file_scr_fmt )
-		len1 = strlen(file_scr_fmt);
-	len2 = strlen(file_fmt);
+		len1 = strlen((char*)file_scr_fmt);
+	len2 = strlen((char*)file_fmt);
 	/* it's more difficult with backgrounds since there could be different extensions */
 	/* first checking only private dir : */
     legacy = safemalloc( max(len1,len2)+15+11+1+15 );
@@ -794,7 +794,7 @@ make_session_filedir   (ASSession * session, const char *source, Bool use_depth,
         char *filename = (char*)source ;
         if( session->scr->screen != 0 )
         {
-            filename = safemalloc( strlen(source) + 1 + 32 + 32 );
+            filename = safemalloc( strlen((char*)source) + 1 + 32 + 32 );
             if( use_depth )
                 sprintf( filename, "%s.scr%ld.%dbpp", source, session->scr->screen, session->colordepth );
             else
@@ -808,7 +808,7 @@ make_session_filedir   (ASSession * session, const char *source, Bool use_depth,
         {
             if( use_depth )
             {
-                filename = safemalloc( strlen(source) + 1 + 32 );
+                filename = safemalloc( strlen((char*)source) + 1 + 32 );
                 sprintf( filename, "%s.%dbpp", source, session->colordepth );
             }
             if( realfilename )

@@ -218,7 +218,7 @@ SetMyClass (const char *app_class)
 {
     if( app_class != NULL )
     {
-        strncpy( MyClass, app_class, MAX_MY_CLASS );
+        strncpy( MyClass, (char*)app_class, MAX_MY_CLASS );
         MyClass[MAX_MY_CLASS] = '\0' ;
     }
 }
@@ -537,7 +537,7 @@ make_default_environment()
 	e->desk_pages_v = 2 ;
 	e->module_path = mystrdup( AFTER_BIN_DIR );
 	e->icon_path = mystrdup( DEFAULT_ICON_DIR );
-	e->pixmap_path = safemalloc( strlen(default_pixmap_path_format)+
+	e->pixmap_path = safemalloc( strlen((char*)default_pixmap_path_format)+
 		                         strlen(AFTER_DIR)*4+
 								 strlen(AFTER_SHAREDIR)*4 +
 								 strlen(DEFAULT_PIXMAP_DIR) + 1);
@@ -552,7 +552,7 @@ make_default_environment()
 							 AFTER_SHAREDIR,
 							 DEFAULT_PIXMAP_DIR );
 
-	e->font_path = safemalloc(   strlen(default_font_path_format)+
+	e->font_path = safemalloc(   strlen((char*)default_font_path_format)+
 								 strlen(AFTER_DIR)+
 								 strlen(AFTER_SHAREDIR) +
 								 strlen(DEFAULT_TTF_DIR) + 1);
@@ -561,7 +561,7 @@ make_default_environment()
 							 AFTER_SHAREDIR,
 							 DEFAULT_TTF_DIR );
 
-	e->cursor_path = safemalloc( strlen(default_cursor_path_format)+
+	e->cursor_path = safemalloc( strlen((char*)default_cursor_path_format)+
 								 strlen(AFTER_DIR)+
 								 strlen(AFTER_SHAREDIR) + 1);
 	sprintf( e->cursor_path, default_cursor_path_format,
@@ -755,7 +755,7 @@ spawn_child( const char *cmd, int singleton_id, int screen, Window w, int contex
         va_list ap;
 
 		LOCAL_DEBUG_OUT( "pid(%d), entered child process to spawn ...", pid );
-        len = strlen(cmd);
+        len = strlen((char*)cmd);
         if( pass_args )
         {
             register int i = 0 ;
@@ -808,7 +808,7 @@ spawn_child( const char *cmd, int singleton_id, int screen, Window w, int contex
         len+=4;
 
         ptr = cmdl = safemalloc( len );
-        strcpy( cmdl, cmd );
+        strcpy( cmdl, (char*)cmd );
         while(*ptr) ptr++;
         if( pass_args )
         {

@@ -108,8 +108,8 @@ detect_theme_file_type( const char * filename )
 Bool untar_file( const char *src, const char *dst, ASThemeFileType type )
 {
 	int i ;
-	int src_len = strlen( src );
-	int dst_len = strlen( dst );
+	int src_len = strlen( (char*)src );
+	int dst_len = strlen( (char*)dst );
 	char * command_line = NULL ;
 	char * tarball = (char*)src ;
 	int tarball_len = src_len ;

@@ -1291,8 +1291,6 @@ Bool ASPutXImage( ASVisual *asv, Drawable d, GC gc, XImage *xim,
 
 	if( ( img_data = check_XImage_shared( xim )) != NULL )
 	{
-		int req_seq = NextRequest(asv->dpy);
-
 		LOCAL_DEBUG_OUT( "XSHMIMAGE> PUT_XIM : using shared memory Put = %p, req = %d(%x)", xim, req_seq, req_seq );
 		if( XShmPutImage( asv->dpy, d, gc, xim, src_x, src_y, dest_x, dest_y,width, height, True ) )
 		{

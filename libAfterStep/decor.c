@@ -1035,7 +1035,7 @@ set_asbtn_block_layer( ASTile* tile, ASImageLayer *layer, unsigned int state, AS
     while( --i >= 0 )
     {
         register ASTBtnData *btn = &(bb->buttons[i]) ;
-		if( btn && btn->current ) 
+		if( btn && btn->current )
 		{
       		layer[i].im = btn->current ;
 	        layer[i].dst_x = tile->x + btn->x ;
@@ -1713,7 +1713,7 @@ LOCAL_DEBUG_CALLER_OUT( "tbar(%p)->index(%d)->label(\"%s\")", tbar, index, label
 		{
 			changed = True;
             lbl->text = mystrdup (label);
-        } else if ((changed = (strcmp (lbl->text, label) != 0)))
+        } else if ((changed = (strcmp ((char*)(lbl->text), label) != 0)))
 		{
             free (lbl->text);
             lbl->text = mystrdup (label);

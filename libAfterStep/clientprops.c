@@ -341,7 +341,7 @@ read_wm_protocols (ASRawHints * hints, Window w)
     LOCAL_DEBUG_CALLER_OUT( "window(%lX)", w );
 	if (hints && w != None)
 	{
-		Atom         *protocols;
+		CARD32        *protocols;
 		long          nprotos = 0;
 
 		hints->wm_protocols = 0;
@@ -363,7 +363,7 @@ read_wm_cmap_windows (ASRawHints * hints, Window w)
 		if (hints->wm_cmap_windows)
 			XFree (hints->wm_cmap_windows);
 		if (!read_32bit_proplist
-			(w, _XA_WM_COLORMAP_WINDOWS, 10, &(hints->wm_cmap_windows), (CARD32 *)&(hints->wm_cmap_win_count)))
+			(w, _XA_WM_COLORMAP_WINDOWS, 10, &(hints->wm_cmap_windows), &(hints->wm_cmap_win_count)))
 			hints->wm_cmap_win_count = 0;
 	}
 }
@@ -537,7 +537,7 @@ read_extwm_window_type (ASRawHints * hints, Window w)
 {
 	if (hints && w != None)
 	{
-		Atom         *protocols;
+		CARD32         *protocols;
 		long          nprotos = 0;
 
 		if (read_32bit_proplist (w, _XA_NET_WM_WINDOW_TYPE, 6, &protocols, &nprotos))
@@ -553,7 +553,7 @@ read_extwm_state (ASRawHints * hints, Window w)
 {
 	if (hints && w != None)
 	{
-		Atom         *protocols;
+		CARD32         *protocols;
 		long          nprotos = 0;
 
         if (read_32bit_proplist (w, _XA_NET_WM_STATE, 6, &protocols, &nprotos))
@@ -580,7 +580,7 @@ read_extwm_protocols (ASRawHints * hints, Window w)
 {
 	if (hints && w != None)
 	{
-		Atom         *protocols;
+		CARD32         *protocols;
 		long          nprotos = 0;
 
 		if (read_32bit_proplist (w, _XA_NET_WM_PROTOCOLS, 1, &protocols, &nprotos))
@@ -1172,7 +1172,7 @@ set_client_state (Window w, struct ASStatusHints *status)
             CARD32        extwm_states[MAX_NET_WM_STATES];
 			long          used = 0;
 			CARD32        gnome_state = 0;
-			Atom         *old_extwm_state = NULL;
+			CARD32       *old_extwm_state = NULL;
 			long          old_extwm_used = 0;
 			ASFlagType    old_state = 0;
 
@@ -1266,7 +1266,7 @@ set_client_protocols (Window w, ASFlagType protocols)
 LOCAL_DEBUG_OUT( "protocols=0x%lX", protocols );
     if (w && protocols)
 	{
-		Atom         *list;
+		CARD32         *list;
 		long          nitems;
 
 		encode_atom_list (&(WM_Protocols[0]), &list, &nitems, protocols);
@@ -1284,7 +1284,7 @@ set_extwm_hints (Window w, ExtendedWMHints * extwm_hints)
 {
 	if (w && extwm_hints)
 	{
-		Atom         *list;
+		CARD32         *list;
 		long          nitems;
 
 		encode_atom_list (&(EXTWM_WindowType[0]), &list, &nitems, extwm_hints->flags);
@@ -1296,14 +1296,14 @@ set_extwm_hints (Window w, ExtendedWMHints * extwm_hints)
 		encode_atom_list (&(EXTWM_State[0]), &list, &nitems, extwm_hints->flags);
 		if (nitems > 0)
 		{
-			set_32bit_proplist (w, _XA_NET_WM_STATE, XA_ATOM, list, nitems);
+			set_32bit_proplist (w, _XA_NET_WM_STATE, XA_CARDINAL, list, nitems);
 			free (list);
             list = NULL ;
 		}
         encode_atom_list (&(EXTWM_Protocols[0]), &list, &nitems, extwm_hints->flags);
 		if (nitems > 0)
 		{
-			set_32bit_proplist (w, _XA_NET_WM_PROTOCOLS, XA_ATOM, list, nitems);
+			set_32bit_proplist (w, _XA_NET_WM_PROTOCOLS, XA_CARDINAL, list, nitems);
 			free (list);
             list = NULL ;
 		}

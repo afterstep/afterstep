@@ -55,7 +55,7 @@ as_socket_write_string (ASSocketBuffer *sb, const char *string)
 		CARD32        len = 0;
 
 		if (string != NULL)
-			len = strlen (string);
+			len = strlen ((char*)string);
         ASSocketWriteInt32 (sb, &len, 1);
 		if (len)
 			socket_buffered_write (sb, string, len);
@@ -194,12 +194,12 @@ LOCAL_DEBUG_OUT( "sending command %p to the astep", pfunc );
 void
 SendTextCommand ( int func, const char *name, const char *text, send_ID_type window)
 {
-	long          dummy_val[2] = { 0, 0 };
+	send_signed_data_type          dummy_val[2] = { 0, 0 };
 
 	if (IsValidFunc (func))
 	{
 		send_module_msg_header(window, 0);
-		send_module_msg_function(func, name, text, dummy_val, dummy_val);
+		send_module_msg_function(func, (char*)name, (char*)text, dummy_val, dummy_val);
 		send_module_msg_tail ();
 	}
 }
@@ -210,7 +210,7 @@ SendNumCommand ( int func, const char *name, const send_signed_data_type *func_v
 	if (IsValidFunc (func))
 	{
 		send_module_msg_header(window, 0);
-		send_module_msg_function(func, name, NULL, func_val, unit_val);
+		send_module_msg_function(func, (char*)name, NULL, func_val, unit_val);
 		send_module_msg_tail ();
 	}
 }

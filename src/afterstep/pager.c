@@ -256,7 +256,11 @@ deskviewport_aswindow_iter_func(void *data, void *aux_data)
     int new_desk = (int)Scr.CurrentDesk ;
 	int dvx = asw->status->viewport_x - Scr.Vx ;
 	int dvy = asw->status->viewport_y - Scr.Vy ;
-	int old_desk = (int) aux_data;
+	union {
+		void *ptr ;
+		int id ;
+	}old_desk ;
+	old_desk.ptr = aux_data;
 
     asw->status->viewport_x = Scr.Vx ;
     asw->status->viewport_y = Scr.Vy ;
@@ -278,7 +282,7 @@ deskviewport_aswindow_iter_func(void *data, void *aux_data)
         }
     }else
     {
-		if( old_desk != new_desk )
+		if( old_desk.id != new_desk )
         	quietly_reparent_aswindow( asw, (ASWIN_DESK(asw)==new_desk)?Scr.Root:Scr.ServiceWin, True );
 		if( dvx != 0 || dvy != 0 )
 			on_window_status_changed( asw, True, True );
@@ -357,6 +361,12 @@ LOCAL_DEBUG_CALLER_OUT( "new(%d%+d%+d), old(%d%+d%+d), max(%+d,%+d)", new_desk, 
 
 	if (dvx != 0 || dvy != 0 || old_desk != new_desk )
 	{
+		union
+		{
+			void *ptr ;
+			int id ;
+		}desk_id;
+
 		if ( force_grab )
 			XGrabServer (dpy);
 		if( Scr.moveresize_in_progress && !Scr.moveresize_in_progress->move_only )
@@ -375,8 +385,9 @@ LOCAL_DEBUG_CALLER_OUT( "new(%d%+d%+d), old(%d%+d%+d), max(%+d,%+d)", new_desk, 
 				Scr.moveresize_in_progress->start.height -= dvy ;
 			}
 		}
+		desk_id.id = old_desk ;
         /* traverse window list and redo the titlebar/buttons if necessary */
-        iterate_asbidirlist( Scr.Windows->clients, deskviewport_aswindow_iter_func, (void*)old_desk, NULL, False );
+        iterate_asbidirlist( Scr.Windows->clients, deskviewport_aswindow_iter_func, desk_id.ptr, NULL, False );
         /* TODO: autoplace sticky icons so they don't wind up over a stationary icon */
 	    check_screen_panframes(&Scr);
 		if ( force_grab)

@@ -311,7 +311,7 @@ void print_asimage_func (ASHashableValue value)
         unsigned int red_mem = 0, green_mem = 0, blue_mem = 0, alpha_mem = 0;
         unsigned int red_count = 0, green_count = 0, blue_count = 0, alpha_count = 0;
         fprintf( stderr,"\n\tASImage[%p].size = %dx%d;\n",  im, im->width, im->height );
-        fprintf( stderr,"\tASImage[%p].back_color = 0x%lX;\n", im, im->back_color );
+        fprintf( stderr,"\tASImage[%p].back_color = 0x%lX;\n", im, (long)im->back_color );
         fprintf( stderr,"\tASImage[%p].max_compressed_width = %d;\n", im, im->max_compressed_width);
         fprintf( stderr,"\t\tASImage[%p].alt.ximage = %p;\n", im, im->alt.ximage );
         if( im->alt.ximage )

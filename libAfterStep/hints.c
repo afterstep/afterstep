@@ -1478,7 +1478,7 @@ constrain_size (ASHints * hints, ASStatusHints * status, unsigned int max_width,
 		if (minHeight < hints->base_height)
 			minHeight = hints->base_height;
 	}
-	
+
 	if (get_flags (hints->flags, AS_BaseSize))
 	{
 		baseWidth = hints->base_width;
@@ -1486,9 +1486,9 @@ constrain_size (ASHints * hints, ASStatusHints * status, unsigned int max_width,
 	}else if (get_flags (hints->flags, AS_MinSize))
 	{
 		baseWidth = minWidth ;
-		baseHeight = minHeight ;	
+		baseHeight = minHeight ;
 	}
-	
+
 	if (get_flags (hints->flags, AS_MaxSize))
 	{
 		if (max_width == 0 || max_width > hints->max_width)
@@ -2156,6 +2156,7 @@ client_hints2wm_prtocols (ASFlagType * protocols, ASHints * hints)
 static        Bool
 client_hints2motif_hints (MwmHints * motif_hints, ASHints * hints, ASStatusHints * status)
 {
+	ASFlagType tmp ;
 	memset (motif_hints, 0x00, sizeof (MwmHints));
 
 	if (status)
@@ -2174,9 +2175,13 @@ client_hints2motif_hints (MwmHints * motif_hints, ASHints * hints, ASStatusHints
 		}
 	}
 	/* finally we can apply conglomerated hints to our flags : */
-	encode_simple_flags (&(motif_hints->decorations), mwm_decor_xref, hints->flags);
-	encode_simple_flags (&(motif_hints->decorations), mwm_decor_func_xref, hints->function_mask);
-	encode_simple_flags (&(motif_hints->functions), mwm_func_xref, hints->function_mask);
+	tmp = motif_hints->decorations ;
+	encode_simple_flags (&tmp, mwm_decor_xref, hints->flags);
+	encode_simple_flags (&tmp, mwm_decor_func_xref, hints->function_mask);
+	motif_hints->decorations = tmp ;
+	tmp = motif_hints->functions ;
+	encode_simple_flags (&tmp, mwm_func_xref, hints->function_mask);
+	motif_hints->functions = tmp ;
 
 	check_motif_hints_sanity (motif_hints);
 
@@ -2191,6 +2196,7 @@ client_hints2motif_hints (MwmHints * motif_hints, ASHints * hints, ASStatusHints
 static        Bool
 client_hints2gnome_hints (GnomeHints * gnome_hints, ASHints * hints, ASStatusHints * status)
 {
+	ASFlagType tmp = 0 ;
 	memset (gnome_hints, 0x00, sizeof (GnomeHints));
 
 	if (status)
@@ -2211,7 +2217,9 @@ client_hints2gnome_hints (GnomeHints * gnome_hints, ASHints * hints, ASStatusHin
 	if (gnome_hints->state != 0)
 		set_flags (gnome_hints->flags, GNOME_STATE);
 
-	encode_simple_flags (&(gnome_hints->hints), gnome_hints_xref, hints->flags);
+	tmp = gnome_hints->hints ;
+	encode_simple_flags (&tmp, gnome_hints_xref, hints->flags);
+	gnome_hints->hints = tmp ;
 	if (gnome_hints->hints != 0)
 		set_flags (gnome_hints->flags, GNOME_HINTS);
 

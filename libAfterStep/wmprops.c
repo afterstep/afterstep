@@ -986,8 +986,8 @@ set_desktop_num_prop (ASWMProps * wmprops, INT32 new_desk, Window vroot, Bool ad
 		} else
 			return;							   /* nothing to do */
         if (is_output_level_under_threshold (OUTPUT_LEVEL_VROOT))
-			fprintf (stderr, "%s: %s desktop with AfterStep number %ld and public number %d (virtual root 0x%lX)\n",
-					 MyName, add ? "added" : "removed", new_desk, index, (unsigned long)vroot);
+			fprintf (stderr, "%s: %s desktop with AfterStep number %ld and public number %lu (virtual root 0x%lX)\n",
+					 MyName, add ? "added" : "removed", (long)new_desk, (unsigned long)index, (unsigned long)vroot);
 
 		/* need to update crossreference table here : */
 		set_32bit_property (wmprops->scr->Root, _XA_NET_NUMBER_OF_DESKTOPS, XA_CARDINAL, wmprops->desktop_num);

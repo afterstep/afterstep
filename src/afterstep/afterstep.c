@@ -477,7 +477,7 @@ CaptureAllWindows (ScreenInfo *scr)
         if (children[i] )
         {
             unsigned long nitems = 0;
-            unsigned long *state_prop = NULL ;
+            CARD32 *state_prop = NULL ;
             int wm_state = DontCareState ;
             int k ;
             for( k = 0 ; k < 4 ; ++k )
@@ -613,7 +613,7 @@ LOCAL_DEBUG_CALLER_OUT( "%s restart, cmd=\"%s\"", restart?"Do":"Don't", command?
 #ifdef XSHMIMAGE
 	flush_shm_cache();
 #endif
-	
+
 
 
 	if (restart)

@@ -119,7 +119,7 @@ make_absolute (const char *path1, const char *path2)
 	else
 		/* relative path */
 	{
-		path = safemalloc (strlen (path1) + strlen (path2) + 2);
+		path = safemalloc (strlen ((char*)path1) + strlen ((char*)path2) + 2);
 		sprintf (path, "%s/%s", path1, path2);
 	}
 	return path;
@@ -179,14 +179,30 @@ dirtree_t    *
 dirtree_new_from_dir (const char *dir)
 {
 	dirtree_t    *tree = dirtree_new ();
-	const char   *p;
-	const char   *e;
+	char   *p;
+	int start_mark = 0, end_mark ;
+	register int i = 0 ;
+	register char *ptr = (char*)dir ;
 
-	for (e = dir + strlen (dir); e > dir && (*e - 1) == '/'; e--);
-	for (p = e; p > dir && *(p - 1) != '/'; p--);
-	tree->name = mystrndup (p, e - p);
-	tree->path = mystrdup (dir);
+	while( ptr[i] ) ++i ;
+	end_mark = i ;
 
+	p = tree->path = safemalloc( i+1 );
+	do{ p[i] = ptr[i]; } while( --i >= 0 );
+	while( --i > 0 )
+		if( ptr[i] =='/' )
+		{
+			end_mark = i ;
+			break ;
+		}
+
+	while( --i >= 0 )
+		if( ptr[i] =='/' )
+		{
+			start_mark = i+1 ;
+			break ;
+		}
+	tree->name = mystrndup (&(ptr[start_mark]), end_mark-start_mark);
 	dirtree_fill_from_dir (tree);
 
 	return tree;

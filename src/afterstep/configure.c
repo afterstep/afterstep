@@ -1743,15 +1743,19 @@ SetFramePart (char *text, FILE * fd, char **frame, int *id)
     char *fname = NULL;
     if( parse_filename (text, &fname) != text )
     {
-		int part_id = (int)id ;
+		union {
+			int *ptr ;
+			int id ;
+		}ptr_id ;
+		ptr_id.ptr = id ;
 		if( LegacyFrameDef == NULL )
 		{
 			AddMyFrameDefinition(&LegacyFrameDef);
 			LegacyFrameDef->name = mystrdup("default");
 		}
 		show_warning( "Frame* definitions are deprecated in look. Please use MyFrame ... ~MyFrame structures instead.%s","");
-		set_string_value (&(LegacyFrameDef->parts[part_id]), fname, &(LegacyFrameDef->set_parts), (0x01<<part_id));
-        set_flags( LegacyFrameDef->parts_mask, (0x01<<part_id));
+		set_string_value (&(LegacyFrameDef->parts[ptr_id.id]), fname, &(LegacyFrameDef->set_parts), (0x01<<ptr_id.id));
+        set_flags( LegacyFrameDef->parts_mask, (0x01<<ptr_id.id));
     }
 }
 
