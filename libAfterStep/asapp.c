@@ -204,6 +204,7 @@ struct SyntaxDef FuncSyntax = {
 	"\t",
 	"AS Function",
 	"Functions",
+	"built in AfterStep functions",
 	NULL,
 	0
 };

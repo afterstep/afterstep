@@ -334,6 +334,11 @@ ASHashTable *ProcessedSyntaxes = NULL ;
 ASHashTable *Glossary = NULL ;
 ASHashTable *Index = NULL ;
 
+#define DATE_SIZE 64
+char CurrentDateLong[DATE_SIZE] = "06/23/04";
+char CurrentDateShort[DATE_SIZE] = "Jun 23,2004";
+
+
 void check_syntax_source( const char *source_dir, SyntaxDef *syntax, Bool module );
 void gen_syntax_doc( const char *source_dir, const char *dest_dir, SyntaxDef *syntax, ASDocType doc_type );
 void gen_glossary( const char *dest_dir, ASDocType doc_type );
@@ -414,9 +419,19 @@ main (int argc, char **argv)
 	Index = create_ashash( 0, string_hash_value, string_compare, string_destroy );
 	if( target_type < DocType_Source )
 	{	
+		time_t curtime;
+    	struct tm *loctime;
+		
 		DocBookVocabulary = create_ashash( 7, casestring_hash_value, casestring_compare, string_destroy_without_data );
 		for( i = 1 ; i < DOCBOOK_SUPPORTED_IDS ; ++i )
 			add_hash_item( DocBookVocabulary, AS_HASHABLE(SupportedDocBookTagInfo[i].tag), (void*)(SupportedDocBookTagInfo[i].tag_id));
+		
+		/* Get the current time. */
+		curtime = time (NULL);
+     	/* Convert it to local time representation. */
+		loctime = localtime (&curtime);
+		strftime(CurrentDateLong, DATE_SIZE, "%b %e %Y", loctime);
+		strftime(CurrentDateShort, DATE_SIZE, "%m/%d/%Y", loctime);
 	}
 	i = 0 ; 
 	LOCAL_DEBUG_OUT( "Starting main action... %s", "" );
@@ -600,7 +615,7 @@ check_syntax_source( const char *source_dir, SyntaxDef *syntax, Bool module )
 					for (k = 0; syntax->terms[k].keyword; k++)
 						if( mystrcasecmp(name, syntax->terms[k].keyword ) == 0 ) 
 							break;
-					if( syntax->terms[k].keyword == NULL ) 
+					if( syntax->terms[k].keyword == NULL || get_flags( syntax->terms[k].flags, TF_OBSOLETE) ) 
 					{
 						/* obsolete option - move it away */
 						char *obsolete_fname = make_file_name (obsolete_dir, name );
@@ -624,13 +639,16 @@ check_syntax_source( const char *source_dir, SyntaxDef *syntax, Bool module )
 		/* pass two: lets see which options are missing : */
 		for (i = 0; syntax->terms[i].keyword; i++)
 		{	
-			SyntaxDef *sub_syntax = syntax->terms[i].sub_syntax ; 
-			if( sub_syntax == &PopupFuncSyntax ) 
-				sub_syntax = &FuncSyntax ;
-			if (sub_syntax)
-				check_syntax_source( source_dir, sub_syntax, False );
-			if( isalnum( syntax->terms[i].keyword[0] ) )					
-				check_option_source( syntax_dir, syntax->terms[i].keyword, sub_syntax, module?syntax->doc_path:NULL ) ;
+			if( !get_flags( syntax->terms[k].flags, TF_OBSOLETE) )
+			{	
+				SyntaxDef *sub_syntax = syntax->terms[i].sub_syntax ; 
+				if( sub_syntax == &PopupFuncSyntax ) 
+					sub_syntax = &FuncSyntax ;
+				if (sub_syntax)
+					check_syntax_source( source_dir, sub_syntax, False );
+				if( isalnum( syntax->terms[i].keyword[0] ) )					
+					check_option_source( syntax_dir, syntax->terms[i].keyword, sub_syntax, module?syntax->doc_path:NULL ) ;
+			}
 		}
 		for (i = module?0:1; StandardSourceEntries[i] != NULL ; ++i)
 			check_option_source( syntax_dir, StandardSourceEntries[i], NULL, module?syntax->doc_path:NULL ) ;
@@ -689,8 +707,50 @@ convert_source_tag( xml_elem_t *doc, xml_elem_t **rparm, ASXMLInterpreterState *
 	for (ptr = doc->child ; ptr ; ptr = ptr->next) 
 	{
 		if (ptr->tag_id == XML_CDATA_ID ) 
-			fprintf( state->dest_fp, "%s", ptr->parm );
-		else 
+		{
+			const char *data_ptr = ptr->parm ;
+			int len = 0 ;
+			if( state->doc_type == DocType_NROFF ) 
+			{
+				while( data_ptr[0] == '\n' ) 
+					++data_ptr ;
+			}	
+			len = strlen( data_ptr ); 
+			if( len > 0 && state->doc_type == DocType_NROFF) 
+			{
+				int i ;	  
+				while( len > 0 && data_ptr[len-1] == '\n' ) 
+					--len ;
+				/* we want to skip as much whitespace as possible in NROFF */
+				for( i = 0 ; i < len ; ++i ) 
+					if( !isspace(data_ptr[i]) )
+						break;
+				if( i == len ) 
+					len = 0 ;
+				else if( !get_flags( state->flags, ASXMLI_LiteralLayout ) )
+				{
+					int from , to ;
+					Bool written = 0 ;
+					for( i = 0 ; i < len ; ++i ) 
+					{
+						while( isspace(data_ptr[i]) && i < len ) ++i ;
+						from = i ; 
+						while( !isspace(data_ptr[i]) && i < len ) ++i ;
+						to = i ; 
+						if( to > from  ) 
+						{	
+							if( written > 0 ) 
+								fputc( ' ', state->dest_fp );
+							fwrite( &data_ptr[from], 1, to-from, state->dest_fp );
+							written += to - from ;
+						}
+					}	 
+					len = 0 ;
+				}	 
+			}
+			if( len > 0 ) 
+				fwrite( data_ptr, 1, len, state->dest_fp );
+		}else 
 			convert_source_tag( ptr, NULL, state );
 	}
 	if( state->doc_type != DocType_XML ) 
@@ -1172,17 +1232,24 @@ void
 write_syntax_doc_header( SyntaxDef *syntax, ASXMLInterpreterState *state )
 {
 	const char *display_name = AfterStepName ;
+	const char *display_purpose = "X11 window manager" ;
 	const char *doc_name = AfterStepName ;
 	char *css = NULL ;
 	int i ;
 	if( syntax ) 
 	{	
 		display_name = syntax->display_name ;
+		display_purpose = syntax->display_purpose ;
 		doc_name = syntax->doc_path ;
 	}else if( state->doc_class == DocClass_Glossary ) 
+	{	
 		display_name = GlossaryName ; 
-	else if( state->doc_class == DocClass_TopicIndex ) 
+		display_purpose = "" ;
+	}else if( state->doc_class == DocClass_TopicIndex ) 
+	{	
 		display_name = TopicIndexName ; 
+		display_purpose = "" ;
+	}
 		
 	++(state->header_depth);
 	switch( state->doc_type ) 
@@ -1206,8 +1273,12 @@ write_syntax_doc_header( SyntaxDef *syntax, ASXMLInterpreterState *state )
 			fprintf( state->dest_fp, "</head>\n"
 					  				 "<body>\n"
 									 "<A name=\"page_top\"></A>\n"
-									 "<A href=\"index.html\">Topic index</A>&nbsp;&nbsp;<A href=\"Glossary.html\">Glossary</A><p>\n"
-					  				 "<h1>%s</h1>\n<hr>\n", display_name );
+									 "<A href=\"index.html\">Topic index</A>&nbsp;&nbsp;<A href=\"Glossary.html\">Glossary</A><p>\n" );
+			if( display_purpose[0] != '\0' )
+				fprintf( state->dest_fp, "<h1>%s - %s</h1>\n<hr>\n", display_name, display_purpose );
+			else
+				fprintf( state->dest_fp, "<h1>%s</h1>\n<hr>\n", display_name );
+
 			break;
  		case DocType_PHP :	
 			fprintf( state->dest_fp, PHPXrefFormat, "visualdoc","Index","visualselect", "" );
@@ -1246,12 +1317,24 @@ write_syntax_doc_header( SyntaxDef *syntax, ASXMLInterpreterState *state )
       								 "<corpauthor>\n"
       								 "<ulink url=\"http://www.afterstep.org\">AfterStep Window Manager</ulink>\n"
       								 "</corpauthor>\n"
-      								 "</authorgroup>\n"
-									 "<title>%s documentation</title>\n"
-									 "<releaseinfo>%s</releaseinfo>\n"
-									 "</articleinfo>\n", display_name, VERSION );
+      								 "</authorgroup>\n");
+			if( display_purpose[0] != '\0' )
+				fprintf( state->dest_fp, "<title>%s</title>\n", display_name );
+			else
+				fprintf( state->dest_fp, "<title>%s - %s</title>\n", display_name, display_purpose );
+			fprintf( state->dest_fp, "<releaseinfo>%s</releaseinfo>\n"
+									 "</articleinfo>\n", VERSION );
 			break ;
 		case DocType_NROFF :
+			fprintf( state->dest_fp, ".\\\" t\n"
+									 ".\\\" @(#)%s.1		%s\n", doc_name, CurrentDateShort);
+			fprintf( state->dest_fp, ".TH %s 1 \"AfterStep v.%s\" \"%s\" \"AfterStep X11 window manager\"\n", doc_name, VERSION, CurrentDateLong );
+			fprintf( state->dest_fp, ".UC\n"
+									 ".SH NAME\n"
+									 "\\fB%s\\fP", doc_name );
+			if( display_purpose[0] != '\0' )
+				fprintf( state->dest_fp, "\\ - %s", display_purpose );
+			fputc( '\n', state->dest_fp );
 		    break ;
 		default:
 			break;
@@ -1281,6 +1364,7 @@ write_syntax_options_header( SyntaxDef *syntax, ASXMLInterpreterState *state )
 			fprintf( state->dest_fp, "\n<section label=\"options\" id=\"options\"><title>CONFIGURATION OPTIONS :</title>\n" );
 			break;
 		case DocType_NROFF :
+			fprintf( state->dest_fp, "\n.SH CONFIGURATION OPTIONS\n" );
 		    break ;
 		default:
 			break;
@@ -1305,6 +1389,7 @@ write_syntax_options_footer( SyntaxDef *syntax, ASXMLInterpreterState *state )
 			fprintf( state->dest_fp, "\n</section>\n" );
 			break ;
 		case DocType_NROFF :
+			/* not needed */
 		    break ;
 		default:
 			break;
@@ -1335,6 +1420,7 @@ write_syntax_doc_footer( SyntaxDef *syntax, ASXMLInterpreterState *state )
 			fprintf( state->dest_fp, "\n</article>\n" );
 		    break ;
 		case DocType_NROFF :
+			/* not needed */
 		    break ;
 		default:
 			break;
@@ -1446,7 +1532,9 @@ start_para_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state 
 	{	
 		close_link(state);
 		fprintf( state->dest_fp, "<P class=\"dense\">" );	
-	}
+	}else if( state->doc_type == DocType_NROFF )
+		fprintf( state->dest_fp, "\n" );
+		 
 }
 
 void 
@@ -1456,7 +1544,8 @@ end_para_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state )
 	if( state->doc_type == DocType_HTML	|| state->doc_type == DocType_PHP )
 	{
 		fwrite( "</P>", 1, 4, state->dest_fp );	
-	}
+	}else if( state->doc_type == DocType_NROFF )
+		fprintf( state->dest_fp, "\n" );
 }
 
 
@@ -1465,6 +1554,8 @@ start_command_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *sta
 {
 	if( state->doc_type == DocType_HTML	|| state->doc_type == DocType_PHP	 )
 		fwrite( "<B>", 1, 3, state->dest_fp );	
+	else if( state->doc_type == DocType_NROFF )
+		fprintf( state->dest_fp, " \\fB");
 }
 
 void 
@@ -1472,6 +1563,8 @@ end_command_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state
 {
 	if( state->doc_type == DocType_HTML	|| state->doc_type == DocType_PHP	 )
 		fwrite( "</B>", 1, 4, state->dest_fp );	
+	else if( state->doc_type == DocType_NROFF )
+		fprintf( state->dest_fp, "\\fP ");
 }
 
 void 
@@ -1479,6 +1572,8 @@ start_emphasis_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *st
 {
 	if( state->doc_type == DocType_HTML	|| state->doc_type == DocType_PHP	 )
 		fwrite( "<I>", 1, 3, state->dest_fp );	
+	else if( state->doc_type == DocType_NROFF && doc->tag_id != DOCBOOK_replaceable_ID)
+		fprintf( state->dest_fp, " \\fI");
 }
 
 void 
@@ -1486,25 +1581,31 @@ end_emphasis_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *stat
 {
 	if( state->doc_type == DocType_HTML	|| state->doc_type == DocType_PHP	 )
 		fwrite( "</I>", 1, 4, state->dest_fp );	
+	else if( state->doc_type == DocType_NROFF && doc->tag_id != DOCBOOK_replaceable_ID )
+		fprintf( state->dest_fp, "\\fP ");
 }
 
 void 
 start_literallayout_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state )
 {
  	close_link(state);
+	set_flags( state->flags, ASXMLI_LiteralLayout );
 	if( state->doc_type == DocType_HTML	|| state->doc_type == DocType_PHP)
 	{	
 		fprintf( state->dest_fp, "<PRE>");	
-	}
+	}else if( state->doc_type == DocType_NROFF )
+		fprintf( state->dest_fp, "\n.nf\n");
 }
 
 void 
 end_literallayout_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state )
 {
+	clear_flags( state->flags, ASXMLI_LiteralLayout );
 	if( state->doc_type == DocType_HTML	|| state->doc_type == DocType_PHP)
 	{	
 		fwrite( "</PRE>", 1, 6, state->dest_fp );	  
-	}
+	}else if( state->doc_type == DocType_NROFF )
+		fprintf( state->dest_fp, "\n.fi ");
 }
 
 void 
@@ -1520,6 +1621,8 @@ end_variablelist_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *
 {
 	if( state->doc_type == DocType_HTML	|| state->doc_type == DocType_PHP	 )
 		fwrite( "</DL>", 1, 5, state->dest_fp );	
+	else if( state->doc_type == DocType_NROFF )
+		fprintf( state->dest_fp, "\n");
 }
 
 void 
@@ -1527,6 +1630,9 @@ start_varlistentry_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState
 {
 	if( state->doc_type == DocType_HTML	|| state->doc_type == DocType_PHP	 )
 		add_anchor( parm, state );
+	else if( state->doc_type == DocType_NROFF )
+		fprintf( state->dest_fp, "\n.IP ");
+
 }
 
 void 
@@ -1534,6 +1640,8 @@ end_varlistentry_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *
 {
 	if( state->doc_type == DocType_HTML	|| state->doc_type == DocType_PHP	 )			
 		close_link(state);
+//	else if( state->doc_type == DocType_NROFF )
+//		fprintf( state->dest_fp, "\n");
 }
 
 void 
@@ -1577,6 +1685,8 @@ start_term_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state 
 #endif
 	if( state->doc_type == DocType_HTML || state->doc_type == DocType_PHP	 )
 		fprintf( state->dest_fp, "<DT class=\"dense\"><B>" );	
+	else if( state->doc_type == DocType_NROFF )
+		fprintf( state->dest_fp, "\"");
 }
 
 void 
@@ -1584,6 +1694,8 @@ end_term_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state )
 {
 	if( state->doc_type == DocType_HTML || state->doc_type == DocType_PHP	 )
 		fwrite( "</B></DT>", 1, 9, state->dest_fp );	
+	else if( state->doc_type == DocType_NROFF )
+		fprintf( state->dest_fp, "\"\n");
 }	
 
 void 
@@ -1612,7 +1724,8 @@ start_section_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *sta
 			fwrite( "<UL>", 1, 4, state->dest_fp );
 		else if( doc->tag_id == DOCBOOK_refsect1_ID ) 
 			fwrite( "<LI>", 1, 4, state->dest_fp );
-	}
+	}else if( state->doc_type == DocType_NROFF && doc->tag_id != DOCBOOK_section_ID )
+		fprintf( state->dest_fp, "\n.SH ");
 }
 
 void 
@@ -1660,7 +1773,8 @@ start_cmdsynopsis_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState 
 		else
 			fprintf( state->dest_fp, "<LI><h%d>SYNOPSIS</h%d>", state->header_depth, state->header_depth );	   			  
 		close_link(state);
-	}
+	}else if( state->doc_type == DocType_NROFF )
+		fprintf( state->dest_fp, ".SH SYNOPSIS\n");
 }
 
 void 
@@ -1669,6 +1783,8 @@ end_cmdsynopsis_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *s
 	--(state->header_depth);	
 	if( state->doc_type == DocType_HTML	|| state->doc_type == DocType_PHP	 )
 		fwrite( "</LI>", 1, 5, state->dest_fp );
+	else if( state->doc_type == DocType_NROFF )
+		fprintf( state->dest_fp, "\n");
 }
 
 int 
@@ -1692,6 +1808,8 @@ start_group_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state
 {
 	++(state->group_depth);	
 	set_flags(state->flags, ASXMLI_FirstArg );
+	if( state->doc_type == DocType_NROFF )
+		fputc( ' ', state->dest_fp );
 	if( check_choice( parm ) ) 
 		fputc( '[', state->dest_fp );
 }
@@ -1704,6 +1822,8 @@ end_group_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state )
 		set_flags(state->flags, ASXMLI_FirstArg );
 	if( check_choice( parm ) ) 
 		fputc( ']', state->dest_fp );
+	if( state->doc_type == DocType_NROFF )
+		fputc( ' ', state->dest_fp );
 }
 
 void 
@@ -1712,10 +1832,14 @@ start_arg_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state )
 	if( !get_flags(state->flags, ASXMLI_FirstArg ) && state->group_depth > 0 )
 		fwrite( "| ", 1, 2, state->dest_fp );
 	clear_flags(state->flags, ASXMLI_FirstArg );
+	if( state->doc_type == DocType_NROFF )
+		fputc( ' ', state->dest_fp );
 	if( check_choice( parm ) ) 
 		fputc( '[', state->dest_fp );
 	if( state->doc_type == DocType_HTML	|| state->doc_type == DocType_PHP	 )
 		fwrite( "<B>", 1, 3, state->dest_fp );
+	else if( state->doc_type == DocType_NROFF )
+		fprintf( state->dest_fp, "\\fI");
 }
 
 void 
@@ -1724,8 +1848,12 @@ end_arg_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state )
 	--(state->group_depth);	
 	if( state->doc_type == DocType_HTML	|| state->doc_type == DocType_PHP )
 		fwrite( "</B>", 1, 4, state->dest_fp );
+	else if( state->doc_type == DocType_NROFF )
+		fprintf( state->dest_fp, "\\fP");
 	if( check_choice( parm ) ) 
 		fputc( ']', state->dest_fp );
+	if( state->doc_type == DocType_NROFF )
+		fputc( ' ', state->dest_fp );
 }
 
 void 
@@ -1752,7 +1880,9 @@ start_example_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *sta
 		close_link(state);
 		fprintf( state->dest_fp, "<P class=\"dense\"> <B>Example : </B> " );	   			  
 		fprintf( state->dest_fp, "<div class=\"container\">");
-	}
+	}else if( state->doc_type == DocType_NROFF )
+		fprintf( state->dest_fp, "\nExample : ");
+
 }
 
 void 
@@ -1772,6 +1902,8 @@ start_ulink_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state
 	{
 		add_local_link( parm, state );
 	}	
+	if( state->doc_type == DocType_NROFF )
+		fputc( ' ', state->dest_fp );
 }
 	 
 void 
@@ -1779,6 +1911,8 @@ end_ulink_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state )
 {
 	if( state->doc_type == DocType_HTML	|| state->doc_type == DocType_PHP	 )
 		close_link(state);
+	if( state->doc_type == DocType_NROFF )
+		fputc( ' ', state->dest_fp );
 }	 
 
 void 

@@ -112,6 +112,7 @@ typedef struct SyntaxDef
   char *prepend_sub;		/* sequence of character to prepend whole config with */
   char *display_name;		/* will be in error message */
   char *doc_path;
+  char *display_purpose;    /* purpose of what is identifyed by display_name */
   	  
   /* generated members */
   struct ASHashTable *term_hash;	/* hash table for fast term search */

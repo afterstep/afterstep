@@ -57,6 +57,7 @@ SyntaxDef     PagerDecorationSyntax = {
 	"\t",
 	"Pager Decoration options",
 	"PagerDecorations",
+	"Visual attributes of the Pager window",
 	NULL,
 	0
 };
@@ -96,6 +97,7 @@ SyntaxDef     PagerSyntax = {
 	"\t",
 	"Pager configuration",
 	"Pager",
+	"AfterStep module for virtual desktop navigation",
 	NULL,
 	0
 

@@ -58,6 +58,7 @@ SyntaxDef     WhevSyntax = {
 	"\t",
 	"Wharf sound definition",
 	"WharfSounds",
+	"types of events for which sound could be played by Wharf",
 	NULL,
     0
 };
@@ -115,6 +116,7 @@ SyntaxDef     WharfSyntax = {
 	"",
 	"Wharf configuration",
 	"Wharf",
+	"AfterStep module for launching or docking applications aka button bar",
 	NULL,
     0
 };
@@ -339,7 +341,7 @@ WharfSpecialFunc (ConfigDef * config, FreeStorageElem ** storage)
         if (mystrncasecmp (config->tdata, "~Folders", 7) == 0)
         {
             show_error( " config line %d: ~Folders keyword is no longer supported. \nPlease Update your configuration to use ~Folder instead!\n Please Accept our apologies for any inconvinience.", config->line_count);
-            pterm = FindStatementTerm ("~Folder", &WharfSyntax);
+            pterm = FindStatementTerm (WHARF_FOLDER_END, &WharfSyntax);
         }
 
     if( pterm != NULL )
@@ -414,7 +416,13 @@ WharfSpecialFunc (ConfigDef * config, FreeStorageElem ** storage)
         if( config->cursor < good_cursor )
             config->cursor = good_cursor;
         LOCAL_DEBUG_OUT("done processing function definition statement...%s","");
-	}
+	}else
+	{
+        show_error( " config line %d: Function is not defined for the button. Use Nop if no action is desired..", config->line_count);
+		/* function is ommited ! */
+		PopSyntax (config);
+		PopStorage (config);
+	}	 
     print_trimmed_str( "config->tdata", config->tdata );
     print_trimmed_str( "config->tline", config->tline );
     print_trimmed_str( "config->cursor", config->cursor );

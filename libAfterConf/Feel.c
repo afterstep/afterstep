@@ -60,6 +60,7 @@ SyntaxDef     WindowBoxSyntax = {
 	"\t",
 	"WindowBox definition",
 	"FeelWindowBox",
+	"defines placement policy for certain type of windows",
 	NULL,
 	0
 };
@@ -165,6 +166,7 @@ SyntaxDef FeelSyntax =
   "\t",
   "Feel configuration",
   "Feel",
+  "AfterStep feel configuration",
   NULL,
   0
 };
@@ -220,6 +222,7 @@ SyntaxDef AutoExecSyntax =
   "\t",
   "autoexec",
   "AutoExec",
+  "functions to be executed by AfterStep on startup/shutdown",
   NULL,
   0
 };
@@ -241,6 +244,7 @@ SyntaxDef ThemeSyntax =
   "\t",
   "theme installation script",
   "Theme",
+  "AfterStep theme file",
   NULL,
   0
 };

@@ -60,6 +60,7 @@ SyntaxDef     AlignSyntax = {
 	"\t",
     "Alignment flags",
 	"Align",
+	"",
 	NULL,
 	0
 };
@@ -103,6 +104,7 @@ SyntaxDef     BevelSyntax = {
 	"\t",
     "Bevel flags",
 	"Bevel",
+	"",
 	NULL,
 	0
 };
@@ -137,6 +139,7 @@ SyntaxDef     TbarLayoutSyntax = {
 	"\t",
     "Titlebar Layout Flags",
 	"TbarLayout",
+	"",
 	NULL,
 	0
 };
@@ -235,6 +238,7 @@ SyntaxDef     MyFrameSyntax = {
 	"\t",
 	"MyFrame definition",
 	"MyFrame",
+	"defines how AfterStep should construct window's frame",
 	NULL,
 	0
 };
@@ -262,6 +266,7 @@ SyntaxDef     SupportedHintsSyntax = {
 	"\t",
     "Supported hints list",
 	"SupportedHints",
+	"",
 	NULL,
 	0
 };
@@ -277,44 +282,53 @@ extern SyntaxDef     MyBackgroundSyntax ;      /* see ASetRoot.c */
 
 TermDef       LookTerms[] = {
 /* depreciated options : */
-    {TF_DEPRECIATED|TF_NO_MYNAME_PREPENDING, "Font", 4, TT_FONT, LOOK_Font_ID, NULL},
-    {TF_DEPRECIATED|TF_NO_MYNAME_PREPENDING, "WindowFont", 10, TT_FONT, LOOK_WindowFont_ID, NULL},
-    {TF_DEPRECIATED|TF_NO_MYNAME_PREPENDING, "MTitleForeColor", 15, TT_COLOR, LOOK_MTitleForeColor_ID, NULL},
-    {TF_DEPRECIATED|TF_NO_MYNAME_PREPENDING, "MTitleBackColor", 15, TT_COLOR, LOOK_MTitleBackColor_ID, NULL},
-    {TF_DEPRECIATED|TF_NO_MYNAME_PREPENDING, "MenuForeColor", 13, TT_COLOR, LOOK_MenuForeColor_ID, NULL},
-    {TF_DEPRECIATED|TF_NO_MYNAME_PREPENDING, "MenuBackColor", 13, TT_COLOR, LOOK_MenuBackColor_ID, NULL},
-    {TF_DEPRECIATED|TF_NO_MYNAME_PREPENDING, "MenuHiForeColor", 15, TT_COLOR, LOOK_MenuHiForeColor_ID, NULL},
-    {TF_DEPRECIATED|TF_NO_MYNAME_PREPENDING, "MenuHiBackColor", 15, TT_COLOR, LOOK_MenuHiBackColor_ID, NULL},
-    {TF_DEPRECIATED|TF_NO_MYNAME_PREPENDING, "MenuStippleColor", 16, TT_COLOR, LOOK_MenuStippleColor_ID, NULL},
-    {TF_DEPRECIATED|TF_NO_MYNAME_PREPENDING, "StdForeColor", 12, TT_COLOR, LOOK_StdForeColor_ID, NULL},
-    {TF_DEPRECIATED|TF_NO_MYNAME_PREPENDING, "StdBackColor", 12, TT_COLOR, LOOK_StdBackColor_ID, NULL},
-    {TF_DEPRECIATED|TF_NO_MYNAME_PREPENDING, "StickyForeColor", 15, TT_COLOR, LOOK_StickyForeColor_ID, NULL},
-    {TF_DEPRECIATED|TF_NO_MYNAME_PREPENDING, "StickyBackColor", 15, TT_COLOR, LOOK_StickyBackColor_ID, NULL},
-    {TF_DEPRECIATED|TF_NO_MYNAME_PREPENDING, "HiForeColor", 11, TT_COLOR, LOOK_HiForeColor_ID, NULL},
-    {TF_DEPRECIATED|TF_NO_MYNAME_PREPENDING, "HiBackColor", 11, TT_COLOR, LOOK_HiBackColor_ID, NULL},
-    {TF_DEPRECIATED|TF_NO_MYNAME_PREPENDING, "IconFont", 8, TT_FONT, LOOK_IconFont_ID, NULL},
-    {TF_DEPRECIATED|TF_NO_MYNAME_PREPENDING, "TextureTypes", 12, TT_INTARRAY, LOOK_TextureTypes_ID, NULL},
+    {TF_OBSOLETE   |TF_NO_MYNAME_PREPENDING, "Font", 4, TT_FONT, LOOK_Font_ID, NULL},
+    {TF_OBSOLETE   |TF_NO_MYNAME_PREPENDING, "WindowFont", 10, TT_FONT, LOOK_WindowFont_ID, NULL},
+    {TF_OBSOLETE   |TF_NO_MYNAME_PREPENDING, "MTitleForeColor", 15, TT_COLOR, LOOK_MTitleForeColor_ID, NULL},
+    {TF_OBSOLETE   |TF_NO_MYNAME_PREPENDING, "MTitleBackColor", 15, TT_COLOR, LOOK_MTitleBackColor_ID, NULL},
+    {TF_OBSOLETE   |TF_NO_MYNAME_PREPENDING, "MenuForeColor", 13, TT_COLOR, LOOK_MenuForeColor_ID, NULL},
+    {TF_OBSOLETE   |TF_NO_MYNAME_PREPENDING, "MenuBackColor", 13, TT_COLOR, LOOK_MenuBackColor_ID, NULL},
+    {TF_OBSOLETE   |TF_NO_MYNAME_PREPENDING, "MenuHiForeColor", 15, TT_COLOR, LOOK_MenuHiForeColor_ID, NULL},
+    {TF_OBSOLETE   |TF_NO_MYNAME_PREPENDING, "MenuHiBackColor", 15, TT_COLOR, LOOK_MenuHiBackColor_ID, NULL},
+    {TF_OBSOLETE   |TF_NO_MYNAME_PREPENDING, "MenuStippleColor", 16, TT_COLOR, LOOK_MenuStippleColor_ID, NULL},
+    {TF_OBSOLETE   |TF_NO_MYNAME_PREPENDING, "StdForeColor", 12, TT_COLOR, LOOK_StdForeColor_ID, NULL},
+    {TF_OBSOLETE   |TF_NO_MYNAME_PREPENDING, "StdBackColor", 12, TT_COLOR, LOOK_StdBackColor_ID, NULL},
+    {TF_OBSOLETE   |TF_NO_MYNAME_PREPENDING, "StickyForeColor", 15, TT_COLOR, LOOK_StickyForeColor_ID, NULL},
+    {TF_OBSOLETE   |TF_NO_MYNAME_PREPENDING, "StickyBackColor", 15, TT_COLOR, LOOK_StickyBackColor_ID, NULL},
+    {TF_OBSOLETE   |TF_NO_MYNAME_PREPENDING, "HiForeColor", 11, TT_COLOR, LOOK_HiForeColor_ID, NULL},
+    {TF_OBSOLETE   |TF_NO_MYNAME_PREPENDING, "HiBackColor", 11, TT_COLOR, LOOK_HiBackColor_ID, NULL},
+    {TF_OBSOLETE   |TF_NO_MYNAME_PREPENDING, "IconFont", 8, TT_FONT, LOOK_IconFont_ID, NULL},
+    {TF_OBSOLETE   |TF_NO_MYNAME_PREPENDING, "TextureTypes", 12, TT_INTARRAY, LOOK_TextureTypes_ID, NULL},
     {TF_OBSOLETE   |TF_NO_MYNAME_PREPENDING, "TextureMaxColors", 16, TT_INTARRAY, LOOK_TextureMaxColors_ID, NULL},
-    {TF_DEPRECIATED|TF_NO_MYNAME_PREPENDING, "TitleTextureColor", 17, TT_COLOR, LOOK_TitleTextureColor_ID, NULL},                                          /* title */
-    {TF_DEPRECIATED|TF_NO_MYNAME_PREPENDING, "UTitleTextureColor", 18, TT_COLOR, LOOK_UTitleTextureColor_ID, NULL},                                          /* unfoc tit */
-    {TF_DEPRECIATED|TF_NO_MYNAME_PREPENDING, "STitleTextureColor", 18, TT_COLOR, LOOK_STitleTextureColor_ID, NULL},                                          /* stic tit */
-    {TF_DEPRECIATED|TF_NO_MYNAME_PREPENDING, "MTitleTextureColor", 18, TT_COLOR, LOOK_MTitleTextureColor_ID, NULL},                                          /* menu title */
-    {TF_DEPRECIATED|TF_NO_MYNAME_PREPENDING, "MenuTextureColor", 16, TT_COLOR, LOOK_MenuTextureColor_ID, NULL},                                          /* menu items */
-    {TF_DEPRECIATED|TF_NO_MYNAME_PREPENDING, "MenuHiTextureColor", 18, TT_COLOR, LOOK_MenuHiTextureColor_ID, NULL},                                          /* sel items */
-    {TF_DEPRECIATED|TF_NO_MYNAME_PREPENDING, "MenuPixmap", 10, TT_FILENAME, LOOK_MenuPixmap_ID, NULL},                                          /* menu entry */
-    {TF_DEPRECIATED|TF_NO_MYNAME_PREPENDING, "MenuHiPixmap", 12, TT_FILENAME, LOOK_MenuHiPixmap_ID, NULL},                                          /* hil m entr */
-    {TF_DEPRECIATED|TF_NO_MYNAME_PREPENDING, "MTitlePixmap", 12, TT_FILENAME, LOOK_MTitlePixmap_ID, NULL},                                          /* menu title */
-    {TF_DEPRECIATED|TF_NO_MYNAME_PREPENDING, "TitlePixmap", 11, TT_FILENAME, LOOK_TitlePixmap_ID, NULL},                                          /* foc tit */
-    {TF_DEPRECIATED|TF_NO_MYNAME_PREPENDING, "UTitlePixmap", 12, TT_FILENAME, LOOK_UTitlePixmap_ID, NULL},                                          /* unfoc tit */
-    {TF_DEPRECIATED|TF_NO_MYNAME_PREPENDING, "STitlePixmap", 12, TT_FILENAME, LOOK_STitlePixmap_ID, NULL},                                          /* stick tit */
+    {TF_OBSOLETE   |TF_NO_MYNAME_PREPENDING, "TitleTextureColor", 17, TT_COLOR, LOOK_TitleTextureColor_ID, NULL},                                          /* title */
+    {TF_OBSOLETE   |TF_NO_MYNAME_PREPENDING, "UTitleTextureColor", 18, TT_COLOR, LOOK_UTitleTextureColor_ID, NULL},                                          /* unfoc tit */
+    {TF_OBSOLETE   |TF_NO_MYNAME_PREPENDING, "STitleTextureColor", 18, TT_COLOR, LOOK_STitleTextureColor_ID, NULL},                                          /* stic tit */
+    {TF_OBSOLETE   |TF_NO_MYNAME_PREPENDING, "MTitleTextureColor", 18, TT_COLOR, LOOK_MTitleTextureColor_ID, NULL},                                          /* menu title */
+    {TF_OBSOLETE   |TF_NO_MYNAME_PREPENDING, "MenuTextureColor", 16, TT_COLOR, LOOK_MenuTextureColor_ID, NULL},                                          /* menu items */
+    {TF_OBSOLETE   |TF_NO_MYNAME_PREPENDING, "MenuHiTextureColor", 18, TT_COLOR, LOOK_MenuHiTextureColor_ID, NULL},                                          /* sel items */
+    {TF_OBSOLETE   |TF_NO_MYNAME_PREPENDING, "MenuPixmap", 10, TT_FILENAME, LOOK_MenuPixmap_ID, NULL},                                          /* menu entry */
+    {TF_OBSOLETE   |TF_NO_MYNAME_PREPENDING, "MenuHiPixmap", 12, TT_FILENAME, LOOK_MenuHiPixmap_ID, NULL},                                          /* hil m entr */
+    {TF_OBSOLETE   |TF_NO_MYNAME_PREPENDING, "MTitlePixmap", 12, TT_FILENAME, LOOK_MTitlePixmap_ID, NULL},                                          /* menu title */
+    {TF_OBSOLETE   |TF_NO_MYNAME_PREPENDING, "TitlePixmap", 11, TT_FILENAME, LOOK_TitlePixmap_ID, NULL},                                          /* foc tit */
+    {TF_OBSOLETE   |TF_NO_MYNAME_PREPENDING, "UTitlePixmap", 12, TT_FILENAME, LOOK_UTitlePixmap_ID, NULL},                                          /* unfoc tit */
+    {TF_OBSOLETE   |TF_NO_MYNAME_PREPENDING, "STitlePixmap", 12, TT_FILENAME, LOOK_STitlePixmap_ID, NULL},                                          /* stick tit */
 
-    {TF_DEPRECIATED|TF_NO_MYNAME_PREPENDING, "ButtonTextureType", 17, TT_UINTEGER, LOOK_ButtonTextureType_ID, NULL},
-    {TF_DEPRECIATED|TF_NO_MYNAME_PREPENDING, "ButtonBgColor", 13, TT_COLOR, LOOK_ButtonBgColor_ID, NULL},
-    {TF_DEPRECIATED|TF_NO_MYNAME_PREPENDING, "ButtonTextureColor", 18, TT_COLOR, LOOK_ButtonTextureColor_ID, NULL},
+    {TF_OBSOLETE   |TF_NO_MYNAME_PREPENDING, "ButtonTextureType", 17, TT_UINTEGER, LOOK_ButtonTextureType_ID, NULL},
+    {TF_OBSOLETE   |TF_NO_MYNAME_PREPENDING, "ButtonBgColor", 13, TT_COLOR, LOOK_ButtonBgColor_ID, NULL},
+    {TF_OBSOLETE   |TF_NO_MYNAME_PREPENDING, "ButtonTextureColor", 18, TT_COLOR, LOOK_ButtonTextureColor_ID, NULL},
     {TF_OBSOLETE   |TF_NO_MYNAME_PREPENDING, "ButtonMaxColors", 15, TT_UINTEGER, LOOK_ButtonMaxColors_ID, NULL},
-    {TF_DEPRECIATED|TF_NO_MYNAME_PREPENDING, "ButtonPixmap", 12, TT_FILENAME, LOOK_ButtonPixmap_ID, NULL},
-    {TF_NO_MYNAME_PREPENDING, "TitleTextMode", 13, TT_UINTEGER, LOOK_TitleTextMode_ID, NULL},
+    {TF_OBSOLETE   |TF_NO_MYNAME_PREPENDING, "ButtonPixmap", 12, TT_FILENAME, LOOK_ButtonPixmap_ID, NULL},
+    {TF_OBSOLETE   |TF_NO_MYNAME_PREPENDING, "TitleTextMode", 13, TT_UINTEGER, LOOK_TitleTextMode_ID, NULL},
+/*    {TF_OBSOLETE   |TF_NO_MYNAME_PREPENDING, "MenuPinOff", 10, TT_FILENAME, LOOK_MenuPinOff_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "TextureMenuItemsIndividually", 28, TT_FLAG, LOOK_TxtrMenuItmInd_ID, NULL},
 
+    {TF_NO_MYNAME_PREPENDING, "TextGradientColor", 17, TT_CUSTOM, LOOK_TextGradientColor_ID, NULL},                                          
+    {TF_NO_MYNAME_PREPENDING, "GradientText", 12, TT_FLAG, LOOK_GradientText_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "ButtonNoBorder", 14, TT_FLAG, LOOK_ButtonNoBorder_ID, NULL},
+    {TF_INDEXED|TF_NO_MYNAME_PREPENDING, "IconTitleButton", 15, TT_BUTTON, LOOK_IconTitleButton_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "MenuFrame", 16, TT_QUOTED_TEXT, LOOK_MenuFrame_ID, NULL},
+	{TF_NO_MYNAME_PREPENDING|TF_INDEXED|TF_DONT_SPLIT, "DeskLayout", 8, TT_QUOTED_TEXT, LOOK_DeskLayout_ID, NULL},
+*/
 /* non depreciated options : */
     {TF_NO_MYNAME_PREPENDING, "IconBox", 7, TT_BOX, LOOK_IconBox_ID, NULL},
 	/* including MyStyles definitions processing */
@@ -322,13 +336,8 @@ TermDef       LookTerms[] = {
 
     {TF_NO_MYNAME_PREPENDING, "MArrowPixmap", 12, TT_FILENAME, LOOK_MArrowPixmap_ID, NULL},                                          /* menu arrow */
     {TF_NO_MYNAME_PREPENDING, "MenuPinOn", 9, TT_FILENAME, LOOK_MenuPinOn_ID, NULL},                                          /* menu pin */
-    {TF_NO_MYNAME_PREPENDING, "MenuPinOff", 10, TT_FILENAME, LOOK_MenuPinOff_ID, NULL},
-    {TF_NO_MYNAME_PREPENDING, "TextureMenuItemsIndividually", 28, TT_FLAG, LOOK_TxtrMenuItmInd_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "MenuMiniPixmaps", 15, TT_FLAG, LOOK_MenuMiniPixmaps_ID, NULL},
-    {TF_NO_MYNAME_PREPENDING, "TextGradientColor", 17, TT_CUSTOM, LOOK_TextGradientColor_ID, NULL},                                          /* title text */
-    {TF_NO_MYNAME_PREPENDING, "GradientText", 12, TT_FLAG, LOOK_GradientText_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "TitlebarNoPush", 14, TT_FLAG, LOOK_TitlebarNoPush_ID, NULL},
-    {TF_NO_MYNAME_PREPENDING, "ButtonNoBorder", 14, TT_FLAG, LOOK_ButtonNoBorder_ID, NULL},
 /* TitleButtonBalloons */
     {TF_NO_MYNAME_PREPENDING, "TitleButtonBalloons", 19, TT_FLAG, BALLOON_USED_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "TitleButtonBalloonBorderHilite", 29, TT_FLAG, BALLOON_BorderHilite_ID, &BevelSyntax},
@@ -344,7 +353,6 @@ TermDef       LookTerms[] = {
     {TF_NO_MYNAME_PREPENDING, "TitleButtonXOffset", 18, TT_INTEGER, LOOK_TitleButtonXOffset_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "TitleButtonYOffset", 18, TT_INTEGER, LOOK_TitleButtonYOffset_ID, NULL},
     {TF_INDEXED|TF_NO_MYNAME_PREPENDING, "TitleButton", 11, TT_BUTTON, LOOK_TitleButton_ID, NULL},
-    {TF_INDEXED|TF_NO_MYNAME_PREPENDING, "IconTitleButton", 15, TT_BUTTON, LOOK_IconTitleButton_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "ResizeMoveGeometry", 18, TT_GEOMETRY, LOOK_ResizeMoveGeometry_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "StartMenuSortMode", 17, TT_UINTEGER, LOOK_StartMenuSortMode_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "DrawMenuBorders", 15, TT_UINTEGER, LOOK_DrawMenuBorders_ID, NULL},
@@ -366,13 +374,11 @@ TermDef       LookTerms[] = {
 
 	INCLUDE_MYFRAME,
 
-    {TF_NO_MYNAME_PREPENDING, "MenuFrame", 16, TT_QUOTED_TEXT, LOOK_MenuFrame_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "SupportedHints", 14, TT_FLAG, LOOK_SupportedHints_ID, &SupportedHintsSyntax},
 
 	/* see ASetRoot.c : */
     {TF_NO_MYNAME_PREPENDING, "MyBackground", 12, TT_QUOTED_TEXT,BGR_MYBACKGROUND, &MyBackgroundSyntax},
 	{TF_NO_MYNAME_PREPENDING|TF_INDEXED|TF_DONT_SPLIT, "DeskBack", 8, TT_QUOTED_TEXT, LOOK_DeskBack_ID, NULL},
-	{TF_NO_MYNAME_PREPENDING|TF_INDEXED|TF_DONT_SPLIT, "DeskLayout", 8, TT_QUOTED_TEXT, LOOK_DeskLayout_ID, NULL},
 
 	{0, NULL, 0, 0, 0}
 };
@@ -387,15 +393,13 @@ SyntaxDef     LookSyntax = {
 	"\t",
 	"Look configuration",
 	"Look",
+	"AfterStep look",
 	NULL,
 	0
 };
 
 flag_options_xref LookFlagsXref[] = {
-    {TxtrMenuItmInd, LOOK_TxtrMenuItmInd_ID, 0},
     {MenuMiniPixmaps, LOOK_MenuMiniPixmaps_ID, 0},
-    {GradientText, LOOK_GradientText_ID, 0},
-    {IconNoBorder, LOOK_ButtonNoBorder_ID, 0},
     {SeparateButtonTitle, LOOK_SeparateButtonTitle_ID, 0},
 	{0, 0, 0}
 
@@ -1559,19 +1563,7 @@ ParseLookOptions (const char *filename, char *myname)
 			 case LOOK_MenuPinOn_ID:		   /* menu pin */
 				 set_string_value (&(config->menu_pin_on), item.data.string, NULL, 0);
 				 break;
-			 case LOOK_MenuPinOff_ID:
-				 set_string_value (&(config->menu_pin_off), item.data.string, NULL, 0);
-				 break;
 
-			 case LOOK_TextGradientColor_ID:  /* title text */
-				 {
-					 register int  i;
-
-					 for (i = 0; i < 2 && i < pCurr->argc; i++)
-						 set_string_value (&(config->text_gradient[i]), mystrdup (pCurr->argv[i]), NULL, 0);
-					 item.ok_to_free = 1;
-				 }
-				 break;
 			 case LOOK_TitleTextAlign_ID:
 				 config->title_text_align = item.data.integer;
 				 set_flags (config->set_flags, LOOK_TitleTextAlign);
@@ -1636,13 +1628,7 @@ ParseLookOptions (const char *filename, char *myname)
 				 item.ok_to_free = 1;
 				 break;
 
-             case LOOK_MenuFrame_ID :
-                 set_string_value (&(config->menu_frame), item.data.string, NULL, 0);
-                 break;
-
 			 case LOOK_DeskBack_ID:
-			 case LOOK_DeskLayout_ID:
-				 ParseDesktopOptions (&(config->desk_configs), &item, pCurr->term->id-LOOK_DeskConfig_ID_START );
 				 break;
 
 			 case LOOK_SupportedHints_ID:
@@ -1711,21 +1697,11 @@ WriteLookOptions (const char *filename, char *myname, LookConfig * config, unsig
 			tail = QuotedString2FreeStorage (&LookSyntax, tail, NULL, config->menu_styles[i],
 											 LOOK_MenuStyle_ID_START + i);
 
-    tail = String2FreeStorage (&LookSyntax, tail, config->menu_frame, LOOK_MenuFrame_ID);
-
     /* Menu Icons */
 	if (config->menu_arrow)
 		tail = String2FreeStorage (&LookSyntax, tail, config->menu_arrow, LOOK_MArrowPixmap_ID);
 	if (config->menu_pin_on)
 		tail = String2FreeStorage (&LookSyntax, tail, config->menu_pin_on, LOOK_MenuPinOn_ID);
-	if (config->menu_pin_off)
-		tail = String2FreeStorage (&LookSyntax, tail, config->menu_pin_off, LOOK_MenuPinOff_ID);
-	/* TextGradient */
-	if (get_flags (config->set_flags, GradientText))
-	{
-		if (config->text_gradient[0] != NULL && config->text_gradient[1] != NULL)
-			tail = Strings2FreeStorage (&LookSyntax, tail, config->text_gradient, 2, LOOK_TextGradientColor_ID);
-	}
 	/* Other Misc stuff */
 	if (get_flags (config->set_flags, LOOK_StartMenuSortMode))
         tail = Integer2FreeStorage (&LookSyntax, tail, NULL, config->start_menu_sort_mode, LOOK_StartMenuSortMode_ID);
@@ -1769,10 +1745,6 @@ WriteLookOptions (const char *filename, char *myname, LookConfig * config, unsig
 	for (i = 0; i < MAX_BUTTONS; i++)
         if (config->normal_buttons[i] != NULL)
             tail = ASButton2FreeStorage (&LookSyntax, tail, i, config->normal_buttons[i], LOOK_TitleButton_ID);
-    /* Iconifyed window's Title Buttons : */
-    for (i = 0; i < MAX_BUTTONS; i++)
-        if (config->icon_buttons[i] != NULL)
-            tail = ASButton2FreeStorage (&LookSyntax, tail, i, config->icon_buttons[i], LOOK_IconTitleButton_ID);
 
 	/* writing config into the file */
 	cd.filename = filename ;

@@ -56,6 +56,7 @@ SyntaxDef     MyBackgroundSyntax = {
 	"\t",
 	"MyBackground definition",
 	"MyBackground",
+	"details how background is to be rendered",
 	NULL,
     0
 };
@@ -79,6 +80,7 @@ SyntaxDef     ASetRootSyntax = {
 	"\t",
     "asetroot configuration",
 	"Look/DeskBack",
+	"AfterStep module for rendering root backgrounds",
 	NULL,
     0
 };

@@ -75,6 +75,7 @@ SyntaxDef     AudioEventsSyntax = {
 	"\t",
     "Audio event configuration",
 	"AudioEvents",
+	"names for different windowing events",
 	NULL,
 	0
 };
@@ -101,6 +102,7 @@ SyntaxDef     AudioSyntax = {
 	"\t",
 	"Audio configuration",
 	"Audio",
+	"AfterStep module for playing sounds when windowing event occurs",
 	NULL,
 	0
 };

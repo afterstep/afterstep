@@ -46,6 +46,7 @@ SyntaxDef     MyStyleSyntax = {
     "",
     "MyStyle definition",
 	"MyStyle",
+	"defines combination of color, font, style, background to be used together",
 	NULL,
 	0
 };

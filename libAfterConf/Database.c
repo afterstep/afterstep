@@ -62,6 +62,7 @@ SyntaxDef     GravitySyntax = {
 	"\t",
     "Gravity type specification",
 	"Gravity",
+	"",
 	NULL,
 	0
 };
@@ -141,6 +142,7 @@ SyntaxDef     StyleSyntax = {
 	"\t",
 	"Style definition",
 	"ASDatabaseEntry",
+	"to be used in entry of AfterStep database",
 	NULL,
 	0
 };
@@ -194,6 +196,7 @@ SyntaxDef     DatabaseSyntax = {
 	"\t\t",
 	"database configuration",
 	"ASDatabase",
+	"defines how windows should be treated by AfterStep depending on its name",
 	NULL,
 	0
 };

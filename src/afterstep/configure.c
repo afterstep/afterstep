@@ -184,6 +184,7 @@ struct config main_config[] = {
     {"RecentSubmenuItems", SetInts, (char**)&Scr.Feel.recent_submenu_items, (int*)&dummy},
 
     /* look options */
+	/* obsolete stuff */
 	{"Font", assign_string, &Stdfont, (int *)0},
 	{"WindowFont", assign_string, &Windowfont, (int *)0},
     {"MTitleForeColor", assign_string, &MenuForeColor[MENU_BACK_TITLE], (int *)0},
@@ -199,17 +200,6 @@ struct config main_config[] = {
     {"StickyBackColor", assign_string, &WindowBackColor[BACK_STICKY], (int *)0},
     {"HiForeColor", assign_string, &WindowForeColor[BACK_FOCUSED], (int *)0},
     {"HiBackColor", assign_string, &WindowBackColor[BACK_FOCUSED], (int *)0},
-	{"IconBox", SetBox, (char **)0, (int *)0},
-	{"IconFont", assign_string, &Iconfont, (int *)0},
-    {"MyStyle", mystyle_parse, (char**)"afterstep", (int*)&MyStyleList},
-    /* new stuff : */
-    {"MyBackground", myback_parse, (char**)"asetroot", NULL},  /* pretending to be asteroot here */
-    {"DeskBack", deskback_parse, NULL, NULL },
-    {"*asetrootDeskBack", deskback_parse, NULL, NULL },        /* pretending to be asteroot here */
-    {"MyFrame", myframe_parse, (char**)"afterstep", (int*)&MyFrameList},
-    {"DefaultFrame", assign_string, (char**)&DefaultFrameName, (int*)0},
-    {"DontDrawBackground", SetFlag2, (char **)DontDrawBackground, (int *)&Scr.Look.flags},
-
 	{"TextureTypes", assign_string, &TexTypes, (int *)0},
     {"TextureMaxColors", obsolete, NULL, (int *)0},
     {"TitleTextureColor", assign_string, &WindowGradient[BACK_FOCUSED], (int *)0},    /* title */
@@ -224,19 +214,7 @@ struct config main_config[] = {
     {"TitlePixmap", assign_string,  &WindowPixmap[BACK_FOCUSED], (int *)0}, /* foc tit */
     {"UTitlePixmap", assign_string, &WindowPixmap[BACK_UNFOCUSED], (int *)0},    /* unfoc tit */
     {"STitlePixmap", assign_string, &WindowPixmap[BACK_STICKY], (int *)0},    /* stick tit */
-
-	{"CustomCursor", SetCustomCursor, (char **)0, (int *)0},
-    {"CursorFore", assign_string, &Scr.Look.CursorFore, (int *)0},    /* foreground color to be used for coloring pointer's cursor */
-    {"CursorBack", assign_string, &Scr.Look.CursorBack, (int *)0},    /* background color to be used for coloring pointer's cursor */
-	{"Cursor", SetCursor, (char **)0, (int *)0},
-
-    {"MenuPinOn", assign_string, &MenuPinOn, (int *)0},    /* menu pin */
     {"MenuPinOff", obsolete, (char **)NULL, (int *)0},
-    {"MArrowPixmap", assign_pixmap, (char **)&Scr.Look.MenuArrow, (int *)0},   /* menu arrow */
-
-    {"TitlebarNoPush", SetFlag2, (char **)TitlebarNoPush, (int *)&Scr.Look.flags},
-
-	/* these are obsolete : */
     {"TexturedHandle", obsolete, (char **)NULL, (int *)0},
     {"TextGradientColor", obsolete, (char **)NULL, (int *)0}, /* title text */
     {"GradientText", obsolete, (char **)NULL, (int *)0},
@@ -247,8 +225,6 @@ struct config main_config[] = {
     {"ButtonMaxColors", obsolete, (char **)NULL, NULL},
 	{"ButtonPixmap", assign_string, &IconPixmapFile, (int *)0},
     {"ButtonNoBorder", SetFlag2, (char **)IconNoBorder, (int *)&Scr.Look.flags},
-    {"TextureMenuItemsIndividually", SetFlag2, (char **)TxtrMenuItmInd,(int *)&Scr.Look.flags},
-    {"MenuMiniPixmaps", SetFlag2, (char **)MenuMiniPixmaps, (int *)&Scr.Look.flags},
     {"FrameNorth", SetFramePart, NULL, (int *)FR_N},
     {"FrameSouth", SetFramePart, NULL, (int *)FR_S},
     {"FrameEast",  SetFramePart, NULL, (int *)FR_E},
@@ -258,53 +234,73 @@ struct config main_config[] = {
     {"FrameSW", SetFramePart, NULL, (int *)FR_SW},
     {"FrameSE", SetFramePart, NULL, (int *)FR_SE},
     {"DecorateFrames", SetFlag2, (char **)DecorateFrames, (int *)&Scr.Look.flags},
-    {"TitleTextAlign", SetInts, (char **)&Scr.Look.TitleTextAlign, &dummy},
-    {"TitleButtonSpacingLeft", SetInts, (char **)&Scr.Look.TitleButtonSpacing[0], &dummy},
-    {"TitleButtonSpacingRight", SetInts, (char **)&Scr.Look.TitleButtonSpacing[1], &dummy},
-    {"TitleButtonSpacing", SetInts2, (char **)&Scr.Look.TitleButtonSpacing[0], &Scr.Look.TitleButtonSpacing[1]},
-    {"TitleButtonXOffsetLeft", SetInts, (char **)&Scr.Look.TitleButtonXOffset[0], &dummy},
-    {"TitleButtonXOffsetRight", SetInts, (char **)&Scr.Look.TitleButtonXOffset[1], &dummy},
-    {"TitleButtonXOffset", SetInts2, (char **)&Scr.Look.TitleButtonXOffset[0], &Scr.Look.TitleButtonXOffset[1]},
-    {"TitleButtonYOffsetLeft", SetInts, (char **)&Scr.Look.TitleButtonYOffset[0], &dummy},
-    {"TitleButtonYOffsetRight", SetInts, (char **)&Scr.Look.TitleButtonYOffset[1], &dummy},
-    {"TitleButtonYOffset", SetInts2, (char **)&Scr.Look.TitleButtonYOffset[0], &Scr.Look.TitleButtonYOffset[1]},
-    {"TitleButtonStyle", SetInts, (char **)&Scr.Look.TitleButtonStyle, (int *)&dummy},
-    {"TitleButtonOrder", SetTButtonOrder, (char **)&(Scr.Look.button_xref[0]), (int*)&(Scr.Look.button_first_right)},
-    {"TitleTextMode", SetTitleText, (char **)1, (int *)0},
-    {"ResizeMoveGeometry", assign_geometry, (char**)&Scr.Look.resize_move_geometry, (int *)0},
-    {"StartMenuSortMode", SetInts, (char **)&Scr.Look.StartMenuSortMode, (int *)&dummy},
-    {"DrawMenuBorders", SetInts, (char **)&Scr.Look.DrawMenuBorders, (int *)&dummy},
-    {"ButtonSize", SetInts, (char **)&Scr.Look.ButtonWidth, (int *)&Scr.Look.ButtonHeight},
-    {"SeparateButtonTitle", SetFlag2, (char **)SeparateButtonTitle, (int *)&Scr.Look.flags},
-    {"RubberBand", SetInts, (char **)&Scr.Look.RubberBand, &dummy},
-    {"DefaultStyle", assign_string, (char **)&MSWindowName[BACK_DEFAULT], (int *)0},
-    {"FWindowStyle", assign_string, (char **)&MSWindowName[BACK_FOCUSED], (int *)0},
-    {"UWindowStyle", assign_string, (char **)&MSWindowName[BACK_UNFOCUSED], (int *)0},
-    {"SWindowStyle", assign_string, (char **)&MSWindowName[BACK_STICKY], (int *)0},
-    {"MenuItemStyle",    assign_string, (char **)&MSMenuName[MENU_BACK_ITEM], (int *)0},
-    {"MenuTitleStyle",   assign_string, (char **)&MSMenuName[MENU_BACK_TITLE], (int *)0},
-    {"MenuHiliteStyle",  assign_string, (char **)&MSMenuName[MENU_BACK_HILITE], (int *)0},
-    {"MenuStippleStyle", assign_string, (char **)&MSMenuName[MENU_BACK_STIPPLE], (int *)0},
-    {"MenuSubItemStyle", assign_string, (char **)&MSMenuName[MENU_BACK_SUBITEM], (int *)0},
-    {"MenuHiTitleStyle", assign_string, (char **)&MSMenuName[MENU_BACK_HITITLE], (int *)0},
-    {"MenuItemCompositionMethod", SetInts, (char **)&Scr.Look.menu_icm, &dummy},
-    {"MenuHiliteCompositionMethod", SetInts, (char **)&Scr.Look.menu_hcm, &dummy},
-    {"MenuStippleCompositionMethod", SetInts, (char **)&Scr.Look.menu_scm, &dummy},
-    {"ShadeAnimationSteps", SetInts, (char **)&Scr.Feel.ShadeAnimationSteps, (int *)&dummy},
-    {"TitleButtonBalloonBorderHilite", bevel_parse, (char**)"afterstep", (int*)&(BalloonConfig.border_hilite)},
-    {"TitleButtonBalloonXOffset", SetInts, (char**)&(BalloonConfig.x_offset), NULL},
-    {"TitleButtonBalloonYOffset", SetInts, (char**)&(BalloonConfig.y_offset), NULL},
-    {"TitleButtonBalloonDelay", SetInts, (char**)&(BalloonConfig.delay), NULL},
-    {"TitleButtonBalloonCloseDelay", SetInts, (char**)&(BalloonConfig.close_delay), NULL},
 	{"TitleButtonBalloonBorderWidth", obsolete, NULL, NULL },
 	{"TitleButtonBalloonBorderColor", obsolete, NULL, NULL },
-    {"TitleButtonBalloonStyle", assign_string, &(BalloonConfig.style), NULL},
-    {"TitleButtonBalloons", SetFlag2, (char**)BALLOON_USED, (int*)&(BalloonConfig.set_flags)},
-    {"TitleButton", SetTitleButton, (char **)1, (int *)0},
-    {"KillBackgroundThreshold", SetInts, (char**)&(Scr.Look.KillBackgroundThreshold), NULL },
-	{"DontAnimateBackground",SetFlag, (char **)DontAnimateBackground, &dummy},
-	{"CoverAnimationSteps", SetInts, (char**)&(Scr.Feel.desk_cover_animation_steps), NULL },
-	{"CoverAnimationType", SetInts, (char**)&(Scr.Feel.desk_cover_animation_type), NULL },
+    {"TitleTextMode", SetTitleText, (char **)1, (int *)0},
+
+    /* new stuff : */
+	{"IconBox"							, SetBox, (char **)0, (int *)0},
+	{"IconFont"							, assign_string, &Iconfont, (int *)0},
+    {"MyStyle"							, mystyle_parse, (char**)"afterstep", (int*)&MyStyleList},
+    {"MyBackground"						, myback_parse, (char**)"asetroot", NULL},  /* pretending to be asteroot here */
+    {"DeskBack"							, deskback_parse, NULL, NULL },
+    {"*asetrootDeskBack"				, deskback_parse, NULL, NULL },        /* pretending to be asteroot here */
+    {"MyFrame"							, myframe_parse, (char**)"afterstep", (int*)&MyFrameList},
+    {"DefaultFrame"						, assign_string, (char**)&DefaultFrameName, (int*)0},
+    {"DontDrawBackground"				, SetFlag2, (char **)DontDrawBackground, (int *)&Scr.Look.flags},
+	{"CustomCursor"						, SetCustomCursor, (char **)0, (int *)0},
+    {"CursorFore"						, assign_string, &Scr.Look.CursorFore, (int *)0},    /* foreground color to be used for coloring pointer's cursor */
+    {"CursorBack"						, assign_string, &Scr.Look.CursorBack, (int *)0},    /* background color to be used for coloring pointer's cursor */
+	{"Cursor"							, SetCursor, (char **)0, (int *)0},
+    {"MenuPinOn"						, assign_string, &MenuPinOn, (int *)0},    /* menu pin */
+    {"MArrowPixmap"						, assign_pixmap, (char **)&Scr.Look.MenuArrow, (int *)0},   /* menu arrow */
+    {"TitlebarNoPush"					, SetFlag2, (char **)TitlebarNoPush, (int *)&Scr.Look.flags},
+    {"TextureMenuItemsIndividually"		, SetFlag2, (char **)TxtrMenuItmInd,(int *)&Scr.Look.flags},
+    {"MenuMiniPixmaps"					, SetFlag2, (char **)MenuMiniPixmaps, (int *)&Scr.Look.flags},
+	{"TitleTextAlign"					, SetInts, (char **)&Scr.Look.TitleTextAlign, &dummy},
+    {"TitleButtonSpacingLeft"			, SetInts, (char **)&Scr.Look.TitleButtonSpacing[0], &dummy},
+    {"TitleButtonSpacingRight"			, SetInts, (char **)&Scr.Look.TitleButtonSpacing[1], &dummy},
+    {"TitleButtonSpacing"				, SetInts2, (char **)&Scr.Look.TitleButtonSpacing[0], &Scr.Look.TitleButtonSpacing[1]},
+    {"TitleButtonXOffsetLeft"			, SetInts, (char **)&Scr.Look.TitleButtonXOffset[0], &dummy},
+    {"TitleButtonXOffsetRight"			, SetInts, (char **)&Scr.Look.TitleButtonXOffset[1], &dummy},
+    {"TitleButtonXOffset"				, SetInts2, (char **)&Scr.Look.TitleButtonXOffset[0], &Scr.Look.TitleButtonXOffset[1]},
+    {"TitleButtonYOffsetLeft"			, SetInts, (char **)&Scr.Look.TitleButtonYOffset[0], &dummy},
+    {"TitleButtonYOffsetRight"			, SetInts, (char **)&Scr.Look.TitleButtonYOffset[1], &dummy},
+    {"TitleButtonYOffset"				, SetInts2, (char **)&Scr.Look.TitleButtonYOffset[0], &Scr.Look.TitleButtonYOffset[1]},
+    {"TitleButtonStyle"					, SetInts, (char **)&Scr.Look.TitleButtonStyle, (int *)&dummy},
+    {"TitleButtonOrder"					, SetTButtonOrder, (char **)&(Scr.Look.button_xref[0]), (int*)&(Scr.Look.button_first_right)},
+    {"ResizeMoveGeometry"				, assign_geometry, (char**)&Scr.Look.resize_move_geometry, (int *)0},
+    {"StartMenuSortMode"				, SetInts, (char **)&Scr.Look.StartMenuSortMode, (int *)&dummy},
+    {"DrawMenuBorders"					, SetInts, (char **)&Scr.Look.DrawMenuBorders, (int *)&dummy},
+    {"ButtonSize"						, SetInts, (char **)&Scr.Look.ButtonWidth, (int *)&Scr.Look.ButtonHeight},
+    {"SeparateButtonTitle"				, SetFlag2, (char **)SeparateButtonTitle, (int *)&Scr.Look.flags},
+    {"RubberBand"						, SetInts, (char **)&Scr.Look.RubberBand, &dummy},
+    {"DefaultStyle"						, assign_string, (char **)&MSWindowName[BACK_DEFAULT], (int *)0},
+    {"FWindowStyle"						, assign_string, (char **)&MSWindowName[BACK_FOCUSED], (int *)0},
+    {"UWindowStyle"						, assign_string, (char **)&MSWindowName[BACK_UNFOCUSED], (int *)0},
+    {"SWindowStyle"						, assign_string, (char **)&MSWindowName[BACK_STICKY], (int *)0},
+    {"MenuItemStyle"					, assign_string, (char **)&MSMenuName[MENU_BACK_ITEM], (int *)0},
+    {"MenuTitleStyle"					, assign_string, (char **)&MSMenuName[MENU_BACK_TITLE], (int *)0},
+    {"MenuHiliteStyle"					, assign_string, (char **)&MSMenuName[MENU_BACK_HILITE], (int *)0},
+    {"MenuStippleStyle"					, assign_string, (char **)&MSMenuName[MENU_BACK_STIPPLE], (int *)0},
+    {"MenuSubItemStyle"					, assign_string, (char **)&MSMenuName[MENU_BACK_SUBITEM], (int *)0},
+    {"MenuHiTitleStyle"					, assign_string, (char **)&MSMenuName[MENU_BACK_HITITLE], (int *)0},
+    {"MenuItemCompositionMethod"		, SetInts, (char **)&Scr.Look.menu_icm, &dummy},
+    {"MenuHiliteCompositionMethod"		, SetInts, (char **)&Scr.Look.menu_hcm, &dummy},
+    {"MenuStippleCompositionMethod"		, SetInts, (char **)&Scr.Look.menu_scm, &dummy},
+    {"ShadeAnimationSteps"				, SetInts, (char **)&Scr.Feel.ShadeAnimationSteps, (int *)&dummy},
+    {"TitleButtonBalloonBorderHilite"	, bevel_parse, (char**)"afterstep", (int*)&(BalloonConfig.border_hilite)},
+    {"TitleButtonBalloonXOffset"		, SetInts, (char**)&(BalloonConfig.x_offset), NULL},
+    {"TitleButtonBalloonYOffset"		, SetInts, (char**)&(BalloonConfig.y_offset), NULL},
+    {"TitleButtonBalloonDelay"			, SetInts, (char**)&(BalloonConfig.delay), NULL},
+    {"TitleButtonBalloonCloseDelay"		, SetInts, (char**)&(BalloonConfig.close_delay), NULL},
+    {"TitleButtonBalloonStyle"			, assign_string, &(BalloonConfig.style), NULL},
+    {"TitleButtonBalloons"				, SetFlag2, (char**)BALLOON_USED, (int*)&(BalloonConfig.set_flags)},
+    {"TitleButton"						, SetTitleButton, (char **)1, (int *)0},
+    {"KillBackgroundThreshold"			, SetInts, (char**)&(Scr.Look.KillBackgroundThreshold), NULL },
+	{"DontAnimateBackground"			,SetFlag, (char **)DontAnimateBackground, &dummy},
+	{"CoverAnimationSteps"				, SetInts, (char**)&(Scr.Feel.desk_cover_animation_steps), NULL },
+	{"CoverAnimationType"				, SetInts, (char**)&(Scr.Feel.desk_cover_animation_type), NULL },
 	{"", 0, (char **)0, (int *)0}
 };
 

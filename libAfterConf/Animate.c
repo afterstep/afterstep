@@ -55,6 +55,7 @@ SyntaxDef     AnimateResizeSyntax = {
 	"\t",
 	"Animate Resize type",
 	"AnimateTypes",
+	"types of the animation used in Animate module's config",
 	NULL,
 	0
 };
@@ -80,6 +81,7 @@ SyntaxDef     AnimateSyntax = {
 	"\t",
 	"Animate configuration",
 	"Animate",
+	"AfterStep module animating windows being iconified/deiconified",
 	NULL,
 	0
 };
