@@ -35,65 +35,85 @@
 
 extern SyntaxDef AlignSyntax;
 
-TermDef       WinListTerms[] = {
-	/* Feel */
-    {TF_DONT_SPLIT, "Action", 6, TT_TEXT, WINLIST_Action_ID, NULL},
-    {0, "FillRowsFirst", 13, TT_FLAG, WINLIST_FillRowsFirst_ID, NULL},
-    {0, "UseSkipList", 11, TT_FLAG, WINLIST_UseSkipList_ID, NULL},
-	/* Look */
-    {0, "Geometry", 8, TT_GEOMETRY, WINLIST_Geometry_ID, NULL},
-    {0, "MinSize", 7, TT_GEOMETRY, WINLIST_MinSize_ID, NULL},
-    {0, "MaxSize", 7, TT_GEOMETRY, WINLIST_MaxSize_ID, NULL},
-    {0, "MaxRows", 7, TT_INTEGER, WINLIST_MaxRows_ID, NULL},
-    {0, "MaxColumns", 10, TT_INTEGER, WINLIST_MaxColumns_ID, NULL},
-    {0, "MaxColWidth", 11, TT_INTEGER, WINLIST_MaxColWidth_ID, NULL},
-    {0, "MinColWidth", 11, TT_INTEGER, WINLIST_MinColWidth_ID, NULL},
-    {0, "UseName", 7, TT_INTEGER, WINLIST_UseName_ID, NULL},
-    {0, "Align", 5, TT_FLAG, WINLIST_Align_ID, &AlignSyntax},
-    {0, "Bevel", 5, TT_FLAG, WINLIST_Bevel_ID, &BevelSyntax},
-    {0, "FBevel", 6, TT_FLAG, WINLIST_FBevel_ID, &BevelSyntax},
-    {0, "UBevel", 6, TT_FLAG, WINLIST_UBevel_ID, &BevelSyntax},
-    {0, "SBevel", 6, TT_FLAG, WINLIST_SBevel_ID, &BevelSyntax},
-    {0, "FocusedBevel", 12, TT_FLAG, WINLIST_FBevel_ID, &BevelSyntax},
-    {0, "StickyBevel", 10, TT_FLAG, WINLIST_SBevel_ID, &BevelSyntax},
-    {0, "UnfocusedBevel", 14, TT_FLAG, WINLIST_UBevel_ID, &BevelSyntax},
-    {0, "CompositionMethod", 17, TT_UINTEGER, WINLIST_CM_ID, NULL},
-    {0, "FCompositionMethod", 18, TT_UINTEGER, WINLIST_FCM_ID, NULL},
-    {0, "UCompositionMethod", 18, TT_UINTEGER, WINLIST_UCM_ID, NULL},
-    {0, "SCompositionMethod", 18, TT_UINTEGER, WINLIST_SCM_ID, NULL},
-    {0, "Spacing", 7, TT_UINTEGER, WINLIST_Spacing_ID, NULL},
-    {0, "HSpacing", 8, TT_UINTEGER, WINLIST_HSpacing_ID, NULL},
-    {0, "VSpacing", 8, TT_UINTEGER, WINLIST_VSpacing_ID, NULL},
 
-    {0, "UnfocusedStyle", 14, TT_TEXT, WINLIST_UnfocusedStyle_ID, NULL},
-    {0, "FocusedStyle", 12, TT_TEXT, WINLIST_FocusedStyle_ID, NULL},
-    {0, "StickyStyle", 11, TT_TEXT, WINLIST_StickyStyle_ID, NULL},
-    {0, "ShapeToContents", 15, TT_FLAG, WINLIST_ShapeToContents_ID, NULL},
+#define WINLIST_FEEL_TERMS \
+    {TF_DONT_SPLIT, "Action", 6, TT_TEXT, WINLIST_Action_ID, NULL}, \
+    {0, "FillRowsFirst", 13, TT_FLAG, WINLIST_FillRowsFirst_ID, NULL}, \
+    {0, "UseSkipList", 11, TT_FLAG, WINLIST_UseSkipList_ID, NULL}
+
+#define WINLIST_LOOK_TERMS \
+    {0, "UseName", 7, TT_INTEGER, WINLIST_UseName_ID, NULL}, \
+    {0, "Align", 5, TT_FLAG, WINLIST_Align_ID, &AlignSyntax}, \
+    {0, "Bevel", 5, TT_FLAG, WINLIST_Bevel_ID, &BevelSyntax}, \
+    {0, "FBevel", 6, TT_FLAG, WINLIST_FBevel_ID, &BevelSyntax}, \
+    {0, "UBevel", 6, TT_FLAG, WINLIST_UBevel_ID, &BevelSyntax}, \
+    {0, "SBevel", 6, TT_FLAG, WINLIST_SBevel_ID, &BevelSyntax}, \
+    {0, "FocusedBevel", 12, TT_FLAG, WINLIST_FBevel_ID, &BevelSyntax}, \
+    {0, "StickyBevel", 10, TT_FLAG, WINLIST_SBevel_ID, &BevelSyntax}, \
+    {0, "UnfocusedBevel", 14, TT_FLAG, WINLIST_UBevel_ID, &BevelSyntax}, \
+    {0, "CompositionMethod", 17, TT_UINTEGER, WINLIST_CM_ID, NULL}, \
+    {0, "FCompositionMethod", 18, TT_UINTEGER, WINLIST_FCM_ID, NULL}, \
+    {0, "UCompositionMethod", 18, TT_UINTEGER, WINLIST_UCM_ID, NULL}, \
+    {0, "SCompositionMethod", 18, TT_UINTEGER, WINLIST_SCM_ID, NULL}, \
+    {0, "Spacing", 7, TT_UINTEGER, WINLIST_Spacing_ID, NULL}, \
+    {0, "HSpacing", 8, TT_UINTEGER, WINLIST_HSpacing_ID, NULL}, \
+    {0, "VSpacing", 8, TT_UINTEGER, WINLIST_VSpacing_ID, NULL}, \
+    {0, "UnfocusedStyle", 14, TT_TEXT, WINLIST_UnfocusedStyle_ID, NULL}, \
+    {0, "FocusedStyle", 12, TT_TEXT, WINLIST_FocusedStyle_ID, NULL}, \
+    {0, "StickyStyle", 11, TT_TEXT, WINLIST_StickyStyle_ID, NULL}, \
+    {0, "ShapeToContents", 15, TT_FLAG, WINLIST_ShapeToContents_ID, NULL}
+	
+#define WINLIST_PRIVATE_TERMS \
+    {0, "Geometry", 8, TT_GEOMETRY, WINLIST_Geometry_ID, NULL}, \
+    {0, "MinSize", 7, TT_GEOMETRY, WINLIST_MinSize_ID, NULL}, \
+    {0, "MaxSize", 7, TT_GEOMETRY, WINLIST_MaxSize_ID, NULL}, \
+    {0, "MaxRows", 7, TT_INTEGER, WINLIST_MaxRows_ID, NULL}, \
+    {0, "MaxColumns", 10, TT_INTEGER, WINLIST_MaxColumns_ID, NULL}, \
+    {0, "MaxColWidth", 11, TT_INTEGER, WINLIST_MaxColWidth_ID, NULL}, \
+    {0, "MinColWidth", 11, TT_INTEGER, WINLIST_MinColWidth_ID, NULL}, \
+    {TF_DEPRECIATED, "MaxWidth", 8, TT_UINTEGER, WINLIST_MaxWidth_ID, NULL}
+
+
+TermDef       WinListFeelTerms[] = {
+	/* Feel */
+	WINLIST_FEEL_TERMS,
+	BALLOON_FEEL_TERMS,
+	{0, NULL, 0, 0, 0}
+};
+
+TermDef       WinListLookTerms[] = {
+    /* Look */
+	WINLIST_LOOK_TERMS,
+/* now special cases that should be processed by it's own handlers */
+    BALLOON_LOOK_TERMS,
+	{0, NULL, 0, 0, 0}
+};
+
+TermDef       WinListPrivateTerms[] = {
+	WINLIST_PRIVATE_TERMS,
+	BALLOON_FLAG_TERM,
+	{0, NULL, 0, 0, 0}
+};
+
+TermDef       WinListTerms[] = {
+	WINLIST_PRIVATE_TERMS,
+	/* Feel */
+	WINLIST_FEEL_TERMS,
+	/* Look */
+	WINLIST_LOOK_TERMS,
     {TF_DEPRECIATED, "Orientation", 11, TT_TEXT, WINLIST_Orientation_ID, NULL},
-    {TF_DEPRECIATED, "MaxWidth", 8, TT_UINTEGER, WINLIST_MaxWidth_ID, NULL},
 /* including MyStyles definitions processing */
 	INCLUDE_MYSTYLE,
-
 /* now special cases that should be processed by it's own handlers */
     BALLOON_TERMS,
     {0, NULL, 0, 0, 0}
 };
 
-SyntaxDef     WinListSyntax = {
-	'\n',
-	'\0',
-	WinListTerms,
-	0,										   /* use default hash size */
-    ' ',
-	"",
-	"\t",
-	"Module:WinList",
-	"WinList",
-	"AfterStep module displaying list of opened windows",
-	NULL,
-	0
-};
 
+SyntaxDef WinListFeelSyntax 	= {'\n', '\0', WinListFeelTerms, 	0, '\t', "", "\t", "WinListFeel", 	"WinListFeel", "AfterStep window list module feel", NULL, 0};
+SyntaxDef WinListLookSyntax 	= {'\n', '\0', WinListLookTerms, 	0, '\t', "", "\t", "WinListLook", 	"WinListLook", "AfterStep window list module look", NULL, 0};
+SyntaxDef WinListPrivateSyntax 	= {'\n', '\0', WinListPrivateTerms,	0, '\t', "", "\t", "WinList",     	"WinList",     "AfterStep window list module", NULL,0};
+SyntaxDef WinListSyntax 		= {'\n', '\0', WinListTerms, 		0, ' ',  "", "\t", "Module:WinList","WinList",     "AfterStep module displaying list of opened windows",NULL,0};
 
 WinListConfig *
 CreateWinListConfig ()

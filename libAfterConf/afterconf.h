@@ -73,8 +73,15 @@ extern struct SyntaxDef      PagerSyntax;
 extern struct SyntaxDef      PagerPrivateSyntax;
 extern struct SyntaxDef      PagerLookSyntax;
 extern struct SyntaxDef      PagerFeelSyntax;
-extern struct SyntaxDef      WharfSyntax;
+extern struct SyntaxDef		 WharfFeelSyntax; 
+extern struct SyntaxDef		 WharfLookSyntax;
+extern struct SyntaxDef		 WharfPrivateSyntax;
+extern struct SyntaxDef 	 WharfFolderSyntax;
+extern struct SyntaxDef 	 WharfSyntax;
 extern struct SyntaxDef      WinListSyntax;
+extern struct SyntaxDef      WinListPrivateSyntax;
+extern struct SyntaxDef      WinListLookSyntax;
+extern struct SyntaxDef      WinListFeelSyntax;
 extern struct SyntaxDef      WinTabsSyntax;
 extern struct SyntaxDef      PopupFuncSyntax;
 
@@ -120,11 +127,12 @@ struct FunctionData     *String2Func ( const char *string, struct FunctionData *
 #define CONFIG_PagerFeel_ID				(CONFIG_MODULE_SPECIFIC+3)
 #define CONFIG_WharfLook_ID 			(CONFIG_MODULE_SPECIFIC+4)
 #define CONFIG_WharfFeel_ID				(CONFIG_MODULE_SPECIFIC+5)
-#define CONFIG_WinListLook_ID 			(CONFIG_MODULE_SPECIFIC+6)
-#define CONFIG_WinListFeel_ID 			(CONFIG_MODULE_SPECIFIC+7)
+#define CONFIG_WharfFolders_ID 			(CONFIG_MODULE_SPECIFIC+6)
+#define CONFIG_WinListLook_ID 			(CONFIG_MODULE_SPECIFIC+7)
+#define CONFIG_WinListFeel_ID 			(CONFIG_MODULE_SPECIFIC+8)
 
 
-#define CONFIG_FILE_IDS			   		(CONFIG_MODULE_SPECIFIC+8)
+#define CONFIG_FILE_IDS			   		(CONFIG_MODULE_SPECIFIC+9)
 #define CONFIG_LookFile_ID				(CONFIG_FILE_IDS)
 #define CONFIG_FeelFile_ID 				(CONFIG_FILE_IDS+1)
 #define CONFIG_StartDir_ID 				(CONFIG_FILE_IDS+2)
@@ -1229,6 +1237,7 @@ typedef struct
 WharfConfig;
 
 
+unsigned long WharfSpecialFunc (ConfigDef * config, FreeStorageElem ** storage);
 WharfButton *CreateWharfButton ();
 WharfConfig *CreateWharfConfig ();
 

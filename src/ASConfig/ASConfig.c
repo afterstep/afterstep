@@ -61,34 +61,55 @@ int PagerFeelFiles[] 		= {CONFIG_FeelFile_ID, CONFIG_PagerFile_ID, -1} ;
 int PagerLookFiles[] 		= {CONFIG_LookFile_ID, CONFIG_PagerFile_ID, -1} ;
 int PagerPrivateFiles[] 	= {CONFIG_PagerFile_ID, -1} ;
 
-ASModuleSyntax MyStylesSyntaxes[] ={{CONFIG_MyStyles_ID,  &ModuleMyStyleSyntax,  CONFIG_LookFiles_ID, PagerLookFiles, 0, NULL },
-									{-1, NULL, 0, NULL, 0, NULL}};
+int WinListFeelFiles[] 		= {CONFIG_FeelFile_ID, CONFIG_WinListFile_ID, -1} ;
+int WinListLookFiles[] 		= {CONFIG_LookFile_ID, CONFIG_WinListFile_ID, -1} ;
+int WinListPrivateFiles[] 	= {CONFIG_WinListFile_ID, -1} ;
 
-ASModuleSyntax AfterStepLookSyntaxes[] ={{CONFIG_MyStyles_ID,  		&ModuleMyStyleSyntax,  CONFIG_LookFiles_ID, AfterStepLookFiles, 0, NULL },
-										 {CONFIG_MyFrames_ID,  		&AfterStepMyFrameSyntax,  CONFIG_LookFiles_ID, AfterStepLookFiles, 0, NULL },
-										 {CONFIG_MyBackgrounds_ID,	&AfterStepMyBackSyntax,  CONFIG_LookFiles_ID, AfterStepLookFiles, 0, NULL },
-										 {CONFIG_TitleButtons_ID,	&AfterStepTitleButtonSyntax,  CONFIG_LookFiles_ID, AfterStepLookFiles, 0, NULL },
-										 {-1, NULL, 0, NULL, 0, NULL}};
+int WharfFeelFiles[] 		= {CONFIG_WharfFile_ID, CONFIG_WharfFile_ID, -1} ;
+int WharfLookFiles[] 		= {CONFIG_WharfFile_ID, CONFIG_WharfFile_ID, -1} ;
+int WharfPrivateFiles[] 	= {CONFIG_WharfFile_ID, -1} ;
 
-ASModuleSyntax AfterStepFeelSyntaxes[] ={{CONFIG_Cursors_ID,  		&AfterStepCursorSyntax,  CONFIG_FeelFiles_ID, AfterStepFeelFiles, 0, NULL },
-										 {CONFIG_MouseBindings_ID,	&AfterStepMouseSyntax,  CONFIG_FeelFiles_ID, AfterStepFeelFiles, 0, NULL },
-										 {CONFIG_KeyBindings_ID,	&AfterStepKeySyntax,  CONFIG_FeelFiles_ID, AfterStepFeelFiles, 0, NULL },
-										 {CONFIG_WindowBoxes_ID,	&AfterStepWindowBoxSyntax,  CONFIG_FeelFiles_ID, AfterStepFeelFiles, 0, NULL },
-										 {-1, NULL, 0, NULL, 0, NULL}};
+ASModuleSyntax MyStylesSyntaxes[] ={{CONFIG_MyStyles_ID,  &ModuleMyStyleSyntax, 	NULL,  CONFIG_LookFiles_ID, PagerLookFiles, 0, NULL },
+									{-1, NULL, 	NULL, 0, NULL, 0, NULL}};
 
-ASModuleSyntax AfterStepSyntaxes[]={{CONFIG_AfterStepFeel_ID, &AfterStepFeelSyntax, CONFIG_FeelFiles_ID, AfterStepFeelFiles, CONFIG_FeelOptions_ID, &AfterStepFeelSyntaxes[0] },
-									{CONFIG_AfterStepLook_ID, &AfterStepLookSyntax, CONFIG_LookFiles_ID, AfterStepLookFiles, CONFIG_LookOptions_ID, &AfterStepLookSyntaxes[0] },
-									{-1, NULL, 0, NULL, 0, NULL}};
+ASModuleSyntax AfterStepLookSyntaxes[] ={{CONFIG_MyStyles_ID,  		&ModuleMyStyleSyntax, 	NULL,  CONFIG_LookFiles_ID, AfterStepLookFiles, 0, NULL },
+										 {CONFIG_MyFrames_ID,  		&AfterStepMyFrameSyntax, 	NULL,  CONFIG_LookFiles_ID, AfterStepLookFiles, 0, NULL },
+										 {CONFIG_MyBackgrounds_ID,	&AfterStepMyBackSyntax, 	NULL,  CONFIG_LookFiles_ID, AfterStepLookFiles, 0, NULL },
+										 {CONFIG_TitleButtons_ID,	&AfterStepTitleButtonSyntax, 	NULL,  CONFIG_LookFiles_ID, AfterStepLookFiles, 0, NULL },
+										 {-1, NULL, 	NULL, 0, NULL, 0, NULL}};
+
+ASModuleSyntax AfterStepFeelSyntaxes[] ={{CONFIG_Cursors_ID,  		&AfterStepCursorSyntax, 	NULL,  CONFIG_FeelFiles_ID, AfterStepFeelFiles, 0, NULL },
+										 {CONFIG_MouseBindings_ID,	&AfterStepMouseSyntax, 	NULL,  CONFIG_FeelFiles_ID, AfterStepFeelFiles, 0, NULL },
+										 {CONFIG_KeyBindings_ID,	&AfterStepKeySyntax, 	NULL,  CONFIG_FeelFiles_ID, AfterStepFeelFiles, 0, NULL },
+										 {CONFIG_WindowBoxes_ID,	&AfterStepWindowBoxSyntax, 	NULL,  CONFIG_FeelFiles_ID, AfterStepFeelFiles, 0, NULL },
+										 {-1, NULL, 	NULL, 0, NULL, 0, NULL}};
+
+ASModuleSyntax AfterStepSyntaxes[]={{CONFIG_AfterStepFeel_ID, &AfterStepFeelSyntax, 	NULL, CONFIG_FeelFiles_ID, AfterStepFeelFiles, CONFIG_FeelOptions_ID, &AfterStepFeelSyntaxes[0] },
+									{CONFIG_AfterStepLook_ID, &AfterStepLookSyntax, 	NULL, CONFIG_LookFiles_ID, AfterStepLookFiles, CONFIG_LookOptions_ID, &AfterStepLookSyntaxes[0] },
+									{-1, NULL, 	NULL, 0, NULL, 0, NULL}};
 
 
-ASModuleSyntax PagerSyntaxes[] = {	{CONFIG_PagerFeel_ID, &PagerFeelSyntax, CONFIG_FeelFiles_ID, PagerFeelFiles, CONFIG_FeelOptions_ID, NULL },
-									{CONFIG_PagerLook_ID, &PagerLookSyntax, CONFIG_LookFiles_ID, PagerLookFiles, CONFIG_LookOptions_ID, &MyStylesSyntaxes[0] },
-									{0, 	  			  &PagerPrivateSyntax,                0, PagerPrivateFiles, CONFIG_PagerOptions_ID, NULL },									
-									{-1, NULL, 0, NULL, 0, NULL}};
+ASModuleSyntax PagerSyntaxes[] = {	{CONFIG_PagerFeel_ID, &PagerFeelSyntax, 	NULL, CONFIG_FeelFiles_ID, PagerFeelFiles, CONFIG_FeelOptions_ID, NULL },
+									{CONFIG_PagerLook_ID, &PagerLookSyntax, 	NULL, CONFIG_LookFiles_ID, PagerLookFiles, CONFIG_LookOptions_ID, &MyStylesSyntaxes[0] },
+									{0, 	  			  &PagerPrivateSyntax, 	NULL,                0, PagerPrivateFiles, CONFIG_PagerOptions_ID, NULL },									
+									{-1, NULL, 	NULL, 0, NULL, 0, NULL}};
+
+ASModuleSyntax WinListSyntaxes[] ={	{CONFIG_WinListFeel_ID, &WinListFeelSyntax, 	NULL, CONFIG_FeelFiles_ID, WinListFeelFiles, CONFIG_FeelOptions_ID, NULL },
+									{CONFIG_WinListLook_ID, &WinListLookSyntax, 	NULL, CONFIG_LookFiles_ID, WinListLookFiles, CONFIG_LookOptions_ID, &MyStylesSyntaxes[0] },
+									{0, 	  			    &WinListPrivateSyntax, 	NULL,                0, WinListPrivateFiles, CONFIG_WinListOptions_ID, NULL },									
+									{-1, NULL, 	NULL, 0, NULL, 0, NULL}};
+
+ASModuleSyntax WharfSyntaxes[] ={	{CONFIG_WharfFeel_ID, &WharfFeelSyntax, 	NULL, 				CONFIG_FeelFiles_ID, WharfFeelFiles		,CONFIG_FeelOptions_ID, NULL },
+									{CONFIG_WharfLook_ID, &WharfLookSyntax, 	NULL, 				CONFIG_LookFiles_ID, WharfLookFiles		,CONFIG_LookOptions_ID, &MyStylesSyntaxes[0] },
+									{0, 	  			  &WharfPrivateSyntax, 	NULL,               0, WharfPrivateFiles	,CONFIG_WharfOptions_ID, NULL },									
+									{CONFIG_WharfFolders_ID,&WharfFolderSyntax,	WharfSpecialFunc,   0, WharfPrivateFiles	,CONFIG_WharfFolders_ID, NULL },									   
+									{-1, NULL, 	NULL, 0, NULL, 0, NULL}};
 
 ASModuleSpecs ModulesSpecs[] = 
-	{{CLASS_PAGER, PagerSyntaxes},
-	 {CLASS_AFTERSTEP, AfterStepSyntaxes},
+	{{CLASS_PAGER, 		PagerSyntaxes},
+	 {CLASS_AFTERSTEP, 	AfterStepSyntaxes},
+	 {CLASS_WINLIST, 	WinListSyntaxes},
+	 {CLASS_WHARF, 		WharfSyntaxes},
 	 {NULL, NULL}
 	};
 
@@ -163,6 +184,7 @@ void register_special_keywords()
 	REG_SPEC_KEYWORD(PagerFeel);
 	REG_SPEC_KEYWORD(WharfLook);
 	REG_SPEC_KEYWORD(WharfFeel);
+	REG_SPEC_KEYWORD(WharfFolders);
 	REG_SPEC_KEYWORD(WinListLook);
 	REG_SPEC_KEYWORD(WinListFeel);
                      	
@@ -242,7 +264,6 @@ special_free_storage2property( FreeStorageElem **pcurr )
 {
 	FreeStorageElem *curr = *pcurr ;
 	ASProperty *prop = NULL ;
-	int type = curr->term->type ;
 	ConfigItem    item;
 	item.memory = NULL;
 	
@@ -285,8 +306,12 @@ special_free_storage2property( FreeStorageElem **pcurr )
 					add_integer_property( CONFIG_height_ID, item.data.geometry.height, prop );
 		    	break ;
 	 		case TT_SPECIAL : 	/* should be handled based on its type : */ 
-				if( type == WHARF_Wharf_ID )			
+				if( curr->term->id == WHARF_Wharf_ID )			
 				{
+					LOCAL_DEBUG_OUT( "Wharf item with storage : argc = %d, argv[0] = \"%s\", argv[1] = \"%s\", argv[2] = \"%s\", sub = %p", curr->argc, curr->argv[0], curr->argv[1], curr->argv[2], curr->sub );
+					prop = create_property( curr->term->id, ASProp_Phony, curr->argv[0], True );
+					if( curr->argc >= 2 ) 
+						add_string_property( CONFIG_pixmap_ID, curr->argv[1], prop );				   
 					/* TODO */				
 				
 				}	 
@@ -524,7 +549,7 @@ void melt_binding_props( ASProperty *src, ASProperty *dst );
 
 ASProperty* 
 load_current_config_fname( ASProperty* config, int id, const char *filename, const char *myname, 
-					 SyntaxDef *syntax, int files_id, int file_id, int options_id )
+					 SyntaxDef *syntax, SpecialFunc special, int files_id, int file_id, int options_id )
 {
 	ASConfigFile *cf = NULL ;
 	ASProperty *files = NULL ;
@@ -539,7 +564,7 @@ load_current_config_fname( ASProperty* config, int id, const char *filename, con
 		if( CheckDir(filename) )
 		{	
 			LOCAL_DEBUG_OUT("loading file \"%s\"", filename );
-			cf = load_config_file(NULL, filename, myname?myname:"afterstep", syntax );
+			cf = load_config_file(NULL, filename, myname?myname:"afterstep", syntax, special );
 		}
 	}
 	
@@ -593,10 +618,10 @@ load_current_config_fname( ASProperty* config, int id, const char *filename, con
 
 ASProperty* 
 load_current_config( ASProperty* config, int id, const char *myname, 
-					 SyntaxDef *syntax, int files_id, int file_id, int options_id )
+					 SyntaxDef *syntax, SpecialFunc special, int files_id, int file_id, int options_id )
 {
 	const char *filename = get_config_file_name( file_id ); 
-	return load_current_config_fname( config, id, filename, myname, syntax, files_id, file_id, options_id );
+	return load_current_config_fname( config, id, filename, myname, syntax, special, files_id, file_id, options_id );
 
 }
 
@@ -642,7 +667,7 @@ asmenu_dir2property( const char *dirname, const char *menu_path, ASProperty *own
 		if( list[i]->d_name[0] == '.' ) 
 		{
 			ASProperty *cmd ;
-			include_cf = load_config_file(dirname, list[i]->d_name, "afterstep", &includeSyntax );
+			include_cf = load_config_file(dirname, list[i]->d_name, "afterstep", &includeSyntax, NULL );
 			include_file = create_property( CONFIG_IncludeFile_ID, ASProp_File, NULL, True );
 			append_property( popup, include_file );			   
 			include_file->contents.config_file = include_cf ;
@@ -765,7 +790,7 @@ asmenu_dir2property( const char *dirname, const char *menu_path, ASProperty *own
 			{	
 				ASConfigFile *cf = NULL ;
 			
-				cf = load_config_file(dirname, list[i]->d_name, "afterstep", &FuncSyntax );
+				cf = load_config_file(dirname, list[i]->d_name, "afterstep", &FuncSyntax, NULL );
 				item = free_storage2property_list( cf->free_storage, popup );				
 				if( item )
 				{	
@@ -1060,6 +1085,8 @@ load_hierarchy()
 	load_global_configs();
 	add_module_config( CLASS_AFTERSTEP, "afterstep" );
 	add_module_config( CLASS_PAGER, "Pager" );
+	add_module_config( CLASS_WINLIST, "WinList" );
+	add_module_config( CLASS_WHARF, "Wharf" );
 }
 
 /*************************************************************************/
@@ -1078,6 +1105,7 @@ load_global_configs()
 			tmp = load_current_config( 	tmp,
 										ConfigTypeInfo[i].config_id, NULL, 
 										ConfigTypeInfo[i].syntax, 
+										NULL, 
 										ConfigTypeInfo[i].config_files_id, 
 										ConfigTypeInfo[i].config_file_ids[k], 
 										ConfigTypeInfo[i].config_options_id);
@@ -1101,6 +1129,7 @@ void handle_module_syntaxes( ASProperty *owner, const char *module_name, ASModul
 			load_current_config( 	owner,
 									ms->config_id, module_name, 
 									ms->syntax, 
+									ms->special, 
 									0, 
 									ms->files[0], 
 									ms->config_options_id);				 		
@@ -1112,6 +1141,7 @@ void handle_module_syntaxes( ASProperty *owner, const char *module_name, ASModul
 				tmp = load_current_config( 	tmp,
 											ms->config_id, module_name, 
 											ms->syntax, 
+											ms->special,
 											ms->config_files_id, 
 											ms->files[l], 
 											ms->config_options_id);
@@ -1167,7 +1197,7 @@ print_hierarchy( ASProperty *root, int level )
 
 	for( i = 0 ; i < level ; ++i ) 
 		fputc( '\t', stderr);
-	fprintf( stderr, "%s(%ld) ", keyword_id2keyword(root->id), root->id );
+	fprintf( stderr, "%s(%ld) ", get_property_keyword( root ), root->id );
 	if( root->order >= 0 ) 
 		fprintf( stderr, "order=%d ", root->order );
 	if( get_flags( root->flags, ASProp_Indexed ) ) 

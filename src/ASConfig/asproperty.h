@@ -45,6 +45,8 @@ ASStorageID encode_string( const char *str );
 int decode_string( ASStorageID id, char *buffer, int buffer_length, int *stored_length );
 char* decode_string_alloc( ASStorageID id );
 
+const char *get_property_keyword( ASProperty *prop );
+
 /*************************************************************************/
 void destroy_property( void *data );
 ASProperty *create_property( int id, ASPropContentsType type, const char *name, Bool tree );

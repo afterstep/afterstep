@@ -1,6 +1,8 @@
 #ifndef CONFIGFILE_H_HEADER_INCLUDED
 #define CONFIGFILE_H_HEADER_INCLUDED
 
+#include "../../libAfterStep/parser.h"
+
 struct SyntaxDef;
 struct FreeStorageElem;
 
@@ -39,7 +41,7 @@ extern ASConfigFileInfo ConfigFilesInfo[];
 void init_ConfigFileInfo();
 const char* get_config_file_name( int config_id );
 /*************************************************************************/
-ASConfigFile *load_config_file(const char *dirname, const char *filename, const char *myname, struct SyntaxDef *syntax );
+ASConfigFile *load_config_file(const char *dirname, const char *filename, const char *myname, struct SyntaxDef *syntax, SpecialFunc special);
 void destroy_config_file( ASConfigFile *ascf );
 ASConfigFile *dup_config_file( ASConfigFile *src );
 

@@ -22,6 +22,7 @@
 #include "../../configure.h"
 #include "../../libAfterStep/asapp.h"
 #include "../../libAfterStep/afterstep.h"
+#include "../../libAfterStep/parser.h"
 #include <unistd.h>
 #include "../../libAfterConf/afterconf.h"
 
@@ -78,6 +79,22 @@ decode_string_alloc( ASStorageID id )
 	return NULL;		
 }	   
 
+/*************************************************************************/
+static const char *_unknown = "unknown" ;
+static const char *_wharf_button = "Item" ;
+const char *
+get_property_keyword( ASProperty *prop )
+{
+	if( prop && prop->id != 0 ) 
+	{
+		const char *kw ;
+		if( prop->id == WHARF_Wharf_ID )
+			return _wharf_button;
+		if( (kw = keyword_id2keyword(prop->id)) != NULL )
+			return kw;
+	}	 
+	return _unknown;
+}		   
 /*************************************************************************/
 void destroy_property( void *data );
 

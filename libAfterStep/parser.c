@@ -847,14 +847,14 @@ ParseConfig (ConfigDef * config, FreeStorageElem ** tail)
 
 
 FreeStorageElem *
-file2free_storage(const char *filename, char *myname, SyntaxDef *syntax, FreeStorageElem **foreign_options )
+file2free_storage(const char *filename, char *myname, SyntaxDef *syntax, SpecialFunc special, FreeStorageElem **foreign_options )
 {
 	ConfigData cd ;
 	ConfigDef    *config_reader ;
 	FreeStorageElem *storage = NULL ;
 	
 	cd.filename = filename ;
-	config_reader = InitConfigReader (myname, syntax, CDT_Filename, cd, NULL);
+	config_reader = InitConfigReader (myname, syntax, CDT_Filename, cd, special);
 	if (!config_reader)
 		return NULL;
 

@@ -123,7 +123,7 @@ get_config_file_name( int config_id )
 /*************************************************************************/
 /**************************************************************************/
 ASConfigFile *
-load_config_file(const char *dirname, const char *filename, const char *myname, SyntaxDef *syntax )
+load_config_file(const char *dirname, const char *filename, const char *myname, SyntaxDef *syntax, SpecialFunc special)
 {
 	ASConfigFile * ascf ;
 		
@@ -143,7 +143,7 @@ load_config_file(const char *dirname, const char *filename, const char *myname, 
 	ascf->writeable = (check_file_mode (ascf->fullname, W_OK) == 0);
 	ascf->myname = mystrdup(myname);
 
-	ascf->free_storage = file2free_storage(ascf->fullname, ascf->myname, syntax, NULL );
+	ascf->free_storage = file2free_storage(ascf->fullname, ascf->myname, syntax, special, NULL );
 	ascf->syntax = syntax ;
 
 	return ascf;

@@ -63,44 +63,57 @@ SyntaxDef     WhevSyntax = {
     0
 };
 
+#define WHARF_FEEL_TERMS \
+    {0, "WithdrawStyle", 13,    TT_UINTEGER, WHARF_WithdrawStyle_ID, NULL}, \
+	{0, "AnimateStepsMain", 16, TT_UINTEGER, WHARF_AnimateStepsMain_ID, NULL}, \
+    {0, "AnimateSteps", 12,     TT_UINTEGER, WHARF_AnimateSteps_ID, NULL}, \
+    {0, "AnimateDelay", 12,     TT_UINTEGER, WHARF_AnimateDelay_ID, NULL}, \
+    {0, "AnimateMain", 11,      TT_FLAG, WHARF_AnimateMain_ID, NULL}, \
+    {0, "Animate", 7,           TT_FLAG, WHARF_Animate_ID, NULL}
+
+#define WHARF_LOOK_TERMS \
+	{0, "ShowLabel", 9,         TT_FLAG, WHARF_ShowLabel_ID, NULL}, \
+    {0, "LabelLocation", 13,    TT_UINTEGER, WHARF_LabelLocation_ID, NULL}, \
+    {0, "FlipLabel", 9,         TT_FLAG, WHARF_FlipLabel_ID, NULL}, \
+    {0, "FitContents", 11,      TT_FLAG, WHARF_FitContents_ID, NULL}, \
+    {0, "ShapeToContents", 15,  TT_FLAG, WHARF_ShapeToContents_ID, NULL}, \
+    {0, "AlignContents", 13,    TT_FLAG, WHARF_AlignContents_ID, &AlignSyntax}, \
+    {0, "Bevel", 5, 			TT_FLAG, WHARF_Bevel_ID, &BevelSyntax}, \
+    {0, "CompositionMethod", 17,TT_INTEGER, WHARF_CompositionMethod_ID, NULL}
+
+#define WHARF_PRIVATE_TERMS \
+    {0, "Sound", 5,             TT_FILENAME, WHARF_Sound_ID, &WhevSyntax}, \
+    {0, "Geometry", 8,          TT_GEOMETRY, WHARF_Geometry_ID, NULL}, \
+    {0, "Rows", 4,              TT_UINTEGER, WHARF_Rows_ID, NULL}, \
+    {0, "Columns", 7,           TT_UINTEGER, WHARF_Columns_ID, NULL}, \
+    {0, "ForceSize", 9,         TT_GEOMETRY, WHARF_ForceSize_ID, NULL}
+
+#define WHARF_FOLDER_TERMS \
+	{TF_SPECIAL_PROCESSING, "", 0, TT_SPECIAL, WHARF_Wharf_ID, &FuncSyntax}, \
+	{TF_NO_MYNAME_PREPENDING|TF_SYNTAX_TERMINATOR, WHARF_FOLDER_END, 7, TT_FLAG, WHARF_FolderEnd_ID, NULL}
+
+
 TermDef       WharfTerms[] = {
-	/* Folders */
-	{TF_SPECIAL_PROCESSING, "", 0, TT_SPECIAL, WHARF_Wharf_ID, &FuncSyntax},
-	{TF_NO_MYNAME_PREPENDING | TF_SYNTAX_TERMINATOR, WHARF_FOLDER_END, 7, TT_FLAG, WHARF_FolderEnd_ID, NULL},
-	/* Sounds */
-    {0, "Sound", 5,             TT_FILENAME, WHARF_Sound_ID, &WhevSyntax},
-	/* Feel */
-/* the NoWithdraw option is undocumented, deprecated, and
- ** may be removed at Wharf's maintainer's discretion */
-    {0, "WithdrawStyle", 13,    TT_UINTEGER, WHARF_WithdrawStyle_ID, NULL},
+    /* the NoWithdraw option is undocumented, deprecated, and
+     ** may be removed at Wharf's maintainer's discretion */
     {TF_OBSOLETE, "NoWithdraw", 10,       TT_FLAG, WHARF_NoWithdraw_ID, NULL},
-	{0, "AnimateStepsMain", 16, TT_UINTEGER, WHARF_AnimateStepsMain_ID, NULL},
-    {0, "AnimateSteps", 12,     TT_UINTEGER, WHARF_AnimateSteps_ID, NULL},
-    {0, "AnimateDelay", 12,     TT_UINTEGER, WHARF_AnimateDelay_ID, NULL},
-    {0, "AnimateMain", 11,      TT_FLAG, WHARF_AnimateMain_ID, NULL},
-    {0, "Animate", 7,           TT_FLAG, WHARF_Animate_ID, NULL},
-	/* Look */
-    {0, "Geometry", 8,          TT_GEOMETRY, WHARF_Geometry_ID, NULL},
-    {0, "Rows", 4,              TT_UINTEGER, WHARF_Rows_ID, NULL},
-    {0, "Columns", 7,           TT_UINTEGER, WHARF_Columns_ID, NULL},
-    {0, "NoPush", 6,            TT_FLAG, WHARF_NoPush_ID, NULL},
-    {0, "FullPush", 8,          TT_FLAG, WHARF_FullPush_ID, NULL},
-    {TF_OBSOLETE, "NoBorder", 8,          TT_FLAG, WHARF_NoBorder_ID, NULL},
-    {0, "ForceSize", 9,         TT_GEOMETRY, WHARF_ForceSize_ID, NULL},
 /* TextureType, MaxColors, BgColor, TextureColor, and Pixmap are obsolete */
 	{TF_OBSOLETE, "TextureType", 11, TT_UINTEGER, WHARF_TextureType_ID, NULL},
     {TF_OBSOLETE, "MaxColors", 9,    TT_UINTEGER, WHARF_MaxColors_ID, NULL},
     {TF_OBSOLETE, "BgColor", 7,      TT_COLOR, WHARF_BgColor_ID, NULL},
     {TF_OBSOLETE, "TextureColor", 12,TT_COLOR, WHARF_TextureColor_ID, NULL},
     {TF_OBSOLETE, "Pixmap", 6,       TT_FILENAME, WHARF_Pixmap_ID, NULL},
-    {0, "ShowLabel", 9,         TT_FLAG, WHARF_ShowLabel_ID, NULL},
-    {0, "LabelLocation", 13,    TT_UINTEGER, WHARF_LabelLocation_ID, NULL},
-    {0, "FlipLabel", 9,         TT_FLAG, WHARF_FlipLabel_ID, NULL},
-    {0, "FitContents", 11,      TT_FLAG, WHARF_FitContents_ID, NULL},
-    {0, "ShapeToContents", 15,  TT_FLAG, WHARF_ShapeToContents_ID, NULL},
-    {0, "AlignContents", 13,    TT_FLAG, WHARF_AlignContents_ID, &AlignSyntax},
-    {0, "Bevel", 5, 			TT_FLAG, WHARF_Bevel_ID, &BevelSyntax},
-    {0, "CompositionMethod", 17,TT_INTEGER, WHARF_CompositionMethod_ID, NULL},
+    {TF_OBSOLETE, "NoBorder", 8,     TT_FLAG, WHARF_NoBorder_ID, NULL},
+    {TF_OBSOLETE, "NoPush", 6,       TT_FLAG, WHARF_NoPush_ID, NULL},
+    {TF_OBSOLETE, "FullPush", 8,     TT_FLAG, WHARF_FullPush_ID, NULL},
+	/* Private */
+	WHARF_PRIVATE_TERMS,
+	/* Folders */
+	WHARF_FOLDER_TERMS,
+	/* Look */
+	WHARF_LOOK_TERMS,
+	/* Feel */
+	WHARF_FEEL_TERMS,
 
 
 /* now special cases that should be processed by it's own handlers */
@@ -110,20 +123,38 @@ TermDef       WharfTerms[] = {
 	{0, NULL, 0, 0, 0}
 };
 
-SyntaxDef     WharfSyntax = {
-	'\n',
-	'\0',
-	WharfTerms,
-    0,                                         /* use default hash size */
-	' ',
-	"",
-	"",
-	"Module:Wharf",
-	"Wharf",
-	"AfterStep module for launching or docking applications aka button bar",
-	NULL,
-    0
+TermDef       WharfFeelTerms[] = {
+	/* Feel */
+	WHARF_FEEL_TERMS,
+	BALLOON_FEEL_TERMS,
+	{0, NULL, 0, 0, 0}
 };
+
+TermDef       WharfLookTerms[] = {
+    /* Look */
+	WHARF_LOOK_TERMS,
+/* now special cases that should be processed by it's own handlers */
+    BALLOON_LOOK_TERMS,
+	{0, NULL, 0, 0, 0}
+};
+
+TermDef       WharfPrivateTerms[] = {
+	WHARF_PRIVATE_TERMS,
+	BALLOON_FLAG_TERM,
+	{0, NULL, 0, 0, 0}
+};
+
+TermDef       WharfFolderTerms[] = {
+	WHARF_FOLDER_TERMS,
+	{0, NULL, 0, 0, 0}
+};
+
+SyntaxDef WharfFeelSyntax 		= {'\n', '\0', WharfFeelTerms, 		0, '\t', "", "\t", 	"WharfFeel", 	"WharfFeel", 	"AfterStep wharf module feel", NULL, 0};
+SyntaxDef WharfLookSyntax 		= {'\n', '\0', WharfLookTerms, 		0, '\t', "", "\t", 	"WharfLook", 	"WharfLook", 	"AfterStep wharf module look", NULL, 0};
+SyntaxDef WharfPrivateSyntax 	= {'\n', '\0', WharfPrivateTerms,	0, '\t', "", "\t", 	"Wharf",     	"Wharf",     	"AfterStep wharf module", NULL,0};
+SyntaxDef WharfFolderSyntax 	= {'\n', '\0', WharfFolderTerms,	0, '\t', "", "\t", 	"Wharf Folders","Wharf Folders","AfterStep wharf module", NULL,0};
+SyntaxDef WharfSyntax 			= {'\n', '\0', WharfTerms,			0, ' ',  "", "",	"Module:Wharf",	"Wharf",	 	"AfterStep module for launching or docking applications aka button bar",NULL,0};
+
 
 flag_options_xref WharfFlags[] = {
 	{WHARF_NO_PUSH, WHARF_NoPush_ID, 0},

@@ -156,7 +156,7 @@ SyntaxDef     PagerPrivateSyntax = {
 };
 
 
-
+ 
 TermDef       PagerTerms[] = {
 	/* Feel */
 	PAGER_FEEL_TERMS,
