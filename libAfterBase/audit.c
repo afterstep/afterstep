@@ -388,8 +388,8 @@ countrealloc (const char *fname, int line, void *ptr, size_t length)
 		}
 		if (m == NULL)
 		{
-			show_error ("%s:attempt in %s:%d to realloc memory(%p) that was never allocated!\n",
-					     __FUNCTION__, fname, line, ptr);
+			show_error ("countrealloc:attempt in %s:%d to realloc memory(%p) that was never allocated!\n",
+					     fname, line, ptr);
 			print_simple_backtrace();
 #ifdef DEBUG_ALLOC_STRICT
 {	char *segv = NULL ;	*segv = 0 ;  }
@@ -440,7 +440,7 @@ countfree (const char *fname, int line, void *ptr)
 
 	if (ptr == NULL)
 	{
-		fprintf (stderr, "%s:attempt to free NULL memory in %s:%d\n", __FUNCTION__, fname, line);
+		show_error("countfree:attempt to free NULL memory in %s:%d", fname, line);
 #ifdef DEBUG_ALLOC_STRICT
 {	char *segv = NULL ;	*segv = 0 ;  }
 #endif
@@ -452,8 +452,7 @@ countfree (const char *fname, int line, void *ptr)
 	{
 		if( cleanup_mode == 0 )
 		{
-			fprintf (stderr,
-					 "%s:attempt in %s:%d to free memory(%p) that was never allocated!\n", __FUNCTION__, fname, line, ptr);
+			show_error( "countfree:attempt in %s:%d to free memory(%p) that was never allocated!", fname, line, ptr);
 #ifdef DEBUG_ALLOC_STRICT
 {	char *segv = NULL ;	*segv = 0 ;  }
 #endif
@@ -750,15 +749,14 @@ count_xfreepixmap (const char *fname, int line, Display * display, Pixmap pmap)
 
 	if (pmap == None)
 	{
-		fprintf (stderr, "%s:attempt to free None pixmap in %s:%d\n", __FUNCTION__, fname, line);
+		show_error("count_xfreepixmap:attempt to free None pixmap in %s:%d", fname, line);
 		return !Success;
 	}
 
 	if (m == NULL)
 	{
-		fprintf (stderr,
-				 "%s:attempt in %s:%d to free Pixmap(0x%X) that was never created, or already freed!\n",
-				 __FUNCTION__, fname, line, (unsigned int)pmap);
+		show_error ("count_xfreepixmap:attempt in %s:%d to free Pixmap(0x%X) that was never created, or already freed!",
+				 	 fname, line, (unsigned int)pmap);
 		raise( SIGUSR2 );
 		XFreePixmap (display, pmap );
 		return !Success;
@@ -790,15 +788,14 @@ count_xfreegc (const char *fname, int line, Display * display, GC gc)
 
 	if (gc == None)
 	{
-		fprintf (stderr, "%s:attempt to free None GC in %s:%d\n", __FUNCTION__, fname, line);
+		show_error( "count_xfreegc:attempt to free None GC in %s:%d", fname, line);
 		return !Success;
 	}
 
 	if (m == NULL)
 	{
-		fprintf (stderr,
-				 "%s:attempt in %s:%d to free a GC (0x%X)that was never created or already destroyed!\n",
-				 __FUNCTION__, fname, line, (unsigned int)gc);
+		show_error( "count_xfreegc:attempt in %s:%d to free a GC (0x%X)that was never created or already destroyed!",
+				    fname, line, (unsigned int)gc);
 		return !Success;
 	}
 
@@ -861,7 +858,7 @@ count_xdestroyimage (const char *fname, int line, XImage * image)
 
 	if (image == NULL)
 	{
-		fprintf (stderr, "%s:attempt to free NULL XImage in %s:%d\n", __FUNCTION__, fname, line);
+		show_error("count_xdestroyimage:attempt to free NULL XImage in %s:%d", fname, line);
 		return BadValue;
 	}
 	image_data = (void *)(image->data);
@@ -871,9 +868,8 @@ count_xdestroyimage (const char *fname, int line, XImage * image)
 		/* can also be of C_MEM type if we allocated it ourselvs */
 		if ((m = count_find (fname, line, (void *)image, C_MEM)) == NULL)
 		{
-			fprintf (stderr,
-					 "%s:attempt in %s:%d to destroy an XImage that was never created or already destroyed.\n",
-					 __FUNCTION__, fname, line);
+			show_error("count_xdestroyimage:attempt in %s:%d to destroy an XImage that was never created or already destroyed.\n",
+					    fname, line);
 			return !Success;
 		}
 
@@ -1065,15 +1061,14 @@ count_xfree (const char *fname, int line, void *data)
 
 	if (m == NULL)
 	{
-		fprintf (stderr, "%s:attempt to free NULL X memory in %s:%d\n", __FUNCTION__, fname, line);
+		show_error("count_xfree:attempt to free NULL X memory in %s:%d", fname, line);
 		return !Success;
 	}
 
 	if (m == NULL)
 	{
-		fprintf (stderr,
-				 "%s:attempt in %s:%d to free X memory (%p) that was never allocated or already freed!\n",
-				 __FUNCTION__, fname, line, data);
+		show_error("count_xfree:attempt in %s:%d to free X memory (%p) that was never allocated or already freed!",
+				    fname, line, data);
 		return !Success;
 	}
 
