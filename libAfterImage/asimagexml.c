@@ -753,8 +753,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 			if (color_str) {
 				char* p = color_str;
 				while (isspace((int)*p)) p++;
-				parse_argb_color(p, &bevel.hi_color);
-				while (*p && !isspace((int)*p)) p++;
+				p = parse_argb_color(p, &bevel.hi_color);
 				while (isspace((int)*p)) p++;
 				parse_argb_color(p, &bevel.lo_color);
 			}
@@ -1810,6 +1809,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 			show_warning("Failed to store image id [%s].", id);
 			safe_asimage_destroy(result );
 			result = fetch_asimage( imman, id );
+			/*show_warning("Old image with the name fetched as %p.", result);*/
 		}else
 		{
 			/* normally generated image will be destroyed right away, so we need to

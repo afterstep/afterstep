@@ -116,7 +116,7 @@ load_file(const char* realfilename)
 
 	/* Open the file. */
 	fp = fopen(realfilename, "rb");
-	if (!(fp = fopen(realfilename, "rb"))) return NULL;
+	if ( fp == NULL ) return NULL;
 
 	/* Read in the file. */
 	str = NEW_ARRAY(char, st.st_size + 1);

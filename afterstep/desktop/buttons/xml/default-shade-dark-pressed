@@ -1,0 +1,7 @@
+<composite width=16 height=16 merge=clip>
+	<gradient colors="Active ActiveLight" width=16 height=16/>
+	<tile x=2 y=2 tint="BaseDark">
+		<img src="dots/bar_medium"/>
+	</tile>
+</composite>
+
