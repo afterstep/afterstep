@@ -17,14 +17,14 @@
  *
  */
 
-#include "../../configure.h"
+#include "../configure.h"
 
 #include <stdio.h>
 #include <string.h>
 
-#include "../../include/aftersteplib.h"
-#include "../../include/afterstep.h"
-#include "../../include/regexp.h"
+#include "../include/aftersteplib.h"
+#include "../include/afterstep.h"
+#include "../include/regexp.h"
 
 /************************************************************************/
 /************************************************************************/
@@ -760,6 +760,27 @@ compare_wild_reg_exp( wild_reg_exp *wrexp1, wild_reg_exp *wrexp2 )
 	}
     }
     return cmp_res ;
+}
+
+/************************************************************************/
+
+void
+destroy_wild_reg_exp( wild_reg_exp *wrexp )
+{
+  reg_exp *curr, *next = NULL;
+  
+    if( wrexp == NULL ) return ;
+    
+    for( curr = wrexp->head ; curr ; curr = next )
+    {
+	next = curr->next ;
+        if( curr->symbols ) free( curr->symbols );
+        if( curr->negation ) free( curr->negation );
+        free( curr ) ;
+    }
+    
+    if( wrexp->raw ) free( wrexp->raw );
+    free( wrexp );
 }
 
 /************************************************************************/

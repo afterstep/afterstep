@@ -2,9 +2,12 @@
 #define ASHASH_HEADER_FILE_INCLUDED
 /* REALY USEFULL and UNIVERSAL hash table implementation */
 
+struct wild_reg_exp;
+
 typedef union {
-    unsigned long  long_val ;
+    unsigned long  long_val  ;
     char 	  *string_val;
+    struct wild_reg_exp  *wrexp_val ; /* regular expression */
 }ASHashableValue ; 
 
 typedef struct ASHashItem
