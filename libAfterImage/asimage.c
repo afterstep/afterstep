@@ -19,7 +19,7 @@
 
 #include "../configure.h"
 
-#define LOCAL_DEBUG
+/*#define LOCAL_DEBUG*/
 
 #include "../include/aftersteplib.h"
 #include <X11/Intrinsic.h>
@@ -650,19 +650,28 @@ LOCAL_DEBUG_OUT( "writing row in 16bpp with %s: ", (byte_order == MSBFirst)?"MSB
 				red = r[i]+err_red ; err_red = (red&0x07)>>1 ;
 				green = g[i]+err_green ; err_green = (green&0x03)>>1 ;
 				blue = b[i]+err_blue ; err_blue = (blue&0x07)>>1 ;
-				src[0] = (CARD8)((red&0xF8)|( green >> 5));
-				src[1] = (CARD8)(((green<<3)&0xE0)|blue>>3);
+				src[0] = (CARD8)((red&0xF8)|(green>>5));
+				src[1] = (CARD8)(((green<<3)&0xE0)|(blue>>3));
 				src += 2;
 			}
 		}else
 		{
 			for (i = 0 ; i < width; i++)
 			{/* diffusion to compensate for quantization error :*/
-				red = r[i]+err_red ; err_red = (red&0x07)>>1 ;
-				green = g[i]+err_green ; err_green = (green&0x03)>>1 ;
-				blue = b[i]+err_blue ; err_blue = (blue&0x07)>>1 ;
-				src[1] = (CARD8)((red&0xF8) | (green >> 5));
-				src[0] = (CARD8)(((green<< 3)&0xE0) |  blue>>3);
+				red = r[i]+err_red ;
+				if( red&0xFFFFFF00 ) 
+					red = 0x00FF;
+				err_red = (red&0x07)>>1 ;					
+				green = g[i]+err_green ; 
+				if( green&0xFFFFFF00 ) 
+					green = 0x00FF;
+				err_green = (green&0x03)>>1 ;
+				blue = b[i]+err_blue ; 
+				if( blue&0xFFFFFF00 ) 
+					blue = 0x00FF;
+				err_blue = (blue&0x07)>>1 ;
+				src[1] = (CARD8)((red&0xF8)|((green >> 5)&0x07));
+				src[0] = (CARD8)(((green<<3)&0xE0)|(blue>>3));
 #ifdef LOCAL_DEBUG
 				if( debug_count > 0 )
 				{
@@ -731,11 +740,12 @@ fprintf( stderr, "source #%2.2lX%2.2lX%2.2lX error #%2.2lX%2.2lX%2.2lX result #%
 /* just a hypotesus, but it looks good for scale factors S > 3: */
 /* Cn = (-C1+(2*(S-n)+1)*C2+(2*n+1)*C3-C4)/2S  	  			   */
 /* or :
- * Cn = (-C1+(2*S+1)*C2+C3-C4-n*2*C2+n*2*C3)/2S  			   */
+ * Cn = (-C1+(2*S+1)*C2+C3-C4+n*(2*C3-2*C2)/2S  			   */
 /*       [ T                   [C2s]  [C3s]]   			       */
-#define INTERPOLATION_Cs(c2)	 		 	((c2)<<2)
-#define INTERPOLATION_TOTAL_START(c1,C2s,C3s,c4,S) 	((((S)<<2)+1)*(C2s)+((C3s)<<1)+(C3s)-c1-c4)
-#define INTERPOLATION_TOTAL_STEP(C2s,C3s)  	((C3s)-(C2s))
+#define INTERPOLATION_Cs(c)	 		 	    ((c)<<1)
+/*#define INTERPOLATION_TOTAL_START(c1,c2,c3,c4,S) 	(((S)<<1)*(c2)+((c3)<<1)+(c3)-c2-c1-c4)*/
+#define INTERPOLATION_TOTAL_START(c1,c2,c3,c4,S) 	((((S)<<1)+1)*(c2)+(c3)-(c1)-(c4))
+#define INTERPOLATION_TOTAL_STEP(c2,c3)  	((c3<<1)-(c2<<1))
 #define INTERPOLATE_N_COLOR(T,S)		  	(((T)<<(QUANT_ERR_BITS-1))/(S))
 
 #define AVERAGE_COLOR1(c) 					((c)<<QUANT_ERR_BITS)
@@ -747,6 +757,7 @@ enlarge_component12( register CARD32 *src, register CARD32 *dst, int *scales, in
 {/* expected len >= 2  */
 	register int i = 0, k = 0;
 	register int c1 = src[0], c4 = src[1];
+LOCAL_DEBUG_OUT( "scaling from %d", len );	
 	--len; --len ;
 	while( i < len )
 	{
@@ -784,6 +795,7 @@ enlarge_component23( register CARD32 *src, register CARD32 *dst, int *scales, in
 {/* expected len >= 2  */
 	register int i = 0, k = 0;
 	register int c1 = src[0], c4 = src[1];
+LOCAL_DEBUG_OUT( "scaling from %d", len );
 	if( scales[0] == 1 )
 	{/* special processing for first element - it can be 1 - others can only be 2 or 3 */
 		dst[k] = INTERPOLATE_COLOR1(src[0]) ;
@@ -838,33 +850,30 @@ enlarge_component( register CARD32 *src, register CARD32 *dst, int *scales, int 
   * as much as possible */
 	int i = 0;
 	int c1 = src[0], c4 = src[1];
-	int C2s = INTERPOLATION_Cs(src[0]), C3s = INTERPOLATION_Cs(src[1]) ;
 	register int k = 0;
 LOCAL_DEBUG_OUT( "len = %d", len );
 	--len; --len;
 	while( i <= len )
 	{
-		register int S = scales[i], step = INTERPOLATION_TOTAL_STEP(C2s,C3s) ;
+		register int S = scales[i], step = INTERPOLATION_TOTAL_STEP(src[i],src[i+1]);
 		register int n, T ;
 
-		LOCAL_DEBUG_OUT( "pixel %d, S = %d, step = %d", i, S, step );
+/*		LOCAL_DEBUG_OUT( "pixel %d, S = %d, step = %d", i, S, step );*/
 		if( i < len )
 			c4 = src[i+2];
-		T = INTERPOLATION_TOTAL_START(c1,C2s,C3s,c4,S);
-		for( n = 1 ; n < S ; n++ )
+		T = INTERPOLATION_TOTAL_START(c1,src[i],src[i+1],c4,S);
+		for( n = 0 ; n < S ; n++ )
 		{
-			dst[k+n] = INTERPOLATE_N_COLOR(T,S);
-			T += step;
+			dst[k+n] = (T&0xFF000000)?0:INTERPOLATE_N_COLOR(T,S);
+			(int)T += (int)step;
 		}
 		c1 = src[i];
-		dst[k] = INTERPOLATE_COLOR1(c1) ;
+/*		dst[k] = INTERPOLATE_COLOR1(src[i]) ;*/
 		k += n ;
 		++i;
-		C2s = C3s;
-		C3s = INTERPOLATION_Cs(src[i]);
 	}
 	dst[k] = INTERPOLATE_COLOR1(c4) ;
-LOCAL_DEBUG_OUT( "%d pixels written", k );
+/*LOCAL_DEBUG_OUT( "%d pixels written", k );*/
 }
 
 /* this will shrink array based on count of items in src per one dst item with averaging */
@@ -873,10 +882,12 @@ shrink_component( register CARD32 *src, register CARD32 *dst, int *scales, int l
 {/* we skip all checks as it is static function and we want to optimize it
   * as much as possible */
 	register int i = -1, k = -1;
+LOCAL_DEBUG_OUT( "len = %d", len );
 	while( ++k < len )
 	{
 		register int reps = scales[k] ;
 		register int c1 = src[++i];
+/*LOCAL_DEBUG_OUT( "pixel = %d, scale[k] = %d", k, reps );*/
 		if( reps == 1 )
 			dst[k] = AVERAGE_COLOR1(c1);
 		else if( reps == 2 )
@@ -910,15 +921,18 @@ copy_component( register CARD32 *src, register CARD32 *dst, int *scales, int len
 {
 	register int i ;
 	for( i = 0 ; i < len ; ++i )
-		dst[i] = src[i];
+		dst[i] = (src[i]&0xFF000000)?0:src[i];
 }
 
 static inline void
 add_component( register CARD32 *src, register CARD32 *dst, int *scales, int len )
 {
-	register int i ;
+	register int i, tmp ;
 	for( i = 0 ; i < len ; ++i )
-		src[i] += dst[i];
+	{
+		tmp = (int)(src[i]) + (int)(dst[i]);
+		src[i] = tmp;
+	}
 }
 
 static inline int
@@ -935,7 +949,7 @@ divide_component( register CARD32 *src, register CARD32 *dst, int ratio, int len
 {
 	register int i ;
 	for( i = 0 ; i < len ; ++i )
-		dst[i] = src[i]/ratio;
+		dst[i] = (src[i]&0xFF000000)?0:src[i]/ratio;
 }
 
 static inline void
@@ -943,7 +957,7 @@ rbitshift_component( register CARD32 *src, register CARD32 *dst, int shift, int 
 {
 	register int i ;
 	for( i = 0 ; i < len ; ++i )
-		dst[i] = src[i]>>shift;
+		dst[i] = (src[i]&0xFF000000)?0:src[i]>>shift;
 }
 
 /* diffusingly combine src onto self and dst, and rightbitshift src by quantization shift */
@@ -956,20 +970,18 @@ diffuse_shift_component( register CARD32 *line1, register CARD32 *line2, int unu
 	register CARD32 errp = 0, err = 0, c;
 	c = line1[0] ;
 	errp = c&QUANT_ERR_MASK;
-
-	line2[0] += (errp*5)>>4 ;
 	line1[0] = c>>QUANT_ERR_BITS ;
+	line2[0] += (errp*5)>>4 ; 
 
 	for( i = 1 ; i < len ; ++i )
 	{
 		c = line1[i]+((errp*7)>>4) ;
 		err = c&QUANT_ERR_MASK;
-
+		line1[i] = c>>QUANT_ERR_BITS ;
 		line2[i-1] += (err*3)>>4 ;
 		line2[i] += ((err*5)>>4)+(errp>>4);
-		line1[i] = c>>QUANT_ERR_BITS ;
 		errp = err ;
-	}
+	} 
 }
 
 static inline void
@@ -978,9 +990,9 @@ start_component_interpolation( CARD32 *c1, CARD32 *c2, CARD32 *c3, CARD32 *c4, r
 	register int i;
 	for( i = 0 ; i < len ; i++ )
 	{
-		register int C2s = INTERPOLATION_Cs(c2[i]), C3s = INTERPOLATION_Cs(c3[i]) ;
-		T[i] = INTERPOLATION_TOTAL_START(c1[i],C2s,C3s,c4[i],S);
-		step[i] = INTERPOLATION_TOTAL_STEP(C2s,C3s);
+		register int rc2 = c2[i], rc3 = c3[i] ;
+		T[i] = INTERPOLATION_TOTAL_START(c1[i],rc2,rc3,c4[i],S);
+		step[i] = INTERPOLATION_TOTAL_STEP(rc2,rc3);
 	}
 }
 
@@ -1248,7 +1260,7 @@ void
 scale_image_down( ASImage *src, ASImage *dst, int h_ratio, int *scales_h, int* scales_v, Bool to_xim)
 {
 	ASScanline src_line, dst_line, total ;
-	int i = 0, k = 0;
+	int i = 0, k = 0, line_len = MIN(dst->width,src->width);
 	ASImageOutput *imout ;
 
 	if((imout = start_image_output( dst, dst->ximage, to_xim, QUANT_ERR_BITS )) == NULL )
@@ -1262,7 +1274,7 @@ scale_image_down( ASImage *src, ASImage *dst, int h_ratio, int *scales_h, int* s
 		int reps = scales_v[k] ;
 		DECODE_SCANLINE(src,src_line,i);
 		total.flags = src_line.flags ;
-		CHOOSE_SCANLINE_FUNC(h_ratio,src_line,total,scales_h,total.width);
+		CHOOSE_SCANLINE_FUNC(h_ratio,src_line,total,scales_h,line_len);
 		reps += i;
 
 #ifdef LOCAL_DEBUG
@@ -1274,7 +1286,7 @@ scale_image_down( ASImage *src, ASImage *dst, int h_ratio, int *scales_h, int* s
 		{
 			DECODE_SCANLINE(src,src_line,i);
 			total.flags |= src_line.flags ;
-			CHOOSE_SCANLINE_FUNC(h_ratio,src_line,dst_line,scales_h,dst_line.width);
+			CHOOSE_SCANLINE_FUNC(h_ratio,src_line,dst_line,scales_h,line_len);
 			SCANLINE_FUNC(add_component,total,dst_line,NULL,total.width);
 			++i ;
 		}
@@ -1300,9 +1312,9 @@ scale_image_up23( ASImage *src, ASImage *dst, int h_ratio )
 void
 scale_image_up( ASImage *src, ASImage *dst, int h_ratio, int *scales_h, int* scales_v, Bool to_xim)
 {
-	ASScanline src_lines[4], *c1, *c2, *c3, *c4, tmp;
+	ASScanline src_lines[4], *c1, *c2, *c3, *c4, *next_c4, tmp;
 	ASScanline total, step ;
-	int i = 0, k = 0, max_i;
+	int i = 0, k = 0, max_i, line_len = MIN(dst->width,src->width);
 	ASImageOutput *imout ;
 
 	if((imout = start_image_output( dst, dst->ximage, to_xim, QUANT_ERR_BITS )) == NULL )
@@ -1317,14 +1329,15 @@ scale_image_up( ASImage *src, ASImage *dst, int h_ratio, int *scales_h, int* sca
 	c2 = c1 = &(src_lines[0]);
 	c3 = &(src_lines[1]);
 	c4 = &(src_lines[(src->height>2)?2:1]);
+	next_c4 = &(src_lines[3]);
 	DECODE_SCANLINE(src,tmp,0);
 	total.flags = step.flags = c2->flags = tmp.flags ;
 LOCAL_DEBUG_OUT( "rescaling line #%d", 0 );
-	CHOOSE_SCANLINE_FUNC(h_ratio,tmp,*c2,scales_h,src->width);
+	CHOOSE_SCANLINE_FUNC(h_ratio,tmp,*c2,scales_h,line_len);
 	DECODE_SCANLINE(src,tmp,1);
 	c3->flags = tmp.flags ;
 LOCAL_DEBUG_OUT( "rescaling line #%d", 1 );
-	CHOOSE_SCANLINE_FUNC(h_ratio,tmp,*c3,scales_h,src->width);
+	CHOOSE_SCANLINE_FUNC(h_ratio,tmp,*c3,scales_h,line_len);
 	i = 0 ;
 	max_i = src->height-1 ;
 	while( i < max_i )
@@ -1336,21 +1349,33 @@ LOCAL_DEBUG_OUT( "rescaling line #%d", 1 );
 			DECODE_SCANLINE(src,tmp,i+2);
 			c4->flags = tmp.flags ;
 LOCAL_DEBUG_OUT( "rescaling line #%d", i+2 );
-			CHOOSE_SCANLINE_FUNC(h_ratio,tmp,*c4,scales_h,src->width);
+			CHOOSE_SCANLINE_FUNC(h_ratio,tmp,*c4,scales_h,line_len);
 		}
-		output_image_line( imout, c2, 1);
+/*		output_image_line( imout, c2, 1); */
 
 		/* now we'll prepare total and step : */
 		SCANLINE_COMBINE(start_component_interpolation,*c1,*c2,*c3,*c4,total,step,S,dst->width);
 
-		for( n = 1 ; n < S ; n++ )
+		for( n = 0 ; n < S ; n++ )
 		{
-			output_image_line( imout, &total, S);
-			SCANLINE_FUNC(add_component,step,total,NULL,dst->width );
+/*
+#ifdef LOCAL_DEBUG
+		LOCAL_DEBUG_OUT( "src line %d scale factopr in this step %d", i, S );
+		SCANLINE_MOD(print_component,total,1,total.width);
+		SCANLINE_MOD(print_component,step,1,step.width);
+#endif
+*/
+			output_image_line( imout, &total, S<<1);
+			SCANLINE_FUNC(add_component,total,step,NULL,dst->width );
 		}
-		c1 = c2;
-		c2 = c3;
-		c3 = c4;
+		{
+		  ASScanline *tmp = c1;
+			c1 = c2;
+			c2 = c3;
+			c3 = c4;
+			c4 = next_c4;
+			next_c4 = tmp;
+		}			
 		k += n ;
 		++i;
 	}
@@ -1412,11 +1437,11 @@ scale_asimage( ASImage *src, int to_width, int to_height, Bool to_xim, int depth
 
 	if( v_ratio <= 1 ) 					   /* scaling down */
 		scale_image_down( src, dst, h_ratio, scales_h, scales_v, to_xim );
-	else if( v_ratio > 1 && v_ratio <= 2) /* scaling up */
-		scale_image_up12( src, dst, h_ratio );
+	else /*if( v_ratio > 1 && v_ratio <= 2)
+		scale_image_up( src, dst, h_ratio );
 	else if( v_ratio > 2 && v_ratio <= 3)
-		scale_image_up23( src, dst, h_ratio );
-	else
+		scale_image_up( src, dst, h_ratio );
+	else */
 		scale_image_up( src, dst, h_ratio, scales_h, scales_v, to_xim );
 
 	free( scales_h );
