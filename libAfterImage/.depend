@@ -37,6 +37,7 @@
 		asimage.h \
 		xcf.h \
 		xpm.h \
+		ungif.h \
 		import.h \
 		export.h \
 		ascmap.h
@@ -45,15 +46,40 @@
 		config.h \
 		afterbase.h \
 		asimage.h \
+		ximage.h \
 		xcf.h \
 		xpm.h \
+		ungif.h \
 		import.h
+
+./transform.o : \
+		config.h \
+		afterbase.h \
+		asvisual.h \
+		blender.h \
+		asimage.h \
+		transform.h
+
+./ungif.o : \
+		config.h \
+		afterbase.h \
+		asimage.h \
+		ascmap.h \
+		ungif.h
 
 ./xcf.o : \
 		config.h \
 		afterbase.h \
 		asimage.h \
 		xcf.h
+
+./ximage.o : \
+		config.h \
+		afterbase.h \
+		asvisual.h \
+		blender.h \
+		asimage.h \
+		ximage.h
 
 ./xpm.o : \
 		config.h \

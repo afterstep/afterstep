@@ -180,7 +180,7 @@ typedef enum {
  * SOURCE
  */
 #define MAX_IMPORT_IMAGE_SIZE 	4000
-#define MAX_BEVEL_OUTLINE 		10
+#define MAX_BEVEL_OUTLINE 		100
 #define MAX_SEARCH_PATHS		8      /* prudently limiting ourselfs */
 /******/
 
@@ -232,6 +232,7 @@ typedef struct ASImageManager
 
 typedef struct ASImageBevel
 {
+#define BEVEL_SOLID_INLINE	(0x01<<0)
 	ASFlagType type ;			               /* reserved for future use */
 
 	/* primary bevel colors */

@@ -19,12 +19,13 @@
 #include "config.h"
 
 /* #define LOCAL_DEBUG */
-/* #define DO_CLOCKING */
+/*#define DO_CLOCKING*/
 
 #define USE_64BIT_FPU
 
 #include <malloc.h>
 #ifdef DO_CLOCKING
+#include <time.h>
 #include <sys/time.h>
 #endif
 #include <stdarg.h>

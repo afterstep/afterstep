@@ -6,7 +6,10 @@ LIBAFTERIMAGE_OBJS = \
 		$(LIBAFTERIMAGE_PATH)/blender.c \
 		$(LIBAFTERIMAGE_PATH)/export.c \
 		$(LIBAFTERIMAGE_PATH)/import.c \
+		$(LIBAFTERIMAGE_PATH)/transform.c \
+		$(LIBAFTERIMAGE_PATH)/ungif.c \
 		$(LIBAFTERIMAGE_PATH)/xcf.c \
+		$(LIBAFTERIMAGE_PATH)/ximage.c \
 		$(LIBAFTERIMAGE_PATH)/xpm.c
 
 LIBAFTERIMAGE_INCS = \
@@ -20,5 +23,8 @@ LIBAFTERIMAGE_INCS = \
 		$(LIBAFTERIMAGE_PATH)/blender.h \
 		$(LIBAFTERIMAGE_PATH)/export.h \
 		$(LIBAFTERIMAGE_PATH)/import.h \
+		$(LIBAFTERIMAGE_PATH)/transform.h \
+		$(LIBAFTERIMAGE_PATH)/ungif.h \
 		$(LIBAFTERIMAGE_PATH)/xcf.h \
+		$(LIBAFTERIMAGE_PATH)/ximage.h \
 		$(LIBAFTERIMAGE_PATH)/xpm.h

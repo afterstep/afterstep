@@ -45,8 +45,8 @@
 				  [-r foreground_resize_type] [-R background_resize_type]
  */
 
-#define BEVEL_HI_WIDTH 3
-#define BEVEL_LO_WIDTH 2
+#define BEVEL_HI_WIDTH 2
+#define BEVEL_LO_WIDTH 3
 #define BEVEL_ADDON    (BEVEL_HI_WIDTH+BEVEL_LO_WIDTH)
 
 void usage()
@@ -183,8 +183,8 @@ int main(int argc, char* argv[])
 				fore_im = tmp ;
 		}
 	}
-	width  += text_margin*2 ;
-	height += text_margin*2 ;
+	width  += text_margin*2 + BEVEL_ADDON;
+	height += text_margin*2 + BEVEL_ADDON;
 	if( back_image_file )
 	{ /* see ASView.2 : */
 		ASImage *tmp = file2ASImage( back_image_file, 0xFFFFFFFF,
@@ -210,7 +210,7 @@ int main(int argc, char* argv[])
 		ASImage *text_im ;
 		ASImage *rendered_im ;
 		ASImageLayer layers[2] ;
-		ASImageBevel bevel = {0, 0xFFDDDDDD, 0xFF555555, 0xFFFFFFFF, 0xFF777777, 0xFF444444,
+		ASImageBevel bevel = {BEVEL_SOLID_INLINE, 0xFFDDDDDD, 0xFF555555, 0xFFFFFFFF, 0xFF777777, 0xFF444444,
 		                      BEVEL_HI_WIDTH, BEVEL_HI_WIDTH,
 							  BEVEL_LO_WIDTH, BEVEL_LO_WIDTH,
 							  BEVEL_HI_WIDTH, BEVEL_HI_WIDTH,
@@ -238,8 +238,8 @@ int main(int argc, char* argv[])
 		layers[0].back_color = back_color ;
 		layers[0].bevel = &bevel ;
 		layers[1].im = fore_im ;
-		layers[1].dst_x = text_margin+BEVEL_HI_WIDTH ;
-		layers[1].dst_y = text_margin+MIN(text_margin,(font->max_height-font->max_ascend))/2+BEVEL_HI_WIDTH;
+		layers[1].dst_x = text_margin+BEVEL_HI_WIDTH*2 ;
+		layers[1].dst_y = text_margin+MIN(text_margin,(font->max_height-font->max_ascend))/2+BEVEL_HI_WIDTH*2;
 		layers[1].clip_width = fore_im->width ;
 		layers[1].clip_height = fore_im->height ;
 		layers[1].back_color = text_color ;

@@ -38,6 +38,8 @@
 
 void decode_image_scanline_normal( ASImageDecoder *imdec );
 void decode_image_scanline_beveled( ASImageDecoder *imdec );
+void decode_image_scl_bevel_solid( ASImageDecoder *imdec );
+
 
 Bool create_image_xim( ASVisual *asv, ASImage *im, ASAltImFormats format );
 Bool create_image_argb32( ASVisual *asv, ASImage *im, ASAltImFormats format );
@@ -414,7 +416,10 @@ start_image_decoding( ASVisual *asv,ASImage *im, ASFlagType filter,
 		imdec->bevel_h_addon = bevel->left_outline+bevel->right_outline ;
 		imdec->bevel_v_addon = bevel->top_outline+bevel->bottom_outline ;
 
-		imdec->decode_image_scanline = decode_image_scanline_beveled ;
+		if( get_flags( bevel->type, BEVEL_SOLID_INLINE ) )
+			imdec->decode_image_scanline = decode_image_scl_bevel_solid ;
+		else 
+			imdec->decode_image_scanline = decode_image_scanline_beveled ;
 	}else
 		imdec->decode_image_scanline = decode_image_scanline_normal ;
 
@@ -1393,7 +1398,7 @@ decode_image_scanline_beveled( ASImageDecoder *imdec )
 	if( y < bevel->top_outline )
 	{
 		offset_shade = scl->width - (y*bevel->right_outline)/bevel->top_outline;
-		corner = y ;
+		corner = bevel->left_outline*y/bevel->top_outline ;
 	}else if( y >= imdec->out_height+bevel->top_outline &&
 		      y < imdec->out_height+imdec->bevel_v_addon)
 	{
@@ -1425,7 +1430,7 @@ decode_image_scanline_beveled( ASImageDecoder *imdec )
 	{
 		int width = scl->width-imdec->bevel_h_addon ;
 		CARD32 a_bevel = ARGB32_ALPHA8(bevel_color), a_shade = ARGB32_ALPHA8(shade_color);
-	    CARD32 da_bevel = a_bevel/(bevel->left_inline+1), da_shade = a_shade/(bevel->right_inline+1) ;
+	    CARD32 da_bevel = (a_bevel<<8)/(bevel->left_inline+1), da_shade = (a_shade<<8)/(bevel->right_inline+1) ;
 		int inline_bottom = imdec->out_height - bevel->bottom_inline;
 
 		y -= bevel->top_outline ;
@@ -1442,10 +1447,14 @@ decode_image_scanline_beveled( ASImageDecoder *imdec )
 				if( (count = asimage_decode_line(imdec->im,channel, chan_img_start, imdec->next_line%imdec->im->height, imdec->offset_x, width)) < width)
 					set_component( chan_img_start, ARGB32_CHAN8(imdec->back_color,channel)<<scl->shift, count, width );
 				set_component( scl->channels[channel], chan_shade, offset_shade, scl->width );
-				for( i = 0 ; i < bevel->left_inline ; i++ )
-				{							   /* semitransparent pixels at the left */
-					ca -= da_bevel ;
-					chan_img_start[i] = (chan_img_start[i]*(255-ca)+chan_bevel*ca)>>8 ;
+				if( da_bevel > 0 ) 
+				{
+					ca = ca<<8 ;
+					for( i = 0 ; i < bevel->left_inline ; i++ )
+					{							   /* semitransparent pixels at the left */
+						ca -= da_bevel ;
+						chan_img_start[i] = (chan_img_start[i]*(255-(ca>>8))+chan_bevel*(ca>>8))>>8 ;
+					}
 				}
 				if( y < bevel->top_inline )
 				{                              /* semitransparent line at the top */
@@ -1454,17 +1463,130 @@ decode_image_scanline_beveled( ASImageDecoder *imdec )
 						chan_img_start[i] = (chan_img_start[i]*(255-ca)+chan_bevel*ca)>>8 ;
 				}else if( y >= inline_bottom )
 				{                              /* semitransparent line at the bottom */
-					ca = (a_shade*256/(bevel->bottom_inline+1));
-					ca += ca*(y-inline_bottom)/256;
+					ca = (a_shade/(bevel->bottom_inline+1));
+					ca += ca*(y-inline_bottom);
 					for( i = 0 ; i < width ; i++ )
 						chan_img_start[i] = (chan_img_start[i]*(255-ca)+chan_shade*ca)>>8 ;
 				}
-				ca = 0 ;
-				chan_img_start += width - bevel->right_inline ;
-				for( i = 0 ; i < bevel->right_inline ; i++ )
-				{					           /* semitransparent pixels at the right */
-					ca += da_shade ;
-					chan_img_start[i] = (chan_img_start[i]*(255-ca)+chan_shade*ca)>>8 ;
+				if( da_shade > 0 )
+				{
+					ca = 0 ;
+					chan_img_start += width - bevel->right_inline ;
+					for( i = 0 ; i < bevel->right_inline ; i++ )
+					{					           /* semitransparent pixels at the right */
+						ca += da_shade ;
+						chan_img_start[i] = (chan_img_start[i]*(255-(ca>>8))+chan_shade*(ca>>8))>>8 ;
+					}
+				}					
+			}
+		set_flags( scl->flags,imdec->filter);
+		/* TODO: add alpha shading here for inline : */
+
+	}
+	++(imdec->next_line);
+}
+
+void
+decode_image_scl_bevel_solid( ASImageDecoder *imdec )
+{
+	size_t   			 count ;
+	register ASScanline *scl = &(imdec->buffer);
+	int 	 			 y = imdec->next_line;
+	register ASImageBevel *bevel = imdec->bevel ;
+	ARGB32 bevel_color = bevel->hi_color, shade_color = bevel->lo_color;
+	ARGB32 hilo_corner_color = bevel->hilo_color, corner_color = bevel->hihi_color;
+	Bool partial_bevel = False;
+	int offset_shade = 0, corner = 0;
+	int channel;
+
+	if( y < bevel->top_outline )
+	{
+		offset_shade = scl->width - (y*bevel->right_outline)/bevel->top_outline;
+		corner = bevel->left_outline*y/bevel->top_outline ;
+	}else if( y >= imdec->out_height+bevel->top_outline &&
+		      y < imdec->out_height+imdec->bevel_v_addon)
+	{
+		offset_shade = corner = (imdec->out_height+imdec->bevel_v_addon)-y ;
+		if( bevel->left_outline != bevel->bottom_outline )
+			offset_shade = (offset_shade*bevel->left_outline)/bevel->bottom_outline;
+		corner_color = bevel->lolo_color ;
+		corner = scl->width-corner ;
+	}else
+		partial_bevel = True ;
+
+	if( !partial_bevel )
+	{ /* drawing solid lines at the top and bottom of the image */
+		for( channel = 0 ; channel < ARGB32_CHANNELS ; ++channel )
+			if( get_flags(imdec->filter, (0x01<<channel)) )
+			{
+				set_component( scl->channels[channel],
+					           ARGB32_CHAN8(bevel_color,channel)<<scl->shift,
+							   0, offset_shade );
+				set_component( scl->channels[channel], ARGB32_CHAN8(shade_color,channel)<<scl->shift, offset_shade, scl->width );
+				scl->channels[channel][offset_shade-1] = ARGB32_CHAN8(hilo_corner_color,channel)<<scl->shift ;
+				scl->channels[channel][corner] = ARGB32_CHAN8(corner_color,channel)<<scl->shift ;
+			}
+		if( y == 0 || y == imdec->out_height+bevel->top_outline-1 )
+			scl->alpha[0] = scl->alpha[scl->width-1] = MIN(scl->alpha[0],0x5F<<scl->shift);
+
+		set_flags( scl->flags,imdec->filter);
+	}else
+	{
+		int width = scl->width-imdec->bevel_h_addon ;
+		int inline_bottom = imdec->out_height - bevel->bottom_inline;
+
+		y -= bevel->top_outline ;
+		offset_shade = scl->width-bevel->right_outline ;
+		for( channel = 0 ; channel < ARGB32_CHANNELS ; ++channel )
+			if( get_flags(imdec->filter, (0x01<<channel)) )
+			{
+				int i ;
+				CARD32 *chan_img_start = scl->channels[channel]+bevel->left_outline ;
+				CARD32 chan_bevel = ARGB32_CHAN8(bevel_color,channel)<<scl->shift ;
+				CARD32 chan_shade = ARGB32_CHAN8(shade_color,channel)<<scl->shift ;
+				CARD32 a_bevel = ARGB32_ALPHA8(bevel_color)>>1, a_shade = ARGB32_ALPHA8(shade_color)>>1;
+
+				set_component( scl->channels[channel], chan_bevel, 0, bevel->left_outline );
+				if( (count = asimage_decode_line(imdec->im,channel, chan_img_start, imdec->next_line%imdec->im->height, imdec->offset_x, width)) < width)
+					set_component( chan_img_start, ARGB32_CHAN8(imdec->back_color,channel)<<scl->shift, count, width );
+				set_component( scl->channels[channel], chan_shade, offset_shade, scl->width );
+				chan_bevel *= a_bevel ;
+				chan_shade *= a_shade ;
+				a_bevel = 255-a_bevel ;
+				a_shade = 255-a_shade ;
+				if( y < bevel->top_inline )   /* semitransparent line at the top */
+				{
+
+					i = width-(bevel->right_inline*y/bevel->top_inline);
+                    while( ++i < width ) /* semitransparent pixels at the right */
+						chan_img_start[i] = (chan_img_start[i]*a_shade+chan_shade)>>8 ;
+
+					i = width-(bevel->right_inline*y/bevel->top_inline);
+					chan_img_start[i] = ((chan_img_start[i]<<7)+(ARGB32_CHAN8(hilo_corner_color,channel)<<7))>>8 ;
+					while( --i >= 0 )
+						chan_img_start[i] = (chan_img_start[i]*a_bevel+chan_bevel)>>8 ;
+
+					i = bevel->left_inline*y/bevel->top_inline;
+					chan_img_start[i] = ((chan_img_start[i]<<7)+(ARGB32_CHAN8(corner_color,channel)<<7))>>8 ;
+
+				}else if( y >= inline_bottom ) /* semitransparent line at the bottom */
+				{
+					i = (bevel->left_inline*(imdec->out_height-y)/bevel->bottom_inline);
+					while( --i >= 0 ) 
+						chan_img_start[i] = (chan_img_start[i]*a_bevel+chan_bevel)>>8 ;
+					i = (bevel->left_inline*(imdec->out_height-y)/bevel->bottom_inline);
+					chan_img_start[i] = ((chan_img_start[i]<<7)+(ARGB32_CHAN8(hilo_corner_color,channel)<<7))>>8 ;
+					while( ++i < width )
+						chan_img_start[i] = (chan_img_start[i]*a_shade+chan_shade)>>8 ;
+					i = width-(bevel->right_inline*(imdec->out_height-y)/bevel->bottom_inline);
+					chan_img_start[i] = ((chan_img_start[i]<<7)+(ARGB32_CHAN8(bevel->lolo_color,channel)<<7))>>8 ;
+				}else
+				{
+					for( i = 0 ; i < bevel->left_inline ; i++ )
+						chan_img_start[i] = (chan_img_start[i]*a_bevel+chan_bevel)>>8 ;
+					chan_img_start += width - bevel->right_inline ;
+					for( i = 0 ; i < bevel->right_inline ; i++ ) /* semitransparent pixels at the right */
+						chan_img_start[i] = (chan_img_start[i]*a_shade+chan_shade)>>8 ;
 				}
 			}
 		set_flags( scl->flags,imdec->filter);

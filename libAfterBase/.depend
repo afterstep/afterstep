@@ -1,16 +1,18 @@
 ./ashash.o : \
 		config.h \
 		astypes.h \
+		audit.h \
 		ashash.h \
 		safemalloc.h \
-		audit.h \
 		output.h
 
 ./asvector.o : \
 		config.h \
 		astypes.h \
+		audit.h \
 		output.h \
 		safemalloc.h \
+		selfdiag.h \
 		asvector.h
 
 ./audit.o : \
@@ -25,16 +27,18 @@
 
 ./fs.o : \
 		config.h \
+		audit.h \
 		astypes.h \
 		mystring.h \
 		safemalloc.h \
-		fs.h
+		fs.h \
+		output.h
 
 ./mystring.o : \
 		config.h \
 		astypes.h \
-		output.h \
 		audit.h \
+		output.h \
 		safemalloc.h \
 		mystring.h
 
