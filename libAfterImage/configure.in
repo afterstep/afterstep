@@ -432,7 +432,7 @@ if test "x$have_afterbase" = "xyes"; then
 	AC_MSG_RESULT($AFTERBASE_CFLAGS)
 else
 	AFTERIMAGE_APPS_LIBS="-L../ -lAfterImage $AFTERIMAGE_LIBS_EXTERNAL"
-	if test "$with_afterbase" == "no"; then	
+	if test "$with_afterbase" = "no"; then	
 	    AC_MSG_RESULT(disabled)
 	else
 	    AC_MSG_RESULT(none found)

@@ -5050,7 +5050,7 @@ EOF
 echo "${ECHO_T}$AFTERBASE_CFLAGS" >&6
 else
 	AFTERIMAGE_APPS_LIBS="-L../ -lAfterImage $AFTERIMAGE_LIBS_EXTERNAL"
-	if test "$with_afterbase" == "no"; then
+	if test "$with_afterbase" = "no"; then
 	    echo "$as_me:5054: result: disabled" >&5
 echo "${ECHO_T}disabled" >&6
 	else

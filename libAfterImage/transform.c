@@ -533,6 +533,7 @@ make_gradient_scanline( ASScanline *scl, ASGradient *grad, ASFlagType filter, AR
 	{
 		int offset = 0, step, i, max_i = grad->npoints - 1 ;
 		ARGB32 last_color = ARGB32_Black ;
+		int last_idx = 0;
 		double last_offset = 0., *offsets = grad->offset ;
 		int *used = safecalloc(max_i+1, sizeof(int));
 		/* lets find the color of the very first point : */
@@ -540,6 +541,7 @@ make_gradient_scanline( ASScanline *scl, ASGradient *grad, ASFlagType filter, AR
 			if( offsets[i] <= 0. )
 			{
 				last_color = grad->color[i] ;
+				last_idx = i ;
 				used[i] = 1 ;
 				break;
 			}
@@ -557,6 +559,13 @@ make_gradient_scanline( ASScanline *scl, ASGradient *grad, ASFlagType filter, AR
 						new_idx = k ;
 					else if( offsets[new_idx] > offsets[k] ) 
 						new_idx = k ;
+					else
+					{
+						register int d1 = new_idx-last_idx ;
+						register int d2 = k - last_idx ;
+						if( d1*d1 > d2*d2 ) 
+							new_idx = k ;
+					}
 				}
 			}
 			if( new_idx < 0 ) 
@@ -586,6 +595,7 @@ make_gradient_scanline( ASScanline *scl, ASGradient *grad, ASFlagType filter, AR
 			}
 			last_offset = offsets[new_idx];
 			last_color = grad->color[new_idx];
+			last_idx = new_idx ;
 		}
 		scl->flags = filter ;
 		free( used );
