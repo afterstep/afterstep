@@ -20,6 +20,7 @@
 
 #undef DO_CLOCKING
 #undef UNKNOWN_KEYWORD_WARNING
+#undef LOCAL_DEBUG
 
 #include "../configure.h"
 
@@ -421,7 +422,7 @@ free_storage2func (FreeStorageElem * stored, int *ppos)
 
 	/* setting up reasonable defaults */
     set_func_val (pfunc, -1, default_func_val(pfunc->func));
-
+LOCAL_DEBUG_OUT("argv=%p, arc=%d, sub=%p", stored->argv, stored->argc, stored->sub );
 	if (stored->argv == NULL)
 		return pfunc;
 

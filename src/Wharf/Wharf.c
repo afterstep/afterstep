@@ -113,6 +113,8 @@ typedef struct ASWharfState
     ASHashTable   *win2obj_xref;               /* xref of window IDs to wharf buttons and folders */
     ASWharfFolder *root_folder ;
 
+    ASWharfButton *pressed_button;
+    int pressed_state;
 }ASWharfState;
 
 ASWharfState WharfState;
@@ -140,6 +142,8 @@ Bool display_wharf_folder( ASWharfFolder *aswf, int left, int top, int right, in
 Bool display_main_folder();
 void on_wharf_moveresize( ASEvent *event );
 void destroy_wharf_folder( ASWharfFolder **paswf );
+void on_wharf_pressed( ASEvent *event );
+void release_pressure();
 
 
 /***********************************************************************
@@ -196,7 +200,7 @@ main (int argc, char **argv)
     /* Create a list of all windows */
     /* Request a list of all windows,
      * wait for ConfigureWindow packets */
-    SendInfo (as_fd, "Send_WindowList", 0);
+    SendInfo ("Send_WindowList", 0);
 
     /* create main folder here : */
 
@@ -259,11 +263,16 @@ CheckConfigSanity()
     if( Config == NULL )
         Config = CreateWharfConfig ();
 
-    if( Config->rows == 0 )
+    if( Config->rows <= 0 && Config->columns <= 0 )
         Config->rows = 1;
 
-    if( Config->columns == 0 )
-        Config->columns = 1;
+    if( get_flags( Config->set_flags, WHARF_FORCE_SIZE ) )
+    {
+        if( Config->force_size.width == 0 )
+            Config->force_size.width = 64 ;
+        if( Config->force_size.height == 0 )
+            Config->force_size.height = 64 ;
+    }
 
     mystyle_get_property (Scr.wmprops);
 
@@ -271,6 +280,18 @@ CheckConfigSanity()
     LOCAL_DEBUG_OUT("Attempting to use style \"%s\"", buf);
     Scr.Look.MSWindow[BACK_UNFOCUSED] = mystyle_find_or_default( buf );
     LOCAL_DEBUG_OUT("Will use style \"%s\"", Scr.Look.MSWindow[BACK_UNFOCUSED]->name);
+    if( !get_flags( Config->set_flags, WHARF_FORCE_SIZE ) )
+    {
+        if( Scr.Look.MSWindow[BACK_UNFOCUSED]->back_icon.image != NULL )
+        {
+            Config->force_size.width = Scr.Look.MSWindow[BACK_UNFOCUSED]->back_icon.width ;
+            Config->force_size.height = Scr.Look.MSWindow[BACK_UNFOCUSED]->back_icon.height ;
+        }else
+        {
+            Config->force_size.width = 0;
+            Config->force_size.height = 0;
+        }
+    }
 
     show_progress( "printing wharf config : ");
     PrintWharfConfig(Config);
@@ -477,8 +498,10 @@ DispatchEvent (ASEvent * event)
         case KeyRelease :
             break ;
         case ButtonPress:
+            on_wharf_pressed( event );
             break;
         case ButtonRelease:
+            release_pressure();
             break;
         case MotionNotify :
             break ;
@@ -636,6 +659,8 @@ build_wharf_folder( WharfButton *list, ASWharfButton *parent, Bool vertical )
         aswf->canvas = create_wharf_folder_canvas(aswf);
         if( vertical )
             set_flags( aswf->flags, ASW_Vertical );
+        else
+            clear_flags( aswf->flags, ASW_Vertical );
 
         wb = list;
         while( wb )
@@ -654,8 +679,12 @@ build_wharf_folder( WharfButton *list, ASWharfButton *parent, Bool vertical )
 
             if( !get_flags( aswb->flags, ASW_SwallowTarget ) )
             {
-                aswb->desired_width  = calculate_astbar_width( aswb->bar );
-                aswb->desired_height = calculate_astbar_height( aswb->bar );
+                aswb->desired_width  = (Config->force_size.width == 0)?calculate_astbar_width( aswb->bar ) :Config->force_size.width;
+                aswb->desired_height = (Config->force_size.height== 0)?calculate_astbar_height( aswb->bar ):Config->force_size.height;
+            }else
+            {
+                aswb->desired_width  = Config->force_size.width ;
+                aswb->desired_height = Config->force_size.height ;
             }
 
             if( aswb->desired_width == 0 )
@@ -665,7 +694,7 @@ build_wharf_folder( WharfButton *list, ASWharfButton *parent, Bool vertical )
                 aswb->desired_height = 64 ;
 
             if( wb->folder )
-                aswb->folder = build_wharf_folder( wb->folder, aswb, !vertical );
+                aswb->folder = build_wharf_folder( wb->folder, aswb, vertical?False:True );
 
             ++aswb;
             wb = wb->next ;
@@ -721,8 +750,9 @@ map_wharf_folder( ASWharfFolder *aswf,
                   int x, int y, unsigned int width, unsigned int height,
                   int gravity )
 {
-    XSizeHints    shints;
+    XSizeHints      shints;
 	ExtendedWMHints extwm_hints ;
+    ASFlagType protocols = 0;
 
     moveresize_canvas( aswf->canvas, x, y, width, height );
 
@@ -735,7 +765,12 @@ map_wharf_folder( ASWharfFolder *aswf,
     shints.win_gravity = gravity ;
 
 	extwm_hints.pid = getpid();
-    extwm_hints.flags = EXTWM_PID|EXTWM_StateSkipTaskbar|EXTWM_TypeMenu ;
+    extwm_hints.flags = EXTWM_PID|EXTWM_StateSkipTaskbar|EXTWM_TypeDock ;
+
+    if( aswf != WharfState.root_folder )
+        XSetTransientForHint(dpy, aswf->canvas->w, WharfState.root_folder->canvas->w);
+    else
+        protocols = AS_DoesWmDeleteWindow ;
 
     set_client_hints( aswf->canvas->w, NULL, &shints, AS_DoesWmDeleteWindow, &extwm_hints );
 
@@ -743,8 +778,8 @@ map_wharf_folder( ASWharfFolder *aswf,
     map_canvas_window(aswf->canvas, True);
     LOCAL_DEBUG_OUT( "mapping main window at %ux%u%+d%+d", width, height,  x, y );
     /* final cleanup */
-	XFlush (dpy);
-	sleep (1);								   /* we have to give AS a chance to spot us */
+    ASSync( False );
+    sleep_a_little (10000);                                 /* we have to give AS a chance to spot us */
 }
 
 void
@@ -762,7 +797,7 @@ place_wharf_buttons( ASWharfFolder *aswf, int *total_width_return, int *total_he
             max_height = aswb->desired_height ;
     }
 
-    if( set_flags( aswf->flags, ASW_Vertical ) )
+    if( get_flags( aswf->flags, ASW_Vertical ) )
         y_inc = max_height ;
     else
         x_inc = max_width ;
@@ -773,10 +808,71 @@ place_wharf_buttons( ASWharfFolder *aswf, int *total_width_return, int *total_he
         y += y_inc ;
         x += x_inc ;
     }
+    ASSync( False );
 
     *total_width_return = (x > 0)?x:max_width ;
     *total_height_return = (y>0)?y:max_height ;
-    ASSync( False );
+}
+
+void
+animate_wharf( ASWharfFolder *aswf, int *new_width_return, int *new_height_return )
+{
+    int new_width = aswf->canvas->width ;
+    int new_height = aswf->canvas->height ;
+
+    if( aswf->animation_dir < 0 )
+    {
+        if( get_flags( aswf->flags, ASW_Vertical ) )
+        {
+            if( aswf->animation_steps <= 1 )
+                new_height = 0 ;
+            else
+            {
+                new_height = (new_height*(aswf->animation_steps-1))/aswf->animation_steps ;
+                if( new_height == aswf->canvas->height )
+                    --new_height ;
+            }
+        }else
+        {
+            if( aswf->animation_steps <= 1 )
+                new_width =0 ;
+            else
+            {
+                new_width = (new_width*(aswf->animation_steps-1))/aswf->animation_steps;
+                if( new_width == aswf->canvas->width )
+                    --new_width;
+            }
+        }
+    }else
+    {
+        new_width = aswf->total_width ;
+        new_height = aswf->total_height ;
+        if( get_flags( aswf->flags, ASW_Vertical ) )
+        {
+            if( aswf->animation_steps <= 1 )
+                new_height = aswf->total_height ;
+            else
+            {
+                new_height = aswf->canvas->height+((aswf->total_height - aswf->canvas->height)/aswf->animation_steps)  ;
+                if( new_height == aswf->canvas->height && new_height < aswf->total_height )
+                    ++new_height;
+            }
+        }else
+        {
+            if( aswf->animation_steps <= 1 )
+                new_width = aswf->total_width ;
+            else
+            {
+                new_width = aswf->canvas->width+((aswf->total_width - aswf->canvas->width)/aswf->animation_steps)  ;
+                if( new_width == aswf->canvas->width && new_width < aswf->total_width )
+                    ++new_width;
+            }
+        }
+    }
+    --(aswf->animation_steps);
+
+    *new_width_return = new_width ;
+    *new_height_return = new_height ;
 }
 
 Bool
@@ -786,7 +882,7 @@ display_wharf_folder( ASWharfFolder *aswf, int left, int top, int right, int bot
     Bool south = get_flags( Config->geometry.flags, YNegative);
     int x, y, width = 0, height = 0;
     int total_width = 0, total_height = 0;
-    if( AS_ASSERT( aswf ) )
+    if( AS_ASSERT( aswf ) || get_flags( aswf->flags, ASW_Mapped ) )
         return False;
 
     place_wharf_buttons( aswf, &total_width, &total_height );
@@ -837,23 +933,99 @@ display_wharf_folder( ASWharfFolder *aswf, int left, int top, int right, int bot
 
     if( aswf->animation_steps > 0 )
     {
-        if( set_flags( aswf->flags, ASW_Vertical ) )
-            height = (total_height < aswf->animation_steps)?1:total_height/aswf->animation_steps ;
-        else
-            width = (total_width < aswf->animation_steps)?1:total_width/aswf->animation_steps ;
         aswf->animation_dir = 1;
+        aswf->canvas->width = aswf->canvas->height = 1 ;
+        animate_wharf( aswf, &width, &height );
     }
     if( width == 0 )
         width = total_width ;
     if( height == 0 )
         height = total_height ;
     LOCAL_DEBUG_OUT( "animation_steps(%d)->size(%dx%d)->total_size(%dx%d)", aswf->animation_steps, width, height, total_width, total_height );
-    x = east? left - width : right ;
-    y = south? top - height : bottom ;
 
+    if( get_flags( aswf->flags, ASW_Vertical ) )
+    {
+        x = east? right - width: left ;
+        y = south? top - height : bottom ;
+        if( top != bottom )
+            y += south?5:-5 ;
+    }else
+    {
+        x = east? left - width : right ;
+        y = south? bottom - height: top ;
+        if( left != right)
+            x += east?5:-5 ;
+    }
     map_wharf_folder( aswf, x, y, width, height, east?(south?SouthEastGravity:NorthEastGravity):
                                                       (south?SouthWestGravity:NorthWestGravity) );
+    set_flags( aswf->flags, ASW_Mapped );
     return True;
+}
+
+static inline void
+unmap_wharf_folder( ASWharfFolder *aswf )
+{
+    int i = aswf->buttons_num;
+    unmap_canvas_window( aswf->canvas );
+    resize_canvas( aswf->canvas, 1, 1 );/* to make sure we get ConfigureNotify next time we map the folder again */
+    clear_flags( aswf->flags, ASW_Mapped );
+
+    while ( --i >= 0 )
+    {
+        if( aswf->buttons[i].folder &&
+            get_flags( aswf->buttons[i].folder->flags, ASW_Mapped ) )
+            unmap_wharf_folder( aswf->buttons[i].folder );
+    }
+}
+
+void
+withdraw_wharf_folder( ASWharfFolder *aswf )
+{
+LOCAL_DEBUG_OUT( "withdrawing folder %p", aswf );
+    if( AS_ASSERT(aswf) )
+        return;
+LOCAL_DEBUG_OUT( "folder->flags(%lX)", aswf->flags );
+    if( !get_flags( aswf->flags, ASW_Mapped ) )
+        return ;
+
+    if( !get_flags(Config->flags, WHARF_ANIMATE ) )
+    {
+LOCAL_DEBUG_OUT( "unmapping folder %p", aswf );
+        unmap_wharf_folder( aswf );
+    }else
+    {
+        if( get_flags( Config->set_flags, WHARF_ANIMATE_STEPS ) )
+            aswf->animation_steps = Config->animate_steps;
+        else
+            aswf->animation_steps = 12 ;
+        if( aswf->animation_steps <= 1 )
+        {
+            unmap_wharf_folder( aswf );
+LOCAL_DEBUG_OUT( "no animations left - unmapping folder %p", aswf );
+        }else
+        {
+            int new_width = aswf->canvas->width ;
+            int new_height = aswf->canvas->height ;
+
+            aswf->animation_dir = -1;
+            animate_wharf( aswf, &new_width, &new_height );
+LOCAL_DEBUG_OUT( "animating folder %p to %dx%d", aswf, new_width, new_height );
+            if( new_width == 0 || new_height == 0 )
+                unmap_wharf_folder( aswf );
+            else
+            {
+                int i = aswf->buttons_num;
+                while ( --i >= 0 )
+                {
+                    if( aswf->buttons[i].folder &&
+                        get_flags( aswf->buttons[i].folder->flags, ASW_Mapped ) )
+                    unmap_wharf_folder( aswf->buttons[i].folder );
+                }
+            }
+            resize_canvas( aswf->canvas, new_width, new_height );
+        }
+    }
+    ASSync( False );
 }
 
 Bool display_main_folder()
@@ -869,6 +1041,9 @@ Bool display_main_folder()
     return display_wharf_folder( WharfState.root_folder, left, top, left, top );
 }
 
+/*************************************************************************/
+/* Event handling                                                        */
+/*************************************************************************/
 void
 on_wharf_button_moveresize( ASWharfButton *aswb, ASEvent *event )
 {
@@ -897,26 +1072,93 @@ void on_wharf_moveresize( ASEvent *event )
     {
         ASWharfFolder *aswf = (ASWharfFolder*)obj;
         ASFlagType changes = handle_canvas_config (aswf->canvas );
-        if( get_flags(changes, CANVAS_RESIZED ) && aswf->animation_steps > 0 )
+        if( aswf->animation_steps == 0 && get_flags( aswf->flags, ASW_Mapped ) && aswf->animation_dir < 0 )
         {
-            int dw = (aswf->animation_dir > 0)?aswf->total_width - aswf->canvas->width:aswf->canvas->width  ;
-            int dh = (aswf->animation_dir > 0)?aswf->total_height - aswf->canvas->height:aswf->canvas->height  ;
-            dw /= aswf->animation_steps ;
-            dh /= aswf->animation_steps ;
-            resize_canvas( aswf->canvas, aswf->canvas->width+(aswf->animation_dir*dw),
-                                         aswf->canvas->height+(aswf->animation_dir*dh)) ;
-            --(aswf->animation_steps);
-            ASSync( False ) ;
-            if( get_flags( Config->set_flags, WHARF_ANIMATE_DELAY ) && Config->animate_delay > 0 )
-                sleep_a_little( Config->animate_delay*10000 );
-            else
-                sleep_a_little( 10000 );
-        }else if( changes != 0 )
+            unmap_wharf_folder( aswf );
+        }else
         {
-            int i = aswf->buttons_num ;
-            while( --i >= 0 )
-                on_wharf_button_moveresize( &(aswf->buttons[i]), event );
+            if( get_flags(changes, CANVAS_RESIZED ) && aswf->animation_steps > 0 )
+            {
+                int new_width = 1, new_height = 1;
+                animate_wharf( aswf, &new_width, &new_height );
+                if( new_width == 0 || new_height == 0 )
+                    unmap_wharf_folder( aswf );
+                else
+                {
+                    resize_canvas( aswf->canvas, new_width, new_height) ;
+                    ASSync( False ) ;
+                    if( get_flags( Config->set_flags, WHARF_ANIMATE_DELAY ) && Config->animate_delay > 0 )
+                        sleep_a_little( Config->animate_delay*10000 );
+                    else
+                        sleep_a_little( 10000 );
+                }
+            }else if( changes != 0 )
+            {
+                int i = aswf->buttons_num ;
+                while( --i >= 0 )
+                    on_wharf_button_moveresize( &(aswf->buttons[i]), event );
+            }
         }
     }
 }
+
+void
+press_wharf_button( ASWharfButton *aswb, int state )
+{
+    if( WharfState.pressed_button &&
+        WharfState.pressed_button != aswb )
+    {
+        set_astbar_pressed( WharfState.pressed_button->bar, WharfState.pressed_button->canvas, False );
+        WharfState.pressed_button = NULL ;
+    }
+    if( aswb &&
+        WharfState.pressed_button != aswb )
+    {
+        set_astbar_pressed( aswb->bar, aswb->canvas, True );
+        WharfState.pressed_state = state ;
+        WharfState.pressed_button = aswb ;
+    }
+}
+
+void
+release_pressure()
+{
+    ASWharfButton *pressed = WharfState.pressed_button ;
+LOCAL_DEBUG_OUT( "pressed button is %p", pressed );
+    if( pressed )
+    {
+        if( pressed->folder )
+        {
+LOCAL_DEBUG_OUT( "pressed button has folder %p (%s)", pressed->folder, get_flags( pressed->folder->flags, ASW_Mapped )?"Mapped":"Unmapped" );
+            if( get_flags( pressed->folder->flags, ASW_Mapped ) )
+                withdraw_wharf_folder( pressed->folder );
+            else
+                display_wharf_folder( pressed->folder, pressed->canvas->root_x, pressed->canvas->root_y,
+                                                       pressed->canvas->root_x+pressed->canvas->width,
+                                                       pressed->canvas->root_y+pressed->canvas->height  );
+        }else if( pressed->fdata )
+        {
+            print_func_data(__FILE__, __FUNCTION__, __LINE__, pressed->fdata);
+            if( !get_flags( pressed->flags, ASW_SwallowTarget ) || pressed->swallowed == NULL )
+            {  /* send command to the AS-proper : */
+                SendCommand( pressed->fdata, 0);
+            }
+        }
+        set_astbar_pressed( pressed->bar, pressed->canvas, False );
+        WharfState.pressed_button = NULL ;
+    }
+}
+
+void
+on_wharf_pressed( ASEvent *event )
+{
+    ASMagic *obj = fetch_object( event->w ) ;
+    if( obj == NULL )
+        return;
+    if( obj->magic == MAGIC_WHARF_BUTTON )
+    {
+        press_wharf_button( (ASWharfButton*)obj, event->x.xbutton.state );
+    }
+}
+
 

@@ -233,7 +233,8 @@ print_wharf_folder( WharfButton *folder, int level )
             }
         if( folder->function )
             print_func_data(__FILE__, __FUNCTION__, __LINE__, folder->function);
-
+        else
+            show_progress( "no function attached" );
         if( folder->folder )
             level = print_wharf_folder( folder->folder, level+1 );
         ++count ;
@@ -338,6 +339,8 @@ WharfSpecialFunc (ConfigDef * config, FreeStorageElem ** storage)
         /* read in entire function definition */
 		GetNextStatement (config, 1);
         /* lets find us the term for this definition */
+        print_trimmed_str( "config->current_data", config->current_data );
+        LOCAL_DEBUG_OUT( "curr_data_len = %d", config->current_data_len);
         print_trimmed_str("checking keyword at", config->tline );
 		if ((pterm = FindStatementTerm (config->tline, config->syntax)) == NULL)
         {   /* courtesy check for mistyped Folder keyword : */
@@ -387,28 +390,30 @@ WharfButton **ParseWharfFolder (FreeStorageElem ** storage_tail, WharfButton ** 
 WharfButton **
 ParseWharfItem (FreeStorageElem * storage, WharfButton ** tail)
 {
+    WharfButton *wb ;
 
 	if (storage == NULL || tail == NULL)
 		return tail;
+    wb = *tail ;
 	if (storage->argc < 2)
 		return tail;
-	if (*tail == NULL)
-		if ((*tail = CreateWharfButton ()) == NULL)
+    if (wb == NULL)
+        if ((wb = *tail = CreateWharfButton ()) == NULL)
 			return tail;
 
-	if ((*tail)->title)
-		free ((*tail)->title);
-	(*tail)->title = mystrdup (storage->argv[0]);
+    if (wb->title)
+        free (wb->title);
+    wb->title = mystrdup (storage->argv[0]);
 
-	if ((*tail)->icon)
-		free ((*tail)->icon);
-	(*tail)->icon = comma_string2list (storage->argv[1]);
-	if ((*tail)->icon)
+    if (wb->icon)
+        free (wb->icon);
+    wb->icon = comma_string2list (storage->argv[1]);
+    if (wb->icon)
 	{
 		register char *ptr;
 		register int  null_icon = 0;
 
-		if ((ptr = (*tail)->icon[0]) == NULL)
+        if ((ptr = wb->icon[0]) == NULL)
 			null_icon++;
 		else if (*(ptr) == '-' && *(ptr + 1) == '\0')
 			null_icon++;
@@ -417,13 +422,14 @@ ParseWharfItem (FreeStorageElem * storage, WharfButton ** tail)
 
 		if (null_icon > 0)
 		{
-			if ((*tail)->icon[0] != NULL)
-				free ((*tail)->icon[0]);
-			free ((*tail)->icon);
-			(*tail)->icon = NULL;
+            if (wb->icon[0] != NULL)
+                free (wb->icon[0]);
+            free (wb->icon);
+            wb->icon = NULL;
 		}
 	}
 
+LOCAL_DEBUG_OUT( "wharf button \"%s\" has substorage set to %p", wb->title, storage->sub );
 	if (storage->sub)
 	{
 		FreeStorageElem *pstorage = storage->sub;
@@ -431,16 +437,17 @@ ParseWharfItem (FreeStorageElem * storage, WharfButton ** tail)
 
 		if (pterm != NULL)
 		{
-			if (pterm->type == TT_FUNCTION)
+LOCAL_DEBUG_OUT( "term for keyword \"%s\" found in substorage", pterm->keyword );
+            if (pterm->type == TT_FUNCTION)
 			{
 				ConfigItem    item;
 
 				item.memory = NULL;
 				if (ReadConfigItem (&item, pstorage))
 				{
-					if ((*tail)->function)
-						free_func_data ((*tail)->function);
-					(*tail)->function = item.data.function;
+                    if (wb->function)
+                        free_func_data (wb->function);
+                    wb->function = item.data.function;
 				}
 			}
 			switch (pterm->id)
@@ -449,7 +456,7 @@ ParseWharfItem (FreeStorageElem * storage, WharfButton ** tail)
 				 if (pstorage->sub)
 				 {
 					 pstorage = pstorage->sub;
-					 ParseWharfFolder (&pstorage, &((*tail)->folder));
+                     ParseWharfFolder (&pstorage, &(wb->folder));
 				 }
 				 break;
 			}
@@ -457,7 +464,7 @@ ParseWharfItem (FreeStorageElem * storage, WharfButton ** tail)
 		}
 	}
 
-	return &((*tail)->next);
+    return &(wb->next);
 }
 
 WharfButton **

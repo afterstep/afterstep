@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2002 Sasha Vasko <sasha at aftercode dot net>
  * Copyright (c) 1999 Ethan Fischer <allanon@crystaltokyo.com>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -17,7 +18,7 @@
  *
  */
 
-#define LOCAL_DEBUG
+#undef LOCAL_DEBUG
 
 #include "../configure.h"
 

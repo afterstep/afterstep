@@ -590,13 +590,16 @@ GetNextStatement (ConfigDef * config, int my_only)
 
 				/* now we should copy everything from after the first space to
 				   config->current_data and set current_data_len ; */
-				while ((*cur) && !isspace ((int)*cur) && *cur != terminator && *cur != file_terminator)
-					cur++;
-				while ((*cur) && isspace ((int)*cur) && *cur != terminator && *cur != file_terminator)
-					cur++;
-				config->tdata = cur;		   /* that will be the beginning of our data */
+                i = 0 ;
+                while (cur[i] && !isspace ((int)cur[i]) && cur[i] != terminator && cur[i] != file_terminator)
+                    ++i;
+                while ((*cur) && isspace ((int)cur[i]) && cur[i] != terminator && cur[i] != file_terminator)
+                    ++i;
+                cur = &(cur[i]);           /* that will be the beginning of our data */
+                config->tdata = cur;
+                print_trimmed_str( "data start at :", cur );
 				data = config->current_data;
-				for (i = 0; *cur && *cur != terminator && *cur != file_terminator; i++)
+                for (i = 0; cur[i] && cur[i] != terminator && cur[i] != file_terminator; ++i)
 				{
 					/* buffer overrun prevention */
 					if (i >= config->current_data_size)
@@ -608,17 +611,18 @@ GetNextStatement (ConfigDef * config, int my_only)
 							config_error (config, "Not enough memory to hold option's arguments");
 							exit (0);
 						}
-						data = &(config->current_data[i]);
+                        data = config->current_data;
 					}
-					*(data++) = *(cur++);
+                    data[i] = cur[i];
 				}
+                LOCAL_DEBUG_OUT( "%d bytes of data stored", i );
+                cur = &(cur[i]);
 				/* now let's go back and remove trailing spaces */
 				if (config->tdata[0] == file_terminator)
 					config->current_flags |= CF_LAST_OPTION;
 				else
 				{
-					data = config->current_data;
-					for (i--; i >= 0; i--)
+                    for (i--; i >= 0; i--)
 					{
 						if (config->tdata[i] == file_terminator)
 							config->current_flags |= CF_LAST_OPTION;
@@ -631,6 +635,7 @@ GetNextStatement (ConfigDef * config, int my_only)
 				   end of the configuration when the file ends : */
 				if (file_terminator == '\0')
 					config->current_flags &= ~CF_LAST_OPTION;
+                LOCAL_DEBUG_OUT( "%d bytes of clean data stored", i );
 				config->current_data_len = i;
 				config->current_data[i] = '\0';
 
@@ -689,13 +694,15 @@ ProcessStatement (ConfigDef * config)
 {
 	FreeStorageElem *pNext;
 	TermDef      *pterm = config->current_term;
-
+LOCAL_DEBUG_OUT( "checking for foreign option ...%s", "" );
 	if (IsForeignOption (config))
 		return;
 
+LOCAL_DEBUG_OUT( "adding storage ...%s", "" );
 	if ((pNext = AddFreeStorageElem (config->syntax, config->current_tail->tail, pterm, ID_ANY)) == NULL)
 		return;
 
+LOCAL_DEBUG_OUT( "parsing stuff ...%s", "" );
 	pNext->flags = config->current_flags;
 
 	if (config->current_data_len > 0 && !(pterm->flags & TF_DONT_REMOVE_COMMENTS))
@@ -703,6 +710,9 @@ ProcessStatement (ConfigDef * config)
 		stripcomments (config->current_data);
 		config->current_data_len = strlen (config->current_data);
 	}
+    print_trimmed_str( "config->current_data", config->current_data );
+    LOCAL_DEBUG_OUT( "curr_data_len = %d", config->current_data_len);
+
 	args2FreeStorage (pNext, config->current_data, config->current_data_len);
 
 	config->current_tail->tail = &(pNext->next);

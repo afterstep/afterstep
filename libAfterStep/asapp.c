@@ -18,6 +18,7 @@
  *
  ****************************************************************************/
 
+#define LOCAL_DEBUG
 #include "../configure.h"
 
 #include <stdarg.h>
@@ -81,8 +82,8 @@ struct ASSession *Session = NULL;          /* filenames of look, feel and backgr
 
 /* names of AS functions - used all over the place  :*/
 
-#define FUNC_TERM(txt,len,func)         {TF_NO_MYNAME_PREPENDING,txt,len,TT_TEXT,func,NULL}
-#define FUNC_TERM2(flags,txt,len,func)  {TF_NO_MYNAME_PREPENDING|(flags),txt,len,TT_TEXT,func,NULL}
+#define FUNC_TERM(txt,len,func)         {TF_NO_MYNAME_PREPENDING,txt,len,TT_FUNCTION,func,NULL}
+#define FUNC_TERM2(flags,txt,len,func)  {TF_NO_MYNAME_PREPENDING|(flags),txt,len,TT_FUNCTION,func,NULL}
 
 TermDef       FuncTerms[F_FUNCTIONS_NUM + 1] = {
 	FUNC_TERM2 (NEED_NAME, "Nop", 3, F_NOP),   /* Nop      "name"|"" */
@@ -160,21 +161,21 @@ TermDef       FuncTerms[F_FUNCTIONS_NUM + 1] = {
 	FUNC_TERM ("&nonsense&", 10, F_INTERNAL_FUNC_START),	/* not really a command */
 	FUNC_TERM ("&raise_it&", 10, F_RAISE_IT),  /* should not be used by user */
     /* wharf functions : */
-    {TF_NO_MYNAME_PREPENDING, "Folder", 6, TT_TEXT, F_Folder, NULL},
-    {TF_NO_MYNAME_PREPENDING | NEED_NAME | NEED_CMD, "Swallow", 7, TT_TEXT, F_Swallow, NULL},
-    {TF_NO_MYNAME_PREPENDING | NEED_NAME | NEED_CMD, "MaxSwallow", 10, TT_TEXT, F_MaxSwallow, NULL},
-    {TF_NO_MYNAME_PREPENDING | NEED_NAME | NEED_CMD, "SwallowModule", 13, TT_TEXT, F_Swallow, NULL},
-    {TF_NO_MYNAME_PREPENDING | NEED_NAME | NEED_CMD, "MaxSwallowModule", 16, TT_TEXT, F_MaxSwallow, NULL},
+    {TF_NO_MYNAME_PREPENDING, "Folder", 6, TT_FUNCTION, F_Folder, NULL},
+    {TF_NO_MYNAME_PREPENDING | NEED_NAME | NEED_CMD, "Swallow", 7, TT_FUNCTION, F_Swallow, NULL},
+    {TF_NO_MYNAME_PREPENDING | NEED_NAME | NEED_CMD, "MaxSwallow", 10, TT_FUNCTION, F_MaxSwallow, NULL},
+    {TF_NO_MYNAME_PREPENDING | NEED_NAME | NEED_CMD, "SwallowModule", 13, TT_FUNCTION, F_Swallow, NULL},
+    {TF_NO_MYNAME_PREPENDING | NEED_NAME | NEED_CMD, "MaxSwallowModule", 16, TT_FUNCTION, F_MaxSwallow, NULL},
 	FUNC_TERM2 (NEED_NAME | NEED_CMD, "DropExec", 8, F_DropExec),	/* DropExec   "name" command */
-    {TF_NO_MYNAME_PREPENDING, "Size", 4, TT_TEXT, F_Size, NULL},
-    {TF_NO_MYNAME_PREPENDING, "Transient", 9, TT_TEXT, F_Transient, NULL},
+    {TF_NO_MYNAME_PREPENDING, "Size", 4, TT_FUNCTION, F_Size, NULL},
+    {TF_NO_MYNAME_PREPENDING, "Transient", 9, TT_FUNCTION, F_Transient, NULL},
 
 	{0, NULL, 0, 0, 0}
 };
 
 struct SyntaxDef FuncSyntax = {
-	' ',
-	'\0',
+    '\0',
+    '\n',
 	FuncTerms,
 	0,										   /* use default hash size */
     ' ',
@@ -712,8 +713,15 @@ spawn_child( const char *cmd, int singleton_id, int screen, Window w, int contex
             while(*ptr) ptr++;
         }
         va_end(ap);
+        if( do_fork )
+        {
+            int i = ptr-cmdl;
+            while( --i >= 0 ) if( !isspace(cmdl[i]) ) break;
+            do_fork = ( i < 0 || cmdl[i] != '&' );
+        }
         strcpy (ptr, do_fork?" &\n":"\n");
 
+        LOCAL_DEBUG_OUT("execl(\"%s\")", cmdl );
         execl ("/bin/sh", "sh", "-c", cmdl, (char *)0);
         if( screen >= 0 )
             show_error( "failed to start %s on the screen %d", cmd, screen );

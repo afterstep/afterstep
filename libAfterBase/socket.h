@@ -10,12 +10,14 @@ int socket_listen (const char *socket_name);
 
 /* Network to local 32bit binary conversion : (Network is Big Endian) */
 
-#ifdef WORDS_BIGENDIAN
+#if defined(WORDS_BIGENDIAN) || defined(SAME_HOST)
+#undef TRANSLATE_HOST_TO_NET
 #define as_ntohl(ui32)		(ui32)
 #define as_hlton(ui32)		(ui32)
 #define as_ntohl16(ui16)		(ui16)
 #define as_hlton16(ui16)		(ui16)
 #else
+#define TRANSLATE_HOST_TO_NET
 #define as_ntohl(ui32)		((((ui32)&0x000000FF)<<24)|(((ui32)&0x0000FF00)<<8)|(((ui32)&0x00FF0000)>>8)|(((ui32)&0xFF000000)>>24))
 #define as_hlton(ui32)		as_ntohl(ui32)     /* conversion is symmetrical */
 #define as_ntohl16(ui16)		((((ui16)&0x00FF)<<8)|(((ui16)&0xFF00)>>8))

@@ -37,6 +37,200 @@
 
 char         *display_name = NULL;
 
+#define  ASSocketWriteInt32(sb,d,i)  socket_buffered_write( (sb), (d), (i)*sizeof(CARD32))
+#define  ASSocketWriteInt16(sb,d,i)  socket_buffered_write( (sb), (d), (i)*sizeof(CARD16))
+
+void
+as_socket_write_string (ASSocketBuffer *sb, const char *string)
+{
+	if (sb && sb->fd >= 0)
+	{
+		CARD32        len = 0;
+
+		if (string != NULL)
+			len = strlen (string);
+        ASSocketWriteInt32 (sb, &len, 1);
+		if (len)
+			socket_buffered_write (sb, string, len);
+	}
+}
+
+#define ASSocketWriteString(sb,s) as_socket_write_string ((sb),(s))
+
+/***********************************************************************
+ * Sending data to the AfterStep :
+ **********************************************************************/
+static ASSocketBuffer  as_module_out_buffer = { -1, 0, {0}};
+
+#define AS_MODULE_MSG_PROTO_PARTS   2
+static ASProtocolItemSpec as_module_msg_parts[AS_MODULE_MSG_PROTO_PARTS] =
+{
+	{AS_PROTOCOL_ITEM_INT32, 3},               /* the header */
+	{AS_PROTOCOL_ITEM_BYTE, 0/*we'll update it based on the header */}, /* the body */
+};
+
+static ASProtocolSpec as_module_msg_proto =
+{
+	&(as_module_msg_parts[0]),
+	AS_MODULE_MSG_PROTO_PARTS,
+	180 /* timeout in sec */
+};
+
+static ASProtocolItem  as_module_msg_items[AS_MODULE_MSG_PROTO_PARTS] ;
+static ASProtocolState as_module_msg_state = {&as_module_msg_proto, &(as_module_msg_items[0]), 0, 0, 0};
+
+void
+set_module_out_fd( int fd )
+{
+	as_module_out_buffer.fd = fd ;
+	as_module_out_buffer.bytes_in = 0 ;        /* sort of discarding buffer */
+}
+
+void
+set_module_in_fd( int fd )
+{
+	as_module_msg_state.fd = fd ;
+	socket_read_proto_reset( &as_module_msg_state );
+}
+
+int
+get_module_out_fd()
+{
+	return as_module_out_buffer.fd;
+}
+int
+get_module_in_fd()
+{
+	return as_module_msg_state.fd;
+}
+
+
+static inline void
+send_module_msg_header (Window w, CARD32 bytes)
+{
+    ASSocketWriteInt32 ( &as_module_out_buffer, &w, 1 );
+    ASSocketWriteInt32 ( &as_module_out_buffer, &bytes, 1 );
+}
+
+static inline void
+send_module_msg_tail ()
+{
+	CARD32           cont = F_FUNCTIONS_NUM;
+
+    ASSocketWriteInt32 ( &as_module_out_buffer, &cont, 1 );
+	socket_write_flush ( &as_module_out_buffer );
+}
+
+static inline void
+send_module_msg_raw ( void *data, size_t bytes )
+{
+	socket_buffered_write(&as_module_out_buffer, data, bytes);
+}
+
+static inline void
+send_module_msg_function (CARD32 func,
+						  const char *name, const char *text, const long *func_val, const long *unit_val)
+{
+	CARD32        spare_func_val[2] = { 0, 0 };
+	CARD32        spare_unit_val[2] = { 100, 100 };
+
+    ASSocketWriteInt32 (&as_module_out_buffer, &func, 1 );
+    ASSocketWriteString(&as_module_out_buffer , name);
+    ASSocketWriteString(&as_module_out_buffer , text);
+	if (func_val != NULL)
+	{
+		spare_func_val[0] = func_val[0] ;
+		spare_func_val[1] = func_val[1] ;
+	}
+	if (unit_val != NULL)
+	{
+		spare_unit_val[0] = unit_val[0] ;
+		spare_unit_val[1] = unit_val[1] ;
+	}
+    ASSocketWriteInt32 (&as_module_out_buffer, &(spare_func_val[0]), 2);
+    ASSocketWriteInt32 (&as_module_out_buffer, &(spare_unit_val[0]), 2);
+}
+
+/***********************************************************************
+ *  High level function for message delivery to AfterStep :
+ ***********************************************************************/
+#if 0   /* old version of SendInfo : */
+void
+SendInfo (int *fd, char *message, unsigned long window)
+{
+	size_t        w;
+LOCAL_DEBUG_OUT( "message to afterstep:\"%s\"", message );
+	if (message != NULL)
+	{
+		write (fd[0], &window, sizeof (unsigned long));
+		w = strlen (message);
+		write (fd[0], &w, sizeof (int));
+		write (fd[0], message, w);
+
+		/* keep going */
+		w = 1;
+		write (fd[0], &w, sizeof (int));
+	}
+}
+#else
+void
+SendInfo ( char *message, unsigned long window)
+{
+	size_t        len;
+LOCAL_DEBUG_OUT( "message to afterstep:\"%s\"", message );
+    if (message != NULL)
+	{
+		if ((len = strlen (message)) > 0)
+		{
+			send_module_msg_header(window, len);
+			send_module_msg_raw(message, len);
+			send_module_msg_tail ();
+		}
+	}
+}
+#endif
+
+/* SendCommand - send a preparsed AfterStep command : */
+void
+SendCommand( FunctionData * pfunc, unsigned long window)
+{
+LOCAL_DEBUG_OUT( "sending command %p to the astep", pfunc );
+	if (pfunc != NULL)
+	{
+		send_module_msg_header(window, 0);
+		send_module_msg_function(pfunc->func, pfunc->name, pfunc->text, pfunc->func_val, pfunc->unit_val);
+		send_module_msg_tail ();
+	}
+}
+
+void
+SendTextCommand ( int func, const char *name, const char *text, unsigned long window)
+{
+	long          dummy_val[2] = { 0, 0 };
+
+	if (IsValidFunc (func))
+	{
+		send_module_msg_header(window, 0);
+		send_module_msg_function(func, name, text, dummy_val, dummy_val);
+		send_module_msg_tail ();
+	}
+}
+
+void
+SendNumCommand ( int func, const char *name, const long *func_val, const long *unit_val, unsigned long window)
+{
+	if (IsValidFunc (func))
+	{
+		send_module_msg_header(window, 0);
+		send_module_msg_function(func, name, NULL, func_val, unit_val);
+		send_module_msg_tail ();
+	}
+}
+
+/*************************************************************************/
+/* establishing the connection :                                         */
+/*************************************************************************/
+
 int
 module_connect (const char *socket_name)
 {
@@ -162,30 +356,6 @@ module_wait_pipes_input ( int x_fd, int as_fd, void (*as_msg_handler) (unsigned 
 	timer_handle ();
 }
 
-/***********************************************************************
- *
- *  Procedure:
- *	SendInfo - send a command back to afterstep
- *
- ***********************************************************************/
-void
-SendInfo (int *fd, char *message, unsigned long window)
-{
-	size_t        w;
-LOCAL_DEBUG_OUT( "message to afterstep:\"%s\"", message );
-	if (message != NULL)
-	{
-		write (fd[0], &window, sizeof (unsigned long));
-		w = strlen (message);
-		write (fd[0], &w, sizeof (int));
-		write (fd[0], message, w);
-
-		/* keep going */
-		w = 1;
-		write (fd[0], &w, sizeof (int));
-	}
-}
-
 
 void          DeadPipe (int nonsense);
 
@@ -193,32 +363,34 @@ int
 ConnectAfterStep (unsigned long message_mask)
 {
     char *temp;
-    char          mask_mesg[32];
-	int           as_fd[2];
+    char  mask_mesg[32];
+    int   fd;
 
 	/* connect to AfterStep */
 	/* Dead pipe == AS died */
 	signal (SIGPIPE, DeadPipe);
-    as_fd[0] = as_fd[1] = Scr.wmprops?module_connect (Scr.wmprops->as_socket_filename):-1;
+    fd = Scr.wmprops?socket_connect_client(Scr.wmprops->as_socket_filename):-1;
 
-	if (as_fd[0] < 0)
+    if (fd < 0)
 	{
         show_error("unable to establish connection to AfterStep");
 		exit (1);
 	}
 
+    set_module_in_fd( fd );
+    set_module_out_fd( fd );
+
 	temp = safemalloc (9 + strlen (MyName) + 1);
     sprintf (temp, "SET_NAME \"%s\"", MyName);
-	SendInfo (as_fd, temp, None);
+    SendInfo ( temp, None);
 	free (temp);
 
 	sprintf (mask_mesg, "SET_MASK %lu\n", (unsigned long)message_mask);
-	SendInfo (as_fd, mask_mesg, None);
+    SendInfo ( mask_mesg, None);
 
     /* don't really have to do this here, but anyway : */
     InitSession();
-
-	return as_fd[0];
+    return fd;
 }
 
 void

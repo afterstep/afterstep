@@ -108,7 +108,12 @@ int ProcessModuleArgs (int argc, char **argv, char **global_config_file, unsigne
 
 /* returns fd of the AfterStep connection */
 int ConnectAfterStep (unsigned long message_mask);
-void SendInfo (int *fd, char *message, unsigned long window);
+void SendInfo (char *message, unsigned long window);
+void SendNumCommand ( int func, const char *name, const long *func_val, const long *unit_val, unsigned long window);
+void SendTextCommand ( int func, const char *name, const char *text, unsigned long window);
+void SendCommand( FunctionData * pfunc, unsigned long window);
+
+
 
 
 /* constructs config filename and calls supplied user function */

@@ -213,6 +213,7 @@ HandleModuleInput (module_t *module)
         res = ReadModuleInput (module, &offset, sizeof (ibuf->size), &(ibuf->size));
 	}
 
+LOCAL_DEBUG_OUT("res(%d)->window(0x%X)->size(%d)",res, ibuf->window, ibuf->size);
 	if (res > 0)
 	{
 		if (ibuf->size > 0)					   /* Protocol 1 */

@@ -51,6 +51,9 @@ socket_connect_client (const char *socket_name)
 {
 	int           fd;
 
+    if( socket_name == NULL )
+        return -1;
+
 	/* create an unnamed socket */
 	if ((fd = socket (AF_UNIX, SOCK_STREAM, 0)) < 0)
 	{
@@ -210,7 +213,7 @@ socket_write_flush ( ASSocketBuffer *sb )
 void
 socket_write_int32 (ASSocketBuffer *sb, CARD32 *data, size_t items )
 {
-#ifdef WORDS_BIGENDIAN
+#ifndef TRANSLATE_HOST_TO_NET
 	socket_buffered_write( sb, data, items*sizeof(CARD32));
 #else
 	CARD32  buf ;
@@ -219,6 +222,7 @@ socket_write_int32 (ASSocketBuffer *sb, CARD32 *data, size_t items )
 	{
 		buf = as_hlton(data[i]);
 		socket_buffered_write( sb, &buf, sizeof(CARD32));
+        ++i;
 	}
 #endif
 }
@@ -226,7 +230,7 @@ socket_write_int32 (ASSocketBuffer *sb, CARD32 *data, size_t items )
 void
 socket_write_int16 (ASSocketBuffer *sb, CARD16 *data, size_t items )
 {
-#ifdef WORDS_BIGENDIAN
+#ifndef TRANSLATE_HOST_TO_NET
 	socket_buffered_write( sb, data, items*sizeof(CARD16));
 #else
 	CARD16  buf ;
@@ -235,6 +239,7 @@ socket_write_int16 (ASSocketBuffer *sb, CARD16 *data, size_t items )
 	{
 		buf = as_hlton16(data[i]);
 		socket_buffered_write( sb, &buf, sizeof(CARD16));
+        ++i;
 	}
 #endif
 }
@@ -388,7 +393,7 @@ socket_read_proto_item( ASProtocolState *ps )
 			return ASP_SocketError ;
 		}
 	}
-#ifndef WORDS_BIGENDIAN
+#ifdef TRANSLATE_HOST_TO_NET
 	switch( item->size_bytes / item->size  )
 	{
 		case 2 :

@@ -6,6 +6,8 @@
 #include <limits.h>
 #endif
 
+/* we don't do interhost network communications ! WE use Unix domain sockets! */
+#define SAME_HOST
 
 /* Maximal length of config. file lines ; attention : the more you define
  * the more memory it uses.  It's safe to leave 255 for long lines.
