@@ -914,18 +914,22 @@ run_menu( const char *name )
 {
     MenuData *md;
     int x = 0, y = 0;
+	Bool persistent = (get_flags( Scr.Feel.flags, PersistentMenus ) || ASTopmostMenu == NULL );
 
     close_asmenu(&ASTopmostMenu);
 
-    if( (md = FindPopup (name, False)) == NULL )
-        return;
+	if( persistent )
+	{
+	    if( (md = FindPopup (name, False)) == NULL )
+    	    return;
 
-    if( !ASQueryPointerRootXY(&x,&y) )
-    {
-        x = (Scr.MyDisplayWidth*2)/3;
-        y = (Scr.MyDisplayHeight*3)/ 4;
-    }
-    ASTopmostMenu = run_submenu(NULL, md, x, y );
+    	if( !ASQueryPointerRootXY(&x,&y) )
+    	{
+        	x = (Scr.MyDisplayWidth*2)/3;
+        	y = (Scr.MyDisplayHeight*3)/ 4;
+    	}
+    	ASTopmostMenu = run_submenu(NULL, md, x, y );
+	}
 }
 
 ASMenu *

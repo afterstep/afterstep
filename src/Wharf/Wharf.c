@@ -84,18 +84,21 @@ typedef struct ASWharfButton
     unsigned long magic;
 #define ASW_SwallowTarget   (0x01<<0)
 #define ASW_MaxSwallow      (0x01<<1)
+#define ASW_FixedWidth		(0x01<<2)
+#define ASW_FixedHeight		(0x01<<3)
+#define ASW_Transient		(0x01<<4)
     ASFlagType flags;
     char        *name ;
     ASCanvas    *canvas;
     ASSwallowed *swallowed;
     ASTBarData  *bar;
 
-    unsigned int     desired_width, desired_height;
+    unsigned int    desired_width, desired_height;
     /* this is where it it will actually be placed and what size it should have at the end : */
-    int              folder_x, folder_y;
-    unsigned int     folder_width, folder_height;
+    int             folder_x, folder_y;
+    unsigned int    folder_width, folder_height;
 
-    FunctionData    *fdata;
+    FunctionData   *fdata;
 
     struct ASWharfFolder   *folder;
     struct ASWharfFolder   *parent;
@@ -376,6 +379,12 @@ SHOW_CHECKPOINT;
         Config->label_location = config->label_location;
     if( get_flags( config->set_flags, WHARF_ALIGN_CONTENTS ) )
         Config->align_contents = config->align_contents;
+    if( get_flags( config->set_flags, WHARF_BEVEL ) )
+	{
+        Config->bevel = config->bevel;
+		if( !get_flags( config->set_flags, WHARF_NO_BORDER ) )
+			clear_flags( Config->set_flags, WHARF_NO_BORDER );
+	}
 
 //LOCAL_DEBUG_OUT( "align_contents = %d", Config->align_contents );
     if( get_flags( config->set_flags, WHARF_SOUND ) )
@@ -701,7 +710,12 @@ build_wharf_button_tbar(WharfButton *wb)
 
     set_astbar_style_ptr( bar, BAR_STATE_UNFOCUSED, Scr.Look.MSWindow[BACK_UNFOCUSED] );
     if( !get_flags( Config->flags, WHARF_NO_BORDER ) )
-        set_astbar_hilite( bar, RIGHT_HILITE|BOTTOM_HILITE );
+	{
+		if( get_flags( Config->flags, WHARF_BEVEL ) )
+			set_astbar_hilite( bar, Config->bevel );
+		else
+        	set_astbar_hilite( bar, RIGHT_HILITE|BOTTOM_HILITE );
+	}
     return bar;
 }
 
@@ -768,17 +782,34 @@ build_wharf_folder( WharfButton *list, ASWharfButton *parent, Bool vertical )
                 }
             }
 
+			if( get_flags( wb->set_flags, WHARF_BUTTON_TRANSIENT ) )
+				set_flags( aswb->flags, ASW_Transient );
+
+			if( get_flags( wb->set_flags, WHARF_BUTTON_SIZE ) )
+			{
+				if( wb->width > 0 )
+					set_flags( aswb->flags, ASW_FixedWidth );
+				if( wb->height > 0 )
+					set_flags( aswb->flags, ASW_FixedHeight );
+				aswb->desired_width  = wb->width ;
+    	        aswb->desired_height = wb->height ;
+			}
+
             aswb->canvas = create_wharf_button_canvas(aswb, aswf->canvas);
             aswb->bar = build_wharf_button_tbar(wb);
 
             if( !get_flags( aswb->flags, ASW_SwallowTarget ) )
             {
-                aswb->desired_width  = (Config->force_size.width == 0)?calculate_astbar_width( aswb->bar ) :Config->force_size.width;
-                aswb->desired_height = (Config->force_size.height== 0)?calculate_astbar_height( aswb->bar ):Config->force_size.height;
+				if( aswb->desired_width == 0 )
+	                aswb->desired_width = (Config->force_size.width == 0)?calculate_astbar_width( aswb->bar ) :Config->force_size.width;
+				if( aswb->desired_height == 0 )
+	            	aswb->desired_height = (Config->force_size.height== 0)?calculate_astbar_height( aswb->bar ):Config->force_size.height;
             }else
             {
-                aswb->desired_width  = Config->force_size.width ;
-                aswb->desired_height = Config->force_size.height ;
+    			if( aswb->desired_width == 0 )
+	            	aswb->desired_width  = Config->force_size.width ;
+    			if( aswb->desired_height == 0 )
+	                aswb->desired_height = Config->force_size.height ;
             }
 
             if( aswb->desired_width == 0 )
@@ -929,7 +960,7 @@ place_wharf_buttons( ASWharfFolder *aswf, int *total_width_return, int *total_he
     Bool needs_shaping = False ;
 
     *total_width_return  = 0 ;
-    *total_height_return = 0 ;
+	*total_height_return = 0 ;
 
     if( get_flags( aswf->flags, ASW_Vertical ) )
     {
@@ -1436,9 +1467,11 @@ check_swallow_window( ASWindowData *wd )
         handle_canvas_config( aswb->swallowed->current );
         LOCAL_DEBUG_OUT( "client(%lX)->icon(%lX)->current(%lX)", wd->client, wd->icon, aswb->swallowed->current->w );
 
-        if( get_flags( aswb->flags, ASW_MaxSwallow ) || Config->force_size.width == 0 )
+        if( get_flags( aswb->flags, ASW_MaxSwallow ) ||
+			(Config->force_size.width == 0 && !get_flags(aswb->flags, ASW_FixedWidth)))
             aswb->desired_width = aswb->swallowed->current->width;
-        if( get_flags( aswb->flags, ASW_MaxSwallow ) || Config->force_size.height == 0 )
+        if( get_flags( aswb->flags, ASW_MaxSwallow ) ||
+			(Config->force_size.height == 0 && !get_flags(aswb->flags, ASW_FixedHeight)) )
             aswb->desired_height = aswb->swallowed->current->height;
 
         resize_canvas( aswb->swallowed->current, aswb->desired_width, aswb->desired_height );

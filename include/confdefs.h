@@ -785,6 +785,7 @@ int WriteDatabaseOptions (const char *filename, char *myname,
 #define WHARF_FitContents_ID    (WHARF_ID_START+26)
 #define WHARF_ShapeToContents_ID    (WHARF_ID_START+27)
 #define WHARF_AlignContents_ID  (WHARF_ID_START+28)
+#define WHARF_Bevel_ID  (WHARF_ID_START+29)
 
 #define	WHARF_ID_END			(WHARF_ID_START+30)
 #define WFUNC_START_ID			(WHARF_ID_END)
@@ -822,9 +823,17 @@ struct FunctionData;
 
 typedef struct WharfButton
 {
+#define WHARF_BUTTON_WIDTH			(0x01<<0)
+#define WHARF_BUTTON_HEIGHT	  		(0x01<<1)
+#define WHARF_BUTTON_SIZE	  		(WHARF_BUTTON_HEIGHT|WHARF_BUTTON_WIDTH)
+#define WHARF_BUTTON_TRANSIENT		(0x01<<2)
+
   unsigned long set_flags;
   char *title;
   char **icon;
+
+  unsigned int width, height;
+
   struct FunctionData *function;
   struct WharfButton  *next;
   struct WharfButton  *folder;
@@ -857,6 +866,7 @@ WharfButton;
 #define  WHARF_FIT_CONTENTS     (0x01<<23)
 #define  WHARF_SHAPE_TO_CONTENTS (0x01<<24)
 #define  WHARF_ALIGN_CONTENTS   (0x01<<25)
+#define  WHARF_BEVEL            (0x01<<26)
 
 
 typedef struct
@@ -883,7 +893,8 @@ typedef struct
     WharfButton *root_folder;
 
     unsigned int label_location;
-    unsigned int align_contents;
+    ASFlagType   align_contents;
+	ASFlagType   bevel;
 
     balloonConfig *balloon_conf;
     MyStyleDefinition *style_defs;

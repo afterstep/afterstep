@@ -97,7 +97,8 @@ typedef enum                /* feel file flags */
     FollowTitleChanges      = (1 << 24),
     AutoTabThroughDesks     = (1 << 25),
     DoHandlePageing         = (1 << 26),
-    DontRestoreFocus        = (1 << 27)
+    DontRestoreFocus        = (1 << 27),
+	PersistentMenus			= (1 << 28),
 }FeelFlags;
 
 /* look file flags */

@@ -91,7 +91,8 @@ TermDef       WharfTerms[] = {
     {0, "FlipLabel", 9,         TT_FLAG, WHARF_FlipLabel_ID, NULL},
     {0, "FitContents", 11,      TT_FLAG, WHARF_FitContents_ID, NULL},
     {0, "ShapeToContents", 15,  TT_FLAG, WHARF_ShapeToContents_ID, NULL},
-    {0, "AlignContents", 13,    TT_UINTEGER, WHARF_AlignContents_ID, NULL},
+    {0, "AlignContents", 13,    TT_UINTEGER, WHARF_AlignContents_ID, &AlignSyntax},
+    {0, "Bevel", 5, TT_UINTEGER, WHARF_Bevel_ID, &BevelSyntax},
 
 
 /* now special cases that should be processed by it's own handlers */
@@ -117,7 +118,7 @@ SyntaxDef     WharfSyntax = {
 flag_options_xref WharfFlags[] = {
 	{WHARF_NO_PUSH, WHARF_NoPush_ID, 0},
     {WHARF_FULL_PUSH, 0, WHARF_FullPush_ID },
-	{WHARF_NO_BORDER, WHARF_NoBorder_ID, 0},
+	{WHARF_NO_BORDER, WHARF_NoBorder_ID, WHARF_Bevel_ID},
 	{WHARF_NO_WITHDRAW, WHARF_NoWithdraw_ID, 0},
 	{WHARF_ANIMATE_MAIN, WHARF_AnimateMain_ID, 0},
 	{WHARF_ANIMATE, WHARF_Animate_ID, 0},
@@ -221,6 +222,8 @@ print_wharf_folder( WharfButton *folder, int level )
         int i = 0;
         show_progress("WHARF.FOLDER[%d].BUTTON[%d].set_flags=0x%lX;", my_level, count, folder->set_flags );
         show_progress("WHARF.FOLDER[%d].BUTTON[%d].title=\"%s\";", my_level, count, folder->title );
+        show_progress("WHARF.FOLDER[%d].BUTTON[%d].width=%d;", my_level, count, folder->width );
+        show_progress("WHARF.FOLDER[%d].BUTTON[%d].height=%d;", my_level, count, folder->height );
         if( folder->icon )
             while( folder->icon[i] != NULL )
             {
@@ -467,15 +470,29 @@ LOCAL_DEBUG_OUT( "term for keyword \"%s\" found in substorage", pterm->keyword )
 					 pstorage = pstorage->sub;
                      ParseWharfFolder (&pstorage, &(wb->folder));
 				 }
-            }else if (pterm->type == TT_FUNCTION)
+            }else if( pterm->id == F_Transient )
+			{
+				set_flags(  wb->set_flags, WHARF_BUTTON_TRANSIENT );
+			}else if (pterm->type == TT_FUNCTION)
 			{
 				ConfigItem    item;
 				item.memory = NULL;
 				if (ReadConfigItem (&item, pstorage))
 				{
-                    if (wb->function)
-                        destroy_func_data (&(wb->function));
-                    wb->function = item.data.function;
+					if( pterm->id == F_Size )
+					{
+						set_flags( wb->set_flags, WHARF_BUTTON_SIZE );
+						wb->width  = item.data.function->func_val[0] ;
+						wb->height = item.data.function->func_val[1] ;
+						item.ok_to_free=1 ;
+					}else
+					{
+						if (wb->function)
+                        	destroy_func_data (&(wb->function));
+                    	wb->function = item.data.function;
+						item.ok_to_free = 0 ;
+					}
+					ReadConfigItem( &item, NULL );
 				}
 			}
 		}
@@ -628,7 +645,12 @@ SHOW_CHECKPOINT;
              break ;
          case WHARF_AlignContents_ID :
              set_flags (config->set_flags, WHARF_ALIGN_CONTENTS);
-             config->align_contents = item.data.integer;
+             config->align_contents = ParseAlignOptions( pCurr->sub );
+             break ;
+		 case WHARF_Bevel_ID :
+             set_flags (config->set_flags, WHARF_BEVEL);
+			 clear_flags( config->flags, WHARF_NO_BORDER );
+             config->bevel = ParseBevelOptions( pCurr->sub );
              break ;
          case MYSTYLE_START_ID:
 			 styles_tail = ProcessMyStyleOptions (pCurr->sub, styles_tail);

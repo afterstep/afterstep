@@ -186,6 +186,7 @@ struct config main_config[] = {
     {"MWMDecorHints", obsolete, (char **)0, NULL},
     {"MWMHintOverride", obsolete, (char **)0, NULL},
     {"FollowTitleChanges", SetFlag, (char **)FollowTitleChanges, (int *)0},
+    {"PersistentMenus", SetFlag, (char **)PersistentMenus, (int *)0},
     {"NoSnapKey", SetModifier, (char **)&(Scr.Feel.no_snaping_mod), (int *)0},
     {"ScreenEdgeAttraction", SetInts, (char **)&Scr.Feel.EdgeAttractionScreen, &dummy},
     {"WindowEdgeAttraction", SetInts, (char **)&Scr.Feel.EdgeAttractionWindow, &dummy},
