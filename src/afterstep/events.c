@@ -1055,15 +1055,16 @@ HandleButtonPress ( ASEvent *event, Bool deffered )
     Bool          AShandled = False;
     ASWindow     *asw = event->client ;
     XButtonEvent *xbtn = &(event->x.xbutton);
+	Bool 		  raise_on_click = False ; 
+    Bool 		  focus_accepted = False ;
+    Bool 		  eat_click = False;
 
 	/* click to focus stuff goes here */
     if( asw != NULL )
     {
-        Bool eat_click = False;
         /* if all we do is pressing titlebar buttons - then we should not raise/focus window !!! */
         if( !deffered && (event->context&(~C_TButtonAll)) != 0 )
         {
-            Bool focus_accepted = False ;
             if (get_flags( Scr.Feel.flags, ClickToFocus) )
       		{
           		if ( asw != Scr.Windows->ungrabbed && (xbtn->state & nonlock_mods) == 0)
@@ -1076,8 +1077,7 @@ HandleButtonPress ( ASEvent *event, Bool deffered )
 	        }
 
             if ( get_flags(Scr.Feel.flags, ClickToRaise) )
-                if( Scr.Feel.RaiseButtons == 0 || (Scr.Feel.RaiseButtons & (1 << xbtn->button)))
-                    restack_window((asw),None,focus_accepted?Above:TopIf);
+				raise_on_click = ( Scr.Feel.RaiseButtons == 0 || (Scr.Feel.RaiseButtons & (1 << xbtn->button))) ; 
 
             if (!ASWIN_GET_FLAGS(asw, AS_Iconic))
   		    {
@@ -1088,12 +1088,10 @@ HandleButtonPress ( ASEvent *event, Bool deffered )
 		} /* !deffered */
 
         press_aswindow( asw, event->context );
-
-        if( eat_click )
-            return;
     }
 
-	if( !deffered )
+
+	if( !deffered && !eat_click)
 	{
 		LOCAL_DEBUG_OUT( "checking for associated functions...%s","" );		
 	    /* we have to execute a function or pop up a menu : */
@@ -1112,6 +1110,7 @@ HandleButtonPress ( ASEvent *event, Bool deffered )
 	            if (MouseEntry->fdata != NULL)
 				{
       		        ExecuteFunction (MouseEntry->fdata, event, -1);
+					raise_on_click = False ;
 					AShandled = True;
 					break;
 				}
@@ -1119,8 +1118,12 @@ HandleButtonPress ( ASEvent *event, Bool deffered )
 			MouseEntry = MouseEntry->NextButton;
 		}
 	}
+
+	if( raise_on_click )
+    	restack_window(asw,None,focus_accepted?Above:TopIf);
+
 	/* GNOME this click hasn't been taken by AfterStep */
-    if (!deffered && !AShandled && xbtn->window == Scr.Root)
+    if (!deffered && !AShandled && !eat_click && xbtn->window == Scr.Root)
 	{
         XUngrabPointer (dpy, CurrentTime);
         XSendEvent (dpy, Scr.wmprops->wm_event_proxy, False, SubstructureNotifyMask, &(event->x));

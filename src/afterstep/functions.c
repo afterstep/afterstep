@@ -374,22 +374,22 @@ DoExecuteFunction ( ASScheduledFunction *sf )
     /* Defer Execution may wish to alter this value */
     if (IsWindowFunc (func))
 	{
-	int           do_defer = !(sf->defered), fin_event;
+		int           do_defer = !(sf->defered), fin_event;
 
-	if( event->x.type == ButtonPress )
-	    fin_event = ButtonRelease ;
-	else if ( event->x.type == MotionNotify )
-	    fin_event = (event->x.xmotion.state&AllButtonMask) != 0 ? ButtonRelease : ButtonPress ;
-	else
-	    fin_event = ButtonPress ;
+		if( event->x.type == ButtonPress )
+	    	fin_event = ButtonRelease ;
+		else if ( event->x.type == MotionNotify )
+	    	fin_event = (event->x.xmotion.state&AllButtonMask) != 0 ? ButtonRelease : ButtonPress ;
+		else
+	    	fin_event = ButtonPress ;
 
-	if (data->text != NULL && event->client == NULL)
-		if (*(data->text) != '\0')
-		if ((event->client = pattern2ASWindow (data->text)) != NULL)
-		{
-		event->w = get_window_frame(event->client);
-			do_defer = False ;
-		}
+		if (data->text != NULL && event->client == NULL)
+			if (*(data->text) != '\0')
+				if ((event->client = pattern2ASWindow (data->text)) != NULL)
+				{
+					event->w = get_window_frame(event->client);
+					do_defer = False ;
+				}
 
 		if( event->x.type == KeyPress || event->x.type == KeyRelease )
 		{/* keyboard events should never be deferred,
@@ -399,40 +399,39 @@ DoExecuteFunction ( ASScheduledFunction *sf )
 			do_defer = False;
 		}
 
-	if( do_defer && (fin_event != ButtonRelease || !is_interactive_action(data)) )
-	{
+		if( do_defer && (fin_event != ButtonRelease || !is_interactive_action(data)) )
+		{
+	    	int cursor = ASCUR_Move ;
+	    	if (func != F_RESIZE && func != F_MOVE)
+				cursor = (func!=F_DESTROY && func!=F_DELETE && func!=F_CLOSE)?ASCUR_Select:ASCUR_Destroy;
 
-	    int cursor = ASCUR_Move ;
-	    if (func != F_RESIZE && func != F_MOVE)
-		cursor = (func!=F_DESTROY && func!=F_DELETE && func!=F_CLOSE)?ASCUR_Select:ASCUR_Destroy;
-
-	    if (DeferExecution (event, cursor, fin_event))
-		func = F_NOP;
-	}
+	    	if (DeferExecution (event, cursor, fin_event))
+				func = F_NOP;
+		}
 
 		if( event->client == NULL )
-		func = F_NOP;
+			func = F_NOP;
 
 	}
 
     if( function_handlers[func] || func == F_FUNCTION )
     {
-	data->func = func ;
-	if( event->client )
-	    if( !check_allowed_function2( data->func, event->client->hints) )
-	    {
-LOCAL_DEBUG_OUT( "function \"%s\" is not allowed for the specifyed window (mask 0x%lX)", COMPLEX_FUNCTION_NAME(data), ASWIN_FUNC_MASK(event->client));
-		func = data->func = F_BEEP ;
-	    }
+		data->func = func ;
+		if( event->client )
+	    	if( !check_allowed_function2( data->func, event->client->hints) )
+	    	{
+				LOCAL_DEBUG_OUT( "function \"%s\" is not allowed for the specifyed window (mask 0x%lX)", COMPLEX_FUNCTION_NAME(data), ASWIN_FUNC_MASK(event->client));
+				func = data->func = F_BEEP ;
+	    	}
 
-	if( get_flags( AfterStepState, ASS_WarpingMode ) &&
-	    function_handlers[func] != warp_func_handler )
-	    EndWarping();
+		if( get_flags( AfterStepState, ASS_WarpingMode ) &&
+	    	function_handlers[func] != warp_func_handler )
+	    	EndWarping();
 
 		if( func == F_FUNCTION )
-	    ExecuteComplexFunction (event, COMPLEX_FUNCTION_NAME(data));
+		    ExecuteComplexFunction (event, COMPLEX_FUNCTION_NAME(data));
 		else
-	    function_handlers[func]( data, event, sf->module );
+		    function_handlers[func]( data, event, sf->module );
     }
     destroy_scheduled_function(sf);
 }
@@ -854,13 +853,13 @@ void raiselower_func_handler( FunctionData *data, ASEvent *event, int module )
 {
     if( event->client )
     {
-	if( event->client->last_restack_time != CurrentTime &&
-	    event->event_time != CurrentTime &&
-	    event->client->last_restack_time >= event->event_time )
-	    return ;
+		if( event->client->last_restack_time != CurrentTime &&
+	    	event->event_time != CurrentTime &&
+	    	event->client->last_restack_time >= event->event_time )
+	    	return ;
 
-	restack_window (event->client,None,(data->func==F_RAISE)?Above:
-					   ((data->func==F_RAISELOWER)?Opposite:Below));
+		restack_window (event->client,None,(data->func==F_RAISE)?Above:
+					   	((data->func==F_RAISELOWER)?Opposite:Below));
     }
 }
 
