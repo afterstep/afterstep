@@ -353,8 +353,9 @@ DigestEvent( ASEvent *event )
          * window where the event occured */
         if (!ASWIN_GET_FLAGS(asw, AS_Iconic))
         {
-            if (xk->subwindow != None)
-                w = xk->subwindow;
+			if( w != asw->client_canvas->w )
+            	if (xk->subwindow != None)
+                	w = xk->subwindow;
             if( w == asw->client_canvas->w )
             {
                 canvas = asw->client_canvas ;
@@ -1041,12 +1042,15 @@ HandleButtonPress ( ASEvent *event, Bool deffered )
 
 	if( !deffered )
 	{
+		LOCAL_DEBUG_OUT( "checking for associated functions...%s","" );		
 	    /* we have to execute a function or pop up a menu : */
   		modifier = (xbtn->state & nonlock_mods);
+		LOCAL_DEBUG_OUT( "state = %X, modifier = %X", xbtn->state, modifier);		   
 		/* need to search for an appropriate mouse binding */
   		MouseEntry = Scr.Feel.MouseButtonRoot;
 	    while (MouseEntry != NULL)
 		{
+			/*LOCAL_DEBUG_OUT( "mouse fdata %p button %d + modifier %X has context %lx", MouseEntry->fdata, MouseEntry->Button, MouseEntry->Modifier, get_flags(MouseEntry->Context, event->context) );*/
       		if ((MouseEntry->Button == xbtn->button || MouseEntry->Button == 0) &&
           		(MouseEntry->Context & event->context) &&
 	            (MouseEntry->Modifier == AnyModifier || MouseEntry->Modifier == modifier))

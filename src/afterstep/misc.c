@@ -23,7 +23,7 @@
  * Assorted odds and ends
  *
  **************************************************************************/
-
+#define LOCAL_DEBUG
 
 #include "../../configure.h"
 
@@ -35,6 +35,7 @@
 inline void
 ungrab_window_buttons( Window w )
 {
+	LOCAL_DEBUG_OUT( "w = %lX", w );
     XUngrabButton (dpy, AnyButton, AnyModifier, w);
 }
 
@@ -52,6 +53,7 @@ MyXGrabButton ( unsigned button, unsigned modifiers,
                 Window grab_window, Bool owner_events, unsigned event_mask,
                 int pointer_mode, int keyboard_mode, Window confine_to, Cursor cursor)
 {
+	LOCAL_DEBUG_OUT( "modifiers = %X", modifiers );
     if( modifiers == AnyModifier )
         XGrabButton (dpy, button, AnyModifier, grab_window,
                      owner_events, event_mask, pointer_mode, keyboard_mode, confine_to, cursor);
@@ -60,6 +62,7 @@ MyXGrabButton ( unsigned button, unsigned modifiers,
         register int i = 0 ;
         do
         {
+/*			LOCAL_DEBUG_OUT( "grabbing button %d with mod %lX on window %lX", button, modifiers | lock_mods[i], grab_window ); */
             XGrabButton (dpy, button, modifiers | lock_mods[i], grab_window,
                          owner_events, event_mask, pointer_mode, keyboard_mode, confine_to, cursor);
             if( lock_mods[i] == 0 )
@@ -89,10 +92,12 @@ void
 grab_window_buttons (Window w, ASFlagType context_mask)
 {
     register MouseButton  *MouseEntry;
-
+	LOCAL_DEBUG_OUT( "w = %lX, context = 0x%lX", w, context_mask );
     for( MouseEntry = Scr.Feel.MouseButtonRoot ; MouseEntry ; MouseEntry = MouseEntry->NextButton)
+	{
         if ( MouseEntry->fdata  && get_flags(MouseEntry->Context, context_mask))
 		{
+		LOCAL_DEBUG_OUT( "mouse fdata %p button %d + modifier %X has context %lx", MouseEntry->fdata, MouseEntry->Button, MouseEntry->Modifier, get_flags(MouseEntry->Context, context_mask) );
 			if (MouseEntry->Button > 0)
                 MyXGrabButton (MouseEntry->Button, MouseEntry->Modifier, w,
 							   True, ButtonPressMask | ButtonReleaseMask,
@@ -106,6 +111,7 @@ grab_window_buttons (Window w, ASFlagType context_mask)
                                    GrabModeAsync, GrabModeAsync, None, Scr.Feel.cursors[DEFAULT]);
             }
         }
+	}
 }
 
 

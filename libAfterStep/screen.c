@@ -354,9 +354,10 @@ setup_modifiers ()
 	}
 /* forget shift & control locks */
 	lockmask &= ~(ShiftMask | ControlMask);
-
 	nonlock_mods = ((ShiftMask | ControlMask | Mod1Mask | Mod2Mask
 	 				 | Mod3Mask | Mod4Mask | Mod5Mask) & ~lockmask);
+	
+	LOCAL_DEBUG_OUT( "lockmask = %lX, nonlock_mods = %lX", lockmask, nonlock_mods );
 
 	mp = lock_mods;
 	for (m = 0, i = 1; i < MAX_LOCK_MODS; i++)

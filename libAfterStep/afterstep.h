@@ -324,7 +324,7 @@ struct ASTBarData;
 									 FocusChangeMask 	| \
 									 LeaveWindowMask 	| \
                                      PropertyChangeMask | \
-									 StructureNotifyMask)
+									 StructureNotifyMask )
 
 
 #define AS_FRAME_EVENT_MASK  		(ButtonPressMask 	| \
