@@ -254,7 +254,7 @@ ParseMyBackgroundOptions (FreeStorageElem * Storage, char *myname)
 	  config->flags |= BGFLAG_ALIGN;
 	  if (item.data.integer & 0x1)
 	    config->flags |= BGFLAG_ALIGN_RIGHT;
-	  else if (item.data.integer & 0x2)
+	  if (item.data.integer & 0x2)
 	    config->flags |= BGFLAG_ALIGN_BOTTOM;
 	  item.ok_to_free = 1;
 	  break;
