@@ -218,11 +218,12 @@ count_alloc (const char *fname, int line, void *ptr, size_t length, int type)
  */ }else
     {
 		m = calloc (1, sizeof (mem));
-        if( total_service+sizeof(mem) > 1000000 )
+        if( total_service+sizeof(mem) > AUDIT_SERVICE_MEM_LIMIT )
         {
             show_error( "<mem> too much auditing service memory used (%lu - was %lu)- aborting, please investigate.\n   Called from %s:%d",
                         total_service+sizeof(mem), total_service, fname, line );
             print_simple_backtrace();
+			output_unfreed_mem (stderr);
 #ifdef DEBUG_ALLOC_STRICT
 {	char *segv = NULL ;	*segv = 0 ;  }
 #endif
@@ -258,7 +259,7 @@ count_alloc (const char *fname, int line, void *ptr, size_t length, int type)
 		show_error( "failed to log allocation for pointer 0x%lX - result = %d", ptr, res);
     else
     {
-        if( total_service+sizeof(ASHashItem) > 1000000 )
+        if( total_service+sizeof(ASHashItem) > AUDIT_SERVICE_MEM_LIMIT )
         {
             show_error( "<add_hash_item> too much auditing service memory used (%lu - was %lu)- aborting, please investigate.\n   Called from %s:%d",
                         total_service+sizeof(ASHashItem), total_service, fname, line );

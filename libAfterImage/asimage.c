@@ -167,15 +167,25 @@ asimage_start (ASImage * im, unsigned int width, unsigned int height, unsigned i
 		CARD32 *tmp ;
 
 		asimage_init (im, True);
-		im->width = width;
 		im->buf_len = width + width;
 		/* we want result to be 32bit aligned and padded */
-		tmp = safemalloc (sizeof(CARD32)*(im->buf_len+1));
-		im->buffer = (CARD8*)tmp;
-
+		if( (tmp = safemalloc (sizeof(CARD32)*(im->buf_len+1))) != NULL )
+		{
+			im->buffer = (CARD8*)tmp;
+			im->red = safemalloc (sizeof (CARD8*) * height * 4);
+		}
+		if( im->red == NULL || im->buffer == NULL )
+		{
+			show_error( "Insufficient memory to create image %dx%d!", width, height );
+			if( im->buffer )
+				free( im->buffer );
+			if( im->red )
+				free( im->red );
+			return ;
+		}
 		im->height = height;
+		im->width = width;
 
-		im->red = safemalloc (sizeof (CARD8*) * height * 4);
 		for( i = 0 ; i < height<<2 ; i++ )
 			im->red[i] = 0 ;
 		im->green = im->red+height;
@@ -197,6 +207,11 @@ create_asimage( unsigned int width, unsigned int height, unsigned int compressio
 {
 	ASImage *im = safecalloc( 1, sizeof(ASImage) );
 	asimage_start( im, width, height, compression );
+	if( im->width == 0 || im->height == 0 )
+	{
+		free( im );
+		im = NULL ;
+	}
 	return im;
 }
 
@@ -432,7 +447,7 @@ start_image_decoding( ASVisual *asv,ASImage *im, ASFlagType filter,
 	imdec->next_line = offset_y ;
 	imdec->back_color = (im != NULL)?im->back_color:ARGB32_DEFAULT_BACK_COLOR ;
 	imdec->bevel = bevel ;
-	if( bevel )
+  	if( bevel )
 	{
 		if( bevel->left_outline > MAX_BEVEL_OUTLINE )
 			bevel->left_outline = MAX_BEVEL_OUTLINE ;
@@ -451,6 +466,14 @@ start_image_decoding( ASVisual *asv,ASImage *im, ASFlagType filter,
 		if( bevel->top_inline+bevel->bottom_inline >= out_height )
 			bevel->bottom_inline = MAX((int)out_height-1-(int)bevel->top_inline,0) ;
 
+		if( bevel->left_outline == 0 && bevel->right_outline == 0 &&
+			bevel->top_outline == 0 && bevel->bottom_outline == 0 &&
+			bevel->left_inline == 0 && bevel->left_inline == 0 &&
+			bevel->top_inline == 0 && bevel->bottom_inline == 0 )
+			imdec->bevel = bevel = NULL ;
+	}
+	if( bevel )
+	{
 		imdec->bevel_left   = bevel->left_outline ;
 		imdec->bevel_top    = bevel->top_outline ;
 		imdec->bevel_right  = imdec->bevel_left + (int)out_width ;
@@ -1788,47 +1811,57 @@ decode_image_scanline_beveled( ASImageDecoder *imdec )
 	set_flags( scl->flags, imdec->filter );
 	if( y_out < imdec->bevel_top )
 	{
-		register int line = y_out - (imdec->bevel_top - (int)bevel->top_outline);
-		int alt_left  = (line*bevel->left_outline/bevel->top_outline)+1 ;
-		int alt_right = (line*bevel->right_outline/bevel->top_outline)+1 ;
+		if( bevel->top_outline > 0 )
+		{
+			register int line = y_out - (imdec->bevel_top - (int)bevel->top_outline);
+			int alt_left  = (line*bevel->left_outline/bevel->top_outline)+1 ;
+			int alt_right = (line*bevel->right_outline/bevel->top_outline)+1 ;
 
-		alt_left += MAX(imdec->bevel_left-(int)bevel->left_outline,0) ;
-		offset_shade = MAX(imdec->bevel_right+(int)bevel->right_outline-alt_right,0);
+			alt_left += MAX(imdec->bevel_left-(int)bevel->left_outline,0) ;
+			offset_shade = MAX(imdec->bevel_right+(int)bevel->right_outline-alt_right,0);
 
-/*	fprintf( stderr, "%d: y = %d, y_out = %d, alt_left = %d, offset_shade = %d, alt_right = %d, scl->width = %d, out_width = %d\n",
-					 __LINE__, y, y_out, alt_left, offset_shade, alt_right, scl->width, imdec->out_width );
- */
-		if( scl->width < imdec->bevel_right )
-			alt_right -= imdec->bevel_right-(int)scl->width ;
+	/*	fprintf( stderr, "%d: y = %d, y_out = %d, alt_left = %d, offset_shade = %d, alt_right = %d, scl->width = %d, out_width = %d\n",
+					 	__LINE__, y, y_out, alt_left, offset_shade, alt_right, scl->width, imdec->out_width );
+ 	*/
+			if( scl->width < imdec->bevel_right )
+				alt_right -= imdec->bevel_right-(int)scl->width ;
 
-		draw_solid_bevel_line( scl, alt_left, offset_shade, offset_shade, alt_right,
-							   bevel->hi_color, bevel->lo_color, bevel->hihi_color, bevel->hilo_color );
+			draw_solid_bevel_line( scl, alt_left, offset_shade, offset_shade, alt_right,
+							   	bevel->hi_color, bevel->lo_color, bevel->hihi_color, bevel->hilo_color );
+		}
 	}else if( y_out >= imdec->bevel_bottom )
 	{
-		register int line = bevel->bottom_outline - (y_out - imdec->bevel_bottom);
-		int alt_left  = (line*bevel->left_outline/bevel->bottom_outline)+1 ;
-		int alt_right = (line*bevel->right_outline/bevel->bottom_outline)+1 ;
+		if( bevel->bottom_outline > 0 )
+		{
+			register int line = bevel->bottom_outline - (y_out - imdec->bevel_bottom);
+			int alt_left  = (line*bevel->left_outline/bevel->bottom_outline)+1 ;
+			int alt_right = (line*bevel->right_outline/bevel->bottom_outline)+1 ;
 
-		alt_left += MAX(imdec->bevel_left-(int)bevel->left_outline,0) ;
-		offset_shade = MIN(alt_left, (int)scl->width );
+			alt_left += MAX(imdec->bevel_left-(int)bevel->left_outline,0) ;
+			offset_shade = MIN(alt_left, (int)scl->width );
 
-		if( scl->width < imdec->bevel_right )
-			alt_right -= imdec->bevel_right-(int)scl->width ;
+			if( scl->width < imdec->bevel_right )
+				alt_right -= imdec->bevel_right-(int)scl->width ;
 
 /*	fprintf( stderr, "%d: y = %d, y_out = %d, alt_left = %d, offset_shade = %d, alt_right = %d, scl->width = %d, out_width = %d\n",
 					 __LINE__, y, y_out, alt_left, offset_shade, alt_right, scl->width, imdec->out_width );
  */
-		set_flags( scl->flags, imdec->filter );
-		draw_solid_bevel_line( scl, alt_left, alt_left, alt_left, alt_right,
-							   bevel->hi_color, bevel->lo_color,
-							   bevel->hilo_color, bevel->lolo_color );
+			set_flags( scl->flags, imdec->filter );
+			draw_solid_bevel_line( scl, alt_left, alt_left, alt_left, alt_right,
+							   	bevel->hi_color, bevel->lo_color,
+							   	bevel->hilo_color, bevel->lolo_color );
+		}
 	}else
 	{
 		int left_margin = MAX(0, imdec->bevel_left);
 		int right_margin = MIN((int)scl->width, imdec->bevel_right);
+		int y = imdec->next_line-bevel->top_outline ;
+
+		if( imdec->im )
+			y %= imdec->im->height ;
 
 		decode_asscanline( scl, imdec->im, imdec->back_color, imdec->filter, left_margin,
-						   (imdec->next_line-bevel->top_outline)%imdec->im->height, imdec->offset_x );
+						   y, imdec->offset_x );
 
 		draw_solid_bevel_line( scl, -1, left_margin, right_margin, scl->width,
 							   bevel->hi_color, bevel->lo_color,

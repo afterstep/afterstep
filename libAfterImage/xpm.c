@@ -705,7 +705,7 @@ build_xpm_colormap( ASXpmFile *xpm_file )
 	}else
 		xpm_file->cmap_name_xref = create_ashash( 0, string_hash_value,
 													 string_compare,
-													 string_value_destroy );
+													 string_destroy );
 #endif
 	if( xpm_color_names == NULL )
 	{
@@ -739,7 +739,7 @@ LOCAL_DEBUG_OUT( "\t\tcolor = 0x%8.8lX\n",  color );
 			xpm_file->do_alpha = True ;
 		if( xpm_file->bpp == 1 )
 			xpm_file->cmap[(unsigned int)(xpm_file->str_buf[0])] = color ;
-		if( xpm_file->bpp == 2 )
+		else if( xpm_file->bpp == 2 )
 		{
 			ARGB32 **slot = &(xpm_file->cmap2[(unsigned int)(xpm_file->str_buf[0])]) ;
 			if( *slot == NULL )

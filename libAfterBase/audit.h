@@ -25,6 +25,8 @@
 #define PRINT_MEM_STATS(m)      do{}while(0)
 #else
 
+#define AUDIT_SERVICE_MEM_LIMIT (4<<20)
+
 int as_assert (void *p, const char *fname, int line, const char *call);
 
 #define AS_ASSERT(p) as_assert((void*)p,__FILE__, __LINE__ ,__FUNCTION__)

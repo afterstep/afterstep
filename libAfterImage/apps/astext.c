@@ -241,27 +241,27 @@ int main(int argc, char* argv[])
 		rendered_im = merge_layers( asv, &(layers[0]), 2,
 									width+BEVEL_ADDON, height+BEVEL_ADDON,
 #ifndef X_DISPLAY_MISSING
-									ASA_XImage, 
+									ASA_XImage,
 #else
 									ASA_ASImage,
 #endif
 									0, ASIMAGE_QUALITY_DEFAULT);
 		destroy_asimage( &fore_im );
 		destroy_asimage( &back_im );
-		
+
 		if( rendered_im )
 		{
 #ifndef X_DISPLAY_MISSING
 			Window w;
 			/* see ASView.4 : */
 			w = create_top_level_window( asv, DefaultRootWindow(dpy), 32, 32,
-			      		                 width+BEVEL_ADDON, height+BEVEL_ADDON, 
+			      		                 width+BEVEL_ADDON, height+BEVEL_ADDON,
 										 1, 0, NULL,
 										 "ASText" );
 			if( w != None )
 			{
 				Pixmap p ;
-  
+
 			  	XMapRaised   (dpy, w);
 
 				/* see ASView.5 : */
@@ -272,14 +272,14 @@ int main(int argc, char* argv[])
 				p = set_window_background_and_free( w, p );
 				/* see common.c: wait_closedown() : */
 				wait_closedown(w);
-			}				
+			}
 		    if( dpy )
       			XCloseDisplay (dpy);
 #else
 			/* writing result into the file */
 			ASImage2file( rendered_im, NULL, "astext.jpg", ASIT_Jpeg, NULL );
 			destroy_asimage( &rendered_im );
-#endif				
+#endif
 		}
 	}
     return 0 ;

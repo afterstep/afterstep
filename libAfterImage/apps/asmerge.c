@@ -206,7 +206,11 @@ int main(int argc, char* argv[])
 		destroy_asimage( &merged_im );
 #endif
 	}
-    return 0 ;
+#ifdef DEBUG_ALLOCS
+	build_xpm_colormap(NULL);
+	print_unfreed_mem();
+#endif
+	return 0 ;
 }
 /**************/
 

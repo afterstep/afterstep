@@ -183,6 +183,7 @@ wait_closedown( Window w )
 		}
   	}
     XCloseDisplay (dpy);
+	dpy = NULL ;
 #endif
 }
 /**************/

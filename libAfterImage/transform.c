@@ -862,7 +862,11 @@ LOCAL_DEBUG_CALLER_OUT( "dst_width = %d, dst_height = %d", dst_width, dst_height
 				                             pcurr->clip_x, pcurr->clip_y,
 											 pcurr->clip_width, pcurr->clip_height,
 											 pcurr->bevel);
-			if( pcurr->tint == 0 && i != 0 )
+			if( pcurr->bevel_width != 0 && pcurr->bevel_height != 0 )
+				set_decoder_bevel_geom( imdecs[i],
+				                        pcurr->bevel_x, pcurr->bevel_y,
+										pcurr->bevel_width, pcurr->bevel_height );
+  			if( pcurr->tint == 0 && i != 0 )
 				set_decoder_shift( imdecs[i], 8 );
 			if( pcurr->im == NULL )
 				set_decoder_back_color( imdecs[i], pcurr->solid_color );
@@ -921,6 +925,9 @@ LOCAL_DEBUG_OUT( "min_y = %d, max_y = %d", min_y, max_y );
 		for( y = 0 ; y < min_y ; y++  )
 			imout->output_image_scanline( imout, &dst_line, 1);
 		dst_line.flags = SCL_DO_ALL ;
+		for( i = 1 ; i < count ; i++ )
+			if( imdecs[i] && pcurr->dst_y < y  )
+				imdecs[i]->next_line = y - pcurr->dst_y ;
 		for( ; y < max_y ; y++  )
 		{
 			if( layers[0].dst_y <= y && bg_bottom > y )
@@ -935,7 +942,8 @@ LOCAL_DEBUG_OUT( "min_y = %d, max_y = %d", min_y, max_y );
 			for( i = 1 ; i < count ; i++ )
 			{
 				if( imdecs[i] && pcurr->dst_y <= y &&
-					pcurr->dst_y+pcurr->clip_height+imdecs[i]->bevel_v_addon > y )
+					pcurr->dst_y+pcurr->clip_height+imdecs[i]->bevel_v_addon > y &&
+					pcurr->dst_x < dst_width && pcurr->dst_x+(int)pcurr->clip_width > 0 )
 				{
 					register ASScanline *b = &(imdecs[i]->buffer);
 					CARD32 tint = pcurr->tint ;
