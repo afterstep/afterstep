@@ -191,7 +191,7 @@ main (int argc, char **argv)
 
     CheckConfigSanity();
 
-    WharfState.root_folder = build_wharf_folder( Config->root_folder, NULL, (Config->rows != 1) );
+    WharfState.root_folder = build_wharf_folder( Config->root_folder, NULL, (Config->columns > 0 ) );
     if( !display_main_folder() )
     {
         show_error( "main folder does not have any entries or has zero size. Aborting!");
@@ -494,13 +494,14 @@ process_message (unsigned long type, unsigned long *body)
 		struct ASWindowData *wd = fetch_window_by_id( body[0] );
         WindowPacketResult res ;
         /* saving relevant client info since handle_window_packet could destroy the actuall structure */
+#if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
         Window               saved_w = (wd && wd->canvas)?wd->canvas->w:None;
         int                  saved_desk = wd?wd->desk:INVALID_DESK;
         struct ASWindowData *saved_wd = wd ;
-
-        show_progress( "message %lX window %X data %p", type, body[0], wd );
-		res = handle_window_packet( type, body, &wd );
-        show_progress( "\t res = %d, data %p", res, wd );
+#endif
+        LOCAL_DEBUG_OUT( "message %lX window %lX data %p", type, body[0], wd );
+        res = handle_window_packet( type, body, &wd );
+        LOCAL_DEBUG_OUT( "\t res = %d, data %p", res, wd );
         if( res == WP_DataCreated || res == WP_DataChanged )
         {
             check_swallow_window( wd );
@@ -900,21 +901,38 @@ place_wharf_buttons( ASWharfFolder *aswf, int *total_width_return, int *total_he
     int i;
     Bool fit_contents = get_flags(Config->flags, WHARF_FIT_CONTENTS);
     Bool needs_shaping = False ;
-    LOCAL_DEBUG_OUT( "max_size(%dx%d)", max_width, max_height );
+
+    *total_width_return  = 0 ;
+    *total_height_return = 0 ;
+
     if( get_flags( aswf->flags, ASW_Vertical ) )
     {
+        int columns = (aswf == WharfState.root_folder)?Config->columns:1;
+        int buttons_per_column = (aswf->buttons_num + columns - 1) / columns, bc = 0 ;
+
         for( i = 0 ; i < aswf->buttons_num ; ++i )
         {
-            register ASWharfButton *aswb = &(aswf->buttons[i]);
-            if( max_width < aswb->desired_width )
-                max_width = aswb->desired_width ;
-            if( max_height < aswb->desired_height && !get_flags( aswb->flags, ASW_MaxSwallow ) )
-                max_height = aswb->desired_height ;
-        }
-        for( i = 0 ; i < aswf->buttons_num ; ++i )
-        {
-            register ASWharfButton *aswb = &(aswf->buttons[i]);
-            register int height = (get_flags( aswb->flags, ASW_MaxSwallow ) || fit_contents )?aswb->desired_height:max_height ;
+            ASWharfButton *aswb = &(aswf->buttons[i]);
+            int height ;
+
+            if( bc == 0 )
+            {
+                register int k = i+buttons_per_column ;
+                if( k > aswf->buttons_num )
+                    k = aswf->buttons_num ;
+                max_width = 0;
+                max_height = 0;
+                while( --k >= i )
+                {
+                    register ASWharfButton *aswb = &(aswf->buttons[k]);
+                    if( max_width < aswb->desired_width )
+                        max_width = aswb->desired_width ;
+                    if( max_height < aswb->desired_height && !get_flags( aswb->flags, ASW_MaxSwallow ) )
+                        max_height = aswb->desired_height ;
+                }
+                LOCAL_DEBUG_OUT( "max_size(%dx%d)", max_width, max_height );
+            }
+            height = (get_flags( aswb->flags, ASW_MaxSwallow ) || fit_contents )?aswb->desired_height:max_height ;
             if( get_flags(Config->flags, WHARF_SHAPE_TO_CONTENTS) )
             {
                 int dx = max_width - aswb->desired_width ;
@@ -927,7 +945,7 @@ place_wharf_buttons( ASWharfFolder *aswf, int *total_width_return, int *total_he
                     dy = 0 ;
                 else if( get_flags( Config->align_contents, ALIGN_TOP ))
                     dy = dy>>1 ;
-                aswb->folder_x = dx ;
+                aswb->folder_x = x+dx ;
                 aswb->folder_y = y+dy;
                 aswb->folder_width = aswb->desired_width ;
                 aswb->folder_height = aswb->desired_height;
@@ -935,30 +953,59 @@ place_wharf_buttons( ASWharfFolder *aswf, int *total_width_return, int *total_he
                     needs_shaping = True;
             }else
             {
-                aswb->folder_x = 0 ;
+                aswb->folder_x = x;
                 aswb->folder_y = y;
                 aswb->folder_width = max_width ;
                 aswb->folder_height = height;
             }
             moveresize_canvas( aswb->canvas, aswb->folder_x, aswb->folder_y, aswb->folder_width, aswb->folder_height );
             y += height ;
+            if( ++bc >= buttons_per_column )
+            {
+                *total_width_return += max_width ;
+                if( *total_height_return < y )
+                    *total_height_return = y ;
+                x += max_width ;
+                y = 0 ;
+                bc = 0;
+            }
         }
-        *total_width_return  = max_width ;
-        *total_height_return = y ;
+        if( columns * buttons_per_column > aswf->buttons_num )
+        {
+            *total_width_return += max_width ;
+            if( *total_height_return < y )
+                *total_height_return = y ;
+        }
+
     }else
     {
+        int rows = (aswf == WharfState.root_folder)?Config->rows:1;
+        int buttons_per_row = (aswf->buttons_num + rows - 1) / rows, br = 0 ;
+
         for( i = 0 ; i < aswf->buttons_num ; ++i )
         {
-            register ASWharfButton *aswb = &(aswf->buttons[i]);
-            if( max_width < aswb->desired_width && !get_flags( aswb->flags, ASW_MaxSwallow ) )
-                max_width = aswb->desired_width ;
-            if( max_height < aswb->desired_height )
-                max_height = aswb->desired_height ;
-        }
-        for( i = 0 ; i < aswf->buttons_num ; ++i )
-        {
-            register ASWharfButton *aswb = &(aswf->buttons[i]);
-            register int width = (get_flags( aswb->flags, ASW_MaxSwallow )|| fit_contents )?aswb->desired_width:max_width ;
+            ASWharfButton *aswb = &(aswf->buttons[i]);
+            int width ;
+
+            if( br == 0 )
+            {
+                register int k = i+buttons_per_row ;
+                if( k > aswf->buttons_num )
+                    k = aswf->buttons_num ;
+                max_width = 0;
+                max_height = 0;
+                while( --k >= i )
+                {
+                    register ASWharfButton *aswb = &(aswf->buttons[k]);
+                    if( max_width < aswb->desired_width && !get_flags( aswb->flags, ASW_MaxSwallow ) )
+                        max_width = aswb->desired_width ;
+                    if( max_height < aswb->desired_height )
+                        max_height = aswb->desired_height ;
+                }
+                LOCAL_DEBUG_OUT( "max_size(%dx%d)", max_width, max_height );
+            }
+
+            width = (get_flags( aswb->flags, ASW_MaxSwallow )|| fit_contents )?aswb->desired_width:max_width ;
             if( get_flags(Config->flags, WHARF_SHAPE_TO_CONTENTS) )
             {
                 int dx = width - aswb->desired_width ;
@@ -972,24 +1019,39 @@ place_wharf_buttons( ASWharfFolder *aswf, int *total_width_return, int *total_he
                 else if( get_flags( Config->align_contents, ALIGN_TOP ))
                     dy = dy>>1 ;
                 aswb->folder_x = x+dx ;
-                aswb->folder_y = dy;
-                aswb->folder_x = aswb->desired_width ;
-                aswb->folder_y = aswb->desired_height;
+                aswb->folder_y = y+dy;
+                aswb->folder_width = aswb->desired_width ;
+                aswb->folder_height = aswb->desired_height;
                 if( aswb->desired_height != max_height )
                     needs_shaping = True;
             }else
             {
                 aswb->folder_x = x ;
-                aswb->folder_y = 0;
+                aswb->folder_y = y ;
                 aswb->folder_width = width ;
                 aswb->folder_height = max_height;
             }
             moveresize_canvas( aswb->canvas, aswb->folder_x, aswb->folder_y, aswb->folder_width, aswb->folder_height );
             x += width;
+            if( ++br >= buttons_per_row )
+            {
+                if( *total_width_return < x )
+                    *total_width_return = x ;
+                *total_height_return += max_height ;
+                x = 0 ;
+                y += max_height ;
+                br = 0;
+            }
         }
-        *total_width_return  = x ;
-        *total_height_return = max_height ;
+        if( rows * buttons_per_row > aswf->buttons_num )
+        {
+            if( *total_width_return < x )
+                *total_width_return = x ;
+            *total_height_return += max_height ;
+        }
     }
+    LOCAL_DEBUG_OUT( "total_size_return(%dx%d)", *total_width_return, *total_height_return );
+
     ASSync( False );
     if( needs_shaping )
         set_flags( aswf->flags, ASW_NeedsShaping );
