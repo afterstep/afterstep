@@ -391,34 +391,84 @@ ctx_draw_line_solid_aa( ASDrawContext *ctx, int from_x, int from_y, int to_x, in
 	}		 
 }	 
 
+static inline void 
+render_supersampled_pixel( ASDrawContext *ctx, int x8, int y8 )
+{
+	if( x8 >= 0 && y8 >= 0 )
+	{	
+		int xe = x8&0x00FF ; 
+		int ye = y8&0x00FF ; 
+		int x = x8>>8, y = y8>>8 ; 
+				
+		if( xe < 255 && ye < 255 ) 
+		{
+			int v = ((255-xe)*(255-ye))>>8 ;	  
+			ctx->apply_tool_func( ctx, x, y, v ) ; 
+			LOCAL_DEBUG_OUT( "x = %d, y = %d, xe = %d, ye = %d, v = 0x%x", x, y, xe, ye, v );
+		}
+		if( xe > 0  ) 
+		{	
+			int v = (xe*(255-ye))>>8 ;	  
+			ctx->apply_tool_func( ctx, x+1, y, v ) ; 
+			if( ye > 0 ) 
+			{	
+				v = (xe*ye)>>8 ;	  
+				ctx->apply_tool_func( ctx, x+1, y+1, v ) ; 
+			}
+		}
+		if( ye > 0 ) 
+		{
+			int v = ((255-xe)*ye)>>8 ;
+			ctx->apply_tool_func( ctx, x, y+1, v ) ; 
+		}
+	}
+}	
+
 static void
 ctx_draw_bezier( ASDrawContext *ctx, int x0, int y0, int x1, int y1, int x2, int y2, int x3, int y3 )
 {
-	int x01 = x0 + ((x1-x0)>>1) ;  	
-	int y01 = y0 + ((y1-y0)>>1) ; 
-	int x11 = x1 + ((x2-x1)>>1) ; 	   
-	int y11 = y1 + ((y2-y1)>>1) ; 
-	int x31 = x3 + ((x2-x3)>>1) ; 	   
-	int y31 = y3 + ((y2-y3)>>1) ; 
+	LOCAL_DEBUG_OUT( "(%d,%d),(%d,%d),(%d,%d),(%d,%d)", 
+					 x0, y0, x1, y1, x2, y2, x3, y3 );
+	int ch = ctx->canvas_height<<8 ;
+	int cw = ctx->canvas_width<<8 ;
 
-	int x011 = x01 + ((x11-x01)>>1) ;  	  
-	int y011 = y01 + ((y11-y01)>>1) ; 
-	int x111 = x11 + ((x31-x11)>>1) ;  	  
-	int y111 = y11 + ((y31-y11)>>1) ; 
+	if( y0 > ch && y1 >ch && y2 > ch && y3 > ch ) 
+		return;
+	else if( y0 < 0 && y1 < 0 && y2 < 0 && y3 < 0 ) 
+		return ;
+	else if( x0 > cw && x1 >cw && x2 > cw && x3 > cw ) 
+		return;
+	else if( x0 < 0 && x1 < 0 && x2 < 0 && x3 < 0 ) 
+		return ;
+	else
+	{
+		int x01 = x0 + ((x1-x0)>>1) ;  	
+		int y01 = y0 + ((y1-y0)>>1) ; 
+		int x11 = x1 + ((x2-x1)>>1) ; 	   
+		int y11 = y1 + ((y2-y1)>>1) ; 
+		int x31 = x3 + ((x2-x3)>>1) ; 	   
+		int y31 = y3 + ((y2-y3)>>1) ; 
+
+		int x011 = x01 + ((x11-x01)>>1) ;  	  
+		int y011 = y01 + ((y11-y01)>>1) ; 
+		int x111 = x11 + ((x31-x11)>>1) ;  	  
+		int y111 = y11 + ((y31-y11)>>1) ; 
 	   
-	int x0111 = x011 + ((x111-x011)>>1) ;  	  
-	int y0111 = y011 + ((y111-y011)>>1) ; 
+		int x0111 = x011 + ((x111-x011)>>1) ;  	  
+		int y0111 = y011 + ((y111-y011)>>1) ; 
 
-	if( x0 == x0111 && y0 == y0111 ) 
-		ctx->apply_tool_func( ctx, x0, y0, 255 ) ; 
-	else	
-		ctx_draw_bezier( ctx, x0, y0, x01, y01, x011, y011, x0111, y0111 );
+		if( (x0>>8) == (x0111>>8) && (y0>>8) == (y0111>>8) ) 
+		{
+			render_supersampled_pixel( ctx, x0, y0 );
+		}else if( x01 != x1 || y01 != y1 || x011 != x2 || y011 != y2 || x0111 != x3 || y0111 != y3 )
+			ctx_draw_bezier( ctx, x0, y0, x01, y01, x011, y011, x0111, y0111 );
 
-	if( x3 == x0111 && y3 == y0111 ) 
-		ctx->apply_tool_func( ctx, x3, y3, 255 ) ; 
-	else	
-		ctx_draw_bezier( ctx, x0111, y0111, x111, y111, x31, y31, x3, y3 );	
-	
+		if( (x3>>8) == (x0111>>8) && (y3>>8) == (y0111>>8) ) 
+		{	
+			render_supersampled_pixel( ctx, x3, y3 );
+		}else if( x0111 != x0 || y0111 != y0 || x111 != x1 || y111 != y1 || x31 != x2 || y31 != y2 ) 	
+			ctx_draw_bezier( ctx, x0111, y0111, x111, y111, x31, y31, x3, y3 );	
+	}
 }
 
 /*************************************************************************
@@ -594,7 +644,7 @@ asim_cube_bezier( ASDrawContext *ctx, int x1, int y1, int x2, int y2, int x3, in
 		int y0 = ctx->curr_y;
 		
 		asim_move_to( ctx, x3, y3 );
-		ctx_draw_bezier( ctx, x0, y0, x1, y1, x2, y2, x3, y3 );
+		ctx_draw_bezier( ctx, x0<<8, y0<<8, x1<<8, y1<<8, x2<<8, y2<<8, x3<<8, y3<<8 );
 	}		
 }
 
@@ -735,7 +785,13 @@ int main(int argc, char **argv )
 	asim_line_to( ctx, 200, 460 );
 	asim_line_to( ctx, 400, 490 );
 
-	asim_cube_bezier( ctx, 390, 510, 290, 510, 280,  490 ); 
+	asim_move_to(ctx, 300, 200); 	  
+	asim_set_brush( ctx, 0 ); 
+	asim_cube_bezier( ctx, 310, 300, 390, 300, 400, 200 ); 
+	
+	asim_move_to(ctx, 300, 300); 	  
+	asim_set_brush( ctx, 0 ); 
+	asim_cube_bezier( ctx, 310, 40000, 390, 40000, 400, 300 ); 
 
 #if 1
 	/* commit drawing : */
