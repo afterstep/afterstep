@@ -37,14 +37,14 @@ install.doc_html:	$(PROG)
 		$(MKDIR) -p $(AFTER_DOC_DIR)/html; \
 		cd html; echo "Installing application HTML pages ..." ; \
 		for f in *.html; do \
-	  		echo $(CP) $$f $(AFTER_DOC_DIR)/html/$$f; \
-	  		$(CP) $$f $(AFTER_DOC_DIR)/html/$$f; \
+	  		echo $(INSTALL_DATA) $$f $(AFTER_DOC_DIR)/html/$$f; \
+	  		$(INSTALL_DATA) $$f $(AFTER_DOC_DIR)/html/$$f; \
 		done; echo "Done"; \
 		$(MKDIR) -p $(AFTER_DOC_DIR)/html/API; \
 		cd API; echo "Installing API HTML docs ..." ; \
 		for f in *.html; do \
-	  		echo $(CP) $$f $(AFTER_DOC_DIR)/html/API/$$f; \
-	  		$(CP) $$f $(AFTER_DOC_DIR)/html/API/$$f; \
+	  		echo $(INSTALL_DATA) $$f $(AFTER_DOC_DIR)/html/API/$$f; \
+	  		$(INSTALL_DATA) $$f $(AFTER_DOC_DIR)/html/API/$$f; \
 		done; echo "Done"; \
 		cd ../..
 
@@ -57,14 +57,14 @@ install.doc_xml:	$(PROG)
 		$(MKDIR) -p $(AFTER_DOC_DIR)/xml; \
 		cd xml; echo "Installing application XML pages ..." ; \
 		for f in *.xml; do \
-	  		echo $(CP) $$f $(AFTER_DOC_DIR)/xml/$$f; \
-	  		$(CP) $$f $(AFTER_DOC_DIR)/xml/$$f; \
+	  		echo $(INSTALL_DATA) $$f $(AFTER_DOC_DIR)/xml/$$f; \
+	  		$(INSTALL_DATA) $$f $(AFTER_DOC_DIR)/xml/$$f; \
 		done; echo "Done"; \
 		$(MKDIR) -p $(AFTER_DOC_DIR)/xml/API; \
 		cd API; echo "Installing API XML docs ..." ; \
 		for f in *.xml; do \
-	  		echo $(CP) $$f $(AFTER_DOC_DIR)/xml/API/$$f; \
-	  		$(CP) $$f $(AFTER_DOC_DIR)/xml/API/$$f; \
+	  		echo $(INSTALL_DATA) $$f $(AFTER_DOC_DIR)/xml/API/$$f; \
+	  		$(INSTALL_DATA) $$f $(AFTER_DOC_DIR)/xml/API/$$f; \
 		done; echo "Done"; \
 		cd ../..
 
@@ -77,14 +77,14 @@ install.doc_text:	$(PROG)
 		$(MKDIR) -p $(AFTER_DOC_DIR)/text; \
 		cd xml; echo "Installing application Plain Text pages ..." ; \
 		for f in *.xml; do \
-	  		echo $(CP) $$f $(AFTER_DOC_DIR)/text/$$f; \
-	  		$(CP) $$f $(AFTER_DOC_DIR)/text/$$f; \
+	  		echo $(INSTALL_DATA) $$f $(AFTER_DOC_DIR)/text/$$f; \
+	  		$(INSTALL_DATA) $$f $(AFTER_DOC_DIR)/text/$$f; \
 		done; echo "Done"; \
 		$(MKDIR) -p $(AFTER_DOC_DIR)/text/API; \
 		cd API; echo "Installing API Plain Text docs ..." ; \
 		for f in *.xml; do \
-	  		echo $(CP) $$f $(AFTER_DOC_DIR)/text/API/$$f; \
-	  		$(CP) $$f $(AFTER_DOC_DIR)/text/API/$$f; \
+	  		echo $(INSTALL_DATA) $$f $(AFTER_DOC_DIR)/text/API/$$f; \
+	  		$(INSTALL_DATA) $$f $(AFTER_DOC_DIR)/text/API/$$f; \
 		done; echo "Done"; \
 		cd ../..
 
