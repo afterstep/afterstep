@@ -6,12 +6,9 @@
 ################################################################
 # library specifics :
 
-# asapp.c, parse.c screen.c trace.c needs to be split up into
-# generic and AS-specific code :
+LIB_INCS= asfont.h asimage.h asvisual.h blender.h import.h xcf.h
 
-LIB_INCS=	
-
-LIB_OBJS=	
+LIB_OBJS= asfont.o asimage.o asvisual.o blender.o import.o xcf.o
 
 # end specifics
 ################################################################
@@ -52,7 +49,7 @@ INSTALL_LIB	= @INSTALL@ -m 755
 INSTALL_SCRIPT	= @INSTALL@ -m 755
 
 INCS_EXTRA	= @XPM_CFLAGS@ @JPEG_CFLAGS@ @PNG_CFLAGS@ @GIF_CFLAGS@ @TIFF_CFLAGS@ @TTF_INCLUDES@
-INCS_X		= @X_CFLAGS@ 
+INCS_X		= @X_CFLAGS@
 INCLUDES	= $(INCS_X) $(INCS_EXTRA) $(INCS_PRIVATE)
 
 LIBDIR		= $(DESTDIR)@libdir@

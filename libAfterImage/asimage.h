@@ -1,7 +1,8 @@
 #ifndef ASIMAGE_HEADER_FILE_INCLUDED
 #define ASIMAGE_HEADER_FILE_INCLUDED
 
-struct ASVisual;
+#include "asvisual.h"
+#include "blender.h"
 
 #define MAX_IMPORT_IMAGE_SIZE 	4000
 
@@ -126,25 +127,6 @@ void set_image_output_back_color( ASImageOutput *imout, ARGB32 back_color );
 void toggle_image_output_direction( ASImageOutput *imout );
 void stop_image_output( ASImageOutput **pimout );
 
-
-/* it produces  bottom = bottom <merge> top */
-typedef void (*merge_scanlines_func)( ASScanline *bottom, ASScanline *top, int mode);
-void alphablend_scanlines( ASScanline *bottom, ASScanline *top, int unused );
-void allanon_scanlines( ASScanline *bottom, ASScanline *top, int unused );
-void tint_scanlines( ASScanline *bottom, ASScanline *top, int unused );
-void add_scanlines( ASScanline *bottom, ASScanline *top, int unused );
-void sub_scanlines( ASScanline *bottom, ASScanline *top, int unused );
-void diff_scanlines( ASScanline *bottom, ASScanline *top, int unused );
-void darken_scanlines( ASScanline *bottom, ASScanline *top, int unused );
-void lighten_scanlines( ASScanline *bottom, ASScanline *top, int unused );
-void screen_scanlines( ASScanline *bottom, ASScanline *top, int unused );
-void overlay_scanlines( ASScanline *bottom, ASScanline *top, int unused );
-void hue_scanlines( ASScanline *bottom, ASScanline *top, int mode );
-void saturate_scanlines( ASScanline *bottom, ASScanline *top, int mode );
-void value_scanlines( ASScanline *bottom, ASScanline *top, int mode );
-void colorize_scanlines( ASScanline *bottom, ASScanline *top, int mode );
-void dissipate_scanlines( ASScanline *bottom, ASScanline *top, int unused );
-
 typedef struct ASImageLayer
 {
 	ASImage *im;
@@ -196,43 +178,6 @@ unsigned int asimage_print_line (ASImage * im, ColorPart color,
 #define VRB_LINE_CONTENT 	(0x01<<1)
 #define VRB_CTRL_EXPLAIN 	(0x01<<2)
 #define VRB_EVERYTHING		(VRB_LINE_SUMMARY|VRB_CTRL_EXPLAIN|VRB_LINE_CONTENT)
-
-/* what file formats we support : */
-ASImage *xpm2ASImage ( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage, unsigned int compression );
-ASImage *png2ASImage ( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage, unsigned int compression );
-ASImage *jpeg2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage, unsigned int compression );
-ASImage *xcf2ASImage ( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage, unsigned int compression );
-ASImage *ppm2ASImage ( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage, unsigned int compression );
-ASImage *bmp2ASImage ( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage, unsigned int compression );
-ASImage *ico2ASImage ( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage, unsigned int compression );
-ASImage *gif2ASImage ( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage, unsigned int compression );
-ASImage *tiff2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage, unsigned int compression );
-
-typedef enum
-{
-	ASIT_Xpm = 0,
-	ASIT_ZCompressedXpm,
-	ASIT_GZCompressedXpm,
-	ASIT_Png,
-	ASIT_Jpeg,
-	ASIT_Xcf,
-	ASIT_Ppm,
-	ASIT_Pnm,
-	ASIT_Bmp,
-	ASIT_Ico,
-	ASIT_Cur,
-	ASIT_Gif,
-	ASIT_Tiff,
-	ASIT_Xbm,
-	ASIT_Targa,
-	ASIT_Pcx,
-	ASIT_Unknown
-}ASImageFileTypes;
-
-typedef ASImage* (*as_image_loader_func)( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage, unsigned int compression );
-extern as_image_loader_func as_image_file_loaders[ASIT_Unknown];
-
-ASImage *file2ASImage( const char *file, ASFlagType what, double gamma, unsigned int compression, ... );
 
 ASImage *ximage2asimage (struct ASVisual *asv, XImage * xim, unsigned int compression);
 ASImage *pixmap2asimage (struct ASVisual *asv, Pixmap p, int x, int y,

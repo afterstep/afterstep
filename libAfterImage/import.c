@@ -29,22 +29,26 @@
 #include <stdarg.h>
 /* <setjmp.h> is used for the optional error recovery mechanism */
 
-#ifdef PNG
+#ifdef HAVE_PNG
 /* Include file for users of png library. */
 #include <png.h>
 #else
 #include <setjmp.h>
 #endif
-#ifdef XPM      /* XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM */
+#ifdef HAVE_XPM      /* XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM */
+#ifdef HAVE_XPM_X11
 #include <X11/xpm.h>
+#else
+#include <xpm.h>
+#endif
 #endif
 
 #include "../include/aftersteplib.h"
-#ifdef JPEG
+#ifdef HAVE_JPEG
 /* Include file for users of png library. */
 #include <jpeglib.h>
 #endif
-#ifdef GIF
+#ifdef HAVE_GIF
 #include <gif_lib.h>
 #endif
 #ifdef HAVE_TIFF
@@ -316,7 +320,7 @@ raw2scanline( register CARD8 *row, ASScanline *buf, CARD8 *gamma_table, unsigned
 }
 
 /***********************************************************************************/
-#ifdef XPM      /* XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM */
+#ifdef HAVE_XPM      /* XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM */
 
 int
 show_xpm_error (int Err)
@@ -724,7 +728,7 @@ xpm2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tabl
 /***********************************************************************************/
 
 /***********************************************************************************/
-#ifdef PNG		/* PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG */
+#ifdef HAVE_PNG		/* PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG */
 ASImage *
 png2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage, unsigned int compression )
 {
@@ -885,7 +889,7 @@ png2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tabl
 
 
 /***********************************************************************************/
-#ifdef JPEG     /* JPEG JPEG JPEG JPEG JPEG JPEG JPEG JPEG JPEG JPEG JPEG JPEG JPEG */
+#ifdef HAVE_JPEG     /* JPEG JPEG JPEG JPEG JPEG JPEG JPEG JPEG JPEG JPEG JPEG JPEG JPEG */
 struct my_error_mgr
 {
 	struct jpeg_error_mgr pub;				   /* "public" fields */
@@ -1561,7 +1565,7 @@ ico2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tabl
 }
 
 /***********************************************************************************/
-#ifdef GIF		/* GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF */
+#ifdef HAVE_GIF		/* GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF */
 ASImage *
 gif2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage, unsigned int compression )
 {

@@ -17,7 +17,7 @@
  *
  */
 
-#include "../configure.h"
+#include "config.h"
 
 /*#define LOCAL_DEBUG*/
 #define DO_CLOCKING
@@ -32,7 +32,7 @@
 
 #include <unistd.h>
 
-#include "../include/aftersteplib.h"
+#include <X11/Xlib.h>
 #include <X11/Intrinsic.h>
 
 #ifdef HAVE_FREETYPE
@@ -46,10 +46,10 @@
 
 #define INCLUDE_ASFONT_PRIVATE
 
-#include "../include/afterstep.h"
-#include "../include/screen.h"
-#include "../include/asimage.h"
-#include "../include/asfont.h"
+#include "astypes.h"
+#include "asfont.h"
+#include "asimage.h"
+#include "asvisual.h"
 
 /*********************************************************************************/
 /* TrueType and X11 font management functions :   								 */
