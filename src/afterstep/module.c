@@ -621,10 +621,10 @@ SendConfig (int module, unsigned long event_type, ASWindow * t)
 	SendPacket (module, event_type, 24, t->w, t->frame, (unsigned long)t,
 				t->frame_x, t->frame_y, t->frame_width, t->frame_height,
 				t->Desk, t->flags, t->title_height, t->boundary_width,
-				t->hints.base_width, t->hints.base_height, t->hints.width_inc,
-				t->hints.height_inc, t->hints.min_width, t->hints.min_height,
-				t->hints.max_width, t->hints.max_height, t->icon_title_w,
-				t->icon_pixmap_w, t->hints.win_gravity, style->colors.fore, style->colors.back);
+				t->normal_hints.base_width, t->normal_hints.base_height, t->normal_hints.width_inc,
+				t->normal_hints.height_inc, t->normal_hints.min_width, t->normal_hints.min_height,
+				t->normal_hints.max_width, t->normal_hints.max_height, t->icon_title_w,
+				t->icon_pixmap_w, t->normal_hints.win_gravity, style->colors.fore, style->colors.back);
 }
 
 
@@ -643,10 +643,10 @@ BroadcastConfig (unsigned long event_type, ASWindow * t)
 	Broadcast (event_type, 24, t->w, t->frame, (unsigned long)t,
 			   t->frame_x, t->frame_y, t->frame_width, t->frame_height,
 			   t->Desk, t->flags, t->title_height, t->boundary_width,
-			   t->hints.base_width, t->hints.base_height, t->hints.width_inc,
-			   t->hints.height_inc, t->hints.min_width, t->hints.min_height,
-			   t->hints.max_width, t->hints.max_height, t->icon_title_w,
-			   t->icon_pixmap_w, t->hints.win_gravity, style->colors.fore, style->colors.back);
+			   t->normal_hints.base_width, t->normal_hints.base_height, t->normal_hints.width_inc,
+			   t->normal_hints.height_inc, t->normal_hints.min_width, t->normal_hints.min_height,
+			   t->normal_hints.max_width, t->normal_hints.max_height, t->icon_title_w,
+			   t->icon_pixmap_w, t->normal_hints.win_gravity, style->colors.fore, style->colors.back);
 }
 
 void

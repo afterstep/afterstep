@@ -367,13 +367,13 @@ style_fill_by_name (name_list * nl, const char *name, const char *icon_name, con
 	{
 		int           match = 0;
 
-		if (name != NULL && matchWildcards (nptr->name, name) == True)
+		if (name != NULL && old_matchWildcards (nptr->name, name) == True)
 			match = 1;
-		if (icon_name != NULL && matchWildcards (nptr->name, icon_name) == True)
+		if (icon_name != NULL && old_matchWildcards (nptr->name, icon_name) == True)
 			match = 1;
-		if (res_name != NULL && matchWildcards (nptr->name, res_name) == True)
+		if (res_name != NULL && old_matchWildcards (nptr->name, res_name) == True)
 			match = 1;
-		if (res_class != NULL && matchWildcards (nptr->name, res_class) == True)
+		if (res_class != NULL && old_matchWildcards (nptr->name, res_class) == True)
 			match = 1;
 		if (match)
 		{

@@ -46,7 +46,7 @@ char *CatString3 (const char *, const char *, const char *);
 void SendInfo (int *, char *, unsigned long);
 
 /* from wild.c */
-int matchWildcards (const char *, const char *);
+int old_matchWildcards (const char *, const char *);
 
 void CopyString (char **, char *);
 

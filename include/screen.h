@@ -108,6 +108,7 @@ struct MenuRoot;
 struct MouseButton;
 struct FuncKey;
 struct MyStyle;
+struct ASSupportedHints;
 
 typedef struct ScreenInfo
   {
@@ -263,6 +264,9 @@ typedef struct ScreenInfo
 	
 	ASFontManager  *font_manager ;
 	ASImageManager *image_manager ;
+	
+	struct ASSupportedHints *supported_hints;
+
   }
 ScreenInfo;
 

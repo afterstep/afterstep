@@ -547,13 +547,13 @@ ExecuteFunction (FunctionCode func, char *action, Window in_w, ASWindow * tmp_wi
 					 DispatchEvent ();
 					 if (Event.type == MapNotify)
 					 {
-						 if ((Tmp_win) && (matchWildcards (action, Tmp_win->name) == True))
+						 if ((Tmp_win) && (old_matchWildcards (action, Tmp_win->name) == True))
 							 done = True;
 						 if ((Tmp_win) && (Tmp_win->class.res_class) &&
-							 (matchWildcards (action, Tmp_win->class.res_class) == True))
+							 (old_matchWildcards (action, Tmp_win->class.res_class) == True))
 							 done = True;
 						 if ((Tmp_win) && (Tmp_win->class.res_name) &&
-							 (matchWildcards (action, Tmp_win->class.res_name) == True))
+							 (old_matchWildcards (action, Tmp_win->class.res_name) == True))
 							 done = True;
 					 }
 				 }
@@ -802,9 +802,9 @@ Circulate (ASWindow * tmp_win, char *action, int direction)
 			(AutoTabThroughDesks || t->Desk == Scr.CurrentDesk) &&
 			(!(Scr.flags & CirculateSkipIcons) || !(t->flags & ICONIFIED)) &&
 			(action == NULL ||
-			 (t->name != NULL && matchWildcards (action, t->name)) ||
-			 (t->icon_name != NULL && matchWildcards (action, t->icon_name)) ||
-			 (t->class.res_name != NULL && matchWildcards (action, t->class.res_name))))
+			 (t->name != NULL && old_matchWildcards (action, t->name)) ||
+			 (t->icon_name != NULL && old_matchWildcards (action, t->icon_name)) ||
+			 (t->class.res_name != NULL && old_matchWildcards (action, t->class.res_name))))
 		{
 			/* update first, last, and target */
 			if (first == NULL || t->circulate_sequence < first->circulate_sequence)

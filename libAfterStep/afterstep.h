@@ -159,6 +159,9 @@ typedef struct fr_pos
   }
 fr_pos;
 
+struct ASHints;
+struct ASStatusHints;
+
 /* for each window that is on the display, one of these structures
  * is allocated and linked into a list 
  */
@@ -167,6 +170,13 @@ typedef struct ASWindow
     struct ASWindow *next;	/* next afterstep window */
     struct ASWindow *prev;	/* prev afterstep window */
     Window w;			/* the child window */
+	
+	struct ASHints       *hints;
+	struct ASStatusHints *status;
+	struct ASStatusHints *saved_status; /* status prior to maximization */
+	XPoint 				  anchor ;
+
+	
     int old_bw;			/* border width before reparenting */
     Window frame;		/* the frame window */
     Window Parent;		/* Ugly Ugly Ugly - it looks like you
@@ -225,7 +235,7 @@ typedef struct ASWindow
 
     char *name;			/* name of the window */
     XWindowAttributes attr;	/* the child window attributes */
-    XSizeHints hints;		/* normal hints */
+    XSizeHints normal_hints;		/* normal hints */
     XWMHints *wmhints;		/* WM hints */
     XClassHint class;
     int Desk;			/* Tells which desktop this window is on */

@@ -16,7 +16,7 @@
  *****************************************************************************/
 
 int
-matchWildcards (const char *pattern, const char *string)
+old_matchWildcards (const char *pattern, const char *string)
 {
   if (pattern == NULL)
     return 1;

@@ -76,6 +76,8 @@
 #include "../../include/screen.h"
 #include "../../include/module.h"
 #include "../../include/loadimg.h"
+#include "../../include/clientprops.h"
+#include "../../include/hints.h"
 #include "../../libAfterBase/selfdiag.h"
 #include "../../libAfterImage/afterimage.h"
 
@@ -308,6 +310,16 @@ main (int argc, char **argv)
 			}
 		}
 	}
+
+    Scr.supported_hints = create_hints_list();
+    enable_hints_support( Scr.supported_hints, HINTS_ICCCM );
+    enable_hints_support( Scr.supported_hints, HINTS_Motif );
+    enable_hints_support( Scr.supported_hints, HINTS_Gnome );
+    enable_hints_support( Scr.supported_hints, HINTS_ExtendedWM );
+    enable_hints_support( Scr.supported_hints, HINTS_ASDatabase );
+    enable_hints_support( Scr.supported_hints, HINTS_GroupLead );
+    enable_hints_support( Scr.supported_hints, HINTS_Transient );
+
 
 	if (debugging)
 		set_synchronous_mode (True);

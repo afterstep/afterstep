@@ -82,6 +82,8 @@
 #include "../../include/screen.h"
 #include "../../include/module.h"
 #include "../../include/parser.h"
+#include "../../include/clientprops.h"
+#include "../../include/hints.h"
 
 #include "menus.h"
 
@@ -382,6 +384,10 @@ AddWindow (Window w)
 	int           num;
 #endif
 	extern Bool   PPosOverride;
+	ASRawHints    raw_hints ;
+    ASHints      *hints  = NULL;
+    ASStatusHints status;
+
 
 	/* allocate space for the afterstep window */
 	tmp_win = (ASWindow *) calloc (1, sizeof (ASWindow));
@@ -404,6 +410,24 @@ AddWindow (Window w)
 		free ((char *)tmp_win);
 		return (NULL);
 	}
+	
+	if( collect_hints( &Scr, w, HINT_ANY, &raw_hints ) )
+    {
+        if( is_output_level_under_threshold(OUTPUT_LEVEL_HINTS) )
+            print_hints( NULL, NULL, &raw_hints );
+        hints = merge_hints( &raw_hints, NULL, &status, Scr.supported_hints, HINT_ANY, NULL );
+        destroy_raw_hints( &raw_hints, True );
+        if( hints )
+        {
+            if( is_output_level_under_threshold(OUTPUT_LEVEL_HINTS) )
+			{
+                print_clean_hints( NULL, NULL, hints );
+				print_status_hints( NULL, NULL, &status );
+			}
+        }
+    }
+
+	
 	if (XGetWMName (dpy, tmp_win->w, &text_prop))
 #ifdef I18N
 	{
@@ -577,7 +601,7 @@ AddWindow (Window w)
 
 	if (get_flags (nl.off_flags, PREPOS_FLAG))
 	{
-		if (!get_flags (tmp_win->hints.flags, USPosition))
+		if (!get_flags (tmp_win->normal_hints.flags, USPosition))
 		{
 			if (get_flags (nl.PreposFlags, XValue))
 			{
@@ -594,7 +618,7 @@ AddWindow (Window w)
 					tmp_win->attr.y = nl.PreposY;
 			}
 		}
-		if (!get_flags (tmp_win->hints.flags, USSize))
+		if (!get_flags (tmp_win->normal_hints.flags, USSize))
 		{
 			if (get_flags (nl.PreposFlags, WidthValue))
 				tmp_win->attr.width = nl.PreposWidth;
@@ -1012,21 +1036,21 @@ GetWindowSizeHints (ASWindow * tmp)
 {
 	long          supplied = 0;
 
-	if (!XGetWMNormalHints (dpy, tmp->w, &tmp->hints, &supplied))
-		tmp->hints.flags = 0;
+	if (!XGetWMNormalHints (dpy, tmp->w, &tmp->normal_hints, &supplied))
+		tmp->normal_hints.flags = 0;
 
 	/* Beat up our copy of the hints, so that all important field are
 	 * filled in! */
-	if (tmp->hints.flags & PResizeInc)
+	if (tmp->normal_hints.flags & PResizeInc)
 	{
-		if (tmp->hints.width_inc == 0)
-			tmp->hints.width_inc = 1;
-		if (tmp->hints.height_inc == 0)
-			tmp->hints.height_inc = 1;
+		if (tmp->normal_hints.width_inc == 0)
+			tmp->normal_hints.width_inc = 1;
+		if (tmp->normal_hints.height_inc == 0)
+			tmp->normal_hints.height_inc = 1;
 	} else
 	{
-		tmp->hints.width_inc = 1;
-		tmp->hints.height_inc = 1;
+		tmp->normal_hints.width_inc = 1;
+		tmp->normal_hints.height_inc = 1;
 	}
 
 	/*
@@ -1034,42 +1058,42 @@ GetWindowSizeHints (ASWindow * tmp)
 	 * and vice-versa.
 	 */
 
-	if (!(tmp->hints.flags & PBaseSize))
+	if (!(tmp->normal_hints.flags & PBaseSize))
 	{
-		if (tmp->hints.flags & PMinSize)
+		if (tmp->normal_hints.flags & PMinSize)
 		{
-			tmp->hints.base_width = tmp->hints.min_width;
-			tmp->hints.base_height = tmp->hints.min_height;
+			tmp->normal_hints.base_width = tmp->normal_hints.min_width;
+			tmp->normal_hints.base_height = tmp->normal_hints.min_height;
 		} else
 		{
-			tmp->hints.base_width = 0;
-			tmp->hints.base_height = 0;
+			tmp->normal_hints.base_width = 0;
+			tmp->normal_hints.base_height = 0;
 		}
 	}
-	if (!(tmp->hints.flags & PMinSize))
+	if (!(tmp->normal_hints.flags & PMinSize))
 	{
-		tmp->hints.min_width = tmp->hints.base_width;
-		tmp->hints.min_height = tmp->hints.base_height;
+		tmp->normal_hints.min_width = tmp->normal_hints.base_width;
+		tmp->normal_hints.min_height = tmp->normal_hints.base_height;
 	}
-	if (!(tmp->hints.flags & PMaxSize))
+	if (!(tmp->normal_hints.flags & PMaxSize))
 	{
-		tmp->hints.max_width = MAX_WINDOW_WIDTH;
-		tmp->hints.max_height = MAX_WINDOW_HEIGHT;
+		tmp->normal_hints.max_width = MAX_WINDOW_WIDTH;
+		tmp->normal_hints.max_height = MAX_WINDOW_HEIGHT;
 	}
-	if (tmp->hints.max_width < tmp->hints.min_width)
-		tmp->hints.max_width = MAX_WINDOW_WIDTH;
-	if (tmp->hints.max_height < tmp->hints.min_height)
-		tmp->hints.max_height = MAX_WINDOW_HEIGHT;
+	if (tmp->normal_hints.max_width < tmp->normal_hints.min_width)
+		tmp->normal_hints.max_width = MAX_WINDOW_WIDTH;
+	if (tmp->normal_hints.max_height < tmp->normal_hints.min_height)
+		tmp->normal_hints.max_height = MAX_WINDOW_HEIGHT;
 
 	/* Zero width/height windows are bad news! */
-	if (tmp->hints.min_height <= 0)
-		tmp->hints.min_height = 1;
-	if (tmp->hints.min_width <= 0)
-		tmp->hints.min_width = 1;
+	if (tmp->normal_hints.min_height <= 0)
+		tmp->normal_hints.min_height = 1;
+	if (tmp->normal_hints.min_width <= 0)
+		tmp->normal_hints.min_width = 1;
 
-	if (!(tmp->hints.flags & PWinGravity))
+	if (!(tmp->normal_hints.flags & PWinGravity))
 	{
-		tmp->hints.win_gravity = NorthWestGravity;
-		tmp->hints.flags |= PWinGravity;
+		tmp->normal_hints.win_gravity = NorthWestGravity;
+		tmp->normal_hints.flags |= PWinGravity;
 	}
 }

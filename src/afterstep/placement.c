@@ -349,8 +349,8 @@ PlaceWindow (ASWindow * tmp_win, unsigned long tflag, int Desk)
 	 *       then place the window in a psuedo-random location
 	 */
 	if (!(tmp_win->flags & TRANSIENT) &&
-		!(tmp_win->hints.flags & USPosition) &&
-		((Scr.flags & NoPPosition) || !(tmp_win->hints.flags & PPosition)) &&
+		!(tmp_win->normal_hints.flags & USPosition) &&
+		((Scr.flags & NoPPosition) || !(tmp_win->normal_hints.flags & PPosition)) &&
 		!(PPosOverride) &&
 		!(tflag & PREPOS_FLAG) &&
 		!((tmp_win->wmhints) &&
@@ -429,7 +429,7 @@ PlaceWindow (ASWindow * tmp_win, unsigned long tflag, int Desk)
 	{
 		/* the USPosition was specified, or the window is a transient, 
 		 * or it starts iconic so let it place itself */
-		if (!(tmp_win->hints.flags & USPosition))
+		if (!(tmp_win->normal_hints.flags & USPosition))
 		{
 			if (width <= srect.width)
 			{
@@ -483,8 +483,8 @@ GetGravityOffsets (ASWindow * tmp, int *xp, int *yp)
 		{1, 1},								   /* SouthEastGravity */
 		{0, 0},								   /* StaticGravity */
 	};
-	register int  g = ((tmp->hints.flags & PWinGravity)
-					   ? tmp->hints.win_gravity : NorthWestGravity);
+	register int  g = ((tmp->normal_hints.flags & PWinGravity)
+					   ? tmp->normal_hints.win_gravity : NorthWestGravity);
 
 	if (g < ForgetGravity || g > StaticGravity)
 		*xp = *yp = 0;
