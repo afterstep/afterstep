@@ -90,7 +90,7 @@ struct ScreenInfo;
 #define AS_FuncMove             (1<<4)
 #define AS_FuncClose            (1<<7)
 #define AS_FuncKill             (1<<8)
-
+#define AS_FuncPinMenu          (1<<9)
 /***********************************************************/
 /* AS layers :                                             */
 #define AS_LayerDesktop         -10000  /* our desktop - just for the heck of it */

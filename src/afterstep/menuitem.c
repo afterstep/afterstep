@@ -39,7 +39,7 @@
  ***************************************************************************/
 
 #include "../../configure.h"
-#define LOCAL_DEBUG
+/*#define LOCAL_DEBUG*/
 #include "../../include/asapp.h"
 #include <signal.h>
 #include <stdarg.h>

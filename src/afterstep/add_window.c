@@ -516,7 +516,10 @@ check_tbar( ASTBarData **tbar, Bool required, const char *mystyle_name,
         if( *tbar == NULL )
         {
             *tbar = create_astbar();
-        }
+LOCAL_DEBUG_OUT( "++CREAT tbar(%p)->context(%x)", *tbar, context );
+        }else
+            delete_astbar_tile( *tbar, -1 );
+
         set_astbar_style( *tbar, BAR_STATE_FOCUSED, mystyle_name );
         set_astbar_hilite( *tbar, DEFAULT_TBAR_HILITE );
         set_astbar_image( *tbar, img );
@@ -642,7 +645,7 @@ redecorate_window( ASWindow *asw, Bool free_resources )
     ASOrientation *od = get_orientation_data(asw);
 
     int *frame_contexts  = &(od->frame_contexts[0]);
-
+LOCAL_DEBUG_OUT( "asw(%p)->free_res(%d)", asw, free_resources );
     if( AS_ASSERT(asw) )
         return ;
 
@@ -743,11 +746,10 @@ redecorate_window( ASWindow *asw, Bool free_resources )
     /* 9) now we have to setup titlebar buttons */
     if( asw->tbar )
 	{ /* need to add some titlebuttons */
-        ASFlagType btn_mask = compile_titlebuttons_mask (asw);
+        ASFlagType btn_mask = compile_titlebuttons_mask (asw->hints);
         asw->tbar->h_spacing = DEFAULT_TBAR_SPACING ;
         asw->tbar->v_spacing = DEFAULT_TBAR_SPACING ;
-        delete_astbar_tile( asw->tbar, -1 );
-		/* left buttons : */
+        /* left buttons : */
         add_astbar_btnblock(asw->tbar,
                             od->default_tbar_elem_col[0], od->default_tbar_elem_row[0],
                             0, NO_ALIGN,
@@ -1939,14 +1941,12 @@ focus_aswindow( ASWindow *asw, Bool circulated )
          * and let other screen's manager manage it from now on, untill
          * pointer comes back to our screen :*/
         ASQueryPointerRoot(&pointer_root,&w);
-LOCAL_DEBUG_OUT( "ptr_root %X, Root %X, w %X", pointer_root, Scr.Root, w );		
         if(pointer_root != Scr.Root)
         {
             do_hide_focus = True;
             do_nothing = False ;
         }
     }
-LOCAL_DEBUG_OUT( "asw %p, do_nothing %d, do_hide_focus %d", asw, do_nothing, do_hide_focus );
     if( !do_nothing && do_hide_focus )
         hide_focus();
     if( do_nothing || do_hide_focus )

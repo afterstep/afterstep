@@ -98,7 +98,7 @@ close_asmenu_submenu( ASMenu *menu)
 LOCAL_DEBUG_CALLER_OUT( "top(%p)->supermenu(%p)->menu(%p)->submenu(%p)", ASTopmostMenu, menu->supermenu, menu, menu->submenu );
     if( menu->submenu )
     {
-		if( menu->submenu->supermenu == menu ) 
+		if( menu->submenu->supermenu == menu )
 			menu->submenu->supermenu = NULL ;
         if( menu->submenu->owner )
         {
@@ -161,10 +161,10 @@ close_asmenu( ASMenu **pmenu)
 LOCAL_DEBUG_CALLER_OUT( "top(%p)->supermenu(%p)->menu(%p)->submenu(%p)", ASTopmostMenu, menu->supermenu, menu, menu->submenu );
 		    if( menu->submenu )
 			{
-				if( menu->submenu->supermenu == menu ) 
+				if( menu->submenu->supermenu == menu )
 					menu->submenu->supermenu = NULL ;
 				close_asmenu( &(menu->submenu) );
-  			}	
+  			}
             if( menu->owner )
             {
                 /* cannot use Destroy directly - must go through the normal channel: */
@@ -726,6 +726,8 @@ show_asmenu(ASMenu *menu, int x, int y)
     ASHints *hints = safecalloc( 1, sizeof(ASHints) );
     ASInternalWindow *asiw = safecalloc( 1, sizeof(ASInternalWindow));
     int gravity = NorthWestGravity ;
+    int tbar_width = 0 ;
+
 
     asiw->data = (ASMagic*)menu;
 
@@ -738,6 +740,57 @@ show_asmenu(ASMenu *menu, int x, int y)
     asiw->on_look_feel_changed = on_menu_look_feel_changed;
     asiw->on_look_feel_changed = on_menu_look_feel_changed;
     asiw->destroy = menu_destroy;
+
+    /* normal hints : */
+    hints->names[0] = mystrdup(menu->title?menu->title:menu->name);
+    hints->names[1] = mystrdup(ASMENU_RES_CLASS);
+    /* these are merely shortcuts to the above list DON'T FREE THEM !!! */
+    hints->res_name  = hints->names[1];
+    hints->res_class = hints->names[1];
+    hints->icon_name = hints->names[0];
+
+    hints->flags = AS_DontCirculate|
+                   AS_SkipWinList|
+                   AS_Titlebar|
+                   AS_Border|
+                   AS_Handles|
+                   AS_AcceptsFocus|
+                   AS_Gravity|
+                   AS_MinSize|
+                   AS_MaxSize|
+                   AS_SizeInc;//|AS_VerticalTitle ;
+    hints->protocols = AS_DoesWmTakeFocus ;
+    hints->function_mask = ~(AS_FuncPopup|     /* everything else is allowed ! */
+                             AS_FuncMinimize|
+                             AS_FuncMaximize);
+
+    hints->max_width  = MAX_MENU_WIDTH ;
+    hints->max_height = MIN(MAX_MENU_HEIGHT,menu->items_num*menu->item_height);
+    hints->width_inc  = 0 ;
+    hints->height_inc = menu->item_height;
+    hints->gravity = gravity ;
+    hints->border_width = BW ;
+    hints->handle_width = BOUNDARY_WIDTH;
+
+    hints->frame_name = mystrdup("ASMenuFrame");
+    hints->mystyle_names[BACK_FOCUSED] = mystrdup(Scr.Look.MSMenu[MENU_BACK_HILITE]->name);
+    hints->mystyle_names[BACK_UNFOCUSED] = mystrdup(Scr.Look.MSMenu[MENU_BACK_TITLE]->name);
+    hints->mystyle_names[BACK_STICKY] = mystrdup(Scr.Look.MSMenu[MENU_BACK_TITLE]->name);
+
+    hints->disabled_buttons = 0;
+
+    hints->min_width  = menu->optimal_width ;
+    hints->min_height = menu->item_height ;
+
+    tbar_width = estimate_titlebar_size( hints );
+    if( tbar_width > MAX_MENU_WIDTH )
+        tbar_width = MAX_MENU_WIDTH ;
+
+    if( tbar_width > menu->optimal_width )
+    {
+        menu->optimal_width = tbar_width ;
+        hints->min_width  = tbar_width ;
+    }
 
     /* status hints : */
     memset( &status, 0x00, sizeof( ASStatusHints ) );
@@ -773,46 +826,6 @@ show_asmenu(ASMenu *menu, int x, int y)
     status.viewport_y = Scr.Vx;
     status.desktop = Scr.CurrentDesk;
     status.layer = AS_LayerMenu;
-
-    /* normal hints : */
-    hints->names[0] = mystrdup(menu->title?menu->title:menu->name);
-    hints->names[1] = mystrdup(ASMENU_RES_CLASS);
-    /* these are merely shortcuts to the above list DON'T FREE THEM !!! */
-    hints->res_name  = hints->names[1];
-    hints->res_class = hints->names[1];
-    hints->icon_name = hints->names[0];
-
-    hints->flags = AS_DontCirculate|
-                   AS_SkipWinList|
-                   AS_Titlebar|
-                   AS_Border|
-                   AS_Handles|
-                   AS_AcceptsFocus|
-                   AS_Gravity|
-                   AS_MinSize|
-                   AS_MaxSize|
-                   AS_SizeInc;//|AS_VerticalTitle ;
-    hints->protocols = AS_DoesWmTakeFocus ;
-    hints->function_mask = ~(AS_FuncPopup|     /* everything else is allowed ! */
-                             AS_FuncMinimize|
-                             AS_FuncMaximize);
-
-    hints->min_width  = menu->optimal_width ;
-    hints->min_height = menu->item_height ;
-    hints->max_width  = MAX_MENU_WIDTH ;
-    hints->max_height = MIN(MAX_MENU_HEIGHT,menu->items_num*menu->item_height);
-    hints->width_inc  = 0 ;
-    hints->height_inc = menu->item_height;
-    hints->gravity = gravity ;
-    hints->border_width = BW ;
-    hints->handle_width = BOUNDARY_WIDTH;
-
-    hints->frame_name = mystrdup("ASMenuFrame");
-    hints->mystyle_names[BACK_FOCUSED] = mystrdup(Scr.Look.MSMenu[MENU_BACK_HILITE]->name);
-    hints->mystyle_names[BACK_UNFOCUSED] = mystrdup(Scr.Look.MSMenu[MENU_BACK_TITLE]->name);
-    hints->mystyle_names[BACK_STICKY] = mystrdup(Scr.Look.MSMenu[MENU_BACK_TITLE]->name);
-
-    hints->disabled_buttons = 0;
 
     /* lets make sure we got everything right : */
     check_hints_sanity (&Scr, hints );
@@ -902,12 +915,22 @@ find_asmenu( const char *name )
     return NULL;
 }
 
+ASMenu *
+find_topmost_transient_menu( ASMenu *menu )
+{
+    if( menu && menu->supermenu && menu->supermenu->magic == MAGIC_ASMENU )
+        if( !menu->supermenu->pinned )
+            return find_topmost_transient_menu( menu->supermenu );
+    return menu;
+}
 
 void
 pin_asmenu( ASMenu *menu )
 {
     if( menu )
     {
+        ASMenu *menu_to_close = find_topmost_transient_menu( menu );
+
         close_asmenu_submenu( menu );
         if( menu == ASTopmostMenu )
             ASTopmostMenu = NULL ;
@@ -915,9 +938,19 @@ pin_asmenu( ASMenu *menu )
                  menu->supermenu->magic == MAGIC_ASMENU &&
                  menu->supermenu->submenu == menu )
             menu->supermenu->submenu = NULL ;
+        if( menu_to_close != menu )
+            close_asmenu( &menu_to_close );
+
         menu->pinned = True ;
         if( menu->owner )
+        {
+            clear_flags( menu->owner->hints->function_mask, AS_FuncPinMenu);
             redecorate_window( menu->owner, False );
+            on_window_status_changed( menu->owner, True, True );
+            if( Scr.Windows->hilited == menu->owner )
+                on_window_hilite_changed (menu->owner, True);
+        }
+        close_asmenu_submenu( menu );
     }
 }
 

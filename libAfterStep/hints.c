@@ -39,9 +39,9 @@ init_ashints (ASHints * hints)
 	if (hints)
 	{										   /* some defaults to start with : */
 		hints->flags = AS_Gravity | AS_AcceptsFocus | AS_Titlebar | AS_Handles | AS_Border;
-		hints->function_mask = ~AS_FuncClose;  /* can't gracefully close the window if it
-											    * does not support WM_DELETE_WINDOW */
-		hints->gravity = NorthWestGravity;
+        /* can't gracefully close the window if it does not support WM_DELETE_WINDOW */
+        hints->function_mask = ~(AS_FuncClose|AS_FuncPinMenu);
+        hints->gravity = NorthWestGravity;
 		hints->border_width = 1;
 	}
 }
@@ -1390,10 +1390,14 @@ function2mask (int function)
 		AS_FuncMaximize,					   /* F_MAXIMIZE,           */
 		0,									   /* F_STICK,              */
 		0,									   /* F_FOCUS,              */
-		0,									   /* F_GETHELP,            */
+        0,                                     /* F_CHANGEWINDOW_UP     */
+        0,                                     /* F_CHANGEWINDOW_DOWN   */
+        0,                                     /* F_GOTO_BOOKMARK     */
+        0,                                     /* F_GETHELP,            */
 		0,									   /* F_PASTE_SELECTION,    */
 		0,									   /* F_CHANGE_WINDOWS_DESK, */
-		0									   /* F_BOOKMARK_WINDOW,  */
+        0,                                     /* F_BOOKMARK_WINDOW,  */
+        AS_FuncPinMenu                         /* F_PIN_MENU           */
 	};
 
 	if (function == F_POPUP)

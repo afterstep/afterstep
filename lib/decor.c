@@ -1104,7 +1104,7 @@ Bool
 delete_astbar_tile( ASTBarData *tbar, int idx )
 {
 
-    if( tbar != NULL && idx < tbar->tiles_num )
+    if( tbar != NULL && idx < (int)(tbar->tiles_num) )
     {
         register int i ;
         for( i = 0 ; i < tbar->tiles_num ; ++i )

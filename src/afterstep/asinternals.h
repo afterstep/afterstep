@@ -167,9 +167,11 @@ void InitFeel (struct ASFeel *feel, Bool free_resources);
 
 void LoadASConfig (int thisdesktop, ASFlagType what);
 /*************************** decorations.c ********************************/
-int check_allowed_function2 (int func, ASWindow * t);
-int check_allowed_function (FunctionData *fdata, ASWindow *asw);
-ASFlagType compile_titlebuttons_mask (ASWindow * asw);
+int check_allowed_function2 (int func, ASHints *hints);
+int check_allowed_function (FunctionData *fdata, ASHints *hints);
+ASFlagType compile_titlebuttons_mask (ASHints *hints);
+int estimate_titlebar_size( ASHints *hints );
+
 
 /*************************** events.c ********************************/
 const char *context2text(int ctx);

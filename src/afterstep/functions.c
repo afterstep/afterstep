@@ -268,7 +268,7 @@ LOCAL_DEBUG_CALLER_OUT( "event(%d(%s))->window(%lX)->client(%p(%s))->module(%d)"
     {
         data->func = func ;
         if( event->client )
-            if( !check_allowed_function2( data->func, event->client) )
+            if( !check_allowed_function2( data->func, event->client->hints) )
             {
 LOCAL_DEBUG_OUT( "function \"%s\" is not allowed for the specifyed window (mask 0x%lX)", COMPLEX_FUNCTION_NAME(data), ASWIN_FUNC_MASK(event->client));
                 XBell (dpy, Scr.screen);
