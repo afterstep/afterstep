@@ -30,11 +30,22 @@
 #include <stdio.h>
 
 #ifndef MIN
-#define MIN(a,b)            ((a)<(b) ? (a) : (b))
+/*#define MIN(a,b)            ((a)<(b) ? (a) : (b)) */
+#define MIN(x,y)                                \
+  ({ const typeof(x) _x = (x); const typeof(y) _y = (y); \
+     (void) (&_x == &_y);                       \
+     _x < _y ? _x : _y; })
 #endif
 #ifndef MAX
-#define MAX(a,b)            ((a)>(b) ? (a) : (b))
+/*#define MAX(a,b)            ((a)<(b) ? (a) : (b)) */
+#define MAX(x,y)                                \
+  ({ const typeof(x) _x = (x); const typeof(y) _y = (y); \
+     (void) (&_x == &_y);                       \
+     _x > _y ? _x : _y; })
 #endif
+
+#define AS_ASSERT(p)            ((p)==(typeof(p))0)
+#define AS_ASSERT_VAL(p,v)      ((p)==(typeof(p))v)
 
 typedef unsigned long ASFlagType ;
 #define ASFLAGS_EVERYTHING  0xFFFFFFFF
