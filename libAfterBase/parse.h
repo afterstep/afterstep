@@ -14,7 +14,7 @@ struct config
   int *arg2;
 };
 
-char *parse_argb_color( char *color, CARD32 *pargb );
+const char *parse_argb_color( const char *color, CARD32 *pargb );
 
 char *find_doublequotes (char *ptr);
 char *stripcpy (const char *source);

@@ -10,7 +10,7 @@
 /****************************************************************************
  * parse_argb_color - should be used for all your color parsing needs
  ***************************************************************************/
-char *parse_argb_color( char *color, CARD32 *pargb )
+const char *parse_argb_color( const char *color, CARD32 *pargb )
 {
 #define hextoi(h)   (isdigit(h)?((h)-'0'):(isupper(h)?((h)-'A'+10):((h)-'a'+10)))
 	if( color )
@@ -19,7 +19,7 @@ char *parse_argb_color( char *color, CARD32 *pargb )
 		{
 			CARD32 argb = 0 ;
 			int len = 0 ;
-			register char *ptr = color+1 ;
+			register const char *ptr = color+1 ;
 			while( isxdigit(ptr[len]) ) len++;
 			if( len >= 3)
 			{
@@ -63,7 +63,7 @@ char *parse_argb_color( char *color, CARD32 *pargb )
 		}else if( *color )
 		{
 			XColor xcol, xcol_scr ;
-			char *ptr = color;
+			register const char *ptr = &(color[0]);
 			/* does not really matter here what screen to use : */
 			if( XLookupColor( dpy, Scr.colormap, color, &xcol, &xcol_scr) )
 				*pargb = 0xFF000000|((xcol.red<<8)&0x00FF0000)|(xcol.green&0x0000FF00)|((xcol.blue>>8)&0x000000FF);
