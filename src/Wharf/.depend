@@ -1,23 +1,31 @@
+./Wharf.h: \
+		../../include/asapp.h \
+		../../include/afterstep.h \
+		../../include/parse.h \
+		../../include/screen.h \
+		../../include/module.h
+
 ./OffiX/DragAndDrop.h:
 
 ./OffiX/DragAndDropTypes.h:
 
-./Wharf.h: \
-		../../include/afterbase.h \
-		../../include/aftersteplib.h \
+./Wharf.o: \
+		../../configure.h \
+		../../include/asapp.h \
 		../../include/afterstep.h \
-		../../include/parse.h \
-		../../include/style.h \
 		../../include/screen.h \
-		../../include/module.h
+		../../include/module.h \
+		../../include/parse.h \
+		../../include/parser.h \
+		../../include/confdefs.h \
+		../../include/mystyle.h \
+		../../include/mystyle_property.h \
+		../../include/balloon.h \
+		../../include/aswindata.h \
+		../../include/decor.h \
+		../../include/event.h \
+		../../include/wmprops.h
 
 ./icons.o: \
 		../../configure.h \
 		Wharf.h
-
-./Wharf.o: \
-		../../configure.h \
-		Wharf.h \
-		../../include/iconbg.h \
-		OffiX/DragAndDrop.h \
-		OffiX/DragAndDropTypes.h

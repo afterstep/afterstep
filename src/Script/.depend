@@ -3,12 +3,16 @@
 		../../include/aftersteplib.h \
 		../../include/module.h
 
+./y.tab.h:
+
 ./Widgets/Tools.h: \
 		../types.h
 
-./y.tab.h:
-
 ./Instructions.o: \
+		types.h
+
+./Script.o: \
+		../../configure.h \
 		types.h
 
 ./lex.o: \
@@ -17,8 +21,7 @@
 
 ./libyywrap.o:
 
-./Script.o: \
-		../../configure.h \
+./y.o: \
 		types.h
 
 ./Widgets/CheckBox.o: \
@@ -71,6 +74,3 @@
 
 ./Widgets/Widget.o: \
 		Tools.h
-
-./y.o: \
-		types.h

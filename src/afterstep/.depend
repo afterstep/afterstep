@@ -33,6 +33,7 @@
 		../../include/parse.h \
 		../../include/screen.h \
 		../../include/event.h \
+		../../include/decor.h \
 		../../include/module.h \
 		../../include/clientprops.h \
 		../../include/hints.h \
@@ -47,12 +48,10 @@
 		../../configure.h \
 		../../include/asapp.h \
 		../../include/afterstep.h \
-		../../include/clientprops.h \
 		../../include/hints.h \
 		../../include/screen.h \
+		../../include/decor.h \
 		../../include/module.h \
-		../../include/parser.h \
-		../../include/confdefs.h \
 		asinternals.h
 
 ./borders.o: \
@@ -71,6 +70,7 @@
 ./colormaps.o: \
 		../../configure.h \
 		../../include/asapp.h \
+		../../libAfterImage/afterimage.h \
 		../../include/afterstep.h \
 		../../include/screen.h \
 		../../include/event.h \
@@ -100,6 +100,9 @@
 		../../include/afterstep.h \
 		../../include/parse.h \
 		../../include/screen.h \
+		../../include/functions.h \
+		../../include/mystyle.h \
+		../../include/decor.h \
 		asinternals.h
 
 ./dirtree.o: \
@@ -125,6 +128,7 @@
 		../../libAfterImage/afterimage.h \
 		../../include/mystyle.h \
 		../../include/wmprops.h \
+		../../include/moveresize.h \
 		asinternals.h
 
 ./frame.o: \
@@ -144,11 +148,13 @@
 		../../libAfterImage/afterimage.h \
 		../../include/afterstep.h \
 		../../include/parse.h \
+		../../include/parser.h \
 		../../include/decor.h \
 		../../include/event.h \
 		../../include/screen.h \
 		../../include/module.h \
 		../../include/session.h \
+		../../include/moveresize.h \
 		asinternals.h
 
 ./functions_old.o: \
@@ -205,6 +211,18 @@
 
 ./menus.o: \
 		../../configure.h \
+		../../include/asapp.h \
+		../../include/afterstep.h \
+		../../include/screen.h \
+		../../include/mystyle.h \
+		../../include/decor.h \
+		../../include/hints.h \
+		../../include/event.h \
+		asinternals.h \
+		menus.h
+
+./menus_old.o: \
+		../../configure.h \
 		../../include/aftersteplib.h \
 		../../include/afterstep.h \
 		../../include/parse.h \
@@ -255,6 +273,10 @@
 		../../include/screen.h \
 		../../include/module.h \
 		../../include/event.h \
+		../../include/decor.h \
+		../../include/mystyle.h \
+		../../include/wmprops.h \
+		../../include/session.h \
 		asinternals.h
 
 ./placement.o: \

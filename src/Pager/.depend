@@ -2,10 +2,26 @@
 
 ./Pager.o: \
 		../../configure.h \
-		../../include/aftersteplib.h \
-		../../include/afterbase.h \
+		../../include/asapp.h \
 		../../include/afterstep.h \
-		../../include/style.h \
+		../../include/screen.h \
+		../../include/module.h \
+		../../include/parse.h \
+		../../include/parser.h \
+		../../include/confdefs.h \
+		../../include/mystyle.h \
+		../../include/mystyle_property.h \
+		../../include/balloon.h \
+		../../include/aswindata.h \
+		../../include/decor.h \
+		../../include/event.h \
+		../../include/wmprops.h \
+		../../include/moveresize.h
+
+./Pager_old.o: \
+		../../configure.h \
+		../../include/asapp.h \
+		../../include/afterstep.h \
 		../../include/screen.h \
 		../../include/module.h \
 		../../include/parse.h \
@@ -13,6 +29,7 @@
 		../../include/confdefs.h \
 		../../include/mystyle.h \
 		../../include/background.h \
+		../../include/balloon.h \
 		Pager.h
 
 ./x_pager.o: \
