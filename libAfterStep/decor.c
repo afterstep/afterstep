@@ -326,26 +326,55 @@ void
 update_canvas_display (ASCanvas * pc)
 {
 LOCAL_DEBUG_CALLER_OUT( "canvas(%p)->window(%lx)->canvas_pixmap(%lx)->size(%dx%d)", pc, pc->w, pc->canvas, pc->width, pc->height );
-    if (pc && pc->w != None && !get_flags( pc->state, CANVAS_CONTAINER ))
+    if (pc && pc->w != None )
 	{
-		if (pc->canvas)
-		{
+        if( !get_flags( pc->state, CANVAS_CONTAINER ) )
+        {
+            if (pc->canvas)
+            {
 #ifdef SHAPE
-			if (pc->mask)
-				XShapeCombineMask (dpy, pc->w, ShapeBounding, 0, 0, pc->mask, ShapeSet);
-#endif
-			XSetWindowBackgroundPixmap (dpy, pc->w, pc->canvas);
-			XClearWindow (dpy, pc->w);
+                if (pc->mask)
+                    XShapeCombineMask (dpy, pc->w, ShapeBounding, 0, 0, pc->mask, ShapeSet);
+                else
+                {
+                    XRectangle    rect;
+                    rect.x = 0;
+                    rect.y = 0;
+                    rect.width  = pc->width;
+                    rect.height = pc->height;
 
-			XSync (dpy, False);
-			clear_flags (pc->state, CANVAS_DIRTY | CANVAS_OUT_OF_SYNC);
-		}
-		if (pc->mask)
+                    XShapeCombineRectangles (dpy, pc->w, ShapeBounding,
+                                     0, 0, &rect, 1, ShapeSet, Unsorted);
+                }
+#endif
+                XSetWindowBackgroundPixmap (dpy, pc->w, pc->canvas);
+                XClearWindow (dpy, pc->w);
+
+                XSync (dpy, False);
+                clear_flags (pc->state, CANVAS_DIRTY | CANVAS_OUT_OF_SYNC);
+            }
+        }else
 		{
-			/* todo: add shaped windows support here : */
+            /* fetch shape from the child window : */
+
 		}
 	}
 }
+
+void
+combine_canvas_shape (ASCanvas *parent, ASCanvas *child )
+{
+#ifdef SHAPE
+    if (parent && child )
+	{
+        XShapeCombineShape (dpy, parent->w, ShapeBounding,
+                            child->root_x - parent->root_x,
+                            child->root_y - parent->root_y,
+                            child->w, ShapeUnion, ShapeSet);
+    }
+#endif
+}
+
 
 Bool
 is_canvas_needs_redraw( ASCanvas *pc )

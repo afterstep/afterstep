@@ -1943,8 +1943,22 @@ SetShape (ASWindow *asw, int w)
 #ifdef SHAPE
 	if( asw )
 	{
-		int bw = asw->status->border_width ;
+        if( ASWIN_GET_FLAGS( asw, AS_Iconic ) )
+        {                                      /* todo: update icon's shape */
 
+        }else
+        {
+            int i ;
+            XShapeCombineMask (dpy, asw->frame, ShapeBounding, 0, 0, None, ShapeSet);
+            if( !ASWIN_GET_FLAGS(asw, AS_Dead) )
+                combine_canvas_shape( asw->frame_canvas, asw->client_canvas );
+            for( i = 0 ; i < FRAME_SIDES ; ++i )
+                if( asw->frame_sides[i] )
+                    combine_canvas_shape( asw->frame_canvas, asw->frame_sides[i] );
+        }
+    }
+#if 0 /*old code : */
+        int bw = asw->status->border_width ;
         if( !ASWIN_GET_FLAGS(asw, AS_Dead) )
             XShapeCombineShape (dpy, asw->frame, ShapeBounding,
                                 asw->status->x + bw,
@@ -1964,13 +1978,11 @@ SetShape (ASWindow *asw, int w)
 			XShapeCombineRectangles (dpy, asw->frame, ShapeBounding,
 									 0, 0, &rect, 1, ShapeUnion, Unsorted);
 		}
-
 		/* TODO: add frame decorations shape */
-
 		/* update icon shape */
         /*if (asw->icon_canvas != NULL)
             UpdateIconShape (asw); */
-	}
+#endif /* old_code */
 #endif /* SHAPE */
 }
 

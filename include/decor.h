@@ -187,6 +187,8 @@ void  trace_update_canvas_display (ASCanvas * pc, const char *file, int line);
 #else
 void update_canvas_display( ASCanvas *pc );
 #endif
+void combine_canvas_shape (ASCanvas *parent, ASCanvas *child );
+
 
 void resize_canvas( ASCanvas *pc, unsigned int width, unsigned int height );
 void move_canvas (ASCanvas * pc, int x, int y);
