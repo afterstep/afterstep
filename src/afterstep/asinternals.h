@@ -59,6 +59,16 @@ extern int    ShapeEventBase;
 /**************************************************************************/
 /* Function prototypes :                                                  */
 /**************************************************************************/
+
+/*************************** colormaps.c : ********************************/
+void InstallWindowColormaps (ASWindow *asw);
+void UninstallWindowColormaps (ASWindow *asw);
+void InstallRootColormap (void);
+void UninstallRootColormap (void);
+void InstallAfterStepColormap (void);
+void UninstallAfterStepColormap (void);
+
+
 /*************************** decorations.c ********************************/
 int check_allowed_function2 (int func, ASWindow * t);
 int check_allowed_function (struct MenuItem * mi);

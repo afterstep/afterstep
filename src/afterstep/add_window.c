@@ -85,8 +85,7 @@
 #include "../../include/parser.h"
 #include "../../include/clientprops.h"
 #include "../../include/hints.h"
-
-#include "menus.h"
+#include "asinternals.h"
 
 #ifdef SHAPE
 #include <X11/extensions/shape.h>
@@ -94,7 +93,6 @@
 #endif /* SHAPE */
 
 extern int    LastWarpIndex;
-char          NoName[] = "Untitled";		   /* name if no name is specified */
 
 
 #if 0
@@ -566,7 +564,7 @@ grab_window_input( ASWindow *asw, Bool release_grab )
             XSync(dpy, False );
         }else
         {
-            grab_aswindow_buttons(asw, (Scr.Focus==asw));
+            grab_aswindow_buttons(asw, (Scr.Windows->focused==asw));
             grab_aswindow_keys(asw);
         }
     }
@@ -1468,17 +1466,13 @@ LOCAL_DEBUG_OUT( "unmaping client window 0x%lX", (unsigned long)asw->w );
 		{
             set_flags( asw->status->flags, AS_Iconic );
             add_iconbox_icon( asw );
-            LowerWindow (asw);
+            restack_window( asw, None, Below );
 
 			if ((Scr.flags & ClickToFocus) || (Scr.flags & SloppyFocus))
 			{
-				if (asw == Scr.Focus)
-				{
-		  			if (Scr.PreviousFocus == Scr.Focus)
-						Scr.PreviousFocus = NULL;
+                if (asw == Scr.Windows->focused)
                     focus_next_aswindow (asw);
-                }
-			}
+            }
 		}
 LOCAL_DEBUG_OUT( "updating status to iconic for client %p(\"%s\")", asw, ASWIN_NAME(asw) );
     }else
@@ -1516,6 +1510,47 @@ LOCAL_DEBUG_OUT( "updating status to iconic for client %p(\"%s\")", asw, ASWIN_N
     return True;
 }
 
+Bool
+make_aswindow_visible( ASWindow *asw, Bool deiconify )
+{
+    if (asw == NULL)
+        return False;
+
+    if( ASWIN_GET_FLAGS( asw, AS_Iconic ) )
+    {
+        if( deiconify )
+        {/* TODO: deiconify here */}
+        else
+            return False;
+    }
+
+    if (ASWIN_DESK(asw) != Scr.CurrentDesk)
+        changeDesks( 0, ASWIN_DESK(asw));
+
+    /* TODO: need to to center on window */
+    return True;
+}
+
+void
+change_aswindow_layer( ASWindow *asw, int layer )
+{
+    if( AS_ASSERT(asw) )
+        return;
+    if( ASWIN_LAYER(asw) != layer )
+    {
+        ASLayer  *dst_layer = NULL, *src_layer ;
+
+        src_layer = get_aslayer( ASWIN_LAYER(asw), Scr.Windows );
+        ASWIN_LAYER(asw) = layer ;
+        dst_layer = get_aslayer( ASWIN_LAYER(asw), Scr.Windows );
+
+        vector_remove_elem( src_layer->members, &asw );
+        /* inserting window into the top of the new layer */
+        vector_insert_elem( dst_layer->members, &asw, 1, NULL, False );
+
+        restack_window_list( ASWIN_DESK(asw) );
+    }
+}
 /****************************************************************************
  *
  * Sets up the shaped window borders
@@ -1563,11 +1598,11 @@ SetShape (ASWindow *asw, int w)
 void
 hide_focus()
 {
-    if (get_flags(Scr.flags, ClickToFocus) && Scr.Ungrabbed != NULL)
-        grab_aswindow_buttons( Scr.Ungrabbed, False );
+    if (get_flags(Scr.flags, ClickToFocus) && Scr.Windows->ungrabbed != NULL)
+        grab_aswindow_buttons( Scr.Windows->ungrabbed, False );
 
-    Scr.Focus = NULL;
-    Scr.Ungrabbed = NULL;
+    Scr.Windows->focused = NULL;
+    Scr.Windows->ungrabbed = NULL;
     XSetInputFocus (dpy, Scr.NoFocusWin, RevertToParent, Scr.last_Timestamp);
     XSync(dpy, False );
 }
@@ -1585,19 +1620,21 @@ focus_aswindow( ASWindow *asw, Bool circulated )
     if( asw )
     {
         if (!circulated )
-            SetCirculateSequence (asw, 1);
+            if( vector_remove_elem( Scr.Windows->circulate_list, &asw ) == 1 )
+                vector_insert_elem( Scr.Windows->circulate_list, &asw, 1, NULL, True );
 
+#if 0
         /* ClickToFocus focus queue manipulation */
-        if ( asw != Scr.Focus && asw != &Scr.ASRoot)
+        if ( asw != Scr.Focus )
             asw->focus_sequence = Scr.next_focus_sequence++;
-
+#endif
         do_hide_focus = (ASWIN_DESK(asw) != Scr.CurrentDesk) ||
                         (ASWIN_GET_FLAGS( asw, AS_Iconic ) &&
                             asw->icon_canvas == NULL && asw->icon_title_canvas == NULL );
 
         if( !ASWIN_HFLAGS(asw, AS_AcceptsFocus) )
         {
-            if( Scr.Focus != NULL && ASWIN_DESK(Scr.Focus) == Scr.CurrentDesk )
+            if( Scr.Windows->focused != NULL && ASWIN_DESK(Scr.Windows->focused) == Scr.CurrentDesk )
                 do_nothing = True ;
             else
                 do_hide_focus = True ;
@@ -1626,12 +1663,12 @@ focus_aswindow( ASWindow *asw, Bool circulated )
     if( do_nothing || do_hide_focus )
         return False;
 
-    if (get_flags(Scr.flags, ClickToFocus) && Scr.Ungrabbed != asw)
+    if (get_flags(Scr.flags, ClickToFocus) && Scr.Windows->ungrabbed != asw)
     {  /* need to grab all buttons for window that we are about to
         * unfocus */
-        grab_aswindow_buttons( Scr.Ungrabbed, False );
+        grab_aswindow_buttons( Scr.Windows->ungrabbed, False );
         grab_aswindow_buttons( asw, True );
-        Scr.Ungrabbed = asw;
+        Scr.Windows->ungrabbed = asw;
     }
 
     if( ASWIN_GET_FLAGS(asw, AS_Iconic ) )
@@ -1651,53 +1688,116 @@ focus_aswindow( ASWindow *asw, Bool circulated )
     XSetInputFocus (dpy, w, RevertToParent, Scr.last_Timestamp);
     if (get_flags(asw->hints->protocols, AS_DoesWmTakeFocus))
         send_wm_protocol_request (asw->w, _XA_WM_TAKE_FOCUS, Scr.last_Timestamp);
-    Scr.Focus = asw ;
+    Scr.Windows->focused = asw ;
 
     XSync(dpy, False );
     return True;
 }
 
+/*********************************************************************/
+/* focus management goes here :                                      */
+/*********************************************************************/
+/* making window active : */
+/* handing over actuall focus : */
+Bool
+focus_active_window()
+{
+    /* don't fiddle with focus if we are in housekeeping mode !!! */
+LOCAL_DEBUG_OUT( "checking if we are in housekeeping mode (%ld)", get_flags(AfterStepState, ASS_HousekeepingMode) );
+    if( get_flags(AfterStepState, ASS_HousekeepingMode) || Scr.Windows->active == NULL )
+        return False ;
+
+    if( Scr.Windows->focused == Scr.Windows->active )
+        return True ;                          /* already has focus */
+
+    return focus_aswindow( Scr.Windows->active, False );
+}
+
+Bool
+activate_aswindow( ASWindow *asw, Bool force, Bool deiconify )
+{
+    if (asw == NULL)
+        return False;
+
+    if( force )
+    {
+        GrabEm (&Scr, Scr.ASCursors[SELECT]);     /* to prevent Enter Notify events to
+                                                      be sent to us while shifting windows around */
+        if( !make_aswindow_visible( asw, deiconify ) )
+            return False;
+        Scr.Windows->active = asw ;   /* must do that prior to UngrabEm, so that window gets focused */
+        UngrabEm ();
+    }else
+    {
+        if( ASWIN_GET_FLAGS( asw, AS_Iconic ) )
+        {
+            if( deiconify )
+            {/* TODO: deiconify here */}
+            else
+                return False;
+        }
+        if (ASWIN_DESK(asw) != Scr.CurrentDesk)
+            return False;
+
+        if( asw->status->x + asw->status->width < 0  || asw->status->x >= Scr.MyDisplayWidth ||
+            asw->status->y + asw->status->height < 0 || asw->status->y >= Scr.MyDisplayHeight )
+        {
+            return False;                      /* we are out of screen - can't focus */
+        }
+        Scr.Windows->active = asw ;   /* must do that prior to UngrabEm, so that window gets focused */
+        focus_active_window();
+    }
+    return True;
+}
+
+/* second version of above : */
 void
 focus_next_aswindow( ASWindow *asw )
 {
     ASWindow     *new_focus = NULL;
 
     if( get_flags(Scr.flags, ClickToFocus))
-    {
-        ASWindow     *t;
-        long          best = LONG_MIN;
-        for (t = Scr.ASRoot.next; t != NULL; t = t->next)
-            if ((t->focus_sequence > best) && (t != asw))
-            {
-                best = t->focus_sequence;
-                new_focus = t;
-            }
-    }
-    focus_aswindow( new_focus, False);
+        new_focus = get_next_window (asw, NULL, 1);
+    if( !activate_aswindow( new_focus, False, False) )
+        hide_focus();
 }
 
 void
 hilite_aswindow( ASWindow *asw )
 {
-    if( Scr.Hilite != asw )
+    if( Scr.Windows->hilited != asw )
     {
-        if( Scr.Hilite )
-            on_window_hilite_changed (Scr.Hilite, False);
+        if( Scr.Windows->hilited )
+            on_window_hilite_changed (Scr.Windows->hilited, False);
         if( asw )
             on_window_hilite_changed (asw, True);
-        Scr.Hilite = NULL ;
+        Scr.Windows->hilited = asw ;
     }
 }
 
 void
 hide_hilite()
 {
-    if( Scr.Hilite != NULL )
+    if( Scr.Windows->hilited != NULL )
     {
-        on_window_hilite_changed (Scr.Hilite, False);
-        Scr.Hilite = NULL ;
+        on_window_hilite_changed (Scr.Windows->hilited, False);
+        Scr.Windows->hilited = NULL ;
     }
 }
+
+void
+warp_to_aswindow( ASWindow *asw, Bool deiconify )
+{
+    if( asw )
+        activate_aswindow( asw, True, deiconify );
+}
+
+
+
+/*************************************************************************/
+/* end of the focus management                                           */
+/*************************************************************************/
+/*************************************************************************/
 
 void
 init_aswindow(ASWindow * t, Bool free_resources )
@@ -1950,23 +2050,20 @@ Destroy (ASWindow *asw, Bool kill_client)
 
     UninstallWindowColormaps( asw );
 
-    if ( asw == Scr.Hilite )
-		Scr.Hilite = NULL;
-
-    if ( asw == Scr.PreviousFocus )
-		Scr.PreviousFocus = NULL;
-
-    if (asw == Scr.Focus )
+    if ( asw == Scr.Windows->focused )
         focus_next_aswindow( asw );
 
-	if (!kill_client)
+    if ( asw == Scr.Windows->hilited )
+        Scr.Windows->hilited = NULL;
+
+    if (!kill_client)
         RestoreWithdrawnLocation (asw, True);
 
     redecorate_window( asw, True );
     unregister_aswindow( asw->w );
     delist_aswindow( asw );
 
-    init_aswindow( tmp_win, True );
+    init_aswindow( asw, True );
 
     memset( asw, 0x00, sizeof(ASWindow));
     free (asw);
@@ -2008,8 +2105,8 @@ LOCAL_DEBUG_CALLER_OUT("%p, %d", asw, restart );
             * window anywhere he wants ).
             *                             ( Sasha )
             */
-        x = make_detach_pos( asw->hints, asw->status, asw->anchor.x, asw->frame_canvas->width, Scr.Vx, True );
-        y = make_detach_pos( asw->hints, asw->status, asw->anchor.y, asw->frame_canvas->height, Scr.Vy, False );
+
+        make_detach_pos( asw->hints, asw->status, &(asw->anchor), &x, &y );
 
         if ( get_flags(asw->status->flags, AS_Iconic ))
         {

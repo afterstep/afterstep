@@ -1418,9 +1418,11 @@ function2mask (int function)
 void
 constrain_size (ASHints * hints, ASStatusHints * status, unsigned int max_width, unsigned int max_height)
 {
-	int           minWidth = 1, minHeight = 1;
-	int           xinc = 1, yinc = 1, delta;
-	int           baseWidth = 0, baseHeight = 0;
+    int minWidth = 1, minHeight = 1;
+    int xinc = 1, yinc = 1, delta;
+    int baseWidth = 0, baseHeight = 0;
+    int clean_width  = status->width -(status->frame_size[FR_W]+status->frame_size[FR_E]);
+    int clean_height = status->height -(status->frame_size[FR_N]+status->frame_size[FR_S]);
 
 	if (get_flags (hints->flags, AS_MinSize))
 	{
@@ -1443,22 +1445,22 @@ constrain_size (ASHints * hints, ASStatusHints * status, unsigned int max_width,
 	} else
 	{
 		if (max_width == 0)
-			max_width = MAX ((unsigned int)minWidth, status->width);
+            max_width = MAX ((unsigned int)minWidth, clean_width);
 		if (max_height == 0)
-			max_height = MAX ((unsigned int)minHeight, status->height);
+            max_height = MAX ((unsigned int)minHeight, clean_height);
 	}
 
 	/* First, clamp to min and max values  */
-	status->width = FIT_IN_RANGE (minWidth, status->width, max_width);
-	status->height = FIT_IN_RANGE (minHeight, status->height, max_height);
+    clean_width = FIT_IN_RANGE (minWidth, clean_width, max_width);
+    clean_height = FIT_IN_RANGE (minHeight, clean_height, max_height);
 
 	/* Second, fit to base + N * inc */
 	if (get_flags (hints->flags, AS_SizeInc))
 	{
 		xinc = hints->width_inc;
 		yinc = hints->height_inc;
-		status->width = (((status->width - baseWidth) / xinc) * xinc) + baseWidth;
-		status->height = (((status->height - baseHeight) / yinc) * yinc) + baseHeight;
+        clean_width = (((clean_width - baseWidth) / xinc) * xinc) + baseWidth;
+        clean_height = (((clean_height - baseHeight) / yinc) * yinc) + baseHeight;
 	}
 
 	/* Third, adjust for aspect ratio */
@@ -1484,31 +1486,33 @@ constrain_size (ASHints * hints, ASStatusHints * status, unsigned int max_width,
 
 	if (get_flags (hints->flags, AS_Aspect))
 	{
-		if ((minAspectX * status->height > minAspectY * status->width))
+        if ((minAspectX * clean_height > minAspectY * clean_width))
 		{
-			delta = makemult (minAspectX * status->height / minAspectY - status->width, xinc);
-			if (status->width + delta <= max_width)
-				status->width += delta;
+            delta = makemult (minAspectX * clean_height / minAspectY - clean_width, xinc);
+            if (clean_width + delta <= max_width)
+                clean_width += delta;
 			else
 			{
-				delta = makemult (status->height - status->width * minAspectY / minAspectX, yinc);
-				if (status->height - delta >= minHeight)
-					status->height -= delta;
+                delta = makemult (clean_height - clean_width * minAspectY / minAspectX, yinc);
+                if (clean_height - delta >= minHeight)
+                    clean_height -= delta;
 			}
 		}
-		if (maxAspectX * status->height < maxAspectY * status->width)
+        if (maxAspectX * clean_height < maxAspectY * clean_width)
 		{
-			delta = makemult (status->width * maxAspectY / maxAspectX - status->height, yinc);
-			if (status->height + delta <= max_height)
-				status->height += delta;
+            delta = makemult (clean_width * maxAspectY / maxAspectX - clean_height, yinc);
+            if (clean_height + delta <= max_height)
+                clean_height += delta;
 			else
 			{
-				delta = makemult (status->width - maxAspectX * status->height / maxAspectY, xinc);
-				if (status->width - delta >= minWidth)
-					status->width -= delta;
+                delta = makemult (clean_width - maxAspectX * clean_height / maxAspectY, xinc);
+                if (clean_width - delta >= minWidth)
+                    clean_width -= delta;
 			}
 		}
 	}
+    status->width = clean_width + status->frame_size[FR_W]+status->frame_size[FR_E] ;
+    status->height = clean_height + status->frame_size[FR_N]+status->frame_size[FR_S] ;
 }
 
 static int    _as_gravity_offsets[11][2] = {
@@ -1674,31 +1678,41 @@ make_status_pos (ASStatusHints * status, int pos, unsigned int size, int vpos, i
 	return pos;
 }
 
-int
-make_detach_pos (ASHints * hints, ASStatusHints * status, int pos, unsigned int size, int vpos, Bool x_axis)
+void
+make_detach_pos (ASHints * hints, ASStatusHints * status, XRectangle *anchor, int *detach_x, int *detach_y)
 {
-	int           grav;
-	unsigned int  bw = 0;
+    unsigned int  bw = 0;
+    int x = 0, y = 0 ;
+    int grav_x, grav_y ;
+    int width, height ;
 
-	if (hints == NULL || status == NULL)
-		return pos;
+    if (hints == NULL || status == NULL || anchor == NULL )
+        return ;
 
 	if (get_flags (status->flags, AS_StartBorderWidth))
 		bw = status->border_width;
 
-	/* position of the sticky window is stored in real coordinates */
+    get_gravity_offsets (hints, &grav_x, &grav_y);
+
+    /* position of the sticky window is stored in real coordinates */
+    x = anchor->x ;
+    y = anchor->y ;
 	if (!get_flags (status->flags, AS_Sticky))
-		pos += vpos;
+    {
+        x -= status->viewport_x;
+        y -= status->viewport_y;
+    }
 
-	{
-		int           grav_x = 0, grav_y = 0;
-
-		get_gravity_offsets (hints, &grav_x, &grav_y);
-		grav = (x_axis ? grav_x : grav_y);
-	}
-
-	APPLY_GRAVITY (grav, pos, size, bw, bw);
-	return pos - bw;
+    if( detach_x )
+    {
+        APPLY_GRAVITY (grav_x, x, anchor->width, bw, bw);
+        *detach_x = x ;
+    }
+    if( detach_y )
+    {
+        APPLY_GRAVITY (grav_y, y, anchor->height, bw, bw);
+        *detach_y = y ;
+    }
 }
 
 /***** New Code : *****************************************************/
@@ -1723,19 +1737,22 @@ status2anchor (XRectangle * anchor, ASHints * hints, ASStatusHints * status, uns
 	if (get_flags (status->flags, AS_Size))
 	{
 		constrain_size (hints, status, vwidth, vheight);
-		anchor->width = status->width;
-		anchor->height = status->height;
+        anchor->width = status->width - (status->frame_size[FR_W]+status->frame_size[FR_E]);
+        anchor->height = status->height - (status->frame_size[FR_N]+status->frame_size[FR_S]);
 	}
 
 	if (get_flags (status->flags, AS_Position))
 	{
 		int           grav_x = -1, grav_y = -1;
-		int           offset = 0;
+        int           offset;
 
 		get_gravity_offsets (hints, &grav_x, &grav_y);
 
+        offset = 0 ;
 		APPLY_GRAVITY (grav_x, offset, anchor->width, status->frame_size[FR_W], status->frame_size[FR_E]);
 		anchor->x = status->x - offset;
+
+        offset = 0;
 		APPLY_GRAVITY (grav_y, offset, anchor->height, status->frame_size[FR_N], status->frame_size[FR_S]);
 		anchor->y = status->y - offset;
 		if (!get_flags (status->flags, AS_Sticky))
@@ -1750,17 +1767,22 @@ void
 anchor2status (ASStatusHints * status, ASHints * hints, XRectangle * anchor)
 {
 	int           grav_x = -1, grav_y = -1;
-	int           offset = 0;
+    int           offset;
 
-	status->width = anchor->width;
-	status->height = anchor->height;
+    status->width = anchor->width+status->frame_size[FR_W]+status->frame_size[FR_E];
+    status->height = anchor->height+status->frame_size[FR_N]+status->frame_size[FR_S];
 	set_flags (status->flags, AS_Size);
 
 	get_gravity_offsets (hints, &grav_x, &grav_y);
-	APPLY_GRAVITY (grav_x, offset, anchor->width, status->frame_size[FR_W], status->frame_size[FR_E]);
+
+    offset = 0 ;
+    APPLY_GRAVITY (grav_x, offset, anchor->width, status->frame_size[FR_W], status->frame_size[FR_E]);
 	status->x = anchor->x + offset;
+
+    offset = 0;
 	APPLY_GRAVITY (grav_y, offset, anchor->height, status->frame_size[FR_N], status->frame_size[FR_S]);
 	status->y = anchor->y + offset;
+
 	if (!get_flags (status->flags, AS_Sticky))
 	{
 		status->x -= status->viewport_x;
@@ -1895,7 +1917,7 @@ gravitate_position (int pos, unsigned int size, unsigned int scr_size, int grav,
  * parameters:
  ***********************************************************************************/
 char         *
-make_client_command (ScreenInfo * scr, ASHints * hints, ASStatusHints * status, XPoint * anchor, int vx, int vy)
+make_client_command (ScreenInfo * scr, ASHints * hints, ASStatusHints * status, XRectangle * anchor, int vx, int vy)
 {
 	char         *client_cmd = NULL;
 	int           detach_x, detach_y;
@@ -1910,16 +1932,15 @@ make_client_command (ScreenInfo * scr, ASHints * hints, ASStatusHints * status, 
 	if (get_flags (status->flags, AS_StartBorderWidth))
 		bw = status->border_width;
 
-	detach_x = make_detach_pos (hints, status, anchor->x, status->width, vx, True);
-	detach_y = make_detach_pos (hints, status, anchor->y, status->height, vy, False);
+    make_detach_pos (hints, status, &anchor, &detach_x, &detach_y);
 
-	vx = calculate_viewport (&detach_x, status->width, vx, scr->MyDisplayWidth, scr->VxMax);
-	vy = calculate_viewport (&detach_y, status->height, vy, scr->MyDisplayHeight, scr->VyMax);
+    vx = calculate_viewport (&detach_x, anchor->width, vx, scr->MyDisplayWidth, scr->VxMax);
+    vy = calculate_viewport (&detach_y, anchor->height, vy, scr->MyDisplayHeight, scr->VyMax);
 
 	get_gravity_offsets (hints, &grav_x, &grav_y);
 
-	detach_x = gravitate_position (detach_x, status->width, bw, scr->MyDisplayWidth, grav_x);
-	detach_y = gravitate_position (detach_y, status->height, bw, scr->MyDisplayHeight, grav_y);
+    detach_x = gravitate_position (detach_x, anchor->width, bw, scr->MyDisplayWidth, grav_x);
+    detach_y = gravitate_position (detach_y, anchor->height, bw, scr->MyDisplayHeight, grav_y);
 
 	/* supplying everything as : -xrm "afterstep*desk:N" */
 	client_cmd = safemalloc (strlen (hints->client_cmd) + 512 /* large enough */ );
@@ -1927,7 +1948,7 @@ make_client_command (ScreenInfo * scr, ASHints * hints, ASStatusHints * status, 
 			 " -xrm \"afterstep*layer:%d\""
 			 " -xrm \"afterstep*viewportx:%d\" -xrm \"afterstep*viewporty:%d\"",
 			 hints->client_cmd,
-			 status->width, status->height, detach_x, detach_y, status->desktop,
+             anchor->width, anchor->height, detach_x, detach_y, status->desktop,
 			 status->layer, status->viewport_x, status->viewport_y);
 	return client_cmd;
 }

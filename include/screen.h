@@ -243,15 +243,6 @@ typedef struct ScreenInfo
     MyIcon MenuPinOn;
     MyIcon MenuPinOff;
 #endif
-    long next_focus_sequence;	/* keep track of previously focused windows */
-    ASWindow *Hilite;		/* the afterstep window that is highlighted
-				 * except for networking delays, this is the
-				 * window which REALLY has the focus */
-    ASWindow *Focus;		/* Last window which AS gave the focus to
-				   * NOT the window that really has the focus */
-    ASWindow *Ungrabbed;
-    ASWindow *PreviousFocus;	/* Window which had focus before afterstep stole it
-                                 * to do moves/menus/etc. */
 
     int EntryHeight;        /* menu entry height */
     int EdgeScrollX;		/* #pixels to scroll on screen edge */

@@ -52,14 +52,6 @@ extern void Keyboard_shortcuts (XEvent *, int, int);
 //extern void SetupFrame (ASWindow *, int, int, int, int, Bool);
 void CreateGCs (void);
 
-/* colormaps.c : */
-void InstallWindowColormaps (ASWindow *asw);
-void UninstallWindowColormaps (ASWindow *asw);
-void InstallRootColormap (void);
-void UninstallRootColormap (void);
-void InstallAfterStepColormap (void);
-void UninstallAfterStepColormap (void);
-
 extern void init_old_look_variables (Bool);
 extern void merge_old_look_colors (MyStyle *, int, int, char *, char *, char *, char *);
 extern void merge_old_look_variables (void);

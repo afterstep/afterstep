@@ -578,22 +578,21 @@ void raiselower_func_handler( FunctionData *data, ASEvent *event, int module )
 
 void raise_it_func_handler( FunctionData *data, ASEvent *event, int module )
 {
-	activate_window( (ASWindow *) (data->func_val[0]), True, True );
+    activate_aswindow( (ASWindow *) (data->func_val[0]), True, True );
 }
 
 void setlayer_func_handler( FunctionData *data, ASEvent *event, int module )
 {
     register int func = data->func ;
-    ASStatusHints scratch_status ;
+    int layer = 0 ;
 
     if( func == F_PUTONTOP )
-        scratch_status.layer = AS_LayerTop ;
+        layer = AS_LayerTop ;
     else if( func == F_PUTONBACK )
-        scratch_status.layer = AS_LayerBack ;
+        layer = AS_LayerBack ;
     else
-        scratch_status.layer = (func == F_TOGGLELAYER && ASWIN_LAYER(event->client))?data->func_val[1]: data->func_val[0] ;
-    scratch_status.flags = AS_Layer ;
-    change_window_status( event->client, &scratch_status, False );
+        layer = (func == F_TOGGLELAYER && ASWIN_LAYER(event->client))?data->func_val[1]: data->func_val[0] ;
+    change_aswindow_layer( event->client, layer );
 }
 
 void status_func_handler( FunctionData *data, ASEvent *event, int module )
@@ -616,7 +615,7 @@ void status_func_handler( FunctionData *data, ASEvent *event, int module )
 
 void focus_func_handler( FunctionData *data, ASEvent *event, int module )
 {
-    activate_window( event->client, True, False );
+    activate_aswindow( event->client, True, False );
 }
 
 void warp_func_handler( FunctionData *data, ASEvent *event, int module )
@@ -625,7 +624,7 @@ void warp_func_handler( FunctionData *data, ASEvent *event, int module )
 
     if (data->text != NULL )
         if (*(data->text) != '\0')
-            t = pattern2ASWindow (data->text, event->scr->winlist);
+            t = pattern2ASWindow (data->text);
     if( t == NULL )
         t = warp_aswindow_list (event->scr->winlist, (data->func == F_CHANGEWINDOW_DOWN ||
                                        data->func == F_WARP_B), DefaultFeel );

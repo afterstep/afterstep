@@ -51,6 +51,15 @@ static ASBiDirElem *alloc_bidirelem()
 		return safecalloc( 1, sizeof(ASBiDirElem));
 }
 
+static inline ASBiDirElem *
+find_bidirelem( ASBiDirList *l, void *data )
+{
+	ASBiDirElem *elem ;
+    for( elem = l->head ; elem ; elem = elem->next )
+        if( elem->data == data )
+            return elem;
+    return NULL;
+}
 
 ASBiDirList *create_asbidirlist(destroy_list_data_handler destroy_func)
 {
@@ -92,6 +101,24 @@ void destroy_asbidirlist( ASBiDirList **pl )
             free( *pl );
             *pl = NULL ;
         }
+}
+
+void
+iterate_asbidirlist( ASBiDirList *l,
+                     iter_list_data_handler iter_func, void *aux_data,
+                     void *start_from, Bool reverse)
+{
+    if( l && iter_func )
+    {
+        ASBiDirElem *curr = (start_from != NULL)?find_bidirelem( l, start_from ):
+                                                 (reverse?l->tail:l->head);
+        while( curr != NULL )
+        {
+            if( !iter_func( curr->data, aux_data ) )
+                break;
+            curr = reverse?curr->prev:curr->next ;
+        }
+    }
 }
 
 void *
@@ -224,11 +251,6 @@ discard_bidirelem( ASBiDirList *l, void *data )
 {
 	ASBiDirElem *elem ;
 	if( l )
-	{
-		for( elem = l->head ; elem ; elem = elem->next )
-			if( elem->data == data )
-				break ;
-		if( elem )
+        if( (elem = find_bidirelem( l, data ))!=NULL )
 			destroy_bidirelem( l, elem );
-	}
 }

@@ -264,6 +264,24 @@ typedef struct ASWindow
 #define get_window_frame(asw)   (asw->frame)
 
 	struct ASHints       *hints;
+
+    /* Window geometry:
+     *  3 different settings: anchor, status and canvas
+     * 1) anchor reflects anchor point of the client window according
+     *    to its size and gravity and requested position. It is calculated in virtual coordinates
+     *    for non-sticky windows. For example in case of SouthEastGravity anchor.x will be at the
+     *    right edge of the frame, and anchor.y will be at the bottom edge of the frame.
+     * 2) status reflects current size and position of the frame as calculated based upon anchor
+     *    point and frame decorations size. It is always in real screen coordinates.
+     *    status->viewport_x and status->viewport_y reflect viewport position at the time of such
+     *    calculation. Whenever viewport changes - this two must be changed and status recalculated.
+     * 3) canvases reflect window position as reported in last received ConfigureNotify event and
+     *    reflect exact position of window on screen as viewed by user.
+     *
+     * Anchor is needed so we could handle changing size of the frame decorations
+     * status represents desired geometry/state of the window
+     * canvases represent factual geometry/state of the window
+     */
 	struct ASStatusHints *status;
 	struct ASStatusHints *saved_status; /* status prior to maximization */
     XRectangle            anchor ;
@@ -424,10 +442,14 @@ void grab_window_input( ASWindow *asw, Bool release_grab );
 
 void hide_focus();
 Bool focus_aswindow( ASWindow *asw, Bool circulated );
+Bool focus_active_window();
 void focus_next_aswindow( ASWindow *asw );     /* should be called when window is unmapped or destroyed */
 
 void hide_hilite();                            /* unhilites currently highlited window */
 void hilite_aswindow( ASWindow *asw );         /* actually hilites focused window on reception of event */
+void warp_to_aswindow( ASWindow *asw, Bool deiconify );
+Bool activate_aswindow( ASWindow *asw, Bool force, Bool deiconify );
+
 
 void redecorate_window( ASWindow *asw, Bool free_resources );
 void update_window_transparency( ASWindow *asw );
@@ -439,6 +461,8 @@ void on_window_hilite_changed( ASWindow *asw, Bool focused );
 void on_window_pressure_changed( ASWindow *asw, int pressed_context );
 
 Bool iconify_window( ASWindow *asw, Bool iconify );
+Bool make_aswindow_visible( ASWindow *asw, Bool deiconify );
+void change_aswindow_layer( ASWindow *asw, int layer );
 
 void SelectDecor (ASWindow *);
 ASWindow *AddWindow (Window);

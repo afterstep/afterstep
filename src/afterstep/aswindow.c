@@ -68,18 +68,44 @@ init_aswindow_list()
     return list;
 }
 
+struct SaveWindowAuxData
+{
+    char  this_host[MAXHOSTNAME];
+    FILE *f;
+};
+
+Bool
+make_aswindow_cmd_iter_func(void *data, void *aux_data)
+{
+    struct SaveWindowAuxData *swad = (struct SaveWindowAuxData *)aux_data ;
+    ASWindow *asw = (ASWindow*)data ;
+    if( asw && swad )
+    {
+        if( asw->hints->client_host && asw->hints->client_cmd )
+            if( mystrcasecmp( asw->hints->client_host, swad->this_host ) == 0 )
+            {
+                register char *cmd ;
+                if( (cmd = make_client_command( &Scr, asw->hints, asw->status, &(asw->anchor), Scr.Vx, Scr.Vy )) != NULL )
+                {
+                    fprintf( swad->f, "%s &\n", cmd );
+                    free( cmd );
+                }
+            }
+        return True;
+    }
+    return False;
+}
+
 void
 save_aswindow_list( ASWindowList *list, char *file )
 {
     char *realfilename ;
-    char  this_host[MAXHOSTNAME];
-    ASHashIterator iter ;
-    FILE *f;
+    struct SaveWindowAuxData swad ;
 
     if( list == NULL )
         return ;
 
-    if (!mygethostname (this_host, MAXHOSTNAME))
+    if (!mygethostname (swad.this_host, MAXHOSTNAME))
 	{
         show_error ("Could not get HOST environment variable!");
 		return;
@@ -88,30 +114,15 @@ save_aswindow_list( ASWindowList *list, char *file )
     if( (realfilename = PutHome( file )) == NULL )
         return;
 
-    if ( (f = fopen (realfilename, "w+")) == NULL)
+    if ( (swad.f = fopen (realfilename, "w+")) == NULL)
 	{
         free (realfilename);
         show_error( "Unable to save your session into the %s - cannot open file for writing!", file);;
 		return;
 	}
 
-    if( start_hash_iteration ( list->clients, &iter ) )
-        do
-        {
-            register ASWindow *t ;
-            if( (t = curr_hash_data( &iter )) != NULL )
-                if( t->hints->client_host && t->hints->client_cmd )
-                    if( mystrcasecmp( t->hints->client_host, this_host ) == 0 )
-                    {
-                        register char *cmd ;
-                        if( (cmd = make_client_command( t->hints, t->status, &(t->anchor), Scr.Vx, Scr.Vy )) != NULL )
-                        {
-                            fprintf( stderr, "%s &\n", cmd );
-                            free( cmd );
-                        }
-                    }
-        }while( next_hash_item( &iter ) );
-    fclose( f );
+    iterate_asbidirlist( list->clients, make_aswindow_cmd_iter_func, &swad, NULL, False );
+    fclose( swad.f );
 }
 
 void
@@ -121,12 +132,13 @@ destroy_aswindow_list( ASWindowList **list, Bool restore_root )
         if( *list )
         {
             if( restore_root )
-                InstallWindowColormaps ((*list)->root);         /* force reinstall */
+                InstallRootColormap ();
 
             destroy_asvector(&((*list)->sticky_list));
             destroy_asvector(&((*list)->circulate_list));
             destroy_ashash(&((*list)->layers));
-            destroy_ashash(&((*list)->clients));
+            destroy_ashash(&((*list)->aswindow_xref));
+            destroy_asbidirlist( &((*list)->clients ));
             free(*list);
             *list = NULL ;
         }
@@ -291,7 +303,7 @@ delist_aswindow( ASWindow *t )
     if( Scr.Windows == NULL )
         return ;
 
-    discard_bidirelem( Scr.Windows, t );
+    discard_bidirelem( Scr.Windows->clients, t );
 
     /* set desktop for window */
     if( t->w != Scr.Root )
@@ -300,7 +312,7 @@ delist_aswindow( ASWindow *t )
     if( ASWIN_GET_FLAGS(t, AS_Sticky ) )
         vector_remove_elem( Scr.Windows->sticky_list, &t );
 
-    if((l = get_aslayer(ASWIN_LAYER(t), List )) != NULL )
+    if((l = get_aslayer(ASWIN_LAYER(t), Scr.Windows )) != NULL )
         vector_remove_elem( l->members, &t );
 
     if( t->transient_owner != None )
@@ -331,17 +343,17 @@ restack_window_list( int desk )
 
     if( layers == NULL )
         layers = create_asvector( sizeof(ASLayer*) );
-    if( List->layers->items_num > layers->allocated )
-        realloc_vector( layers, List->layers->items_num );
+    if( Scr.Windows->layers->items_num > layers->allocated )
+        realloc_vector( layers, Scr.Windows->layers->items_num );
 
     if( ids == NULL )
         ids = create_asvector( sizeof(Window) );
     else
         flush_vector( ids );
-    if( List->clients->items_num > layers->allocated )
-        realloc_vector( layers, List->clients->items_num );
+    if( Scr.Windows->clients->count > layers->allocated )
+        realloc_vector( layers, Scr.Windows->clients->count );
 
-    if( (layers_in = sort_hash_items (List->layers, NULL, (void**)VECTOR_HEAD_RAW(*layers), 0)) == 0 )
+    if( (layers_in = sort_hash_items (Scr.Windows->layers, NULL, (void**)VECTOR_HEAD_RAW(*layers), 0)) == 0 )
         return ;
     l = VECTOR_HEAD(ASLayer,*layers);
     windows = VECTOR_HEAD(Window,*ids);
@@ -387,7 +399,19 @@ If a sibling and a stack_mode are specified, the window is restacked
 
 /* Checks if rectangle above is at least partially obscuring client below */
 inline Bool
-is_overlaping (ASRectangle * above, ASRectangle *below)
+is_rect_overlaping (ASRectangle * above, ASRectangle *below)
+{
+	if (above == NULL)
+		return False;
+	if (below == NULL)
+		return True;
+
+	return (above->x < below->x + below->width && above->x + above->width > below->x &&
+			above->y < below->y + below->height && above->y + above->height > below->y);
+}
+
+inline Bool
+is_status_overlaping (ASStatusHints * above, ASStatusHints *below)
 {
 	if (above == NULL)
 		return False;
@@ -402,24 +426,17 @@ Bool
 is_window_obscured (ASWindow * above, ASWindow * below)
 {
     ASLayer           *l ;
-    ASRectangle        above_rect ;
-    ASRectangle        below_rect ;
     ASWindow **members ;
 
 	if (above != NULL && below != NULL)
-	{
-        add_decor_size(below->decor, below->status, &below_rect, True);
-        add_decor_size(above->decor, above->status, &above_rect, True);
-        return (is_overlaping (&above_rect, &below_rect));
-	}
+        return is_status_overlaping (above->status, below->status);
 
 	if (above == NULL && below != NULL)
     {/* checking if window "below" is completely obscured by any of the
         windows with the same layer above it in stacking order */
         register int i, end_i ;
 
-        add_decor_size(below->decor, below->status, &below_rect, True);
-        l = get_aslayer( ASWIN_LAYER(below), List );
+        l = get_aslayer( ASWIN_LAYER(below), Scr.Windows );
         end_i = l->members->used ;
         members = VECTOR_HEAD(ASWindow*,*(l->members));
         for (i = 0 ; i < end_i ; i++ )
@@ -428,19 +445,15 @@ is_window_obscured (ASWindow * above, ASWindow * below)
             if( (t = members[i]) == below )
 				return False;
             else if( ASWIN_DESK(t) == ASWIN_DESK(below) )
-			{
-                add_decor_size(t->decor, t->status, &above_rect, True);
-                if (is_overlaping (&above_rect, &below_rect))
+                if (is_status_overlaping (t->status, below->status))
 					return True;
-			}
         }
     }else if (above != NULL )
     {   /* checking if window "above" is completely obscuring any of the
            windows with the same layer below it in stacking order */
         register int i ;
 
-        add_decor_size(above->decor, above->status, &above_rect, True);
-        l = get_aslayer( ASWIN_LAYER(above), List );
+        l = get_aslayer( ASWIN_LAYER(above), Scr.Windows );
         members = VECTOR_HEAD(ASWindow*,*(l->members));
         for (i = VECTOR_USED(*(l->members))-1 ; i >= 0 ; i-- )
         {
@@ -448,11 +461,8 @@ is_window_obscured (ASWindow * above, ASWindow * below)
             if( (t = members[i]) == above )
 				return False;
             else if( ASWIN_DESK(t) == ASWIN_DESK(above) )
-			{
-                add_decor_size(t->decor, t->status, &below_rect, True);
-                if (is_overlaping (&above_rect, &below_rect))
+                if (is_status_overlaping (above->status, t->status) )
 					return True;
-			}
         }
     }
 	return False;
@@ -461,7 +471,7 @@ is_window_obscured (ASWindow * above, ASWindow * below)
 void
 restack_window( ASWindow *t, Window sibling_window, int stack_mode )
 {
-    ASWindow *sibling ;
+    ASWindow *sibling = NULL;
     ASLayer  *dst_layer = NULL, *src_layer ;
     Bool above ;
     int occlusion = OCCLUSION_NONE;
@@ -469,17 +479,17 @@ restack_window( ASWindow *t, Window sibling_window, int stack_mode )
     if( t == NULL )
         return ;
 
-    src_layer = get_aslayer( ASWIN_LAYER(t), List );
+    src_layer = get_aslayer( ASWIN_LAYER(t), Scr.Windows );
 
     if( sibling_window )
-        if( (sibling = window2ASWindow( sibling_window, List )) != NULL )
+        if( (sibling = window2ASWindow( sibling_window )) != NULL )
         {
             if ( sibling->transient_owner == t )
                 sibling = NULL;                    /* can't restack relative to its own transient */
             else if (ASWIN_DESK(sibling) != ASWIN_DESK(t) )
                 sibling = NULL;                    /* can't restack relative to window on the other desk */
             else
-                dst_layer = get_aslayer( ASWIN_LAYER(sibling), List );
+                dst_layer = get_aslayer( ASWIN_LAYER(sibling), Scr.Windows );
         }
 
     if( dst_layer == NULL )

@@ -8,6 +8,10 @@ typedef struct ASBiDirElem
 }ASBiDirElem;
 
 typedef void (*destroy_list_data_handler)( void *data );
+typedef Bool (*iter_list_data_handler)(void *data, void *aux_data); /* returns:
+                                                                     *   True  - continue iteration
+                                                                     *   False - abort iteration
+                                                                     */
 
 typedef struct ASBiDirList
 {
@@ -28,6 +32,9 @@ typedef struct ASBiDirList
 ASBiDirList *create_asbidirlist(destroy_list_data_handler destroy_func);
 void purge_asbidirlist( register ASBiDirList *l );
 void destroy_asbidirlist( ASBiDirList **pl );
+
+void iterate_asbidirlist( ASBiDirList *l, iter_list_data_handler iter_func, void *aux_data,
+                          void *start_from, Bool reverse);
 void *append_bidirelem( ASBiDirList *l, void *data );
 void *prepend_bidirelem( ASBiDirList *l, void *data );
 void *insert_bidirelem_after( ASBiDirList *l, void *data, ASBiDirElem *after );
@@ -35,6 +42,5 @@ void *insert_bidirelem_before( ASBiDirList *l, void *data, ASBiDirElem *before )
 void  pop_bidirelem( ASBiDirList *l, ASBiDirElem *elem );
 void  destroy_bidirelem( ASBiDirList *l, ASBiDirElem *elem );
 void  discard_bidirelem( ASBiDirList *l, void *data );
-
 
 #endif /* #ifndef ASVECTOR_HEADER_FILE_INCLUDED */
