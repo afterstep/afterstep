@@ -815,7 +815,7 @@ LOCAL_DEBUG_OUT( "len = %d", len );
 				c1 += src[i];
 			}
 			{
-				register short S = scales[i];
+				register short S = scales[k];
 				dst[k] = AVERAGE_COLORN(c1,S);
 			}
 		}
@@ -857,6 +857,7 @@ add_component( CARD32 *src, CARD32 *incr, int *scales, int len )
 	int i = 0;
 
 	len += len&0x01;
+#if 1	
 #ifdef HAVE_MMX
 	if( asimage_use_mmx )
 	{
@@ -874,6 +875,7 @@ add_component( CARD32 *src, CARD32 *incr, int *scales, int len )
 	        );
 		}while( ++i < len );
 	}else
+#endif
 #endif
 	{
 		register int c1, c2;
@@ -922,8 +924,8 @@ divide_component( register CARD32 *src, register CARD32 *dst, CARD16 ratio, int 
 		}else
 #endif
 			do{
-				dst[i] = src[i]>>1;
-				dst[i+1] = src[i+1]>>1;
+				dst[i] = src[i] >> 1;
+				dst[i+1] = src[i+1]>> 1;
 				i += 2 ;
 			}while( i < len );
 	}else
@@ -979,7 +981,7 @@ fast_output_filter( register CARD32 *src, register CARD32 *dst, short ratio, int
 		register int c = src[0];
   	    do
 		{
-			if( c&0xFFFF0000 )
+			if( (c&0xFFFF0000)!= 0 )
 				c = ( c&0x7F000000 )?0:0x0000FFFF;
 			dst[i] = c>>(QUANT_ERR_BITS) ;
 			if( ++i >= len )
@@ -991,10 +993,9 @@ fast_output_filter( register CARD32 *src, register CARD32 *dst, short ratio, int
 		register CARD32 c = src[0];
   	    do
 		{
-			if( c&0xFFFF0000 )
-				c = ( c&0x7F000000 )?0:0x00007FFF;
-			else
-				c = c>>1 ;
+			c = c>>1 ;
+			if( (c&0xFFFF0000) != 0 )
+				c = ( c&0x7F000000 )?0:0x0000FFFF;
 			dst[i] = c>>(QUANT_ERR_BITS) ;
 			if( ++i >= len )
 				break;
@@ -1005,10 +1006,9 @@ fast_output_filter( register CARD32 *src, register CARD32 *dst, short ratio, int
 		register CARD32 c = src[0];
   	    do
 		{
+			c = c/ratio ;
 			if( c&0xFFFF0000 )
 				c = ( c&0x7F000000 )?0:0x0000FFFF;
-
-			c = c/ratio ;
 			dst[i] = c>>(QUANT_ERR_BITS) ;
 			if( ++i >= len )
 				break;
