@@ -52,15 +52,15 @@
 /* new IconBox handling :                                              */
 /***********************************************************************/
 
-void 
+void
 destroy_asiconbox( ASIconBox **pib )
 {
 	if( pib && *pib)
 	{
 		register ASIconBox *ib = *pib ;
-		if( ib->areas ) 
+		if( ib->areas )
 			free( ib->areas );
-		if( ib->icons ) 
+		if( ib->icons )
 			destroy_asbidirlist( &ib->areas );
 		free( ib );
 	  	*pib = NULL ;
@@ -79,28 +79,23 @@ get_iconbox( int desktop )
 			if( Scr.icon_boxes )
 				if( get_hash_item( Scr.icon_boxes, AS_HASHABLE(desktop), &ib ) != ASH_Success )
 					ib = NULL ;
-		if( ib == NULL ) 
+		if( ib == NULL )
 		{
-			ib = safecalloc( 1, sizeof( ASIconBox ));					
-			if( Scr.configured_icon_areas_num == 0 || Scr.configured_icon_areas == NULL ) 
+			ib = safecalloc( 1, sizeof( ASIconBox ));
+			if( Scr.configured_icon_areas_num == 0 || Scr.configured_icon_areas == NULL )
 			{
 				ib->areas_num = 1 ;
-				ib->areas = safecalloc( 1, sizeof(XRectangle) );
+                ib->areas = safecalloc( 1, sizeof(ASGeometry) );
 				ib->areas->width = Scr.MyDisplayWidth ;
 				ib->areas->height = Scr.MyDisplayHeight ;
 			}else
-			{	
+			{
 				register int i = Scr.configured_icon_areas_num ;
 				ib->areas_num = i ;
-				ib->areas = safecalloc( ib->areas_num, sizeof(XRectangle) );
+                ib->areas = safecalloc( ib->areas_num, sizeof(ASGeometry) );
 				while( --i >= 0 )
-				{
-					ib->areas[i].x     = Scr.configured_icon_areas[i].x     ;
-					ib->areas[i].y     = Scr.configured_icon_areas[i].y     ;
-					ib->areas[i].width = Scr.configured_icon_areas[i].width ;
-					ib->areas[i].height= Scr.configured_icon_areas[i].height;
-				}
-			}				
+                    ib->areas[i] = Scr.configured_icon_areas[i];
+			}
 			ib->icons = create_asbidirlist( NULL );
 			if( get_flags(Scr.flags, StickyIcons) )
 				Scr.default_icon_box = ib ;
@@ -108,7 +103,7 @@ get_iconbox( int desktop )
 			{
 				if( Scr.icon_boxes == NULL )
 					Scr.icon_boxes = create_ashash( 3, NULL, NULL, NULL );
-				
+
 				if( add_hash_item( Scr.icon_boxes, AS_HASHABLE(desktop), &ib ) != ASH_Success )
 					destroy_asiconbox( &ib );
 			}
@@ -193,7 +188,7 @@ UpdateIconShape (ASWindow * tmp_win)
 #endif /* !NO_TEXTURE */
 
 	/* add titlebar, if necessary */
-	if (!(Textures.flags & SeparateButtonTitle) && (Scr.flags & IconTitle) &&
+    if (!(Scr.look_flags & SeparateButtonTitle) && (Scr.flags & IconTitle) &&
 		 ASWIN_HFLAGS(tmp_win, AS_IconTitle))
 	{
 		rect.x = tmp_win->icon_t_x;
@@ -251,7 +246,7 @@ ResizeIconWindow (ASWindow * tmp_win)
 	/* take care of icon title */
 	if ((Scr.flags & IconTitle) && ASWIN_HFLAGS(tmp_win, AS_IconTitle))
 	{
-		if (Textures.flags & SeparateButtonTitle)
+        if (Scr.look_flags & SeparateButtonTitle)
 		{
 			tmp_win->icon_t_x = 0;
 			tmp_win->icon_t_y = 0;
@@ -270,7 +265,7 @@ ResizeIconWindow (ASWindow * tmp_win)
 
 	/* if the icon is ours, add a border around it */
 	if ((tmp_win->flags & ICON_OURS) && (tmp_win->icon_p_height > 0) &&
-		!(Textures.flags & IconNoBorder))
+        !(Scr.look_flags & IconNoBorder))
 	{
 		tmp_win->icon_p_width += 4;
 		tmp_win->icon_p_height += 4;
@@ -279,7 +274,7 @@ ResizeIconWindow (ASWindow * tmp_win)
 
 		/* title goes inside the border */
 		if ((Scr.flags & IconTitle) && ASWIN_HFLAGS(tmp_win, AS_IconTitle) &&
-			!(Textures.flags & SeparateButtonTitle))
+            !(Scr.look_flags & SeparateButtonTitle))
 		{
 			tmp_win->icon_t_x = 2;
 			tmp_win->icon_t_y = 2;
@@ -291,7 +286,7 @@ ResizeIconWindow (ASWindow * tmp_win)
 	{
 		/* title goes inside the border */
 		if ((Scr.flags & IconTitle) && ASWIN_HFLAGS(tmp_win, AS_IconTitle) &&
-			!(Textures.flags & SeparateButtonTitle))
+            !(Scr.look_flags & SeparateButtonTitle))
 			tmp_win->icon_t_width -= tmp_win->icon_p_width - Scr.ButtonWidth;
 		tmp_win->icon_pm_x -= (tmp_win->icon_p_width - Scr.ButtonWidth) / 2;
 		tmp_win->icon_p_width = Scr.ButtonWidth;
@@ -335,7 +330,7 @@ CreateIconWindow (ASWindow * tmp_win)
 	attributes.event_mask = AS_ICON_TITLE_EVENT_MASK;
 
 	destroy_icon_windows( tmp_win );
-	if ((Textures.flags & SeparateButtonTitle) && (Scr.flags & IconTitle) &&
+    if ((Scr.look_flags & SeparateButtonTitle) && (Scr.flags & IconTitle) &&
 		ASWIN_HFLAGS(tmp_win, AS_IconTitle))
 	{
 		tmp_win->icon_title_w =
@@ -448,12 +443,12 @@ DrawIconWindow (ASWindow * win)
 		}
 
 		/* draw the relief */
-		if (!(win->flags & SHAPED_ICON) && !(Textures.flags & IconNoBorder))
+        if (!(win->flags & SHAPED_ICON) && !(Scr.look_flags & IconNoBorder))
 			RelieveWindow (win, win->icon_pixmap_w, 0, 0,
 						   win->icon_p_width, win->icon_p_height, Relief, Shadow, FULL_HILITE);
 
 		/* draw the title text, if necessary */
-		if (!(Textures.flags & SeparateButtonTitle) && (Scr.flags & IconTitle) &&
+        if (!(Scr.look_flags & SeparateButtonTitle) && (Scr.flags & IconTitle) &&
 			  ASWIN_HFLAGS(win, AS_IconTitle))
 		{
 			int           x, y, w, h;
@@ -753,7 +748,7 @@ Iconify (ASWindow * tmp_win)
 		{
 			iconify_window( t, True );
 		}
-	}		
+	}
 }
 
 /****************************************************************************

@@ -595,8 +595,8 @@ ExecuteFunction (FunctionCode func, char *action, Window in_w, ASWindow * tmp_wi
 		 break;
 
 	 case F_QUIT:
-		 Done (0, NULL);
-		 break;
+        Done (0, NULL);
+        break;
 
 #ifndef NO_WINDOWLIST
 	 case F_WINDOWLIST:

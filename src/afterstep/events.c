@@ -540,7 +540,7 @@ HandlePropertyNotify ()
 			else
 			{
 				DrawIconWindow (Tmp_win);
-				if (Textures.flags & SeparateButtonTitle)
+                if (Scr.look_flags & SeparateButtonTitle)
 					RedoIconName (Tmp_win);
 			}
 		}

@@ -49,7 +49,7 @@ get_window_geometry (ASWindow * t, int flags, int *x, int *y, int *w, int *h)
 			tw = t->icon_p_width;
 			th = t->icon_p_height;
 			if ((Scr.flags & IconTitle) && ASWIN_HFLAGS(t, AS_IconTitle) &&
-				(Textures.flags & SeparateButtonTitle))
+                (Scr.look_flags & SeparateButtonTitle))
 				th += t->icon_t_height;
 			tx = t->icon_p_x;
 			ty = t->icon_p_y;
@@ -133,19 +133,19 @@ SmartPlacement (ASWindow * t, int *x, int *y, int width, int height, int rx, int
 				if (ASWIN_DESK(twin) != ASWIN_DESK(t) || twin == t)
 					continue;
 
-				/* ignore non-iconified windows, if we're iconified and not using 
+				/* ignore non-iconified windows, if we're iconified and not using
 				 * StubbornIconPlacement */
 				if (!(twin->flags & ICONIFIED) && (t->flags & ICONIFIED) &&
 					!(Scr.flags & StubbornIconPlacement))
 					continue;
 
-				/* ignore iconified windows, if we're not iconified and not using 
+				/* ignore iconified windows, if we're not iconified and not using
 				 * StubbornPlacement */
 				if ((twin->flags & ICONIFIED) && !(t->flags & ICONIFIED) &&
 					!(Scr.flags & StubbornPlacement))
 					continue;
 
-				/* ignore a window on a lower layer, unless it's an AvoidCover 
+				/* ignore a window on a lower layer, unless it's an AvoidCover
 				 * window or instructed to pay attention to it (ie, pass == 0) */
 				if (!(twin->flags & ICONIFIED) && ASWIN_LAYER(twin) < ASWIN_LAYER(t) &&
 					!ASWIN_HFLAGS(twin, AS_AvoidCover) && pass)
@@ -175,7 +175,7 @@ SmartPlacement (ASWindow * t, int *x, int *y, int width, int height, int rx, int
 
 void place_aswindow( ASWindow *t, ASStatusHints *status )
 {
-#warning "Implement proper manuall placing of windows"  
+#warning "Implement proper manuall placing of windows"
 	return ;
 }
 

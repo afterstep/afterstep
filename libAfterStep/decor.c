@@ -73,7 +73,7 @@ refresh_canvas_config (ASCanvas * pc)
 				XFreePixmap (dpy, pc->canvas);
 				pc->canvas = None;
 			}
-			if (pc->mask)
+            if (pc->mask && !get_flags( pc->state, CANVAS_CONTAINER ))
 			{
 				XFreePixmap (dpy, pc->mask);
 				pc->mask = None;
@@ -91,6 +91,8 @@ get_canvas_canvas (ASCanvas * pc)
 {
 	if (pc == NULL)
 		return None;
+    if( get_flags( pc->state, CANVAS_CONTAINER ) )
+        return None;
 	if (pc->canvas == None)
 	{
 		pc->canvas = create_visual_pixmap (Scr.asv, Scr.Root, pc->width, pc->height, 0);
@@ -105,7 +107,7 @@ get_canvas_mask (ASCanvas * pc)
 	if (pc == NULL)
 		return None;
 
-	if (pc->mask == None)
+    if (pc->mask == None && !get_flags( pc->state, CANVAS_CONTAINER ))
 	{
 		pc->mask = create_visual_pixmap (Scr.asv, Scr.Root, pc->width, pc->height, 1);
 		if (pc->mask)
@@ -140,6 +142,21 @@ create_ascanvas (Window w)
 	return pc;
 }
 
+ASCanvas     *
+create_ascanvas_container (Window w)
+{
+	ASCanvas     *pc = NULL;
+
+	if (w)
+	{
+		pc = safecalloc (1, sizeof (ASCanvas));
+		pc->w = w;
+        pc->flags = CANVAS_CONTAINER ;
+		refresh_canvas_config (pc);
+	}
+	return pc;
+}
+
 void
 destroy_ascanvas (ASCanvas ** pcanvas)
 {
@@ -151,7 +168,7 @@ destroy_ascanvas (ASCanvas ** pcanvas)
 		{
 			if (pc->canvas)
 				XFreePixmap (dpy, pc->canvas);
-			if (pc->mask)
+            if (pc->mask && !get_flags( pc->state, CANVAS_CONTAINER ))
 				XFreePixmap (dpy, pc->mask);
 			memset (pc, 0x00, sizeof (ASCanvas));
 			free (pc);
@@ -232,7 +249,7 @@ draw_canvas_mask (ASCanvas * pc, ASImage * im, int x, int y)
 	if (im == NULL || pc == NULL)
 		return False;
 
-	if ((mask = get_canvas_mask (pc)) == None)
+    if ((mask = get_canvas_mask (pc)) == None || get_flags( pc->state, CANVAS_CONTAINER ))
 		return False;
 
 	if (!make_canvas_rectangle (pc, im, x, y, &real_x, &real_y, &width, &height))
@@ -252,7 +269,7 @@ fill_canvas_mask (ASCanvas * pc, int win_x, int win_y, int width, int height, in
 	int           real_x, real_y;
 	int           real_width, real_height;
 
-	if (pc->mask != None)
+    if (pc->mask != None && !get_flags( pc->state, CANVAS_CONTAINER ))
 	{
 		real_x = MAX (win_x, 0);
 		real_y = MAX (win_y, 0);
@@ -272,7 +289,7 @@ fill_canvas_mask (ASCanvas * pc, int win_x, int win_y, int width, int height, in
 void
 update_canvas_display (ASCanvas * pc)
 {
-	if (pc && pc->w != None)
+    if (pc && pc->w != None && !get_flags( pc->state, CANVAS_CONTAINER ))
 	{
 		if (pc->canvas)
 		{
@@ -298,7 +315,7 @@ resize_canvas (ASCanvas * pc, unsigned int width, unsigned int height)
 {
 	/* Setting background to None to avoid background pixmap tiling
 	 * while resizing */
-	if (pc->width < width || pc->height < height)
+    if ((pc->width < width || pc->height < height) && !get_flags( pc->state, CANVAS_CONTAINER ))
 		XSetWindowBackgroundPixmap (dpy, pc->w, None);
 	XResizeWindow (dpy, pc->w, width, height);
 }
@@ -308,7 +325,7 @@ moveresize_canvas (ASCanvas * pc, int x, int y, unsigned int width, unsigned int
 {
 	/* Setting background to None to avoid background pixmap tiling
 	 * while resizing */
-	if (pc->width < width || pc->height < height)
+    if ((pc->width < width || pc->height < height) && !get_flags( pc->state, CANVAS_CONTAINER ))
 		XSetWindowBackgroundPixmap (dpy, pc->w, None);
     XMoveResizeWindow (dpy, pc->w, x, y, width, height);
 }

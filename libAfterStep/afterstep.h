@@ -204,20 +204,19 @@ struct ASTBarData;
 									 EnterWindowMask 	| \
 									 LeaveWindowMask 	| \
 									 StructureNotifyMask)
-		
+
 #define AS_ICON_TITLE_EVENT_MASK 	(ButtonPressMask 	| \
                                      ButtonReleaseMask 	| \
 									 EnterWindowMask 	| \
-									 ExposureMask 		| \
 									 FocusChangeMask 	| \
 									 KeyPressMask )
-								  				  
+
 #define AS_ICON_EVENT_MASK 	 		(ButtonPressMask 	| \
 									 ButtonReleaseMask 	| \
 									 EnterWindowMask 	| \
 									 FocusChangeMask 	| \
 								     KeyPressMask 		| \
-									 LeaveWindowMask)							  
+									 LeaveWindowMask)
 
 /* for each window that is on the display, one of these structures
  * is allocated and linked into a list
@@ -226,7 +225,9 @@ typedef struct ASWindow
   {
     struct ASWindow *next;	/* next afterstep window */
     struct ASWindow *prev;	/* prev afterstep window */
-    Window w;			/* the child window */
+
+    Window           w;     /* the child window */
+    Window           frame; /* the frame window */
 
 	struct ASHints       *hints;
 	struct ASStatusHints *status;
@@ -269,16 +270,17 @@ typedef struct ASWindow
 		  Canvasses surround main window and its sizes are actually the frame size.
 	 */
 
-    Window 			   frame;		/* the frame window */
-    struct ASCanvas   *frame_canvas[FRAME_SIDES] ;
-	struct ASTBarData *tbar ;
-	struct ASTBarData *frame_bars[FRAME_PARTS] ; /* regular sidebar is the same as frame with S, SE and SW parts */
-	struct MyFrame 	  *frame_data;  /* currently selected frame decorations for this window */
-
-	struct ASCanvas   *icon_canvas ;
+    struct ASCanvas   *frame_canvas ;
+    struct ASCanvas   *client_canvas ;
+    struct ASCanvas   *frame_sides[FRAME_SIDES] ;
+    struct ASCanvas   *icon_canvas ;
 	struct ASCanvas   *icon_title_canvas ; /* same as icon_canvas if !SeparateButtonTitle */
 
-	struct ASTBarData *icon_button ;
+    struct MyFrame    *frame_data;  /* currently selected frame decorations for this window */
+
+    struct ASTBarData *tbar ;
+	struct ASTBarData *frame_bars[FRAME_PARTS] ; /* regular sidebar is the same as frame with S, SE and SW parts */
+    struct ASTBarData *icon_button ;
 	struct ASTBarData *icon_title ;
 
 	/********************************************************************/
@@ -333,34 +335,6 @@ Bool iconify_window( ASWindow *asw, Bool iconify );
 
 #define TITLE_OLD		0	/* old (NEXTSTEP 3) style titlebar */
 #define TITLE_NEXT4		1	/* NEXTSTEP 4 style titlebar */
-
-enum				/* look file flags, used in TextureInfo */
-  {
-    TexturedHandle = (1 << 0),
-    TitlebarNoPush = (1 << 1),
-    IconNoBorder = (1 << 3),
-    SeparateButtonTitle = (1 << 4)	/* icon title is a separate window */
-  };
-
-typedef struct
-  {
-    int Tfrom[3], Tto[3];	/* title bar rgb colors */
-    int Ifrom[3], Ito[3];	/* menu item rgb colors */
-    int Hfrom[3], Hto[3];	/* menu item hilite rgb colors */
-    int Mfrom[3], Mto[3];	/* menu title rgb colors */
-    int Ufrom[3], Uto[3];	/* unfocused item rgb colors */
-    int Sfrom[3], Sto[3];	/* unfoc. sticky titlebar */
-    int Tmaxcols, Imaxcols;	/* number of colors reserved */
-    int Umaxcols, Mmaxcols;
-    int Smaxcols, Hmaxcols;
-    int Ttype, Itype, Utype;	/* texture type */
-    int Htype;
-    int Mtype, Stype;		/* sticky texture type */
-    unsigned long flags;	/* misc. flags */
-    int TGfrom[3], TGto[3];	/* gradient for the title text */
-  }
-TextureInfo;
-extern TextureInfo Textures;
 
 /***************************************************************************
  * window flags definitions

@@ -1,9 +1,9 @@
 
 /****************************************************************************
- * This module is based on Twm, but has been SIGNIFICANTLY modified 
+ * This module is based on Twm, but has been SIGNIFICANTLY modified
  * Copyright (c) 2002 Sasha Vasko <sasha@aftercode.net>
  * Copyright (c) 1998, 1999 Ethan Fischer <allanon@crystaltokyo.com>
- * by Rob Nation 
+ * by Rob Nation
  * by Bo Yang
  * by Frank Fejes
  *****************************************************************************/
@@ -78,9 +78,9 @@ extern char  *TextTextureStyle;
 
 
 /**************************************************************
- * 
- * Sets the window background to the correct texture 
- * 
+ *
+ * Sets the window background to the correct texture
+ *
  **************************************************************/
 #define STATE_FOCUSED	0
 #define STATE_UNFOCUSED 1
@@ -122,14 +122,14 @@ SetBackgroundTexture (ASWindow * t, Window win, MyStyle * style, Pixmap cache)
 
 	if (need_to_free_cache)
 	{
-		/* don't change the window background, or the result will be whatever 
+		/* don't change the window background, or the result will be whatever
 		 * the background is changed to here */
 		XFreePixmap (dpy, cache);
 	}
 }
 
 /************************************************
- *                                              * 
+ *                                              *
  * a more general version of SetTitleBackground *
  * to set the background of the icon title      *
  *                                              *
@@ -152,9 +152,9 @@ SetBackground (ASWindow * t, Window win)
 }
 
 /************************************************************************
- * 
+ *
  * Sets the window borders to the correct background
- * 
+ *
  **********************************************************************/
 int
 SetTitleBackground (ASWindow * t, Bool focused)
@@ -234,10 +234,10 @@ void
 draw_button (ASWindow * t, Window w, int index, GC DrawGC, GC ReliefGC, GC ShadowGC)
 {
 	MyIcon *icon = (PressedW != w)?&(Scr.buttons[index].unpressed):&(Scr.buttons[index].pressed) ;
-	if( icon->image == NULL ) 
-		icon = (PressedW == w)?&(Scr.buttons[index].unpressed):&(Scr.buttons[index].pressed) ;		
+	if( icon->image == NULL )
+		icon = (PressedW == w)?&(Scr.buttons[index].unpressed):&(Scr.buttons[index].pressed) ;
 
-	if( icon->image != NULL ) 			
+	if( icon->image != NULL )
 	{
 		if (PressedW != w)
 			RelieveWindow (t, w, 0, 0, icon->width, icon->height, ReliefGC, ShadowGC, BOTTOM_HILITE | RIGHT_HILITE);
@@ -414,7 +414,7 @@ SetTitleBar (ASWindow * t, Bool is_focus, Bool NewTitle)
 	mystyle_get_global_gcs (style, &DrawGC, NULL, &ReliefGC, &ShadowGC);
 
 #ifndef NO_TEXTURE
-	if (!(Textures.flags & TitlebarNoPush))
+    if (!(Scr.look_flags & TitlebarNoPush))
 #endif /* NO_TEXTURE */
 
 		if (PressedW == t->title_w)
@@ -517,7 +517,7 @@ SetTitleBar (ASWindow * t, Bool is_focus, Bool NewTitle)
 
 		type = SetTitleBackground (t, is_focus);
 
-		if (!(Textures.flags & TitlebarNoPush) || (type == 0) || (type == TEXTURE_PIXMAP))
+        if (!(Scr.look_flags & TitlebarNoPush) || (type == 0) || (type == TEXTURE_PIXMAP))
 		{
 			RelieveWindow (t, t->title_w, 0, 0, t->bp_width, t->bp_height + 1,
 						   ReliefGC, ShadowGC, BOTTOM_HILITE | RIGHT_HILITE);

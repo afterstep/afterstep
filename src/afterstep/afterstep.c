@@ -89,8 +89,6 @@
 struct ASDatabase    *Database = NULL;
 
 
-TextureInfo   Textures;						   /* texture information */
-
 char         *MyName;						   /* name are we known by */
 
 ScreenInfo    Scr;							   /* structures for the screen */
@@ -1045,6 +1043,9 @@ SigDone (int nonsense)
 void
 Done (int restart, char *command)
 {
+    set_flags( Scr.state, AS_StateShutdown );
+    if( restart )
+        set_flags( Scr.state, AS_StateRestarting );
 #ifndef NO_VIRTUAL
 	MoveViewport (0, 0, False);
 #endif

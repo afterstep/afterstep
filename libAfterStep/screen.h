@@ -67,6 +67,14 @@ PanFrame;
 
 #endif
 
+enum                /* look file flags, used in Scr.look_flags */
+  {
+    TexturedHandle = (1 << 0),
+    TitlebarNoPush = (1 << 1),
+    IconNoBorder = (1 << 3),
+    SeparateButtonTitle = (1 << 4)	/* icon title is a separate window */
+  };
+
 /* for the flags value - these used to be separate Bool's */
 enum				/* feel file flags */
   {
@@ -97,8 +105,14 @@ enum				/* feel file flags */
     MWMFunctionHints = (1 << 24),
     MWMDecorHints = (1 << 25),
     MWMHintOverride = (1 << 26),
-    FollowTitleChanges = (1 << 27)
+    FollowTitleChanges = (1 << 27),
   };
+
+typedef enum
+{
+    AS_StateShutdown   = (0x01<<0),
+    AS_StateRestarting = (0x01<<1)
+}ASScreenStateFlags ;
 
 typedef struct fr_sz
   {
@@ -124,17 +138,17 @@ typedef struct ASDesktop
 typedef struct ASIconBox
 {
 	int desktop ;
-	XRectangle *areas ;
+    ASGeometry *areas ;
 	unsigned short areas_num ;
 	ASBiDirList *icons ;
-};	
-	
+};
+
 
 typedef struct ScreenInfo
   {
-
+    ASFlagType    state ;   /* shutting down, restarting, etc. */
     unsigned long screen;
-    int d_depth;		/* copy of DefaultDepth(dpy, screen) */
+    int d_depth;            /* copy of DefaultDepth(dpy, screen) */
     int NumberOfScreens;	/* number of screens on display */
     int MyDisplayWidth;		/* my copy of DisplayWidth(dpy, screen) */
     int MyDisplayHeight;	/* my copy of DisplayHeight(dpy, screen) */
@@ -144,14 +158,14 @@ typedef struct ScreenInfo
 
     ASWindow ASRoot;		/* the head of the afterstep window list */
     struct ASHashTable *aswindow_xref;         /* xreference of window/resource IDs to ASWindow structures */
-	
+
 	struct ASHashTable *desktops ;   /* hashed by desk no - we create new one when client is added */
-	
-	XRectangle *configured_icon_areas ;
+
+    ASGeometry *configured_icon_areas ;
 	unsigned int configured_icon_areas_num ;
 	struct ASIconBox   *default_icon_box ; /* if we have icons following desktops - then we only need one icon box */
 	struct ASHashTable *icon_boxes ; /* hashed by desk no - one icon box per desktop ! */
-	 
+
 
     Window Root;		/* the root window */
     Window SizeWindow;		/* the resize dimensions window */
@@ -246,10 +260,9 @@ typedef struct ScreenInfo
     unsigned int nonlock_mods;	/* a mask for non-locking modifiers */
     unsigned int *lock_mods;	/* all combinations of lock modifier masks */
     unsigned char buttons2grab;	/* buttons to grab in click to focus mode */
-    unsigned long flags;	/* feel file flags */
-    int IconBoxes[MAX_BOXES][4];
-    int NumBoxes;
-    int randomx;		/* values used for randomPlacement */
+    ASFlagType flags;    /* feel file flags and state */
+    ASFlagType look_flags;
+    int randomx;        /* values used for randomPlacement */
     int randomy;
     unsigned VScale;		/* Panner scale factor */
 

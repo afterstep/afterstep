@@ -270,8 +270,8 @@ struct config main_config[] = {
 	{"TitlePixmap", assign_string, &TPixmap, (int *)0},	/* foc tit */
 	{"UTitlePixmap", assign_string, &UPixmap, (int *)0},	/* unfoc tit */
 	{"STitlePixmap", assign_string, &SPixmap, (int *)0},	/* stick tit */
-	{"TexturedHandle", SetFlag2, (char **)TexturedHandle, (int *)&Textures.flags},
-	{"TitlebarNoPush", SetFlag2, (char **)TitlebarNoPush, (int *)&Textures.flags},
+    {"TexturedHandle", SetFlag2, (char **)TexturedHandle, (int *)&Scr.look_flags},
+    {"TitlebarNoPush", SetFlag2, (char **)TitlebarNoPush, (int *)&Scr.look_flags},
 
 	/* these are obsolete : */
 	{"TextGradientColor", text_gradient_obsolete, (char **)NULL, (int *)0},	/* title text */
@@ -284,7 +284,7 @@ struct config main_config[] = {
 	{"ButtonTextureColor", assign_string, &IconTexColor, (int *)0},
 	{"ButtonMaxColors", SetInts, (char **)&IconMaxColors, &dummy},
 	{"ButtonPixmap", assign_string, &IconPixmapFile, (int *)0},
-	{"ButtonNoBorder", SetFlag2, (char **)IconNoBorder, (int *)&Textures.flags},
+    {"ButtonNoBorder", SetFlag2, (char **)IconNoBorder, (int *)&Scr.look_flags},
 	{"TextureMenuItemsIndividually", SetInts, (char **)&TextureMenuItemsIndividually,
 	 (int *)&dummy},
 	{"MenuMiniPixmaps", SetInts, (char **)&MenuMiniPixmaps, &dummy},
@@ -307,7 +307,7 @@ struct config main_config[] = {
 	{"StartMenuSortMode", SetInts, (char **)&StartMenuSortMode, (int *)&dummy},
 	{"DrawMenuBorders", SetInts, (char **)&DrawMenuBorders, (int *)&dummy},
 	{"ButtonSize", SetInts, (char **)&Scr.ButtonWidth, (int *)&Scr.ButtonHeight},
-	{"SeparateButtonTitle", SetFlag2, (char **)SeparateButtonTitle, (int *)&Textures.flags},
+    {"SeparateButtonTitle", SetFlag2, (char **)SeparateButtonTitle, (int *)&Scr.look_flags},
 	{"RubberBand", SetInts, (char **)&RubberBand, &dummy},
 	{"DefaultStyle", mystyle_parse_set_style, (char **)&Scr.MSDefault, NULL},
 	{"FWindowStyle", mystyle_parse_set_style, (char **)&Scr.MSFWindow, NULL},
@@ -1057,7 +1057,7 @@ InitLook (Bool free_resources)
 	RubberBand = 0;
 	DrawMenuBorders = 1;
 	TextureMenuItemsIndividually = 1;
-	Textures.flags = SeparateButtonTitle;
+    Scr.look_flags = SeparateButtonTitle;
 	MenuMiniPixmaps = 0;
 	Scr.NumBoxes = 0;
 }
@@ -1996,15 +1996,10 @@ SetButtonList (char *text, FILE * fd, char **arg1, int *arg2)
 void
 SetBox (char *text, FILE * fd, char **arg, int *junk)
 {
-	int           x1, y1, x2, y2, num;
+    int x1 = 0, y1 = 0, x2 = Scr.MyDisplayWidth, y2 = Scr.MyDisplayHeight ;
+    int num;
 
-	if (Scr.NumBoxes >= MAX_BOXES)
-	{
-		fprintf (stderr, "too many IconBoxes (max is %d)\n", MAX_BOXES);
-		return;
-	}
-
-	/* Standard X11 geometry string */
+    /* not a standard X11 geometry string :*/
 	num = sscanf (text, "%d%d%d%d", &x1, &y1, &x2, &y2);
 
 	/* check for negative locations */
@@ -2018,18 +2013,26 @@ SetBox (char *text, FILE * fd, char **arg, int *junk)
 	if (y2 < 0)
 		y2 += Scr.MyDisplayHeight;
 
-	if (num < 4 || x1 >= x2 || y1 >= y2 ||
+    if (x1 >= x2 || y1 >= y2 ||
 		x1 < 0 || x1 > Scr.MyDisplayWidth || x2 < 0 || x2 > Scr.MyDisplayWidth ||
 		y1 < 0 || y1 > Scr.MyDisplayHeight || y2 < 0 || y2 > Scr.MyDisplayHeight)
-		fprintf (stderr, "invalid IconBox '%s'\n", text);
-	else
+    {
+        show_error("invalid IconBox '%s'", text);
+    }else
 	{
-		Scr.IconBoxes[Scr.NumBoxes][0] = x1;
-		Scr.IconBoxes[Scr.NumBoxes][1] = y1;
-		Scr.IconBoxes[Scr.NumBoxes][2] = x2;
-		Scr.IconBoxes[Scr.NumBoxes][3] = y2;
-		Scr.NumBoxes++;
-	}
+        int box_no = Scr.configured_icon_areas_num;
+        Scr.configured_icon_areas = realloc( Scr.configured_icon_areas, (box_no+1)*sizeof(ASGeometry));
+        Scr.configured_icon_areas[box_no].x = x1 ;
+        Scr.configured_icon_areas[box_no].y = y1 ;
+        Scr.configured_icon_areas[box_no].width = x2-x1 ;
+        Scr.configured_icon_areas[box_no].height = y2-y1 ;
+        Scr.configured_icon_areas[box_no].flags = XValue|YValue|WidthValue|HeightValue ;
+        if( x1 > Scr.MyDisplayWidth-x2 )
+            Scr.configured_icon_areas[box_no].flags |= XNegative ;
+        if( y1 > Scr.MyDisplayHeight-y2 )
+            Scr.configured_icon_areas[box_no].flags |= YNegative ;
+        ++Scr.configured_icon_areas_num;
+    }
 }
 
 /****************************************************************************

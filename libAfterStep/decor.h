@@ -13,7 +13,12 @@ typedef struct ASCanvas
 #define CANVAS_DIRTY				(0x01<<0)
 #define CANVAS_OUT_OF_SYNC			(0x01<<1)
 #define CANVAS_MASK_OUT_OF_SYNC		(0x01<<2)
-	ASFlagType	state ;
+
+/* these are not really a states but rather flags : */
+#define CANVAS_CONTAINER            (0x01<<16) /* user drawn - should not maintain our canvas Pixmap,
+                                                * also should monitor chnages in user defined shape,
+                                                * and update mask pixmap accordingly */
+    ASFlagType  state ;
 	Window w;
 	int root_x, root_y;
 	unsigned int width, height ;
@@ -134,6 +139,8 @@ extern int    _as_frame_corner_xref[FRAME_SIDES+1];
 #define RightCorner(side)   _as_frame_corner_xref[(side)+1]
 
 ASCanvas* create_ascanvas(Window w);
+ASCanvas*create_ascanvas_container (Window w);
+
 void destroy_ascanvas( ASCanvas **pcanvas );
 Bool handle_canvas_config( ASCanvas *canvas ); /* Returns True if moved/resized */
 Pixmap get_canvas_canvas( ASCanvas *pc );
