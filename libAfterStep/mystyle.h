@@ -152,6 +152,7 @@ enum				/* MyStyle options */
     TEXTURE_HCGRADIENT,
     TEXTURE_VGRADIENT,
     TEXTURE_VCGRADIENT,
+	TEXTURE_OLD_GRADIENT_END = TEXTURE_VCGRADIENT,
     TEXTURE_GRADIENT_TL2BR, /* 6 */
     TEXTURE_GRADIENT_BL2TR,
     TEXTURE_GRADIENT_T2B,
@@ -251,8 +252,9 @@ MyStyle *mystyle_list_find_or_default (struct ASHashTable *list, const char *nam
 MyStyle *mystyle_find (const char *name);
 MyStyle *mystyle_find_or_default (const char *name);
 
-void mystyle_parse (char *tline, FILE * fd, char **junk, int *junk2);
-int mystyle_parse_member (MyStyle * style, char *str);
+void mystyle_free_back_icon( MyStyle *style );
+
+
 void mystyle_parse_set_style (char *text, FILE * fd, char **style, int *junk2);
 int mystyle_parse_old_gradient (int type, ARGB32 c1, ARGB32 c2, ASGradient *gradient);
 void mystyle_inherit_font (MyStyle * style, struct MyFont * font);

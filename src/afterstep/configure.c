@@ -82,11 +82,14 @@ static int           IconTexType = TEXTURE_BUILTIN;
 static char         *MenuPinOn = NULL ;
 static int           MenuPinOnButton = -1 ;
 
+static MyStyleDefinition *MyStyleList = NULL ;
 static MyFrameDefinition *MyFrameList = NULL ;
 static char         *DefaultFrameName = NULL ;
 
 static balloonConfig BalloonConfig = {0, 0, 0, 0, 0, 0, NULL };
 
+static char         *MSWindowName[BACK_STYLES] = {NULL};
+static char         *MSMenuName[MENU_BACK_STYLES] = {NULL };
 
 /* parsing handling functions for different data types : */
 
@@ -198,7 +201,7 @@ struct config main_config[] = {
     {"HiBackColor", assign_string, &WindowBackColor[BACK_FOCUSED], (int *)0},
 	{"IconBox", SetBox, (char **)0, (int *)0},
 	{"IconFont", assign_string, &Iconfont, (int *)0},
-	{"MyStyle", mystyle_parse, NULL, NULL},
+	{"MyStyle", mystyle_parse, (char**)"afterstep", (int*)&MyStyleList},
     /* new stuff : */
     {"MyBackground", myback_parse, (char**)"asetroot", NULL},  /* pretending to be asteroot here */
     {"DeskBack", deskback_parse, NULL, NULL },
@@ -265,16 +268,16 @@ struct config main_config[] = {
     {"ButtonSize", SetInts, (char **)&Scr.Look.ButtonWidth, (int *)&Scr.Look.ButtonHeight},
     {"SeparateButtonTitle", SetFlag2, (char **)SeparateButtonTitle, (int *)&Scr.Look.flags},
     {"RubberBand", SetInts, (char **)&Scr.Look.RubberBand, &dummy},
-    {"DefaultStyle", mystyle_parse_set_style, (char **)&Scr.Look.MSWindow[BACK_DEFAULT], (int *)0},
-    {"FWindowStyle", mystyle_parse_set_style, (char **)&Scr.Look.MSWindow[BACK_FOCUSED], (int *)0},
-    {"UWindowStyle", mystyle_parse_set_style, (char **)&Scr.Look.MSWindow[BACK_UNFOCUSED], (int *)0},
-    {"SWindowStyle", mystyle_parse_set_style, (char **)&Scr.Look.MSWindow[BACK_STICKY], (int *)0},
-    {"MenuItemStyle", mystyle_parse_set_style, (char **)&Scr.Look.MSMenu[MENU_BACK_ITEM], (int *)0},
-    {"MenuTitleStyle", mystyle_parse_set_style, (char **)&Scr.Look.MSMenu[MENU_BACK_TITLE], (int *)0},
-    {"MenuHiliteStyle", mystyle_parse_set_style, (char **)&Scr.Look.MSMenu[MENU_BACK_HILITE], (int *)0},
-    {"MenuStippleStyle", mystyle_parse_set_style, (char **)&Scr.Look.MSMenu[MENU_BACK_STIPPLE], (int *)0},
-    {"MenuSubItemStyle", mystyle_parse_set_style, (char **)&Scr.Look.MSMenu[MENU_BACK_SUBITEM], (int *)0},
-    {"MenuHiTitleStyle", mystyle_parse_set_style, (char **)&Scr.Look.MSMenu[MENU_BACK_HITITLE], (int *)0},
+    {"DefaultStyle", assign_quoted_string, (char **)&MSWindowName[BACK_DEFAULT], (int *)0},
+    {"FWindowStyle", assign_quoted_string, (char **)&MSWindowName[BACK_FOCUSED], (int *)0},
+    {"UWindowStyle", assign_quoted_string, (char **)&MSWindowName[BACK_UNFOCUSED], (int *)0},
+    {"SWindowStyle", assign_quoted_string, (char **)&MSWindowName[BACK_STICKY], (int *)0},
+    {"MenuItemStyle",    assign_quoted_string, (char **)&MSMenuName[MENU_BACK_ITEM], (int *)0},
+    {"MenuTitleStyle",   assign_quoted_string, (char **)&MSMenuName[MENU_BACK_TITLE], (int *)0},
+    {"MenuHiliteStyle",  assign_quoted_string, (char **)&MSMenuName[MENU_BACK_HILITE], (int *)0},
+    {"MenuStippleStyle", assign_quoted_string, (char **)&MSMenuName[MENU_BACK_STIPPLE], (int *)0},
+    {"MenuSubItemStyle", assign_quoted_string, (char **)&MSMenuName[MENU_BACK_SUBITEM], (int *)0},
+    {"MenuHiTitleStyle", assign_quoted_string, (char **)&MSMenuName[MENU_BACK_HITITLE], (int *)0},
     {"MenuItemCompositionMethod", SetInts, (char **)&Scr.Look.menu_icm, &dummy},
     {"MenuHiliteCompositionMethod", SetInts, (char **)&Scr.Look.menu_hcm, &dummy},
     {"MenuStippleCompositionMethod", SetInts, (char **)&Scr.Look.menu_scm, &dummy},
@@ -603,6 +606,7 @@ ApplyFeel( ASFeel *feel )
 void
 InitLook (MyLook *look, Bool free_resources)
 {
+	int i ;
     /* actuall MyLook cleanup : */
     mylook_init (look, free_resources, LL_Everything );
 
@@ -623,11 +627,18 @@ InitLook (MyLook *look, Bool free_resources)
         unload_font (&StdFont);
         unload_font (&WindowFont);
         unload_font (&IconFont);
+        DestroyMyStyleDefinitions (&MyStyleList);
         DestroyMyFrameDefinitions (&MyFrameList);
         if( DefaultFrameName )
             free( DefaultFrameName );
         if( BalloonConfig.style )
             free( BalloonConfig.style );
+		for( i = 0  ; i < BACK_STYLES ; ++i )
+			if( MSWindowName[i] )
+				free( MSWindowName[i] );
+		for( i = 0  ; i < MENU_BACK_STYLES ; ++i )
+			if( MSMenuName[i] )
+				free( MSMenuName[i] );
     }
     MenuPinOn = NULL;
     MenuPinOnButton = -1;
@@ -639,7 +650,14 @@ InitLook (MyLook *look, Bool free_resources)
     memset(&StdFont, 0x00, sizeof(MyFont));
     memset(&WindowFont, 0x00, sizeof(MyFont));
     memset(&IconFont, 0x00, sizeof(MyFont));
-    MyFrameList = NULL ;
+
+	MyStyleList = NULL ;
+	for( i = 0  ; i < BACK_STYLES ; ++i )
+		MSWindowName[i] = NULL ;
+	for( i = 0  ; i < MENU_BACK_STYLES ; ++i )
+		MSMenuName[i] = NULL ;
+
+	MyFrameList = NULL ;
     DefaultFrameName = NULL ;
     memset( &BalloonConfig, 0x00, sizeof(BalloonConfig));
 }
@@ -652,11 +670,18 @@ make_styles (MyLook *look)
     char *menu_style_names[MENU_BACK_STYLES] = { "MenuTitle", "MenuItem", "MenuHilite", "MenuStipple", "MenuSubItem", "MenuHiTitle" };
     int i ;
 
+    for( i = 0 ; i < BACK_STYLES ; ++i )
+		if( MSWindowName[i] )
+			look->MSWindow[i] = mystyle_list_find (look->styles_list, MSWindowName[i]);
     if (look->MSWindow[BACK_DEFAULT] == NULL)
         look->MSWindow[BACK_DEFAULT] = mystyle_list_find_or_default (look->styles_list, "default");
     for( i = 0 ; i < BACK_STYLES ; ++i )
         if (look->MSWindow[i] == NULL)
             look->MSWindow[i] = mystyle_list_new (look->styles_list, style_names[i]);
+
+    for( i = 0 ; i < MENU_BACK_STYLES ; ++i )
+		if( MSMenuName[i] )
+			look->MSMenu[i] = mystyle_list_find (look->styles_list, MSMenuName[i]);
 
     for( i = 0 ; i < MENU_BACK_STYLES ; ++i )
         if (look->MSMenu[i] == NULL)
@@ -850,6 +875,20 @@ FixLook( MyLook *look )
     ASSync(False);
 #endif
     /* make sure all needed styles are created */
+#if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
+    PrintMyStyleDefinitions (MyStyleList);
+#endif
+    LOCAL_DEBUG_OUT( "MyStyleList %p", MyStyleList );
+    if( MyStyleList )
+	{
+		MyStyleDefinition *sd ;
+	    for( sd = MyStyleList ; sd != NULL ; sd = sd->next )
+        {
+            LOCAL_DEBUG_OUT( "processing MyStyleDefinition %p", sd );
+            mystyle_create_from_definition( sd );
+        }
+        DestroyMyStyleDefinitions (&MyStyleList);
+	}
     make_styles (look);
 #ifdef LOCAL_DEBUG
     LOCAL_DEBUG_OUT( "syncing %s","");
@@ -1088,7 +1127,7 @@ ParseDatabase (const char *file)
     {
         Database = build_asdb( list );
         if( is_output_level_under_threshold( OUTPUT_LEVEL_DATABASE ) )
-            print_asdb( fprintf, stderr, Database );
+            print_asdb( NULL, NULL, Database );
         while (list != NULL)
             delete_name_list (&(list));
     }else

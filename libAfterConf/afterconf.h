@@ -111,34 +111,35 @@ void DestroyBaseConfig (BaseConfig * config);
 /***************************************************************************/
 /*                           MyStyles                                      */
 /***************************************************************************/
-#define MYSTYLE_ID_START	BASE_ID_END+1
-#define MYSTYLE_START_ID	MYSTYLE_ID_START
-#define MYSTYLE_INHERIT_ID	MYSTYLE_ID_START+1
-#define MYSTYLE_FONT_ID		MYSTYLE_ID_START+2
-#define MYSTYLE_FORECOLOR_ID	MYSTYLE_ID_START+3
-#define MYSTYLE_BACKCOLOR_ID	MYSTYLE_ID_START+4
-#define MYSTYLE_TEXTSTYLE_ID	MYSTYLE_ID_START+5
-#define MYSTYLE_MAXCOLORS_ID	MYSTYLE_ID_START+6
-#define MYSTYLE_BACKGRADIENT_ID	MYSTYLE_ID_START+7
-#define MYSTYLE_BACKPIXMAP_ID	MYSTYLE_ID_START+8
-#define MYSTYLE_DRAWTEXTBACKGROUND_ID MYSTYLE_ID_START+9
-#define MYSTYLE_DONE_ID		MYSTYLE_ID_START+10
+#define MYSTYLE_ID_START				BASE_ID_END+1
+#define MYSTYLE_START_ID				MYSTYLE_ID_START
+#define MYSTYLE_INHERIT_ID 				MYSTYLE_ID_START+1
+#define MYSTYLE_FONT_ID					MYSTYLE_ID_START+2
+#define MYSTYLE_FORECOLOR_ID			MYSTYLE_ID_START+3
+#define MYSTYLE_BACKCOLOR_ID			MYSTYLE_ID_START+4
+#define MYSTYLE_TEXTSTYLE_ID			MYSTYLE_ID_START+5
+#define MYSTYLE_MAXCOLORS_ID			MYSTYLE_ID_START+6
+#define MYSTYLE_BACKGRADIENT_ID			MYSTYLE_ID_START+7
+#define MYSTYLE_BACKMULTIGRADIENT_ID	MYSTYLE_ID_START+8
+#define MYSTYLE_BACKPIXMAP_ID  			MYSTYLE_ID_START+9
+#define MYSTYLE_DRAWTEXTBACKGROUND_ID 	MYSTYLE_ID_START+10
+#define MYSTYLE_DONE_ID					MYSTYLE_ID_START+11
 
-#define MYSTYLE_ID_END		MYSTYLE_ID_START+20
+#define MYSTYLE_ID_END					MYSTYLE_ID_START+20
 
 #ifndef NO_TEXTURE
 
 #define MYSTYLE_TERMS \
 {TF_NO_MYNAME_PREPENDING,"MyStyle", 	7, TT_QUOTED_TEXT, MYSTYLE_START_ID	, NULL},\
-{TF_NO_MYNAME_PREPENDING,"Inherit", 	7, TT_QUOTED_TEXT, MYSTYLE_INHERIT_ID	, NULL},\
+{TF_NO_MYNAME_PREPENDING,"Inherit", 	7, TT_PATHNAME, MYSTYLE_INHERIT_ID	, NULL},\
 {TF_NO_MYNAME_PREPENDING,"Font",    	4, TT_FONT, MYSTYLE_FONT_ID		, NULL},\
 {TF_NO_MYNAME_PREPENDING,"ForeColor",	9, TT_COLOR, MYSTYLE_FORECOLOR_ID	, NULL},\
 {TF_NO_MYNAME_PREPENDING,"BackColor",	9, TT_COLOR, MYSTYLE_BACKCOLOR_ID	, NULL},\
 {TF_NO_MYNAME_PREPENDING,"TextStyle",	9, TT_INTEGER, MYSTYLE_TEXTSTYLE_ID	, NULL},\
-{TF_NO_MYNAME_PREPENDING,"MaxColors",	9, TT_INTEGER, MYSTYLE_MAXCOLORS_ID	, NULL},\
-{TF_NO_MYNAME_PREPENDING,"BackGradient",12,TT_INTEGER, MYSTYLE_BACKGRADIENT_ID	, NULL},\
+{TF_NO_MYNAME_PREPENDING,"BackGradient",12, TT_INTEGER, MYSTYLE_BACKGRADIENT_ID	, NULL},\
+{TF_NO_MYNAME_PREPENDING,"BackMultiGradient", 17, TT_INTEGER, MYSTYLE_BACKMULTIGRADIENT_ID},\
 {TF_NO_MYNAME_PREPENDING,"BackPixmap",	10,TT_INTEGER, MYSTYLE_BACKPIXMAP_ID	, NULL},\
-{TF_NO_MYNAME_PREPENDING,"DrawTextBackground",18,TT_COLOR, MYSTYLE_DRAWTEXTBACKGROUND_ID, NULL},\
+{TF_NO_MYNAME_PREPENDING,"DrawTextBackground",18,TT_FLAG, MYSTYLE_DRAWTEXTBACKGROUND_ID, NULL},\
 {TF_NO_MYNAME_PREPENDING|TF_SYNTAX_TERMINATOR,"~MyStyle", 	8, TT_FLAG, MYSTYLE_DONE_ID		, NULL}
 
 #else
@@ -150,7 +151,7 @@ void DestroyBaseConfig (BaseConfig * config);
 {TF_NO_MYNAME_PREPENDING,"ForeColor",	9, TT_COLOR, MYSTYLE_FORECOLOR_ID	, NULL, NULL},\
 {TF_NO_MYNAME_PREPENDING,"BackColor",	9, TT_COLOR, MYSTYLE_BACKCOLOR_ID	, NULL, NULL},\
 {TF_NO_MYNAME_PREPENDING,"TextStyle",	9, TT_INTEGER, MYSTYLE_TEXTSTYLE_ID	, NULL, NULL},\
-{TF_NO_MYNAME_PREPENDING,"DrawTextBackground",18,TT_COLOR, MYSTYLE_DRAWTEXTBACKGROUND_ID, NULL, NULL},\
+{TF_NO_MYNAME_PREPENDING,"DrawTextBackground",18,TT_FLAG, MYSTYLE_DRAWTEXTBACKGROUND_ID, NULL, NULL},\
 {TF_NO_MYNAME_PREPENDING|TF_SYNTAX_TERMINATOR,"~MyStyle", 	8, TT_FLAG, MYSTYLE_DONE_ID		, NULL, NULL}
 
 #endif
@@ -160,32 +161,34 @@ extern struct SyntaxDef MyStyleSyntax;
 #define INCLUDE_MYSTYLE {TF_NO_MYNAME_PREPENDING,"MyStyle", 7, TT_QUOTED_TEXT, MYSTYLE_START_ID, &MyStyleSyntax}
 
 typedef struct mystyle_definition
-  {
-    char *name;
-    char **inherit;
-    int inherit_num;
-    char *font;
-    char *fore_color, *back_color;
-    int text_style;
-    int max_colors;
-    int backgradient_type;
-    char *backgradient_from, *backgradient_to;
-    int back_pixmap_type;
-    char *back_pixmap;
-    int draw_text_background;
-#define SET_SET_FLAG(d,f)  do{(d).set_flags |= (f);}while(0)
-    unsigned long set_flags;
-    int finished;		/* if this one is set to 0 - MyStyle was not terminated with ~MyStyle
-				 * error should be displayed as the result and this definition
-				 * should be ignored
-				 */
-    struct FreeStorageElem *more_stuff;
+{
+#define MYSTYLE_DRAW_TEXT_BACKGROUND	(0x01<<0)
+#define MYSTYLE_FINISHED				(0x01<<1)
+#define MYSTYLE_TEXT_STYLE_SET			(0x01<<2)
+   	ASFlagType flags;
 
-    struct mystyle_definition *next;	/* as long as there could be several MyStyle definitions
+	char   *name;
+    int     inherit_num;
+    char  **inherit;
+
+	char   *font;
+    char   *fore_color, *back_color;
+    int 	text_style;
+
+	int 	texture_type ;
+
+	int     back_grad_type;
+    int     back_grad_npoints;
+    char  **back_grad_colors;
+    double *back_grad_offsets;
+
+    char   *back_pixmap;
+
+    struct  FreeStorageElem *more_stuff;
+    struct  mystyle_definition *next;	/* as long as there could be several MyStyle definitions
 					 * per config file, we arrange them all into the linked list
 					 */
-  }
-MyStyleDefinition;
+}MyStyleDefinition;
 /* this function will process consequent MyStyle options from FreeStorage,
  * create (if needed ) and initialize MyStyleDefinition structure
  * new structures will be added at the tail of linked list.
@@ -194,6 +197,8 @@ MyStyleDefinition;
  */
 void DestroyMyStyleDefinitions (MyStyleDefinition ** list);
 MyStyleDefinition **ProcessMyStyleOptions (struct FreeStorageElem * options, MyStyleDefinition ** tail);
+void mystyle_parse (char *tline, FILE * fd, char **myname, int *mystyle_list);
+void          mystyle_create_from_definition (MyStyleDefinition * def);
 
 void PrintMyStyleDefinitions (MyStyleDefinition * list);
 /*
@@ -207,8 +212,7 @@ void PrintMyStyleDefinitions (MyStyleDefinition * list);
  * MyStyleDefinitions become unusable as the result, and get's destroyed
  * pointer to a list becomes NULL !
  */
-void
-  ProcessMyStyleDefinitions (MyStyleDefinition ** list);
+void ProcessMyStyleDefinitions (MyStyleDefinition ** list);
 
 void MergeMyStyleText (MyStyleDefinition ** list, const char *name,
                   const char *new_font, const char *new_fcolor, const char *new_bcolor, int new_style);

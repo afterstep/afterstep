@@ -33,6 +33,7 @@ struct ASWindowGridAuxData{
     Bool    frame_only ;
     int vx, vy;
     Bool ignore_avoid_cover ;
+	ASWindow *target;
 };
 
 typedef struct ASFreeRectangleAuxData{
@@ -227,7 +228,8 @@ get_aswindow_grid_iter_func(void *data, void *aux_data)
     {
         int outer_gravity = Scr.Feel.EdgeAttractionWindow ;
         int inner_gravity = Scr.Feel.EdgeAttractionWindow ;
-        if( ASWIN_HFLAGS(asw, AS_AvoidCover) && !grid_data->ignore_avoid_cover )
+        if( ASWIN_HFLAGS(asw, AS_AvoidCover) && !grid_data->ignore_avoid_cover &&
+			asw != grid_data->target )
             inner_gravity = -1 ;
         else if( inner_gravity == 0 || grid_data->min_layer > ASWIN_LAYER(asw))
             return True;
@@ -267,6 +269,7 @@ make_desktop_grid(int desk, int min_layer, Bool frame_only, int vx, int vy, ASWi
     grid_data.vx = vx ;
     grid_data.vy = vy ;
     grid_data.ignore_avoid_cover = True ;
+	grid_data.target = target ;
     area.x = vx ;
     area.y = vy ;
     area.width = Scr.MyDisplayWidth ;

@@ -857,10 +857,16 @@ on_menu_pointer_event( ASInternalWindow *asiw, ASEvent *event )
         /* change selection and maybe pop a submenu */
         XMotionEvent *xmev = &(event->x.xmotion);
         ASCanvas *canvas = menu->main_canvas ;
-		int pointer_x, pointer_y ; 
+		int pointer_x = event->x.xmotion.x_root, pointer_y = event->x.xmotion.y_root;
 		int px, py ;
-		/* must get current pointer position as MotionNotify events 
-		   tend to accumulate while we are drawing and we start getting 
+		XEvent tmp_e ;
+		if( ASCheckTypedWindowEvent(canvas->w,LeaveNotify,&tmp_e) )
+		{
+			XPutBackEvent( dpy, &tmp_e );
+			return ;    /* pointer has moved into other window - ignore this event! */
+		}
+		/* must get current pointer position as MotionNotify events
+		   tend to accumulate while we are drawing and we start getting
 		   late with menu selection, creating an illusion of slowness */
 		ASQueryPointerRootXY( &pointer_x, &pointer_y );
         px = pointer_x - canvas->root_x;

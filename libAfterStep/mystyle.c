@@ -29,36 +29,10 @@
 #include "screen.h"
 #include "../libAfterImage/afterimage.h"
 
-/*
- * if you add a member to this list, or to the MyStyle structure,
- * remember to update mystyle_new(), mystyle_delete(), mystyle_merge_styles(),
- * mystyle_parse(), mystyle_get_property(), and mystyle_set_property()
- */
-struct config mystyle_config[] = {
-	{"~MyStyle", set_func_arg, (char **)F_DONE},
-	{"Inherit", set_func_arg, (char **)F_INHERIT},
-	{"Font", set_func_arg, (char **)F_FONT},
-	{"ForeColor", set_func_arg, (char **)F_FORECOLOR},
-	{"BackColor", set_func_arg, (char **)F_BACKCOLOR},
-	{"TextStyle", set_func_arg, (char **)F_TEXTSTYLE},
-#ifndef NO_TEXTURE
-	{"MaxColors", set_func_arg, (char **)F_MAXCOLORS},
-	{"BackGradient", set_func_arg, (char **)F_BACKGRADIENT},
-	{"BackMultiGradient", set_func_arg, (char **)F_BACKMULTIGRADIENT},
-	{"BackPixmap", set_func_arg, (char **)F_BACKPIXMAP},
-	{"BackTransPixmap", set_func_arg, (char **)F_BACKTRANSPIXMAP},
-#endif
-	{"DrawTextBackground", set_func_arg, (char **)F_DRAWTEXTBACKGROUND},
-	{"", NULL, NULL}
-};
-
-static int    style_func;
-static char  *style_arg;
-
 static char  *DefaultMyStyleName = "default";
 
 
-static void
+void
 mystyle_free_back_icon( MyStyle *style )
 {
     if( !get_flags (style->inherit_flags, F_BACKPIXMAP) )
@@ -1067,313 +1041,6 @@ mystyle_merge_styles (MyStyle * parent, MyStyle * child, Bool override, Bool cop
 	child->set_flags = child->user_flags | child->inherit_flags;
 }
 
-void
-mystyle_parse (char *tline, FILE * fd, char **pjunk, int *junk2)
-{
-	MyStyle      *style;
-	char         *newline;
-	char         *name = stripcpy2 (tline, 0);
-
-    if (name == NULL)
-	{
-        show_error("bad style name '%s'", tline);
-		return;
-	}
-
-/* if this style was already defined, find it */
-    if ((style = mystyle_find (name)) == NULL)
-        style = mystyle_new_with_name (name);
-    free( name );
-
-    newline = safemalloc (MAXLINELENGTH + 1);
-    while (fgets (newline, MAXLINELENGTH, fd))
-	{
-        char         *p = stripcomments (newline);
-		if (*p != '\0')
-			if (mystyle_parse_member (style, p) != False)
-				break;
-	}
-
-	free (newline);
-}
-
-/*
- * parse a style member, for example:
- *   mystyle_parse_member(mystyle_find("default"), "BackColor black");
- * this function will likely modify the string argument
- * returns 1 when a "~MyStyle" is parsed
- */
-int
-mystyle_parse_member (MyStyle * style, char *str)
-{
-	int           done = 0;
-	struct config *config = find_config (mystyle_config, str);
-
-	style_func = F_ERROR;
-	style_arg = NULL;
-
-	if (config != NULL)
-		config->action (str + strlen (config->keyword), NULL, config->arg, config->arg2);
-	else
-        mystyle_error(style->name, "unknown style command: %s", str);
-	if (style_arg == NULL)
-	{
-        mystyle_error(style->name, "bad style argument: %s", str);
-		return 0;
-	} else
-	{
-		style->inherit_flags &= ~style_func;
-		switch (style_func)
-		{
-		 case F_INHERIT:
-			 {
-				 MyStyle      *parent = mystyle_find (style_arg);
-
-				 if (parent != NULL)
-					 mystyle_merge_styles (parent, style, True, False);
-				 else
-                     mystyle_error(style->name, "unknown style to be inherited: %s", style_arg);
-			 }
-			 break;
-		 case F_FONT:
-			 if (style->user_flags & style_func)
-				 unload_font (&style->font);
-			 style->user_flags &= ~style_func;
-			 if (load_font (style_arg, &style->font) == True)
-				 style->user_flags |= style_func;
-			 break;
-		 case F_TEXTSTYLE:
-			 style->text_style = strtol (style_arg, NULL, 10);
-			 style->user_flags |= style_func;
-			 break;
-		 case F_FORECOLOR:
-			 if (parse_argb_color (style_arg, &(style->colors.fore)) != style_arg)
-				 style->user_flags |= style_func;
-			 else
-                 mystyle_error(style->name, "unable to parse Forecolor \"%s\"", style_arg);
-			 break;
-		 case F_BACKCOLOR:
-			 if (parse_argb_color (style_arg, &(style->colors.back)) != style_arg)
-			 {
-				 style->relief.fore = GetHilite (style->colors.back);
-				 style->relief.back = GetShadow (style->colors.back);
-				 style->user_flags |= style_func;
-			 } else
-                 mystyle_error(style->name, "unable to parse Backcolor \"%s\"", style_arg);
-			 break;
-#ifndef NO_TEXTURE
-		 case F_MAXCOLORS:
-			 style->max_colors = strtol (style_arg, NULL, 10);
-			 style->user_flags |= style_func;
-			 break;
-		 case F_BACKGRADIENT:
-			 {
-				 char         *ptr, *ptr1;
-				 int           type = strtol (style_arg, &ptr, 10);
-				 ARGB32        color1 = 0, color2 = 0;
-				 register int  i = 0;
-
-				 while (!isspace (ptr[i]) && ptr[i] != '\0')
-					 ++i;
-				 while (isspace (ptr[i]))
-					 ++i;
-				 if (ptr[i] == '\0')
-				 {
-                     mystyle_error(style->name, "missing gradient colors: %s", style_arg);
-				 } else
-				 {
-					 ptr = &ptr[i];
-					 ptr1 = (char *)parse_argb_color (ptr, &color1);
-/*show_warning("in MyStyle \"%s\":c1 = #%X(%s)", style->name, color1, ptr );			*/
-					 if (ptr1 != ptr)
-					 {
-						 int           k = 0;
-
-						 while (isspace (ptr1[k]))
-							 ++k;
-						 ptr = &ptr1[k];
-						 if (parse_argb_color (ptr, &color2) != ptr)
-						 {
-							 ASGradient    gradient;
-
-/*show_warning("in MyStyle \"%s\":c1 = #%X, c2 = #%X", style->name, color1, color2 );*/
-							 if ((type = mystyle_parse_old_gradient (type, color1, color2, &gradient)) >= 0)
-							 {
-								 if (style->user_flags & F_BACKGRADIENT)
-								 {
-									 free (style->gradient.color);
-									 free (style->gradient.offset);
-								 }
-								 style->gradient = gradient;
-								 style->gradient.type = mystyle_translate_grad_type (type);
-								 style->texture_type = type;
-								 style->user_flags |= style_func;
-								 LOCAL_DEBUG_OUT( "style %p type = %d", style, style->gradient.type );
-							 } else
-                                 show_error("Error in MyStyle \"%s\": invalid gradient type %d", style->name, type);
-						 } else
-                             mystyle_error(style->name, "in MyStyle \"%s\":can't parse second color \"%s\"", ptr);
-					 } else
-                         mystyle_error(style->name, "in MyStyle \"%s\":can't parse first color \"%s\"", ptr);
-					 if (!(style->user_flags & style_func))
-                         mystyle_error(style->name, "bad gradient: \"%s\"", style_arg);
-				 }
-			 }
-			 break;
-		 case F_BACKMULTIGRADIENT:
-			 {
-				 char         *ptr, *ptr1;
-				 int           type = strtol (style_arg, &ptr, 10);
-				 ASGradient    gradient;
-				 int           error = 0;
-
-				 gradient.npoints = 0;
-				 gradient.color = NULL;
-				 gradient.offset = NULL;
-				 if (type < TEXTURE_GRADIENT_TL2BR || type >= TEXTURE_PIXMAP)
-					 error = 4;
-				 for (; ptr && isspace (*ptr); ptr++);
-				 while (!error && ptr != NULL && *ptr != '\0')
-				 {
-					 ARGB32        color;
-
-					 ptr1 = (char *)parse_argb_color (ptr, &color);
-					 if (ptr1 == ptr)
-						 error = 1;
-					 else
-					 {
-						 double        offset = 0.0;
-
-						 ptr = ptr1;
-						 offset = strtod (ptr, &ptr1);
-						 if (ptr == ptr1)
-							 error = 2;
-						 else
-						 {
-							 ptr = ptr1;
-							 gradient.npoints++;
-							 gradient.color = realloc (gradient.color, sizeof (XColor) * gradient.npoints);
-							 gradient.offset = realloc (gradient.offset, sizeof (double) * gradient.npoints);
-							 gradient.color[gradient.npoints - 1] = color;
-							 gradient.offset[gradient.npoints - 1] = offset;
-							 for (; isspace (*ptr); ptr++);
-						 }
-					 }
-				 }
-				 if (!error)
-				 {
-					 gradient.offset[0] = 0.0;
-					 gradient.offset[gradient.npoints - 1] = 1.0;
-					 if (style->user_flags & F_BACKGRADIENT)
-					 {
-						 free (style->gradient.color);
-						 free (style->gradient.offset);
-					 }
-					 style->gradient = gradient;
-					 style->gradient.type = mystyle_translate_grad_type (type);
-					 style->texture_type = type;
-					 style->user_flags |= F_BACKGRADIENT;
-					 style_func = F_BACKGRADIENT;
-					 LOCAL_DEBUG_OUT( "style %p, type = %d, npoints = %d", style, style->gradient.type, style->gradient.npoints );
-				 } else
-				 {
-					 if (gradient.color != NULL)
-						 free (gradient.color);
-					 if (gradient.offset != NULL)
-						 free (gradient.offset);
-                     show_error("Error in MyStyle \"%s\": bad gradient (error %d): \"%s\"; at [%s]", style->name, error, style_arg, ptr?ptr:"");
-				 }
-			 }
-			 break;
-		 case F_BACKPIXMAP:
-			 {
-				 char         *ptr;
-				 int           type = strtol (style_arg, &ptr, 10);
-				 char         *tmp = stripcpy (ptr);
-
-				 clear_flags (style->inherit_flags, F_BACKTRANSPIXMAP | F_BACKPIXMAP);
-                 LOCAL_DEBUG_OUT( "calling mystyle_free_back_icon for style %p", style );
-                 mystyle_free_back_icon(style);
-
-				 if (type < TEXTURE_TEXTURED_START || type >= TEXTURE_TEXTURED_END)
-				 {
-                     show_error("Error in MyStyle \"%s\": unsupported texture type [%d] in BackPixmap setting. Assuming default of [128] instead.", style->name, type);
-					 type = TEXTURE_PIXMAP;
-				 }
-				 if (type == TEXTURE_TRANSPARENT || type == TEXTURE_TRANSPARENT_TWOWAY)
-				 {							   /* treat second parameter as ARGB tint value : */
-					 if (parse_argb_color (tmp, &(style->tint)) == tmp)
-						 style->tint = TINT_LEAVE_SAME;	/* use no tinting by default */
-					 else if (type == TEXTURE_TRANSPARENT)
-						 style->tint = (style->tint >> 1) & 0x7F7F7F7F;	/* converting old style tint */
-/*LOCAL_DEBUG_OUT( "tint is 0x%X (from %s)",  style->tint, tmp);*/
-					 set_flags (style->user_flags, style_func);
-					 style->texture_type = type;
-				 } else
-                 {  /* treat second parameter as an image filename : */
-                     if ( load_icon(&(style->back_icon), tmp, Scr.image_manager ))
-					 {
-						 set_flags (style->user_flags, style_func);
-						 if (type >= TEXTURE_TRANSPIXMAP)
-							 set_flags (style->user_flags, F_BACKTRANSPIXMAP);
-						 style->texture_type = type;
-					 } else
-                         mystyle_error(style->name, "failed to load image file \"%s\".", tmp);
-				 }
-				 LOCAL_DEBUG_OUT ("MyStyle \"%s\": BackPixmap %d image = %p, tint = 0x%lX", style->name,
-								  style->texture_type, style->back_icon.image, style->tint);
-				 free (tmp);
-			 }
-			 break;
-#endif
-		 case F_DRAWTEXTBACKGROUND:
-			 style->inherit_flags &= ~style_func;
-			 style->user_flags |= style_func;
-			 if (style_arg[0] != '\0' && strtol (style_arg, NULL, 10) == 0)
-				 style->flags &= ~style_func;
-			 else
-				 style->flags |= style_func;
-			 break;
-
-		 case F_DONE:
-			 done = 1;
-			 break;
-
-		 case F_ERROR:
-		 default:
-             mystyle_error(style->name, "unknown style command: [%s]", str);
-			 break;
-		}
-	}
-	style->set_flags = style->inherit_flags | style->user_flags;
-/*  show_warning( "style \"%s\" set_flags = %X, style_func = %x", style->name, style->set_flags, style_func );
-  show_warning( "text = \"%s\"", str );
-*/
-	free (style_arg);
-	return done;
-}
-
-void
-mystyle_parse_set_style (char *text, FILE * fd, char **style, int *junk2)
-{
-	char         *name = stripcpy2 (text, 0);
-
-	if (name != NULL)
-	{
-		*(MyStyle **) style = mystyle_find (name);
-		if (*style == NULL)
-            show_error("unknown style name: \"%s\"", name);
-		free (name);
-	}
-}
-
-void
-set_func_arg (char *text, FILE * fd, char **value, int *junk)
-{
-	style_arg = stripcpy (text);
-	style_func = (unsigned long)value;
-}
-
 /*
  * convert an old two-color gradient to a multi-point gradient
  */
@@ -1404,19 +1071,22 @@ mystyle_parse_old_gradient (int type, ARGB32 c1, ARGB32 c2, ASGradient * gradien
 	 default:
 		 break;
 	}
-	gradient->npoints = 2 + cylindrical;
-	gradient->color = NEW_ARRAY (ARGB32, gradient->npoints);
-	gradient->offset = NEW_ARRAY (double, gradient->npoints);
+	if( gradient )
+	{
+		gradient->npoints = 2 + cylindrical;
+		gradient->color = NEW_ARRAY (ARGB32, gradient->npoints);
+		gradient->offset = NEW_ARRAY (double, gradient->npoints);
 
-	gradient->color[0] = c1;
-	gradient->color[1] = c2;
-	if (cylindrical)
-		gradient->color[2] = c1;
-	gradient->offset[0] = 0.0;
-	if (cylindrical)
-		gradient->offset[1] = 0.5;
-	gradient->offset[gradient->npoints - 1] = 1.0;
-	gradient->type = type ;
+		gradient->color[0] = c1;
+		gradient->color[1] = c2;
+		if (cylindrical)
+			gradient->color[2] = c1;
+		gradient->offset[0] = 0.0;
+		if (cylindrical)
+			gradient->offset[1] = 0.5;
+		gradient->offset[gradient->npoints - 1] = 1.0;
+		gradient->type = mystyle_translate_grad_type(type) ;
+	}
 	return type;
 }
 
@@ -1494,7 +1164,6 @@ mystyle_merge_colors (MyStyle * style, int type, char *fore, char *back,
 /* treat second parameter as an image filename : */
             if ( load_icon(&(style->back_icon), pixmap, Scr.image_manager ))
             {
-                set_flags (style->user_flags, style_func);
                 style->texture_type = type;
                 set_flags(style->user_flags, F_BACKPIXMAP);
             } else
