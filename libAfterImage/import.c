@@ -1232,132 +1232,107 @@ ico2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tabl
 
 /***********************************************************************************/
 #ifdef HAVE_GIF		/* GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF */
+
+#define ASIM_PrintGifError() do{ fprintf( stderr, "%s():%d:<%s> ", __FUNCTION__, __LINE__, path ); PrintGifError(); }while(0)
+
 ASImage *
 gif2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage, unsigned int compression )
 {
 	FILE			   *fp ;
 	int					status = GIF_ERROR;
 	GifFileType        *gif;
-	GifPixelType	   *all_rows = NULL;
-    GifRowType         *rows = NULL;
-	GifRecordType       rec;
 	ASImage 	 	   *im = NULL ;
 	ASScanline    		buf;
 	int 		  		transparent = -1 ;
 	unsigned int  		y;
 	unsigned int		width = 0, height = 0;
+	ColorMapObject     *cmap = NULL ;
+
 	START_TIME(started);
 
 	if ((fp = open_image_file(path)) == NULL)
 		return NULL;
-
+SHOW_CHECKPOINT ;
 	if( (gif = DGifOpenFileHandle(fileno(fp))) != NULL )
 	{
-		while((status = DGifGetRecordType(gif, &rec)) != GIF_ERROR)
+		SavedImage	*sp = NULL ;
+		if( (status = DGifSlurp(gif)) == GIF_OK )
 		{
-			if( rec == TERMINATE_RECORD_TYPE )
-				break;
-			if( rec == IMAGE_DESC_RECORD_TYPE && rows == NULL )
+			GifPixelType *row_pointer ;
+			if( subimage >= 0 && subimage < gif->ImageCount )
+				sp = &gif->SavedImages[subimage];
+			else
+				sp = &gif->SavedImages[0];
+
+SHOW_CHECKPOINT ;
+   			for ( y = 0; y < sp->ExtensionBlockCount; y++)
+			 	if( sp->ExtensionBlocks[y].Function == 0xf9 &&
+			 		(sp->ExtensionBlocks[y].Bytes[1]&0x01))
+			   		 transparent = (int) sp->ExtensionBlocks[y].Bytes[4];
+
+SHOW_CHECKPOINT ;
+			cmap = gif->SColorMap ;
+			for( y = 0 ; y < cmap->ColorCount ; y++ )
+fprintf( stderr, "%d: %2.2X %2.2X %2.2X\n", y, cmap->Colors[y].Red, cmap->Colors[y].Green, cmap->Colors[y].Blue );
+
+			cmap = (sp->ImageDesc.ColorMap == NULL)?gif->SColorMap:sp->ImageDesc.ColorMap;
+fprintf( stderr, "private colormap = %p, using colormap = %p\n", sp->ImageDesc.ColorMap, cmap );
+			for( y = 0 ; y < cmap->ColorCount ; y++ )
+fprintf( stderr, "%d: %2.2X %2.2X %2.2X\n", y, cmap->Colors[y].Red, cmap->Colors[y].Green, cmap->Colors[y].Blue );
+		    width = sp->ImageDesc.Width;
+		    height = sp->ImageDesc.Height;
+
+SHOW_CHECKPOINT ;
+			if( cmap != NULL && (row_pointer = sp->RasterBits) != NULL &&
+			    width < MAX_IMPORT_IMAGE_SIZE && height < MAX_IMPORT_IMAGE_SIZE )
 			{
-				size_t offset = 0;
-		    	if ((status = DGifGetImageDesc(gif)) == GIF_ERROR)
-  		  			break;
-			    width = gif->Image.Width;
-			    height = gif->Image.Height;
+				int bg_color =   gif->SBackGroundColor ;
 
-				if( width >= MAX_IMPORT_IMAGE_SIZE || height >= MAX_IMPORT_IMAGE_SIZE )
-					break;
-
-			    rows = safemalloc(height * sizeof(GifRowType *));
-				all_rows = safemalloc(height * width * sizeof(GifPixelType));
-
-				for (y = 0; y < height; y++)
+				im = create_asimage( width, height, compression );
+				prepare_scanline( im->width, 0, &buf, False );
+SHOW_CHECKPOINT ;
+				for (y = 0; y < height; ++y)
 				{
-					rows[y] = all_rows+offset ;
-					offset += width*sizeof(GifPixelType);
+					int x ;
+					Bool do_alpha = False ;
+					for (x = 0; x < width; ++x)
+					{
+						int c = row_pointer[x];
+      					if ( c == transparent)
+						{
+							c = bg_color ;
+							do_alpha = True ;
+							buf.alpha[x] = 0 ;
+						}else
+							buf.alpha[x] = 0x00FF ;
+		        		buf.red[x]   = cmap->Colors[c].Red;
+		        		buf.green[x] = cmap->Colors[c].Green;
+						buf.blue[x]  = cmap->Colors[c].Blue;
+	        		}
+					row_pointer += x ;
+					asimage_add_line (im, IC_RED,   buf.red, y);
+					asimage_add_line (im, IC_GREEN, buf.green, y);
+					asimage_add_line (im, IC_BLUE,  buf.blue, y);
+					if( do_alpha )
+						asimage_add_line (im, IC_ALPHA,  buf.alpha, y);
 				}
-				if (gif->Image.Interlace)
-				{
-					int i ;
-					static int intoffset[] = {0, 4, 2, 1};
-					static int intjump[] = {8, 8, 4, 2};
-					for (i = 0; i < 4; ++i)
-			            for (y = intoffset[i]; y < height; y += intjump[i])
-				            if( (status = DGifGetLine(gif, rows[y], width)) != GIF_OK )
-							{
-								i = 4;
-								break;
-							}
-		        }else
-			        for (y = 0; y < height; ++y)
-			            if( (status = DGifGetLine(gif, rows[y], width)) != GIF_OK )
-							break;
-			}else if (rec == EXTENSION_RECORD_TYPE )
-			{
-	    		int         ext_code = 0;
-    			GifByteType *ext = NULL;
-
-		  		DGifGetExtension(gif, &ext_code, &ext);
-  				while (ext)
-				{
-					if( transparent < 0 )
-      					if( ext_code == 0xf9 && (ext[1]&0x01))
-				  			transparent = (int) ext[4];
-		      		ext = NULL;
-      				DGifGetExtensionNext(gif, &ext);
-				}
+				free_scanline(&buf, True);
+SHOW_CHECKPOINT ;
 			}
-
-			if( status != GIF_OK )
-				break;
-  		}
-	}
-
-	if( status == GIF_OK && rows  )
-	{
-		int bg_color =   gif->SBackGroundColor ;
-	  	ColorMapObject  *cmap = gif->SColorMap ;
-
-		im = safecalloc( 1, sizeof( ASImage ) );
-		asimage_start( im, width, height, compression );
-		prepare_scanline( im->width, 0, &buf, False );
-
-		if( gif->Image.ColorMap != NULL)
-			cmap = gif->Image.ColorMap ; /* private colormap where available */
-
-		for (y = 0; y < height; ++y)
-		{
-			int x ;
-			Bool do_alpha = False ;
-			for (x = 0; x < width; ++x)
+		}else
+			ASIM_PrintGifError();
+SHOW_CHECKPOINT ;
+		/* this is needed as giflib/ungiflib has bugs freeing memory twice :*/
+		for( y = 0 ; y < gif->ImageCount ; y++ )
+			if( gif->SavedImages[y].ImageDesc.ColorMap == gif->Image.ColorMap)
 			{
-				int c = rows[y][x];
-      			if ( c == transparent)
-				{
-					c = bg_color ;
-					do_alpha = True ;
-					buf.alpha[x] = 0 ;
-				}else
-					buf.alpha[x] = 0x00FF ;
-		        buf.red[x]   = cmap->Colors[c].Red;
-		        buf.green[x] = cmap->Colors[c].Green;
-				buf.blue[x]  = cmap->Colors[c].Blue;
-	        }
-			asimage_add_line (im, IC_RED,   buf.red, y);
-			asimage_add_line (im, IC_GREEN, buf.green, y);
-			asimage_add_line (im, IC_BLUE,  buf.blue, y);
-			if( do_alpha )
-				asimage_add_line (im, IC_ALPHA,  buf.alpha, y);
-		}
-		free_scanline(&buf, True);
+				gif->Image.ColorMap = NULL ;
+				break;
+			}
+		DGifCloseFile(gif);
 	}
-	if( rows )
-		free( rows );
-	if( all_rows )
-		free( all_rows );
-
-	DGifCloseFile(gif);
 	SHOW_TIME("image loading",started);
+SHOW_CHECKPOINT ;
 	return im ;
 }
 #else 			/* GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF */

@@ -14,8 +14,7 @@
  ******************/
 #define EXPORT_GRAYSCALE			(0x01<<0)
 #define EXPORT_ALPHA				(0x01<<1)
-#define EXPORT_OVERWRITE			(0x01<<2)
-#define EXPORT_OVERWRITE_SUBIMG		(0x01<<2)
+#define EXPORT_APPEND				(0x01<<3)  /* adds subimage  */
 
 typedef struct
 {
@@ -46,7 +45,6 @@ typedef struct
 	ASFlagType flags ;
 	int dither ;
 	int opaque_threshold ;
-	int subimage ;
 }ASGifExportParams ;
 
 typedef union ASImageExportParams

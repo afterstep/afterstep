@@ -36,6 +36,9 @@ int main(int argc, char* argv[])
 	ASImage *im ;
 	/* see ASView.1 : */
 	set_application_name( argv[0] );
+#if (HAVE_AFTERBASE_FLAG==1)
+	set_output_threshold(OUTPUT_LEVEL_DEBUG);
+#endif
 
 	if( argc > 1 )
 	{
@@ -57,11 +60,12 @@ int main(int argc, char* argv[])
 	depth = DefaultDepth( dpy, screen );
 	/* see ASView.2 : */
 	im = file2ASImage( image_file, 0xFFFFFFFF, SCREEN_GAMMA, 0, NULL );
-	/* writing result into the file */
-	ASImage2file( im, NULL, "asview.gif", ASIT_Gif, NULL );
 
 	if( im != NULL )
 	{
+		/* writing result into the file */
+		ASImage2file( im, NULL, "asview.gif", ASIT_Gif, NULL );
+
 		/* see ASView.3 : */
 		asv = create_asvisual( dpy, screen, depth, NULL );
 		/* see ASView.4 : */
