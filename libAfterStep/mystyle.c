@@ -768,7 +768,8 @@ mystyle_free_resources( MyStyle *style )
             free (style->gradient.color);
             free (style->gradient.offset);
         }
-        free_icon_resources( style->back_icon );
+		if( !get_flags (style->inherit_flags, F_BACKTRANSPIXMAP) )
+	        free_icon_resources( style->back_icon );
 #endif
     }
 }
@@ -1086,7 +1087,9 @@ mystyle_merge_styles (MyStyle * parent, MyStyle * child, Bool override, Bool cop
 			if (!copy)
 			{
 				child->back_icon = parent->back_icon;
-				clear_flags (child->user_flags, F_BACKPIXMAP | F_BACKTRANSPIXMAP);
+/*				if (parent->back_icon.image)
+					child->back_icon.image = dup_asimage (parent->back_icon.image);
+*/				clear_flags (child->user_flags, F_BACKPIXMAP | F_BACKTRANSPIXMAP);
 				set_flags (child->inherit_flags, F_BACKPIXMAP);
 				if (get_flags (parent->set_flags, F_BACKTRANSPIXMAP))
 					set_flags (child->inherit_flags, F_BACKTRANSPIXMAP);

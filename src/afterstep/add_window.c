@@ -1939,13 +1939,14 @@ focus_aswindow( ASWindow *asw, Bool circulated )
          * and let other screen's manager manage it from now on, untill
          * pointer comes back to our screen :*/
         ASQueryPointerRoot(&pointer_root,&w);
-        if(pointer_root != Scr.Root);
+LOCAL_DEBUG_OUT( "ptr_root %X, Root %X, w %X", pointer_root, Scr.Root, w );		
+        if(pointer_root != Scr.Root)
         {
             do_hide_focus = True;
             do_nothing = False ;
         }
     }
-
+LOCAL_DEBUG_OUT( "asw %p, do_nothing %d, do_hide_focus %d", asw, do_nothing, do_hide_focus );
     if( !do_nothing && do_hide_focus )
         hide_focus();
     if( do_nothing || do_hide_focus )

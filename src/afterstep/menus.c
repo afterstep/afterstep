@@ -30,7 +30,7 @@
  ***********************************************************************/
 #include "../../configure.h"
 
-/* #define LOCAL_DEBUG */
+#define LOCAL_DEBUG
 
 #include "../../include/asapp.h"
 #include <X11/keysym.h>
@@ -98,13 +98,15 @@ close_asmenu_submenu( ASMenu *menu)
 LOCAL_DEBUG_CALLER_OUT( "top(%p)->supermenu(%p)->menu(%p)->submenu(%p)", ASTopmostMenu, menu->supermenu, menu, menu->submenu );
     if( menu->submenu )
     {
+		if( menu->submenu->supermenu == menu ) 
+			menu->submenu->supermenu = NULL ;
         if( menu->submenu->owner )
         {
             /* cannot use Destroy directly - must go through the normal channel: */
             unmap_canvas_window( menu->submenu->main_canvas );
+			menu->submenu = NULL ;
         }else
             destroy_asmenu( &(menu->submenu));
-        menu->submenu = NULL ;
     }
 }
 
@@ -157,8 +159,12 @@ close_asmenu( ASMenu **pmenu)
         if( menu )
         {
 LOCAL_DEBUG_CALLER_OUT( "top(%p)->supermenu(%p)->menu(%p)->submenu(%p)", ASTopmostMenu, menu->supermenu, menu, menu->submenu );
-	    if( menu->submenu )
-		close_asmenu( &(menu->submenu) );
+		    if( menu->submenu )
+			{
+				if( menu->submenu->supermenu == menu ) 
+					menu->submenu->supermenu = NULL ;
+				close_asmenu( &(menu->submenu) );
+  			}	
             if( menu->owner )
             {
                 /* cannot use Destroy directly - must go through the normal channel: */
@@ -482,6 +488,7 @@ LOCAL_DEBUG_OUT("adj_pos(%d)->curr_y(%d)->items_num(%d)->vis_items_num(%d)->sel_
 static inline void
 run_item_submenu( ASMenu *menu, int item )
 {
+LOCAL_DEBUG_CALLER_OUT( "%p, %d, submenu(%p)", menu, item, menu->items[item].submenu );
     if( menu->items[item].submenu )
     {
         close_asmenu_submenu( menu );
@@ -521,7 +528,7 @@ LOCAL_DEBUG_CALLER_OUT( "%p,%d", menu, pressed );
         }
     }
     render_asmenu_bars(menu);
-/* LOCAL_DEBUG_OUT( "pressed(%d)->old_pressed(%d)->focused(%d)", pressed, menu->pressed_item, menu->focused );*/
+LOCAL_DEBUG_OUT( "pressed(%d)->old_pressed(%d)->focused(%d)", pressed, menu->pressed_item, menu->focused );
     if( pressed < 0 && menu->pressed_item >= 0 && menu->focused )
     {
         ASMenuItem *item = &(menu->items[menu->pressed_item]);
@@ -589,6 +596,7 @@ void
 on_menu_hilite_changed( ASInternalWindow *asiw, ASMagic *data, Bool focused )
 {
     ASMenu   *menu = (ASMenu*)(asiw->data) ;
+LOCAL_DEBUG_CALLER_OUT( "%p, %p, %d", asiw, data, focused );
     if( menu != NULL && menu->magic == MAGIC_ASMENU )
     {
         /* TODO : hilite/unhilite selected item, and
@@ -602,7 +610,7 @@ void
 on_menu_pressure_changed( ASInternalWindow *asiw, int pressed_context )
 {
     ASMenu   *menu = (ASMenu*)(asiw->data) ;
-LOCAL_DEBUG_CALLER_OUT( "%p,0x%X", asiw, pressed_context );
+LOCAL_DEBUG_CALLER_OUT( "%p,%p,0x%X", asiw, menu, pressed_context );
     if( menu != NULL && menu->magic == MAGIC_ASMENU )
     {
         /* press/depress menu item, possibly change the selection,

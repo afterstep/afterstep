@@ -436,9 +436,9 @@ parse_func (const char *text, FunctionData * data, int quiet)
 			if (data->text)
 				data->popup = FindPopup (data->text, False);
 
-		if (data->popup == NULL)
+/*		if (data->popup == NULL)
 			data->func = F_NOP;
-    }else if ( data->func == F_FUNCTION )
+*/    }else if ( data->func == F_FUNCTION )
 	{
         if ((data->popup = find_complex_func( Scr.Feel.ComplexFunctions, data->name )) == NULL )
             if (data->text)
