@@ -132,7 +132,6 @@ if test "x$enable_shaping" = "xyes"; then
   AC_CHECK_LIB(Xext, XShapeCombineMask, [x_libs="$x_libs -lXext";AC_DEFINE(SHAPE,)],,$x_libs)
 fi
 
-AC_MSG_CHECKING(libAfterBase headers)
 AFTERBASE_CFLAGS=
 if test "$afterbase_includes" = NO; then
 	  if test -r ../../libAfterBase/astypes.h; then
@@ -141,10 +140,9 @@ if test "$afterbase_includes" = NO; then
 		AC_MSG_RESULT("../../libAfterBase/astypes.h")
 	  else
  	    AC_CHECK_HEADER(libAfterBase/astypes.h,
-					    [AC_DEFINE(HAVE_AFTERBASE) AC_MSG_RESULT("<libAfterBase/astypes.h>")],
+					    [AC_DEFINE(HAVE_AFTERBASE)],
 						[AC_CHECK_HEADER(/usr/local/include/libAfterBase/astypes.h,
-						                 [AC_DEFINE(HAVE_AFTERBASE) AFTERBASE_CFLAGS="-I/usr/local/include" AC_MSG_RESULT("<libAfterBase/astypes.h>")],
-										  AC_MSG_RESULT("none found"))])
+						                 [AC_DEFINE(HAVE_AFTERBASE) AFTERBASE_CFLAGS="-I/usr/local/include"])])
 	  fi	
 else
       AC_DEFINE(HAVE_AFTERBASE)
@@ -152,7 +150,7 @@ else
   	  AC_MSG_RESULT("<libAfterBase/astypes.h>")
 fi
 
-AC_MSG_CHECKING(libAfterImage headers)
+dnl# AC_MSG_CHECKING(libAfterImage headers)
 have_afterimage=yes
 local_afterimage=no 
 AFTERIMAGE_CFLAGS=
@@ -162,9 +160,7 @@ if test "$afterimage_includes" = NO; then
         AFTERIMAGE_CFLAGS="-I../.."
 		AC_MSG_RESULT("../../libAfterImage/asimage.h")
   else
-	    AC_CHECK_HEADER(libAfterImage/asimage.h,
-					    [AC_DEFINE(HAVE_AFTERIMAGE) AC_MSG_RESULT("<libAfterImage/asimage.h>")],
-						 AC_MSG_RESULT("none found"))
+	    AC_CHECK_HEADER(libAfterImage/asimage.h,AC_DEFINE(HAVE_AFTERIMAGE))
   fi	
 else
   AC_DEFINE(HAVE_AFTERIMAGE)

@@ -2729,8 +2729,6 @@ fi
 
 fi
 
-echo $ac_n "checking libAfterBase headers""... $ac_c" 1>&6
-echo "configure:2734: checking libAfterBase headers" >&5
 AFTERBASE_CFLAGS=
 if test "$afterbase_includes" = NO; then
 	  if test -r ../../libAfterBase/astypes.h; then
@@ -2743,17 +2741,17 @@ EOF
 	  else
  	    ac_safe=`echo "libAfterBase/astypes.h" | sed 'y%./+-%__p_%'`
 echo $ac_n "checking for libAfterBase/astypes.h""... $ac_c" 1>&6
-echo "configure:2747: checking for libAfterBase/astypes.h" >&5
+echo "configure:2745: checking for libAfterBase/astypes.h" >&5
 if eval "test \"`echo '$''{'ac_cv_header_$ac_safe'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 2752 "configure"
+#line 2750 "configure"
 #include "confdefs.h"
 #include <libAfterBase/astypes.h>
 EOF
 ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:2757: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+{ (eval echo configure:2755: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
 ac_err=`grep -v '^ *+' conftest.out | grep -v "^conftest.${ac_ext}\$"`
 if test -z "$ac_err"; then
   rm -rf conftest*
@@ -2772,22 +2770,22 @@ if eval "test \"`echo '$ac_cv_header_'$ac_safe`\" = yes"; then
   cat >> confdefs.h <<\EOF
 #define HAVE_AFTERBASE 1
 EOF
- echo "$ac_t"""<libAfterBase/astypes.h>"" 1>&6
+
 else
   echo "$ac_t""no" 1>&6
 ac_safe=`echo "/usr/local/include/libAfterBase/astypes.h" | sed 'y%./+-%__p_%'`
 echo $ac_n "checking for /usr/local/include/libAfterBase/astypes.h""... $ac_c" 1>&6
-echo "configure:2781: checking for /usr/local/include/libAfterBase/astypes.h" >&5
+echo "configure:2779: checking for /usr/local/include/libAfterBase/astypes.h" >&5
 if eval "test \"`echo '$''{'ac_cv_header_$ac_safe'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 2786 "configure"
+#line 2784 "configure"
 #include "confdefs.h"
 #include </usr/local/include/libAfterBase/astypes.h>
 EOF
 ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:2791: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+{ (eval echo configure:2789: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
 ac_err=`grep -v '^ *+' conftest.out | grep -v "^conftest.${ac_ext}\$"`
 if test -z "$ac_err"; then
   rm -rf conftest*
@@ -2806,10 +2804,9 @@ if eval "test \"`echo '$ac_cv_header_'$ac_safe`\" = yes"; then
   cat >> confdefs.h <<\EOF
 #define HAVE_AFTERBASE 1
 EOF
- AFTERBASE_CFLAGS="-I/usr/local/include" echo "$ac_t"""<libAfterBase/astypes.h>"" 1>&6
+ AFTERBASE_CFLAGS="-I/usr/local/include"
 else
   echo "$ac_t""no" 1>&6
-echo "$ac_t"""none found"" 1>&6
 fi
 
 fi
@@ -2824,8 +2821,6 @@ EOF
   	  echo "$ac_t"""<libAfterBase/astypes.h>"" 1>&6
 fi
 
-echo $ac_n "checking libAfterImage headers""... $ac_c" 1>&6
-echo "configure:2829: checking libAfterImage headers" >&5
 have_afterimage=yes
 local_afterimage=no 
 AFTERIMAGE_CFLAGS=
@@ -2840,17 +2835,17 @@ EOF
   else
 	    ac_safe=`echo "libAfterImage/asimage.h" | sed 'y%./+-%__p_%'`
 echo $ac_n "checking for libAfterImage/asimage.h""... $ac_c" 1>&6
-echo "configure:2844: checking for libAfterImage/asimage.h" >&5
+echo "configure:2839: checking for libAfterImage/asimage.h" >&5
 if eval "test \"`echo '$''{'ac_cv_header_$ac_safe'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 2849 "configure"
+#line 2844 "configure"
 #include "confdefs.h"
 #include <libAfterImage/asimage.h>
 EOF
 ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:2854: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+{ (eval echo configure:2849: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
 ac_err=`grep -v '^ *+' conftest.out | grep -v "^conftest.${ac_ext}\$"`
 if test -z "$ac_err"; then
   rm -rf conftest*
@@ -2869,10 +2864,9 @@ if eval "test \"`echo '$ac_cv_header_'$ac_safe`\" = yes"; then
   cat >> confdefs.h <<\EOF
 #define HAVE_AFTERIMAGE 1
 EOF
- echo "$ac_t"""<libAfterImage/asimage.h>"" 1>&6
+
 else
   echo "$ac_t""no" 1>&6
-echo "$ac_t"""none found"" 1>&6
 fi
 
   fi	
@@ -2893,7 +2887,7 @@ fi
 
 
 echo $ac_n "checking libAfterImage external libraries""... $ac_c" 1>&6
-echo "configure:2897: checking libAfterImage external libraries" >&5
+echo "configure:2891: checking libAfterImage external libraries" >&5
 AFTERIMAGE_LIBS=
 if test "$afterimage_lib" = NO; then
   if test -x "../afterimage-libs"; then 
@@ -2913,7 +2907,7 @@ echo "$ac_t""$AFTERIMAGE_LIBS" 1>&6
 
 if test "x$with_libefence" = "xyes"; then
   echo $ac_n "checking for malloc in -lefence""... $ac_c" 1>&6
-echo "configure:2917: checking for malloc in -lefence" >&5
+echo "configure:2911: checking for malloc in -lefence" >&5
 ac_lib_var=`echo efence'_'malloc | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -2921,7 +2915,7 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-lefence  $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 2925 "configure"
+#line 2919 "configure"
 #include "confdefs.h"
 /* Override any gcc2 internal prototype to avoid an error.  */
 /* We use char because int might match the return type of a gcc2
@@ -2932,7 +2926,7 @@ int main() {
 malloc()
 ; return 0; }
 EOF
-if { (eval echo configure:2936: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:2930: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
