@@ -222,6 +222,7 @@ PATH_XTRA_CHECKED=yes
 export PATH_XTRA_CHECKED
 export x_includes
 export x_libraries
+AC_SUBST(x_libraries)
 export X_CFLAGS
 export X_LIBS
 export X_EXTRA_LIBS
