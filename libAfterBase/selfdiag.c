@@ -561,7 +561,7 @@ sigsegv_handler (int signum
 	)
 {
 	static int    level = 0;
-	extern char  *MyName;
+	const char  *MyName = get_application_name();
 
 	if (signum == SIGSEGV)
 	{
