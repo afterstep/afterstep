@@ -379,7 +379,7 @@ mystyle_make_image (MyStyle * style, int root_x, int root_y, int width, int heig
 	if (height < 1)
 		height = 1;
     LOCAL_DEBUG_OUT ("style \"%s\", texture_type = %d, im = %p, tint = 0x%lX, geom=(%dx%d%+d%+d), flip = %d", style->name, style->texture_type,
-                     style->back_icon.image, style->tint, root_x, root_y, width, height, flip);
+                     style->back_icon.image, style->tint, width, height, root_x, root_y, flip);
 
 	if(  style->texture_type == TEXTURE_SHAPED_SCALED_PIXMAP ||
 		 style->texture_type == TEXTURE_SHAPED_PIXMAP ||

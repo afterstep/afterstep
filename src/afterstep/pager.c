@@ -314,6 +314,8 @@ LOCAL_DEBUG_CALLER_OUT( "new_desk(%d)->old_desk(%d)", new_desk, old_desk );
     set_current_desk_prop ( Scr.wmprops, new_desk);
 
     SendPacket( -1, M_NEW_DESK, 1, new_desk);
+	/* yeld to let modules handle desktop change */
+	sleep_a_little(1000); 
     /* Scan the window list, mapping windows on the new Desk, unmapping
 	 * windows on the old Desk; do this in reverse order to reduce client
 	 * expose events */

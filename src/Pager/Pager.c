@@ -148,6 +148,7 @@ void on_pager_pressure_changed( ASEvent *event );
 void release_pressure();
 void on_desk_moveresize( ASPagerDesk *d );
 void on_scroll_viewport( ASEvent *event );
+void place_separation_bars( ASPagerDesk *d );
 
 
 /***********************************************************************
@@ -823,7 +824,7 @@ calculate_desk_width( ASPagerDesk *d )
 {
     unsigned int width = PagerState.desk_width;
 
-    if( get_flags( Config->flags, VERTICAL_LABEL ) )
+	if( get_flags( Config->flags, VERTICAL_LABEL ) && d->title_width > 0 )
     {
         if( get_flags( d->flags, ASP_DeskShaded ) )
             width = d->title_width;
@@ -838,7 +839,7 @@ calculate_desk_height( ASPagerDesk *d )
 {
     unsigned int height = PagerState.desk_height;
 
-    if( !get_flags( Config->flags, VERTICAL_LABEL ) )
+    if( !get_flags( Config->flags, VERTICAL_LABEL ) && d->title_height > 0 )
     {
         if( get_flags( d->flags, ASP_DeskShaded ) )
             height = d->title_height;
@@ -858,7 +859,7 @@ void place_desk( ASPagerDesk *d, int x, int y, unsigned int width, unsigned int 
     {
         on_desk_moveresize( d );
     }else
-        moveresize_canvas( d->desk_canvas, x-bw, y-bw, width, height );
+        moveresize_canvas( d->desk_canvas, x, y, width, height );
 }
 
 inline ASPagerDesk *
@@ -938,6 +939,47 @@ restack_desk_windows( ASPagerDesk *d )
     XRestackWindows( dpy, list, k );
 }
 
+void
+place_separation_bars( ASPagerDesk *d )
+{
+	register Window *wa = d?d->separator_bars:NULL;
+    register XRectangle *wrecta = d?d->separator_bar_rects:NULL;
+    if( wa )
+    {
+        register int p = PagerState.page_columns-1;
+        int pos_inc = d->background->width/PagerState.page_columns ;
+        int pos = d->background->win_x+p*pos_inc;
+        int size = d->background->height ;
+        int pos2 = d->background->win_y ;
+        /* vertical bars : */
+        while( --p >= 0 )
+        {
+            wrecta[p].x = pos ;
+            wrecta[p].y = pos2 ;
+            wrecta[p].width = 1 ;
+            wrecta[p].height = size ;
+            XMoveResizeWindow( dpy, wa[p], pos, pos2, 1, size );
+            pos -= pos_inc ;
+        }
+        /* horizontal bars */
+        wa += PagerState.page_columns-1;
+        wrecta += PagerState.page_columns-1;
+        p = PagerState.page_rows-1;
+        pos_inc = d->background->height/PagerState.page_rows ;
+        pos = d->background->win_y + p*pos_inc;
+        pos2 = d->background->win_x ;
+        size = d->background->width ;
+        while( --p >= 0 )
+        {
+            wrecta[p].x = pos2 ;
+            wrecta[p].y = pos ;
+            wrecta[p].width = size ;
+            wrecta[p].height = 1 ;
+	        XMoveResizeWindow( dpy, wa[p], pos2, pos, size, 1 );
+            pos -= pos_inc ;
+        }
+    }
+}
 
 void
 place_selection()
@@ -1010,6 +1052,7 @@ redecorate_pager_desks()
     {
         ASPagerDesk *d = &(PagerState.desks[i]);
         int p ;
+		Bool just_created_background = False ;
 
         if( d->desk_canvas == NULL )
         {
@@ -1028,10 +1071,13 @@ redecorate_pager_desks()
         {
             int align = (Config->align>0)?ALIGN_LEFT:((Config->align<0)?ALIGN_RIGHT:ALIGN_HCENTER) ;
             int flip = get_flags(Config->flags, VERTICAL_LABEL)?FLIP_VERTICAL:0;
+			Bool just_created = False ;
+			
             if( d->title == NULL )
             {
                 d->title = create_astbar();
                 d->title->context = C_TITLE ;
+				just_created = True ;
             }
             set_astbar_hilite( d->title, BAR_STATE_UNFOCUSED, NORMAL_HILITE|NO_HILITE_OUTLINE);
             set_astbar_hilite( d->title, BAR_STATE_FOCUSED, NORMAL_HILITE);
@@ -1058,6 +1104,8 @@ redecorate_pager_desks()
                 d->title_width = PagerState.desk_width;
                 d->title_height = calculate_astbar_height( d->title );
             }
+			if( just_created )
+				place_desk_title( d );
         }else
         {
             if( d->title )
@@ -1067,11 +1115,18 @@ redecorate_pager_desks()
 
         /* create & moveresize desktop background bar : */
         if( d->background == NULL )
+		{
             d->background = create_astbar();
+			just_created_background = True ;
+		}
+
         set_astbar_style_ptr( d->background, BAR_STATE_FOCUSED, Config->MSDeskBack[i] );
         set_astbar_style_ptr( d->background, BAR_STATE_UNFOCUSED, Config->MSDeskBack[i] );
         if( Config->styles[i] == NULL )
             set_flags( d->flags, ASP_UseRootBackground );
+
+		if( just_created_background )
+			place_desk_background( d );
 
         if( d->separator_bars )
         {
@@ -1096,6 +1151,7 @@ redecorate_pager_desks()
                 d->separator_bar_rects[p].width = d->separator_bar_rects[p].height = 1 ;
             }
             XMapSubwindows( dpy, d->desk_canvas->w );
+			place_separation_bars( d );
         }
     }
     /* selection bars : */
@@ -1123,6 +1179,7 @@ rearrange_pager_desks(Bool dont_resize_main )
     int i ;
     int col = 0;
     int x = 0, y = 0, row_height = 0;
+	int desk_bw = Config->border_width ;
     /* Pass 1: first we must resize or main window !!! */
     update_main_canvas_config();
     if( !dont_resize_main )
@@ -1141,18 +1198,20 @@ rearrange_pager_desks(Bool dont_resize_main )
 
             if( ++col >= Config->columns )
             {
-                if( all_width < x+Config->border_width+width+Config->border_width )
-                    all_width = x+Config->border_width+width+Config->border_width ;
-                y += row_height;
+                if( all_width < x+desk_bw+width+desk_bw )
+                    all_width = x+desk_bw+width+desk_bw ;
+                y += row_height+desk_bw;
 
                 row_height = 0 ;
                 x = 0 ;
                 col = 0;
             }else
-                x += width+Config->border_width;
+                x += width+desk_bw;
         }
-        if( all_height < y+row_height+Config->border_width )
-            all_height = y+row_height+Config->border_width;
+        if( all_width < x+desk_bw )
+            all_width = x+desk_bw ;
+        if( all_height < y+row_height+desk_bw )
+            all_height = y+row_height+desk_bw;
         if( PagerState.main_canvas->width != all_width || PagerState.main_canvas->height != all_height )
         {
             resize_canvas( PagerState.main_canvas, all_width, all_height );
@@ -1173,7 +1232,7 @@ rearrange_pager_desks(Bool dont_resize_main )
         place_desk( d, x, y, width, height );
 
         if( height > row_height )
-            row_height = height+Config->border_width;
+            row_height = height+desk_bw;
 
         if( ++col >= Config->columns )
         {
@@ -1182,7 +1241,7 @@ rearrange_pager_desks(Bool dont_resize_main )
             x = 0 ;
             col = 0;
         }else
-            x += width+Config->border_width;
+            x += width+desk_bw;
     }
     ASSync(False);
 }
@@ -2113,43 +2172,8 @@ on_desk_moveresize( ASPagerDesk *d )
         place_desk_background( d );
         if( !get_flags(d->flags, ASP_DeskShaded ) )
         {   /* place all the grid separation windows : */
-            register Window *wa = d->separator_bars;
-            register XRectangle *wrecta = d->separator_bar_rects;
-            if( wa )
-            {
-                register int p = PagerState.page_columns-1;
-                int pos_inc = d->background->width/PagerState.page_columns ;
-                int pos = d->background->win_x+p*pos_inc;
-                int size = d->background->height ;
-                int pos2 = d->background->win_y ;
-                /* vertical bars : */
-                while( --p >= 0 )
-                {
-                    wrecta[p].x = pos ;
-                    wrecta[p].y = pos2 ;
-                    wrecta[p].width = 1 ;
-                    wrecta[p].height = size ;
-                    XMoveResizeWindow( dpy, wa[p], pos, pos2, 1, size );
-                    pos -= pos_inc ;
-                }
-                /* horizontal bars */
-                wa += PagerState.page_columns-1;
-                wrecta += PagerState.page_columns-1;
-                p = PagerState.page_rows-1;
-                pos_inc = d->background->height/PagerState.page_rows ;
-                pos = d->background->win_y + p*pos_inc;
-                pos2 = d->background->win_x ;
-                size = d->background->width ;
-                while( --p >= 0 )
-                {
-                    wrecta[p].x = pos2 ;
-                    wrecta[p].y = pos ;
-                    wrecta[p].width = size ;
-                    wrecta[p].height = 1 ;
-                    XMoveResizeWindow( dpy, wa[p], pos2, pos, size, 1 );
-                    pos -= pos_inc ;
-                }
-            }
+			place_separation_bars( d );
+
             /* rearrange all the client windows : */
             if( d->clients && d->clients_num > 0 )
             {
@@ -2249,8 +2273,8 @@ on_desk_pressure_changed( ASPagerDesk *d, ASEvent *event )
     int root_y = event->x.xbutton.y_root;
 /*    int state = event->x.xbutton.state ; */
     int context = check_astbar_point( d->title, root_x, root_y );
-LOCAL_DEBUG_OUT( "root_pos(%+d%+d)->title_root_pos(%+d%+d)->context(%s)", root_x, root_y, d->title->root_x, d->title->root_y, context2text(context) );
-    if( context != C_NO_CONTEXT )
+LOCAL_DEBUG_OUT( "root_pos(%+d%+d)->title_root_pos(%+d%+d)->context(%s)", root_x, root_y, d->title?d->title->root_x:0, d->title?d->title->root_y:0, context2text(context) );
+    if( context != C_NO_CONTEXT && d->title )
     {
         set_astbar_btn_pressed (d->title, context);  /* must go before next call to properly redraw :  */
         set_astbar_pressed( d->title, d->desk_canvas, context&C_TITLE );
@@ -2313,7 +2337,7 @@ on_scroll_viewport( ASEvent *event )
             px -= d->background->win_x;
             py -= d->background->win_y;
             if( px >= 0 && py >= 0 &&
-                px < d->background->width > 0 && py < d->background->height > 0 )
+                px < d->background->width && py < d->background->height )
             {
                 int sx = (px*PagerState.vscreen_width)/d->background->width ;
                 int sy = (py*PagerState.vscreen_height)/d->background->height ;
