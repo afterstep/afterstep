@@ -32,7 +32,7 @@ install:
 			$(MKDIR) -p $(AFTER_SHAREDIR)/$$D; \
 			echo "Installing images from $$D to $(AFTER_SHAREDIR)/$$D "; \
 			if [ -d $$D/xml ] ; then \
-				list=`ls $$D/xml/ `; \
+				list=`ls -A $$D/xml/ `; \
 				for I in $$list; do \
 					if [ -f $$D/xml/$$I ] ; then \
 						echo -n "."; \
@@ -41,7 +41,7 @@ install:
 				done ; \
 			fi; \
 			if [ -d $$D/$(IMAGE_FORMAT) ] ; then \
-				list=`ls $$D/$(IMAGE_FORMAT)/`; \
+				list=`ls -A $$D/$(IMAGE_FORMAT)/`; \
 				for I in $$list; do \
 					if [ -f $$D/$(IMAGE_FORMAT)/$$I ] ; then \
 						echo -n "."; \
@@ -50,7 +50,7 @@ install:
 				done ; \
 			fi; \
 			if [ -r $$D/jpg ] ; then \
-				list=`ls $$D/jpg/`; \
+				list=`ls -A $$D/jpg/`; \
 				for I in $$list; do \
 					if [ -f $$D/jpg/$$I ] ; then \
 						echo -n "."; \
