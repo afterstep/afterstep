@@ -196,7 +196,7 @@ ExecuteFunction (FunctionData *data, ASEvent *event, int module)
 {
     register FunctionCode  func = data->func;
     ASEvent scratch_event ;
-#ifndef LOCAL_DEBUG
+#if !defined(LOCAL_DEBUG) || defined(NO_DEBUG_OUTPUT)
     if( get_output_threshold() >= OUTPUT_LEVEL_DEBUG )
 #endif
         print_func_data(__FILE__, "ExecuteFunction", __LINE__, data);
@@ -495,7 +495,7 @@ make_desktop_grid(int desk)
     /* add all the window edges for this desktop : */
     iterate_asbidirlist( Scr.Windows->clients, get_aswindow_grid_iter_func, (void*)&grid_data, NULL, False );
 
-#ifdef LOCAL_DEBUG
+#if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
     print_asgrid( grid_data.grid );
 #endif
 

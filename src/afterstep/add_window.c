@@ -336,7 +336,8 @@ check_client_canvas( ASWindow *asw, Bool required )
                 attributes.backing_store = WhenMapped;
             }
             XChangeWindowAttributes (dpy, w, valuemask, &attributes);
-            XAddToSaveSet (dpy, w);
+            if( asw->internal == NULL )
+                XAddToSaveSet (dpy, w);
 
             register_aswindow( w, asw );
             canvas = create_ascanvas_container( w );
@@ -1742,7 +1743,7 @@ init_aswindow_status( ASWindow *t, ASStatusHints *status )
         if( !place_aswindow( t, &adjusted_status ) )
             return False;
 
-    if( is_output_level_under_threshold(OUTPUT_LEVEL_HINTS) )
+    if( !is_output_level_under_threshold(OUTPUT_LEVEL_HINTS) )
 		print_status_hints( NULL, NULL, &adjusted_status );
 
     /* TODO: AS_Iconic */
@@ -1808,7 +1809,7 @@ LOCAL_DEBUG_OUT( "unmaping client window 0x%lX", (unsigned long)asw->w );
             if (get_flags(Scr.Feel.flags, ClickToFocus) || get_flags(Scr.Feel.flags, SloppyFocus))
 			{
                 if (asw == Scr.Windows->focused)
-                    focus_next_aswindow (asw);
+                    focus_prev_aswindow (asw);
             }
 		}
 LOCAL_DEBUG_OUT( "updating status to iconic for client %p(\"%s\")", asw, ASWIN_NAME(asw) );
@@ -2069,6 +2070,7 @@ hide_focus()
 
     Scr.Windows->focused = NULL;
     Scr.Windows->ungrabbed = NULL;
+    XRaiseWindow(dpy, Scr.ServiceWin);
     XSetInputFocus (dpy, Scr.ServiceWin, RevertToParent, Scr.last_Timestamp);
     XSync(dpy, False );
 }
@@ -2162,8 +2164,9 @@ focus_aswindow( ASWindow *asw )
         w = asw->w ;
     }
 
-    if( w != None )
+    if( w != None && ASWIN_GET_FLAGS(asw, AS_Mapped) && !ASWIN_GET_FLAGS(asw, AS_UnMapPending))
     {
+/*        show_progress( "focusing window %lX, client %lX, frame %lX", w, asw->w, asw->frame ); */
         XSetInputFocus (dpy, w, RevertToParent, Scr.last_Timestamp);
         if (get_flags(asw->hints->protocols, AS_DoesWmTakeFocus) && !ASWIN_GET_FLAGS(asw, AS_Dead))
             send_wm_protocol_request (asw->w, _XA_WM_TAKE_FOCUS, Scr.last_Timestamp);
@@ -2248,6 +2251,18 @@ focus_next_aswindow( ASWindow *asw )
     if( !activate_aswindow( new_focus, False, False) )
         hide_focus();
 }
+
+void
+focus_prev_aswindow( ASWindow *asw )
+{
+    ASWindow     *new_focus = NULL;
+
+    if( get_flags(Scr.Feel.flags, ClickToFocus))
+        new_focus = get_next_window (asw, NULL, -1);
+    if( !activate_aswindow( new_focus, False, False) )
+        hide_focus();
+}
+
 
 void
 hilite_aswindow( ASWindow *asw )
@@ -2388,14 +2403,14 @@ AddWindow (Window w)
 
     if( collect_hints( &Scr, w, HINT_ANY, &raw_hints ) )
     {
-        if( is_output_level_under_threshold(OUTPUT_LEVEL_HINTS) )
+        if( !is_output_level_under_threshold(OUTPUT_LEVEL_HINTS) )
             print_hints( NULL, NULL, &raw_hints );
         hints = merge_hints( &raw_hints, Database, &status, Scr.Look.supported_hints, HINT_ANY, NULL );
         destroy_raw_hints( &raw_hints, True );
         if( hints )
         {
 			show_debug( __FILE__, __FUNCTION__, __LINE__,  "Window management hints collected and merged for window %X", w );
-            if( is_output_level_under_threshold(OUTPUT_LEVEL_HINTS) )
+            if( !is_output_level_under_threshold(OUTPUT_LEVEL_HINTS) )
 			{
                 print_clean_hints( NULL, NULL, hints );
 				print_status_hints( NULL, NULL, &status );
@@ -2507,7 +2522,7 @@ AddInternalWindow (Window w, ASInternalWindow **pinternal, ASHints **phints, ASS
     if( hints )
     {
         show_debug( __FILE__, __FUNCTION__, __LINE__,  "Window management hints supplied for window %X", w );
-        if( is_output_level_under_threshold(OUTPUT_LEVEL_HINTS) )
+        if( !is_output_level_under_threshold(OUTPUT_LEVEL_HINTS) )
         {
             print_clean_hints( NULL, NULL, hints );
             print_status_hints( NULL, NULL, status );
@@ -2605,7 +2620,8 @@ LOCAL_DEBUG_CALLER_OUT( "asw(%p)->internal(%p)->data(%p)", asw, asw->internal, a
     XUnmapWindow (dpy, asw->frame);
     if( !bad_window )
     {
-        XRemoveFromSaveSet (dpy, asw->w);
+        if( asw->internal == NULL )
+            XRemoveFromSaveSet (dpy, asw->w);
         XSelectInput (dpy, asw->w, NoEventMask);
     }else
         ASWIN_SET_FLAGS( asw, AS_Dead );
@@ -2616,7 +2632,7 @@ LOCAL_DEBUG_CALLER_OUT( "asw(%p)->internal(%p)->data(%p)", asw, asw->internal, a
     CheckGrabbedFocusDestroyed(asw);
 
     if ( asw == Scr.Windows->focused )
-        focus_next_aswindow( asw );
+        focus_prev_aswindow( asw );
 
     if ( asw == Scr.Windows->active )
         Scr.Windows->active = NULL;

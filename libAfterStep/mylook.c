@@ -507,7 +507,9 @@ LOCAL_DEBUG_OUT( "looking for desk_config for dekstop %ld...", desk );
 LOCAL_DEBUG_OUT( "found desk_config %p for dekstop %ld...", dc, desk );
 			if( dc->back_name )
 			{
+#if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
 				print_ashash( look->backs_list, string_print );
+#endif
 				get_hash_item( look->backs_list, AS_HASHABLE(dc->back_name), (void**)&myback);
 LOCAL_DEBUG_OUT( "found back %p for dekstop %ld with name \"%s\"...", myback, desk, dc->back_name );
 			}

@@ -73,7 +73,6 @@ set_synchronous_mode (Bool enable)
 
 	XSynchronize (dpy, enable);
 	as_X_synchronous_mode = enable;
-
 	return old;
 }
 
@@ -421,21 +420,24 @@ check_screen_panframes(ScreenInfo *scr)
 	 * temporarily disabled */
     for( i = 0 ; i < PAN_FRAME_SIDES ; i++ )
     {
-        if( map_frame[i] != scr->PanFrame[i].isMapped )
+        if( scr->PanFrame[i].win )
         {
+            if( map_frame[i] != scr->PanFrame[i].isMapped )
+            {
+                if( map_frame[i] )
+                {
+                    XMapRaised (dpy, scr->PanFrame[i].win);
+                }else
+                    XUnmapWindow (dpy, scr->PanFrame[i].win);
+                scr->PanFrame[i].isMapped = map_frame[i];
+            }
+
             if( map_frame[i] )
             {
-                XMapRaised (dpy, scr->PanFrame[i].win);
-            }else
-                XUnmapWindow (dpy, scr->PanFrame[i].win);
-            scr->PanFrame[i].isMapped = map_frame[i];
-        }
-
-        if( map_frame[i] )
-        {
-            /* to maintain stacking order where first mapped pan frame is the lowest window :*/
-            XRaiseWindow( dpy, scr->PanFrame[i].win );
-            XDefineCursor (dpy, scr->PanFrame[i].win, scr->Feel.cursors[TOP+i]);
+                /* to maintain stacking order where first mapped pan frame is the lowest window :*/
+                XRaiseWindow( dpy, scr->PanFrame[i].win );
+                XDefineCursor (dpy, scr->PanFrame[i].win, scr->Feel.cursors[TOP+i]);
+            }
         }
     }
 #endif

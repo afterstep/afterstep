@@ -177,11 +177,6 @@ main (int argc, char **argv)
     memset( &WharfState, 0x00, sizeof(WharfState));
 
     ConnectX( &Scr, PropertyChangeMask );
-
-    if (get_flags( MyArgs.flags, ASS_Debugging))
-        set_synchronous_mode(True);
-    XSync (dpy, 0);
-
     ConnectAfterStep (M_TOGGLE_PAGING |
                     M_NEW_DESK |
                     M_END_WINDOWLIST |

@@ -124,8 +124,6 @@ main (int argc, char **argv)
     ConnectX( &Scr, AS_ROOT_EVENT_MASK );
     InitSession();
 
-    if (get_flags( AfterStepState, ASS_Debugging))
-        set_synchronous_mode(True);
     XSync (dpy, 0);
 
 #ifdef SHAPE
@@ -153,7 +151,7 @@ main (int argc, char **argv)
             }
         }else
         {
-            if( is_output_level_under_threshold( OUTPUT_LEVEL_PROGRESS ) )
+            if( !is_output_level_under_threshold( OUTPUT_LEVEL_PROGRESS ) )
             {
                 show_progress( "\t screen[%d].size = %ux%u", Scr.screen, Scr.MyDisplayWidth, Scr.MyDisplayHeight );
                 show_progress( "\t screen[%d].root = %lX", Scr.screen, Scr.Root );
@@ -276,11 +274,12 @@ CreateManagementWindows()
 	   windows have it */
     attr.event_mask = KeyPressMask | FocusChangeMask;
     attr.override_redirect = True;
-    Scr.ServiceWin = create_visual_window (Scr.asv, Scr.Root, 0, -1, 1, 1, 0,
+    Scr.ServiceWin = create_visual_window (Scr.asv, Scr.Root, 0, 0, 1, 1, 0,
                                            InputOutput, CWEventMask | CWOverrideRedirect,
                                            &attr);
-    XMapWindow (dpy, Scr.ServiceWin);
+    XMapRaised (dpy, Scr.ServiceWin);
     XSetInputFocus (dpy, Scr.ServiceWin, RevertToParent, CurrentTime);
+/*    show_progress( "Service window created with ID %lX", Scr.ServiceWin ); */
 }
 
 void

@@ -194,11 +194,6 @@ main (int argc, char **argv)
         PagerState.desks[i].desk = PagerState.start_desk+i ;
 
     ConnectX( &Scr, PropertyChangeMask );
-
-    if (get_flags( MyArgs.flags, ASS_Debugging))
-        set_synchronous_mode(True);
-    XSync (dpy, 0);
-
     ConnectAfterStep (  M_ADD_WINDOW |
                         M_CONFIGURE_WINDOW |
                         M_DESTROY_WINDOW |

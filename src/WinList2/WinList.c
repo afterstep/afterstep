@@ -106,11 +106,6 @@ main( int argc, char **argv )
     InitMyApp (CLASS_WINLIST, argc, argv, NULL, NULL, 0 );
 
     ConnectX( &Scr, PropertyChangeMask );
-
-    if (get_flags( MyArgs.flags, ASS_Debugging))
-        set_synchronous_mode(True);
-    XSync (dpy, 0);
-
     ConnectAfterStep (M_FOCUS_CHANGE |
                     M_DESTROY_WINDOW |
                     WINDOW_CONFIG_MASK |

@@ -273,7 +273,7 @@ merge_hints (ASRawHints * raw, ASDatabase * db, ASStatusHints * status,
 
 	pdb_rec = fill_asdb_record (db, clean->names, &db_rec, False);
 
-	if (is_output_level_under_threshold (OUTPUT_LEVEL_DATABASE))
+    if (!is_output_level_under_threshold (OUTPUT_LEVEL_DATABASE))
 		print_asdb_matched_rec (NULL, NULL, db, pdb_rec);
 
 	hints_types = get_asdb_hint_mask (pdb_rec);

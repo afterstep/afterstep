@@ -325,7 +325,7 @@ DigestEvent( ASEvent *event )
         if( event->x.type == ButtonRelease && Scr.Windows->pressed )
             release_pressure();
     }
-#ifndef EVENT_TRACE
+#if !defined(EVENT_TRACE) || defined(NO_DEBUG_OUTPUT)
     if( get_output_threshold() >= OUTPUT_LEVEL_DEBUG )
 #endif
     {
@@ -843,6 +843,7 @@ HandleUnmapNotify (ASEvent *event )
 {
 	XEvent        dummy;
     ASWindow *asw = event->client ;
+    Bool was_mapped ;
 
     if ( event->x.xunmap.event == Scr.Root )
 		return;
@@ -850,6 +851,9 @@ HandleUnmapNotify (ASEvent *event )
     if (!asw)
 		return;
 
+    was_mapped = ASWIN_GET_FLAGS(asw, AS_Mapped);
+    ASWIN_CLEAR_FLAGS(asw, AS_Mapped);
+    ASWIN_CLEAR_FLAGS(asw, AS_UnMapPending);
     /* Window remains hilited even when unmapped !!!! */
     /* if (Scr.Hilite == asw )
         Scr.Hilite = NULL; */
@@ -860,7 +864,7 @@ HandleUnmapNotify (ASEvent *event )
     if (Scr.Windows->focused == asw )
         focus_next_aswindow( asw );
 
-    if (ASWIN_GET_FLAGS(asw, AS_Mapped) || ASWIN_GET_FLAGS(asw, AS_Iconic))
+    if (was_mapped || ASWIN_GET_FLAGS(asw, AS_Iconic))
 	{
         Bool destroyed = False ;
         XGrabServer (dpy);

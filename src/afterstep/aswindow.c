@@ -337,6 +337,108 @@ delist_aswindow( ASWindow *t )
 }
 
 void
+update_visibility( int desk )
+{
+    static ASVector *ptrs = NULL ;
+    static ASVector *layers = NULL ;
+    static ASVector *rects = NULL ;
+    unsigned long layers_in ;
+    register long windows_num ;
+    ASLayer **l ;
+    ASWindow  **asws ;
+    XRectangle *vrect;
+    XRectangle srect ;
+    int i;
+
+    if( !IsValidDesk(desk) )
+    {
+        if( ptrs )
+            destroy_asvector( &ptrs );
+        if( layers )
+            destroy_asvector( &layers );
+        if( rects )
+            destroy_asvector( &rects );
+        return;
+    }
+
+    if( Scr.Windows->clients->count == 0)
+        return;
+
+    if( layers == NULL )
+        layers = create_asvector( sizeof(ASLayer*) );
+    if( Scr.Windows->layers->items_num > layers->allocated )
+        realloc_vector( layers, Scr.Windows->layers->items_num );
+
+    if( ptrs == NULL )
+        ptrs = create_asvector( sizeof(ASWindow*) );
+    else
+        flush_vector( ptrs );
+    if( Scr.Windows->clients->count > ptrs->allocated )
+        realloc_vector( ptrs, Scr.Windows->clients->count );
+
+    if( (layers_in = sort_hash_items (Scr.Windows->layers, NULL, (void**)VECTOR_HEAD_RAW(*layers), 0)) == 0 )
+        return ;
+
+    l = VECTOR_HEAD(ASLayer*,*layers);
+    asws = VECTOR_HEAD(ASWindow*,*ptrs);
+    windows_num = 0 ;
+    for( i = 0 ; i < layers_in ; i++ )
+    {
+        register int k, end_k = VECTOR_USED(*(l[i]->members)) ;
+        register ASWindow **members = VECTOR_HEAD(ASWindow*,*(l[i]->members));
+        if( end_k > ptrs->allocated )
+            end_k = ptrs->allocated ;
+        for( k = 0 ; k < end_k ; k++ )
+            if( ASWIN_DESK(members[k]) == desk && !ASWIN_GET_FLAGS(members[k], AS_Dead))
+                asws[windows_num++] = members[k];
+    }
+    VECTOR_USED(*ptrs) = windows_num ;
+
+    if( rects == NULL )
+        rects = create_asvector( sizeof(XRectangle) );
+    VECTOR_USED(*rects) = 0;
+
+    srect.x = 0;
+    srect.y = 0;
+    srect.width = Scr.MyDisplayWidth ;
+    srect.height = Scr.MyDisplayHeight ;
+
+    append_vector( rects, &srect, 1 );
+    vrect = VECTOR_HEAD(XRectangle,*rects);
+
+    for( i = 0 ; i < windows_num ; ++i )
+    {
+        ASCanvas *client = asws[i]->client_canvas ;
+        ASCanvas *frame = asws[i]->frame_canvas ;
+        int r ;
+
+        if( ASWIN_GET_FLAGS( asws[i], AS_Iconic ) )
+        {
+            frame = client = asws[i]->icon_canvas ;
+            if( frame == NULL )
+                continue ;
+        }else if( ASWIN_GET_FLAGS( asws[i], AS_Shaded ) )
+            client = frame ;
+
+        ASWIN_CLEAR_FLAGS( asws[0], AS_Visible );
+
+        r = VECTOR_USED(*rects);
+        while( --r >= 0 )
+        {
+            if( client->root_x+(int)client->width > vrect[r].x &&
+                client->root_x < vrect[r].x+(int)vrect[r].width &&
+                client->root_y+(int)client->height > vrect[r].y &&
+                client->root_y < vrect[r].y+(int)vrect[r].height )
+            {
+                ASWIN_SET_FLAGS( asws[0], AS_Visible );
+
+                break;
+            }
+        }
+    }
+}
+
+void
 restack_window_list( int desk, Bool send_msg_only )
 {
     static ASVector *ids = NULL ;
@@ -354,6 +456,9 @@ restack_window_list( int desk, Bool send_msg_only )
             destroy_asvector( &layers );
         return;
     }
+
+    if( Scr.Windows->clients->count == 0)
+        return;
 
     if( layers == NULL )
         layers = create_asvector( sizeof(ASLayer*) );
@@ -411,6 +516,7 @@ restack_window_list( int desk, Bool send_msg_only )
             XSync(dpy, False);
         }
         raise_scren_panframes (&Scr);
+        XRaiseWindow(dpy, Scr.ServiceWin);
     }
 }
 
@@ -589,6 +695,7 @@ LOCAL_DEBUG_CALLER_OUT( "%p,%lX,%d", t, sibling_window, stack_mode );
     restack_window_list( ASWIN_DESK(t), False );
 }
 
+
 /*
  * Find next window in circulate csequence forward (dir 1) or backward (dir -1)
  * from specifyed window. when we reach top or bottom we are turning back
@@ -599,9 +706,29 @@ LOCAL_DEBUG_CALLER_OUT( "%p,%lX,%d", t, sibling_window, stack_mode );
 ASWindow     *
 get_next_window (ASWindow * curr_win, char *action, int dir)
 {
-//#warning TODO: implement window circulation
-	return curr_win;
+    int end_i, i;
+    ASWindow **clients;
 
+    if( Scr.Windows == NULL || curr_win == NULL )
+        return NULL;
+
+    end_i = VECTOR_USED(*(Scr.Windows->circulate_list)) ;
+    clients = VECTOR_HEAD(ASWindow*,*(Scr.Windows->circulate_list));
+
+    if( end_i <= 1 )
+        return NULL;
+    for( i = 0 ; i < end_i ; ++i )
+        if( clients[i] == curr_win )
+        {
+            if( i == 0 && dir < 0 )
+                return clients[end_i-1];
+            else if( i == end_i-1 && dir > 0 )
+                return clients[0];
+            else
+                return clients[i+dir];
+        }
+
+    return NULL;
 }
 
 /*********************************************************************************
