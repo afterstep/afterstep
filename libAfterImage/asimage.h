@@ -62,6 +62,15 @@ typedef struct ASImage
 }
 ASImage;
 
+typedef struct ASImageBevel
+{
+#define MAX_BEVEL_OUTLINE 10
+	ASFlagType type ;
+	ARGB32		hi_color, lo_color ;
+	unsigned short left_outline, top_outline, right_outline, bottom_outline;
+	unsigned short left_inline, top_inline, right_inline, bottom_inline;
+}ASImageBevel;
+
 /* Auxilary data structures : */
 typedef struct ASImageDecoder
 {
@@ -78,6 +87,9 @@ typedef struct ASImageDecoder
 								 /* there is no need for out_height - if we go out of the
 								  * image size - we simply reread lines from the beginning
                                   */
+	ASImageBevel	*bevel;      /* bevel to wrap everything around with */
+	unsigned short   bevel_h_addon, bevel_v_addon ;
+
 	ASScanline 		buffer;
 	int 			next_line ;
 }ASImageDecoder;
@@ -136,6 +148,7 @@ typedef struct ASImageLayer
 	unsigned int clip_width, clip_height;
 	ARGB32 back_color ;                        /* what we want to fill missing scanlines with */
 	ARGB32 tint ;                              /* if 0 - no tint */
+	ASImageBevel *bevel ;					   /* border to wrap layer with (for buttons, etc.)*/
 	int merge_mode ;
 	merge_scanlines_func merge_scanlines ;
 	void *data;                                /* hook to hung data on */
