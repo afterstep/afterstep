@@ -27,6 +27,29 @@ typedef struct xml_elem_t {
 	char* parm;
 } xml_elem_t;
 
+typedef enum
+{
+	ASXML_Start 			= 0,			               
+	ASXML_TagOpen 			= 1,
+	ASXML_TagName 			= 2,
+	ASXML_TagAttrOrClose 	= 3,
+	ASXML_AttrName 			= 4,
+	ASXML_AttrEq 			= 5,
+	ASXML_AttrValueStart 	= 6,
+	ASXML_AttrValue 		= 7,
+	ASXML_AttrSlash 		= 8
+} ASXML_ParserState;
+
+typedef enum
+{
+	ASXML_BadStart = -1,
+	ASXML_BadTagName = -2,
+	ASXML_UnexpectedSlash = -3,
+	ASXML_UnmatchedClose = -4,
+	ASXML_BadAttrName = -5,
+	ASXML_MissingAttrEq = -6
+} ASXML_ParserError;
+
 #define ASIM_XML_ENABLE_SAVE 	(0x01<<0)
 #define ASIM_XML_ENABLE_SHOW 	(0x01<<1)
 

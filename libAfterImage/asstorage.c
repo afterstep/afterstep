@@ -207,37 +207,107 @@ join_storage_slots( ASStorageBlock *block, ASStorageSlot *from_slot, ASStorageSl
 	}while( s < to_slot );	
 }
 
+static void
+add_storage_slots( ASStorageBlock *block )
+{
+	int i = block->slots_count ;
+	block->slots_count += AS_STORAGE_SLOTS_BATCH ; 
+#ifndef DEBUG_ALLOCS
+	block->slots = realloc( block->slots, block->slots_count*sizeof(ASStorageSlot*));
+#else
+	block->slots = guarded_realloc( block->slots, block->slots_count*sizeof(ASStorageSlot*));
+#endif
+	memset( &(block->slots[i]),	0x00, AS_STORAGE_SLOTS_BATCH*sizeof(ASStorageSlot*) );
+}
+
+
 static inline void
 defragment_storage_block( ASStorageBlock *block )
 {
-	ASStorageSlot *first, *curr, *prev ;
-	int first_free = -1 ;
-	first = block->start ; 
-	while( first < block->end ) 
-	{	
-		LOCAL_DEBUG_OUT("first = %p", first );
-		if( first->flags == 0 ) 
-		{	
-			if( first_free < -1 )
-				first_free = first->index;
-			prev = NULL ;
-			curr = first ;
-			while( (curr = AS_STORAGE_GetNextSlot(curr)) < block->end )
-			{
-				LOCAL_DEBUG_OUT("curr = %p", curr );
-				if( curr->flags != 0 ) 
-					break;	 
-				prev = curr ;
-			}	 
-			if( prev != NULL ) 
-				join_storage_slots( block, first, prev );				   
-	   	}
-		first = AS_STORAGE_GetNextSlot(first);		   
+	ASStorageSlot *brk, *next_used, **slots = block->slots ;
+	int i, first_free = -1;
+	unsigned long total_free = 0 ;
+	brk = next_used = block->start ; 
+	
+	
+	for( i = 0 ; i <= block->last_used ; ++i ) 
+	{
+		if( slots[i] ) 
+			if( slots[i]->flags == 0 ) 
+				slots[i] = NULL ;
+		if( slots[i] == NULL ) 
+		{
+			if( first_free < 0 ) 
+				first_free = i ;
+		}
 	}
-	block->first_free = first_free ;
-	/* Second pass. Here we want to move all the taken slots down, 
-	 * and all the free slots up. */
+	while( --i > 0 ) 
+		if( slots[i] != NULL ) 
+			break;
+	block->last_used = i ;
+								
+	while( brk < block->end ) 
+	{	
+		ASStorageSlot *used = next_used;
+		while( used < block->end && used->flags == 0 ) 
+			used = AS_STORAGE_GetNextSlot(used);
+		LOCAL_DEBUG_OUT("brk = %p, used = %p, end = %p", brk, used, block->end );
+		if( used >= block->end ) 
+		{
+			total_free = (unsigned long)((CARD8*)block->end - (CARD8*)brk);
+			if( total_free < ASStorageSlot_SIZE ) 
+				total_free = 0 ;
+			else
+				total_free -= ASStorageSlot_SIZE ; 	
+			break;
+		}else
+			next_used = AS_STORAGE_GetNextSlot(used);
 
+		LOCAL_DEBUG_OUT("used = %p, used->size = %ld", 
+						used,used->size );
+		if( next_used < block->end ) 
+		{
+			LOCAL_DEBUG_OUT("next_used = %p, next_used->size = %ld", 
+							next_used, next_used->size );
+		}
+
+		if( used != brk	)
+		{/* can't use memcpy as regions may overlap */
+			int size = (ASStorageSlot_FULL_SIZE(used))/4;
+			register CARD32 *from = (CARD32*)used ;
+			register CARD32 *to = (CARD32*)brk ;
+			for( i = 0 ; i < size ; ++i ) 
+				to[i] = from[i];
+			/* updating pointer : */	
+			slots[brk->index] = brk ;
+			LOCAL_DEBUG_OUT("brk = %p, brk->size = %ld", brk, brk->size );
+			brk = AS_STORAGE_GetNextSlot(brk);
+		}	
+	}
+	
+	if( total_free > 0 )
+	{
+		if( first_free < 0  ) 
+		{
+			if( ++block->last_used >= block->slots_count ) 
+				add_storage_slots( block );	
+			first_free = block->last_used ;
+		}
+		brk->flags = 0 ;
+		brk->size = total_free ; 
+		brk->uncompressed_size = total_free ;
+		brk->ref_count = 0 ;
+		brk->index = first_free ; 
+		block->first_free = first_free ;
+		
+		block->slots[first_free] = brk ;
+		if( block->last_used < first_free ) 
+			block->last_used = first_free ;
+	}
+	
+	block->total_free = total_free ;
+	LOCAL_DEBUG_OUT( "total_free after defrag = %d", total_free );
+	
 }
 
 static ASStorageSlot *
@@ -316,13 +386,7 @@ split_storage_slot( ASStorageBlock *block, ASStorageSlot *slot, int to_size )
 			{
 				i = block->slots_count ;
 				block->last_used = i ;
-				block->slots_count += AS_STORAGE_SLOTS_BATCH ; 
-#ifndef DEBUG_ALLOCS
-				block->slots = realloc( block->slots, block->slots_count*sizeof(ASStorageSlot*));
-#else
-				block->slots = guarded_realloc( block->slots, block->slots_count*sizeof(ASStorageSlot*));
-#endif
-				memset( &(block->slots[i]),	0x00, AS_STORAGE_SLOTS_BATCH*sizeof(ASStorageSlot*) );
+				add_storage_slots( block );
 			}	 
 		}
  		new_slot->index = i ;		
