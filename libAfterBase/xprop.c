@@ -363,7 +363,7 @@ set_32bit_property (Window w, Atom property, Atom type, CARD32 data)
 {
     if (w != None && property != None )
 	{
-        XChangeProperty (dpy, Scr.Root, property, type?type:XA_CARDINAL, 32,
+        XChangeProperty (dpy, w, property, type?type:XA_CARDINAL, 32,
                          PropModeReplace, (unsigned char *)&data, 1);
     }
 }
@@ -384,12 +384,12 @@ set_multi32bit_property (Window w, Atom property, Atom type, int items, ...)
                 data[i++] = va_arg(ap,CARD32);
             va_end(ap);
 
-            XChangeProperty (dpy, Scr.Root, property, type?type:XA_CARDINAL, 32,
+            XChangeProperty (dpy, w, property, type?type:XA_CARDINAL, 32,
                              PropModeReplace, (unsigned char *)&data, items);
 			free(data);
         }else
         {
-            XChangeProperty (dpy, Scr.Root, property,
+            XChangeProperty (dpy, w, property,
                              type?type:XA_CARDINAL, 32, PropModeReplace, NULL, 0);
         }
     }
@@ -402,11 +402,11 @@ set_32bit_proplist (Window w, Atom property, Atom type, CARD32 * list, long nite
 	{
         if( nitems > 0 )
         {
-            XChangeProperty (dpy, Scr.Root, property, type?type:XA_CARDINAL, 32,
+            XChangeProperty (dpy, w, property, type?type:XA_CARDINAL, 32,
                              PropModeReplace, (unsigned char *)&list, nitems);
         }else
         {
-            XChangeProperty (dpy, Scr.Root, property,
+            XChangeProperty (dpy, w, property,
                              type?type:XA_CARDINAL, 32, PropModeReplace, NULL, 0);
         }
     }
