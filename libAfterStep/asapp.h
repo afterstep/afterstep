@@ -154,6 +154,8 @@ typedef struct ASProgArgs
     char      *trace_calls ;
 #endif
     char      *log_file ;
+    char      *locale ;
+
 }ASProgArgs;
 
 typedef struct ASEnvironment

@@ -1354,10 +1354,12 @@ LoadASConfig (int thisdesktop, ASFlagType what)
     show_progress("Done loading configuration.");
 
     check_desksize_sanity( &Scr );
-    check_feel_sanity( &Scr.Feel );
 
     if (get_flags(what, PARSE_FEEL_CONFIG))
+	{
+		check_feel_sanity( &Scr.Feel );
         ApplyFeel( &Scr.Feel );
+	}
 
     if (get_flags(what, PARSE_LOOK_CONFIG))
     {

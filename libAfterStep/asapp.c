@@ -37,6 +37,7 @@
 #include "mystyle.h"
 #include "wmprops.h"
 #include "../libAfterImage/xpm.h"
+#include "../libAfterImage/char2uni.h"
 
 
 ASProgArgs    MyArgs = {0, NULL, 0, NULL, NULL, NULL, 0, 0};/* some typical progy cmd line options - set by SetMyArgs( argc, argv )*/
@@ -274,6 +275,8 @@ static CommandLineOpts as_cmdl_options[] =
 #endif
 /*17*/{"l", "log","Save all output into the file instead of printing it to console", NULL,
                                                            handler_set_string, &(MyArgs.log_file), 0, CMO_HasArgs },
+/*18*/{"L", "locale","Set language locale to be used while displaying text", NULL,
+                                                           handler_set_string, &(MyArgs.locale), 0, CMO_HasArgs },
       {NULL, NULL, NULL, NULL, NULL, NULL, 0 }
 };
 
@@ -426,16 +429,22 @@ InitMyApp (  const char *app_class, int argc, char **argv, void (*version_func) 
 	set_signal_handler (SIGUSR2);
     signal (SIGPIPE, DeadPipe);        /* don't forget DeadPipe should be provided by the app */
 
-#ifdef I18N
-	if (setlocale (LC_CTYPE, AFTER_LOCALE) == NULL)
-        show_error ("unable to set locale");
-#endif
-
     SetMyClass( app_class );
     MyVersionFunc = version_func ;
     MyUsageFunc = custom_usage_func ;
 
     memset( &MyArgs, 0x00, sizeof(ASProgArgs) );
+	MyArgs.locale = mystrdup(AFTER_LOCALE);
+#ifdef I18N
+	if (strlen(MyArgs.locale) == 0)
+	{
+		free( MyArgs.locale );
+		MyArgs.locale = mystrdup(getenv(LANG));
+		if (strlen(MyArgs.locale) == 0)
+  		    show_error ("LANG environment variable is not set - unable to determine locale");
+	}			
+#endif
+	
     MyArgs.mask = opt_mask ;
 #ifndef NO_DEBUG_OUTPUT
     MyArgs.verbosity_level = OUTPUT_VERBOSE_THRESHOLD ;
@@ -484,9 +493,18 @@ InitMyApp (  const char *app_class, int argc, char **argv, void (*version_func) 
 		PrepareSyntax (&FuncSyntax);
     set_output_threshold( MyArgs.verbosity_level );
     if(MyArgs.log_file)
-	if( freopen( MyArgs.log_file, "w", stderr ) == NULL )
-	    show_system_error( "failed to redirect output into file \"%s\"", MyArgs.log_file );
+		if( freopen( MyArgs.log_file, "w", stderr ) == NULL )
+		    show_system_error( "failed to redirect output into file \"%s\"", MyArgs.log_file );
 
+	if( MyArgs.locale )
+	{
+		as_set_charset( parse_charset_name( MyArgs.locale ));
+#ifdef I18N		
+		if (strlen(MyArgs.locale) > 0)
+			if (setlocale (LC_CTYPE, MyArgs.locale) == NULL)
+  			    show_error ("unable to set locale");
+#endif		
+	}
 #ifdef DEBUG_TRACE_X
     trace_enable_function(MyArgs.trace_calls);
 #endif

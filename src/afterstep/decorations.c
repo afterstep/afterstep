@@ -914,6 +914,8 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
     frame_mystyle_name = frame->frame_style_names[BACK_FOCUSED];
 
     /* 8) now we have to create actuall bars - for each frame element plus one for the titlebar */
+	for( i = 0 ; i < FRAME_SIDES ; ++i )
+		clear_flags( asw->internal_flags, ASWF_FirstCornerFollowsTbarSize<<i);
 	if( old_hints == NULL ||
 		(get_flags( old_hints->flags, AS_Handles ) != ASWIN_HFLAGS(asw, AS_Handles)) ||
 		old_frame != frame )
@@ -929,7 +931,6 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
 				int part_length = frame->part_length[i] ;
 
             	img = frame->parts[i]?frame->parts[i]->image:NULL ;
-				
 				
 				if( img == NULL ) 
 				{

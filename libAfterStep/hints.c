@@ -284,6 +284,15 @@ merge_hints (ASRawHints * raw, ASDatabase * db, ASStatusHints * status,
 	{
 		for (i = 0; i < list->hints_num; i++)
 			(list->merge_funcs[i]) (clean, raw, NULL, status, HINT_NAME);
+		
+#ifdef I18N
+		if( clean->names_encoding[0] == AS_Text_ASCII )
+		{/* TODO: we may want to recode the name into UTF8 string to 
+		    simplify later drawing */
+			
+		
+		}
+#endif		
 		/* we want to make sure that we have Icon Name at all times, if at all possible */
 		if (clean->icon_name == NULL)
 			clean->icon_name = clean->names[0];
