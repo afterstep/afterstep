@@ -68,6 +68,7 @@ typedef struct ASImageDecoder
 	ScreenInfo 	   *scr;
 	ASImage 	   *im ;
 	ASFlagType 		filter;
+	ARGB32	 		back_color;  /* we fill missing scanlines with this - default - black*/
 	unsigned int    offset_x,    /* left margin on source image before which we skip everything */
 					out_width;   /* actuall length of the output scanline */
 	unsigned int 	offset_y;	 /* top margin */
@@ -137,6 +138,7 @@ typedef struct ASImageLayer
 	/* clip area could be partially outside of the image - iumage gets tiled in it */
 	int clip_x, clip_y;
 	unsigned int clip_width, clip_height;
+	ARGB32 back_color ;                        /* what we want to fill missing scanlines with */
 	ARGB32 tint ;                              /* if 0 - no tint */
 	int merge_mode ;
 	merge_scanlines_func merge_scanlines ;
@@ -150,6 +152,7 @@ ASScanline*prepare_scanline( unsigned int width, unsigned int shift, ASScanline 
 void       free_scanline( ASScanline *sl, Bool reusable );
 
 size_t asimage_add_line (ASImage * im, ColorPart color, CARD32 * data, unsigned int y);
+size_t asimage_add_line8(ASImage * im, ColorPart color, CARD8 * data, unsigned int y);
 
 /* usefull for debugging : (returns memory usage)*/
 unsigned int asimage_print_line (ASImage * im, ColorPart color,

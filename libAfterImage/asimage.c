@@ -1429,7 +1429,6 @@ copytintpad_scanline( ASScanline *src, ASScanline *dst, int offset, ARGB32 tint 
 	chan_tint[IC_GREEN] = ARGB32_GREEN8(tint)<<1;
 	chan_tint[IC_BLUE] = ARGB32_BLUE8(tint)<<1;
 	chan_tint[IC_ALPHA] = ARGB32_ALPHA8(tint)<<1;
-
 	if( offset < 0 )
 		src_offset = -offset ;
 	else
@@ -1483,13 +1482,14 @@ decode_image_scanline( ASImageDecoder *imdec )
 	clear_flags( scl->flags,SCL_DO_ALL);
 	if( get_flags(imdec->filter, SCL_DO_RED) )
 		if( (count = asimage_decode_line(imdec->im,IC_RED, scl->red,y,imdec->offset_x,scl->width)) < scl->width)
-			set_component( scl->red, 0, count, scl->width );
+			set_component( scl->red, ARGB32_RED8(imdec->back_color), count, scl->width );
 	if( get_flags(imdec->filter, SCL_DO_GREEN) )
 		if( (count = asimage_decode_line(imdec->im,IC_GREEN, scl->green,y,imdec->offset_x,scl->width)) < scl->width)
-			set_component( scl->green, 0, count, scl->width );
+			set_component( scl->green, ARGB32_GREEN8(imdec->back_color), count, scl->width );
 	if( get_flags(imdec->filter, SCL_DO_BLUE) )
 		if( (count = asimage_decode_line(imdec->im,IC_BLUE, scl->blue,y,imdec->offset_x,scl->width)) < scl->width)
-			set_component( scl->blue, 0, count, scl->width );
+			set_component( scl->blue, ARGB32_BLUE8(imdec->back_color), count, scl->width );
+
 	set_flags( scl->flags,get_flags(imdec->filter,SCL_DO_COLOR));
 
 	if( get_flags(imdec->filter, SCL_DO_ALPHA) )
@@ -1964,8 +1964,10 @@ LOCAL_DEBUG_CALLER_OUT( "offset_x = %d, offset_y = %d, to_width = %d, to_height 
 	imdecs = safecalloc( count, sizeof(ASImageDecoder*));
 	for( i = 0 ; i < count ; i++ )
 		if( layers[i].im )
+		{
 			imdecs[i] = start_image_decoding(scr, layers[i].im, SCL_DO_ALL, layers[i].clip_x, layers[i].clip_y, layers[i].clip_width);
-
+			imdecs[i]->back_color = layers[i].back_color ;
+		}
 #ifdef HAVE_MMX
 	mmx_init();
 #endif
@@ -1995,9 +1997,10 @@ LOCAL_DEBUG_OUT("blending actually...%s", "");
 		else
 			imout->tiling_step = max_y ;
 
-		for( i = 0 ; i < count ; i++ )
+/*		for( i = 0 ; i < count ; i++ )
 			if( imdecs[i] )
 				imdecs[i]->next_line = min_y - layers[i].dst_y ;
+ */
 LOCAL_DEBUG_OUT( "min_y = %d, max_y = %d", min_y, max_y );
 		for( y = min_y ; y < max_y ; y++  )
 		{

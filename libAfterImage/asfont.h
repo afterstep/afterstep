@@ -13,13 +13,20 @@ typedef enum
 struct ASFontManager;
 struct ASFont;
 
+#ifdef I18N
+/* size of the UTF-8 encoded character is based on value of the first byte : */
+#define CHAR_SIZE(c) 	(((c)&0x80)?(((c)&0x40)?(((c)&0x20)?(((c)&0x10)?5:4):3):2):1)
+#else
+#define CHAR_SIZE(c) 	1
+#endif
+
 #ifdef INCLUDE_ASFONT_PRIVATE
 typedef struct ASGlyph
 {
 	CARD8 		   *pixmap ;
 	unsigned short 	width, height ;	  /* meaningfull width and height of the glyphs pixmap */
 	unsigned short  lead ;			  /* distance from previous glyph */
-	short  descend ;                  /* distance of the bottom of the g;yph from the baseline */
+	short  ascend, descend ;          /* distance of the top of the glyph from the baseline */
 }ASGlyph;
 
 typedef struct ASFont
@@ -35,7 +42,9 @@ typedef struct ASFont
 #endif
 	ASGlyph		   *glyphs;
 	size_t          glyphs_num;
-	unsigned int 	max_height;
+	unsigned int 	max_height, max_ascend, space_size;
+
+	ASHashTable    *locale_xref;  /* crossreference from unicode characters used so far to glyph indexes */
 }ASFont;
 
 typedef struct ASFontManager
@@ -47,6 +56,11 @@ typedef struct ASFontManager
 #endif
 
 	ASHashTable *fonts_hash ;
+
+	size_t 		 unicode_used;
+	CARD32		*local_unicode;                /* list of unicodes from current locale
+												* - we use it to limit number of glyphs
+												* we load */
 }ASFontManager;
 
 #endif
@@ -59,6 +73,10 @@ struct ASFont *get_asfont( struct ASFontManager *fontman, const char *font_strin
 void    print_asfont( FILE* stream, struct ASFont* font);
 void 	print_asglyph( FILE* stream, struct ASFont* font, unsigned int glyph_index);
 void    destroy_font( struct ASFont *font );
+
+struct ASImage *draw_text( const char *text, struct ASFont *font, int compression );
+
+
 
 
 #endif
