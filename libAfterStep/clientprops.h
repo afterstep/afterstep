@@ -307,15 +307,14 @@ This are placed By Window Manager :
 /************************************************************************/
 /* This are placed By Client : */
 
-typedef struct
+typedef struct MwmHints
 {
   CARD32 flags;         /* window hints */
   CARD32 functions;     /* requested functions */
   CARD32 decorations;   /* requested decorations */
   INT32  inputMode;     /* input mode */
   CARD32 status;        /* status (ignored) */
-}
-MwmHints;
+}MwmHints;
 
 /* Motif WM window hints */
 #define MWM_HINTS_FUNCTIONS     (1L << 0)

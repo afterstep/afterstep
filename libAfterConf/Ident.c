@@ -60,7 +60,7 @@ SyntaxDef     IdentSyntax = {
 IdentConfig  *
 CreateIdentConfig ()
 {
-	IdentConfig  *config = (IdentConfig *) safemalloc (sizeof (IdentConfig));
+	IdentConfig  *config = (IdentConfig *) safecalloc (1, sizeof (IdentConfig));
 
 	/* let's initialize Ident's config with some nice values: */
 

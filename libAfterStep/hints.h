@@ -9,6 +9,7 @@ extern "C" {
 #endif
 
 struct ASRawHints;
+struct MwmHints;
 struct ASDatabaseRecord;
 struct ASVector;
 struct ScreenInfo;
@@ -236,6 +237,7 @@ ASHints *merge_hints( struct ASRawHints *raw, struct ASDatabase *db, ASStatusHin
                       ASSupportedHints *list, ASFlagType what, ASHints* reusable_memory );
 void merge_asdb_hints (ASHints * clean, struct ASRawHints * raw, struct ASDatabaseRecord * db_rec, ASStatusHints * status, ASFlagType what);
 
+void check_motif_hints_sanity (struct MwmHints * motif_hints);
 ASFlagType extwm_state2as_state_flags( ASFlagType extwm_flags );
 
 /*

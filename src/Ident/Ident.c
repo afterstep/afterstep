@@ -30,6 +30,8 @@
 #include <signal.h>
 #include <unistd.h>
 
+#include <X11/cursorfont.h>
+
 #include "../../libAfterImage/afterimage.h"
 
 #include "../../libAfterStep/afterstep.h"
@@ -44,6 +46,7 @@
 #include "../../libAfterStep/aswindata.h"
 #include "../../libAfterStep/balloon.h"
 #include "../../libAfterStep/event.h"
+#include "../../libAfterStep/session.h"
 
 #include "../../libAfterConf/afterconf.h"
 
@@ -54,24 +57,43 @@
 /*  WinList local variables :                                         */
 /**********************************************************************/
 typedef struct {
+    char  	*property_name ;
+	char 	*value ;
+	ASTBarData *label_bar, *value_bar ;
+	int height, label_width, value_width ;
+	Bool span_cols ;
+}ASProperty ;
+
+
+
+typedef struct {
     Window       main_window;
     ASCanvas    *main_canvas;
+
+#define MAX_PROPERTIES 256
+	ASProperty	props[MAX_PROPERTIES];
+	int used_props ;
 }ASIdentState ;
 
 ASIdentState IdentState = {};
 
 IdentConfig *Config = NULL ;
+struct ASDatabase    *Database = NULL;
 /**********************************************************************/
 Window get_target_window();
 void GetBaseOptions (const char *filename);
 void GetOptions (const char *filename);
 void CheckConfigSanity();
+void ParseDatabase ();
 
 void HandleEvents();
 void DispatchEvent (ASEvent * event);
 void process_message (send_data_type type, send_data_type *body);
 
 Window make_ident_window();
+void fill_window_data();
+void display_window_data();
+void add_property( const char *name, const char *value, unsigned long value_encoding, Bool span_cols );
 
 
 int
@@ -95,14 +117,11 @@ main( int argc, char **argv )
 	LoadColorScheme();
 	LoadConfig ("ident", GetOptions);
     CheckConfigSanity();
+	ParseDatabase ();
 
 	if (MyArgs.src_window == 0)
 		MyArgs.src_window = get_target_window();
 
-    IdentState.main_window = make_ident_window();
-    IdentState.main_canvas = create_ascanvas( IdentState.main_window );
-    set_root_clip_area( IdentState.main_canvas );
-    
 	/* And at long last our main loop : */
     HandleEvents();
 	return 0 ;
@@ -164,6 +183,11 @@ CheckConfigSanity()
     if( Config == NULL )
         Config = CreateIdentConfig ();
 
+    if( Config->geometry.width <= 10 ) 
+		Config->geometry.width = 512;
+    if( Config->geometry.height <= 10 ) 
+		Config->geometry.height = 512;
+
     mystyle_get_property (Scr.wmprops);
 
     sprintf( buf, "*%sTile", get_application_name() );
@@ -189,6 +213,31 @@ GetOptions (const char *filename)
         ProcessMyStyleDefinitions (&(config->style_defs));
     SHOW_TIME("Config parsing",option_time);
 }
+
+void
+ParseDatabase ()
+{
+    struct name_list *list = NULL ;
+	char *file = make_session_file(Session, DATABASE_FILE, False );
+	
+	/* memory management for parsing buffer */
+	if (file == NULL)
+        return ;
+
+    list = ParseDatabaseOptions (file, "afterstep");
+    if( list )
+    {
+        Database = build_asdb( list );
+        if( is_output_level_under_threshold( OUTPUT_LEVEL_DATABASE ) )
+            print_asdb( NULL, NULL, Database );
+        while (list != NULL)
+            delete_name_list (&(list));
+    }else
+        show_progress( "no database records loaded." );
+    /* XResources : */
+    load_user_database();
+}
+
 /****************************************************************************/
 /* PROCESSING OF AFTERSTEP MESSAGES :                                       */
 /****************************************************************************/
@@ -198,17 +247,22 @@ process_message (send_data_type type, send_data_type *body)
     LOCAL_DEBUG_OUT( "received message %lX", type );
 	if( type == M_END_WINDOWLIST )
 	{
+		fill_window_data();
+		display_window_data();
 	}else if( (type&WINDOW_PACKET_MASK) != 0 )
 	{
 		struct ASWindowData *wd = fetch_window_by_id( body[0] );
-        struct ASWindowData *saved_wd = wd ;
-        ASTBarData *tbar = wd?wd->bar:NULL;
         WindowPacketResult res ;
 
 		show_progress( "message %X window %X data %p", type, body[0], wd );
 		res = handle_window_packet( type, body, &wd );
 		if( res == WP_DataCreated )
         {
+			/* we may need to translate frame window into client window, 
+			 * as Window Data is hashed by client, and get_target_window 
+			 * return the frame */
+			if( wd->frame == MyArgs.src_window )
+				MyArgs.src_window = wd->client ;
         }else if( res == WP_DataChanged )
 		{	
 		}else if( res == WP_DataDeleted )
@@ -220,10 +274,7 @@ process_message (send_data_type type, send_data_type *body)
 void
 DispatchEvent (ASEvent * event)
 {
-    ASWindowData *pointer_wd = NULL ;
-
     SHOW_EVENT_TRACE(event);
-
     switch (event->x.type)
     {
 	    case ConfigureNotify:
@@ -264,7 +315,7 @@ DispatchEvent (ASEvent * event)
 			LOCAL_DEBUG_OUT( "property %s(%lX), _XROOTPMAP_ID = %lX, event->w = %lX, root = %lX", XGetAtomName(dpy, event->x.xproperty.atom), event->x.xproperty.atom, _XROOTPMAP_ID, event->w, Scr.Root );
             if( event->x.xproperty.atom == _XROOTPMAP_ID && event->w == Scr.Root )
             {
-                int i ;
+                /*int i ;*/
                 LOCAL_DEBUG_OUT( "root background updated!%s","");
                 safe_asimage_destroy( Scr.RootImage );
                 Scr.RootImage = NULL ;
@@ -280,7 +331,7 @@ DispatchEvent (ASEvent * event)
 				}
             }else if( event->x.xproperty.atom == _AS_STYLE )
 			{
-                int i ;
+                /*int i ;*/
 				LOCAL_DEBUG_OUT( "AS Styles updated!%s","");
 				handle_wmprop_event (Scr.wmprops, &(event->x));
 				mystyle_list_destroy_all(&(Scr.Look.styles_list));
@@ -293,14 +344,12 @@ DispatchEvent (ASEvent * event)
 }
 
 Window
-make_ident_window()
+make_ident_window( int width, int height)
 {
 	Window        w;
 	XSizeHints    shints;
 	ExtendedWMHints extwm_hints ;
 	int x, y ;
-    int width = Config->geometry.width;
-    int height = Config->geometry.height;
     XSetWindowAttributes attr;
     LOCAL_DEBUG_OUT("configured geometry is %dx%d%+d%+d", width, height, Config->geometry.x, Config->geometry.y );
 	switch( Config->gravity )
@@ -332,7 +381,7 @@ make_ident_window()
     Scr.RootClipArea.width = width;
     Scr.RootClipArea.height = height;
 
-    shints.flags = USSize|PMinSize|PResizeInc|PWinGravity;
+    shints.flags = USSize|PResizeInc|PWinGravity;
     if( get_flags( Config->set_flags, IDENT_SET_GEOMETRY ) )
         shints.flags |= USPosition ;
     else
@@ -343,7 +392,7 @@ make_ident_window()
 	shints.win_gravity = Config->gravity ;
 
 	extwm_hints.pid = getpid();
-    extwm_hints.flags = EXTWM_PID|EXTWM_StateSkipTaskbar|EXTWM_StateSkipPager|EXTWM_TypeMenu ;
+    extwm_hints.flags = EXTWM_PID ;
 
 	set_client_hints( w, NULL, &shints, AS_DoesWmDeleteWindow, &extwm_hints );
 
@@ -358,14 +407,6 @@ make_ident_window()
 	XSelectInput (dpy, w, PropertyChangeMask|StructureNotifyMask);
 	return w ;
 }
-
-
-/*************************************************************************/
-/*************************************************************************/
-/*************************************************************************/
-/*************************************************************************/
-/*************************************************************************/
-#if 0
 
 /**********************************************************************
  * If no application window was indicated on the command line, prompt
@@ -393,300 +434,496 @@ get_target_window ()
   	if (val != GrabSuccess)
     {
     	show_error( "Couldn't grab the cursor!\n", MyName);
-      	DeadPipe();
+      	DeadPipe(0);
     }
   	XMaskEvent (dpy, ButtonReleaseMask, &eventp);
   	XUngrabPointer (dpy, CurrentTime);
   	ASSync(0);
-  	target = eventp.xany.window;
+  	target = eventp.xbutton.window;
+	LOCAL_DEBUG_OUT( "window = %lX, root = %lX, subwindow = %lX", 
+					 eventp.xbutton.window, eventp.xbutton.root, eventp.xbutton.subwindow );
   	if( eventp.xbutton.subwindow != None )
     	target = eventp.xbutton.subwindow;
 	return target;
 }
 
-
-/*************************************************************************
- *
- * End of window list, open an x window and display data in it
- *
- ************************************************************************/
-XSizeHints mysizehints;
-void
-list_end (void)
+struct 
 {
-  XGCValues gcv;
-  unsigned long gcm;
-  int lmax, height;
-  XEvent Event;
-  Window JunkRoot, JunkChild;
-  int JunkX, JunkY;
-  unsigned int JunkMask;
-  int x, y;
+	ASFlagType flag ;
+	char *name_set ;	  
+	char *name_unset ;	  
+} DatabaseFlagsList[] = 
+{	{STYLE_STICKY, 				"Sticky", 				"Slippery"},
+	{STYLE_TITLE, 				"Title", 				"NoTitle"},
+	{STYLE_CIRCULATE, 			"CirculateHit", 		"CirculateSkip"},
+	{STYLE_WINLIST, 			"WindowListHit", 		"WindowListSkip"},
+	{STYLE_START_ICONIC, 		"StartIconic", 			"StartNormal"},
+	{STYLE_ICON_TITLE, 			"IconTitle", 			"NoIconTitle"},
+	{STYLE_FOCUS, 				"Focus", 				"NoFocus"},
+	{STYLE_AVOID_COVER, 		"AvoidCover", 			"AllowCover"},
+	{STYLE_VERTICAL_TITLE, 		"VerticalTitle", 		"HorizontalTitle"},
+	{STYLE_HANDLES, 			"Handles", 				"NoHandles"},
+	{STYLE_PPOSITION, 			"HonorPPosition", 		"NoPPosition"},
+	{STYLE_GROUP_HINTS, 		"HonorGroupHints", 		"NoGroupHints"},
+	{STYLE_TRANSIENT_HINTS, 	"HonorTransientHints", 	"NoTransientHints"},
+	{STYLE_MOTIF_HINTS, 		"HonorMotifHints", 		"NoMotifHints"},
+	{STYLE_GNOME_HINTS, 		"HonorGnomeHints", 		"NoGnomeHints"},
+	{STYLE_EXTWM_HINTS, 		"HonorExtWMHints", 		"NoExtWMHints"},
+	{STYLE_XRESOURCES_HINTS, 	"HonorXResources", 		"NoXResources"},
+	{STYLE_FOCUS_ON_MAP, 		"FocusOnMap", 			"NoFocusOnMap"},
+	{STYLE_LONG_LIVING,			"LongLiving",			"ShortLiving"},
+	{0,NULL, NULL}};
 
-  if (!found)
-    {
-/*    fprintf(stderr,"%s: Couldn't find app window\n", MyName); */
-      exit (0);
-    }
-  close (fd[0]);
-  close (fd[1]);
+const char *Gravity2text[] =
+{
+	"ForgetGravity",	
+	"NorthWestGravity",
+	"NorthGravity",
+	"NorthEastGravity",
+	"WestGravity",
+	"CenterGravity",
+	"EastGravity",
+	"SouthWestGravity",
+	"SouthGravity",	
+	"SouthEastGravity",
+	"StaticGravity"
+};	 
 
-  target.gnome_enabled = gnome_hints (app_win);
+void 
+fill_window_data()
+{
+	ASWindowData *wd;
+	INT32 encoding;
+	char *name, *names[5];
+	static char buf[4096], buf2[4096];
+	ASRawHints    raw ;
+	ASDatabaseRecord db_rec ;
 
-  /* load the font */
-  if (!load_font (font_string, &font))
-    {
-      exit (1);
-    }
+	wd = fetch_window_by_id( MyArgs.src_window );
+	LOCAL_DEBUG_OUT( "src_window = %lX, wd = %p", MyArgs.src_window, wd );
+	encoding = AS_Text_ASCII ;
+	name = get_window_name(wd, ASN_Name, &encoding );
+	   
+	add_property( "Window name:", name, encoding, True );
+	name = get_window_name(wd, ASN_IconName, &encoding );
+	add_property( "Icon name:", name, encoding, True );		
+	name = get_window_name(wd, ASN_ResClass, &encoding );
+	add_property( "Resource class:", name, encoding, False );
+	name = get_window_name(wd, ASN_ResName, &encoding );
+	add_property( "Resource name:", name, encoding, False );
 
-  /* make window infomation list */
-  MakeList ();
+	sprintf( buf, "%ld ( 0x%lX )", wd->client, wd->client );
+	add_property("Client Window ID:", buf, AS_Text_ASCII, False);
+	sprintf( buf, "%ld ( 0x%lX )", wd->frame, wd->frame );
+	add_property("Frame Window ID:", buf, AS_Text_ASCII, False);
+	sprintf( buf, "%ldx%ld%+ld%+ld", wd->frame_rect.width, wd->frame_rect.height, wd->frame_rect.x, wd->frame_rect.y );
+	add_property("Frame Geometry:", buf, AS_Text_ASCII, False);
 
-  /* size and create the window */
-  lmax = max_col1 + max_col2 + 22;
+#define SHOW_FLAG(flags,flg)   \
+	do{ if( get_flags( flags, AS_##flg)){ if( buf[0] != '\0' ) strcat( buf, ", "); strcat( buf, #flg );}}while(0)
+#define SHOW_MWM_FLAG(flags,type,flg)   \
+	do{ if( get_flags( flags, MWM_##type##_##flg)){ if( buf[0] != '\0' ) strcat( buf, ", "); strcat( buf, #flg );}}while(0)
+#define SHOW_EXTWM_FLAG(flags,type,flg)   \
+	do{ if( get_flags( flags, EXTWM_##type##flg)){ if( buf[0] != '\0' ) strcat( buf, ", "); strcat( buf, #flg );}}while(0)
+#define SHOW_GNOME_FLAG(flags,type,flg)   \
+	do{ if( get_flags( flags, WIN_##type##_##flg)){ if( buf[0] != '\0' ) strcat( buf, ", "); strcat( buf, #flg );}}while(0)
 
-  height = 22 * font.height;
+	buf[0] = '\0' ;
+	SHOW_FLAG(wd->state_flags,Iconic);
+	SHOW_FLAG(wd->state_flags,MaximizedX);
+	SHOW_FLAG(wd->state_flags,MaximizedY);    
+	SHOW_FLAG(wd->state_flags,Sticky);    
+	SHOW_FLAG(wd->state_flags,Shaded);        
+	SHOW_FLAG(wd->state_flags,Withdrawn);
+	SHOW_FLAG(wd->state_flags,Dead);     
+	SHOW_FLAG(wd->state_flags,Mapped);
+	SHOW_FLAG(wd->state_flags,IconMapped);
+	SHOW_FLAG(wd->state_flags,Visible);
+	SHOW_FLAG(wd->state_flags,Shaped);
+	SHOW_FLAG(wd->state_flags,ShapedDecor);
+	SHOW_FLAG(wd->state_flags,ShapedIcon);
+		   
+	add_property("Current state flags:", buf, AS_Text_ASCII, True);
+	
+	buf[0] = '\0' ;
+	SHOW_FLAG(wd->flags,Iconic);
+	SHOW_FLAG(wd->flags,Transient);
+	SHOW_FLAG(wd->flags,AcceptsFocus);
+	SHOW_FLAG(wd->flags,ClickToFocus);
+	SHOW_FLAG(wd->flags,Titlebar);
+	SHOW_FLAG(wd->flags,VerticalTitle);
+	SHOW_FLAG(wd->flags,Border);
+	SHOW_FLAG(wd->flags,Handles);
+	SHOW_FLAG(wd->flags,Frame);		
+	SHOW_FLAG(wd->flags,SkipWinList); 
+	SHOW_FLAG(wd->flags,DontCirculate); 
+	SHOW_FLAG(wd->flags,AvoidCover);          
+	SHOW_FLAG(wd->flags,IconTitle);
+	SHOW_FLAG(wd->flags,Icon);          
+	SHOW_FLAG(wd->flags,ClientIcon);
+	SHOW_FLAG(wd->flags,ClientIconPixmap);    
+	SHOW_FLAG(wd->flags,ClientIconPosition);
+	SHOW_FLAG(wd->flags,FocusOnMap);          
+	SHOW_FLAG(wd->flags,ShortLived);
+	
+	add_property("Current hints flags:", buf, AS_Text_ASCII, True);
+	
+	buf[0] = '\0' ;
+	SHOW_FLAG(wd->flags,Windowbox);           
+	SHOW_FLAG(wd->flags,Aspect);
+	SHOW_FLAG(wd->flags,PID);
+	SHOW_FLAG(wd->flags,MinSize);
+	SHOW_FLAG(wd->flags,MaxSize);
+	SHOW_FLAG(wd->flags,SizeInc);
+	SHOW_FLAG(wd->flags,BaseSize);
+	SHOW_FLAG(wd->flags,Gravity);
+	
+	add_property("Specified hint values:", buf, AS_Text_ASCII, True);
 
-  mysizehints.flags =
-    USSize | USPosition | PWinGravity | PResizeInc | PBaseSize | PMinSize | PMaxSize;
-  /* subtract one for the right/bottom border */
-  mysizehints.width = lmax + 10;
-  mysizehints.height = height + 10;
-  mysizehints.width_inc = 1;
-  mysizehints.height_inc = 1;
-  mysizehints.base_height = mysizehints.height;
-  mysizehints.base_width = mysizehints.width;
-  mysizehints.min_height = mysizehints.height;
-  mysizehints.min_width = mysizehints.width;
-  mysizehints.max_height = mysizehints.height;
-  mysizehints.max_width = mysizehints.width;
-  XQueryPointer (dpy, Scr.Root, &JunkRoot, &JunkChild,
-		 &x, &y, &JunkX, &JunkY, &JunkMask);
-  mysizehints.win_gravity = NorthWestGravity;
-
-  if ((y + height + 100) > Scr.MyDisplayHeight)
-    {
-      y = Scr.MyDisplayHeight - 2 - height - 10;
-      mysizehints.win_gravity = SouthWestGravity;
-    }
-  if ((x + lmax + 100) > Scr.MyDisplayWidth)
-    {
-      x = Scr.MyDisplayWidth - 2 - lmax - 10;
-      if ((y + height + 100) > Scr.MyDisplayHeight)
-	mysizehints.win_gravity = SouthEastGravity;
-      else
-	mysizehints.win_gravity = NorthEastGravity;
-    }
-  mysizehints.x = x;
-  mysizehints.y = y;
-
-
-#define BW 1
-  if (Scr.d_depth < 2)
-    {
-      back_pix = Scr.asv->black_pixel ;
-      fore_pix = Scr.asv->white_pixel ;
-    }
-  else
-    {
-		ARGB32 color = ARGB32_Black;
-		parse_argb_color( BackColor, &color );
-		ARGB2PIXEL(Scr.asv, color, &back_pix );
-		color = ARGB32_White;
-		parse_argb_color( ForeColor, &color );
-		ARGB2PIXEL(Scr.asv, color, &fore_pix );
-    }
-
-  main_win = create_visual_window(Scr.asv, Scr.Root, mysizehints.x, mysizehints.y,
-				  mysizehints.width, mysizehints.height,
-				  BW, InputOutput, 0, NULL);
-  XSetWindowBackground( dpy, main_win, back_pix );
-  XSetTransientForHint (dpy, main_win, app_win);
-  wm_del_win = XInternAtom (dpy, "WM_DELETE_WINDOW", False);
-  XSetWMProtocols (dpy, main_win, &wm_del_win, 1);
-
-  XSetWMNormalHints (dpy, main_win, &mysizehints);
-  XSelectInput (dpy, main_win, MW_EVENTS);
-  change_window_name (MyName);
-
-  gcm = GCForeground | GCBackground | GCFont;
-  gcv.foreground = fore_pix;
-  gcv.background = back_pix;
-  gcv.font = font.font->fid;
-  NormalGC = create_visual_gc(Scr.asv, Scr.Root, gcm, &gcv);
-  XMapWindow (dpy, main_win);
-
-  /* Window is created. Display it until the user clicks or deletes it. */
-  while (1)
-    {
-      XNextEvent (dpy, &Event);
-      switch (Event.type)
+    if( collect_hints( &Scr, wd->client, HINT_ANY, &raw ) )
 	{
-	case Expose:
-	  if (Event.xexpose.count == 0)
-	    RedrawWindow ();
-	  break;
-	case KeyRelease:
-	case ButtonRelease:
-	  freelist ();
-	  exit (0);
-	case ClientMessage:
-	  if (Event.xclient.format == 32 && Event.xclient.data.l[0] == wm_del_win)
-	    {
-	      freelist ();
-	      exit (0);
-	    }
-	default:
-	  break;
+		ExtendedWMHints *eh = &(raw.extwm_hints);
+		GnomeHints *gh = &(raw.gnome_hints);
+		
+		if (raw.motif_hints)
+		{
+			buf[0] = '\0' ;
+			if (get_flags (raw.motif_hints->flags, MWM_HINTS_INPUT_MODE))
+			{
+				INT32 input_mode = raw.motif_hints->inputMode;
+					  
+				if (input_mode == MWM_INPUT_SYSTEM_MODAL)
+					add_property("Motif Input mode:", "System modal", AS_Text_ASCII, False);
+				else if (input_mode == MWM_INPUT_FULL_APPLICATION_MODAL)
+					add_property("Motif Input mode:", "Full application modal", AS_Text_ASCII, False);
+			}
+
+ 			check_motif_hints_sanity( raw.motif_hints );
+
+			if (get_flags (raw.motif_hints->flags, MWM_HINTS_FUNCTIONS))
+			{	
+				ASFlagType funcs = raw.motif_hints->functions;
+				buf[0] = '\0' ;
+				SHOW_MWM_FLAG(funcs,FUNC,RESIZE);
+				SHOW_MWM_FLAG(funcs,FUNC,MOVE);
+				SHOW_MWM_FLAG(funcs,FUNC,MINIMIZE);
+				SHOW_MWM_FLAG(funcs,FUNC,MAXIMIZE);
+				SHOW_MWM_FLAG(funcs,FUNC,CLOSE);
+				add_property("Motif Functionality hints:", buf, AS_Text_ASCII, False);
+			}
+			if (get_flags (raw.motif_hints->flags, MWM_HINTS_DECORATIONS))
+			{	
+				ASFlagType decor = raw.motif_hints->decorations;
+				buf[0] = '\0' ;
+				SHOW_MWM_FLAG(decor,DECOR,BORDER);
+				SHOW_MWM_FLAG(decor,DECOR,RESIZEH);
+				SHOW_MWM_FLAG(decor,DECOR,TITLE);
+				SHOW_MWM_FLAG(decor,DECOR,MENU);
+				SHOW_MWM_FLAG(decor,DECOR,MINIMIZE);
+				SHOW_MWM_FLAG(decor,DECOR,MAXIMIZE);
+				add_property("Motif decor hints:", buf, AS_Text_ASCII, False);
+			}
+		}	 
+		/* window state hints : */
+		if (get_flags (eh->flags, EXTWM_StateEverything))
+		{
+			buf[0] = '\0' ;
+			SHOW_EXTWM_FLAG(eh->flags,State,Modal );
+			SHOW_EXTWM_FLAG(eh->flags,State,Sticky );
+			SHOW_EXTWM_FLAG(eh->flags,State,MaximizedV );
+			SHOW_EXTWM_FLAG(eh->flags,State,MaximizedH );
+			SHOW_EXTWM_FLAG(eh->flags,State,Shaded );
+			SHOW_EXTWM_FLAG(eh->flags,State,SkipTaskbar );
+			add_property("Extended WM status flags:", buf, AS_Text_ASCII, True);
+		}
+		/* window type hints : */
+		if (get_flags (eh->flags, EXTWM_TypeEverything))
+		{
+			buf[0] = '\0' ;
+			SHOW_EXTWM_FLAG(eh->flags,Type,Desktop);
+			SHOW_EXTWM_FLAG(eh->flags,Type,Dock);
+			SHOW_EXTWM_FLAG(eh->flags,Type,Toolbar);
+			SHOW_EXTWM_FLAG(eh->flags,Type,Menu);
+			SHOW_EXTWM_FLAG(eh->flags,Type,Dialog);
+			SHOW_EXTWM_FLAG(eh->flags,Type,Normal);
+			SHOW_EXTWM_FLAG(eh->flags,Type,Utility);
+			SHOW_EXTWM_FLAG(eh->flags,Type,Splash);
+			add_property("Extended WM type flags:", buf, AS_Text_ASCII, True);
+		}
+		
+		if (get_flags (eh->flags, EXTWM_PID))
+		{
+			sprintf( buf, "%ld", eh->pid );
+			add_property("Extended WM PID:", buf, AS_Text_ASCII, False);
+		}
+
+		if (get_flags (eh->flags, EXTWM_DoesWMPing))
+			add_property("Extended WM protocols:", "DoesWMPing", AS_Text_ASCII, False);
+		
+		if (get_flags (eh->flags, EXTWM_DESKTOP))
+		{
+			if (eh->desktop == 0xFFFFFFFF)
+				strcpy(buf, "sticky");
+			else
+				sprintf( buf, "%ld", eh->desktop );
+			add_property("Extended WM desktop:", buf, AS_Text_ASCII, False);
+		}
+
+		if (get_flags (gh->flags, GNOME_LAYER))
+		{
+			sprintf( buf, "%ld", gh->layer );
+			add_property("Gnome hints layer:", buf, AS_Text_ASCII, False);
+		}
+		if (get_flags (gh->flags, GNOME_WORKSPACE))
+		{
+			sprintf( buf, "%ld", gh->workspace );
+			add_property("Gnome hints desktop:", buf, AS_Text_ASCII, False);
+		}
+		if (get_flags (gh->flags, GNOME_STATE) && gh->state != 0)
+		{
+			buf[0] = '\0' ;
+			SHOW_GNOME_FLAG(gh->state,STATE,STICKY);
+			SHOW_GNOME_FLAG(gh->state,STATE,MINIMIZED);
+			SHOW_GNOME_FLAG(gh->state,STATE,MAXIMIZED_VERT);
+			SHOW_GNOME_FLAG(gh->state,STATE,MAXIMIZED_HORIZ);
+			SHOW_GNOME_FLAG(gh->state,STATE,SHADED);
+			add_property("Gnome state flags:", buf, AS_Text_ASCII, False);
+		}
+
+		if (get_flags (gh->flags, GNOME_HINTS) && gh->hints != 0)
+		{	
+			buf[0] = '\0' ;
+			SHOW_GNOME_FLAG(gh->state,HINTS,SKIP_FOCUS);
+			SHOW_GNOME_FLAG(gh->state,HINTS,SKIP_WINLIST);
+			SHOW_GNOME_FLAG(gh->state,HINTS,SKIP_TASKBAR);
+			SHOW_GNOME_FLAG(gh->state,HINTS,FOCUS_ON_CLICK);
+			add_property("Gnome hints flags:", buf, AS_Text_ASCII, False);
+		}
 	}
-    }
 
+	names[0] = get_window_name(wd, ASN_Name, &encoding );
+	names[1] = get_window_name(wd, ASN_IconName, &encoding );
+	names[2] = get_window_name(wd, ASN_ResClass, &encoding );
+	names[3] = get_window_name(wd, ASN_ResName, &encoding );
+	names[4] = NULL ;
+
+#define APPEND_DBSTYLE_TEXT(text) 	\
+			do { if( !first ) strcat( buf, ", "); else first = False ; strcat( buf, text); } while(0)
+
+	if ( fill_asdb_record (Database, names, &db_rec, False) != NULL )
+	{
+		int i ;
+		add_property("Matched Styles:", "", AS_Text_ASCII, True);
+		for( i = 0 ; Database->match_list[i] >= 0 ; ++i )
+		{
+			ASDatabaseRecord *dr = &(Database->styles_table[Database->match_list[i]]) ;
+			int f ;
+			Bool first = True ;
+			sprintf( buf, "\"%s\" \t", dr->regexp->raw );
+
+			for( f = 0 ; DatabaseFlagsList[f].name_set != NULL ; ++f ) 
+			{	
+				if( get_flags( dr->set_flags, DatabaseFlagsList[f].flag ) ) 
+				{	
+					name = get_flags( dr->flags, DatabaseFlagsList[f].flag )?
+									DatabaseFlagsList[f].name_set : DatabaseFlagsList[f].name_unset ;
+					APPEND_DBSTYLE_TEXT(name);
+				}
+			}	
+
+			if( get_flags( dr->set_data_flags, STYLE_ICON ) )
+			{	
+				sprintf( buf2, "Icon \"%s\"", dr->icon_file );
+				APPEND_DBSTYLE_TEXT(buf2);
+			}
+#if 1			
+			if( get_flags( dr->set_data_flags, STYLE_STARTUP_DESK ) )
+			{	
+				sprintf( buf2, "StartsOnDesk %d", dr->desk );
+				APPEND_DBSTYLE_TEXT(buf2);
+			}
+			if( get_flags( dr->set_data_flags, STYLE_BORDER_WIDTH ) )
+			{	
+				sprintf( buf2, "BorderWidth %d", dr->border_width );
+				APPEND_DBSTYLE_TEXT(buf2);
+			}
+			if( get_flags( dr->set_data_flags, STYLE_HANDLE_WIDTH ) )
+			{	
+				sprintf( buf2, "HandleWidth %d", dr->resize_width );
+				APPEND_DBSTYLE_TEXT(buf2);
+			}
+			if( get_flags( dr->set_data_flags, STYLE_DEFAULT_GEOMETRY ) )
+			{	
+				sprintf( buf2, "DefaultGeometry %dx%d%+d%+d", dr->default_geometry.width, dr->default_geometry.height, dr->default_geometry.x, dr->default_geometry.y );
+				APPEND_DBSTYLE_TEXT(buf2);
+			}
+			if( get_flags( dr->set_data_flags, STYLE_VIEWPORTX ) )
+			{	
+				sprintf( buf2, "ViewportX %d", dr->viewport_x );
+				APPEND_DBSTYLE_TEXT(buf2);
+			}
+			if( get_flags( dr->set_data_flags, STYLE_VIEWPORTY ) )
+			{	
+				sprintf( buf2, "ViewportY %d", dr->viewport_y );
+				APPEND_DBSTYLE_TEXT(buf2);
+			}
+			if( get_flags( dr->set_data_flags, STYLE_GRAVITY ) )
+			{	
+				sprintf( buf2, "OverrideGravity %s", Gravity2text[dr->gravity] );
+				APPEND_DBSTYLE_TEXT(buf2);
+			}
+			if( get_flags( dr->set_data_flags, STYLE_LAYER ) )
+			{	
+				sprintf( buf2, "Layer %d", dr->layer );
+				APPEND_DBSTYLE_TEXT(buf2);
+			}
+			if( get_flags( dr->set_data_flags, STYLE_FRAME ) )
+			{	
+				sprintf( buf2, "Frame \"%s\"", dr->frame_name );
+				APPEND_DBSTYLE_TEXT(buf2);
+			}
+			if( get_flags( dr->set_data_flags, STYLE_WINDOWBOX ) )
+			{	
+				sprintf( buf2, "WindowBox \"%s\"", dr->windowbox_name );
+				APPEND_DBSTYLE_TEXT(buf2);
+			}
+#endif		
+			add_property("Style:", buf, AS_Text_ASCII, True);
+		}	 
+	}	 
 }
 
-
-
-
-/**************************************************************************
-*
-* Add s1(string at first column) and s2(string at second column) to itemlist
-*
- *************************************************************************/
-void
-AddToList (char *s1, char *s2)
+void 
+display_window_data()
 {
-  int tw1, tw2;
-  struct Item *item, *cur = itemlistRoot;
+	int i, y ;
+	int max_label_width = 0, max_height = 0, rows_count = 0 ;
+	int total_width = 0, total_height = 0 ;
+	int col = 0, line_width = 0 ;
 
-  tw1 = XTextWidth (font.font, s1, strlen (s1));
-  tw2 = XTextWidth (font.font, s2, strlen (s2));
-  max_col1 = max_col1 > tw1 ? max_col1 : tw1;
-  max_col2 = max_col2 > tw2 ? max_col2 : tw2;
+	for( i = 0 ; i < IdentState.used_props ; ++i ) 
+	{	
+		int w = IdentState.props[i].label_width ;
+		if( max_label_width < w ) 
+			max_label_width = w ;
+		if( max_height < IdentState.props[i].height )
+			max_height = IdentState.props[i].height ;
+		if( IdentState.props[i].span_cols )
+			++col ;
+		if ( ++col >= 2 )
+		{
+			col = 0 ;
+			++rows_count ;
+		}	 
+	}
+	total_height = rows_count * max_height ;
+	col = 0 ;
+	for( i = 0 ; i < IdentState.used_props ; ++i ) 
+	{	
+		int w = IdentState.props[i].value_width ;
+		
+		if( IdentState.props[i].span_cols || col == 2 )
+		{
+			col = IdentState.props[i].span_cols ? 1 : 0 ;
 
-  item = (struct Item *) safemalloc (sizeof (struct Item));
+			if( total_width	< line_width ) 
+				total_width	= line_width ;
+			line_width = 0 ;
+		}			
 
-  item->col1 = s1;
-  item->col2 = s2;
-  item->next = NULL;
+		line_width += w + max_label_width ;
+		++col ;		
+	}
+	
+	if( total_width	< line_width ) 
+		total_width	= line_width ;
 
-  if (cur == NULL)
-    itemlistRoot = item;
-  else
-    {
-      while (cur->next != NULL)
-	cur = cur->next;
-      cur->next = item;
-    }
+	total_width = ((total_width / 2)+5)*2 ;
+		   
+	IdentState.main_window = make_ident_window( total_width, total_height);
+    IdentState.main_canvas = create_ascanvas( IdentState.main_window );
+	handle_canvas_config( IdentState.main_canvas );
+    set_root_clip_area( IdentState.main_canvas );
+
+	y = 0 ; 
+	col = 0 ;
+	for( i = 0 ; i < IdentState.used_props ; ++i ) 
+	{
+		int w ; 
+		int x  = 0;
+		set_astbar_size( IdentState.props[i].label_bar, max_label_width, max_height );	 
+		
+		if( IdentState.props[i].span_cols )
+			w = total_width ;   
+		else if( i == IdentState.used_props - 1 )
+			w = total_width ;   
+		else if( col == 0 && IdentState.props[i+1].span_cols )
+			w = total_width ;   
+		else
+			w = total_width/2 ;   
+		
+		set_astbar_size( IdentState.props[i].value_bar, w - max_label_width, max_height );	 
+		
+		if( w < total_width && col == 0 )
+			x = w ;
+		
+		move_astbar( IdentState.props[i].label_bar, IdentState.main_canvas, x, y );
+		move_astbar( IdentState.props[i].value_bar, IdentState.main_canvas, x+max_label_width, y );
+		
+		if( IdentState.props[i].span_cols )
+			++col ;
+		if ( ++col >= 2 )
+		{	
+			col = 0 ;
+			y += IdentState.props[i].height ;		   
+		}
+		render_astbar( IdentState.props[i].label_bar, IdentState.main_canvas );
+		render_astbar( IdentState.props[i].value_bar, IdentState.main_canvas );
+	}
+	
+	if( is_canvas_dirty( IdentState.main_canvas ) )
+	{
+        update_canvas_display( IdentState.main_canvas );
+		update_canvas_display_mask ( IdentState.main_canvas, True);
+	}
 }
 
-void
-MakeList (void)
+void 
+add_property( const char *name, const char *value, unsigned long value_encoding, Bool span_cols )
 {
-  int bw, width, height, x1, y1, x2, y2;
-  char loc[20];
+	if( IdentState.used_props < MAX_PROPERTIES )
+	{
+		int tmp ;
+		IdentState.props[IdentState.used_props].property_name = mystrdup(name);
+		IdentState.props[IdentState.used_props].value = mystrdup(value);
+		IdentState.props[IdentState.used_props].label_bar = create_astbar();
+		IdentState.props[IdentState.used_props].value_bar = create_astbar();
+		set_astbar_style_ptr (	IdentState.props[IdentState.used_props].label_bar, 
+								BAR_STATE_UNFOCUSED, Scr.Look.MSWindow[BACK_UNFOCUSED] );
+		set_astbar_style_ptr (	IdentState.props[IdentState.used_props].value_bar, 
+								BAR_STATE_UNFOCUSED, Scr.Look.MSWindow[BACK_UNFOCUSED] );
+		
+		add_astbar_label( IdentState.props[IdentState.used_props].label_bar, 
+						  0, 0, 0, ALIGN_RIGHT, 5, 2, 
+						  IdentState.props[IdentState.used_props].property_name,
+						  AS_Text_ASCII);		   
+		add_astbar_label( IdentState.props[IdentState.used_props].value_bar, 
+						  0, 0, 0, ALIGN_LEFT, 5, 2, 
+						  IdentState.props[IdentState.used_props].value,
+						  value_encoding);		   
+		
+		IdentState.props[IdentState.used_props].height = calculate_astbar_height( IdentState.props[IdentState.used_props].label_bar );
+		tmp = calculate_astbar_height( IdentState.props[IdentState.used_props].value_bar );
+		if( tmp > IdentState.props[IdentState.used_props].height ) 
+			IdentState.props[IdentState.used_props].height = tmp ;
+		
+		IdentState.props[IdentState.used_props].label_width = calculate_astbar_width( IdentState.props[IdentState.used_props].label_bar) ;
+		IdentState.props[IdentState.used_props].value_width = calculate_astbar_width( IdentState.props[IdentState.used_props].value_bar );
 
-  bw = 2 * target.border_w;
-  width = target.frame_w - bw;
-  height = target.frame_h - target.title_h - bw;
-
-  sprintf (desktop, "%ld", target.desktop);
-  sprintf (id, "0x%x", (unsigned int) target.id);
-  sprintf (swidth, "%d", width);
-  sprintf (sheight, "%d", height);
-  sprintf (borderw, "%ld", target.border_w);
-
-  AddToList ("Name:", target.name);
-  AddToList ("Icon Name:", target.icon_name);
-  AddToList ("Class:", target.class);
-  AddToList ("Resource:", target.res);
-  AddToList ("Window ID:", id);
-  AddToList ("Desk:", desktop);
-  AddToList ("Width:", swidth);
-  AddToList ("Height:", sheight);
-  AddToList ("BoundaryWidth:", borderw);
-  AddToList ("Sticky:", (target.flags & AS_Sticky ? YES : NO));
-/*  AddToList ("Ontop:", (target.flags & ONTOP ? YES : NO)); */
-  AddToList ("NoTitle:", (target.flags & AS_Titlebar ? NO : NO));
-  AddToList ("Iconified:", (target.flags & AS_Icon ? YES : NO));
-  AddToList ("AvoidCover:", (target.flags & AS_AvoidCover ? YES : NO));
-/*  AddToList ("SkipFocus:", (target.flags & NOFOCUS ? YES : NO)); */
-  AddToList ("Shaded:", (target.flags & AS_Shaded ? YES : NO));
-  AddToList ("Maximized:", (target.flags & AS_MaxSize ? YES : NO));
-  AddToList ("WindowListSkip:", (target.flags & AS_SkipWinList ? YES : NO));
-  AddToList ("CirculateSkip:", (target.flags & AS_DontCirculate ? YES : NO));
-  AddToList ("Transient:", (target.flags & AS_Transient ? YES : NO));
-  AddToList ("GNOME Enabled:", ((target.gnome_enabled == False) ? NO : YES));
-
-  switch (target.gravity)
-    {
-    case ForgetGravity:
-      AddToList ("Gravity:", "Forget");
-      break;
-    case NorthWestGravity:
-      AddToList ("Gravity:", "NorthWest");
-      break;
-    case NorthGravity:
-      AddToList ("Gravity:", "North");
-      break;
-    case NorthEastGravity:
-      AddToList ("Gravity:", "NorthEast");
-      break;
-    case WestGravity:
-      AddToList ("Gravity:", "West");
-      break;
-    case CenterGravity:
-      AddToList ("Gravity:", "Center");
-      break;
-    case EastGravity:
-      AddToList ("Gravity:", "East");
-      break;
-    case SouthWestGravity:
-      AddToList ("Gravity:", "SouthWest");
-      break;
-    case SouthGravity:
-      AddToList ("Gravity:", "South");
-      break;
-    case SouthEastGravity:
-      AddToList ("Gravity:", "SouthEast");
-      break;
-    case StaticGravity:
-      AddToList ("Gravity:", "Static");
-      break;
-    default:
-      AddToList ("Gravity:", "Unknown");
-      break;
-    }
-  x1 = target.frame_x;
-  if (x1 < 0)
-    x1 = 0;
-  x2 = Scr.MyDisplayWidth - x1 - target.frame_w;
-  if (x2 < 0)
-    x2 = 0;
-  y1 = target.frame_y;
-  if (y1 < 0)
-    y1 = 0;
-  y2 = Scr.MyDisplayHeight - y1 - target.frame_h;
-  if (y2 < 0)
-    y2 = 0;
-  width = (width - target.base_w) / target.width_inc;
-  height = (height - target.base_h) / target.height_inc;
-
-  sprintf (loc, "%dx%d", width, height);
-  strcpy (geometry, loc);
-
-  if ((target.gravity == EastGravity) || (target.gravity == NorthEastGravity) ||
-      (target.gravity == SouthEastGravity))
-    sprintf (loc, "-%d", x2);
-  else
-    sprintf (loc, "+%d", x1);
-  strcat (geometry, loc);
-
-  if ((target.gravity == SouthGravity) || (target.gravity == SouthEastGravity) ||
-      (target.gravity == SouthWestGravity))
-    sprintf (loc, "-%d", y2);
-  else
-    sprintf (loc, "+%d", y1);
-  strcat (geometry, loc);
-  AddToList ("Geometry:", geometry);
+		IdentState.props[IdentState.used_props].span_cols = span_cols ;
+			
+		++(IdentState.used_props);
+	}
 }
 
-#endif
+
