@@ -595,6 +595,7 @@ compress_stored_data( ASStorage *storage, CARD8 *data, int size, ASFlagType *fla
 			{	
 				storage->comp_buf_size = ((size/AS_STORAGE_PAGE_SIZE)+1)*AS_STORAGE_PAGE_SIZE ;
 				storage->comp_buf = realloc( storage->comp_buf, storage->comp_buf_size );
+				storage->diff_buf = realloc( storage->diff_buf, storage->comp_buf_size*sizeof(short) );
 			}
 			buffer = storage->comp_buf ;
 			if( tint != 0x000000FF ) 
@@ -620,6 +621,7 @@ compress_stored_data( ASStorage *storage, CARD8 *data, int size, ASFlagType *fla
 			{	
 				storage->comp_buf_size = ((size/AS_STORAGE_PAGE_SIZE)+1)*AS_STORAGE_PAGE_SIZE ;
 				storage->comp_buf = realloc( storage->comp_buf, storage->comp_buf_size );
+				storage->diff_buf = realloc( storage->diff_buf, storage->comp_buf_size*sizeof(short) );
 			}
 			buffer = storage->comp_buf ;
 			for( comp_size = 0 ; comp_size < size ; ++comp_size )
