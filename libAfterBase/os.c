@@ -22,6 +22,11 @@
 #include "../configure.h"
 #include "../include/aftersteplib.h"
 
+#if defined (__sun__) && defined (SVR4)
+/* Solaris has sysinfo instead of gethostname.  */
+#include <sys/systeminfo.h>
+#endif
+
 #if HAVE_UNAME
 /* define mygethostname() by using uname() */
 
