@@ -1543,9 +1543,11 @@ get_text_glyph_map( const char *text, ASFont *font, ASGlyphMap *map, ASTextAttri
 }
 
 #define GET_TEXT_SIZE_LOOP(getglyph,incr,len) \
-	do{ ++i ;\
+	do{ Bool terminated ; ++i ;\
+		if( len > 0 && i >= len ) terminated = True; \
+		else terminated = ( text[i] == '\0' || text[i] == '\n' ); \
 		if( x_positions && (len == 0 || len > i )) x_positions[i] = line_width ; \
-		if( text[i] == '\n' || text[i] == '\0' || (len > 0 && len <= i )) { \
+		if( terminated ) { \
 			if( last_asg && last_asg->width+last_asg->lead > last_asg->step ) \
 				line_width += last_asg->width+last_asg->lead - last_asg->step ; \
 			last_asg = NULL; \
