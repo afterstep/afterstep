@@ -188,9 +188,16 @@
 #-----------------------------------------------------------------------
 # Monitoring Applications :
 #
+# separate action could be bound to different Buttons "l" - left "m" - middle "r" - right 
+#   "4" and "5" for other buttons. For Example :
+# left click opens docs, while right click opens StartMenu : 
+*MonitorWharf afterstepdoc large/AfterStep3 Exec  "l" afterstepdoc &
+*MonitorWharf afterstepdoc -                PopUp "r" 0
 
-*MonitorWharf afterstepdoc large/AfterStep3 Exec "-" afterstepdoc &
+
 *MonitorWharf xeyes - Swallow "xeyes" xeyes -geometry -100-100 &
+*MonitorWharf xeyes - PopUp   "r" Window
+
 
 *MonitorWharf QuitFolder normal/RedLight,dots/3_dots Folder
 *MonitorWharf 	Recycler normal/Recycle Restart "" afterstep -r
@@ -208,6 +215,8 @@
 # one of the clocks - first available :
 *MonitorWharf clock - Swallow "asclock" asclock -shape -12 -position +1+1 &
 *MonitorWharf clock - Swallow "xclock" xclock -bg gray10 -fg cyan -digital -brief &
+*MonitorWharf clock - Exec "r" evolution &
+*MonitorWharf clock - Exec "r" korganizer &
 
 #
 #  End of the MonitorWharf configuration

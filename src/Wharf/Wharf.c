@@ -1033,8 +1033,8 @@ LOCAL_DEBUG_OUT( "contents %d has function %p with func = %ld", i, function, fun
 								switch( function->name[0] )
 								{
 									case 'l' : btn = Button1 ;    break ;	
-									case 'r' : btn = Button2 ;    break ;	
-									case 'm' : btn = Button3 ;    break ;	
+									case 'm' : btn = Button2 ;    break ;	
+									case 'r' : btn = Button3 ;    break ;	
 									case '4' : btn = Button4 ;	  break ;
 									case '5' : btn = Button5 ;	  break ;
 								}		   
@@ -1970,69 +1970,60 @@ exec_pending_swallow( ASWharfFolder *aswf )
 }
 
 void
-grab_swallowed_canvas_btns( ASCanvas *canvas, Bool action, Bool withdraw )
+grab_swallowed_canvas_btn( ASCanvas *canvas, int button, int non_lock_mods )
 {
 	register int i = 0 ;
 	register unsigned int *mods = lock_mods;
 
-	LOCAL_DEBUG_OUT( "%p,%d,%d", canvas, action, withdraw );
+	LOCAL_DEBUG_OUT( "%p,%d,0x%x", canvas, button, non_lock_mods );
 
 	if( AS_ASSERT(canvas) )
 		return;
     do
     {
         /* grab button 1 if this button performs an action */
-        if( action )
-		{	
-            XGrabButton (dpy, Button1, mods[i],
-                        canvas->w,
-                        False, ButtonPressMask | ButtonReleaseMask,
-                        GrabModeAsync, GrabModeAsync, None, None);
+        XGrabButton(dpy, button, mods[i]|non_lock_mods,
+	                canvas->w,
+                    False, ButtonPressMask | ButtonReleaseMask,
+                    GrabModeAsync, GrabModeAsync, None, None);
 #if !defined(NO_DEBUG_OUTPUT)			
 			ASSync(False);
 			fprintf( stderr, "line = %d, mods = 0x%X\n", __LINE__, mods[i] );
 #endif
-		}
-        /* grab button 3 if this is the root folder */
-        if (withdraw )
-		{	
-            XGrabButton (dpy, Button3, mods[i],
-                        canvas->w,
-                        False, ButtonPressMask | ButtonReleaseMask,
-                        GrabModeAsync, GrabModeAsync, None, None);
-#if !defined(NO_DEBUG_OUTPUT)			   
-			ASSync(False);
-			fprintf( stderr, "line = %d, canvas = %p, window = %lX, i = %d, mods = 0x%X\n", __LINE__, canvas, canvas->w, i, mods[i] );
-#endif
-		}
 		if( mods[i] == 0 )
 			return;
     }while (++i < MAX_LOCK_MODS );
 
-	if( action )
-	{	
-        XGrabButton (dpy, Button1, 0,
-                    canvas->w,
-                    False, ButtonPressMask | ButtonReleaseMask,
-                    GrabModeAsync, GrabModeAsync, None, None);
+    XGrabButton(dpy, button, non_lock_mods,
+                canvas->w,
+                False, ButtonPressMask | ButtonReleaseMask,
+                GrabModeAsync, GrabModeAsync, None, None);
 #if !defined(NO_DEBUG_OUTPUT)			   		
 		ASSync(False);
 		fprintf( stderr, "line = %d, mods = 0\n", __LINE__ );
 #endif
-	}
-    /* grab button 3 if this is the root folder */
-    if (withdraw )
-	{	
-        XGrabButton (dpy, Button3, 0,
-                    canvas->w,
-                    False, ButtonPressMask | ButtonReleaseMask,
-                    GrabModeAsync, GrabModeAsync, None, None);
-#if !defined(NO_DEBUG_OUTPUT)			   			
-			ASSync(False);
-			fprintf( stderr, "line = %d, mods = 0", __LINE__ );
-#endif
-	}
+}
 
+
+void
+grab_swallowed_canvas_btns( ASCanvas *canvas, ASWharfButton *aswb, Bool withdraw_btn )
+{	
+	if( aswb->folder!=NULL )
+		grab_swallowed_canvas_btn( canvas, Button1, 0);
+
+	if( withdraw_btn && aswb->parent == WharfState.root_folder )
+	{	
+		grab_swallowed_canvas_btn( canvas, Button3, ControlMask);
+		grab_swallowed_canvas_btn( canvas, Button3, 0);
+	}else if( aswb->fdata[Button3-Button1] ) 
+		grab_swallowed_canvas_btn( canvas, Button3, 0);
+	
+	if( aswb->fdata[Button2-Button1] ) 
+		grab_swallowed_canvas_btn( canvas, Button2, 0);
+	if( aswb->fdata[Button4-Button1] ) 
+		grab_swallowed_canvas_btn( canvas, Button4, 0);
+	if( aswb->fdata[Button5-Button1] ) 
+		grab_swallowed_canvas_btn( canvas, Button5, 0);
 }
 
 void
@@ -2134,7 +2125,7 @@ check_swallow_window( ASWindowData *wd )
     ungrab_server();
 	ASSync(False);
     sleep_a_millisec(100);
-	grab_swallowed_canvas_btns( nc, (aswb->folder!=NULL), withdraw_btn && aswb->parent == WharfState.root_folder);
+	grab_swallowed_canvas_btns( nc, aswb, withdraw_btn );
 
     if( get_flags( wd->flags, AS_ClientIcon ) && !get_flags( wd->flags, AS_ClientIconPixmap) &&
 		wd->icon != None )
@@ -2145,7 +2136,7 @@ check_swallow_window( ASWindowData *wd )
         register_object( wd->icon, (ASMagic*)aswb );
         XSelectInput (dpy, wd->icon, StructureNotifyMask);
 		ASSync(False);
-        grab_swallowed_canvas_btns(  ic, (aswb->folder!=NULL), withdraw_btn && aswb->parent == WharfState.root_folder);
+		grab_swallowed_canvas_btns( ic, aswb, withdraw_btn );
     }
     aswb->swallowed->current = ( get_flags( wd->state_flags, AS_Iconic ) &&
                                     aswb->swallowed->iconic != NULL )?
@@ -2607,7 +2598,7 @@ LOCAL_DEBUG_OUT( "pressed button is %p", pressed );
 	button -= Button1 ;
     if( pressed )
     {
-        if( pressed->folder )
+        if( pressed->folder && !(button > 0 && pressed->fdata[button]))
         {
 LOCAL_DEBUG_OUT( "pressed button has folder %p (%s)", pressed->folder, get_flags( pressed->folder->flags, ASW_Mapped )?"Mapped":"Unmapped" );
             if( get_flags( pressed->folder->flags, ASW_Mapped ) )
@@ -2621,7 +2612,9 @@ LOCAL_DEBUG_OUT( "pressed button has folder %p (%s)", pressed->folder, get_flags
 #if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
             print_func_data(__FILE__, __FUNCTION__, __LINE__, pressed->fdata[button]);
 #endif
-            if( !get_flags( pressed->flags, ASW_SwallowTarget ) || pressed->swallowed == NULL )
+            if( button > 0 ||
+				!get_flags( pressed->flags, ASW_SwallowTarget ) || 
+				pressed->swallowed == NULL )
             {  /* send command to the AS-proper : */
 				ASWharfFolder *parentf = pressed->parent ;
 				ASWharfButton *parentb = NULL ;
@@ -2675,73 +2668,80 @@ on_wharf_pressed( ASEvent *event )
             if( (WITHDRAW_ON_EDGE(Config) && (&(aswf->buttons[0]) == aswb || &(aswf->buttons[aswf->buttons_num-1]) == aswb)) ||
                  WITHDRAW_ON_ANY(Config))
         	{
-            	if( get_flags( WharfState.root_folder->flags, ASW_Withdrawn) )
-				{
-					/* update our name to normal */	  
-					set_folder_name( WharfState.root_folder, False );
-					LOCAL_DEBUG_OUT( "un - withdrawing folder%s","" );
-                	display_main_folder();
-            	}else
-            	{
-                	int wx = 0, wy = 0, wwidth, wheight;
-                	int i = aswf->buttons_num ;
+				if( aswb->fdata[Button3-Button1] == NULL || 
+					(event->x.xbutton.state&AllModifierMask) == ControlMask )
+				{			   
+            		if( get_flags( WharfState.root_folder->flags, ASW_Withdrawn) )
+					{
+						/* update our name to normal */	  
+						set_folder_name( WharfState.root_folder, False );
+						LOCAL_DEBUG_OUT( "un - withdrawing folder%s","" );
+                		display_main_folder();
+            		}else
+            		{
+                		int wx = 0, wy = 0, wwidth, wheight;
+                		int i = aswf->buttons_num ;
                 
-					if( Config->withdraw_style < WITHDRAW_ON_ANY_BUTTON_AND_SHOW )
-                    	aswb = &(aswf->buttons[0]);
+						if( Config->withdraw_style < WITHDRAW_ON_ANY_BUTTON_AND_SHOW )
+                    		aswb = &(aswf->buttons[0]);
 
-					withdraw_wharf_subfolders( aswf );
-					/* update our name to withdrawn */	  					
-					set_folder_name( aswf, True );
+						withdraw_wharf_subfolders( aswf );
+						/* update our name to withdrawn */	  					
+						set_folder_name( aswf, True );
 
-                	wwidth = aswb->desired_width ;
-                	wheight = aswb->desired_height ;
-                	if( get_flags( Config->geometry.flags, XNegative ) )
-                    	wx = Scr.MyDisplayWidth - wwidth ;
-                	if( get_flags( Config->geometry.flags, YNegative ) )
-                    	wy = Scr.MyDisplayHeight - wheight ;
+                		wwidth = aswb->desired_width ;
+                		wheight = aswb->desired_height ;
+                		if( get_flags( Config->geometry.flags, XNegative ) )
+                    		wx = Scr.MyDisplayWidth - wwidth ;
+                		if( get_flags( Config->geometry.flags, YNegative ) )
+                    		wy = Scr.MyDisplayHeight - wheight ;
 
-					if( get_flags(Config->flags, WHARF_ANIMATE ) )
-					{	
-						set_flags(aswf->flags,ASW_UseBoundary );
-						animate_wharf_loop(aswf, aswf->canvas->width, aswf->canvas->height, wwidth, wheight );
-						clear_flags(aswf->flags,ASW_UseBoundary );
-					}
+						if( get_flags(Config->flags, WHARF_ANIMATE ) )
+						{	
+							set_flags(aswf->flags,ASW_UseBoundary );
+							animate_wharf_loop(aswf, aswf->canvas->width, aswf->canvas->height, wwidth, wheight );
+							clear_flags(aswf->flags,ASW_UseBoundary );
+						}
 
-					LOCAL_DEBUG_OUT( "withdrawing folder to %dx%d%+d%+d", wwidth, wheight, wx, wy );
-                	XRaiseWindow( dpy, aswb->canvas->w );
-                	while ( --i >= 0 )
-                	{
-                    	if( &(aswf->buttons[i]) != aswb && 
-							aswf->buttons[i].canvas->root_x == aswf->canvas->root_x && 
-							aswf->buttons[i].canvas->root_y == aswf->canvas->root_y)
-                    	{
-                        	aswf->buttons[i].folder_x = wwidth ;
-                        	aswf->buttons[i].folder_y = wheight ;
-                        	move_canvas( aswf->buttons[i].canvas, wwidth, wheight );
-                    	}
-                	}
-                	set_flags( aswf->flags, ASW_Withdrawn );
-					set_withdrawn_clip_area( aswf, wx, wy, wwidth, wheight );
-                	moveresize_canvas( aswf->canvas, wx, wy, wwidth, wheight );
-//					ASSync(False);
-//					MapConfigureNotifyLoop();
+						LOCAL_DEBUG_OUT( "withdrawing folder to %dx%d%+d%+d", wwidth, wheight, wx, wy );
+                		XRaiseWindow( dpy, aswb->canvas->w );
+                		while ( --i >= 0 )
+                		{
+                    		if( &(aswf->buttons[i]) != aswb && 
+								aswf->buttons[i].canvas->root_x == aswf->canvas->root_x && 
+								aswf->buttons[i].canvas->root_y == aswf->canvas->root_y)
+                    		{
+                        		aswf->buttons[i].folder_x = wwidth ;
+                        		aswf->buttons[i].folder_y = wheight ;
+                        		move_canvas( aswf->buttons[i].canvas, wwidth, wheight );
+                    		}
+                		}
+                		set_flags( aswf->flags, ASW_Withdrawn );
+						set_withdrawn_clip_area( aswf, wx, wy, wwidth, wheight );
+                		moveresize_canvas( aswf->canvas, wx, wy, wwidth, wheight );
+	//					ASSync(False);
+	//					MapConfigureNotifyLoop();
 
-                	aswb->folder_x = 0;
-                	aswb->folder_y = 0;
-                	aswb->folder_width = wwidth ;
-                	aswb->folder_height = wheight ;
-                	moveresize_canvas( aswb->canvas, 0, 0, wwidth, wheight );
+                		aswb->folder_x = 0;
+                		aswb->folder_y = 0;
+                		aswb->folder_width = wwidth ;
+                		aswb->folder_height = wheight ;
+                		moveresize_canvas( aswb->canvas, 0, 0, wwidth, wheight );
 
-					aswf->withdrawn_button = aswb ;
-            	}
-            	return;
+						aswf->withdrawn_button = aswb ;
+            		}
+	            	return;
+				}
         	}
-			if( check_app_click	( aswb, &(event->x.xbutton) ) ) 
-			{
-	            event->x.xbutton.window = aswb->swallowed->current->w;
-				XSendEvent (dpy, aswb->swallowed->current->w, False, ButtonPressMask, &(event->x));	
-				return;
-			}	 
+			if( event->x.xbutton.button == Button1 || aswb->fdata[event->x.xbutton.button-Button1] == NULL ) 
+			{	
+				if( check_app_click	( aswb, &(event->x.xbutton) ) ) 
+				{
+	            	event->x.xbutton.window = aswb->swallowed->current->w;
+					XSendEvent (dpy, aswb->swallowed->current->w, False, ButtonPressMask, &(event->x));	
+					return;
+				}	 
+			}
 		}
         press_wharf_button( aswb, event->x.xbutton.state );
     }

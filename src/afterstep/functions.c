@@ -961,18 +961,19 @@ void bookmark_window_func_handler( FunctionData *data, ASEvent *event, int modul
 void pin_menu_func_handler( FunctionData *data, ASEvent *event, int module )
 {
     ASMenu *menu = NULL;
-    if( data->name )
-	menu = find_asmenu( data->name );
+	char * menu_name = data->text? data->text:data->name ;
+    if( menu_name )
+		menu = find_asmenu( menu_name );
     else if( event->client && event->client->internal )
     {
-	ASMagic *data = event->client->internal->data ;
-	if( data->magic == MAGIC_ASMENU )
-	    menu = (ASMenu*)data;
+		ASMagic *data = event->client->internal->data ;
+		if( data->magic == MAGIC_ASMENU )
+	    	menu = (ASMenu*)data;
     }
     if( menu == NULL )
-	XBell (dpy, event->scr->screen);
+		XBell (dpy, event->scr->screen);
     else
-	pin_asmenu( menu );
+		pin_asmenu( menu );
 }
 
 
@@ -1383,7 +1384,7 @@ void killmodule_func_handler( FunctionData *data, ASEvent *event, int module )
 
 void popup_func_handler( FunctionData *data, ASEvent *event, int module )
 {
-    run_menu( data->name, event->client?event->client->w:None );
+    run_menu( data->text?data->text:data->name, event->client?event->client->w:None );
 }
 
 void quit_func_handler( FunctionData *data, ASEvent *event, int module )

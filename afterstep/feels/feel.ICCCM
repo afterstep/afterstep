@@ -270,7 +270,7 @@ EndPopup
 #
 # Mouse actions
 #
-Mouse 1         R       A       PopUp "0"
+Mouse 1         R       A       PopUp "Start Menu"  0
 Mouse 2         R       A       WindowList 2
 Mouse 3         R       A       WindowList
 Mouse 1         1       A       ChangeWindowUp
@@ -279,7 +279,7 @@ Mouse 3         1       A       ChangeWindowDown
 Mouse 1         2       A       Delete
 Mouse 2         2       A       Destroy
 Mouse 3         2       A       Destroy
-Mouse 1         3       A       PopUp "Window"
+Mouse 1         3       A       PopUp "Window Menu"  Window
 Mouse 2         3       A       WindowList 2
 Mouse 3         3       A       WindowList
 Mouse 1         4       A       Shade
