@@ -4376,8 +4376,8 @@ echo "$as_me: checking libAfterImage..." >&6;}
   afterimage_lib=
 fi
 
-with_gnustep_lib=${with_gnustep_dir}/${with_gnustep_lib}
-with_afterdir=${with_gnustep_lib}/${with_afterdir}
+# with_gnustep_lib=${with_gnustep_dir}/${with_gnustep_lib}
+# with_afterdir=${with_gnustep_lib}/${with_afterdir}
 
 echo "$as_me:4382: checking whether byte ordering is bigendian" >&5
 echo $ECHO_N "checking whether byte ordering is bigendian... $ECHO_C" >&6
