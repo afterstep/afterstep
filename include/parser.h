@@ -144,7 +144,10 @@ typedef struct ConfigDef
 				 * notably balloons and MyStyle
 				 * when they'll be converted on new style - that should go away
 				 */
-  int bNeedToCloseFile;
+
+#define CP_NeedToCloseFile   (0x01<<0)
+#define CP_ReadLines         (0x01<<1)
+  ASFlagType flags ;
   /* allocated to store lines read from the file */
   char *buffer;
   long buffer_size;

@@ -249,7 +249,7 @@ NewConfig (char *myname, SyntaxDef * syntax, ConfigDataType type, void *source, 
 	new_conf->special = special;
 	new_conf->fd = -1;
 	new_conf->fp = NULL;
-	new_conf->bNeedToCloseFile = 0;
+    new_conf->flags = 0;
 	if (source)
 		switch (type)
 		{
@@ -265,7 +265,7 @@ NewConfig (char *myname, SyntaxDef * syntax, ConfigDataType type, void *source, 
 				 new_conf->fd =
 					 open (realfilename, create ? O_CREAT | O_RDONLY : O_RDONLY, S_IRUSR | S_IWUSR | S_IRGRP);
 				 free (realfilename);
-				 new_conf->bNeedToCloseFile = 1;
+                 set_flags( new_conf->flags, CP_NeedToCloseFile);
 			 }
 			 break;
 		 case CDT_FilePtr:
@@ -280,6 +280,7 @@ NewConfig (char *myname, SyntaxDef * syntax, ConfigDataType type, void *source, 
          case CDT_FilePtrAndData :
              new_conf->fp = ((FilePtrAndData*)source)->fp;
 			 new_conf->fd = fileno (new_conf->fp);
+             set_flags( new_conf->flags, CP_ReadLines );
             break ;
 
 		}
@@ -403,7 +404,7 @@ DestroyConfig (ConfigDef * config)
 		free (config->current_tail);
 	if (config->syntax)
 		FreeSyntaxHash (config->syntax);
-	if (config->bNeedToCloseFile && config->fd != -1)
+    if (get_flags(config->flags, CP_NeedToCloseFile) && config->fd != -1)
 		close (config->fd);
 	free (config);
 }
@@ -431,27 +432,36 @@ GetToNextLine (ConfigDef * config)
 
 	if (cur >= buffer_end)
 	{
-		if (config->fp)
+        if (config->fp)
 		{
-			register int  i;
+            if( get_flags( config->flags, CP_ReadLines ) )
+            {
+                if (!fgets (config->buffer, config->buffer_size, config->fp))
+                    return NULL;
+                config->bytes_in = strlen(config->buffer);
+                config->cursor = &(config->buffer[0]);
+            }else
+            {
+                register int  i;
 
-			config->bytes_in = fread (config->buffer, 1, config->buffer_size, config->fp);
-			if (config->bytes_in <= 0)
-				return NULL;
-			/* now we want to get back to the last end-of-line
-			   so not to break statements in half */
-			for (i = config->bytes_in - 1; i >= 0; i--)
-				if (config->buffer[i] == '\n')
-					break;
-			i++;
-			if (i > 0)
-			{
-				fseek (config->fp, i - (config->bytes_in), SEEK_CUR);
-				config->bytes_in = i;
-			}
-			config->buffer[config->bytes_in] = '\0';
-			config->cursor = &(config->buffer[0]);
-		} else
+                config->bytes_in = fread (config->buffer, 1, config->buffer_size, config->fp);
+                if (config->bytes_in <= 0)
+                    return NULL;
+                /* now we want to get back to the last end-of-line
+                so not to break statements in half */
+                for (i = config->bytes_in - 1; i >= 0; i--)
+                    if (config->buffer[i] == '\n')
+                        break;
+                i++;
+                if (i > 0)
+                {
+                    fseek (config->fp, i - (config->bytes_in), SEEK_CUR);
+                    config->bytes_in = i;
+                }
+                config->buffer[config->bytes_in] = '\0';
+            }
+            config->cursor = &(config->buffer[0]);
+        } else
 			return NULL;
 	} else if (*cur == file_terminator)
 		return NULL;
