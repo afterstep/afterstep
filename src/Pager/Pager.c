@@ -105,8 +105,12 @@ typedef struct ASPagerState
     INT32 start_desk, desks_num ;
 
     int page_rows,  page_columns ;
-    int desk_width, desk_height ; /* x and y size of desktop */
-    int vscreen_width, vscreen_height ; /* x and y size of desktop */
+	/* x and y size of desktop */
+	int desk_width, desk_height ;
+	/* area of the main window used up by labels, borders and other garbadge :*/
+	int wasted_width, wasted_height ;
+	/* x and y size of virtual screen size inside desktop mini-window */
+	int vscreen_width, vscreen_height ;
     int aspect_x,   aspect_y;
 
     int wait_as_response ;
@@ -1099,6 +1103,7 @@ redecorate_pager_desks()
     int i ;
     char buf[256];
     XSetWindowAttributes attr;
+	int wasted_x = Config->border_width, wasted_y = Config->border_width ;
     for( i = 0 ; i < PagerState.desks_num ; ++i )
     {
         ASPagerDesk *d = &(PagerState.desks[i]);
@@ -1120,6 +1125,8 @@ redecorate_pager_desks()
 		{
 			XSetWindowBorder( dpy, d->desk_canvas->w, attr.border_pixel );
 		}
+		wasted_x += Config->border_width * Config->rows;
+		wasted_y += Config->border_width * Config->columns;
         /* create & moveresize label bar : */
         if( get_flags( Config->flags, USE_LABEL ) )
         {
@@ -1153,10 +1160,12 @@ redecorate_pager_desks()
             {
                 d->title_width = calculate_astbar_width( d->title );
                 d->title_height = PagerState.desk_height;
+				wasted_x += d->title_width ;
             }else
             {
                 d->title_width = PagerState.desk_width;
                 d->title_height = calculate_astbar_height( d->title );
+				wasted_y += d->title_height ;
             }
 			if( just_created )
 				place_desk_title( d );
@@ -1208,6 +1217,29 @@ redecorate_pager_desks()
 			place_separation_bars( d );
         }
     }
+
+	/* if wasted space changed and configured geometry does not specify size -
+	 * adjust desk_width/height accordingly :
+	 */
+	if( !get_flags( Config->geometry.flags, WidthValue ) )
+	{
+		int delta = (wasted_x - PagerState.wasted_width)/Config->columns ; ;
+		if( delta != 0 )
+		{
+			PagerState.desk_width += delta ;
+			PagerState.wasted_width = wasted_x ;
+		}
+	}
+	if( !get_flags( Config->geometry.flags, HeightValue ) )
+	{
+		int delta = (wasted_y - PagerState.wasted_height)/Config->rows ; ;
+		if( delta != 0 )
+		{
+			PagerState.desk_height += delta ;
+			PagerState.wasted_height = wasted_y ;
+		}
+	}
+
     /* selection bars : */
     ARGB2PIXEL(Scr.asv,Config->selection_color_argb,&(attr.background_pixel));
     if(get_flags( Config->flags, SHOW_SELECTION ) )
@@ -1364,10 +1396,10 @@ calculate_pager_desk_height()
             Bool unshaded = False ;
             unsigned int row_shaded_height = 0 ;
             int i, max_i = (row+1)*Config->columns ;
-			
+
 			if( max_i > PagerState.desks_num )
 				max_i = PagerState.desks_num ;
-				
+
             for( i = row*Config->columns ; i < max_i ; ++i  )
             {
                 ASPagerDesk *d = &(PagerState.desks[i]);
