@@ -24,14 +24,15 @@ typedef struct ASSocketBuffer
 {
 	int fd ;
 #define AS_SOCK_BUFFER_SIZE		1024
-	CARD8 buffer[AS_SOCK_BUFFER_SIZE] ;
 	int   bytes_in ;
+	CARD8 buffer[AS_SOCK_BUFFER_SIZE] ;
 }ASSocketBuffer;
 
 void socket_buffered_write (ASSocketBuffer *sb, const void *data, int size);
 void socket_write_int32 (ASSocketBuffer *sb, CARD32 *data, size_t items );
 void socket_write_int16 (ASSocketBuffer *sb, CARD16 *data, size_t items );
 void socket_write_string (ASSocketBuffer *sb, const char *string);
+void socket_write_flush ( ASSocketBuffer *sb );
 
 /* signal safe socket read operations : 											   */
 
@@ -78,15 +79,16 @@ typedef struct ASProtocolState
 /* returns : */
 typedef enum {
 	ASP_SocketError = -3,
-	ASP_Timeout = -2,
-	ASP_BadData = -1,
-	ASP_WaitData = 0,
-	ASP_Success = 1
+	ASP_Timeout 	= -2,
+	ASP_BadData 	= -1,
+	ASP_WaitData 	= 0,
+	ASP_Success 	= 1
 }ASProtocolResult;
 
 ASProtocolResult socket_read_proto_item( ASProtocolState *ps );
 ASProtocolResult socket_read_proto( ASProtocolState *ps );
-
+void socket_read_proto_reset( ASProtocolState *ps );
+void *socket_read_steal_buffer( ASProtocolState *ps );
 
 #endif                                         /* AS_SOCKET_H_HEADER_INCLUDED */
 

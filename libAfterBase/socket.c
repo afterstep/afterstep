@@ -196,6 +196,12 @@ socket_buffered_write (ASSocketBuffer *sb, const void *data, int size)
 	}
 }
 
+void
+socket_write_flush ( ASSocketBuffer *sb )
+{
+	socket_buffered_write (sb, NULL, 0);			   /* flashing buffer */
+}
+
 /* we have to consider endiannes of the data while writing into the socket :
  * network format is Big Endian !
  */
@@ -343,5 +349,34 @@ socket_read_proto( ASProtocolState *ps )
 	}
 
 	return socket_read_proto_item( ps );
+}
+
+void
+socket_read_proto_reset( ASProtocolState *ps )
+{
+	if( ps )
+	{
+		ps->curr_item = 0 ;
+		ps->items[0].size = 0 ;
+		ps->items[0].size_bytes = 0 ;
+		ps->items[0].bytes_read = 0 ;
+	}
+}
+
+void *
+socket_read_steal_buffer( ASProtocolState *ps )
+{
+	void *ptr = NULL;
+	if( ps )
+	{
+		register ASProtocolItem *item = &(ps->items[ps->curr_item]);
+		if( item->bytes_allocated > 0 )
+		{
+			ptr = item->d.memory ;
+			item->d.memory = NULL ;
+			item->bytes_allocated = 0 ;
+		}
+	}
+	return ptr;
 }
 
