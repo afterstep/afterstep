@@ -1430,7 +1430,7 @@ LoadASConfig (int thisdesktop, ASFlagType what)
 		{
 		    MyBackground *new_back = get_desk_back_or_default( Scr.CurrentDesk, False );
         	SendPacket( -1, M_NEW_BACKGROUND, 1, 1);
-			if( new_back->loaded_im_name ) 
+			if( new_back && new_back->loaded_im_name ) 
 			{
 				free( new_back->loaded_im_name );  
 				new_back->loaded_im_name = NULL ;
