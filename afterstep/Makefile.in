@@ -26,18 +26,27 @@ install:
 		$(MKDIR) -p $(AFTER_SHAREDIR)/$$D; \
 		if [ -d $$D/xml ] ; then \
 			echo "$(CP) $$D/xml/* $(AFTER_SHAREDIR)/$$D/"; \
-			$(CP) $$D/xml/* $(AFTER_SHAREDIR)/$$D/; \
-			$(CP) $$D/xml/.* $(AFTER_SHAREDIR)/$$D/; \
+			for I in $$D/xml/* $$D/xml/.*; do \
+			  if [ -f $$I ] ; then \
+			    $(CP) $$I $(AFTER_SHAREDIR)/$$D/; \
+			  fi; \
+			done ; \
 		fi; \
 		if [ -d $$D/$(IMAGE_FORMAT) ] ; then \
 			echo "$(CP) $$D/$(IMAGE_FORMAT)/* $(AFTER_SHAREDIR)/$$D/"; \
-			$(CP) $$D/$(IMAGE_FORMAT)/* $(AFTER_SHAREDIR)/$$D/; \
-			$(CP) $$D/$(IMAGE_FORMAT)/.* $(AFTER_SHAREDIR)/$$D/; \
+			for I in $$D/$(IMAGE_FORMAT)/* $$D/$(IMAGE_FORMAT)/.*; do \
+			  if [ -f $$I ] ; then \
+			    $(CP) $$I $(AFTER_SHAREDIR)/$$D/; \
+			  fi; \
+			done ; \
 		fi; \
 		if [ -r $$D/jpg ] ; then \
 			echo "$(CP) $$D/jpg/* $(AFTER_SHAREDIR)/$$D/"; \
-			$(CP) $$D/jpg/* $(AFTER_SHAREDIR)/$$D/; \
-			$(CP) $$D/jpg/.* $(AFTER_SHAREDIR)/$$D/; \
+			for I in $$D/jpg/* $$D/jpg/.*; do \
+			  if [ -f $$I ] ; then \
+			    $(CP) $$I $(AFTER_SHAREDIR)/$$D/; \
+			  fi; \
+			done ; \
 		fi; \
 	done ; \
 	$(CP) desktop/icons/CREDITS $(AFTER_SHAREDIR)/desktop/icons/
