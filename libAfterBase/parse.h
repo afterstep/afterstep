@@ -14,6 +14,8 @@ struct config
   int *arg2;
 };
 
+char *parse_argb_color( char *color, CARD32 *pargb );
+
 char *find_doublequotes (char *ptr);
 char *stripcpy (const char *source);
 char *stripcpy2 (const char *source, int tab_sensitive);
@@ -26,11 +28,6 @@ int quotestr (char *dest, const char *src, int maxlen);
 /* here we'll strip comments and whitespaces */
 char *stripcomments (char *source);
 char *strip_whitespace (char *str);
-/* some useful string parsing functions
- * (returns next position in string after parsed value) */
-char *ReadIntValue (char *restofline, int *value);
-char *ReadColorValue (char *restofline, char **color, int *len);
-char *ReadFileName (char *restofline, char **fname, int *len);
 
 /* will read space separated string and allocate space for it */
 char *parse_token (const char *source, char **trg);

@@ -4,77 +4,79 @@
 
 #include "../configure.h"
 #include "../include/aftersteplib.h"
+#include "../include/screen.h"
 #include "../include/parse.h"
 
 /****************************************************************************
- *
- * Some usefull parsing functions
- *
- ****************************************************************************/
-char         *
-ReadIntValue (char *restofline, int *value)
+ * parse_argb_color - should be used for all your color parsing needs
+ ***************************************************************************/
+char *parse_argb_color( char *color, CARD32 *pargb )
 {
-	sscanf (restofline, "%d", value);
-
-	while (isspace ((unsigned char)*restofline))
-		restofline++;
-	while ((!isspace ((unsigned char)*restofline)) && (*restofline != 0) &&
-		   (*restofline != ',') && (*restofline != '\n'))
-		restofline++;
-	while (isspace ((unsigned char)*restofline))
-		restofline++;
-
-	return restofline;
-}
-
-char         *
-ReadColorValue (char *restofline, char **color, int *len)
-{
-	char         *tmp;
-
-	*len = 0;
-
-	while (isspace ((unsigned char)*restofline))
-		restofline++;
-	for (tmp = restofline; (tmp != NULL) && (*tmp != 0) && (*tmp != ',') &&
-		 (*tmp != '\n') && (*tmp != '/') && (!isspace ((unsigned char)*tmp)); tmp++)
-		(*len)++;
-
-	if (*len > 0)
+#define hextoi(h)   (isdigit(h)?((h)-'0'):(isupper(h)?((h)-'A'+10):((h)-'a'+10)))
+	if( color )
 	{
-		if (*color)
-			free (*color);
-		*color = safemalloc (*len + 1);
-		strncpy (*color, restofline, *len);
-		(*color)[*len] = 0;
+		if( *color == '#' )
+		{
+			CARD32 argb = 0 ;
+			int len = 0 ;
+			register char *ptr = color+1 ;
+			while( isxdigit(ptr[len]) ) len++;
+			if( len >= 3)
+			{
+				if( (len&0x3) == 0 )
+				{  /* we do have alpha channel !!! */
+					len = len>>2 ;
+					argb = (hextoi(ptr[0])<<28)&0xF0000000 ;
+					if( len > 1 )
+						argb |= (hextoi(ptr[1])<<24)&0x0F000000 ;
+					else
+						argb |= 0x0F000000;
+					ptr += len ;
+				}else
+				{
+					len = len/3 ;
+					argb = 0xFF000000;
+				}
+				/* processing rest of the channels : */
+				if( len == 1 )
+				{
+					argb |= 0x000F0F0F;
+					argb |= (hextoi(ptr[0])<<20)&0x00F00000 ;
+					argb |= (hextoi(ptr[1])<<12)&0x0000F000 ;
+					argb |= (hextoi(ptr[2])<<4 )&0x000000F0 ;
+					ptr += 3 ;
+				}else
+				{
+					argb |= (hextoi(ptr[0])<<20)&0x00F00000 ;
+					argb |= (hextoi(ptr[1])<<16)&0x000F0000 ;
+					ptr += len ;
+					argb |= (hextoi(ptr[0])<<12)&0x0000F000 ;
+					argb |= (hextoi(ptr[1])<<8) &0x00000F00 ;
+					ptr += len ;
+					argb |= (hextoi(ptr[0])<<4 )&0x000000F0 ;
+					argb |= (hextoi(ptr[1]))    &0x0000000F ;
+					ptr += len ;
+				}
+				*pargb = argb ;
+				return ptr;
+			}
+		}else if( *color )
+		{
+			XColor xcol, xcol_scr ;
+			char *ptr = color;
+			/* does not really matter here what screen to use : */
+			if( XLookupColor( dpy, Scr.colormap, color, &xcol, &xcol_scr) )
+				*pargb = 0xFF000000|((xcol.red<<8)&0x00FF0000)|(xcol.green&0x0000FF00)|((xcol.blue>>8)&0x000000FF);
+			while( !isspace(*ptr) && *ptr != '\0' ) ptr++;
+			return ptr;
+		}
 	}
-
-	return tmp;
+	return color;
 }
 
-char         *
-ReadFileName (char *restofline, char **fname, int *len)
-{
-	char         *tmp;
-
-	*len = 0;
-
-	while (isspace ((unsigned char)*restofline))
-		restofline++;
-	for (tmp = restofline; (tmp != NULL) && (*tmp != 0) && (*tmp != ',') && (*tmp != '\n'); tmp++)
-		(*len)++;
-
-	if (*fname != NULL)
-		free (*fname);
-
-	if (*len > 0)
-		*fname = mystrndup (restofline, *len);
-	else
-		*fname = NULL;
-
-	return tmp;
-}
-
+/****************************************************************************
+ * Some usefull parsing functions
+ ****************************************************************************/
 char         *
 find_doublequotes (char *ptr)
 {
@@ -96,10 +98,8 @@ find_doublequotes (char *ptr)
 }
 
 /****************************************************************************
- *
  * Copies a string into a new, malloc'ed string
  * Strips leading and trailing whitespace
- *
  ****************************************************************************/
 
 char         *
