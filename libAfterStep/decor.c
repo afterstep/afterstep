@@ -2083,6 +2083,10 @@ LOCAL_DEBUG_OUT("style(%p)->geom(%ux%u%+d%+d)->hilite(0x%X)", style, tbar->width
 
     if (style == NULL)
         return -2;
+    
+    mystyle_make_bevel (style, &bevel, tbar->hilite[state], get_flags (tbar->state, BAR_STATE_PRESSED_MASK));
+    h_bevel_size = bevel.left_outline+bevel.right_outline ;
+    v_bevel_size = bevel.top_outline+bevel.bottom_outline ;
 
     /* validating our images : */
 	if ((back = tbar->back[state]) != NULL)
@@ -2102,16 +2106,17 @@ LOCAL_DEBUG_OUT("style(%p)->geom(%ux%u%+d%+d)->hilite(0x%X)", style, tbar->width
 LOCAL_DEBUG_OUT("back(%p), vertical?%s", back, get_flags( tbar->state, BAR_FLAGS_VERTICAL )?"Yes":"No" );
 	if (back == NULL)
 	{
-		back = mystyle_make_image (style, tbar->root_x, tbar->root_y, tbar->width, tbar->height, get_flags( tbar->state, BAR_FLAGS_VERTICAL )?FLIP_VERTICAL:0);
+        back = mystyle_make_image (style, 
+                                   tbar->root_x+bevel.left_outline, 
+                                   tbar->root_y+bevel.top_outline , 
+                                   tbar->width, tbar->height, 
+                                   get_flags( tbar->state, BAR_FLAGS_VERTICAL )?FLIP_VERTICAL:0);
 		tbar->back[state] = back ;
 LOCAL_DEBUG_OUT("back-try2(%p)", back );
 		if (back == NULL)
             return -1;
 	}
 
-    mystyle_make_bevel (style, &bevel, tbar->hilite[state], get_flags (tbar->state, BAR_STATE_PRESSED_MASK));
-    h_bevel_size = bevel.left_outline+bevel.right_outline ;
-    v_bevel_size = bevel.top_outline+bevel.bottom_outline ;
     /*mystyle_make_bevel (style, &bevel, 0, get_flags (tbar->state, BAR_STATE_PRESSED_MASK));
 	 * in unfocused and unpressed state we render pixmap and set
 	 * window's background to it

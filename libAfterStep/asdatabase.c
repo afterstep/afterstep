@@ -208,9 +208,9 @@ match_int (ASDatabase * db, DBMatchType type)
 				 case MATCH_layer:
 					 return db_rec->layer;
 				 case MATCH_ViewportX:
-					 return db_rec->viewport_y;
+                     return db_rec->viewport_x;
 				 case MATCH_ViewportY:
-					 return db_rec->viewport_x;
+                     return db_rec->viewport_y;
 				 case MATCH_border_width:
 					 return db_rec->border_width;
 				 case MATCH_resize_width:
