@@ -320,6 +320,8 @@ move_resize_longbar( ASTBarData *bar, ASCanvas *canvas, ASOrientation *od,
     unsigned int h = bar->height;
     int bar_size ;
 
+	LOCAL_DEBUG_OUT( "normal_offset = %d, normal_length = %d, corner_sizes = %d,%d, vert = %d, force = %d", 
+					 normal_offset, normal_length, corner_size1, corner_size2, vertical, force_render );
     /* swapping bar height in case of vertical orientation of the etire window: */
     *(od->in_width) = w ;
     *(od->in_height) = h ;
@@ -369,7 +371,8 @@ condense_tbar( ASTBarData *tbar, unsigned int max_size, unsigned int *off1, unsi
                         *off1 /= 2 ;
                         *off2 = *off1 ;
                     }    
-                }
+                }else
+					*off2 = max_size - condensed ;
             }else 
 				condensed = max_size ;
         }else
@@ -385,7 +388,8 @@ condense_tbar( ASTBarData *tbar, unsigned int max_size, unsigned int *off1, unsi
                         *off1 /= 2 ;
                         *off2 = *off1 ;
                     }    
-                }
+                }else
+					*off2 = max_size - condensed ;
             }else 
 				condensed = max_size ;
         }    
@@ -428,7 +432,7 @@ move_resize_frame_bars( ASWindow *asw, int side, ASOrientation *od, unsigned int
             set_flags( canvas->state, CANVAS_FORCE_MASK );
 
 		/* title always considered a "horizontal bar" */
-        if( move_resize_longbar( title, canvas, od, 0, tbar_width, tbar_offset1, tbar_offset2, False, force_render ) )
+		if( move_resize_longbar( title, canvas, od, 0, normal_width, tbar_offset1, tbar_offset2, False, force_render ) )
             rendered = True;
         tbar_size = *(od->in_height);
     }
@@ -658,6 +662,21 @@ check_frame_side_config( ASWindow *asw, Window w, ASOrientation *od )
 	return found;
 }
 
+static void 
+move_shading_frame( ASWindow *asw, ASOrientation *od, int step_size )
+{
+	if( asw->frame_sides[od->sbar_side] )
+	{
+		XRaiseWindow( dpy, asw->frame_sides[od->sbar_side]->w );
+		if( ASWIN_HFLAGS(asw, AS_VerticalTitle) )
+			move_canvas( asw->frame_sides[od->sbar_side], step_size - asw->frame_sides[od->sbar_side]->width, 0 );
+		else
+			move_canvas( asw->frame_sides[od->sbar_side], 0, step_size - asw->frame_sides[od->sbar_side]->height );
+	}
+	if( asw->frame_sides[od->tbar_side] )
+		XRaiseWindow( dpy, asw->frame_sides[od->tbar_side]->w );
+}
+
 
 /* this gets called when StructureNotify/SubstractureNotify arrives : */
 void
@@ -712,15 +731,27 @@ LOCAL_DEBUG_OUT( "changes=0x%X", changes );
 			{ 
 				if( normal_height != step_size )
             	{
-                	sleep_a_millisec(10);
-                	/* we get smoother animation if we move decoration ahead of actually
-                 	* resizing frame window : */
-                	resize_canvases( asw, od, normal_width, step_size, frame_size );
                 	*(od->in_width)=normal_width ;
                 	*(od->in_height)=step_size ;
+			     	
+					if( normal_height < step_size )           	
+					{	
+						/* we get smoother animation if we move decoration ahead of actually
+                 		 * resizing frame window : */
+ 						move_shading_frame( asw, od, step_size );
+						ASSync( False );
+                		sleep_a_millisec(10);
 	/*LOCAL_DEBUG_OUT( "**SHADE Client(%lx(%s))->(%d>-%d)", asw->w, ASWIN_NAME(asw)?ASWIN_NAME(asw):"noname", asw->shading_steps, step_size );*/
-                	resize_canvas( asw->frame_canvas, *(od->out_width), *(od->out_height));
-                	ASSync(False);
+                		resize_canvas( asw->frame_canvas, *(od->out_width), *(od->out_height));
+                		ASSync(False);
+					}else
+					{	
+ 						sleep_a_millisec(10);
+                		resize_canvas( asw->frame_canvas, *(od->out_width), *(od->out_height));
+                		ASSync(False);
+						move_shading_frame( asw, od, step_size );
+						ASSync( False );
+					}	
             	}else
 				{  /* probably just the change of the look - titlebar may need to be resized */
 					resize_canvases( asw, od, normal_width, normal_height, frame_size );

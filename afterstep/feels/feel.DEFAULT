@@ -318,6 +318,9 @@ Mouse 3         5       A       PinMenu
 Mouse 1         6       A       Iconify
 Mouse 2         6       A       Maximize
 Mouse 3         6       A       Maximize
+Mouse 1         7       A       Delete
+Mouse 2         7       A       WindowList 2
+Mouse 3         7       A       PopUp "Window menu" Window
 Mouse 1         FS      A       Resize
 Mouse 2         FS      A       Move
 Mouse 3         FS      A       Move

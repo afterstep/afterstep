@@ -366,6 +366,7 @@ DigestEvent( ASEvent *event )
 		int pointer_root_x = xk->x_root;
 		int pointer_root_y = xk->y_root;
 		static int last_pointer_root_x = -1, last_pointer_root_y = -1; 
+		int tbar_side = ASWIN_HFLAGS(asw, AS_VerticalTitle)?FR_W:FR_N ; 
 
         /* Since key presses and button presses are grabbed in the frame
          * when we have re-parented windows, we need to find out the real
@@ -407,7 +408,11 @@ DigestEvent( ASEvent *event )
 
 			}
 
-            if( w != asw->frame )
+	        if (ASWIN_GET_FLAGS(asw, AS_Shaded) && canvas != asw->frame_sides[tbar_side] )
+			{
+				event->context = C_NO_CONTEXT ;				
+				XRaiseWindow( dpy, asw->frame_sides[tbar_side]->w );
+			}else if( w != asw->frame )
             {
                 if( event->w == asw->frame )
                 {
@@ -464,14 +469,16 @@ DigestEvent( ASEvent *event )
             }
         }
 
-        on_astbar_pointer_action( pointer_bar, event->context, 
-								  (event->x.type == LeaveNotify),
-								  (last_pointer_root_x != pointer_root_x || last_pointer_root_y != pointer_root_y) );
-		
+		if( pointer_bar != NULL ) 
+		{	
+        	on_astbar_pointer_action( pointer_bar, event->context, 
+								  	(event->x.type == LeaveNotify),
+								  	(last_pointer_root_x != pointer_root_x || last_pointer_root_y != pointer_root_y) );
+		}		
 		last_pointer_root_x = pointer_root_x ;
 		last_pointer_root_y = pointer_root_y ;
 
-		if( asw != NULL && w != asw->w && w != asw->frame )
+		if( asw != NULL && w != asw->w && w != asw->frame && event->context != C_NO_CONTEXT )
 			apply_context_cursor( w, &(Scr.Feel), event->context );
         event->widget  = canvas ;
         /* we have to do this at all times !!!! */

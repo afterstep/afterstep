@@ -511,7 +511,7 @@ void display_progress( Bool new_line, const char *msg_format, ... );
 
 
 /*************************** decorations.c ********************************/
-inline ASOrientation* get_orientation_data( ASWindow *asw );
+ASOrientation* get_orientation_data( ASWindow *asw );
 void grab_aswindow_buttons( ASWindow *asw, Bool focused );
 
 int check_allowed_function2 (int func, ASHints *hints);

@@ -118,7 +118,7 @@ ASOrientation VertOrientation =
     {7, 6, 5, 4, 3, 2, 1}
 };
 
-inline ASOrientation*
+ASOrientation*
 get_orientation_data( ASWindow *asw )
 {
     if( asw && asw->magic == MAGIC_ASWINDOW && asw->hints )

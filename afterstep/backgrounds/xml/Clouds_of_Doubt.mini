@@ -1,0 +1,8 @@
+<hsv hue_offset="$ascs.Base.hue" value_offset="5">
+  <scale width="$minipixmap.width" height="$minipixmap.height">
+	<tile x=0 y=270 width=100 height=100>
+    		<img src=".CloudsOfDoubt"/>
+	</tile>
+  </scale>
+</hsv>
+
