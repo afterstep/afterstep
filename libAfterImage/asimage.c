@@ -1633,7 +1633,7 @@ copytintpad_scanline( ASScanline *src, ASScanline *dst, int offset, ARGB32 tint 
 		register CARD32 *pdst = dst->channels[color];
 		int ratio = chan_tint[color];
 /*	fprintf( stderr, "channel %d, tint is %d(%X), src_width = %d, src_offset = %d, dst_width = %d, dst_offset = %d psrc = %p, pdst = %p\n", color, ratio, ratio, src->width, src_offset, dst->width, dst_offset, psrc, pdst );
- */
+*/
 		{
 /*			register CARD32 fill = chan_fill[color]; */
 			for( i = 0 ; i < dst_offset ; ++i )
@@ -1657,8 +1657,9 @@ copytintpad_scanline( ASScanline *src, ASScanline *dst, int offset, ARGB32 tint 
 					pdst[i] = psrc[i]*ratio;
 		}else
 		{
+		    ratio = ratio*chan_fill[color];
 			for( i = 0 ; i < copy_width ; ++i )
-				pdst[i] = ratio<<8;
+				pdst[i] = ratio;
 			set_flags( dst->flags, (0x01<<color));
 		}
 		{
@@ -2377,6 +2378,7 @@ merge_layers( ASVisual *asv,
 			  	unsigned int dst_height,
 			  	ASAltImFormats out_format, unsigned int compression_out, int quality )
 {
+	ASImage *fake_bg ;
 	ASImage *dst = NULL ;
 	ASImageDecoder **imdecs ;
 	ASImageOutput  *imout ;
@@ -2395,6 +2397,9 @@ LOCAL_DEBUG_CALLER_OUT( "dst_width = %d, dst_height = %d", dst_width, dst_height
 	tmp_line.flags = SCL_DO_ALL ;
 
 	imdecs = safecalloc( count, sizeof(ASImageDecoder*));
+	if( layers[0].im == NULL ) 
+		layers[0].im = fake_bg = create_asimage( 1, 1, 0 );
+
 	for( i = 0 ; i < count ; i++ )
 		if( layers[i].im )
 		{
@@ -2414,6 +2419,8 @@ LOCAL_DEBUG_CALLER_OUT( "dst_width = %d, dst_height = %d", dst_width, dst_height
 	{
 		int y, max_y = 0;
 		int min_y = dst_height;
+		int bg_tint = (layers[0].tint==0)?0x7F7F7F7F:layers[0].tint ;
+		int bg_bottom = layers[0].dst_y+layers[0].clip_height+imdecs[0]->bevel_v_addon ;
 LOCAL_DEBUG_OUT("blending actually...%s", "");
 		for( i = 0 ; i < count ; i++ )
 			if( imdecs[i] )
@@ -2437,17 +2444,22 @@ LOCAL_DEBUG_OUT("blending actually...%s", "");
 				imdecs[i]->next_line = min_y - layers[i].dst_y ;
  */
 LOCAL_DEBUG_OUT( "min_y = %d, max_y = %d", min_y, max_y );
-		imout->next_line = min_y ;
-		for( y = min_y ; y < max_y ; y++  )
+		dst_line.back_color = layers[0].back_color ;
+		dst_line.flags = 0 ;
+		for( y = 0 ; y < min_y ; y++  )
+			imout->output_image_scanline( imout, &dst_line, 1);
+		dst_line.flags = SCL_DO_ALL ;
+		for( ; y < max_y ; y++  )
 		{
-			for( i = 0 ; i < count ; i++ )
-				if( imdecs[i] && layers[i].dst_y <= y && layers[i].dst_y+layers[i].clip_height+imdecs[i]->bevel_v_addon > y )
-				{
-					imdecs[i]->decode_image_scanline( imdecs[i] );
-					copytintpad_scanline( &(imdecs[i]->buffer), &dst_line, layers[i].dst_x, (layers[i].tint==0)?0x7F7F7F7F:layers[i].tint );
-					break;
-				}
-			while( ++i < count )
+			if( layers[0].dst_y <= y && bg_bottom > y )
+				imdecs[0]->decode_image_scanline( imdecs[0] );
+			else
+			{
+				imdecs[0]->buffer.back_color = layers[0].back_color ;
+				imdecs[0]->buffer.flags = 0 ;
+			}
+			copytintpad_scanline( &(imdecs[0]->buffer), &dst_line, layers[0].dst_x, bg_tint );
+			for( i = 1 ; i < count ; i++ )
 				if( imdecs[i] && layers[i].dst_y <= y && layers[i].dst_y+layers[i].clip_height+imdecs[i]->bevel_v_addon > y )
 				{
 					imdecs[i]->decode_image_scanline( imdecs[i] );
@@ -2456,6 +2468,11 @@ LOCAL_DEBUG_OUT( "min_y = %d, max_y = %d", min_y, max_y );
 				}
 			imout->output_image_scanline( imout, &dst_line, 1);
 		}
+		dst_line.back_color = layers[0].back_color ;
+		dst_line.flags = 0 ;
+		for( ; y < dst_height ; y++  )
+			imout->output_image_scanline( imout, &dst_line, 1);
+		
 		stop_image_output( &imout );
 	}
 #ifdef HAVE_MMX
