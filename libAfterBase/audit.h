@@ -73,6 +73,8 @@ int count_xfreegc (const char *fname, int line, Display * display, GC gc);
 
 #define XCreateImage(a, b, c, d, e, f, g, h, i, j) count_xcreateimage(__FUNCTION__, __LINE__, a, b, c, d, e, f, g, h, i, j)
 #define XGetImage(a, b, c, d, e, f, g, h) count_xgetimage(__FUNCTION__, __LINE__, a, b, c, d, e, f, g, h)
+#undef XSubImage
+#define XSubImage(a, b, c, d, e) count_xsubimage(__FUNCTION__, __LINE__, a, b, c, d, e)
 #define XpmCreateImageFromXpmImage(a, b, c, d, e) count_xpmcreateimagefromxpmimage(__FUNCTION__, __LINE__, a, b, c, d, e)
 #define XDestroyImage(a) count_xdestroyimage(__FUNCTION__, __LINE__, a)
 
@@ -85,6 +87,8 @@ XImage *count_xgetimage (const char *fname, int line, Display * display,
 			 Drawable drawable, int x, int y, unsigned int width,
 			 unsigned int height, unsigned long plane_mask,
 			 int format);
+XImage *count_xsubimage (const char *fname, int line, XImage *img,
+			 int x, int y, unsigned int width, unsigned int height );
 int count_xpmcreateimagefromxpmimage (const char *fname, int line,
 				      Display * display, void *xpm_image,
 				      XImage ** image, XImage ** mask,

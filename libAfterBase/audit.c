@@ -25,6 +25,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <ctype.h>
+#include <sys/types.h>
+#include <signal.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #ifdef XPM
@@ -49,6 +51,7 @@
 
 #undef XCreateImage
 #undef XGetImage
+#undef XSubImage
 #undef XDestroyImage
 
 #undef XpmReadFileToPixmap
@@ -104,6 +107,7 @@ enum
 	C_IMAGE = 3,
 	C_GETIMAGE = 0x100,
 /*    C_XPMFILE = 0x200, *//* must be same as pixmap version above */
+	C_SUBIMAGE = 0x300,
 
 	C_XMEM = 4,
 	C_XGETWINDOWPROPERTY = 0x100,
@@ -431,6 +435,9 @@ print_unfreed_mem (void)
 				  case C_GETIMAGE:
 					  fprintf (stderr, " (XGetImage)");
 					  break;
+				  case C_SUBIMAGE:
+					  fprintf (stderr, " (XSubImage)");
+					  break;
 				  case C_XPMFILE:
 					  fprintf (stderr, " (XpmCreateImageFromXpmImage)");
 					  break;
@@ -529,8 +536,12 @@ count_xfreepixmap (const char *fname, int line, Display * display, Pixmap pmap)
 		fprintf (stderr,
 				 "%s:attempt in %s:%d to free Pixmap(0x%X) that was never created, or already freed!\n",
 				 __FUNCTION__, fname, line, (unsigned int)pmap);
+		raise( SIGUSR2 );
+		XFreePixmap (display, pmap );		
 		return !Success;
 	}
+/*	fprintf (stderr,"%s:%s:%d freeing Pixmap(0x%X)\n", __FUNCTION__, fname, line, (unsigned int)pmap);
+*/
 
 	XFreePixmap (display, pmap);
 	safefree (m);
@@ -601,6 +612,20 @@ count_xgetimage (const char *fname, int line, Display * display,
 		return NULL;
 	count_alloc (fname, line, (void *)image,
 				 sizeof (*image) + image->height * image->bytes_per_line, C_IMAGE | C_GETIMAGE);
+	return image;
+}
+
+XImage       *
+count_xsubimage (const char *fname, int line, XImage *img,
+				 int x, int y, unsigned int width, unsigned int height )
+				 
+{
+	XImage       *image = (*(img->f.sub_image))(img, x, y, width, height);
+
+	if (image == NULL)
+		return NULL;
+	count_alloc (fname, line, (void *)image,
+				 sizeof (*image) + image->height * image->bytes_per_line, C_IMAGE | C_SUBIMAGE);
 	return image;
 }
 
