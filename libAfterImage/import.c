@@ -21,19 +21,21 @@
 
 #include "../configure.h"
 
-/*#define LOCAL_DEBUG*/
+#define LOCAL_DEBUG
 #define DO_CLOCKING
 
 #include <time.h>
-#ifdef PNG 
+/* <setjmp.h> is used for the optional error recovery mechanism */
+#include <setjmp.h>
+#ifdef PNG
 /* Include file for users of png library. */
 #include <png.h>
-/* <setjmp.h> is used for the optional error recovery mechanism shown in
- * the second part of the example. */
-#include <setjmp.h>
 #endif
-
 #include "../include/aftersteplib.h"
+#ifdef JPEG
+/* Include file for users of png library. */
+#include <jpeglib.h>
+#endif
 #include "../include/afterstep.h"
 #include "../include/screen.h"
 #include "../include/asimage.h"
@@ -41,7 +43,8 @@
 #include "../include/asimage.h"
 #include "../include/parse.h"
 
-#ifdef XPM
+/***********************************************************************************/
+#ifdef XPM      /* XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM */
 #include <X11/xpm.h>
 
 int
@@ -435,18 +438,21 @@ LOCAL_DEBUG_OUT( "do_alpha is %d. im->height = %d, im->width = %d", do_alpha, im
 	return im;
 }
 
-#else  /* XPM */
+#else  			/* XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM */
 
 ASImage *
 xpm2ASImage( const char * path, ASFlagType *what )
 {
-	show_error( "unable to load file \"%s\" - XPM image format is not supported.\n", path ); 
+	show_error( "unable to load file \"%s\" - XPM image format is not supported.\n", path );
 	return NULL ;
 }
 
-#endif /* XPM */
+#endif 			/* XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM */
+/***********************************************************************************/
 
-#ifdef PNG
+
+/***********************************************************************************/
+#ifdef PNG		/* PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG */
 ASImage *
 png2ASImage( const char * path, ASFlagType *what )
 {
@@ -468,13 +474,13 @@ png2ASImage( const char * path, ASFlagType *what )
 	png_bytep     *row_pointers, row;
 	unsigned int  y;
 	size_t		  row_bytes, offset ;
-  
+
 
 	im = NULL ;
-	
-	if( path == NULL ) 
+
+	if( path == NULL )
 		return NULL ;
-	
+
 	if ((fp = fopen (path, "rb")) == NULL)
 	{
 		show_error ("can't open image file \"%s\"", path);
@@ -487,7 +493,7 @@ png2ASImage( const char * path, ASFlagType *what )
 	 * the compiler header file version, so that we know if the application
 	 * was compiled with a compatible version of the library.  REQUIRED
 	 */
-	if((png_ptr = png_create_read_struct (PNG_LIBPNG_VER_STRING, NULL, NULL, NULL)) != NULL ) 
+	if((png_ptr = png_create_read_struct (PNG_LIBPNG_VER_STRING, NULL, NULL, NULL)) != NULL )
 	{
 		/* Allocate/initialize the memory for image information.  REQUIRED. */
 		if( (info_ptr = png_create_info_struct (png_ptr)) != NULL )
@@ -512,7 +518,7 @@ png2ASImage( const char * path, ASFlagType *what )
 					png_set_strip_16 (png_ptr);
 				}
 				bit_depth = 8;
-			
+
 				/* Expand paletted colors into true RGB triplets */
 				if (color_type == PNG_COLOR_TYPE_PALETTE)
 				{
@@ -524,7 +530,7 @@ png2ASImage( const char * path, ASFlagType *what )
 		 * so the data will be available as RGBA quartets.
 		 */
 /*
-   LOG1( "\n converting to ALPHA" ) 
+   LOG1( "\n converting to ALPHA" )
    if( color_type& == PNG_COLOR_TYPE_RGB || color_type == PNG_COLOR_TYPE_GRAY )
    {
 
@@ -532,8 +538,8 @@ png2ASImage( const char * path, ASFlagType *what )
    {
    LOG1( "\n  png_set_expand  - to get ALPHA channel")
    png_set_expand(png_ptr);
-   }     
-   else  png_set_filler( png_ptr, 0xFF, PNG_FILLER_AFTER );   
+   }
+   else  png_set_filler( png_ptr, 0xFF, PNG_FILLER_AFTER );
    if( color_type == PNG_COLOR_TYPE_RGB ) color_type = PNG_COLOR_TYPE_RGB_ALPHA ;
    else color_type = PNG_COLOR_TYPE_GRAY_ALPHA ;
    }
@@ -550,15 +556,15 @@ png2ASImage( const char * path, ASFlagType *what )
 				 * update the palette for you (ie you selected such a transform above).
 				 */
 				png_read_update_info (png_ptr, info_ptr);
-			
+
 				im = safecalloc( 1, sizeof( ASImage ) );
 				asimage_start( im, width, height );
 				prepare_scanline( im->width, 0, &buf, False );
 				do_alpha = ((color_type & PNG_COLOR_MASK_ALPHA) != 0 );
 				grayscale = (color_type == PNG_COLOR_TYPE_GRAY_ALPHA) ;
-				
+
 				row_bytes = png_get_rowbytes (png_ptr, info_ptr);
-				/* allocating big chunk of memory at once, to enable mmap 
+				/* allocating big chunk of memory at once, to enable mmap
 				 * that will release memory to system right after free() */
 				row_pointers = safemalloc( height * sizeof( png_bytep ) + row_bytes * height );
 				row = (png_bytep)(row_pointers + height) ;
@@ -613,12 +619,312 @@ png2ASImage( const char * path, ASFlagType *what )
 	fclose (fp);
 	return im ;
 }
-#else /* PNG */
+#else 			/* PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG */
 ASImage *
 png2ASImage( const char * path, ASFlagType *what )
 {
-	show_error( "unable to load file \"%s\" - PNG image format is not supported.\n", path ); 
+	show_error( "unable to load file \"%s\" - PNG image format is not supported.\n", path );
 	return NULL ;
 }
 
-#endif /* PNG */
+#endif 			/* PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG */
+/***********************************************************************************/
+
+
+/***********************************************************************************/
+#ifdef JPEG     /* JPEG JPEG JPEG JPEG JPEG JPEG JPEG JPEG JPEG JPEG JPEG JPEG JPEG */
+struct my_error_mgr
+{
+	struct jpeg_error_mgr pub;				   /* "public" fields */
+	jmp_buf       setjmp_buffer;			   /* for return to caller */
+};
+typedef struct my_error_mgr *my_error_ptr;
+
+METHODDEF (void)
+my_error_exit (j_common_ptr cinfo)
+{
+	/* cinfo->err really points to a my_error_mgr struct, so coerce pointer */
+	my_error_ptr  myerr = (my_error_ptr) cinfo->err;
+	/* Always display the message. */
+	/* We could postpone this until after returning, if we chose. */
+	(*cinfo->err->output_message) (cinfo);
+	/* Return control to the setjmp point */
+	longjmp (myerr->setjmp_buffer, 1);
+}
+
+ASImage *
+jpeg2ASImage( const char * path, ASFlagType *what )
+{
+	/* TODO : implement gamma correction !!! */
+	double gamma = 1.0 ;
+	CARD8  *gamma_table = NULL ;
+	ASImage *im ;
+	/* This struct contains the JPEG decompression parameters and pointers to
+	 * working space (which is allocated as needed by the JPEG library).
+	 */
+	struct jpeg_decompress_struct cinfo;
+	/* We use our private extension JPEG error handler.
+	 * Note that this struct must live as long as the main JPEG parameter
+	 * struct, to avoid dangling-pointer problems.
+	 */
+	struct my_error_mgr jerr;
+	/* More stuff */
+	FILE         *infile;					   /* source file */
+	JSAMPARRAY    buffer;					   /* Output row buffer */
+#ifdef DO_CLOCKING
+	clock_t       started = clock ();
+#endif
+	ASScanline    buf;
+	int y;
+
+	/* we want to open the input file before doing anything else,
+	 * so that the setjmp() error recovery below can assume the file is open.
+	 * VERY IMPORTANT: use "b" option to fopen() if you are on a machine that
+	 * requires it in order to read binary files.
+	 */
+
+	if (path == NULL)
+		return NULL;
+
+	if ((infile = fopen (path, "rb")) == NULL)
+	{
+		fprintf (stderr, "can't open image file \"%s\"\n", path);
+		return NULL;
+	}
+
+	/* Step 1: allocate and initialize JPEG decompression object */
+	/* We set up the normal JPEG error routines, then override error_exit. */
+	cinfo.err = jpeg_std_error (&jerr.pub);
+	jerr.pub.error_exit = my_error_exit;
+	/* Establish the setjmp return context for my_error_exit to use. */
+	if (setjmp (jerr.setjmp_buffer))
+	{
+		/* If we get here, the JPEG code has signaled an error.
+		   * We need to clean up the JPEG object, close the input file, and return.
+		 */
+		jpeg_destroy_decompress (&cinfo);
+		fclose (infile);
+		return NULL;
+	}
+	/* Now we can initialize the JPEG decompression object. */
+	jpeg_create_decompress (&cinfo);
+	/* Step 2: specify data source (eg, a file) */
+	jpeg_stdio_src (&cinfo, infile);
+	/* Step 3: read file parameters with jpeg_read_header() */
+	(void)jpeg_read_header (&cinfo, TRUE);
+	/* We can ignore the return value from jpeg_read_header since
+	 *   (a) suspension is not possible with the stdio data source, and
+	 *   (b) we passed TRUE to reject a tables-only JPEG file as an error.
+	 * See libjpeg.doc for more info.
+	 */
+
+	/* Step 4: set parameters for decompression */
+	/* Adjust default decompression parameters */
+	cinfo.quantize_colors = FALSE;		       /* we don't want no stinking colormaps ! */
+	cinfo.output_gamma = gamma;
+	/* Step 5: Start decompressor */
+	(void)jpeg_start_decompress (&cinfo);
+	LOCAL_DEBUG_OUT("stored image size %dx%d", cinfo.output_width,  cinfo.output_height);
+
+	im = safecalloc( 1, sizeof( ASImage ) );
+	asimage_start( im, cinfo.output_width,  cinfo.output_height );
+	prepare_scanline( im->width, 0, &buf, False );
+
+	/* Make a one-row-high sample array that will go away when done with image */
+	buffer =(*cinfo.mem->alloc_sarray)((j_common_ptr) & cinfo, JPOOL_IMAGE,
+										cinfo.output_width * cinfo.output_components, 1);
+
+	/* Step 6: while (scan lines remain to be read) */
+#ifdef DO_CLOCKING
+		printf (" loading initialization time (clocks): %lu\n", clock () - started);
+#endif
+	y = -1 ;
+	/*cinfo.output_scanline*/
+	while ( ++y < cinfo.output_height )
+	{
+		register int x = im->width ;
+		register JSAMPROW row ;
+		/* jpeg_read_scanlines expects an array of pointers to scanlines.
+		 * Here the array is only one element long, but you could ask for
+		 * more than one scanline at a time if that's more convenient.
+		 */
+		(void)jpeg_read_scanlines (&cinfo, buffer, 1);
+		row = buffer[0] ;
+		if( gamma_table )
+		{
+			if( cinfo.output_components == 3 )
+			{
+				row += im->width*3 ;
+				while ( --x >= 0 )
+				{
+					buf.red[x]  = gamma_table[row[0]];
+					buf.green[x]= gamma_table[row[1]];
+					buf.blue[x] = gamma_table[row[2]];
+					row -= 3 ;
+				}
+			}else /* greyscale */
+				while ( --x >= 0 )
+					buf.blue [x] = buf.green[x] = buf.red[x]  = gamma_table[row[x]];
+		}else
+		{
+			if( cinfo.output_components == 3 )
+			{
+				row += im->width*3 ;
+				while ( --x >= 0 )
+				{
+					buf.red[x]  = row[0];
+					buf.green[x]= row[1];
+					buf.blue[x] = row[2];
+					row -= 3 ;
+				}
+			}else /* greyscale */
+				while ( --x >= 0 )
+					buf.blue [x] = buf.green[x] = buf.red[x]  = row[x];
+		}
+		asimage_add_line (im, IC_RED,   buf.red  , y);
+		asimage_add_line (im, IC_GREEN, buf.green, y);
+		asimage_add_line (im, IC_BLUE,  buf.blue , y);
+	}
+	free_scanline(&buf, True);
+#ifdef DO_CLOCKING
+		printf ("\n read time (clocks): %lu\n", clock () - started);
+#endif
+
+	/* if( CreateTarget()) */
+	/* Step 7: Finish decompression */
+	/* we must abort the decompress if not all lines were read */
+	if (cinfo.output_scanline < cinfo.output_height)
+		jpeg_abort_decompress (&cinfo);
+	else
+		(void)jpeg_finish_decompress (&cinfo);
+	/* We can ignore the return value since suspension is not possible
+	 * with the stdio data source.
+	 */
+	/* Step 8: Release JPEG decompression object */
+	/* This is an important step since it will release a good deal of memory. */
+	jpeg_destroy_decompress (&cinfo);
+	/* After finish_decompress, we can close the input file.
+	 * Here we postpone it until after no more JPEG errors are possible,
+	 * so as to simplify the setjmp error logic above.  (Actually, I don't
+	 * think that jpeg_destroy can do an error exit, but why assume anything...)
+	 */
+	fclose (infile);
+	/* At this point you may want to check to see whether any corrupt-data
+	 * warnings occurred (test whether jerr.pub.num_warnings is nonzero).
+	 */
+#ifdef DO_CLOCKING
+	printf ("\n image loading time (clocks): %lu\n", clock () - started);
+#endif
+	return im ;
+}
+#else 			/* JPEG JPEG JPEG JPEG JPEG JPEG JPEG JPEG JPEG JPEG JPEG JPEG JPEG */
+ASImage *
+jpeg2ASImage( const char * path, ASFlagType *what )
+{
+	show_error( "unable to load file \"%s\" - JPEG image format is not supported.\n", path );
+	return NULL ;
+}
+
+#endif 			/* JPEG JPEG JPEG JPEG JPEG JPEG JPEG JPEG JPEG JPEG JPEG JPEG JPEG */
+/***********************************************************************************/
+
+/***********************************************************************************/
+/* XCF - GIMP's native file format : 											   */
+#if 0                                          /* TODO: XCF work in progress */
+ASImage *
+xcf2ASImage( const char * path, ASFlagType *what )
+{
+	/* TODO : implement gamma correction !!! */
+	double gamma = 1.0 ;
+	CARD8  *gamma_table = NULL ;
+	ASImage *im ;
+	/* More stuff */
+	FILE         *infile;					   /* source file */
+#ifdef DO_CLOCKING
+	clock_t       started = clock ();
+#endif
+	ASScanline    buf;
+	int y;
+
+	/* we want to open the input file before doing anything else,
+	 * so that the setjmp() error recovery below can assume the file is open.
+	 * VERY IMPORTANT: use "b" option to fopen() if you are on a machine that
+	 * requires it in order to read binary files.
+	 */
+	if (path == NULL)
+		return NULL;
+
+	if ((infile = fopen (path, "rb")) == NULL)
+	{
+		fprintf (stderr, "can't open image file \"%s\"\n", path);
+		return NULL;
+	}
+	LOCAL_DEBUG_OUT("stored image size %dx%d", width,  height);
+
+	im = safecalloc( 1, sizeof( ASImage ) );
+	asimage_start( im, width,  height );
+	prepare_scanline( im->width, 0, &buf, False );
+
+	/* Make a one-row-high sample array that will go away when done with image */
+#ifdef DO_CLOCKING
+		printf (" loading initialization time (clocks): %lu\n", clock () - started);
+#endif
+	y = -1 ;
+	/*cinfo.output_scanline*/
+	while ( ++y < height )
+	{
+		register int x = im->width ;
+		register JSAMPROW row ;
+		/* jpeg_read_scanlines expects an array of pointers to scanlines.
+		 * Here the array is only one element long, but you could ask for
+		 * more than one scanline at a time if that's more convenient.
+		 */
+		(void)jpeg_read_scanlines (&cinfo, buffer, 1);
+		row = buffer[0] ;
+		if( gamma_table )
+		{
+			if( cinfo.output_components == 3 )
+			{
+				row += im->width*3 ;
+				while ( --x >= 0 )
+				{
+					buf.red[x]  = gamma_table[row[0]];
+					buf.green[x]= gamma_table[row[1]];
+					buf.blue[x] = gamma_table[row[2]];
+					row -= 3 ;
+				}
+			}else /* greyscale */
+				while ( --x >= 0 )
+					buf.blue [x] = buf.green[x] = buf.red[x]  = gamma_table[row[x]];
+		}else
+		{
+			if( cinfo.output_components == 3 )
+			{
+				row += im->width*3 ;
+				while ( --x >= 0 )
+				{
+					buf.red[x]  = row[0];
+					buf.green[x]= row[1];
+					buf.blue[x] = row[2];
+					row -= 3 ;
+				}
+			}else /* greyscale */
+				while ( --x >= 0 )
+					buf.blue [x] = buf.green[x] = buf.red[x]  = row[x];
+		}
+		asimage_add_line (im, IC_RED,   buf.red  , y);
+		asimage_add_line (im, IC_GREEN, buf.green, y);
+		asimage_add_line (im, IC_BLUE,  buf.blue , y);
+	}
+	free_scanline(&buf, True);
+#ifdef DO_CLOCKING
+		printf ("\n read time (clocks): %lu\n", clock () - started);
+#endif
+	fclose (infile);
+#ifdef DO_CLOCKING
+	printf ("\n image loading time (clocks): %lu\n", clock () - started);
+#endif
+	return im ;
+}
+#endif
+

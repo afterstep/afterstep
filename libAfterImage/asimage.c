@@ -632,6 +632,7 @@ asimage_compare_line (ASImage *im, ColorPart color, CARD32 *to_buf, CARD32 *tmp,
 /* C = (-C1+5*C2+5*C3-C4)/8 					  */
 #define INTERPOLATE_COLOR1(c) 			   	((c)<<QUANT_ERR_BITS)  /* nothing really to interpolate here */
 #define INTERPOLATE_COLOR2(c1,c2,c3,c4)    	((((c2)<<2)+(c2)+((c3)<<2)+(c3)-(c1)-(c4))<<(QUANT_ERR_BITS-3))
+#define INTERPOLATE_COLOR2_V(c1,c2,c3,c4)    	((((c2)<<2)+(c2)+((c3)<<2)+(c3)-(c1)-(c4))>>3)
 /* for scale factor of 3 we use these formulas :  */
 /* Ca = (-2C1+8*C2+5*C3-2C4)/9 		  			  */
 /* Cb = (-2C1+5*C2+8*C3-2C4)/9 		  			  */
@@ -640,6 +641,8 @@ asimage_compare_line (ASImage *im, ColorPart color, CARD32 *to_buf, CARD32 *tmp,
 /* Cb = (-C1+3*C2+5*C3-C4)/6 		  			  */
 #define INTERPOLATE_A_COLOR3(c1,c2,c3,c4)  	(((((c2)<<2)+(c2)+((c3)<<1)+(c3)-(c1)-(c4))<<QUANT_ERR_BITS)/6)
 #define INTERPOLATE_B_COLOR3(c1,c2,c3,c4)  	(((((c2)<<1)+(c2)+((c3)<<2)+(c3)-(c1)-(c4))<<QUANT_ERR_BITS)/6)
+#define INTERPOLATE_A_COLOR3_V(c1,c2,c3,c4)  	((((c2)<<2)+(c2)+((c3)<<1)+(c3)-(c1)-(c4))/6)
+#define INTERPOLATE_B_COLOR3_V(c1,c2,c3,c4)  	((((c2)<<1)+(c2)+((c3)<<2)+(c3)-(c1)-(c4))/6)
 /* just a hypotesus, but it looks good for scale factors S > 3: */
 /* Cn = (-C1+(2*(S-n)+1)*C2+(2*n+1)*C3-C4)/2S  	  			   */
 /* or :
@@ -863,8 +866,8 @@ copy_component( register CARD32 *src, register CARD32 *dst, int *scales, int len
 		dst[i] = src[i];
 	}while(++i < len );
 
-#endif	
-	
+#endif
+
 }
 
 static inline void
@@ -1046,19 +1049,29 @@ start_component_interpolation( CARD32 *c1, CARD32 *c2, CARD32 *c3, CARD32 *c4, r
 }
 
 static inline void
-component_interpolation2( CARD32 *c1, CARD32 *c2, CARD32 *c3, CARD32 *c4, register CARD32 *T, CARD32 *unused, CARD16 unused2, int len)
+component_interpolation_hardcoded( CARD32 *c1, CARD32 *c2, CARD32 *c3, CARD32 *c4, register CARD32 *T, CARD32 *unused, CARD16 kind, int len)
 {
 	register int i;
-	for( i = 0 ; i < len ; i++ )
+	if( kind == 1 )
+		for( i = 0 ; i < len ; i++ )
+		{
+    		register int rc1 = c1[i], rc2 = c2[i], rc3 = c3[i] ;
+			T[i] = INTERPOLATE_COLOR2_V(rc1,rc2,rc3,c4[i]);
+		}
+	else if( kind == 2 )
 	{
-  /*		register int rc1 = c1[i], rc3 = c3[i] ;*/
-    	register int rc1 = c1[i], rc2 = c2[i], rc3 = c3[i] ;
-		T[i] = INTERPOLATION_TOTAL_START(rc1,rc2,rc3,c4[i],2)>>2;
-/*fprintf( stderr, " %d \t%d \t%d \t%d  -> %d\n", rc1, rc2, rc3, c4[i], T[i] );*/
-/*		T[i] = 0 ;/*INTERPOLATE_COLOR2(rc1,c2[i],rc3,rc3 );/*c4[i]);*/
-	}
+		for( i = 0 ; i < len ; i++ )
+		{
+    		register int rc1 = c1[i], rc2 = c2[i], rc3 = c3[i] ;
+			T[i] = INTERPOLATE_A_COLOR3_V(rc1,rc2,rc3,c4[i]);
+		}
+	}else
+		for( i = 0 ; i < len ; i++ )
+		{
+    		register int rc1 = c1[i], rc2 = c2[i], rc3 = c3[i] ;
+			T[i] = INTERPOLATE_B_COLOR3_V(rc1,rc2,rc3,c4[i]);
+		}
 }
-
 
 static inline void
 divide_component_mod( register CARD32 *data, CARD16 ratio, int len )
@@ -1371,7 +1384,7 @@ scale_image_up( ASImage *src, ASImageOutput *imout, int h_ratio, int *scales_h, 
 	CHOOSE_SCANLINE_FUNC(h_ratio,tmp,src_lines[1],scales_h,line_len);
 
 	SCANLINE_FUNC(copy_component,src_lines[1],src_lines[0],0,out_width);
-	
+
 	DECODE_SCANLINE(src,tmp,1);
 	src_lines[1].flags = tmp.flags ;
 	CHOOSE_SCANLINE_FUNC(h_ratio,tmp,src_lines[2],scales_h,line_len);
@@ -1394,21 +1407,30 @@ scale_image_up( ASImage *src, ASImageOutput *imout, int h_ratio, int *scales_h, 
 			CHOOSE_SCANLINE_FUNC(h_ratio,tmp,*c4,scales_h,line_len);
 		}
 		/* now we'll prepare total and step : */
- 		output_image_line( imout, c2, 1);
-/*		if( S == 2 )
+		output_image_line( imout, c2, 1);
+		if( S > 1 )
 		{
-			SCANLINE_COMBINE(component_interpolation2,*c1,*c2,*c3,*c4,*c1,*c1,2,out_width);
-			output_image_line( imout, c1, 1);
-		}else */
-  		{
-			SCANLINE_COMBINE(start_component_interpolation,*c1,*c2,*c3,*c4,*c1,step,S,out_width);
-			do
+			if( S == 2 )
 			{
+				SCANLINE_COMBINE(component_interpolation_hardcoded,*c1,*c2,*c3,*c4,*c1,*c1,1,out_width);
 				output_image_line( imout, c1, 1);
-				if( --S <= 0 )
-					break;
-				SCANLINE_FUNC(add_component,*c1,step,NULL,out_width );
- 			}while (1);
+			}else if( S == 3 )
+			{
+				SCANLINE_COMBINE(component_interpolation_hardcoded,*c1,*c2,*c3,*c4,*c1,*c1,2,out_width);
+				output_image_line( imout, c1, 1);
+				SCANLINE_COMBINE(component_interpolation_hardcoded,*c1,*c2,*c3,*c4,*c1,*c1,3,out_width);
+				output_image_line( imout, c1, 1);
+			}else
+			{
+				SCANLINE_COMBINE(start_component_interpolation,*c1,*c2,*c3,*c4,*c1,step,S,out_width);
+				do
+				{
+					output_image_line( imout, c1, 1);
+					if(!(--S))
+						break;
+					SCANLINE_FUNC(add_component,*c1,step,NULL,out_width );
+ 				}while(1);
+			}
 		}
 	}while( ++i < max_i );
 	output_image_line( imout, c4, 1);
@@ -1473,7 +1495,7 @@ scale_asimage( ScreenInfo *scr, ASImage *src, int to_width, int to_height, Bool 
 		dst = NULL ;
 	}else
 	{
-		if( to_height < src->height ) 					   /* scaling down */
+		if( to_height <= src->height ) 					   /* scaling down */
 			scale_image_down( src, imout, h_ratio, scales_h, scales_v );
 		else
 			scale_image_up( src, imout, h_ratio, scales_h, scales_v );
