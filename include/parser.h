@@ -1,7 +1,7 @@
 #ifndef PARSER_HEADER_FILE_INCLUDED
 #define PARSER_HEADER_FILE_INCLUDED
 
-/*#define DEBUG_PARSER */
+#define DEBUG_PARSER
 /* put it in here for now - later should probably be moved
    into configure stuff */
 #define WITH_CONFIG_WRITER
@@ -54,9 +54,9 @@ typedef struct term_definition
 #define ID_ANY			0
 #define TT_CUSTOM_ID_START    	1024
     int id;			/* term's id */
-    struct syntax_definition *sub_syntax;	/* points to the SyntaxDef structure 
-						   of the syntax of complicated 
-						   construct like PagerDecoration or 
+    struct syntax_definition *sub_syntax;	/* points to the SyntaxDef structure
+						   of the syntax of complicated
+						   construct like PagerDecoration or
 						   MyStyle,
 						   NULL if term has simple structure
 						 */
@@ -106,7 +106,7 @@ typedef struct freestorage_elem
     unsigned long flags;	/* see current_flags for possible values */
 
     char **argv;		/* space separated words from the source data will
-				   be placed here unless DONT_SPLIT_WORDS defined 
+				   be placed here unless DONT_SPLIT_WORDS defined
 				   for the term */
     int argc;			/* number of words */
     struct freestorage_elem *next;
@@ -119,7 +119,7 @@ typedef struct freestorage_elem
        ForeColor  blue
        ~MyStyle
        it will be read in to the following :
-       ...->{MyStyle_term,"some_style", sub, next->}...      
+       ...->{MyStyle_term,"some_style", sub, next->}...
        |
        ---------------------------------
        |
@@ -128,8 +128,8 @@ typedef struct freestorage_elem
        |
        ---------------------------------------------
        |
-       V                                        
-       { ForeColor_term,"blue", sub=NULL, next=NULL }      
+       V
+       { ForeColor_term,"blue", sub=NULL, next=NULL }
      */
   }
 FreeStorageElem;
@@ -154,7 +154,7 @@ typedef struct config_definition
     SpecialFunc special;
     int fd;
     FILE *fp;			/* this one for compatibility with some old code - most
-				 * notably balloons and MyStyle 
+				 * notably balloons and MyStyle
 				 * when they'll be converted on new style - that should go away
 				 */
     int bNeedToCloseFile;

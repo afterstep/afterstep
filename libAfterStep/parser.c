@@ -605,8 +605,8 @@ ParseConfig (ConfigDef * config, FreeStorageElem ** tail)
       while (GetNextStatement (config, 1))
 	{			/* untill not end of text */
 #ifdef DEBUG_PARSER
-	  fprintf (stderr, "\nSentence Found:[%s]\n,\tData=\t[%s]", config->tline, config->current_data);
-	  fprintf (stderr, "\nLooking for the Term...");
+      fprintf (stderr, "\nSentence Found:[%s]\n,\tData=\t[%s]", config->tline, config->current_data);
+      fprintf (stderr, "\nLooking for the Term(syn=%p)...", config->syntax );
 #endif
 	  /* find term */
 	  if ((config->current_term = FindStatementTerm (config->tline, config->syntax)))

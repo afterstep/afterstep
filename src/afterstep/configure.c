@@ -461,13 +461,13 @@ GetIconFromFile (char *file, MyIcon * icon, int max_colors)
 	if( Scr.image_manager )
 	{
 		char *ppath = PixmapPath ;
-		if( ppath == NULL ) 
+		if( ppath == NULL )
 			ppath = getenv( "IMAGE_PATH" );
 		if( ppath == NULL )
 			ppath = getenv( "PATH" );
 		Scr.image_manager = create_image_manager( NULL, 2.2, ppath, getenv( "IMAGE_PATH" ), getenv( "PATH" ), NULL );
 	}
-	
+
 	icon->image = NULL;
 	(*icon).pix = None;
 	(*icon).mask = None;
@@ -724,7 +724,7 @@ merge_old_look_colors (MyStyle * style, int type, int maxcols, char *fore, char 
 			if ((*style).set_flags & F_MAXCOLORS)
 				colors = (*style).max_colors;
 
-			if( GetIconFromFile (pixmap, &(style->back_icon), 0) )				
+			if( GetIconFromFile (pixmap, &(style->back_icon), 0) )
 				(*style).user_flags |= F_BACKPIXMAP;
 			else
 				afterstep_err ("unable to load pixmap: '%s'", pixmap, NULL, NULL);
@@ -1111,7 +1111,7 @@ InitFeel (Bool free_resources)
 /*
  * Initialize database variables
  */
- 
+
 void
 InitDatabase (Bool free_resources)
 {
@@ -1141,6 +1141,7 @@ ParseDatabase (const char *file)
 		realfilename = make_file_name (as_dirs.after_sharedir, file);
 		if (CheckFile (realfilename) != 0)
 		{
+            show_progress( "database file \"%s\" does not exists or is not readable.", realfilename );
 			free (realfilename);
 			return;
 		}
@@ -1149,21 +1150,22 @@ ParseDatabase (const char *file)
 	{
         list = ParseDatabaseOptions (realfilename, "afterstep");
 		free (realfilename);
-	}
-
-    if( list )
-    {
-        Database = build_asdb( list );
-        if( is_output_level_under_threshold( OUTPUT_LEVEL_DATABASE ) )
-            print_asdb( NULL, NULL, Database );
-        while (list != NULL)
-            delete_name_list (&(list));
-    }
+        if( list )
+        {
+            Database = build_asdb( list );
+            if( is_output_level_under_threshold( OUTPUT_LEVEL_DATABASE ) )
+                print_asdb( NULL, NULL, Database );
+            while (list != NULL)
+                delete_name_list (&(list));
+        }else
+            show_progress( "no database records loaded." );
+    }else
+        show_progress( "no database file available." );
     /* XResources : */
     load_user_database();
 }
- 
-/* 
+
+/*
 void
 InitDatabase (Bool free_resources)
 {
@@ -1354,7 +1356,7 @@ LoadASConfig (const char *display_name, int thisdesktop, Bool parse_menu,
 	ASWindow     *t;
 	int           parse_base = 1, parse_database = 1;
 	char         *tline = NULL;
-	
+
 	ASImageManager *old_image_manager = Scr.image_manager ;
 
 #ifndef DIFFERENTLOOKNFEELFOREACHDESKTOP
@@ -1836,10 +1838,10 @@ SetTitleButton (char *tline, FILE * fd, char **junk, int *junk2)
 
 	GetIconFromFile (file, &(Scr.buttons[num].unpressed), 0);
 	GetIconFromFile (file2, &(Scr.buttons[num].pressed), 0);
-	
+
 	Scr.buttons[num].width = 0 ;
 	Scr.buttons[num].height = 0 ;
-	
+
 	if( Scr.buttons[num].unpressed.image )
 	{
 		Scr.buttons[num].width = Scr.buttons[num].unpressed.image->width ;
