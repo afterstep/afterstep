@@ -589,6 +589,7 @@ void on_window_pressure_changed( ASWindow *asw, int pressed_context );
 Bool iconify_window( ASWindow *asw, Bool iconify );
 Bool make_aswindow_visible( ASWindow *asw, Bool deiconify );
 void change_aswindow_layer( ASWindow *asw, int layer );
+void quietly_reparent_aswindow( ASWindow *asw, Window dst, Bool user_root_pos );
 void change_aswindow_desktop( ASWindow *asw, int new_desk );
 void toggle_aswindow_status( ASWindow *asw, ASFlagType flags );
 

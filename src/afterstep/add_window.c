@@ -1857,15 +1857,34 @@ change_aswindow_layer( ASWindow *asw, int layer )
     }
 }
 
+void quietly_reparent_aswindow( ASWindow *asw, Window dst, Bool user_root_pos )
+{
+    if( asw )
+    {
+        quietly_reparent_canvas( asw->frame_canvas, dst, AS_FRAME_EVENT_MASK, user_root_pos );
+        quietly_reparent_canvas( asw->icon_canvas, dst, AS_ICON_EVENT_MASK, user_root_pos );
+        if( asw->icon_title_canvas != asw->icon_canvas )
+            quietly_reparent_canvas( asw->icon_title_canvas, dst, AS_ICON_TITLE_EVENT_MASK, user_root_pos );
+    }
+}
+
 void change_aswindow_desktop( ASWindow *asw, int new_desk )
 {
+    int old_desk ;
     if( AS_ASSERT(asw) )
         return ;
-    if( ASWIN_DESK(asw) == new_desk )
+    if( ASWIN_DESK(asw) == new_desk || ASWIN_GET_FLAGS(asw, AS_Sticky))
         return ;
 
+    old_desk = ASWIN_DESK(asw) ;
     ASWIN_DESK(asw) = new_desk ;
-    /* TODO: implement proper desktop changing ! */
+    /* desktop changing : */
+    if( new_desk == Scr.CurrentDesk )
+    {
+        quietly_reparent_aswindow( asw, Scr.Root, True );
+    }else if( old_desk == Scr.CurrentDesk )
+        quietly_reparent_aswindow( asw, Scr.ServiceWin, True );
+    broadcast_config (M_CONFIGURE_WINDOW, asw);
 }
 
 void toggle_aswindow_status( ASWindow *asw, ASFlagType flags )

@@ -345,14 +345,7 @@ change_aswindow_desk_iter_func(void *data, void *aux_data)
         }
     }else
     {
-        Window dst = Scr.ServiceWin;
-//        Bool use_root_pos = get_flags( AfterStepState, ASS_NormalOperation);
-        if(ASWIN_DESK(asw)==new_desk)
-            dst = Scr.Root;
-        quietly_reparent_canvas( asw->frame_canvas, dst, AS_FRAME_EVENT_MASK, True );
-        quietly_reparent_canvas( asw->icon_canvas, dst, AS_ICON_EVENT_MASK, True );
-        if( asw->icon_title_canvas != asw->icon_canvas )
-            quietly_reparent_canvas( asw->icon_title_canvas, dst, AS_ICON_TITLE_EVENT_MASK, True );
+        quietly_reparent_aswindow( asw, (ASWIN_DESK(asw)==new_desk)?Scr.Root:Scr.ServiceWin, True );
     }
     return True;
 }

@@ -77,6 +77,7 @@ Bool start_widget_moveresize( ASMoveResizeData * data, moveresize_event_func han
 Bool
 check_moveresize_event( ASEvent *event )
 {
+    LOCAL_DEBUG_OUT("data(%p)->handler(%p)", _as_curr_moveresize_data, _as_curr_moveresize_handler );
     if( _as_curr_moveresize_data )
 		if( _as_curr_moveresize_handler( _as_curr_moveresize_data, event ) == ASE_Consumed )
             return True;
@@ -206,6 +207,10 @@ prepare_move_resize_data( ASMoveResizeData *data, ASWidget *parent, ASWidget *mr
 	data->origin_x = root_x - data->last_x ;
 	data->origin_y = root_y - data->last_y ;
 
+    /* we should be using this methinks: */
+    data->last_x = root_x ;
+    data->last_y = root_y ;
+
 	/* " %u x %u %+d %+d " */
 	data->geometry_string = safemalloc( 1+6+3+6+2+6+2+6+1+1 +30/*for the heck of it*/);
 #ifndef NO_ASRENDER
@@ -269,12 +274,24 @@ update_geometry_display( ASMoveResizeData *data )
 {
     int display_width = data->curr.width-data->frame_width ;
     int display_height = data->curr.height-data->frame_height ;
+    int display_x = data->curr.x - data->geom_x_origin;
+    int display_y = data->curr.y - data->geom_y_origin;
+    if( data->geom_x_mult > 0 && data->geom_x_div > 0 )
+    {
+        display_x = (display_x*data->geom_x_mult)/data->geom_x_div ;
+        display_width = (display_width*data->geom_x_mult)/data->geom_x_div ;
+    }
+    if( data->geom_y_mult > 0 && data->geom_y_div > 0 )
+    {
+        display_y = (display_y*data->geom_y_mult)/data->geom_y_div ;
+        display_height = (display_height*data->geom_y_mult)/data->geom_y_div ;
+    }
     if( data->width_inc > 0 )
         display_width /= data->width_inc ;
     if( data->height_inc > 0 )
         display_height /= data->height_inc ;
     sprintf (data->geometry_string, "%u x %u %+d %+d",
-             display_width, display_height, data->curr.x, data->curr.y );
+             display_width, display_height, display_x, display_y );
 #ifndef NO_ASRENDER
     RendChangeLabel( AS_WIDGET_SCREEN(data->parent), data->geometry_display, 1, data->geometry_string );
 #else
@@ -352,6 +369,7 @@ move_resize_loop (ASMoveResizeData *data, ASEvent *event )
 	int           new_x, new_y;
 SHOW_CHECKPOINT;
 	/* discard any extra motion events before a logical release */
+LOCAL_DEBUG_OUT("widget(%p)->parent(%p)", event->widget, data->parent );
     if( event->widget != data->parent )
 		return 0;
 
@@ -581,18 +599,20 @@ move_func (struct ASMoveResizeData *data, int x, int y)
 	new_x = data->curr.x + dx ;
 	new_y = data->curr.y + dy ;
 LOCAL_DEBUG_OUT( "pointer_state = %X, no_snap_mod = %X", data->pointer_state&AllModifierMask, data->feel->no_snaping_mod );
-	if( data->grid && (data->pointer_state&AllModifierMask) != data->feel->no_snaping_mod )
+LOCAL_DEBUG_OUT( "pos(%+d%+d)->delta(%+d%+d)->new(%+d%+d)->lag(%+d%+d)->last(%+d%+d)", x, y, dx, dy, new_x, new_y, data->lag_x, data->lag_y, data->last_x, data->last_y );
+    if( data->grid && (data->pointer_state&AllModifierMask) != data->feel->no_snaping_mod )
 	{
 		attract_corner( data->grid, &new_x, &new_y, &(data->curr) );
 		dx = new_x-data->curr.x ;
 		dy = new_y-data->curr.y ;
 	}
-	data->lag_x  = -(x - dx - data->last_x - data->lag_x) ;
+    data->lag_x  = -(x - dx - data->last_x - data->lag_x) ;
 	data->lag_y  = -(y - dy - data->last_y - data->lag_y) ;
 	data->curr.x = new_x ;
 	data->curr.y = new_y ;
 	data->last_x = x ;
 	data->last_y = y ;
+LOCAL_DEBUG_OUT( "curr(%+d%+d)->delta(%+d%+d)->lag(%+d%+d)->last(%+d%+d)", data->curr.x, data->curr.y, dx, dy, data->lag_x, data->lag_y, data->last_x, data->last_y );
 
 /*  fprintf( stderr, "move_func: (x,y) =(%d,%d) to %+d%+d\n", x, y, pdata->new_x, pdata->new_y );
 */
@@ -737,4 +757,20 @@ set_moveresize_restrains( ASMoveResizeData *data, ASHints *hints, ASStatusHints 
             update_geometry_display( data );
     }
 }
+
+void
+set_moveresize_aspect( ASMoveResizeData *data, unsigned int x_mult, unsigned int x_div, unsigned int y_mult, unsigned int y_div, int x_origin, int y_origin  )
+{
+    if( data )
+    {
+        data->geom_x_mult = x_mult ;
+        data->geom_x_div  = x_div ;
+        data->geom_y_mult = y_mult ;
+        data->geom_y_div  = y_div ;
+        data->geom_x_origin = x_origin ;
+        data->geom_y_origin = y_origin ;
+        update_geometry_display( data );
+    }
+}
+
 

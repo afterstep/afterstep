@@ -900,7 +900,3 @@ broadcast_config (unsigned long event_type, ASWindow * t)
     SendConfig( -1, event_type, t );
 }
 
-
-
-
-

@@ -90,6 +90,11 @@ typedef struct ASMoveResizeData
     ASCanvas        *geom_canvas ;
     ASTBarData      *geom_bar ;
 #endif
+    /* ratios to be applied to geometry before displaying : */
+    unsigned int     geom_x_mult, geom_x_div ;
+    unsigned int     geom_y_mult, geom_y_div ;
+    int              geom_x_origin, geom_y_origin ;
+
 	int 			 origin_x, origin_y ;       /* parent's window root
 												* coordinates */
 	int 			 last_x, last_y ;
@@ -128,9 +133,11 @@ resize_widget_interactively( struct ASWidget *parent,
 							 as_interactive_complete_handler complete_func,
 							 int side );
 void set_moveresize_restrains( ASMoveResizeData *data, struct ASHints *hints, struct ASStatusHints *status );
+void set_moveresize_aspect( ASMoveResizeData *data, unsigned int x_mult, unsigned int x_div, unsigned int y_mult, unsigned int y_div, int x_origin, int y_origin );
 
 
 
 Bool check_moveresize_event( struct ASEvent *event );
+
 
 #endif

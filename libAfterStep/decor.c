@@ -461,6 +461,19 @@ quietly_reparent_canvas( ASCanvas *pc, Window dst, long event_mask, Bool use_roo
     }
 }
 
+void
+add_canvas_grid( ASGrid *grid, ASCanvas *canvas, int outer_gravity, int inner_gravity )
+{
+    if( canvas )
+    {
+LOCAL_DEBUG_CALLER_OUT( "(%p,%ux%u%+d%+d)", canvas, canvas->width, canvas->height, canvas->root_x, canvas->root_y );
+        add_gridline( &(grid->h_lines), canvas->root_y,                canvas->root_x, canvas->root_x+canvas->width,  outer_gravity, inner_gravity );
+        add_gridline( &(grid->h_lines), canvas->root_y+canvas->height, canvas->root_x, canvas->width+canvas->root_x,  inner_gravity, outer_gravity );
+        add_gridline( &(grid->v_lines), canvas->root_x,                canvas->root_y, canvas->height+canvas->root_y, outer_gravity, inner_gravity );
+        add_gridline( &(grid->v_lines), canvas->root_x+canvas->width,  canvas->root_y, canvas->height+canvas->root_y, inner_gravity, outer_gravity );
+    }
+}
+
 /********************************************************************/
 /* ASTBtnData :                                                     */
 /********************************************************************/
@@ -1423,7 +1436,7 @@ update_astbar_transparency (ASTBarData * tbar, ASCanvas * pc)
 
 	root_x = pc->root_x + tbar->win_x;
 	root_y = pc->root_y + tbar->win_y;
-	if ((changed = (root_x != tbar->root_x || root_y != tbar->root_y)))
+    if ((changed = (root_x != tbar->root_x || root_y != tbar->root_y || Scr.RootImage == NULL )))
 	{
         register int  i = BAR_STATE_NUM;
 

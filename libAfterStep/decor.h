@@ -197,6 +197,7 @@ void quietly_reparent_canvas( ASCanvas *pc, Window dst, long event_mask, Bool us
 
 Bool is_canvas_needs_redraw( ASCanvas *pc );
 Bool is_canvas_dirty( ASCanvas *pc );
+void add_canvas_grid( ASGrid *grid, ASCanvas *canvas, int outer_gravity, int inner_gravity );
 
 
 
