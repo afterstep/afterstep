@@ -69,7 +69,10 @@ Style   "toolbox"       NoButton 1, NoButton 2, NoButton 3, NoButton 4
 Style   "Popup menu*"   Sticky
 Style   "Alert*"        Sticky, StaysOnTop
 Style   "Question*"     Sticky, StaysOnTop
-Style   "Buddy List"    NoTitle, WindowListSkip
+### REMOVED ### (conflicts with Gaim, Gaim has no titlebars built in.)
+### by Vaevictus
+### what program was this for anyway?
+#Style   "Buddy List"    NoTitle, WindowListSkip
 
 # gnome panel ( contributed by Greg Norris <haphazard at kc dot rr dot com> ):
 Style   "gnome-panel"   NoTitle, Sticky, StaysOnTop, WindowListSkip, AvoidCover, NoHandles
