@@ -266,14 +266,14 @@ if test "x$enable_audit" = "xyes"; then
 	DEBUG_ALLOCS_VAL=1
 else
 	DEBUG_ALLOCS_DEF="undef"
-	DEBUG_ALLOCS_VAL=0
+	DEBUG_ALLOCS_VAL=
 fi
 if test "x$enable_trace" = "xyes"; then 
 	DEBUG_TRACE_DEF="define"
 	DEBUG_TRACE_VAL=1
 else
 	DEBUG_TRACE_DEF="undef"
-	DEBUG_TRACE_VAL=0
+	DEBUG_TRACE_VAL=
 fi
 
 if test "x$enable_trace_x" = "xyes"; then 
@@ -281,11 +281,11 @@ if test "x$enable_trace_x" = "xyes"; then
 	DEBUG_TRACE_X_VAL=1
 else
 	DEBUG_TRACE_X_DEF="undef"
-	DEBUG_TRACE_X_VAL=0
+	DEBUG_TRACE_X_VAL=
 fi
 
-if test "x$have_x" != "xyes"; then
-	X_DISPLAY_DEF= "define"
+if test "x$have_x" = "xyes"; then
+	X_DISPLAY_DEF="define"
 	X_DISPLAY_VAL=1
 else
 	X_DISPLAY_DEF="undef"
