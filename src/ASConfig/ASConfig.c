@@ -1254,23 +1254,6 @@ print_hierarchy( ASProperty *root, int level )
 	
 }	 
 
-/*
- *
- * as_config_request == <command> <prop1> [<prop2>]
- * command == <list>|<new>|<get>|<set>|<copy>|<delete>|<save>|<load>|<order_down>|<order_up>
- * prop == <prop id=%d|keyword=%d [name="name"] [index="idx"] [sub_items=0|1]>value</asprop>
- * value == <value type=Phony|Integer|Data|File|Char [size=size] [read_only=0|1]>hex_data</value>
- * 
- * as_config_replay == <success>|<failure>|<prop_list>|<value>
- * 
- * success == <success/>
- * failure == <failure/>
- * prop_list == <list><prop1><prop2>...</list>
- * 
- * as_config_notice == <changed> <prop/> </changed>
- * 
- * 
- */
 void interactive_loop()
 {
 #define BUFFER_SIZE 1024	
