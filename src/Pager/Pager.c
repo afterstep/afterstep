@@ -213,7 +213,7 @@ main (int argc, char **argv)
     for( i = 0; i< PagerState.desks_num; ++i )
         PagerState.desks[i].desk = PagerState.start_desk+i ;
 
-    ConnectX( ASDefaultScr, PropertyChangeMask|EnterWindowMask );
+    ConnectX( ASDefaultScr, EnterWindowMask );
     ConnectAfterStep (  M_ADD_WINDOW |
                         M_CONFIGURE_WINDOW |
 						M_STATUS_CHANGE |
@@ -2446,7 +2446,7 @@ LOCAL_DEBUG_OUT( "state(0x%X)->state&ButtonAnyMask(0x%X)", event->x.xbutton.stat
 			return ;
 	    case PropertyNotify:
 			handle_wmprop_event (Scr.wmprops, &(event->x));
-            if( event->x.xproperty.atom == _XROOTPMAP_ID && event->w == Scr.Root )
+            if( event->x.xproperty.atom == _AS_BACKGROUND )
             {
                 register int i = PagerState.desks_num ;
                 LOCAL_DEBUG_OUT( "root background updated!%s","");

@@ -996,6 +996,7 @@ LOCAL_DEBUG_CALLER_OUT( "%p:\"%s\", pmap %lX ", vdata, data->im_name, data->targ
         	XSetWindowBackgroundPixmap( dpy, Scr.Root, Scr.RootBackground->pmap );
         	XClearWindow( dpy, Scr.Root );
         	set_xrootpmap_id (Scr.wmprops, Scr.RootBackground->pmap );
+			set_as_background(Scr.wmprops, Scr.RootBackground->pmap );
 			ASSync(False);
 		}
 	}	 
@@ -1083,6 +1084,7 @@ LOCAL_DEBUG_CALLER_OUT( "desk(%d)->old_desk(%d)->new_back(%p)->old_back(%p)", de
 			XSetWindowBackgroundPixmap( dpy, Scr.Root, new_back->loaded_pixmap );
 			XClearWindow( dpy, Scr.Root );
 			set_xrootpmap_id (Scr.wmprops, new_back->loaded_pixmap );
+			set_as_background(Scr.wmprops, new_back->loaded_pixmap );
 			display_progress( True, "Done with background change. It may take a moment for X server to display it."); 
 			ASSync(False);
 			old_desk = desk ;
@@ -1126,7 +1128,10 @@ LOCAL_DEBUG_CALLER_OUT( "desk(%d)->old_desk(%d)->new_back(%p)->old_back(%p)", de
             new_im->height != bh->pmap_height) )
         {
 			if( Scr.wmprops->root_pixmap == bh->pmap )
+			{	
 				set_xrootpmap_id (Scr.wmprops, None );
+				set_as_background(Scr.wmprops, None );
+			}
             XFreePixmap( dpy, bh->pmap );
             ASSync(False);
             LOCAL_DEBUG_OUT( "root pixmap with id %lX destroyed", bh->pmap );
@@ -1207,11 +1212,15 @@ LOCAL_DEBUG_CALLER_OUT( "desk(%d)->old_desk(%d)->new_back(%p)->old_back(%p)", de
         	XSetWindowBackgroundPixmap( dpy, Scr.Root, bh->pmap );
         	XClearWindow( dpy, Scr.Root );
         	set_xrootpmap_id (Scr.wmprops, bh->pmap );
+			set_as_background(Scr.wmprops, bh->pmap );
 		}  
 		if( Scr.RootImage == NULL )
 			Scr.RootImage = dup_asimage(Scr.RootBackground->im) ;
     }else
+	{	
         set_xrootpmap_id (Scr.wmprops, None );
+		set_as_background(Scr.wmprops, None );
+	}
     ASSync(False);
 #ifdef DEBUG_ALLOCS	
     print_asimage_registry();

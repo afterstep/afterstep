@@ -776,6 +776,8 @@ HandlePropertyNotify (ASEvent *event)
             if( Scr.RootBackground->pmap && Scr.wmprops->root_pixmap == Scr.RootBackground->pmap );
                 Scr.RootImage = dup_asimage(Scr.RootBackground->im) ;
         }
+		if( Scr.wmprops->as_root_pixmap != Scr.wmprops->root_pixmap ) 
+			set_as_background(Scr.wmprops, Scr.wmprops->root_pixmap );
 
         iterate_asbidirlist( Scr.Windows->clients, update_transp_iter_func, NULL, NULL, False );
 

@@ -720,6 +720,7 @@ as_sigchild_handler (int signum)
 	while ((pid = WAIT_CHILDREN (&status)) > 0 )
 	{
 		register int i ;
+		LOCAL_DEBUG_OUT( "pid = %d", pid );
 		for( i = 0; i < MAX_SINGLETONS_NUM ; i++ )
 			if( pid == as_singletons[i] )
 			{

@@ -387,7 +387,7 @@ main (int argc, char **argv)
 	set_DeadPipe_handler(DeadPipe);
     InitMyApp (CLASS_ANIMATE, argc, argv, NULL, NULL, 0 );
 
-    ConnectX( ASDefaultScr, PropertyChangeMask );
+    ConnectX( ASDefaultScr, 0 );
     ConnectAfterStep ( mask_reg, mask_lock_on_send );
 	
 	Config = CreateAnimateConfig();

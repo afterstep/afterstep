@@ -454,7 +454,10 @@ CleanupScreen()
         if( Scr.RootBackground->pmap )
         {
             if( Scr.wmprops->root_pixmap == Scr.RootBackground->pmap )
+			{	
                 set_xrootpmap_id (Scr.wmprops, None );
+				set_as_background(Scr.wmprops, None );
+			}
             XFreePixmap( dpy, Scr.RootBackground->pmap );
             ASSync(False);
             LOCAL_DEBUG_OUT( "root pixmap with id %lX destroyed", Scr.RootBackground->pmap );
@@ -636,6 +639,11 @@ Done (Bool restart, char *command )
 		already_dead = True ;
 	}
 
+#ifdef XSHMIMAGE
+	/* may not need to do that as server may still have some of the shared 
+	 * memory and work in it */
+	flush_shm_cache();
+#endif
 
 LOCAL_DEBUG_CALLER_OUT( "%s restart, cmd=\"%s\"", restart?"Do":"Don't", command?command:"");
 
@@ -681,12 +689,10 @@ LOCAL_DEBUG_CALLER_OUT( "%s restart, cmd=\"%s\"", restart?"Do":"Don't", command?
     CleanupScreen();
     /* Really make sure that the connection is closed and cleared! */
     XSync (dpy, 0);
+
 #ifdef XSHMIMAGE
-	/* may not need to do that as server may still have some of the shared 
-	 * memory and work in it */
 	flush_shm_cache();
 #endif
-
 	if (restart)
 	{
 		set_flags( MyArgs.flags, ASS_Restarting );
@@ -705,21 +711,25 @@ LOCAL_DEBUG_CALLER_OUT( "%s restart, cmd=\"%s\"", restart?"Do":"Don't", command?
     	/* pixmap references */
     	build_xpm_colormap (NULL);
 
-#ifdef DEBUG_ALLOCS
         restack_window_list(INVALID_DESK, True);
         clientprops_cleanup ();
         wmprops_cleanup ();
         free_func_hash();
         purge_asimage_registry();
-        flush_ashash_memory_pool();
-        flush_asbidirlist_memory_pool();
-        free( MyArgs.saved_argv );
 		asxml_var_cleanup();
 		custom_color_cleanup(); 
 		flush_default_asstorage();
+        flush_ashash_memory_pool();
+        flush_asbidirlist_memory_pool();
+        free( MyArgs.saved_argv );
+#ifdef DEBUG_ALLOCS
         print_unfreed_mem ();
 #endif /*DEBUG_ALLOCS */
-    }
+#ifdef XSHMIMAGE
+		flush_shm_cache();
+#endif
+    
+	}
     exit(0);
 }
 

@@ -128,7 +128,7 @@ main( int argc, char **argv )
 
     set_signal_handler( SIGSEGV );
 
-    ConnectX( ASDefaultScr, PropertyChangeMask|EnterWindowMask );
+    ConnectX( ASDefaultScr, EnterWindowMask );
     ConnectAfterStep (M_FOCUS_CHANGE |
                       M_DESTROY_WINDOW |
                       WINDOW_CONFIG_MASK |
@@ -469,7 +469,8 @@ DispatchEvent (ASEvent * event)
 	        break;
 	    case PropertyNotify:
 			LOCAL_DEBUG_OUT( "property %s(%lX), _XROOTPMAP_ID = %lX, event->w = %lX, root = %lX", XGetAtomName(dpy, event->x.xproperty.atom), event->x.xproperty.atom, _XROOTPMAP_ID, event->w, Scr.Root );
-            if( event->x.xproperty.atom == _XROOTPMAP_ID && event->w == Scr.Root )
+			handle_wmprop_event (Scr.wmprops, &(event->x));
+            if( event->x.xproperty.atom == _AS_BACKGROUND )
             {
                 int i ;
                 LOCAL_DEBUG_OUT( "root background updated!%s","");
@@ -487,7 +488,6 @@ DispatchEvent (ASEvent * event)
 			{
                 int i ;
 				LOCAL_DEBUG_OUT( "AS Styles updated!%s","");
-				handle_wmprop_event (Scr.wmprops, &(event->x));
 				mystyle_list_destroy_all(&(Scr.Look.styles_list));
 				LoadColorScheme();
 				CheckConfigSanity();

@@ -131,10 +131,10 @@ typedef struct ASWMProps
     CARD32  as_styles_version ;
     CARD32 *as_styles_data ;
 
-    /* ASBackgrounds : */
-    size_t        as_backgrounds_size ;        /* in bytes */
-    CARD32 as_backgrounds_version ;
-    CARD32 *as_backgrounds_data ;
+    /* ASBackground : */
+	/* we maintain separate ID on our own window so that modules don't have to listen to 
+	 * PropertyNotify on the root window */
+    Pixmap         as_root_pixmap;
 
 	/* ASVisual : */
     size_t        as_visual_size ;        /* in bytes */
@@ -178,7 +178,9 @@ void print_wm_props         ( stream_func func, void* stream, XWMHints *hints );
 /* Setting properties here : */
 void set_as_module_socket (ASWMProps *wmprops, char *new_socket );
 void set_as_style (ASWMProps *wmprops, CARD32 size, CARD32 version, CARD32 *data );
-void set_as_backgrounds (ASWMProps *wmprops, CARD32 size, CARD32 version, CARD32 *data );
+
+/* both of these should be used for the same pmap id : */
+void set_as_background (ASWMProps * wmprops, Pixmap new_pmap);
 void set_xrootpmap_id (ASWMProps *wmprops, Pixmap new_pmap );
 
 

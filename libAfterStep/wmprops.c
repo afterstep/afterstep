@@ -522,17 +522,15 @@ read_as_background (ASWMProps * wmprops, Bool deleted)
 
 	if (wmprops)
 	{
-		if (wmprops->as_backgrounds_data)
-		{
-			free (wmprops->as_backgrounds_data);
-			wmprops->as_backgrounds_data = NULL;
-		}
-		wmprops->as_backgrounds_size = 0;
+        CARD32 pmap_id = None;
+
 		if (deleted)
 			return False;
-		res = read_as_property (wmprops->selection_window, _AS_BACKGROUND,
-								&(wmprops->as_backgrounds_size),
-								&(wmprops->as_backgrounds_version), &(wmprops->as_backgrounds_data));
+		if (read_32bit_property (wmprops->selection_window, _AS_BACKGROUND, &pmap_id))
+		{
+			wmprops->as_root_pixmap = (Pixmap) pmap_id;
+			return True;
+		}
 	}
 	return res;
 }
@@ -871,8 +869,6 @@ destroy_wmprops (ASWMProps * wmprops, Bool reusable)
 			free (wmprops->stacking_order);
 		if (wmprops->as_styles_data)
 			free (wmprops->as_styles_data);
-		if (wmprops->as_backgrounds_data)
-			free (wmprops->as_backgrounds_data);
 		if (wmprops->as_visual_data)
 			free (wmprops->as_visual_data);
 		if (wmprops->as_socket_filename)
@@ -956,31 +952,16 @@ set_as_style (ASWMProps * wmprops, CARD32 size, CARD32 version, CARD32 *data)
 }
 
 void
-set_as_backgrounds (ASWMProps * wmprops, CARD32 size, CARD32 version, CARD32 *data)
+set_as_background (ASWMProps * wmprops, Pixmap new_pmap)
 {
 	if (wmprops)
 	{
 		if (wmprops->selection_window == None)
 			return;
-		if (data == NULL || size == 0)
-			XDeleteProperty (dpy, wmprops->selection_window, _AS_BACKGROUND);
-		else
-			set_as_property (wmprops->selection_window, _AS_BACKGROUND, data, size, version);
-
-		if (wmprops->as_backgrounds_data && (size > wmprops->as_backgrounds_size || data == NULL))
-		{
-			free (wmprops->as_backgrounds_data);
-			wmprops->as_backgrounds_data = NULL;
-		}
-		if (data)
-		{
-			if (wmprops->as_backgrounds_data == NULL)
-				wmprops->as_backgrounds_data = safemalloc (size);
-			memcpy (wmprops->as_backgrounds_data, data, size);
-		}
-
-		wmprops->as_backgrounds_size = size;
-		wmprops->as_backgrounds_version = version;
+        
+		set_32bit_property (wmprops->selection_window, _AS_BACKGROUND, XA_PIXMAP, new_pmap);
+		XFlush (dpy);
+        wmprops->as_root_pixmap = new_pmap;
 	}
 }
 

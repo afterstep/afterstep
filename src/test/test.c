@@ -279,7 +279,7 @@ DispatchEvent (ASEvent * event)
 	        break;
 	    case PropertyNotify:
 			LOCAL_DEBUG_OUT( "property %s(%lX), _XROOTPMAP_ID = %lX, event->w = %lX, root = %lX", XGetAtomName(dpy, event->x.xproperty.atom), event->x.xproperty.atom, _XROOTPMAP_ID, event->w, Scr.Root );
-            if( event->x.xproperty.atom == _XROOTPMAP_ID && event->w == Scr.Root )
+            if( event->x.xproperty.atom == _AS_BACKGROUND )
             {
                 LOCAL_DEBUG_OUT( "root background updated!%s","");
                 safe_asimage_destroy( Scr.RootImage );

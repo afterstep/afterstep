@@ -683,7 +683,10 @@ void myback_delete( MyBackground **myback, ASImageManager *imman )
 			if( ASDefaultScr->RootBackground && ASDefaultScr->RootBackground->pmap == (*myback)->loaded_pixmap )
 			{	
 	            if( ASDefaultScr->wmprops && ASDefaultScr->wmprops->root_pixmap == ASDefaultScr->RootBackground->pmap )
+				{	
     	            set_xrootpmap_id (ASDefaultScr->wmprops, None );
+					set_as_background(ASDefaultScr->wmprops, None );
+				}
 				ASDefaultScr->RootBackground->pmap = None;
 			}
 			destroy_visual_pixmap( ASDefaultVisual, &((*myback)->loaded_pixmap) );
