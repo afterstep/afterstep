@@ -1933,7 +1933,8 @@ gauss_component(CARD32 *src, CARD32 *dst, double* gauss, int len)
 	}
 }
 
-ASImage* blur_asimage_gauss(ASVisual* asv, ASImage* src, double horz, double vert, ASAltImFormats out_format, unsigned int compression_out, int quality) {
+ASImage* blur_asimage_gauss(ASVisual* asv, ASImage* src, double horz, double vert, ASFlagType filter, ASAltImFormats out_format, unsigned int compression_out, int quality)
+{
 	ASImage *dst = NULL;
 	ASImageOutput *imout;
 	ASImageDecoder *imdec;
@@ -1954,7 +1955,8 @@ ASImage* blur_asimage_gauss(ASVisual* asv, ASImage* src, double horz, double ver
 #endif
 
 	imout = start_image_output(asv, dst, out_format, 0, quality);
-	if (!imout) {
+    if (!imout)
+    {
         destroy_asimage( &dst );
 #ifdef HAVE_MMX
 		mmx_off();
@@ -1982,12 +1984,30 @@ ASImage* blur_asimage_gauss(ASVisual* asv, ASImage* src, double horz, double ver
 
 	prepare_scanline(dst->width, 0, &result, asv->BGR_mode);
 
-	for (y = 0 ; y < dst->height ; y++) {
+    for (y = 0 ; y < dst->height ; y++)
+    {
+        ASFlagType lf = imdec->buffer.flags&filter ;
 		imdec->decode_image_scanline(imdec);
 		result.flags = imdec->buffer.flags;
 		result.back_color = imdec->buffer.back_color;
-		SCANLINE_FUNC(gauss_component, imdec->buffer, result, gauss, dst->width);
-		imout->output_image_scanline(imout, &result, 1);
+        if( get_flags( lf, SCL_DO_RED ) )
+            gauss_component( imdec->buffer.red, result.red, gauss, dst->width);
+        else if( get_flags( result.flags, SCL_DO_RED ) )
+            copy_component( imdec->buffer.red, result.red, 0, dst->width);
+        if( get_flags( lf, SCL_DO_GREEN ) )
+            gauss_component( imdec->buffer.green, result.green, gauss, dst->width);
+        else if( get_flags( result.flags, SCL_DO_GREEN ) )
+            copy_component( imdec->buffer.green, result.green, 0, dst->width);
+        if( get_flags( lf, SCL_DO_BLUE ) )
+            gauss_component( imdec->buffer.blue, result.blue, gauss, dst->width);
+        else if( get_flags( result.flags, SCL_DO_BLUE ) )
+            copy_component( imdec->buffer.blue, result.blue, 0, dst->width);
+        if( get_flags( lf, SCL_DO_ALPHA ) )
+            gauss_component( imdec->buffer.alpha, result.alpha, gauss, dst->width);
+        else if( get_flags( result.flags, SCL_DO_ALPHA ) )
+            copy_component( imdec->buffer.alpha, result.alpha, 0, dst->width);
+
+        imout->output_image_scanline(imout, &result, 1);
 	}
 
 	stop_image_decoding(&imdec);

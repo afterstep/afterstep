@@ -157,7 +157,7 @@ asvar_nget(char* name, int n) {
 }
 
 ASImage *
-compose_asimage_xml(ASVisual *asv, ASImageManager *imman, ASFontManager *fontman, char *doc_str, ASFlagType flags, int verbose, Window display_win, const char *path) 
+compose_asimage_xml(ASVisual *asv, ASImageManager *imman, ASFontManager *fontman, char *doc_str, ASFlagType flags, int verbose, Window display_win, const char *path)
 {
 	ASImage* im = NULL;
 	xml_elem_t* doc;
@@ -173,27 +173,27 @@ compose_asimage_xml(ASVisual *asv, ASImageManager *imman, ASFontManager *fontman
 	}
 
 	/* Build the image(s) from the xml document structure. */
-	
-	if (doc) 
+
+	if (doc)
 	{
 		xml_elem_t* ptr;
 		char *path2 ;
-		if( my_imman == NULL ) 
+		if( my_imman == NULL )
 		{
 			path2 = copy_replace_envvar( getenv( ASIMAGE_PATH_ENVVAR ) );
-			if( path == NULL ) 
+			if( path == NULL )
 				my_imman = create_image_manager( NULL, SCREEN_GAMMA, path, path2, NULL );
 			else
 				my_imman = create_image_manager( NULL, SCREEN_GAMMA, path2, NULL );
 			if( path2 )
 				free( path2 );
 		}
-		if( my_fontman == NULL ) 
+		if( my_fontman == NULL )
 		{
 			path2 = copy_replace_envvar( getenv( ASFONT_PATH_ENVVAR ) );
 			if( path != NULL )
 			{
-				if( path2 != NULL ) 
+				if( path2 != NULL )
 				{
 					int path_len = strlen(path);
 					char *full_path = safemalloc( path_len+1+strlen(path2)+1);
@@ -215,14 +215,14 @@ compose_asimage_xml(ASVisual *asv, ASImageManager *imman, ASFontManager *fontman
 			if (tmpim) im = tmpim;
 		}
 LOCAL_DEBUG_OUT( "result im = %p, im->imman	= %p, my_imman = %p, im->magic = %8.8X", im, im?im->imageman:NULL, my_imman, im?im->magic:0 );
-		
-		if( my_imman != imman ) 
+
+		if( my_imman != imman )
 		{
-			if( im && im->imageman == my_imman ) 
+			if( im && im->imageman == my_imman )
 				forget_asimage( im );
 			destroy_image_manager(my_imman, False);
 		}
-		if( my_fontman != fontman ) 
+		if( my_fontman != fontman )
 			destroy_font_manager(my_fontman, False);
 	}
 
@@ -309,10 +309,10 @@ Bool save_asimage_to_file(const char *file2bsaved, ASImage *im,
 
 }
 
-void show_asimage(ASVisual *asv, ASImage* im, Window w, long delay) 
+void show_asimage(ASVisual *asv, ASImage* im, Window w, long delay)
 {
 #ifndef X_DISPLAY_MISSING
-	if ( im && w ) 
+	if ( im && w )
 	{
 		Pixmap p = asimage2pixmap(asv, w, im, NULL, False);
 		struct timeval value;
@@ -361,14 +361,14 @@ void show_asimage(ASVisual *asv, ASImage* im, Window w, long delay)
  * supported.
  *
  * Operator precedence is NOT supported.  Percentages are allowed, and
- * apply to either width or height of the appropriate image (usually 
+ * apply to either width or height of the appropriate image (usually
  * the refid image).
- * 
- * Also, variables of the form $image.width and $image.height are 
- * supported.  $image.width is the width of the image with refid "image", 
- * and $image.height is the height of the same image.  The special 
- * $xroot.width and $xroot.height values are defined by the the X root 
- * window, if there is one.  This allows images to be scaled to the 
+ *
+ * Also, variables of the form $image.width and $image.height are
+ * supported.  $image.width is the width of the image with refid "image",
+ * and $image.height is the height of the same image.  The special
+ * $xroot.width and $xroot.height values are defined by the the X root
+ * window, if there is one.  This allows images to be scaled to the
  * desktop size: <scale width="$xroot.width" height="$xroot.height">.
  *
  * Each tag is only allowed to return ONE image.
@@ -416,8 +416,8 @@ double parse_math(const char* str, char** endptr, double size) {
 
 
 /* Each tag is only allowed to return ONE image. */
-ASImage* 
-build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontman, xml_elem_t* doc, xml_elem_t** rparm, ASFlagType flags, int verbose, Window display_win) 
+ASImage*
+build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontman, xml_elem_t* doc, xml_elem_t** rparm, ASFlagType flags, int verbose, Window display_win)
 {
 	xml_elem_t* ptr;
 	char* id = NULL;
@@ -561,12 +561,12 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 					ASImageLayer layers[2];
 					init_image_layers(&(layers[0]), 2);
 					if (bgimage_str) layers[0].im = fetch_asimage(imman, bgimage_str);
-					if (bgcolor_str) 
+					if (bgcolor_str)
 						if( parse_argb_color(bgcolor_str, &bgcolor) != bgcolor_str )
 						{
 							if( layers[0].im != NULL )
 								layers[0].im->back_color = bgcolor ;
-							else 
+							else
 								layers[0].solid_color = bgcolor ;
 						}
 					result->back_color = fgcolor ;
@@ -655,7 +655,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 			show_progress("Saving image to file [%s].", dst);
 			if (result && get_flags( flags, ASIM_XML_ENABLE_SAVE) )
 			{
-				if( !save_asimage_to_file(dst, result, ext, compress, opacity, delay, replace)) 
+				if( !save_asimage_to_file(dst, result, ext, compress, opacity, delay, replace))
 				show_error("Unable to save image into file [%s].", dst);
 			}
 		}
@@ -928,11 +928,16 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
  * NAME
  * blur - perform a gaussian blurr on an image.
  * SYNOPSIS
- * <blur id="new_id" horz="radius" vert="radius">
+ * <blur id="new_id" horz="radius" vert="radius" channels="argb">
  * ATTRIBUTES
  * id       Optional. Image will be given this name for future reference.
  * horz     Optional. Horizontal radius of the blur in pixels.
  * vert     Optional. Vertical radius of the blur in pixels.
+ * channels Optional. Applys blur only on listed color channels:
+ *                       a - alpha,
+ *                       r - red,
+ *                       g - green,
+ *                       b - blue
  * NOTES
  * This tag applies to the first image contained within the tag.  Any
  * further images will be discarded.
@@ -941,16 +946,35 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 		xml_elem_t* parm = xml_parse_parm(doc->parm);
 		ASImage* imtmp = NULL;
 		int horz = 0, vert = 0;
+        int filter = SCL_DO_ALL;
 		for (ptr = parm ; ptr ; ptr = ptr->next) {
 			if (!strcmp(ptr->tag, "id")) id = strdup(ptr->parm);
-			if (!strcmp(ptr->tag, "horz")) horz = strtod(ptr->parm, NULL);
-			if (!strcmp(ptr->tag, "vert")) vert = strtod(ptr->parm, NULL);
+            else if (!strcmp(ptr->tag, "horz")) horz = strtod(ptr->parm, NULL);
+            else if (!strcmp(ptr->tag, "vert")) vert = strtod(ptr->parm, NULL);
+            else if (!strcmp(ptr->tag, "channels"))
+            {
+                int i = 0 ;
+                char *str = &(ptr->parm[0]) ;
+                filter = 0 ;
+                while( str[i] != '\0' )
+                {
+                    if( str[i] == 'a' )
+                        filter |= SCL_DO_ALPHA ;
+                    else if( str[i] == 'r' )
+                        filter |= SCL_DO_RED ;
+                    else if( str[i] == 'g' )
+                        filter |= SCL_DO_GREEN ;
+                    else if( str[i] == 'b' )
+                        filter |= SCL_DO_BLUE ;
+                    ++i ;
+                }
+            }
 		}
 		for (ptr = doc->child ; ptr && !imtmp ; ptr = ptr->next) {
 			imtmp = build_image_from_xml(asv, imman, fontman, ptr, NULL, flags, verbose, display_win);
 		}
 		if (imtmp) {
-			result = blur_asimage_gauss(asv, imtmp, horz, vert, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
+            result = blur_asimage_gauss(asv, imtmp, horz, vert, filter, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
 			safe_asimage_destroy(imtmp);
 		}
 		show_progress("Blurring image.");
@@ -1658,10 +1682,10 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
               sprintf(buf, "%s.height", id);
               asvar_insert(buf, result->height);
               free(buf);
-		if( !store_asimage( imman, result, id ) ) 
+		if( !store_asimage( imman, result, id ) )
 		{
 			safe_asimage_destroy(result );
-			result = fetch_asimage( imman, id );	 
+			result = fetch_asimage( imman, id );
 		}
 	}
 

@@ -379,6 +379,7 @@ ASImage *pad_asimage(   ASVisual *asv, ASImage *src,
 			  			unsigned int compression_out, int quality );
 ASImage* blur_asimage_gauss( ASVisual* asv, ASImage* src,
 	                         double horz, double vert,
+                             ASFlagType filter,
                              ASAltImFormats out_format,
 							 unsigned int compression_out, int quality);
 
