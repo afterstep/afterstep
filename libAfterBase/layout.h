@@ -87,6 +87,7 @@ void insert_layout_elem( ASLayout *layout, ASLayoutElem *elem,
                  	     unsigned int h_span, unsigned int v_span );
 ASLayoutElem *gather_layout_elems( ASLayout *layout );
 ASLayoutElem *extract_layout_context( ASLayout *layout, int context );
+ASLayoutElem *find_layout_context( ASLayout *layout, int context );
 
 
 void disable_layout_elem( ASLayout *layout, ASLayoutElem **pelem );
@@ -103,8 +104,16 @@ void set_layout_offsets( ASLayout *layout,
 
 /* fixed size handling : */
 void get_layout_fixed_size( ASLayout *layout,
-	                        unsigned short *fixed_width,
-	                        unsigned short *fixed_height );
+	                        CARD32 *fixed_width,
+	                        CARD32 *fixed_height );
+Bool get_layout_context_size( ASLayout *layout, int context,
+	                          int *x, int *y,
+							  unsigned int *width, unsigned int *height );
+
+ASFlagType set_layout_context_fixed_size( ASLayout *layout, int context,
+			                              unsigned int width,
+										  unsigned int height );
+
 Bool moveresize_layout( ASLayout *layout,
 	                    unsigned int width, unsigned int height,
 						Bool force );

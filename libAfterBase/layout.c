@@ -108,7 +108,6 @@ insert_layout_elem( ASLayout *layout,
     if( layout )
     {
         ASLayoutElem **pelem, **pelem2 ;
-		ASLayoutElem *elem = safecalloc( 1, sizeof(ASLayoutElem) );
 
 		if( h_slot >= ASLAYOUT_MAX_SIZE )
             h_slot = ASLAYOUT_MAX_SIZE-1 ;
@@ -192,6 +191,18 @@ gather_layout_elems( ASLayout *layout )
 	return head ;
 }
 
+static ASLayoutElem **
+get_layout_context_ptr( ASLayout *layout, int context )
+{
+	register ASLayoutElem **pelem = NULL ;
+    register int i ;
+    for( i = 0 ; i < layout->dim_y ; ++i )
+    	for( pelem = &(layout->rows[i]) ; *pelem ; pelem = &((*pelem)->right) )
+        	if( (*pelem)->context == context )
+				return pelem ;
+	return NULL;
+}
+
 ASLayoutElem *
 extract_layout_context( ASLayout *layout, int context )
 {
@@ -199,24 +210,32 @@ extract_layout_context( ASLayout *layout, int context )
     if( layout )
     {
         register ASLayoutElem **pelem = NULL ;
-        register int i ;
-        for( i = 0 ; i < layout->dim_y ; ++i )
-            for( pelem = &(layout->rows[i]) ; *pelem ; pelem = &((*pelem)->right) )
-                if( (*pelem)->context == context )
+		if((pelem = get_layout_context_ptr( layout, context )) != NULL )
+		{
+            elem = *pelem ;
+            *pelem = elem->right ;
+            for( pelem = &(layout->cols[elem->column]) ; *pelem ; pelem = &((*pelem)->below) )
+                if( *pelem == elem )
                 {
-                    elem = *pelem ;
-                    *pelem = elem->right ;
-                    for( pelem = &(layout->cols[elem->column]) ; *pelem ; pelem = &((*pelem)->below) )
-                        if( *pelem == elem )
-                        {
-                            *pelem = elem->below;
-                            break;
-                        }
+                    *pelem = elem->below;
+                    break;
                 }
+		}
     }
     return elem ;
 }
 
+ASLayoutElem *
+find_layout_context( ASLayout *layout, int context )
+{
+    if( layout )
+    {
+        register ASLayoutElem **pelem = NULL ;
+		if((pelem = get_layout_context_ptr( layout, context )) != NULL )
+			return *pelem ;
+    }
+    return NULL ;
+}
 /**********************************************************************/
 /* enable/disable element                                             */
 void
@@ -341,7 +360,7 @@ set_layout_offsets( ASLayout *layout, int east, int north, int west, int south )
 /**********************************************************************/
 /* fixed size handling :                                              */
 void
-get_layout_fixed_size( ASLayout *layout, unsigned short *fixed_width, unsigned short *fixed_height )
+get_layout_fixed_size( ASLayout *layout, CARD32 *fixed_width, CARD32 *fixed_height )
 {
     int width = 0, height = 0 ;
     if( layout )
@@ -402,6 +421,45 @@ LOCAL_DEBUG_OUT( " layout %lX FIXED WIDTH is %d FIXED HEIGHT is %d", (unsigned l
         *fixed_height = height ;
 }
 
+ASFlagType
+set_layout_context_fixed_size( ASLayout *layout, int context, unsigned int width, unsigned int height )
+{
+    if( layout )
+    {
+        ASLayoutElem **pelem = get_layout_context_ptr( layout, context );
+		if( pelem != NULL )
+		{
+            register ASLayoutElem *elem = *pelem ;
+			elem->fixed_width = width ;
+			elem->fixed_height = height ;
+			return elem->flags&LF_FixedSize;
+		}
+    }
+	return 0;
+}
+
+Bool
+get_layout_context_size( ASLayout *layout, int context, int *x, int *y, unsigned int *width, unsigned int *height )
+{
+    if( layout )
+    {
+        ASLayoutElem **pelem = get_layout_context_ptr( layout, context );
+		if( pelem != NULL )
+		{
+            register ASLayoutElem *elem = *pelem ;
+			if( x )
+				*x = elem->x ;
+			if( y )
+				*y = elem->y ;
+			if( width )
+				*width = elem->width ;
+			if( height )
+				*height = elem->height ;
+			return True;
+		}
+    }
+	return False;
+}
 /****************************************************************************************
  * The following are dynamic methods and return value that indicates if any of the cached
  * pixmaps has to be rebuild
@@ -704,7 +762,7 @@ moveresize_layout( ASLayout *layout, unsigned int width, unsigned int height, Bo
 			            if( as_layout_fixed_height[k] >= 0 && as_layout_height[k] > 0 )
 							h += as_layout_height[k]+layout->v_spacing ;
 					}
-                    LOCAL_DEBUG_OUT( "resizing elem at [%d:%d] to %dx%d%+d%+d", pelem->column, pelem->row, w, h, elem_x, elem_y );
+                    LOCAL_DEBUG_OUT( "resizing context %d at [%d:%d] to %dx%d%+d%+d", pelem->context, pelem->column, pelem->row, w, h, elem_x, elem_y );
                     pelem->x = elem_x;
                     pelem->y = elem_y;
                     pelem->width = w - (pelem->bw<<1);
