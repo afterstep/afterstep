@@ -1693,7 +1693,7 @@ decode_image_scanline( ASImageDecoder *imdec )
 			for( channel = 0 ; channel < ARGB32_CHANNELS ; ++channel )
 				if( get_flags(imdec->filter, (0x01<<channel)) )
 				{
-					set_component( scl->channels[channel], MAKE_ARGB32_CHAN8(bevel_color,channel)<<scl->shift, offset, scl->width-y );
+					set_component( scl->channels[channel], MAKE_ARGB32_CHAN8(bevel_color,channel)<<scl->shift, offset, width );
 					if( (count = asimage_decode_line(imdec->im,channel, scl->channels[channel], y, offset, width)) < width)
 						set_component( scl->channels[channel], MAKE_ARGB32_CHAN8(imdec->back_color,channel)<<scl->shift, offset+count, width );
 					set_component( scl->channels[channel], MAKE_ARGB32_CHAN8(shade_color,channel)<<scl->shift, offset, y );

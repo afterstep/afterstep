@@ -27,6 +27,7 @@
 #include "audit.h"
 #include "output.h"
 #include "safemalloc.h"
+#include "selfdiag.h"
 #include "asvector.h"
 
 ASVector *create_asvector( size_t unit )

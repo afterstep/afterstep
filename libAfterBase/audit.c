@@ -288,7 +288,7 @@ count_find_and_extract (const char *fname, int line, void *ptr, int type)
 		{
 			if( allocs_hash->items_num <= 0 )
 				destroy_ashash(&allocs_hash);
-			if( (m->type & 0xff) != (type & 0xff) )
+			if( (m->type & 0xff) != (type & 0xff) && (m->type & 0xff) != C_IMAGE )
                 		show_error( "while deallocating pointer %p discovered that it was allocated with different type\n   Called from %s:%d", ptr, fname, line );
             		if( total_service < sizeof(ASHashItem) )
                 		show_error( "it seems that we have too little auditing memory (%lu) while deallocating pointer %p.\n   Called from %s:%d", total_service, ptr, fname, line );
