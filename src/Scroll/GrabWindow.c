@@ -25,31 +25,9 @@
 #include <sys/bsdtypes.h>	/* Saul */
 #endif
 
-#include <stdio.h>
-#include <signal.h>
-#include <fcntl.h>
-#include <string.h>
-#include <sys/wait.h>
-#include <sys/time.h>
-#if defined ___AIX || defined _AIX || defined __QNX__ || defined ___AIXV3 || defined AIXV3 || defined _SEQUENT_
-#include <sys/select.h>
-#endif
-#include <unistd.h>
-#include <ctype.h>
-#include <stdlib.h>
-
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#include <X11/Xproto.h>
-#include <X11/Xatom.h>
-#include <X11/Intrinsic.h>
-
-#include "../../include/module.h"
 #include "Scroll.h"
-char *MyName;
 
-Display *dpy;			/* which display are we talking to */
-int x_fd, fd_width;
+int fd_width;
 int Width = 300, Height = 300;
 int target_width, target_height;
 int target_x_offset = 0, target_y_offset = 0;
@@ -62,10 +40,6 @@ int Reduction_V = 2;
 
 #define PAD_WIDTH2 3
 #define PAD_WIDTH3 5
-
-Window Root;
-int screen;
-int d_depth;
 
 Window main_win, holder_win;
 Pixel back_pix, fore_pix, hilite_pix, shadow_pix;
