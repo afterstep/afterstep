@@ -340,7 +340,7 @@ update_protocols (ScreenInfo * scr, Window w, ASSupportedHints * list, ASFlagTyp
 
 /* returns True if protocol/function hints actually changed :*/
 Bool
-update_colormaps (ScreenInfo * scr, Window w, ASSupportedHints * list, Window ** pcmap_windows)
+update_colormaps (ScreenInfo * scr, Window w, ASSupportedHints * list, CARD32 ** pcmap_windows)
 {
 	ASRawHints    raw;
 	ASHints       clean;
