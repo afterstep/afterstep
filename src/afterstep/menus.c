@@ -154,6 +154,8 @@ close_asmenu( ASMenu **pmenu)
         if( menu )
         {
 LOCAL_DEBUG_CALLER_OUT( "top(%p)->supermenu(%p)->menu(%p)->submenu(%p)", ASTopmostMenu, menu->supermenu, menu, menu->submenu );
+	    if( menu->submenu ) 
+		close_asmenu( &(menu->submenu) );
             if( menu->owner )
             {
                 /* cannot use Destroy directly - must go through the normal channel: */

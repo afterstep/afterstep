@@ -575,11 +575,12 @@ build_btn_block( ASTile *tile,
         }
         if( get_flags(order, TBTN_ORDER_REVERSE) )
         {
+	    k = real_count ;
             if( get_flags(order, TBTN_ORDER_VERTICAL) )
-                for( k = real_count ; k >= 0 ; --k )
+                while(  --k >= 0 )
                     blk->buttons[k].y += tile->height ;
             else
-                for( k = real_count ; k >= 0 ; --k )
+                while(  --k >= 0 )
                     blk->buttons[k].x += tile->width ;
         }
     }
