@@ -1,43 +1,47 @@
- o Debugged background setting on multihead config. It apperas that 
+ o Fixed bug in DefaultGeometry handling where check for USPosition/Size
+   should have been negated.
+ o Fixed compilation bug in lib/parse.c
+ o Fixed minor typho in afterstep man page.
+ o Debugged background setting on multihead config. It apperas that
    asetroot cannot be run with -l if it is named other then asetroot.
    Otherwise background selection from the menu does not work.
  o Updated Clean to use ProcessModuleArgs. Added global var display_name
    that is set to --display argument value or env var $DISPLAY 's value.
-   MOst modules must be updated to remove var with the same name from 
+   MOst modules must be updated to remove var with the same name from
    main().
- o Applied patch from Jan Fedak to add startup geometry to database 
+ o Applied patch from Jan Fedak to add startup geometry to database
    parameters.
  o Applied patch from Jan Fedak to fix hotkeys in menus.
  o Applied patch to get AfterStep to change Icon when Title is changing.
-   New feel option  - FollowTitleChanges in feel has to be used to enable 
+   New feel option  - FollowTitleChanges in feel has to be used to enable
    this feature.
  o Fixed Tile's -h handling.
- o added support for maximization to not exceed screen size, while 
+ o added support for maximization to not exceed screen size, while
    working with xinerama.
  o man pages fixes.
  o Fixed socket/pipes reading loops to not cause 100% CPU utilization
    under CYGWIN and in some cases even on Unix.
- o Fixed Menus pointer location handling to use coordinates from events 
-   and not abuse XQueryPointer. Otherwise menus were behaving strange 
+ o Fixed Menus pointer location handling to use coordinates from events
+   and not abuse XQueryPointer. Otherwise menus were behaving strange
    whenever events were late due to one reason or others.
 
 1.8.9 patch 1 (sasha)
  o Fix X libraries order, to have Xext preceed X11 - causes problems on
    some Solaris systems.
- o fixed two warnings related to time.h   
- o commented out dependency checking to avoid problems for users with old 
+ o fixed two warnings related to time.h
+ o commented out dependency checking to avoid problems for users with old
    compilers. It is not needed in stable series anyways.
- o Added functionality to WindowsDesk function. If second argument is 
+ o Added functionality to WindowsDesk function. If second argument is
    10000 then first is relative desk number, instead of exact.
  o Implemented Xinerama support. When window is initially placed - it
-   will be appropriately moved to not appear in between monitors, unless 
+   will be appropriately moved to not appear in between monitors, unless
    user requested geometry explicetely.
- o When Xinerama is active, and asetroot is requested to scale or pad 
+ o When Xinerama is active, and asetroot is requested to scale or pad
    background image to the screen size it will use size of the first head
    ( the one with origin of 0,0 ).
- o Implemented separate Feel, Look, Background and Init/Restart functions 
+ o Implemented separate Feel, Look, Background and Init/Restart functions
    for different screens in multihead config with no Xinerama.
- o We now read $TMPDIR in order to locate /tmp directory, and falling back 
+ o We now read $TMPDIR in order to locate /tmp directory, and falling back
    to /tmp if envvar is not set.
  o somewhat fixed Align and Pad fields in the Asetroot config parsing.
 
@@ -48,70 +52,70 @@
  o removed reference to xiterm from Wharf config file; wharf now tries to
    load aterm, and then xterm if that fails (allanon)
  o fix to mystyle drawing as applyed to empty menu drawing
- o removed config reading from the pipe - was causing some compile time 
+ o removed config reading from the pipe - was causing some compile time
    problems and really was never needed.
  o updated README.nl
- o fixed configure to sheck if X11/xpm.h should be used or just xpm.h, 
+ o fixed configure to sheck if X11/xpm.h should be used or just xpm.h,
    updated as_xpm.c accordingly.
 
 1.8.4 patch 4 (sasha)
- o Added -fPIC to the compilation flags when compiling with GCC so to allow 
+ o Added -fPIC to the compilation flags when compiling with GCC so to allow
    for compilation on IA64 architecture( as sugested on AS MailingList).
- 
+
 1.8.4 patch 3 (sasha)
- o Removed lots of memory allocation code from lib/safemalloc.c. It was not 
+ o Removed lots of memory allocation code from lib/safemalloc.c. It was not
    used anyways, but was causing problems on some older compilers.
- o Fixed src/afterstep/module.c to use different name for the socket when 
+ o Fixed src/afterstep/module.c to use different name for the socket when
    compiled under MS Windows (CYGWIN).
 
 1.8.4 patch 2 (sasha)
- o fixed bug in iconization of windows with shaped icons, that was causing 
+ o fixed bug in iconization of windows with shaped icons, that was causing
    some servers to crash.
- o fixed harmless bug in menu window creation code, that was causing error 
+ o fixed harmless bug in menu window creation code, that was causing error
    message on startup - trying to create window with width = 0
- 
+
 1.8.4 patch 1 (sasha)
- o fixed Audio to wait for delay only after sounds that has been played 
-   successfully  
+ o fixed Audio to wait for delay only after sounds that has been played
+   successfully
  o patched nasty bug in libasimage/mystyle_property.c so that None pixmap
    does not get checked.
 
 1.8.0 patch 4 (sasha)
- o rewrote Audio. It now autodetects rplay via configure; external player 
-   command has been moved into configure too, only args can be specifyed in 
+ o rewrote Audio. It now autodetects rplay via configure; external player
+   command has been moved into configure too, only args can be specifyed in
    audio config. Two more built-in options added - builtin-cat to stream
    contents of the sound file directly to /dev/audio, and builtin-stdout
    to dump it to STDOUT.
- o fixed afterstep to assign screen = Scr.screen to fix garbled output on 
-   multiscreen 
- o cosmetic change in startmenu to read Star Office suite instead of site 
+ o fixed afterstep to assign screen = Scr.screen to fix garbled output on
+   multiscreen
+ o cosmetic change in startmenu to read Star Office suite instead of site
  o added default colors to Pager's BorderColor, GridColor and SelectionColor
  o changed socket to use /tmp instead of non-configurable
 
 1.8.0 patch 3 (sasha)
  o Fixed extra line in .depend files causing make to fail
- o backported true transparency changes from 1.9 into pixmap.c 
+ o backported true transparency changes from 1.9 into pixmap.c
 
 1.8.0 patch 2 (sasha+contrib)
  o fixed shaped icons. (contributed by Mark Phillips)
  o fixed Pager's window stacking order (backported from 1.9 )
  o removed screen from libraries  (backported from 1.9 )
- o fixed .depend  files to hopefully compile on dumb Solaris. 
+ o fixed .depend  files to hopefully compile on dumb Solaris.
 
 1.8.0 patch 1 (allanon+Myrlin+sasha)
- o fixed annoying XError messages when starting asetroot after previous 
+ o fixed annoying XError messages when starting asetroot after previous
    asetroot was killed
  o added signal handlers to asetroot to correctly exit on afterstep exit
  o fixed minor memory leaks in asetroot occuring when changing backgrounds
- o fixed asetroot crashing when same background is used for several 
+ o fixed asetroot crashing when same background is used for several
    desktops
  o should fix multiplying asetroots while changing backgrounds,
    in both resident and run-once modes.
  o fixed man page concerning IconTitle (Myrlin)
  o fixed man page WRT BackMultiGradient modes 8 and 9
  o WinList: fixed segfault due to balloons
- o Pager: moved balloon_setup() after config parsing; now pays attention 
-   to BalloonBorderWidth and BalloonBorderColor; added step to balloon.h 
+ o Pager: moved balloon_setup() after config parsing; now pays attention
+   to BalloonBorderWidth and BalloonBorderColor; added step to balloon.h
    to make the calling order more obvious
 
 1.7.172 patch 2 (mihm)
@@ -125,25 +129,25 @@
 	in the source tree!
    ****
 1.7.172 patch 1 (allanon)
- o installation no longer halts if /usr/share/gnome/wm-properties or 
+ o installation no longer halts if /usr/share/gnome/wm-properties or
    /usr/local/share/gnome/wm-properties exists but is not writable
- o balloons now have a ten second maximum time-to-live; they will auto 
-   close after ten seconds, even if the pointer has not left the trigger 
+ o balloons now have a ten second maximum time-to-live; they will auto
+   close after ten seconds, even if the pointer has not left the trigger
    window
- o modified menu include to backslash-escape all non-alphanumeric chars 
-   in the pathname when the function is Exec; this should be completely 
+ o modified menu include to backslash-escape all non-alphanumeric chars
+   in the pathname when the function is Exec; this should be completely
    transparent to the user
- o removed --enable-makemenus (NO_MAKESTARTMENU); this option's 
+ o removed --enable-makemenus (NO_MAKESTARTMENU); this option's
    functionality no longer exists
  o added tools/testcompile.sh to test configure options easily
- o lots of fixes to make compilation options work; every single configure 
-   option now works (by itself) on my system, and ~1000 combinations also 
+ o lots of fixes to make compilation options work; every single configure
+   option now works (by itself) on my system, and ~1000 combinations also
    work with no warnings and no errors
- o Auto: REMOVED module, as it does not work as well as the equivalent AS 
+ o Auto: REMOVED module, as it does not work as well as the equivalent AS
    function (AutoRaise)
- o Form: modified escaping rules to backslash-escape all non-alphanumeric 
-   characters, not just single quote, double quote, and backslash; this 
-   allows the theme creation form to correctly create themes whose names 
+ o Form: modified escaping rules to backslash-escape all non-alphanumeric
+   characters, not just single quote, double quote, and backslash; this
+   allows the theme creation form to correctly create themes whose names
    contain arbitrary characters
 
 1.7.164 patch 8 (mihm)
@@ -154,7 +158,7 @@
  o replaced CirculateUp with ChangeWindowUp in all feel. files
 
 1.7.164 patch 7 (allanon)
- o set more Cursors in all feels to avoid the default (skull & crossbones) 
+ o set more Cursors in all feels to avoid the default (skull & crossbones)
    cursor
  o Wharf: update subfolder transparency on background change
  o WinList: no longer delete balloons twice (this could cause crashes!)
@@ -165,37 +169,37 @@
  o WinList: free up more memory at exit when --enable-audit is on
 
 1.7.164 patch 5 (sasha)
- o Fixed bug when if focused window is iconized or destroyed, Warp does 
+ o Fixed bug when if focused window is iconized or destroyed, Warp does
    not do anything;
  o Hopefully Fixed bug when colors are swapped while loading images
    on Solaris.
- 
+
 1.7.164 patch 4 (Pitr)
- o Fixed bug in Pager when it dies if clicked on desk title right after 
+ o Fixed bug in Pager when it dies if clicked on desk title right after
    startink up;
- o Added check for shadink steps number, so not to go into infinite 
+ o Added check for shadink steps number, so not to go into infinite
    loop, DA !?
  o am thinkink asetroot must be startink good now and don't leavink windows
-   behind; 
+   behind;
  o removed --enable-makemenusonboot from configure;
- 
+
 1.7.164 patch 3 (allanon)
  o as_jpeg.c compiles with --with-jpeg=no
- o added include of Xutil.h in src/afterstep/configure.c, needed for 
+ o added include of Xutil.h in src/afterstep/configure.c, needed for
    the XSizeHints in afterstep.h
  o determine the location of perl in the configure script
- o updated menu tree and default Form config file to reflect theme.handler 
+ o updated menu tree and default Form config file to reflect theme.handler
    changes (see below)
- o theme.handler: makeastheme.pl now creates a tarfile version of the 
-   theme in themes/ instead of putting the theme files in a subdir of 
+ o theme.handler: makeastheme.pl now creates a tarfile version of the
+   theme in themes/ instead of putting the theme files in a subdir of
    desktop/themes
- o theme.handler: installastheme.pl now takes either a theme name or a 
+ o theme.handler: installastheme.pl now takes either a theme name or a
    tarfile argument, and installs the tarfile as astheme.sh did
- o theme.handler: removed astheme.sh and asthemecreate.sh as they are no 
+ o theme.handler: removed astheme.sh and asthemecreate.sh as they are no
    longer necessary
 
 1.7.164 patch 2 (sasha)
- o Fixed bug in Pager when if window was shaded/iconized on Pager startup it 
+ o Fixed bug in Pager when if window was shaded/iconized on Pager startup it
    would not be shown this way, until it is moved/resized.
  o Finally performed `make indent` - hence the big size of the patch.
   

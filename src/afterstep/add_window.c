@@ -23,8 +23,8 @@
  */
 
 /****************************************************************************
- * This module is based on Twm, but has been SIGNIFICANTLY modified 
- * by Rob Nation 
+ * This module is based on Twm, but has been SIGNIFICANTLY modified
+ * by Rob Nation
  * by Bo Yang
  * by Dong-hwa Oh <siage@nownuri.net>          ) korean support patch/
  * by Tomonori <manome@itlb.te.noda.sut.ac.jp> )
@@ -109,7 +109,7 @@ init_titlebar_windows (ASWindow * tmp_win, Bool free_resources)
 
 /*
  * Create the titlebar.
- * We place the window anywhere, and let SetupFrame() take care of 
+ * We place the window anywhere, and let SetupFrame() take care of
  *  putting it where it belongs.
  */
 Bool
@@ -178,7 +178,7 @@ init_titlebutton_windows (ASWindow * tmp_win, Bool free_resources)
 }
 
 /*
-   ** returns a newline delimited list of the Mouse functions bound to a 
+   ** returns a newline delimited list of the Mouse functions bound to a
    ** given context, in human readable form
  */
 char *
@@ -271,7 +271,7 @@ create_titlebutton_balloon (ASWindow * tmp_win, int button)
 
 /*
  * Create the titlebar buttons.
- * We place the windows anywhere, and let SetupFrame() take care of 
+ * We place the windows anywhere, and let SetupFrame() take care of
  *  putting them where they belong.
  */
 Bool
@@ -425,7 +425,7 @@ AddWindow (Window w)
   else
     tmp_win->name = NoName;
 
-/*  fprintf( stderr, "[%s]: %dx%d%+d%+d\n", tmp_win->name, JunkWidth, JunkHeight, JunkX, JunkY );    
+/*  fprintf( stderr, "[%s]: %dx%d%+d%+d\n", tmp_win->name, JunkWidth, JunkHeight, JunkX, JunkY );
 */
   tmp_win->focus_sequence = 1;
   SetCirculateSequence (tmp_win, -1);
@@ -571,28 +571,28 @@ AddWindow (Window w)
 
   if ( get_flags(nl.off_flags, PREPOS_FLAG) )
   {
-      if( get_flags(tmp_win->hints.flags, USPosition))
+      if( !get_flags(tmp_win->hints.flags, USPosition))
 	  {
-		  if( get_flags( nl.PreposFlags, XValue ) ) 
+		  if( get_flags( nl.PreposFlags, XValue ) )
 		  {
-			  if( get_flags( nl.PreposFlags, XNegative ) ) 
+			  if( get_flags( nl.PreposFlags, XNegative ) )
 				  tmp_win->attr.x = Scr.MyDisplayWidth + nl.PreposX;
 			  else
 				  tmp_win->attr.x = nl.PreposX ;
 		  }
-		  if( get_flags( nl.PreposFlags, YValue ) ) 
+		  if( get_flags( nl.PreposFlags, YValue ) )
 		  {
-			  if( get_flags( nl.PreposFlags, YNegative ) ) 
+			  if( get_flags( nl.PreposFlags, YNegative ) )
 			      tmp_win->attr.y = Scr.MyDisplayHeight + nl.PreposY;
 			  else
 		  		  tmp_win->attr.y = nl.PreposY;
 		  }
 	  }
-	  if( get_flags(tmp_win->hints.flags, USSize))
+	  if( !get_flags(tmp_win->hints.flags, USSize))
 	  {
-		  if( get_flags( nl.PreposFlags, WidthValue ) ) 
+		  if( get_flags( nl.PreposFlags, WidthValue ) )
 			  tmp_win->attr.width = nl.PreposWidth ;
-		  if( get_flags( nl.PreposFlags, HeightValue ) ) 
+		  if( get_flags( nl.PreposFlags, HeightValue ) )
 			  tmp_win->attr.height = nl.PreposHeight ;
 	  }
   }

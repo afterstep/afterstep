@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include <X11/Xlib.h>
 #include <X11/Xutil.h>
 
 #include "../configure.h"
@@ -9,7 +10,7 @@
 #include "../include/parse.h"
 
 /****************************************************************************
- * 
+ *
  * Some usefull parsing functions
  *
  ****************************************************************************/
@@ -79,7 +80,7 @@ ReadFileName (char *restofline, char **fname, int *len)
 }
 
 /****************************************************************************
- * 
+ *
  * Copies a string into a new, malloc'ed string
  * Strips leading and trailing whitespace
  *
@@ -96,7 +97,7 @@ stripcpy (const char *source)
 
 
 /****************************************************************************
- * 
+ *
  * Copies a string into a new, malloc'ed string
  * Strips all data before the first quote and after the second
  *
@@ -177,7 +178,7 @@ strip_whitespace (char *str)
 
 
 /****************************************************************************
- * 
+ *
  * Copies a whitespace separated token into a new, malloc'ed string
  * Strips leading and trailing whitespace
  *
