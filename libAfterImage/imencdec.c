@@ -387,7 +387,7 @@ start_image_decoding( ASVisual *asv,ASImage *im, ASFlagType filter,
 	{	
 		if( get_flags( im->flags, ASIM_DATA_NOT_USEFUL ) )
 		{
-			if( im->alt.ximage != NULL )
+			if( im->alt.ximage != NULL && !get_flags( im->flags, ASIM_XIMAGE_NOT_USEFUL) )
 			{
 				imdec->decode_asscanline = decode_asscanline_ximage;
 				imdec->xim_buffer = safecalloc(1, sizeof(ASScanline));

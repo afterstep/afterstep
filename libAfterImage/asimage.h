@@ -175,6 +175,7 @@ typedef struct ASImage
 										   */
 #define ASIM_ALPHA_IS_BITMAP	(0x01<<4) 
 #define ASIM_RGB_IS_BITMAP		(0x01<<5) 
+#define ASIM_XIMAGE_NOT_USEFUL	(0x01<<6)
 
   ASFlagType			 flags ;    /* combination of the above flags */
   

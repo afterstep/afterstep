@@ -253,8 +253,8 @@ asimage2ximage_ext (ASVisual *asv, ASImage *im, Bool scratch)
 {
 	XImage        *xim = NULL;
 	int            i;
-	ASScanline     xim_buf;
 	ASImageOutput *imout ;
+	ASImageDecoder *imdec;
 #ifdef DO_CLOCKING
 	clock_t       started = clock ();
 #endif
@@ -270,29 +270,46 @@ LOCAL_DEBUG_OUT( "Failed to start ASImageOutput for ASImage %p and ASVisual %p",
 		return xim;
 	}
 	xim = im->alt.ximage ;
-	prepare_scanline( im->width, 0, &xim_buf, asv->BGR_mode );
+	/* no data in ximage yet */
+	set_flags( im->flags, ASIM_XIMAGE_NOT_USEFUL);
 #ifdef DO_CLOCKING
 	started = clock ();
 #endif
-	set_flags( xim_buf.flags, SCL_DO_ALL );
-	for (i = 0; i < (int)im->height; i++)
-	{
-		int count ;
-		if( (count = asimage_decode_line (im, IC_RED,   xim_buf.red, i, 0, xim_buf.width)) < (int)xim_buf.width )
-			xim_set_component( xim_buf.red, ARGB32_RED8(im->back_color), count, xim_buf.width );
-		if( (count = asimage_decode_line (im, IC_GREEN, xim_buf.green, i, 0, xim_buf.width))< (int)xim_buf.width )
-			xim_set_component( xim_buf.green, ARGB32_GREEN8(im->back_color), count, xim_buf.width );
-		if( (count = asimage_decode_line (im, IC_BLUE,  xim_buf.blue, i, 0, xim_buf.width)) < (int)xim_buf.width )
-			xim_set_component( xim_buf.blue, ARGB32_BLUE8(im->back_color), count, xim_buf.width );
-
-		imout->output_image_scanline( imout, &xim_buf, 1 );
+#if	1
+	if ((imdec = start_image_decoding(asv, im, SCL_DO_COLOR, 0, 0, im->width, im->height, NULL)) != NULL )
+	{	 
+		for (i = 0; i < (int)im->height; i++)
+		{	
+			imdec->decode_image_scanline( imdec ); 
+			imout->output_image_scanline( imout, &(imdec->buffer), 1);
+		}
 	}
+#else	  
+	{	
+		ASScanline     xim_buf;
+		prepare_scanline( im->width, 0, &xim_buf, asv->BGR_mode );
+		set_flags( xim_buf.flags, SCL_DO_ALL );
+		for (i = 0; i < (int)im->height; i++)
+		{
+			int count ;
+			if( (count = asimage_decode_line (im, IC_RED,   xim_buf.red, i, 0, xim_buf.width)) < (int)xim_buf.width )
+				xim_set_component( xim_buf.red, ARGB32_RED8(im->back_color), count, xim_buf.width );
+			if( (count = asimage_decode_line (im, IC_GREEN, xim_buf.green, i, 0, xim_buf.width))< (int)xim_buf.width )
+				xim_set_component( xim_buf.green, ARGB32_GREEN8(im->back_color), count, xim_buf.width );
+			if( (count = asimage_decode_line (im, IC_BLUE,  xim_buf.blue, i, 0, xim_buf.width)) < (int)xim_buf.width )
+				xim_set_component( xim_buf.blue, ARGB32_BLUE8(im->back_color), count, xim_buf.width );
+			imout->output_image_scanline( imout, &xim_buf, 1 );
+		}
+		free_scanline(&xim_buf, True);
+	}
+#endif
+
 #ifdef DO_CLOCKING
 	fprintf (stderr, "asimage->ximage time (clocks): %lu\n", clock () - started);
 #endif
-	free_scanline(&xim_buf, True);
 
 	stop_image_output(&imout);
+	clear_flags( im->flags, ASIM_XIMAGE_NOT_USEFUL);
 
 	return xim;
 }

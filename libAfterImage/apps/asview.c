@@ -81,7 +81,24 @@ int main(int argc, char* argv[])
 		depth = DefaultDepth( dpy, screen );
 		/* see ASView.3 : */
 		asv = create_asvisual( dpy, screen, depth, NULL );
-		
+
+		/* test example for fill_asimage : */
+#if 0		 
+		fill_asimage(asv, im, 0, 0, 50, 50, 0xFFFF0000);
+		fill_asimage(asv, im, 50, 50, 100, 50, 0xFFFF0000);
+		fill_asimage(asv, im, 0, 100, 200, 50, 0xFFFF0000);
+		fill_asimage(asv, im, 150, 0, 50, 50, 0xFFFF0000);
+#endif
+		/* test example for conversion to argb32 :*/
+#if 0
+		{
+			ASImage *tmp = tile_asimage( asv, im, 0, 0, im->width, im->height, TINT_NONE, ASA_ARGB32, 
+										  0, ASIMAGE_QUALITY_DEFAULT );	 
+			destroy_asimage( &im );
+			set_flags( tmp->flags, ASIM_DATA_NOT_USEFUL|ASIM_XIMAGE_NOT_USEFUL );
+			im = tmp ;
+		}		   
+#endif		   
 		/* see ASView.4 : */
 		w = create_top_level_window( asv, DefaultRootWindow(dpy), 32, 32,
 			                         im->width, im->height, 1, 0, NULL,
