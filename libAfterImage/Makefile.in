@@ -283,23 +283,26 @@ doc.html:  doc.xref
 	for f in $$SRCS; do \
 		$(ROBODOC) $$f.h doc/html/$$f.html HTML C TABSIZE 4 XREF afterimage_xref.lst; \
 	done; \
-	SRCS=`echo "$(LIB_TUTORIALS) " | sed "s/.c / /g"`; \
+	SRCS=`echo "$(LIB_TUTORIALS) ascompose.c " | sed "s/.c / /g"`; \
 	for f in $$SRCS; do \
 		$(ROBODOC) apps/$$f.c doc/html/$$f.html HTML C TABSIZE 4 XREF afterimage_xref.lst; \
-	done;
+	done; \
 
 doc.man:  doc.xref
 	SRCS=`echo "$(LIB_DOCS) " | sed "s/.h / /g"`; \
 	for f in $$SRCS; do \
 		$(ROBODOC) $$f.h doc/$$f.man TROFF C TABSIZE 4 XREF afterimage_xref.lst; \
-	done;
+	done; \
+	$(ROBODOC) apps/ascompose.c apps/ascompose.man TROFF C TABSIZE 4 XREF afterimage_xref.lst;
 
 install.man:
 	SRCS=`echo "$(LIB_DOCS) " | sed "s/.h / /g"`; \
 		for f in $$SRCS; do \
 	  	  echo $(INSTALL_DATA) doc/$$f.man $(AFTER_MAN_DIR)/$$f.3x; \
 		  $(INSTALL_DATA) doc/$$f.man $(AFTER_MAN_DIR)/$$f.3x; \
-		done
+		done; \
+	echo $(INSTALL_DATA) apps/ascompose.man $(AFTER_MAN_DIR)/ascompose.1x; \
+	$(INSTALL_DATA) apps/ascompose.man $(AFTER_MAN_DIR)/ascompose.1x;
 
 install.doc:
 	SRCS=`echo "$(LIB_DOCS) " | sed "s/.h / /g"`; cd doc/html; \

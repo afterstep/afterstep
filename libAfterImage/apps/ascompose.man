@@ -1,0 +1,125 @@
+.\" Source: ascompose.c 
+.\" Generated with ROBODoc Version 3.2.3 (Jan  7 2002)
+.\" ROBODoc (c) 1994-2001 by Frans Slothouber and Jacco van Weert.
+.\" t
+.\" @(#)ascompose.c.3
+.TH ascompose.c 1 "Mon Jan 07 2002" ascompose.c 3
+.PM Generated from ascompose.c with ROBODoc v3.2.3 on Mon Jan 07 16:00:50 2002
+
+.SH libAfterImage/ascompose
+.SS\fB NAME\fP 
+.nf
+\fR  \fBascompose\fP is a tool to compose image(s) and display/save it based on
+ supplied XML input file\.
+
+\fP 
+.fi
+.SS\fB SYNOPSIS\fP 
+.nf
+ \fBascompose\fP \-f file|\-s string [\-o file] [\-t type] [\-V]"
+ \fBascompose\fP \-f file|\-s string [\-o file] [\-t type] [\-V]"
+ \fBascompose\fP \-f file|\-s string [\-o file] [\-t type] [\-V] [\-n]"
+ \fBascompose\fP \-f file|\-s string [\-o file] [\-t type] [\-V] [\-r]"
+ \fBascompose\fP [\-h]
+ \fBascompose\fP [\-v]
+
+
+.fi
+.SS\fB DESCRIPTION\fP 
+.nf
+ \fBascompose\fP reads supplied XML data, and manipulates image accordingly\.
+ It could transform images from files of any supported file format,
+ draw gradients, render anialiased texturized text, perform
+ superimposition of arbitrary number of images, and save images into
+ files of any of supported output file formats\.
+
+ At any point, the result of any operation could be assigned a name,
+ and later on referenced under this name\.
+
+ At any point during the script processing, result of any operation
+ could be saved into a file of any supported file types\.
+
+ Internal image format is 32bit ARGB with 8bit per channel\.
+
+ Last image referenced, will be displayed in X \fBwindow\fP, unless \-n option
+ is specifyed\. If \-r option is specifyed, then this image will be
+ displayed in root \fBwindow\fP of X display, effectively setting a background
+ for a desktop\. If \-o option is specified, this image will also be
+ saved into the file or requested type\.
+
+ \fBascompose\fP can be compiled to not reference X \fBWindow\fP System, thus
+ allowing it to be used on web servers and any other place\. It does not
+ even require X libraries in that case\.
+
+ Supported filetypes for input are :
+ XPM   \- via internal code, or libXpm library\.
+ JPEG  \- via libJpeg library\.
+ PNG   \- via libPNG library\.
+ XCF   \- via internal code\. For now XCF support is not complete as it
+         does not merge layers\.
+ PPM/PNM \- via internal code\.
+ BMP, ICO, CUR \- via internal code\.
+ GIF   \- via libungif library\.
+ TIFF  \- via libtiff library (including \fBalpha\fP channel support)\.
+ see \fBlibAfterImage\fP/\fBASImageFileTypes\fP for more\.
+
+ Supported file types for output :
+ XPM   \- via internal code, or libXpm library\.
+ JPEG  \- via libJpeg library\.
+ PNG   \- via libPNG library\.
+ GIF   \- via libungif library\.
+ TIFF  \- via libtiff library (including \fBalpha\fP channel support)\.
+
+
+.fi
+.SS\fB OPTIONS\fP 
+.nf
+    \-h \-\-help          display help and exit\.
+    \-f \-\-file file     an XML file to use as input\.
+    \-s \-\-string string an XML string to use as input\.
+    \-n \-\-no\-display    don't display the last referenced image\.
+    \-r \-\-root\-\fBwindow\fP   draw last referenced image image on root \fBwindow\fP\.
+    \-o \-\-output file   output last referenced image in to a file\.
+                       You should use \-t to specify what file type to
+                       use\. Filenames are meaningless when it comes to
+                       determining what file type to use\.
+    \-t \-\-type type     type of file to output to\.
+    \-v \-\-version       display version and exit\.
+    \-V \-\-verbose       increase \fBverbosity\fP\. To increase \fBverbosity\fP level
+                       use several of these, like: \fBascompose\fP \-V \-V \-V\.
+    \-D \-\-debug         maximum \fBverbosity\fP \- show everything and
+                       debug messages\.
+
+.fi
+
+.PP
+.SH libAfterImage/ascompose/sample
+.SS\fB EXAMPLE\fP 
+.nf
+ Here is the default script that gets executed by \fBascompose\fP, if no
+ parameters are given :
+
+.fi
+.SS\fB SOURCE\fP 
+.nf
+    static char* default_doc_str = "\\
+    <composite op=hue>\\
+      <composite op=add>\\
+        <scale width=512 height=384><img src=rose512\.jpg/></scale>\\
+        <tile width=512 height=384><img src=back\.xpm/></tile>\\
+      </composite>\\
+      <tile width=512 height=384><img src=fore\.xpm/></tile>\\
+    </composite>\\
+    ";
+.fi
+
+.PP
+.SH libAfterImage/ascompose/tags
+.SS\fB TAGS\fP 
+.nf
+ Here is the list and description of possible XML \fBtags\fP to use in the
+ script :
+
+.fi
+
+.PP

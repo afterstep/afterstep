@@ -33,9 +33,85 @@
 #include <libAfterImage/afterimage.h>
 #include "common.h"
 
+/****h* libAfterImage/ascompose
+ * NAME
+ * ascompose is a tool to compose image(s) and display/save it based on
+ * supplied XML input file.
+ *
+ * SYNOPSIS
+ * ascompose -f file|-s string [-o file] [-t type] [-V]"
+ * ascompose -f file|-s string [-o file] [-t type] [-V]"
+ * ascompose -f file|-s string [-o file] [-t type] [-V] [-n]"
+ * ascompose -f file|-s string [-o file] [-t type] [-V] [-r]"
+ * ascompose [-h]
+ * ascompose [-v]
+ *
+ * DESCRIPTION
+ * ascompose reads supplied XML data, and manipulates image accordingly.
+ * It could transform images from files of any supported file format,
+ * draw gradients, render anialiased texturized text, perform
+ * superimposition of arbitrary number of images, and save images into
+ * files of any of supported output file formats.
+ *
+ * At any point, the result of any operation could be assigned a name,
+ * and later on referenced under this name.
+ *
+ * At any point during the script processing, result of any operation
+ * could be saved into a file of any supported file types.
+ *
+ * Internal image format is 32bit ARGB with 8bit per channel.
+ *
+ * Last image referenced, will be displayed in X window, unless -n option
+ * is specifyed. If -r option is specifyed, then this image will be
+ * displayed in root window of X display, effectively setting a background
+ * for a desktop. If -o option is specified, this image will also be
+ * saved into the file or requested type.
+ *
+ * ascompose can be compiled to not reference X Window System, thus
+ * allowing it to be used on web servers and any other place. It does not
+ * even require X libraries in that case.
+ *
+ * Supported filetypes for input are :
+ * XPM   - via internal code, or libXpm library.
+ * JPEG  - via libJpeg library.
+ * PNG   - via libPNG library.
+ * XCF   - via internal code. For now XCF support is not complete as it
+ *         does not merge layers.
+ * PPM/PNM - via internal code.
+ * BMP, ICO, CUR - via internal code.
+ * GIF   - via libungif library.
+ * TIFF  - via libtiff library (including alpha channel support).
+ * see libAfterImage/ASImageFileTypes for more.
+ *
+ * Supported file types for output :
+ * XPM   - via internal code, or libXpm library.
+ * JPEG  - via libJpeg library.
+ * PNG   - via libPNG library.
+ * GIF   - via libungif library.
+ * TIFF  - via libtiff library (including alpha channel support).
+ *
+ * OPTIONS
+ *    -h --help          display help and exit.
+ *    -f --file file     an XML file to use as input.
+ *    -s --string string an XML string to use as input.
+ *    -n --no-display    don't display the last referenced image.
+ *    -r --root-window   draw last referenced image image on root window.
+ *    -o --output file   output last referenced image in to a file.
+ *                       You should use -t to specify what file type to
+ *                       use. Filenames are meaningless when it comes to
+ *                       determining what file type to use.
+ *    -t --type type     type of file to output to.
+ *    -v --version       display version and exit.
+ *    -V --verbose       increase verbosity. To increase verbosity level
+ *                       use several of these, like: ascompose -V -V -V.
+ *    -D --debug         maximum verbosity - show everything and
+ *                       debug messages.
+ *****/
+
+
 #define xml_tagchar(a) (isalnum(a) || (a) == '-' || (a) == '_')
 
-// We don't trust the math library to actually provide this number.
+/* We don't trust the math library to actually provide this number.*/
 #undef PI
 #define PI 180
 
@@ -75,6 +151,39 @@ int verbose = 0;
 ASHashTable* image_hash = NULL;
 struct ASFontManager *fontman = NULL;
 
+void version(void) {
+	printf("ascompose version 1.2\n");
+}
+
+void usage(void) {
+	printf(
+		"Usage:\n"
+		"ascompose [-h] [-f file] [-o file] [-s string] [-t type] [-v] [-V]"
+#ifndef X_DISPLAY_MISSING
+			" [-n] [-r]"
+#endif /* X_DISPLAY_MISSING */
+			"\n"
+		"  -h --help          display this help and exit\n"
+		"  -f --file file     an XML file to use as input\n"
+#ifndef X_DISPLAY_MISSING
+		"  -n --no-display    don't display the final image\n"
+		"  -r --root-window   draw result image on root window\n"
+#endif /* X_DISPLAY_MISSING */
+		"  -o --output file   output to file\n"
+		"  -s --string string an XML string to use as input\n"
+		"  -t --type type     type of file to output to\n"
+		"  -v --version       display version and exit\n"
+		"  -V --verbose       increase verbosity\n"
+		"  -D --debug         show everything and debug messages\n"
+	);
+}
+
+/****** libAfterImage/ascompose/sample
+ * EXAMPLE
+ * Here is the default script that gets executed by ascompose, if no
+ * parameters are given :
+ * SOURCE
+ */
 static char* default_doc_str = "\
 <composite op=hue>\
   <composite op=add>\
@@ -84,44 +193,11 @@ static char* default_doc_str = "\
   <tile width=512 height=384><img src=fore.xpm/></tile>\
 </composite>\
 ";
+/*******/
 static char* cdata_str = "CDATA";
 static char* container_str = "CONTAINER";
 
-void version(void) {
-	printf("ascompose version 1.2\n");
-}
 
-void usage(void) {
-#ifndef X_DISPLAY_MISSING
-	printf(
-		"Usage:\n"
-		"ascompose [-h] [-f file] [-n] [-o file] [-r] [-s string] [-t type] [-v] [-V]\n"
-		"  -h --help          display this help and exit\n"
-		"  -f --file file     an XML file to use as input\n"
-		"  -n --no-display    don't display the final image\n"
-		"  -o --output file   output to file\n"
-		"  -r --root-window   draw result image on root window\n"
-		"  -s --string string an XML string to use as input\n"
-		"  -t --type type     type of file to output to\n"
-		"  -v --version       display version and exit\n"
-		"  -V --verbose       increase verbosity\n"
-		"  -D --debug         show everything and debug messages\n"
-	);
-#else /* X_DISPLAY_MISSING */
-	printf(
-		"Usage:\n"
-		"ascompose [-h] [-f file] [-o file] [-s string] [-t type] [-v] [-V]\n"
-		"  -h --help          display this help and exit\n"
-		"  -f --file file     an XML file to use as input\n"
-		"  -o --output file   output to file\n"
-		"  -s --string string an XML string to use as input\n"
-		"  -t --type type     type of file to output to\n"
-		"  -v --version       display version and exit\n"
-		"  -V --verbose       increase verbosity\n"
-		"  -D --debug         show everything and debug messages\n"
-	);
-#endif /* X_DISPLAY_MISSING */
-}
 
 int main(int argc, char** argv) {
 	ASImage* im = NULL;
@@ -135,7 +211,7 @@ int main(int argc, char** argv) {
 
 	/* see ASView.1 : */
 	set_application_name(argv[0]);
-	// Parse command line.
+	/* Parse command line. */
 	for (i = 1 ; i < argc ; i++) {
 		if (!strcmp(argv[i], "--help") || !strcmp(argv[i], "-h")) {
 			version();
@@ -154,12 +230,8 @@ int main(int argc, char** argv) {
 			set_output_threshold(OUTPUT_LEVEL_DEBUG);
 #endif
 			verbose+=2;
-		} else if (!strcmp(argv[i], "--no-display") || !strcmp(argv[i], "-n")) {
-			display = 0;
 		} else if ((!strcmp(argv[i], "--file") || !strcmp(argv[i], "-f")) && i < argc + 1) {
 			doc_file = argv[++i];
-		} else if ((!strcmp(argv[i], "--root-window") || !strcmp(argv[i], "-r")) && i < argc + 1) {
-			onroot = 1;
 		} else if ((!strcmp(argv[i], "--string") || !strcmp(argv[i], "-s")) && i < argc + 1) {
 			doc_str = argv[++i];
 		} else if ((!strcmp(argv[i], "--output") || !strcmp(argv[i], "-o")) && i < argc + 1) {
@@ -167,9 +239,16 @@ int main(int argc, char** argv) {
 		} else if ((!strcmp(argv[i], "--type") || !strcmp(argv[i], "-t")) && i < argc + 1) {
 			doc_save_type = argv[++i];
 		}
+#ifndef X_DISPLAY_MISSING
+		  else if (!strcmp(argv[i], "--no-display") || !strcmp(argv[i], "-n")) {
+			display = 0;
+		} else if ((!strcmp(argv[i], "--root-window") || !strcmp(argv[i], "-r")) && i < argc + 1) {
+			onroot = 1;
+		}
+#endif /* X_DISPLAY_MISSING */
 	}
 
-	// Load the document from file, if one was given.
+	/* Load the document from file, if one was given. */
 	if (doc_file) {
 		doc_str = load_file(doc_file);
 		if (!doc_str) {
@@ -195,10 +274,10 @@ int main(int argc, char** argv) {
 
 	if (doc_str && doc_str != default_doc_str) free(doc_str);
 
-	// Initialize the image hash.
+	/* Initialize the image hash. */
 	image_hash = create_ashash(53, &string_hash_value, &string_compare, &string_destroy);
 
-	// Build the image(s) from the xml document structure.
+	/* Build the image(s) from the xml document structure. */
 	if (doc) {
 		xml_elem_t* ptr;
 		for (ptr = doc->child ; ptr ; ptr = ptr->next) {
@@ -208,19 +287,19 @@ int main(int argc, char** argv) {
 		}
 	}
 
-	// Delete the xml.
+	/* Delete the xml. */
 	if (doc) xml_elem_delete(NULL, doc);
 
-	// Destroy the font manager, if we created one.
+	/* Destroy the font manager, if we created one. */
 	if (fontman) destroy_font_manager(fontman, False);
 
-	// Automagically determine the output type, if none was given.
+	/* Automagically determine the output type, if none was given. */
 	if (doc_save && !doc_save_type) {
 		doc_save_type = strrchr(doc_save, '.');
 		if (doc_save_type) doc_save_type++;
 	}
 
-	// Save the result image if desired.
+	/* Save the result image if desired. */
 	if (doc_save && doc_save_type) {
 		if(!save_file(doc_save, im, doc_save_type, NULL, NULL, 0, 1)) {
 			show_error("Save failed.");
@@ -229,16 +308,16 @@ int main(int argc, char** argv) {
 		}
 	}
 
-	// Display the image if desired.
+	/* Display the image if desired. */
 	if (display) {
 		showimage(im, onroot);
 	}
 
-	// Done with the image, finally.
+	/* Done with the image, finally. */
 	my_destroy_asimage(im);
 
-#if 0 // This doesn't work; ascompose crashes in next_hash_item().
-	// Delete all the images stored in the hash.
+#if 0 /* This doesn't work; ascompose crashes in next_hash_item(). */
+	/* Delete all the images stored in the hash. */
 	{
 		ASHashIterator j;
 		start_hash_iteration(image_hash, &j);
@@ -338,14 +417,14 @@ char* load_file(const char* filename) {
 	char* str;
 	int len;
 
-	// Get the file size.
+	/* Get the file size. */
 	if (stat(filename, &st)) return NULL;
 
-	// Open the file.
+	/* Open the file. */
 	fp = fopen(filename, "rb");
 	if (!(fp = fopen(filename, "rb"))) return NULL;
 
-	// Read in the file.
+	/* Read in the file. */
 	str = NEW_ARRAY(char, st.st_size + 1);
 	len = fread(str, 1, st.st_size, fp);
 	if (len >= 0) str[len] = '\0';
@@ -390,12 +469,53 @@ void showimage(ASImage* im, int onroot) {
 #endif /* X_DISPLAY_MISSING */
 }
 
-// Each tag is only allowed to return ONE image.
+/****** libAfterImage/ascompose/tags
+ * TAGS
+ * Here is the list and description of possible XML tags to use in the
+ * script :
+ * 	img       - load image from the file.
+ * 	recall    - recall previously loaded/generated image by its name.
+ * 	text      - render text string into new image.
+ * 	save      - save an image into the file.
+ * 	bevel     - draw solid bevel frame around the image.
+ * 	gradient  - render multipoint gradient.
+ * 	mirror    - create mirror copy of an image.
+ * 	blur      - perform gaussian blurr on an image.
+ * 	rotate    - rotate/flip image in 90 degree inscrements.
+ * 	scale     - scale an image to arbitrary size.
+ * 	crop      - crop an image to arbitrary size.
+ * 	tile      - tile an image to arbitrary size.
+ * 	hsv       - adjust Hue, Saturation and Value of an image.
+ * 	pad       - pad image with solid color from either or all sides.
+ * 	solid     - generate new image of requested size, filled with solid
+ *              color.
+ * 	composite - superimpose arbitrary number of images using one of 15
+ *              available methods.
+ *
+ * Each tag generates new image as the result of the transformation -
+ * existing images are never modified and could be reused as many times
+ * as needed. See below for description of each tag.
+ *******/
+
+/* Each tag is only allowed to return ONE image. */
 ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 	xml_elem_t* ptr;
 	char* id = NULL;
 	ASImage* result = NULL;
 
+/****** libAfterImage/ascompose/tags/img
+ * NAME
+ * img - load image from the file.
+ * SYNOPSIS
+ * <img id="new_img_id" src=filename/>
+ * ATTRIBUTES
+ * id     Optional.  Image will be given this name for future reference.
+ * src    Required.  The filename (NOT URL) of the image file to load.
+ * NOTES
+ * The special image src "xroot:" will import the background image
+ * of the root X window, if any.  No attempt will be made to offset this
+ * image to fit the location of the resulting window, if one is displayed.
+ ******/
 	if (!strcmp(doc->tag, "img")) {
 		xml_elem_t* parm = xml_parse_parm(doc->parm);
 		const char* src = NULL;
@@ -418,6 +538,16 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
 
+/****** libAfterImage/ascompose/tags/recall
+ * NAME
+ * recall - recall previously generated and named image by its id.
+ * SYNOPSIS
+ * <recall id="new_id" srcid="image_id">
+ * ATTRIBUTES
+ * id       Optional.  Image will be given this name for future reference.
+ * srcid    Required.  An image ID defined with the "id" parameter for
+ *          any previously created image.
+ ******/
 	if (!strcmp(doc->tag, "recall")) {
 		xml_elem_t* parm = xml_parse_parm(doc->parm);
 		const char* srcid = NULL;
@@ -427,13 +557,36 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 		}
 		if (srcid) {
 			show_progress("Recalling image id [%s].", srcid);
-			get_hash_item(image_hash, (ASHashableValue)(char*)srcid, (void**)&result);
+			get_hash_item(image_hash, AS_HASHABLE(srcid), (void**)&result);
 			if (result) result->ref_count++;
 			else show_error("Image recall failed for id [%s].", srcid);
 		}
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
 
+/****** libAfterImage/ascompose/tags/text
+ * NAME
+ * text - render text string into new image, using specific font, size
+ *        and texture.
+ * SYNOPSIS
+ * <text id="new_id" font="font" point="size" fgcolor="color"
+ *       bgcolor="color" fgimage="image_id" bgimage="image_id"
+ *       spacing="points">My Text Here</text>
+ * ATTRIBUTES
+ * id       Optional.  Image will be given this name for future reference.
+ * font     Optional.  Default is "fixed".  Font to use for text.
+ * point    Optional.  Default is 12.  Size of text in points.
+ * fgcolor  Optional.  No default.  The text will be drawn in this color.
+ * bgcolor  Optional.  No default.  The area behind the text will be drawn
+ *          in this color.
+ * fgimage  Optional.  No default.  The text will be textured by this image.
+ * bgimage  Optional.  No default.  The area behind the text will be filled
+ *          with this image.
+ * spacing  Optional.  Default 0.  Extra pixels to place between each glyph.
+ * NOTES
+ * <text> without bgcolor, fgcolor, fgimage, or bgimage will NOT
+ * produce visible output by itself.  See EXAMPLES below.
+ ******/
 	if (!strcmp(doc->tag, "text")) {
 		xml_elem_t* parm = xml_parse_parm(doc->parm);
 		const char* text = NULL;
@@ -510,7 +663,40 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
 
-	if (!strcmp(doc->tag, "save")) {
+/****** libAfterImage/ascompose/tags/save
+ * NAME
+ * save - write generated/loaded image into the file of one of the
+ *        supported types
+ * SYNOPSIS
+ * <save id="sav" dst="myimage.jpg" format="jpg">
+ * ATTRIBUTES
+ * id       Optional.  Image will be given this name for future reference.
+ * dst      Required.  Name of file image will be saved to.
+ * format   Optional.  Ouput format of saved image.  Defaults to the
+ *          extension of the "dst" parameter.  Valid values are the
+ *          standard AS image file formats: xpm, jpg, png, gif, tiff.
+ * compress Optional.  Compression level if supported by output file
+ *          format. Valid values are in range of 0 - 100 and any of
+ *          "defalte", "jpeg", "ojpeg", "packbits" for TIFF files.
+ *          Note that JPEG and GIF will produce images with deteriorated
+ *          quality when compress is greater then 0. For JPEG default is
+ *          25, for PNG default is 6 and for GIF it is 0.
+ * opacity  Optional. Level below which pixel is considered to be
+ *          transparent, while saving image as XPM or GIF. Valid values
+ *          are in range 0-255. Default is 127.
+ * replace  Optional. Causes ascompose to delete file if the file with the
+ *          same name already exists. Valid values are 0 and 1. Default
+ *          is 1 - files are deleted before being saved. Disable this to
+ *          get multyimage animated gifs.
+ * delay    Optional. Delay to be stored in GIF image. This could be used
+ *          to create animated gifs. Note that you have to set replace="0"
+ *          and then write several images into the GIF file with the same
+ *          name.
+ * NOTES
+ * This tag applies to the first image contained within the tag.  Any
+ * further images will be discarded.
+ *******/
+ÿÿÿif (!strcmp(doc->tag, "save")) {
 		xml_elem_t* parm = xml_parse_parm(doc->parm);
 		const char* dst = NULL;
 		const char* ext = NULL;
@@ -549,6 +735,26 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 		else xml_elem_delete(NULL, parm);
 	}
 
+/****** libAfterImage/ascompose/tags/bevel
+ * NAME
+ * bevel - draws solid bevel frame around the image.
+ * SYNOPSIS
+ * <bevel id="new_id" colors="color1 color2"
+ *        border="left top right bottom">
+ * ATTRIBUTES
+ * id       Optional.  Image will be given this name for future reference.
+ * colors   Optional.  Whitespace-separated list of colors.  Exactly two
+ *          colors are required.  Default is "#ffdddddd #ff555555".  The
+ *          first color is the color of the upper and left edges, and the
+ *          second is the color of the lower and right edges.
+ * borders  Optional.  Whitespace-separated list of integer values.
+ *          Default is "10 10 10 10".  The values represent the offsets
+ *          toward the center of the image of each border: left, top,
+ *          right, bottom.
+ * NOTES
+ * This tag applies to the first image contained within the tag.  Any
+ * further images will be discarded.
+ ******/
 	if (!strcmp(doc->tag, "bevel")) {
 		xml_elem_t* parm = xml_parse_parm(doc->parm);
 		ASImage* imtmp = NULL;
@@ -606,7 +812,37 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
 
-	if (!strcmp(doc->tag, "gradient")) {
+/****** libAfterImage/ascompose/tags/gradient
+ * NAME
+ * gradient - render multipoint gradient.
+ * SYNOPSIS
+ * <gradient id="gra" angle="90" width="600" height="500" colors="#ff007fff #7f00ffff #ff007fff" offsets="0.0 0.125 1.0"/>
+ * ATTRIBUTES
+ *   id       Optional.  Image will be given this name for future reference.
+  refid    Optional.  An image ID defined with the "id" parameter for
+           any previously created image.  If set, percentages in "width"
+           and "height" will be derived from the width and height of the
+           refid image.
+  width    Required.  The gradient will have this width.
+  height   Required.  The gradient will have this height.
+  colors   Required.  Whitespace-separated list of colors.  At least two
+           colors are required.  Each color in this list will be visited
+           in turn, at the intervals given by the offsets attribute.
+  offsets  Optional.  Whitespace-separated list of floating point values
+           ranging from 0.0 to 1.0.  The colors from the colors attribute
+           are given these offsets, and the final gradient is rendered
+           from the combination of the two.  If both colors and offsets
+           are given but the number of colors and offsets do not match,
+           the minimum of the two will be used, and the other will be
+           truncated to match.  If offsets are not given, a smooth
+           stepping from 0.0 to 1.0 will be used.
+  angle    Optional.  Given in degrees.  Default is 0.  This is the
+           direction of the gradient.  Currently the only supported
+           values are 0, 45, 90, 135, 180, 225, 270, 315.  0 means left
+           to right, 90 means top to bottom, etc.
+
+ ******/
+ÿÿÿif (!strcmp(doc->tag, "gradient")) {
 		xml_elem_t* parm = xml_parse_parm(doc->parm);
 		const char* refid = NULL;
 		const char* width_str = NULL;
@@ -727,6 +963,20 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
 
+/****** libAfterImage/ascompose/tags/mirror
+ * NAME
+ *
+ * SYNOPSIS
+ *  <mirror id="mir" dir="vertical">
+ * ATTRIBUTES
+ *
+  id       Optional.  Image will be given this name for future reference.
+  dir      Required.  Possible values are "vertical" and "horizontal".
+           The image will be flipped over the x-axis if dir is vertical,
+           and flipped over the y-axis if dir is horizontal.
+  This tag applies to the first image contained within the tag.  Any
+  further images will be discarded.
+ ******/
 	if (!strcmp(doc->tag, "mirror")) {
 		xml_elem_t* parm = xml_parse_parm(doc->parm);
 		ASImage* imtmp = NULL;
@@ -745,6 +995,14 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 		show_progress("Mirroring image [%sally].", dir ? "horizont" : "vertic");
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
+
+/****** libAfterImage/ascompose/tags/blur
+ * NAME
+ *
+ * SYNOPSIS
+ *
+ * ATTRIBUTES
+ ******/
 
 	if (!strcmp(doc->tag, "blur")) {
 		xml_elem_t* parm = xml_parse_parm(doc->parm);
@@ -766,6 +1024,20 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
 
+/****** libAfterImage/ascompose/tags/rotate
+ * NAME
+ *
+ * SYNOPSIS
+ *  <rotate id="rot" angle="90">
+ * ATTRIBUTES
+ *     id       Optional.  Image will be given this name for future reference.
+  angle    Required.  Given in degrees.  Possible values are currently
+           "90", "180", and "270".  Rotates the image through the given
+           angle.
+  This tag applies to the first image contained within the tag.  Any
+  further images will be discarded.
+
+ ******/
 	if (!strcmp(doc->tag, "rotate")) {
 		xml_elem_t* parm = xml_parse_parm(doc->parm);
 		ASImage* imtmp = NULL;
@@ -800,6 +1072,22 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
 
+/****** libAfterImage/ascompose/tags/scale
+ * NAME
+ *
+ * SYNOPSIS
+ *  <scale id="sca" width="512" height="384">
+ * ATTRIBUTES
+ *    id       Optional.  Image will be given this name for future reference.
+  refid    Optional.  An image ID defined with the "id" parameter for
+           any previously created image.  If set, percentages in "width"
+           and "height" will be derived from the width and height of the
+           refid image.
+  width    Required.  The image will be scaled to this width.
+  height   Required.  The image will be scaled to this height.
+  This tag applies to the first image contained within the tag.  Any
+  further images will be discarded.
+ ******/
 	if (!strcmp(doc->tag, "scale")) {
 		xml_elem_t* parm = xml_parse_parm(doc->parm);
 		const char* refid = NULL;
@@ -838,6 +1126,25 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
 
+/****** libAfterImage/ascompose/tags/crop
+ * NAME
+ *
+ * SYNOPSIS
+ *  <crop id="cro" srcx="0" srcy="0" width="512" height="384">
+ * ATTRIBUTES
+   id       Optional.  Image will be given this name for future reference.
+  refid    Optional.  An image ID defined with the "id" parameter for
+           any previously created image.  If set, percentages in "width"
+           and "height" will be derived from the width and height of the
+           refid image.
+  srcx     Optional.  Default is "0".  Skip this many pixels from the left.
+  srcy     Optional.  Default is "0".  Skip this many pixels from the top.
+  width    Optional.  Default is "100%".  Keep this many pixels wide.
+  height   Optional.  Default is "100%".  Keep this many pixels tall.
+  This tag applies to the first image contained within the tag.  Any
+  further images will be discarded.
+*
+ ******/
 	if (!strcmp(doc->tag, "crop")) {
 		xml_elem_t* parm = xml_parse_parm(doc->parm);
 		const char* refid = NULL;
@@ -886,6 +1193,24 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
 
+/****** libAfterImage/ascompose/tags/tile
+ * NAME
+ *
+ * SYNOPSIS
+ *  <tile id="til" width="512" height="384">
+ * ATTRIBUTES
+ *    id       Optional.  Image will be given this name for future reference.
+  refid    Optional.  An image ID defined with the "id" parameter for
+           any previously created image.  If set, percentages in "width"
+           and "height" will be derived from the width and height of the
+           refid image.
+  width    Optional.  Default is "100%".  The image will be tiled to this
+           width.
+  height   Optional.  Default is "100%".  The image will be tiled to this
+           height.
+  This tag applies to the first image contained within the tag.  Any
+  further images will be discarded.
+ ******/
 	if (!strcmp(doc->tag, "tile")) {
 		xml_elem_t* parm = xml_parse_parm(doc->parm);
 		const char* refid = NULL;
@@ -932,6 +1257,13 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
 
+/****** libAfterImage/ascompose/tags/hsv
+ * NAME
+ *
+ * SYNOPSIS
+ *
+ * ATTRIBUTES
+ ******/
 	if (!strcmp(doc->tag, "hsv")) {
 		xml_elem_t* parm = xml_parse_parm(doc->parm);
 		const char* refid = NULL;
@@ -987,6 +1319,13 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
 
+/****** libAfterImage/ascompose/tags/pad
+ * NAME
+ *
+ * SYNOPSIS
+ *
+ * ATTRIBUTES
+ ******/
 	if (!strcmp(doc->tag, "pad")) {
 		xml_elem_t* parm = xml_parse_parm(doc->parm);
 		const char* refid = NULL;
@@ -1035,6 +1374,19 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
 
+/****** libAfterImage/ascompose/tags/solid
+ * NAME
+ *
+ * SYNOPSIS
+ *  <solid id="sol" color="#ffffffff" width="64" height="64">
+ * ATTRIBUTES
+ *   id       Optional.  Image will be given this name for future reference.
+  color    Optional.  Default is "#ffffffff".  An image will be created
+           and filled with this color.
+  width    Required.  The image will have this width.
+  height   Required.  The image will have this height.
+
+ ******/
 	if (!strcmp(doc->tag, "solid")) {
 		xml_elem_t* parm = xml_parse_parm(doc->parm);
 		const char* refid = NULL;
@@ -1069,6 +1421,41 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
 
+/****** libAfterImage/ascompose/tags/composite
+ * NAME
+ *
+ * SYNOPSIS
+ * <composite id="com" op="alphablend">
+ * ATTRIBUTES
+ *   id       Optional.  Image will be given this name for future reference.
+  op       Optional.  Default is "alphablend".  The compositing operation.
+           Valid values are the standard AS blending ops: add, alphablend,
+           allanon, colorize, darken, diff, dissipate, hue, lighten,
+           overlay, saturate, screen, sub, tint, value.
+  merge    Optional.  Default is "expand".  Valid values are "clip" and
+           "expand".  Determines whether final image will be expanded to
+           the maximum size of the layers, or clipped to the bottom layer.
+  keep-transparency
+           Optional.  Default is "0".  Valid values are "0" and "1".  If
+           set to "1", the transparency of the bottom layer will be
+           kept for the final image.
+  All images surrounded by this tag will be composited with the given op.
+
+  NOTE: All tags surrounded by this tag will be given the following
+  additional attributes in addition to their normal ones.  Under no
+  circumstances is there a conflict with the normal child attributes.
+
+  crefid   Optional.  An image ID defined with the "id" parameter for
+           any previously created image.  If set, percentages in "x"
+           and "y" will be derived from the width and height of the crefid
+           image.
+  x        Optional.  Default is 0.  Pixel coordinate of left edge.
+  y        Optional.  Default is 0.  Pixel coordinate of top edge.
+  tint     Optional.  No default.  Color to tint image by.  This is
+           actually a "darken" op applied to the whole subimage during
+           the overall compositing operation.
+
+ ******/
 	if (!strcmp(doc->tag, "composite")) {
 		xml_elem_t* parm = xml_parse_parm(doc->parm);
 		const char* pop = "alphablend";
@@ -1081,7 +1468,7 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 			if (!strcmp(ptr->tag, "keep-transparency")) keep_trans = strtol(ptr->parm, NULL, 0);
 			if (!strcmp(ptr->tag, "merge") && !mystrcasecmp(ptr->parm, "clip")) merge = 1;
 		}
-		// Find out how many subimages we have.
+		/* Find out how many subimages we have. */
 		num = 0;
 		for (ptr = doc->child ; ptr ; ptr = ptr->next) {
 			if (strcmp(ptr->tag, cdata_str)) num++;
@@ -1091,7 +1478,7 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 			ASImageLayer *layers;
 			int i ;
 
-			// Build the layers first.
+			/* Build the layers first. */
 			layers = create_image_layers( num );
 			for (num = 0, ptr = doc->child ; ptr ; ptr = ptr->next) {
 				int x = 0, y = 0;
@@ -1294,23 +1681,23 @@ xml_elem_t* xml_parse_parm(const char* parm) {
 		const char* bval;
 		const char* eval;
 
-		// Spin past any leading whitespace.
+		/* Spin past any leading whitespace. */
 		for (bname = eparm ; isspace((int)*bname) ; bname++);
 
-		// Check for a parm.  First is the parm name.
+		/* Check for a parm.  First is the parm name. */
 		for (ename = bname ; xml_tagchar((int)*ename) ; ename++);
 
-		// No name equals no parm equals broken tag.
+		/* No name equals no parm equals broken tag. */
 		if (!*ename) { eparm = NULL; break; }
 
-		// No "=" equals broken tag.  We do not support HTML-style parms
-		// with no value.
+		/* No "=" equals broken tag.  We do not support HTML-style parms */
+		/* with no value.                                                */
 		for (bval = ename ; isspace((int)*bval) ; bval++);
 		if (*bval != '=') { eparm = NULL; break; }
 
 		while (isspace((int)*++bval));
 
-		// If the next character is a quote, spin until we see another one.
+		/* If the next character is a quote, spin until we see another one. */
 		if (*bval == '"' || *bval == '\'') {
 			char quote = *bval;
 			bval++;
@@ -1321,7 +1708,7 @@ xml_elem_t* xml_parse_parm(const char* parm) {
 
 		for (eparm = eval ; *eparm && !isspace((int)*eparm) ; eparm++);
 
-		// Add the parm to our list.
+		/* Add the parm to our list. */
 		p = xml_elem_new();
 		if (!list) list = p;
 		else { p->next = list; list = p; }
@@ -1373,7 +1760,7 @@ xml_elem_t* xml_elem_new(void) {
 }
 
 xml_elem_t* xml_elem_remove(xml_elem_t** list, xml_elem_t* elem) {
-	// Splice the element out of the list, if it's in one.
+	/* Splice the element out of the list, if it's in one. */
 	if (list) {
 		if (*list == elem) {
 			*list = elem->next;
@@ -1413,24 +1800,24 @@ xml_elem_t* xml_parse_doc(const char* str) {
 int xml_parse(const char* str, xml_elem_t* current) {
 	const char* ptr = str;
 
-	// Find a tag of the form <tag opts>, </tag>, or <tag opts/>.
+	/* Find a tag of the form <tag opts>, </tag>, or <tag opts/>. */
 	while (*ptr) {
 		const char* oab = ptr;
 
-		// Look for an open oab bracket.
+		/* Look for an open oab bracket. */
 		for (oab = ptr ; *oab && *oab != '<' ; oab++);
 
-		// If there are no oab brackets left, we're done.
+		/* If there are no oab brackets left, we're done. */
 		if (*oab != '<') return oab - str;
 
-		// Does this look like a close tag?
+		/* Does this look like a close tag? */
 		if (oab[1] == '/') {
 			const char* etag;
-			// Find the end of the tag.
+			/* Find the end of the tag. */
 			for (etag = oab + 2 ; xml_tagchar((int)*etag) ; etag++);
 
-			// If this is an end tag, and the tag matches the tag we're parsing,
-			// we're done.  If not, continue on blindly.
+			/* If this is an end tag, and the tag matches the tag we're parsing, */
+			/* we're done.  If not, continue on blindly. */
 			if (*etag == '>') {
 				if (!strncasecmp(oab + 2, current->tag, etag - (oab + 2))) {
 					if (oab - ptr) {
@@ -1443,11 +1830,11 @@ int xml_parse(const char* str, xml_elem_t* current) {
 				}
 			}
 
-			// This tag isn't interesting after all.
+			/* This tag isn't interesting after all. */
 			ptr = oab + 1;
 		}
 
-		// Does this look like a start tag?
+		/* Does this look like a start tag? */
 		if (oab[1] != '/') {
 			int empty = 0;
 			const char* btag = oab + 1;
@@ -1455,63 +1842,63 @@ int xml_parse(const char* str, xml_elem_t* current) {
 			const char* bparm;
 			const char* eparm;
 
-			// Find the end of the tag.
+			/* Find the end of the tag. */
 			for (etag = btag ; xml_tagchar((int)*etag) ; etag++);
 
-			// If we reached the end of the document, continue on.
+			/* If we reached the end of the document, continue on. */
 			if (!*etag) { ptr = oab + 1; continue; }
 
-			// Find the beginning of the parameters, if they exist.
+			/* Find the beginning of the parameters, if they exist. */
 			for (bparm = etag ; isspace((int)*bparm) ; bparm++);
 
-			// From here on, we're looking for a sequence of parms, which have
-			// the form [a-z0-9-]+=("[^"]"|'[^']'|[^ \t\n]), followed by either
-			// a ">" or a "/>".
+			/* From here on, we're looking for a sequence of parms, which have
+			 * the form [a-z0-9-]+=("[^"]"|'[^']'|[^ \t\n]), followed by either
+			 * a ">" or a "/>". */
 			for (eparm = bparm ; *eparm ; ) {
 				const char* tmp;
 
-				// Spin past any leading whitespace.
+				/* Spin past any leading whitespace. */
 				for ( ; isspace((int)*eparm) ; eparm++);
 
-				// Are we at the end of the tag?
+				/* Are we at the end of the tag? */
 				if (*eparm == '>' || (*eparm == '/' && eparm[1] == '>')) break;
 
-				// Check for a parm.  First is the parm name.
+				/* Check for a parm.  First is the parm name. */
 				for (tmp = eparm ; xml_tagchar((int)*tmp) ; tmp++);
 
-				// No name equals no parm equals broken tag.
+				/* No name equals no parm equals broken tag. */
 				if (!*tmp) { eparm = NULL; break; }
 
-				// No "=" equals broken tag.  We do not support HTML-style parms
-				// with no value.
+				/* No "=" equals broken tag.  We do not support HTML-style parms
+				   with no value. */
 				for ( ; isspace((int)*tmp) ; tmp++);
 				if (*tmp != '=') { eparm = NULL; break; }
 
 				while (isspace((int)*++tmp));
 
-				// If the next character is a quote, spin until we see another one.
+				/* If the next character is a quote, spin until we see another one. */
 				if (*tmp == '"' || *tmp == '\'') {
 					char quote = *tmp;
 					for (tmp++ ; *tmp && *tmp != quote ; tmp++);
 				}
 
-				// Now look for a space or the end of the tag.
+				/* Now look for a space or the end of the tag. */
 				for ( ; *tmp && !isspace((int)*tmp) && *tmp != '>' && !(*tmp == '/' && tmp[1] == '>') ; tmp++);
 
-				// If we reach the end of the string, there cannot be a '>'.
+				/* If we reach the end of the string, there cannot be a '>'. */
 				if (!*tmp) { eparm = NULL; break; }
 
-				// End of the parm.
+				/* End of the parm.  */
 				if (!isspace((int)*tmp)) { eparm = tmp; break; }
 
 				eparm = tmp;
 			}
 
-			// If eparm is NULL, the parm string is invalid, and we should
-			// abort processing.
+			/* If eparm is NULL, the parm string is invalid, and we should
+			 * abort processing. */
 			if (!eparm) { ptr = oab + 1; continue; }
 
-			// Save CDATA, if there is any.
+			/* Save CDATA, if there is any. */
 			if (oab - ptr) {
 				xml_elem_t* child = xml_elem_new();
 				child->tag = cdata_str;
@@ -1519,12 +1906,12 @@ int xml_parse(const char* str, xml_elem_t* current) {
 				xml_insert(current, child);
 			}
 
-			// We found a tag!  Advance the pointer.
+			/* We found a tag!  Advance the pointer. */
 			for (ptr = eparm ; isspace((int)*ptr) ; ptr++);
 			empty = (*ptr == '/');
 			ptr += empty + 1;
 
-			// Add the tag to our children and parse it.
+			/* Add the tag to our children and parse it. */
 			{
 				xml_elem_t* child = xml_elem_new();
 				child->tag = lcstring(mystrndup(btag, etag - btag));
