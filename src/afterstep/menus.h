@@ -10,6 +10,7 @@ struct TermDef;
 struct dirtree_t;
 struct ASCanvas;
 struct ASTBarData;
+struct ASWindow;
 
 typedef struct MenuDataItem
   {
@@ -37,6 +38,14 @@ typedef struct MenuData
     short items_num;        /* number of items in the menu */
 }MenuData;
 
+typedef struct ASMenuItem
+{
+#define AS_MenuItemDisabled     (0x01<<0)
+    ASFlagType flags;
+    struct ASTBarData *bar;
+    struct MenuData   *submenu;
+}ASMenuItem;
+
 typedef struct ASMenu
 {
     unsigned long magic ;
@@ -45,18 +54,20 @@ typedef struct ASMenu
     struct ASCanvas *main_canvas;
 
     unsigned int items_num ;
-    struct ASTBarData **item_bar;
-    struct MenuData   **item_submenu;
+    ASMenuItem   *items ;
 
     unsigned int item_width, item_height ;
     unsigned int top_item;
     int selected_item ;                        /* if -1 - then none is selected */
     int pressed_item ;                         /* if -1 - then none is pressed */
-    struct ASMenu *open_submenu;
+    struct ASMenu *supermenu;                  /* upper level menu */
+    struct ASMenu *submenu;                    /* lower level menu */
 
     unsigned int visible_items_num ;
 
     unsigned int optimal_width, optimal_height;
+
+    struct ASWindow *owner;
 }ASMenu;
 
 #define MAX_MENU_ITEM_HEIGHT    (Scr.MyDisplayHeight>>4)
@@ -119,6 +130,7 @@ MenuData *update_windowList (void);
 /* menu execution code :                                                 */
 /*************************************************************************/
 void run_menu( const char *name );
+ASMenu *run_submenu( ASMenu *supermenu, MenuData *md, int x, int y );
 
 
 #endif /* _MENUS_ */

@@ -1206,8 +1206,8 @@ LOCAL_DEBUG_CALLER_OUT( "(%p,%lx,asw->w=%lx,%ux%u%+d%+d)", asw, w, asw->w, width
             if( asw->internal && asw->internal->on_moveresize )
                 asw->internal->on_moveresize( asw->internal, w );
 
-        ASSync(False);
     }
+    ASSync(False);
 }
 
 void
@@ -2354,6 +2354,7 @@ Destroy (ASWindow *asw, Bool kill_client)
 	 */
     if (AS_ASSERT(asw))
 		return;
+LOCAL_DEBUG_CALLER_OUT( "asw(%p)->internal(%p)->data(%p)", asw, asw->internal, asw->internal?asw->internal->data:NULL );
 
     /* we could be recursively called from delist_aswindow call - trying to prevent that : */
     if( nested_level > 0 )

@@ -44,6 +44,9 @@
 #include "asinternals.h"
 #include "menus.h"
 
+
+static ASMenu *ASTopmostMenu = NULL;
+
 /*************************************************************************/
 /* low level ASMenu functionality :                                      */
 /*************************************************************************/
@@ -76,6 +79,32 @@ create_asmenu( const char *name)
     return menu;
 }
 
+static void
+free_asmenu_item( ASMenuItem *item )
+{
+    if( item->bar )
+        destroy_astbar(&(item->bar) );
+    item->submenu = NULL ;
+}
+
+void destroy_asmenu(ASMenu **pmenu);
+
+static inline void
+close_asmenu_submenu( ASMenu *menu)
+{
+LOCAL_DEBUG_CALLER_OUT( "top(%p)->supermenu(%p)->menu(%p)->submenu(%p)", ASTopmostMenu, menu->supermenu, menu, menu->submenu );
+    if( menu->submenu )
+    {
+        if( menu->submenu->owner )
+        {
+            /* cannot use Destroy directly - must go through the normal channel: */
+            unmap_canvas_window( menu->submenu->main_canvas );
+        }else
+            destroy_asmenu( &(menu->submenu));
+        menu->submenu = NULL ;
+    }
+}
+
 void
 destroy_asmenu(ASMenu **pmenu)
 {
@@ -85,17 +114,26 @@ destroy_asmenu(ASMenu **pmenu)
         if( menu && menu->magic == MAGIC_ASMENU )
         {
             Window w = menu->main_canvas->w ;
+LOCAL_DEBUG_CALLER_OUT( "top(%p)->supermenu(%p)->menu(%p)->submenu(%p)", ASTopmostMenu, menu->supermenu, menu, menu->submenu );
+
+            if( menu->supermenu && menu->supermenu->submenu == menu )
+                menu->supermenu->submenu = NULL ;
+            else if( ASTopmostMenu == menu )
+                ASTopmostMenu = NULL ;
+
+            close_asmenu_submenu( menu);
+
             if( menu->main_canvas )
                 destroy_ascanvas( &(menu->main_canvas) );
             destroy_registered_window( w );
 
-            if( menu->item_bar )
+            if( menu->items )
             {
                 register int i = menu->items_num;
                 while ( --i >= 0 )
-                    destroy_astbar( &(menu->item_bar[i]));
-                free( menu->item_bar );
-                menu->item_bar = NULL ;
+                    free_asmenu_item( &(menu->items[i]));
+                free( menu->items );
+                menu->items = NULL ;
             }
 
             if( menu->name )
@@ -107,25 +145,56 @@ destroy_asmenu(ASMenu **pmenu)
     }
 }
 
-static void
-set_asmenu_item_data( ASTBarData **pbar, MenuDataItem *mdi )
+void
+close_asmenu( ASMenu **pmenu)
 {
-    ASTBarData *bar = *pbar ;
+    if( pmenu )
+    {
+        ASMenu *menu = *pmenu ;
+        if( menu )
+        {
+LOCAL_DEBUG_CALLER_OUT( "top(%p)->supermenu(%p)->menu(%p)->submenu(%p)", ASTopmostMenu, menu->supermenu, menu, menu->submenu );
+            if( menu->owner )
+            {
+                /* cannot use Destroy directly - must go through the normal channel: */
+                unmap_canvas_window( menu->main_canvas );
+            }else
+                destroy_asmenu( &(menu));
+            *pmenu = NULL ;
+        }
+    }
+}
 
-    if( bar == NULL )
-        *pbar = bar = create_astbar();
-    set_astbar_label( bar, mdi->item );
-
+static void
+set_asmenu_item_data( ASMenuItem *item, MenuDataItem *mdi )
+{
+    if( item->bar == NULL )
+        item->bar = create_astbar();
+    set_astbar_label( item->bar, mdi->item );
+    item->flags = 0 ;
+    if( mdi->fdata->func == F_POPUP )
+    {
+        if( (item->submenu = FindPopup (mdi->fdata->text, True)) == NULL )
+            set_flags( item->flags, AS_MenuItemDisabled );
+    }else if( get_flags( mdi->flags, MD_Disabled ) )
+        set_flags( item->flags, AS_MenuItemDisabled );
 }
 
 static Bool
-set_asmenu_item_look( ASTBarData *bar, MyLook *look )
+set_asmenu_item_look( ASMenuItem *item, MyLook *look )
 {
-    if( bar == NULL )
+    if( item->bar == NULL )
         return False;
 
-    set_astbar_style( bar, BAR_STATE_UNFOCUSED, look->MSMenu[MENU_BACK_ITEM]->name );
-    set_astbar_style( bar, BAR_STATE_FOCUSED, look->MSMenu[MENU_BACK_HILITE]->name );
+    if( get_flags( item->flags, AS_MenuItemDisabled ) )
+    {
+        set_astbar_style( item->bar, BAR_STATE_UNFOCUSED, look->MSMenu[MENU_BACK_STIPPLE]->name );
+        set_astbar_style( item->bar, BAR_STATE_FOCUSED, look->MSMenu[MENU_BACK_STIPPLE]->name );
+    }else
+    {
+        set_astbar_style( item->bar, BAR_STATE_UNFOCUSED, look->MSMenu[MENU_BACK_ITEM]->name );
+        set_astbar_style( item->bar, BAR_STATE_FOCUSED, look->MSMenu[MENU_BACK_HILITE]->name );
+    }
     return True;
 }
 
@@ -140,32 +209,41 @@ set_asmenu_data( ASMenu *menu, MenuData *md )
     int real_items_num = 0;
     if( menu->items_num < items_num )
     {
-        menu->item_bar = realloc( menu->item_bar, items_num*(sizeof(ASTBarData*)));
-        for( i = menu->items_num ; i < items_num ; ++i )
-            menu->item_bar[i] = NULL ;
+        menu->items = realloc( menu->items, items_num*(sizeof(ASMenuItem)));
+        memset( &(menu->items[menu->items_num]), 0x00, (items_num-menu->items_num)*sizeof(ASMenuItem));
+    }
+
+    if( menu->title )
+    {
+        free( menu->title );
+        menu->title = NULL;
     }
 
     if( items_num > 0 )
     {
         MenuDataItem *mdi = md->first ;
-        for(i = 0; i < items_num && mdi != NULL ; ++i )
-        {
-            set_asmenu_item_data( &(menu->item_bar[i]), mdi );
-            mdi = mdi->next ;
-        }
-        real_items_num = i;
+        for(mdi = md->first; real_items_num < items_num && mdi != NULL ; mdi = mdi->next )
+            if( mdi->fdata->func == F_TITLE && menu->title == NULL )
+            {
+                menu->title = mystrdup( mdi->item );
+            }else
+            {
+                set_asmenu_item_data( &(menu->items[real_items_num]), mdi );
+                ++real_items_num;
+            }
     }
     /* if we had more then needed tbars - destroy the rest : */
-    if( menu->item_bar )
+    if( menu->items )
     {
         i = menu->items_num ;
         while( --i >= real_items_num )
-            if( menu->item_bar[i] )
-                destroy_astbar( &(menu->item_bar[i]) );
+            free_asmenu_item(&(menu->items[i]));
     }
     menu->items_num = real_items_num ;
     menu->top_item = 0 ;
     menu->selected_item = 0 ;
+    if( menu->items && menu->items[0].bar )
+        set_astbar_focused( menu->items[0].bar, menu->main_canvas, True );
     menu->pressed_item = -1;
 }
 
@@ -180,15 +258,18 @@ set_asmenu_look( ASMenu *menu, MyLook *look )
     while ( --i >= 0 )
     {
         unsigned int width, height ;
-        register ASTBarData *bar = menu->item_bar[i];
-        set_asmenu_item_look( bar, look );
-        width = calculate_astbar_width( bar );
-        height = calculate_astbar_height( bar );
+        register ASTBarData *bar;
+        set_asmenu_item_look( &(menu->items[i]), look );
+        if( (bar= menu->items[i].bar) != NULL )
+        {
+            width = calculate_astbar_width( bar );
+            height = calculate_astbar_height( bar );
 LOCAL_DEBUG_OUT( "i(%d)->bar(%p)->size(%ux%u)", i, bar, width, height );
-        if( width > max_width )
-            max_width = width ;
-        if( height > max_height )
-            max_height = height ;
+            if( width > max_width )
+                max_width = width ;
+            if( height > max_height )
+                max_height = height ;
+        }
     }
     /* some sanity checks : */
 
@@ -224,7 +305,8 @@ LOCAL_DEBUG_OUT( "i(%d)->bar(%p)->size(%ux%u)", i, bar, width, height );
 
     i = menu->items_num ;
     while ( --i >= 0 )
-        set_astbar_size( menu->item_bar[i], max_width, max_height );
+        set_astbar_size( menu->items[i].bar, max_width, max_height );
+    ASSync(False);
 }
 
 void set_asmenu_scroll_position( ASMenu *menu, int pos );
@@ -240,8 +322,11 @@ LOCAL_DEBUG_CALLER_OUT( "%p,%d", menu, selection );
     else if( selection >= (int)menu->items_num )
         selection = menu->items_num - 1 ;
 
-    set_astbar_focused( menu->item_bar[menu->selected_item], menu->main_canvas, False );
-    set_astbar_focused( menu->item_bar[selection], menu->main_canvas, True );
+    if( selection != menu->selected_item )
+        close_asmenu_submenu( menu );
+
+    set_astbar_focused( menu->items[menu->selected_item].bar, menu->main_canvas, False );
+    set_astbar_focused( menu->items[selection].bar, menu->main_canvas, True );
     menu->selected_item = selection ;
 
     if( selection < menu->top_item )
@@ -272,7 +357,7 @@ LOCAL_DEBUG_OUT("adj_pos(%d)->curr_y(%d)->items_num(%d)->vis_items_num(%d)->sel_
     while( --i >= 0 )
     {
         curr_y -= menu->item_height ;
-        move_astbar( menu->item_bar[i], menu->main_canvas, 0, curr_y );
+        move_astbar( menu->items[i].bar, menu->main_canvas, 0, curr_y );
     }
 
     menu->top_item = pos ;
@@ -282,6 +367,7 @@ LOCAL_DEBUG_OUT("adj_pos(%d)->curr_y(%d)->items_num(%d)->vis_items_num(%d)->sel_
         select_menu_item( menu, menu->top_item + menu->visible_items_num - 1 );
     else /* selection update canvas display just as well */
         update_canvas_display( menu->main_canvas );
+    ASSync(False);
 }
 
 void
@@ -298,25 +384,38 @@ LOCAL_DEBUG_CALLER_OUT( "%p,%d", menu, pressed );
 
     if( menu->pressed_item >= 0 )
     {
-        set_astbar_pressed( menu->item_bar[menu->pressed_item], menu->main_canvas, False );
+        set_astbar_pressed( menu->items[menu->pressed_item].bar, menu->main_canvas, False );
         update_display = True ;
     }
     if( pressed >= 0 )
     {
-        if( pressed != menu->selected_item )
+        if( get_flags(menu->items[pressed].flags, AS_MenuItemDisabled) )
+            pressed = -1 ;
+        else
         {
-            set_astbar_pressed( menu->item_bar[pressed], NULL, True );/* don't redraw yet */
-            select_menu_item( menu, pressed );  /* this one updates display already */
-            update_display = False ;
-        }else
-        {
-            set_astbar_pressed( menu->item_bar[pressed], menu->main_canvas, True );
-            update_display = True ;
+            if( pressed != menu->selected_item )
+            {
+                set_astbar_pressed( menu->items[pressed].bar, NULL, True );/* don't redraw yet */
+                select_menu_item( menu, pressed );  /* this one updates display already */
+                update_display = False ;
+            }else
+            {
+                set_astbar_pressed( menu->items[pressed].bar, menu->main_canvas, True );
+                update_display = True ;
+            }
+            if( menu->items[pressed].submenu )
+            {
+                close_asmenu_submenu( menu );
+                menu->submenu = run_submenu( menu, menu->items[pressed].submenu,
+                                             menu->main_canvas->root_x+menu->item_width-5,
+                                             menu->main_canvas->root_y+(menu->item_height*(pressed-(int)menu->top_item))-5 );
+            }
         }
     }
     menu->pressed_item = pressed ;
     if( update_display )
         update_canvas_display( menu->main_canvas );
+    ASSync(False);
 }
 /*************************************************************************/
 /* Menu event handlers  - ASInternalWindow interface :                   */
@@ -331,13 +430,12 @@ menu_register_subwindows( struct ASInternalWindow *asiw )
     }
 }
 
-
 void
 on_menu_moveresize( ASInternalWindow *asiw, Window w )
 {
     ASMenu   *menu = (ASMenu*)(asiw->data) ;
     if( menu != NULL && menu->magic == MAGIC_ASMENU )
-    {
+    {   /* handle config change */
         ASFlagType changed = handle_canvas_config( menu->main_canvas );
         register int i = menu->items_num ;
 LOCAL_DEBUG_OUT( "changed(%lX)->main_width(%d)->main_height(%d)->item_height(%d)", changed, menu->main_canvas->width, menu->main_canvas->height, menu->item_height);
@@ -347,8 +445,8 @@ LOCAL_DEBUG_OUT( "changed(%lX)->main_width(%d)->main_height(%d)->item_height(%d)
             {
                 while ( --i >= 0 )
                 {
-                    set_astbar_size(menu->item_bar[i], menu->main_canvas->width, menu->item_height);
-                    render_astbar( menu->item_bar[i], menu->main_canvas );
+                    set_astbar_size(menu->items[i].bar, menu->main_canvas->width, menu->item_height);
+                    render_astbar( menu->items[i].bar, menu->main_canvas );
                 }
             }
             if( get_flags( changed, CANVAS_HEIGHT_CHANGED) )
@@ -361,13 +459,13 @@ LOCAL_DEBUG_OUT( "changed(%lX)->main_width(%d)->main_height(%d)->item_height(%d)
         {
             while ( --i >= 0 )
             {
-                update_astbar_root_pos(menu->item_bar[i], menu->main_canvas);
-                render_astbar( menu->item_bar[i], menu->main_canvas );
+                update_astbar_root_pos(menu->items[i].bar, menu->main_canvas);
+                render_astbar( menu->items[i].bar, menu->main_canvas );
             }
             update_canvas_display( menu->main_canvas );
             /* optionally update transparency */
         }
-        /* TODO : handle config change */
+        ASSync(False);
     }
 }
 
@@ -397,6 +495,7 @@ LOCAL_DEBUG_CALLER_OUT( "%p,0x%X", asiw, pressed_context );
         if( pressed_context )
         {
             int px = 0, py = 0 ;
+            GrabEm(&Scr, Scr.Feel.cursors[SELECT]);
             ASQueryPointerWinXY( menu->main_canvas->w, &px, &py );
 LOCAL_DEBUG_OUT( "pointer(%d,%d)", px, py );
             if( px >= 0 && px < menu->main_canvas->width &&  py >= 0 && py < menu->main_canvas->height )
@@ -406,7 +505,10 @@ LOCAL_DEBUG_OUT( "pointer(%d,%d)", px, py );
                     press_menu_item( menu, pressed );
             }
         }else if( menu->pressed_item >= 0 )
+        {
+            UngrabEm(&Scr);
             press_menu_item(menu, -1 );
+        }
     }
 }
 
@@ -496,7 +598,6 @@ show_asmenu(ASMenu *menu, int x, int y)
     ASStatusHints status ;
     ASHints *hints = safecalloc( 1, sizeof(ASHints) );
     ASInternalWindow *asiw = safecalloc( 1, sizeof(ASInternalWindow));
-    int pointer_x = 0, pointer_y  = 0;
 
     asiw->data = (ASMagic*)menu;
 
@@ -541,7 +642,7 @@ show_asmenu(ASMenu *menu, int x, int y)
     status.layer = AS_LayerMenu;
 
     /* normal hints : */
-    hints->names[0] = mystrdup(menu->name);
+    hints->names[0] = mystrdup(menu->title?menu->title:menu->name);
     hints->names[1] = mystrdup(ASMENU_RES_CLASS);
     /* these are merely shortcuts to the above list DON'T FREE THEM !!! */
     hints->res_name  = hints->names[1];
@@ -584,17 +685,22 @@ show_asmenu(ASMenu *menu, int x, int y)
     check_hints_sanity (&Scr, hints );
     check_status_sanity (&Scr, &status);
 
-    if( ASQueryPointerRootXY(&pointer_x,&pointer_y) )
+#if 0
     {
-        if( pointer_x< status.x || pointer_y < status.y ||
-            pointer_x > status.x + status.width ||
-            pointer_y > status.y + status.height  )
-        {/* not likely to happen:  */
-            XWarpPointer(dpy, Scr.Root, Scr.Root, pointer_x, pointer_y, 0, 0, status.x+5, status.y+5);
+        int pointer_x = 0, pointer_y  = 0;
+        if( ASQueryPointerRootXY(&pointer_x,&pointer_y) )
+        {
+            if( pointer_x< status.x || pointer_y < status.y ||
+                pointer_x > status.x + status.width ||
+                pointer_y > status.y + status.height  )
+            {/* not likely to happen:  */
+                XWarpPointer(dpy, Scr.Root, Scr.Root, pointer_x, pointer_y, 0, 0, status.x+5, status.y+5);
+            }
         }
     }
+#endif
 //    move_canvas( menu->main_canvas, status.x, status.y );
-    AddInternalWindow( menu->main_canvas->w, &asiw, &hints, &status );
+    menu->owner = AddInternalWindow( menu->main_canvas->w, &asiw, &hints, &status );
 
     /* need to cleanup if we failed : */
     if( asiw )
@@ -610,25 +716,39 @@ show_asmenu(ASMenu *menu, int x, int y)
 /*************************************************************************/
 /* high level ASMenu functionality :                                     */
 /*************************************************************************/
+ASMenu *
+run_submenu( ASMenu *supermenu, MenuData *md, int x, int y )
+{
+    ASMenu *menu = NULL ;
+    if( md )
+    {
+        menu = create_asmenu(md->name);
+        set_asmenu_data( menu, md );
+        set_asmenu_look( menu, &Scr.Look );
+        set_asmenu_scroll_position( menu, 0 );
+        menu->supermenu = supermenu;
+        show_asmenu(menu, x, y );
+    }
+    return menu;
+}
+
+
 void
 run_menu( const char *name )
 {
-    MenuData *md = FindPopup (name, False);
-    ASMenu   *menu = NULL ;
-
+    MenuData *md;
     int x = 0, y = 0;
 
-    if( md == NULL )
+    close_asmenu(&ASTopmostMenu);
+
+    if( (md = FindPopup (name, False)) == NULL )
         return;
 
-    menu = create_asmenu(name);
-    set_asmenu_data( menu, md );
-    set_asmenu_look( menu, &Scr.Look );
-    set_asmenu_scroll_position( menu, 0 );
     if( !ASQueryPointerRootXY(&x,&y) )
     {
-        x = (Scr.MyDisplayWidth - menu->item_width)/2;
-        y = ((Scr.MyDisplayHeight - menu->item_height) * 3 )/ 4;
+        x = (Scr.MyDisplayWidth*2)/3;
+        y = (Scr.MyDisplayHeight*3)/ 4;
     }
-    show_asmenu(menu, x, y );
+    ASTopmostMenu = run_submenu(NULL, md, x, y );
 }
+

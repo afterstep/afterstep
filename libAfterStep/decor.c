@@ -408,13 +408,13 @@ free_tbtn_images( ASTBtnData* btn )
 {
     if( btn->pressed )
     {
-        safe_asimage_destroy (btn->pressed);
+/*        safe_asimage_destroy (btn->pressed); */
         btn->pressed = NULL ;
     }
 
     if( btn->unpressed )
     {
-        safe_asimage_destroy (btn->unpressed);
+/*        safe_asimage_destroy (btn->unpressed); */
         btn->unpressed = NULL ;
     }
     btn->current = NULL ;
