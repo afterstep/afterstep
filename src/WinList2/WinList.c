@@ -20,19 +20,14 @@
  */
 
 /*#define DO_CLOCKING      */
+#define LOCAL_DEBUG
+#define EVENT_TRACE
 
 #include "../../configure.h"
 
-
-#define LOCAL_DEBUG
 #include "../../include/asapp.h"
 #include <signal.h>
-#include <sys/types.h>
 #include <unistd.h>
-#include <fcntl.h>
-#define IN_MODULE
-#define MODULE_X_INTERFACE
-
 #include "../../include/afterstep.h"
 #include "../../include/screen.h"
 #include "../../include/module.h"
@@ -80,6 +75,8 @@ typedef struct {
 
     unsigned int max_item_height ;
     unsigned int columns_num, rows_num;
+
+    ASTBarData  *pressed_bar;
 }ASWinListState ;
 
 ASWinListState WinListState = { 0, NULL, None, NULL, NULL };
@@ -112,7 +109,8 @@ void refresh_winlist_button( ASTBarData *tbar, ASWindowData *wd );
 void delete_winlist_button( ASTBarData *tbar, ASWindowData *wd );
 Bool rearrange_winlist_window( Bool dont_resize_main_canvas );
 unsigned int find_button_by_position( int x, int y );
-
+void press_winlist_button( ASWindowData *wd );
+void release_winlist_button( ASWindowData *wd, int button );
 
 int
 main( int argc, char **argv )
@@ -125,10 +123,10 @@ main( int argc, char **argv )
 
     ConnectX( &Scr, PropertyChangeMask );
     ConnectAfterStep (M_FOCUS_CHANGE |
-                    M_DESTROY_WINDOW |
-                    WINDOW_CONFIG_MASK |
-                    WINDOW_NAME_MASK |
-                    M_END_WINDOWLIST);
+                      M_DESTROY_WINDOW |
+                      WINDOW_CONFIG_MASK |
+                      WINDOW_NAME_MASK |
+                      M_END_WINDOWLIST);
     balloon_init (False);
     Config = CreateWinListConfig ();
 
@@ -142,6 +140,7 @@ main( int argc, char **argv )
     WinListState.main_window = make_winlist_window();
     WinListState.main_canvas = create_ascanvas( WinListState.main_window );
     set_root_clip_area( WinListState.main_canvas );
+    rearrange_winlist_window( False );
 
 	/* And at long last our main loop : */
     HandleEvents();
@@ -334,7 +333,10 @@ GetOptions (const char *filename)
 
     for( i = 0 ; i < MAX_MOUSE_BUTTONS ; ++i )
         if( config->mouse_actions[i] )
-            set_string_value(&(Config->mouse_actions[i]), mystrdup(config->mouse_actions[i]), NULL, 0 );
+        {
+            destroy_string_list( Config->mouse_actions[i] );
+            Config->mouse_actions[i] = config->mouse_actions[i];
+        }
 
     if( Config->balloon_conf )
         Destroy_balloonConfig( Config->balloon_conf );
@@ -382,6 +384,15 @@ void
 DispatchEvent (ASEvent * event)
 {
     ASWindowData *pointer_wd = NULL ;
+
+#ifndef EVENT_TRACE
+    if( get_output_threshold() >= OUTPUT_LEVEL_DEBUG )
+#endif
+    {
+        show_progress("****************************************************************");
+        show_progress("%s:%s:%d><<EVENT type(%d(%s))->x.window(%lx)->event.w(%lx)->client(%p)->context(%s)->send_event(%d)", __FILE__, __FUNCTION__, __LINE__, event->x.type, event_type2name(event->x.type), event->x.xany.window, event->w, event->client, context2text(event->context), event->x.xany.send_event);
+    }
+
     if( (event->eclass & ASE_POINTER_EVENTS) != 0 )
     {
         int i  = find_button_by_position( event->x.xmotion.x_root - WinListState.main_canvas->root_x,
@@ -409,7 +420,12 @@ DispatchEvent (ASEvent * event)
             }
 	        break;
         case ButtonPress:
-	    case ButtonRelease:
+            if( pointer_wd )
+                press_winlist_button( pointer_wd );
+            break;
+        case ButtonRelease:
+            if( pointer_wd )
+                release_winlist_button( pointer_wd, event->x.xbutton.button );
 			break;
         case EnterNotify :
         case LeaveNotify :
@@ -464,7 +480,7 @@ make_winlist_window()
 	}
 
 	w = create_visual_window( Scr.asv, Scr.Root, x, y, width, height, 0, InputOutput, 0, NULL);
-    set_client_names( w, MyName, MyName, CLASS_WINLIST, MyName );
+    set_client_names( w, "Window List", "Window List", CLASS_WINLIST, MyName );
 
 	shints.flags = USPosition|USSize|PMinSize|PMaxSize|PBaseSize|PWinGravity;
 	shints.min_width = shints.min_height = 4;
@@ -485,7 +501,10 @@ make_winlist_window()
 	sleep (1);								   /* we have to give AS a chance to spot us */
 	/* we will need to wait for PropertyNotify event indicating transition
 	   into Withdrawn state, so selecting event mask: */
-	XSelectInput (dpy, w, PropertyChangeMask|StructureNotifyMask);
+    XSelectInput (dpy, w, PropertyChangeMask|StructureNotifyMask|
+                          ButtonPressMask|ButtonReleaseMask|PointerMotionMask|
+                          KeyPressMask|KeyReleaseMask|
+                          EnterWindowMask|LeaveWindowMask);
 
 	return w ;
 }
@@ -551,8 +570,11 @@ rearrange_winlist_window( Bool dont_resize_main_canvas )
     unsigned int total_width = 0, total_height = 0 ;
     int y ;
 
+    LOCAL_DEBUG_CALLER_OUT( "%sresize canvas. windows_num = %d",
+                            dont_resize_main_canvas?"Don't ":"Do ", WinListState.windows_num );
     if( dont_resize_main_canvas )
     {
+        LOCAL_DEBUG_OUT( "Main_canvas geometry = %dx%d", WinListState.main_canvas->width, WinListState.main_canvas->height );
         allowed_min_width  = allowed_max_width  = WinListState.main_canvas->width ;
         allowed_min_height = allowed_max_height = WinListState.main_canvas->height ;
     }else
@@ -573,8 +595,15 @@ rearrange_winlist_window( Bool dont_resize_main_canvas )
     if( WinListState.windows_num == 0 || WinListState.window_order == NULL )
     {
         if( !dont_resize_main_canvas )
-            resize_canvas( WinListState.main_canvas, max(1,allowed_min_width), max(1,allowed_min_height) );
-        else if( allowed_min_width > 1 && allowed_min_height > 1 )
+        {
+            int width = max(1,allowed_min_width);
+            int height = max(1,allowed_min_height);
+            Bool invalid = ( height != WinListState.main_canvas->height || width != WinListState.main_canvas->width );
+            resize_canvas( WinListState.main_canvas, width, height );
+            if( invalid )
+                return False;
+        }
+        if( allowed_min_width > 1 && allowed_min_height > 1 )
         {
             if( WinListState.idle_bar == NULL )
             {
@@ -583,6 +612,7 @@ rearrange_winlist_window( Bool dont_resize_main_canvas )
                 WinListState.idle_bar = create_astbar();
                 sprintf( banner, "AfterStep v. %s", VERSION );
                 add_astbar_label( WinListState.idle_bar, 0, 0, flip, ALIGN_CENTER, banner );
+                free( banner );
                 set_astbar_style_ptr( WinListState.idle_bar, BAR_STATE_UNFOCUSED, Scr.Look.MSWindow[BACK_UNFOCUSED] );
                 set_astbar_style_ptr( WinListState.idle_bar, BAR_STATE_FOCUSED, Scr.Look.MSWindow[BACK_FOCUSED] );
             }
@@ -593,8 +623,6 @@ rearrange_winlist_window( Bool dont_resize_main_canvas )
         }
         return False;
     }
-
-
 
     if( max_col_width > allowed_max_width )
         max_col_width = allowed_max_width ;
@@ -636,7 +664,10 @@ rearrange_winlist_window( Bool dont_resize_main_canvas )
        * we get a fit*/
         int columns_num = min(WinListState.windows_num,Config->max_columns);
         int max_row_width = 0;
-        while( columns_num > 1 )
+        int min_columns = (WinListState.windows_num + max_rows - 1)/ max_rows ;
+        if( min_columns <= 0 )
+            min_columns = 1 ;
+        while( columns_num > min_columns )
         {
             int row_width = 0 ;
             for( i = 0 ; i < WinListState.windows_num ; ++i )
@@ -760,7 +791,7 @@ rearrange_winlist_window( Bool dont_resize_main_canvas )
         if( tbar == NULL )
             continue;
 
-        if( row == WinListState.rows_num-1 )
+        if( row == WinListState.rows_num-1 && total_height < allowed_min_height )
             height += allowed_min_height-total_height ;
 
         /* to fill the gap where there are no bars : */
@@ -822,10 +853,27 @@ find_window_index( ASWindowData *wd )
 unsigned int
 find_button_by_position( int x, int y )
 {
-    int i  = 0;
+//    int col = WinListState.columns_num ;
+    int i  = WinListState.windows_num;
 
+//    while( --col >= 0 )
+//        if( WinListState.col_x[col] > x )
+//        {
+//            ++col ;
+//            break;
+//        }
 
-    return i;
+    while( --i >= 0 )
+//        if( WinListState.bar_col[i] == col )
+        {
+            register ASTBarData *bar = WinListState.window_order[i]->bar ;
+            if( bar )
+                if( bar->win_x <= x && bar->win_x+bar->width > x &&
+                    bar->win_y <= y && bar->win_y+bar->height > y )
+                    return i;
+        }
+
+    return WinListState.windows_num;
 }
 
 /* Public stuff : ***************************************************/
@@ -861,7 +909,8 @@ configure_tbar_props( ASTBarData *tbar, ASWindowData *wd )
 void
 add_winlist_button( ASTBarData *tbar, ASWindowData *wd )
 {
-	tbar = create_astbar();
+    tbar = create_astbar();
+LOCAL_DEBUG_OUT("tbar = %p, wd = %p", tbar, wd );
     if( tbar )
 	{
         wd->bar = tbar ;
@@ -875,13 +924,15 @@ add_winlist_button( ASTBarData *tbar, ASWindowData *wd )
 void
 refresh_winlist_button( ASTBarData *tbar, ASWindowData *wd )
 {
-	if( tbar )
+LOCAL_DEBUG_OUT("tbar = %p, wd = %p", tbar, wd );
+    if( tbar )
 	{
         int i = find_window_index( wd ) ;
         if( i < WinListState.windows_num )
         {
             configure_tbar_props( tbar, wd );
-            if( calculate_astbar_width( tbar ) > WinListState.col_width[WinListState.bar_col[i]] )
+            if( calculate_astbar_width( tbar ) > WinListState.col_width[WinListState.bar_col[i]] ||
+                calculate_astbar_height( tbar ) > WinListState.max_item_height )
                 rearrange_winlist_window( False );
             else
                 render_winlist_button( tbar );
@@ -908,4 +959,52 @@ LOCAL_DEBUG_OUT("tbar = %p, wd = %p", tbar, wd );
         rearrange_winlist_window(False);
     }
 }
+
+/*************************************************************************/
+/* pressing and depressing actions :                                     */
+/*************************************************************************/
+void
+press_winlist_button( ASWindowData *wd )
+{
+    if( wd != NULL && wd->bar != NULL )
+    {
+        if( wd->bar != WinListState.pressed_bar )
+        {
+            set_astbar_pressed( WinListState.pressed_bar, WinListState.main_canvas, False );
+            WinListState.pressed_bar = wd->bar ;
+            set_astbar_pressed( WinListState.pressed_bar, WinListState.main_canvas, True );
+            if( is_canvas_dirty( WinListState.main_canvas ) )
+                update_canvas_display( WinListState.main_canvas );
+        }
+    }
+}
+
+void
+release_winlist_button( ASWindowData *wd, int button )
+{
+    if( wd != NULL && wd->bar != NULL )
+    {
+        char **action_list ;
+
+        if( wd->bar != WinListState.pressed_bar )
+            set_astbar_pressed( WinListState.pressed_bar, WinListState.main_canvas, False );
+        set_astbar_pressed( WinListState.pressed_bar, WinListState.main_canvas, False );
+        WinListState.pressed_bar = NULL ;
+
+        if( is_canvas_dirty( WinListState.main_canvas ) )
+            update_canvas_display( WinListState.main_canvas );
+
+        action_list = Config->mouse_actions[button - Button1] ;
+        if( action_list )
+        {
+            int i = -1;
+            while( action_list[++i] )
+            {
+                LOCAL_DEBUG_OUT( "%d: \"%s\"", i, action_list[i] );
+                SendInfo ( action_list[i], wd->client);
+            }
+        }
+    }
+}
+
 

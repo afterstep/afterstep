@@ -1049,7 +1049,7 @@ merge_asdb_hints (ASHints * clean, ASRawHints * raw, ASDatabaseRecord * db_rec, 
 	static ASFlagsXref asdb_hints_xref[] = {   /*Flag                  Set if Set      ,Clear if Set    ,Set if Clear       ,Clear if Clear  */
 		{STYLE_TITLE, AS_Titlebar, 0, 0, AS_Titlebar},
 		{STYLE_CIRCULATE, 0, AS_DontCirculate, AS_DontCirculate, 0},
-		{STYLE_WINLIST, AS_SkipWinList, 0, 0, AS_SkipWinList},
+        {STYLE_WINLIST, 0, AS_SkipWinList, AS_SkipWinList, 0},
 		{STYLE_ICON_TITLE, AS_IconTitle, 0, 0, AS_IconTitle},
 		{STYLE_FOCUS, AS_AcceptsFocus, 0, 0, AS_AcceptsFocus},
 		{STYLE_AVOID_COVER, AS_AvoidCover, 0, 0, AS_AvoidCover},

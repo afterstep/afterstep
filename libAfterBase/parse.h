@@ -43,13 +43,13 @@ char *parse_filename (const char *source, char **trg);
 /* will parse function values with unit - usefull in AS command parsing */
 char *parse_func_args (char *tline, char *unit, int *func_val);
 
-/* will parse geometry string in X format with AS extensions 
+/* will parse geometry string in X format with AS extensions
 ( --10 as -0-10 for example )  */
 char         *
-parse_geometry (register char *tline, 
-                int *x_return, int *y_return, 
-                unsigned int *width_return, 
-  				unsigned int *height_return, 
+parse_geometry (register char *tline,
+                int *x_return, int *y_return,
+                unsigned int *width_return,
+  				unsigned int *height_return,
 				int* flags_return );
 
 char *string_from_int (int param);
@@ -72,6 +72,8 @@ char scan_for_hotkey (char *txt);
 char *get_comma_item (char *ptr, char **item_start, char **item_end);
 char **comma_string2list (char *string);
 char *list2comma_string (char **list);
+void destroy_string_list( char **list );
+
 
 char *make_tricky_text( char *src );
 

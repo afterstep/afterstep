@@ -607,8 +607,7 @@ comma_string2list (char *string)
 	{
 		register int  i;
 
-		list = (char **)safemalloc (sizeof (char *) * (items + 1));
-		memset (list, 0x00, sizeof (char *) * (items + 1));
+        list = safecalloc (items + 1, sizeof (char *));
 
 		ptr = string;
 		for (i = 0; i < items; i++)
@@ -656,6 +655,17 @@ list2comma_string (char **list)
 		}
 	}
 	return string;
+}
+
+void
+destroy_string_list( char **list )
+{
+    if( list )
+    {
+        register int i = -1;
+        while( list[++i] )  free( list[i] );
+        free( list );
+    }
 }
 
 char *

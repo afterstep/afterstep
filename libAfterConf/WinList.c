@@ -104,7 +104,7 @@ DestroyWinListConfig (WinListConfig * config)
 
 	for (i = 0; i < MAX_MOUSE_BUTTONS; ++i)
 		if (config->mouse_actions[i])
-			free (config->mouse_actions[i]);
+            destroy_string_list(config->mouse_actions[i]);
 
     Destroy_balloonConfig (config->balloon_conf);
 	DestroyFreeStorage (&(config->more_stuff));
@@ -153,9 +153,21 @@ PrintWinListConfig (WinListConfig * config)
 
 	for (i = 0; i < MAX_MOUSE_BUTTONS; ++i)
 	{
-		fprintf (stderr, "WinListConfig.mouse_action[%d] = %p;\n", i, config->mouse_actions[i]);
-		if (config->mouse_actions[i])
-			fprintf (stderr, "WinListConfig.mouse_action[%d] = \"%s\";\n", i, config->mouse_actions[i]);
+        fprintf (stderr, "WinListConfig.mouse_action[%d].list = %p;\n", i, config->mouse_actions[i]);
+        if( config->mouse_actions[i] )
+        {
+            int k = 0 ;
+            do
+            {
+                fprintf (stderr, "WinListConfig.mouse_action[%d].list[%d] = %p;\n", i, k, config->mouse_actions[i][k]);
+                if (config->mouse_actions[i][k])
+                    fprintf (stderr, "WinListConfig.mouse_action[%d].list[%d] = \"%s\";\n", i, k, config->mouse_actions[i][k]);
+                else
+                    break;
+                ++k ;
+            }while(1);
+
+        }
 	}
 }
 
@@ -297,8 +309,8 @@ ParseWinListOptions (const char *filename, char *myname)
                         }
                         if (*ptr)
                         {
-                            ptr = mystrdup (ptr);
-                            REPLACE_STRING (config->mouse_actions[action_no], ptr);
+                            destroy_string_list( config->mouse_actions[action_no] );
+                            config->mouse_actions[action_no] = comma_string2list( ptr );
                         }
                         item.ok_to_free = 1;
                     }

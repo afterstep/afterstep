@@ -637,7 +637,7 @@ typedef struct WinListConfig
     ASFlagType      name_aligment ;
     ASFlagType      bevel ;
 
-	char *mouse_actions[MAX_MOUSE_BUTTONS];
+    char **mouse_actions[MAX_MOUSE_BUTTONS];
 
     balloonConfig *balloon_conf;
     MyStyleDefinition *style_defs;
