@@ -1,3 +1,12 @@
+version 2.0 beta2
+	* Added CirsorFore and CursorBack settings to look to adjust color of the mouse
+	  cursor
+	* Cursor settings now must be in look and not in feel.
+	* Improved algorithm behind saving desktop state and restoring it on startup.
+	  To enable it add the following line to autoexec :
+	  Function "WorkspaceState"
+
+
 version 2.0 beta1
 1. General
         AfterStep had been almost entirely rewritten in this new incarnation.

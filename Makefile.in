@@ -114,3 +114,8 @@ configclean:
 	  $(RMF) $$I/config.status $$I/config.log $$I/config.h $$I/config.cache $$I/configure.h ; \
 	done; \
 
+ChangeLog:
+	tools/cvs2cl.as.pl --hide-filenames --no-times;
+	cd libAfterBase ; ../tools/cvs2cl.as.pl --hide-filenames --no-times; cd .. ;
+	cd libAfterImage ; ../tools/cvs2cl.as.pl --hide-filenames --no-times; cd .. ;
+
