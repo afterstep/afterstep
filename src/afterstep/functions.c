@@ -266,6 +266,7 @@ ExecuteFunctionExt (FunctionData *data, ASEvent *event, int module, Bool defered
         sf->event.w                 = event->w;
         sf->event.context           = event->context;
         sf->event.x                 = event->x ;
+		/* may become freed when it comes to running the function - can't keep a pointer ! */ 
         if( event->client && event->client->magic == MAGIC_ASWINDOW )
             sf->client              = event->client->w ;
         if( event->widget )
