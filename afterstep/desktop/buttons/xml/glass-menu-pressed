@@ -1,0 +1,17 @@
+<hsv id="btn_back_active" hue_offset=$ascs.active_hue saturation_offset=$ascs.active_saturation-30 value_offset=$ascs.active_value-60>
+	<img src="glass/btn_back_glass_red"/>
+</hsv>
+<composite merge=clip>
+	<recall srcid="btn_back_active"/>
+	<tile x=5 y=5 tint="white">
+		<scale width=14 height=11>
+			<img src="dots/menu_medium"/>
+		</scale>
+	</tile>
+	<tile tint=#6f7f7f7f x=0 y=0>
+		<recall srcid="btn_back_active"/>
+	</tile>
+</composite>
+
+
+

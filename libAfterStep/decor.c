@@ -1362,7 +1362,7 @@ calculate_astbar_height (ASTBarData * tbar)
         register int i = tbar->tiles_num ;
         while( --i >= 0 )
             if( ASTileType(tbar->tiles[i]) != AS_TileFreed &&
-                !ASTileIgnoreSize(tbar->tiles[i]))
+                !ASTileIgnoreHeight(tbar->tiles[i]))
             {
                 register int row = ASTileRow(tbar->tiles[i]);
                 if( row_height[row] < tbar->tiles[i].height )
@@ -1398,7 +1398,7 @@ calculate_astbar_width (ASTBarData * tbar)
 #endif
         while( --i >= 0 )
             if( ASTileType(tbar->tiles[i]) != AS_TileFreed &&
-                !ASTileIgnoreSize(tbar->tiles[i]))
+                !ASTileIgnoreWidth(tbar->tiles[i]))
             {
                 register int col = ASTileCol(tbar->tiles[i]);
                 if( col_width[col] < tbar->tiles[i].width )
@@ -1562,6 +1562,7 @@ add_astbar_tile( ASTBarData *tbar, int type, unsigned char col, unsigned char ro
 {
     int new_idx = -1;
     ASFlagType align_flags = align ;
+
     /* try 1: see if we have any tiles that has been freed */
     while( ++new_idx < tbar->tiles_num )
         if( ASTileType(tbar->tiles[new_idx]) == AS_TileFreed )
@@ -1585,9 +1586,24 @@ add_astbar_tile( ASTBarData *tbar, int type, unsigned char col, unsigned char ro
     if( get_flags( flip, FLIP_UPSIDEDOWN ) )
         align_flags = ((align_flags&0x0005)<<1)|((align_flags&(0x0005<<1))>>1)|(align_flags&RESIZE_MASK);
 
-    if( get_flags( align, FIT_LABEL_SIZE ) )
-        set_flags( align_flags, FIT_LABEL_SIZE );
+	LOCAL_DEBUG_CALLER_OUT( "align_flags = 0x%X", align_flags );
 
+	clear_flags( align_flags, FIT_LABEL_SIZE);
+	if( get_flags( flip, FLIP_VERTICAL ) )
+	{
+		if( get_flags( align, FIT_LABEL_WIDTH ) )
+        	set_flags( align_flags, FIT_LABEL_HEIGHT );
+    	if( get_flags( align, FIT_LABEL_HEIGHT ) )
+        	set_flags( align_flags, FIT_LABEL_WIDTH );
+	}else
+	{
+
+		if( get_flags( align, FIT_LABEL_WIDTH ) )
+        	set_flags( align_flags, FIT_LABEL_WIDTH );
+    	if( get_flags( align, FIT_LABEL_HEIGHT ) )
+        	set_flags( align_flags, FIT_LABEL_HEIGHT );
+	}
+	LOCAL_DEBUG_CALLER_OUT( "type = %d, flip = %d, align = 0x%X, align_flags = 0x%X", type, flip, align, align_flags );
     align_flags &= (PAD_MASK|RESIZE_MASK|FIT_LABEL_SIZE);
 
     memset( &(tbar->tiles[new_idx]), 0x00, sizeof(ASTile));
@@ -2000,12 +2016,12 @@ LOCAL_DEBUG_OUT("back-try2(%p)", back );
         {
             register int pos = ASTileCol(tbar->tiles[l]);
             good_layers += ASTileSublayers(tbar->tiles[l]);
-            if( col_width[pos] < tbar->tiles[l].width && !ASTileIgnoreSize(tbar->tiles[l]))
+            if( col_width[pos] < tbar->tiles[l].width && !ASTileIgnoreWidth(tbar->tiles[l]))
                 col_width[pos] = tbar->tiles[l].width;
             if( ASTileHFloating(tbar->tiles[l]) )
                 ++floating_cols[pos] ;
             pos = ASTileRow(tbar->tiles[l]);
-            if( row_height[pos] < tbar->tiles[l].height && !ASTileIgnoreSize(tbar->tiles[l]))
+            if( row_height[pos] < tbar->tiles[l].height && !ASTileIgnoreHeight(tbar->tiles[l]))
                 row_height[pos] = tbar->tiles[l].height;
             if( ASTileVFloating(tbar->tiles[l]) )
                 ++floating_rows[pos] ;
@@ -2081,9 +2097,9 @@ LOCAL_DEBUG_OUT("back-try2(%p)", back );
     }
 #if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
     for( l = 0 ; l < AS_TileColumns ; ++l )
-        show_progress("\tcolumn[%d] = %d%+d", l, col_width[l], col_x[l]);
+        show_progress("\tcolumn[%d] = %d%+d floating?%d", l, col_width[l], col_x[l], floating_cols[l]);
     for( l = 0 ; l < AS_TileRows ; ++l )
-        show_progress("\trow[%d] = x%d%+d", l, row_height[l], row_y[l]);
+        show_progress("\trow[%d] = x%d%+d floating?%d", l, row_height[l], row_y[l], floating_rows[l]);
 #endif
     /* Done with layout */
 

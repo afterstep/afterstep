@@ -15,12 +15,14 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-#include <ctype.h>
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
+
+#undef LOCAL_DEBUG
 
 #include "config.h"
+
+#ifdef LOCAL_DEBUG
+#include <time.h>
+#endif
 #include "astypes.h"
 #include "ashash.h"
 #include "mystring.h"
@@ -29,6 +31,10 @@
 #include "parse.h"
 #include "audit.h"
 #include "output.h"
+
+#include <ctype.h>
+#include <stdlib.h>
+#include <string.h>
 
 /****************************************************************************
  * parse_argb_color - should be used for all your color parsing needs
@@ -120,73 +126,88 @@ const char *parse_argb_part( const char *color, int part, CARD32 *pargb )
 
 static void parse_hsv2rgb8( unsigned int hue, unsigned int sat, unsigned int val, CARD32 *red8, CARD32 *green8, CARD32 *blue8 )
 {
+	int red = 0, green = 0, blue = 0;
 	while( hue > 360 ) hue -= 360 ;
-	if( sat > 100 )
+	if( sat >= 100 )
 		sat = 100 ;
-	if( val > 100 )
+	if( val >= 100 )
 		val = 100 ;
 	if (sat == 0 || hue == 0 )
 	{
-    	*blue8 = *green8 = *red8 = (val<<8)/100;
+    	*blue8 = *green8 = *red8 = (val*255)/100;
 	}else
 	{
-		int delta = ((sat*(val/2))*256)/(50*100) ;
-		int max_val = (val<<8)/100;
+		int delta = ((sat*(val/2))*255)/(50*100) ;
+		int max_val = (val*255)/100;
 		int min_val = max_val - delta;
 		if( hue >= 0 && hue < 60 )
 		{
-			*red8   = max_val;
-			*green8  = (hue*delta)/60 +min_val;
-			*blue8   = min_val;
+			red   = max_val;
+			green  = (hue*delta)/60 +min_val;
+			blue   = min_val;
 		}if( hue >= 60 && hue < 120 )
 		{
-			*green8 = max_val;
-			*red8   = max_val - ((hue-60)*delta)/60;
-			*blue8  = min_val;
+			green = max_val;
+			red   = max_val - ((hue-60)*delta)/60;
+			blue  = min_val;
 		}if( hue >= 120 && hue < 180 )
 		{
-			*green8 = max_val;
-			*blue8  = ((hue-120)*delta)/60 + min_val;
-			*red8   = min_val;
+			green = max_val;
+			blue  = ((hue-120)*delta)/60 + min_val;
+			red   = min_val;
 		}if( hue >= 180 && hue < 240 )
 		{
-			*blue8  = max_val;
-			*green8 = max_val - ((hue-180)*delta)/60;
-			*red8   = min_val;
+			blue  = max_val;
+			green = max_val - ((hue-180)*delta)/60;
+			red   = min_val;
 		}if( hue >= 240 && hue < 300 )
 		{
-			*blue8  = max_val;
-			*red8   = ((hue-240)*delta)/60 + min_val;
-			*green8 = min_val;
+			blue  = max_val;
+			red   = ((hue-240)*delta)/60 + min_val;
+			green = min_val;
 		}if( hue >= 300 && hue <= 360 )
 		{
-			*red8   = max_val;
-			*blue8  = max_val-((hue-300)*delta)/60;
-			*green8 = min_val;
+			red   = max_val;
+			blue  = max_val-((hue-300)*delta)/60;
+			green = min_val;
 		}
+		if( red < 0  ) 			red = 0 ;
+		else if( red > 255 ) 	red = 255 ;
+		if( green < 0  ) 		green = 0 ;
+		else if( green > 255 ) 		green = 255 ;
+		if( blue < 0  )  		blue = 0 ;
+		else if( blue > 255 ) 	blue = 255 ;
+		*red8 = red ;
+		*green8 = green ;
+		*blue8 = blue ;
 	}
 }
 
-static void parse_rgb2hsv( CARD8 red8, CARD8 green8, CARD8 blue8, unsigned int *hue, unsigned int *sat, unsigned int *val )
+static void parse_rgb2hsv( CARD8 red8, CARD8 green8, CARD8 blue8, int *hue, int *sat, int *val )
 {
 	if( red8 == green8 && red8 == blue8 )
 	{
 		*sat = *hue = 0 ;
-		*val = (red8*100)/256 ;
+		*val = (red8*100)/255 ;
 	}else
 	{
 		int segment = 0 ;
 		int direction = 1 ;
-		int min_v = red8, max_v = red8;
+		int min_v = red8, max_v = red8, mid_v = red8;
 		if( red8 >= green8 )
 		{
 			min_v = green8 ;
 			if( red8 < blue8 )
 				segment = 240 ;
 			else if( blue8 > green8 )
+			{
+				mid_v = blue8 ;
 				direction = -1 ;
-			else
+			}else
+			{
 				min_v = blue8 ;
+				mid_v = green8 ;
+			}
 		}else if( green8 >= blue8 )
 		{
 			segment = 120 ;
@@ -194,11 +215,13 @@ static void parse_rgb2hsv( CARD8 red8, CARD8 green8, CARD8 blue8, unsigned int *
 			{
 				min_v = blue8;
 				direction = -1 ;
-			}
+			}else
+				mid_v = blue8 ;
 		}else
 		{
 			segment = 240 ;
 			direction = -1 ;
+			mid_v = green8 ;
 		}
 		if( segment == 240 )
 			max_v = blue8 ;
@@ -207,17 +230,17 @@ static void parse_rgb2hsv( CARD8 red8, CARD8 green8, CARD8 blue8, unsigned int *
 
 		if( direction > 0 )
 		{
-			*hue = segment + ((max_v - min_v)*60)/256 ;
+			*hue = segment + ((mid_v-min_v)*60)/((max_v>min_v)?max_v-min_v:1) ;
 			if( *hue > 360 )
 				*hue -= 360 ;
 		}else
 		{
-			*hue = segment - ((max_v - min_v)*60)/256 ;
+			*hue = segment - ((mid_v-min_v)*60)/((max_v>min_v)?max_v-min_v:1) ;
 			if( *hue < 0 )
 				*hue += 360 ;
 		}
-		*sat = ((max_v - min_v)*50)/(max_v/2) ;
-		*val = (max_v*100)/256 ;
+		*sat = ((max_v - min_v)*100)/((max_v>mid_v)?max_v-mid_v:1) ;
+		*val = (max_v*100)/255 ;
 	}
 }
 
@@ -248,9 +271,10 @@ const char *parse_hsv_part( const char *color, int part, CARD32 *pargb )
 		tail = parse_argb_color( &(ptr[i]), &old_argb );
 		if( tail != color )
 		{
-			unsigned int hue, sat, val ;
+			int hue, sat, val ;
 			CARD32 red8, green8, blue8 ;
 			parse_rgb2hsv( ((old_argb&0x00FF0000)>>16), ((old_argb&0x0000FF00)>>8), (old_argb&0x000000FF), &hue, &sat, &val );
+			LOCAL_DEBUG_OUT( "old_argb = #%8.8lX, hue = %d, sat = %d, val = %d", old_argb, hue, sat, val );
 			switch( part )
 			{
 				case 1 : hue = new_val ;  break ;
@@ -259,6 +283,7 @@ const char *parse_hsv_part( const char *color, int part, CARD32 *pargb )
 			}
 			parse_hsv2rgb8( hue, sat, val, &red8, &green8, &blue8 );
 			*pargb = (old_argb&0xFF000000)|(red8<<16)|(green8<<8)|blue8;
+			LOCAL_DEBUG_OUT( "new_argb = #%8.8lX, hue = %d, sat = %d, val = %d, r = %lx, g = %lx, b = %lx", *pargb, hue, sat, val, red8, green8, blue8 );
 
 			if( *tail ==')' )
 				++tail ;

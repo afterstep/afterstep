@@ -35,23 +35,37 @@ MyStyle "focused_window_style"
   TextStyle	3
   ForeColor     ActiveText
   BackColor	Active
-  BackPixmap    125 glass/title_tile_glass_focused
+  BackPixmap    125 title_tile_glass_focused
   ~MyStyle
 
 MyStyle "unfocused_window_style"
   Inherit       window_font
   ForeColor     InactiveText1
   BackColor	Inactive1
-  BackPixmap    125 glass/title_tile_glass_unfocused
+  BackPixmap    125 title_tile_glass_unfocused
   ~MyStyle
 
 MyStyle "sticky_window_style"
   Inherit       window_font
   ForeColor     InactiveText2
   BackColor	Inactive2
-  BackPixmap    125 glass/title_tile_glass_sticky
+  BackPixmap    125 title_tile_glass_sticky
   ~MyStyle
 
+MyStyle "focused_frame_style"
+  ForeColor     ActiveText
+  BackColor	Saturation(100,Active)
+  ~MyStyle
+
+MyStyle "unfocused_frame_style"
+  ForeColor     InactiveText1
+  BackColor	Saturation(100,Inactive1)
+  ~MyStyle
+
+MyStyle "sticky_frame_style"
+  ForeColor     InactiveText2
+  BackColor	Saturation(100,Inactive2)
+  ~MyStyle
 
 #----------Menu MyStyles---------#
 MyStyle "menu_title_font"
@@ -226,14 +240,25 @@ IconBox                 1 -80 -1 -1
 
 MyFrame "glass"
 	TitleBevel 		None
-	LeftBtnBackground	glass/title_lbtn_glass
+	LeftBtnBackground	title_lbtn_glass
 	LeftBtnBackAlign	HScaled,VScaled,LabelSize
-	LeftSpacerBackground	glass/title_lspacer_glass
-	LeftSpacerBackAlign	None
-	RightSpacerBackground	glass/title_rspacer_glass
-	RightSpacerBackAlign	None
-	RightBtnBackground	glass/title_rbtn_glass
+	LeftSpacerBackground	title_lspacer_glass_transp
+	LeftSpacerBackAlign	VScaled
+	RightSpacerBackground	title_rspacer_glass_transp
+	RightSpacerBackAlign	VScaled
+	RightBtnBackground	title_rbtn_glass
 	RightBtnBackAlign	HScaled,VScaled,LabelSize
+	Side North		frame_north_glass_transp3
+	Side East		frame_east_glass_transp
+	Side South		frame_south_glass_transp
+	Side West		frame_west_glass_transp
+	Corner NW		frame_nw_glass_transp
+	Corner NE		frame_ne_glass_transp4
+	Corner SW		frame_sw_glass_transp
+	Corner SE		frame_se_glass_transp
+	FrameUnfocusedStyle	"unfocused_frame_style"
+	FrameFocusedStyle	"focused_frame_style"
+	FrameStickyStyle	"sticky_frame_style"
 ~MyFrame
 
 DefaultFrame "glass"
@@ -284,14 +309,14 @@ TitleTextAlign          2
 
 
 # Normal buttons
-TitleButton 1 glass/glass-switchwindow 	 glass/glass-switchwindow-pressed
-TitleButton 2 glass/glass-kill   	 glass/glass-kill-pressed
-TitleButton 3 glass/glass-menu 		 glass/glass-menu-pressed
-TitleButton 4 glass/glass-shade  	 glass/glass-shade-pressed
-TitleButton 6 glass/glass-iconize 	 glass/glass-iconize-pressed
+TitleButton 1 glass-switchwindow 	glass-switchwindow-pressed
+TitleButton 2 glass-kill   	 	glass-kill-pressed
+TitleButton 3 glass-menu 	 	glass-menu-pressed
+TitleButton 4 glass-shade  	 	glass-shade-pressed
+TitleButton 6 glass-iconize 	 	glass-iconize-pressed
 
 # the following is used instead of MenuPinOn :
-TitleButton 5 glass/glass-pin	 	 glass/glass-pin-pressed
+TitleButton 5 glass-pin	 		glass-pin-pressed
 
 TitleButtonBalloons
 TitleButtonBalloonBorderHilite	Right,Bottom

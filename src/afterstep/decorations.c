@@ -763,16 +763,20 @@ estimate_titlebar_size( ASHints *hints )
 inline static ASFlagType
 fix_background_align( ASFlagType align )
 {
+	ASFlagType new_align = align ;
 	/* don't ask why - simply magic :)
 	 * Well not really - we want to disregard background size in calculations of overall
 	 * titlebar size. Overall titlebar size is determined only by text size and button sizes.
 	 * At the same time we would like to be able to scale backgrounds to the size of the
 	 * titlebar
 	 */
-    clear_flags(align , (RESIZE_H|RESIZE_V));
-    if( get_flags( align, (RESIZE_H_SCALE|RESIZE_V_SCALE)))
-    	set_flags( align, FIT_LABEL_SIZE );
-	return align;
+    clear_flags(new_align , (RESIZE_H|RESIZE_V));
+    if( get_flags( new_align, RESIZE_H_SCALE ) )
+		set_flags( new_align, FIT_LABEL_WIDTH );
+	if( get_flags( new_align, RESIZE_V_SCALE) )
+    	set_flags( new_align, FIT_LABEL_HEIGHT );
+	LOCAL_DEBUG_OUT( "Fixed align from 0x%x to 0x%x", align, new_align );
+	return new_align;
 }
 
 

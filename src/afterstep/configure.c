@@ -782,7 +782,7 @@ MyFrame *add_myframe_from_def( ASHashTable *list, MyFrameDefinition *fd, ASFlagT
         	set_string_value(&(frame->title_back_filenames[i]), mystrdup(fd->title_backs[i]), NULL, 0 );
         	if( !get_flags( fd->set_title_attr, MYFRAME_TitleBackAlignSet_Start<<i ) )
         	{
-            	frame->title_backs_align[i] = FIT_LABEL_SIZE ;
+            	frame->title_backs_align[i] = FIT_LABEL_WIDTH ;
             	set_flags( fd->set_title_attr, MYFRAME_TitleBackAlignSet_Start<<i );
         	}
     	}

@@ -43,6 +43,8 @@ TermDef       AlignTerms[] = {
     {TF_NO_MYNAME_PREPENDING, "HScaled", 7,     TT_FLAG, ALIGN_HScaled_ID   , NULL},
     {TF_NO_MYNAME_PREPENDING, "VScaled", 7,     TT_FLAG, ALIGN_VScaled_ID   , NULL},
     {TF_NO_MYNAME_PREPENDING, "LabelSize", 9,   TT_FLAG, ALIGN_LabelSize_ID , NULL},
+    {TF_NO_MYNAME_PREPENDING, "LabelWidth", 10,    TT_FLAG, ALIGN_LabelWidth_ID,  NULL},
+    {TF_NO_MYNAME_PREPENDING, "LabelHeight", 11,   TT_FLAG, ALIGN_LabelHeight_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "Center", 6,      TT_FLAG, ALIGN_Center_ID    , NULL},
     {TF_NO_MYNAME_PREPENDING, "HCenter", 7,     TT_FLAG, ALIGN_HCenter_ID   , NULL},
     {TF_NO_MYNAME_PREPENDING, "VCenter", 7,     TT_FLAG, ALIGN_VCenter_ID   , NULL},
@@ -74,6 +76,8 @@ flag_options_xref AlignFlagsXref[] = {
     {RESIZE_H_SCALE, ALIGN_HScaled_ID, ALIGN_HTiled_ID},
     {RESIZE_V_SCALE, ALIGN_VScaled_ID, ALIGN_VTiled_ID},
     {FIT_LABEL_SIZE, ALIGN_LabelSize_ID, 0},
+    {FIT_LABEL_WIDTH, ALIGN_LabelWidth_ID, 0},
+    {FIT_LABEL_HEIGHT, ALIGN_LabelHeight_ID, 0},
     {0, 0, 0}
 };
 

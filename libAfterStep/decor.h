@@ -123,13 +123,16 @@ typedef struct ASTile {
 #define AS_TileVResize      (RESIZE_V       <<AS_TilePadOffset) /* either tile or scale in V direction*/
 #define AS_TileVScale       (RESIZE_V_SCALE <<AS_TilePadOffset) /* otherwise tiled in V direction */
 #define AS_TileVResizeMask  (RESIZE_V_MASK  <<AS_TilePadOffset)
-#define AS_TileIgnoreSize   (FIT_LABEL_SIZE <<AS_TilePadOffset) /* otherwise tiled in V direction */
+#define AS_TileIgnoreWidth  (FIT_LABEL_WIDTH<<AS_TilePadOffset)
+#define AS_TileIgnoreHeight (FIT_LABEL_HEIGHT<<AS_TilePadOffset)
+#define AS_TileIgnoreSize   (FIT_LABEL_SIZE <<AS_TilePadOffset)
 #define AS_TileResizeMask   (AS_TileHResizeMask|AS_TileVResizeMask)
 #define ASTileHResizeable(t)    ((t).flags&AS_TileHResize)
 #define ASTileVResizeable(t)    ((t).flags&AS_TileVResize)
 #define ASTileResizeable(t)     ((t).flags&(AS_TileHResize|AS_TileVResize))
 #define ASTileScalable(t)       ((t).flags&(AS_TileHScale|AS_TileVScale))
-#define ASTileIgnoreSize(t)     ((t).flags&(AS_TileIgnoreSize))
+#define ASTileIgnoreWidth(t)    ((t).flags&(AS_TileIgnoreWidth))
+#define ASTileIgnoreHeight(t)   ((t).flags&(AS_TileIgnoreHeight))
 
 /* 28 */
 #define AS_TileFloatingOffset   AS_TilePadOffset
