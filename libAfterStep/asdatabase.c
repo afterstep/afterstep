@@ -58,6 +58,7 @@ make_asdb_record (name_list * nl, struct wild_reg_exp *regexp, ASDatabaseRecord 
 		if (db_rec->set_buttons != 0)
 			set_flags (db_rec->set_flags, STYLE_BUTTONS);
 
+		db_rec->default_geometry = nl->default_geometry;
 		db_rec->desk = nl->Desk;
 		db_rec->layer = nl->layer;
 		db_rec->viewport_x = nl->ViewportX;

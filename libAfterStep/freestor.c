@@ -575,11 +575,11 @@ free_storage2box (FreeStorageElem * stored, int *ppos, ASBox * pbox)
 Bool
 free_storage2geometry (FreeStorageElem * stored, int *ppos, ASGeometry * pgeometry)
 {
-	char *geom = stored->argv[*(ppos++)];
+	char *geom = stored->argv[(*ppos)++];
 
 	if (pgeometry == NULL || geom == NULL )
 		return False;
-
+	memset( pgeometry, 0x00, sizeof(ASGeometry)) ;
 	parse_geometry ( geom,
 	                &(pgeometry->x), &(pgeometry->y),
 					&(pgeometry->width), &(pgeometry->height),

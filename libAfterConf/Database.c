@@ -407,6 +407,7 @@ ParseSingleStyle (FreeStorageElem * storage, name_list * style)
 		switch (storage->term->id)
 		{
 		 case DATABASE_DefaultGeometry_ID:
+			 LOCAL_DEBUG_OUT( "flags = %x", item.data.geometry.flags );
 			 set_flags (style->set_data_flags, STYLE_DEFAULT_GEOMETRY);
 			 style->default_geometry = item.data.geometry;
 			 break;
