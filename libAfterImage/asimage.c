@@ -19,13 +19,16 @@
 
 #include "config.h"
 
-/*#define LOCAL_DEBUG*/
-/*#define DO_CLOCKING*/
+/* #define LOCAL_DEBUG */
+/* #define DO_CLOCKING */
 
 #define HAVE_MMX
 #define USE_64BIT_FPU
 
 #include <malloc.h>
+#ifdef DO_CLOCKING
+#include <sys/time.h>
+#endif
 
 #include "afterbase.h"
 #include "asvisual.h"
@@ -1669,7 +1672,6 @@ encode_image_scanline_xim( ASImageOutput *imout, ASScanline *to_store )
 			set_component( to_store->green, ARGB32_GREEN8(to_store->back_color), 0, to_store->width );
 		if( !get_flags(to_store->flags, SCL_DO_BLUE) )
 			set_component( to_store->blue , ARGB32_BLUE8(to_store->back_color), 0, to_store->width );
-
 		PUT_SCANLINE(imout->asv, imout->xim,to_store,imout->next_line,imout->xim_line);
 		if( imout->tiling_step > 0 )
 		{
@@ -2671,9 +2673,12 @@ asimage2ximage (ASVisual *asv, ASImage *im)
 #endif
 	for (i = 0; i < im->height; i++)
 	{
-		asimage_decode_line (im, IC_RED,   xim_buf.red, i, 0, xim_buf.width);
-		asimage_decode_line (im, IC_GREEN, xim_buf.green, i, 0, xim_buf.width);
-		asimage_decode_line (im, IC_BLUE,  xim_buf.blue, i, 0, xim_buf.width);
+		if( asimage_decode_line (im, IC_RED,   xim_buf.red, i, 0, xim_buf.width)> 0 )
+			set_flags( xim_buf.flags, SCL_DO_RED );
+		if( asimage_decode_line (im, IC_GREEN, xim_buf.green, i, 0, xim_buf.width)> 0 )
+			set_flags( xim_buf.flags, SCL_DO_GREEN );
+		if( asimage_decode_line (im, IC_BLUE,  xim_buf.blue, i, 0, xim_buf.width) > 0 )
+			set_flags( xim_buf.flags, SCL_DO_BLUE );
 		imout->output_image_scanline( imout, &xim_buf, 1 );
 	}
 #ifdef DO_CLOCKING
