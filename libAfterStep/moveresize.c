@@ -452,7 +452,7 @@ SHOW_CHECKPOINT;
 SHOW_CHECKPOINT;
             }else if( !get_flags(event->x.xmotion.state, AllButtonMask) )
 			{/* all the buttons are depressed !!! */
-				complete_interactive_action( data, True );
+				complete_interactive_action( data, False );
 				return 0;
 			}
 SHOW_CHECKPOINT;
