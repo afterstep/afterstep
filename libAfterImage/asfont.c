@@ -81,6 +81,10 @@
 #include "asimage.h"
 #include "asvisual.h"
 
+#ifdef HAVE_XRENDER
+#include <X11/extensions/Xrender.h>
+#endif
+
 #undef MAX_GLYPHS_PER_FONT
 
 
@@ -2105,6 +2109,96 @@ void print_asglyph( FILE* stream, ASFont* font, unsigned long c)
 	}
 }
 
+
+#ifndef HAVE_XRENDER
+Bool afterimage_uses_xrender(){ return False;}
+	
+void
+draw_text_xrender(  ASVisual *asv, const void *text, ASFont *font, ASTextAttributes *attr, int length,
+					int xrender_op, unsigned long	xrender_src, unsigned long xrender_dst,
+					int	xrender_xSrc,  int xrender_ySrc, int xrender_xDst, int xrender_yDst )
+{}
+#else
+Bool afterimage_uses_xrender(){ return True;}
+
+void
+draw_text_xrender(  ASVisual *asv, const void *text, ASFont *font, ASTextAttributes *attr, int length,
+					Picture	xrender_src, Picture xrender_dst,
+					int	xrender_xSrc,  int xrender_ySrc, int xrender_xDst, int xrender_yDst )
+{
+	ASGlyphMap map;
+	int max_gid = 0 ;
+	int i ;
+	int missing_glyphs = 0 ;
+	int glyphs_bmap_size = 0 ;
+
+	if( !get_text_glyph_map( text, font, &map, attr, length) )
+		return;
+	
+	if( map.width == 0 ) 
+		return;
+	/* xrender code starts here : */
+	/* Step 1: we have to make sure we have a valid GlyphSet */
+	if( font->xrender_glyphset == 0 ) 
+		font->xrender_glyphset = XRenderCreateGlyphSet (asv->dpy, asv->xrender_mask_format);
+	/* Step 2: we have to make sure all the glyphs are in GlyphSet */
+	
+	if( missing_glyphs > 0 ) 
+	{
+		Glyph		*gids;
+		XGlyphInfo	*glyphs;
+		char *bitmap ;
+		int	 nbytes_bitmap ;
+			  
+		bitmap = safemalloc( glyphs_bmap_size );
+		glyphs = safecalloc( missing_glyphs, sizeof(XGlyphInfo));
+		gids = safecalloc( missing_glyphs, sizeof(Glyph));
+		XRenderAddGlyphs( asv->dpy, font->xrender_glyphset, gids, glyphs, missing_glyphs, bitmap, nbytes_bitmap );
+		free( gids );
+		free( glyphs );
+		free( bitmap );
+	}
+	/* Step 3: actually rendering text  : */
+	if( max_gid <= 255 ) 
+	{
+		char *string = safemalloc( map->glyphs_num-1 );
+		for( i = 0 ; map.glyphs[i] != GLYPH_EOT ; ++i ) 
+			string[i] = map.glyphs[i]->xrender_gid ;
+		XRenderCompositeString8 ( asv->dpy, PictOpOver, xrender_src, xrender_dst, 
+								  asv->xrender_mask_format,
+			  					  font->xrender_glyphset, 
+								  xrender_xSrc,xrender_ySrc,xrender_xDst,xrender_yDst,
+								  string, i);
+		free( string );
+	}else if( max_gid <= 65000 ) 	
+	{
+		unsigned short *string = safemalloc( sizeof(unsigned short)*(map->glyphs_num-1) );
+		for( i = 0 ; map.glyphs[i] != GLYPH_EOT ; ++i ) 
+			string[i] = map.glyphs[i]->xrender_gid ;
+		XRenderCompositeString16 (asv->dpy, PictOpOver, xrender_src, xrender_dst, 
+								  asv->xrender_mask_format,
+			  					  font->xrender_glyphset, 
+								  xrender_xSrc,xrender_ySrc,xrender_xDst,xrender_yDst,
+								  string, i);
+		free( string );
+	}else
+	{
+		unsigned int *string = safemalloc( sizeof(int)*(map->glyphs_num-1) );	
+		for( i = 0 ; map.glyphs[i] != GLYPH_EOT ; ++i ) 
+			string[i] = map.glyphs[i]->xrender_gid ;
+		XRenderCompositeString32 (asv->dpy, PictOpOver, xrender_src, xrender_dst, 
+								  asv->xrender_mask_format,
+			  					  font->xrender_glyphset, 
+								  xrender_xSrc,xrender_ySrc,xrender_xDst,xrender_yDst,
+								  string, i);
+		free( string );
+	}	 
+	
+	/* xrender code ends here : */
+	free_glyph_map( &map, True );	  
+}
+
+#endif
 
 
 /*********************************************************************************/

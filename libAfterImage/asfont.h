@@ -109,8 +109,15 @@ typedef struct ASGlyph
 									 * of the glyphs pixmap */
 	short  lead, step ;			    /* distance pen position to glyph
 									 * beginning and to the next glyph */
+									/* in XRender it should be used as so:
+									 * x = -lead, xOff = step
+									 */
 	short  ascend, descend ;        /* distance of the top of the
 									 * glyph from the baseline */
+									/* in XRender it should be used as so:
+									 * y = -ascend, yOff = 0
+									 */
+	long 	xrender_gid ;	   /* Used only with XRender  - gid of the glyph in GlyphSet */	    
 }ASGlyph;
 /*************/
 
@@ -186,8 +193,10 @@ typedef struct ASFont
 #else
 	CARD32         *pad;
 #endif
-
-
+	
+	unsigned long	xrender_glyphset ;  /* GlyphSet is the actuall datatype, 
+										 * but for easier compilation - 
+										 * we use generic which is the same */ 
 }ASFont;
 /*************/
 /****s* libAfterImage/ASFontManager

@@ -179,6 +179,9 @@ int main(int argc, char* argv[])
 		}
 	}
 
+	/*for( i = 0 ; i < 128 ; ++i ) 
+		print_asglyph( stderr, font, i); */
+
 	parse_argb_color( text_color_name, &text_color );
 	parse_argb_color( back_color_name, &back_color );
 
