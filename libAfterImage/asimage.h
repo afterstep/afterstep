@@ -12,28 +12,51 @@ struct ASScanline;
  * SYNOPSIS
  * Defines main stratures and function for image manipulation
  * DESCRIPTION
- * Images are stored internally split into ARGB channels, each split
- * into scanline. Each scanline is stored the following format to allow
- * for RLE compression :
- * component := <line><line>...<line>
- * line      := <block><block>...<block><EOL>
- * block     := <EOL>|<simple_block>|<long_block>|<direct_block>
+ * libAfterImage provides powerfull functionality to load, store
+ * and transform images on the client side. Images could be compressed
+ * using special run length encoding, with different degree of compression
+ * allowing flexibly select speed/memory use ratio.
  *
- * EOL       := 00000000 (all zero bits)
+ * Transformations can be performed with different degree of quality.
+ * Internal engine uses 24.8 bits per channel per pixel.
+ * Error diffusion algorithms could be used to transform it back into 8
+ * bit without quality loss.
  *
- * simple_block  := <ctrl_byte1><value_byte>
- * ctrl_byte1    := 00NNNNNN (first two bits are 0 remaining are length)
+ * Any Transformation could be performed with the result written directly
+ * into XImage, so that it could e displayed faster.
  *
- * long_block    := <ctrl_byte2><more_length_byte><value_byte>
- * ctrl_byte2    := 01NNNNNN (NNNNNN are high 6 bits of length)
- * more_length_byte := low 8 bits of length
+ * Complex interpolation algorithms are used to perform scaling operations,
+ * thus yelding very good quality. All the transformations are performed
+ * in integer math, thus it yelding greater speeds.
  *
- * direct_block  := <ctrl_byte3><value_byte><value_byte>...<value_byte>
- * ctrl_byte3    := [1NNNNNNN|11111111] (first bit is 1, remaining are length.
- *                  If it is all 1's - then remaining part of the line up untill
- *                  image width is monolitic uncompressed direct block)
+ * SEE ALSO
+ * Structures :
+ * 		ASImage
+ * 		ASImageBevel
+ * 		ASImageDecoder
+ * 		ASImageOutput
+ * 		ASImageLayer
+ * 		ASGradient
  *
- *****
+ * Functions :
+ * 		asimage_init(), asimage_start(), create_asimage(), destroy_asimage()
+ *
+ *   Low level scanline handling :
+ * 		prepare_scanline(), free_scanline(), asimage_add_line(),
+ * 		asimage_add_line_mono(), asimage_print_line()
+ *
+ *   ASImageOutput control :
+ * 		start_image_output(), set_image_output_back_color(),
+ * 		toggle_image_output_direction(), stop_image_output()
+ *
+ *   X Server transfer :
+ * 		ximage2asimage(), pixmap2asimage(), asimage2ximage(),
+ * 		asimage2mask_ximage(), asimage2pixmap(), asimage2mask()
+ *
+ *   Transformations :
+ * 		scale_asimage(), tile_asimage(), merge_layers(), make_gradient(),
+ * 		flip_asimage()
+ ******
  */
 
 /* this is value */
@@ -60,6 +83,32 @@ struct ASScanline;
  * ASImage
  * SYNOPSIS
  * ASImage is main structure to hold image data.
+ * DESCRIPTION
+ * Images are stored internally split into ARGB channels, each split
+ * into scanline. Each scanline is stored the following format to allow
+ * for RLE compression :
+ * component := <line><line>...<line>
+ * line      := <block><block>...<block><EOL>
+ * block     := <EOL>|<simple_block>|<long_block>|<direct_block>
+ *
+ * EOL       := 00000000 (all zero bits)
+ *
+ * simple_block  := <ctrl_byte1><value_byte>
+ * ctrl_byte1    := 00NNNNNN (first two bits are 0 remaining are length)
+ *
+ * long_block    := <ctrl_byte2><more_length_byte><value_byte>
+ * ctrl_byte2    := 01NNNNNN (NNNNNN are high 6 bits of length)
+ * more_length_byte := low 8 bits of length
+ *
+ * direct_block  := <ctrl_byte3><value_byte><value_byte>...<value_byte>
+ * ctrl_byte3    := [1NNNNNNN|11111111] (first bit is 1, remaining are length.
+ *                  If it is all 1's - then remaining part of the line up untill
+ *                  image width is monolitic uncompressed direct block)
+ * SEE ALSO
+ *  asimage_init()
+ *  asimage_start()
+ *  create_asimage()
+ *  destroy_asimage()
  * SOURCE
  */
 typedef struct ASImage
@@ -234,10 +283,10 @@ typedef struct ASImageDecoder
  * instead of direct manipulation of the data members. (makes you pity you don't write in C++
  * doesn't it ?)
  * SEE ALSO
- * start_image_output
- * set_image_output_back_color
- * toggle_image_output_direction
- * stop_image_output
+ * start_image_output()
+ * set_image_output_back_color()
+ * toggle_image_output_direction()
+ * stop_image_output()
  * SOURCE
  */
 typedef void (*encode_image_scanline_func)( struct ASImageOutput *imout, ASScanline *to_store );
@@ -258,6 +307,7 @@ typedef struct ASImageOutput
 	Bool 			 bottom_to_top; /* True if we should output in bottom to top order*/
 
 	int 			 quality ;/* see above */
+
 	output_image_scanline_func 	output_image_scanline ;  /* high level interface -
 														  * division/error diffusion
 														  * as well as encoding */
@@ -290,7 +340,7 @@ typedef struct ASImageOutput
  * 15 different methods implemented in libAfterImage, including alphablending, tinting,
  * averaging, HSV and HSL colorspace operations, etc.
  * SEE ALSO
- * merge_layers
+ * merge_layers()
  * libAfterImage/blender
  * SOURCE
  */
@@ -314,44 +364,155 @@ typedef struct ASImageLayer
 }ASImageLayer;
 /********/
 
+/****d* libAfterImage/asimage/GRADIENT_TYPE_flags
+ * FUNCTION
+ * Combination of this flags defines the way gradient is rendered.
+ * SOURCE
+ */
+#define GRADIENT_TYPE_MASK          0x0003
+#define GRADIENT_TYPE_ORIENTATION   0x0002
+#define GRADIENT_TYPE_DIAG          0x0001
+/********/
+
+/****d* libAfterImage/asimage/GRADIENT_TYPE
+ * FUNCTION
+ * This are named combinations of above flags to define type of gradient.
+ * SEE ALSO
+ * GRADIENT_TYPE_flags
+ * SOURCE
+ */
+#define GRADIENT_Left2Right        		0
+#define GRADIENT_TopLeft2BottomRight	GRADIENT_TYPE_DIAG
+#define GRADIENT_Top2Bottom				GRADIENT_TYPE_ORIENTATION
+#define GRADIENT_BottomLeft2TopRight    (GRADIENT_TYPE_DIAG|GRADIENT_TYPE_ORIENTATION)
+/********/
+
 /****s* libAfterImage/ASGradient
  * NAME
  * ASGradient
  * SYNOPSIS
  * ASGradient describes how gradient is to be drawn.
  * DESCRIPTION
+ * libAfterImage includes functionality to draw multipoint gradients in 4 different
+ * directions left->right, top->bottom and diagonal lefttop->rightbottom and
+ * bottomleft->topright. Each gradient described by type, number of colors
+ * (or anchor points), ARGB values for each color and offsets of each point from the
+ * beginning of gradient in fractions of entire length. There should be at least 2
+ * anchor points. very first point should have offset of 0. and last point should
+ * have offset of 1. Gradients are drawn in ARGB colorspace, so it is possible to have
+ * semitransparent gradients.
+ * SEE ALSO
+ * make_gradient()
  * SOURCE
  */
 
 typedef struct ASGradient
 {
-#define GRADIENT_TYPE_MASK          0x0003
-#define GRADIENT_TYPE_ORIENTATION   0x0002
-#define GRADIENT_TYPE_DIAG          0x0001
+	int			type;       /* see GRADIENT_TYPE above */
 
-#define GRADIENT_Left2Right        		0
-#define GRADIENT_TopLeft2BottomRight	GRADIENT_TYPE_DIAG
-#define GRADIENT_Top2Bottom				GRADIENT_TYPE_ORIENTATION
-#define GRADIENT_BottomLeft2TopRight    (GRADIENT_TYPE_DIAG|GRADIENT_TYPE_ORIENTATION)
-	int			type;
-
-	int         npoints;
-	ARGB32     *color;
-    double     *offset;
+	int         npoints;    /* number of anchor points */
+	ARGB32     *color;      /* ARGB color values for each anchor point  */
+    double     *offset;     /* offset of each point from the beginning in
+							 * fractions of entire length */
 }ASGradient;
+
 /********/
 
+/****d* libAfterImage/asimage/flip
+ * FUNCTION
+ * This are flags that define rotation angle.
+ * FLIP_VERTICAL defines rotation of 90 degrees counterclockwise.
+ * FLIP_UPSIDEDOWN defines rotation of 180 degrees counterclockwise.
+ * combined they define rotation of 270 degrees counterclockwise.
+ * SOURCE
+ */
 #define FLIP_VERTICAL       (0x01<<0)
 #define FLIP_UPSIDEDOWN		(0x01<<1)
+/********/
 
+/****f* libAfterImage/asimage/asimage_init()
+ * SYNOPSIS
+ * 	void asimage_init (ASImage * im, Bool free_resources);
+ * DESCRIPTION
+ * 	frees datamembers of the supplied ASImage structure, and
+ * 	initializes it to all 0.
+ * INPUTS
+ *	im 				- pointer to valid ASImage structure
+ *	free_resources  - if True will make function attempt to free
+ * 					  all non-NULL pointers.
+ *********/
+/****f* libAfterImage/asimage/asimage_start()
+ * SYNOPSIS
+ * 	void asimage_start (ASImage * im, unsigned int width,
+ * 									  unsigned int height,
+ * 									  unsigned int compression);
+ * DESCRIPTION
+ * 	Allocates memory needed to store scanline of the image of supplied size.
+ *  Assigns all the data members valid values. Makes sure that ASImage structure
+ *	is ready to store image data.
+ * INPUTS
+ *	im 				- pointer to valid ASImage structure
+ *	width			- width of the image
+ * 	height			- height of the image
+ * 	compression		- level of compression to perform on image data.
+ * 					  compression has to be in range of 0-100 with 100
+ * 					  signifying highest level of compression.
+ * NOTES
+ * 	in order to resize ASImage structure after asimage_start() has been called, asimage_init()
+ * must be invoked to free all the memory, and then asimage_start() has to be called with
+ * new dimentions.
+ *********/
+/****f* libAfterImage/asimage/create_asimage()
+ * SYNOPSIS
+ * 	ASImage *create_asimage( unsigned int width,
+ * 							 unsigned int height,
+ * 							 unsigned int compression);
+ * DESCRIPTION
+ * INPUTS
+ *********/
+/****f* libAfterImage/asimage/destroy_asimage()
+ * SYNOPSIS
+ * 	void destroy_asimage( ASImage **im );
+ * DESCRIPTION
+ * INPUTS
+ *********/
 void asimage_init (ASImage * im, Bool free_resources);
 void asimage_start (ASImage * im, unsigned int width, unsigned int height, unsigned int compression);
 ASImage *create_asimage( unsigned int width, unsigned int height, unsigned int compression);
 void destroy_asimage( ASImage **im );
 
+/****f* libAfterImage/asimage/prepare_scanline()
+ * SYNOPSIS
+ * 	ASScanline *prepare_scanline ( unsigned int width,
+ * 							  	   unsigned int shift,
+ * 								   ASScanline *reusable_memory,
+ * 								   Bool BGR_mode);
+ * DESCRIPTION
+ * INPUTS
+ *********/
+/****f* libAfterImage/asimage/free_scanline()
+ * SYNOPSIS
+ * 	void       free_scanline ( ASScanline *sl, Bool reusable );
+ * DESCRIPTION
+ * INPUTS
+ *********/
 ASScanline*prepare_scanline( unsigned int width, unsigned int shift, ASScanline *reusable_memory, Bool BGR_mode);
 void       free_scanline( ASScanline *sl, Bool reusable );
 
+/****f* libAfterImage/asimage/asimage_add_line()
+ * SYNOPSIS
+ * 	size_t asimage_add_line (ASImage * im, ColorPart color,
+ * 							 CARD32 * data, unsigned int y);
+ * DESCRIPTION
+ * INPUTS
+ *********/
+/****f* libAfterImage/asimage/asimage_add_line_mono()
+ * SYNOPSIS
+ * 	size_t asimage_add_line_mono (ASImage * im, ColorPart color,
+ * 								  CARD8 value, unsigned int y);
+ * DESCRIPTION
+ * INPUTS
+ *********/
 size_t asimage_add_line (ASImage * im, ColorPart color, CARD32 * data, unsigned int y);
 size_t asimage_add_line_mono (ASImage * im, ColorPart color, CARD8 value, unsigned int y);
 
@@ -361,10 +522,45 @@ size_t asimage_add_line_mono (ASImage * im, ColorPart color, CARD8 value, unsign
 #define VRB_CTRL_EXPLAIN 	(0x01<<2)
 #define VRB_EVERYTHING		(VRB_LINE_SUMMARY|VRB_CTRL_EXPLAIN|VRB_LINE_CONTENT)
 
-/* usefull for debugging : (returns memory usage)*/
+/****f* libAfterImage/asimage/asimage_print_line()
+ * SYNOPSIS
+ * 	unsigned int asimage_print_line ( ASImage * im, ColorPart color,
+ *									  unsigned int y,
+ * 									  unsigned long verbosity);
+ * DESCRIPTION
+ * INPUTS
+ *********/
 unsigned int asimage_print_line (ASImage * im, ColorPart color,
 				 unsigned int y, unsigned long verbosity);
 
+/****f* libAfterImage/asimage/start_image_output()
+ * SYNOPSIS
+ * 	ASImageOutput *start_image_output ( struct ASVisual *asv,
+ * 										ASImage *im, XImage *xim,
+ * 										Bool to_xim,
+ * 										int shift, int quality );
+ * DESCRIPTION
+ * INPUTS
+ *********/
+/****f* libAfterImage/asimage/set_image_output_back_color()
+ * SYNOPSIS
+ * 	void set_image_output_back_color (  ASImageOutput *imout,
+ * 										ARGB32 back_color );
+ * DESCRIPTION
+ * INPUTS
+ *********/
+/****f* libAfterImage/asimage/toggle_image_output_direction()
+ * SYNOPSIS
+ * 	void toggle_image_output_direction( ASImageOutput *imout );
+ * DESCRIPTION
+ * INPUTS
+ *********/
+/****f* libAfterImage/asimage/stop_image_output()
+ * SYNOPSIS
+ * 	void stop_image_output( ASImageOutput **pimout );
+ * DESCRIPTION
+ * INPUTS
+ *********/
 ASImageOutput *start_image_output( struct ASVisual *asv, ASImage *im, XImage *xim, Bool to_xim, int shift, int quality );
 void set_image_output_back_color( ASImageOutput *imout, ARGB32 back_color );
 void toggle_image_output_direction( ASImageOutput *imout );

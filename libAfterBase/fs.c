@@ -205,10 +205,11 @@ find_file (const char *file, const char *pathlist, int type)
 		for( i = 0 ; ptr[i] != ':' && ptr[i] != '\0' ; ++i );
 		if( i > 0 )
 		{
-			strncpy( path+max_path-i, ptr, i );
-			if (access(path, type) == 0)
+			register char *try_path = path+max_path-i;
+			strncpy( try_path, ptr, i );
+			if (access(try_path, type) == 0)
 			{
-				char* res = mystrdup(path+max_path-i);
+				char* res = mystrdup(try_path);
 				free( path );
 				return res;
 			}

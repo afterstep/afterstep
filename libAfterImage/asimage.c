@@ -2969,7 +2969,7 @@ asimage2pixmap(ASVisual *asv, Window root, ASImage *im, GC gc, Bool use_cached)
 			XGCValues gcv ;
 			my_gc = XCreateGC( asv->dpy, p, 0, &gcv );
 		}
-		XPutImage( asv->dpy, p, gc, xim, 0, 0, 0, 0, xim->width, xim->height );
+		XPutImage( asv->dpy, p, my_gc, xim, 0, 0, 0, 0, xim->width, xim->height );
 		if( my_gc != gc )
 			XFreeGC( asv->dpy, my_gc );
 		if( xim != im->ximage )

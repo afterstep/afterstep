@@ -191,6 +191,7 @@ file2pixmap(ASVisual *asv, Window root, const char *realfilename, Pixmap *mask_o
 		}
 
 		im = file2ASImage( realfilename, 0xFFFFFFFF, gamma, 0, NULL );
+
 		if( im != NULL )
 		{
 			trg = asimage2pixmap( asv, root, im, NULL, False );
