@@ -25,7 +25,7 @@ typedef int (*my_sort_f) (struct direntry ** d1, struct direntry ** d2);
 
 int my_scandir (char *, struct direntry *(*[]), int (*select) (const char *),
 		my_sort_f dcomp);
-int ignore_dots (struct dirent *e);
+int ignore_dots (const char *dname);
 
 time_t  get_file_modified_time (const char *filename);
 int		check_file_mode (const char *file, int mode);

@@ -655,8 +655,8 @@ my_scandir (char *dirname, struct direntry *(*namelist[]),
  * all files and directories starting with "."
  */
 int
-ignore_dots (struct dirent *e)
+ignore_dots (const char *d_name)
 {
-	return (e->d_name[0] != '.');
+	return (d_name[0] != '.');
 }
 
