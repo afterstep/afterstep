@@ -497,6 +497,49 @@ asim_get_hash_item (ASHashTable * hash, ASHashableValue value, void **trg)
 	return ASH_ItemNotExists;
 }
 
+ASHashResult
+asim_remove_hash_item (ASHashTable * hash, ASHashableValue value, void **trg, Bool destroy)
+{
+	ASHashKey     key = 0;
+	ASHashItem  **pitem = NULL;
+
+	if (hash)
+	{
+		key = hash->hash_func (value, hash->size);
+		if (key < hash->size)
+			pitem = find_item_in_bucket (&(hash->buckets[key]), value, hash->compare_func);
+	}
+	if (pitem)
+		if (*pitem)
+		{
+			ASHashItem   *next;
+
+			if( hash->most_recent == *pitem )
+				hash->most_recent = NULL ;
+
+			if (trg)
+				*trg = (*pitem)->data;
+
+			next = (*pitem)->next;
+			if (hash->item_destroy_func && destroy)
+				hash->item_destroy_func ((*pitem)->value, (trg) ? NULL : (*pitem)->data);
+
+            if( deallocated_used < DEALLOC_CACHE_SIZE )
+            {
+                deallocated_mem[deallocated_used++] = *pitem ;
+            }else
+                free( *pitem );
+
+            *pitem = next;
+			if (hash->buckets[key] == NULL)
+				hash->buckets_used--;
+			hash->items_num--;
+
+			return ASH_Success;
+		}
+	return ASH_ItemNotExists;
+}
+
 void asim_flush_ashash_memory_pool()
 {
 	/* we better disable errors as some of this data will belong to memory audit : */

@@ -148,7 +148,6 @@ get_gif_saved_images( GifFileType *gif, int subimage, SavedImage **ret, int *ret
 
 					if ((status = DGifGetLine(gif, temp_save.RasterBits, size))== GIF_OK)
 					{
-show_debug( __FILE__, __FUNCTION__, __LINE__,"curr_image = %d, subimage = %d", curr_image, subimage );
 						if( curr_image == subimage || subimage < 0 )
 							append_gif_saved_image( &temp_save, ret, &(ret_count));
 					}
