@@ -181,8 +181,10 @@ ASFeel;
 /*                        Function Prototypes                              */
 /***************************************************************************/
 
+void init_asfeel( ASFeel *feel );
 ASFeel *create_asfeel ();
-void destroy_asfeel (ASFeel **feel);
+void destroy_asfeel( ASFeel *feel, Bool reusable );
+
 
 
 #endif /* SFEEL_HEADER_FILE_INCLUDED */

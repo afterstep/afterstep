@@ -40,6 +40,40 @@
  * ASFeel initialization and destruction code.
  *************************************************************************************/
 
+void
+init_asfeel( ASFeel *feel )
+{
+    int i ;
+
+    feel->buttons2grab = 7;
+    feel->AutoReverse = 0;
+    feel->Xzap = 12;
+    feel->Yzap = 12;
+    feel->EdgeScrollX = feel->EdgeScrollY = -100000;
+    feel->EdgeResistanceScroll = feel->EdgeResistanceMove = 0;
+    feel->EdgeAttractionScreen = 20;
+    feel->EdgeAttractionWindow = 10;
+    feel->OpaqueMove = 5;
+    feel->OpaqueResize = 5;
+    feel->ClickTime = 150;
+    feel->AutoRaiseDelay = 0;
+    feel->RaiseButtons = 0;
+    feel->flags = DoHandlePageing;
+    feel->XorValue = (((unsigned long)1) << Scr.d_depth) - 1;
+
+    feel->no_snaping_mod = ShiftMask|ControlMask ;
+
+    feel->MouseButtonRoot = NULL;
+    feel->FuncKeyRoot = NULL;
+    feel->Popups = NULL;
+    feel->ComplexFunctions = NULL;
+    feel->ShadeAnimationSteps = 12;
+
+    for( i = 0 ; i < MAX_CURSORS; ++i )
+        if( feel->cursors[i] )
+            feel->cursors[i] = Scr.standard_cursors[i] ;
+}
+
 ASFeel *
 create_asfeel()
 {
@@ -48,81 +82,63 @@ create_asfeel()
 	feel = safecalloc( 1, sizeof(ASFeel));
 
     feel->magic = MAGIC_ASFEEL ;
-
-	set_flags( feel->flags, DoHandlePageing );
-    feel->ShadeAnimationSteps = 12 ;
-
-	feel->Xzap = 12;
-	feel->Yzap = 12;
-	feel->EdgeScrollX = feel->EdgeScrollY = -100000;
-    feel->OpaqueMove = feel->OpaqueResize = 5;
-	feel->ClickTime = 150;
-    feel->XorValue = (((unsigned long)1) << Scr.d_depth) - 1 ;
-
-	feel->no_snaping_mod = ShiftMask|ControlMask;
-
+	init_asfeel( feel );
 	return feel;
 }
 
 void
-destroy_asfeel( ASFeel **feel )
+destroy_asfeel( ASFeel *feel, Bool reusable )
 {
 	if( feel )
-		if( *feel )
-        {
-            if((*feel)->magic == MAGIC_ASFEEL )
-            {
-//                register int i ;
-
-                (*feel)->magic = 0 ;
-
-                if( (*feel)->ComplexFunctions )
-                    destroy_ashash( &((*feel)->ComplexFunctions));
-                if( (*feel)->Popups )
-                    destroy_ashash( &((*feel)->Popups));
-                /* TODO: we have to do something about the cursors too */
-//                free_feel_cursors( *feel );
-//                for( i = 0 ; i < MAX_CURSORS ; i++ )
-//                    if( (*feel)->custom_cursors[i] )
-//                        destroy_ascursor( &((*feel)->custom_cursors[i]) );
-            }
-			free(*feel);
-			*feel = NULL ;
-		}
-}
-
-static unsigned int default_cursors[MAX_CURSORS] ={
-    XC_left_ptr           ,
-    XC_left_ptr           ,
-    XC_left_ptr           ,
-    XC_left_ptr           ,
-    XC_fleur              ,
-    XC_watch              ,
-    XC_left_ptr           ,
-    XC_dot                ,
-    XC_pirate             ,
-    XC_top_side           ,
-    XC_right_side         ,
-    XC_bottom_side        ,
-    XC_left_side          ,
-    XC_top_left_corner    ,
-    XC_top_right_corner   ,
-    XC_bottom_left_corner ,
-    XC_bottom_right_corner };
-
-void
-set_feel_cursors (ASFeel *feel)
-{
-    register int i ;
-    Cursor c ;
-LOCAL_DEBUG_CALLER_OUT( "feel %p", feel);
-    if( dpy == NULL || feel == NULL ) return ;
-	/* define cursors */
-    for( i = 0 ; i < MAX_CURSORS ; i++ )
     {
-        c = XCreateFontCursor (dpy, default_cursors[i] );
-        feel->cursors[i] = c ;
-    }
+        if(feel->magic == MAGIC_ASFEEL )
+        {
+            register int i ;
+
+            feel->magic = 0 ;
+
+			while (feel->MouseButtonRoot != NULL)
+			{
+            	MouseButton  *mb = feel->MouseButtonRoot;
+
+            	feel->MouseButtonRoot = mb->NextButton;
+            	if (mb->fdata)
+            	{
+                	free_func_data( mb->fdata);
+                	free (mb->fdata);
+            	}
+				free (mb);
+			}
+        	while (feel->FuncKeyRoot != NULL)
+			{
+            	FuncKey      *fk = feel->FuncKeyRoot;
+
+            	feel->FuncKeyRoot = fk->next;
+				if (fk->name != NULL)
+					free (fk->name);
+            	if (fk->fdata != NULL)
+            	{
+                	free_func_data(fk->fdata);
+                	free (fk->fdata);
+            	}
+				free (fk);
+			}
+        	for( i = 0 ; i < MAX_CURSORS; ++i )
+            	if( feel->cursors[i] && feel->cursors[i] != Scr.standard_cursors[i] )
+            	{
+                	XFreeCursor( dpy, feel->cursors[i] );
+                	feel->cursors[i] = None ;
+            	}
+        	if( feel->Popups )
+            	destroy_ashash( &feel->Popups );
+        	if( feel->ComplexFunctions )
+            	destroy_ashash( &feel->ComplexFunctions );
+        }
+		if( !reusable )
+			free(feel);
+		else
+			memset( feel, 0x00, sizeof(ASFeel) );
+	}
 }
 
 void
@@ -145,7 +161,7 @@ free_feel_cursors (ASFeel *feel)
 }
 
 void
-fix_feel_edge_scroll(ASFeel *feel)
+check_feel_sanity(ASFeel *feel)
 {
 LOCAL_DEBUG_CALLER_OUT( "feel %p", feel);
     /* If no edge scroll line is provided in the setup file, use a default */
@@ -170,6 +186,18 @@ LOCAL_DEBUG_CALLER_OUT( "feel %p", feel);
         feel->EdgeScrollY /= 1000;
         feel->flags |= EdgeWrapY;
 	}
+
+	feel->EdgeScrollX = feel->EdgeScrollX * Scr.MyDisplayWidth / 100;
+    feel->EdgeScrollY = feel->EdgeScrollY * Scr.MyDisplayHeight / 100;
+
+    if( feel->no_snaping_mod == 0 )
+        feel->no_snaping_mod = ShiftMask ;
+
+    if (Scr.VxMax == 0)
+        clear_flags(feel->flags, EdgeWrapX);
+    if (Scr.VyMax == 0)
+        clear_flags(feel->flags, EdgeWrapY);
+
 }
 
 

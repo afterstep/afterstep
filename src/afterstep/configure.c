@@ -636,74 +636,10 @@ CheckBaseSanity()
 void
 InitFeel (ASFeel *feel, Bool free_resources)
 {
-    int i ;
     if (free_resources && feel)
-	{
-        while (feel->MouseButtonRoot != NULL)
-		{
-            MouseButton  *mb = feel->MouseButtonRoot;
-
-            feel->MouseButtonRoot = mb->NextButton;
-            if (mb->fdata)
-            {
-                free_func_data( mb->fdata);
-                free (mb->fdata);
-            }
-			free (mb);
-		}
-        while (feel->FuncKeyRoot != NULL)
-		{
-            FuncKey      *fk = feel->FuncKeyRoot;
-
-            feel->FuncKeyRoot = fk->next;
-			if (fk->name != NULL)
-				free (fk->name);
-            if (fk->fdata != NULL)
-            {
-                free_func_data(fk->fdata);
-                free (fk->fdata);
-            }
-			free (fk);
-		}
-        for( i = 0 ; i < MAX_CURSORS; ++i )
-            if( feel->cursors[i] && feel->cursors[i] != Scr.standard_cursors[i] )
-            {
-                XFreeCursor( dpy, feel->cursors[i] );
-                feel->cursors[i] = None ;
-            }
-        if( feel->Popups )
-            destroy_ashash( &feel->Popups );
-        if( feel->ComplexFunctions )
-            destroy_ashash( &feel->ComplexFunctions );
-	}
-
-    feel->buttons2grab = 7;
-    feel->AutoReverse = 0;
-    feel->Xzap = 12;
-    feel->Yzap = 12;
-    feel->EdgeScrollX = feel->EdgeScrollY = -100000;
-    feel->EdgeResistanceScroll = feel->EdgeResistanceMove = 0;
-    feel->EdgeAttractionScreen = 20;
-    feel->EdgeAttractionWindow = 10;
-    feel->OpaqueMove = 5;
-    feel->OpaqueResize = 0;
-    feel->ClickTime = 150;
-    feel->AutoRaiseDelay = 0;
-    feel->RaiseButtons = 0;
-    feel->flags = DoHandlePageing;
-    feel->XorValue = (((unsigned long)1) << Scr.d_depth) - 1;
-
-    feel->no_snaping_mod = ShiftMask ;
-
-    feel->MouseButtonRoot = NULL;
-    feel->FuncKeyRoot = NULL;
-    feel->Popups = NULL;
-    feel->ComplexFunctions = NULL;
-    feel->ShadeAnimationSteps = 12;
-
-    for( i = 0 ; i < MAX_CURSORS; ++i )
-        if( feel->cursors[i] )
-            feel->cursors[i] = Scr.standard_cursors[i] ;
+		destroy_asfeel( feel, True );
+    feel->magic = MAGIC_ASFEEL ;
+	init_asfeel( feel );
 
 }
 

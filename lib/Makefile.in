@@ -10,7 +10,7 @@ LIB_INCS=
 #           audit.o strncmp.o homeanddirs.o
 #           findfile.o asproperty.o catstring3.o copystring.o termhash.o
 #
-LIB_OBJS= ASmodule.o asapp.o asdatabase.o aswindata.o background.o balloon.o \
+LIB_OBJS= ASmodule.o asapp.o asdatabase.o asfeel.o aswindata.o background.o balloon.o \
                   clientprops.o decor.o event.o freestor.o functions.o \
                   font.o hints.o loadimg.o moveresize.o \
                   myicon.o mylook.o mystyle.o mystyle_property.o \
