@@ -264,9 +264,10 @@ ASImageManager *create_image_manager( struct ASImageManager *reusable_memory, do
 	va_start (ap, gamma);
 	for( i = 0 ; i < MAX_SEARCH_PATHS ; i++ )
 	{
-		if( va_arg(ap,char*) == NULL )
+		char *path = va_arg(ap,char*);
+		if( path == NULL )
 			break;
-		imman->search_path[i] = mystrdup( va_arg(ap,char*));
+		imman->search_path[i] = mystrdup( path );
 	}
 	va_end (ap);
 
@@ -1988,7 +1989,7 @@ LOCAL_DEBUG_CALLER_OUT( "imout->next_line = %d, imout->im->height = %d", imout->
 		chan_fill[IC_GREEN] = ARGB32_GREEN8(to_store->back_color);
 		chan_fill[IC_BLUE]  = ARGB32_BLUE8 (to_store->back_color);
 		chan_fill[IC_ALPHA] = ARGB32_ALPHA8(to_store->back_color);
-		if( imout->tiling_step )
+		if( imout->tiling_step > 1 )
 		{
 			int bytes_count ;
 			register int i, color ;
@@ -2151,7 +2152,7 @@ output_image_line_direct( ASImageOutput *imout, ASScanline *new_line, int ratio 
 	/* caching and preprocessing line into our buffer : */
 	if( new_line )
 	{
-		if( ratio != 1)
+		if( ratio > 1)
 		{
 			SCANLINE_FUNC(divide_component,*(new_line),*(imout->available),ratio,imout->available->width);
 			imout->available->flags = new_line->flags ;
@@ -2832,7 +2833,6 @@ make_gradient( ASVisual *asv, ASGradient *grad,
 			prepare_scanline( line_len, QUANT_ERR_BITS, &(lines[line]), asv->BGR_mode );
 			make_gradient_scanline( &(lines[line]), grad, filter, dither_seeds[line] );
 		}
-
 		switch( get_flags(grad->type,GRADIENT_TYPE_MASK) )
 		{
 			case GRADIENT_Left2Right :
@@ -3061,6 +3061,58 @@ LOCAL_DEBUG_OUT("miroring actually...%s", "");
 #endif
 	SHOW_TIME("", started);
 	return dst;
+}
+
+/**********************************************************************/
+
+Bool fill_asimage( ASVisual *asv, ASImage *im,
+               	   int x, int y, int width, int height,
+				   ARGB32 color )
+{
+	ASImageOutput *imout;
+	ASImageDecoder *imdec;
+	START_TIME(started);
+
+	if( asv == NULL || im == NULL )
+		return False;
+	if( x < 0 )
+	{	width -= x ; x = 0 ; }
+	if( y < 0 )
+	{	height -= y ; y = 0 ; }
+
+	if( width <= 0 || height <= 0 || x >= im->width || y >= im->height )
+		return False;
+	if( x+width > im->width )
+		width = im->width-x ;
+	if( y+height > im->height )
+		height = im->height-y ;
+
+	if((imout = start_image_output( asv, im, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT)) == NULL )
+		return False ;
+	else
+	{
+		int i ;
+		imout->next_line = y ;
+		if( x == 0 && width == im->width )
+		{
+			ASScanline result ;
+			result.flags = 0 ;
+			result.back_color = color ;
+			for( i = 0 ; i < height ; i++ )
+				imout->output_image_scanline( imout, &result, 1);
+		}else if ((imdec = start_image_decoding(asv, im, SCL_DO_ALL, 0, y, im->width, height, NULL)) != NULL )
+		{
+			for( i = 0 ; i < height ; i++ )
+			{
+				imdec->decode_image_scanline( imdec );
+				imout->output_image_scanline( imout, &(imdec->buffer), 1);
+			}
+			stop_image_decoding( &imdec );
+		}
+	}
+	stop_image_output( &imout );
+	SHOW_TIME("", started);
+	return True;
 }
 
 /* ***************************************************************************/

@@ -363,6 +363,7 @@ void    destroy_font_manager( struct ASFontManager *fontman, Bool reusable );
 struct ASFont *open_freetype_font( struct ASFontManager *fontman, const char *font_string, int face_no, int size, Bool verbose);
 struct ASFont *open_X11_font( struct ASFontManager *fontman, const char *font_string);
 struct ASFont *get_asfont( struct ASFontManager *fontman, const char *font_string, int face_no, int size, ASFontType type );
+struct ASFont *dup_asfont( ASFont *font );
 int            release_font( struct ASFont *font );
 
 /****f* libAfterImage/asfont/print_asfont()

@@ -259,7 +259,7 @@ locate_image_file( const char *file, char **paths )
 		do
 		{
 			realfilename = find_file( file, paths[i], R_OK );
-		}while( paths[i++] != NULL );
+		}while( realfilename == NULL && paths[i++] != NULL );
 	}
 	return realfilename;
 }

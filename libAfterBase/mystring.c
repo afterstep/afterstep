@@ -34,48 +34,71 @@
 int
 mystrcasecmp (const char *s1, const char *s2)
 {
-	char          c1, c2;
+	int          c1, c2;
+	register int i = 0 ;
 
 	if (s1 == NULL || s2 == NULL)
-		return (s1 == s2) ? 0 : 1;
-	while (*s1 && *s2)
+		return (s1 == s2) ? 0 : ((s1==NULL)?1:-1);
+	while (s1[i])
 	{
 		/* in some BSD implementations, tolower(c) is not defined
 		 * unless isupper(c) is true */
-		c1 = *s1++;
+		c1 = s1[i];
 		if (isupper (c1))
 			c1 = tolower (c1);
-		c2 = *s2++;
+		c2 = s2[i];
 		if (isupper (c2))
 			c2 = tolower (c2);
 
+		++i ;
 		if (c1 != c2)
 			return (c1 - c2);
 	}
-	return (*s1 == *s2) ? 0 : 1;
+	return -s2[i];
 }
 
 int
 mystrncasecmp (const char *s1, const char *s2, size_t n)
 {
 	register int  c1, c2;
+	register int i = 0 ;
 
-	for (;;)
+	if (s1 == NULL || s2 == NULL)
+		return (s1 == s2) ? 0 : ((s1==NULL)?1:-1);
+	while( i < n )
 	{
-		if (!n)
-			return (0);
-		c1 = *s1, c2 = *s2;
-		if (!c1 || !c2)
-			return (c1 - c2);
+		c1 = s1[i], c2 = s2[i];
+		++i ;
+		if (c1==0)
+			return -c2;
 		if (isupper (c1))
-			c1 += 32;
+			c1 = tolower(c1);
 		if (isupper (c2))
-			c2 += 32;
+			c2 = tolower(c2);
 		if (c1 != c2)
 			return (c1 - c2);
-		n--, s1++, s2++;
 	}
+	return 0;
 }
+
+/* safe version of STRCMP - checks for NULL strings : */
+int
+mystrcmp (const char *s1, const char *s2)
+{
+	register int i = 0 ;
+
+	if (s1 == NULL || s2 == NULL)
+		return (s1 == s2) ? 0 : ((s1==NULL)?1:-1);
+	while (s1[i])
+	{
+		register int d = s1[i]-s2[i];
+		if( d != 0 )
+			return d;
+		++i ;
+	}
+	return -s2[i];
+}
+
 
 #undef mystrdup
 #undef mystrndup

@@ -3,6 +3,8 @@
 
 int mystrcasecmp (const char *s1, const char *s2);
 int mystrncasecmp (const char *s1, const char *s2, size_t n);
+int mystrcmp (const char *s1, const char *s2);
+
 #ifndef mystrdup
 char *mystrdup (const char *str);
 #endif

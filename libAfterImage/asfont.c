@@ -245,6 +245,16 @@ get_asfont( ASFontManager *fontman, const char *font_string, int face_no, int si
 	return font;
 }
 
+ASFont*
+dup_asfont( ASFont *font )
+{
+	if( font && font->fontman )
+		font->ref_count++ ;
+	else
+		font = NULL;
+	return font;
+}
+
 int
 release_font( ASFont *font )
 {

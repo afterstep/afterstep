@@ -21,11 +21,14 @@
  */
 #include "config.h"
 
+/* #define LOCAL_DEBUG */
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <unistd.h>
+#include <errno.h>
 #include <sys/stat.h>
 
 #include "audit.h"
@@ -33,6 +36,8 @@
 #include "mystring.h"
 #include "safemalloc.h"
 #include "fs.h"
+#include "output.h"
+
 
 /*
  * get the date stamp on a file
@@ -167,7 +172,7 @@ find_file (const char *file, const char *pathlist, int type)
 	int            max_path = 0;
 	register char *ptr;
 	register int   i;
-
+LOCAL_DEBUG_CALLER_OUT( "file %s", file );
 	if (file == NULL)
 		return NULL;
 
@@ -203,18 +208,29 @@ find_file (const char *file, const char *pathlist, int type)
 		for( i = 0 ; ptr[i] == ':' ; ++i );
 		ptr += i ;
 		for( i = 0 ; ptr[i] != ':' && ptr[i] != '\0' ; ++i );
+		if( i > 0 && ptr[i-1] == '/' )
+			i-- ;
 		if( i > 0 )
 		{
 			register char *try_path = path+max_path-i;
 			strncpy( try_path, ptr, i );
-			if (access(try_path, type) == 0)
+LOCAL_DEBUG_OUT( "errno = %d, file %s: checking path \"%s\"", errno, file, try_path );
+			if ( access(try_path, type) == 0 )
 			{
 				char* res = mystrdup(try_path);
 				free( path );
+LOCAL_DEBUG_OUT( " found at: \"%s\"", try_path );
 				return res;
 			}
+#ifdef LOCAL_DEBUG
+			else
+				show_system_error(" looking for file %s:", file );
+#endif
 		}
-		ptr += i ;
+		if( ptr[i] == '/' )
+			ptr += i+1 ;
+		else
+			ptr += i ;
 	}
 	free (path);
 	return NULL;

@@ -371,6 +371,19 @@ typedef struct ASImageDecoder
  * to be stored. Convenience functions listed below should be used to
  * safely alter state of the output instead of direct manipulation of
  * the data members. (makes you pity you don't write in C++ doesn't it ?)
+ *
+ * Also There is a trick in the way how output_image_scanline handles
+ * empty scanlines while writing ASImage. If back_color of empty scanline
+ * matches back_color of ASImageOutput - then particular line is erased!
+ * If back_colors are same - then particular line of ASImage gets filled
+ * with the back_color of ASScanline. First approach is usefull when
+ * resulting image will be used in subsequent call to merge_layers - in
+ * such case knowing back_color of image is good enough and we don't need
+ * to store lines with the same color. In case where ASImage will be
+ * converted into Pixmap/XImage - second approach is preferable, since
+ * that conversion does not take into consideration image's back color -
+ * we may want to change it in the future.
+ *
  * SEE ALSO
  * start_image_output()
  * set_image_output_back_color()
@@ -1244,7 +1257,7 @@ Pixmap   asimage2mask    (struct ASVisual *asv, Window root, ASImage *im, GC gc,
  * DESCRIPTION
  * mirror_asimage() will create new image of requested size, it will then
  * tile source image based on offset_x, offset_y, and destination size,
- * and it will mirror it in vertical or horizontal direction. 
+ * and it will mirror it in vertical or horizontal direction.
  *********/
 ASImage *scale_asimage( struct ASVisual *asv, ASImage *src,
 						unsigned int to_width, unsigned int to_height,
@@ -1272,9 +1285,12 @@ ASImage *mirror_asimage( ASVisual *asv, ASImage *src,
 				         int offset_x, int offset_y,
 						 unsigned int to_width,
 			             unsigned int to_height,
-			             Bool vertical, ASAltImFormats out_format, 
+			             Bool vertical, ASAltImFormats out_format,
 						 unsigned int compression_out, int quality );
 
+Bool fill_asimage( ASVisual *asv, ASImage *im,
+               	   int x, int y, int width, int height,
+				   ARGB32 color );
 
 
 #endif
