@@ -144,13 +144,22 @@ ASCanvas* create_ascanvas(Window w);
 ASCanvas*create_ascanvas_container (Window w);
 
 void destroy_ascanvas( ASCanvas **pcanvas );
-Bool handle_canvas_config( ASCanvas *canvas ); /* Returns True if moved/resized */
+#define CANVAS_X_CHANGED            (0x01<<0)
+#define CANVAS_Y_CHANGED            (0x01<<1)
+#define CANVAS_MOVED                (CANVAS_X_CHANGED|CANVAS_Y_CHANGED)
+#define CANVAS_WIDTH_CHANGED        (0x01<<2)
+#define CANVAS_HEIGHT_CHANGED       (0x01<<3)
+#define CANVAS_RESIZED              (CANVAS_WIDTH_CHANGED|CANVAS_HEIGHT_CHANGED)
+
+ASFlagType handle_canvas_config( ASCanvas *canvas ); /* Returns True if moved/resized */
 Pixmap get_canvas_canvas( ASCanvas *pc );
 Pixmap get_canvas_mask( ASCanvas *pc );
 Bool draw_canvas_image( ASCanvas *pc, struct ASImage *im, int x, int y );
 void update_canvas_display( ASCanvas *pc );
 void resize_canvas( ASCanvas *pc, unsigned int width, unsigned int height );
+void move_canvas (ASCanvas * pc, int x, int y);
 void moveresize_canvas (ASCanvas * pc, int x, int y, unsigned int width, unsigned int height);
+void map_canvas_window( ASCanvas *pc, Bool raised );
 void unmap_canvas_window( ASCanvas *pc );
 Bool is_canvas_dirty( ASCanvas *pc );
 

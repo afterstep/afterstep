@@ -31,6 +31,8 @@
 #define MAGIC_COMPLEX_FUNC      0x7A3CCF46
 #define MAGIC_ASMENU            0x7A3E78C1
 
+#define ASMENU_RES_CLASS        "ASMenu"
+
 #define MAGIC_MYLOOK_RES_BASE   0x7A311000
 #define MAGIC_MYSTYLE           (MAGIC_MYLOOK_RES_BASE+0)
 #define MAGIC_MYBACKGROUND      (MAGIC_MYLOOK_RES_BASE+1)
@@ -308,6 +310,30 @@ struct ASTBarData;
 #define AS_ICON_TITLE_STICKY_MYSTYLE	"ButtonTitleSticky"
 #define AS_ICON_TITLE_UNFOCUS_MYSTYLE	"ButtonTitleUnfocus"
 
+struct ASWindow;
+typedef struct ASInternalWindow
+{
+    ASMagic  *data;                             /* internal data structure */
+    struct ASWindow *owner;
+
+    void (*on_moveresize)( struct ASInternalWindow *asiw, Window w );
+    /* fwindow looses/gains focus : */
+    void (*on_hilite_changed)( struct ASInternalWindow *asiw, ASMagic *data, Bool focused );
+    /* ButtonPress/Release event on one of the contexts : */
+    void (*on_pressure_changed)( struct ASInternalWindow *asiw, int pressed_context );
+    /* Motion notify : */
+    void (*on_pointer_event)( struct ASInternalWindow *asiw, struct ASEvent *event );
+    /* KeyPress/Release : */
+    void (*on_keyboard_event)( struct ASInternalWindow *asiw, struct ASEvent *event );
+
+    /* reconfiguration : */
+    void (*on_look_feel_changed)( struct ASInternalWindow *asiw, struct ASFeel *feel, struct MyLook *look, ASFlagType what );
+    void (*on_root_background_changed)( struct ASInternalWindow *asiw );
+
+    /* destruction */
+    void (*destroy)( struct ASInternalWindow *asiw );
+
+}ASInternalWindow;
 
 /* for each window that is on the display, one of these structures
  * is allocated and linked into a list
@@ -395,20 +421,23 @@ typedef struct ASWindow
     struct ASTBarData *icon_button ;
 	struct ASTBarData *icon_title ;
 
-    int shading_steps;
+    int      shading_steps;
+
+    ASInternalWindow *internal ;               /* optional related data structure,
+                                                * such as ASMenu or something else */
 
 	/********************************************************************/
 	/* END of NEW ASWindow frame decorations                            */
 	/********************************************************************/
 #ifndef NO_SHAPE
-    int wShaped;		/* is this a shaped window */
+    int wShaped;        /* is this a shaped window   */
 #endif
-    int FocusDesk;      /* Where (if at all) was it focussed */
-    int DeIconifyDesk;		/* Desk to deiconify to, for StubbornIcons */
+    int FocusDesk;      /* Where (if at all) was it focussed       */
+    int DeIconifyDesk;  /* Desk to deiconify to, for StubbornIcons */
 
-    int orig_x;         /* unmaximized x coordinate */
-    int orig_y;			/* unmaximized y coordinate */
-    int orig_wd;		/* unmaximized window width */
+    int orig_x;         /* unmaximized x coordinate  */
+    int orig_y;         /* unmaximized y coordinate  */
+    int orig_wd;        /* unmaximized window width  */
     int orig_ht;		/* unmaximized window height */
 
 }ASWindow;
@@ -545,7 +574,10 @@ void change_aswindow_desktop( ASWindow *asw, int new_desk );
 void toggle_aswindow_status( ASWindow *asw, ASFlagType flags );
 
 void SelectDecor (ASWindow *);
-ASWindow *AddWindow (Window);
+ASWindow *AddWindow (Window w);
+ASWindow *AddInternalWindow (Window w,
+                             ASInternalWindow **pinternal,
+                             struct ASHints **phints, struct ASStatusHints *status);
 void Destroy (ASWindow *, Bool);
 void RestoreWithdrawnLocation (ASWindow *, Bool);
 void SetShape (ASWindow *, int);

@@ -280,10 +280,9 @@ void
 delist_aswindow( ASWindow *t )
 {
     ASLayer *l;
+    Bool skip_winlist;
     if( Scr.Windows == NULL )
         return ;
-
-    discard_bidirelem( Scr.Windows->clients, t );
 
     /* set desktop for window */
     if( t->w != Scr.Root )
@@ -307,8 +306,12 @@ delist_aswindow( ASWindow *t )
 		if( t->group_lead->group_members->used == 0 )
 			destroy_asvector( &(t->group_lead->group_members) );
     }
-    if (!get_flags(t->hints->flags, AS_SkipWinList))
+    skip_winlist = get_flags(t->hints->flags, AS_SkipWinList);
+    discard_bidirelem( Scr.Windows->clients, t );
+
+    if (!skip_winlist)
         update_windowList ();
+
 }
 
 void

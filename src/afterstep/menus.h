@@ -40,6 +40,7 @@ typedef struct MenuData
 typedef struct ASMenu
 {
     unsigned long magic ;
+    char  *name ;
     struct ASCanvas *main_canvas;
 
     unsigned int items_num ;
@@ -49,6 +50,8 @@ typedef struct ASMenu
     unsigned int top_item, selected_item ;
 
     unsigned int visible_items_num ;
+
+    unsigned int optimal_width, optimal_height;
 }ASMenu;
 
 /*************************************************************************/
@@ -95,5 +98,12 @@ void ParseKeyEntry (char *tline, FILE * fd, char **junk, int *junk2);
 
 MenuData *dirtree_make_menu2 (struct dirtree_t* tree, char* buf);
 MenuData *update_windowList (void);
+
+
+/*************************************************************************/
+/* menu execution code :                                                 */
+/*************************************************************************/
+void run_menu( const char *name );
+
 
 #endif /* _MENUS_ */

@@ -40,10 +40,10 @@ static GC     MaskGC = None;
 /********************************************************************/
 /* ASCanvas :                                                       */
 /********************************************************************/
-static Bool
+static ASFlagType
 refresh_canvas_config (ASCanvas * pc)
 {
-	Bool          changed = False;
+    ASFlagType          changed = 0;
 
 	if (pc && pc->w != None)
 	{
@@ -54,9 +54,18 @@ refresh_canvas_config (ASCanvas * pc)
 
 		XTranslateCoordinates (dpy, pc->w, Scr.Root, 0, 0, &root_x, &root_y, &wdumm);
 		XGetGeometry (dpy, pc->w, &wdumm, &x, &y, &width, &height, &udumm, &udumm);
-		changed = (root_x != pc->root_x || root_y != pc->root_y);
+        if(root_x != pc->root_x)
+            set_flags(changed, CANVAS_X_CHANGED);
+        if( root_y != pc->root_y);
+            set_flags(changed, CANVAS_Y_CHANGED);
 		pc->root_x = root_x;
 		pc->root_y = root_y;
+
+        if( width != pc->width )
+            set_flags(changed, CANVAS_WIDTH_CHANGED);
+        if( height != pc->height )
+            set_flags(changed, CANVAS_HEIGHT_CHANGED);
+
 		if (width != pc->width || height != pc->height)
 		{
 			changed = True;
@@ -169,10 +178,10 @@ destroy_ascanvas (ASCanvas ** pcanvas)
 	}
 }
 
-Bool
+ASFlagType
 handle_canvas_config (ASCanvas * canvas)
 {
-    Bool res = refresh_canvas_config (canvas);
+    ASFlagType res = refresh_canvas_config (canvas);
 LOCAL_DEBUG_CALLER_OUT( "canvas(%p)->window(%lx)->geom(%ux%u%+d%+d)", canvas, canvas->w, canvas->width, canvas->height, canvas->root_x, canvas->root_y );
     return res;
 }
@@ -334,10 +343,30 @@ LOCAL_DEBUG_CALLER_OUT( "canvas(%p)->window(%lx)->geom(%ux%u%+d%+d)", pc, pc->w,
 }
 
 void
+move_canvas (ASCanvas * pc, int x, int y)
+{
+LOCAL_DEBUG_CALLER_OUT( "canvas(%p)->window(%lx)->geom(%+d%+d)", pc, pc->w, x, y );
+    XMoveWindow (dpy, pc->w, x, y);
+}
+
+
+void
 unmap_canvas_window( ASCanvas *pc )
 {
     if( pc && pc->w != None )
         XUnmapWindow( dpy, pc->w );
+}
+
+void
+map_canvas_window( ASCanvas *pc, Bool raised )
+{
+    if( pc && pc->w != None )
+    {
+        if( raised )
+            XMapRaised( dpy, pc->w );
+        else
+            XMapWindow( dpy, pc->w );
+    }
 }
 
 /********************************************************************/

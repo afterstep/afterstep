@@ -226,6 +226,10 @@ Bool update_property_hints( Window w, Atom property, ASHints *hints, ASStatusHin
 Bool update_property_hints_manager( Window w, Atom property, ASSupportedHints *list,
                                     ASHints *hints, ASStatusHints *status );
 
+void check_status_sanity (struct ScreenInfo * scr, ASStatusHints * status);
+void check_hints_sanity (struct ScreenInfo * scr, ASHints * clean);
+
+
 void destroy_hints( ASHints *clean, Bool reusable );
 Bool compare_names( ASHints *old, ASHints *hints );
 ASFlagType compare_hints( ASHints *old, ASHints *hints );

@@ -1076,6 +1076,9 @@ update_window_frame_moved( ASWindow *asw, ASOrientation *od )
 {
     int i ;
     handle_canvas_config (asw->client_canvas);
+    if( asw->internal && asw->internal->on_moveresize )
+        asw->internal->on_moveresize( asw->internal, None );
+
     for( i = 0 ; i < FRAME_SIDES ; ++i )
         if( asw->frame_sides[i] )
         {   /* canvas has beer resized - resize tbars!!! */
@@ -1107,6 +1110,8 @@ LOCAL_DEBUG_CALLER_OUT( "(%p,%lx,asw->w=%lx,%ux%u%+d%+d)", asw, w, asw->w, width
     if( w == asw->w )
     {  /* simply update client's size and position */
         handle_canvas_config (asw->client_canvas);
+        if( asw->internal && asw->internal->on_moveresize )
+            asw->internal->on_moveresize( asw->internal, w );
     }else if( w == asw->frame )
     {/* resize canvases here :*/
         Bool resized = (width != asw->frame_canvas->width || height != asw->frame_canvas->height);
@@ -1167,6 +1172,7 @@ LOCAL_DEBUG_CALLER_OUT( "(%p,%lx,asw->w=%lx,%ux%u%+d%+d)", asw, w, asw->w, width
         }
     }else  /* one of the frame canvases :*/
     {
+        Bool found = False;
         for( i = 0 ; i < FRAME_SIDES ; ++i )
             if( asw->frame_sides[i] && asw->frame_sides[i]->w == w )
             {   /* canvas has beer resized - resize tbars!!! */
@@ -1178,8 +1184,13 @@ LOCAL_DEBUG_CALLER_OUT( "(%p,%lx,asw->w=%lx,%ux%u%+d%+d)", asw, w, asw->w, width
                         canvas_moved )  /* now we need to show them on screen !!!! */
                         update_canvas_display( asw->frame_sides[i] );
                 }
+                found = True;
                 break;
             }
+        if( !found )
+            if( asw->internal && asw->internal->on_moveresize )
+                asw->internal->on_moveresize( asw->internal, w );
+
         ASSync(False);
     }
 }
@@ -2110,9 +2121,6 @@ AddWindow (Window w)
 	tmp_win = safecalloc (1, sizeof (ASWindow));
     init_aswindow( tmp_win, False );
 
-//    init_titlebar_windows (tmp_win, False);
-//    init_titlebutton_windows (tmp_win, False);
-
     tmp_win->w = w;
     if (validate_drawable(w, NULL, NULL) == None)
 	{
@@ -2148,8 +2156,6 @@ AddWindow (Window w)
 		return (NULL);
 	}
 
-/*  fprintf( stderr, "[%s]: %dx%d%+d%+d\n", tmp_win->name, JunkWidth, JunkHeight, JunkX, JunkY );
-*/
 #ifdef SHAPE
 	{
 		int           xws, yws, xbs, ybs;
@@ -2172,20 +2178,6 @@ AddWindow (Window w)
 		return NULL;
 	}
 
-#if 0
-    /* Old stuff - needs to be updated to use tmp_win->hints :*/
-    /* size and place the window */
-	set_titlebar_geometry (tmp_win);
-	get_frame_geometry (tmp_win, tmp_win->attr.x, tmp_win->attr.y, tmp_win->attr.width,
-						tmp_win->attr.height, NULL, NULL, &tmp_win->frame_width,
-						&tmp_win->frame_height);
-	ConstrainSize (tmp_win, &tmp_win->frame_width, &tmp_win->frame_height);
-
-	get_frame_geometry (tmp_win, tmp_win->attr.x, tmp_win->attr.y, tmp_win->attr.width,
-						tmp_win->attr.height, &tmp_win->frame_x, &tmp_win->frame_y,
-						&tmp_win->frame_width, &tmp_win->frame_height);
-
-#endif
     /*
 	 * Make sure the client window still exists.  We don't want to leave an
 	 * orphan frame window if it doesn't.  Since we now have the server
@@ -2243,12 +2235,102 @@ AddWindow (Window w)
 	return (tmp_win);
 }
 
+/* hints gets swallowed, but status does not : */
+/* w must be unmapped !!!! */
+ASWindow*
+AddInternalWindow (Window w, ASInternalWindow **pinternal, ASHints **phints, ASStatusHints *status)
+{
+	ASWindow     *tmp_win;					   /* new afterstep window structure */
+    ASHints      *hints = *phints ;
+
+	/* allocate space for the afterstep window */
+	tmp_win = safecalloc (1, sizeof (ASWindow));
+    init_aswindow( tmp_win, False );
+
+    tmp_win->w = w;
+    if (validate_drawable(w, NULL, NULL) == None)
+	{
+		free ((char *)tmp_win);
+		return (NULL);
+	}
+
+    tmp_win->internal = *pinternal ;
+    *pinternal = NULL ;
+
+    if( hints )
+    {
+        show_debug( __FILE__, __FUNCTION__, __LINE__,  "Window management hints supplied for window %X", w );
+        if( is_output_level_under_threshold(OUTPUT_LEVEL_HINTS) )
+        {
+            print_clean_hints( NULL, NULL, hints );
+            print_status_hints( NULL, NULL, status );
+        }
+    }
+    tmp_win->hints = hints ;
+    *phints = NULL ;
+
+    SelectDecor (tmp_win);
+
+    if( !init_aswindow_status( tmp_win, status ) )
+	{
+		Destroy (tmp_win, False);
+		return NULL;
+	}
+
+    XGrabServer (dpy);
+    XSetWindowBorderWidth (dpy, tmp_win->w, 0);
+
+	/* add the window into the afterstep list */
+    enlist_aswindow( tmp_win );
+
+    redecorate_window       ( tmp_win, False );
+
+    /* internal windows must not be mapped prior to getting here ! */
+    XMapWindow( dpy, w );
+
+    on_window_title_changed ( tmp_win, False );
+    on_window_status_changed( tmp_win, False, True );
+
+    /*
+	 * Reparenting generates an UnmapNotify event, followed by a MapNotify.
+	 * Set the map state to FALSE to prevent a transition back to
+	 * WithdrawnState in HandleUnmapNotify.  Map state gets set correctly
+	 * again in HandleMapNotify.
+     */
+    RaiseWindow (tmp_win);
+	XUngrabServer (dpy);
+
+    broadcast_config (M_ADD_WINDOW, tmp_win);
+
+    broadcast_window_name( tmp_win );
+    broadcast_res_names( tmp_win );
+    broadcast_icon_name( tmp_win );
+
+#if 0
+/* TODO : */
+	if (NeedToResizeToo)
+	{
+		XWarpPointer (dpy, Scr.Root, Scr.Root, 0, 0, Scr.MyDisplayWidth,
+					  Scr.MyDisplayHeight,
+					  tmp_win->frame_x + (tmp_win->frame_width >> 1),
+					  tmp_win->frame_y + (tmp_win->frame_height >> 1));
+		resize_window (tmp_win->w, tmp_win, 0, 0, 0, 0);
+	}
+#endif
+
+    if (!ASWIN_HFLAGS(tmp_win, AS_SkipWinList))
+		update_windowList ();
+
+	return (tmp_win);
+}
+
 /***************************************************************************
  * Handles destruction of a window
  ****************************************************************************/
 void
 Destroy (ASWindow *asw, Bool kill_client)
 {
+    static int nested_level = 0 ;
     /*
 	 * Warning, this is also called by HandleUnmapNotify; if it ever needs to
 	 * look at the event, HandleUnmapNotify will have to mash the UnmapNotify
@@ -2256,6 +2338,11 @@ Destroy (ASWindow *asw, Bool kill_client)
 	 */
     if (AS_ASSERT(asw))
 		return;
+
+    /* we could be recursively called from delist_aswindow call - trying to prevent that : */
+    if( nested_level > 0 )
+        return;
+    ++nested_level ;
 
     XUnmapWindow (dpy, asw->frame);
     XRemoveFromSaveSet (dpy, asw->w);
@@ -2285,6 +2372,8 @@ Destroy (ASWindow *asw, Bool kill_client)
     free (asw);
 
 	XSync (dpy, 0);
+    --nested_level ;
+
 	return;
 }
 

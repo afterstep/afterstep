@@ -950,6 +950,7 @@ void killmodule_func_handler( FunctionData *data, ASEvent *event, int module )
 
 void popup_func_handler( FunctionData *data, ASEvent *event, int module )
 {
+    run_menu( data->name );
     /* TODO : implement menus : */
 }
 
