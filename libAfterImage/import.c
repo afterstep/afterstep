@@ -42,6 +42,7 @@
 #include "../include/afterstep.h"
 #include "../include/screen.h"
 #include "../include/asimage.h"
+#include "../include/xcf.h"
 #include "../include/ashash.h"
 #include "../include/asimage.h"
 #include "../include/parse.h"
@@ -833,7 +834,12 @@ jpeg2ASImage( const char * path, ASFlagType *what )
 
 /***********************************************************************************/
 /* XCF - GIMP's native file format : 											   */
-#if 0                                          /* TODO: XCF work in progress */
+
+XcfImage   *read_xcf_image( FILE *fp );
+void 		print_xcf_image( XcfImage *xcf_im );
+void		free_xcf_image( XcfImage *xcf_im );
+
+
 ASImage *
 xcf2ASImage( const char * path, ASFlagType *what )
 {
@@ -848,6 +854,7 @@ xcf2ASImage( const char * path, ASFlagType *what )
 #endif
 	ASScanline    buf;
 	int y;
+	XcfImage  *xcf_im;
 
 	/* we want to open the input file before doing anything else,
 	 * so that the setjmp() error recovery below can assume the file is open.
@@ -862,16 +869,25 @@ xcf2ASImage( const char * path, ASFlagType *what )
 		fprintf (stderr, "can't open image file \"%s\"\n", path);
 		return NULL;
 	}
-	LOCAL_DEBUG_OUT("stored image size %dx%d", width,  height);
+
+	xcf_im = read_xcf_image( infile );
+	fclose( infile );
+
+	if( xcf_im == NULL )
+		return NULL;
+
+	LOCAL_DEBUG_OUT("stored image size %ldx%ld", xcf_im->width,  xcf_im->height);
+	print_xcf_image( xcf_im );
 
 	im = safecalloc( 1, sizeof( ASImage ) );
-	asimage_start( im, width,  height );
+	asimage_start( im, xcf_im->width,  xcf_im->height );
 	prepare_scanline( im->width, 0, &buf, False );
 
 	/* Make a one-row-high sample array that will go away when done with image */
 #ifdef DO_CLOCKING
 		printf (" loading initialization time (clocks): %lu\n", clock () - started);
 #endif
+#if 0
 	y = -1 ;
 	/*cinfo.output_scanline*/
 	while ( ++y < height )
@@ -919,15 +935,15 @@ xcf2ASImage( const char * path, ASFlagType *what )
 		asimage_add_line (im, IC_GREEN, buf.green, y);
 		asimage_add_line (im, IC_BLUE,  buf.blue , y);
 	}
-	free_scanline(&buf, True);
-#ifdef DO_CLOCKING
-		printf ("\n read time (clocks): %lu\n", clock () - started);
 #endif
-	fclose (infile);
+
+	free_scanline(&buf, True);
+	free_xcf_image(xcf_im);
+
 #ifdef DO_CLOCKING
+	printf ("\n read time (clocks): %lu\n", clock () - started);
 	printf ("\n image loading time (clocks): %lu\n", clock () - started);
 #endif
 	return im ;
 }
-#endif
 

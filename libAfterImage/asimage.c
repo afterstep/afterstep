@@ -451,7 +451,8 @@ asimage_print_line (ASImage * im, ColorPart color, unsigned int y, unsigned long
 	ptr = color_ptr[y];
 	if( ptr == NULL )
 	{
-		show_error( "no data available for line %d", y );
+		if(  verbosity != 0 )
+			show_error( "no data available for line %d", y );
 		return 0;
 	}
 	while (*ptr != RLE_EOL)
@@ -514,7 +515,12 @@ asimage_decode_line (ASImage * im, ColorPart color, CARD32 * to_buf, unsigned in
 	register CARD32 *dst = to_buf;
 	/* that thing below is supposedly highly optimized : */
 	if( src == NULL )
-		return 0;
+	{                                          /* zero filling output : */
+		register int i;
+		for( i = 0 ; i < im->width ; i++ )
+			to_buf[i] = 0 ;
+		return im->width;
+	}
 	while ( *src != RLE_EOL)
 	{
 		if( src[0] == RLE_DIRECT_TAIL )
@@ -1069,17 +1075,17 @@ component_interpolation_hardcoded( CARD32 *c1, CARD32 *c2, CARD32 *c3, CARD32 *c
 	{
 		for( i = 0 ; i < len ; i++ )
 		{
-#if 1       
-			/* its seems that this simple formula is completely sufficient 
+#if 1
+			/* its seems that this simple formula is completely sufficient
 			   and even better then more complicated one : */
 			T[i] = (c2[i]+c3[i])>>1 ;
 #else
     		register int minus = c1[i]+c4[i] ;
 			register int plus  = (c2[i]<<1)+c2[i]+(c3[i]<<1)+c3[i];
-					
+
 			T[i] = ( (plus>>1) < minus )?(c2[i]+c3[i])>>1 :
-								   		 (plus-minus)>>2; 
-#endif									
+								   		 (plus-minus)>>2;
+#endif
 		}
 	}else if( kind == 2 )
 	{
