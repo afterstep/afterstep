@@ -1,6 +1,6 @@
 ##########################################################################
-#------------------------------------------------------------------------
 # Windows behaviour
+##########################################################################
 #
 # Alt-tab between windows, similar to Windows9x.  For instance:
 #  AutoReverse 0: default switching among the windows in one direction
@@ -77,7 +77,7 @@ EdgeResistance 800 4
 
 ###########################################################################
 # Initial Placement of the windows
-##############
+###########################################################################
 # Old style (simplified) settings :
 
 # Place window in empty zones
@@ -146,10 +146,9 @@ AnimateDeskChange
 CoverAnimationSteps	12
 CoverAnimationType	10
 
-
-##########################################################################
 ##########################################################################
 # Cursor
+##########################################################################
 #
 # Cursor THISTYPE THISCURSOR where type is :
 #
@@ -191,15 +190,10 @@ Cursor 14 136
 Cursor 15 12
 Cursor 16 14
 
-#
-##########################################################################
-
 ##########################################################################
 # Functions
-#
-
+##########################################################################
 # Used to move icons on desktop
-
 Function "Move-or-Top"
         Move            "Motion"
         RaiseLower      "Click"
@@ -213,14 +207,12 @@ Function "Move-or-Normal"
 EndFunction
 
 # Used to move windows on desktop
-
 Function "Move-or-Iconify"
         Move            "Motion"
         Iconify         "Click"
 EndFunction
 
 # Window operations
-
 Popup "Window"
         Title           "This window :"
 	TakeScreenShot  "Take a shot of entire screen"
@@ -256,8 +248,6 @@ Popup "Window"
         Refresh         "Redraw"
  MiniPixmap "mini-recycler.xpm"
 EndPopup
-#
-##########################################################################
 
 ##########################################################################
 # Key binding :
@@ -372,7 +362,6 @@ Key F2          A       C        Desk 0 1
 Key F3          A       C        Desk 0 2
 Key F4          A       C        Desk 0 3
 
-
 # For asforms & menus : Ctrl-Shift-Fx =
 Key F1          A       SC      Module "Help" Form HELPForm
 Key F1          A       SC      GetHelp
@@ -428,6 +417,25 @@ Key Pause       A       A       Exec "xlock" exec xlock -mode random
 #Key Pause       A       A       Exec "xscreensaver" exec xscreensaver-command -lock
 Key Sys_Req     A       A       GetHelp
 #Key Scroll_Lock A       A       Desk 0
-#
-############################################################################
+
+################################################################################
+# Term keybindings
+################################################################################
+# One should note that it is the "asterisk key" that is bound, not the "* key".
+# To get the keymap table : $ xmodmap -pke
+# Binding the asterisk key + Ctrl to display a term window
+Key asterisk    A       C       Exec "aterm" exec aterm
+#Key asterisk    A       C       Exec "rxvt" exec rxvt
+
+################################################################################
+# XMMS keybindings
+################################################################################
+# ugrave is for the french key with the "%" sign on it
+#Key ugrave      A       CS      Exec "-" xmms
+# Start playing current playlist or play the current track from the beginning
+#Key p           A       CS      Exec "-" xmms --play
+# Toggle : Pause if playing, play otherwise
+#Key t           A       CS      Exec "-" xmms --play-pause
+#Key b           A       CS      Exec "-" xmms --rew
+#Key f           A       CS      Exec "-" xmms --fwd
 
