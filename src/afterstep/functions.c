@@ -812,10 +812,13 @@ void close_func_handler( FunctionData *data, ASEvent *event, int module )
 {
 	Window w = event->client->w ;
 
+    LOCAL_DEBUG_OUT( "window(0x%lX)->protocols(0x%lX)", w, event->client->hints->protocols );
 	if ( get_flags(event->client->hints->protocols, AS_DoesWmDeleteWindow) &&
 		 data->func != F_DESTROY)
+    {
+        LOCAL_DEBUG_OUT( "sending delete window request to 0x%lX", w );
 		send_wm_protocol_request(w, _XA_WM_DELETE_WINDOW, CurrentTime);
-	else
+    }else
 	{
         if( event->client->internal != NULL || validate_drawable(w, NULL, NULL) == None)
             Destroy (event->client, True);

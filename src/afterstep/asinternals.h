@@ -292,5 +292,7 @@ void HandlePaging (int HorWarpSize, int VertWarpSize, int *xl,
                    int *yt, int *delta_x, int *delta_y, Bool Grab, struct ASEvent *event);
 void ChangeDesks (int new_desk);
 void change_desktop_background( int desk, int old_desk );
+void HandleBackgroundRequest( struct ASEvent *event );
+
 
 #endif /* ASINTERNALS_H_HEADER_INCLUDED */

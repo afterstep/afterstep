@@ -17,6 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+/*#define LOCAL_DEBUG */
 #include "config.h"
 
 #include <stdio.h>
@@ -25,7 +26,6 @@
 #include <ctype.h>
 #include <stdarg.h>
 
-/*#define LOCAL_DEBUG*/
 
 #include "astypes.h"
 #include "output.h"
@@ -61,7 +61,8 @@ intern_atom_list (AtomXref * list)
 			res = (XInternAtoms (dpy, names, nitems, False, atoms) != 0);
 			for (i = 0; i < nitems; i++)
 			{
-				list[i].atom = atoms[i];
+                LOCAL_DEBUG_OUT( "Atom \"%s\" interned as 0x%lX", list[i].name, atoms[i] );
+                list[i].atom = atoms[i];
 				*(list[i].variable) = atoms[i];
 			}
 			free (atoms);
@@ -121,7 +122,8 @@ encode_atom_list ( AtomXref * xref, Atom **list, long *nitems, ASFlagType flags)
 		    for( i = 0 ; xref[i].name ; i++ )
 				if( get_flags(flags, xref[i].flag) )
 				{
-					(*list)[k] = xref[i].atom;
+                    LOCAL_DEBUG_OUT( "flag %lX encoded as atom \"%s\"(0x%lX)", xref[i].flag, XGetAtomName(dpy,xref[i].atom), xref[i].atom );
+                    (*list)[k] = xref[i].atom;
 					k++;
 				}
 		}
@@ -170,7 +172,6 @@ read_32bit_proplist (Window w, Atom property, long estimate, CARD32 ** list, lon
 			*list = NULL;
 		}else
 			*nitems = unitems ;
-LOCAL_DEBUG_CALLER_OUT("*list == %p", *list );
 	}
 #endif
 	return res;
@@ -427,7 +428,7 @@ set_32bit_proplist (Window w, Atom property, Atom type, CARD32 * list, long nite
         if( nitems > 0 )
         {
             XChangeProperty (dpy, w, property, type?type:XA_CARDINAL, 32,
-                             PropModeReplace, (unsigned char *)&list, nitems);
+                             PropModeReplace, (unsigned char *)list, nitems);
         }else
         {
             XChangeProperty (dpy, w, property,
@@ -443,7 +444,7 @@ set_string_property (Window w, Atom property, char *data)
 #ifndef X_DISPLAY_MISSING
     if (w != None && property != None && data)
 	{
-LOCAL_DEBUG_OUT( "setting property %X on %X to \"%s\"", property, w, data );
+LOCAL_DEBUG_OUT( "setting property %lX on %lX to \"%s\"", property, w, data );
         XChangeProperty (dpy, w, property, XA_STRING, 8,
                          PropModeReplace, (unsigned char *)data, strlen (data));
     }

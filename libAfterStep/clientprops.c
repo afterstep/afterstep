@@ -17,6 +17,7 @@
  *
  */
 
+/*#define LOCAL_DEBUG */
 #include "../configure.h"
 
 #include "../include/asapp.h"
@@ -337,6 +338,7 @@ read_wm_transient_for (ASRawHints * hints, Window w)
 void
 read_wm_protocols (ASRawHints * hints, Window w)
 {
+    LOCAL_DEBUG_CALLER_OUT( "window(%lX)", w );
 	if (hints && w != None)
 	{
 		Atom         *protocols;
@@ -345,7 +347,9 @@ read_wm_protocols (ASRawHints * hints, Window w)
 		hints->wm_protocols = 0;
 		if (read_32bit_proplist (w, _XA_WM_PROTOCOLS, 3, &protocols, &nprotos))
 		{
+            LOCAL_DEBUG_OUT( "nprotos=%ld, protocols[0] = 0x%lX(\"%s\")", nprotos, protocols[0], XGetAtomName(dpy, protocols[0]));
 			translate_atom_list (&(hints->wm_protocols), WM_Protocols, protocols, nprotos);
+            LOCAL_DEBUG_OUT( "translated protocols =0x%lX", hints->wm_protocols );
 			XFree (protocols);
 		}
 	}
@@ -1265,13 +1269,15 @@ set_client_names (Window w, char *name, char *icon_name, char *res_class, char *
 void
 set_client_protocols (Window w, ASFlagType protocols)
 {
-	if (w && protocols)
+LOCAL_DEBUG_OUT( "protocols=0x%lX", protocols );
+    if (w && protocols)
 	{
 		Atom         *list;
 		long          nitems;
 
 		encode_atom_list (&(WM_Protocols[0]), &list, &nitems, protocols);
-		if (nitems > 0)
+        LOCAL_DEBUG_OUT( "nitems=%ld", nitems );
+        if (nitems > 0)
 		{
 			set_32bit_proplist (w, _XA_WM_PROTOCOLS, XA_ATOM, list, nitems);
 			free (list);
@@ -1358,5 +1364,5 @@ send_wm_protocol_request (Window w, Atom request, Time timestamp)
 	ev.format = 32;
 	ev.data.l[0] = request;
 	ev.data.l[1] = timestamp;
-	XSendEvent (dpy, w, False, 0L, (XEvent *) & ev);
+    XSendEvent (dpy, w, False, 0, (XEvent *) & ev);
 }

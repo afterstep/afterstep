@@ -568,34 +568,11 @@ void release_old_background( int desk )
         safe_asimage_destroy( im );
 }
 
-void
-change_desktop_background( int desk, int old_desk )
+ASImage*
+make_desktop_image( int desk, MyBackground *new_back )
 {
-    MyBackground *new_back = mylook_get_desk_back( &(Scr.Look), desk );
-    MyBackground *old_back = mylook_get_desk_back( &(Scr.Look), old_desk );
-    char *new_imname ;
-    ASImage *new_im = NULL ;
-LOCAL_DEBUG_CALLER_OUT( "desk(%d)->old_desk(%d)->new_back(%p)->old_back(%p)", desk, old_desk, new_back, old_back );
-    if( new_back == NULL )
-        return ;
-
-    if( new_back == old_back &&
-        desk != old_desk ) /* if desks are the same then we are reloading current background !!! */
-        return;
-
-    release_old_background( old_desk );
-
-    if( Scr.RootBackground == NULL )
-        Scr.RootBackground = safecalloc( 1, sizeof(ASBackgroundHandler));
-    else
-    {                                          /* do cleanup - kill command maybe */
-        if( Scr.RootBackground->cmd_pid )
-            check_singleton_child (BACKGROUND_SINGLETON_ID, True);
-        Scr.RootBackground->cmd_pid = 0;
-        Scr.RootBackground->im = NULL ;
-    }
-
-    new_imname = make_myback_image_name( &(Scr.Look), new_back->name );
+    ASImage *new_im = NULL;
+    char *new_imname = make_myback_image_name( &(Scr.Look), new_back->name );
     if( new_back->type == MB_BackImage )
     {
         if( (new_im = fetch_asimage( Scr.image_manager, new_imname )) == NULL )
@@ -635,17 +612,56 @@ LOCAL_DEBUG_CALLER_OUT( "desk(%d)->old_desk(%d)->new_back(%p)->old_back(%p)", de
             destroy_asimage( &(Scr.RootImage) );
             Scr.RootImage = old_root;
         }
-    }else
+    }
+#ifdef LOCAL_DEBUG
+    if( new_im )
+        LOCAL_DEBUG_OUT( "im(%p)->ref_count(%d)->name(\"%s\")", new_im, new_im->ref_count, new_im->name );
+#endif
+    return new_im;
+}
+
+void
+change_desktop_background( int desk, int old_desk )
+{
+    MyBackground *new_back = mylook_get_desk_back( &(Scr.Look), desk );
+    MyBackground *old_back = mylook_get_desk_back( &(Scr.Look), old_desk );
+    ASImage *new_im = NULL ;
+LOCAL_DEBUG_CALLER_OUT( "desk(%d)->old_desk(%d)->new_back(%p)->old_back(%p)", desk, old_desk, new_back, old_back );
+    if( new_back == NULL )
+        return ;
+
+    if( new_back == old_back &&
+        desk != old_desk ) /* if desks are the same then we are reloading current background !!! */
+        return;
+
+    release_old_background( old_desk );
+
+    if( Scr.RootBackground == NULL )
+        Scr.RootBackground = safecalloc( 1, sizeof(ASBackgroundHandler));
+    else
+    {                                          /* do cleanup - kill command maybe */
+        if( Scr.RootBackground->cmd_pid )
+            check_singleton_child (BACKGROUND_SINGLETON_ID, True);
+        Scr.RootBackground->cmd_pid = 0;
+        Scr.RootBackground->im = NULL ;
+    }
+
+    if( new_back->type == MB_BackCmd )
     {                                          /* run command */
         Scr.RootBackground->cmd_pid = spawn_child( XIMAGELOADER, BACKGROUND_SINGLETON_ID, Scr.screen, None, C_NO_CONTEXT, True, False, new_back->data, NULL );
-    }
+    }else
+        new_im = make_desktop_image( desk, new_back );
+
     LOCAL_DEBUG_OUT( "im(%p)", new_im );
     if( new_im )
     {
         ASBackgroundHandler *bh = Scr.RootBackground ;
         /* Scr.RootImage = new_im ; */         /* will be done in event handler !!! */
         if( new_im->name == NULL )
+        {
+            char *new_imname = make_myback_image_name( &(Scr.Look), new_back->name );
             store_asimage( Scr.image_manager, new_im, new_imname );
+        }
         if( bh->pmap && (new_im->width != bh->pmap_width ||
             new_im->height != bh->pmap_height) )
         {
@@ -668,3 +684,131 @@ LOCAL_DEBUG_CALLER_OUT( "desk(%d)->old_desk(%d)->new_back(%p)->old_back(%p)", de
     }else
         set_xrootpmap_id (Scr.wmprops, None );
 }
+
+/*************************************************************************
+ * Client access to the root background for different desktops :
+ *
+ * Client should send the ClientMessage to the Root window
+ *      window        = client's window
+ *      message_type  = _AS_BACKGROUND
+ *      format        = 16
+ *          data.s[0]   = desktop number
+ *          data.s[1]   = clip_x
+ *          data.s[2]   = clip_y
+ *          data.s[3]   = clip_width
+ *          data.s[4]   = clip_height
+ *          data.s[5]   = flags
+ *          data.s[6]   = red tint
+ *          data.s[7]   = green tint
+ *          data.s[8]   = blue tint
+ * When target Pixmap has been populated with required background
+ * AfterStep will send the ClientMessage event back to client's window.
+ * Contents of the message should be as follows :
+ *      window        = root window
+ *      message_type  = _AS_BACKGROUND
+ *      format        = 32
+ *          data.l[0]   = desktop number
+ *          data.l[1]   = result pixmap
+ *
+ * In case AfterStep fails to generate required image it will still send the
+ * ClientMessage with all the data set to 0
+ *
+ * It is the responcibility of the client to create and destroy the
+ * target Pixmap.
+ *************************************************************************/
+void
+SendBackgroundReplay( ASEvent *src, Pixmap pmap )
+{
+    XClientMessageEvent *xcli = &(src->x.xclient) ;
+    Window w = xcli->window;
+    int desk = xcli->data.s[0];
+
+    xcli->data.l[0] = desk ;
+    xcli->data.l[1] = pmap ;
+    xcli->data.l[2] = 0 ;
+    xcli->data.l[3] = 0 ;
+    xcli->data.l[4] = 0 ;
+    xcli->window = Scr.Root ;
+    xcli->format = 32 ;
+    XSendEvent( dpy, w, False, 0, &(src->x) );
+}
+
+void
+HandleBackgroundRequest( ASEvent *event )
+{
+    XClientMessageEvent *xcli = &(event->x.xclient) ;
+    Pixmap  p           = None ;
+    int     desk        = xcli->data.s[0] ;
+    int     clip_x      = xcli->data.s[1] ;
+    int     clip_y      = xcli->data.s[2] ;
+    int     clip_width  = xcli->data.s[3] ;
+    int     clip_height = xcli->data.s[4] ;
+    Bool    flags       = xcli->data.s[5] ;
+    ARGB32  tint        = MAKE_ARGB32(0,xcli->data.s[6],xcli->data.s[7],xcli->data.s[8]) ;
+    ASImage *im ;
+    MyBackground *back = mylook_get_desk_back( &(Scr.Look), desk );
+    Bool res = False;
+    Bool do_tint = True ;
+
+    if( xcli->data.s[6] == xcli->data.s[7] == xcli->data.s[8] )
+        do_tint = !(xcli->data.s[6] == 0 || xcli->data.s[6] == 0x7F );
+
+    LOCAL_DEBUG_OUT("pmap(%lX)->clip_pos(%+d%+d)->clip_size(%dx%d)->scale(%d)->tint(%lX)->window(%lX)", p, clip_x, clip_y, clip_width, clip_height, flags, tint, event->x.xclient.window );
+
+    if( clip_width > 0 && clip_height > 0 && back != NULL && back->type != MB_BackCmd )
+    {
+        if( (im = make_desktop_image( desk, back )) != NULL )
+        {
+            p = create_visual_pixmap( Scr.asv, Scr.Root, clip_width, clip_height, 0 );
+            if( p )
+            {
+                ASImage *tmp_im ;
+                int tmp_w = clip_width ;
+                int tmp_h = clip_height ;
+                if( get_flags(flags, 0x01) )
+                {
+                    if( clip_width < im->width )
+                        tmp_w = im->width ;
+                    if( clip_height < im->height )
+                        tmp_h = im->height ;
+                }
+                if( get_flags(flags, 0x02) )
+                {
+                    if( clip_width > im->width )
+                        tmp_w = im->width ;
+                    if( clip_height > im->height )
+                        tmp_h = im->height ;
+                }
+
+                if( clip_x != 0 || clip_y != 0 || tmp_w != im->width || tmp_h != im->height || do_tint )
+                {
+                    tmp_im = tile_asimage( Scr.asv, im, clip_x, clip_y, tmp_w, tmp_h, tint, (tmp_w != im->width || tmp_h != im->height)?ASA_ASImage:ASA_XImage, ASIMAGE_QUALITY_DEFAULT, 0 );
+                    if( tmp_im != NULL )
+                    {
+                        safe_asimage_destroy( im );
+                        im = tmp_im ;
+                    }
+                }
+                if( im->width != clip_width || im->height != clip_height )
+                {
+                    tmp_im = scale_asimage( Scr.asv, im, clip_width, clip_height, ASA_XImage, ASIMAGE_QUALITY_DEFAULT, 0 );
+                    if( tmp_im != NULL )
+                    {
+                        safe_asimage_destroy( im );
+                        im = tmp_im ;
+                    }
+                }
+                if( asimage2drawable( Scr.asv, p, im, NULL, 0, 0, 0, 0, clip_width, clip_height, True) )
+                    res = True ;
+                else
+                {
+                    XFreePixmap( dpy, p );
+                    p = None ;
+                }
+            }
+            safe_asimage_destroy( im );
+        }
+    }
+    SendBackgroundReplay( event, p );
+}
+

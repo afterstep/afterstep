@@ -785,6 +785,8 @@ HandlePropertyNotify (ASEvent *event)
 void
 HandleClientMessage (ASEvent *event)
 {
+    LOCAL_DEBUG_OUT("ClientMessage(\"%s\")", XGetAtomName( dpy, event->x.xclient.message_type ));
+
     if ((event->x.xclient.message_type == _XA_WM_CHANGE_STATE) &&
         (event->client) &&
         (event->x.xclient.data.l[0] == IconicState) &&
@@ -802,7 +804,10 @@ HandleClientMessage (ASEvent *event)
             XSendEvent (dpy, event->client->w, True, NoEventMask, &(event->x));
 		}
 #endif
-	}
+    }else if( event->x.xclient.message_type == _AS_BACKGROUND )
+    {
+        HandleBackgroundRequest( event );
+    }
 }
 
 /***********************************************************************

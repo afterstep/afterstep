@@ -53,10 +53,12 @@
 #include "../../include/aswindata.h"
 #include "../../include/decor.h"
 #include "../../include/event.h"
+#include "../../include/wmprops.h"
 
 typedef struct ASPagerDesk {
 
-#define ASP_DeskShaded      (0x01<<0)
+#define ASP_DeskShaded          (0x01<<0)
+#define ASP_UseRootBackground   (0x01<<1)
 
     ASFlagType flags ;
     int desk ;
@@ -69,6 +71,8 @@ typedef struct ASPagerDesk {
 
     ASWindowData **clients ;
     unsigned int   clients_num ;
+
+    ASImage *back ;
 }ASPagerDesk;
 
 typedef struct ASPagerState
@@ -942,6 +946,8 @@ redecorate_pager_desks()
             d->background = create_astbar();
         set_astbar_style_ptr( d->background, BAR_STATE_FOCUSED, Config->MSDeskBack[i] );
         set_astbar_style_ptr( d->background, BAR_STATE_UNFOCUSED, Config->MSDeskBack[i] );
+        if( Config->styles[i] == NULL )
+            set_flags( d->flags, ASP_UseRootBackground );
 
         if( d->separator_bars )
         {
@@ -1366,6 +1372,40 @@ change_desk_stacking( int desk, unsigned int clients_num, Window *clients )
     restack_desk_windows( d );
 }
 
+void
+set_desktop_pixmap( int desk, Pixmap pmap )
+{
+    ASPagerDesk *d = get_pager_desk( desk );
+    int width, height;
+
+    if( !get_drawable_size( pmap, &width, &height ) )
+        pmap = None ;
+    LOCAL_DEBUG_OUT( "desk(%d)->d(%p)->pmap(%lX)->size(%dx%d)", desk, d, pmap, width, height );
+    if( pmap == None  )
+        return ;
+    if( d == None )
+    {
+        XFreePixmap( dpy, pmap );
+        return;
+    }
+
+    if( get_flags( d->flags, ASP_UseRootBackground ) )
+    {
+        ASImage *im = pixmap2asimage (Scr.asv, pmap, 0, 0, width, height, 0xFFFFFFFF, False, 100);
+
+        XFreePixmap( dpy, pmap );
+        if( d->back )
+            destroy_asimage(&(d->back));
+        d->back = im ;
+        delete_astbar_tile( d->background, 0 );
+        add_astbar_icon( d->background, 0, 0, 0, NO_ALIGN, d->back );
+        render_astbar( d->background, d->desk_canvas );
+        update_canvas_display( d->desk_canvas );
+    }
+}
+
+
+
 
 /*************************************************************************
  * individuaL Desk manipulation
@@ -1477,11 +1517,17 @@ LOCAL_DEBUG_OUT( "state(0x%X)->state&ButtonAnyMask(0x%X)", event->x.xbutton.stat
                 release_pressure();
             break;
 	    case ClientMessage:
-            if ((event->x.xclient.format == 32) &&
-                (event->x.xclient.data.l[0] == _XA_WM_DELETE_WINDOW))
+            LOCAL_DEBUG_OUT("ClientMessage(\"%s\",data=(%lX,%lX,%lX,%lX,%lX)", XGetAtomName( dpy, event->x.xclient.message_type ), event->x.xclient.data.l[0], event->x.xclient.data.l[1], event->x.xclient.data.l[2], event->x.xclient.data.l[3], event->x.xclient.data.l[4]);
+            if ( event->x.xclient.format == 32 &&
+                 event->x.xclient.data.l[0] == _XA_WM_DELETE_WINDOW )
 			{
 			    exit (0);
-			}
+            }else if( event->x.xclient.format == 32 &&
+                      event->x.xclient.message_type == _AS_BACKGROUND && event->x.xclient.data.l[1] != None )
+            {
+                set_desktop_pixmap( event->x.xclient.data.l[0]-PagerState.start_desk, event->x.xclient.data.l[1] );
+            }
+
 	        break;
 	    case PropertyNotify:
 			break;
@@ -1536,6 +1582,29 @@ on_desk_moveresize( ASPagerDesk *d )
             }
             if( d->desk == Scr.CurrentDesk )
                 place_selection();
+            if( get_flags( d->flags, ASP_UseRootBackground )  )
+            {
+                if( d->back == NULL || (d->back->width != d->background->width || d->back->height != d->background->height )  )
+                {
+                    XEvent e;
+                    e.xclient.type = ClientMessage ;
+                    e.xclient.message_type = _AS_BACKGROUND ;
+                    e.xclient.format = 16;
+                    e.xclient.window = PagerState.main_canvas->w ;
+                    e.xclient.data.s[0] = PagerState.start_desk+d->desk ;
+                    e.xclient.data.s[1] = 0 ;
+                    e.xclient.data.s[2] = 0 ;
+                    e.xclient.data.s[3] = d->background->width ;
+                    e.xclient.data.s[4] = d->background->height ;
+                    e.xclient.data.s[5] = 0x01 ;
+                    e.xclient.data.s[6] = 0 ;
+                    e.xclient.data.s[7] = 0 ;
+                    e.xclient.data.s[8] = 0 ;
+                    LOCAL_DEBUG_OUT( "size(%dx%d)", e.xclient.data.s[3], e.xclient.data.s[4] );
+                    XSendEvent( dpy, Scr.Root, False, PropertyChangeMask, &e );
+                    ASSync(False);
+                }
+            }
         }
     }
 
@@ -1590,7 +1659,6 @@ void on_pager_window_moveresize( void *client, Window w, int x, int y, unsigned 
                 }
         }
     }
-
 }
 
 void
