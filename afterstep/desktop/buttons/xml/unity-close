@@ -1,0 +1,10 @@
+<composite merge="clip" >
+	<tile id="f2" tint="Active">
+		<img src="bars/button_r15x17"/> 
+	</tile>
+	<tile id="f3" tint="BaseLight" y="1" >
+		<img src="dots/x_thin"/>
+	</tile>
+</composite>
+
+

@@ -1,0 +1,7 @@
+<pad color="#00000000" right="4" top="4" left="4">
+<pad color="#FF000000" top="1" left="1" bottom="1" right="1">
+    	<tile tint="HighInactiveBack">
+  		<img src="bars/button_sq7x10"/>
+	</tile>
+</pad>
+</pad>
