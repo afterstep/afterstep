@@ -1,4 +1,5 @@
 /*
+ * Copyright (C) 2001 Andrew Ferguson <andrew@owsla.cjb.net>
  * Copyright (C) 2001 Sasha Vasko <sashav@sprintmail.com>
  * Copyright (C) 1999 Ethan Fischer <allanon@crystaltokyo.com>
  *
@@ -235,6 +236,7 @@ count_alloc (const char *fname, int line, void *ptr, size_t length, int type)
 	m->type = type;
 	m->ptr = ptr;
 	m->freed = 0;
+
 	allocations++;
 	if ((type & 0xff) == C_MEM)
 	{
@@ -288,15 +290,21 @@ count_find_and_extract (const char *fname, int line, void *ptr, int type)
 	{
 		service_mode++ ;
 		if( remove_hash_item (allocs_hash, (ASHashableValue)ptr, (void**)&m, False) == ASH_Success )
-        {
+		{
 			if( (m->type & 0xff) != (type & 0xff) )
-                show_error( "while deallocating pointer %p discovered that it was allocated with different type\n   Called from %s:%d", ptr, fname, line );
-            if( total_service < sizeof(ASHashItem) )
-                show_error( "it seems that we have too little auditing memory (%lu) while deallocating pointer %p.\n   Called from %s:%d", total_service, ptr, fname, line );
-            else
-                total_service -= sizeof(ASHashItem);
-        }
-        service_mode-- ;
+                		show_error( "while deallocating pointer %p discovered that it was allocated with different type\n   Called from %s:%d", ptr, fname, line );
+            		if( total_service < sizeof(ASHashItem) )
+                		show_error( "it seems that we have too little auditing memory (%lu) while deallocating pointer %p.\n   Called from %s:%d", total_service, ptr, fname, line );
+         		else
+		                total_service -= sizeof(ASHashItem);
+        	}
+		else
+		{
+			/* Item was not in hash, abort */
+			service_mode--;
+			return NULL;
+		}
+        	service_mode-- ;
 	}
 	if( m )
 	{
