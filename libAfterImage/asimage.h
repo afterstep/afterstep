@@ -85,11 +85,11 @@ ASImage *asimage_from_pixmap (Pixmap p, int x, int y,
 	                                    unsigned int width, unsigned int height,
 		  							    unsigned long plane_mask, Bool keep_cache);
 
-XImage* ximage_from_asimage (ASImage *im, int depth);
+XImage* ximage_from_asimage (ASImage *im);
 Pixmap  pixmap_from_asimage(ASImage *im, Window w, GC gc, Bool use_cached);
 
 /* manipulations : */
-ASImage *scale_asimage( ASImage *src, int to_width, int to_height, Bool to_xim, int depth );
+ASImage *scale_asimage( ASImage *src, int to_width, int to_height, Bool to_xim );
 
 
 #endif
