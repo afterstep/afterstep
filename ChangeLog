@@ -1,4 +1,726 @@
 
+2004-09-27 16:33  sasha
+
+	* NEW, configure, autoconf/configure.in, libAfterBase/configure,
+	  libAfterBase/configure.in, libAfterImage/configure,
+	  libAfterImage/configure.in, src/afterstep/afterstep.man: changed
+	  versions to 2.00 and 1.00 for libraries
+
+2004-09-27 16:10  sasha
+
+	* src/afterstep/: add_window.c, decorations.c, functions.c,
+	  icons.c: cleaned up stale TODO items
+
+2004-09-27 16:03  sasha
+
+	* src/afterstep/winstatus.c: implemented deiconification when
+	  window is activated
+
+2004-09-27 15:39  sasha
+
+	* src/Pager/Pager.c: fixed segfault when window in stacking order
+	  is not yet known to us
+	* src/Wharf/Wharf.c: improved on animation to be smooth and avoid
+	  excessive redrawing
+
+2004-09-27 13:31  sasha
+
+	* libAfterImage/asstorage.c, libAfterImage/asstorage.h,
+	  src/afterstep/afterstep.c: fixed recently intoduced bug in
+	  asstorage causing major slowness; added some logic to prevent
+	  costly maintenance operations from happening too often
+
+2004-09-27 13:30  sasha
+
+	* src/Wharf/Wharf.c: fixed animation process to work correctly for
+	  different gravity types
+
+2004-09-26 22:35  sasha
+
+	* libAfterStep/mystyle.c: reduced need for root Image transfer
+
+2004-09-26 22:13  sasha
+
+	* libAfterStep/canvas.c, src/Wharf/Wharf.c: fixed wharf animation
+
+2004-09-24 21:08  sasha
+
+	* libAfterImage/asstorage.c: fixed segfault in asstorage when diff
+	  buffer does not gets reallocated
+
+2004-09-24 17:44  sasha
+
+	* src/Wharf/Wharf.c: rewrote wharf animation to be smoother - still
+	  something is wron on initial map
+
+2004-09-24 13:45  sasha
+
+	* libAfterBase/ashash.c, libAfterBase/audit.c,
+	  libAfterBase/audit.h, libAfterImage/asvisual.c,
+	  libAfterStep/canvas.c, libAfterStep/mylook.c,
+	  libAfterStep/wmprops.c, src/Wharf/Wharf.c,
+	  src/afterstep/add_window.c, src/afterstep/decorations.c: fixed
+	  button ungrabbing on windows withdrawing that was causing wierd
+	  BadAccess errors in Wharf
+
+2004-09-23 15:22  sasha
+
+	* libAfterStep/freestor.c, libAfterStep/functions.c,
+	  libAfterStep/functions.h, src/afterstep/menus.c,
+	  src/afterstep/menus.h: added minipixmap image prescaling to speed
+	  up menus on smaller screens
+
+2004-09-23 14:41  sasha
+
+	* libAfterImage/asstorage.c, libAfterStep/functions.c,
+	  libAfterStep/functions.h, libAfterStep/moveresize.c,
+	  src/afterstep/configure.c, src/afterstep/menus.c: implemented
+	  preloading of menu pixmaps - speeding things up considerable;
+	  fixed segfault in asstorage - still unclear how that could happen
+	  - may see some image corruption instead
+
+2004-09-23 11:35  sasha
+
+	* src/afterstep/winstatus.c: improved handling of the frame resize
+	  to minimize drawings - we used to redraw it twice before
+
+2004-09-22 17:54  sasha
+
+	* src/afterstep/winstatus.c: debugging initial window frame
+	  rendering - something is fishy there
+
+2004-09-22 17:02  sasha
+
+	* libAfterBase/safemalloc.c, libAfterConf/MyStyle.c,
+	  libAfterImage/asimage.c, libAfterImage/asstorage.c,
+	  libAfterImage/imencdec.c, libAfterImage/transform.c,
+	  libAfterStep/hints.c, libAfterStep/wmprops.c,
+	  src/afterstep/afterstep.c, src/afterstep/dirtree.c,
+	  src/afterstep/placement.c: some performance optimization based on
+	  gprof stats, as well as memory leak cleanups
+
+2004-09-22 09:00  sasha
+
+	* libAfterStep/clientprops.c: fixed atom name for
+	  _NET_WM_WINDOW_TYPE
+
+2004-09-21 20:50  sasha
+
+	* afterstep/: Makefile.in,
+	  backgrounds/Gradient_Textures/xml/.include: completed moving
+	  gradiented textures into directory of their own
+
+2004-09-21 20:37  sasha
+
+	* afterstep/Makefile.in, libAfterBase/configure,
+	  libAfterBase/configure.in, libAfterImage/configure,
+	  libAfterImage/configure.in: added mandatory -O3 in libAfterImage
+	  and libAfterBase improving performance significantly;
+
+2004-09-21 17:17  sasha
+
+	* libAfterImage/asimage.h, libAfterImage/asstorage.c,
+	  libAfterImage/imencdec.c, libAfterStep/decor.c,
+	  libAfterStep/myicon.c, libAfterStep/myicon.h,
+	  libAfterStep/mystyle.c, libAfterStep/mystyle.h,
+	  libAfterStep/mystyle_property.c, src/afterstep/menus.c: fixed
+	  performance hog in asstorage, as well as segfault in the same
+	  place; Implemented shaped image rendering directly into XImage,
+	  added menu shortcuts for Left and Right keys
+
+2004-09-21 13:14  born2late
+
+	* afterstep/wharf: added rox-filer and corrected wmxmms to start
+	  with single click
+
+2004-09-21 12:45  sasha
+
+	* src/afterstep/menus.c: implemented keyboard navigation of the
+	  menus
+
+2004-09-20 17:34  sasha
+
+	* libAfterStep/afterstep.h, src/afterstep/events.c,
+	  src/afterstep/menus.c: implementing keyboard shortcuts
+
+2004-09-20 14:54  sasha
+
+	* libAfterStep/wmprops.c, src/ASDocGen/xmlproc.c,
+	  src/afterstep/asinternals.h, src/afterstep/events.c,
+	  src/afterstep/menus.c, src/afterstep/winstatus.c: tweaks for more
+	  optimal transparency updating, including menu; fixed ASDocGen to
+	  treat quotes and special characters in Glossary
+
+2004-09-20 09:24  sasha
+
+	* libAfterStep/: clientprops.c, clientprops.h, hints.c, wmprops.c:
+	  Fixed type of _WIN_CLIENT_LIST property, discontinued
+	  _NET_WM_PROTOCOLS property as per specs
+
+2004-09-19 22:34  sasha
+
+	* libAfterImage/asstorage.c: fixed possible data loss in asstorage
+	  for the very first block
+
+2004-09-18 22:08  sasha
+
+	* src/afterstep/: decorations.c, placement.c, winstatus.c: improved
+	  shape when shading window; Seepd ups of window moving - frame
+	  does not get re-rendered
+
+2004-09-17 17:19  sasha
+
+	* libAfterStep/wmprops.c, libAfterStep/wmprops.h,
+	  src/ASDocGen/source/MyStyle/MyStyle,
+	  src/ASDocGen/source/MyStyle/_overview, src/afterstep/aswindow.c,
+	  src/afterstep/configure.c, src/afterstep/pager.c,
+	  src/afterstep/winstatus.c: added support for several Extended WM
+	  properties needed for Pagers
+
+2004-09-17 13:38  sasha
+
+	* src/ASDocGen/source/MyStyle/: BackColor, BackGradient,
+	  BackMultiGradient, BackPixmap, Font, ForeColor, TextStyle,
+	  _overview: updated MyStyle to latest stuff
+
+2004-09-17 09:42  sasha
+
+	* libAfterBase/xprop.c, libAfterStep/wmprops.c,
+	  src/afterstep/asinternals.h, src/afterstep/aswindow.c: Fixed
+	  property type for WM supporting check property - implemented
+	  setting client list property
+
+2004-09-16 21:46  born2late
+
+	* src/ASDocGen/: ASDocGen.c, source/Animate/Resize,
+	  source/Audio/Delay, source/Audio/RplayHost,
+	  source/Audio/RplayPriority, source/Audio/RplayVolume,
+	  source/Base/AudioPath, source/Base/CursorPath,
+	  source/Base/FontPath, source/Base/IconPath,
+	  source/Base/ModulePath, source/Base/PixmapPath,
+	  source/Feel/PagingDefault: added link in developer index to data
+	  files + docu update
+
+2004-09-16 18:14  born2late
+
+	* src/ASDocGen/source/: ASDatabaseEntry/Frame,
+	  ASDatabaseEntry/HonorPPosition, ASDatabaseEntry/IconTitle,
+	  ASDatabaseEntry/NoFrame, ASDatabaseEntry/NoMotifHints,
+	  ASDatabaseEntry/NoPPosition, ASDatabaseEntry/NoXResources,
+	  ASDatabaseEntry/WindowBox, Feel/CoverAnimationSteps,
+	  Feel/CoverAnimationType, Feel/KeepIconWindows, Feel/Key,
+	  Feel/Mouse, Feel/XorValue, Feel/Xzap, Feel/Yzap,
+	  Functions/DropExec, Functions/EndFunction, Functions/EndPopup,
+	  Functions/Folder, Functions/MaxSwallow,
+	  Functions/MaxSwallowModule, Functions/MiniPixmap, Functions/Size,
+	  Functions/Swallow, Functions/SwallowModule, Functions/Transient,
+	  Look/ButtonSize, MyStyle/BackColor, MyStyle/BackGradient,
+	  MyStyle/BackMultiGradient, MyStyle/BackPixmap,
+	  MyStyle/DrawTextBackground, MyStyle/Font, MyStyle/ForeColor,
+	  MyStyle/Inherit, MyStyle/MyStyle, MyStyle/TextStyle,
+	  Pager/ShadeButton, Wharf/ShowLabel: again filling of new
+	  docsystem from NEW file or 1.8.11 man pages
+
+2004-09-16 16:39  sasha
+
+	* libAfterImage/asstorage.c, libAfterStep/canvas.c,
+	  libAfterStep/canvas.h, libAfterStep/hints.c,
+	  libAfterStep/hints.h, src/ASDocGen/datadoc.c, src/Ident/Ident.c,
+	  src/Pager/Pager.c, src/WinList2/WinList.c, src/WinTabs/WinTabs.c,
+	  src/afterstep/menus.c, src/afterstep/winstatus.c: lots of
+	  optimizations of focus change handling in WinList and AfterStep,
+	  shape handling optimizations in Pager and other tweaks
+
+2004-09-16 14:28  born2late
+
+	* src/ASDocGen/source/Functions/: Beep, ChangeWindowDown,
+	  ChangeWindowUp, Close, CursorMove, Delete, Desk, Destroy, Exec,
+	  Focus, Function, GotoPage, Iconify, Lower, Maximize, Module,
+	  Move, Nop, PopUp, PutOnBack, PutOnTop, Quit, Raise, RaiseLower,
+	  Refresh, Resize, Restart, Scroll, SetLayer, Shade, Stick, Title,
+	  ToggleLayer, TogglePage, Wait, WarpBack, WarpFore, WindowList,
+	  WindowsDesk: again filling of new docsystem from NEW file or
+	  1.8.11 man pages
+
+2004-09-16 13:01  born2late
+
+	* src/ASDocGen/source/: MyBackground/Align, Pager/StickyIcons:
+	  again filling of new docsystem from NEW file or 1.8.11 man pages
+
+2004-09-15 23:12  sasha
+
+	* src/afterstep/menus.c: playing with submenu gravity - something
+	  fishy
+
+2004-09-15 17:38  sasha
+
+	* src/: Wharf/Wharf.c, afterstep/menus.c, afterstep/pager.c,
+	  ascp/Makefile.in, ascp/asimbrowser.c: fixed wharf so that focused
+	  tile works with swallowed applets
+
+2004-09-15 16:25  sasha
+
+	* afterstep/Makefile.in, afterstep/looks/look.Glass,
+	  afterstep/looks/look.QNX, libAfterConf/Look.c,
+	  libAfterConf/afterconf.h, libAfterImage/import.c,
+	  libAfterImage/import.h, libAfterStep/mylook.c,
+	  libAfterStep/mylook.h, src/ASDocGen/ASDocGen.c,
+	  src/ASDocGen/datadoc.c, src/afterstep/configure.c,
+	  src/afterstep/decorations.c: added NoBorder flag to MyFrames,
+	  improved performance and feedback in data doc generation
+
+2004-09-14 17:55  sasha
+
+	* libAfterConf/.depend, libAfterConf/.shared,
+	  libAfterStep/aswindata.c, libAfterStep/aswindata.h,
+	  libAfterStep/canvas.c, libAfterStep/hints.c,
+	  libAfterStep/hints.h, libAfterStep/module.h,
+	  src/ASDocGen/.depend, src/ASDocGen/Makefile.in,
+	  src/ASDocGen/datadoc.c, src/Ident/.depend, src/Ident/Ident.c,
+	  src/Ident/Ident.h, src/Pager/Pager.c, src/afterstep/module.c:
+	  fixed shape handling of the canvas's border - fixes border in
+	  Pager and windows - need to do something about window border in
+	  frames
+
+2004-09-14 13:03  sasha
+
+	* libAfterImage/asimage.h, src/afterstep/asinternals.h,
+	  src/afterstep/configure.c, src/afterstep/functions.c,
+	  src/afterstep/pager.c: added code to background handling, to not
+	  interrupt the animation when desktop is switched before it
+	  completes
+
+2004-09-13 17:44  sasha
+
+	* afterstep/desktop/bars/xml/ostxs,
+	  afterstep/desktop/bars/xml/ostxu,
+	  afterstep/desktop/bars/xml/title_lspacer_glass,
+	  afterstep/desktop/bars/xml/title_rspacer_glass,
+	  afterstep/desktop/buttons/xml/1.xpm,
+	  afterstep/desktop/buttons/xml/1p.xpm,
+	  afterstep/desktop/buttons/xml/2.xpm,
+	  afterstep/desktop/buttons/xml/2p.xpm,
+	  afterstep/desktop/buttons/xml/3.xpm,
+	  afterstep/desktop/buttons/xml/3p.xpm,
+	  afterstep/desktop/buttons/xml/4.xpm,
+	  afterstep/desktop/buttons/xml/4p.xpm,
+	  afterstep/desktop/buttons/xml/5.xpm,
+	  afterstep/desktop/buttons/xml/5p.xpm,
+	  afterstep/desktop/buttons/xml/as-iconize-pressed.xpm,
+	  afterstep/desktop/buttons/xml/as-iconize.xpm,
+	  afterstep/desktop/buttons/xml/as-kill-pressed.xpm,
+	  afterstep/desktop/buttons/xml/as-kill.xpm,
+	  afterstep/desktop/buttons/xml/as-maximize-a-pressed.xpm,
+	  afterstep/desktop/buttons/xml/as-maximize-a.xpm,
+	  afterstep/desktop/buttons/xml/as-menu-a-pressed.xpm,
+	  afterstep/desktop/buttons/xml/as-menu-a.xpm,
+	  afterstep/desktop/buttons/xml/as-menu-b-pressed.xpm,
+	  afterstep/desktop/buttons/xml/as-menu-b.xpm,
+	  afterstep/desktop/buttons/xml/as-minimize-a-pressed.xpm,
+	  afterstep/desktop/buttons/xml/as-minimize-a.xpm,
+	  afterstep/desktop/buttons/xml/as-shade-a-pressed.xpm,
+	  afterstep/desktop/buttons/xml/as-shade-a.xpm,
+	  afterstep/desktop/buttons/xml/as-switchwindow-a-pressed.xpm,
+	  afterstep/desktop/buttons/xml/as-switchwindow-a.xpm,
+	  afterstep/desktop/buttons/xml/as-switchwindow-b-pressed.xpm,
+	  afterstep/desktop/buttons/xml/as-switchwindow-b.xpm,
+	  afterstep/desktop/buttons/xml/as-switchwindow-c-pressed.xpm,
+	  afterstep/desktop/buttons/xml/as-switchwindow-c.xpm,
+	  afterstep/desktop/buttons/xml/as1.5-kill-p.xpm,
+	  afterstep/desktop/buttons/xml/default-switchwindow-dark,
+	  afterstep/desktop/buttons/xml/fuf-iconify-pressed.xpm,
+	  afterstep/desktop/buttons/xml/fuf-iconify.xpm,
+	  afterstep/desktop/buttons/xml/fuf-kill-pressed.xpm,
+	  afterstep/desktop/buttons/xml/fuf-kill.xpm,
+	  afterstep/desktop/buttons/xml/fuf-shade-pressed.xpm,
+	  afterstep/desktop/buttons/xml/fuf-shade.xpm,
+	  afterstep/desktop/buttons/xml/fuf-switchwindow-pressed.xpm,
+	  afterstep/desktop/buttons/xml/fuf-switchwindow.xpm,
+	  afterstep/desktop/buttons/xml/fuf-windowmenu-pressed.xpm,
+	  afterstep/desktop/buttons/xml/fuf-windowmenu.xpm,
+	  afterstep/desktop/buttons/xml/g_iconize.xpm,
+	  afterstep/desktop/buttons/xml/g_shut.xpm,
+	  afterstep/desktop/buttons/xml/glass-iconize,
+	  afterstep/desktop/buttons/xml/glass-iconize-pressed,
+	  afterstep/desktop/buttons/xml/glass-kill,
+	  afterstep/desktop/buttons/xml/glass-kill-pressed,
+	  afterstep/desktop/buttons/xml/glass-menu,
+	  afterstep/desktop/buttons/xml/glass-menu-pressed,
+	  afterstep/desktop/buttons/xml/glass-pin,
+	  afterstep/desktop/buttons/xml/glass-pin-pressed,
+	  afterstep/desktop/buttons/xml/glass-shade,
+	  afterstep/desktop/buttons/xml/glass-shade-pressed,
+	  afterstep/desktop/buttons/xml/glass-switchwindow,
+	  afterstep/desktop/buttons/xml/glass-switchwindow-pressed,
+	  afterstep/desktop/icons/xml/NetworkInfoManager.xpm,
+	  afterstep/desktop/icons/xml/Plasma.xpm,
+	  afterstep/desktop/icons/xml/eterm,
+	  afterstep/desktop/icons/xml/netscape.xpm,
+	  afterstep/desktop/icons/xml/ostxs.xpm,
+	  afterstep/desktop/icons/xml/ostxu.xpm,
+	  afterstep/desktop/icons/xml/rxvt,
+	  afterstep/desktop/icons/xml/wharf.xpm,
+	  afterstep/desktop/icons/xml/workshop.xpm,
+	  afterstep/desktop/icons/xml/xterm, src/ASDocGen/ASDocGen.c,
+	  src/ASDocGen/ASDocGen.h, src/ASDocGen/Makefile.in,
+	  src/ASDocGen/background.jpg, src/ASDocGen/data_html_styles.css,
+	  src/ASDocGen/datadoc.c, src/ASDocGen/docfile.c: Completed
+	  implementing ASDocGen support for cataloguing data files; Fixed
+	  icon files with hardcoded color values and missing files
+
+2004-09-13 11:59  sasha
+
+	* src/afterstep/: afterstep.c, events.c: Fixed Key press handling
+	  when there are no windows focused
+
+2004-09-13 11:06  sasha
+
+	* src/ASDocGen/docfile.c: Changed ASDocGen to not create files
+	  writeable by the world
+
+2004-09-11 06:07  madarche
+
+	* afterstep/feels/feel.DEFAULT: - Since AS forms are not working
+	  (at least at this time), replacing   TakeScreenShot,
+	  TakeWindowShot and TakeFrameShot by their equivalent in shell
+	  scripts using X xwd program + ImageMagick for conversion.  - Made
+	  the xlock command really lock the screen, otherwise it wouldn't
+	  be   useful since one can already have a screensaver starts
+	  itself automatically	 after some time with no events.
+
+2004-09-11 04:39  madarche
+
+	* afterstep/feels/feel.DEFAULT: # Commenting the following
+	  keybindings because they trap Mozilla history # navigation
+	  keybindings: #Key Left	A	M	Scroll -10 +0 #Key
+	  Right       A       M       Scroll +10 +0 #Key Up	     A
+	  M	   Scroll +0  -10 #Key Down	   A	   M	   Scroll
+	  +0  +10
+
+2004-09-10 17:47  sasha
+
+	* src/: ASDocGen/ASDocGen.c, ASDocGen/Makefile.in,
+	  ASDocGen/datadoc.c, ASDocGen/datadoc.h, ASDocGen/docfile.c,
+	  ASDocGen/robodoc.c, ASDocGen/xmlproc.c, ASDocGen/xmlproc.h,
+	  afterstep/aswindow.c: Added generation of image catalogue into
+	  ASDocGen
+
+2004-09-10 13:19  madarche
+
+	* afterstep/feels/feel.DEFAULT: Disabling those bindings since the
+	  "Alt + tab" combo does already the same and it takes bindings
+	  used by Emacs.  #Key Meta_L	   A	   A	   WarpFore #Key
+	  Meta_R      A       A       WarpBack
+
+2004-09-10 13:10  madarche
+
+	* afterstep/feels/feel.DEFAULT: Those settings make a more sensible
+	  choice for most users who want an intuitive AfterStep right out
+	  of the box (they will be able to modify this config later on if
+	  they are not pleased with it): SmartPlacement RandomPlacement
+	  #NoPPosition
+
+2004-09-10 09:53  sasha
+
+	* src/ASDocGen/: ASDocGen.c, Makefile.in, docfile.c, docfile.h,
+	  robodoc.c, robodoc.h: cleaned up files - moved robodoc
+	  functionality into its own file out of ASDocGen.c
+
+2004-09-09 16:43  sasha
+
+	* src/afterstep/aswindow.c: trying to fix GTK-perl
+
+2004-09-08 23:24  sasha
+
+	* libAfterStep/asfeel.c, src/afterstep/add_window.c,
+	  src/afterstep/winstatus.c: fixed windows popping up under
+	  currenbt windows, viewport on restart, cover animation
+
+2004-09-08 18:08  sasha
+
+	* afterstep/database, afterstep/feels/feel.DEFAULT,
+	  libAfterImage/asstorage.c: changes to feel file for better
+	  shortcuts for desktop switching; Fixes to ASStorage to properly
+	  handle reference counting without leaving leftovers
+
+2004-09-02 17:53  sasha
+
+	* Makefile.in, afterstep/banner, afterstep/looks/look.DEFAULT,
+	  libAfterImage/asstorage.c, libAfterStep/afterstep.h,
+	  libAfterStep/asfeel.c, libAfterStep/canvas.c,
+	  libAfterStep/canvas.h, libAfterStep/moveresize.c,
+	  libAfterStep/moveresize.h, libAfterStep/outline.c,
+	  src/Pager/Pager.c, src/afterstep/add_window.c,
+	  src/afterstep/afterstep.c, src/afterstep/asinternals.h,
+	  src/afterstep/aswindow.c, src/afterstep/decorations.c,
+	  src/afterstep/functions.c, src/afterstep/pager.c,
+	  src/afterstep/placement.c, src/afterstep/winstatus.c: Lots of
+	  tweaks to desktop switching, initial placement handling and
+	  move-resizing
+
+2004-09-02 10:53  born2late
+
+	* src/ASDocGen/docfile.c: some fiddling with php pages for better
+	  integration on wao
+
+2004-09-01 22:16  sasha
+
+	* Makefile.in, src/afterstep/aswindow.c, src/afterstep/pager.c:
+	  fixed focus handling when switching between monitors; Added
+	  desktop cover to desktop switching- not sure if it worth it
+
+2004-09-01 17:58  sasha
+
+	* libAfterConf/Ident.c, libAfterStep/aswindata.c,
+	  libAfterStep/clientprops.h, libAfterStep/hints.h,
+	  src/Ident/Ident.c: Implemented large portion of Ident module,
+	  still need to implement printing some portions of ASDatabase
+	  records matching; Improved some things in hints.c so it could be
+	  used elsewhere
+
+2004-08-31 17:55  sasha
+
+	* src/ASDocGen/source/ColorScheme/_overview: updated Colorscheme
+	  docs
+
+2004-08-31 17:07  sasha
+
+	* Makefile.in, autoconf/Makefile.common.in,
+	  autoconf/Makefile.common.lib.in, libAfterStep/session.c,
+	  src/ASDocGen/Makefile.in,
+	  src/ASDocGen/source/ColorScheme/_overview,
+	  src/Animate/Makefile.in, src/Audio/Makefile.in,
+	  src/Banner/Makefile.in, src/Cascade/Makefile.in,
+	  src/Clean/Makefile.in, src/Form/Makefile.in,
+	  src/Gadget/Makefile.in, src/Ident/Makefile.in,
+	  src/Pager/Makefile.in, src/Save/Makefile.in,
+	  src/Script/Makefile.in, src/Scroll/Makefile.in,
+	  src/Sound/Makefile.in, src/Tile/Makefile.in,
+	  src/Wharf/Makefile.in, src/WinList2/Makefile.in,
+	  src/WinTabs/Makefile.in, src/afterstep/Makefile.in,
+	  src/ascp/Makefile.in: updated Makefiles to generate docs before
+	  install phase
+
+2004-08-30 22:41  sasha
+
+	* configure, libAfterBase/configure, libAfterImage/asfont.c,
+	  libAfterImage/configure: updated configure scripts
+
+2004-08-30 17:34  sasha
+
+	* Makefile.in, configure, libAfterConf/Ident.c,
+	  libAfterConf/Makefile.in, libAfterConf/afterconf.h,
+	  src/Ident/Ident.c: got Ident to compile
+
+2004-08-30 16:24  sasha
+
+	* AfterStep.desktop, AfterStep.desktop.in, Makefile.in,
+	  autoconf/configure.in: improved AfterStep.desktop and implemented
+	  installation for gdm and kdm
+
+2004-08-28 11:23  born2late
+
+	* src/ASDocGen/source/: Pager/Columns, Pager/DontDrawBg,
+	  Pager/Geometry, Pager/IconGeometry, Pager/Label, Pager/Rows,
+	  Pager/ShadeButton, Pager/SmallFont, Pager/StartIconic,
+	  Pager/Style, WinList/Action, WinList/Align,
+	  WinList/BalloonBorderHilite, WinList/BalloonCloseDelay,
+	  WinList/Balloons, WinList/Bevel, WinList/CompositionMethod,
+	  WinList/FCompositionMethod, WinList/FillRowsFirst,
+	  WinList/Geometry, WinList/MaxColWidth, WinList/MaxColumns,
+	  WinList/MaxRows, WinList/MaxSize, WinList/MaxWidth,
+	  WinList/MinColWidth, WinList/MinSize, WinList/Orientation,
+	  WinList/SCompositionMethod, WinList/ShapeToContents,
+	  WinList/UCompositionMethod, WinList/UseName, WinList/UseSkipList:
+	  again filling of new docsystem from NEW file or 1.8.11 man pages
+
+2004-08-27 22:17  sasha
+
+	* doc/afterstepdoc.in: fixed docs script
+
+2004-08-27 22:03  sasha
+
+	* libAfterConf/Makefile.in: temporary removed ident.o
+
+2004-08-27 21:55  sasha
+
+	* src/ASDocGen/images/: Pager.jpg: [no log message]
+
+2004-08-27 17:42  sasha
+
+	* src/Ident/Ident.c: reimplementing Ident module
+
+2004-08-27 17:37  sasha
+
+	* afterstep/wharf, afterstep/looks/look.DEFAULT,
+	  afterstep/looks/look.Glass, afterstep/looks/look.QNX,
+	  afterstep/looks/look.Transparent, libAfterConf/afterconf.h,
+	  libAfterStep/mystyle_property.c, src/Ident/Ident.c,
+	  src/afterstep/pager.c: fixed handling of twoway tinting for
+	  transparent BackPixmaps in MyStyle property
+
+2004-08-27 16:32  born2late
+
+	* src/ASDocGen/source/: MyFrame/Inherit,
+	  PagerDecorations/DeskBorderColor,
+	  PagerDecorations/DeskBorderWidth, PagerDecorations/GridColor,
+	  PagerDecorations/HideInactiveLabels,
+	  PagerDecorations/LabelBelowDesk, PagerDecorations/NoDeskLabel,
+	  PagerDecorations/NoPageSeparator, PagerDecorations/NoSelection,
+	  PagerDecorations/SelectionColor, Wharf/BalloonBorderHilite,
+	  Wharf/BalloonStyle, Wharf/CompositionMethod, Wharf/FitContents,
+	  Wharf/FlipLabel, Wharf/LabelLocation, Wharf/ShapeToContents,
+	  Wharf/ShowLabel, Wharf/WithdrawStyle: again filling of new
+	  docsystem from NEW file or 1.8.11 man pages
+
+2004-08-27 12:29  sasha
+
+	* src/ASDocGen/: Makefile.in, images/Pager.jpg: added images
+	  directory to ASDocGen so that images could be included into docs
+
+2004-08-27 12:01  sasha
+
+	* libAfterConf/Makefile.in, libAfterConf/Wharf.c,
+	  libAfterConf/afterconf.h, src/Ident/Ident.c,
+	  src/Ident/Makefile.in: got rid of NoBorder and NoWithdraw in
+	  Wharf config options
+
+2004-08-27 12:00  sasha
+
+	* src/ASDocGen/: ASDocGen.c, xmlproc.c, xmlproc.h,
+	  source/Pager/_synopsis: Added support for <imagedata> tag
+
+2004-08-27 11:55  sasha
+
+	* AfterStep.spec.in: fixed for proper doc installation
+
+2004-08-27 11:35  sasha
+
+	* src/ASDocGen/source/Wharf/: NoBorder, NoWithdraw: updated doc
+	  sources
+
+2004-08-27 07:18  born2late
+
+	* src/ASDocGen/source/: ASDatabaseEntry/NoPPosition,
+	  Base/AudioPath, Feel/AutoRaise, Feel/AutoReverse,
+	  Feel/DontMoveOff, Feel/EdgeResistance, Feel/IconTitle,
+	  Feel/KeepIconWindows, Feel/MenusHigh, Feel/PagingDefault,
+	  Feel/Popup, Feel/SmartPlacement, Feel/SuppressIcons,
+	  Look/CursorBack, Look/CursorFore, Look/DefaultFrame,
+	  Look/DefaultStyle, Look/DeskBack, Look/DontAnimateBackground,
+	  Look/KillBackgroundThreshold, Look/MenuHiTitleStyle,
+	  Look/MenuPinOn, Look/MenuSubItemStyle, Look/RubberBand,
+	  Look/TitlebarNoPush: again filling of new docsystem from NEW file
+	  or 1.8.11 man pages
+
+2004-08-26 23:28  sasha
+
+	* src/Wharf/Wharf.c: more tuneup of wharf animation speed
+
+2004-08-26 12:44  sasha
+
+	* libAfterImage/Makefile.in: fix to Makefile to install man pages
+	  and HTML help pages
+
+2004-08-26 12:19  sasha
+
+	* afterstep/Makefile.in: replaced find -printf with basename, to
+	  make it work on bsd flavors
+
+2004-08-25 17:40  sasha
+
+	* libAfterImage/asfont.c: more xft development
+
+2004-08-25 17:08  sasha
+
+	* afterstep/autoexec.in, afterstep/start/5_Quit/1_exit,
+	  libAfterImage/libAfterImage.dsp, libAfterImage/win32/asview.dsp,
+	  src/ASDocGen/ASDocGen.c, src/Animate/Animate.c,
+	  src/Pager/Pager.c, src/Wharf/Wharf.c, src/WinList2/WinList.c,
+	  src/WinTabs/WinTabs.c, src/afterstep/afterstep.c: Some changes to
+	  DeadPipe to prtevent it from reentering self
+
+2004-08-24 17:59  sasha
+
+	* libAfterBase/timer.c, libAfterBase/timer.h,
+	  src/WinList2/WinList.c, src/afterstep/events.c,
+	  src/afterstep/functions.c: more WinList performance tweaking and
+	  afterstep even handling
+
+2004-08-24 17:03  sasha
+
+	* src/WinList2/WinList.c: added more logic to avoid excessive
+	  redraws of WinList
+
+2004-08-24 13:45  sasha
+
+	* libAfterBase/safemalloc.c, libAfterImage/asvisual.c,
+	  libAfterStep/decor.c, src/WinList2/WinList.c: Implemented memory
+	  debugging for buffer underruns with --enable-audit under win32;
+	  Found memory corruption caused by merging image of size 0, which
+	  fixes segmentation Fault in WinList
+
+2004-08-23 17:38  sasha
+
+	* libAfterImage/Makefile.in, libAfterImage/asfont.c,
+	  libAfterImage/asstorage.c, libAfterImage/libAfterImage.dsp,
+	  src/afterstep/functions.c: Fixed make install in libAfterImage;
+	  Added missing files to libAfterImage's project files; Fixed
+	  segfault in afterstep when clicking happens too fast and there is
+	  no more window by the time function is executed
+
+2004-08-23 09:09  sasha
+
+	* libAfterImage/import.c: applied patch for interlaced GIF support
+	  from Maxim Nikulin
+
+2004-08-20 17:45  sasha
+
+	* libAfterImage/: asfont.c, asfont.h, apps/astext.c: new
+	  development to add interface with XRender extention for text
+	  rendering
+
+2004-08-20 01:17  sasha
+
+	* afterstep/Makefile.in, src/ASDocGen/Makefile.in: added more logic
+	  to Mkaefile for data files to copy files using proper permissions
+	  - start menu is the only one that gets copied using CP
+
+2004-08-19 17:58  sasha
+
+	* afterstep/Makefile.in: Makefile fixes for proper installation of
+	  config files
+
+2004-08-19 17:52  sasha
+
+	* Makefile.in, Makefile.libs.in: fixes to Makefile for better dirs
+	  creation
+
+2004-08-19 17:20  sasha
+
+	* src/afterstep/configure.c: fixed segfault in AfterStep when
+	  pixmap path or FontPath are empty
+
+2004-08-19 09:04  sasha
+
+	* Makefile.in, Makefile.libs.in, libAfterImage/asfont.c,
+	  libAfterStep/decor.c: fixed potential segmentation fault in
+	  asfont.c at the time of text rendering
+
+2004-08-17 16:26  sasha
+
+	* libAfterImage/: asimage.h, asstorage.c: fixed compile bug in
+	  asstorage.c
+
+2004-08-17 11:59  sasha
+
+	* libAfterImage/: asfont.c, transform.c: disabled clocking of
+	  transformations and text drawing
+
+2004-08-17 11:11  sasha
+
+	* ChangeLog: [no log message]
+
 2004-08-17 11:05  sasha
 
 	* ChangeLog: AfterStep 2.00.beta5 Release
@@ -82,44 +804,17 @@
 	  libAfterImage/apps/asscale.c, libAfterImage/apps/astext.c,
 	  libAfterImage/apps/astile.c, libAfterImage/apps/asvector.c,
 	  libAfterImage/apps/asview.c, libAfterImage/apps/common.c,
-	  libAfterImage/doc/afterimage.man, libAfterImage/doc/ascmap.man,
-	  libAfterImage/doc/asfont.man, libAfterImage/doc/asimage.man,
-	  libAfterImage/doc/asimagexml.man, libAfterImage/doc/asvisual.man,
-	  libAfterImage/doc/blender.man, libAfterImage/doc/export.man,
-	  libAfterImage/doc/freetype_symbols.xref,
-	  libAfterImage/doc/import.man, libAfterImage/doc/transform.man,
-	  libAfterImage/doc/x11_symbols.xref, libAfterImage/doc/ximage.man,
-	  libAfterImage/doc/html/afterimage.html,
-	  libAfterImage/doc/html/ascmap.html,
-	  libAfterImage/doc/html/ascompose.html,
-	  libAfterImage/doc/html/asflip.html,
-	  libAfterImage/doc/html/asfont.html,
-	  libAfterImage/doc/html/asgrad.html,
-	  libAfterImage/doc/html/asimage.html,
-	  libAfterImage/doc/html/asimagexml.html,
-	  libAfterImage/doc/html/asmerge.html,
-	  libAfterImage/doc/html/asscale.html,
-	  libAfterImage/doc/html/astext.html,
-	  libAfterImage/doc/html/astile.html,
-	  libAfterImage/doc/html/asview.html,
-	  libAfterImage/doc/html/asvisual.html,
-	  libAfterImage/doc/html/blender.html,
-	  libAfterImage/doc/html/common.html,
-	  libAfterImage/doc/html/export.html,
-	  libAfterImage/doc/html/import.html,
-	  libAfterImage/doc/html/transform.html,
-	  libAfterImage/doc/html/ximage.html, src/ASDocGen/ASDocGen.c,
-	  src/ASDocGen/ASDocGen.h, src/ASDocGen/Makefile.in,
-	  src/ASDocGen/docfile.c, src/Animate/.depend,
-	  src/Animate/Makefile.in, src/Audio/Makefile.in,
-	  src/Banner/Makefile.in, src/Cascade/Makefile.in,
-	  src/Clean/Makefile.in, src/Pager/Makefile.in,
-	  src/Wharf/Makefile.in, src/WinList2/Makefile.in,
-	  src/WinTabs/Makefile.in, src/afterstep/.depend,
-	  src/afterstep/Makefile.in, src/ascp/Makefile.in,
-	  src/asetroot/Makefile.in: Implemented new generated doc
-	  installation in Makefiles, added more libAfterImage docs, fixed
-	  formatting in asimage.h and asfont.h
+	  src/ASDocGen/ASDocGen.c, src/ASDocGen/ASDocGen.h,
+	  src/ASDocGen/Makefile.in, src/ASDocGen/docfile.c,
+	  src/Animate/.depend, src/Animate/Makefile.in,
+	  src/Audio/Makefile.in, src/Banner/Makefile.in,
+	  src/Cascade/Makefile.in, src/Clean/Makefile.in,
+	  src/Pager/Makefile.in, src/Wharf/Makefile.in,
+	  src/WinList2/Makefile.in, src/WinTabs/Makefile.in,
+	  src/afterstep/.depend, src/afterstep/Makefile.in,
+	  src/ascp/Makefile.in, src/asetroot/Makefile.in: Implemented new
+	  generated doc installation in Makefiles, added more libAfterImage
+	  docs, fixed formatting in asimage.h and asfont.h
 
 2004-08-10 17:38  sasha
 
@@ -1664,6 +2359,24 @@
 2004-03-18 16:50  sasha
 
 	* README,
+	  afterstep/backgrounds/Gradient_Textures/xml/Blurts_Michelson,
+	  afterstep/backgrounds/Gradient_Textures/xml/Blurts_Michelson.mini,
+	  afterstep/backgrounds/Gradient_Textures/xml/Defenseless_Elsie,
+	  afterstep/backgrounds/Gradient_Textures/xml/Defenseless_Elsie.mini,
+	  afterstep/backgrounds/Gradient_Textures/xml/Dorchester_Consolidated,
+	  afterstep/backgrounds/Gradient_Textures/xml/Dorchester_Consolidated.mini,
+	  afterstep/backgrounds/Gradient_Textures/xml/Drop_Injures,
+	  afterstep/backgrounds/Gradient_Textures/xml/Drop_Injures.mini,
+	  afterstep/backgrounds/Gradient_Textures/xml/Evil_Car_Wash,
+	  afterstep/backgrounds/Gradient_Textures/xml/Evil_Car_Wash.mini,
+	  afterstep/backgrounds/Gradient_Textures/xml/Libelous_Paintings,
+	  afterstep/backgrounds/Gradient_Textures/xml/Libelous_Paintings.mini,
+	  afterstep/backgrounds/Gradient_Textures/xml/Nordic_Powder_Pirate,
+	  afterstep/backgrounds/Gradient_Textures/xml/Nordic_Powder_Pirate.mini,
+	  afterstep/backgrounds/Gradient_Textures/xml/Psychiatrists_Imminently,
+	  afterstep/backgrounds/Gradient_Textures/xml/Psychiatrists_Imminently.mini,
+	  afterstep/backgrounds/Gradient_Textures/xml/Simple_Texture,
+	  afterstep/backgrounds/Gradient_Textures/xml/Simple_Texture.mini,
 	  afterstep/backgrounds/Plain_Textures/xml/Blurts_Michelson,
 	  afterstep/backgrounds/Plain_Textures/xml/Blurts_Michelson.mini,
 	  afterstep/backgrounds/Plain_Textures/xml/Checkers,
@@ -1686,32 +2399,14 @@
 	  afterstep/backgrounds/Plain_Textures/xml/Psychiatrists_Imminently.mini,
 	  afterstep/backgrounds/Plain_Textures/xml/Simple,
 	  afterstep/backgrounds/Plain_Textures/xml/Simple.mini,
-	  afterstep/backgrounds/xml/Blurts_Michelson,
-	  afterstep/backgrounds/xml/Blurts_Michelson.mini,
 	  afterstep/backgrounds/xml/Cell.mini,
 	  afterstep/backgrounds/xml/Cell_Colored.mini,
 	  afterstep/backgrounds/xml/Default,
 	  afterstep/backgrounds/xml/Default.mini,
-	  afterstep/backgrounds/xml/Defenseless_Elsie,
-	  afterstep/backgrounds/xml/Defenseless_Elsie.mini,
-	  afterstep/backgrounds/xml/Dorchester_Consolidated,
-	  afterstep/backgrounds/xml/Dorchester_Consolidated.mini,
-	  afterstep/backgrounds/xml/Drop_Injures,
-	  afterstep/backgrounds/xml/Drop_Injures.mini,
-	  afterstep/backgrounds/xml/Evil_Car_Wash,
-	  afterstep/backgrounds/xml/Evil_Car_Wash.mini,
 	  afterstep/backgrounds/xml/Firestreaks,
 	  afterstep/backgrounds/xml/Firestreaks.mini,
 	  afterstep/backgrounds/xml/Japanese.mini,
 	  afterstep/backgrounds/xml/Japanese_Colored.mini,
-	  afterstep/backgrounds/xml/Libelous_Paintings,
-	  afterstep/backgrounds/xml/Libelous_Paintings.mini,
-	  afterstep/backgrounds/xml/Nordic_Powder_Pirate,
-	  afterstep/backgrounds/xml/Nordic_Powder_Pirate.mini,
-	  afterstep/backgrounds/xml/Psychiatrists_Imminently,
-	  afterstep/backgrounds/xml/Psychiatrists_Imminently.mini,
-	  afterstep/backgrounds/xml/Simple_Texture,
-	  afterstep/backgrounds/xml/Simple_Texture.mini,
 	  afterstep/backgrounds/xml/Smooth,
 	  afterstep/backgrounds/xml/Smooth.mini,
 	  afterstep/desktop/bars/xml/blue,
@@ -3838,7 +4533,7 @@
 	  afterstep/backgrounds/Plain_Textures/xml/Nordic_Powder_Pirate.mini,
 	  afterstep/backgrounds/Plain_Textures/xml/Psychiatrists_Imminently.mini,
 	  afterstep/backgrounds/Plain_Textures/xml/Simple.mini,
-	  afterstep/backgrounds/xml/Psychiatrists_Imminently.mini,
+	  afterstep/backgrounds/Gradient_Textures/xml/Psychiatrists_Imminently.mini,
 	  libAfterStep/decor.c, src/afterstep/asinternals.h,
 	  src/afterstep/events.c, src/afterstep/menus.c,
 	  src/afterstep/menus.h, src/afterstep/winstatus.c: Completed and
@@ -3848,21 +4543,22 @@
 
 2003-07-23 17:29  sasha
 
-	* afterstep/backgrounds/xml/Blurts_Michelson.mini,
+	*
+	  afterstep/backgrounds/Gradient_Textures/xml/Blurts_Michelson.mini,
+	  afterstep/backgrounds/Gradient_Textures/xml/Defenseless_Elsie.mini,
+	  afterstep/backgrounds/Gradient_Textures/xml/Dorchester_Consolidated.mini,
+	  afterstep/backgrounds/Gradient_Textures/xml/Drop_Injures.mini,
+	  afterstep/backgrounds/Gradient_Textures/xml/Evil_Car_Wash.mini,
+	  afterstep/backgrounds/Gradient_Textures/xml/Libelous_Paintings.mini,
+	  afterstep/backgrounds/Gradient_Textures/xml/Nordic_Powder_Pirate.mini,
+	  afterstep/backgrounds/Gradient_Textures/xml/Psychiatrists_Imminently.mini,
+	  afterstep/backgrounds/Gradient_Textures/xml/Simple_Texture.mini,
 	  afterstep/backgrounds/xml/Cell.mini,
 	  afterstep/backgrounds/xml/Cell_Colored.mini,
 	  afterstep/backgrounds/xml/Default.mini,
-	  afterstep/backgrounds/xml/Defenseless_Elsie.mini,
-	  afterstep/backgrounds/xml/Dorchester_Consolidated.mini,
-	  afterstep/backgrounds/xml/Drop_Injures.mini,
-	  afterstep/backgrounds/xml/Evil_Car_Wash.mini,
 	  afterstep/backgrounds/xml/Firestreaks.mini,
 	  afterstep/backgrounds/xml/Japanese.mini,
 	  afterstep/backgrounds/xml/Japanese_Colored.mini,
-	  afterstep/backgrounds/xml/Libelous_Paintings.mini,
-	  afterstep/backgrounds/xml/Nordic_Powder_Pirate.mini,
-	  afterstep/backgrounds/xml/Psychiatrists_Imminently.mini,
-	  afterstep/backgrounds/xml/Simple_Texture.mini,
 	  afterstep/backgrounds/xml/Smooth.mini,
 	  afterstep/start/1_Desktop/Pictures/.include.in,
 	  libAfterImage/asimagexml.c, libAfterStep/asapp.c,
@@ -3920,6 +4616,15 @@
 2003-07-21 01:13  sasha
 
 	* afterstep/: Makefile.in,
+	  backgrounds/Gradient_Textures/xml/Blurts_Michelson,
+	  backgrounds/Gradient_Textures/xml/Defenseless_Elsie,
+	  backgrounds/Gradient_Textures/xml/Dorchester_Consolidated,
+	  backgrounds/Gradient_Textures/xml/Drop_Injures,
+	  backgrounds/Gradient_Textures/xml/Evil_Car_Wash,
+	  backgrounds/Gradient_Textures/xml/Libelous_Paintings,
+	  backgrounds/Gradient_Textures/xml/Nordic_Powder_Pirate,
+	  backgrounds/Gradient_Textures/xml/Psychiatrists_Imminently,
+	  backgrounds/Gradient_Textures/xml/Simple_Texture,
 	  backgrounds/Plain_Textures/xml/Blurts_Michelson,
 	  backgrounds/Plain_Textures/xml/Defenseless_Elsie,
 	  backgrounds/Plain_Textures/xml/Dorchester_Consolidated,
@@ -3928,17 +4633,9 @@
 	  backgrounds/Plain_Textures/xml/Libelous_Paintings,
 	  backgrounds/Plain_Textures/xml/Nordic_Powder_Pirate,
 	  backgrounds/Plain_Textures/xml/Psychiatrists_Imminently,
-	  backgrounds/Plain_Textures/xml/Simple,
-	  backgrounds/xml/Blurts_Michelson, backgrounds/xml/Default,
-	  backgrounds/xml/Defenseless_Elsie,
-	  backgrounds/xml/Dorchester_Consolidated,
-	  backgrounds/xml/Drop_Injures, backgrounds/xml/Evil_Car_Wash,
-	  backgrounds/xml/Libelous_Paintings,
-	  backgrounds/xml/Nordic_Powder_Pirate,
-	  backgrounds/xml/Psychiatrists_Imminently,
-	  backgrounds/xml/Simple_Texture, backgrounds/xml/Smooth: added
-	  plain texturesbackgrounds; Fixed Makefile for image files
-	  installation
+	  backgrounds/Plain_Textures/xml/Simple, backgrounds/xml/Default,
+	  backgrounds/xml/Smooth: added plain texturesbackgrounds; Fixed
+	  Makefile for image files installation
 
 2003-07-19 02:37  sasha
 
@@ -4083,10 +4780,7 @@
 	  afterstep/desktop/icons/logos/png/konqueror,
 	  afterstep/looks/look.DEFAULT, afterstep/looks/look.Transparent,
 	  afterstep/non-configurable/0_feel, autoconf/configure.in,
-	  libAfterImage/configure, src/Zharf/.depend,
-	  src/Zharf/Makefile.in, src/Zharf/Zharf.c, src/Zharf/Zharf.h,
-	  src/Zharf/Zharf.man, src/Zharf/icons.c: mostly completed wharf
-	  config
+	  libAfterImage/configure: mostly completed wharf config
 
 2003-07-14 17:14  sasha
 
@@ -4376,16 +5070,16 @@
 2003-06-19 15:23  sasha
 
 	* afterstep/Makefile.in,
-	  afterstep/backgrounds/xml/Blurts_Michelson,
+	  afterstep/backgrounds/Gradient_Textures/xml/Blurts_Michelson,
+	  afterstep/backgrounds/Gradient_Textures/xml/Defenseless_Elsie,
+	  afterstep/backgrounds/Gradient_Textures/xml/Dorchester_Consolidated,
+	  afterstep/backgrounds/Gradient_Textures/xml/Drop_Injures,
+	  afterstep/backgrounds/Gradient_Textures/xml/Evil_Car_Wash,
+	  afterstep/backgrounds/Gradient_Textures/xml/Libelous_Paintings,
+	  afterstep/backgrounds/Gradient_Textures/xml/Nordic_Powder_Pirate,
+	  afterstep/backgrounds/Gradient_Textures/xml/Psychiatrists_Imminently,
+	  afterstep/backgrounds/Gradient_Textures/xml/Simple_Texture,
 	  afterstep/backgrounds/xml/Default,
-	  afterstep/backgrounds/xml/Defenseless_Elsie,
-	  afterstep/backgrounds/xml/Dorchester_Consolidated,
-	  afterstep/backgrounds/xml/Drop_Injures,
-	  afterstep/backgrounds/xml/Evil_Car_Wash,
-	  afterstep/backgrounds/xml/Libelous_Paintings,
-	  afterstep/backgrounds/xml/Nordic_Powder_Pirate,
-	  afterstep/backgrounds/xml/Psychiatrists_Imminently,
-	  afterstep/backgrounds/xml/Simple_Texture,
 	  afterstep/backgrounds/xml/Smooth,
 	  afterstep/desktop/tiles/jpg/BlurtsMichelson,
 	  afterstep/desktop/tiles/jpg/BlurtsMichelson.mini,
@@ -4411,9 +5105,10 @@
 
 2003-06-19 12:42  sasha
 
-	* afterstep/backgrounds/xml/: Back.xpm, BlueStone.xpm,
-	  Simple_Texture, aquamarine.xpm, black.xpm, darkblue.xpm,
-	  darkgreen.xpm, midnightblue.xpm, purple.xpm, red.xpm, wheat.xpm:
+	* afterstep/backgrounds/: Gradient_Textures/xml/Simple_Texture,
+	  xml/Back.xpm, xml/BlueStone.xpm, xml/aquamarine.xpm,
+	  xml/black.xpm, xml/darkblue.xpm, xml/darkgreen.xpm,
+	  xml/midnightblue.xpm, xml/purple.xpm, xml/red.xpm, xml/wheat.xpm:
 	  rearranging backgrounds
 
 2003-06-18 16:40  sasha
@@ -6699,7 +7394,7 @@
 2002-12-27 09:18  sasha
 
 	* src/: Pager/.depend, Script/.depend, Wharf/.depend,
-	  Zharf/.depend, afterstep/.depend: updated deps
+	  afterstep/.depend: updated deps
 
 2002-12-27 09:11  sasha
 
@@ -7224,7 +7919,7 @@
 	  libAfterConf/.depend, libAfterConf/Database.c,
 	  libAfterStep/screen.c, libAfterStep/session.c,
 	  libAfterStep/wmprops.c, src/Script/.depend,
-	  src/Script/Widgets/.depend, src/Wharf/.depend, src/Zharf/.depend,
+	  src/Script/Widgets/.depend, src/Wharf/.depend,
 	  src/afterstep/.depend, src/afterstep/afterstep.c,
 	  src/afterstep/asinternals.h, src/afterstep/configure.c,
 	  src/afterstep/functions.c, src/afterstep/menuitem.c,
@@ -7337,7 +8032,7 @@
 	  libAfterStep/parser.c, libAfterStep/wmprops.c,
 	  src/Banner/Banner.c, src/Ident/Ident.c, src/Pager/Pager.c,
 	  src/Pager/x_pager.c, src/Script/Script.c, src/Scroll/Scroll.c,
-	  src/Wharf/Wharf.c, src/Zharf/Zharf.c, src/afterstep/Makefile.in,
+	  src/Wharf/Wharf.c, src/afterstep/Makefile.in,
 	  src/afterstep/add_window.c, src/afterstep/afterstep.c,
 	  src/afterstep/asinternals.h, src/afterstep/configure.c,
 	  src/afterstep/functions.c, src/afterstep/globals.h,
@@ -7458,12 +8153,11 @@
 	* include/afterstep.h, include/misc.h, include/screen.h,
 	  libAfterStep/afterstep.h, libAfterStep/screen.h,
 	  src/Scroll/GrabWindow.c, src/Scroll/Scroll.c, src/Wharf/Wharf.c,
-	  src/Zharf/Zharf.c, src/afterstep/add_window.c,
-	  src/afterstep/afterstep.c, src/afterstep/configure.c,
-	  src/afterstep/events.c, src/afterstep/functions.c,
-	  src/afterstep/misc.c: updated Destroy and
-	  REstoreWithdrawnLocation from as-devel; cleaned up misc.c abit;
-	  Updated HandleDestroy and HandleMapRequest
+	  src/afterstep/add_window.c, src/afterstep/afterstep.c,
+	  src/afterstep/configure.c, src/afterstep/events.c,
+	  src/afterstep/functions.c, src/afterstep/misc.c: updated Destroy
+	  and REstoreWithdrawnLocation from as-devel; cleaned up misc.c
+	  abit; Updated HandleDestroy and HandleMapRequest
 
 2002-10-03 17:37  sasha
 
@@ -8047,8 +8741,8 @@
 	  src/Script/Widgets/PopupMenu.c, src/Script/Widgets/PushButton.c,
 	  src/Script/Widgets/RadioButton.c, src/Script/Widgets/Rectangle.c,
 	  src/Script/Widgets/Swallow.c, src/Script/Widgets/TextField.c,
-	  src/Script/Widgets/VDipstick.c, src/Script/Widgets/VScrollBar.c,
-	  src/Zharf/Zharf.c: fixed compilation of everything
+	  src/Script/Widgets/VDipstick.c, src/Script/Widgets/VScrollBar.c:
+	  fixed compilation of everything
 
 2002-04-26 01:20  sasha
 
@@ -8090,9 +8784,9 @@
 	  src/Pager/Makefile.in, src/Save/.depend, src/Script/.depend,
 	  src/Scroll/.depend, src/Scroll/Makefile.in, src/Sound/.depend,
 	  src/Tile/.depend, src/Wharf/.depend, src/Wharf/Makefile.in,
-	  src/Zharf/.depend, src/Zharf/Makefile.in, src/afterstep/.depend,
-	  src/afterstep/Makefile.in, src/asetroot/.depend,
-	  src/asetroot/Makefile.in:  cleaned up headers and fixed Makefiles
+	  src/afterstep/.depend, src/afterstep/Makefile.in,
+	  src/asetroot/.depend, src/asetroot/Makefile.in:  cleaned up
+	  headers and fixed Makefiles
 
 2002-04-25 00:25  sasha
 
@@ -8295,7 +8989,7 @@
 	  src/Pager/Makefile.in, src/Save/Makefile.in,
 	  src/Script/Makefile.in, src/Scroll/Makefile.in,
 	  src/Sound/Makefile.in, src/Tile/Makefile.in,
-	  src/Wharf/Makefile.in, src/Wharf/Wharf.c, src/Zharf/Makefile.in,
+	  src/Wharf/Makefile.in, src/Wharf/Wharf.c,
 	  src/afterstep/Makefile.in, src/afterstep/menuitem.c,
 	  src/asetroot/Makefile.in: IN the middle of updating AS with
 	  libAfterImage and libAfterBase. Things may not work here
@@ -8514,19 +9208,7 @@
 
 	* libAfterImage/: Makefile.in, afterbase.c, afterbase.h.in,
 	  asimage.c, asimage.h, asimagexml.c, asimagexml.h, ximage.c,
-	  apps/.depend, apps/ascompose.c, apps/ascompose.man,
-	  doc/afterimage.man, doc/ascmap.man, doc/asfont.man,
-	  doc/asimage.man, doc/asimagexml.man, doc/asvisual.man,
-	  doc/blender.man, doc/export.man, doc/import.man,
-	  doc/transform.man, doc/ximage.man, doc/html/afterimage.html,
-	  doc/html/ascmap.html, doc/html/ascompose.html,
-	  doc/html/asflip.html, doc/html/asfont.html, doc/html/asgrad.html,
-	  doc/html/asimage.html, doc/html/asimagexml.html,
-	  doc/html/asmerge.html, doc/html/asscale.html,
-	  doc/html/astext.html, doc/html/astile.html, doc/html/asview.html,
-	  doc/html/asvisual.html, doc/html/blender.html,
-	  doc/html/common.html, doc/html/export.html, doc/html/import.html,
-	  doc/html/transform.html, doc/html/ximage.html: converted
+	  apps/.depend, apps/ascompose.c, apps/ascompose.man: converted
 	  ascompose to use xml code from asimagexml.c and did some cursory
 	  debuggin
 
@@ -8626,19 +9308,7 @@
 
 2002-01-15 15:05  sasha
 
-	* libAfterImage/: apps/ascompose.man, doc/afterimage.man,
-	  doc/ascmap.man, doc/asfont.man, doc/asimage.man,
-	  doc/asvisual.man, doc/blender.man, doc/export.man,
-	  doc/import.man, doc/transform.man, doc/ximage.man,
-	  doc/html/afterimage.html, doc/html/ascmap.html,
-	  doc/html/ascompose.html, doc/html/asflip.html,
-	  doc/html/asfont.html, doc/html/asgrad.html,
-	  doc/html/asimage.html, doc/html/asmerge.html,
-	  doc/html/asscale.html, doc/html/astext.html,
-	  doc/html/astile.html, doc/html/asview.html,
-	  doc/html/asvisual.html, doc/html/blender.html,
-	  doc/html/common.html, doc/html/export.html, doc/html/import.html,
-	  doc/html/transform.html, doc/html/ximage.html: updated docs
+	* libAfterImage/apps/ascompose.man: updated docs
 
 2002-01-15 15:04  sasha
 
@@ -8675,32 +9345,8 @@
 2002-01-14 22:55  sasha
 
 	* libAfterBase/configure, libAfterImage/configure,
-	  libAfterImage/apps/ascompose.man,
-	  libAfterImage/doc/afterimage.man, libAfterImage/doc/ascmap.man,
-	  libAfterImage/doc/asfont.man, libAfterImage/doc/asimage.man,
-	  libAfterImage/doc/asvisual.man, libAfterImage/doc/blender.man,
-	  libAfterImage/doc/export.man, libAfterImage/doc/import.man,
-	  libAfterImage/doc/transform.man, libAfterImage/doc/ximage.man,
-	  libAfterImage/doc/html/afterimage.html,
-	  libAfterImage/doc/html/ascmap.html,
-	  libAfterImage/doc/html/ascompose.html,
-	  libAfterImage/doc/html/asflip.html,
-	  libAfterImage/doc/html/asfont.html,
-	  libAfterImage/doc/html/asgrad.html,
-	  libAfterImage/doc/html/asimage.html,
-	  libAfterImage/doc/html/asmerge.html,
-	  libAfterImage/doc/html/asscale.html,
-	  libAfterImage/doc/html/astext.html,
-	  libAfterImage/doc/html/astile.html,
-	  libAfterImage/doc/html/asview.html,
-	  libAfterImage/doc/html/asvisual.html,
-	  libAfterImage/doc/html/blender.html,
-	  libAfterImage/doc/html/common.html,
-	  libAfterImage/doc/html/export.html,
-	  libAfterImage/doc/html/import.html,
-	  libAfterImage/doc/html/transform.html,
-	  libAfterImage/doc/html/ximage.html: Completed portability fixing
-	  of the day
+	  libAfterImage/apps/ascompose.man: Completed portability fixing of
+	  the day
 
 2002-01-14 16:08  sasha
 
@@ -8845,80 +9491,24 @@
 
 	* libAfterBase/configure.in, libAfterImage/Makefile.in,
 	  libAfterImage/configure.in, libAfterImage/apps/README,
-	  libAfterImage/apps/ascompose.man,
-	  libAfterImage/doc/afterimage.man, libAfterImage/doc/ascmap.man,
-	  libAfterImage/doc/asfont.man, libAfterImage/doc/asimage.man,
-	  libAfterImage/doc/asvisual.man, libAfterImage/doc/blender.man,
-	  libAfterImage/doc/export.man, libAfterImage/doc/import.man,
-	  libAfterImage/doc/transform.man, libAfterImage/doc/ximage.man,
-	  libAfterImage/doc/html/afterimage.html,
-	  libAfterImage/doc/html/ascmap.html,
-	  libAfterImage/doc/html/ascompose.html,
-	  libAfterImage/doc/html/asflip.html,
-	  libAfterImage/doc/html/asfont.html,
-	  libAfterImage/doc/html/asgrad.html,
-	  libAfterImage/doc/html/asimage.html,
-	  libAfterImage/doc/html/asmerge.html,
-	  libAfterImage/doc/html/asscale.html,
-	  libAfterImage/doc/html/astext.html,
-	  libAfterImage/doc/html/astile.html,
-	  libAfterImage/doc/html/asview.html,
-	  libAfterImage/doc/html/asvisual.html,
-	  libAfterImage/doc/html/blender.html,
-	  libAfterImage/doc/html/common.html,
-	  libAfterImage/doc/html/export.html,
-	  libAfterImage/doc/html/import.html,
-	  libAfterImage/doc/html/transform.html,
-	  libAfterImage/doc/html/ximage.html: updated man pages
+	  libAfterImage/apps/ascompose.man: updated man pages
 
 2002-01-09 17:43  sasha
 
 	* libAfterImage/: afterimage.h, asimage.h, asvisual.h, blender.c,
-	  blender.h, transform.h, apps/ascompose.c,
-	  doc/html/afterimage.html, doc/html/ascmap.html,
-	  doc/html/ascompose.html, doc/html/asflip.html,
-	  doc/html/asfont.html, doc/html/asgrad.html,
-	  doc/html/asimage.html, doc/html/asmerge.html,
-	  doc/html/asscale.html, doc/html/astext.html,
-	  doc/html/astile.html, doc/html/asview.html,
-	  doc/html/asvisual.html, doc/html/blender.html,
-	  doc/html/common.html, doc/html/export.html, doc/html/import.html,
-	  doc/html/transform.html, doc/html/ximage.html: Completed
-	  documenting libAfterImage's latest additions.
+	  blender.h, transform.h, apps/ascompose.c: Completed documenting
+	  libAfterImage's latest additions.
 
 2002-01-08 17:40  sasha
 
-	* libAfterImage/: apps/ascompose.c, apps/ascompose.man,
-	  doc/afterimage.man, doc/ascmap.man, doc/asfont.man,
-	  doc/asimage.man, doc/asvisual.man, doc/blender.man,
-	  doc/export.man, doc/import.man, doc/transform.man,
-	  doc/ximage.man, doc/html/afterimage.html, doc/html/ascmap.html,
-	  doc/html/ascompose.html, doc/html/asflip.html,
-	  doc/html/asfont.html, doc/html/asgrad.html,
-	  doc/html/asimage.html, doc/html/asmerge.html,
-	  doc/html/asscale.html, doc/html/astext.html,
-	  doc/html/astile.html, doc/html/asview.html,
-	  doc/html/asvisual.html, doc/html/blender.html,
-	  doc/html/common.html, doc/html/export.html, doc/html/import.html,
-	  doc/html/transform.html, doc/html/ximage.html: Completed
+	* libAfterImage/apps/: ascompose.c, ascompose.man: Completed
 	  documenting ascompose.c Regenerated .HTML docs
 
 2002-01-07 17:29  sasha
 
 	* libAfterImage/: Makefile.in, apps/ascompose.c,
-	  apps/ascompose.man, doc/afterimage.man, doc/ascmap.man,
-	  doc/asfont.man, doc/asimage.man, doc/asvisual.man,
-	  doc/blender.man, doc/export.man, doc/import.man,
-	  doc/transform.man, doc/ximage.man, doc/html/afterimage.html,
-	  doc/html/ascmap.html, doc/html/ascompose.html,
-	  doc/html/asflip.html, doc/html/asfont.html, doc/html/asgrad.html,
-	  doc/html/asimage.html, doc/html/asmerge.html,
-	  doc/html/asscale.html, doc/html/astext.html,
-	  doc/html/astile.html, doc/html/asview.html,
-	  doc/html/asvisual.html, doc/html/blender.html,
-	  doc/html/common.html, doc/html/export.html, doc/html/import.html,
-	  doc/html/transform.html, doc/html/ximage.html: done with about
-	  50% of ascompose documentation.
+	  apps/ascompose.man: done with about 50% of ascompose
+	  documentation.
 
 2002-01-07 01:35  sasha
 
@@ -9061,9 +9651,9 @@
 2001-12-13 00:30  sasha
 
 	* ChangeLog, src/Audio/Audio.man, src/Pager/Pager.man,
-	  src/Tile/Tile.c, src/Wharf/Wharf.man, src/Zharf/Zharf.man,
-	  src/afterstep/functions.c: updated man pages; fixed maximization
-	  under xinerama; updated ChangeLog;
+	  src/Tile/Tile.c, src/Wharf/Wharf.man, src/afterstep/functions.c:
+	  updated man pages; fixed maximization under xinerama; updated
+	  ChangeLog;
 
 2001-12-12 13:12  sasha
 
@@ -9272,18 +9862,6 @@
 	  data in vector of doubles with additional pallette to translate
 	  into real ARGB.
 
-2001-11-14 01:08  sasha
-
-	* libAfterImage/doc/: afterimage.man, ascmap.man, asfont.man,
-	  asimage.man, asvisual.man, blender.man, export.man, import.man,
-	  transform.man, ximage.man, html/afterimage.html,
-	  html/ascmap.html, html/asflip.html, html/asfont.html,
-	  html/asgrad.html, html/asimage.html, html/asmerge.html,
-	  html/asscale.html, html/astext.html, html/astile.html,
-	  html/asview.html, html/asvisual.html, html/blender.html,
-	  html/common.html, html/export.html, html/import.html,
-	  html/transform.html, html/ximage.html: updated libAfterImage docs
-
 2001-11-14 01:07  sasha
 
 	* libAfterImage/: config.h.in, configure, configure.in: added
@@ -9343,12 +9921,10 @@
 	  libAfterImage/asvisual.c, libAfterImage/asvisual.h,
 	  libAfterImage/configure, libAfterImage/configure.in,
 	  libAfterImage/export.c, libAfterImage/export.h,
-	  libAfterImage/xcf.h, libAfterImage/apps/asmerge.c,
-	  libAfterImage/doc/asvisual.man,
-	  libAfterImage/doc/html/asvisual.html: Added patches for
-	  compilation into C++ proggrams ( contributed by Fons Rademakers)
-	  Implemented export filter into TIFF.	Hopefully fixed library
-	  order when compiling apps from libAfterImage
+	  libAfterImage/xcf.h, libAfterImage/apps/asmerge.c: Added patches
+	  for compilation into C++ proggrams ( contributed by Fons
+	  Rademakers) Implemented export filter into TIFF.  Hopefully fixed
+	  library order when compiling apps from libAfterImage
 
 2001-10-22 17:20  sasha
 
@@ -9381,19 +9957,6 @@
 	* libAfterImage/: Makefile.in, afterbase.h.in: Fixed Makefile to
 	  work without libAfterBase
 
-2001-10-10 10:25  sasha
-
-	* libAfterImage/doc/: afterimage.man, ascmap.man, asfont.man,
-	  asimage.man, asvisual.man, blender.man, export.man, import.man,
-	  transform.man, ximage.man, html/afterimage.html,
-	  html/ascmap.html, html/asflip.html, html/asfont.html,
-	  html/asgrad.html, html/asimage.html, html/asmerge.html,
-	  html/asscale.html, html/astext.html, html/astile.html,
-	  html/asview.html, html/asvisual.html, html/blender.html,
-	  html/common.html, html/export.html, html/import.html,
-	  html/transform.html, html/ximage.html: Updated man and HTML
-	  documentation
-
 2001-10-10 10:21  sasha
 
 	* libAfterBase/ChangeLog, libAfterImage/ChangeLog: Updated
@@ -9409,18 +9972,7 @@
 
 2001-10-10 00:40  sasha
 
-	* libAfterImage/: Makefile.in, doc/afterimage.man, doc/ascmap.man,
-	  doc/asfont.man, doc/asimage.man, doc/asvisual.man,
-	  doc/blender.man, doc/export.man, doc/import.man,
-	  doc/transform.man, doc/ximage.man, doc/html/afterimage.html,
-	  doc/html/ascmap.html, doc/html/asflip.html, doc/html/asfont.html,
-	  doc/html/asgrad.html, doc/html/asimage.html,
-	  doc/html/asmerge.html, doc/html/asscale.html,
-	  doc/html/astext.html, doc/html/astile.html, doc/html/asview.html,
-	  doc/html/asvisual.html, doc/html/blender.html,
-	  doc/html/common.html, doc/html/export.html, doc/html/import.html,
-	  doc/html/transform.html, doc/html/ximage.html: updated
-	  documentation and deps
+	* libAfterImage/Makefile.in: updated documentation and deps
 
 2001-10-10 00:31  sasha
 
@@ -9530,11 +10082,10 @@
 	  libAfterConf/Pager.c, src/Form/Form.c, src/Pager/Pager.c,
 	  src/Pager/x_pager.c, src/Script/Script.c, src/Sound/ASSound.c,
 	  src/Tile/Tile.c, src/Wharf/Wharf.c, src/Wharf/icons.c,
-	  src/Zharf/Zharf.c, src/Zharf/icons.c, src/afterstep/afterstep.c,
-	  src/afterstep/afterstep.man, src/afterstep/configure.c,
-	  src/afterstep/functions.c, src/afterstep/icons.c,
-	  src/afterstep/menuitem.c, src/asetroot/asetroot.c: Updated Sasha
-	  Vasko e-mail address
+	  src/afterstep/afterstep.c, src/afterstep/afterstep.man,
+	  src/afterstep/configure.c, src/afterstep/functions.c,
+	  src/afterstep/icons.c, src/afterstep/menuitem.c,
+	  src/asetroot/asetroot.c: Updated Sasha Vasko e-mail address
 
 2001-09-28 08:45  sasha
 
@@ -10064,16 +10615,7 @@
 
 2001-07-22 01:03  sasha
 
-	* libAfterImage/: Makefile.in, ascmap.c, ascmap.h, export.c, xpm.c,
-	  doc/afterimage.man, doc/asfont.man, doc/asimage.man,
-	  doc/asvisual.man, doc/blender.man, doc/import.man,
-	  doc/html/afterimage.html, doc/html/asflip.html,
-	  doc/html/asfont.html, doc/html/asgrad.html,
-	  doc/html/asimage.html, doc/html/asmerge.html,
-	  doc/html/asscale.html, doc/html/astext.html,
-	  doc/html/astile.html, doc/html/asview.html,
-	  doc/html/asvisual.html, doc/html/blender.html,
-	  doc/html/common.html, doc/html/export.html, doc/html/import.html:
+	* libAfterImage/: Makefile.in, ascmap.c, ascmap.h, export.c, xpm.c:
 	  polished colormap calculation quite a bit and made it to allocate
 	  just the right amount of colors by adding more passes
 
@@ -10101,14 +10643,6 @@
 	  font dereferencing ( see release_font() ).  Started
 	  implementation of libAfterImage interface in libAfterStep.
 
-2001-07-13 15:14  sasha
-
-	* libAfterImage/doc/html/: afterimage.html, asflip.html,
-	  asfont.html, asgrad.html, asimage.html, asmerge.html,
-	  asscale.html, astext.html, astile.html, asview.html,
-	  asvisual.html, blender.html, common.html, export.html,
-	  import.html: removed dos end-of-lines - just neatpicking :)
-
 2001-07-13 15:10  sasha
 
 	* libAfterImage/: afterbase.c, afterbase.h.in, apps/asmerge.c:
@@ -10124,23 +10658,8 @@
 
 2001-07-13 13:55  sasha
 
-	* libAfterBase/Makefile.in, libAfterImage/export.h,
-	  libAfterImage/doc/html/afterimage.html,
-	  libAfterImage/doc/html/asflip.html,
-	  libAfterImage/doc/html/asfont.html,
-	  libAfterImage/doc/html/asgrad.html,
-	  libAfterImage/doc/html/asimage.html,
-	  libAfterImage/doc/html/asmerge.html,
-	  libAfterImage/doc/html/asscale.html,
-	  libAfterImage/doc/html/astext.html,
-	  libAfterImage/doc/html/astile.html,
-	  libAfterImage/doc/html/asview.html,
-	  libAfterImage/doc/html/asvisual.html,
-	  libAfterImage/doc/html/blender.html,
-	  libAfterImage/doc/html/common.html,
-	  libAfterImage/doc/html/export.html,
-	  libAfterImage/doc/html/import.html: Updated docs to reflect
-	  recent API changes
+	* libAfterBase/Makefile.in, libAfterImage/export.h: Updated docs to
+	  reflect recent API changes
 
 2001-07-13 12:35  sasha
 
@@ -10207,14 +10726,8 @@
 
 2001-07-11 11:54  sasha
 
-	* libAfterImage/: apps/astext.c, doc/html/afterimage.html,
-	  doc/html/asflip.html, doc/html/asfont.html, doc/html/asgrad.html,
-	  doc/html/asimage.html, doc/html/asmerge.html,
-	  doc/html/asscale.html, doc/html/astext.html,
-	  doc/html/astile.html, doc/html/asview.html,
-	  doc/html/asvisual.html, doc/html/blender.html,
-	  doc/html/common.html, doc/html/import.html: Added final astext
-	  tutorial comments.  Reupdated documentation.
+	* libAfterImage/apps/astext.c: Added final astext tutorial
+	  comments.  Reupdated documentation.
 
 2001-07-11 03:46  sasha
 
@@ -10260,16 +10773,6 @@
 
 	* libAfterImage/: Makefile.in: fixed doc installation in Makefile
 
-2001-07-11 01:48  sasha
-
-	* libAfterImage/doc/: afterimage.man, asfont.man, asimage.man,
-	  asvisual.man, blender.man, import.man, html/afterimage.html,
-	  html/asflip.html, html/asfont.html, html/asgrad.html,
-	  html/asimage.html, html/asmerge.html, html/asscale.html,
-	  html/astext.html, html/astile.html, html/asview.html,
-	  html/asvisual.html, html/blender.html, html/common.html,
-	  html/import.html: updated documentation
-
 2001-07-11 01:47  sasha
 
 	* libAfterImage/Makefile.in: updated Makefile to install include
@@ -10295,29 +10798,15 @@
 2001-07-10 17:37  sasha
 
 	* libAfterImage/: afterimage.h, asfont.h, asimage.h, apps/asflip.c,
-	  apps/asgrad.c, apps/asscale.c, apps/astext.c, apps/astile.c,
-	  doc/html/afterimage.html, doc/html/asflip.html,
-	  doc/html/asfont.html, doc/html/asgrad.html,
-	  doc/html/asimage.html, doc/html/asmerge.html,
-	  doc/html/asscale.html, doc/html/astext.html,
-	  doc/html/astile.html, doc/html/asview.html,
-	  doc/html/asvisual.html, doc/html/blender.html,
-	  doc/html/common.html, doc/html/import.html: Updated documentation
-	  abit to refelect recent code changes and make it easier to link
-	  from main index page.
+	  apps/asgrad.c, apps/asscale.c, apps/astext.c, apps/astile.c:
+	  Updated documentation abit to refelect recent code changes and
+	  make it easier to link from main index page.
 
 2001-07-10 01:49  sasha
 
-	* libAfterImage/: Makefile.in, README, xpm.c, apps/README,
-	  doc/html/afterimage.html, doc/html/asflip.html,
-	  doc/html/asfont.html, doc/html/asgrad.html,
-	  doc/html/asimage.html, doc/html/asmerge.html,
-	  doc/html/asscale.html, doc/html/astext.html,
-	  doc/html/astile.html, doc/html/asview.html,
-	  doc/html/asvisual.html, doc/html/blender.html,
-	  doc/html/common.html, doc/html/import.html: fixed bug in xpm
-	  parser where spaces would get treated incorrectlt in colormap;
-	  added READMEs;
+	* libAfterImage/: Makefile.in, README, xpm.c, apps/README: fixed
+	  bug in xpm parser where spaces would get treated incorrectlt in
+	  colormap; added READMEs;
 
 2001-07-09 17:39  sasha
 
@@ -10440,52 +10929,25 @@
 
 2001-07-03 17:34  sasha
 
-	* libAfterImage/: asfont.h, apps/astext.c,
-	  doc/html/afterimage.html, doc/html/asflip.html,
-	  doc/html/asfont.html, doc/html/asgrad.html,
-	  doc/html/asimage.html, doc/html/asmerge.html,
-	  doc/html/asscale.html, doc/html/astext.html,
-	  doc/html/astile.html, doc/html/asview.html,
-	  doc/html/asvisual.html, doc/html/blender.html,
-	  doc/html/common.html, doc/html/import.html: implemented astext
+	* libAfterImage/: asfont.h, apps/astext.c: implemented astext
 	  properly
 
 2001-07-03 16:48  sasha
 
 	* libAfterImage/: afterimage.h, asimage.c, apps/asflip.c,
-	  apps/asgrad.c, apps/astext.c, doc/html/afterimage.html,
-	  doc/html/asflip.html, doc/html/asfont.html, doc/html/asgrad.html,
-	  doc/html/asimage.html, doc/html/asmerge.html,
-	  doc/html/asscale.html, doc/html/astext.html,
-	  doc/html/astile.html, doc/html/asview.html,
-	  doc/html/asvisual.html, doc/html/blender.html,
-	  doc/html/common.html, doc/html/import.html: implemented asgrad,
-	  asflip and astext. Althou astext still needs some work.
+	  apps/asgrad.c, apps/astext.c: implemented asgrad, asflip and
+	  astext. Althou astext still needs some work.
 
 2001-07-03 01:50  sasha
 
-	* libAfterImage/: Makefile.in, apps/Makefile.in,
-	  doc/html/afterimage.html, doc/html/asflip.html,
-	  doc/html/asfont.html, doc/html/asgrad.html,
-	  doc/html/asimage.html, doc/html/asmerge.html,
-	  doc/html/asscale.html, doc/html/astext.html,
-	  doc/html/astile.html, doc/html/asview.html,
-	  doc/html/asvisual.html, doc/html/blender.html,
-	  doc/html/common.html, doc/html/import.html: added prototypes for
-	  asflip, asgrad and astext examples/tutorials/testapps to the
+	* libAfterImage/: Makefile.in, apps/Makefile.in: added prototypes
+	  for asflip, asgrad and astext examples/tutorials/testapps to the
 	  libAfterIMage suit
 
 2001-07-02 16:55  sasha
 
 	* libAfterImage/: Makefile.in, asimage.c, blender.c, blender.h,
-	  apps/Makefile.in, apps/asmerge.c, doc/afterimage.man,
-	  doc/asfont.man, doc/asimage.man, doc/asvisual.man,
-	  doc/blender.man, doc/import.man, doc/html/afterimage.html,
-	  doc/html/asfont.html, doc/html/asimage.html,
-	  doc/html/asmerge.html, doc/html/asscale.html,
-	  doc/html/astile.html, doc/html/asview.html,
-	  doc/html/asvisual.html, doc/html/blender.html,
-	  doc/html/common.html, doc/html/import.html: Completed ASMerge
+	  apps/Makefile.in, apps/asmerge.c: Completed ASMerge
 	  implementation. Used it to debug all the merging routines.
 	  Everything works perfect now.  Added doc/html/asmerge.html -
 	  another tutorial.  Added list_scanline_merging function to
@@ -10518,16 +10980,10 @@
 
 	* libAfterImage/: Makefile.in, afterimage.h, asimage.c, asimage.h,
 	  asvisual.h, import.c, apps/Makefile.in, apps/asscale.c,
-	  apps/astile.c, apps/asview.c, apps/common.c, apps/common.h,
-	  doc/x11_symbols.xref, doc/html/afterimage.html,
-	  doc/html/asfont.html, doc/html/asimage.html,
-	  doc/html/asscale.html, doc/html/astile.html,
-	  doc/html/asview.html, doc/html/asvisual.html,
-	  doc/html/blender.html, doc/html/common.html,
-	  doc/html/import.html: Added ASScale and ASTile examples with
-	  documentation and stuff.  Fixed bug in asimage.c causing
-	  artifacts when image is tiled with TOP quality.  cleabed up
-	  cvsignore in include/
+	  apps/astile.c, apps/asview.c, apps/common.c, apps/common.h: Added
+	  ASScale and ASTile examples with documentation and stuff.  Fixed
+	  bug in asimage.c causing artifacts when image is tiled with TOP
+	  quality.  cleabed up cvsignore in include/
 
 2001-06-29 00:19  sasha
 
@@ -10541,57 +10997,36 @@
 
 	* libAfterImage/: Makefile.in, afterbase.c, afterimage.h,
 	  asimage.h, asvisual.h, import.h, apps/Makefile.in, apps/asview.c,
-	  apps/common.c, apps/common.h, doc/x11_symbols.xref,
-	  doc/html/afterimage.html, doc/html/asfont.html,
-	  doc/html/asimage.html, doc/html/asview.html,
-	  doc/html/asvisual.html, doc/html/blender.html,
-	  doc/html/common.html, doc/html/import.html: Added documenting
-	  comments to asview.c so it generates nice little Tutorial as the
-	  result.  Added lots of X functions to xref files, so now all the
-	  source code is very nicely crossreferenced.  Added references to
-	  asview to other headers etc.
+	  apps/common.c, apps/common.h: Added documenting comments to
+	  asview.c so it generates nice little Tutorial as the result.
+	  Added lots of X functions to xref files, so now all the source
+	  code is very nicely crossreferenced.	Added references to asview
+	  to other headers etc.
 
 2001-06-27 16:15  sasha
 
 	* libAfterImage/: Makefile.in, afterimage.h, asfont.c, asfont.h,
-	  asimage.h, blender.h, doc/afterimage.man, doc/asfont.man,
-	  doc/asimage.man, doc/asvisual.man, doc/blender.man,
-	  doc/freetype_symbols.xref, doc/import.man, doc/libAfterImage.man,
-	  doc/libafterimage.sgml, doc/x11_symbols.xref,
-	  doc/html/afterimage.html, doc/html/asfont.html,
-	  doc/html/asimage.html, doc/html/asvisual.html,
-	  doc/html/blender.html, doc/html/import.html: Completed
-	  documenting asfont.h Added afterimage.h with library overview got
-	  rid of old doc files added freetype and X11 xrefs so that docs
-	  are nicely crosslinked with X docs
+	  asimage.h, blender.h: Completed documenting asfont.h Added
+	  afterimage.h with library overview got rid of old doc files added
+	  freetype and X11 xrefs so that docs are nicely crosslinked with X
+	  docs
 
 2001-06-26 17:28  sasha
 
-	* libAfterImage/: asfont.h, doc/asfont.man, doc/asimage.man,
-	  doc/asvisual.man, doc/blender.man, doc/import.man,
-	  doc/html/asfont.html, doc/html/asimage.html,
-	  doc/html/asvisual.html, doc/html/blender.html,
-	  doc/html/import.html: asfont.h documentation	50% done
+	* libAfterImage/asfont.h: asfont.h documentation  50% done
 
 2001-06-26 01:19  sasha
 
-	* libAfterImage/: Makefile.in, doc/ASFont.man, doc/ASImage.man,
-	  doc/ASVisual.man, doc/asfont.man, doc/asimage.man,
-	  doc/asvisual.man, doc/blender.man, doc/import.man,
-	  doc/html/asfont.html, doc/html/asimage.html,
-	  doc/html/asvisual.html, doc/html/blender.html,
-	  doc/html/import.html: added Makefile targets fopr autogeneration
-	  of documentation in man and HTML formats. Added installation
-	  procedure for those.
+	* libAfterImage/Makefile.in: added Makefile targets fopr
+	  autogeneration of documentation in man and HTML formats. Added
+	  installation procedure for those.
 
 2001-06-25 16:53  sasha
 
-	* libAfterImage/: asimage.h, asvisual.h, blender.h, import.h,
-	  doc/html/asimage.html, doc/html/asvisual.html,
-	  doc/html/blender.html, doc/html/import.html: Documented blender.h
-	  and import.h - asfont.h to go.  Also it sound like a good idea to
-	  add afterimage.h with overview notes about libAfterImage and
-	  references to components.
+	* libAfterImage/: asimage.h, asvisual.h, blender.h, import.h:
+	  Documented blender.h and import.h - asfont.h to go.  Also it
+	  sound like a good idea to add afterimage.h with overview notes
+	  about libAfterImage and references to components.
 
 2001-06-24 01:22  sasha
 
@@ -10618,10 +11053,8 @@
 
 2001-06-22 17:31  sasha
 
-	* libAfterImage/: asimage.h, asvisual.h, doc/ASImage.man,
-	  doc/ASVisual.man, doc/html/asimage.html, doc/html/asvisual.html:
-	  Completed documenting asimage.h and asvisual.h.  asfont.h and
-	  import.h to go
+	* libAfterImage/: asimage.h, asvisual.h: Completed documenting
+	  asimage.h and asvisual.h.  asfont.h and import.h to go
 
 2001-06-22 02:13  sasha
 
@@ -10631,9 +11064,8 @@
 
 2001-06-21 17:44  sasha
 
-	* libAfterImage/: asimage.c, asimage.h, doc/ASImage.man,
-	  doc/html/asimage.html: MOre documentation writing - ASImage.h is
-	  almost done.
+	* libAfterImage/: asimage.c, asimage.h: MOre documentation writing
+	  - ASImage.h is almost done.
 
 2001-06-21 09:04  owsla
 
@@ -10660,23 +11092,7 @@
 
 2001-06-20 17:43  sasha
 
-	* libAfterImage/: asimage.h, doc/ASImage.man,
-	  doc/html/asimage.html: asimage.html and asimage.man updates
-
-2001-06-20 14:22  sasha
-
-	* libAfterImage/doc/ASImage.man: autogenerate man page for
-	  asimage.h
-
-2001-06-20 14:15  sasha
-
-	* libAfterImage/doc/ASImage.man: autogenerate man page for
-	  asimage.h
-
-2001-06-20 13:56  sasha
-
-	* libAfterImage/doc/ASImage.man: autogenerate man page for
-	  asimage.h
+	* libAfterImage/asimage.h: asimage.html and asimage.man updates
 
 2001-06-20 10:00  sasha
 
@@ -10685,48 +11101,33 @@
 
 2001-06-19 17:44  sasha
 
-	* libAfterImage/: asimage.h, doc/html/asimage.html: more doc
+	* libAfterImage/asimage.h: more doc
 
 2001-06-19 16:23  sasha
 
 	* libAfterBase/parse.c, libAfterImage/asimage.c,
 	  libAfterImage/asimage.h, libAfterImage/asvisual.c,
 	  libAfterImage/asvisual.h, libAfterImage/import.c,
-	  libAfterImage/xpm.c, libAfterImage/doc/html/asimage.html:
-	  Implemented ARGB->pixel conversion for 32 and 24 bit True color
-	  visual Fixed parse_argb_color to correctly treat 12 digit color
-	  value as 48bit RGB.  More libAfterImage documenting
+	  libAfterImage/xpm.c: Implemented ARGB->pixel conversion for 32
+	  and 24 bit True color visual Fixed parse_argb_color to correctly
+	  treat 12 digit color value as 48bit RGB.  More libAfterImage
+	  documenting
 
 2001-06-19 14:03  sasha
 
 	* libAfterBase/fs.c, libAfterImage/asimage.c,
-	  libAfterImage/asimage.h, libAfterImage/import.c,
-	  libAfterImage/doc/html/asimage.html: Fixed bug in find_file
-	  preventing it from finding files when not NULL search path is
-	  specified.  Fixed bug in asimage2pixmap causing it to use wrong
-	  gc variable.	Added more documentation to asimage.h and
+	  libAfterImage/asimage.h, libAfterImage/import.c: Fixed bug in
+	  find_file preventing it from finding files when not NULL search
+	  path is specified.  Fixed bug in asimage2pixmap causing it to use
+	  wrong gc variable.  Added more documentation to asimage.h and
 	  respectively to asimage.html
 
 2001-06-18 17:35  sasha
 
-	* libAfterImage/: asimage.c, asimage.h, doc/ASImage.man,
-	  doc/html/asimage.html: Added lots of self documenting comments to
-	  libAfterImage/asimage.h to allow for automagic documentation
-	  generation using robodoc package. Seems to be the only package
-	  that works decently.
-
-2001-06-18 10:37  sasha
-
-	* libAfterImage/doc/ASImage.man: man pages writing
-
-2001-06-18 09:15  sasha
-
-	* libAfterImage/doc/ASImage.man: libAfterImage manpages update
-
-2001-06-17 20:42  owsla
-
-	* libAfterImage/doc/libafterimage.sgml: fixed some typos for you
-	  Sasha :)
+	* libAfterImage/: asimage.c, asimage.h: Added lots of self
+	  documenting comments to libAfterImage/asimage.h to allow for
+	  automagic documentation generation using robodoc package. Seems
+	  to be the only package that works decently.
 
 2001-06-17 01:59  sasha
 
@@ -10734,17 +11135,10 @@
 	  asview.c, config.h.in, configure, configure.in: started
 	  implementing sample repository of example libAfterImage apps
 
-2001-06-15 14:37  sasha
-
-	* libAfterImage/doc/: ASImage.man: Added prototypes of the man
-	  pages for libAfterImage
-
 2001-06-15 13:55  sasha
 
-	* libAfterImage/: asimage.h, asvisual.c, asvisual.h,
-	  doc/ASFont.man, doc/ASImage.man, doc/ASVisual.man,
-	  doc/libAfterImage.man: Added prototypes of the man pages for
-	  libAfterImage
+	* libAfterImage/: asimage.h, asvisual.c, asvisual.h: Added
+	  prototypes of the man pages for libAfterImage
 
 2001-06-14 23:29  sasha
 
@@ -10927,8 +11321,7 @@
 
 2001-06-04 17:19  sasha
 
-	* libAfterBase/audit.h, libAfterImage/doc/libafterimage.sgml:
-	  started documenting libAfterImage
+	* libAfterBase/audit.h: started documenting libAfterImage
 
 2001-06-04 15:58  owsla
 
@@ -12056,9 +12449,7 @@
 	  libAfterConf/MyStyle.c, libAfterConf/Pager.c, src/Gnome/.depend,
 	  src/Gnome/Gnome.c, src/Gnome/Gnome.h, src/Gnome/Gnome.man,
 	  src/Gnome/Makefile.in, src/Wharf/OffiX/DragAndDrop.h,
-	  src/Wharf/OffiX/DragAndDropTypes.h, src/Zharf/.depend,
-	  src/Zharf/Makefile.in, src/Zharf/Zharf.c, src/Zharf/Zharf.h,
-	  src/Zharf/Zharf.man, src/Zharf/icons.c, src/afterstep/.depend,
+	  src/Wharf/OffiX/DragAndDropTypes.h, src/afterstep/.depend,
 	  src/afterstep/Makefile.in, src/afterstep/add_window.c,
 	  src/afterstep/afterstep.c, src/afterstep/afterstep.man,
 	  src/afterstep/borders.c, src/afterstep/clientwin.c,
@@ -12563,9 +12954,7 @@
 	  libAfterConf/MyStyle.c, libAfterConf/Pager.c, src/Gnome/.depend,
 	  src/Gnome/Gnome.c, src/Gnome/Gnome.h, src/Gnome/Gnome.man,
 	  src/Gnome/Makefile.in, src/Wharf/OffiX/DragAndDrop.h,
-	  src/Wharf/OffiX/DragAndDropTypes.h, src/Zharf/.depend,
-	  src/Zharf/Makefile.in, src/Zharf/Zharf.c, src/Zharf/Zharf.h,
-	  src/Zharf/Zharf.man, src/Zharf/icons.c, src/afterstep/.depend,
+	  src/Wharf/OffiX/DragAndDropTypes.h, src/afterstep/.depend,
 	  src/afterstep/Makefile.in, src/afterstep/add_window.c,
 	  src/afterstep/afterstep.c, src/afterstep/afterstep.man,
 	  src/afterstep/borders.c, src/afterstep/clientwin.c,
