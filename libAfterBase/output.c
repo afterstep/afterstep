@@ -43,7 +43,7 @@ static unsigned int as_output_curr_level = OUTPUT_DEFAULT_THRESHOLD ;
 void
 set_application_name (char *argv0)
 {
-	char *temp = strrchr(argv0, '\' );
+	char *temp = strrchr(argv0, '/' );
 	ApplicationName = temp ? temp+1:argv0;
 }
 
