@@ -3082,7 +3082,9 @@ fi
 fi
 
 AFTERBASE_C=afterbase.c
+HAVE_AFTERBASE_FLAG=0
 if test "x$have_afterbase" = "xyes"; then
+    HAVE_AFTERBASE_FLAG=1
 	AFTERBASE_C=
     AFTERIMAGE_LIBS="-lAfterBase $AFTERIMAGE_LIBS"
     cat >> confdefs.h <<\EOF
@@ -3093,6 +3095,7 @@ EOF
 else
     echo "$ac_t"""none found"" 1>&6	
 fi
+
 
 
 
@@ -3317,6 +3320,7 @@ s%@GIF_CFLAGS@%$GIF_CFLAGS%g
 s%@TIFF_CFLAGS@%$TIFF_CFLAGS%g
 s%@TTF_INCLUDES@%$TTF_INCLUDES%g
 s%@AFTERIMAGE_LIBS_EXTERNAL@%$AFTERIMAGE_LIBS_EXTERNAL%g
+s%@HAVE_AFTERBASE_FLAG@%$HAVE_AFTERBASE_FLAG%g
 s%@AFTERBASE_CFLAGS@%$AFTERBASE_CFLAGS%g
 s%@AFTERBASE_C@%$AFTERBASE_C%g
 s%@have_afterbase@%$have_afterbase%g

@@ -37,6 +37,7 @@ AC_ARG_ENABLE(gdb,		[  --enable-gdb            add gdb symbols (-g) (for debuggi
 AC_ARG_ENABLE(warn,		[  --enable-warn           turn on more compiler warnings (for debugging) [no] ],enable_warn=$enableval,enable_warn="no")
 AC_ARG_ENABLE(gprof,		[  --enable-gprof          add gprof symbols (-pg) (for debugging) [no] ],enable_gprof=$enableval,enable_gprof="no")
 
+AC_ARG_WITH(aftebase_includes, [  --with-afterbase-includes=DIR  use libAfterImage includes in DIR], afterbase_includes="$withval", afterbase_includes=NO)
 AC_ARG_WITH(afterimage_includes, [  --with-afterimage-includes=DIR  use libAfterImage includes in DIR], afterimage_includes="$withval", afterimage_includes=NO)
 AC_ARG_WITH(afterimage_lib, [  --with-afterimage-lib=DIR  use libAfterImage library located in DIR], afterimage_lib="$withval", afterimage_lib=NO)
 
@@ -131,80 +132,68 @@ if test "x$enable_shaping" = "xyes"; then
   AC_CHECK_LIB(Xext, XShapeCombineMask, [x_libs="$x_libs -lXext";AC_DEFINE(SHAPE,)],,$x_libs)
 fi
 
+AC_MSG_CHECKING(libAfterBase headers)
+AFTERBASE_CFLAGS=
+if test "$afterbase_includes" = NO; then
+	  if test -r ../../libAfterBase/astypes.h; then
+      	AC_DEFINE(HAVE_AFTERBASE)
+ 	    AFTERBASE_CFLAGS="-I../.."
+		AC_MSG_RESULT("../../libAfterBase/astypes.h")
+	  else
+ 	    AC_CHECK_HEADER(libAfterBase/astypes.h,
+					    [AC_DEFINE(HAVE_AFTERBASE) AC_MSG_RESULT("<libAfterBase/astypes.h>")],
+						 AC_MSG_RESULT("none found"))
+	  fi	
+else
+      AC_DEFINE(HAVE_AFTERBASE)
+	  AFTERBASE_CFLAGS="-I$afterbase_includes"
+  	  AC_MSG_RESULT("<libAfterBase/astypes.h>")
+fi
+
 AC_MSG_CHECKING(libAfterImage headers)
 have_afterimage=yes
 local_afterimage=no 
+AFTERIMAGE_CFLAGS=
 if test "$afterimage_includes" = NO; then
   if test -r "../../libAfterImage/asimage.h"; then
-	AC_DEFINE(HAVE_AFTERIMAGE)
-	AC_DEFINE(HAVE_CUSTOM_AFTERIMAGE)
-	local_afterimage=yes
-      AFTERIMAGE_INC_PATH="../.."
-	AC_MSG_RESULT("../../libAfterImage/asimage.h")
+		AC_DEFINE(HAVE_AFTERIMAGE)
+        AFTERIMAGE_CFLAGS="-I../.."
+		AC_MSG_RESULT("../../libAfterImage/asimage.h")
   else
-    AC_CHECK_HEADER(libAfterImage/asimage.h,
-					    [AC_DEFINE(HAVE_AFTERIMAGE) \
-						 AC_MSG_RESULT("<libAfterImage/asimage.h>")],
-						[AC_MSG_RESULT("none found") have_afterimage=no])
-  fi
+	    AC_CHECK_HEADER(libAfterImage/asimage.h,
+					    [AC_DEFINE(HAVE_AFTERIMAGE) AC_MSG_RESULT("<libAfterImage/asimage.h>")],
+						 AC_MSG_RESULT("none found"))
+  fi	
 else
   AC_DEFINE(HAVE_AFTERIMAGE)
-  AC_DEFINE(HAVE_CUSTOM_AFTERIMAGE)
-  AFTERIMAGE_INC_PATH=$afterimage_includes
+  AFTERIMAGE_CFLAGS="-I$afterimage_includes"
   AC_MSG_RESULT("$AFTERIMAGE_INC_PATH/libAfterImage/asimage.h>")
 fi
 
-AFTERIMAGE_LIBS=
-if test "x$have_afterimage" = "xyes"; then
-  if test "$afterimage_lib" = NO; then
-	if test "x$local_afterimage" = "xyes"; then 
-		AC_MSG_CHECKING(libAfterImage external libraries)
-  		AFTERIMAGE_LIBS="-L../ -L../../libAfterBase `../../libAfterImage/afterimage-libs`"
-		if test `../../libAfterImage/afterimage-libs --have-afterbase` = "yes"; then 
-			AC_DEFINE(HAVE_AFTERBASE)
-		    AC_DEFINE(HAVE_CUSTOM_AFTERBASE)
-		fi			
-		AC_MSG_RESULT($AFTERIMAGE_LIBS)
-	else
-		AC_MSG_CHECKING(libAfterImage external libraries)
-  		AFTERIMAGE_LIBS=`afterimage-libs`
-		if "x$AFTERIMAGE_LIBS" = "x"; then
-			AC_MSG_RESULT("not found - please specify --with-afterimage-lib")			
-		else
-			if test `afterimage-libs --have-afterbase` = "yes"; then 
-				AC_DEFINE(HAVE_AFTERBASE)
-			fi			
-			AC_MSG_RESULT($AFTERIMAGE_LIBS)
-		fi			
-	fi
-  else
-		AC_MSG_CHECKING(libAfterImage external libraries in $afterimage_lib)
-  		AFTERIMAGE_LIBS=`$afterimage_lib/afterimage-libs`
-		if "x$AFTERIMAGE_LIBS" = "x"; then
-			AC_MSG_RESULT(none found)
-			AC_MSG_CHECKING(libAfterImage external libraries in $afterimage_lib/libAfterImage)
-  			AFTERIMAGE_LIBS=`$afterimage_lib/libAfterImage/afterimage-libs`
-			if "x$AFTERIMAGE_LIBS" = "x"; then
-				AC_MSG_RESULT("not found - please specify correct --with-afterimage-lib")			
-			else
-				AFTERIMAGE_LIBS="-L$afterimage_lib/libAfterImage/" $AFTERIMAGE_LIBS
-				if test `$afterimage_lib/libAfterImage/afterimage-libs --have-afterbase` = "yes"; then 
-					AC_DEFINE(HAVE_AFTERBASE)
-				fi			
-				AC_MSG_RESULT($AFTERIMAGE_LIBS)
-			fi
-		else
-			AFTERIMAGE_LIBS="-L$afterimage_lib/" $AFTERIMAGE_LIBS
-			if test `$afterimage_lib/afterimage-libs --have-afterbase` = "yes"; then 
-				AC_DEFINE(HAVE_AFTERBASE)
-			fi			
-			AC_MSG_RESULT($AFTERIMAGE_LIBS)
-		fi			
-  fi
+if test "x$AFTERIMAGE_CFLAGS" = "x$AFTERBASE_CFLAGS"; then
+  AFTERIMAGE_CFLAGS=
 fi  
-AC_SUBST(AFTERIMAGE_INC_PATH)
-AC_SUBST(AFTERIMAGE_LIBS)
+AC_SUBST(AFTERBASE_CFLAGS)
+AC_SUBST(AFTERIMAGE_CFLAGS)
 
+
+AC_MSG_CHECKING(libAfterImage external libraries)
+AFTERIMAGE_LIBS=
+if test "$afterimage_lib" = NO; then
+  if test -x "../afterimage-libs"; then 
+     AFTERIMAGE_LIBS="-L../ -L../../libAfterBase `../../libAfterImage/afterimage-libs`"
+  else 	 
+     AFTERIMAGE_LIBS=`afterimage-libs`
+  fi
+else
+  if test -x "$afterimage_lib/libAfterImage/afterimage-libs"; then 
+     AFTERIMAGE_LIBS=`$afterimage_lib/libAfterImage/afterimage-libs`
+  else
+	 AFTERIMAGE_LIBS=`$afterimage_lib/afterimage-libs`
+  fi
+fi
+AC_MSG_RESULT($AFTERIMAGE_LIBS)
+AC_SUBST(AFTERIMAGE_LIBS)
 
 dnl# Electric Fence goes at the end
 if test "x$with_libefence" = "xyes"; then
@@ -235,7 +224,6 @@ AC_SUBST(with_gnustep_dir)
 AC_SUBST(with_gnustep_lib)
 AC_SUBST(with_afterdir)
 AC_SUBST(PERL)
-AC_SUBST(AFTER_IMAGE_INC_PATH)
 
 dnl# Write results
 

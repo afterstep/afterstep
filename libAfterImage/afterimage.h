@@ -1,5 +1,5 @@
-#ifndef AFTERIMAGE_H_HEADER_INCLUDED
-#define AFTERIMAGE_H_HEADER_INCLUDED
+#ifndef LIB_AFTERIMAGE_H_HEADER_INCLUDED
+#define LIB_AFTERIMAGE_H_HEADER_INCLUDED
 
 /* the follwoing files has to be included in user app to get access to
  * libAfterImage functionality.

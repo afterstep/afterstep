@@ -335,7 +335,9 @@ if test "$with_afterbase" != "NO"; then
 fi
 
 AFTERBASE_C=afterbase.c
+HAVE_AFTERBASE_FLAG=0
 if test "x$have_afterbase" = "xyes"; then
+    HAVE_AFTERBASE_FLAG=1
 	AFTERBASE_C=
     AFTERIMAGE_LIBS="-lAfterBase $AFTERIMAGE_LIBS"
     AC_DEFINE(HAVE_AFTERBASE)
@@ -343,6 +345,7 @@ if test "x$have_afterbase" = "xyes"; then
 else
     AC_MSG_RESULT("none found")	
 fi
+AC_SUBST(HAVE_AFTERBASE_FLAG)
 AC_SUBST(AFTERBASE_CFLAGS)
 AC_SUBST(AFTERBASE_C)
 AC_SUBST(have_afterbase)

@@ -6,6 +6,9 @@
 #include <X11/Xutil.h>
 #include <X11/Xproto.h>
 #include <X11/Xatom.h>
+
+#include "afterimage.h"
+
 /****h* libAfterImage/tutorials/common.h
  * SYNOPSIS
  * Generic Xlib related functionality, common for all the tutorials.

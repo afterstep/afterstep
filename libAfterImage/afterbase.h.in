@@ -1,7 +1,9 @@
 #ifndef AFTERBASE_H_HEADER_INCLUDED
 #define AFTERBASE_H_HEADER_INCLUDED
 
-#ifdef HAVE_AFTERBASE
+#define HAVE_AFTERBASE_FLAG @HAVE_AFTERBASE_FLAG@
+
+#if @HAVE_AFTERBASE_FLAG@
 #include <libAfterBase/astypes.h>
 #include <libAfterBase/audit.h>
 #include <libAfterBase/output.h>
