@@ -25,7 +25,7 @@ typedef struct ASGlyph
 {
 	CARD8 		   *pixmap ;
 	unsigned short 	width, height ;	  /* meaningfull width and height of the glyphs pixmap */
-	short  lead ;			          /* distance from previous glyph */
+	short  lead, step ;			      /* distance pen position to glyph beginning and to the next glyph */
 	short  ascend, descend ;          /* distance of the top of the glyph from the baseline */
 }ASGlyph;
 
