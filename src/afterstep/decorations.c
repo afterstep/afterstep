@@ -184,11 +184,12 @@ check_frame_canvas( ASWindow *asw, Bool required )
 
             /* create windows */
             valuemask = CWBorderPixel | CWCursor | CWEventMask ;
-            if( Scr.asv->visual_info.visual == DefaultVisual( dpy, Scr.screen ) )
-            {/* only if root has same depth and visual as us! */
-                attributes.background_pixmap = ParentRelative;
+            /*if( Scr.asv->visual_info.visual == DefaultVisual( dpy, Scr.screen ) )
+            {*/
+			/* only if root has same depth and visual as us! */
+                attributes.background_pixmap = None;
                 valuemask |= CWBackPixmap;
-            }
+            /*}*/
             attributes.border_pixel = Scr.asv->black_pixel;
             attributes.cursor = Scr.Feel.cursors[DEFAULT];
             attributes.event_mask = AS_FRAME_EVENT_MASK;

@@ -81,6 +81,9 @@ typedef struct {
     unsigned int columns_num, rows_num;
 
     ASTBarData  *pressed_bar;
+	
+	Bool receiving_winlist ;
+	
 }ASWinListState ;
 
 ASWinListState WinListState = { 0, NULL, None, NULL, NULL };
@@ -113,6 +116,7 @@ Bool rearrange_winlist_window( Bool dont_resize_main_canvas );
 unsigned int find_button_by_position( int x, int y );
 void press_winlist_button( ASWindowData *wd );
 void release_winlist_button( ASWindowData *wd, int button );
+void update_winlist_styles();
 
 int
 main( int argc, char **argv )
@@ -143,6 +147,8 @@ main( int argc, char **argv )
     WinListState.main_canvas = create_ascanvas( WinListState.main_window );
     set_root_clip_area( WinListState.main_canvas );
     rearrange_winlist_window( False );
+	
+	WinListState.receiving_winlist = True ;
 
 	/* And at long last our main loop : */
     HandleEvents();
@@ -361,7 +367,11 @@ void
 process_message (unsigned long type, unsigned long *body)
 {
     LOCAL_DEBUG_OUT( "received message %lX", type );
-    if( (type&WINDOW_PACKET_MASK) != 0 )
+	if( type == M_END_WINDOWLIST ) 
+	{
+		WinListState.receiving_winlist = False ;
+		rearrange_winlist_window( False );
+	}else if( (type&WINDOW_PACKET_MASK) != 0 )
 	{
 		struct ASWindowData *wd = fetch_window_by_id( body[0] );
         struct ASWindowData *saved_wd = wd ;
@@ -383,6 +393,7 @@ process_message (unsigned long type, unsigned long *body)
 			refresh_winlist_button( tbar, wd );
 		else if( res == WP_DataDeleted )
             delete_winlist_button( tbar, saved_wd );
+			
 	}
 }
 
@@ -464,6 +475,7 @@ DispatchEvent (ASEvent * event)
 				LoadColorScheme();
 				CheckConfigSanity();
 				/* now we need to update everything */
+				update_winlist_styles();
 				rearrange_winlist_window( False );
                 for( i = 0 ; i < WinListState.windows_num ; ++i )
 					refresh_winlist_button( WinListState.window_order[i]->bar, WinListState.window_order[i] );
@@ -601,6 +613,7 @@ render_winlist_button( ASTBarData *tbar )
     if( render_astbar( tbar, WinListState.main_canvas ) )
 	{
         update_canvas_display( WinListState.main_canvas );
+		update_canvas_display_mask (WinListState.main_canvas, True);
 		return True ;
 	}
 	return False ;
@@ -676,6 +689,7 @@ rearrange_winlist_window( Bool dont_resize_main_canvas )
             move_astbar( WinListState.idle_bar, NULL, 0, 0 );
             render_astbar( WinListState.idle_bar, WinListState.main_canvas );
             update_canvas_display( WinListState.main_canvas );
+			update_canvas_display_mask (WinListState.main_canvas, True);
         }
         return False;
     }
@@ -906,8 +920,10 @@ rearrange_winlist_window( Bool dont_resize_main_canvas )
                 render_astbar( tbar, WinListState.main_canvas );
     }
     if( is_canvas_dirty( WinListState.main_canvas ) )
+	{
         update_canvas_display( WinListState.main_canvas );
-
+		update_canvas_display_mask (WinListState.main_canvas, True);
+	}
     return True ;
 }
 
@@ -1008,7 +1024,8 @@ LOCAL_DEBUG_OUT("tbar = %p, wd = %p", tbar, wd );
         WinListState.window_order[WinListState.windows_num] = wd ;
         ++(WinListState.windows_num);
         configure_tbar_props( tbar, wd );
-        rearrange_winlist_window( False );
+		if( !WinListState.receiving_winlist )
+		    rearrange_winlist_window( False );
 	}
 }
 
@@ -1022,11 +1039,14 @@ LOCAL_DEBUG_OUT("tbar = %p, wd = %p", tbar, wd );
         if( i < WinListState.windows_num )
         {
             configure_tbar_props( tbar, wd );
-            if( calculate_astbar_width( tbar ) > WinListState.col_width[WinListState.bar_col[i]] ||
-                calculate_astbar_height( tbar ) > WinListState.max_item_height )
-                rearrange_winlist_window( False );
-            else
-                render_winlist_button( tbar );
+			if( !WinListState.receiving_winlist )
+			{
+          		if( calculate_astbar_width( tbar ) > WinListState.col_width[WinListState.bar_col[i]] ||
+              		calculate_astbar_height( tbar ) > WinListState.max_item_height )
+	                rearrange_winlist_window( False );
+  		        else
+      		        render_winlist_button( tbar );
+			}
         }
 	}
 }
@@ -1047,7 +1067,8 @@ LOCAL_DEBUG_OUT("tbar = %p, wd = %p", tbar, wd );
             WinListState.window_order[i-1] = WinListState.window_order[i] ;
         WinListState.window_order[i-1] = NULL ;
         --(WinListState.windows_num);
-        rearrange_winlist_window(False);
+		if( !WinListState.receiving_winlist )
+      		rearrange_winlist_window(False);
     }
 }
 
@@ -1065,7 +1086,10 @@ press_winlist_button( ASWindowData *wd )
             WinListState.pressed_bar = wd->bar ;
             set_astbar_pressed( WinListState.pressed_bar, WinListState.main_canvas, True );
             if( is_canvas_dirty( WinListState.main_canvas ) )
+			{
                 update_canvas_display( WinListState.main_canvas );
+				update_canvas_display_mask (WinListState.main_canvas, True);
+			}
         }
     }
 }
@@ -1083,7 +1107,10 @@ release_winlist_button( ASWindowData *wd, int button )
         WinListState.pressed_bar = NULL ;
 
         if( is_canvas_dirty( WinListState.main_canvas ) )
+		{
             update_canvas_display( WinListState.main_canvas );
+			update_canvas_display_mask (WinListState.main_canvas, True);
+		}
 
         action_list = Config->mouse_actions[button - Button1] ;
         if( action_list )
@@ -1098,4 +1125,22 @@ release_winlist_button( ASWindowData *wd, int button )
     }
 }
 
+
+void
+update_winlist_styles()
+{
+    int i  = WinListState.windows_num;
+
+    while( --i >= 0 )
+    {
+        register ASTBarData *bar = WinListState.window_order[i]->bar ;
+        if( bar )
+			configure_tbar_props( bar, WinListState.window_order[i] );
+    }
+	if( WinListState.idle_bar )
+	{
+	    set_astbar_style_ptr( WinListState.idle_bar, BAR_STATE_UNFOCUSED, Scr.Look.MSWindow[BACK_UNFOCUSED] );
+        set_astbar_style_ptr( WinListState.idle_bar, BAR_STATE_FOCUSED, Scr.Look.MSWindow[BACK_FOCUSED] );
+	}
+}
 

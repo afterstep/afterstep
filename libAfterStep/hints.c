@@ -664,8 +664,9 @@ merge_transient_hints (ASHints * clean, ASRawHints * raw,
 static void
 decode_flags (ASFlagType * dst_flags, ASFlagsXref * xref, ASFlagType set_flags, ASFlagType flags)
 {
-	if (dst_flags == NULL || flags == 0)
+	if (dst_flags == NULL || set_flags == 0)
 		return;
+	LOCAL_DEBUG_CALLER_OUT( "dst_flags = %lX, set_flags = %lX, flags = 0x%lX", *dst_flags, set_flags, flags );
 	while ((*xref)[0] != 0)
 	{
 		ASFlagType    to_set;
@@ -689,7 +690,7 @@ decode_flags (ASFlagType * dst_flags, ASFlagsXref * xref, ASFlagType set_flags, 
 static void
 encode_flags (ASFlagType * dst_flags, ASFlagsXref * xref, ASFlagType set_flags, ASFlagType flags)
 {
-	if (dst_flags == NULL || flags == 0)
+	if (dst_flags == NULL || set_flags == 0)
 		return;
 
 	while ((*xref)[0] != 0)
@@ -801,6 +802,7 @@ merge_motif_hints (ASHints * clean, ASRawHints * raw,
 		if (get_flags (what, HINT_GENERAL))
 		{
 			decode_simple_flags (&(clean->flags), mwm_decor_xref, decor);
+			LOCAL_DEBUG_OUT( "motif decor = 0x%lX, clean_flags = 0x%lX", decor, clean->flags );
 		}
 		if (get_flags (what, HINT_PROTOCOL))
 		{

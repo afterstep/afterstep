@@ -54,9 +54,9 @@ Style   "*man"          Icon xman.xpm
 Style   "XMcd"          Icon CDrom.xpm
 
 #different windows in xmms app
-Style   "xmms"          Icon logos/Xmms, NoTitle, NoHandles
-Style   "XMMS_Playlist" Title, Handles
-Style   "Load file*"    Title, Handles
+Style   "xmms*"   		 Icon logos/Xmms
+Style   "XMMS_Player*"   NoTitle, NoHandles
+Style   "XMMS_Playlist*" Title, Handles
 
 #different windows in mplayer :
 Style  "MPlayer*"       Icon normal/MovieProjector, NoTitle, NoHandles

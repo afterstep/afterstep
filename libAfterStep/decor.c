@@ -353,7 +353,7 @@ draw_canvas_mask (ASCanvas * pc, ASImage * im, int x, int y)
 	if( pc->shape == NULL )
 		pc->shape = create_shape();
 
-	res = add_shape_rectangles( pc->shape, rects, rects_count, real_x, real_y, width, height );
+	res = add_shape_rectangles( pc->shape, rects, rects_count, real_x, real_y, pc->width, pc->height );
 	free( rects );
 
 	if( res )
