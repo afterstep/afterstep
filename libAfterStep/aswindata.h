@@ -8,6 +8,7 @@ extern "C" {
 struct ASCanvas;
 struct ASTBarData;
 
+#include "module.h"
 
 typedef struct ASWindowData
 {
@@ -16,14 +17,14 @@ typedef struct ASWindowData
 	Window 	client;
 	Window 	frame ;
 
-	unsigned long 	ref_ptr ; /* address of the related ASWindow structure in
+	CARD32		 	ref_ptr ; /* address of the related ASWindow structure in
 	                             afterstep's own memory space - we use it as a
 							     reference, to know what object change is related to */
 	ASRectangle 	frame_rect ;
-    ASRectangle      icon_rect ;
+    ASRectangle     icon_rect ;
 
-    long             desk ;
-    unsigned long   state_flags, flags ;
+    long            desk ;
+    CARD32          state_flags, flags ;
 
     XSizeHints      hints ;       /* not sure why we need it here */
 
@@ -34,7 +35,7 @@ typedef struct ASWindowData
 	char 			*icon_name ;
 	char 			*res_class ;
 	char 			*res_name ;
-	unsigned long 	 window_name_encoding, icon_name_encoding, res_class_encoding, res_name_encoding ;
+	INT32		 	 window_name_encoding, icon_name_encoding, res_class_encoding, res_name_encoding ;
 
     Bool             focused;
 
@@ -67,7 +68,7 @@ typedef enum {
 void destroy_window_data(ASWindowData *wd);
 ASWindowData *fetch_window_by_id( Window w );
 ASWindowData *add_window_data( ASWindowData *wd );
-WindowPacketResult handle_window_packet(unsigned long type, unsigned long *data, ASWindowData **pdata);
+WindowPacketResult handle_window_packet(send_data_type type, send_data_type *data, ASWindowData **pdata);
 
 void iterate_window_data( iter_list_data_handler iter_func, void *aux_data);
 

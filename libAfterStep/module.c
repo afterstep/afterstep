@@ -137,7 +137,7 @@ send_module_msg_raw ( void *data, size_t bytes )
 
 static inline void
 send_module_msg_function (CARD32 func,
-						  const char *name, const char *text, const long *func_val, const long *unit_val)
+						  const char *name, const char *text, const send_signed_data_type *func_val, const send_signed_data_type *unit_val)
 {
 	CARD32        spare_func_val[2] = { 0, 0 };
 	CARD32        spare_unit_val[2] = { 100, 100 };
@@ -162,27 +162,8 @@ send_module_msg_function (CARD32 func,
 /***********************************************************************
  *  High level function for message delivery to AfterStep :
  ***********************************************************************/
-#if 0   /* old version of SendInfo : */
 void
-SendInfo (int *fd, char *message, unsigned long window)
-{
-	size_t        w;
-LOCAL_DEBUG_OUT( "message to afterstep:\"%s\"", message );
-	if (message != NULL)
-	{
-		write (fd[0], &window, sizeof (unsigned long));
-		w = strlen (message);
-		write (fd[0], &w, sizeof (int));
-		write (fd[0], message, w);
-
-		/* keep going */
-		w = 1;
-		write (fd[0], &w, sizeof (int));
-	}
-}
-#else
-void
-SendInfo ( char *message, unsigned long window)
+SendInfo ( char *message, send_ID_type window)
 {
 	size_t        len;
 LOCAL_DEBUG_OUT( "message to afterstep:\"%s\"", message );
@@ -196,11 +177,10 @@ LOCAL_DEBUG_OUT( "message to afterstep:\"%s\"", message );
 		}
 	}
 }
-#endif
 
 /* SendCommand - send a preparsed AfterStep command : */
 void
-SendCommand( FunctionData * pfunc, unsigned long window)
+SendCommand( FunctionData * pfunc, send_ID_type window)
 {
 LOCAL_DEBUG_OUT( "sending command %p to the astep", pfunc );
 	if (pfunc != NULL)
@@ -212,7 +192,7 @@ LOCAL_DEBUG_OUT( "sending command %p to the astep", pfunc );
 }
 
 void
-SendTextCommand ( int func, const char *name, const char *text, unsigned long window)
+SendTextCommand ( int func, const char *name, const char *text, send_ID_type window)
 {
 	long          dummy_val[2] = { 0, 0 };
 
@@ -225,7 +205,7 @@ SendTextCommand ( int func, const char *name, const char *text, unsigned long wi
 }
 
 void
-SendNumCommand ( int func, const char *name, const long *func_val, const long *unit_val, unsigned long window)
+SendNumCommand ( int func, const char *name, const send_signed_data_type *func_val, const send_signed_data_type *unit_val, send_ID_type window)
 {
 	if (IsValidFunc (func))
 	{
@@ -253,14 +233,14 @@ SendNumCommand ( int func, const char *name, const long *func_val, const long *u
  *
  **************************************************************************/
 int
-ReadASPacket (int fd, unsigned long *header, unsigned long **body)
+ReadASPacket (int fd, send_data_type *header, send_data_type **body)
 {
 	int           count, count2;
 	size_t        bytes_to_read;
 	int           bytes_in = 0;
 	char         *cbody;
 
-	bytes_to_read = 3 * sizeof (unsigned long);
+	bytes_to_read = 3 * sizeof (send_data_type);
 	cbody = (char *)header;
 	do
 	{
@@ -281,8 +261,8 @@ ReadASPacket (int fd, unsigned long *header, unsigned long **body)
 
 	if (header[0] == START_FLAG)
 	{
-		bytes_to_read = (header[2] - 3) * sizeof (unsigned long);
-		if ((*body = (unsigned long *)safemalloc (bytes_to_read)) == NULL)	/* not enough memory */
+		bytes_to_read = (header[2] - 3) * sizeof (send_data_type);
+		if ((*body = (send_data_type *)safemalloc (bytes_to_read)) == NULL)	/* not enough memory */
 			return 0;
 
 		cbody = (char *)(*body);
@@ -358,7 +338,7 @@ DestroyASMessage (ASMessage * msg)
 
 
 void
-module_wait_pipes_input ( void (*as_msg_handler) (unsigned long type, unsigned long *body) )
+module_wait_pipes_input ( void (*as_msg_handler) (send_data_type type, send_data_type *body) )
 {
     fd_set        in_fdset, out_fdset;
 	int           retval;
@@ -406,7 +386,7 @@ module_wait_pipes_input ( void (*as_msg_handler) (unsigned long type, unsigned l
 void          DeadPipe (int nonsense);
 
 int
-ConnectAfterStep (unsigned long message_mask)
+ConnectAfterStep (send_data_type message_mask)
 {
     char *temp;
     char  mask_mesg[32];

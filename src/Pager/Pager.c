@@ -79,7 +79,7 @@
 typedef struct ASPagerDesk {
 
     ASFlagType flags ;
-    long desk ;
+    INT32 desk ;
     ASCanvas   *desk_canvas;
     ASTBarData *title;
     ASTBarData *background;
@@ -102,7 +102,7 @@ typedef struct ASPagerState
     ASCanvas    *icon_canvas;
 
     ASPagerDesk *desks ;
-    long start_desk, desks_num ;
+    INT32 start_desk, desks_num ;
 
     int page_rows,  page_columns ;
     int desk_width, desk_height ; /* x and y size of desktop */
@@ -146,7 +146,7 @@ pager_usage (void)
 }
 
 void HandleEvents();
-void process_message (unsigned long type, unsigned long *body);
+void process_message (send_data_type type, send_data_type *body);
 void DispatchEvent (ASEvent * Event);
 void rearrange_pager_window();
 Window make_pager_window();
@@ -171,7 +171,7 @@ main (int argc, char **argv)
 {
     int i;
     char *cptr = NULL ;
-    long desk1 = 0, desk2 = 0;
+    INT32 desk1 = 0, desk2 = 0;
 
     /* Save our program name - for error messages */
     InitMyApp (CLASS_PAGER, argc, argv, pager_usage, NULL, 0 );
@@ -917,11 +917,11 @@ void place_desk( ASPagerDesk *d, int x, int y, unsigned int width, unsigned int 
 }
 
 inline ASPagerDesk *
-get_pager_desk( long desk )
+get_pager_desk( INT32 desk )
 {
 	if( IsValidDesk(desk) )
 	{
-        register long pager_desk = desk - PagerState.start_desk ;
+        register INT32 pager_desk = desk - PagerState.start_desk ;
 	    if(  pager_desk >= 0 && pager_desk < PagerState.desks_num )
   		    return &(PagerState.desks[pager_desk]);
 	}
@@ -1642,7 +1642,7 @@ void add_client( ASWindowData *wd )
     LOCAL_DEBUG_OUT( "+CREAT->canvas(%p)->bar(%p)->client_win(%lX)", wd->canvas, wd->bar, wd->client );
 }
 
-void refresh_client( long old_desk, ASWindowData *wd )
+void refresh_client( INT32 old_desk, ASWindowData *wd )
 {
     ASPagerDesk *d = get_pager_desk( wd->desk );
     LOCAL_DEBUG_OUT( "client(%lX)->name(%s)->icon_name(%s)->desk(%ld)->old_desk(%ld)", wd->client, wd->window_name, wd->icon_name, wd->desk, old_desk );
@@ -2095,7 +2095,7 @@ start_moveresize_client( ASWindowData *wd, Bool move, ASEvent *event )
 /* PROCESSING OF AFTERSTEP MESSAGES :                                       */
 /****************************************************************************/
 void
-process_message (unsigned long type, unsigned long *body)
+process_message (send_data_type type, send_data_type *body)
 {
     LOCAL_DEBUG_OUT( "received message %lX, wait_as_resp = %d", type, PagerState.wait_as_response );
 	--PagerState.wait_as_response;
@@ -2105,7 +2105,7 @@ process_message (unsigned long type, unsigned long *body)
 		WindowPacketResult res ;
         /* saving relevant client info since handle_window_packet could destroy the actuall structure */
         Window               saved_w = None ;
-        int                  saved_desk = wd?wd->desk:INVALID_DESK;
+        INT32                  saved_desk = wd?wd->desk:INVALID_DESK;
         struct ASWindowData *saved_wd = wd ;
 
         if( wd && wd->canvas )
@@ -2120,7 +2120,7 @@ process_message (unsigned long type, unsigned long *body)
 		else if( res == WP_DataDeleted )
         {
 			int i = PagerState.desks_num ;
-            LOCAL_DEBUG_OUT( "client deleted (%p)->window(%lX)->desk(%d)", saved_wd, saved_w, saved_desk );
+            LOCAL_DEBUG_OUT( "client deleted (%p)->window(%lX)->desk(%ld)", saved_wd, saved_w, (long)saved_desk );
 			/* we really want to make sure that no desk is referencing this client : */
 			while( --i  >= 0 )
 	            forget_desk_client( i, saved_wd );

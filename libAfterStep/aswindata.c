@@ -116,7 +116,7 @@ window_data_cleanup()
 }
 
 WindowPacketResult
-handle_window_packet(unsigned long type, unsigned long *data, ASWindowData **pdata)
+handle_window_packet(CARD32 type, CARD32 *data, ASWindowData **pdata)
 {
 	ASWindowData *wd;
 	WindowPacketResult res = WP_Handled ;
@@ -162,7 +162,7 @@ handle_window_packet(unsigned long type, unsigned long *data, ASWindowData **pda
 	if( (type&WINDOW_NAME_MASK) )
 	{/* read in the name */
 		char **dst = NULL ;
-		unsigned long encoding = data[3] ;
+		INT32 encoding = data[3] ;
         CARD32 *pbuf = &(data[4]);
         char *new_name = deserialize_string( &pbuf, NULL );
 LOCAL_DEBUG_OUT( "name received \"%s\"", new_name );

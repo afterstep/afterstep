@@ -161,7 +161,7 @@ WharfConfig *Config = NULL;
 
 
 void HandleEvents();
-void process_message (unsigned long type, unsigned long *body);
+void process_message (send_data_type type, send_data_type *body);
 void DispatchEvent (ASEvent * Event);
 Window make_wharf_window();
 void GetOptions (const char *filename);
@@ -520,7 +520,7 @@ unregister_swallow_target( char *name )
 /* PROCESSING OF AFTERSTEP MESSAGES :                                       */
 /****************************************************************************/
 void
-process_message (unsigned long type, unsigned long *body)
+process_message (send_data_type type, send_data_type *body)
 {
     LOCAL_DEBUG_OUT( "received message %lX", type );
 	if( (type&WINDOW_PACKET_MASK) != 0 )

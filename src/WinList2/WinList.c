@@ -81,9 +81,9 @@ typedef struct {
     unsigned int columns_num, rows_num;
 
     ASTBarData  *pressed_bar;
-	
+
 	Bool receiving_winlist ;
-	
+
 }ASWinListState ;
 
 ASWinListState WinListState = { 0, NULL, None, NULL, NULL };
@@ -106,7 +106,7 @@ void CheckConfigSanity();
 void GetBaseOptions (const char *filename);
 void GetOptions (const char *filename);
 void HandleEvents();
-void process_message (unsigned long type, unsigned long *body);
+void process_message (send_data_type type, send_data_type *body);
 void DispatchEvent (ASEvent * Event);
 Window make_winlist_window();
 void add_winlist_button( ASTBarData *tbar, ASWindowData *wd );
@@ -147,7 +147,7 @@ main( int argc, char **argv )
     WinListState.main_canvas = create_ascanvas( WinListState.main_window );
     set_root_clip_area( WinListState.main_canvas );
     rearrange_winlist_window( False );
-	
+
 	WinListState.receiving_winlist = True ;
 
 	/* And at long last our main loop : */
@@ -364,10 +364,10 @@ GetOptions (const char *filename)
 /* PROCESSING OF AFTERSTEP MESSAGES :                                       */
 /****************************************************************************/
 void
-process_message (unsigned long type, unsigned long *body)
+process_message (send_data_type type, send_data_type *body)
 {
     LOCAL_DEBUG_OUT( "received message %lX", type );
-	if( type == M_END_WINDOWLIST ) 
+	if( type == M_END_WINDOWLIST )
 	{
 		WinListState.receiving_winlist = False ;
 		rearrange_winlist_window( False );
@@ -393,7 +393,7 @@ process_message (unsigned long type, unsigned long *body)
 			refresh_winlist_button( tbar, wd );
 		else if( res == WP_DataDeleted )
             delete_winlist_button( tbar, saved_wd );
-			
+
 	}
 }
 
@@ -552,7 +552,7 @@ make_winlist_window()
 /********************************************************************/
 /* Private stuff : **************************************************/
 static char *
-get_visible_window_name( ASWindowData *wd, unsigned long *encoding )
+get_visible_window_name( ASWindowData *wd, INT32 *encoding )
 {
 	char *vname = NULL ;
 	switch( Config->show_name_type )
@@ -969,7 +969,7 @@ find_button_by_position( int x, int y )
 static void
 configure_tbar_props( ASTBarData *tbar, ASWindowData *wd )
 {
-	unsigned long encoding = AS_Text_ASCII ;
+	INT32 encoding = AS_Text_ASCII ;
 	char *name = get_visible_window_name(wd, &encoding );
     ASFlagType align = ALIGN_TOP|ALIGN_BOTTOM ;
 

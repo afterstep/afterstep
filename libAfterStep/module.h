@@ -62,6 +62,10 @@ extern "C" {
  * unlock message back, needless to say, we wouldn't want this on by default
  */
 
+typedef CARD32 send_data_type;
+typedef CARD32 send_ID_type;
+typedef INT32 send_signed_data_type;
+
 #define HEADER_SIZE         3
 #define MSG_HEADER_SIZE     HEADER_SIZE
 #define MAX_PACKET_SIZE    27
@@ -72,12 +76,12 @@ int module_connect (const char *socket_name);
 char *module_get_socket_property (Window w);
 
 /* from lib/readpacket.c */
-int ReadASPacket (int, unsigned long *, unsigned long **);
+int ReadASPacket (int, send_data_type *, send_data_type **);
 
 typedef struct
   {
-    unsigned long header[3];
-    unsigned long *body;
+    send_data_type header[3];
+    send_data_type *body;
   }
 ASMessage;
 
@@ -88,14 +92,14 @@ ASMessage;
 ASMessage *CheckASMessageFine ( int t_sec, int t_usec);
 #define CheckASMessage(t_sec) CheckASMessageFine(t_sec,0)
 void DestroyASMessage (ASMessage * msg);
-void module_wait_pipes_input ( void (*as_msg_handler) (unsigned long type, unsigned long *body) );
+void module_wait_pipes_input ( void (*as_msg_handler) (send_data_type type, send_data_type *body) );
 
 /* returns fd of the AfterStep connection */
-int ConnectAfterStep (unsigned long message_mask);
-void SendInfo (char *message, unsigned long window);
-void SendNumCommand ( int func, const char *name, const long *func_val, const long *unit_val, unsigned long window);
-void SendTextCommand ( int func, const char *name, const char *text, unsigned long window);
-void SendCommand( FunctionData * pfunc, unsigned long window);
+int ConnectAfterStep (send_data_type message_mask);
+void SendInfo (char *message, send_ID_type window);
+void SendNumCommand ( int func, const char *name, const send_signed_data_type *func_val, const send_signed_data_type *unit_val, send_ID_type window);
+void SendTextCommand ( int func, const char *name, const char *text, send_ID_type window);
+void SendCommand( FunctionData * pfunc, send_ID_type window);
 
 
 

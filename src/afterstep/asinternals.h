@@ -307,7 +307,7 @@ typedef struct module_t
   int                   fd;
   int                   active;
   char                 *name;
-  long                  mask;
+  CARD32                mask;
   queue_buff_struct    *output_queue;
   module_ibuf_t         ibuf;
 }module_t;
@@ -607,20 +607,21 @@ void SetupModules(void);
 void ExecModule (char *action, Window win, int context);
 int  AcceptModuleConnection (int socket_fd);
 
-void SendPacket (int channel, unsigned long  msg_type, unsigned long num_datum, ...);
-void SendVector (int channel, unsigned long  msg_type, struct ASVector *vector);
-void SendConfig (int module, unsigned long event_type, ASWindow * t);
-void SendString (int module, unsigned long event_type,
-               unsigned long data1, unsigned long data2, unsigned long data3,
-			   char *name, unsigned long encoding);
-void SendStackingOrder (int channel, unsigned long msg_type, unsigned long desk, ASVector *ids);
+void SendVector (int channel, send_data_type msg_type, ASVector *vector);
+void SendPacket ( int channel, send_data_type msg_type, send_data_type num_datum, ...);
+void SendConfig (int module, send_data_type event_type, ASWindow * t);
+void SendString ( int channel, send_data_type long msg_type,
+             Window w, Window frame, ASWindow *asw_ptr,
+			 char *string, send_data_type encoding );
+void SendStackingOrder (int channel, send_data_type msg_type, send_data_type desk, ASVector *ids);
 /* simplified specialized interface to above functions : */
 void broadcast_focus_change( ASWindow *asw, Bool focused );
 void broadcast_window_name( ASWindow *asw );
 void broadcast_icon_name( ASWindow *asw );
 void broadcast_res_names( ASWindow *asw );
 void broadcast_status_change( int message, ASWindow *asw );
-void broadcast_config (unsigned long event_type, ASWindow * t);
+void broadcast_config (send_data_type event_type, ASWindow * t);
+
 
 void HandleModuleInOut(unsigned int channel, Bool has_input, Bool has_output);
 

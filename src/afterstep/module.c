@@ -43,13 +43,13 @@
 
 #include <X11/keysym.h>
 
+#include "../../libAfterStep/module.h"
 #include "../../libAfterStep/wmprops.h"
 
-typedef unsigned long send_data_type;
 static DECL_VECTOR(send_data_type, module_output_buffer);
 
 static void       DeleteQueueBuff (module_t *module);
-static void       AddToQueue      (module_t *module, unsigned long *ptr, int size, int done);
+static void       AddToQueue      (module_t *module, send_data_type *ptr, int size, int done);
 
 int           module_listen (const char *socket_name);
 
@@ -441,7 +441,7 @@ FlushAllQueues()
 			return ;/* no more output left */
 
 		tv.tv_sec = 0 ;
-		tv.tv_usec = 20000 ;
+		tv.tv_usec = 15000 ;
 		t = &tv ;
 	    retval = PORTABLE_SELECT(min (max_fd + 1, fd_width),NULL,&out_fdset,NULL,t);
 		if (retval <= 0)
@@ -457,7 +457,7 @@ static inline int
 PositiveWrite (unsigned int channel, send_data_type *ptr, int size)
 {
     module_t *module = &(MODULES_LIST[channel]);
-    register unsigned long mask = ptr[1] ;
+    register CARD32 mask = ptr[1] ;
 
     LOCAL_DEBUG_OUT( "module(%p)->active(%d)->module_mask(0x%lX)->mask(0x%lX)", module, module->active, module->mask, mask );
     if (module->active < 0 || !get_flags(module->mask, mask))
@@ -483,7 +483,7 @@ PositiveWrite (unsigned int channel, send_data_type *ptr, int size)
 }
 
 static send_data_type *
-make_msg_header( unsigned long msg_type, unsigned long size )
+make_msg_header( send_data_type msg_type, send_data_type size )
 {
     static send_data_type msg_header[MSG_HEADER_SIZE];
 
@@ -497,7 +497,7 @@ void
 SendBuffer( int channel )
 {
     send_data_type *b = VECTOR_HEAD(send_data_type,module_output_buffer);
-    unsigned long size_to_send ;
+    send_data_type size_to_send ;
 
     size_to_send = b[2];
     if( size_to_send > 0 && Modules )
@@ -703,7 +703,7 @@ KillModuleByName (char *name)
 }
 
 void
-SendPacket ( int channel, unsigned long msg_type, unsigned long num_datum, ...)
+SendPacket ( int channel, send_data_type msg_type, send_data_type num_datum, ...)
 {
 	va_list       ap;
     register send_data_type *body;
@@ -725,12 +725,17 @@ SendPacket ( int channel, unsigned long msg_type, unsigned long num_datum, ...)
     SendBuffer( channel );
 }
 
+
 void
-SendConfig (int module, unsigned long event_type, ASWindow * t)
+SendConfig (int module, send_data_type event_type, ASWindow * t)
 {
-    long frame_x = 0, frame_y = 0, frame_width = 0, frame_height = 0;
-    Window icon_title_w = None, icon_pixmap_w = None ;
-    long icon_x = 0, icon_y = 0, icon_width = 0, icon_height = 0 ;
+    send_signed_data_type 	frame_x = 0, frame_y = 0, frame_width = 0, frame_height = 0;
+    send_ID_type 			icon_title_w = None, icon_pixmap_w = None ;
+    send_signed_data_type 	icon_x = 0, icon_y = 0, icon_width = 0, icon_height = 0 ;
+	union {
+		ASWindow *asw ;
+		send_data_type id ;
+	}asw_id;
 
     if( t->frame_canvas )
     {
@@ -762,8 +767,9 @@ SendConfig (int module, unsigned long event_type, ASWindow * t)
         }
     }
 
+	asw_id.asw = t ;
     SendPacket (module, event_type, 25,
-                t->w,                 t->frame,              (unsigned long)t,
+                t->w,                 t->frame,              asw_id.id,
                 frame_x,              frame_y,               frame_width,         frame_height,
                 ASWIN_DESK(t),        t->status->flags,      t->hints->flags,
                 t->hints->base_width, t->hints->base_height, t->hints->width_inc, t->hints->height_inc,
@@ -773,12 +779,16 @@ SendConfig (int module, unsigned long event_type, ASWindow * t)
 }
 
 void
-SendString ( int channel, unsigned long msg_type,
-             unsigned long w, unsigned long frame, unsigned long asw_ptr,
-			 char *string, unsigned long encoding )
+SendString ( int channel, send_data_type long msg_type,
+             Window w, Window frame, ASWindow *asw_ptr,
+			 char *string, send_data_type encoding )
 {
-    unsigned long data[3];
-    long           len = 0;
+    send_data_type 			data[3];
+    send_signed_data_type 	len = 0;
+	union {
+		ASWindow *asw ;
+		send_data_type id ;
+	}asw_id;
 
     if (string == NULL)
 		return;
@@ -790,7 +800,8 @@ SendString ( int channel, unsigned long msg_type,
                     MSG_HEADER_SIZE );
     data[0] = w;
     data[1] = frame;
-    data[2] = asw_ptr;
+	asw_id.asw = asw_ptr ;
+	data[2] = asw_id.id;
     append_vector( &module_output_buffer, &(data[0]), 3);
     append_vector( &module_output_buffer, &encoding, 1);
     serialize_string( string, &module_output_buffer );
@@ -798,7 +809,7 @@ SendString ( int channel, unsigned long msg_type,
 }
 
 void
-SendVector (int channel, unsigned long msg_type, ASVector *vector)
+SendVector (int channel, send_data_type msg_type, ASVector *vector)
 {
     if (vector == NULL )
 		return;
@@ -807,15 +818,15 @@ SendVector (int channel, unsigned long msg_type, ASVector *vector)
     append_vector( &module_output_buffer,
                     make_msg_header(msg_type,VECTOR_USED(*vector)),
                     MSG_HEADER_SIZE );
-    append_vector( &module_output_buffer, VECTOR_HEAD(CARD32,*vector), VECTOR_USED(*vector));
+    append_vector( &module_output_buffer, VECTOR_HEAD(send_data_type,*vector), VECTOR_USED(*vector));
 
     SendBuffer( channel );
 }
 
 void
-SendStackingOrder (int channel, unsigned long msg_type, unsigned long desk, ASVector *ids)
+SendStackingOrder (int channel, send_data_type msg_type, send_data_type desk, ASVector *ids)
 {
-    unsigned long data[2];
+    send_data_type data[2];
 
     if (ids == NULL )
 		return;
@@ -827,7 +838,7 @@ SendStackingOrder (int channel, unsigned long msg_type, unsigned long desk, ASVe
     data[0] = desk ;
     data[1] = VECTOR_USED(*ids);
     append_vector( &module_output_buffer, &(data[0]), 2);
-    append_vector( &module_output_buffer, VECTOR_HEAD(CARD32,*ids), VECTOR_USED(*ids));
+    append_vector( &module_output_buffer, VECTOR_HEAD(send_data_type,*ids), VECTOR_USED(*ids));
 
     SendBuffer( channel );
 }
@@ -932,8 +943,14 @@ RunCommand (FunctionData * fdata, unsigned int channel, Window w)
 void
 broadcast_focus_change( ASWindow *asw, Bool focused )
 {
-    if( asw )
-        SendPacket(-1, M_FOCUS_CHANGE, 4, asw->w, asw->frame, (unsigned long)asw, (unsigned long)focused);
+	union {
+		ASWindow *asw ;
+		send_data_type id ;
+	}asw_id;
+
+	asw_id.asw = asw ;
+	if( asw )
+        SendPacket(-1, M_FOCUS_CHANGE, 4, asw->w, asw->frame, asw_id.id, (send_data_type)focused);
 }
 
 void
@@ -941,7 +958,7 @@ broadcast_window_name( ASWindow *asw )
 {
     if( asw )
         SendString( -1, M_WINDOW_NAME, asw->w, asw->frame,
-                      (unsigned long)asw, ASWIN_NAME(asw), asw->hints->names_encoding[0]);
+                    asw, ASWIN_NAME(asw), asw->hints->names_encoding[0]);
 }
 
 void
@@ -949,7 +966,7 @@ broadcast_icon_name( ASWindow *asw )
 {
     if( asw )
         SendString( -1, M_ICON_NAME, asw->w, asw->frame,
-                    (unsigned long)asw, ASWIN_ICON_NAME(asw), asw->hints->names_encoding[asw->hints->icon_name_idx]);
+                    asw, ASWIN_ICON_NAME(asw), asw->hints->names_encoding[asw->hints->icon_name_idx]);
 }
 
 void
@@ -958,21 +975,28 @@ broadcast_res_names( ASWindow *asw )
     if( asw )
     {
         SendString( -1, M_RES_CLASS, asw->w, asw->frame,
-                    (unsigned long)asw, asw->hints->res_class, asw->hints->names_encoding[asw->hints->res_class_idx]);
+                    asw, asw->hints->res_class, asw->hints->names_encoding[asw->hints->res_class_idx]);
         SendString( -1, M_RES_NAME, asw->w, asw->frame,
-                    (unsigned long)asw, asw->hints->res_name, asw->hints->names_encoding[asw->hints->res_name_idx]);
+                    asw, asw->hints->res_name, asw->hints->names_encoding[asw->hints->res_name_idx]);
     }
 }
 
 void
 broadcast_status_change( int message, ASWindow *asw )
 {
+	union {
+		ASWindow *asw ;
+		send_data_type id ;
+	}asw_id;
+
+	asw_id.asw = asw ;
+
     if( message == M_MAP )
-        SendPacket( -1, M_MAP, 3, asw->w, asw->frame, (unsigned long)asw);
+        SendPacket( -1, M_MAP, 3, asw->w, asw->frame, asw_id.id);
 }
 
 void
-broadcast_config (unsigned long event_type, ASWindow * t)
+broadcast_config (send_data_type event_type, ASWindow * t)
 {
     SendConfig( -1, event_type, t );
 }
