@@ -9,6 +9,7 @@
 #include "blender.h"
 #include "asimage.h"
 #include "import.h"
+#include "export.h"
 #include "asfont.h"
 
 /****h* libAfterImage/libAfterImage

@@ -69,6 +69,7 @@ int main(int argc, char* argv[])
 
 	/* see ASView.1 : */
 	set_application_name( argv[0] );
+	set_output_threshold(OUTPUT_LEVEL_DEBUG);
 
 	if( argc == 2 && strncmp(argv[1],"-h", 2) == 0 )
 	{
@@ -179,13 +180,15 @@ int main(int argc, char* argv[])
 		/* see ASMerge.4 */
 		merged_im = merge_layers( asv, layers, layers_num,
 			                      to_width, to_height,
-			                      True, 0, ASIMAGE_QUALITY_DEFAULT );
+			                      ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT );
 		while( --layers_num >= 0 )
 			destroy_asimage( &(layers[layers_num].im) );
 		free( layers );
 		/* see ASView.5 : */
 		p = asimage2pixmap( asv, DefaultRootWindow(dpy), merged_im,
 			                NULL, True );
+		/* writing result into the file */
+		ASImage2file( merged_im, NULL, "asmerge.jpg", ASIT_Jpeg, 0, 0, 100, 0, 0 );
 		destroy_asimage( &merged_im );
 		/* see common.c: set_window_background_and_free() : */
 		p = set_window_background_and_free( w, p );
@@ -291,7 +294,7 @@ int main(int argc, char* argv[])
  * EXAMPLE
  * 		merged_im = merge_layers( asv, layers, layers_num,
  * 			                      to_width, to_height,
- * 			                      True, 0, ASIMAGE_QUALITY_DEFAULT );
+ * 			                      ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT );
  * 		while( --layers_num >= 0 )
  * 			destroy_asimage( &(layers[layers_num].im) );
  * 		free( layers );

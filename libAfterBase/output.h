@@ -122,4 +122,12 @@ inline void nonGNUC_debugout_stub( const char *format, ...);
 
 #endif
 
+#ifdef DO_CLOCKING
+#define START_TIME(started)  time_t started = clock()
+#define SHOW_TIME(s,started) fprintf (stderr, __FUNCTION__ " " s " time (clocks): %lu mlsec\n", ((clock () - (started))*100)/CLOCKS_PER_SEC)
+#else
+#define START_TIME(started)  unsigned long started = 0
+#define SHOW_TIME(s,started) started = 0
+#endif
+
 #endif

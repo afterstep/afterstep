@@ -170,7 +170,7 @@ file2ASImage( const char *file, ASFlagType what, double gamma, unsigned int comp
 			free( realfilename );
 	}else
 		show_error( "I'm terribly sorry, but image file \"%s\" is nowhere to be found.", file );
-	
+
 	return im;
 }
 
@@ -378,12 +378,10 @@ Bool print_component( CARD32*, int, unsigned int );
 ASImage *
 xpm2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage, unsigned int compression )
 {
-#ifdef DO_CLOCKING
-	clock_t       started = clock ();
-#endif
 	ASXpmFile *xpm_file = NULL;
 	ASImage *im = NULL ;
 	int line = 0;
+	START_TIME(started);
 
 	LOCAL_DEBUG_CALLER_OUT ("(\"%s\", 0x%lX)", path, what);
 	if( (xpm_file=open_xpm_file(path)) == NULL )
@@ -415,9 +413,7 @@ xpm2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tabl
 		}
 	close_xpm_file( &xpm_file );
 
-#ifdef DO_CLOCKING
-	printf ("\n image loading time (clocks): %lu\n", clock () - started);
-#endif
+	SHOW_TIME("image loading",started);
 	return im;
 }
 
@@ -438,8 +434,6 @@ xpm2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tabl
 ASImage *
 png2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage, unsigned int compression )
 {
-	static ASImage 	 *im = NULL ;
-
 	FILE 		 *fp ;
 	double 		  image_gamma = 1.0;
 	png_structp   png_ptr;
@@ -452,10 +446,10 @@ png2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tabl
 	png_bytep     *row_pointers, row;
 	unsigned int  y;
 	size_t		  row_bytes, offset ;
-
+	static ASImage 	 *im = NULL ;
+	START_TIME(started);
 
 	im = NULL ;
-
 	if ((fp = open_image_file(path)) == NULL)
 		return NULL;
 
@@ -580,6 +574,7 @@ png2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tabl
 	}
 	/* close the file */
 	fclose (fp);
+	SHOW_TIME("image loading",started);
 	return im ;
 }
 #else 			/* PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG */
@@ -631,11 +626,9 @@ jpeg2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tab
 	/* More stuff */
 	FILE         *infile;					   /* source file */
 	JSAMPARRAY    buffer;					   /* Output row buffer */
-#ifdef DO_CLOCKING
-	clock_t       started = clock ();
-#endif
 	ASScanline    buf;
 	int y;
+	START_TIME(started);
  /*	register int i ;*/
 
 	/* we want to open the input file before doing anything else,
@@ -690,9 +683,7 @@ jpeg2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tab
 										cinfo.output_width * cinfo.output_components, 1);
 
 	/* Step 6: while (scan lines remain to be read) */
-#ifdef DO_CLOCKING
-	fprintf (stderr, "loading initialization time (clocks): %lu\n", clock () - started);
-#endif
+	SHOW_TIME("loading initialization",started);
 	y = -1 ;
 	/*cinfo.output_scanline*/
 /*	for( i = 0 ; i < im->width ; i++ )	fprintf( stderr, "%3.3d    ", i );
@@ -719,9 +710,7 @@ jpeg2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tab
 		asimage_add_line (im, IC_BLUE,  buf.blue , y);
 	}
 	free_scanline(&buf, True);
-#ifdef DO_CLOCKING
-	fprintf (stderr, "\n read time (clocks): %lu\n", clock () - started);
-#endif
+	SHOW_TIME("read",started);
 
 	/* Step 7: Finish decompression */
 	/* we must abort the decompress if not all lines were read */
@@ -744,9 +733,7 @@ jpeg2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tab
 	/* At this point you may want to check to see whether any corrupt-data
 	 * warnings occurred (test whether jerr.pub.num_warnings is nonzero).
 	 */
-#ifdef DO_CLOCKING
-	fprintf (stderr, "image loading time (clocks): %lu\n", clock () - started);
-#endif
+	SHOW_TIME("image loading",started);
 	LOCAL_DEBUG_OUT("done loading JPEG image \"%s\"", path);
 	return im ;
 }
@@ -770,10 +757,8 @@ xcf2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tabl
 	ASImage *im = NULL ;
 	/* More stuff */
 	FILE         *infile;					   /* source file */
-#ifdef DO_CLOCKING
-	clock_t       started = clock ();
-#endif
 	XcfImage  *xcf_im;
+	START_TIME(started);
 
 	/* we want to open the input file before doing anything else,
 	 * so that the setjmp() error recovery below can assume the file is open.
@@ -808,40 +793,9 @@ xcf2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tabl
 			layer = layer->next ;
 		}
 	}
-	/* Make a one-row-high sample array that will go away when done with image */
-#ifdef DO_CLOCKING
-		printf (" loading initialization time (clocks): %lu\n", clock () - started);
-#endif
-#if 0
-	im = safecalloc( 1, sizeof( ASImage ) );
-	asimage_start( im, xcf_im->width,  xcf_im->height, compression );
-	prepare_scanline( im->width, 0, &buf, False );
+ 	free_xcf_image(xcf_im);
 
-	y = -1 ;
-	/*cinfo.output_scanline*/
-	while ( ++y < height )
-	{
-		register int x = im->width ;
-		register JSAMPROW row ;
-		/* jpeg_read_scanlines expects an array of pointers to scanlines.
-		 * Here the array is only one element long, but you could ask for
-		 * more than one scanline at a time if that's more convenient.
-		 */
-		(void)jpeg_read_scanlines (&cinfo, buffer, 1);
-		raw2scanline( buffer[0], &buf, gamma_table, im->width, (cinfo.output_components==3), False);
-		asimage_add_line (im, IC_RED,   buf.red  , y);
-		asimage_add_line (im, IC_GREEN, buf.green, y);
-		asimage_add_line (im, IC_BLUE,  buf.blue , y);
-	}
-	free_scanline(&buf, True);
-#endif
-
-	free_xcf_image(xcf_im);
-
-#ifdef DO_CLOCKING
-	printf ("\n read time (clocks): %lu\n", clock () - started);
-	printf ("\n image loading time (clocks): %lu\n", clock () - started);
-#endif
+	SHOW_TIME("image loading",started);
 	return im ;
 }
 
@@ -853,14 +807,12 @@ ppm2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tabl
 	ASImage *im = NULL ;
 	/* More stuff */
 	FILE         *infile;					   /* source file */
-#ifdef DO_CLOCKING
-	clock_t       started = clock ();
-#endif
 	ASScanline    buf;
 	int y;
 	unsigned int type = 0, width = 0, height = 0, colors = 0;
 #define PPM_BUFFER_SIZE 71                     /* Sun says that no line should be longer then this */
 	char buffer[PPM_BUFFER_SIZE];
+	START_TIME(started);
 
 	if ((infile = open_image_file(path)) == NULL)
 		return NULL;
@@ -930,10 +882,7 @@ ppm2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tabl
 		free( data );
 	}
 	fclose( infile );
-#ifdef DO_CLOCKING
-	printf ("\n read time (clocks): %lu\n", clock () - started);
-	printf ("\n image loading time (clocks): %lu\n", clock () - started);
-#endif
+	SHOW_TIME("image loading",started);
 	return im ;
 }
 
@@ -1085,7 +1034,6 @@ read_bmp_image( FILE *infile, size_t data_offset, BITMAPINFOHEADER *bmp_info,
 	prepare_scanline( im->width, 0, buf, True );
 
 	y =( direction == 1 )?0:height-1 ;
-	fprintf( stderr, "direction = %d, y = %d\n", direction, y );
 	while( y >= 0 && y < height)
 	{
 		int x ;
@@ -1154,12 +1102,10 @@ bmp2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tabl
 	ASImage *im = NULL ;
 	/* More stuff */
 	FILE         *infile;					   /* source file */
-#ifdef DO_CLOCKING
-	clock_t       started = clock ();
-#endif
 	ASScanline    buf;
 	BITMAPFILEHEADER  bmp_header ;
 	BITMAPINFOHEADER  bmp_info;
+	START_TIME(started);
 
 
 	if ((infile = open_image_file(path)) == NULL)
@@ -1180,10 +1126,7 @@ bmp2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tabl
 		show_error( "invalid or unsupported BMP format in image file \"%s\"", path );
 
 	fclose( infile );
-#ifdef DO_CLOCKING
-	printf ("\n read time (clocks): %lu\n", clock () - started);
-	printf ("\n image loading time (clocks): %lu\n", clock () - started);
-#endif
+	SHOW_TIME("image loading",started);
 	return im ;
 }
 
@@ -1196,12 +1139,10 @@ ico2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tabl
 	ASImage *im = NULL ;
 	/* More stuff */
 	FILE         *infile;					   /* source file */
-#ifdef DO_CLOCKING
-	clock_t       started = clock ();
-#endif
 	ASScanline    buf;
 	int y, mask_bytes;
 	CARD8  and_mask[8];
+	START_TIME(started);
 	struct IconDirectoryEntry {
     	CARD8  bWidth;
     	CARD8  bHeight;
@@ -1262,12 +1203,8 @@ ico2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tabl
 		show_error( "invalid or unsupported ICO format in image file \"%s\"", path );
 
 	fclose( infile );
-#ifdef DO_CLOCKING
-	printf ("\n read time (clocks): %lu\n", clock () - started);
-	printf ("\n image loading time (clocks): %lu\n", clock () - started);
-#endif
+	SHOW_TIME("image loading",started);
 	return im ;
-
 }
 
 /***********************************************************************************/
@@ -1286,6 +1223,7 @@ gif2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tabl
 	int 		  		transparent = -1 ;
 	unsigned int  		y;
 	unsigned int		width, height ;
+	START_TIME(started);
 
 	if ((fp = open_image_file(path)) == NULL)
 		return NULL;
@@ -1396,6 +1334,7 @@ gif2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tabl
 		free( all_rows );
 
 	DGifCloseFile(gif);
+	SHOW_TIME("image loading",started);
 	return im ;
 }
 #else 			/* GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF */
@@ -1417,6 +1356,7 @@ tiff2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tab
 	ASScanline    buf;
 	unsigned int  width, height;
 	CARD32		 *data;
+	START_TIME(started);
 
 	if ((tif = TIFFOpen(path,"r")) == NULL)
 	{
@@ -1471,6 +1411,8 @@ tiff2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tab
 	}
 	/* close the file */
 	TIFFClose(tif);
+	SHOW_TIME("image loading",started);
+
 	return im ;
 }
 #else 			/* TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF */
