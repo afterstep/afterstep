@@ -79,6 +79,51 @@ long          LastWarpedWindow = 0;
 
 extern ASDirs as_dirs;
 
+
+static inline int
+make_scroll_pos( int val, int unit, int curr, int max, int size )
+{
+    int pos = curr ;
+    if ( val > -100000 && val < 100000 )
+    {
+        pos += APPLY_VALUE_UNIT(size,val,unit);
+        if( pos < 0 )
+            pos = 0 ;
+        if( pos > max )
+            pos = max ;
+    }else
+    {
+        pos += APPLY_VALUE_UNIT(size,val/1000, unit);
+        while( pos < 0 )
+            pos += max ;
+        while( pos > max )
+            pos -= max ;
+    }
+    return pos;
+}
+
+static inline int
+make_edge_scroll( int curr_pos, int curr_view, int view_size, int max_view, int edge_scroll )
+{
+    int new_view = curr_view;
+	edge_scroll = (edge_scroll*view_size)/100 ;
+    if( curr_pos >= new_view+view_size - 2 )
+    {
+        while ( curr_pos >= new_view+view_size - 2)
+            new_view += edge_scroll ;
+        if( new_view > max_view )
+            new_view = max_view ;
+    }else
+    {
+        while ( curr_pos < new_view+2)
+            new_view -= edge_scroll ;
+        if( new_view < 0 )
+            new_view = 0 ;
+    }
+    return new_view;
+}
+
+
 /***********************************************************************
  *
  *  Procedure:
@@ -102,7 +147,7 @@ ExecuteFunction ( FunctionCode func, char *action, ASEvent *event,
 	ASWindow     *t = NULL;
 	char         *realfilename, tmpfile[255];
 	int           x, y;
-	Window        w;
+    Window        w = event->w; /* Defer Execution may wish to alter this value */
 
 #ifndef NO_VIRTUAL
 	int           delta_x, delta_y;
@@ -113,9 +158,8 @@ ExecuteFunction ( FunctionCode func, char *action, ASEvent *event,
 
 	FunctionCode  switch_func = func;
 
-	/* Defer Execution may wish to alter this value */
-	w = in_w;
-	if (IsWindowFunc (func))
+
+    if (IsWindowFunc (func))
 	{
 		int           cursor, fin_event;
 
@@ -132,7 +176,7 @@ ExecuteFunction ( FunctionCode func, char *action, ASEvent *event,
 			fin_event = ButtonPress;
 		}
 
-		if (DeferExecution (eventp, &w, &tmp_win, &context, cursor, fin_event))
+        if (DeferExecution (event, cursor, fin_event))
 			switch_func = F_NOP;
 		else if (tmp_win == NULL)
 			switch_func = F_NOP;
@@ -151,17 +195,17 @@ ExecuteFunction ( FunctionCode func, char *action, ASEvent *event,
 		 break;
 
 	 case F_RESIZE:
-		 if (check_allowed_function2 (func, tmp_win) == 0)
+         if (check_allowed_function2 (func, event->client) == 0)
 		 {
 			 XBell (dpy, Scr.screen);
 			 break;
 		 }
-		 tmp_win->flags &= ~MAXIMIZED;
-		 resize_window (w, tmp_win, val1, val2, val1_unit, val2_unit);
+         event->client->flags &= ~MAXIMIZED;
+         resize_window (event, val1, val2, val1_unit, val2_unit);
 		 break;
 
 	 case F_MOVE:
-		 move_window (eventp, w, tmp_win, context, val1, val2, val1_unit, val2_unit);
+         move_window (event, val1, val2, val1_unit, val2_unit);
 		 break;
 
 #ifndef NO_VIRTUAL

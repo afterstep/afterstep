@@ -21,7 +21,7 @@ Pixmap ScalePixmap (Pixmap src, int src_w, int src_h, int width, int height, GC 
 void copyshade_drawable_area( ASVisual *asv, Drawable src, Pixmap trg,
 				  		 int x, int y, int w, int h,
 				  		 int trg_x, int trg_y,
-				  		 GC gc, ARGB32 tint); 		
+				  		 GC gc, ARGB32 tint);
 void CopyAndShadeArea ( Drawable src, Pixmap trg,
 				   int x, int y, int w, int h,
 				   int trg_x, int trg_y,
@@ -43,3 +43,4 @@ int fill_with_pixmapped_background (ASVisual *asv, Pixmap * pixmap, ASImage *ima
 /************************************************/
 
 #endif /* #ifndef LIBAFTERIMAGE_PIXMAP_H_HEADER_FILE_INCLUDED */
+
