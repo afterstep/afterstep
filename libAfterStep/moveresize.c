@@ -209,7 +209,7 @@ prepare_move_resize_data( ASMoveResizeData *data, ASWidget *parent, ASWidget *mr
     data->start.width  = data->curr.width  = data->last.width  = AS_WIDGET_WIDTH(mr);
     data->start.height = data->curr.height = data->last.height = AS_WIDGET_HEIGHT(mr);
 	data->bw = AS_WIDGET_BW(mr);
-	
+
 	grab_widget_pointer( parent, trigger,
 						 ButtonPressMask|ButtonReleaseMask|PointerMotionMask|EnterWindowMask|LeaveWindowMask,
 	                     &(data->last_x), &(data->last_y),
@@ -379,7 +379,7 @@ void complete_interactive_action( ASMoveResizeData *data, Bool cancel )
 	    client_event.xconfigure.event  = AS_WIDGET_WINDOW(data->mr);
 	    client_event.xconfigure.window = client_event.xconfigure.event ;
 
-  		client_event.xconfigure.x = data->curr.x ; 
+  		client_event.xconfigure.x = data->curr.x ;
 	    client_event.xconfigure.y = data->curr.y ;
   		client_event.xconfigure.width = data->curr.width ;
 	    client_event.xconfigure.height = data->curr.height ;
@@ -394,7 +394,7 @@ void complete_interactive_action( ASMoveResizeData *data, Bool cancel )
 	}
 
 	/* its a good idea to send out a syntetic ConfigureNotify */
-	
+
 	stop_widget_moveresize();
 	flush_move_resize_data( data );
 	free( data );
@@ -562,8 +562,8 @@ attract_corner( ASGrid *grid, short *x_inout, short *y_inout, XRectangle *curr, 
 	if( grid )
 	{
 		int bw_addon = bw*2 ;
-		new_left = attract_side( grid->v_lines, *x_inout, curr->width+bw_addon,  *y_inout, *y_inout+curr->height);
-		new_top  = attract_side( grid->h_lines, *y_inout, curr->height+bw_addon, *x_inout, *x_inout+curr->width );
+		new_left = attract_side( grid->v_lines, *x_inout, curr->width+bw_addon,  *y_inout, *y_inout+curr->height+bw_addon);
+		new_top  = attract_side( grid->h_lines, *y_inout, curr->height+bw_addon, *x_inout, *x_inout+curr->width+bw_addon );
 LOCAL_DEBUG_OUT( "attracted(%+d%+d) orinal(%+d%+d)", new_left, new_top, curr->x, curr->y );
 		if( new_left > curr->x )  /* moving eastwards : */
 			new_left = resist_east_side( grid->v_lines, curr->x+curr->width+bw_addon, new_left+curr->width+bw_addon, new_top, new_top+curr->height+bw_addon )-(curr->width+bw_addon);
@@ -677,7 +677,7 @@ LOCAL_DEBUG_OUT( "last_geom(%+d%+d)->curr_geom(%+d%+d)->delta(%+d%+d)->lag(%+d%+
 /*  fprintf( stderr, "move_func: (x,y) =(%d,%d) to %+d%+d\n", x, y, pdata->new_x, pdata->new_y );
 */
 /*	resist_move (pdata); */
-	if( data->curr.x != data->last.x || data->curr.y != data->last.y ) 
+	if( data->curr.x != data->last.x || data->curr.y != data->last.y )
 	{
 		data->apply_func( data );
 	}
@@ -689,6 +689,7 @@ resize_func (struct ASMoveResizeData *data, int x, int y)
 {
 	int dx, dy, real_dx, real_dy ;
 	ASGridLine *h_lines = NULL, *v_lines = NULL;
+	int bw_addon = data->bw*2 ;
 
 	real_dx = dx = x-(data->last_x+data->lag_x) ;
 	real_dy = dy = y-(data->last_y+data->lag_y) ;
@@ -699,19 +700,18 @@ resize_func (struct ASMoveResizeData *data, int x, int y)
 		v_lines = data->grid->v_lines ;
 	}
 
-	/* TODO: accound for the border width !!!!! */
 	switch( data->side )
 	{
 		case FR_N :
 		case FR_NE :
 		case FR_NW :
-			real_dy = adjust_west_side( h_lines, dy, &(data->curr.y), &(data->curr.height), data->curr.x+dx, data->curr.x+data->curr.width+dx );
+			real_dy = adjust_west_side( h_lines, dy, &(data->curr.y), &(data->curr.height), data->curr.x+dx, data->curr.x+data->curr.width+dx+bw_addon );
             break ;
 
 		case FR_S :
 		case FR_SE:
 		case FR_SW:
-			real_dy = adjust_east_side( h_lines, dy, data->curr.y, &(data->curr.height), data->curr.x+dx, data->curr.x+data->curr.width+dx );
+			real_dy = adjust_east_side( h_lines, dy, data->curr.y, &(data->curr.height), data->curr.x+dx, data->curr.x+data->curr.width+dx+bw_addon );
             real_dy = restrain_east_side( real_dy, &(data->curr.height), data->min_height, data->height_inc, data->max_height );
             break ;
 	}
@@ -720,13 +720,13 @@ resize_func (struct ASMoveResizeData *data, int x, int y)
 		case FR_E :
 		case FR_NE :
 		case FR_SE :
-			real_dx = adjust_east_side( v_lines, dx, data->curr.x, &(data->curr.width), data->curr.y, data->curr.y+data->curr.height );
+			real_dx = adjust_east_side( v_lines, dx, data->curr.x, &(data->curr.width), data->curr.y, data->curr.y+data->curr.height+bw_addon );
             real_dx = restrain_east_side( real_dx, &(data->curr.width), data->min_width, data->width_inc, data->max_width );
 			break ;
 		case FR_W :
 		case FR_SW :
 		case FR_NW :
-			real_dx = adjust_west_side( v_lines, dx, &(data->curr.x), &(data->curr.width), data->curr.y, data->curr.y+data->curr.height );
+			real_dx = adjust_west_side( v_lines, dx, &(data->curr.x), &(data->curr.width), data->curr.y, data->curr.y+data->curr.height+bw_addon );
 			break ;
 	}
 
@@ -736,7 +736,7 @@ resize_func (struct ASMoveResizeData *data, int x, int y)
 	data->last_y = y ;
 
 	if( data->curr.x != data->last.x || data->curr.y != data->last.y ||
-		data->curr.width != data->last.width || data->curr.height != data->last.height ) 
+		data->curr.width != data->last.width || data->curr.height != data->last.height )
 		data->apply_func( data );
 	update_geometry_display( data );
 

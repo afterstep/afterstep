@@ -1866,8 +1866,10 @@ translate_client_pos_main( int x, int y, unsigned int width, unsigned int height
         int i = PagerState.desks_num ;
         if( (d=get_pager_desk( desk )) != NULL )
         {
-            if( d->desk_canvas->root_x > x+width  || d->desk_canvas->root_x+d->desk_canvas->width  <= x ||
-                d->desk_canvas->root_y > y+height || d->desk_canvas->root_y+d->desk_canvas->height <= y )
+            if( d->desk_canvas->root_x+d->desk_canvas->bw > x+width  ||
+				d->desk_canvas->root_x+d->desk_canvas->bw+d->desk_canvas->width  <= x ||
+                d->desk_canvas->root_y+d->desk_canvas->bw > y+height ||
+				d->desk_canvas->root_y+d->desk_canvas->bw+d->desk_canvas->height <= y )
             {
                 d = NULL;
             }
@@ -1877,8 +1879,10 @@ translate_client_pos_main( int x, int y, unsigned int width, unsigned int height
         {
             d = &(PagerState.desks[i]);
             LOCAL_DEBUG_OUT( "checking desk %d: pos(%+d%+d)->desk_geom(%dx%d%+d%+d)", i, x, y, d->desk_canvas->width, d->desk_canvas->height, d->desk_canvas->root_x, d->desk_canvas->root_y );
-            if( d->desk_canvas->root_x > x+width  || d->desk_canvas->root_x+d->desk_canvas->width  <= x ||
-                d->desk_canvas->root_y > y+height || d->desk_canvas->root_y+d->desk_canvas->height <= y )
+            if( d->desk_canvas->root_x+d->desk_canvas->bw > x+width  ||
+				d->desk_canvas->root_x+d->desk_canvas->bw+d->desk_canvas->width  <= x ||
+                d->desk_canvas->root_y+d->desk_canvas->bw > y+height ||
+				d->desk_canvas->root_y+d->desk_canvas->bw+d->desk_canvas->height <= y )
             {
                 d = NULL;
             }
@@ -2501,8 +2505,8 @@ on_scroll_viewport( ASEvent *event )
         char command[64];
         int px = 0, py = 0;
         ASQueryPointerRootXY(&px,&py);
-        px -= d->desk_canvas->root_x ;
-        py -= d->desk_canvas->root_y ;
+        px -= d->desk_canvas->root_x+d->desk_canvas->bw ;
+        py -= d->desk_canvas->root_y+d->desk_canvas->bw ;
         if( px > 0 && px < d->desk_canvas->width &&
             py > 0 && py < d->desk_canvas->height )
         {
@@ -2553,8 +2557,8 @@ LOCAL_DEBUG_OUT( "main_geometry(%dx%d%+d%+d)", PagerState.main_canvas->width, Pa
                 int px = 0, py = 0;
                 ASQueryPointerRootXY(&px,&py);
 LOCAL_DEBUG_OUT( "pointer root pos(%+d%+d)", px, py );
-                px -= d->desk_canvas->root_x ;
-                py -= d->desk_canvas->root_y ;
+                px -= d->desk_canvas->root_x+d->desk_canvas->bw ;
+                py -= d->desk_canvas->root_y+d->desk_canvas->bw ;
                 if( px > 0 && px < d->desk_canvas->width &&
                     py > 0 && py < d->desk_canvas->height )
                 {
