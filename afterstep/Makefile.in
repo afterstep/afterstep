@@ -1,68 +1,68 @@
 @MAKEFILECOMMON@
 
 install:
-        @if [ -d $(AFTER_SHAREDIR) ] ; then \
+	@if [ -d $(AFTER_SHAREDIR) ] ; then \
 	  echo $(RMF) -r $(AFTER_SHAREDIR)_old; \
 	  echo $(MV) $(AFTER_SHAREDIR) $(AFTER_SHAREDIR)_old; \
 	  $(RMF) -r $(AFTER_SHAREDIR)_old; \
 	  $(MV) $(AFTER_SHAREDIR) $(AFTER_SHAREDIR)_old; \
 	fi; \
 	$(MKDIR) -p $(AFTER_SHAREDIR); \
-        $(MKDIR) -p $(AFTER_DOC_DIR)
-        @$(MKDIR) -p $(AFTER_SHAREDIR)/backgrounds; \
-        $(CP) backgrounds/* $(AFTER_SHAREDIR)/backgrounds/
-        $(CP) backgrounds/$(IMAGE_FORMAT)/* $(AFTER_SHAREDIR)/backgrounds/
-        @$(MKDIR) -p $(AFTER_SHAREDIR)/desktop; \
-        $(MKDIR) -p $(AFTER_SHAREDIR)/desktop/bars; \
-        $(CP) desktop/bars/$(IMAGE_FORMAT)/* $(AFTER_SHAREDIR)/desktop/bars/; \
-        $(MKDIR) -p $(AFTER_SHAREDIR)/desktop/buttons; \
-        $(CP) desktop/buttons/$(IMAGE_FORMAT)/* $(AFTER_SHAREDIR)/desktop/buttons/; \
-        $(MKDIR) -p $(AFTER_SHAREDIR)/desktop/cursors; \
-        $(CP) desktop/cursors/$(IMAGE_FORMAT)/* $(AFTER_SHAREDIR)/desktop/cursors/; \
-        $(MKDIR) -p $(AFTER_SHAREDIR)/desktop/fonts; \
-        $(CP) desktop/fonts/* $(AFTER_SHAREDIR)/desktop/fonts/; \
-        $(MKDIR) -p $(AFTER_SHAREDIR)/desktop/icons; \
-        $(CP) desktop/icons/* $(AFTER_SHAREDIR)/desktop/icons/; \
-        $(MKDIR) -p $(AFTER_SHAREDIR)/desktop/icons/dots; \
-        $(CP) desktop/icons/dots/$(IMAGE_FORMAT)/* $(AFTER_SHAREDIR)/desktop/icons/dots/; \
-        $(MKDIR) -p $(AFTER_SHAREDIR)/desktop/icons/large; \
-        $(CP) desktop/icons/large/$(IMAGE_FORMAT)/* $(AFTER_SHAREDIR)/desktop/icons/large/; \
-        $(MKDIR) -p $(AFTER_SHAREDIR)/desktop/icons/logos; \
-        $(CP) desktop/icons/logos/$(IMAGE_FORMAT)/* $(AFTER_SHAREDIR)/desktop/icons/logos/; \
-        $(MKDIR) -p $(AFTER_SHAREDIR)/desktop/icons/mini; \
-        $(CP) desktop/icons/mini/$(IMAGE_FORMAT)/* $(AFTER_SHAREDIR)/desktop/icons/mini/; \
-        $(MKDIR) -p $(AFTER_SHAREDIR)/desktop/icons/normal; \
-        $(CP) desktop/icons/normal/$(IMAGE_FORMAT)/* $(AFTER_SHAREDIR)/desktop/icons/normal/; \
-        $(MKDIR) -p $(AFTER_SHAREDIR)/desktop/sounds; \
-        $(CP) desktop/sounds/$(IMAGE_FORMAT)/* $(AFTER_SHAREDIR)/desktop/sounds/; \
-        $(MKDIR) -p $(AFTER_SHAREDIR)/desktop/tiles; \
-        $(CP) desktop/tiles/$(IMAGE_FORMAT)/* $(AFTER_SHAREDIR)/desktop/tiles/
-        @$(MKDIR) -p $(AFTER_SHAREDIR)/feels; \
-        $(CP) -r feels $(AFTER_SHAREDIR)/
-        @$(MKDIR) -p $(AFTER_SHAREDIR)/looks; \
-        $(CP) -r looks $(AFTER_SHAREDIR)/
-        @$(MKDIR) -p $(AFTER_SHAREDIR)/scripts; \
-        $(CP) -r scripts $(AFTER_SHAREDIR)/
-        @$(MKDIR) -p $(AFTER_SHAREDIR)/themes; \
-        $(CP) -r themes $(AFTER_SHAREDIR)/
-        @$(MKDIR) -p $(AFTER_SHAREDIR)/start; \
-        $(CP) -r start $(AFTER_SHAREDIR)/; \
-        $(RMF) $(AFTER_SHAREDIR)/start/.include.in; \
-        $(RMF) $(AFTER_SHAREDIR)/start/Desktop/Feel/.include.in; \
-        $(RMF) $(AFTER_SHAREDIR)/start/Desktop/Look/.include.in; \
-        $(RMF) $(AFTER_SHAREDIR)/start/Desktop/Theme/.include.in; \
-        $(RMF) $(AFTER_SHAREDIR)/start/Desktop/Pictures/.include.in
-        @$(MKDIR) -p $(AFTER_SHAREDIR)/non-configurable; \
-        $(CP) -r non-configurable $(AFTER_SHAREDIR)/; \
-        $(RMF) $(AFTER_SHAREDIR)/non-configurable/*.in
-        $(FIND) $(AFTER_SHAREDIR) -name '*.in' -print | $(XARGS) $(RMF) -r
+	$(MKDIR) -p $(AFTER_DOC_DIR)
+	@$(MKDIR) -p $(AFTER_SHAREDIR)/backgrounds; \
+	$(CP) backgrounds/* $(AFTER_SHAREDIR)/backgrounds/
+	$(CP) backgrounds/$(IMAGE_FORMAT)/* $(AFTER_SHAREDIR)/backgrounds/
+	@$(MKDIR) -p $(AFTER_SHAREDIR)/desktop; \
+	$(MKDIR) -p $(AFTER_SHAREDIR)/desktop/bars; \
+	$(CP) desktop/bars/$(IMAGE_FORMAT)/* $(AFTER_SHAREDIR)/desktop/bars/; \
+	$(MKDIR) -p $(AFTER_SHAREDIR)/desktop/buttons; \
+	$(CP) desktop/buttons/$(IMAGE_FORMAT)/* $(AFTER_SHAREDIR)/desktop/buttons/; \
+	$(MKDIR) -p $(AFTER_SHAREDIR)/desktop/cursors; \
+	$(CP) desktop/cursors/$(IMAGE_FORMAT)/* $(AFTER_SHAREDIR)/desktop/cursors/; \
+	$(MKDIR) -p $(AFTER_SHAREDIR)/desktop/fonts; \
+	$(CP) desktop/fonts/* $(AFTER_SHAREDIR)/desktop/fonts/; \
+	$(MKDIR) -p $(AFTER_SHAREDIR)/desktop/icons; \
+	$(CP) desktop/icons/* $(AFTER_SHAREDIR)/desktop/icons/; \
+	$(MKDIR) -p $(AFTER_SHAREDIR)/desktop/icons/dots; \
+	$(CP) desktop/icons/dots/$(IMAGE_FORMAT)/* $(AFTER_SHAREDIR)/desktop/icons/dots/; \
+	$(MKDIR) -p $(AFTER_SHAREDIR)/desktop/icons/large; \
+	$(CP) desktop/icons/large/$(IMAGE_FORMAT)/* $(AFTER_SHAREDIR)/desktop/icons/large/; \
+	$(MKDIR) -p $(AFTER_SHAREDIR)/desktop/icons/logos; \
+	$(CP) desktop/icons/logos/$(IMAGE_FORMAT)/* $(AFTER_SHAREDIR)/desktop/icons/logos/; \
+	$(MKDIR) -p $(AFTER_SHAREDIR)/desktop/icons/mini; \
+	$(CP) desktop/icons/mini/$(IMAGE_FORMAT)/* $(AFTER_SHAREDIR)/desktop/icons/mini/; \
+	$(MKDIR) -p $(AFTER_SHAREDIR)/desktop/icons/normal; \
+	$(CP) desktop/icons/normal/$(IMAGE_FORMAT)/* $(AFTER_SHAREDIR)/desktop/icons/normal/; \
+	$(MKDIR) -p $(AFTER_SHAREDIR)/desktop/sounds; \
+	$(CP) desktop/sounds/$(IMAGE_FORMAT)/* $(AFTER_SHAREDIR)/desktop/sounds/; \
+	$(MKDIR) -p $(AFTER_SHAREDIR)/desktop/tiles; \
+	$(CP) desktop/tiles/$(IMAGE_FORMAT)/* $(AFTER_SHAREDIR)/desktop/tiles/
+	@$(MKDIR) -p $(AFTER_SHAREDIR)/feels; \
+	$(CP) -r feels $(AFTER_SHAREDIR)/
+	@$(MKDIR) -p $(AFTER_SHAREDIR)/looks; \
+	$(CP) -r looks $(AFTER_SHAREDIR)/
+	@$(MKDIR) -p $(AFTER_SHAREDIR)/scripts; \
+	$(CP) -r scripts $(AFTER_SHAREDIR)/
+	@$(MKDIR) -p $(AFTER_SHAREDIR)/themes; \
+	$(CP) -r themes $(AFTER_SHAREDIR)/
+	@$(MKDIR) -p $(AFTER_SHAREDIR)/start; \
+	$(CP) -r start $(AFTER_SHAREDIR)/; \
+	$(RMF) $(AFTER_SHAREDIR)/start/.include.in; \
+	$(RMF) $(AFTER_SHAREDIR)/start/Desktop/Feel/.include.in; \
+	$(RMF) $(AFTER_SHAREDIR)/start/Desktop/Look/.include.in; \
+	$(RMF) $(AFTER_SHAREDIR)/start/Desktop/Theme/.include.in; \
+	$(RMF) $(AFTER_SHAREDIR)/start/Desktop/Pictures/.include.in
+	@$(MKDIR) -p $(AFTER_SHAREDIR)/non-configurable; \
+	$(CP) -r non-configurable $(AFTER_SHAREDIR)/; \
+	$(RMF) $(AFTER_SHAREDIR)/non-configurable/*.in
+	$(FIND) $(AFTER_SHAREDIR) -name '*.in' -print | $(XARGS) $(RMF) -r
 	$(FIND) $(AFTER_SHAREDIR) -name '*.orig' -print | $(XARGS) $(RMF) -r
 	$(FIND) $(AFTER_SHAREDIR) -name CVS -print | $(XARGS) $(RMF) -r
 	$(FIND) $(AFTER_SHAREDIR) -name .cvsignore -print | $(XARGS) $(RMF)
 
 
 uninstall:
-        $(RMF) -r $(AFTER_SHAREDIR)
+	$(RMF) -r $(AFTER_SHAREDIR)
 	@if [ -d $(AFTER_SHAREDIR)_old ] ; then \
 	  echo $(MV) $(AFTER_SHAREDIR)_old $(AFTER_SHAREDIR); \
 	  $(MV) $(AFTER_SHAREDIR)_old $(AFTER_SHAREDIR); \

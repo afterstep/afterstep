@@ -71,8 +71,7 @@ install.data:
 	echo "If you want AfterStep to appear in your Gnome menu, please install as root."; \
 	fi \
 	fi
-        cd afterstep; ${MAKE} install || exit 1; cd ..
-
+	cd afterstep; ${MAKE} install || exit 1; cd ..
 
 uninstall:
 	@for I in ${subdirs}; do (cd $$I; ${MAKE} uninstall || exit 1); done
