@@ -327,6 +327,10 @@ typedef struct ASImageBevel
  * after each call to decode_image_scanline().
  * SOURCE
  */
+
+/* low level driver (what data to use - native, XImage or ARGB): */
+typedef void (*decode_asscanline_func)( struct ASImageDecoder *imdec, unsigned int skip, int y );
+/* high level driver (bevel or not bevel): */ 
 typedef void (*decode_image_scanline_func)(struct ASImageDecoder *imdec);
 
 typedef struct ASImageDecoder
@@ -349,11 +353,15 @@ typedef struct ASImageDecoder
 	int            bevel_left, bevel_top, bevel_right, bevel_bottom ;
 
 	/* scanline buffer containing current scanline */
-	ASScanline 		buffer;
+	ASScanline 		buffer; /* matches the out_width */ 
 
 	/* internal data : */
 	unsigned short   bevel_h_addon, bevel_v_addon ;
 	int 			next_line ;
+
+    ASScanline   xim_buffer; /* matches the size of the original XImage */
+	
+	decode_asscanline_func     decode_asscanline ;
 	decode_image_scanline_func decode_image_scanline ;
 }ASImageDecoder;
 /********/

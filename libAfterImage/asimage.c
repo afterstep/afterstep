@@ -37,6 +37,9 @@
 #include "asimage.h"
 
 
+static void decode_asscanline_native( ASImageDecoder *imdec, unsigned int skip, int y );
+static void decode_asscanline_ximage( ASImageDecoder *imdec, unsigned int skip, int y );
+
 void decode_image_scanline_normal( ASImageDecoder *imdec );
 void decode_image_scanline_beveled( ASImageDecoder *imdec );
 void decode_image_scl_bevel_solid( ASImageDecoder *imdec );
@@ -476,9 +479,11 @@ start_image_decoding( ASVisual *asv,ASImage *im, ASFlagType filter,
 			out_width = im->width ;
 		if( out_height == 0 )
 			out_height = im->height ;
+
 	}
 
 	imdec = safecalloc( 1, sizeof(ASImageDecoder));
+	imdec->asv = asv ;
 	imdec->im = im ;
 	imdec->filter = filter ;
 	imdec->offset_x = offset_x ;
@@ -526,6 +531,12 @@ start_image_decoding( ASVisual *asv,ASImage *im, ASFlagType filter,
 	}else
 		imdec->decode_image_scanline = decode_image_scanline_normal ;
 
+	if( im == NULL )
+		imdec->decode_asscanline = decode_asscanline_native;
+	else if( get_flags( im->flags, ASIM_DATA_NOT_USEFUL ) && im->alt.ximage != NULL ) 
+		imdec->decode_asscanline = decode_asscanline_ximage;
+	else
+		imdec->decode_asscanline = decode_asscanline_native;
 
 	prepare_scanline(out_width+imdec->bevel_h_addon, 0, &(imdec->buffer), asv->BGR_mode );
 	imdec->buffer.back_color = ARGB32_DEFAULT_BACK_COLOR;
@@ -1652,18 +1663,19 @@ fine_output_filter_mod( register CARD32 *data, int unused, int len )
 
 /* *********************************************************************/
 /*					    	 DECODER : 	   							  */
-
-static inline void
-decode_asscanline( register ASScanline *scl, ASImage *im, ARGB32 back_color, ARGB32 filter, unsigned int skip, int y, unsigned int offset )
+/* Low level drivers :                                                */
+static void
+decode_asscanline_native( ASImageDecoder *imdec, unsigned int skip, int y )
 {
 	int i ;
+	ASScanline *scl = &(imdec->buffer);
 	int count, width = scl->width-skip ;
 	for( i = 0 ; i < IC_NUM_CHANNELS ; i++ )
-		if( get_flags(filter, 0x01<<i) )
+		if( get_flags(imdec->filter, 0x01<<i) )
 		{
 			register CARD32 *chan = scl->channels[i]+skip;
-			if( im )
-				count = asimage_decode_line(im, i, chan, y, offset, width);
+			if( imdec->im )
+				count = asimage_decode_line(imdec->im, i, chan, y, imdec->offset_x, width);
 			else
 				count = 0 ;
 			if( scl->shift )
@@ -1673,13 +1685,54 @@ decode_asscanline( register ASScanline *scl, ASImage *im, ARGB32 back_color, ARG
 					chan[k] = chan[k]<<8;
 			}
 			if( count < width )
-				set_component( chan, ARGB32_CHAN8(back_color, i)<<scl->shift, count, width );
+				set_component( chan, ARGB32_CHAN8(imdec->back_color, i)<<scl->shift, count, width );
+		}
+
+	clear_flags( scl->flags, SCL_DO_ALL);
+	set_flags( scl->flags, imdec->filter);
+}
+
+static void
+decode_asscanline_ximage( ASImageDecoder *imdec, unsigned int skip, int y )
+{
+	int i ;
+	ASScanline *scl = &(imdec->buffer);
+	int count, width = scl->width-skip ;
+	XImage *xim = imdec->im->alt.ximage ;
+#if 0
+	if( width > xim->width || imdec->offset_x > 0 )
+	{/* need to tile :( */
+fprintf( stderr, __FILE__ ":" __FUNCTION__ ": width=%d, xim_width=%d offset_x = %d - tiling\n", width, xim->width, imdec->offset_x );	
+	
+	
+	}else
+#endif	
+	{/* cool we can put data directly into buffer : */
+/*fprintf( stderr, __FILE__ ":" __FUNCTION__ ":direct\n" );	*/
+		scl->offset_x = skip ;
+		GET_SCANLINE(imdec->asv,xim,scl,y,xim->data+xim->bytes_per_line*y);
+		count = MIN(width,xim->width);  	
+	}
+	for( i = 0 ; i < IC_NUM_CHANNELS ; i++ )
+		if( get_flags(imdec->filter, 0x01<<i) )
+		{
+			register CARD32 *chan = scl->channels[i]+skip;
+			if( scl->shift )
+			{
+				register int k  = 0;
+				for(; k < count ; k++ )
+					chan[k] = chan[k]<<8;
+			}
+			if( count < width )
+				set_component( chan, ARGB32_CHAN8(imdec->back_color, i)<<scl->shift, count, width );
 		}
 
 	clear_flags( scl->flags,SCL_DO_ALL);
-	set_flags( scl->flags,filter);
+	set_flags( scl->flags,imdec->filter);
 }
 
+/***********************************************************************/
+/* High level drivers :                                                */
 void                                           /* normal (unbeveled) */
 decode_image_scanline_normal( ASImageDecoder *imdec )
 {
@@ -1694,7 +1747,7 @@ decode_image_scanline_normal( ASImageDecoder *imdec )
 
 	if( imdec->im )
 		y %= imdec->im->height;
-	decode_asscanline( &(imdec->buffer), imdec->im, imdec->back_color, imdec->filter, 0, y, imdec->offset_x );
+	imdec->decode_asscanline( imdec, 0, y );
 	++(imdec->next_line);
 }
 
@@ -1907,8 +1960,7 @@ decode_image_scanline_beveled( ASImageDecoder *imdec )
 			y %= imdec->im->height ;
 
 		if( left_margin < scl->width )
-			decode_asscanline( scl, imdec->im, imdec->back_color, imdec->filter, left_margin,
-							   y, imdec->offset_x );
+			imdec->decode_asscanline( imdec, left_margin, y );
 
 		draw_solid_bevel_line( scl, -1, left_margin, right_margin, scl->width,
 							   bevel->hi_color, bevel->lo_color,
