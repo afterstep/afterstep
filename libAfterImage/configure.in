@@ -85,8 +85,8 @@ dnl# AfterSTep already checked everything for us
     AC_SUBST(LEXLIB)
     AC_SUBST(YACC)
     AC_SUBST(sgmltools)
-    if test "x$have_xshmimage"="xyes"; then
-	AC_DEFINE(XSHMIMAGE)
+	if test "x$have_shmimage" = "xyes"; then
+		AC_DEFINE(XSHMIMAGE)
     fi
 else
 
@@ -206,19 +206,19 @@ AC_HEADER_TIME
 AC_CHECK_HEADERS(sys/wait.h sys/time.h)
 
 dnl# Check for X shaped window extension
-HAVESHAPE="NOSHAPE"
+have_shmimage=no
 have_xext_lib=no
 if test "x$enable_shmimage" = "xyes"; then
-	AC_CHECK_LIB(Xext, XShmCreateImage, [have_xshmimage=yes],,$x_libs)
-	if test "x$have_xshmimage=yes" = "xyes"; then
-		AC_CHECK_HEADER(sys/ipc.h,,[have_xshmimage=no])
+	AC_CHECK_LIB(Xext, XShmCreateImage, [have_shmimage=yes],,$x_libs)
+	if test "x$have_shmimage" = "xyes"; then
+		AC_CHECK_HEADER(sys/ipc.h,,[have_shmimage=no])
 	fi
-	if test "x$have_xshmimage=yes" = "xyes"; then
-		AC_CHECK_HEADER(sys/shm.h,,[have_xshmimage=no])
+	if test "x$have_shmimage" = "xyes"; then
+		AC_CHECK_HEADER(sys/shm.h,,[have_shmimage=no])
 	fi
-	if test "x$have_xshmimage=yes" = "xyes"; then
+	if test "x$have_shmimage" = "xyes"; then
 		add_lib_xext=yes
-		AC_DEFINE(XSHMIMAGE,)
+		AC_DEFINE(XSHMIMAGE)
 	fi
 
 fi

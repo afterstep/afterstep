@@ -1144,8 +1144,8 @@ fi;
 if test "x$FROM_AFTERSTEP_CONFIGURE" = "xyes"; then
 	aaa=bbb
 
-    if test "x$have_xshmimage"="xyes"; then
-	cat >>confdefs.h <<\EOF
+	if test "x$have_shmimage" = "xyes"; then
+		cat >>confdefs.h <<\EOF
 #define XSHMIMAGE 1
 EOF
 
@@ -4326,7 +4326,7 @@ EOF
 fi
 done
 
-HAVESHAPE="NOSHAPE"
+have_shmimage=no
 have_xext_lib=no
 if test "x$enable_shmimage" = "xyes"; then
 	echo "$as_me:4332: checking for XShmCreateImage in -lXext" >&5
@@ -4379,10 +4379,10 @@ fi
 echo "$as_me:4379: result: $ac_cv_lib_Xext_XShmCreateImage" >&5
 echo "${ECHO_T}$ac_cv_lib_Xext_XShmCreateImage" >&6
 if test $ac_cv_lib_Xext_XShmCreateImage = yes; then
-  have_xshmimage=yes
+  have_shmimage=yes
 fi
 
-	if test "x$have_xshmimage=yes" = "xyes"; then
+	if test "x$have_shmimage" = "xyes"; then
 		echo "$as_me:4386: checking for sys/ipc.h" >&5
 echo $ECHO_N "checking for sys/ipc.h... $ECHO_C" >&6
 if test "${ac_cv_header_sys_ipc_h+set}" = set; then
@@ -4423,11 +4423,11 @@ echo "${ECHO_T}$ac_cv_header_sys_ipc_h" >&6
 if test $ac_cv_header_sys_ipc_h = yes; then
   :
 else
-  have_xshmimage=no
+  have_shmimage=no
 fi
 
 	fi
-	if test "x$have_xshmimage=yes" = "xyes"; then
+	if test "x$have_shmimage" = "xyes"; then
 		echo "$as_me:4431: checking for sys/shm.h" >&5
 echo $ECHO_N "checking for sys/shm.h... $ECHO_C" >&6
 if test "${ac_cv_header_sys_shm_h+set}" = set; then
@@ -4468,14 +4468,14 @@ echo "${ECHO_T}$ac_cv_header_sys_shm_h" >&6
 if test $ac_cv_header_sys_shm_h = yes; then
   :
 else
-  have_xshmimage=no
+  have_shmimage=no
 fi
 
 	fi
-	if test "x$have_xshmimage=yes" = "xyes"; then
+	if test "x$have_shmimage" = "xyes"; then
 		add_lib_xext=yes
 		cat >>confdefs.h <<\EOF
-#define XSHMIMAGE
+#define XSHMIMAGE 1
 EOF
 
 	fi

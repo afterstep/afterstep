@@ -634,6 +634,14 @@ XImage* create_visual_ximage( ASVisual *asv,
 	                          unsigned int width, unsigned int height,
 							  unsigned int depth );
 
+#ifdef XSHMIMAGE
+void destroy_xshm_segment( unsigned long );
+#endif
+Bool enable_shmem_images ();
+void disable_shmem_images();
+Bool check_XImage_shared( XImage *xim );
+
+
 #ifdef __cplusplus
 }
 #endif

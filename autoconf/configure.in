@@ -222,18 +222,18 @@ AC_PATH_XTRA
 x_libs="$LDFLAGS $X_LIBS $X_EXTRA_LIBS $X_PRE_LIBS"
 AC_CHECK_LIB(X11, XOpenDisplay, [x_libs="-lX11 $x_libs"],,$x_libs)
 
-have_xshmimage=no
+have_shmimage=no
 if test "x$enable_shmimage" = "xyes"; then
-	AC_CHECK_LIB(Xext, XShmCreateImage, [have_xshmimage=yes],,$x_libs)
-	if test "x$have_xshmimage" = "xyes"; then
-		AC_CHECK_HEADER(sys/ipc.h,,[have_xshmimage=no])
+	AC_CHECK_LIB(Xext, XShmCreateImage, [have_shmimage=yes],,$x_libs)
+	if test "x$have_shmimage" = "xyes"; then
+		AC_CHECK_HEADER(sys/ipc.h,,[have_shmimage=no])
 	fi
-	if test "x$have_xshmimage" = "xyes"; then
-		AC_CHECK_HEADER(sys/shm.h,,[have_xshmimage=no])
+	if test "x$have_shmimage" = "xyes"; then
+		AC_CHECK_HEADER(sys/shm.h,,[have_shmimage=no])
 	fi
-	if test "x$have_xshmimage" = "xyes"; then
+	if test "x$have_shmimage" = "xyes"; then
 		add_lib_xext=yes
-		AC_DEFINE(XSHMIMAGE,)
+		AC_DEFINE(XSHMIMAGE)
 	fi
 fi
 
@@ -249,7 +249,7 @@ export X_EXTRA_LIBS
 export X_PRE_LIBS
 export CPP
 export have_x
-export have_xshmimage
+export have_shmimage
 
 dnl# DONE WITH COMMON STUFF
 dnl# #############################################################
@@ -277,6 +277,7 @@ _def_lib_conf_opts=" \
 	--with-x=${with_x} \
 	--enable-audit=${enable_audit} \
 	--enable-trace=${enable_trace} \
+	--enable-shmimage=${enable_shmimage} \
 "
 
 if test -d libAfterBase; then

@@ -124,6 +124,9 @@ main (int argc, char **argv)
 #ifdef SHAPE
 	XShapeQueryExtension (dpy, &ShapeEventBase, &ShapeErrorBase);
 #endif /* SHAPE */
+#ifdef XSHMIMAGE
+//	enable_shmem_images ();
+#endif
 
     SetupModules();
     SetupScreen();
