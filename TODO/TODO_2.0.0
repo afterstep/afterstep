@@ -19,12 +19,13 @@ TODO:
                 8. Update websites afterstep.sf.net and maybe www.afterstep.org (see David Mihm).
         AfterStep-proper :
                 1. Complete support for iconified windows
-                2. Implement proper window switching using the keyboard ( aka Alt+Tabbing )
-                3. Debug stacking order between layers
-                4. Implement window placement  in arbitrary position when NoPPosition is used.
-                5. Implement support for background image description in asetroot file
+                2. Debug stacking order between layers
+                3. Implement window placement  in arbitrary position when NoPPosition is used.
+                4. Implement support for background image description in asetroot file
                    (when look does not have it).
-                6. Implement theme handling tool.
+                5. Implement theme handling tool.
+                6. Implement support for cursor movement using the keyboard while in menus.
+                7. Add FollowTitleChanges option to the database flags.
         asetroot :
                 1. Move background handling code into the lib from afterstep-proper/pager.c.
                 2. Change to use above-mentioned code
@@ -84,4 +85,6 @@ TODO:
                    for old times sake.
 
 DONE:
+        AfterStep-proper :
+                1. Implement proper window switching using the keyboard ( aka Alt+Tabbing )
 

@@ -290,24 +290,31 @@ render_asmenu_bars( ASMenu *menu )
 {
     int i = menu->items_num ;
     Bool rendered = False;
-    START_LONG_DRAW_OPERATION;
-    for( i = 0 ; i < menu->items_num ; ++i )
+    if( menu->main_canvas->height > 1 && menu->main_canvas->width > 1 )
     {
-        int prev_y = -10000 ;
-        register ASTBarData *bar = menu->items[i].bar ;
-        if( DoesBarNeedsRendering(bar) &&
-            bar->win_y + (int)(bar->height) > 0 && (int)(bar->win_y) > prev_y )
+        START_LONG_DRAW_OPERATION;
+        for( i = 0 ; i < menu->items_num ; ++i )
         {
-            if( render_astbar( bar, menu->main_canvas ) )
-                rendered = True ;
+            int prev_y = -10000 ;
+            register ASTBarData *bar = menu->items[i].bar ;
+            if( bar->win_y >= menu->main_canvas->height )
+                break;
+
+            if( DoesBarNeedsRendering(bar) &&
+                bar->win_y + (int)(bar->height) > 0 &&
+                (int)(bar->win_y) > prev_y )
+            {
+                if( render_astbar( bar, menu->main_canvas ) )
+                    rendered = True ;
+            }
+            prev_y = bar->win_y ;
         }
-        prev_y = bar->win_y ;
-    }
-    STOP_LONG_DRAW_OPERATION;
-    if( rendered )
-    {
-        update_canvas_display( menu->main_canvas );
-        ASSync(False);
+        STOP_LONG_DRAW_OPERATION;
+        if( rendered )
+        {
+            update_canvas_display( menu->main_canvas );
+            ASSync(False);
+        }
     }
 }
 
@@ -489,7 +496,7 @@ LOCAL_DEBUG_OUT("adj_pos(%d)->curr_y(%d)->items_num(%d)->vis_items_num(%d)->sel_
     menu->top_item = pos ;
     if( menu->selected_item < menu->top_item )
         select_menu_item( menu, menu->top_item );
-    else if( menu->selected_item >= menu->top_item + menu->visible_items_num )
+    else if( menu->visible_items_num > 0 && menu->selected_item >= menu->top_item + menu->visible_items_num )
         select_menu_item( menu, menu->top_item + menu->visible_items_num - 1 );
 
     render_asmenu_bars(menu);

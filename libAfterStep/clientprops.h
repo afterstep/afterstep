@@ -163,6 +163,28 @@ extern Atom _XA_NET_WM_PID;
 extern Atom _XA_NET_WM_PROTOCOLS;
 extern Atom _XA_NET_WM_PING;
 
+#define IsNameProp(a) \
+        ((a) == XA_WM_NAME ||  \
+         (a) == XA_WM_ICON_NAME || \
+         (a) == XA_WM_CLASS ||  \
+         (a) == _XA_NET_WM_NAME || \
+         (a) == _XA_NET_WM_ICON_NAME || \
+         (a) == _XA_NET_WM_VISIBLE_NAME || \
+         (a) == _XA_NET_WM_VISIBLE_ICON_NAME )
+
+/* must not track state properties, since we manage it ourselves !! */
+#define NeedToTrackPropChanges(a) \
+   (((a)== XA_WM_HINTS  )|| \
+    ((a)== XA_WM_NORMAL_HINTS  )|| \
+    ((a)== XA_WM_TRANSIENT_FOR  )|| \
+    ((a)== XA_WM_COMMAND  )|| \
+    ((a)== XA_WM_CLIENT_MACHINE  )|| \
+    ((a)== _XA_WM_PROTOCOLS  )|| \
+    ((a)== _XA_WM_COLORMAP_WINDOWS  )|| \
+    ((a)== _XA_MwmAtom  )|| \
+    ((a)== _XA_WIN_HINTS  )|| \
+    ((a)== _XA_NET_WM_WINDOW_TYPE  )|| \
+    ((a)== _XA_NET_WM_PROTOCOLS  ))
 
 /* Crossreferences of atoms into flag value for
    different atom list type of properties :*/

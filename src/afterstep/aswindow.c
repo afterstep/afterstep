@@ -262,15 +262,9 @@ destroy_aslayer  (ASHashableValue value, void *data)
 /********************************************************************************/
 /* ASWindow management */
 
-Bool
-enlist_aswindow( ASWindow *t )
+void
+tie_aswindow( ASWindow *t )
 {
-    if( Scr.Windows == NULL )
-        Scr.Windows = init_aswindow_list();
-
-    append_bidirelem( Scr.Windows->clients, t );
-    vector_insert_elem( Scr.Windows->circulate_list, &t, 1, NULL, True );
-
     if( t->hints->transient_for != None )
     {
         ASWindow *transient_owner  = window2ASWindow(t->hints->transient_for);
@@ -293,6 +287,57 @@ enlist_aswindow( ASWindow *t )
             vector_insert_elem( group_lead->group_members, &t, 1, NULL, True );
         }
     }
+}
+
+void
+untie_aswindow( ASWindow *t )
+{
+    if( t->transient_owner != NULL && t->transient_owner->magic == MAGIC_ASWINDOW )
+    {
+        if( t->transient_owner != NULL )
+            vector_remove_elem( t->transient_owner->transients, &t );
+        t->transient_owner = NULL ;
+    }
+    if( t->group_lead && t->group_lead->magic == MAGIC_ASWINDOW )
+    {
+        if( t->group_lead->group_members )
+            vector_remove_elem( t->group_lead->group_members, &t );
+        t->group_lead = NULL ;
+    }
+}
+
+void
+add_aswindow_to_layer( ASWindow *asw, int layer )
+{
+    if( !AS_ASSERT(asw) )
+    {
+        ASLayer  *dst_layer = get_aslayer( ASWIN_LAYER(asw), Scr.Windows );
+        /* inserting window into the top of the new layer */
+        vector_insert_elem( dst_layer->members, &asw, 1, NULL, False );
+    }
+}
+
+void
+remove_aswindow_from_layer( ASWindow *asw, int layer )
+{
+    if( !AS_ASSERT(asw) )
+    {
+        ASLayer  *src_layer = get_aslayer( layer, Scr.Windows );
+        vector_remove_elem( src_layer->members, &asw );
+    }
+}
+
+
+Bool
+enlist_aswindow( ASWindow *t )
+{
+    if( Scr.Windows == NULL )
+        Scr.Windows = init_aswindow_list();
+
+    append_bidirelem( Scr.Windows->clients, t );
+    vector_insert_elem( Scr.Windows->circulate_list, &t, 1, NULL, True );
+
+    tie_aswindow( t );
     if (!get_flags(t->hints->flags, AS_SkipWinList))
         update_windowList ();
     return True;
@@ -316,18 +361,7 @@ delist_aswindow( ASWindow *t )
     if((l = get_aslayer(ASWIN_LAYER(t), Scr.Windows )) != NULL )
         vector_remove_elem( l->members, &t );
 
-    if( t->transient_owner != None )
-    {
-        vector_remove_elem( t->transient_owner->transients, &t );
-		if( t->transient_owner->transients->used == 0 )
-			destroy_asvector( &(t->transient_owner->transients) );
-    }
-    if( t->hints->group_lead != None )
-    {
-        vector_remove_elem( t->group_lead->group_members, &t );
-		if( t->group_lead->group_members->used == 0 )
-			destroy_asvector( &(t->group_lead->group_members) );
-    }
+    untie_aswindow( t );
     skip_winlist = get_flags(t->hints->flags, AS_SkipWinList);
     discard_bidirelem( Scr.Windows->clients, t );
 

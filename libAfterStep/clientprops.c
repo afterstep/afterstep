@@ -1160,26 +1160,16 @@ handle_manager_property_update (Window w, Atom property, ASRawHints * raw)
 void
 set_client_state (Window w, struct ASStatusHints *status)
 {
-	CARD32        state = NormalState;
-	CARD32        iw = None;
-
 	if (w != None)
 	{
-		if (status == NULL)
+        if (status != NULL)
 		{
-			state = WithdrawnState;
-		} else
-		{
-			CARD32        extwm_states[MAX_NET_WM_STATES];
+            CARD32        extwm_states[MAX_NET_WM_STATES];
 			long          used = 0;
 			CARD32        gnome_state = 0;
 			Atom         *old_extwm_state = NULL;
 			long          old_extwm_used = 0;
 			ASFlagType    old_state = 0;
-
-			if (get_flags (status->flags, AS_Iconic))
-				state = IconicState;
-			iw = status->icon_window;
 
 			if (get_flags (status->flags, AS_Sticky))
 			{
@@ -1219,8 +1209,7 @@ set_client_state (Window w, struct ASStatusHints *status)
 			if (get_flags (status->flags, AS_Layer))
 				set_32bit_property (w, _XA_WIN_LAYER, XA_CARDINAL, status->layer);
 		}
-		set_multi32bit_property (w, _XA_WM_STATE, _XA_WM_STATE, 2, state, iw);
-	}
+    }
 }
 
 void

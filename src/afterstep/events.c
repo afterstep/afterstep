@@ -605,9 +605,10 @@ HandlePropertyNotify (ASEvent *event)
 #endif
     ASWindow       *asw;
     XPropertyEvent *xprop = &(event->x.xproperty);
+    Atom atom = xprop->atom ;
 
 	/* force updates for "transparent" windows */
-    if (xprop->atom == _XROOTPMAP_ID && event->w == Scr.Root)
+    if (atom == _XROOTPMAP_ID && event->w == Scr.Root)
 	{
         read_xrootpmap_id (Scr.wmprops, (xprop->state == PropertyDelete));
         if(Scr.RootImage)
@@ -640,74 +641,27 @@ HandlePropertyNotify (ASEvent *event)
     if( (asw = event->client) == NULL )
         return ;
 
-    if(  xprop->atom == XA_WM_NAME ||
-         xprop->atom == XA_WM_ICON_NAME ||
-         xprop->atom == _XA_NET_WM_NAME ||
-         xprop->atom == _XA_NET_WM_ICON_NAME ||
-         xprop->atom == _XA_NET_WM_VISIBLE_NAME ||
-         xprop->atom == _XA_NET_WM_VISIBLE_ICON_NAME)
-	{
-		show_debug( __FILE__, __FUNCTION__, __LINE__, "name prop changed..." );
+    if( IsNameProp(atom))
+    {
+        show_debug( __FILE__, __FUNCTION__, __LINE__, "name prop changed..." );
         if( update_property_hints_manager( asw->w, xprop->atom,
-                                           Scr.Look.supported_hints,
-                                           asw->hints, asw->status ) )
-		{
+                                        Scr.Look.supported_hints,
+                                        asw->hints, asw->status ) )
+        {
             broadcast_window_name( asw );
             broadcast_icon_name( asw );
 
             show_debug( __FILE__, __FUNCTION__, __LINE__, "New name is \"%s\", icon_name \"%s\"", ASWIN_NAME(asw), ASWIN_ICON_NAME(asw) );
-
-            if (get_flags(Scr.Feel.flags, FollowTitleChanges))
-                on_icon_changed(asw);
-
-			/* fix the name in the title bar */
+            /* fix the name in the title bar */
             if (!ASWIN_GET_FLAGS(asw, AS_Iconic))
                 on_window_title_changed( asw, True );
         }
-	}else
-	{
-#warning "fix handling of updated window management hints"
-#if 0
-		switch (Event.xproperty.atom)
-		{
-	  	 case XA_WM_HINTS:
-			 if (Tmp_win->wmhints)
-				 XFree ((char *)Tmp_win->wmhints);
-			 Tmp_win->wmhints = XGetWMHints (dpy, Event.xany.window);
-
-			 if (Tmp_win->wmhints == NULL)
-				 return;
-
-			 if ((Tmp_win->wmhints->flags & IconPixmapHint) ||
-				 (Tmp_win->wmhints->flags & IconWindowHint) ||
-				 !(Tmp_win->flags & (ICON_OURS | PIXMAP_OURS)))
-				 ChangeIcon (Tmp_win);
-			 break;
-
-		 case XA_WM_NORMAL_HINTS:
-			 GetWindowSizeHints (Tmp_win);
-			 BroadcastConfig (M_CONFIGURE_WINDOW, Tmp_win);
-			 break;
-
-		 default:
-			 if (Event.xproperty.atom == _XA_WM_PROTOCOLS)
-				 FetchWmProtocols (Tmp_win);
-			 else if (Event.xproperty.atom == _XA_WM_COLORMAP_WINDOWS)
-			 {
-				 FetchWmColormapWindows (Tmp_win); /* frees old data */
-				 ReInstallActiveColormap ();
-			 } else if (Event.xproperty.atom == _XA_WM_STATE)
-			 {
-				 if ((Scr.flags & ClickToFocus) && (Tmp_win == Scr.Focus) && (Tmp_win != NULL))
-				 {
-					 Scr.Focus = NULL;
-					 SetFocus (Tmp_win->w, Tmp_win, False);
-				 }
-			 }
-			 break;
-		}
-#endif
-	}
+        if( get_flags( Scr.Feel.flags, FollowTitleChanges) )
+            on_window_hints_changed( asw );
+    /* otherwise we should check if this is the status property that we change ourselves : */
+    }else if( NeedToTrackPropChanges(atom) )
+        on_window_hints_changed( asw );
+    /* we have to do the complete refresh of hints, since we have to override WH_HINTS with database, etc. */
 }
 
 
@@ -727,10 +681,7 @@ HandleClientMessage (ASEvent *event)
         (event->x.xclient.data.l[0] == IconicState) &&
         !ASWIN_GET_FLAGS(event->client, AS_Iconic))
 	{
-        FunctionData fdata ;
-        init_func_data( &fdata );
-        fdata.func = F_ICONIFY ;
-        ExecuteFunction (&fdata, event, -1);
+        set_window_wm_state( event->client, True );
 #ifdef ENABLE_DND
 		/* Pass the event to the client window */
         if (event->x.xclient.window != event->client->w)
@@ -787,7 +738,7 @@ HandleMapRequest (ASEvent *event )
         if( (event->client = AddWindow (event->w)) == NULL )
             return;
     }else /* If no hints, or currently an icon, just "deiconify" */
-        iconify_window( event->client, False );
+        set_window_wm_state( event->client, True );
 }
 
 /***********************************************************************
@@ -802,33 +753,32 @@ HandleMapNotify ( ASEvent *event )
     ASWindow *asw = event->client;
     if ( asw == NULL || event->w == Scr.Root )
         return;
-    /*
-	 * Need to do the grab to avoid race condition of having server send
-	 * MapNotify to client before the frame gets mapped; this is bad because
-	 * the client would think that the window has a chance of being viewable
-	 * when it really isn't.
-	 */
-	XGrabServer (dpy);
-    unmap_canvas_window(asw->icon_canvas );
-    XMapSubwindows (dpy, asw->frame);
 
-#warning "recode the way windows are removed from screen when desktop changes (make it ICCCM compliant)"
-    if (asw->status->desktop == Scr.CurrentDesk)
-	{
-        XMapWindow (dpy, asw->frame);
-	}
-
-    if (get_flags( Scr.Feel.flags, ClickToFocus) )
-        focus_aswindow (asw);
-
-#warning "do we need to un-hilite window at the time of mapNotify?"
-    XSync (dpy, 0);
-	XUngrabServer (dpy);
-	XFlush (dpy);
+    if( event->w != asw->w )
+    {
+        if( asw->wm_state_transition == ASWT_Withdrawn2Iconic && event->w == asw->status->icon_window )
+        {/* we finally reached iconic state : */
+            complete_wm_state_transition( asw, IconicState );
+        }
+        return ;
+    }
+    if( asw->wm_state_transition == ASWT_StableState )
+    {
+        if( ASWIN_GET_FLAGS( asw, AS_Iconic ) )
+            set_window_wm_state( asw, False );  /* client has requested deiconification */
+        return ;                                /* otherwise it is redundand event */
+    }
+    if( get_flags(asw->wm_state_transition, ASWT_FROM_ICONIC ) )
+    {
+        if (get_flags( Scr.Feel.flags, ClickToFocus) )
+            activate_aswindow (asw, True, False);
+    }
     ASWIN_SET_FLAGS(asw, AS_Mapped);
     ASWIN_CLEAR_FLAGS(asw, AS_IconMapped);
     ASWIN_CLEAR_FLAGS(asw, AS_Iconic);
+    complete_wm_state_transition( asw, NormalState );
     broadcast_config( M_MAP, asw );
+    /* finally reaches Normal state */
 }
 
 
@@ -843,15 +793,14 @@ HandleUnmapNotify (ASEvent *event )
 {
 	XEvent        dummy;
     ASWindow *asw = event->client ;
-    Bool was_mapped ;
+    Bool destroyed = False ;
 
-    if ( event->x.xunmap.event == Scr.Root )
+    if ( event->x.xunmap.event == Scr.Root && asw == NULL )
+        asw = window2ASWindow( event->x.xunmap.window );
+
+    if ( asw == NULL || event->x.xunmap.window != asw->w )
 		return;
 
-    if (!asw)
-		return;
-
-    was_mapped = ASWIN_GET_FLAGS(asw, AS_Mapped);
     ASWIN_CLEAR_FLAGS(asw, AS_Mapped);
     ASWIN_CLEAR_FLAGS(asw, AS_UnMapPending);
     /* Window remains hilited even when unmapped !!!! */
@@ -864,19 +813,26 @@ HandleUnmapNotify (ASEvent *event )
     if (Scr.Windows->focused == asw )
         focus_next_aswindow( asw );
 
-    if (was_mapped || ASWIN_GET_FLAGS(asw, AS_Iconic))
-	{
-        Bool destroyed = False ;
-        XGrabServer (dpy);
-        destroyed = ASCheckTypedWindowEvent ( event->w, DestroyNotify, &dummy) ;
-        /*
-        * The program may have unmapped the client window, from either
-        * NormalState or IconicState.  Handle the transition to WithdrawnState.
-        */
-        Destroy (event->client, destroyed);               /* do not need to mash event before */
-        XUngrabServer (dpy);
-        XFlush (dpy);
+    if( get_flags( asw->wm_state_transition, ASWT_TO_WITHDRAWN ))
+    {/* redundand UnmapNotify - ignoring */
+        return ;
     }
+    if( get_flags( asw->wm_state_transition, ASWT_TO_ICONIC ))
+    {/* we finally reached iconic state : */
+        complete_wm_state_transition( asw, IconicState );
+        return ;
+    }
+    /*
+    * The program may have unmapped the client window, from either
+    * NormalState or IconicState.  Handle the transition to WithdrawnState.
+    */
+
+    XGrabServer (dpy);
+    destroyed = ASCheckTypedWindowEvent ( event->w, DestroyNotify, &dummy) ;
+    event->client->wm_state_transition = ASWIN_GET_FLAGS(event->client, AS_Iconic)?ASWT_Iconic2Withdrawn:ASWT_Normal2Withdrawn ;
+    Destroy (event->client, destroyed);               /* do not need to mash event before */
+    XUngrabServer (dpy);
+    ASFlush ();
 }
 
 
@@ -1248,7 +1204,6 @@ afterstep_wait_pipes_input()
 	{
 		struct itimerval value;
 		Window        child;
-#warning "FIXME: delayed RaiseObscuredWindow will only work on default screen !!!"
 		/* Do this prior to the select() call, in case the timer already expired,
 		 * in which case the select would never return. */
 		if (alarmed)

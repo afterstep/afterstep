@@ -665,9 +665,9 @@ LOCAL_DEBUG_CALLER_OUT( "function %d (val0 = %ld), event %d, window 0x%lX, windo
     if (ASWIN_GET_FLAGS(event->client, AS_Iconic) )
     {
         if (data->func_val[0] <= 0)
-            iconify_window( event->client, False );
+            set_window_wm_state( event->client, False );
     }else if (data->func_val[0] >= 0)
-        iconify_window( event->client, True );
+        set_window_wm_state( event->client, True );
 }
 
 void raiselower_func_handler( FunctionData *data, ASEvent *event, int module )

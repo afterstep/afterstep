@@ -318,7 +318,6 @@ struct ASTBarData;
 									 ButtonReleaseMask 	| \
 									 EnterWindowMask 	| \
                                      FocusChangeMask 	| \
-									 ExposureMask 		| \
 									 LeaveWindowMask 	| \
                                      SubstructureRedirectMask| \
                                      StructureNotifyMask)
@@ -483,6 +482,23 @@ typedef struct ASWindow
     ASInternalWindow *internal ;               /* optional related data structure,
                                                 * such as ASMenu or something else */
 
+    enum {
+#define ASWT_FROM_WITHDRAWN (0x01<<0)
+#define ASWT_TO_ICONIC      (0x01<<1)
+#define ASWT_FROM_ICONIC    (0x01<<2)
+#define ASWT_TO_WITHDRAWN   (0x01<<3)
+
+        ASWT_StableState = 0,
+        ASWT_Withdrawn2Normal = ASWT_FROM_WITHDRAWN,
+        ASWT_Withdrawn2Iconic = ASWT_FROM_WITHDRAWN|ASWT_TO_ICONIC,
+        ASWT_Normal2Iconic    = ASWT_TO_ICONIC,
+        ASWT_Iconic2Normal    = ASWT_FROM_ICONIC,
+        ASWT_Normal2Withdrawn = ASWT_TO_WITHDRAWN,
+        ASWT_Iconic2Withdrawn = ASWT_FROM_ICONIC|ASWT_TO_WITHDRAWN,
+    }wm_state_transition ;
+
+
+
 	/********************************************************************/
 	/* END of NEW ASWindow frame decorations                            */
 	/********************************************************************/
@@ -578,6 +594,10 @@ Bool unregister_aswindow( Window w );
 Bool destroy_registered_window( Window w );
 ASWindow *pattern2ASWindow( const char *pattern );
 ASLayer *get_aslayer( int layer, ASWindowList *list );
+void tie_aswindow( ASWindow *t );
+void untie_aswindow( ASWindow *t );
+void add_aswindow_to_layer( ASWindow *asw, int layer );
+void remove_aswindow_from_layer( ASWindow *asw, int layer );
 Bool enlist_aswindow( ASWindow *t );
 void delist_aswindow( ASWindow *t );
 void save_aswindow_list( ASWindowList *list, char *file );
@@ -629,11 +649,13 @@ void update_window_transparency( ASWindow *asw );
 void on_window_moveresize( ASWindow *asw, Window w );
 void on_icon_changed( ASWindow *asw );
 void on_window_title_changed( ASWindow *asw, Bool update_display );
+void on_window_hints_changed( ASWindow *asw );
 void on_window_status_changed( ASWindow *asw, Bool update_display, Bool reconfigured );
 void on_window_hilite_changed( ASWindow *asw, Bool focused );
 void on_window_pressure_changed( ASWindow *asw, int pressed_context );
 
-Bool iconify_window( ASWindow *asw, Bool iconify );
+void complete_wm_state_transition( ASWindow *asw, int state );
+Bool set_window_wm_state( ASWindow *asw, Bool iconify );
 Bool make_aswindow_visible( ASWindow *asw, Bool deiconify );
 void change_aswindow_layer( ASWindow *asw, int layer );
 void quietly_reparent_aswindow( ASWindow *asw, Window dst, Bool user_root_pos );

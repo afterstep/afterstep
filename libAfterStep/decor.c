@@ -206,8 +206,9 @@ LOCAL_DEBUG_CALLER_OUT( "canvas(%p)->window(%lx)->new__geom(%ux%u%+d%+d)->change
 void
 invalidate_canvas_config( ASCanvas *pc )
 {
-	if( pc ) 
+	if( pc )
 	{
+        LOCAL_DEBUG_OUT( "resizing to %dx%d", pc->width+1, pc->height+1 );
 		XResizeWindow( dpy, pc->w, pc->width+1, pc->height+1 );
 		pc->width = 1;
 		pc->height = 1;
@@ -554,7 +555,8 @@ LOCAL_DEBUG_CALLER_OUT( "canvas(%p)->window(%lx)->geom(%ux%u)", pc, pc->w, width
         height = 1;
     if ((pc->width < width || pc->height < height) && !get_flags( pc->state, CANVAS_CONTAINER ))
 		XSetWindowBackgroundPixmap (dpy, pc->w, None);
-	XResizeWindow (dpy, pc->w, width, height);
+    LOCAL_DEBUG_OUT( "XResizeWindow( %lX, %dx%d );", pc->w, width, height );
+    XResizeWindow (dpy, pc->w, width, height);
 }
 
 void
@@ -629,7 +631,10 @@ quietly_reparent_canvas( ASCanvas *pc, Window dst, long event_mask, Bool use_roo
             get_canvas_position( pc, &parent, &x, &y );
 
         if( parent != dst )
+        {
+            LOCAL_DEBUG_OUT( "XReparentWindow( %lX, %lX, %+d%+d )", pc->w, dst, x, y );
             quietly_reparent_window( pc->w, dst, x, y, event_mask );
+        }
     }
 }
 

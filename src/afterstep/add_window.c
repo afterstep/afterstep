@@ -284,14 +284,14 @@ check_frame_canvas( ASWindow *asw, Bool required )
                 valuemask |= CWSaveUnder;
                 attributes.save_under = True;
             }
-            w = create_visual_window (Scr.asv, Scr.Root, -10, -10, 5, 5,
+            w = create_visual_window (Scr.asv, (ASWIN_DESK(asw)==Scr.CurrentDesk)?Scr.Root:Scr.ServiceWin, -10, -10, 5, 5,
                                       asw->status?asw->status->border_width:0, InputOutput, valuemask, &attributes);
             asw->frame = w ;
             register_aswindow( w, asw );
             canvas = create_ascanvas_container( w );
 LOCAL_DEBUG_OUT( "++CREAT Client(%lx(%s))->FRAME->canvas(%p)->window(%lx)", asw->w, ASWIN_NAME(asw)?ASWIN_NAME(asw):"noname", canvas, canvas->w );
         }else
-			invalidate_canvas_config( canvas );		
+			invalidate_canvas_config( canvas );
     }else if( canvas != NULL )
     {                                          /* destroy canvas here */
         w = canvas->w ;
@@ -345,7 +345,7 @@ check_client_canvas( ASWindow *asw, Bool required )
             canvas = create_ascanvas_container( w );
 LOCAL_DEBUG_OUT( "++CREAT Client(%lx(%s))->CLIENT->canvas(%p)->window(%lx)", asw->w, ASWIN_NAME(asw)?ASWIN_NAME(asw):"noname", canvas, canvas->w );
         }else
-			invalidate_canvas_config( canvas );		
+			invalidate_canvas_config( canvas );
     }else if( canvas != NULL )
     {                                          /* destroy canvas here */
         XWindowChanges xwc;                    /* our withdrawn geometry */
@@ -415,7 +415,7 @@ check_icon_canvas( ASWindow *asw, Bool required )
                  !get_flags(Scr.Feel.flags, KeepIconWindows))
             { /* create windows */
                 attributes.event_mask = AS_ICON_TITLE_EVENT_MASK;
-                w = create_visual_window ( Scr.asv, Scr.Root, -10, -10, 1, 1, 0,
+                w = create_visual_window ( Scr.asv, (ASWIN_DESK(asw)==Scr.CurrentDesk)?Scr.Root:Scr.ServiceWin, -10, -10, 1, 1, 0,
                                            InputOutput, valuemask, &attributes );
                 canvas = create_ascanvas_container( w );
             }else
@@ -428,7 +428,7 @@ check_icon_canvas( ASWindow *asw, Bool required )
 LOCAL_DEBUG_OUT( "++CREAT Client(%lx(%s))->ICON->canvas(%p)->window(%lx)", asw->w, ASWIN_NAME(asw)?ASWIN_NAME(asw):"noname", canvas, canvas->w );
             register_aswindow( w, asw );
         }else
-			invalidate_canvas_config( canvas );		
+			invalidate_canvas_config( canvas );
     }else if( canvas != NULL )
     {                                          /* destroy canvas here */
         w = canvas->w ;
@@ -473,14 +473,14 @@ LOCAL_DEBUG_OUT( "--DESTR Client(%lx(%s))->ICONT->canvas(%p)->window(%lx)", asw-
             attributes.cursor = Scr.Feel.cursors[DEFAULT];
             attributes.event_mask = AS_ICON_TITLE_EVENT_MASK;
             /* create windows */
-            w = create_visual_window ( Scr.asv, Scr.Root, -10, -10, 1, 1, 0,
+            w = create_visual_window ( Scr.asv, (ASWIN_DESK(asw)==Scr.CurrentDesk)?Scr.Root:Scr.ServiceWin, -10, -10, 1, 1, 0,
                                        InputOutput, valuemask, &attributes );
 
             register_aswindow( w, asw );
             canvas = create_ascanvas( w );
 LOCAL_DEBUG_OUT( "++CREAT Client(%lx(%s))->ICONT->canvas(%p)->window(%lx)", asw->w, ASWIN_NAME(asw)?ASWIN_NAME(asw):"noname", canvas, canvas->w );
         }else
-			invalidate_canvas_config( canvas );		
+			invalidate_canvas_config( canvas );
     }
 
     return (asw->icon_title_canvas = canvas);
@@ -715,8 +715,6 @@ LOCAL_DEBUG_OUT( "asw(%p)->free_res(%d)", asw, free_resources );
     /* make sure all our decoration windows are mapped and in proper order: */
     if( !ASWIN_GET_FLAGS(asw, AS_Dead) )
         XRaiseWindow( dpy, asw->w );
-    XMapSubwindows (dpy, asw->frame);
-    XMapWindow (dpy, asw->frame);
 
     /* 6) now we have to create bar for icon - if it is not client's animated icon */
 	if( asw->icon_canvas )
@@ -1093,20 +1091,17 @@ LOCAL_DEBUG_OUT( "**CONFG Client(%lx(%s))->status(%ux%u%+d%+d,%s,%s(%d>-%d))", a
             if( !ASWIN_GET_FLAGS(asw, AS_Dead) )
                 XLowerWindow( dpy, asw->w );
             if( ASWIN_HFLAGS(asw, AS_VerticalTitle) )
-                XMoveResizeWindow(  dpy, asw->frame,
-                                    asw->status->x, asw->status->y,
-                                    step_size, asw->status->height );
+                moveresize_canvas( asw->frame_canvas, asw->status->x, asw->status->y,
+                                   step_size, asw->status->height );
             else
-                XMoveResizeWindow(  dpy, asw->frame,
-                                    asw->status->x, asw->status->y,
-                                    asw->status->width, step_size );
+                moveresize_canvas( asw->frame_canvas, asw->status->x, asw->status->y,
+                                   asw->status->width, step_size );
         }else
         {
             if( !ASWIN_GET_FLAGS(asw, AS_Dead) )
                 XRaiseWindow( dpy, asw->w );
-            XMoveResizeWindow( dpy, asw->frame,
-                            asw->status->x, asw->status->y,
-                            asw->status->width, asw->status->height );
+            moveresize_canvas(  asw->frame_canvas, asw->status->x, asw->status->y,
+                                asw->status->width, asw->status->height );
         }
     }
 }
@@ -1242,7 +1237,7 @@ LOCAL_DEBUG_OUT( "changes=0x%X", changes );
                 *(od->in_width)=normal_width ;
                 *(od->in_height)=step_size ;
 /*LOCAL_DEBUG_OUT( "**SHADE Client(%lx(%s))->(%d>-%d)", asw->w, ASWIN_NAME(asw)?ASWIN_NAME(asw):"noname", asw->shading_steps, step_size );*/
-                XResizeWindow(  dpy, asw->frame, *(od->out_width), *(od->out_height));
+                resize_canvas( asw->frame_canvas, *(od->out_width), *(od->out_height));
                 ASSync(False);
             }
         }else if( get_flags( changes, CANVAS_MOVED ) )
@@ -1341,6 +1336,51 @@ on_window_title_changed( ASWindow *asw, Bool update_display )
         if( change_astbar_first_label( asw->icon_title, ASWIN_ICON_NAME(asw) ) )
             on_icon_changed( asw );
     }
+}
+
+void
+on_window_hints_changed( ASWindow *asw )
+{
+    static ASRawHints raw_hints ;
+    ASHints *hints = NULL;
+
+    if( AS_ASSERT(asw) )
+        return ;
+
+    if( !collect_hints( &Scr, asw->w, HINT_ANY, &raw_hints ) )
+        return ;
+    if( !is_output_level_under_threshold(OUTPUT_LEVEL_HINTS) )
+        print_hints( NULL, NULL, &raw_hints );
+    hints = merge_hints( &raw_hints, Database, NULL, Scr.Look.supported_hints, HINT_ANY, NULL );
+    destroy_raw_hints( &raw_hints, True );
+    if( hints )
+    {
+        show_debug( __FILE__, __FUNCTION__, __LINE__,  "Window management hints collected and merged for window %X", asw->w );
+        if( !is_output_level_under_threshold(OUTPUT_LEVEL_HINTS) )
+            print_clean_hints( NULL, NULL, hints );
+    }else
+    {
+        show_warning( "Failed to merge window management hints for window %X", asw->w );
+        return ;
+    }
+
+    untie_aswindow( asw );
+    destroy_hints (asw->hints, True);
+    asw->hints = hints ;
+    tie_aswindow( asw );
+    SelectDecor (asw);
+
+    /* we need to do the complete refresh of decorations : */
+    redecorate_window       ( asw, False );
+
+    on_window_title_changed ( asw, False );
+    on_window_status_changed( asw, False, True );
+
+    broadcast_config (M_CONFIGURE_WINDOW, asw);
+
+    broadcast_window_name( asw );
+    broadcast_res_names( asw );
+    broadcast_icon_name( asw );
 }
 
 void
@@ -1757,7 +1797,9 @@ init_aswindow_status( ASWindow *t, ASStatusHints *status )
 
     /* TODO: AS_Iconic */
 	if( !ASWIN_GET_FLAGS(t, AS_StartLayer ) )
-		ASWIN_LAYER(t) = AS_LayerNormal ;
+        ASWIN_LAYER(t) = AS_LayerNormal ;
+
+    add_aswindow_to_layer( t, ASWIN_LAYER(t) );
 
     t->status->flags = adjusted_status.flags ;
     status2anchor( &(t->anchor), t->hints, &adjusted_status, Scr.VxMax, Scr.VyMax);
@@ -1768,88 +1810,119 @@ init_aswindow_status( ASWindow *t, ASStatusHints *status )
 /***************************************************************************************/
 /* iconify/deiconify code :                                                            */
 /***************************************************************************************/
-Bool
-iconify_window( ASWindow *asw, Bool iconify )
+void
+complete_wm_state_transition( ASWindow *asw, int state )
 {
+    asw->wm_state_transition = ASWT_StableState ;
+    if( state == NormalState )
+    {
+        XMapSubwindows(dpy, asw->frame);
+        XMapWindow(dpy, asw->frame);
+    }else if( state == IconicState )
+    {
+        XUnmapWindow (dpy, asw->frame);
+    }
+    if( !ASWIN_GET_FLAGS(asw, AS_Dead) )
+        set_multi32bit_property (asw->w, _XA_WM_STATE, _XA_WM_STATE, 2, state, (state==IconicState)?asw->status->icon_window:None);
+}
+
+Bool
+set_window_wm_state( ASWindow *asw, Bool iconify )
+{
+    XWindowAttributes attr;
+
 LOCAL_DEBUG_CALLER_OUT( "client = %p, iconify = %d", asw, iconify );
 
     if( AS_ASSERT(asw) )
         return False;
-    if( (iconify?1:0) == (ASWIN_GET_FLAGS(asw, AS_Iconic )?1:0) )
-        return False;
-
-    broadcast_config(M_CONFIGURE_WINDOW, asw );
 
     if( iconify )
     {
-        /*
-         * Performing transition NormalState->IconicState
-         * Prevent the receipt of an UnmapNotify, since we trigger any such event
-         * as signal for transition to the Withdrawn state.
-         */
-		asw->DeIconifyDesk = ASWIN_DESK(asw);
+        asw->DeIconifyDesk = ASWIN_DESK(asw);
+        if( asw->wm_state_transition == ASWT_StableState )
+        {
+            asw->wm_state_transition = ASWT_Normal2Iconic ;
+            set_flags( asw->status->flags, AS_Iconic );
+            if( get_flags( Scr.Feel.flags, StickyIcons ) || ASWIN_DESK(asw) == Scr.CurrentDesk )
+                quietly_reparent_aswindow( asw, Scr.Root, True );
+            else
+                quietly_reparent_aswindow( asw, Scr.ServiceWin, True );
+        }
+
+        asw->status->icon_window = asw->icon_canvas? asw->icon_canvas->w:None ;
+
+        if( asw->icon_canvas )
+            asw->status->icon_window = asw->icon_canvas->w ;
+        else if( asw->icon_title_canvas )
+            asw->status->icon_window = asw->icon_title_canvas->w ;
+
+        add_iconbox_icon( asw );
+        restack_window( asw, None, Below );
+
+        if (get_flags(Scr.Feel.flags, ClickToFocus) || get_flags(Scr.Feel.flags, SloppyFocus))
+        {
+            if (asw == Scr.Windows->focused)
+                focus_prev_aswindow (asw);
+        }
 
 LOCAL_DEBUG_OUT( "unmaping client window 0x%lX", (unsigned long)asw->w );
         if( !ASWIN_GET_FLAGS(asw, AS_Dead) )
-            quietly_unmap_window( asw->w, AS_CLIENT_EVENT_MASK );
-        XUnmapWindow (dpy, asw->frame);
-
-
-		/* this transient logic is kinda broken - we need to exepriment with it and
-		   fix it eventually, less we want to end up with iconified transients
-		   without icons
-		 */
-        broadcast_config (M_CONFIGURE_WINDOW, asw);
-
-        if( !ASWIN_HFLAGS(asw, AS_Transient))
-		{
-            set_flags( asw->status->flags, AS_Iconic );
-            asw->status->icon_window = None ;
-            if( asw->icon_canvas )
-                asw->status->icon_window = asw->icon_canvas->w ;
-            else if( asw->icon_title_canvas )
-                asw->status->icon_window = asw->icon_title_canvas->w ;
-            if( !ASWIN_GET_FLAGS(asw, AS_Dead) )
-                set_client_state( asw->w, asw->status);
-
-            add_iconbox_icon( asw );
-            restack_window( asw, None, Below );
-
-            if (get_flags(Scr.Feel.flags, ClickToFocus) || get_flags(Scr.Feel.flags, SloppyFocus))
-			{
-                if (asw == Scr.Windows->focused)
-                    focus_prev_aswindow (asw);
+        {
+            if ( !XGetWindowAttributes (dpy, asw->w, &attr) )
+                ASWIN_SET_FLAGS(asw, AS_Dead);
+            else
+            {
+                if( attr.map_state != IsUnmapped )
+                    XUnmapWindow (dpy, asw->w);
+                else
+                {
+                    ASWIN_CLEAR_FLAGS( asw, AS_Mapped );
+                    complete_wm_state_transition( asw, IconicState );
+                }
             }
-		}
+        }
+        /* finally mapping the icon windows : */
+        map_canvas_window(asw->icon_canvas, True );
+        if( asw->icon_canvas != asw->icon_title_canvas )
+            map_canvas_window(asw->icon_title_canvas, True );
 LOCAL_DEBUG_OUT( "updating status to iconic for client %p(\"%s\")", asw, ASWIN_NAME(asw) );
     }else
     {   /* Performing transition IconicState->NormalState  */
-        clear_flags( asw->status->flags, AS_Iconic );
-        remove_iconbox_icon( asw );
-        if (get_flags(Scr.Feel.flags, StubbornIcons))
-            ASWIN_DESK(asw) = asw->DeIconifyDesk;
-        else
-            ASWIN_DESK(asw) = Scr.CurrentDesk;
+        if( asw->wm_state_transition == ASWT_StableState )
+        {
+            asw->wm_state_transition = ASWT_Iconic2Normal ;
+            clear_flags( asw->status->flags, AS_Iconic );
+            remove_iconbox_icon( asw );
+            ASWIN_DESK(asw) = get_flags(Scr.Feel.flags, StubbornIcons)?asw->DeIconifyDesk:Scr.CurrentDesk;
+            quietly_reparent_aswindow( asw, (ASWIN_DESK(asw)==Scr.CurrentDesk)?Scr.Root:Scr.ServiceWin, True );
+        }
+
+        asw->status->icon_window = None ;
+
         if( !ASWIN_GET_FLAGS(asw, AS_Dead) )
         {
-            set_client_desktop( asw->w, ASWIN_DESK(asw));
-            /* TODO: make sure that the window is on this screen */
-            XMapRaised (dpy, asw->w);
-        }
-        if (ASWIN_DESK(asw) == Scr.CurrentDesk)
-            XMapWindow (dpy, asw->frame);
-
-        if( !ASWIN_HFLAGS(asw, AS_Transient ))
-        {
-            if (get_flags(Scr.Feel.flags, StubbornIcons|ClickToFocus))
-                activate_aswindow (asw, True, False);
+            if ( !XGetWindowAttributes (dpy, asw->w, &attr) )
+                ASWIN_SET_FLAGS(asw, AS_Dead);
             else
-                RaiseWindow (asw);
+            {
+                /* TODO: make sure that the window is on this screen */
+                if( attr.map_state == IsUnmapped )
+                    XMapRaised (dpy, asw->w);
+                else
+                {
+                    complete_wm_state_transition( asw, NormalState );
+                    ASWIN_SET_FLAGS( asw, AS_Mapped );
+                    if (get_flags( Scr.Feel.flags, ClickToFocus) )
+                        activate_aswindow (asw, True, False);
+                }
+            }
         }
-        asw->status->icon_window = None ;
     }
 
     on_window_status_changed( asw, True, False );
+    if( !get_flags(asw->wm_state_transition, ASWT_FROM_WITHDRAWN ) )
+        broadcast_config(M_CONFIGURE_WINDOW, asw );
+
     return True;
 }
 
@@ -1939,16 +2012,8 @@ change_aswindow_layer( ASWindow *asw, int layer )
         return;
     if( ASWIN_LAYER(asw) != layer )
     {
-        ASLayer  *dst_layer = NULL, *src_layer ;
-
-        src_layer = get_aslayer( ASWIN_LAYER(asw), Scr.Windows );
-        ASWIN_LAYER(asw) = layer ;
-        dst_layer = get_aslayer( ASWIN_LAYER(asw), Scr.Windows );
-
-        vector_remove_elem( src_layer->members, &asw );
-        /* inserting window into the top of the new layer */
-        vector_insert_elem( dst_layer->members, &asw, 1, NULL, False );
-
+        remove_aswindow_from_layer( asw, ASWIN_LAYER(asw));
+        add_aswindow_to_layer( asw, layer );
         restack_window_list( ASWIN_DESK(asw), False );
     }
 }
@@ -2173,9 +2238,15 @@ focus_aswindow( ASWindow *asw )
         w = asw->w ;
     }
 
-    if( w != None && ASWIN_GET_FLAGS(asw, AS_Mapped) && !ASWIN_GET_FLAGS(asw, AS_UnMapPending))
+    if( w == None )
+        show_warning( "unable to focus window %lX for client %lX, frame %lX", w, asw->w, asw->frame );
+    else if( !ASWIN_GET_FLAGS(asw, AS_Mapped) )
+        show_warning( "unable to focus unmapped window %lX for client %lX, frame %lX", w, asw->w, asw->frame );
+    else if( ASWIN_GET_FLAGS(asw, AS_UnMapPending) )
+        show_warning( "unable to focus window %lX that is about to be unmapped for client %lX, frame %lX", w, asw->w, asw->frame );
+    else
     {
-/*        show_progress( "focusing window %lX, client %lX, frame %lX", w, asw->w, asw->frame ); */
+        LOCAL_DEBUG_OUT( "focusing window %lX, client %lX, frame %lX", w, asw->w, asw->frame );
         XSetInputFocus (dpy, w, RevertToParent, Scr.last_Timestamp);
         if (get_flags(asw->hints->protocols, AS_DoesWmTakeFocus) && !ASWIN_GET_FLAGS(asw, AS_Dead))
             send_wm_protocol_request (asw->w, _XA_WM_TAKE_FOCUS, Scr.last_Timestamp);
@@ -2439,6 +2510,8 @@ AddWindow (Window w)
 	}
     SelectDecor (tmp_win);
 
+    tmp_win->wm_state_transition = get_flags(status.flags, AS_Iconic)?ASWT_Withdrawn2Iconic:ASWT_Withdrawn2Normal ;
+
     if( !init_aswindow_status( tmp_win, &status ) )
 	{
 		Destroy (tmp_win, False);
@@ -2468,22 +2541,18 @@ AddWindow (Window w)
 
 	/* add the window into the afterstep list */
     enlist_aswindow( tmp_win );
-
-    redecorate_window       ( tmp_win, False );
+    redecorate_window  ( tmp_win, False );
     on_window_title_changed ( tmp_win, False );
-    on_window_status_changed( tmp_win, False, True );
-
+    set_window_wm_state( tmp_win, get_flags(status.flags, AS_Iconic) );
+    RaiseWindow( tmp_win );
     /*
 	 * Reparenting generates an UnmapNotify event, followed by a MapNotify.
 	 * Set the map state to FALSE to prevent a transition back to
 	 * WithdrawnState in HandleUnmapNotify.  Map state gets set correctly
 	 * again in HandleMapNotify.
      */
-    RaiseWindow (tmp_win);
 	XUngrabServer (dpy);
-
     broadcast_config (M_ADD_WINDOW, tmp_win);
-
     broadcast_window_name( tmp_win );
     broadcast_res_names( tmp_win );
     broadcast_icon_name( tmp_win );
@@ -2542,6 +2611,8 @@ AddInternalWindow (Window w, ASInternalWindow **pinternal, ASHints **phints, ASS
 
     SelectDecor (tmp_win);
 
+    tmp_win->wm_state_transition = get_flags(status->flags, AS_Iconic)?ASWT_Withdrawn2Iconic:ASWT_Withdrawn2Normal ;
+
     if( !init_aswindow_status( tmp_win, status ) )
 	{
 		Destroy (tmp_win, False);
@@ -2559,24 +2630,17 @@ AddInternalWindow (Window w, ASInternalWindow **pinternal, ASHints **phints, ASS
     enlist_aswindow( tmp_win );
 
     redecorate_window       ( tmp_win, False );
-
-    /* internal windows must not be mapped prior to getting here ! */
-    XMapWindow( dpy, w );
-
     on_window_title_changed ( tmp_win, False );
-    on_window_status_changed( tmp_win, False, True );
-
+    set_window_wm_state( tmp_win, get_flags(status->flags, AS_Iconic) );
+    RaiseWindow( tmp_win );
     /*
 	 * Reparenting generates an UnmapNotify event, followed by a MapNotify.
 	 * Set the map state to FALSE to prevent a transition back to
 	 * WithdrawnState in HandleUnmapNotify.  Map state gets set correctly
 	 * again in HandleMapNotify.
      */
-    RaiseWindow (tmp_win);
-	XUngrabServer (dpy);
-
+    XUngrabServer (dpy);
     broadcast_config (M_ADD_WINDOW, tmp_win);
-
     broadcast_window_name( tmp_win );
     broadcast_res_names( tmp_win );
     broadcast_icon_name( tmp_win );
@@ -2747,6 +2811,8 @@ LOCAL_DEBUG_CALLER_OUT("%p, %d", asw, restart );
                 XMapWindow (dpy, asw->w);
             XSync( dpy, False );
         }
+        /* signaling client that we no longer handle it : */
+        set_multi32bit_property (asw->w, _XA_WM_STATE, _XA_WM_STATE, 2, WithdrawnState, None);
     }
 }
 
