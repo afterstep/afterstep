@@ -5,12 +5,12 @@
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
@@ -325,7 +325,7 @@ query_screen_visual( ASVisual *asv, Display *dpy, int screen, Window root, int d
 	asv->black_pixel = black_xcol.pixel ;
 #else
 	asv->white_pixel = ARGB32_White ;
-	asv->black_pixel = ARGB32_Black ;	
+	asv->black_pixel = ARGB32_Black ;
 #endif /*ifndef X_DISPLAY_MISSING */
 	return True;
 }
@@ -357,6 +357,8 @@ create_asvisual( Display *dpy, int screen, int default_depth, ASVisual *reusable
 		asv = NULL ;
 	}
 #else
+	memset( asv, 0x00, sizeof(ASVisual));
+
 #endif /*ifndef X_DISPLAY_MISSING */
 	return asv;
 }
@@ -499,7 +501,7 @@ visual_prop2visual( ASVisual *asv, Display *dpy, int screen,
 	}else
 		asv->as_colormap_type = ACM_None ;     /* just in case */
 #else
-			
+
 #endif /*ifndef X_DISPLAY_MISSING */
 	return True;
 }
@@ -893,7 +895,7 @@ LOCAL_DEBUG_OUT( "Colormap %lX, parent %lX, %ux%u%+d%+d, bw = %d, class %d",
 #else
 	return None ;
 #endif /*ifndef X_DISPLAY_MISSING */
-						  
+
 }
 
 Pixmap
@@ -938,12 +940,12 @@ create_visual_ximage( ASVisual *asv, unsigned int width, unsigned int height, un
 
 #if 0
 	unit = asv->dpy->bitmap_unit;
-#else	
+#else
 	unit = (asv->true_depth+7)&0x0038;
-	if( unit == 24 ) 
+	if( unit == 24 )
 		unit = 32 ;
-#endif		
-	ximage = XCreateImage (asv->dpy, asv->visual_info.visual, (depth==0)?asv->true_depth:depth, ZPixmap, 0, NULL, MAX(width,1), MAX(height,1), 
+#endif
+	ximage = XCreateImage (asv->dpy, asv->visual_info.visual, (depth==0)?asv->true_depth:depth, ZPixmap, 0, NULL, MAX(width,1), MAX(height,1),
 						   unit, 0);
 	if (ximage != NULL)
 	{
@@ -960,7 +962,7 @@ create_visual_ximage( ASVisual *asv, unsigned int width, unsigned int height, un
 	}
 	return ximage;
 #else
-	return NULL ;	
+	return NULL ;
 #endif /*ifndef X_DISPLAY_MISSING */
 }
 

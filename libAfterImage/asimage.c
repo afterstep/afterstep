@@ -148,6 +148,7 @@ asimage_init (ASImage * im, Bool free_resources)
 			if( im->alt.argb32 )
 				free( im->alt.argb32 );
 		}
+		im->magic = MAGIC_ASIMAGE ;
 		memset (im, 0x00, sizeof (ASImage));
 		im->back_color = ARGB32_DEFAULT_BACK_COLOR ;
 	}
@@ -232,8 +233,14 @@ asimage_destroy (ASHashableValue value, void *data)
 	if( data )
 	{
 		ASImage *im = (ASImage*)data ;
+		if( im != NULL )
+		{
+			if( im->magic != MAGIC_ASIMAGE )
+				im = NULL ;
+			else
+				im->imageman = NULL ;
+		}
 		free( value.string_val );
-		im->imageman = NULL ;
 		destroy_asimage( &im );
 	}
 }
@@ -289,6 +296,10 @@ Bool
 store_asimage( ASImageManager* imageman, ASImage *im, const char *name )
 {
 	Bool res = False ;
+	if( im != NULL )
+		if( im->magic != MAGIC_ASIMAGE )
+			im = NULL ;
+
 	if( imageman && im != NULL && name )
 		if( im->imageman == NULL )
 		{
@@ -313,13 +324,22 @@ fetch_asimage( ASImageManager* imageman, const char *name )
 	ASImage *im = NULL ;
 	if( imageman && name )
 		if( get_hash_item( imageman->image_hash, (ASHashableValue)((char*)name), (void**)&im) == ASH_Success )
-			im->ref_count++ ;
+		{
+			if( im->magic != MAGIC_ASIMAGE )
+				im = NULL ;
+			else
+				im->ref_count++ ;
+		}
 	return im;
 }
 
 ASImage *
 dup_asimage( ASImage* im )
 {
+	if( im != NULL )
+		if( im->magic != MAGIC_ASIMAGE )
+			im = NULL ;
+
 	if( im && im->imageman )
 	{
 		im->ref_count++ ;
@@ -360,6 +380,9 @@ start_image_decoding( ASVisual *asv,ASImage *im, ASFlagType filter,
 
 	if( filter == 0 || asv == NULL )
 		return NULL;
+	if( im != NULL )
+		if( im->magic != MAGIC_ASIMAGE )
+			im = NULL ;
 
 	if( im == NULL )
 	{
@@ -467,6 +490,10 @@ start_image_output( ASVisual *asv, ASImage *im, ASAltImFormats format,
                     int shift, int quality )
 {
 	register ASImageOutput *imout= NULL;
+
+	if( im != NULL )
+		if( im->magic != MAGIC_ASIMAGE )
+			im = NULL ;
 
 	if( im == NULL || asv == NULL || format < 0 || format >= ASA_Formats)
 		return imout;
@@ -612,6 +639,8 @@ destroy_image_layers( register ASImageLayer *l, int count, Bool reusable )
 		}
 		if( !reusable )
 			free( l );
+		else
+			memset( l, 0x00, sizeof(ASImageLayer)*count );
 	}
 }
 
