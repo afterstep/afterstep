@@ -79,6 +79,7 @@ typedef struct ASVisual
 	/* for PseudoColor mode we need some more stuff : */
 	enum {
 		ACM_None = 0,
+		ACM_3BPP,
 		ACM_6BPP,
 		ACM_12BPP,
 	} as_colormap_type ;/* there can only be 64 or 4096 entries so far ( 6 or 12 bpp) */

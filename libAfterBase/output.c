@@ -71,7 +71,7 @@ set_output_threshold( unsigned int threshold )
     return old;
 }
 
-unsigned int 
+unsigned int
 get_output_threshold()
 {
   return as_output_threshold ;
@@ -169,6 +169,23 @@ show_progress( const char *msg_format, ...)
     }
     return False;
 }
+
+Bool
+show_debug( const char *file, const char *func, int line, const char *msg_format, ...)
+{
+    if( OUTPUT_LEVEL_DEBUG <= as_output_threshold)
+    {
+        va_list ap;
+        fprintf (stderr, "%s debug msg: %s:%s():%d: ", ApplicationName, file, func, line );
+        va_start (ap, msg_format);
+        vfprintf (stderr, msg_format, ap);
+        va_end (ap);
+        fprintf (stderr, "\n" );
+        return True;
+    }
+    return False;
+}
+
 
 inline void
 nonGNUC_debugout_stub( const char *format, ...)

@@ -46,6 +46,8 @@ Bool show_error( const char *error_format, ...);
 Bool show_system_error( const char *error_format, ...);  /* will also execute perror() */
 Bool show_warning( const char *warning_format, ...);
 Bool show_progress( const char *msg_format, ...);
+Bool show_debug( const char *file, const char *func, int line, const char *msg_format, ...);
+
 
 void nonGNUC_debugout( const char *format, ...);
 inline void nonGNUC_debugout_stub( const char *format, ...);

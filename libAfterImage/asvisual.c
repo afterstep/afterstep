@@ -214,6 +214,21 @@ destroy_asvisual( ASVisual *asv )
 	}
 }
 
+int as_colormap_type2size( int type )
+{
+	switch( type )
+	{
+		case ACM_3BPP :
+			return 8 ;
+		case ACM_6BPP :
+			return 64 ;
+		case ACM_12BPP :
+			return 4096 ;
+		default:
+			return 0 ;
+	}
+}
+
 Bool
 visual2visual_prop( ASVisual *asv, size_t *size,
 								   unsigned long *version,
@@ -225,17 +240,8 @@ visual2visual_prop( ASVisual *asv, size_t *size,
 	if( asv == NULL || data == NULL)
 		return False;
 
-	switch( asv->as_colormap_type )
-	{
-		case ACM_6BPP :
-			cmap_size = 64 ;
-		    break ;
-		case ACM_12BPP :
-			cmap_size = 4096 ;
-		    break ;
-		default:
-			cmap_size = 0 ;
-	}
+	cmap_size = as_colormap_type2size( asv->as_colormap_type );
+
 	if( cmap_size > 0 && asv->as_colormap == NULL )
 		return False ;
 
@@ -299,17 +305,9 @@ visual_prop2visual( ASVisual *asv, Display *dpy, int screen,
 	asv->black_pixel = data[2] ;
 	asv->white_pixel = data[3] ;
 	asv->as_colormap_type = data[4];
-	switch( asv->as_colormap_type )
-	{
-		case ACM_6BPP :
-			cmap_size = 64 ;
-		    break ;
-		case ACM_12BPP :
-			cmap_size = 4096 ;
-		    break ;
-		default:
-		 	asv->as_colormap_type = ACM_None ;
-	}
+
+	cmap_size = as_colormap_type2size( asv->as_colormap_type );
+
 	if( cmap_size > 0 )
 	{
 		register int i ;
@@ -318,7 +316,9 @@ visual_prop2visual( ASVisual *asv, Display *dpy, int screen,
 		asv->as_colormap = safemalloc( cmap_size );
 		for( i = 0 ; i < cmap_size ; i++ )
 			asv->as_colormap[i] = data[i+5];
-	}
+	}else
+		asv->as_colormap_type = ACM_None ;     /* just in case */
+
 	return True;
 }
 
@@ -378,6 +378,13 @@ Bool
 setup_pseudo_visual( ASVisual *asv  )
 {
 	XVisualInfo *vi = &(asv->visual_info) ;
+
+	if( vi->class == TrueColor )
+		return False;
+	/* we need to allocate new usable list of colors based on available bpp */
+	asv->true_depth = vi->depth ;
+
+	/* then we need to set up hooks : */
 			asv->ximage2scanline_func = ximage2scanline32 ;
 			asv->scanline2ximage_func = scanline2ximage32 ;
 	return True;
@@ -386,6 +393,70 @@ setup_pseudo_visual( ASVisual *asv  )
 void
 setup_as_colormap( ASVisual *asv )
 {
+	int cmap_size ;
+	int i = 0;
+	int max_chan_val, curr_chan_val, offset, offset_xcol ;
+
+	if( asv == NULL || asv->as_colormap != NULL )
+		return ;
+
+	if( asv->true_depth >= 12 )
+	{
+		asv->as_colormap_type = ACM_12BPP ;
+		max_chan_val = 0x0F ;
+		offset = 4 ;
+	}else if( asv->true_depth >= 8 )
+	{
+		asv->as_colormap_type = ACM_6BPP ;
+		max_chan_val = 0x03 ;
+		offset = 2 ;
+	}else
+	{
+		asv->as_colormap_type = ACM_3BPP ;
+		max_chan_val = 0x01 ;
+		offset = 1 ;
+	}
+	offset_xcol = 16-offset ;
+
+	cmap_size = as_colormap_type2size( asv->as_colormap_type );
+	asv->as_colormap = safemalloc( cmap_size * sizeof(unsigned long));
+
+	/* initializing to some sensible defaults : */
+	while( i < (cmap_size>>1) )
+		asv->as_colormap[i++] = asv->black_pixel ;
+	while( i <  cmap_size )
+		asv->as_colormap[i++] = asv->white_pixel ;
+
+	curr_chan_val = max_chan_val ;
+	while( curr_chan_val > 0 )
+	{
+		XColor xcol ;
+		unsigned int cell ;
+		unsigned int green, red, blue ;
+		/* 1) green */
+		xcol.green = curr_chan_val<<offset_xcol ;
+		xcol.red = 0 ;
+		xcol.blue = 0 ;
+		if( XAllocColor( asv->dpy, asv->colormap, &xcol ) == 0 )
+		{
+			show_debug( __FILE__, __FUNCTION__, __LINE__, "failed to allocate color #%2.2X%2.2X%2.2X", (xcol.red&0xFF00)>>8, (xcol.green&0xFF00)>>8, (xcol.blue&0xFF00)>>8 );
+			break ;
+		}
+		cell = (xcol.green<<offset);
+/*
+		while( xcol.red < curr_chan_val )
+		{
+			while( xcol.blue < curr_chan_val )
+			{
+			}
+		}
+  */		/* 2) red */
+		/* 3) blue */
+		/* 4) green-red */
+		/* 5) green-blue */
+		/* 6) blue-red */
+		--curr_chan_val;
+	}
 
 
 }

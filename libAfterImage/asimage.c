@@ -2675,14 +2675,14 @@ LOCAL_DEBUG_CALLER_OUT( "offset_x = %d, offset_y = %d, to_width = %d, to_height 
 	if( src )
 		filter = get_asimage_chanmask(src);
 
-	if( get_flags( flip, FLIP_VERTICAL ) )
+/*	if( get_flags( flip, FLIP_VERTICAL ) )
 	{
 		if( to_width > src->height )
 			to_width = src->height ;
 		if( to_height > src->width )
 			to_height = src->width ;
 	}
-
+ */
 	dst = safecalloc(1, sizeof(ASImage));
 	asimage_start (dst, to_width, to_height, compression_out);
 	if( to_xim )
@@ -2705,7 +2705,7 @@ LOCAL_DEBUG_CALLER_OUT( "offset_x = %d, offset_y = %d, to_width = %d, to_height 
 	{
 		ASImageDecoder *imdec ;
 		ASScanline result ;
-		int y, max_y = to_height;
+		int y;
 LOCAL_DEBUG_OUT("flip-flopping actually...%s", "");
 		prepare_scanline( to_width, 0, &result, asv->BGR_mode );
 		if( (imdec = start_image_decoding(asv, src, filter, offset_x, offset_y, get_flags( flip, FLIP_VERTICAL )?to_height:to_width, NULL)) != NULL )
@@ -2714,7 +2714,6 @@ LOCAL_DEBUG_OUT("flip-flopping actually...%s", "");
 			{
 				CARD32 *chan_data ;
 				size_t  pos = 0;
-				int 	channel ;
 				int x ;
 				CARD32 *a = imdec->buffer.alpha ;
 				CARD32 *r = imdec->buffer.red ;
@@ -2722,14 +2721,13 @@ LOCAL_DEBUG_OUT("flip-flopping actually...%s", "");
 				CARD32 *b = imdec->buffer.blue;
 
 				chan_data = safemalloc( to_width*to_height*sizeof(CARD32));
-				max_y = offset_y + to_width ;
 				result.back_color = ARGB32_DEFAULT_BACK_COLOR ;
 				result.flags = filter ;
 /*				memset( a, 0x00, to_height*sizeof(CARD32));
 				memset( r, 0x00, to_height*sizeof(CARD32));
 				memset( g, 0x00, to_height*sizeof(CARD32));
 				memset( b, 0x00, to_height*sizeof(CARD32));
-  */			for( y = offset_y ; y < max_y ; y++ )
+  */			for( y = 0 ; y < to_width ; y++ )
 				{
 					imdec->decode_image_scanline( imdec );
 					for( x = 0; x < to_height ; x++ )
@@ -2773,7 +2771,7 @@ LOCAL_DEBUG_OUT("flip-flopping actually...%s", "");
 			}else
 			{
 				toggle_image_output_direction( imout );
-				for( y = 0 ; y < max_y ; y++  )
+				for( y = 0 ; y < to_height ; y++  )
 				{
 					imdec->decode_image_scanline( imdec );
 					result.flags = imdec->buffer.flags ;
