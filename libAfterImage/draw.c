@@ -36,11 +36,6 @@
 #include "asvisual.h"
 #include "asimage.h"
 
-typedef struct ASDrawPoint
-{
-	int x, y;
-}ASDrawPoint ;
-
 typedef struct ASDrawTool
 {
 	int width;
@@ -58,11 +53,7 @@ typedef struct ASDrawContext
 
 	int curr_x, curr_y ;
 
-	void *draw_data ;
-	/* This function changes curr_x and curr_y if nesseccary and 
-	 * returns False when drawing should stop */ 
-	Bool (*draw_func)( struct ASDrawContext *ctx );  
-
+	void (*apply_tool_func)( struct ASDrawContext *ctx, int curr_x, int curr_y, CARD8 ratio );
 }ASDrawContext;
 
 #define AS_DRAW_BRUSHES	3
@@ -101,63 +92,8 @@ ASDrawTool StandardBrushes[AS_DRAW_BRUSHES] =
 /* auxilary functions : 											 */
 /*********************************************************************************/
 
-static inline void
-apply_tool( ASDrawContext *ctx, int curr_x, int curr_y )
-{
-	CARD8 *src = ctx->tool->matrix ;
-	int corner_x = curr_x - ctx->tool->center_x ; 
-	int corner_y = curr_y - ctx->tool->center_y ; 
-	int tw = ctx->tool->width ;
-	int th = ctx->tool->height ;
-	int cw = ctx->canvas_width ;
-	int ch = ctx->canvas_height ;
-	int aw = tw ; 
-	int ah = th ;
-	CARD8 *dst = ctx->canvas ; 
-	int x, y ;
-
-	if( corner_x+tw < 0 || corner_x >= cw || corner_y+th < 0 || corner_y >= ch ) 
-		return ;
-		 
-	if( corner_y > 0 ) 
-		dst += corner_y * cw ;
-	else if( corner_y < 0 ) 
-	{
-		ah -= -corner_y ;
-		src += -corner_y * tw ;
-	}
-
-	if( corner_x  > 0 ) 
-		dst += corner_x ;  
-	else if( corner_x < 0 )
-	{	
-		src += -corner_x ; 
-		aw -= -corner_x ;
-	}
-	
-	if( corner_x + tw > cw ) 
-		aw = cw - corner_x;
-	if( corner_y + th > ch ) 
-		ah = ch - corner_y;
-
-	for( y = 0 ; y < ah ; ++y ) 
-	{	
-		for( x = 0 ; x < aw ; ++x ) 
-		{
-			if( dst[x] < src[x] ) 
-				dst[x] = src[x] ;
-			/*
-			register CARD32 t = (CARD32)dst[x] + (CARD32)src[x] ;
-			dst[x] = t > 255? 255 : t ;
-			 */
-		}
-		src += tw ; 
-		dst += cw ; 
-	}
-}	   
-
-static inline void
-apply_tool_aa( ASDrawContext *ctx, int curr_x, int curr_y, CARD8 ratio )
+static void
+apply_tool_2D( ASDrawContext *ctx, int curr_x, int curr_y, CARD8 ratio )
 {
 	if( ratio  !=  0 ) 
 	{	
@@ -194,24 +130,44 @@ apply_tool_aa( ASDrawContext *ctx, int curr_x, int curr_y, CARD8 ratio )
 	
 		if( corner_x + tw > cw ) 
 			aw = cw - corner_x;
+
 		if( corner_y + th > ch ) 
 			ah = ch - corner_y;
-
-		for( y = 0 ; y < ah ; ++y ) 
-		{	
-			for( x = 0 ; x < aw ; ++x ) 
-			{
-				CARD32 v = ratio ;
-				v = (v*src[x])>>8 ;
-				if( dst[x] < v ) 
-					dst[x] = v ;
-				/*
-				register CARD32 t = (CARD32)dst[x] + (CARD32)src[x] ;
-				dst[x] = t > 255? 255 : t ;
-			 	*/
+		
+		if( ratio == 255 ) 
+		{
+			for( y = 0 ; y < ah ; ++y ) 
+			{	
+				for( x = 0 ; x < aw ; ++x ) 
+				{
+					if( dst[x] < src[x] ) 
+						dst[x] = src[x] ;
+					/*
+					register CARD32 t = (CARD32)dst[x] + (CARD32)src[x] ;
+					dst[x] = t > 255? 255 : t ;
+			 		*/
+				}
+				src += tw ; 
+				dst += cw ; 
 			}
-			src += tw ; 
-			dst += cw ; 
+		}else if( ratio != 0 )
+		{		 
+			for( y = 0 ; y < ah ; ++y ) 
+			{	
+				for( x = 0 ; x < aw ; ++x ) 
+				{
+					CARD32 v = ratio ;
+					v = (v*src[x])>>8 ;
+					if( dst[x] < v ) 
+						dst[x] = v ;
+					/*
+					register CARD32 t = (CARD32)dst[x] + (CARD32)src[x] ;
+					dst[x] = t > 255? 255 : t ;
+			 		*/
+				}
+				src += tw ; 
+				dst += cw ; 
+			}
 		}
 	}
 }	   
@@ -220,8 +176,6 @@ apply_tool_aa( ASDrawContext *ctx, int curr_x, int curr_y, CARD8 ratio )
 /*********************************************************************************/
 /* drawing functions : 											 */
 /*********************************************************************************/
-
-
 static void
 ctx_draw_line_solid( ASDrawContext *ctx, int from_x, int from_y, int to_x, int to_y )
 {
@@ -247,7 +201,7 @@ ctx_draw_line_solid( ASDrawContext *ctx, int from_x, int from_y, int to_x, int t
 		if( end < x ) 
 			dir = -1 ;				 
       	
-		apply_tool( ctx, x, y );
+		ctx->apply_tool_func( ctx, x, y, 255 );
       	while(x != end)
 		{
         	x += dir;
@@ -257,7 +211,7 @@ ctx_draw_line_solid( ASDrawContext *ctx, int from_x, int from_y, int to_x, int t
           		++y;
         	}else 
 				Dy += inct;
-        	apply_tool( ctx, x, y );
+        	ctx->apply_tool_func( ctx, x, y, 255 );
       	}
 	}else
 	{
@@ -273,7 +227,7 @@ ctx_draw_line_solid( ASDrawContext *ctx, int from_x, int from_y, int to_x, int t
 		if( end < y ) 
 			dir = -1 ;				 
       	
-		apply_tool( ctx, x, y );
+		ctx->apply_tool_func( ctx, x, y, 255 );
       	while(y != end)
 		{
         	y += dir;
@@ -283,7 +237,7 @@ ctx_draw_line_solid( ASDrawContext *ctx, int from_x, int from_y, int to_x, int t
           		++x;
         	}else 
 				Dx += inct;
-        	apply_tool( ctx, x, y );
+        	ctx->apply_tool_func( ctx, x, y, 255 );
       	}
 	}		 
 }	 
@@ -299,9 +253,8 @@ ctx_draw_line_solid_aa( ASDrawContext *ctx, int from_x, int from_y, int to_x, in
 	if( dy < 0 ) 
 		dy = -dy ;
 
-//	if( dx == 0 || dy == 0 ) 
-//		return ctx_draw_line_solid( ctx );
-
+	if( dx == 0 || dy == 0 ) 
+		return ctx_draw_line_solid( ctx, from_x, from_y, to_x, to_y );
 	
 	if( dx >= dy ) 
 	{	
@@ -318,7 +271,7 @@ ctx_draw_line_solid_aa( ASDrawContext *ctx, int from_x, int from_y, int to_x, in
 		
 		if( end < x ) 	dir = -1 ;				 
       	
-		apply_tool( ctx, x, y );
+		ctx->apply_tool_func( ctx, x, y, 255 );
 /*		LOCAL_DEBUG_OUT( "x = %d, y = %d, dir = %d, value = %d, incr = %d, decr = %d, ratio = %d, value_incr = %d", 
 						 x, y, dir, value, incr, decr, ratio, value_incr );
   */			
@@ -339,31 +292,31 @@ ctx_draw_line_solid_aa( ASDrawContext *ctx, int from_x, int from_y, int to_x, in
 				{
 					case 0 :  /* 0 - 32 */ 
 						above = 128 - above ;
-						apply_tool_aa( ctx, x, y-1, above ) ;
-						apply_tool_aa( ctx, x, y, ~(above>>1) ) ; 
+						ctx->apply_tool_func( ctx, x, y-1, above ) ;
+						ctx->apply_tool_func( ctx, x, y, ~(above>>1) ) ; 
 						break ;	  
 					case 1 :  /* 32 - 64 */ 
 						{
 							int a1 = (above - 32) ;
-							apply_tool_aa( ctx, x, y+1, a1 ) ;
+							ctx->apply_tool_func( ctx, x, y+1, a1 ) ;
 							above = (~above)&0x7f ;
-							apply_tool_aa( ctx, x, y-1, above - a1 ) ;
-							apply_tool( ctx, x, y ) ; 
+							ctx->apply_tool_func( ctx, x, y-1, above - a1 ) ;
+							ctx->apply_tool_func( ctx, x, y, 255 ) ; 
 						}
 						break ;
 					case 2 :  /* 64 - 96 */  
 						{
 							int a1 = (96 - above) ;	  
-							apply_tool_aa( ctx, x, y-1, a1 ) ;
-							apply_tool( ctx, x, y ) ; 
-							apply_tool_aa( ctx, x, y+1, above - a1 ) ;
+							ctx->apply_tool_func( ctx, x, y-1, a1 ) ;
+							ctx->apply_tool_func( ctx, x, y, 255 ) ; 
+							ctx->apply_tool_func( ctx, x, y+1, above - a1 ) ;
 						}
 						break ;
 					case 3 :  /* 96 - 128 */ 
 						{
 							above -= ((~above)&0x7f)>>1 ;	  
-							apply_tool_aa( ctx, x, y, ~(above>>1) ) ; 
-							apply_tool_aa( ctx, x, y+1, above ) ;
+							ctx->apply_tool_func( ctx, x, y, ~(above>>1) ) ; 
+							ctx->apply_tool_func( ctx, x, y+1, above ) ;
 						}
 						break ;
 				}
@@ -384,7 +337,7 @@ ctx_draw_line_solid_aa( ASDrawContext *ctx, int from_x, int from_y, int to_x, in
 		
 		if( end < y ) 	dir = -1 ;				 
       	
-		apply_tool( ctx, x, y );
+		ctx->apply_tool_func( ctx, x, y, 255 );
 /*		LOCAL_DEBUG_OUT( "x = %d, y = %d, dir = %d, value = %d, incr = %d, decr = %d, ratio = %d, value_incr = %d", 
 						 x, y, dir, value, incr, decr, ratio, value_incr );
   */			
@@ -405,31 +358,31 @@ ctx_draw_line_solid_aa( ASDrawContext *ctx, int from_x, int from_y, int to_x, in
 				{
 					case 0 :  /* 0 - 32 */ 
 						above = 128 - above ;
-						apply_tool_aa( ctx, x-1, y, above ) ;
-						apply_tool_aa( ctx, x, y, ~(above>>1) ) ; 
+						ctx->apply_tool_func( ctx, x-1, y, above ) ;
+						ctx->apply_tool_func( ctx, x, y, ~(above>>1) ) ; 
 						break ;	  
 					case 1 :  /* 32 - 64 */ 
 						{
 							int a1 = (above - 32) ;
-							apply_tool_aa( ctx, x+1, y, a1 ) ;
+							ctx->apply_tool_func( ctx, x+1, y, a1 ) ;
 							above = (~above)&0x7f ;
-							apply_tool_aa( ctx, x-1, y, above - a1 ) ;
-							apply_tool( ctx, x, y ) ; 
+							ctx->apply_tool_func( ctx, x-1, y, above - a1 ) ;
+							ctx->apply_tool_func( ctx, x, y, 255 ) ; 
 						}
 						break ;
 					case 2 :  /* 64 - 96 */  
 						{
 							int a1 = (96 - above) ;	  
-							apply_tool_aa( ctx, x-1, y, a1 ) ;
-							apply_tool( ctx, x, y ) ; 
-							apply_tool_aa( ctx, x+1, y, above - a1 ) ;
+							ctx->apply_tool_func( ctx, x-1, y, a1 ) ;
+							ctx->apply_tool_func( ctx, x, y, 255 ) ; 
+							ctx->apply_tool_func( ctx, x+1, y, above - a1 ) ;
 						}
 						break ;
 					case 3 :  /* 96 - 128 */ 
 						{
 							above -= ((~above)&0x7f)>>1 ;	  
-							apply_tool_aa( ctx, x, y, ~(above>>1) ) ; 
-							apply_tool_aa( ctx, x+1, y, above ) ;
+							ctx->apply_tool_func( ctx, x, y, ~(above>>1) ) ; 
+							ctx->apply_tool_func( ctx, x+1, y, above ) ;
 						}
 						break ;
 				}
@@ -493,6 +446,7 @@ create_draw_context( unsigned int width, unsigned int height )
 	ctx->canvas = safecalloc(  ctx->canvas_width*ctx->canvas_height, sizeof(CARD8));
 
 	ctx->tool = &(StandardBrushes[0]) ;  
+	ctx->apply_tool_func = apply_tool_2D ; 
 				   
 	return ctx;
 }	   
@@ -503,6 +457,7 @@ asim_set_brush( ASDrawContext *ctx, int brush )
 	if( brush >= 0 && brush < AS_DRAW_BRUSHES && ctx != NULL ) 
 	{
 		ctx->tool = &(StandardBrushes[brush]) ;  
+		ctx->apply_tool_func = apply_tool_2D ; 
 		return True;
 	}	 
 	return False;
