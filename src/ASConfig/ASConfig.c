@@ -162,7 +162,7 @@ typedef enum
 	ASProp_Integer,
 	ASProp_Data,
 	ASProp_File,
-	ASProp_String,
+	ASProp_Char,
 	ASProp_ContentsTypes		   
 }ASPropContentsType;
 
@@ -182,7 +182,7 @@ typedef struct ASProperty {
 		int 		 integer ;
 		ASStorageID  data;			
 		ASConfigFile *config_file ;
-		char 		 *string ;
+		char 		 c ;
 	}contents;
 	
 	ASBiDirList *sub_props ;	   
@@ -195,76 +195,104 @@ typedef struct ASProperty {
  * root
  * 		Base
  * 			Options
- * 			File
- * 
+ * 			BaseFile
  * 		ColorScheme
  * 			Options
- * 			File
- * 
- * 		Look 
- * 			MyStyles
- * 				mystyles...
- * 			MyFrames
- * 				myframes...
- * 			MyBackgrounds
- * 				mybackground...
- * 			TitleButtons
- * 				buttons...
- * 			Options
- * 			Files
- * 				look
- * 				theme-override
- * 				pager
- * 				wharf
- * 				winlist
- * 		Feel
- * 			Options
- * 			Files			
- * 				feel
- * 				theme-override
- * 
+ * 			ColorSchemeFile
  * 		Functions
  * 			complex_functions...
  * 			Files
  * 				feel
  * 				theme-override
  *  			autoexec
- * 				workspace_state
- * 
  * 		Popups
  * 			menus...
  * 			Files
  * 				feel
  * 				theme-override
  * 				start
- * 
  * 		Database
- * 			Styles
- * 				styles...
- * 			Files
- * 				database
+ *			styles...
+ * 			DatabaseFile
  * 
- * 		Pager
+ * Module Specific : 
+ * 		Module "afterstep"
+ * 			Look 
+ * 				MyStyles
+ * 					mystyles...
+ * 				MyFrames
+ * 					myframes...
+ *	 			MyBackgrounds
+ * 					mybackground...
+ * 				TitleButtons
+ * 					buttons...
+ *	 			Options
+ * 				Files
+ * 					look
+ * 					theme-override
+ * 			Feel
+ * 				Options
+ * 				Files			
+ * 					feel
+ *	 				theme-override
+ * 		Module "Pager"
  * 			Options
- * 			Files
- * 				Look
- * 				theme-override
- * 				pager
- * 		Wharf
+ * 			PagerLook
+ * 				MyStyles
+ * 					...
+ * 				Options
+ * 				Files
+ * 					look
+ * 					theme-override
+ * 					pager
+ * 
+ * 			PagerFeel
+ * 				Options
+ * 				Files
+ * 					feel
+ * 					theme-override
+ * 					pager
+ * 			PagerFile
+ * 		Module "Wharf"
  * 			RootFolder
  * 				entries...
  * 				[SubFolder]
  * 			Options
- * 			Files
- * 				Look
- * 				theme-override
- * 			 	wharf
- * 		WinList 
+ * 			WharfLook
+ * 				MyStyles
+ * 					...
+ * 				Options
+ * 				Files
+ * 					look
+ * 					theme-override
+ * 					wharf
+ * 
+ * 			WharfFeel
+ * 				Options
+ * 				Files
+ * 					feel
+ * 					theme-override
+ * 					wharf
+ * 			WharfFile
+ * 		Module "WinList" 
  * 			Options
- * 			Files
- * 				Look
- * 				theme-override
- * 				winlist
+ * 			WinListLook
+ * 				MyStyles
+ * 					...
+ * 				Options
+ * 				Files
+ * 					look
+ * 					theme-override
+ * 					winlist
+ * 
+ * 			WinListFeel
+ * 				Options
+ * 				Files
+ * 					feel
+ * 					theme-override
+ * 					wharf
+ * 			WinListFile
+ **************************************************************************
  * 		PrivateFiles
  * 			base
  * 			database
@@ -305,6 +333,128 @@ typedef struct ASProperty {
 ASProperty *Root = NULL;
 
 
+/*************************************************************************/
+typedef struct ASConfigFileInfo
+{
+	int config_file_id ; 
+	char *session_file ; 
+	Bool non_freeable ; 
+	char *tmp_override_file ;
+			  
+}ASConfigFileInfo;
+ASConfigFileInfo ConfigFilesInfo[] = 
+{
+{CONFIG_BaseFile_ID, 		NULL, 0, NULL },
+{CONFIG_ColorSchemeFile_ID, NULL, 0, NULL },
+{CONFIG_LookFile_ID, 		NULL, 0, NULL },
+{CONFIG_FeelFile_ID, 		NULL, 0, NULL },
+{CONFIG_AutoExecFile_ID,	NULL, 0, NULL },
+{CONFIG_StartDir_ID,		NULL, 0, NULL },			
+{CONFIG_LookFile_ID,		NULL, 0, NULL },				
+{CONFIG_ThemeOverrideFile_ID,NULL, 0, NULL },		
+{CONFIG_DatabaseFile_ID,	NULL, 0, NULL },			
+{CONFIG_PagerFile_ID, 		NULL, 0, NULL },				
+{CONFIG_WharfFile_ID, 		NULL, 0, NULL },				
+{CONFIG_WinListFile_ID,		NULL, 0, NULL },
+{0,NULL, 0, NULL}
+};
+
+typedef struct ASConfigTypeInfo
+{
+	int config_id ; 
+	SyntaxDef *syntax ;
+	int config_files_id ; 
+	int config_file_ids_count ;
+#define MAX_CONFIG_FILE_IDS		32
+	int config_file_ids[MAX_CONFIG_FILE_IDS] ; 
+
+	int config_options_id ;
+			  
+}ASConfigTypeInfo;
+ASConfigTypeInfo ConfigTypeInfo[] = 
+{
+   	{ CONFIG_Base_ID, 		 &BaseSyntax,  0, 					1, {CONFIG_BaseFile_ID}, 			CONFIG_BaseOptions_ID},
+	{ CONFIG_ColorScheme_ID, &ColorSyntax, 0, 					1, {CONFIG_ColorSchemeFile_ID}, 	CONFIG_ColorSchemeOptions_ID},	  
+	{ CONFIG_Functions_ID, 	 &FunctionSyntax, CONFIG_FunctionsFiles_ID,  3, {CONFIG_FeelFile_ID,
+																			 CONFIG_ThemeOverrideFile_ID,
+																			 CONFIG_AutoExecFile_ID}, 0},	 
+	{ CONFIG_Popups_ID, 	 &PopupSyntax, CONFIG_PopupsFiles_ID,  3, {CONFIG_FeelFile_ID,
+																	   CONFIG_ThemeOverrideFile_ID,
+																	   CONFIG_StartDir_ID}, 0},	 
+	{ CONFIG_Database_ID, 	 &DatabaseSyntax, 0, 				   1, {CONFIG_DatabaseFile_ID}, 0},	  
+  	{0}	 
+};
+
+/*************************************************************************/
+void
+init_ConfigFileInfo()
+{
+	int i = 0;
+	while( ConfigFilesInfo[i].config_file_id != 0 ) 
+	{
+		switch( ConfigFilesInfo[i].config_file_id )
+		{
+
+			case CONFIG_BaseFile_ID :	
+				ConfigFilesInfo[i].session_file	= make_session_file(Session, BASE_FILE, False ); 
+				break ;	   
+			case CONFIG_ColorSchemeFile_ID :	
+				ConfigFilesInfo[i].session_file = (char*)get_session_file (Session, 0, F_CHANGE_COLORSCHEME, False); 
+				ConfigFilesInfo[i].non_freeable = True ;
+				break ;	  
+			case CONFIG_LookFile_ID :	   
+				ConfigFilesInfo[i].session_file = (char*)get_session_file (Session, 0, F_CHANGE_LOOK, False);
+				ConfigFilesInfo[i].non_freeable = True ;
+				break ;	  
+			case CONFIG_FeelFile_ID :	   
+				ConfigFilesInfo[i].session_file = (char*)get_session_file (Session, 0, F_CHANGE_FEEL, False);
+				ConfigFilesInfo[i].non_freeable = True ;
+				break ;	
+			case CONFIG_AutoExecFile_ID :	   
+				ConfigFilesInfo[i].session_file = (char*)get_session_file (Session, 0, F_CHANGE_FEEL, False);
+				ConfigFilesInfo[i].non_freeable = True ;
+				break ;	
+			case CONFIG_StartDir_ID :	   
+				ConfigFilesInfo[i].session_file = make_session_dir (Session, START_DIR, False); 
+				break ;	
+			case CONFIG_ThemeOverrideFile_ID :	   
+				ConfigFilesInfo[i].session_file = make_session_data_file  (Session, False, R_OK, THEME_OVERRIDE_FILE, NULL );	
+				break ;
+			case CONFIG_DatabaseFile_ID :	   
+				ConfigFilesInfo[i].session_file = make_session_file(Session, DATABASE_FILE, False ); 
+				break ;	   
+			case CONFIG_PagerFile_ID :	   
+				ConfigFilesInfo[i].session_file = make_session_file(Session, "pager", False ); 
+				break ;	 
+			case CONFIG_WharfFile_ID :	   
+				ConfigFilesInfo[i].session_file = make_session_file(Session, "wharf", False ); 
+				break ;	 
+			case CONFIG_WinListFile_ID :	   
+				ConfigFilesInfo[i].session_file = make_session_file(Session, "winlist", False ); 
+				break ;	 
+		}	 
+		++i ;	
+	}	 
+	
+}	  
+
+const char*
+get_config_file_name( int config_id ) 
+{
+	int i = 0;
+	while( ConfigFilesInfo[i].config_file_id != 0 ) 
+	{
+		if( ConfigFilesInfo[i].config_file_id == config_id )
+		{	
+			if( ConfigFilesInfo[i].tmp_override_file != NULL )
+				return ConfigFilesInfo[i].tmp_override_file;
+			else
+				return ConfigFilesInfo[i].session_file;
+		}
+		++i ;	  
+	}		
+	return NULL;
+}	 
 
 /*************************************************************************/
 void
@@ -342,6 +492,7 @@ main (int argc, char **argv)
 	InitSession();
 
 	register_special_keywords();
+	init_ConfigFileInfo();
 
 	LOCAL_DEBUG_OUT("loading hierarchy%s","");
 	load_hierarchy();
@@ -359,62 +510,73 @@ void register_special_keywords()
 
 	REG_SPEC_KEYWORD(root);
 	REG_SPEC_KEYWORD(Base);
-	REG_SPEC_KEYWORD(BaseOptions);
-
 	REG_SPEC_KEYWORD(ColorScheme);
-	REG_SPEC_KEYWORD(ColorSchemeOptions);
-
-	REG_SPEC_KEYWORD(Look);
-	REG_SPEC_KEYWORD(LookMyStyles);
-	REG_SPEC_KEYWORD(LookMyFrames);
-	REG_SPEC_KEYWORD(LookMyBackgrounds);
-	REG_SPEC_KEYWORD(LookTitleButtons);
-	REG_SPEC_KEYWORD(LookOptions);
-
-	REG_SPEC_KEYWORD(Feel);
-	REG_SPEC_KEYWORD(FeelOptions);
+	REG_SPEC_KEYWORD(Functions);
+	REG_SPEC_KEYWORD(Popups);
+	REG_SPEC_KEYWORD(Database);
+	REG_SPEC_KEYWORD(Module);
+                     	
+	REG_SPEC_KEYWORD(AfterStep);
 	REG_SPEC_KEYWORD(Pager);
-	REG_SPEC_KEYWORD(PagerOptions);
 	REG_SPEC_KEYWORD(Wharf);
-	REG_SPEC_KEYWORD(WharfOptions);
 	REG_SPEC_KEYWORD(WinList);
-	REG_SPEC_KEYWORD(WinListOptions);
-
-	REG_SPEC_KEYWORD(BaseFile);
-	REG_SPEC_KEYWORD(ColorSchemeFile);
-	REG_SPEC_KEYWORD(FeelFile);
-	REG_SPEC_KEYWORD(AutoExecFile);
-	REG_SPEC_KEYWORD(WorkspaceFile);
-	REG_SPEC_KEYWORD(StartMenuDir);
+                     	
+	REG_SPEC_KEYWORD(Look);
+	REG_SPEC_KEYWORD(Feel);
+	REG_SPEC_KEYWORD(PagerLook);
+	REG_SPEC_KEYWORD(PagerFeel);
+	REG_SPEC_KEYWORD(WharfLook);
+	REG_SPEC_KEYWORD(WharfFeel);
+	REG_SPEC_KEYWORD(WinListLook);
+	REG_SPEC_KEYWORD(WinListFeel);
+                     	
 	REG_SPEC_KEYWORD(LookFile);
-	REG_SPEC_KEYWORD(ThemeOverrideFile);
-	REG_SPEC_KEYWORD(DatabaseFile);
+	REG_SPEC_KEYWORD(FeelFile);
+	REG_SPEC_KEYWORD(StartDir);
+	REG_SPEC_KEYWORD(AutoExecFile);
 	REG_SPEC_KEYWORD(PagerFile);
 	REG_SPEC_KEYWORD(WharfFile);
 	REG_SPEC_KEYWORD(WinListFile);
+	REG_SPEC_KEYWORD(ThemeOverrideFile);
+	REG_SPEC_KEYWORD(BaseFile);			
+	REG_SPEC_KEYWORD(ColorSchemeFile);
+	REG_SPEC_KEYWORD(DatabaseFile);		
 
-	REG_SPEC_KEYWORD(LookFiles);
-	REG_SPEC_KEYWORD(FeelFiles);
+                     	
 	REG_SPEC_KEYWORD(FunctionsFiles);
 	REG_SPEC_KEYWORD(PopupsFiles);
-	REG_SPEC_KEYWORD(PagerFiles);
-	REG_SPEC_KEYWORD(WharfFiles);
-	REG_SPEC_KEYWORD(WinListFiles);
+	REG_SPEC_KEYWORD(LookFiles);
+	REG_SPEC_KEYWORD(FeelFiles);
 	REG_SPEC_KEYWORD(BackgroundFiles);
-
 	REG_SPEC_KEYWORD(PrivateFiles);
 	REG_SPEC_KEYWORD(SharedFiles);
+                     	
+	REG_SPEC_KEYWORD(BaseOptions);
+	REG_SPEC_KEYWORD(ColorSchemeOptions);
+	REG_SPEC_KEYWORD(MyStyles);
+	REG_SPEC_KEYWORD(MyFrames);
+	REG_SPEC_KEYWORD(MyBackgrounds);
+	REG_SPEC_KEYWORD(TitleButtons);
+	REG_SPEC_KEYWORD(LookOptions);
+	REG_SPEC_KEYWORD(FeelOptions);
+	REG_SPEC_KEYWORD(PagerOptions);
+	REG_SPEC_KEYWORD(WharfOptions);
+	REG_SPEC_KEYWORD(WinListOptions);
 
 	REG_SPEC_KEYWORD(flags);
 	REG_SPEC_KEYWORD(x);
 	REG_SPEC_KEYWORD(y);
 	REG_SPEC_KEYWORD(width);
-	REG_SPEC_KEYWORD(height);
-
-	REG_SPEC_KEYWORD(type);
-	REG_SPEC_KEYWORD(tint);
+	REG_SPEC_KEYWORD(height); 			   	
+                     	
+	REG_SPEC_KEYWORD(type);	 			   	
+	REG_SPEC_KEYWORD(tint);	 			   	   
 	REG_SPEC_KEYWORD(pixmap);
-
+	
+	REG_SPEC_KEYWORD(hotkey);
+	REG_SPEC_KEYWORD(text);
+	REG_SPEC_KEYWORD(value);
+	REG_SPEC_KEYWORD(unit);
 }	 
 /**************************************************************************/
 ASConfigFile *
@@ -487,6 +649,31 @@ dup_config_file( ASConfigFile *src )
 }	   
 
 /*************************************************************************/
+ASStorageID 
+encode_string( const char *str ) 
+{
+	if( str == NULL ) 
+		return 0;
+	return store_data( NULL, (CARD8*)str, strlen(str)+1, ASStorage_RLEDiffCompress|ASStorage_NotTileable, 0);
+}
+
+int 
+decode_string( ASStorageID id, char *buffer, int buffer_length, int *stored_length )
+{
+	int bytes_out = 0 ;
+
+	if( stored_length )
+		*stored_length = 0 ;
+
+	if( id != 0 && buffer && buffer_length > 0 )
+	{
+		bytes_out = fetch_data(NULL, id, &buffer[0], 0, buffer_length-1, 0, stored_length);	
+		buffer[bytes_out] = '\0' ;
+	}
+	return bytes_out;		
+}	   
+
+/*************************************************************************/
 void destroy_property( void *data );
 
 ASProperty *
@@ -506,6 +693,30 @@ add_integer_property( int id, int val, ASBiDirList *owner_tree )
 {
 	ASProperty *prop = create_property( id, ASProp_Integer, NULL, False );
 	prop->contents.integer = val ;
+	
+	if( owner_tree ) 
+		append_bidirelem( owner_tree, prop );
+
+	return prop;	 
+}	 
+
+ASProperty *
+add_char_property( int id, char c, ASBiDirList *owner_tree )
+{
+	ASProperty *prop = create_property( id, ASProp_Char, NULL, False );
+	prop->contents.c = c ;
+	
+	if( owner_tree ) 
+		append_bidirelem( owner_tree, prop );
+
+	return prop;	 
+}	 
+
+ASProperty *
+add_string_property( int id, char *str, ASBiDirList *owner_tree )
+{
+	ASProperty *prop = create_property( id, ASProp_Data, NULL, False );
+	prop->contents.data = encode_string( str );
 	
 	if( owner_tree ) 
 		append_bidirelem( owner_tree, prop );
@@ -539,6 +750,7 @@ dup_property( ASProperty *src )
 	{
 		dst = create_property( src->id, src->type, src->name, (src->sub_props != NULL) );
 		dst->flags = src->flags ;
+		dst->index = src->index ;
 		dup_property_contents( src, dst ); 
 	}
 	
@@ -565,9 +777,7 @@ void destroy_property( void *data )
 			case ASProp_File : 
 				destroy_config_file( prop->contents.config_file ); 
 				break;
-			case ASProp_String : 
-				if( prop->contents.string ) 
-					free(prop->contents.string);
+			case ASProp_Char : 
 				break;
 			default: break;
 		}	 
@@ -576,11 +786,29 @@ void destroy_property( void *data )
 			destroy_asbidirlist( &(prop->sub_props) ); 
 		free( prop );
 	}
-}	 
+}
 
 ASProperty *
-special_free_storage2property( FreeStorageElem *curr )
+find_property_by_id( ASBiDirList *list, int id )	 
 {
+	ASBiDirElem *curr = LIST_START(list); 		
+	while( curr ) 
+	{
+		ASProperty *prop = (ASProperty*)LISTELEM_DATA(curr) ;	  
+		if( prop->id == id ) 
+			return prop;
+		LIST_GOTO_NEXT(curr);
+	}
+	return NULL;
+}
+
+
+/*************************************************************************/
+
+ASProperty *
+special_free_storage2property( FreeStorageElem **pcurr )
+{
+	FreeStorageElem *curr = *pcurr ;
 	ASProperty *prop = NULL ;
 	int type = curr->term->type ;
 	ConfigItem    item;
@@ -606,7 +834,7 @@ special_free_storage2property( FreeStorageElem *curr )
 		append_bidirelem( prop->sub_props, type );			   
 
 		if (curr->argc > 1)
-			text_id = store_data( NULL, curr->argv[1], strlen(curr->argv[1])+1, ASStorage_RLEDiffCompress|ASStorage_NotTileable, 0);
+			text_id = encode_string( curr->argv[1] ); 
 		if( text_id != 0 ) 
 		{	
 			if( item.data.integer == TEXTURE_TRANSPARENT || 
@@ -643,7 +871,50 @@ special_free_storage2property( FreeStorageElem *curr )
 				
 				}	 
 				break ;
-	 		case TT_FUNCTION : 	/* TODO */ break ;
+	 		case TT_FUNCTION :
+				{	
+					FunctionData *pfunc = (item.data.function);
+					ASProperty *tmp ;
+					prop = create_property( curr->term->id, ASProp_Phony, pfunc->name, True );
+					if( pfunc->hotkey != '\0' )
+						add_char_property( CONFIG_hotkey_ID, pfunc->hotkey, prop->sub_props );				
+					if( pfunc->text ) 
+					{	
+						add_string_property( CONFIG_text_ID, pfunc->text, prop->sub_props );				   
+					
+						tmp = add_integer_property( CONFIG_value_ID, pfunc->func_val[0], prop->sub_props );
+						set_flags( tmp->flags, ASProp_Indexed );
+						if( pfunc->unit[0] != '\0' )
+						{	
+							tmp = add_char_property( CONFIG_unit_ID, pfunc->unit[0], prop->sub_props );				
+							set_flags( tmp->flags, ASProp_Indexed );
+						}
+						tmp = add_integer_property( CONFIG_value_ID, pfunc->func_val[1], prop->sub_props );
+						set_flags( tmp->flags, ASProp_Indexed );
+						tmp->index = 1 ;
+						if( pfunc->unit[1] != '\0' )
+						{	
+							tmp = add_char_property( CONFIG_unit_ID, pfunc->unit[1], prop->sub_props );				
+							set_flags( tmp->flags, ASProp_Indexed );
+							tmp->index = 1 ;
+						}
+					}
+					if( curr->next != NULL ) 
+					{
+						curr = curr->next ;
+						if( curr->term->id == F_MINIPIXMAP )
+						{
+							ReadConfigItem (&item, curr);	
+							pfunc = (item.data.function);
+							if( pfunc->name != NULL ) 
+								add_string_property( F_MINIPIXMAP, pfunc->name, prop->sub_props );				   							   
+							else
+								add_string_property( F_MINIPIXMAP, pfunc->text, prop->sub_props );				   							   
+							*pcurr = curr ;
+						}	 
+					}	 
+				}
+				break ;
 	 		case TT_BOX :		/* TODO */ break ;
 	 		case TT_BUTTON :	/* TODO */ break ;
 	 		case TT_BINDING : 	/* TODO */ break ;
@@ -666,11 +937,15 @@ free_storage2property_list( FreeStorageElem *fs, ASProperty *pl )
 	LOCAL_DEBUG_CALLER_OUT("(%p,%p)", fs, pl );	  
 	item.memory = NULL;
 	
-	while( curr ) 
+	for( curr = fs ; curr ; curr = curr->next ) 
 	{
 		if (curr->term == NULL)
 			continue;
+		if ( get_flags( curr->term->flags, TF_SYNTAX_TERMINATOR ) )
+			continue;
 		if (!ReadConfigItem (&item, curr))
+			continue;
+		if( curr == fs && pl->id == curr->term->id )
 			continue;
 
 		if( (curr->term->type == TT_QUOTED_TEXT || curr->term->type == TT_TEXT) &&
@@ -680,7 +955,7 @@ free_storage2property_list( FreeStorageElem *fs, ASProperty *pl )
 			prop = create_property( curr->term->id, ASProp_Phony, item.data.string, (curr->sub != NULL) );	 
 		}else                  /* we actually have some data */
 		{
-			prop = special_free_storage2property( curr );
+			prop = special_free_storage2property( &curr );
 			if( prop == NULL ) 
 			{	
 				int type = ASProp_Phony;
@@ -709,7 +984,7 @@ free_storage2property_list( FreeStorageElem *fs, ASProperty *pl )
 					if( item.data.string == NULL ) 
 						prop->contents.data = 0 ;
 					else
-						prop->contents.data = store_data( NULL, item.data.string, strlen(item.data.string)+1, ASStorage_RLEDiffCompress|ASStorage_NotTileable, 0);
+						prop->contents.data = encode_string( item.data.string );
 					/* LOCAL_DEBUG_OUT( "stored with id = %d, string = \"%s\"", prop->contents.data, item.data.string ); */
 				}else
 					prop->contents.integer = item.data.integer ;
@@ -727,8 +1002,6 @@ free_storage2property_list( FreeStorageElem *fs, ASProperty *pl )
 
 		if( prop ) 
 			append_bidirelem( pl->sub_props, prop );			   
-
-		curr = curr->next ;
 	}		   
 }
 
@@ -783,115 +1056,112 @@ merge_property_list( ASProperty *src, ASProperty *dst )
 }
 /*************************************************************************/
 ASProperty* 
-load_current_config( int id, const char *filename, const char *myname, 
+load_current_config_fname( ASProperty* config, int id, const char *filename, const char *myname, 
 					 SyntaxDef *syntax, int files_id, int file_id, int options_id )
 {
-	ASProperty *config = create_property( id, ASProp_Phony, NULL, True );
+	const char *filename = get_config_file_name( file_id ); 
 	ASConfigFile *cf = NULL ;
+	ASProperty *files = NULL ;
+	ASProperty *file ;
+	ASProperty *opts ;
+
+	if( config == NULL ) 
+		config = create_property( id, ASProp_Phony, NULL, True );
 
 	if( filename )
 	{
 		LOCAL_DEBUG_OUT("loading file \"%s\"", filename );
-	  
 		cf = load_config_file(NULL, filename, myname?myname:"afterstep", syntax );
 	}
 	
-	if( cf ) 
-	{
-		ASProperty *files = NULL ;
-		ASProperty *file, *opts ;
 
-		if( files_id != 0 ) 
+	if( files_id != 0 ) 
+	{
+		files = find_property_by_id( config->sub_props, files_id );
+		if( files == NULL )
 		{
 			files = create_property( files_id, ASProp_Phony, NULL, True );
-			files->contents.config_file = cf ;
 			append_bidirelem( config->sub_props, files );			   
-		}	 
-		
-		file = create_property( file_id, ASProp_File, NULL, True );
-		file->contents.config_file = cf ;
-		
-		free_storage2property_list( cf->free_storage, file );
- 		append_bidirelem( files?files->sub_props:config->sub_props, file );			   
-			
-		opts = create_property( options_id, ASProp_Phony, NULL, True );
-		merge_property_list( file, opts );
-		append_bidirelem( config->sub_props, opts );			   
+		}
 	}	 
+	
+	file = find_property_by_id( files?files->sub_props:config->sub_props, file_id );	   
+	if( file == NULL ) 
+	{	
+		file = create_property( file_id, ASProp_File, NULL, True );
+		append_bidirelem( files?files->sub_props:config->sub_props, file );			   
+	}
+	file->contents.config_file = cf ;
+	
+	if( cf ) 
+		free_storage2property_list( cf->free_storage, file );
+	else if( file_id == CONFIG_StartDir_ID ) 
+	{
+		
+		
+	}	 
+
+	if( options_id != 0 )
+	{	
+		opts = find_property_by_id( config->sub_props, options_id );
+		if( opts == NULL )		   
+		{	
+			opts = create_property( options_id, ASProp_Phony, NULL, True );
+			append_bidirelem( config->sub_props, opts );			   
+		}
+	}else
+		opts = config ;
+
+	merge_property_list( file, opts );
+	
 	return config;
 }	 
 
-/*************************************************************************/
-ASProperty* load_Base();
-ASProperty* load_ColorScheme();
-ASProperty* load_Look();
+ASProperty* 
+load_current_config( ASProperty* config, int id, const char *myname, 
+					 SyntaxDef *syntax, int files_id, int file_id, int options_id )
+{
+	const char *filename = get_config_file_name( file_id ); 
+	return load_current_config_fname( config, id, filename, myname, syntax, files_id, file_id, options_id );
 
+}
+
+
+/*************************************************************************/
+void load_global_configs();
 
 void 
 load_hierarchy()
 {
-	ASProperty *tmp ;
-	
 	Root = create_property( CONFIG_root_ID, ASProp_Phony, "", True );
 		
-	if( (tmp = load_Base()) != NULL ) 
-		append_bidirelem( Root->sub_props, tmp );
-	
-	if( (tmp = load_ColorScheme()) != NULL ) 
-		append_bidirelem( Root->sub_props, tmp );
-	
-	if( (tmp = load_Look()) != NULL ) 
-		append_bidirelem( Root->sub_props, tmp );
+	load_global_configs();
 }
 
 /*************************************************************************/
-ASProperty* 
-load_Base()
+void
+load_global_configs()
 {
-	ASProperty *base = NULL ;
-	char *filename = make_session_file(Session, BASE_FILE, False );
+	int i ;
+	ASProperty *tmp ;
 
-	if( filename )
-	{
-		LOCAL_DEBUG_OUT("loading file \"%s\"", filename );
-	   	base = load_current_config( CONFIG_Base_ID, filename, NULL, &BaseSyntax, 0, CONFIG_BaseFile_ID, CONFIG_BaseOptions_ID);
-	  
-		free( filename );
+	for( i = 0 ; ConfigTypeInfo[i].config_id != 0 ; ++i )
+	{	
+		int k ;
+		tmp = NULL ;
+		for( k = 0 ; k < ConfigTypeInfo[i].config_file_ids_count ; ++k )
+		{	
+			tmp = load_current_config( 	tmp,
+										ConfigTypeInfo[i].config_id, NULL, 
+										ConfigTypeInfo[i].syntax, 
+										ConfigTypeInfo[i].config_files_id, 
+										ConfigTypeInfo[i].config_file_ids[k], 
+										ConfigTypeInfo[i].config_options_id);
+		}
+		if( tmp ) 
+			append_bidirelem( Root->sub_props, tmp );
 	}
-	
-	return base;
 }	 
-
-ASProperty* 
-load_ColorScheme()
-{
-	ASProperty *cs = NULL;
-	const char *filename = get_session_file (Session, 0, F_CHANGE_COLORSCHEME, False);
-
-	if( filename )
-	{
-		LOCAL_DEBUG_OUT("loading file \"%s\"", filename );
-		cs = load_current_config( CONFIG_ColorScheme_ID, filename, NULL, &ColorSyntax, 0, CONFIG_ColorSchemeFile_ID, CONFIG_ColorSchemeOptions_ID);	  
-	}
-
-	return cs;
-}	 
-
-ASProperty* 
-load_Look()
-{
-	ASProperty *look = NULL;
-	const char *filename = get_session_file (Session, 0, F_CHANGE_LOOK, False);
-
-	if( filename )
-	{
-		LOCAL_DEBUG_OUT("loading file \"%s\"", filename );
-		look = load_current_config( CONFIG_Look_ID, filename, NULL, &LookSyntax, CONFIG_LookFiles_ID, CONFIG_LookFile_ID, CONFIG_LookOptions_ID);	  
-	}
-
-	return look;
-}	 
-
 /*************************************************************************/
 void print_hierarchy( ASProperty *root, int level );
 
@@ -929,7 +1199,7 @@ print_hierarchy( ASProperty *root, int level )
 		static char string[128] ;	  
 		int bytes_out, orig_bytes ;
 		/*LOCAL_DEBUG_OUT( "fetching data with id = %d", root->contents.data );  */
-		bytes_out = fetch_data(NULL, root->contents.data, &string[0], 0, 127, 0, &orig_bytes);
+		bytes_out = decode_string( root->contents.data, &string[0], 128, &orig_bytes );
 		/* LOCAL_DEBUG_OUT( "fetched %d bytes", bytes_out ); */
 		if( bytes_out < orig_bytes ) 
 			fprintf( stderr, "= %d of %d chars:", bytes_out, orig_bytes );	 
@@ -938,7 +1208,12 @@ print_hierarchy( ASProperty *root, int level )
 		fprintf( stderr, "\"%s\"", string );	
 		fputc( ';', stderr);
 	}else if( root->type == ASProp_File )    
-		fprintf( stderr, " loaded from [%s]", root->contents.config_file->fullname );
+	{
+		if( root->contents.config_file )
+			fprintf( stderr, " loaded from [%s]", root->contents.config_file->fullname );
+		else
+			fprintf( stderr, " not loaded" );
+	}
 
 	fputc( '\n', stderr);
 	if( root->sub_props ) 

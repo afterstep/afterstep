@@ -522,7 +522,11 @@ free_storage2quoted_text (FreeStorageElem * stored, int *ppos)
 
 	if (*ptr != '"')
 		ptr = find_doublequotes (ptr);
-	if (ptr)
+	if( ptr == NULL && get_flags( stored->term->flags, TF_QUOTES_OPTIONAL) )
+	{
+	 	result = mystrdup(stored->argv[*ppos]);		
+		(*ppos)++;
+	}else if (ptr)
 	{
 		ptr++;
 		if ((tail = find_doublequotes (ptr)) == NULL)

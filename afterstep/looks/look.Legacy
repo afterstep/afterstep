@@ -34,7 +34,7 @@ MyStyle "window_font"
   ~MyStyle
 
 MyStyle "focused_window_style"
-  Inherit	window_font
+  Inherit	"window_font"
   TextStyle	1
   ForeColor     #E5E2E8				#basically white
   BackColor	#475293
@@ -42,13 +42,13 @@ MyStyle "focused_window_style"
   ~MyStyle
 
 MyStyle "unfocused_window_style"
-  Inherit       window_font
+  Inherit       "window_font"
   ForeColor     #050505
   BackColor     #6e5b52
   ~MyStyle
 
 MyStyle "sticky_window_style"
-  Inherit       window_font
+  Inherit       "window_font"
   ForeColor     #9E9EA7
   BackColor	#4e2f2f
   ~MyStyle
@@ -66,13 +66,13 @@ MyStyle "menu_font"
   ~MyStyle
   
 MyStyle "menu_title_style"
-  Inherit       menu_title_font
+  Inherit       "menu_title_font"
   ForeColor     grey70
   BackColor     #050505                         #basically black
   ~MyStyle
   
 MyStyle "menu_item_style"
-  Inherit       menu_font
+  Inherit       "menu_font"
   ForeColor     #E5E2E8                         #basically white
   BackColor     grey30
   ~MyStyle
@@ -87,7 +87,7 @@ MyStyle "menu_hilite_style"
 # make the stipple background the same as the menu item, or 
 # strange border drawing artifacts could occur
 MyStyle "menu_stipple_style"
-  Inherit       menu_item_style
+  Inherit       "menu_item_style"
   ForeColor	grey70
   ~MyStyle
 
@@ -137,19 +137,19 @@ MyStyle "*PagerInActiveDesk"
 ~MyStyle
 
 MyStyle "*PagerFWindowStyle"
-    Inherit	focused_window_style
+    Inherit	"focused_window_style"
     Font	5x8
 # gradients, pixmap allowed, but no transparency
 ~MyStyle
 
 MyStyle "*PagerUWindowStyle"
-    Inherit	unfocused_window_style
+    Inherit	"unfocused_window_style"
     Font	5x8
 # gradients, pixmap allowed, but no transparency
 ~MyStyle
 
 MyStyle "*PagerSWindowStyle"
-    Inherit	sticky_window_style
+    Inherit	"sticky_window_style"
     Font	5x8
 # gradients, pixmap allowed, but no transparency    
 ~MyStyle
@@ -173,8 +173,7 @@ MyStyle "*WharfTile"
 MyStyle "*MonitorWharfTile"
   BackColor	grey50
   ##  Translucent Wharf Tile tinted <color>
-#  BackPixmap	129 #a8a8a8
-  BackPixmap	128 ASBBlockDefault.xpm
+  BackPixmap	129 #a8a8a8
 ~MyStyle
 
 #----------WinList MyStyles---------#

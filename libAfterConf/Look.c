@@ -147,7 +147,7 @@ struct SyntaxDef     *TbarLayoutSyntaxPtr = &TbarLayoutSyntax;
 
 
 TermDef       MyFrameTerms[] = {
-    {TF_NO_MYNAME_PREPENDING, "MyFrame", 7,     TT_QUOTED_TEXT, MYFRAME_START_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING|TF_SYNTAX_START, "MyFrame", 7,     TT_QUOTED_TEXT, MYFRAME_START_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "North", 5,       TT_OPTIONAL_PATHNAME,    MYFRAME_North_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "South", 5,       TT_OPTIONAL_PATHNAME,    MYFRAME_South_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "East", 4,        TT_OPTIONAL_PATHNAME,    MYFRAME_East_ID, NULL},

@@ -31,7 +31,7 @@
 
 
 TermDef       WindowBoxTerms[] = {
-    {TF_NO_MYNAME_PREPENDING, "WindowBox", 9, TT_QUOTED_TEXT, WINDOWBOX_START_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING|TF_SYNTAX_START, "WindowBox", 9, TT_QUOTED_TEXT, WINDOWBOX_START_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "Area", 4,              TT_GEOMETRY,WINDOWBOX_Area_ID   	  	 , NULL},
     {TF_NO_MYNAME_PREPENDING, "Virtual", 7,           TT_FLAG,    WINDOWBOX_Virtual_ID       , NULL},
     {TF_NO_MYNAME_PREPENDING, "MinWidth", 8,          TT_INTEGER, WINDOWBOX_MinWidth_ID	  	 , NULL},
@@ -81,6 +81,10 @@ flag_options_xref WindowBoxFlagsXref[] = {
  ****************************************************************************/
 extern SyntaxDef     PopupFuncSyntax ;
 void input_context_destroy(ASHashableValue value, void *data);
+
+#define POPUP_TERM 		{TF_NO_MYNAME_PREPENDING|TF_SYNTAX_START, "Popup",5                   , TT_QUOTED_TEXT, FEEL_Popup_ID             , &PopupFuncSyntax}
+#define FUNCTION_TERM 	{TF_NO_MYNAME_PREPENDING|TF_SYNTAX_START, "Function",8                , TT_QUOTED_TEXT, FEEL_Function_ID          , &PopupFuncSyntax}
+
 
 TermDef FeelTerms[] =
 {
@@ -137,10 +141,8 @@ TermDef FeelTerms[] =
   {TF_NO_MYNAME_PREPENDING, "EdgeScroll",10             , TT_INTARRAY   , FEEL_EdgeScroll_ID        , NULL},
   {TF_NO_MYNAME_PREPENDING, "EdgeResistance",14         , TT_INTARRAY   , FEEL_EdgeResistance_ID    , NULL},
 
-  /* this stuff requires subsyntaxes : */
-  {TF_NO_MYNAME_PREPENDING, "Popup",5                   , TT_QUOTED_TEXT, FEEL_Popup_ID             , &PopupFuncSyntax},
-  {TF_NO_MYNAME_PREPENDING, "Function",8                , TT_QUOTED_TEXT, FEEL_Function_ID          , &PopupFuncSyntax},
-
+  POPUP_TERM,
+  FUNCTION_TERM,
   /* mouse and key bindings require special processing : */
   {TF_SPECIAL_PROCESSING|TF_NO_MYNAME_PREPENDING,
                             "Mouse",5                   , TT_BINDING    , FEEL_Mouse_ID             , &FuncSyntax},
@@ -210,17 +212,56 @@ flag_options_xref FeelFlagsXref[] = {
 	{0, 0, 0}
 };
 
-TermDef AutoExecTerms[] =
+  /* this stuff requires subsyntaxes : */
+TermDef PopupTerms[] =
 {
-  {TF_NO_MYNAME_PREPENDING, "Function",8                , TT_QUOTED_TEXT, FEEL_Function_ID          , &PopupFuncSyntax},
+  POPUP_TERM,
   {0, NULL, 0, 0, 0}
+};
+
+TermDef FunctionTerms[] =
+{
+  FUNCTION_TERM,
+  {0, NULL, 0, 0, 0}
+};
+
+SyntaxDef FunctionSyntax =
+{
+  '\n',
+  '\0',
+  FunctionTerms,
+  0,				/* use default hash size */
+  ' ',
+  "",
+  "\t",
+  "AfterStep Complex/Builtin Function",
+  "Function",
+  "functions that can be executed by AfterStep",
+  NULL,
+  0
+};
+
+SyntaxDef PopupSyntax =
+{
+  '\n',
+  '\0',
+  PopupTerms,
+  0,				/* use default hash size */
+  ' ',
+  "",
+  "\t",
+  "AfterStep Popups",
+  "Popups",
+  "Definitions for AfterStep Popups",
+  NULL,
+  0
 };
 
 SyntaxDef AutoExecSyntax =
 {
   '\n',
   '\0',
-  AutoExecTerms,
+  FunctionTerms,
   0,				/* use default hash size */
   ' ',
   "",
@@ -232,17 +273,11 @@ SyntaxDef AutoExecSyntax =
   0
 };
 
-TermDef ThemeTerms[] =
-{
-  {TF_NO_MYNAME_PREPENDING, "Function",8                , TT_QUOTED_TEXT, FEEL_Function_ID          , &PopupFuncSyntax},
-  {0, NULL, 0, 0, 0}
-};
-
 SyntaxDef ThemeSyntax =
 {
   '\n',
   '\0',
-  ThemeTerms,
+  FunctionTerms,
   0,				/* use default hash size */
   ' ',
   "",

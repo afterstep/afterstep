@@ -45,6 +45,9 @@ extern struct SyntaxDef      BaseSyntax;
 extern struct SyntaxDef      ColorSyntax;
 extern struct SyntaxDef      DatabaseSyntax;
 extern struct SyntaxDef      FeelSyntax;
+extern struct SyntaxDef 	 FunctionSyntax;
+extern struct SyntaxDef 	 PopupSyntax;
+
 extern struct SyntaxDef      AutoExecSyntax;
 extern struct SyntaxDef      LookSyntax;
 extern struct SyntaxDef      PagerSyntax;
@@ -75,63 +78,84 @@ struct FunctionData     *String2Func ( const char *string, struct FunctionData *
 #define CONFIG_ID_START					(FUNC_ID_END+1)
 #define CONFIG_root_ID					CONFIG_ID_START
 #define CONFIG_Base_ID					(CONFIG_ID_START+1)
-#define CONFIG_BaseOptions_ID			(CONFIG_ID_START+2)
+#define CONFIG_ColorScheme_ID			(CONFIG_ID_START+2)
+#define CONFIG_Functions_ID				(CONFIG_ID_START+3)
+#define CONFIG_Popups_ID				(CONFIG_ID_START+4)
+#define CONFIG_Database_ID				(CONFIG_ID_START+5)
+#define CONFIG_Module_ID				(CONFIG_ID_START+6)
+
+#define CONFIG_MODULE_TYPES				(CONFIG_ID_START+7)
+#define CONFIG_AfterStep_ID				(CONFIG_MODULE_TYPES)
+#define CONFIG_Pager_ID					(CONFIG_MODULE_TYPES+1)
+#define CONFIG_Wharf_ID					(CONFIG_MODULE_TYPES+2)
+#define CONFIG_WinList_ID				(CONFIG_MODULE_TYPES+3)
+
+
+#define CONFIG_MODULE_SPECIFIC			(CONFIG_MODULE_TYPES+4)
+#define CONFIG_Look_ID 					(CONFIG_MODULE_SPECIFIC)
+#define CONFIG_Feel_ID					(CONFIG_MODULE_SPECIFIC+1)
+#define CONFIG_PagerLook_ID 			(CONFIG_MODULE_SPECIFIC+2)
+#define CONFIG_PagerFeel_ID				(CONFIG_MODULE_SPECIFIC+3)
+#define CONFIG_WharfLook_ID 			(CONFIG_MODULE_SPECIFIC+4)
+#define CONFIG_WharfFeel_ID				(CONFIG_MODULE_SPECIFIC+5)
+#define CONFIG_WinListLook_ID 			(CONFIG_MODULE_SPECIFIC+6)
+#define CONFIG_WinListFeel_ID 			(CONFIG_MODULE_SPECIFIC+7)
+
+
+#define CONFIG_FILE_IDS			   		(CONFIG_MODULE_SPECIFIC+8)
+#define CONFIG_LookFile_ID				(CONFIG_FILE_IDS)
+#define CONFIG_FeelFile_ID 				(CONFIG_FILE_IDS+1)
+#define CONFIG_StartDir_ID 				(CONFIG_FILE_IDS+2)
+#define CONFIG_AutoExecFile_ID 			(CONFIG_FILE_IDS+3)
+#define CONFIG_PagerFile_ID 			(CONFIG_FILE_IDS+4)
+#define CONFIG_WharfFile_ID 			(CONFIG_FILE_IDS+5)
+#define CONFIG_WinListFile_ID 			(CONFIG_FILE_IDS+6)
+#define CONFIG_ThemeOverrideFile_ID		(CONFIG_FILE_IDS+7)
+#define CONFIG_BaseFile_ID				(CONFIG_FILE_IDS+8)
+#define CONFIG_ColorSchemeFile_ID		(CONFIG_FILE_IDS+9)
+#define CONFIG_DatabaseFile_ID			(CONFIG_FILE_IDS+10)
+
+
+#define CONFIG_FILES_IDS			    (CONFIG_FILE_IDS+11)
+#define CONFIG_FunctionsFiles_ID		(CONFIG_FILES_IDS)
+#define CONFIG_PopupsFiles_ID			(CONFIG_FILES_IDS+1)
+#define CONFIG_LookFiles_ID				(CONFIG_FILES_IDS+2)
+#define CONFIG_FeelFiles_ID				(CONFIG_FILES_IDS+3)
+#define CONFIG_BackgroundFiles_ID		(CONFIG_FILES_IDS+4)
+#define CONFIG_PrivateFiles_ID			(CONFIG_FILES_IDS+5)
+#define CONFIG_SharedFiles_ID			(CONFIG_FILES_IDS+6)
+
+#define CONFIG_OPTIONS_IDS			    (CONFIG_FILES_IDS+7)
+#define CONFIG_BaseOptions_ID			(CONFIG_OPTIONS_IDS)
+#define CONFIG_ColorSchemeOptions_ID 	(CONFIG_OPTIONS_IDS+1)
+#define CONFIG_MyStyles_ID				(CONFIG_OPTIONS_IDS+2)
+#define CONFIG_MyFrames_ID				(CONFIG_OPTIONS_IDS+3)
+#define CONFIG_MyBackgrounds_ID		 	(CONFIG_OPTIONS_IDS+4)
+#define CONFIG_TitleButtons_ID		 	(CONFIG_OPTIONS_IDS+5)
+#define CONFIG_LookOptions_ID		 	(CONFIG_OPTIONS_IDS+6)
+#define CONFIG_FeelOptions_ID			(CONFIG_OPTIONS_IDS+7)
+#define CONFIG_PagerOptions_ID			(CONFIG_OPTIONS_IDS+8)
+#define CONFIG_WharfOptions_ID			(CONFIG_OPTIONS_IDS+9)
+#define CONFIG_WinListOptions_ID		(CONFIG_OPTIONS_IDS+10)
+
+#define CONFIG_SUBOPTIONS_IDS	   	    (CONFIG_OPTIONS_IDS+11)
+#define CONFIG_flags_ID					(CONFIG_SUBOPTIONS_IDS)
+#define CONFIG_x_ID						(CONFIG_SUBOPTIONS_IDS+1)
+#define CONFIG_y_ID						(CONFIG_SUBOPTIONS_IDS+2)
+#define CONFIG_width_ID					(CONFIG_SUBOPTIONS_IDS+3)
+#define CONFIG_height_ID 				(CONFIG_SUBOPTIONS_IDS+4)
+
+#define CONFIG_type_ID	 				(CONFIG_SUBOPTIONS_IDS+5)
+#define CONFIG_tint_ID	 				(CONFIG_SUBOPTIONS_IDS+6)
+#define CONFIG_pixmap_ID 				(CONFIG_SUBOPTIONS_IDS+7)
+
+#define CONFIG_hotkey_ID				(CONFIG_SUBOPTIONS_IDS+8)
+#define CONFIG_text_ID					(CONFIG_SUBOPTIONS_IDS+9)
+#define CONFIG_value_ID					(CONFIG_SUBOPTIONS_IDS+10)
+#define CONFIG_unit_ID					(CONFIG_SUBOPTIONS_IDS+11)
+
  
-#define CONFIG_ColorScheme_ID			(CONFIG_ID_START+3)
-#define CONFIG_ColorSchemeOptions_ID 	(CONFIG_ID_START+4)
-
-#define CONFIG_Look_ID 					(CONFIG_ID_START+5)
-#define CONFIG_LookMyStyles_ID			(CONFIG_ID_START+6)
-#define CONFIG_LookMyFrames_ID			(CONFIG_ID_START+7)
-#define CONFIG_LookMyBackgrounds_ID		(CONFIG_ID_START+8)
-#define CONFIG_LookTitleButtons_ID		(CONFIG_ID_START+9)
-#define CONFIG_LookOptions_ID			(CONFIG_ID_START+10)
-
-#define CONFIG_Feel_ID					(CONFIG_ID_START+11)
-#define CONFIG_FeelOptions_ID			(CONFIG_ID_START+12)
-#define CONFIG_Pager_ID					(CONFIG_ID_START+13)
-#define CONFIG_PagerOptions_ID			(CONFIG_ID_START+14)
-#define CONFIG_Wharf_ID					(CONFIG_ID_START+15)
-#define CONFIG_WharfOptions_ID			(CONFIG_ID_START+16)
-#define CONFIG_WinList_ID				(CONFIG_ID_START+17)
-#define CONFIG_WinListOptions_ID		(CONFIG_ID_START+18)
-
-#define CONFIG_BaseFile_ID				(CONFIG_ID_START+19)
-#define CONFIG_ColorSchemeFile_ID		(CONFIG_ID_START+20)
-#define CONFIG_FeelFile_ID				(CONFIG_ID_START+21)
-#define CONFIG_AutoExecFile_ID			(CONFIG_ID_START+22)
-#define CONFIG_WorkspaceFile_ID			(CONFIG_ID_START+23)
-#define CONFIG_StartMenuDir_ID			(CONFIG_ID_START+24)
-#define CONFIG_LookFile_ID				(CONFIG_ID_START+25)
-#define CONFIG_ThemeOverrideFile_ID		(CONFIG_ID_START+26)
-#define CONFIG_DatabaseFile_ID			(CONFIG_ID_START+27)
-#define CONFIG_PagerFile_ID				(CONFIG_ID_START+28)
-#define CONFIG_WharfFile_ID				(CONFIG_ID_START+29)
-#define CONFIG_WinListFile_ID			(CONFIG_ID_START+30)
-
-#define CONFIG_LookFiles_ID				(CONFIG_ID_START+31)
-#define CONFIG_FeelFiles_ID				(CONFIG_ID_START+32)
-#define CONFIG_FunctionsFiles_ID		(CONFIG_ID_START+33)
-#define CONFIG_PopupsFiles_ID			(CONFIG_ID_START+34)
-#define CONFIG_PagerFiles_ID			(CONFIG_ID_START+35)
-#define CONFIG_WharfFiles_ID			(CONFIG_ID_START+36)
-#define CONFIG_WinListFiles_ID			(CONFIG_ID_START+37)
-#define CONFIG_BackgroundFiles_ID		(CONFIG_ID_START+38)
-
-#define CONFIG_PrivateFiles_ID			(CONFIG_ID_START+39)
-#define CONFIG_SharedFiles_ID			(CONFIG_ID_START+40)
-
-#define CONFIG_flags_ID					(CONFIG_ID_START+41)
-#define CONFIG_x_ID						(CONFIG_ID_START+42)
-#define CONFIG_y_ID						(CONFIG_ID_START+43)
-#define CONFIG_width_ID					(CONFIG_ID_START+44)
-#define CONFIG_height_ID 				(CONFIG_ID_START+45)
-
-#define CONFIG_type_ID	 				(CONFIG_ID_START+46)
-#define CONFIG_tint_ID	 				(CONFIG_ID_START+47)
-#define CONFIG_pixmap_ID 				(CONFIG_ID_START+48)
- 
-#define CONFIG_ID_END					(CONFIG_ID_START+64)
+#define CONFIG_ID_END					(CONFIG_SUBOPTIONS_IDS+12)
 
 /***************************************************************************/
 /*                        Base file pasring definitions                    */
@@ -206,7 +230,7 @@ void DestroyBaseConfig (BaseConfig * config);
 
 #define MYSTYLE_TERMS \
 {TF_NO_MYNAME_PREPENDING,"MyStyle", 	7, TT_QUOTED_TEXT, MYSTYLE_START_ID	, NULL},\
-{TF_NO_MYNAME_PREPENDING|TF_NONUNIQUE,"Inherit", 	7, TT_QUOTED_TEXT, MYSTYLE_INHERIT_ID	, NULL},\
+{TF_NO_MYNAME_PREPENDING|TF_NONUNIQUE|TF_QUOTES_OPTIONAL,"Inherit", 	7, TT_QUOTED_TEXT, MYSTYLE_INHERIT_ID	, NULL},\
 {TF_NO_MYNAME_PREPENDING,"Font",    	4, TT_FONT, MYSTYLE_FONT_ID		, NULL},\
 {TF_NO_MYNAME_PREPENDING,"ForeColor",	9, TT_COLOR, MYSTYLE_FORECOLOR_ID	, NULL},\
 {TF_NO_MYNAME_PREPENDING,"BackColor",	9, TT_COLOR, MYSTYLE_BACKCOLOR_ID	, NULL},\
@@ -1459,8 +1483,8 @@ struct FreeStorageElem **ComplexFunction2FreeStorage( struct SyntaxDef *syntax, 
 #define FEEL_ClickToRaise_ID          (FEEL_ID_START+35)
 #define FEEL_EdgeScroll_ID            (FEEL_ID_START+36)
 #define FEEL_EdgeResistance_ID        (FEEL_ID_START+37)
-#define FEEL_Popup_ID                 (FEEL_ID_START+38)
-#define FEEL_Function_ID              (FEEL_ID_START+39)
+#define FEEL_Popup_ID                 F_POPUP/*(FEEL_ID_START+38)*/
+#define FEEL_Function_ID              F_FUNCTION/*(FEEL_ID_START+39)*/
 #define FEEL_Mouse_ID                 (FEEL_ID_START+40)
 #define FEEL_Key_ID                   (FEEL_ID_START+41)
 #define FEEL_ShadeAnimationSteps_ID   (FEEL_ID_START+42)

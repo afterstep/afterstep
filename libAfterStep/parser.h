@@ -49,7 +49,8 @@ typedef struct TermDef
   /* respective non-depreciated options by libASConfig */
 #define TF_DIRECTION_INDEXED (1<<22) /* North,South, East,West, NorthWest, NorthEast, SouthWest, SouthEast as index */
 #define TF_NONUNIQUE 		 (1<<21) /* Ther could be several options of this type in config */
-
+#define TF_QUOTES_OPTIONAL 	 (1<<20) /* Ther could be several options of this type in config */
+#define TF_SYNTAX_START		 (1<<19)
 
   unsigned long flags;		/* combination of any of above values */
   char *keyword;

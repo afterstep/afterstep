@@ -28,7 +28,7 @@ MyStyle "window_font"
   ~MyStyle
 
 MyStyle "focused_window_style"
-  Inherit	window_font
+  Inherit	"window_font"
   TextStyle	3
   ForeColor     ActiveText
   BackColor	Active
@@ -36,7 +36,7 @@ MyStyle "focused_window_style"
   ~MyStyle
 
 MyStyle "unfocused_window_style"
-  Inherit       window_font
+  Inherit       "window_font"
   ForeColor     InactiveText1
   BackColor	Inactive1
 #  BackPixmap    149 Inactive1
@@ -44,7 +44,7 @@ MyStyle "unfocused_window_style"
   ~MyStyle
 
 MyStyle "sticky_window_style"
-  Inherit       window_font
+  Inherit       "window_font"
   ForeColor     InactiveText2
   BackColor	Inactive2
 #  BackPixmap    149 Inactive2
@@ -64,7 +64,7 @@ MyStyle "menu_font"
   ~MyStyle
 
 MyStyle "unfocused_menu_title_style"
-  Inherit       menu_title_font
+  Inherit       "menu_title_font"
   ForeColor     InactiveText1
   BackColor     HighInactive
   BackMultiGradient  6   alpha(80,HighInactiveDark) 0.2 alpha(30,HighInactive) 0.8 alpha(80,HighInactiveLight)
@@ -72,14 +72,14 @@ MyStyle "unfocused_menu_title_style"
   ~MyStyle
 
 MyStyle "focused_menu_title_style"
-  Inherit       menu_title_font
+  Inherit       "menu_title_font"
   ForeColor	ActiveText
   BackColor     HighActive
   BackGradient  6  alpha(70,HighActiveDark) alpha(70,HighActiveLight)
   ~MyStyle
 
 MyStyle "menu_item_style"
-  Inherit       menu_font
+  Inherit       "menu_font"
   ForeColor     HighInactiveText
   BackColor     HighInactiveBack
   BackGradient  9   alpha(60,HighInactiveBack) alpha(30,HighInactiveBackLight)
@@ -97,12 +97,12 @@ MyStyle "menu_hilite_style"
 # make the stipple background the same as the menu item, or
 # strange border drawing artifacts could occur
 MyStyle "menu_stipple_style"
-  Inherit       menu_item_style
+  Inherit       "menu_item_style"
   ForeColor	DisabledText
   ~MyStyle
 
 MyStyle "menu_subitem_style"
-  Inherit       menu_item_style
+  Inherit       "menu_item_style"
   Font		Default.ttf-12
   ~MyStyle
 
@@ -152,19 +152,19 @@ MyStyle "*PagerInActiveDesk"
  ~MyStyle
 
 MyStyle "*PagerFWindowStyle"
-    Inherit	focused_window_style
+    Inherit	"focused_window_style"
     Font	5x8
 # gradients, pixmap allowed, but no transparency
 ~MyStyle
 
 MyStyle "*PagerUWindowStyle"
-    Inherit	unfocused_window_style
+    Inherit	"unfocused_window_style"
     Font	5x8
 # gradients, pixmap allowed, but no transparency
 ~MyStyle
 
 MyStyle "*PagerSWindowStyle"
-    Inherit	sticky_window_style
+    Inherit	"sticky_window_style"
     Font	5x8
 # gradients, pixmap allowed, but no transparency
 ~MyStyle
@@ -210,17 +210,17 @@ MyStyle "ButtonPixmap"
   ~MyStyle
 
 MyStyle "ButtonTitleFocus"
-  	Inherit	focused_window_style
+  	Inherit		"focused_window_style"
   	Font		DefaultSansBoldOblique.ttf-13
   ~MyStyle
 
 MyStyle "ButtonTitleSticky"
-	Inherit sticky_window_style
+	Inherit "sticky_window_style"
 	Font    DefaultSansBoldOblique.ttf-13
  ~MyStyle
 
 MyStyle "ButtonTitleUnfocus"
-	Inherit unfocused_window_style
+	Inherit "unfocused_window_style"
 	Font    DefaultSansBoldOblique.ttf-13
   ~MyStyle
 
