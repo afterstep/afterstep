@@ -204,13 +204,14 @@ viewport_aswindow_iter_func( void *data, void *aux_data )
 void
 MoveViewport (int newx, int newy, Bool grab)
 {
+
+	ChangeDeskAndViewport ( Scr.CurrentDesk, newx, newy, grab);
+
+#if 0
 #ifndef NO_VIRTUAL
 	int           deltax, deltay;
 
 LOCAL_DEBUG_CALLER_OUT( "new(%+d%+d), old(%+d%+d), max(%+d,%+d)", newx, newy, Scr.Vx, Scr.Vy, Scr.VxMax, Scr.VyMax );
-
-	if (grab)
-		XGrabServer (dpy);
 
     if (newx > Scr.VxMax)
 		newx = Scr.VxMax;
@@ -231,14 +232,16 @@ LOCAL_DEBUG_CALLER_OUT( "new(%+d%+d), old(%+d%+d), max(%+d,%+d)", newx, newy, Sc
 
 	if (deltax || deltay)
 	{
-
+		if (grab)
+			XGrabServer (dpy);
         /* traverse window list and redo the titlebar/buttons if necessary */
         iterate_asbidirlist( Scr.Windows->clients, viewport_aswindow_iter_func, NULL, NULL, False );
         /* TODO: autoplace sticky icons so they don't wind up over a stationary icon */
+	    check_screen_panframes(&Scr);
+		if (grab)
+			XUngrabServer (dpy);
     }
-    check_screen_panframes(&Scr);
-	if (grab)
-		XUngrabServer (dpy);
+#endif
 #endif
 }
 
@@ -246,24 +249,38 @@ LOCAL_DEBUG_CALLER_OUT( "new(%+d%+d), old(%+d%+d), max(%+d,%+d)", newx, newy, Sc
  * Move to a new desktop
  *************************************************************************/
 Bool
-change_aswindow_desk_iter_func(void *data, void *aux_data)
+deskviewport_aswindow_iter_func(void *data, void *aux_data)
 {
-    int new_desk = (int)aux_data ;
     ASWindow *asw = (ASWindow *)data ;
+    int new_desk = (int)Scr.CurrentDesk ;
+	int dvx = asw->status->viewport_x - Scr.Vx ;
+	int dvy = asw->status->viewport_y - Scr.Vy ;
+	int old_desk = (int) aux_data;
 
-    if( ASWIN_GET_FLAGS(asw, AS_Sticky) ||
+    asw->status->viewport_x = Scr.Vx ;
+    asw->status->viewport_y = Scr.Vy ;
+
+	if( ASWIN_GET_FLAGS(asw, AS_Sticky) ||
         (ASWIN_GET_FLAGS(asw, AS_Iconic) && get_flags( Scr.Feel.flags, StickyIcons)) )
     {  /* Window is sticky */
-        if( ASWIN_DESK(asw) != new_desk && IsValidDesk(new_desk))
+		if( ASWIN_DESK(asw) != new_desk && IsValidDesk(new_desk))
         {
             ASWIN_DESK(asw) = new_desk ;
             if( !ASWIN_GET_FLAGS(asw, AS_Dead) )
                 set_client_desktop( asw->w, new_desk );
             broadcast_config (M_CONFIGURE_WINDOW, asw);
+        }else if( ASWIN_GET_FLAGS(asw,AS_Iconic) && get_flags(Scr.Feel.flags, StickyIcons))
+        {   /* we must update let all the modules know that icon viewport has changed
+             * we dont have to do that for Sticky non-iconified windows, since its assumed
+             * that those follow viewport, while Icons only do that when StckiIcons is set. */
+            broadcast_config (M_CONFIGURE_WINDOW, asw);
         }
     }else
     {
-        quietly_reparent_aswindow( asw, (ASWIN_DESK(asw)==new_desk)?Scr.Root:Scr.ServiceWin, True );
+		if( old_desk != new_desk )
+        	quietly_reparent_aswindow( asw, (ASWIN_DESK(asw)==new_desk)?Scr.Root:Scr.ServiceWin, True );
+		if( dvx != 0 || dvy != 0 )
+			on_window_status_changed( asw, True, True );
     }
     return True;
 }
@@ -286,8 +303,120 @@ count_desk_client_iter_func(void *data, void *aux_data)
 void change_desktop_background( int desk, int old_desk );
 
 void
+ChangeDeskAndViewport ( int new_desk, int new_vx, int new_vy, Bool force_grab)
+{
+	int dvx, dvy;
+    int old_desk = Scr.CurrentDesk ;
+
+LOCAL_DEBUG_CALLER_OUT( "new(%d%+d%+d), old(%d%+d%+d), max(%+d,%+d)", new_desk, new_vx, new_vy, Scr.CurrentDesk, Scr.Vx, Scr.Vy, Scr.VxMax, Scr.VyMax );
+
+    if (new_vx > Scr.VxMax)
+		new_vx = Scr.VxMax;
+	else if (new_vx < 0)
+		new_vx = 0;
+	if (new_vy > Scr.VyMax)
+		new_vy = Scr.VyMax;
+	else if (new_vy < 0)
+		new_vy = 0;
+
+	dvx = Scr.Vx - new_vx;
+	dvy = Scr.Vy - new_vy;
+
+    if( IsValidDesk( old_desk ) )
+		Scr.LastValidDesk = old_desk ;
+
+    /* we have to handle all the pending ConfigureNotifys here : */
+    ConfigureNotifyLoop();
+
+    if( old_desk != new_desk && IsValidDesk( old_desk ) )
+    {
+        int client_count = 0 ;
+        iterate_asbidirlist( Scr.Windows->clients, count_desk_client_iter_func, (void*)&client_count, NULL, False );
+        if( client_count != 0 )
+            old_desk = INVALID_DESK ;
+		force_grab = True ;
+	}
+
+	if( Scr.CurrentDesk != new_desk )
+	{
+		Scr.CurrentDesk = new_desk;
+
+   		if( as_desk2ext_desk (Scr.wmprops, new_desk) == INVALID_DESKTOP_PROP )
+       		set_desktop_num_prop( Scr.wmprops, new_desk, Scr.Root, True );
+    	set_current_desk_prop ( Scr.wmprops, new_desk);
+	}
+
+	if( dvx != 0 || dvy != 0 )
+	{
+		Scr.Vx = new_vx;
+		Scr.Vy = new_vy;
+    	set_current_viewport_prop (Scr.wmprops, Scr.Vx, Scr.Vy, get_flags( AfterStepState, ASS_NormalOperation));
+	}
+   	SendPacket( -1, M_NEW_DESKVIEWPORT, 3, Scr.Vx, Scr.Vy, Scr.CurrentDesk);
+
+	if (dvx != 0 || dvy != 0 || old_desk != new_desk )
+	{
+		if ( force_grab )
+			XGrabServer (dpy);
+        /* traverse window list and redo the titlebar/buttons if necessary */
+        iterate_asbidirlist( Scr.Windows->clients, deskviewport_aswindow_iter_func, (void*)old_desk, NULL, False );
+        /* TODO: autoplace sticky icons so they don't wind up over a stationary icon */
+	    check_screen_panframes(&Scr);
+		if ( force_grab)
+			XUngrabServer (dpy);
+    }
+	/* yield to let modules handle desktop/viewport change */
+	sleep_a_little(1000);
+
+
+
+    if( old_desk != new_desk )
+	{
+    	if (get_flags(Scr.Feel.flags, ClickToFocus))
+		{
+        	int i ;
+        	int circ_count = VECTOR_USED(*(Scr.Windows->circulate_list));
+        	if( !get_flags( Scr.Feel.flags, DontRestoreFocus ) )
+        	{
+            	ASWindow **circ_list = VECTOR_HEAD(ASWindow*,*(Scr.Windows->circulate_list));
+            	for( i =0 ; i < circ_count ; ++i )
+                	if( circ_list[i] != NULL && circ_list[i]->magic == MAGIC_ASWINDOW )
+                    	if( ASWIN_DESK(circ_list[i]) == new_desk )
+                    	{
+                        	focus_aswindow( circ_list[i] );
+                        	break;
+                    	}
+        	}else
+            	i = circ_count ;
+
+        	if( i >= circ_count )
+            	hide_focus();
+    	}
+
+    	if( IsValidDesk(new_desk) )
+        	restack_window_list( new_desk, False );
+
+    	/* Change the look to this desktop's one if it really changed */
+#ifdef DIFFERENTLOOKNFEELFOREACHDESKTOP
+		QuickRestart ("look&feel");
+#endif
+
+    	/* we need to set the desktop background : */
+		if( (IsValidDesk( new_desk ) && IsValidDesk( old_desk )) ||
+			Scr.LastValidDesk != new_desk )
+		{
+	    	change_desktop_background(new_desk, Scr.LastValidDesk);
+		}
+	}
+
+}
+
+
+void
 ChangeDesks (int new_desk)
 {
+	ChangeDeskAndViewport ( new_desk, Scr.Vx, Scr.Vy, False);
+#if 0
     int old_desk = Scr.CurrentDesk ;
 LOCAL_DEBUG_CALLER_OUT( "new_desk(%d)->old_desk(%d)", new_desk, old_desk );
     if( Scr.CurrentDesk == new_desk )
@@ -313,9 +442,9 @@ LOCAL_DEBUG_CALLER_OUT( "new_desk(%d)->old_desk(%d)", new_desk, old_desk );
 
     set_current_desk_prop ( Scr.wmprops, new_desk);
 
-    SendPacket( -1, M_NEW_DESK, 1, new_desk);
+    //SendPacket( -1, M_NEW_DESK, 1, new_desk);
 	/* yeld to let modules handle desktop change */
-	sleep_a_little(1000); 
+	sleep_a_little(1000);
     /* Scan the window list, mapping windows on the new Desk, unmapping
 	 * windows on the old Desk; do this in reverse order to reduce client
 	 * expose events */
@@ -353,17 +482,17 @@ LOCAL_DEBUG_CALLER_OUT( "new_desk(%d)->old_desk(%d)", new_desk, old_desk );
 #endif
 
     /* we need to set the desktop background : */
-	if( (IsValidDesk( new_desk ) && IsValidDesk( old_desk )) || 
+	if( (IsValidDesk( new_desk ) && IsValidDesk( old_desk )) ||
 		Scr.LastValidDesk != new_desk )
 	{
 	    change_desktop_background(new_desk, Scr.LastValidDesk);
-	}/* otherwise we were switching to service desk number in order to switch 
+	}/* otherwise we were switching to service desk number in order to switch
 		viewport and desktop change is not needed */
 
-    /*TODO: implement virtual desktops switching : */
 #if 0
     /* autoplace sticky icons so they don't wind up over a stationary icon */
 	AutoPlaceStickyIcons ();
+#endif
 #endif
 
 }
@@ -683,7 +812,7 @@ LOCAL_DEBUG_CALLER_OUT( "desk(%d)->old_desk(%d)->new_back(%p)->old_back(%p)", de
 			ASSync(False);
 			sleep_a_little( 1000 );
 		}
-#endif		
+#endif
         set_xrootpmap_id (Scr.wmprops, bh->pmap );
     }else
         set_xrootpmap_id (Scr.wmprops, None );

@@ -350,18 +350,22 @@ move_resize_frame_bars( ASWindow *asw, int side, ASOrientation *od, unsigned int
     return rendered;
 }
 
-static void
+static Bool
 apply_window_status_size(register ASWindow *asw, ASOrientation *od)
 {
+	Bool moved = False ;
     /* note that icons are handled by iconbox */
     if( !ASWIN_GET_FLAGS( asw, AS_Iconic ) )
 	{
         int step_size = make_shade_animation_step( asw, od );
+		int new_width = asw->status->width ;
+		int new_height = asw->status->height ;
 LOCAL_DEBUG_OUT( "**CONFG Client(%lx(%s))->status(%ux%u%+d%+d,%s,%s(%d>-%d))",
                  asw->w, ASWIN_NAME(asw)?ASWIN_NAME(asw):"noname",
                  asw->status->width, asw->status->height, asw->status->x, asw->status->y,
                  ASWIN_HFLAGS(asw, AS_VerticalTitle)?"Vert":"Horz",
                  step_size>0?"Shaded":"Unshaded", asw->shading_steps, step_size );
+
         if( step_size > 0 )
         {
             if( asw->frame_sides[od->tbar_side] )
@@ -369,19 +373,22 @@ LOCAL_DEBUG_OUT( "**CONFG Client(%lx(%s))->status(%ux%u%+d%+d,%s,%s(%d>-%d))",
             if( !ASWIN_GET_FLAGS(asw, AS_Dead) )
                 XLowerWindow( dpy, asw->w );
             if( ASWIN_HFLAGS(asw, AS_VerticalTitle) )
-                moveresize_canvas( asw->frame_canvas, asw->status->x, asw->status->y,
-                                   step_size, asw->status->height );
+				new_width = step_size ;
             else
-                moveresize_canvas( asw->frame_canvas, asw->status->x, asw->status->y,
-                                   asw->status->width, step_size );
+				new_height = step_size ;
         }else
         {
             if( !ASWIN_GET_FLAGS(asw, AS_Dead) )
                 XRaiseWindow( dpy, asw->w );
-            moveresize_canvas(  asw->frame_canvas, asw->status->x, asw->status->y,
-                                asw->status->width, asw->status->height );
         }
+		moved = (	asw->frame_canvas->root_x != asw->status->x ||
+					asw->frame_canvas->root_y != asw->status->y ||
+					asw->frame_canvas->width != new_width ||
+					asw->frame_canvas->height != new_height );
+        moveresize_canvas(  asw->frame_canvas, asw->status->x, asw->status->y,
+                            new_width, new_height );
     }
+	return moved;
 }
 
 static void
@@ -767,7 +774,8 @@ LOCAL_DEBUG_CALLER_OUT( "(%p,%s Update display,%s Reconfigured)", asw, update_di
     }
 
     /* now we need to move/resize our frame window */
-    apply_window_status_size(asw, od);
+    if( !apply_window_status_size(asw, od) )
+		broadcast_config (M_CONFIGURE_WINDOW, asw);  /* must enforce status change propagation */
     if( !ASWIN_GET_FLAGS(asw, AS_Dead) )
         set_client_state( asw->w, asw->status );
 }

@@ -182,7 +182,7 @@ main (int argc, char **argv)
 
     ConnectX( &Scr, PropertyChangeMask );
     ConnectAfterStep (M_TOGGLE_PAGING |
-                    M_NEW_DESK |
+                    M_NEW_DESKVIEWPORT |
                     M_END_WINDOWLIST |
                     WINDOW_CONFIG_MASK |
                     WINDOW_NAME_MASK);

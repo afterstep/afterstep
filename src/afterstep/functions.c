@@ -74,6 +74,7 @@ void gethelp_func_handler( FunctionData *data, ASEvent *event, int module );
 void wait_func_handler( FunctionData *data, ASEvent *event, int module );
 void raise_it_func_handler( FunctionData *data, ASEvent *event, int module );
 void desk_func_handler( FunctionData *data, ASEvent *event, int module );
+void deskviewport_func_handler( FunctionData *data, ASEvent *event, int module );
 void module_func_handler( FunctionData *data, ASEvent *event, int module );
 void killmodule_func_handler( FunctionData *data, ASEvent *event, int module );
 void popup_func_handler( FunctionData *data, ASEvent *event, int module );
@@ -166,6 +167,7 @@ void SetupFunctionHandlers()
     function_handlers[F_WAIT]               = wait_func_handler ;
     function_handlers[F_RAISE_IT]           = raise_it_func_handler ;
     function_handlers[F_DESK]               = desk_func_handler ;
+    function_handlers[F_GOTO_DESKVIEWPORT]  = deskviewport_func_handler ;
 
     function_handlers[F_MODULE] =
         function_handlers[F_SwallowModule] =
@@ -636,13 +638,13 @@ void moveresize_func_handler( FunctionData *data, ASEvent *event, int module )
                 return;
             }
 
-            while( (0x01&context) == 0 )
+            while( (0x01&context) == 0 && side <= FR_SE)
             {
                 ++side ;
                 context = context>>1 ;
             }
-			
-			if( side > FR_SE ) 
+
+			if( side > FR_SE )
 			{
 				int pointer_x = 0, pointer_y = 0 ;
 				ASQueryPointerRootXY( &pointer_x, &pointer_y );
@@ -657,7 +659,7 @@ void moveresize_func_handler( FunctionData *data, ASEvent *event, int module )
 				else
 					side = FR_NW ;
 			}
-			
+
             mvrdata = resize_widget_interactively(  Scr.RootCanvas,
                                                     asw->frame_canvas,
                                                     event,
@@ -1206,6 +1208,33 @@ void desk_func_handler( FunctionData *data, ASEvent *event, int module )
     ChangeDesks (new_desk);
 }
 
+void deskviewport_func_handler( FunctionData *data, ASEvent *event, int module )
+{
+    unsigned int new_desk1, new_desk2 ;
+	int new_vx, new_vy, flags ;
+	int new_desk ;
+
+	if( data->text == NULL )
+		return ;
+	if( parse_geometry (data->text, &new_vx, &new_vy, &new_desk1, &new_desk2, &flags ) == data->text )
+		return ;
+
+	if( !get_flags( flags, XValue ) )
+		new_vx = Scr.Vx ;
+
+	if( !get_flags( flags, YValue ) )
+		new_vy = Scr.Vy ;
+
+	if( get_flags( flags, WidthValue ) )
+		new_desk = new_desk1 ;
+	else if( get_flags( flags, HeightValue ) )
+		new_desk = new_desk2 ;
+	else
+		new_desk = Scr.CurrentDesk ;
+
+    ChangeDeskAndViewport (new_desk, new_vx, new_vy, False);
+}
+
 void module_func_handler( FunctionData *data, ASEvent *event, int module )
 {
     UngrabEm ();
@@ -1261,8 +1290,7 @@ void send_window_list_func_handler( FunctionData *data, ASEvent *event, int modu
     if (module >= 0)
     {
         SendPacket (module, M_TOGGLE_PAGING, 1, DoHandlePageing);
-        SendPacket (module, M_NEW_DESK, 1, Scr.CurrentDesk);
-        SendPacket (module, M_NEW_PAGE, 3, Scr.Vx, Scr.Vy, Scr.CurrentDesk);
+        SendPacket (module, M_NEW_DESKVIEWPORT, 3, Scr.Vx, Scr.Vy, Scr.CurrentDesk);
         iterate_asbidirlist( Scr.Windows->clients, send_aswindow_data_iter_func, (void*)module, NULL, False );
         SendPacket (module, M_END_WINDOWLIST, 0);
         if( IsValidDesk(Scr.CurrentDesk) )

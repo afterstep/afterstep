@@ -110,6 +110,7 @@ TermDef       FuncTerms[F_FUNCTIONS_NUM + 1] = {
 	FUNC_TERM2 (NEED_WINIFNAME, "WarpBack", 8, F_WARP_B),	/* WarpBack ["name" window_name] */
 	FUNC_TERM2 (NEED_NAME | NEED_WINDOW, "Wait", 4, F_WAIT),	/* Wait      "name" window_name  */
 	FUNC_TERM2 (USES_NUMVALS, "Desk", 4, F_DESK),	/* Desk arg1 [arg2] */
+	FUNC_TERM2 (USES_NUMVALS, "GotoDeskViewport", 16, F_GOTO_DESKVIEWPORT),	/* GotoDeskViewport DESK+VX+VY */
 #ifndef NO_WINDOWLIST
 	FUNC_TERM2 (USES_NUMVALS, "WindowList", 10, F_WINDOWLIST),	/* WindowList [arg1 arg2] */
 #endif

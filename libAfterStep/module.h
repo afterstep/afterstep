@@ -36,24 +36,23 @@ extern "C" {
 #define START_FLAG 0xffffffff
 
 #define M_TOGGLE_PAGING      (1<<0)
-#define M_NEW_PAGE           (1<<1)
-#define M_NEW_DESK           (1<<2)
-#define M_ADD_WINDOW         (1<<3)
-#define M_CONFIGURE_WINDOW   (1<<4)
-#define M_MAP                (1<<5)
-#define M_FOCUS_CHANGE       (1<<6)
-#define M_DESTROY_WINDOW     (1<<7)
-#define M_WINDOW_NAME        (1<<8)
-#define M_ICON_NAME          (1<<9)
-#define M_RES_CLASS          (1<<10)
-#define M_RES_NAME           (1<<11)
-#define M_END_WINDOWLIST     (1<<12)
-#define M_STACKING_ORDER     (1<<13)
-#define M_LOCKONSEND         (1<<14)
-#define M_NEW_BACKGROUND     (1<<15)
-#define M_NEW_THEME          (1<<16)
+#define M_NEW_DESKVIEWPORT   (1<<1)
+#define M_ADD_WINDOW         (1<<2)
+#define M_CONFIGURE_WINDOW   (1<<3)
+#define M_MAP                (1<<4)
+#define M_FOCUS_CHANGE       (1<<5)
+#define M_DESTROY_WINDOW     (1<<6)
+#define M_WINDOW_NAME        (1<<7)
+#define M_ICON_NAME          (1<<8)
+#define M_RES_CLASS          (1<<9)
+#define M_RES_NAME           (1<<10)
+#define M_END_WINDOWLIST     (1<<11)
+#define M_STACKING_ORDER     (1<<12)
+#define M_LOCKONSEND         (1<<13)
+#define M_NEW_BACKGROUND     (1<<14)
+#define M_NEW_THEME          (1<<15)
 
-#define MAX_MESSAGES          16
+#define MAX_MESSAGES          15
 #define MAX_MASK             (((1<<MAX_MESSAGES)-1) & ~M_LOCKONSEND)
 
 #define WAIT_AS_RESPONSE_TIMEOUT    20   /* seconds */

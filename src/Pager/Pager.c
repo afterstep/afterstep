@@ -206,8 +206,7 @@ main (int argc, char **argv)
                         M_CONFIGURE_WINDOW |
                         M_DESTROY_WINDOW |
                         M_FOCUS_CHANGE |
-                        M_NEW_PAGE |
-                        M_NEW_DESK |
+                        M_NEW_DESKVIEWPORT |
                         M_NEW_BACKGROUND |
                         M_WINDOW_NAME |
                         M_ICON_NAME |
@@ -246,6 +245,7 @@ void HandleEvents()
     Bool has_x_events = False ;
     while (True)
     {
+    LOCAL_DEBUG_OUT( "wait_as_resp = %d", PagerState.wait_as_response );
         if (PagerState.wait_as_response > 0)
         {
             ASMessage *msg = CheckASMessage (WAIT_AS_RESPONSE_TIMEOUT);
@@ -253,18 +253,17 @@ void HandleEvents()
             {
                 process_message (msg->header[1], msg->body);
                 DestroyASMessage (msg);
-                --PagerState.wait_as_response;
             }
         }else
         {
-            while((has_x_events = XPending (dpy)))
+            while((has_x_events = XPending (dpy)) && --PagerState.wait_as_response <= 0 )
             {
                 if( ASNextEvent (&(event.x), True) )
                 {
                     event.client = NULL ;
                     setup_asevent_from_xevent( &event );
                     DispatchEvent( &event );
-                }
+				}
             }
             module_wait_pipes_input ( process_message );
         }
@@ -1072,7 +1071,7 @@ redecorate_pager_desks()
             int align = (Config->align>0)?ALIGN_LEFT:((Config->align<0)?ALIGN_RIGHT:ALIGN_HCENTER) ;
             int flip = get_flags(Config->flags, VERTICAL_LABEL)?FLIP_VERTICAL:0;
 			Bool just_created = False ;
-			
+
             if( d->title == NULL )
             {
                 d->title = create_astbar();
@@ -1392,15 +1391,21 @@ place_client( ASPagerDesk *d, ASWindowData *wd, Bool force_redraw, Bool dont_upd
             client_y = wd->icon_rect.y+Scr.Vy ;
             client_width  = wd->icon_rect.width ;
             client_height = wd->icon_rect.height ;
-        }else if( get_flags( wd->state_flags, AS_Sticky )  )
-        {
-            client_x += Scr.Vx ;
-            client_y += Scr.Vy ;
-            if( get_flags( wd->flags, AS_VerticalTitle )  )
-                client_width  = (PagerState.vscreen_width *2)/desk_width ;
-            else
-                client_height = (PagerState.vscreen_height*2)/desk_height;
-        }
+        }else
+		{
+			if( get_flags( wd->state_flags, AS_Sticky )  )
+        	{
+            	client_x += Scr.Vx ;
+            	client_y += Scr.Vy ;
+        	}
+			if( get_flags( wd->state_flags, AS_Shaded )  )
+        	{
+            	if( get_flags( wd->flags, AS_VerticalTitle )  )
+                	client_width  = (PagerState.vscreen_width *2)/desk_width ;
+            	else
+                	client_height = (PagerState.vscreen_height*2)/desk_height;
+			}
+		}
         LOCAL_DEBUG_OUT( "+PLACE->client(%lX)->frame_geom(%dx%d%+d%+d)", wd->client, client_width, client_height, client_x, client_y );
         x = ( client_x * desk_width )/PagerState.vscreen_width ;
         y = ( client_y * desk_height)/PagerState.vscreen_height;
@@ -1638,11 +1643,46 @@ set_desktop_pixmap( int desk, Pixmap pmap )
 }
 
 void
-switch_desks( int new_desk )
+move_sticky_clients()
 {
-    Scr.CurrentDesk = new_desk;
+    int desk = PagerState.desks_num ;
+	ASPagerDesk *current_desk = get_pager_desk( Scr.CurrentDesk ) ;
 
-    if( IsValidDesk( new_desk ) )
+    while( --desk >= 0 )
+    {
+        ASPagerDesk *d = &(PagerState.desks[desk]) ;
+        if( d->clients && d->clients_num > 0 )
+        {
+            register int i = d->clients_num ;
+            register ASWindowData **clients = d->clients ;
+            while( --i >= 0 )
+                if( clients[i] && get_flags( clients[i]->state_flags, AS_Sticky))
+				{
+				    if( clients[i]->desk != Scr.CurrentDesk && current_desk )
+					{/* in order to make an illusion of smooth desktop
+					  * switching - we'll reparent window ahead of time */
+				        LOCAL_DEBUG_OUT( "reparenting client to desk %ld", d->desk );
+        				quietly_reparent_canvas( clients[i]->canvas, current_desk->desk_canvas->w, CLIENT_EVENT_MASK, False );
+    				}
+                    place_client( d, clients[i], True, True );
+				}
+            set_flags(d->flags, ASP_ShapeDirty);
+        }
+    }
+}
+
+
+void
+switch_deskviewport( int new_desk, int new_vx, int new_vy )
+{
+	Bool view_changed = (new_vx != Scr.Vx || new_vy != Scr.Vy) ;
+	Bool desk_changed = (new_desk != Scr.CurrentDesk) ;
+
+	Scr.Vx = new_vx;
+    Scr.Vy = new_vy;
+	Scr.CurrentDesk = new_desk;
+
+    if( desk_changed && IsValidDesk( new_desk ) )
     {
         ASPagerDesk *new_d = get_pager_desk( new_desk ) ;
 
@@ -1666,27 +1706,12 @@ switch_desks( int new_desk )
             }
         }
     }
-    place_selection();
-}
 
-void
-move_sticky_clients()
-{
-    int desk = PagerState.desks_num ;
-
-    while( --desk >= 0 )
-    {
-        ASPagerDesk *d = &(PagerState.desks[desk]) ;
-        if( d->clients && d->clients_num > 0 )
-        {
-            register int i = d->clients_num ;
-            register ASWindowData **clients = d->clients ;
-            while( --i >= 0 )
-                if( clients[i] && get_flags( clients[i]->state_flags, AS_Sticky))
-                    place_client( d, clients[i], True, True );
-            set_flags(d->flags, ASP_ShapeDirty);
-        }
-    }
+	if( view_changed || desk_changed )
+	{
+		move_sticky_clients();
+    	place_selection();
+	}
 }
 
 static char as_comm_buf[256];
@@ -1986,7 +2011,8 @@ start_moveresize_client( ASWindowData *wd, Bool move, ASEvent *event )
 void
 process_message (unsigned long type, unsigned long *body)
 {
-    LOCAL_DEBUG_OUT( "received message %lX", type );
+    LOCAL_DEBUG_OUT( "received message %lX, wait_as_resp = %d", type, PagerState.wait_as_response );
+	--PagerState.wait_as_response;
 	if( (type&WINDOW_PACKET_MASK) != 0 )
 	{
 		struct ASWindowData *wd = fetch_window_by_id( body[0] );
@@ -2017,19 +2043,10 @@ process_message (unsigned long type, unsigned long *body)
         {
             case M_TOGGLE_PAGING :
                 break;
-            case M_NEW_PAGE :
+            case M_NEW_DESKVIEWPORT :
                 {
-                    Scr.Vx = (long) body[0];
-                    Scr.Vy = (long) body[1];
-                    LOCAL_DEBUG_OUT("M_NEW_PAGE(desk = %d,Vx=%d,Vy=%d)", Scr.CurrentDesk, Scr.Vx, Scr.Vy);
-                    move_sticky_clients();
-                    place_selection();
-                }
-                break;
-            case M_NEW_DESK :
-                {
-                    LOCAL_DEBUG_OUT("M_NEW_DESK(New=%ld, Old=%d)", body[0], Scr.CurrentDesk);
-                    switch_desks( body[0] );
+                    LOCAL_DEBUG_OUT("M_NEW_DESKVIEWPORT(desk = %ld,Vx=%ld,Vy=%ld)", body[2], body[0], body[1]);
+                    switch_deskviewport( body[2], body[0], body[1] );
                 }
                 break ;
             case M_STACKING_ORDER :
@@ -2386,24 +2403,24 @@ LOCAL_DEBUG_OUT( "pointer root pos(%+d%+d)", px, py );
                 if( px > 0 && px < d->desk_canvas->width &&
                     py > 0 && py < d->desk_canvas->height )
                 {
+					int new_desk, new_vx = -1, new_vy = -1 ;
+					new_desk = d->desk + PagerState.start_desk ;
                     px -= d->background->win_x;
                     py -= d->background->win_y;
                     if( px >= 0 && py >= 0 &&
                         px < d->background->width > 0 &&
 						py < d->background->height > 0 )
                     {
-                        SendInfo ("Desk 0 10000", 0);
-                        PagerState.wait_as_response++;
                         if( PagerState.pressed_button == Button3 )
                         {
-                            int sx = (px*PagerState.vscreen_width)/d->background->width ;
-                            int sy = (py*PagerState.vscreen_height)/d->background->height ;
+                            new_vx = (px*PagerState.vscreen_width)/d->background->width ;
+                            new_vy = (py*PagerState.vscreen_height)/d->background->height ;
                             /* now calculating delta */
-                            sx -= Scr.Vx;
-                            sy -= Scr.Vy;
+                            new_vx -= Scr.Vx;
+                            new_vy -= Scr.Vy;
                             /* now translating delta into persentage of the screen width */
-                            sx = (100 * sx) / Scr.MyDisplayWidth;
-                            sy = (100 * sy) / Scr.MyDisplayHeight;
+                            new_vx = (100 * new_vx) / Scr.MyDisplayWidth;
+                            new_vy = (100 * new_vy) / Scr.MyDisplayHeight;
 #if 0
                             /* we don't want to move in very small increments */
                             if (event->type == MotionNotify)
@@ -2411,19 +2428,18 @@ LOCAL_DEBUG_OUT( "pointer root pos(%+d%+d)", px, py );
                                     sx > -(PAGE_MOVE_THRESHOLD) && sy > -(PAGE_MOVE_THRESHOLD))
                                 return;
 #endif
-                            sprintf (command, "Scroll %d %d\n", sx, sy);
                         }else
-                        {
-                            int page_column = 0, page_row = 0;
-                            /*  calculate destination page : */
-                            page_column = (px*PagerState.page_columns)/d->background->width ;
-                            page_row    = (py*PagerState.page_rows)/d->background->height ;
-                            sprintf (command, "GotoPage %d %d\n", page_column, page_row);
+                        {   /*  calculate destination page : */
+                            new_vx  = (px*PagerState.page_columns)/d->background->width ;
+                            new_vy  = (py*PagerState.page_rows)   /d->background->height ;
+							new_vx *= Scr.MyDisplayWidth ;
+							new_vy *= Scr.MyDisplayHeight ;
                         }
-                        SendInfo ( command, 0);
-                        PagerState.wait_as_response++;
                     }
-                    sprintf (command, "Desk 0 %ld\n", d->desk + PagerState.start_desk);
+					if( new_vx >= 0 && new_vy >= 0 )
+						sprintf (command, "GotoDeskViewport %d%+d%+d\n", new_desk, new_vx, new_vy);
+					else
+                    	sprintf (command, "Desk 0 %d\n", new_desk);
                     SendInfo (command, 0);
                     PagerState.wait_as_response++;
                 }

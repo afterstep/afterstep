@@ -33,6 +33,7 @@ typedef enum {
   F_WARP_B,
   F_WAIT,
   F_DESK,
+  F_GOTO_DESKVIEWPORT,
 #ifndef NO_WINDOWLIST
   F_WINDOWLIST,
 #endif
