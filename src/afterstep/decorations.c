@@ -140,15 +140,17 @@ compile_tbar_layout( unsigned int *tbar_layout, unsigned int *default_tbar_layou
 	{
 		int r = MYFRAME_TITLE_BACK_LEFT2RIGHT(l);
 		int left_elem = MYFRAME_GetTbarLayoutElem(left_layout,l);	
-		int right_elem = MYFRAME_GetTbarLayoutElem(left_layout,r);	  
+		int right_elem = MYFRAME_GetTbarLayoutElem(right_layout,r);	  
 		if( left_elem != MYFRAME_TITLE_BACK_INVALID && !used[l]) 
 		{	
 			tbar_layout[left_elem] = default_tbar_layout[l] ;
+			LOCAL_DEBUG_OUT( "l = %d, left_elem %d has slot = %d", l, left_elem, tbar_layout[left_elem] );
 			used[l] = True ;
 		}
 		if( right_elem != MYFRAME_TITLE_BACK_INVALID && !used[r] ) 
 		{	
 			tbar_layout[right_elem] = default_tbar_layout[r] ;
+			LOCAL_DEBUG_OUT( "r = %d, right_elem %d has slot = %d", r, right_elem, tbar_layout[right_elem] );
 			used[r] = True ;
 		}
 	}	 
@@ -158,7 +160,7 @@ compile_tbar_layout( unsigned int *tbar_layout, unsigned int *default_tbar_layou
 	{	
 		if( tbar_layout[l] == -1 )
 		{
-	 		int i, k ;
+	 		int i ;
 			int from = 0, to = MYFRAME_TITLE_SIDE_ELEMS;
 			if( l >= MYFRAME_TITLE_SIDE_ELEMS ) 
 			{
