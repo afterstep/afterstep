@@ -860,34 +860,47 @@ update_pager_shape()
         int x, y ;
 		unsigned int d_width, d_height, bw ;
 
-        get_current_canvas_geometry( d->desk_canvas, &x, &y, &d_width, &d_height, &bw );
+#ifdef STRICT_GEOMETRY        
+		get_current_canvas_geometry( d->desk_canvas, &x, &y, &d_width, &d_height, &bw );
+#else
+		x = d->desk_canvas->root_x - PagerState.main_canvas->root_x ;
+		y = d->desk_canvas->root_y - PagerState.main_canvas->root_y ;
+		d_width = d->desk_canvas->width ;
+		d_height = d->desk_canvas->height ;
+		bw = Config->border_width ;
+#endif
+
 		LOCAL_DEBUG_OUT( "desk geometry = %dx%d%+d%+d, bw = %d", d_width, d_height, x, y, bw );
 		combine_canvas_shape_at_geom( PagerState.main_canvas, d->desk_canvas, x, y, d_width, d_height, bw );
 
-	    if( get_flags(Config->flags, SHOW_SELECTION) && d->desk == Scr.CurrentDesk )
-			add_shape_rectangles( PagerState.main_canvas->shape, &(PagerState.selection_bar_rects[0]), 4, x, y, PagerState.main_canvas->width, PagerState.main_canvas->height );
+		if( Config->MSDeskBack[i]->texture_type == TEXTURE_SHAPED_PIXMAP ||
+            Config->MSDeskBack[i]->texture_type == TEXTURE_SHAPED_SCALED_PIXMAP )
+		{
+	    	if( get_flags(Config->flags, SHOW_SELECTION) && d->desk == Scr.CurrentDesk )
+				add_shape_rectangles( PagerState.main_canvas->shape, &(PagerState.selection_bar_rects[0]), 4, x, y, PagerState.main_canvas->width, PagerState.main_canvas->height );
 
-		if( get_flags(Config->flags, PAGE_SEPARATOR) )
-			add_shape_rectangles( PagerState.main_canvas->shape, &(d->separator_bar_rects[0]), d->separator_bars_num, x, y, PagerState.main_canvas->width, PagerState.main_canvas->height );
+			if( get_flags(Config->flags, PAGE_SEPARATOR) )
+				add_shape_rectangles( PagerState.main_canvas->shape, &(d->separator_bar_rects[0]), d->separator_bars_num, x, y, PagerState.main_canvas->width, PagerState.main_canvas->height );
 
-	    if( d->clients_num > 0 )
-    	{
-        	register ASWindowData **clients = d->clients ;
-        	int k = d->clients_num ;
-        	LOCAL_DEBUG_OUT( "desk %d clients_num %d", i, d->clients_num );
-        	while( --k >= 0 )
-        	{
-            	LOCAL_DEBUG_OUT( "client %d data %p", i, clients[k] );
-            	if( clients[k] && clients[k]->canvas )
-            	{
-			        int client_x, client_y ;
-					unsigned int client_width, client_height, client_bw ;
-					get_current_canvas_geometry( clients[k]->canvas, &client_x, &client_y, &client_width, &client_height, &client_bw );
+	    	if( d->clients_num > 0 )
+    		{
+        		register ASWindowData **clients = d->clients ;
+        		int k = d->clients_num ;
+        		LOCAL_DEBUG_OUT( "desk %d clients_num %d", i, d->clients_num );
+        		while( --k >= 0 )
+        		{
+            		LOCAL_DEBUG_OUT( "client %d data %p", i, clients[k] );
+            		if( clients[k] && clients[k]->canvas )
+            		{
+			        	int client_x, client_y ;
+						unsigned int client_width, client_height, client_bw ;
+						get_current_canvas_geometry( clients[k]->canvas, &client_x, &client_y, &client_width, &client_height, &client_bw );
 
-                	LOCAL_DEBUG_OUT( "combining client \"%s\"", clients[k]->icon_name );
-                	combine_canvas_shape_at_geom(PagerState.main_canvas, clients[k]->canvas, client_x+x, client_y+y, client_width, client_height, client_bw );
-            	}
-        	}
+                		LOCAL_DEBUG_OUT( "combining client \"%s\"", clients[k]->icon_name );
+                		combine_canvas_shape_at_geom(PagerState.main_canvas, clients[k]->canvas, client_x+x, client_y+y, client_width, client_height, client_bw );
+            		}
+        		}
+			}
 		}
 	    clear_flags( d->flags, ASP_ShapeDirty );
     }
@@ -2220,7 +2233,8 @@ process_message (send_data_type type, send_data_type *body)
 		WindowPacketResult res ;
         /* saving relevant client info since handle_window_packet could destroy the actuall structure */
         Window               saved_w = None ;
-        INT32                  saved_desk = wd?wd->desk:INVALID_DESK;
+        INT32                saved_desk = wd?wd->desk:INVALID_DESK;
+		INT32 				 new_desk = saved_desk ; 
         struct ASWindowData *saved_wd = wd ;
 
         if( wd && wd->canvas )
@@ -2231,8 +2245,10 @@ process_message (send_data_type type, send_data_type *body)
         if( res == WP_DataCreated )
             add_client( wd );
 		else if( res == WP_DataChanged )
+		{	
             refresh_client( saved_desk, wd );
-		else if( res == WP_DataDeleted )
+			new_desk = wd->desk ;
+		}else if( res == WP_DataDeleted )
         {
 			int i = PagerState.desks_num ;
             LOCAL_DEBUG_OUT( "client deleted (%p)->window(%lX)->desk(%ld)", saved_wd, saved_w, (long)saved_desk );
@@ -2242,7 +2258,27 @@ process_message (send_data_type type, send_data_type *body)
             unregister_client( saved_w );
         }
 		if( !get_flags( PagerState.flags, ASP_ReceivingWindowList ) )
-			update_pager_shape();
+		{
+			Bool need_shape_update = False ;	  
+			if( IsValidDesk(saved_desk) )
+			{
+        		register INT32 pager_desk = saved_desk - PagerState.start_desk ;
+			    if(  pager_desk >= 0 && pager_desk < PagerState.desks_num )
+				if( Config->MSDeskBack[pager_desk]->texture_type == TEXTURE_SHAPED_PIXMAP ||
+    	        	Config->MSDeskBack[pager_desk]->texture_type == TEXTURE_SHAPED_SCALED_PIXMAP )
+					need_shape_update = True ;
+			}
+			if( need_shape_update && saved_desk != new_desk && IsValidDesk(new_desk))
+			{	
+				register INT32 pager_desk = new_desk - PagerState.start_desk ;
+			    if(  pager_desk >= 0 && pager_desk < PagerState.desks_num )
+				if( Config->MSDeskBack[pager_desk]->texture_type == TEXTURE_SHAPED_PIXMAP ||
+            		Config->MSDeskBack[pager_desk]->texture_type == TEXTURE_SHAPED_SCALED_PIXMAP )
+					need_shape_update = True ;
+			}
+			if( need_shape_update )
+				update_pager_shape();
+		}
     }else
     {
         switch( type )

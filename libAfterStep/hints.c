@@ -1644,13 +1644,13 @@ constrain_size (ASHints * hints, ASStatusHints * status, unsigned int max_width,
 static int    _as_gravity_offsets[11][2] = {
 	{0, 0},									   /* ForgetGravity */
 	{-1, -1},								   /* NorthWestGravity */
-	{0, -1},								   /* NorthGravity */
+	{2, -1},								   /* NorthGravity */
 	{1, -1},								   /* NorthEastGravity */
-	{-1, 0},								   /* WestGravity */
+	{-1, 2},								   /* WestGravity */
 	{0, 0},									   /* CenterGravity */
-	{1, 0},									   /* EastGravity */
+	{1, 2},									   /* EastGravity */
 	{-1, 1},								   /* SouthWestGravity */
-	{0, 1},									   /* SouthGravity */
+	{2, 1},									   /* SouthGravity */
 	{1, 1},									   /* SouthEastGravity */
 	{2, 2}									   /* StaticGravity */
 };
@@ -1873,18 +1873,26 @@ status2anchor (XRectangle * anchor, ASHints * hints, ASStatusHints * status, uns
 
 		get_gravity_offsets (hints, &grav_x, &grav_y);
 
+		LOCAL_DEBUG_OUT( "grav_x = %d, width = %d, bw1 = %d, bw2 = %d, status_x = %d", 
+						 grav_x, anchor->width, status->frame_size[FR_W], status->frame_size[FR_E], status->x );
         offset = 0 ;
 		APPLY_GRAVITY (grav_x, offset, anchor->width, status->frame_size[FR_W], status->frame_size[FR_E]);
 		anchor->x = status->x - offset;
 
+		LOCAL_DEBUG_OUT( "grav_y = %d, height = %d, bw1 = %d, bw2 = %d, status_y = %d", 
+						 grav_y, anchor->height, status->frame_size[FR_N], status->frame_size[FR_S], status->y );
+
         offset = 0;
 		APPLY_GRAVITY (grav_y, offset, anchor->height, status->frame_size[FR_N], status->frame_size[FR_S]);
 		anchor->y = status->y - offset;
+
+		LOCAL_DEBUG_OUT( "anchor = %+d%+d", anchor->x, anchor->y );
 		if (!get_flags (status->flags, AS_Sticky))
 		{
 			anchor->x += status->viewport_x;
 			anchor->y += status->viewport_y;
 		}
+		LOCAL_DEBUG_OUT( "anchor = %+d%+d", anchor->x, anchor->y );
 	}
 }
 
@@ -1900,19 +1908,26 @@ anchor2status (ASStatusHints * status, ASHints * hints, XRectangle * anchor)
 
 	get_gravity_offsets (hints, &grav_x, &grav_y);
 
+	LOCAL_DEBUG_OUT( "grav_x = %d, width = %d, bw1 = %d, bw2 = %d, anchor_x = %d", 
+						 grav_x, anchor->width, status->frame_size[FR_W], status->frame_size[FR_E], anchor->x );
     offset = 0 ;
     APPLY_GRAVITY (grav_x, offset, anchor->width, status->frame_size[FR_W], status->frame_size[FR_E]);
 	status->x = anchor->x + offset;
+
+	LOCAL_DEBUG_OUT( "grav_y = %d, height = %d, bw1 = %d, bw2 = %d, anchor_y = %d", 
+						 grav_y, anchor->height, status->frame_size[FR_N], status->frame_size[FR_S], anchor->y );
 
     offset = 0;
 	APPLY_GRAVITY (grav_y, offset, anchor->height, status->frame_size[FR_N], status->frame_size[FR_S]);
 	status->y = anchor->y + offset;
 
+	LOCAL_DEBUG_OUT( "status = %+d%+d", status->x, status->y );
 	if (!get_flags (status->flags, AS_Sticky))
 	{
 		status->x -= status->viewport_x;
 		status->y -= status->viewport_y;
 	}
+	LOCAL_DEBUG_OUT( "status = %+d%+d", status->x, status->y );
 	set_flags (status->flags, AS_Position);
 }
 

@@ -110,7 +110,7 @@ void process_message (send_data_type type, send_data_type *body);
 void DispatchEvent (ASEvent * Event);
 Window make_winlist_window();
 void add_winlist_button( ASTBarData *tbar, ASWindowData *wd );
-void refresh_winlist_button( ASTBarData *tbar, ASWindowData *wd );
+void refresh_winlist_button( ASTBarData *tbar, ASWindowData *wd, Bool focus_only );
 void delete_winlist_button( ASTBarData *tbar, ASWindowData *wd );
 Bool rearrange_winlist_window( Bool dont_resize_main_canvas );
 unsigned int find_button_by_position( int x, int y );
@@ -402,7 +402,7 @@ process_message (send_data_type type, send_data_type *body)
                     add_winlist_button( tbar, wd );
             }
         }else if( res == WP_DataChanged )
-			refresh_winlist_button( tbar, wd );
+			refresh_winlist_button( tbar, wd, (type == M_FOCUS_CHANGE) );
 		else if( res == WP_DataDeleted )
             delete_winlist_button( tbar, saved_wd );
 
@@ -481,8 +481,8 @@ DispatchEvent (ASEvent * event)
 						render_astbar( WinListState.window_order[i]->bar, WinListState.main_canvas );
 		        if( is_canvas_dirty( WinListState.main_canvas ) )
 				{
+					LOCAL_DEBUG_OUT( "update main canvas%s","");
             		update_canvas_display( WinListState.main_canvas );
-					update_canvas_display_mask (WinListState.main_canvas, True);
 				}
             }else if( event->x.xproperty.atom == _AS_STYLE )
 			{
@@ -496,7 +496,7 @@ DispatchEvent (ASEvent * event)
 				update_winlist_styles();
 				rearrange_winlist_window( False );
                 for( i = 0 ; i < WinListState.windows_num ; ++i )
-					refresh_winlist_button( WinListState.window_order[i]->bar, WinListState.window_order[i] );
+					refresh_winlist_button( WinListState.window_order[i]->bar, WinListState.window_order[i], False );
 			}
 			break;
     }
@@ -576,8 +576,8 @@ render_winlist_button( ASTBarData *tbar )
 	LOCAL_DEBUG_CALLER_OUT("tbar %p", tbar );
     if( render_astbar( tbar, WinListState.main_canvas ) )
 	{
+		LOCAL_DEBUG_OUT( "update main canvas%s","");
         update_canvas_display( WinListState.main_canvas );
-		update_canvas_display_mask (WinListState.main_canvas, True);
 		return True ;
 	}
 	return False ;
@@ -614,9 +614,9 @@ rearrange_winlist_window( Bool dont_resize_main_canvas )
                             dont_resize_main_canvas?"Don't ":"Do ", WinListState.windows_num );
     
 	timer_remove_all();
-	if( WinListState.last_message_time >= time(NULL) ) 
+	if( WinListState.last_message_time+1 >= time(NULL) ) 
 	{	
-		timer_new (100, postponed_rearrange_winlist, (void*)dont_resize_main_canvas);	  
+		timer_new (500, postponed_rearrange_winlist, (void*)dont_resize_main_canvas);	  
 		return False;
 	}
 	
@@ -667,8 +667,8 @@ rearrange_winlist_window( Bool dont_resize_main_canvas )
             set_astbar_size( WinListState.idle_bar, allowed_min_width, allowed_min_height );
             move_astbar( WinListState.idle_bar, NULL, 0, 0 );
             render_astbar( WinListState.idle_bar, WinListState.main_canvas );
+			LOCAL_DEBUG_OUT( "update main canvas%s","");
             update_canvas_display( WinListState.main_canvas );
-			update_canvas_display_mask (WinListState.main_canvas, True);
         }
         return False;
     }
@@ -901,8 +901,8 @@ rearrange_winlist_window( Bool dont_resize_main_canvas )
     }
     if( is_canvas_dirty( WinListState.main_canvas ) )
 	{
+		LOCAL_DEBUG_OUT( "update main canvas%s","");
         update_canvas_display( WinListState.main_canvas );
-		update_canvas_display_mask (WinListState.main_canvas, True);
 	}
     return True ;
 }
@@ -947,47 +947,52 @@ find_button_by_position( int x, int y )
 
 /* Public stuff : ***************************************************/
 static void
-configure_tbar_props( ASTBarData *tbar, ASWindowData *wd )
+configure_tbar_props( ASTBarData *tbar, ASWindowData *wd, Bool focus_only )
 {
 	INT32 encoding = AS_Text_ASCII ;
 	char *name = get_window_name(wd, Config->show_name_type, &encoding );
     ASFlagType align = ALIGN_TOP|ALIGN_BOTTOM ;
 
-    delete_astbar_tile( tbar, -1 );
-    tbar->h_border = Config->h_spacing ;
-    tbar->v_border = Config->v_spacing ;
-    set_astbar_style_ptr( tbar, BAR_STATE_FOCUSED, Scr.Look.MSWindow[BACK_FOCUSED] );
-    set_astbar_hilite( tbar, BACK_FOCUSED, Config->fbevel );
-    set_astbar_composition_method( tbar, BACK_FOCUSED, Config->fcm );
-    if( get_flags(wd->state_flags, AS_Sticky) )
-    {
-        set_astbar_style_ptr( tbar, BAR_STATE_UNFOCUSED, Scr.Look.MSWindow[BACK_STICKY] );
-        set_astbar_hilite( tbar, BACK_UNFOCUSED, Config->sbevel );
-        set_astbar_composition_method( tbar, BACK_FOCUSED, Config->scm );
-    }else
-    {
-        set_astbar_style_ptr( tbar, BAR_STATE_UNFOCUSED, Scr.Look.MSWindow[BACK_UNFOCUSED] );
-        set_astbar_hilite( tbar, BACK_UNFOCUSED, Config->ubevel );
-        set_astbar_composition_method( tbar, BACK_FOCUSED, Config->ucm );
-    }
+	if( !focus_only ) 
+	{
+    	delete_astbar_tile( tbar, -1 );
+    	tbar->h_border = Config->h_spacing ;
+    	tbar->v_border = Config->v_spacing ;
+    	set_astbar_style_ptr( tbar, BAR_STATE_FOCUSED, Scr.Look.MSWindow[BACK_FOCUSED] );
+    	set_astbar_hilite( tbar, BACK_FOCUSED, Config->fbevel );
+    	set_astbar_composition_method( tbar, BACK_FOCUSED, Config->fcm );
+    	if( get_flags(wd->state_flags, AS_Sticky) )
+    	{
+        	set_astbar_style_ptr( tbar, BAR_STATE_UNFOCUSED, Scr.Look.MSWindow[BACK_STICKY] );
+        	set_astbar_hilite( tbar, BACK_UNFOCUSED, Config->sbevel );
+        	set_astbar_composition_method( tbar, BACK_FOCUSED, Config->scm );
+    	}else
+    	{
+        	set_astbar_style_ptr( tbar, BAR_STATE_UNFOCUSED, Scr.Look.MSWindow[BACK_UNFOCUSED] );
+        	set_astbar_hilite( tbar, BACK_UNFOCUSED, Config->ubevel );
+        	set_astbar_composition_method( tbar, BACK_FOCUSED, Config->ucm );
+    	}
 
-    align = Config->name_aligment ;
-    if( get_flags( wd->state_flags, AS_Iconic ) && name != NULL && name[0] != '\0')
-    {
-        char *iconic_name = safemalloc(1+strlen(name)+1+1);
-        sprintf(iconic_name, "(%s)", name );
-        add_astbar_label( tbar, 0, 0, 0, align, 0, 0, iconic_name, encoding);
-        free( iconic_name );
-    }else
-        add_astbar_label( tbar, 0, 0, 0, align, 0, 0, name, encoding);
-    set_astbar_balloon( tbar, 0, name, encoding );
+    	align = Config->name_aligment ;
+    	if( get_flags( wd->state_flags, AS_Iconic ) && name != NULL && name[0] != '\0')
+    	{
+        	char *iconic_name = safemalloc(1+strlen(name)+1+1);
+        	sprintf(iconic_name, "(%s)", name );
+        	add_astbar_label( tbar, 0, 0, 0, align, 0, 0, iconic_name, encoding);
+        	free( iconic_name );
+    	}else
+        	add_astbar_label( tbar, 0, 0, 0, align, 0, 0, name, encoding);
+    	set_astbar_balloon( tbar, 0, name, encoding );
+	}
     set_astbar_focused( tbar, WinListState.main_canvas, wd->focused );
     if( wd->focused )
 	{
         if( WinListState.focused && WinListState.focused != wd )
 		{
 			WinListState.focused->focused = False ;
-            refresh_winlist_button( WinListState.focused->bar, WinListState.focused ) ;
+			set_astbar_focused( WinListState.focused->bar, WinListState.main_canvas, False );
+			if( focus_only ) 
+				render_astbar( WinListState.focused->bar, WinListState.main_canvas );
 		}
 		WinListState.focused = wd ;
     }
@@ -1003,14 +1008,14 @@ LOCAL_DEBUG_OUT("tbar = %p, wd = %p", tbar, wd );
         wd->bar = tbar ;
         WinListState.window_order[WinListState.windows_num] = wd ;
         ++(WinListState.windows_num);
-        configure_tbar_props( tbar, wd );
+        configure_tbar_props( tbar, wd, False );
 		if( !WinListState.postpone_display )
 		    rearrange_winlist_window( False );
 	}
 }
 
 void
-refresh_winlist_button( ASTBarData *tbar, ASWindowData *wd )
+refresh_winlist_button( ASTBarData *tbar, ASWindowData *wd, Bool focus_only )
 {
 LOCAL_DEBUG_OUT("tbar = %p, wd = %p", tbar, wd );
     if( tbar )
@@ -1018,14 +1023,21 @@ LOCAL_DEBUG_OUT("tbar = %p, wd = %p", tbar, wd );
         int i = find_window_index( wd ) ;
         if( i < WinListState.windows_num )
         {
-            configure_tbar_props( tbar, wd );
+            configure_tbar_props( tbar, wd, focus_only );
 			if( !WinListState.postpone_display )
 			{
-          		if( calculate_astbar_width( tbar ) > WinListState.col_width[WinListState.bar_col[i]] ||
-              		calculate_astbar_height( tbar ) > WinListState.max_item_height )
-	                rearrange_winlist_window( False );
-  		        else
-      		        render_winlist_button( tbar );
+				Bool rearranged = False ;
+				if( !focus_only )
+				{	
+          			if( calculate_astbar_width( tbar ) > WinListState.col_width[WinListState.bar_col[i]] ||
+              			calculate_astbar_height( tbar ) > WinListState.max_item_height )
+					{
+	                	rearrange_winlist_window( False );
+						rearranged = True ;
+					}
+  		        }
+				if( !rearranged )
+      		    	render_winlist_button( tbar );
 			}
         }
 	}
@@ -1067,8 +1079,8 @@ press_winlist_button( ASWindowData *wd )
             set_astbar_pressed( WinListState.pressed_bar, WinListState.main_canvas, True );
             if( is_canvas_dirty( WinListState.main_canvas ) )
 			{
+				LOCAL_DEBUG_OUT( "update main canvas%s","");	  
                 update_canvas_display( WinListState.main_canvas );
-				update_canvas_display_mask (WinListState.main_canvas, True);
 			}
         }
     }
@@ -1088,8 +1100,8 @@ release_winlist_button( ASWindowData *wd, int button )
 
         if( is_canvas_dirty( WinListState.main_canvas ) )
 		{
+			LOCAL_DEBUG_OUT( "update main canvas%s","");	  
             update_canvas_display( WinListState.main_canvas );
-			update_canvas_display_mask (WinListState.main_canvas, True);
 		}
 
         action_list = Config->mouse_actions[button - Button1] ;
@@ -1115,7 +1127,7 @@ update_winlist_styles()
     {
         register ASTBarData *bar = WinListState.window_order[i]->bar ;
         if( bar )
-			configure_tbar_props( bar, WinListState.window_order[i] );
+			configure_tbar_props( bar, WinListState.window_order[i], False );
     }
 	if( WinListState.idle_bar )
 	{

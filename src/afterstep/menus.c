@@ -798,7 +798,7 @@ LOCAL_DEBUG_CALLER_OUT( "%p, %d, submenu(%p)", menu, item, menu->items[item].sub
                 x += max_dx ;
         }
 #endif
-        y = menu->main_canvas->root_y+(menu->item_height*(item-(int)menu->top_item)) - 10 ;
+        y = menu->main_canvas->root_y+(menu->item_height*(item+1-(int)menu->top_item)) - 10 ;
 /*	if( x > menu->main_canvas->root_x+menu->item_width-5 )
 	    x = menu->main_canvas->root_x+menu->item_width-5 ;
 */      close_asmenu_submenu( menu );

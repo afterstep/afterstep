@@ -226,6 +226,8 @@ data_fname_filter (const char *d_name)
 		(name_len >= 5 && strcmp(d_name+name_len-5, ".mini") == 0) ||
 		(name_len >= 5 && strcmp(d_name+name_len-5, ".html") == 0))
 		return False;
+	printf( "\b%c", d_name[0] );
+	fflush( stdout );
 	return True;
 }
 
@@ -242,7 +244,10 @@ convert_data_file( const char *source_dir, const char *dst_dir, ASXMLInterpreter
 												  0, &count, data_fname_filter );
 
 	LOCAL_DEBUG_OUT( "im_list = %p, count = %d", im_list, count );
-
+	
+	printf( "\b" );
+	fflush( stdout );
+	   
 	curr = im_list ;
 	while( curr )
 	{
@@ -433,7 +438,7 @@ gen_data_doc( const char *source_dir, const char *dest_dir,
 		}
 	}
 	   
-	printf( "\nCataloguing %s ", source_dir );
+	printf( "\nCataloguing %s  ", source_dir );
 	fflush( stdout );
 
 	convert_data_file( source_dir, dest_dir, &state, &xml_state );

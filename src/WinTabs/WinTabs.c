@@ -790,7 +790,6 @@ render_tabs( Bool canvas_resized )
     if( is_canvas_dirty( WinTabsState.tabs_canvas ) )
 	{
         update_canvas_display( WinTabsState.tabs_canvas );
-        update_canvas_display_mask (WinTabsState.tabs_canvas, True);
 	}
 }
 

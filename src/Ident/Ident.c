@@ -327,7 +327,6 @@ DispatchEvent (ASEvent * event)
 		        if( is_canvas_dirty( IdentState.main_canvas ) )
 				{
             		update_canvas_display( IdentState.main_canvas );
-					update_canvas_display_mask (IdentState.main_canvas, True);
 				}
             }else if( event->x.xproperty.atom == _AS_STYLE )
 			{
@@ -886,7 +885,6 @@ display_window_data()
 	if( is_canvas_dirty( IdentState.main_canvas ) )
 	{
         update_canvas_display( IdentState.main_canvas );
-		update_canvas_display_mask ( IdentState.main_canvas, True);
 	}
 }
 

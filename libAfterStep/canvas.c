@@ -55,12 +55,17 @@ get_current_canvas_geometry( ASCanvas * pc, int *px, int *py, unsigned int *pwid
 static void
 set_canvas_shape_to_rectangle( ASCanvas * pc )
 {
-    int x, y;
     unsigned int width, height, bw ;
     XRectangle    rect;
     rect.x = 0;
     rect.y = 0;
-    get_current_canvas_geometry( pc, &x, &y, &width, &height, &bw );
+#ifdef STRICT_GEOMETRY
+    get_current_canvas_geometry( pc, NULL, NULL, &width, &height, &bw );
+#else
+	width = pc->width ;
+	height = pc->height ;
+	bw = pc->bw ;
+#endif
     rect.width  = width+bw*2;
     rect.height = height+bw*2;
     LOCAL_DEBUG_OUT( "XShapeCombineRectangles(%lX) (%dx%d%+d%+d)", pc->w, rect.width, rect.height, -bw, -bw );
@@ -404,16 +409,6 @@ get_current_canvas_size( ASCanvas * pc, unsigned int *pwidth, unsigned int *phei
 
 
 
-#ifdef TRACE_update_canvas_display
-#undef update_canvas_display
-void update_canvas_display (ASCanvas * pc);
-void  trace_update_canvas_display (ASCanvas * pc, const char *file, int line)
-{
-    fprintf (stderr, "D>%s(%d):update_canvas_display(%p)\n", file, line, pc);
-    update_canvas_display(pc);
-}
-#endif
-
 void
 update_canvas_display_mask (ASCanvas * pc, Bool force)
 {
@@ -459,6 +454,16 @@ LOCAL_DEBUG_CALLER_OUT( "canvas(%p)->window(%lx)->canvas_pixmap(%lx)->size(%dx%d
 }
 
 
+#ifdef TRACE_update_canvas_display
+#undef update_canvas_display
+void update_canvas_display (ASCanvas * pc);
+void  trace_update_canvas_display (ASCanvas * pc, const char *file, int line)
+{
+    fprintf (stderr, "D>%s(%d):update_canvas_display(%p)\n", file, line, pc);
+    update_canvas_display(pc);
+}
+#endif
+
 
 void
 update_canvas_display (ASCanvas * pc)
@@ -481,25 +486,6 @@ LOCAL_DEBUG_CALLER_OUT( "canvas(%p)->window(%lx)->canvas_pixmap(%lx)->size(%dx%d
             }
         }
 	}
-}
-
-Bool
-save_canvas( ASCanvas *pc )
-{
-	if( pc )
-	{
-		destroy_visual_pixmap( Scr.asv, &(pc->saved_canvas) );
-		pc->saved_canvas = pc->canvas ;
-		pc->canvas = None ;
-
-		destroy_shape( &(pc->saved_shape) );
-		pc->saved_shape = pc->shape ;
-		pc->shape = NULL ;
-
-		set_flags (pc->state, CANVAS_MASK_OUT_OF_SYNC|CANVAS_OUT_OF_SYNC);
-		return (pc->saved_canvas != None) ;
-	}
-	return False;
 }
 
 void
@@ -531,11 +517,53 @@ restore_canvas( ASCanvas *pc )
 		pc->saved_shape = NULL ;
 
 		update_canvas_display( pc );
-		update_canvas_display_mask (pc, False);
 		return True;
 	}
 	return False ;
 }
+
+Bool
+save_canvas( ASCanvas *pc )
+{
+	if( pc )
+	{
+		destroy_visual_pixmap( Scr.asv, &(pc->saved_canvas) );
+		pc->saved_canvas = pc->canvas ;
+		pc->canvas = None ;
+
+		destroy_shape( &(pc->saved_shape) );
+		pc->saved_shape = pc->shape ;
+		pc->shape = NULL ;
+
+		set_flags (pc->state, CANVAS_MASK_OUT_OF_SYNC|CANVAS_OUT_OF_SYNC);
+		return (pc->saved_canvas != None) ;
+	}
+	return False;
+}
+
+Bool
+swap_save_canvas( ASCanvas *pc )
+{
+	Pixmap 		tmp_canvas ;
+	struct ASVector 	*tmp_shape ;
+	
+	if( pc )
+	{
+		tmp_canvas = pc->saved_canvas ;
+		pc->saved_canvas = pc->canvas ;
+		pc->canvas = tmp_canvas ;
+
+		tmp_shape = pc->saved_shape ;
+		pc->saved_shape = pc->shape ;
+		pc->shape = tmp_shape ;
+
+		set_flags (pc->state, CANVAS_MASK_OUT_OF_SYNC|CANVAS_OUT_OF_SYNC);
+		return (pc->canvas != None) ;
+	}
+	return False;
+	
+}
+
 
 void
 clear_canvas_shape (ASCanvas * pc, Bool force_for_container)
@@ -614,8 +642,12 @@ LOCAL_DEBUG_OUT( "parent(%p),child(%p)", parent, child );
 		LOCAL_DEBUG_OUT( "parent->shape(%p)", parent->shape );
 		if( parent->shape == NULL )
 			return False;
-
+#ifdef STRICT_GEOMETRY
         get_current_canvas_size( parent, &parent_width, &parent_height );
+#else
+		parent_width = parent->width ;
+		parent_height = parent->height ;
+#endif
 
         if( child_x > parent_width || child_y > parent_height ||
             child_x + child_width <= 0 || child_y + child_height <= 0 )
@@ -694,8 +726,15 @@ combine_canvas_shape (ASCanvas *parent, ASCanvas *child )
 
 		if( parent->shape == NULL )
 			return False;
-
+#ifndef STRICT_GEOMETRY
         get_current_canvas_geometry( child, &child_x, &child_y, &width, &height, &bw );
+#else
+		child_x = child->root_x - parent->root_x ;
+		child_y = child->root_y - parent->root_y ;
+		width = child->width ;
+		height = child->height ;
+		bw = child->bw ;
+#endif
 		res = combine_canvas_shape_at_geom (parent, child, child_x, child_y, width, height, bw );
     }
 #endif
@@ -710,7 +749,14 @@ combine_canvas_shape_at (ASCanvas *parent, ASCanvas *child, int child_x, int chi
     if( child )
     {
         unsigned int width, height, bw;
+#ifndef STRICT_GEOMETRY
         get_current_canvas_geometry( child, NULL, NULL, &width, &height, &bw );
+#else
+		width = child->width ;
+		height = child->height ;
+		bw = child->bw ;
+#endif
+
         return combine_canvas_shape_at_geom ( parent, child, child_x, child_y, width, height, bw );
     }
 #endif

@@ -1766,8 +1766,8 @@ dup_data(ASStorage *storage, ASStorageID id)
 static int StorageTestKinds[STORAGE_TEST_KINDS][2] = 
 {
 	{100, 1 },
-	{4096, 10000 },
-	{128*1024, 64 },
+	{4096, 40000 },
+	{128*1024, 128 },
 	{256*1024, 32 },
 	{512*1024, 16 },
 	{1024*1024, 8 }
@@ -1775,7 +1775,7 @@ static int StorageTestKinds[STORAGE_TEST_KINDS][2] =
 
 CARD8 Buffer[1024*1024] ;
 /* #define STORAGE_TEST_COUNT  1 */
-#define STORAGE_TEST_COUNT  8+16+32+64+10000+1 
+#define STORAGE_TEST_COUNT  8+16+32+128+40000+1 
 typedef struct ASStorageTest {
 	int size ;
 	CARD8 *data;

@@ -10,6 +10,10 @@ extern "C" {
 #define TRACE_render_astbar
 #endif
 
+/* define that if you want all geometry being updated just before setting shape*/
+#undef	STRICT_GEOMETRY 
+
+
 struct MyStyle ;
 struct ASImage;
 struct icon_t;
@@ -85,6 +89,8 @@ void update_canvas_display( ASCanvas *pc );
 void update_canvas_display_mask (ASCanvas * pc, Bool force);
 
 Bool save_canvas( ASCanvas *pc );
+Bool swap_save_canvas( ASCanvas *pc );
+
 void invalidate_canvas_save( ASCanvas *pc );
 Bool restore_canvas( ASCanvas *pc );
 

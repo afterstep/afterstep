@@ -233,7 +233,7 @@ typedef struct ASSupportedHints
 { switch( (grav) )					         \
 {case  0 : (pos) -= ((size)>>1)+(bw1)    ; break ; /* Center/Forget */ \
  case  1 : (pos) -= (bw1)+(bw2)+(size)   ; break ; /* South/East */    \
- case  2 : (pos) = (bw1)                 ; break ; /* Static */        \
+ case  2 : (pos) -= (bw1)                 ; break ; /* Static */        \
  default :                                 break ; /* North/West */    \
 }}
 

@@ -1023,8 +1023,6 @@ LOCAL_DEBUG_CALLER_OUT( "(%p,%s focused)", asw, focused?"":"not" );
     if( AS_ASSERT(asw) )
         return;
 
-    broadcast_focus_change( asw, focused );
-
     if(!ASWIN_GET_FLAGS(asw, AS_Iconic))
     {
         register int i = FRAME_PARTS;
@@ -1033,6 +1031,12 @@ LOCAL_DEBUG_CALLER_OUT( "(%p,%s focused)", asw, focused?"":"not" );
 		{
     	    ASCanvas *update_canvas = asw->frame_sides[i] ;
 			int k ;
+			if( swap_save_canvas( update_canvas ) )
+			{	
+				LOCAL_DEBUG_OUT( "canvas save swapped for side %d", i );
+				update_canvas = NULL ;
+			}
+#if 0				  
 			if( focused )
 			{
 				save_canvas(update_canvas);
@@ -1044,6 +1048,7 @@ LOCAL_DEBUG_CALLER_OUT( "(%p,%s focused)", asw, focused?"":"not" );
 					update_canvas = NULL ;
 				}
 			}
+#endif
 
 			if( i == od->tbar_side )
 				set_astbar_focused( asw->tbar, update_canvas, focused );
@@ -1753,7 +1758,13 @@ hilite_aswindow( ASWindow *asw )
             on_window_hilite_changed (Scr.Windows->hilited, False);
         if( asw )
             on_window_hilite_changed (asw, True);
-        Scr.Windows->hilited = asw ;
+        
+		if( Scr.Windows->hilited )
+			broadcast_focus_change( asw, False );
+		if( asw )
+			broadcast_focus_change( asw, True );
+
+		Scr.Windows->hilited = asw ;
     }
 }
 
@@ -1763,6 +1774,7 @@ hide_hilite()
     if( Scr.Windows->hilited != NULL )
     {
         on_window_hilite_changed (Scr.Windows->hilited, False);
+		broadcast_focus_change( Scr.Windows->hilited, False );
         Scr.Windows->hilited = NULL ;
     }
 }
