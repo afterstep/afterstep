@@ -571,7 +571,7 @@ option_hash_value (ASHashableValue value, ASHashKey hash_size)
 
 	{
 		c = *(opt++);
-		if (c == '\0' || !(isalnum (c) || ispunct(c)))
+		if (c == '\0' || !(isalnum (c) || c == '~' || c == '_'))
 			break;
 		if (isupper (c))
 			c = tolower (c);
@@ -592,7 +592,7 @@ option_compare (ASHashableValue value1, ASHashableValue value2)
 		return -1;
 	if (str2 == NULL)
 		return 1;
-	while ((*str1 && (isalnum (*str1) || ispunct (*str1))) || (*str2 && (isalnum (*str2) || ispunct (*str2))))
+	while ((*str1 && (isalnum (*str1) || *str1 == '_')) || (*str2 && (isalnum (*str2) || *str2 == '_')))
 	{
 		char          u1, u2;
 
