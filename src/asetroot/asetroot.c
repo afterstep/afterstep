@@ -19,10 +19,6 @@
  */
 
 /*#define DO_CLOCKING      */
-
-#define TRUE 1
-#define FALSE 0
-
 #include "../../configure.h"
 
 #include <errno.h>
@@ -49,18 +45,11 @@
 #include <sys/select.h>
 #endif
 
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#include <X11/Xproto.h>
-#include <X11/Xatom.h>
-#include <X11/Intrinsic.h>
-#ifdef I18N
-#include <X11/Xlocale.h>
-#endif
-
 #define IN_MODULE
 #define MODULE_X_INTERFACE
 
+#include "../../include/afterbase.h"
+#include "../../libAfterImage/afterimage.h"
 #include "../../include/aftersteplib.h"
 #include "../../include/afterstep.h"
 #include "../../include/style.h"
@@ -69,9 +58,6 @@
 #include "../../include/parser.h"
 #include "../../include/confdefs.h"
 #include "../../include/module.h"
-#include "../../include/ascolor.h"
-#include "../../include/stepgfx.h"
-#include "../../include/XImage_utils.h"
 #include "../../include/pixmap.h"
 #include "../../include/loadimg.h"
 #include "../../include/background.h"
@@ -117,10 +103,10 @@ ASAtom Atoms[] =
 
 char *MyName;
 ScreenInfo Scr;			/* AS compatible screen information structure */
-Display *dpy;			/* which display are we talking to */
 int screen;
 
 char *pixmapPath = NULL;
+ASImageManager *ImMan = NULL;
 
 ASDeskBackArray DesksArray =
 {NULL, 0};
@@ -269,6 +255,7 @@ main (int argc, char **argv)
   set_use_pixmap_ref (FALSE);
 
   /* Save our program name - for error messages */
+  set_application_name(argv[0]);
   SetMyName (argv[0]);
 
   i = ProcessModuleArgs (argc, argv, &(MyEnv.global_config_file), NULL, NULL, usage);
@@ -343,7 +330,7 @@ main (int argc, char **argv)
   /* Dead pipe == dead AfterStep */
   signal (SIGPIPE, DeadPipe);
   signal (SIGQUIT, DeadPipe);
-  signal (SIGSEGV, DeadPipe);
+  set_signal_handler (SIGSEGV);
   signal (SIGTERM, DeadPipe);
   signal (SIGKILL, DeadPipe);
 
@@ -732,206 +719,194 @@ DuplicateDeskBack (ASDeskBack * trg, ASDeskBack * src)
 
 /* just a stub so far */
 Pixmap
-DoTransformPixmap (Pixmap src, MyBackgroundConfig * back)
+DoTransformPixmap (ASImage *src, MyBackgroundConfig * back)
 {
-/* create GC */
-  GC gc;
-  XGCValues values;
-  unsigned long mask = 0;
-  Pixmap trg;
-  int junk;
-  Window root;
-  unsigned int width, height;
-  int x = 0, y = 0;
-  ShadingInfo *shading = NULL;
-  unsigned int screen_width = Scr.MyDisplayWidth;
-  unsigned int screen_height = Scr.MyDisplayHeight;
+	Pixmap trg = None;
+    unsigned int width, height;
+	int x = 0, y = 0;
+	ARGB32 tint = TINT_LEAVE_SAME ;
+	ARGB32 pad_color = 0 ;
+	unsigned int screen_width = Scr.MyDisplayWidth;
+    unsigned int screen_height = Scr.MyDisplayHeight;
+	ASImage *work_im = src ;
 
-  if (src == None)
-    return src;
-  if (back->flags & BGFLAG_PAD)
+	if (src == NULL)
+  		return None;
+
+	width = src->width ;
+	height = src->height ;
+    /* cut and tint */
+    if (back->flags & BGFLAG_PAD)
     {
-      XColor pad_col;
-      XParseColor (dpy, DefaultColormap (dpy, Scr.screen), back->pad, &pad_col);
-      MyAllocColor (&pad_col);
-      values.foreground = pad_col.pixel;
-      mask = GCForeground;
+		if( parse_argb_color( back->pad, &pad_color ) == back->pad )
+			pad_color = 0 ;
     }
-  if ((gc = XCreateGC (dpy, Scr.Root, mask, &values)) == None)
-    return src;
-  /* cut and tint */
-  XGetGeometry (dpy, src, &root, &junk, &junk, &width, &height, &junk, &junk);
-
-  if (back->flags & BGFLAG_TINT)
+    if (back->flags & BGFLAG_TINT)
     {
-      shading = (ShadingInfo *) safemalloc (sizeof (ShadingInfo));
-      INIT_SHADING ((*shading))
-	XParseColor (dpy, DefaultColormap (dpy, Scr.screen), back->tint, &(shading->tintColor));
+		if( parse_argb_color( back->tint, &tint ) == back->tint )
+			tint = TINT_LEAVE_SAME;
     }
 
-  if (back->flags & BGFLAG_CUT)
+    if (back->flags & BGFLAG_CUT)
     {
-      x = (back->cut.x < width) ? back->cut.x : 0;
-      y = (back->cut.y < height) ? back->cut.y : 0;
-      if (back->cut.width >= width - x || back->cut.width <= 0)
-	width -= x;
-      else
-	width = back->cut.width;
-      if (back->cut.height >= height - x || back->cut.height <= 0)
-	height -= y;
-      else
-	height = back->cut.height;
+    	x = (back->cut.x < width) ? back->cut.x : 0;
+    	y = (back->cut.y < height) ? back->cut.y : 0;
+    	if (back->cut.width >= width - x || back->cut.width <= 0)
+			width -= x;
+        else
+			width = back->cut.width;
+        if (back->cut.height >= height - x || back->cut.height <= 0)
+			height -= y;
+	    else
+			height = back->cut.height;
     }
-  if (back->flags & BGFLAG_CUT || shading)
+    if (back->flags & BGFLAG_CUT || tint != TINT_LEAVE_SAME)
     {
-      if ((trg = ShadePixmap (src, x, y, width, height, gc, shading)) != None)
-	{
-	  UnloadImage (src);
-	  src = trg;
-	}
+		ASImage *tiled_im = tile_asimage( Scr.asv, work_im, 
+		                                  x, y, width, height, tint, 
+		                                  ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT );
+		if( tiled_im )
+		{
+			if( work_im != src ) 
+				destroy_asimage( &work_im );
+			work_im = tiled_im ;
+		}
     }
-  if (shading)
-    free (shading);
 	
-  if( Scr.xinerama_screens && Scr.xinerama_screens_num > 1 ) 
-  {
-	  register int i = Scr.xinerama_screens_num ;
-	  while( --i > 0 )
-		  if( Scr.xinerama_screens[i].x == 0 && Scr.xinerama_screens[i].y == 0 ) 
-			  break ;
-	  screen_width = Scr.xinerama_screens[i].width ;
-	  screen_height = Scr.xinerama_screens[i].height ;
-  }	
+    if( Scr.xinerama_screens && Scr.xinerama_screens_num > 1 ) 
+	{
+	    register int i = Scr.xinerama_screens_num ;
+		while( --i > 0 )
+			if( Scr.xinerama_screens[i].x == 0 && Scr.xinerama_screens[i].y == 0 ) 
+			    break ;
+	    screen_width = Scr.xinerama_screens[i].width ;
+	    screen_height = Scr.xinerama_screens[i].height ;
+    }	
 	
-  /* scale */
-  if (back->flags & BGFLAG_SCALE)
+	/* scale */
+    if (back->flags & BGFLAG_SCALE)
     {
-      unsigned int old_width = width, old_height = height;
+		ASImage *scaled_im ;
 
-      if (back->scale.width > 0)
-	width = back->scale.width;
-      if (back->scale.height > 0)
-	height = back->scale.height;
-      if (back->scale.width <= 0 && back->scale.height <= 0)
-	{
-	  width = screen_width;
-	  height = screen_height;
-	}
-
-      if ((trg = ScalePixmap (src, old_width, old_height, width, height, gc, NULL)) != None)
-	{
-	  UnloadImage (src);
-	  src = trg;
-	}
+  	    if (back->scale.width > 0)
+			width = back->scale.width;
+	    if (back->scale.height > 0)
+			height = back->scale.height;
+        if (back->scale.width <= 0 && back->scale.height <= 0)
+		{
+		    width = screen_width;
+		    height = screen_height;
+		}
+	  
+		scaled_im = scale_asimage( Scr.asv, work_im, width, height, 
+		                           ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT );
+		if( scaled_im )
+		{
+			if( work_im != src ) 
+				destroy_asimage( &work_im );
+			work_im = scaled_im ;
+		}
     }
-  /* align + pad   */
-  if (back->flags & BGFLAG_PAD)
+    /* align + pad   */
+	if (back->flags & BGFLAG_PAD)
     {
-      unsigned int old_width = width, old_height = height;
+  	    unsigned int old_width = width, old_height = height;
+		ASImage *padded_im ;
 
-      if (back->flags & BGFLAG_PAD_HOR)
-	width = screen_width;
-      if (back->flags & BGFLAG_PAD_VERT)
-	height = screen_height;
-      if (!(back->flags & BGFLAG_PAD_HOR) && !(back->flags & BGFLAG_PAD_VERT))
-	{
-	  width = screen_width;
-	  height = screen_height;
-	}
+    	if (back->flags & BGFLAG_PAD_HOR)
+			width = screen_width;
+  	    if (back->flags & BGFLAG_PAD_VERT)
+			height = screen_height;
+        if (!(back->flags & BGFLAG_PAD_HOR) && !(back->flags & BGFLAG_PAD_VERT))
+		{
+		    width = screen_width;
+		    height = screen_height;
+		}
 
-      x = (back->flags & BGFLAG_ALIGN_RIGHT) ? width - old_width : 0;
-      y = (back->flags & BGFLAG_ALIGN_BOTTOM) ? height - old_height : 0;
-      if ((back->flags & BGFLAG_ALIGN) &&
-	  !(back->flags & BGFLAG_ALIGN_BOTTOM) &&
-	  !(back->flags & BGFLAG_ALIGN_RIGHT))
-	{
-	  x = (width - old_width) / 2;
-	  y = (height - old_height) / 2;
-	}
-
-      if ((trg = XCreatePixmap (dpy, Scr.Root, width, height, Scr.d_depth)) != None)
-	{
-	  XFillRectangle (dpy, trg, gc, 0, 0, width, height);
-	  if (old_width > width)
-	    old_width = width;
-	  if (old_height > height)
-	    old_height = height;
-	  XCopyArea (dpy, src, trg, gc, 0, 0, old_width, old_height, x, y);
-	  UnloadImage (src);
-	  src = trg;
-	}
+  	    x = (back->flags & BGFLAG_ALIGN_RIGHT) ? width - old_width : 0;
+        y = (back->flags & BGFLAG_ALIGN_BOTTOM) ? height - old_height : 0;
+	    if ( (back->flags & BGFLAG_ALIGN) &&
+		    !(back->flags & BGFLAG_ALIGN_BOTTOM) &&
+	  		!(back->flags & BGFLAG_ALIGN_RIGHT))
+		{
+		    x = (width - old_width) / 2;
+		    y = (height - old_height) / 2;
+		}
+		
+		padded_im = pad_asimage( Scr.asv, work_im, x, y, width, height, 
+								 pad_color, 
+		                         ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT );
+		if( padded_im )
+		{
+			if( work_im != src ) 
+				destroy_asimage( &work_im );
+			work_im = padded_im ;
+		}
     }
-
-  XFreeGC (dpy, gc);
-  return src;
+	
+	trg = asimage2pixmap( Scr.asv, Scr.Root, work_im, NULL, False );
+	if( work_im != src )
+		destroy_asimage( &work_im );
+	return trg;
 }
 
 /* loading background information and converting it into useble form */
 void
 ProcessNewBackground (MyBackgroundConfig * back, ASDeskBack * desk)
 {
-  desk->MyStyle = None;
-  desk->data.pixmap = None;
-  desk->data_type = None;
-  if (back->data == NULL)
-    return;
-  if (back->data[0] == '\0')
-    return;
+    desk->MyStyle = None;
+	desk->data.pixmap = None;
+    desk->data_type = None;
+	if (back->data == NULL)
+	    return;
+    if (back->data[0] == '\0')
+	    return;
 
-  LOG3 ("\n Ok to process new back[%s] for desk %d", back->data, desk->desk)
-  /* process data based on flags */
-  /* if it is image - then load image and set data_type = pixmap and Pixmap */
-  /* if it is image of wrong format - go to command */
-  /* if it is Style - then set MyStyle to atom of MyStyle's name and data = 0 */
-  /* if it is command - then build complete command line and create XAtom */
+	LOG3 ("\n Ok to process new back[%s] for desk %d", back->data, desk->desk)
+    /* process data based on flags */
+	/* if it is image - then load image and set data_type = pixmap and Pixmap */
+    /* if it is image of wrong format - go to command */
+	/* if it is Style - then set MyStyle to atom of MyStyle's name and data = 0 */
+    /* if it is command - then build complete command line and create XAtom */
     if (back->flags & BGFLAG_FILE)
     {
-      char *realfilename = PutHome (back->data);
-
-      if (realfilename)
-	{
-	  if ((desk->data.pixmap = LoadImage (dpy, Scr.Root, 1024, realfilename)) != None)
-	    desk->data_type = XA_PIXMAP;
-	  LOG3 ("\n loaded file %s with pixmap id %d", realfilename, desk->data.pixmap)
-	    free (realfilename);
-	}
-      if (desk->data.pixmap != None)
-	{
-	  /* do all the transformations if it is the pixmap */
-	  desk->data.pixmap = DoTransformPixmap (desk->data.pixmap, back);
-	  return;
-	}
+		ASImage *im = get_asimage( ImMan, back->data, 0xFFFFFFFF, 100 );
+    	if (im)
+		{
+  			desk->data_type = XA_PIXMAP;
+			/* do all the transformations if it is the pixmap */
+			desk->data.pixmap = DoTransformPixmap (im, back);
+			release_asimage(im);
+			return;
+		}
     }
-  if (back->flags & BGFLAG_MYSTYLE)
+    if (back->flags & BGFLAG_MYSTYLE)
     {				/* try to find style */
-      if ((desk->MyStyle = XInternAtom (dpy, back->data, True)) == None)
-	fprintf (stderr, "%s: cannot use undefined style [%s] for background of desk #%ld!", MyName, back->data, desk->desk);
+	    if ((desk->MyStyle = XInternAtom (dpy, back->data, True)) == None)
+  			fprintf (stderr, "%s: cannot use undefined style [%s] for background of desk #%ld!", MyName, back->data, desk->desk);
+    }else
+	{    /* command should be executed to set background */
+  	    char *full_cmd, *prefix;
+    	int pref_len;
 
-    }
-  else
-    /* command should be executed to set background */
-    {
-      char *full_cmd, *prefix;
-      int pref_len;
-
-      prefix = mystrdup (XIMAGELOADER);
-      if (!(back->flags & BGFLAG_FILE))
-	{			/* we should get all command options supplied so cut prefix to
-				   only a prog name */
-	  /*assuming we don't have spaces here in path to prog itself - only option
-	     separator spaces */
-	  char *ptr = strchr (prefix, ' ');
-	  if (ptr)
-	    *ptr = '\0';
-	}
-      pref_len = strlen (prefix);
-      full_cmd = (char *) safemalloc (pref_len + 1 + strlen (back->data) + 1);
-      strcpy (full_cmd, prefix);
-      full_cmd[pref_len] = ' ';
-      strcpy (&(full_cmd[pref_len + 1]), back->data);
-      desk->data.atom = XInternAtom (dpy, full_cmd, False);
-      free (full_cmd);
-      free (prefix);
+    	prefix = mystrdup (XIMAGELOADER);
+    	if (!(back->flags & BGFLAG_FILE))
+		{/* we should get all command options supplied so cut prefix to
+		    only a prog name */
+		 /* assuming we don't have spaces here in path to prog itself - only option
+			separator spaces */
+		    char *ptr = strchr (prefix, ' ');
+			if (ptr)
+		    *ptr = '\0';
+		}
+	    pref_len = strlen (prefix);
+        full_cmd = (char *) safemalloc (pref_len + 1 + strlen (back->data) + 1);
+  	    strcpy (full_cmd, prefix);
+    	full_cmd[pref_len] = ' ';
+        strcpy (&(full_cmd[pref_len + 1]), back->data);
+	    desk->data.atom = XInternAtom (dpy, full_cmd, False);
+  	    free (full_cmd);
+    	free (prefix);
     }
 }
 
@@ -949,7 +924,6 @@ GetOptions (const char *filename)
 #endif
   ASetRootConfig *config;
   int i;
-  int using_tmp_heap = 1;
 
   struct BackCrossref
     {
@@ -1081,6 +1055,10 @@ GetBaseOptions (const char *filename)
   config->pixmap_path = NULL;	/* setting it to NULL so it would not be
 				   deallocated by DestroyBaseConfig */
   DestroyBaseConfig (config);
+  
+  if( ImMan ) 
+	  destroy_image_manager( ImMan, False );
+  ImMan = create_image_manager( NULL, 2.2, pixmapPath, NULL );
 
 #ifdef DO_CLOCKING
   fprintf (stderr, "\n Base Config parsing time (clocks): %lu\n", clock () - started);
