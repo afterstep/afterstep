@@ -70,8 +70,14 @@ typedef CARD32 ARGB32;
 #define ARGB32_BLUE_CHAN		0
 #define ARGB32_CHANNELS			4
 
-#define MAKE_ARGB32(a,r,g,b)	((((CARD32)a)<<24)|((((CARD32)r)&0x00FF)<<16)| \
-                                 ((((CARD32)g)&0x00FF)<<8)|(((CARD32)b)&0x00FF))
+#if 1
+#define MAKE_ARGB32(a,r,g,b)	((( (CARD32)a)        <<24)|((((CARD32)r)&0x00FF)<<16)| \
+                                 ((((CARD32)g)&0x00FF)<<8 )|(( (CARD32)b)&0x00FF))
+#else
+#define MAKE_ARGB32(a,r,g,b)	((((a)&0x00FF)<<24)|(((r)&0x00FF)<<16)| \
+                                 (((g)&0x00FF)<<8)|((b)&0x00FF))
+#endif
+
 #define MAKE_ARGB32_GREY(a,l)	(((a)<<24)|(((l)&0x00FF)<<16)| \
                                  (((l)&0x00FF)<<8)|((l)&0x00FF))
 #define ARGB32_ALPHA8(c)		(((c)>>24)&0x00FF)

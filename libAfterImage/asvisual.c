@@ -361,7 +361,7 @@ query_screen_visual_id( ASVisual *asv, Display *dpy, int screen, Window root, in
 		asv->white_pixel = white_xcol.pixel ;
 		asv->black_pixel = black_xcol.pixel ;
 	}
-	fprintf( stderr, "Selected visual 0x%lx: depth %d, class %d, RGB masks: 0x%lX, 0x%lX, 0x%lX.%s\n",
+	fprintf( stderr, "Selected visual 0x%lx: depth %d, class %d\n RGB masks: 0x%lX, 0x%lX, 0x%lX, Byte Ordering: %s\n",
 			 asv->visual_info.visualid,
 			 asv->visual_info.depth,
 			 asv->visual_info.class,
@@ -1031,7 +1031,7 @@ create_visual_ximage( ASVisual *asv, unsigned int width, unsigned int height, un
 	if( unit == 24 )
 		unit = 32 ;
 #endif
-	ximage = XCreateImage (asv->dpy, asv->visual_info.visual, (depth==0)?asv->visual_info.depth/*true_depth*/:depth, ZPixmap, 0, NULL, MAX(width,(unsigned)1), MAX(height,(unsigned)1),
+	ximage = XCreateImage (asv->dpy, asv->visual_info.visual, (depth==0)?asv->visual_info.depth/*true_depth*/:depth, ZPixmap, 0, NULL, MAX(width,(unsigned int)1), MAX(height,(unsigned int)1),
 						   unit, 0);
 	if (ximage != NULL)
 	{
@@ -1386,6 +1386,7 @@ void scanline2ximage32( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  regi
 #ifdef DEBUG_SL2XIMAGE
 	i = MIN((unsigned int)(xim->width),sl->width-sl->offset_x);
 	src = (CARD8*)(xim_data+(i-1)*4);
+	printf( "xim->width = %d, sl->width = %d, sl->offset = %d\n", xim->width, sl->width, sl->offset_x );
 	while(--i>=0 )
 	{
 		printf( "%2.2X.%2.2X.%2.2X.%2.2X ", src[0], src[1], src[2], src[3] );
