@@ -930,6 +930,7 @@ ASImageDecoder *start_image_decoding( ASVisual *asv,ASImage *im, ASFlagType filt
 									  unsigned int out_width,
 									  unsigned int out_height,
 									  ASImageBevel *bevel );
+void set_decoder_shift( ASImageDecoder *imdec, int shift );
 void stop_image_decoding( ASImageDecoder **pimdec );
 
 /****h* libAfterImage/asimage/Output

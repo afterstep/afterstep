@@ -19,7 +19,7 @@
 #include "config.h"
 
 /* #define LOCAL_DEBUG */
-/*#define DO_CLOCKING*/
+#define DO_CLOCKING
 
 #define USE_64BIT_FPU
 
@@ -581,7 +581,7 @@ scale_image_down( ASImageDecoder *imdec, ASImageOutput *imout, int h_ratio, int 
 	ASScanline dst_line, total ;
 	int k = -1;
 	int max_k 	 = imout->im->height,
-		line_len = MIN(imout->im->width,imdec->im->width);
+		line_len = MIN(imout->im->width, imdec->out_width);
 
 	prepare_scanline( imout->im->width, QUANT_ERR_BITS, &dst_line, imout->asv->BGR_mode );
 	prepare_scanline( imout->im->width, QUANT_ERR_BITS, &total, imout->asv->BGR_mode );
@@ -611,8 +611,9 @@ scale_image_up( ASImageDecoder *imdec, ASImageOutput *imout, int h_ratio, int *s
 {
 	ASScanline step, src_lines[4], *c1, *c2, *c3, *c4 = NULL;
 	int i = 0, max_i,
-		line_len = MIN(imout->im->width,imdec->im->width),
+		line_len = MIN(imout->im->width, imdec->out_width),
 		out_width = imout->im->width;
+
 	for( i = 0 ; i < 4 ; i++ )
 		prepare_scanline( out_width, 0, &(src_lines[i]), imout->asv->BGR_mode);
 	prepare_scanline( out_width, QUANT_ERR_BITS, &step, imout->asv->BGR_mode );
@@ -630,7 +631,7 @@ scale_image_up( ASImageDecoder *imdec, ASImageOutput *imout, int h_ratio, int *s
 	CHOOSE_SCANLINE_FUNC(h_ratio,imdec->buffer,src_lines[2],scales_h,line_len);
 
 	i = 0 ;
-	max_i = imdec->im->height-1 ;
+	max_i = imdec->out_height-1 ;
 	do
 	{
 		int S = scales_v[i] ;
@@ -691,9 +692,8 @@ scale_asimage( ASVisual *asv, ASImage *src, unsigned int to_width, unsigned int 
 	ASImageDecoder *imdec;
 	int h_ratio ;
 	int *scales_h = NULL, *scales_v = NULL;
-#ifdef DO_CLOCKING
-	time_t started = clock ();
-#endif
+	START_TIME(started);
+
 	if( !check_scale_parameters(src,&to_width,&to_height) )
 		return NULL;
 	if( (imdec = start_image_decoding(asv, src, SCL_DO_ALL, 0, 0, 0, 0, NULL)) == NULL )
@@ -745,9 +745,7 @@ scale_asimage( ASVisual *asv, ASImage *src, unsigned int to_width, unsigned int 
 	free( scales_h );
 	free( scales_v );
 	stop_image_decoding( &imdec );
-#ifdef DO_CLOCKING
-	fprintf (stderr, __FUNCTION__ " time (clocks): %lu mlsec\n", ((clock () - started)*100)/CLOCKS_PER_SEC);
-#endif
+	SHOW_TIME("", started);
 	return dst;
 }
 
@@ -762,12 +760,10 @@ tile_asimage( ASVisual *asv, ASImage *src,
 	ASImage *dst = NULL ;
 	ASImageDecoder *imdec ;
 	ASImageOutput  *imout ;
-#ifdef DO_CLOCKING
-	time_t started = clock ();
-#endif
+	START_TIME(started);
 
 LOCAL_DEBUG_CALLER_OUT( "offset_x = %d, offset_y = %d, to_width = %d, to_height = %d", offset_x, offset_y, to_width, to_height );
-	if( (imdec = start_image_decoding(asv, src, SCL_DO_ALL, offset_x, offset_y, to_width, 0, NULL)) == NULL )
+	if( src && (imdec = start_image_decoding(asv, src, SCL_DO_ALL, offset_x, offset_y, to_width, 0, NULL)) == NULL )
 		return NULL;
 
 	dst = safecalloc(1, sizeof(ASImage));
@@ -812,9 +808,8 @@ LOCAL_DEBUG_OUT("tiling actually...%s", "");
 	mmx_off();
 #endif
 	stop_image_decoding( &imdec );
-#ifdef DO_CLOCKING
-	fprintf (stderr, __FUNCTION__ " time (clocks): %lu mlsec\n", ((clock () - started)*100)/CLOCKS_PER_SEC);
-#endif
+
+	SHOW_TIME("", started);
 	return dst;
 }
 
@@ -829,20 +824,16 @@ merge_layers( ASVisual *asv,
 	ASImage *dst = NULL ;
 	ASImageDecoder **imdecs ;
 	ASImageOutput  *imout ;
-	ASScanline dst_line, tmp_line ;
+	ASScanline dst_line ;
 	ASImageLayer *pcurr = layers;
 	int i ;
-#ifdef DO_CLOCKING
-	time_t started = clock ();
-#endif
+	START_TIME(started);
 
 LOCAL_DEBUG_CALLER_OUT( "dst_width = %d, dst_height = %d", dst_width, dst_height );
 	dst = safecalloc(1, sizeof(ASImage));
 	asimage_start (dst, dst_width, dst_height, compression_out);
 	prepare_scanline( dst->width, QUANT_ERR_BITS, &dst_line, asv->BGR_mode );
-	prepare_scanline( dst->width, QUANT_ERR_BITS, &tmp_line, asv->BGR_mode );
 	dst_line.flags = SCL_DO_ALL ;
-	tmp_line.flags = SCL_DO_ALL ;
 
 	imdecs = safecalloc( count, sizeof(ASImageDecoder*));
 	if( pcurr->im == NULL )
@@ -850,12 +841,14 @@ LOCAL_DEBUG_CALLER_OUT( "dst_width = %d, dst_height = %d", dst_width, dst_height
 
 	for( i = 0 ; i < count ; i++ )
 	{
-		if( pcurr->im )
+		if( pcurr->im != NULL || pcurr->back_color != 0 )
 		{
 			imdecs[i] = start_image_decoding(asv, pcurr->im, SCL_DO_ALL,
 				                             pcurr->clip_x, pcurr->clip_y,
 											 pcurr->clip_width, pcurr->clip_height,
 											 pcurr->bevel);
+			if( pcurr->tint == 0 && i != 0 )
+				set_decoder_shift( imdecs[i], 8 );
 			imdecs[i]->back_color = pcurr->back_color ;
 		}
 		if( pcurr->next == pcurr )
@@ -928,9 +921,17 @@ LOCAL_DEBUG_OUT( "min_y = %d, max_y = %d", min_y, max_y );
 				if( imdecs[i] && pcurr->dst_y <= y &&
 					pcurr->dst_y+pcurr->clip_height+imdecs[i]->bevel_v_addon > y )
 				{
+					register ASScanline *b = &(imdecs[i]->buffer);
+					CARD32 tint = pcurr->tint ;
 					imdecs[i]->decode_image_scanline( imdecs[i] );
-					copytintpad_scanline( &(imdecs[i]->buffer), &tmp_line, pcurr->dst_x, (pcurr->tint==0)?0x7F7F7F7F:pcurr->tint );
-					pcurr->merge_scanlines( &dst_line, &tmp_line, pcurr->merge_mode );
+					if( tint != 0 )
+					{
+						tint_component_mod( b->red,   ARGB32_RED8(tint)<<1,   b->width );
+						tint_component_mod( b->green, ARGB32_GREEN8(tint)<<1, b->width );
+  						tint_component_mod( b->blue,  ARGB32_BLUE8(tint)<<1,  b->width );
+						tint_component_mod( b->alpha, ARGB32_ALPHA8(tint)<<1, b->width );
+					}
+					pcurr->merge_scanlines( &dst_line, b, pcurr->dst_x );
 				}
 				pcurr = (pcurr->next!=NULL)?pcurr->next:pcurr+1 ;
 			}
@@ -951,11 +952,8 @@ LOCAL_DEBUG_OUT( "min_y = %d, max_y = %d", min_y, max_y );
 	free( imdecs );
 	if( fake_bg )
 		destroy_asimage( &fake_bg );
-	free_scanline( &tmp_line, True );
 	free_scanline( &dst_line, True );
-#ifdef DO_CLOCKING
-	fprintf (stderr, __FUNCTION__ " time (clocks): %lu mlsec\n", ((clock () - started)*100)/CLOCKS_PER_SEC);
-#endif
+	SHOW_TIME("", started);
 	return dst;
 }
 
@@ -1141,9 +1139,7 @@ make_gradient( ASVisual *asv, ASGradient *grad,
 	ASImage *im = NULL ;
 	ASImageOutput *imout;
 	int line_len = width;
-#ifdef DO_CLOCKING
-	time_t started = clock ();
-#endif
+	START_TIME(started);
 
 	if( asv == NULL || grad == NULL )
 		return NULL;
@@ -1202,9 +1198,7 @@ make_gradient( ASVisual *asv, ASGradient *grad,
 			free_scanline( &(lines[line]), True );
 		free( lines );
 	}
-#ifdef DO_CLOCKING
-	fprintf (stderr, __FUNCTION__ " time (clocks): %lu mlsec\n", ((clock () - started)*100)/CLOCKS_PER_SEC);
-#endif
+	SHOW_TIME("", started);
 	return im;
 }
 
@@ -1222,22 +1216,12 @@ flip_asimage( ASVisual *asv, ASImage *src,
 	ASImage *dst = NULL ;
 	ASImageOutput  *imout ;
 	ASFlagType filter = SCL_DO_ALL;
-#ifdef DO_CLOCKING
-	time_t started = clock ();
-#endif
+	START_TIME(started);
 
 LOCAL_DEBUG_CALLER_OUT( "offset_x = %d, offset_y = %d, to_width = %d, to_height = %d", offset_x, offset_y, to_width, to_height );
 	if( src )
 		filter = get_asimage_chanmask(src);
 
-/*	if( get_flags( flip, FLIP_VERTICAL ) )
-	{
-		if( to_width > src->height )
-			to_width = src->height ;
-		if( to_height > src->width )
-			to_height = src->width ;
-	}
- */
 	dst = safecalloc(1, sizeof(ASImage));
 	asimage_start (dst, to_width, to_height, compression_out);
 #ifdef HAVE_MMX
@@ -1337,9 +1321,7 @@ LOCAL_DEBUG_OUT("flip-flopping actually...%s", "");
 #ifdef HAVE_MMX
 	mmx_off();
 #endif
-#ifdef DO_CLOCKING
-	fprintf (stderr, __FUNCTION__ " time (clocks): %lu mlsec\n", ((clock () - started)*100)/CLOCKS_PER_SEC);
-#endif
+	SHOW_TIME("", started);
 	return dst;
 }
 

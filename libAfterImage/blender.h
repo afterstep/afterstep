@@ -34,7 +34,7 @@
 struct ASScanline;
 
 /* it produces  bottom = bottom <merge> top */
-typedef void (*merge_scanlines_func)( struct ASScanline *bottom, struct ASScanline *top, int mode);
+typedef void (*merge_scanlines_func)( struct ASScanline *bottom, struct ASScanline *top, int offset);
 
 /****d* libAfterImage/import/colorspace
  * DESCRIPTION
@@ -188,27 +188,27 @@ inline void hls2rgb (CARD32 hue, CARD32 luminance, CARD32 saturation, CARD32 *re
  *                        using alpha value of top scanline as a
  *                        threshold for random values.
  ****************/
-void alphablend_scanlines( struct ASScanline *bottom, struct ASScanline *top, int unused );
-void allanon_scanlines( struct ASScanline *bottom, struct ASScanline *top, int unused );
-void tint_scanlines( struct ASScanline *bottom, struct ASScanline *top, int unused );
-void add_scanlines( struct ASScanline *bottom, struct ASScanline *top, int unused );
+void alphablend_scanlines( struct ASScanline *bottom, struct ASScanline *top, int offset );
+void allanon_scanlines( struct ASScanline *bottom, struct ASScanline *top, int offset );
+void tint_scanlines( struct ASScanline *bottom, struct ASScanline *top, int offset );
+void add_scanlines( struct ASScanline *bottom, struct ASScanline *top, int offset );
 /* substruction with saturation : */
-void sub_scanlines( struct ASScanline *bottom, struct ASScanline *top, int unused );
+void sub_scanlines( struct ASScanline *bottom, struct ASScanline *top, int offset );
 /* absolute pixel value difference : */
-void diff_scanlines( struct ASScanline *bottom, struct ASScanline *top, int unused );
+void diff_scanlines( struct ASScanline *bottom, struct ASScanline *top, int offset );
 /* darkest of the two makes it in : */
-void darken_scanlines( struct ASScanline *bottom, struct ASScanline *top, int unused );
+void darken_scanlines( struct ASScanline *bottom, struct ASScanline *top, int offset );
 /* lightest of the two makes it in : */
-void lighten_scanlines( struct ASScanline *bottom, struct ASScanline *top, int unused );
+void lighten_scanlines( struct ASScanline *bottom, struct ASScanline *top, int offset );
 /* guess what this one does - I could not :) */
-void screen_scanlines( struct ASScanline *bottom, struct ASScanline *top, int unused );
+void screen_scanlines( struct ASScanline *bottom, struct ASScanline *top, int offset );
 /* somehow overlays bottom with top : */
-void overlay_scanlines( struct ASScanline *bottom, struct ASScanline *top, int unused );
-void hue_scanlines( struct ASScanline *bottom, struct ASScanline *top, int mode );
-void saturate_scanlines( struct ASScanline *bottom, struct ASScanline *top, int mode );
-void value_scanlines( struct ASScanline *bottom, struct ASScanline *top, int mode );
-void colorize_scanlines( struct ASScanline *bottom, struct ASScanline *top, int mode );
-void dissipate_scanlines( struct ASScanline *bottom, struct ASScanline *top, int unused );
+void overlay_scanlines( struct ASScanline *bottom, struct ASScanline *top, int offset );
+void hue_scanlines( struct ASScanline *bottom, struct ASScanline *top, int offset );
+void saturate_scanlines( struct ASScanline *bottom, struct ASScanline *top, int offset );
+void value_scanlines( struct ASScanline *bottom, struct ASScanline *top, int offset );
+void colorize_scanlines( struct ASScanline *bottom, struct ASScanline *top, int offset );
+void dissipate_scanlines( struct ASScanline *bottom, struct ASScanline *top, int offset );
 
 /****f* libAfterImage/import/blend_scanlines_name2func()
  * SYNOPSIS

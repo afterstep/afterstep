@@ -5,12 +5,12 @@
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
@@ -359,17 +359,26 @@ list_scanline_merging(FILE* stream, const char *format)
 	}while( std_merge_scanlines_func_list[++i].name != NULL );
 }
 
-void
-alphablend_scanlines( ASScanline *bottom, ASScanline *top, int unused )
-{
-	register int i = -1, max_i = bottom->width ;
-	register CARD32 *alpha = top->alpha, *ba = bottom->alpha;
-	register CARD32 *br = bottom->red, *bg = bottom->green, *bb = bottom->blue;
-	register CARD32 *tr = top->red, *tg = top->green, *tb = top->blue;
+#define BLEND_SCANLINES_HEADER \
+	register int i = -1, max_i = bottom->width ; \
+	register CARD32 *ta = top->alpha, *tr = top->red, *tg = top->green, *tb = top->blue; \
+	register CARD32 *ba = bottom->alpha, *br = bottom->red, *bg = bottom->green, *bb = bottom->blue; \
+	if( offset < 0 ){ \
+		ta -= offset ;	tr -= offset ;	tg -= offset ;	tb -= offset ; \
+		if( top->width+offset < max_i )	max_i = (int)(top->width)+offset ; \
+	}else if( offset > 0 ){ \
+		ba += offset ;	br += offset ;	bg += offset ;	bb += offset ; \
+		max_i -= offset ; \
+		if( (int)(top->width) < max_i )	max_i = top->width ;}
 
+
+void
+alphablend_scanlines( ASScanline *bottom, ASScanline *top, int offset )
+{
+	BLEND_SCANLINES_HEADER
 	while( ++i < max_i )
 	{
-		int a = alpha[i] ;
+		int a = ta[i] ;
 		if( a >= 0x0000FF00 )
 		{
 			br[i] = tr[i] ;
@@ -390,12 +399,9 @@ alphablend_scanlines( ASScanline *bottom, ASScanline *top, int unused )
 }
 
 void    /* this one was first implemented on XImages by allanon :) - mode 131  */
-allanon_scanlines( ASScanline *bottom, ASScanline *top, int unused )
+allanon_scanlines( ASScanline *bottom, ASScanline *top, int offset )
 {
-	register int i = -1, max_i = bottom->width ;
-	register CARD32 *ta = top->alpha;
-	register CARD32 *br = bottom->red, *bg = bottom->green, *bb = bottom->blue;
-	register CARD32 *tr = top->red, *tg = top->green, *tb = top->blue;
+	BLEND_SCANLINES_HEADER
 	while( ++i < max_i )
 	{
 		if( ta[i] != 0 )
@@ -407,14 +413,10 @@ allanon_scanlines( ASScanline *bottom, ASScanline *top, int unused )
 	}
 }
 
-void    /* this one was first implemented on XImages by allanon :) - mode 131  */
-tint_scanlines( ASScanline *bottom, ASScanline *top, int unused )
+void
+tint_scanlines( ASScanline *bottom, ASScanline *top, int offset )
 {
-	register int i = -1, max_i = bottom->width ;
-	register CARD32 *ta = top->alpha;
-#if 1
-	register CARD32 *tr = top->red, *tg = top->green, *tb = top->blue;
-	register CARD32 *br = bottom->red, *bg = bottom->green, *bb = bottom->blue;
+	BLEND_SCANLINES_HEADER
 	while( ++i < max_i )
 	{
 		if( ta[i] != 0 )
@@ -424,211 +426,154 @@ tint_scanlines( ASScanline *bottom, ASScanline *top, int unused )
 			bb[i] = (bb[i]*(tb[i]>>1))>>15 ;
 		}
 	}
-#else
-	int chan ;
-	for ( chan = 0 ; chan < IC_ALPHA ; chan++)
-	{
-		register CARD32 *b = bottom->channels[chan] ;
-		register CARD32 *t = top->channels[chan] ;
-		for( i = 0 ; i < max_i ; ++i )
-			if( ta[i] )
-				b[i] = (b[i]*(t[i]>>1))>>15 ;
-	}
-
-#endif
 }
 
 void    /* addition with saturation : */
-add_scanlines( ASScanline *bottom, ASScanline *top, int unused )
+add_scanlines( ASScanline *bottom, ASScanline *top, int offset )
 {
-	register int i = -1, max_i = bottom->width, chan ;
-	register CARD32 *b ;
-	register CARD32 *t ;
-	register CARD32 *ba = bottom->alpha, *ta = top->alpha ;
+	BLEND_SCANLINES_HEADER
 	while( ++i < max_i )
-	{
-		if( ta[i] > ba[i] )
-			ba[i] = ta[i] ;
-	}
-	for ( chan = 0 ; chan < IC_ALPHA ; chan++)
-	{
-		b= bottom->channels[chan] ;
-		t= top->channels[chan] ;
-		for( i = 0 ; i < max_i ; ++i )
-			if( ta[i] )
-			{
-				b[i] = (b[i]+t[i]) ;
-				if( b[i] > 0x0000FFFF )
-					b[i] = 0x0000FFFF ;
-			}
-	}
+		if( ta[i] )
+		{
+			if( ta[i] > ba[i] )
+				ba[i] = ta[i] ;
+			br[i] = (br[i]+tr[i]) ;
+			if( br[i] > 0x0000FFFF )
+				br[i] = 0x0000FFFF ;
+			bg[i] = (bg[i]+tg[i]) ;
+			if( bg[i] > 0x0000FFFF )
+				bg[i] = 0x0000FFFF ;
+			bb[i] = (bb[i]+tb[i]) ;
+			if( bb[i] > 0x0000FFFF )
+				bb[i] = 0x0000FFFF ;
+		}
 }
 
 void    /* substruction with saturation : */
-sub_scanlines( ASScanline *bottom, ASScanline *top, int unused )
+sub_scanlines( ASScanline *bottom, ASScanline *top, int offset )
 {
-	register int i = -1, max_i = bottom->width, chan ;
-	register CARD32 *b = bottom->buffer, *t = top->buffer ;
-	register CARD32 *ba = bottom->alpha, *ta = top->alpha ;
+	BLEND_SCANLINES_HEADER
 	while( ++i < max_i )
-	{
-		if( ta[i] > ba[i] )
-			ba[i] = ta[i] ;
-	}
-	for ( chan = 0 ; chan < IC_ALPHA ; chan++)
-	{
-		b= bottom->channels[chan] ;
-		t= top->channels[chan] ;
-		for( i = 0 ; i < max_i ; ++i )
-			if( ta[i] )
-			{
-				int res = (int)b[i] - (int)t[i] ;
-				b[i] = res < 0 ? 0: res ;
-			}
-	}
+		if( ta[i] )
+		{
+			int res ;
+			if( ta[i] > ba[i] )
+				ba[i] = ta[i] ;
+			res = (int)br[i] - (int)tr[i] ;
+			br[i] = res < 0 ? 0: res ;
+			res = (int)bg[i] - (int)tg[i] ;
+			bg[i] = res < 0 ? 0: res ;
+			res = (int)bb[i] - (int)tb[i] ;
+			bb[i] = res < 0 ? 0: res ;
+		}
 }
 
 void    /* absolute pixel value difference : */
-diff_scanlines( ASScanline *bottom, ASScanline *top, int unused )
+diff_scanlines( ASScanline *bottom, ASScanline *top, int offset )
 {
-	register int i = -1, max_i = bottom->width, chan ;
-	register CARD32 *b = bottom->blue, *t = top->blue ;
-	register CARD32 *ba = bottom->alpha, *ta = top->alpha ;
+	BLEND_SCANLINES_HEADER
 	while( ++i < max_i )
 	{
 		if( ta[i] )
 		{
-			int res = (int)b[i] - (int)t[i] ;
+			int res = (int)br[i] - (int)tr[i] ;
+			br[i] = res < 0 ? -res: res ;
+			res = (int)bg[i] - (int)tg[i] ;
+			bg[i] = res < 0 ? -res: res ;
+			res = (int)bb[i] - (int)tb[i] ;
+			bb[i] = res < 0 ? -res: res ;
+
 			if( ta[i] > ba[i] )
 				ba[i] = ta[i] ;
-			b[i] = res < 0 ? -res: res ;
 		}
-	}
-	for ( chan = IC_BLUE ; chan < IC_ALPHA ; chan++)
-	{
-		b= bottom->channels[chan] ;
-		t= top->channels[chan] ;
-		for( i = 0 ; i < max_i ; ++i )
-			if( ta[i] )
-			{
-				int res = (int)b[i] - (int)t[i] ;
-				b[i] = res < 0 ? -res: res ;
-			}
 	}
 }
 
 void    /* darkest of the two makes it in : */
-darken_scanlines( ASScanline *bottom, ASScanline *top, int unused )
+darken_scanlines( ASScanline *bottom, ASScanline *top, int offset )
 {
-	register int i = -1, max_i = bottom->width, chan ;
-	register CARD32 *b = bottom->blue, *t = top->blue ;
-	register CARD32 *ba = bottom->alpha, *ta = top->alpha ;
+	BLEND_SCANLINES_HEADER
 	while( ++i < max_i )
-	{
 		if( ta[i] )
 		{
 			if( ta[i] < ba[i] )
 				ba[i] = ta[i] ;
-			if( t[i] < b[i] )
-				b[i] = t[i];
+			if( tr[i] < br[i] )
+				br[i] = tr[i];
+			if( tg[i] < bg[i] )
+				bg[i] = tg[i];
+			if( tb[i] < bb[i] )
+				bb[i] = tb[i];
 		}
-	}
-	for( chan = IC_GREEN ; chan < IC_ALPHA ; ++chan )
-	{
-		b= bottom->channels[chan];
-		t= top->channels[chan] ;
-		for( i = 0 ; i < max_i ; ++i )
-			if( ta[i] && b[i] > t[i] )
-				b[i] = t[i];
-	}
 }
 
 void    /* lightest of the two makes it in : */
-lighten_scanlines( ASScanline *bottom, ASScanline *top, int unused )
+lighten_scanlines( ASScanline *bottom, ASScanline *top, int offset )
 {
-	register int i = -1, max_i = bottom->width, chan ;
-	register CARD32 *b = bottom->blue, *t = top->blue ;
-	register CARD32 *ba = bottom->alpha, *ta = top->alpha ;
+	BLEND_SCANLINES_HEADER
 	while( ++i < max_i )
-	{
 		if( ta[i] )
 		{
-			if( ta[i] < ba[i] )
+			if( ta[i] > ba[i] )
 				ba[i] = ta[i] ;
-			if( t[i] > b[i] )
-				b[i] = t[i];
+			if( tr[i] > br[i] )
+				br[i] = tr[i];
+			if( tg[i] > bg[i] )
+				bg[i] = tg[i];
+			if( tb[i] > bb[i] )
+				bb[i] = tb[i];
 		}
-	}
-	for( chan = IC_GREEN ; chan < IC_ALPHA ; ++chan )
-	{
-		b= bottom->channels[chan];
-		t= top->channels[chan] ;
-		for( i = 0 ; i < max_i ; ++i )
-			if( ta[i] && b[i] < t[i] )
-				b[i] = t[i];
-	}
 }
 
 void    /* guess what this one does - I could not :) */
-screen_scanlines( ASScanline *bottom, ASScanline *top, int unused )
+screen_scanlines( ASScanline *bottom, ASScanline *top, int offset )
 {
-	register int i = -1, max_i = bottom->width, chan ;
-	register CARD32 *b = bottom->buffer, *t = top->buffer ;
-	register CARD32 *ba = bottom->alpha, *ta = top->alpha ;
-	for( chan = 0 ; chan < IC_ALPHA ; ++chan )
-	{
-		b= bottom->channels[chan];
-		t= top->channels[chan] ;
-		for( i = 0 ; i < max_i ; ++i )
-			if( ta[i] )
-			{
-				int res1 = 0x0000FFFF - (int)b[i] ;
-				int res2 = 0x0000FFFF - (int)t[i] ;
-				res1 = 0x0000FFFF - ((res1*res2)>>16);
-				b[i] = res1 < 0 ? 0 : res1;
-			}
-	}
-	for( i = 0 ; i < max_i ; ++i )
-	{
-		if( ta[i] > ba[i] )
-			ba[i] = ta[i] ;
-	}
+	BLEND_SCANLINES_HEADER
+#define DO_SCREEN_VALUE(b,t) \
+			res1 = 0x0000FFFF - (int)b[i] ; res2 = 0x0000FFFF - (int)t[i] ;\
+			res1 = 0x0000FFFF - ((res1*res2)>>16); b[i] = res1 < 0 ? 0 : res1
+
+	while( ++i < max_i )
+		if( ta[i] )
+		{
+			int res1 ;
+			int res2 ;
+
+			DO_SCREEN_VALUE(br,tr);
+			DO_SCREEN_VALUE(bg,tg);
+			DO_SCREEN_VALUE(bb,tb);
+
+			if( ta[i] > ba[i] )
+				ba[i] = ta[i] ;
+		}
 }
 
 void    /* somehow overlays bottom with top : */
-overlay_scanlines( ASScanline *bottom, ASScanline *top, int unused )
+overlay_scanlines( ASScanline *bottom, ASScanline *top, int offset )
 {
-	register int i = -1, max_i = bottom->width, chan ;
-	register CARD32 *b = bottom->buffer, *t = top->buffer ;
-	register CARD32 *ba = bottom->alpha, *ta = top->alpha ;
-	for( chan = 0 ; chan < IC_ALPHA ; ++chan )
-	{
-		b= bottom->channels[chan];
-		t= top->channels[chan] ;
-		for( i = 0 ; i < max_i ; ++i )
-			if( ta[i] )
-			{
-				int tmp_screen = 0x0000FFFF - (((0x0000FFFF - (int)b[i]) * (0x0000FFFF - (int)t[i])) >> 16);
-				int tmp_mult   = (b[i] * t[i]) >> 16;
-				int res = (b[i] * tmp_screen + (0x0000FFFF - (int)b[i]) * tmp_mult) >> 16;
-				b[i] = res < 0 ? 0 : res;
-			}
-	}
-	for( i = 0 ; i < max_i ; ++i )
-	{
-		if( ta[i] > ba[i] )
-			ba[i] = ta[i] ;
-	}
+	BLEND_SCANLINES_HEADER
+#define DO_OVERLAY_VALUE(b,t) \
+				tmp_screen = 0x0000FFFF - (((0x0000FFFF - (int)b[i]) * (0x0000FFFF - (int)t[i])) >> 16); \
+				tmp_mult   = (b[i] * t[i]) >> 16; \
+				res = (b[i] * tmp_screen + (0x0000FFFF - (int)b[i]) * tmp_mult) >> 16; \
+				b[i] = res < 0 ? 0 : res
+
+	while( ++i < max_i )
+		if( ta[i] )
+		{
+			int tmp_screen, tmp_mult, res ;
+			DO_OVERLAY_VALUE(br,tr);
+			DO_OVERLAY_VALUE(bg,tg);
+			DO_OVERLAY_VALUE(bb,tb);
+			if( ta[i] > ba[i] )
+				ba[i] = ta[i] ;
+		}
 }
 
 void
-hue_scanlines( ASScanline *bottom, ASScanline *top, int mode )
+hue_scanlines( ASScanline *bottom, ASScanline *top, int offset )
 {
-	register int i = -1, max_i = bottom->width ;
-	register CARD32 *ta = top->alpha, *ba = bottom->alpha;
-	register CARD32 *br = bottom->red, *bg = bottom->green, *bb = bottom->blue;
-	register CARD32 *tr = top->red, *tg = top->green, *tb = top->blue;
-
+	BLEND_SCANLINES_HEADER
 	while( ++i < max_i )
 		if( ta[i] )
 		{
@@ -646,13 +591,9 @@ hue_scanlines( ASScanline *bottom, ASScanline *top, int mode )
 }
 
 void
-saturate_scanlines( ASScanline *bottom, ASScanline *top, int mode )
+saturate_scanlines( ASScanline *bottom, ASScanline *top, int offset )
 {
-	register int i = -1, max_i = bottom->width ;
-	register CARD32 *ta = top->alpha, *ba = bottom->alpha;
-	register CARD32 *br = bottom->red, *bg = bottom->green, *bb = bottom->blue;
-	register CARD32 *tr = top->red, *tg = top->green, *tb = top->blue;
-
+	BLEND_SCANLINES_HEADER
 	while( ++i < max_i )
 		if( ta[i] )
 		{
@@ -667,13 +608,9 @@ saturate_scanlines( ASScanline *bottom, ASScanline *top, int mode )
 }
 
 void
-value_scanlines( ASScanline *bottom, ASScanline *top, int mode )
+value_scanlines( ASScanline *bottom, ASScanline *top, int offset )
 {
-	register int i = -1, max_i = bottom->width ;
-	register CARD32 *ta = top->alpha, *ba = bottom->alpha;
-	register CARD32 *br = bottom->red, *bg = bottom->green, *bb = bottom->blue;
-	register CARD32 *tr = top->red, *tg = top->green, *tb = top->blue;
-
+	BLEND_SCANLINES_HEADER
 	while( ++i < max_i )
 		if( ta[i] )
 		{
@@ -689,12 +626,9 @@ value_scanlines( ASScanline *bottom, ASScanline *top, int mode )
 }
 
 void
-colorize_scanlines( ASScanline *bottom, ASScanline *top, int mode )
+colorize_scanlines( ASScanline *bottom, ASScanline *top, int offset )
 {
-	register int i = -1, max_i = bottom->width ;
-	register CARD32 *ta = top->alpha, *ba = bottom->alpha;
-	register CARD32 *br = bottom->red, *bg = bottom->green, *bb = bottom->blue;
-	register CARD32 *tr = top->red, *tg = top->green, *tb = top->blue;
+	BLEND_SCANLINES_HEADER
 
 	while( ++i < max_i )
 		if( ta[i] )
@@ -721,13 +655,11 @@ colorize_scanlines( ASScanline *bottom, ASScanline *top, int mode )
 }
 
 void
-dissipate_scanlines( ASScanline *bottom, ASScanline *top, int unused )
+dissipate_scanlines( ASScanline *bottom, ASScanline *top, int offset )
 {
-	register int i = -1, max_i = bottom->width ;
-	register CARD32 *alpha = top->alpha, *ba = bottom->alpha;
-	register CARD32 *br = bottom->red, *bg = bottom->green, *bb = bottom->blue;
-	register CARD32 *tr = top->red, *tg = top->green, *tb = top->blue;
 	static   CARD32 rnd32_seed = 345824357;
+	BLEND_SCANLINES_HEADER
+
 #define MAX_MY_RND32		0x00ffffffff
 #ifdef WORD64
 #define MY_RND32() \
@@ -740,7 +672,7 @@ dissipate_scanlines( ASScanline *bottom, ASScanline *top, int unused )
 	/* add some randomization here  if (rand < alpha) - combine */
 	while( ++i < max_i )
 	{
-		int a = alpha[i] ;
+		int a = ta[i] ;
 		if( a > 0 && MY_RND32() < a<<15 )
 		{
 			ba[i] += a ;
