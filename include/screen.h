@@ -9,6 +9,8 @@
 
 #include "afterstep.h"
 #include "style.h"
+#include "clientprops.h"
+#include "hints.h"
 
 #define SIZE_HINDENT 5
 #define SIZE_VINDENT 3

@@ -484,13 +484,7 @@ HandleKeyPress ()
 void
 HandlePropertyNotify ()
 {
-	char         *prop = NULL;
-	Atom          actual = None;
-	int           actual_format;
-	unsigned long nitems, bytesafter;
-
 #ifdef I18N
-	XTextProperty text_prop;
 	char        **list;
 	int           num;
 #endif
@@ -521,155 +515,78 @@ HandlePropertyNotify ()
 									 &JunkWidth, &JunkHeight, &JunkBW, &JunkDepth) == 0))
 		return;
 
-	switch (Event.xproperty.atom)
+	if( Event.xproperty.atom == XA_WM_NAME ||
+		Event.xproperty.atom == XA_WM_ICON_NAME ||
+		Event.xproperty.atom == _XA_NET_WM_NAME ||
+		Event.xproperty.atom == _XA_NET_WM_ICON_NAME ||
+		Event.xproperty.atom == _XA_NET_WM_VISIBLE_NAME ||
+		Event.xproperty.atom == _XA_NET_WM_VISIBLE_ICON_NAME )
+	{	
+		show_debug( __FILE__, __FUNCTION__, __LINE__, "name prop changed..." );
+		if( update_property_hints_manager( Tmp_win->w, Event.xproperty.atom, 
+		                                   Scr.supported_hints, 
+                                           Tmp_win->hints, Tmp_win->status ) )
+		{
+			BroadcastName( M_WINDOW_NAME, Tmp_win->w, Tmp_win->frame,
+						   (unsigned long)Tmp_win, ASWIN_NAME(Tmp_win));
+			BroadcastName( M_ICON_NAME, Tmp_win->w, Tmp_win->frame,
+						   (unsigned long)Tmp_win, ASWIN_ICON_NAME(Tmp_win));
+
+			show_debug( __FILE__, __FUNCTION__, __LINE__, "New name is \"%s\", icon_name \"%s\"", ASWIN_NAME(Tmp_win), ASWIN_ICON_NAME(Tmp_win) );
+
+			if (Scr.flags & FollowTitleChanges)
+				ChangeIcon (Tmp_win);
+
+			/* fix the name in the title bar */
+			if (!(Tmp_win->flags & ICONIFIED))
+				SetTitleBar (Tmp_win, (Scr.Hilite == Tmp_win), True);
+			else
+			{
+				DrawIconWindow (Tmp_win);
+				if (Textures.flags & SeparateButtonTitle)
+					RedoIconName (Tmp_win);
+			}
+		}
+	}else
 	{
-	 case XA_WM_NAME:
-#ifdef I18N
-		 if (XGetWindowProperty (dpy, Tmp_win->w, Event.xproperty.atom, 0L,
-								 MAX_NAME_LEN, False, AnyPropertyType, &actual,
-								 &actual_format, &nitems, &bytesafter,
-								 (unsigned char **)&prop) != Success || actual == None)
-			 return;
-		 text_prop.value = prop;
-		 text_prop.encoding = actual;
-		 text_prop.format = actual_format;
-		 text_prop.nitems = nitems;
-		 if (text_prop.value)
-		 {
-			 text_prop.nitems = strlen (text_prop.value);
-			 if (text_prop.encoding == XA_STRING)
-				 prop = (char *)text_prop.value;
-			 else
+		switch (Event.xproperty.atom)
+		{
+	  	 case XA_WM_HINTS:
+			 if (Tmp_win->wmhints)
+				 XFree ((char *)Tmp_win->wmhints);
+			 Tmp_win->wmhints = XGetWMHints (dpy, Event.xany.window);
+
+			 if (Tmp_win->wmhints == NULL)
+				 return;
+
+			 if ((Tmp_win->wmhints->flags & IconPixmapHint) ||
+				 (Tmp_win->wmhints->flags & IconWindowHint) ||
+				 !(Tmp_win->flags & (ICON_OURS | PIXMAP_OURS)))
+				 ChangeIcon (Tmp_win);
+			 break;
+
+		 case XA_WM_NORMAL_HINTS:
+			 GetWindowSizeHints (Tmp_win);
+			 BroadcastConfig (M_CONFIGURE_WINDOW, Tmp_win);
+			 break;
+
+		 default:
+			 if (Event.xproperty.atom == _XA_WM_PROTOCOLS)
+				 FetchWmProtocols (Tmp_win);
+			 else if (Event.xproperty.atom == _XA_WM_COLORMAP_WINDOWS)
 			 {
-				 if (XmbTextPropertyToTextList (dpy, &text_prop, &list, &num) >= Success
-					 && num > 0 && *list)
-					 prop = *list;
-				 else
-					 prop = (char *)text_prop.value;
-			 }
-		 } else
-			 prop = NoName;
-#else
-
-		 if (XGetWindowProperty (dpy, Tmp_win->w, Event.xproperty.atom, 0L,
-								 MAX_NAME_LEN, False, XA_STRING, &actual,
-								 &actual_format, &nitems, &bytesafter,
-								 (unsigned char **)&prop) != Success || actual == None)
-			 return;
-		 if (!prop)
-			 prop = NoName;
-#endif
-		 free_window_names (Tmp_win, True, False);
-
-		 Tmp_win->name = prop;
-		 BroadcastName (M_WINDOW_NAME, Tmp_win->w, Tmp_win->frame,
-						(unsigned long)Tmp_win, Tmp_win->name);
-
-		 if (Scr.flags & FollowTitleChanges)
-			 ChangeIcon (Tmp_win);
-
-		 /* fix the name in the title bar */
-		 if (!(Tmp_win->flags & ICONIFIED))
-			 SetTitleBar (Tmp_win, (Scr.Hilite == Tmp_win), True);
-		 else
-			 DrawIconWindow (Tmp_win);
-
-/*
- * if the icon name is NoName, set the name of the icon to be
- * the same as the window
- */
-		 if (Tmp_win->icon_name == NoName)
-		 {
-			 Tmp_win->icon_name = Tmp_win->name;
-			 BroadcastName (M_ICON_NAME, Tmp_win->w, Tmp_win->frame,
-							(unsigned long)Tmp_win, Tmp_win->icon_name);
-			 if (Textures.flags & SeparateButtonTitle)
-				 RedoIconName (Tmp_win);
-		 }
-		 break;
-
-	 case XA_WM_ICON_NAME:
-#ifdef I18N
-		 if (XGetWindowProperty (dpy, Tmp_win->w, Event.xproperty.atom, 0L,
-								 MAX_NAME_LEN, False, AnyPropertyType, &actual,
-								 &actual_format, &nitems, &bytesafter,
-								 (unsigned char **)&prop) != Success || actual == None)
-			 return;
-		 text_prop.value = prop;
-		 text_prop.encoding = actual;
-		 text_prop.format = actual_format;
-		 text_prop.nitems = nitems;
-		 if (text_prop.value)
-		 {
-			 text_prop.nitems = strlen (text_prop.value);
-			 if (text_prop.encoding == XA_STRING)
-				 prop = (char *)text_prop.value;
-			 else
+				 FetchWmColormapWindows (Tmp_win); /* frees old data */
+				 ReInstallActiveColormap ();
+			 } else if (Event.xproperty.atom == _XA_WM_STATE)
 			 {
-				 if (XmbTextPropertyToTextList (dpy, &text_prop, &list, &num) >= Success
-					 && num > 0 && *list)
-					 prop = *list;
-				 else
-					 prop = (char *)text_prop.value;
+				 if ((Scr.flags & ClickToFocus) && (Tmp_win == Scr.Focus) && (Tmp_win != NULL))
+				 {
+					 Scr.Focus = NULL;
+					 SetFocus (Tmp_win->w, Tmp_win, False);
+				 }
 			 }
-		 } else
-			 prop = NoName;
-#else
-		 if (XGetWindowProperty (dpy, Tmp_win->w, Event.xproperty.atom, 0,
-								 MAX_ICON_NAME_LEN, False, XA_STRING, &actual,
-								 &actual_format, &nitems, &bytesafter,
-								 (unsigned char **)&prop) != Success || actual == None)
-			 return;
-		 if (!prop)
-			 prop = NoName;
-#endif
-		 free_window_names (Tmp_win, False, True);
-		 Tmp_win->icon_name = prop;
-		 BroadcastName (M_ICON_NAME, Tmp_win->w, Tmp_win->frame,
-						(unsigned long)Tmp_win, Tmp_win->icon_name);
-		 if ((Tmp_win->flags & ICONIFIED))
-		 {
-			 DrawIconWindow (Tmp_win);
-			 if (Textures.flags & SeparateButtonTitle)
-				 RedoIconName (Tmp_win);
-		 }
-		 break;
-
-	 case XA_WM_HINTS:
-		 if (Tmp_win->wmhints)
-			 XFree ((char *)Tmp_win->wmhints);
-		 Tmp_win->wmhints = XGetWMHints (dpy, Event.xany.window);
-
-		 if (Tmp_win->wmhints == NULL)
-			 return;
-
-		 if ((Tmp_win->wmhints->flags & IconPixmapHint) ||
-			 (Tmp_win->wmhints->flags & IconWindowHint) ||
-			 !(Tmp_win->flags & (ICON_OURS | PIXMAP_OURS)))
-			 ChangeIcon (Tmp_win);
-		 break;
-
-	 case XA_WM_NORMAL_HINTS:
-		 GetWindowSizeHints (Tmp_win);
-		 BroadcastConfig (M_CONFIGURE_WINDOW, Tmp_win);
-		 break;
-
-	 default:
-		 if (Event.xproperty.atom == _XA_WM_PROTOCOLS)
-			 FetchWmProtocols (Tmp_win);
-		 else if (Event.xproperty.atom == _XA_WM_COLORMAP_WINDOWS)
-		 {
-			 FetchWmColormapWindows (Tmp_win); /* frees old data */
-			 ReInstallActiveColormap ();
-		 } else if (Event.xproperty.atom == _XA_WM_STATE)
-		 {
-			 if ((Scr.flags & ClickToFocus) && (Tmp_win == Scr.Focus) && (Tmp_win != NULL))
-			 {
-				 Scr.Focus = NULL;
-				 SetFocus (Tmp_win->w, Tmp_win, False);
-			 }
-		 }
-		 break;
+			 break;
+		}
 	}
 }
 

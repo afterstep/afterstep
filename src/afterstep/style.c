@@ -41,6 +41,7 @@
 #include "../../include/afterstep.h"
 #include "../../include/misc.h"
 #include "../../include/screen.h"
+#include "../../include/hints.h"
 
 /************************************************************************
  * ReapChildren - wait() for all dead child processes
@@ -355,9 +356,21 @@ style_delete (name_list * style)
 	free (style);
 }
 
+Bool 
+match_window_names_old( char *regexp, char **names )
+{
+	int i ;
+		
+	for( i = 0 ; i < MAX_WINDOW_NAMES ; ++i )
+		if( names[i] == NULL ) 
+			break ;
+		else if (old_matchWildcards (regexp, names[i]))
+			return True ;
+	return False;
+}
+
 void
-style_fill_by_name (name_list * nl, const char *name, const char *icon_name, const char *res_name,
-					const char *res_class)
+style_fill_by_name (name_list * nl, char **names )
 {
 	name_list    *nptr;
 
@@ -365,17 +378,7 @@ style_fill_by_name (name_list * nl, const char *name, const char *icon_name, con
 	nl->off_buttons = 0;
 	for (nptr = Scr.TheList; nptr != NULL; nptr = nptr->next)
 	{
-		int           match = 0;
-
-		if (name != NULL && old_matchWildcards (nptr->name, name) == True)
-			match = 1;
-		if (icon_name != NULL && old_matchWildcards (nptr->name, icon_name) == True)
-			match = 1;
-		if (res_name != NULL && old_matchWildcards (nptr->name, res_name) == True)
-			match = 1;
-		if (res_class != NULL && old_matchWildcards (nptr->name, res_class) == True)
-			match = 1;
-		if (match)
+		if (match_window_names_old( nptr->name, names ))
 		{
 			if (nptr->icon_file != NULL)
 				nl->icon_file = nptr->icon_file;

@@ -203,8 +203,7 @@ InvestigateWindowDesk (ASWindow * tmp_win)
 	name_list     nl;
 
 	style_init (&nl);
-	style_fill_by_name (&nl, tmp_win->name, NULL, tmp_win->class.res_name,
-						tmp_win->class.res_class);
+	style_fill_by_name (&nl, &(tmp_win->hints->names[0]));
 
 	/* sticky windows always use the current desk */
 	if (nl.off_flags & STICKY_FLAG)

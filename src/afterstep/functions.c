@@ -495,11 +495,11 @@ ExecuteFunction (FunctionCode func, char *action, Window in_w, ASWindow * tmp_wi
 		 XSync (dpy, 0);
 
 		 if (tmp_win != NULL)
-			 if (tmp_win->class.res_name != NULL)
+			 if (tmp_win->hints->res_name != NULL)
 			 {
 				 realfilename =
-					 safemalloc (strlen (HELPCOMMAND) + 1 + strlen (tmp_win->class.res_name) + 1);
-				 sprintf (realfilename, "%s %s", HELPCOMMAND, tmp_win->class.res_name);
+					 safemalloc (strlen (HELPCOMMAND) + 1 + strlen (tmp_win->hints->res_name) + 1);
+				 sprintf (realfilename, "%s %s", HELPCOMMAND, tmp_win->hints->res_name);
 				 if (!(fork ()))			   /* child process */
 					 if (execl ("/bin/sh", "/bin/sh", "-c", realfilename, (char *)0) == -1)
 						 exit (100);
@@ -545,16 +545,10 @@ ExecuteFunction (FunctionCode func, char *action, Window in_w, ASWindow * tmp_wi
 				 if (AS_XNextEvent (dpy, &Event))
 				 {
 					 DispatchEvent ();
-					 if (Event.type == MapNotify)
+					 if (Event.type == MapNotify && Tmp_win)
 					 {
-						 if ((Tmp_win) && (old_matchWildcards (action, Tmp_win->name) == True))
-							 done = True;
-						 if ((Tmp_win) && (Tmp_win->class.res_class) &&
-							 (old_matchWildcards (action, Tmp_win->class.res_class) == True))
-							 done = True;
-						 if ((Tmp_win) && (Tmp_win->class.res_name) &&
-							 (old_matchWildcards (action, Tmp_win->class.res_name) == True))
-							 done = True;
+						  if( match_window_names_old( action, &(Tmp_win->hints->names[0]) ) )
+							  done = True;
 					 }
 				 }
 			 }
@@ -626,11 +620,11 @@ ExecuteFunction (FunctionCode func, char *action, Window in_w, ASWindow * tmp_wi
 			 for (t = Scr.ASRoot.next; t != NULL; t = t->next)
 			 {
 				 SendConfig (Module, M_CONFIGURE_WINDOW, t);
-				 SendName (Module, M_WINDOW_NAME, t->w, t->frame, (unsigned long)t, t->name);
-				 SendName (Module, M_ICON_NAME, t->w, t->frame, (unsigned long)t, t->icon_name);
+				 SendName (Module, M_WINDOW_NAME, t->w, t->frame, (unsigned long)t, t->hints->names[0]);
+				 SendName (Module, M_ICON_NAME, t->w, t->frame, (unsigned long)t, t->hints->icon_name);
 				 SendName (Module, M_RES_CLASS, t->w, t->frame,
-						   (unsigned long)t, t->class.res_class);
-				 SendName (Module, M_RES_NAME, t->w, t->frame, (unsigned long)t, t->class.res_name);
+						   (unsigned long)t, t->hints->res_class);
+				 SendName (Module, M_RES_NAME, t->w, t->frame, (unsigned long)t, t->hints->res_name);
 
 				 if ((t->flags & ICONIFIED) && (!(t->flags & ICON_UNMAPPED)))
 					 SendPacket (Module, M_ICONIFY, 7, t->w, t->frame,
@@ -800,12 +794,11 @@ Circulate (ASWindow * tmp_win, char *action, int direction)
 			!(t->flags & NOFOCUS) &&
 			!(t->flags & WINDOWLISTSKIP) &&
 			(AutoTabThroughDesks || t->Desk == Scr.CurrentDesk) &&
-			(!(Scr.flags & CirculateSkipIcons) || !(t->flags & ICONIFIED)) &&
-			(action == NULL ||
-			 (t->name != NULL && old_matchWildcards (action, t->name)) ||
-			 (t->icon_name != NULL && old_matchWildcards (action, t->icon_name)) ||
-			 (t->class.res_name != NULL && old_matchWildcards (action, t->class.res_name))))
+			(!(Scr.flags & CirculateSkipIcons) || !(t->flags & ICONIFIED)))
 		{
+			if( action != NULL )
+				if( !match_window_names_old( action, t->hints->names ) )
+					continue ;
 			/* update first, last, and target */
 			if (first == NULL || t->circulate_sequence < first->circulate_sequence)
 				first = t;

@@ -124,7 +124,7 @@ update_windowList (void)
 			if ((t->Desk == next_desk) && (!(t->flags & WINDOWLISTSKIP)))
 			{
 				fdata.func = F_RAISE_IT;
-				fdata.name = mystrdup ((val1 & 0x0001) ? t->icon_name : t->name);
+				fdata.name = mystrdup ((val1 & 0x0001) ? ASWIN_ICON_NAME(t) : ASWIN_NAME(t));
 				fdata.func_val[0] = (val_type) t;
 				fdata.func_val[1] = (val_type) t->w;
 				if (++scut == ('9' + 1))

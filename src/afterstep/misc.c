@@ -56,49 +56,6 @@ XGCValues     Globalgcv;
 unsigned long Globalgcm;
 
 
-/**************************************************************************
- * 
- * Releases dynamically allocated space used to store window/icon names
- *
- **************************************************************************/
-void
-free_window_names (ASWindow * tmp, Bool nukename, Bool nukeicon)
-{
-	if (!tmp)
-		return;
-
-	if (nukename && nukeicon)
-	{
-		if (tmp->name == tmp->icon_name)
-		{
-			if (tmp->name != NoName)
-				XFree (tmp->name);
-			tmp->name = NULL;
-			tmp->icon_name = NULL;
-		} else
-		{
-			if (tmp->name != NoName)
-				XFree (tmp->name);
-			tmp->name = NULL;
-			if (tmp->icon_name != NoName)
-				XFree (tmp->icon_name);
-			tmp->icon_name = NULL;
-		}
-	} else if (nukename)
-	{
-		if (tmp->name != tmp->icon_name && tmp->name != NoName)
-			XFree (tmp->name);
-		tmp->name = NULL;
-	} else
-	{										   /* if (nukeicon) */
-		if (tmp->icon_name != tmp->name && tmp->icon_name != NoName)
-			XFree (tmp->icon_name);
-		tmp->icon_name = NULL;
-	}
-
-	return;
-}
-
 /***************************************************************************
  *
  * Handles destruction of a window 
@@ -211,13 +168,8 @@ Destroy (ASWindow * Tmp_win, Bool kill_client)
 	Tmp_win->prev->next = Tmp_win->next;
 	if (Tmp_win->next != NULL)
 		Tmp_win->next->prev = Tmp_win->prev;
-	free_window_names (Tmp_win, True, True);
 	if (Tmp_win->wmhints)
 		XFree ((char *)Tmp_win->wmhints);
-	if (Tmp_win->class.res_name && Tmp_win->class.res_name != NoName)
-		XFree ((char *)Tmp_win->class.res_name);
-	if (Tmp_win->class.res_class && Tmp_win->class.res_class != NoName)
-		XFree ((char *)Tmp_win->class.res_class);
 	if (Tmp_win->mwm_hints)
 		XFree ((char *)Tmp_win->mwm_hints);
 

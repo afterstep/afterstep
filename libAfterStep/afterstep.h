@@ -175,8 +175,18 @@ typedef struct ASWindow
 	struct ASStatusHints *status;
 	struct ASStatusHints *saved_status; /* status prior to maximization */
 	XPoint 				  anchor ;
-
 	
+#define ASWIN_NAME(t)       ((t)->hints->names[0])
+#define ASWIN_CLASS(t)      ((t)->hints->res_class)
+#define ASWIN_RES_NAME(t)   ((t)->hints->res_name)
+#define ASWIN_ICON_NAME(t)  ((t)->hints->icon_name)
+#define ASWIN_DESK(t)       ((t)->status->desktop)
+#define ASWIN_LAYER(t)      ((t)->status->layer)
+#define ASWIN_GET_FLAGS(t,f) 	get_flags((t)->status->flags,(f))
+#define ASWIN_SET_FLAGS(t,f)    set_flags((t)->status->flags,(f))
+#define ASWIN_CLEAR_FLAGS(t,f) 	clear_flags((t)->status->flags,(f))
+#define ASWIN_FUNC_MASK(t)  ((t)->hints->function_mask)
+
     int old_bw;			/* border width before reparenting */
     Window frame;		/* the frame window */
     Window Parent;		/* Ugly Ugly Ugly - it looks like you
@@ -213,7 +223,6 @@ typedef struct ASWindow
     int title_width;		/* width of the title bar */
     int button_height;		/* height of the buttons on title bar */
 
-    char *icon_name;		/* name of the icon */
     Window icon_pixmap_w;	/* the icon window */
     int icon_p_x;		/* icon pixmap window x */
     int icon_p_y;		/* icon pixmap window y */
@@ -233,11 +242,9 @@ typedef struct ASWindow
     int icon_pm_height;		/* icon pixmap height */
     int icon_pm_depth;		/* icon pixmap drawable depth */
 
-    char *name;			/* name of the window */
     XWindowAttributes attr;	/* the child window attributes */
     XSizeHints normal_hints;		/* normal hints */
     XWMHints *wmhints;		/* WM hints */
-    XClassHint class;
     int Desk;			/* Tells which desktop this window is on */
     int FocusDesk;		/* Where (if at all) was it focussed */
     int DeIconifyDesk;		/* Desk to deiconify to, for StubbornIcons */

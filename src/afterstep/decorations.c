@@ -47,72 +47,7 @@
 
 #include "menus.h"
 
-extern Atom   _XA_MwmAtom;
-extern Atom   _XA_WIN_STATE;
-
-/* Motif WM window hints structure */
-typedef struct
-{
-	CARD32        flags;					   /* window hints */
-	CARD32        functions;				   /* requested functions */
-	CARD32        decorations;				   /* requested decorations */
-	INT32         inputMode;				   /* input mode */
-	CARD32        status;					   /* status (ignored) */
-}
-MwmHints;
-
-/* Motif WM window hints */
-#define MWM_HINTS_FUNCTIONS     (1L << 0)
-#define MWM_HINTS_DECORATIONS   (1L << 1)
-#define MWM_HINTS_INPUT_MODE    (1L << 2)
-#define MWM_HINTS_STATUS        (1L << 3)
-
-/* Motif WM function flags */
-#define MWM_FUNC_ALL            (1L << 0)
-#define MWM_FUNC_RESIZE         (1L << 1)
-#define MWM_FUNC_MOVE           (1L << 2)
-#define MWM_FUNC_MINIMIZE       (1L << 3)
-#define MWM_FUNC_MAXIMIZE       (1L << 4)
-#define MWM_FUNC_CLOSE          (1L << 5)
-
-/* Motif WM decor flags */
-#define MWM_DECOR_ALL           (1L << 0)
-#define MWM_DECOR_BORDER        (1L << 1)
-#define MWM_DECOR_RESIZEH       (1L << 2)
-#define MWM_DECOR_TITLE         (1L << 3)
-#define MWM_DECOR_MENU          (1L << 4)
-#define MWM_DECOR_MINIMIZE      (1L << 5)
-#define MWM_DECOR_MAXIMIZE      (1L << 6)
-
-/* Motif WM input modes */
-#define MWM_INPUT_MODELESS 0
-#define MWM_INPUT_PRIMARY_APPLICATION_MODAL 1
-#define MWM_INPUT_SYSTEM_MODAL 2
-#define MWM_INPUT_FULL_APPLICATION_MODAL 3
-#define MWM_INPUT_APPLICATION_MODAL MWM_INPUT_PRIMARY_APPLICATION_MODAL
-
-#define PROP_MOTIF_WM_HINTS_ELEMENTS  5
-#define PROP_MWM_HINTS_ELEMENTS       PROP_MOTIF_WM_HINTS_ELEMENTS
-
-/* Gnome WM window hints */
-#define WIN_HINTS_SKIP_FOCUS      (1<<0)	   /*"alt-tab" skips this win */
-#define WIN_HINTS_SKIP_WINLIST    (1<<1)	   /*do not show in window list */
-#define WIN_HINTS_SKIP_TASKBAR    (1<<2)	   /*do not show on taskbar */
-#define WIN_HINTS_GROUP_TRANSIENT (1<<3)	   /*Reserved - definition is unclear */
-#define WIN_HINTS_FOCUS_ON_CLICK  (1<<4)	   /*app only accepts focus if clicked */
 #define WIN_HINTS_DO_NOT_COVER    (1<<5)	   /*attempt to not cover this window */
-
-/* Gnome WM window states */
-#define WIN_STATE_STICKY          (1<<0)	   /*everyone knows sticky */
-#define WIN_STATE_MINIMIZED       (1<<1)	   /*Reserved - definition is unclear */
-#define WIN_STATE_MAXIMIZED_VERT  (1<<2)	   /*window in maximized V state */
-#define WIN_STATE_MAXIMIZED_HORIZ (1<<3)	   /*window in maximized H state */
-#define WIN_STATE_HIDDEN          (1<<4)	   /*not on taskbar but window visible */
-#define WIN_STATE_SHADED          (1<<5)	   /*shaded (MacOS / Afterstep style) */
-#define WIN_STATE_HID_WORKSPACE   (1<<6)	   /*not on current desktop */
-#define WIN_STATE_HID_TRANSIENT   (1<<7)	   /*owner of transient is hidden */
-#define WIN_STATE_FIXED_POSITION  (1<<8)	   /*window is fixed in position even */
-#define WIN_STATE_ARRANGE_IGNORE  (1<<9)	   /*ignore for auto arranging */
 
 extern ASWindow *Tmp_win;
 
@@ -402,49 +337,49 @@ check_allowed_function (MenuItem * mi)
 	if (mi->func == F_NOP)
 		return 0;
 
-	if (mi->func == F_FUNCTION && mi->item != NULL)
+	if (mi->func == F_FUNCTION && mi->item != NULL && Tmp_win)
 	{
 		/* Hard part! What to do now? */
 		/* Hate to do it, but for lack of a better idea,
 		 * check based on the menu entry name */
-		if ((Tmp_win) && (!(Tmp_win->functions & MWM_FUNC_MOVE)) &&
+		if ((!(Tmp_win->functions & MWM_FUNC_MOVE)) &&
 			(mystrncasecmp (mi->item, MOVE_STRING, strlen (MOVE_STRING)) == 0))
 			return 0;
 
-		if ((Tmp_win) && (!(Tmp_win->functions & MWM_FUNC_RESIZE)) &&
+		if ((!(Tmp_win->functions & MWM_FUNC_RESIZE)) &&
 			(mystrncasecmp (mi->item, RESIZE_STRING1, strlen (RESIZE_STRING1)) == 0))
 			return 0;
 
-		if ((Tmp_win) && (!(Tmp_win->functions & MWM_FUNC_RESIZE)) &&
+		if ((!(Tmp_win->functions & MWM_FUNC_RESIZE)) &&
 			(mystrncasecmp (mi->item, RESIZE_STRING2, strlen (RESIZE_STRING2)) == 0))
 			return 0;
 
-		if ((Tmp_win) && (!(Tmp_win->functions & MWM_FUNC_MINIMIZE)) &&
+		if ((!(Tmp_win->functions & MWM_FUNC_MINIMIZE)) &&
 			(!(Tmp_win->flags & ICONIFIED)) &&
 			(mystrncasecmp (mi->item, MINIMIZE_STRING, strlen (MINIMIZE_STRING)) == 0))
 			return 0;
 
-		if ((Tmp_win) && (!(Tmp_win->functions & MWM_FUNC_MINIMIZE)) &&
+		if ((!(Tmp_win->functions & MWM_FUNC_MINIMIZE)) &&
 			(mystrncasecmp (mi->item, MINIMIZE_STRING2, strlen (MINIMIZE_STRING2)) == 0))
 			return 0;
 
-		if ((Tmp_win) && (!(Tmp_win->functions & MWM_FUNC_MAXIMIZE)) &&
+		if ((!(Tmp_win->functions & MWM_FUNC_MAXIMIZE)) &&
 			(mystrncasecmp (mi->item, MAXIMIZE_STRING, strlen (MAXIMIZE_STRING)) == 0))
 			return 0;
 
-		if ((Tmp_win) && (!(Tmp_win->functions & MWM_FUNC_CLOSE)) &&
+		if ((!(Tmp_win->functions & MWM_FUNC_CLOSE)) &&
 			(mystrncasecmp (mi->item, CLOSE_STRING1, strlen (CLOSE_STRING1)) == 0))
 			return 0;
 
-		if ((Tmp_win) && (!(Tmp_win->functions & MWM_FUNC_CLOSE)) &&
+		if ((!(Tmp_win->functions & MWM_FUNC_CLOSE)) &&
 			(mystrncasecmp (mi->item, CLOSE_STRING2, strlen (CLOSE_STRING2)) == 0))
 			return 0;
 
-		if ((Tmp_win) && (!(Tmp_win->functions & MWM_FUNC_CLOSE)) &&
+		if ((!(Tmp_win->functions & MWM_FUNC_CLOSE)) &&
 			(mystrncasecmp (mi->item, CLOSE_STRING3, strlen (CLOSE_STRING3)) == 0))
 			return 0;
 
-		if ((Tmp_win) && (!(Tmp_win->functions & MWM_FUNC_CLOSE)) &&
+		if ((!(Tmp_win->functions & MWM_FUNC_CLOSE)) &&
 			(mystrncasecmp (mi->item, CLOSE_STRING4, strlen (CLOSE_STRING4)) == 0))
 			return 0;
 

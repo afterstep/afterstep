@@ -107,8 +107,6 @@ void          SaveDesktopState (void);
 XContext      ASContext;					   /* context for afterstep windows */
 XContext      MenuContext;					   /* context for afterstep menus */
 
-XClassHint    NoClass;						   /* for applications with no class */
-
 int           JunkX = 0, JunkY = 0;
 Window        JunkRoot, JunkChild;			   /* junk window */
 unsigned int  JunkWidth, JunkHeight, JunkBW, JunkDepth, JunkMask;
@@ -195,6 +193,7 @@ main (int argc, char **argv)
 	char          num[10];
 
 	MyName = argv[0];
+	set_application_name(argv[0]);
 
 #ifdef I18N
 	if (setlocale (LC_CTYPE, AFTER_LOCALE) == NULL)
@@ -214,13 +213,16 @@ main (int argc, char **argv)
 #if defined(LOG_FONT_CALLS)
 	fprintf (stderr, "logging font calls now\n");
 #endif
-
+	set_output_threshold(OUTPUT_LEVEL_PROGRESS); 
 	for (i = 1; i < argc; i++)
 	{
+		show_progress("argv[%d] = \"%s\"", i, argv[i]);
 		if (!strcmp (argv[i], "--debug"))
 		{
 			debugging = True;
 			set_output_level(OUTPUT_LEVEL_DEBUG); 
+			set_output_threshold(OUTPUT_LEVEL_DEBUG); 
+			show_progress("running in debug mode.");
 		}else if (!strcmp (argv[i], "-v") || !strcmp (argv[i], "--version"))
 		{
 			printf ("AfterStep version %s\n", VERSION);
@@ -832,8 +834,6 @@ InitVariables (int shallresetdesktop)
 {
 	ASContext = XUniqueContext ();
 	MenuContext = XUniqueContext ();
-	NoClass.res_name = NoName;
-	NoClass.res_class = NoName;
 
 	Scr.d_depth = Scr.asv->visual_info.depth;
 	Scr.ASRoot.w = Scr.Root;

@@ -422,34 +422,38 @@ typedef struct ExtendedWMHints
 {
 #define EXTWM_NAME              (0x01<<0)
 #define EXTWM_ICON_NAME         (0x01<<1)
-#define EXTWM_DESKTOP           (0x01<<2)
+#define EXTWM_VISIBLE_NAME      (0x01<<2)
+#define EXTWM_VISIBLE_ICON_NAME (0x01<<3)
+#define EXTWM_DESKTOP           (0x01<<4)
 
-#define EXTWM_TypeDesktop       (0x01<<3)
-#define EXTWM_TypeDock          (0x01<<4)
-#define EXTWM_TypeToolbar       (0x01<<5)
-#define EXTWM_TypeMenu          (0x01<<6)
-#define EXTWM_TypeDialog        (0x01<<7)
-#define EXTWM_TypeNormal        (0x01<<8)
+#define EXTWM_TypeDesktop       (0x01<<5)
+#define EXTWM_TypeDock          (0x01<<6)
+#define EXTWM_TypeToolbar       (0x01<<7)
+#define EXTWM_TypeMenu          (0x01<<8)
+#define EXTWM_TypeDialog        (0x01<<9)
+#define EXTWM_TypeNormal        (0x01<<10)
 #define EXTWM_TypeEverything    (EXTWM_TypeDesktop|EXTWM_TypeDock|EXTWM_TypeToolbar| \
                                  EXTWM_TypeMenu|EXTWM_TypeDialog|EXTWM_TypeNormal)
 
-#define EXTWM_StateModal        (0x01<<9)
-#define EXTWM_StateSticky       (0x01<<10)
-#define EXTWM_StateMaximizedV   (0x01<<11)
-#define EXTWM_StateMaximizedH   (0x01<<12)
-#define EXTWM_StateShaded       (0x01<<13)
-#define EXTWM_StateSkipTaskbar  (0x01<<14)
-#define EXTWM_StateSkipPager    (0x01<<15)
+#define EXTWM_StateModal        (0x01<<11)
+#define EXTWM_StateSticky       (0x01<<12)
+#define EXTWM_StateMaximizedV   (0x01<<13)
+#define EXTWM_StateMaximizedH   (0x01<<14)
+#define EXTWM_StateShaded       (0x01<<15)
+#define EXTWM_StateSkipTaskbar  (0x01<<16)
+#define EXTWM_StateSkipPager    (0x01<<17)
 #define EXTWM_StateEverything   (EXTWM_StateModal|EXTWM_StateSticky|EXTWM_StateMaximizedV| \
                                  EXTWM_StateMaximizedH|EXTWM_StateShaded| \
                                  EXTWM_StateSkipTaskbar|EXTWM_StateSkipPager)
 
-#define EXTWM_PID               (0x01<<16)
-#define EXTWM_DoesWMPing        (0x01<<17)
+#define EXTWM_PID               (0x01<<18)
+#define EXTWM_DoesWMPing        (0x01<<19)
   ASFlagType flags;
 
   XTextProperty *name;
   XTextProperty *icon_name;
+  XTextProperty *visible_name;
+  XTextProperty *visible_icon_name;
   CARD32 desktop;
   CARD32 pid;
 }
@@ -548,7 +552,8 @@ void print_hints            ( stream_func func, void* stream, ASRawHints *hints 
 
 
 /*************************************************************************/
-Bool handle_client_property_update( Window w, Atom property, ASRawHints *raw );
+Bool handle_client_property_update ( Window w, Atom property, ASRawHints *raw );
+Bool handle_manager_property_update( Window w, Atom property, ASRawHints *raw );
 
 /*************************************************************************/
 /****************** Setting properties - updating hints : ****************/

@@ -425,12 +425,12 @@ SetTitleBar (ASWindow * t, Bool is_focus, Bool NewTitle)
 		}
 	flush_expose (t->title_w);
 
-	if (t->name != (char *)NULL)
+	if (ASWIN_NAME(t))
 	{
 		if (t->flags & VERTICAL_TITLE)
 		{
-			txt = fit_vertical_text ((*style).font, t->name,
-									 strlen (t->name), t->title_height -
+			txt = fit_vertical_text ((*style).font, ASWIN_NAME(t),
+									 strlen (ASWIN_NAME(t)), t->title_height -
 									 t->space_taken_left_buttons -
 									 t->space_taken_right_buttons - 6);
 			text_w = strlen (txt) * style->font.height;
@@ -438,8 +438,8 @@ SetTitleBar (ASWindow * t, Bool is_focus, Bool NewTitle)
 				text_w = t->title_height - 4;
 		} else
 		{
-			txt = fit_horizontal_text ((*style).font, t->name,
-									   strlen (t->name), t->title_width -
+			txt = fit_horizontal_text ((*style).font, ASWIN_NAME(t),
+									   strlen (ASWIN_NAME(t)), t->title_width -
 									   t->space_taken_left_buttons -
 									   t->space_taken_right_buttons - 6);
 			text_w = XTextWidth ((*style).font.font, txt, strlen (txt));
@@ -507,7 +507,7 @@ SetTitleBar (ASWindow * t, Bool is_focus, Bool NewTitle)
 
 		XDrawLine (dpy, t->title_w, ShadowGC, text_x + text_w + 1, 0,
 				   text_x + text_w + 1, t->title_height);
-		if (t->name != (char *)NULL)
+		if (ASWIN_NAME(t))
 			XDrawString (dpy, t->title_w, DrawGC, text_x, text_y, txt, strlen (txt));
 	} else
 	{
@@ -522,7 +522,7 @@ SetTitleBar (ASWindow * t, Bool is_focus, Bool NewTitle)
 						   ReliefGC, ShadowGC, BOTTOM_HILITE | RIGHT_HILITE);
 			XFlush (dpy);
 		}
-		if (t->name != NULL)
+		if (ASWIN_NAME(t))
 		{
 			if (is_focus && TextTextureStyle != NULL)
 				text_texture_style = mystyle_find (TextTextureStyle);
@@ -535,8 +535,8 @@ SetTitleBar (ASWindow * t, Bool is_focus, Bool NewTitle)
 											  text_y);
 		}
 #else /* NO_TEXTURE defined */
-		if (t->name != (char *)NULL)
-			XDrawString (dpy, t->title_w, DrawGC, text_x, text_y, t->name, strlen (t->name));
+		if (ASWIN_NAME(t))
+			XDrawString (dpy, t->title_w, DrawGC, text_x, text_y, ASWIN_NAME(t), strlen (ASWIN_NAME(t)));
 
 		RelieveWindow (t, t->title_w, 0, 0, t->title_width, t->title_height,
 					   ReliefGC, ShadowGC, BOTTOM_HILITE | RIGHT_HILITE);

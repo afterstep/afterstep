@@ -107,7 +107,7 @@ struct ScreenInfo;
 typedef struct ASHints
 {
   /* NULL terminated list of names/aliases */
-#define MAX_WINDOW_NAMES        6
+#define MAX_WINDOW_NAMES        8
   char *names[MAX_WINDOW_NAMES+1] ;
   /* these are merely shortcuts to the above list DON'T FREE THEM !!! */
   char *res_name, *res_class, *icon_name ;
@@ -220,6 +220,8 @@ ASHints *merge_hints( struct ASRawHints *raw, struct ASDatabase *db, ASStatusHin
 Bool update_protocols( struct ScreenInfo *scr, Window w, ASSupportedHints *list, ASFlagType *pprots, ASFlagType *pfuncs );
 Bool update_colormaps( struct ScreenInfo *scr, Window w, ASSupportedHints *list, Window **pcmap_windows );
 Bool update_property_hints( Window w, Atom property, ASHints *hints, ASStatusHints *status );
+Bool update_property_hints_manager( Window w, Atom property, ASSupportedHints *list, 
+                                    ASHints *hints, ASStatusHints *status );
 
 void destroy_hints( ASHints *clean, Bool reusable );
 Bool compare_names( ASHints *old, ASHints *hints );

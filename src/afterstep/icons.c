@@ -130,8 +130,8 @@ ResizeIconWindow (ASWindow * tmp_win)
 	MyStyle      *button_title_sticky = mystyle_find_or_default ("ButtonTitleSticky");
 	MyStyle      *button_title_unfocus = mystyle_find_or_default ("ButtonTitleUnfocus");
 	const char   *name =
-		tmp_win->icon_name != NULL ? tmp_win->icon_name : tmp_win->name !=
-		NULL ? tmp_win->name : "";
+		ASWIN_ICON_NAME(tmp_win)!= NULL ? ASWIN_ICON_NAME(tmp_win) : 
+		(ASWIN_NAME(tmp_win) !=	NULL )? ASWIN_NAME(tmp_win) : "";
 	int           len, width, height, t_width, t_height;
 
 	/* set the base icon size */
@@ -297,7 +297,8 @@ DrawIconWindow (ASWindow * win)
 {
 	GC            ForeGC, BackGC, Shadow, Relief;
 	const char   *name =
-		win->icon_name != NULL ? win->icon_name : win->name != NULL ? win->name : "";
+		ASWIN_ICON_NAME(win) != NULL ? ASWIN_ICON_NAME(win) : 
+		(ASWIN_NAME(win) != NULL) ? ASWIN_NAME(win) : "";
 	MyStyle      *button_pixmap, *button_title;
 
 	if (win->flags & SUPPRESSICON)
@@ -863,8 +864,7 @@ SearchIcon (ASWindow * tmp_win)
 	name_list     nl;
 
 	nl.icon_file = tmp_win->icon_pm_file;
-	style_fill_by_name (&nl, tmp_win->name, tmp_win->icon_name, tmp_win->class.res_name,
-						tmp_win->class.res_class);
+	style_fill_by_name (&nl, &(tmp_win->hints->names[0]));
 	return nl.icon_file;
 }
 

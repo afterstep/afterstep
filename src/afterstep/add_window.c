@@ -370,13 +370,10 @@ AddWindow (Window w)
 	ASWindow     *tmp_win;					   /* new afterstep window structure */
 	unsigned long valuemask;				   /* mask for create windows */
 	XSetWindowAttributes attributes;		   /* attributes for create windows */
-	Atom          actual_type;
-	int           actual_format, i, width, height;
-	unsigned long nitems, bytesafter;
+	int           i, width, height;
 	int           a, b;
 	extern Bool   NeedToResizeToo;
 	extern ASWindow *colormap_win;
-	XTextProperty text_prop;
 	name_list     nl;
 
 #ifdef I18N
@@ -419,51 +416,23 @@ AddWindow (Window w)
         destroy_raw_hints( &raw_hints, True );
         if( hints )
         {
+			show_debug( __FILE__, __FUNCTION__, __LINE__,  "Window management hints collected and merged for window %X", w );
             if( is_output_level_under_threshold(OUTPUT_LEVEL_HINTS) )
 			{
                 print_clean_hints( NULL, NULL, hints );
 				print_status_hints( NULL, NULL, &status );
 			}
-        }
+        }else
+			show_warning( "Failed to merge window management hints for window %X", w );
 		tmp_win->hints = hints ;
-    }
+    }else
+		show_warning( "Unable to obtain window management hints for window %X", w );
 
-	
-	if (XGetWMName (dpy, tmp_win->w, &text_prop))
-#ifdef I18N
-	{
-		if (text_prop.value)
-		{
-			text_prop.nitems = strlen (text_prop.value);
-			if (text_prop.encoding == XA_STRING)
-				tmp_win->name = (char *)text_prop.value;
-			else
-			{
-				if (XmbTextPropertyToTextList (dpy, &text_prop, &list, &num) >= Success && num > 0
-					&& *list)
-					tmp_win->name = *list;
-				else
-					tmp_win->name = (char *)text_prop.value;
-			}
-		} else
-			tmp_win->name = NoName;
-	}
-#else
-		tmp_win->name = (char *)text_prop.value;
-#endif
-	else
-		tmp_win->name = NoName;
 
 /*  fprintf( stderr, "[%s]: %dx%d%+d%+d\n", tmp_win->name, JunkWidth, JunkHeight, JunkX, JunkY );
 */
 	tmp_win->focus_sequence = 1;
 	SetCirculateSequence (tmp_win, -1);
-	tmp_win->class = NoClass;
-	XGetClassHint (dpy, tmp_win->w, &tmp_win->class);
-	if (tmp_win->class.res_name == NULL)
-		tmp_win->class.res_name = NoName;
-	if (tmp_win->class.res_class == NULL)
-		tmp_win->class.res_class = NoName;
 
 	FetchWmProtocols (tmp_win);
 	FetchWmColormapWindows (tmp_win);
@@ -511,8 +480,7 @@ AddWindow (Window w)
 	style_init (&nl);
 
 	nl.off_buttons = tmp_win->buttons;
-	style_fill_by_name (&nl, tmp_win->name, NULL, tmp_win->class.res_name,
-						tmp_win->class.res_class);
+	style_fill_by_name (&nl, &(tmp_win->hints->names[0]));
 	tmp_win->buttons = nl.off_buttons;
 
 	if (!(nl.off_flags & STYLE_FOCUS_FLAG) ||
@@ -662,40 +630,6 @@ AddWindow (Window w)
 		return (NULL);
 	}
 	XSetWindowBorderWidth (dpy, tmp_win->w, 0);
-#ifdef I18N
-	if (XGetWindowProperty (dpy, tmp_win->w, XA_WM_ICON_NAME, 0L, 200L, False,
-							AnyPropertyType, &actual_type, &actual_format, &nitems,
-							&bytesafter, (unsigned char **)&tmp_win->icon_name)
-		== Success && actual_type != None)
-	{
-		text_prop.value = tmp_win->icon_name;
-		text_prop.encoding = actual_type;
-		text_prop.format = actual_format;
-		text_prop.nitems = nitems;
-		if (text_prop.value)
-		{
-			text_prop.nitems = strlen (text_prop.value);
-			if (text_prop.encoding == XA_STRING)
-				tmp_win->icon_name = (char *)text_prop.value;
-			else
-			{
-				if (XmbTextPropertyToTextList (dpy, &text_prop, &list, &num) >= Success && num > 0
-					&& *list)
-					tmp_win->icon_name = *list;
-				else
-					tmp_win->icon_name = (char *)text_prop.value;
-			}
-		} else
-			tmp_win->icon_name = NULL;
-	} else
-		tmp_win->icon_name = NULL;
-#else
-	XGetWindowProperty (dpy, tmp_win->w, XA_WM_ICON_NAME, 0L, 200L, False,
-						XA_STRING, &actual_type, &actual_format, &nitems,
-						&bytesafter, (unsigned char **)&tmp_win->icon_name);
-#endif
-	if (tmp_win->icon_name == (char *)NULL)
-		tmp_win->icon_name = tmp_win->name;
 
 	tmp_win->flags &= ~ICONIFIED;
 	tmp_win->flags &= ~ICON_UNMAPPED;
@@ -874,13 +808,13 @@ AddWindow (Window w)
 	BroadcastConfig (M_ADD_WINDOW, tmp_win);
 
 	BroadcastName (M_WINDOW_NAME, tmp_win->w, tmp_win->frame,
-				   (unsigned long)tmp_win, tmp_win->name);
+				   (unsigned long)tmp_win, tmp_win->hints->names[0]);
 	BroadcastName (M_ICON_NAME, tmp_win->w, tmp_win->frame,
-				   (unsigned long)tmp_win, tmp_win->icon_name);
+				   (unsigned long)tmp_win, tmp_win->hints->icon_name);
 	BroadcastName (M_RES_CLASS, tmp_win->w, tmp_win->frame,
-				   (unsigned long)tmp_win, tmp_win->class.res_class);
+				   (unsigned long)tmp_win, tmp_win->hints->res_class);
 	BroadcastName (M_RES_NAME, tmp_win->w, tmp_win->frame,
-				   (unsigned long)tmp_win, tmp_win->class.res_name);
+				   (unsigned long)tmp_win, tmp_win->hints->res_name);
 
 	FetchWmProtocols (tmp_win);
 	FetchWmColormapWindows (tmp_win);

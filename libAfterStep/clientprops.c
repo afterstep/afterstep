@@ -503,6 +503,26 @@ read_extwm_icon_name (ASRawHints * hints, Window w)
 }
 
 void
+read_extwm_visible_name (ASRawHints * hints, Window w)
+{
+	if (hints && w != None)
+	{
+		if (read_text_property (w, _XA_NET_WM_VISIBLE_NAME, &(hints->extwm_hints.visible_name)))
+			set_flags (hints->extwm_hints.flags, EXTWM_VISIBLE_NAME);
+	}
+}
+
+void
+read_extwm_visible_icon_name (ASRawHints * hints, Window w)
+{
+	if (hints && w != None)
+	{
+        if (read_text_property (w, _XA_NET_WM_VISIBLE_ICON_NAME, &(hints->extwm_hints.visible_icon_name)))
+            set_flags (hints->extwm_hints.flags, EXTWM_VISIBLE_ICON_NAME);
+	}
+}
+
+void
 read_extwm_desktop (ASRawHints * hints, Window w)
 {
 	if (hints && w != None)
@@ -650,6 +670,8 @@ struct hint_description_struct
 	/* wm-spec _NET hints : */
     { &_XA_NET_WM_NAME,         read_extwm_name     , HINT_NAME     , HINTS_ExtendedWM},
     { &_XA_NET_WM_ICON_NAME,    read_extwm_icon_name, HINT_NAME     , HINTS_ExtendedWM},
+    { &_XA_NET_WM_VISIBLE_NAME, read_extwm_visible_name, HINT_NAME     , HINTS_ExtendedWM},
+    { &_XA_NET_WM_VISIBLE_ICON_NAME,read_extwm_visible_icon_name, HINT_NAME     , HINTS_ExtendedWM},
     { &_XA_NET_WM_DESKTOP,      read_extwm_desktop  , HINT_STARTUP|HINT_PROTOCOL  , HINTS_ExtendedWM},
     { &_XA_NET_WM_WINDOW_TYPE,  read_extwm_window_type,HINT_STARTUP|HINT_GENERAL, HINTS_ExtendedWM},
     { &_XA_NET_WM_STATE,        read_extwm_state    , HINT_STARTUP|HINT_GENERAL,  HINTS_ExtendedWM},
@@ -1015,6 +1037,50 @@ handle_client_property_update( Window w, Atom property, ASRawHints *raw )
 		read_func( raw, w );
 		return True;
 	}
+	return False;
+}
+
+/* This is so that client app could re-read property updated by client : */
+Bool
+handle_manager_property_update( Window w, Atom property, ASRawHints *raw )
+{
+	void (*read_func)(ASRawHints * hints, Window w) = NULL ;
+
+	if( w && property && raw )
+	{
+		/* Here we are only interested in properties updtaed by the Window Manager : */
+		if( property == _XA_WM_NAME || property == _XA_WM_ICON_NAME ||
+		    property == _XA_NET_WM_NAME ||  property == _XA_NET_WM_ICON_NAME ||
+			property == _XA_NET_WM_VISIBLE_NAME || property == _XA_NET_WM_VISIBLE_ICON_NAME )
+		{
+			read_wm_state(raw, w);
+			read_wm_icon_name(raw, w);
+			read_wm_class (raw, w);
+			read_extwm_name (raw, w);
+			read_extwm_icon_name (raw, w);
+			read_extwm_visible_name (raw, w);
+			read_extwm_visible_icon_name (raw, w);
+			return True ;
+		}else if( property == _XA_WM_HINTS )		
+			read_func = read_wm_hints;
+		else if( property == _XA_WM_NORMAL_HINTS )		
+			read_func = read_wm_normal_hints;
+		else if( property == _XA_WM_PROTOCOLS )		
+			read_func = read_wm_protocols;
+		else if( property == _XA_WM_COLORMAP_WINDOWS )		
+			read_func = read_wm_cmap_windows;
+		else if( property == _XA_WM_STATE )		
+			read_func = read_wm_state;
+		else
+		{
+			show_debug( __FILE__, __FUNCTION__, __LINE__, "unknown property %X", property );
+			return False ;
+		}
+		read_func( raw, w );
+		return True;
+	}else
+		show_debug( __FILE__, __FUNCTION__, __LINE__, "incomplete parameters (%X, %X, %p)", w, property, raw );
+
 	return False;
 }
 

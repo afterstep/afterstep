@@ -1581,7 +1581,7 @@ LoadASConfig (const char *display_name, int thisdesktop, Bool parse_menu,
 		name_list     nl;
 
 		style_init (&nl);
-		style_fill_by_name (&nl, t->name, NULL, t->class.res_name, t->class.res_class);
+		style_fill_by_name (&nl, &(t->hints->names[0]));
 		if (!(nl.off_flags & STYLE_FOCUS_FLAG) ||
 			(t->style_focus = mystyle_find (nl.style_focus)) == NULL)
 			t->style_focus = Scr.MSFWindow;

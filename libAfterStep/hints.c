@@ -950,6 +950,11 @@ merge_extwm_hints(ASHints* clean, ASRawHints *raw,
         if( eh->icon_name )
             clean->icon_name = add_name_to_list(clean->names,
                                                 text_property2string( eh->icon_name ));
+        if( eh->visible_name )
+            add_name_to_list(clean->names, text_property2string( eh->visible_name ));
+        if( eh->visible_icon_name )
+            clean->icon_name = add_name_to_list(clean->names,
+                                                text_property2string( eh->visible_icon_name ));
     }
 
     if( get_flags( what, HINT_STARTUP ) && status != NULL )
@@ -1007,6 +1012,8 @@ merge_extwm_hints(ASHints* clean, ASRawHints *raw,
         if( get_flags( eh->flags, EXTWM_DoesWMPing ))
             set_flags( clean->protocols, AS_DoesWmPing );
 		if( get_flags( eh->flags, EXTWM_NAME ) && eh->name != NULL )
+      		set_flags( clean->protocols, AS_NeedsVisibleName );
+		if( get_flags( eh->flags, EXTWM_VISIBLE_NAME ) && eh->visible_name != NULL )
       		set_flags( clean->protocols, AS_NeedsVisibleName );
         if( get_flags( eh->flags, EXTWM_TypeEverything ))
             decode_simple_flags( &(clean->function_mask), extwm_type_func_mask, eh->flags );
@@ -1207,6 +1214,7 @@ Bool update_property_hints( Window w, Atom property, ASHints *hints, ASStatusHin
 		return False;
 	memset( &raw, 0x00, sizeof(ASRawHints) );
 	raw.wm_state_icon_win = status->icon_window ;
+	raw.scr = &Scr ;
 	if( handle_client_property_update( w, property, &raw ) )
 	{
 		/* Here we are only interested in properties updtaed by the Window Manager : */
@@ -1242,6 +1250,81 @@ Bool update_property_hints( Window w, Atom property, ASHints *hints, ASStatusHin
 				status->flags = new_state | (status->flags&EXTWM_AFFECTED_STATE) ;
 		}
 	}
+	return changed ;
+}
+
+/* same as above only for window manager : */
+Bool update_property_hints_manager( Window w, Atom property, ASSupportedHints *list, 
+                                    ASHints *hints, ASStatusHints *status )
+{
+	ASRawHints raw ;
+	Bool changed = False ;
+
+	memset( &raw, 0x00, sizeof(ASRawHints) );
+	raw.scr = &Scr ;
+	if( status ) 
+		raw.wm_state_icon_win = status->icon_window ;
+	show_debug( __FILE__, __FUNCTION__, __LINE__, "trying to handle property change" );
+	if( handle_manager_property_update( w, property, &raw ) )
+	{
+		ASHints clean ;
+		show_debug( __FILE__, __FUNCTION__, __LINE__, "property update handled" );
+		if( property == _XA_WM_STATE )		
+		{
+			if( status )
+			{
+				CARD32 new_state = (raw.wm_state == IconicState)? AS_Iconic : 0 ;
+				if( (changed = ((new_state^(status->flags&AS_Iconic)) != 0 ||
+					raw.wm_state_icon_win != status->icon_window)) )
+				{
+					status->icon_window = raw.wm_state_icon_win ;
+					status->flags = (status->flags&(~AS_Iconic))|new_state ;
+				}
+			}
+			return changed;
+		}
+		if( hints && merge_hints( &raw, NULL, NULL, list, HINT_ANY, &clean ) != NULL )
+		{
+		
+			show_debug( __FILE__, __FUNCTION__, __LINE__, "hints merged" );
+			if( property == XA_WM_NAME || property == XA_WM_ICON_NAME ||
+			    property == _XA_NET_WM_NAME ||  property == _XA_NET_WM_ICON_NAME ||
+				property == _XA_NET_WM_VISIBLE_NAME || property == _XA_NET_WM_VISIBLE_ICON_NAME )
+			{
+				int i ;
+				for( i = 0 ; i < MAX_WINDOW_NAMES ; ++i )
+					if( hints->names[i] == NULL )
+						break;
+					else
+						free( hints->names[i] );
+				
+				for( i = 0 ; i < MAX_WINDOW_NAMES ; ++i )
+				{
+					hints->names[i] = clean.names[i];
+					clean.names[i] = NULL ;
+				}
+				hints->res_name = clean.res_name ;
+				hints->res_class = clean.res_class ;
+				hints->icon_name = clean.icon_name ;
+				show_debug( __FILE__, __FUNCTION__, __LINE__, "names set" );
+				changed = True ;
+			}else if( property == XA_WM_HINTS )		
+			{
+			
+			}else if( property == XA_WM_NORMAL_HINTS )		
+			{
+	  	
+			}else if( property == _XA_WM_PROTOCOLS )		
+			{
+		
+	  		}else if( property == _XA_WM_COLORMAP_WINDOWS )		
+			{
+			} 
+		}
+		destroy_hints( &clean, True );
+	}else
+		show_debug( __FILE__, __FUNCTION__, __LINE__, "failed to handle property update" );
+
 	return changed ;
 }
 

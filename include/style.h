@@ -56,8 +56,7 @@ name_list *style_new (void);
 void style_delete (name_list * style);
 void style_init (name_list * nl);
 void style_parse (char *text, FILE * fd, char **list, int *junk);
-void style_fill_by_name (name_list * nl,
-			 const char *name, const char *icon_name,
-			 const char *res_name, const char *res_class);
+void style_fill_by_name (name_list * nl, char **names );
+Bool match_window_names_old( char *regexp, char **names );
 
 #endif /* AS_STYLE_H */
