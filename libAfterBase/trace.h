@@ -33,7 +33,7 @@
 
 /* afterstep functions */
 #undef TRACE_AddWindow
-#undef TRACE_SetFocus
+#define TRACE_SetFocus
 #undef TRACE_SetupFrame
 #undef TRACE_ResizeFrame       /* both ResizeFrame and ResizeClent */ 
 #define TRACE_DispatchEvent     /* see also EVENT_TRACE_MASK above */
