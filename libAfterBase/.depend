@@ -37,6 +37,7 @@
 ./layout.o : \
 		config.h \
 		astypes.h \
+		audit.h \
 		safemalloc.h \
 		output.h \
 		layout.h
