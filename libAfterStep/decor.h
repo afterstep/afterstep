@@ -5,6 +5,16 @@
 struct MyStyle ;
 struct ASImage;
 
+typedef struct ASCanvas
+{
+	Window w;
+	int root_x, root_y;
+	unsigned int width, height ;
+	
+	Pixmap canvas;
+	Pixmap mask;
+}ASCanvas;
+
 typedef struct ASTBarData {
 #define BAR_STATE_UNFOCUSED		0
 #define BAR_STATE_FOCUSED		1
@@ -23,6 +33,15 @@ typedef struct ASTBarData {
 
 }ASTBarData ;
 
+ASCanvas* create_ascanvas(Window w);
+void destroy_ascanvas( ASCanvas **pcanvas );
+Bool handle_canvas_config( ASCanvas *canvas ); /* Returns True if moved/resized */
+Pixmap get_canvas_canvas( ASCanvas *pc );
+Pixmap get_canvas_mask( ASCanvas *pc );
+Bool draw_canvas_image( ASCanvas *pc, ASImage *im, int x, int y );
+void update_canvas_display( ASCanvas *pc );
+
+
 ASTBarData* create_astbar();
 void destroy_astbar( ASTBarData **ptbar );
 unsigned int get_astbar_label_width( ASTBarData *tbar );
@@ -31,12 +50,8 @@ unsigned int get_astbar_label_height( ASTBarData *tbar );
 Bool set_astbar_size( ASTBarData *tbar, unsigned int width, unsigned int height );
 Bool set_astbar_style( ASTBarData *tbar, unsigned int state, const char *style_name );
 Bool set_astbar_label( ASTBarData *tbar, const char *label );
-Bool move_astbar( ASTBarData *tbar, Window w, int win_x, int win_y );
-Bool render_astbar( ASTBarData *tbar, Window w, 
-                    unsigned int state, Bool pressed, 
-					int clip_x, int clip_y, 
-					unsigned int clip_width, unsigned int clip_height );
-
+Bool move_astbar( ASTBarData *tbar, ASCanvas *pc, int win_x, int win_y );
+Bool render_astbar( ASTBarData *tbar, ASCanvas *pc, unsigned int state, Bool pressed );
 
 #endif /* !NO_TEXTURE */
 #endif /* DECOR_H_HEADER */

@@ -17,6 +17,8 @@
  *
  */
 
+#define LOCAL_DEBUG
+
 #include <errno.h>
 #include <stdio.h>
 #include <signal.h>
@@ -34,7 +36,157 @@
 #include "../libAfterImage/afterimage.h"
 #include "../include/decor.h"
 
+/********************************************************************/
+/* ASCanvas :                                                       */
+/********************************************************************/
+static Bool refresh_canvas_config( ASCanvas *pc )
+{
+	Bool changed = False ;
+	if( pc && pc->w != None )
+	{
+		int root_x = pc->root_x, root_y = pc->root_y ;
+		int x, y;
+		unsigned int width = pc->width, height = pc->height, udumm;
+		Window wdumm ;
+		XTranslateCoordinates( dpy, pc->w, Scr.Root, 0, 0, &root_x, &root_y, &wdumm );
+		XGetGeometry( dpy, pc->w, &wdumm, &x, &y, &width, &height, &udumm, &udumm );
+		changed = (root_x != pc->root_x || root_y != pc->root_y );
+		pc->root_x = root_x ;
+		pc->root_y = root_y ;
+		if( width != pc->width || height != pc->height )
+		{
+			changed = True ;
+			if( pc->canvas )
+			{
+				XFreePixmap( dpy, pc->canvas );
+				pc->canvas = None ;
+			}
+			if( pc->mask )
+			{
+				XFreePixmap( dpy, pc->mask );
+				pc->mask = None ;
+			}
+			pc->width  = width ;
+			pc->height = height ;
+		}
+	}
+	return changed ;
+}
 
+Pixmap get_canvas_canvas( ASCanvas *pc )
+{
+	if( pc == NULL ) 
+		return None ;
+	if( pc->canvas == None ) 
+		pc->canvas = create_visual_pixmap( Scr.asv, Scr.Root, pc->width, pc->height, 0 );
+	return pc->canvas ;
+}
+
+Pixmap get_canvas_mask( ASCanvas *pc )
+{
+	if( pc == NULL ) 
+		return None ;
+	
+	if( pc->mask == None ) 
+		pc->mask = create_visual_pixmap( Scr.asv, Scr.Root, pc->width, pc->height, 1 );
+	return pc->mask ;
+}
+
+ASCanvas* create_ascanvas( Window w )
+{
+	ASCanvas* pc = NULL ; 
+	if( w )
+	{
+		pc = safecalloc( 1, sizeof(ASCanvas) );
+		pc->w = w ;
+		refresh_canvas_config( pc );
+	}
+	return pc ;
+}
+
+void destroy_ascanvas( ASCanvas **pcanvas )
+{
+	if( pcanvas )
+	{
+		ASCanvas *pc = *pcanvas ;
+		if( pc ) 
+		{
+			if( pc->canvas ) 
+				XFreePixmap( dpy, pc->canvas );
+			if( pc->mask )
+				XFreePixmap( dpy, pc->mask );
+			memset( pc, 0x00, sizeof(ASCanvas));
+			free( pc );		
+		}
+		*pcanvas = NULL ;
+	}
+}
+
+Bool handle_canvas_config( ASCanvas *canvas )
+{
+	return refresh_canvas_config( canvas );
+}
+
+Bool draw_canvas_image( ASCanvas *pc, ASImage *im, int x, int y )
+{
+	Pixmap p;
+	int real_x, real_y;
+	int width, height ;
+	
+	if( im == NULL || pc == NULL )
+		return False;
+	
+	if( (p = get_canvas_canvas( pc )) == None ) 
+		return False;
+	
+	width = im->width ;
+	height = im->height ;
+	real_x = x;
+	real_y = y;
+	if( x+width <= 0 || x > pc->width ) 
+		return False ;
+	if( y+height <= 0 || y > pc->height ) 
+		return False ;
+	
+	if( real_x < 0 ) 
+	{
+		width += real_x ;			
+		real_x = 0 ;
+	}
+	if( real_x + width > pc->width )
+		width = pc->width-real_x ;
+	if( real_y < 0 ) 
+	{
+		height += real_y ;			
+		real_y = 0 ;
+	}
+	if( real_y + height > pc->height )
+		height = pc->height-real_y ;
+LOCAL_DEBUG_OUT( "drawing image %dx%d at %dx%d%+d%+d", im->width, im->height, width, height, real_x, real_y ); 		
+	return asimage2drawable( Scr.asv, p, im, NULL, real_x-x, real_y-y, real_x, real_y, width, height, True );
+}
+
+void update_canvas_display( ASCanvas *pc )
+{
+	if( pc && pc->w != None )
+	{
+		if( pc->canvas ) 
+		{
+			XSetWindowBackgroundPixmap( dpy, pc->w, pc->canvas );
+			XClearWindow( dpy, pc->w );
+			XSync( dpy, False );
+		}	
+		if( pc->mask )
+		{
+			/* todo: add shaped windows support here : */
+		}
+	}
+}
+
+
+/********************************************************************/
+/* ASTBarData :                                                     */
+/********************************************************************/
 ASTBarData* create_astbar()
 {
 	ASTBarData* tbar = safecalloc( 1, sizeof(ASTBarData) );
@@ -72,6 +224,8 @@ get_astbar_label_width( ASTBarData *tbar )
 {
 	int size[2] = {1,1} ;
 	int i ;
+	if( tbar == NULL ) 
+		return 0 ;
 	for( i = 0 ; i < 2 ; ++i )
 	{
 		if( tbar->label[i] == NULL )
@@ -88,6 +242,8 @@ get_astbar_label_height( ASTBarData *tbar )
 {
 	int size[2] = {1,1} ;
 	int i ;
+	if( tbar == NULL ) 
+		return 0 ;
 	for( i = 0 ; i < 2 ; ++i )
 		size[i] = mystyle_get_font_height( tbar->style[i] );
 	return MAX( size[0], size[1] );
@@ -103,8 +259,16 @@ set_astbar_size( ASTBarData *tbar, unsigned int width, unsigned int height )
 		unsigned int w = (width > 0)?width : 1 ;	
 		unsigned int h = (height > 0)? height : 1 ;	
 		changed = (w != tbar->width || h != tbar->height );
+LOCAL_DEBUG_CALLER_OUT( "resizing TBAR %p from %dx%d to %dx%d", tbar, tbar->width, tbar->height, w, h );
 		tbar->width = w ;
 		tbar->height = h ;
+		if( changed )
+		{
+			register int i ;
+			for( i = 0 ; i < BAR_STATE_NUM ; ++i ) 
+				if( tbar->back[i] ) 
+					destroy_asimage( &(tbar->back[i]) );
+		}
 	}
 	return changed ;
 }
@@ -166,39 +330,33 @@ set_astbar_label( ASTBarData *tbar, const char *label )
 }
 
 Bool 
-move_astbar( ASTBarData *tbar, Window w, int win_x, int win_y )
+move_astbar( ASTBarData *tbar, ASCanvas *pc, int win_x, int win_y )
 {
 	Bool changed = False ;
-	int root_x = tbar->root_x, root_y = tbar->root_y ;
-	Window wdumm ;
-	XTranslateCoordinates( dpy, w, Scr.Root, win_x, win_y, &root_x, &root_y, &wdumm );
-	if( tbar ) 
+	if( tbar && pc )
 	{
+		int root_x = pc->root_x + tbar->root_x, root_y = pc->root_y + tbar->root_y ;
 		changed = (root_x != tbar->root_x || root_y != tbar->root_y );
 		tbar->root_x = root_x ;
 		tbar->root_y = root_y ;
 		changed = changed || ( win_x != tbar->win_x || win_y != tbar->win_y );
 		tbar->win_x = win_x ;
 		tbar->win_y = win_y ;
-	}
+  	}
 	return changed ;
 }
 
-Bool render_astbar( ASTBarData *tbar, Window w, 
-                    unsigned int state, Bool pressed, 
-					int clip_x, int clip_y, 
-					unsigned int clip_width, unsigned int clip_height )
+Bool render_astbar( ASTBarData *tbar, ASCanvas *pc, 
+                    unsigned int state, Bool pressed )
 {
 	ASImage *back, *label_im ;
 	MyStyle *style ;
 	ASImageBevel bevel ;
 	ASImageLayer layers[2] ;
+	ASImage *merged_im ;
 
 	/* input control : */
-	if( tbar == NULL || w == None || state >= BAR_STATE_NUM )
-		return False ;
-	if( clip_x > tbar->width || clip_y > tbar->height ||
-	    clip_width == 0 || clip_height == 0 ) 
+	if( tbar == NULL || pc == NULL || pc->w == None || state >= BAR_STATE_NUM )
 		return False ;
 	if( (style = tbar->style[state]) == NULL ) 
 		return False ;
@@ -237,58 +395,27 @@ Bool render_astbar( ASTBarData *tbar, Window w,
 	 * events
 	 */
 	init_image_layers(&layers[0], 2 );
-	if( state == BAR_STATE_UNFOCUSED ) 
+	layers[0].im = back ;
+	layers[0].bevel = &bevel ;
+	layers[0].clip_width = tbar->width ;
+	layers[0].clip_height = tbar->height ;		
+	layers[1].im = label_im ;
+	layers[1].clip_width = tbar->width ;
+	layers[1].clip_height = tbar->height ;		
+
+LOCAL_DEBUG_CALLER_OUT( "MERGING TBAR %p image %dx%d from %p %dx%d and %p %dx%d", 
+                 tbar, tbar->width, tbar->height, 
+				 back, back?back->width:-1, back?back->height:-1, 
+				 label_im, label_im?label_im->width:-1, label_im?label_im->height:-1 ); 		
+				 
+	merged_im = merge_layers( Scr.asv, &layers[0], 2, 
+	                          tbar->width, tbar->height,
+							  ASA_XImage, 0, ASIMAGE_QUALITY_DEFAULT );
+	if( merged_im ) 
 	{
-		ASImage *merged_im ;
-		layers[0].im = back ;
-		layers[0].bevel = &bevel ;
-		layers[0].clip_width = clip_width ;
-		layers[0].clip_height = clip_height ;		
-		layers[1].im = label_im ;
-		layers[1].clip_width = clip_width ;
-		layers[1].clip_height = clip_height ;		
-		
-		merged_im = merge_layers( Scr.asv, &layers[0], 2, 
-		                          clip_width, clip_height,
-								  ASA_XImage, 0, ASIMAGE_QUALITY_DEFAULT );
-		if( merged_im ) 
-		{
-			Pixmap p = asimage2pixmap( Scr.asv, Scr.Root, merged_im, NULL, True );
-			if( p != None ) 
-			{
-				XSetWindowBackgroundPixmap( dpy, w, p );
-				XClearWindow( dpy, w );
-				XFreePixmap( dpy, p );
-				XSync( dpy, False );
-			}	
-			destroy_asimage( &merged_im );			
-			return (p!=None);
-		}
-	}else
-	{
-		ASImage *merged_im ;
-		layers[0].im = back ;
-		layers[0].bevel = &bevel ;
-		layers[0].clip_x = clip_x ;
-		layers[0].clip_y = clip_y ;		
-		layers[0].clip_width = clip_width ;
-		layers[0].clip_height = clip_height ;		
-		layers[1].im = label_im ;
-		layers[1].clip_x = clip_x ;
-		layers[1].clip_y = clip_y ;		
-		layers[1].clip_width = clip_width ;
-		layers[1].clip_height = clip_height ;		
-		
-		merged_im = merge_layers( Scr.asv, &layers[0], 2, 
-		                          clip_width, clip_height,
-								  ASA_XImage, 0, ASIMAGE_QUALITY_DEFAULT );
-		if( merged_im ) 
-		{
-			asimage2drawable( Scr.asv, Scr.Root, merged_im, NULL, 
-			                  0, 0, clip_x, clip_y, clip_width, clip_height, True );
-			destroy_asimage( &merged_im );
-			return True ;
-		}
+		Bool res = draw_canvas_image( pc, merged_im, tbar->win_x, tbar->win_y );
+		destroy_asimage( &merged_im );			
+		return res;
 	}
 	return False ;
 }

@@ -63,7 +63,8 @@ ScreenInfo Scr;			/* AS compatible screen information structure */
 /*  WinList local variables :                                         */
 /**********************************************************************/
 ASBiDirList *WinList = NULL ;
-Window WinListWindow = None ;
+Window 		 WinListWindow = None ;
+ASCanvas 	*WinListCanvas = NULL ;
 unsigned int WinListWidth = 100 ;
 unsigned int WinListHeight = 100 ;
 
@@ -122,6 +123,7 @@ void destroy_winlist_button( void *data );
 void add_winlist_button( ASTBarData *tbar, ASWindowData *wd );
 void refresh_winlist_button( ASTBarData *tbar, ASWindowData *wd );
 void delete_winlist_button( ASTBarData *tbar, ASWindowData *wd );
+static void rearrange_winlist_buttons();
 
 int 
 main( int argc, char **argv )
@@ -173,6 +175,7 @@ main( int argc, char **argv )
     LoadConfig (global_config_file, "winlist", GetOptions);
 	
 	WinListWindow = w = make_winlist_window();
+	WinListCanvas = create_ascanvas( WinListWindow );
 	WinList = create_asbidirlist(destroy_winlist_button);
 
 	/* And at long last our main loop : */
@@ -203,6 +206,9 @@ DeadPipe (int nonsense)
 	{
 		destroy_asbidirlist( &WinList );
 	}
+	if( WinListCanvas )
+		destroy_ascanvas( &WinListCanvas );
+		
 	if( Base ) 
 		DestroyBaseConfig(&Base);
 
@@ -282,6 +288,16 @@ DispatchEvent (XEvent * Event)
     switch (Event->type)
     {
 	    case ConfigureNotify:
+			if( handle_canvas_config( WinListCanvas ) )
+			{
+				if( WinListWidth  != WinListCanvas->width || 
+				    WinListHeight != WinListCanvas->height)			
+				{
+					WinListWidth  = WinListCanvas->width; 
+				    WinListHeight = WinListCanvas->height;
+					rearrange_winlist_buttons();
+				}
+			}
 	        break;
 	    case Expose:
 	        break;
@@ -365,11 +381,11 @@ get_visible_window_name( ASWindowData *wd )
 	return vname ;
 }
 
-static void 
+static Bool 
 render_winlist_button( ASTBarData *tbar )
 {
-	render_astbar( tbar, WinListWindow, BAR_STATE_UNFOCUSED, False, 0, 0,
-	               WinListWidth, WinListHeight );
+	LOCAL_DEBUG_CALLER_OUT("tbar %p", tbar );
+	return render_astbar( tbar, WinListCanvas, BAR_STATE_UNFOCUSED, False );
 }
 
 static void 
@@ -380,59 +396,69 @@ rearrange_winlist_buttons()
 	unsigned int next_x = 0 ;
 	unsigned int next_y = 0 ;
 	unsigned int max_height = 1, max_width = 1 ;
+	unsigned int allowed_max_width = (Config.max_width==0)?Scr.MyDisplayWidth:Config.max_width ;
+	unsigned int allowed_max_height = (Config.max_height==0)?Scr.MyDisplayHeight:Config.max_height ;
+	
+	if( allowed_max_width > Scr.MyDisplayWidth ) 
+		allowed_max_width = Scr.MyDisplayWidth ;
+	if( allowed_max_height > Scr.MyDisplayHeight )
+		allowed_max_height = Scr.MyDisplayHeight ;
 	for( elem = WinList->head ; elem ; elem = elem->next )
 	{
 		ASTBarData *tbar = elem->data ;
 		if( tbar ) 
 		{
 			unsigned int width, height ;
-			int x = 0, y = 0 ;
-			Bool redraw = False ;
 			
 			width = get_astbar_label_width( tbar );		
 			height = get_astbar_label_height( tbar );		
 LOCAL_DEBUG_OUT( "Tbar name \"%s\" width is %d, height is %d", tbar->label_text, width, height );			
+			if( width > Config.max_col_width ) 
+				width = Config.max_col_width ;
+			if( width > allowed_max_width ) 
+				width = allowed_max_width ;
+			if( height > allowed_max_height ) 
+				height = allowed_max_height ;
 			if( height  > max_height ) 
 				max_height = height ;
 			if( width  > max_width ) 
 				max_width = width ;
-			if( width > Config.max_col_width ) 
-				width = Config.max_col_width ;
-			if( width > Scr.MyDisplayWidth ) 
-				width = Scr.MyDisplayWidth ;
+		}
+	}
+	for( elem = WinList->head ; elem ; elem = elem->next )
+	{
+		ASTBarData *tbar = elem->data ;
+		Bool redraw = False ;
+		int x, y ;
+		if( tbar ) 
+		{
+			redraw = set_astbar_size( tbar, max_width, max_height );
 			if( get_flags(Config.flags, ASWL_RowsFirst) )
 			{
-				if( next_x > Config.max_width )
+				if( next_x+max_width > allowed_max_width )
 					if( curr_row  < Config.max_rows ) 
 					{
 						++curr_row ;
 						next_x = 0 ;
 						next_y += max_height ;
-						max_height = 1 ;
 					}
-				if( next_x + width > Config.max_width )
-					width = Config.max_width - next_x ;
 				x = next_x ; 
 				y = next_y ;
-				next_x += width ;
+				next_x += max_width ;
 			}else
 			{
-				if( next_y+height > Config.max_height ) 
+				if( next_y+max_height > allowed_max_height ) 
 					if( curr_col  < Config.max_columns )
 					{
 						++curr_col ;
 						next_y = 0 ;
 						next_x += max_width ;
-						max_width = 1 ;
 					}
-				if( next_x + width > Config.max_width )
-					width = Config.max_width - next_x ;
 				x = next_x ; 
 				y = next_y ;
-				next_y += height ;
+				next_y += max_height ;
 			}
-			redraw = set_astbar_size( tbar, width, height );
-			if( move_astbar( tbar, WinListWindow, x, y ) )
+			if( move_astbar( tbar, WinListCanvas, x, y ) )
 				redraw = True ;
 			if( redraw ) 
 				render_winlist_button( tbar );
@@ -448,7 +474,10 @@ LOCAL_DEBUG_OUT( "Tbar name \"%s\" width is %d, height is %d", tbar->label_text,
 		WinListWidth = next_x + max_width ;
 	}
 	LOCAL_DEBUG_OUT("Resizing Winlist window to %dx%d", WinListWidth, WinListHeight );
-	XResizeWindow( dpy, WinListWindow, WinListWidth, WinListHeight );
+	if( WinListCanvas->width != WinListWidth || WinListCanvas->height != WinListHeight )
+		XResizeWindow( dpy, WinListWindow, WinListWidth, WinListHeight );
+
+	update_canvas_display( WinListCanvas );
 }
 
 /* Public stuff : ***************************************************/
@@ -483,6 +512,7 @@ refresh_winlist_button( ASTBarData *tbar, ASWindowData *wd )
 	if( tbar )
 	{
 		set_astbar_label( tbar, get_visible_window_name(wd) );	
+		rearrange_winlist_buttons();
 		render_winlist_button( tbar );
 	}
 }
