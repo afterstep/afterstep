@@ -1,3 +1,15 @@
+	* Added to look config : 
+		[DontAnimateBackground	0|1]
+		[CoverAnimationSteps   	<steps count>]
+		[CoverAnimationType	<type>]
+	  DontAnimateBackground disables non-blocking root background changing of 
+	full-screen backgrounds, that looks like slow animation. This is recommended 
+	for fast machines.
+	  CoverAnimationType determines what type of animation to use while removing 
+	blue-tinted desktop cover - use values from 0 to 13.
+	  CoverAnimationSteps is the number of animation steps to take while removing 
+	blue-tinted cover window.
+
 version 2.0 beta3
 	* Added WinTabs module - to swallow windows with Class matching specified 
 	  pattern and arrange them in single window using tabs.
