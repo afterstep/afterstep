@@ -51,6 +51,9 @@ void end_example_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *
 void start_term_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state );
 void end_term_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state );
 
+void start_code_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state );
+void end_code_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state );
+
 void start_listitem_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state );
 void end_listitem_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state );
 
@@ -88,6 +91,7 @@ void write_syntax_doc_footer( SyntaxDef *syntax, ASXMLInterpreterState *state );
 	<group choice='opt'>
 	<ulink url="Bevel#synopsis">
 	<example>
+    <code>
 
 	Here is the complete vocabulary :
 id
@@ -124,6 +128,7 @@ typedef enum
 	DOCBOOK_url_ID,	  
 	DOCBOOK_para_ID,	  
 	DOCBOOK_term_ID,	  
+	DOCBOOK_code_ID,
 	DOCBOOK_ulink_ID,	  
 	DOCBOOK_title_ID,	  
 	DOCBOOK_group_ID,	  

@@ -38,6 +38,7 @@ ASDocTagHandlingInfo SupportedDocBookTagInfo[DOCBOOK_SUPPORTED_IDS] =
 	{ TAG_INFO_AND_ID(url), NULL, NULL },
 	{ TAG_INFO_AND_ID(para), start_para_tag, end_para_tag },
 	{ TAG_INFO_AND_ID(term), start_term_tag, end_term_tag },
+	{ TAG_INFO_AND_ID(code), start_code_tag, end_code_tag },
 	{ TAG_INFO_AND_ID(ulink), start_ulink_tag, end_ulink_tag },
 	{ TAG_INFO_AND_ID(title), start_title_tag, end_title_tag },
 	{ TAG_INFO_AND_ID(group), start_group_tag, end_group_tag },
@@ -711,6 +712,30 @@ end_example_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state
 		fprintf( state->dest_fp, "</div><br></p>");
 	}
 }
+
+void
+start_code_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state )
+{
+	if( state->doc_type == DocType_HTML	|| state->doc_type == DocType_PHP	 )
+	{
+		add_anchor( parm, state );
+		close_link(state);
+		fprintf( state->dest_fp, "<P class=\"dense\">" );	   			  
+		fprintf( state->dest_fp, "<div class=\"container\">");
+	}else if( state->doc_type == DocType_NROFF )
+		fprintf( state->dest_fp, "\nSource : ");
+
+}
+
+void 
+end_code_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state )
+{
+	if( state->doc_type == DocType_HTML	|| state->doc_type == DocType_PHP	 )
+	{
+		fprintf( state->dest_fp, "</div><br></p>");
+	}
+}
+
 
 void 
 start_ulink_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state )

@@ -530,7 +530,7 @@ gen_syntax_doc( const char *source_dir, const char *dest_dir, SyntaxDef *syntax,
 	LOCAL_DEBUG_OUT( "starting config_options%s", "" );	
 	if( syntax && state.dest_fp )
 	{	
-		write_syntax_options_header( syntax, &state );
+		write_options_header( &state );
 		for (i = 0; syntax->terms[i].keyword; i++)
 		{	
 			SyntaxDef *sub_syntax = syntax->terms[i].sub_syntax ; 
@@ -542,7 +542,7 @@ gen_syntax_doc( const char *source_dir, const char *dest_dir, SyntaxDef *syntax,
 			if( isalnum( syntax->terms[i].keyword[0] ) )					
 				convert_xml_file( syntax_dir, syntax->terms[i].keyword, &state );
 		}
-		write_syntax_options_footer( syntax, &state );	  
+		write_options_footer( &state );	  
 	}
 	LOCAL_DEBUG_OUT( "done with config_options%s", "" );
 	
@@ -731,36 +731,425 @@ gen_index( const char *dest_dir, ASDocType doc_type )
 
 typedef struct ASRobodocState
 {
+
+#define ASRS_InsideSection			(0x01<<0)	  
+
+	ASFlagType flags ;
  	const char *source ;
 	int len ;
 	int curr ;	   
 
 	xml_elem_t* doc ;
 	xml_elem_t* curr_section ;
-	xml_elem_t* curr_tag ;
+	xml_elem_t* curr_subsection ;
 }ASRobodocState;
+
+void 
+skip_robodoc_line( ASRobodocState *robo_state )
+{
+	register int curr = robo_state->curr;
+	register const char *ptr = &(robo_state->source[curr]) ;
+	while( ptr[curr] && ptr[curr] != '\n' ) ++curr ;
+	robo_state->curr = ptr[curr]?curr+1:curr ;
+}	
+
+void
+find_robodoc_section( ASRobodocState *robo_state )
+{
+	while( robo_state->curr < (robo_state->len - 7) )
+	{
+		if( robo_state->source[robo_state->curr] == '/' ) 
+		{
+			int count = 0 ;
+			const char *ptr = &(robo_state->source[++(robo_state->curr)]) ;
+
+			while(ptr[count] == '*' || (count == 4 && isalpha(ptr[count])))
+				++count ;
+			if( count == 6 && (ptr[count] == ' ' || get_flags(robo_state->flags, ASRS_InsideSection)))
+				return ; 				       /* we foiund it ! */
+		}
+		skip_robodoc_line( robo_state );
+	}	
+}
+
+/* supported remap types ( see ROBODOC docs ): 
+ * c -- Header for a class.
+ * d -- Header for a constant (from define).
+ * f -- Header for a function.
+ * h -- Header for a module in a project.
+ * m -- Header for a method.
+ * s -- Header for a structure.
+ * t -- Header for a types.
+ * u -- Header for a unittest.
+ * v -- Header for a variable.
+ * * -- Generic header for every thing else.
+ */
+/* supported subsection headers :
+ * 	NAME -- Item name plus a short description.
+ *  COPYRIGHT -- Who own the copyright : "(c) <year>-<year> by <company/person>"
+ *  SYNOPSIS, USAGE -- How to use it.
+ *  FUNCTION, DESCRIPTION, PURPOSE -- What does it do.
+ *  AUTHOR -- Who wrote it.
+ *  CREATION DATE -- When did the work start.
+ *  MODIFICATION HISTORY, HISTORY -- Who has done which changes and when.
+ *  INPUTS, ARGUMENTS, OPTIONS, PARAMETERS, SWITCHES -- What can we feed into it.
+ *  OUTPUT, SIDE EFFECTS -- What output is made.
+ *  RESULT, RETURN VALUE -- What do we get returned.
+ *  EXAMPLE -- A clear example of the items use.
+ *  NOTES -- Any annotations
+ *  DIAGNOSTICS -- Diagnostic output
+ *  WARNINGS, ERRORS -- Warning and error-messages.
+ *  BUGS -- Known bugs.
+ *  TODO, IDEAS -- What to implement next and ideas.
+ *  PORTABILITY -- Where does it come from, where will it work.
+ *  SEE ALSO -- References to other functions, man pages, other documentation.
+ *  METHODS, NEW METHODS -- OOP methods.
+ *  ATTRIBUTES, NEW ATTRIBUTES -- OOP attributes
+ *  TAGS -- Tag-item description.
+ *  COMMANDS -- Command description.
+ *  DERIVED FROM -- OOP super class.
+ *  DERIVED BY -- OOP sub class.
+ *  USES, CHILDREN -- What modules are used by this one.
+ *  USED BY, PARENTS -- Which modules do use this one.
+ *  SOURCE -- Source code inclusion. 
+ **/
+
+typedef enum {
+ 	ROBODOC_NAME_ID = 0,
+	ROBODOC_COPYRIGHT_ID,
+	ROBODOC_SYNOPSIS_ID,
+ 	ROBODOC_USAGE_ID,
+ 	ROBODOC_FUNCTION_ID,
+	ROBODOC_DESCRIPTION_ID,
+	ROBODOC_PURPOSE_ID,
+	ROBODOC_AUTHOR_ID,
+	ROBODOC_CREATION_DATE_ID,
+	ROBODOC_MODIFICATION_HISTORY_ID,
+	ROBODOC_HISTORY_ID,
+ 	ROBODOC_INPUTS_ID,
+	ROBODOC_ARGUMENTS_ID,
+	ROBODOC_OPTIONS_ID,
+	ROBODOC_PARAMETERS_ID,
+	ROBODOC_SWITCHES_ID,
+ 	ROBODOC_OUTPUT_ID,
+	ROBODOC_SIDE_EFFECTS_ID,
+ 	ROBODOC_RESULT_ID,
+	ROBODOC_RETURN_VALUE_ID,
+ 	ROBODOC_EXAMPLE_ID,
+ 	ROBODOC_NOTES_ID,
+ 	ROBODOC_DIAGNOSTICS_ID,
+ 	ROBODOC_WARNINGS_ID,
+	ROBODOC_ERRORS_ID,
+ 	ROBODOC_BUGS_ID,
+ 	ROBODOC_TODO_ID,
+	ROBODOC_IDEAS_ID,
+ 	ROBODOC_PORTABILITY_ID,
+ 	ROBODOC_SEE_ALSO_ID,
+ 	ROBODOC_METHODS_ID,
+	ROBODOC_NEW_METHODS_ID,
+ 	ROBODOC_ATTRIBUTES_ID,
+	ROBODOC_NEW_ATTRIBUTES_ID,
+ 	ROBODOC_TAGS_ID,
+ 	ROBODOC_COMMANDS_ID,
+ 	ROBODOC_DERIVED_FROM_ID,
+ 	ROBODOC_DERIVED_BY_ID,
+ 	ROBODOC_USES_ID,
+	ROBODOC_CHILDREN_ID,
+ 	ROBODOC_USED_BY_ID,
+	ROBODOC_PARENTS_ID,
+ 	ROBODOC_SOURCE_ID,
+	ROBODOC_SUPPORTED_IDs                          
+}SupportedRoboDocTagIDs;
+
+ASDocTagHandlingInfo SupportedRoboDocTagInfo[ROBODOC_SUPPORTED_IDs+1] = 
+{
+ 	{"NAME",			  				 ROBODOC_NAME_ID },
+	{"COPYRIGHT",                        ROBODOC_COPYRIGHT_ID},
+	{"SYNOPSIS",                         ROBODOC_SYNOPSIS_ID},
+ 	{"USAGE",                            ROBODOC_USAGE_ID},
+ 	{"FUNCTION",                         ROBODOC_FUNCTION_ID},
+	{"DESCRIPTION",                      ROBODOC_DESCRIPTION_ID},
+	{"PURPOSE",                          ROBODOC_PURPOSE_ID},
+	{"AUTHOR",                           ROBODOC_AUTHOR_ID},
+	{"CREATION DATE",                    ROBODOC_CREATION_DATE_ID},
+	{"MODIFICATION HISTORY",             ROBODOC_MODIFICATION_HISTORY_ID},
+	{"HISTORY",                          ROBODOC_HISTORY_ID},
+ 	{"INPUTS",                           ROBODOC_INPUTS_ID},
+	{"ARGUMENTS",                        ROBODOC_ARGUMENTS_ID},
+	{"OPTIONS",                          ROBODOC_OPTIONS_ID},
+	{"PARAMETERS",                       ROBODOC_PARAMETERS_ID},
+	{"SWITCHES",                         ROBODOC_SWITCHES_ID},
+ 	{"OUTPUT",                           ROBODOC_OUTPUT_ID},
+	{"SIDE EFFECTS",                     ROBODOC_SIDE_EFFECTS_ID},
+ 	{"RESULT",                           ROBODOC_RESULT_ID},
+	{"RETURN VALUE",                     ROBODOC_RETURN_VALUE_ID},
+ 	{"EXAMPLE",                          ROBODOC_EXAMPLE_ID},
+ 	{"NOTES",                            ROBODOC_NOTES_ID},
+ 	{"DIAGNOSTICS",                      ROBODOC_DIAGNOSTICS_ID},
+ 	{"WARNINGS",                         ROBODOC_WARNINGS_ID},
+	{"ERRORS",                           ROBODOC_ERRORS_ID},
+ 	{"BUGS",                             ROBODOC_BUGS_ID},
+ 	{"TODO",                             ROBODOC_TODO_ID},
+	{"IDEAS",                            ROBODOC_IDEAS_ID},
+ 	{"PORTABILITY",                      ROBODOC_PORTABILITY_ID},
+ 	{"SEE ALSO",                         ROBODOC_SEE_ALSO_ID},
+ 	{"METHODS",                          ROBODOC_METHODS_ID},
+	{"NEW METHODS",                      ROBODOC_NEW_METHODS_ID},
+ 	{"ATTRIBUTES",                       ROBODOC_ATTRIBUTES_ID},
+	{"NEW ATTRIBUTES",                   ROBODOC_NEW_ATTRIBUTES_ID},
+ 	{"TAGS",                             ROBODOC_TAGS_ID},
+ 	{"COMMANDS",                         ROBODOC_COMMANDS_ID},
+ 	{"DERIVED FROM",                     ROBODOC_DERIVED_FROM_ID},
+ 	{"DERIVED BY",                       ROBODOC_DERIVED_BY_ID},
+ 	{"USES",                             ROBODOC_USES_ID},
+	{"CHILDREN",                         ROBODOC_CHILDREN_ID},
+ 	{"USED BY",                          ROBODOC_USED_BY_ID},
+	{"PARENTS",                          ROBODOC_PARENTS_ID},
+ 	{"SOURCE",                           ROBODOC_SOURCE_ID},
+    {NULL, 								ROBODOC_SUPPORTED_IDs}                 
+};
+ 
+xml_elem_t*
+robodoc_section_header2xml( ASRobodocState *robo_state )
+{
+	xml_elem_t* section = xml_elem_new();
+	const char *ptr = &(robo_state->source[robo_state->curr]) ;
+	int i = 0 ;
+	int id_length = 0 ;
+	char *id = "";
+	char saved = ' ';
+		
+	section->tag = mystrdup( "section" );
+	section->tag_id = DOCBOOK_section_ID ;  
+
+	while( ptr[i] != 0 && ptr[i] != '\n' ) ++i ;
+	robo_state->curr += i+1 ;
+	while( i > 0 && isspace(ptr[i])) --i ;
+	id_length = i ;
+	if( i > 6 ) 
+	{	
+		i = 6 ; 
+		while( i < id_length && isspace(ptr[i]) ) ++i; 	
+		if( i < id_length ) 
+		{
+			id = (char*)(&ptr[i]);
+			id_length -= i ;	 
+			saved = id[id_length];
+			id[id_length] = '\0' ;
+		}else
+			id_length = 0 ;	 
+	}
+
+	section->parm = safemalloc( 5+2+1+2+2+2+id_length+1+1 );
+	sprintf(section->parm, "remap=\"%c\" id=\"%s\"", ptr[4], id );
+	
+	if( id_length > 0 ) 
+		id[id_length] = saved ;
+	xml_insert(robo_state->doc, section);
+	robo_state->curr_section = section ;
+	robo_state->curr_subsection = NULL ;	
+	return section;		   
+}
+
+void 
+append_CDATA_line( xml_elem_t *tag, const char *line, int len )
+{
+	xml_elem_t *cdata_tag = tag->child ;
+
+	while( cdata_tag != NULL ) 
+	{
+		if( cdata_tag->tag_id == XML_CDATA_ID ) 
+			break;
+		cdata_tag = cdata_tag->next ;
+	}	 
+	if( cdata_tag == NULL ) 
+	{
+		cdata_tag = xml_elem_new();
+		cdata_tag->tag = mystrdup(XML_CDATA_STR) ;
+		cdata_tag->tag_id = XML_CDATA_ID ;
+		xml_insert(tag, cdata_tag);
+	}	 
+	if( cdata_tag->parm == NULL ) 
+		cdata_tag->parm = mystrndup( line, len );
+	else
+	{
+		int old_len = strlen(cdata_tag->parm);
+		cdata_tag->parm = realloc( cdata_tag->parm, old_len+1+len+1 );
+		cdata_tag->parm[old_len] = '\n' ; 
+		strncpy( &(cdata_tag->parm[old_len+1]), line, len );
+		cdata_tag->parm[old_len+1+len] = '\0';
+	}	 
+}
+
+void 
+append_robodoc_line( ASRobodocState *robo_state, int len )
+{
+	xml_elem_t* sec_tag = NULL;
+	xml_elem_t* ll_tag = NULL;
+	if( robo_state->curr_subsection == NULL ) 
+		sec_tag = robo_state->curr_section ;
+	else
+		sec_tag = robo_state->curr_subsection ;
+
+	for(ll_tag = sec_tag->child; ll_tag != NULL ; ll_tag = ll_tag->next ) 
+		if( ll_tag->tag_id == DOCBOOK_literallayout_ID ) 
+			break;
+	if( ll_tag == NULL )
+	{
+		ll_tag = xml_elem_new();
+		ll_tag->tag = mystrdup("literallayout") ;
+		ll_tag->tag_id = DOCBOOK_literallayout_ID ;
+		xml_insert(sec_tag, ll_tag);
+	}	 
+	append_CDATA_line( ll_tag, &(robo_state->source[robo_state->curr]), len );
+}
+
+Bool
+handle_robodoc_subtitle( ASRobodocState *robo_state, int len )
+{
+	const char *ptr = &(robo_state->source[robo_state->curr]);
+	int i = 0; 
+	int robodoc_id = -1 ;
+	xml_elem_t* sec_tag = NULL;
+	xml_elem_t* title_tag = NULL;
+	xml_elem_t* title_text_tag = NULL;
+
+	while( isspace(ptr[i]) && i < len ) ++i ;
+	while( isspace(ptr[len]) && i < len ) --len ;
+
+	ptr = &(ptr[i]);
+	len -= i ;
+	if( len < 0 )
+		return False;
+	
+	for( i = 0 ; i < ROBODOC_SUPPORTED_IDs ; ++i ) 
+	 	if( strlen( SupportedRoboDocTagInfo[i].tag ) == len ) 		  
+			if( strncmp( ptr, SupportedRoboDocTagInfo[i].tag, len ) == 0 ) 
+			{
+				robodoc_id = SupportedRoboDocTagInfo[i].tag_id ; 
+				break;
+			}	 
+	if( robodoc_id < 0 ) 
+		return False ;
+	/* otherwise we have to create subsection */
+	sec_tag = xml_elem_new();
+	sec_tag->tag = mystrdup("refsect1") ;
+	sec_tag->tag_id = DOCBOOK_refsect1_ID ;
+	xml_insert(robo_state->curr_section, sec_tag);
+	
+	robo_state->curr_subsection = sec_tag ;
+
+	title_tag = xml_elem_new();
+	title_tag->tag = mystrdup("title") ;
+	title_tag->tag_id = DOCBOOK_title_ID ;
+	xml_insert(sec_tag, title_tag);
+	title_text_tag = xml_elem_new();
+	title_text_tag->tag = mystrdup(XML_CDATA_STR) ;
+	title_text_tag->tag_id = XML_CDATA_ID ;
+	title_text_tag->parm = mystrdup(SupportedRoboDocTagInfo[i].tag);
+	xml_insert(title_tag, title_text_tag);
+	return True;
+}
+
+void 
+handle_robodoc_line( ASRobodocState *robo_state, int len )
+{
+	 /* skipping first 3 characters of the line */
+	if( len < 4 ) 
+	{	
+		robo_state->curr += len ;
+		return ;
+	}
+	robo_state->curr += 3 ;
+	len -= 3 ;
+	if( !handle_robodoc_subtitle( robo_state, len ) ) 
+		append_robodoc_line( robo_state, len ); 
+	robo_state->curr += len ;
+}
+
+void 
+handle_robodoc_quotation(  ASRobodocState *robo_state )
+{
+	int start = robo_state->curr ; 
+	int end = 0 ;
+	find_robodoc_section( robo_state );
+	end = robo_state->curr-1 ; 
+	if( end > start ) 
+	{
+		xml_elem_t *sec_tag = NULL ;
+		xml_elem_t* code_tag = NULL;
+		xml_elem_t* ll_tag = NULL;
+		if( robo_state->curr_subsection == NULL ) 
+			sec_tag = robo_state->curr_section ;
+		else
+			sec_tag = robo_state->curr_subsection ;
+			
+		code_tag = xml_elem_new();
+		code_tag->tag = mystrdup("code") ;
+		code_tag->tag_id = DOCBOOK_code_ID ;
+		xml_insert(sec_tag, code_tag);
+
+		ll_tag = xml_elem_new();
+		ll_tag->tag = mystrdup("literallayout") ;
+		ll_tag->tag_id = DOCBOOK_literallayout_ID ;
+		xml_insert(code_tag, ll_tag);
+		
+		append_CDATA_line( ll_tag, &(robo_state->source[start]), end - start );
+	}
+}
+
+void 
+handle_robodoc_section( ASRobodocState *robo_state )
+{
+	Bool section_end = False ;
+	robodoc_section_header2xml( robo_state );
+
+	while( !section_end && robo_state->curr < robo_state->len ) 
+	{
+		const char *ptr = &(robo_state->source[robo_state->curr]) ;
+		int i = 0 ;
+		section_end = False ;
+		while( ptr[i] && ptr[i] != '\n' && !section_end) 
+		{	
+			section_end = ( ptr[i] == '*' && ptr[i+1] == '/' );
+			++i ;
+		}
+		
+		if( section_end )
+		{	
+			if( strncmp( ptr, " */", 3 ) == 0 )
+			{										/* line is the beginning of abe the end of the section */
+				robo_state->curr += i ;
+				handle_robodoc_quotation( robo_state );
+			}else if( strncmp( ptr, " * ", 3 ) == 0 )
+				handle_robodoc_line( robo_state, i );		 	  
+		}else
+			handle_robodoc_line( robo_state, i );
+		
+		ptr = &(robo_state->source[robo_state->curr]) ;
+		i = 0 ;
+		while( ptr[i] && ptr[i] != '\n' ) ++i ;
+		robo_state->curr += i ;
+	}	 
+	robo_state->curr_subsection = NULL ;
+}
 
 xml_elem_t* 
 robodoc2xml(const char *doc_str)
 {
 	xml_elem_t* doc = NULL ;
-#if 0	  
+#if 1
 	ASRobodocState	robo_state ;
 
 	memset( &robo_state, 0x00, sizeof(ASRobodocState));
-	robo_state->source = doc_str ;
-	robo_state->len = strlen( doc_str );
+	robo_state.source = doc_str ;
+	robo_state.len = strlen( doc_str );
 
-	while( robo_state->curr < robo_state->len )
+	while( robo_state.curr < robo_state.len )
 	{
-		xml_elem_t* quotation = NULL ;
-		find_robodoc_comments( &robo_state );
-		while( robo_state->curr < robo_state->len && ( quotation = handle_robodoc_comments( &robo_state )) != NULL )
-		{
-			int quotation_start = robo_state->curr ;	  
-			find_robodoc_comments( &robo_state );
-			handle_robodoc_quotation( quotation, quotation_start, &robo_state );	
-		}
+		find_robodoc_section( &robo_state );
+		if( robo_state.curr < robo_state.len )
+			handle_robodoc_section( &robo_state );
 	}	 
 #endif	
 	return doc;
