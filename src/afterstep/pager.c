@@ -684,24 +684,28 @@ release_old_background( int desk, Bool forget )
 {
     MyBackground *back = get_desk_back_or_default( desk, True );
     ASImage *im = NULL ;
-    char *imname ;
 
-LOCAL_DEBUG_CALLER_OUT("%d,%d", desk, forget);
+	LOCAL_DEBUG_CALLER_OUT("%d,%d", desk, forget);
     if( back == NULL || back->type == MB_BackCmd )
         return ;
 
-    imname = make_myback_image_name( &(Scr.Look), back->name );
-    im = query_asimage( Scr.image_manager, imname );
-    LOCAL_DEBUG_OUT( "query_asimage \"%s\" - returned %p", imname, im );
-    free( imname );
+
+    if( back->loaded_im_name )
+    {
+        im = query_asimage( Scr.image_manager, back->data );
+        LOCAL_DEBUG_OUT( "query_asimage \"%s\" - returned %p", back->data, im );
+    }
+	
+	if( im == NULL ) 
+	{
+	    char *imname = make_myback_image_name( &(Scr.Look), back->name );
+  		im = query_asimage( Scr.image_manager, imname );
+	    LOCAL_DEBUG_OUT( "query_asimage \"%s\" - returned %p", imname, im );
+  		free( imname );
+	}
 
     if( im == NULL && back->type == MB_BackImage )
     {
-        if( back->data && back->data[0] )
-        {
-            im = query_asimage( Scr.image_manager, back->data );
-            LOCAL_DEBUG_OUT( "query_asimage \"%s\" - returned %p", back->data, im );
-        }
         if( im == NULL )
         {
             const char *const_configfile = get_session_file (Session, desk, F_CHANGE_BACKGROUND, False);
@@ -739,21 +743,30 @@ ASImage*
 make_desktop_image( int desk, MyBackground *new_back )
 {
     ASImage *new_im = NULL;
-    char *new_imname = make_myback_image_name( &(Scr.Look), new_back->name );
+    char *new_imname = NULL ; 
+
+    if( new_back->loaded_im_name )
+		new_im = fetch_asimage( Scr.image_manager, new_back->loaded_im_name );
+	
+	if( new_im != NULL ) 
+		return new_im ;
     
+	new_imname = make_myback_image_name( &(Scr.Look), new_back->name );
     if( new_back->type == MB_BackImage )
     {
-        if( (new_im = fetch_asimage( Scr.image_manager, new_imname )) == NULL )
+		if( new_im == NULL )
         {
-            LOCAL_DEBUG_OUT( "fetch_asimage could not find the back \"%s\" - loading ", new_imname );
-            if( (new_im = load_myback_image( desk, new_back )) != NULL )
-                if( new_im->name == NULL )
-                    store_asimage( Scr.image_manager, new_im, new_imname );
-        }else
-        {
-            LOCAL_DEBUG_OUT( "fetch_asimage returned %p", new_im );
-        }
-
+	        if( (new_im = fetch_asimage( Scr.image_manager, new_imname )) == NULL )
+  		    {
+      		    LOCAL_DEBUG_OUT( "fetch_asimage could not find the back \"%s\" - loading ", new_imname );
+			
+          		if( (new_im = load_myback_image( desk, new_back )) != NULL )
+				{
+  		            if( new_im->name == NULL )
+      		            store_asimage( Scr.image_manager, new_im, new_imname );
+				}
+  		    }
+		}
     }else if( new_back->type == MB_BackMyStyle )
     {
         MyStyle *style = mystyle_find_or_default( new_back->data );
@@ -785,7 +798,16 @@ make_desktop_image( int desk, MyBackground *new_back )
             destroy_asimage( &(Scr.RootImage) );
             Scr.RootImage = old_root;
         }
+		if( new_im )
+	        store_asimage( Scr.image_manager, new_im, new_imname );
     }
+
+	if( new_im != NULL ) 
+	{
+		set_string_value( &(new_back->loaded_im_name), mystrdup(new_im->name), NULL, 0 );
+		LOCAL_DEBUG_OUT( "produced image %p", new_im );
+	}
+	
 #ifdef LOCAL_DEBUG
     LOCAL_DEBUG_OUT( "syncing %s","");
     ASSync(False);
@@ -808,6 +830,13 @@ LOCAL_DEBUG_CALLER_OUT( "desk(%d)->old_desk(%d)->new_back(%p)->old_back(%p)", de
     if( new_back == NULL )
         return ;
 
+    if( new_back->loaded_im_name != NULL  && Scr.RootBackground )
+	{
+		if( Scr.RootBackground->im != NULL && Scr.RootBackground->im->name != NULL )
+			if( strcmp( new_back->loaded_im_name, Scr.RootBackground->im->name ) == 0 ) 
+				return ; /* same background as what we already have - do nothing */
+	}
+	
     if( new_back == old_back &&
         desk != old_desk ) /* if desks are the same then we are reloading current background !!! */
         return;

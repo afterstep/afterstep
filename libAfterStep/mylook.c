@@ -595,6 +595,7 @@ char *make_myback_image_name( MyLook *look, char *name )
 	char *im_name = NULL ;
 	/* creating unique fake filename so that it would not match any
 	 * possible real filename : */
+	
 	if( name )
 	{
 		int len = strlen(name) ;
@@ -614,6 +615,8 @@ void myback_delete( MyBackground **myback, ASImageManager *imman )
 			if( (*myback)->data )
 				free( (*myback)->data );
 		}
+		if( (*myback)->loaded_im_name )
+			free( (*myback)->loaded_im_name );
 		(*myback)->magic = 0 ;
 		free( *myback );
 		*myback = NULL ;

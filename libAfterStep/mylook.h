@@ -112,6 +112,8 @@ typedef struct MyBackground
     ASFlagType align_flags;
 
     int        ref_count ;
+	
+	char *loaded_im_name ;
 }MyBackground;
 
 typedef struct MyDesktopConfig

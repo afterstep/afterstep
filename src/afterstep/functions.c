@@ -39,6 +39,7 @@
 
 #include "../../libAfterStep/session.h"
 #include "../../libAfterStep/moveresize.h"
+#include "../../libAfterStep/mylook.h"
 
 static as_function_handler function_handlers[F_FUNCTIONS_NUM] ;
 
@@ -983,7 +984,13 @@ commit_config_change( int func )
 	{
 		if( _as_background_change_count  > 0 )
 		{
+		    MyBackground *new_back = get_desk_back_or_default( Scr.CurrentDesk, False );
         	SendPacket( -1, M_NEW_BACKGROUND, 1, 1);
+			if( new_back->loaded_im_name ) 
+			{
+				free( new_back->loaded_im_name );  
+				new_back->loaded_im_name = NULL ;
+			}
         	change_desktop_background( Scr.CurrentDesk, Scr.CurrentDesk );
 			_as_background_change_count = 0 ;
     	}
