@@ -77,6 +77,7 @@ INCLUDEDIR      = @includedir@
 AFTER_INC_DIR	= @includedir@/libAfterImage
 AFTER_BIN_DIR	= @bindir@
 AFTER_MAN_DIR	= @mandir@/man3
+AFTER_APP_MAN_DIR	= @mandir@/man1
 AFTER_SHAREDIR	= @datadir@/libAfterImage
 AFTER_DOC_DIR	= $(AFTER_SHAREDIR)/doc
 
@@ -301,8 +302,8 @@ install.man:
 	  	  echo $(INSTALL_DATA) doc/$$f.man $(AFTER_MAN_DIR)/$$f.3x; \
 		  $(INSTALL_DATA) doc/$$f.man $(AFTER_MAN_DIR)/$$f.3x; \
 		done; \
-	echo $(INSTALL_DATA) apps/ascompose.man $(AFTER_MAN_DIR)/ascompose.1x; \
-	$(INSTALL_DATA) apps/ascompose.man $(AFTER_MAN_DIR)/ascompose.1x;
+	echo $(INSTALL_DATA) apps/ascompose.man $(AFTER_APP_MAN_DIR)/ascompose.1x; \
+	$(INSTALL_DATA) apps/ascompose.man $(AFTER_APP_MAN_DIR)/ascompose.1x;
 
 install.doc:
 	SRCS=`echo "$(LIB_DOCS) " | sed "s/.h / /g"`; cd doc/html; \
