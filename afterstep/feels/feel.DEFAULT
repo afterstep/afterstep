@@ -71,13 +71,13 @@ OpaqueResize 100
 EdgeScroll 100 100
 #
 # To avoid unwanted moving, edges resist during N ms
-EdgeResistance 200 80
+EdgeResistance 800 80
 #
 # Place window in empty zones
 SmartPlacement
 #
 # Random window placement
-RandomPlacement
+#RandomPlacement
 #
 # Windows can't chose where to place
 NoPPosition

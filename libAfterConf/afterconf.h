@@ -97,7 +97,8 @@ void ExtractPath (BaseConfig * config,
 			 char **myname_path);
 
 void BaseConfig2ASEnvironment( register BaseConfig *config, ASEnvironment **penv );
-Bool ReloadASEnvironment( struct ASImageManager **old_imageman, struct ASFontManager **old_fontman, BaseConfig **config_return );
+void ReloadASImageManager( ASImageManager **old_imageman );
+Bool ReloadASEnvironment( struct ASImageManager **old_imageman, struct ASFontManager **old_fontman, BaseConfig **config_return, Bool flush_images );
 
 /*
  * all data members that has been used from BaseConfig structure, returned

@@ -259,7 +259,10 @@ ColorConfig2ASColorScheme( ColorConfig *config )
 	if( config )
 	{
 		int i ;
-		cs = make_ascolor_scheme( config->main_colors[ASMC_Base], config->angle );
+		int angle = ASCS_DEFAULT_ANGLE ; 
+		if( get_flags( config->set_main_colors, COLOR_Angle ) )
+			angle = config->angle ;
+		cs = make_ascolor_scheme( config->main_colors[ASMC_Base], angle );
 		for( i = 0 ; i < ASMC_MainColors ; ++i )
 			if( i != ASMC_Base && get_flags( config->set_main_colors, (0x01<<i)) )
 				cs->main_colors[i]  = config->main_colors[i] ;

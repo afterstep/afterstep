@@ -1310,6 +1310,21 @@ void toggle_aswindow_status( ASWindow *asw, ASFlagType flags )
     if( get_flags( flags, AS_Shaded ) )
         asw->shading_steps = Scr.Feel.ShadeAnimationSteps ;
 
+    if( get_flags( flags, AS_Sticky) )
+	{   /* anchor of sticky window is always in real coordinates, while 
+	     * for non-sticky its in virtual coordinates 
+		 */
+		if( ASWIN_GET_FLAGS( asw, AS_Sticky ) )
+		{
+			asw->anchor.x -= asw->status->viewport_x ;
+			asw->anchor.y -= asw->status->viewport_y ;
+		}else 
+		{
+			asw->anchor.x += asw->status->viewport_x ;
+			asw->anchor.y += asw->status->viewport_y ;
+		}
+	}
+
     if( get_flags( flags, AS_MaximizedX) )
     {
         if( !ASWIN_GET_FLAGS( asw, AS_MaximizedX ) )

@@ -119,9 +119,9 @@ typedef struct ASColorScheme
 
 }ASColorScheme;
 
-#define ASCS_MIN_ANGLE	0
+#define ASCS_MIN_ANGLE	5
 #define ASCS_MAX_ANGLE	60
-#define ASCS_DEFAULT_ANGLE	30
+#define ASCS_DEFAULT_ANGLE	15
 
 #define ASCS_MAX_BRIGHTNESS 100
 #define ASCS_MAX_SATURATION 100

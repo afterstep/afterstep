@@ -554,7 +554,7 @@ GetBaseOptions (const char *filename)
 
     START_TIME(started);
 
-	ReloadASEnvironment( NULL, NULL, NULL );
+	ReloadASEnvironment( NULL, NULL, NULL, False );
 
 	if (Environment->desk_pages_h > 0 )
         PagerState.page_columns = Environment->desk_pages_h;

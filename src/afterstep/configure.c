@@ -1163,7 +1163,7 @@ LoadASConfig (int thisdesktop, ASFlagType what)
         const char *const_configfile;
         if (get_flags(what, PARSE_BASE_CONFIG))
 		{
-			if( ReloadASEnvironment( &old_image_manager, &old_font_manager, NULL ) )
+			if( ReloadASEnvironment( &old_image_manager, &old_font_manager, NULL, get_flags(what, PARSE_LOOK_CONFIG) ) )
 			{
 				if( !get_flags(what, PARSE_LOOK_CONFIG) )
 				{
@@ -1175,7 +1175,11 @@ LoadASConfig (int thisdesktop, ASFlagType what)
 				}else
                 	clear_flags(what, PARSE_BASE_CONFIG);
             }
-        }
+        }else if(get_flags(what, PARSE_LOOK_CONFIG))
+		{  /* must reload Image manager so that changed images would get updated */
+			ReloadASImageManager( &old_image_manager );
+		}
+		
         if (get_flags(what, PARSE_LOOK_CONFIG))
 		{
 			ASColorScheme *cs = NULL ;
@@ -1283,7 +1287,7 @@ LoadASConfig (int thisdesktop, ASFlagType what)
         }
 	} else
 	{
-		ReloadASEnvironment( &old_image_manager, &old_font_manager, NULL );
+		ReloadASEnvironment( &old_image_manager, &old_font_manager, NULL, True );
 		InitLook (&Scr.Look, True);
         InitFeel (&Scr.Feel, True);
         InitDatabase (True);

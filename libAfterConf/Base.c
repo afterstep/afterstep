@@ -322,8 +322,22 @@ BaseConfig2ASEnvironment( register BaseConfig *config, ASEnvironment **penv )
 	*penv = env ;
 }
 
+void
+ReloadASImageManager( ASImageManager **old_imageman )
+{
+	if( old_imageman )
+	{
+		*old_imageman = Scr.image_manager ;
+	}else if( Scr.image_manager )
+      	destroy_image_manager( Scr.image_manager, False );
+
+    Scr.image_manager = create_image_manager( NULL, 2.2, Environment->pixmap_path?Environment->pixmap_path:"", getenv( "IMAGE_PATH" ), getenv( "PATH" ), NULL );
+	set_xml_image_manager( Scr.image_manager );
+    show_progress("Pixmap Path changed to \"%s:%s:%s\" ...", Environment->pixmap_path?Environment->pixmap_path:"", getenv( "IMAGE_PATH" ), getenv( "PATH" ));
+}
+
 Bool
-ReloadASEnvironment( ASImageManager **old_imageman, ASFontManager **old_fontman, BaseConfig **config_return )
+ReloadASEnvironment( ASImageManager **old_imageman, ASFontManager **old_fontman, BaseConfig **config_return, Bool flush_images )
 {
 	char *old_pixmap_path = NULL ;
 	char *old_font_path = NULL ;
@@ -376,17 +390,10 @@ ReloadASEnvironment( ASImageManager **old_imageman, ASFontManager **old_fontman,
 	e = Environment ;
 	/* Save base filename to pass to modules */
     if( mystrcmp(old_pixmap_path, e->pixmap_path) == 0 ||
-		(e->pixmap_path != NULL && Scr.image_manager == NULL) )
+		(e->pixmap_path != NULL && Scr.image_manager == NULL) ||
+		flush_images )
     {
-		if( old_imageman )
-		{
-			*old_imageman = Scr.image_manager ;
-		}else if( Scr.image_manager )
-        	destroy_image_manager( Scr.image_manager, False );
-
-        Scr.image_manager = create_image_manager( NULL, 2.2, e->pixmap_path?e->pixmap_path:"", getenv( "IMAGE_PATH" ), getenv( "PATH" ), NULL );
-		set_xml_image_manager( Scr.image_manager );
-	    show_progress("Pixmap Path changed to \"%s:%s:%s\" ...", e->pixmap_path?e->pixmap_path:"", getenv( "IMAGE_PATH" ), getenv( "PATH" ));
+		ReloadASImageManager( old_imageman );
 	}
 	if( old_pixmap_path && old_pixmap_path != e->pixmap_path )
     	free( old_pixmap_path );
