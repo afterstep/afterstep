@@ -202,30 +202,37 @@ mystyle_get_property (Display * dpy, Window w, Atom name, Atom type)
 	  style->inherit_flags &= ~F_BACKGRADIENT;
 	}
       /* if there's a backpixmap, make sure it's valid and get its geometry */
-      if (style->inherit_flags & F_BACKPIXMAP)
+	if( style->back_icon.pix != None ) 
 	{
-	  Window junk_w;
-	  int junk;
-	  if( style->back_icon.pix != None )
-		  if (!XGetGeometry (dpy, style->back_icon.pix, &junk_w, &junk, &junk, &style->back_icon.width, &style->back_icon.height, &junk, &junk))
-			  style->back_icon.pix = None ;
-	  
-	  if (style->back_icon.pix == None && style->texture_type != 129 )
-	    {
+  		Window junk_w;
+		int junk;
+  		if (!XGetGeometry (dpy, style->back_icon.pix, &junk_w, &junk, &junk, &style->back_icon.width, &style->back_icon.height, &junk, &junk))
+		    style->back_icon.pix = None ;
+		else
+		{
+			style->back_icon.image = pixmap2asimage( Scr.asv, style->back_icon.pix, 
+													 0, 0, style->back_icon.width, style->back_icon.height, 
+													 AllPlanes, False, 0 );
+		}
+	}
+    if (style->back_icon.pix == None && style->texture_type != 129 )
+	{
+  		if (style->inherit_flags & F_BACKPIXMAP)
+		{
 	      style->texture_type = 0;
 	      style->back_icon.mask = None;
 	      style->inherit_flags &= ~(F_BACKPIXMAP | F_BACKTRANSPIXMAP);
-	    }
-	}
-      else if (style->inherit_flags & F_BACKTRANSPIXMAP)
-	{
-	  fprintf (stderr, "Transpixmap requested, but no pixmap detected for style '%s'\n", style->name);
-	  fprintf (stderr, "This is a bug, please report it!\n");
-	  style->inherit_flags &= ~F_BACKTRANSPIXMAP;
+	    }else if (style->inherit_flags & F_BACKTRANSPIXMAP)
+		{
+		  fprintf (stderr, "Transpixmap requested, but no pixmap detected for style '%s'\n", style->name);
+		  fprintf (stderr, "This is a bug, please report it!\n");
+		  style->inherit_flags &= ~F_BACKTRANSPIXMAP;
+		}
 	}
 
-      /* set back_icon.image if necessary */
-      if (style->inherit_flags & F_BACKTRANSPIXMAP)
+    /* set back_icon.image if necessary */
+#if 0
+    if (style->inherit_flags & F_BACKTRANSPIXMAP)
 	{
 	  MyStyle *tmp;
 	  /* try to find another style with the same pixmap to inherit from */
@@ -238,7 +245,7 @@ mystyle_get_property (Display * dpy, Window w, Atom name, Atom type)
 		  style->back_icon.image = tmp->back_icon.image;
 		  break;
 		}
-	    }
+    }
 	  /* that failed, so create the XImage here */
 	  if (tmp == NULL)
 	    {
@@ -247,6 +254,7 @@ mystyle_get_property (Display * dpy, Window w, Atom name, Atom type)
 	      style->inherit_flags &= ~F_BACKTRANSPIXMAP;
 	    }
 	}
+#endif	
       i += 7 + style->gradient.npoints * 4;
 #endif /* NO_TEXTURE */
       i += 9;

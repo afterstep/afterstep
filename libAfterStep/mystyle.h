@@ -160,6 +160,10 @@ enum				/* MyStyle options */
   };
 
 
+ARGB32 GetShadow (ARGB32);
+ARGB32 GetHilite (ARGB32);
+ARGB32 GetAverage (ARGB32 foreground, ARGB32 background);
+
 /* serice functions */
 GC CreateTintGC (Drawable d, unsigned long tintColor, int function);
 

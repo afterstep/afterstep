@@ -76,7 +76,7 @@ balloon_parse (char *tline, FILE * fd)
       for (tline += 18; isspace (*tline); tline++);
       for (len = 0; tline[len] != '\0' && !isspace (tline[len]); len++);
       tline[len] = '\0';
-      balloon_border_color = GetColor (tline);
+	  parse_argb_color( tline, &balloon_border_color );
     }
   else if (mystrncasecmp (tline, "BalloonBorderWidth", 18) == 0)
     {

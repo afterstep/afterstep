@@ -11,7 +11,7 @@ LIB_INCS=
 #           findfile.o
 #
 LIB_OBJS= catstring3.o copystring.o \
-	      font.o getcolor.o \
+	      font.o \
 		  Xmodule.o ASmodule.o \
 		  parse.o parser.o termhash.o \
 		  readpacket.o \

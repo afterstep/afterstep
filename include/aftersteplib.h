@@ -87,11 +87,6 @@ char *mystrndup (const char *str, size_t n);
 #include "mystyle_property.h"
 #include "balloon.h"
 
-/* from getcolor.c */
-unsigned long GetColor (char *);
-unsigned long GetShadow (unsigned long);
-unsigned long GetHilite (unsigned long);
-
 
 char *CatString3 (const char *, const char *, const char *);
 

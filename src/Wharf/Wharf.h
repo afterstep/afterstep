@@ -56,6 +56,7 @@ struct button_info
   int width;
   int height;
   ASImage *completeIcon;		/* icon with background */
+  Pixmap mask;
   Window IconWin;
   Window swallowed_win;
   XSizeHints hints;
@@ -116,7 +117,8 @@ extern void   DeadPipe(int nonsense);
 
 /* from icons.c */
 Window CreateButtonIconWindow (Window win);
-void ConfigureIconWindow(button_info* button);
+void RenderButtonIcon (button_info * button);
+//void ConfigureIconWindow(button_info* button);
 extern ASImage *GetXPMData(const char **data);
 extern ASImage *GetXPMGradient(int from[3], int to[3], int maxcols, int type);
 extern ASImage *GetSolidXPM(ARGB32 color);
@@ -131,11 +133,16 @@ void ConstrainSize (XSizeHints *hints, int *widthp, int *height);
 void MapFolder(folder_info* folder);
 void CloseFolder(folder_info* folder);
 void OpenFolder(folder_info* folder);
-void RedrawPushed(button_info* button);
-void RedrawUnpushed(button_info* button);
-void RedrawUnpushedOutline(button_info* button);
-void RedrawPushedOutline(button_info* button);
-void RedrawWindow(folder_info* folder, button_info* newbutton);
+
+void GenerateButtonImage(button_info * button, Bool pushed);
+void GenerateFolderImages(folder_info * folder);
+
+
+//void RedrawPushed(button_info* button);
+//void RedrawUnpushed(button_info* button);
+//void RedrawUnpushedOutline(button_info* button);
+//void RedrawPushedOutline(button_info* button);
+//void RedrawWindow(folder_info* folder, button_info* newbutton);
 void CreateShadowGC(void);
 void CreateIconPixmap(void);
 void place_buttons(folder_info* folder);

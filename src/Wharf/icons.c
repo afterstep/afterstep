@@ -83,7 +83,7 @@ RenderButtonIcon (button_info * button)
   		return;
 
     /* handle transparency */
-	if (Style->texture_type >= TEXTURE_TRANSPARENT && Style->texture_type < TEXTURE_BUILTIN)
+	if (/*Style->texture_type >= TEXTURE_TRANSPARENT &&*/ Style->texture_type > TEXTURE_SOLID)
 	{
   	    int x = 0, y = 0;
     	ASImage *im;
@@ -105,17 +105,19 @@ RenderButtonIcon (button_info * button)
 	l = create_image_layers( layers_num );
 	
 	l[0].im = background ;
-	l[0].solid_color = ARGB32_White ;
+	l[0].solid_color = Style->colors.back ;
 	l[0].clip_width = button->width ;
 	l[0].clip_height = button->height ;	
 	l[0].merge_scanlines = alphablend_scanlines ;
 	
-	if( (get_asimage_chanmask(button->icons[i])&SCL_DO_ALPHA) != 0 ) 
+	if( (get_asimage_chanmask(background)&SCL_DO_ALPHA) != 0 ) 
 		set_flags(button->flags, WB_Shaped);
 	
 	for (i = 0; i < button->num_icons; i++)
 	{
 		ASImage *im = button->icons[i];
+		if( im == NULL ) 
+			break;
         w = im->width;
 	    h = im->height;
   	    if (w < 1 || h < 1)
@@ -160,6 +162,14 @@ RenderButtonIcon (button_info * button)
 	free( l );
     if (bMyIcon && background )
 		destroy_asimage( &background );
+		
+	if( get_flags(button->flags, WB_Shaped)  )
+	{
+		if( button->mask ) 
+			XFreePixmap( dpy, button->mask );
+			
+		button->mask = asimage2mask( Scr.asv, Scr.Root, button->completeIcon, NULL, True );
+	}
 #endif
 }
 

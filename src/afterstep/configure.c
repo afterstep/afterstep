@@ -665,15 +665,17 @@ merge_old_look_colors (MyStyle * style, int type, int maxcols, char *fore, char 
 {
   if ((fore != NULL) && !((*style).user_flags & F_FORECOLOR))
     {
-      (*style).colors.fore = GetColor (fore);
-      (*style).user_flags |= F_FORECOLOR;
+	  if( parse_argb_color( fore, &((*style).colors.fore) )!= fore)
+	      (*style).user_flags |= F_FORECOLOR;
     }
   if ((back != NULL) && !((*style).user_flags & F_BACKCOLOR))
     {
-      (*style).colors.back = GetColor (back);
-      (*style).relief.fore = GetHilite ((*style).colors.back);
-      (*style).relief.back = GetShadow ((*style).colors.back);
-      (*style).user_flags |= F_BACKCOLOR;
+	   if( parse_argb_color( back, &((*style).colors.back) )!= back)
+	   {
+    	  (*style).relief.fore = GetHilite ((*style).colors.back);
+    	  (*style).relief.back = GetShadow ((*style).colors.back);
+    	  (*style).user_flags |= F_BACKCOLOR;
+	   }
     }
 #ifndef NO_TEXTURE
   if ((maxcols != -1) && !((*style).user_flags & F_MAXCOLORS))

@@ -57,6 +57,11 @@
 #include "Wharf.h"
 #include "../../include/iconbg.h"
 
+#ifdef SHAPE
+#include <X11/extensions/shape.h>
+#endif /* SHAPE */
+
+
 #ifdef ENABLE_DND
 #include "OffiX/DragAndDrop.h"
 #include "OffiX/DragAndDropTypes.h"
@@ -241,14 +246,8 @@ main (int argc, char **argv)
 
   /* Dead pipe == dead AfterStep */
   signal (SIGPIPE, DeadPipe);
-
-  if ((dpy = XOpenDisplay ("")) == NULL)
-    {
-      fprintf (stderr, "%s: couldn't open display %s\n",
-	       MyName, XDisplayName (""));
-      exit (1);
-    }
-  screen = DefaultScreen (dpy);
+  set_signal_handler( SIGSEGV );
+  x_fd = ConnectX( &Scr, display_name, PropertyChangeMask);
 
   /* connect to AfterStep */
   temp = module_get_socket_property (RootWindow (dpy, screen));
@@ -274,6 +273,8 @@ main (int argc, char **argv)
   /* need to set current_folder for ParseOptions */
   current_folder = root_folder;
 
+  fd_width = GetFdWidth ();
+
   XSetErrorHandler (ASErrorHandler);
 
   _XA_WM_DELETE_WINDOW = XInternAtom (dpy, "WM_DELETE_WINDOW", False);
@@ -285,21 +286,9 @@ main (int argc, char **argv)
   DndSelection = XInternAtom (dpy, "DndSelection", False);
 #endif
 
-  Scr.screen = screen;
-  x_fd = XConnectionNumber (dpy);
+  display_width = Scr.MyDisplayWidth ;
+  display_height = Scr.MyDisplayHeight ;
 
-  fd_width = GetFdWidth ();
-
-  Scr.Root = RootWindow (dpy, Scr.screen);
-  if (Scr.Root == None)
-    {
-      fprintf (stderr, "%s: Screen %ld is not valid ", MyName, Scr.screen);
-      exit (1);
-    }
-  display_width = DisplayWidth (dpy, Scr.screen);
-  display_height = DisplayHeight (dpy, Scr.screen);
-
-  Scr.d_depth = DefaultDepth (dpy, Scr.screen);
   sprintf (set_mask_mesg, "SET_MASK %lu\n",
 	   (unsigned long) (M_TOGGLE_PAGING |
 			    M_NEW_DESK |
@@ -308,8 +297,6 @@ main (int argc, char **argv)
 			    M_RES_NAME |
 			    M_RES_CLASS |
 			    M_WINDOW_NAME));
-
-  XSelectInput (dpy, Scr.Root, PropertyChangeMask);
 
   SendInfo (fd, set_mask_mesg, 0);
 
@@ -562,6 +549,7 @@ Loop (void)
 	  switch (Event.type)
 	    {
 	    case Expose:
+#if 0		
 	      for (folder = first_folder; folder != NULL; folder = (*folder).next)
 		if (Event.xany.window == (*folder).win)
 		  {
@@ -569,6 +557,7 @@ Loop (void)
 		    for (button = (*folder).first; button != NULL; button = (*button).next)
 		      RedrawUnpushedOutline (button);
 		  }
+#endif		  
 	      break;
 
 	    case ButtonPress:
@@ -681,7 +670,7 @@ Loop (void)
 	      if (Pushable)
 		{
 		  Pushed = 1;
-		  RedrawPushed (CurrentButton);
+		  GenerateButtonImage(CurrentButton, True);
 		}
 	      if (mystrncasecmp ((*CurrentButton).action, "Folder", 6) == 0)
 		{
@@ -820,7 +809,8 @@ Loop (void)
 	      if (Pushable)
 		{
 		  Pushed = 0;
-		  RedrawUnpushed (CurrentButton);
+		  XClearArea( dpy, CurrentButton->IconWin, 0, 0, CurrentButton->width, CurrentButton->height, True );
+//		  RedrawUnpushed (CurrentButton);
 		}
 	      if (CancelPush)
 		break;
@@ -1079,16 +1069,95 @@ MapFolder (folder_info * folder)
 
 
 void 
-RedrawFolder(folder_info * folder)
+GenerateButtonImage(button_info * button, Bool pushed)
 {
-
+	ASImage *im = button->completeIcon ;
+	Pixmap p;
+	if( pushed || NoBorder == 0 ) 
+	{
+		ASImageLayer layer ;
+		ASImageBevel bevel ;
+	
+		init_image_layers( &layer, 1 );
+		layer.im = im ;
+		layer.clip_width = button->width ;
+		layer.clip_height = button->height;
+		
+		memset( &bevel, 0x00, sizeof(bevel));
+		if( pushed )
+		{
+			if( PushStyle == 0 )
+				layer.clip_x = layer.clip_y = 2 ;
+			bevel.hi_color = GetShadow(Style->colors.back) ;
+			bevel.lo_color = GetHilite(Style->colors.back) ;
+			bevel.hihi_color = GetShadow (bevel.hi_color) ;
+			bevel.hilo_color = GetAverage(bevel.hi_color, bevel.lo_color);
+			bevel.lolo_color = GetHilite (bevel.lo_color) ;
+			bevel.left_inline = bevel.top_inline = 6 ;
+			bevel.right_inline = bevel.bottom_inline = 4 ;
+			bevel.left_outline = bevel.top_outline = 2 ;
+			bevel.right_outline = bevel.bottom_outline = 1 ;
+		}else
+		{
+			if( PushStyle == 0 )
+				layer.clip_x = layer.clip_y = 1 ;
+			bevel.hi_color = GetHilite(Style->colors.back) ;
+			bevel.lo_color = GetShadow(Style->colors.back) ;
+			bevel.hihi_color = GetHilite (bevel.hi_color) ;
+			bevel.hilo_color = GetAverage(bevel.hi_color, bevel.lo_color);
+			bevel.lolo_color = GetShadow (bevel.lo_color) ;
+			bevel.left_inline = bevel.top_inline = 4 ;
+			bevel.right_inline = bevel.bottom_inline = 6 ;
+			bevel.left_outline = bevel.top_outline = 1 ;
+			bevel.right_outline = bevel.bottom_outline = 2 ;
+		}
+		if( NoBorder == 0 ) 
+		{
+			layer.bevel = &bevel ;
+			if( PushStyle == 0 )
+				layer.clip_x = layer.clip_y = (pushed)?2:1 ;
+			layer.clip_width -= 3;
+			layer.clip_height -= 3;
+		}else if( PushStyle > 0 )
+		{
+			layer.dst_x = layer.dst_y = (pushed)?2:1 ;
+			layer.clip_width -= layer.dst_x;
+			layer.clip_height -= layer.dst_y;
+		}
+		im = merge_layers( Scr.asv, &layer, 1, button->width, button->height, 
+				  		   ASA_XImage, 0, ASIMAGE_QUALITY_DEFAULT );
+	}
+	if( im )
+	{
+		if( pushed && PushStyle != 0 )  
+		{
+			asimage2drawable( Scr.asv, button->IconWin, im, NULL, 
+			                  0, 0, 0, 0, 
+							  button->width, button->height,
+							  True );
+		}else
+		{
+			p = asimage2pixmap( Scr.asv, Scr.Root, im, NULL, True );
+			if( p )
+			{
+				XSetWindowBackgroundPixmap( dpy, button->IconWin, p );
+				XClearWindow( dpy, button->IconWin );
+				XSync( dpy, False );
+				XFreePixmap( dpy, p );
+			}
+		}
+		if( im != button->completeIcon ) 
+			destroy_asimage( &im );
+	}
 }
 
+
 void 
-RedrawButton(button_info * button)
+GenerateFolderImages(folder_info * folder)
 {
-
-
+	register button_info *button ;
+    for (button = (*folder).first; button != NULL; button = (*button).next)
+		GenerateButtonImage(button, False);
 }
 
 
@@ -1422,7 +1491,8 @@ place_buttons (folder_info * folder)
 	    {
 	      XResizeWindow (dpy, (*button).IconWin,
 			     (*button).width, (*button).height);
-	      ConfigureIconWindow (button);
+		  RenderButtonIcon( button );
+		  GenerateButtonImage( button, False );
 	      /* if there is a swallowed window, recenter it */
 	      if ((*button).swallowed_win != None)
 		{
@@ -1482,7 +1552,7 @@ update_folder_shape (folder_info * folder)
       /* add button masks to folder mask */
       for (button = (*folder).first; button != NULL; button = (*button).next)
 	{
-	  XCopyArea (dpy, (*button).completeIcon.mask, (*folder).mask, ShapeGC, 0, 0, (*button).width, (*button).height, (*button).x, (*button).y);
+	  XCopyArea (dpy, (*button).mask, (*folder).mask, ShapeGC, 0, 0, (*button).width, (*button).height, (*button).x, (*button).y);
 	  if ((*button).swallowed_win != None)
 	    {
 	      int junk;
@@ -1610,7 +1680,8 @@ update_transparency (folder_info * folder)
   clear_flags (folder->flags, WF_NeedTransUpdate);
   for (b = (*folder).first; b != NULL; b = b->next)
     {
-      ConfigureIconWindow (b);
+		  RenderButtonIcon( b );
+		  GenerateButtonImage( b, False );
       if (get_flags (b->flags, WB_Shaped))
 	is_shaped = 1;
       if (b->folder)
@@ -1631,12 +1702,13 @@ update_look (folder_info * folder)
   button_info *b;
   for (b = (*folder).first; b != NULL; b = b->next)
     {
-      ConfigureIconWindow (b);
+	  RenderButtonIcon( b );
+	  GenerateButtonImage( b, False );
       if ((*b).folder != NULL)
 	update_look ((*b).folder);
     }
   place_buttons (folder);
-  XSetWindowBackgroundPixmap (dpy, (*folder).win, back_pixmap.icon);
+  XSetWindowBackgroundPixmap (dpy, (*folder).win, None /*back_pixmap.icon*/);
 }
 
 /************************************************************************
@@ -1650,7 +1722,6 @@ void
 CreateFolderWindow (folder_info * folder)
 {
   button_info *button;
-  int i;
   XSizeHints hints;
 
   /* create the folder window */
@@ -1658,7 +1729,7 @@ CreateFolderWindow (folder_info * folder)
 				       64, 64, 0, 0, Style->colors.back);
 
   /* set the folder window background */
-  XSetWindowBackgroundPixmap (dpy, (*folder).win, back_pixmap.icon);
+/*  XSetWindowBackgroundPixmap (dpy, (*folder).win, back_pixmap.icon); */
 
   /* figure out the button sizes and create their windows */
   for (button = (*folder).first; button != NULL; button = (*button).next)
@@ -2120,7 +2191,7 @@ ParseBaseOptions (char *filename)
   fclose (fd);
   if( imman ) 
 	  destroy_image_manager( imman, False );
-  imman = create_image_manager( NULL, 2.2, PixmapPath, IconPath );
+  imman = create_image_manager( NULL, 2.2, pixmapPath, iconPath, NULL );
 }
 
 
@@ -2613,14 +2684,16 @@ process_message (unsigned long type, unsigned long *body)
     {
     case M_TOGGLE_PAGING:
       pageing_enabled = body[0];
-      RedrawWindow (root_folder, NULL);
+	  update_transparency(root_folder);
+//      RedrawWindow (root_folder, NULL);
       break;
     case M_NEW_DESK:
       new_desk = body[0];
-      RedrawWindow (root_folder, NULL);
+	  update_transparency(root_folder);
+//      RedrawWindow (root_folder, NULL);
       break;
     case M_END_WINDOWLIST:
-      RedrawWindow (root_folder, NULL);
+//      RedrawWindow (root_folder, NULL);
       break;
     case M_MAP:
       swallow (body);
@@ -2694,6 +2767,7 @@ new_button (button_info * button)
   (*button).width = 0;
   (*button).height = 0;
   (*button).completeIcon = NULL;
+  (*button).mask = None ;
   (*button).IconWin = None;
   (*button).swallowed_win = None;
   (*button).hangon = NULL;
@@ -2885,6 +2959,9 @@ delete_button (button_info * button)
 
   if ((*button).completeIcon)
       destroy_asimage(&((*button).completeIcon));
+	  
+  if( (*button).mask  )
+	  XFreePixmap( dpy, (*button).mask );
 
   /* delete swallowed windows, but not modules (AfterStep handles those) */
   if (button->swallowed_win != None && !get_flags (button->flags, WB_Module))
@@ -3018,7 +3095,7 @@ swallow (unsigned long *body)
 				  &supplied))
 	    (*button).hints.flags = 0;
 
-	  RedrawWindow (folder, NULL);
+//	  RedrawWindow (folder, NULL);
 	}
 }
 

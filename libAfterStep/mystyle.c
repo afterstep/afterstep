@@ -106,6 +106,50 @@ CreateTintGC (Drawable d, unsigned long tintColor, int function)
 		    &gcvalue);
 }
 
+CARD8
+make_component_hilite( int cmp )
+{
+	if( cmp < 51 )
+		cmp = 51 ;
+	cmp = (cmp*14)/10 ;
+	return (cmp > 255)?255:cmp;
+}
+
+/* This routine computes the hilite color from the background color */
+inline ARGB32
+GetHilite (ARGB32 background)
+{
+	return ((make_component_hilite((background&0xFF000000)>>24)<<24)&0xFF000000)|
+		   ((make_component_hilite((background&0x00FF0000)>>16)<<16)&0x00FF0000)|
+		   ((make_component_hilite((background&0x0000FF00)>>8 )<<8 )&0x0000FF00)|
+		   ((make_component_hilite((background&0x000000FF)    )    )&0x000000FF);
+}
+
+/* This routine computes the shadow color from the background color */
+inline ARGB32
+GetShadow (ARGB32 background)
+{
+	return (background>>1)&0x7F7F7F7F;
+}
+
+inline ARGB32
+GetAverage (ARGB32 foreground, ARGB32 background)
+{
+	CARD16 a, r, g, b ;
+	a = ARGB32_ALPHA8(foreground)+ARGB32_ALPHA8(background) ;
+	a /= 2 ;
+	r = ARGB32_RED8(foreground)+ARGB32_RED8(background) ;
+	r /= 2 ;
+	g = ARGB32_GREEN8(foreground)+ARGB32_GREEN8(background) ;
+	g /= 2 ;
+	b = ARGB32_BLUE8(foreground)+ARGB32_BLUE8(background) ;
+	b /= 2 ;
+	return MAKE_ARGB32(a,r,g,b);
+}
+
+
+
+
 /* create the default style if necessary, and fill in the unset fields
  * of the other styles from the default */
 void
@@ -651,8 +695,8 @@ mystyle_new (void)
 #ifdef I18N
   style->font.fontset = NULL;
 #endif
-  style->colors.fore = GetColor ("white");
-  style->colors.back = GetColor ("black");
+  style->colors.fore = ARGB32_White;
+  style->colors.back = ARGB32_Black;
   style->relief.fore = style->colors.back;
   style->relief.back = style->colors.fore;
   style->texture_type = 0;
@@ -1044,15 +1088,17 @@ mystyle_parse_member (MyStyle * style, char *str, const char *PixmapPath)
 	  style->user_flags |= style_func;
 	  break;
 	case F_FORECOLOR:
-	  style->colors.fore = GetColor (style_arg);
-	  style->user_flags |= style_func;
+	  if( parse_argb_color( style_arg, &(style->colors.fore)) != style_arg )
+		  style->user_flags |= style_func;
 	  break;
 	case F_BACKCOLOR:
 	  style->texture_type = 0;
-	  style->colors.back = GetColor (style_arg);
-	  style->relief.fore = GetHilite (style->colors.back);
-	  style->relief.back = GetShadow (style->colors.back);
-	  style->user_flags |= style_func;
+	  if( parse_argb_color( style_arg, &(style->colors.back)) != style_arg )
+	  {
+		  style->relief.fore = GetHilite (style->colors.back);
+		  style->relief.back = GetShadow (style->colors.back);
+		  style->user_flags |= style_func;
+	  }
 	  break;
 #ifndef NO_TEXTURE
 	case F_MAXCOLORS:

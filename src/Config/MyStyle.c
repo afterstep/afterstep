@@ -363,18 +363,22 @@ mystyle_create_from_definition (MyStyleDefinition * def, const char *PixmapPath)
 
   if (def->fore_color)
     {
-      style->inherit_flags &= ~F_FORECOLOR;
-      style->colors.fore = GetColor (def->fore_color);
-      style->user_flags |= F_FORECOLOR;
+	  if( parse_argb_color( def->fore_color, &(style->colors.fore) ) != def->fore_color )
+	  {
+    	  style->inherit_flags &= ~F_FORECOLOR;
+    	  style->user_flags |= F_FORECOLOR;
+	  }
     }
   if (def->back_color)
     {
-      style->inherit_flags &= ~F_BACKCOLOR;
-      style->texture_type = 0;
-      style->colors.back = GetColor (def->back_color);
-      style->relief.fore = GetHilite (style->colors.back);
-      style->relief.back = GetShadow (style->colors.back);
-      style->user_flags |= F_BACKCOLOR;
+	  if( parse_argb_color( def->back_color, &(style->colors.back) ) != def->back_color )
+	  {
+	      style->inherit_flags &= ~F_BACKCOLOR;
+  		  style->texture_type = 0;
+  		  style->relief.fore = GetHilite (style->colors.back);
+    	  style->relief.back = GetShadow (style->colors.back);
+    	  style->user_flags |= F_BACKCOLOR;
+	  }	  
     }
   if (def->set_flags & F_TEXTSTYLE)
     {
