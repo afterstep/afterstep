@@ -544,26 +544,47 @@ stop_image_output( ASImageOutput **pimout )
 }
 
 /* ******************** ASImageLayer ****************************/
-void
-destroy_image_layer( ASImageLayer **pl )
+
+inline void
+init_image_layers( register ASImageLayer *l, int count )
 {
-	if( pl )
+	memset( l, 0x00, sizeof(ASImageLayer)*count );
+	while( --count >= 0 )
+		l[count].merge_scanlines = alphablend_scanlines ;
+}
+
+ASImageLayer *
+create_image_layers( int count )
+{
+	ASImageLayer *l = NULL;
+
+	if( count > 0 )
 	{
-		register ASImageLayer *l = *pl ;
-		if( l )
+		l = safecalloc( count, sizeof(ASImageLayer) );
+		init_image_layers( l, count );
+	}
+	return l;
+}
+
+void
+destroy_image_layers( register ASImageLayer *l, int count, Bool reusable )
+{
+	if( l )
+	{
+		while( --count >= 0 )
 		{
-			if( l->im )
+			if( l[count].im )
 			{
-				if( l->im->imageman )
-					release_asimage( l->im );
+				if( l[count].im->imageman )
+					release_asimage( l[count].im );
 				else
-					destroy_asimage( &(l->im) );
+					destroy_asimage( &(l[count].im) );
 			}
-			if( l->bevel )
-				free( l->bevel );
-			free( l );
-			*pl = NULL ;
+			if( l[count].bevel )
+				free( l[count].bevel );
 		}
+		if( !reusable )
+			free( l );
 	}
 }
 

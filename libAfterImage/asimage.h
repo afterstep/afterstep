@@ -663,16 +663,6 @@ int mmx_off(void);
  * EXAMPLE
  * asview.c: ASView.5
  *********/
-/****f* libAfterImage/asimage/destroy_image_layer()
- * SYNOPSIS
- * void destroy_image_layer( ASImageLayer **pl );
- * INPUTS
- * pl				- pointer to pointer to valid ASImageLayer structure.
- * DESCRIPTION
- * frees all the memory allocated for specified ASImageLayer. If there
- * was ASImage and/or ASImageBevel attached to it - it will be
- * deallocated as well.
- *********/
 void asimage_init (ASImage * im, Bool free_resources);
 void asimage_start (ASImage * im, unsigned int width, unsigned int height, unsigned int compression);
 void move_asimage_channel( ASImage *dst, int channel_dst, ASImage *src, int channel_src );
@@ -686,7 +676,50 @@ ASImage *fetch_asimage( ASImageManager* imageman, const char *name );
 ASImage *dup_asimage  ( ASImage* im );         /* increment ref countif applicable */
 int      release_asimage( ASImage *im );
 
-void     destroy_image_layer( ASImageLayer **pl );
+/****f* libAfterImage/asimage/init_image_layers()
+ * SYNOPSIS
+ * inline void init_image_layers( register ASImageLayer *l, int count );
+ * INPUTS
+ * l              - pointer to valid ASImage structure.
+ * count          - number of elements to initialize.
+ * DESCRIPTION
+ * Initializes array on ASImageLayer structures to sensible defaults.
+ * Basically - all zeros and merge_scanlines == alphablend_scanlines.
+ *********/
+/****f* libAfterImage/asimage/create_image_layers()
+ * SYNOPSIS
+ * ASImageLayer *create_image_layers( int count );
+ * INPUTS
+ * count       - number of ASImageLayer structures in allocated array.
+ * RETURN VALUE
+ * Pointer to newly allocated and initialized array of ASImageLayer
+ * structures on Success. NULL in case of any kind of error - that
+ * should never happen.
+ * DESCRIPTION
+ * Performs memory allocation for the new array of ASImageLayer
+ * structures, as well as initialization of allocated structure to
+ * sensible defaults - merge_func will be set to alphablend_scanlines.
+ *********/
+/****f* libAfterImage/asimage/destroy_image_layers()
+ * SYNOPSIS
+ * void destroy_image_layers( register ASImageLayer *l,
+ *                            int count,
+ *                            Bool reusable );
+ * l				- pointer to pointer to valid array of ASImageLayer
+ *                    structures.
+ * count            - number of structures in array.
+ * reusable         - if True - then array itself will not be deallocates -
+ *                    which is usable when it was allocated on stack.
+ * DESCRIPTION
+ * frees all the memory allocated for specified array of ASImageLayer s.
+ * If there was ASImage and/or ASImageBevel attached to it - it will be
+ * deallocated as well.
+ *********/
+
+inline void init_image_layers( register ASImageLayer *l, int count );
+ASImageLayer *create_image_layers( int count );
+void destroy_image_layers( register ASImageLayer *l, int count, Bool reusable );
+
 /****h* libAfterImage/asimage/Encoding
  * DESCRIPTION
  * asimage_add_line()       - encode raw scanline data
