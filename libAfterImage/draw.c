@@ -663,17 +663,6 @@ asim_line_to_aa( ASDrawContext *ctx, int dst_x, int dst_y )
 }	 
 
 void
-asim_rectangle( ASDrawContext *ctx, int x, int y, int width, int height ) 
-{
-	asim_move_to( ctx, x, y );
-	asim_line_to_generic( ctx, x+width, y, ctx_draw_line_solid_aa);	 		
-	asim_line_to_generic( ctx, x+width, y+height, ctx_draw_line_solid_aa);	 		   
-	asim_line_to_generic( ctx, x, y+height, ctx_draw_line_solid_aa);	 		   
-	asim_line_to_generic( ctx, x, y, ctx_draw_line_solid_aa);	 		   
-}	 
-
-
-void
 asim_cube_bezier( ASDrawContext *ctx, int x1, int y1, int x2, int y2, int x3, int y3 ) 
 {
 	if( ctx ) 
@@ -687,15 +676,143 @@ asim_cube_bezier( ASDrawContext *ctx, int x1, int y1, int x2, int y2, int x3, in
 }
 
 void
-asim_circle( ASDrawContext *ctx, int x, int y, int r ) 
+asim_circle( ASDrawContext *ctx, int x, int y, int r, Bool fill ) 
 {
-	if( ctx ) 
+	if( ctx && r > 0 ) 
 	{	
-		asim_move_to( ctx, x-r, y );
-		ctx_draw_bezier( ctx, (x-r)<<8, y<<8, (x-r)<<8, (y-r*4/3)<<8, (x+r)<<8, (y-r*4/3)<<8, (x+r)<<8, y<<8 );
-		ctx_draw_bezier( ctx, (x-r)<<8, y<<8, (x-r)<<8, (y+r*4/3)<<8, (x+r)<<8, (y+r*4/3)<<8, (x+r)<<8, y<<8 );
+		int dr = r*142 ;       /* that gives us precision of about 0.05% which is 
+								* pretty good for integer math */
+		asim_move_to( ctx, x+r, y );
+		x = x<<8 ; 
+		y = y<<8 ; 
+		r = r<<8 ;
+#if 0
+		ctx_draw_bezier( ctx, x+r, y, x+r, y+r43, x-r, y+r43, x-r, y );
+		ctx_draw_bezier( ctx, x-r, y, x-r, y-r43, x+r, y-r43, x+r, y );
+#else
+		/* this is more precise approximation : */
+		ctx_draw_bezier( ctx, x+r, y, x+r, y+dr, x+dr, y+r, x, y+r );
+		ctx_draw_bezier( ctx, x, y+r, x-dr, y+r, x-r, y+dr, x-r, y );
+		ctx_draw_bezier( ctx, x-r, y, x-r, y-dr, x-dr, y-r, x, y-r );
+		ctx_draw_bezier( ctx, x, y-r, x+dr, y-r, x+r, y-dr, x+r, y );
+#endif
 	}		
 }	 
+
+/* Sinus lookup table */
+const signed int ASIM_SIN[91]=
+{
+	0x00000000,
+	0x00000478,0x000008EF,0x00000D66,0x000011DC,0x00001650,0x00001AC2,0x00001F33,0x000023A1,0x0000280C,0x00002C74,
+	0x000030D9,0x0000353A,0x00003996,0x00003DEF,0x00004242,0x00004690,0x00004AD9,0x00004F1C,0x00005358,0x0000578F,
+	0x00005BBE,0x00005FE6,0x00006407,0x00006820,0x00006C31,0x00007039,0x00007439,0x0000782F,0x00007C1C,0x00008000,
+	
+	0x000083DA,0x000087A9,0x00008B6D,0x00008F27,0x000092D6,0x00009679,0x00009A11,0x00009D9C,0x0000A11B,0x0000A48E,
+	0x0000A7F3,0x0000AB4C,0x0000AE97,0x0000B1D5,0x0000B505,0x0000B827,0x0000BB3A,0x0000BE3F,0x0000C135,0x0000C41B,
+	0x0000C6F3,0x0000C9BB,0x0000CC73,0x0000CF1C,0x0000D1B4,0x0000D43C,0x0000D6B3,0x0000D91A,0x0000DB6F,0x0000DDB4,
+	0x0000DFE7,0x0000E209,0x0000E419,0x0000E617,0x0000E804,0x0000E9DE,0x0000EBA6,0x0000ED5C,0x0000EEFF,0x0000F090,
+	0x0000F20E,0x0000F378,0x0000F4D0,0x0000F615,0x0000F747,0x0000F865,0x0000F970,0x0000FA68,0x0000FB4C,0x0000FC1C,
+	0x0000FCD9,0x0000FD82,0x0000FE18,0x0000FE99,0x0000FF07,0x0000FF60,0x0000FFA6,0x0000FFD8,0x0000FFF6,0x00010000
+};
+
+static inline int asim_sin( int angle )
+{
+	while( angle >= 360 ) 
+		angle -= 360 ;
+	while( angle < 0 ) 
+		angle += 360 ;
+	if( angle <= 90 ) 
+		return ASIM_SIN[angle];
+	if( angle <= 180 ) 
+		return ASIM_SIN[180-angle];
+	if( angle <= 270 ) 
+		return -ASIM_SIN[angle-180];
+	return -ASIM_SIN[360-angle];
+}	 
+
+
+void
+asim_ellips( ASDrawContext *ctx, int x, int y, int rx, int ry, int angle, Bool fill ) 
+{
+	if( ctx && rx > 0 && ry > 0 ) 
+	{	
+		int dx0 = rx, dy0 = ry, dx1 = 0, dy1 = rx*4/3 ;
+		int x0, y0, x1down, y1down, x2down, y2down, x3, y3, x2up, y2up, x1up, y1up ; 
+		
+		while( angle >= 360 ) 
+			angle -= 360 ;
+		while( angle < 0 ) 
+			angle += 360 ;
+		
+		if( angle == 90 || angle == 270 ) 
+		{
+			int t = rx ;
+			rx = ry ; 
+			ry = t ;	   
+			angle = 0 ;
+		}
+		if( angle != 0 && angle != 180 ) 
+		{	
+			int ry4 = (ry<<2)/3 ;
+			int sin_val = asim_sin(angle);
+			int cos_val = asim_sin(angle-90);
+			if(sin_val < 0) 
+				sin_val = -sin_val ;
+			if(cos_val < 0) 
+				cos_val = -cos_val ;
+			dx0 = (rx*cos_val)>>8; 
+			dy0 = (rx*sin_val)>>8; 
+			dx1 = (ry4*sin_val)>>8;
+			dy1 = (ry4*cos_val)>>8; 
+			if( angle < 180 )
+			{
+				dy0 = -dy0 ;
+				dx1 = -dx1 ; 
+			}	 
+			if( angle > 90 && angle < 270 )
+			{	
+				dx0 = -dx0 ; 
+				dy1 = -dy1 ;
+			}
+		}else
+		{	
+			dx0 = rx<<8 ; 
+			dy0 = 0 ; 
+			dx1 = 0 ; 
+			dy1 = (ry<<10)/3 ;
+		}	 
+		x = x << 8;
+		y = y << 8;
+		x0 = x + dx0 ;
+		y0 = y + dy0 ;
+		x3 = x - dx0 ;
+		y3 = y - dy0 ; 
+		x1down = x0 + dx1 ;
+		y1down = y0 - dy1 ;
+		x2down = x3 + dx1 ; 
+		y2down = y3 - dy1 ;  
+		x2up = x3 - dx1 ; 
+		y2up = y3 + dy1 ;  
+		x1up = x0 - dx1 ;  
+		y1up = y0 + dy1 ;  
+		
+		asim_move_to( ctx, x0>>8, y0>>8 );
+		ctx_draw_bezier( ctx, x0, y0, x1down, y1down, x2down, y2down, x3, y3 );
+		ctx_draw_bezier( ctx, x3, y3, x2up, y2up, x1up, y1up, x0, y0 );
+	}		
+}	 
+
+
+void
+asim_rectangle( ASDrawContext *ctx, int x, int y, int width, int height ) 
+{
+	asim_move_to( ctx, x, y );
+	asim_line_to_generic( ctx, x+width, y, ctx_draw_line_solid_aa);	 		
+	asim_line_to_generic( ctx, x+width, y+height, ctx_draw_line_solid_aa);	 		   
+	asim_line_to_generic( ctx, x, y+height, ctx_draw_line_solid_aa);	 		   
+	asim_line_to_generic( ctx, x, y, ctx_draw_line_solid_aa);	 		   
+}	 
+
 
 
 Bool
@@ -751,7 +868,7 @@ int main(int argc, char **argv )
 
 	ASDrawContext *ctx ;
 
-#define DRAW_TEST_SIZE 512	
+#define DRAW_TEST_SIZE 800	
 	
 	set_output_threshold( 10 );
 
@@ -835,13 +952,51 @@ int main(int argc, char **argv )
 	asim_line_to( ctx, 200, 460 );
 	asim_line_to( ctx, 400, 490 );
 
-	asim_move_to(ctx, 300, 200); 	  
+	asim_move_to(ctx, 10, 600); 	  
 	asim_set_brush( ctx, 0 ); 
-	asim_cube_bezier( ctx, 310, 300, 390, 300, 400, 200 ); 
+	asim_cube_bezier( ctx, 10, 400, 100, 570, 400, 600 ); 
+	asim_move_to(ctx, 20, 610); 	  
+	asim_set_brush( ctx, 1 ); 
+	asim_cube_bezier( ctx, 20, 410, 110, 580, 410, 610 ); 
+	asim_move_to(ctx, 30, 640); 	  
+	asim_set_brush( ctx, 2 ); 
+	asim_cube_bezier( ctx, 30, 440, 120, 610, 420, 640 ); 
 	
-	asim_move_to(ctx, 300, 300); 	  
+	asim_move_to(ctx, 50, 660); 	  
 	asim_set_brush( ctx, 0 ); 
-	asim_cube_bezier( ctx, 270, 600, 390, 200, 400, 300 ); 
+	asim_cube_bezier( ctx, -20, 940, 350, 490, 300, 690 ); 
+	asim_move_to(ctx, 40, 680); 	  
+	asim_set_brush( ctx, 1 ); 
+	asim_cube_bezier( ctx, -30, 960, 340, 510, 290, 710 ); 
+	asim_move_to(ctx, 30, 700); 	  
+	asim_set_brush( ctx, 2 ); 
+	asim_cube_bezier( ctx, -40, 980, 330, 530, 280, 730 ); 
+
+	asim_set_brush( ctx, 0 ); 
+	asim_circle( ctx, 600, 110, 80, False );
+	asim_circle( ctx, 600, 110, 50, False );
+	asim_circle( ctx, 600, 110, 20, False );
+	asim_circle( ctx, 600, 110, 1, False );
+
+	asim_set_brush( ctx, 1 ); 
+	asim_circle( ctx, 600, 110, 90, False );
+	asim_circle( ctx, 600, 110, 60, False );
+	asim_circle( ctx, 600, 110, 30, False );
+	asim_circle( ctx, 600, 110, 5, False );
+	
+	asim_set_brush( ctx, 2 ); 
+	asim_circle( ctx, 600, 110, 100, False );
+	asim_circle( ctx, 600, 110, 70, False );
+	asim_circle( ctx, 600, 110, 40, False );
+	asim_circle( ctx, 600, 110, 10, False );
+
+	asim_set_brush( ctx, 0 ); 
+	asim_circle( ctx, -1000, -1000, 2000, False );
+	asim_ellips( ctx, -1000, -1000, 2000, 500, -45, False );
+	asim_circle( ctx, 595, 550, 200, False );
+	for( i = 0 ; i < 180 ; i+=5 ) 
+		asim_ellips( ctx, 595, 550, 198, 40, i, False );
+
 
 #if 1
 	/* commit drawing : */

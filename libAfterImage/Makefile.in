@@ -280,13 +280,18 @@ $(LIB_STATIC):	$(LIB_OBJS) $(LIB_INCS) config.h
 		$(AR) $(LIB_STATIC) $(LIB_OBJS)
 		$(RANLIB) $(LIB_STATIC)
 
-test_asstorage:
+test_asstorage.o: test_asstorage.c
 		$(CC) $(CCFLAGS) $(EXTRA_DEFINES) -DTEST_ASSTORAGE $(INCLUDES) $(EXTRA_INCLUDES) -c asstorage.c -o test_asstorage.o
+
+test_asstorage:	test_asstorage.o
 		$(CC) test_asstorage.o $(LIBRARIES) $(EXTRA_LIBRARIES) -o test_asstorage
 
-test_asdraw:
+test_asdraw.o:	draw.c
 		$(CC) $(CCFLAGS) $(EXTRA_DEFINES) -DTEST_ASDRAW $(INCLUDES) $(EXTRA_INCLUDES) -c draw.c -o test_asdraw.o
+
+test_asdraw:	test_asdraw.o
 		$(CC) test_asdraw.o $(LIBRARIES) $(EXTRA_LIBRARIES) -o test_asdraw
+
 
 
 .c.o:
