@@ -798,7 +798,7 @@ LOCAL_DEBUG_CALLER_OUT( "%p, %d, submenu(%p)", menu, item, menu->items[item].sub
                 x += max_dx ;
         }
 #endif
-        y = menu->main_canvas->root_y+(menu->item_height*(item+1-(int)menu->top_item)) - 5 ;
+        y = menu->main_canvas->root_y+(menu->item_height*(item-(int)menu->top_item)) - 10 ;
 /*	if( x > menu->main_canvas->root_x+menu->item_width-5 )
 	    x = menu->main_canvas->root_x+menu->item_width-5 ;
 */      close_asmenu_submenu( menu );
@@ -1162,7 +1162,7 @@ make_menu_hints( ASMenu *menu )
     hints->max_height = MIN(MAX_MENU_HEIGHT,menu->items_num*menu->item_height);
     hints->width_inc  = 0 ;
     hints->height_inc = menu->item_height;
-    hints->gravity = NorthWestGravity ;
+    hints->gravity = StaticGravity ;
     hints->border_width = BW ;
     hints->handle_width = BOUNDARY_WIDTH;
 
@@ -1188,7 +1188,7 @@ show_asmenu( ASMenu *menu, int x, int y )
     ASStatusHints status ;
     ASHints *hints = make_menu_hints( menu );
 	ASInternalWindow *asiw = safecalloc( 1, sizeof(ASInternalWindow));
-    int gravity = NorthWestGravity ;
+    int gravity = StaticGravity ;
     unsigned int tbar_width = 0, tbar_height = 0 ;
     ASRawHints raw ;
     static char *ASMenuStyleNames[2] = {"ASMenu",NULL} ;
@@ -1224,18 +1224,18 @@ show_asmenu( ASMenu *menu, int x, int y )
     else if( x + menu->optimal_width + tbar_height> MAX_MENU_X )
     {
         x = MAX_MENU_X - menu->optimal_width ;
-        gravity = NorthEastGravity ;
+        gravity = EastGravity ;
     }else if( x + menu->optimal_width + tbar_height + menu->optimal_width> MAX_MENU_X )
-		gravity = NorthEastGravity ;
+		gravity = EastGravity ;
 
     if( y <= MIN_MENU_Y )
         y = MIN_MENU_Y ;
     else if( y + menu->optimal_height + tbar_height> MAX_MENU_Y )
     {
         y = MAX_MENU_Y - menu->optimal_height;
-        gravity = (gravity == NorthWestGravity)?SouthWestGravity:SouthEastGravity ;
+        gravity = (gravity == StaticGravity)?SouthGravity:SouthEastGravity ;
     }else if( y + menu->optimal_height + tbar_height + menu->optimal_height> MAX_MENU_Y )
-        gravity = (gravity == NorthWestGravity)?SouthWestGravity:SouthEastGravity ;
+        gravity = (gravity == StaticGravity)?SouthGravity:SouthEastGravity ;
 
     hints->gravity = gravity ;
 
