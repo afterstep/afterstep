@@ -32,7 +32,7 @@ ac_help="$ac_help
 ac_help="$ac_help
   --with-xpm-includes=DIR  use XPM includes in DIR"
 ac_help="$ac_help
-"
+  --with-jpeg              support JPEG image format [yes]"
 ac_help="$ac_help
   --with-jpeg-includes=DIR use JPEG includes in DIR"
 ac_help="$ac_help
@@ -662,9 +662,9 @@ else
   xpm_includes=NO
 fi
 
-# Check whether --with-jpeg		      --with-jpeg              support JPEG image format [yes] or --without-jpeg		      --with-jpeg              support JPEG image format [yes] was given.
-if test "${with_jpeg		      __with_jpeg              support JPEG image format yes+set}" = set; then
-  withval="$with_jpeg		      __with_jpeg              support JPEG image format yes"
+# Check whether --with-jpeg or --without-jpeg was given.
+if test "${with_jpeg+set}" = set; then
+  withval="$with_jpeg"
   :
 fi
 
@@ -2522,8 +2522,8 @@ rm -f conftest*
   fi
 fi
   eval "$ac_cv_have_xpm"
-  if test "x$have_xpm" = "xyes"; then 
-    if test "x$vt_xpm_includes" != "x"; then 
+  if test "x$have_xpm" = "xyes"; then
+    if test "x$vt_xpm_includes" != "x"; then
 		XPM_CFLAGS="-I$vt_xpm_includes"
     fi
 	cat >> confdefs.h <<\EOF
