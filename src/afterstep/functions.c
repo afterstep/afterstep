@@ -1019,6 +1019,7 @@ void install_file_func_handler( FunctionData *data, ASEvent *event, int module )
 {
 	char *file = NULL ;
 	char *realfilename = NULL ;
+	Bool desktop_resource = False ;
 	char *dir_name = NULL ;
 
 	switch( data->func )
@@ -1026,14 +1027,26 @@ void install_file_func_handler( FunctionData *data, ASEvent *event, int module )
 		case F_INSTALL_LOOK : 		dir_name = as_look_dir_name; break;
 		case F_INSTALL_FEEL :		dir_name = as_feel_dir_name; break;
 		case F_INSTALL_BACKGROUND : dir_name = as_background_dir_name; break;
-		case F_INSTALL_FONT :		dir_name = as_font_dir_name; break;
-		case F_INSTALL_ICON :		dir_name = as_icon_dir_name; break;
-		case F_INSTALL_TILE :		dir_name = as_tile_dir_name; break;
+		case F_INSTALL_FONT :		dir_name = as_font_dir_name; desktop_resource = True; break;
+		case F_INSTALL_ICON :		dir_name = as_icon_dir_name; desktop_resource = True; break;
+		case F_INSTALL_TILE :		dir_name = as_tile_dir_name; desktop_resource = True; break;
 		case F_INSTALL_THEME_FILE : dir_name = as_theme_file_dir_name; break;
 	}
 	if( dir_name != NULL )
 	{
 		parse_file_name( data->text, NULL, &file ) ;
+
+		if( desktop_resource )
+		{
+			realfilename = make_session_data_file  (Session, False, 0, DESKTOP_DIR, NULL );
+    	    CheckOrCreate(realfilename);
+		    free( realfilename );
+		}
+
+		realfilename = make_session_data_file  (Session, False, 0, dir_name, NULL );
+        CheckOrCreate(realfilename);
+	    free( realfilename );
+
 		realfilename = make_session_data_file  (Session, False, 0, dir_name, file, NULL );
 		CopyFile (data->text, realfilename);
 		free( realfilename );

@@ -546,7 +546,7 @@ MakeASFile (const char *name)
 	return 0;
 }
 
-static int
+int
 CheckOrCreate (const char *what)
 {
 	mode_t        perms = 0755;

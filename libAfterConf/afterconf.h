@@ -1397,7 +1397,8 @@ typedef struct ThemeConfig
 
 }ThemeConfig;
 
-
+#define THEME_INSTALL_FUNC_NAME "InstallTheme"
+#define THEME_APPLY_FUNC_NAME 	"ApplyTheme"
 
 AutoExecConfig *CreateAutoExecConfig ();
 void    DestroyAutoExecConfig (AutoExecConfig * config);

@@ -20,12 +20,12 @@ BalloonFont		-adobe-helvetica-bold-o-*-*-10-*-*-*-*-*-*-*
 # possible decoration parameters are :
 #PagerDecoration option - possible values :
 #   DeskBorderWidth #      - border width around desks
-#   DeskBorderColor <color>- color of the border around desks 
+#   DeskBorderColor <color>- color of the border around desks
 #                            (default is style's foreground)
 #   NoPageSeparator        - removes lines separating one page from another
-#   NoSelection            - removes frame surrounding selected page 
+#   NoSelection            - removes frame surrounding selected page
 #   SelectionColor <color> - color of the frame surrounding selected page
-#   GridColor <color>      - defines color of page separating grid and desk 
+#   GridColor <color>      - defines color of page separating grid and desk
 #                            borders
 #   NoDeskLabel            - removes label from the desk
 #   HideInactiveLabel      - use shaped extensions to hide labels of inactive
@@ -36,7 +36,7 @@ BalloonFont		-adobe-helvetica-bold-o-*-*-10-*-*-*-*-*-*-*
 
 *PagerGeometry       -1+19
 
-# PagerStyle is used to define look of Pager's desk window. 
+# PagerStyle is used to define look of Pager's desk window.
 # Relevant look must be defined in your look file or in this file
 # Note that look file's definition will override definition in here
 
@@ -47,7 +47,7 @@ BalloonFont		-adobe-helvetica-bold-o-*-*-10-*-*-*-*-*-*-*
 
 # use *PagerDontDrawBg  with xearth, xfishtank, ... to avoid redrawing
 # background
-#*PagerDontDrawBg    
+#*PagerDontDrawBg
 *PagerAlign          0
 *PagerLabel          0       Work
 *PagerLabel          1       WWW
@@ -65,8 +65,7 @@ BalloonFont		-adobe-helvetica-bold-o-*-*-10-*-*-*-*-*-*-*
 *WPagerStickyIcons
 *WPagerSmallFont      5x8
 *WPagerGeometry       -0-1
-#*WPagerStyle          0       DeskStyle
-*WPagerDesktopImage   0       @with_afterdir@/non-configurable/0_background
+*WPagerStyle          0       DeskStyle
 *WPagerAlign          0
 *WPagerLabel          0       Work
 #*WPagerDontDrawBg
@@ -75,8 +74,7 @@ BalloonFont		-adobe-helvetica-bold-o-*-*-10-*-*-*-*-*-*-*
 *XPagerStickyIcons
 *XPagerSmallFont      5x8
 *XPagerGeometry       -0-1
-#*XPagerStyle         1       DeskStyle
-*XPagerDesktopImage   1       @with_afterdir@/non-configurable/1_background
+*XPagerStyle          1       DeskStyle
 *XPagerAlign          0
 *XPagerLabel          1       WWW
 #*XPagerDontDrawBg
@@ -85,8 +83,7 @@ BalloonFont		-adobe-helvetica-bold-o-*-*-10-*-*-*-*-*-*-*
 *YPagerStickyIcons
 *YPagerSmallFont      5x8
 *YPagerGeometry       -0-1
-#*YPagerStyle         2       DeskStyle
-*YPagerDesktopImage   2       @with_afterdir@/non-configurable/2_background
+*YPagerStyle          2       DeskStyle
 *YPagerAlign          0
 *YPagerLabel          2       Mail
 #*YPagerDontDrawBg
@@ -95,8 +92,7 @@ BalloonFont		-adobe-helvetica-bold-o-*-*-10-*-*-*-*-*-*-*
 *ZPagerStickyIcons
 *ZPagerSmallFont      5x8
 *ZPagerGeometry       -0-1
-#*ZPagerStyle         3       DeskStyle
-*ZPagerDesktopImage   3       @with_afterdir@/non-configurable/3_background
+*ZPagerStyle          3       DeskStyle
 *ZPagerAlign          0
 *ZPagerLabel          3       Games
 #*ZPagerDontDrawBg

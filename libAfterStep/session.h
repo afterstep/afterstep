@@ -57,6 +57,7 @@ char *make_session_file   (ASSession * session, const char *source, Bool use_dep
 char *make_session_dir    (ASSession * session, const char *source, Bool use_depth );
 char *make_session_data_file  (ASSession * session, Bool shared, int if_mode_only, ... );
 
+int CheckOrCreate (const char *what);
 void check_AfterStep_dirtree ( char * ashome, Bool create_non_conf);
 
 /* legacy session using non-configurable dir to store config files : */

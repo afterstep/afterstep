@@ -107,34 +107,157 @@ detect_theme_file_type( const char * filename )
 
 Bool untar_file( const char *src, const char *dst, ASThemeFileType type )
 {
+	int i ;
 	int src_len = strlen( src );
 	int dst_len = strlen( dst );
-	char * command_line ;
+	char * command_line = NULL ;
+	char * tarball = (char*)src ;
+	int tarball_len = src_len ;
+	Bool success = False ;
+
+	if( type != AST_ThemeTar )
+	{
+		tarball_len = dst_len + 4 ;
+		tarball = safemalloc( tarball_len + 1 );
+		sprintf( tarball, "%s.tar", dst );
+	}
 
 	if( type == AST_ThemeTarBz2 )
 	{
-		command_line = safemalloc( 11 + src_len + 11 + dst_len + 6 + 1 );
-		sprintf( command_line, "bzip2 -dc \"%s\" | tar -C\"%s\" xf -", src, dst );
+		command_line = safemalloc( 11 + src_len + 15 + tarball_len + 1  + 1 );
+		sprintf( command_line, "bzip2 -dc \"%s\" > \"%s\"", src, tarball );
 	}else if( type == AST_ThemeTarGz )
 	{
-		command_line = safemalloc( 12 + src_len + 17 + dst_len + 1 + 1 );
-		sprintf( command_line, "gzip -dc \"%s\" | tar xf -C\"%s\"", src, dst );
-	}else if( type == AST_ThemeTar )
+		command_line = safemalloc( 10 + src_len + 15 + tarball_len + 1 + 1 );
+		sprintf( command_line, "gzip -dc \"%s\" > \"%s\"", src, tarball );
+	}
+	if( command_line )
 	{
-		command_line = safemalloc( 7 + src_len + 6 + dst_len + 1 + 1 );
-		sprintf( command_line, "tar -C\"%s\" xf \"%s\"", src, dst );
-	}else
-		return False;
+		LOCAL_DEBUG_OUT( "command line is \"%s\"", command_line );
+		spawn_child( command_line, TAR_SINGLETON_ID, 0, 0, 0, True, False, NULL );
+		free( command_line );
+		command_line = NULL ;
+		for( i = 600 ; i >= 0 ; --i )
+		{
+			sleep_a_little(10000);
+			if( check_singleton_child (TAR_SINGLETON_ID, False) == 0 )
+			{
+				type = AST_ThemeTar ;
+				break;
+			}
+		}
+	}
 
-	spawn_child( command_line, TAR_SINGLETON_ID, 0, 0, 0, True, False, NULL );
-	return True;
+	if( type == AST_ThemeTar )
+	{
+		command_line = safemalloc( 7 + dst_len + 9 + tarball_len + 1 + 1 );
+		sprintf( command_line, "tar -C\"%s\" -x -f \"%s\"", dst, tarball );
+		LOCAL_DEBUG_OUT( "command line is \"%s\"", command_line );
+		spawn_child( command_line, TAR_SINGLETON_ID, 0, 0, 0, True, False, NULL );
+		free( command_line );
+		for( i = 600 ; i >= 0 ; --i )
+		{
+			sleep_a_little(10000);
+			if( check_singleton_child (TAR_SINGLETON_ID, False) == 0 )
+			{
+				sleep_a_little(120000);        /* 2 sec delay for some reason */
+				break;
+			}
+		}
+		success = (i >= 0);
+	}
+	if( tarball != src )
+		free( tarball );
+
+	return success;
 }
 
 ThemeConfig *
 build_theme_config( const char *theme_dir )
 {
 	ThemeConfig *config = NULL ;
+	struct direntry **list;
+	int           i, n;
 
+	n = my_scandir ((char*)theme_dir, &list, ignore_dots, NULL);
+	if( n > 0 )
+	{
+		FunctionData *install_func  ;
+		config = safecalloc( 1, sizeof(ThemeConfig) );
+		config->install = new_complex_func( NULL, THEME_INSTALL_FUNC_NAME );
+		config->apply = new_complex_func( NULL, THEME_APPLY_FUNC_NAME );
+
+		config->install->items_num = n ;
+		config->install->items = install_func = safecalloc( n, sizeof(FunctionData)) ;
+
+		config->apply->items_num = 3 ;
+		config->apply->items = safecalloc( 3, sizeof(FunctionData)) ;
+
+		for (i = 0; i < n; i++)
+		{
+			if (!S_ISDIR (list[i]->d_mode))
+			{
+				char *name = list[i]->d_name ;
+				Bool added_new = True ;
+				LOCAL_DEBUG_OUT( "chacking file \"%s\"", name );
+				if( mystrncasecmp( name, "look", 4 ) == 0 )
+				{
+					LOCAL_DEBUG_OUT( "adding Install/Change look command for \"%s\"", name );
+					install_func->func = F_INSTALL_LOOK ;
+					install_func->name = mystrdup( name );
+					install_func->text = make_file_name( theme_dir, name );
+					if( config->apply->items[0].func == F_NOP )
+					{
+						config->apply->items[0].func = F_CHANGE_LOOK ;
+						config->apply->items[0].name = mystrdup( name );
+						config->apply->items[0].text = mystrdup( name );
+					}
+				}else if( mystrncasecmp( name, "feel", 4 ) == 0 )
+				{
+					LOCAL_DEBUG_OUT( "adding Install/Change feel command for \"%s\"", name );
+					install_func->func = F_INSTALL_FEEL ;
+					install_func->name = mystrdup( name );
+					install_func->text = make_file_name( theme_dir, name );
+					if( config->apply->items[1].func == F_NOP )
+					{
+						config->apply->items[1].func = F_CHANGE_FEEL ;
+						config->apply->items[1].name = mystrdup( name );
+						config->apply->items[1].text = mystrdup( name );
+					}
+				}else if( mystrncasecmp( name, "background", 10 ) == 0 )
+				{
+					LOCAL_DEBUG_OUT( "adding Install/Change background command for \"%s\"", name );
+					install_func->func = F_INSTALL_BACKGROUND ;
+					install_func->name = mystrdup( name );
+					install_func->text = make_file_name( theme_dir, name );
+					if( config->apply->items[2].func == F_NOP )
+					{
+						config->apply->items[2].func = F_CHANGE_BACKGROUND ;
+						config->apply->items[2].name = mystrdup( name );
+						config->apply->items[2].text = mystrdup( name );
+					}
+				}else
+				{
+					int len = strlen( name );
+					added_new = False ;
+					if( len > 4 )
+						if( mystrncasecmp( &(name[len-4]), ".xpm", 4 ) == 0 )
+						{
+							LOCAL_DEBUG_OUT( "adding Install icon command for \"%s\"", name );
+							install_func->func = F_INSTALL_ICON ;
+							install_func->name = mystrdup( name );
+							install_func->text = make_file_name( theme_dir, name );
+							added_new = True ;
+						}
+				}
+				if( added_new )
+					++install_func ;
+			}
+			free (list[i]);
+		}
+		if (n > 0)
+			free (list);
+	}
 	return config ;
 }
 
@@ -215,6 +338,7 @@ cleanup_dir( const char *dirname )
 	int           i, n;
 
 	n = my_scandir ((char*)dirname, &list, ignore_dots, NULL);
+	LOCAL_DEBUG_OUT( "found %d entries in \"%s\"", n, dirname );
 	for (i = 0; i < n; i++)
 	{
 		char *tmp = make_file_name( dirname, list[i]->d_name );
@@ -231,15 +355,40 @@ cleanup_dir( const char *dirname )
 		free (list);
 }
 
+char *
+get_theme_subdir( const char *dirname )
+{
+	char *subdir = NULL ;
+	struct direntry **list;
+	int           i, n;
+
+	n = my_scandir ((char*)dirname, &list, ignore_dots, NULL);
+	LOCAL_DEBUG_OUT( "found %d entries in \"%s\"", n, dirname );
+	for (i = 0; i < n; i++)
+	{
+		if (S_ISDIR (list[i]->d_mode) && subdir == NULL )
+		{
+			LOCAL_DEBUG_OUT( "%d entry is a subdir \"%s\"", i, list[i]->d_name );
+			subdir = make_file_name( dirname, list[i]->d_name );
+		}
+		free (list[i]);
+	}
+	if (n > 0)
+		free (list);
+	return subdir;
+}
+
+
+
 Bool
 install_theme_file( const char *src )
 {
-	ASThemeFileType type = detect_theme_file_type( src );
-	char *theme_tarball = NULL ;
+	ASThemeFileType type = AST_ThemeBad ;
 	char *theme_dir = NULL ;
 	char *theme_script_fname = NULL ;
 	Bool success = False ;
 
+	type = detect_theme_file_type( src );
 	if( type == AST_ThemeBad )
 	{
 		show_error( "missing or incorrect format of the theme file \"%s\"", src );
@@ -258,7 +407,7 @@ install_theme_file( const char *src )
             tmpdir = default_tmp_dir ;
 		themedir_len = strlen(tmpdir)+11+32;
         theme_dir = safemalloc (themedir_len+1);
-        sprintf (theme_dir, "%s/astheme.%d", tmpdir, getpid() );
+        sprintf (theme_dir, "%s/astheme.%d", tmpdir, getuid() );
 		if( mkdir( theme_dir, 700 ) == -1 )
 		{
 			if( errno != EEXIST  )
@@ -272,13 +421,25 @@ install_theme_file( const char *src )
  				cleanup_dir( theme_dir );
 			}
 		}
-		if( type == AST_ThemeTarBz2 && type == AST_ThemeTarGz )
+		/* need to untar all the files into dir */
+		if( untar_file( src, theme_dir, type ) )
 		{
-			theme_tarball = safemalloc( themedir_len + 4 + 1 );
-			sprintf (theme_dir, "%s.tar", theme_dir );
-		}
-		theme_script_fname = safemalloc( themedir_len + 1 + 14 + 1 );
-		sprintf( theme_script_fname, "%s/install_script", theme_dir );
+			char * theme_subdir ;
+			type = AST_ThemeScript ;
+			/* the actuall theme files will be in subdirectory named after the theme : */
+			theme_subdir = get_theme_subdir( theme_dir );
+			if( theme_subdir != NULL )
+			{
+				free( theme_dir );
+				theme_dir = theme_subdir ;
+				themedir_len = strlen( theme_dir );
+				LOCAL_DEBUG_OUT( "using theme subdir \"%s\"", theme_dir );
+			}
+			/* lets hope that theme has its script file supplied : */
+			theme_script_fname = safemalloc( themedir_len + 1 + 14 + 1 );
+			sprintf( theme_script_fname, "%s/install_script", theme_dir );
+		}else
+			type = AST_ThemeBad ;
 	}else
 	{
 		char *tmp = strrchr( src, '/' );
@@ -289,24 +450,10 @@ install_theme_file( const char *src )
 		theme_script_fname = mystrdup( src );
 	}
 
-	if( theme_tarball == NULL  )
-		theme_tarball = mystrdup( src );
-
-	if( type == AST_ThemeTar ||
-		type == AST_ThemeTarBz2 ||
-		type == AST_ThemeTarGz )
-	{	/* need to untar all the files into dir */
-		if( untar_file( theme_tarball, theme_dir, type ) )
-			type = AST_ThemeScript ;
-		else
-			type = AST_ThemeBad ;
-	}
-
 	if( type == AST_ThemeScript )
 	{
 		/* step 1: parsing theme script file */
 		ThemeConfig *theme = NULL ;
-		Bool old_style_theme = False ;
 
 		if( theme_script_fname && CheckFile( theme_script_fname ) == 0 )
 			theme = ParseThemeFile ( theme_script_fname, "afterstep");
@@ -314,7 +461,6 @@ install_theme_file( const char *src )
 		if( theme == NULL )
 		{
 			theme = build_theme_config( theme_dir );
-			old_style_theme = True ;
 		}else if( theme_dir[0] != '\0' && theme->install )
 			fix_install_theme_script( theme->install, theme_dir );  /* appends theme_dir to filenames */
 
@@ -327,8 +473,7 @@ install_theme_file( const char *src )
 
 			if( theme->apply )
 			{
-				if( !old_style_theme )
-					fix_apply_theme_script( theme->apply );  /* appends theme_dir to filenames */
+				fix_apply_theme_script( theme->apply );  /* appends theme_dir to filenames */
 				ExecuteBatch( theme->apply );
 			}
 
@@ -340,8 +485,6 @@ install_theme_file( const char *src )
 		free( theme_dir );
 	if( theme_script_fname )
 		free( theme_script_fname );
-	if( theme_tarball )
-		free( theme_tarball );
 
 	return success;
 }

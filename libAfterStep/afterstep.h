@@ -385,4 +385,10 @@ struct ASTBarData;
 #define TITLE_OLD		0	/* old (NEXTSTEP 3) style titlebar */
 #define TITLE_NEXT4		1	/* NEXTSTEP 4 style titlebar */
 
+#define ASIMMAN_PATH_PIXMAPPATH  	0
+#define ASIMMAN_PATH_IMAGEPATH   	1
+#define ASIMMAN_PATH_PATH   		2
+#define ASIMMAN_PATH_PRIVICONS		3
+#define ASIMMAN_PATH_PRIVBACKS		4
+
 #endif /* #ifndef AFTERSTEP_H_HEADER_INCLUDED */

@@ -7,7 +7,7 @@
 ##########################################################################
 
 # Use available pixmaps if needed
-PixmapPath		@with_afterdir@/desktop/buttons/:@datadir@/afterstep/desktop/buttons/
+PixmapPath		@with_gnustep_dir@/@with_gnustep_lib@/@with_afterdir@/desktop/buttons/:@datadir@/afterstep/desktop/buttons/
 
 # Use available titlebuttons if needed
 # TitleButtons : [1] [3] [5] [7] [9] (title) [0] [8] [6] [4] [2]

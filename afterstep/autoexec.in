@@ -13,7 +13,7 @@ Function "InitFunction"
 	Module  "I"     WinList
 #	Module  "I"	Banner
 #	Wait    "I"     Banner
-	Exec    "I"     sh @with_afterdir@/.workspace_state &
+	Exec    "I"     sh @with_gnustep_dir@/@with_gnustep_lib@/@with_afterdir@/.workspace_state &
 EndFunction
 
 #------------------------------------------------------------------------

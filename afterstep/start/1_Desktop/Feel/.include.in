@@ -1,4 +1,4 @@
 keepname
 include "@datadir@/afterstep/feels" ChangeFeel
-include "@with_afterdir@/feels" ChangeFeel
+include "@with_gnustep_dir@/@with_gnustep_lib@/@with_afterdir@/feels" ChangeFeel
 extension feel.
