@@ -339,4 +339,12 @@ create_asimage_from_vector( ASVisual *asv, double *vector,
 							ASAltImFormats out_format,
 							unsigned int compression, int quality );
 
+ASImage* 
+adjust_asimage_hsv( ASVisual *asv, ASImage *src,
+				    int offset_x, int offset_y,
+	  			    unsigned int to_width, unsigned int to_height,
+					int affected_hue, int affected_radius,
+					int hue_offset, int saturation_offset, int value_offset,
+					ASAltImFormats out_format, 
+					unsigned int compression_out, int quality );
 #endif

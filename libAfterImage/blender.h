@@ -76,6 +76,8 @@ typedef void (*merge_scanlines_func)( struct ASScanline *bottom, struct ASScanli
  * This functions translate RGB color into respective coordinates of
  * HSV and HLS colorspaces.
  ****************/
+#define HUE16_RANGE 		(85<<7)
+
 inline CARD32 rgb2value( CARD32 red, CARD32 green, CARD32 blue );
 inline CARD32 rgb2saturation( CARD32 red, CARD32 green, CARD32 blue );
 inline CARD32 rgb2hue( CARD32 red, CARD32 green, CARD32 blue );

@@ -898,12 +898,12 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 		ASImage* imtmp = NULL;
 		for (ptr = parm ; ptr ; ptr = ptr->next) {
 			if (!strcmp(ptr->tag, "id")) id = strdup(ptr->parm);
-			if (!strcmp(ptr->tag, "refid")) refid = ptr->parm;
-			if (!strcmp(ptr->tag, "x_origin")) xorig_str = ptr->parm;
-			if (!strcmp(ptr->tag, "y_origin")) yorig_str = ptr->parm;
-			if (!strcmp(ptr->tag, "width")) width_str = ptr->parm;
-			if (!strcmp(ptr->tag, "height")) height_str = ptr->parm;
-			if (!strcmp(ptr->tag, "tint")) parse_argb_color(ptr->parm, &tint);
+			else if (!strcmp(ptr->tag, "refid")) refid = ptr->parm;
+			else if (!strcmp(ptr->tag, "x_origin")) xorig_str = ptr->parm;
+			else if (!strcmp(ptr->tag, "y_origin")) yorig_str = ptr->parm;
+			else if (!strcmp(ptr->tag, "width")) width_str = ptr->parm;
+			else if (!strcmp(ptr->tag, "height")) height_str = ptr->parm;
+			else if (!strcmp(ptr->tag, "tint")) parse_argb_color(ptr->parm, &tint);
 		}
 		for (ptr = doc->child ; ptr && !imtmp ; ptr = ptr->next) {
 			imtmp = build_image_from_xml(ptr, NULL);
@@ -928,6 +928,60 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 				my_destroy_asimage(imtmp);
 			}
 			show_progress("Tiling image to [%dx%d].", width, height);
+		}
+		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
+	}
+
+	if (!strcmp(doc->tag, "hsv")) {
+		xml_elem_t* parm = xml_parse_parm(doc->parm);
+		const char* refid = NULL;
+		const char* xorig_str = NULL;
+		const char* yorig_str = NULL;
+		const char* width_str = "100%";
+		const char* height_str = "100%";
+		int affected_hue = 0, affected_radius = 255 ;
+		int hue_offset = 0, saturation_offset = 0, value_offset = 0 ;
+		int width = 0, height = 0, xorig = 0, yorig = 0;
+		ASImage* imtmp = NULL;
+		for (ptr = parm ; ptr ; ptr = ptr->next) {
+			if (!strcmp(ptr->tag, "id")) id = strdup(ptr->parm);
+			else if (!strcmp(ptr->tag, "refid")) refid = ptr->parm;
+			else if (!strcmp(ptr->tag, "x_origin")) xorig_str = ptr->parm;
+			else if (!strcmp(ptr->tag, "y_origin")) yorig_str = ptr->parm;
+			else if (!strcmp(ptr->tag, "width")) width_str = ptr->parm;
+			else if (!strcmp(ptr->tag, "height")) height_str = ptr->parm;
+			else if (!strcmp(ptr->tag, "affected_hue")) 	affected_hue = atoi(ptr->parm);
+			else if (!strcmp(ptr->tag, "affected_radius")) 	affected_radius = atoi(ptr->parm);
+			else if (!strcmp(ptr->tag, "hue_offset")) 		hue_offset = atoi(ptr->parm);
+			else if (!strcmp(ptr->tag, "saturation_offset"))saturation_offset = atoi(ptr->parm);
+			else if (!strcmp(ptr->tag, "value_offset")) 	value_offset = atoi(ptr->parm);
+		}
+		for (ptr = doc->child ; ptr && !imtmp ; ptr = ptr->next) {
+			imtmp = build_image_from_xml(ptr, NULL);
+		}
+		if (imtmp) {
+			width = imtmp->width;
+			height = imtmp->height;
+			if (refid) {
+				ASImage* refimg = NULL;
+				get_hash_item(image_hash, (ASHashableValue)(char*)refid, (void**)&refimg);
+				if (refimg) {
+					width = refimg->width;
+					height = refimg->height;
+				}
+			}
+			if (width_str) width = parse_math(width_str, NULL, width);
+			if (height_str) height = parse_math(height_str, NULL, height);
+			if (xorig_str) xorig = parse_math(xorig_str, NULL, width);
+			if (yorig_str) yorig = parse_math(yorig_str, NULL, height);
+			if (width > 0 && height > 0) {
+				result = adjust_asimage_hsv(asv, imtmp, xorig, yorig, width, height,  
+				                            affected_hue, affected_radius,
+											hue_offset, saturation_offset, value_offset, 
+				                            ASA_ASImage, 100, ASIMAGE_QUALITY_TOP);
+				my_destroy_asimage(imtmp);
+			}
+			show_progress("adjusting HSV of the image by [%d,%d,%d].", hue_offset, saturation_offset, value_offset);
 		}
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}

@@ -1957,6 +1957,93 @@ static void calc_gauss(double radius, double* gauss) {
 	for (i = 0 ; i < radius ; i++) gauss[i] /= sum;
 }
 
+/***********************************************************************
+ * Hue,saturation and lightness adjustments.
+ **********************************************************************/
+ASImage* 
+adjust_asimage_hsv( ASVisual *asv, ASImage *src,
+				    int offset_x, int offset_y,
+	  			    unsigned int to_width, unsigned int to_height,
+					int affected_hue, int affected_radius,
+					int hue_offset, int saturation_offset, int value_offset,
+					ASAltImFormats out_format, 
+					unsigned int compression_out, int quality )
+{
+	ASImage *dst = NULL ;
+	ASImageDecoder *imdec ;
+	ASImageOutput  *imout ;
+	START_TIME(started);
+
+LOCAL_DEBUG_CALLER_OUT( "offset_x = %d, offset_y = %d, to_width = %d, to_height = %d, hue = %lu", offset_x, offset_y, to_width, to_height, tint );
+	if( src && (imdec = start_image_decoding(asv, src, SCL_DO_ALL, offset_x, offset_y, to_width, 0, NULL)) == NULL )
+		return NULL;
+
+	dst = create_asimage (to_width, to_height, compression_out);
+	dst->back_color = src->back_color ;
+#ifdef HAVE_MMX
+	mmx_init();
+#endif
+	set_decoder_shift(imdec,8);
+	if((imout = start_image_output( asv, dst, out_format, 8, quality)) == NULL )
+	{
+		asimage_init(dst, True);
+		free( dst );
+		dst = NULL ;
+	}else
+	{
+	    CARD32 from_hue = MAX(0,affected_hue-affected_radius)*255 ;
+	    CARD32 to_hue = MAX(0,affected_hue+affected_radius)*255 ;		
+		int y, max_y = to_height;
+		hue_offset *= 255 ;
+		saturation_offset *= 255 ;
+		value_offset *= 255 ;
+LOCAL_DEBUG_OUT("adjusting actually...%s", "");
+		if( to_height > src->height )
+		{
+			imout->tiling_step = src->height ;
+			max_y = src->height ;
+		}
+		for( y = 0 ; y < max_y ; y++  )
+		{
+			register int x = imdec->buffer.width;
+			CARD32 *r = imdec->buffer.red;
+			CARD32 *g = imdec->buffer.green;
+			CARD32 *b = imdec->buffer.blue ;  
+			CARD32 h, s, v ;
+			imdec->decode_image_scanline( imdec );
+			while( --x >= 0 ) 
+			{
+				h = rgb2hue( r[x], g[x], b[x] );
+				fprintf( stderr, "%d: rgb = #%4.4lX%4.4lX%4.4lX hue = %ld range is (%ld,%ld) ", __LINE__, r[x], g[x], b[x], h, from_hue, to_hue );
+				if( h >= from_hue && h <= to_hue ) 
+				{
+					s = rgb2saturation( r[x], g[x], b[x] ) + saturation_offset;
+					v = rgb2value( r[x], g[x], b[x] )+value_offset;
+					h += hue_offset ;
+/*					if( h > HUE16_RANGE ) 
+						h = HUE16_RANGE ;
+*/						
+					hsv2rgb ( h, s, v, &r[x], &g[x], &b[x]);
+					fprintf( stderr, "%d: argb = #%4.4lX%4.4lX%4.4lX hue = %ld sat = %ld val = %ld ", __LINE__, r[x], g[x], b[x], h, s, v );
+				}
+				fprintf( stderr, "\n");
+			}
+			imdec->buffer.flags = 0xFFFFFFFF ;
+			imout->output_image_scanline( imout, &(imdec->buffer), 1);
+		}
+		stop_image_output( &imout );
+	}
+#ifdef HAVE_MMX
+	mmx_off();
+#endif
+	stop_image_decoding( &imdec );
+
+	SHOW_TIME("", started);
+	return dst;
+}
+
+
+
 /* ********************************************************************************/
 /* The end !!!! 																 */
 /* ********************************************************************************/

@@ -51,8 +51,50 @@ rgb2saturation( CARD32 red, CARD32 green, CARD32 blue )
 		max_val = MAX(green, blue) ;
 		min_val = MIN(red,blue) ;
 	}
-	return max_val > 0 ? ((max_val - min_val)<<15)/(max_val>>1) : 0;
+	return max_val > 1 ? ((max_val - min_val)<<15)/(max_val>>1) : 0;
 }
+
+
+/* Traditionally Hue is represented by 360 degree circle. 
+  For our needs we use 255 degree circle instead.
+   
+  Now the circle is separated into 6 segments : 
+  Trad:		Us:				Color range:    Red:	Green:	Blue:
+  0-60		0    -42.5 		red-yellow      FF-7F   0 -7F   0 -0 
+  60-120    42.5 -85 		yellow-green    7F-0    7F-FF   0 -0
+  120-180   85   -127.5 	green-cyan      0 -0    FF-7F   0 -7F 
+  180-240   127.5-170   	cyan-blue       0 -0    7F-0    7F-FF
+  240-300   170  -212.5     blue-magenta    0-7F    0 -0	FF-7F
+  300-360   212.5-255       magenta-red     7F-FF   0 -0    7F-0
+  
+  As seen from above in each segment at least one of the RGB values is 0.
+  To achieve that we find minimum of R, G and b and substract it from all, 
+  and then multiply values by ratio to bring it into range : 
+  
+  new_val = ((val - min_val)*0xFFFF)/(max_val-min_val)
+  (note that we use 16bit values, instead of 8 bit as above)
+  
+  WE store hue in 16 bits, so instead of above value of 42.5 per segment 
+  we should use 85<<7 == 0x00002A80 per segment.
+  
+  When all the RGB values are the same - then hue is invalid and  = 0;
+  To distinguish between hue == 0 when color is Red and invalid hue, we 
+  make all valid hues to fit in range 0x0001-0xFFFF, with 0x0001 being RED.
+*/  
+
+#define HUE_RED_TO_YELLOW		0
+#define HUE_YELLOW_TO_GREEN		1
+#define HUE_GREEN_TO_CYAN   	2
+#define HUE_CYAN_TO_BLUE    	3
+#define HUE_BLUE_TO_MAGENTA   	4
+#define HUE_MAGENTA_TO_RED   	5
+
+#define HUE16_RED				(HUE16_RANGE*HUE_RED_TO_YELLOW)
+#define HUE16_YELLOW			(HUE16_RANGE*HUE_YELLOW_TO_GREEN)
+#define HUE16_GREEN			   	(HUE16_RANGE*HUE_GREEN_TO_CYAN)
+#define HUE16_CYAN		    	(HUE16_RANGE*HUE_CYAN_TO_BLUE)
+#define HUE16_BLUE			   	(HUE16_RANGE*HUE_BLUE_TO_MAGENTA)
+#define HUE16_MAGENTA		 	(HUE16_RANGE*HUE_MAGENTA_TO_RED)
 
 inline CARD32
 rgb2hue( CARD32 red, CARD32 green, CARD32 blue )
@@ -70,23 +112,27 @@ rgb2hue( CARD32 red, CARD32 green, CARD32 blue )
 	if( max_val != min_val)
 	{
 		int delta = max_val-min_val ;
-#define HUE16_RANGE 		(85<<7)
-		if( red == max_val )
+		if( red == max_val ) /* 300 to 60 degrees segment */
 		{
-			if( green > blue )
-				hue =              ((green - blue) * (HUE16_RANGE-1)) / delta ;
-			else
-				hue = HUE16_RANGE+ ((blue - green) * (HUE16_RANGE-1)) / delta ;
-		}else if( green == max_val )
+			if( blue < green )  /* 0-60 degrees segment*/
+			{
+				hue = HUE16_RED    + ((green - blue) * (HUE16_RANGE)) / delta ;
+				if( hue == 0 ) hue = 0x000001 ;
+			}else                /* 300-0 degrees segment*/
+			{
+				hue = HUE16_MAGENTA+ ((blue - green) * (HUE16_RANGE)) / delta ;
+				if( hue == 0 ) hue = 0x00FFFF ;
+			}
+		}else if( green == max_val ) /* 60 to 180 degrees segment */
 		{
-			if( blue > red )
-				hue = HUE16_RANGE*2 + ((blue-red ) * (HUE16_RANGE-1)) / delta ;
-			else
-				hue = HUE16_RANGE*3 + ((red -blue) * (HUE16_RANGE-1)) / delta ;
-		}else if( red > green )
-			hue     = HUE16_RANGE*4 + ((red -green)* (HUE16_RANGE-1)) / delta ;
-		else
-			hue     = HUE16_RANGE*5 + ((green- red)* (HUE16_RANGE-1)) / delta ;
+			if( blue > red )    /* 120-180 degrees segment*/
+				hue = HUE16_GREEN  + ((blue-red ) * (HUE16_RANGE)) / delta ;
+			else                /* 60-120 degrees segment */
+				hue = HUE16_YELLOW + ((red -blue) * (HUE16_RANGE)) / delta ;
+		}else if( red > green )     /* 240 to 300 degrees segment */
+			hue     = HUE16_BLUE   + ((red -green)* (HUE16_RANGE)) / delta ;
+		else                        /* 180 to 240 degrees segment */
+			hue     = HUE16_CYAN   + ((green- red)* (HUE16_RANGE)) / delta ;
 	}
 	return hue;
 }
@@ -108,7 +154,7 @@ rgb2hsv( CARD32 red, CARD32 green, CARD32 blue, CARD32 *saturation, CARD32 *valu
 	if( max_val != min_val)
 	{
 		int delta = max_val-min_val ;
-		*saturation = (delta<<15)/(max_val>>1);
+		*saturation = (max_val>1)?(delta<<15)/(max_val>>1): 0;
 		if( red == max_val )
 		{
 			if( green > blue )

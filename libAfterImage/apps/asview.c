@@ -33,6 +33,19 @@ int main(int argc, char* argv[])
 	set_output_threshold(OUTPUT_LEVEL_DEBUG);
 #endif
 
+	fprintf( stderr, "%d:rgb = #%2.2X%2.2X%2.2X, hue16 = %ld\n", __LINE__, 0xFF, 0,    0,    rgb2hue( 0xFFFF, 0,      0 ));
+	fprintf( stderr, "%d:rgb = #%2.2X%2.2X%2.2X, hue16 = %ld\n", __LINE__, 0xFF, 0x01, 0,    rgb2hue( 0xFFFF, 0x01FF, 0 ));
+	fprintf( stderr, "%d:rgb = #%2.2X%2.2X%2.2X, hue16 = %ld\n", __LINE__, 0xFF, 0xFF, 0,    rgb2hue( 0xFFFF, 0xFFFF, 0 ));
+	fprintf( stderr, "%d:rgb = #%2.2X%2.2X%2.2X, hue16 = %ld\n", __LINE__, 0x01, 0xFF, 0,    rgb2hue( 0x01FF, 0xFFFF, 0 ));
+	fprintf( stderr, "%d:rgb = #%2.2X%2.2X%2.2X, hue16 = %ld\n", __LINE__, 0,    0xFF, 0,    rgb2hue( 0,      0xFFFF, 0 ));
+	fprintf( stderr, "%d:rgb = #%2.2X%2.2X%2.2X, hue16 = %ld\n", __LINE__, 0,    0xFF, 0x01, rgb2hue( 0,      0xFFFF, 0x01FF ));
+	fprintf( stderr, "%d:rgb = #%2.2X%2.2X%2.2X, hue16 = %ld\n", __LINE__, 0,    0xFF, 0xFF, rgb2hue( 0,      0xFFFF, 0xFFFF ));
+	fprintf( stderr, "%d:rgb = #%2.2X%2.2X%2.2X, hue16 = %ld\n", __LINE__, 0,    0x01, 0xFF, rgb2hue( 0,      0x01FF, 0xFFFF ));
+	fprintf( stderr, "%d:rgb = #%2.2X%2.2X%2.2X, hue16 = %ld\n", __LINE__, 0,    0,    0xFF, rgb2hue( 0,      0,      0xFFFF ));
+	fprintf( stderr, "%d:rgb = #%2.2X%2.2X%2.2X, hue16 = %ld\n", __LINE__, 0x01, 0,    0xFF, rgb2hue( 0x01FF, 0,      0xFFFF ));
+	fprintf( stderr, "%d:rgb = #%2.2X%2.2X%2.2X, hue16 = %ld\n", __LINE__, 0xFF, 0,    0xFF, rgb2hue( 0xFFFF, 0,      0xFFFF ));
+	fprintf( stderr, "%d:rgb = #%2.2X%2.2X%2.2X, hue16 = %ld\n", __LINE__, 0xFF, 0,    0xFF, rgb2hue( 0xFFFF, 0,      0x01FF ));
+
 	if( argc > 1 )
 	{
 		if( strcmp( argv[1], "-h" ) == 0 )
