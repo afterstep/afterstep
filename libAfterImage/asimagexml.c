@@ -2162,6 +2162,7 @@ int xml_parse(const char* str, xml_elem_t* current) {
 			/* Find the end of the tag. */
 			for (etag = oab + 2 ; xml_tagchar((int)*etag) ; etag++);
 
+			while (isspace((int)*etag)) ++etag;
 			/* If this is an end tag, and the tag matches the tag we're parsing, */
 			/* we're done.  If not, continue on blindly. */
 			if (*etag == '>') {
@@ -2235,9 +2236,12 @@ int xml_parse(const char* str, xml_elem_t* current) {
 				if (!*tmp) { eparm = NULL; break; }
 
 				/* End of the parm.  */
-				if (!isspace((int)*tmp)) { eparm = tmp; break; }
-
 				eparm = tmp;
+				
+				if (!isspace((int)*tmp)) break; 
+				for ( ; isspace((int)*tmp) ; tmp++);
+				if( *tmp == '>' || (*tmp == '/' && tmp[1] == '>') )
+					break;
 			}
 
 			/* If eparm is NULL, the parm string is invalid, and we should
