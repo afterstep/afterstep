@@ -156,6 +156,7 @@ typedef struct ASImageLayer
 	ARGB32 tint ;                              /* if 0 - no tint */
 	int merge_mode ;
 	merge_scanlines_func merge_scanlines ;
+	void *data;                                /* hook to hung data on */
 }ASImageLayer;
 
 typedef struct ASGradient
