@@ -526,6 +526,8 @@ LOCAL_DEBUG_OUT( "++CREAT tbar(%p)->context(%s)", *tbar, context2text(context) )
         }else
             delete_astbar_tile( *tbar, -1 );
 
+		set_astbar_flip( *tbar, flip );   
+
         set_astbar_style( *tbar, BAR_STATE_FOCUSED, mystyle_name );
         set_astbar_style( *tbar, BAR_STATE_UNFOCUSED, "default" );
         delete_astbar_tile( *tbar, -1 );
@@ -1093,10 +1095,7 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
 		if( old_hints == NULL ||
  		    get_flags(old_hints->flags, AS_VerticalTitle) != ASWIN_HFLAGS(asw, AS_VerticalTitle) )
 		{
-			if( ASWIN_HFLAGS( asw, AS_VerticalTitle ) )
-				set_flags( asw->tbar->state, BAR_FLAGS_VERTICAL );
-			else
-				clear_flags( asw->tbar->state, BAR_FLAGS_VERTICAL );
+			set_astbar_flip( asw->tbar, ASWIN_HFLAGS( asw, AS_VerticalTitle )?FLIP_VERTICAL:0 );   
 			if( !tbar_created )
 			{
 				tbar_created = True ;

@@ -813,6 +813,31 @@ LOCAL_DEBUG_OUT( "bar(%p)->state(%d)->style_name(\"%s\")", tbar, state, style?st
 	return changed;
 }
 
+
+Bool 
+set_astbar_flip( ASTBarData * tbar, int flip )
+{
+	Bool changed = get_flags( flip, FLIP_VERTICAL);
+
+    if ( tbar )
+	{
+		ASFlagType vert_flag = changed?BAR_FLAGS_VERTICAL:0 ;
+		if( get_flags(tbar->state, BAR_FLAGS_VERTICAL) == vert_flag ) 
+			changed = False ;
+/*LOCAL_DEBUG_OUT( "style(%p)->changed(%d)->tiles_num(%d)", style, changed, tbar->tiles_num );*/
+        if (changed )
+		{
+			int i ;
+			set_flags(tbar->state, vert_flag);
+			for (i = 0; i < BAR_STATE_NUM; ++i)
+	            if( tbar->back[i] )
+                	destroy_asimage (&(tbar->back[i]));
+            set_flags( tbar->state, BAR_FLAGS_REND_PENDING );
+        }
+    }
+	return changed;
+}
+
 Bool
 set_astbar_style (ASTBarData * tbar, unsigned int state, const char *style_name)
 {

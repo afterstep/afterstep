@@ -981,16 +981,18 @@ LOCAL_DEBUG_OUT( "status geometry = %dx%d%+d%+d", asw->status->width, asw->statu
                                         unfocus_mystyle : asw->frame_data->frame_style_names[back_type];
 
         for( i = 0 ; i < FRAME_PARTS ; ++i )
-            if( asw->frame_bars[i] )
+		{
+			unsigned int real_part = od->frame_rotation[i];
+	        if( asw->frame_bars[real_part] )
             {
-                if( set_astbar_style( asw->frame_bars[i], BAR_STATE_UNFOCUSED, frame_unfocus_mystyle ) )
+                if( set_astbar_style( asw->frame_bars[real_part], BAR_STATE_UNFOCUSED, frame_unfocus_mystyle ) )
                     changed = True ;
-                if( set_astbar_hilite( asw->frame_bars[i], BAR_STATE_UNFOCUSED, frame_bevel[i] ) )
+                if( set_astbar_hilite( asw->frame_bars[real_part], BAR_STATE_UNFOCUSED, frame_bevel[i] ) )
                     changed = True ;
-                if( is_astbar_shaped( asw->frame_bars[i], -1 ) )
+                if( is_astbar_shaped( asw->frame_bars[real_part], -1 ) )
                     decor_shaped = True;
             }
-
+		}
         if( asw->tbar )
         {
             if( set_astbar_style( asw->tbar, BAR_STATE_UNFOCUSED, unfocus_mystyle ) )
