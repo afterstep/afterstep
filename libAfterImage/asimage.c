@@ -203,6 +203,8 @@ destroy_asimage( ASImage **im )
 		if( *im && (*im)->imageman == NULL)
 		{
 			asimage_init( *im, True );
+fprintf( stderr, "destroying image : %p\n", *im );
+			(*im)->magic = 0;
 			free( *im );
 			*im = NULL ;
 		}
@@ -365,6 +367,18 @@ release_asimage( ASImage *im )
 				res = im->ref_count ;
 		}
 	}
+	return res ;
+}
+
+int
+release_asimage_by_name( ASImageManager *imageman, char *name )
+{
+	int res = -1 ;
+	ASImage *im = NULL ;
+	if( imageman && name )
+		if( get_hash_item( imageman->image_hash, (ASHashableValue)((char*)name), (void**)&im) == ASH_Success )
+			if( im->magic == MAGIC_ASIMAGE )
+				res = release_asimage( im );
 	return res ;
 }
 

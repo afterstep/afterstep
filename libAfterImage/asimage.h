@@ -661,6 +661,8 @@ Bool     store_asimage( ASImageManager* imageman, ASImage *im, const char *name 
 ASImage *fetch_asimage( ASImageManager* imageman, const char *name );
 ASImage *dup_asimage  ( ASImage* im );         /* increment ref countif applicable */
 int      release_asimage( ASImage *im );
+int		 release_asimage_by_name( ASImageManager *imman, char *name );
+
 
 /****f* libAfterImage/asimage/init_image_layers()
  * SYNOPSIS
