@@ -308,7 +308,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS CC GCC INSTALL INSTALL_PROGRAM INSTALL_DATA INSTALL_LIB RANLIB RM MV CP MKDIR PERL FIND XARGS LDCONFIG LEX LEXLIB YACC sgmltools CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT build build_cpu build_vendor build_os host host_cpu host_vendor host_os INSTALL_SCRIPT ac_ct_RANLIB CPP X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS EGREP XPM_CFLAGS JPEG_CFLAGS PNG_CFLAGS GIF_CFLAGS TIFF_CFLAGS TTF_INCLUDES AFTERIMAGE_LIBS_EXTERNAL HAVE_AFTERBASE_FLAG AFTERBASE_CFLAGS APPS_AFTERBASE_CFLAGS AFTERBASE_C have_afterbase AFTERIMAGE_APPS_LIBS AFTERIMAGE_LIBS image_format version version_major lib_name lib_file_name with_locale x_libs LIBPROG LIBINSTALL DEFINE_XLOCALE LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT build build_cpu build_vendor build_os host host_cpu host_vendor host_os INSTALL INSTALL_PROGRAM INSTALL_DATA INSTALL_LIB RANLIB RM MV CP MKDIR PERL FIND XARGS LDCONFIG LEX LEXLIB YACC sgmltools INSTALL_SCRIPT ac_ct_RANLIB CPP X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS EGREP XPM_CFLAGS JPEG_CFLAGS PNG_CFLAGS GIF_CFLAGS TIFF_CFLAGS TTF_INCLUDES AFTERIMAGE_LIBS_EXTERNAL HAVE_AFTERBASE_FLAG AFTERBASE_CFLAGS APPS_AFTERBASE_CFLAGS AFTERBASE_C have_afterbase AFTERIMAGE_APPS_LIBS AFTERIMAGE_LIBS image_format version version_major lib_name lib_file_name with_locale x_libs LIBPROG LIBINSTALL DEFINE_XLOCALE LIBOBJS LTLIBOBJS'
 ac_subst_files='LIBAFTERIMAGEFILES'
 
 # Initialize some variables set by options.
@@ -1511,35 +1511,8 @@ fi;
 
 
 if test "x$FROM_AFTERSTEP_CONFIGURE" = "xyes"; then
-	aaa=bbb
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-	if test "x$have_shmimage" = "xyes"; then
-		cat >>confdefs.h <<\_ACEOF
-#define XSHMIMAGE 1
-_ACEOF
-
-    fi
-else
-
-	ac_ext=c
+ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
@@ -2407,17 +2380,8 @@ ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
-		if test -n "`echo $CFLAGS' ' | grep '\-g ' 2> /dev/null`" ; then
-	  CFLAGS=`echo "$CFLAGS " | sed "s/-g / /"`
-	fi
-		if test "x$GCC" = "xyes"; then
-	  if test -z "`echo $CFLAGS | grep '\-Wall' 2> /dev/null`" ; then
-  		CFLAGS="$CFLAGS -Wall"
-	  fi
-	fi
 
-
-	ac_aux_dir=
+ac_aux_dir=
 for ac_dir in $srcdir $srcdir/.. $srcdir/../..; do
   if test -f $ac_dir/install-sh; then
     ac_aux_dir=$ac_dir
@@ -2501,11 +2465,49 @@ case $host_os in
          * ) CYGWIN=no;;
 esac
 
-	if test "x$CYGWIN" = "x" -a "x$GCC" = "xyes" ; then
-	  if test -z "`echo $CFLAGS | grep '\-fPIC' 2> /dev/null`" ; then
-  		CFLAGS="$CFLAGS -fPIC"
+if test "x$CYGWIN" = "x" -a "x$GCC" = "xyes" ; then
+  if test -z "`echo $CFLAGS | grep '\-fPIC' 2> /dev/null`" ; then
+  	CFLAGS="$CFLAGS -fPIC"
+  fi
+  LDFLAGS="$LDFLAGS -rdynamic"
+fi
+
+	aaa=bbb
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	if test "x$have_shmimage" = "xyes"; then
+		cat >>confdefs.h <<\_ACEOF
+#define XSHMIMAGE 1
+_ACEOF
+
+    fi
+else
+
+		if test -n "`echo $CFLAGS' ' | grep '\-g ' 2> /dev/null`" ; then
+	  CFLAGS=`echo "$CFLAGS " | sed "s/-g / /"`
+	fi
+		if test "x$GCC" = "xyes"; then
+	  if test -z "`echo $CFLAGS | grep '\-Wall' 2> /dev/null`" ; then
+  		CFLAGS="$CFLAGS -Wall"
 	  fi
 	fi
+
+
 		if test "x$enable_gdb" = "xyes"; then
 	  CFLAGS="$CFLAGS -g"
 	  LDFLAGS="$LDFLAGS -g"
@@ -2517,10 +2519,6 @@ esac
 		if test "x$enable_warn" = "xyes"; then
 	  CFLAGS="$CFLAGS -Wuninitialized -Wwrite-strings -Wcast-qual -Wbad-function-cast -Wpointer-arith -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wnested-externs -Wconversion -Wcomment -Wcast-align -Winline -Wshadow -Wredundant-decls -Wid-clash-31"
 	fi
-	if test "x$GCC" = "xyes"; then
-	   LDFLAGS="$LDFLAGS -rdynamic"
-	fi
-
 	# Find a good install program.  We prefer a C program (faster),
 # so one script is as good as another.  But avoid the broken or
 # incompatible versions:
@@ -8248,7 +8246,20 @@ s,@ECHO_N@,$ECHO_N,;t t
 s,@ECHO_T@,$ECHO_T,;t t
 s,@LIBS@,$LIBS,;t t
 s,@CC@,$CC,;t t
-s,@GCC@,$GCC,;t t
+s,@CFLAGS@,$CFLAGS,;t t
+s,@LDFLAGS@,$LDFLAGS,;t t
+s,@CPPFLAGS@,$CPPFLAGS,;t t
+s,@ac_ct_CC@,$ac_ct_CC,;t t
+s,@EXEEXT@,$EXEEXT,;t t
+s,@OBJEXT@,$OBJEXT,;t t
+s,@build@,$build,;t t
+s,@build_cpu@,$build_cpu,;t t
+s,@build_vendor@,$build_vendor,;t t
+s,@build_os@,$build_os,;t t
+s,@host@,$host,;t t
+s,@host_cpu@,$host_cpu,;t t
+s,@host_vendor@,$host_vendor,;t t
+s,@host_os@,$host_os,;t t
 s,@INSTALL@,$INSTALL,;t t
 s,@INSTALL_PROGRAM@,$INSTALL_PROGRAM,;t t
 s,@INSTALL_DATA@,$INSTALL_DATA,;t t
@@ -8266,20 +8277,6 @@ s,@LEX@,$LEX,;t t
 s,@LEXLIB@,$LEXLIB,;t t
 s,@YACC@,$YACC,;t t
 s,@sgmltools@,$sgmltools,;t t
-s,@CFLAGS@,$CFLAGS,;t t
-s,@LDFLAGS@,$LDFLAGS,;t t
-s,@CPPFLAGS@,$CPPFLAGS,;t t
-s,@ac_ct_CC@,$ac_ct_CC,;t t
-s,@EXEEXT@,$EXEEXT,;t t
-s,@OBJEXT@,$OBJEXT,;t t
-s,@build@,$build,;t t
-s,@build_cpu@,$build_cpu,;t t
-s,@build_vendor@,$build_vendor,;t t
-s,@build_os@,$build_os,;t t
-s,@host@,$host,;t t
-s,@host_cpu@,$host_cpu,;t t
-s,@host_vendor@,$host_vendor,;t t
-s,@host_os@,$host_os,;t t
 s,@INSTALL_SCRIPT@,$INSTALL_SCRIPT,;t t
 s,@ac_ct_RANLIB@,$ac_ct_RANLIB,;t t
 s,@CPP@,$CPP,;t t

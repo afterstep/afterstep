@@ -133,12 +133,12 @@ void event_setup( Bool local )
 		if (i >= KeyPress && i <= LeaveNotify)
 		{
 			_as_event_types[i].time_offset =
-		         (void*)&(event.xkey.time) - (void*)&(event);
+		         (char*)&(event.xkey.time) - (char*)&(event);
 /*			WE want the actuall window we selected mask on here,
             not some lame subwindow !
 
 			_as_event_types[i].window_offset =
-		         (void*)&(event.xkey.subwindow) - (void*)&(event); */
+		         (char*)&(event.xkey.subwindow) - (char*)&(event); */
 
     	}else if ( (i >= CreateNotify && i <= GravityNotify) ||
 			       (i >= CirculateNotify && i <= CirculateRequest) )
@@ -146,17 +146,17 @@ void event_setup( Bool local )
  				  *ReparentNotify, ConfigureNotify, ConfigureRequest, GravityNotify */
 		{
 			_as_event_types[i].window_offset =
-		         (void*)&(event.xcreatewindow.window) - (void*)&(event);
+		         (char*)&(event.xcreatewindow.window) - (char*)&(event);
 		}
 	}
 	_as_event_types[PropertyNotify].time_offset =
-			 (void*)&(event.xproperty.time) - (void*)&(event);
+			 (char*)&(event.xproperty.time) - (char*)&(event);
 	_as_event_types[SelectionClear].time_offset =
-			 (void*)&(event.xselectionclear.time) - (void*)&(event);
+			 (char*)&(event.xselectionclear.time) - (char*)&(event);
 	_as_event_types[SelectionRequest].time_offset =
-			 (void*)&(event.xselectionrequest.time) - (void*)&(event);
+			 (char*)&(event.xselectionrequest.time) - (char*)&(event);
 	_as_event_types[SelectionNotify].time_offset =
-	         (void*)&(event.xselection.time) - (void*)&(event);
+	         (char*)&(event.xselection.time) - (char*)&(event);
 }
 
 const char *event_type2name( int type )
@@ -199,7 +199,7 @@ inline Time stash_event_time (XEvent * xevent)
 {
 	if( xevent->type < LASTEvent )
 	{
-		register Time *ptime = (Time*)((void*)xevent + _as_event_types[xevent->type].time_offset);
+		register Time *ptime = (Time*)((char*)xevent + _as_event_types[xevent->type].time_offset);
     	last_event_type   = xevent->type;
     	last_event_window = xevent->xany.window;
 
@@ -247,7 +247,7 @@ get_xevent_window( XEvent *xevt )
 	int type = xevt->type;
 	if( type < LASTEvent )
 	{
-		register Window *pwin = (Window*)((void*)xevt + _as_event_types[type].window_offset);
+		register Window *pwin = (Window*)((char*)xevt + _as_event_types[type].window_offset);
     	return (pwin==(Window*)xevt || *pwin == None )?xevt->xany.window:*pwin;
 	}else
 		return xevt->xany.window ;
@@ -259,8 +259,8 @@ void setup_asevent_from_xevent( ASEvent *event )
 	int type = xevt->type;
 	if( type < LASTEvent )
 	{
-		register Time *ptime = (Time*)((void*)xevt + _as_event_types[type].time_offset);
-		register Window *pwin = (Window*)((void*)xevt + _as_event_types[type].window_offset);
+		register Time *ptime = (Time*)((char*)xevt + _as_event_types[type].time_offset);
+		register Window *pwin = (Window*)((char*)xevt + _as_event_types[type].window_offset);
 
 		event->w = (pwin==(Window*)xevt || *pwin == None )?xevt->xany.window:*pwin;
 		event->event_time = (ptime==(Time*)xevt)?0:*ptime;

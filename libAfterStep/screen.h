@@ -111,12 +111,6 @@ typedef struct ScreenInfo
 	struct ASHashTable *icon_boxes ; /* hashed by desk no - one icon box per desktop ! */
 
 #define PAN_FRAME_SIDES 4
-#define PAN_FRAME_PLACEMENT                                                        \
-    {{ 0, 0, Scr.MyDisplayWidth, SCROLL_REGION},                                   \
-     { Scr.MyDisplayWidth - SCROLL_REGION, SCROLL_REGION,                          \
-       SCROLL_REGION, Scr.MyDisplayHeight - 2 * SCROLL_REGION},                    \
-     { 0, Scr.MyDisplayHeight - SCROLL_REGION, Scr.MyDisplayWidth, SCROLL_REGION}, \
-     { 0, SCROLL_REGION, SCROLL_REGION, Scr.MyDisplayHeight - 2 * SCROLL_REGION}}
 
 #define AS_PANFRAME_EVENT_MASK (EnterWindowMask|LeaveWindowMask|VisibilityChangeMask)
 

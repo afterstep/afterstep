@@ -593,7 +593,7 @@ prop_description_struct;
 prop_description_struct WMPropsDescriptions_root[] = {
 	{&_XA_MIT_PRIORITY_COLORS, read_mit_priority_colors, WMC_PreservedColors, 0},
 	{&_XROOTPMAP_ID, read_xrootpmap_id, WMC_RootPixmap, 0},
-#warning TODO:implement GNOME/KDE compatibility properties read/write
+   /* TODO:implement GNOME/KDE compatibility properties read/write */
 	{&_XA_WIN_SUPPORTING_WM_CHECK, NULL, 0, 0},
 	{&_XA_WIN_PROTOCOLS, NULL, 0, 0},
 	{&_XA_WIN_DESKTOP_BUTTON_PROXY, NULL, 0, 0},

@@ -2348,10 +2348,11 @@ case $host_os in
          * ) CYGWIN=no;;
 esac
 
-	if test "x$CYGWIN" = "x" -a "x$GCC" = "xyes" ; then
-		if test -z "`echo $CFLAGS | grep '\-fPIC' 2> /dev/null`" ; then
-  		CFLAGS="$CFLAGS -fPIC"
-		fi
+	if test "x$GCC" = "xyes" -a "x$CYGWIN" = "x" ; then
+      if test -z "`echo $CFLAGS | grep '\-fPIC' 2> /dev/null`" ; then
+		CFLAGS="$CFLAGS -fPIC"
+	  fi
+	  LDFLAGS="$LDFLAGS -rdynamic"
 	fi
 
 else
@@ -3037,11 +3038,13 @@ case $host_os in
          * ) CYGWIN=no;;
 esac
 
-	if test "x$CYGWIN" = "x" -a "x$GCC" = "xyes" ; then
-	  if test -z "`echo $CFLAGS | grep '\-fPIC' 2> /dev/null`" ; then
-  		CFLAGS="$CFLAGS -fPIC"
+	if test "x$GCC" = "xyes" -a "x$CYGWIN" = "x" ; then
+      if test -z "`echo $CFLAGS | grep '\-fPIC' 2> /dev/null`" ; then
+		CFLAGS="$CFLAGS -fPIC"
 	  fi
+	  LDFLAGS="$LDFLAGS -rdynamic"
 	fi
+
 		if test "x$enable_gdb" = "xyes"; then
 	  CFLAGS="$CFLAGS -g"
 	  LDFLAGS="$LDFLAGS -g"
@@ -3052,9 +3055,6 @@ esac
 	fi
 		if test "x$enable_warn" = "xyes"; then
 	  CFLAGS="$CFLAGS -Wuninitialized -Wwrite-strings -Wcast-qual -Wbad-function-cast -Wpointer-arith -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wnested-externs -Wconversion -Wcomment -Wcast-align -Winline -Wshadow -Wredundant-decls -Wid-clash-31"
-	fi
-	if test "x$GCC" = "xyes"; then
-	   LDFLAGS="$LDFLAGS -rdynamic"
 	fi
 
 	# Find a good install program.  We prefer a C program (faster),
@@ -6359,7 +6359,7 @@ cat >>conftest.$ac_ext <<_ACEOF
 #define MIN(x,y) \
   		({ const typeof(x) _x = (x); const typeof(y) _y = (y);  (void) (&_x == &_y); \
      		 _x < _y ? _x : _y; })
-                 int main(){return 0;}
+                 int main(){return MIN(0,1);}
 _ACEOF
 rm -f conftest$ac_exeext
 if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5

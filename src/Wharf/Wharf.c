@@ -27,7 +27,7 @@
  *
  */
 
-#define DO_CLOCKING
+#undef DO_CLOCKING
 #define LOCAL_DEBUG
 #define EVENT_TRACE
 

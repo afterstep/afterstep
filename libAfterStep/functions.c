@@ -409,8 +409,10 @@ void
 decode_func_units (FunctionData * data)
 {
     register int  i;
-    int defaults[MAX_FUNC_ARGS] = { Scr.MyDisplayWidth, Scr.MyDisplayHeight };
+    int defaults[MAX_FUNC_ARGS];
 
+	defaults[0] = Scr.MyDisplayWidth;
+	defaults[1] = Scr.MyDisplayHeight;
 	for (i = 0; i < MAX_FUNC_ARGS; i++)
 		switch (data->unit[i])
 		{

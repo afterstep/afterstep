@@ -1,6 +1,8 @@
 #ifndef EVENT_H_HEADER_INCLUDED
 #define EVENT_H_HEADER_INCLUDED
 
+#include <stddef.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -47,8 +49,8 @@ typedef struct ASEventDescription
 	unsigned long mask;
 	ASEventClass  event_class;
 	/* private fields : */
-	long		  time_offset;
-	long		  window_offset;
+	ptrdiff_t		  time_offset;
+	ptrdiff_t		  window_offset;
 	Time		  last_time;
 }ASEventDescription;
 

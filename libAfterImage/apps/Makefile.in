@@ -29,7 +29,7 @@ INCLUDES	= $(INCS_X) $(INCS_PRIVATE)
 LIBS_X		= @x_libs@
 LIBS_XEXTS	=
 LIBS_AFTERIMAGE = @AFTERIMAGE_APPS_LIBS@
-LIBRARIES	= $(LIBS_AFTERIMAGE) $(LIBS_XEXTS) $(LIBS_X)
+LIBRARIES	= $(LIBS_X) $(LIBS_AFTERIMAGE) $(LIBS_XEXTS)
 
 prefix          = @prefix@
 exec_prefix     = @exec_prefix@

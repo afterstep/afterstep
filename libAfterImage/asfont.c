@@ -396,16 +396,17 @@ asfont_destroy (ASHashableValue value, void *data)
 {
 	if( data )
 	{
+	    char* cval = (char*)value ;
         if( ((ASMagic*)data)->magic == MAGIC_ASFONT )
         {
-            if( (char*)value == ((ASFont*)data)->name )
-                (char*)value = NULL ;          /* name is freed as part of destroy_font */
+            if( cval == ((ASFont*)data)->name )
+                cval = NULL ;          /* name is freed as part of destroy_font */
 /*              fprintf( stderr,"freeing font \"%s\"...", (char*) value ); */
               destroy_font( (ASFont*)data );
 /*              fprintf( stderr,"   done.\n"); */
         }
-        if( value )
-            free( (char*)value );
+        if( cval )
+            free( cval );
     }
 }
 

@@ -364,15 +364,34 @@ void
 init_screen_panframes(ScreenInfo *scr)
 {
 #ifndef NO_VIRTUAL
-    XRectangle  frame_rects[PAN_FRAME_SIDES] = PAN_FRAME_PLACEMENT ;
+    XRectangle  frame_rects[PAN_FRAME_SIDES];
 
     XSetWindowAttributes attributes;           /* attributes for create */
     register int i ;
 
-	frame_rects[2].width = frame_rects[0].width = scr->MyDisplayWidth ;
-    frame_rects[1].x = scr->MyDisplayWidth - SCROLL_REGION ;
-	frame_rects[3].height = frame_rects[1].height = scr->MyDisplayHeight - (SCROLL_REGION*2) ;
+    frame_rects[0].x = frame_rects[0].y = 0;
+    frame_rects[0].width = Scr.MyDisplayWidth;
+    frame_rects[0].height = SCROLL_REGION;
 
+    frame_rects[1].x = Scr.MyDisplayWidth - SCROLL_REGION;
+    frame_rects[1].y = SCROLL_REGION;
+    frame_rects[1].width = SCROLL_REGION;
+    frame_rects[1].height = Scr.MyDisplayHeight - 2 * SCROLL_REGION;
+
+    frame_rects[2].x = 0;
+    frame_rects[2].y = Scr.MyDisplayHeight - SCROLL_REGION;
+    frame_rects[2].width = Scr.MyDisplayWidth;
+    frame_rects[2].height = SCROLL_REGION;
+
+    frame_rects[3].x = 0;
+    frame_rects[3].y = SCROLL_REGION;
+    frame_rects[3].width = SCROLL_REGION;
+    frame_rects[3].height = Scr.MyDisplayHeight - 2 * SCROLL_REGION;
+
+    frame_rects[2].width = frame_rects[0].width = scr->MyDisplayWidth;
+    frame_rects[1].x = scr->MyDisplayWidth - SCROLL_REGION;
+    frame_rects[3].height = frame_rects[1].height = 
+      scr->MyDisplayHeight - (SCROLL_REGION*2) ;
 
     attributes.event_mask = AS_PANFRAME_EVENT_MASK;
     for( i = 0 ; i < PAN_FRAME_SIDES ; i++ )

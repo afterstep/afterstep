@@ -62,11 +62,21 @@ AC_ARG_WITH(afterbase_includes, [  --with-afterbase-includes=DIR  use libAfterBa
 dnl# Check for compiler tools
 
 if test "x$FROM_AFTERSTEP_CONFIGURE" = "xyes"; then
+
+AC_PROG_CC
+dnl# AC_SUBST(CC)
+dnl# AC_SUBST(GCC)
+
+AC_CYGWIN
+if test "x$CYGWIN" = "x" -a "x$GCC" = "xyes" ; then
+  if test -z "`echo $CFLAGS | grep '\-fPIC' 2> /dev/null`" ; then
+  	CFLAGS="$CFLAGS -fPIC"
+  fi
+  LDFLAGS="$LDFLAGS -rdynamic"
+fi
+
 dnl# AfterSTep already checked everything for us
 	aaa=bbb
-	dnl#  AC_PROG_CC
-	AC_SUBST(CC)
-	AC_SUBST(GCC)
 	dnl#  AC_PROG_INSTALL
     AC_SUBST(INSTALL)
     AC_SUBST(INSTALL_PROGRAM)
@@ -91,7 +101,6 @@ dnl# AfterSTep already checked everything for us
 else
 
 dnl# we are alone - have to do all the checks ourselves :
-	AC_PROG_CC
 	dnl# Remove -g
 	if test -n "`echo $CFLAGS' ' | grep '\-g ' 2> /dev/null`" ; then
 	  CFLAGS=`echo "$CFLAGS " | sed "s/-g / /"`
@@ -105,12 +114,6 @@ dnl# we are alone - have to do all the checks ourselves :
 
 	dnl# Add -fPIC for IA64 compilation
 
-	AC_CYGWIN
-	if test "x$CYGWIN" = "x" -a "x$GCC" = "xyes" ; then
-	  if test -z "`echo $CFLAGS | grep '\-fPIC' 2> /dev/null`" ; then
-  		CFLAGS="$CFLAGS -fPIC"
-	  fi
-	fi
 	dnl# Add -g
 	if test "x$enable_gdb" = "xyes"; then
 	  CFLAGS="$CFLAGS -g"
@@ -125,10 +128,6 @@ dnl# we are alone - have to do all the checks ourselves :
 	if test "x$enable_warn" = "xyes"; then
 	  CFLAGS="$CFLAGS -Wuninitialized -Wwrite-strings -Wcast-qual -Wbad-function-cast -Wpointer-arith -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wnested-externs -Wconversion -Wcomment -Wcast-align -Winline -Wshadow -Wredundant-decls -Wid-clash-31"
 	fi
-	if test "x$GCC" = "xyes"; then
-	   LDFLAGS="$LDFLAGS -rdynamic"
-	fi
-
 	AC_PROG_INSTALL
 	dnl# if the path to the install program is relative, make it absolute
 	currdir=`pwd`

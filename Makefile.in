@@ -100,13 +100,13 @@ deps:
 
 config:
 	for I in ${confsdirs}; do \
-	  autoconf --localdir=$$I $$I/configure.in > \
-	  $$I/configure ; chmod 755 $$I/configure ; \
+	  cd $$I ;  autoconf configure.in > configure ; chmod 755 configure ; cd .. ; \
 	done; \
-	autoconf --localdir=autoconf autoconf/configure.libs.in > \
-	autoconf/configure.libs ; chmod 755 autoconf/configure.libs ; \
-	$(MV) autoconf/configure.libs ./ ; \
-	$(MV) autoconf/configure ./
+	cd autoconf ; \
+	autoconf configure.libs.in > configure.libs; chmod 755 configure.libs ; \
+	$(MV) configure.libs ../ ; \
+	$(MV) configure ../ ; \
+	cd ..
 
 configclean:
 	$(RMF) ./config.status ./config.log ./include/config.h ./config.cache ./configure.h ; \
