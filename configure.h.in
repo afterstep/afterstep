@@ -20,6 +20,7 @@
 #define @HAVEJPEG@
 #define @HAVEPNG@
 #define @HAVESHAPE@
+#define @HAVEXINE@
 
 #if @have_xpm_write@ == 1
 #define HAVE_XPM_WRITE

@@ -55,6 +55,9 @@
 #ifdef SHAPE
 #include <X11/extensions/shape.h>
 #endif /* SHAPE */
+#ifdef HAVE_XINERAMA
+#include <X11/extensions/Xinerama.h>
+#endif /* SHAPE */
 
 #ifdef I18N
 #include <X11/Xlocale.h>
@@ -353,9 +356,23 @@ main (int argc, char **argv)
   XShapeQueryExtension (dpy, &ShapeEventBase, &ShapeErrorBase);
 #endif /* SHAPE */
 #ifdef HAVE_XINERAMA
-  if( XPanoramiXQueryExtension(dpy, &XineEventBase, &XineErrorBase))
+  if( XineramaQueryExtension(dpy, &XineEventBase, &XineErrorBase))
   {
-	  Scr.xinerama_screens = XineramaQueryScreens( dpy, &(Scr.xinerama_screens_num) );
+	  register int i ;
+	  XineramaScreenInfo *s ;
+	  if( (s = XineramaQueryScreens( dpy, &(Scr.xinerama_screens_num) )) != NULL ) 
+	  {
+		  Scr.xinerama_screens = safemalloc( sizeof(XRectangle)*Scr.xinerama_screens_num );
+		  for( i = 0 ; i < Scr.xinerama_screens_num ; ++i ) 
+		  {
+			  Scr.xinerama_screens[i].x = s[i].x_org ;
+			  Scr.xinerama_screens[i].y = s[i].y_org ;
+			  Scr.xinerama_screens[i].width = s[i].width ;
+			  Scr.xinerama_screens[i].height = s[i].height ;
+		  }
+		  XFree( s );
+	  }
+	  
   }
 #endif /* XINERAMA */
 
@@ -1044,7 +1061,7 @@ Done (int restart, char *command)
 #ifdef HAVE_XINERAMA
   if( Scr.xinerama_screens )
   {
-	  XFree(Scr.xinerama_screens);
+	  free(Scr.xinerama_screens);
 	  Scr.xinerama_screens_num = 0;
 	  Scr.xinerama_screens = NULL;
   }

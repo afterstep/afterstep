@@ -245,10 +245,8 @@ typedef struct ScreenInfo
     int RaiseButtons;		/* The buttons to do click-to-raise */
     fr_sz fs[8];
 	
-#ifdef HAVE_XINERAMA
 	int xinerama_screens_num ;
-	XineramaScreenInfo *xinerama_screens;
-#endif	
+	XRectangle *xinerama_screens;
   }
 ScreenInfo;
 

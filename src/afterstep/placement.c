@@ -294,6 +294,32 @@ PlaceWindow (ASWindow * tmp_win, unsigned long tflag, int Desk)
 {
   int xl = -1, yt = -1, DragWidth, DragHeight;
   extern Bool PPosOverride;
+  XRectangle srect = { 0, 0, Scr.MyDisplayWidth, Scr.MyDisplayHeight };
+  int x, y ;
+  unsigned int width, height ;
+  y = tmp_win->attr.y ;
+  x = tmp_win->attr.x ;
+  width = tmp_win->frame_width ;
+  height = tmp_win->frame_height ;
+
+#ifdef HAVE_XINERAMA
+  if( Scr.xinerama_screens_num > 1 )
+  {
+	  register int i ;
+	  XRectangle *s = Scr.xinerama_screens ;
+
+	  for( i = 0 ; i < Scr.xinerama_screens_num ; ++ i )
+	  {
+		  if( s[i].x < x + width && s[i].x+s[i].width > x &&
+			  s[i].y < y + height && s[i].y+s[i].height > y )
+		  {
+			  srect = s[i] ;
+			  break ;
+		  }
+	  }		  			  
+  }	  
+#endif /* XINERAMA */
+
 
   tmp_win->Desk = InvestigateWindowDesk (tmp_win);
 
@@ -328,11 +354,11 @@ PlaceWindow (ASWindow * tmp_win, unsigned long tflag, int Desk)
 	  if (!SmartPlacement (tmp_win, &xl, &yt,
 			       tmp_win->frame_width + 2 * tmp_win->bw,
 			       tmp_win->frame_height + 2 * tmp_win->bw,
-			  0, 0, Scr.MyDisplayWidth, Scr.MyDisplayHeight, 0))
+			  srect.x, srect.y, srect.width, srect.height, 0))
 	    SmartPlacement (tmp_win, &xl, &yt,
 			    tmp_win->frame_width + 2 * tmp_win->bw,
 			    tmp_win->frame_height + 2 * tmp_win->bw,
-			  0, 0, Scr.MyDisplayWidth, Scr.MyDisplayHeight, 1);
+			  srect.x, srect.y, srect.width, srect.height, 1);
 	}
       if (Scr.flags & RandomPlacement)
 	{
@@ -349,23 +375,23 @@ PlaceWindow (ASWindow * tmp_win, unsigned long tflag, int Desk)
 		  Scr.randomx += tmp_win->title_height;
 		  Scr.randomy += 2 * tmp_win->title_height;
 		}
-	      if (Scr.randomx > Scr.MyDisplayWidth / 2)
-		Scr.randomx = 0;
-	      if (Scr.randomy > Scr.MyDisplayHeight / 2)
-		Scr.randomy = 0;
+	      if (Scr.randomx > srect.x + (srect.width / 2))
+		Scr.randomx = srect.x;
+	      if (Scr.randomy > srect.y + (srect.height / 2))
+		Scr.randomy = srect.y;
 	      xl = Scr.randomx - tmp_win->old_bw;
 	      yt = Scr.randomy - tmp_win->old_bw;
 	    }
 
-	  if (xl + tmp_win->frame_width + 2 * tmp_win->bw > Scr.MyDisplayWidth)
+	  if (xl + tmp_win->frame_width + 2 * tmp_win->bw > srect.width)
 	    {
-	      xl = Scr.MyDisplayWidth - tmp_win->frame_width - 2 * tmp_win->bw;
-	      Scr.randomx = 0;
+	      xl = srect.width - tmp_win->frame_width - 2 * tmp_win->bw;
+	      Scr.randomx = srect.x;
 	    }
-	  if (yt + tmp_win->frame_height + 2 * tmp_win->bw > Scr.MyDisplayHeight)
+	  if (yt + tmp_win->frame_height + 2 * tmp_win->bw > srect.height)
 	    {
-	      yt = Scr.MyDisplayHeight - tmp_win->frame_height - 2 * tmp_win->bw;
-	      Scr.randomy = 0;
+	      yt = srect.height - tmp_win->frame_height - 2 * tmp_win->bw;
+	      Scr.randomy = srect.y;
 	    }
 	}
       if (xl < 0)
@@ -398,44 +424,25 @@ PlaceWindow (ASWindow * tmp_win, unsigned long tflag, int Desk)
     {
       /* the USPosition was specified, or the window is a transient, 
        * or it starts iconic so let it place itself */
-#ifdef HAVE_XINERAMA
-	  if( Scr.xinerama_screens_num > 1 && !(tmp_win->hints.flags & USPosition))
+	  if( !(tmp_win->hints.flags & USPosition))
 	  {
-		  register int i ;
-		  XineramaScreenInfo *s = Scr.xinerama_screens ;
-		  int x, y ;
-		  unsigned int width, height ;
-		  y = tmp_win->attr.y ;
-	      x = tmp_win->attr.x ;
-		  width = tmp->frame_width ;
-		  height = tmp->frame_height ;
-
-		  for( i = 0 ; i < Scr.xinerama_screens_num ; ++ i )
+	  	  if( width <= srect.width )
 		  {
-			  if( s[i].x_org < x + width && s[i].org_x+s[i].width > x &&
-				  s[i].y_org < y + height && s[i].org_y+s[i].height > y )
-			  {
-				  if( width <= s[i].width )
-				  {
-					  if( x < s[i].x_org ) 
-						  x = s[i].x_org ;
-					  else if( x+width > s[i].org_x+s[i].width )
-						  x = s[i].org_x+s[i].width - width ;
-				  }					  
-				  if( height <= s[i].height )
-				  {
-					  if( y < s[i].y_org ) 
-						  y = s[i].y_org ;
-					  else if( y+height > s[i].org_y+s[i].height )
-						  y = s[i].org_y+s[i].height - height ;
-				  }					  
-				  tmp_win->attr.y = y;
-			      tmp_win->attr.x = x;
-			  }
-		  }
-		  Scr.xinerama_screens = NULL;
+			  if( x < srect.x ) 
+				  x = srect.x ;
+			  else if( x+width > srect.x+srect.width )
+				  x = srect.x+srect.width - width ;
+		  }					  
+		  if( height <= srect.height )
+		  {
+			  if( y < srect.y ) 
+				  y = srect.y ;
+			  else if( y+height > srect.y+srect.height )
+				  y = srect.y+srect.height - height ;
+		  }					  
+		  tmp_win->attr.y = y;
+	      tmp_win->attr.x = x;
 	  }
-#endif /* XINERAMA */
     }
   aswindow_set_desk_property (tmp_win, tmp_win->Desk);
   return True;
