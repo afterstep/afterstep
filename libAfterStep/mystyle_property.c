@@ -37,6 +37,7 @@
 
 #ifdef I18N
 #define MAX_FONTSET_NAME_LENGTH  256
+#undef  MODULE_REUSE_LOADED_FONT
 #endif
 
 void
@@ -63,7 +64,7 @@ mystyle_set_property (Display * dpy, Window w, Atom name, Atom type)
       prop[i++] = style->set_flags;
       prop[i++] = XInternAtom (dpy, style->name, False);
       prop[i++] = style->text_style;
-#ifndef I18N
+#ifdef MODULE_REUSE_LOADED_FONT
       prop[i++] = style->font.font->fid;
 #else
       prop[i++] = XInternAtom (dpy, style->font.name, False);
@@ -78,8 +79,8 @@ mystyle_set_property (Display * dpy, Window w, Atom name, Atom type)
       prop[i++] = style->back_icon.pix;
       prop[i++] = style->back_icon.mask;
       prop[i++] = style->tint;
-      prop[i++] = style->tint;
-      prop[i++] = style->tint;
+      prop[i++] = 0; /* unused/reserved */
+      prop[i++] = 0; /* unused/reserved */
       prop[i++] = style->gradient.npoints;
       {
 	int k;
@@ -152,7 +153,7 @@ mystyle_get_property (Display * dpy, Window w, Atom name, Atom type)
 
       if (style->inherit_flags & F_FONT)
 	{
-#ifndef I18N
+#ifdef MODULE_REUSE_LOADED_FONT 
 	  XFontStruct *font = XQueryFont (dpy, prop[i + 3]);
 	  style->font.name = NULL;
 	  style->font.font = font;
@@ -178,9 +179,10 @@ mystyle_get_property (Display * dpy, Window w, Atom name, Atom type)
       style->back_icon.pix = prop[i + 10];
       style->back_icon.mask = prop[i + 11];
       style->tint = prop[i + 12];
-	  /* for compatibility : */
-      style->tint = prop[i + 13];
+	  /* unused/reserved : */
+/*    style->tint = prop[i + 13];
       style->tint = prop[i + 14];
+ */
       style->gradient.npoints = prop[i + 15];
       if (style->inherit_flags & F_BACKGRADIENT)
 	{

@@ -19,7 +19,7 @@
 #include "config.h"
 
 /*#define LOCAL_DEBUG */
-/* #define DO_CLOCKING */
+/*#define DO_CLOCKING */
 
 #include <malloc.h>
 #ifdef DO_CLOCKING

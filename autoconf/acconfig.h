@@ -17,6 +17,9 @@
 #undef NO_WINDOWLIST
 #undef NO_AVAILABILITYCHECK
 
+/* set this to conserve some memory if you don't need antialiased text : */
+#undef MODULE_REUSE_LOADED_FONT
+
 /* debugging options */
 #undef  DEBUG_ALLOCS
 #undef  DEBUG_TRACE

@@ -538,7 +538,7 @@ mystyle_make_icon (MyStyle * style, int width, int height, Pixmap cache)
 	icon.image = mystyle_make_image( style, 0, 0, width, height );
 	if( icon.image )
 	{
-		icon.pix = asimage2pixmap( Scr.asv, Scr.Root, icon.image, NULL, False );
+		icon.pix = asimage2pixmap( Scr.asv, Scr.Root, icon.image, NULL, True );
 		if( style->texture_type <= TEXTURE_PIXMAP ) 
 			icon.mask = asimage2mask  ( Scr.asv, Scr.Root, icon.image, NULL, False );
         icon.width = icon.image->width;
