@@ -623,8 +623,7 @@ create_xpm_image( ASXpmFile *xpm_file, int compression )
 	ASImage *im = NULL;
 	if( xpm_file != NULL && xpm_file->width > 0 && xpm_file->height > 0 )
 	{
-		im = safecalloc( 1, sizeof( ASImage ) );
-		asimage_start( im, xpm_file->width, xpm_file->height, compression );
+		im = create_asimage( xpm_file->width, xpm_file->height, compression );
 	}
 	return im;
 }

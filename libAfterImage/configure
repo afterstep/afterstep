@@ -4732,8 +4732,8 @@ echo $ECHO_N "checking headers required by TTF support... $ECHO_C" >&6
 echo "${ECHO_T}$TTF_INCLUDES" >&6
 	  saved_CPPFLAGS=$CPPFLAGS
 	  saved_CFLAGS=$CFLAGS
-	  CPPFLAGS="$CPPFLAGS $TTF_INCLUDES"
-	  CFLAGS="$CFLAGS $XPM_CFLAGS $JPEG_CFLAGS $PNG_CFLAGS $GIF_CFLAGS $TIFF_CFLAGS $X_CFLAGS"
+	  CPPFLAGS="$TTF_INCLUDES $CPPFLAGS"
+	  CFLAGS="$CFLAGS $TTF_INCLUDES $XPM_CFLAGS $JPEG_CFLAGS $PNG_CFLAGS $GIF_CFLAGS $TIFF_CFLAGS $X_CFLAGS"
 	  echo "$as_me:4737: checking freetype/freetype.h " >&5
 echo $ECHO_N "checking freetype/freetype.h ... $ECHO_C" >&6
 	  cat >conftest.$ac_ext <<_ACEOF
@@ -4743,7 +4743,7 @@ echo $ECHO_N "checking freetype/freetype.h ... $ECHO_C" >&6
 int
 main ()
 {
-FT_Face aaa;
+FT_Face aaa
   ;
   return 0;
 }

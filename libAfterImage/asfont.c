@@ -1230,8 +1230,7 @@ LOCAL_DEBUG_CALLER_OUT( "text = \"%s\", font = %p, compression = %d", text, font
 	line_height = font->max_height+offset_3d_y ;
 
 LOCAL_DEBUG_OUT( "text size = %dx%d pixels", map.width, map.height );
-	im = safecalloc( 1, sizeof(ASImage));
-	asimage_start( im, map.width, map.height, compression );
+	im = create_asimage( map.width, map.height, compression );
 
 	space_size  = (font->space_size>>1)+1+font->spacing_x;
 	base_line = font->max_ascend;

@@ -57,8 +57,7 @@ ximage2asimage (ASVisual *asv, XImage * xim, unsigned int compression)
 	bpl 	  = xim->bytes_per_line;
 	xim_line = xim->data;
 
-	im = (ASImage *) safecalloc (1, sizeof (ASImage));
-	asimage_start (im, xim->width, xim->height, compression);
+	im = create_asimage( xim->width, xim->height, compression);
 #ifdef LOCAL_DEBUG
 	tmp = safemalloc( xim->width * sizeof(CARD32));
 #endif

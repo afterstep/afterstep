@@ -595,8 +595,7 @@ read_xcf_hierarchy( XcfImage *xcf_im, FILE *fp, CARD8 opacity, ARGB32 colormask 
 				return h;
 			}
 
-			h->image = safecalloc( 1, sizeof(ASImage));
-			asimage_start( h->image, h->width, h->height, 0/* no compression */ );
+			h->image = create_asimage(  h->width, h->height, 0/* no compression */ );
 			while( height_left > 0 && tile )
 			{
 				int width_left = h->width ;

@@ -552,8 +552,7 @@ png2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tabl
 				 */
 				png_read_update_info (png_ptr, info_ptr);
 
-				im = safecalloc( 1, sizeof( ASImage ) );
-				asimage_start( im, width, height, compression );
+				im = create_asimage( width, height, compression );
 				prepare_scanline( im->width, 0, &buf, False );
 				do_alpha = ((color_type & PNG_COLOR_MASK_ALPHA) != 0 );
 				grayscale = (color_type == PNG_COLOR_TYPE_GRAY_ALPHA) ;
@@ -700,8 +699,7 @@ jpeg2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tab
 	(void)jpeg_start_decompress (&cinfo);
 	LOCAL_DEBUG_OUT("stored image size %dx%d", cinfo.output_width,  cinfo.output_height);
 
-	im = safecalloc( 1, sizeof( ASImage ) );
-	asimage_start( im, cinfo.output_width,  cinfo.output_height, compression );
+	im = create_asimage( cinfo.output_width,  cinfo.output_height, compression );
 	prepare_scanline( im->width, 0, &buf, False );
 
 	/* Make a one-row-high sample array that will go away when done with image */
@@ -886,8 +884,7 @@ ppm2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tabl
 		data = safemalloc( row_size );
 
 		LOCAL_DEBUG_OUT("stored image size %dx%d", width,  height);
-		im = safecalloc( 1, sizeof( ASImage ) );
-		asimage_start( im, width,  height, compression );
+		im = create_asimage( width,  height, compression );
 		prepare_scanline( im->width, 0, &buf, False );
 		y = -1 ;
 		/*cinfo.output_scanline*/
@@ -1054,8 +1051,7 @@ read_bmp_image( FILE *infile, size_t data_offset, BITMAPINFOHEADER *bmp_info,
 	row_size *= 4 ;                            /* in bytes  */
 	data = safemalloc( row_size );
 
-	im = safecalloc( 1, sizeof( ASImage ) );
-	asimage_start( im, width,  height, compression );
+	im = create_asimage( width,  height, compression );
 	/* Window BMP files are little endian  - we need to swap Red and Blue */
 	prepare_scanline( im->width, 0, buf, True );
 
@@ -1354,8 +1350,7 @@ tiff2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tab
 	{
 		if ((data = (CARD32*) _TIFFmalloc(width * height * sizeof (CARD32))) != NULL)
 		{
-			im = safecalloc( 1, sizeof( ASImage ) );
-			asimage_start( im, width, height, compression );
+			im = create_asimage( width, height, compression );
 			prepare_scanline( im->width, 0, &buf, False );
 
 			if (TIFFReadRGBAImage(tif, width, height, data, 0))

@@ -148,8 +148,8 @@ asimage_init (ASImage * im, Bool free_resources)
 			if( im->alt.argb32 )
 				free( im->alt.argb32 );
 		}
-		im->magic = MAGIC_ASIMAGE ;
 		memset (im, 0x00, sizeof (ASImage));
+		im->magic = MAGIC_ASIMAGE ;
 		im->back_color = ARGB32_DEFAULT_BACK_COLOR ;
 	}
 }

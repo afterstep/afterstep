@@ -8,6 +8,7 @@
 #include "blender.h"
 #include "asimage.h"
 #include "ascmap.h"
+#undef HAVE_FREETYPE
 #include "asfont.h"
 #include "ximage.h"
 #include "transform.h"
