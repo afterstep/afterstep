@@ -35,5 +35,7 @@ int match_wild_reg_exp (char *string, wild_reg_exp * wrexp);
 int compare_wild_reg_exp (wild_reg_exp * wrexp1, wild_reg_exp * wrexp2);
 
 /************************************************************************/
+/* from wild.c - verry depreciated : */
+int matchWildcards (const char *, const char *);
 
 #endif /* REGEXP_HEADER_FILE_INCLUDED */
