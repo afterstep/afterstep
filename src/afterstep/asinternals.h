@@ -214,7 +214,12 @@ void QuickRestart (char *what);
 /************************* housekeeping.c ********************************/
 Bool GrabEm   ( struct ScreenInfo *scr, Cursor cursor );
 void UngrabEm ();
-Bool StartWarping(struct ScreenInfo *scr, Cursor cursor);
+void CheckGrabbedFocusDestroyed(ASWindow *destroyed);
+
+
+Bool StartWarping(struct ScreenInfo *scr);
+void ChangeWarpingFocus(ASWindow *new_focus);
+void CheckWarpingFocusDestroyed(ASWindow *destroyed);
 void EndWarping();
 
 void PasteSelection (struct ScreenInfo *scr );

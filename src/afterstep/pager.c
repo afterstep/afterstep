@@ -412,7 +412,7 @@ LOCAL_DEBUG_CALLER_OUT( "new_desk(%d)->old_desk(%d)", new_desk, old_desk );
                 if( circ_list[i] != NULL && circ_list[i]->magic == MAGIC_ASWINDOW )
                     if( ASWIN_DESK(circ_list[i]) == new_desk )
                     {
-                        focus_aswindow( circ_list[i], False );
+                        focus_aswindow( circ_list[i] );
                         break;
                     }
         }else

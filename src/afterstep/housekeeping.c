@@ -21,6 +21,8 @@
  * assorted houskeeping code
  ***********************************************************************/
 
+#define LOCAL_DEBUG
+
 #include "../../configure.h"
 
 #include "../../include/asapp.h"
@@ -30,6 +32,7 @@
 
 #include "../../include/afterstep.h"
 #include "../../include/screen.h"
+#include "../../include/decor.h"
 #include "asinternals.h"
 
 /*****************************************************************************
@@ -114,7 +117,7 @@ UngrabEm ()
 
         if (grabbed_screen_focus != NULL)
         {
-            focus_aswindow(grabbed_screen_focus, False);
+            focus_aswindow(grabbed_screen->Windows->active);
             grabbed_screen_focus = NULL ;
         }
         XSync (dpy, 0);
@@ -122,28 +125,85 @@ UngrabEm ()
     }
 }
 
-static ScreenInfo *warping_screen = NULL;
+void
+CheckGrabbedFocusDestroyed(ASWindow *destroyed)
+{
+    if( grabbed_screen_focus == destroyed )
+        grabbed_screen_focus = NULL ;
+}
+
+
+/* when warping starts - we add PointerMotion and KeyPress masks to currently focused window.
+ * when focus changes - we move this mask to new window
+ * when warping stops - we clear this masks.
+ */
+
+static ASWindow *warping_focus = NULL ;
+
+static void
+clear_warping_focus()
+{
+    if( warping_focus && warping_focus->magic == MAGIC_ASWINDOW )
+    {
+        int i ;
+        XSelectInput (dpy, warping_focus->frame, AS_FRAME_EVENT_MASK);
+        XSelectInput (dpy, warping_focus->w, AS_CLIENT_EVENT_MASK);
+        for( i =0 ; i < FRAME_SIDES ; ++i )
+            if( warping_focus->frame_sides[i] )
+                XSelectInput (dpy, warping_focus->frame_sides[i]->w, AS_CANVAS_EVENT_MASK);
+    }
+    warping_focus = NULL ;
+}
+
+static void
+set_warping_focus( ASWindow *focus )
+{
+    if( focus && focus->magic == MAGIC_ASWINDOW )
+    {
+        int i ;
+        XSelectInput (dpy, focus->frame, AS_FRAME_EVENT_MASK|(PointerMotionMask|KeyPressMask));
+        XSelectInput (dpy, focus->w, AS_CLIENT_EVENT_MASK|(PointerMotionMask|KeyPressMask));
+        for( i =0 ; i < FRAME_SIDES ; ++i )
+            if( focus->frame_sides[i] )
+                XSelectInput (dpy, focus->frame_sides[i]->w, AS_CANVAS_EVENT_MASK|(PointerMotionMask|KeyPressMask));
+    }
+    warping_focus = focus ;
+}
 
 Bool
-StartWarping(ScreenInfo *scr, Cursor cursor)
+StartWarping(ScreenInfo *scr)
 {
+LOCAL_DEBUG_CALLER_OUT( "SWSWSWSWSWSWSW: %p, %ld", warping_focus, get_flags(AfterStepState, ASS_WarpingMode) );
     if( get_flags(AfterStepState, ASS_WarpingMode) )
         return True ;
     set_flags(AfterStepState, ASS_WarpingMode);
-	warping_screen = scr;
-    return GrabEm(scr, cursor);
+    set_warping_focus( scr->Windows->focused );
+    return True;
+}
+
+void
+ChangeWarpingFocus(ASWindow *new_focus)
+{
+    clear_warping_focus();
+    set_warping_focus( new_focus );
+}
+
+void
+CheckWarpingFocusDestroyed(ASWindow *destroyed)
+{
+    if( warping_focus == destroyed )
+        clear_warping_focus();
 }
 
 void
 EndWarping()
 {
-    if( get_flags(AfterStepState, ASS_WarpingMode) && warping_screen )
+LOCAL_DEBUG_CALLER_OUT( "EWEWEWEWEWEWEW:%p, %ld", warping_focus, get_flags(AfterStepState, ASS_WarpingMode) );
+    if( get_flags(AfterStepState, ASS_WarpingMode) )
     {
+        clear_warping_focus();
         clear_flags(AfterStepState, ASS_WarpingMode);
-        if( warping_screen->Windows->hilited != warping_screen->Windows->active )
-            activate_aswindow( warping_screen->Windows->hilited, False, False );
-        UngrabEm();
-		warping_screen = NULL;
+        commit_circulation();
     }
 }
 

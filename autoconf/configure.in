@@ -141,6 +141,8 @@ dnl# Add -g
 if test "x$enable_gdb" = "xyes"; then
   CFLAGS="$CFLAGS -g"
   LDFLAGS="$LDFLAGS -g"
+else
+  CFLAGS="$CFLAGS -ULOCAL_DEBUG -UDEBUG"
 fi
 
 dnl# Add -pg

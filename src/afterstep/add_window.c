@@ -1172,14 +1172,14 @@ SendConfigureNotify(ASWindow *asw)
 
 /* this gets called when StructureNotify/SubstractureNotify arrives : */
 void
-on_window_moveresize( ASWindow *asw, Window w, int x, int y, unsigned int width, unsigned int height )
+on_window_moveresize( ASWindow *asw, Window w )
 {
     int i ;
     Bool canvas_moved = False;
     ASOrientation *od ;
     unsigned int normal_width, normal_height ;
 
-LOCAL_DEBUG_CALLER_OUT( "(%p,%lx,asw->w=%lx,%ux%u%+d%+d)", asw, w, asw->w, width, height, x, y );
+LOCAL_DEBUG_CALLER_OUT( "(%p,%lx,asw->w=%lx)", asw, w, asw->w );
     if( AS_ASSERT(asw) )
         return ;
 
@@ -1232,8 +1232,7 @@ LOCAL_DEBUG_OUT( "changes=0x%X", changes );
                 *(od->in_width)=normal_width ;
                 *(od->in_height)=step_size ;
 /*LOCAL_DEBUG_OUT( "**SHADE Client(%lx(%s))->(%d>-%d)", asw->w, ASWIN_NAME(asw)?ASWIN_NAME(asw):"noname", asw->shading_steps, step_size );*/
-                XMoveResizeWindow(  dpy, asw->frame,
-                                    x, y, *(od->out_width), *(od->out_height));
+                XResizeWindow(  dpy, asw->frame, *(od->out_width), *(od->out_height));
                 ASSync(False);
             }
         }else if( get_flags( changes, CANVAS_MOVED ) )
@@ -1258,11 +1257,11 @@ LOCAL_DEBUG_OUT( "changes=0x%X", changes );
             unsigned short title_size = 0 ;
             if( asw->icon_title && asw->icon_title_canvas == asw->icon_canvas )
             {
-                set_astbar_size( asw->icon_title, width, asw->icon_title->height );
+                set_astbar_size( asw->icon_title, asw->icon_canvas->width, asw->icon_title->height );
                 title_size = asw->icon_title->height ;
                 render_astbar( asw->icon_title, asw->icon_canvas );
             }
-            set_astbar_size( asw->icon_button, width, height-title_size );
+            set_astbar_size( asw->icon_button, asw->icon_canvas->width, asw->icon_canvas->height-title_size );
             render_astbar( asw->icon_button, asw->icon_canvas );
             update_canvas_display( asw->icon_canvas );
         }
@@ -1271,7 +1270,7 @@ LOCAL_DEBUG_OUT( "changes=0x%X", changes );
     {
         if( handle_canvas_config(asw->icon_title_canvas) && asw->icon_title )
         {
-            set_astbar_size( asw->icon_title, width, asw->icon_title->height );
+            set_astbar_size( asw->icon_title, asw->icon_title_canvas->width, asw->icon_title->height );
             render_astbar( asw->icon_title, asw->icon_title_canvas );
             update_canvas_display( asw->icon_title_canvas );
         }
@@ -1854,14 +1853,72 @@ make_aswindow_visible( ASWindow *asw, Bool deiconify )
     {
         if( deiconify )
         {/* TODO: deiconify here */}
-        else
-            return False;
     }
 
     if (ASWIN_DESK(asw) != Scr.CurrentDesk)
         ChangeDesks( ASWIN_DESK(asw));
 
-    /* TODO: need to to center on window */
+#ifndef NO_VIRTUAL
+    if (!ASWIN_GET_FLAGS( asw, AS_Sticky ))
+    {
+        int  dx, dy;
+        int  cx = Scr.MyDisplayWidth/2 ;
+        int  cy = Scr.MyDisplayHeight/2;
+        if (ASWIN_GET_FLAGS( asw, AS_Iconic ) )
+        {
+            if( asw->icon_canvas )
+            {
+                cx = asw->icon_canvas->root_x + asw->icon_canvas->width / 2;
+                cy = asw->icon_canvas->root_y + asw->icon_canvas->height / 2;
+            }
+        } else if( asw->frame_canvas )
+        {
+            cx = asw->frame_canvas->root_x + asw->frame_canvas->width / 2;
+            cy = asw->frame_canvas->root_y + asw->frame_canvas->height / 2;
+        }
+
+        /* Put center of window on the visible screen */
+        if ( get_flags( Scr.Feel.flags, CenterOnCirculate))
+        {
+            dx = cx - Scr.MyDisplayWidth / 2 + Scr.Vx;
+            dy = cy - Scr.MyDisplayHeight / 2 + Scr.Vy;
+        } else
+        {
+            dx = (cx + Scr.Vx) / Scr.MyDisplayWidth * Scr.MyDisplayWidth;
+            dy = (cy + Scr.Vy) / Scr.MyDisplayHeight * Scr.MyDisplayHeight;
+        }
+        MoveViewport (dx, dy, True);
+    }
+#endif
+
+    RaiseWindow (asw);
+    if (!get_flags(Scr.Feel.flags, ClickToFocus))
+    {
+        int x, y ;
+        /* need to to center on window */
+        if( ASWIN_GET_FLAGS( asw, AS_Iconic ) )
+        {
+            if( asw->icon_title_canvas && asw->icon_canvas != asw->icon_title_canvas )
+                on_window_moveresize( asw, asw->icon_title_canvas->w );
+            if( asw->icon_canvas )
+            {
+                on_window_moveresize( asw, asw->icon_canvas->w );
+                x = asw->icon_canvas->root_x;
+                y = asw->icon_canvas->root_y;
+            }else if( asw->icon_title_canvas )
+            {
+                x = asw->icon_title_canvas->root_x;
+                y = asw->icon_title_canvas->root_y;
+            }else
+                return False;
+        }else
+        {
+            on_window_moveresize( asw, asw->frame );
+            x = asw->frame_canvas->root_x;
+            y = asw->frame_canvas->root_y;
+        }
+        XWarpPointer (dpy, None, Scr.Root, 0, 0, 0, 0, x + Scr.Feel.Xzap, y + Scr.Feel.Yzap);
+    }
     return True;
 }
 
@@ -2019,8 +2076,22 @@ hide_focus()
 /********************************************************************
  * Sets the input focus to the indicated window.
  **********************************************************************/
+void
+commit_circulation()
+{
+    ASWindow *asw = Scr.Windows->active ;
+LOCAL_DEBUG_OUT( "circulation completed with active window being %p", asw );
+    if( asw )
+        if( vector_remove_elem( Scr.Windows->circulate_list, &asw ) == 1 )
+        {
+            LOCAL_DEBUG_OUT( "reinserting %p into the head of circulation list : ", asw );
+            vector_insert_elem( Scr.Windows->circulate_list, &asw, 1, NULL, True );
+        }
+    Scr.Windows->warp_curr_index = -1 ;
+}
+
 Bool
-focus_aswindow( ASWindow *asw, Bool circulated )
+focus_aswindow( ASWindow *asw )
 {
     Bool          do_hide_focus = False ;
     Bool          do_nothing = False ;
@@ -2028,7 +2099,7 @@ focus_aswindow( ASWindow *asw, Bool circulated )
 
     if( asw )
     {
-        if (!circulated )
+        if (!get_flags( AfterStepState, ASS_WarpingMode) )
             if( vector_remove_elem( Scr.Windows->circulate_list, &asw ) == 1 )
                 vector_insert_elem( Scr.Windows->circulate_list, &asw, 1, NULL, True );
 
@@ -2120,12 +2191,15 @@ LOCAL_DEBUG_OUT( "checking if we are in housekeeping mode (%ld)", get_flags(Afte
     if( Scr.Windows->focused == Scr.Windows->active )
         return True ;                          /* already has focus */
 
-    return focus_aswindow( Scr.Windows->active, False );
+    return focus_aswindow( Scr.Windows->active );
 }
 
 Bool
 activate_aswindow( ASWindow *asw, Bool force, Bool deiconify )
 {
+    Bool res = False ;
+LOCAL_DEBUG_CALLER_OUT( "%p, %d, %d", asw, force, deiconify );
+LOCAL_DEBUG_OUT("current focused is %p, active is %p", Scr.Windows->focused, Scr.Windows->active );
     if (asw == NULL)
         return False;
 
@@ -2133,31 +2207,34 @@ activate_aswindow( ASWindow *asw, Bool force, Bool deiconify )
     {
         GrabEm (&Scr, Scr.Feel.cursors[SELECT]);     /* to prevent Enter Notify events to
                                                       be sent to us while shifting windows around */
-        if( !make_aswindow_visible( asw, deiconify ) )
-            return False;
-        Scr.Windows->active = asw ;   /* must do that prior to UngrabEm, so that window gets focused */
+        if( (res = make_aswindow_visible( asw, deiconify )) )
+            Scr.Windows->active = asw ;   /* must do that prior to UngrabEm, so that window gets focused */
         UngrabEm ();
     }else
     {
         if( ASWIN_GET_FLAGS( asw, AS_Iconic ) )
         {
+LOCAL_DEBUG_OUT( "Window is iconic - pending implementation%s","");
             if( deiconify )
             {/* TODO: deiconify here */}
             else
                 return False;
         }
         if (ASWIN_DESK(asw) != Scr.CurrentDesk)
+        {
+LOCAL_DEBUG_OUT( "Window is on inactive desk - can't focus%s","");
             return False;
-
+        }
         if( asw->status->x + asw->status->width < 0  || asw->status->x >= Scr.MyDisplayWidth ||
             asw->status->y + asw->status->height < 0 || asw->status->y >= Scr.MyDisplayHeight )
         {
+LOCAL_DEBUG_OUT( "Window is out of the screen - can't focus%s","");
             return False;                      /* we are out of screen - can't focus */
         }
         Scr.Windows->active = asw ;   /* must do that prior to UngrabEm, so that window gets focused */
         focus_active_window();
     }
-    return True;
+    return res;
 }
 
 /* second version of above : */
@@ -2535,10 +2612,14 @@ LOCAL_DEBUG_CALLER_OUT( "asw(%p)->internal(%p)->data(%p)", asw, asw->internal, a
     XSync (dpy, 0);
 
     UninstallWindowColormaps( asw );
+    CheckWarpingFocusDestroyed(asw);
+    CheckGrabbedFocusDestroyed(asw);
 
     if ( asw == Scr.Windows->focused )
         focus_next_aswindow( asw );
 
+    if ( asw == Scr.Windows->active )
+        Scr.Windows->active = NULL;
     if ( asw == Scr.Windows->hilited )
         Scr.Windows->hilited = NULL;
 

@@ -47,53 +47,6 @@
 
 #include <X11/keysym.h>
 
-/* those are used for AutoReverse mode 1 */
-static int warp_in_process = 0;
-static int warping_direction = 0;
-
-void
-warp_grab (ASWindow * t)
-{
-	XWindowAttributes attributes;
-LOCAL_DEBUG_CALLER_OUT( "%p", t );
-	/* we're watching all key presses and accept mouse cursor motion events
-	   so we will be able to tell when warp mode is finished */
-	XGetWindowAttributes (dpy, t->frame, &attributes);
-	XSelectInput (dpy, t->frame, attributes.your_event_mask | (PointerMotionMask | KeyPressMask));
-	if (t->w != None)
-	{
-		XGetWindowAttributes (dpy, t->w, &attributes);
-		XSelectInput (dpy, t->w, attributes.your_event_mask | (PointerMotionMask | KeyPressMask));
-	}
-}
-
-void
-warp_ungrab (ASWindow * t, Bool finished)
-{
-    if( warp_in_process )
-    {
-        if (t != NULL)
-        {
-            XWindowAttributes attributes;
-LOCAL_DEBUG_CALLER_OUT( "%p, %d", t, finished );
-            /* we no longer need to watch keypresses or pointer motions */
-            XGetWindowAttributes (dpy, t->frame, &attributes);
-            XSelectInput (dpy, t->frame,
-                        attributes.your_event_mask & ~(PointerMotionMask | KeyPressMask));
-            if (t->w != None)
-            {
-                XGetWindowAttributes (dpy, t->w, &attributes);
-                XSelectInput (dpy, t->w,
-                            attributes.your_event_mask & ~(PointerMotionMask | KeyPressMask));
-            }
-            if (finished)       /* the window becomes the first one in the warp list now */
-            {}
-        }
-        if (finished)
-            warp_in_process = 0;
-    }
-}
-
 /***********************************************************************
  *  _______________________EVENT HANDLING ______________________________
  *
@@ -105,7 +58,6 @@ void DigestEvent    ( ASEvent *event );
 void DispatchEvent  ( ASEvent *event );
 void afterstep_wait_pipes_input ();
 void SetTimer (int delay);
-
 
 void
 HandleEvents ()
@@ -477,20 +429,23 @@ DispatchEvent ( ASEvent *event )
         case ButtonPress:
             /* if warping, a button press, non-warp keypress, or pointer motion
             * indicates that the warp is done */
-            warp_ungrab (event->client, True);
+            if( get_flags( AfterStepState, ASS_WarpingMode ) )
+                EndWarping();
             HandleButtonPress (event);
             break;
         case ButtonRelease:
             /* if warping, a button press, non-warp keypress, or pointer motion
             * indicates that the warp is done */
-            warp_ungrab (event->client, True);
+            if( get_flags( AfterStepState, ASS_WarpingMode ) )
+                EndWarping();
             if( Scr.Windows->pressed )
                 HandleButtonRelease (event);
             break;
         case MotionNotify:
             /* if warping, a button press, non-warp keypress, or pointer motion
             * indicates that the warp is done */
-            warp_ungrab (event->client, True);
+            if( get_flags( AfterStepState, ASS_WarpingMode ) )
+                EndWarping();
             if( event->client && event->client->internal )
                 event->client->internal->on_pointer_event( event->client->internal, event );
             break;
@@ -499,26 +454,9 @@ DispatchEvent ( ASEvent *event )
             break;
         case LeaveNotify:
             HandleLeaveNotify (event);
-#if 0
-            /* if warping, leaving a window means that we need to ungrab, but
-            * the ungrab should be taken care of by the FocusOut */
-            warp_ungrab (event->client, False);
-#endif
             break;
         case FocusIn:
             HandleFocusIn (event);
-            if (event->client != NULL)
-            {
-                if (warp_in_process)
-                    warp_grab (event->client);
-                else
-                {/*  ChangeWarpIndex (event->client->warp_index, F_WARP_F); */}
-            }
-            break;
-        case FocusOut:
-            /* if warping, this is the normal way to determine that we should ungrab
-            * window events */
-            warp_ungrab (event->client, False);
             break;
         case Expose:
             HandleExpose (event);
@@ -538,10 +476,12 @@ DispatchEvent ( ASEvent *event )
         case ConfigureNotify:
             if( event->client )
             {
-                on_window_moveresize( event->client, event->w, event->x.xconfigure.x,
-                                                               event->x.xconfigure.y,
+                LOCAL_DEBUG_CALLER_OUT( "ConfigureNotify:(%p,%lx,asw->w=%lx,(%dx%d%+d%+d)", event->client, event->w, event->client->w,
                                                                event->x.xconfigure.width,
-                                                               event->x.xconfigure.height );
+                                                               event->x.xconfigure.height,
+                                                               event->x.xconfigure.x,
+                                                               event->x.xconfigure.y  );
+                on_window_moveresize( event->client, event->w );
             }
             break;
         case ConfigureRequest:
@@ -582,6 +522,9 @@ HandleFocusIn ( ASEvent *event )
     while (ASCheckTypedEvent (FocusIn, &event->x));
     DigestEvent( event );
 
+    if( get_flags( AfterStepState, ASS_WarpingMode ) )
+        ChangeWarpingFocus( event->client );
+
     if( Scr.Windows->focused != event->client )
         Scr.Windows->focused = NULL ;
 
@@ -615,11 +558,6 @@ HandleKeyPress ( ASEvent *event )
              (key->mods == AnyModifier)) && (key->cont & event->context))
 		{
 			/* check if the warp key was pressed */
-            warp_in_process = ((key->fdata->func == F_WARP_B || key->fdata->func == F_WARP_F) &&
-                               Scr.Feel.AutoReverse == 2);
-			if (warp_in_process)
-                warping_direction = key->fdata->func;
-
             ExecuteFunction (key->fdata, event, -1);
 			return;
 		}
@@ -627,12 +565,13 @@ HandleKeyPress ( ASEvent *event )
 
 	/* if a key has been pressed and it's not one of those that cause
 	   warping, we know the warping is finished */
-    warp_ungrab (event->client, True);
+    if( get_flags( AfterStepState, ASS_WarpingMode ) )
+        EndWarping();
 
 	/* if we get here, no function key was bound to the key.  Send it
      * to the client if it was in a window we know about: */
     if (event->client)
-        if (xk->window != event->client->w && !warp_in_process)
+        if (xk->window != event->client->w )
 		{
             xk->window = event->client->w;
             XSendEvent (dpy, event->client->w, False, KeyPressMask, &(event->x));
@@ -880,7 +819,7 @@ HandleMapNotify ( ASEvent *event )
 	}
 
     if (get_flags( Scr.Feel.flags, ClickToFocus) )
-        focus_aswindow (asw, False);
+        focus_aswindow (asw);
 
 #warning "do we need to un-hilite window at the time of mapNotify?"
     XSync (dpy, 0);
@@ -960,7 +899,7 @@ HandleButtonPress ( ASEvent *event )
         if (get_flags( Scr.Feel.flags, ClickToFocus) )
         {
             if ( asw != Scr.Windows->ungrabbed && (xbtn->state & nonlock_mods) == 0)
-                focus_accepted = focus_aswindow(asw, False);
+                focus_accepted = focus_aswindow(asw);
         }
 
         if (!ASWIN_GET_FLAGS(asw, AS_Visible))
@@ -1091,12 +1030,9 @@ HandleEnterNotify (ASEvent *event)
         if (!get_flags(Scr.Feel.flags, ClickToFocus))
 		{
             if (Scr.Windows->focused != asw)
-			{
                 if (Scr.Feel.AutoRaiseDelay > 0 && !ASWIN_GET_FLAGS(asw, AS_Visible))
                     SetTimer (Scr.Feel.AutoRaiseDelay);
-                focus_aswindow(asw, False);
-            }else
-                focus_aswindow(asw, True);         /* don't affect the circ.seq. */
+            focus_aswindow(asw);
 		}
         if (!ASWIN_GET_FLAGS(asw, AS_Iconic) && event->context == C_WINDOW )
             InstallWindowColormaps (asw);

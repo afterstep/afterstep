@@ -602,9 +602,10 @@ Bool get_icon_root_geometry( ASWindow *asw, ASRectangle *geom );
 void grab_window_input( ASWindow *asw, Bool release_grab );
 
 void hide_focus();
-Bool focus_aswindow( ASWindow *asw, Bool circulated );
+Bool focus_aswindow( ASWindow *asw );
 Bool focus_active_window();
 void focus_next_aswindow( ASWindow *asw );     /* should be called when window is unmapped or destroyed */
+void commit_circulation();
 
 void hide_hilite();                            /* unhilites currently highlited window */
 void hilite_aswindow( ASWindow *asw );         /* actually hilites focused window on reception of event */
@@ -617,7 +618,7 @@ void moveresize_aswindow_wm( ASWindow *asw, int x, int y, unsigned int width, un
 
 void redecorate_window( ASWindow *asw, Bool free_resources );
 void update_window_transparency( ASWindow *asw );
-void on_window_moveresize( ASWindow *asw, Window w, int x, int y, unsigned int width, unsigned int height );
+void on_window_moveresize( ASWindow *asw, Window w );
 void on_icon_changed( ASWindow *asw );
 void on_window_title_changed( ASWindow *asw, Bool update_display );
 void on_window_status_changed( ASWindow *asw, Bool update_display, Bool reconfigured );

@@ -729,12 +729,12 @@ void warp_func_handler( FunctionData *data, ASEvent *event, int module )
             t = pattern2ASWindow (data->text);
     if( t == NULL )
         t = warp_aswindow_list (Scr.Windows, (data->func == F_CHANGEWINDOW_DOWN ||
-                                       data->func == F_WARP_B));
+                                              data->func == F_WARP_B));
     if ( t != NULL)
     {
         event->client = t;
         event->w = get_window_frame(t);
-        StartWarping(&Scr, Scr.Feel.cursors[SELECT]);
+        StartWarping(&Scr);
         warp_to_aswindow(t, (data->func == F_WARP_F || data->func == F_WARP_B));
     }
 }

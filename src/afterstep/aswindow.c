@@ -17,8 +17,9 @@
  *
  */
 
-#include "../../configure.h"
 #define LOCAL_DEBUG
+
+#include "../../configure.h"
 
 #include "../../include/asapp.h"
 #include "../../include/afterstep.h"
@@ -613,16 +614,18 @@ ASWindow     *
 warp_aswindow_list ( ASWindowList *list, Bool backwards )
 {
     register int i;
-    register int dir = backwards ? 1 : -1 ;
+    register int dir = backwards ? -1 : 1 ;
     int end_i;
     ASWindow **clients;
-    ASWindow *next = NULL ;
     int loop_count = 0 ;
 
     if( list == NULL ) return NULL;
 
 	end_i = VECTOR_USED(*(list->circulate_list)) ;
 	clients = VECTOR_HEAD(ASWindow*,*(list->circulate_list));
+
+    if( end_i <= 1 )
+        return NULL;
 
     if( list->warp_curr_index < 0 )
     { /* need to initialize warping : */
@@ -632,8 +635,7 @@ warp_aswindow_list ( ASWindowList *list, Bool backwards )
         list->warp_curr_dir = dir ;
     }else if( dir == list->warp_user_dir )
     {
-            if( Scr.Feel.AutoReverse == AST_ClosedLoop )
-                dir = list->warp_curr_dir ;
+        dir = list->warp_curr_dir ;
     }else
     {
         list->warp_user_dir = dir ;
@@ -642,32 +644,35 @@ warp_aswindow_list ( ASWindowList *list, Bool backwards )
         list->warp_curr_dir = dir ;
     }
 
-    for( i = list->warp_curr_index+dir ; loop_count < 2 ; i+=dir )
+    i = list->warp_curr_index+dir ;
+    do
     {
-
+LOCAL_DEBUG_OUT("checking i(%d)->end_i(%d)->dir(%d)->AutoReverse(%d)", i, end_i, dir, Scr.Feel.AutoReverse);
         if( 0 > i || i >= end_i )
         {
             if( Scr.Feel.AutoReverse == AST_OpenLoop )
-                i = (i <= 0)? end_i : 0 ;
+                i = (dir < 0)? end_i - 1 : 0 ;
             else if( Scr.Feel.AutoReverse == AST_ClosedLoop )
+            {
+                i = (dir < 0)? 0 : end_i - 1 ;
                 list->warp_curr_dir = dir = (dir < 0 )? 1 : -1 ;
-            else
+                i += dir;                      /* we need to skip the one that was focused at the moment ! */
+            }else
                 return NULL;
-            loop_count++ ;
-            continue;
+            if( ++loop_count >= 2 )
+                return NULL;
         }
 
+        list->warp_curr_index = i ;
         if( !(ASWIN_HFLAGS(clients[i], AS_DontCirculate)) &&
             !(ASWIN_GET_FLAGS(clients[i], AS_Iconic) && get_flags(Scr.Feel.flags, CirculateSkipIcons)) &&
             !(ASWIN_DESK(clients[i]) != Scr.CurrentDesk && get_flags(Scr.Feel.flags,AutoTabThroughDesks )))
         {
-            next = clients[i] ;
-            break;
+            return clients[i];
         }
-    }
-    if( next != NULL )
-        list->warp_curr_index = i ;
-    return next;
+        i += dir ;
+    }while(1);
+    return NULL;
 }
 
 /********************************************************************************/
