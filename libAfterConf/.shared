@@ -1,0 +1,13 @@
+LIBAFTERCONF_OBJS = \
+		$(LIBAFTERCONF_PATH)/ASetRoot.c \
+		$(LIBAFTERCONF_PATH)/Base.c \
+		$(LIBAFTERCONF_PATH)/balloon.c \
+		$(LIBAFTERCONF_PATH)/Database.c \
+		$(LIBAFTERCONF_PATH)/Look.c \
+		$(LIBAFTERCONF_PATH)/MyStyle.c \
+		$(LIBAFTERCONF_PATH)/Pager.c \
+		$(LIBAFTERCONF_PATH)/Wharf.c \
+		$(LIBAFTERCONF_PATH)/WinList.c
+
+LIBAFTERCONF_INCS = \
+		$(LIBAFTERCONF_PATH)/../../include/confdefs.h
