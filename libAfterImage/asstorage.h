@@ -41,9 +41,9 @@
 #define RLE_ZERO_LENGTH				0x007F  /*  LLLLLLL */  
 #define RLE_ZERO_SIG				0x0000  /* 0LLLLLLL - identical to a string of LLLLLLL zeros */  
 
-#define RLE_NOZERO_SHORT_MASK		0x00D0  /* MM       */  
+#define RLE_NOZERO_SHORT_MASK		0x00C0  /* MM       */  
 #define RLE_NOZERO_SHORT_LENGTH		0x003F  /*   LLLLLL */  
-#define RLE_NOZERO_SHORT_SIG		0x00D0  /* 11LLLLLL followed by stream of LLLLLL 4 or 2 bit values */
+#define RLE_NOZERO_SHORT_SIG		0x00C0  /* 11LLLLLL followed by stream of LLLLLL 4 or 2 bit values */
 
 #define RLE_NOZERO_LONG_MASK		0x00F0  /* MMMM     */  
 #define RLE_NOZERO_LONG_LENGTH		0x000F  /*     LLLL */  
