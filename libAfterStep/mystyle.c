@@ -349,6 +349,21 @@ mystyle_translate_texture_type( int texture_type )
     return  mystyle_merge_scanlines_func_xref[index];
 }
 
+static inline ASImage *
+mystyle_flip_image( ASImage *im, int width, int height, int flip )
+{
+	ASImage *tmp ;
+	if(flip == 0)
+		return im;
+	tmp = flip_asimage( Scr.asv, im, 0, 0, width, height, flip, ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT );
+	if( tmp != NULL )
+	{
+		safe_asimage_destroy( im );
+		im = tmp;
+	}
+	return im;
+}
+
 ASImage      *
 mystyle_make_image (MyStyle * style, int root_x, int root_y, int width, int height, int flip )
 {
@@ -356,6 +371,7 @@ mystyle_make_image (MyStyle * style, int root_x, int root_y, int width, int heig
 	Pixmap        root_pixmap;
 	unsigned int  root_w, root_h;
 	Bool transparency = False ;
+	int preflip_width, preflip_height ;
 
 #ifndef NO_TEXTURE
 	if (width < 1)
@@ -414,6 +430,15 @@ mystyle_make_image (MyStyle * style, int root_x, int root_y, int width, int heig
 		 }
          LOCAL_DEBUG_OUT ("RootImage = %p clip(%ux%u%+d%+d) size(%dx%d)", Scr.RootImage, Scr.RootClipArea.width, Scr.RootClipArea.height, Scr.RootClipArea.x, Scr.RootClipArea.y, root_w, root_h);
 	}
+	if( get_flags( flip, FLIP_VERTICAL )  )
+	{
+		preflip_width = height ;
+		preflip_height = width ;
+	}else
+	{
+		preflip_width = width ;
+		preflip_height = height ;
+	}
 
 	switch (style->texture_type)
 	{
@@ -444,12 +469,14 @@ mystyle_make_image (MyStyle * style, int root_x, int root_y, int width, int heig
 		break;
 	 case TEXTURE_SHAPED_SCALED_PIXMAP:
 	 case TEXTURE_SCALED_PIXMAP:
-		 im = scale_asimage (Scr.asv, style->back_icon.image, width, height, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
+		 im = scale_asimage (Scr.asv, style->back_icon.image, preflip_width, preflip_height, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
+		 im = mystyle_flip_image( im, width, height, flip );
 		 break;
 	 case TEXTURE_SHAPED_PIXMAP:
 	 case TEXTURE_PIXMAP:
 		 im = tile_asimage (Scr.asv, style->back_icon.image,
-							0, 0, width, height, TINT_LEAVE_SAME, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
+							0, 0, preflip_width, preflip_height, TINT_LEAVE_SAME, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
+		 im = mystyle_flip_image( im, width, height, flip );
 		 break;
 	}
 
@@ -497,10 +524,14 @@ mystyle_make_image (MyStyle * style, int root_x, int root_y, int width, int heig
 				 if (style->texture_type >= TEXTURE_SCALED_TRANSPIXMAP &&
 					 style->texture_type < TEXTURE_SCALED_TRANSPIXMAP_END)
 				 {
-					 scaled_im = scale_asimage (Scr.asv, layers[1].im, width, height,
+					 scaled_im = scale_asimage (Scr.asv, layers[1].im, preflip_width, preflip_height,
 												ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
 					 if (scaled_im)
-						 layers[1].im = scaled_im;
+						 layers[1].im = mystyle_flip_image( scaled_im, width, height, flip );
+				 }
+				 if( flip != 0 && layers[1].im == style->back_icon.image )
+				 {
+					 layers[1].im = im = flip_asimage( Scr.asv, layers[1].im, 0, 0, width, height, flip, ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT );
 				 }
 				 layers[1].merge_scanlines = layers[0].merge_scanlines;
 				 layers[1].dst_x = 0;
