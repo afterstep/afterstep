@@ -38,13 +38,6 @@
 #else
 #include <setjmp.h>
 #endif
-#ifdef HAVE_XPM      /* XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM */
-#ifdef HAVE_XPM_X11
-#include <X11/xpm.h>
-#else
-#include <xpm.h>
-#endif
-#endif
 
 #include "afterbase.h"
 #ifdef HAVE_JPEG

@@ -60,7 +60,7 @@ typedef enum {
  *************************************************************************/
 void 		close_xpm_file( ASXpmFile **xpm_file );
 ASXpmFile  *open_xpm_file( const char *realfilename );
-Bool		parse_xpm_header( ASXpmFile *xpm_file )
+Bool		parse_xpm_header( ASXpmFile *xpm_file );
 ASXpmStatus get_xpm_string( ASXpmFile *xpm_file );
 ASImage    *create_xpm_image( ASXpmFile *xpm_file, int compression );
 Bool 		build_xpm_colormap( ASXpmFile *xpm_file );
