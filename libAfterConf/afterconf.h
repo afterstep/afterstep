@@ -1,5 +1,5 @@
-#ifndef CONF_DEFS_H_FILE_INCLUDED
-#define CONF_DEFS_H_FILE_INCLUDED
+#ifndef AFTERCONF_H_FILE_INCLUDED
+#define AFTERCONF_H_FILE_INCLUDED
 
 #include "../libAfterImage/asvisual.h"
 struct ASFontManager;
@@ -227,13 +227,26 @@ FreeStorageElem **MyStyleDefs2FreeStorage (SyntaxDef * syntax, FreeStorageElem *
 #define MYFRAME_CornerAlign_ID          (MYFRAME_ID_START+23)
 #define MYFRAME_SideBevel_ID            (MYFRAME_ID_START+24)
 #define MYFRAME_CornerBevel_ID          (MYFRAME_ID_START+25)
-#define MYFRAME_TitleBevel_ID           (MYFRAME_ID_START+26)
-#define MYFRAME_TitleAlign_ID           (MYFRAME_ID_START+27)
-#define MYFRAME_TitleBackgroundAlign_ID (MYFRAME_ID_START+28)
-#define MYFRAME_Inherit_ID              (MYFRAME_ID_START+29)
-#define MYFRAME_DONE_ID         (MYFRAME_ID_START+30)
+#define MYFRAME_SideFBevel_ID           (MYFRAME_ID_START+26)
+#define MYFRAME_CornerFBevel_ID         (MYFRAME_ID_START+27)
+#define MYFRAME_SideUBevel_ID           (MYFRAME_ID_START+28)
+#define MYFRAME_CornerUBevel_ID         (MYFRAME_ID_START+29)
+#define MYFRAME_SideSBevel_ID           (MYFRAME_ID_START+30)
+#define MYFRAME_CornerSBevel_ID         (MYFRAME_ID_START+31)
+#define MYFRAME_TitleBevel_ID           (MYFRAME_ID_START+32)
+#define MYFRAME_TitleFBevel_ID          (MYFRAME_ID_START+33)
+#define MYFRAME_TitleUBevel_ID          (MYFRAME_ID_START+34)
+#define MYFRAME_TitleSBevel_ID          (MYFRAME_ID_START+35)
+#define MYFRAME_TitleAlign_ID           (MYFRAME_ID_START+36)
+#define MYFRAME_TitleBackgroundAlign_ID (MYFRAME_ID_START+37)
+#define MYFRAME_TitleCM_ID              (MYFRAME_ID_START+38)
+#define MYFRAME_TitleFCM_ID             (MYFRAME_ID_START+39)
+#define MYFRAME_TitleUCM_ID             (MYFRAME_ID_START+40)
+#define MYFRAME_TitleSCM_ID             (MYFRAME_ID_START+41)
+#define MYFRAME_Inherit_ID              (MYFRAME_ID_START+42)
+#define MYFRAME_DONE_ID                 (MYFRAME_ID_START+43)
 
-#define MYFRAME_ID_END      (MYFRAME_ID_START+40)
+#define MYFRAME_ID_END      (MYFRAME_ID_START+48)
 
 #define ALIGN_ID_START      (MYFRAME_ID_END+1)
 #define ALIGN_Left_ID       (ALIGN_ID_START+1)
@@ -293,12 +306,25 @@ FreeStorageElem **MyStyleDefs2FreeStorage (SyntaxDef * syntax, FreeStorageElem *
  *     [SideSize        North|South|East|West|Any <WIDTHxLENGTH>] - pixmap will be scaled to this size
  *     [SideAlign       North|South|East|West|Any Left,Top,Right,Bottom,HTiled,VTiled,HScaled,VScaled]
  *     [SideBevel       North|South|East|West|Any None|[Left,Top,Right,Bottom,Extra,NoOutline]]
+ *     [SideFocusedBevel      North|South|East|West|Any None|[Left,Top,Right,Bottom,Extra,NoOutline]]
+ *     [SideUnfocusedBevel    North|South|East|West|Any None|[Left,Top,Right,Bottom,Extra,NoOutline]]
+ *     [SideStickyBevel       North|South|East|West|Any None|[Left,Top,Right,Bottom,Extra,NoOutline]]
  *     [CornerSize      NorthEast|SouthEast|NorthWest|SouthWest|Any <WIDTHxHEIGHT>]
  *     [CornerAlign     NorthEast|SouthEast|NorthWest|SouthWest|Any Left,Top,Right,Bottom,HTiled,VTiled,HScaled,VScaled]
  *     [CornerBevel     NorthEast|SouthEast|NorthWest|SouthWest|Any None|[Left,Top,Right,Bottom,Extra,NoOutline]]
+ *     [CornerFocusedBevel    NorthEast|SouthEast|NorthWest|SouthWest|Any None|[Left,Top,Right,Bottom,Extra,NoOutline]]
+ *     [CornerUnfocusedBevel  NorthEast|SouthEast|NorthWest|SouthWest|Any None|[Left,Top,Right,Bottom,Extra,NoOutline]]
+ *     [CornerStickyBevel     NorthEast|SouthEast|NorthWest|SouthWest|Any None|[Left,Top,Right,Bottom,Extra,NoOutline]]
  *     [TitleBevel      None|[Left,Top,Right,Bottom,Extra,NoOutline]
+ *     [TitleFocusedBevel     None|[Left,Top,Right,Bottom,Extra,NoOutline]
+ *     [TitleUnfocusedBevel   None|[Left,Top,Right,Bottom,Extra,NoOutline]
+ *     [TitleStickyBevel      None|[Left,Top,Right,Bottom,Extra,NoOutline]
  *     [TitleAlign      None|[Left,Top,Right,Bottom]
  *     [TitleBackgroundAlign  None|[Left,Top,Right,Bottom,HTiled,VTiled,HScaled,VScaled,LabelSize]
+ *     [TitleCompositionMethod   testure_type]
+ *     [TitleFocusedCompositionMethod     testure_type]
+ *     [TitleUnfocusedCompositionMethod   testure_type]
+ *     [TitleStickyCompositionMethod      testure_type]
  * ~MyFrame
  */
 
@@ -321,12 +347,15 @@ typedef struct MyFrameDefinition
     unsigned int part_width[FRAME_PARTS];
     unsigned int part_length[FRAME_PARTS];
     ASFlagType   set_part_bevel ;
-    ASFlagType   part_bevel[FRAME_PARTS];
+    ASFlagType   part_fbevel[FRAME_PARTS];
+    ASFlagType   part_ubevel[FRAME_PARTS];
+    ASFlagType   part_sbevel[FRAME_PARTS];
     ASFlagType   set_part_align ;
     ASFlagType   part_align[FRAME_PARTS];
     ASFlagType   set_title_attr ;
-    ASFlagType   title_bevel;
+    ASFlagType   title_fbevel, title_ubevel, title_sbevel;
     ASFlagType   title_align, title_back_align;
+    int          title_fcm, title_ucm, title_scm;
 
     char       **inheritance_list ;
     int          inheritance_num ;
@@ -596,6 +625,9 @@ void DestroyMyBackgroundConfig (MyBackgroundConfig ** head);
  *	*WinListUseName			0|1|2|3   # 0 - Name, 1 - icon, 2 - res_name, 3 - res_class
  *  *WinListAlign           Left,Right,Top,Bottom
  *  *WinListBevel           None,Left,Right,Top, Bottom, NoOutline
+ *  *WinListFBevel           None,Left,Right,Top, Bottom, NoOutline
+ *  *WinListUBevel           None,Left,Right,Top, Bottom, NoOutline
+ *  *WinListSBevel           None,Left,Right,Top, Bottom, NoOutline
  *  *WinListAction          [Click]1|2|3|4|5
  *  *WinListShapeToContents
  *
@@ -621,20 +653,27 @@ void DestroyMyBackgroundConfig (MyBackgroundConfig ** head);
 #define WINLIST_UseName_ID				(WINLIST_ID_START+9)
 #define WINLIST_Align_ID                (WINLIST_ID_START+10)
 #define WINLIST_Bevel_ID                (WINLIST_ID_START+11)
-#define WINLIST_Action_ID               (WINLIST_ID_START+12)
-#define WINLIST_UnfocusedStyle_ID		(WINLIST_ID_START+13)
-#define WINLIST_FocusedStyle_ID			(WINLIST_ID_START+14)
-#define WINLIST_StickyStyle_ID			(WINLIST_ID_START+15)
-#define WINLIST_ShapeToContents_ID      (WINLIST_ID_START+16)
+#define WINLIST_FBevel_ID               (WINLIST_ID_START+12)
+#define WINLIST_UBevel_ID               (WINLIST_ID_START+13)
+#define WINLIST_SBevel_ID               (WINLIST_ID_START+14)
+#define WINLIST_Action_ID               (WINLIST_ID_START+15)
+#define WINLIST_UnfocusedStyle_ID       (WINLIST_ID_START+16)
+#define WINLIST_FocusedStyle_ID         (WINLIST_ID_START+17)
+#define WINLIST_StickyStyle_ID          (WINLIST_ID_START+18)
+#define WINLIST_ShapeToContents_ID      (WINLIST_ID_START+19)
+#define WINLIST_CM_ID                   (WINLIST_ID_START+20)
+#define WINLIST_FCM_ID                  (WINLIST_ID_START+21)
+#define WINLIST_UCM_ID                  (WINLIST_ID_START+22)
+#define WINLIST_SCM_ID                  (WINLIST_ID_START+23)
 
-#define WINLIST_BALLOONS_ID             (WINLIST_ID_START+17)
+#define WINLIST_BALLOONS_ID             (WINLIST_ID_START+24)
 
-#define WINLIST_HideGeometry_ID         (WINLIST_ID_START+20)
-#define WINLIST_MaxWidth_ID             (WINLIST_ID_START+21)
-#define WINLIST_Orientation_ID          (WINLIST_ID_START+22)
-#define WINLIST_NoAnchor_ID             (WINLIST_ID_START+23)
-#define WINLIST_UseIconNames_ID         (WINLIST_ID_START+24)
-#define WINLIST_AutoHide_ID             (WINLIST_ID_START+25)
+#define WINLIST_HideGeometry_ID         (WINLIST_ID_START+25)
+#define WINLIST_MaxWidth_ID             (WINLIST_ID_START+26)
+#define WINLIST_Orientation_ID          (WINLIST_ID_START+27)
+#define WINLIST_NoAnchor_ID             (WINLIST_ID_START+28)
+#define WINLIST_UseIconNames_ID         (WINLIST_ID_START+29)
+#define WINLIST_AutoHide_ID             (WINLIST_ID_START+30)
 
 #define WINLIST_ID_END	        		(WINLIST_ID_START+32)
 
@@ -656,8 +695,15 @@ typedef struct WinListConfig
 #define WINLIST_MinColWidth		(0x01<<8)
 #define WINLIST_UseName			(0x01<<9)
 #define WINLIST_Align           (0x01<<10)
-#define WINLIST_Bevel           (0x01<<11)
-#define WINLIST_ShapeToContents (0x01<<12)
+#define WINLIST_FBevel          (0x01<<11)
+#define WINLIST_UBevel          (0x01<<12)
+#define WINLIST_SBevel          (0x01<<13)
+#define WINLIST_Bevel           (WINLIST_FBevel|WINLIST_UBevel|WINLIST_SBevel)
+#define WINLIST_ShapeToContents (0x01<<14)
+#define WINLIST_FCM             (0x01<<15)
+#define WINLIST_UCM             (0x01<<16)
+#define WINLIST_SCM             (0x01<<17)
+#define WINLIST_CM              (WINLIST_FCM|WINLIST_UCM|WINLIST_SCM)
 
 #define 	ASWL_RowsFirst 		WINLIST_FillRowsFirst
 #define 	ASWL_UseSkipList	WINLIST_UseSkipList
@@ -676,7 +722,8 @@ typedef struct WinListConfig
 
 	ASNameTypes     show_name_type ; /* 0, 1, 2, 3 */
     ASFlagType      name_aligment ;
-    ASFlagType      bevel ;
+    ASFlagType      fbevel, ubevel, sbevel ;
+    int             ucm, fcm, scm;             /* composition methods */
 
     char **mouse_actions[MAX_MOUSE_BUTTONS];
 
@@ -828,8 +875,9 @@ int WriteDatabaseOptions (const char *filename, char *myname,
 #define WHARF_ShapeToContents_ID    (WHARF_ID_START+27)
 #define WHARF_AlignContents_ID  (WHARF_ID_START+28)
 #define WHARF_Bevel_ID  (WHARF_ID_START+29)
+#define WHARF_CompositionMethod_ID  (WHARF_ID_START+30)
 
-#define	WHARF_ID_END			(WHARF_ID_START+30)
+#define WHARF_ID_END            (WHARF_ID_START+32)
 #define WFUNC_START_ID			(WHARF_ID_END)
 
 #define WFUNC_Folders_ID		(WFUNC_START_ID)
@@ -909,6 +957,7 @@ WharfButton;
 #define  WHARF_SHAPE_TO_CONTENTS (0x01<<24)
 #define  WHARF_ALIGN_CONTENTS   (0x01<<25)
 #define  WHARF_BEVEL            (0x01<<26)
+#define  WHARF_COMPOSITION_METHOD (0x01<<27)
 
 
 typedef struct
@@ -943,6 +992,7 @@ typedef struct
 
     FreeStorageElem *more_stuff;
 
+    int composition_method ;
 }
 WharfConfig;
 
@@ -1333,4 +1383,4 @@ int WriteAutoExecOptions (const char *filename, char *myname,  AutoExecConfig * 
 /***************************************************************************/
 
 
-#endif /* CONF_DEFS_H_FILE_INCLUDED */
+#endif /* AFTERCONF_H_FILE_INCLUDED */

@@ -487,7 +487,7 @@ static merge_scanlines_func mystyle_merge_scanlines_func_xref[] = {
 merge_scanlines_func
 mystyle_translate_texture_type( int texture_type )
 {
-    register int index = 0 ;
+    register int index = 1 ;                   /* default is alphablending */
     if (texture_type >= TEXTURE_SCALED_TRANSPIXMAP &&
         texture_type < TEXTURE_SCALED_TRANSPIXMAP_END)
         index = texture_type - TEXTURE_SCALED_TRANSPIXMAP;

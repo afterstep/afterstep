@@ -45,7 +45,7 @@ set_active_balloon_look()
         int pointer_x, pointer_y ;
         int dl, dr, du, dd ;
         set_astbar_style_ptr( BalloonState.active_bar, BAR_STATE_UNFOCUSED, BalloonState.look.style );
-        set_astbar_hilite( BalloonState.active_bar, BalloonState.look.border_hilite );
+        set_astbar_hilite( BalloonState.active_bar, BAR_STATE_UNFOCUSED, BalloonState.look.border_hilite );
         width = calculate_astbar_width( BalloonState.active_bar );
         if( width > Scr.MyDisplayWidth )
             width = Scr.MyDisplayWidth ;

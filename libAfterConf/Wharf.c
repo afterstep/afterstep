@@ -95,6 +95,7 @@ TermDef       WharfTerms[] = {
     {0, "ShapeToContents", 15,  TT_FLAG, WHARF_ShapeToContents_ID, NULL},
     {0, "AlignContents", 13,    TT_UINTEGER, WHARF_AlignContents_ID, &AlignSyntax},
     {0, "Bevel", 5, TT_UINTEGER, WHARF_Bevel_ID, &BevelSyntax},
+    {0, "CompositionMethod", 17,TT_INTEGER, WHARF_CompositionMethod_ID, NULL},
 
 
 /* now special cases that should be processed by it's own handlers */
@@ -187,6 +188,8 @@ CreateWharfConfig ()
         config->align_contents = ALIGN_CENTER ;
 
 	config->more_stuff = NULL;
+
+    config->composition_method = TEXTURE_TRANSPIXMAP_ALPHA ;
 
 	return config;
 }
@@ -653,6 +656,10 @@ SHOW_CHECKPOINT;
              set_flags (config->set_flags, WHARF_BEVEL);
 			 clear_flags( config->flags, WHARF_NO_BORDER );
              config->bevel = ParseBevelOptions( pCurr->sub );
+             break ;
+         case WHARF_CompositionMethod_ID :
+             set_flags (config->set_flags, WHARF_COMPOSITION_METHOD);
+             config->composition_method = item.data.integer;
              break ;
          case MYSTYLE_START_ID:
 			 styles_tail = ProcessMyStyleOptions (pCurr->sub, styles_tail);

@@ -889,7 +889,9 @@ redecorate_pager_desks()
                 d->title = create_astbar();
                 d->title->context = C_TITLE ;
             }
-            set_astbar_hilite( d->title, NORMAL_HILITE|NO_HILITE_OUTLINE);
+            set_astbar_hilite( d->title, BAR_STATE_UNFOCUSED, NORMAL_HILITE|NO_HILITE_OUTLINE);
+            set_astbar_hilite( d->title, BAR_STATE_FOCUSED, NORMAL_HILITE);
+
             set_astbar_style_ptr( d->title, BAR_STATE_FOCUSED, Config->MSDeskTitle[DESK_ACTIVE] );
             set_astbar_style_ptr( d->title, BAR_STATE_UNFOCUSED, Config->MSDeskTitle[DESK_INACTIVE] );
             /* delete label if it was previously created : */
@@ -1320,7 +1322,8 @@ void add_client( ASWindowData *wd )
     add_desk_client( d, wd );
     register_client( wd );
 
-    set_astbar_hilite( wd->bar, NORMAL_HILITE|NO_HILITE_OUTLINE );
+    set_astbar_hilite( wd->bar, BAR_STATE_UNFOCUSED, NORMAL_HILITE|NO_HILITE_OUTLINE );
+    set_astbar_hilite( wd->bar, BAR_STATE_FOCUSED, NORMAL_HILITE|NO_HILITE_OUTLINE );
     add_astbar_label( wd->bar, 0, 0, 0, NO_ALIGN, NULL );
     move_astbar( wd->bar, wd->canvas, 0, 0 );
     if( wd->focused )

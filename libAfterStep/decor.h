@@ -161,11 +161,6 @@ typedef struct ASTBarData {
 #define BAR_FLAGS_VERTICAL      (0x01<<17)     /* vertical label */
 #define BAR_FLAGS_IMAGE_BACK    (0x01<<18)     /* back represents an icon instead of  */
 
-#define BAR_FLAGS_HILITE_OFFSET 24
-#define BAR_FLAGS_HILITE_MASK   (HILITE_MASK<<BAR_FLAGS_HILITE_OFFSET)
-#define BAR_FLAGS2HILITE(f)     (((f)&BAR_FLAGS_HILITE_MASK)>>BAR_FLAGS_HILITE_OFFSET)
-#define HILITE2BAR_FLAGS(h)     (((h)<<BAR_FLAGS_HILITE_OFFSET)&BAR_FLAGS_HILITE_MASK)
-
     ASFlagType  state ;
     unsigned long context ;
     short win_x, win_y ;
@@ -188,10 +183,8 @@ typedef struct ASTBarData {
     /* 56 bytes */
     struct ASBalloon *balloon;
     /* 60 bytes */
-    unsigned char composition_method ;
-    /* 61 byte */
-    char padding_unused;                        /* could be used for future extensions */
-    short padding_unused2;                        /* could be used for future extensions */
+    unsigned char composition_method[2] ;         /* focused/unfocused may have different composition methods */
+    unsigned char hilite[2] ;
     /* 64 bytes */
 }ASTBarData ;
 
@@ -261,8 +254,8 @@ unsigned int calculate_astbar_width( ASTBarData *tbar );
 
 
 Bool set_astbar_size( ASTBarData *tbar, unsigned int width, unsigned int height );
-Bool set_astbar_hilite( ASTBarData *tbar, ASFlagType hilite );
-Bool set_astbar_composition_method( ASTBarData *tbar, unsigned char method );
+Bool set_astbar_hilite( ASTBarData *tbar, unsigned int state, ASFlagType hilite );
+Bool set_astbar_composition_method( ASTBarData *tbar, unsigned int state, unsigned char method );
 Bool set_astbar_style_ptr (ASTBarData * tbar, unsigned int state, struct MyStyle *style);
 Bool set_astbar_style( ASTBarData *tbar, unsigned int state, const char *style_name );
 

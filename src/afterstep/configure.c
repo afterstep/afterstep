@@ -277,6 +277,9 @@ struct config main_config[] = {
     {"MenuTitleStyle", mystyle_parse_set_style, (char **)&Scr.Look.MSMenu[MENU_BACK_TITLE], (int *)0},
     {"MenuHiliteStyle", mystyle_parse_set_style, (char **)&Scr.Look.MSMenu[MENU_BACK_HILITE], (int *)0},
     {"MenuStippleStyle", mystyle_parse_set_style, (char **)&Scr.Look.MSMenu[MENU_BACK_STIPPLE], (int *)0},
+    {"MenuItemCompositionMethod", SetInts, (char **)&Scr.Look.menu_icm, &dummy},
+    {"MenuHiliteCompositionMethod", SetInts, (char **)&Scr.Look.menu_hcm, &dummy},
+    {"MenuStippleCompositionMethod", SetInts, (char **)&Scr.Look.menu_scm, &dummy},
     {"ShadeAnimationSteps", SetInts, (char **)&Scr.Feel.ShadeAnimationSteps, (int *)&dummy},
     {"TitleButtonBalloonBorderHilite", bevel_parse, (char**)"afterstep", (int*)&(BalloonConfig.border_hilite)},
     {"TitleButtonBalloonXOffset", SetInts, (char**)&(BalloonConfig.x_offset), NULL},
@@ -744,8 +747,12 @@ MyFrame *add_myframe_from_def( ASHashTable *list, MyFrameDefinition *fd, ASFlagT
             frame->part_width[i] = fd->part_width[i];
             frame->part_length[i] = fd->part_length[i];
         }
-        if( get_flags( fd->set_part_bevel, 0x01<<i ) )
-            frame->part_bevel[i] = fd->part_bevel[i];
+        if( IsPartFBevelSet(frame,i) )
+            frame->part_fbevel[i] = fd->part_fbevel[i];
+        if( IsPartUBevelSet(frame,i) )
+            frame->part_ubevel[i] = fd->part_ubevel[i];
+        if( IsPartSBevelSet(frame,i) )
+            frame->part_sbevel[i] = fd->part_sbevel[i];
         if( get_flags( fd->set_part_align, 0x01<<i ) )
             frame->part_align[i] = fd->part_align[i];
     }
@@ -768,12 +775,23 @@ MyFrame *add_myframe_from_def( ASHashTable *list, MyFrameDefinition *fd, ASFlagT
         if( fd->frame_styles[i] )
             set_string_value(&(frame->frame_style_names[i]), mystrdup(fd->frame_styles[i]), NULL, 0 );
     }
-    if( get_flags( fd->set_title_attr, MYFRAME_TitleBevelSet ) )
-        frame->title_bevel = fd->title_bevel;
+    if( get_flags( fd->set_title_attr, MYFRAME_TitleFBevelSet ) )
+        frame->title_fbevel = fd->title_fbevel;
+    if( get_flags( fd->set_title_attr, MYFRAME_TitleUBevelSet ) )
+        frame->title_ubevel = fd->title_ubevel;
+    if( get_flags( fd->set_title_attr, MYFRAME_TitleSBevelSet ) )
+        frame->title_sbevel = fd->title_sbevel;
     if( get_flags( fd->set_title_attr, MYFRAME_TitleAlignSet ) )
         frame->title_align = fd->title_align;
     if( get_flags( fd->set_title_attr, MYFRAME_TitleBackAlignSet ) )
         frame->title_back_align = fd->title_back_align;
+    if( get_flags( fd->set_title_attr, MYFRAME_TitleFCMSet ) )
+        frame->title_fcm = fd->title_fcm;
+    if( get_flags( fd->set_title_attr, MYFRAME_TitleUCMSet ) )
+        frame->title_ucm = fd->title_ucm;
+    if( get_flags( fd->set_title_attr, MYFRAME_TitleSCMSet ) )
+        frame->title_scm = fd->title_scm;
+
     frame->set_title_attr |= fd->set_title_attr ;
 
     if( fd->title_back )
@@ -788,8 +806,12 @@ MyFrame *add_myframe_from_def( ASHashTable *list, MyFrameDefinition *fd, ASFlagT
 
     /* wee need to make sure that frame has such a
      * neccessary attributes as title align and title bevel : */
-    if( !get_flags(frame->set_title_attr, MYFRAME_TitleBevelSet ) )
-        frame->title_bevel = DEFAULT_TBAR_HILITE;
+    if( !get_flags(frame->set_title_attr, MYFRAME_TitleFBevelSet ) )
+        frame->title_fbevel = DEFAULT_TBAR_HILITE;
+    if( !get_flags(frame->set_title_attr, MYFRAME_TitleUBevelSet ) )
+        frame->title_ubevel = DEFAULT_TBAR_HILITE;
+    if( !get_flags(frame->set_title_attr, MYFRAME_TitleSBevelSet ) )
+        frame->title_sbevel = DEFAULT_TBAR_HILITE;
     if( !get_flags(frame->set_title_attr, MYFRAME_TitleAlignSet ) )
         frame->title_align = default_title_align;
     set_flags( frame->set_title_attr, MYFRAME_TitleBevelSet|MYFRAME_TitleAlignSet );

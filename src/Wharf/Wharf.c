@@ -298,6 +298,9 @@ CheckConfigSanity()
         }
     }
 
+    if( Config->composition_method == 0 )
+        Config->composition_method = TEXTURE_TRANSPIXMAP_ALPHA;
+
     WharfState.shaped_style = False ;
     if( Scr.Look.MSWindow[BACK_UNFOCUSED]->texture_type >= TEXTURE_TEXTURED_START &&
         Scr.Look.MSWindow[BACK_UNFOCUSED]->texture_type <= TEXTURE_SHAPED_PIXMAP  )
@@ -383,6 +386,9 @@ SHOW_CHECKPOINT;
 		if( !get_flags( config->set_flags, WHARF_NO_BORDER ) )
 			clear_flags( Config->set_flags, WHARF_NO_BORDER );
 	}
+
+    if( get_flags( config->set_flags, WHARF_COMPOSITION_METHOD ) )
+        Config->composition_method = config->composition_method;
 
 //LOCAL_DEBUG_OUT( "align_contents = %d", Config->align_contents );
     if( get_flags( config->set_flags, WHARF_SOUND ) )
@@ -709,6 +715,8 @@ build_wharf_button_tbar(WharfButton *wb)
         }
     }
 
+    set_astbar_composition_method( bar, BAR_STATE_UNFOCUSED, Config->composition_method );
+
     if( get_flags( Config->flags, WHARF_SHOW_LABEL ) && wb->title )
         add_astbar_label( bar, label_col, label_row, label_flip, label_align, wb->title );
 
@@ -718,9 +726,9 @@ build_wharf_button_tbar(WharfButton *wb)
     if( !get_flags( Config->flags, WHARF_NO_BORDER ) )
 	{
 		if( get_flags( Config->flags, WHARF_BEVEL ) )
-			set_astbar_hilite( bar, Config->bevel );
+            set_astbar_hilite( bar, BAR_STATE_UNFOCUSED, Config->bevel );
 		else
-        	set_astbar_hilite( bar, RIGHT_HILITE|BOTTOM_HILITE );
+            set_astbar_hilite( bar, BAR_STATE_UNFOCUSED, RIGHT_HILITE|BOTTOM_HILITE );
 	}
     return bar;
 }

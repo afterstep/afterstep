@@ -128,21 +128,52 @@ TermDef       MyFrameTerms[] = {
     {TF_NO_MYNAME_PREPENDING|TF_DIRECTION_INDEXED, "Corner", 6,          TT_OPTIONAL_PATHNAME,    MYFRAME_Corner_ID, NULL},
     {TF_NO_MYNAME_PREPENDING|TF_DIRECTION_INDEXED, "NoCorner", 8,        TT_FLAG,    MYFRAME_NoCorner_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "TitleUnfocusedStyle", 19,TT_QUOTED_TEXT,  MYFRAME_TitleUnfocusedStyle_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "TitleUStyle", 11,        TT_QUOTED_TEXT,  MYFRAME_TitleUnfocusedStyle_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "TitleFocusedStyle", 17,  TT_QUOTED_TEXT,  MYFRAME_TitleFocusedStyle_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "TitleFStyle", 11,        TT_QUOTED_TEXT,  MYFRAME_TitleFocusedStyle_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "TitleStickyStyle", 16,   TT_QUOTED_TEXT,  MYFRAME_TitleStickyStyle_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "TitleSStyle", 11,        TT_QUOTED_TEXT,  MYFRAME_TitleStickyStyle_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "FrameUnfocusedStyle", 19,TT_QUOTED_TEXT,  MYFRAME_FrameUnfocusedStyle_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "FrameUStyle", 11,        TT_QUOTED_TEXT,  MYFRAME_FrameUnfocusedStyle_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "FrameFocusedStyle", 17,  TT_QUOTED_TEXT,  MYFRAME_FrameFocusedStyle_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "FrameFStyle", 11,        TT_QUOTED_TEXT,  MYFRAME_FrameFocusedStyle_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "FrameStickyStyle", 16,   TT_QUOTED_TEXT,  MYFRAME_FrameStickyStyle_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "FrameSStyle", 11,        TT_QUOTED_TEXT,  MYFRAME_FrameStickyStyle_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "TitleBackground", 15,    TT_FILENAME,     MYFRAME_TitleBackground_ID, NULL},
     {TF_NO_MYNAME_PREPENDING|TF_DIRECTION_INDEXED, "SideSize", 8,        TT_GEOMETRY,MYFRAME_SideSize_ID, NULL},
     {TF_NO_MYNAME_PREPENDING|TF_DIRECTION_INDEXED|TF_NAMED_SUBCONFIG, "SideAlign", 9,       TT_FLAG,    MYFRAME_SideAlign_ID, &AlignSyntax},
     {TF_NO_MYNAME_PREPENDING|TF_DIRECTION_INDEXED|TF_NAMED_SUBCONFIG, "SideBevel", 9,       TT_FLAG,    MYFRAME_SideBevel_ID, &BevelSyntax},
+    {TF_NO_MYNAME_PREPENDING|TF_DIRECTION_INDEXED|TF_NAMED_SUBCONFIG, "SideFBevel", 10,       TT_FLAG,    MYFRAME_SideFBevel_ID, &BevelSyntax},
+    {TF_NO_MYNAME_PREPENDING|TF_DIRECTION_INDEXED|TF_NAMED_SUBCONFIG, "SideUBevel", 10,       TT_FLAG,    MYFRAME_SideUBevel_ID, &BevelSyntax},
+    {TF_NO_MYNAME_PREPENDING|TF_DIRECTION_INDEXED|TF_NAMED_SUBCONFIG, "SideSBevel", 10,       TT_FLAG,    MYFRAME_SideSBevel_ID, &BevelSyntax},
+    {TF_NO_MYNAME_PREPENDING|TF_DIRECTION_INDEXED|TF_NAMED_SUBCONFIG, "SideFocusedBevel", 16,      TT_FLAG,    MYFRAME_SideFBevel_ID, &BevelSyntax},
+    {TF_NO_MYNAME_PREPENDING|TF_DIRECTION_INDEXED|TF_NAMED_SUBCONFIG, "SideUnfocusedBevel", 18,    TT_FLAG,    MYFRAME_SideUBevel_ID, &BevelSyntax},
+    {TF_NO_MYNAME_PREPENDING|TF_DIRECTION_INDEXED|TF_NAMED_SUBCONFIG, "SideStickyBevel", 15,       TT_FLAG,    MYFRAME_SideSBevel_ID, &BevelSyntax},
     {TF_NO_MYNAME_PREPENDING|TF_DIRECTION_INDEXED, "CornerSize", 10,     TT_GEOMETRY,MYFRAME_CornerSize_ID, NULL},
     {TF_NO_MYNAME_PREPENDING|TF_DIRECTION_INDEXED|TF_NAMED_SUBCONFIG, "CornerAlign", 11,    TT_FLAG,    MYFRAME_CornerAlign_ID, &AlignSyntax},
     {TF_NO_MYNAME_PREPENDING|TF_DIRECTION_INDEXED|TF_NAMED_SUBCONFIG, "CornerBevel", 11,    TT_FLAG,    MYFRAME_CornerBevel_ID, &BevelSyntax},
+    {TF_NO_MYNAME_PREPENDING|TF_DIRECTION_INDEXED|TF_NAMED_SUBCONFIG, "CornerFBevel", 12,    TT_FLAG,    MYFRAME_CornerFBevel_ID, &BevelSyntax},
+    {TF_NO_MYNAME_PREPENDING|TF_DIRECTION_INDEXED|TF_NAMED_SUBCONFIG, "CornerUBevel", 12,    TT_FLAG,    MYFRAME_CornerUBevel_ID, &BevelSyntax},
+    {TF_NO_MYNAME_PREPENDING|TF_DIRECTION_INDEXED|TF_NAMED_SUBCONFIG, "CornerSBevel", 12,    TT_FLAG,    MYFRAME_CornerSBevel_ID, &BevelSyntax},
+    {TF_NO_MYNAME_PREPENDING|TF_DIRECTION_INDEXED|TF_NAMED_SUBCONFIG, "CornerFocusedBevel", 18,   TT_FLAG,    MYFRAME_CornerFBevel_ID, &BevelSyntax},
+    {TF_NO_MYNAME_PREPENDING|TF_DIRECTION_INDEXED|TF_NAMED_SUBCONFIG, "CornerUnfocusedBevel", 20, TT_FLAG,    MYFRAME_CornerUBevel_ID, &BevelSyntax},
+    {TF_NO_MYNAME_PREPENDING|TF_DIRECTION_INDEXED|TF_NAMED_SUBCONFIG, "CornerStickyBevel", 17,    TT_FLAG,    MYFRAME_CornerSBevel_ID, &BevelSyntax},
     {TF_NO_MYNAME_PREPENDING, "TitleBevel", 10,         TT_FLAG,         MYFRAME_TitleBevel_ID, &BevelSyntax},
+    {TF_NO_MYNAME_PREPENDING, "TitleFBevel", 11,         TT_FLAG,         MYFRAME_TitleFBevel_ID, &BevelSyntax},
+    {TF_NO_MYNAME_PREPENDING, "TitleUBevel", 11,         TT_FLAG,         MYFRAME_TitleUBevel_ID, &BevelSyntax},
+    {TF_NO_MYNAME_PREPENDING, "TitleSBevel", 11,         TT_FLAG,         MYFRAME_TitleSBevel_ID, &BevelSyntax},
+    {TF_NO_MYNAME_PREPENDING, "TitleFocusedBevel", 17,   TT_FLAG,         MYFRAME_TitleFBevel_ID, &BevelSyntax},
+    {TF_NO_MYNAME_PREPENDING, "TitleUnfocusedBevel", 19, TT_FLAG,         MYFRAME_TitleUBevel_ID, &BevelSyntax},
+    {TF_NO_MYNAME_PREPENDING, "TitleStickyBevel", 16,    TT_FLAG,         MYFRAME_TitleSBevel_ID, &BevelSyntax},
     {TF_NO_MYNAME_PREPENDING, "TitleAlign", 10,         TT_FLAG,         MYFRAME_TitleAlign_ID, &AlignSyntax},
     {TF_NO_MYNAME_PREPENDING, "TitleBackgroundAlign", 20,TT_FLAG,        MYFRAME_TitleBackgroundAlign_ID, &AlignSyntax},
+    {TF_NO_MYNAME_PREPENDING, "TitleCompositionMethod", 22, TT_UINTEGER,    MYFRAME_TitleCM_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "TitleFCompositionMethod", 22, TT_UINTEGER,    MYFRAME_TitleFCM_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "TitleUCompositionMethod", 22, TT_UINTEGER,    MYFRAME_TitleUCM_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "TitleSCompositionMethod", 22, TT_UINTEGER,    MYFRAME_TitleSCM_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "TitleFocusedCompositionMethod", 28, TT_UINTEGER,   MYFRAME_TitleFCM_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "TitleUnfocusedCompositionMethod", 30, TT_UINTEGER,  MYFRAME_TitleUCM_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "TitleStickyCompositionMethod", 27, TT_UINTEGER,    MYFRAME_TitleSCM_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "Inherit", 7, TT_QUOTED_TEXT,              MYFRAME_Inherit_ID, NULL},
     {TF_NO_MYNAME_PREPENDING | TF_SYNTAX_TERMINATOR, "~MyFrame", 8, TT_FLAG, MYFRAME_DONE_ID, NULL},
 	{0, NULL, 0, 0, 0}
@@ -407,13 +438,20 @@ PrintMyFrameDefinitions (MyFrameDefinition * list, int index)
         {
             fprintf (stderr, "MyFrame[%d].Part[%d].width = %d;\n", index, i, list->part_width[i]);
             fprintf (stderr, "MyFrame[%d].Part[%d].length = %d;\n", index, i, list->part_length[i]);
-            fprintf (stderr, "MyFrame[%d].Part[%d].bevel = 0x%lX;\n", index, i, list->part_bevel[i]);
+            fprintf (stderr, "MyFrame[%d].Part[%d].fbevel = 0x%lX;\n", index, i, list->part_fbevel[i]);
+            fprintf (stderr, "MyFrame[%d].Part[%d].ubevel = 0x%lX;\n", index, i, list->part_ubevel[i]);
+            fprintf (stderr, "MyFrame[%d].Part[%d].sbevel = 0x%lX;\n", index, i, list->part_sbevel[i]);
             fprintf (stderr, "MyFrame[%d].Part[%d].align = 0x%lX;\n", index, i, list->part_align[i]);
         }
         fprintf (stderr, "MyFrame[%d].set_title_attr = 0x%lX;\n", index, list->set_title_attr);
-        fprintf (stderr, "MyFrame[%d].title_bevel = 0x%lX;\n", index, list->title_bevel);
+        fprintf (stderr, "MyFrame[%d].title_fbevel = 0x%lX;\n", index, list->title_fbevel);
+        fprintf (stderr, "MyFrame[%d].title_ubevel = 0x%lX;\n", index, list->title_ubevel);
+        fprintf (stderr, "MyFrame[%d].title_sbevel = 0x%lX;\n", index, list->title_sbevel);
         fprintf (stderr, "MyFrame[%d].title_align = 0x%lX;\n", index, list->title_align);
         fprintf (stderr, "MyFrame[%d].title_back_align = 0x%lX;\n", index, list->title_back_align);
+        fprintf (stderr, "MyFrame[%d].title_fcm = %d;\n", index, list->title_fcm);
+        fprintf (stderr, "MyFrame[%d].title_ucm = %d;\n", index, list->title_ucm);
+        fprintf (stderr, "MyFrame[%d].title_scm = %d;\n", index, list->title_scm);
         if( list->inheritance_list )
             for( i = 0 ; i < list->inheritance_num ; ++i )
                 fprintf (stderr, "MyFrame[%d].Inherit[%d] = \"%s\";\n", index, i, list->inheritance_list[i]);
@@ -525,7 +563,21 @@ ProcessMyFrameOptions (FreeStorageElem * options, MyFrameDefinition ** tail)
                 switch( options->term->id )
                 {
                     case MYFRAME_TitleBevel_ID :
-                        fd->title_bevel = ParseBevelOptions( options->sub );
+                        fd->title_fbevel = ParseBevelOptions( options->sub );
+                        fd->title_ubevel = fd->title_fbevel ;
+                        fd->title_sbevel = fd->title_fbevel ;
+                        set_flags( fd->set_title_attr, MYFRAME_TitleBevelSet );
+                        break;
+                    case MYFRAME_TitleFBevel_ID :
+                        fd->title_fbevel = ParseBevelOptions( options->sub );
+                        set_flags( fd->set_title_attr, MYFRAME_TitleBevelSet );
+                        break;
+                    case MYFRAME_TitleUBevel_ID :
+                        fd->title_ubevel = ParseBevelOptions( options->sub );
+                        set_flags( fd->set_title_attr, MYFRAME_TitleBevelSet );
+                        break;
+                    case MYFRAME_TitleSBevel_ID :
+                        fd->title_sbevel = ParseBevelOptions( options->sub );
                         set_flags( fd->set_title_attr, MYFRAME_TitleBevelSet );
                         break;
                     case MYFRAME_TitleAlign_ID :
@@ -559,8 +611,27 @@ ProcessMyFrameOptions (FreeStorageElem * options, MyFrameDefinition ** tail)
                                 break;
                             case MYFRAME_SideBevel_ID :
                             case MYFRAME_CornerBevel_ID :
-                                fd->part_bevel[item.index] = ParseBevelOptions( options->sub );
-                                set_flags( fd->set_part_bevel, 0x01<<item.index );
+                                fd->part_fbevel[item.index] = ParseBevelOptions( options->sub );
+                                fd->part_ubevel[item.index] = fd->part_fbevel[item.index];
+                                fd->part_sbevel[item.index] = fd->part_fbevel[item.index];
+                                SetPartFBevelSet(fd,item.index );
+                                SetPartUBevelSet(fd,item.index );
+                                SetPartSBevelSet(fd,item.index );
+                                break;
+                            case MYFRAME_SideFBevel_ID :
+                            case MYFRAME_CornerFBevel_ID :
+                                fd->part_fbevel[item.index] = ParseBevelOptions( options->sub );
+                                SetPartFBevelSet(fd,item.index );
+                                break;
+                            case MYFRAME_SideUBevel_ID :
+                            case MYFRAME_CornerUBevel_ID :
+                                fd->part_ubevel[item.index] = ParseBevelOptions( options->sub );
+                                SetPartUBevelSet(fd,item.index );
+                                break;
+                            case MYFRAME_SideSBevel_ID :
+                            case MYFRAME_CornerSBevel_ID :
+                                fd->part_sbevel[item.index] = ParseBevelOptions( options->sub );
+                                SetPartSBevelSet(fd,item.index );
                                 break;
                             default:
                                 show_warning( "Unexpected MyFrame definition keyword \"%s\" . Ignoring.", options->term->keyword );
@@ -641,6 +712,25 @@ ProcessMyFrameOptions (FreeStorageElem * options, MyFrameDefinition ** tail)
                         fd->part_length[rel_id] = 0 ;
                     set_flags( fd->set_part_size, (0x01<<rel_id));
                     break;
+                case MYFRAME_TitleCM_ID :
+                    fd->title_fcm = item.data.integer;
+                    fd->title_ucm = item.data.integer;
+                    fd->title_scm = item.data.integer;
+                    set_flags( fd->set_title_attr, MYFRAME_TitleCMSet );
+                    break;
+                case MYFRAME_TitleFCM_ID :
+                    fd->title_fcm = item.data.integer;
+                    set_flags( fd->set_title_attr, MYFRAME_TitleFCMSet );
+                    break;
+                case MYFRAME_TitleUCM_ID :
+                    fd->title_ucm = item.data.integer;
+                    set_flags( fd->set_title_attr, MYFRAME_TitleUCMSet );
+                    break;
+                case MYFRAME_TitleSCM_ID :
+                    fd->title_scm = item.data.integer;
+                    set_flags( fd->set_title_attr, MYFRAME_TitleSCMSet );
+                    break;
+
                 case MYFRAME_Inherit_ID :
                     {
                         fd->inheritance_list = realloc( fd->inheritance_list, (fd->inheritance_num+1)*sizeof(char*));

@@ -118,6 +118,18 @@ typedef struct MyDesktopConfig
 	char *layout_name ;
 }MyDesktopConfig;
 
+#define FR_N_Mask           (0x01<<FR_N)
+#define FR_E_Mask           (0x01<<FR_E)
+#define FR_S_Mask           (0x01<<FR_S)
+#define FR_W_Mask           (0x01<<FR_W)
+#define FR_NE_Mask          (0x01<<FR_NE)
+#define FR_NW_Mask          (0x01<<FR_NW)
+#define FR_SE_Mask          (0x01<<FR_SE)
+#define FR_SW_Mask          (0x01<<FR_SW)
+#define FRAME_PARTS_MASK    (FR_N_Mask|FR_E_Mask|FR_S_Mask|FR_W_Mask| \
+                             FR_NE_Mask|FR_NW_Mask|FR_SE_Mask|FR_SW_Mask)
+
+
 typedef struct MyFrame
 {
     unsigned long magic ;
@@ -134,15 +146,38 @@ typedef struct MyFrame
     unsigned int part_width[FRAME_PARTS];
     unsigned int part_length[FRAME_PARTS];
     ASFlagType   set_part_bevel ;
-    ASFlagType   part_bevel[FRAME_PARTS];
+/* this must not be inline functions !!!! */
+#define SetPartFBevelMask(frame,mask)  ((frame)->set_part_bevel |= (mask))
+#define SetPartUBevelMask(frame,mask)  ((frame)->set_part_bevel |= ((mask)<<FRAME_PARTS))
+#define SetPartSBevelMask(frame,mask)  ((frame)->set_part_bevel |= ((mask)<<(FRAME_PARTS+FRAME_PARTS)))
+
+#define SetPartFBevelSet(frame,part)  ((frame)->set_part_bevel |= (0x01<<(part)))
+#define SetPartUBevelSet(frame,part)  ((frame)->set_part_bevel |= ((0x01<<FRAME_PARTS)<<(part)))
+#define SetPartSBevelSet(frame,part)  ((frame)->set_part_bevel |= ((0x01<<(FRAME_PARTS+FRAME_PARTS))<<(part)))
+
+#define IsPartFBevelSet(frame,part)  ((frame)->set_part_bevel&(0x01<<(part)))
+#define IsPartUBevelSet(frame,part)  ((frame)->set_part_bevel&((0x01<<FRAME_PARTS)<<(part)))
+#define IsPartSBevelSet(frame,part)  ((frame)->set_part_bevel&((0x01<<(FRAME_PARTS+FRAME_PARTS))<<(part)))
+    ASFlagType   part_fbevel[FRAME_PARTS];
+    ASFlagType   part_ubevel[FRAME_PARTS];
+    ASFlagType   part_sbevel[FRAME_PARTS];
     ASFlagType   set_part_align ;
     ASFlagType   part_align[FRAME_PARTS];
     ASFlagType   set_title_attr ;
-#define MYFRAME_TitleBevelSet       (0x01<<0)
-#define MYFRAME_TitleAlignSet       (0x01<<1)
-#define MYFRAME_TitleBackAlignSet   (0x01<<2)
-    ASFlagType   title_bevel;
+#define MYFRAME_TitleFBevelSet      (0x01<<1)
+#define MYFRAME_TitleUBevelSet      (0x01<<2)
+#define MYFRAME_TitleSBevelSet      (0x01<<3)
+#define MYFRAME_TitleBevelSet       (MYFRAME_TitleFBevelSet|MYFRAME_TitleUBevelSet|MYFRAME_TitleSBevelSet)
+#define MYFRAME_TitleAlignSet       (0x01<<4)
+#define MYFRAME_TitleBackAlignSet   (0x01<<5)
+#define MYFRAME_TitleFCMSet         (0x01<<6)
+#define MYFRAME_TitleUCMSet         (0x01<<7)
+#define MYFRAME_TitleSCMSet         (0x01<<8)
+#define MYFRAME_TitleCMSet          (MYFRAME_TitleFCMSet|MYFRAME_TitleUCMSet|MYFRAME_TitleSCMSet)
+    ASFlagType   title_fbevel, title_ubevel, title_sbevel;
     ASFlagType   title_align, title_back_align;
+    unsigned int title_fcm, title_ucm, title_scm ;
+
 #define MYFRAME_HOR_MASK    ((0x01<<FR_N)|(0x01<<FR_S))
 #define MYFRAME_VERT_MASK   ((0x01<<FR_W)|(0x01<<FR_E))
 #define IsSideVertical(side)  ((side) == FR_W || (side)== FR_E)
@@ -199,11 +234,15 @@ typedef struct MyLook
     MyButton    buttons[TITLE_BUTTONS];
 
     /* Menu parameters */
-#define DRAW_MENU_BORDERS_NONE      0
-#define DRAW_MENU_BORDERS_ITEM      1
-#define DRAW_MENU_BORDERS_OVERALL   2
+#define DRAW_MENU_BORDERS_NONE          0
+#define DRAW_MENU_BORDERS_ITEM          1
+#define DRAW_MENU_BORDERS_OVERALL       2
+#define DRAW_MENU_BORDERS_FOCUSED_ITEM  3
+#define DRAW_MENU_BORDERS_O_AND_F       4
+
     int DrawMenuBorders;
     int StartMenuSortMode;
+    int menu_hcm, menu_icm, menu_scm;                    /* composition methods */
 
     /* Icons parameters */
     ASGeometry *configured_icon_areas ;

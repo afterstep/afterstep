@@ -47,6 +47,17 @@ TermDef       WinListTerms[] = {
     {0, "UseName", 7, TT_INTEGER, WINLIST_UseName_ID, NULL},
     {0, "Align", 5, TT_FLAG, WINLIST_Align_ID, &AlignSyntax},
     {0, "Bevel", 5, TT_FLAG, WINLIST_Bevel_ID, &BevelSyntax},
+    {0, "FBevel", 6, TT_FLAG, WINLIST_FBevel_ID, &BevelSyntax},
+    {0, "UBevel", 6, TT_FLAG, WINLIST_UBevel_ID, &BevelSyntax},
+    {0, "SBevel", 6, TT_FLAG, WINLIST_SBevel_ID, &BevelSyntax},
+    {0, "FocusedBevel", 12, TT_FLAG, WINLIST_FBevel_ID, &BevelSyntax},
+    {0, "StickyBevel", 10, TT_FLAG, WINLIST_SBevel_ID, &BevelSyntax},
+    {0, "UnfocusedBevel", 14, TT_FLAG, WINLIST_UBevel_ID, &BevelSyntax},
+    {0, "CompositionMethod", 17, TT_UINTEGER, WINLIST_CM_ID, &BevelSyntax},
+    {0, "FCompositionMethod", 18, TT_UINTEGER, WINLIST_FCM_ID, &BevelSyntax},
+    {0, "UCompositionMethod", 18, TT_UINTEGER, WINLIST_UCM_ID, &BevelSyntax},
+    {0, "SCompositionMethod", 18, TT_UINTEGER, WINLIST_SCM_ID, &BevelSyntax},
+
     {TF_DONT_SPLIT, "Action", 6, TT_TEXT, WINLIST_Action_ID, NULL},
     {0, "UnfocusedStyle", 14, TT_TEXT, WINLIST_UnfocusedStyle_ID, NULL},
     {0, "FocusedStyle", 12, TT_TEXT, WINLIST_FocusedStyle_ID, NULL},
@@ -140,7 +151,12 @@ PrintWinListConfig (WinListConfig * config)
 
 	fprintf (stderr, "WinListConfig.show_name_type = %d;\n", config->show_name_type);	/* 0, 1, 2, 3 */
     fprintf (stderr, "WinListConfig.name_aligment = %lX;\n", config->name_aligment);
-    fprintf (stderr, "WinListConfig.bevel = %lX;\n", config->bevel);
+    fprintf (stderr, "WinListConfig.fbevel = %lX;\n", config->fbevel);
+    fprintf (stderr, "WinListConfig.ubevel = %lX;\n", config->ubevel);
+    fprintf (stderr, "WinListConfig.sbevel = %lX;\n", config->sbevel);
+    fprintf (stderr, "WinListConfig.fcm = %d;\n", config->fcm);
+    fprintf (stderr, "WinListConfig.ucm = %d;\n", config->ucm);
+    fprintf (stderr, "WinListConfig.scm = %d;\n", config->scm);
 
 	fprintf (stderr, "WinListConfig.unfocused_style = %p;\n", config->unfocused_style);
 	if (config->unfocused_style)
@@ -224,7 +240,35 @@ ParseWinListOptions (const char *filename, char *myname)
                     break ;
                 case WINLIST_Bevel_ID :
                     set_flags( config->set_flags, WINLIST_Bevel );
-                    config->bevel = ParseBevelOptions( pCurr->sub );
+                    config->ubevel = config->sbevel = config->fbevel = ParseBevelOptions( pCurr->sub );
+                    break ;
+                case WINLIST_FBevel_ID :
+                    set_flags( config->set_flags, WINLIST_FBevel );
+                    config->fbevel = ParseBevelOptions( pCurr->sub );
+                    break ;
+                case WINLIST_UBevel_ID :
+                    set_flags( config->set_flags, WINLIST_UBevel );
+                    config->ubevel = ParseBevelOptions( pCurr->sub );
+                    break ;
+                case WINLIST_SBevel_ID :
+                    set_flags( config->set_flags, WINLIST_SBevel );
+                    config->sbevel = ParseBevelOptions( pCurr->sub );
+                    break ;
+                case WINLIST_CM_ID :
+                    set_flags( config->set_flags, WINLIST_CM );
+                    config->ucm = config->scm = config->fcm = ParseBevelOptions( pCurr->sub );
+                    break ;
+                case WINLIST_FCM_ID :
+                    set_flags( config->set_flags, WINLIST_FCM );
+                    config->fcm = ParseBevelOptions( pCurr->sub );
+                    break ;
+                case WINLIST_UCM_ID :
+                    set_flags( config->set_flags, WINLIST_UCM );
+                    config->ucm = ParseBevelOptions( pCurr->sub );
+                    break ;
+                case WINLIST_SCM_ID :
+                    set_flags( config->set_flags, WINLIST_SCM );
+                    config->scm = ParseBevelOptions( pCurr->sub );
                     break ;
                 case WINLIST_ShapeToContents_ID:
                     SET_CONFIG_FLAG (config->flags, config->set_flags, WINLIST_ShapeToContents);

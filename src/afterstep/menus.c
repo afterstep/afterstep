@@ -227,7 +227,7 @@ LOCAL_DEBUG_OUT( "item(\"%s\")->minipixmap(\"%s\")->icon(%p)", mdi->item, mdi->m
 static Bool
 set_asmenu_item_look( ASMenuItem *item, MyLook *look, unsigned int icon_space, unsigned int arrow_space )
 {
-    ASFlagType hilite = NO_HILITE ;
+    ASFlagType hilite = NO_HILITE, fhilite = NO_HILITE ;
 LOCAL_DEBUG_OUT( "item.bar(%p)->look(%p)", item->bar, look );
 
     if( item->bar == NULL )
@@ -266,7 +266,7 @@ LOCAL_DEBUG_OUT( "item.bar(%p)->look(%p)", item->bar, look );
         set_astbar_style_ptr( item->bar, BAR_STATE_FOCUSED, look->MSMenu[MENU_BACK_HILITE] );
     }
     if( look->DrawMenuBorders == DRAW_MENU_BORDERS_ITEM )
-        hilite = DEFAULT_MENU_HILITE;
+        fhilite = hilite = DEFAULT_MENU_HILITE;
     else if ( Scr.Look.DrawMenuBorders == DRAW_MENU_BORDERS_OVERALL )
     {
         hilite = NO_HILITE_OUTLINE|LEFT_HILITE|RIGHT_HILITE ;
@@ -274,9 +274,33 @@ LOCAL_DEBUG_OUT( "item.bar(%p)->look(%p)", item->bar, look );
             hilite |= TOP_HILITE ;
         if( get_flags( item->flags, AS_MenuItemLast ) )
             hilite |= BOTTOM_HILITE ;
+        fhilite = hilite ;
+    }else if( look->DrawMenuBorders == DRAW_MENU_BORDERS_FOCUSED_ITEM )
+        fhilite = DEFAULT_MENU_HILITE;
+    else if ( Scr.Look.DrawMenuBorders == DRAW_MENU_BORDERS_O_AND_F )
+    {
+        hilite = NO_HILITE_OUTLINE|LEFT_HILITE|RIGHT_HILITE ;
+        if( get_flags( item->flags, AS_MenuItemFirst ) )
+            hilite |= TOP_HILITE ;
+        if( get_flags( item->flags, AS_MenuItemLast ) )
+            hilite |= BOTTOM_HILITE ;
+        fhilite = DEFAULT_MENU_HILITE ;
     }
 
-    set_astbar_hilite( item->bar, hilite );
+    set_astbar_hilite( item->bar, BAR_STATE_UNFOCUSED, hilite );
+    set_astbar_hilite( item->bar, BAR_STATE_FOCUSED, fhilite );
+
+    if( get_flags( item->flags, AS_MenuItemDisabled ) )
+    {
+        set_astbar_composition_method( item->bar, BAR_STATE_UNFOCUSED, Scr.Look.menu_scm );
+        set_astbar_composition_method( item->bar, BAR_STATE_FOCUSED, Scr.Look.menu_scm );
+    }else
+    {
+        set_astbar_composition_method( item->bar, BAR_STATE_UNFOCUSED, Scr.Look.menu_icm );
+        set_astbar_composition_method( item->bar, BAR_STATE_FOCUSED, Scr.Look.menu_hcm );
+    }
+
+
     return True;
 }
 

@@ -1182,7 +1182,8 @@ create_astbar ()
     set_flags( tbar->state, BAR_FLAGS_REND_PENDING );
 	LOCAL_DEBUG_CALLER_OUT( "<<#########>>created tbar %p", tbar );
     tbar->rendered_root_x = tbar->rendered_root_y = 0xFFFF;
-    tbar->composition_method = TEXTURE_TRANSPIXMAP_ALPHA ;
+    tbar->composition_method[0] = TEXTURE_TRANSPIXMAP_ALPHA ;
+    tbar->composition_method[1] = TEXTURE_TRANSPIXMAP_ALPHA ;
 	return tbar;
 }
 
@@ -1349,7 +1350,7 @@ update_astbar_bevel_size (ASTBarData * tbar)
 	for (i = 0; i < BAR_STATE_NUM; ++i)
 		if (tbar->style[i])
 		{
-            mystyle_make_bevel (tbar->style[i], &bevel, BAR_FLAGS2HILITE(tbar->state), False);
+            mystyle_make_bevel (tbar->style[i], &bevel, tbar->hilite[i], False);
 			if (tbar->left_bevel < bevel.left_outline)
 				tbar->left_bevel = bevel.left_outline;
 			if (tbar->top_bevel < bevel.top_outline)
@@ -1362,13 +1363,13 @@ update_astbar_bevel_size (ASTBarData * tbar)
 }
 
 Bool
-set_astbar_hilite( ASTBarData *tbar, ASFlagType hilite )
+set_astbar_hilite( ASTBarData *tbar, unsigned int state, ASFlagType hilite )
 {
     Bool          changed = False;
-    if (tbar)
+    if (tbar && state < BAR_STATE_NUM)
 	{
-        changed = (BAR_FLAGS2HILITE(tbar->state) != (hilite&HILITE_MASK));
-        tbar->state = (tbar->state&(~BAR_FLAGS_HILITE_MASK))|HILITE2BAR_FLAGS(hilite);
+        changed = (tbar->hilite[state] != (hilite&HILITE_MASK));
+        tbar->hilite[state] = (hilite&HILITE_MASK);
         if (changed )
         {
             update_astbar_bevel_size (tbar);
@@ -1378,13 +1379,13 @@ set_astbar_hilite( ASTBarData *tbar, ASFlagType hilite )
 	return changed;
 }
 
-Bool set_astbar_composition_method( ASTBarData *tbar, unsigned char method )
+Bool set_astbar_composition_method( ASTBarData *tbar, unsigned int state, unsigned char method )
 {
     Bool          changed = False;
-    if (tbar)
+    if (tbar && state < BAR_STATE_NUM)
 	{
-        changed = (tbar->composition_method != method);
-        tbar->composition_method = method ;
+        changed = (tbar->composition_method[state] != method);
+        tbar->composition_method[state] = method ;
         if (changed )
             set_flags( tbar->state, BAR_FLAGS_REND_PENDING );
     }
@@ -1855,7 +1856,7 @@ LOCAL_DEBUG_OUT("back-try2(%p)", back );
 		if (back == NULL)
             return -1;
 	}
-    mystyle_make_bevel (style, &bevel, BAR_FLAGS2HILITE(tbar->state), get_flags (tbar->state, BAR_STATE_PRESSED_MASK));
+    mystyle_make_bevel (style, &bevel, tbar->hilite[state], get_flags (tbar->state, BAR_STATE_PRESSED_MASK));
     //mystyle_make_bevel (style, &bevel, 0, get_flags (tbar->state, BAR_STATE_PRESSED_MASK));
 	/* in unfocused and unpressed state we render pixmap and set
 	 * window's background to it
@@ -1989,7 +1990,7 @@ LOCAL_DEBUG_OUT("back-try2(%p)", back );
             good_layers += ASTileTypeHandlers[type].set_layer_handler(&(tbar->tiles[l]), &(layers[good_layers]), state, &(scrap_images[good_layers]), col_width[col]-pad_x, row_height[row]-pad_y );
         }
     }
-    merge_func = mystyle_translate_texture_type( tbar->composition_method );
+    merge_func = mystyle_translate_texture_type( tbar->composition_method[state] );
     for( l = 1 ; l < good_layers ; ++l )
         layers[l].merge_scanlines = merge_func ;
 

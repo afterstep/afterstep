@@ -216,6 +216,9 @@ mylook_init (MyLook * look, Bool free_resources, unsigned long what_flags /*see 
 	{
 		look->DrawMenuBorders = 1;
 		look->StartMenuSortMode = DEFAULTSTARTMENUSORT;
+        look->menu_icm = TEXTURE_TRANSPIXMAP_ALPHA ;
+        look->menu_hcm = TEXTURE_TRANSPIXMAP_ALPHA ;
+        look->menu_scm = TEXTURE_TRANSPIXMAP_ALPHA ;
 	}
 
 	if (get_flags (what_flags, LL_Icons))
@@ -299,14 +302,27 @@ create_default_myframe(ASFlagType default_title_align)
     frame->part_align[FR_S]  = 0;
     frame->part_align[FR_SW] = 0 ;
     frame->part_align[FR_SE] = 0 ;
-    frame->set_part_bevel = C_SIDEBAR ;
-    frame->part_bevel[FR_S]  = DEFAULT_TBAR_HILITE;
-    frame->part_bevel[FR_SW] = DEFAULT_TBAR_HILITE ;
-    frame->part_bevel[FR_SE] = DEFAULT_TBAR_HILITE ;
-    set_flags( frame->set_title_attr, MYFRAME_TitleBevelSet|MYFRAME_TitleAlignSet );
+    SetPartFBevelMask(frame,C_SIDEBAR);
+    SetPartUBevelMask(frame,C_SIDEBAR);
+    SetPartSBevelMask(frame,C_SIDEBAR);
+    frame->part_fbevel[FR_S]  = DEFAULT_TBAR_HILITE;
+    frame->part_ubevel[FR_SW] = DEFAULT_TBAR_HILITE ;
+    frame->part_sbevel[FR_SE] = DEFAULT_TBAR_HILITE ;
+    set_flags( frame->set_title_attr, MYFRAME_TitleFBevelSet|
+                                      MYFRAME_TitleUBevelSet|
+                                      MYFRAME_TitleSBevelSet|
+                                      MYFRAME_TitleAlignSet|
+                                      MYFRAME_TitleFCMSet|
+                                      MYFRAME_TitleUCMSet|
+                                      MYFRAME_TitleSCMSet );
 
-    frame->title_bevel = DEFAULT_TBAR_HILITE;
+    frame->title_fbevel = DEFAULT_TBAR_HILITE;
+    frame->title_ubevel = DEFAULT_TBAR_HILITE;
+    frame->title_sbevel = DEFAULT_TBAR_HILITE;
     frame->title_align = default_title_align;
+    frame->title_fcm = TEXTURE_TRANSPIXMAP_ALPHA;
+    frame->title_ucm = TEXTURE_TRANSPIXMAP_ALPHA;
+    frame->title_scm = TEXTURE_TRANSPIXMAP_ALPHA;
 
     frame->spacing = 1;
     return frame ;
@@ -329,8 +345,12 @@ inherit_myframe( MyFrame *frame, MyFrame *ancestor )
                 frame->part_width[i] = ancestor->part_width[i] ;
                 frame->part_length[i] = ancestor->part_length[i] ;
             }
-            if( get_flags(ancestor->set_part_bevel, 0x01<<i ) )
-                frame->part_bevel[i] = ancestor->part_bevel[i];
+            if( IsPartFBevelSet(ancestor, i) )
+                frame->part_fbevel[i] = ancestor->part_fbevel[i];
+            if( IsPartUBevelSet(ancestor, i) )
+                frame->part_ubevel[i] = ancestor->part_ubevel[i];
+            if( IsPartSBevelSet(ancestor, i) )
+                frame->part_sbevel[i] = ancestor->part_sbevel[i];
             if( get_flags(ancestor->set_part_align, 0x01<<i ) )
                 frame->part_align[i] = ancestor->part_align[i];
         }
@@ -347,12 +367,24 @@ inherit_myframe( MyFrame *frame, MyFrame *ancestor )
         if( ancestor->title_back_filename )
             set_string_value( &(frame->title_back_filename), mystrdup(ancestor->title_back_filename), NULL, 0 );
 
-        if( get_flags( ancestor->set_title_attr, MYFRAME_TitleBevelSet ) )
-            frame->title_bevel = ancestor->title_bevel;
+        if( get_flags( ancestor->set_title_attr, MYFRAME_TitleFBevelSet ) )
+            frame->title_fbevel = ancestor->title_fbevel;
+        if( get_flags( ancestor->set_title_attr, MYFRAME_TitleUBevelSet ) )
+            frame->title_ubevel = ancestor->title_ubevel;
+        if( get_flags( ancestor->set_title_attr, MYFRAME_TitleSBevelSet ) )
+            frame->title_sbevel = ancestor->title_sbevel;
+
         if( get_flags( ancestor->set_title_attr, MYFRAME_TitleAlignSet ) )
             frame->title_align = ancestor->title_align;
         if( get_flags( ancestor->set_title_attr, MYFRAME_TitleBackAlignSet ) )
             frame->title_back_align = ancestor->title_back_align;
+
+        if( get_flags( ancestor->set_title_attr, MYFRAME_TitleFCMSet ) )
+            frame->title_fcm = ancestor->title_fcm;
+        if( get_flags( ancestor->set_title_attr, MYFRAME_TitleUCMSet ) )
+            frame->title_ucm = ancestor->title_ucm;
+        if( get_flags( ancestor->set_title_attr, MYFRAME_TitleSCMSet ) )
+            frame->title_scm = ancestor->title_scm;
 
         frame->set_title_attr |= ancestor->set_title_attr ;
     }
