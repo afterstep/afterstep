@@ -37,19 +37,19 @@
 
 ASHashKey default_hash_func (ASHashableValue value, ASHashKey hash_size)
 {
-	return value.long_val % hash_size;
+	return value % hash_size;
 }
 
 long
 default_compare_func (ASHashableValue value1, ASHashableValue value2)
 {
-	return ((long)value1.long_val - (long)value2.long_val);
+	return ((long)value1 - (long)value2);
 }
 
 long
 desc_long_compare_func (ASHashableValue value1, ASHashableValue value2)
 {
-    return ((long)value2.long_val - (long)value1.long_val);
+    return ((long)value2 - (long)value1);
 }
 
 void
@@ -219,7 +219,7 @@ print_ashash (ASHashTable * hash, void (*item_print_func) (ASHashableValue value
 			if (item_print_func)
 				item_print_func (item->value);
 			else
-				fprintf (stderr, "[0x%lX(%ld)]", item->value.long_val, item->value.long_val);
+				fprintf (stderr, "[0x%lX(%ld)]", item->value, item->value);
 		fprintf (stderr, "\n");
 	}
 }
@@ -511,7 +511,7 @@ ASHashKey pointer_hash_value (ASHashableValue value, ASHashKey hash_size)
     } mix;
     register  ASHashKey key;
 
-    mix.ptr = value.ptr;
+    mix.ptr = (void*)value;
     key = mix.key[0]^mix.key[1] ;
     if( hash_size == 256 )
 		return (key>>4)&0x0FF;
@@ -524,7 +524,7 @@ string_hash_value (ASHashableValue value, ASHashKey hash_size)
 {
 	ASHashKey     hash_key = 0;
 	register int  i = 0;
-	char         *string = value.string_val;
+	char         *string = (char*)value;
 	register char c;
 
 	do
@@ -541,8 +541,8 @@ string_hash_value (ASHashableValue value, ASHashKey hash_size)
 long
 string_compare (ASHashableValue value1, ASHashableValue value2)
 {
-	register char *str1 = value1.string_val;
-	register char *str2 = value2.string_val;
+	register char *str1 = (char*)value1;
+	register char *str2 = (char*)value2;
 	register int   i = 0 ;
 
 	if (str1 == str2)
@@ -563,16 +563,16 @@ string_compare (ASHashableValue value1, ASHashableValue value2)
 void
 string_destroy (ASHashableValue value, void *data)
 {
-	if (value.string_val != NULL)
-		free (value.string_val);
-	if (data != value.string_val && data != NULL)
+	if ((char*)value != NULL)
+		free ((char*)value);
+	if (data != (void*)value && data != NULL)
 		free (data);
 }
 
 void
 string_print (ASHashableValue value)
 {
-	fprintf (stderr, "[%s]", value.string_val);
+	fprintf (stderr, "[%s]", (char*)value);
 }
 
 /* variation for case-unsensitive strings */
@@ -581,7 +581,7 @@ casestring_hash_value (ASHashableValue value, ASHashKey hash_size)
 {
 	ASHashKey     hash_key = 0;
 	register int  i = 0;
-	char         *string = value.string_val;
+	char         *string = (char*)value;
 	register char c;
 
 	do
@@ -601,8 +601,8 @@ casestring_hash_value (ASHashableValue value, ASHashKey hash_size)
 long
 casestring_compare (ASHashableValue value1, ASHashableValue value2)
 {
-	register char *str1 = value1.string_val;
-	register char *str2 = value2.string_val;
+	register char *str1 = (char*)value1;
+	register char *str2 = (char*)value2;
 	register int   i = 0;
 
 	if (str1 == str2)
@@ -613,7 +613,7 @@ casestring_compare (ASHashableValue value1, ASHashableValue value2)
 		return 1;
 	do
 	{
-		char          u1, u2;
+		int          u1, u2;
 
 		u1 = str1[i];
 		u2 = str2[i];
@@ -633,7 +633,7 @@ option_hash_value (ASHashableValue value, ASHashKey hash_size)
 {
 	ASHashKey     hash_key = 0;
 	register int  i = 0;
-	char         *opt = value.string_val;
+	char         *opt = (char*)value;
 	register char c;
 
 	do
@@ -653,8 +653,8 @@ option_hash_value (ASHashableValue value, ASHashKey hash_size)
 long
 option_compare (ASHashableValue value1, ASHashableValue value2)
 {
-	char *str1 = value1.string_val;
-	char *str2 = value2.string_val;
+	char *str1 = (char*)value1;
+	char *str2 = (char*)value2;
 	register int i = 0;
 
 	if (str1 == str2)
@@ -665,7 +665,7 @@ option_compare (ASHashableValue value1, ASHashableValue value2)
 		return 1;
 	while ( str1[i] && str2[i] )
 	{
-		register char          u1, u2;
+		register int          u1, u2;
 
 		u1 = str1[i];
 		u2 = str2[i];
@@ -696,7 +696,7 @@ color_hash_value (ASHashableValue value, ASHashKey hash_size)
 {
 	register CARD32 h;
 	int           i = 1;
-	register unsigned long long_val = value.long_val;
+	register unsigned long long_val = value;
 
 	h = (long_val & 0x0ff);
 	long_val = long_val >> 8;

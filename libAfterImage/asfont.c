@@ -323,7 +323,7 @@ asfont_destroy (ASHashableValue value, void *data)
 {
 	if( data )
 	{
-		free( value.string_val );
+		free( (char*)value );
 		if( ((ASMagic*)data)->magic == MAGIC_ASFONT )
 			destroy_font( (ASFont*)data );
 	}
@@ -1112,7 +1112,7 @@ get_text_size( const char *text, ASFont *font, ASText3DType type, unsigned int *
 	int i = -1;
 	ASGlyph *last_asg = NULL ;
 	int space_size  = (font->space_size>>1)+1+font->spacing_x;
-	int offset_3d_x = 0, offset_3d_y = 0 ;
+	unsigned int offset_3d_x = 0, offset_3d_y = 0 ;
 
 	apply_text_3D_type( type, &offset_3d_x, &offset_3d_y );
 	if( text == NULL || font == NULL )
@@ -1212,7 +1212,7 @@ draw_text( const char *text, ASFont *font, ASText3DType type, int compression )
 	int i = 0, offset = 0, line_height, space_size, base_line;
 	ASImage *im;
 	int pen_x = 0, pen_y = 0;
-	int offset_3d_x = 0, offset_3d_y = 0  ;
+	unsigned int offset_3d_x = 0, offset_3d_y = 0  ;
 #ifdef DO_CLOCKING
 	time_t started = clock ();
 #endif

@@ -21,6 +21,7 @@
 /*#define LOCAL_DEBUG */
 
 #include <malloc.h>
+#include <stdlib.h>
 
 #include "afterbase.h"
 #include "asvisual.h"

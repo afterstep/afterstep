@@ -435,8 +435,8 @@ parse_xpm_cmap_entry( ASXpmFile *xpm_file, char **colornames )
 	key = -1;
 	do
 	{
-		while( !isspace(*ptr) && *ptr != '\0' ) ++ptr;
-		while( isspace(*ptr) ) ++ptr;
+        while( !isspace((int)*ptr) && *ptr != '\0' ) ++ptr;
+        while( isspace((int)*ptr) ) ++ptr;
 		if( *ptr )
 		{
 			if( key >= 0 )
@@ -595,22 +595,22 @@ parse_xpm_header( ASXpmFile *xpm_file )
 		return False;
 
 	ptr = xpm_file->str_buf ;
-	while( isspace(*ptr) ) ++ptr;
+	while( isspace((int)*ptr) ) ++ptr;
 	if( *ptr == '\0' )
 		return False;
 	xpm_file->width = atoi( ptr );
-	while( !isspace(*ptr) && *ptr != '\0' ) ++ptr;
-	while( isspace(*ptr) ) ++ptr;
+	while( !isspace((int)*ptr) && *ptr != '\0' ) ++ptr;
+	while( isspace((int)*ptr) ) ++ptr;
 	if( *ptr == '\0' )
 		return False;
 	xpm_file->height = atoi( ptr );
-	while( !isspace(*ptr) && *ptr != '\0' ) ++ptr;
-	while( isspace(*ptr) ) ++ptr;
+	while( !isspace((int)*ptr) && *ptr != '\0' ) ++ptr;
+	while( isspace((int)*ptr) ) ++ptr;
 	if( *ptr == '\0' )
 		return False;
 	xpm_file->cmap_size = atoi( ptr );
-	while( !isspace(*ptr) && *ptr != '\0' ) ++ptr;
-	while( isspace(*ptr) ) ++ptr;
+	while( !isspace((int)*ptr) && *ptr != '\0' ) ++ptr;
+	while( isspace((int)*ptr) ) ++ptr;
 	if( *ptr == '\0' )
 		return False;
 	xpm_file->bpp = atoi( ptr );
@@ -658,8 +658,8 @@ lookup_xpm_color( char **colornames, ASHashTable *xpm_color_names )
 void
 string_value_destroy (ASHashableValue value, void *data)
 {
-	if (value.string_val != NULL)
-		free (value.string_val);
+	if ((char*)value != NULL)
+		free ((char*)value);
 }
 
 Bool
@@ -771,7 +771,7 @@ convert_xpm_scanline( ASXpmFile *xpm_file, unsigned int line )
 	unsigned char *data ;
 	if( !get_xpm_string( xpm_file ) )
 		return False ;
-	data = xpm_file->str_buf ;
+	data = (unsigned char*)xpm_file->str_buf ;
 #endif
 	if( cmap )
 	{

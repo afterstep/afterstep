@@ -54,8 +54,8 @@ ximage2asimage (ASVisual *asv, XImage * xim, unsigned int compression)
 		return im;
 
 	height = xim->height;
-	bpl 	  = xim->bytes_per_line;
-	xim_line = xim->data;
+	bpl 	 = xim->bytes_per_line;
+	xim_line = (unsigned char *)xim->data;
 
 	im = create_asimage( xim->width, xim->height, compression);
 #ifdef LOCAL_DEBUG

@@ -538,7 +538,7 @@ make_gradient_scanline( ASScanline *scl, ASGradient *grad, ASFlagType filter, AR
 /* Scaling code ; 																			   */
 /* **********************************************************************************************/
 Bool
-check_scale_parameters( ASImage *src, int *to_width, int *to_height )
+check_scale_parameters( ASImage *src, unsigned int *to_width, unsigned int *to_height )
 {
 	if( src == NULL )
 		return False;
@@ -1249,6 +1249,7 @@ LOCAL_DEBUG_CALLER_OUT( "type = 0x%X, width=%d, height = %d, filter = 0x%X", gra
 											  (grad->type==GRADIENT_BottomLeft2TopRight));
 				break ;
 			default:
+				break;
 		}
 		stop_image_output( &imout );
 		for( line = 0 ; line < dither_lines ; line++ )

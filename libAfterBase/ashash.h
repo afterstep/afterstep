@@ -6,14 +6,17 @@
 
 struct wild_reg_exp;
 
+#if 0
 typedef union ASHashableValue
 {
   unsigned long 	   long_val;
   char 				  *string_val;
   struct wild_reg_exp *wrexp_val;	/* regular expression */
   void 				  *ptr ;
-}
-ASHashableValue;
+}ASHashableValue;
+#else
+typedef unsigned long ASHashableValue;
+#endif
 
 typedef struct ASHashItem
 {

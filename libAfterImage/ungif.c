@@ -146,7 +146,7 @@ get_gif_saved_images( GifFileType *gif, int subimage, SavedImage **ret, int *ret
 					int size = temp_save.ImageDesc.Width*temp_save.ImageDesc.Height ;
 					temp_save.RasterBits = realloc( temp_save.RasterBits, size );
 
-					if ((status = DGifGetLine(gif, temp_save.RasterBits, size))== GIF_OK)
+					if ((status = DGifGetLine(gif, (unsigned char*)temp_save.RasterBits, size))== GIF_OK)
 					{
 						if( curr_image == subimage || subimage < 0 )
 							append_gif_saved_image( &temp_save, ret, &(ret_count));
@@ -160,7 +160,7 @@ get_gif_saved_images( GifFileType *gif, int subimage, SavedImage **ret, int *ret
 				while (ExtData != NULL && status == GIF_OK )
 				{
             		/* Create an extension block with our data */
-            		if ((status = AddExtensionBlock(&temp_save, ExtData[0], &ExtData[1])) == GIF_OK)
+            		if ((status = AddExtensionBlock(&temp_save, ExtData[0], (char*)&ExtData[1])) == GIF_OK)
 				    	status = DGifGetExtensionNext(gif, &ExtData);
             		temp_save.Function = 0;
 				}
@@ -212,7 +212,7 @@ write_gif_saved_images( GifFileType *gif, SavedImage *images, unsigned int count
 									  SavedWidth, SavedHeight, sp->ImageDesc.Interlace,
 									  sp->ImageDesc.ColorMap );
 			for (y = 0; y < SavedHeight && status == GIF_OK ; y++)
-	    		status = EGifPutLine(gif, sp->RasterBits + y * SavedWidth, SavedWidth);
+	    		status = EGifPutLine(gif, (unsigned char*)sp->RasterBits + y * SavedWidth, SavedWidth);
 		}
 	}
 	return status;

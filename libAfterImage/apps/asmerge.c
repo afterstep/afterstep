@@ -2,6 +2,7 @@
 
 #include <string.h>
 #include <malloc.h>
+#include <stdlib.h>
 
 
 /****h* libAfterImage/tutorials/ASMerge

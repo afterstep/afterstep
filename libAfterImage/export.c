@@ -641,8 +641,6 @@ ASImage2ico ( ASImage *im, const char *path,  ASImageExportParams *params )
 /***********************************************************************************/
 #ifdef HAVE_GIF		/* GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF */
 
-#define ASIM_PrintGifError() do{ fprintf( stderr, "%s():%d:<%s> ", __FUNCTION__, __LINE__, path ); PrintGifError(); }while(0)
-
 Bool ASImage2gif( ASImage *im, const char *path,  ASImageExportParams *params )
 {
 	FILE *outfile = NULL, *infile = NULL;

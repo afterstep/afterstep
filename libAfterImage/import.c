@@ -38,6 +38,9 @@
 #include <setjmp.h>
 #endif
 
+#ifdef const
+#undef const
+#endif
 #include "afterbase.h"
 #ifdef HAVE_JPEG
 /* Include file for users of png library. */
@@ -134,7 +137,7 @@ file2ASImage( const char *file, ASFlagType what, double gamma, unsigned int comp
 	if( realfilename == NULL )
 	{ /* let's try and see if we have subimage number appended */
 		for( i = filename_len-1 ; i > 0; i-- )
-			if( !isdigit( tmp[i] ) )
+			if( !isdigit( (int)tmp[i] ) )
 				break;
 		if( i < filename_len-1 && i > 0 )
 			if( tmp[i] == '.' )                 /* we have possible subimage number */
@@ -858,8 +861,8 @@ ppm2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tabl
 						break;
 					}
 					width = atoi( &(buffer[i]) );
-					while ( buffer[i] != '\0' && !isspace(buffer[i]) ) ++i;
-					while ( isspace(buffer[i]) ) ++i;
+					while ( buffer[i] != '\0' && !isspace((int)buffer[i]) ) ++i;
+					while ( (int)isspace(buffer[i]) ) ++i;
 					if( buffer[i] != '\0')
 						height = atoi(&(buffer[i]));
 				}
@@ -1225,8 +1228,6 @@ ico2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tabl
 /***********************************************************************************/
 #ifdef HAVE_GIF		/* GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF */
 
-#define ASIM_PrintGifError() do{ fprintf( stderr, "%s():%d:<%s> ", __FUNCTION__, __LINE__, path ); PrintGifError(); }while(0)
-
 ASImage *
 gif2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage, unsigned int compression )
 {
@@ -1263,7 +1264,7 @@ gif2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tabl
 		    width = sp->ImageDesc.Width;
 		    height = sp->ImageDesc.Height;
 
-			if( cmap != NULL && (row_pointer = sp->RasterBits) != NULL &&
+			if( cmap != NULL && (row_pointer = (unsigned char*)sp->RasterBits) != NULL &&
 			    width < MAX_IMPORT_IMAGE_SIZE && height < MAX_IMPORT_IMAGE_SIZE )
 			{
 				int bg_color =   gif->SBackGroundColor ;

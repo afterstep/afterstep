@@ -28,6 +28,7 @@
 #include <sys/time.h>
 #endif
 #include <stdarg.h>
+#include <stdlib.h>
 
 
 #include "afterbase.h"
@@ -242,7 +243,7 @@ asimage_destroy (ASHashableValue value, void *data)
 			else
 				im->imageman = NULL ;
 		}
-		free( value.string_val );
+		free( (char*)value );
 		destroy_asimage( &im );
 	}
 }
@@ -1812,8 +1813,8 @@ tile_ximage_line( XImage *xim, unsigned int line, int step )
 {
 	register int i ;
 	int xim_step = step*xim->bytes_per_line ;
-	unsigned char *src_line = xim->data+xim->bytes_per_line*line ;
-	unsigned char *dst_line = src_line+xim_step ;
+	char *src_line = xim->data+xim->bytes_per_line*line ;
+	char *dst_line = src_line+xim_step ;
 	for( i = line+step ; i < xim->height && i >= 0 ; i+=step )
 	{
 		memcpy( dst_line, src_line, xim->bytes_per_line );
@@ -1856,7 +1857,7 @@ encode_image_scanline_xim( ASImageOutput *imout, ASScanline *to_store )
 		if( !get_flags(to_store->flags, SCL_DO_BLUE) )
 			set_component( to_store->blue , ARGB32_BLUE8(to_store->back_color), 0, to_store->width );
 		PUT_SCANLINE(imout->asv, xim,to_store,imout->next_line,
-			         xim->data+imout->next_line*xim->bytes_per_line);
+					 (unsigned char*)xim->data+imout->next_line*xim->bytes_per_line);
 
 		if( imout->tiling_step > 0 )
 			tile_ximage_line( imout->im->alt.ximage, imout->next_line,

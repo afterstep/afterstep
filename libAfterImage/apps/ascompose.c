@@ -69,14 +69,14 @@ int verbose = 0;
 ASHashTable* image_hash = NULL;
 struct ASFontManager *fontman = NULL;
 
-static char* default_doc_str = "
-<composite op=hue>
-  <composite op=add>
-    <scale width=512 height=384><img src=rose512.jpg/></scale>
-    <tile width=512 height=384><img src=back.xpm/></tile>
-  </composite>
-  <tile width=512 height=384><img src=fore.xpm/></tile>
-</composite>
+static char* default_doc_str = "\
+<composite op=hue>\
+  <composite op=add>\
+    <scale width=512 height=384><img src=rose512.jpg/></scale>\
+    <tile width=512 height=384><img src=back.xpm/></tile>\
+  </composite>\
+  <tile width=512 height=384><img src=fore.xpm/></tile>\
+</composite>\
 ";
 static char* cdata_str = "CDATA";
 static char* container_str = "CONTAINER";
@@ -350,7 +350,7 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 			if (!strcmp(ptr->tag, "src")) src = ptr->parm;
 		}
 		if (src && !strcmp(src, "xroot:")) {
-			int width, height;
+			unsigned int width, height;
 			Pixmap rp = GetRootPixmap(None);
 			if (verbose) printf("Getting root pixmap.\n");
 			if (rp) {
@@ -514,10 +514,10 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 			bevel.bottom_inline = 10;
 			if (color_str) {
 				char* p = color_str;
-				while (isspace(*p)) p++;
+				while (isspace((int)*p)) p++;
 				parse_argb_color(p, &bevel.hi_color);
-				while (*p && !isspace(*p)) p++;
-				while (isspace(*p)) p++;
+				while (*p && !isspace((int)*p)) p++;
+				while (isspace((int)*p)) p++;
 				parse_argb_color(p, &bevel.lo_color);
 			}
 			if (border_str) {
@@ -610,25 +610,25 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 				if (offset_str && npoints1 > npoints2) npoints1 = npoints2;
 				gradient.color = NEW_ARRAY(ARGB32, npoints1);
 				gradient.offset = NEW_ARRAY(double, npoints1);
-				for (p = color_str ; isspace(*p) ; p++);
+				for (p = color_str ; isspace((int)*p) ; p++);
 				for (npoints1 = 0 ; *p ; ) {
 					char* pb = p, ch;
-					if (*p) for ( ; *p && !isspace(*p) ; p++);
-					for ( ; isspace(*p) ; p++);
+					if (*p) for ( ; *p && !isspace((int)*p) ; p++);
+					for ( ; isspace((int)*p) ; p++);
 					ch = *p; *p = '\0';
 					if (parse_argb_color(pb, gradient.color + npoints1)) npoints1++;
 					*p = ch;
 				}
 				if (offset_str) {
-					for (p = offset_str ; isspace(*p) ; p++);
+					for (p = offset_str ; isspace((int)*p) ; p++);
 					for (npoints2 = 0 ; *p ; ) {
 						char* pb = p, ch;
-						if (*p) for ( ; *p && !isspace(*p) ; p++);
+						if (*p) for ( ; *p && !isspace((int)*p) ; p++);
 						ch = *p; *p = '\0';
 						gradient.offset[npoints2] = strtod(pb, &pb);
 						if (pb == p) npoints2++;
 						*p = ch;
-						for ( ; isspace(*p) ; p++);
+						for ( ; isspace((int)*p) ; p++);
 					}
 				} else {
 					for (npoints2 = 0 ; npoints2 < npoints1 ; npoints2++)
@@ -1020,7 +1020,7 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 
 void my_destroy_asimage(ASImage* image) {
 	image->ref_count--;
-	if (verbose > 1 && image->ref_count < 0) printf("Destroying image [%08x] with refcount [%d].\n", (unsigned int)image, image->ref_count);
+	if (verbose > 1 && image->ref_count < 0) printf("Destroying image [%08lx] with refcount [%d].\n", (unsigned long)image, image->ref_count);
 	if (image->ref_count < 0) destroy_asimage(&image);
 }
 
@@ -1034,7 +1034,7 @@ double parse_math(const char* str, char** endptr, double size) {
 	char minus = 0;
 	const char* startptr = str;
 	while (*str) {
-		while (isspace(*str)) str++;
+		while (isspace((int)*str)) str++;
 		if (!op) {
 			if (*str == '+' || *str == '-' || *str == '*' || *str == '/') op = *str++;
 			else if (*str == '-') { minus = 1; str++; }
@@ -1079,20 +1079,20 @@ xml_elem_t* xml_parse_parm(const char* parm) {
 		const char* eval;
 
 		// Spin past any leading whitespace.
-		for (bname = eparm ; isspace(*bname) ; bname++);
+		for (bname = eparm ; isspace((int)*bname) ; bname++);
 
 		// Check for a parm.  First is the parm name.
-		for (ename = bname ; xml_tagchar(*ename) ; ename++);
+		for (ename = bname ; xml_tagchar((int)*ename) ; ename++);
 
 		// No name equals no parm equals broken tag.
 		if (!*ename) { eparm = NULL; break; }
 
 		// No "=" equals broken tag.  We do not support HTML-style parms
 		// with no value.
-		for (bval = ename ; isspace(*bval) ; bval++);
+		for (bval = ename ; isspace((int)*bval) ; bval++);
 		if (*bval != '=') { eparm = NULL; break; }
 
-		while (isspace(*++bval));
+		while (isspace((int)*++bval));
 
 		// If the next character is a quote, spin until we see another one.
 		if (*bval == '"' || *bval == '\'') {
@@ -1100,10 +1100,10 @@ xml_elem_t* xml_parse_parm(const char* parm) {
 			bval++;
 			for (eval = bval ; *eval && *eval != quote ; eval++);
 		} else {
-			for (eval = bval ; *eval && !isspace(*eval) ; eval++);
+			for (eval = bval ; *eval && !isspace((int)*eval) ; eval++);
 		}
 
-		for (eparm = eval ; *eparm && !isspace(*eparm) ; eparm++);
+		for (eparm = eval ; *eparm && !isspace((int)*eparm) ; eparm++);
 
 		// Add the parm to our list.
 		p = xml_elem_new();
@@ -1211,7 +1211,7 @@ int xml_parse(const char* str, xml_elem_t* current) {
 		if (oab[1] == '/') {
 			const char* etag;
 			// Find the end of the tag.
-			for (etag = oab + 2 ; xml_tagchar(*etag) ; etag++);
+			for (etag = oab + 2 ; xml_tagchar((int)*etag) ; etag++);
 
 			// If this is an end tag, and the tag matches the tag we're parsing,
 			// we're done.  If not, continue on blindly.
@@ -1240,13 +1240,13 @@ int xml_parse(const char* str, xml_elem_t* current) {
 			const char* eparm;
 
 			// Find the end of the tag.
-			for (etag = btag ; xml_tagchar(*etag) ; etag++);
+			for (etag = btag ; xml_tagchar((int)*etag) ; etag++);
 
 			// If we reached the end of the document, continue on.
 			if (!*etag) { ptr = oab + 1; continue; }
 
 			// Find the beginning of the parameters, if they exist.
-			for (bparm = etag ; isspace(*bparm) ; bparm++);
+			for (bparm = etag ; isspace((int)*bparm) ; bparm++);
 
 			// From here on, we're looking for a sequence of parms, which have
 			// the form [a-z0-9-]+=("[^"]"|'[^']'|[^ \t\n]), followed by either
@@ -1255,23 +1255,23 @@ int xml_parse(const char* str, xml_elem_t* current) {
 				const char* tmp;
 
 				// Spin past any leading whitespace.
-				for ( ; isspace(*eparm) ; eparm++);
+				for ( ; isspace((int)*eparm) ; eparm++);
 
 				// Are we at the end of the tag?
 				if (*eparm == '>' || (*eparm == '/' && eparm[1] == '>')) break;
 
 				// Check for a parm.  First is the parm name.
-				for (tmp = eparm ; xml_tagchar(*tmp) ; tmp++);
+				for (tmp = eparm ; xml_tagchar((int)*tmp) ; tmp++);
 
 				// No name equals no parm equals broken tag.
 				if (!*tmp) { eparm = NULL; break; }
 
 				// No "=" equals broken tag.  We do not support HTML-style parms
 				// with no value.
-				for ( ; isspace(*tmp) ; tmp++);
+				for ( ; isspace((int)*tmp) ; tmp++);
 				if (*tmp != '=') { eparm = NULL; break; }
 
-				while (isspace(*++tmp));
+				while (isspace((int)*++tmp));
 
 				// If the next character is a quote, spin until we see another one.
 				if (*tmp == '"' || *tmp == '\'') {
@@ -1280,13 +1280,13 @@ int xml_parse(const char* str, xml_elem_t* current) {
 				}
 
 				// Now look for a space or the end of the tag.
-				for ( ; *tmp && !isspace(*tmp) && *tmp != '>' && !(*tmp == '/' && tmp[1] == '>') ; tmp++);
+				for ( ; *tmp && !isspace((int)*tmp) && *tmp != '>' && !(*tmp == '/' && tmp[1] == '>') ; tmp++);
 
 				// If we reach the end of the string, there cannot be a '>'.
 				if (!*tmp) { eparm = NULL; break; }
 
 				// End of the parm.
-				if (!isspace(*tmp)) { eparm = tmp; break; }
+				if (!isspace((int)*tmp)) { eparm = tmp; break; }
 
 				eparm = tmp;
 			}
@@ -1304,7 +1304,7 @@ int xml_parse(const char* str, xml_elem_t* current) {
 			}
 
 			// We found a tag!  Advance the pointer.
-			for (ptr = eparm ; isspace(*ptr) ; ptr++);
+			for (ptr = eparm ; isspace((int)*ptr) ; ptr++);
 			empty = (*ptr == '/');
 			ptr += empty + 1;
 
@@ -1333,7 +1333,7 @@ void xml_insert(xml_elem_t* parent, xml_elem_t* child) {
 
 char* lcstring(char* str) {
 	char* ptr = str;
-	for ( ; *ptr ; ptr++) if (isupper(*ptr)) *ptr = tolower(*ptr);
+	for ( ; *ptr ; ptr++) if (isupper((int)*ptr)) *ptr = tolower(*ptr);
 	return str;
 }
 

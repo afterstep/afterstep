@@ -99,7 +99,7 @@ read_xcf_image( FILE *fp )
 	{
 		int i ;
 		char sig[XCF_SIGNATURE_FULL_LEN+1] ;
-		if( xcf_read8( fp, &(sig[0]), XCF_SIGNATURE_FULL_LEN ) >= XCF_SIGNATURE_FULL_LEN )
+		if( xcf_read8( fp, (unsigned char*)&(sig[0]),XCF_SIGNATURE_FULL_LEN ) >= XCF_SIGNATURE_FULL_LEN )
 		{
 			if( mystrncasecmp( sig, XCF_SIGNATURE, XCF_SIGNATURE_LEN) == 0 )
 			{

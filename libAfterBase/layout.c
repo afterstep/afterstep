@@ -147,7 +147,7 @@ insert_layout_elem( ASLayout *layout,
             elem->right = (*pelem)->right ;
             elem->below = (*pelem)->below ;
 			(*pelem)->right = (*pelem)->below = NULL ;
-			free( pelem );
+			free( *pelem );
 		}else
 		{
             elem->right = *pelem ;

@@ -247,15 +247,15 @@ const char *asim_parse_argb_color( const char *color, CARD32 *pargb )
 			CARD32 argb = 0 ;
 			int len = 0 ;
 			register const char *ptr = color+1 ;
-			while( isxdigit(ptr[len]) ) len++;
+			while( isxdigit((int)ptr[len]) ) len++;
 			if( len >= 3)
 			{
 				if( (len&0x3) == 0 && len != 12 )
 				{  /* we do have alpha channel !!! */
 					len = len>>2 ;
-					argb = (hextoi(ptr[0])<<28)&0xF0000000 ;
+					argb = (hextoi((int)ptr[0])<<28)&0xF0000000 ;
 					if( len > 1 )
-						argb |= (hextoi(ptr[1])<<24)&0x0F000000 ;
+						argb |= (hextoi((int)ptr[1])<<24)&0x0F000000 ;
 					else
 						argb |= 0x0F000000;
 					ptr += len ;
@@ -268,20 +268,20 @@ const char *asim_parse_argb_color( const char *color, CARD32 *pargb )
 				if( len == 1 )
 				{
 					argb |= 0x000F0F0F;
-					argb |= (hextoi(ptr[0])<<20)&0x00F00000 ;
-					argb |= (hextoi(ptr[1])<<12)&0x0000F000 ;
-					argb |= (hextoi(ptr[2])<<4 )&0x000000F0 ;
+					argb |= (hextoi((int)ptr[0])<<20)&0x00F00000 ;
+					argb |= (hextoi((int)ptr[1])<<12)&0x0000F000 ;
+					argb |= (hextoi((int)ptr[2])<<4 )&0x000000F0 ;
 					ptr += 3 ;
 				}else
 				{
-					argb |= (hextoi(ptr[0])<<20)&0x00F00000 ;
-					argb |= (hextoi(ptr[1])<<16)&0x000F0000 ;
+					argb |= (hextoi((int)ptr[0])<<20)&0x00F00000 ;
+					argb |= (hextoi((int)ptr[1])<<16)&0x000F0000 ;
 					ptr += len ;
-					argb |= (hextoi(ptr[0])<<12)&0x0000F000 ;
-					argb |= (hextoi(ptr[1])<<8) &0x00000F00 ;
+					argb |= (hextoi((int)ptr[0])<<12)&0x0000F000 ;
+					argb |= (hextoi((int)ptr[1])<<8) &0x00000F00 ;
 					ptr += len ;
-					argb |= (hextoi(ptr[0])<<4 )&0x000000F0 ;
-					argb |= (hextoi(ptr[1]))    &0x0000000F ;
+					argb |= (hextoi((int)ptr[0])<<4 )&0x000000F0 ;
+					argb |= (hextoi((int)ptr[1]))    &0x0000000F ;
 					ptr += len ;
 				}
 				*pargb = argb ;
@@ -296,7 +296,7 @@ const char *asim_parse_argb_color( const char *color, CARD32 *pargb )
 				return color ;
 			if( XLookupColor( dpy, DefaultColormap(dpy,DefaultScreen(dpy)), color, &xcol, &xcol_scr) )
 				*pargb = 0xFF000000|((xcol.red<<8)&0x00FF0000)|(xcol.green&0x0000FF00)|((xcol.blue>>8)&0x000000FF);
-			while( !isspace(*ptr) && *ptr != '\0' ) ptr++;
+			while( !isspace((int)*ptr) && *ptr != '\0' ) ptr++;
 			return ptr;
 		}
 	}
@@ -307,19 +307,19 @@ const char *asim_parse_argb_color( const char *color, CARD32 *pargb )
 /* from ashash,c : */
 ASHashKey asim_default_hash_func (ASHashableValue value, ASHashKey hash_size)
 {
-	return value.long_val % hash_size;
+	return value % hash_size;
 }
 
 long
 asim_default_compare_func (ASHashableValue value1, ASHashableValue value2)
 {
-	return ((long)value1.long_val - (long)value2.long_val);
+	return ((long)value1 - (long)value2);
 }
 
 long
 asim_desc_long_compare_func (ASHashableValue value1, ASHashableValue value2)
 {
-    return ((long)value2.long_val - (long)value1.long_val);
+    return ((long)value2 - (long)value1);
 }
 
 void
@@ -564,7 +564,7 @@ asim_string_hash_value (ASHashableValue value, ASHashKey hash_size)
 {
 	ASHashKey     hash_key = 0;
 	register int  i = 0;
-	char         *string = value.string_val;
+	char         *string = (char*)value;
 	register char c;
 
 	do
@@ -581,8 +581,8 @@ asim_string_hash_value (ASHashableValue value, ASHashKey hash_size)
 long
 asim_string_compare (ASHashableValue value1, ASHashableValue value2)
 {
-	register char *str1 = value1.string_val;
-	register char *str2 = value2.string_val;
+	register char *str1 = (char*)value1;
+	register char *str2 = (char*)value2;
 	register int   i = 0 ;
 
 	if (str1 == str2)
@@ -603,9 +603,9 @@ asim_string_compare (ASHashableValue value1, ASHashableValue value2)
 void
 asim_string_destroy (ASHashableValue value, void *data)
 {
-	if (value.string_val != NULL)
-		free (value.string_val);
-	if (data != value.string_val && data != NULL)
+	if ((char*)value != NULL)
+		free ((char*)value);
+	if (data != (void*)value && data != NULL)
 		free (data);
 }
 
@@ -615,7 +615,7 @@ asim_casestring_hash_value (ASHashableValue value, ASHashKey hash_size)
 {
 	ASHashKey     hash_key = 0;
 	register int  i = 0;
-	char         *string = value.string_val;
+	char         *string = (char*)value;
 	register char c;
 
 	do
@@ -635,8 +635,8 @@ asim_casestring_hash_value (ASHashableValue value, ASHashKey hash_size)
 long
 asim_casestring_compare (ASHashableValue value1, ASHashableValue value2)
 {
-	register char *str1 = value1.string_val;
-	register char *str2 = value2.string_val;
+	register char *str1 = (char*)value1;
+	register char *str2 = (char*)value2;
 	register int   i = 0;
 
 	if (str1 == str2)
@@ -647,7 +647,7 @@ asim_casestring_compare (ASHashableValue value1, ASHashableValue value2)
 		return 1;
 	do
 	{
-		char          u1, u2;
+		int          u1, u2;
 
 		u1 = str1[i];
 		u2 = str2[i];

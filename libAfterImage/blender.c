@@ -333,7 +333,7 @@ blend_scanlines_name2func( const char *name )
 
 	if( name == NULL )
 		return NULL ;
-    while( isspace(*name) ) ++name;
+    while( isspace((int)*name) ) ++name;
 	do
 	{
 		if( name[0] == std_merge_scanlines_func_list[i].name[0] )

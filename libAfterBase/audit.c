@@ -541,7 +541,7 @@ output_unfreed_mem (FILE *stream)
 		m = curr_hash_data( &i );
 		if( m == NULL )
 		{
-            fprintf (stream, "hmm, wierd, encoutered NULL pointer while trying to check allocation record for %p!", (*(i.curr_item))->value.ptr);
+            fprintf (stream, "hmm, wierd, encoutered NULL pointer while trying to check allocation record for %p!", (void*)((*(i.curr_item))->value));
 			continue;
 		}else if (m->freed == 0)
 		{
