@@ -139,8 +139,6 @@ F_FUNCTIONS_NUM
 #define IsExecFunc(f)    ((f)>= F_EXEC && (f)<=F_KILLMODULEBYNAME)
 
 
-#define UP 1
-#define DOWN 0
 void ChangeWarpIndex(const long, FunctionCode);
 
 #define MAX_FUNC_ARGS	2
