@@ -21,22 +21,22 @@
  * afterstep window move/resize code
  ***********************************************************************/
 
-#include "../../configure.h"
+#include "../configure.h"
 
 #define LOCAL_DEBUG
 
-#include "../../include/asapp.h"
+#include "../include/asapp.h"
 #include <signal.h>
-#include "../../libAfterImage/afterimage.h"
-#include "../../include/afterstep.h"
-#include "../../include/event.h"
-#include "../../include/mystyle.h"
-#include "../../include/screen.h"
-#include "../../include/hints.h"
+#include "../libAfterImage/afterimage.h"
+#include "../include/afterstep.h"
+#include "../include/event.h"
+#include "../include/mystyle.h"
+#include "../include/screen.h"
+#include "../include/hints.h"
 #ifdef NO_ASRENDER
-#include "../../include/decor.h"
+#include "../include/decor.h"
 #endif
-#include "moveresize.h"
+#include "../include/moveresize.h"
 
 #ifndef AS_WIDGET_H_HEADER_INCLUDED
 Bool GrabEm   ( struct ScreenInfo *scr, Cursor cursor );

@@ -12,8 +12,9 @@ LIB_INCS=
 #
 LIB_OBJS= ASmodule.o Xmodule.o asapp.o asdatabase.o aswindata.o background.o balloon.o \
                   clientprops.o decor.o event.o \
-                  font.o hints.o loadimg.o myicon.o mylook.o mystyle.o mystyle_property.o \
-                  parse.o parser.o termhash.o readpacket.o \
+                  font.o hints.o loadimg.o moveresize.o \
+                  myicon.o mylook.o mystyle.o mystyle_property.o \
+                  outline.o parse.o parser.o termhash.o readpacket.o \
                   screen.o session.o timer.o wild.o wmprops.o
 
 LIB_NAME        = LIBAFTERSTEP

@@ -42,8 +42,8 @@
 #include "../../libAfterImage/afterimage.h"
 #include "../../include/mystyle.h"
 #include "../../include/wmprops.h"
+#include "../../include/moveresize.h"
 #include "asinternals.h"
-#include "moveresize.h"
 
 #include <X11/keysym.h>
 

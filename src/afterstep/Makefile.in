@@ -2,7 +2,7 @@ OBJS            = module.o add_window.o afterstep.o aswindow.o \
 		colormaps.o configure.o decorations.o dirtree.o \
                 events.o functions.o housekeeping.o myscandir.o \
                 pager.o menuitem.o misc.o icons.o windows.o \
-                outline.o moveresize.o menus.o
+                menus.o
 
 # move.o clientwin.o
 # placement.o resize.o

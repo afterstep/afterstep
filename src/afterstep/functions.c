@@ -46,8 +46,8 @@
 #include "../../include/screen.h"
 #include "../../include/module.h"
 #include "../../include/session.h"
+#include "../../include/moveresize.h"
 #include "asinternals.h"
-#include "moveresize.h"
 
 static as_function_handler function_handlers[F_FUNCTIONS_NUM] ;
 

@@ -23,16 +23,16 @@
  *      by Eric Tremblay
  ****************************************************************************/
 
-#include "../../configure.h"
+#include "../configure.h"
 
 #define LOCAL_DEBUG
 
-#include "../../include/asapp.h"
-#include "../../libAfterImage/afterimage.h"
-#include "../../include/afterstep.h"
-#include "../../include/screen.h"
-#include "../../include/decor.h"
-#include "moveresize.h"
+#include "../include/asapp.h"
+#include "../libAfterImage/afterimage.h"
+#include "../include/afterstep.h"
+#include "../include/screen.h"
+#include "../include/decor.h"
+#include "../include/moveresize.h"
 
 #define THICKNESS 3
 
