@@ -3481,7 +3481,7 @@
 	  src/afterstep/configure.c, src/afterstep/decorations.c,
 	  src/afterstep/winstatus.c: Implemented new feature allowing
 	  titlebars being smaller then the size of the window:
-	  CondenseTitlebar Left|Right|Center in MyFRame
+	  CondenseTitlebar Left|Right|Center in MyFrame
 
 2003-10-22 11:52  sasha
 
