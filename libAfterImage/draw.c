@@ -505,6 +505,8 @@ ctx_draw_bezier( ASDrawContext *ctx, int x0, int y0, int x1, int y1, int x2, int
 				ADD_CubicBezier( x0111, y0111, x111, y111, x31, y31, x3, y3 );	
 		}
 	}
+	if( bstack ) 
+		free( bstack );
 }
 
 /*************************************************************************
