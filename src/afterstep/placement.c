@@ -761,7 +761,7 @@ static Bool do_manual_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry 
     }else
         ASWIN_CLEAR_FLAGS( asw, AS_MoveresizeInProgress );
   	/* window may have been destroyed while we were placing it */
-     return (ASWIN_GET_FLAGS(asw,AS_Dead) == 0);
+     return (ASWIN_GET_FLAGS(asw,AS_Dead) == 0 && !get_flags(asw->wm_state_transition, ASWT_TO_WITHDRAWN ));
 }
 
 
@@ -770,6 +770,9 @@ place_aswindow_in_windowbox( ASWindow *asw, ASWindowBox *aswbox, ASUsePlacementS
 {
     ASGeometry area ;
     Bool res = False ;
+
+    if(ASWIN_GET_FLAGS(asw,AS_Dead) || get_flags(asw->wm_state_transition, ASWT_TO_WITHDRAWN ))
+		return False;
 
     area = aswbox->area ;
     if( !get_flags( aswbox->flags, ASA_Virtual ) )

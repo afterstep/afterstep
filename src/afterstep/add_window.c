@@ -278,6 +278,7 @@ AddWindow (Window w)
 	}
 #endif
     InstallWindowColormaps (tmp_win);
+	tmp_win->window_complete = True ;
 
 	return (tmp_win);
 }
@@ -360,6 +361,7 @@ AddInternalWindow (Window w, ASInternalWindow **pinternal, ASHints **phints, ASS
 	}
 #endif
 
+	tmp_win->window_complete = True ;
 	return (tmp_win);
 }
 
@@ -404,10 +406,11 @@ LOCAL_DEBUG_CALLER_OUT( "asw(%p)->internal(%p)->data(%p)", asw, asw->internal, a
 	{
 		complete_interactive_action( Scr.moveresize_in_progress, True );
 	    Scr.moveresize_in_progress = NULL ;
-		if( get_flags(asw->wm_state_transition, ASWT_FROM_WITHDRAWN ) )
+		if( !asw->window_complete )
 		{
 			/* will be deleted from AddWindow  - can't destroy here, since we are in recursive event loop */
 			XUngrabServer( dpy );
+		    --nested_level ;
 			return;
 		}
 		/* otherwise we can delete window normally - there are no recursion */

@@ -157,21 +157,15 @@ typedef struct ASWindow
         ASWT_Normal2Iconic    = ASWT_TO_ICONIC,
         ASWT_Iconic2Normal    = ASWT_FROM_ICONIC,
         ASWT_Normal2Withdrawn = ASWT_TO_WITHDRAWN,
-        ASWT_Iconic2Withdrawn = ASWT_FROM_ICONIC|ASWT_TO_WITHDRAWN,
+		ASWT_Iconic2Withdrawn = ASWT_FROM_ICONIC|ASWT_TO_WITHDRAWN,
+		/* window may be unmapped/destroyed even prior to being withdrawn */
+        ASWT_Withdrawn2Withdrawn = ASWT_FROM_WITHDRAWN|ASWT_TO_WITHDRAWN
     }wm_state_transition ;
 
     Time    last_restack_time ;
-
-	/********************************************************************/
-	/* END of NEW ASWindow frame decorations                            */
-	/********************************************************************/
-    int FocusDesk;      /* Where (if at all) was it focussed       */
     int DeIconifyDesk;  /* Desk to deiconify to, for StubbornIcons */
 
-    int orig_x;         /* unmaximized x coordinate  */
-    int orig_y;         /* unmaximized y coordinate  */
-    int orig_wd;        /* unmaximized window width  */
-    int orig_ht;		/* unmaximized window height */
+	Bool 	window_complete ;                  /* if TRue - then AddWindow has been completed */
 
 }ASWindow;
 

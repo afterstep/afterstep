@@ -909,7 +909,11 @@ HandleUnmapNotify (ASEvent *event )
 
     XGrabServer (dpy);
     destroyed = ASCheckTypedWindowEvent ( event->w, DestroyNotify, &dummy) ;
-    event->client->wm_state_transition = ASWIN_GET_FLAGS(event->client, AS_Iconic)?ASWT_Iconic2Withdrawn:ASWT_Normal2Withdrawn ;
+	LOCAL_DEBUG_OUT("wm_state_transition = 0x%lX", event->client->wm_state_transition );
+	if( !get_flags( event->client->wm_state_transition, ASWT_FROM_WITHDRAWN ) )
+    	event->client->wm_state_transition = ASWIN_GET_FLAGS(event->client, AS_Iconic)?ASWT_Iconic2Withdrawn:ASWT_Normal2Withdrawn ;
+	else
+		event->client->wm_state_transition = ASWT_Withdrawn2Withdrawn ;
     Destroy (event->client, destroyed);               /* do not need to mash event before */
     XUngrabServer (dpy);
     ASFlush ();

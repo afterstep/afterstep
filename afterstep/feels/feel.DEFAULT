@@ -243,8 +243,8 @@ Mouse 1         R       A       PopUp "0"
 Mouse 2         R       A       GetHelp
 Mouse 3         R       A       WindowList
 Mouse 1         1       A       ChangeWindowUp
-Mouse 2         1       C       BookmarkWindow "bkmrk1" 
-Mouse 2         1       S       GoToBookmark "bkmrk1" 
+Mouse 2         1       C       BookmarkWindow "bkmrk1"
+Mouse 2         1       S       GoToBookmark "bkmrk1"
 Mouse 3         1       A       ChangeWindowDown
 Mouse 1         2       A       Delete
 Mouse 2         2       A       Close
@@ -327,7 +327,7 @@ Key Menu        A       A       Popup "0"
 Key Meta_L      A       A       WarpFore
 Key Meta_R      A       A       WarpBack
 # PC keys aren't always defined is keymaps
-Key Print       A       A       Exec "Take_ScreenShot" exec xwd -root -out screen.xwd
+Key Print       A       A       Exec "Take_ScreenShot" exec xwd -root -out screen `date +%Y%m%d%H%M%S`.xwd
 Key Pause       A       A       Exec "xlock" exec xlock -nolock -mode random
 Key Sys_Req     A       A       GetHelp
 Key Scroll_Lock A       A       Desk 0
