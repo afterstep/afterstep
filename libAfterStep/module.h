@@ -18,6 +18,7 @@ extern "C" {
 #define CLASS_ARRANGE       "Arrange"
 #define CLASS_ASRENDER      "ASRenderer"
 #define CLASS_ASCP          "ASCP"
+#define CLASS_ASCOLOR        "ASColor"
 #define CLASS_ASETROOT		"asetroot"
 #define CLASS_AUDIO			"Audio"
 #define CLASS_BANNER		"Banner"

@@ -35,14 +35,19 @@
 #include "../../libAfterStep/afterstep.h"
 #include "../../libAfterConf/afterconf.h"
 #include "../../libAfterStep/colorscheme.h"
+#include "../../libAfterStep/module.h"
+#include "../../libAfterStep/event.h"
+#include "../../libAfterStep/wmprops.h"
 
 struct
 {
 	Window main_window ;
 
+	char *doc_str ;
 	char* doc_save;
 	char* doc_save_type;
     char *doc_compress;
+	char *doc_file;
 	Bool display ;
 	Bool onroot ;
 	ARGB32 base_color ;
@@ -59,10 +64,8 @@ struct
 
 }ASColorState;
 
-int verbose = 0;
-Window MainWindow
-
-void ascolor_usage(void) {
+void ascolor_usage() 
+{
 	fprintf( stdout,
 		"Usage:\n"
 		"ascolor [-h] [-f file] [-o file] [-s string] [-t type] [-v] [-V]"
@@ -194,56 +197,54 @@ void GetBaseOptions (const char *filename);
 Window create_main_window();
 void HandleEvents();
 void do_colorscheme();
+void DispatchEvent (ASEvent * event);
 
 
 int main(int argc, char** argv) {
-	ASImage* im = NULL;
-	char* doc_str = default_doc_str;
-	char* doc_file = NULL;
-	char* doc_save = NULL;
-	char* doc_save_type = NULL;
-    char *doc_compress = NULL ;
 	int i;
-	int display = 1, onroot = 0;
-	ARGB32 base_color = 0xff00448f;
-	ASColorScheme *cs ;
-	int angle = ASCS_DEFAULT_ANGLE ;
+
 
 	/* Save our program name - for error messages */
     InitMyApp (CLASS_ASCOLOR, argc, argv, ascolor_usage, NULL, 0 );
 
 	memset( &ASColorState, 0x00, sizeof(ASColorState ));
+	ASColorState.doc_str = default_doc_str;
+	ASColorState.display = 1;
+	ASColorState.base_color = 0xff00448f;
+	ASColorState.angle = ASCS_DEFAULT_ANGLE ;
 
 	/* Parse command line. */
 	for (i = 1 ; i < argc ; i++) {
 		if( argv[i] == NULL )
 			continue;
 		if ((!strcmp(argv[i], "--base_color") || !strcmp(argv[i], "-b")) && i+1 < argc) {
-			parse_argb_color( argv[++i], &base_color );
-			show_progress ( "base color set to #%lX", base_color );
+			parse_argb_color( argv[++i], &(ASColorState.base_color) );
+			show_progress ( "base color set to #%lX", (ASColorState.base_color) );
 		} else if ((!strcmp(argv[i], "--angle") || !strcmp(argv[i], "-a")) && i+1 < argc) {
-			angle = atoi(argv[++i]);
+			ASColorState.angle = atoi(argv[++i]);
 		} else if ((!strcmp(argv[i], "--file") || !strcmp(argv[i], "-f")) && i < argc + 1) {
-			doc_file = argv[++i];
+			ASColorState.doc_file = argv[++i];
 		} else if ((!strcmp(argv[i], "--string") || !strcmp(argv[i], "-s")) && i < argc + 1) {
-			doc_str = argv[++i];
+			ASColorState.doc_str = argv[++i];
 		} else if ((!strcmp(argv[i], "--output") || !strcmp(argv[i], "-o")) && i < argc + 1) {
-			doc_save = argv[++i];
+			ASColorState.doc_save = argv[++i];
 		} else if ((!strcmp(argv[i], "--type") || !strcmp(argv[i], "-t")) && i < argc + 1) {
-			doc_save_type = argv[++i];
+			ASColorState.doc_save_type = argv[++i];
         } else if ((!strcmp(argv[i], "--compress") || !strcmp(argv[i], "-c")) && i < argc + 1) {
-            doc_compress = argv[++i];
+            ASColorState.doc_compress = argv[++i];
 		}else if (!strcmp(argv[i], "--no-display") || !strcmp(argv[i], "-n")) {
-			display = 0;
+			ASColorState.display = 0;
 		}else if ((!strcmp(argv[i], "--root-window") || !strcmp(argv[i], "-r")) && i < argc + 1) {
-			onroot = 1;
+			ASColorState.onroot = 1;
 		}
 	}
 
 	/* Load the document from file, if one was given. */
-	if (ASColorState.doc_file) {
+	if (ASColorState.doc_file) 
+	{
 		ASColorState.doc_str = load_file(ASColorState.doc_file);
-		if (!ASColorState.doc_str) {
+		if (!ASColorState.doc_str) 
+		{
 			show_error("Unable to load file [%s]: %s.", ASColorState.doc_file, strerror(errno));
 			exit(1);
 		}
@@ -458,7 +459,7 @@ do_colorscheme()
 	populate_ascs_colors_rgb( ASColorState.cs );
 	populate_ascs_colors_xml( ASColorState.cs );
 
-	ASColorState.cs_im = compose_asimage_xml(asv, NULL, NULL, ASColorState.doc_str, ASFLAGS_EVERYTHING, False, None, NULL);
+	ASColorState.cs_im = compose_asimage_xml(Scr.asv, NULL, NULL, ASColorState.doc_str, ASFLAGS_EVERYTHING, False, None, NULL);
 
 	if( ASColorState.cs_im == NULL )
 	{
