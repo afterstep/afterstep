@@ -205,12 +205,13 @@ typedef struct ASSupportedHints
 /*************************************************************************/
 /*                           Interface                                   */
 /*************************************************************************/
+/* this calculates offset from the anchor position to the left/top corner of the frame : */
 #define APPLY_GRAVITY(grav,pos,size,bw1,bw2) \
 { switch( (grav) )					         \
-{case  0 : (pos) -= ((size)>>1)    ; break ; /* Center/Forget */ \
- case  1 : (pos) -= (bw2) + (size) ; break ; /* South/East */    \
- case  2 : break; 		             /* Static */    	 \
- default : (pos) += (bw1)          ; break ; /* North/West */    \
+{case  0 : (pos) -= ((size)>>1)+(bw1)    ; break ; /* Center/Forget */ \
+ case  1 : (pos) -= (bw1)+(bw2)+(size)   ; break ; /* South/East */    \
+ case  2 : (pos) = (bw1)                 ; break ; /* Static */        \
+ default :                                 break ; /* North/West */    \
 }}
 
 ASHints *merge_hints( struct ASRawHints *raw, struct ASDatabase *db, ASStatusHints *status,

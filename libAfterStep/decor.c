@@ -1017,6 +1017,7 @@ create_default_myframe()
     frame->part_width[FR_S] = BOUNDARY_WIDTH ;
     frame->part_width[FR_SW] = CORNER_WIDTH ;
     frame->part_width[FR_SE] = CORNER_WIDTH ;
+    frame->part_length[FR_S] = 1;
     frame->part_length[FR_SW] = BOUNDARY_WIDTH ;
     frame->part_length[FR_SE] = BOUNDARY_WIDTH ;
     frame->spacing = 1;

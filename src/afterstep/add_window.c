@@ -1,11 +1,5 @@
 /*
  * Copyright (c) 2002 Sasha Vasko <sasha@aftercode.net>
- * Copyright (c) 1998 Makoto Kato <m_kato@ga2.so-net.ne.jp>
- * Copyright (C) 1997 Dong-hwa Oh <siage@nownuri.net>
- * Copyright (C) 1997 Tomonori <manome@itlb.te.noda.sut.ac.jp>
- * Copyright (C) 1995 Bo Yang
- * Copyright (C) 1993 Robert Nation
- * Copyright (C) 1993 Frank Fejes
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,42 +16,6 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
-
-/****************************************************************************
- * This module is based on Twm, but has been SIGNIFICANTLY modified
- * by Rob Nation
- * by Bo Yang
- * by Dong-hwa Oh <siage@nownuri.net>          ) korean support patch/
- * by Tomonori <manome@itlb.te.noda.sut.ac.jp> )
- ****************************************************************************/
-
-/*****************************************************************************/
-/**       Copyright 1988 by Evans & Sutherland Computer Corporation,        **/
-/**                          Salt Lake City, Utah                           **/
-/**  Portions Copyright 1989 by the Massachusetts Institute of Technology   **/
-/**                        Cambridge, Massachusetts                         **/
-/**                                                                         **/
-/**                           All Rights Reserved                           **/
-/**                                                                         **/
-/**    Permission to use, copy, modify, and distribute this software and    **/
-/**    its documentation  for  any  purpose  and  without  fee is hereby    **/
-/**    granted, provided that the above copyright notice appear  in  all    **/
-/**    copies and that both  that  copyright  notice  and  this  permis-    **/
-/**    sion  notice appear in supporting  documentation,  and  that  the    **/
-/**    names of Evans & Sutherland and M.I.T. not be used in advertising    **/
-/**    in publicity pertaining to distribution of the  software  without    **/
-/**    specific, written prior permission.                                  **/
-/**                                                                         **/
-/**    EVANS & SUTHERLAND AND M.I.T. DISCLAIM ALL WARRANTIES WITH REGARD    **/
-/**    TO THIS SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES  OF  MERCHANT-    **/
-/**    ABILITY  AND  FITNESS,  IN  NO  EVENT SHALL EVANS & SUTHERLAND OR    **/
-/**    M.I.T. BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL  DAM-    **/
-/**    AGES OR  ANY DAMAGES WHATSOEVER  RESULTING FROM LOSS OF USE, DATA    **/
-/**    OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER    **/
-/**    TORTIOUS ACTION, ARISING OUT OF OR IN  CONNECTION  WITH  THE  USE    **/
-/**    OR PERFORMANCE OF THIS SOFTWARE.                                     **/
-/*****************************************************************************/
-
 
 /**********************************************************************
  *
@@ -387,8 +345,8 @@ check_icon_title_canvas( ASWindow *asw, Bool required, Bool reuse_icon_canvas )
     ASCanvas *canvas = asw->icon_title_canvas;
 	Window w;
 
-    if( (canvas && reuse_icon_canvas && canvas != asw->icon_canvas) ||
-        !required )
+    if( canvas &&
+        ((reuse_icon_canvas && canvas != asw->icon_canvas) || !required) )
     {
         w = canvas->w ;
         destroy_ascanvas( &canvas );
@@ -1383,24 +1341,12 @@ init_aswindow_status( ASWindow *t, ASStatusHints *status )
     if( is_output_level_under_threshold(OUTPUT_LEVEL_HINTS) )
 		print_status_hints( NULL, NULL, &adjusted_status );
 
-	/* invalidating position in status so that change_placement would always work */
-	t->status->x = adjusted_status.x-1000 ;
-	t->status->y = adjusted_status.y-1000 ;
-	t->status->width = adjusted_status.width-1000 ;
-	t->status->height = adjusted_status.height-1000 ;
-
-#if 0
-    if( change_placement( t->scr, t->hints, t->status, &(t->anchor), &adjusted_status, t->scr->Vx, t->scr->Vy, adjusted_status.flags ) != 0 )
-	{
-        anchor_decor_client( t->decor, t->hints, t->status, &(t->anchor), t->scr->Vx, t->scr->Vy );
-		configure_decor( t->decor, t->status );
-	}
-#endif
     /* TODO: AS_Iconic */
 	if( !ASWIN_GET_FLAGS(t, AS_StartLayer ) )
 		ASWIN_LAYER(t) = AS_LayerNormal ;
 
-    status2anchor( &(t->anchor), t->hints, t->status, Scr.VxMax, Scr.VyMax);
+    t->status->flags = adjusted_status.flags ;
+    status2anchor( &(t->anchor), t->hints, &adjusted_status, Scr.VxMax, Scr.VyMax);
 
 	return True;
 }
@@ -1866,9 +1812,7 @@ AddWindow (Window w)
 		return (NULL);
 	}
 
-    set_parent_hints_func( afterstep_parent_hints_func ); /* callback for collect_hints() */
-
-	if( collect_hints( &Scr, w, HINT_ANY, &raw_hints ) )
+    if( collect_hints( &Scr, w, HINT_ANY, &raw_hints ) )
     {
         if( is_output_level_under_threshold(OUTPUT_LEVEL_HINTS) )
             print_hints( NULL, NULL, &raw_hints );

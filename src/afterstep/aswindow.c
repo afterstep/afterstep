@@ -331,7 +331,7 @@ restack_window_list( int desk )
     static ASVector *layers = NULL ;
     unsigned long layers_in, i ;
     register long windows_num = 0 ;
-    ASLayer *l ;
+    ASLayer **l ;
     Window  *windows ;
 
     if( layers == NULL )
@@ -343,17 +343,17 @@ restack_window_list( int desk )
         ids = create_asvector( sizeof(Window) );
     else
         flush_vector( ids );
-    if( Scr.Windows->clients->count > layers->allocated )
-        realloc_vector( layers, Scr.Windows->clients->count );
+    if( Scr.Windows->clients->count > ids->allocated )
+        realloc_vector( ids, Scr.Windows->clients->count );
 
     if( (layers_in = sort_hash_items (Scr.Windows->layers, NULL, (void**)VECTOR_HEAD_RAW(*layers), 0)) == 0 )
         return ;
-    l = VECTOR_HEAD(ASLayer,*layers);
+    l = VECTOR_HEAD(ASLayer*,*layers);
     windows = VECTOR_HEAD(Window,*ids);
     for( i = 0 ; i < layers_in ; i++ )
     {
-        register int k, end_k = VECTOR_USED(*(l[i].members)) ;
-        register ASWindow **members = VECTOR_HEAD(ASWindow*,*(l[i].members));
+        register int k, end_k = VECTOR_USED(*(l[i]->members)) ;
+        register ASWindow **members = VECTOR_HEAD(ASWindow*,*(l[i]->members));
         if( end_k > ids->allocated )
             end_k = ids->allocated ;
         for( k = 0 ; k < end_k ; k++ )
@@ -363,7 +363,8 @@ restack_window_list( int desk )
     if( windows_num > 0 )
     {
         XRaiseWindow( dpy, windows[0] );
-        XRestackWindows( dpy, windows, windows_num );
+        if( windows_num > 1 )
+            XRestackWindows( dpy, windows, windows_num );
         XSync(dpy, False);
     }
 #ifndef NO_VIRTUAL

@@ -20,6 +20,7 @@
 #include "../../configure.h"
 
 #include "../../include/asapp.h"
+#include "../../libAfterImage/afterimage.h"
 #include "../../include/afterstep.h"
 #include "../../include/screen.h"
 #include "../../include/event.h"
@@ -109,7 +110,7 @@ correct_colormaps_order()
     while( i >= 0 )
     {
         XInstallColormap( dpy, RequiredCmaps[i].desired );
-        RequiredCmaps[i].installed = RequiredCmaps[i++].desired ;
+        RequiredCmaps[i].installed = RequiredCmaps[i].desired ;
         RequiredCmaps[i].state = AS_CmapPendingInstall ;
         --i ;
     }
@@ -215,6 +216,8 @@ install_colormap( Colormap cmap, Window w )
 void
 SetupColormaps()
 {
+    XWindowAttributes attr ;
+
     if( MaxRequiredCmaps == 0 )
     {
         /* we will maintain only list of required colormaps */
@@ -229,6 +232,16 @@ SetupColormaps()
 
     if( Cmap2WindowXref == NULL )
         Cmap2WindowXref = create_ashash( 7, NULL, NULL, NULL );
+
+    XGetWindowAttributes( dpy, Scr.Root, &attr );
+    RootCmap = safecalloc( 1, sizeof(ASInstalledColormap));
+    RootCmap->cmap = attr.colormap ;
+
+    if( RootCmap->cmap != Scr.asv->colormap )
+    {
+        AfterStepCmap = safecalloc( 1, sizeof(ASInstalledColormap)) ;
+        AfterStepCmap->cmap = Scr.asv->colormap ;
+    }
 }
 
 void
@@ -243,6 +256,12 @@ CleanupColormaps()
 
     if( Cmap2WindowXref )
         destroy_ashash( &Cmap2WindowXref );
+
+    if( RootCmap )
+        free( RootCmap );
+    if( AfterStepCmap )
+        free( AfterStepCmap );
+
 }
 /***********************************************************************
  *
@@ -336,7 +355,7 @@ InstallWindowColormaps (ASWindow *asw)
                     main_cmap_installed = True ;
                 XGetWindowAttributes (dpy, w, &attr);
                 if( attr.colormap )
-                    install_colormap(w, attr.colormap);
+                    install_colormap(attr.colormap, w);
             }
         }
         main_w = asw->w ;
@@ -345,7 +364,7 @@ InstallWindowColormaps (ASWindow *asw)
 	{
         XGetWindowAttributes (dpy, main_w, &attr);
         if( attr.colormap )
-            install_colormap(main_w, attr.colormap);
+            install_colormap(attr.colormap, main_w);
     }
 }
 
@@ -376,7 +395,7 @@ UninstallWindowColormaps (ASWindow *asw)
     if (!main_cmap_done)
 	{
         XGetWindowAttributes (dpy, main_w, &attr);
-        uninstall_colormap(main_w, attr.colormap);
+        uninstall_colormap(attr.colormap, main_w);
     }
 }
 
@@ -426,7 +445,8 @@ InstallAfterStepColormap ()
         ++(AfterStepCmap->ref_count);
         if( AfterStepCmap->ref_count == 1 )
             correct_colormaps_order();
-    }
+    }else
+        InstallRootColormap ();
 }
 void
 UninstallAfterStepColormap ()
@@ -436,6 +456,7 @@ UninstallAfterStepColormap ()
         --(AfterStepCmap->ref_count);
         if( AfterStepCmap->ref_count == 0 )
             correct_colormaps_order();
-    }
+    }else
+        UninstallRootColormap ();
 }
 
