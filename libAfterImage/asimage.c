@@ -89,7 +89,6 @@ static inline CARD8* get_compression_buffer( size_t size )
 {
 	if( size > __as_compression_buffer_len )
  		__as_compression_buffer_len = (size+1023)&(~0x03FF) ;
-
 	return (__as_compression_buffer = realloc( __as_compression_buffer, __as_compression_buffer_len ));
 }
 
@@ -206,9 +205,12 @@ asimage_init (ASImage * im, Bool free_resources)
 		if (free_resources)
 		{
 			register int i ;
-			for( i = im->height*4-1 ; i>= 0 ; --i )
-				if( im->red[i] )
-					free( im->red[i] );
+			if( get_flags( im->flags, ASIM_STATIC ) ) 
+				free( im->memory.pmem );
+			else
+				for( i = im->height*4-1 ; i>= 0 ; --i )
+					if( im->red[i] )
+						free( im->red[i] );
 			if( im->red )
 				free(im->red);
 #ifndef X_DISPLAY_MISSING
@@ -232,17 +234,39 @@ void
 flush_asimage_cache( ASImage *im )
 {
 #ifndef X_DISPLAY_MISSING
-			if( im->alt.ximage )
-            {
-				XDestroyImage( im->alt.ximage );
-                im->alt.ximage = NULL ;
-            }
-			if( im->alt.mask_ximage )
-            {
-				XDestroyImage( im->alt.mask_ximage );
-                im->alt.mask_ximage = NULL ;
-            }
+	if( im->alt.ximage )
+    {
+		XDestroyImage( im->alt.ximage );
+        im->alt.ximage = NULL ;
+    }
+	if( im->alt.mask_ximage )
+    {
+		XDestroyImage( im->alt.mask_ximage );
+        im->alt.mask_ximage = NULL ;
+    }
 #endif
+}
+
+static void
+alloc_asimage_channels ( ASImage *im )
+{
+	/* we want result to be 32bit aligned and padded */
+	im->red = safecalloc (1, sizeof (CARD8*) * im->height * 4);
+	if( im->red == NULL )
+	{
+		show_error( "Insufficient memory to create image %dx%d!", im->width, im->height );
+		if( im->red )
+			free( im->red );
+		return ;
+	}
+
+	im->green = im->red+im->height;
+	im->blue = 	im->red+(im->height*2);
+	im->alpha = im->red+(im->height*3);
+	im->channels[IC_RED] = im->red ;
+	im->channels[IC_GREEN] = im->green ;
+	im->channels[IC_BLUE] = im->blue ;
+	im->channels[IC_ALPHA] = im->alpha ;
 }
 
 void
@@ -250,30 +274,11 @@ asimage_start (ASImage * im, unsigned int width, unsigned int height, unsigned i
 {
 	if (im)
 	{
-		register unsigned int i;
-
 		asimage_init (im, True);
-		/* we want result to be 32bit aligned and padded */
-		im->red = safemalloc (sizeof (CARD8*) * height * 4);
-		if( im->red == NULL )
-		{
-			show_error( "Insufficient memory to create image %dx%d!", width, height );
-			if( im->red )
-				free( im->red );
-			return ;
-		}
 		im->height = height;
 		im->width = width;
-
-		for( i = 0 ; i < height<<2 ; i++ )
-			im->red[i] = 0 ;
-		im->green = im->red+height;
-		im->blue = 	im->red+(height*2);
-		im->alpha = im->red+(height*3);
-		im->channels[IC_RED] = im->red ;
-		im->channels[IC_GREEN] = im->green ;
-		im->channels[IC_BLUE] = im->blue ;
-		im->channels[IC_ALPHA] = im->alpha ;
+		
+		alloc_asimage_channels( im );
 
 		im->max_compressed_width = width*compression/100;
 		if( im->max_compressed_width > im->width )
@@ -281,29 +286,81 @@ asimage_start (ASImage * im, unsigned int width, unsigned int height, unsigned i
 	}
 }
 
-ASImage *
-create_asimage( unsigned int width, unsigned int height, unsigned int compression)
+void
+asimage_start_static(ASImage * im, unsigned int width, unsigned int height, unsigned int compression)
 {
-	ASImage *im = safecalloc( 1, sizeof(ASImage) );
-	asimage_start( im, width, height, compression );
+	if (im)
+	{
+		register unsigned int i;
+		register CARD8 *ptr ;
+
+		asimage_init (im, True);
+		set_flags( im->flags, ASIM_STATIC ); 
+
+		im->height = height;
+		im->width = width;
+		im->max_compressed_width = width*compression/100;
+		if( im->max_compressed_width > im->width )
+			im->max_compressed_width = im->width ;
+
+		alloc_asimage_channels( im );
+
+		im->memory.pmem = ptr = safemalloc( width*height * 4 );
+		for( i = 0 ; i < height ; ++i ) 
+		{
+			im->red[i] = ptr ;
+			ptr += width ; 
+			im->green[i] = ptr ;
+			ptr += width ; 
+			im->blue[i] = ptr ;
+			ptr += width ; 
+			im->alpha[i] = ptr ;
+			ptr += width ; 
+	
+		}		
+	}
+}
+
+
+static ASImage* check_created_asimage( ASImage *im, unsigned int width, unsigned int height )
+{
 	if( im->width == 0 || im->height == 0 )
 	{
 		free( im );
 		im = NULL ;
 #ifdef TRACK_ASIMAGES
-        show_error( "failed to create ASImage of size %dx%d with compression %d", width, height, compression );
+        show_error( "failed to create ASImage of size %dx%d", width, height );
 #endif
     }else
     {
 #ifdef TRACK_ASIMAGES
-        show_progress( "created ASImage %p of size %dx%d with compression %d", im, width, height, compression );
+        show_progress( "created %s ASImage %p of size %dx%d with compression %d", 
+						get_flags( im->flags, ASIM_STATIC)?"static":"dynamic", im,  
+						width, height, (im->max_compressed_width*100)/im->width );
         if( __as_image_registry == NULL )
             __as_image_registry = create_ashash( 0, pointer_hash_value, NULL, NULL );
         add_hash_item( __as_image_registry, AS_HASHABLE(im), im );
 #endif
     }
-	return im;
+	return im ;
 }
+
+ASImage *
+create_asimage( unsigned int width, unsigned int height, unsigned int compression)
+{
+	ASImage *im = safecalloc( 1, sizeof(ASImage) );
+	asimage_start( im, width, height, compression );
+	return check_created_asimage( im, width, height );
+}
+
+ASImage *
+create_static_asimage( unsigned int width, unsigned int height, unsigned int compression)
+{
+	ASImage *im = safecalloc( 1, sizeof(ASImage) );
+	asimage_start_static( im, width, height, compression );
+	return check_created_asimage( im, width, height );
+}
+
 
 void
 destroy_asimage( ASImage **im )

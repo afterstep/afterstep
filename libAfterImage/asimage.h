@@ -204,7 +204,17 @@ typedef struct ASImage
 #define ASIM_DATA_NOT_USEFUL	(0x01<<0)
 #define ASIM_VECTOR_TOP2BOTTOM	(0x01<<1)
 #define ASIM_XIMAGE_8BIT_MASK	(0x01<<2)
+#define ASIM_STATIC 			(0x01<<3) /* if this is set, then memory for ASImage is allocate
+										   * in one huge block, and its channels/lines cannot be
+										   * moved around and deallocated individually
+										   */
   ASFlagType			 flags ;    /* combination of the above flags */
+  
+  union { 
+  	void *pmem ;   /* ptr to huge block of memory to hold entire image in it */
+	/* todo: obstacks maybe and mmap stuff, and possibly swaping in file */
+  }memory ;
+  
 } ASImage;
 /*******/
 
