@@ -1,6 +1,10 @@
 <varlistentry id="options.Delay">
-	<term>Delay</term>
+	<term>Delay <emphasis remap='I'>seconds</emphasis></term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+	<para>Specifies that sound events will only be played if they occur at
+        least  so  many  seconds after the previous event.  Sound events
+        that occur during the delay period are ignored.  This option  is
+        useful  if  you  don't  want  several sounds playing at the same
+        time.  The default delay is 0 which disables the audio delay.</para>
 	</listitem>
 </varlistentry>

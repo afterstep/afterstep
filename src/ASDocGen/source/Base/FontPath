@@ -1,5 +1,5 @@
 <varlistentry id="options.FontPath">
-	<term>FontPath</term>
+	<term>FontPath <emphasis remap='I'>path[:path]</emphasis></term>
 	<listitem>
 		<para>FIXME: add proper description here.</para>
 	</listitem>

@@ -1,5 +1,5 @@
 <varlistentry id="options.ModulePath">
-	<term>ModulePath</term>
+	<term>ModulePath <emphasis remap='I'>path[:path]</emphasis></term>
 	<listitem>
 		<para>Specifies the paths to locate the Modules in.</para>
 	</listitem>

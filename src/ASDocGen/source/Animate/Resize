@@ -1,7 +1,9 @@
 <varlistentry id="options.Resize">
-	<term>Resize</term>
+	<term>Resize <emphasis remap='I'>"mode"</emphasis></term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Tells Animate what method to use to draw resizes.  The six meth-
+              ods currently supported are: zoom,  zoom3D,  twist,  flip,  turn
+              and random.</para>
 		<para>See Also: <ulink url="AnimateTypes#synopsis">Animate Resize type</ulink> for further details.</para>
 	</listitem>
 </varlistentry>

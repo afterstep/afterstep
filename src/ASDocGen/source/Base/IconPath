@@ -1,5 +1,5 @@
 <varlistentry id="options.IconPath">
-	<term>IconPath</term>
+	<term>IconPath <emphasis remap='I'>path[:path]</emphasis></term>
 	<listitem>
 		<para>Specifies the paths to locate the  bitmaps  in,  typically  used
 		only if XPM, JPEG, or PNG images aren't available. Valid bitmaps

@@ -1,6 +1,10 @@
 <varlistentry id="options.RplayHost">
-	<term>RplayHost</term>
+	<term>RplayHost <emphasis remap='I'>"hostname"</emphasis></term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+	<para>Specifies what host the sounds will play on.  The  hostname  can
+        also  be  an  environment  variable  such  as $HOSTDISPLAY. This
+        option is only valid with builtin rplay support. If this is left
+        out  then  Audio  will attempt to connect to rplay daemon on the
+        same host that is running X first, then to localhost.</para>
 	</listitem>
 </varlistentry>

@@ -1,5 +1,5 @@
 <varlistentry id="options.PagingDefault">
-	<term>PagingDefault</term>
+	<term>PagingDefault <emphasis remap='I'>0|1</emphasis></term>
 	<listitem>
 		<para>Specifies if Paging should be enabled (1) or disabled (0).
 		Paging is set to enabled by default.</para>

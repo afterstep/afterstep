@@ -1,6 +1,8 @@
 <varlistentry id="options.RplayPriority">
-	<term>RplayPriority</term>
+	<term>RplayPriority <emphasis remap='I'>priority</emphasis></term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+	<para>Specifies what priority will be assigned to the sounds when they
+        are  played.   This option is only valid with builtin rplay sup-
+        port.</para>
 	</listitem>
 </varlistentry>

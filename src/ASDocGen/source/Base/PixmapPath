@@ -1,5 +1,5 @@
 <varlistentry id="options.PixmapPath">
-	<term>PixmapPath</term>
+	<term>PixmapPath <emphasis remap='I'>path[:path]</emphasis></term>
 	<listitem>
 		<para>Specifies the paths to locate the pixmaps in.  Valid pixmaps are
 		currently XPM, JPEG, and PNG.</para>
