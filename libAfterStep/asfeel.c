@@ -64,7 +64,7 @@ init_asfeel( ASFeel *feel )
     feel->ComplexFunctions = NULL;
     feel->ShadeAnimationSteps = 12;
     
-    feel->desk_cover_animation_type = 1;
+    feel->desk_cover_animation_type = 10;
     feel->desk_cover_animation_steps = 12;
 
     feel->recent_submenu_items = 4 ;

@@ -263,7 +263,7 @@ AddWindow (Window w)
     /* saving window management properties : */
     set_client_desktop( tmp_win->w, ASWIN_DESK(tmp_win) );
     set_window_wm_state( tmp_win, get_flags(status.flags, AS_Iconic) );
-	RaiseObscuredWindow(tmp_win);
+	RaiseWindow(tmp_win);
  
 	if( ASWIN_HFLAGS( tmp_win, AS_AvoidCover )  )
 		enforce_avoid_cover( tmp_win );
@@ -351,7 +351,7 @@ AddInternalWindow (Window w, ASInternalWindow **pinternal, ASHints **phints, ASS
     on_window_title_changed ( tmp_win, False );
     set_window_wm_state( tmp_win, get_flags(status->flags, AS_Iconic) );
 	RaiseWindow( tmp_win );
-//    activate_aswindow( tmp_win, False, False );
+/*    activate_aswindow( tmp_win, False, False ); */
 
     /*
 	 * Reparenting generates an UnmapNotify event, followed by a MapNotify.

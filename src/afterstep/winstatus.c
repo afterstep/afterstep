@@ -1176,13 +1176,16 @@ init_aswindow_status( ASWindow *t, ASStatusHints *status )
 		t->status->x %= Scr.MyDisplayWidth ;
 		if( !get_flags (t->status->flags, AS_Sticky) )
 			t->status->x += t->status->viewport_x ;
-	}else
-	{	
+	}else if( !get_flags (t->status->flags, AS_Sticky) )
+	{
 		if( t->status->x  < 0 ) 
 			t->status->viewport_x = 0 ;
 		else
         	t->status->viewport_x = (t->status->x/Scr.MyDisplayWidth)*Scr.MyDisplayWidth ;
-	}
+		if( !get_flags(AfterStepState, ASS_NormalOperation) )
+			set_flags( status->flags, AS_StartViewportX);
+	}else 
+		t->status->x %= Scr.MyDisplayWidth ;
 
     if( get_flags( status->flags, AS_StartViewportY) && get_flags(AfterStepState, ASS_NormalOperation) )
 	{	
@@ -1190,13 +1193,16 @@ init_aswindow_status( ASWindow *t, ASStatusHints *status )
 		t->status->y %= Scr.MyDisplayWidth ;
 		if( !get_flags (t->status->flags, AS_Sticky) )
 			t->status->y += t->status->viewport_y ;
-    }else
+    }else  if( !get_flags (t->status->flags, AS_Sticky) )
 	{	  
 		if( t->status->y  < 0 ) 
 			t->status->viewport_y = 0 ;
 		else
         	t->status->viewport_y = (t->status->y/Scr.MyDisplayHeight)*Scr.MyDisplayHeight ;
-	}
+		if( !get_flags(AfterStepState, ASS_NormalOperation) )
+			set_flags( status->flags, AS_StartViewportY);
+	}else 
+		t->status->y %= Scr.MyDisplayHeight ;
     
 	if( t->status->viewport_x != Scr.Vx || t->status->viewport_y != Scr.Vy )
 	{	
