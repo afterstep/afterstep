@@ -81,9 +81,6 @@ static int    x_fd;
 char         *audio_play_cmd_line, *audio_play_dir;
 time_t        audio_delay = 0;				   /* seconds */
 
-/* Event mask - we want all events */
-#define mask_reg MAX_MASK
-
 /* prototypes */
 Bool          SetupSound ();
 
@@ -184,7 +181,7 @@ main (int argc, char **argv)
 
 	/* connect to AfterStep */
 	fd_width = GetFdWidth ();
-	fd[0] = fd[1] = ConnectAfterStep (mask_reg);
+	fd[0] = fd[1] = ConnectAfterStep (MAX_MASK);
 
 	LoadConfig (global_config_file, "audio", ParseOptions);
 
