@@ -28,29 +28,28 @@ ctrl_byte3    := [1NNNNNNN|11111111] (first bit is 1, remaining are length.
 */
 
 /* this is value */
-#define RLE_EOL			0x00
+#define RLE_EOL					0x00
 /* this are masks */
-#define RLE_DIRECT_B 		0x80
-#define RLE_DIRECT_TAIL		0xFF
-#define RLE_LONG_B 		0x40
+#define RLE_DIRECT_B 			0x80
+#define RLE_DIRECT_TAIL			0xFF
+#define RLE_LONG_B 				0x40
 /* this one is inverted mask */
-#define RLE_SIMPLE_B_INV  	0xC0
+#define RLE_SIMPLE_B_INV  		0xC0
 
 /* this are masks to filter out control bits: */
-#define RLE_DIRECT_D 		0x7F
-#define RLE_LONG_D 		0x3F
-#define RLE_SIMPLE_D  		0x3F
+#define RLE_DIRECT_D 			0x7F
+#define RLE_LONG_D 				0x3F
+#define RLE_SIMPLE_D  			0x3F
 
 #define RLE_MAX_DIRECT_LEN      (RLE_DIRECT_D-1)
 #define RLE_MAX_SIMPLE_LEN     	63
 #define RLE_MAX_LONG_LEN     	(64*256)
-#define RLE_THRESHOLD		1
+#define RLE_THRESHOLD			1
 
 typedef struct ASImage
 {
   unsigned int width, height;
-  CARD8 **red, **green, **blue;
-  CARD8 **alpha;
+  CARD8 **alpha, **red, **green, **blue;
   CARD8 **channels[IC_NUM_CHANNELS];/* merely a shortcut for faster translation to the
 									 * above pointers*/
 
@@ -69,6 +68,9 @@ typedef struct ASImageDecoder
 	ScreenInfo 	   *scr;
 	ASImage 	   *im ;
 	ASFlagType 		filter;
+
+#define ARGB32_DEFAULT_BACK_COLOR	ARGB32_Black
+
 	ARGB32	 		back_color;  /* we fill missing scanlines with this - default - black*/
 	unsigned int    offset_x,    /* left margin on source image before which we skip everything */
 					out_width;   /* actuall length of the output scanline */
@@ -159,6 +161,7 @@ ASScanline*prepare_scanline( unsigned int width, unsigned int shift, ASScanline 
 void       free_scanline( ASScanline *sl, Bool reusable );
 
 size_t asimage_add_line (ASImage * im, ColorPart color, CARD32 * data, unsigned int y);
+size_t asimage_add_line_mono (ASImage * im, ColorPart color, CARD8 value, unsigned int y);
 
 /* usefull for debugging : (returns memory usage)*/
 unsigned int asimage_print_line (ASImage * im, ColorPart color,
