@@ -18,7 +18,7 @@
 
 #include "config.h"
 
-/*#define LOCAL_DEBUG */
+/*#define LOCAL_DEBUG*/
 
 #include <malloc.h>
 #include <stdlib.h>
@@ -75,8 +75,8 @@ debug_AllocColor( const char *file, const char *func, int line, ASVisual *asv, C
 {
 	Status sret ;
 	sret = XAllocColor( asv->dpy, cmap, pxcol );
-	show_progress( " XAllocColor in %s:%s():%d has %s -> pixel = %d, color = 0x%4.4lX, 0x%4.4lX, 0x%4.4lX",
-				   file, func, line, (sret==0)?"failed":"succeeded", pxcol->pixel, pxcol->red, pxcol->green, pxcol->blue );
+	show_progress( " XAllocColor in %s:%s():%d has %s -> cmap = %lX, pixel = %d, color = 0x%4.4lX, 0x%4.4lX, 0x%4.4lX",
+				   file, func, line, (sret==0)?"failed":"succeeded", cmap, pxcol->pixel, pxcol->red, pxcol->green, pxcol->blue );
 	return sret;
 }
 #define ASV_ALLOC_COLOR(asv,cmap,pxcol)  debug_AllocColor(__FILE__, __FUNCTION__, __LINE__, (asv),(cmap),(pxcol))
@@ -218,12 +218,16 @@ static void find_useable_visual( ASVisual *asv, Display *dpy, int screen,
 		ASV_ALLOC_COLOR( asv, attr->colormap, &white_xcol );
 		attr->border_pixel = black_xcol.pixel ;
 /*fprintf( stderr, "checking out visual ID %d, class %d, depth = %d mask = %X,%X,%X\n", list[k].visualid, list[k].class, list[k].depth, list[k].red_mask, list[k].green_mask, list[k].blue_mask 	);*/
-		w = XCreateWindow (dpy, root, -10, -10, 10, 10, 0, 0, CopyFromParent, list[k].visual, CWColormap|CWBorderPixmap|CWBorderPixel, attr );
+		w = XCreateWindow (dpy, root, -10, -10, 10, 10, 0, list[k].depth, CopyFromParent, list[k].visual, CWColormap|CWBorderPixel, attr );
 		if( w != None && XGetGeometry (dpy, w, &wjunk, &junk, &junk, &width, &height, &ujunk, &ujunk))
 		{
 			/* don't really care what's in it since we do not use it anyways : */
 			asv->visual_info = list[k] ;
 			XDestroyWindow( dpy, w );
+			asv->colormap = attr->colormap ;
+			asv->own_colormap = (attr->colormap != DefaultColormap( dpy, screen ));
+			asv->white_pixel = white_xcol.pixel ;
+			asv->black_pixel = black_xcol.pixel ;
 			break;
 		}
 		if( attr->colormap != DefaultColormap( dpy, screen ))
@@ -346,11 +350,11 @@ query_screen_visual_id( ASVisual *asv, Display *dpy, int screen, Window root, in
 			attr.colormap = XCreateColormap( dpy, root, asv->visual_info.visual, AllocNone);
 		ASV_ALLOC_COLOR( asv, attr.colormap, &black_xcol );
 		ASV_ALLOC_COLOR( asv, attr.colormap, &white_xcol );
+		asv->colormap = attr.colormap ;
+		asv->own_colormap = (attr.colormap != DefaultColormap( dpy, screen ));
+		asv->white_pixel = white_xcol.pixel ;
+		asv->black_pixel = black_xcol.pixel ;
 	}
-	asv->colormap = attr.colormap ;
-	asv->own_colormap = (attr.colormap != DefaultColormap( dpy, screen ));
-	asv->white_pixel = white_xcol.pixel ;
-	asv->black_pixel = black_xcol.pixel ;
 	fprintf( stderr, "Selected visual 0x%lx: depth %d, class %d, RGB masks: 0x%lX, 0x%lX, 0x%lX.\n",
 			 asv->visual_info.visualid,
 			 asv->visual_info.depth,
@@ -931,13 +935,17 @@ LOCAL_DEBUG_OUT( "Colormap %lX, parent %lX, %ux%u%+d%+d, bw = %d, class %d",
 			attributes->border_pixmap = None ;
 			set_flags(mask, CWBorderPixmap );
 		}
+
+		clear_flags(mask, CWBorderPixmap );
 		if( !get_flags(mask, CWBorderPixel ) )
 		{
 			attributes->border_pixel = asv->black_pixel ;
 			set_flags(mask, CWBorderPixel );
 		}
 	}
-	return XCreateWindow (asv->dpy, parent, x, y, width, height, border_width, 0,
+	LOCAL_DEBUG_OUT( "parent = %lX, mask = 0x%lX, VisualID = 0x%lX, Border Pixel = %ld, colormap = %lX",
+					  parent, mask, asv->visual_info.visual->visualid, attributes->border_pixel, attributes->colormap );
+	return XCreateWindow (asv->dpy, parent, x, y, width, height, border_width, asv->visual_info.depth,
 						  wclass, asv->visual_info.visual,
 	                      mask, attributes);
 #else

@@ -257,7 +257,7 @@ asimage2pixmap(ASVisual *asv, Window root, ASImage *im, GC gc, Bool use_cached)
 
 		if( !asimage2drawable( asv, p, im, gc, 0, 0, 0, 0, im->width, im->height, use_cached) )
 		{
-			XFreePixmap( dpy, p );
+			XFreePixmap( asv->dpy, p );
 			p = None ;
 		}
 		return p;
