@@ -100,7 +100,7 @@ struct folder_info
  *************************************************************************/
 /* from Wharf.c */
 extern void   CreateWindow(void);
-extern Pixel  GetColor(char *name);
+extern unsigned long  GetColor(char *name);
 extern void   nocolor(char *a, char *b);
 extern void   match_stringWharf(char *tline);
 #ifdef ENABLE_SOUND

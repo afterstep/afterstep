@@ -766,7 +766,7 @@ Loop (void)
 
 		  if (Pushable)
 		    {
-		      RedrawPushedOutline (button);
+		      RedrawPushed (button);
 		      XSync (dpy, 0);
 		    }
 		  XGetWindowProperty (dpy, Scr.Root, DndSelection, 0L,
@@ -1077,29 +1077,26 @@ MapFolder (folder_info * folder)
   OpenFolder (folder);
 }
 
-void
-DrawOutline (Drawable d, int w, int h)
+
+void 
+RedrawFolder(folder_info * folder)
 {
-  GC reliefGC, shadowGC;
 
-  if (NoBorder)
-    return;
-
-  mystyle_get_global_gcs (Style, NULL, NULL, &reliefGC, &shadowGC);
-
-/* top */
-  XDrawLine (dpy, d, reliefGC, 0, 0, w - 1, 0);
-
-/* left */
-  XDrawLine (dpy, d, reliefGC, 0, 1, 0, h - 1);
-
-/* bottom */
-  XFillRectangle (dpy, d, shadowGC, 0, h - 2, w - 1, h - 1);
-
-/* right */
-  XDrawLine (dpy, d, shadowGC, w - 1, 1, w - 1, h - 1);
-  XDrawLine (dpy, d, shadowGC, w - 2, 2, w - 2, h - 2);
 }
+
+void 
+RedrawButton(button_info * button)
+{
+
+
+}
+
+
+/*******************************************************************/
+/*******************************************************************/
+/*******************************************************************/
+/*******************************************************************/
+#if 0 /* disabled pending rewrite of Wharf top use libAfterImage : */
 
 void
 RedrawUnpushed (button_info * button)
@@ -1270,6 +1267,11 @@ RedrawWindow (folder_info * folder, button_info * newbutton)
     }
 }
 
+#endif /* disabled pending rewrite of Wharf top use libAfterImage : */
+/*******************************************************************/
+/*******************************************************************/
+/*******************************************************************/
+/*******************************************************************/
 
 /*******************************************************************
  *
@@ -1305,31 +1307,22 @@ CreateShadowGC (void)
 void
 CreateIconPixmap (void)
 {
-  if (back_pixmap != NULL)
-	destroy_asimage( &back_pixmap );
-  /* create the icon pixmap */
-  if ( Style->texture_type != TEXTURE_BUILTIN || 
-       (back_pixmap = GetXPMData (button_xpm)) == NULL )
+    if (back_pixmap != NULL)
+	  	destroy_asimage( &back_pixmap );
+    /* create the icon pixmap */
+	if ( Style->texture_type != TEXTURE_BUILTIN || 
+  	     (back_pixmap = GetXPMData (button_xpm)) == NULL )
     {
-      int width = 64, height = 64;
-      icon_t icon;
+    	int width = 64, height = 64;
 #ifndef NO_TEXTURE
-      if ((Style->texture_type >= TEXTURE_PIXMAP && Style->texture_type < TEXTURE_BUILTIN) && Style->back_icon.pix != None)
-	{
-	  width = Style->back_icon.width;
-	  height = Style->back_icon.height;
-	}
+    	if ((Style->texture_type >= TEXTURE_PIXMAP && Style->texture_type < TEXTURE_BUILTIN) && 
+	  	     Style->back_icon.image != NULL)
+		{
+			width = Style->back_icon.image->width;
+			height = Style->back_icon.image->height;
+		}
 #endif /* !NO_TEXTURE */
-      icon = mystyle_make_icon_overlay (Style, 0, 0, width, height, None);
-      if (icon.pix == None)
-	{
-	  icon.width = width;
-	  icon.height = height;
-	}
-	
-	  back_pixmap = icon.image ;
-	  icon.image = NULL ;
-	  mystyle_free_icon_resources(icon); 
+		back_pixmap = mystyle_make_image (Style, 0, 0, width, height);
     }
 }
 

@@ -449,20 +449,11 @@ raw2scanline( register CARD8 *row, ASScanline *buf, CARD8 *gamma_table, unsigned
 Bool print_component( CARD32*, int, unsigned int );
 #endif
 
-ASImage *
-xpm2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage, unsigned int compression )
+static ASImage *
+xpm_file2ASImage( ASXpmFile *xpm_file, unsigned int compression )
 {
-	ASXpmFile *xpm_file = NULL;
 	ASImage *im = NULL ;
 	int line = 0;
-	START_TIME(started);
-
-	LOCAL_DEBUG_CALLER_OUT ("(\"%s\", 0x%lX)", path, what);
-	if( (xpm_file=open_xpm_file(path)) == NULL )
-	{
-		show_error("cannot open image file \"%s\" for reading. Please check permissions.", path);
-		return NULL;
-	}
 
 	LOCAL_DEBUG_OUT( "do_alpha is %d. im->height = %d, im->width = %d", xpm_file->do_alpha, xpm_file->height, xpm_file->width );
 	if( build_xpm_colormap( xpm_file ) )
@@ -485,6 +476,45 @@ xpm2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tabl
 #endif
 			}
 		}
+	return im ;
+}
+
+ASImage *
+xpm2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage, unsigned int compression )
+{
+	ASXpmFile *xpm_file = NULL;
+	ASImage *im = NULL ;
+	START_TIME(started);
+
+	LOCAL_DEBUG_CALLER_OUT ("(\"%s\", 0x%lX)", path, what);
+	if( (xpm_file=open_xpm_file(path)) == NULL )
+	{
+		show_error("cannot open image file \"%s\" for reading. Please check permissions.", path);
+		return NULL;
+	}
+	
+	im = xpm_file2ASImage( xpm_file, compression );
+	close_xpm_file( &xpm_file );
+
+	SHOW_TIME("image loading",started);
+	return im;
+}
+
+ASImage *
+xpm_data2ASImage( const char **data, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage, unsigned int compression )
+{
+	ASXpmFile *xpm_file = NULL;
+	ASImage *im = NULL ;
+	START_TIME(started);
+
+	LOCAL_DEBUG_CALLER_OUT ("(\"%s\", 0x%lX)", path, what);
+	if( (xpm_file=open_xpm_data(data)) == NULL )
+	{
+		show_error("cannot read XPM data.");
+		return NULL;
+	}
+	
+	im = xpm_file2ASImage( xpm_file, compression );
 	close_xpm_file( &xpm_file );
 
 	SHOW_TIME("image loading",started);

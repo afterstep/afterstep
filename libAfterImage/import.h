@@ -60,6 +60,7 @@ typedef ASImage* (*as_image_loader_func)( const char * path, ASFlagType what, do
 extern as_image_loader_func as_image_file_loaders[ASIT_Unknown];
 
 ASImage *xpm2ASImage ( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage, unsigned int compression );
+ASImage *xpm_data2ASImage( const char **data, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage, unsigned int compression );
 ASImage *png2ASImage ( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage, unsigned int compression );
 ASImage *jpeg2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage, unsigned int compression );
 ASImage *xcf2ASImage ( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage, unsigned int compression );

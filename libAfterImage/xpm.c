@@ -555,6 +555,39 @@ open_xpm_file( const char *realfilename )
 	return xpm_file ;
 }
 
+ASXpmFile*
+open_xpm_data( const char **data )
+{
+	ASXpmFile *xpm_file = NULL;
+	if( data )
+	{
+		Bool success = False ;
+
+		xpm_file = safecalloc( 1, sizeof(ASXpmFile));
+		xpm_file->data = (char**)data ;
+		xpm_file->parse_state = XPM_InFile ;
+		xpm_file->buffer = safemalloc(AS_XPM_BUFFER_UNDO+AS_XPM_BUFFER_SIZE+1);
+		xpm_file->curr_byte = AS_XPM_BUFFER_UNDO ;
+		if( get_xpm_string( xpm_file ) )
+			success = parse_xpm_header( xpm_file );
+
+		if( !success )
+			close_xpm_file( &xpm_file );
+		else
+		{
+			if( xpm_file->width > MAX_IMPORT_IMAGE_SIZE )
+				xpm_file->width = MAX_IMPORT_IMAGE_SIZE ;
+			if( xpm_file->height > MAX_IMPORT_IMAGE_SIZE )
+				xpm_file->height = MAX_IMPORT_IMAGE_SIZE ;
+			if( xpm_file->bpp > MAX_XPM_BPP )
+				xpm_file->bpp = MAX_XPM_BPP;
+			prepare_scanline( xpm_file->width, 0, &(xpm_file->scl), False );
+		}
+	}
+	return xpm_file ;
+}
+
+
 ASXpmStatus
 get_xpm_string( ASXpmFile *xpm_file )
 {
@@ -750,7 +783,7 @@ LOCAL_DEBUG_OUT( "\t\tcolor = 0x%8.8lX\n",  color );
 		{
 			char *name = mystrndup(xpm_file->str_buf, xpm_file->bpp);
 LOCAL_DEBUG_OUT( "\t\tname = \"%s\"\n", name );
-			add_hash_item( xpm_file->cmap_name_xref, (ASHashableValue)name, (void*)color );
+			add_hash_item( xpm_file->cmap_name_xref, (ASHashableValue)name, (void*)((long)color) );
 		}
 #endif
 	}
