@@ -204,6 +204,7 @@ typedef struct ASStatusHints
     Window          icon_window;
 	unsigned int    frame_size[FRAME_SIDES];   /* size of the frame decoration */
 
+	unsigned int 	frame_border_width ;
 }ASStatusHints;
 
 /*

@@ -1879,14 +1879,14 @@ status2anchor (XRectangle * anchor, ASHints * hints, ASStatusHints * status, uns
 		LOCAL_DEBUG_OUT( "grav_x = %d, width = %d, bw1 = %d, bw2 = %d, status_x = %d", 
 						 grav_x, anchor->width, status->frame_size[FR_W], status->frame_size[FR_E], status->x );
         offset = 0 ;
-		APPLY_GRAVITY (grav_x, offset, anchor->width, status->frame_size[FR_W], status->frame_size[FR_E]);
+		APPLY_GRAVITY (grav_x, offset, anchor->width, status->frame_size[FR_W]+status->frame_border_width, status->frame_size[FR_E]+status->frame_border_width);
 		anchor->x = status->x - offset;
 
 		LOCAL_DEBUG_OUT( "grav_y = %d, height = %d, bw1 = %d, bw2 = %d, status_y = %d", 
 						 grav_y, anchor->height, status->frame_size[FR_N], status->frame_size[FR_S], status->y );
 
         offset = 0;
-		APPLY_GRAVITY (grav_y, offset, anchor->height, status->frame_size[FR_N], status->frame_size[FR_S]);
+		APPLY_GRAVITY (grav_y, offset, anchor->height, status->frame_size[FR_N]+status->frame_border_width, status->frame_size[FR_S]+status->frame_border_width);
 		anchor->y = status->y - offset;
 
 		LOCAL_DEBUG_OUT( "anchor = %+d%+d", anchor->x, anchor->y );
@@ -1914,14 +1914,14 @@ anchor2status (ASStatusHints * status, ASHints * hints, XRectangle * anchor)
 	LOCAL_DEBUG_OUT( "grav_x = %d, width = %d, bw1 = %d, bw2 = %d, anchor_x = %d", 
 						 grav_x, anchor->width, status->frame_size[FR_W], status->frame_size[FR_E], anchor->x );
     offset = 0 ;
-    APPLY_GRAVITY (grav_x, offset, anchor->width, status->frame_size[FR_W], status->frame_size[FR_E]);
+    APPLY_GRAVITY (grav_x, offset, anchor->width, status->frame_size[FR_W]+status->frame_border_width, status->frame_size[FR_E]+status->frame_border_width);
 	status->x = anchor->x + offset;
 
 	LOCAL_DEBUG_OUT( "grav_y = %d, height = %d, bw1 = %d, bw2 = %d, anchor_y = %d", 
 						 grav_y, anchor->height, status->frame_size[FR_N], status->frame_size[FR_S], anchor->y );
 
     offset = 0;
-	APPLY_GRAVITY (grav_y, offset, anchor->height, status->frame_size[FR_N], status->frame_size[FR_S]);
+	APPLY_GRAVITY (grav_y, offset, anchor->height, status->frame_size[FR_N]+status->frame_border_width, status->frame_size[FR_S]+status->frame_border_width);
 	status->y = anchor->y + offset;
 
 	LOCAL_DEBUG_OUT( "status = %+d%+d", status->x, status->y );

@@ -237,6 +237,7 @@ check_frame_canvas( ASWindow *asw, Bool required )
         {   /* create canvas here */
 			unsigned long valuemask;
 			XSetWindowAttributes attributes;
+			int bw = 0;
 
             /* create windows */
             valuemask = CWBorderPixel | CWCursor | CWEventMask ;
@@ -255,10 +256,13 @@ check_frame_canvas( ASWindow *asw, Bool required )
                 valuemask |= CWSaveUnder;
                 attributes.save_under = True;
             }
+			if( asw->hints && get_flags(asw->hints->flags, AS_Border)) 
+				bw = asw->hints->border_width ;
+			asw->status->frame_border_width = bw ;
             w = create_visual_window (Scr.asv, (ASWIN_DESK(asw)==Scr.CurrentDesk)?Scr.Root:Scr.ServiceWin, 
 									  0, 0, 
 									  asw->status->width, asw->status->height,
-                                      asw->status?asw->status->border_width:0, InputOutput, valuemask, &attributes);
+                                      bw, InputOutput, valuemask, &attributes);
 			XLowerWindow( dpy, w );
             asw->frame = w ;
             register_aswindow( w, asw );
@@ -917,9 +921,14 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
 	}
 
 	if( ASWIN_HFLAGS(asw, AS_Handles) && get_flags(frame->flags, MYFRAME_NOBORDER) )
+	{	
 		XSetWindowBorderWidth( dpy, asw->frame, 0 );
-	else if( asw->status )
-		XSetWindowBorderWidth( dpy, asw->frame, asw->status->border_width );
+		asw->status->frame_border_width = 0 ;
+	}else if( asw->hints && get_flags(asw->hints->flags, AS_Border)) 
+	{	
+		XSetWindowBorderWidth( dpy, asw->frame, asw->hints->border_width );
+		asw->status->frame_border_width = asw->hints->border_width ;
+	}
 
     /* make sure all our decoration windows are mapped and in proper order: */
     if( !ASWIN_GET_FLAGS(asw, AS_Dead) )

@@ -933,6 +933,9 @@ LOCAL_DEBUG_OUT( "status geometry = %dx%d%+d%+d", asw->status->width, asw->statu
         {/* now we need to update frame sizes in status */
             unsigned int *frame_size = &(asw->status->frame_size[0]) ;
             unsigned short tbar_size = 0;
+			int bw = 0 ;
+			if( asw->hints && get_flags(asw->hints->flags, AS_Border)) 
+				bw = asw->hints->border_width ;
             if( asw->tbar )
             {    
                 unsigned int tbar_width = 0 ;
@@ -995,6 +998,7 @@ LOCAL_DEBUG_OUT( "status geometry = %dx%d%+d%+d", asw->status->width, asw->statu
                                                     asw->frame_bars[i]->height ;
                 else
                     frame_size[i] = 0;
+				 //frame_size[i] += bw ;
             }
 			if( tbar_size > 0 )
 			{
