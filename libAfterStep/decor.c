@@ -302,6 +302,191 @@ resize_canvas (ASCanvas * pc, unsigned int width, unsigned int height)
 }
 
 /********************************************************************/
+/* ASTBtnData :                                                     */
+/********************************************************************/
+ASTBtnData*
+create_astbtn()
+{
+    return safecalloc( 1, sizeof(ASTBtnData) );
+}
+
+static void
+free_tbtn_images( ASTBtnData* btn )
+{
+    if( btn->pressed )
+    {
+        safe_asimage_destroy (btn->pressed);
+        btn->pressed = NULL ;
+    }
+
+    if( btn->unpressed )
+    {
+        safe_asimage_destroy (btn->unpressed);
+        btn->unpressed = NULL ;
+    }
+    btn->current = NULL ;
+}
+
+void
+set_tbtn_images( ASTBtnData* btn, struct button_t *from )
+{
+    Bool pressed ;
+    if( AS_ASSERT(btn) || from == NULL )
+        return ;
+
+    pressed = (btn->current == btn->pressed );
+    free_tbtn_images( btn );
+
+    btn->pressed   = from->pressed.image ;
+    btn->unpressed = from->unpressed.image ;
+    btn->current   = (pressed && btn->pressed)? btn->pressed : btn->unpressed ;
+    btn->width = from->width ;
+    btn->height = from->height ;
+}
+
+ASTBtnData*
+make_tbtn( struct button_t *from )
+{
+    ASTBtnData* btn = NULL ;
+    if( from )
+    {
+        btn = safecalloc( 1, sizeof( ASTBtnData ) );
+        set_tbtn_images( btn, from );
+    }
+    return btn;
+}
+
+void
+destroy_astbtn(ASTBtnData **ptbtn )
+{
+    if( !AS_ASSERT(ptbtn) )
+    {
+        ASTBtnData *btn = *ptbtn ;
+        if( btn )
+        {
+            free_tbtn_images( btn );
+            memset( btn, 0x00, sizeof(ASTBtnData ));
+            free( btn );
+        }
+        *ptbtn = NULL ;
+    }
+}
+
+/********************************************************************/
+/* ASTBtnBlock :                                                    */
+/********************************************************************/
+ASTBtnBlock*
+create_astbtn_block( unsigned int btn_count )
+{
+    ASTBtnBlock* blk = safecalloc( 1, sizeof(ASTBtnBlock));
+    if( btn_count > 0 )
+    {
+        blk->buttons = safecalloc( btn_count, sizeof(ASTBtnData));
+        blk->count = btn_count ;
+    }
+    return blk ;
+}
+
+
+ASTBtnBlock*
+build_tbtn_block( struct button_t *from_list, ASFlagType mask, unsigned int count, int spacing, int order )
+{
+    ASTBtnBlock *blk = NULL ;
+    unsigned int real_count = 0 ;
+    unsigned short max_width = 0, max_height = 0 ;
+    register int i = count ;
+    if( count > 0 )
+        if( !AS_ASSERT( from_list ) )
+            while( --i >= 0 )
+                if( (mask&(0x01<<i)) != 0 && (from_list[i].unpressed.image || from_list[i].pressed.image))
+                {
+                    ++real_count ;
+                    if( from_list[i].width > max_width )
+                        max_width = from_list[i].width ;
+                    if( from_list[i].height > max_height )
+                        max_height = from_list[i].height ;
+                }
+    if( real_count > 0 )
+    {
+        int k = real_count-1 ;
+        int pos = 0 ;
+
+        blk = create_astbtn_block( real_count );
+
+        i = count-1 ;
+        while( i >= 0 && k >= 0 )
+        {
+            if( (mask&(0x01<<i)) != 0 && (from_list[i].unpressed.image || from_list[i].pressed.image))
+            {
+                set_tbtn_images( &(blk->buttons[k]), &(from_list[i]) );
+                blk->buttons[k].context = i ;
+                --k ;
+            }
+            --i ;
+        }
+
+        k = get_flags(order, TBTN_ORDER_REVERSE)?real_count - 1:0;
+        while( k >= 0 && k < real_count )
+        {
+            if( get_flags(order, TBTN_ORDER_VERTICAL) )
+            {
+                blk->buttons[k].x = (max_width - blk->buttons[k].width)>>1 ;
+                if( get_flags(order, TBTN_ORDER_REVERSE) )
+                {
+                    pos -= blk->buttons[k].height ;
+                    blk->buttons[k].y = pos ;
+                    pos -= spacing ;
+                    --k ;
+                }else
+                {
+                    blk->buttons[k].y = pos ;
+                    pos += blk->buttons[k].height ;
+                    pos += spacing ;
+                    ++k ;
+                }
+            }else
+            {
+                blk->buttons[k].y = (max_height - blk->buttons[k].height)>>1 ;
+                if( get_flags(order, TBTN_ORDER_REVERSE) )
+                {
+                    pos -= blk->buttons[k].width ;
+                    blk->buttons[k].x = pos ;
+                    pos -= spacing ;
+                    --k ;
+                }else
+                {
+                    blk->buttons[k].x = pos ;
+                    pos += blk->buttons[k].width ;
+                    pos += spacing ;
+                    ++k ;
+                }
+            }
+        }
+    }
+    return blk ;
+}
+
+void
+destroy_astbtn_block(ASTBtnBlock **pb )
+{
+    if( AS_ASSERT(pb) )
+    {
+        ASTBtnBlock *blk = *pb ;
+        if( blk )
+        {
+            register int i = blk->count ;
+            while( --i >= 0 )
+                free_tbtn_images( &(blk->buttons[i]) );
+
+            free( blk->buttons );
+            memset( blk, 0x00, sizeof(ASTBtnBlock ) );
+            free( blk );
+            *pb = NULL ;
+        }
+    }
+}
+
+/********************************************************************/
 /* ASTBarData :                                                     */
 /********************************************************************/
 ASTBarData   *
@@ -309,7 +494,7 @@ create_astbar ()
 {
 	ASTBarData   *tbar = safecalloc (1, sizeof (ASTBarData));
 
-	tbar->rendered_root_x = tbar->rendered_root_y = 0xFFFFFFFF;
+    tbar->rendered_root_x = tbar->rendered_root_y = 0xFFFF;
 	return tbar;
 }
 
@@ -329,12 +514,10 @@ destroy_astbar (ASTBarData ** ptbar)
 				if (tbar->label[i])
 					destroy_asimage (&(tbar->label[i]));
 			}
-			if (tbar->left_shape)
-				destroy_asimage (&(tbar->left_shape));
-			if (tbar->center_shape)
-				destroy_asimage (&(tbar->center_shape));
-			if (tbar->right_shape)
-				destroy_asimage (&(tbar->right_shape));
+            if (tbar->left_buttons)
+                destroy_astbtn_block (&(tbar->left_buttons));
+            if (tbar->right_buttons)
+                destroy_astbtn_block (&(tbar->right_buttons));
 
 			memset (tbar, 0x00, sizeof (ASTBarData));
 		}

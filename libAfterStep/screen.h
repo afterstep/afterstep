@@ -247,7 +247,7 @@ typedef struct ScreenInfo
     struct MenuRoot *RestartFunction;
     struct MenuRoot *first_menu;	/* head of the menu root list */
 
-	MyButton	buttons[10];
+    MyButton    buttons[TITLE_BUTTONS];
 
 /* obsolete :
     int button_style[10];

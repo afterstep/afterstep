@@ -110,7 +110,7 @@ FrameSide;
 #define C_FrameSE       (0x01<<7)
 #define C_SIDEBAR           (C_FrameS|C_FrameSW|C_FrameSE)
 #define C_VERTICAL_SIDEBAR  (C_FrameW|C_FrameNW|C_FrameSW)
-#define C_FRAME             (C_FrameN|C_FrameE|C_FrameS|C_FrameW|
+#define C_FRAME             (C_FrameN|C_FrameE|C_FrameS|C_FrameW| \
                              C_FrameNW|C_FrameNE|C_FrameSW|C_FrameSE)
 #define C_FrameStart    (C_FrameN)
 #define C_FrameEnd      (C_FrameSE)
@@ -146,7 +146,7 @@ typedef struct button_t
   {
     MyIcon unpressed;		/* icon to draw when button is not pressed */
     MyIcon pressed;		    /* icon to draw when button is pressed */
-    Bool is_pressed;		/* is the button pressed? */
+/*    Bool is_pressed;         is the button pressed? */
 	unsigned int width, height ;
   }
 button_t;
@@ -204,7 +204,8 @@ typedef struct ASWindow
 #define ASWIN_FUNC_MASK(t)  ((t)->hints->function_mask)
 
 #define TITLE_BUTTONS		10
-#define FIRST_RIGHT_TBTN 	5
+#define TITLE_BUTTONS_PERSIDE 5
+#define FIRST_RIGHT_TBTN    TITLE_BUTTONS_PERSIDE
 #define IsLeftButton(b) 	((b)<FIRST_RIGHT_TBTN)
 #define IsRightButton(b) 	((b)>=FIRST_RIGHT_TBTN)
 #define RightButtonIdx(b) 	((b)-FIRST_RIGHT_TBTN)
@@ -216,15 +217,15 @@ typedef struct ASWindow
 	/********************************************************************/
 	/* ASWindow frame decorations :                                     */
 	/********************************************************************/
-	/* window frame decoration consists of : 
-	  Top level window 
+	/* window frame decoration consists of :
+	  Top level window
 		  4 canvases - one for each side :
 		  	  Top or left canvas contains titlebar+ adjusen frame side+corners if any
 			  Bottom or right canvas contains sidebar which is the same as south frame side with corners
 			  Remaining two canvasses contain east and west frame sides only ( if any );
-		  Canvasses surround main window and its sizes are actually the frame size.		  		  
+		  Canvasses surround main window and its sizes are actually the frame size.
 	 */
-	
+
     Window 			   frame;		/* the frame window */
 	struct ASCanvas   *frame_canvas[FRAME_SIDES] ;
 	struct ASTBarData *tbar ;
@@ -349,7 +350,7 @@ TextureInfo;
 extern TextureInfo Textures;
 
 /***************************************************************************
- * window flags definitions 
+ * window flags definitions
  ***************************************************************************/
 #define STICKY			(1<< 0)		/* Does window stick to glass? */
 #define MAPPED			(1<< 3)		/* is it mapped? */

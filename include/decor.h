@@ -4,6 +4,9 @@
 
 struct MyStyle ;
 struct ASImage;
+struct icon_t;
+struct button_t;
+
 
 typedef struct ASCanvas
 {
@@ -17,7 +20,33 @@ typedef struct ASCanvas
 
 	Pixmap canvas;
 	Pixmap mask;
+    /* 32 bytes */
 }ASCanvas;
+
+typedef struct ASTBtnData{
+    ASImage *unpressed ;
+    ASImage *pressed ;
+    ASImage *current ;
+    unsigned short width, height ;
+    short x, y ;
+    unsigned long context ;
+    /* 20 bytes */
+}ASTBtnData;
+
+#define TBTN_ORDER_L2R      0
+#define TBTN_ORDER_T2B      1
+#define TBTN_ORDER_R2L      2
+#define TBTN_ORDER_B2T      3
+#define TBTN_ORDER_VERTICAL (0x01<<0)
+#define TBTN_ORDER_REVERSE  (0x01<<1)
+#define TBTN_ORDER_MASK     (TBTN_ORDER_VERTICAL|TBTN_ORDER_REVERSE)
+
+typedef struct ASTBtnBlock {
+    ASTBtnData      *buttons;                  /* array of [count] structures */
+    unsigned int  count ;
+    unsigned int  width, height;
+    /* 16 bytes */
+}ASTBtnBlock;
 
 typedef struct ASTBarData {
 #define BAR_STATE_UNFOCUSED		0
@@ -27,21 +56,26 @@ typedef struct ASTBarData {
 #define BAR_STATE_PRESSED		(0x01<<1)
 #define BAR_STATE_PRESSED_MASK	(0x01<<1)
 
-	ASFlagType	state ;
-	int win_x, win_y ;
-	int root_x, root_y;
-	int rendered_root_x, rendered_root_y;
-	unsigned int width, height ;
-	char *label_text ;
+#define BAR_FLAGS_VERTICAL      (0x01<<16)     /* vertical label */
 
-	unsigned int left_bevel, top_bevel, right_bevel, bottom_bevel ;
-
-	struct MyStyle 		*style[2] ;
+    ASFlagType  state ;
+    unsigned long context ;
+    short win_x, win_y ;
+    short root_x, root_y;
+    /* 16 bytes */
+    short rendered_root_x, rendered_root_y;
+    unsigned short width, height ;
+    unsigned char left_bevel, top_bevel, right_bevel, bottom_bevel ;
+    /* 28 bytes */
+    struct MyStyle      *style[2] ;
 	struct ASImage 		*back [2] ;
-	struct ASImage 		*label[2] ;
+    /* 44 bytes */
 
-	struct ASImage *left_shape, *center_shape, *right_shape ;
-
+    char *label_text ;
+    struct ASImage      *label[2] ;
+    /* 56 bytes */
+    struct ASTBtnBlock  *left_buttons, *right_buttons;
+    /* 64 bytes */
 }ASTBarData ;
 
 /*********************************************************************
@@ -69,8 +103,6 @@ typedef struct ASTBarData {
  *     [CornerSize  NorthEast|SouthEast|NorthWest|SouthWest|Any <WIDTHxHEIGHT>]
  * ~MyFrame
  */
-struct icon_t;
-
 typedef struct MyFrame
 {
 #define MAGIC_MYFRAME           0xA351F385
@@ -94,6 +126,15 @@ Bool draw_canvas_image( ASCanvas *pc, ASImage *im, int x, int y );
 void update_canvas_display( ASCanvas *pc );
 void resize_canvas( ASCanvas *pc, unsigned int width, unsigned int height );
 
+
+ASTBtnData *create_astbtn();
+void        set_tbtn_images( ASTBtnData* btn, struct button_t *from );
+ASTBtnData *make_tbtn( struct button_t *from );
+void        destroy_astbtn(ASTBtnData **ptbtn );
+
+ASTBtnBlock* create_astbtn_block( unsigned int btn_count );
+ASTBtnBlock* build_tbtn_block( struct button_t *from_list, ASFlagType mask, unsigned int count, int spacing, int order );
+void         destroy_astbtn_block(ASTBtnBlock **pb );
 
 
 ASTBarData* create_astbar();
