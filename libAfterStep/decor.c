@@ -546,6 +546,8 @@ LOCAL_DEBUG_CALLER_OUT( "canvas(%p)->window(%lx)->canvas_pixmap(%lx)->size(%dx%d
 #ifdef SHAPE
             if (pc->canvas && get_flags( pc->state, CANVAS_SHAPE_SET ) )
                 set_canvas_shape_to_rectangle( pc );
+			XShapeCombineMask( dpy, pc->w, ShapeBounding, 0, 0, None, ShapeSet );
+			clear_flags( pc->state, CANVAS_SHAPE_SET );
 #endif
             if( pc->shape )
 				destroy_shape( &pc->shape );

@@ -1255,7 +1255,7 @@ SetShape (ASWindow *asw, int w)
 			combine_canvas_shape_at_geom (asw->frame_canvas, asw->client_canvas, child_x, child_y, width, height, bw );
 
 			/* TODO: need to add shape rectangles for the frame border ... */
-			
+
 			print_shape( asw->frame_canvas->shape ) ;
 			update_canvas_display_mask (asw->frame_canvas, True);
 			set_flags( asw->internal_flags, ASWF_PendingShapeRemoval );
@@ -1271,17 +1271,10 @@ ClearShape (ASWindow *asw)
 #ifdef SHAPE
     if( asw && asw->frame_canvas )
     {
-	unsigned int width, height ;
-        XRectangle    rect;
-
-    	get_drawable_size( asw->frame_canvas->w, &width, &height );
-        rect.x = 0;
-        rect.y = 0;
-        rect.width  = width;
-        rect.height = height;
-        LOCAL_DEBUG_OUT( "setting shape to rectangle %dx%d", rect.width, rect.height );
-        XShapeCombineRectangles ( dpy, asw->frame, ShapeBounding,
-                                  0, 0, &rect, 1, ShapeSet, Unsorted);
+#ifdef SHAPE
+		XShapeCombineMask( dpy, asw->frame, ShapeBounding, 0, 0, None, ShapeSet );
+		clear_flags( asw->frame_canvas->state, CANVAS_SHAPE_SET );
+#endif
 
 		clear_flags( asw->internal_flags, ASWF_PendingShapeRemoval );
     }

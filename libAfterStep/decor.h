@@ -31,6 +31,8 @@ typedef struct ASCanvas
 #define CANVAS_FORCE_MASK           (0x01<<18)  /* forces rendering of the canvas mask even if MyStyle is not shaped */
 #define CANVAS_SHAPE_SET            (0x01<<19)  /* */
 
+#define IsCanvasShaped(pc)            get_flags((pc)->state,CANVAS_SHAPE_SET)
+
     ASFlagType  state ;
 	Window w;
 	int root_x, root_y;
