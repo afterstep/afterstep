@@ -1366,8 +1366,11 @@ LoadASConfig (int thisdesktop, ASFlagType what)
             {
                 InitLook (&Scr.Look, True);
 				memset( &TmpLook, 0x00, sizeof(TmpLook));
+				TmpLook.magic = MAGIC_MYLOOK ;
 				InitLook (&TmpLook, False );
+				LOCAL_DEBUG_OUT( "desk_anime_tint = %lX", TmpLook.desktop_animation_tint );
                 ParseConfigFile (const_configfile, &tline);
+				LOCAL_DEBUG_OUT( "desk_anime_tint = %lX", TmpLook.desktop_animation_tint );
                 show_progress("LOOK configuration loaded from \"%s\" ...", const_configfile);
                 display_progress( True, "LOOK configuration loaded from \"%s\".", const_configfile);
 #ifdef ASETROOT_FILE

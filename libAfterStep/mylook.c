@@ -277,7 +277,7 @@ mylook_init (MyLook * look, Bool free_resources, unsigned long what_flags /*see 
 		look->CursorBack = NULL ;
 		look->desktop_animation_tint = get_random_tint_color() ;
     }
-
+	LOCAL_DEBUG_OUT( "desk_anime_tint = %lX", look->desktop_animation_tint );
 	if (get_flags (what_flags, LL_Flags))
 		look->flags = SeparateButtonTitle | TxtrMenuItmInd;
 
