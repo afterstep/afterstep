@@ -1,73 +1,132 @@
-/* config.h.in.  Generated automatically from configure.in by autoheader.  */
+/* config.h.in.  Generated from configure.in by autoheader.  */
 
-/* Define if you have the wait3 system call.  */
-#undef HAVE_WAIT3
+/* All memory allocations are traced */
+#undef DEBUG_ALLOCS
 
-/* Define as __inline if that's what the C compiler calls it.  */
-#undef inline
+/* Select few function calls are traced */
+#undef DEBUG_TRACE
 
-/* Define if you can safely include both <sys/time.h> and <time.h>.  */
-#undef TIME_WITH_SYS_TIME
+/* Several Xlib calls are traced */
+#undef DEBUG_TRACE_X
 
-/* Define if your processor stores words with the most significant
-   byte first (like Motorola and SPARC, unlike Intel and VAX).  */
-#undef WORDS_BIGENDIAN
-
-/* Define if the X Window System is missing or not being used.  */
-#undef X_DISPLAY_MISSING
-
-#undef I18N
-
-#undef  USE_SAFE_MINMAX
-
-/* debugging options */
-#undef  DEBUG_ALLOCS
-#undef  DEBUG_TRACE
-#undef  DEBUG_TRACE_X
-
-/* self diagnostic signal handler's argument */
-#undef HAVE_SIGCONTEXT
-
-/* Define if you have the backtrace_symbols function.  */
+/* Define to 1 if you have the `backtrace_symbols' function. */
 #undef HAVE_BACKTRACE_SYMBOLS
 
-/* Define if you have the gethostname function.  */
-#undef HAVE_GETHOSTNAME
-
-/* Define if you have the uname function.  */
-#undef HAVE_UNAME
-
-/* Define if you have the <dirent.h> header file.  */
+/* Define to 1 if you have the <dirent.h> header file, and it defines `DIR'.
+   */
 #undef HAVE_DIRENT_H
 
-/* Define if you have the <elf.h> header file.  */
+/* Define to 1 if the system has the type `Elf32_Addr'. */
+#undef HAVE_ELF32_ADDR
+
+/* Define to 1 if the system has the type `Elf64_Addr'. */
+#undef HAVE_ELF64_ADDR
+
+/* Define to 1 if you have the <elf.h> header file. */
 #undef HAVE_ELF_H
 
-/* Define if you have the <execinfo.h> header file.  */
+/* Define to 1 if you have the <execinfo.h> header file. */
 #undef HAVE_EXECINFO_H
 
-/* Define if you have the <link.h> header file.  */
+/* Define to 1 if you have the `gethostname' function. */
+#undef HAVE_GETHOSTNAME
+
+/* Define to 1 if you have the <inttypes.h> header file. */
+#undef HAVE_INTTYPES_H
+
+/* Define to 1 if you have the <link.h> header file. */
 #undef HAVE_LINK_H
 
-/* Define if you have the <malloc.h> header file.  */
+/* Define to 1 if you have the <malloc.h> header file. */
 #undef HAVE_MALLOC_H
 
-/* Define if you have the <ndir.h> header file.  */
+/* Define to 1 if you have the <memory.h> header file. */
+#undef HAVE_MEMORY_H
+
+/* Define to 1 if you have the <ndir.h> header file, and it defines `DIR'. */
 #undef HAVE_NDIR_H
 
-/* Define if you have the <stdlib.h> header file.  */
+/* struct sigcontext is available */
+#undef HAVE_SIGCONTEXT
+
+/* Define to 1 if you have the <stdint.h> header file. */
+#undef HAVE_STDINT_H
+
+/* Define to 1 if you have the <stdlib.h> header file. */
 #undef HAVE_STDLIB_H
 
-/* Define if you have the <sys/dir.h> header file.  */
-#undef HAVE_SYS_DIR_H
+/* Define to 1 if you have the <strings.h> header file. */
+#undef HAVE_STRINGS_H
 
-/* Define if you have the <sys/ndir.h> header file.  */
-#undef HAVE_SYS_NDIR_H
+/* Define to 1 if you have the <string.h> header file. */
+#undef HAVE_STRING_H
 
-/* Define if you have the <sys/time.h> header file.  */
-#undef HAVE_SYS_TIME_H
+/* Define to 1 if `d_tag' is member of `struct Elf32_Dyn'. */
+#undef HAVE_STRUCT_ELF32_DYN_D_TAG
 
+/* Define to 1 if you have the <sys/dirent.h> header file. */
 #undef HAVE_SYS_DIRENT_H
 
-/* Define if you have the <sys/wait.h> header file.  */
+/* Define to 1 if you have the <sys/dir.h> header file, and it defines `DIR'.
+   */
+#undef HAVE_SYS_DIR_H
+
+/* Define to 1 if you have the <sys/ndir.h> header file, and it defines `DIR'.
+   */
+#undef HAVE_SYS_NDIR_H
+
+/* Define to 1 if you have the <sys/stat.h> header file. */
+#undef HAVE_SYS_STAT_H
+
+/* Define to 1 if you have the <sys/time.h> header file. */
+#undef HAVE_SYS_TIME_H
+
+/* Define to 1 if you have the <sys/types.h> header file. */
+#undef HAVE_SYS_TYPES_H
+
+/* Define to 1 if you have the <sys/wait.h> header file. */
 #undef HAVE_SYS_WAIT_H
+
+/* Define to 1 if you have the `uname' function. */
+#undef HAVE_UNAME
+
+/* Define to 1 if you have the <unistd.h> header file. */
+#undef HAVE_UNISTD_H
+
+/* Localisation support */
+#undef I18N
+
+/* Define to the address where bug reports for this package should be sent. */
+#undef PACKAGE_BUGREPORT
+
+/* Define to the full name of this package. */
+#undef PACKAGE_NAME
+
+/* Define to the full name and version of this package. */
+#undef PACKAGE_STRING
+
+/* Define to the one symbol short name of this package. */
+#undef PACKAGE_TARNAME
+
+/* Define to the version of this package. */
+#undef PACKAGE_VERSION
+
+/* Define to 1 if you have the ANSI C header files. */
+#undef STDC_HEADERS
+
+/* Define to 1 if you can safely include both <sys/time.h> and <time.h>. */
+#undef TIME_WITH_SYS_TIME
+
+/* will use type-safe min/max macros */
+#undef USE_SAFE_MINMAX
+
+/* Define to 1 if your processor stores words with the most significant byte
+   first (like Motorola and SPARC, unlike Intel and VAX). */
+#undef WORDS_BIGENDIAN
+
+/* "No X Window System libraries available" */
+#undef X_DISPLAY_MISSING
+
+/* Define as `__inline' if that's what the C compiler calls it, or to nothing
+   if it is not supported. */
+#undef inline

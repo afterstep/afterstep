@@ -40,6 +40,10 @@
 #include <link.h>
 #endif
 
+#ifdef HAVE_ELF_H
+#include <elf.h>
+#endif
+
 #include <signal.h>
 
 #ifdef HAVE_SIGCONTEXT
@@ -56,7 +60,7 @@ typedef struct proc_tables
 	struct r_debug *debug;
 #endif
 
-#ifdef _ELF_H
+#ifdef HAVE_ELF_H
 	Elf32_Sym    *symbols;
 	Elf32_Word   *sym_hash;
 #endif
@@ -78,7 +82,7 @@ char         *_elf_start = (char *)0x08048000;
 void
 get_proc_tables (proc_tables * ptabs)
 {
-#ifdef _ELF_H
+#ifdef HAVE_ELF_H
 	ElfW (Dyn) * dyn;
 
 	memset (ptabs, 0x00, sizeof (proc_tables));
@@ -188,7 +192,7 @@ static char  *unknown = "unknown";
 char         *
 find_func_symbol (void *addr, long *offset)
 {
-#ifdef _ELF_H
+#ifdef HAVE_ELF_H
 	register int  i;
 	long          min_offset = 0x0fffffff, curr_offset;
 	char         *selected = unknown;
@@ -246,7 +250,7 @@ find_func_symbol (void *addr, long *offset)
 void
 print_lib_list ()
 {
-#ifdef _ELF_H
+#ifdef HAVE_ELF_H
 	if (_ptabs.debug != NULL)
 	{
 		struct link_map *plm = _ptabs.debug->r_map;
