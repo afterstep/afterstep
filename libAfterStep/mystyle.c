@@ -591,62 +591,6 @@ mystyle_make_image (MyStyle * style, int root_x, int root_y, int width, int heig
 	return im;
 }
 
-icon_t
-mystyle_make_icon (MyStyle * style, int width, int height, Pixmap cache)
-{
-	icon_t        icon = { None, None, None, 0, 0 };
-
-	asimage2icon (mystyle_make_image (style, 0, 0, width, height, 0),
-				  &icon, (style->texture_type < TEXTURE_TEXTURED_START));
-	return icon;
-}
-
-icon_t
-mystyle_make_icon_overlay (MyStyle * style, int root_x, int root_y, int width, int height, Pixmap cache)
-{
-	icon_t        icon = { None, None, 0, 0 };
-
-	asimage2icon (mystyle_make_image (style, root_x, root_y, width, height, 0),
-				  &icon, (style->texture_type < TEXTURE_TEXTURED_START));
-	return icon;
-}
-
-Pixmap
-mystyle_make_pixmap (MyStyle * style, int width, int height, Pixmap cache)
-{
-	Pixmap        p;
-	icon_t        icon = mystyle_make_icon (style, width, height, cache);
-
-	p = icon.pix;
-	icon.pix = None;
-	free_icon_resources (icon);
-	return p;
-}
-
-Pixmap
-mystyle_make_pixmap_overlay (MyStyle * style, int root_x, int root_y, int width, int height, Pixmap cache)
-{
-	Pixmap        p;
-	icon_t        icon = mystyle_make_icon_overlay (style, root_x, root_y, width, height, cache);
-
-	p = icon.pix;
-	icon.pix = None;
-	free_icon_resources (icon);
-	return p;
-}
-
-/* set a window's background for XClearArea */
-void
-mystyle_set_window_background (Window w, MyStyle * style)
-{
-	if (style->texture_type == 128 && style->set_flags & F_BACKPIXMAP)
-		XSetWindowBackgroundPixmap (dpy, w, style->back_icon.pix);
-	else if (style->texture_type == 129)
-		XSetWindowBackgroundPixmap (dpy, w, ParentRelative);
-	else
-		XSetWindowBackground (dpy, w, style->colors.back);
-}
-
 /*************************************************************************/
 /* Mystyle creation/deletion                                             */
 /*************************************************************************/

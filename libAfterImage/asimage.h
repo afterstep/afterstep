@@ -91,6 +91,8 @@ typedef enum {
 	/* temporary XImages to be allocated from static pool of memory :*/
     ASA_ScratchXImage,  
 	ASA_ScratchMaskXImage,
+	
+	ASA_ScratchXImageAndAlpha,
 
 	ASA_ARGB32,
 	ASA_Vector,       /* This cannot be used for transformation's result

@@ -45,7 +45,9 @@ typedef struct button_t
 
 typedef button_t MyButton ;
 
-void asimage2icon( struct ASImage *im, icon_t *icon, Bool ignore_alpha );
+void asimage2icon( struct ASImage *im, icon_t *icon );
+void make_icon_pixmaps (icon_t * icon, Bool ignore_alpha);
+
 Bool load_icon (icon_t *icon, const char *filename, struct ASImageManager *imman );
 void free_icon_resources( icon_t icon );
 void destroy_icon(icon_t **picon);

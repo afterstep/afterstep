@@ -169,11 +169,6 @@ void mystyle_fix_styles (void);
 
 
 ASImage *mystyle_make_image( MyStyle * style, int root_x, int root_y, int width, int height, int flip );
-Pixmap mystyle_make_pixmap (MyStyle * style, int width, int height, Pixmap cache);
-Pixmap mystyle_make_pixmap_overlay (MyStyle * style, int root_x, int root_y, int width, int height, Pixmap cache);
-icon_t mystyle_make_icon (MyStyle * style, int width, int height, Pixmap cache);
-icon_t mystyle_make_icon_overlay (MyStyle * style, int root_x, int root_y, int width, int height, Pixmap cache);
-void mystyle_set_window_background (Window w, MyStyle * style);
 
 MyStyle *mystyle_list_new (struct ASHashTable *list, char *name);
 MyStyle *mystyle_new_with_name (char *name);

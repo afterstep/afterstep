@@ -60,6 +60,7 @@ mystyle_list_set_property (ASWMProps *wmprops, ASHashTable *list )
 		prop[i++] = style->relief.back;
 		prop[i++] = style->texture_type;
 		prop[i++] = style->max_colors;
+		make_icon_pixmaps( &(style->back_icon), False );
 		prop[i++] = style->back_icon.pix;
 		prop[i++] = style->back_icon.mask;
 		prop[i++] = style->tint;

@@ -1080,7 +1080,8 @@ on_menu_keyboard_event( ASInternalWindow *asiw, ASEvent *event )
 	    
 		if (keysym == XK_Escape || 
 			keysym == XK_BackSpace ||
-			keysym == XK_Delete )
+			keysym == XK_Delete || 
+		    (keysym == XK_Left && menu->supermenu ) )
 		{	
 			if( menu->supermenu != NULL ) 
 			{	
@@ -1125,7 +1126,7 @@ on_menu_keyboard_event( ASInternalWindow *asiw, ASEvent *event )
 				}
 			}
 		}else 
-		{	 /* TODO : goto to menu item using the shortcut key */
+		{	 
 			switch( keysym )
 			{
 			  	case XK_Page_Up:
@@ -1145,11 +1146,13 @@ on_menu_keyboard_event( ASInternalWindow *asiw, ASEvent *event )
 					if( menu->selected_item < menu->items_num )
 	                	select_menu_item( menu, menu->selected_item+1 );
                     break;
+				case XK_Right:
 				case XK_Return :
 				case XK_space :
-					{
-						if( menu->selected_item	>= 0 ) 
-		 					press_menu_item( menu, menu->selected_item, True );		
+					if( menu->selected_item	>= 0 ) 
+					{	
+						if( menu->items[menu->selected_item].submenu || keysym != XK_Right ) 
+		 				press_menu_item( menu, menu->selected_item, True );		
 					}
 			}	 
 		}	

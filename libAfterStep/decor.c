@@ -1240,7 +1240,7 @@ render_astbar (ASTBarData * tbar, ASCanvas * pc)
     ASImage     **scrap_images = NULL;
 	ASImage      *merged_im;
 	int           state;
-	ASAltImFormats fmt = ASA_ScratchXImage;
+	ASAltImFormats fmt = ASA_ScratchXImageAndAlpha;
     int l ;
     short col_width[AS_TileColumns] = {0};
     short row_height[AS_TileRows] = {0};
@@ -1489,8 +1489,9 @@ LOCAL_DEBUG_OUT("back-try2(%p)", back );
 #ifdef SHAPE
     LOCAL_DEBUG_OUT( "render_mask = %d, shape = %p", render_mask, pc->shape );
     if ( render_mask )
-		fmt = ASA_ASImage;
-	else if (pc->shape)
+	{	
+	 /* 	fmt = ASA_ASImage; */
+	}else if (pc->shape)
  		fill_canvas_mask (pc, tbar->win_x, tbar->win_y, tbar->width, tbar->height );
 #endif
     merged_im = merge_layers (Scr.asv, &layers[0], good_layers, tbar->width, tbar->height, fmt, 0, ASIMAGE_QUALITY_DEFAULT);

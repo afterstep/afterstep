@@ -798,11 +798,15 @@ destroy_storage_slot( ASStorageBlock *block, int index )
 static inline void 
 join_storage_slots( ASStorageBlock *block, ASStorageSlot *from_slot, ASStorageSlot *to_slot )
 {
-	ASStorageSlot *s ;
+	ASStorageSlot *s, *next = AS_STORAGE_GetNextSlot(from_slot);
+
+	from_slot->size = ASStorageSlot_USABLE_SIZE(from_slot);	
 	do
 	{
-		s = AS_STORAGE_GetNextSlot(from_slot);
+		s = next ;
+		next = AS_STORAGE_GetNextSlot(s);
 		from_slot->size += ASStorageSlot_FULL_SIZE(s) ;	
+		LOCAL_DEBUG_OUT( "from  = %p, s = %p, next = %p, to = %p, from->size = %d", from_slot, s, next, to_slot, from_slot->size );
 		destroy_storage_slot( block, s->index );
 	}while( s < to_slot );	
 }
@@ -926,13 +930,13 @@ select_storage_slot( ASStorageBlock *block, int size )
 		LOCAL_DEBUG_OUT( "block = %p, last_used = %d, slots[%d] = %p", block, last_used, i, slot );
 		if( slot != NULL )
 		{
-			int size_to_match = size ;
+			int size_to_match = size+ASStorageSlot_SIZE ;
 			while( slot->flags == 0 )
 			{
 				LOCAL_DEBUG_OUT( "start = %p, slot = %p, slot->size = %ld, end = %p, size = %d, size_to_match = %d", block->start, slot, slot->size, block->end, size, size_to_match );
 				if( ASStorageSlot_USABLE_SIZE(slot) >= size )
 					return slot;
-				if( ASStorageSlot_USABLE_SIZE(slot) >= size_to_match )
+				if( ASStorageSlot_FULL_SIZE(slot)  >= size_to_match )
 				{
 					join_storage_slots( block, slots[i], slot );
 					return slots[i];

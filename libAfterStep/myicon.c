@@ -29,10 +29,9 @@
 #include "event.h"
 
 void
-asimage2icon (ASImage * im, icon_t * icon, Bool ignore_alpha)
+make_icon_pixmaps (icon_t * icon, Bool ignore_alpha)
 {
-	icon->image = im;
-	if (im)
+	if (icon->image)
 	{
 		icon->pix = asimage2pixmap (Scr.asv, Scr.Root, icon->image, NULL, False);
 #ifdef LOCAL_DEBUG
@@ -41,16 +40,16 @@ asimage2icon (ASImage * im, icon_t * icon, Bool ignore_alpha)
 #endif
 		if (!ignore_alpha)
 		{
-			int           depth = check_asimage_alpha (Scr.asv, im);
+			int           depth = check_asimage_alpha (Scr.asv, icon->image);
 
 			if (depth > 0)
-				icon->mask = asimage2alpha (Scr.asv, Scr.Root, im, NULL, False, True);
+				icon->mask = asimage2alpha (Scr.asv, Scr.Root, icon->image, NULL, False, True);
 #ifdef LOCAL_DEBUG
     LOCAL_DEBUG_OUT( "syncing %s","");
     ASSync(False);
 #endif
             if (depth == 8)
-				icon->alpha = asimage2alpha (Scr.asv, Scr.Root, im, NULL, False, False);
+				icon->alpha = asimage2alpha (Scr.asv, Scr.Root, icon->image, NULL, False, False);
 #ifdef LOCAL_DEBUG
     LOCAL_DEBUG_OUT( "syncing %s","");
     ASSync(False);
@@ -58,6 +57,17 @@ asimage2icon (ASImage * im, icon_t * icon, Bool ignore_alpha)
 
         }
         LOCAL_DEBUG_OUT(" icon pixmaps: %lX,%lX,%lX", icon->pix, icon->mask, icon->alpha );
+        flush_asimage_cache(icon->image);
+	}
+}
+
+
+void
+asimage2icon (ASImage * im, icon_t * icon)
+{
+	icon->image = im;
+	if (im)
+	{
 		icon->width = im->width;
 		icon->height = im->height;
         flush_asimage_cache(im);
@@ -74,7 +84,7 @@ load_icon (icon_t *icon, const char *filename, ASImageManager *imman )
             show_error( "failed to locate icon file %s in the IconPath and PixmapPath", filename );
         else
 		{
-            asimage2icon (im, icon, False);
+            asimage2icon (im, icon);
             LOCAL_DEBUG_OUT("icon file \"%s\" loaded into ASImage %p(imman %p) using imageman = %p and has size %dx%d", filename, im, im->imageman, imman, icon->width, icon->height );
 		}
         return (icon->image != NULL);

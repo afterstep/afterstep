@@ -91,6 +91,7 @@ static struct ASImageFormatHandlers
 	{ create_image_xim, encode_image_scanline_mask_xim },
 	{ create_image_xim, encode_image_scanline_xim },
 	{ create_image_xim, encode_image_scanline_mask_xim },
+	{ create_image_xim, encode_image_scanline_xim },
 	{ create_image_argb32, encode_image_scanline_argb32 },
 	{ NULL, NULL }                             /* vector of doubles */
 };
@@ -112,8 +113,14 @@ static int asimage_quality_level = ASIMAGE_QUALITY_GOOD;
 
 Bool create_image_xim( ASVisual *asv, ASImage *im, ASAltImFormats format )
 {
-	Bool scratch = False ; 
+	Bool scratch = False, do_alpha = False ; 
 	XImage **dst ;
+	if( format == ASA_ScratchXImageAndAlpha ) 
+	{	
+		format = ASA_ScratchXImage ;
+		do_alpha = True ;
+	}
+
 	if( format == ASA_ScratchXImage || format == ASA_ScratchMaskXImage ) 
 	{	
 		scratch = True ;
@@ -1232,6 +1239,29 @@ encode_image_scanline_xim( ASImageOutput *imout, ASScanline *to_store )
 			tile_ximage_line( imout->im->alt.ximage, imout->next_line,
 			                  imout->bottom_to_top*imout->tiling_step,
 							  (imout->tiling_range ? imout->tiling_range:imout->im->height) );
+		LOCAL_DEBUG_OUT( "flags = %lX", to_store->flags );
+#if 1
+		if( imout->out_format == ASA_ScratchXImageAndAlpha )
+		{	
+			if( get_flags(to_store->flags, SCL_DO_ALPHA) && get_flags( imout->im->flags, ASIM_DATA_NOT_USEFUL ))
+			{
+				int bytes_count, i ;
+				int line = imout->next_line ;
+				bytes_count = asimage_add_line(imout->im, IC_ALPHA, to_store->channels[IC_ALPHA]+to_store->offset_x, line);
+				if( imout->tiling_step > 0 )
+				{
+					int range = (imout->tiling_range ? imout->tiling_range:imout->im->height);
+					int max_i = MIN((int)imout->im->height,line+range), min_i = MAX(0,line-range) ;
+					int step =  imout->bottom_to_top*imout->tiling_step;
+					for( i = line+step ; i < max_i && i >= min_i ; i+=step )
+					{
+	/*						fprintf( stderr, "copy-encoding color %d, from lline %d to %d, %d bytes\n", color, imout->next_line, i, bytes_count );*/
+						asimage_dup_line( imout->im, IC_ALPHA, line, i, bytes_count );
+					}
+		   		}
+			}	 
+		}
+#endif
 		imout->next_line += imout->bottom_to_top;
 	}
 }
