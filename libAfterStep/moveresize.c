@@ -38,16 +38,14 @@
 #endif
 #include "moveresize.h"
 
-#ifndef AS_WIDGET_H_HEADER_INCLUDED
-Bool GrabEm   ( struct ScreenInfo *scr, Cursor cursor );
-void UngrabEm ();
-#endif
-
 /***********************************************************************
  * backported from dispatcher.c :
  ***********************************************************************/
 /* if not NULL then we are in interactive move/resize mode : */
 typedef int (*moveresize_event_func)(struct ASMoveResizeData*, struct ASEvent *event );
+
+Bool (*_as_grab_screen_func)( struct ScreenInfo *scr, Cursor cursor ) = NULL;
+void (*_as_ungrab_screen_func) () = NULL;
 
 static ASMoveResizeData *_as_curr_moveresize_data = NULL ;
 static moveresize_event_func    _as_curr_moveresize_handler = NULL ;
@@ -100,7 +98,7 @@ Bool grab_widget_pointer( ASWidget *widget, ASEvent *trigger,
 						  unsigned int event_mask,
 	                      int *x_return, int *y_return,
 						  int *root_x_return, int *root_y_return,
-						  unsigned int *mask_return )
+						  unsigned int *mask_return)
 {
     int i ;
     Window wjunk;
@@ -128,7 +126,8 @@ LOCAL_DEBUG_OUT("grabbing pointer at window(%+d%+d) root(%+d%+d), mask = 0x%X, w
 					  None,
                       ttime ) == 0 )
 #else
-    if( GrabEm( scr, scr->Feel.cursors[MOVE]))
+    if( _as_grab_screen_func == NULL ||
+    	_as_grab_screen_func( scr, scr->Feel.cursors[MOVE]))
 #endif
     {
 SHOW_CHECKPOINT;
@@ -211,7 +210,7 @@ prepare_move_resize_data( ASMoveResizeData *data, ASWidget *parent, ASWidget *mr
 						 ButtonPressMask|ButtonReleaseMask|PointerMotionMask|EnterWindowMask|LeaveWindowMask,
 	                     &(data->last_x), &(data->last_y),
 						 &root_x, &root_y,
-						 &(data->pointer_state) );
+						 &(data->pointer_state));
 
     data->stop_on_button_press = ((data->pointer_state&ButtonAnyMask) == 0 );
 
@@ -335,7 +334,8 @@ flush_move_resize_data( ASMoveResizeData *data )
 #ifdef AS_WIDGET_H_HEADER_INCLUDED
     XUngrabPointer( dpy, CurrentTime );
 #else
-    UngrabEm();
+	if( _as_ungrab_screen_func )
+    	_as_ungrab_screen_func();
 #endif
 #ifdef NO_ASRENDER
     if( data->geom_bar )

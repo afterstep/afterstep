@@ -107,7 +107,7 @@ make_component_hilite (int cmp)
 {
 	if (cmp < 51)
 		cmp = 51;
-	cmp = (cmp * 14) / 10;
+	cmp = (cmp * 12) / 10;
 	return (cmp > 255) ? 255 : cmp;
 }
 
@@ -134,13 +134,13 @@ GetAverage (ARGB32 foreground, ARGB32 background)
 	CARD16        a, r, g, b;
 
 	a = ARGB32_ALPHA8 (foreground) + ARGB32_ALPHA8 (background);
-	a /= 2;
+	a = (a<<3)/10;
 	r = ARGB32_RED8 (foreground) + ARGB32_RED8 (background);
-	r /= 2;
+	r = (r<<3)/10;
 	g = ARGB32_GREEN8 (foreground) + ARGB32_GREEN8 (background);
-	g /= 2;
+	g = (g<<3)/10;
 	b = ARGB32_BLUE8 (foreground) + ARGB32_BLUE8 (background);
-	b /= 2;
+	b = (b<<3)/10;
 	return MAKE_ARGB32 (a, r, g, b);
 }
 

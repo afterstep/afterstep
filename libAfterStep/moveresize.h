@@ -63,6 +63,9 @@ typedef int  (*as_outline_handler)              (struct ASOutlineSegment *s,
 	                                             unsigned int scr_width,
 									             unsigned int scr_height);
 
+extern Bool (*_as_grab_screen_func)( struct ScreenInfo *scr, Cursor cursor );
+extern void (*_as_ungrab_screen_func) ();
+
 typedef struct ASOutlineSegment
 {
 	Window w ;
@@ -120,6 +123,7 @@ typedef struct ASMoveResizeData
     unsigned int min_height, height_inc, max_height, frame_height;
 
     Bool stop_on_button_press; /* when true operation will complete on ButtonPress event - not on ButtonRelease */
+
 }ASMoveResizeData;
 
 ASOutlineSegment *make_outline_segments( struct ASWidget *parent, struct MyLook *look );

@@ -33,6 +33,7 @@
 #include "../../libAfterImage/afterimage.h"
 
 #include "../../libAfterStep/afterstep.h"
+#include "../../libAfterConf/afterconf.h"
 #include "../../libAfterStep/colorscheme.h"
 
 Atom _XA_WM_DELETE_WINDOW = None;
@@ -159,6 +160,15 @@ int screen = 0, depth = 0;
 ASVisual *asv;
 int verbose = 0;
 
+/**********************************************************************/
+/* Our configuration options :                                        */
+/**********************************************************************/
+BaseConfig *Base = NULL;
+
+/**********************************************************************/
+void GetBaseOptions (const char *filename);
+
+
 void version(void) {
 	printf("ascolor version 1.2\n");
 }
@@ -202,28 +212,73 @@ static char* default_doc_str = " \
 			</bevel> \
 			<text x=5 y=3 font=\"DefaultBold.ttf\" point=22 fgcolor=\"InactiveText1\">Unfocused title bar text</text> \
 		</composite> \
-		<composite x=10 y=300> \
+		<composite x=10 y=290> \
 			<recall srcid=\"inactive_back_beveled\"/> \
-			<text x=5 y=3 font=\"DefaultBold.ttf\" point=22 fgcolor=\"InactiveText1\" bgimage=\"inactive_back\">Unfocused title bar text</text> \
+			<text x=5 y=3 font=\"DefaultBold.ttf\" point=22 fgcolor=\"InactiveText1\">Unfocused title bar text</text> \
 		</composite> \
-		<composite x=300 y=250> \
-			<bevel colors=\"Inactive1Light Inactive1Dark\" border=\"2 2 3 3\" solid=0> \
- 				<gradient angle=90 width=340 height=25 colors=\"Inactive1Dark Inactive1Light\"/> \
-			</bevel> \
-			<text x=5 y=3 font=\"DefaultBold.ttf\" point=22 fgcolor=\"InactiveText1\" bgimage=\"inactive_back\">Unfocused title bar text</text> \
+		<composite x=290 y=250> \
+			<recall srcid=\"inactive_back_beveled\"/> \
+			<text x=5 y=3 font=\"DefaultBold.ttf\" point=22 fgcolor=\"InactiveText1\">Unfocused title bar text</text> \
 		</composite> \
 		<composite x=250 y=80> \
 			<bevel colors=\"Inactive2Light Inactive2Dark\" border=\"2 2 3 3\" solid=0> \
 				<gradient angle=90 width=350 height=25 colors=\"Inactive2Dark Inactive2Light\"/> \
 			</bevel> \
-			<text x=5 y=3 font=\"DefaultBold.ttf\" point=22 fgcolor=\"InactiveText2\" bgcolor=#00000000>Sticky title bar text</text> \
+			<text x=5 y=3 font=\"DefaultBold.ttf\" point=22 fgcolor=\"InactiveText2\">Sticky title bar text</text> \
 		</composite> \
 		<composite x=150 y=60> \
 			<bevel colors=\"ActiveLight ActiveDark\" border=\"2 2 3 3\" solid=0> \
 				<gradient angle=90 width=400 height=25 colors=\"ActiveDark ActiveLight\"/> \
 			</bevel> \
-			<text x=5 y=3 font=\"DefaultBold.ttf\" point=22 fgcolor=\"ActiveText\" bgcolor=#00000000>Focused title bar text</text> \
+			<text x=5 y=3 font=\"DefaultBold.ttf\" point=22 fgcolor=\"ActiveText\">Focused title bar text</text> \
 		</composite> \
+		\
+		<composite x=50 y=200> \
+			<bevel colors=\"HighInactiveLight HighInactiveDark\" border=\"2 2 3 3\" solid=0> \
+				<gradient angle=90 width=180 height=20 colors=\"HighInactiveDark HighInactiveLight\"/> \
+			</bevel> \
+			<text x=5 y=3 font=\"DefaultBold.ttf\" point=20 fgcolor=\"InactiveText1\">Unfocused menu</text> \
+		</composite> \
+		<composite x=50 y=220> \
+			<bevel id=\"inactive_menu_item_back\" colors=\"HighInactiveBackLight HighInactiveBackDark\" border=\"2 2 3 3\" solid=0> \
+				<gradient angle=90 width=180 height=20 colors=\"HighInactiveBackDark HighInactiveBackLight\"/> \
+			</bevel> \
+			<text x=5 y=3 font=\"DefaultBoldOblique.ttf\" point=20 fgcolor=\"HighInactiveText\">Menu item 1</text> \
+		</composite> \
+		<composite x=50 y=240> \
+			<recall srcid=\"inactive_menu_item_back\"/> \
+			<text x=5 y=3 font=\"DefaultBoldOblique.ttf\" point=20 fgcolor=\"DisabledText\">Disabled item </text> \
+		</composite> \
+		<composite x=50 y=260> \
+			<recall srcid=\"inactive_menu_item_back\"/> \
+			<text x=5 y=3 font=\"DefaultBoldOblique.ttf\" point=20 fgcolor=\"HighInactiveText\">Menu item 2</text> \
+		</composite> \
+		<composite x=50 y=280> \
+			<recall srcid=\"inactive_menu_item_back\"/> \
+			<text x=5 y=3 font=\"DefaultBoldOblique.ttf\" point=20 fgcolor=\"HighInactiveText\">Menu item 3</text> \
+		</composite> \
+		\
+		<composite x=220 y=230> \
+			<bevel colors=\"HighActiveLight HighActiveDark\" border=\"2 2 3 3\" solid=0> \
+				<gradient angle=90 width=180 height=20 colors=\"HighActiveDark HighActiveLight\"/> \
+			</bevel> \
+			<text x=5 y=3 font=\"DefaultBold.ttf\" point=20 fgcolor=\"ActiveText\">Unfocused menu</text> \
+		</composite> \
+		<composite x=220 y=250> \
+			<recall srcid=\"inactive_menu_item_back\"/> \
+			<text x=5 y=3 font=\"DefaultBoldOblique.ttf\" point=20 fgcolor=\"HighInactiveText\">Menu item 1</text> \
+		</composite> \
+		<composite x=220 y=270> \
+			<bevel colors=\"HighActiveBackLight HighActiveBackDark\" border=\"2 2 3 3\" solid=0> \
+				<gradient angle=90 width=180 height=20 colors=\"HighActiveBackDark HighActiveBackLight\"/> \
+			</bevel> \
+			<text x=5 y=3 font=\"DefaultBoldOblique.ttf\" point=20 fgcolor=\"HighActiveText\">Selected item</text> \
+		</composite> \
+		<composite x=220 y=290> \
+			<recall srcid=\"inactive_menu_item_back\"/> \
+			<text x=5 y=3 font=\"DefaultBoldOblique.ttf\" point=20 fgcolor=\"DisabledText\">Disabled item </text> \
+		</composite> \
+		\
 	</composite> \
 ";
 /*******/
@@ -236,7 +291,7 @@ int main(int argc, char** argv) {
     char *doc_compress = NULL ;
 	int i;
 	int display = 1, onroot = 0;
-	ARGB32 base_color = 0xff00008f;
+	ARGB32 base_color = 0xff00448f;
 	ASColorScheme *cs ;
 	int angle = ASCS_DEFAULT_ANGLE ;
 
@@ -257,9 +312,10 @@ int main(int argc, char** argv) {
 		} else if (!strcmp(argv[i], "--debug") || !strcmp(argv[i], "-D")) {
 			set_output_threshold(OUTPUT_LEVEL_DEBUG);
 			verbose+=2;
-		} else if ((!strcmp(argv[i], "--base_color") || !strcmp(argv[i], "-b")) && i < argc + 1) {
+		} else if ((!strcmp(argv[i], "--base_color") || !strcmp(argv[i], "-b")) && i+1 < argc) {
 			parse_argb_color( argv[++i], &base_color );
-		} else if ((!strcmp(argv[i], "--angle") || !strcmp(argv[i], "-a")) && i < argc + 1) {
+			show_progress ( "base color set to #%lX", base_color );
+		} else if ((!strcmp(argv[i], "--angle") || !strcmp(argv[i], "-a")) && i+1 < argc) {
 			angle = atoi(argv[++i]);
 		} else if ((!strcmp(argv[i], "--file") || !strcmp(argv[i], "-f")) && i < argc + 1) {
 			doc_file = argv[++i];
@@ -342,6 +398,23 @@ int main(int argc, char** argv) {
 
 	return 0;
 }
+
+void
+DeadPipe (int nonsense)
+{
+    FreeMyAppResources();
+
+	if( Base )
+        DestroyBaseConfig(Base);
+#ifdef DEBUG_ALLOCS
+    print_unfreed_mem ();
+#endif /* DEBUG_ALLOCS */
+
+    XFlush (dpy);			/* need this for SetErootPixmap to take effect */
+	XCloseDisplay (dpy);		/* need this for SetErootPixmap to take effect */
+    exit (0);
+}
+
 
 void showimage(ASImage* im, int onroot) {
 #ifndef X_DISPLAY_MISSING

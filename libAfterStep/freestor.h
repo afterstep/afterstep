@@ -90,7 +90,7 @@ int *free_storage2int_array (FreeStorageElem * stored, int *ppos);
 
 #define SET_CONFIG_FLAG(flags,mask,val) do{set_flags(flags,val);set_flags(mask,val);}while(0)
 
-typedef struct
+typedef struct ConfigItem
 {
   void *memory;			/* this one holds pointer to entire block of allocated memory */
   int ok_to_free;		/* must be set in order to free memory allocated before and
@@ -121,8 +121,7 @@ typedef struct
     struct ASCursor *cursor ;
   }
   data;
-}
-ConfigItem;
+}ConfigItem;
 
 typedef struct flag_options_xref
 {

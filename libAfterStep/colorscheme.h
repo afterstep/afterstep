@@ -78,6 +78,12 @@ typedef struct ASColorScheme
 	ARGB32       active_text_argb ;
 	ARGB32       high_inactive_argb ;
 	ARGB32       high_active_argb ;
+	ARGB32       high_inactive_back_argb ;
+	ARGB32       high_active_back_argb ;
+	int 		 high_inactive_text_sat, high_inactive_text_val ;
+	ARGB32       high_inactive_text_argb ;
+	int 		 high_active_text_sat, high_active_text_val ;
+	ARGB32       high_active_text_argb ;
 	ARGB32       disabled_text_argb ;
 
 	ARGB32       base_grad[2] ;
@@ -86,6 +92,8 @@ typedef struct ASColorScheme
 	ARGB32       active_grad[2] ;
 	ARGB32       high_inactive_grad[2] ;
 	ARGB32       high_active_grad[2] ;
+	ARGB32       high_inactive_back_grad[2] ;
+	ARGB32       high_active_back_grad[2] ;
 }ASColorScheme;
 
 #define ASCS_MIN_ANGLE	0
@@ -100,7 +108,7 @@ typedef struct ASColorScheme
 
 #define ASCS_COLD_SATURATION_OFFSET	 20
 
-#define ASCS_MAX_PRIMARY_BRIGHTNESS 80
+#define ASCS_MAX_PRIMARY_BRIGHTNESS 70
 #define ASCS_MIN_PRIMARY_BRIGHTNESS 50
 #define ASCS_MIN_PRIMARY_SATURATION 10
 
@@ -109,11 +117,12 @@ typedef struct ASColorScheme
 #define ASCS_WHITING_ACTV_MIN_BRIGHT_LEVEL	90
 #define ASCS_BLACKING_BRIGHTNESS_LEVEL	30
 
-#define ASCS_BLACK_O_WHITE_CRITERIA16_VAL(r16,g16,b16)  (((r16)>>9)+((g16)>>8)+((b16)>>10))
-#define ASCS_BLACK_O_WHITE_CRITERIA16(r16,g16,b16)  ((((r16)>>9)+((g16)>>8)+((b16)>>10))>210)
+#define ASCS_BLACK_O_WHITE_CRITERIA16_VAL(r16,g16,b16)  (((r16)>>9)+((g16)>>8)+(((b16)*3)/2560))
+#define ASCS_BLACK_O_WHITE_CRITERIA16(r16,g16,b16)  ((((r16)>>9)+((g16)>>8)+(((b16)*3)/2560))>220)
 
-#define ASCS_HIGH_BRIGHTNESS_OFFSET	 		10
-#define ASCS_DISABLED_SATURATION_LEVEL		5
+#define ASCS_NORMAL_BRIGHTNESS_OFFSET	 	10
+#define ASCS_HIGH_BRIGHTNESS_OFFSET	 		20
+#define ASCS_DISABLED_SATURATION_LEVEL		40
 #define ASCS_GRADIENT_BRIGHTNESS_OFFSET 	10
 
 ASColorScheme *make_ascolor_scheme( ARGB32 base, int angle );

@@ -22,6 +22,12 @@ struct ASFontManager;
 struct SyntaxDef;
 struct MyLook;
 struct ASWindowBox ;
+struct FreeStorageElem;
+struct ConfigDef;
+struct FunctionData;
+struct ComplexFunction;
+struct ConfigItem;
+
 extern struct SyntaxDef      BevelSyntax;
 extern struct SyntaxDef      AlignSyntax;
 extern struct SyntaxDef     *BevelSyntaxPtr;
@@ -31,19 +37,19 @@ extern struct SyntaxDef     *BevelSyntaxPtr;
 #define FUNC_ID_START           F_NOP   /* 0 */
 #define FUNC_ID_END           	F_FUNCTIONS_NUM
 
-extern TermDef FuncTerms[F_FUNCTIONS_NUM + 1];
-extern SyntaxDef FuncSyntax;
+extern struct TermDef FuncTerms[F_FUNCTIONS_NUM + 1];
+extern struct SyntaxDef FuncSyntax;
 
 /* used in some "special" function to correctly process trailing function definition */
-unsigned long TrailingFuncSpecial (ConfigDef * config, FreeStorageElem ** storage, int skip_tokens);
+unsigned long TrailingFuncSpecial (struct ConfigDef * config, struct FreeStorageElem ** storage, int skip_tokens);
 
-FreeStorageElem **Func2FreeStorage (SyntaxDef * syntax,
-				    FreeStorageElem ** tail,
-				    FunctionData * func);
+struct FreeStorageElem **Func2FreeStorage (struct SyntaxDef * syntax,
+				    struct FreeStorageElem ** tail,
+				    struct FunctionData * func);
 
-TermDef          *txt2fterm (const char *txt, int quiet);
-TermDef          *func2fterm (FunctionCode func, int quiet);
-FunctionData     *String2Func ( const char *string, FunctionData *p_fdata, Bool quiet );
+struct TermDef          *txt2fterm (const char *txt, int quiet);
+struct TermDef          *func2fterm (FunctionCode func, int quiet);
+struct FunctionData     *String2Func ( const char *string, struct FunctionData *p_fdata, Bool quiet );
 
 
 /***************************************************************************/
@@ -73,7 +79,7 @@ typedef struct
     ASGeometry desktop_size;
     int desktop_scale;
 
-    FreeStorageElem *more_stuff;
+    struct FreeStorageElem *more_stuff;
 }BaseConfig;
 
 BaseConfig *ParseBaseOptions (const char *filename, char *myname);
@@ -141,7 +147,7 @@ void DestroyBaseConfig (BaseConfig * config);
 
 #endif
 
-extern SyntaxDef MyStyleSyntax;
+extern struct SyntaxDef MyStyleSyntax;
 /* use this in module term definition to add MyStyle parsing functionality */
 #define INCLUDE_MYSTYLE {TF_NO_MYNAME_PREPENDING,"MyStyle", 7, TT_QUOTED_TEXT, MYSTYLE_START_ID, &MyStyleSyntax}
 
@@ -165,7 +171,7 @@ typedef struct mystyle_definition
 				 * error should be displayed as the result and this definition
 				 * should be ignored
 				 */
-    FreeStorageElem *more_stuff;
+    struct FreeStorageElem *more_stuff;
 
     struct mystyle_definition *next;	/* as long as there could be several MyStyle definitions
 					 * per config file, we arrange them all into the linked list
@@ -179,7 +185,7 @@ MyStyleDefinition;
  * [options] will be changed to point to the next non-MyStyle FreeStorageElem
  */
 void DestroyMyStyleDefinitions (MyStyleDefinition ** list);
-MyStyleDefinition **ProcessMyStyleOptions (FreeStorageElem * options, MyStyleDefinition ** tail);
+MyStyleDefinition **ProcessMyStyleOptions (struct FreeStorageElem * options, MyStyleDefinition ** tail);
 
 void PrintMyStyleDefinitions (MyStyleDefinition * list);
 /*
@@ -200,7 +206,7 @@ void MergeMyStyleText (MyStyleDefinition ** list, const char *name,
                   const char *new_font, const char *new_fcolor, const char *new_bcolor, int new_style);
 void MergeMyStyleTextureOld (MyStyleDefinition ** list, const char *name,
                         int type, char *color_from, char *color_to, char *pixmap);
-FreeStorageElem **MyStyleDefs2FreeStorage (SyntaxDef * syntax, FreeStorageElem ** tail, MyStyleDefinition * defs);
+struct FreeStorageElem **MyStyleDefs2FreeStorage (struct SyntaxDef * syntax, struct FreeStorageElem ** tail, MyStyleDefinition * defs);
 
 
 /**************************************************************************/
@@ -335,7 +341,7 @@ FreeStorageElem **MyStyleDefs2FreeStorage (SyntaxDef * syntax, FreeStorageElem *
  * ~MyFrame
  */
 
-extern SyntaxDef MyFrameSyntax;
+extern struct SyntaxDef MyFrameSyntax;
 /* use this in module term definition to add MyStyle parsing functionality */
 #define INCLUDE_MYFRAME	{TF_NO_MYNAME_PREPENDING,"MyFrame", 7, TT_QUOTED_TEXT, MYFRAME_START_ID, &MyFrameSyntax}
 
@@ -372,12 +378,12 @@ typedef struct MyFrameDefinition
 /* this functions work exactly like MyStyle stuff ( see above ) */
 void PrintMyFrameDefinitions (MyFrameDefinition * list, int index);
 void DestroyMyFrameDefinitions (MyFrameDefinition ** list);
-MyFrameDefinition **ProcessMyFrameOptions (FreeStorageElem * options,
+MyFrameDefinition **ProcessMyFrameOptions (struct FreeStorageElem * options,
 					   MyFrameDefinition ** tail);
 
 /* converts MYFRAME defs back into FreeStorage */
-FreeStorageElem **MyFrameDefs2FreeStorage (SyntaxDef * syntax,
-					   FreeStorageElem ** tail,
+struct FreeStorageElem **MyFrameDefs2FreeStorage (struct SyntaxDef * syntax,
+					   struct FreeStorageElem ** tail,
 					   MyFrameDefinition * defs);
 
 void myframe_parse (char *tline, FILE * fd, char **myname, int *myframe_list);
@@ -428,11 +434,11 @@ struct BalloonLook;
 
 balloonConfig *Create_balloonConfig ();
 void Destroy_balloonConfig (balloonConfig * config);
-balloonConfig *Process_balloonOptions (FreeStorageElem * options,
+balloonConfig *Process_balloonOptions (struct FreeStorageElem * options,
 				       balloonConfig * config);
 void Print_balloonConfig (balloonConfig * config);
-FreeStorageElem **balloon2FreeStorage (SyntaxDef * syntax,
-				       FreeStorageElem ** tail,
+struct FreeStorageElem **balloon2FreeStorage (struct SyntaxDef * syntax,
+				       struct FreeStorageElem ** tail,
 				       balloonConfig * config);
 
 //void BalloonConfig2BalloonLook(struct BalloonLook *blook, struct balloonConfig *config);
@@ -525,7 +531,7 @@ typedef struct
     char *border_color;
     balloonConfig *balloon_conf;
     MyStyleDefinition *style_defs;
-    FreeStorageElem *more_stuff;
+    struct FreeStorageElem *more_stuff;
 
     /* these are generated after reading the config : */
     int gravity ;
@@ -594,11 +600,11 @@ typedef struct
 
     MyStyleDefinition *style_defs;
 
-    FreeStorageElem *more_stuff;
+    struct FreeStorageElem *more_stuff;
   }
 ASetRootConfig;
 
-MyBackgroundConfig *ParseMyBackgroundOptions (FreeStorageElem * Storage, char *myname);
+MyBackgroundConfig *ParseMyBackgroundOptions (struct FreeStorageElem * Storage, char *myname);
 ASetRootConfig *ParseASetRootOptions (const char *filename, char *myname);
 /*
  * all data members that has been used from ASetRootConfig structure, returned
@@ -748,7 +754,7 @@ typedef struct WinListConfig
     balloonConfig *balloon_conf;
     MyStyleDefinition *style_defs;
 
-    FreeStorageElem *more_stuff;
+    struct FreeStorageElem *more_stuff;
 
     /* calculated based on geometry : */
     int anchor_x, anchor_y ;
@@ -1008,7 +1014,7 @@ typedef struct
     balloonConfig *balloon_conf;
     MyStyleDefinition *style_defs;
 
-    FreeStorageElem *more_stuff;
+    struct FreeStorageElem *more_stuff;
 
     int composition_method ;
 }
@@ -1165,7 +1171,7 @@ typedef struct DesktopConfig
 }DesktopConfig;
 
 void DestroyDesktopConfig (DesktopConfig ** head);
-DesktopConfig *ParseDesktopOptions (DesktopConfig **plist, ConfigItem * item, int id);
+DesktopConfig *ParseDesktopOptions (DesktopConfig **plist, struct ConfigItem * item, int id);
 
 typedef struct LookConfig
 {
@@ -1212,7 +1218,7 @@ typedef struct LookConfig
 
   struct ASSupportedHints *supported_hints ;
 
-  FreeStorageElem *more_stuff;
+  struct FreeStorageElem *more_stuff;
 
 }
 LookConfig;
@@ -1220,8 +1226,8 @@ LookConfig;
 LookConfig *CreateLookConfig ();
 void DestroyLookConfig (LookConfig * config);
 
-ASFlagType ParseBevelOptions( FreeStorageElem * options );
-ASFlagType ParseAlignOptions( FreeStorageElem * options );
+ASFlagType ParseBevelOptions( struct FreeStorageElem * options );
+ASFlagType ParseAlignOptions( struct FreeStorageElem * options );
 void bevel_parse(char *text, FILE * fd, char **myname, int *pbevel);
 LookConfig *ParseLookOptions (const char *filename, char *myname);
 struct MyLook *LookConfig2MyLook ( struct LookConfig *config, struct MyLook *look,
@@ -1241,8 +1247,8 @@ struct MyLook *LookConfig2MyLook ( struct LookConfig *config, struct MyLook *loo
 /*                        Menu data definitions                            */
 /***************************************************************************/
 MenuData *dirtree2menu_data (struct ASHashTable **list, dirtree_t * tree, char *buf);
-MenuData *FreeStorage2MenuData( FreeStorageElem *storage, ConfigItem *item, struct ASHashTable *list );
-FreeStorageElem **MenuData2FreeStorage( SyntaxDef *syntax, FreeStorageElem **tail, MenuData *md );
+MenuData *FreeStorage2MenuData( struct FreeStorageElem *storage, ConfigItem *item, struct ASHashTable *list );
+struct FreeStorageElem **MenuData2FreeStorage( struct SyntaxDef *syntax, struct FreeStorageElem **tail, MenuData *md );
 void      dir2menu_data (char *name, struct ASHashTable** list);
 void      file2menu_data (char *name, struct ASHashTable** list);
 
@@ -1253,8 +1259,8 @@ void      load_fixed_menu( struct ASHashTable** list  );
 /***************************************************************************/
 /*                  Complex Function data definitions                      */
 /***************************************************************************/
-ComplexFunction *FreeStorage2ComplexFunction( FreeStorageElem *storage, ConfigItem *item, struct ASHashTable *list );
-FreeStorageElem **ComplexFunction2FreeStorage( SyntaxDef *syntax, FreeStorageElem **tail, ComplexFunction *cf );
+ComplexFunction *FreeStorage2ComplexFunction( struct FreeStorageElem *storage, struct ConfigItem *item, struct ASHashTable *list );
+struct FreeStorageElem **ComplexFunction2FreeStorage( struct SyntaxDef *syntax, struct FreeStorageElem **tail, ComplexFunction *cf );
 /***************************************************************************/
 /***************************************************************************/
 /*                        FEEL parsing definitions                         */
@@ -1368,7 +1374,7 @@ typedef struct FeelConfig
     char         **menu_locations ;
     int            menu_locs_num ;
 
-	FreeStorageElem *more_stuff ;
+	struct FreeStorageElem *more_stuff ;
 
 }FeelConfig;
 
@@ -1378,7 +1384,7 @@ FeelConfig *CreateFeelConfig ();
 void DestroyFeelConfig (FeelConfig * config);
 FeelConfig *ParseFeelOptions (const char *filename, char *myname);
 void        LoadFeelMenus (FeelConfig *config);
-struct ASWindowBox *ProcessWindowBoxOptions (FreeStorageElem * options);
+struct ASWindowBox *ProcessWindowBoxOptions (struct FreeStorageElem * options);
 void windowbox_parse (char *tline, FILE * fd, char **list, int *count);
 
 int WriteFeelOptions (const char *filename, char *myname,  FeelConfig * config, unsigned long flags);
@@ -1391,7 +1397,7 @@ typedef struct AutoExecConfig
     ComplexFunction *init ;
     ComplexFunction *restart ;
 
-    FreeStorageElem *more_stuff ;
+    struct FreeStorageElem *more_stuff ;
 
 }AutoExecConfig;
 
@@ -1400,7 +1406,7 @@ typedef struct ThemeConfig
     ComplexFunction *install ;
     ComplexFunction *apply ;
 
-    FreeStorageElem *more_stuff ;
+    struct FreeStorageElem *more_stuff ;
 
 }ThemeConfig;
 

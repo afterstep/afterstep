@@ -30,6 +30,7 @@
 
 #include "../../libAfterStep/session.h"
 #include "../../libAfterStep/wmprops.h"
+#include "../../libAfterStep/moveresize.h"
 
 
 /**************************************************************************/
@@ -86,6 +87,9 @@ int
 main (int argc, char **argv)
 {
     register int i ;
+
+	_as_grab_screen_func = GrabEm;
+	_as_ungrab_screen_func = UngrabEm;
 
 #ifdef DEBUG_TRACE_X
 	trace_window_id2name_hook = &window_id2name;
