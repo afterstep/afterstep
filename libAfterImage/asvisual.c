@@ -1147,7 +1147,7 @@ check_XImage_shared( XImage *xim )
 
 #else
 
-Bool enable_shmem_images (){return False}
+Bool enable_shmem_images (){return False; }
 void disable_shmem_images(){}
 Bool check_XImage_shared( XImage *xim ) {return False ; }
 
@@ -1172,7 +1172,7 @@ XImage*
 create_visual_ximage( ASVisual *asv, unsigned int width, unsigned int height, unsigned int depth )
 {
 #ifndef X_DISPLAY_MISSING
-	register XImage *ximage;
+	register XImage *ximage = NULL;
 	unsigned long dsize;
 	char         *data;
 	int unit ;
