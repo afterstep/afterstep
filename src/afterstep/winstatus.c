@@ -472,7 +472,6 @@ LOCAL_DEBUG_CALLER_OUT( "(%p,%lx,asw->w=%lx)", asw, w, asw->w );
         {
             if( ASWIN_GET_FLAGS( asw, AS_Shaped|AS_ShapedDecor ) )
                 SetShape( asw, 0 );
-            broadcast_config (M_CONFIGURE_WINDOW, asw);
         }
     }else if( w == asw->frame )
     {/* resize canvases here :*/
@@ -521,7 +520,8 @@ LOCAL_DEBUG_OUT( "changes=0x%X", changes );
             update_window_transparency( asw );
             if( get_flags( changes, CANVAS_RESIZED ) && ASWIN_GET_FLAGS( asw, AS_ShapedDecor|AS_Shaped ))
                 SetShape( asw, 0 );
-            broadcast_config (M_CONFIGURE_WINDOW, asw);
+			if( !ASWIN_GET_FLAGS(asw, AS_Dead|AS_MoveresizeInProgress ) )
+	            broadcast_config (M_CONFIGURE_WINDOW, asw);
         }
     }else if( asw->icon_canvas && w == asw->icon_canvas->w )
     {

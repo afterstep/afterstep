@@ -336,6 +336,7 @@ void complete_aswindow_move(struct ASMoveResizeData *data, Bool cancelled)
         }
         ASWIN_CLEAR_FLAGS( asw, AS_MoveresizeInProgress );
         SendConfigureNotify(asw);
+        broadcast_config (M_CONFIGURE_WINDOW, asw);
     }
     Scr.moveresize_in_progress = NULL ;
 }
