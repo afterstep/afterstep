@@ -1,6 +1,6 @@
 %define	name	AfterStep
-%define	fver	1.99.0
-%define	version	1.99.0
+%define	fver	2.00.beta1
+%define	version	2.00.beta1
 %define	release	1
 %define	serial	1
 
@@ -15,7 +15,7 @@ URL:		http://www.afterstep.org
 Vendor:		The AfterStep Team (see TEAM in docdir)
 Source:		ftp://ftp.afterstep.org/devel/snapshots/%{name}-%{fver}.tar.bz2
 Source1:	AfterStep-redhat.tar.gz
-#Patch0:	
+#Patch0:
 
 Distribution:	The AfterStep TEAM
 Packager:	David Mihm <webmaster@afterstep.org>
@@ -72,7 +72,7 @@ DESTDIR=$RPM_BUILD_ROOT; export DESTDIR
 
 %files
 %defattr(-,root,root)
-%doc ChangeLog NEW README* TEAM UPGRADE doc/languages doc/licences doc/code TODO *.html
+%doc ChangeLog NEW README* TEAM UPGRADE doc/languages doc/licences doc/code TODO doc/*.html
 /usr/X11R6/bin/*
 /usr/X11R6/lib/*
 /usr/X11R6/man/*/*
@@ -98,7 +98,7 @@ done
 * Mon Dec 6 1999 David Mihm <webmaster@afterstep.org>
   [AfterStep-1.7.149-1]
 - Updated to current version
-  
+
 * Wed Jun 9 1999 David Mihm <webmaster@afterstep.org>
   [AfterStep-1.7.111-1]
 - Now this spec file is included in the distribution.
