@@ -1524,6 +1524,9 @@ int WriteColorOptions (const char *filename, char *myname, ColorConfig * config,
 ColorConfig *ASColorScheme2ColorConfig( ASColorScheme *cs );
 ASColorScheme *ColorConfig2ASColorScheme( ColorConfig *config );
 
+void LoadColorScheme();                        /* high level easy to use function */
+
+
 /***************************************************************************/
 
 #ifdef __cplusplus

@@ -219,6 +219,7 @@ main (int argc, char **argv)
 
     LOCAL_DEBUG_OUT("parsing Options ...%s","");
     LoadBaseConfig (GetBaseOptions);
+	LoadColorScheme();
     LoadConfig ("pager", GetOptions);
 
     CheckConfigSanity();
@@ -378,7 +379,11 @@ CheckConfigSanity()
         Config->icon_geometry.height = 54;
     }
 
-    mystyle_get_property (Scr.wmprops);
+	parse_argb_color( Config->border_color, &(Config->border_color_argb) );
+	parse_argb_color( Config->selection_color, &(Config->selection_color_argb) );
+    parse_argb_color( Config->grid_color, &(Config->grid_color_argb) );
+
+	mystyle_get_property (Scr.wmprops);
 
     for( i = 0 ; i < BACK_STYLES ; ++i )
     {
@@ -518,13 +523,14 @@ GetOptions (const char *filename)
         Config->border_width = config->border_width;
 
     if( get_flags( config->set_flags, PAGER_SET_SELECTION_COLOR ) )
-        parse_argb_color( config->selection_color, &(Config->selection_color_argb) );
+		set_string_value( &(Config->selection_color), mystrdup(config->selection_color), NULL, 0 );
 
     if( get_flags( config->set_flags, PAGER_SET_GRID_COLOR ) )
-        parse_argb_color( config->grid_color, &(Config->grid_color_argb) );
+		set_string_value( &(Config->grid_color), mystrdup(config->grid_color), NULL, 0 );
+
 
     if( get_flags( config->set_flags, PAGER_SET_BORDER_COLOR ) )
-        parse_argb_color( config->border_color, &(Config->border_color_argb) );
+		set_string_value( &(Config->border_color), mystrdup(config->border_color), NULL, 0 );
 
     if( config->shade_button[0] )
         set_string_value( &(Config->shade_button[0]), mystrdup(config->shade_button[0]), NULL, 0 );
@@ -1053,18 +1059,21 @@ redecorate_pager_desks()
         int p ;
 		Bool just_created_background = False ;
 
+        ARGB2PIXEL(Scr.asv,Config->border_color_argb,&(attr.border_pixel));
         if( d->desk_canvas == NULL )
         {
             Window w;
             attr.event_mask = StructureNotifyMask|ButtonReleaseMask|ButtonPressMask|ButtonMotionMask ;
-            ARGB2PIXEL(Scr.asv,Config->border_color_argb,&(attr.border_pixel));
 
             w = create_visual_window(Scr.asv, PagerState.main_canvas->w, 0, 0, PagerState.desk_width, PagerState.desk_height,
                                      Config->border_width, InputOutput, CWEventMask|CWBorderPixel, &attr );
             d->desk_canvas = create_ascanvas( w );
             LOCAL_DEBUG_OUT("+CREAT canvas(%p)->desk(%ld)->geom(%dx%d%+d%+d)->parent(%lx)", d->desk_canvas, PagerState.start_desk+i, PagerState.desk_width, PagerState.desk_height, 0, 0, PagerState.main_canvas->w );
             handle_canvas_config( d->desk_canvas );
-        }
+        }else
+		{
+			XSetWindowBorder( dpy, d->desk_canvas->w, attr.border_pixel );
+		}
         /* create & moveresize label bar : */
         if( get_flags( Config->flags, USE_LABEL ) )
         {
@@ -1159,8 +1168,14 @@ redecorate_pager_desks()
     {
         for( i = 0 ; i < 4 ; i++ )
             if( PagerState.selection_bars[i] == None )
+			{
                 PagerState.selection_bars[i] = create_visual_window( Scr.asv, PagerState.main_canvas->w, 0, 0, 1, 1,
                                                                      0, InputOutput, CWBackPixel, &attr );
+			}else
+			{
+				XSetWindowBackground( dpy, PagerState.selection_bars[i], attr.background_pixel ) ;
+				XClearWindow( dpy, PagerState.selection_bars[i] );
+			}
     }else
         for( i = 0 ; i < 4 ; i++ )
             if( PagerState.selection_bars[i] != None )
@@ -2170,7 +2185,26 @@ LOCAL_DEBUG_OUT( "state(0x%X)->state&ButtonAnyMask(0x%X)", event->x.xbutton.stat
                     update_astbar_transparency(PagerState.desks[i].background, PagerState.desks[i].desk_canvas, True);
                     render_desk( &(PagerState.desks[i]), False );
                 }
-            }
+            }else if( event->x.xproperty.atom == _AS_STYLE )
+			{
+                int i = PagerState.desks_num ;
+				LOCAL_DEBUG_OUT( "AS Styles updated!%s","");
+				handle_wmprop_event (Scr.wmprops, &(event->x));
+				mystyle_list_destroy_all(&(Scr.Look.styles_list));
+				LoadColorScheme();
+				CheckConfigSanity();
+				/* now we need to update everything */
+				redecorate_pager_desks();
+				rearrange_pager_desks( False );
+				while( --i >= 0 )
+                {
+					register int k = PagerState.desks[i].clients_num ;
+					register ASWindowData **clients = PagerState.desks[i].clients ;
+					while( --k >= 0 )
+						if( clients[k] )
+							set_client_look( clients[k], True );
+                }
+			}
             break;
         default:
             return;

@@ -34,6 +34,7 @@
 #include "module.h"
 #include "wmprops.h"
 #include "session.h"
+#include "colorscheme.h"
 
 #define  ASSocketWriteInt32(sb,d,i)  socket_buffered_write( (sb), (d), (i)*sizeof(CARD32))
 #define  ASSocketWriteInt16(sb,d,i)  socket_buffered_write( (sb), (d), (i)*sizeof(CARD16))

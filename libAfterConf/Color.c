@@ -25,6 +25,8 @@
 #include "../libAfterStep/afterstep.h"
 #include "../libAfterStep/parser.h"
 #include "../libAfterStep/colorscheme.h"
+#include "../libAfterStep/session.h"
+#include "../libAfterStep/screen.h"
 
 #include "afterconf.h"
 
@@ -259,7 +261,7 @@ ColorConfig2ASColorScheme( ColorConfig *config )
 	if( config )
 	{
 		int i ;
-		int angle = ASCS_DEFAULT_ANGLE ; 
+		int angle = ASCS_DEFAULT_ANGLE ;
 		if( get_flags( config->set_main_colors, COLOR_Angle ) )
 			angle = config->angle ;
 		cs = make_ascolor_scheme( config->main_colors[ASMC_Base], angle );
@@ -291,4 +293,31 @@ ColorConfig2ASColorScheme( ColorConfig *config )
 	return cs;
 }
 
+void
+LoadColorScheme()
+{
+	ASColorScheme *cs = NULL ;
+	const char *const_configfile ;
+	/* first we need to load the colorscheme */
+    if( (const_configfile = get_session_file (Session, Scr.CurrentDesk, F_CHANGE_COLORSCHEME) ) != NULL )
+    {
+		ColorConfig *config = ParseColorOptions (const_configfile, MyName);
+		if( config )
+		{
+			cs = ColorConfig2ASColorScheme( config );
+			DestroyColorConfig (config);
+	        show_progress("COLORSCHEME loaded from \"%s\" ...", const_configfile);
+		}else
+			show_progress("COLORSCHEME file format is unrecognizeable in \"%s\" ...", const_configfile);
+
+    }else
+        show_warning("COLORSCHEME is not set");
+
+	if( cs == NULL )
+		cs = make_default_ascolor_scheme();
+
+	populate_ascs_colors_rgb( cs );
+	populate_ascs_colors_xml( cs );
+	free( cs );
+}
 

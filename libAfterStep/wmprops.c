@@ -733,7 +733,10 @@ setup_wmprops (ScreenInfo * scr, Bool manager, ASFlagType what, ASWMProps * reus
 			setup_compatibility_props (scr);
 			setup_volitile_wmprops (wmprops);
 		} else
+		{
 			query_wm_selection (wmprops);
+			XSelectInput( dpy, wmprops->selection_window, PropertyChangeMask );
+		}
 
 		read_root_wmprops (wmprops, manager);
 		if (!manager)

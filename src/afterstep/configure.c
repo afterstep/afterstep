@@ -1179,33 +1179,10 @@ LoadASConfig (int thisdesktop, ASFlagType what)
 		{  /* must reload Image manager so that changed images would get updated */
 			ReloadASImageManager( &old_image_manager );
 		}
-		
+
         if (get_flags(what, PARSE_LOOK_CONFIG))
 		{
-			ASColorScheme *cs = NULL ;
-			/* first we need to load the colorscheme */
-            if( (const_configfile = get_session_file (Session, thisdesktop, F_CHANGE_COLORSCHEME) ) != NULL )
-            {
-				ColorConfig *config = ParseColorOptions (const_configfile, MyName);
-				if( config )
-				{
-					cs = ColorConfig2ASColorScheme( config );
-					DestroyColorConfig (config);
-	                show_progress("COLORSCHEME loaded from \"%s\" ...", const_configfile);
-				}else
-					show_progress("COLORSCHEME file format is unrecognizeable in \"%s\" ...", const_configfile);
-
-            }else
-                show_warning("COLORSCHEME is not set");
-
-			if( cs == NULL )
-				cs = make_default_ascolor_scheme();
-#if 0
-				cs = make_ascolor_scheme( DEFAULT_COLORSCHEME_BASE, ASCS_DEFAULT_ANGLE );
-#endif
-			populate_ascs_colors_rgb( cs );
-			populate_ascs_colors_xml( cs );
-			free( cs );
+			LoadColorScheme();
 
 			/* now we can proceed to loading them look and theme */
             if( (const_configfile = get_session_file (Session, thisdesktop, F_CHANGE_LOOK) ) != NULL )
@@ -1288,6 +1265,7 @@ LoadASConfig (int thisdesktop, ASFlagType what)
 	} else
 	{
 		ReloadASEnvironment( &old_image_manager, &old_font_manager, NULL, True );
+		LoadColorScheme();
 		InitLook (&Scr.Look, True);
         InitFeel (&Scr.Feel, True);
         InitDatabase (True);
