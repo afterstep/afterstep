@@ -50,11 +50,14 @@ extern Display *dpy;
 #ifndef Pixmap
 #define Pixmap     XID
 #endif
+#ifndef Font
+#define Font       XID
+#endif
 #ifndef Colormap
 #define Colormap   XID
 #endif
 #ifndef Cursor
-#define Cursor   XID
+#define Cursor     XID
 #endif
 #ifndef VisualID
 #define VisualID   XID
@@ -68,6 +71,33 @@ extern Display *dpy;
 #define None 0
 #endif
 
+typedef struct {
+	int function;		/* logical operation */
+	unsigned long plane_mask;/* plane mask */
+	unsigned long foreground;/* foreground pixel */
+	unsigned long background;/* background pixel */
+	int line_width;		/* line width */
+	int line_style;	 	/* LineSolid, LineOnOffDash, LineDoubleDash */
+	int cap_style;	  	/* CapNotLast, CapButt, 
+				   CapRound, CapProjecting */
+	int join_style;	 	/* JoinMiter, JoinRound, JoinBevel */
+	int fill_style;	 	/* FillSolid, FillTiled, 
+				   FillStippled, FillOpaeueStippled */
+	int fill_rule;	  	/* EvenOddRule, WindingRule */
+	int arc_mode;		/* ArcChord, ArcPieSlice */
+	Pixmap tile;		/* tile pixmap for tiling operations */
+	Pixmap stipple;		/* stipple 1 plane pixmap for stipping */
+	int ts_x_origin;	/* offset for tile or stipple operations */
+	int ts_y_origin;
+        Font font;	        /* default text font for text operations */
+	int subwindow_mode;     /* ClipByChildren, IncludeInferiors */
+	Bool graphics_exposures;/* boolean, should exposures be generated */
+	int clip_x_origin;	/* origin for clipping */
+	int clip_y_origin;
+	Pixmap clip_mask;	/* bitmap clipping; other calls for rects */
+	int dash_offset;	/* patterned/dashed line information */
+	char dashes;
+} XGCValues;
 
 typedef struct {
     unsigned char *value;		/* same as Property routines */
