@@ -66,6 +66,7 @@
 
 static void decode_asscanline_native( ASImageDecoder *imdec, unsigned int skip, int y );
 static void decode_asscanline_ximage( ASImageDecoder *imdec, unsigned int skip, int y );
+static void decode_asscanline_argb32( ASImageDecoder *imdec, unsigned int skip, int y );
 
 void decode_image_scanline_normal( ASImageDecoder *imdec );
 void decode_image_scanline_beveled( ASImageDecoder *imdec );
@@ -381,15 +382,22 @@ start_image_decoding( ASVisual *asv,ASImage *im, ASFlagType filter,
 	prepare_scanline(out_width+imdec->bevel_h_addon, 0, &(imdec->buffer), asv->BGR_mode );
     imdec->buffer.back_color = (im != NULL)?im->back_color:ARGB32_DEFAULT_BACK_COLOR ;
 
-	if( im == NULL )
-		imdec->decode_asscanline = decode_asscanline_native;
-	else if( get_flags( im->flags, ASIM_DATA_NOT_USEFUL ) && im->alt.ximage != NULL )
-	{
-		imdec->decode_asscanline = decode_asscanline_ximage;
-		imdec->xim_buffer = safecalloc(1, sizeof(ASScanline));
-		prepare_scanline(im->alt.ximage->width, 0, imdec->xim_buffer, asv->BGR_mode );
-	}else
-		imdec->decode_asscanline = decode_asscanline_native;
+	imdec->decode_asscanline = decode_asscanline_native;
+	if( im != NULL )
+	{	
+		if( get_flags( im->flags, ASIM_DATA_NOT_USEFUL ) )
+		{
+			if( im->alt.ximage != NULL )
+			{
+				imdec->decode_asscanline = decode_asscanline_ximage;
+				imdec->xim_buffer = safecalloc(1, sizeof(ASScanline));
+				prepare_scanline(im->alt.ximage->width, 0, imdec->xim_buffer, asv->BGR_mode );
+			}else if( im->alt.argb32 != NULL )
+			{
+				imdec->decode_asscanline = decode_asscanline_argb32;
+			}	 
+		}
+	}
 
 	return imdec;
 }
@@ -751,6 +759,62 @@ decode_asscanline_native( ASImageDecoder *imdec, unsigned int skip, int y )
 	clear_flags( scl->flags, SCL_DO_ALL);
 	set_flags( scl->flags, imdec->filter);
 }
+
+static void
+decode_asscanline_argb32( ASImageDecoder *imdec, unsigned int skip, int y )
+{
+	ASScanline *scl = &(imdec->buffer);
+	int count, width = scl->width-skip ;
+	ARGB32 *row = imdec->im->alt.argb32 + y*imdec->im->width ;
+	CARD32 *a = scl->alpha+skip;
+	CARD32 *r = scl->red+skip;
+	CARD32 *g = scl->green+skip;
+	CARD32 *b = scl->blue+skip;
+	int max_x = imdec->im->width ;
+
+	if( get_flags( imdec->filter, SCL_DO_ALPHA ) )
+	{
+		int x = imdec->offset_x ; 
+		for( count = 0 ; count < width ; ++count) 
+		{	
+			a[count] = ARGB32_ALPHA8(row[x])<<scl->shift ;	
+			if( ++x >= max_x ) 	x = 0;
+		}	 
+	}	 
+		
+	if( get_flags( imdec->filter, SCL_DO_RED ) )
+	{
+		int x = imdec->offset_x ; 
+		for( count = 0 ; count < width ; ++count) 
+		{	
+			r[count] = ARGB32_RED8(row[x])<<scl->shift ;	
+			if( ++x >= max_x ) 	x = 0;
+		}	 
+	}	 
+		
+	if( get_flags( imdec->filter, SCL_DO_GREEN ) )
+	{
+		int x = imdec->offset_x ; 
+		for( count = 0 ; count < width ; ++count) 
+		{	
+			g[count] = ARGB32_GREEN8(row[x])<<scl->shift ;	
+			if( ++x >= max_x ) 	x = 0;
+		}	 
+	}	 
+	if( get_flags( imdec->filter, SCL_DO_BLUE ) )
+	{
+		int x = imdec->offset_x ; 
+		for( count = 0 ; count < width ; ++count) 
+		{	
+			b[count] = ARGB32_BLUE8(row[x])<<scl->shift ;	
+			if( ++x >= max_x ) 	x = 0;
+		}	 
+	}	 
+
+	clear_flags( scl->flags, SCL_DO_ALL);
+	set_flags( scl->flags, imdec->filter);
+}
+
 
 static void
 decode_asscanline_ximage( ASImageDecoder *imdec, unsigned int skip, int y )
