@@ -98,7 +98,6 @@ Atom          _XA_NET_WM_STATE_ABOVE;
 Atom          _XA_NET_WM_STATE_BELOW;
 
 Atom          _XA_NET_WM_PID;
-Atom          _XA_NET_WM_PROTOCOLS;
 Atom          _XA_NET_WM_PING;
 
 
@@ -122,7 +121,6 @@ AtomXref      MainHints[] = {
 	{"_NET_WM_WINDOW", &_XA_NET_WM_WINDOW_TYPE},
 	{"_NET_WM_STATE", &_XA_NET_WM_STATE},
 	{"_NET_WM_PID", &_XA_NET_WM_PID},
-	{"_NET_WM_PROTOCOLS", &_XA_NET_WM_PROTOCOLS},
 	{NULL, NULL, 0, None}
 };
 
@@ -365,6 +363,8 @@ read_wm_protocols (ASRawHints * hints, Window w)
             LOCAL_DEBUG_OUT( "nprotos=%ld, protocols[0] = 0x%lX(\"%s\")", nprotos, protocols[0], XGetAtomName(dpy, protocols[0]));
 			translate_atom_list (&(hints->wm_protocols), WM_Protocols, protocols, nprotos);
             LOCAL_DEBUG_OUT( "translated protocols =0x%lX", hints->wm_protocols );
+			translate_atom_list (&(hints->extwm_hints.flags), EXTWM_Protocols, protocols, nprotos);
+            LOCAL_DEBUG_OUT( "translated NET_ protocols =0x%lX", hints->extwm_hints.flags );
 			free (protocols);
 		}
 	}
@@ -591,22 +591,6 @@ read_extwm_pid (ASRawHints * hints, Window w)
 	}
 }
 
-void
-read_extwm_protocols (ASRawHints * hints, Window w)
-{
-	if (hints && w != None)
-	{
-		CARD32         *protocols;
-		long          nprotos = 0;
-
-		if (read_32bit_proplist (w, _XA_NET_WM_PROTOCOLS, 1, &protocols, &nprotos))
-		{
-			translate_atom_list (&(hints->extwm_hints.flags), EXTWM_Protocols, protocols, nprotos);
-			free (protocols);
-		}
-	}
-}
-
 Bool
 default_parent_hints_func (Window parent, ASParentHints * dst)
 {
@@ -667,84 +651,33 @@ struct hint_description_struct
 }
 HintsDescriptions[] =
 {
-	{
-	&_XA_WM_NAME, read_wm_name, HINT_NAME, HINTS_ICCCM}
-	,
-	{
-	&_XA_WM_ICON_NAME, read_wm_icon_name, HINT_NAME, HINTS_ICCCM}
-	,
-	{
-	&_XA_WM_CLASS, read_wm_class, HINT_NAME, HINTS_ICCCM}
-	,
-	{
-	&_XA_WM_HINTS, read_wm_hints, HINT_STARTUP | HINT_GENERAL, HINTS_ICCCM}
-	,
-	{
-	&_XA_WM_NORMAL_HINTS, read_wm_normal_hints, HINT_STARTUP | HINT_GENERAL, HINTS_ICCCM}
-	,
-	{
-	&_XA_WM_TRANSIENT_FOR, read_wm_transient_for, HINT_STARTUP | HINT_GENERAL, HINTS_Transient}
-	,
-	{
-	&_XA_WM_PROTOCOLS, read_wm_protocols, HINT_PROTOCOL, HINTS_ICCCM}
-	,
-	{
-	&_XA_WM_COLORMAP_WINDOWS, read_wm_cmap_windows, HINT_COLORMAP, HINTS_ICCCM}
-	,
-	{
-	&_XA_WM_CLIENT_MACHINE, read_wm_client_machine, HINT_STARTUP, HINTS_ICCCM}
-	,
-	{
-	&_XA_WM_COMMAND, read_wm_command, HINT_STARTUP, HINTS_ICCCM}
-	,
-	{
-	&_XA_WM_STATE, read_wm_state, HINT_STARTUP, HINTS_ICCCM}
-	,
+	{&_XA_WM_NAME, read_wm_name, HINT_NAME, HINTS_ICCCM},
+	{&_XA_WM_ICON_NAME, read_wm_icon_name, HINT_NAME, HINTS_ICCCM},
+	{&_XA_WM_CLASS, read_wm_class, HINT_NAME, HINTS_ICCCM},
+	{&_XA_WM_HINTS, read_wm_hints, HINT_STARTUP | HINT_GENERAL, HINTS_ICCCM},
+	{&_XA_WM_NORMAL_HINTS, read_wm_normal_hints, HINT_STARTUP | HINT_GENERAL, HINTS_ICCCM},
+	{&_XA_WM_TRANSIENT_FOR, read_wm_transient_for, HINT_STARTUP | HINT_GENERAL, HINTS_Transient},
+	{&_XA_WM_PROTOCOLS, read_wm_protocols, HINT_PROTOCOL, HINTS_ICCCM|HINTS_ExtendedWM},
+	{&_XA_WM_COLORMAP_WINDOWS, read_wm_cmap_windows, HINT_COLORMAP, HINTS_ICCCM},
+	{&_XA_WM_CLIENT_MACHINE, read_wm_client_machine, HINT_STARTUP, HINTS_ICCCM},
+	{&_XA_WM_COMMAND, read_wm_command, HINT_STARTUP, HINTS_ICCCM},
+	{&_XA_WM_STATE, read_wm_state, HINT_STARTUP, HINTS_ICCCM},
 		/* Motif hints */
-	{
-	&_XA_MwmAtom, read_motif_hints, HINT_GENERAL | HINT_STARTUP | HINT_PROTOCOL, HINTS_Motif}
-	,
+	{&_XA_MwmAtom, read_motif_hints, HINT_GENERAL | HINT_STARTUP | HINT_PROTOCOL, HINTS_Motif},
 		/* Gnome hints */
-	{
-	&_XA_WIN_LAYER, read_gnome_layer, HINT_STARTUP, HINTS_Gnome}
-	,
-	{
-	&_XA_WIN_STATE, read_gnome_state, HINT_STARTUP, HINTS_Gnome}
-	,
-	{
-	&_XA_WIN_WORKSPACE, read_gnome_workspace, HINT_STARTUP, HINTS_Gnome}
-	,
-	{
-	&_XA_WIN_HINTS, read_gnome_hints, HINT_GENERAL, HINTS_Gnome}
-	,
+	{&_XA_WIN_LAYER, read_gnome_layer, HINT_STARTUP, HINTS_Gnome},
+	{&_XA_WIN_STATE, read_gnome_state, HINT_STARTUP, HINTS_Gnome},
+	{&_XA_WIN_WORKSPACE, read_gnome_workspace, HINT_STARTUP, HINTS_Gnome},
+	{&_XA_WIN_HINTS, read_gnome_hints, HINT_GENERAL, HINTS_Gnome},
 		/* wm-spec _NET hints : */
-	{
-	&_XA_NET_WM_NAME, read_extwm_name, HINT_NAME, HINTS_ExtendedWM}
-	,
-	{
-	&_XA_NET_WM_ICON_NAME, read_extwm_icon_name, HINT_NAME, HINTS_ExtendedWM}
-	,
-	{
-	&_XA_NET_WM_VISIBLE_NAME, read_extwm_visible_name, HINT_NAME, HINTS_ExtendedWM}
-	,
-	{
-	&_XA_NET_WM_VISIBLE_ICON_NAME, read_extwm_visible_icon_name, HINT_NAME, HINTS_ExtendedWM}
-	,
-	{
-	&_XA_NET_WM_DESKTOP, read_extwm_desktop, HINT_STARTUP | HINT_PROTOCOL, HINTS_ExtendedWM}
-	,
-	{
-	&_XA_NET_WM_WINDOW_TYPE, read_extwm_window_type, HINT_STARTUP | HINT_GENERAL, HINTS_ExtendedWM}
-	,
-	{
-	&_XA_NET_WM_STATE, read_extwm_state, HINT_STARTUP | HINT_GENERAL, HINTS_ExtendedWM}
-	,
-	{
-	&_XA_NET_WM_PID, read_extwm_pid, HINT_STARTUP, HINTS_ExtendedWM}
-	,
-	{
-	&_XA_NET_WM_PROTOCOLS, read_extwm_protocols, HINT_PROTOCOL, HINTS_ExtendedWM}
-	,
+	{&_XA_NET_WM_NAME, read_extwm_name, HINT_NAME, HINTS_ExtendedWM},
+	{&_XA_NET_WM_ICON_NAME, read_extwm_icon_name, HINT_NAME, HINTS_ExtendedWM},
+	{&_XA_NET_WM_VISIBLE_NAME, read_extwm_visible_name, HINT_NAME, HINTS_ExtendedWM},
+	{&_XA_NET_WM_VISIBLE_ICON_NAME, read_extwm_visible_icon_name, HINT_NAME, HINTS_ExtendedWM},
+	{&_XA_NET_WM_DESKTOP, read_extwm_desktop, HINT_STARTUP | HINT_PROTOCOL, HINTS_ExtendedWM},
+	{&_XA_NET_WM_WINDOW_TYPE, read_extwm_window_type, HINT_STARTUP | HINT_GENERAL, HINTS_ExtendedWM},
+	{&_XA_NET_WM_STATE, read_extwm_state, HINT_STARTUP | HINT_GENERAL, HINTS_ExtendedWM},
+	{&_XA_NET_WM_PID, read_extwm_pid, HINT_STARTUP, HINTS_ExtendedWM},
 	{
 	NULL, NULL, 0, HINTS_Supported}
 };
@@ -1287,16 +1220,28 @@ set_client_names (Window w, char *name, char *icon_name, char *res_class, char *
 }
 
 void
-set_client_protocols (Window w, ASFlagType protocols)
+set_client_protocols (Window w, ASFlagType protocols, ASFlagType extwm_protocols)
 {
 LOCAL_DEBUG_OUT( "protocols=0x%lX", protocols );
     if (w && protocols)
 	{
-		CARD32         *list;
-		long          nitems;
+		CARD32         *list, *extwm_list;
+		long          nitems, extwm_nitems;
 
 		encode_atom_list (&(WM_Protocols[0]), &list, &nitems, protocols);
-        LOCAL_DEBUG_OUT( "nitems=%ld", nitems );
+        encode_atom_list (&(EXTWM_Protocols[0]), &extwm_list, &extwm_nitems, extwm_protocols);
+
+        LOCAL_DEBUG_OUT( "nitems=%ld, extwm_nitems = %ld", nitems, extwm_nitems );
+		if( extwm_nitems > 0 )
+		{
+			int i ;
+			list = realloc( list, sizeof(CARD32)*extwm_nitems );
+			for( i = 0  ; i < extwm_nitems ; ++i )
+				list[nitems+i] = extwm_list[i] ;
+			free( extwm_list );
+			nitems += extwm_nitems ;
+		}	 
+
         if (nitems > 0)
 		{
 			set_32bit_proplist (w, _XA_WM_PROTOCOLS, XA_ATOM, list, nitems);
@@ -1326,13 +1271,6 @@ set_extwm_hints (Window w, ExtendedWMHints * extwm_hints)
 			free (list);
             list = NULL ;
 		}
-        encode_atom_list (&(EXTWM_Protocols[0]), &list, &nitems, extwm_hints->flags);
-		if (nitems > 0)
-		{
-			set_32bit_proplist (w, _XA_NET_WM_PROTOCOLS, XA_CARDINAL, list, nitems);
-			free (list);
-            list = NULL ;
-		}
 		if (get_flags (extwm_hints->flags, EXTWM_DESKTOP))
 			set_32bit_property (w, _XA_NET_WM_DESKTOP, XA_CARDINAL, extwm_hints->desktop);
 		if (get_flags (extwm_hints->flags, EXTWM_PID))
@@ -1357,7 +1295,7 @@ set_client_hints (Window w, XWMHints * hints, XSizeHints * size_hints, ASFlagTyp
 		if (size_hints)
 			XSetWMNormalHints (dpy, w, size_hints);
 		if (protocols)
-			set_client_protocols (w, protocols);
+			set_client_protocols (w, protocols, extwm_hints->flags);
 
 		if (extwm_hints)
 			set_extwm_hints (w, extwm_hints);

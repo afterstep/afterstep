@@ -18,7 +18,7 @@
  */
 
 #include "../configure.h"
-
+ 
 #define LOCAL_DEBUG
 #include "asapp.h"
 #include "afterstep.h"
@@ -2239,7 +2239,7 @@ client_hints2size_hints (XSizeHints * size_hints, ASHints * hints, ASStatusHints
 }
 
 static        Bool
-client_hints2wm_prtocols (ASFlagType * protocols, ASHints * hints)
+client_hints2wm_protocols (ASFlagType * protocols, ASHints * hints)
 {
 	if (protocols == NULL || hints == NULL)
 		return False;
@@ -2399,9 +2399,13 @@ set_all_client_hints (Window w, ASHints * hints, ASStatusHints * status, Bool se
 
 	if (client_hints2size_hints (&size_hints, hints, status))
 		XSetWMNormalHints (dpy, w, &size_hints);
+	
+	if (client_hints2extwm_hints (&extwm_hints, hints, status))
+		set_extwm_hints (w, &extwm_hints);
 
-	if (client_hints2wm_prtocols (&protocols, hints))
-		set_client_protocols (w, protocols);
+	if ( client_hints2wm_protocols (&protocols, hints) || 
+		 get_flags( extwm_hints.flags, EXTWM_DoesWMPing) )
+		set_client_protocols (w, protocols, extwm_hints.flags);
 
 #if 0
 	if (set_command)
@@ -2422,9 +2426,6 @@ set_all_client_hints (Window w, ASHints * hints, ASStatusHints * status, Bool se
 
 	if (client_hints2gnome_hints (&gnome_hints, hints, status))
 		set_gnome_hints (w, &gnome_hints);
-
-	if (client_hints2extwm_hints (&extwm_hints, hints, status))
-		set_extwm_hints (w, &extwm_hints);
 
 	return True;
 }

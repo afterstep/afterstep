@@ -174,7 +174,6 @@ extern Atom _XA_NET_WM_STATE_BELOW;
 #define MAX_NET_WM_STATES   7
 
 extern Atom _XA_NET_WM_PID;
-extern Atom _XA_NET_WM_PROTOCOLS;
 extern Atom _XA_NET_WM_PING;
 
 extern struct AtomXref      *EXTWM_State;
@@ -199,8 +198,7 @@ extern struct AtomXref      *EXTWM_State;
     ((a)== _XA_WM_COLORMAP_WINDOWS  )|| \
     ((a)== _XA_MwmAtom  )|| \
     ((a)== _XA_WIN_HINTS  )|| \
-    ((a)== _XA_NET_WM_WINDOW_TYPE  )|| \
-    ((a)== _XA_NET_WM_PROTOCOLS  ))
+    ((a)== _XA_NET_WM_WINDOW_TYPE  ))
 
 /* Crossreferences of atoms into flag value for
    different atom list type of properties :*/
@@ -608,7 +606,7 @@ Bool handle_manager_property_update( Window w, Atom property, ASRawHints *raw );
 void set_client_state( Window w, struct ASStatusHints *status );
 void set_client_desktop( Window w, int ext_desk );
 void set_client_names( Window w, char *name, char *icon_name, char *res_class, char *res_name );
-void set_client_protocols( Window w, ASFlagType protocols );
+void set_client_protocols (Window w, ASFlagType protocols, ASFlagType extwm_protocols);
 void set_extwm_hints( Window w, ExtendedWMHints *extwm_hints );
 void set_gnome_hints( Window w, GnomeHints *gnome_hints );
 
