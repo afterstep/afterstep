@@ -1,3 +1,23 @@
+/*
+ * Copyright (c) 2001 Eric Kowalski <eric@beancrock.net>
+ * Copyright (c) 2001 Ethan Fisher <allanon@crystaltokyo.com>
+ *
+ * This module is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *
+ */
+
 #include "config.h"
 
 #include <ctype.h>
@@ -32,11 +52,13 @@ xml_elem_t* xml_parse_parm(const char* parm);
 void xml_print(xml_elem_t* root);
 xml_elem_t* xml_elem_new(void);
 xml_elem_t* xml_elem_remove(xml_elem_t** list, xml_elem_t* elem);
-void xml_elem_delete(xml_elem_t** list, xml_elem_t* elem); 
+void xml_elem_delete(xml_elem_t** list, xml_elem_t* elem);
 xml_elem_t* xml_parse_doc(const char* str);
 int xml_parse(const char* str, xml_elem_t* current);
 void xml_insert(xml_elem_t* parent, xml_elem_t* child);
 char* lcstring(char* str);
+Bool save_file(const char* file2bsaved, ASImage *im, const char* type);
+
 
 Pixmap GetRootPixmap (Atom id);
 
@@ -62,12 +84,15 @@ void version(void) {
 void usage(void) {
 	printf(
 		"Usage:\n"
-		"ascompose [-h] [-f file] [-s string] [-v] [-V]\n"
+		"ascompose [-h] [-f file] [-s string] [-o file] [-t type] [-v] [-V]\n"
 		"  -h --help          display this help and exit\n"
 		"  -f --file file     an XML file to use as input\n"
 		"  -s --string string an XML string to use as input\n"
 		"  -v --version       display version and exit\n"
 		"  -V --verbose       increase verbosity\n"
+		"  -o --output file   output to file\n"
+		"  -t --type type     type of file to output to\n"
+		"  -n --no-display    don't display the image\n"
 	);
 }
 
@@ -76,7 +101,10 @@ int main(int argc, char** argv) {
 	xml_elem_t* doc;
 	char* doc_str = default_doc_str;
 	char* doc_file = NULL;
+	char* doc_save = NULL;
+	char* doc_save_type = NULL;
 	int i;
+	int display = 1;
 
 	/* see ASView.1 : */
 	set_application_name(argv[0]);
@@ -92,10 +120,16 @@ int main(int argc, char** argv) {
 			exit(0);
 		} else if (!strcmp(argv[i], "--verbose") || !strcmp(argv[i], "-V")) {
 			verbose++;
+		} else if (!strcmp(argv[i], "--no-display") || !strcmp(argv[i], "-n")) {
+			display = 0;
 		} else if ((!strcmp(argv[i], "--file") || !strcmp(argv[i], "-f")) && i < argc + 1) {
 			doc_file = argv[++i];
 		} else if ((!strcmp(argv[i], "--string") || !strcmp(argv[i], "-s")) && i < argc + 1) {
 			doc_str = argv[++i];
+		} else if ((!strcmp(argv[i], "--output") || !strcmp(argv[i], "-o")) && i < argc + 1) {
+			doc_save = argv[++i];
+		} else if ((!strcmp(argv[i], "--type") || !strcmp(argv[i], "-t")) && i < argc + 1) {
+			doc_save_type = argv[++i];
 		}
 	}
 
@@ -122,13 +156,59 @@ int main(int argc, char** argv) {
 
 	// Do something with the structure!
 	im = build_image_from_xml(doc, NULL);
-	showimage(im);
+	if (display == 1) {
+		showimage(im);
+	}
 
+	// *** Save it depending if it was told too.
+	if (doc_save && doc_save_type) {
+		if(!save_file(doc_save, im, doc_save_type)) {
+			printf("Save failed.\n");
+		} else {
+			printf("Save successful.\n");
+		}
+	}
+	destroy_asimage( &im );
 #ifdef DEBUG_ALLOCS
 	print_unfreed_mem();
 #endif
 
 	return 0;
+}
+
+Bool save_file(const char* file2bsaved, ASImage *im, const char* strtype) {
+
+	int type;
+
+	if (!mystrcasecmp(strtype, "jpeg") || !mystrcasecmp(strtype, "jpg"))  {
+		type = ASIT_Jpeg;
+	} else if (!mystrcasecmp(strtype, "bitmap") || !mystrcasecmp(strtype, "bmp")) {
+		type = ASIT_Bmp;
+	} else if (!mystrcasecmp(strtype, "png")) {
+		type = ASIT_Png;
+	} else if (!mystrcasecmp(strtype, "xcf")) {
+		type = ASIT_Xcf;
+	} else if (!mystrcasecmp(strtype, "ppm")) {
+		type = ASIT_Ppm;
+	} else if (!mystrcasecmp(strtype, "pnm")) {
+		type = ASIT_Pnm;
+	} else if (!mystrcasecmp(strtype, "ico")) {
+		type = ASIT_Ico;
+	} else if (!mystrcasecmp(strtype, "cur")) {
+		type = ASIT_Cur;
+	} else if (!mystrcasecmp(strtype, "gif")) {
+		type = ASIT_Gif;
+	} else if (!mystrcasecmp(strtype, "xbm")) {
+		type = ASIT_Xbm;
+	} else if (!mystrcasecmp(strtype, "tiff")) {
+		type = ASIT_Tiff;
+	} else {
+		printf("File type not found.\n");
+		return(0);
+	}
+
+	return ASImage2file(im, ".", file2bsaved, type, NULL);
+
 }
 
 char* load_file(const char* filename) {
@@ -170,7 +250,6 @@ void showimage(ASImage* im) {
 			/* see ASView.5 : */
 			p = asimage2pixmap( asv, DefaultRootWindow(dpy), im, NULL,
 				                False );
-			destroy_asimage( &im );
 			/* see common.c:set_window_background_and_free(): */
 			p = set_window_background_and_free( w, p );
 		}
@@ -515,8 +594,8 @@ xml_elem_t* xml_parse_parm(const char* parm) {
 
 		// No name equals no parm equals broken tag.
 		if (!*ename) { eparm = NULL; break; }
-		
-		// No "=" equals broken tag.  We do not support HTML-style parms 
+
+		// No "=" equals broken tag.  We do not support HTML-style parms
 		// with no value.
 		for (bval = ename ; isspace(*bval) ; bval++);
 		if (*bval != '=') { eparm = NULL; break; }
@@ -642,7 +721,7 @@ int xml_parse(const char* str, xml_elem_t* current) {
 			// Find the end of the tag.
 			for (etag = oab + 2 ; xml_tagchar(*etag) ; etag++);
 
-			// If this is an end tag, and the tag matches the tag we're parsing, 
+			// If this is an end tag, and the tag matches the tag we're parsing,
 			// we're done.  If not, continue on blindly.
 			if (*etag == '>') {
 				if (!strncasecmp(oab + 2, current->tag, etag - (oab + 2))) {
@@ -676,9 +755,9 @@ int xml_parse(const char* str, xml_elem_t* current) {
 
 			// Find the beginning of the parameters, if they exist.
 			for (bparm = etag ; isspace(*bparm) ; bparm++);
-			
-			// From here on, we're looking for a sequence of parms, which have 
-			// the form [a-z0-9-]+=("[^"]"|'[^']'|[^ \t\n]), followed by either 
+
+			// From here on, we're looking for a sequence of parms, which have
+			// the form [a-z0-9-]+=("[^"]"|'[^']'|[^ \t\n]), followed by either
 			// a ">" or a "/>".
 			for (eparm = bparm ; *eparm ; ) {
 				const char* tmp;
@@ -694,8 +773,8 @@ int xml_parse(const char* str, xml_elem_t* current) {
 
 				// No name equals no parm equals broken tag.
 				if (!*tmp) { eparm = NULL; break; }
-				
-				// No "=" equals broken tag.  We do not support HTML-style parms 
+
+				// No "=" equals broken tag.  We do not support HTML-style parms
 				// with no value.
 				for ( ; isspace(*tmp) ; tmp++);
 				if (*tmp != '=') { eparm = NULL; break; }
@@ -710,17 +789,17 @@ int xml_parse(const char* str, xml_elem_t* current) {
 
 				// Now look for a space or the end of the tag.
 				for ( ; *tmp && !isspace(*tmp) && *tmp != '>' && !(*tmp == '/' && tmp[1] == '>') ; tmp++);
-				
+
 				// If we reach the end of the string, there cannot be a '>'.
 				if (!*tmp) { eparm = NULL; break; }
-				
+
 				// End of the parm.
 				if (!isspace(*tmp)) { eparm = tmp; break; }
 
 				eparm = tmp;
 			}
 
-			// If eparm is NULL, the parm string is invalid, and we should 
+			// If eparm is NULL, the parm string is invalid, and we should
 			// abort processing.
 			if (!eparm) { ptr = oab + 1; continue; }
 
@@ -795,3 +874,4 @@ Pixmap GetRootPixmap (Atom id)
 	}
 	return currentRootPixmap;
 }
+
