@@ -37,9 +37,11 @@ quiet_xerror_handler (Display * dpy, XErrorEvent * error)
 int
 get_drawable_size (Drawable d, unsigned int *ret_w, unsigned int *ret_h)
 {
+#ifndef X_DISPLAY_MISSING
 	Window        root;
 	unsigned int  ujunk;
 	int           junk;
+#endif
 
 	if( d == None ) return 0;
 
@@ -117,10 +119,11 @@ backtrace_window ( Window w )
 Window
 get_parent_window( Window w )
 {
-    Window        root, parent = None, *children = NULL;
+	Window parent = None ;
+#ifndef X_DISPLAY_MISSING
+    Window        root, *children = NULL;
     unsigned int  child_count;
 
-#ifndef X_DISPLAY_MISSING
 	XSync( dpy, False );
     XQueryTree (dpy, w, &root, &parent, &children, &child_count);
     if (children)
@@ -132,10 +135,12 @@ get_parent_window( Window w )
 Window
 get_topmost_parent( Window w, Window *desktop_w )
 {
-    Window  root = None, parent = w, desktop = w ;
+	Window desktop = w ;
+#ifndef X_DISPLAY_MISSING
+    Window  root = None, parent = w;
 	Window *children = NULL;
     unsigned int  child_count;
-#ifndef X_DISPLAY_MISSING
+
 	XSync( dpy, False );
 	while( w != root && w != None )
 	{
@@ -150,5 +155,14 @@ get_topmost_parent( Window w, Window *desktop_w )
 		*desktop_w = desktop ;
 	return w ;
 }
+
+#ifdef X_DISPLAY_MISSING
+void XDestroyImage( void* d){}
+int XGetWindowAttributes( void*d, Window w, unsigned long m, void* s){  return 0;}
+void *XGetImage( void* dpy,Drawable d,int x,int y,unsigned int width,unsigned int height, unsigned long m,int t)
+{return NULL ;}
+unsigned long XGetPixel(void* d, int x, int y){return 0;}
+int XQueryColors(void* a,Colormap c,void* x,int m){return 0;}
+#endif
 
 
