@@ -1,6 +1,7 @@
 /* This file contains code for unified image loading from many file formats */
 /********************************************************************/
-/* Copyright (c) 2001 Sasha Vasko <sasha at aftercode.net>           */
+/* Copyright (c) 2001,2004 Sasha Vasko <sasha at aftercode.net>     */
+/* Copyright (c) 2004 Maxim Nikulin <nikulin at gorodok.net>        */
 /********************************************************************/
 /*
  * This library is free software; you can redistribute it and/or
@@ -1455,6 +1456,37 @@ ico2ASImage( const char * path, ASImageImportParams *params )
 /***********************************************************************************/
 #ifdef HAVE_GIF		/* GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF */
 
+int
+gif_interlaced2y(int line /* 0 -- (height - 1) */, int height)
+{
+   	int passed_lines = 0;
+   	int lines_in_current_pass;
+   	/* pass 1 */
+   	lines_in_current_pass = height / 8 + (height%8?1:0);
+   	if (line < lines_in_current_pass) 
+    	return line * 8;
+   
+   	passed_lines = lines_in_current_pass;
+   	/* pass 2 */
+   	if (height > 4) 
+   	{
+      	lines_in_current_pass = (height - 4) / 8 + ((height - 4)%8 ? 1 : 0);
+      	if (line < lines_in_current_pass + passed_lines) 
+         	return 4 + 8*(line - passed_lines);
+      	passed_lines += lines_in_current_pass;
+   	}
+   	/* pass 3 */
+   	if (height > 2) 
+   	{
+      	lines_in_current_pass = (height - 2) / 4 + ((height - 2)%4 ? 1 : 0);
+      	if (line < lines_in_current_pass + passed_lines) 
+        	return 2 + 4*(line - passed_lines);
+    	passed_lines += lines_in_current_pass;
+   	}
+	return 1 + 2*(line - passed_lines);
+}
+
+
 ASImage *
 gif2ASImage( const char * path, ASImageImportParams *params )
 {
@@ -1462,7 +1494,6 @@ gif2ASImage( const char * path, ASImageImportParams *params )
 	int					status = GIF_ERROR;
 	GifFileType        *gif;
 	ASImage 	 	   *im = NULL ;
-	ASScanline    		buf;
 	unsigned int  		transparent = -1 ;
 	unsigned int  		y;
 	unsigned int		width = 0, height = 0;
@@ -1507,6 +1538,8 @@ gif2ASImage( const char * path, ASImageImportParams *params )
 			    width < MAX_IMPORT_IMAGE_SIZE && height < MAX_IMPORT_IMAGE_SIZE )
 			{
 				int bg_color =   gif->SBackGroundColor ;
+                int interlaced = sp->ImageDesc.Interlace;
+                int image_y;
 				CARD8 		 *r = NULL, *g = NULL, *b = NULL, *a = NULL ;
 				r = safemalloc( width );	   
 				g = safemalloc( width );	   
@@ -1514,11 +1547,11 @@ gif2ASImage( const char * path, ASImageImportParams *params )
 				a = safemalloc( width );
 
 				im = create_asimage( width, height, params->compression );
-				prepare_scanline( im->width, 0, &buf, False );
 				for (y = 0; y < height; ++y)
 				{
 					int x ;
 					Bool do_alpha = False ;
+                    image_y = interlaced ? gif_interlaced2y(y, height):y;
 					for (x = 0; x < width; ++x)
 					{
 						int c = row_pointer[x];
@@ -1529,22 +1562,17 @@ gif2ASImage( const char * path, ASImageImportParams *params )
 							a[x] = 0 ;
 						}else
 							a[x] = 0x00FF ;
-#ifdef DEBUG_TRANSP_GIF
-	                    fprintf( stderr, "%d(%X) ", row_pointer[x], buf.alpha[x] );
-#endif
+						
 						r[x] = cmap->Colors[c].Red;
 		        		g[x] = cmap->Colors[c].Green;
 						b[x] = cmap->Colors[c].Blue;
 	        		}
-#ifdef DEBUG_TRANSP_GIF
-                    fprintf( stderr, "\n" );
-#endif
 					row_pointer += x ;
-					im->channels[IC_RED][y]  = store_data( NULL, r, width, ASStorage_RLEDiffCompress, 0);
-				 	im->channels[IC_GREEN][y] = store_data( NULL, g, width, ASStorage_RLEDiffCompress, 0);	
-					im->channels[IC_BLUE][y]  = store_data( NULL, b, width, ASStorage_RLEDiffCompress, 0);
+					im->channels[IC_RED][image_y]  = store_data( NULL, r, width, ASStorage_RLEDiffCompress, 0);
+				 	im->channels[IC_GREEN][image_y] = store_data( NULL, g, width, ASStorage_RLEDiffCompress, 0);	
+					im->channels[IC_BLUE][image_y]  = store_data( NULL, b, width, ASStorage_RLEDiffCompress, 0);
 					if( do_alpha )
-						im->channels[IC_ALPHA][y]  = store_data( NULL, a, im->width, ASStorage_RLEDiffCompress|ASStorage_Bitmap, 0);
+						im->channels[IC_ALPHA][image_y]  = store_data( NULL, a, im->width, ASStorage_RLEDiffCompress|ASStorage_Bitmap, 0);
 				}
 				free(a);
 				free(b);
