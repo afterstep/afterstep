@@ -47,6 +47,7 @@
 #ifdef HAVE_STDARG_H
 #include <stdarg.h>
 #endif
+#include <string.h>
 #include <ctype.h>
 
 #ifdef _WIN32
@@ -55,7 +56,11 @@
 # include "afterbase.h"
 #endif
 #ifdef HAVE_GIF
-#include <gif_lib.h>
+# ifdef HAVE_BUILTIN_UNGIF
+#  include "libungif/gif_lib.h"
+# else
+#  include <gif_lib.h>
+# endif
 #endif
 
 #include "asimage.h"

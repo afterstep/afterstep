@@ -12,6 +12,9 @@
 /* Define if using builtin libpng */
 #undef HAVE_BUILTIN_PNG
 
+/* Define if using builtin libungif */
+#undef HAVE_BUILTIN_UNGIF
+
 /* Define to 1 if you have the <dirent.h> header file, and it defines `DIR'.
    */
 #undef HAVE_DIRENT_H
@@ -28,7 +31,7 @@
 /* Define to 1 if you have the <ft2build.h> header file. */
 #undef HAVE_FT2BUILD_H
 
-/* Define if libgif is available */
+/* Define if libgif/ungif is available */
 #undef HAVE_GIF
 
 /* Define to 1 if you have the <inttypes.h> header file. */

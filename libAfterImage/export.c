@@ -74,9 +74,15 @@
 #else
 # include "afterbase.h"
 #endif
+
 #ifdef HAVE_GIF
-#include <gif_lib.h>
+# ifdef HAVE_BUILTIN_UNGIF
+#  include "libungif/gif_lib.h"
+# else
+#  include <gif_lib.h>
+# endif
 #endif
+
 #ifdef HAVE_TIFF
 #include <tiff.h>
 #include <tiffio.h>

@@ -396,6 +396,26 @@ SOURCE=.\zlib\uncompr.c
 SOURCE=.\zlib\zutil.c
 # End Source File
 # End Group
+# Begin Group "UNGIF Files"
+
+# PROP Default_Filter "*.c"
+# Begin Source File
+
+SOURCE=.\libungif\dgif_lib.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\libungif\egif_lib.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\libungif\gif_err.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\libungif\gifalloc.c
+# End Source File
+# End Group
 # Begin Source File
 
 SOURCE=.\afterbase.c

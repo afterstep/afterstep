@@ -3,7 +3,7 @@
 # Copyright (c) 1998, Guylhem AZNAR <guylhem@oeil.qc.ca>
 #
 
-subdirs = libjpeg libpng zlib
+subdirs = libjpeg libpng libungif zlib
 
 LIBJPEG_OBJS = 	libjpeg/jcapimin.o libjpeg/jcapistd.o libjpeg/jccoefct.o \
 		libjpeg/jccolor.o libjpeg/jcdctmgr.o libjpeg/jchuff.o \
@@ -32,6 +32,8 @@ ZLIB_OBJS = 	zlib/adler32.o 	zlib/compress.o zlib/crc32.o \
 		zlib/trees.o 	zlib/zutil.o 	zlib/inflate.o \
 		zlib/infback.o 	zlib/inftrees.o zlib/inffast.o
 
+LIBUNGIF_OBJS = libungif/dgif_lib.o libungif/egif_lib.o libungif/gifalloc.o libungif/gif_err.o
+
 ################################################################
 # library specifics :
 
@@ -40,7 +42,7 @@ LIB_INCS= afterimage.h config.h afterbase.h ascmap.h asfont.h \
 		export.h import.h pixmap.h transform.h ungif.h \
 		xcf.h ximage.h xpm.h
 
-LIB_OBJS=  	@JPEG_OBJS@ @ZLIB_OBJS@ @PNG_OBJS@ @AFTERBASE_C@ asimage.o \
+LIB_OBJS=       @AFTERBASE_C@ @JPEG_OBJS@ @ZLIB_OBJS@ @PNG_OBJS@ @UNGIF_OBJS@ asimage.o \
 		ascmap.o asfont.o asimagexml.o \
 		asvisual.o blender.o bmp.o char2uni.o export.o import.o \
 		pixmap.o transform.o ungif.o xcf.o ximage.o xpm.o

@@ -33,7 +33,11 @@ typedef unsigned char boolean;
 #undef HAVE_FT2BUILD_H
 
 /* Define if libgif is available */
-#undef HAVE_GIF
+#define HAVE_GIF
+
+/* Define if using builtin libungif */
+#define HAVE_BUILTIN_UNGIF 1
+
 
 /* Define to 1 if you have the <inttypes.h> header file. */
 #define HAVE_INTTYPES_H 1

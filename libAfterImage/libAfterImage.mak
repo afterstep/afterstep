@@ -25,6 +25,9 @@ NULL=
 NULL=nul
 !ENDIF 
 
+CPP=cl.exe
+RSC=rc.exe
+
 !IF  "$(CFG)" == "libAfterImage - Win32 Release"
 
 OUTDIR=.\Release
@@ -47,7 +50,11 @@ CLEAN :
 	-@erase "$(INTDIR)\compress.obj"
 	-@erase "$(INTDIR)\crc32.obj"
 	-@erase "$(INTDIR)\deflate.obj"
+	-@erase "$(INTDIR)\dgif_lib.obj"
+	-@erase "$(INTDIR)\egif_lib.obj"
 	-@erase "$(INTDIR)\export.obj"
+	-@erase "$(INTDIR)\gif_err.obj"
+	-@erase "$(INTDIR)\gifalloc.obj"
 	-@erase "$(INTDIR)\gzio.obj"
 	-@erase "$(INTDIR)\import.obj"
 	-@erase "$(INTDIR)\infback.obj"
@@ -132,40 +139,7 @@ CLEAN :
 "$(OUTDIR)" :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
-CPP=cl.exe
 CPP_PROJ=/nologo /ML /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /Fp"$(INTDIR)\libAfterImage.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
-
-.c{$(INTDIR)}.obj::
-   $(CPP) @<<
-   $(CPP_PROJ) $< 
-<<
-
-.cpp{$(INTDIR)}.obj::
-   $(CPP) @<<
-   $(CPP_PROJ) $< 
-<<
-
-.cxx{$(INTDIR)}.obj::
-   $(CPP) @<<
-   $(CPP_PROJ) $< 
-<<
-
-.c{$(INTDIR)}.sbr::
-   $(CPP) @<<
-   $(CPP_PROJ) $< 
-<<
-
-.cpp{$(INTDIR)}.sbr::
-   $(CPP) @<<
-   $(CPP_PROJ) $< 
-<<
-
-.cxx{$(INTDIR)}.sbr::
-   $(CPP) @<<
-   $(CPP_PROJ) $< 
-<<
-
-RSC=rc.exe
 BSC32=bscmake.exe
 BSC32_FLAGS=/nologo /o"$(OUTDIR)\libAfterImage.bsc" 
 BSC32_SBRS= \
@@ -264,7 +238,11 @@ LIB32_OBJS= \
 	"$(INTDIR)\ungif.obj" \
 	"$(INTDIR)\xcf.obj" \
 	"$(INTDIR)\ximage.obj" \
-	"$(INTDIR)\xpm.obj"
+	"$(INTDIR)\xpm.obj" \
+	"$(INTDIR)\gifalloc.obj" \
+	"$(INTDIR)\egif_lib.obj" \
+	"$(INTDIR)\gif_err.obj" \
+	"$(INTDIR)\dgif_lib.obj"
 
 ".\libAfterImage.lib" : "$(OUTDIR)" $(DEF_FILE) $(LIB32_OBJS)
     $(LIB32) @<<
@@ -296,7 +274,11 @@ CLEAN :
 	-@erase "$(INTDIR)\compress.obj"
 	-@erase "$(INTDIR)\crc32.obj"
 	-@erase "$(INTDIR)\deflate.obj"
+	-@erase "$(INTDIR)\dgif_lib.obj"
+	-@erase "$(INTDIR)\egif_lib.obj"
 	-@erase "$(INTDIR)\export.obj"
+	-@erase "$(INTDIR)\gif_err.obj"
+	-@erase "$(INTDIR)\gifalloc.obj"
 	-@erase "$(INTDIR)\gzio.obj"
 	-@erase "$(INTDIR)\import.obj"
 	-@erase "$(INTDIR)\infback.obj"
@@ -382,40 +364,7 @@ CLEAN :
 "$(INTDIR)" :
     if not exist "$(INTDIR)/$(NULL)" mkdir "$(INTDIR)"
 
-CPP=cl.exe
 CPP_PROJ=/nologo /MLd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /GZ /c 
-
-.c{$(INTDIR)}.obj::
-   $(CPP) @<<
-   $(CPP_PROJ) $< 
-<<
-
-.cpp{$(INTDIR)}.obj::
-   $(CPP) @<<
-   $(CPP_PROJ) $< 
-<<
-
-.cxx{$(INTDIR)}.obj::
-   $(CPP) @<<
-   $(CPP_PROJ) $< 
-<<
-
-.c{$(INTDIR)}.sbr::
-   $(CPP) @<<
-   $(CPP_PROJ) $< 
-<<
-
-.cpp{$(INTDIR)}.sbr::
-   $(CPP) @<<
-   $(CPP_PROJ) $< 
-<<
-
-.cxx{$(INTDIR)}.sbr::
-   $(CPP) @<<
-   $(CPP_PROJ) $< 
-<<
-
-RSC=rc.exe
 BSC32=bscmake.exe
 BSC32_FLAGS=/nologo /o"$(OUTDIR)\libAfterImage.bsc" 
 BSC32_SBRS= \
@@ -514,7 +463,11 @@ LIB32_OBJS= \
 	"$(INTDIR)\ungif.obj" \
 	"$(INTDIR)\xcf.obj" \
 	"$(INTDIR)\ximage.obj" \
-	"$(INTDIR)\xpm.obj"
+	"$(INTDIR)\xpm.obj" \
+	"$(INTDIR)\gifalloc.obj" \
+	"$(INTDIR)\egif_lib.obj" \
+	"$(INTDIR)\gif_err.obj" \
+	"$(INTDIR)\dgif_lib.obj"
 
 "$(OUTDIR)\libAfterImage.lib" : "$(OUTDIR)" $(DEF_FILE) $(LIB32_OBJS)
     $(LIB32) @<<
@@ -522,6 +475,36 @@ LIB32_OBJS= \
 <<
 
 !ENDIF 
+
+.c{$(INTDIR)}.obj::
+   $(CPP) @<<
+   $(CPP_PROJ) $< 
+<<
+
+.cpp{$(INTDIR)}.obj::
+   $(CPP) @<<
+   $(CPP_PROJ) $< 
+<<
+
+.cxx{$(INTDIR)}.obj::
+   $(CPP) @<<
+   $(CPP_PROJ) $< 
+<<
+
+.c{$(INTDIR)}.sbr::
+   $(CPP) @<<
+   $(CPP_PROJ) $< 
+<<
+
+.cpp{$(INTDIR)}.sbr::
+   $(CPP) @<<
+   $(CPP_PROJ) $< 
+<<
+
+.cxx{$(INTDIR)}.sbr::
+   $(CPP) @<<
+   $(CPP_PROJ) $< 
+<<
 
 
 !IF "$(NO_EXTERNAL_DEPS)" != "1"
@@ -981,6 +964,30 @@ SOURCE=.\zlib\uncompr.c
 SOURCE=.\zlib\zutil.c
 
 "$(INTDIR)\zutil.obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+SOURCE=.\libungif\dgif_lib.c
+
+"$(INTDIR)\dgif_lib.obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+SOURCE=.\libungif\egif_lib.c
+
+"$(INTDIR)\egif_lib.obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+SOURCE=.\libungif\gif_err.c
+
+"$(INTDIR)\gif_err.obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+SOURCE=.\libungif\gifalloc.c
+
+"$(INTDIR)\gifalloc.obj" : $(SOURCE) "$(INTDIR)"
 	$(CPP) $(CPP_PROJ) $(SOURCE)
 
 
