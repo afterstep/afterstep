@@ -17,17 +17,14 @@
  *
  */
 
-#include "../configure.h"
+#include "config.h"
 
 /*#define LOCAL_DEBUG*/
 /*#define DO_CLOCKING*/
 
-#include "../include/aftersteplib.h"
-#include <X11/Intrinsic.h>
-
-#include "../include/afterstep.h"
-#include "../include/screen.h"
-#include "../include/asimage.h"
+#include "afterbase.h"
+#include "asvisual.h"
+#include "blender.h"
 
 /*********************************************************************************/
 /* colorspace conversion functions : 											 */

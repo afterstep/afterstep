@@ -17,7 +17,7 @@
  *
  */
 
-#include "../configure.h"
+#include "config.h"
 
 /*#define LOCAL_DEBUG*/
 /*#define DO_CLOCKING*/
@@ -26,11 +26,11 @@
 #define USE_64BIT_FPU
 
 #include <malloc.h>
-#include "../include/aftersteplib.h"
-#include <X11/Intrinsic.h>
 
-#include "../include/asvisual.h"
-#include "../include/asimage.h"
+#include "afterbase.h"
+#include "asvisual.h"
+#include "blender.h"
+#include "asimage.h"
 
 
 void encode_image_scanline_xim( ASImageOutput *imout, ASScanline *to_store );

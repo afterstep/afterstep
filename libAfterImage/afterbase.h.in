@@ -11,6 +11,7 @@
 #include "@AFTERBASE_INC_PATH@/libAfterBase/fs.h"
 #include "@AFTERBASE_INC_PATH@/libAfterBase/parse.h"
 #include "@AFTERBASE_INC_PATH@/libAfterBase/selfdiag.h"
+#include "@AFTERBASE_INC_PATH@/libAfterBase/socket.h"
 #include "@AFTERBASE_INC_PATH@/libAfterBase/trace.h"
 #else
 #include <libAfterBase/astypes.h>
@@ -21,6 +22,7 @@
 #include <libAfterBase/fs.h>
 #include <libAfterBase/parse.h>
 #include <libAfterBase/selfdiag.h>
+#include <libAfterBase/socket.h>
 #include <libAfterBase/trace.h>
 #endif		/* HAVE_CUSTOM_AFTERBASE */
 #else    
@@ -46,6 +48,13 @@
 #define False 0
 #endif
 
+#ifndef MIN
+#define MIN(a,b)            ((a)<(b) ? (a) : (b))
+#endif
+#ifndef MAX
+#define MAX(a,b)            ((a)>(b) ? (a) : (b))
+#endif
+
 typedef unsigned long ASFlagType ;
 #define ASFLAGS_EVERYTHING  0xFFFFFFFF
 typedef ASFlagType ASFlagsXref[5];
@@ -54,6 +63,11 @@ typedef ASFlagType ASFlagsXref[5];
 #define set_flags(var, val) 	((var) |= (val))
 #define clear_flags(var, val) 	((var) &= ~(val))
 #define CheckSetFlag(b,f,v) 	{if((b)) (f) |= (v) ; else (f) &= ~(v);}
+
+typedef struct ASMagic
+{ /* just so we can safely cast void* to query magic number :*/
+    unsigned long magic ;
+}ASMagic;
 
 /* from libAfterBase/selfdiag.h : */
 #define get_caller_func() "unknown" 
@@ -178,6 +192,20 @@ char   *asim_put_file_home (const char *path_with_home);
 #define put_file_home(p) asim_put_file_home(p)
 char   *asim_find_file (const char *file, const char *pathlist, int type);
 #define find_file(f,p,t) asim_find_file(f,p,t)
+
+/* from libAfterBase/socket.h : */
+#ifdef WORDS_BIGENDIAN
+#define as_ntohl(ui32)		(ui32)
+#define as_hlton(ui32)		(ui32)
+#define as_ntohl16(ui16)		(ui16)
+#define as_hlton16(ui16)		(ui16)
+#else
+#define as_ntohl(ui32)		((((ui32)&0x000000FF)<<24)|(((ui32)&0x0000FF00)<<8)|(((ui32)&0x00FF0000)>>8)|(((ui32)&0xFF000000)>>24))
+#define as_hlton(ui32)		as_ntohl(ui32)     /* conversion is symmetrical */
+#define as_ntohl16(ui16)		((((ui16)&0x00FF)<<8)|(((ui16)&0xFF00)>>8))
+#define as_hlton16(ui16)		as_ntohl(ui16)     /* conversion is symmetrical */
+#endif
+
 
 #endif /* HAVE_AFTERBASE */
 

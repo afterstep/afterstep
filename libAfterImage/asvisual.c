@@ -17,15 +17,17 @@
  *
  */
 
-#include "../configure.h"
+#include "config.h"
 
 #define LOCAL_DEBUG
 
+#include <X11/Xlib.h>
+#include <X11/Xproto.h>
 #include <X11/Xlibint.h>
-#include "../include/aftersteplib.h"
 #include <X11/Intrinsic.h>
-#include "../include/afterstep.h"
-#include "../include/asvisual.h"
+
+#include "afterbase.h"
+#include "asvisual.h"
 
 void _XInitImageFuncPtrs(XImage*);
 

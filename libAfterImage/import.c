@@ -19,7 +19,7 @@
  *
  */
 
-#include "../configure.h"
+#include "config.h"
 
 /*#define LOCAL_DEBUG */
 #define DO_CLOCKING
@@ -27,6 +27,9 @@
 #include <time.h>
 #include <unistd.h>
 #include <stdarg.h>
+#include <stdlib.h>
+#include <ctype.h>
+#include <malloc.h>
 /* <setjmp.h> is used for the optional error recovery mechanism */
 
 #ifdef HAVE_PNG
@@ -43,7 +46,7 @@
 #endif
 #endif
 
-#include "../include/aftersteplib.h"
+#include "afterbase.h"
 #ifdef HAVE_JPEG
 /* Include file for users of png library. */
 #include <jpeglib.h>
@@ -56,11 +59,9 @@
 #include <tiffio.h>
 #endif
 
-#include "../include/afterstep.h"
-#include "../include/screen.h"
-#include "../include/asimage.h"
-#include "../include/xcf.h"
-#include "../include/asimage.h"
+#include "asimage.h"
+#include "xcf.h"
+#include "import.h"
 
 
 /***********************************************************************************/

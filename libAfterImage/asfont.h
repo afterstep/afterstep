@@ -3,6 +3,9 @@
 
 #define MAX_GLYPHS_PER_FONT  2048
 
+/* magic number identifying ASFont data structure */
+#define MAGIC_ASFONT            0xA3A3F098
+
 typedef enum
 {
 	ASF_X11 = 0,
@@ -61,6 +64,7 @@ typedef struct ASFont
 
 typedef struct ASFontManager
 {
+	Display    *dpy;
 	char 	   *font_path ;
 #ifdef HAVE_FREETYPE
 	Bool 		ft_ok ;
@@ -77,7 +81,7 @@ typedef struct ASFontManager
 
 #endif
 
-struct ASFontManager *create_font_manager( const char * font_path, struct ASFontManager *reusable_memory );
+struct ASFontManager *create_font_manager( Display *dpy, const char * font_path, ASFontManager *reusable_memory );
 void    destroy_font_manager( struct ASFontManager *fontman, Bool reusable );
 struct ASFont *open_freetype_font( struct ASFontManager *fontman, const char *font_string, int face_no, int size, Bool verbose);
 struct ASFont *open_X11_font( struct ASFontManager *fontman, const char *font_string);

@@ -1,0 +1,16 @@
+LIBAFTERIMAGE_OBJS = \
+		$(LIBAFTERIMAGE_PATH)/asfont.c \
+		$(LIBAFTERIMAGE_PATH)/asimage.c \
+		$(LIBAFTERIMAGE_PATH)/asvisual.c \
+		$(LIBAFTERIMAGE_PATH)/blender.c \
+		$(LIBAFTERIMAGE_PATH)/import.c \
+		$(LIBAFTERIMAGE_PATH)/xcf.c
+
+LIBAFTERIMAGE_INCS = \
+		$(LIBAFTERIMAGE_PATH)/afterbase.h \
+		$(LIBAFTERIMAGE_PATH)/asfont.h \
+		$(LIBAFTERIMAGE_PATH)/asimage.h \
+		$(LIBAFTERIMAGE_PATH)/asvisual.h \
+		$(LIBAFTERIMAGE_PATH)/blender.h \
+		$(LIBAFTERIMAGE_PATH)/import.h \
+		$(LIBAFTERIMAGE_PATH)/xcf.h

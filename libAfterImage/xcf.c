@@ -19,18 +19,18 @@
  *
  */
 
-#include "../configure.h"
+#include "config.h"
 
 #define LOCAL_DEBUG
 #define DO_CLOCKING
 
+#include <stdlib.h>
+#include <malloc.h>
 #include <time.h>
 
-#include "../include/aftersteplib.h"
-#include "../include/afterstep.h"
-#include "../include/screen.h"
-#include "../include/asimage.h"
-#include "../include/xcf.h"
+#include "afterbase.h"
+#include "asimage.h"
+#include "xcf.h"
 
 static XcfProperty *read_xcf_props( FILE *fp );
 static XcfListElem *read_xcf_list_offsets( FILE *fp, size_t elem_size );

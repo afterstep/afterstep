@@ -31,6 +31,10 @@
 
 
 #include <unistd.h>
+#include <malloc.h>
+#include <ctype.h>
+#include <string.h>
+#include <stdlib.h>
 
 #include <X11/Xlib.h>
 #include <X11/Intrinsic.h>
@@ -46,7 +50,7 @@
 
 #define INCLUDE_ASFONT_PRIVATE
 
-#include "astypes.h"
+#include "afterbase.h"
 #include "asfont.h"
 #include "asimage.h"
 #include "asvisual.h"
@@ -62,7 +66,7 @@
 void asfont_destroy (ASHashableValue value, void *data);
 
 ASFontManager *
-create_font_manager( const char * font_path, ASFontManager *reusable_memory )
+create_font_manager( Display *dpy, const char * font_path, ASFontManager *reusable_memory )
 {
 	ASFontManager *fontman = reusable_memory;
 	if( fontman == NULL )
@@ -70,6 +74,7 @@ create_font_manager( const char * font_path, ASFontManager *reusable_memory )
 	else
 		memset( fontman, 0x00, sizeof(ASFontManager));
 
+	fontman->dpy = dpy ;
 	if( font_path )
 		fontman->font_path = mystrdup( font_path );
 
@@ -109,7 +114,7 @@ destroy_font_manager( ASFontManager *fontman, Bool reusable )
 }
 
 static int load_freetype_glyphs( ASFont *font );
-static int load_X11_glyphs( ASFont *font, XFontStruct *xfs );
+static int load_X11_glyphs( Display *dpy, ASFont *font, XFontStruct *xfs );
 
 
 ASFont*
@@ -196,14 +201,14 @@ open_X11_font( ASFontManager *fontman, const char *font_string)
 
 #else                                          /* assume ISO Latin 1 encoding */
 
-	if( (xfs = XLoadQueryFont( dpy, font_string )) == NULL )
+	if( (xfs = XLoadQueryFont( fontman->dpy, font_string )) == NULL )
 		return NULL;
 	font = safecalloc( 1, sizeof(ASFont));
 	font->magic = MAGIC_ASFONT ;
 	font->fontman = fontman;
 	font->type = ASF_X11 ;
-	load_X11_glyphs( font, xfs );
-	XFreeFont( dpy, xfs );
+	load_X11_glyphs( fontman->dpy, font, xfs );
+	XFreeFont( fontman->dpy, xfs );
 #endif
 	return font;
 }
@@ -540,7 +545,7 @@ LOCAL_DEBUG_OUT( "created glyph range from %lu to %lu", (*r)->min_char, (*r)->ma
 }
 
 void
-load_X11_glyph_range( ASFont *font, XFontStruct *xfs, size_t char_offset,
+load_X11_glyph_range( Display *dpy, ASFont *font, XFontStruct *xfs, size_t char_offset,
 													  unsigned char byte1,
                                                       unsigned char min_byte2,
 													  unsigned char max_byte2, GC *gc )
@@ -576,7 +581,7 @@ LOCAL_DEBUG_OUT( "loading glyph range of %lu-%lu", r->min_char, r->max_char );
 			if( chars[i].lbearing > 0 )
 				total_width += chars[i].lbearing ;
 		}
-		p = XCreatePixmap( dpy, Scr.Root, total_width, height, 1 );
+		p = XCreatePixmap( dpy, DefaultRootWindow(dpy), total_width, height, 1 );
 		if( *gc == NULL )
 		{
 			gcv.font = xfs->fid;
@@ -709,7 +714,7 @@ make_X11_default_glyph( ASFont *font, XFontStruct *xfs )
 }
 
 static int
-load_X11_glyphs( ASFont *font, XFontStruct *xfs )
+load_X11_glyphs( Display *dpy, ASFont *font, XFontStruct *xfs )
 {
 	GC gc = NULL;
 #ifdef I18N
@@ -724,7 +729,7 @@ load_X11_glyphs( ASFont *font, XFontStruct *xfs )
 		int max_byte1 = (xfs->max_char_or_byte2>>8)&0x00FF;
 		size_t offset = MAX(0x00FF,xfs->max_char_or_byte2-(min_byte1<<8)) ;
 
-		load_X11_glyph_range( font, xfs, 0, min_byte1,
+		load_X11_glyph_range( dpy, font, xfs, 0, min_byte1,
 											xfs->min_char_or_byte2-(min_byte1<<8),
 			                                offset, &gc );
 		offset -= xfs->min_char_or_byte2-(min_byte1<<8);
@@ -732,10 +737,10 @@ load_X11_glyphs( ASFont *font, XFontStruct *xfs )
 		{
 			for( i = min_byte1+1; i < max_byte1 ; i++ )
 			{
-				load_X11_glyph_range( font, xfs, offset, i, 0x00, 0xFF, &gc );
+				load_X11_glyph_range( dpy, font, xfs, offset, i, 0x00, 0xFF, &gc );
 				offset += 256 ;
 			}
-			load_X11_glyph_range( font, xfs, offset, max_byte1,
+			load_X11_glyph_range( dpy, font, xfs, offset, max_byte1,
 				                                     0,
 													 xfs->max_char_or_byte2-(max_byte1<<8), &gc );
 		}
@@ -768,7 +773,7 @@ load_X11_glyphs( ASFont *font, XFontStruct *xfs )
 		our_min_char = MAX(our_min_char,min_char);
 		our_max_char = MIN(our_max_char,max_char);
 
-		load_X11_glyph_range( font, xfs, our_min_char-min_char, byte1, our_min_char&0x00FF, our_max_char&0x00FF, &gc );
+		load_X11_glyph_range( dpy, font, xfs, our_min_char-min_char, byte1, our_min_char&0x00FF, our_max_char&0x00FF, &gc );
 	}
 #endif
 	if( font->default_glyph.pixmap == NULL )

@@ -84,7 +84,7 @@ typedef enum {
 	ASP_Success = 1
 }ASProtocolResult;
 
-static ASProtocolResult socket_read_proto_item( ASProtocolState *ps );
+ASProtocolResult socket_read_proto_item( ASProtocolState *ps );
 ASProtocolResult socket_read_proto( ASProtocolState *ps );
 
 
