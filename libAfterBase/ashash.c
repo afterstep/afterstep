@@ -19,9 +19,6 @@
 
 /*#define DO_CLOCKING      */
 
-#define TRUE 1
-#define FALSE
-
 #include "../configure.h"
 
 #include <errno.h>

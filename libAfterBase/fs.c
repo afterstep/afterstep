@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 1999 Sasha Vasko <sashav@sprintmail.com>
- * merged with envvar.c originally created by : 
+ * merged with envvar.c originally created by :
  * Copyright (C) 1999 Ethan Fischer <allanon@crystaltokyo.com>
  * Copyright (C) 1998 Pierre Clerissi <clerissi@pratique.fr>
  */
@@ -23,8 +23,8 @@
  * Oh well.
  *
  ****************************************************************************/
-/* supposedly pathlist should not include any environment variables 
-   including things like ~/ 
+/* supposedly pathlist should not include any environment variables
+   including things like ~/
  */
 
 char         *
@@ -170,3 +170,104 @@ replaceEnvVar (char **path)
 	}
 	*path = data;
 }
+
+/*
+ * only checks first word in name, to allow full command lines with
+ * options to be passed
+ */
+int
+is_executable_in_path (const char *name)
+{
+	static char  *cache = NULL;
+	static int    cache_result = 0, cache_len = 0, cache_size = 0;
+	static char  *env_path = NULL;
+	static int    max_path = 0;
+	register int  i;
+
+	if (name == NULL)
+	{
+		if (cache)
+		{
+			free (cache);
+			cache = NULL;
+		}
+		cache_size = 0;
+		cache_len = 0;
+		if (env_path)
+		{
+			free (env_path);
+			env_path = NULL;
+		}
+		max_path = 0;
+		return 0;
+	}
+
+	/* cut leading "exec" enclosed in spaces */
+	for (; isspace (*name); name++);
+	if (!strncmp (name, "exec", 4) && isspace (name[4]))
+		name += 4;
+	for (; isspace (*name); name++);
+	if (*name == '\0')
+		return 0;
+
+	for (i = 0; *(name + i) && !isspace (*(name + i)); i++);
+	if (i == 0)
+		return 0;
+
+	if (cache)
+		if (i == cache_len && strncmp (cache, name, i) == 0)
+			return cache_result;
+
+	if (i > cache_size)
+	{
+		if (cache)
+			free (cache);
+		/* allocating slightly more space then needed to avoid
+		   too many reallocations */
+		cache = (char *)safemalloc (i + (i >> 1) + 1);
+		cache_size = i + (i >> 1);
+	}
+	strncpy (cache, name, i);
+	cache[i] = '\0';
+	cache_len = i;
+
+	if (*cache == '/')
+		cache_result = (CheckFile (cache) == 0) ? 1 : 0;
+	else
+	{
+		char         *ptr, *path;
+		struct stat   st;
+
+		if (env_path == NULL)
+		{
+			env_path = mystrdup (getenv ("PATH"));
+			replaceEnvVar (&env_path);
+			for (ptr = env_path; *ptr; ptr += i)
+			{
+				if (*ptr == ':')
+					ptr++;
+				for (i = 0; *(ptr + i) && *(ptr + i) != ':'; i++);
+				if (i > max_path)
+					max_path = i;
+			}
+		}
+		path = safemalloc (max_path + cache_len + 2);
+		cache_result = 0;
+		for (ptr = env_path; *ptr && cache_result == 0; ptr += i)
+		{
+			if (*ptr == ':')
+				ptr++;
+			for (i = 0; *(ptr + i) && *(ptr + i) != ':'; i++)
+				path[i] = *(ptr + i);
+			path[i] = '/';
+			path[i + 1] = '\0';
+			strcat (path, cache);
+			if ((stat (path, &st) != -1) && (st.st_mode & S_IXUSR))
+				cache_result = 1;
+		}
+		free (path);
+	}
+	return cache_result;
+}
+
+
