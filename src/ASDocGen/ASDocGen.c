@@ -63,16 +63,14 @@ const char *StandardSourceEntries[] =
 	NULL
 };
 
-const char *StandardOptionsEntry = "_standard_options" ;
-const char *MyStylesOptionsEntry = "_mystyles" ;
-const char *BaseOptionsEntry = "_base_config" ;
-
 const char *PHPXrefFormat = "&nbsp;<? local_doc_url(\"%s.php\",\"%s\",\"%s%s\",$srcunset,$subunset) ?>\n ";
 const char *PHPXrefFormatSetSrc = "&nbsp;<? local_doc_url(\"%s.php\",\"%s\",\"%s%s\",\"%s\",$subunset) ?>\n ";
 const char *PHPXrefFormatUseSrc = "&nbsp;<? if ($src==\"\") $src=\"%s\"; local_doc_url(\"%s.php\",\"%s\",$src,$srcunset,$subunset) ?>\n ";
 const char *PHPCurrPageFormat = "&nbsp;<b>%s</b>\n";
 
 const char *AfterStepName = "AfterStep" ;
+const char *GlossaryName = "Glossary :" ; 
+const char *TopicIndexName = "Topic index :" ; 
 
 #define OVERVIEW_SIZE_THRESHOLD 1024
 
@@ -96,13 +94,42 @@ const char *ASDocTypeExtentions[DocTypes_Count] =
 	""
 };
 
+typedef enum { 
+	DocClass_Overview = 0,
+	DocClass_BaseConfig,
+	DocClass_MyStyles,
+	DocClass_Options,
+	DocClass_TopicIndex,
+	DocClass_Glossary
+}ASDocClass;
+
+const char *StandardOptionsEntry = "_standard_options" ;
+const char *MyStylesOptionsEntry = "_mystyles" ;
+const char *BaseOptionsEntry = "_base_config" ;
+
+const char *DocClassStrings[4][2] = 
+{
+	{"Overview", 	  ""},
+	{"Base options",  "_base_config"},
+	{"MyStyles", 	  "_mystyles"},
+	{"Configuration", "_options"}
+};	 
+
+#define DOC_CLASS_Overview   	(0x01<<DocClass_Overview)
+#define DOC_CLASS_BaseConfig   	(0x01<<DocClass_BaseConfig)
+#define DOC_CLASS_MyStyles      (0x01<<DocClass_MyStyles)
+#define DOC_CLASS_Options       (0x01<<DocClass_Options)
+#define DOC_CLASS_None          (0xFFFFFF00)
+
+
 typedef struct ASXMLInterpreterState {
-#define ASXMLI_LiteralLayout	(0x01<<0)	
-#define ASXMLI_InsideLink		(0x01<<1)	  
-#define ASXMLI_FirstArg 		(0x01<<2)	  
-#define ASXMLI_LinkIsURL		(0x01<<3)	  
-#define ASXMLI_LinkIsLocal		(0x01<<4)	  
-#define ASXMLI_InsideExample			(0x01<<5)	  
+#define ASXMLI_LiteralLayout		(0x01<<0)	
+#define ASXMLI_InsideLink			(0x01<<1)	  
+#define ASXMLI_FirstArg 			(0x01<<2)	  
+#define ASXMLI_LinkIsURL			(0x01<<3)	  
+#define ASXMLI_LinkIsLocal			(0x01<<4)	  
+#define ASXMLI_InsideExample		(0x01<<5)	  
+#define ASXMLI_ProcessingOptions	(0x01<<6)	  
 	ASFlagType flags;
 
 	const char *doc_name ;   
@@ -113,6 +140,11 @@ typedef struct ASXMLInterpreterState {
 	int group_depth ;
 	char *curr_url_page ;
 	char *curr_url_anchor ;
+
+	int pre_options_size ;
+
+	ASFlagType doc_class_mask ;
+	ASDocClass doc_class ;
 
 }ASXMLInterpreterState ;
 
@@ -294,6 +326,8 @@ ASDocTagHandlingInfo SupportedDocBookTagInfo[DOCBOOK_SUPPORTED_IDS] =
 	{ TAG_INFO_AND_ID(literallayout), start_literallayout_tag, end_literallayout_tag }
 };	 
 
+const char *HTML_CSS_File = "html_styles.css" ;
+
 ASHashTable *DocBookVocabulary = NULL ;
 
 ASHashTable *ProcessedSyntaxes = NULL ;
@@ -344,21 +378,26 @@ main (int argc, char **argv)
 		{
 			if( (strcmp( argv[i], "-t" ) == 0 || strcmp( argv[i], "-target" ) == 0) && i+1 < argc && argv[i+1] != NULL ) 
 			{
-				if( mystrcasecmp( argv[i+1], "plain" ) == 0 || mystrcasecmp( argv[i+1], "text" ) == 0) 
+				++i ;
+				if( mystrcasecmp( argv[i], "plain" ) == 0 || mystrcasecmp( argv[i], "text" ) == 0) 
 					target_type = DocType_Plain ; 														   
-				else if( mystrcasecmp( argv[i+1], "html" ) == 0 ) 
+				else if( mystrcasecmp( argv[i], "html" ) == 0 ) 
 					target_type = DocType_HTML ; 														   
-				else if( mystrcasecmp( argv[i+1], "php" ) == 0 ) 
+				else if( mystrcasecmp( argv[i], "php" ) == 0 ) 
 					target_type = DocType_PHP ; 														   
-				else if( mystrcasecmp( argv[i+1], "xml" ) == 0 ) 
+				else if( mystrcasecmp( argv[i], "xml" ) == 0 ) 
 					target_type = DocType_XML ; 														   
-				else if( mystrcasecmp( argv[i+1], "nroff" ) == 0 ) 
+				else if( mystrcasecmp( argv[i], "nroff" ) == 0 ) 
 					target_type = DocType_NROFF ; 														   
-				else if( mystrcasecmp( argv[i+1], "source" ) == 0 ) 
+				else if( mystrcasecmp( argv[i], "source" ) == 0 ) 
 					target_type = DocType_Source ; 														   
 				else
 					show_error( "unknown target type \"%s\"" );
-			}	 
+			}else if( (strcmp( argv[i], "-s" ) == 0 || strcmp( argv[i], "-css" ) == 0) && i+1 < argc && argv[i+1] != NULL ) 
+			{
+				++i ;				
+				HTML_CSS_File = argv[i] ;
+			}
 		}
 	}		  
 	if( destination_dir == NULL ) 
@@ -682,6 +721,12 @@ convert_source_file( const char *syntax_dir, const char *file, ASXMLInterpreterS
 	{
 		xml_elem_t* doc;
 		xml_elem_t* ptr;
+		
+		if( file[0] == '_' && !get_flags( state->flags, ASXMLI_ProcessingOptions )) 
+			state->pre_options_size += strlen(doc_str) ;
+		else
+			set_flags( state->flags, ASXMLI_ProcessingOptions );
+
 		doc = xml_parse_doc(doc_str, DocBookVocabulary);
 		LOCAL_DEBUG_OUT( "file %s parsed, child is %p", source_file, doc->child );
 		if( doc->child ) 
@@ -712,7 +757,7 @@ convert_source_file( const char *syntax_dir, const char *file, ASXMLInterpreterS
 }
 
 static Bool
-start_doc_file( const char * dest_dir, const char *doc_path, const char *doc_postfix, SyntaxDef *syntax, ASDocType 	doc_type, ASXMLInterpreterState *state )
+start_doc_file( const char * dest_dir, const char *doc_path, const char *doc_postfix, SyntaxDef *syntax, ASDocType 	doc_type, ASXMLInterpreterState *state, ASFlagType doc_class_mask, ASDocClass doc_class )
 {
 	char *dest_file = safemalloc( strlen(doc_path)+(doc_postfix?strlen(doc_postfix):0)+5+1 );
 	char *dest_path = safemalloc( strlen( dest_dir ) + 1 + strlen(doc_path)+(doc_postfix?strlen(doc_postfix):0)+5+1 );
@@ -760,6 +805,9 @@ start_doc_file( const char * dest_dir, const char *doc_path, const char *doc_pos
 	state->dest_fp = dest_fp ;
 	state->dest_file = dest_file ;
 	state->doc_type = doc_type ; 
+	state->doc_class_mask = (doc_class_mask==0)?0xFFFFFFFF:doc_class_mask;
+	state->doc_class = doc_class ;
+
 
 	{
 		const char *name = syntax?syntax->display_name:AfterStepName ; 
@@ -843,8 +891,7 @@ gen_syntax_doc( const char *source_dir, const char *dest_dir, SyntaxDef *syntax,
 	const char *doc_path = AfterStepName ;
 	char *syntax_dir = NULL ;
 	int i ;
-	Bool do_mystyles = False, do_base = False ;
-	int overview_size = 0 ;
+	ASFlagType doc_class_mask = 0 ;
 
 	if( syntax )
 	{	
@@ -857,8 +904,34 @@ gen_syntax_doc( const char *source_dir, const char *dest_dir, SyntaxDef *syntax,
 		syntax_dir = make_file_name (source_dir, syntax->doc_path); 
 	if( syntax_dir == NULL ) 
 		syntax_dir = mystrdup( source_dir );
-	
-	if( !start_doc_file( dest_dir, doc_path, NULL, syntax, doc_type, &state ) )	
+
+	if( doc_type == DocType_PHP ) 
+	{
+		int overview_size = 0 ;
+		int tmp ;
+		/* we generate upto 4 files in PHP mode : overview, Base config, MyStyles and Config Options
+		 * Overview and Config Options are always present. Others may be ommited if source is missing 
+		 * If Overview is too small - say < 1024 bytes - it could be bundled with Config Options */	   
+		
+		set_flags( doc_class_mask, DOC_CLASS_Overview );
+		LOCAL_DEBUG_OUT( "Checking what parts to generate ...%s", "");
+		if( (tmp = check_source_contents( syntax_dir, MyStylesOptionsEntry )) > 0)
+			set_flags( doc_class_mask, DOC_CLASS_MyStyles );
+		LOCAL_DEBUG_OUT( "MyStyle size = %d", tmp );
+		if((tmp = check_source_contents( syntax_dir, BaseOptionsEntry )) > 0)
+			set_flags( doc_class_mask, DOC_CLASS_BaseConfig );
+		LOCAL_DEBUG_OUT( "Base size = %d", tmp );
+		for( i = 0 ; StandardSourceEntries[i] ; ++i )
+			overview_size += check_source_contents( syntax_dir, StandardSourceEntries[i] );
+		if( syntax == NULL ) 
+			overview_size += 0 ;
+		LOCAL_DEBUG_OUT( "overview size = %d", overview_size );
+		if( overview_size > OVERVIEW_SIZE_THRESHOLD )
+			set_flags( doc_class_mask, DOC_CLASS_Options );
+	}else
+		doc_class_mask = DOC_CLASS_None	;
+	   
+	if( !start_doc_file( dest_dir, doc_path, NULL, syntax, doc_type, &state, doc_class_mask, DocClass_Overview ) )	
 		return ;
 	
 	if( doc_type != DocType_PHP ) 
@@ -880,32 +953,6 @@ gen_syntax_doc( const char *source_dir, const char *dest_dir, SyntaxDef *syntax,
 		}
 	}else
 	{
-		/* we generate upto 4 files in PHP mode : overview, Base config, MyStyles and Config Options
-		 * Overview and Config Options are always present. Others may be ommited if source is missing 
-		 * If Overview is too small - say < 1024 bytes - it could be bundled with Config Options */	   
-		if( syntax == NULL ) 
-		 	overview_size = 0 ;	
-		else
-		{	
-			int tmp ;
-			LOCAL_DEBUG_OUT( "Checking what parts to generate ...%s", "");
-			do_mystyles = ((tmp = check_source_contents( syntax_dir, MyStylesOptionsEntry )) > 0);
-			LOCAL_DEBUG_OUT( "MyStyle size = %d", tmp );
-			do_base = ((tmp = check_source_contents( syntax_dir, BaseOptionsEntry )) > 0);
-			LOCAL_DEBUG_OUT( "Base size = %d", tmp );
-			for( i = 0 ; StandardSourceEntries[i] ; ++i )
-				overview_size += check_source_contents( syntax_dir, StandardSourceEntries[i] );
-			if( syntax == NULL ) 
-				overview_size += 0 ;
-			LOCAL_DEBUG_OUT( "overview size = %d", overview_size );
-			fprintf( state.dest_fp, PHPCurrPageFormat, "Overview" );
-			if( do_base ) 
-				fprintf( state.dest_fp, PHPXrefFormatSetSrc, "visualdoc","Base options", doc_path, BaseOptionsEntry, doc_path );
-			if( do_mystyles ) 
-				fprintf( state.dest_fp, PHPXrefFormatSetSrc, "visualdoc","MyStyles", doc_path, MyStylesOptionsEntry, doc_path );
-			if( overview_size > OVERVIEW_SIZE_THRESHOLD )
-				fprintf( state.dest_fp, PHPXrefFormatSetSrc, "visualdoc", "Configuration", doc_path, "_options", doc_path );
-		}
 		i = 0 ;
 		if( syntax == NULL ) 
 		{	
@@ -916,16 +963,10 @@ gen_syntax_doc( const char *source_dir, const char *dest_dir, SyntaxDef *syntax,
 		for( ; StandardSourceEntries[i] ; ++i ) 
 			convert_source_file( syntax_dir, StandardSourceEntries[i], &state );
 		
-		if( overview_size > OVERVIEW_SIZE_THRESHOLD )
+		if( get_flags( doc_class_mask, DOC_CLASS_Options ) )
 		{
 			end_doc_file( syntax, &state );	 	  
-			start_doc_file( dest_dir, doc_path, "_options", syntax, doc_type, &state );
-			fprintf( state.dest_fp, PHPXrefFormatUseSrc, doc_path, "visualdoc", "Overview" );
-			if( do_base ) 
-				fprintf( state.dest_fp, PHPXrefFormat, "visualdoc","Base options", doc_path, BaseOptionsEntry );
-			if( do_mystyles ) 
-				fprintf( state.dest_fp, PHPXrefFormat, "visualdoc","MyStyles", doc_path, MyStylesOptionsEntry );
-			fprintf( state.dest_fp, PHPCurrPageFormat, "Configuration" );
+			start_doc_file( dest_dir, doc_path, "_options", syntax, doc_type, &state, doc_class_mask, DocClass_Options );
 			fprintf( state.dest_fp, "<UL>\n" );
 		}	 
 	}	 
@@ -954,31 +995,18 @@ gen_syntax_doc( const char *source_dir, const char *dest_dir, SyntaxDef *syntax,
 			convert_source_file( syntax_dir, StandardSourceEntries[i], &state );
 	}else if( state.dest_fp )
 	{
-		if( overview_size > OVERVIEW_SIZE_THRESHOLD )
+		if( state.doc_class == DocClass_Options )
 			fprintf( state.dest_fp, "</UL>\n" );
-		if( do_base )
+		if( get_flags( doc_class_mask, DOC_CLASS_BaseConfig ) )
 		{	
 			end_doc_file( syntax, &state );	 	  	 		
-			start_doc_file( dest_dir, doc_path, BaseOptionsEntry, syntax, doc_type, &state );
-			fprintf( state.dest_fp, PHPXrefFormatUseSrc, doc_path, "visualdoc", "Overview" );
-			fprintf( state.dest_fp, PHPCurrPageFormat, "Base options" );
-			if( do_mystyles ) 
-				fprintf( state.dest_fp, PHPXrefFormat, "visualdoc","MyStyles", doc_path, MyStylesOptionsEntry );
-			if( overview_size > OVERVIEW_SIZE_THRESHOLD ) 
-				fprintf( state.dest_fp, PHPXrefFormat, "visualdoc","Configuration", doc_path, "_options" );
-			
+			start_doc_file( dest_dir, doc_path, BaseOptionsEntry, syntax, doc_type, &state, doc_class_mask, DocClass_BaseConfig );
 			convert_source_file( syntax_dir, BaseOptionsEntry, &state );
 		}
-		if( do_mystyles )
+		if( get_flags( doc_class_mask, DOC_CLASS_MyStyles ) )
 		{	
 			end_doc_file( syntax, &state );	 	  	 		
-			start_doc_file( dest_dir, doc_path, MyStylesOptionsEntry, syntax, doc_type, &state );
-			fprintf( state.dest_fp, PHPXrefFormatUseSrc, doc_path, "visualdoc", "Overview" );
-			if( do_base ) 
-				fprintf( state.dest_fp, PHPXrefFormat, "visualdoc","Base options", doc_path, BaseOptionsEntry );
-			fprintf( state.dest_fp, PHPCurrPageFormat, "MyStyles" );
-			if( overview_size > OVERVIEW_SIZE_THRESHOLD ) 
-				fprintf( state.dest_fp, PHPXrefFormat, "visualdoc","Configuration", doc_path, "_options" );
+			start_doc_file( dest_dir, doc_path, MyStylesOptionsEntry, syntax, doc_type, &state, doc_class_mask, DocClass_MyStyles );
 			convert_source_file( syntax_dir, MyStylesOptionsEntry, &state );
 		}
 	}		 
@@ -1005,12 +1033,11 @@ gen_glossary( const char *dest_dir, ASDocType doc_type )
 		int col_end[3], col_curr[3], col_count = 3 ;
 		Bool has_items = True, col_skipped[3] = {True, True, True};
 		char c = '\0' ; 
-		if( !start_doc_file( dest_dir, "Glossary", NULL, NULL, doc_type, &state ) )	
+		if( !start_doc_file( dest_dir, "Glossary", NULL, NULL, doc_type, &state, DOC_CLASS_None, DocClass_Glossary ) )	
 			return ;
 		items_num = sort_hash_items (Glossary, values, (void**)data, 0);
 		
-		fprintf( state.dest_fp, "<h2>Glossary :</h2>\n<p>\n" );
-
+		fprintf( state.dest_fp, "<p>\n" );
 		for( i = 0 ; i < items_num ; ++i ) 
 		{
 			if( ((char*)values[i])[0] != c ) 
@@ -1019,7 +1046,6 @@ gen_glossary( const char *dest_dir, ASDocType doc_type )
 				fprintf( state.dest_fp, "<A href=\"#glossary_%c\">%c</A> ", c, c );
 			}	 
 		}	 
-			
 		fprintf( state.dest_fp, "<hr>\n<p><table width=100%% cellpadding=0 cellspacing=0>\n" );
 		
 		if( state.doc_type == DocType_PHP	)
@@ -1077,30 +1103,41 @@ gen_index( const char *dest_dir, ASDocType doc_type )
 		ASHashData *data = safecalloc( Index->items_num, sizeof(ASHashData));
 		int items_num, i ;
 		Bool sublist = False ; 
-		if( !start_doc_file( dest_dir, "index", NULL, NULL, doc_type, &state ) )	
+		char *sublist_name= NULL ; 
+		int sublist_name_len = 1 ;
+		if( !start_doc_file( dest_dir, "index", NULL, NULL, doc_type, &state, DOC_CLASS_None, DocClass_TopicIndex ) )	
 			return ;
 		items_num = sort_hash_items (Index, values, (void**)data, 0);
 		
-		fprintf( state.dest_fp, "<h2>File index :</h2>\n<p>\n" );
-		fprintf( state.dest_fp, "<hr>\n<p><UL>\n" );
+		fprintf( state.dest_fp, "<hr>\n<p><UL class=\"dense\">\n" );
 
 		for( i = 0 ; i < items_num ; ++i ) 
 		{
 			char *item_text = (char*)values[i];
-			if( item_text[0] == '\t' ) 
-			{
-				if( !sublist ) 
-				{
-					fprintf( state.dest_fp, "\n<UL>\n<LI>" );
-	  				sublist = True ;
-				}
-				++item_text ;
-			}else if( item_text[0] != '\t' && sublist ) 
+			if( sublist_name ) 
 			{	
-				sublist = False ;
-				fprintf( state.dest_fp, "\n</UL>\n<LI>" );
-			}else
-				fprintf( state.dest_fp, "<LI>" );
+				if( strncmp( item_text, sublist_name, sublist_name_len ) == 0 ) 
+				{
+					if( !sublist ) 
+					{
+						fprintf( state.dest_fp, "\n<UL>\n" );
+	  					sublist = True ;
+					}
+					item_text += sublist_name_len ;
+					while( *item_text != '\0' && isspace( *item_text ) ) 
+						++item_text ;
+				}else if( sublist ) 
+				{	
+					sublist = False ;
+					fprintf( state.dest_fp, "\n</UL>\n" );
+				}
+			}
+			if( !sublist ) 
+			{	
+				sublist_name = item_text ; 
+				sublist_name_len = strlen( sublist_name );
+			}
+			fprintf( state.dest_fp, "<LI class=\"dense\">" );
 
 			if( state.doc_type == DocType_HTML	)
 				fprintf( state.dest_fp, "<A href=\"%s\">%s</A>", data[i].cptr, item_text );
@@ -1136,11 +1173,17 @@ write_syntax_doc_header( SyntaxDef *syntax, ASXMLInterpreterState *state )
 {
 	const char *display_name = AfterStepName ;
 	const char *doc_name = AfterStepName ;
+	char *css = NULL ;
+	int i ;
 	if( syntax ) 
 	{	
 		display_name = syntax->display_name ;
 		doc_name = syntax->doc_path ;
-	}
+	}else if( state->doc_class == DocClass_Glossary ) 
+		display_name = GlossaryName ; 
+	else if( state->doc_class == DocClass_TopicIndex ) 
+		display_name = TopicIndexName ; 
+		
 	++(state->header_depth);
 	switch( state->doc_type ) 
 	{
@@ -1151,14 +1194,47 @@ write_syntax_doc_header( SyntaxDef *syntax, ASXMLInterpreterState *state )
 			fprintf( state->dest_fp, "<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\">\n"
 					  		"<html>\n"
 					  		"<head><meta http-equiv=\"content-type\" content=\"text/html; charset=ISO-8859-1\">\n"
-  					  		"<title>%s</title>\n"
-					  		"</head>\n"
-					  		"<body>\n"
-					  		"<h1>%s</h1>\n<hr>\n", display_name, display_name );
+  					  		"<title>%s</title>\n", display_name );
+
+			css = load_file( HTML_CSS_File );
+			if( css  ) 
+			{
+				int len = strlen( css );
+				if( len > 0 ) 
+					fwrite( css, 1, len, state->dest_fp );	   
+			}	 
+			fprintf( state->dest_fp, "</head>\n"
+					  				 "<body>\n"
+									 "<A name=\"page_top\"></A>\n"
+									 "<A href=\"index.html\">Topic index</A>&nbsp;&nbsp;<A href=\"Glossary.html\">Glossary</A><p>\n"
+					  				 "<h1>%s</h1>\n<hr>\n", display_name );
 			break;
  		case DocType_PHP :	
 			fprintf( state->dest_fp, PHPXrefFormat, "visualdoc","Index","visualselect", "" );
-		    break ;
+			if( state->doc_class != DocClass_TopicIndex )
+				fprintf( state->dest_fp, PHPXrefFormat, "visualdoc","Topics","index", "" );
+			else
+				fprintf( state->dest_fp, PHPCurrPageFormat, "Topics" );
+			if( state->doc_class != DocClass_Glossary )
+				fprintf( state->dest_fp, PHPXrefFormat, "visualdoc","Glossary","Glossary", "" );
+			else
+				fprintf( state->dest_fp, PHPCurrPageFormat, "Glossary" );
+			for( i = 0 ; i < DocClass_TopicIndex ; ++i ) 
+			{
+				if( get_flags( state->doc_class_mask, (0x01<<i)	) )
+				{
+					if( state->doc_class != i )
+					{
+						if( state->doc_class == DocClass_Overview ) 
+							fprintf( state->dest_fp, PHPXrefFormatSetSrc, "visualdoc",DocClassStrings[i][0], state->doc_name, DocClassStrings[i][1], state->doc_name );
+						else
+							fprintf( state->dest_fp, PHPXrefFormat, "visualdoc",DocClassStrings[i][0], state->doc_name, DocClassStrings[i][1] );
+					}else
+						fprintf( state->dest_fp, PHPCurrPageFormat, DocClassStrings[i][0] );
+				}	 
+			}	 
+			fprintf( state->dest_fp, "<hr>\n" );
+			break ;
 		case DocType_XML :
 			fprintf( state->dest_fp, "<!DOCTYPE article PUBLIC \"-//OASIS//DTD DocBook XML V4.1.2//EN\"\n"
                   					 "\"http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd\" [\n"
@@ -1192,8 +1268,10 @@ write_syntax_options_header( SyntaxDef *syntax, ASXMLInterpreterState *state )
 			fputs( "\nCONFIGURATION OPTIONS : \n", state->dest_fp );
 			break;
 		case DocType_HTML :
-			fprintf( state->dest_fp, "\n<UL><LI><A NAME=\"options\"></A><h3>CONFIGURATION OPTIONS :</h3>\n"
-							  "<DL>\n");   
+			if( state->pre_options_size > 1024 )
+				fprintf( state->dest_fp,"<p><A href=\"index.html\">Topic index</A>&nbsp;&nbsp;<A href=\"Glossary.html\">Glossary</A>&nbsp;&nbsp;<A href=\"#page_top\">Back to Top</A><hr>\n" );
+			fprintf( state->dest_fp,"\n<UL><LI><A NAME=\"options\"></A><h3>CONFIGURATION OPTIONS :</h3>\n"
+							  		"<DL>\n");   
 			break;
  		case DocType_PHP :	
 			fprintf( state->dest_fp, "\n<LI><A NAME=\"options\"></A><B>CONFIGURATION OPTIONS :</B><P>\n"
@@ -1246,7 +1324,8 @@ write_syntax_doc_footer( SyntaxDef *syntax, ASXMLInterpreterState *state )
 		case DocType_Plain :
 			break;
 		case DocType_HTML :
-			fprintf( state->dest_fp, "<hr>\n<p><FONT face=\"Verdana, Arial, Helvetica, sans-serif\" size=\"-2\">AfterStep version %s</a></FONT>\n",
+			fprintf( state->dest_fp,"<p><A href=\"index.html\">Topic index</A>&nbsp;&nbsp;<A href=\"Glossary.html\">Glossary</A>&nbsp;&nbsp;<A href=\"#page_top\">Back to Top</A>\n"  
+									"<hr>\n<p><FONT face=\"Verdana, Arial, Helvetica, sans-serif\" size=\"-2\">AfterStep version %s</a></FONT>\n",
 					 VERSION ); 
 			fprintf( state->dest_fp, "</body>\n</html>\n" );			
 			break;
