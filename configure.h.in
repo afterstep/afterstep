@@ -58,8 +58,12 @@
 #define BACK_DIR        "backgrounds"
 #define LOOK_DIR        "looks"
 #define THEME_DIR       "themes"
-#define THEME_DATA_DIR  "themefiles"
+#define THEME_FILE_DIR  "installed_themes"
 #define FEEL_DIR        "feels"
+#define DESKTOP_DIR     "desktop"
+#define FONT_DIR        "desktop/fonts"
+#define ICON_DIR        "desktop/icons"
+#define TILES_DIR       "desktop/tiles"
 #define COMP_FILE	"compatibility"                  /* with -f oldrc */
 #define BASE_FILE       "base"                           /* scrdepth */
 #define ASETROOT_FILE   "asetroot"                   /* legacy background configuration */
@@ -76,8 +80,6 @@
 			      /* Look settings */
 			      /* ############# */
 
-#define AFTER_XPMDIR    "@xpm_dir@"
-#define AFTER_BPMDIR	"@bpm_dir@"
 #define XIMAGELOADER    "@with_imageloader@"
 #define SOUNDPLAYER     "@with_soundplayer@"
 #define HELPCOMMAND	"@with_helpcommand@"

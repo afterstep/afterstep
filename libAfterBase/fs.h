@@ -19,6 +19,7 @@ char   *find_envvar (char *var_start, int *end_pos);
 void	replace_envvar (char **path);
 char   *copy_replace_envvar (char *path);
 
+void	parse_file_name(const char *filename, char **path, char **file);
 char   *make_file_name (const char *path, const char *file);
 char   *put_file_home (const char *path_with_home);
 char   *find_file (const char *file, const char *pathlist, int type);

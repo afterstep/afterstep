@@ -551,6 +551,8 @@ void ExecuteFunction (struct FunctionData *data, struct ASEvent *event, int Modu
 void ExecuteFunctionExt (struct FunctionData *data, struct ASEvent *event, int module, Bool defered);
 /* execute all the scheduled functions from the queue */
 void ExecutePendingFunctions();
+/* non-window specific, non-defferrable functions are run : */
+void ExecuteBatch ( ComplexFunction *batch );
 
 int  DeferExecution (struct ASEvent *event, int cursor, int FinishEvent);
 void QuickRestart (char *what);
@@ -648,7 +650,7 @@ void apply_aswindow_move(struct ASMoveResizeData *data);
 void complete_aswindow_move(struct ASMoveResizeData *data, Bool cancelled);
 
 /******************************* theme.c ***********************************/
-Bool install_theme_file( const char *src, const char *dst );
+Bool install_theme_file( const char *src );
 
 /******************************* winstatus.c *******************************/
 void complete_wm_state_transition( ASWindow *asw, int state );

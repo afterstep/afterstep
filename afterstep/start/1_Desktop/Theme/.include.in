@@ -1,4 +1,6 @@
 keepname
-include "@datadir@/afterstep/themes" Exec installastheme.pl
-include "@with_afterdir@/themes" Exec installastheme.pl
+include "@datadir@/afterstep/themes" ChangeTheme
+include "@with_afterdir@/themes" ChangeTheme
 extension .tar.gz
+extension .tar.bz2
+

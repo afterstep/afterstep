@@ -131,17 +131,55 @@ build_theme_script( const char *theme_dir )
 void
 fix_theme_script( ComplexFunction *install_func, const char *theme_dir )
 {
-
-
+	int i ;
+    for( i = 0 ; i < install_func->items_num ; i++ )
+    {
+		FunctionData *fdata = &(install_func->items[i]);
+		int   func = fdata->func ;
+		char *fixed_fname = NULL ;
+		if( fdata->text != NULL )
+		{
+			switch( func )
+			{
+				case F_CHANGE_LOOK :
+					fixed_fname = make_session_data_file(Session, False, 0, as_look_dir_name, fdata->text, NULL );
+			    	break ;
+				case F_CHANGE_FEEL :
+					fixed_fname = make_session_data_file(Session, False, 0, as_feel_dir_name, fdata->text, NULL );
+			    	break ;
+				case F_CHANGE_BACKGROUND :
+					fixed_fname = make_session_data_file(Session, False, 0, as_background_dir_name, fdata->text, NULL );
+			    	break ;
+				case F_CHANGE_THEME_FILE :
+					fixed_fname = make_session_data_file(Session, False, 0, as_theme_file_dir_name, fdata->text, NULL );
+			    	break ;
+				case F_INSTALL_LOOK :
+				case F_INSTALL_FEEL :
+				case F_INSTALL_BACKGROUND :
+				case F_INSTALL_FONT :
+				case F_INSTALL_ICON :
+				case F_INSTALL_TILE :
+				case F_INSTALL_THEME_FILE :
+					fixed_fname = make_file_name( theme_dir, fdata->text );
+			    	break ;
+			}
+			if( fixed_fname != NULL )
+			{
+				free( fdata->text );
+				fdata->text = fixed_fname ;
+			}
+		}
+    }
 }
 
 Bool
-install_theme_file( const char *src, const char *dst )
+install_theme_file( const char *src )
 {
 	ASThemeFileType type = detect_theme_file_type( src );
 	char *theme_tarball = NULL ;
 	char *theme_dir = NULL ;
 	char *theme_script_fname = NULL ;
+	Bool success = False ;
 
 	if( type == AST_ThemeBad )
 	{
@@ -226,10 +264,18 @@ install_theme_file( const char *src, const char *dst )
 			show_error( "Theme contains no recognizable files. Installation failed" );
 		else
 		{
-
+			ExecuteBatch( install_func );
+			really_destroy_complex_func(install_func);
+			success = True ;
 		}
 	}
+	if( theme_dir )
+		free( theme_dir );
+	if( theme_script_fname )
+		free( theme_script_fname );
+	if( theme_tarball )
+		free( theme_tarball );
 
-	return True;
+	return success;
 }
 

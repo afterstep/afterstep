@@ -299,6 +299,7 @@ update_default_session ( ASSession *session, int func)
 			session->defaults->background_file = find_default_background_file (session);
 			break;
 		case F_CHANGE_THEME :
+		case F_CHANGE_THEME_FILE :
 			if( session->defaults->theme_file )
 				free( session->defaults->theme_file );
 			session->defaults->theme_file = find_default_theme_file (session);
@@ -355,6 +356,7 @@ change_default_session (ASSession * session, const char *new_val, int function)
 			 target = &(session->defaults->feel_file);
 			 break;
          case F_CHANGE_THEME:
+  		 case F_CHANGE_THEME_FILE :
              target = &(session->defaults->theme_file);
 			 break;
         }
@@ -396,6 +398,8 @@ change_desk_session (ASSession * session, int desk, const char *new_val, int fun
 			 target = &(d->feel_file);
 			 break;
          case F_CHANGE_THEME:
+		 case F_CHANGE_THEME_FILE :
+
              target = &(d->theme_file);
 			 break;
 #endif
@@ -595,7 +599,35 @@ check_AfterStep_dirtree ( char * ashome, Bool create_non_conf )
         CheckOrCreateFile (fullfilename);
         free( fullfilename );
 
-        fullfilename = make_file_name (ashome, THEME_DATA_DIR);
+        fullfilename = make_file_name (ashome, THEME_FILE_DIR);
+        CheckOrCreate(fullfilename);
+        free( fullfilename );
+
+		fullfilename = make_file_name (ashome, LOOK_DIR);
+        CheckOrCreate(fullfilename);
+        free( fullfilename );
+
+		fullfilename = make_file_name (ashome, FEEL_DIR);
+        CheckOrCreate(fullfilename);
+        free( fullfilename );
+
+		fullfilename = make_file_name (ashome, BACK_DIR);
+        CheckOrCreate(fullfilename);
+        free( fullfilename );
+
+		fullfilename = make_file_name (ashome, DESKTOP_DIR);
+        CheckOrCreate(fullfilename);
+        free( fullfilename );
+
+		fullfilename = make_file_name (ashome, ICON_DIR);
+        CheckOrCreate(fullfilename);
+        free( fullfilename );
+
+		fullfilename = make_file_name (ashome, FONT_DIR);
+        CheckOrCreate(fullfilename);
+        free( fullfilename );
+
+		fullfilename = make_file_name (ashome, TILE_DIR);
         CheckOrCreate(fullfilename);
         free( fullfilename );
 
@@ -627,6 +659,8 @@ get_desk_file (ASDeskSession * d, int function)
 			 file = d->feel_file;
 			 break;
          case F_CHANGE_THEME:
+		 case F_CHANGE_THEME_FILE :
+
              file = d->theme_file;
 			 break;
         }
@@ -646,7 +680,7 @@ get_session_file (ASSession * session, int desk, int function)
             return session->overriding_look ;
         if( session->overriding_feel && function == F_CHANGE_FEEL )
             return session->overriding_feel ;
-        if( session->overriding_theme && function == F_CHANGE_THEME )
+        if( session->overriding_theme && ( function == F_CHANGE_THEME || F_CHANGE_THEME_FILE ))
             return session->overriding_theme ;
         if( session->overriding_file && function != F_CHANGE_BACKGROUND )
             return session->overriding_file ;
@@ -660,12 +694,14 @@ get_session_file (ASSession * session, int desk, int function)
 		 case F_CHANGE_LOOK:
 		 case F_CHANGE_FEEL:
          case F_CHANGE_THEME:
+		 case F_CHANGE_THEME_FILE :
              d = get_desk_session (session, desk);
 			 break;
 #else
 		 case F_CHANGE_LOOK:
 		 case F_CHANGE_FEEL:
          case F_CHANGE_THEME:
+		 case F_CHANGE_THEME_FILE :
 			 d = session->defaults;
 			 break;
 #endif
@@ -820,7 +856,7 @@ set_session_override(ASSession * session, const char *overriding_file, int funct
 			target = &(session->overriding_look);
 		else if( function == F_CHANGE_FEEL )
 			target = &(session->overriding_feel);
-        else if( function == F_CHANGE_THEME )
+        else if( function == F_CHANGE_THEME || function == F_CHANGE_THEME_FILE )
             target = &(session->overriding_theme);
 
         if( *target )
@@ -844,7 +880,7 @@ get_session_override(ASSession * session, int function )
 			return session->overriding_look;
 		else if( function == F_CHANGE_FEEL )
 			return session->overriding_feel;
-        else if( function == F_CHANGE_THEME )
+        else if( function == F_CHANGE_THEME || function == F_CHANGE_THEME_FILE )
             return session->overriding_theme;
     }
     return NULL;

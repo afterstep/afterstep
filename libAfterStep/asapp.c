@@ -51,6 +51,16 @@ char     *as_save_dir_name      = GNUSTEP "/" GNUSTEPLIB "/" AFTER_DIR "/" AFTER
 char     *as_start_dir_name     = GNUSTEP "/" GNUSTEPLIB "/" AFTER_DIR "/" START_DIR;
 char     *as_share_dir_name     = AFTER_SHAREDIR;
 
+char     *as_background_dir_name = BACK_DIR ;
+char     *as_look_dir_name = LOOK_DIR ;
+char     *as_theme_dir_name = THEME_DIR ;
+char     *as_theme_file_dir_name = THEME_FILE_DIR ;
+char     *as_feel_dir_name = FEEL_DIR ;
+char     *as_font_dir_name = FONT_DIR ;
+char     *as_icon_dir_name = ICON_DIR ;
+char     *as_tile_dir_name = TILES_DIR ;
+
+
 int       fd_width;
 
 unsigned int  nonlock_mods = 0;				   /* a mask for non-locking modifiers */
@@ -123,6 +133,14 @@ TermDef       FuncTerms[F_FUNCTIONS_NUM + 1] = {
 	FUNC_TERM2 (NEED_NAME | NEED_CMD, "ChangeLook", 10, F_CHANGE_LOOK),	/* ChangeLook "name" file_name */
 	FUNC_TERM2 (NEED_NAME | NEED_CMD, "ChangeFeel", 10, F_CHANGE_FEEL),	/* ChangeFeel "name" file_name */
     FUNC_TERM2 (NEED_NAME | NEED_CMD, "ChangeTheme", 11, F_CHANGE_THEME), /* ChangeTheme "name" file_name */
+    FUNC_TERM2 (NEED_NAME | NEED_CMD, "ChangeThemeFile", 15, F_CHANGE_THEME_FILE), /* "name" file_name */
+    FUNC_TERM2 (NEED_NAME | NEED_CMD, "InstallLook", 11, F_INSTALL_LOOK), /*  "name" file_name */
+    FUNC_TERM2 (NEED_NAME | NEED_CMD, "InstallFeel", 11, F_INSTALL_FEEL), /*  "name" file_name */
+    FUNC_TERM2 (NEED_NAME | NEED_CMD, "InstallBackground", 17, F_INSTALL_BACKGROUND), /* "name" file_name */
+    FUNC_TERM2 (NEED_NAME | NEED_CMD, "InstallFont", 11, F_INSTALL_FONT), /* "name" file_name */
+    FUNC_TERM2 (NEED_NAME | NEED_CMD, "InstallIcon", 11, F_INSTALL_ICON), /*  "name" file_name */
+    FUNC_TERM2 (NEED_NAME | NEED_CMD, "InstallTile", 11, F_INSTALL_TILE), /*  "name" file_name */
+    FUNC_TERM2 (NEED_NAME | NEED_CMD, "InstallThemeFile", 12, F_INSTALL_THEME_FILE), /*  "name" file_name */
 	FUNC_TERM2 (NEED_NAME | NEED_CMD, "SaveWorkspace", 13, F_SAVE_WORKSPACE), /* SaveWorkspace "name" file_name */
 	FUNC_TERM2 (TF_SYNTAX_TERMINATOR, "EndFunction", 11, F_ENDFUNC),
 	FUNC_TERM2 (TF_SYNTAX_TERMINATOR, "EndPopup", 8, F_ENDPOPUP),

@@ -124,7 +124,8 @@ mystrndup (const char *str, size_t n)
 	if (str)
 	{
 		c = safemalloc (n + 1);
-		strncpy (c, str, n);
+		if( n > 0 )
+			strncpy (c, str, n);
 		c[n] = '\0';
 	}
 	return c;

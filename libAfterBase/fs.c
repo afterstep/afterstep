@@ -121,6 +121,24 @@ load_file(const char* realfilename)
 	return str;
 }
 
+void
+parse_file_name(const char *filename, char **path, char **file)
+{
+	register int i = 0 ;
+	register char *ptr = (char*)filename;
+	int len = 0 ;
+	while( ptr[i] ) ++i ;
+	len = i ;
+	while( --i >= 0 )
+		if( ptr[i] == '/' )
+			break;
+	++i ;
+	if( path )
+		*path = mystrndup(ptr, i);
+	if( file )
+		*file = mystrndup(&(ptr[i]), len-i);
+}
+
 char         *
 make_file_name (const char *path, const char *file)
 {

@@ -65,6 +65,8 @@ void restart_func_handler( FunctionData *data, ASEvent *event, int module );
 void exec_func_handler( FunctionData *data, ASEvent *event, int module );
 void change_background_func_handler( FunctionData *data, ASEvent *event, int module );
 void change_config_func_handler( FunctionData *data, ASEvent *event, int module );
+void change_theme_func_handler( FunctionData *data, ASEvent *event, int module );
+void install_file_func_handler( FunctionData *data, ASEvent *event, int module );
 void refresh_func_handler( FunctionData *data, ASEvent *event, int module );
 void goto_page_func_handler( FunctionData *data, ASEvent *event, int module );
 void toggle_page_func_handler( FunctionData *data, ASEvent *event, int module );
@@ -137,7 +139,19 @@ void SetupFunctionHandlers()
 
     function_handlers[F_CHANGE_LOOK] =
         function_handlers[F_CHANGE_FEEL]    =
-        function_handlers[F_CHANGE_THEME]   = change_config_func_handler ;
+        function_handlers[F_CHANGE_THEME_FILE] = change_config_func_handler ;
+
+	function_handlers[F_CHANGE_THEME]   = change_theme_func_handler ;
+
+	function_handlers[F_INSTALL_LOOK] =
+		function_handlers[F_INSTALL_FEEL] =
+		function_handlers[F_INSTALL_BACKGROUND] =
+		function_handlers[F_INSTALL_FONT] =
+		function_handlers[F_INSTALL_ICON] =
+		function_handlers[F_INSTALL_TILE] =
+		function_handlers[F_INSTALL_THEME_FILE] = install_file_func_handler ;
+
+
 
 	function_handlers[F_SAVE_WORKSPACE]     = save_workspace_func_handler;
 
@@ -533,6 +547,27 @@ ExecuteComplexFunction ( ASEvent *event, char *name )
                         event?event->x.type:-1, event?(unsigned long)event->w:0, event->client, event->client?ASWIN_NAME(event->client):"none", name);
 }
 
+void
+ExecuteBatch ( ComplexFunction *batch )
+{
+    ASEvent event = { 0 };
+    register int     i ;
+
+	LOCAL_DEBUG_CALLER_OUT( "event %p", batch);
+
+	if( batch )
+	{
+    	for( i = 0 ; i < batch->items_num ; i++ )
+    	{
+			int func = batch->items[i].func ;
+	    	if ( IsWindowFunc (func) || function_handlers[func] == NULL )
+				continue;
+
+        	function_handlers[func]( &(batch->items[i]), &event, -1 );
+    	}
+	}
+}
+
 
 /***************************************************************************************
  *
@@ -867,9 +902,37 @@ void exec_func_handler( FunctionData *data, ASEvent *event, int module )
     XSync (dpy, 0);
 }
 
+static int _as_config_change_recursion = 0 ;
+static int _as_config_change_count = 0 ;
+static int _as_background_change_count = 0 ;
+
+void
+commit_config_change( int func )
+{
+	if( _as_config_change_recursion <= 1 )
+	{
+		if( _as_background_change_count  > 0 )
+		{
+        	SendPacket( -1, M_NEW_BACKGROUND, 1, 1);
+        	change_desktop_background( Scr.CurrentDesk, Scr.CurrentDesk );
+			_as_background_change_count = 0 ;
+    	}
+		if ( _as_config_change_count > 0 )
+    	{
+        	if( func == F_CHANGE_THEME )
+				Done ( True, NULL );
+        	else
+            	QuickRestart ((func == F_CHANGE_LOOK)?"look":"feel");
+			_as_config_change_count = 0 ;
+		}
+    }
+}
+
 void change_background_func_handler( FunctionData *data, ASEvent *event, int module )
 {
     char tmpfile[256], *realfilename ;
+
+	++_as_config_change_recursion;
     XGrabPointer (dpy, Scr.Root, True, ButtonPressMask | ButtonReleaseMask,
                   GrabModeAsync, GrabModeAsync, Scr.Root, Scr.Feel.cursors[WAIT], CurrentTime);
     XSync (dpy, 0);
@@ -882,58 +945,132 @@ void change_background_func_handler( FunctionData *data, ASEvent *event, int mod
     realfilename = make_session_data_file(Session, False, 0, tmpfile, NULL );
     if (CopyFile (data->text, realfilename) == 0)
     {
-        if( Scr.CurrentDesk == 0 )
-            update_default_session ( Session, F_CHANGE_BACKGROUND );
+		++_as_background_change_count ;
+		if( Scr.CurrentDesk == 0 )
+        	update_default_session ( Session, F_CHANGE_BACKGROUND );
         change_desk_session (Session, Scr.CurrentDesk, realfilename, F_CHANGE_BACKGROUND);
+	}
+	free (realfilename);
 
-        SendPacket( -1, M_NEW_BACKGROUND, 1, 1);
-        change_desktop_background( Scr.CurrentDesk, Scr.CurrentDesk );
-    }
+	commit_config_change( F_CHANGE_BACKGROUND );
 
-    free (realfilename);
     XUngrabPointer (dpy, CurrentTime);
     XSync (dpy, 0);
+	--_as_config_change_recursion ;
 }
+
+void change_theme_func_handler( FunctionData *data, ASEvent *event, int module )
+{
+	++_as_config_change_recursion ;
+	if( install_theme_file( data->text ) )
+		++_as_config_change_count ;
+
+	/* theme installation may trigger recursive look and feel changes - we
+	 * don't want those to cause any restarts or config reloads.
+	 */
+	commit_config_change( data->func );
+
+	--_as_config_change_recursion ;
+}
+
 
 void change_config_func_handler( FunctionData *data, ASEvent *event, int module )
 {
-    char *file_template ;
+
+	char *file_template ;
     char tmpfile[256], *realfilename = NULL ;
     int desk = 0 ;
-	Bool installed = False ;
+
+	++_as_config_change_recursion ;
 #ifdef DIFFERENTLOOKNFEELFOREACHDESKTOP
     desk = Scr.CurrentDesk ;
 #endif
     if (Scr.screen == 0)
     {
-        file_template = (data->func == F_CHANGE_LOOK)? LOOK_FILE : ((data->func == F_CHANGE_THEME)?THEME_FILE:FEEL_FILE) ;
+        file_template = (data->func == F_CHANGE_LOOK)? LOOK_FILE : ((data->func == F_CHANGE_FEEL)?FEEL_FILE:THEME_FILE) ;
         sprintf (tmpfile, file_template, desk);
     }else
     {
         file_template =  (data->func == F_CHANGE_LOOK )? LOOK_FILE  ".scr%ld" :
-                        ((data->func == F_CHANGE_THEME)? THEME_FILE ".scr%ld" :
-                                                         FEEL_FILE  ".scr%ld" );
+                        ((data->func == F_CHANGE_FEEL) ? FEEL_FILE  ".scr%ld" :
+                                                         THEME_FILE ".scr%ld" );
         sprintf (tmpfile, file_template, desk, Scr.screen);
     }
 
     realfilename = make_session_data_file(Session, False, 0, tmpfile, NULL );
 
-	if( data->func == F_CHANGE_THEME )
-		installed = install_theme_file( data->text, realfilename );
-	else
-		installed = (CopyFile (data->text, realfilename) == 0) ;
-
-    if (installed)
-    {
+	if( CopyFile (data->text, realfilename) == 0 )
+	{
+		++_as_config_change_count ;
         if( Scr.CurrentDesk == 0 )
             update_default_session ( Session, data->func );
         change_desk_session (Session, Scr.CurrentDesk, realfilename, data->func);
-        if( data->func == F_CHANGE_THEME )
-			Done ( True, NULL );
-        else
-            QuickRestart ((data->func == F_CHANGE_LOOK)?"look":"feel");
-    }
+	}
+
+	/* theme installation may trigger recursive look and feel changes - we
+	 * don't want those to cause any restarts or config reloads.
+	 */
+	commit_config_change( data->func );
+
+	--_as_config_change_recursion ;
 }
+
+void install_file_func_handler( FunctionData *data, ASEvent *event, int module )
+{
+	char *file = NULL ;
+	char *realfilename = NULL ;
+	char *dir_name = NULL ;
+
+	switch( data->func )
+	{
+		case F_INSTALL_LOOK : 		dir_name = as_look_dir_name; break;
+		case F_INSTALL_FEEL :		dir_name = as_feel_dir_name; break;
+		case F_INSTALL_BACKGROUND : dir_name = as_background_dir_name; break;
+		case F_INSTALL_FONT :		dir_name = as_font_dir_name; break;
+		case F_INSTALL_ICON :		dir_name = as_icon_dir_name; break;
+		case F_INSTALL_TILE :		dir_name = as_tile_dir_name; break;
+		case F_INSTALL_THEME_FILE : dir_name = as_theme_file_dir_name; break;
+	}
+	if( dir_name != NULL )
+	{
+		parse_file_name( data->text, NULL, &file ) ;
+		realfilename = make_session_data_file  (Session, False, 0, dir_name, file, NULL );
+		CopyFile (data->text, realfilename);
+		free( realfilename );
+		free( file );
+	}
+}
+
+void install_feel_func_handler( FunctionData *data, ASEvent *event, int module )
+{
+
+}
+
+void install_background_func_handler( FunctionData *data, ASEvent *event, int module )
+{
+
+}
+
+void install_font_func_handler( FunctionData *data, ASEvent *event, int module )
+{
+
+}
+
+void install_icon_func_handler( FunctionData *data, ASEvent *event, int module )
+{
+
+}
+
+void install_tile_func_handler( FunctionData *data, ASEvent *event, int module )
+{
+
+}
+
+void install_theme_file_func_handler( FunctionData *data, ASEvent *event, int module )
+{
+
+}
+
 
 void save_workspace_func_handler( FunctionData *data, ASEvent *event, int module )
 {

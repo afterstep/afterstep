@@ -210,11 +210,15 @@ extern char 	 *as_save_dir_name;
 extern char 	 *as_start_dir_name;
 extern char 	 *as_share_dir_name;
 
-#define START_DIR       "start"
-#define BACK_DIR        "backgrounds"
-#define LOOK_DIR        "looks"
-#define FEEL_DIR        "feels"
-#define BASE_FILE       "base"                           /* scrdepth */
+extern char      *as_background_dir_name ;
+extern char      *as_look_dir_name ;
+extern char      *as_theme_dir_name ;
+extern char      *as_theme_file_dir_name ;
+extern char      *as_feel_dir_name ;
+extern char      *as_font_dir_name ;
+extern char      *as_icon_dir_name ;
+extern char      *as_tile_dir_name ;
+
 
 extern int           fd_width;
 /* set by screen.c:setup_modifiers() in screen.c:ConnectX() :*/
