@@ -604,6 +604,8 @@ new_menu_data( ASHashTable *list, char *name )
     md = (MenuData*) safecalloc (1, sizeof(MenuData));
     md->name = mystrdup(name);
     md->magic = MAGIC_MENU_DATA ;
+	md->recent_items = Scr.Feel.recent_submenu_items ;
+
     if( add_hash_item( list, AS_HASHABLE(md->name), md) != ASH_Success )
     {
         menu_data_destroy( AS_HASHABLE(md->name), md );

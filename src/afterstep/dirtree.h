@@ -20,6 +20,7 @@ typedef struct dirtree_t
   char* extension;
   char* minipixmap_extension;
   int order;
+  int recent_items;
 } dirtree_t;
 
 /* flags for dirtree_t.flags */
@@ -29,6 +30,7 @@ enum
   DIRTREE_DIR		= (1 << 16),	 /* if this item a submenu */
   DIRTREE_KEEPNAME	= (1 << 17),	 /* if we should keep the menu name for the PopUp command */
   DIRTREE_MINIPIXMAP = (1 << 18),
+  DIRTREE_RECENT_ITEMS_SET=(1 << 19), 
   DIRTREE_LAST
 };
 

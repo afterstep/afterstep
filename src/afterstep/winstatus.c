@@ -1009,7 +1009,8 @@ validate_window_anchor( ASWindow *asw, XRectangle *new_anchor )
         anchor2status ( &status, asw->hints, new_anchor);
         LOCAL_DEBUG_OUT( "status geometry = %dx%d%+d%+d", status.width, status.height, status.x, status.y );
 
-        obey_avoid_cover(asw, &status, new_anchor );
+		if( ASWIN_HFLAGS( asw, AS_AvoidCover|AS_ShortLived ) != AS_AvoidCover )
+        	obey_avoid_cover(asw, &status, new_anchor );
     }
 }
 

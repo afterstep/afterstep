@@ -317,8 +317,13 @@ dirtree_parse (dirtree_t * tree, const char *file)
 			txt2func (ptr, &tree->command, False);
 			dirtree_set_command (tree, &tree->command, 0);
 		} else if (!mystrncasecmp (ptr, "order", 5))
+		{	
 			tree->order = strtol (ptr + 5, NULL, 10);
-		else if (!mystrncasecmp (ptr, "name", 4))
+		} else if (!mystrncasecmp (ptr, "RecentSubmenuItems", 18))
+		{	
+			tree->recent_items = strtol (ptr + 18, NULL, 10);
+			tree->flags |= DIRTREE_RECENT_ITEMS_SET;
+		} else if (!mystrncasecmp (ptr, "name", 4))
 		{
 			for (ptr += 4; isspace (*ptr); ptr++);
 			if (tree->name != NULL)

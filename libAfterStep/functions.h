@@ -200,6 +200,8 @@ typedef struct MenuData
     struct MenuDataItem *first; /* first item in menu */
     struct MenuDataItem *last;  /* last item in menu */
     short items_num;        /* number of items in the menu */
+
+	unsigned int    recent_items ;
 }MenuData;
 
 

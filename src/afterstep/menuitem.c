@@ -335,6 +335,8 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf, Bool reload_submenus)
 		sprintf (buf, "%d", tree->flags & DIRTREE_ID);
         menu = CreateMenuData (buf);
 	}
+	if( get_flags( tree->flags, DIRTREE_RECENT_ITEMS_SET ) )
+		menu->recent_items = tree->recent_items ;
 
 	/* make title */
 	fdata = create_named_function( F_TITLE, tree->name);

@@ -992,17 +992,46 @@ avoid_covering_aswin_iter_func(void *data, void *aux_data)
     {
 		ASStatusHints *n = new_aswin->status;
 		ASStatusHints *o = asw->status ;
-
+		int dn, ds, dw, de, min_dh ;
+		
 		LOCAL_DEBUG_OUT( "comparing to %dx%d%+d%+d, layer = %d", asw->status->width, asw->status->height, asw->status->x, asw->status->y, ASWIN_LAYER(asw) );
 
 		/* we want to move out even lower layer windows so they would not be overlapped by us */
 		if( /*ASWIN_LAYER(asw) < ASWIN_LAYER(new_aswin) ||*/ ASWIN_GET_FLAGS(asw, AS_Iconic ))
             return True;
-		if( n->x < o->x + o->width && n->y < o->y+ o->height &&
-			n->x + n->width  >= o->x && n->y + n->height >= o->y )
+
+		dw = o->x + (int)o->width - n->x;		
+		de = (int)(n->x+n->width) - o->x;		   
+		dn = o->y + (int)o->height - n->y;		   
+		ds = (int)(n->y+n->height) - o->y;		   
+		LOCAL_DEBUG_OUT( "deltas : w=%d e=%d s=%d n=%d", dw, de, dn, ds );
+		if( dw > 0 && de > 0 && dn > 0 && ds > 0 )
 		{
+			ASGeometry clip_area = *area ;
+			
+			min_dh = min(dw, de);
+			if( min_dh < dn && min_dh < ds ) 
+			{	
+				if( dw <= de ) 
+				{/* better move window westwards */
+					clip_area.width = (n->x <= clip_area.x)?1:  n->x - clip_area.x ;	  
+				}else /* better move window eastwards */
+				{	
+					int d = n->x + (int)n->width - clip_area.x ;
+					clip_area.x = n->x + n->width ;	  	  
+					clip_area.width = (d >= clip_area.width)?1: clip_area.width - d ;
+				}
+			}else if( dn <= ds ) /* better move window southwards */
+				clip_area.height = (n->y <= clip_area.y)?1: n->y - clip_area.y ;	  							  
+			else	
+			{	
+				int d = n->y + (int)n->height - clip_area.y ;
+				clip_area.y = n->y + n->height ;	  	   
+				clip_area.height = (d >= clip_area.height)?1: clip_area.height - d ;
+			}
+			LOCAL_DEBUG_OUT( "adjusted area is %dx%d%+d%+d", clip_area.width, clip_area.height, clip_area.x, clip_area.y );
 			/* move only affected windows : */
-	    	if( do_closest_placement( asw, aswbox, area ) )
+	    	if( do_closest_placement( asw, aswbox, &clip_area ) )
 			{
 		   		anchor2status ( asw->status, asw->hints, &(asw->anchor));
 		        /* now lets actually resize the window : */

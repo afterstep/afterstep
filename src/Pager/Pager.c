@@ -327,7 +327,7 @@ CheckConfigSanity()
 
     if( Config->rows*Config->columns < PagerState.desks_num )
         ++(Config->columns);
-
+    
 	LOCAL_DEBUG_OUT( "columns = %d, rows = %d, desks = %ld, start_desk = %ld", Config->columns, Config->rows, PagerState.desks_num, PagerState.start_desk );
 
     Config->gravity = NorthWestGravity ;

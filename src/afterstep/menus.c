@@ -487,8 +487,8 @@ set_asmenu_data( ASMenu *menu, MenuData *md, Bool first_time )
     {
         MenuDataItem *mdi = md->first ;
 
-        if( Scr.Feel.recent_submenu_items > 0 )
-            subitems = safecalloc( Scr.Feel.recent_submenu_items, sizeof(MenuDataItem*));
+        if( md->recent_items > 0 )
+            subitems = safecalloc( md->recent_items, sizeof(MenuDataItem*));
 
         for(mdi = md->first; real_items_num < items_num && mdi != NULL ; mdi = mdi->next )
             if( mdi->fdata->func == F_TITLE && menu->title == NULL )
@@ -502,7 +502,7 @@ set_asmenu_data( ASMenu *menu, MenuData *md, Bool first_time )
                 ++real_items_num;
                 if( mdi->fdata->func == F_POPUP && item->submenu != NULL && subitems != NULL )
                 {
-                    int used = extract_recent_subitems( item->submenu, subitems, Scr.Feel.recent_submenu_items );
+                    int used = extract_recent_subitems( item->submenu, subitems, md->recent_items );
                     if( used > 0 )
                     {
                         items_num += used ;
