@@ -755,6 +755,12 @@ release_old_background( int desk, Bool forget )
     LOCAL_DEBUG_OUT( "syncing %s","");
     ASSync(False);
 #endif
+	if( back->loaded_pixmap && (forget || Scr.Feel.conserve_memory > 0) ) 
+	{
+		if( Scr.RootBackground->pmap == back->loaded_pixmap ) 
+			Scr.RootBackground->pmap = None ;
+		destroy_visual_pixmap( Scr.asv, &(back->loaded_pixmap));			
+	}	 
 }
 
 ASImage*
@@ -766,24 +772,33 @@ make_desktop_image( int desk, MyBackground *new_back )
     if( new_back->loaded_im_name )
 		new_im = fetch_asimage( Scr.image_manager, new_back->loaded_im_name );
 	
+	if( new_im == NULL ) 
+	{	
+		new_imname = make_myback_image_name( &(Scr.Look), new_back->name );
+    	if( new_back->type == MB_BackImage )
+		{	
+			if( (new_im = fetch_asimage( Scr.image_manager, new_imname )) == NULL )
+			{	
+				LOCAL_DEBUG_OUT( "fetch_asimage could not find the back \"%s\" - loading ", new_imname );
+			}
+		}
+		if( new_im == NULL && new_back->loaded_pixmap != None )
+		{
+			unsigned int width, height ;
+			get_drawable_size( new_back->loaded_pixmap, &width, &height );
+			new_im = pixmap2asimage(Scr.asv, new_back->loaded_pixmap, 0, 0, width, height, 0xFFFFFFFF, False, 100);
+			store_asimage( Scr.image_manager, new_im, new_imname );
+		}
+	}			
 	if( new_im != NULL ) 
 		return new_im ;
-    
-	new_imname = make_myback_image_name( &(Scr.Look), new_back->name );
-    if( new_back->type == MB_BackImage )
+	
+	if( new_back->type == MB_BackImage )
     {
-		if( new_im == NULL )
-        {
-	        if( (new_im = fetch_asimage( Scr.image_manager, new_imname )) == NULL )
-  		    {
-      		    LOCAL_DEBUG_OUT( "fetch_asimage could not find the back \"%s\" - loading ", new_imname );
-			
-          		if( (new_im = load_myback_image( desk, new_back )) != NULL )
-				{
-  		            if( new_im->name == NULL )
-      		            store_asimage( Scr.image_manager, new_im, new_imname );
-				}
-  		    }
+        if( (new_im = load_myback_image( desk, new_back )) != NULL )
+		{
+  		    if( new_im->name == NULL )
+      		    store_asimage( Scr.image_manager, new_im, new_imname );
 		}
     }else if( new_back->type == MB_BackMyStyle )
     {
@@ -1007,6 +1022,25 @@ LOCAL_DEBUG_CALLER_OUT( "desk(%d)->old_desk(%d)->new_back(%p)->old_back(%p)", de
         Scr.RootBackground->cmd_pid = 0;
         Scr.RootBackground->im = NULL ;
     }
+	if( new_back->loaded_pixmap ) 
+	{
+		ASBackgroundHandler *bh = Scr.RootBackground ;			
+ 		unsigned int width, height ;       
+		if( !get_drawable_size(new_back->loaded_pixmap, &width, &height ) )
+			new_back->loaded_pixmap = None ;
+		else
+		{
+			bh->pmap_width = width ;
+        	bh->pmap_height = height ;
+        	bh->im = NULL;
+
+			XSetWindowBackgroundPixmap( dpy, Scr.Root, new_back->loaded_pixmap );
+			XClearWindow( dpy, Scr.Root );
+			set_xrootpmap_id (Scr.wmprops, new_back->loaded_pixmap );
+	    	remove_desktop_cover();
+			return ;   
+		}
+	}		  
 
     if( new_back->type == MB_BackCmd )
     {                                          /* run command */
@@ -1025,6 +1059,14 @@ LOCAL_DEBUG_CALLER_OUT( "desk(%d)->old_desk(%d)->new_back(%p)->old_back(%p)", de
             char *new_imname = make_myback_image_name( &(Scr.Look), new_back->name );
             store_asimage( Scr.image_manager, new_im, new_imname );
         }
+		if( old_back && bh->pmap == old_back->loaded_pixmap)
+		{
+			if( Scr.Feel.conserve_memory == 0 )
+				bh->pmap = None ;				
+			else
+				old_back->loaded_pixmap = None ;
+		}
+		
 		old_pmap = bh->pmap ;
         if( bh->pmap && (new_im->width != bh->pmap_width ||
             new_im->height != bh->pmap_height) )
@@ -1046,6 +1088,8 @@ LOCAL_DEBUG_CALLER_OUT( "desk(%d)->old_desk(%d)->new_back(%p)->old_back(%p)", de
         bh->pmap_width = new_im->width ;
         bh->pmap_height = new_im->height ;
         bh->im = new_im;
+
+		new_back->loaded_pixmap = bh->pmap ;
 		/*print_asimage( new_im, 0xFFFFFFFF, __FUNCTION__, __LINE__ );*/
         ASSync(False);
         LOCAL_DEBUG_OUT( "width(%d)->height(%d)->pixmap(%lX/%lu)", new_im->width, new_im->height, bh->pmap, bh->pmap );

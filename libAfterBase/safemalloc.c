@@ -47,18 +47,6 @@
    DEBUG_ALLOC */
 #undef free
 
-typedef struct memory_ctrl
-{
-	size_t used ;
-	size_t total ;
-	size_t allocations ;
-	size_t deallocations ;
-}memory_ctrl;
-
-#define MAX_BLOCK	8192
-static memory_ctrl memory[MAX_BLOCK] ;
-static int longer_then_max_block = 0 ;
-
 #if defined(__CYGWIN__)
 
 #define AS_WIN32_PAGE_MAGIC		0xA36a5ea1
@@ -135,21 +123,46 @@ free_guarded_memory( void *ptr )
 
 #endif
 
+void
+failed_alloc( const char * function, size_t size )
+{
+	char *suicide = NULL;
+	fprintf (stderr, "%s of %lu bytes failed. Exiting\n", function, (unsigned long)size);
+	*suicide = 1 ;
+	exit (1);
+}
+	  
+
 
 void         *
 safemalloc (size_t length)
+{
+#if defined(__CYGWIN__) && defined(DEBUG_ALLOCS)
+	return guarded_malloc (length);
+#else
+	char         *ptr = NULL ;
+
+	if (length <= 0)
+		length = 1;
+
+	ptr = malloc (length);
+
+	if (ptr == (char *)0)
+		failed_alloc( "malloc", length );
+	
+	return ptr;
+#endif
+}
+
+void         *
+guarded_malloc (size_t length)
 {
 	char         *ptr = NULL ;
 
 	if (length <= 0)
 		length = 1;
 
-	if( length > MAX_BLOCK )
-		longer_then_max_block++ ;
-	else
-		memory[length-1].allocations++ ;
-
-#if defined(__CYGWIN__) && defined(DEBUG_ALLOCS)
+#if defined(__CYGWIN__)
 	/* lets do some magic with Win32 memory allocation to test for memory corruption : */
 	ptr = alloc_guarded_memory( length );	   
 #else
@@ -157,29 +170,41 @@ safemalloc (size_t length)
 #endif
 
 	if (ptr == (char *)0)
-	{
-		char *suicide = NULL;
-		fprintf (stderr, "malloc of %lu bytes failed. Exiting\n", (unsigned long)length);
-		*suicide = 1 ;
-		exit (1);
-	}
+		failed_alloc( "malloc", length );
+	
 	return ptr;
 }
 
+
 void         *
 saferealloc (void *orig_ptr, size_t length)
+{
+#if defined(__CYGWIN__) && defined(DEBUG_ALLOCS)
+	return guarded_realloc( orig_ptr, length );
+#else
+	char         *ptr = NULL ;
+
+	if (length <= 0)
+		length = 1;
+
+	ptr = realloc (orig_ptr, length);
+
+	if (ptr == (char *)0)
+		failed_alloc( "realloc", length );
+	
+	return ptr;
+#endif
+}
+
+void         *
+guarded_realloc (void *orig_ptr, size_t length)
 {
 	char         *ptr = NULL ;
 
 	if (length <= 0)
 		length = 1;
 
-	if( length > MAX_BLOCK )
-		longer_then_max_block++ ;
-	else
-		memory[length-1].allocations++ ;
-
-#if defined(__CYGWIN__) && defined(DEBUG_ALLOCS)
+#if defined(__CYGWIN__)
 	/* lets do some magic with Win32 memory allocation to test for memory corruption : */
 	ptr = alloc_guarded_memory( length );	   
 	if( orig_ptr && ptr ) 
@@ -200,17 +225,35 @@ saferealloc (void *orig_ptr, size_t length)
 #endif
 
 	if (ptr == (char *)0)
-	{
-		char *suicide = NULL;
-		fprintf (stderr, "realloc of %lu bytes failed. Exiting\n", (unsigned long)length);
-		*suicide = 1 ;
-		exit (1);
-	}
+		failed_alloc( "guarded_realloc", length );
+	
 	return ptr;
 }
 
+
 void         *
 safecalloc (size_t num, size_t blength)
+{
+#if defined(__CYGWIN__) && defined(DEBUG_ALLOCS)
+	return guarded_calloc( num, blength );
+#else
+	char         *ptr;
+
+    if (blength <= 0)
+        blength = 1;
+    
+	if (num <= 0)
+        num = 1;
+
+	ptr = calloc (num, blength);
+	if (ptr == (char *)0)
+		failed_alloc( "calloc", num*blength );
+	return ptr;
+#endif
+}
+
+void         *
+guarded_calloc (size_t num, size_t blength)
 {
 	char         *ptr;
 
@@ -220,12 +263,7 @@ safecalloc (size_t num, size_t blength)
 	if (num <= 0)
         num = 1;
 
-	if( blength > MAX_BLOCK )
-		longer_then_max_block += num ;
-	else
-		memory[blength-1].allocations+=num ;
-
-#if defined(__CYGWIN__) && defined(DEBUG_ALLOCS)
+#if defined(__CYGWIN__)
 	ptr = alloc_guarded_memory( num * blength );	   
 	if(ptr)
 		memset( ptr, 0x00, num*blength );
@@ -234,13 +272,10 @@ safecalloc (size_t num, size_t blength)
 #endif
 
 	if (ptr == (char *)0)
-	{
-        fprintf (stderr, "calloc of %lu blocks of %lu bytes each failed. Exiting\n", (unsigned long)num, (unsigned long)blength);
-        *ptr = 1 ;
-		exit (1);
-	}
+		failed_alloc( "guarded_calloc", num*blength );
 	return ptr;
 }
+
 
 void
 safefree (void *ptr)
@@ -252,6 +287,18 @@ safefree (void *ptr)
 		free (ptr);
 #endif
 }
+
+void
+guarded_free (void *ptr)
+{
+    if (ptr)
+#if defined(__CYGWIN__)
+		free_guarded_memory( ptr );		   
+#else
+		free (ptr);
+#endif
+}
+
 
 void
 dump_memory()

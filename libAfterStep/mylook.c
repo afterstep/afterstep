@@ -625,6 +625,8 @@ void myback_delete( MyBackground **myback, ASImageManager *imman )
 		}
 		if( (*myback)->loaded_im_name )
 			free( (*myback)->loaded_im_name );
+		if( (*myback)->loaded_pixmap )
+			destroy_visual_pixmap( Scr.asv, &((*myback)->loaded_pixmap) );
 		(*myback)->magic = 0 ;
 		free( *myback );
 		*myback = NULL ;

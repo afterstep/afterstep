@@ -114,6 +114,7 @@ typedef struct MyBackground
     int        ref_count ;
 	
 	char *loaded_im_name ;
+	Pixmap loaded_pixmap ;
 }MyBackground;
 
 typedef struct MyDesktopConfig

@@ -26,6 +26,11 @@ void		  safefree (void *ptr);
 void         *saferealloc (void *orig_ptr, size_t length);
 #endif
 
+void        *guarded_malloc (size_t length);
+void        *guarded_realloc (void *orig_ptr, size_t length);
+void        *guarded_calloc (size_t num, size_t blength);
+void		guarded_free (void *ptr);
+
 void		  dump_memory();
 
 #define	NEW(a)              	((a *)malloc(sizeof(a)))

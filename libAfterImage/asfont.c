@@ -1543,10 +1543,11 @@ get_text_glyph_map( const char *text, ASFont *font, ASGlyphMap *map, ASTextAttri
 }
 
 #define GET_TEXT_SIZE_LOOP(getglyph,incr,len) \
-	do{ Bool terminated ; ++i ;\
-		if( len > 0 && i >= len ) terminated = True; \
-		else terminated = ( text[i] == '\0' || text[i] == '\n' ); \
-		if( x_positions && (len == 0 || len > i )) x_positions[i] = line_width ; \
+	do{ Bool terminated = True; ++i ;\
+		if( len == 0 || i < len )	\
+		{ 	terminated = ( text[i] == '\0' || text[i] == '\n' ); \
+			if( x_positions ) x_positions[i] = line_width ; \
+		} \
 		if( terminated ) { \
 			if( last_asg && last_asg->width+last_asg->lead > last_asg->step ) \
 				line_width += last_asg->width+last_asg->lead - last_asg->step ; \
@@ -1568,7 +1569,7 @@ get_text_glyph_map( const char *text, ASFont *font, ASGlyphMap *map, ASTextAttri
 				incr ; \
 			} \
 		} \
-	}while( text[i] != '\0' && ( len <= 0 || len > i ))
+	}while( (len <= 0 || len > i) && text[i] != '\0' )
 
 static Bool
 get_text_size_internal( const char *src_text, ASFont *font, ASTextAttributes *attr, unsigned int *width, unsigned int *height, int length, int *x_positions )

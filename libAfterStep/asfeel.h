@@ -74,7 +74,7 @@ typedef enum                /* feel file flags */
     DoHandlePageing         = (1 << 26),
     DontRestoreFocus        = (1 << 27),
 	PersistentMenus			= (1 << 28),
-	DontAnimateBackground   = (1 << 29),
+	DontAnimateBackground   = (1 << 29)
 }FeelFlags;
 
 /* since we have too many feel flags  - we want another enum for
@@ -233,6 +233,8 @@ typedef struct ASFeel
 
     unsigned int        desk_cover_animation_steps ;
     unsigned int        desk_cover_animation_type ;
+
+	int 				conserve_memory ;
 }
 ASFeel;
 
