@@ -74,6 +74,8 @@ write_doc_header( ASXMLInterpreterState *state )
 				fprintf( state->dest_fp, PHPXrefFormat, "visualdoc",GlossaryName,"Glossary", "" );
 			else
 				fprintf( state->dest_fp, PHPCurrPageFormat, GlossaryName );
+			fprintf( state->dest_fp, PHPXrefFormat, "visualdoc","F.A.Q.","faq", "" );
+			fprintf( state->dest_fp, PHPXrefFormat, "visualdoc","Copyright","authors", "" );
 			for( i = 0 ; i < DocClass_TopicIndex ; ++i ) 
 			{
 				if( get_flags( state->doc_class_mask, (0x01<<i)	) )
