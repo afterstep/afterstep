@@ -215,6 +215,12 @@ int main(int argc, char* argv[])
  * SYNOPSIS
  * Step 1. Openning and closing fonts.
  * DESCRIPTION
+ * Before any text can be rendered using libAfterImage - desired font
+ * has to be opened for use. Font opening process is two-step. At first
+ * we need to create font manager ( ASFontManager ). That is done once,
+ * and same font manger can be used throughout entire application. It
+ * contains information about used external libraries, hash of opened
+ * fonts, and some other info.
  * EXAMPLE
  *     if( (fontman = create_font_manager( dpy, NULL, NULL )) != NULL )
  *         font = get_asfont( fontman, font_name, 0, size, ASF_GuessWho);

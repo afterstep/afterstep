@@ -2437,6 +2437,7 @@ LOCAL_DEBUG_OUT("blending actually...%s", "");
 				imdecs[i]->next_line = min_y - layers[i].dst_y ;
  */
 LOCAL_DEBUG_OUT( "min_y = %d, max_y = %d", min_y, max_y );
+		imout->next_line = min_y ;
 		for( y = min_y ; y < max_y ; y++  )
 		{
 			for( i = 0 ; i < count ; i++ )
