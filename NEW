@@ -746,26 +746,91 @@ version 1.99.0 AKA 2.0 beta1
         window placement.
 
 5. XResources database.
+        Each application amy have the following resources defined for it in
+        .xresources:
+        ************************************************************************
+        Desk <desk>
+        Layer <layer>
+        ViewportX <x_pos>
+        ViewportY <y_pos>
+        ************************************************************************
+        This will be checked when window is mapped and will be merged with the
+        rest of the settings to determine startup status of an application.
+        ( This may need to be debugged ).
 
 6. Pager options
-        ShadeButton
+
+        ************************************************************************
+        ShadeButton  <unpressed_image> [<pressed_image>]
+        ************************************************************************
+        You should be able to "shade" row or column of desks by pressing
+        special Shade button on desk's title. Define images to be used for it
+        with this option. If no images are defined - then there will be no
+        button and feature will be disabled.
 
 7. Wharf options
+        ************************************************************************
         ShowLabel
-        LabelLocation
+        ************************************************************************
+        Flag that tells Wharf to render button's label on each of its buttons,
+        effectively immitating behaviour of Zharf.
+
+        ************************************************************************
+        LabelLocation  <val>
+        ************************************************************************
+        Specifies location of the label. Correct values are integers in range
+        of 0-32. label could be drawn on each sideof the button and just on top
+        of icon. It could also be aligned to different sides.
+
+        ************************************************************************
         FlipLabel
+        ************************************************************************
+        Will cause Wharf to draw vertical label text.
+
+        ************************************************************************
         FitContents
+        ************************************************************************
+        Wharf will draw each button so that it fits its contents perfectly (
+        icon or swallowed app ). That will cause some of th eWharf's buttons to
+        differ in size from others. Use in conjunction with ShapeToContents.
+
+        ************************************************************************
         ShapeToContents
-        AlignContents
-        Bevel
-        CompositionMethod
+        ************************************************************************
+        Will cause Wharf use X Shaped extentions and have a window of
+        non-rectangular shape. Shape is composed from the overall geometry of
+        buttons ( see FitContents ), shape of the MyStyle used to draw Wharf
+        background ( if BackPixmap 126 or 125 is used ), contents of each
+        button - such as swallowed app's shape, label and icons.
+
+        ************************************************************************
+        AlignContents Left,Top,Right,Bottom,HTiled,VTiled,HScaled,VScaled,HCenter,VCenter
+        ************************************************************************
+        That will force contents of each Wharf's button to be aligned to either
+        side of the button, when FitContents is not used.
+
+        ************************************************************************
+        Bevel None|[Left,Top,Right,Bottom,Extra,NoOutline]
+        ************************************************************************
+        Determines exact size and shape of the 3D bevel drawn around each
+        button. This option is somewhat synonymous to NoBorder. If NoBorder is
+        encountered after Bevel - then it will override Bevel, otherwise Bevel
+        will override NoBorder.
+
+        ************************************************************************
+        CompositionMethod testure_type
+                - default is 131 ( alpha-blending )
+        ************************************************************************
+        Determines algorithm use to blend all the icons and Wharf background to
+        form button's image. Valid values are 130-145 ( see MyStyles section
+        above ).
 
 8. WinList options
 
-        *WinListGeometry                +x+y
-        *WinListMinSize                     WxH
-        *WinListMaxSize                     WxH
-        *WinListMaxRows                     count
+        *WinListGeometry            +x+y
+        *WinListMinSize             WxH
+        *WinListMaxSize             WxH
+        *WinListMaxRows             count
         *WinListMaxColumns          count
         *WinListMinColWidth         width
         *WinListMaxColWidth         width
@@ -774,41 +839,85 @@ version 1.99.0 AKA 2.0 beta1
         *WinListUnfocusedStyle      "style"
         *WinListFocusedStyle        "style"
         *WinListStickyStyle         "style"
-        *WinListUseName                 0|1|2|3   # 0 - Name, 1 - icon, 2 - res_name, 3 - res_class
-        *WinListAlign           Left,Right,Top,Bottom
-        *WinListBevel           None,Left,Right,Top, Bottom, NoOutline
-        *WinListFBevel           None,Left,Right,Top, Bottom, NoOutline
-        *WinListUBevel           None,Left,Right,Top, Bottom, NoOutline
-        *WinListSBevel           None,Left,Right,Top, Bottom, NoOutline
-        *WinListAction          [Click]1|2|3|4|5
+        *WinListUseName             0|1|2|3   # 0 - Name, 1 - icon, 2 - res_name, 3 - res_class
+        *WinListAlign               Left,Right,Top,Bottom
+        *WinListBevel               None,Left,Right,Top, Bottom, NoOutline
+        *WinListFBevel              None,Left,Right,Top, Bottom, NoOutline
+        *WinListUBevel              None,Left,Right,Top, Bottom, NoOutline
+        *WinListSBevel              None,Left,Right,Top, Bottom, NoOutline
+        *WinListAction              [Click]1|2|3|4|5  <action>
         *WinListShapeToContents
-9. Depreciated
-        9.1. Look :
+
+9. Command line options.
+        Every module including afterstep proper will support the following set
+        of command line switches :
+        -v --version         - Display version information and stop.
+        -c --config          - Display Config information and stop.
+        -h --help            - Display uasge information and stop.
+           --debug           - Debugging: Run in Synchronous mode..
+        -s --single          - Run on single screen only.
+        -r --restart         - Run as if it was restarted.
+                               same as regular startup, only runs RestartFunction
+                               instead of InitFunction.
+        -d --display          <val> - Specify what X display we should connect to.
+                                      Overrides $DISPLAY environment variable.
+        -f --config-file      <val> - Read all config from requested file.
+                                      Use it if you want to use .steprc
+                                      instead of standard config files.
+        -p --user-dir         <val> - Read all the config from requested dir.
+                                      Use it to override config location
+                                      requested in compile time.
+        -g --global-dir       <val> - Use requested dir as a shared config dir.
+                                      Use it to override shared config location
+                                      requested in compile time.
+        -V --verbosity-level  <val> - Change verbosity of the AfterStep output.
+                                      0 - will disable any output;
+                                      1 - will allow only error messages;
+                                      5 - both errors and warnings(default).
+                                      10- maximum level of output - everything printed
+           --window           <val> - Internal Use: Window in which action occured.
+                                      interface part which has triggered our startup.
+           --context          <val> - Internal Use: Context in which action occured.
+                                      interface part which has triggered our startup.
+           --look             <val> - Read look config from requested file.
+                                      Use it if you want to use different look
+                                      instead of what was selected from the menu.
+           --feel             <val> - Read feel config from requested file.
+                                      Use it if you want to use different feel
+                                      instead of what was selected from the menu.
+           --theme            <val> - Read theme config from requested file.
+                                      Use it if you want to use different theme
+                                      instead of what was selected from the menu.
+        -l --log              <val> - Spool all output into a file instead of
+                                      printing it to the console.
+
+10. Depreciated
+        10.1. Look :
              MenuPinOn
 
-        9.2. Wharf :
+        10.2. Wharf :
              Folders/~Folders in Wharf config - use Folder/~Folder instead
 
-        9.3. asetroot :
+        10.3. asetroot :
              If AfterSTep proper fails to read any MyBackground definitions
              from the look file - it will attempt to read asteroot file. Althou
              you may be fine for now - make sure you move this config into look
              file, as in future asetroot file may become obsolete.
 
-10. Discontinued
-        10.1. Look :
+11. Discontinued
+        11.1. Look :
                 TextureMaxColors
                 MenuPinOff
                 TextGradientColor
                 GradientText
                 ButtonMaxColors
 
-        10.2. Feel :
+        11.2. Feel :
                 MWMFunctionHints
                 MWMDecorHints
                 MWMHintOverride
 
-        10.3. WinList :
+        11.3. WinList :
                 *WinListHideGeometry        WxH+x+y
                 *WinListNoAnchor
                 *WinListUseIconNames

@@ -38,7 +38,7 @@ static ASTBarData  *FocusedBar = NULL;          /* currently focused bar with ba
 /********************************************************************/
 /* ASCanvas :                                                       */
 /********************************************************************/
-static Bool 
+static Bool
 check_canvas_shaped( ASCanvas *pc)
 {
     Bool           boundingShaped= False;
@@ -495,7 +495,7 @@ LOCAL_DEBUG_CALLER_OUT( "canvas(%p)->window(%lx)->canvas_pixmap(%lx)->size(%dx%d
         {
             if (pc->mask)
             {
-                LOCAL_DEBUG_OUT( "XShapeCombineMask(%lX)set canvas mask to %lX", pc->w,	pc->mask );	
+                LOCAL_DEBUG_OUT( "XShapeCombineMask(%lX)set canvas mask to %lX", pc->w,	pc->mask );
                 XShapeCombineMask (dpy, pc->w, ShapeBounding, 0, 0, pc->mask, ShapeSet);
             }else
                 set_canvas_shape_to_rectangle( pc );
@@ -1913,12 +1913,18 @@ LOCAL_DEBUG_CALLER_OUT("tbar(%p)->pc(%p)", tbar, pc );
 	state = get_flags (tbar->state, BAR_STATE_FOCUS_MASK);
 	style = tbar->style[state];
 LOCAL_DEBUG_OUT("style(%p)->geom(%ux%u%+d%+d)->hilite(0x%X)", style, tbar->width, tbar->height, tbar->root_x, tbar->root_y, tbar->hilite[state] );
-	if (style == NULL)
+
+    if (style == NULL)
         return -2;
-	/* validating our images : */
+
+    /* validating our images : */
 	if ((back = tbar->back[state]) != NULL)
 	{
-		if (back->width != tbar->width || back->height != tbar->height ||
+        if( tbar->root_x != pc->root_x + tbar->win_x ||
+            tbar->root_y != pc->root_y + tbar->win_y )
+            update_astbar_transparency( tbar, pc, False );
+
+        if (back->width != tbar->width || back->height != tbar->height ||
 			((tbar->rendered_root_x != tbar->root_x || tbar->rendered_root_y != tbar->root_y) &&
 			 style->texture_type > TEXTURE_PIXMAP))
 		{

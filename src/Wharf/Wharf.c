@@ -727,11 +727,17 @@ build_wharf_button_tbar(WharfButton *wb)
     set_astbar_balloon( bar, 0, wb->title );
 
     set_astbar_style_ptr( bar, BAR_STATE_UNFOCUSED, Scr.Look.MSWindow[BACK_UNFOCUSED] );
-    if( get_flags( Config->flags, WHARF_NO_BORDER ) )
-       set_astbar_hilite( bar, BAR_STATE_UNFOCUSED, 0 );
-    else if( get_flags( Config->flags, WHARF_BEVEL ) )
-       set_astbar_hilite( bar, BAR_STATE_UNFOCUSED, Config->bevel );
-    else
+    LOCAL_DEBUG_OUT( "wharf bevel is %s, value 0x%lX, wharf_no_border is %s",
+                        get_flags( Config->set_flags, WHARF_BEVEL )? "set":"unset",
+                        Config->bevel,
+                        get_flags( Config->flags, WHARF_NO_BORDER )?"set":"unset" );
+    if( get_flags( Config->set_flags, WHARF_BEVEL ) )
+    {
+        if( get_flags( Config->flags, WHARF_NO_BORDER ) )
+            set_astbar_hilite( bar, BAR_STATE_UNFOCUSED, 0 );
+        else
+            set_astbar_hilite( bar, BAR_STATE_UNFOCUSED, Config->bevel );
+    }else
        set_astbar_hilite( bar, BAR_STATE_UNFOCUSED, RIGHT_HILITE|BOTTOM_HILITE );
     return bar;
 }
@@ -920,13 +926,13 @@ update_wharf_folder_shape( ASWharfFolder *aswf )
 void
 update_wharf_folder_transprency( ASWharfFolder *aswf, Bool force )
 {
-	if( aswf ) 
+	if( aswf )
 	{
-		int i = aswf->buttons_num; 
-		while( --i >= 0 ) 
+		int i = aswf->buttons_num;
+		while( --i >= 0 )
 		{
 			ASWharfButton *aswb= &(aswf->buttons[i]);
-			if( update_astbar_transparency( aswb->bar, aswb->canvas, force ) ) 
+			if( update_astbar_transparency( aswb->bar, aswb->canvas, force ) )
 			{
 				render_astbar( aswb->bar, aswb->canvas );
 				update_canvas_display( aswb->canvas );
@@ -949,9 +955,12 @@ map_wharf_folder( ASWharfFolder *aswf,
 
     if( aswf->animation_steps > 0 )
     {/* we must make sure that we receive first ConfigureNotify !! */
-        handle_canvas_config( aswf->canvas );
-        if( aswf->canvas->root_x == x && aswf->canvas->root_y == y &&
-            aswf->canvas->width == width && aswf->canvas->height == height )
+        int cx, cy ;
+        unsigned int cw, ch ;
+
+        get_current_canvas_geometry( aswf->canvas, &cx, &cy, &cw, &ch, NULL );
+        if( cx == x && cy == y &&
+            cw == width && ch == height )
         {
             if( get_flags( aswf->flags, ASW_Vertical ) )
                 ++height ;
@@ -1702,9 +1711,9 @@ on_wharf_button_moveresize( ASWharfButton *aswb, ASEvent *event )
         return False;
 
     if( get_flags(changes, CANVAS_RESIZED ) )
-    {
         set_astbar_size( aswb->bar, aswb->canvas->width, aswb->canvas->height );
-    }else if( get_flags(changes, CANVAS_MOVED ) )
+
+    if( changes != 0 )                         /* have to always do that whenever canvas is changed */
         update_astbar_transparency( aswb->bar, aswb->canvas, False );
 
     if( changes != 0 && (DoesBarNeedsRendering(aswb->bar) || is_canvas_needs_redraw( aswb->canvas )))
