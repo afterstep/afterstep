@@ -1,6 +1,8 @@
-  <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<?xml version="1.0" encoding="ISO-8859-15"?>
+ <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+	  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html>
-<head>
+  <head>
     <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1"/>
     <title>AfterStep XML Images</title>
     <style type="text/css">
@@ -23,7 +25,7 @@
       tinting, solid fill, etc.
     </p>
     <p>
-      Here is the example of such xml script :
+      Here is the example of such xml script:
     </p>
     <p class="codeBlock">
       <code>
@@ -45,7 +47,7 @@
       blends it over the icon of computer monitor, producing new icon.<br />
     </p>
     <p>
-      Here is another script :
+      Here is another script:
     </p>
     <p class="codeBlock">
       <code>
@@ -87,7 +89,7 @@
       create shortcuts to image files.
     </p>
     <p>
-      For examle xml file with&nbsp; :
+      For examle xml file with:
     </p>
     <p class="codeBlock">
       <code>
@@ -101,7 +103,7 @@
       Also it allows to create minipixmaps, or reduced size version of icons.
     </p>
     <p>
-      For example :
+      For example:
     </p>
     <p class="codeBlock">
       <code>
@@ -124,7 +126,7 @@
       choosen.
     </p>
     <p>
-      For example :
+      For example:
     </p>
     <p class="codeBlock">
       <code>
@@ -146,7 +148,7 @@
     <h3>Simple tiling</h3>
     <p>
       This example produces a tile which is mirrored through the X and Y axis
-      and which repeats itself endlessly :
+      and which repeats itself endlessly:
     </p>
     <p class="codeBlock">
       <code>
@@ -181,7 +183,7 @@
     <h3>Complex tiling</h3>
     <p>
       This example produces a tile which is mirrored through the X and Y axis
-      and which repeats itself only 4 plain times :
+      and which repeats itself only 4 plain times:
     </p>
     <p class="codeBlock">
       <code>
@@ -194,7 +196,7 @@
 	&nbsp;&nbsp;
 	&lt;recall srcid="tile"/&gt;<br/>
 	&nbsp;&nbsp;
-	&lt;mirror x=0 y="$xroot.height/2" dir="vertical"&gt;<br/>
+	&lt;mirror x="0" y="$xroot.height/2" dir="vertical"&gt;<br/>
 	&nbsp;&nbsp;
 	&nbsp;&nbsp;
 	&lt;recall srcid="tile"/&gt;<br/>
@@ -206,7 +208,7 @@
 	&nbsp;&nbsp;
 	&lt;recall srcid="left_tile"/&gt;<br/>
 	&nbsp;&nbsp;
-	&lt;mirror x="$xroot.width/2" y=0 dir="horizontal"&gt;<br/>
+	&lt;mirror x="$xroot.width/2" y="0" dir="horizontal"&gt;<br/>
 	&nbsp;&nbsp;
 	&nbsp;&nbsp;
 	&lt;recall srcid="left_tile"/&gt;<br/>
@@ -217,4 +219,4 @@
     </p>
 
   </body>
- </html>
+</html>
