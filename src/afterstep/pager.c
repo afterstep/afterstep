@@ -333,6 +333,8 @@ LOCAL_DEBUG_CALLER_OUT( "new(%d%+d%+d), old(%d%+d%+d), max(%+d,%+d)", new_desk, 
     /* we have to handle all the pending ConfigureNotifys here : */
     ConfigureNotifyLoop();
 
+    cover_desktop();
+
     if( old_desk != new_desk && IsValidDesk( old_desk ) )
     {
         int client_count = 0 ;
@@ -437,7 +439,7 @@ LOCAL_DEBUG_CALLER_OUT( "new(%d%+d%+d), old(%d%+d%+d), max(%+d,%+d)", new_desk, 
 	    	change_desktop_background(new_desk, Scr.LastValidDesk);
 		}
 	}
-
+    remove_desktop_cover();
 }
 
 
@@ -1052,7 +1054,7 @@ LOCAL_DEBUG_CALLER_OUT( "desk(%d)->old_desk(%d)->new_back(%p)->old_back(%p)", de
 			return ;   
 		}
 	}		  
-    cover_desktop();
+
    	display_progress( True, "Changing background for desktop #%d ...", desk);
 	
 

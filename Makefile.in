@@ -10,6 +10,7 @@ subdirs		= libAfterBase libAfterImage libAfterStep libAfterConf \
 		  src/afterstep \
 		  src/Animate \
 		  src/Banner \
+		  src/Ident \
 		  src/Pager \
 		  src/Wharf \
 		  src/WinList2 \
@@ -26,7 +27,6 @@ subdirs		= libAfterBase libAfterImage libAfterStep libAfterConf \
 #		  src/Clean \
 #		  src/Form \
 #		  src/Gnome \
-#		  src/Ident \
 #		  src/Save \
 #		  src/Scroll \
 #		  src/Sound \
