@@ -337,12 +337,12 @@ void complete_aswindow_move(struct ASMoveResizeData *data, Bool cancelled)
     {
         if( cancelled )
         {
-    SHOW_CHECKPOINT;
+    		SHOW_CHECKPOINT;
             LOCAL_DEBUG_OUT( "%dx%d%+d%+d", data->start.width, data->start.height, data->start.x, data->start.y);
             moveresize_aswindow_wm( asw, data->start.x, data->start.y, data->start.width, data->start.height, False );
         }else
         {
-    SHOW_CHECKPOINT;
+    		SHOW_CHECKPOINT;
             LOCAL_DEBUG_OUT( "%dx%d%+d%+d", data->curr.width, data->curr.height, data->curr.x, data->curr.y);
             moveresize_aswindow_wm( asw, data->curr.x, data->curr.y, data->curr.width, data->curr.height, False );
         }

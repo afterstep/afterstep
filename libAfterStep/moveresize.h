@@ -123,6 +123,7 @@ typedef struct ASMoveResizeData
     unsigned int min_height, height_inc, max_height, frame_height;
 
     Bool stop_on_button_press; /* when true operation will complete on ButtonPress event - not on ButtonRelease */
+	Bool move_only ;
 
 }ASMoveResizeData;
 

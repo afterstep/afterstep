@@ -963,7 +963,7 @@ moveresize_aswindow_wm( ASWindow *asw, int x, int y, unsigned int width, unsigne
         if( save_anchor )
             save_aswindow_anchor( asw, True, True );
         /* need to apply two-way conversion in order to make sure that size restrains are applied : */
-        status2anchor( &(asw->anchor), asw->hints, &scratch_status, Scr.VxMax, Scr.VyMax);
+        status2anchor( &(asw->anchor), asw->hints, &scratch_status, Scr.VxMax+Scr.MyDisplayWidth, Scr.VyMax+Scr.MyDisplayHeight);
         anchor2status ( asw->status, asw->hints, &(asw->anchor));
 
         /* now lets actually resize the window : */

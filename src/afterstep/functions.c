@@ -674,6 +674,7 @@ void moveresize_func_handler( FunctionData *data, ASEvent *event, int module )
         }
         if( mvrdata )
         {
+			mvrdata->move_only = (data->func == F_MOVE) ;
             raise_scren_panframes( &Scr );
             mvrdata->below_sibling = get_lowest_panframe(&Scr);
             set_moveresize_restrains( mvrdata, asw->hints, asw->status);

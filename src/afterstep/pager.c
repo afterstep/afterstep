@@ -32,6 +32,7 @@
 
 #include "../../libAfterStep/wmprops.h"
 #include "../../libAfterStep/session.h"
+#include "../../libAfterStep/moveresize.h"
 
 
 /***************************************************************************
@@ -358,6 +359,22 @@ LOCAL_DEBUG_CALLER_OUT( "new(%d%+d%+d), old(%d%+d%+d), max(%+d,%+d)", new_desk, 
 	{
 		if ( force_grab )
 			XGrabServer (dpy);
+		if( Scr.moveresize_in_progress && !Scr.moveresize_in_progress->move_only )
+		{
+			ASWindow *asw = window2ASWindow( AS_WIDGET_WINDOW(Scr.moveresize_in_progress->mr));
+			if( !get_flags (asw->status->flags, AS_Sticky) )
+			{
+				Scr.moveresize_in_progress->curr.x += dvx ;
+				Scr.moveresize_in_progress->curr.y += dvy ;
+				Scr.moveresize_in_progress->curr.width -= dvx ;
+				Scr.moveresize_in_progress->curr.height -= dvy ;
+
+				Scr.moveresize_in_progress->start.x += dvx ;
+				Scr.moveresize_in_progress->start.y += dvy ;
+				Scr.moveresize_in_progress->start.width  -= dvx ;
+				Scr.moveresize_in_progress->start.height -= dvy ;
+			}
+		}
         /* traverse window list and redo the titlebar/buttons if necessary */
         iterate_asbidirlist( Scr.Windows->clients, deskviewport_aswindow_iter_func, (void*)old_desk, NULL, False );
         /* TODO: autoplace sticky icons so they don't wind up over a stationary icon */
@@ -368,7 +385,7 @@ LOCAL_DEBUG_CALLER_OUT( "new(%d%+d%+d), old(%d%+d%+d), max(%+d,%+d)", new_desk, 
 	/* yield to let modules handle desktop/viewport change */
 	sleep_a_millisec(10);
 
-    if( old_desk != new_desk )
+	if( old_desk != new_desk )
 	{
     	if (get_flags(Scr.Feel.flags, ClickToFocus))
 		{
