@@ -91,10 +91,10 @@ Bool asim_show_warning( const char *warning_format, ...)
 
 Bool asim_show_debug( const char *file, const char *func, int line, const char *msg_format, ...)
 {
-    if( OUTPUT_LEVEL_DEBUG <= as_output_threshold)
+    if( OUTPUT_LEVEL_DEBUG <= get_output_threshold())
     {
         va_list ap;
-        fprintf (stderr, "%s debug msg: %s:%s():%d: ", ApplicationName, file, func, line );
+        fprintf (stderr, "%s debug msg: %s:%s():%d: ", get_application_name(), file, func, line );
         va_start (ap, msg_format);
         vfprintf (stderr, msg_format, ap);
         va_end (ap);
