@@ -30,6 +30,8 @@ extern "C" {
 #define CLASS_SCROLL        "Scroll"
 #define CLASS_WHARF         "Wharf"
 #define CLASS_WINLIST       "WinList"
+#define CLASS_TEST		    "Test"
+#define CLASS_GADGET		"Gadget"
 
 #define CLASS_CUSTOM		"ASCustom"
 

@@ -440,8 +440,6 @@ InitMyApp (  const char *app_class, int argc, char **argv, void (*version_func) 
 	{
 		free( MyArgs.locale );
 		MyArgs.locale = mystrdup(getenv("LANG"));
-		if (strlen(MyArgs.locale) == 0)
-  		    show_error ("LANG environment variable is not set - unable to determine locale");
 	}
 #endif
 
@@ -496,7 +494,7 @@ InitMyApp (  const char *app_class, int argc, char **argv, void (*version_func) 
 		if( freopen( MyArgs.log_file, "w", stderr ) == NULL )
 		    show_system_error( "failed to redirect output into file \"%s\"", MyArgs.log_file );
 
-	if( MyArgs.locale )
+	if( MyArgs.locale && strlen(MyArgs.locale) > 0)
 	{
 		as_set_charset( parse_charset_name( MyArgs.locale ));
 #ifdef I18N
@@ -504,7 +502,9 @@ InitMyApp (  const char *app_class, int argc, char **argv, void (*version_func) 
 			if (setlocale (LC_CTYPE, MyArgs.locale) == NULL)
   			    show_error ("unable to set locale");
 #endif
-	}
+	}else
+	    show_warning ("LANG environment variable is not set - use -L \"locale\" command line option to define locale");
+
 #ifdef DEBUG_TRACE_X
     trace_enable_function(MyArgs.trace_calls);
 #endif

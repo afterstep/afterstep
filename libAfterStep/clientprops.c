@@ -17,7 +17,7 @@
  *
  */
 
-#define LOCAL_DEBUG 
+#define LOCAL_DEBUG
 #include "../configure.h"
 
 #include "asapp.h"
@@ -780,7 +780,7 @@ collect_hints (ScreenInfo * scr, Window w, ASFlagType what, ASRawHints * reusabl
 		}
 
 		if( (all_props = XListProperties (dpy, w, &props_num))== NULL )
-			return NULL ; 
+			return NULL ;
 
 		if (reusable_memory == NULL)
 			hints = (ASRawHints *) safecalloc (1, sizeof (ASRawHints));
@@ -1245,11 +1245,13 @@ set_client_names (Window w, char *name, char *icon_name, char *res_class, char *
 		if (name)
 		{
 			set_text_property (w, _XA_WM_NAME, &name, 1, TPE_String);
+			/* need to convert string to UTF8 */
 			set_text_property (w, _XA_NET_WM_NAME, &name, 1, TPE_UTF8);
 		}
 		if (icon_name)
 		{
 			set_text_property (w, _XA_WM_ICON_NAME, &icon_name, 1, TPE_String);
+			/* need to convert string to UTF8 */
 			set_text_property (w, _XA_NET_WM_ICON_NAME, &icon_name, 1, TPE_UTF8);
 		}
 		if (res_class || res_name)

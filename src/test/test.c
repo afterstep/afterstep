@@ -1,296 +1,280 @@
+/*
+ * Copyright (C) 2003 Sasha Vasko <sasha at aftercode.net>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ */
+
+/*#define DO_CLOCKING      */
+#define LOCAL_DEBUG
+#define EVENT_TRACE
+
 #include "../../configure.h"
 
-#include <errno.h>
-#include <stdio.h>
+#include "../../libAfterStep/asapp.h"
+
 #include <signal.h>
-#include <fcntl.h>
-#include <string.h>
 #include <unistd.h>
-#include <ctype.h>
-#include <sys/wait.h>
-#include <sys/time.h>
-#include <time.h>
 
-#ifdef ISC			/* Saul */
-#include <sys/bsdtypes.h>	/* Saul */
-#endif /* Saul */
+#include "../../libAfterImage/afterimage.h"
 
-#include <stdlib.h>
-#if defined ___AIX || defined _AIX || defined __QNX__ || defined ___AIXV3 || defined AIXV3 || defined _SEQUENT_
-#include <sys/select.h>
-#endif
+#include "../../libAfterStep/afterstep.h"
+#include "../../libAfterStep/screen.h"
+#include "../../libAfterStep/module.h"
+#include "../../libAfterStep/mystyle.h"
+#include "../../libAfterStep/mystyle_property.h"
+#include "../../libAfterStep/parser.h"
+#include "../../libAfterStep/clientprops.h"
+#include "../../libAfterStep/wmprops.h"
+#include "../../libAfterStep/decor.h"
+#include "../../libAfterStep/aswindata.h"
+#include "../../libAfterStep/balloon.h"
+#include "../../libAfterStep/event.h"
 
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#include <X11/Xproto.h>
-#include <X11/Xatom.h>
-#include <X11/Intrinsic.h>
-#ifdef I18N
-#include <X11/Xlocale.h>
-#endif
+#include "../../libAfterConf/afterconf.h"
 
-#define IN_MODULE
-#define MODULE_X_INTERFACE
-
-#include "../../include/aftersteplib.h"
-#include "../../include/afterstep.h"
-#include "../../include/style.h"
-#include "../../include/screen.h"
-#include "../../include/ascolor.h"
-#include "../../include/stepgfx.h"
-#include "../../include/module.h"
-#include "../../include/parser.h"
-#include "../../include/confdefs.h"
-#include "../../include/mystyle.h"
-#include "../../include/background.h"
-
-char *MyName;
-ScreenInfo Scr;			/* AS compatible screen information structure */
-Display *dpy;			/* which display are we talking to */
-int screen;
-static Atom wm_del_win;
-
-void DeadPipe (int nonsense);
-
-XColor col1[12] = {{0, 0xff00, 0xff00, 0xff00},
-                 {0, 0x0000, 0x0000, 0x0000},
-		 {0, 0xffff, 0xffff, 0x0000},
-		 {0, 0x7fff, 0xffff, 0x0000},
-		 {0, 0x0000, 0xffff, 0x0000},
-		 {0, 0x0000, 0xffff, 0x7fff},
-		 {0, 0x0000, 0xffff, 0xffff},
-		 {0, 0x0000, 0x7fff, 0xffff},
-		 {0, 0x0000, 0x0000, 0xffff},
-		 {0, 0x7fff, 0x0000, 0xffff},
-		 {0, 0xffff, 0x0000, 0xffff},
-		 {0, 0xffff, 0x0000, 0x7fff}
-} ;
-
-double offset1[2] = { 0.0, 1.0 };
-double offset2[3] = { 0.0, 0.5, 1.0 };
-double offset3[5] = { 0.0, 0.125, 0.25, 0.5625, 1.0 };
-
-ASCOLOR* ascol1 ;
-
+/**********************************************************************/
+/*  AfterStep specific global variables :                             */
+/**********************************************************************/
 typedef struct {
-    int x1, y1, x2, y2, w, h ;
-    int type1, type2 ;
-    int finess ;
-    int maxcol ;
-    int col_offset, col_num ;
-    double* offset ;
-    int iterations ;
+	Window main_window ;
+	ASCanvas *main_canvas ;
+}ASTestState ;
 
-}astest_gradient ;
+ASTestState TestState = { 0 };
 
-astest_gradient grad_test[] = 
+/**********************************************************************/
+/**********************************************************************/
+/* Our configuration options :                                        */
+/**********************************************************************/
+
+void DoTest()
 {
-/* large linear gradients */
-{10, 10, 10, 320, 300, 300, 0, 2, 40, 50, 0, 2, offset1, 1 },  
-{10, 10, 320, 10, 300, 600, 1, 3, 40, 50, 0, 2, offset1, 1 },
-{10, 10, 10, 320, 700, 300, 0, 2, 40, 56, 0, 2, offset1, 1 },  
-{10, 10, 320, 10, 300, 700, 1, 3, 40, 56, 0, 2, offset1, 1 },
-/* small linear gradients */
-{10, 10, 70, 10, 50, 160, 0, 2, 40, 256, 0, 2, offset1, 10 },  
-{10, 10, 70, 10, 50, 160, 1, 3, 40, 256, 0, 2, offset1, 10 },
-/* large diagonal gradients */
-{10, 10, 10, 320, 600, 300, 2, 0, 15, 56, 0, 2, offset1, 1 },
-{10, 10, 10, 320, 600, 300, 3, 1, 15, 56, 0, 2, offset1, 1 },
-{10, 10, 320, 10, 300, 600, 2, 0, 15, 56, 0, 2, offset1, 1 },
-{10, 10, 320, 10, 300, 600, 3, 1, 15, 56, 0, 2, offset1, 1 },
-/* small diagonal gradients */
-{10, 10, 70, 10, 50, 160, 2, 0, 40, 256, 0, 2, offset1, 10 },
-{10, 10, 70, 10, 50, 160, 3, 1, 40, 256, 0, 2, offset1, 10 },
-{10, 10, 180, 10, 160, 50, 2, 0, 40, 256, 0, 2, offset1, 10 },
-{10, 10, 180, 10, 160, 50, 3, 1, 40, 256, 0, 2, offset1, 10 },
-
-/* now lets try the same with different colors */
-/* large linear gradients */
-{10, 10, 10, 320, 300, 300, 0, 2, 40, 56, 2, 2, offset1, 1 },  
-{10, 10, 320, 10, 300, 600, 1, 3, 40, 56, 2, 2, offset1, 1 },
-{10, 10, 10, 320, 700, 300, 0, 2, 40, 56, 2, 2, offset1, 1 },  
-{10, 10, 320, 10, 300, 700, 1, 3, 40, 56, 2, 2, offset1, 1 },
-/* small linear gradients */
-{10, 10, 70, 10, 50, 160, 0, 2, 40, 256, 2, 2, offset1, 10 },  
-{10, 10, 70, 10, 50, 160, 1, 3, 40, 256, 2, 2, offset1, 10 },
-/* large diagonal gradients */
-{10, 10, 10, 320, 600, 300, 2, 0, 15, 56, 2, 2, offset1, 1 },
-{10, 10, 10, 320, 600, 300, 3, 1, 15, 56, 2, 2, offset1, 1 },
-{10, 10, 320, 10, 300, 600, 2, 0, 15, 56, 2, 2, offset1, 1 },
-{10, 10, 320, 10, 300, 600, 3, 1, 15, 56, 2, 2, offset1, 1 },
-/* small diagonal gradients */
-{10, 10, 70, 10, 50, 160, 2, 0, 40, 256, 2, 2, offset1, 10 },
-{10, 10, 70, 10, 50, 160, 3, 1, 40, 256, 2, 2, offset1, 10 },
-{10, 10, 180, 10, 160, 50, 2, 0, 40, 256, 2, 2, offset1, 10 },
-{10, 10, 180, 10, 160, 50, 3, 1, 40, 256, 2, 2, offset1, 10 },
-/* now lets try several points */
-/* large linear gradients */
-{10, 10, 10, 320, 300, 300, 0, 2, 40, 256, 5, 5, offset3, 1 },  
-{10, 10, 320, 10, 300, 600, 1, 3, 40, 256, 5, 5, offset3, 1 },
-{10, 10, 10, 320, 700, 300, 0, 2, 40, 256, 5, 5, offset3, 1 },  
-{10, 10, 320, 10, 300, 700, 1, 3, 40, 256, 5, 5, offset3, 1 },
-/* small linear gradients */
-{10, 10, 70, 10, 50, 160, 0, 2, 40, 256, 5, 5, offset3, 10 },  
-{10, 10, 70, 10, 50, 160, 1, 3, 40, 256, 5, 5, offset3, 10 },
-/* large diagonal gradients */
-{10, 10, 10, 320, 600, 300, 2, 0, 15, 256, 5, 5, offset3, 1 },
-{10, 10, 10, 320, 600, 300, 3, 1, 15, 256, 5, 5, offset3, 1 },
-{10, 10, 320, 10, 300, 600, 2, 0, 15, 256, 5, 5, offset3, 1 },
-{10, 10, 320, 10, 300, 600, 3, 1, 15, 256, 5, 5, offset3, 1 },
-/* small diagonal gradients */
-{10, 10, 70, 10, 50, 160, 2, 0, 40, 256, 5, 5, offset3, 10 },
-{10, 10, 70, 10, 50, 160, 3, 1, 40, 256, 5, 5, offset3, 10 },
-{10, 10, 180, 10, 160, 50, 2, 0, 40, 256, 5, 5, offset3, 10 },
-{10, 10, 180, 10, 160, 50, 3, 1, 40, 256, 5, 5, offset3, 10 },
-
-{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, 0 }
-};
-
-void DoTest( Window w )
-{
-  int i;
-  clock_t started ;
-  Pixmap p ;
-  static int curr_test = 0 ;
-#define CTEST	grad_test[curr_test]    
-    p = XCreatePixmap( dpy, w, 1000, 800, Scr.d_depth );
-
-    if(grad_test[curr_test].iterations == 0 ) curr_test = 0 ;
-    for( i = 0 ; i < 1; i++ )
-    {
-//        DrawASGradient( dpy, p, CTEST.x1, CTEST.y1, CTEST.w, CTEST.h, CTEST.col_num, ascol1+CTEST.col_offset, CTEST.offset, 0, CTEST.type1, CTEST.maxcol, CTEST.finess);
-        draw_gradient( dpy, p, CTEST.x2, CTEST.y2, CTEST.w, CTEST.h, CTEST.col_num, col1+CTEST.col_offset, CTEST.offset, 0, CTEST.type2, CTEST.maxcol, CTEST.finess);
-    }
-    XFlush( dpy );
-    XSetWindowBackgroundPixmap( dpy, w, p ); 
-    XClearWindow(dpy, w );
-    XFlush( dpy );
-    for( i = 0 ; i < 10; i++ )
-    {
-//        DrawASGradient( dpy, p, CTEST.x1, CTEST.y1, CTEST.w, CTEST.h, CTEST.col_num, ascol1+CTEST.col_offset, CTEST.offset, 0, CTEST.type1, CTEST.maxcol, CTEST.finess);
-        draw_gradient( dpy, p, CTEST.x2, CTEST.y2, CTEST.w, CTEST.h, CTEST.col_num, col1+CTEST.col_offset, CTEST.offset, 0, CTEST.type2, CTEST.maxcol, CTEST.finess);
-    }
-    XFlush( dpy );
-
-    started = clock();
-    for( i = 0 ; i < grad_test[curr_test].iterations; i++ )
-    {
-//        DrawASGradient( dpy, p, CTEST.x1, CTEST.y1, CTEST.w, CTEST.h, CTEST.col_num, ascol1+CTEST.col_offset, CTEST.offset, 0, CTEST.type1, CTEST.maxcol, CTEST.finess);
-    }
-    XFlush( dpy );
-    fprintf( stderr, "Test#%3d: DrawASGradient in %5lu mlsec.\n", curr_test, ((clock()-started)*100)/CLOCKS_PER_SEC );         
-
-    started = clock();
-    for( i = 0 ; i < grad_test[curr_test].iterations; i++ )
-    {
-        draw_gradient( dpy, p, CTEST.x2, CTEST.y2, CTEST.w, CTEST.h, CTEST.col_num, col1+CTEST.col_offset, CTEST.offset, 0, CTEST.type2, CTEST.maxcol, CTEST.finess);
-    }
-    XFlush( dpy );
-    fprintf( stderr, "Test#%3d: draw_gradient  in %5lu mlsec.\n", curr_test, ((clock()-started)*100)/CLOCKS_PER_SEC );         
-
-    XFreePixmap( dpy, p );
-    curr_test++ ;
-}
-
-char *path = "/aaa/bbb/ccc:~/:$PATH";
-char *file1 = "~/GNUstep/Library/AfterStep/animate";
-
-int main(int argc, char* argv[])
-{
-  int x_fd ;
-  XTextProperty name;
-  Window w ;
-  XClassHint class1;
-  char* display_name = NULL ;
-  char* test, *test2 ;
-  
-    test = mystrdup(path);
-    fprintf(stderr, "\nsource:[%s]",test );
-    replaceEnvVar(&test);
-    fprintf(stderr, "\nreplaceEndVar:[%s]",test );
-
-    fprintf(stderr, "\nsource:[%s]",file1 );
-    test2 = PutHome(file1);
-    fprintf(stderr, "\nPutHome:[%s]",test2 );
-    free( test2 );
-    test2 = findIconFile(file1, test, X_OK);
-    fprintf(stderr, "\nfindIconFile:[%s]\n",test2 );
-    if(test2) free( test2 );
-    test2 = findIconFile("animate", test, X_OK);
-    fprintf(stderr, "\nfindIconFile:[%s]\n",test2 );
-    free( test );
-
-    exit(0);
-    
-#if 0
-  
- /* Save our program name - for error messages */    
-    SetMyName(argv[0]);
-
-  signal (SIGHUP, DeadPipe);
-  signal (SIGINT, DeadPipe);
-  signal (SIGPIPE, DeadPipe);
-  signal (SIGQUIT, DeadPipe);
-  signal (SIGTERM, DeadPipe);
-
-    x_fd = ConnectX(&Scr, display_name, PropertyChangeMask );
-    
-    wm_del_win = XInternAtom (dpy, "WM_DELETE_WINDOW", False);
-
-    w = XCreateSimpleWindow (dpy, Scr.Root, 1, 1, 800,750 , 1, 0, 0 );
-
-    XStringListToTextProperty (&MyName, 1, &name);
-
-    class1.res_name = MyName;	/* for future use */
-    class1.res_class = "ASTest";
-
-    XSetWMProtocols (dpy, w, &wm_del_win, 1);
-    XSetWMProperties (dpy, w, &name, &name, NULL, 0, NULL, NULL, &class1);
-    /* showing window to let user see that we are doing something */
-    XMapRaised (dpy, w);
-    /* final cleanup */
-    XFree ((char *) name.value);
-    XSelectInput (dpy, w, (StructureNotifyMask | ButtonPress));  
-    
-    ascol1 = XColors2ASCOLORS(col1,12);
-
-    while(1)
-    {
-      XEvent event ;
-        XNextEvent (dpy, &event);
-        switch(event.type)
+	char *name ;
+	int i ;
+	unsigned int c = 192 ;
+	XDeleteProperty (dpy, TestState.main_window, _XA_NET_WM_NAME);
+	XDeleteProperty (dpy, TestState.main_window, _XA_NET_WM_ICON_NAME);
+	name = safemalloc( 128+1 );
+	for ( i = 0 ; i < 128 && c < 255 ; ++i)
 	{
-	    case ButtonPress:
-		DoTest(w);
-		break ;
-	    case ClientMessage:
-	        if ((event.xclient.format == 32) &&
-	            (event.xclient.data.l[0] == wm_del_win))
-		    {
-			XDestroyWindow( dpy, w );
-			XFlush( dpy );
-			return 0 ;
-		    }
+		name[i] = (char)c ;
+		++c ;
 	}
-    }
-    return 0 ;
-#endif    
+	name[i] = '\0' ;
+
+	set_text_property (TestState.main_window, XA_WM_NAME, &name, 1, TPE_String);
+	set_text_property (TestState.main_window, XA_WM_ICON_NAME, &name, 1, TPE_String);
+	free( name );
+
+}
+/**********************************************************************/
+
+void GetBaseOptions (const char *filename);
+void HandleEvents();
+void DispatchEvent (ASEvent * Event);
+Window make_test_window();
+void process_message (unsigned long type, unsigned long *body);
+
+int
+main( int argc, char **argv )
+{
+    /* Save our program name - for error messages */
+    InitMyApp (CLASS_TEST, argc, argv, NULL, NULL, 0 );
+
+    set_signal_handler( SIGSEGV );
+
+    ConnectX( &Scr, 0 );
+    ConnectAfterStep (0);
+    balloon_init (False);
+
+    LoadBaseConfig ( GetBaseOptions);
+	LoadColorScheme();
+
+    TestState.main_window = make_test_window();
+    TestState.main_canvas = create_ascanvas( TestState.main_window );
+    set_root_clip_area(TestState.main_canvas );
+
+	DoTest();
+
+	/* And at long last our main loop : */
+    HandleEvents();
+	return 0 ;
 }
 
-void 
+void HandleEvents()
+{
+    ASEvent event;
+    Bool has_x_events = False ;
+    while (True)
+    {
+        while((has_x_events = XPending (dpy)))
+        {
+            if( ASNextEvent (&(event.x), True) )
+            {
+                event.client = NULL ;
+                setup_asevent_from_xevent( &event );
+                DispatchEvent( &event );
+            }
+        }
+        module_wait_pipes_input ( process_message );
+    }
+}
+
+void
 DeadPipe (int nonsense)
 {
-    
+    FreeMyAppResources();
+
+    if( TestState.main_canvas )
+        destroy_ascanvas( &TestState.main_canvas );
+    if( TestState.main_window )
+        XDestroyWindow( dpy, TestState.main_window );
+
 #ifdef DEBUG_ALLOCS
-/* normally, we let the system clean up, but when auditing time comes 
- * around, it's best to have the books in order... */
-    {
-      print_unfreed_mem();
-    }
-    
+    print_unfreed_mem ();
 #endif /* DEBUG_ALLOCS */
 
-  XFlush (dpy);			
-  XCloseDisplay (dpy);		
-  exit (0);
+    XFlush (dpy);			/* need this for SetErootPixmap to take effect */
+	XCloseDisplay (dpy);		/* need this for SetErootPixmap to take effect */
+    exit (0);
 }
+
+void
+GetBaseOptions (const char *filename)
+{
+	ReloadASEnvironment( NULL, NULL, NULL, False );
+}
+
+/****************************************************************************/
+/* PROCESSING OF AFTERSTEP MESSAGES :                                       */
+/****************************************************************************/
+void
+process_message (unsigned long type, unsigned long *body)
+{
+    LOCAL_DEBUG_OUT( "received message %lX", type );
+}
+
+void
+DispatchEvent (ASEvent * event)
+{
+    ASWindowData *pointer_wd = NULL ;
+
+    SHOW_EVENT_TRACE(event);
+
+    if( (event->eclass & ASE_POINTER_EVENTS) != 0 )
+    {
+    }
+
+    switch (event->x.type)
+    {
+	    case ConfigureNotify:
+            {
+                ASFlagType changes = handle_canvas_config( TestState.main_canvas );
+                if( changes != 0 )
+                    set_root_clip_area( TestState.main_canvas );
+
+                if( get_flags( changes, CANVAS_RESIZED ) )
+				{
+                }else if( changes != 0 )        /* moved - update transparency ! */
+				{
+				}
+            }
+	        break;
+        case ButtonPress:
+            break;
+        case ButtonRelease:
+			break;
+        case EnterNotify :
+			if( event->x.xcrossing.window == Scr.Root )
+			{
+				withdraw_active_balloon();
+				break;
+			}
+        case LeaveNotify :
+        case MotionNotify :
+            break ;
+	    case ClientMessage:
+            if ((event->x.xclient.format == 32) &&
+                (event->x.xclient.data.l[0] == _XA_WM_DELETE_WINDOW))
+			{
+                DeadPipe(0);
+			}
+	        break;
+	    case PropertyNotify:
+			LOCAL_DEBUG_OUT( "property %s(%lX), _XROOTPMAP_ID = %lX, event->w = %lX, root = %lX", XGetAtomName(dpy, event->x.xproperty.atom), event->x.xproperty.atom, _XROOTPMAP_ID, event->w, Scr.Root );
+            if( event->x.xproperty.atom == _XROOTPMAP_ID && event->w == Scr.Root )
+            {
+                LOCAL_DEBUG_OUT( "root background updated!%s","");
+                safe_asimage_destroy( Scr.RootImage );
+                Scr.RootImage = NULL ;
+            }else if( event->x.xproperty.atom == _AS_STYLE )
+			{
+				LOCAL_DEBUG_OUT( "AS Styles updated!%s","");
+				handle_wmprop_event (Scr.wmprops, &(event->x));
+				mystyle_list_destroy_all(&(Scr.Look.styles_list));
+				LoadColorScheme();
+				/* now we need to update everything */
+			}
+			break;
+    }
+}
+
+/********************************************************************/
+/* showing our main window :                                        */
+/********************************************************************/
+Window
+make_test_window()
+{
+	Window        w;
+	XSizeHints    shints;
+	ExtendedWMHints extwm_hints ;
+	int x, y ;
+    unsigned int width = 300;
+    unsigned int height = 300;
+
+	x = (Scr.MyDisplayWidth-width)/2;
+	y = (Scr.MyDisplayHeight-height)/2;
+
+	w = create_visual_window( Scr.asv, Scr.Root, x, y, width, height, 0, InputOutput, 0, NULL);
+
+	set_client_names( w, "Test", "TEST", CLASS_TEST, MyName );
+
+	shints.flags = USPosition|USSize|PMinSize|PMaxSize|PBaseSize|PWinGravity;
+	shints.min_width = shints.min_height = 4;
+	shints.base_width = shints.base_height = 4;
+	shints.win_gravity = NorthEastGravity ;
+
+	extwm_hints.pid = getpid();
+	extwm_hints.flags = EXTWM_PID ;
+
+	set_client_hints( w, NULL, &shints, AS_DoesWmDeleteWindow, &extwm_hints );
+
+	/* showing window to let user see that we are doing something */
+	XMapRaised (dpy, w);
+	/* final cleanup */
+	XFlush (dpy);
+	sleep (1);								   /* we have to give AS a chance to spot us */
+	/* we will need to wait for PropertyNotify event indicating transition
+	   into Withdrawn state, so selecting event mask: */
+    XSelectInput (dpy, w, PropertyChangeMask|StructureNotifyMask|
+                          ButtonPressMask|ButtonReleaseMask|PointerMotionMask|
+                          KeyPressMask|KeyReleaseMask|
+                          EnterWindowMask|LeaveWindowMask);
+
+	return w ;
+}
+
+
+

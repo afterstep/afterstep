@@ -408,19 +408,26 @@ move_resize_loop (ASMoveResizeData *data, ASEvent *event )
 	int           new_x, new_y;
 SHOW_CHECKPOINT;
 	/* discard any extra motion events before a logical release */
+	if( AS_ASSERT(event) || AS_ASSERT(data))
+		return False;
 LOCAL_DEBUG_OUT("widget(%p)->parent(%p)", event->widget, data->parent );
     if( event->widget != data->parent )
-		return 0;
+		return False;
 
 	if( event->eclass&ASE_POINTER_EVENTS )
 	{
+SHOW_CHECKPOINT;
 		data->pointer_state = event->x.xbutton.state ;
+SHOW_CHECKPOINT;
 		if( data->subwindow_func &&
 			event->x.xbutton.subwindow != data->curr_subwindow )
 		{
+SHOW_CHECKPOINT;
 			data->subwindow_func( data, event );
+SHOW_CHECKPOINT;
 			data->curr_subwindow = event->x.xbutton.subwindow ;
 		}
+SHOW_CHECKPOINT;
 		if (event->x.type == MotionNotify)
 		{
 			while (ASCheckMaskEvent(PointerMotionMask | ButtonMotionMask |
@@ -433,6 +440,7 @@ LOCAL_DEBUG_OUT("widget(%p)->parent(%p)", event->widget, data->parent );
                 }else if (event->x.type == ButtonPress)
                     break;
             }
+SHOW_CHECKPOINT;
             if( data->stop_on_button_press )
             {
                 if( get_flags(event->x.xmotion.state, ButtonAnyMask) )
@@ -441,11 +449,13 @@ LOCAL_DEBUG_OUT("widget(%p)->parent(%p)", event->widget, data->parent );
                     complete_interactive_action( data, True );
                     return 0;
                 }
+SHOW_CHECKPOINT;
             }else if( !get_flags(event->x.xmotion.state, AllButtonMask) )
 			{/* all the buttons are depressed !!! */
 				complete_interactive_action( data, True );
 				return 0;
 			}
+SHOW_CHECKPOINT;
 		}
 	}
 SHOW_CHECKPOINT;

@@ -1,11 +1,17 @@
-OBJS		= test.o 
+OBJS		= test.o
+
 PROG		= test
 
-LIBS_ASDYN      = $(LIBS_ASIMAGE)
-LIBS_DEPEND     = $(LIB_AFTERSTEP) $(LIB_ASIMAGE)
+LIBS_PRIVATE      = $(LIB_AFTERCONF) $(LIB_AFTERSTEP) \
+					$(LIB_AFTERIMAGE) $(LIB_AFTERBASE) $(LIBS_AFTERIMAGE)
+LIBS_DEPEND     = $(LIB_AFTERBASE) $(LIB_AFTERIMAGE) $(LIB_AFTERSTEP) $(LIB_AFTERCONF)
 
 @MAKEFILECOMMON@
+
+$(PROG):        $(OBJS) $(LIBS_DEPEND)
+		$(CC) $(OBJS) $(LIBS_ALL) -o $(@)
 
 install:	install.bin install.man
 
 uninstall:	uninstall.bin uninstall.man
+

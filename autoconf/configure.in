@@ -309,6 +309,7 @@ if test -d libAfterBase; then
   AC_CHECKING(libAfterImage)
   cd libAfterImage; \
   ./configure $_def_lib_conf_opts \
+   --enable-i18n=$enable_i18n --enable-xlocale=$enable_xlocale --with-locale=$with_locale \
    --with-xpm=$with_xpm   --with-builtin-xpm=$with_builtin_xpm  --with-xpm-includes=$xpm_includes \
    --with-jpeg=$with_jpeg --with-jpeg-includes=$jpeg_includes \
    --with-png=$with_png   --with-png-includes=$png_includes \
