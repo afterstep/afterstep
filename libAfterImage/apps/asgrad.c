@@ -31,11 +31,23 @@
 #include "afterimage.h"
 #include "common.h"
 
+ARGB32 default_colors[] = {
+	0xFF700070,                                /* violet */
+	0xFF0000FF,                                /* blue   */
+	0xFF00FFFF,                                /* cyan   */
+	0xFF00FF00,
+	0XFFFFFF00,
+	0XFFFF0000,
+	0XFF700000,
+};
+double default_offsets[] = { 0, 0.14, 0.28, 0.42, 0.56, 0.70, 0.84, 1.0} ;
+
+
 void usage()
 {
-	printf( "  Usage: asgrad -h | <geometry> <gradient_type> <color1> <offset2> <color2> [ <offset3> <color3> ...]\n"); 
+	printf( "  Usage: asgrad -h | <geometry> <gradient_type> <color1> <offset2> <color2> [ <offset3> <color3> ...]\n");
 	printf( "  Where: geometry - size of the resulting image and window;\n");
-	printf( "         gradient_type - One of the fiollowing values :\n"); 
+	printf( "         gradient_type - One of the fiollowing values :\n");
 	printf( "            0 - linear left-to-right gradient,\n");
 	printf( "            1 - diagonal lefttop-to-rightbottom,\n");
 	printf( "            2 - linear top-to-bottom gradient,\n");
@@ -50,6 +62,7 @@ int main(int argc, char* argv[])
 	int screen, depth ;
 	int dummy, to_width, to_height, geom_flags = 0;
 	ASGradient grad ;
+	ASGradient default_grad = { 1, 7, &(default_colors[0]), &(default_offsets[0])} ;
 
 	/* see ASView.1 : */
 	set_application_name( argv[0] );
@@ -59,7 +72,7 @@ int main(int argc, char* argv[])
 	    if( strcmp( argv[1], "-h") == 0 )
 	    {
 			usage();
-			return 0;		
+			return 0;
 		}
 	    /* see ASScale.1 : */
 	    geom_flags = XParseGeometry( argv[1], &dummy, &dummy,
@@ -97,21 +110,21 @@ int main(int argc, char* argv[])
 				if(grad.offset[grad.npoints] >= 0. && grad.offset[grad.npoints]<= 1.0 )
 					grad.npoints++ ;
 		}
-	}
+	}else
+		grad = default_grad ;
 
 	if( grad.npoints <= 0 )
 	{
-		show_error( " not enough command line arguments specified.");
-		usage();
+		show_error( " not enough gradient points specified.");
 		return 1;
 	}
 
 
 	/* Making sure tiling geometry is sane : */
 	if( !get_flags(geom_flags, WidthValue ) )
-		to_width = 200 ;
+		to_width  = DisplayWidth(dpy, screen)*2/3 ;
 	if( !get_flags(geom_flags, HeightValue ) )
-		to_height = 200;
+		to_height = DisplayHeight(dpy, screen)*2/3 ;
 	printf( "%s: rendering gradient of type %d to %dx%d\n",
 		    get_application_name(), grad.type&GRADIENT_TYPE_MASK, to_width, to_height );
 

@@ -50,14 +50,14 @@ int main(int argc, char* argv[])
 	Window w ;
 	ASVisual *asv ;
 	int screen, depth ;
-	char *image_file = "test.xpm" ;
+	char *image_file = "rose512.jpg" ;
 	ARGB32 tint_color = time(NULL);
 	int tile_x, tile_y, tile_width, tile_height, geom_flags = 0;
 	ASImage *im ;
 
 	/* see ASView.1 : */
 	set_application_name( argv[0] );
-  
+
 	/* parse_argb_color can only be useda after display is open : */
     dpy = XOpenDisplay(NULL);
 	_XA_WM_DELETE_WINDOW = XInternAtom( dpy, "WM_DELETE_WINDOW", False);
@@ -66,11 +66,11 @@ int main(int argc, char* argv[])
 
 	if( argc > 1 )
 	{
-		if( strncmp( argv[1], "-h", 2 ) == 0 ) 
+		if( strncmp( argv[1], "-h", 2 ) == 0 )
 		{
 			usage();
 			return 0;
-		}  
+		}
 		image_file = argv[1] ;
 		if( argc > 2 )
 		{   /* see ASTile.1 : */

@@ -37,13 +37,23 @@
 #include "afterimage.h"
 #include "common.h"
 
+char *burning_rose[] =
+{
+	"asmerge",
+	"rose512.jpg",
+	"add",
+	"back.xpm:512x386",
+	"hue",
+	"fore.xpm:512x386"
+};
+
 void usage()
 {
 	printf( "Usage: asmerge [-h]|[image op1 image1 [op2 image2 [...]]]\n");
 	printf( "Where: image  - is background image filename\n");
 	printf( "       image1 - is first overlay's filename\n");
 	printf( "       op1,op2,... - overlay operation. Supported operations are :\n");
-	list_scanline_merging( stdout, 
+	list_scanline_merging( stdout,
 	        "         %-15.15s- %s\n");
 }
 
@@ -67,9 +77,12 @@ int main(int argc, char* argv[])
 	}
 	if( argc <= 3 )
 	{
-		show_error( "not enough arguments.");
+		show_error( "not enough arguments, please see usage: ");
 		usage() ;
-		return 1;
+		printf( "Using the default, \"The Burning Rose\", composition :\n");
+		printf( "\n\trose.jpg add back.xpm:512x386 hue fore.xpm:512x386\n");
+		argv = &(burning_rose[0]) ;
+		argc = 6;
 	}
 
 	dpy = XOpenDisplay(NULL);

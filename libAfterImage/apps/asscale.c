@@ -43,7 +43,7 @@ int main(int argc, char* argv[])
 	Window w ;
 	ASVisual *asv ;
 	int screen, depth ;
-	char *image_file = "test.xpm" ;
+	char *image_file = "rose512.jpg" ;
 	int dummy, to_width, to_height, geom_flags = 0;
 	ASImage *im ;
 
@@ -52,11 +52,11 @@ int main(int argc, char* argv[])
 
 	if( argc > 1 )
 	{
-		if( strncmp( argv[1], "-h", 2 ) == 0 ) 
+		if( strncmp( argv[1], "-h", 2 ) == 0 )
 		{
 			usage();
 			return 0;
-		}  
+		}
 		image_file = argv[1] ;
 		if( argc > 2 )   /* see ASScale.1 : */
 			geom_flags = XParseGeometry( argv[2], &dummy, &dummy,

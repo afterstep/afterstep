@@ -43,7 +43,7 @@ int main(int argc, char* argv[])
 	Window w ;
 	ASVisual *asv ;
 	int screen, depth ;
-	char *image_file = "test.xpm" ;
+	char *image_file = "rose512.jpg" ;
 	int flip = FLIP_VERTICAL;
 	int tile_x, tile_y, tile_width, tile_height, geom_flags = 0;
 	ASImage *im = NULL;
@@ -57,7 +57,7 @@ int main(int argc, char* argv[])
 		{
 			usage();
 			return 0;
-		}	
+		}
 		image_file = argv[1] ;
 		if( argc > 2 )
 		{
@@ -80,7 +80,7 @@ int main(int argc, char* argv[])
 
 	/* see ASView.2 : */
 	im = file2ASImage( image_file, 0xFFFFFFFF, SCREEN_GAMMA, 0, NULL );
-	if( im == NULL ) 
+	if( im == NULL )
 		return 1;
 
 	/* Making sure tiling geometry is sane : */

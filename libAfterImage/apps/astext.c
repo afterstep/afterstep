@@ -52,19 +52,19 @@
 
 void usage()
 {
-	printf( "  Usage:   astext [-h] [-f font] [-s size] [-t text] [-S 3D_style] \n"); 
+	printf( "  Usage:   astext [-h] [-f font] [-s size] [-t text] [-S 3D_style] \n");
 	printf( "                  [-c text_color] [-b background_color]\n");
 	printf( "                  [-T foreground_texture] [-B background_image]\n");
 	printf( "      			   [-r foreground_resize_type] [-R background_resize_type]\n");
 	printf( "  Where: font - TrueType font's filename or X font spec or alias;\n");
 	printf( "         size - size in points for TrueType fonts;\n");
 	printf( "         text - text to be drawn;\n");
-	printf( "         3D_style - 3D style of text. One of the following:\n");	
+	printf( "         3D_style - 3D style of text. One of the following:\n");
 	printf( "             0 - plain 2D tetx, 1 - embossed, 2 - sunken, 3 - shade above,\n");
 	printf( "             4 - shade below, 5 - embossed thick 6 - sunken thick.\n");
 	printf( "         resize_type - tells how texture/image should be transformed to fit\n");
 	printf( "                       the text size. Could be: scale or tile. Default is tile\n");
-	                
+
 }
 
 int main(int argc, char* argv[])
@@ -72,9 +72,9 @@ int main(int argc, char* argv[])
 	Window w ;
 	ASVisual *asv = NULL ;
 	int screen, depth ;
-	char *font_name = "fixed";
+	char *font_name = "test.ttf";
 	int size = 32 ;
-	char *text = "Smart Brown Dog jumps Over The Lazy Fox, and falls into the ditch.";
+	char *text = "Smart Brown Dog jumps Over The Lazy Fox,\nand falls into the ditch.";
 	ARGB32 text_color = ARGB32_White, back_color = ARGB32_Black;
 	char *text_color_name = "#FFFFFFFF", *back_color_name = "#FF000000";
 	char *fore_image_file = "fore.xpm", *back_image_file = "back.xpm" ;
@@ -89,25 +89,25 @@ int main(int argc, char* argv[])
 	/* see ASView.1 : */
 	set_application_name( argv[0] );
 	set_output_threshold(OUTPUT_LEVEL_DEBUG);
-	
-	if( argc == 1 ) 
+
+	if( argc == 1 )
 		usage();
 	else for( i = 1 ; i < argc ; i++ )
 	{
-		if( strncmp( argv[i], "-h", 2 ) == 0 ) 
+		if( strncmp( argv[i], "-h", 2 ) == 0 )
 		{
 			usage();
 			return 0;
 		}
 		if( i+1 < argc )
 		{
-			if( strncmp( argv[i], "-f", 2 ) == 0 ) 
-				font_name = argv[i+1] ;	
-			else if( strncmp( argv[i], "-s", 2 ) == 0 ) 
-				size = atoi(argv[i+1]);	
-			else if( strncmp( argv[i], "-t", 2 ) == 0 ) 
-				text = argv[i+1] ;	
-			else if( strncmp( argv[i], "-S", 2 ) == 0 ) 
+			if( strncmp( argv[i], "-f", 2 ) == 0 )
+				font_name = argv[i+1] ;
+			else if( strncmp( argv[i], "-s", 2 ) == 0 )
+				size = atoi(argv[i+1]);
+			else if( strncmp( argv[i], "-t", 2 ) == 0 )
+				text = argv[i+1] ;
+			else if( strncmp( argv[i], "-S", 2 ) == 0 )
 			{
 				type_3d = atoi(argv[i+1]);
 				if( type_3d >= AST_3DTypes )
@@ -115,19 +115,19 @@ int main(int argc, char* argv[])
 					fprintf( stderr, "3D type is wrong. Using 2D Plain instead.\n");
 					type_3d = AST_Plain ;
 				}
-			
-			}else if( strncmp( argv[i], "-c", 2 ) == 0 ) 
-				text_color_name = argv[i+1] ;	
-			else if( strncmp( argv[i], "-b", 2 ) == 0 ) 
-				back_color_name = argv[i+1] ;	
-			else if( strncmp( argv[i], "-T", 2 ) == 0 ) 
-				fore_image_file = argv[i+1] ;	
-			else if( strncmp( argv[i], "-B", 2 ) == 0 ) 
-				back_image_file = argv[i+1] ;	
-			else if( strncmp( argv[i], "-r", 2 ) == 0 ) 
-				scale_fore_image = (strcmp( argv[i+1], "scale") == 0);	
-			else if( strncmp( argv[i], "-R", 2 ) == 0 ) 
-				scale_back_image = (strcmp( argv[i+1], "scale") == 0);	
+
+			}else if( strncmp( argv[i], "-c", 2 ) == 0 )
+				text_color_name = argv[i+1] ;
+			else if( strncmp( argv[i], "-b", 2 ) == 0 )
+				back_color_name = argv[i+1] ;
+			else if( strncmp( argv[i], "-T", 2 ) == 0 )
+				fore_image_file = argv[i+1] ;
+			else if( strncmp( argv[i], "-B", 2 ) == 0 )
+				back_image_file = argv[i+1] ;
+			else if( strncmp( argv[i], "-r", 2 ) == 0 )
+				scale_fore_image = (strcmp( argv[i+1], "scale") == 0);
+			else if( strncmp( argv[i], "-R", 2 ) == 0 )
+				scale_back_image = (strcmp( argv[i+1], "scale") == 0);
 		}
 	}
 
@@ -142,8 +142,13 @@ int main(int argc, char* argv[])
 
 	if( font == NULL )
 	{
-		show_error( "unable to load requested font \"%s\". Aborting.", font_name );
-		return 1;
+		show_error( "unable to load requested font \"%s\". Falling back to \"fixed\".", font_name );
+		font = get_asfont( fontman, "fixed", 0, size, ASF_GuessWho );
+		if( font == NULL )
+		{
+			show_error( "font \"fixed\" is not available either. Aborting.");
+			return 1;
+		}
 	}
 
 	parse_argb_color( text_color_name, &text_color );
@@ -166,7 +171,7 @@ int main(int argc, char* argv[])
 					fore_im = scale_asimage( asv, tmp, width, height,
   					                         ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT );
 				else
-					fore_im = tile_asimage( asv, tmp, 0, 0, width, height, 0, 
+					fore_im = tile_asimage( asv, tmp, 0, 0, width, height, 0,
   					                         ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT );
 				destroy_asimage( &tmp );
 			}else

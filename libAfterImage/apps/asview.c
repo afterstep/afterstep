@@ -32,7 +32,7 @@ int main(int argc, char* argv[])
 	Window w ;
 	ASVisual *asv ;
 	int screen, depth ;
-	char *image_file = "test.xpm" ;
+	char *image_file = "rose512.jpg" ;
 	ASImage *im ;
 	/* see ASView.1 : */
 	set_application_name( argv[0] );
@@ -43,7 +43,7 @@ int main(int argc, char* argv[])
 		{
 			usage();
 			return 0;
-		}	
+		}
 		image_file = argv[1] ;
 	}else
 	{
@@ -100,7 +100,7 @@ int main(int argc, char* argv[])
 			}
   		}
 	}
-	
+
     if( dpy )
         XCloseDisplay (dpy);
     return 0 ;

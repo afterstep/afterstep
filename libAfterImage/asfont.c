@@ -1194,7 +1194,7 @@ LOCAL_DEBUG_OUT( "scanline buffer memory allocated %d", map.width*line_height*si
 					line[x] = 0;
 			}
 			pen_x = (font->pen_move_dir == RIGHT_TO_LEFT)? map.width : 0;
-			pen_y += line_height+offset_3d_y ;
+			pen_y += line_height ;
 		}else
 		{
 			if( map.glyphs[i] == GLYPH_SPACE || map.glyphs[i] == GLYPH_TAB )
@@ -1255,8 +1255,8 @@ LOCAL_DEBUG_OUT( "scanline buffer memory allocated %d", map.width*line_height*si
 						render_asglyph( scanlines, asg->pixmap, start_x+3, y+3, asg->width, asg->height, 0x00FF );
 						render_asglyph( scanlines, asg->pixmap, start_x+2, y+2, asg->width, asg->height, 0x00CF );
  					    break ;
-				  default: 
-				        break ;						
+				  default:
+				        break ;
 				}
 
 				if( font->pen_move_dir == LEFT_TO_RIGHT )
