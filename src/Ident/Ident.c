@@ -391,7 +391,7 @@ make_ident_window( int width, int height)
 	shints.win_gravity = Config->gravity ;
 
 	extwm_hints.pid = getpid();
-    extwm_hints.flags = EXTWM_PID ;
+    extwm_hints.flags = EXTWM_PID|EXTWM_TypeASModule ;
 
 	set_client_hints( w, NULL, &shints, AS_DoesWmDeleteWindow, &extwm_hints );
 
@@ -578,6 +578,7 @@ fill_window_data()
 	SHOW_FLAG(wd->flags,SizeInc);
 	SHOW_FLAG(wd->flags,BaseSize);
 	SHOW_FLAG(wd->flags,Gravity);
+	SHOW_FLAG(wd->flags,Module);
 	
 	add_property("Specified hint values:", buf, AS_Text_ASCII, True);
 

@@ -547,7 +547,7 @@ make_winlist_window()
 	shints.win_gravity = Config->gravity ;
 
 	extwm_hints.pid = getpid();
-	extwm_hints.flags = EXTWM_PID|EXTWM_StateSkipTaskbar|EXTWM_StateSkipPager|EXTWM_TypeDock ;
+	extwm_hints.flags = EXTWM_PID|EXTWM_StateSkipTaskbar|EXTWM_StateSkipPager|EXTWM_TypeDock|EXTWM_TypeASModule ;
 
 	set_client_hints( w, NULL, &shints, AS_DoesWmDeleteWindow, &extwm_hints );
 

@@ -86,6 +86,7 @@ struct ScreenInfo;
 #define AS_Windowbox            (1<<23)
 #define AS_FocusOnMap           (1<<24)
 #define AS_ShortLived           (1<<25)
+#define AS_Module				(1<<26)
 
 /***********************************************************/
 /* AS supported protocols :                                */

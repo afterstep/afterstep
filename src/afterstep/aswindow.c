@@ -140,7 +140,7 @@ make_aswindow_cmd_iter_func(void *data, void *aux_data)
 {
     struct SaveWindowAuxData *swad = (struct SaveWindowAuxData *)aux_data ;
     ASWindow *asw = (ASWindow*)data ;
-    if( asw && swad )
+    if( asw && swad && !ASWIN_HFLAGS(asw,AS_Module) )
     {
 		Bool same_host = (asw->hints->client_host == NULL || mystrcasecmp( asw->hints->client_host, swad->this_host )== 0);
 		if( asw->hints->client_cmd == NULL && same_host )

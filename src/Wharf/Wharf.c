@@ -1289,7 +1289,7 @@ map_wharf_folder( ASWharfFolder *aswf,
 	aswf->gravity = gravity ;
 
 	extwm_hints.pid = getpid();
-    extwm_hints.flags = EXTWM_PID|EXTWM_StateSkipTaskbar|EXTWM_TypeDock ;
+    extwm_hints.flags = EXTWM_PID|EXTWM_StateSkipTaskbar|EXTWM_TypeDock|EXTWM_TypeASModule ;
 
     if( aswf != WharfState.root_folder )
 	{

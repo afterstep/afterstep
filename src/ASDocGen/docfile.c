@@ -106,10 +106,10 @@ write_doc_header( ASXMLInterpreterState *state )
 			fprintf( state->dest_fp, PHPXrefFormat, "visualdoc","Copyright","authors", "" );
 			fprintf( state->dest_fp, "<hr>\n" );
 			if( state->display_purpose[0] != '\0' )
-				fprintf( state->dest_fp, "<br><table width=100\%><tr>\
-				<td width=50\%><b><FONT face=\"Tahoma, Arial, Verdana, Helvetica\" size=\"-1\">%s</FONT></b></td>\
-				<td width=50\%><FONT face=\"Tahoma, Arial, Verdana, Helvetica\" size=\"-1\">%s</FONT></td>\
-				</tr></table><br><hr>\n", state->display_name, state->display_purpose );
+				fprintf( state->dest_fp, "<br><table width=100%%><tr>"
+				"<td width=50%%><b><FONT face=\"Tahoma, Arial, Verdana, Helvetica\" size=\"-1\">%s</FONT></b></td>"
+				"<td width=50%%><FONT face=\"Tahoma, Arial, Verdana, Helvetica\" size=\"-1\">%s</FONT></td>"
+				"</tr></table><br><hr>\n", state->display_name, state->display_purpose );
 			else
 				fprintf( state->dest_fp, "<br><b>%s</b><br><br><hr>\n", state->display_name);
 			for( i = 0 ; i < DocClass_TopicIndex ; ++i ) 

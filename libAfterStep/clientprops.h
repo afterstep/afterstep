@@ -157,6 +157,7 @@ extern Atom _XA_NET_WM_WINDOW_TYPE_DIALOG;
 extern Atom _XA_NET_WM_WINDOW_TYPE_NORMAL;
 extern Atom _XA_NET_WM_WINDOW_TYPE_UTILITY;
 extern Atom _XA_NET_WM_WINDOW_TYPE_SPLASH;
+extern Atom _XA_AS_WM_WINDOW_TYPE_MODULE;
 
 extern Atom _XA_NET_WM_STATE;
 extern Atom _XA_NET_WM_STATE_MODAL;
@@ -464,9 +465,10 @@ typedef struct ExtendedWMHints
 #define EXTWM_TypeNormal        (0x01<<10)
 #define EXTWM_TypeUtility       (0x01<<11)
 #define EXTWM_TypeSplash        (0x01<<12)
+#define EXTWM_TypeASModule      (0x01<<13)
 #define EXTWM_TypeEverything    (EXTWM_TypeDesktop|EXTWM_TypeDock|EXTWM_TypeToolbar| \
                                  EXTWM_TypeMenu|EXTWM_TypeDialog|EXTWM_TypeNormal| \
-								 EXTWM_TypeUtility|EXTWM_TypeSplash)
+								 EXTWM_TypeUtility|EXTWM_TypeSplash|EXTWM_TypeASModule)
 
 #define EXTWM_StateModal        (0x01<<16)
 #define EXTWM_StateSticky       (0x01<<17)
