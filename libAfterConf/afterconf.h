@@ -890,6 +890,8 @@ WinListConfig *ParseWinListOptions (const char *filename, char *myname);
 #define DATABASE_NoXResources_ID           (DATABASE_ID_START+56)
 #define DATABASE_FocusOnMap_ID             (DATABASE_ID_START+57)
 #define DATABASE_NoFocusOnMap_ID           (DATABASE_ID_START+58)
+#define DATABASE_LongLiving_ID             (DATABASE_ID_START+59)
+#define DATABASE_ShortLiving_ID            (DATABASE_ID_START+60)
 
 #define DATABASE_ID_END             (DATABASE_ID_START+64)
 

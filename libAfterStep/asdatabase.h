@@ -27,6 +27,7 @@ struct wild_reg_exp;
 
 
 /* this are pure flags */
+#define STYLE_LONG_LIVING       (1 << 10)
 #define STYLE_STICKY            (1 << 11)
 #define STYLE_TITLE             (1 << 12)
 #define STYLE_CIRCULATE         (1 << 13)
@@ -56,7 +57,7 @@ struct wild_reg_exp;
                              STYLE_FOCUS|STYLE_FOCUS_ON_MAP|STYLE_HANDLES| \
 							 STYLE_ICON_TITLE|STYLE_PPOSITION|STYLE_GROUP_HINTS| \
 							 STYLE_TRANSIENT_HINTS|STYLE_MOTIF_HINTS| \
-							 STYLE_GNOME_HINTS|STYLE_EXTWM_HINTS)
+							 STYLE_GNOME_HINTS|STYLE_EXTWM_HINTS|STYLE_LONG_LIVING)
 
 /************************************************************************************
  * Data structure definitions :

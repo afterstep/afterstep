@@ -685,8 +685,7 @@ merge_transient_hints (ASHints * clean, ASRawHints * raw,
 		{
 			clean->transient_for = raw->transient_for->parent;
 			set_flags (clean->flags, AS_Transient);
-			if( clean->transient_for != Scr.Root && clean->transient_for != None )
-				set_flags( clean->flags, AS_ShortLived );
+			set_flags( clean->flags, AS_ShortLived );
 		}
 	}
 }
@@ -1114,6 +1113,7 @@ merge_asdb_hints (ASHints * clean, ASRawHints * raw, ASDatabaseRecord * db_rec, 
 		{STYLE_VERTICAL_TITLE, AS_VerticalTitle, 0, 0, AS_VerticalTitle},
 		{STYLE_HANDLES, AS_Handles, 0, 0, AS_Handles},
 		{STYLE_FOCUS_ON_MAP, AS_FocusOnMap, 0, 0, AS_FocusOnMap},
+		{STYLE_LONG_LIVING, 0, AS_ShortLived, AS_ShortLived, 0},
 		{0, 0, 0, 0, 0}
 	};
 

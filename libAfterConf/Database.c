@@ -126,6 +126,8 @@ TermDef       StyleTerms[] = {
 	{TF_NO_MYNAME_PREPENDING, "NoXResources", 12, TT_FLAG, DATABASE_NoXResources_ID, NULL},
 	{TF_NO_MYNAME_PREPENDING, "FocusOnMap", 10, TT_FLAG, DATABASE_FocusOnMap_ID, NULL},
 	{TF_NO_MYNAME_PREPENDING, "NoFocusOnMap", 12, TT_FLAG, DATABASE_NoFocusOnMap_ID, NULL},
+	{TF_NO_MYNAME_PREPENDING, "LongLiving", 10, TT_FLAG, DATABASE_LongLiving_ID, NULL},
+	{TF_NO_MYNAME_PREPENDING, "ShortLiving", 12, TT_FLAG, DATABASE_ShortLiving_ID, NULL},
 	{0, NULL, 0, 0, 0}
 };
 
@@ -161,6 +163,7 @@ flag_options_xref StyleFlags[] = {
 	{STYLE_EXTWM_HINTS, 		DATABASE_HonorExtWMHints_ID, 	DATABASE_NoExtWMHints_ID},
 	{STYLE_XRESOURCES_HINTS, 	DATABASE_HonorXResources_ID, 	DATABASE_NoXResources_ID},
 	{STYLE_FOCUS_ON_MAP, 		DATABASE_FocusOnMap_ID, 		DATABASE_NoFocusOnMap_ID},
+	{STYLE_LONG_LIVING,			DATABASE_LongLiving_ID,			DATABASE_ShortLiving_ID},
 	{STYLE_ICON, 				0 /* special case */ , 			DATABASE_NoIcon_ID},
 	{STYLE_STARTUP_DESK, 		0 /*special case */ , 			DATABASE_StartsAnywhere_ID},
 	{STYLE_FRAME, 				0 /*special case */ , 			DATABASE_NoFrame_ID},
