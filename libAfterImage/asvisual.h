@@ -26,21 +26,33 @@
  *   ASVisual convenience functions :
  *  	    create_visual_window(), create_visual_pixmap(),
  *  	    create_visual_ximage()
+ *
+ * Other libAfterImage modules :
+ *     asimage.h, import.h, blender.h, asfont.h
  * AUTHOR
  * Sasha Vasko <sashav at sprintmail dot com>
  ******************/
 
+/****d* libAfterImage/alpha
+ * FUNCTION
+ * Alpha channel adds visibility parameter to color value.
+ * Alpha channel's value of 0xFF signifies complete visibility, while 0
+ * makes pixel completely transparent.
+ * SOURCE
+ */
+#define ALPHA_TRANSPARENT      	0x00
+#define ALPHA_SEMI_TRANSPARENT 	0x7F
+#define ALPHA_SOLID            	0xFF
+/*******************/
 /****d* libAfterImage/ARGB32
  * FUNCTION
  * ARGB32 is fundamental datatype that hold 32bit value corresponding to
- * pixels color and transparency value (alpha channel). It is encoded
- * as follows :
+ * pixels color and transparency value (alpha channel) in ARGB
+ * colorspace. It is encoded as follows :
  * Lowermost 8 bits - Blue channel
  * bits 8 to 15     - Green channel
  * bits 16 to 23    - Red channel
  * bits 24 to 31    - Alpha channel
- * Alpha channel's value of 0xFF signifies complete visibility, while 0
- * makes pixel completely transparent.
  * SOURCE
  */
 typedef CARD32 ARGB32;

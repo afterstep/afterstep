@@ -64,6 +64,9 @@ struct ASScanline;
  *   Transformations :
  * 		scale_asimage(), tile_asimage(), merge_layers(), make_gradient(),
  * 		flip_asimage()
+ *
+ * Other libAfterImage modules :
+ *      asvisual.h, import.h, blender.h, asfont.h
  * AUTHOR
  * Sasha Vasko <sashav at sprintmail dot com>
  ******
@@ -371,15 +374,16 @@ typedef struct ASImageOutput
  * scanlines/channels of the image will be filled with back_color.
  * Entire image will be tinted using tint parameter prior to overlaying.
  * Bevel specified by bevel member will be drawn over image prior to
- * overlaying. Specific overlay method has to be specified. Method is
- * pointer to a function, that accepts 2 ASScanlines as arguments and
- * performs overlaying of first one with the second one.
- * There are 15 different methods implemented in libAfterImage,
- * including alpha-blending, tinting, averaging, HSV and HSL colorspace
- * operations, etc.
+ * overlaying. Specific overlay method has to be specified.
+ * merge_scanlines method is pointer to a function,
+ * that accepts 2 ASScanlines as arguments and performs overlaying of
+ * first one with the second one.
+ * There are 15 different merge_scanline methods implemented in
+ * libAfterImage, including alpha-blending, tinting, averaging,
+ * HSV and HSL colorspace operations, etc.
  * SEE ALSO
  * merge_layers()
- * libAfterImage/blender
+ * blender.h
  * SOURCE
  */
 
