@@ -218,8 +218,10 @@ main (int argc, char **argv)
 	for (i = 1; i < argc; i++)
 	{
 		if (!strcmp (argv[i], "--debug"))
+		{
 			debugging = True;
-		else if (!strcmp (argv[i], "-v") || !strcmp (argv[i], "--version"))
+			set_output_level(OUTPUT_LEVEL_DEBUG); 
+		}else if (!strcmp (argv[i], "-v") || !strcmp (argv[i], "--version"))
 		{
 			printf ("AfterStep version %s\n", VERSION);
 			exit (0);

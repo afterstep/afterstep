@@ -425,6 +425,7 @@ AddWindow (Window w)
 				print_status_hints( NULL, NULL, &status );
 			}
         }
+		tmp_win->hints = hints ;
     }
 
 	

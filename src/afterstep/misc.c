@@ -47,6 +47,8 @@
 #include "../../include/screen.h"
 #include "../../include/module.h"
 #include "../../include/loadimg.h"
+#include "../../include/clientprops.h"
+#include "../../include/hints.h"
 
 #include "menus.h"
 
@@ -232,6 +234,9 @@ Destroy (ASWindow * Tmp_win, Bool kill_client)
 
 	if (!(Tmp_win->flags & WINDOWLISTSKIP))
 		update_windowList ();
+		
+	if( Tmp_win->hints )
+		destroy_hints( Tmp_win->hints, False );
 
 	free (Tmp_win);
 
