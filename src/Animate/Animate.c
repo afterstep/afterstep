@@ -18,60 +18,22 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#include <ctype.h>
-#include <errno.h>
-#include <math.h>
-#include <signal.h>
-#include <stdio.h>
-#include <stdlib.h>
-#if TIME_WITH_SYS_TIME
-# include <sys/time.h>
-# include <time.h>
-#else
-# if HAVE_SYS_TIME_H
-#  include <sys/time.h>
-# else
-#  include <time.h>
-# endif
-#endif
-#include <string.h>
+#define LOCAL_DEBUG
+#define EVENT_TRACE
 
-#include <limits.h>
-#include <unistd.h>
-
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-
-#define MODULE_X_INTERFACE
 
 #include "../../configure.h"
-#include "../../include/aftersteplib.h"
-#include "../../include/afterstep.h"
-#include "../../include/style.h"
-#include "../../include/screen.h"
-#include "../../include/module.h"
+#include "../../libAfterStep/asapp.h"
+#include "../../libAfterStep/screen.h"
+#include "../../libAfterStep/module.h"
+#include <math.h>
+
 #include "Animate.h"
 
 #define AS_PI 3.14159265358979323846
 
-Display *dpy;
-int screen;
-char *MyName = NULL;
-
-ScreenInfo Scr;			/* root window */
-GC DrawGC;
-char *MyName;
-
-/* File type information */
-static int fd_width;
-static int fd[2];
-static int x_fd;
-
 /* masks for AS pipe */
-#define mask_reg (	M_CONFIGURE_WINDOW |	\
-			M_ICONIFY |		\
-			M_DEICONIFY |		\
-			M_LOCKONSEND	)
+#define mask_reg (M_ADD_WINDOW|M_CONFIGURE_WINDOW |M_DESTROY_WINDOW|M_END_WINDOWLIST|M_LOCKONSEND	)
 #define mask_off 0
 
 void Loop ();
@@ -80,6 +42,18 @@ void ParseOptions (const char *);
 struct ASAnimate Animate =
 {NULL, ANIM_ITERATIONS, ANIM_DELAYMS,
  ANIM_TWIST, ANIM_WIDTH, AnimateResizeTwist};
+
+
+static void 
+draw_animation_points( XPoint *points, int count ) 
+{
+	XGrabServer (dpy);
+	XDrawLines (dpy, Scr.Root, Scr.DrawGC, points, 5, CoordModeOrigin);
+	XFlush (dpy);
+	sleep_a_little (Animate.delay * 1000);
+	XDrawLines (dpy, Scr.Root, Scr.DrawGC, points, 5, CoordModeOrigin);
+	XUngrabServer (dpy);
+}
 
 /*
  * This makes a twisty iconify/deiconify animation for a window, similar to
@@ -126,13 +100,10 @@ AnimateResizeTwist (int x, int y, int w, int h, int fx, int fy, int fw, int fh)
       points[3].y = cy + sin (angle + a + AS_PI) * d;
       points[4].x = cx + cos (angle - a) * d;
       points[4].y = cy + sin (angle - a) * d;
-      XGrabServer (dpy);
-      XDrawLines (dpy, Scr.Root, DrawGC, points, 5, CoordModeOrigin);
-      XFlush (dpy);
-      sleep_a_little (Animate.delay * 1000);
-      XDrawLines (dpy, Scr.Root, DrawGC, points, 5, CoordModeOrigin);
-      XUngrabServer (dpy);
-      cx += xstep;
+      
+	  draw_animation_points( points, 5 );
+      
+	  cx += xstep;
       cy += ystep;
       cw += wstep;
       ch += hstep;
@@ -196,12 +167,7 @@ AnimateResizeFlip (int x, int y, int w, int h, int fx, int fy, int fw, int fh)
       points[4].x = points[0].x;
       points[4].y = points[0].y;
 
-      XGrabServer (dpy);
-      XDrawLines (dpy, Scr.Root, DrawGC, points, 5, CoordModeOrigin);
-      XFlush (dpy);
-      sleep_a_little (Animate.delay * 1000);
-      XDrawLines (dpy, Scr.Root, DrawGC, points, 5, CoordModeOrigin);
-      XUngrabServer (dpy);
+      draw_animation_points( points, 5 );
       cx += xstep;
       cy += ystep;
       cw += wstep;
@@ -260,13 +226,9 @@ AnimateResizeTurn (int x, int y, int w, int h, int fx, int fy, int fw, int fh)
       points[4].x = points[0].x;
       points[4].y = points[0].y;
 
-      XGrabServer (dpy);
-      XDrawLines (dpy, Scr.Root, DrawGC, points, 5, CoordModeOrigin);
-      XFlush (dpy);
-      sleep_a_little (Animate.delay * 1000);
-      XDrawLines (dpy, Scr.Root, DrawGC, points, 5, CoordModeOrigin);
-      XUngrabServer (dpy);
-      cx += xstep;
+      draw_animation_points( points, 5 );
+      
+	  cx += xstep;
       cy += ystep;
       cw += wstep;
       ch += hstep;
@@ -301,10 +263,10 @@ AnimateResizeZoom (int x, int y, int w, int h, int fx, int fy, int fw, int fh)
   for (i = 0; i < Animate.iterations; i++)
     {
       XGrabServer (dpy);
-      XDrawRectangle (dpy, Scr.Root, DrawGC, (int) cx, (int) cy, (int) cw, (int) ch);
+      XDrawRectangle (dpy, Scr.Root, Scr.DrawGC, (int) cx, (int) cy, (int) cw, (int) ch);
       XFlush (dpy);
       sleep_a_little (Animate.delay);
-      XDrawRectangle (dpy, Scr.Root, DrawGC, (int) cx, (int) cy, (int) cw, (int) ch);
+      XDrawRectangle (dpy, Scr.Root, Scr.DrawGC, (int) cx, (int) cy, (int) cw, (int) ch);
       XUngrabServer (dpy);
       cx += xstep;
       cy += ystep;
@@ -328,92 +290,52 @@ AnimateResizeZoom3D (int x, int y, int w, int h, int fx, int fy, int fw, int fh)
   float xstep, ystep, wstep, hstep, srca, dsta;
   int i;
 
-  xstep = (float) (fx - x) / Animate.iterations;
-  ystep = (float) (fy - y) / Animate.iterations;
-  wstep = (float) (fw - w) / Animate.iterations;
-  hstep = (float) (fh - h) / Animate.iterations;
-  dsta = (float) (fw + fh);
-  srca = (float) (w + h);
+  	xstep = (float) (fx - x) / Animate.iterations;
+  	ystep = (float) (fy - y) / Animate.iterations;
+  	wstep = (float) (fw - w) / Animate.iterations;
+  	hstep = (float) (fh - h) / Animate.iterations;
+  	
+	dsta = (float) (fw + fh);
+  	srca = (float) (w + h);
 
-  cx = (float) x;
+  	cx = (float) x;
+	cy = (float) y;
+  	cw = (float) w;
+  	ch = (float) h;
 
-  cy = (float) y;
-  cw = (float) w;
-  ch = (float) h;
-
-  if (dsta <= srca)
+	if (dsta <= srca)
+	{
+		x = fx ;
+		y = fy ;
+		w = fw ;
+		h = fh ;	   
+	}	 
+  
     /* We are going from a Window to an Icon */
-    {
-      for (i = 0; i < Animate.iterations; i++)
+	for (i = 0; i < Animate.iterations; i++)
 	{
-	  XGrabServer (dpy);
-	  XDrawRectangle (dpy, Scr.Root, DrawGC, (int) cx, (int) cy, (int) cw,
-			  (int) ch);
-	  XDrawRectangle (dpy, Scr.Root, DrawGC, (int) fx, (int) fy, (int) fw,
-			  (int) fh);
-	  XDrawLine (dpy, Scr.Root, DrawGC, (int) cx, (int) cy, fx, fy);
-	  XDrawLine (dpy, Scr.Root, DrawGC, ((int) cx + (int) cw), (int) cy,
-		     (fx + fw), fy);
-	  XDrawLine (dpy, Scr.Root, DrawGC, ((int) cx + (int) cw),
-		     ((int) cy + (int) ch), (fx + fw), (fy + fh));
-	  XDrawLine (dpy, Scr.Root, DrawGC, (int) cx, ((int) cy + (int) ch), fx,
-		     (fy + fh));
-	  XFlush (dpy);
-	  sleep_a_little (Animate.delay);
-	  XDrawRectangle (dpy, Scr.Root, DrawGC, (int) cx, (int) cy, (int) cw,
-			  (int) ch);
-	  XDrawRectangle (dpy, Scr.Root, DrawGC, (int) fx, (int) fy, (int) fw,
-			  (int) fh);
-	  XDrawLine (dpy, Scr.Root, DrawGC, (int) cx, (int) cy, fx, fy);
-	  XDrawLine (dpy, Scr.Root, DrawGC, ((int) cx + (int) cw), (int) cy,
-		     (fx + fw), fy);
-	  XDrawLine (dpy, Scr.Root, DrawGC, ((int) cx + (int) cw),
-		     ((int) cy + (int) ch), (fx + fw), (fy + fh));
-	  XDrawLine (dpy, Scr.Root, DrawGC, (int) cx, ((int) cy + (int) ch), fx,
-		     (fy + fh));
-	  XUngrabServer (dpy);
-	  cx += xstep;
-	  cy += ystep;
-	  cw += wstep;
-	  ch += hstep;
+	 	XGrabServer (dpy);
+	  	XDrawRectangle (dpy, Scr.Root, Scr.DrawGC, (int) cx, (int) cy, (int) cw,  (int) ch);
+		XDrawRectangle (dpy, Scr.Root, Scr.DrawGC, x, y, w, h);
+		XDrawLine (dpy, Scr.Root, Scr.DrawGC, (int) cx, (int) cy, x, y);
+		XDrawLine (dpy, Scr.Root, Scr.DrawGC, ((int) cx + (int) cw), (int) cy,(x + w), y);
+	  	XDrawLine (dpy, Scr.Root, Scr.DrawGC, ((int) cx + (int) cw), ((int) cy +(int) ch), (x + w), (y + h));
+		XDrawLine (dpy, Scr.Root, Scr.DrawGC, (int) cx, ((int) cy + (int) ch), x,(y + h));
+		XFlush (dpy);
+	  	sleep_a_little (Animate.delay);
+		XDrawRectangle (dpy, Scr.Root, Scr.DrawGC, (int) cx, (int) cy, (int) cw, (int) ch);
+		XDrawRectangle (dpy, Scr.Root, Scr.DrawGC, x, y, w, h);
+		XDrawLine (dpy, Scr.Root, Scr.DrawGC, (int) cx, (int) cy, x, y);
+		XDrawLine (dpy, Scr.Root, Scr.DrawGC, ((int) cx + (int) cw), (int) cy, (x + w), y);
+		XDrawLine (dpy, Scr.Root, Scr.DrawGC, ((int) cx + (int) cw), ((int) cy + (int) ch), (x + w), (y + h));
+		XDrawLine (dpy, Scr.Root, Scr.DrawGC, (int) cx, ((int) cy + (int) ch), x,(y + h));
+	  	XUngrabServer (dpy);
+	  	cx += xstep;
+	  	cy += ystep;
+	  	cw += wstep;
+	  	ch += hstep;
 	}
-    }
-  if (dsta > srca)
-    {
-/* We are going from an Icon to a Window */
-      for (i = 0; i < Animate.iterations; i++)
-	{
-	  XGrabServer (dpy);
-	  XDrawRectangle (dpy, Scr.Root, DrawGC, (int) cx, (int) cy, (int) cw,
-			  (int) ch);
-	  XDrawRectangle (dpy, Scr.Root, DrawGC, x, y, w, h);
-	  XDrawLine (dpy, Scr.Root, DrawGC, (int) cx, (int) cy, x, y);
-	  XDrawLine (dpy, Scr.Root, DrawGC, ((int) cx + (int) cw), (int) cy,
-		     (x + w), y);
-	  XDrawLine (dpy, Scr.Root, DrawGC, ((int) cx + (int) cw), ((int) cy +
-					       (int) ch), (x + w), (y + h));
-	  XDrawLine (dpy, Scr.Root, DrawGC, (int) cx, ((int) cy + (int) ch), x,
-		     (y + h));
-	  XFlush (dpy);
-	  sleep_a_little (Animate.delay);
-	  XDrawRectangle (dpy, Scr.Root, DrawGC, (int) cx, (int) cy, (int) cw,
-			  (int) ch);
-	  XDrawRectangle (dpy, Scr.Root, DrawGC, x, y, w, h);
-	  XDrawLine (dpy, Scr.Root, DrawGC, (int) cx, (int) cy, x, y);
-	  XDrawLine (dpy, Scr.Root, DrawGC, ((int) cx + (int) cw), (int) cy,
-		     (x + w), y);
-	  XDrawLine (dpy, Scr.Root, DrawGC, ((int) cx + (int) cw),
-		     ((int) cy + (int) ch), (x + w), (y + h));
-	  XDrawLine (dpy, Scr.Root, DrawGC, (int) cx, ((int) cy + (int) ch), x,
-		     (y + h));
-	  XUngrabServer (dpy);
-	  cx += xstep;
-	  cy += ystep;
-	  cw += wstep;
-	  ch += hstep;
-	}
-    }
-  XFlush (dpy);
+	XFlush (dpy);
 }
 
  /*
@@ -489,28 +411,9 @@ AnimateClose (int x, int y, int w, int h)
 }
 #endif
 
-/* error_handler:
- * catch X errors, display the message and continue running.
- */
-int
-error_handler (Display * disp, XErrorEvent * event)
-{
-  fprintf (stderr, "%s: internal error, error code %d, request code %d, minor code %d.\n",
-	 MyName, event->error_code, event->request_code, event->minor_code);
-  return 0;
-}
-
 void
 DeadPipe (int foo)
 {
-  exit (0);
-}
-
-void
-usage (void)
-{
-  printf ("Usage:\n"
-	  "%s [--version|-v] [--help|-h]\n", MyName);
   exit (0);
 }
 
@@ -518,27 +421,20 @@ int
 main (int argc, char **argv)
 {
   int i;
-  char *global_config_file = NULL;
   unsigned long color;
   XGCValues gcv;
 
-  /* Save our program name - for error messages */
-  SetMyName (argv[0]);
+	/* Save our program name - for error messages */
+    InitMyApp (CLASS_ANIMATE, argc, argv, NULL, NULL, 0 );
 
-  i = ProcessModuleArgs (argc, argv, &(global_config_file), NULL, NULL, usage);
+    ConnectX( &Scr, PropertyChangeMask );
+    ConnectAfterStep ( mask_reg);
 
   /* Dead pipe == AS died */
   signal (SIGPIPE, DeadPipe);
   signal (SIGQUIT, DeadPipe);
   signal (SIGSEGV, DeadPipe);
   signal (SIGTERM, DeadPipe);
-
-  x_fd = ConnectX (&Scr, display_name, PropertyChangeMask);
-  XSetErrorHandler (error_handler);
-
-  /* connect to AfterStep */
-  fd_width = GetFdWidth ();
-  fd[0] = fd[1] = ConnectAfterStep (mask_reg);
 
   LoadConfig (global_config_file, "animate", ParseOptions);
 
