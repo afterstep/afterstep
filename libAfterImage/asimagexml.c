@@ -1207,6 +1207,8 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
  * NOTES
  * This tag applies to the first image contained within the tag.  Any
  * further images will be discarded.
+ * If you want to keep image proportions while scaling - use "proportional"
+ * instead of specific size for particular dimention.
  ******/
 	if (!strcmp(doc->tag, "scale")) {
 		xml_elem_t* parm = xml_parse_parm(doc->parm);
@@ -1221,22 +1223,35 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 			if (!strcmp(ptr->tag, "width")) width_str = ptr->parm;
 			if (!strcmp(ptr->tag, "height")) height_str = ptr->parm;
 		}
-		if (width_str && height_str) {
-			for (ptr = doc->child ; ptr && !imtmp ; ptr = ptr->next) {
+		if (width_str && height_str) 
+		{
+			int width_ref = 1;
+			int height_ref = 1;
+			for (ptr = doc->child ; ptr && !imtmp ; ptr = ptr->next) 
 				imtmp = build_image_from_xml(asv, imman, fontman, ptr, NULL, flags, verbose, display_win);
+			if( imtmp ) 
+			{	
+				width_ref = width = imtmp->width ;
+				height_ref = height = imtmp->height ;
 			}
-		}
-		if (refid && width_str && height_str) {
-			ASImage* refimg = fetch_asimage(imman, refid );
-			if (refimg) {
-				width = parse_math(width_str, NULL, refimg->width);
-				height = parse_math(height_str, NULL, refimg->height);
-				release_asimage( refimg );
+			if (refid ) 
+			{
+				ASImage* refimg = fetch_asimage(imman, refid );
+				if (refimg) 
+				{
+					width_ref = refimg->width;
+					height_ref = refimg->height;
+					release_asimage( refimg );
+				}
 			}
-		}
-		if (!refid && width_str && height_str) {
-			width = parse_math(width_str, NULL, width);
-			height = parse_math(height_str, NULL, height);
+			if( width_str[0] == '$' || isdigit( (int)width_str[0] ) )
+				width = parse_math(width_str, NULL, width);
+			if( height_str[0] == '$' || isdigit( (int)height_str[0] ) )
+				height = parse_math(height_str, NULL, height);
+			if( strcasecmp(width_str,"proportional") == 0 )
+				width = (width_ref * height) / height_ref ;
+			else if( strcasecmp(height_str,"proportional") == 0 )
+				height = (height_ref * width) / width_ref ;
 		}
 		if (imtmp && width > 0 && height > 0 ) {
 			show_progress("Scaling image to [%dx%d].", width, height);

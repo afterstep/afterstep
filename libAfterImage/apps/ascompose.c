@@ -174,7 +174,7 @@ void usage(void) {
 static char* default_doc_str = "\
 <composite op=hue>\
   <composite op=add>\
-    <scale width=512 height=384><img id=rose src=rose512.jpg/></scale>\
+    <scale width=512 height=proportional><img id=rose src=rose512.jpg/></scale>\
     <tile width=512 height=384><img src=back.xpm/></tile>\
   </composite>\
   <tile width=512 height=384><img src=fore.xpm/></tile>\
