@@ -10,33 +10,62 @@ install:
 	$(MKDIR) -p $(AFTER_SHAREDIR); \
 	$(MKDIR) -p $(AFTER_DOC_DIR)
 	@$(MKDIR) -p $(AFTER_SHAREDIR)/backgrounds; \
-	$(CP) backgrounds/* $(AFTER_SHAREDIR)/backgrounds/
-	$(CP) backgrounds/$(IMAGE_FORMAT)/* $(AFTER_SHAREDIR)/backgrounds/
+	if [ -d desktop/bars/xml ] ; then \
+		$(CP) -r backgrounds/xml/* $(AFTER_SHAREDIR)/backgrounds/; \
+	fi; \
+	echo "$(CP) -r backgrounds/$(IMAGE_FORMAT)/* $(AFTER_SHAREDIR)/backgrounds/"; \
+	$(CP) -r backgrounds/$(IMAGE_FORMAT)/* $(AFTER_SHAREDIR)/backgrounds/
 	@$(MKDIR) -p $(AFTER_SHAREDIR)/desktop; \
 	$(MKDIR) -p $(AFTER_SHAREDIR)/desktop/bars; \
-	$(CP) desktop/bars/$(IMAGE_FORMAT)/* $(AFTER_SHAREDIR)/desktop/bars/; \
+	if [ -d desktop/bars/xml ] ; then \
+		$(CP) -r desktop/bars/xml/* $(AFTER_SHAREDIR)/desktop/bars/; \
+	fi; \
+	$(CP) -r desktop/bars/$(IMAGE_FORMAT)/* $(AFTER_SHAREDIR)/desktop/bars/; \
 	$(MKDIR) -p $(AFTER_SHAREDIR)/desktop/buttons; \
-	$(CP) desktop/buttons/$(IMAGE_FORMAT)/* $(AFTER_SHAREDIR)/desktop/buttons/; \
+	if [ -d desktop/buttons/xml ] ; then \
+		$(CP) -r desktop/buttons/xml/* $(AFTER_SHAREDIR)/desktop/buttons/; \
+	fi; \
+	$(CP) -r desktop/buttons/$(IMAGE_FORMAT)/* $(AFTER_SHAREDIR)/desktop/buttons/; \
 	$(MKDIR) -p $(AFTER_SHAREDIR)/desktop/cursors; \
-	$(CP) desktop/cursors/$(IMAGE_FORMAT)/* $(AFTER_SHAREDIR)/desktop/cursors/; \
+	$(CP) -r desktop/cursors/* $(AFTER_SHAREDIR)/desktop/cursors/; \
 	$(MKDIR) -p $(AFTER_SHAREDIR)/desktop/fonts; \
-	$(CP) desktop/fonts/* $(AFTER_SHAREDIR)/desktop/fonts/; \
+	$(CP) -r desktop/fonts/* $(AFTER_SHAREDIR)/desktop/fonts/; \
 	$(MKDIR) -p $(AFTER_SHAREDIR)/desktop/icons; \
-	$(CP) desktop/icons/* $(AFTER_SHAREDIR)/desktop/icons/; \
+	if [ -d desktop/icons/xml ] ; then \
+		$(CP) -r desktop/icons/xml/* $(AFTER_SHAREDIR)/desktop/icons/; \
+	fi; \
 	$(MKDIR) -p $(AFTER_SHAREDIR)/desktop/icons/dots; \
-	$(CP) desktop/icons/dots/$(IMAGE_FORMAT)/* $(AFTER_SHAREDIR)/desktop/icons/dots/; \
+	if [ -d desktop/icons/dots/xml ] ; then \
+		$(CP) desktop/icons/dots/xml/* $(AFTER_SHAREDIR)/desktop/icons/dots/; \
+	fi; \
+	$(CP) -r desktop/icons/dots/$(IMAGE_FORMAT)/* $(AFTER_SHAREDIR)/desktop/icons/dots/; \
 	$(MKDIR) -p $(AFTER_SHAREDIR)/desktop/icons/large; \
-	$(CP) desktop/icons/large/$(IMAGE_FORMAT)/* $(AFTER_SHAREDIR)/desktop/icons/large/; \
+	if [ -d desktop/icons/large/xml ] ; then \
+		$(CP) -r desktop/icons/large/xml/* $(AFTER_SHAREDIR)/desktop/icons/large/; \
+	fi; \
+	$(CP) -r desktop/icons/large/$(IMAGE_FORMAT)/* $(AFTER_SHAREDIR)/desktop/icons/large/; \
 	$(MKDIR) -p $(AFTER_SHAREDIR)/desktop/icons/logos; \
-	$(CP) desktop/icons/logos/$(IMAGE_FORMAT)/* $(AFTER_SHAREDIR)/desktop/icons/logos/; \
+	if [ -d desktop/icons/logos/xml ] ; then \
+		$(CP) -r desktop/icons/logos/xml/* $(AFTER_SHAREDIR)/desktop/icons/logos/; \
+	fi; \
+	$(CP) -r desktop/icons/logos/$(IMAGE_FORMAT)/* $(AFTER_SHAREDIR)/desktop/icons/logos/; \
 	$(MKDIR) -p $(AFTER_SHAREDIR)/desktop/icons/mini; \
-	$(CP) desktop/icons/mini/$(IMAGE_FORMAT)/* $(AFTER_SHAREDIR)/desktop/icons/mini/; \
+	if [ -d desktop/icons/mini/xml ] ; then \
+		$(CP) -r desktop/icons/mini/xml/* $(AFTER_SHAREDIR)/desktop/icons/mini/; \
+	fi; \
+	$(CP) -r desktop/icons/mini/$(IMAGE_FORMAT)/* $(AFTER_SHAREDIR)/desktop/icons/mini/; \
 	$(MKDIR) -p $(AFTER_SHAREDIR)/desktop/icons/normal; \
-	$(CP) desktop/icons/normal/$(IMAGE_FORMAT)/* $(AFTER_SHAREDIR)/desktop/icons/normal/; \
+	if [ -d desktop/icons/normal/xml ] ; then \
+		$(CP) -r desktop/icons/normal/xml/* $(AFTER_SHAREDIR)/desktop/icons/normal/; \
+	fi; \
+	$(CP) -r desktop/icons/normal/$(IMAGE_FORMAT)/* $(AFTER_SHAREDIR)/desktop/icons/normal/; \
 	$(MKDIR) -p $(AFTER_SHAREDIR)/desktop/sounds; \
-	$(CP) desktop/sounds/$(IMAGE_FORMAT)/* $(AFTER_SHAREDIR)/desktop/sounds/; \
+	$(CP) -r desktop/sounds/* $(AFTER_SHAREDIR)/desktop/sounds/; \
 	$(MKDIR) -p $(AFTER_SHAREDIR)/desktop/tiles; \
-	$(CP) desktop/tiles/$(IMAGE_FORMAT)/* $(AFTER_SHAREDIR)/desktop/tiles/
+	if [ -d desktop/tiles/xml ] ; then \
+		$(CP) -r desktop/tiles/xml/* $(AFTER_SHAREDIR)/desktop/tiles/; \
+	fi; \
+	$(CP) -r desktop/tiles/$(IMAGE_FORMAT)/* $(AFTER_SHAREDIR)/desktop/tiles/
 	@$(MKDIR) -p $(AFTER_SHAREDIR)/feels; \
 	$(CP) -r feels $(AFTER_SHAREDIR)/
 	@$(MKDIR) -p $(AFTER_SHAREDIR)/looks; \
