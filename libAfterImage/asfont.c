@@ -1198,7 +1198,7 @@ apply_text_3D_type( ASText3DType type,
 	}
 }
 
-#define FILL_TEXT_GLYH_MAP(name,type,getglyph,incr) \
+#define FILL_TEXT_GLYPH_MAP(name,type,getglyph,incr) \
 static unsigned int \
 name( const type *text, ASFont *font, ASGlyphMap *map, int space_size, unsigned int offset_3d_x ) \
 { \
@@ -1242,9 +1242,9 @@ name( const type *text, ASFont *font, ASGlyphMap *map, int space_size, unsigned 
 	return line_count ; \
 } 
 
-FILL_TEXT_GLYH_MAP(fill_text_glyph_map_Char,char,get_character_glyph(text[i],font),/* */)
-FILL_TEXT_GLYH_MAP(fill_text_glyph_map_UTF8,char,get_utf8_glyph(&text[i],font),i+=UTF8_CHAR_SIZE(text[i])-1)
-FILL_TEXT_GLYH_MAP(fill_text_glyph_map_Unicode,UNICODE_CHAR,get_unicode_glyph(text[i],font),/* */)
+FILL_TEXT_GLYPH_MAP(fill_text_glyph_map_Char,char,get_character_glyph(text[i],font),/* */)
+FILL_TEXT_GLYPH_MAP(fill_text_glyph_map_UTF8,char,get_utf8_glyph(&text[i],font),i+=UTF8_CHAR_SIZE(text[i])-1)
+FILL_TEXT_GLYPH_MAP(fill_text_glyph_map_Unicode,UNICODE_CHAR,get_unicode_glyph(text[i],font),/* */)
 
 typedef enum {
   ASCT_UTF8 = 0,
@@ -1308,54 +1308,62 @@ get_text_glyph_map( const char *text, ASFont *font, ASText3DType type, ASGlyphMa
 	return True;
 }
 
-Bool
-get_text_size( const char *text, ASFont *font, ASText3DType type, unsigned int *width, unsigned int *height )
+
+#define GET_TEXT_SIZE_LOOP(getglyph,incr) \
+	do{ ++i ;\
+		if( text[i] == '\n' || text[i] == '\0' ) { \
+			if( last_asg && last_asg->width+last_asg->lead > last_asg->step ) \
+				line_width += last_asg->width+last_asg->lead - last_asg->step ; \
+			last_asg = NULL; \
+			if( line_width > w ) \
+				w = line_width ; \
+			line_width = 0 ; \
+			h += font->max_height+offset_3d_y ; \
+			++lines_count ; \
+		}else { \
+			last_asg = NULL ; \
+			if( text[i] == ' ' ){ \
+				line_width += space_size ; \
+			}else if( text[i] == '\t' ){ \
+				line_width += space_size*8 ; \
+			}else{ \
+				last_asg = getglyph; \
+				line_width += last_asg->step+offset_3d_x ;  \
+				incr ; \
+			} \
+		} \
+	}while( text[i] != '\0' )
+
+static Bool
+get_text_size_localized( const char *src_text, ASFont *font, ASText3DType type, ASCharType char_type, unsigned int *width, unsigned int *height )
 {
 	unsigned int w = 0, h = 0, lines_count = 0;
 	unsigned int line_width = 0;
-	int i = -1;
+	int i = 0;
 	ASGlyph *last_asg = NULL ;
 	int space_size  = (font->space_size>>1)+1+font->spacing_x;
 	unsigned int offset_3d_x = 0, offset_3d_y = 0 ;
 
 	apply_text_3D_type( type, &offset_3d_x, &offset_3d_y );
-	if( text == NULL || font == NULL )
+	if( src_text == NULL || font == NULL )
 		return False;
 
 	offset_3d_x += font->spacing_x ;
 	offset_3d_y += font->spacing_y ;
 
-	do
+	if( char_type == ASCT_Char )
 	{
-		++i ;
-		if( text[i] == '\n' || text[i] == '\0' )
-		{
-			if( last_asg && last_asg->width+last_asg->lead > last_asg->step )
-				line_width += last_asg->width+last_asg->lead - last_asg->step ;
-			last_asg = NULL;
-			if( line_width > w )
-				w = line_width ;
-			line_width = 0 ;
-			h += font->max_height+offset_3d_y ;
-			++lines_count ;
-		}else
-		{
-			last_asg = NULL ;
-			if( text[i] == ' ' )
-			{
-				line_width += space_size ;
-			}else if( text[i] == '\t' )
-			{
-				line_width += space_size*8 ;
-			}else
-			{
-				last_asg = get_character_glyph( text[i], font );
-				line_width += last_asg->step+offset_3d_x ;
-				/* i+=CHAR_SIZE(text[i])-1; */
-			}
-		}
-	}while( text[i] != '\0' );
-
+		char *text = (char*)&src_text[0] ;
+		GET_TEXT_SIZE_LOOP(get_character_glyph(text[i],font),/* */);
+	}else if( char_type == ASCT_UTF8 )
+	{	
+		char *text = (char*)&src_text[0] ;
+		GET_TEXT_SIZE_LOOP(get_utf8_glyph(&text[i],font),i+=UTF8_CHAR_SIZE(text[i])-1);
+	}else if( char_type == ASCT_Unicode )
+	{
+		UNICODE_CHAR *text = (UNICODE_CHAR*)&src_text[0] ;
+		GET_TEXT_SIZE_LOOP(get_unicode_glyph(text[i],font),/* */);
+	}
 	h -= font->spacing_y ;
 	if( w < 1 )
 		w = 1 ;
@@ -1367,6 +1375,25 @@ get_text_size( const char *text, ASFont *font, ASText3DType type, unsigned int *
 		*height = h;
 	return True ;
 }
+
+Bool
+get_text_size( const char *src_text, ASFont *font, ASText3DType type, unsigned int *width, unsigned int *height )
+{
+	return get_text_size_localized( src_text, font, type, ASCT_Char, width, height );
+}
+
+Bool
+get_unicode_text_size( const UNICODE_CHAR *src_text, ASFont *font, ASText3DType type, unsigned int *width, unsigned int *height )
+{
+	return get_text_size_localized( (char*)src_text, font, type, ASCT_Unicode, width, height );
+}
+
+Bool
+get_utf8_text_size( const char *src_text, ASFont *font, ASText3DType type, unsigned int *width, unsigned int *height )
+{
+	return get_text_size_localized( src_text, font, type, ASCT_UTF8, width, height );
+}
+
 
 inline static void
 render_asglyph( CARD32 **scanlines, CARD8 *row,
@@ -1407,8 +1434,8 @@ render_asglyph( CARD32 **scanlines, CARD8 *row,
 	}
 }
 
-ASImage *
-draw_text( const char *text, ASFont *font, ASText3DType type, int compression )
+static ASImage *
+draw_text_localized( const char *text, ASFont *font, ASText3DType type, ASCharType char_type, int compression )
 {
 	ASGlyphMap map ;
 	CARD32 *memory;
@@ -1422,7 +1449,7 @@ draw_text( const char *text, ASFont *font, ASText3DType type, int compression )
 #endif
 
 LOCAL_DEBUG_CALLER_OUT( "text = \"%s\", font = %p, compression = %d", text, font, compression );
-	if( !get_text_glyph_map( text, font, type, &map, ASCT_Char) )
+	if( !get_text_glyph_map( text, font, type, &map, char_type) )
 		return NULL;
 
 	apply_text_3D_type( type, &(offset_3d_x), &(offset_3d_y) );
@@ -1557,6 +1584,25 @@ LOCAL_DEBUG_OUT( "scanline buffer memory allocated %d", map.width*line_height*si
 #endif
 	return im;
 }
+
+ASImage *
+draw_text( const char *text, ASFont *font, ASText3DType type, int compression )
+{
+	return draw_text_localized( text, font, type, ASCT_Char, compression );
+}
+
+ASImage *
+draw_unicode_text( const UNICODE_CHAR *text, ASFont *font, ASText3DType type, int compression )
+{
+	return draw_text_localized( (char*)text, font, type, ASCT_Unicode, compression );
+}
+
+ASImage *
+draw_utf8_text( const char *text, ASFont *font, ASText3DType type, int compression )
+{
+	return draw_text_localized( text, font, type, ASCT_UTF8, compression );
+}
+
 
 Bool get_asfont_glyph_spacing( ASFont* font, int *x, int *y )
 {
