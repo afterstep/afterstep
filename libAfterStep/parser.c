@@ -48,16 +48,8 @@
 #include <sys/select.h>
 #endif
 
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#include <X11/Xproto.h>
-#include <X11/Xatom.h>
-#include <X11/Intrinsic.h>
-#ifdef I18N
-#include <X11/Xlocale.h>
-#endif
-
 #include "../include/aftersteplib.h"
+#include "../include/afterstep.h"
 #include "../include/parser.h"
 
 #ifdef DEBUG_PARSER
@@ -458,6 +450,20 @@ GetNextStatement (ConfigDef * config, int my_only)
   return NULL;
 }
 
+void
+config_error (ConfigDef * config, char *error)
+{
+	if (config)
+	{
+		char         *eol = strchr (config->tline, '\n');
+
+		if (eol)
+			*eol = '\0';
+		show_error (":%s in [%.50s]", error, config->tline);
+		if (eol)
+			*eol = '\n';
+  	}
+}
 
 
 void
@@ -468,6 +474,23 @@ ProcessSubSyntax (ConfigDef * config, FreeStorageElem ** tail, SyntaxDef * synta
   if (config->syntax->terminator == syntax->file_terminator)
     {				/* need to push back term's data into config buffer */
       config->cursor = config->tdata;
+		if (config->current_term->flags & TF_NAMED_SUBCONFIG)
+			/* we are supposed to skip single quoted text in here, or unquoted token */
+		{
+			register char *ptr = config->cursor;
+			if (ptr[0] == '"')
+			{
+				ptr = find_doublequotes (ptr);
+				if (!ptr)
+				{
+					config_error (config, "Unmatched doublequotes detected");
+					ptr = config->cursor;
+				} else
+					ptr++;					   /* skipping current doubleqoute */
+			} else							   /*simply skipping to the next space */
+				for (; *ptr && !isspace ((int)*ptr); ptr++);
+			config->cursor = ptr;
+		}
     }
   else if (config->syntax->terminator == syntax->terminator)
     {				/* need to push back entire term's line into config buffer */
@@ -768,6 +791,48 @@ DestroyFreeStorage (FreeStorageElem ** storage)
       }
 }
 
+int
+ReadFlagItem (unsigned long *set_flags, unsigned long *flags, FreeStorageElem * stored, flag_options_xref * xref)
+{
+	if (stored && xref)
+	{
+		Bool          value = True;
+
+		if (stored->term->type != TT_FLAG || get_flags (stored->term->flags, TF_INDEXED))
+			return 0;
+
+		if (stored->argc > 1)
+			value = (atol (stored->argv[1]) > 0);
+
+		while (xref->flag != 0)
+		{
+			if (xref->id_on == stored->term->id)
+				break;
+			if (xref->id_off == stored->term->id)
+			{
+				value = !value;
+				break;
+			}
+			xref++;
+		}
+		if (xref->flag != 0)
+		{
+			if (set_flags)
+				set_flags (*set_flags, xref->flag);
+			if (flags)
+			{
+				if (value)
+					set_flags (*flags, xref->flag);
+				else
+					clear_flags (*flags, xref->flag);
+			}
+		}
+		return 1;
+	}
+	return 0;
+}
+
+
 /* free storage post processing code */
 int
 ReadConfigItem (ConfigItem * item, FreeStorageElem * stored)
@@ -940,7 +1005,7 @@ AddStringToArray (int *argc, char ***argv, char *new_string)
 
 
 void
-InitMyGeometry (MyGeometry * geometry)
+init_asgeometry (ASGeometry * geometry)
 {
   geometry->flags = XValue | YValue;
   geometry->x = geometry->y = 1;
@@ -1364,7 +1429,7 @@ String2FreeStorage (SyntaxDef * syntax, FreeStorageElem ** tail, char *string, i
 }
 
 FreeStorageElem **
-Geometry2FreeStorage (SyntaxDef * syntax, FreeStorageElem ** tail, MyGeometry * geometry, int id)
+Geometry2FreeStorage (SyntaxDef * syntax, FreeStorageElem ** tail, ASGeometry * geometry, int id)
 {
   char geom_string[MAXLINELENGTH] = "";
 

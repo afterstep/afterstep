@@ -10,6 +10,11 @@ struct syntax_definition;
 
 typedef struct term_definition
   {
+#define TF_NAMED_SUBCONFIG	(1<<25)	/* first token is used as the name */
+  /* rest of the line gets parsed using subsyntax */
+  /* usefull in things like database where you have: Style "name" <blah,blah,blah> */
+  /* <blah,blah,blah> in that case in this case will be parsed using the subsyntax */
+  /* and will be placed in the subtree of FreeStorageElems */
     /* the following needs to be defined by module */
 #define TF_DONT_REMOVE_COMMENTS (1<<26)		/* indicates that comments sould not be */
     /* removed from the end of this term */
@@ -248,18 +253,28 @@ typedef struct
     int index;			/* valid only for those that has TF_INDEXED set */
     union
       {
-	MyGeometry geometry;
+	ASGeometry geometry;
 	long integer;
 	char *string;
       }
     data;
   }
 ConfigItem;
+
+typedef struct flag_options_xref
+{
+  unsigned long flag;
+  int id_on, id_off;
+}
+flag_options_xref;
+
 int ReadConfigItem (ConfigItem * item, FreeStorageElem * stored);
+int ReadFlagItem (unsigned long *set_flags, unsigned long *flags, FreeStorageElem * stored, flag_options_xref * xref);
 
 /* utility functions */
 void FlushConfigBuffer (ConfigDef * config);
-void InitMyGeometry (MyGeometry * geometry);
+void init_asgeometry (ASGeometry * geometry);
+
 
 /* string array manipulation functions */
 /* StringArray is an array of pointers to continuous block of memory, 
@@ -282,7 +297,7 @@ void AddStringToArray (int *argc, char ***argv, char *new_string);
 #define Flag2FreeStorage(syntax,tail,id) (&(AddFreeStorageElem(syntax,tail,NULL,id)->next))
 FreeStorageElem **Integer2FreeStorage (SyntaxDef * syntax, FreeStorageElem ** tail, int value, int id);
 FreeStorageElem **String2FreeStorage (SyntaxDef * syntax, FreeStorageElem ** tail, char *string, int id);
-FreeStorageElem **Geometry2FreeStorage (SyntaxDef * syntax, FreeStorageElem ** tail, MyGeometry * geometry, int id);
+FreeStorageElem **Geometry2FreeStorage (SyntaxDef * syntax, FreeStorageElem ** tail, ASGeometry * geometry, int id);
 FreeStorageElem **StringArray2FreeStorage (SyntaxDef * syntax, FreeStorageElem ** tail, char **strings, int index1, int index2, int id);
 
 #endif

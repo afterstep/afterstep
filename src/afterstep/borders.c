@@ -1128,7 +1128,7 @@ SetFocus (Window w, ASWindow * Fw, Bool circulated)
 			{
 				/* Need to grab buttons for focus window */
 				XSync (dpy, 0);
-				for (i = 0; i < MAX_BUTTONS; i++)
+				for (i = 0; i < MAX_MOUSE_BUTTONS; i++)
 					if (Scr.buttons2grab & (1 << i))
 						MyXGrabButton (dpy, i + 1, 0, Scr.Ungrabbed->frame,
 									   True, ButtonPressMask, GrabModeSync,
@@ -1156,7 +1156,7 @@ SetFocus (Window w, ASWindow * Fw, Bool circulated)
 		if (Scr.Ungrabbed != NULL)
 		{
 			XSync (dpy, 0);
-			for (i = 0; i < MAX_BUTTONS; i++)
+			for (i = 0; i < MAX_MOUSE_BUTTONS; i++)
 				if (Scr.buttons2grab & (1 << i))
 				{
 					MyXGrabButton (dpy, i + 1, 0, Scr.Ungrabbed->frame,
@@ -1169,7 +1169,7 @@ SetFocus (Window w, ASWindow * Fw, Bool circulated)
 		 * was made to detect the focus change */
 		if ((Scr.flags & ClickToFocus) && (Fw != NULL))
 		{
-			for (i = 0; i < MAX_BUTTONS; i++)
+			for (i = 0; i < MAX_MOUSE_BUTTONS; i++)
 				if (Scr.buttons2grab & (1 << i))
 				{
 					MyXUngrabButton (dpy, i + 1, 0, Fw->frame);

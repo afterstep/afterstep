@@ -125,8 +125,8 @@ CreatePagerConfig (int ndesks)
   PagerConfig *config = (PagerConfig *) safemalloc (sizeof (PagerConfig));
   
   /* let's initialize Pager's config with some nice values: */
-  InitMyGeometry (&(config->icon_geometry));
-  InitMyGeometry (&(config->geometry));
+  init_asgeometry (&(config->icon_geometry));
+  init_asgeometry (&(config->geometry));
   config->labels = CreateStringArray (ndesks);
 #ifdef PAGER_BACKGROUND
   config->styles = CreateStringArray (ndesks);

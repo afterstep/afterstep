@@ -35,6 +35,7 @@
 #include "../../configure.h"
 
 #include "../../include/aftersteplib.h"
+#include "../../include/afterstep.h"
 #include "../../include/parse.h"
 #include "../../include/parser.h"
 #include "../../include/myscandir.h"

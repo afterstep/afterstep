@@ -571,7 +571,7 @@ GrabIconButtons (ASWindow * tmp_win, Window w)
 			{
 				int           i;
 
-				for (i = 0; i < MAX_BUTTONS; i++)
+				for (i = 0; i < MAX_MOUSE_BUTTONS; i++)
 				{
 					MyXGrabButton (dpy, i + 1, MouseEntry->Modifier, w,
 								   True, ButtonPressMask | ButtonReleaseMask,

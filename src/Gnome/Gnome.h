@@ -14,7 +14,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: Gnome.h,v 1.1 2000/10/20 03:27:57 sashav Exp $
+ * $Id: Gnome.h,v 1.2 2002/08/04 06:48:07 sashav Exp $
  */
 
 #define WIN_HINTS_SKIP_FOCUS      (1<<0) /*"alt-tab" skips this win*/
@@ -46,16 +46,6 @@
 */
 
 /* flags for the window layer */
-typedef enum
-{
-  WIN_LAYER_DESKTOP     = 0,
-  WIN_LAYER_BELOW       = 2,
-  WIN_LAYER_NORMAL      = 4,
-  WIN_LAYER_ONTOP       = 6,
-  WIN_LAYER_DOCK        = 8,
-  WIN_LAYER_ABOVE_DOCK  = 10
-} GnomeWinLayer;
-
 typedef enum
 {
   WIN_APP_STATE_NONE,

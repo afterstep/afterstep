@@ -29,13 +29,11 @@
 #define PAN_FRAME_THICKNESS 2	/* or just 1 ? */
 
 
-/* the maximum number of mouse buttons afterstep knows about ; don't think that
- * upping this to 5 will make everything hunky-dory with 5 button mouses (it's
- * better now - HR)
- */
-#define MAX_BUTTONS 3
+/* The maximum number of titlebar buttons */
+#define MAX_BUTTONS 10
 
-/* This is the better approach : */
+/* the maximum number of mouse buttons afterstep knows about :
+ * This is the better approach : */
 #define MAX_MOUSE_BUTTONS 	(Button5-Button1+1)
 
 

@@ -19,7 +19,7 @@ typedef struct
     char *icon_path;
     char *pixmap_path;
     char *myname_path;
-    MyGeometry desktop_size;
+    ASGeometry desktop_size;
     int desktop_scale;
 
     FreeStorageElem *more_stuff;
@@ -206,7 +206,7 @@ extern char *pixmapPath;
 
 typedef struct
   {
-    MyGeometry geometry, icon_geometry;
+    ASGeometry geometry, icon_geometry;
     char **labels;
     char **styles;
     int align;
@@ -253,9 +253,9 @@ typedef struct my_background_config
     char *name;
     unsigned long flags;
     char *data;
-    MyGeometry cut;
+    ASGeometry cut;
     char *tint;
-    MyGeometry scale;
+    ASGeometry scale;
     char *pad;
     struct my_background_config *next;
   }
@@ -400,6 +400,94 @@ void PrintWinListConfig (WinListConfig * config);
 int WriteWinListOptions (const char *filename, char *myname, WinListConfig * config, unsigned long flags);
 WinListConfig *ParseWinListOptions (const char *filename, char *myname);
 
+/**************************************************************************/
+/*                        database pasring definitions                    */
+/**************************************************************************/
+
+
+#define GRAVITY_ID_START            (WINLIST_ID_END+1)
+
+#define GRAVITY_NorthWest_ID        (GRAVITY_ID_START+NorthWestGravity)
+#define GRAVITY_North_ID            (GRAVITY_ID_START+NorthGravity)
+#define GRAVITY_NorthEast_ID        (GRAVITY_ID_START+NorthEastGravity)
+#define GRAVITY_West_ID             (GRAVITY_ID_START+WestGravity)
+#define GRAVITY_Center_ID           (GRAVITY_ID_START+CenterGravity)
+#define GRAVITY_East_ID             (GRAVITY_ID_START+EastGravity)
+#define GRAVITY_SouthWest_ID        (GRAVITY_ID_START+SouthWestGravity)
+#define GRAVITY_South_ID            (GRAVITY_ID_START+SouthGravity)
+#define GRAVITY_SouthEast_ID        (GRAVITY_ID_START+SouthEastGravity)
+#define GRAVITY_Static_ID           (GRAVITY_ID_START+StaticGravity)
+#define GRAVITY_ID_END              (GRAVITY_ID_START+11)
+
+#define DATABASE_ID_START           (GRAVITY_ID_END+1)
+#define DATABASE_STYLE_ID            DATABASE_ID_START
+#define DATABASE_Icon_ID            (DATABASE_ID_START+1)
+#define DATABASE_NoIcon_ID          (DATABASE_ID_START+2)
+#define DATABASE_FocusStyle_ID		(DATABASE_ID_START+3)
+#define DATABASE_UnfocusStyle_ID	(DATABASE_ID_START+4)
+#define DATABASE_StickyStyle_ID		(DATABASE_ID_START+5)
+#define DATABASE_NoIconTitle_ID		(DATABASE_ID_START+6)
+#define DATABASE_IconTitle_ID		(DATABASE_ID_START+7)
+#define DATABASE_Focus_ID           (DATABASE_ID_START+8)
+#define DATABASE_NoFocus_ID         (DATABASE_ID_START+9)
+#define DATABASE_NoTitle_ID         (DATABASE_ID_START+10)
+#define DATABASE_Title_ID           (DATABASE_ID_START+11)
+#define DATABASE_NoHandles_ID		(DATABASE_ID_START+12)
+#define DATABASE_Handles_ID         (DATABASE_ID_START+13)
+#define DATABASE_NoButton_ID		(DATABASE_ID_START+14)
+#define DATABASE_Button_ID          (DATABASE_ID_START+15)
+#define DATABASE_WindowListSkip_ID	(DATABASE_ID_START+16)
+#define DATABASE_WindowListHit_ID	(DATABASE_ID_START+17)
+#define DATABASE_CirculateSkip_ID	(DATABASE_ID_START+18)
+#define DATABASE_CirculateHit_ID	(DATABASE_ID_START+19)
+#define DATABASE_StartIconic_ID		(DATABASE_ID_START+20)
+#define DATABASE_StartNormal_ID		(DATABASE_ID_START+21)
+#define DATABASE_Layer_ID           (DATABASE_ID_START+22)
+#define DATABASE_StaysOnTop_ID		(DATABASE_ID_START+23)
+#define DATABASE_StaysPut_ID		(DATABASE_ID_START+24)
+#define DATABASE_StaysOnBack_ID		(DATABASE_ID_START+25)
+#define DATABASE_AvoidCover_ID		(DATABASE_ID_START+26)
+#define DATABASE_AllowCover_ID		(DATABASE_ID_START+27)
+#define DATABASE_VerticalTitle_ID	(DATABASE_ID_START+28)
+#define DATABASE_HorizontalTitle_ID	(DATABASE_ID_START+29)
+#define DATABASE_Sticky_ID          (DATABASE_ID_START+30)
+#define DATABASE_Slippery_ID		(DATABASE_ID_START+31)
+#define DATABASE_BorderWidth_ID	 	(DATABASE_ID_START+32)
+#define DATABASE_HandleWidth_ID		(DATABASE_ID_START+33)
+#define DATABASE_StartsOnDesk_ID	(DATABASE_ID_START+34)
+#define DATABASE_ViewportX_ID		(DATABASE_ID_START+35)
+#define DATABASE_ViewportY_ID		(DATABASE_ID_START+36)
+#define DATABASE_StartsAnywhere_ID	(DATABASE_ID_START+37)
+#define DATABASE_NoFrame_ID         (DATABASE_ID_START+38)
+#define DATABASE_Frame_ID           (DATABASE_ID_START+39)
+#define DATABASE_DefaultGeometry_ID        (DATABASE_ID_START+40)
+#define DATABASE_OverrideGravity_ID        (DATABASE_ID_START+41)
+#define DATABASE_HonorPPosition_ID         (DATABASE_ID_START+42)
+#define DATABASE_NoPPosition_ID            (DATABASE_ID_START+43)
+#define DATABASE_HonorGroupHints_ID        (DATABASE_ID_START+44)
+#define DATABASE_NoGroupHints_ID           (DATABASE_ID_START+45)
+#define DATABASE_HonorTransientHints_ID    (DATABASE_ID_START+46)
+#define DATABASE_NoTransientHints_ID       (DATABASE_ID_START+47)
+#define DATABASE_HonorMotifHints_ID        (DATABASE_ID_START+48)
+#define DATABASE_NoMotifHints_ID           (DATABASE_ID_START+49)
+#define DATABASE_HonorGnomeHints_ID        (DATABASE_ID_START+50)
+#define DATABASE_NoGnomeHints_ID           (DATABASE_ID_START+51)
+#define DATABASE_HonorExtWMHints_ID        (DATABASE_ID_START+52)
+#define DATABASE_NoExtWMHints_ID           (DATABASE_ID_START+53)
+#define DATABASE_HonorXResources_ID        (DATABASE_ID_START+54)
+#define DATABASE_NoXResources_ID           (DATABASE_ID_START+55)
+
+#define DATABASE_ID_END             (DATABASE_ID_START+64)
+
+/* we use name_list structure 1 to 1 in here, as it does not requre any
+   preprocessing from us
+ */
+struct name_list;
+
+unsigned int translate_title_button (unsigned int user_button);
+struct name_list *ParseDatabaseOptions (const char *filename, char *myname);
+int WriteDatabaseOptions (const char *filename, char *myname,
+			  struct name_list *config, unsigned long flags);
 
 
 #endif /* CONF_DEFS_H_FILE_INCLUDED */

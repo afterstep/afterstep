@@ -797,7 +797,7 @@ AddWindow (Window w)
 	{
 		/* need to grab all buttons for window that we are about to
 		 * unhighlight */
-		for (i = 0; i < MAX_BUTTONS; i++)
+		for (i = 0; i < MAX_MOUSE_BUTTONS; i++)
 			if (Scr.buttons2grab & (1 << i))
 			{
 				MyXGrabButton (dpy, i + 1, 0, tmp_win->frame,
@@ -864,7 +864,7 @@ GrabButtons (ASWindow * tmp_win)
 			{
 				int           i;
 
-				for (i = 0; i < MAX_BUTTONS; i++)
+				for (i = 0; i < MAX_MOUSE_BUTTONS; i++)
 				{
 					MyXGrabButton (dpy, i + 1, MouseEntry->Modifier, tmp_win->w,
 								   True, ButtonPressMask | ButtonReleaseMask,

@@ -99,9 +99,9 @@ CreateMyBackgroundConfig ()
   config->name = NULL;
   config->flags = 0;
   config->data = NULL;
-  InitMyGeometry (&(config->cut));
+  init_asgeometry (&(config->cut));
   config->tint = NULL;
-  InitMyGeometry (&(config->scale));
+  init_asgeometry (&(config->scale));
   config->pad = NULL;
   config->next = NULL;
 

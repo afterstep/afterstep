@@ -543,7 +543,7 @@ GrabRaiseClick (ASWindow * t)
 {
 	int           b;
 
-	for (b = 1; b <= MAX_BUTTONS; b++)
+	for (b = 1; b <= MAX_MOUSE_BUTTONS; b++)
 	{
 		if (Scr.RaiseButtons & (1 << b))
 			MyXGrabButton (dpy, b, 0, t->w, True, ButtonPressMask, GrabModeSync,
@@ -561,7 +561,7 @@ UngrabRaiseClick (ASWindow * t)
 {
 	int           b;
 
-	for (b = 1; b <= MAX_BUTTONS; b++)
+	for (b = 1; b <= MAX_MOUSE_BUTTONS; b++)
 	{
 		if (Scr.RaiseButtons & (1 << b))
 			MyXUngrabButton (dpy, b, 0, t->w);

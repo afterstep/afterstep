@@ -1943,7 +1943,7 @@ SetButtonList (char *text, FILE * fd, char **arg1, int *arg2)
 	int           i, b;
 	char         *next;
 
-	for (i = 0; i < MAX_BUTTONS; i++)
+	for (i = 0; i < MAX_MOUSE_BUTTONS; i++)
 	{
 		b = (int)strtol (text, &next, 0);
 		if (next == text)
@@ -1951,7 +1951,7 @@ SetButtonList (char *text, FILE * fd, char **arg1, int *arg2)
 		text = next;
 		if (*text == ',')
 			text++;
-		if ((b > 0) && (b <= MAX_BUTTONS))
+		if ((b > 0) && (b <= MAX_MOUSE_BUTTONS))
 			Scr.RaiseButtons |= 1 << b;
 	}
 	Scr.flags |= ClickToRaise;

@@ -30,6 +30,7 @@
 #include <stdlib.h>
 
 #include "../include/aftersteplib.h"
+#include "../include/afterstep.h"
 #include "../include/parser.h"
 
 #ifdef DEBUG_PARSER
