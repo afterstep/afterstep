@@ -1261,10 +1261,15 @@ asimage_erase_line( ASImage * im, ColorPart color, unsigned int y )
 {
 	if( !AS_ASSERT(im) )
 	{
+		CARD8       **part = im->channels[color];
 		if( color < IC_NUM_CHANNELS )
 		{
-			CARD8       **part = im->channels[color];
-			if( part[y] )
+			if( get_flags( im->flags, ASIM_STATIC ) ) 
+			{
+				CARD8 back_color = ARGB32_CHAN8(im->back_color,color);
+				memset(part[y], back_color, im->width);
+			}
+			else if( part[y] )
 			{
 				free( part[y] );
 				part[y] = NULL;
@@ -1275,7 +1280,12 @@ asimage_erase_line( ASImage * im, ColorPart color, unsigned int y )
 			for( c = 0 ; c < IC_NUM_CHANNELS ; c++ )
 			{
 				CARD8       **part = im->channels[color];
-				if( part[y] )
+				if( get_flags( im->flags, ASIM_STATIC ) ) 
+				{
+					CARD8 back_color = ARGB32_CHAN8(im->back_color,color);
+					memset(part[y], back_color, im->width);
+				}
+				else if( part[y] )
 				{
 					free( part[y] );
 					part[y] = NULL;
@@ -1295,8 +1305,17 @@ asimage_add_line_mono (ASImage * im, ColorPart color, register CARD8 value, unsi
 
 	if (AS_ASSERT(im) || color <0 || color >= IC_NUM_CHANNELS )
 		return 0;
+	if( y >= im->height)
+		return 0;
 
-	if( (dst = get_compression_buffer(max(RLE_THRESHOLD+2,4))) == NULL || y >= im->height)
+	if( get_flags( im->flags, ASIM_STATIC ) ) 
+	{
+		CARD8       **part = im->channels[color];
+		memset(part[y], value, im->width);
+		return im->width ;
+	}
+
+	if( (dst = get_compression_buffer(max(RLE_THRESHOLD+2,4))) == NULL )
 		return 0;
 
 	if( im->width <= RLE_THRESHOLD )
@@ -1345,9 +1364,18 @@ asimage_add_line (ASImage * im, ColorPart color, register CARD32 * data, unsigne
 	if (y >= im->height)
 		return 0;
 
-	best_size = 0 ;
-/*	fprintf( stderr, "max = %d, width = %d, %d:%d:%d<%2.2X ", im->max_compressed_width, im->width, y, color, 0, data[0] );*/
 	clear_flags( im->flags, ASIM_DATA_NOT_USEFUL );
+
+	if( get_flags( im->flags, ASIM_STATIC ) ) 
+	{
+		CARD8 *part = im->channels[color][y];
+		int i ;
+		for( i = 0 ; i < im->width ; ++i ) 
+			part[i] = data[i] ;
+		return im->width ;
+	}
+
+	best_size = 0 ;
 	if( im->width == 1 )
 	{
 		if( (dst = get_compression_buffer( 2 )) == NULL )
@@ -1460,75 +1488,6 @@ asimage_add_line (ASImage * im, ColorPart color, register CARD32 * data, unsigne
 	return buf_used;
 }
 
-ASFlagType
-get_asimage_chanmask( ASImage *im)
-{
-    ASFlagType mask = 0 ;
-	int color ;
-
-	if( !AS_ASSERT(im) )
-		for( color = 0; color < IC_NUM_CHANNELS ; color++ )
-		{
-			register CARD8 **chan = im->channels[color];
-			register int y, height = im->height ;
-			for( y = 0 ; y < height ; y++ )
-				if( chan[y] )
-				{
-					set_flags( mask, 0x01<<color );
-					break;
-				}
-		}
-    return mask ;
-}
-
-int
-check_asimage_alpha (ASVisual *asv, ASImage *im )
-{
-	int recomended_depth = 0 ;
-	unsigned int            i;
-	ASScanline     buf;
-
-	if( asv == NULL )
-		asv = get_default_asvisual();
-
-	if (im == NULL)
-		return 0;
-
-	prepare_scanline( im->width, 0, &buf, asv->BGR_mode );
-	buf.flags = SCL_DO_ALPHA ;
-	for (i = 0; i < im->height; i++)
-	{
-		int count = asimage_decode_line (im, IC_ALPHA, buf.alpha, i, 0, buf.width);
-		if( count < (int)buf.width )
-		{
-			if( ARGB32_ALPHA8(im->back_color) == 0 )
-			{
-				if( recomended_depth == 0 )
-					recomended_depth = 1 ;
-			}else if( ARGB32_ALPHA8(im->back_color) != 0xFF )
-			{
-				recomended_depth = 8 ;
-				break ;
-			}
-		}
-		while( --count >= 0 )
-			if( buf.alpha[count] == 0  )
-			{
-				if( recomended_depth == 0 )
-					recomended_depth = 1 ;
-			}else if( (buf.alpha[count]&0xFF) != 0xFF  )
-			{
-				recomended_depth = 8 ;
-				break ;
-			}
-		if( recomended_depth == 8 )
-			break;
-	}
-	free_scanline(&buf, True);
-
-	return recomended_depth;
-}
-
 
 
 unsigned int
@@ -1548,6 +1507,15 @@ asimage_print_line (ASImage * im, ColorPart color, unsigned int y, unsigned long
 	if( AS_ASSERT(color_ptr) )
 		return 0;
 	ptr = color_ptr[y];
+	
+	if( get_flags( im->flags, ASIM_STATIC ) ) 
+	{
+		int i ;
+		for( i = 0 ; i < im->width ; ++i ) 
+			fprintf (stderr, " %2.2X", ptr[i]);
+		return im->width ;
+	}
+	
 	if( ptr == NULL )
 	{
 		if(  verbosity != 0 )
@@ -1760,21 +1728,36 @@ void print_component( register CARD32 *data, int nonsense, int len );
 inline int
 asimage_decode_line (ASImage * im, ColorPart color, CARD32 * to_buf, unsigned int y, unsigned int skip, unsigned int out_width)
 {
+	int max_i ;
 	register CARD8  *src = im->channels[color][y];
+	register int i = 0;
 	/* that thing below is supposedly highly optimized : */
 LOCAL_DEBUG_CALLER_OUT( "im->width = %d, color = %d, y = %d, skip = %d, out_width = %d, src = %p", im->width, color, y, skip, out_width, src );
+
+	skip = skip%im->width ;
+	max_i = MIN(out_width,im->width-skip);
+
+	if( get_flags( im->flags, ASIM_STATIC ) ) 
+	{
+		int k = skip ; 
+		i = skip ;
+		while( k < out_width ) 
+		{
+			while( i < max_i ) 
+				to_buf[k++] = src[i++] ;
+			i = 0 ;
+		}					
+		return im->width ;
+	}
+
 	if( src )
 	{
-		register int i = 0;
 #if 1
   		if( skip > 0 || out_width+skip < im->width)
 		{
-			int max_i ;
 			CARD8 *buffer = get_compression_buffer( im->width );
 
 			asimage_decode_block8( src, buffer, im->width );
-			skip = skip%im->width ;
-			max_i = MIN(out_width,im->width-skip);
 			src = buffer+skip ;
 			while( i < (int)out_width )
 			{
@@ -1872,6 +1855,7 @@ asimage_threshold_line( CARD8 *src, unsigned int width, unsigned int *runs, unsi
 	/* merely copying the data */
 	if ( src == NULL )
 		return 0;
+		
 	runs[0] = runs[1] = 0 ;
 	while (src[i] != RLE_EOL && curr_x < (int)width )
 	{
@@ -1983,6 +1967,9 @@ asimage_threshold_line( CARD8 *src, unsigned int width, unsigned int *runs, unsi
 void
 move_asimage_channel( ASImage *dst, int channel_dst, ASImage *src, int channel_src )
 {
+	if( get_flags( dst->flags, ASIM_STATIC ) || get_flags( src->flags, ASIM_STATIC ) ) 
+		return;
+
 	if( !AS_ASSERT(dst) && !AS_ASSERT(src) && channel_src >= 0 && channel_src < IC_NUM_CHANNELS &&
 		channel_dst >= 0 && channel_dst < IC_NUM_CHANNELS )
 	{
@@ -2007,6 +1994,9 @@ move_asimage_channel( ASImage *dst, int channel_dst, ASImage *src, int channel_s
 void
 copy_asimage_channel( ASImage *dst, int channel_dst, ASImage *src, int channel_src )
 {
+	if( get_flags( dst->flags, ASIM_STATIC ) || get_flags( src->flags, ASIM_STATIC ) ) 
+		return;
+
 	if( !AS_ASSERT(dst) && !AS_ASSERT(src) && channel_src >= 0 && channel_src < IC_NUM_CHANNELS &&
 		channel_dst >= 0 && channel_dst < IC_NUM_CHANNELS )
 	{
@@ -2041,6 +2031,9 @@ copy_asimage_lines( ASImage *dst, unsigned int offset_dst,
                     ASImage *src, unsigned int offset_src,
 					unsigned int nlines, ASFlagType filter )
 {
+	if( get_flags( dst->flags, ASIM_STATIC ) || get_flags( src->flags, ASIM_STATIC ) ) 
+		return;
+
 	if( !AS_ASSERT(dst) && !AS_ASSERT(src) &&
 		offset_src < src->height && offset_dst < dst->height &&
 		dst->width == src->width )
@@ -2080,16 +2073,101 @@ Bool
 asimage_compare_line (ASImage *im, ColorPart color, CARD32 *to_buf, CARD32 *tmp, unsigned int y, Bool verbose)
 {
 	register unsigned int i;
-	asimage_decode_line( im, color, tmp, y, 0, im->width );
-	for( i = 0 ; i < im->width ; i++ )
-		if( tmp[i] != to_buf[i] )
-		{
-			if( verbose )
-				show_error( "line %d, component %d differ at offset %d ( 0x%lX(compresed) != 0x%lX(orig) )\n", y, color, i, tmp[i], to_buf[i] );
-			return False ;
-		}
+	if( get_flags( im->flags, ASIM_STATIC ) ) 
+	{
+		CARD8 *src = im->channels[color][y];
+		for( i = 0 ; i < im->width ; i++ )
+			if( src[i] != to_buf[i] )
+			{
+				if( verbose )
+					show_error( "line %d, component %d differ at offset %d ( 0x%lX(compresed) != 0x%lX(orig) )\n", y, color, i, 
+					src[i], to_buf[i] );
+				return False ;
+			}
+	}else
+	{
+		asimage_decode_line( im, color, tmp, y, 0, im->width );
+		for( i = 0 ; i < im->width ; i++ )
+			if( tmp[i] != to_buf[i] )
+			{
+				if( verbose )
+					show_error( "line %d, component %d differ at offset %d ( 0x%lX(compresed) != 0x%lX(orig) )\n", y, color, i, tmp[i], to_buf[i] );
+				return False ;
+			}
+	}
 	return True;
 }
+
+ASFlagType
+get_asimage_chanmask( ASImage *im)
+{
+    ASFlagType mask = 0 ;
+	int color ;
+
+	if( !AS_ASSERT(im) )
+		for( color = 0; color < IC_NUM_CHANNELS ; color++ )
+		{
+			register CARD8 **chan = im->channels[color];
+			register int y, height = im->height ;
+			for( y = 0 ; y < height ; y++ )
+				if( chan[y] )
+				{
+					set_flags( mask, 0x01<<color );
+					break;
+				}
+		}
+    return mask ;
+}
+
+int
+check_asimage_alpha (ASVisual *asv, ASImage *im )
+{
+	int recomended_depth = 0 ;
+	unsigned int            i;
+	ASScanline     buf;
+
+	if( asv == NULL )
+		asv = get_default_asvisual();
+
+	if (im == NULL)
+		return 0;
+
+	prepare_scanline( im->width, 0, &buf, asv->BGR_mode );
+	buf.flags = SCL_DO_ALPHA ;
+	for (i = 0; i < im->height; i++)
+	{
+		int count = asimage_decode_line (im, IC_ALPHA, buf.alpha, i, 0, buf.width);
+		if( count < (int)buf.width )
+		{
+			if( ARGB32_ALPHA8(im->back_color) == 0 )
+			{
+				if( recomended_depth == 0 )
+					recomended_depth = 1 ;
+			}else if( ARGB32_ALPHA8(im->back_color) != 0xFF )
+			{
+				recomended_depth = 8 ;
+				break ;
+			}
+		}
+		while( --count >= 0 )
+			if( buf.alpha[count] == 0  )
+			{
+				if( recomended_depth == 0 )
+					recomended_depth = 1 ;
+			}else if( (buf.alpha[count]&0xFF) != 0xFF  )
+			{
+				recomended_depth = 8 ;
+				break ;
+			}
+		if( recomended_depth == 8 )
+			break;
+	}
+	free_scanline(&buf, True);
+
+	return recomended_depth;
+}
+
+
 
 /* for consistency sake : */
 inline void
@@ -3115,7 +3193,14 @@ get_asimage_channel_rects( ASImage *src, int channel, unsigned int threshold, un
 			{
 				if( src_rows[i] )
 				{
-					runs_count = asimage_threshold_line( src_rows[i], src->width, runs, threshold );
+					if( get_flags( src->flags, ASIM_STATIC ) ) 
+					{
+						/* TODO : ! */
+						runs_count = 2 ;
+						runs[0] = 0 ;
+						runs[1] = src->width ;
+					}else
+						runs_count = asimage_threshold_line( src_rows[i], src->width, runs, threshold );
 				}else if( count_empty )
 				{
 					runs_count = 2 ;
