@@ -75,7 +75,10 @@ TermDef       PagerTerms[] = {
     {TF_INDEXED, "Label", 5, TT_TEXT, PAGER_LABEL_ID, NULL},
 #ifdef PAGER_BACKGROUND
     {TF_INDEXED, "Style", 5, TT_TEXT, PAGER_STYLE_ID, NULL},
-#endif
+#endif 
+    {0, "ActiveDeskBevel", 15,   TT_FLAG, PAGER_ActiveBevel_ID   , &BevelSyntax},
+    {0, "InActiveDeskBevel", 17, TT_FLAG, PAGER_InActiveBevel_ID , &BevelSyntax},
+
 /* including MyStyles definitions processing */
 	INCLUDE_MYSTYLE,
 /* we have sybsyntax for this one too, just like for MyStyle */
@@ -280,10 +283,18 @@ ParsePagerOptions (const char *filename, char *myname, int desk1, int desk2)
 				 set_flags (config->set_flags, SET_ROOT_ON_STARTUP);
 				 break;
 			 case PAGER_STICKY_ICONS_ID:
-				 config->flags |= STICKY_ICONS;
+                 set_flags (config->flags, STICKY_ICONS);
 				 set_flags (config->set_flags, STICKY_ICONS);
 				 break;
-			}
+             case PAGER_ActiveBevel_ID:
+                 set_flags(config->set_flags, PAGER_SET_ACTIVE_BEVEL);
+                 config->active_desk_bevel = ParseBevelOptions( pCurr->sub );
+				 break;
+             case PAGER_InActiveBevel_ID:
+                 set_flags(config->set_flags, PAGER_SET_INACTIVE_BEVEL);
+                 config->inactive_desk_bevel = ParseBevelOptions( pCurr->sub );
+				 break;
+            }
 		} else
 		{
 			if (!ReadConfigItem (&item, pCurr))

@@ -80,6 +80,66 @@ void DoTest_locale()
 
 }
 
+void DoTest_colorscheme()
+{
+    uint16_t red = 0, green = 0, blue = 0 ;
+    FILE *stream = fopen ("ascs.html", "w" );
+
+
+    fprintf( stream, "<HTML><BODY>\n" );
+    while( red < 257 ) 
+    {    
+        if( red == 256 ) 
+            --red ;
+        green = 0 ;
+        while( green < 257 ) 
+        {
+            if( green == 256 ) 
+                --green ;
+            blue = 0 ;
+            while( blue < 257 ) 
+            {
+                ARGB32 base_fore = ARGB32_White;
+                if( blue == 256 ) 
+                    --blue ;
+                ASColorScheme *acs = make_ascolor_scheme( MAKE_ARGB32(0xFF, red, green, blue), 15 );
+#define COLOR_RGB(c)   (uint16_t)ARGB32_RED8(acs->main_colors[c]), (uint16_t)ARGB32_GREEN8(acs->main_colors[c]), (uint16_t)ARGB32_BLUE8(acs->main_colors[c]) 
+
+                fprintf( stream, "<TABLE BGCOLOR=\"#%2.2X%2.2X%2.2X\" CELLPADDING=5 CELLSPACING=10>", COLOR_RGB(ASMC_Base ) );
+                if( ASCS_BLACK_O_WHITE_CRITERIA16(ARGB32_RED16(acs->main_colors[ASMC_Base]), ARGB32_GREEN16(acs->main_colors[ASMC_Base]), (uint16_t)ARGB32_BLUE16(acs->main_colors[ASMC_Base])) ) 
+                    base_fore = ARGB32_Black ; 
+                fprintf( stream, "<TR><TD ROWSPAN=3><font color=\"#%2.2X%2.2X%2.2X\">Base: #%2.2X%2.2X%2.2X, BaseFore: #%2.2X%2.2X%2.2X</font></TD>", 
+                                 (uint16_t)ARGB32_RED8(base_fore), (uint16_t)ARGB32_GREEN8(base_fore), (uint16_t)ARGB32_BLUE8(base_fore),                                  
+                                 COLOR_RGB(ASMC_Base), 
+                                 (uint16_t)ARGB32_RED8(base_fore), (uint16_t)ARGB32_GREEN8(base_fore), (uint16_t)ARGB32_BLUE8(base_fore));
+                fprintf( stream, "<TD BGCOLOR=\"#%2.2X%2.2X%2.2X\"><font color=\"#%2.2X%2.2X%2.2X\">Inactive1: #%2.2X%2.2X%2.2X, InactiveFore1:#%2.2X%2.2X%2.2X</font></TD></TR>", 
+                                 COLOR_RGB(ASMC_Inactive1),
+                                 COLOR_RGB(ASMC_InactiveText1),
+                                 COLOR_RGB(ASMC_Inactive1), 
+                                 COLOR_RGB(ASMC_InactiveText1) );
+                fprintf( stream, "<TR><TD BGCOLOR=\"#%2.2X%2.2X%2.2X\"><font color=\"#%2.2X%2.2X%2.2X\">Active: #%2.2X%2.2X%2.2X, ActiveFore:#%2.2X%2.2X%2.2X</font></TD></TR>", 
+                                 COLOR_RGB(ASMC_Active),
+                                 COLOR_RGB(ASMC_ActiveText),
+                                 COLOR_RGB(ASMC_Active),
+                                 COLOR_RGB(ASMC_ActiveText) );
+                fprintf( stream, "<TR><TD BGCOLOR=\"#%2.2X%2.2X%2.2X\"><font color=\"#%2.2X%2.2X%2.2X\">Inactive2: #%2.2X%2.2X%2.2X, InactiveFore2:#%2.2X%2.2X%2.2X</font></TD></TR>", 
+                                 COLOR_RGB(ASMC_Inactive2),
+                                 COLOR_RGB(ASMC_InactiveText2),
+                                 COLOR_RGB(ASMC_Inactive2),
+                                 COLOR_RGB(ASMC_InactiveText2) );
+                            
+                fprintf( stream, "</TABLE>\n<p>\n" );
+                blue += 64 ; 
+            }
+            green += 64 ; 
+        }    
+        red += 64 ;    
+    }
+    fprintf( stream, "</BODY></HTML>\n" );
+    fclose( stream );
+    exit (0);
+}    
+
 
 /**********************************************************************/
 
@@ -108,7 +168,9 @@ main( int argc, char **argv )
     TestState.main_canvas = create_ascanvas( TestState.main_window );
     set_root_clip_area(TestState.main_canvas );
 
-	DoTest_locale();
+    //DoTest_locale();
+
+    DoTest_colorscheme();
 
 	/* And at long last our main loop : */
     HandleEvents();

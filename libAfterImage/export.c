@@ -424,12 +424,12 @@ ASImage2png ( ASImage *im, const char *path, register ASImageExportParams *param
 			{
 				while( --i >= 0 ) /* normalized graylevel computing :  */
 				{
-					ptr[(i<<1)] = (54*r[i]+183*g[i]+19*b[i])/256 ;
+                    ptr[(i<<1)] = (57*r[i]+181*g[i]+18*b[i])/256 ;
 					ptr[(i<<1)+1] = a[i] ;
 				}
 			}else
 				while( --i >= 0 ) /* normalized graylevel computing :  */
-					ptr[i] = (54*r[i]+183*g[i]+19*b[i])/256 ;
+                    ptr[i] = (57*r[i]+181*g[i]+18*b[i])/256 ;
 			png_write_rows(png_ptr, &row_pointer, 1);
 		}
 	}else

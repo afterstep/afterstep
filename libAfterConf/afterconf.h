@@ -514,6 +514,8 @@ extern char *pixmapPath;
 #define PAGER_SET_GRID_COLOR		(1<<23)
 #define PAGER_SET_BORDER_COLOR		(1<<24)
 #define PAGER_SET_BORDER_WIDTH		(1<<25)
+#define PAGER_SET_ACTIVE_BEVEL      (1<<26)
+#define PAGER_SET_INACTIVE_BEVEL    (1<<27)
 
 
 /* ID's used in our config */
@@ -542,12 +544,15 @@ extern char *pixmapPath;
 #define PAGER_DECOR_NOSELECTION_ID 	(PAGER_ID_START+32)
 #define PAGER_DECOR_SEL_COLOR_ID 	(PAGER_ID_START+33)
 #define PAGER_DECOR_GRID_COLOR_ID 	(PAGER_ID_START+34)
-#define PAGER_DECOR_BORDER_WIDTH_ID 	(PAGER_ID_START+35)
+#define PAGER_DECOR_BORDER_WIDTH_ID (PAGER_ID_START+35)
 #define PAGER_DECOR_BORDER_COLOR_ID	(PAGER_ID_START+36)
 #define PAGER_DECOR_LABEL_BELOW_ID	(PAGER_ID_START+37)
-#define PAGER_DECOR_HIDE_INACTIVE_ID 	(PAGER_ID_START+38)
+#define PAGER_DECOR_HIDE_INACTIVE_ID    (PAGER_ID_START+38)
 #define PAGER_DECOR_VERTICAL_LABEL_ID   (PAGER_ID_START+39)
-#define PAGER_ID_END		(PAGER_ID_START+50)
+#define PAGER_ActiveBevel_ID        (PAGER_ID_START+40)
+#define PAGER_InActiveBevel_ID      (PAGER_ID_START+41)
+
+#define PAGER_ID_END                (PAGER_ID_START+50)
 /* config data structure */
 
 typedef struct
@@ -580,6 +585,9 @@ typedef struct
     struct MyStyle *MSDeskTitle[DESK_STYLES];
     struct MyStyle **MSDeskBack;
     struct button_t *shade_btn ;
+
+    ASFlagType  active_desk_bevel ;
+    ASFlagType  inactive_desk_bevel ;
 
 }PagerConfig;
 

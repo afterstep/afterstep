@@ -2060,6 +2060,7 @@ render_astbar (ASTBarData * tbar, ASCanvas * pc)
     Bool res = False;
     Bool render_mask = False ;
     merge_scanlines_func merge_func = alphablend_scanlines ;
+    int h_bevel_size = 0, v_bevel_size = 0 ;
 
 	/* input control : */
 LOCAL_DEBUG_CALLER_OUT("tbar(%p)->pc(%p)", tbar, pc );
@@ -2098,6 +2099,8 @@ LOCAL_DEBUG_OUT("back-try2(%p)", back );
 	}
 
     mystyle_make_bevel (style, &bevel, tbar->hilite[state], get_flags (tbar->state, BAR_STATE_PRESSED_MASK));
+    h_bevel_size = bevel.left_outline+bevel.right_outline ;
+    v_bevel_size = bevel.top_outline+bevel.bottom_outline ;
     /*mystyle_make_bevel (style, &bevel, 0, get_flags (tbar->state, BAR_STATE_PRESSED_MASK));
 	 * in unfocused and unpressed state we render pixmap and set
 	 * window's background to it
@@ -2130,8 +2133,8 @@ LOCAL_DEBUG_OUT("back-try2(%p)", back );
             }
         }
     /* pass 2: see how much space we have left that needs to be floating to some rows/columns : */
-    space_left_x = tbar->width - (tbar->left_bevel+tbar->right_bevel+tbar->h_border*2);
-    space_left_y = tbar->height- (tbar->top_bevel+tbar->bottom_bevel+tbar->v_border*2);
+    space_left_x = tbar->width - (h_bevel_size+tbar->h_border*2);
+    space_left_y = tbar->height- (v_bevel_size+tbar->v_border*2);
     LOCAL_DEBUG_OUT( "from: space_left_x = %d, space_left_y = %d", space_left_x, space_left_y );
     for( l = 0 ; l < AS_TileColumns ; ++l )
     {
@@ -2191,8 +2194,8 @@ LOCAL_DEBUG_OUT("back-try2(%p)", back );
         }
 
     /* pass 5: now we determine offset of each row/column : */
-    x = tbar->left_bevel+tbar->h_border ;
-    y = tbar->top_bevel+tbar->v_border ;
+    x = bevel.left_outline+tbar->h_border ;
+    y = bevel.top_outline+tbar->v_border ;
     for( l = 0 ; l < AS_TileColumns ; ++l )
     {
         col_x[l] = x ;
@@ -2214,13 +2217,13 @@ LOCAL_DEBUG_OUT("back-try2(%p)", back );
     scrap_images = safecalloc( good_layers+1, sizeof(ASImage*));
 	layers[0].im = back;
 	layers[0].bevel = &bevel;
-    if( tbar->width > (tbar->left_bevel + tbar->right_bevel) )
-        layers[0].clip_width = tbar->width - (tbar->left_bevel + tbar->right_bevel);
+    if( tbar->width > h_bevel_size )
+        layers[0].clip_width = tbar->width - h_bevel_size;
     else
         layers[0].clip_width = 1;
 
-    if( tbar->height > (tbar->top_bevel + tbar->bottom_bevel) )
-        layers[0].clip_height = tbar->height - (tbar->top_bevel + tbar->bottom_bevel);
+    if( tbar->height > v_bevel_size )
+        layers[0].clip_height = tbar->height - v_bevel_size;
     else
         layers[0].clip_height = 1;
 

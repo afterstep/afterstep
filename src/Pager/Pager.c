@@ -401,6 +401,12 @@ CheckConfigSanity()
 	parse_argb_color( Config->selection_color, &(Config->selection_color_argb) );
     parse_argb_color( Config->grid_color, &(Config->grid_color_argb) );
 
+
+    if( !get_flags( Config->set_flags, PAGER_SET_ACTIVE_BEVEL ) )
+        Config->active_desk_bevel = NORMAL_HILITE ;
+    if( !get_flags( Config->set_flags, PAGER_SET_INACTIVE_BEVEL ) )
+        Config->inactive_desk_bevel = NORMAL_HILITE|NO_HILITE_OUTLINE;
+    LOCAL_DEBUG_OUT("active_bevel = %X, inactive_bevel = %X", Config->active_desk_bevel, Config->inactive_desk_bevel );
 	mystyle_get_property (Scr.wmprops);
 
     for( i = 0 ; i < BACK_STYLES ; ++i )
@@ -557,6 +563,17 @@ GetOptions (const char *filename)
 
     if( config->shade_button[1] )
         set_string_value( &(Config->shade_button[1]), mystrdup(config->shade_button[1]), NULL, 0 );
+
+    if( get_flags( config->set_flags, PAGER_SET_ACTIVE_BEVEL ) )
+    {    
+        Config->active_desk_bevel = config->active_desk_bevel ;
+        set_flags( Config->set_flags, PAGER_SET_ACTIVE_BEVEL );
+    }        
+    if( get_flags( config->set_flags, PAGER_SET_INACTIVE_BEVEL ) )
+    {        
+        Config->inactive_desk_bevel = config->inactive_desk_bevel ;
+        set_flags( Config->set_flags, PAGER_SET_INACTIVE_BEVEL );
+    }
 
     if( Config->balloon_conf )
         Destroy_balloonConfig( Config->balloon_conf );
@@ -1144,8 +1161,8 @@ redecorate_pager_desks()
                 d->title->context = C_TITLE ;
 				just_created = True ;
             }
-            set_astbar_hilite( d->title, BAR_STATE_UNFOCUSED, NORMAL_HILITE|NO_HILITE_OUTLINE);
-            set_astbar_hilite( d->title, BAR_STATE_FOCUSED, NORMAL_HILITE);
+            set_astbar_hilite( d->title, BAR_STATE_UNFOCUSED, Config->inactive_desk_bevel);
+            set_astbar_hilite( d->title, BAR_STATE_FOCUSED, Config->active_desk_bevel);
 
             set_astbar_style_ptr( d->title, BAR_STATE_FOCUSED, Config->MSDeskTitle[DESK_ACTIVE] );
             set_astbar_style_ptr( d->title, BAR_STATE_UNFOCUSED, Config->MSDeskTitle[DESK_INACTIVE] );
@@ -1678,7 +1695,7 @@ void add_client( ASWindowData *wd )
     w = create_visual_window( Scr.asv, d->desk_canvas->w, -1, -1, 1, 1, 0, InputOutput, CWEventMask, &attr );
     if( w == None )
         return;
-
+ 
     wd->canvas = create_ascanvas( w );
     wd->bar = create_astbar();
 
