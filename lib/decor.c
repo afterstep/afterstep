@@ -447,14 +447,17 @@ quietly_reparent_canvas( ASCanvas *pc, Window dst, long event_mask, Bool use_roo
     if( pc && dst != None )
     {
         int x = 0, y = 0 ;
+        Window parent = None ;
+
         if( use_root_pos )
         {
             x = pc->root_x ;
             y = pc->root_y ;
         }else
-            get_canvas_position( pc, NULL, &x, &y );
+            get_canvas_position( pc, &parent, &x, &y );
 
-        quietly_reparent_window( pc->w, dst, x, y, event_mask );
+        if( parent != dst )
+            quietly_reparent_window( pc->w, dst, x, y, event_mask );
     }
 }
 

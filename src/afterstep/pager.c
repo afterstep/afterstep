@@ -35,7 +35,9 @@
 #include "../../include/module.h"
 #include "../../include/event.h"
 #include "../../include/decor.h"
+#include "../../include/mystyle.h"
 #include "../../include/wmprops.h"
+#include "../../include/session.h"
 
 #include "asinternals.h"
 
@@ -339,9 +341,9 @@ change_aswindow_desk_iter_func(void *data, void *aux_data)
     }else
     {
         Window dst = Scr.ServiceWin;
+//        Bool use_root_pos = get_flags( AfterStepState, ASS_NormalOperation);
         if(ASWIN_DESK(asw)==new_desk)
             dst = Scr.Root;
-
         quietly_reparent_canvas( asw->frame_canvas, dst, AS_FRAME_EVENT_MASK, True );
         quietly_reparent_canvas( asw->icon_canvas, dst, AS_ICON_EVENT_MASK, True );
         if( asw->icon_title_canvas != asw->icon_canvas )
@@ -371,9 +373,12 @@ void
 ChangeDesks (int new_desk)
 {
     int old_desk = Scr.CurrentDesk ;
-
+LOCAL_DEBUG_CALLER_OUT( "new_desk(%d)->old_desk(%d)", new_desk, old_desk );
     if( Scr.CurrentDesk == new_desk )
         return;
+
+    /* we have to handle all the pending ConfigureNotifys here : */
+    ConfigureNotifyLoop();
 
     if( IsValidDesk( Scr.CurrentDesk ) )
     {
@@ -440,25 +445,180 @@ ChangeDesks (int new_desk)
 
 }
 
+ASImage *load_myback_image( int desk, MyBackground *back )
+{
+    ASImage *im = NULL ;
+    if( back->data && back->data[0] )
+        im = get_asimage( Scr.image_manager, back->data, 0xFFFFFFFF, 100 );
+
+    if( im == NULL )
+    {
+        const char *const_configfile = get_session_file (Session, desk, F_CHANGE_BACKGROUND);
+        if( const_configfile != NULL )
+        {
+            im = get_asimage( Scr.image_manager, const_configfile, 0xFFFFFFFF, 100 );
+            show_progress("BACKGROUND for desktop %d loaded from \"%s\" ...", desk, const_configfile);
+        }else
+            show_progress("BACKGROUND file cannot be found for desktop %d", desk );
+    }
+    if( im != NULL )
+    {
+        /* crop and or tint */
+        if( back->cut.flags != 0 || (back->tint != TINT_NONE && back->tint != TINT_LEAVE_SAME))
+        {
+
+        }
+        /* scale */
+        if( get_flags(back->scale.flags, (WidthValue|HeightValue)) )
+        {
+            ASImage *tmp_im ;
+            int width = im->width ;
+            int height = im->height ;
+            if( get_flags(back->scale.flags, WidthValue) )
+                width = back->scale.width;
+            if( get_flags(back->scale.flags, HeightValue) )
+                height = back->scale.height;
+            if( width != im->width || height != im->height )
+            {
+                tmp_im = scale_asimage( Scr.asv, im, width, height, ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT );
+                if( tmp_im )
+                {
+                    safe_asimage_destroy( im );
+                    im = tmp_im ;
+                }
+            }
+        }
+        /* pad */
+        if( back->align_flags != NO_ALIGN && (im->width != Scr.MyDisplayWidth || im->height != Scr.MyDisplayHeight))
+        {
+            int x = 0, y = 0;
+            ASImage *tmp_im ;
+            x = Scr.MyDisplayWidth - im->width ;
+            if( get_flags( back->align_flags, ALIGN_LEFT ) )
+                x = 0 ;
+            else if( get_flags( back->align_flags, ALIGN_HCENTER ) )
+                x /= 2;
+
+            y = Scr.MyDisplayHeight - im->height;
+            if( get_flags( back->align_flags, ALIGN_TOP ) )
+                y = 0 ;
+            else if( get_flags( back->align_flags, ALIGN_VCENTER ) )
+                y /= 2;
+
+            tmp_im = pad_asimage( Scr.asv, im, x, y, Scr.MyDisplayWidth, Scr.MyDisplayHeight, back->pad_color,
+                                           ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT );
+            if( tmp_im )
+            {
+                safe_asimage_destroy( im );
+                im = tmp_im ;
+            }
+        }
+    }
+    return im;
+}
+
 void
 change_desktop_background( int desk, int old_desk )
 {
-    MyBackground *new_myback = mylook_get_desk_back( &(Scr.Look), desk );
-    MyBackground *old_myback = mylook_get_desk_back( &(Scr.Look), old_desk );
+    MyBackground *new_back = mylook_get_desk_back( &(Scr.Look), desk );
+    MyBackground *old_back = mylook_get_desk_back( &(Scr.Look), old_desk );
     char *new_imname ;
-
-    if( new_myback == NULL )
+    ASImage *new_im = NULL ;
+LOCAL_DEBUG_CALLER_OUT( "desk(%d)->old_desk(%d)->new_back(%p)->old_back(%p)", desk, old_desk, new_back, old_back );
+    if( new_back == NULL )
         return ;
-    if( old_myback )
+    if( old_back && old_back->type != MB_BackMyStyle )
     {                                          /* release old background */
-        char *old_imname = make_myback_image_name( &(Scr.Look), old_myback->name );
+        char *old_imname = make_myback_image_name( &(Scr.Look), old_back->name );
         if( Scr.RootImage && Scr.RootImage->name && strcmp(Scr.RootImage->name, old_imname) == 0 )
             Scr.RootImage = NULL ;
         release_asimage_by_name( Scr.image_manager, old_imname );
         free( old_imname );
     }
 
-    new_imname = make_myback_image_name( &(Scr.Look), new_myback->name );
+    if( Scr.RootBackground == NULL )
+        Scr.RootBackground = safecalloc( 1, sizeof(ASBackgroundHandler));
+    else
+    {                                          /* do cleanup - kill command maybe */
 
+
+    }
+
+    if( Scr.RootImage )
+    {
+        safe_asimage_destroy( Scr.RootImage );
+        Scr.RootImage = NULL ;
+    }
+
+    new_imname = make_myback_image_name( &(Scr.Look), new_back->name );
+    if( new_back->type == MB_BackImage )
+    {
+        if( (new_im = fetch_asimage( Scr.image_manager, new_imname )) == NULL )
+        {
+            if( (new_im = load_myback_image( desk, new_back )) != NULL )
+                store_asimage( Scr.image_manager, new_im, new_imname );
+        }
+    }if( new_back->type == MB_BackMyStyle )
+    {
+        MyStyle *style = mystyle_find_or_default( new_back->data );
+        int root_width = Scr.MyDisplayWidth;
+        int root_height = Scr.MyDisplayHeight ;
+
+        if( style->texture_type == TEXTURE_SOLID || style->texture_type == TEXTURE_TRANSPARENT ||
+            style->texture_type == TEXTURE_TRANSPARENT_TWOWAY )
+            root_width = root_height = 1 ;
+        else if( style->texture_type == TEXTURE_PIXMAP || style->texture_type == TEXTURE_SHAPED_PIXMAP ||
+                 (style->texture_type >= TEXTURE_TRANSPIXMAP && style->texture_type < TEXTURE_SCALED_TRANSPIXMAP ))
+        {
+            if( root_width > style->back_icon.width )
+                root_width = style->back_icon.width ;
+            if( root_height > style->back_icon.height )
+                root_height = style->back_icon.height ;
+        }
+        if( style->texture_type >= TEXTURE_TRANSPARENT )
+        {
+            Scr.RootImage = create_asimage( root_width, 1, 100 );
+            Scr.RootImage->back_color = style->colors.back ;
+        }
+
+        new_im = mystyle_make_image( style, 0, 0, root_width, root_height );
+
+        if( style->texture_type >= TEXTURE_TRANSPARENT )
+        {
+            destroy_asimage( &(Scr.RootImage) );
+            Scr.RootImage = NULL ;
+        }
+    }else
+    {                                          /* run command */
+
+    }
+ LOCAL_DEBUG_OUT( "im(%p)", new_im );
+    if( new_im )
+    {
+        ASBackgroundHandler *bh = Scr.RootBackground ;
+        /* Scr.RootImage = new_im ; */         /* will be done in event handler !!! */
+        if( new_im->name == NULL )
+            store_asimage( Scr.image_manager, new_im, new_imname );
+        if( bh->pmap && (new_im->width != bh->pmap_width ||
+            new_im->height != bh->pmap_height) )
+        {
+            XFreePixmap( dpy, bh->pmap );
+            bh->pmap = None ;
+        }
+        if( bh->pmap == None )
+            bh->pmap = create_visual_pixmap( Scr.asv, Scr.Root, new_im->width, new_im->height, 0 );
+
+        bh->pmap_width = new_im->width ;
+        bh->pmap_height = new_im->height ;
+        bh->im = new_im;
+        bh->last_good_desk = desk;
+
+        LOCAL_DEBUG_OUT( "width(%d)->height(%d)", new_im->width, new_im->height );
+
+        asimage2drawable( Scr.asv, bh->pmap, new_im, NULL, 0, 0, 0, 0, new_im->width, new_im->height, True);
+        XSetWindowBackgroundPixmap( dpy, Scr.Root, bh->pmap );
+        XClearWindow( dpy, Scr.Root );
+        set_xrootpmap_id (Scr.wmprops, bh->pmap );
+    }else
+        set_xrootpmap_id (Scr.wmprops, None );
 }
-

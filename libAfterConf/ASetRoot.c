@@ -16,8 +16,7 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
-
-
+#define LOCAL_DEBUG
 #include "../../configure.h"
 
 #include "../../include/asapp.h"
@@ -25,6 +24,8 @@
 #include "../../include/parser.h"
 #include "../../include/confdefs.h"
 #include "../../include/background.h"
+#include "../../include/screen.h"
+#include "../../libAfterImage/afterimage.h"
 
 /*****************************************************************************
  *
@@ -36,7 +37,7 @@
 TermDef       MyBackgroundTerms[] = {
 	{TF_NO_MYNAME_PREPENDING, "MyBackground", 12, TT_QUOTED_TEXT, BGR_MYBACKGROUND, NULL, NULL}
 	,
-	{TF_NO_MYNAME_PREPENDING | TF_DONT_SPLIT | TF_DONT_REMOVE_COMMENTS | TF_INDEXED, "Use", 3, TT_QUOTED_TEXT, BGR_USE,
+    {TF_NO_MYNAME_PREPENDING | TF_DONT_SPLIT | TF_DONT_REMOVE_COMMENTS | TF_INDEXED, "Use", 3, TT_TEXT, BGR_USE,
 	 NULL, NULL}
 	,
 	{TF_NO_MYNAME_PREPENDING, "Cut", 3, TT_GEOMETRY, BGR_CUT, NULL, NULL}
@@ -266,15 +267,13 @@ ParseMyBackgroundOptions (FreeStorageElem * Storage, char *myname)
 	}
 	ReadConfigItem (&item, NULL);
 
-    set_flag( config->flags, BGFLAG_BAD);
-	if (!config->name)
+    set_flags( config->flags, BGFLAG_BAD);
+    if (config->name == NULL)
         show_error("Background Definition error: name is empty !");
-    else if (!config->data)
-        show_error("Background Definition error: [%s] has no data defined !", config->name);
     else if (!(config->flags & BGFLAG_COMPLETE))
         show_error("Background Definition error: [%s] not terminated properly !", config->name);
     else
-        clear_flag( config->flags, BGFLAG_BAD);
+        clear_flags( config->flags, BGFLAG_BAD);
 
 	if (config->flags & BGFLAG_BAD)
 		DestroyMyBackgroundConfig (&config);
@@ -407,23 +406,24 @@ myback_parse (char *tline, FILE * fd, char **myname, int *mylook)
         look = &(Scr.Look);
 
     fpd.fp = fd ;
-    fpd.data = tline ;
-
+    fpd.data = safemalloc( 12+1+strlen(tline)+1+1 ) ;
+    sprintf( fpd.data, "MyBackground %s\n", tline );
+LOCAL_DEBUG_OUT( "fd(%p)->tline(\"%s\")->fpd.data(\"%s\")", fd, tline, fpd.data );
     ConfigReader = InitConfigReader ((char*)myname, &MyBackgroundSyntax, CDT_FilePtrAndData, (void *)&fpd, NULL);
+    free( fpd.data );
 
     if (!ConfigReader)
         return ;
 
-    item.memory = NULL;
 	PrintConfigReader (ConfigReader);
 	ParseConfig (ConfigReader, &Storage);
 	PrintFreeStorage (Storage);
 
 	/* getting rid of all the crap first */
     StorageCleanUp (&Storage, &more_stuff, CF_DISABLED_OPTION);
-    DestroyFreeStorage (&more_stuff));
+    DestroyFreeStorage (&more_stuff);
 
-    back_config = ParseMyBackgroundOptions (Storage, (char*)myname))
+    back_config = ParseMyBackgroundOptions (Storage, (char*)myname);
 
 	DestroyConfig (ConfigReader);
 	DestroyFreeStorage (&Storage);
@@ -451,7 +451,7 @@ myback_parse (char *tline, FILE * fd, char **myname, int *mylook)
     myback->tint = TINT_LEAVE_SAME ;
     if( get_flags( back_config->flags, BGFLAG_TINT ) && back_config->tint )
         parse_argb_color( back_config->tint, &(myback->tint));
-    myback->pad_color = ARGB32_BLACK ;
+    myback->pad_color = ARGB32_Black ;
     if( get_flags( back_config->flags, BGFLAG_PAD ) && back_config->pad )
         parse_argb_color( back_config->pad, &(myback->pad_color));
 
@@ -474,8 +474,8 @@ myback_parse (char *tline, FILE * fd, char **myname, int *mylook)
         else
             myback->align_flags = ALIGN_TOP ;
     }
-
-    add_mybacks(myback);
+    LOCAL_DEBUG_OUT( "myback added: name(\"%s\")->type(%d)->data(\"%s\")", myback->name, myback->type, myback->data );
+    add_myback(look, myback);
 
     /* final cleanup : */
     DestroyMyBackgroundConfig (&back_config);

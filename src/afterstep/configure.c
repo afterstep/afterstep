@@ -36,6 +36,7 @@
  *
  ***************************************************************************/
 
+#define LOCAL_DEBUG
 #include "../../configure.h"
 
 #include "../../include/asapp.h"
@@ -999,7 +1000,7 @@ ParseConfigFile (const char *file, char **tline)
 		ptr = stripcomments (*tline);
 		/* parsing the line */
 		orig_tline = ptr;
-		if (*ptr != '\0' && *ptr != '#' && *ptr != '*')
+        if (*ptr != '\0' && *ptr != '#')
 			match_string (main_config, ptr, "error in config:", fp);
 	}
 	curr_conf_file = NULL;
@@ -1627,7 +1628,10 @@ void deskback_parse(char *text, FILE * fd, char **junk, int *junk2)
     MyDesktopConfig *dc = NULL ;
 
     if( !IsValidDesk(desk) )
+    {
+        show_error( "invalid desktop number in: \"%s\"", text);
         return;
+    }
 
     while( isdigit(text[i]) ) ++i ;
     if( i == 0 || !isspace(text[i]) )
@@ -1646,6 +1650,7 @@ void deskback_parse(char *text, FILE * fd, char **junk, int *junk2)
         show_error( "DeskBack option with no name of the relevant MyBackground: \"%s\"", text);
         return ;
     }
+    LOCAL_DEBUG_OUT("desk(%d)->data(\"%s\")->text(%s)", desk, data, text );
     dc = create_mydeskconfig( desk, data );
     add_deskconfig( &(Scr.Look), dc );
     free( data );

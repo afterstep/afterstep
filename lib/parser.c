@@ -977,15 +977,52 @@ ReadConfigItem (ConfigItem * item, FreeStorageElem * stored)
 		 case TT_FILENAME:
 		 case TT_TEXT:
 		 case TT_PATHNAME:
-			 item->memory = safemalloc (strlen (stored->argv[pos]) + 1);
+             if (stored->term->type != TT_TEXT && *(stored->argv[pos]) == '"')
+			 {
+				 item->memory = item->data.string = stripcpy2 (stored->argv[pos], 0);
+			 } else
+			 {
+				 item->memory = safemalloc (strlen (stored->argv[pos]) + 1);
+				 item->data.string = (char *)(item->memory);
+                 strcpy (item->data.string, stored->argv[pos]);
+			 }
+             ++pos;
+			 break;
+#if 0
+             item->memory = safemalloc (strlen (stored->argv[pos]) + 1);
 			 item->data.string = (char *)(item->memory);
 			 strcpy (item->data.string, stored->argv[pos++]);
+#endif
 			 break;
 		 case TT_QUOTED_TEXT:
 			 {
-				 register int  i = 1;
-				 int           len = strlen (stored->argv[pos]);
-				 char         *ptr = stored->argv[pos];
+                char         *ptr = stored->argv[pos], *tail;
+                char         *result = NULL;
+
+                if (*ptr != '"')
+                    ptr = find_doublequotes (ptr);
+                if (ptr)
+                {
+                    ptr++;
+                    if ((tail = find_doublequotes (ptr)) == NULL)
+                    {
+                        show_error("terminating quote missing in [%s]! Using whole line !", stored->argv[pos]);
+                        result = mystrdup (ptr);
+                    } else
+                        result = mystrndup (ptr, tail - ptr);
+                    /* stripping those backslashed doubleqoutes off of the text */
+                    for (ptr = result + 1; *ptr; ptr++)
+                        if (*ptr == '"' && *(ptr - 1) == '\\')
+                            strcpy (ptr - 1, ptr);
+                    pos++;
+                } else
+                    show_error ("bad quoted string [%s] for option [%s]. Ignoring!",ptr, stored->term->keyword);
+
+                item->memory = result ;
+                item->data.string = result ;
+#if 0
+                register int  i = 1;
+                int           len = strlen (stored->argv[pos]);
 
 				 for (; *ptr != '\0'; ptr++)
 					 if (*ptr == '"')
@@ -1014,9 +1051,11 @@ ReadConfigItem (ConfigItem * item, FreeStorageElem * stored)
 				 len--;
 				 for (ptr++, i = 0; i < len; i++)
 					 item->data.string[i] = *(ptr + i);
-				 item->data.string[i] = '\0';
-				 pos++;
-			 }
+
+                 item->data.string[i] = '\0';
+                 pos++;
+#endif
+             }
 			 break;
 		 case TT_GEOMETRY:
 			 item->data.geometry.flags =

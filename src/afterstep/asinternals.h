@@ -174,6 +174,7 @@ void WaitForButtonsUpLoop ();
 Bool WaitEventLoop( struct ASEvent *event, int finish_event_type, long timeout );
 Bool IsClickLoop( struct ASEvent *event, unsigned int end_mask, unsigned int click_time );
 Bool WaitWindowLoop( char *pattern, long timeout );
+void ConfigureNotifyLoop();
 
 void AlarmHandler (int nonsense);
 

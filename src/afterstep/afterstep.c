@@ -91,6 +91,7 @@ main (int argc, char **argv)
 #endif
     InitMyApp( CLASS_AFTERSTEP, argc, argv, NULL, NULL, 0);
     AfterStepState = MyArgs.flags ;
+    clear_flags( AfterStepState, ASS_NormalOperation);
 
 #if defined(LOG_FONT_CALLS)
 	fprintf (stderr, "logging font calls now\n");
@@ -189,6 +190,7 @@ main (int argc, char **argv)
     init_screen_panframes(&Scr);            /* grabbed   !!!!!*/
     CaptureAllWindows (&Scr);               /* grabbed   !!!!!*/
     check_screen_panframes(&Scr);           /* grabbed   !!!!!*/
+    ASSync( False );
 #ifndef DONT_GRAB_SERVER                    /* grabbed   !!!!!*/
 	XUngrabServer (dpy);					/* UnGrabbed !!!!!*/
 #endif										/* UnGrabbed !!!!!*/
@@ -196,6 +198,7 @@ main (int argc, char **argv)
     XDefineCursor (dpy, Scr.Root, Scr.Feel.cursors[DEFAULT]);
 
    /* make sure we're on the right desk, and the _WIN_DESK property is set */
+    Scr.CurrentDesk = INVALID_DESK ;
     ChangeDesks (Scr.wmprops->desktop_current);
 
     SetupFunctionHandlers();

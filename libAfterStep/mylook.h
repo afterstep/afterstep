@@ -7,11 +7,14 @@
 #ifndef MY_LOOK_HEADER_INCLUDED
 #define MY_LOOK_HEADER_INCLUDED
 
+#include "../libAfterImage/asvisual.h"
+#include "../libAfterImage/asimage.h"
 
 struct MyStyle;
 struct ASSupportedHints;
 struct MyFrame;
 struct ASHashTable;
+struct ScreenInfo;
 
 #define DEFAULT_OBJ_NAME        "default"
 #define ICON_OBJ_PREFIX 	    "icon_"

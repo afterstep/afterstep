@@ -134,6 +134,15 @@ typedef struct ASIconBox
 	ASBiDirList *icons ;
 }ASIconBox;
 
+typedef struct ASBackgroundHandler
+{
+    Pixmap  pmap;
+    unsigned int pmap_width, pmap_height ;
+    int     cmd_pid;
+    ASImage *im;
+    int last_good_desk;
+}ASBackgroundHandler;
+
 typedef enum {
     AST_OneDirection = 0,
     AST_ClosedLoop = 1,
@@ -224,6 +233,7 @@ typedef struct ScreenInfo
     struct ASCanvas *RootCanvas;
     /* this is used to limit area of the root window from which to get root image : */
     XRectangle RootClipArea;                /* used only by modules */
+    ASBackgroundHandler *RootBackground;    /* used only by those who change root background */
 
     Window SizeWindow;      /* the resize dimensions window */
     Window ServiceWin;      /* Auxilary window that we use for :

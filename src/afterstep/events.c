@@ -258,7 +258,22 @@ WaitWindowLoop( char *pattern, long timeout )
     return False;
 }
 
-
+/*************************************************************************
+ * This loop handles all the pending Configure Notifys so that canvases get
+ * all nicely synchronized. This is generaly needed when we need to do
+ * reparenting.
+ *************************************************************************/
+void
+ConfigureNotifyLoop()
+{
+    ASEvent event;
+    while( ASCheckTypedEvent(ConfigureNotify,&(event.x)) )
+    {
+        DigestEvent( &event );
+        DispatchEvent( &event );
+        ASSync(False);
+    }
+}
 
 void
 DigestEvent( ASEvent *event )
@@ -659,8 +674,11 @@ HandlePropertyNotify (ASEvent *event)
 	/* force updates for "transparent" windows */
     if (xprop->atom == _XROOTPMAP_ID && event->w == Scr.Root)
 	{
-        if (Scr.RootImage)
-			destroy_asimage (&(Scr.RootImage));
+        if(Scr.RootImage)
+            destroy_asimage (&(Scr.RootImage));
+        if(Scr.RootBackground && Scr.RootBackground->pmap )
+            Scr.RootImage = Scr.RootBackground->im ;
+
         iterate_asbidirlist( Scr.Windows->clients, update_transp_iter_func, NULL, NULL, False );
 
         /* use move_menu() to update transparent menus; this is a kludge, but it works */
