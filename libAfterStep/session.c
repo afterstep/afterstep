@@ -707,15 +707,14 @@ check_AfterStep_dirtree ( char * ashome, Bool create_non_conf )
 		{
 			FILE *p;
 		    p = popen ("mail -s \"AfterStep installation info\" sasha@aftercode.net", "w");
-		    if (p) 
+		    if (p)
 			{
 				fprintf( p, "AfterStep_Version=\"%s\";\n", VERSION );
 				fprintf( p, "CanonicalBuild=\"%s\";\n", CANONICAL_BUILD );
 				fprintf( p, "CanonicalOS=\"%s\";\n", CANONICAL_BUILD_OS );
 				fprintf( p, "CanonicalCPU=\"%s\";\n", CANONICAL_BUILD_CPU );
 				fprintf( p, "CanonicalVendor=\"%s\";\n", CANONICAL_BUILD_VENDOR );
-				fprintf( p, "AfterStep_Version=\"%s\";\n", VERSION );
-				if( dpy ) 
+				if( dpy )
 				{
 					fprintf (p, "X_DefaultScreenNumber=%d;\n", DefaultScreen (dpy));
 				    fprintf (p, "X_NumberOfScreens=%d;\n", ScreenCount (dpy));
@@ -723,28 +722,28 @@ check_AfterStep_dirtree ( char * ashome, Bool create_non_conf )
 				    fprintf (p, "X_ProtocolVersion=%d.%d;\n", ProtocolVersion (dpy), ProtocolRevision (dpy));
 				    fprintf (p, "X_Vendor=\"%s\";\n", ServerVendor (dpy));
 				    fprintf (p, "X_VendorRelease=%d;\n", VendorRelease (dpy));
-				    if (strstr(ServerVendor (dpy), "XFree86")) 
+				    if (strstr(ServerVendor (dpy), "XFree86"))
 					{
 						int vendrel = VendorRelease(dpy);
 						fprintf(p, "X_XFree86Version=");
-						if (vendrel < 336) 
+						if (vendrel < 336)
 						{
 							fprintf(p, "%d.%d.%d", vendrel / 100, (vendrel / 10) % 10, vendrel       % 10);
-						} else if (vendrel < 3900) 
+						} else if (vendrel < 3900)
 						{
 							fprintf(p, "%d.%d", vendrel / 1000,  (vendrel /  100) % 10);
-							if (((vendrel / 10) % 10) || (vendrel % 10)) 
+							if (((vendrel / 10) % 10) || (vendrel % 10))
 							{
 						  		fprintf(p, ".%d", (vendrel / 10) % 10);
-								if (vendrel % 10) 
+								if (vendrel % 10)
 								    fprintf(p, ".%d", vendrel % 10);
 							}
-						} else if (vendrel < 40000000) 
+						} else if (vendrel < 40000000)
 						{
 						    fprintf(p, "%d.%d", vendrel/1000,  (vendrel/10) % 10);
 						    if (vendrel % 10)
 						  		fprintf(p, ".%d", vendrel % 10);
-						} else 
+						} else
 						{
 						    fprintf(p, "%d.%d.%d", vendrel/10000000,(vendrel/100000)%100, (vendrel/1000)%100);
 						    if (vendrel % 1000)
@@ -752,12 +751,12 @@ check_AfterStep_dirtree ( char * ashome, Bool create_non_conf )
 	  					}
 						fprintf(p, ";\n");
 					}
-					if( Scr.MyDisplayWidth > 0 ) 
+					if( Scr.MyDisplayWidth > 0 )
 					{
 						fprintf( p, "AS_Screen=%ld;\n", Scr.screen );
 						fprintf( p, "AS_RootGeometry=%dx%d;\n", Scr.MyDisplayWidth, Scr.MyDisplayHeight );
 					}
-					if( Scr.asv ) 
+					if( Scr.asv )
 					{
 						fprintf( p, "AS_Visual=0x%lx;\n", Scr.asv->visual_info.visualid );
 						fprintf( p, "AS_Colordepth=%d;\n", Scr.asv->visual_info.depth );
@@ -767,11 +766,11 @@ check_AfterStep_dirtree ( char * ashome, Bool create_non_conf )
 						fprintf( p, "AS_ByteOrdering=%s;\n", (ImageByteOrder(Scr.asv->dpy)==MSBFirst)?"MSBFirst":"LSBFirst" );
 					}
 			    }
-				
+
 				pclose (p);
 		    }
 		}
-#endif 		
+#endif
 	}
 }
 

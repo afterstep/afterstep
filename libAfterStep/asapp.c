@@ -806,6 +806,9 @@ spawn_child( const char *cmd, int singleton_id, int screen, Window w, int contex
             if ( MyArgs.override_share )
                 len += 4+strlen(MyArgs.override_share);
 
+			if ( MyArgs.locale )
+                len += 4+strlen(MyArgs.locale);
+
             if( MyArgs.verbosity_level != OUTPUT_DEFAULT_THRESHOLD )
                 len += 4+32 ;
 #ifdef DEBUG_TRACE_X
@@ -849,6 +852,10 @@ spawn_child( const char *cmd, int singleton_id, int screen, Window w, int contex
                 ptr += sprintf( ptr, " -g %s", MyArgs.override_share );
             if( MyArgs.verbosity_level != OUTPUT_DEFAULT_THRESHOLD )
                 ptr += sprintf( ptr, " -V %d", MyArgs.verbosity_level );
+
+			if( MyArgs.locale )
+                ptr += sprintf( ptr, " -L %s", MyArgs.locale );
+
 #ifdef DEBUG_TRACE_X
             if( MyArgs.trace_calls )
                 ptr += sprintf( ptr, " --trace-func %s", MyArgs.trace_calls );
