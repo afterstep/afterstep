@@ -180,14 +180,14 @@ AddWindow (Window w)
 
     if( collect_hints( &Scr, w, HINT_ANY, &raw_hints ) )
     {
-        if( !is_output_level_under_threshold(OUTPUT_LEVEL_HINTS) )
+        if( is_output_level_under_threshold(OUTPUT_LEVEL_HINTS) )
             print_hints( NULL, NULL, &raw_hints );
         hints = merge_hints( &raw_hints, Database, &status, Scr.Look.supported_hints, HINT_ANY, NULL );
         destroy_raw_hints( &raw_hints, True );
         if( hints )
         {
 			show_debug( __FILE__, __FUNCTION__, __LINE__,  "Window management hints collected and merged for window %X", w );
-            if( !is_output_level_under_threshold(OUTPUT_LEVEL_HINTS) )
+            if( is_output_level_under_threshold(OUTPUT_LEVEL_HINTS) )
 			{
                 print_clean_hints( NULL, NULL, hints );
 				print_status_hints( NULL, NULL, &status );
@@ -307,7 +307,7 @@ AddInternalWindow (Window w, ASInternalWindow **pinternal, ASHints **phints, ASS
     if( hints )
     {
         show_debug( __FILE__, __FUNCTION__, __LINE__,  "Window management hints supplied for window %X", w );
-        if( !is_output_level_under_threshold(OUTPUT_LEVEL_HINTS) )
+        if( is_output_level_under_threshold(OUTPUT_LEVEL_HINTS) )
         {
             print_clean_hints( NULL, NULL, hints );
             print_status_hints( NULL, NULL, status );

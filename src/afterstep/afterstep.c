@@ -149,7 +149,7 @@ main (int argc, char **argv)
             make_screen_envvars(&Scr);
             putenv (Scr.rdisplay_string);
             putenv (Scr.display_string);
-            if( !is_output_level_under_threshold( OUTPUT_LEVEL_PROGRESS ) )
+            if( is_output_level_under_threshold( OUTPUT_LEVEL_PROGRESS ) )
             {
                 show_progress( "\t screen[%d].size = %ux%u", Scr.screen, Scr.MyDisplayWidth, Scr.MyDisplayHeight );
                 show_progress( "\t screen[%d].root = %lX", Scr.screen, Scr.Root );

@@ -1087,7 +1087,7 @@ ParseDatabase (const char *file)
     if( list )
     {
         Database = build_asdb( list );
-        if( !is_output_level_under_threshold( OUTPUT_LEVEL_DATABASE ) )
+        if( is_output_level_under_threshold( OUTPUT_LEVEL_DATABASE ) )
             print_asdb( NULL, NULL, Database );
         while (list != NULL)
             delete_name_list (&(list));

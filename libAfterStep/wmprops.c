@@ -947,7 +947,7 @@ set_desktop_num_prop (ASWMProps * wmprops, long new_desk, Window vroot, Bool add
 			}
 		} else
 			return;							   /* nothing to do */
-        if (!is_output_level_under_threshold (OUTPUT_LEVEL_VROOT))
+        if (is_output_level_under_threshold (OUTPUT_LEVEL_VROOT))
 			fprintf (stderr, "%s: %s desktop with AfterStep number %ld and public number %d (virtual root 0x%lX)\n",
 					 MyName, add ? "added" : "removed", new_desk, index, (unsigned long)vroot);
 

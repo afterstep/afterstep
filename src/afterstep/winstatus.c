@@ -629,14 +629,14 @@ on_window_hints_changed( ASWindow *asw )
 
     if( !collect_hints( &Scr, asw->w, HINT_ANY, &raw_hints ) )
         return ;
-    if( !is_output_level_under_threshold(OUTPUT_LEVEL_HINTS) )
+    if( is_output_level_under_threshold(OUTPUT_LEVEL_HINTS) )
         print_hints( NULL, NULL, &raw_hints );
     hints = merge_hints( &raw_hints, Database, NULL, Scr.Look.supported_hints, HINT_ANY, NULL );
     destroy_raw_hints( &raw_hints, True );
     if( hints )
     {
         show_debug( __FILE__, __FUNCTION__, __LINE__,  "Window management hints collected and merged for window %X", asw->w );
-        if( !is_output_level_under_threshold(OUTPUT_LEVEL_HINTS) )
+        if( is_output_level_under_threshold(OUTPUT_LEVEL_HINTS) )
             print_clean_hints( NULL, NULL, hints );
     }else
     {
@@ -992,7 +992,7 @@ init_aswindow_status( ASWindow *t, ASStatusHints *status )
         }
     }
 
-    if( !is_output_level_under_threshold(OUTPUT_LEVEL_HINTS) )
+    if( is_output_level_under_threshold(OUTPUT_LEVEL_HINTS) )
         print_status_hints( NULL, NULL, t->status );
 
     /* by now we have a valid position for the window: */

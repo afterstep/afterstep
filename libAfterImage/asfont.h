@@ -151,11 +151,14 @@ typedef struct ASFont
 	ASGlyph         default_glyph;  /* valid glyph to be drawn when
 									 * code is not valid */
 
-	unsigned int 	max_height,     /* maximiu height of the character
+	unsigned int 	max_height;     /* maximiu height of the character
 									 * glyph */
-		            max_ascend,     /* maximum distance from the baseline
+	int	            max_ascend,     /* maximum distance from the baseline
 									 * to the top of the character glyph */
-					space_size;     /* fixed width value to be used when
+					max_descend;    /* need both descend and ascend to be 
+									   able to dynamically recalculate font 
+									   height while adding new characters */									 
+	unsigned int	space_size;     /* fixed width value to be used when
 									 * rendering spaces and tabs */
 	int 			spacing_x, spacing_y;
 #define LEFT_TO_RIGHT    1
