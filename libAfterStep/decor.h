@@ -54,6 +54,44 @@ typedef struct ASTBtnBlock {
     /* 16 bytes */
 }ASTBtnBlock;
 
+typedef struct ASBtnBlock {
+    ASTBtnData      *buttons;                  /* array of [count] structures */
+    unsigned int     buttons_num;
+    /* 8 bytes */
+}ASBtnBlock;
+
+typedef struct ASLabel {
+    char *label_text ;
+    struct ASImage      *label[2] ;
+	/* 12 bytes */
+}ASLabel;
+
+typedef struct ASTile {
+#define AS_TileSpacer	 	0
+#define AS_TileBtnBlock 	1
+#define AS_TileIcon		 	2
+#define AS_TileLabel	 	3
+#define AS_TileFreed	 	0x0F
+#define AS_TileTypeMask 	(0x0F<<0)
+#define ASSetTileType(tl,ty)  ((tl)->flags=((tl)->flags&(~AS_TileTypeMask))|(ty))
+#define ASGetTileType(tl)	((tl)&AS_TileTypeMask)
+#define AS_TileLayerMask 	(0x0F<<4)
+#define AS_TileAlignRight 	(0x01<<8)
+#define AS_TileAlignBottom 	(0x01<<9)
+#define AS_TileHFlip	 	(0x01<<10)
+#define AS_TileVFlip	 	(0x01<<11)
+#define AS_TileFlipMask 	(AS_TileVFlip|AS_TileHFlip)
+
+	ASFlagType flags;
+	unsigned short width, height;
+	union {
+		ASBtnBlock	 bblock;
+		ASImage     *icon ;
+		ASLabel      label ;
+	}data;
+	/* 20 bytes */
+}ASTile;
+
 typedef struct ASTBarData {
 #define BAR_STATE_UNFOCUSED		0
 #define BAR_STATE_FOCUSED		(0x01<<0)
@@ -83,12 +121,21 @@ typedef struct ASTBarData {
     /* this is the actuall generated background : */
     struct ASImage      *back [2] ;
     /* 52 bytes */
-
+#if 1
     char *label_text ;
     struct ASImage      *label[2] ;
     /* 64 bytes */
     struct ASTBtnBlock  *left_buttons, *right_buttons;
     /* 72 bytes */
+#else	
+	unsigned char h_border, v_border;
+	unsigned char h_spacing, v_spacing;
+	/* 56 bytes */
+	ASTile *tiles;
+	unsigned int tiles_num ;
+	/* 64 bytes */
+#endif	
+	
 }ASTBarData ;
 
 /*********************************************************************

@@ -619,6 +619,139 @@ destroy_astbtn_block(ASTBtnBlock **pb )
 }
 
 /********************************************************************/
+/* ASBtnBlock :                                                    */
+/********************************************************************/
+static void
+free_asbtn_block( ASTile* tile )
+{
+    if( tile )
+    {
+		register ASBtnBlock *blk = &(tile->data.bblock);
+        register int i = blk->buttons_num ;
+        while( --i >= 0 )
+            free_tbtn_images( &(blk->buttons[i]) );
+
+        free( blk->buttons );
+        memset( blk, 0x00, sizeof(ASTBtnBlock ) );
+		ASSetTileType(tile,AS_TileFreed);
+    }
+}
+
+static void
+build_btn_block( ASTile *tile, 
+                 struct button_t *from_list, ASFlagType mask, unsigned int count,
+                 int left_margin, int top_margin, int spacing, int order,
+                 unsigned long context_base )
+{
+	
+    unsigned int real_count = 0 ;
+    unsigned short max_width = 0, max_height = 0 ;
+    register int i = count ;
+    ASBtnBlock *blk = &(tile->data.bblock) ;
+    if( count > 0 )
+        if( !AS_ASSERT( from_list ) )
+            while( --i >= 0 )
+                if( (mask&(0x01<<i)) != 0 && (from_list[i].unpressed.image || from_list[i].pressed.image))
+                {
+                    ++real_count ;
+                    if( from_list[i].width > max_width )
+                        max_width = from_list[i].width ;
+                    if( from_list[i].height > max_height )
+                        max_height = from_list[i].height ;
+                }
+    if( real_count > 0 )
+    {
+        int k = real_count-1 ;
+        int pos = get_flags(order, TBTN_ORDER_REVERSE)?-left_margin:left_margin ;
+
+        blk->buttons = safecalloc( real_count, sizeof(ASTBtnData));
+		blk->buttons_num = real_count ;
+        i = count-1 ;
+        while( i >= 0 && k >= 0 )
+        {
+            if( (mask&(0x01<<i)) != 0 && (from_list[i].unpressed.image || from_list[i].pressed.image))
+            {
+                set_tbtn_images( &(blk->buttons[k]), &(from_list[i]) );
+                blk->buttons[k].context = context_base<<i ;
+                --k ;
+            }
+            --i ;
+        }
+
+        k = get_flags(order, TBTN_ORDER_REVERSE)?real_count - 1:0;
+
+        /* top_margin surrounds button block from both sides ! */
+        if( get_flags(order, TBTN_ORDER_VERTICAL) )
+        {
+            tile->width = max_width + top_margin*2 ;
+            tile->height = pos ;
+        }else
+        {
+            tile->width = pos ;
+            tile->height = max_height+ top_margin*2 ;
+        }
+
+        while( k >= 0 && k < real_count )
+        {
+            if( get_flags(order, TBTN_ORDER_VERTICAL) )
+            {
+                blk->buttons[k].x = top_margin+((max_width - blk->buttons[k].width)>>1) ;
+                tile->height += blk->buttons[k].height+spacing ;
+                if( get_flags(order, TBTN_ORDER_REVERSE) )
+                {
+                    pos -= blk->buttons[k].height ;
+                    blk->buttons[k].y = pos ;
+                    pos -= spacing ;
+                    --k ;
+                }else
+                {
+                    blk->buttons[k].y = pos ;
+                    pos += blk->buttons[k].height ;
+                    pos += spacing ;
+                    ++k ;
+                }
+            }else
+            {
+                blk->buttons[k].y = top_margin+((max_height - blk->buttons[k].height)>>1) ;
+                tile->width += blk->buttons[k].width+spacing ;
+                if( get_flags(order, TBTN_ORDER_REVERSE) )
+                {
+                    pos -= blk->buttons[k].width ;
+                    blk->buttons[k].x = pos ;
+                    pos -= spacing ;
+                    --k ;
+                }else
+                {
+                    blk->buttons[k].x = pos ;
+                    pos += blk->buttons[k].width ;
+                    pos += spacing ;
+                    ++k ;
+                }
+            }
+        }
+    }
+}
+
+static int
+check_btn_point( ASTile *tile, int x, int y )
+{
+	ASBtnBlock *bb = &(tile->data.bblock);
+    register int i = bb->buttons_num ;
+    while( --i >= 0 )
+    {
+        register ASTBtnData *btn = &(bb->buttons[i]) ;
+        int tmp = x - btn->x ;
+        if( tmp >= 0 && tmp < tile->width )
+        {
+            tmp = y - btn->y ;
+            if( tmp >= 0 && tmp < tile->height )
+                return btn->context;
+        }
+    }
+    return C_NO_CONTEXT;
+}
+
+/********************************************************************/
 /* ASTBarData :                                                     */
 /********************************************************************/
 ASTBarData   *
