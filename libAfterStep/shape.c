@@ -26,13 +26,19 @@
 ASVector *
 create_shape()
 {
-	return create_asvector( sizeof(XRectangle) );
+	ASVector *shape = create_asvector( sizeof(XRectangle) );
+	LOCAL_DEBUG_CALLER_OUT( "creating shape %p" , shape );
+	return shape;
 }
 
 void
-destroy_shape( ASVector **shape )
+destroy_shape( ASVector **pshape )
 {
-	destroy_asvector( shape );
+	if( pshape ) 
+	{
+		LOCAL_DEBUG_CALLER_OUT( "destroying shape %p" , *pshape );
+		destroy_asvector( pshape );
+	}
 }
 
 
@@ -291,7 +297,11 @@ add_shape_rectangles( ASVector *shape, XRectangle *rects, unsigned int count, in
 	if( shape == NULL || rects == NULL || count == 0 )
 		return False;
 
+#if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
+	print_shape( shape );
+#endif
 	LOCAL_DEBUG_OUT("adding %d rectangles at %+d%+d clipped by %dx%d", count, x_origin, y_origin, clip_width, clip_height  );
+
 	for( i = 0 ; i < count ; ++i )
 	{
 		new_x = rects[i].x + x_origin ;
@@ -319,7 +329,7 @@ print_shape( ASVector *shape )
 		int shape_rect_count = PVECTOR_USED( shape );
 		int i ;
 
-		show_progress( "Printing shape of %d rectangles : ", shape_rect_count );
+		show_progress( "Printing shape %p of %d rectangles : ", shape, shape_rect_count );
 		for( i = 0 ; i < shape_rect_count ; ++i )
 			show_progress( "\trects[%d] = %dx%d%+d%+d;", i, shape_rects[i].width, shape_rects[i].height, shape_rects[i].x, shape_rects[i].y );
 		return True;

@@ -1288,6 +1288,8 @@ HandleConfigureRequest ( ASEvent *event )
 	 * to configuration requests for windows which have never been mapped.
 	 */
 
+	LOCAL_DEBUG_OUT( "cre={0x%lx, geom = %dx%d%+d%+d} ", cre->value_mask, cre->width, cre->height,
+	cre->x, cre->y );
     if (asw == NULL)
 	{
         unsigned long xwcm;
