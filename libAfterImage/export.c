@@ -19,7 +19,11 @@
  */
 
 #undef LOCAL_DEBUG
+#ifdef _WIN32
+#include "win32/config.h"
+#else
 #include "config.h"
+#endif
 
 /*#define DO_CLOCKING*/
 
@@ -33,7 +37,9 @@
 #  include <time.h>
 # endif
 #endif
+#ifndef _WIN32
 #include <unistd.h>
+#endif
 #include <stdarg.h>
 #include <stdlib.h>
 #include <ctype.h>
@@ -46,7 +52,11 @@
 #include <setjmp.h>
 #endif
 
-#include "afterbase.h"
+#ifdef _WIN32
+# include "win32/afterbase.h"
+#else
+# include "afterbase.h"
+#endif
 #ifdef HAVE_JPEG
 /* Include file for users of png library. */
 #undef HAVE_STDLIB_H
@@ -225,7 +235,7 @@ Bool
 ASImage2xpm ( ASImage *im, const char *path, ASImageExportParams *params )
 {
 	FILE *outfile;
-	int y, x ;
+	unsigned int y, x ;
 	int *mapped_im, *row_pointer ;
 	ASColormap         cmap;
 	ASXpmCharmap       xpm_cmap ;
@@ -274,7 +284,7 @@ LOCAL_DEBUG_OUT("writing file%s","");
 			register int idx = (row_pointer[x] >= 0)? row_pointer[x] : transp_idx ;
 			register char *ptr = &(xpm_cmap.char_code[idx*(xpm_cmap.cpp+1)]) ;
 LOCAL_DEBUG_OUT( "(%d,%d)->%d (row_pointer %d )", x, y, idx, row_pointer[x] );
-            if( idx > cmap.count )
+            if( idx > (int)cmap.count )
                 show_error("bad XPM color index :(%d,%d) -> %d, %d: %s", x, y, idx, row_pointer[x], ptr );
 			while( *ptr )
 				fputc( *(ptr++), outfile );

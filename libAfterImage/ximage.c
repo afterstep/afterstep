@@ -16,7 +16,11 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+#ifdef _WIN32
+#include "win32/config.h"
+#else
 #include "config.h"
+#endif
 
 /*#define LOCAL_DEBUG*/
 /*#define DO_CLOCKING */
@@ -36,7 +40,11 @@
 #include <stdarg.h>
 
 
-#include "afterbase.h"
+#ifdef _WIN32
+# include "win32/afterbase.h"
+#else
+# include "afterbase.h"
+#endif
 #include "asvisual.h"
 #include "blender.h"
 #include "asimage.h"
@@ -80,7 +88,7 @@ picture_ximage2asimage (ASVisual *asv, XImage *xim, XImage *alpha_xim, unsigned 
 
 		for (i = 0; i < height; i++)
 		{
-			if( xim->depth == asv->true_depth )
+			if( xim->depth == (int)asv->true_depth )
 			{
 			    GET_SCANLINE(asv,xim,&xim_buf,i,xim_line);
 	    		    asimage_add_line (im, IC_RED,   xim_buf.red, i);
@@ -187,14 +195,14 @@ subimage2ximage (ASVisual *asv, ASImage *im, int x, int y, XImage* xim)
 LOCAL_DEBUG_OUT( "Attempt to convert NULL ASImage into XImage.", "" );
 		return False;
 	}
-	if( x >= im->width || y >= im->height ) 
+	if( x >= (int)im->width || y >= (int)im->height ) 
 		return False;
 	width = xim->width ;
-	if( width > im->width - x) 
-		width = im->width - x;		   
-	width = ( x > im->width - width )?im->width - width:im->width - x ;
+	if( width > (int)im->width - x) 
+		width = (int)im->width - x;		   
+	width = ( x > (int)im->width - width )?im->width - width:im->width - x ;
 	height = xim->height ;
-	if( height > im->height - y ) 
+	if( height > (int)im->height - y ) 
 		height = im->height - y ;		
 	scratch_im = create_asimage( width, height, 0);
 	scratch_im->alt.ximage = xim ;
@@ -214,11 +222,11 @@ LOCAL_DEBUG_OUT( "Failed to start ASImageOutput for ASImage %p and ASVisual %p",
 	for (i = y; i < max_i; i++)
 	{
 		int count ;
-		if( (count = asimage_decode_line (im, IC_RED,   xim_buf.red, i, x, xim_buf.width)) < xim_buf.width )
+		if( (count = asimage_decode_line (im, IC_RED,   xim_buf.red, i, x, xim_buf.width)) < (int)xim_buf.width )
 			xim_set_component( xim_buf.red, ARGB32_RED8(im->back_color), count, xim_buf.width );
-		if( (count = asimage_decode_line (im, IC_GREEN, xim_buf.green, i, x, xim_buf.width))< xim_buf.width )
+		if( (count = asimage_decode_line (im, IC_GREEN, xim_buf.green, i, x, xim_buf.width))< (int)xim_buf.width )
 			xim_set_component( xim_buf.green, ARGB32_GREEN8(im->back_color), count, xim_buf.width );
-		if( (count = asimage_decode_line (im, IC_BLUE,  xim_buf.blue, i, x, xim_buf.width)) < xim_buf.width )
+		if( (count = asimage_decode_line (im, IC_BLUE,  xim_buf.blue, i, x, xim_buf.width)) < (int)xim_buf.width )
 			xim_set_component( xim_buf.blue, ARGB32_BLUE8(im->back_color), count, xim_buf.width );
 
 		imout->output_image_scanline( imout, &xim_buf, 1 );
@@ -264,14 +272,14 @@ LOCAL_DEBUG_OUT( "Failed to start ASImageOutput for ASImage %p and ASVisual %p",
 	started = clock ();
 #endif
 	set_flags( xim_buf.flags, SCL_DO_ALL );
-	for (i = 0; i < im->height; i++)
+	for (i = 0; i < (int)im->height; i++)
 	{
 		int count ;
-		if( (count = asimage_decode_line (im, IC_RED,   xim_buf.red, i, 0, xim_buf.width)) < xim_buf.width )
+		if( (count = asimage_decode_line (im, IC_RED,   xim_buf.red, i, 0, xim_buf.width)) < (int)xim_buf.width )
 			xim_set_component( xim_buf.red, ARGB32_RED8(im->back_color), count, xim_buf.width );
-		if( (count = asimage_decode_line (im, IC_GREEN, xim_buf.green, i, 0, xim_buf.width))< xim_buf.width )
+		if( (count = asimage_decode_line (im, IC_GREEN, xim_buf.green, i, 0, xim_buf.width))< (int)xim_buf.width )
 			xim_set_component( xim_buf.green, ARGB32_GREEN8(im->back_color), count, xim_buf.width );
-		if( (count = asimage_decode_line (im, IC_BLUE,  xim_buf.blue, i, 0, xim_buf.width)) < xim_buf.width )
+		if( (count = asimage_decode_line (im, IC_BLUE,  xim_buf.blue, i, 0, xim_buf.width)) < (int)xim_buf.width )
 			xim_set_component( xim_buf.blue, ARGB32_BLUE8(im->back_color), count, xim_buf.width );
 
 		imout->output_image_scanline( imout, &xim_buf, 1 );
@@ -320,10 +328,10 @@ asimage2alpha_ximage (ASVisual *asv, ASImage *im, Bool bitmap )
 	xim = im->alt.mask_ximage ;
 	prepare_scanline( xim->width, 0, &xim_buf, asv->BGR_mode );
 	xim_buf.flags = SCL_DO_ALPHA ;
-	for (i = 0; i < im->height; i++)
+	for (i = 0; i < (int)im->height; i++)
 	{
 		int count = asimage_decode_line (im, IC_ALPHA, xim_buf.alpha, i, 0, xim_buf.width);
-		if( count < xim_buf.width )
+		if( count < (int)xim_buf.width )
 			xim_set_component( xim_buf.alpha, ARGB32_ALPHA8(im->back_color), count, xim_buf.width );
 		imout->output_image_scanline( imout, &xim_buf, 1 );
 	}

@@ -20,12 +20,18 @@
  */
 
 #undef LOCAL_DEBUG
+#ifdef _WIN32
+#include "win32/config.h"
+#else
 #include "config.h"
+#endif
 
 #include <ctype.h>
 #include <math.h>
 #include <stdlib.h>
+#ifndef _WIN32
 #include <unistd.h>
+#endif
 #include <string.h>
 #if TIME_WITH_SYS_TIME
 # include <sys/time.h>
@@ -37,9 +43,15 @@
 #  include <time.h>
 # endif
 #endif
+#ifndef _WIN32
 #include <sys/times.h>
+#endif
 
-#include "afterbase.h"
+#ifdef _WIN32
+# include "win32/afterbase.h"
+#else
+# include "afterbase.h"
+#endif
 #include "afterimage.h"
 #include "pixmap.h" /* for GetRootDimensions() */
 
@@ -303,13 +315,13 @@ Bool save_asimage_to_file(const char *file2bsaved, ASImage *im,
 		params.tiff.compression_type = TIFF_COMPRESSION_NONE ;
 		if( compress )
 		{
-			if( strcasecmp( compress, "deflate" ) == 0 )
+			if( mystrcasecmp( compress, "deflate" ) == 0 )
 				params.tiff.compression_type = TIFF_COMPRESSION_DEFLATE ;
-			else if( strcasecmp( compress, "jpeg" ) == 0 )
+			else if( mystrcasecmp( compress, "jpeg" ) == 0 )
 				params.tiff.compression_type = TIFF_COMPRESSION_JPEG ;
-			else if( strcasecmp( compress, "ojpeg" ) == 0 )
+			else if( mystrcasecmp( compress, "ojpeg" ) == 0 )
 				params.tiff.compression_type = TIFF_COMPRESSION_OJPEG ;
-			else if( strcasecmp( compress, "packbits" ) == 0 )
+			else if( mystrcasecmp( compress, "packbits" ) == 0 )
 				params.tiff.compression_type = TIFF_COMPRESSION_PACKBITS ;
 		}
 	} else {
@@ -395,6 +407,8 @@ double parse_math(const char* str, char** endptr, double size) {
 	char op = '+';
 	char minus = 0;
 	const char* startptr = str;
+	if( str == NULL ) 
+		return 0 ;
 	while (*str) {
 		while (isspace((int)*str)) str++;
 		if (!op) {
@@ -821,10 +835,10 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 			}
 			if (border_str) {
 				char* p = (char*)border_str;
-				bevel.left_inline = parse_math(p, &p, imtmp->width);
-				bevel.top_inline = parse_math(p, &p, imtmp->height);
-				bevel.right_inline = parse_math(p, &p, imtmp->width);
-				bevel.bottom_inline = parse_math(p, &p, imtmp->height);
+				bevel.left_inline = (unsigned short)parse_math(p, &p, imtmp->width);
+				bevel.top_inline = (unsigned short)parse_math(p, &p, imtmp->height);
+				bevel.right_inline = (unsigned short)parse_math(p, &p, imtmp->width);
+				bevel.bottom_inline = (unsigned short)parse_math(p, &p, imtmp->height);
 			}
 			bevel.hihi_color = bevel.hi_color;
 			bevel.hilo_color = bevel.hi_color;
@@ -892,14 +906,14 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 		if (refid && width_str && height_str) {
 			ASImage* refimg = fetch_asimage( imman, refid);
 			if (refimg) {
-				width = parse_math(width_str, NULL, refimg->width);
-				height = parse_math(height_str, NULL, refimg->height);
+				width = (int)parse_math(width_str, NULL, refimg->width);
+				height = (int)parse_math(height_str, NULL, refimg->height);
 			}
 			safe_asimage_destroy(refimg);
 		}
 		if (!refid && width_str && height_str) {
-			width = parse_math(width_str, NULL, width);
-			height = parse_math(height_str, NULL, height);
+			width = (int)parse_math(width_str, NULL, width);
+			height = (int)parse_math(height_str, NULL, height);
 		}
 		if (width && height && color_str) {
 			ASGradient gradient;
@@ -1086,8 +1100,8 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
         int filter = SCL_DO_ALL;
 		for (ptr = parm ; ptr ; ptr = ptr->next) {
 			if (!strcmp(ptr->tag, "id")) id = strdup(ptr->parm);
-            else if (!strcmp(ptr->tag, "horz")) horz = strtod(ptr->parm, NULL);
-            else if (!strcmp(ptr->tag, "vert")) vert = strtod(ptr->parm, NULL);
+            else if (!strcmp(ptr->tag, "horz")) horz = atoi(ptr->parm);
+            else if (!strcmp(ptr->tag, "vert")) vert = atoi(ptr->parm);
             else if (!strcmp(ptr->tag, "channels"))
             {
                 int i = 0 ;
@@ -1227,12 +1241,12 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 				}
 			}
 			if( width_str[0] == '$' || isdigit( (int)width_str[0] ) )
-				width = parse_math(width_str, NULL, width);
+				width = (int)parse_math(width_str, NULL, width);
 			if( height_str[0] == '$' || isdigit( (int)height_str[0] ) )
-				height = parse_math(height_str, NULL, height);
-			if( strcasecmp(width_str,"proportional") == 0 )
+				height = (int)parse_math(height_str, NULL, height);
+			if( mystrcasecmp(width_str,"proportional") == 0 )
 				width = (width_ref * height) / height_ref ;
-			else if( strcasecmp(height_str,"proportional") == 0 )
+			else if( mystrcasecmp(height_str,"proportional") == 0 )
 				height = (height_ref * width) / width_ref ;
 		}
 		if (imtmp && width > 0 && height > 0 ) {
@@ -1300,10 +1314,10 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 				}
 				safe_asimage_destroy( refimg );
 			}
-			if (srcx_str) srcx = parse_math(srcx_str, NULL, width);
-			if (srcy_str) srcy = parse_math(srcy_str, NULL, height);
-			if (width_str) width = parse_math(width_str, NULL, width);
-			if (height_str) height = parse_math(height_str, NULL, height);
+			if (srcx_str) srcx = (int)parse_math(srcx_str, NULL, width);
+			if (srcy_str) srcy = (int)parse_math(srcy_str, NULL, height);
+			if (width_str) width = (int)parse_math(width_str, NULL, width);
+			if (height_str) height = (int)parse_math(height_str, NULL, height);
 			if (width > (int)imtmp->width) width = imtmp->width;
 			if (height > (int)imtmp->height) height = imtmp->height;
 			if (width > 0 && height > 0) {
@@ -1382,10 +1396,10 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 				}
 				safe_asimage_destroy( refimg );
 			}
-			if (width_str) width = parse_math(width_str, NULL, width);
-			if (height_str) height = parse_math(height_str, NULL, height);
-			if (xorig_str) xorig = parse_math(xorig_str, NULL, width);
-			if (yorig_str) yorig = parse_math(yorig_str, NULL, height);
+			if (width_str) width = (int)parse_math(width_str, NULL, width);
+			if (height_str) height = (int)parse_math(height_str, NULL, height);
+			if (xorig_str) xorig = (int)parse_math(xorig_str, NULL, width);
+			if (yorig_str) yorig = (int)parse_math(yorig_str, NULL, height);
 			if (width > 0 && height > 0)
 			{
 				if( complement_str )
@@ -1489,7 +1503,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 			else if (!strcmp(ptr->tag, "affected_hue"))
 			{
 				if( isdigit( (int)ptr->parm[0] ) )
-					affected_hue = parse_math(ptr->parm, NULL, 360);
+					affected_hue = (int)parse_math(ptr->parm, NULL, 360);
 				else
 				{
 					ARGB32 color = 0;
@@ -1502,10 +1516,10 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 					}
 				}
 			}
-			else if (!strcmp(ptr->tag, "affected_radius")) 	affected_radius = parse_math(ptr->parm, NULL, 360);
-			else if (!strcmp(ptr->tag, "hue_offset")) 		hue_offset = parse_math(ptr->parm, NULL, 360);
-			else if (!strcmp(ptr->tag, "saturation_offset"))saturation_offset = parse_math(ptr->parm, NULL, 100);
-			else if (!strcmp(ptr->tag, "value_offset")) 	value_offset = parse_math(ptr->parm, NULL, 100);
+			else if (!strcmp(ptr->tag, "affected_radius")) 	affected_radius = (int)parse_math(ptr->parm, NULL, 360);
+			else if (!strcmp(ptr->tag, "hue_offset")) 		hue_offset = (int)parse_math(ptr->parm, NULL, 360);
+			else if (!strcmp(ptr->tag, "saturation_offset"))saturation_offset = (int)parse_math(ptr->parm, NULL, 100);
+			else if (!strcmp(ptr->tag, "value_offset")) 	value_offset = (int)parse_math(ptr->parm, NULL, 100);
 		}
 		if( hue_offset == -1 && saturation_offset == -1 ) 
 		{
@@ -1526,10 +1540,10 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 				}
 				safe_asimage_destroy( refimg );
 			}
-			if (width_str) width = parse_math(width_str, NULL, width);
-			if (height_str) height = parse_math(height_str, NULL, height);
-			if (xorig_str) xorig = parse_math(xorig_str, NULL, width);
-			if (yorig_str) yorig = parse_math(yorig_str, NULL, height);
+			if (width_str) width = (int)parse_math(width_str, NULL, width);
+			if (height_str) height = (int)parse_math(height_str, NULL, height);
+			if (xorig_str) xorig = (int)parse_math(xorig_str, NULL, width);
+			if (yorig_str) yorig = (int)parse_math(yorig_str, NULL, height);
 			if (width > 0 && height > 0 &&
 				(hue_offset!=0 || saturation_offset != 0 || value_offset != 0 )) {
 				result = adjust_asimage_hsv(asv, imtmp, xorig, yorig, width, height,
@@ -1598,10 +1612,10 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 				}
 				safe_asimage_destroy( refimg );
 			}
-			if (left_str) left = parse_math(left_str, NULL, width);
-			if (top_str)  top = parse_math(top_str, NULL, height);
-			if (right_str) right = parse_math(right_str, NULL, width);
-			if (bottom_str)  bottom = parse_math(bottom_str, NULL, height);
+			if (left_str) left = (int)parse_math(left_str, NULL, width);
+			if (top_str)  top = (int)parse_math(top_str, NULL, height);
+			if (right_str) right = (int)parse_math(right_str, NULL, width);
+			if (bottom_str)  bottom = (int)parse_math(bottom_str, NULL, height);
 			if (left > 0 || top > 0 || right > 0 || bottom > 0 )
 			{
 				result = pad_asimage(asv, imtmp, left, top, width+left+right, height+top+bottom,
@@ -1648,14 +1662,14 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 		if (refid && width_str && height_str) {
 			ASImage* refimg = fetch_asimage(imman, refid);
 			if (refimg) {
-				width = parse_math(width_str, NULL, refimg->width);
-				height = parse_math(height_str, NULL, refimg->height);
+				width = (int)parse_math(width_str, NULL, refimg->width);
+				height = (int)parse_math(height_str, NULL, refimg->height);
 			}
 			safe_asimage_destroy( refimg );
 		}
 		if (!refid && width_str && height_str) {
-			width = parse_math(width_str, NULL, 0);
-			height = parse_math(height_str, NULL, 0);
+			width = (int)parse_math(width_str, NULL, 0);
+			height = (int)parse_math(height_str, NULL, 0);
 		}
 		if (width && height) {
 			CARD32 a, r, g, b ;
@@ -1814,16 +1828,16 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 						}
 						safe_asimage_destroy(refimg );
 					}
-					x = x_str ? parse_math(x_str, NULL, x) : 0;
-					y = y_str ? parse_math(y_str, NULL, y) : 0;
-					clip_x = clip_x_str ? parse_math(clip_x_str, NULL, x) : 0;
-					clip_y = clip_y_str ? parse_math(clip_y_str, NULL, y) : 0;
+					x = x_str ? (int)parse_math(x_str, NULL, x) : 0;
+					y = y_str ? (int)parse_math(y_str, NULL, y) : 0;
+					clip_x = clip_x_str ? (int)parse_math(clip_x_str, NULL, x) : 0;
+					clip_y = clip_y_str ? (int)parse_math(clip_y_str, NULL, y) : 0;
 					if( clip_width_str )
-						clip_width = parse_math(clip_width_str, NULL, clip_width);
+						clip_width = (int)parse_math(clip_width_str, NULL, clip_width);
 					else if( tile )
 						clip_width = 0 ;
 					if( clip_height_str )
-						clip_height = parse_math(clip_height_str, NULL, clip_height);
+						clip_height = (int)parse_math(clip_height_str, NULL, clip_height);
 					else if( tile )
 						clip_height = 0 ;
 				}
@@ -1922,7 +1936,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 		{
 			if (!strcmp(ptr->tag, "format")) format = ptr->parm;
 			else if (!strcmp(ptr->tag, "var")) { var = ptr->parm; use_val = False; }
-			else if (!strcmp(ptr->tag, "val")) { val = parse_math(ptr->parm, NULL, 0); use_val = True; }
+			else if (!strcmp(ptr->tag, "val")) { val = (int)parse_math(ptr->parm, NULL, 0); use_val = True; }
 		}
    		
 		for( i = 0 ; format[i] != '\0' ; ++i )
@@ -2165,7 +2179,7 @@ int xml_parse(const char* str, xml_elem_t* current) {
 			/* we're done.  If not, continue on blindly. */
 			if (*etag == '>') 
 			{
-				if (!strncasecmp(oab + 2, current->tag, etag - (oab + 2))) 
+				if (!mystrncasecmp(oab + 2, current->tag, etag - (oab + 2))) 
 				{
 					if (oab - ptr) 
 					{
@@ -2308,7 +2322,9 @@ char *interpret_ctrl_codes( char *text )
 				case '\\': subst = '\\' ;  break ;	
 				case 'a' : subst = '\a' ;  break ;	 
 				case 'b' : subst = '\b' ;  break ;	 
+#ifndef _WIN32
 				case 'e' : subst = '\e' ;  break ;	 
+#endif
 				case 'f' : subst = '\f' ;  break ;	 
 				case 'n' : subst = '\n' ;  break ;	 
 				case 'r' : subst = '\r' ;  break ;	

@@ -202,8 +202,13 @@ inline void asim_nonGNUC_debugout_stub( const char *format, ...);
 
 char   *asim_mystrndup(const char *str, size_t n);
 #define mystrndup(s,n)    	 asim_mystrndup(s,n)
+#ifdef _WIN32
+#define mystrncasecmp(s,s2,n)    _strnicmp(s,s2,n)
+#define mystrcasecmp(s,s2)       _stricmp(s,s2)
+#else
 #define mystrncasecmp(s,s2,n)    strncasecmp(s,s2,n)
 #define mystrcasecmp(s,s2)       strcasecmp(s,s2)
+#endif
 
 /* from libAfterBase/fs.h : */
 int		asim_check_file_mode (const char *file, int mode);

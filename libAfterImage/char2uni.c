@@ -27,13 +27,21 @@
  * Suite 330, Boston, MA 02111-1307, USA.
  */
 
+#ifdef _WIN32
+#include "win32/config.h"
+#else
 #include "config.h"
+#endif
 
 #define LOCAL_DEBUG
 /*#define DO_CLOCKING*/
 
 #include <string.h>
-#include "afterbase.h"
+#ifdef _WIN32
+# include "win32/afterbase.h"
+#else
+# include "afterbase.h"
+#endif
 #include "char2uni.h"
 
 
@@ -733,27 +741,27 @@ parse_short_charset_name( const char *name )
 			case '8' : return CHARSET_ISO8859_14;
 		}
 	}
-	if( strncasecmp( &name[0], "en", 2 ) == 0 )
+	if( mystrncasecmp( &name[0], "en", 2 ) == 0 )
 		return CHARSET_ISO8859_1 ;     /* us */
-	if( strncasecmp( &name[0], "el_GR", 5 ) == 0 )
+	if( mystrncasecmp( &name[0], "el_GR", 5 ) == 0 )
 		return CHARSET_ISO8859_7 ;     /* greece */
-	else if( strncasecmp( &name[0], "he", 2 ) == 0 )
+	else if( mystrncasecmp( &name[0], "he", 2 ) == 0 )
 		return CHARSET_ISO8859_8 ;     /* Hebrew */
-	else if( strncasecmp( &name[0], "hu", 2 ) == 0 )
+	else if( mystrncasecmp( &name[0], "hu", 2 ) == 0 )
 		return CHARSET_ISO8859_2 ;     /* Hungary */
-	else if( strncasecmp( &name[0], "lt", 2 ) == 0 )
+	else if( mystrncasecmp( &name[0], "lt", 2 ) == 0 )
 	  	return CHARSET_ISO8859_4 ;     /* Lithuanian locale for Lithuania */
-	else if( strncasecmp( &name[0], "pl", 2 ) == 0 )
+	else if( mystrncasecmp( &name[0], "pl", 2 ) == 0 )
 		return CHARSET_ISO8859_2 ;     /* 2Polish locale for Poland */
-	else if( strncasecmp( &name[0], "ru", 2 ) == 0 )
+	else if( mystrncasecmp( &name[0], "ru", 2 ) == 0 )
 		return CHARSET_ISO8859_5 ;     /* Russian locale for Russia */
-	else if( strncasecmp( &name[0], "sk", 2 ) == 0 )
+	else if( mystrncasecmp( &name[0], "sk", 2 ) == 0 )
 		return CHARSET_ISO8859_2 ;     /* Slovak locale for Slovakia */
-	else if( strncasecmp( &name[0], "sl", 2 ) == 0 )
+	else if( mystrncasecmp( &name[0], "sl", 2 ) == 0 )
 		return CHARSET_ISO8859_2 ;     /* Slovene locale for Slovenia */
-	else if( strncasecmp( &name[0], "tr", 2 ) == 0 )
+	else if( mystrncasecmp( &name[0], "tr", 2 ) == 0 )
 		return CHARSET_ISO8859_9 ;     /* Turkish */
-	else if( strncasecmp( &name[0], "cs", 2 ) == 0 )
+	else if( mystrncasecmp( &name[0], "cs", 2 ) == 0 )
 		return CHARSET_ISO8859_2 ;     /* Czech */
 	else
 		return CHARSET_ISO8859_1 ;
@@ -785,7 +793,7 @@ parse_charset_name( const char *name )
 	if( name[0] == 'L' || name[0] == 'l' ) /* L. or Latin... */
 	{
 		char latin_n = name[1] ;
-		if( strncasecmp( &name[1], "ATIN", 4 ) == 0 )
+		if( mystrncasecmp( &name[1], "ATIN", 4 ) == 0 )
 			latin_n = name[5] ;
 		switch( latin_n )
 		{  /* L# latins : */
@@ -836,7 +844,7 @@ parse_charset_name( const char *name )
 									case '9' : return CHARSET_ISO8859_9;
 								}
 							}
-				}else if( strncasecmp( &name[pos], "IR-", 3 ) == 0 )
+				}else if( mystrncasecmp( &name[pos], "IR-", 3 ) == 0 )
 				{
 					pos += 3 ;
 					switch( name[pos+2] )
@@ -861,9 +869,9 @@ parse_charset_name( const char *name )
 	{
 		if( name[1] == 'S' || name[1] == 's' )
 		{/* cs* */
-			if( strncasecmp( &name[2], "KOI8", 4 ) == 0 )
+			if( mystrncasecmp( &name[2], "KOI8", 4 ) == 0 )
 				return CHARSET_KOI8_R ;
-			if( strncasecmp( &name[2], "ISOLatin", 8 ) == 0 )
+			if( mystrncasecmp( &name[2], "ISOLatin", 8 ) == 0 )
 			{
 				switch( name[10] )
 				{
@@ -901,7 +909,7 @@ parse_charset_name( const char *name )
 		return CHARSET_ISO8859_5 ; /* CYRILLIC */
 	}else if( name[0] == 'K' || name[0] == 'k' ) /* KOI... */
 	{
-		if( strncasecmp( &name[1], "OI8-", 4) == 0 )
+		if( mystrncasecmp( &name[1], "OI8-", 4) == 0 )
 		{
 			if( name[5] == 'U' || name[5] == 'u' )
 				return CHARSET_KOI8_U;
@@ -912,7 +920,7 @@ parse_charset_name( const char *name )
 		return CHARSET_KOI8_R ;
 	}else if( name[0] == 'E' || name[0] == 'e' ) /* ECMA... */
 	{
-		if( strncasecmp( &name[1], "CMA-11", 6 ) == 0 )
+		if( mystrncasecmp( &name[1], "CMA-11", 6 ) == 0 )
 		{
 			if( name[7] == '4' )
 				return CHARSET_ISO8859_6 ;

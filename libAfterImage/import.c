@@ -22,7 +22,11 @@
 #undef DO_CLOCKING
 #undef DEBUG_TRANSP_GIF
 
+#ifdef _WIN32
+#include "win32/config.h"
+#else
 #include "config.h"
+#endif
 
 
 #if TIME_WITH_SYS_TIME
@@ -35,7 +39,9 @@
 #  include <time.h>
 # endif
 #endif
+#ifndef _WIN32
 #include <unistd.h>
+#endif
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
@@ -52,7 +58,11 @@
 #ifdef const
 #undef const
 #endif
-#include "afterbase.h"
+#ifdef _WIN32
+# include "win32/afterbase.h"
+#else
+# include "afterbase.h"
+#endif
 #ifdef HAVE_JPEG
 /* Include file for users of png library. */
 #undef HAVE_STDLIB_H
@@ -294,6 +304,7 @@ get_asimage_list( ASVisual *asv, const char *dir,
 				  unsigned int *count_ret )
 {
 	ASImageListEntry *im_list = NULL ;
+#ifndef _WIN32
 	ASImageListEntry **curr = &im_list, *last = NULL ;
 	struct direntry  **list;
 	int n, i, count = 0;
@@ -386,6 +397,7 @@ get_asimage_list( ASVisual *asv, const char *dir,
 
 	if( count_ret )
 		*count_ret = count ;
+#endif
 	return im_list;
 }
 
@@ -1117,7 +1129,7 @@ ppm2ASImage( const char * path, ASImageImportParams *params )
 		prepare_scanline( im->width, 0, &buf, False );
 		y = -1 ;
 		/*cinfo.output_scanline*/
-		while ( ++y < height )
+		while ( ++y < (int)height )
 		{
 			if( fread( data, sizeof (char), row_size, infile ) < row_size )
 				break;
@@ -1285,15 +1297,15 @@ read_bmp_image( FILE *infile, size_t data_offset, BITMAPINFOHEADER *bmp_info,
 	prepare_scanline( im->width, 0, buf, True );
 
 	y =( direction == 1 )?0:height-1 ;
-	while( y >= 0 && y < height)
+	while( y >= 0 && y < (int)height)
 	{
 		int x ;
-		if( fread( data, sizeof (char), row_size, infile ) < row_size )
+		if( fread( data, sizeof (char), row_size, infile ) < (unsigned int)row_size )
 			break;
 		switch( bmp_info->biBitCount )
 		{
 			case 1 :
-				for( x = 0 ; x < bmp_info->biWidth ; x++ )
+				for( x = 0 ; x < (int)bmp_info->biWidth ; x++ )
 				{
 					int entry = (data[x>>3]&(1<<(x&0x07)))?cmap_entry_size:0 ;
 					buf->red[x] = cmap[entry+2];
@@ -1302,7 +1314,7 @@ read_bmp_image( FILE *infile, size_t data_offset, BITMAPINFOHEADER *bmp_info,
 				}
 			    break ;
 			case 4 :
-				for( x = 0 ; x < bmp_info->biWidth ; x++ )
+				for( x = 0 ; x < (int)bmp_info->biWidth ; x++ )
 				{
 					int entry = data[x>>1];
 					if(x&0x01)
@@ -1315,7 +1327,7 @@ read_bmp_image( FILE *infile, size_t data_offset, BITMAPINFOHEADER *bmp_info,
 				}
 			    break ;
 			case 8 :
-				for( x = 0 ; x < bmp_info->biWidth ; x++ )
+				for( x = 0 ; x < (int)bmp_info->biWidth ; x++ )
 				{
 					int entry = data[x]*cmap_entry_size ;
 					buf->red[x] = cmap[entry+2];
@@ -1324,7 +1336,7 @@ read_bmp_image( FILE *infile, size_t data_offset, BITMAPINFOHEADER *bmp_info,
 				}
 			    break ;
 			case 16 :
-				for( x = 0 ; x < bmp_info->biWidth ; ++x )
+				for( x = 0 ; x < (int)bmp_info->biWidth ; ++x )
 				{
 					CARD8 c1 = data[x] ;
 					CARD8 c2 = data[++x];
@@ -1445,7 +1457,7 @@ ico2ASImage( const char * path, ASImageImportParams *params )
         for( y = icon.bHeight-1 ; y >= 0 ; y-- )
 		{
 			int x ;
-            if( fread( and_mask, sizeof (CARD8), mask_bytes, infile ) < mask_bytes )
+            if( fread( and_mask, sizeof (CARD8), mask_bytes, infile ) < (unsigned int)mask_bytes )
 				break;
 			for( x = 0 ; x < icon.bWidth ; ++x )
             {

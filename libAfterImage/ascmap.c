@@ -22,7 +22,11 @@
 #undef LOCAL_DEBUG
 #undef DO_CLOCKING
 
+#ifdef _WIN32
+#include "win32/config.h"
+#else
 #include "config.h"
+#endif
 
 #if TIME_WITH_SYS_TIME
 # include <sys/time.h>
@@ -34,12 +38,18 @@
 #  include <time.h>
 # endif
 #endif
+#ifndef _WIN32
 #include <unistd.h>
+#endif
 #include <stdarg.h>
 #include <stdlib.h>
 #include <ctype.h>
 
-#include "afterbase.h"
+#ifdef _WIN32
+# include "win32/afterbase.h"
+#else
+# include "afterbase.h"
+#endif
 
 #include "asimage.h"
 #include "import.h"
@@ -223,7 +233,7 @@ unsigned int
 add_colormap_items( ASSortedColorHash *index, unsigned int start, unsigned int stop, unsigned int quota, unsigned int base, ASColormapEntry *entries )
 {
 	int cmap_idx = 0 ;
-	int i ;
+	unsigned int i ;
 	if( quota >= index->count_unique )
 	{
 		for( i = start ; i < stop ; i++ )
@@ -289,7 +299,7 @@ LOCAL_DEBUG_OUT( "count = %d subtotal = %d, quota = %d, idx = %d, i = %d, total 
 ASColormap *
 color_hash2colormap( ASColormap *cmap, unsigned int max_colors )
 {
-	int cmap_idx = 0 ;
+	unsigned int cmap_idx = 0 ;
 	int i ;
 	ASSortedColorHash *index = NULL ;
 
@@ -321,14 +331,14 @@ LOCAL_DEBUG_OUT( "count = %d, subtotal = %ld, to_add = %ld, idx = %d, i = %d, to
 			if( subcount >= total )
 			{	/* we need to add subcount/index->count items */
 				int to_add = subcount/total ;
-				if( i == index->buckets_num-1 && to_add < max_colors-cmap_idx )
+				if( i == index->buckets_num-1 && to_add < (int)max_colors-(int)cmap_idx )
 					to_add = max_colors-cmap_idx;
 				cmap_idx += add_colormap_items( index, start_slot, i, to_add, cmap_idx, &(cmap->entries[cmap_idx]));
 				subcount %= total;
 				start_slot = i+1;
 			}
 		}
-		if( quota == max_colors-cmap_idx )
+		if( quota == (int)max_colors-(int)cmap_idx )
 			break;
 	}
 	fix_colorindex_shortcuts( index );
@@ -394,7 +404,7 @@ colormap_asimage( ASImage *im, ASColormap *cmap, unsigned int max_colors, unsign
 	START_TIME(started);
 
 	int *dst ;
-	int y ;
+	unsigned int y ;
 	register int x ;
 
 	if( im == NULL || cmap == NULL || im->width == 0 )
@@ -463,7 +473,7 @@ print_asimage( im, ASFLAGS_EVERYTHING, __FUNCTION__, __LINE__ );
 			case 0 :
 				for( x = 0; x < im_width ; x++ )
 				{
-					if( a[x] < opaque_threshold )	dst[x] = -1 ;
+					if( (int)a[x] < opaque_threshold )	dst[x] = -1 ;
 					else
 					{
 						red   = INDEX_SHIFT_RED(r[x]);
@@ -477,7 +487,7 @@ print_asimage( im, ASFLAGS_EVERYTHING, __FUNCTION__, __LINE__ );
 			case 1 :
 				for( x = 0; x < im_width ; x++ )
 				{
-					if( a[x] < opaque_threshold )	dst[x] = -1 ;
+					if( (int)a[x] < opaque_threshold )	dst[x] = -1 ;
 					else
 					{
 						red   = INDEX_SHIFT_RED(r[x]);
@@ -495,7 +505,7 @@ print_asimage( im, ASFLAGS_EVERYTHING, __FUNCTION__, __LINE__ );
 						red   = INDEX_SHIFT_RED  ((red  +r[x]>255)?255:red+r[x]);
 						green = INDEX_SHIFT_GREEN((green+g[x]>255)?255:green+g[x]);
 						blue  = INDEX_SHIFT_BLUE ((blue +b[x]>255)?255:blue+b[x]);
-						if( a[x] < opaque_threshold )
+						if( (int)a[x] < opaque_threshold )
 							dst[x] = -1 ;
 						else
 						{
@@ -516,7 +526,7 @@ print_asimage( im, ASFLAGS_EVERYTHING, __FUNCTION__, __LINE__ );
 						green = INDEX_SHIFT_GREEN((green+g[x]>255)?255:green+g[x]);
 						blue  = INDEX_SHIFT_BLUE ((blue +b[x]>255)?255:blue+b[x]);
                         LOCAL_DEBUG_OUT( "alpha(%d,%d) = %ld, threshold = %d", x, y, a[x], opaque_threshold );
-						if( a[x] < opaque_threshold )
+						if( (int)a[x] < opaque_threshold )
 							dst[x] = -1 ;
 						else
 						{
@@ -536,7 +546,7 @@ print_asimage( im, ASFLAGS_EVERYTHING, __FUNCTION__, __LINE__ );
 						red   = INDEX_SHIFT_RED  ((red  +r[x]>255)?255:red+r[x]);
 						green = INDEX_SHIFT_GREEN((green+g[x]>255)?255:green+g[x]);
 						blue  = INDEX_SHIFT_BLUE ((blue +b[x]>255)?255:blue+b[x]);
-						if( a[x] < opaque_threshold )
+						if( (int)a[x] < opaque_threshold )
 							dst[x] = -1 ;
 						else
 						{
@@ -556,7 +566,7 @@ print_asimage( im, ASFLAGS_EVERYTHING, __FUNCTION__, __LINE__ );
 						red   = INDEX_SHIFT_RED  ((red  +r[x]>255)?255:red+r[x]);
 						green = INDEX_SHIFT_GREEN((green+g[x]>255)?255:green+g[x]);
 						blue  = INDEX_SHIFT_BLUE ((blue +b[x]>255)?255:blue+b[x]);
-						if( a[x] < opaque_threshold )
+						if( (int)a[x] < opaque_threshold )
 							dst[x] = -1 ;
 						else
 						{
@@ -576,7 +586,7 @@ print_asimage( im, ASFLAGS_EVERYTHING, __FUNCTION__, __LINE__ );
 						red   = INDEX_SHIFT_RED  ((red  +r[x]>255)?255:red+r[x]);
 						green = INDEX_SHIFT_GREEN((green+g[x]>255)?255:green+g[x]);
 						blue  = INDEX_SHIFT_BLUE ((blue +b[x]>255)?255:blue+b[x]);
-						if( a[x] < opaque_threshold )
+						if( (int)a[x] < opaque_threshold )
 							dst[x] = -1 ;
 						else
 						{
@@ -596,7 +606,7 @@ print_asimage( im, ASFLAGS_EVERYTHING, __FUNCTION__, __LINE__ );
 						red   = INDEX_SHIFT_RED  ((red  +r[x]>255)?255:red+r[x]);
 						green = INDEX_SHIFT_GREEN((green+g[x]>255)?255:green+g[x]);
 						blue  = INDEX_SHIFT_BLUE ((blue +b[x]>255)?255:blue+b[x]);
-						if( a[x] < opaque_threshold )
+						if( (int)a[x] < opaque_threshold )
 							dst[x] = -1 ;
 						else
 						{
@@ -635,7 +645,7 @@ check_colorindex_counts( cmap->hash );
 			case 0 :
 			case 1 :
 			case 2 :
-				for( x = 0 ; x < im->width ; ++x )
+				for( x = 0 ; x < (int)im->width ; ++x )
                 {
                     LOCAL_DEBUG_OUT( "Mapping color at (%dx%d) indexed = %X", x, y, dst[x] );
 					if( dst[x] >= 0 )
@@ -646,7 +656,7 @@ check_colorindex_counts( cmap->hash );
 				break;
 			case 3 :
 			case 4 :
-				for( x = 0 ; x < im->width ; ++x )
+				for( x = 0 ; x < (int)im->width ; ++x )
 				{
                     LOCAL_DEBUG_OUT( "Mapping color at (%dx%d) indexed = %X", x, y, dst[x] );
                     if( dst[x] >= 0 )
@@ -657,14 +667,14 @@ check_colorindex_counts( cmap->hash );
 				break;
 			case 5 :
 			case 6 :
-				for( x = 0 ; x < im->width ; ++x )
+				for( x = 0 ; x < (int)im->width ; ++x )
 					if( dst[x] >= 0 )
 						dst[x] = get_color_index( cmap->hash, dst[x], ((dst[x]>>18)&0x03F));
 					else
 						dst[x] = cmap->count ;
 			    break ;
 			case 7 :
-				for( x = 0 ; x < im->width ; ++x )
+				for( x = 0 ; x < (int)im->width ; ++x )
 					if( dst[x] >= 0 )
 						dst[x] = get_color_index( cmap->hash, dst[x], ((dst[x]>>21)&0x007));
 					else

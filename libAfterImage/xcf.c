@@ -18,7 +18,11 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+#ifdef _WIN32
+#include "win32/config.h"
+#else
 #include "config.h"
+#endif
 
 /*#define LOCAL_DEBUG*/
 /*#define DO_CLOCKING*/
@@ -36,7 +40,11 @@
 # endif
 #endif
 
-#include "afterbase.h"
+#ifdef _WIN32
+# include "win32/afterbase.h"
+#else
+# include "afterbase.h"
+#endif
 #include "asimage.h"
 #include "xcf.h"
 
@@ -75,7 +83,7 @@ xcf_read32 (FILE *fp, CARD32 *data, int count)
 		total = xcf_read8( fp, raw, count<<2 )>>2;
 		count = 0 ;
 #ifndef WORDS_BIGENDIAN
-		while( count < total )
+		while( count < (int)total )
 		{
 			data[count] = (raw[0]<<24)|(raw[1]<<16)|(raw[2]<<8)|raw[3];
 			++count ;
@@ -142,7 +150,7 @@ read_xcf_image( FILE *fp )
 				xcf_im->colormap = safemalloc( MAX(n*3,(CARD32)XCF_COLORMAP_SIZE));
 				if( xcf_im->version == 0 )
 				{
-					for( i = 0 ; i < n ; i++ )
+					for( i = 0 ; i < (int)n ; i++ )
 					{
 						xcf_im->colormap[i*3] = i ;
 						xcf_im->colormap[i*3+1] = i ;
@@ -178,7 +186,7 @@ print_xcf_properties( char* prompt, XcfProperty *prop )
 		fprintf( stderr, "%s.properties[%d].size = %ld\n", prompt, i, (long)prop->len );
 		if( prop->len > 0 )
 		{
-			register int k ;
+			register unsigned int k ;
 			fprintf( stderr, "%s.properties[%d].data = ", prompt, i );
 			for( k = 0 ; k < prop->len ; k++ )
 				fprintf( stderr, "%2.2X ", prop->data[k] );
@@ -495,7 +503,7 @@ read_xcf_layers( XcfImage *xcf_im, FILE *fp, XcfLayer *head )
 			if( head->hierarchy_offset > 0 )
 			{
 				fseek( fp, head->hierarchy_offset, SEEK_SET );
-				head->hierarchy = read_xcf_hierarchy( xcf_im, fp, head->opacity, 0xFFFFFFFF );
+				head->hierarchy = read_xcf_hierarchy( xcf_im, fp, (CARD8)head->opacity, 0xFFFFFFFF );
 			}
 			if( head->mask_offset > 0 )
 			{
@@ -546,7 +554,7 @@ read_xcf_channels( XcfImage *xcf_im, FILE *fp, XcfChannel *head )
 			if( head->hierarchy_offset > 0 )
 			{
 				fseek( fp, head->hierarchy_offset, SEEK_SET );
-				head->hierarchy = read_xcf_hierarchy( xcf_im, fp, head->opacity, head->color );
+				head->hierarchy = read_xcf_hierarchy( xcf_im, fp, (CARD8)head->opacity, head->color );
 			}
 		}
 		head = head->next ;
@@ -817,7 +825,7 @@ Bool
 fix_xcf_image_line( ASScanline *buf, int bpp, unsigned int width, CARD8 *cmap,
 					CARD8 opacity, ARGB32 color )
 {
-	register int i ;
+	register unsigned int i ;
 	Bool do_alpha = False ;
 	if( bpp == 1 )
 	{

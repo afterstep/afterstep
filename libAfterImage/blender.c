@@ -16,13 +16,21 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+#ifdef _WIN32
+#include "win32/config.h"
+#else
 #include "config.h"
+#endif
 
 /*#define LOCAL_DEBUG*/
 /*#define DO_CLOCKING*/
 
 #include <ctype.h>
-#include "afterbase.h"
+#ifdef _WIN32
+# include "win32/afterbase.h"
+#else
+# include "afterbase.h"
+#endif
 #include "asvisual.h"
 #include "blender.h"
 
@@ -180,7 +188,7 @@ rgb2hue( CARD32 red, CARD32 green, CARD32 blue )
 	if( max_val != min_val)
 	{
 		int delta = max_val-min_val ;
-		MAKE_HUE16(hue,red,green,blue,min_val,max_val,delta);
+		MAKE_HUE16(hue,(int)red,(int)green,(int)blue,min_val,max_val,delta);
 	}
 	return hue;
 }
@@ -203,7 +211,7 @@ rgb2hsv( CARD32 red, CARD32 green, CARD32 blue, CARD32 *saturation, CARD32 *valu
 	{
 		int delta = max_val-min_val ;
 		*saturation = (max_val>1)?(delta<<15)/(max_val>>1): 0;
-		MAKE_HUE16(hue,red,green,blue,min_val,max_val,delta);
+		MAKE_HUE16(hue,(int)red,(int)green,(int)blue,min_val,max_val,delta);
 	}else
 		*saturation = 0 ;
 	return hue;
@@ -261,7 +269,7 @@ rgb2hls (CARD32 red, CARD32 green, CARD32 blue, CARD32 *luminance, CARD32 *satur
 		*saturation = (*luminance < 0x00008000 )?
 							(delta<<15)/ *luminance :
 							(delta<<15)/ (0x0000FFFF - *luminance);
-		MAKE_HUE16(hue,red,green,blue,min_val,max_val,delta);
+		MAKE_HUE16(hue,(int)red,(int)green,(int)blue,min_val,max_val,delta);
 	}else
 		*saturation = 0 ;
 	return hue;
@@ -672,7 +680,7 @@ dissipate_scanlines( ASScanline *bottom, ASScanline *top, int offset )
 	while( ++i < max_i )
 	{
 		int a = ta[i] ;
-		if( a > 0 && MY_RND32() < a<<15 )
+		if( a > 0 && (int)MY_RND32() < (a<<15) )
 		{
 			ba[i] += a ;
 			if( ba[i] > 0x0000FFFF )

@@ -22,7 +22,11 @@
 #define USE_64BIT_FPU
 #undef NEED_RBITSHIFT_FUNCS
 
+#ifdef _WIN32
+#include "win32/config.h"
+#else
 #include "config.h"
+#endif
 
 #ifdef DO_CLOCKING
 #if TIME_WITH_SYS_TIME
@@ -41,7 +45,11 @@
 #include <stdlib.h>
 
 
-#include "afterbase.h"
+#ifdef _WIN32
+# include "win32/afterbase.h"
+#else
+# include "afterbase.h"
+#endif
 #include "asvisual.h"
 #include "blender.h"
 #include "asimage.h"
@@ -447,7 +455,7 @@ make_component_gradient16( register CARD32 *data, CARD16 from, CARD16 to, CARD8 
 	else
 	{
 		long curr = from<<8;
-		curr += ((((CARD32)seed)<<8) > incr)?incr:((CARD32)seed)<<8 ;
+		curr += ((long)(((CARD32)seed)<<8) > incr)?incr:((CARD32)seed)<<8 ;
 		for( i = 0 ; i < len ; ++i )
 		{/* we make calculations in 24bit per chan, then convert it back to 16 and
 		  * carry over half of the quantization error onto the next pixel */
@@ -466,7 +474,7 @@ copytintpad_scanline( ASScanline *src, ASScanline *dst, int offset, ARGB32 tint 
 	int color ;
 	int copy_width = src->width, dst_offset = 0, src_offset = 0;
 
-	if( offset+src->width < 0 || offset > dst->width )
+	if( offset+(int)src->width < 0 || offset > (int)dst->width )
 		return;
 	chan_tint[IC_RED]   = ARGB32_RED8  (tint)<<1;
 	chan_tint[IC_GREEN] = ARGB32_GREEN8(tint)<<1;
@@ -520,7 +528,7 @@ copytintpad_scanline( ASScanline *src, ASScanline *dst, int offset, ARGB32 tint 
 		}
 		{
 /*			register CARD32 fill = chan_fill[color]; */
-			for( ; i < dst->width-dst_offset ; ++i )
+			for( ; i < (int)dst->width-dst_offset ; ++i )
 				pdst[i] = 0;
 /*				print_component(pdst, 0, dst->width ); */
 		}
@@ -575,10 +583,10 @@ make_gradient_scanline( ASScanline *scl, ASGradient *grad, ASFlagType filter, AR
 			if( new_idx < 0 )
 				break;
 			used[new_idx] = 1 ;
-			step = grad->offset[new_idx] * scl->width - offset ;
+			step = (int)((grad->offset[new_idx] * (double)scl->width) - (double)offset) ;
 /*			fprintf( stderr, __FUNCTION__":%d>last_offset = %f, last_color = %8.8X, new_idx = %d, max_i = %d, new_offset = %f, new_color = %8.8X, step = %d, offset = %d\n", __LINE__, last_offset, last_color, new_idx, max_i, offsets[new_idx], grad->color[new_idx], step, offset ); */
-			if( step > scl->width-offset )
-				step = scl->width-offset ;
+			if( step > (int)scl->width-offset )
+				step = (int)scl->width-offset ;
 			if( step > 0 )
 			{
 				int color ;
@@ -588,9 +596,9 @@ make_gradient_scanline( ASScanline *scl, ASGradient *grad, ASFlagType filter, AR
 						LOCAL_DEBUG_OUT("channel %d from #%4.4lX to #%4.4lX, ofset = %d, step = %d",
 	 	 									color, ARGB32_CHAN8(last_color,color)<<8, ARGB32_CHAN8(grad->color[new_idx],color)<<8, offset, step );
 						make_component_gradient16( scl->channels[color]+offset,
-												   ARGB32_CHAN8(last_color,color)<<8,
-												   ARGB32_CHAN8(grad->color[new_idx],color)<<8,
-												   ARGB32_CHAN8(seed,color),
+												   (CARD16)(ARGB32_CHAN8(last_color,color)<<8),
+												   (CARD16)(ARGB32_CHAN8(grad->color[new_idx],color)<<8),
+												   (CARD8)ARGB32_CHAN8(seed,color),
 												   step);
 					}
 				offset += step ;
@@ -752,7 +760,7 @@ scale_image_up( ASImageDecoder *imdec, ASImageOutput *imout, int h_ratio, int *s
                     imout->output_image_scanline( imout, c1, 1);
                 }else
                 {
-                    SCANLINE_COMBINE(start_component_interpolation,*c1,*c2,*c3,*c4,*c1,step,S,out_width);
+                    SCANLINE_COMBINE(start_component_interpolation,*c1,*c2,*c3,*c4,*c1,step,(CARD8)S,out_width);
                     do
                     {
                         imout->output_image_scanline( imout, c1, 1);
@@ -781,7 +789,7 @@ scale_image_up_dumb( ASImageDecoder *imdec, ASImageOutput *imout, int h_ratio, i
 	prepare_scanline( out_width, QUANT_ERR_BITS, &src_line, imout->asv->BGR_mode );
 
 	imout->tiling_step = 1 ;
-	while( imdec->next_line < imdec->out_height )
+	while( imdec->next_line < (int)imdec->out_height )
 	{
 		imdec->decode_image_scanline( imdec );
 		src_line.flags = imdec->buffer.flags ;
@@ -918,10 +926,10 @@ LOCAL_DEBUG_OUT("tiling actually...%s", "");
 			for( y = 0 ; y < max_y ; y++  )
 			{
 				imdec->decode_image_scanline( imdec );
-				tint_component_mod( imdec->buffer.red, ARGB32_RED8(tint)<<1, to_width );
-				tint_component_mod( imdec->buffer.green, ARGB32_GREEN8(tint)<<1, to_width );
-  				tint_component_mod( imdec->buffer.blue, ARGB32_BLUE8(tint)<<1, to_width );
-				tint_component_mod( imdec->buffer.alpha, ARGB32_ALPHA8(tint)<<1, to_width );
+				tint_component_mod( imdec->buffer.red, (CARD16)(ARGB32_RED8(tint)<<1), to_width );
+				tint_component_mod( imdec->buffer.green, (CARD16)(ARGB32_GREEN8(tint)<<1), to_width );
+  				tint_component_mod( imdec->buffer.blue, (CARD16)(ARGB32_BLUE8(tint)<<1), to_width );
+				tint_component_mod( imdec->buffer.alpha, (CARD16)(ARGB32_ALPHA8(tint)<<1), to_width );
 				imout->output_image_scanline( imout, &(imdec->buffer), 1);
 			}
 		}else
@@ -1025,14 +1033,14 @@ LOCAL_DEBUG_OUT("blending actually...%s", "");
 				if( pcurr->dst_y < min_y )
 					min_y = pcurr->dst_y;
 				layer_bottom += imdecs[i]->bevel_v_addon ;
-				if( layer_bottom > max_y )
+				if( (int)layer_bottom > max_y )
 					max_y = layer_bottom;
 			}
 			pcurr = (pcurr->next!=NULL)?pcurr->next:pcurr+1 ;
 		}
 		if( min_y < 0 )
 			min_y = 0 ;
-		if( max_y > dst_height )
+		if( max_y > (int)dst_height )
 			max_y = dst_height ;
 		else
 			imout->tiling_step = max_y ;
@@ -1071,10 +1079,10 @@ LOCAL_DEBUG_OUT( "min_y = %d, max_y = %d", min_y, max_y );
 					imdecs[i]->decode_image_scanline( imdecs[i] );
 					if( tint != 0 )
 					{
-						tint_component_mod( b->red,   ARGB32_RED8(tint)<<1,   b->width );
-						tint_component_mod( b->green, ARGB32_GREEN8(tint)<<1, b->width );
-  						tint_component_mod( b->blue,  ARGB32_BLUE8(tint)<<1,  b->width );
-						tint_component_mod( b->alpha, ARGB32_ALPHA8(tint)<<1, b->width );
+						tint_component_mod( b->red,   (CARD16)(ARGB32_RED8(tint)<<1),   b->width );
+						tint_component_mod( b->green, (CARD16)(ARGB32_GREEN8(tint)<<1), b->width );
+  						tint_component_mod( b->blue,  (CARD16)(ARGB32_BLUE8(tint)<<1),  b->width );
+						tint_component_mod( b->alpha, (CARD16)(ARGB32_ALPHA8(tint)<<1), b->width );
 					}
 					pcurr->merge_scanlines( &dst_line, b, pcurr->dst_x );
 				}
@@ -1084,7 +1092,7 @@ LOCAL_DEBUG_OUT( "min_y = %d, max_y = %d", min_y, max_y );
 		}
 		dst_line.back_color = imdecs[0]->back_color ;
 		dst_line.flags = 0 ;
-		for( ; y < dst_height ; y++  )
+		for( ; y < (int)dst_height ; y++  )
 			imout->output_image_scanline( imout, &dst_line, 1);
 		stop_image_output( &imout );
 	}
@@ -1357,7 +1365,7 @@ LOCAL_DEBUG_CALLER_OUT( "type = 0x%X, width=%d, height = %d, filter = 0x%lX", gr
 		int line;
 		static ARGB32 dither_seeds[MAX_GRADIENT_DITHER_LINES] = { 0, 0xFFFFFFFF, 0x7F0F7F0F, 0x0F7F0F7F };
 
-		if( dither_lines > im->height || dither_lines > im->width )
+		if( dither_lines > (int)im->height || dither_lines > (int)im->width )
 			dither_lines = MIN(im->height, im->width) ;
 
 		lines = safecalloc( dither_lines, sizeof(ASScanline));
@@ -1455,10 +1463,10 @@ LOCAL_DEBUG_OUT("flip-flopping actually...%s", "");
 				memset( r, 0x00, to_height*sizeof(CARD32));
 				memset( g, 0x00, to_height*sizeof(CARD32));
 				memset( b, 0x00, to_height*sizeof(CARD32));
-  */			for( y = 0 ; y < to_width ; y++ )
+  */			for( y = 0 ; y < (int)to_width ; y++ )
 				{
 					imdec->decode_image_scanline( imdec );
-					for( x = 0; x < to_height ; x++ )
+					for( x = 0; x < (int)to_height ; x++ )
 					{
 						chan_data[pos++] = MAKE_ARGB32( a[x],r[x],g[x],b[x] );
 					}
@@ -1466,10 +1474,10 @@ LOCAL_DEBUG_OUT("flip-flopping actually...%s", "");
 
 				if( get_flags( flip, FLIP_UPSIDEDOWN ) )
 				{
-					for( y = 0 ; y < to_height ; ++y )
+					for( y = 0 ; y < (int)to_height ; ++y )
 					{
-						pos = y + (to_width-1)*(to_height) ;
-						for( x = 0 ; x < to_width ; ++x )
+						pos = y + (int)(to_width-1)*(to_height) ;
+						for( x = 0 ; x < (int)to_width ; ++x )
 						{
 							result.alpha[x] = ARGB32_ALPHA8(chan_data[pos]);
 							result.red  [x] = ARGB32_RED8(chan_data[pos]);
@@ -1484,7 +1492,7 @@ LOCAL_DEBUG_OUT("flip-flopping actually...%s", "");
 					for( y = to_height-1 ; y >= 0 ; --y )
 					{
 						pos = y ;
-						for( x = 0 ; x < to_width ; ++x )
+						for( x = 0 ; x < (int)to_width ; ++x )
 						{
 							result.alpha[x] = ARGB32_ALPHA8(chan_data[pos]);
 							result.red  [x] = ARGB32_RED8(chan_data[pos]);
@@ -1500,7 +1508,7 @@ LOCAL_DEBUG_OUT("flip-flopping actually...%s", "");
 			{
 				toggle_image_output_direction( imout );
 /*                fprintf( stderr, __FUNCTION__":chanmask = 0x%lX", filter ); */
-				for( y = 0 ; y < to_height ; y++  )
+				for( y = 0 ; y < (int)to_height ; y++  )
 				{
 					imdec->decode_image_scanline( imdec );
                     result.flags = imdec->buffer.flags = imdec->buffer.flags & filter ;
@@ -1560,14 +1568,14 @@ LOCAL_DEBUG_OUT("miroring actually...%s", "");
 			if( vertical )
 			{
 				toggle_image_output_direction( imout );
-				for( y = 0 ; y < to_height ; y++  )
+				for( y = 0 ; y < (int)to_height ; y++  )
 				{
 					imdec->decode_image_scanline( imdec );
 					imout->output_image_scanline( imout, &(imdec->buffer), 1);
 				}
 			}else
 			{
-				for( y = 0 ; y < to_height ; y++  )
+				for( y = 0 ; y < (int)to_height ; y++  )
 				{
 					imdec->decode_image_scanline( imdec );
 					result.flags = imdec->buffer.flags ;
@@ -1646,7 +1654,7 @@ LOCAL_DEBUG_CALLER_OUT( "dst_x = %d, dst_y = %d, to_width = %d, to_height = %d",
 		int start_x = (dst_x < 0)? 0: dst_x;
 		int start_y = (dst_y < 0)? 0: dst_y;
 
-		if( to_width != clip_width || clip_width != src->width )
+		if( (int)to_width != clip_width || clip_width != (int)src->width )
 		{
 			prepare_scanline( to_width, 0, &result, asv->BGR_mode );
 			imdec = start_image_decoding(  asv, src, SCL_DO_ALL,
@@ -1663,9 +1671,9 @@ LOCAL_DEBUG_OUT( "filling %d lines with %8.8lX", start_y, color );
 
 		if( imdec )
 			result.back_color = imdec->buffer.back_color ;
-		if( to_width == clip_width )
+		if( (int)to_width == clip_width )
 		{
-			if( clip_width == src->width )
+			if( (int)clip_width == (int)src->width )
 			{
 LOCAL_DEBUG_OUT( "copiing %d lines", clip_height );
 				copy_asimage_lines( dst, start_y, src, (dst_y < 0 )? -dst_y: 0, clip_height, SCL_DO_ALL );
@@ -1706,10 +1714,10 @@ LOCAL_DEBUG_OUT( "copiing %d lines", clip_height );
 		result.back_color = color ;
 		result.flags = 0 ;
 LOCAL_DEBUG_OUT( "filling %d lines with %8.8lX at the end", to_height-(start_y+clip_height), color );
-		for( y = start_y+clip_height ; y < to_height ; y++  )
+		for( y = start_y+clip_height ; y < (int)to_height ; y++  )
 			imout->output_image_scanline( imout, &result, 1);
 
-		if( to_width != clip_width || clip_width != src->width )
+		if( (int)to_width != clip_width || clip_width != (int)src->width )
 		{
 			stop_image_decoding( &imdec );
 			free_scanline( &result, True );
@@ -1741,11 +1749,11 @@ Bool fill_asimage( ASVisual *asv, ASImage *im,
 	if( y < 0 )
 	{	height -= y ; y = 0 ; }
 
-	if( width <= 0 || height <= 0 || x >= im->width || y >= im->height )
+	if( width <= 0 || height <= 0 || x >= (int)im->width || y >= (int)im->height )
 		return False;
-	if( x+width > im->width )
+	if( x+width > (int)im->width )
 		width = im->width-x ;
-	if( y+height > im->height )
+	if( y+height > (int)im->height )
 		height = im->height-y ;
 
 	if((imout = start_image_output( asv, im, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT)) == NULL )
@@ -1754,7 +1762,7 @@ Bool fill_asimage( ASVisual *asv, ASImage *im,
 	{
 		int i ;
 		imout->next_line = y ;
-		if( x == 0 && width == im->width )
+		if( x == 0 && width == (int)im->width )
 		{
 			ASScanline result ;
 			result.flags = 0 ;
@@ -1842,9 +1850,9 @@ colorize_asimage_vector( ASVisual *asv, ASImage *im,
 		}else
 			multipliers[y] = NULL ;
 	}
-	for( y = 0 ; y < im->height ; ++y )
+	for( y = 0 ; y < (int)im->height ; ++y )
 	{
-		for( x = 0 ; x < im->width ;)
+		for( x = 0 ; x < (int)im->width ;)
 		{
 			register int i = IC_NUM_CHANNELS ;
 			double d ;
@@ -1875,7 +1883,7 @@ colorize_asimage_vector( ASVisual *asv, ASImage *im,
 				}
 /*			fputc( ' ', stderr ); */
 #if 1
-			while( ++x < im->width )
+			while( ++x < (int)im->width )
 				if( vector[x] == vector[x-1] )
 				{
 					buf.red[x] = buf.red[x-1] ;
@@ -1946,7 +1954,7 @@ gauss_component(CARD32 *src, CARD32 *dst, double* gauss, int len)
 		v += src[x] * gauss[0];
 		for (j = x + r ; j >= len ; j--) v += src[len - 1] * gauss[j - x];
 		for ( ; j > x ; j--) v += src[j] * gauss[j - x];
-		dst[x] = v;
+		dst[x] = (CARD32)v;
 	}
 }
 
@@ -1990,18 +1998,18 @@ ASImage* blur_asimage_gauss(ASVisual* asv, ASImage* src, double horz, double ver
 		return NULL;
 	}
 
-	gauss = NEW_ARRAY(double, MAX(horz, vert));
+	gauss = safecalloc(MAX((int)horz, (int)vert), sizeof(double));
 
 	/* First the horizontal pass. */
 	if (horz >= 1.0) {
 		/* My version. -Ethan */
-		radius = horz;
+		radius = (int)horz;
 		calc_gauss(horz, gauss);
 	}
 
 	prepare_scanline(dst->width, 0, &result, asv->BGR_mode);
 
-    for (y = 0 ; y < dst->height ; y++)
+    for (y = 0 ; y < (int)dst->height ; y++)
     {
         ASFlagType lf = imdec->buffer.flags&filter ;
 		imdec->decode_image_scanline(imdec);
@@ -2141,8 +2149,8 @@ LOCAL_DEBUG_OUT("adjusting actually...%s", "");
 #endif
 
 					if( affected_radius >= 180 ||
-						(h >= from_hue1 && h <= to_hue1 ) ||
-						(h >= from_hue2 && h <= to_hue2 ) )
+						(h >= (int)from_hue1 && h <= (int)to_hue1 ) ||
+						(h >= (int)from_hue2 && h <= (int)to_hue2 ) )
 
 					{
 						s = rgb2saturation( r[x], g[x], b[x] ) + saturation_offset;

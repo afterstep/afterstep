@@ -1407,7 +1407,7 @@ check_asimage_alpha (ASVisual *asv, ASImage *im )
 	for (i = 0; i < im->height; i++)
 	{
 		int count = asimage_decode_line (im, IC_ALPHA, buf.alpha, i, 0, buf.width);
-		if( count < buf.width )
+		if( count < (int)buf.width )
 		{
 			if( ARGB32_ALPHA8(im->back_color) == 0 )
 			{
@@ -1533,7 +1533,7 @@ void print_asimage( ASImage *im, int flags, char * func, int line )
 {
 	if( im )
 	{
-		register int k ;
+		register unsigned int k ;
 		int total_mem = 0 ;
 		fprintf( stderr, "%s:%d> printing ASImage %p.\n", func, line, im);
 		for( k = 0 ; k < im->height ; k++ )
@@ -1684,7 +1684,7 @@ LOCAL_DEBUG_CALLER_OUT( "im->width = %d, color = %d, y = %d, skip = %d, out_widt
 			skip = skip%im->width ;
 			max_i = MIN(out_width,im->width-skip);
 			src = buffer+skip ;
-			while( i < out_width )
+			while( i < (int)out_width )
 			{
 				while( i < max_i )
 				{
@@ -1709,7 +1709,7 @@ LOCAL_DEBUG_CALLER_OUT( "im->width = %d, color = %d, y = %d, skip = %d, out_widt
             }
 #endif
 #if 1
-	  		while( i < out_width )
+	  		while( i < (int)out_width )
 			{   /* tiling code : */
 				register CARD32 *src = to_buf-i ;
 				int max_i = MIN(out_width,im->width+i);
@@ -1781,7 +1781,7 @@ asimage_threshold_line( CARD8 *src, unsigned int width, unsigned int *runs, unsi
 	if ( src == NULL )
 		return 0;
 	runs[0] = runs[1] = 0 ;
-	while (src[i] != RLE_EOL && curr_x < width )
+	while (src[i] != RLE_EOL && curr_x < (int)width )
 	{
 		if ((src[i] & RLE_DIRECT_B) != 0)
 		{
@@ -1954,7 +1954,7 @@ copy_asimage_lines( ASImage *dst, unsigned int offset_dst,
 				register CARD8 **dst_rows = &(dst->channels[chan][offset_dst]) ;
 				register CARD8 **src_rows = &(src->channels[chan][offset_src]) ;
 LOCAL_DEBUG_OUT( "copying %d lines of channel %d...", nlines, chan );
-				while( ++i < nlines )
+				while( ++i < (int)nlines )
 				{
 					if( dst_rows[i] )
 						free( dst_rows[i] );
@@ -1974,7 +1974,7 @@ LOCAL_DEBUG_OUT( "copying %d lines of channel %d...", nlines, chan );
 Bool
 asimage_compare_line (ASImage *im, ColorPart color, CARD32 *to_buf, CARD32 *tmp, unsigned int y, Bool verbose)
 {
-	register int i;
+	register unsigned int i;
 	asimage_decode_line( im, color, tmp, y, 0, im->width );
 	for( i = 0 ; i < im->width ; i++ )
 		if( tmp[i] != to_buf[i] )
@@ -2369,12 +2369,12 @@ draw_solid_bevel_line( register ASScanline *scl, int alt_left, int hi_end, int l
 					scl->channels[channel][alt_left-1] =
 						        ARGB32_CHAN8(hi_corner,channel)<<scl->shift ;
 			}
-			if( lo_start < scl->width )
+			if( lo_start < (int)scl->width )
 			{
 				set_component( scl->channels[channel],
 						        ARGB32_CHAN8(shade_color,channel)<<scl->shift,
 						        lo_start, scl->width );
-				if( alt_right < scl->width && alt_right > 0 )
+				if( alt_right < (int)scl->width && alt_right > 0 )
 					scl->channels[channel][scl->width - alt_right] =
 					            ARGB32_CHAN8(lo_corner,channel)<<scl->shift ;
 			}
@@ -2476,7 +2476,7 @@ draw_transp_bevel_line ( ASImageDecoder *imdec,
 				else
 				{
 					i = start_point-1 ;
-					if( i < scl->width )
+					if( i < (int)scl->width )
 						chan_img_start[i] = (chan_img_start[i]*rev_ca + ARGB32_CHAN8(left_color,channel)*(ca>>8))>>8 ;
 				}
 				if( end_point >= (int)scl->width )
@@ -2502,7 +2502,7 @@ decode_image_scanline_beveled( ASImageDecoder *imdec )
 	int offset_shade = 0;
 
 	scl->flags = 0 ;
-	if( y_out < 0 || y_out > imdec->out_height+imdec->bevel_v_addon )
+	if( y_out < 0 || y_out > (int)imdec->out_height+imdec->bevel_v_addon )
 	{
 		scl->back_color = imdec->back_color ;
 		return ;
@@ -2523,9 +2523,9 @@ decode_image_scanline_beveled( ASImageDecoder *imdec )
 /*		fprintf( stderr, __FUNCTION__ " %d: y_out = %d, alt_left = %d, offset_shade = %d, alt_right = %d, scl->width = %d, out_width = %d\n",
 					 	__LINE__, y_out, alt_left, offset_shade, alt_right, scl->width, imdec->out_width );
   */
-			if( scl->width < imdec->bevel_right )
+			if( (int)scl->width < imdec->bevel_right )
 				alt_right -= imdec->bevel_right-(int)scl->width ;
-			if( offset_shade > scl->width )
+			if( offset_shade > (int)scl->width )
 				offset_shade = scl->width ;
 			draw_solid_bevel_line( scl, alt_left, offset_shade, offset_shade, alt_right,
 							   	bevel->hi_color, bevel->lo_color, bevel->hihi_color, bevel->hilo_color );
@@ -2541,7 +2541,7 @@ decode_image_scanline_beveled( ASImageDecoder *imdec )
 			alt_left += MAX(imdec->bevel_left-(int)bevel->left_outline,0) ;
 			offset_shade = MIN(alt_left, (int)scl->width );
 
-			if( scl->width < imdec->bevel_right )
+			if( (int)scl->width < imdec->bevel_right )
 				alt_right -= imdec->bevel_right-(int)scl->width ;
 
 /*	fprintf( stderr, __FUNCTION__ " %d: y_out = %d, alt_left = %d, offset_shade = %d, alt_right = %d, scl->width = %d, out_width = %d\n",
@@ -2560,14 +2560,14 @@ decode_image_scanline_beveled( ASImageDecoder *imdec )
 		if( imdec->im )
 			y %= imdec->im->height ;
 
-		if( left_margin < scl->width )
+		if( left_margin < (int)scl->width )
 			imdec->decode_asscanline( imdec, left_margin, y );
 
 		draw_solid_bevel_line( scl, -1, left_margin, right_margin, scl->width,
 							   bevel->hi_color, bevel->lo_color,
 							   bevel->hilo_color, bevel->lolo_color );
 
-		if( left_margin < scl->width )
+		if( left_margin < (int)scl->width )
 		{
 			if( get_flags( bevel->type, BEVEL_SOLID_INLINE ) )
 			{
@@ -2720,9 +2720,9 @@ void
 encode_image_scanline_asim( ASImageOutput *imout, ASScanline *to_store )
 {
 LOCAL_DEBUG_CALLER_OUT( "imout->next_line = %d, imout->im->height = %d", imout->next_line, imout->im->height );
-	if( imout->next_line < imout->im->height && imout->next_line >= 0 )
+	if( imout->next_line < (int)imout->im->height && imout->next_line >= 0 )
 	{
-		CARD32 chan_fill[4];
+		CARD8 chan_fill[4];
 		chan_fill[IC_RED]   = ARGB32_RED8  (to_store->back_color);
 		chan_fill[IC_GREEN] = ARGB32_GREEN8(to_store->back_color);
 		chan_fill[IC_BLUE]  = ARGB32_BLUE8 (to_store->back_color);
@@ -2741,7 +2741,7 @@ LOCAL_DEBUG_CALLER_OUT( "imout->next_line = %d, imout->im->height = %d", imout->
 				if( get_flags(to_store->flags,0x01<<color))
 					bytes_count = asimage_add_line(imout->im, color, to_store->channels[color]+to_store->offset_x, line);
 				else if( chan_fill[color] != imout->chan_fill[color] )
-					bytes_count = asimage_add_line_mono( imout->im, color, chan_fill[color], line);
+					bytes_count = asimage_add_line_mono( imout->im, color, (CARD8)chan_fill[color], line);
 				else
 				{
 					asimage_erase_line( imout->im, color, line );
@@ -2798,7 +2798,7 @@ void
 encode_image_scanline_argb32( ASImageOutput *imout, ASScanline *to_store )
 {
 	register ARGB32 *data = imout->im->alt.argb32 ;
-	if( imout->next_line < imout->im->height && imout->next_line >= 0 )
+	if( imout->next_line < (int)imout->im->height && imout->next_line >= 0 )
 	{
 		register int x = imout->im->width;
 		register CARD32 *alpha = to_store->alpha ;
@@ -2838,7 +2838,7 @@ output_image_line_top( ASImageOutput *imout, ASScanline *new_line, int ratio )
 	if( new_line )
 	{
 		if( ratio > 1 )
-            SCANLINE_FUNC_FILTERED(divide_component,*(new_line),*(imout->available),ratio,imout->available->width);
+            SCANLINE_FUNC_FILTERED(divide_component,*(new_line),*(imout->available),(CARD8)ratio,imout->available->width);
 		else
             SCANLINE_FUNC_FILTERED(copy_component,*(new_line),*(imout->available),NULL,imout->available->width);
 		imout->available->flags = new_line->flags ;
@@ -2876,7 +2876,7 @@ output_image_line_fine( ASImageOutput *imout, ASScanline *new_line, int ratio )
 	/* caching and preprocessing line into our buffer : */
     if( new_line )
 	{
-        SCANLINE_FUNC_FILTERED(fine_output_filter, *(new_line),*(imout->available),ratio,imout->available->width);
+        SCANLINE_FUNC_FILTERED(fine_output_filter, *(new_line),*(imout->available),(CARD8)ratio,imout->available->width);
 		imout->available->flags = new_line->flags ;
 		imout->available->back_color = new_line->back_color ;
 /*      SCANLINE_MOD(print_component,*(imout->available),0, new_line->width ); */
@@ -2891,7 +2891,7 @@ output_image_line_fast( ASImageOutput *imout, ASScanline *new_line, int ratio )
 	/* caching and preprocessing line into our buffer : */
 	if( new_line )
 	{
-        SCANLINE_FUNC_FILTERED(fast_output_filter,*(new_line),*(imout->available),ratio,imout->available->width);
+        SCANLINE_FUNC_FILTERED(fast_output_filter,*(new_line),*(imout->available),(CARD8)ratio,imout->available->width);
 		imout->available->flags = new_line->flags ;
 		imout->available->back_color = new_line->back_color ;
 		imout->encode_image_scanline( imout, imout->available );
@@ -2906,7 +2906,7 @@ output_image_line_direct( ASImageOutput *imout, ASScanline *new_line, int ratio 
 	{
         if( ratio > 1)
 		{
-            SCANLINE_FUNC_FILTERED(divide_component,*(new_line),*(imout->available),ratio,imout->available->width);
+            SCANLINE_FUNC_FILTERED(divide_component,*(new_line),*(imout->available),(CARD8)ratio,imout->available->width);
 			imout->available->flags = new_line->flags ;
 			imout->available->back_color = new_line->back_color ;
 			imout->encode_image_scanline( imout, imout->available );
@@ -3051,7 +3051,7 @@ get_asimage_channel_rects( ASImage *src, int channel, unsigned int threshold, un
 #ifdef DEBUG_RECTS
 						fprintf( stderr, "*%d: new run %d : start = %d, end = %d\n", __LINE__, k, runs[k], runs[k+1] );
 #endif
-						if( runs[k] > end )
+						if( (int)runs[k] > end )
 						{	/* add entire run to rectangles list */
 							if( rects_count >= rects_allocated )
 							{
@@ -3068,9 +3068,9 @@ get_asimage_channel_rects( ASImage *src, int channel, unsigned int threshold, un
 							++rects_count ;
 							++matching_runs;
 							break;
-						}else if( runs[k+1] >= start  )
+						}else if( (int)runs[k+1] >= start  )
 						{
-							if( start < runs[k] )
+							if( start < (int)runs[k] )
 							{	/* add rectangle start, , runs[k]-start, height[l] */
 								if( rects_count >= rects_allocated )
 								{
@@ -3086,7 +3086,7 @@ get_asimage_channel_rects( ASImage *src, int channel, unsigned int threshold, un
 #endif
 								++rects_count ;
 								start = runs[k] ;
-							}else if( start > runs[k] )
+							}else if( start > (int)runs[k] )
 							{
 								tmp_runs[tmp_count] = runs[k] ;
 								tmp_runs[tmp_count+1] = start-1 ;
@@ -3098,12 +3098,12 @@ get_asimage_channel_rects( ASImage *src, int channel, unsigned int threshold, un
 								runs[k] = start ;
 							}
 							/* at that point both runs start at the same point */
-							if( end < runs[k+1] )
+							if( end < (int)runs[k+1] )
 							{
 								runs[k] = end+1 ;
 							}else 
 							{   
-								if( end > runs[k+1] )
+								if( end > (int)runs[k+1] )
 								{	
 									/* add rectangle runs[k+1]+1, , end - runs[k+1], height[l] */
 									if( rects_count >= rects_allocated )

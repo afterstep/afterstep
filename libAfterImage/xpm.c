@@ -21,7 +21,13 @@
 #undef LOCAL_DEBUG
 #undef DO_CLOCKING
 
+#ifdef _WIN32
+#include "win32/config.h"
+#include <io.h>
+#define read _read
+#else
 #include "config.h"
+#endif
 
 #include <stdlib.h>
 #include <ctype.h>
@@ -38,7 +44,9 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <fcntl.h>
+#ifndef _WIN32
 #include <unistd.h>
+#endif
 
 #ifdef HAVE_LIBXPM      /* XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM */
 #ifdef HAVE_LIBXPM_X11
@@ -48,7 +56,11 @@
 #endif
 #endif
 
-#include "afterbase.h"
+#ifdef _WIN32
+# include "win32/afterbase.h"
+#else
+# include "afterbase.h"
+#endif
 #include "asimage.h"
 #include "ascmap.h"
 #include "xpm.h"
@@ -416,7 +428,7 @@ read_next_xpm_string( ASXpmFile *xpm_file )
 			c = '\0';
 		}
 
-		if( i >= xpm_file->str_buf_size )
+		if( i >= (int)xpm_file->str_buf_size )
 		{
 			xpm_file->str_buf = realloc( xpm_file->str_buf, xpm_file->str_buf_size+16+(xpm_file->str_buf_size>>2));
 			xpm_file->str_buf_size += 16+(xpm_file->str_buf_size>>2) ;
@@ -892,7 +904,7 @@ build_xpm_charmap( ASColormap *cmap, Bool has_alpha, ASXpmCharmap *reusable_memo
 	for( rem = xpm_cmap->count ; rem > 0 ; rem = rem/MAXPRINTABLE )
 		++(xpm_cmap->cpp) ;
 	ptr = xpm_cmap->char_code = safemalloc(xpm_cmap->count*(xpm_cmap->cpp+1)) ;
-	for( i = 0 ; i < xpm_cmap->count ; i++ )
+	for( i = 0 ; i < (int)xpm_cmap->count ; i++ )
 	{
 		register int k = xpm_cmap->cpp ;
 		rem = i ;

@@ -32,11 +32,7 @@ typedef enum {
 
 extern const unsigned short *as_current_charset ;
 
-#ifdef WIN32
-#define UNICODE_CHAR	CARD16
-#else
 #define UNICODE_CHAR	CARD32
-#endif
 
 /*
 #define CHAR2UNICODE(c) \

@@ -18,7 +18,11 @@
 #undef LOCAL_DEBUG
 /*#define DO_CLOCKING*/
 
+#ifdef _WIN32
+#include "win32/config.h"
+#else
 #include "config.h"
+#endif
 
 
 #define DO_X11_ANTIALIASING
@@ -29,7 +33,9 @@
 #define X11_3STEP_AA_HEIGHT_THRESHOLD 15
 
 
+#ifndef _WIN32
 #include <unistd.h>
+#endif
 #include <ctype.h>
 #include <string.h>
 #include <stdlib.h>
@@ -62,7 +68,11 @@
 
 #define INCLUDE_ASFONT_PRIVATE
 
-#include "afterbase.h"
+#ifdef _WIN32
+# include "win32/afterbase.h"
+#else
+# include "afterbase.h"
+#endif
 #include "asfont.h"
 #include "asimage.h"
 #include "asvisual.h"
@@ -448,7 +458,7 @@ compress_glyph_pixmap( unsigned char *src, unsigned char *buffer,
 		}else
 		 	count++ ;
 /*fprintf( stderr, "%2.2X ", src[k] ); */
-		if( ++k >= width )
+		if( ++k >= (int)width )
 		{
 /*			fputc( '\n', stderr ); */
 			--height ;
@@ -542,7 +552,7 @@ antialias_glyph( unsigned char *buffer, unsigned int width, unsigned int height 
 	row1 = &(buffer[0]);
 	row = &(buffer[width]);
 	row2 = &(buffer[width+width]);
-	for( x = 1 ; x < width-1 ; x++ )
+	for( x = 1 ; x < (int)width-1 ; x++ )
 		if( row1[x] == 0 )
 		{/* antialiasing here : */
 			unsigned int c = (unsigned int)row[x]+
@@ -551,7 +561,7 @@ antialias_glyph( unsigned char *buffer, unsigned int width, unsigned int height 
 			if( c >= 0x01FE )  /* we cut off secondary aliases */
 				row1[x] = c>>2;
 		}
-	for( y = 1 ; y < height-1 ; y++ )
+	for( y = 1 ; y < (int)height-1 ; y++ )
 	{
 		if( row[0] == 0 )
 		{/* antialiasing here : */
@@ -561,7 +571,7 @@ antialias_glyph( unsigned char *buffer, unsigned int width, unsigned int height 
 			if( c >= 0x01FE )  /* we cut off secondary aliases */
 				row[0] = c>>2;
 		}
-		for( x = 1 ; x < width-1 ; x++ )
+		for( x = 1 ; x < (int)width-1 ; x++ )
 		{
 			if( row[x] == 0 )
 			{/* antialiasing here : */
@@ -588,7 +598,7 @@ antialias_glyph( unsigned char *buffer, unsigned int width, unsigned int height 
 		row1 += width ;
 		row2 += width ;
 	}
-	for( x = 1 ; x < width-1 ; x++ )
+	for( x = 1 ; x < (int)width-1 ; x++ )
 		if( row[x] == 0 )
 		{/* antialiasing here : */
 			unsigned int c = (unsigned int)row1[x]+
@@ -603,9 +613,9 @@ antialias_glyph( unsigned char *buffer, unsigned int width, unsigned int height 
 		row1 = &(buffer[0]);
 		row = &(buffer[width]);
 		row2 = &(buffer[width+width]);
-		for( y = 1 ; y < height-1 ; y++ )
+		for( y = 1 ; y < (int)height-1 ; y++ )
 		{
-			for( x = 1 ; x < width-1 ; x++ )
+			for( x = 1 ; x < (int)width-1 ; x++ )
 			{
 				if( row[x] == 0 )
 				{/* antialiasing here : */
@@ -632,9 +642,9 @@ antialias_glyph( unsigned char *buffer, unsigned int width, unsigned int height 
 		row1 = &(buffer[0]);
 		row = &(buffer[width]);
 		row2 = &(buffer[width+width]);
-		for( y = 1 ; y < height-1 ; y++ )
+		for( y = 1 ; y < (int)height-1 ; y++ )
 		{
-			for( x = 1 ; x < width-1 ; x++ )
+			for( x = 1 ; x < (int)width-1 ; x++ )
 			{
 				if( row[x] == 0xFF )
 				{/* antialiasing here : */
@@ -648,9 +658,9 @@ antialias_glyph( unsigned char *buffer, unsigned int width, unsigned int height 
 			row2 += width ;
 		}
 		row = &(buffer[width]);
-		for( y = 1 ; y < height-1 ; y++ )
+		for( y = 1 ; y < (int)height-1 ; y++ )
 		{
-			for( x = 1 ; x < width-1 ; x++ )
+			for( x = 1 ; x < (int)width-1 ; x++ )
 				if( row[x] == 0xFE )
 					row[x] = 0xBF ;
 			row  += width ;
@@ -1288,9 +1298,9 @@ name( const type *text, ASFont *font, ASGlyphMap *map, int space_size, unsigned 
 	return line_count ; \
 }
 
-FILL_TEXT_GLYPH_MAP(fill_text_glyph_map_Char,char,get_character_glyph(text[i],font),/* */)
+FILL_TEXT_GLYPH_MAP(fill_text_glyph_map_Char,char,get_character_glyph(text[i],font),1)
 FILL_TEXT_GLYPH_MAP(fill_text_glyph_map_UTF8,char,get_utf8_glyph(&text[i],font),i+=(UTF8_CHAR_SIZE(text[i])-1))
-FILL_TEXT_GLYPH_MAP(fill_text_glyph_map_Unicode,UNICODE_CHAR,get_unicode_glyph(text[i],font),/* */)
+FILL_TEXT_GLYPH_MAP(fill_text_glyph_map_Unicode,UNICODE_CHAR,get_unicode_glyph(text[i],font),1)
 
 typedef enum {
   ASCT_UTF8 = 0,
@@ -1409,7 +1419,7 @@ get_text_size_localized( const char *src_text, ASFont *font, ASText3DType type, 
 	if( char_type == ASCT_Char )
 	{
 		char *text = (char*)&src_text[0] ;
-		GET_TEXT_SIZE_LOOP(get_character_glyph(text[i],font),/* */);
+		GET_TEXT_SIZE_LOOP(get_character_glyph(text[i],font),1);
 	}else if( char_type == ASCT_UTF8 )
 	{
 		char *text = (char*)&src_text[0] ;
@@ -1417,7 +1427,7 @@ get_text_size_localized( const char *src_text, ASFont *font, ASText3DType type, 
 	}else if( char_type == ASCT_Unicode )
 	{
 		UNICODE_CHAR *text = (UNICODE_CHAR*)&src_text[0] ;
-		GET_TEXT_SIZE_LOOP(get_unicode_glyph(text[i],font),/* */);
+		GET_TEXT_SIZE_LOOP(get_unicode_glyph(text[i],font),1);
 	}
 
     h = line_count * (font->max_height+offset_3d_y) - font->spacing_y;
@@ -1555,7 +1565,7 @@ LOCAL_DEBUG_OUT( "scanline buffer memory allocated %d", map.width*line_height*si
 #endif
 #endif
  				asimage_add_line (im, IC_ALPHA, line, pen_y+y);
-				for( x = 0; x < map.width; ++x )
+				for( x = 0; x < (int)map.width; ++x )
 					line[x] = 0;
 			}
 			pen_x = (font->pen_move_dir == RIGHT_TO_LEFT)? map.width : 0;
@@ -1709,7 +1719,7 @@ void print_asglyph( FILE* stream, ASFont* font, unsigned long c)
 	if( font )
 	{
 		int i, k ;
-		ASGlyph *asg = get_character_glyph( c, font );
+		ASGlyph *asg = get_unicode_glyph( c, font );
 		if( asg == NULL )
 			return;
 

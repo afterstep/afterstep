@@ -16,14 +16,22 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+#ifdef _WIN32
+#include "win32/config.h"
+#else
 #include "config.h"
+#endif
 
 #define LOCAL_DEBUG
 
 #include <string.h>
 #include <stdlib.h>
 
-#include "afterbase.h"
+#ifdef _WIN32
+# include "win32/afterbase.h"
+#else
+# include "afterbase.h"
+#endif
 #include "asvisual.h"
 
 #ifdef XSHMIMAGE
@@ -648,11 +656,11 @@ setup_truecolor_visual( ASVisual *asv )
 ARGB32 *
 make_reverse_colormap( unsigned long *cmap, size_t size, int depth, unsigned short mask, unsigned short shift )
 {
-	int max_pixel = 0x01<<depth ;
+	unsigned int max_pixel = 0x01<<depth ;
 	ARGB32 *rcmap = safecalloc( max_pixel, sizeof( ARGB32 ) );
 	register int i ;
 
-	for( i = 0 ; i < size ; i++ )
+	for( i = 0 ; i < (int)size ; i++ )
 		if( cmap[i] < max_pixel )
 			rcmap[cmap[i]] = MAKE_ARGB32( 0xFF, (i>>(shift<<1))& mask, (i>>(shift))&mask, i&mask);
 	return rcmap;
@@ -662,7 +670,7 @@ ASHashTable *
 make_reverse_colorhash( unsigned long *cmap, size_t size, int depth, unsigned short mask, unsigned short shift )
 {
 	ASHashTable *hash = create_ashash( 0, NULL, NULL, NULL );
-	register int i ;
+	register unsigned int i ;
 
 	if( hash )
 	{

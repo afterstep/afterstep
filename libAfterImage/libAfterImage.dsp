@@ -169,6 +169,10 @@ SOURCE=.\asfont.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\asim_afterbase.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\asimage.h
 # End Source File
 # Begin Source File

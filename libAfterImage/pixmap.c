@@ -23,7 +23,11 @@
  *    1999	Sasha Vasko <sasha at aftercode.net>
  *----------------------------------------------------------------------*/
 
+#ifdef _WIN32
+#include "win32/config.h"
+#else
 #include "config.h"
+#endif
 
 /*#define LOCAL_DEBUG */
 /* #define DO_CLOCKING */
@@ -43,7 +47,11 @@
 #include <stdarg.h>
 
 
-#include "afterbase.h"
+#ifdef _WIN32
+# include "win32/afterbase.h"
+#else
+# include "afterbase.h"
+#endif
 #include "asvisual.h"
 #include "blender.h"
 #include "asimage.h"
