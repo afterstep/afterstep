@@ -4,7 +4,10 @@
 
 @MAKEFILEDEFINES@
 
-all:            @LIBPROG@ $(INSTALLONBUILD)
+# We want to build both static and dynamic libs, as some service apps may need 
+# static library as they gets run at compile time (ASDocGen for example)
+# but we only install whats selected
+all:            $(LIB_STATIC) @LIBPROG@ $(INSTALLONBUILD)
 
 install.bin:
 

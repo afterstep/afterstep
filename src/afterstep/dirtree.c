@@ -102,12 +102,6 @@ dirtree_delete (dirtree_t * tree)
 	free (tree);
 }
 
-int
-no_dots_except_include (const char *d_name)
-{
-	return !(d_name[0] == '.' && mystrcasecmp (d_name, ".include"));
-}
-
 char         *
 make_absolute (const char *path1, const char *path2)
 {

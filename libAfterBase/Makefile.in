@@ -75,6 +75,10 @@ INSTALL_SCRIPT	= @INSTALL@ -m 755
 INCS_X		= @X_CFLAGS@
 INCLUDES	= $(INCS_X) $(INCS_PRIVATE)
 
+USER_LD_FLAGS	= @user_ldflags@
+LIBS_X		= @x_libs@
+
+
 LIBDIR		= $(DESTDIR)@libdir@
 INCLUDEDIR	= $(DESTDIR)@includedir@
 AFTER_INC_DIR	= $(DESTDIR)@includedir@/$(LIB_DIR_NAME)
@@ -83,7 +87,10 @@ AFTER_MAN_DIR	= $(DESTDIR)@mandir@/man3
 AFTER_SHAREDIR	= $(DESTDIR)@datadir@/$(LIB_DIR_NAME)
 AFTER_DOC_DIR	= $(AFTER_SHAREDIR)/doc
 
-all:            @LIBPROG@ $(INSTALLONBUILD)
+# We want to build both static and dynamic libs, as some service apps may need 
+# static library as they gets run at compile time (ASDocGen for example)
+# but we only install whats selected
+all:            $(LIB_STATIC) @LIBPROG@ $(INSTALLONBUILD)
 
 install.bin:
 
@@ -257,7 +264,7 @@ $(LIB_SHARED).$(LIBVERMAJOR): $(LIB_SHARED).$(LIBVER)
 
 $(LIB_SHARED).$(LIBVER): $(LIB_OBJS) $(LIB_INCS)
 	$(CC) -shared -Wl,-soname,$(LIB_SHARED).$(LIBVERMAJOR) -o $(LIB_SHARED).$(LIBVER) \
-	 $(LIB_OBJS)
+	 $(USER_LD_FLAGS) $(LIBS_X) $(LIB_OBJS)
 
 install:	install.lib
 

@@ -157,6 +157,7 @@ dnl# let's check for endiannes of our box
 AC_C_BIGENDIAN
 AC_C_INLINE
 
+dnl# Check for X :
 dnl# check for X, if top level configure script did not do that yet :
 if test "x$PATH_XTRA_CHECKED" != "xyes"; then
 	AC_PATH_XTRA
@@ -165,6 +166,20 @@ else
 	  AC_DEFINE(X_DISPLAY_MISSING,1,"No X Window System libraries available")
   fi
 fi
+
+user_ldflags=$LDFLAGS
+
+if test "x$have_x" = "xyes"; then
+  x_libs="$X_LIBS $X_EXTRA_LIBS $X_PRE_LIBS"
+  if test "x$user_ldflags" = "x"; then
+  	full_x_libs=$x_libs
+  else
+	full_x_libs="$user_ldflags $x_libs"
+  fi
+  AC_CHECK_LIB(X11, XOpenDisplay, [x_libs="-lX11 $x_libs"],,$full_x_libs)
+fi
+
+
 
 dnl# Check for headers
 AC_HEADER_DIRENT
@@ -229,6 +244,8 @@ AC_SUBST(version_major)
 AC_SUBST(lib_name)
 AC_SUBST(lib_file_name)
 AC_SUBST(with_locale)
+AC_SUBST(user_ldflags)
+AC_SUBST(x_libs)
 AC_SUBST(X_CFLAGS)
 AC_SUBST(LIBPROG)
 AC_SUBST(LIBINSTALL)

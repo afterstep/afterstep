@@ -7,7 +7,7 @@ dnl#Copyright (c) 1998 Juergen Sawinski <Juergen.Sawinski@urz.uni-heidelberg.de>
 dnl#Copyright (c) 1997 1998 Guylhem AZNAR <guylhem@oeil.qc.ca>
 
 dnl#AC_INIT(afterstep/autoexec.in)
-AC_INIT(AfterStep,2.00.00,as-bugs@afterstep.org,AfterStep.tar)
+AC_INIT(AfterStep,2.00.00.cvs,as-bugs@afterstep.org,AfterStep.tar)
 AC_CONFIG_AUX_DIR(autoconf)
 AC_CONFIG_HEADER(config.h:autoconf/config.h.in)
 
@@ -388,6 +388,13 @@ else
    LIBINSTALL="install.dyn"
 fi
 
+AFTERBASE_STATIC_LIB="../../libAfterBase/libAfterBase.a"
+AFTERIMAGE_STATIC_LIB="../../libAfterImage/libAfterImage.a"
+AFTERSTEP_STATIC_LIB="../../libAfterStep/libAfterStep.a"
+AFTERCONF_STATIC_LIB="../../libAfterConf/libAfterConf.a"
+WIDGETS_STATIC_LIB="../Script/Widgets/libWidgets.a"
+
+
 AC_MSG_CHECKING(libAfterImage external libraries)
 AFTERIMAGE_LIBS=`libAfterImage/afterimage-libs --external-only`
 AC_MSG_RESULT($AFTERIMAGE_LIBS)
@@ -562,6 +569,11 @@ AC_SUBST(AFTERIMAGE_LIBS)
 AC_SUBST(AFTERSTEP_LIB)
 AC_SUBST(AFTERCONF_LIB)
 AC_SUBST(WIDGETS_LIB)
+AC_SUBST(AFTERBASE_STATIC_LIB)
+AC_SUBST(AFTERIMAGE_STATIC_LIB)
+AC_SUBST(AFTERSTEP_STATIC_LIB)
+AC_SUBST(AFTERCONF_STATIC_LIB)
+AC_SUBST(WIDGETS_STATIC_LIB)
 AC_SUBST(LIBPROG)
 AC_SUBST(LIBINSTALL)
 AC_SUBST(sgmltools)

@@ -116,7 +116,10 @@ AFTER_APP_MAN_DIR	= $(DESTDIR)@mandir@/man1
 AFTER_SHAREDIR	= $(DESTDIR)@datadir@/$(LIB_DIR_NAME)
 AFTER_DOC_DIR	= $(AFTER_SHAREDIR)/doc
 
-all:            @LIBPROG@ $(INSTALLONBUILD) apps
+# We want to build both static and dynamic libs, as some service apps may need 
+# static library as they gets run at compile time (ASDocGen for example)
+# but we only install whats selected
+all:            $(LIB_STATIC) @LIBPROG@ $(INSTALLONBUILD) apps
 
 install.bin:
 
