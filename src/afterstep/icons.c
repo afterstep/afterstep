@@ -92,7 +92,7 @@ get_iconbox( int desktop )
 				if( Scr.icon_boxes == NULL )
 					Scr.icon_boxes = create_ashash( 3, NULL, NULL, NULL );
 
-				if( add_hash_item( Scr.icon_boxes, AS_HASHABLE(desktop), &ib ) != ASH_Success )
+				if( add_hash_item( Scr.icon_boxes, AS_HASHABLE(desktop), ib ) != ASH_Success )
 					destroy_asiconbox( &ib );
 			}
 		}
