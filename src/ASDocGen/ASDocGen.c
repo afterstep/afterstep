@@ -146,7 +146,7 @@ char CurrentDateShort[DATE_SIZE] = "Jun 23,2004";
 void check_syntax_source( const char *source_dir, SyntaxDef *syntax, Bool module );
 void gen_syntax_doc( const char *source_dir, const char *dest_dir, SyntaxDef *syntax, ASDocType doc_type );
 void gen_glossary( const char *dest_dir, const char *file, ASDocType doc_type );
-void gen_index( const char *dest_dir, const char *file, ASDocType doc_type );
+void gen_index( const char *dest_dir, const char *file, ASDocType doc_type, Bool user_docs );
 
 void write_doc_header( ASXMLInterpreterState *state );
 void write_options_header( ASXMLInterpreterState *state );
@@ -297,7 +297,7 @@ main (int argc, char **argv)
 			if( DocGenerationPass == 0 ) 
 			{	
 				gen_glossary( destination_dir, "Glossary", target_type );
-				gen_index( destination_dir, "index", target_type );
+				gen_index( destination_dir, "index", target_type, True );
 			}
 			flush_ashash( ProcessedSyntaxes );
 		}
@@ -323,7 +323,7 @@ main (int argc, char **argv)
 			if( DocGenerationPass == 0 ) 
 			{	
 				gen_glossary( api_dest_dir, "Glossary", target_type );
-				gen_index( api_dest_dir, "index", target_type );
+				gen_index( api_dest_dir, "index", target_type, False );
 			}
 			flush_ashash( Glossary );
 			flush_ashash( Index );
@@ -686,7 +686,7 @@ void
 gen_glossary( const char *dest_dir, const char *file, ASDocType doc_type )
 {
 	ASXMLInterpreterState state;
-	LOCAL_DEBUG_OUT( "Glossary has %d items", Glossary->items_num);
+	LOCAL_DEBUG_OUT( "Glossary has %ld items", Glossary->items_num);
 	if( (doc_type == DocType_HTML	|| doc_type == DocType_PHP ) && Glossary->items_num > 0 )
 	{	
 		ASHashableValue *values;
@@ -761,7 +761,7 @@ gen_glossary( const char *dest_dir, const char *file, ASDocType doc_type )
 }
 
 void 
-gen_index( const char *dest_dir, const char *file, ASDocType doc_type )
+gen_index( const char *dest_dir, const char *file, ASDocType doc_type, Bool user_docs )
 {
 	ASXMLInterpreterState state;
 	if( (doc_type == DocType_HTML	|| doc_type == DocType_PHP ) && Index->items_num > 0 )
@@ -778,6 +778,18 @@ gen_index( const char *dest_dir, const char *file, ASDocType doc_type )
 		values = safecalloc( Index->items_num, sizeof(ASHashableValue));
 		data = safecalloc( Index->items_num, sizeof(ASHashData));
 		items_num = sort_hash_items (Index, values, (void**)data, 0);
+		
+		if( user_docs )
+		{	
+			if( doc_type == DocType_PHP )
+			{	
+				fprintf( state.dest_fp, PHPXrefFormat, "visualdoc","Developer's docs index","API/index", "" );
+			}else if( doc_type == DocType_HTML )
+			{
+ 				fprintf( state.dest_fp,  "<A href=\"API/index.html\">Developer's docs index</A>\n" );			
+			}	 
+		}
+		
 		fprintf( state.dest_fp, "<hr>\n<p><UL class=\"dense\">\n" );
 		for( i = 0 ; i < items_num ; ++i ) 
 		{
@@ -826,9 +838,6 @@ gen_index( const char *dest_dir, const char *file, ASDocType doc_type )
 		fprintf( state.dest_fp, "</UL>\n" );
 		free( data );
 		free( values );
-		if( doc_type == DocType_PHP )
-			fprintf( state.dest_fp, "<? $vs_fname = 'visualselect.php';\n"
-									"   if(file_exists($vs_fname)) include $vs_fname; ?>\n" );
 		end_doc_file( &state );	 	  
 	}
 }

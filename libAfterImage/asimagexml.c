@@ -66,8 +66,6 @@
  * ascompose is a tool to compose image(s) and display/save it based on
  * supplied XML input file.
  *
- * SYNOPSIS
- *
  * DESCRIPTION
  * ascompose reads supplied XML data, and manipulates image accordingly.
  * It could transform images from files of any supported file format,
@@ -89,6 +87,51 @@
  * for a desktop. If -o option is specified, this image will also be
  * saved into the file or requested type.
  *
+ * TAGS
+ * 
+ * Here is the list and description of possible XML tags to use in the
+ * script :
+ * 	img       - load image from the file.
+ * 	recall    - recall previously loaded/generated image by its name.
+ * 	text      - render text string into new image.
+ * 	save      - save an image into the file.
+ * 	bevel     - draw solid bevel frame around the image.
+ * 	gradient  - render multipoint gradient.
+ * 	mirror    - create mirror copy of an image.
+ * 	blur      - perform gaussian blur on an image.
+ * 	rotate    - rotate/flip image in 90 degree increments.
+ * 	scale     - scale an image to arbitrary size.
+ * 	crop      - crop an image to arbitrary size.
+ * 	tile      - tile an image to arbitrary size.
+ * 	hsv       - adjust Hue, Saturation and Value of an image.
+ * 	pad       - pad image with solid color from either or all sides.
+ * 	solid     - generate new image of requested size, filled with solid
+ *              color.
+ * 	composite - superimpose arbitrary number of images using one of 15
+ *              available methods.
+ *
+ * Each tag generates new image as the result of the transformation -
+ * existing images are never modified and could be reused as many times
+ * as needed. See below for description of each tag.
+ *
+ * Whenever numerical values are involved, the basic math ops (add,
+ * subtract, multiply, divide), unary minus, and parentheses are
+ * supported.
+ *
+ * Operator precedence is NOT supported.  Percentages are allowed, and
+ * apply to either width or height of the appropriate image (usually
+ * the refid image).
+ *
+ * Also, variables of the form $image.width and $image.height are
+ * supported.  $image.width is the width of the image with refid "image",
+ * and $image.height is the height of the same image.  The special
+ * $xroot.width and $xroot.height values are defined by the the X root
+ * window, if there is one.  This allows images to be scaled to the
+ * desktop size: <scale width="$xroot.width" height="$xroot.height">.
+ *
+ * Each tag is only allowed to return ONE image.
+ *
+* 
  *****/
 
 char *interpret_ctrl_codes( char *text );
@@ -371,51 +414,6 @@ void show_asimage(ASVisual *asv, ASImage* im, Window w, long delay)
 #endif /* X_DISPLAY_MISSING */
 }
 
-/****** libAfterImage/asimagexml/tags
- * TAGS
- * Here is the list and description of possible XML tags to use in the
- * script :
- * 	img       - load image from the file.
- * 	recall    - recall previously loaded/generated image by its name.
- * 	text      - render text string into new image.
- * 	save      - save an image into the file.
- * 	bevel     - draw solid bevel frame around the image.
- * 	gradient  - render multipoint gradient.
- * 	mirror    - create mirror copy of an image.
- * 	blur      - perform gaussian blur on an image.
- * 	rotate    - rotate/flip image in 90 degree increments.
- * 	scale     - scale an image to arbitrary size.
- * 	crop      - crop an image to arbitrary size.
- * 	tile      - tile an image to arbitrary size.
- * 	hsv       - adjust Hue, Saturation and Value of an image.
- * 	pad       - pad image with solid color from either or all sides.
- * 	solid     - generate new image of requested size, filled with solid
- *              color.
- * 	composite - superimpose arbitrary number of images using one of 15
- *              available methods.
- *
- * Each tag generates new image as the result of the transformation -
- * existing images are never modified and could be reused as many times
- * as needed. See below for description of each tag.
- *
- * Whenever numerical values are involved, the basic math ops (add,
- * subtract, multiply, divide), unary minus, and parentheses are
- * supported.
- *
- * Operator precedence is NOT supported.  Percentages are allowed, and
- * apply to either width or height of the appropriate image (usually
- * the refid image).
- *
- * Also, variables of the form $image.width and $image.height are
- * supported.  $image.width is the width of the image with refid "image",
- * and $image.height is the height of the same image.  The special
- * $xroot.width and $xroot.height values are defined by the the X root
- * window, if there is one.  This allows images to be scaled to the
- * desktop size: <scale width="$xroot.width" height="$xroot.height">.
- *
- * Each tag is only allowed to return ONE image.
- *
- ******/
 /* Math expression parsing algorithm. */
 double parse_math(const char* str, char** endptr, double size) {
 	double total = 0;
@@ -467,7 +465,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 	char* id = NULL;
 	ASImage* result = NULL;
 
-/****** libAfterImage/asimagexml/tags/img
+/****** libAfterImage/asimagexml/img
  * NAME
  * img - load image from the file.
  * SYNOPSIS
@@ -507,7 +505,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
 
-/****** libAfterImage/asimagexml/tags/recall
+/****** libAfterImage/asimagexml/recall
  * NAME
  * recall - recall previously generated and named image by its id.
  * SYNOPSIS
@@ -532,7 +530,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 		}
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
-/****** libAfterImage/asimagexml/tags/release
+/****** libAfterImage/asimagexml/release
  * NAME
  * release - release(destroy if possible) previously generated and named image by its id.
  * SYNOPSIS
@@ -554,7 +552,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 		}
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
-/****** libAfterImage/asimagexml/tags/color
+/****** libAfterImage/asimagexml/color
  * NAME
  * color - defines symbolic name for a color and set of variables.
  * SYNOPSIS
@@ -565,9 +563,10 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
  * domain string to be used to prepend names of defined variables.
  * NOTES
  * In addition to defining symbolic name for the color this tag will define
- * 7 other variables : domain.sym_name.red, domain.sym_name.green, domain.sym_name.blue,
- *                     domain.sym_name.alpha, domain.sym_name.hue, domain.sym_name.saturation,
- *                     domain.sym_name.value
+ * 7 other variables : 	domain.sym_name.red, domain.sym_name.green, 
+ * 					   	domain.sym_name.blue, domain.sym_name.alpha, 
+ * 					  	domain.sym_name.hue, domain.sym_name.saturation,
+ *                     	domain.sym_name.value
  ******/
 	if (!strcmp(doc->tag, "color")) {
 		xml_elem_t* parm = xml_parse_parm(doc->parm, NULL);
@@ -627,7 +626,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
 
-/****** libAfterImage/asimagexml/tags/text
+/****** libAfterImage/asimagexml/text
  * NAME
  * text - render text string into new image, using specific font, size
  *        and texture.
@@ -646,7 +645,8 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
  * bgimage  Optional.  No default.  The area behind the text will be filled
  *          with this image.
  * spacing  Optional.  Default 0.  Extra pixels to place between each glyph.
- * type     Optional.  Default 0.  Valid values are from 0 to 7 and each represeend different 3d type.
+ * type     Optional.  Default 0.  Valid values are from 0 to 7 and each 
+ * 			represeend different 3d type.
  * NOTES
  * <text> without bgcolor, fgcolor, fgimage, or bgimage will NOT
  * produce visible output by itself.  See EXAMPLES below.
@@ -737,7 +737,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
 
-/****** libAfterImage/asimagexml/tags/save
+/****** libAfterImage/asimagexml/save
  * NAME
  * save - write generated/loaded image into the file of one of the
  *        supported types
@@ -811,7 +811,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 		else xml_elem_delete(NULL, parm);
 	}
 
-/****** libAfterImage/asimagexml/tags/bevel
+/****** libAfterImage/asimagexml/bevel
  * NAME
  * bevel - draws solid bevel frame around the image.
  * SYNOPSIS
@@ -892,7 +892,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
 
-/****** libAfterImage/asimagexml/tags/gradient
+/****** libAfterImage/asimagexml/gradient
  * NAME
  * gradient - render multipoint gradient.
  * SYNOPSIS
@@ -1048,7 +1048,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
 
-/****** libAfterImage/asimagexml/tags/mirror
+/****** libAfterImage/asimagexml/mirror
  * NAME
  * mirror - create new image as mirror copy of an old one.
  * SYNOPSIS
@@ -1084,7 +1084,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 		show_progress("Mirroring image [%sally].", dir ? "horizont" : "vertic");
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
-/****** libAfterImage/asimagexml/tags/background
+/****** libAfterImage/asimagexml/background
  * NAME
  * background - set image's background color.
  * SYNOPSIS
@@ -1116,7 +1116,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 		show_progress( "Setting back_color for image %p to 0x%8.8X", result, argb );
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
-/****** libAfterImage/asimagexml/tags/blur
+/****** libAfterImage/asimagexml/blur
  * NAME
  * blur - perform a gaussian blurr on an image.
  * SYNOPSIS
@@ -1173,7 +1173,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
 
-/****** libAfterImage/asimagexml/tags/rotate
+/****** libAfterImage/asimagexml/rotate
  * NAME
  * rotate - rotate an image in 90 degree increments (flip).
  * SYNOPSIS
@@ -1228,7 +1228,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
 
-/****** libAfterImage/asimagexml/tags/scale
+/****** libAfterImage/asimagexml/scale
  * NAME
  * scale - scale image to arbitrary size
  * SYNOPSIS
@@ -1301,7 +1301,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
 
-/****** libAfterImage/asimagexml/tags/crop
+/****** libAfterImage/asimagexml/crop
  * NAME
  * crop - crop image to arbitrary area within it.
  * SYNOPSIS
@@ -1372,7 +1372,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 		}
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
-/****** libAfterImage/asimagexml/tags/tile
+/****** libAfterImage/asimagexml/tile
  * NAME
  * tile - tile an image to specified area.
  * SYNOPSIS
@@ -1471,7 +1471,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 		}
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
-/****** libAfterImage/asimagexml/tags/hsv
+/****** libAfterImage/asimagexml/hsv
  * NAME
  * hsv - adjust Hue, Saturation and/or Value of an image and optionally
  * tile an image to arbitrary area.
@@ -1601,7 +1601,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
 
-/****** libAfterImage/asimagexml/tags/pad
+/****** libAfterImage/asimagexml/pad
  * NAME
  * pad - pad an image with solid color rectangles.
  * SYNOPSIS
@@ -1671,11 +1671,12 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
 
-/****** libAfterImage/asimagexml/tags/solid
+/****** libAfterImage/asimagexml/solid
  * NAME
  * solid - generate image of specified size and fill it with solid color.
  * SYNOPSIS
- * <solid id="new_id" color="color" opacity="opacity" width="pixels" height="pixels"/>
+ * <solid id="new_id" color="color" opacity="opacity" 
+ * 	width="pixels" height="pixels"/>
  * ATTRIBUTES
  * id       Optional. Image will be given this name for future reference.
  * color    Optional.  Default is "#ffffffff".  An image will be created
@@ -1731,7 +1732,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
 
-/****** libAfterImage/asimagexml/tags/composite
+/****** libAfterImage/asimagexml/composite
  * NAME
  * composite - superimpose arbitrary number of images on top of each
  * other.
