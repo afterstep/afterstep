@@ -43,6 +43,7 @@
 
 #include "Save.h"
 
+ScreenInfo Scr;
 char *MyName;
 int fd_width;
 int fd[2];

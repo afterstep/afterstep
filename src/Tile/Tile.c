@@ -43,6 +43,8 @@
 #include "../../include/afterstep.h"
 #include "../../include/module.h"
 
+ScreenInfo Scr;
+
 typedef struct window_item
   {
     Window frame;

@@ -23,17 +23,23 @@
 
 #include "../../configure.h"
 
+#include <stdlib.h>
+
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <X11/cursorfont.h>
 #include <X11/Xmu/WinUtil.h>
 
+#define IN_MODULE
+#define MODULE_X_INTERFACE
+#include "../../include/afterbase.h"
 #include "../../include/aftersteplib.h"
+#include "../../include/module.h"
 #include "Scroll.h"
 
 int fd[2];
 
-int ScreenWidth, ScreenHeight;
+ScreenInfo Scr;
 
 char *BackColor = "black";
 char *ForeColor = "grey";
@@ -77,6 +83,7 @@ main (int argc, char **argv)
   /* Save our program name - for error messages */
   temp = strrchr (argv[0], '/');
   MyName = temp ? temp + 1 : argv[0];
+  set_application_name( argv[0] );
 
   for (i = 1; i < argc && *argv[i] == '-'; i++)
     {
@@ -94,28 +101,11 @@ main (int argc, char **argv)
 
   /* Dead pipe == dead AfterStep */
   signal (SIGPIPE, DeadPipe);
+  set_signal_handler (SIGSEGV);
 
-  if ((dpy = XOpenDisplay ("")) == NULL)
-    {
-      fprintf (stderr, "%s: couldn't open display %s\n",
-	       MyName, XDisplayName (""));
-      exit (1);
-    }
-  screen = DefaultScreen (dpy);
-
+  x_fd = ConnectX( &Scr, display_name, 0 );
   /* connect to AfterStep */
-  temp = module_get_socket_property (RootWindow (dpy, screen));
-  fd[0] = fd[1] = module_connect (temp);
-  XFree (temp);
-  if (fd[0] < 0)
-    {
-      fprintf (stderr, "%s: unable to establish connection to AfterStep\n", MyName);
-      exit (1);
-    }
-  temp = safemalloc (9 + strlen (MyName) + 1);
-  sprintf (temp, "SET_NAME %s", MyName);
-  SendInfo (fd, temp, None);
-  free (temp);
+  fd[0] = fd[1] = ConnectAfterStep (0);
 
   if (i < argc)
     {
@@ -128,13 +118,6 @@ main (int argc, char **argv)
       if (Reduction_V < 2)
 	Reduction_V = 2;
     }
-
-  x_fd = XConnectionNumber (dpy);
-  Root = RootWindow (dpy, screen);
-  d_depth = DefaultDepth (dpy, screen);
-
-  ScreenHeight = DisplayHeight (dpy, screen);
-  ScreenWidth = DisplayWidth (dpy, screen);
 
   /* scan config file for set-up parameters */
   /* Colors and fonts */
@@ -210,7 +193,7 @@ DeadPipe (int nonsense)
 {
   extern Atom wm_del_win;
 
-  XReparentWindow (dpy, app_win, Root, 0, 0);
+  XReparentWindow (dpy, app_win, Scr.Root, 0, 0);
   send_clientmessage (app_win, wm_del_win, CurrentTime);
   XSync (dpy, 0);
   exit (0);
@@ -233,7 +216,7 @@ GetTargetWindow (Window * app_win)
   trials = 0;
   while ((trials < 100) && (val != GrabSuccess))
     {
-      val = XGrabPointer (dpy, Root, True,
+      val = XGrabPointer (dpy, Scr.Root, True,
 			  ButtonReleaseMask,
 			  GrabModeAsync, GrabModeAsync, Root,
 			  XCreateFontCursor (dpy, XC_crosshair),

@@ -1,6 +1,8 @@
 #ifndef MODULE_H
 #define MODULE_H
 
+#include "screen.h"
+
 struct queue_buff_struct
   {
     struct queue_buff_struct *next;

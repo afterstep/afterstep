@@ -7,6 +7,9 @@
 #ifndef _SCREEN_
 #define _SCREEN_
 
+#include "afterstep.h"
+#include "style.h"
+
 #define SIZE_HINDENT 5
 #define SIZE_VINDENT 3
 #define MAX_WINDOW_WIDTH 32767
@@ -102,6 +105,7 @@ fr_sz;
 struct MenuRoot;
 struct MouseButton;
 struct FuncKey;
+struct MyStyle;
 
 typedef struct ScreenInfo
   {
@@ -158,15 +162,15 @@ typedef struct ScreenInfo
     MyFont IconFont;		/* for icon labels */
 
 /* update mystyle_fix_styles() and InitLook() if you add a style */
-    MyStyle *first_style;	/* head of style list */
-    MyStyle *MSDefault;		/* default style */
-    MyStyle *MSFWindow;		/* focussed window style */
-    MyStyle *MSUWindow;		/* unfocussed window style */
-    MyStyle *MSSWindow;		/* sticky window style */
-    MyStyle *MSMenuTitle;	/* menu title style */
-    MyStyle *MSMenuItem;	/* menu item style */
-    MyStyle *MSMenuHilite;	/* menu item hilite style */
-    MyStyle *MSMenuStipple;	/* menu stippled item style */
+    struct MyStyle *first_style;	/* head of style list */
+    struct MyStyle *MSDefault;		/* default style */
+    struct MyStyle *MSFWindow;		/* focussed window style */
+    struct MyStyle *MSUWindow;		/* unfocussed window style */
+    struct MyStyle *MSSWindow;		/* sticky window style */
+    struct MyStyle *MSMenuTitle;	/* menu title style */
+    struct MyStyle *MSMenuItem;	/* menu item style */
+    struct MyStyle *MSMenuHilite;	/* menu item hilite style */
+    struct MyStyle *MSMenuStipple;	/* menu stippled item style */
 
     GC NormalGC;		/* normal GC for menus, pager, resize window */
     GC StippleGC;		/* normal GC for menus, pager, resize window */

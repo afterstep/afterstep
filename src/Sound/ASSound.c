@@ -45,6 +45,8 @@
 #include "../../include/module.h"
 #define AUDIO_DEVICE		"/dev/audio"
 
+ScreenInfo Scr;
+
 typedef struct LList
   {
     struct LList *next;

@@ -2,6 +2,9 @@
  * afterstep include file
  ***********************************************************************/
 
+#ifndef AFTERSTEP_H_HEADER_INCLUDED
+#define AFTERSTEP_H_HEADER_INCLUDED
+
 #ifndef WithdrawnState
 #define WithdrawnState 0
 #endif
@@ -296,7 +299,6 @@ extern TextureInfo Textures;
 extern void Reborder (void);
 extern void SigDone (int);
 extern void SaveWindowsOpened (void);
-extern void Restart (int nonsense);
 extern void Done (int, char *);
 
 extern XClassHint NoClass;
@@ -326,3 +328,5 @@ extern Atom _XA_FVWM_CLIENT;
 extern Atom _XROOTPMAP_ID;
 extern Atom _AS_STYLE;
 extern Atom _AS_MODULE_SOCKET;
+
+#endif /* #ifndef AFTERSTEP_H_HEADER_INCLUDED */

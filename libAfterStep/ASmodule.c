@@ -39,6 +39,9 @@
 
 #include "../configure.h"
 #include "../include/aftersteplib.h"
+#include "../include/afterstep.h"
+#include "../include/style.h"
+#include "../include/screen.h"
 #include "../include/module.h"
 
 char *display_name = NULL ;
@@ -252,7 +255,7 @@ LoadConfig (char *global_config_file, char *config_file_name, void (*read_option
       free (realconfigfile);
     }
   strcpy( configfile, AFTER_DIR );
-  sprintf (configfile+strlen(AFTER_DIR), "/" THEME_FILE, 0, DefaultDepth(dpy,screen));
+  sprintf (configfile+strlen(AFTER_DIR), "/" THEME_FILE, 0, DefaultDepth(dpy,Scr.screen));
   realconfigfile = (char *) PutHome (configfile);
   if ((CheckFile (realconfigfile)) != -1)
   {

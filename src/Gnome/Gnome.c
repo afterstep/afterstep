@@ -25,7 +25,7 @@
  */
 
 #undef DEBUG
-static char *cvsident = "$Id: Gnome.c,v 1.2 2002/01/18 23:10:50 geoff Exp $";
+static char *cvsident = "$Id: Gnome.c,v 1.3 2002/04/24 06:47:40 sashav Exp $";
 
 #include <X11/Intrinsic.h>
 #include <X11/Xlib.h>
@@ -41,9 +41,9 @@ static char *cvsident = "$Id: Gnome.c,v 1.2 2002/01/18 23:10:50 geoff Exp $";
 #include <unistd.h>
 #include <errno.h>
 #include "../../configure.h"
-#include "../../include/module.h"
 #include "../../include/aftersteplib.h"
 #include "../../include/afterstep.h"
+#include "../../include/module.h"
 
 #include "Gnome.h"
 
@@ -61,6 +61,8 @@ static Bool PAGES = False;	/* virtual paging or no */
 static int area_x = 0;		/* area coordinates for virtual paging */
 static int area_y = 0;		/*                ""                   */
 
+
+ScreenInfo Scr;
 
 /* inserts a window id into the list
  * args: list, id

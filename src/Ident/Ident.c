@@ -39,19 +39,22 @@
 #include <unistd.h>
 #include <ctype.h>
 #include <stdlib.h>
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#include <X11/Xproto.h>
-#include <X11/Xatom.h>
+
 #include <X11/Intrinsic.h>
 #include <X11/cursorfont.h>
 #ifdef I18N
 #include <X11/Xlocale.h>
 #endif
 
+#define IN_MODULE
+#define MODULE_X_INTERFACE
+#include "../../include/afterbase.h"
+#include "../../libAfterImage/afterimage.h"
 #include "../../include/aftersteplib.h"
-#include "../../include/module.h"
 #include "../../include/afterstep.h"
+#include "../../include/style.h"
+#include "../../include/screen.h"
+#include "../../include/module.h"
 #include "Ident.h"
 
 char *MyName;
@@ -59,11 +62,7 @@ int fd_width;
 int fd[2];
 
 Display *dpy;			/* which display are we talking to */
-Window Root;
-int screen;
 int x_fd;
-int d_depth;
-int ScreenWidth, ScreenHeight;
 
 char *BackColor = "white";
 char *ForeColor = "black";
@@ -85,6 +84,7 @@ static Atom wm_del_win;
 struct target_struct target;
 int found = 0;
 
+ScreenInfo Scr;
 
 struct Item *itemlistRoot = NULL;
 int max_col1, max_col2;
@@ -103,19 +103,6 @@ usage (void)
   printf ("Usage:\n"
 	  "%s [-f [config file]] [-v|--version] [-h|--help] [--window window-id]\n", MyName);
   exit (0);
-}
-
-int
-error_handler (Display * disp, XErrorEvent * event)
-{
-  x_error = event->request_code;
-  if (x_error != 20)
-    {
-      fprintf (stderr, "%s: fatal error %d\n", MyName, event->request_code);
-      exit (-1);
-    }
-  fprintf (stderr, "all good");
-  return 0;
 }
 
 /***********************************************************************
@@ -158,36 +145,17 @@ main (int argc, char **argv)
 
   /* Dead pipe == dead AfterStep */
   signal (SIGPIPE, DeadPipe);
+  set_signal_handler(SIGSEGV);
 
-  if ((dpy = XOpenDisplay ("")) == NULL)
-    {
-      fprintf (stderr, "%s: couldn't open display %s\n",
-	       MyName, XDisplayName (""));
-      exit (1);
-    }
-  screen = DefaultScreen (dpy);
-
+  x_fd = ConnectX( &Scr, display_name, 0 );
   /* connect to AfterStep */
-  temp = module_get_socket_property (RootWindow (dpy, screen));
-  fd[0] = fd[1] = module_connect (temp);
-  XFree (temp);
-  if (fd[0] < 0)
-    {
-      fprintf (stderr, "%s: unable to establish connection to AfterStep\n", MyName);
-      exit (1);
-    }
-  temp = safemalloc (9 + strlen (MyName) + 1);
-  sprintf (temp, "SET_NAME %s", MyName);
-  SendInfo (fd, temp, None);
-  free (temp);
-
-  XSetErrorHandler (error_handler);
-  x_fd = XConnectionNumber (dpy);
-  Root = RootWindow (dpy, screen);
-  d_depth = DefaultDepth (dpy, screen);
-
-  ScreenHeight = DisplayHeight (dpy, screen);
-  ScreenWidth = DisplayWidth (dpy, screen);
+  fd[0] = fd[1] = ConnectAfterStep( M_CONFIGURE_WINDOW|
+								    M_WINDOW_NAME|
+								    M_ICON_NAME|
+									M_RES_CLASS|
+								    M_RES_NAME|
+									M_END_WINDOWLIST
+                                     ); 
 
   /* scan config file for set-up parameters */
   /* Colors and fonts */
@@ -432,7 +400,7 @@ gnome_hints (Window id)
     return False;
   if (app_win == None)
     return False;
-  if (XGetWindowProperty (dpy, Root, Sup_check, 0L, 1L, False, AnyPropertyType,
+  if (XGetWindowProperty (dpy, Scr.Root, Sup_check, 0L, 1L, False, AnyPropertyType,
 			  &type, &format, &length, &after, &data) == Success)
     {
       if (type == XA_CARDINAL && format == 32 && length == 1)
@@ -512,19 +480,19 @@ list_end (void)
   mysizehints.min_width = mysizehints.width;
   mysizehints.max_height = mysizehints.height;
   mysizehints.max_width = mysizehints.width;
-  XQueryPointer (dpy, Root, &JunkRoot, &JunkChild,
+  XQueryPointer (dpy, Scr.Root, &JunkRoot, &JunkChild,
 		 &x, &y, &JunkX, &JunkY, &JunkMask);
   mysizehints.win_gravity = NorthWestGravity;
 
-  if ((y + height + 100) > ScreenHeight)
+  if ((y + height + 100) > Scr.MyDisplayHeight)
     {
-      y = ScreenHeight - 2 - height - 10;
+      y = Scr.MyDisplayHeight - 2 - height - 10;
       mysizehints.win_gravity = SouthWestGravity;
     }
-  if ((x + lmax + 100) > ScreenWidth)
+  if ((x + lmax + 100) > Scr.MyDisplayWidth)
     {
-      x = ScreenWidth - 2 - lmax - 10;
-      if ((y + height + 100) > ScreenHeight)
+      x = Scr.MyDisplayWidth - 2 - lmax - 10;
+      if ((y + height + 100) > Scr.MyDisplayHeight)
 	mysizehints.win_gravity = SouthEastGravity;
       else
 	mysizehints.win_gravity = NorthEastGravity;
@@ -534,21 +502,25 @@ list_end (void)
 
 
 #define BW 1
-  if (d_depth < 2)
+  if (Scr.d_depth < 2)
     {
-      back_pix = GetColor ("white");
-      fore_pix = GetColor ("black");
+      back_pix = Scr.asv->black_pixel ;
+      fore_pix = Scr.asv->white_pixel ;	  
     }
   else
     {
-      back_pix = GetColor (BackColor);
-      fore_pix = GetColor (ForeColor);
-
+		ARGB32 color = ARGB32_Black;
+		parse_argb_color( BackColor, &color );
+		ARGB2PIXEL(Scr.asv, color, &back_pix );
+		color = ARGB32_White;
+		parse_argb_color( ForeColor, &color );
+		ARGB2PIXEL(Scr.asv, color, &fore_pix );
     }
 
-  main_win = XCreateSimpleWindow (dpy, Root, mysizehints.x, mysizehints.y,
+  main_win = create_visual_window(Scr.asv, Scr.Root, mysizehints.x, mysizehints.y,
 				  mysizehints.width, mysizehints.height,
-				  BW, fore_pix, back_pix);
+				  BW, InputOutput, 0, NULL);
+  XSetWindowBackground( dpy, main_win, back_pix );
   XSetTransientForHint (dpy, main_win, app_win);
   wm_del_win = XInternAtom (dpy, "WM_DELETE_WINDOW", False);
   XSetWMProtocols (dpy, main_win, &wm_del_win, 1);
@@ -561,7 +533,7 @@ list_end (void)
   gcv.foreground = fore_pix;
   gcv.background = back_pix;
   gcv.font = font.font->fid;
-  NormalGC = XCreateGC (dpy, Root, gcm, &gcv);
+  NormalGC = create_visual_gc(Scr.asv, Scr.Root, gcm, &gcv);
   XMapWindow (dpy, main_win);
 
   /* Window is created. Display it until the user clicks or deletes it. */
@@ -608,9 +580,9 @@ GetTargetWindow (Window * app_win)
   trials = 0;
   while ((trials < 100) && (val != GrabSuccess))
     {
-      val = XGrabPointer (dpy, Root, True,
+      val = XGrabPointer (dpy, Scr.Root, True,
 			  ButtonReleaseMask,
-			  GrabModeAsync, GrabModeAsync, Root,
+			  GrabModeAsync, GrabModeAsync, Scr.Root,
 			  XCreateFontCursor (dpy, XC_crosshair),
 			  CurrentTime);
       if (val != GrabSuccess)
@@ -791,13 +763,13 @@ MakeList (void)
   x1 = target.frame_x;
   if (x1 < 0)
     x1 = 0;
-  x2 = ScreenWidth - x1 - target.frame_w;
+  x2 = Scr.MyDisplayWidth - x1 - target.frame_w;
   if (x2 < 0)
     x2 = 0;
   y1 = target.frame_y;
   if (y1 < 0)
     y1 = 0;
-  y2 = ScreenHeight - y1 - target.frame_h;
+  y2 = Scr.MyDisplayHeight - y1 - target.frame_h;
   if (y2 < 0)
     y2 = 0;
   width = (width - target.base_w) / target.width_inc;

@@ -46,6 +46,9 @@
 #endif
 
 #include "../../include/aftersteplib.h"
+//#include "../../include/afterstep.h"
+#include "../../include/style.h"
+#include "../../include/screen.h"
 #include "../../include/module.h"
 
 void
@@ -185,6 +188,8 @@ int warp_pointer = 0;
 
 Display *dpy;
 int fd_x;			/* fd for X connection */
+
+ScreenInfo Scr;
 
 Window root, frame, ref;
 Colormap d_cmap;

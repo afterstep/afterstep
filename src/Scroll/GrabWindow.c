@@ -24,7 +24,13 @@
 #ifdef ISC
 #include <sys/bsdtypes.h>	/* Saul */
 #endif
+#include <stdlib.h>
 
+#define IN_MODULE
+#define MODULE_X_INTERFACE
+#include "../../include/afterbase.h"
+#include "../../include/aftersteplib.h"
+#include "../../include/module.h"
 #include "Scroll.h"
 
 int fd_width;
@@ -204,6 +210,11 @@ CreateWindow (int x, int y, int w, int h)
  *	Loop - wait for data to process
  *
  ***********************************************************************/
+#undef RIGHT
+#undef LEFT
+#undef BOTTOM
+#undef TOP
+
 #define RIGHT 7
 #define LEFT 6
 #define BOTTOM 5

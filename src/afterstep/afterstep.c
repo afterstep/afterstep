@@ -147,6 +147,7 @@ int LastFunction;
 Bool single = False;
 
 Bool set_synchronous_mode(Bool enable);
+extern void Restart (int nonsense);
 
 
 

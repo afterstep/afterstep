@@ -1,5 +1,3 @@
-#define STICKY 1
-#define ICONIFIED     32 /* is it an icon now? */
 struct list
 {
   unsigned long id;
