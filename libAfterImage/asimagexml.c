@@ -1211,7 +1211,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 			else if (!strcmp(ptr->tag, "height")) height_str = ptr->parm;
 			else if (!strcmp(ptr->tag, "affected_hue"))
 			{
-				if( isdigit( ptr->parm[0] ) )
+				if( isdigit( (int)ptr->parm[0] ) )
 					affected_hue = atoi(ptr->parm);
 				else
 				{
