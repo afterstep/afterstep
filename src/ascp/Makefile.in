@@ -20,6 +20,6 @@ asimbrowser:	$(OBJS_ASIMBROWSER) $(LIBS_DEPEND)
 		$(CC) $(OBJS_ASIMBROWSER) $(LIBS_ALL) -o $(@)
 
 
-install:	install.bin install.man
+install:	install.bin
 
-uninstall:	uninstall.bin uninstall.man
+uninstall:	uninstall.bin

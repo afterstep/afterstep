@@ -14,6 +14,8 @@
  **************/
 
 /****v* libAfterImage/tutorials/_XA_WM_DELETE_WINDOW
+ * NAME
+ * _XA_WM_DELETE_WINDOW
  * SYNOPSIS
  * _XA_WM_DELETE_WINDOW - stores value of X Atom "WM_DELETE_WINDOW".
  * DESCRIPTION
@@ -40,6 +42,8 @@ Atom _XA_WM_DELETE_WINDOW = None;
 /**************/
 
 /****f* libAfterImage/tutorials/create_top_level_window()
+ * NAME
+ * create_top_level_window()
  * SYNOPSIS
  * Window create_top_level_window( ASVisual *asv, Window root,
  *                                 int x, int y,
@@ -99,6 +103,8 @@ create_top_level_window( ASVisual *asv, Window root, int x, int y,
 }
 /**************/
 /****f* libAfterImage/tutorials/set_window_background_and_free()
+ * NAME
+ * set_window_background_and_free()
  * SYNOPSIS
  * Pixmap set_window_background_and_free( Window w, Pixmap p );
  * INPUTS
@@ -136,6 +142,8 @@ set_window_background_and_free( Window w, Pixmap p )
 /**************/
 
 /****f* libAfterImage/tutorials/wait_closedown()
+ * NAME
+ * wait_closedown()
  * SYNOPSIS
  * void wait_closedown( Window w );
  * INPUTS

@@ -14,7 +14,9 @@ subdirs		= libAfterBase libAfterImage libAfterStep libAfterConf \
 		  src/Wharf \
 		  src/WinList2 \
 		  src/WinTabs \
-		  src/ascp  
+		  src/ascp  \
+		  src/ASDocGen 
+
 #		  src/ascp/fltk \
 #		  src/ascp/gtk
 

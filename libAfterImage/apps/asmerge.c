@@ -5,6 +5,8 @@
 
 
 /****h* libAfterImage/tutorials/ASMerge
+ * NAME
+ * ASMerge
  * SYNOPSIS
  * Scaling and blending of arbitrary number of images
  * using libAfterImage.

@@ -12,22 +12,9 @@ install.bin:	$(PROG)
 		  $(INSTALL_PROGRAM) $$p $(AFTER_BIN_DIR); \
 		done
 
-install.man:
-		@for p in $(PROG); do \
-			if test -f $$p.man; then \
-		  		echo $(INSTALL_DATA) $$p.man $(AFTER_MAN_DIR)/$$p.1x; \
-		  		$(INSTALL_DATA) $$p.man $(AFTER_MAN_DIR)/$$p.1x; \
-			fi; \
-		done
-
 uninstall.bin:
 		@for p in $(PROG); do \
 			$(RMF) $(AFTER_BIN_DIR)/$$p; \
-		done
-
-uninstall.man:
-		@for p in $(PROG); do \
-			$(RMF) $(AFTER_BIN_DIR)/$$p.1x; \
 		done
 
 clean:

@@ -6,7 +6,7 @@
 
 /****h* libAfterImage/tutorials/ASGrad
  * NAME
- * Tutorial 5: Gradients.
+ * ASGrad
  * SYNOPSIS
  * libAfterImage application for drawing multipoint linear gradients.
  * DESCRIPTION

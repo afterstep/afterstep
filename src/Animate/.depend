@@ -5,4 +5,5 @@
 		../../libAfterStep/module.h \
 		../../libAfterStep/aswindata.h \
 		../../libAfterStep/event.h \
+		../../libAfterStep/wmprops.h \
 		../../libAfterConf/afterconf.h

@@ -93,6 +93,7 @@ extern ASHashTable *Glossary ;
 extern ASHashTable *Index ;
 extern ASHashTable *Links ;
 extern int DocGenerationPass ;
+extern int CurrentManType ;
 
 #endif /*ASDOCGEN_H_HEADER_INCLUDED*/
 

@@ -4,6 +4,8 @@
 
 
 /****h* libAfterImage/tutorials/ASScale
+ * NAME 
+ * ASScale
  * SYNOPSIS
  * Simple program based on libAfterImage to scale an image.
  * DESCRIPTION

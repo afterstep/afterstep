@@ -4,9 +4,9 @@
 #include <stdlib.h>
 
 
-/****h* libAfterImage/tutorials/ASGrad
+/****h* libAfterImage/tutorials/ASVector
  * NAME
- * Tutorial 5: Gradients.
+ * ASVector
  * SYNOPSIS
  * libAfterImage application for drawing multipoint linear gradients.
  * DESCRIPTION

@@ -16,7 +16,7 @@ struct ASScanline;
 
 /****h* libAfterImage/asimage.h
  * NAME
- * ASImage defines main structures and function for image manipulation.
+ * asimage.h defines main structures and function for image manipulation.
  * DESCRIPTION
  * libAfterImage provides powerful functionality to load, store
  * and transform images. It allows for smaller memory utilization by
@@ -77,25 +77,6 @@ struct ASScanline;
 #define ASIMAGE_PATH_ENVVAR		"IMAGE_PATH"
 #define ASFONT_PATH_ENVVAR		"FONT_PATH"
 
-/* this is value */
-#define RLE_EOL					0x00
-/* this are masks */
-#define RLE_DIRECT_B 			0x80
-#define RLE_DIRECT_TAIL			0xFF
-#define RLE_LONG_B 				0x40
-/* this one is inverted mask */
-#define RLE_SIMPLE_B_INV  		0xC0
-
-/* this are masks to filter out control bits: */
-#define RLE_DIRECT_D 			0x7F
-#define RLE_LONG_D 				0x3F
-#define RLE_SIMPLE_D  			0x3F
-
-#define RLE_MAX_DIRECT_LEN      (RLE_DIRECT_D-1)
-#define RLE_MAX_SIMPLE_LEN     	63
-#define RLE_MAX_LONG_LEN     	(64*256)
-#define RLE_THRESHOLD			1
-
 /****d* libAfterImage/ASAltImFormats
  * NAME 
  * ASAltImFormats identifies what output format should be used for storing the
@@ -122,26 +103,10 @@ typedef enum {
  * ASImage is the main structure to hold image data.
  * DESCRIPTION
  * Images are stored internally split into ARGB channels, each split
- * into scanline. Each scanline is stored the following format to allow
- * for RLE compression :
- * component := <line><line>...<line>
- * line      := <block><block>...<block><EOL>
- * block     := <EOL>|<simple_block>|<long_block>|<direct_block>
- *
- * EOL       := 00000000 (all zero bits)
- *
- * simple_block  := <ctrl_byte1><value_byte>
- * ctrl_byte1    := 00NNNNNN (first two bits are 0 remaining are length)
- *
- * long_block    := <ctrl_byte2><more_length_byte><value_byte>
- * ctrl_byte2    := 01NNNNNN (NNNNNN are high 6 bits of length)
- * more_length_byte := low 8 bits of length
- *
- * direct_block  := <ctrl_byte3><value_byte><value_byte>...<value_byte>
- * ctrl_byte3    := [1NNNNNNN|11111111] (first bit is 1, remaining are
- * 					length. If it is all 1's - then remaining part of
- * 					the line up until image width is monolithic
- * 					uncompressed direct block)
+ * into scanline. Actuall data is stored using ASStorage container. Inside
+ * ASImage data structure we only store IDs pointing to data in ASStorage
+ * ASStorage implements reference counting, data compression, 
+ * automatic memory defragmentation and other nice things.
  * SEE ALSO
  *  asimage_init()
  *  asimage_start()
@@ -314,20 +279,20 @@ typedef struct ASVectorPalette
 typedef struct ASImageLayer
 {
 	ASImage *im;
-	ARGB32   solid_color ;                  /* If im == NULL, then fill
-											 * the area with this color. */
+	ARGB32   solid_color ;              /* If im == NULL, then fill
+								  		 * the area with this color. */
 
-	int dst_x, dst_y;						/* placement in overall
-											 * composition */
+	int dst_x, dst_y;			  		/* placement in overall
+								  		 * composition */
 
 	/* clip area could be partially outside of the image -
 	 * image gets tiled in it */
 	int clip_x, clip_y;
 	unsigned int clip_width, clip_height;
 
-	ARGB32 tint ;                      		/* if 0 - no tint */
-	struct ASImageBevel *bevel ;					/* border to wrap layer with
-											 * (for buttons, etc.)*/
+	ARGB32 tint ;                  		/* if 0 - no tint */
+	struct ASImageBevel *bevel ;  		/* border to wrap layer with
+								  		 * (for buttons, etc.)*/
 
 	/* if image is clipped then we need to specify offsets of bevel as
 	 * related to clipped rectangle. Normally it should be :
@@ -361,7 +326,8 @@ typedef struct ASImageLayer
  */
 #define GRADIENT_TYPE_DIAG          (0x01<<0)
 #define GRADIENT_TYPE_ORIENTATION   (0x01<<1)
-#define GRADIENT_TYPE_MASK          (GRADIENT_TYPE_ORIENTATION|GRADIENT_TYPE_DIAG)
+#define GRADIENT_TYPE_MASK          (GRADIENT_TYPE_ORIENTATION| \
+									 GRADIENT_TYPE_DIAG)
 /********/
 
 /****d* libAfterImage/asimage/GRADIENT_TYPE
@@ -798,20 +764,9 @@ ASImageLayer *create_image_layers( int count );
  *********/
 void destroy_image_layers( register ASImageLayer *l, int count, Bool reusable );
 
-/****h* libAfterImage/asimage/Encoding
- * DESCRIPTION
- * asimage_add_line()       - encode raw scanline data
- * asimage_add_line_mono()  - encode scanline to have all the same pixels
- * get_asimage_chanmask()   - determine what channels contain data.
- * asimage_print_line()     - print stored scanline to stderr.
- * asimage_decode_line()    - decode single scanline of the ASImage
- * move_asimage_channel()   - move channel's data from one image to another.
- * copy_asimage_channel()   - duplicate channel's data from one image to
- *                            another.
- * copy_asimage_lines()     - duplicate range of scanline from one image
- *                            to another.
- ************/
 /****f* libAfterImage/asimage/asimage_add_line()
+ * NAME
+ * asimage_add_line()
  * SYNOPSIS
  * size_t asimage_add_line ( ASImage * im, ColorPart color,
  *                           CARD32 * data, unsigned int y);
@@ -830,6 +785,8 @@ void destroy_image_layers( register ASImageLayer *l, int count, Bool reusable );
  * the scanline will be RLE encoded.
  *********/
 /****f* libAfterImage/asimage/asimage_add_line_mono()
+ * NAME
+ * asimage_add_line_mono()
  * SYNOPSIS
  * size_t asimage_add_line_mono ( ASImage * im, ColorPart color,
  *                                CARD8 value, unsigned int y);
@@ -846,6 +803,8 @@ void destroy_image_layers( register ASImageLayer *l, int count, Bool reusable );
  * value in every pixel. Useful for vertical gradients for example.
  *********/
 /****f* libAfterImage/asimage/get_asimage_chanmask()
+ * NAME
+ * get_asimage_chanmask()
  * SYNOPSIS
  * ASFlagType get_asimage_chanmask( ASImage *im);
  * INPUTS
@@ -855,6 +814,8 @@ void destroy_image_layers( register ASImageLayer *l, int count, Bool reusable );
  * those components that have at least some data.
  *********/
 /****f* libAfterImage/asimage/move_asimage_channel()
+ * NAME
+ * move_asimage_channel()
  * SYNOPSIS
  * void move_asimage_channel( ASImage *dst, int channel_dst,
  *                            ASImage *src, int channel_src );
@@ -874,6 +835,8 @@ void destroy_image_layers( register ASImageLayer *l, int count, Bool reusable );
  * two will be used.
  *********/
 /****f* libAfterImage/asimage/copy_asimage_channel()
+ * NAME
+ * copy_asimage_channel()
  * SYNOPSIS
  * void copy_asimage_channel( ASImage *dst, int channel_dst,
  *                            ASImage *src, int channel_src );
@@ -887,6 +850,8 @@ void destroy_image_layers( register ASImageLayer *l, int count, Bool reusable );
  * instead of simply moving it from one image to another.
  *********/
 /****f* libAfterImage/asimage/copy_asimage_lines()
+ * NAME
+ * copy_asimage_lines()
  * SYNOPSIS
  * void copy_asimage_lines( ASImage *dst, unsigned int offset_dst,
  *                          ASImage *src, unsigned int offset_src,
@@ -931,6 +896,8 @@ void copy_asimage_lines( ASImage *dst, unsigned int offset_dst,
 							 VRB_LINE_CONTENT)
 /*********/
 /****f* libAfterImage/asimage/asimage_print_line()
+ * NAME
+ * asimage_print_line()
  * SYNOPSIS
  * 	unsigned int asimage_print_line ( ASImage * im, ColorPart color,
  *									  unsigned int y,

@@ -11,6 +11,6 @@ Banner:
 
 @MAKEFILECOMMON@
 
-install:	$(PROG) install.script install.man
+install:	$(PROG) install.script
 
-uninstall:	uninstall.script uninstall.man
+uninstall:	uninstall.script

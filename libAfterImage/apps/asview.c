@@ -3,6 +3,8 @@
 #include <string.h>
 
 /****h* libAfterImage/tutorials/ASView
+ * NAME
+ * ASView
  * SYNOPSIS
  * Simple image viewer based on libAfterImage.
  * DESCRIPTION

@@ -5,7 +5,7 @@
 
 /****h* libAfterImage/tutorials/ASText
  * NAME
- * Tutorial 7: Text rendering.
+ * ASText
  * SYNOPSIS
  * libAfterImage application for rendering texturized text.
  * DESCRIPTION

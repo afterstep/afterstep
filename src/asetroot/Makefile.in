@@ -8,6 +8,6 @@ LIBS_DEPEND     = $(LIB_AFTERBASE) $(LIB_AFTERIMAGE) $(LIB_AFTERSTEP) \
 
 @MAKEFILECOMMON@
 
-install:	install.bin install.man
+install:	install.bin
 
-uninstall:	uninstall.bin uninstall.man
+uninstall:	uninstall.bin

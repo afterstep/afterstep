@@ -113,7 +113,7 @@ write_doc_header( ASXMLInterpreterState *state )
 			break ;
 		case DocType_NROFF :
 			fprintf( state->dest_fp, ".\\\" t\n"
-									 ".\\\" @(#)%s.1		%s\n", state->doc_name, CurrentDateShort);
+									 ".\\\" @(#)%s.%d		%s\n", state->doc_name, CurrentManType, CurrentDateShort);
 			fprintf( state->dest_fp, ".TH %s 1 \"AfterStep v.%s\" \"%s\" \"AfterStep X11 window manager\"\n", state->doc_name, VERSION, CurrentDateLong );
 			fprintf( state->dest_fp, ".UC\n"
 									 ".SH NAME\n"

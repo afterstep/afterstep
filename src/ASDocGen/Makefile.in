@@ -12,7 +12,91 @@ LIBS_DEPEND     = $(LIB_AFTERBASE) $(LIB_AFTERIMAGE) $(LIB_AFTERSTEP) \
 $(PROG):        $(OBJS) $(LIBS_DEPEND)
 		$(CC) $(OBJS) $(LIBS_ALL) -o $(@)
 
-install:	install.bin install.man
+install.man:
+		@echo -n "Generating man pages ..." ; ./ASDocGen -l log.man -t nroff ; echo "Done"; \
+		cd man; echo "Installing application man pages ..." ; \
+		for f in *.man; do \
+			page_name=`echo $$f| awk -F . '{print $$1}'`; \
+	  		echo $(INSTALL_DATA) $$page_name.man $(AFTER_MAN_DIR)/$$page_name.1x; \
+	  		$(INSTALL_DATA) $$page_name.man $(AFTER_MAN_DIR)/$$page_name.1x; \
+		done; echo "Done"; \
+		cd API; echo "Installing API man pages ..." ; \
+		for f in *.man; do \
+			page_name=`echo $$f| awk -F . '{print $$1}'`; \
+	  		echo $(INSTALL_DATA) $$page_name.man $(AFTER_MAN_API_DIR)/$$page_name.3x; \
+	  		$(INSTALL_DATA) $$page_name.man $(AFTER_MAN_API_DIR)/$$page_name.3x; \
+		done; echo "Done"; \
+		cd ../..
+		
+install.doc_html:
+		@echo -n "Generating HTML docs ..." ; ./ASDocGen -l log.html -t html ; echo "Done"; \
+		if [ -d $(AFTER_DOC_DIR)/html ] ; then \
+	  		echo $(RMF) -r $(AFTER_DOC_DIR)/html; \
+			$(RMF) -r $(AFTER_DOC_DIR)/html; \
+		fi; \
+		$(MKDIR) -p $(AFTER_DOC_DIR)/html; \
+		cd html; echo "Installing application HTML pages ..." ; \
+		for f in *.html; do \
+	  		echo $(CP) $$f $(AFTER_DOC_DIR)/html/$$f; \
+	  		$(CP) $$f $(AFTER_DOC_DIR)/html/$$f; \
+		done; echo "Done"; \
+		$(MKDIR) -p $(AFTER_DOC_DIR)/html/API; \
+		cd API; echo "Installing API HTML docs ..." ; \
+		for f in *.html; do \
+	  		echo $(CP) $$f $(AFTER_DOC_DIR)/html/API/$$f; \
+	  		$(CP) $$f $(AFTER_DOC_DIR)/html/API/$$f; \
+		done; echo "Done"; \
+		cd ../..
 
-uninstall:	uninstall.bin uninstall.man
+install.doc_xml:
+		@echo -n "Generating XML docs ..." ; ./ASDocGen -l log.xml -t xml ; echo "Done"; \
+		if [ -d $(AFTER_DOC_DIR)/xml ] ; then \
+	  		echo $(RMF) -r $(AFTER_DOC_DIR)/xml; \
+			$(RMF) -r $(AFTER_DOC_DIR)/xml; \
+		fi; \
+		$(MKDIR) -p $(AFTER_DOC_DIR)/xml; \
+		cd xml; echo "Installing application XML pages ..." ; \
+		for f in *.xml; do \
+	  		echo $(CP) $$f $(AFTER_DOC_DIR)/xml/$$f; \
+	  		$(CP) $$f $(AFTER_DOC_DIR)/xml/$$f; \
+		done; echo "Done"; \
+		$(MKDIR) -p $(AFTER_DOC_DIR)/xml/API; \
+		cd API; echo "Installing API XML docs ..." ; \
+		for f in *.xml; do \
+	  		echo $(CP) $$f $(AFTER_DOC_DIR)/xml/API/$$f; \
+	  		$(CP) $$f $(AFTER_DOC_DIR)/xml/API/$$f; \
+		done; echo "Done"; \
+		cd ../..
+
+install.doc_text:
+		@echo -n "Generating Plain Text docs ..." ; ./ASDocGen -l log.text -t plain ; echo "Done"; \
+		if [ -d $(AFTER_DOC_DIR)/text ] ; then \
+	  		echo $(RMF) -r $(AFTER_DOC_DIR)/text; \
+			$(RMF) -r $(AFTER_DOC_DIR)/text; \
+		fi; \
+		$(MKDIR) -p $(AFTER_DOC_DIR)/text; \
+		cd xml; echo "Installing application Plain Text pages ..." ; \
+		for f in *.xml; do \
+	  		echo $(CP) $$f $(AFTER_DOC_DIR)/text/$$f; \
+	  		$(CP) $$f $(AFTER_DOC_DIR)/text/$$f; \
+		done; echo "Done"; \
+		$(MKDIR) -p $(AFTER_DOC_DIR)/text/API; \
+		cd API; echo "Installing API Plain Text docs ..." ; \
+		for f in *.xml; do \
+	  		echo $(CP) $$f $(AFTER_DOC_DIR)/text/API/$$f; \
+	  		$(CP) $$f $(AFTER_DOC_DIR)/text/API/$$f; \
+		done; echo "Done"; \
+		cd ../..
+
+
+uninstall.man:
+		@for p in $(PROG); do \
+			$(RMF) $(AFTER_BIN_DIR)/$$p.1x; \
+		done
+
+
+
+install:	$(PROG) install.man install.doc_html
+
+uninstall:	uninstall.man
 

@@ -7,6 +7,7 @@
 		../../libAfterStep/screen.h \
 		../../libAfterStep/module.h \
 		../../libAfterStep/mystyle.h \
+		../../libAfterStep/mylook.h \
 		../../libAfterStep/clientprops.h \
 		../../libAfterStep/hints.h \
 		../../libAfterStep/balloon.h \

@@ -14,10 +14,10 @@ LIBS_DEPEND     = $(LIB_AFTERBASE) $(LIB_AFTERIMAGE) $(LIB_AFTERSTEP) \
 $(PROG):        $(OBJS) $(LIBS_DEPEND)
 		$(CC) $(OBJS) $(LIBS_ALL) -o $(@)
 
-install:	install.bin install.man
+install:	install.bin
 #        ln -s -f Pager $(DESTDIR)$(BINDIR)/WPager
 #        ln -s -f Pager $(DESTDIR)$(BINDIR)/XPager
 #        ln -s -f Pager $(DESTDIR)$(BINDIR)/YPager
 #        ln -s -f Pager $(DESTDIR)$(BINDIR)/ZPager
 
-uninstall:	uninstall.bin uninstall.man
+uninstall:	uninstall.bin

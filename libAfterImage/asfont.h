@@ -11,6 +11,8 @@ extern "C" {
 
 
 /****h* libAfterImage/asfont.h
+ * NAME
+ * asfont.h
  * DESCRIPTION
  * Text drawing functionality.
  * Text is drawn as an ASImage with only alpha channel. Since alpha
@@ -57,9 +59,9 @@ extern "C" {
  ******************/
 
 /****d* libAfterImage/MAX_GLYPHS_PER_FONT
- * FUNCTION
- * Max value of glyphs per font allowed. We need that so we can detect
- * and avoid broken fonts somehow.
+ * NAME
+ * MAX_GLYPHS_PER_FONT - Max value of glyphs per font allowed. 
+ * We need that so we can detect and avoid broken fonts somehow.
  * SOURCE
  */
 #define MAX_GLYPHS_PER_FONT  2048
@@ -69,8 +71,8 @@ extern "C" {
 #define MAGIC_ASFONT            0xA3A3F098
 
 /****d* libAfterImage/ASFontType
- * FUNCTION
- * Supported types of fonts - Xlib or FreeType 2
+ * NAME
+ * ASFontType - Supported types of fonts - Xlib or FreeType 2
  * ASF_GuessWho will enable autodetection of the font type.
  * It is attempted to be opened as FreeType font first, and if that
  * fails - it will be opened as Xlib font.
@@ -154,27 +156,28 @@ typedef struct ASFont
 	ASFontType  	type ;
 	ASFlagType  	flags ;
 
-	ASGlyphRange   *codemap;        /* linked list of glyphsets, each
-									 * representing continuos range of
-									 * available codes - used for ASCII codes */
+	ASGlyphRange   *codemap; /* linked list of glyphsets, each
+							  * representing continuos range of
+							  * available codes - used for ASCII 
+							  * codes */
 	ASHashTable    *locale_glyphs;  /* hash of locale specific glyphs */
 
 	ASGlyph         default_glyph;  /* valid glyph to be drawn when
 									 * code is not valid */
 
-	unsigned int 	max_height;     /* maximiu height of the character
-									 * glyph */
-	int	            max_ascend,     /* maximum distance from the baseline
-									 * to the top of the character glyph */
-					max_descend;    /* need both descend and ascend to be 
-									   able to dynamically recalculate font 
-									   height while adding new characters */									 
-	unsigned int	space_size;     /* fixed width value to be used when
-									 * rendering spaces and tabs */
+	unsigned int 	max_height;  /* maximiu height of the character
+								  * glyph */
+	int	            max_ascend,  /* maximum distance from the baseline
+								  * to the top of the character glyph */
+					max_descend; /* need both descend and ascend to be 
+								    able to dynamically recalculate font 
+								    height while adding new characters */									 
+	unsigned int	space_size;  /* fixed width value to be used when
+								  * rendering spaces and tabs */
 	int 			spacing_x, spacing_y;
 	/* If these are set to anything above 0 then all the glyphs has to be 
-	 * padded ( if its smaller then the cell ) or scaled down ( if its bigger
-	 * then the cell )
+	 * padded ( if its smaller then the cell ) or scaled down 
+	 * ( if its bigger then the cell )
 	 */								   
 	unsigned int    cell_width, cell_height ;
 
@@ -209,12 +212,12 @@ typedef struct ASFontManager
 	ASHashTable *fonts_hash ;
 
 	size_t 		 unicode_used;
-	CARD32		*local_unicode;                /* list of unicodes from current locale
-												* - we use it to limit number of glyphs
-												* we load */
+	CARD32		*local_unicode; /* list of unicodes from current locale
+							     * - we use it to limit number of glyphs
+							     * we load */
 	Bool 		ft_ok ;
 #ifdef HAVE_FREETYPE
-	FT_Library  ft_library;                    /* free type library handle */
+	FT_Library  ft_library;     /* free type library handle */
 #else
 	void       *pad ;
 #endif
@@ -222,8 +225,8 @@ typedef struct ASFontManager
 /*************/
 
 /****d* libAfterImage/ASText3DType
- * FUNCTION
- * Available types of 3D text to be drawn.
+ * NAME
+ * ASText3DType - Available types of 3D text to be drawn.
  * SOURCE
  */
 typedef enum ASText3DType{
@@ -249,24 +252,23 @@ typedef enum {
 
 /****s* libAfterImage/ASTextAttributes
  * NAME
- * ASGlyphRange
- * DESCRIPTION
- * Organizes glyphs that belongs to the continuos range of char codes.
- * ASGlyphRange structures could be tied together to cover entire
- * codeset supported by the font.
+ * ASTextAttributes - Attributes for text rendering
  * SOURCE
  */
 typedef struct ASTextAttributes
 {
 #define ASTA_UseTabStops	(0x01<<0)	
-	unsigned int version ;                     /* structure version, so we can implement future 
-												* extensions without breaking binary apps */             
+	unsigned int version ;     
+	                /* structure version, so we can implement future 
+	  				 * extensions without breaking binary apps */             
 	ASFlagType   rendition_flags ;
 	ASText3DType type;
 	ASCharType 	 char_type;
- 	unsigned int tab_size ; 	                          	/* tab size in chars  - defaults to 8 */
-	unsigned int origin ;									/* distance from the left margin (in pixels) */
-	unsigned int *tab_stops ;				   				/* tab stops in pixels where left margin is 0 */				
+ 	unsigned int tab_size ;   /* tab size in chars  - defaults to 8 */
+	unsigned int origin ;	  /* distance from the left margin 
+							   * (in pixels) */
+	unsigned int *tab_stops ; /* tab stops in pixels where 
+							   * left margin is 0 */				   
 	unsigned int tab_stops_num ;
 
 	ARGB32		fore_color ;   /* used with 3D type of Outlined */
@@ -278,6 +280,8 @@ typedef struct ASTextAttributes
 /*************/
 
 /****f* libAfterImage/asfont/create_font_manager()
+ * NAME
+ * create_font_manager()
  * SYNOPSIS
  * ASFontManager *create_font_manager( Display *dpy,
  *                                     const char *font_path,
@@ -318,6 +322,8 @@ struct ASFontManager *create_font_manager( Display *dpy, const char * font_path,
 void    destroy_font_manager( struct ASFontManager *fontman, Bool reusable );
 
 /****f* libAfterImage/asfont/open_freetype_font()
+ * NAME
+ * open_freetype_font()
  * SYNOPSIS
  * ASFont *open_freetype_font( ASFontManager *fontman,
  *                             const char *font_string,
@@ -350,6 +356,8 @@ void    destroy_font_manager( struct ASFontManager *fontman, Bool reusable );
  * When FreeType Library is not available that function does nothing.
  *********/
 /****f* libAfterImage/asfont/open_X11_font()
+ * NAME
+ * open_X11_font()
  * SYNOPSIS
  * ASFont *open_X11_font( ASFontManager *fontman,
  *                        const char *font_string);
@@ -370,6 +378,8 @@ void    destroy_font_manager( struct ASFontManager *fontman, Bool reusable );
  * implement proper XFontSet support, when used with I18N enabled.
  *********/
 /****f* libAfterImage/asfont/get_asfont()
+ * NAME
+ * get_asfont()
  * SYNOPSIS
  * ASFont *get_asfont( ASFontManager *fontman,
  *                     const char *font_string,
@@ -396,6 +406,8 @@ void    destroy_font_manager( struct ASFontManager *fontman, Bool reusable );
  * Xlib font, unless exact font type is specifyed.
  *********/
 /****f* libAfterImage/asfont/release_font()
+ * NAME
+ * release_font()
  * SYNOPSIS
  * void release_font( ASFont *font );
  * INPUTS
@@ -418,6 +430,8 @@ struct ASFont *dup_asfont( ASFont *font );
 int            release_font( struct ASFont *font );
 
 /****f* libAfterImage/asfont/print_asfont()
+ * NAME
+ * print_asfont()
  * SYNOPSIS
  * void    print_asfont( FILE* stream,
  *                       ASFont* font);
@@ -428,6 +442,8 @@ int            release_font( struct ASFont *font );
  * prints all the geometry information about font.
  *********/
 /****f* libAfterImage/asfont/print_asglyph()
+ * NAME
+ * print_asglyph()
  * SYNOPSIS
  * void 	print_asglyph( FILE* stream,
  *                         ASFont* font, unsigned long c);
@@ -442,13 +458,31 @@ void    print_asfont( FILE* stream, struct ASFont* font);
 void 	print_asglyph( FILE* stream, struct ASFont* font, unsigned long c);
 
 /****f* libAfterImage/asfont/draw_text()
+ * NAME
+ * draw_text()
+ * NAME
+ * draw_fancy_text()
+ * NAME
+ * get_text_size()
+ * NAME
+ * get_fancy_text_size();
  * SYNOPSIS
  * ASImage *draw_text( const char *text,
  *                     ASFont *font, ASText3DType type,
  *                     int compression );
+ * ASImage *draw_fancy_text( const void *text,
+ *  						 struct ASFont *font, ASTextAttributes *attr,
+ *							 int compression, 
+ *							 int length );
  * Bool get_text_size( const char *text,
  *                     ASFont *font, ASText3DType type,
  *                     unsigned int *width, unsigned int *height );
+ * Bool get_fancy_text_size( const void *text,
+ *	                		 struct ASFont *font, ASTextAttributes *attr,
+ *                   		 unsigned int *width, unsigned int *height,
+ *							 int length,
+ *							 int *x_positions );        
+ *
  * INPUTS
  * text 		- actuall text to render
  * font 		- pointer to ASFont to render text with
@@ -498,8 +532,11 @@ Bool get_fancy_text_size( const void *text,
 	                struct ASFont *font, ASTextAttributes *attr,
                     unsigned int *width, unsigned int *height,
 					int length,
-					int *x_positions );        /* array of length elements or NULL */
+					int *x_positions );        
+					/* array of length elements or NULL */
 /****f* libAfterImage/asfont/get_asfont_glyph_spacing()
+ * NAME
+ * get_asfont_glyph_spacing()
  * SYNOPSIS
  * Bool get_asfont_glyph_spacing( ASFont* font, int *x, int *y );
  * INPUTS
@@ -512,6 +549,8 @@ Bool get_fancy_text_size( const void *text,
  * Returns inter-glyph spacing of specified font.
  *********/
 /****f* libAfterImage/asfont/set_asfont_glyph_spacing()
+ * NAME
+ * set_asfont_glyph_spacing()
  * SYNOPSIS
  * Bool set_asfont_glyph_spacing( ASFont* font, int x, int y );
  * INPUTS

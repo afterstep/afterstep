@@ -5,7 +5,7 @@
 
 /****h* libAfterImage/tutorials/ASFlip
  * NAME
- * Tutorial 6: Image flipping.
+ * ASFlip
  * SYNOPSIS
  * libAfterImage application for image rotation.
  * DESCRIPTION

@@ -48,13 +48,6 @@ LIB_INCS= afterimage.h config.h afterbase.h ascmap.h asfont.h \
 
 LIB_OBJS=       @JPEG_OBJS@ @ZLIB_OBJS@ @PNG_OBJS@ @UNGIF_OBJS@ $(AFTERIMAGE_OBJS)
 
-LIB_DOCS= afterimage.h ascmap.h asfont.h asimage.h \
-		  asvisual.h blender.h char2uni.h export.h imencdec.h import.h \
-		  transform.h ximage.h
-
-LIB_TUTORIALS= common.c asview.c asscale.c astile.c asmerge.c \
-		  asgrad.c asflip.c astext.c
-
 APPS_SRCS=apps/common.c apps/ascompose.c apps/asview.c \
 		  apps/asscale.c apps/astile.c apps/asmerge.c \
 		  apps/asgrad.c apps/asflip.c apps/astext.c
@@ -315,77 +308,28 @@ $(LIB_SHARED).$(LIBVER): $(LIB_OBJS) $(LIB_INCS) config.h
 	$(CC) -shared -Wl,-soname,$(LIB_SHARED).$(LIBVERMAJOR) -o $(LIB_SHARED).$(LIBVER) \
 	 $(LIB_OBJS)
 
-doc.xref: $(LIB_DOCS)
-	SRCS=`echo "$(LIB_DOCS) " | sed "s/.h / /g"`; \
-	echo -n "" > afterimage_xref.lst ; \
-	for f in $$SRCS; do \
-		$(ROBODOC) $$f.h $$f.html HTML C TABSIZE 4 GENXREF doc/$$f.xref; \
-		echo "doc/$$f.xref" >> afterimage_xref.lst; \
-	done; \
-	$(ROBODOC) asimagexml.c $$f.html HTML C TABSIZE 4 GENXREF doc/asimagexml.xref; \
-	echo "doc/asimagexml.xref" >> afterimage_xref.lst; \
-	SRCS=`echo "$(LIB_TUTORIALS) " | sed "s/.c / /g"`; \
-	for f in $$SRCS; do \
-		$(ROBODOC) apps/$$f.c $$f.html HTML C TABSIZE 4 GENXREF doc/$$f.xref; \
-		echo "doc/$$f.xref" >> afterimage_xref.lst; \
-	done; \
-	echo "doc/x11_symbols.xref" >> afterimage_xref.lst; \
-	echo "doc/freetype_symbols.xref" >> afterimage_xref.lst;
-
-doc.html:  doc.xref
-	SRCS=`echo "$(LIB_DOCS) " | sed "s/.h / /g"`; \
-	for f in $$SRCS; do \
-		$(ROBODOC) $$f.h doc/html/$$f.html HTML C TABSIZE 4 XREF afterimage_xref.lst; \
-	done; \
-	$(ROBODOC) asimagexml.c doc/html/asimagexml.html HTML C TABSIZE 4 XREF afterimage_xref.lst; \
-	SRCS=`echo "$(LIB_TUTORIALS) ascompose.c " | sed "s/.c / /g"`; \
-	for f in $$SRCS; do \
-		$(ROBODOC) apps/$$f.c doc/html/$$f.html HTML C TABSIZE 4 XREF afterimage_xref.lst; \
-	done; \
-
-doc.man:  doc.xref
-	SRCS=`echo "$(LIB_DOCS) " | sed "s/.h / /g"`; \
-	for f in $$SRCS; do \
-		$(ROBODOC) $$f.h doc/$$f.man TROFF C TABSIZE 4 XREF afterimage_xref.lst; \
-	done; \
-	$(ROBODOC) asimagexml.c doc/asimagexml.man TROFF C TABSIZE 4 XREF afterimage_xref.lst; \
-	$(ROBODOC) apps/ascompose.c apps/ascompose.man TROFF C TABSIZE 4 XREF afterimage_xref.lst;
-
 install.man:
-	SRCS=`echo "$(LIB_DOCS) " | sed "s/.h / /g"`; \
-		if ! test -d $(AFTER_MAN_DIR); then \
-			echo "$(MKDIR) $(AFTER_MAN_DIR)"; \
-			$(MKDIR) $(AFTER_MAN_DIR); \
-		fi; \
-		for f in $$SRCS; do \
-			if test -f doc/$$f.man; then \
-		  	  echo $(INSTALL_DATA) doc/$$f.man $(AFTER_MAN_DIR)/$$f.3x; \
-			  $(INSTALL_DATA) doc/$$f.man $(AFTER_MAN_DIR)/$$f.3x; \
-			fi; \
-		done; \
-	echo $(INSTALL_DATA) doc/asimagexml.man $(AFTER_MAN_DIR)/asimagexml.3x; \
-	$(INSTALL_DATA) doc/asimagexml.man $(AFTER_MAN_DIR)/asimagexml.3x; \
-	echo $(INSTALL_DATA) apps/ascompose.man $(AFTER_APP_MAN_DIR)/ascompose.1x; \
-	$(INSTALL_DATA) apps/ascompose.man $(AFTER_APP_MAN_DIR)/ascompose.1x;
+		@if [ -d doc/man ] ; then \
+			cd doc/man; \
+			for f in *.man; do \
+				page_name=`echo $$f| awk -F . '{print $$1}'`; \
+	  			echo $(INSTALL_DATA) $$page_name.man $(AFTER_MAN_DIR)/$$page_name.1x; \
+	  			$(INSTALL_DATA) $$page_name.man $(AFTER_MAN_DIR)/$$page_name.1x; \
+			done; cd ../..; \
+		fi
+			
 
 install.doc:
-	SRCS=`echo "$(LIB_DOCS) " | sed "s/.h / /g"`; cd doc/html; \
-	    	if ! test -d $(AFTER_SHAREDIR) ; then \
-	    		echo "$(MKDIR) $(AFTER_SHAREDIR)"; \
-			$(MKDIR) $(AFTER_SHAREDIR); \
-		fi; \
-	    	if ! test -d $(AFTER_DOC_DIR) ; then \
-		    	echo "$(MKDIR) $(AFTER_DOC_DIR)"; \
-			$(MKDIR) $(AFTER_DOC_DIR); \
-		fi; \
-	    	if ! test -d $(AFTER_DOC_DIR)/html; then \
-			echo "$(MKDIR) $(AFTER_DOC_DIR)/html"; \
-			$(MKDIR) $(AFTER_DOC_DIR)/html; \
-		fi;\
-		for f in *.html; do \
-	  	  echo $(INSTALL_DATA) $$f $(AFTER_DOC_DIR)/html/$$f; \
-		  $(INSTALL_DATA) $$f $(AFTER_DOC_DIR)/html/$$f; \
-		done; cd ../..;
+		@if [ -d doc/html ] ; then \
+			if [ ! -d $(AFTER_DOC_DIR)/html ] ; then \
+				$(MKDIR) -p $(AFTER_DOC_DIR)/html; \			
+			fi; \
+			cd doc/html; \
+			for f in *.html; do \
+		  		echo $(CP) $$f $(AFTER_DOC_DIR)/html/$$f; \
+		  		$(CP) $$f $(AFTER_DOC_DIR)/html/$$f; \
+			done; cd ../..; \
+		fi
 
 install:	install.lib install.man install.doc install.apps
 

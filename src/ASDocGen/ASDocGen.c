@@ -113,14 +113,23 @@ ASApiSourceDescr libAfterImage_Sources[] =
 	{"asvisual.h", "ASVisual", "abstraction layer on top of X Visuals, focusing on color handling" },
   	{"asimage.h", "ASImage", "internal structures and methods used for image manipulation in libAfterImage" },
 	{"blender.h", "ASImage Blending", "functionality for blending of image data using diofferent algorithms"}, 
-	{"export.h", "ASImage export", "functionality for writing images into files"}, 
-	{"import.h", "ASImage import", "functionality for reading images from files"},
-	{"imencdec.h", "ASImage encoding/decoding", "encoding/decoding ASImage data from/to usable data structures"}, 
+	{"export.h", "ASImage Export", "functionality for writing images into files"}, 
+	{"import.h", "ASImage Import", "functionality for reading images from files"},
+	{"imencdec.h", "ASImage Encoding/decoding", "encoding/decoding ASImage data from/to usable data structures"}, 
 	{"transform.h", "ASImage Transformations", "transformations available for ASImages"},
 	{"ximage.h", "XImage", "functionality for displaying ASImages on X display"},
 	{"ascmap.h", "Indexed Image handling", "defines main structures and function for image quantization"},
 	{"asfont.h", "ASFont", "text drawing functionality and handling of TTF and X11 fonts"}, 
 	{"char2uni.h", "Unicode", "handling on Unicode, UTF-8 and localized 8 bit encodings"}, 
+	{"apps/asview.c",  "libAfterImage example 1: Image viewer","demonstrates loading and displaying of images"}, 
+	{"apps/asscale.c", "libAfterImage example 2: Image scaling","demonstrates image loading and scaling"}, 
+	{"apps/astile.c",  "libAfterImage example 3: Image tiling/croping","demonstrates image tiling/cropping and tinting"}, 
+	{"apps/asmerge.c", "libAfterImage example 4: Image blending","demonstrates blending of multiple image using different algorithms"},
+	{"apps/asgrad.c",  "libAfterImage example 5: Gradient rendering","demonstrates rendering of multi point linear gradients"}, 
+	{"apps/asflip.c",  "libAfterImage example 6: Image rotation","demonstrates flipping image in 90 degree increments"}, 
+	{"apps/astext.c",  "libAfterImage example 7: Text rendering","demonstrates antialiased texturized text rendering"},
+	{"apps/common.c",  "libAfterImage examples common","common functions used in other examples "}, 
+	{"apps/ascompose.c", "libAfterImage XML script processor","provides access to libAfterImage functionality, using scripts written in custom XML dialect"}, 
 	{NULL, NULL, NULL}
 };
 
@@ -138,6 +147,7 @@ ASHashTable *APILinks = NULL ;
 ASHashTable *Links = NULL ;
 
 int DocGenerationPass = 0 ;
+int CurrentManType = 1 ;
 
 #define DATE_SIZE 64
 char CurrentDateLong[DATE_SIZE] = "06/23/04";
@@ -308,7 +318,9 @@ main (int argc, char **argv)
 		TopicIndexName = APITopicIndexName ; 
 		Links = APILinks;
 		DocGenerationPass = 2 ;
-
+		
+		CurrentManType = 3 ;
+		
 		while( --DocGenerationPass >= 0 ) 
 		{
 			int s ;
@@ -1624,14 +1636,22 @@ gen_code_doc( const char *source_dir, const char *dest_dir,
 			  ASDocType doc_type )
 {
 	ASXMLInterpreterState state;
-	char *dot = strchr( file, '.' );
+	char *dot = strrchr( file, '.' );
+	char *slash ;
 	char *short_fname;
 	
 	short_fname = dot?mystrndup( file, dot-file ): mystrdup( file ); 
-		
+	if( (slash = strrchr( short_fname, '/' )) != NULL )
+	{	
+		char *tmp = mystrdup( slash+1 );
+		free( short_fname );
+		short_fname = tmp ;
+	}
+		  
  	if( !start_doc_file( dest_dir, short_fname, NULL, doc_type, short_fname, display_name, display_purpose, &state, DOC_CLASS_None, DocClass_Overview ) )	  	
 			return ;
 	
 	convert_code_file( source_dir, file, &state );
 	end_doc_file( &state );	 	  
+	free( short_fname );
 }

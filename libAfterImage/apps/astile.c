@@ -13,6 +13,8 @@
 #endif
 
 /****h* libAfterImage/tutorials/ASTile
+ * NAME
+ * ASTile
  * SYNOPSIS
  * Simple program based on libAfterImage to tile and tint image.
  * DESCRIPTION
