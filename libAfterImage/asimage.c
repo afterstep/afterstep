@@ -18,6 +18,10 @@
 
 #undef LOCAL_DEBUG
 #undef DO_CLOCKING
+#ifndef NO_DEBUG_OUTPUT
+#define DEBUG_RECTS
+#undef DEBUG_RECTS2
+#endif
 
 #include "config.h"
 
@@ -1767,7 +1771,7 @@ asimage_threshold_line( CARD8 *src, unsigned int width, unsigned int *runs, unsi
 	if ( src == NULL )
 		return 0;
 	runs[0] = runs[1] = 0 ;
-	while (src[i] != RLE_EOL && i < width )
+	while (src[i] != RLE_EOL && curr_x < width )
 	{
 		if ((src[i] & RLE_DIRECT_B) != 0)
 		{
@@ -1776,7 +1780,9 @@ asimage_threshold_line( CARD8 *src, unsigned int width, unsigned int *runs, unsi
 				stop = i + 1 + (width-curr_x) ;
 			else
 				stop = i + 1 + (src[i] & (RLE_DIRECT_D))+1;
-/*			fprintf( stderr, "%d: i = %d, stop = %d\n", __LINE__, i, stop ); */
+#ifdef DEBUG_RECTS2			
+			fprintf( stderr, "%d: i = %d, stop = %d\n", __LINE__, i, stop ); 
+#endif				
 			while( ++i < stop  )
 			{
 				if( src[i] >= threshold )
@@ -1799,9 +1805,11 @@ asimage_threshold_line( CARD8 *src, unsigned int width, unsigned int *runs, unsi
 					start = end = -1 ;
 				}
 				++curr_x ;
-  /*				fprintf( stderr, "%d: src[%d] = %d, curr_x = %d, start = %d, end = %d, runs_count = %d\n",
-   *					     __LINE__, i, (int)src[i], curr_x, start, end, runs_count );
-   */
+#ifdef DEBUG_RECTS2			     				
+				fprintf( stderr, "%d: src[%d] = %d, curr_x = %d, start = %d, end = %d, runs_count = %d\n",
+  					     __LINE__, i, (int)src[i], curr_x, start, end, runs_count );
+#endif
+  
 			}
 		} else
 		{
@@ -1809,15 +1817,24 @@ asimage_threshold_line( CARD8 *src, unsigned int width, unsigned int *runs, unsi
 
 			if ((src[i]&RLE_SIMPLE_B_INV) == 0)
 			{
+#ifdef DEBUG_RECTS2			   
+			fprintf( stderr, "%d: SimpleRLE: i = %d, src[i] = %d(%2.2X)\n", __LINE__, i, src[i], src[i] ); 
+#endif
 				len = ((int)src[i])+ RLE_THRESHOLD;
 				++i ;
 			} else if ((src[i] & RLE_LONG_B) != 0)
 			{
+#ifdef DEBUG_RECTS2			   
+			fprintf( stderr, "%d: LongRLE: i = %d, src[i] = %d(%2.2X), src[i] = %d(%2.2X)\n", __LINE__, i, src[i], src[i], src[i+1], src[i+1] ); 
+#endif
 				len = ((((int)src[i])&RLE_LONG_D ) << 8) ;
-				len += ((int)src[++i])+RLE_THRESHOLD;
+				++i;
+				len += ((int)src[i])+RLE_THRESHOLD;
 				++i;
 			}
-/*			fprintf( stderr, "%d: i = %d, len = %d, src[i] = %d\n", __LINE__, i, len, src[i] ); */
+#ifdef DEBUG_RECTS2			   
+			fprintf( stderr, "%d: i = %d, len = %d, src[i] = %d\n", __LINE__, i, len, src[i] ); 
+#endif
 
 			if( src[i] >= threshold )
 			{
@@ -1838,9 +1855,10 @@ asimage_threshold_line( CARD8 *src, unsigned int width, unsigned int *runs, unsi
 				start = end = -1 ;
 			}
 			curr_x += len ;
-/*			fprintf( stderr, "%d: src[%d] = %d, curr_x = %d, start = %d, end = %d, runs_count = %d\n",
- *					    __LINE__, i, (int)src[i], curr_x, start, end, runs_count );
- */
+#ifdef DEBUG_RECTS2			   
+			fprintf( stderr, "%d: src[%d] = %d, curr_x = %d, start = %d, end = %d, runs_count = %d\n",
+ 					    __LINE__, i, (int)src[i], curr_x, start, end, runs_count );
+#endif
 			++i;
 		}
 	}
@@ -1852,9 +1870,10 @@ asimage_threshold_line( CARD8 *src, unsigned int width, unsigned int *runs, unsi
 		++runs_count ;
 	}
 
-/*	for( i = 0 ; i < runs_count ; ++i, ++i )
- *		fprintf( stderr, "\trun[%d] = %d ... %d\n", i, runs[i], runs[i+1] );
- */
+#ifdef DEBUG_RECTS2			   
+	for( i = 0 ; i < runs_count ; ++i, ++i )
+		fprintf( stderr, "\trun[%d] = %d ... %d\n", i, runs[i], runs[i+1] );
+#endif
 
 	return runs_count;
 }
@@ -2941,7 +2960,6 @@ clone_asimage( ASImage *src, ASFlagType filter )
 /* Convinience function
  * 		- generate rectangles list for channel values exceeding threshold:        */
 /* ********************************************************************************/
-#define DEBUG_RECTS
 XRectangle*
 get_asimage_channel_rects( ASImage *src, int channel, unsigned int threshold, unsigned int *rects_count_ret )
 {
@@ -2970,7 +2988,11 @@ get_asimage_channel_rects( ASImage *src, int channel, unsigned int threshold, un
 			int runs_count = 0 ;
 #ifdef DEBUG_RECTS
 			fprintf( stderr, "%d: LINE %d **********************\n", __LINE__, i );
+#ifdef DEBUG_RECTS2
+			asimage_print_line (src, channel, i, 0xFFFFFFFF);
+#else
 			asimage_print_line (src, channel, i, VRB_LINE_CONTENT);
+#endif
 #endif
 			if( i >= 0 )
 			{
@@ -3010,6 +3032,7 @@ get_asimage_channel_rects( ASImage *src, int channel, unsigned int threshold, un
 				for( l = 0 ; l < prev_runs_count ; ++l, ++l )
 				{
 					int start = prev_runs[l], end = prev_runs[l+1] ;
+					int matching_runs = 0 ;
 #ifdef DEBUG_RECTS
 					fprintf( stderr, "%d: prev run %d : start = %d, end = %d, last_k = %d, height = %d\n", __LINE__, l, start, end, last_k, height[l] );
 #endif
@@ -3033,8 +3056,9 @@ get_asimage_channel_rects( ASImage *src, int channel, unsigned int threshold, un
 							fprintf( stderr, "*%d: added rectangle at y = %d\n", __LINE__, rects[rects_count].y );
 #endif
 							++rects_count ;
+							++matching_runs;
 							break;
-						}else if( runs[k+1] >= start )
+						}else if( runs[k+1] >= start  )
 						{
 							if( start < runs[k] )
 							{	/* add rectangle start, , runs[k]-start, height[l] */
@@ -3104,9 +3128,27 @@ get_asimage_channel_rects( ASImage *src, int channel, unsigned int threshold, un
 #endif
 							++tmp_count ; ++tmp_count ;
 							last_k = k ;
+							++matching_runs;
 							break;
 						}
 					}
+					if( matching_runs == 0 ) 
+					{  /* no new runs for this prev run - add rectangle */
+						fprintf( stderr, "%d: NO MATCHING NEW RUNS : start = %d, end = %d, height = %d\n", __LINE__, start, end, height[l] );
+						if( rects_count >= rects_allocated )
+						{
+							rects_allocated = rects_count + 8 + (rects_count>>3);
+							rects = realloc( rects, rects_allocated*sizeof(XRectangle));
+						}
+						rects[rects_count].x = start ;
+						rects[rects_count].y = i+1 ;
+						rects[rects_count].width = (end-start)+1 ;
+						rects[rects_count].height = height[l] ;
+#ifdef DEBUG_RECTS
+						fprintf( stderr, "*%d: added rectangle at y = %d\n", __LINE__, rects[rects_count].y );
+#endif
+						++rects_count ;
+					}	 
 				}
 				/* second pass: we need to pick up remaining new runs */
 				/* I think these should be inserted in oredrly manner so that we have runs list arranged in ascending order */
