@@ -102,6 +102,22 @@ typedef struct ASIconRearrangeAux
     ASIconBox *ib;
 }ASIconRearrangeAux;
 
+void fix_iconbox_area( ASGeometry *geom, int min_width, int min_height )
+{
+	if( geom->width  <= min_width )
+	{
+		if( get_flags(geom->flags, XNegative) )
+			geom->x -= min_width-geom->width ;
+		geom->width = min_width ;
+	}
+	if( geom->height  < min_height )
+	{
+		if( get_flags(geom->flags, YNegative) )
+			geom->y -= min_height-geom->height ;
+		geom->height = min_height ;
+	}
+}
+
 Bool rearrange_icon_iter_func(void *data, void *aux_data)
 {
     ASWindow *asw = (ASWindow*) data ;
@@ -110,6 +126,7 @@ Bool rearrange_icon_iter_func(void *data, void *aux_data)
     int whole_width = 0, whole_height = 0 ;
     int x, y, box_x = 0, box_y = 0;
 	Bool placed = False ;
+	ASGeometry *geom = NULL ;
 
 	if( AS_ASSERT(asw) || AS_ASSERT(rd) )
 		return False;
@@ -135,28 +152,29 @@ Bool rearrange_icon_iter_func(void *data, void *aux_data)
     /* now we could determine where exactly to place icon to : */
     x = -whole_width ;
     y = -whole_height ;
+
+    if( rd->curr_area < 0 && rd->ib->areas_num > 0 )
+   	{
+		rd->curr_area = 0 ;
+    	geom = &(rd->ib->areas[0]) ;
+		fix_iconbox_area( geom, whole_width, whole_height );
+        rd->last_x = get_flags( geom->flags, XNegative )?geom->width: 0 ;
+        rd->last_y = get_flags( geom->flags, YNegative )?geom->height: 0 ;
+	}else
+	{
+		geom = &(rd->ib->areas[rd->curr_area]) ;
+		fix_iconbox_area( geom, whole_width, whole_height );
+	}
+
 	LOCAL_DEBUG_OUT( "entering loop : areas_num = %d", rd->ib->areas_num );
     while( rd->curr_area < rd->ib->areas_num )
     {
-        ASGeometry *geom = &(rd->ib->areas[rd->curr_area]) ;
         int new_x = -1, new_y = -1 ;
 
 LOCAL_DEBUG_OUT( "trying area #%d : %s%s, %dx%d%+d%+d", rd->curr_area, get_flags(geom->flags, XNegative)?"XNeg":"XPos", get_flags(geom->flags, YNegative)?"YNeg":"YPos", geom->width, geom->height, geom->x, geom->y );
 LOCAL_DEBUG_OUT( "last: %dx%d%+d%+d", rd->last_width, rd->last_height, rd->last_x, rd->last_y );
-		if( geom->width  < whole_width )
-		{
-			if( get_flags(geom->flags, XNegative) )
-				geom->x -= whole_width-geom->width ;
-			geom->width = whole_width ;
-		}
-		if( geom->height  < whole_height )
-		{
-			if( get_flags(geom->flags, YNegative) )
-				geom->y -= whole_height-geom->height ;
-			geom->height = whole_height ;
-		}
 
-        if( get_flags(geom->flags, XNegative) )
+		if( get_flags(geom->flags, XNegative) )
             new_x = rd->last_x - rd->last_width - whole_width ;
         else
             new_x = rd->last_x + rd->last_width ;
@@ -179,8 +197,8 @@ LOCAL_DEBUG_OUT( "last: %dx%d%+d%+d", rd->last_width, rd->last_height, rd->last_
             new_y = rd->last_y - whole_height ;
 
 LOCAL_DEBUG_OUT( "new : %+d%+d", new_x, new_y );
-        if( new_x >= 0 && new_x+whole_width < geom->width &&
-            new_y >= 0 && new_y+whole_height < geom->height )
+        if( new_x >= 0 && new_x+whole_width <= geom->width &&
+            new_y >= 0 && new_y+whole_height <= geom->height )
         {
             x = new_x ;
             y = new_y ;
@@ -194,8 +212,9 @@ LOCAL_DEBUG_OUT( "new : %+d%+d", new_x, new_y );
         if( rd->curr_area < rd->ib->areas_num )
         {
             geom = &(rd->ib->areas[rd->curr_area]) ;
-            rd->last_x = get_flags( geom->flags, XNegative )?geom->width-1: 0 ;
-            rd->last_y = get_flags( geom->flags, YNegative )?geom->height-1: 0 ;
+			fix_iconbox_area( geom, whole_width, whole_height );
+            rd->last_x = get_flags( geom->flags, XNegative )?geom->width: 0 ;
+            rd->last_y = get_flags( geom->flags, YNegative )?geom->height: 0 ;
         }else
         {
             rd->last_x = 0 ;
@@ -225,9 +244,9 @@ rearrange_iconbox( ASIconBox *ib )
 {
     ASIconRearrangeAux aux_data ;
 
-    aux_data.curr_area = 0 ;
-    aux_data.last_x = get_flags( ib->areas[0].flags, XNegative )?ib->areas[0].width-1: 0 ;
-    aux_data.last_y = get_flags( ib->areas[0].flags, YNegative )?ib->areas[0].height-1: 0 ;
+    aux_data.curr_area = -1 ;
+    aux_data.last_x = 0;
+    aux_data.last_y = 0;
     aux_data.last_width = 0 ;
     aux_data.last_height = 0 ;
     aux_data.ib = ib ;
