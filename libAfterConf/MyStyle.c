@@ -414,7 +414,6 @@ mystyle_create_from_definition (MyStyleDefinition * def)
 		}else
     		show_error("unable to parse BackColor \"%s\"", def->back_color);
 	}
-#ifndef NO_TEXTURE
 	if( def->texture_type > 0 && def->texture_type <= TEXTURE_GRADIENT_END )
 	{
 		int           type = def->back_grad_type;
@@ -510,7 +509,6 @@ mystyle_create_from_definition (MyStyleDefinition * def)
 		LOCAL_DEBUG_OUT ("MyStyle \"%s\": BackPixmap %d image = %p, tint = 0x%lX", style->name,
 						  style->texture_type, style->back_icon.image, style->tint);
 	}
-#endif
 	if( get_flags( def->flags, MYSTYLE_DRAW_TEXT_BACKGROUND ) )
 		set_flags( style->user_flags, F_DRAWTEXTBACKGROUND );
 

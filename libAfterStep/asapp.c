@@ -116,9 +116,7 @@ TermDef       FuncTerms[F_FUNCTIONS_NUM + 1] = {
 #endif
 	FUNC_TERM2 (NEED_NAME, "PopUp", 5, F_POPUP),	/* PopUp    "popup_name" [popup_name] */
 	FUNC_TERM2 (NEED_NAME, "Function", 8, F_FUNCTION),	/* Function "function_name" [function_name] */
-#ifndef NO_TEXTURE
 	FUNC_TERM ("MiniPixmap", 10, F_MINIPIXMAP),	/* MiniPixmap "name" */
-#endif
 	FUNC_TERM2 (NEED_NAME | NEED_CMD, "Exec", 4, F_EXEC),	/* Exec   "name" command */
 	FUNC_TERM2 (NEED_NAME | NEED_CMD, "Module", 6, F_MODULE),	/* Module "name" command */
 	FUNC_TERM2 (NEED_NAME | NEED_CMD, "KillModuleByName", 16, F_KILLMODULEBYNAME),	/* KillModuleByName "name" module */

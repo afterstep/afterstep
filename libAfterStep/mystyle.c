@@ -388,7 +388,6 @@ mystyle_make_image (MyStyle * style, int root_x, int root_y, int width, int heig
 	Bool transparency = False ;
 	int preflip_width, preflip_height ;
 
-#ifndef NO_TEXTURE
 	if (width < 1)
 		width = 1;
 	if (height < 1)
@@ -586,7 +585,6 @@ mystyle_make_image (MyStyle * style, int root_x, int root_y, int width, int heig
 		im->back_color = style->colors.back ;
 		show_warning( "MyStyle \"%s\" : failed to generate background image - using solid fill instead with color #0x%8.8X", style->name, style->colors.back );
 	}
-#endif /* NO_TEXTURE */
 	return im;
 }
 
@@ -595,10 +593,8 @@ mystyle_make_icon (MyStyle * style, int width, int height, Pixmap cache)
 {
 	icon_t        icon = { None, None, None, 0, 0 };
 
-#ifndef NO_TEXTURE
 	asimage2icon (mystyle_make_image (style, 0, 0, width, height, 0),
 				  &icon, (style->texture_type < TEXTURE_TEXTURED_START));
-#endif /* NO_TEXTURE */
 	return icon;
 }
 
@@ -607,10 +603,8 @@ mystyle_make_icon_overlay (MyStyle * style, int root_x, int root_y, int width, i
 {
 	icon_t        icon = { None, None, 0, 0 };
 
-#ifndef NO_TEXTURE
 	asimage2icon (mystyle_make_image (style, root_x, root_y, width, height, 0),
 				  &icon, (style->texture_type < TEXTURE_TEXTURED_START));
-#endif /* NO_TEXTURE */
 	return icon;
 }
 
@@ -642,13 +636,11 @@ mystyle_make_pixmap_overlay (MyStyle * style, int root_x, int root_y, int width,
 void
 mystyle_set_window_background (Window w, MyStyle * style)
 {
-#ifndef NO_TEXTURE
 	if (style->texture_type == 128 && style->set_flags & F_BACKPIXMAP)
 		XSetWindowBackgroundPixmap (dpy, w, style->back_icon.pix);
 	else if (style->texture_type == 129)
 		XSetWindowBackgroundPixmap (dpy, w, ParentRelative);
 	else
-#endif /* NO_TEXTURE */
 		XSetWindowBackground (dpy, w, style->colors.back);
 }
 
@@ -664,7 +656,6 @@ mystyle_free_resources( MyStyle *style )
         {
             unload_font (&style->font);
         }
-#ifndef NO_TEXTURE
         if (style->user_flags & F_BACKGRADIENT)
         {
             free (style->gradient.color);
@@ -675,7 +666,6 @@ mystyle_free_resources( MyStyle *style )
             LOCAL_DEBUG_OUT( "calling mystyle_free_back_icon for style %p", style );
             mystyle_free_back_icon(style);
         }
-#endif
     }
 }
 
@@ -695,7 +685,6 @@ mystyle_init (MyStyle  *style)
 	style->relief.fore = style->colors.back;
 	style->relief.back = style->colors.fore;
 	style->texture_type = 0;
-#ifndef NO_TEXTURE
 	style->gradient.npoints = 0;
 	style->gradient.color = NULL;
 	style->gradient.offset = NULL;
@@ -704,7 +693,6 @@ mystyle_init (MyStyle  *style)
 	style->back_icon.alpha = None;
     style->tint = TINT_LEAVE_SAME;
 	style->back_icon.image = NULL;
-#endif
 }
 
 
@@ -940,7 +928,6 @@ mystyle_merge_styles (MyStyle * parent, MyStyle * child, Bool override, Bool cop
 			}
 		}
 	}
-#ifndef NO_TEXTURE
 	if (parent->set_flags & F_MAXCOLORS)
 	{
 		if ((override == True) || !(child->set_flags & F_MAXCOLORS))
@@ -1041,7 +1028,6 @@ mystyle_merge_styles (MyStyle * parent, MyStyle * child, Bool override, Bool cop
 			}
 		}
 	}
-#endif /* NO_TEXTURE */
 	if (parent->set_flags & F_DRAWTEXTBACKGROUND)
 	{
 		if ((override == True) || !(child->set_flags & F_DRAWTEXTBACKGROUND))
@@ -1129,7 +1115,6 @@ mystyle_merge_colors (MyStyle * style, int type, char *fore, char *back,
 			(*style).user_flags |= F_BACKCOLOR;
 		}
 	}
-#ifndef NO_TEXTURE
     if (type >= 0)
 	{
 		switch (type)
@@ -1191,7 +1176,6 @@ mystyle_merge_colors (MyStyle * style, int type, char *fore, char *back,
                 show_error ("failed to load image file \"%s\" in MyStyle \"%s\".", pixmap, style->name);
         }
 	}
-#endif
 	(*style).set_flags = (*style).user_flags | (*style).inherit_flags;
 }
 

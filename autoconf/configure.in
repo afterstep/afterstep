@@ -68,15 +68,10 @@ AC_ARG_WITH(tff,		    [  --with-ttf               support True Type Fonts via Fr
 AC_ARG_WITH(tff_includes,   [  --with-ttf-includes=DIR  use FreeType includes in DIR], ttf_includes="$withval", ttf_includes=NO)
 
 dnl# compile-time switches
-AC_ARG_ENABLE(pagerbackground,	[  --enable-pagerbackground provide background support with the Pager [[yes]] ],enable_pagerbackground=$enableval,enable_pagerbackground="yes")
 AC_ARG_ENABLE(i18n,		[  --enable-i18n           support I18N [[no]] ],enable_i18n=$enableval,enable_i18n="no")
 AC_ARG_ENABLE(xlocale,		[  --enable-xlocale        using X_LOCALE [[no]] ],enable_xlocale=$enableval,enable_xlocale="no")
-AC_ARG_ENABLE(menuwarp,		[  --enable-menuwarp       warp mouse pointer to menus [[no]] ],enable_menuwarp=$enableval,enable_menuwarp="no")
 AC_ARG_ENABLE(savewindows,	[  --enable-savewindows    save windows and re-open next session [[yes]] ],enable_savewindows=$enableval,enable_savewindows="yes")
-AC_ARG_ENABLE(texture,		[  --enable-texture        support gradient, XPM, and JPEG textures [[yes]] ],enable_texure=$enableval,enable_texture="yes")
-AC_ARG_ENABLE(shade,		[  --enable-shade          support shaded windows [[yes]] ],enable_shade=$enableval,enable_shade="yes")
 AC_ARG_ENABLE(virtual,		[  --enable-virtual        support virtual desktops [[yes]] ],enable_virtual=$enableval,enable_virtual="yes")
-AC_ARG_ENABLE(saveunders,	[  --enable-saveunders     request saveunders for menus [[yes]] ],enable_saveunders=$enableval,enable_saveunders="yes")
 AC_ARG_ENABLE(windowlist,	[  --enable-windowlist     compile built-in window-list [[yes]] ],enable_windowlist=$enableval,enable_windowlist="yes")
 AC_ARG_ENABLE(availability,	[  --enable-availability   check for unavailable binaries [[yes]] ],enable_availability=$enableval,enable_availability="yes")
 AC_ARG_ENABLE(fixeditems,	[  --enable-fixeditems     enable fixed menu entries [[no]] ], enable_fixeditems=$enableval,enable_fixeditems="no")
@@ -100,7 +95,7 @@ AC_ARG_ENABLE(mmx_optimization,	[  --enable-mmx-optimization  enable utilization
 AC_ARG_ENABLE(send-postcard-to-developer, [  --enable-send-postcard-to-developer will enable AfterSTep to send single e-mail to developers with your installation specifics.[[yes]] ],send_postcard_to_developer=$enableval,send_postcard_to_developer="yes")
 
 AC_ARG_ENABLE(script,		[  --enable-script         compile Script module [[yes]] ], enable_script=$enableval,enable_script="yes")
-AC_ARG_ENABLE(reuse-font,	[  --enable-reuse-font     enables reuse of loaded font resource by modules (don't use with TrueType fonts !)[[no]] ],[if test x$enableval == "xyes"; then AC_DEFINE(MODULE_REUSE_LOADED_FONT) fi],enable_script="yes")
+AC_ARG_ENABLE(reuse-font,	[  --enable-reuse-font     enables reuse of loaded font resource by modules (don't use with TrueType fonts !)[[no]] ],[if test x$enableval == "xyes"; then AC_DEFINE(MODULE_REUSE_LOADED_FONT,1,Enables reuse of loaded font resource by modules) fi])
 
 dnl# Comman stuff : compiler tools, proggies, etc.
 
@@ -218,6 +213,11 @@ else
 fi
 
 AC_CHECK_LIB(X11, XOpenDisplay, [x_libs="-lX11 $x_libs"],,$full_x_libs)
+if test "x$enable_xlocale" = "xyes"; then
+  AC_CHECK_LIB(X11, _Xsetlocale, AC_DEFINE(X_LOCALE,1,"X Locale support enabled"),, $full_x_libs)
+fi
+
+
 
 dnl# have to update full_x_libs again as x_libs may have changed above
 if test "x$user_ldflags" = "x"; then
@@ -242,7 +242,7 @@ if test "x$enable_shmimage" = "xyes"; then
 	fi
 	if test "x$have_shmimage" = "xyes"; then
 		add_lib_xext=yes
-		AC_DEFINE(XSHMIMAGE)
+		AC_DEFINE(XSHMIMAGE,1,Support for Shared memory images - unsafe in *bsd due to limited number of segments)
 	fi
 fi
 
@@ -335,7 +335,7 @@ dnl# Check for X shaped window extension
 HAVESHAPE="NOSHAPE"
 add_lib_xext=no
 if test "x$enable_shaping" = "xyes"; then
-  	AC_CHECK_LIB(Xext, XShapeCombineMask, [add_lib_xext=yes;AC_DEFINE(SHAPE,)],,$full_x_libs)
+  	AC_CHECK_LIB(Xext, XShapeCombineMask, [add_lib_xext=yes;AC_DEFINE(SHAPE,1,Support for shaped windows)],,$full_x_libs)
 fi
 
 if test "x$add_lib_xext" = "xyes"; then
@@ -347,12 +347,11 @@ dnl# Check for Xinerama extension
 
 HAVEXINE="NOXINE"
 if test "x$enable_xinerama" = "xyes"; then
-  AC_CHECK_LIB(Xinerama, XineramaQueryScreens, [x_libs="-lXinerama $x_libs";AC_DEFINE(HAVE_XINERAMA,)],,$full_x_libs)
+  AC_CHECK_LIB(Xinerama, XineramaQueryScreens, [x_libs="-lXinerama $x_libs";AC_DEFINE(HAVE_XINERAMA,1,Support for Xinerama multiscreen)],,$full_x_libs)
 fi
 
-dnl# disable internal sigsegv handler if requested :
 if test "x$enable_sigsegv" = "xyes"; then
-  AC_DEFINE(HAVE_SIGSEGV_HANDLING,)
+  AC_DEFINE(HAVE_SIGSEGV_HANDLING,1,self diagnostic SIGSEGV handling (as opposed to dumping core))
 fi
 
 if test "x$enable_staticlibs" = "xyes"; then
@@ -481,28 +480,18 @@ if test "x$with_libefence" = "xyes"; then
   AC_CHECK_LIB(efence,malloc,x_libs="$x_libs -lefence")
 fi
 
-dnl# define X_LOCALE.  need Linux, NetBSD and etc.
-if test "x$enable_xlocale" = "xyes"; then
-  DEFINE_XLOCALE="-DX_LOCALE"
-fi
-
 dnl# Translate enable_* from "yes/no" to "1/0" (for configure.h)
 
-if test "x$enable_different_looknfeels" = "xyes"; then AC_DEFINE(DIFFERENTLOOKNFEELFOREACHDESKTOP,) fi
-if test "x$enable_pagerbackground" = "xyes"; then AC_DEFINE(PAGER_BACKGROUND) fi
-if test "x$enable_i18n" = "xyes"; then AC_DEFINE(I18N) fi
-if test "x$enable_menuwarp" = "xno"; then AC_DEFINE(NO_WARPPOINTERTOMENU) fi
-if test "x$enable_savewindows" = "xno"; then AC_DEFINE(NO_SAVEWINDOWS) fi
-if test "x$enable_texture" = "xno"; then AC_DEFINE(NO_TEXTURE) fi
-if test "x$enable_shade" = "xno"; then AC_DEFINE(NO_SHADE) fi
-if test "x$enable_virtual" = "xno"; then AC_DEFINE(NO_VIRTUAL) fi
-if test "x$enable_saveunders" = "xno"; then AC_DEFINE(NO_SAVEUNDERS) fi
-if test "x$enable_windowlist" = "xno"; then AC_DEFINE(NO_WINDOWLIST) fi
-if test "x$enable_availability" = "xno"; then AC_DEFINE(NO_AVAILABILITYCHECK) fi
-if test "x$enable_fixeditems" = "xyes"; then AC_DEFINE(FIXED_DIR, "fixed") fi
-if test "x$enable_audit" = "xyes"; then AC_DEFINE(DEBUG_ALLOCS) fi
-if test "x$enable_trace" = "xyes"; then AC_DEFINE(DEBUG_TRACE) fi
-if test "x$enable_trace_x" = "xyes"; then AC_DEFINE(DEBUG_TRACE_X) fi
+if test "x$enable_different_looknfeels" = "xyes"; then AC_DEFINE(DIFFERENTLOOKNFEELFOREACHDESKTOP,1,Each desktop may have its own look/feel) fi
+if test "x$enable_i18n" = "xyes"; then AC_DEFINE(I18N,1,Internationalized text support) fi
+if test "x$enable_savewindows" = "xno"; then AC_DEFINE(NO_SAVEWINDOWS,1,Save windows and re-open next session) fi
+if test "x$enable_virtual" = "xno"; then AC_DEFINE(NO_VIRTUAL,1,virtual screen support - several pages poer desktop) fi
+if test "x$enable_windowlist" = "xno"; then AC_DEFINE(NO_WINDOWLIST,1,Support for window list) fi
+if test "x$enable_availability" = "xno"; then AC_DEFINE(NO_AVAILABILITYCHECK,1,Check availability of menu items at startup) fi
+if test "x$enable_fixeditems" = "xyes"; then AC_DEFINE(FIXED_DIR, "fixed", enable fixed menu entries) fi
+if test "x$enable_audit" = "xyes"; then AC_DEFINE(DEBUG_ALLOCS,1,Trace memory allocations and check for errors) fi
+if test "x$enable_trace" = "xyes"; then AC_DEFINE(DEBUG_TRACE,1,Trace some functions) fi
+if test "x$enable_trace_x" = "xyes"; then AC_DEFINE(DEBUG_TRACE_X,1,Trace different X calls) fi
 if test "x$enable_script" = "xyes"; then enable_script="1"; else enable_script="0"; fi
 
 dnl# Variable strings declaration
@@ -515,7 +504,7 @@ fi
 
 if test "x$send_postcard_to_developer" = "xyes"; then
 	AC_CHECK_FUNCS(popen)
-	AC_DEFINE(DO_SEND_POSTCARD)
+	AC_DEFINE(DO_SEND_POSTCARD,1,E-mail installation notification to AfterStep developers)
 fi
 
 AC_CANONICAL_TARGET
@@ -559,7 +548,6 @@ AC_SUBST(AFTERCONF_LIB)
 AC_SUBST(WIDGETS_LIB)
 AC_SUBST(LIBPROG)
 AC_SUBST(LIBINSTALL)
-AC_SUBST(DEFINE_XLOCALE)
 AC_SUBST(sgmltools)
 AC_SUBST(with_afterdir)
 AC_SUBST(with_imageloader)

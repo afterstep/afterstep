@@ -6,7 +6,7 @@ CC		= @CC@
 CXX		= @CXX@
 CCFLAGS         = @CFLAGS@
 # -march=pentiumpro -mcpu=pentiumpro
-EXTRA_DEFINES	= @DEFINE_XLOCALE@
+EXTRA_DEFINES	= 
 
 RANLIB		= @RANLIB@
 AR		= ar clq

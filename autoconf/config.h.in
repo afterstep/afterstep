@@ -1,43 +1,22 @@
-/* autoconf/config.h.in.  Generated from autoconf/configure.in by autoheader.  */
-/* self diagnostic SIGSEGV handling (as opposed to dumping core) */
-#undef HAVE_SIGSEGV_HANDLING
+/* autoconf/config.h.in.  Generated from configure.in by autoheader.  */
 
-#undef SHAPE
-#undef XSHMIMAGE
-#undef HAVE_XINERAMA
+/* Trace memory allocations and check for errors */
+#undef DEBUG_ALLOCS
 
-/* look and feel options : */
+/* Trace some functions */
+#undef DEBUG_TRACE
+
+/* Trace different X calls */
+#undef DEBUG_TRACE_X
+
+/* Each desktop may have its own look/feel */
 #undef DIFFERENTLOOKNFEELFOREACHDESKTOP
-#undef PAGER_BACKGROUND
-#undef I18N
-#undef NO_WARPPOINTERTOMENU
-#undef NO_SAVEWINDOWS
-#undef NO_TEXTURE
-#undef NO_SHADE
-#undef NO_VIRTUAL
-#undef NO_SAVEUNDERS
-#undef NO_WINDOWLIST
-#undef NO_AVAILABILITYCHECK
 
-/* set this to conserve some memory if you don't need antialiased text : */
-#undef MODULE_REUSE_LOADED_FONT
+/* E-mail installation notification to AfterStep developers */
+#undef DO_SEND_POSTCARD
 
-/* debugging options */
-#undef  DEBUG_ALLOCS
-#undef  DEBUG_TRACE
-#undef  DEBUG_TRACE_X
-
-/* menu options : */
-#undef	FIXED_DIR
-
-/* needed only by libafterconf and libafterstep : */
-#undef  HAVE_AFTERBASE
-#undef  HAVE_AFTERIMAGE
-#undef  HAVE_AFTERSTEP
-
-#undef  DO_SEND_POSTCARD
-
-
+/* enable fixed menu entries */
+#undef FIXED_DIR
 
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
@@ -53,6 +32,9 @@
 
 /* Define to 1 if you have the <rplay.h> header file. */
 #undef HAVE_RPLAY_H
+
+/* self diagnostic SIGSEGV handling (as opposed to dumping core) */
+#undef HAVE_SIGSEGV_HANDLING
 
 /* Define to 1 if you have the <stdint.h> header file. */
 #undef HAVE_STDINT_H
@@ -85,6 +67,27 @@
    longer depend upon `wait3'. */
 #undef HAVE_WAIT3
 
+/* Support for Xinerama multiscreen */
+#undef HAVE_XINERAMA
+
+/* Internationalized text support */
+#undef I18N
+
+/* Enables reuse of loaded font resource by modules */
+#undef MODULE_REUSE_LOADED_FONT
+
+/* Check availability of menu items at startup */
+#undef NO_AVAILABILITYCHECK
+
+/* Save windows and re-open next session */
+#undef NO_SAVEWINDOWS
+
+/* virtual screen support - several pages poer desktop */
+#undef NO_VIRTUAL
+
+/* Support for window list */
+#undef NO_WINDOWLIST
+
 /* Define to the address where bug reports for this package should be sent. */
 #undef PACKAGE_BUGREPORT
 
@@ -100,6 +103,9 @@
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
 
+/* Support for shaped windows */
+#undef SHAPE
+
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS
 
@@ -110,8 +116,15 @@
    first (like Motorola and SPARC, unlike Intel and VAX). */
 #undef WORDS_BIGENDIAN
 
+/* Support for Shared memory images - unsafe in *bsd due to limited number of
+   segments */
+#undef XSHMIMAGE
+
 /* Define to 1 if the X Window System is missing or not being used. */
 #undef X_DISPLAY_MISSING
+
+/* "X Locale support enabled" */
+#undef X_LOCALE
 
 /* Define to 1 if `lex' declares `yytext' as a `char *' by default, not a
    `char[]'. */
@@ -120,5 +133,3 @@
 /* Define as `__inline' if that's what the C compiler calls it, or to nothing
    if it is not supported. */
 #undef inline
-
-/*#include "configure.h"*/

@@ -210,7 +210,6 @@ struct config main_config[] = {
     {"DefaultFrame", assign_string, (char**)&DefaultFrameName, (int*)0},
     {"DontDrawBackground", SetFlag2, (char **)DontDrawBackground, (int *)&Scr.Look.flags},
 
-#ifndef NO_TEXTURE
 	{"TextureTypes", assign_string, &TexTypes, (int *)0},
     {"TextureMaxColors", obsolete, NULL, (int *)0},
     {"TitleTextureColor", assign_string, &WindowGradient[BACK_FOCUSED], (int *)0},    /* title */
@@ -259,7 +258,6 @@ struct config main_config[] = {
     {"FrameSW", SetFramePart, NULL, (int *)FR_SW},
     {"FrameSE", SetFramePart, NULL, (int *)FR_SE},
     {"DecorateFrames", SetFlag2, (char **)DecorateFrames, (int *)&Scr.Look.flags},
-#endif /* NO_TEXTURE */
     {"TitleTextAlign", SetInts, (char **)&Scr.Look.TitleTextAlign, &dummy},
     {"TitleButtonSpacingLeft", SetInts, (char **)&Scr.Look.TitleButtonSpacing[0], &dummy},
     {"TitleButtonSpacingRight", SetInts, (char **)&Scr.Look.TitleButtonSpacing[1], &dummy},
@@ -544,14 +542,12 @@ merge_old_look_variables (MyLook *look)
         for( i = 0 ; i < MENU_BACK_STYLES ; ++i )
             mtype[i] = -1 ;
 
-#ifndef NO_TEXTURE
 		if (TexTypes != NULL)
             sscanf (TexTypes, "%i %i %i %i %i %i", &wtype[BACK_FOCUSED], &wtype[BACK_UNFOCUSED], &wtype[BACK_STICKY],
                                                    &mtype[MENU_BACK_TITLE], &mtype[MENU_BACK_ITEM], &mtype[MENU_BACK_HILITE]);
 
 		if (IconTexType == TEXTURE_BUILTIN)
 			IconTexType = -1;
-#endif /* !NO_TEXTURE */
 
 		/* check for missing 1.4.5.x keywords */
         if (MenuForeColor[MENU_BACK_TITLE] == NULL && WindowForeColor[BACK_FOCUSED] != NULL)
@@ -574,7 +570,6 @@ merge_old_look_variables (MyLook *look)
         for( i = 0 ; i < MENU_BACK_STYLES ; ++i )
             mystyle_merge_colors (look->MSMenu[i], mtype[i], MenuForeColor[i], MenuBackColor[i], MenuGradient[i], MenuPixmap[i]);
 
-#ifndef NO_TEXTURE
 		{
             MyStyle      *button_pixmap = mystyle_list_find (look->styles_list, AS_ICON_MYSTYLE);
 
@@ -585,7 +580,6 @@ merge_old_look_variables (MyLook *look)
                 mystyle_merge_colors (button_pixmap, IconTexType, NULL, IconBgColor, IconTexColor, IconPixmapFile);
 			}
 		}
-#endif /* !NO_TEXTURE */
         for( i = 0 ; i < BACK_STYLES ; ++i )
             if (button_styles[i] != NULL)
                 mystyle_merge_styles (look->MSWindow[i], button_styles[i], 0, 0);
@@ -627,11 +621,9 @@ InitLook (MyLook *look, Bool free_resources)
     /* other related things : */
     if (free_resources)
 	{
-#ifndef NO_TEXTURE
 		/* icons */
         if( MenuPinOn != NULL )
             free( MenuPinOn );
-#endif /* !NO_TEXTURE */
         if( Scr.default_icon_box )
             destroy_asiconbox( &(Scr.default_icon_box));
         if( Scr.icon_boxes )
@@ -943,7 +935,6 @@ FixLook( MyLook *look )
     else if(look->TitleTextAlign == JUSTIFY_CENTER )
         default_title_align = ALIGN_CENTER ;
 
-#ifndef NO_TEXTURE
     /* update frame geometries */
     if (get_flags( look->flags, DecorateFrames))
     {
@@ -981,7 +972,6 @@ FixLook( MyLook *look )
         }
     }else if( look->DefaultFrame != NULL )
 		destroy_myframe( &(look->DefaultFrame) );
-#endif /* ! NO_TEXTURE */
     if( look->DefaultFrame == NULL )
         look->DefaultFrame = create_default_myframe(default_title_align|ALIGN_VCENTER);
 
@@ -1540,13 +1530,11 @@ assign_pixmap (char *text, FILE * fd, char **arg, int *junk)
 void
 SetTitleText (char *tline, FILE * fd, char **junk, int *junk2)
 {
-#ifndef NO_TEXTURE
 	int           ttype, y;
 
     sscanf (tline, "%d %d", &ttype, &y);
     TitleTextType = ttype;
     TitleTextY = y;
-#endif /* !NO_TEXTURE */
 }
 
 /****************************************************************************

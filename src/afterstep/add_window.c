@@ -133,9 +133,7 @@ SelectDecor (ASWindow * t)
 	ASHints *hints = t->hints ;
 	ASFlagType tflags = hints->flags ;
 
-#ifndef NO_TEXTURE
     if (!get_flags(hints->function_mask,AS_FuncResize) || !get_flags( Scr.Look.flags, DecorateFrames))
-#endif /* !NO_TEXTURE */
 	{
 		/* a wide border, with corner tiles */
 		if (get_flags(tflags,AS_Frame))

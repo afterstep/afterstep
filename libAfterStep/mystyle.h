@@ -45,12 +45,10 @@ typedef struct MyStyle
     ColorPair colors;
     ColorPair relief;
     int texture_type;
-#ifndef NO_TEXTURE
     int max_colors;
     icon_t back_icon;		/* background pixmap */
     ASGradient gradient;	/* background gradient */
     ARGB32 tint;
-#endif
   }
 MyStyle;
 

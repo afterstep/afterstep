@@ -308,7 +308,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT CXX CXXFLAGS ac_ct_CXX build build_cpu build_vendor build_os host host_cpu host_vendor host_os INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA RANLIB ac_ct_RANLIB RM MV CP MKDIR PERL FIND XARGS LDCONFIG LEX LEXLIB LEX_OUTPUT_ROOT YACC sgmltools CPP X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS EGREP x_libraries AUDIO_LIBS AUDIO_PLAY_CMD target target_cpu target_vendor target_os version app_version libafterstep_version libafterstep_version_major libafterstep_name libafterstep_file_name libafterwidget_version libafterwidget_version_major libafterwidget_name libafterwidget_file_name libafterconf_version libafterconf_version_major libafterconf_name libafterconf_file_name with_locale image_format ASCP_FLTK ASCP_FLTK_LIBS ASCP_FLTK_INCLUDES ASCP_GTK ASCP_GTK_LIBS ASCP_GTK_INCLUDES user_ldflags x_libs x_includes XEXT_LIB AFTERBASE_LIB AFTERIMAGE_LIB AFTERIMAGE_LIBS AFTERSTEP_LIB AFTERCONF_LIB WIDGETS_LIB LIBPROG LIBINSTALL DEFINE_XLOCALE with_afterdir with_imageloader with_soundplayer with_helpcommand with_startsort with_desktops with_desktops_1 with_deskgeometry enable_different_looknfeels enable_pagerbackground enable_i18n enable_menuwarp enable_savewindows enable_texture enable_shade enable_virtual enable_saveunders enable_windowlist enable_availability enable_fixeditems SCRIPT_DIR LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT CXX CXXFLAGS ac_ct_CXX build build_cpu build_vendor build_os host host_cpu host_vendor host_os INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA RANLIB ac_ct_RANLIB RM MV CP MKDIR PERL FIND XARGS LDCONFIG LEX LEXLIB LEX_OUTPUT_ROOT YACC sgmltools CPP X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS EGREP x_libraries AUDIO_LIBS AUDIO_PLAY_CMD target target_cpu target_vendor target_os version app_version libafterstep_version libafterstep_version_major libafterstep_name libafterstep_file_name libafterwidget_version libafterwidget_version_major libafterwidget_name libafterwidget_file_name libafterconf_version libafterconf_version_major libafterconf_name libafterconf_file_name with_locale image_format ASCP_FLTK ASCP_FLTK_LIBS ASCP_FLTK_INCLUDES ASCP_GTK ASCP_GTK_LIBS ASCP_GTK_INCLUDES user_ldflags x_libs x_includes XEXT_LIB AFTERBASE_LIB AFTERIMAGE_LIB AFTERIMAGE_LIBS AFTERSTEP_LIB AFTERCONF_LIB WIDGETS_LIB LIBPROG LIBINSTALL with_afterdir with_imageloader with_soundplayer with_helpcommand with_startsort with_desktops with_desktops_1 with_deskgeometry enable_different_looknfeels enable_pagerbackground enable_i18n enable_menuwarp enable_savewindows enable_texture enable_shade enable_virtual enable_saveunders enable_windowlist enable_availability enable_fixeditems SCRIPT_DIR LIBOBJS LTLIBOBJS'
 ac_subst_files='LIBAFTERBASEFILES LIBAFTERIMAGEFILES LIBAFTERSTEPFILES LIBAFTERCONFFILES MAKEFILEDEFINES MAKEFILECOMMON MAKEFILECOMMONLIB'
 
 # Initialize some variables set by options.
@@ -858,15 +858,10 @@ Optional Features:
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
   --enable-different-looknfeels
                           different look&feel for each desktop [no]
-  --enable-pagerbackground provide background support with the Pager [yes]
   --enable-i18n           support I18N [no]
   --enable-xlocale        using X_LOCALE [no]
-  --enable-menuwarp       warp mouse pointer to menus [no]
   --enable-savewindows    save windows and re-open next session [yes]
-  --enable-texture        support gradient, XPM, and JPEG textures [yes]
-  --enable-shade          support shaded windows [yes]
   --enable-virtual        support virtual desktops [yes]
-  --enable-saveunders     request saveunders for menus [yes]
   --enable-windowlist     compile built-in window-list [yes]
   --enable-availability   check for unavailable binaries [yes]
   --enable-fixeditems     enable fixed menu entries [no]
@@ -1549,13 +1544,6 @@ else
   ttf_includes=NO
 fi;
 
-# Check whether --enable-pagerbackground or --disable-pagerbackground was given.
-if test "${enable_pagerbackground+set}" = set; then
-  enableval="$enable_pagerbackground"
-  enable_pagerbackground=$enableval
-else
-  enable_pagerbackground="yes"
-fi;
 # Check whether --enable-i18n or --disable-i18n was given.
 if test "${enable_i18n+set}" = set; then
   enableval="$enable_i18n"
@@ -1570,13 +1558,6 @@ if test "${enable_xlocale+set}" = set; then
 else
   enable_xlocale="no"
 fi;
-# Check whether --enable-menuwarp or --disable-menuwarp was given.
-if test "${enable_menuwarp+set}" = set; then
-  enableval="$enable_menuwarp"
-  enable_menuwarp=$enableval
-else
-  enable_menuwarp="no"
-fi;
 # Check whether --enable-savewindows or --disable-savewindows was given.
 if test "${enable_savewindows+set}" = set; then
   enableval="$enable_savewindows"
@@ -1584,33 +1565,12 @@ if test "${enable_savewindows+set}" = set; then
 else
   enable_savewindows="yes"
 fi;
-# Check whether --enable-texture or --disable-texture was given.
-if test "${enable_texture+set}" = set; then
-  enableval="$enable_texture"
-  enable_texure=$enableval
-else
-  enable_texture="yes"
-fi;
-# Check whether --enable-shade or --disable-shade was given.
-if test "${enable_shade+set}" = set; then
-  enableval="$enable_shade"
-  enable_shade=$enableval
-else
-  enable_shade="yes"
-fi;
 # Check whether --enable-virtual or --disable-virtual was given.
 if test "${enable_virtual+set}" = set; then
   enableval="$enable_virtual"
   enable_virtual=$enableval
 else
   enable_virtual="yes"
-fi;
-# Check whether --enable-saveunders or --disable-saveunders was given.
-if test "${enable_saveunders+set}" = set; then
-  enableval="$enable_saveunders"
-  enable_saveunders=$enableval
-else
-  enable_saveunders="yes"
 fi;
 # Check whether --enable-windowlist or --disable-windowlist was given.
 if test "${enable_windowlist+set}" = set; then
@@ -1760,12 +1720,11 @@ fi;
 # Check whether --enable-reuse-font or --disable-reuse-font was given.
 if test "${enable_reuse_font+set}" = set; then
   enableval="$enable_reuse_font"
-  if test x$enableval == "xyes"; then cat >>confdefs.h <<\_ACEOF
+  if test x$enableval == "xyes"; then
+cat >>confdefs.h <<\_ACEOF
 #define MODULE_REUSE_LOADED_FONT 1
 _ACEOF
  fi
-else
-  enable_script="yes"
 fi;
 
 
@@ -5388,6 +5347,72 @@ if test $ac_cv_lib_X11_XOpenDisplay = yes; then
   x_libs="-lX11 $x_libs"
 fi
 
+if test "x$enable_xlocale" = "xyes"; then
+  echo "$as_me:$LINENO: checking for _Xsetlocale in -lX11" >&5
+echo $ECHO_N "checking for _Xsetlocale in -lX11... $ECHO_C" >&6
+if test "${ac_cv_lib_X11__Xsetlocale+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lX11 $full_x_libs $LIBS"
+cat >conftest.$ac_ext <<_ACEOF
+#line $LINENO "configure"
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+/* Override any gcc2 internal prototype to avoid an error.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+/* We use char because int might match the return type of a gcc2
+   builtin and then its argument prototype would still apply.  */
+char _Xsetlocale ();
+int
+main ()
+{
+_Xsetlocale ();
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+  (eval $ac_link) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+         { ac_try='test -s conftest$ac_exeext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  ac_cv_lib_X11__Xsetlocale=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+ac_cv_lib_X11__Xsetlocale=no
+fi
+rm -f conftest.$ac_objext conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+echo "$as_me:$LINENO: result: $ac_cv_lib_X11__Xsetlocale" >&5
+echo "${ECHO_T}$ac_cv_lib_X11__Xsetlocale" >&6
+if test $ac_cv_lib_X11__Xsetlocale = yes; then
+
+cat >>confdefs.h <<\_ACEOF
+#define X_LOCALE 1
+_ACEOF
+
+fi
+
+fi
+
+
 
 if test "x$user_ldflags" = "x"; then
 	full_x_libs=$x_libs
@@ -5976,7 +6001,8 @@ fi
 	fi
 	if test "x$have_shmimage" = "xyes"; then
 		add_lib_xext=yes
-		cat >>confdefs.h <<\_ACEOF
+
+cat >>confdefs.h <<\_ACEOF
 #define XSHMIMAGE 1
 _ACEOF
 
@@ -7003,8 +7029,9 @@ fi
 echo "$as_me:$LINENO: result: $ac_cv_lib_Xext_XShapeCombineMask" >&5
 echo "${ECHO_T}$ac_cv_lib_Xext_XShapeCombineMask" >&6
 if test $ac_cv_lib_Xext_XShapeCombineMask = yes; then
-  add_lib_xext=yes;cat >>confdefs.h <<\_ACEOF
-#define SHAPE
+  add_lib_xext=yes;
+cat >>confdefs.h <<\_ACEOF
+#define SHAPE 1
 _ACEOF
 
 fi
@@ -7074,8 +7101,9 @@ fi
 echo "$as_me:$LINENO: result: $ac_cv_lib_Xinerama_XineramaQueryScreens" >&5
 echo "${ECHO_T}$ac_cv_lib_Xinerama_XineramaQueryScreens" >&6
 if test $ac_cv_lib_Xinerama_XineramaQueryScreens = yes; then
-  x_libs="-lXinerama $x_libs";cat >>confdefs.h <<\_ACEOF
-#define HAVE_XINERAMA
+  x_libs="-lXinerama $x_libs";
+cat >>confdefs.h <<\_ACEOF
+#define HAVE_XINERAMA 1
 _ACEOF
 
 fi
@@ -7083,8 +7111,9 @@ fi
 fi
 
 if test "x$enable_sigsegv" = "xyes"; then
-  cat >>confdefs.h <<\_ACEOF
-#define HAVE_SIGSEGV_HANDLING
+
+cat >>confdefs.h <<\_ACEOF
+#define HAVE_SIGSEGV_HANDLING 1
 _ACEOF
 
 fi
@@ -7283,68 +7312,54 @@ fi
 
 fi
 
-if test "x$enable_xlocale" = "xyes"; then
-  DEFINE_XLOCALE="-DX_LOCALE"
-fi
 
-
-if test "x$enable_different_looknfeels" = "xyes"; then cat >>confdefs.h <<\_ACEOF
-#define DIFFERENTLOOKNFEELFOREACHDESKTOP
+if test "x$enable_different_looknfeels" = "xyes"; then
+cat >>confdefs.h <<\_ACEOF
+#define DIFFERENTLOOKNFEELFOREACHDESKTOP 1
 _ACEOF
  fi
-if test "x$enable_pagerbackground" = "xyes"; then cat >>confdefs.h <<\_ACEOF
-#define PAGER_BACKGROUND 1
-_ACEOF
- fi
-if test "x$enable_i18n" = "xyes"; then cat >>confdefs.h <<\_ACEOF
+if test "x$enable_i18n" = "xyes"; then
+cat >>confdefs.h <<\_ACEOF
 #define I18N 1
 _ACEOF
  fi
-if test "x$enable_menuwarp" = "xno"; then cat >>confdefs.h <<\_ACEOF
-#define NO_WARPPOINTERTOMENU 1
-_ACEOF
- fi
-if test "x$enable_savewindows" = "xno"; then cat >>confdefs.h <<\_ACEOF
+if test "x$enable_savewindows" = "xno"; then
+cat >>confdefs.h <<\_ACEOF
 #define NO_SAVEWINDOWS 1
 _ACEOF
  fi
-if test "x$enable_texture" = "xno"; then cat >>confdefs.h <<\_ACEOF
-#define NO_TEXTURE 1
-_ACEOF
- fi
-if test "x$enable_shade" = "xno"; then cat >>confdefs.h <<\_ACEOF
-#define NO_SHADE 1
-_ACEOF
- fi
-if test "x$enable_virtual" = "xno"; then cat >>confdefs.h <<\_ACEOF
+if test "x$enable_virtual" = "xno"; then
+cat >>confdefs.h <<\_ACEOF
 #define NO_VIRTUAL 1
 _ACEOF
  fi
-if test "x$enable_saveunders" = "xno"; then cat >>confdefs.h <<\_ACEOF
-#define NO_SAVEUNDERS 1
-_ACEOF
- fi
-if test "x$enable_windowlist" = "xno"; then cat >>confdefs.h <<\_ACEOF
+if test "x$enable_windowlist" = "xno"; then
+cat >>confdefs.h <<\_ACEOF
 #define NO_WINDOWLIST 1
 _ACEOF
  fi
-if test "x$enable_availability" = "xno"; then cat >>confdefs.h <<\_ACEOF
+if test "x$enable_availability" = "xno"; then
+cat >>confdefs.h <<\_ACEOF
 #define NO_AVAILABILITYCHECK 1
 _ACEOF
  fi
-if test "x$enable_fixeditems" = "xyes"; then cat >>confdefs.h <<\_ACEOF
+if test "x$enable_fixeditems" = "xyes"; then
+cat >>confdefs.h <<\_ACEOF
 #define FIXED_DIR "fixed"
 _ACEOF
  fi
-if test "x$enable_audit" = "xyes"; then cat >>confdefs.h <<\_ACEOF
+if test "x$enable_audit" = "xyes"; then
+cat >>confdefs.h <<\_ACEOF
 #define DEBUG_ALLOCS 1
 _ACEOF
  fi
-if test "x$enable_trace" = "xyes"; then cat >>confdefs.h <<\_ACEOF
+if test "x$enable_trace" = "xyes"; then
+cat >>confdefs.h <<\_ACEOF
 #define DEBUG_TRACE 1
 _ACEOF
  fi
-if test "x$enable_trace_x" = "xyes"; then cat >>confdefs.h <<\_ACEOF
+if test "x$enable_trace_x" = "xyes"; then
+cat >>confdefs.h <<\_ACEOF
 #define DEBUG_TRACE_X 1
 _ACEOF
  fi
@@ -7441,7 +7456,8 @@ _ACEOF
 fi
 done
 
-	cat >>confdefs.h <<\_ACEOF
+
+cat >>confdefs.h <<\_ACEOF
 #define DO_SEND_POSTCARD 1
 _ACEOF
 
@@ -7475,7 +7491,6 @@ test -n "$target_alias" &&
   test "$program_prefix$program_suffix$program_transform_name" = \
     NONENONEs,x,x, &&
   program_prefix=${target_alias}-
-
 
 
 
@@ -8302,7 +8317,6 @@ s,@AFTERCONF_LIB@,$AFTERCONF_LIB,;t t
 s,@WIDGETS_LIB@,$WIDGETS_LIB,;t t
 s,@LIBPROG@,$LIBPROG,;t t
 s,@LIBINSTALL@,$LIBINSTALL,;t t
-s,@DEFINE_XLOCALE@,$DEFINE_XLOCALE,;t t
 s,@with_afterdir@,$with_afterdir,;t t
 s,@with_imageloader@,$with_imageloader,;t t
 s,@with_soundplayer@,$with_soundplayer,;t t

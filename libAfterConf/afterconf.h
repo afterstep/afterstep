@@ -129,8 +129,6 @@ void DestroyBaseConfig (BaseConfig * config);
 
 #define MYSTYLE_ID_END					MYSTYLE_ID_START+20
 
-#ifndef NO_TEXTURE
-
 #define MYSTYLE_TERMS \
 {TF_NO_MYNAME_PREPENDING,"MyStyle", 	7, TT_QUOTED_TEXT, MYSTYLE_START_ID	, NULL},\
 {TF_NO_MYNAME_PREPENDING,"Inherit", 	7, TT_PATHNAME, MYSTYLE_INHERIT_ID	, NULL},\
@@ -143,20 +141,6 @@ void DestroyBaseConfig (BaseConfig * config);
 {TF_NO_MYNAME_PREPENDING,"BackPixmap",	10,TT_INTEGER, MYSTYLE_BACKPIXMAP_ID	, NULL},\
 {TF_NO_MYNAME_PREPENDING,"DrawTextBackground",18,TT_FLAG, MYSTYLE_DRAWTEXTBACKGROUND_ID, NULL},\
 {TF_NO_MYNAME_PREPENDING|TF_SYNTAX_TERMINATOR,"~MyStyle", 	8, TT_FLAG, MYSTYLE_DONE_ID		, NULL}
-
-#else
-
-#define MYSTYLE_TERMS \
-{TF_NO_MYNAME_PREPENDING,"MyStyle", 	7, TT_QUOTED_TEXT, MYSTYLE_START_ID	, NULL, NULL},\
-{TF_NO_MYNAME_PREPENDING,"Inherit", 	7, TT_QUOTED_TEXT, MYSTYLE_INHERIT_ID	, NULL, NULL},\
-{TF_NO_MYNAME_PREPENDING,"Font",    	4, TT_FONT, MYSTYLE_FONT_ID		, NULL, NULL},\
-{TF_NO_MYNAME_PREPENDING,"ForeColor",	9, TT_COLOR, MYSTYLE_FORECOLOR_ID	, NULL, NULL},\
-{TF_NO_MYNAME_PREPENDING,"BackColor",	9, TT_COLOR, MYSTYLE_BACKCOLOR_ID	, NULL, NULL},\
-{TF_NO_MYNAME_PREPENDING,"TextStyle",	9, TT_INTEGER, MYSTYLE_TEXTSTYLE_ID	, NULL, NULL},\
-{TF_NO_MYNAME_PREPENDING,"DrawTextBackground",18,TT_FLAG, MYSTYLE_DRAWTEXTBACKGROUND_ID, NULL, NULL},\
-{TF_NO_MYNAME_PREPENDING|TF_SYNTAX_TERMINATOR,"~MyStyle", 	8, TT_FLAG, MYSTYLE_DONE_ID		, NULL, NULL}
-
-#endif
 
 extern struct SyntaxDef MyStyleSyntax;
 /* use this in module term definition to add MyStyle parsing functionality */
@@ -1131,7 +1115,6 @@ int WriteWharfOptions (const char *filename, char *myname,
 #define LOOK_IconFont_ID		(LOOK_DEPRECIATED_ID_START+15)
 #define LOOK_TitleTextMode_ID		(LOOK_DEPRECIATED_ID_START+16)
 
-#ifndef NO_TEXTURE
 #define LOOK_TextureTypes_ID		(LOOK_DEPRECIATED_ID_START+17)
 #define LOOK_TextureMaxColors_ID	(LOOK_DEPRECIATED_ID_START+18)
 #define LOOK_TitleTextureColor_ID	(LOOK_DEPRECIATED_ID_START+19)	/* title */
@@ -1152,7 +1135,6 @@ int WriteWharfOptions (const char *filename, char *myname,
 #define LOOK_ButtonTextureColor_ID	(LOOK_DEPRECIATED_ID_START+33)
 #define LOOK_ButtonMaxColors_ID		(LOOK_DEPRECIATED_ID_START+34)
 #define LOOK_ButtonPixmap_ID		(LOOK_DEPRECIATED_ID_START+35)
-#endif
 
 #define LOOK_DEPRECIATED_ID_END		(LOOK_DEPRECIATED_ID_START+48)
 
@@ -1161,7 +1143,6 @@ int WriteWharfOptions (const char *filename, char *myname,
 
 #define LOOK_IconBox_ID             (LOOK_SUPPORTED_ID_START)
 
-#ifndef NO_TEXTURE
 #define LOOK_MArrowPixmap_ID		(LOOK_SUPPORTED_ID_START+1)	/* menu arrow */
 #define LOOK_MenuPinOn_ID           (LOOK_SUPPORTED_ID_START+2) /* menu pin */
 #define LOOK_MenuPinOff_ID          (LOOK_SUPPORTED_ID_START+3)
@@ -1171,7 +1152,6 @@ int WriteWharfOptions (const char *filename, char *myname,
 #define LOOK_GradientText_ID		(LOOK_SUPPORTED_ID_START+7)
 #define LOOK_TitlebarNoPush_ID		(LOOK_SUPPORTED_ID_START+9)
 #define LOOK_ButtonNoBorder_ID		(LOOK_SUPPORTED_ID_START+10)
-#endif /* NO_TEXTURE */
 #define LOOK_TitleTextAlign_ID		(LOOK_SUPPORTED_ID_START+11)
 #define LOOK_TitleButtonSpacing_ID	(LOOK_SUPPORTED_ID_START+12)
 #define LOOK_TitleButtonStyle_ID	(LOOK_SUPPORTED_ID_START+13)
@@ -1237,13 +1217,11 @@ typedef struct LookConfig
   ASBox *icon_boxes;
   short unsigned int icon_boxes_num;
 
-#ifndef NO_TEXTURE
   char *menu_arrow;		/* menu arrow */
   char *menu_pin_on;		/* menu pin */
   char *menu_pin_off;
 
   char *text_gradient[2];	/* title text */
-#endif				/* NO_TEXTURE */
   unsigned short int title_text_align;
   short int title_button_spacing;
   unsigned short int title_button_style;

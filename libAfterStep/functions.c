@@ -647,14 +647,12 @@ new_menu_data_item( MenuData *menu )
 void
 assign_minipixmap( MenuDataItem *mdi, char *minipixmap )
 {
-#ifndef NO_TEXTURE
     if( mdi && minipixmap )
     {
         if( mdi->minipixmap )
             free( mdi->minipixmap );
         mdi->minipixmap = mystrdup( minipixmap );
     }
-#endif
 }
 
 static void

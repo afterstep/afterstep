@@ -73,9 +73,7 @@ TermDef       PagerTerms[] = {
     {0, "StickyIcons", 11, TT_FLAG, PAGER_STICKY_ICONS_ID, NULL},
     {TF_DONT_SPLIT, "ShadeButton", 11, TT_TEXT, PAGER_SHADE_BUTTON_ID, NULL},
     {TF_INDEXED, "Label", 5, TT_TEXT, PAGER_LABEL_ID, NULL},
-#ifdef PAGER_BACKGROUND
     {TF_INDEXED, "Style", 5, TT_TEXT, PAGER_STYLE_ID, NULL},
-#endif 
     {0, "ActiveDeskBevel", 15,   TT_FLAG, PAGER_ActiveBevel_ID   , &BevelSyntax},
     {0, "InActiveDeskBevel", 17, TT_FLAG, PAGER_InActiveBevel_ID , &BevelSyntax},
 
@@ -111,11 +109,7 @@ CreatePagerConfig (int ndesks)
 	init_asgeometry (&(config->icon_geometry));
 	init_asgeometry (&(config->geometry));
 	config->labels = CreateStringArray (ndesks);
-#ifdef PAGER_BACKGROUND
 	config->styles = CreateStringArray (ndesks);
-#else
-	config->styles = NULL;
-#endif
 	config->align = 0;
 	config->flags = PAGER_FLAGS_DEFAULT;
 	config->set_flags = 0;
@@ -142,10 +136,8 @@ DestroyPagerConfig (PagerConfig * config)
 {
 	if (config->labels)
 		free (config->labels);
-#ifdef PAGER_BACKGROUND
 	if (config->styles)
 		free (config->styles);
-#endif
 /*
     if( config->shade_button[0] )
         free (config->shade_button[0]);
@@ -334,11 +326,9 @@ ParsePagerOptions (const char *filename, char *myname, int desk1, int desk2)
 			 case PAGER_LABEL_ID:
 				 config->labels[item.index - desk1] = item.data.string;
 				 break;
-#ifdef PAGER_BACKGROUND
 			 case PAGER_STYLE_ID:
 				 config->styles[item.index - desk1] = item.data.string;
 				 break;
-#endif
 			 case PAGER_SHADE_BUTTON_ID:
 				 if (item.data.string)
 				 {
@@ -403,9 +393,7 @@ WritePagerOptions (const char *filename, char *myname, int desk1, int desk2, Pag
 	/* labels */
 	tail = StringArray2FreeStorage (&PagerSyntax, tail, config->labels, desk1, desk2, PAGER_LABEL_ID);
 	/* styles */
-#ifdef PAGER_BACKGROUND
 	tail = StringArray2FreeStorage (&PagerSyntax, tail, config->styles, desk1, desk2, PAGER_STYLE_ID);
-#endif
 	/* align */
 	tail = Integer2FreeStorage (&PagerSyntax, tail, config->align, PAGER_ALIGN_ID);
 	/* flags */

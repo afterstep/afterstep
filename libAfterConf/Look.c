@@ -259,7 +259,6 @@ TermDef       LookTerms[] = {
     {TF_DEPRECIATED|TF_NO_MYNAME_PREPENDING, "HiForeColor", 11, TT_COLOR, LOOK_HiForeColor_ID, NULL},
     {TF_DEPRECIATED|TF_NO_MYNAME_PREPENDING, "HiBackColor", 11, TT_COLOR, LOOK_HiBackColor_ID, NULL},
     {TF_DEPRECIATED|TF_NO_MYNAME_PREPENDING, "IconFont", 8, TT_FONT, LOOK_IconFont_ID, NULL},
-#ifndef NO_TEXTURE
     {TF_DEPRECIATED|TF_NO_MYNAME_PREPENDING, "TextureTypes", 12, TT_INTARRAY, LOOK_TextureTypes_ID, NULL},
     {TF_OBSOLETE   |TF_NO_MYNAME_PREPENDING, "TextureMaxColors", 16, TT_INTARRAY, LOOK_TextureMaxColors_ID, NULL},
     {TF_DEPRECIATED|TF_NO_MYNAME_PREPENDING, "TitleTextureColor", 17, TT_COLOR, LOOK_TitleTextureColor_ID, NULL},                                          /* title */
@@ -280,7 +279,6 @@ TermDef       LookTerms[] = {
     {TF_DEPRECIATED|TF_NO_MYNAME_PREPENDING, "ButtonTextureColor", 18, TT_COLOR, LOOK_ButtonTextureColor_ID, NULL},
     {TF_OBSOLETE   |TF_NO_MYNAME_PREPENDING, "ButtonMaxColors", 15, TT_UINTEGER, LOOK_ButtonMaxColors_ID, NULL},
     {TF_DEPRECIATED|TF_NO_MYNAME_PREPENDING, "ButtonPixmap", 12, TT_FILENAME, LOOK_ButtonPixmap_ID, NULL},
-#endif
     {TF_NO_MYNAME_PREPENDING, "TitleTextMode", 13, TT_UINTEGER, LOOK_TitleTextMode_ID, NULL},
 
 /* non depreciated options : */
@@ -288,7 +286,6 @@ TermDef       LookTerms[] = {
 	/* including MyStyles definitions processing */
 	INCLUDE_MYSTYLE,
 
-#ifndef NO_TEXTURE
     {TF_NO_MYNAME_PREPENDING, "MArrowPixmap", 12, TT_FILENAME, LOOK_MArrowPixmap_ID, NULL},                                          /* menu arrow */
     {TF_NO_MYNAME_PREPENDING, "MenuPinOn", 9, TT_FILENAME, LOOK_MenuPinOn_ID, NULL},                                          /* menu pin */
     {TF_NO_MYNAME_PREPENDING, "MenuPinOff", 10, TT_FILENAME, LOOK_MenuPinOff_ID, NULL},
@@ -298,7 +295,6 @@ TermDef       LookTerms[] = {
     {TF_NO_MYNAME_PREPENDING, "GradientText", 12, TT_FLAG, LOOK_GradientText_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "TitlebarNoPush", 14, TT_FLAG, LOOK_TitlebarNoPush_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "ButtonNoBorder", 14, TT_FLAG, LOOK_ButtonNoBorder_ID, NULL},
-#endif /* NO_TEXTURE */
 /* TitleButtonBalloons */
     {TF_NO_MYNAME_PREPENDING, "TitleButtonBalloons", 19, TT_FLAG, BALLOON_USED_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "TitleButtonBalloonBorderHilite", 29, TT_FLAG, BALLOON_BorderHilite_ID, &BevelSyntax},
@@ -361,13 +357,11 @@ SyntaxDef     LookSyntax = {
 };
 
 flag_options_xref LookFlagsXref[] = {
-#ifndef NO_TEXTURE
     {TxtrMenuItmInd, LOOK_TxtrMenuItmInd_ID, 0},
     {MenuMiniPixmaps, LOOK_MenuMiniPixmaps_ID, 0},
     {GradientText, LOOK_GradientText_ID, 0},
     {IconNoBorder, LOOK_ButtonNoBorder_ID, 0},
     {SeparateButtonTitle, LOOK_SeparateButtonTitle_ID, 0},
-#endif /* NO_TEXTURE */
 	{0, 0, 0}
 
 };
@@ -1009,7 +1003,6 @@ DestroyLookConfig (LookConfig * config)
 {
 	register int  i;
 
-#ifndef NO_TEXTURE
 	if (config->menu_arrow != NULL)
 		free (config->menu_arrow);			   /* menu arrow */
 	if (config->menu_pin_on != NULL)
@@ -1020,7 +1013,6 @@ DestroyLookConfig (LookConfig * config)
 	for (i = 0; i < 2; i++)
 		if (config->text_gradient[i] != NULL)
 			free (config->text_gradient[i]);   /* title text */
-#endif /* NO_TEXTURE */
 	for (i = 0; i < MAX_BUTTONS; i++)
     {
         if (config->normal_buttons[i] != NULL)
@@ -1201,7 +1193,6 @@ merge_depreciated_options (LookConfig * config, FreeStorageElem * Storage)
 			 set_flags (change_flags, CHANGED_WINDOW);
 			 break;
 
-#ifndef NO_TEXTURE
 		 case LOOK_TextureTypes_ID:
 			 array = &(TextureTypes[0]);	   /* will process it down below */
 			 break;
@@ -1292,7 +1283,6 @@ merge_depreciated_options (LookConfig * config, FreeStorageElem * Storage)
 		 case LOOK_ButtonPixmap_ID:
 			 set_string_value (&ButtonPixmap, item.data.string, &change_flags, CHANGED_ICON);
 			 break;
-#endif
 		 default:
 			 item.ok_to_free = 1;
 		}

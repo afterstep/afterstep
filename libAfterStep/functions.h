@@ -39,9 +39,7 @@ typedef enum {
 #endif
   F_POPUP,
   F_FUNCTION,
-#ifndef NO_TEXTURE
   F_MINIPIXMAP,
-#endif
   F_EXEC,
   F_MODULE,
   F_KILLMODULEBYNAME,

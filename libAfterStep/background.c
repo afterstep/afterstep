@@ -124,15 +124,13 @@ BackgroundSetMyStyle (char *style_name)
 	if ((style = mystyle_find (style_name)) != NULL)
 	{
 		LOG2 ("\nBackgroundSetMyStyle( %s ) ", style_name)
-#ifndef NO_TEXTURE
-			if ((style->set_flags & F_BACKPIXMAP) && style->texture_type != 129)
+	  	if ((style->set_flags & F_BACKPIXMAP) && style->texture_type != 129)
 		{
 			/* we don't want to free this pixmap ourselves */
 			BackgroundSetPixmap (style->back_icon.pix);
 			return None;
 		} else if (style->set_flags & F_BACKGRADIENT)
 			pix = mystyle_make_pixmap (style, Scr.MyDisplayWidth, Scr.MyDisplayHeight, None);
-#endif
 		if (pix == None)
 		{
 			GC            backGC, foreGC;

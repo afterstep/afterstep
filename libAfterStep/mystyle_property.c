@@ -43,10 +43,7 @@ mystyle_list_set_property (ASWMProps *wmprops, ASHashTable *list )
     if( !start_hash_iteration( list, &iterator ) ) return ;
 	do
 	{
-        nelements += 9;
-#ifndef NO_TEXTURE
-        nelements += 7 + ((MyStyle*)curr_hash_data(&iterator))->gradient.npoints * 4;
-#endif /* NO_TEXTURE */
+        nelements += 9 + 7 + ((MyStyle*)curr_hash_data(&iterator))->gradient.npoints * 4;
     }while( next_hash_item(&iterator));
 
 	prop = safemalloc (sizeof (CARD32) * nelements);
@@ -67,7 +64,6 @@ mystyle_list_set_property (ASWMProps *wmprops, ASHashTable *list )
 		prop[i++] = style->relief.fore;
 		prop[i++] = style->relief.back;
 		prop[i++] = style->texture_type;
-#ifndef NO_TEXTURE
 		prop[i++] = style->max_colors;
 		prop[i++] = style->back_icon.pix;
 		prop[i++] = style->back_icon.mask;
@@ -88,7 +84,6 @@ mystyle_list_set_property (ASWMProps *wmprops, ASHashTable *list )
 				prop[i++] = style->gradient.offset[k] * 0x1000000;
 			}
 		}
-#endif /* NO_TEXTURE */
     }while( next_hash_item(&iterator));
 	/* set the property version to 1.2 */
     set_as_style (wmprops, nelements * sizeof (CARD32), (1 << 8) + 2, prop );
@@ -134,7 +129,6 @@ mystyle_get_property (ASWMProps *wmprops)
 		/* free up any resources that are already in use */
 		if (style->user_flags & F_FONT)
             unload_font (&style->font);
-#ifndef NO_TEXTURE
 		if (style->user_flags & F_BACKGRADIENT)
 		{
 			free (style->gradient.color);
@@ -145,7 +139,6 @@ mystyle_get_property (ASWMProps *wmprops)
             safe_asimage_destroy (style->back_icon.image);
             style->back_icon.image = NULL ;
         }
-#endif /* NO_TEXTURE */
 
 		style->user_flags = 0;
 		style->inherit_flags = flags;
@@ -178,7 +171,6 @@ mystyle_get_property (ASWMProps *wmprops)
 		style->relief.fore = prop[i + 6];
 		style->relief.back = prop[i + 7];
 		style->texture_type = prop[i + 8];
-#ifndef NO_TEXTURE
 		style->max_colors = prop[i + 9];
 		style->back_icon.pix = prop[i + 10];
 		style->back_icon.mask = prop[i + 11];
@@ -250,9 +242,7 @@ mystyle_get_property (ASWMProps *wmprops)
 			}
 		}
 
-		i += 7 + style->gradient.npoints * 4;
-#endif /* NO_TEXTURE */
-		i += 9;
+		i += 9 + 7 + style->gradient.npoints * 4;
 		LOCAL_DEBUG_OUT( "user_flags = 0x%X, inherit_flags = 0x%X", style->user_flags, style->inherit_flags );
 		style->set_flags = style->user_flags | style->inherit_flags;
 	}

@@ -337,9 +337,7 @@ WriteWinTabsOptions (const char *filename, char *myname, WinTabsConfig * config,
 	/* labels */
 	tail = StringArray2FreeStorage (&PagerSyntax, tail, config->labels, desk1, desk2, PAGER_LABEL_ID);
 	/* styles */
-#ifdef PAGER_BACKGROUND
 	tail = StringArray2FreeStorage (&PagerSyntax, tail, config->styles, desk1, desk2, PAGER_STYLE_ID);
-#endif
 	/* align */
 	tail = Integer2FreeStorage (&PagerSyntax, tail, config->align, PAGER_ALIGN_ID);
 	/* flags */
