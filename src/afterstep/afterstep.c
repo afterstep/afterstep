@@ -86,6 +86,9 @@
 
 #define MAXHOSTNAME 255
 
+struct ASDatabase    *Database = NULL;
+
+
 TextureInfo   Textures;						   /* texture information */
 
 char         *MyName;						   /* name are we known by */

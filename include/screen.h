@@ -11,6 +11,7 @@
 #include "style.h"
 #include "clientprops.h"
 #include "hints.h"
+#include "asdatabase.h"
 
 #define SIZE_HINDENT 5
 #define SIZE_VINDENT 3

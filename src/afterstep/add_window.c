@@ -351,6 +351,154 @@ create_titlebutton_windows (ASWindow * tmp_win)
 	return True;
 }
 
+void 
+bind_aswindow_styles(ASWindow *t)
+{
+	char **styles_names = t->hints->mystyle_names ;
+	
+	t->style_focus = styles_names[BACK_FOCUSED]?mystyle_find (styles_names[BACK_FOCUSED]):NULL ;
+	if( t->style_focus == NULL )
+		t->style_focus = Scr.MSFWindow;
+	t->style_unfocus = styles_names[BACK_UNFOCUSED]?mystyle_find (styles_names[BACK_UNFOCUSED]):NULL ;
+	if( t->style_focus == NULL )
+		t->style_focus = Scr.MSUWindow;
+	t->style_sticky = styles_names[BACK_STICKY]?mystyle_find (styles_names[BACK_STICKY]):NULL ;
+	if( t->style_focus == NULL )
+		t->style_focus = Scr.MSSWindow;
+}
+
+/****************************************************************************
+ * Interprets the property MOTIF_WM_HINTS, sets decoration and functions
+ * accordingly
+ *****************************************************************************/
+void
+SelectDecor (ASWindow * t)
+{
+	int           decor;
+	int border_width =0, resize_width = 0;
+
+	if (!(tflags & BW_FLAG))
+		border_width = Scr.NoBoundaryWidth;
+
+	if (!(tflags & NOBW_FLAG))
+		resize_width = Scr.BoundaryWidth;
+
+	decor = MWM_DECOR_ALL;
+	t->functions = MWM_FUNC_ALL;
+	if (t->mwm_hints)
+	{
+		prop = (MwmHints *) t->mwm_hints;
+		if ((Scr.flags & MWMDecorHints) && (prop->flags & MWM_HINTS_DECORATIONS))
+			decor = prop->decorations;
+
+		if ((Scr.flags & MWMFunctionHints) && (prop->flags & MWM_HINTS_FUNCTIONS))
+			t->functions = prop->functions;
+	}
+	/* functions affect the decorations! if the user says
+	 * no iconify function, then the iconify button doesn't show
+	 * up. */
+	if (t->functions & MWM_FUNC_ALL)
+	{
+		/* If we get ALL + some other things, that means to use
+		 * ALL except the other things... */
+		t->functions &= ~MWM_FUNC_ALL;
+		t->functions = (MWM_FUNC_RESIZE | MWM_FUNC_MOVE | MWM_FUNC_MINIMIZE |
+						MWM_FUNC_MAXIMIZE | MWM_FUNC_CLOSE) & (~(t->functions));
+	}
+
+	if ((Scr.flags & MWMFunctionHints) && (t->flags & TRANSIENT))
+		t->functions &= ~(MWM_FUNC_MAXIMIZE | MWM_FUNC_MINIMIZE);
+
+	if (decor & MWM_DECOR_ALL)
+	{
+		/* If we get ALL + some other things, that means to use
+		 * ALL except the other things... */
+		decor &= ~MWM_DECOR_ALL;
+		decor = (MWM_DECOR_BORDER | MWM_DECOR_RESIZEH | MWM_DECOR_TITLE |
+				 MWM_DECOR_MENU | MWM_DECOR_MINIMIZE | MWM_DECOR_MAXIMIZE) & (~decor);
+	}
+	/* Now I have the un-altered decor and functions, but with the
+	 * ALL attribute cleared and interpreted. I need to modify the
+	 * decorations that are affected by the functions */
+	if (!(t->functions & MWM_FUNC_RESIZE))
+		decor &= ~MWM_DECOR_RESIZEH;
+	/* MWM_FUNC_MOVE has no impact on decorations. */
+	if (!(t->functions & MWM_FUNC_MINIMIZE))
+		decor &= ~MWM_DECOR_MINIMIZE;
+	if (!(t->functions & MWM_FUNC_MAXIMIZE))
+		decor &= ~MWM_DECOR_MAXIMIZE;
+	/* MWM_FUNC_CLOSE has no impact on decorations. */
+
+	/* This rule is implicit, but its easier to deal with if
+	 * I take care of it now */
+	if (decor & (MWM_DECOR_MENU | MWM_DECOR_MINIMIZE | MWM_DECOR_MAXIMIZE))
+		decor |= MWM_DECOR_TITLE;
+
+	/* Selected the mwm-decor field, now trim down, based on configuration
+	 * files entries */
+	if ((tflags & NOTITLE_FLAG) || ((!(Scr.flags & DecorateTransients)) && (t->flags & TRANSIENT)))
+		decor &= ~MWM_DECOR_TITLE;
+
+	if ((tflags & NOHANDLES_FLAG)
+		|| ((!(Scr.flags & DecorateTransients)) && (t->flags & TRANSIENT)))
+		decor &= ~MWM_DECOR_RESIZEH;
+
+	if ((Scr.flags & MWMDecorHints) && (t->flags & TRANSIENT))
+		decor &= ~(MWM_DECOR_MAXIMIZE | MWM_DECOR_MINIMIZE);
+
+#ifdef SHAPE
+	if (t->wShaped)
+		decor &= ~(BORDER | MWM_DECOR_RESIZEH | FRAME);
+#endif
+	/* Assume no decorations, and build up */
+	t->flags &= ~(BORDER | TITLE | FRAME);
+	t->boundary_width = 0;
+	t->boundary_height = 0;
+	t->corner_width = 0;
+	t->title_width = 0;
+	t->title_height = 0;
+	t->button_height = 0;
+
+	if (decor & MWM_DECOR_TITLE)
+	{
+		/* a titlebar with no buttons in it */
+		t->flags |= TITLE;
+	}
+	if (decor & MWM_DECOR_RESIZEH)
+	{
+		/* a wide border, with corner tiles */
+#ifndef NO_TEXTURE
+		if (DecorateFrames)
+			t->flags |= FRAME;
+		else
+#endif /* !NO_TEXTURE */
+			t->flags |= BORDER;
+	}
+	if (!(decor & MWM_DECOR_MENU))
+		disable_titlebuttons_with_function (t, F_POPUP);
+	if (!(decor & MWM_DECOR_MINIMIZE))
+		disable_titlebuttons_with_function (t, F_ICONIFY);
+	if (!(decor & MWM_DECOR_MAXIMIZE))
+		disable_titlebuttons_with_function (t, F_MAXIMIZE);
+
+	t->boundary_width = 0;
+	t->boundary_height = (t->flags & BORDER) ? Scr.BoundaryWidth : 0;
+	t->corner_width = 16 + t->boundary_height;
+
+	if (t->flags & FRAME)
+		t->bw = 0;
+	else
+		t->bw = 1;
+
+	if (tflags & NOHANDLES_FLAG)
+		t->bw = border_width;
+	if (t->boundary_height == 0)
+		t->flags &= ~BORDER;
+	t->button_height = t->title_height - 7;
+}
+
+
+
 /***********************************************************************
  *
  *  Procedure:
@@ -412,7 +560,7 @@ AddWindow (Window w)
     {
         if( is_output_level_under_threshold(OUTPUT_LEVEL_HINTS) )
             print_hints( NULL, NULL, &raw_hints );
-        hints = merge_hints( &raw_hints, NULL, &status, Scr.supported_hints, HINT_ANY, NULL );
+        hints = merge_hints( &raw_hints, Database, &status, Scr.supported_hints, HINT_ANY, NULL );
         destroy_raw_hints( &raw_hints, True );
         if( hints )
         {
@@ -477,26 +625,15 @@ AddWindow (Window w)
 		tmp_win->flags |= BORDER;
 	tmp_win->flags |= TITLE;
 
+	bind_aswindow_styles(tmp_win);
+	/* TODO add button translation everywhere */
+	tmp_win->buttons = ~(tmp_win->hints->disabled_buttons) ;
+	
+	/* Old stuff - needs to be updated to use tmp_win->hints :*/	
 	style_init (&nl);
-
-	nl.off_buttons = tmp_win->buttons;
 	style_fill_by_name (&nl, &(tmp_win->hints->names[0]));
-	tmp_win->buttons = nl.off_buttons;
-
-	if (!(nl.off_flags & STYLE_FOCUS_FLAG) ||
-		(tmp_win->style_focus = mystyle_find (nl.style_focus)) == NULL)
-		tmp_win->style_focus = Scr.MSFWindow;
-	if (!(nl.off_flags & STYLE_UNFOCUS_FLAG) ||
-		(tmp_win->style_unfocus = mystyle_find (nl.style_unfocus)) == NULL)
-		tmp_win->style_unfocus = Scr.MSUWindow;
-	if (!(nl.off_flags & STYLE_STICKY_FLAG) ||
-		(tmp_win->style_sticky = mystyle_find (nl.style_sticky)) == NULL)
-		tmp_win->style_sticky = Scr.MSSWindow;
-
-	GetMwmHints (tmp_win);
 
 	SelectDecor (tmp_win, nl.off_flags, nl.border_width, nl.resize_width);
-
 	if (nl.ViewportX >= 0 || nl.ViewportY >= 0)
 	{
 		if (nl.off_flags & STICKY_FLAG)

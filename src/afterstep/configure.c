@@ -68,6 +68,8 @@
 #include "../../include/style.h"
 #include "../../include/screen.h"
 #include "../../include/loadimg.h"
+#include "../../include/parser.h"
+#include "../../include/confdefs.h"
 #include "../../libAfterImage/afterimage.h"
 #include "../../include/mystyle_property.h"
 
@@ -137,8 +139,6 @@ char          loncolor[15];
 char          lorcolor[15];
 char          loscolor[15];
 
-extern void   InitTextureData (TextureInfo * info, char *title, char *utitle,
-							   char *mtitle, char *item, char *mhilite, char *sticky, char *text);
 int           IconTexType = TEXTURE_BUILTIN;
 char         *IconBgColor;
 char         *IconTexColor;
@@ -186,7 +186,7 @@ struct config main_config[] = {
 	/* database options */
 	{"DeskTopScale", SetInts, (char **)&Scr.VScale, &dummy},
 	{"DeskTopSize", SetInts, (char **)&Scr.VxMax, &Scr.VyMax},
-	{"Style", style_parse, (char **)0, (int *)0},
+//	{"Style", style_parse, (char **)0, (int *)0},
 
 	/* feel options */
 	{"StubbornIcons", SetFlag, (char **)StubbornIcons, (int *)0},
@@ -1111,6 +1111,59 @@ InitFeel (Bool free_resources)
 /*
  * Initialize database variables
  */
+ 
+void
+InitDatabase (Bool free_resources)
+{
+	if (free_resources)
+    {
+        destroy_asdb( &Database );
+        /* XResources : */
+        destroy_user_database();
+    }else
+        Database = NULL ;
+}
+
+void
+ParseDatabase (const char *file)
+{
+    struct name_list *list = NULL ;
+	char         *realfilename;
+
+	/* memory management for parsing buffer */
+	if (file == NULL)
+		return;
+
+	realfilename = make_file_name (as_dirs.after_dir, file);
+	if (CheckFile (realfilename) != 0)
+	{
+		free (realfilename);
+		realfilename = make_file_name (as_dirs.after_sharedir, file);
+		if (CheckFile (realfilename) != 0)
+		{
+			free (realfilename);
+			return;
+		}
+	}
+    if (realfilename)
+	{
+        list = ParseDatabaseOptions (realfilename, "afterstep");
+		free (realfilename);
+	}
+
+    if( list )
+    {
+        Database = build_asdb( list );
+        if( is_output_level_under_threshold( OUTPUT_LEVEL_DATABASE ) )
+            print_asdb( NULL, NULL, Database );
+        while (list != NULL)
+            delete_name_list (&(list));
+    }
+    /* XResources : */
+    load_user_database();
+}
+ 
+/* 
 void
 InitDatabase (Bool free_resources)
 {
@@ -1124,7 +1177,7 @@ InitDatabase (Bool free_resources)
 	Scr.TheList = NULL;
 	Scr.DefaultIcon = NULL;
 }
-
+*/
 /*
  * Create/destroy window titlebar/buttons as necessary.
  */
@@ -1441,7 +1494,8 @@ LoadASConfig (const char *display_name, int thisdesktop, Bool parse_menu,
 		fprintf (stderr, ".");
 		ParseConfigFile (AUTOEXEC_FILE, &tline);
 		fprintf (stderr, ".");
-		ParseConfigFile (DATABASE_FILE, &tline);
+		ParseDatabase (DATABASE_FILE);
+		/* ParseConfigFile (DATABASE_FILE, &tline); */
 		fprintf (stderr, ".");
 	} else
 	{
@@ -1578,20 +1632,7 @@ LoadASConfig (const char *display_name, int thisdesktop, Bool parse_menu,
 	/* reset the window frame geometries */
 	for (t = Scr.ASRoot.next; t != NULL; t = t->next)
 	{
-		name_list     nl;
-
-		style_init (&nl);
-		style_fill_by_name (&nl, &(t->hints->names[0]));
-		if (!(nl.off_flags & STYLE_FOCUS_FLAG) ||
-			(t->style_focus = mystyle_find (nl.style_focus)) == NULL)
-			t->style_focus = Scr.MSFWindow;
-		if (!(nl.off_flags & STYLE_UNFOCUS_FLAG) ||
-			(t->style_unfocus = mystyle_find (nl.style_unfocus)) == NULL)
-			t->style_unfocus = Scr.MSUWindow;
-		if (!(nl.off_flags & STYLE_STICKY_FLAG) ||
-			(t->style_sticky = mystyle_find (nl.style_sticky)) == NULL)
-			t->style_sticky = Scr.MSSWindow;
-
+		bind_aswindow_styles(t);
 		set_titlebar_geometry (t);
 #ifndef NO_TEXTURE
 		frame_set_positions (t);

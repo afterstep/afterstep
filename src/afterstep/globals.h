@@ -27,4 +27,7 @@ char * strip_whitespace (char *str);
 extern XContext MenuContext;	/* context for afterstep menus */
 extern int MenuMiniPixmaps;
 
+extern struct ASDatabase    *Database;
+
+
 #endif

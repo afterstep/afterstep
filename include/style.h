@@ -1,3 +1,4 @@
+#include "asdatabase.h"
 #ifndef AS_STYLE_H
 #define AS_STYLE_H
 

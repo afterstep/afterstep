@@ -277,6 +277,9 @@ typedef struct ASWindow
   }
 ASWindow;
 
+void bind_aswindow_styles(ASWindow *t);
+
+
 
 #define TITLE_OLD		0	/* old (NEXTSTEP 3) style titlebar */
 #define TITLE_NEXT4		1	/* NEXTSTEP 4 style titlebar */
