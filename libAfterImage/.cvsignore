@@ -4,4 +4,5 @@ config.cache
 Makefile
 config.status
 afterbase.h
+afterimage-libs
 .cvsignore
