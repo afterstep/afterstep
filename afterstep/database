@@ -15,22 +15,17 @@
 # For all window to have the NEW and COOL Vertical Title bar on the side:
 # Style	"*"		VerticalTitle
 Style   "*"             Icon interface.xpm
-Style	"Unknown"	Icon Unknown.xpm
-Style   "Untitled*"     Icon AfterStep3.xpm
-Style   "*Wharf"        NoTitle, Sticky, StaysOnTop, AvoidCover
-Style   "Banner"        NoTitle, Sticky, StaysOnTop
-Style   "*Pager"        NoTitle, Sticky, StaysOnTop, WindowListSkip, NoHandles, AvoidCover
-Style   "WinList"       NoTitle, Sticky, StaysOnTop, WindowListSkip, NoHandles, AvoidCover
-Style   "*clock"        StaysOnTop, WindowListSkip, NoHandles
-Style   "ghostview"     Icon text.xpm
-Style   "gimp"          Icon logos/gimp,
-Style	"GIMP Startup"	Icon logos/gimp, NoButton 1, NoButton 2, NoButton 3, NoButton 4
-Style   "aterm"         Icon aterm
-Style   "*term"         Icon linux-penguin.xpm
-Style   "xcalc"         Icon xcalc.xpm
-Style   "xli"           Icon monalisa.xpm
-Style   "xman"          Icon xman.xpm
-Style   "XMcd"          Icon CDrom.xpm
+
+# modules :
+# note that only Wharf and WinList has AvoidCover set as AvoidCover causes effect of
+# moving other windows out of the way when window is resized/placed
+Style   "*Wharf"        NoTitle, Sticky, Layer 2, WindowListSkip, NoHandles, AvoidCover
+Style   "Banner"        NoTitle, Sticky, Layer 2, WindowListSkip, NoHandles
+Style   "WinList"       NoTitle, Sticky, Layer 2, WindowListSkip, NoHandles, AvoidCover
+# to make sure Pager always stays open we place it into the highest used level :
+Style   "*Pager"        NoTitle, Sticky, Layer 3, WindowListSkip, NoHandles
+
+#wharf apps :
 Style   "wmppp"         NoTitle, Sticky, StaysOnTop, WindowListSkip, NoHandles
 Style   "wmcdplay"      NoTitle, Sticky, StaysOnTop, WindowListSkip, NoHandles
 Style   "Mixer.app"     Sticky, StaysOnTop, WindowListSkip, NoHandles
@@ -41,6 +36,20 @@ Style   "wmmail"        NoTitle, Sticky, StaysOnTop, WindowListSkip, NoHandles
 Style   "wmmixer"       NoTitle, Sticky, StaysOnTop, WindowListSkip, NoHandles
 Style   "wmrack"        NoTitle, Sticky, StaysOnTop, WindowListSkip, NoHandles
 Style   "asload"        NoTitle, Sticky, StaysOnTop, WindowListSkip, NoHandles
+
+#the rest of apps :
+Style	"Unknown"	Icon Unknown.xpm
+Style   "Untitled*"     Icon AfterStep3.xpm
+Style   "*clock"        StaysOnTop, WindowListSkip, NoHandles
+Style   "ghostview"     Icon text.xpm
+Style   "gimp"          Icon logos/gimp,
+Style	"GIMP Startup"	Icon logos/gimp, NoButton 1, NoButton 2, NoButton 3, NoButton 4
+Style   "aterm"         Icon aterm
+Style   "*term"         Icon linux-penguin.xpm
+Style   "xcalc"         Icon xcalc.xpm
+Style   "xli"           Icon monalisa.xpm
+Style   "xman"          Icon xman.xpm
+Style   "XMcd"          Icon CDrom.xpm
 Style   "xmms"          Icon logos/Xmms, NoTitle, NoHandles
 Style   "XFce*"         NoTitle, Sticky, BorderWidth 4, WindowListSkip, NoHandles
 Style   "XFBD*"         Sticky

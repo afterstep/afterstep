@@ -1091,29 +1091,29 @@ merge_asdb_hints (ASHints * clean, ASRawHints * raw, ASDatabaseRecord * db_rec, 
 		return;
 	if (get_flags (what, HINT_STARTUP) && status != NULL)
 	{
-		if (get_flags (db_rec->set_flags, STYLE_STARTUP_DESK))
+		if (get_flags (db_rec->set_data_flags, STYLE_STARTUP_DESK))
 		{
 			status->desktop = db_rec->desk;
 			set_flags (status->flags, AS_StartDesktop);
 		}
-		if (get_flags (db_rec->set_flags, STYLE_VIEWPORTX))
+		if (get_flags (db_rec->set_data_flags, STYLE_VIEWPORTX))
 		{
 			status->viewport_x = db_rec->viewport_x;
 			set_flags (status->flags, AS_StartViewportX);
 		}
-		if (get_flags (db_rec->set_flags, STYLE_VIEWPORTY))
+		if (get_flags (db_rec->set_data_flags, STYLE_VIEWPORTY))
 		{
 			status->viewport_y = db_rec->viewport_y;
 			set_flags (status->flags, AS_StartViewportY);
 		}
-		if (get_flags (db_rec->set_flags, STYLE_LAYER))
+		if (get_flags (db_rec->set_data_flags, STYLE_LAYER))
 		{
 			status->layer = db_rec->layer;
 			set_flags (status->flags, AS_StartLayer);
 		}
 
 		/*not exactly clean solution for the default geometry, but I don't see any other way : */
-		if (get_flags (db_rec->set_flags, STYLE_DEFAULT_GEOMETRY) && !get_flags (status->flags, AS_StartPositionUser))
+		if (get_flags (db_rec->set_data_flags, STYLE_DEFAULT_GEOMETRY) && !get_flags (status->flags, AS_StartPositionUser))
 		{
 			register ASGeometry *g = &(db_rec->default_geometry);
 
@@ -1149,29 +1149,29 @@ merge_asdb_hints (ASHints * clean, ASRawHints * raw, ASDatabaseRecord * db_rec, 
 	}
 	if (get_flags (what, HINT_GENERAL))
 	{
-		if (get_flags (db_rec->set_flags, STYLE_ICON))
+		if (get_flags (db_rec->set_data_flags, STYLE_ICON))
 			set_string_value (&(clean->icon_file), mystrdup (db_rec->icon_file), &(clean->flags), AS_Icon);
 
-		if (get_flags (db_rec->set_flags, STYLE_BORDER_WIDTH))
+		if (get_flags (db_rec->set_data_flags, STYLE_BORDER_WIDTH))
 		{
 			clean->border_width = db_rec->border_width;
 			set_flags (clean->flags, AS_Border);
 		}
-		if (get_flags (db_rec->set_flags, STYLE_HANDLE_WIDTH))
+		if (get_flags (db_rec->set_data_flags, STYLE_HANDLE_WIDTH))
 		{
 			clean->handle_width = db_rec->resize_width;
 			set_flags (clean->flags, AS_Handles);
 		}
-		if (get_flags (db_rec->set_flags, STYLE_GRAVITY))
+		if (get_flags (db_rec->set_data_flags, STYLE_GRAVITY))
 		{
 			clean->gravity = db_rec->gravity;
 			set_flags (clean->flags, AS_Gravity);
 		}
-		if (get_flags (db_rec->set_flags, STYLE_FRAME))
+		if (get_flags (db_rec->set_data_flags, STYLE_FRAME))
 			set_string_value (&(clean->frame_name), mystrdup (db_rec->frame_name), &(clean->flags), AS_Frame);
-        if (get_flags (db_rec->set_flags, STYLE_WINDOWBOX))
+        if (get_flags (db_rec->set_data_flags, STYLE_WINDOWBOX))
             set_string_value (&(clean->windowbox_name), mystrdup (db_rec->windowbox_name), &(clean->flags), AS_Windowbox);
-        if (get_flags (db_rec->set_flags, STYLE_MYSTYLES))
+        if (get_flags (db_rec->set_data_flags, STYLE_MYSTYLES))
 		{
 			register int  i;
 
@@ -1980,15 +1980,15 @@ make_client_command (ScreenInfo * scr, ASHints * hints, ASStatusHints * status, 
 
     detach_x = gravitate_position (detach_x, anchor->width, bw, scr->MyDisplayWidth, grav_x);
     detach_y = gravitate_position (detach_y, anchor->height, bw, scr->MyDisplayHeight, grav_y);
-    
-    width = anchor->width ; 
+
+    width = anchor->width ;
     height = anchor->height ;
-    
-    if( hints->width_inc > 0 ) 
-	width /= hints->width_inc ; 
-    if( hints->height_inc > 0 ) 
-	height /= hints->height_inc ; 
-	
+
+    if( hints->width_inc > 0 )
+	width /= hints->width_inc ;
+    if( hints->height_inc > 0 )
+	height /= hints->height_inc ;
+
 
 	/* supplying everything as : -xrm "afterstep*desk:N" */
 	client_cmd = safemalloc (strlen (hints->client_cmd) + 512 /* large enough */ );

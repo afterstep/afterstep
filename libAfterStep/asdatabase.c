@@ -49,6 +49,7 @@ make_asdb_record (name_list * nl, struct wild_reg_exp *regexp, ASDatabaseRecord 
 
 		db_rec->set_flags = nl->set_flags;
 		db_rec->flags = nl->flags;
+		db_rec->set_data_flags = nl->set_data_flags;
 		/* TODO: implement set_buttons/buttons in name_list as well */
 		db_rec->set_buttons = nl->on_buttons | nl->off_buttons;
         db_rec->buttons = nl->on_buttons;
@@ -169,6 +170,24 @@ match_flags (unsigned long *pset_flags, unsigned long *pflags, ASDatabase * db, 
 	}
 }
 
+static void
+match_data_flags (unsigned long *pset_flags, ASDatabase * db)
+{
+	if (db && pset_flags)
+	{
+		register ASDatabaseRecord *db_rec;
+		register int  i = 0;
+
+		do
+		{
+			db_rec = get_asdb_record (db, db->match_list[i]);
+			set_flags (*pset_flags, db_rec->set_data_flags);
+		}
+		while (db->match_list[i++] >= 0);
+	}
+}
+
+
 static int
 match_int (ASDatabase * db, DBMatchType type)
 {
@@ -180,7 +199,7 @@ match_int (ASDatabase * db, DBMatchType type)
 		do
 		{
 			db_rec = get_asdb_record (db, db->match_list[i]);
-			if (get_flags (db_rec->set_flags, type))
+			if (get_flags (db_rec->set_data_flags, type))
 			{
 				switch (type)
 				{
@@ -220,7 +239,7 @@ match_struct (ASDatabase * db, DBMatchType type)
 		do
 		{
 			db_rec = get_asdb_record (db, db->match_list[i]);
-			if (get_flags (db_rec->set_flags, type))
+			if (get_flags (db_rec->set_data_flags, type))
 			{
 				switch (type)
 				{
@@ -251,7 +270,7 @@ match_string (ASDatabase * db, DBMatchType type, unsigned int index, Bool dup_st
 		do
 		{
 			db_rec = get_asdb_record (db, db->match_list[i]);
-			if (get_flags (db_rec->set_flags, type))
+			if (get_flags (db_rec->set_data_flags, type))
 			{
 				switch (type)
 				{
@@ -305,29 +324,32 @@ fill_asdb_record (ASDatabase * db, char **names, ASDatabaseRecord * reusable_mem
 			match_flags (&(db_rec->set_flags), &(db_rec->flags), db, MATCH_Flags);
 			if (get_flags (db_rec->set_flags, STYLE_BUTTONS))
 				match_flags (&(db_rec->set_buttons), &(db_rec->buttons), db, MATCH_Buttons);
-			if (get_flags (db_rec->set_flags, STYLE_STARTUP_DESK))
+
+			match_data_flags (&(db_rec->set_data_flags), db);
+
+			if (get_flags (db_rec->set_data_flags, STYLE_STARTUP_DESK))
 				db_rec->desk = match_int (db, MATCH_Desk);
-			if (get_flags (db_rec->set_flags, STYLE_LAYER))
+			if (get_flags (db_rec->set_data_flags, STYLE_LAYER))
 				db_rec->layer = match_int (db, MATCH_layer);
-			if (get_flags (db_rec->set_flags, STYLE_VIEWPORTY))
+			if (get_flags (db_rec->set_data_flags, STYLE_VIEWPORTY))
 				db_rec->viewport_x = match_int (db, MATCH_ViewportX);
-			if (get_flags (db_rec->set_flags, STYLE_VIEWPORTX))
+			if (get_flags (db_rec->set_data_flags, STYLE_VIEWPORTX))
 				db_rec->viewport_y = match_int (db, MATCH_ViewportY);
-			if (get_flags (db_rec->set_flags, STYLE_BORDER_WIDTH))
+			if (get_flags (db_rec->set_data_flags, STYLE_BORDER_WIDTH))
 				db_rec->border_width = match_int (db, MATCH_border_width);
-			if (get_flags (db_rec->set_flags, STYLE_HANDLE_WIDTH))
+			if (get_flags (db_rec->set_data_flags, STYLE_HANDLE_WIDTH))
 				db_rec->resize_width = match_int (db, MATCH_resize_width);
-			if (get_flags (db_rec->set_flags, STYLE_GRAVITY))
+			if (get_flags (db_rec->set_data_flags, STYLE_GRAVITY))
 				db_rec->gravity = match_int (db, MATCH_gravity);
 
-			if (get_flags (db_rec->set_flags, STYLE_DEFAULT_GEOMETRY))
+			if (get_flags (db_rec->set_data_flags, STYLE_DEFAULT_GEOMETRY))
 				db_rec->default_geometry = *((ASGeometry *) match_struct (db, MATCH_DefaultGeometry));
 
-			if (get_flags (db_rec->set_flags, STYLE_ICON))
+			if (get_flags (db_rec->set_data_flags, STYLE_ICON))
 				db_rec->icon_file = match_string (db, MATCH_Icon, 0, dup_strings);
-			if (get_flags (db_rec->set_flags, STYLE_FRAME))
+			if (get_flags (db_rec->set_data_flags, STYLE_FRAME))
 				db_rec->frame_name = match_string (db, MATCH_Frame, 0, dup_strings);
-            if (get_flags (db_rec->set_flags, STYLE_WINDOWBOX))
+            if (get_flags (db_rec->set_data_flags, STYLE_WINDOWBOX))
                 db_rec->windowbox_name = match_string (db, MATCH_Windowbox, 0, dup_strings);
 			if (get_flags (db_rec->set_flags, STYLE_MYSTYLES))
 				for (i = 0; i < BACK_STYLES; i++)
@@ -550,23 +572,24 @@ print_asdb_record (stream_func func, void *stream, ASDatabaseRecord * db_rec, co
 		func (stream, "%s.set_buttons = 0x%lX;\n", prompt, db_rec->set_buttons);
 		func (stream, "%s.buttons = 0x%lX;\n", prompt, db_rec->buttons);
 	}
+	func (stream, "%s.set_data_flags = 0x%lX;\n", prompt, db_rec->set_data_flags);
 
-	if (get_flags (db_rec->set_flags, STYLE_DEFAULT_GEOMETRY))
+	if (get_flags (db_rec->set_data_flags, STYLE_DEFAULT_GEOMETRY))
 		print_asgeometry (func, stream, &(db_rec->default_geometry), prompt, "default_geometry");
 
-	if (get_flags (db_rec->set_flags, STYLE_STARTUP_DESK))
+	if (get_flags (db_rec->set_data_flags, STYLE_STARTUP_DESK))
 		func (stream, "%s.desk = %d;\n", prompt, db_rec->desk);
-	if (get_flags (db_rec->set_flags, STYLE_LAYER))
+	if (get_flags (db_rec->set_data_flags, STYLE_LAYER))
 		func (stream, "%s.layer = %d;\n", prompt, db_rec->layer);
-	if (get_flags (db_rec->set_flags, STYLE_VIEWPORTY))
+	if (get_flags (db_rec->set_data_flags, STYLE_VIEWPORTY))
 		func (stream, "%s.viewport_y = %d;\n", prompt, db_rec->viewport_x);
-	if (get_flags (db_rec->set_flags, STYLE_VIEWPORTX))
+	if (get_flags (db_rec->set_data_flags, STYLE_VIEWPORTX))
 		func (stream, "%s.viewport_x = %d;\n", prompt, db_rec->viewport_y);
-	if (get_flags (db_rec->set_flags, STYLE_BORDER_WIDTH))
+	if (get_flags (db_rec->set_data_flags, STYLE_BORDER_WIDTH))
 		func (stream, "%s.border_width = %u;\n", prompt, db_rec->border_width);
-	if (get_flags (db_rec->set_flags, STYLE_HANDLE_WIDTH))
+	if (get_flags (db_rec->set_data_flags, STYLE_HANDLE_WIDTH))
 		func (stream, "%s.resize_width = %u;\n", prompt, db_rec->resize_width);
-	if (get_flags (db_rec->set_flags, STYLE_GRAVITY))
+	if (get_flags (db_rec->set_data_flags, STYLE_GRAVITY))
 		func (stream, "%s.gravity = %u;\n", prompt, db_rec->gravity);
 
 	if (db_rec->icon_file)

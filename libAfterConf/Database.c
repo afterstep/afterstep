@@ -145,16 +145,13 @@ SyntaxDef     StyleSyntax = {
 flag_options_xref StyleFlags[] = {
 	{STYLE_STICKY, 				DATABASE_Sticky_ID, 			DATABASE_Slippery_ID},
 	{STYLE_TITLE, 				DATABASE_Title_ID, 				DATABASE_NoTitle_ID},
-	{STYLE_ICON, 				0 /* special case */ , 			DATABASE_NoIcon_ID},
 	{STYLE_CIRCULATE, 			DATABASE_CirculateHit_ID, 		DATABASE_CirculateSkip_ID},
 	{STYLE_WINLIST, 			DATABASE_WindowListHit_ID, 		DATABASE_WindowListSkip_ID},
-	{STYLE_STARTUP_DESK, 		0 /*special case */ , 			DATABASE_StartsAnywhere_ID},
 	{STYLE_START_ICONIC, 		DATABASE_StartIconic_ID, 		DATABASE_StartNormal_ID},
 	{STYLE_ICON_TITLE, 			DATABASE_IconTitle_ID, 			DATABASE_NoIconTitle_ID},
 	{STYLE_FOCUS, 				DATABASE_Focus_ID, 				DATABASE_NoFocus_ID},
 	{STYLE_AVOID_COVER, 		DATABASE_AvoidCover_ID, 		DATABASE_AllowCover_ID},
 	{STYLE_VERTICAL_TITLE, 		DATABASE_VerticalTitle_ID, 		DATABASE_HorizontalTitle_ID},
-	{STYLE_FRAME, 				0 /*special case */ , 			DATABASE_NoFrame_ID},
 	{STYLE_HANDLES, 			DATABASE_Handles_ID, 			DATABASE_NoHandles_ID},
 	{STYLE_PPOSITION, 			DATABASE_HonorPPosition_ID, 	DATABASE_NoPPosition_ID},
 	{STYLE_GROUP_HINTS, 		DATABASE_HonorGroupHints_ID, 	DATABASE_NoGroupHints_ID},
@@ -164,6 +161,16 @@ flag_options_xref StyleFlags[] = {
 	{STYLE_EXTWM_HINTS, 		DATABASE_HonorExtWMHints_ID, 	DATABASE_NoExtWMHints_ID},
 	{STYLE_XRESOURCES_HINTS, 	DATABASE_HonorXResources_ID, 	DATABASE_NoXResources_ID},
 	{STYLE_FOCUS_ON_MAP, 		DATABASE_FocusOnMap_ID, 		DATABASE_NoFocusOnMap_ID},
+	{STYLE_ICON, 				0 /* special case */ , 			DATABASE_NoIcon_ID},
+	{STYLE_STARTUP_DESK, 		0 /*special case */ , 			DATABASE_StartsAnywhere_ID},
+	{STYLE_FRAME, 				0 /*special case */ , 			DATABASE_NoFrame_ID},
+	{0, 0, 0}
+};
+
+flag_options_xref StyleDataFlags[] = {
+	{STYLE_ICON, 				0 /* special case */ , 			DATABASE_NoIcon_ID},
+	{STYLE_STARTUP_DESK, 		0 /*special case */ , 			DATABASE_StartsAnywhere_ID},
+	{STYLE_FRAME, 				0 /*special case */ , 			DATABASE_NoFrame_ID},
 	{0, 0, 0}
 };
 
@@ -198,6 +205,7 @@ style_init (name_list * nl)
 
 	nl->name = NULL;
 	nl->set_flags = 0;
+	nl->set_data_flags = 0;
 	nl->flags = 0 ; /*STYLE_DEFAULTS;*/
 	init_asgeometry (&(nl->default_geometry));
 	nl->icon_file = NULL;
@@ -249,27 +257,29 @@ style_copy (name_list * to, name_list * from)
 			to->icon_file = from->icon_file;
 		if (from->name != NULL)
 			to->name = from->name;
-		if (get_flags (from->set_flags, STYLE_DEFAULT_GEOMETRY))
+		if (get_flags (from->set_data_flags, STYLE_DEFAULT_GEOMETRY))
 			to->default_geometry = from->default_geometry;
 
-		if (get_flags (from->set_flags, STYLE_STARTUP_DESK))
+		if (get_flags (from->set_data_flags, STYLE_STARTUP_DESK))
 			to->Desk = from->Desk;
-		if (get_flags (from->set_flags, STYLE_VIEWPORTX))
+		if (get_flags (from->set_data_flags, STYLE_VIEWPORTX))
 			to->ViewportX = from->ViewportX;
-		if (get_flags (from->set_flags, STYLE_VIEWPORTY))
+		if (get_flags (from->set_data_flags, STYLE_VIEWPORTY))
 			to->ViewportY = from->ViewportY;
-		if (get_flags (from->set_flags, STYLE_BORDER_WIDTH))
+		if (get_flags (from->set_data_flags, STYLE_BORDER_WIDTH))
 			to->border_width = from->border_width;
-		if (get_flags (from->set_flags, STYLE_HANDLE_WIDTH))
+		if (get_flags (from->set_data_flags, STYLE_HANDLE_WIDTH))
 			to->resize_width = from->resize_width;
-		if (get_flags (from->set_flags, STYLE_LAYER))
+		if (get_flags (from->set_data_flags, STYLE_LAYER))
 			to->layer = from->layer;
-		if (get_flags (from->set_flags, STYLE_GRAVITY))
+		if (get_flags (from->set_data_flags, STYLE_GRAVITY))
 			to->gravity = from->gravity;
 
 		to->set_flags |= from->set_flags;
 		to->flags |= (from->set_flags & from->flags);
 		to->flags &= ~(from->set_flags) | from->flags;
+
+		to->set_data_flags |= from->set_data_flags;
 
 		to->off_buttons |= from->off_buttons;
 		to->off_buttons &= ~from->on_buttons;
@@ -378,22 +388,21 @@ ParseSingleStyle (FreeStorageElem * storage, name_list * style)
 			continue;
 		if (ReadFlagItem (&(style->set_flags), &(style->flags), storage, StyleFlags))
 			continue;
+		if (ReadFlagItem (&(style->set_data_flags), NULL, storage, StyleDataFlags))
+			continue;
 		if (!ReadConfigItem (&item, storage))
 			continue;
 
 		switch (storage->term->id)
 		{
 		 case DATABASE_DefaultGeometry_ID:
-			 set_flags (style->set_flags, STYLE_DEFAULT_GEOMETRY);
+			 set_flags (style->set_data_flags, STYLE_DEFAULT_GEOMETRY);
 			 style->default_geometry = item.data.geometry;
 			 break;
 		 case DATABASE_Icon_ID:
-			 set_string_value (&(style->icon_file), item.data.string, NULL, 0);
-			 if (strlen (style->icon_file) > 0)
-			 {
-				 set_flags (style->set_flags, STYLE_ICON);
-				 set_flags (style->flags, STYLE_ICON);
-			 }
+			 set_string_value (&(style->icon_file), item.data.string, &(style->set_data_flags), STYLE_ICON);
+			 if (strlen (style->icon_file) <= 0)
+				 clear_flags (style->set_data_flags, STYLE_ICON);
 			 break;
 		 case DATABASE_FocusStyle_ID:
 		 case DATABASE_UnfocusStyle_ID:
@@ -424,70 +433,56 @@ ParseSingleStyle (FreeStorageElem * storage, name_list * style)
 			 else if (style->layer >= AS_LayerMenu)
 				 style->layer = AS_LayerMenu - 1;
 
-			 set_flags (style->set_flags, STYLE_LAYER);
+			 set_flags (style->set_data_flags, STYLE_LAYER);
 			 break;
 		 case DATABASE_StaysOnTop_ID:
 			 style->layer = 1;
-			 set_flags (style->set_flags, STYLE_LAYER);
+			 set_flags (style->set_data_flags, STYLE_LAYER);
 			 break;
 		 case DATABASE_StaysPut_ID:
 			 style->layer = 0;
-			 set_flags (style->set_flags, STYLE_LAYER);
+			 set_flags (style->set_data_flags, STYLE_LAYER);
 			 break;
 		 case DATABASE_StaysOnBack_ID:
 			 style->layer = -1;
-			 set_flags (style->set_flags, STYLE_LAYER);
+			 set_flags (style->set_data_flags, STYLE_LAYER);
 			 break;
 		 case DATABASE_BorderWidth_ID:
-			 set_flags (style->set_flags, STYLE_BORDER_WIDTH);
+			 set_flags (style->set_data_flags, STYLE_BORDER_WIDTH);
 			 style->border_width = item.data.integer;
 			 break;
 		 case DATABASE_HandleWidth_ID:
-			 set_flags (style->set_flags, STYLE_HANDLE_WIDTH);
+			 set_flags (style->set_data_flags, STYLE_HANDLE_WIDTH);
 			 style->resize_width = item.data.integer;
 			 break;
 		 case DATABASE_StartsOnDesk_ID:
-			 set_flags (style->set_flags, STYLE_STARTUP_DESK);
-			 set_flags (style->flags, STYLE_STARTUP_DESK);
+			 set_flags (style->set_data_flags, STYLE_STARTUP_DESK);
 			 style->Desk = item.data.integer;
 			 break;
 		 case DATABASE_ViewportX_ID:
-			 set_flags (style->set_flags, STYLE_VIEWPORTX);
-			 if (item.data.integer >= 0)
-			 {
-				 style->ViewportX = item.data.integer;
-				 set_flags (style->flags, STYLE_VIEWPORTX);
-			 } else
-				 clear_flags (style->flags, STYLE_VIEWPORTX);
+			 set_flags (style->set_data_flags, STYLE_VIEWPORTX);
+			 style->ViewportX = item.data.integer;
 			 break;
 		 case DATABASE_ViewportY_ID:
-			 set_flags (style->set_flags, STYLE_VIEWPORTY);
-			 if (item.data.integer >= 0)
-			 {
-				 style->ViewportY = item.data.integer;
-				 set_flags (style->flags, STYLE_VIEWPORTY);
-			 } else
-				 clear_flags (style->flags, STYLE_VIEWPORTY);
-
+			 set_flags (style->set_data_flags, STYLE_VIEWPORTY);
+			 style->ViewportY = item.data.integer;
 			 break;
 		 case DATABASE_Frame_ID:
-			 set_flags (style->set_flags, STYLE_FRAME);
-			 set_string_value (&(style->frame_name), item.data.string, &(style->flags), STYLE_FRAME);
+			 set_string_value (&(style->frame_name), item.data.string, &(style->set_data_flags), STYLE_FRAME);
              if (strlen (style->frame_name) <= 0)
-				 clear_flags (style->flags, STYLE_FRAME);
+				 clear_flags (style->set_data_flags, STYLE_FRAME);
 			 break;
          case DATABASE_Windowbox_ID:
-             set_flags (style->set_flags, STYLE_WINDOWBOX);
-             set_string_value (&(style->windowbox_name), item.data.string, &(style->flags), STYLE_FRAME);
+             set_string_value (&(style->windowbox_name), item.data.string, &(style->set_data_flags), STYLE_FRAME);
              if (strlen (style->windowbox_name) <= 0)
-                 clear_flags (style->flags, STYLE_WINDOWBOX);
+                 clear_flags (style->set_data_flags, STYLE_WINDOWBOX);
 			 break;
          case DATABASE_OverrideGravity_ID:
 			 if (storage->sub)
 				 if (storage->sub->term)
 				 {
 					 style->gravity = storage->sub->term->id - GRAVITY_ID_START;
-					 set_flags (style->set_flags, STYLE_GRAVITY);
+					 set_flags (style->set_data_flags, STYLE_GRAVITY);
 				 }
 			 break;
 		 default:

@@ -1044,7 +1044,7 @@ init_aswindow_status( ASWindow *t, ASStatusHints *status )
         ASWIN_LAYER(t) = AS_LayerNormal ;
     else if( ASWIN_LAYER(t) < AS_LayerLowest )
         ASWIN_LAYER(t) = AS_LayerLowest ;
-    else if( ASWIN_LAYER(t) < AS_LayerHighest )
+    else if( ASWIN_LAYER(t) > AS_LayerHighest )
         ASWIN_LAYER(t) = AS_LayerHighest ;
 
     if( get_flags( status->flags, AS_MaximizedX|AS_MaximizedY ))
@@ -1344,6 +1344,7 @@ change_aswindow_layer( ASWindow *asw, int layer )
     if( ASWIN_LAYER(asw) != layer )
     {
         remove_aswindow_from_layer( asw, ASWIN_LAYER(asw));
+LOCAL_DEBUG_OUT( "changing window's layer to %d", layer );
         ASWIN_LAYER(asw) = layer ;
         add_aswindow_to_layer( asw, layer );
         restack_window_list( ASWIN_DESK(asw), False );

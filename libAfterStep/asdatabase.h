@@ -24,6 +24,8 @@ struct wild_reg_exp;
 #define STYLE_LAYER             (1 << 8)   /* style->layer - layer is defined */
 #define STYLE_FRAME             (1 << 9)   /* style->frame - frame is defined */
 #define STYLE_WINDOWBOX         (1 << 10)  /* style->windowbox - windowbox is defined */
+
+
 /* this are pure flags */
 #define STYLE_STICKY            (1 << 11)
 #define STYLE_TITLE             (1 << 12)
@@ -78,6 +80,8 @@ typedef struct name_list
    */
   unsigned long set_flags;
   unsigned long flags;
+  /* flag that defines which of the following data members are set in config: */
+  unsigned long set_data_flags;
 
   char *icon_file;		/* icon name */
   ASGeometry default_geometry ;
@@ -111,6 +115,7 @@ typedef struct ASDatabaseRecord
   unsigned long flags;          /* (set_flags&(~flags)) will get you flags that are OFF */
   unsigned long set_buttons;    /* (set_buttons&buttons) will get you buttons that are ON */
   unsigned long buttons;        /* (set_buttons&(~buttons)) will get you buttons that are OFF */
+  unsigned long set_data_flags; /* flag that defines which of the following data members are set in config: */
   ASGeometry default_geometry ;
   int desk;                     /* Startup Desktop number */
   int layer;                    /* Startup layer number */
