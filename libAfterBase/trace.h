@@ -14,7 +14,7 @@
 /* Xlib calls */
 #undef TRACE_XDestroyWindow
 #undef TRACE_XGetGeometry
-#undef TRACE_XNextEvent  	/* all of the Event retreival functions */
+#define TRACE_XNextEvent  	/* all of the Event retreival functions */
 /* the following allows filtering events using event masks 
    (It also applicable to the tracing of DispatchEvent) : */
 /* couple additional masks to compensate for X defaults :*/
@@ -22,7 +22,7 @@
 #define ClientMask		(1L<<30) 
 #define MappingMask		(1L<<31) 
 /* use standard X event masks here : */
-#define EVENT_TRACE_MASK	(SubstructureNotifyMask|SubstructureRedirectMask)
+#define EVENT_TRACE_MASK	(EnterWindowMask|LeaveWindowMask|FocusChangeMask)
 
 /* libafterstep functions */
 #undef TRACE_load_font 		/* both load and unload actually */
@@ -36,7 +36,7 @@
 #undef TRACE_SetFocus
 #undef TRACE_SetupFrame
 #undef TRACE_ResizeFrame       /* both ResizeFrame and ResizeClent */ 
-#undef TRACE_DispatchEvent     /* see also EVENT_TRACE_MASK above */
+#define TRACE_DispatchEvent     /* see also EVENT_TRACE_MASK above */
 
 #undef TRACE_ReparentIt
 

@@ -33,10 +33,12 @@
 
 #include "../include/aftersteplib.h"
 #include "../include/afterstep.h"
+#include "../include/screen.h"
 #include "../include/aswindow.h"
 #include "../include/trace.h" /* for deps */
 #include "../include/functions.h"
 #include "../include/menus.h"
+#include "../include/misc.h"
 
 #if defined(TRACE_XNextEvent) || defined(TRACE_DispatchEvent)
 typedef struct EventDesc {
