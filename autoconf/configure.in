@@ -10,7 +10,7 @@ AC_INIT(afterstep/autoexec.in)
 AC_CONFIG_AUX_DIR(autoconf)
 AC_CONFIG_HEADER(config.h:autoconf/config.h.in)
 
-version="1.8.6"
+version="1.8.7"
 
 dnl# Setup command-line options
 

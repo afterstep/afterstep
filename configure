@@ -623,7 +623,7 @@ ac_configure=$ac_aux_dir/configure # This should be Cygnus configure.
 
 
 
-version="1.8.6"
+version="1.8.7"
 
 
 test "x$prefix" = xNONE && prefix=$ac_default_prefix

@@ -1,3 +1,9 @@
+1.8.4 patch 3 (sasha)
+ o Removed lots of memory allocation code from lib/safemalloc.c. It was not 
+   used anyways, but was causing problems on some older compilers.
+ o Fixed src/afterstep/module.c to use different name for the socket when 
+   compiled under MS Windows (CYGWIN).
+
 1.8.4 patch 2 (sasha)
  o fixed bug in iconization of windows with shaped icons, that was causing 
    some servers to crash.
