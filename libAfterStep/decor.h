@@ -158,6 +158,8 @@ void update_astbar_transparency( ASTBarData *tbar, ASCanvas *pc );
 
 MyFrame *create_myframe();
 MyFrame *create_default_myframe();
+MyFrame *myframe_find( const char *name );
+Bool myframe_has_parts(const MyFrame *frame, ASFlagType mask);
 void destroy_myframe( MyFrame **pframe );
 
 

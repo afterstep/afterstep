@@ -109,19 +109,63 @@ char          NoName[] = "Untitled";		   /* name if no name is specified */
  */
 
 /* this gets called when Look changes or hints changes : */
+static ASCanvas *
+check_canvas( ASWindow *asw, FrameSide side, Bool required )
+{
+    ASCanvas *canvas = asw->frame_canvas[side];
+
+    if( required )
+    {
+        if( canvas == NULL )
+        {                                      /* create canvas here */
+
+        }
+    }else if( canvas != NULL )
+    {                                          /* destroy canvas here */
+
+        canvas = NULL ;
+    }
+
+    return (asw->frame_canvas[side] = canvas);
+}
+
 void
 redecorate_window( ASWindow *asw, Bool free_resources )
 {
+    MyFrame *frame = NULL ;
+    ASCanvas *tbar_canvas = NULL, *sidebar_canvas = NULL ;
+    ASCanvas *left_canvas = NULL, *right_canvas = NULL ;
+    Bool has_tbar = False ;
     if( AS_ASSERT(asw) )
         return ;
 
-    if( asw->hints == NULL || free_resources )
+    if( !free_resources && asw->hints )
+    {
+        if( ASWIN_HFLAGS(AS_Handles) )
+            frame = myframe_find( ASWIN_HFLAGS(AS_Frame)?asw->hints->frame_name:NULL );
+        has_tbar = (ASWIN_HFLAGS(AS_Titlebar)!= 0);
+    }
+    if(  free_resources || asw->hints == NULL ||
+         (!has_tbar && frame == NULL) )
     {/* destroy window decorations here : */
 
 
         return ;
     }
 
+    if( ASWIN_HFLAGS(AS_VerticalTitle) )
+    {
+        tbar_canvas = check_canvas( asw, FR_W, has_tbar||myframe_has_parts(frame, FRAME_TOP_MASK) );
+        sidebar_canvas = check_canvas( asw, FR_E, myframe_has_part(frame, FRAME_BTM_MASK) );
+        left_canvas = check_canvas( asw, FR_S, myframe_has_part(frame, FRAME_LEFT_MASK) );
+        right_canvas = check_canvas( asw, FR_N, myframe_has_part(frame, FRAME_RIGHT_MASK) );
+    }else
+    {
+        tbar_canvas = check_canvas( asw, FR_N, has_tbar||myframe_has_parts(frame, FRAME_TOP_MASK) );
+        sidebar_canvas = check_canvas( asw, FR_S, myframe_has_part(frame, FRAME_BTM_MASK) );
+        left_canvas = check_canvas( asw, FR_W, myframe_has_part(frame, FRAME_LEFT_MASK) );
+        right_canvas = check_canvas( asw, FR_E, myframe_has_part(frame, FRAME_RIGHT_MASK) );
+    }
 
 }
 

@@ -889,6 +889,32 @@ create_default_myframe()
     return frame ;
 }
 
+MyFrame *
+myframe_find( const char *name )
+{
+    MyFrame *frame = Scr.DefaultFrame ;
+    if( name && Scr.FramesList )
+        if( get_hash_item( Scr.FramesList, AS_HASHABLE(name), (void**)&frame) != ASH_Success )
+            frame = Scr.DefaultFrame ;
+    return frame ;
+}
+
+Bool
+myframe_has_parts(const MyFrame *frame, ASFlagType mask)
+{
+    if( frame )
+    {
+        register int i ;
+        for( i = 0 ; i < FRAME_PARTS ; ++i )
+            if( (mask&(0x01<<i)) )
+                if( frame->parts[i] == NULL &&
+                    (frame->part_width[i] == 0 || frame->part_height[i] == 0 ) )
+                    return False;
+        return True;
+    }
+    return False;
+}
+
 void
 destroy_myframe( MyFrame **pframe )
 {

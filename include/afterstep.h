@@ -97,6 +97,13 @@ typedef enum
 }
 FrameSide;
 
+#define FRAME_TOP_MASK      ((0x01<<FR_N)|(0x01<<FR_NW)|(0x01<<FR_NE))
+#define FRAME_BTM_MASK      ((0x01<<FR_S)|(0x01<<FR_SW)|(0x01<<FR_SE))
+#define FRAME_LEFT_MASK      (0x01<<FR_W)
+#define FRAME_RIGHT_MASK     (0x01<<FR_E)
+
+
+
 
 /* contexts for button presses */
 #define C_NO_CONTEXT		0
