@@ -249,6 +249,8 @@ rearrange_iconbox( ASIconBox *ib )
 {
     ASIconRearrangeAux aux_data ;
 
+	if( ib == NULL )
+		return ;
     aux_data.curr_area = -1 ;
     aux_data.last_x = 0;
     aux_data.last_y = 0;
@@ -268,10 +270,13 @@ add_iconbox_icon( ASWindow *asw )
 
     /* we need to add this window to the list of icons,
      * and then place it in appropriate position : */
-    ib = get_iconbox( ASWIN_DESK(asw) );
-    append_bidirelem( ib->icons, asw );
-    rearrange_iconbox( ib );
-    return True;
+    if( (ib = get_iconbox( ASWIN_DESK(asw) )) == NULL )
+		return False;
+   	
+	append_bidirelem( ib->icons, asw );
+   	rearrange_iconbox( ib );
+    
+	return True;
 }
 
 Bool
@@ -281,9 +286,11 @@ remove_iconbox_icon( ASWindow *asw )
     if( AS_ASSERT(asw) )
         return False;
     /* we need to remove this window from the list of icons */
-    ib = get_iconbox( ASWIN_DESK(asw) );
-    discard_bidirelem( ib->icons, asw );
-    rearrange_iconbox( ib );
+    if((ib = get_iconbox( ASWIN_DESK(asw) )) == NULL )
+		return False;
+   	
+	discard_bidirelem( ib->icons, asw );
+   	rearrange_iconbox( ib );
     return True;
 }
 
