@@ -113,6 +113,7 @@ typedef enum {
 	ASA_ARGB32,
 	ASA_Vector,       /* This cannot be used for transformation's result
 					   * format */
+	ASA_StaticASImage,  /* image is not to be transformed, but to occupy single huge block of memory */
 	ASA_Formats
 }ASAltImFormats;
 /*******/
@@ -767,6 +768,7 @@ void asimage_init (ASImage * im, Bool free_resources);
 void flush_asimage_cache( ASImage *im );
 void asimage_start (ASImage * im, unsigned int width, unsigned int height, unsigned int compression);
 ASImage *create_asimage( unsigned int width, unsigned int height, unsigned int compression);
+ASImage *create_static_asimage( unsigned int width, unsigned int height, unsigned int compression);
 ASImage *clone_asimage( ASImage *src, ASFlagType filter );
 void destroy_asimage( ASImage **im );
 /****f* libAfterImage/asimage/destroy_asimage()

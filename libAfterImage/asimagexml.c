@@ -1065,15 +1065,19 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 		xml_elem_t* parm = xml_parse_parm(doc->parm, NULL);
 		ASImage* imtmp = NULL;
 		int dir = 0;
+		int static_im  = 0; 
 		for (ptr = parm ; ptr ; ptr = ptr->next) {
 			if (!strcmp(ptr->tag, "id")) id = strdup(ptr->parm);
 			if (!strcmp(ptr->tag, "dir")) dir = !mystrcasecmp(ptr->parm, "vertical");
+			if (!strcmp(ptr->tag, "static")) static_im = atoi(ptr->parm);
 		}
 		for (ptr = doc->child ; ptr && !imtmp ; ptr = ptr->next) {
 			imtmp = build_image_from_xml(asv, imman, fontman, ptr, NULL, flags, verbose, display_win);
 		}
 		if (imtmp) {
-			result = mirror_asimage(asv, imtmp, 0, 0, imtmp->width, imtmp->height, dir, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
+			result = mirror_asimage(asv, imtmp, 0, 0, imtmp->width, imtmp->height, dir,
+									static_im?ASA_StaticASImage: ASA_ASImage, 
+									0, ASIMAGE_QUALITY_DEFAULT);
 			safe_asimage_destroy(imtmp);
 		}
 		show_progress("Mirroring image [%sally].", dir ? "horizont" : "vertic");
@@ -1249,11 +1253,13 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 		const char* height_str = NULL;
 		ASImage* imtmp = NULL;
 		int width = 0, height = 0;
+		int static_im = 0;
 		for (ptr = parm ; ptr ; ptr = ptr->next) {
 			if (!strcmp(ptr->tag, "id")) id = strdup(ptr->parm);
 			if (!strcmp(ptr->tag, "refid")) refid = ptr->parm;
 			if (!strcmp(ptr->tag, "width")) width_str = ptr->parm;
 			if (!strcmp(ptr->tag, "height")) height_str = ptr->parm;
+			if (!strcmp(ptr->tag, "static")) static_im = atoi(ptr->parm);
 		}
 		if (width_str && height_str) 
 		{
@@ -1287,7 +1293,8 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 		}
 		if (imtmp && width > 0 && height > 0 ) {
 			show_progress("Scaling image to [%dx%d].", width, height);
-			result = scale_asimage(asv, imtmp, width, height, ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT);
+			result = scale_asimage( asv, imtmp, width, height, 
+									static_im?ASA_StaticASImage:ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT);
 			safe_asimage_destroy(imtmp);
 		}
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
@@ -1788,11 +1795,13 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 		int keep_trans = 0;
 		int merge = 0;
 		int num;
+		int static_im = 0 ;
 		for (ptr = parm ; ptr ; ptr = ptr->next) {
 			if (!strcmp(ptr->tag, "id")) id = strdup(ptr->parm);
 			if (!strcmp(ptr->tag, "op")) pop = ptr->parm;
 			if (!strcmp(ptr->tag, "keep-transparency")) keep_trans = strtol(ptr->parm, NULL, 0);
 			if (!strcmp(ptr->tag, "merge") && !mystrcasecmp(ptr->parm, "clip")) merge = 1;
+			if (!strcmp(ptr->tag, "static")) static_im = atoi(ptr->parm);
 		}
 		/* Find out how many subimages we have. */
 		num = 0;
@@ -1948,7 +1957,8 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 			}
 
 			if (num) {
-				result = merge_layers(asv, layers, num, width, height, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
+				result = merge_layers(asv, layers, num, width, height, 
+										static_im?ASA_StaticASImage:ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
 				if (keep_trans && result && layers[0].im) {
 					copy_asimage_channel(result, IC_ALPHA, layers[0].im, IC_ALPHA);
 				}
