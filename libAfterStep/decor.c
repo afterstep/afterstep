@@ -1309,7 +1309,7 @@ set_aslabel_layer( ASTile* tile, ASImageLayer *layer, unsigned int state, ASImag
                                            tile->width-h_pad*2, layer->im->width );
         layer->clip_width  = layer->im->width ;
     }else
-        layer->clip_width  = max_width - h_pad;
+        layer->clip_width  = ( max_width > h_pad ) ? max_width - h_pad: 1;
     if( layer->im->height < max_height )
     {
         if( layer->im->height < tile->height )
@@ -1318,7 +1318,7 @@ set_aslabel_layer( ASTile* tile, ASImageLayer *layer, unsigned int state, ASImag
                                            tile->height-v_pad*2, layer->im->height );
         layer->clip_height  = layer->im->height ;
     }else
-        layer->clip_height  = max_height - v_pad;
+        layer->clip_height  = ( max_height > v_pad )? max_height - v_pad : 1;
 
     layer->clip_height = min(layer->im->height, max_height) ;
     alpha = ARGB32_ALPHA8(layer->im->back_color);
