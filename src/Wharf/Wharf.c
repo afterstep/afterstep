@@ -877,17 +877,14 @@ build_wharf_button_tbar(WharfButton *wb)
                         get_flags( Config->set_flags, WHARF_BEVEL )? "set":"unset",
                         Config->bevel,
                         get_flags( Config->flags, WHARF_NO_BORDER )?"set":"unset" );
-    if( get_flags( Config->set_flags, WHARF_BEVEL ) )
+    if( get_flags( Config->flags, WHARF_NO_BORDER ) )
+	{	
+        set_astbar_hilite( bar, BAR_STATE_UNFOCUSED, 0 );
+        set_astbar_hilite( bar, BAR_STATE_FOCUSED, 0 );
+    }else if( get_flags( Config->set_flags, WHARF_BEVEL ) )
     {
-        if( get_flags( Config->flags, WHARF_NO_BORDER ) )
-		{	
-            set_astbar_hilite( bar, BAR_STATE_UNFOCUSED, 0 );
-            set_astbar_hilite( bar, BAR_STATE_FOCUSED, 0 );
-        }else
-		{	
-            set_astbar_hilite( bar, BAR_STATE_UNFOCUSED, Config->bevel );
-            set_astbar_hilite( bar, BAR_STATE_FOCUSED, Config->bevel );
-		}
+        set_astbar_hilite( bar, BAR_STATE_UNFOCUSED, Config->bevel );
+        set_astbar_hilite( bar, BAR_STATE_FOCUSED, Config->bevel );
     }else
 	{	
        	set_astbar_hilite( bar, BAR_STATE_UNFOCUSED, RIGHT_HILITE|BOTTOM_HILITE );
