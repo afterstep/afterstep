@@ -22,17 +22,19 @@
 #include "config.h"
 
 #include <ctype.h>
-#include <errno.h>
-#include <stdarg.h>
 #include <math.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <sys/time.h>
+#include <sys/times.h>
+
+#if defined ___AIX || defined _AIX || defined __QNX__ || defined ___AIXV3 || defined AIXV3 || defined _SEQUENT_
+#include <sys/select.h>
+#endif
 
 #include <libAfterImage/afterbase.h>
 #include <libAfterImage/afterimage.h>
-#include "common.h"
 
 /****h* libAfterImage/compose_asimage_xml
  * NAME
@@ -169,7 +171,7 @@ int compose_asimage_xml(ASVisual *asv, ASImageManager *imman, ASFontManager *fon
 	if (doc) {
 		xml_elem_t* ptr;
 		for (ptr = doc->child ; ptr ; ptr = ptr->next) {
-			ASImage* tmpim = build_image_from_xml(ptr, NULL);
+			ASImage* tmpim = build_image_from_xml(asv, imman, fontman, ptr, NULL, flags, verbose, display_win);
 			if (tmpim && im) destroy_asimage(&im);
 			if (tmpim) im = tmpim;
 		}
@@ -255,34 +257,22 @@ Bool save_file(const char *file2bsaved, ASImage *im,
 
 }
 
-void showimage(ASImage* im, Window w) {
+void showimage(ASImage* im, Window w, long delay) 
+{
 #ifndef X_DISPLAY_MISSING
-	if (im) {
-		Pixmap p = asimage2pixmap(asv, w, im, NULL, False);
-		p = set_window_background_and_free(w, p);
-		wait_closedown(DefaultRootWindow(dpy));
-	}
-
-	if(im && !onroot)
+	if ( im && w ) 
 	{
-		/* see ASView.4 : */
-		Window w = create_top_level_window( asv, DefaultRootWindow(dpy), 32, 32,
-			                         im->width, im->height, 1, 0, NULL,
-									 "ASView" );
-		if( w != None )
-		{
-			Pixmap p ;
+		Pixmap p = asimage2pixmap(asv, w, im, NULL, False);
+		struct timeval value;
 
-			XSelectInput (dpy, w, (StructureNotifyMask | ButtonPress));
-	  		XMapRaised   (dpy, w);
-			/* see ASView.5 : */
-			p = asimage2pixmap( asv, DefaultRootWindow(dpy), im, NULL,
-				                False );
-			/* see common.c:set_window_background_and_free(): */
-			p = set_window_background_and_free( w, p );
-		}
-		/* see common.c: wait_closedown() : */
-		wait_closedown(w);
+		XSetWindowBackgroundPixmap( dpy, w, p );
+		XClearWindow( dpy, w );
+		XFlush( dpy );
+		XFreePixmap( dpy, p );
+		p = None ;
+		value.tv_usec = n % 10000;
+		value.tv_sec = n / 10000;
+		PORTABLE_SELECT (1, 0, 0, 0, &value);
 	}
 #endif /* X_DISPLAY_MISSING */
 }
@@ -361,7 +351,7 @@ double parse_math(const char* str, char** endptr, double size) {
 
 
 /* Each tag is only allowed to return ONE image. */
-ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
+ASImage* build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontman, xml_elem_t* doc, xml_elem_t** rparm, ASFlagType flags, int verbose, Window display_win) {
 	xml_elem_t* ptr;
 	char* id = NULL;
 	ASImage* result = NULL;
@@ -420,9 +410,9 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 		}
 		if (srcid) {
 			show_progress("Recalling image id [%s].", srcid);
-			get_hash_item(image_hash, AS_HASHABLE(srcid), (void**)&result);
-			if (result) result->ref_count++;
-			else show_error("Image recall failed for id [%s].", srcid);
+			result = fetch_asimage(imman, srcid );
+			if (!result)
+				show_error("Image recall failed for id [%s].", srcid);
 		}
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
@@ -476,19 +466,19 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 		if (text && point > 0) {
 			struct ASFont *font = NULL;
 			show_progress("Rendering text [%s] with font [%s] size [%d].", text, font_name, point);
-			if (!fontman) fontman = create_font_manager(dpy, NULL, NULL);
 			if (fontman) font = get_asfont(fontman, font_name, 0, point, ASF_GuessWho);
 			if (font != NULL) {
 				set_asfont_glyph_spacing(font, spacing, 0);
 				result = draw_text(text, font, AST_Plain, 0);
 				if (result && fgimage_str) {
 					ASImage* fgimage = NULL;
-					get_hash_item(image_hash, (ASHashableValue)(char*)fgimage_str, (void**)&fgimage);
+					fgimage = fetch_asimage(imman, fgimage_str );
 					show_progress("Using image [%s] as foreground.", fgimage_str);
 					if (fgimage) {
+						release_asimage( fgimage );
 						fgimage = tile_asimage(asv, fgimage, 0, 0, result->width, result->height, 0, ASA_ASImage, 100, ASIMAGE_QUALITY_TOP);
 						move_asimage_channel(fgimage, IC_ALPHA, result, IC_ALPHA);
-						my_destroy_asimage(result);
+						destroy_asimage(&result);
 						result = fgimage;
 					}
 				}
@@ -497,18 +487,22 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 					parse_argb_color(fgcolor_str, &fgcolor);
 					fill_asimage(asv, fgimage, 0, 0, result->width, result->height, fgcolor);
 					move_asimage_channel(fgimage, IC_ALPHA, result, IC_ALPHA);
-					my_destroy_asimage(result);
+					destroy_asimage(&result);
 					result = fgimage;
 				}
 				if (result && (bgcolor_str || bgimage_str)) {
 					ASImageLayer layers[2];
-					ASImage* bgimage = NULL;
-					if (bgimage_str) get_hash_item(image_hash, (ASHashableValue)(char*)bgimage_str, (void**)&bgimage);
-					if (bgcolor_str) parse_argb_color(bgcolor_str, &bgcolor);
 					init_image_layers(&(layers[0]), 2);
-					bgimage->back_color = bgcolor ;
+					if (bgimage_str) layers[0].im = fetch_asimage(imman, bgimage_str);
+					if (bgcolor_str) 
+						if( parse_argb_color(bgcolor_str, &bgcolor) != bgcolor_str )
+						{
+							if( layers[0].im != NULL )
+								layers[0].im->back_color = bgcolor ;
+							else 
+								layers[0].solid_color = bgcolor ;
+						}
 					result->back_color = fgcolor ;
-					layers[0].im = bgimage;
 					layers[0].dst_x = 0;
 					layers[0].dst_y = 0;
 					layers[0].clip_width = result->width;
@@ -520,6 +514,7 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 					layers[1].clip_width = result->width;
 					layers[1].clip_height = result->height;
 					result = merge_layers(asv, layers, 2, result->width, result->height, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
+					release_asimage( layers[0].im );
 				}
 			}
 		}
@@ -671,7 +666,7 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 			layer.clip_height = imtmp->height;
 			layer.bevel = &bevel;
 			result = merge_layers(asv, &layer, 1, imtmp->width, imtmp->height, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
-			my_destroy_asimage(imtmp);
+			release_asimage(imtmp);
 		}
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
@@ -725,12 +720,12 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 			if (!strcmp(ptr->tag, "offsets")) offset_str = ptr->parm;
 		}
 		if (refid && width_str && height_str) {
-			ASImage* refimg = NULL;
-			get_hash_item(image_hash, (ASHashableValue)(char*)refid, (void**)&refimg);
+			ASImage* refimg = fetch_asimage( imman, refid);
 			if (refimg) {
 				width = parse_math(width_str, NULL, refimg->width);
 				height = parse_math(height_str, NULL, refimg->height);
 			}
+			release_asimage(refimg);
 		}
 		if (!refid && width_str && height_str) {
 			width = parse_math(width_str, NULL, width);
@@ -855,7 +850,7 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 		}
 		if (imtmp) {
 			result = mirror_asimage(asv, imtmp, 0, 0, imtmp->width, imtmp->height, dir, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
-			my_destroy_asimage(imtmp);
+			release_asimage(imtmp);
 		}
 		show_progress("Mirroring image [%sally].", dir ? "horizont" : "vertic");
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
@@ -887,7 +882,7 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 		}
 		if (imtmp) {
 			result = blur_asimage_gauss(asv, imtmp, horz, vert, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
-			my_destroy_asimage(imtmp);
+			release_asimage(imtmp);
 		}
 		show_progress("Blurring image.");
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
@@ -932,7 +927,7 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 			}
 			if (dir) {
 				result = flip_asimage(asv, imtmp, 0, 0, imtmp->width, imtmp->height, dir, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
-				my_destroy_asimage(imtmp);
+				release_asimage(imtmp);
 				show_progress("Rotating image [%f degrees].", angle);
 			} else {
 				result = imtmp;
@@ -971,12 +966,12 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 			if (!strcmp(ptr->tag, "height")) height_str = ptr->parm;
 		}
 		if (refid && width_str && height_str) {
-			ASImage* refimg = NULL;
-			get_hash_item(image_hash, (ASHashableValue)(char*)refid, (void**)&refimg);
+			ASImage* refimg = fetch_asimage(imman, refid );
 			if (refimg) {
 				width = parse_math(width_str, NULL, refimg->width);
 				height = parse_math(height_str, NULL, refimg->height);
 			}
+			release_asimage( refimg );
 		}
 		if (!refid && width_str && height_str) {
 			width = parse_math(width_str, NULL, width);
@@ -989,7 +984,7 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 			}
 			if (imtmp) {
 				result = scale_asimage(asv, imtmp, width, height, ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT);
-				my_destroy_asimage(imtmp);
+				release_asimage(imtmp);
 			}
 			show_progress("Scaling image to [%dx%d].", width, height);
 		}
@@ -1046,12 +1041,12 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 			width = imtmp->width;
 			height = imtmp->height;
 			if (refid) {
-				ASImage* refimg = NULL;
-				get_hash_item(image_hash, (ASHashableValue)(char*)refid, (void**)&refimg);
+				ASImage* refimg = fetch_asimage(imman, refid);
 				if (refimg) {
 					width = refimg->width;
 					height = refimg->height;
 				}
+				release_asimage( refimg );
 			}
 			if (srcx_str) srcx = parse_math(srcx_str, NULL, width);
 			if (srcy_str) srcy = parse_math(srcy_str, NULL, height);
@@ -1061,7 +1056,7 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 			if (height > imtmp->height) height = imtmp->height;
 			if (width > 0 && height > 0) {
 				result = tile_asimage(asv, imtmp, srcx, srcy, width, height, tint, ASA_ASImage, 100, ASIMAGE_QUALITY_TOP);
-				my_destroy_asimage(imtmp);
+				release_asimage(imtmp);
 			}
 			show_progress("Cropping image to [%dx%d].", width, height);
 		}
@@ -1123,12 +1118,12 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 			width = imtmp->width;
 			height = imtmp->height;
 			if (refid) {
-				ASImage* refimg = NULL;
-				get_hash_item(image_hash, (ASHashableValue)(char*)refid, (void**)&refimg);
+				ASImage* refimg = fetch_asimage(imman, refid);;
 				if (refimg) {
 					width = refimg->width;
 					height = refimg->height;
 				}
+				release_asimage( refimg );
 			}
 			if (width_str) width = parse_math(width_str, NULL, width);
 			if (height_str) height = parse_math(height_str, NULL, height);
@@ -1136,7 +1131,7 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 			if (yorig_str) yorig = parse_math(yorig_str, NULL, height);
 			if (width > 0 && height > 0) {
 				result = tile_asimage(asv, imtmp, xorig, yorig, width, height, tint, ASA_ASImage, 100, ASIMAGE_QUALITY_TOP);
-				my_destroy_asimage(imtmp);
+				release_asimage(imtmp);
 			}
 			show_progress("Tiling image to [%dx%d].", width, height);
 		}
@@ -1240,12 +1235,12 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 			width = imtmp->width;
 			height = imtmp->height;
 			if (refid) {
-				ASImage* refimg = NULL;
-				get_hash_item(image_hash, (ASHashableValue)(char*)refid, (void**)&refimg);
+				ASImage* refimg = fetch_asimage(imman, refid);;
 				if (refimg) {
 					width = refimg->width;
 					height = refimg->height;
 				}
+				release_asimage( refimg );
 			}
 			if (width_str) width = parse_math(width_str, NULL, width);
 			if (height_str) height = parse_math(height_str, NULL, height);
@@ -1257,7 +1252,7 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 				                            affected_hue, affected_radius,
 											hue_offset, saturation_offset, value_offset,
 				                            ASA_ASImage, 100, ASIMAGE_QUALITY_TOP);
-				my_destroy_asimage(imtmp);
+				release_asimage(imtmp);
 			}
 			show_progress("adjusting HSV of the image by [%d,%d,%d] affected hues are %d-%d.", hue_offset, saturation_offset, value_offset, affected_hue-affected_radius, affected_hue+affected_radius);
 		}
@@ -1312,12 +1307,12 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 			int width = imtmp->width;
 			int height = imtmp->height;
 			if (refid) {
-				ASImage* refimg = NULL;
-				get_hash_item(image_hash, (ASHashableValue)(char*)refid, (void**)&refimg);
+				ASImage* refimg = fetch_asimage(imman, refid);
 				if (refimg) {
 					width = refimg->width;
 					height = refimg->height;
 				}
+				release_asimage( refimg );
 			}
 			if (left_str) left = parse_math(left_str, NULL, width);
 			if (top_str)  top = parse_math(top_str, NULL, height);
@@ -1327,7 +1322,7 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 			{
 				result = pad_asimage(asv, imtmp, left, top, width+left+right, height+top+bottom,
 					                 color, ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT);
-				my_destroy_asimage(imtmp);
+				release_asimage(imtmp);
 			}
 			show_progress("Padding image to [%dx%d%+d%+d].", width+left+right, height+top+bottom, left, top);
 		}
@@ -1361,12 +1356,12 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 			if (!strcmp(ptr->tag, "height")) height_str = ptr->parm;
 		}
 		if (refid && width_str && height_str) {
-			ASImage* refimg = NULL;
-			get_hash_item(image_hash, (ASHashableValue)(char*)refid, (void**)&refimg);
+			ASImage* refimg = fetch_asimage(imman, refid);
 			if (refimg) {
 				width = parse_math(width_str, NULL, refimg->width);
 				height = parse_math(height_str, NULL, refimg->height);
 			}
+			release_asimage( refimg );
 		}
 		if (!refid && width_str && height_str) {
 			width = parse_math(width_str, NULL, 0);
@@ -1493,12 +1488,12 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 						else if (!strcmp(tmp->tag, "tile")) tile = True;
 					}
 					if (refid) {
-						ASImage* refimg = NULL;
-						get_hash_item(image_hash, (ASHashableValue)(char*)refid, (void**)&refimg);
+						ASImage* refimg = fetch_asimage(imman, refid);
 						if (refimg) {
 							x = refimg->width;
 							y = refimg->height;
 						}
+						release_asimage(refimg );
 					}
 					x = x_str ? parse_math(x_str, NULL, x) : 0;
 					y = y_str ? parse_math(y_str, NULL, y) : 0;
@@ -1565,7 +1560,7 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 				if (keep_trans && result && layers[0].im) {
 					copy_asimage_channel(result, IC_ALPHA, layers[0].im, IC_ALPHA);
 				}
-				while (--num >= 0) my_destroy_asimage(layers[num].im);
+				while (--num >= 0) release_asimage(layers[num].im);
 			}
 			free(layers);
 		}
@@ -1589,26 +1584,20 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 	if (id && result) {
 		ASImage* imtmp = NULL;
 		show_progress("Storing image id [%s].", id);
-		remove_hash_item(image_hash, (ASHashableValue)id, (void**)&imtmp, 1);
-		if (imtmp) my_destroy_asimage(imtmp);
-		add_hash_item(image_hash, (ASHashableValue)id, result);
-		result->ref_count++;
+		if( !store_asimage( imman, result, id ) ) 
+		{
+			if( result->imman ) 
+				release_asimage( result );
+			else
+				destroy_asimage( &result );
+			result = fetch_asimage( imman, id );	 
+		}
 	}
 
 	return result;
 }
 
 
-
-
-void my_destroy_asimage(ASImage* image) {
-	image->ref_count--;
-	if (image->ref_count < 0)
-	{
-		show_progress("Destroying image [%08lx] with refcount [%d].", (unsigned long)image, image->ref_count);
-		destroy_asimage(&image);
-	}
-}
 
 xml_elem_t* xml_parse_parm(const char* parm) {
 	xml_elem_t* list = NULL;

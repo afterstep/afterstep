@@ -333,7 +333,7 @@ store_asimage( ASImageManager* imageman, ASImage *im, const char *name )
 			}else
 			{
 				im->imageman = imageman ;
-				im->ref_count++ ;
+				im->ref_count = 1 ;
 			}
 		}
 	return res ;
@@ -384,6 +384,30 @@ release_asimage( ASImage *im )
 					remove_hash_item(imman->image_hash, (ASHashableValue)(char*)im->name, NULL, True);
 			}else
 				res = im->ref_count ;
+		}
+	}
+	return res ;
+}
+
+inline int
+safe_asimage_destroy( ASImage *im )
+{
+	int res = -1 ;
+	if( !AS_ASSERT(im) )
+	{
+		if( im->magic == MAGIC_ASIMAGE )
+		{
+			ASImageManager *imman = im->imageman ;
+			if( !AS_ASSERT(imman) )
+			{
+				if( --(im->ref_count) < 0 )
+					remove_hash_item(imman->image_hash, (ASHashableValue)(char*)im->name, NULL, True);
+				res = im->ref_count ;
+			}else
+			{
+				destroy_asimage( &im );
+				res = -1 ;	
+			}
 		}
 	}
 	return res ;
