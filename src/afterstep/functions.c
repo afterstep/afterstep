@@ -827,8 +827,17 @@ void toggle_status_func_handler( FunctionData *data, ASEvent *event, int module 
     if( data->func == F_STICK )
         toggle_flags = AS_Sticky ;
     else if( data->func == F_MAXIMIZE )
-        toggle_flags = AS_MaximizedX|AS_MaximizedY ;
-    else if( data->func == F_SHADE )
+	{
+		if( data->func_val[0] > 0 || data->func_val[1] == 0  )
+	        toggle_flags = AS_MaximizedX ;
+		if( data->func_val[1] > 0 || data->func_val[0] == 0 )
+			toggle_flags |= AS_MaximizedY ;
+		if( event->client )
+		{
+			event->client->maximize_ratio_x =  (data->func_val[0] * data->unit_val[0]) / Scr.MyDisplayWidth ;
+			event->client->maximize_ratio_y =  (data->func_val[1] * data->unit_val[1]) / Scr.MyDisplayHeight ;
+		}
+    }else if( data->func == F_SHADE )
         toggle_flags = AS_Shaded ;
     else
         return ;

@@ -168,6 +168,8 @@ typedef struct ASWindow
 
 	Bool 	window_complete ;                  /* if TRue - then AddWindow has been completed */
 
+	int     maximize_ratio_x, maximize_ratio_y ;
+
 }ASWindow;
 
 typedef struct ASLayer

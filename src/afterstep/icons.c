@@ -109,6 +109,7 @@ Bool rearrange_icon_iter_func(void *data, void *aux_data)
     int width = 0, height = 0, title_width = 0, title_height = 0;
     int whole_width = 0, whole_height = 0 ;
     int x, y, box_x = 0, box_y = 0;
+	Bool placed = False ;
 
 	if( AS_ASSERT(asw) || AS_ASSERT(rd) )
 		return False;
@@ -142,6 +143,18 @@ Bool rearrange_icon_iter_func(void *data, void *aux_data)
 
 LOCAL_DEBUG_OUT( "trying area #%d : %s%s, %dx%d%+d%+d", rd->curr_area, get_flags(geom->flags, XNegative)?"XNeg":"XPos", get_flags(geom->flags, YNegative)?"YNeg":"YPos", geom->width, geom->height, geom->x, geom->y );
 LOCAL_DEBUG_OUT( "last: %dx%d%+d%+d", rd->last_width, rd->last_height, rd->last_x, rd->last_y );
+		if( geom->width  < whole_width )
+		{
+			if( get_flags(geom->flags, XNegative) )
+				geom->x -= whole_width-geom->width ;
+			geom->width = whole_width ;
+		}
+		if( geom->height  < whole_height )
+		{
+			if( get_flags(geom->flags, YNegative) )
+				geom->y -= whole_height-geom->height ;
+			geom->height = whole_height ;
+		}
 
         if( get_flags(geom->flags, XNegative) )
             new_x = rd->last_x - rd->last_width - whole_width ;
@@ -173,6 +186,7 @@ LOCAL_DEBUG_OUT( "new : %+d%+d", new_x, new_y );
             y = new_y ;
             box_x = geom->x ;
             box_y = geom->y ;
+			placed = True ;
             break;
         }
 

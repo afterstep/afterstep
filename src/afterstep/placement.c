@@ -616,6 +616,8 @@ do_maximized_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry *area)
     if( selected >= 0 )
     {
         ASFlagType flags = 0 ;
+		int max_width = rects[selected].width ;
+		int max_height = rects[selected].height ;
         save_aswindow_anchor( asw, ASWIN_GET_FLAGS( asw, AS_MaximizedX), ASWIN_GET_FLAGS( asw, AS_MaximizedY) );
 
         if( ASWIN_GET_FLAGS( asw, AS_MaximizedX)  )
@@ -623,7 +625,12 @@ do_maximized_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry *area)
         if( ASWIN_GET_FLAGS( asw, AS_MaximizedY)  )
             set_flags( flags, YValue|HeightValue );
 
-        apply_placement_result( asw, flags, rects[selected].x, rects[selected].y, rects[selected].width, rects[selected].height );
+		if( asw->maximize_ratio_x > 0 )
+			max_width = (asw->maximize_ratio_x * max_width)/ 100 ;
+		if( asw->maximize_ratio_y > 0 )
+			max_height = (asw->maximize_ratio_y * max_height)/ 100 ;
+
+        apply_placement_result( asw, flags, rects[selected].x, rects[selected].y, max_width, max_height );
         LOCAL_DEBUG_OUT( "success: status(%+d%+d), anchor(%+d,%+d)", asw->status->x, asw->status->y, asw->anchor.x, asw->anchor.y );
     }else
     {

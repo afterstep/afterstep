@@ -650,6 +650,7 @@ src/Sound/Makefile \
 src/Tile/Makefile \
 src/Wharf/Makefile \
 src/WinList2/Makefile \
+src/Gadget/Makefile \
 src/test/Makefile \
 \
 tools/Makefile \
