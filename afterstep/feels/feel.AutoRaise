@@ -14,7 +14,7 @@ AutoReverse 0
 #AutoTabThroughDesks
 #
 # Automatically raise a window if mouse stays > 500 msec on it
-AutoRaise 500 
+AutoRaise 500
 #
 # Support Motif window manager function hints
 MWMFunctionHints
@@ -127,11 +127,11 @@ DecorateTransients
 Cursor 1 68
 Cursor 2 68
 Cursor 3 22
-#Cursor 4 
+#Cursor 4
 Cursor 5 150
 Cursor 6 68
-Cursor 7 88
-Cursor 8 68
+Cursor 7 68
+Cursor 8 88
 Cursor 9 68
 Cursor 10 68
 #
