@@ -753,18 +753,19 @@ rearrange_winlist_window( Bool dont_resize_main_canvas )
     if( total_width > allowed_max_width )
     {
 		int total_delta = (total_width - allowed_max_width) ;
-		int delta = total_delta/WinListState.columns_num ;
-		if( delta == 0 )
-			delta = 1 ;
+		int applied_delta = 0 ;
         /* in fact that will always be column 0 in the single column layout : */
 	    for( i = 0 ; i < WinListState.columns_num-1 ; ++i )
 		{
-			if( total_delta - delta <= 0 )
+			int delta = (total_delta*WinListState.col_width[i])/total_width ;
+			if( delta == 0 )
+				delta = 1 ;
+			if( total_delta - (applied_delta+delta) < 0 )
 				break;
    	    	WinListState.col_width[i] -= delta ;
-			total_delta -= delta ;
+			applied_delta += delta ;
 		}
-        WinListState.col_width[WinListState.columns_num-1] -= total_delta ;
+        WinListState.col_width[WinListState.columns_num-1] -= (total_delta-applied_delta) ;
 		total_width = allowed_max_width ;
     }else if( total_width < allowed_min_width )
     {

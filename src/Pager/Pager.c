@@ -411,8 +411,8 @@ CheckConfigSanity()
 
     for( i = 0 ; i < BACK_STYLES ; ++i )
     {
-        static char *window_style_names[BACK_STYLES] ={"*%sFWindowStyle", "*%sSWindowStyle", "*%sUWindowStyle", NULL };
-        static char *default_window_style_name[BACK_STYLES] ={"focused_window_style","sticky_window_style","unfocused_window_style", NULL};
+        static char *window_style_names[BACK_STYLES] ={"*%sFWindowStyle", "*%sUWindowStyle", "*%sSWindowStyle", NULL };
+        static char *default_window_style_name[BACK_STYLES] ={"focused_window_style","unfocused_window_style","sticky_window_style", NULL};
 		if( window_style_names[i] )
 		{
       		sprintf( &(buf[0]), window_style_names[i], MyName );
@@ -1607,7 +1607,8 @@ set_client_look( ASWindowData *wd, Bool redraw )
 
     if( wd->bar )
     {
-        set_astbar_style_ptr( wd->bar, BAR_STATE_UNFOCUSED, Scr.Look.MSWindow[BACK_UNFOCUSED] );
+		int state = get_flags( wd->state_flags, AS_Sticky )?BACK_STICKY:BACK_UNFOCUSED;
+       	set_astbar_style_ptr( wd->bar, BAR_STATE_UNFOCUSED, Scr.Look.MSWindow[state] );
         set_astbar_style_ptr( wd->bar, BAR_STATE_FOCUSED, Scr.Look.MSWindow[BACK_FOCUSED] );
     }else
 		show_warning( "NULL tbar for window data found. client = %lX", wd->client );
@@ -1743,7 +1744,8 @@ void refresh_client( INT32 old_desk, ASWindowData *wd )
       		quietly_reparent_canvas( wd->canvas, d->desk_canvas->w, CLIENT_EVENT_MASK, False );
 		}
     }
-    set_client_name( wd, True );
+    set_client_name( wd, False );
+	set_client_look( wd, True );
     set_astbar_focused( wd->bar, wd->canvas, wd->focused );
 	if( d != NULL )
 	    place_client( d, wd, False, False );
