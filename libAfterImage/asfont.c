@@ -59,15 +59,14 @@
 #endif
 
 #ifdef HAVE_FREETYPE
-#ifndef HAVE_FT2BUILD_H
+#ifdef HAVE_FT2BUILD_H
+#include <ft2build.h>
+#include FT_FREETYPE_H
+#endif
 #ifdef HAVE_FREETYPE_FREETYPE
 #include <freetype/freetype.h>
 #else
 #include <freetype.h>
-#endif
-#else
-#include <ft2build.h>
-#include FT_FREETYPE_H
 #endif
 #endif
 

@@ -465,7 +465,8 @@ else
 	  saved_CFLAGS=$CFLAGS
 	  CPPFLAGS="$TTF_INCLUDES $CPPFLAGS"
 	  CFLAGS="$CFLAGS $TTF_INCLUDES $XPM_CFLAGS $JPEG_CFLAGS $PNG_CFLAGS $GIF_CFLAGS $TIFF_CFLAGS $X_CFLAGS"
-	  AC_CHECK_HEADERS(ft2build.h)
+	  have_ft2build=no
+	  AC_CHECK_HEADERS(ft2build.h,[have_ft2build=yes])
 	  AC_MSG_CHECKING( freetype/freetype.h )
 	  have_ttf=no
           have_freetype_freetype=no
@@ -476,17 +477,32 @@ else
                                              AC_EGREP_HEADER(FT_Face,freetype.h,
 					                   [have_freetype=yes], AC_MSG_RESULT(no))]
 					  )
-    	  if test "x$have_freetype_freetype" = "xyes" ; then
-		AC_TRY_RUN([#include <freetype/freetype.h>
+	  if test "x$have_ft2build" = "xno" ; then
+    	  	if test "x$have_freetype_freetype" = "xyes" ; then
+			AC_TRY_RUN([#include <freetype/freetype.h>
+                            	int main(){FT_Face f; return 0;}],
+	                   	[have_ttf=yes],AC_MSG_RESULT(no))
+	  	elif test "x$have_freetype" = "xyes" ; then
+			AC_TRY_RUN([#include <freetype.h>
+                            	int main(){FT_Face f; return 0;}],
+	                   	[have_ttf=yes],AC_MSG_RESULT(no))
+	  	fi;
+	  elif test "x$have_freetype_freetype" = "xyes" ; then
+		AC_TRY_RUN([#include <ft2build.h> 
+			    #include <freetype/freetype.h>
                             int main(){FT_Face f; return 0;}],
-	                   [AC_DEFINE(HAVE_FREETYPE_FREETYPE,1,[Define if libFreeType is available]) have_ttf=yes],AC_MSG_RESULT(no))
+	                [have_ttf=yes],AC_MSG_RESULT(no))
 	  elif test "x$have_freetype" = "xyes" ; then
-		AC_TRY_RUN([#include <freetype.h>
-                            int main(){FT_Face f; return 0;}],
-	                   [have_ttf=yes],AC_MSG_RESULT(no))
-	  fi;
+		AC_TRY_RUN([#include <ft2build.h>
+			#include <freetype.h>
+                        int main(){FT_Face f; return 0;}],
+	                [have_ttf=yes],AC_MSG_RESULT(no))
+	  fi;		       
     	  if test "x$have_ttf" = "xyes" ; then
 		AC_DEFINE(HAVE_FREETYPE,1,[Define if libFreeType is available])
+		if test "x$have_freetype_freetype" = "xyes" ; then 
+			AC_DEFINE(HAVE_FREETYPE_FREETYPE,1,[Define if libFreeType has freetype.h in freetype/ ])
+		fi;
                 AC_MSG_RESULT(yes)
 	  fi;
 	  CPPFLAGS=$saved_CPPFLAGS
