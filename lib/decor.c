@@ -41,6 +41,8 @@
 #include <X11/extensions/shape.h>
 #endif
 
+int    _as_frame_corner_xref[FRAME_SIDES+1] = {FR_NW, FR_NE, FR_SE, FR_SW, FR_NW};
+
 static GC     MaskGC = None;
 
 /********************************************************************/
@@ -301,6 +303,16 @@ resize_canvas (ASCanvas * pc, unsigned int width, unsigned int height)
 	XResizeWindow (dpy, pc->w, width, height);
 }
 
+void
+moveresize_canvas (ASCanvas * pc, int x, int y, unsigned int width, unsigned int height)
+{
+	/* Setting background to None to avoid background pixmap tiling
+	 * while resizing */
+	if (pc->width < width || pc->height < height)
+		XSetWindowBackgroundPixmap (dpy, pc->w, None);
+    XMoveResizeWindow (dpy, pc->w, x, y, width, height);
+}
+
 /********************************************************************/
 /* ASTBtnData :                                                     */
 /********************************************************************/
@@ -498,6 +510,14 @@ create_astbar ()
 	return tbar;
 }
 
+static inline void
+flush_tbar_backs()
+{
+    register int i;
+    for (i = 0; i < BAR_STATE_NUM; ++i)
+        if (tbar->back[i])
+            destroy_asimage (&(tbar->back[i]));
+}
 void
 destroy_astbar (ASTBarData ** ptbar)
 {
@@ -605,8 +625,6 @@ set_astbar_size (ASTBarData * tbar, unsigned int width, unsigned int height)
 	return changed;
 }
 
-#define ASTBAR_HILITE	(BOTTOM_HILITE|RIGHT_HILITE)
-
 static void
 update_astbar_bevel_size (ASTBarData * tbar)
 {
@@ -648,6 +666,43 @@ set_astbar_style (ASTBarData * tbar, unsigned int state, const char *style_name)
 		update_astbar_bevel_size (tbar);
 	}
 	return changed;
+}
+
+Bool
+set_astbar_image( ASTBarData *tbar, ASImage *image )
+{
+    if( tbar )
+        if( tbar->back_image != image )
+        {
+            register int i ;
+            if( tbar->back_image )
+            {
+                safe_asimage_destroy( tbar->back_image );
+                tbar->back_image = NULL ;
+            }
+            if( image )
+                tbar->back_image = dup_asimage( image );
+
+            flush_tbar_backs();
+
+            return True;
+        }
+    return False;
+}
+
+Bool
+set_astbar_back_size( ASTBarData *tbar, unsigned short width, unsigned short height )
+{
+    if( tbar )
+        if ( width != tbar->back_width || height != tbar->back_height )
+        {
+            tbar->back_width = width ;
+            tbar->back_height = height ;
+            flush_tbar_backs();
+
+            return True;
+        }
+    return False;
 }
 
 Bool

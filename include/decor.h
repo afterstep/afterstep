@@ -57,6 +57,9 @@ typedef struct ASTBarData {
 #define BAR_STATE_PRESSED_MASK	(0x01<<1)
 
 #define BAR_FLAGS_VERTICAL      (0x01<<16)     /* vertical label */
+#define BAR_FLAGS_IMAGE_BACK    (0x01<<17)     /* back represents an icon instead of  */
+
+#define ASTBAR_HILITE   (BOTTOM_HILITE|RIGHT_HILITE)
 
     ASFlagType  state ;
     unsigned long context ;
@@ -67,15 +70,19 @@ typedef struct ASTBarData {
     unsigned short width, height ;
     unsigned char left_bevel, top_bevel, right_bevel, bottom_bevel ;
     /* 28 bytes */
+    /* this is what we make our background from :*/
     struct MyStyle      *style[2] ;
-	struct ASImage 		*back [2] ;
-    /* 44 bytes */
+    struct ASImage      *back_texture ;
+    unsigned short       back_width, back_height;
+    /* this is the actuall generated background : */
+    struct ASImage      *back [2] ;
+    /* 52 bytes */
 
     char *label_text ;
     struct ASImage      *label[2] ;
-    /* 56 bytes */
-    struct ASTBtnBlock  *left_buttons, *right_buttons;
     /* 64 bytes */
+    struct ASTBtnBlock  *left_buttons, *right_buttons;
+    /* 72 bytes */
 }ASTBarData ;
 
 /*********************************************************************
@@ -113,11 +120,17 @@ typedef struct MyFrame
     struct icon_t    *parts[FRAME_PARTS];
     unsigned int part_width[FRAME_PARTS];
     unsigned int part_length[FRAME_PARTS];
+#define MYFRAME_HOR_MASK    ((0x01<<FR_N)|(0x01<<FR_S))
+#define MYFRAME_VERT_MASK   ((0x01<<FR_W)|(0x01<<FR_E))
+#define IsFrameCorner(p)   ((p)>=FRAME_SIDES)
 #define IsFramePart(f,p)   ((f)->parts[(p)] || ((f)->part_width[(p)] && (f)->part_height[(p)]))
 
     unsigned int spacing ;
 }MyFrame;
 
+extern int    _as_frame_corner_xref[FRAME_SIDES+1];
+#define LeftCorner(side)    _as_frame_corner_xref[(side)]
+#define RightCorner(side)   _as_frame_corner_xref[(side)+1]
 
 ASCanvas* create_ascanvas(Window w);
 void destroy_ascanvas( ASCanvas **pcanvas );
@@ -127,6 +140,8 @@ Pixmap get_canvas_mask( ASCanvas *pc );
 Bool draw_canvas_image( ASCanvas *pc, ASImage *im, int x, int y );
 void update_canvas_display( ASCanvas *pc );
 void resize_canvas( ASCanvas *pc, unsigned int width, unsigned int height );
+void moveresize_canvas (ASCanvas * pc, int x, int y, unsigned int width, unsigned int height);
+
 
 
 ASTBtnData *create_astbtn();
@@ -149,6 +164,8 @@ unsigned int calculate_astbar_width( ASTBarData *tbar );
 
 Bool set_astbar_size( ASTBarData *tbar, unsigned int width, unsigned int height );
 Bool set_astbar_style( ASTBarData *tbar, unsigned int state, const char *style_name );
+Bool set_astbar_image( ASTBarData *tbar, ASImage *image );
+Bool set_astbar_back_size( ASTBarData *tbar, unsigned short width, unsigned short height );
 Bool set_astbar_label( ASTBarData *tbar, const char *label );
 Bool set_astbar_btns( ASTBarData *tbar, const ASTBtnBlock *btns, Bool left );
 Bool move_astbar( ASTBarData *tbar, ASCanvas *pc, int win_x, int win_y );
