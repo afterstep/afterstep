@@ -85,7 +85,7 @@ dnl# AfterSTep already checked everything for us
     AC_SUBST(LEXLIB)
     AC_SUBST(YACC)
     AC_SUBST(sgmltools)
-    if test "x$have_xshmimage"="xyes"; then 
+    if test "x$have_xshmimage"="xyes"; then
 	AC_DEFINE(XSHMIMAGE)
     fi
 else
@@ -209,12 +209,23 @@ dnl# Check for X shaped window extension
 HAVESHAPE="NOSHAPE"
 have_xext_lib=no
 if test "x$enable_shmimage" = "xyes"; then
-  AC_CHECK_LIB(Xext, XShmCreateImage, [have_xext_lib=yes;AC_DEFINE(XSHMIMAGE,)],,$x_libs)
+	AC_CHECK_LIB(Xext, XShmCreateImage, [have_xshmimage=yes],,$x_libs)
+	if test "x$have_xshmimage=yes" = "xyes"; then
+		AC_CHECK_HEADER(sys/ipc.h,,[have_xshmimage=no])
+	fi
+	if test "x$have_xshmimage=yes" = "xyes"; then
+		AC_CHECK_HEADER(sys/shm.h,,[have_xshmimage=no])
+	fi
+	if test "x$have_xshmimage=yes" = "xyes"; then
+		add_lib_xext=yes
+		AC_DEFINE(XSHMIMAGE,)
+	fi
+
 fi
 
 if test "x$have_xext_lib" = "xyes"; then
     x_libs="$x_libs -lXext"
-fi    
+fi
 
 dnl# Check for graphics libraries :
 

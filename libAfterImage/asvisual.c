@@ -27,6 +27,12 @@
 #include "afterbase.h"
 #include "asvisual.h"
 
+#ifdef XSHMIMAGE
+# include <sys/ipc.h>
+# include <sys/shm.h>
+# include <X11/extensions/XShm.h>
+#endif
+
 CARD32 color2pixel32bgr(ASVisual *asv, CARD32 encoded_color, unsigned long *pixel);
 CARD32 color2pixel32rgb(ASVisual *asv, CARD32 encoded_color, unsigned long *pixel);
 CARD32 color2pixel24bgr(ASVisual *asv, CARD32 encoded_color, unsigned long *pixel);
@@ -1025,6 +1031,128 @@ create_visual_pixmap( ASVisual *asv, Window root, unsigned int width, unsigned i
 #endif /*ifndef X_DISPLAY_MISSING */
 }
 
+#ifdef XSHMIMAGE
+
+int	(*orig_XShmImage_destroy_image)(XImage *ximage) = NULL ;
+
+typedef struct ASXShmImage
+{
+	XImage 			*ximage ;
+	XShmSegmentInfo *segment ;
+	int 			 ref_count ;
+}ASXShmImage;
+
+static ASHashTable	*xshmimage_segments = NULL ;
+static ASHashTable	*xshmimage_images = NULL ;
+
+static Bool _as_use_shm_images = False ;
+
+void
+destroy_xshmimage_segment(ASHashableValue value, void *data)
+{
+	ASXShmImage *img_data = (ASXShmImage*)data ;
+	if( img_data->segment != NULL )
+	{
+		XShmDetach (dpy, img_data->segment);
+		shmdt (img_data->segment->shmaddr);
+		shmctl (img_data->segment->shmid, IPC_RMID, 0);
+		free( img_data->segment );
+		img_data->segment = NULL ;
+		if( img_data->ximage == NULL )
+			free( img_data );
+	}
+}
+
+void
+destroy_xshmimage_image(ASHashableValue value, void *data)
+{
+	ASXShmImage *img_data = (ASXShmImage*)data ;
+	if( img_data->ximage != NULL )
+	{
+		if( orig_XShmImage_destroy_image )
+			orig_XShmImage_destroy_image( img_data->ximage );
+		else
+			XFree ((char *)img_data->ximage);
+		img_data->ximage = NULL ;
+		if( img_data->segment == NULL )
+			free( img_data );
+	}
+}
+
+Bool enable_shmem_images ( )
+{
+#ifndef DEBUG_ALLOCS
+	if( XShmQueryExtension (dpy) )
+	{
+		_as_use_shm_images = True ;
+		if( xshmimage_segments == NULL )
+			xshmimage_segments = create_ashash_table( 0, NULL, NULL, destroy_xshmimage_segment );
+		if( xshmimage_images == NULL )
+			xshmimage_images = create_ashash_table( 0, pointer_hash_value, NULL, destroy_xshmimage_image );
+	}else
+#endif
+		_as_use_shm_images = False ;
+	return _as_use_shm_images;
+}
+
+void disable_shmem_images()
+{
+	_as_use_shm_images = False ;
+}
+
+int destroy_xshm_image( XImage *ximage )
+{
+	if( xshmimage_images )
+	{
+		if( remove_hash_item( xshmimage_images, AS_HASHABLE(ximage), NULL, True ) != ASH_Success )
+		{
+			if (ximage->data != NULL)
+				free ((char *)ximage->data);
+			if (ximage->obdata != NULL)
+				free ((char *)ximage->obdata);
+			XFree ((char *)ximage);
+		}
+	}
+	return 1;
+}
+
+void destroy_xshm_segment( ShmSeg shmseg )
+{
+	if( xshmimage_segments )
+		remove_hash_item( xshmimage_segments, AS_HASHABLE(shmseg), NULL, True );
+}
+
+void registerXShmImage( XImage *ximage, XShmSegmentInfo* shminfo )
+{
+	ASXShmImage *data = safecalloc( 1, sizeof(ASXShmImage));
+
+	data->ximage = ximage ;
+	data->segment = shminfo ;
+
+	orig_XShmImage_destroy_image = ximage->f.destroy_image ;
+	ximage->f.destroy_image = destroy_xshm_image ;
+
+	add_hash_item( xshmimage_images, AS_HASHABLE(ximage), data );
+	add_hash_item( xshmimage_segments, AS_HASHABLE(shminfo->shmid), data );
+}
+
+Bool
+check_XImage_shared( XImage *xim )
+{
+	if( !_as_use_shm_images )
+		return False ;
+	return (get_hash_item( xshmimage_images, AS_HASHABLE(xim), NULL ) == ASH_Success);
+}
+
+
+#else
+
+Bool enable_shmem_images (){return False}
+void disable_shmem_images(){}
+Bool check_XImage_shared( XImage *xim ) {return False ; }
+
+#endif                                         /* XSHMIMAGE */
+
 #ifndef X_DISPLAY_MISSING
 int
 My_XDestroyImage (ximage)
@@ -1059,22 +1187,46 @@ create_visual_ximage( ASVisual *asv, unsigned int width, unsigned int height, un
 	if( unit == 24 )
 		unit = 32 ;
 #endif
-	ximage = XCreateImage (asv->dpy, asv->visual_info.visual, (depth==0)?asv->visual_info.depth/*true_depth*/:depth, ZPixmap, 0, NULL, MAX(width,(unsigned int)1), MAX(height,(unsigned int)1),
-						   unit, 0);
-	if (ximage != NULL)
+#ifdef XSHMIMAGE
+	if( _as_use_shm_images )
 	{
-		_XInitImageFuncPtrs (ximage);
-		ximage->obdata = NULL;
-		ximage->f.destroy_image = My_XDestroyImage;
-		dsize = ximage->bytes_per_line*ximage->height;
-	    if (((data = (char *)safecalloc (1, dsize)) == NULL) && (dsize > 0))
+		XShmSegmentInfo *shminfo = safecalloc( 1, sizeof(XShmSegmentInfo));
+
+		ximage = XShmCreateImage (asv->dpy, asv->visual_info.visual,
+			                      (depth==0)?asv->visual_info.depth/*true_depth*/:depth,
+								  ZPixmap, NULL, shminfo,
+								  MAX(width,(unsigned int)1), MAX(height,(unsigned int)1);
+		if( ximage == NULL )
+			free( shminfo );
+		else
 		{
-			XFree ((char *)ximage);
-			return (XImage *) NULL;
+			shminfo->shmid = shmget (IPC_PRIVATE, ximage->bytes_per_line * ximage->height, IPC_CREAT|0777);
+			shminfo->shmaddr = ximage->data = shmat (shminfo.shmid, 0, 0);
+			shminfo->readOnly = False;
+			XShmAttach (asv->dpy, shminfo);
+			registerXShmImage( ximage, shminfo );
 		}
-		ximage->data = data;
 	}
-	return ximage;
+#endif
+	if( ximage == NULL )
+	{
+		ximage = XCreateImage (asv->dpy, asv->visual_info.visual, (depth==0)?asv->visual_info.depth/*true_depth*/:depth, ZPixmap, 0, NULL, MAX(width,(unsigned int)1), MAX(height,(unsigned int)1),
+						   	unit, 0);
+		if (ximage != NULL)
+		{
+			_XInitImageFuncPtrs (ximage);
+			ximage->obdata = NULL;
+			ximage->f.destroy_image = My_XDestroyImage;
+			dsize = ximage->bytes_per_line*ximage->height;
+	    	if (((data = (char *)safecalloc (1, dsize)) == NULL) && (dsize > 0))
+			{
+				XFree ((char *)ximage);
+				return (XImage *) NULL;
+			}
+			ximage->data = data;
+		}
+		return ximage;
+	}
 #else
 	return NULL ;
 #endif /*ifndef X_DISPLAY_MISSING */
