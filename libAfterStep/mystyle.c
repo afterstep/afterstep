@@ -42,8 +42,8 @@
 #include "../include/pixmap.h"
 
 /*
- * if you add a member to this list, or to the MyStyle structure, 
- * remember to update mystyle_new(), mystyle_delete(), mystyle_merge_styles(), 
+ * if you add a member to this list, or to the MyStyle structure,
+ * remember to update mystyle_new(), mystyle_delete(), mystyle_merge_styles(),
  * mystyle_parse(), mystyle_get_property(), and mystyle_set_property()
  */
 struct config mystyle_config[] =
@@ -103,7 +103,7 @@ CreateTintGC (Drawable d, unsigned long tintColor, int function)
 		    &gcvalue);
 }
 
-/* create the default style if necessary, and fill in the unset fields 
+/* create the default style if necessary, and fill in the unset fields
  * of the other styles from the default */
 void
 mystyle_fix_styles (void)
@@ -111,9 +111,9 @@ mystyle_fix_styles (void)
   MyStyle *dflt;
   MyStyle *style;
 
-/* 
+/*
  * the user may not have set the default style, so set it here
- * all we need are reasonable defaults, and most defaults have been set 
+ * all we need are reasonable defaults, and most defaults have been set
  *  by mystyle_new() already
  * we need FONT, FORECOLOR, and BACKCOLOR, at a minimum
  */
@@ -328,6 +328,12 @@ mystyle_make_icon_overlay (MyStyle * style, int root_x, int root_y, int width, i
 {
   icon_t icon =
   {None, None, 0, 0};
+
+  if( width < 1 )
+    width = 1 ;
+  if( height < 1 )
+    height = 1 ;
+
   if (style->texture_type < TEXTURE_TRANSPARENT)
     icon = mystyle_make_icon (style, width, height, cache);
 #ifndef NO_TEXTURE
@@ -394,7 +400,7 @@ mystyle_set_global_gcs (MyStyle * style)
       XGCValues gcv;
       unsigned long gcm;
       int screen = DefaultScreen(dpy);
-      
+
       gcv.graphics_exposures = False;
       gcm = GCGraphicsExposures;
       ForeGC = XCreateGC (dpy, RootWindow (dpy, screen), gcm, &gcv);
@@ -484,7 +490,7 @@ mystyle_new (void)
 {
   MyStyle *style = (MyStyle *) safemalloc (sizeof (MyStyle));
   int screen = DefaultScreen(dpy);
-  
+
   style->next = mystyle_first;
   mystyle_first = style;
 
@@ -606,8 +612,8 @@ mystyle_find_or_default (const char *name)
 /*
  * merges two styles, with the result in child
  * if override == False, will not override fields already set
- * if copy == True, copies instead of inheriting; this is important, because 
- *   inherited members are deleted when their real parent is deleted; don't 
+ * if copy == True, copies instead of inheriting; this is important, because
+ *   inherited members are deleted when their real parent is deleted; don't
  *   inherit if the parent style could go away before the child
  */
 void
@@ -852,10 +858,10 @@ mystyle_parse_member (MyStyle * style, char *str, const char *PixmapPath)
   int done = 0;
   struct config *config = find_config (mystyle_config, str);
   int screen = DefaultScreen(dpy);
-  
+
   style_func = F_ERROR;
   style_arg = NULL;
-    
+
   if (config != NULL)
     config->action (str + strlen (config->keyword), NULL, config->arg, config->arg2);
   else

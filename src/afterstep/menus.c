@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1993 Rob Nation 
+ * Copyright (C) 1993 Rob Nation
  * Copyright (C) 1995 Bo Yang
  * Copyright (C) 1996 Frank Fejes
  * Copyright (C) 1996 Alfredo Kojima
@@ -173,7 +173,7 @@ configure_menu (MenuRoot * menu, MenuRoot * parent)
 	{
 	  Window child;
 	  ASWindow *win = Tmp_win;
-	  /* the x-coordinate calculation for buttons is wrong - should 
+	  /* the x-coordinate calculation for buttons is wrong - should
 	   * probably use XGetGeometry to get the right number */
 	  if ((Context & C_LALL) && win->left_w[Button] != None)
 	    XTranslateCoordinates (dpy, win->left_w[Button], Scr.Root, 0, 0, &x, &y, &child);
@@ -305,12 +305,18 @@ setup_menu_pixmaps (MenuRoot * menu)
 	  XFreePixmap (dpy, menu->itemhibg);
 	  menu->itemhibg = None;
 	}
-      if (menu->titlebg == None && Scr.MSMenuTitle->texture_type > 0)
-	menu->titlebg = mystyle_make_pixmap_overlay (Scr.MSMenuTitle, menu->x + x_offset, menu->y + title_y + y_offset, width, title_height, None);
-      if (menu->itembg == None && Scr.MSMenuItem->texture_type > 0)
-	menu->itembg = mystyle_make_pixmap_overlay (Scr.MSMenuItem, menu->x + x_offset, menu->y + item_y + y_offset, width, item_height, None);
-      if (menu->itemhibg == None && Scr.MSMenuHilite->texture_type > 0)
-	menu->itemhibg = mystyle_make_pixmap_overlay (Scr.MSMenuHilite, menu->x + x_offset, menu->y + item_y + y_offset, width, item_height, None);
+        if( width > 0 )
+        {
+            if (menu->titlebg == None && Scr.MSMenuTitle->texture_type > 0 && title_height > 0 )
+                menu->titlebg = mystyle_make_pixmap_overlay (Scr.MSMenuTitle, menu->x + x_offset, menu->y + title_y + y_offset, width, title_height, None);
+            if( item_height > 0 )
+            {
+                if (menu->itembg == None && Scr.MSMenuItem->texture_type > 0 )
+                    menu->itembg = mystyle_make_pixmap_overlay (Scr.MSMenuItem, menu->x + x_offset, menu->y + item_y + y_offset, width, item_height, None);
+                if (menu->itemhibg == None && Scr.MSMenuHilite->texture_type > 0 )
+                    menu->itemhibg = mystyle_make_pixmap_overlay (Scr.MSMenuHilite, menu->x + x_offset, menu->y + item_y + y_offset, width, item_height, None);
+            }
+        }
     }
 #endif /* !NO_TEXTURE */
   XSetWindowBackground (dpy, (*menu).w, (*Scr.MSMenuItem).colors.back);
@@ -363,7 +369,7 @@ RelieveHalfRectangle (Window win, int x, int y, int w, int h, GC Hilite, GC Shad
 void
 PaintEntry (MenuRoot * mr, MenuItem * mi)
 {
-  /* 
+  /*
    * get texture from
    * (0, bg_y_offset, width, y_height)
    *
