@@ -12,32 +12,6 @@ struct ASCanvas;
 struct ASTBarData;
 struct ASWindow;
 
-typedef struct MenuDataItem
-  {
-
-    unsigned long   magic;
-    struct MenuDataItem  *next;  /* next menu item */
-    struct MenuDataItem  *prev;  /* prev menu item */
-
-#define MD_Disabled        (0x01<<0)
-/* can't think of anything else atm - maybe add something later ? */
-    ASFlagType            flags ;
-    struct FunctionData  *fdata ;
-    char                 *minipixmap ;         /* we always read filename from config !! */
-    char *item;         /* the character string displayed on left */
-    char *item2;		/* the character string displayed on right */
-}MenuDataItem;
-
-typedef struct MenuData
-{
-    unsigned long    magic;
-    char *name;         /* name of root */
-
-    struct MenuDataItem *first; /* first item in menu */
-    struct MenuDataItem *last;  /* last item in menu */
-    short items_num;        /* number of items in the menu */
-}MenuData;
-
 typedef struct ASMenuItem
 {
 #define AS_MenuItemDisabled     (0x01<<0)
@@ -94,10 +68,6 @@ typedef struct ASMenu
 char* parse_context (char *string, int *output, struct charstring *table);
 char scan_for_hotkey (char* txt);
 
-void init_func_data( FunctionData* data );
-void parse_func_units( FunctionData* data );
-void free_func_hash();
-
 /* the following two returns pointer to static preinitialized memory!!! */
 struct TermDef* txt2fterm( const char* txt, int quiet );
 struct TermDef*  func2fterm( FunctionCode func, int quiet );
@@ -113,8 +83,6 @@ void FocusOn (ASWindow *, int, Bool);
 
 MenuData* FindPopup( const char* name, int quiet );
 
-MenuDataItem* CreateMenuItem();
-MenuDataItem* NewMenuItem(MenuData* menu);
 void DeleteMenuItem( MenuDataItem* item );
 
 MenuData *CreateMenuData();

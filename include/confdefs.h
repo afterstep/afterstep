@@ -7,25 +7,30 @@
 /***************************************************************************/
 #define BASE_ID_START        	0
 #define BASE_MODULE_PATH_ID     BASE_ID_START
-#define BASE_ICON_PATH_ID     	BASE_ID_START+1
-#define BASE_PIXMAP_PATH_ID     BASE_ID_START+2
-#define BASE_MYNAME_PATH_ID     BASE_ID_START+3
-#define BASE_DESKTOP_SIZE_ID	BASE_ID_START+4
-#define BASE_DESKTOP_SCALE_ID	BASE_ID_START+5
-#define BASE_ID_END           	BASE_ID_START+10
+#define BASE_AUDIO_PATH_ID      BASE_ID_START+1
+#define BASE_ICON_PATH_ID     	BASE_ID_START+2
+#define BASE_PIXMAP_PATH_ID	BASE_ID_START+3
+#define BASE_FONT_PATH_ID   BASE_ID_START+4
+#define BASE_CURSOR_PATH_ID	BASE_ID_START+5
+#define BASE_MYNAME_PATH_ID	BASE_ID_START+6
+#define BASE_DESKTOP_SIZE_ID	BASE_ID_START+7
+#define BASE_DESKTOP_SCALE_ID	BASE_ID_START+8
+#define BASE_ID_END             BASE_ID_START+10
 
 typedef struct
-  {
+{
     char *module_path;
+    char *audio_path;
     char *icon_path;
     char *pixmap_path;
+    char *font_path;
+    char *cursor_path;
     char *myname_path;
     ASGeometry desktop_size;
     int desktop_scale;
 
     FreeStorageElem *more_stuff;
-  }
-BaseConfig;
+}BaseConfig;
 
 BaseConfig *ParseBaseOptions (const char *filename, char *myname);
 /*
@@ -85,7 +90,7 @@ void DestroyBaseConfig (BaseConfig * config);
 
 extern SyntaxDef MyStyleSyntax;
 /* use this in module term definition to add MyStyle parsing functionality */
-#define INCLUDE_MYSTYLE	{TF_NO_MYNAME_PREPENDING,"MyStyle", 7, TT_QUOTED_TEXT, MYSTYLE_START_ID, &MyStyleSyntax, NULL}
+#define INCLUDE_MYSTYLE {TF_NO_MYNAME_PREPENDING,"MyStyle", 7, TT_QUOTED_TEXT, MYSTYLE_START_ID, &MyStyleSyntax}
 
 typedef struct mystyle_definition
   {
@@ -138,6 +143,59 @@ void PrintMyStyleDefinitions (MyStyleDefinition * list);
 void
   ProcessMyStyleDefinitions (MyStyleDefinition ** list);
 
+/**************************************************************************/
+/*                        balloon pasring definitions                       */
+/**************************************************************************/
+
+#define BALLOON_ID_START            (MYSTYLE_ID_END+1)
+
+#define BALLOON_USED_ID	 			 BALLOON_ID_START
+#define BALLOON_BorderColor_ID		(BALLOON_ID_START+1)
+#define BALLOON_BorderWidth_ID		(BALLOON_ID_START+2)
+#define BALLOON_YOffset_ID			(BALLOON_ID_START+3)
+#define BALLOON_Delay_ID			(BALLOON_ID_START+4)
+#define BALLOON_CloseDelay_ID			(BALLOON_ID_START+5)
+
+#define	BALLOON_ID_END				(BALLOON_ID_START+10)
+
+#define BALLOON_TERMS \
+ {0, "Balloons",		 8, TT_FLAG	, BALLOON_USED_ID	, NULL}, \
+ {0, "BalloonBorderColor",18, TT_COLOR	, BALLOON_BorderColor_ID	, NULL}, \
+ {0, "BalloonBorderWidth",18, TT_UINTEGER	, BALLOON_BorderWidth_ID, NULL}, \
+ {0, "BalloonYOffset", 	14, TT_INTEGER	, BALLOON_YOffset_ID		, NULL}, \
+ {0, "BalloonDelay",	12, TT_UINTEGER	, BALLOON_Delay_ID		, NULL}, \
+ {0, "BalloonCloseDelay", 17, TT_UINTEGER	, BALLOON_CloseDelay_ID	, NULL}
+
+typedef struct balloonConfig
+{
+  unsigned long set_flags;	/* identifyes what option is set */
+#define BALLOON_USED				(0x01<<0)
+#define BALLOON_COLOR				(0x01<<1)
+#define BALLOON_WIDTH				(0x01<<2)
+#define BALLOON_OFFSET				(0x01<<3)
+#define BALLOON_DELAY				(0x01<<4)
+#define BALLOON_CLOSE_DELAY			(0x01<<5)
+  char *border_color;
+  unsigned int border_width;
+  int y_offset;
+  unsigned int delay, close_delay;
+}
+balloonConfig;
+
+struct BalloonLook;
+
+balloonConfig *Create_balloonConfig ();
+void Destroy_balloonConfig (balloonConfig * config);
+balloonConfig *Process_balloonOptions (FreeStorageElem * options,
+				       balloonConfig * config);
+void Print_balloonConfig (balloonConfig * config);
+FreeStorageElem **balloon2FreeStorage (SyntaxDef * syntax,
+				       FreeStorageElem ** tail,
+				       balloonConfig * config);
+
+void BalloonConfig2BalloonLook(struct BalloonLook *blook, struct balloonConfig *config);
+/***************************************************************************/
+
 /***************************************************************************/
 extern char *pixmapPath;
 /****************************************************************************/
@@ -173,7 +231,7 @@ extern char *pixmapPath;
 
 
 /* ID's used in our config */
-#define PAGER_ID_START 		MYSTYLE_ID_END+1
+#define PAGER_ID_START      (BALLOON_ID_END+1)
 #define PAGER_GEOMETRY_ID 	(PAGER_ID_START)
 #define PAGER_ICON_GEOMETRY_ID  (PAGER_ID_START+1)
 #define PAGER_ALIGN_ID		(PAGER_ID_START+2)
@@ -221,6 +279,7 @@ typedef struct
     char *selection_color;
     char *grid_color;
     char *border_color;
+    balloonConfig *balloon_conf;
     MyStyleDefinition *style_defs;
     FreeStorageElem *more_stuff;
 
@@ -405,6 +464,7 @@ typedef struct WinListConfig
 
 	char *mouse_actions[MAX_MOUSE_BUTTONS];
 
+    balloonConfig *balloon_conf;
     MyStyleDefinition *style_defs;
 
     FreeStorageElem *more_stuff;
@@ -507,5 +567,146 @@ struct name_list *ParseDatabaseOptions (const char *filename, char *myname);
 int WriteDatabaseOptions (const char *filename, char *myname,
 			  struct name_list *config, unsigned long flags);
 
+/**************************************************************************/
+/*                        Wharf pasring definitions                       */
+/**************************************************************************/
+
+#define WHARF_ID_START          (DATABASE_ID_END+1)
+#define WHARF_Wharf_ID			(WHARF_ID_START)
+#define WHARF_FolderEnd_ID		(WHARF_ID_START+1)
+#define WHARF_Geometry_ID		(WHARF_ID_START+2)
+#define WHARF_Rows_ID			(WHARF_ID_START+3)
+#define WHARF_Columns_ID		(WHARF_ID_START+4)
+#define WHARF_NoPush_ID			(WHARF_ID_START+5)
+#define WHARF_FullPush_ID		(WHARF_ID_START+6)
+#define WHARF_NoBorder_ID		(WHARF_ID_START+7)
+#define WHARF_WithdrawStyle_ID		(WHARF_ID_START+8)
+/* the NoWithdraw option is undocumented, deprecated, and
+ ** may be removed at Wharf's maintainer's discretion */
+#define WHARF_NoWithdraw_ID  		(WHARF_ID_START+9)
+#define WHARF_ForceSize_ID 		(WHARF_ID_START+10)
+/* TextureType, MaxColors, BgColor, TextureColor, and Pixmap are obsolete */
+#define WHARF_TextureType_ID		(WHARF_ID_START+11)
+#define WHARF_MaxColors_ID 		(WHARF_ID_START+12)
+#define WHARF_BgColor_ID 		(WHARF_ID_START+13)
+#define WHARF_TextureColor_ID		(WHARF_ID_START+14)
+#define WHARF_Pixmap_ID 		(WHARF_ID_START+15)
+#define WHARF_AnimateStepsMain_ID	(WHARF_ID_START+16)
+#define WHARF_AnimateSteps_ID		(WHARF_ID_START+17)
+#define WHARF_AnimateDelay_ID		(WHARF_ID_START+18)
+#define WHARF_AnimateMain_ID 		(WHARF_ID_START+19)
+#define WHARF_Animate_ID		(WHARF_ID_START+20)
+
+#define WHARF_Player_ID 		(WHARF_ID_START+21)
+#define WHARF_Sound_ID 			(WHARF_ID_START+22)
+
+#define	WHARF_ID_END			(WHARF_ID_START+30)
+#define WFUNC_START_ID			(WHARF_ID_END)
+
+#define WFUNC_Folders_ID		(WFUNC_START_ID)
+#define WFUNC_Swallow_ID		(WFUNC_START_ID+1)
+
+#define	WFUNC_ID_END			(WFUNC_START_ID+10)
+
+#define WHEV_PUSH		0
+#define WHEV_CLOSE_FOLDER	1
+#define WHEV_OPEN_FOLDER	2
+#define WHEV_CLOSE_MAIN		3
+#define WHEV_OPEN_MAIN		4
+#define WHEV_DROP		5
+#define WHEV_MAX_EVENTS		6
+
+#define WHEV_START_ID			(WFUNC_ID_END)
+
+#define WHEV_Id2Code(id)		((id)-WHEV_START_ID)
+#define WHEV_Code2Id(code)		((code)+WHEV_START_ID)
+
+#define WHEV_PUSH_ID			WHEV_Code2Id(WHEV_PUSH)
+#define WHEV_CLOSE_FOLDER_ID		WHEV_Code2Id(WHEV_CLOSE_FOLDER)
+#define WHEV_OPEN_FOLDER_ID		WHEV_Code2Id(WHEV_OPEN_FOLDER)
+#define WHEV_CLOSE_MAIN_ID		WHEV_Code2Id(WHEV_CLOSE_MAIN)
+#define WHEV_OPEN_MAIN_ID		WHEV_Code2Id(WHEV_OPEN_MAIN)
+#define WHEV_DROP_ID			WHEV_Code2Id(WHEV_DROP)
+
+#define WHEV_END_ID			WHEV_Code2Id(WHEV_MAX_EVENTS)
+
+
+struct WharfFolder;
+struct FunctionData;
+
+typedef struct WharfButton
+{
+  unsigned long set_flags;
+  char *title;
+  char **icon;
+  struct FunctionData *function;
+  struct WharfButton *next;
+  struct WharfButton *folder;
+}
+WharfButton;
+
+#define  WHARF_GEOMETRY         (0x01<<0)
+#define  WHARF_ROWS			(0x01<<1)
+#define  WHARF_COLUMNS			(0x01<<2)
+#define  WHARF_NO_PUSH			(0x01<<3)
+#define  WHARF_FULL_PUSH		(0x01<<4)
+#define  WHARF_NO_BORDER		(0x01<<5)
+#define  WHARF_WITHDRAW_STYLE		(0x01<<6)
+#define  WHARF_NO_WITHDRAW		(0x01<<7)
+#define  WHARF_FORCE_SIZE		(0x01<<8)
+#define  WHARF_TEXTURE_TYPE		(0x01<<9)
+#define  WHARF_MAX_COLORS		(0x01<<10)
+#define  WHARF_BG_COLOR			(0x01<<11)
+#define  WHARF_TEXTURE_COLOR		(0x01<<12)
+#define  WHARF_PIXMAP			(0x01<<13)
+#define  WHARF_ANIMATE_STEPS		(0x01<<14)
+#define  WHARF_ANIMATE_STEPS_MAIN	(0x01<<15)
+#define  WHARF_ANIMATE_DELAY		(0x01<<16)
+#define  WHARF_ANIMATE_MAIN		(0x01<<17)
+#define  WHARF_ANIMATE			(0x01<<18)
+#define  WHARF_SOUND			(0x01<<19)
+
+typedef struct
+{
+    unsigned long set_flags;
+    unsigned long flags;
+
+    ASGeometry geometry;
+    unsigned int rows, columns;
+    unsigned int withdraw_style;
+    ASGeometry force_size;
+    unsigned int texture_type, max_colors;
+    char *bg_color, *texture_color;
+    char *pixmap;
+    unsigned int animate_steps, animate_steps_main, animate_delay;
+    char *sounds[WHEV_MAX_EVENTS];
+    WharfButton *root_folder;
+
+    balloonConfig *balloon_conf;
+    MyStyleDefinition *style_defs;
+
+    FreeStorageElem *more_stuff;
+
+    /* these are generated after reading the config : */
+    int gravity ;
+
+
+}
+WharfConfig;
+
+
+WharfButton *CreateWharfButton ();
+WharfConfig *CreateWharfConfig ();
+
+void DestroyWharfButton (WharfButton * btn, WharfButton ** folder);
+void DestroyWharfConfig (WharfConfig * config);
+
+WharfConfig *ParseWharfOptions (const char *filename, char *myname);
+void PrintWharfConfig(WharfConfig *config );
+
+int WriteWharfOptions (const char *filename, char *myname,
+		       WharfConfig * config, unsigned long flags);
+
+/***************************************************************************/
 
 #endif /* CONF_DEFS_H_FILE_INCLUDED */

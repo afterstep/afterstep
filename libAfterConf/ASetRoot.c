@@ -35,24 +35,15 @@
  ****************************************************************************/
 
 TermDef       MyBackgroundTerms[] = {
-	{TF_NO_MYNAME_PREPENDING, "MyBackground", 12, TT_QUOTED_TEXT, BGR_MYBACKGROUND, NULL, NULL}
-	,
-    {TF_NO_MYNAME_PREPENDING | TF_DONT_SPLIT | TF_DONT_REMOVE_COMMENTS | TF_INDEXED, "Use", 3, TT_PATHNAME, BGR_USE,
-	 NULL, NULL}
-	,
-	{TF_NO_MYNAME_PREPENDING, "Cut", 3, TT_GEOMETRY, BGR_CUT, NULL, NULL}
-	,
-	{TF_NO_MYNAME_PREPENDING | TF_DONT_REMOVE_COMMENTS, "Tint", 4, TT_COLOR, BGR_TINT, NULL, NULL}
-	,
-	{TF_NO_MYNAME_PREPENDING, "Scale", 5, TT_GEOMETRY, BGR_SCALE, NULL, NULL}
-	,
-	{TF_NO_MYNAME_PREPENDING, "Align", 5, TT_INTEGER, BGR_ALIGN, NULL, NULL}
-	,
-	{TF_NO_MYNAME_PREPENDING | TF_INDEXED, "Pad", 3, TT_COLOR, BGR_PAD, NULL, NULL}
-	,
-	{TF_NO_MYNAME_PREPENDING | TF_SYNTAX_TERMINATOR, "~MyBackground", 13, TT_FLAG, BGR_MYBACKGROUND_END, NULL, NULL}
-	,
-	{0, NULL, 0, 0, 0}
+    {TF_NO_MYNAME_PREPENDING, "MyBackground", 12, TT_QUOTED_TEXT, BGR_MYBACKGROUND, NULL},
+    {TF_NO_MYNAME_PREPENDING | TF_DONT_SPLIT | TF_DONT_REMOVE_COMMENTS |TF_INDEXED, "Use", 3, TT_PATHNAME, BGR_USE, NULL},
+    {TF_NO_MYNAME_PREPENDING, "Cut", 3, TT_GEOMETRY, BGR_CUT, NULL},
+    {TF_NO_MYNAME_PREPENDING | TF_DONT_REMOVE_COMMENTS, "Tint", 4, TT_COLOR, BGR_TINT, NULL},
+    {TF_NO_MYNAME_PREPENDING, "Scale", 5, TT_GEOMETRY, BGR_SCALE, NULL},
+    {TF_NO_MYNAME_PREPENDING, "Align", 5, TT_INTEGER, BGR_ALIGN, NULL},
+    {TF_NO_MYNAME_PREPENDING | TF_INDEXED, "Pad", 3, TT_COLOR, BGR_PAD, NULL},
+    {TF_NO_MYNAME_PREPENDING | TF_SYNTAX_TERMINATOR, "~MyBackground", 13,TT_FLAG, BGR_MYBACKGROUND_END, NULL},
+    {0, NULL, 0, 0, 0}
 };
 
 SyntaxDef     MyBackgroundSyntax = {
@@ -60,17 +51,20 @@ SyntaxDef     MyBackgroundSyntax = {
 	'\0',
 	MyBackgroundTerms,
 	0,										   /* use default hash size */
-	NULL
+    ' ',
+	"",
+	"\t",
+	"MyBackground definition",
+	NULL,
+    0
 };
 
 
 TermDef       ASetRootTerms[] = {
-    {TF_INDEXED | TF_DONT_SPLIT | TF_NO_MYNAME_PREPENDING, "DeskBack", 8, TT_QUOTED_TEXT, BGR_DESK_BACK, NULL, NULL}
-	,
+    {TF_INDEXED | TF_DONT_SPLIT | TF_NO_MYNAME_PREPENDING, "DeskBack", 8, TT_QUOTED_TEXT, BGR_DESK_BACK, NULL},
 /* including MyStyles definitions processing */
 	INCLUDE_MYSTYLE,
-	{TF_NO_MYNAME_PREPENDING, "MyBackground", 12, TT_QUOTED_TEXT, BGR_MYBACKGROUND, &MyBackgroundSyntax, NULL}
-	,
+    {TF_NO_MYNAME_PREPENDING, "MyBackground", 12, TT_QUOTED_TEXT, BGR_MYBACKGROUND, &MyBackgroundSyntax},
 	{0, NULL, 0, 0, 0}
 };
 
@@ -79,7 +73,12 @@ SyntaxDef     ASetRootSyntax = {
 	'\0',
 	ASetRootTerms,
 	0,										   /* use default hash size */
-	NULL
+    ' ',
+	"",
+	"\t",
+    "asetroot configuration",
+	NULL,
+    0
 };
 
 /*****************  Create/Destroy MyBackgroundConfig *****************/
@@ -91,7 +90,7 @@ CreateMyBackgroundConfig ()
 	config->name = NULL;
 	config->flags = 0;
 	config->data = NULL;
-	init_asgeometry (&(config->cut));
+    init_asgeometry (&(config->cut));
 	config->tint = NULL;
 	init_asgeometry (&(config->scale));
 	config->pad = NULL;

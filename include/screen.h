@@ -313,4 +313,6 @@ void setup_modifiers ();
 #define  create_screen_window(scr,p,x,y,w,h,bw,c,mask,attr) \
     create_visual_window((scr)->asv,((p)==None)?((scr)->Root):(p),x,y,w,h,bw,c,mask,attr)
 
+void merge_geometry( ASGeometry *from, ASGeometry *to );
+
 #endif /* _SCREEN_ */

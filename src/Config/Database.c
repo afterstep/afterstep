@@ -67,7 +67,12 @@ SyntaxDef     GravitySyntax = {
 	',',
 	GravityTerms,
 	7,										   /* hash size */
+    ' ',
+	" ",
+	"\t",
+    "Gravity type specification",
 	NULL,
+	0
 };
 
 
@@ -190,7 +195,12 @@ SyntaxDef     StyleSyntax = {
 	'\n',
 	StyleTerms,
 	0,										   /* use default hash size */
+    ' ',
+	" ",
+	"\t",
+	"Style definition",
 	NULL,
+	0
 };
 
 flag_options_xref StyleFlags[] = {
@@ -248,7 +258,12 @@ SyntaxDef     DatabaseSyntax = {
 	'\0',
 	DatabaseTerms,
 	0,										   /* use default hash size */
+    '\t',
+	"",
+	"\t\t",
+	"database configuration",
 	NULL,
+	0
 };
 
 

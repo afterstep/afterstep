@@ -253,6 +253,44 @@ typedef struct ASRectangle
   unsigned int width, height;
 }ASRectangle;
 
+typedef struct
+{
+#define LeftValue	(0x01<<0)
+#define TopValue	(0x01<<1)
+#define RightValue	(0x01<<2)
+#define BottomValue	(0x01<<3)
+#define LeftNegative	(0x01<<4)
+#define TopNegative	(0x01<<5)
+#define RightNegative	(0x01<<6)
+#define BottomNegative	(0x01<<7)
+  int flags;
+  int left, top;
+  int right, bottom;
+}
+ASBox;
+
+typedef enum {
+	ASB_State_Up = 0,
+	ASB_State_Down,
+	ASB_State_SemiChecked,
+	ASB_State_Checked,
+	ASB_StateCount  = 0x03          /* must always be a mask !!! */
+}ASButtonStates ;
+
+typedef struct ASButton
+{
+  ASButtonStates 	 state;
+  MyIcon            *shapes[ASB_StateCount];    /* icons to draw when button is any of the states */
+}ASButton;
+
+typedef struct ASCursor
+{
+	char              *image_file;   /* image of the cursor */
+	char              *mask_file;    /* mask of the cursor  */
+	Cursor             cursor;       /* loaded X Cursor */
+}ASCursor;
+
+
 typedef struct fr_pos
   {
     int x;

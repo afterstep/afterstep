@@ -179,30 +179,6 @@ get_complex_function( char *name )
     return find_complex_func( Scr.Feel.ComplexFunctions, name );
 }
 
-void
-print_func_data(const char *file, const char *func, int line, FunctionData *data)
-{
-    fprintf( stderr, "%s:%s:%s:%d>!!FUNC ", get_application_name(), file, func, line);
-    if( data == NULL )
-        fprintf( stderr, "NULL Function\n");
-    else
-    {
-        TermDef      *term = func2fterm (data->func, True);
-        if( term == NULL )
-            fprintf( stderr, "Invalid Function %d\n", data->func);
-        else
-        {
-            fprintf( stderr, "%s \"%s\" text[%s] ", term->keyword, data->name?data->name:"", data->text?data->text:"" );
-            if( data->text == NULL )
-            {
-                fprintf( stderr, "val0[%ld%c] ", data->func_val[0], (data->unit[0]=='\0')?' ':data->unit[0] );
-                fprintf( stderr, "val1[%ld%c] ", data->func_val[1], (data->unit[1]=='\0')?' ':data->unit[1] );
-            }
-            fprintf( stderr, "(popup=%p)\n", data->popup );
-        }
-    }
-}
-
 /***********************************************************************
  *  Procedure:
  *	ExecuteFunction - execute a afterstep built in function

@@ -34,26 +34,16 @@
  ****************************************************************************/
 
 TermDef       PagerDecorationTerms[] = {
-	{TF_NO_MYNAME_PREPENDING, "NoDeskLabel", 11, TT_FLAG, PAGER_DECOR_NOLABEL_ID, NULL, NULL}
-	,
-	{TF_NO_MYNAME_PREPENDING, "NoPageSeparator", 15, TT_FLAG, PAGER_DECOR_NOSEPARATOR_ID, NULL, NULL}
-	,
-	{TF_NO_MYNAME_PREPENDING, "NoSelection", 11, TT_FLAG, PAGER_DECOR_NOSELECTION_ID, NULL, NULL}
-	,
-	{TF_NO_MYNAME_PREPENDING, "SelectionColor", 14, TT_COLOR, PAGER_DECOR_SEL_COLOR_ID, NULL, NULL}
-	,
-	{TF_NO_MYNAME_PREPENDING, "GridColor", 9, TT_COLOR, PAGER_DECOR_GRID_COLOR_ID, NULL, NULL}
-	,
-	{TF_NO_MYNAME_PREPENDING, "DeskBorderWidth", 15, TT_INTEGER, PAGER_DECOR_BORDER_WIDTH_ID, NULL, NULL}
-	,
-	{TF_NO_MYNAME_PREPENDING, "DeskBorderColor", 15, TT_COLOR, PAGER_DECOR_BORDER_COLOR_ID, NULL, NULL}
-	,
-	{TF_NO_MYNAME_PREPENDING, "LabelBelowDesk", 14, TT_FLAG, PAGER_DECOR_LABEL_BELOW_ID, NULL, NULL}
-	,
-	{TF_NO_MYNAME_PREPENDING, "HideInactiveLabels", 18, TT_FLAG, PAGER_DECOR_HIDE_INACTIVE_ID, NULL, NULL}
-	,
-	{TF_NO_MYNAME_PREPENDING, "VerticalLabel", 13, TT_FLAG, PAGER_DECOR_VERTICAL_LABEL_ID, NULL, NULL}
-	,
+    {TF_NO_MYNAME_PREPENDING, "NoDeskLabel", 11, TT_FLAG, PAGER_DECOR_NOLABEL_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "NoPageSeparator", 15, TT_FLAG, PAGER_DECOR_NOSEPARATOR_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "NoSelection", 11, TT_FLAG, PAGER_DECOR_NOSELECTION_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "SelectionColor", 14, TT_COLOR, PAGER_DECOR_SEL_COLOR_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "GridColor", 9, TT_COLOR, PAGER_DECOR_GRID_COLOR_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "DeskBorderWidth", 15, TT_INTEGER, PAGER_DECOR_BORDER_WIDTH_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "DeskBorderColor", 15, TT_COLOR, PAGER_DECOR_BORDER_COLOR_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "LabelBelowDesk", 14, TT_FLAG, PAGER_DECOR_LABEL_BELOW_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "HideInactiveLabels", 18, TT_FLAG, PAGER_DECOR_HIDE_INACTIVE_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "VerticalLabel", 13, TT_FLAG, PAGER_DECOR_VERTICAL_LABEL_ID, NULL},
 	{0, NULL, 0, 0, 0}
 };
 
@@ -62,53 +52,42 @@ SyntaxDef     PagerDecorationSyntax = {
 	'\n',
 	PagerDecorationTerms,
 	0,										   /* use default hash size */
-	NULL
+    ' ',
+	" ",
+	"\t",
+	"PagerDecoration",
+	NULL,
+	0
 };
 
 TermDef       PagerTerms[] = {
-	{0, "Geometry", 8, TT_GEOMETRY, PAGER_GEOMETRY_ID, NULL, NULL}
-	,
-	{0, "IconGeometry", 12, TT_GEOMETRY, PAGER_ICON_GEOMETRY_ID, NULL, NULL}
-	,
-	{0, "Align", 5, TT_INTEGER, PAGER_ALIGN_ID, NULL, NULL}
-	,
-	{0, "DontDrawBg", 8, TT_FLAG, PAGER_DRAW_BG_ID, NULL, NULL}
-	,
-	{0, "SmallFont", 9, TT_FONT, PAGER_SMALL_FONT_ID, NULL, NULL}
-	,
-	{0, "StartIconic", 11, TT_FLAG, PAGER_START_ICONIC_ID, NULL, NULL}
-	,
-	{0, "Rows", 4, TT_INTEGER, PAGER_ROWS_ID, NULL, NULL}
-	,
-	{0, "Columns", 7, TT_INTEGER, PAGER_COLUMNS_ID, NULL, NULL}
-	,
-	{0, "StickyIcons", 11, TT_FLAG, PAGER_STICKY_ICONS_ID, NULL, NULL}
-	,
-	{TF_DONT_SPLIT, "ShadeButton", 11, TT_TEXT, PAGER_SHADE_BUTTON_ID, NULL, NULL}
-	,
-	{TF_INDEXED, "Label", 5, TT_TEXT, PAGER_LABEL_ID, NULL, NULL}
-	,
+    {0, "Geometry", 8, TT_GEOMETRY, PAGER_GEOMETRY_ID, NULL},
+    {0, "IconGeometry", 12, TT_GEOMETRY, PAGER_ICON_GEOMETRY_ID, NULL},
+    {0, "Align", 5, TT_INTEGER, PAGER_ALIGN_ID, NULL},
+    {0, "DontDrawBg", 8, TT_FLAG, PAGER_DRAW_BG_ID, NULL},
+    {0, "SmallFont", 9, TT_FONT, PAGER_SMALL_FONT_ID, NULL},
+    {0, "StartIconic", 11, TT_FLAG, PAGER_START_ICONIC_ID, NULL},
+    {0, "Rows", 4, TT_INTEGER, PAGER_ROWS_ID, NULL},
+    {0, "Columns", 7, TT_INTEGER, PAGER_COLUMNS_ID, NULL},
+    {0, "StickyIcons", 11, TT_FLAG, PAGER_STICKY_ICONS_ID, NULL},
+    {TF_DONT_SPLIT, "ShadeButton", 11, TT_TEXT, PAGER_SHADE_BUTTON_ID, NULL},
+    {TF_INDEXED, "Label", 5, TT_TEXT, PAGER_LABEL_ID, NULL},
 #ifdef PAGER_BACKGROUND
-	{TF_INDEXED, "Style", 5, TT_TEXT, PAGER_STYLE_ID, NULL, NULL}
-	,
+    {TF_INDEXED, "Style", 5, TT_TEXT, PAGER_STYLE_ID, NULL},
 #endif
 /* including MyStyles definitions processing */
 	INCLUDE_MYSTYLE,
 /* we have sybsyntax for this one too, just like for MyStyle */
-	{TF_DONT_REMOVE_COMMENTS, "Decoration", 10, TT_TEXT, PAGER_DECORATION_ID, &PagerDecorationSyntax, NULL}
-	,
+    {TF_DONT_REMOVE_COMMENTS, "Decoration", 10, TT_TEXT, PAGER_DECORATION_ID, &PagerDecorationSyntax},
 /* now special cases that should be processed by it's own handlers */
-	{TF_SPECIAL_PROCESSING | TF_DONT_REMOVE_COMMENTS, "Balloons", 8, TT_FLAG, PAGER_BALLOONS_ID, NULL, NULL}
-	,
-	{TF_SPECIAL_PROCESSING | TF_DONT_REMOVE_COMMENTS, "BalloonBorderWidth", 18, TT_INTEGER, PAGER_BALLOONS_ID, NULL,
-	 NULL}
-	,
-	{TF_SPECIAL_PROCESSING | TF_DONT_REMOVE_COMMENTS, "BalloonBorderColor", 18, TT_COLOR, PAGER_BALLOONS_ID, NULL, NULL}
-	,
-	{TF_SPECIAL_PROCESSING | TF_DONT_REMOVE_COMMENTS, "BalloonYOffset", 14, TT_INTEGER, PAGER_BALLOONS_ID, NULL, NULL}
-	,
-	{TF_SPECIAL_PROCESSING | TF_DONT_REMOVE_COMMENTS, "BalloonDelay", 12, TT_INTEGER, PAGER_BALLOONS_ID, NULL, NULL}
-	,
+    BALLOON_TERMS,
+#if 0
+    {TF_SPECIAL_PROCESSING | TF_DONT_REMOVE_COMMENTS, "Balloons", 8, TT_FLAG, PAGER_BALLOONS_ID, NULL},
+    {TF_SPECIAL_PROCESSING | TF_DONT_REMOVE_COMMENTS, "BalloonBorderWidth", 18, TT_INTEGER, PAGER_BALLOONS_ID, NULL},
+    {TF_SPECIAL_PROCESSING | TF_DONT_REMOVE_COMMENTS, "BalloonBorderColor", 18, TT_COLOR, PAGER_BALLOONS_ID, NULL},
+    {TF_SPECIAL_PROCESSING | TF_DONT_REMOVE_COMMENTS, "BalloonYOffset", 14, TT_INTEGER, PAGER_BALLOONS_ID, NULL},
+    {TF_SPECIAL_PROCESSING | TF_DONT_REMOVE_COMMENTS, "BalloonDelay", 12, TT_INTEGER, PAGER_BALLOONS_ID, NULL},
+#endif
 	{0, NULL, 0, 0, 0}
 };
 
@@ -117,20 +96,14 @@ SyntaxDef     PagerSyntax = {
 	'\0',
 	PagerTerms,
 	0,										   /* use default hash size */
-	NULL
+    ' ',
+	"",
+	"\t",
+	"Pager configuration",
+	NULL,
+	0
+
 };
-
-
-int
-PagerSpecialFunc (ConfigDef * conf_def, FreeStorageElem ** storage)
-{
-	if (conf_def->current_term->id == PAGER_BALLOONS_ID)
-	{
-		balloon_parse (conf_def->tline, conf_def->fp);
-		FlushConfigBuffer (conf_def);
-	}
-	return 1;
-}
 
 PagerConfig  *
 CreatePagerConfig (int ndesks)
@@ -160,7 +133,8 @@ CreatePagerConfig (int ndesks)
 	config->shade_button[0] = NULL;
 	config->shade_button[1] = NULL;
 
-	config->more_stuff = NULL;
+    config->balloon_conf = NULL;
+    config->more_stuff = NULL;
 	config->gravity = NorthWestGravity;
 
 	return config;
@@ -181,7 +155,8 @@ DestroyPagerConfig (PagerConfig * config)
     if( config->shade_button[1] )
         free (config->shade_button[1]);
  */
-	DestroyFreeStorage (&(config->more_stuff));
+    Destroy_balloonConfig (config->balloon_conf);
+    DestroyFreeStorage (&(config->more_stuff));
 	DestroyMyStyleDefinitions (&(config->style_defs));
 	free (config);
 }
@@ -265,7 +240,7 @@ PagerConfig  *
 ParsePagerOptions (const char *filename, char *myname, int desk1, int desk2)
 {
 	ConfigDef    *PagerConfigReader =
-		InitConfigReader (myname, &PagerSyntax, CDT_Filename, (void *)filename, PagerSpecialFunc);
+        InitConfigReader (myname, &PagerSyntax, CDT_Filename, (void *)filename, NULL);
 	PagerConfig  *config = CreatePagerConfig ((desk2 - desk1) + 1);
 
 	FreeStorageElem *Storage = NULL, *pCurr;
@@ -282,6 +257,8 @@ ParsePagerOptions (const char *filename, char *myname, int desk1, int desk2)
 
 	/* getting rid of all the crap first */
 	StorageCleanUp (&Storage, &(config->more_stuff), CF_DISABLED_OPTION);
+
+    config->balloon_conf = Process_balloonOptions (Storage, NULL);
 
 	for (pCurr = Storage; pCurr; pCurr = pCurr->next)
 	{
@@ -396,6 +373,7 @@ ParsePagerOptions (const char *filename, char *myname, int desk1, int desk2)
  *              2 if ConfigWriter cannot be initialized
  *
  */
+#if 0
 int
 WritePagerOptions (const char *filename, char *myname, int desk1, int desk2, PagerConfig * config, unsigned long flags)
 {
@@ -410,6 +388,8 @@ WritePagerOptions (const char *filename, char *myname, int desk1, int desk2, Pag
 
 	CopyFreeStorage (&Storage, config->more_stuff);
 
+    if (config->balloon_conf)
+		tail = balloon2FreeStorage (&PagerSyntax, tail, config->balloon_conf);
 	/* building free storage here */
 	/* geometry */
 	tail = Geometry2FreeStorage (&PagerSyntax, tail, &(config->geometry), PAGER_GEOMETRY_ID);
@@ -494,3 +474,4 @@ WritePagerOptions (const char *filename, char *myname, int desk1, int desk2, Pag
 	}
 	return 0;
 }
+#endif

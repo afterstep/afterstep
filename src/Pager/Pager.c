@@ -472,27 +472,6 @@ LOCAL_DEBUG_OUT( "desk_style %d: \"%s\" ->%p(\"%s\")->colors(%lX,%lX)", i, buf, 
     Scr.Feel.no_snaping_mod = ShiftMask ;
 }
 
-void merge_geometry( ASGeometry *from, ASGeometry *to )
-{
-    if ( get_flags(from->flags, WidthValue) )
-        to->width = from->width ;
-    if ( get_flags(from->flags, HeightValue) )
-        to->height = from->height ;
-    if ( get_flags(from->flags, XValue) )
-    {
-        to->x = from->x ;
-        if( !get_flags(from->flags, XNegative) )
-            clear_flags(to->flags, XNegative);
-    }
-    if ( get_flags(from->flags, YValue) )
-    {
-        to->y = from->y ;
-        if( !get_flags(from->flags, YNegative) )
-            clear_flags(to->flags, YNegative);
-    }
-    to->flags |= from->flags ;
-}
-
 void
 GetOptions (const char *filename)
 {

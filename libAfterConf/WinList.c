@@ -35,64 +35,26 @@
 
 
 TermDef       WinListTerms[] = {
-	{0, "Geometry", 8, TT_GEOMETRY, WINLIST_Geometry_ID, NULL, NULL}
-	,
-	{0, "MinSize", 7, TT_GEOMETRY, WINLIST_MinSize_ID, NULL, NULL}
-	,
-	{0, "MaxSize", 7, TT_GEOMETRY, WINLIST_MaxSize_ID, NULL, NULL}
-	,
-	{0, "MaxColumns", 10, TT_INTEGER, WINLIST_MaxColumns_ID, NULL, NULL}
-	,
-	{0, "MaxColWidth", 11, TT_INTEGER, WINLIST_MaxColWidth_ID, NULL, NULL}
-	,
-	{0, "MinColWidth", 11, TT_INTEGER, WINLIST_MinColWidth_ID, NULL, NULL}
-	,
-	{0, "UseName", 7, TT_INTEGER, WINLIST_UseName_ID, NULL, NULL}
-	,
-	{0, "Justify", 7, TT_TEXT, WINLIST_Justify_ID, NULL, NULL}
-	,
-	{TF_DONT_SPLIT, "Action", 6, TT_TEXT, WINLIST_Action_ID, NULL, NULL}
-	,
-	{0, "UnfocusedStyle", 14, TT_TEXT, WINLIST_UnfocusedStyle_ID, NULL, NULL}
-	,
-	{0, "FocusedStyle", 12, TT_TEXT, WINLIST_FocusedStyle_ID, NULL, NULL}
-	,
-	{0, "StickyStyle", 11, TT_TEXT, WINLIST_StickyStyle_ID, NULL, NULL}
-	,
-	{0, "FillRowsFirst", 13, TT_FLAG, WINLIST_FillRowsFirst_ID, NULL, NULL}
-	,
-	{0, "UseSkipList", 11, TT_FLAG, WINLIST_UseSkipList_ID, NULL, NULL}
-	,
+    {0, "Geometry", 8, TT_GEOMETRY, WINLIST_Geometry_ID, NULL},
+    {0, "MinSize", 7, TT_GEOMETRY, WINLIST_MinSize_ID, NULL},
+    {0, "MaxSize", 7, TT_GEOMETRY, WINLIST_MaxSize_ID, NULL},
+    {0, "MaxColumns", 10, TT_INTEGER, WINLIST_MaxColumns_ID, NULL},
+    {0, "MaxColWidth", 11, TT_INTEGER, WINLIST_MaxColWidth_ID, NULL},
+    {0, "MinColWidth", 11, TT_INTEGER, WINLIST_MinColWidth_ID, NULL},
+    {0, "UseName", 7, TT_INTEGER, WINLIST_UseName_ID, NULL},
+    {0, "Justify", 7, TT_TEXT, WINLIST_Justify_ID, NULL},
+    {TF_DONT_SPLIT, "Action", 6, TT_TEXT, WINLIST_Action_ID, NULL},
+    {0, "UnfocusedStyle", 14, TT_TEXT, WINLIST_UnfocusedStyle_ID, NULL},
+    {0, "FocusedStyle", 12, TT_TEXT, WINLIST_FocusedStyle_ID, NULL},
+    {0, "StickyStyle", 11, TT_TEXT, WINLIST_StickyStyle_ID, NULL},
+    {0, "FillRowsFirst", 13, TT_FLAG, WINLIST_FillRowsFirst_ID, NULL},
+    {0, "UseSkipList", 11, TT_FLAG, WINLIST_UseSkipList_ID, NULL},
 /* including MyStyles definitions processing */
 	INCLUDE_MYSTYLE,
 
 /* now special cases that should be processed by it's own handlers */
-	{TF_SPECIAL_PROCESSING | TF_DONT_REMOVE_COMMENTS, "Balloons", 8, TT_FLAG, WINLIST_BALLOONS_ID, NULL, NULL}
-	,
-	{TF_SPECIAL_PROCESSING | TF_DONT_REMOVE_COMMENTS, "BalloonBorderWidth", 18, TT_INTEGER, WINLIST_BALLOONS_ID, NULL,
-	 NULL}
-	,
-	{TF_SPECIAL_PROCESSING | TF_DONT_REMOVE_COMMENTS, "BalloonBorderColor", 18, TT_COLOR, WINLIST_BALLOONS_ID, NULL,
-	 NULL}
-	,
-	{TF_SPECIAL_PROCESSING | TF_DONT_REMOVE_COMMENTS, "BalloonYOffset", 14, TT_INTEGER, WINLIST_BALLOONS_ID, NULL, NULL}
-	,
-	{TF_SPECIAL_PROCESSING | TF_DONT_REMOVE_COMMENTS, "BalloonDelay", 12, TT_INTEGER, WINLIST_BALLOONS_ID, NULL, NULL}
-	,
-/* obsolete options : */
-	{0, "HideGeometry", 12, TT_GEOMETRY, WINLIST_HideGeometry_ID, NULL, NULL}
-	,
-	{0, "MaxWidth", 8, TT_INTEGER, WINLIST_MaxWidth_ID, NULL, NULL}
-	,
-	{0, "Orientation", 11, TT_TEXT, WINLIST_Orientation_ID, NULL, NULL}
-	,
-	{0, "NoAnchor", 8, TT_FLAG, WINLIST_NoAnchor_ID, NULL, NULL}
-	,
-	{0, "UseIconNames", 12, TT_FLAG, WINLIST_UseIconNames_ID, NULL, NULL}
-	,
-	{0, "AutoHide", 8, TT_FLAG, WINLIST_AutoHide_ID, NULL, NULL}
-	,
-	{0, NULL, 0, 0, 0}
+    BALLOON_TERMS,
+    {0, NULL, 0, 0, 0}
 };
 
 SyntaxDef     WinListSyntax = {
@@ -100,20 +62,14 @@ SyntaxDef     WinListSyntax = {
 	'\0',
 	WinListTerms,
 	0,										   /* use default hash size */
-	NULL
+    ' ',
+	"",
+	"\t",
+	"WinList configuration",
+	NULL,
+	0
 };
 
-
-int
-WinListSpecialFunc (ConfigDef * conf_def, FreeStorageElem ** storage)
-{
-	if (conf_def->current_term->id == WINLIST_BALLOONS_ID)
-	{
-		balloon_parse (conf_def->tline, conf_def->fp);
-		FlushConfigBuffer (conf_def);
-	}
-	return 1;
-}
 
 WinListConfig *
 CreateWinListConfig ()
@@ -124,6 +80,7 @@ CreateWinListConfig ()
 	config->max_rows = 1;
 	config->show_name_type = ASN_Name;
 	config->name_aligment = ASA_Left;
+    config->balloon_conf = NULL;
 
 	return config;
 }
@@ -144,6 +101,7 @@ DestroyWinListConfig (WinListConfig * config)
 		if (config->mouse_actions[i])
 			free (config->mouse_actions[i]);
 
+    Destroy_balloonConfig (config->balloon_conf);
 	DestroyFreeStorage (&(config->more_stuff));
 	DestroyMyStyleDefinitions (&(config->style_defs));
 
@@ -198,7 +156,7 @@ WinListConfig *
 ParseWinListOptions (const char *filename, char *myname)
 {
 	ConfigDef    *ConfigReader =
-		InitConfigReader (myname, &WinListSyntax, CDT_Filename, (void *)filename, WinListSpecialFunc);
+        InitConfigReader (myname, &WinListSyntax, CDT_Filename, (void *)filename, NULL);
 	WinListConfig *config = CreateWinListConfig ();
 
 	FreeStorageElem *Storage = NULL, *pCurr;
@@ -216,7 +174,9 @@ ParseWinListOptions (const char *filename, char *myname)
 	/* getting rid of all the crap first */
 	StorageCleanUp (&Storage, &(config->more_stuff), CF_DISABLED_OPTION);
 
-	for (pCurr = Storage; pCurr; pCurr = pCurr->next)
+    config->balloon_conf = Process_balloonOptions (Storage, NULL);
+
+    for (pCurr = Storage; pCurr; pCurr = pCurr->next)
 	{
 		if (pCurr->term == NULL)
 			continue;
@@ -399,6 +359,9 @@ WriteWinListOptions (const char *filename, char *myname, WinListConfig * config,
 		return 2;
 
 	CopyFreeStorage (&Storage, config->more_stuff);
+
+    if (config->balloon_conf)
+		tail = balloon2FreeStorage (&WinListSyntax, tail, config->balloon_conf);
 
 	/* building free storage here */
 	/* geometry */

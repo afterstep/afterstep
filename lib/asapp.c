@@ -456,6 +456,16 @@ InitMyApp (  const char *app_class, int argc, char **argv, void (*version_func) 
 }
 
 void
+free_func_hash ()
+{
+	if (FuncSyntax.term_hash)
+	{
+		free (FuncSyntax.term_hash);
+		FuncSyntax.term_hash = NULL;
+	}
+}
+
+void
 InitSession()
 {
     /* initializing our dirs names */

@@ -454,4 +454,25 @@ get_lowest_panframe(ScreenInfo *scr)
     return None;
 }
 
+/* utility function for geometry merging : */
+void merge_geometry( ASGeometry *from, ASGeometry *to )
+{
+    if ( get_flags(from->flags, WidthValue) )
+        to->width = from->width ;
+    if ( get_flags(from->flags, HeightValue) )
+        to->height = from->height ;
+    if ( get_flags(from->flags, XValue) )
+    {
+        to->x = from->x ;
+        if( !get_flags(from->flags, XNegative) )
+            clear_flags(to->flags, XNegative);
+    }
+    if ( get_flags(from->flags, YValue) )
+    {
+        to->y = from->y ;
+        if( !get_flags(from->flags, YNegative) )
+            clear_flags(to->flags, YNegative);
+    }
+    to->flags |= from->flags ;
+}
 

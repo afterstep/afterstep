@@ -7,6 +7,9 @@
 #ifndef _FUNCTIONS_
 #define _FUNCTIONS_
 
+struct ASHashTable;
+struct TermDef;
+
 typedef enum {
   F_NOP = 0,
   F_TITLE,
@@ -119,6 +122,8 @@ typedef struct FunctionData
 {
     int func;		/* AfterStep built in function */
     long func_val[MAX_FUNC_ARGS];
+#define DEFAULT_MAXIMIZE    100
+#define DEFAULT_OTHERS      0
     long unit_val[MAX_FUNC_ARGS];
     char unit[MAX_FUNC_ARGS] ;
 #define APPLY_VALUE_UNIT(size,value,unit) ((((unit)>0)?(value)*(unit):(value)*(size))/100)
@@ -140,6 +145,33 @@ typedef struct ComplexFunction
     FunctionData   *items;
     unsigned int    items_num;
 }ComplexFunction;
+
+typedef struct MenuDataItem
+  {
+
+    unsigned long   magic;
+    struct MenuDataItem  *next;  /* next menu item */
+    struct MenuDataItem  *prev;  /* prev menu item */
+
+#define MD_Disabled        (0x01<<0)
+/* can't think of anything else atm - maybe add something later ? */
+    ASFlagType            flags ;
+    struct FunctionData  *fdata ;
+    char                 *minipixmap ;         /* we always read filename from config !! */
+    char *item;         /* the character string displayed on left */
+    char *item2;		/* the character string displayed on right */
+}MenuDataItem;
+
+typedef struct MenuData
+{
+    unsigned long    magic;
+    char *name;         /* name of root */
+
+    struct MenuDataItem *first; /* first item in menu */
+    struct MenuDataItem *last;  /* last item in menu */
+    short items_num;        /* number of items in the menu */
+}MenuData;
+
 
 /* Types of events for the FUNCTION builtin */
 #define MOTION                       'm'
@@ -163,5 +195,49 @@ typedef struct ComplexFunction
 struct ASEvent;
 
 typedef void (*as_function_handler)(struct FunctionData *data, struct ASEvent *event, int module);
+
+int parse_modifier( char *tline );
+int parse_win_context (char *tline);
+char *parse_modifier_str( char *tline, int *mods_ret );
+char *parse_win_context_str (char *tline, int *ctxs_ret);
+struct TermDef *txt2fterm (const char *txt, int quiet);
+struct TermDef *func2fterm (FunctionCode func, int quiet);
+int txt2func (const char *text, FunctionData * fdata, int quiet);
+int parse_func (const char *text, FunctionData * data, int quiet);
+FunctionData *String2Func ( const char *string, FunctionData *p_fdata, Bool quiet );
+
+void init_func_data (FunctionData * data);
+void copy_func_data (FunctionData * dst, FunctionData * src);
+void dup_func_data (FunctionData * dst, FunctionData * src);
+void set_func_val (FunctionData * data, int arg, int value);
+int free_func_data (FunctionData * data);
+long default_func_val( FunctionCode func );
+void decode_func_units (FunctionData * data);
+void complex_function_destroy(ASHashableValue value, void *data);
+void really_destroy_complex_func(ComplexFunction *cf);
+void init_list_of_funcs(struct ASHashTable **list, Bool force);
+ComplexFunction *new_complex_func( struct ASHashTable *list, char *name );
+ComplexFunction *find_complex_func( struct ASHashTable *list, char *name );
+void menu_data_item_destroy(MenuDataItem *mdi);
+void menu_data_destroy(ASHashableValue value, void *data);
+void init_list_of_menus ( ASHashTable **list, Bool force);
+MenuData *new_menu_data ( ASHashTable *list, char *name );
+MenuData *find_menu_data( ASHashTable *list, char *name );
+MenuDataItem *new_menu_data_item( MenuData *menu );
+int parse_menu_item_name (MenuDataItem * item, char **name);
+
+void menu_data_item_from_func (MenuData * menu, FunctionData * fdata);
+void print_func_data(const char *file, const char *func, int line, FunctionData *data);
+
+#if defined(LOCAL_DEBUG) || defined(DEBUG)
+#define MenuDataItemFromFunc(m,f) \
+do{fprintf(stderr,"MenuDataItemFromFunc called:");print_func_data(__FILE__, __FUNCTION__, __LINE__,  fdata);menu_data_item_from_func((m),(f));}while(0)
+#else
+#define MenuDataItemFromFunc(m,f) menu_data_item_from_func((m),(f))
+#endif
+
+
+
+
 
 #endif /* _FUNCTIONS_ */

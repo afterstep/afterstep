@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2000 Andrew Ferguson <andrew@owsla.cjb.net>
  * Copyright (c) 1998 Sasha Vasko <sasha at aftercode.net>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -13,7 +14,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *
  */
 
@@ -32,8 +33,33 @@
 #include "../include/asapp.h"
 #include "../include/afterstep.h"
 #include "../include/parser.h"
+#include "../include/freestor.h"
+#include "../include/functions.h"
 
 char         *_disabled_keyword = DISABLED_KEYWORD;
+
+void
+BuildHash (SyntaxDef * syntax)
+{
+	register int  i;
+
+	if (syntax->term_hash_size <= 0)
+		syntax->term_hash_size = TERM_HASH_SIZE;
+	if (syntax->term_hash == NULL)
+		syntax->term_hash = create_ashash (syntax->term_hash_size, option_hash_value, option_compare, NULL);
+	for (i = 0; syntax->terms[i].keyword; i++)
+		add_hash_item (syntax->term_hash, (ASHashableValue) syntax->terms[i].keyword, (void *)&(syntax->terms[i]));
+}
+
+TermDef      *
+FindStatementTerm (char *tline, SyntaxDef * syntax)
+{
+	void         *pterm = NULL;
+
+	if (!get_hash_item (syntax->term_hash, (ASHashableValue) tline, &pterm))
+		pterm = NULL;
+	return (TermDef *) pterm;
+}
 
 void
 PrepareSyntax (SyntaxDef * syntax)
@@ -42,11 +68,18 @@ PrepareSyntax (SyntaxDef * syntax)
 	{
 		register int  i;
 
-		InitHash (syntax);
+		if (syntax->recursion > 0)
+			return;
+		syntax->recursion++;
+
 		BuildHash (syntax);
 		for (i = 0; syntax->terms[i].keyword; i++)
 			if (syntax->terms[i].sub_syntax)
-				PrepareSyntax (syntax->terms[i].sub_syntax);
+				/* this should prevent us from endless recursion */
+				if (syntax->terms[i].sub_syntax->term_hash == NULL)
+					PrepareSyntax (syntax->terms[i].sub_syntax);
+
+		syntax->recursion--;
 	}
 }
 
@@ -57,13 +90,21 @@ FreeSyntaxHash (SyntaxDef * syntax)
 	{
 		register int  i;
 
+		if (syntax->recursion > 0)
+			return;
+		syntax->recursion++;
+
 		if (syntax->term_hash)
-			free (syntax->term_hash);
-		syntax->term_hash = NULL;
+			destroy_ashash (&(syntax->term_hash));
 
 		for (i = 0; syntax->terms[i].keyword; i++)
 			if (syntax->terms[i].sub_syntax)
-				FreeSyntaxHash (syntax->terms[i].sub_syntax);
+				/* this should prevent us from endless recursion */
+				if (syntax->terms[i].sub_syntax->term_hash != NULL)
+					FreeSyntaxHash (syntax->terms[i].sub_syntax);
+
+		syntax->recursion--;
+
 	}
 }
 
@@ -79,9 +120,38 @@ PushSyntax (ConfigDef * config, SyntaxDef * syntax)
 		config->current_syntax->current_term = config->current_term;
 		config->current_syntax->current_flags = config->current_flags;
 	}
-
 	pnew->next = config->current_syntax;
 	pnew->syntax = syntax;
+	if (config->syntax && syntax->terminator == '\n')
+	{										   /* handling prepending */
+		SyntaxDef    *csyntax = config->syntax;
+		int           len = strlen (csyntax->prepend_sub);
+		register int  i;
+		char         *tmp;
+
+		if (config->current_prepend_allocated - config->current_prepend_size <= len)
+		{
+			config->current_prepend_allocated += len + 1;
+			tmp = safemalloc (config->current_prepend_allocated);
+			if (config->current_prepend)
+			{
+				strcpy (tmp, config->current_prepend);
+				free (config->current_prepend);
+			}
+			config->current_prepend = tmp;
+		}
+		tmp = &(config->current_prepend[config->current_prepend_size]);
+
+		for (i = 0; i <= len; i++)
+			tmp[i] = csyntax->prepend_sub[i];
+
+		config->current_prepend_size += len;
+
+	}
+#ifdef DEBUG_PARSER
+	fprintf (stderr, "PushSyntax(%s, old is 0x%lX) current_prepend = [%s]\n",
+			 syntax->display_name, (unsigned long)config->syntax, config->current_prepend);
+#endif
 	config->current_syntax = pnew;
 	config->syntax = syntax;
 }
@@ -99,7 +169,25 @@ PopSyntax (ConfigDef * config)
 		/* restoring our status */
 		config->current_term = config->current_syntax->current_term;
 		config->current_flags = config->current_syntax->current_flags;
-
+#ifdef DEBUG_PARSER
+		if (config->current_term)
+			fprintf (stderr,
+				 "PopSyntax(%s, flags = 0x%lX, term = [%s] ; old is 0x%lX)\n",
+				 config->syntax->display_name, config->current_flags,
+				 config->current_term->keyword, (unsigned long)(pold->syntax));
+		else
+			fprintf (stderr,
+				 "PopSyntax(%s, flags = 0x%lX, term = [%s] ; old is 0x%lX)\n",
+ 				 config->syntax->display_name, config->current_flags,
+ 				 "", (unsigned long)(pold->syntax));
+#endif
+		if (pold->syntax->terminator == '\n')
+		{
+			if ((config->current_prepend_size -= strlen (config->syntax->prepend_sub)) >= 0)
+				config->current_prepend[config->current_prepend_size] = '\0';
+		}
+/*fprintf( stderr, "PopSyntax(%s) current_prepend = [%s]\n", pold->syntax->display_name, config->current_prepend );
+*/
 		free (pold);
 		return 1;
 	}
@@ -119,28 +207,45 @@ PushStorage (ConfigDef * config, FreeStorageElem ** tail)
 int
 PopStorage (ConfigDef * config)
 {
-    if ( config->current_tail && config->current_tail->next)
-	{
-		StorageStack *pold = config->current_tail;
+	if (config->current_tail)
+		if (config->current_tail->next)
+		{
+			StorageStack *pold = config->current_tail;
 
-		config->current_tail = config->current_tail->next;
-		free (pold);
-		return 1;
-	}
+			config->current_tail = config->current_tail->next;
+			free (pold);
+			return 1;
+		}
 	return 0;
 }
 
 
+void
+config_error (ConfigDef * config, char *error)
+{
+	if (config)
+	{
+		char         *eol = strchr (config->tline, '\n');
+
+		if (eol)
+			*eol = '\0';
+		show_error ("in %s (line %d):%s[%.50s]",
+				    config->current_syntax->syntax->display_name, config->line_count, error, config->tline);
+		if (eol)
+			*eol = '\n';
+  	}
+}
+
 /* Creating and Initializing new ConfigDef */
 ConfigDef    *
-NewConfig (char *myname, SyntaxDef * syntax, ConfigDataType type, void *source, SpecialFunc special)
+NewConfig (char *myname, SyntaxDef * syntax, ConfigDataType type, void *source, SpecialFunc special, int create)
 {
 	ConfigDef    *new_conf;
 
 	if (myname == NULL)
 		return NULL;
 
-	new_conf = (ConfigDef *) safemalloc (sizeof (ConfigDef));
+    new_conf = (ConfigDef *) safecalloc (1, sizeof (ConfigDef));
 	new_conf->special = special;
 	new_conf->fd = -1;
 	new_conf->fp = NULL;
@@ -150,17 +255,15 @@ NewConfig (char *myname, SyntaxDef * syntax, ConfigDataType type, void *source, 
 		{
 		 case CDT_Filename:
 			 {
-				 char         *realfilename = PutHome ((char *)source);
+				 char         *realfilename = put_file_home ((char *)source);
 
 				 if (!realfilename)
 				 {
 					 free (new_conf);
 					 return NULL;
 				 }
-				 new_conf->fd = open (realfilename, O_RDONLY);
-#ifdef DEBUG_PARSER
-				 fprintf( stderr, "%s:%d > reading config from \"%s\"\n", __FILE__, __LINE__, realfilename );
-#endif
+				 new_conf->fd =
+					 open (realfilename, create ? O_CREAT | O_RDONLY : O_RDONLY, S_IRUSR | S_IWUSR | S_IRGRP);
 				 free (realfilename);
 				 new_conf->bNeedToCloseFile = 1;
 			 }
@@ -178,15 +281,19 @@ NewConfig (char *myname, SyntaxDef * syntax, ConfigDataType type, void *source, 
              new_conf->fp = ((FilePtrAndData*)source)->fp;
 			 new_conf->fd = fileno (new_conf->fp);
             break ;
+
 		}
 
 	if (new_conf->fd != -1 && new_conf->fp == NULL)
 		new_conf->fp = fdopen (new_conf->fd, "rt");
 
-	new_conf->myname = (char *)safemalloc (strlen (myname) + 1);
-	strcpy (new_conf->myname, myname);
+	new_conf->myname = mystrdup(myname);
 	new_conf->current_syntax = NULL;
 	new_conf->current_tail = NULL;
+	new_conf->current_prepend = NULL;
+	new_conf->current_prepend_size = 0;
+	new_conf->current_prepend_allocated = 0;
+
 	PushSyntax (new_conf, syntax);
 
 	PrepareSyntax (syntax);
@@ -194,6 +301,7 @@ NewConfig (char *myname, SyntaxDef * syntax, ConfigDataType type, void *source, 
 	/* allocated to store lines read from the file */
 	new_conf->buffer = NULL;
 	new_conf->buffer_size = 0;
+	new_conf->bytes_in = 0;
 
 	/* this is the current parsing information */
 	new_conf->tline = new_conf->tdata = new_conf->tline_start = NULL;
@@ -209,7 +317,7 @@ NewConfig (char *myname, SyntaxDef * syntax, ConfigDataType type, void *source, 
 ConfigDef    *
 InitConfigReader (char *myname, SyntaxDef * syntax, ConfigDataType type, void *source, SpecialFunc special)
 {
-	ConfigDef    *new_conf = NewConfig (myname, syntax, type, source, special);
+	ConfigDef    *new_conf = NewConfig (myname, syntax, type, source, special, False);
 
 	if (new_conf == NULL)
 		return NULL;
@@ -222,14 +330,17 @@ InitConfigReader (char *myname, SyntaxDef * syntax, ConfigDataType type, void *s
 	if (type == CDT_Data)
 	{
 		/* allocate to store entire data */
-		new_conf->buffer = (char *)safemalloc (strlen ((char *)source) + 1);
+		new_conf->buffer_size = strlen ((char *)source) + 1;
+		new_conf->buffer = (char *)safemalloc (new_conf->buffer_size);
 		strcpy (new_conf->buffer, (char *)source);
+		new_conf->bytes_in = new_conf->buffer_size - 1;
     } else if( type == CDT_FilePtrAndData )
     {
         FilePtrAndData *fpd = (FilePtrAndData*)source;
         int buf_len = fpd->data?strlen( fpd->data ):0;
         if( buf_len < MAXLINELENGTH )
             buf_len = MAXLINELENGTH ;
+        new_conf->buffer_size = buf_len ;
         new_conf->buffer = (char *)safemalloc (buf_len + 1);
         if( fpd->data )
             strcpy (new_conf->buffer, fpd->data);
@@ -237,12 +348,14 @@ InitConfigReader (char *myname, SyntaxDef * syntax, ConfigDataType type, void *s
             new_conf->buffer[0] = '\0';
     }else
 	{
-		new_conf->buffer = (char *)safemalloc (MAXLINELENGTH + 1);
+		new_conf->buffer_size = MAXLINELENGTH + 1;
+		new_conf->buffer = (char *)safemalloc (new_conf->buffer_size);
 		new_conf->buffer[0] = '\0';
 	}
 
 	/* this is the current parsing information */
 	new_conf->cursor = &(new_conf->buffer[0]);
+	new_conf->line_count = 1;
 
 	return new_conf;
 }
@@ -252,29 +365,13 @@ InitConfigReader (char *myname, SyntaxDef * syntax, ConfigDataType type, void *s
 void
 PrintSyntax (SyntaxDef * syntax)
 {
-	int           i;
+	if (syntax->recursion > 0)
+		return;
+	syntax->recursion++;
 
 	fprintf (stderr, "\nSentence Terminator: [0x%2.2x]", syntax->terminator);
 	fprintf (stderr, "\nConfig Terminator:   [0x%2.2x]", syntax->file_terminator);
-	fprintf (stderr, "\nTerm's hash table:");
-	for (i = 0; i < syntax->term_hash_size; i++)
-	{
-		TermDef      *pterm = syntax->term_hash[i];
-
-		if (pterm)
-			fprintf (stderr, "\n  Hash value %d:", i);
-		while (pterm)
-		{
-			fprintf (stderr, "\n\t\t[%lx][%d][%d][%s]", pterm->flags, pterm->type, pterm->id, pterm->keyword);
-			if (pterm->sub_syntax)
-			{
-				fprintf (stderr, "\n SubSyntax :");
-				PrintSyntax (pterm->sub_syntax);
-			}
-			pterm = pterm->brother;
-		}
-	}
-	fprintf (stderr, "\nEnd of Term's hash table.");
+	syntax->recursion--;
 }
 
 
@@ -284,21 +381,6 @@ PrintConfigReader (ConfigDef * config)
 	PrintSyntax (config->syntax);
 }
 
-void
-PrintFreeStorage (FreeStorageElem * storage)
-{
-	int           i;
-
-	while (storage)
-	{
-		fprintf (stderr, "\nTerm's keyword: [%s]", storage->term->keyword);
-		fprintf (stderr, "\nData:");
-		for (i = 0; i < storage->argc; i++)
-			fprintf (stderr, "\n  %d:\t[%s]", i, storage->argv[i]);
-		PrintFreeStorage (storage->sub);
-		storage = storage->next;
-	}
-}
 #endif
 
 
@@ -315,6 +397,8 @@ DestroyConfig (ConfigDef * config)
 	if (config->current_syntax);
 	free (config->current_syntax);
 	while (PopStorage (config));
+	if (config->current_prepend)
+		free (config->current_prepend);
 	if (config->current_tail)
 		free (config->current_tail);
 	if (config->syntax)
@@ -327,42 +411,53 @@ DestroyConfig (ConfigDef * config)
 char         *
 GetToNextLine (ConfigDef * config)
 {
-	for (; *(config->cursor) != '\0' && *(config->cursor) != config->syntax->terminator; config->cursor++)
-		if (*(config->cursor) == config->syntax->file_terminator)
-			return NULL;
+	register char terminator = config->syntax->terminator;
+	register char file_terminator = config->syntax->file_terminator;
+	register char *cur = config->cursor, *buffer_end = &(config->buffer[config->bytes_in]);
 
-	if (*(config->cursor) != '\0')
-		config->cursor++;
-	if (*(config->cursor) == '\0')
+	for (; *cur != '\0' && cur < buffer_end; cur++)
+	{
+		if (*cur == '\n')
+			config->line_count++;
+		if (*cur == terminator)
+			break;
+		if (*cur == file_terminator)
+			break;
+	}
+	if (cur < buffer_end && *cur != '\0')
+		cur++;
+
+	config->cursor = cur;
+
+	if (cur >= buffer_end)
 	{
 		if (config->fp)
 		{
-			if (!fgets (config->buffer, MAXLINELENGTH, config->fp))
+			register int  i;
+
+			config->bytes_in = fread (config->buffer, 1, config->buffer_size, config->fp);
+			if (config->bytes_in <= 0)
 				return NULL;
+			/* now we want to get back to the last end-of-line
+			   so not to break statements in half */
+			for (i = config->bytes_in - 1; i >= 0; i--)
+				if (config->buffer[i] == '\n')
+					break;
+			i++;
+			if (i > 0)
+			{
+				fseek (config->fp, i - (config->bytes_in), SEEK_CUR);
+				config->bytes_in = i;
+			}
+			config->buffer[config->bytes_in] = '\0';
 			config->cursor = &(config->buffer[0]);
 		} else
 			return NULL;
-	}
+	} else if (*cur == file_terminator)
+		return NULL;
 
 	return (config->cursor);
 }
-
-void
-config_error (ConfigDef * config, char *error)
-{
-	if (config)
-	{
-		char         *eol = strchr (config->tline, '\n');
-
-		if (eol)
-			*eol = '\0';
-		show_error (":%s in [%.50s]", error, config->tline);
-		if (eol)
-			*eol = '\n';
-	}
-}
-
-
 
 /* this function finds next valid statement:
    - not comments,
@@ -392,41 +487,43 @@ GetNextStatement (ConfigDef * config, int my_only)
 		{
 			if (*cur == file_terminator)
 				return NULL;
-			if (!isspace (*cur))
+			if (!isspace ((int)*cur))
 			{
 				register int  i;
+
 				config->current_flags = CF_NONE;
 
 				if (*cur == COMMENTS_CHAR)
 				{							   /* let's check for DISABLE keyword */
 					for (i = 1; i < DISABLED_KEYWORD_SIZE; i++)
-						if (cur[i] == '\0' || cur[i] != _disabled_keyword[i])
+						if (*(cur + i) == '\0' || *(cur + i) != _disabled_keyword[i])
 							break;
 					if (i < DISABLED_KEYWORD_SIZE)
 					{						   /* comments - skip entire line */
-						i = 0 ;
-						while (cur[i] != '\n' && cur[i] != '\0') ++i;
-						config->cursor = &(cur[i]);
+						while (*cur != '\n' && *cur != '\0')
+							cur++;
+						config->cursor = cur;
 						break;
 					}
 					config->current_flags |= CF_DISABLED_OPTION;
 					/* let's skip few spaces here */
-					while( isspace (cur[i]) &&
-						   cur[i] != terminator &&
-					       cur[i] != file_terminator ) ++i;
-					if ( cur[i] == '\0' ||
-					     cur[i] == terminator ||
-					     cur[i] == file_terminator)
+					cur = cur + i;
+					while (isspace ((int)*cur) && *cur != terminator)
+						cur++;
+					if (*cur == '\0' || *cur == terminator)
 						break;				   /* not a valid option */
-					cur += i;
 				}
-#if 0
+
 				if (*cur == MYNAME_CHAR)
 				{							   /* check if we have MyName here */
-					for (i = 0; *cur != '\0' && config->myname[i] != '\0'; i++)
-						if (tolower (config->myname[i]) != tolower (*(++cur)))
+					register char *mname = config->myname;
+
+					while (*cur != '\0' && *mname != '\0')
+					{
+						if (tolower (*(mname++)) != tolower (*(++cur)))
 							break;
-					if (config->myname[i] != '\0')
+					}
+					if (*mname != '\0')
 					{						   /* that was a foreign optiion - belongs to the other executable */
 						if (my_only)
 							break;
@@ -440,97 +537,34 @@ GetNextStatement (ConfigDef * config, int my_only)
 
 				/* now we should copy everything from after the first space to
 				   config->current_data and set current_data_len ; */
-				for (; !isspace (*cur) && *cur != config->syntax->terminator && (*cur); cur++);
-				for (; isspace (*cur) && *cur && *cur != config->syntax->terminator; cur++);
+				while ((*cur) && !isspace ((int)*cur) && *cur != terminator && *cur != file_terminator)
+					cur++;
+				while ((*cur) && isspace ((int)*cur) && *cur != terminator && *cur != file_terminator)
+					cur++;
 				config->tdata = cur;		   /* that will be the beginning of our data */
-				for (i = 0; *(cur + i) && *(cur + i) != config->syntax->terminator; i++)
-				{
-					/* buffer overrun prevention */
-					if (i >= config->current_data_size)
-					{
-						char         *new_data;
-						register int  k = i;
-
-						config->current_data_size += MAXLINELENGTH >> 3;
-						new_data = (char *)safemalloc (config->current_data_size);
-						for (; k; k--)
-							new_data[k] = config->current_data[k];
-						free (config->current_data);
-						config->current_data = new_data;
-					}
-					config->current_data[i] = *(cur + i);
-				}
-				/* now let's go back and remove trailing spaces */
-				{
-					int           i_saved = i;
-					for (i--; i >= 0; i--)
-						if (!isspace (config->current_data[i]))
-							break;
-					i++;
-					config->current_data_len = i;
-					config->current_data[i] = '\0';
-					i = i_saved;
-				}
-				if (*(cur + i) && *(cur + i) == config->syntax->terminator)
-					i++;
-				config->cursor = cur + i;	   /* Saving position for future use */
-#else
-				if (*cur == MYNAME_CHAR)
-				{							   /* check if we have MyName here */
-					register char *mname = config->myname;
-					++cur ;
-					i = 0 ;
-					while (cur[i] != '\0' && mname[i] != '\0')
-					{
-						if (tolower (mname[i]) != tolower (cur[i]))
-							break;
-						++i ;
-					}
-					if (mname[i] != '\0')
-					{						   /* that was a foreign optiion - belongs to the other executable */
-						if (my_only)
-							break;
-						config->current_flags |= CF_FOREIGN_OPTION;
-					}
-					cur += i;
-				} else
-					config->current_flags |= CF_PUBLIC_OPTION;
-
-				config->tline = cur;		   /*that will be the begginnig of the term */
-
-				/* now we should copy everything from after the first space to
-				   config->current_data and set current_data_len ; */
-				i = 0 ;
-				while ( cur[i] && !isspace ((int)cur[i]) &&
-				        cur[i] != terminator && cur[i] != file_terminator) ++i;
-				while ( cur[i] && isspace ((int)cur[i]) &&
-				        cur[i] != terminator && cur[i] != file_terminator) ++i;
-
-				config->tdata = cur = &(cur[i]); /* that will be the beginning of our data */
 				data = config->current_data;
-
-				for (i = 0; cur[i] && cur[i] != terminator && cur[i] != file_terminator; i++)
+				for (i = 0; *cur && *cur != terminator && *cur != file_terminator; i++)
 				{
 					/* buffer overrun prevention */
 					if (i >= config->current_data_size)
 					{
 						config->current_data_size += MAXLINELENGTH >> 3;
-						config->current_data = realloc (config->current_data, config->current_data_size);
+						config->current_data = (char *)realloc (config->current_data, config->current_data_size);
 						if (config->current_data == NULL)
 						{
 							config_error (config, "Not enough memory to hold option's arguments");
 							exit (0);
 						}
-						data = config->current_data;
+						data = &(config->current_data[i]);
 					}
-					data[i] = cur[i];
+					*(data++) = *(cur++);
 				}
-				cur += i ;
 				/* now let's go back and remove trailing spaces */
 				if (config->tdata[0] == file_terminator)
 					config->current_flags |= CF_LAST_OPTION;
 				else
 				{
+					data = config->current_data;
 					for (i--; i >= 0; i--)
 					{
 						if (config->tdata[i] == file_terminator)
@@ -550,7 +584,6 @@ GetNextStatement (ConfigDef * config, int my_only)
 				if (*cur && *cur == terminator)
 					cur++;
 				config->cursor = cur;		   /* Saving position for future use */
-#endif
 				return config->tline;
 			}
 		}
@@ -558,29 +591,29 @@ GetNextStatement (ConfigDef * config, int my_only)
 		if ((cur = GetToNextLine (config)) == NULL)
 			return NULL;
 	}
-
 	return NULL;
 }
+
+
 
 void
 ProcessSubSyntax (ConfigDef * config, FreeStorageElem ** tail, SyntaxDef * syntax)
 {
-	PushStorage (config, tail);
+	register char *ptr;
 
+	PushStorage (config, tail);
 	if (config->syntax->terminator == syntax->file_terminator)
 	{										   /* need to push back term's data into config buffer */
 		config->cursor = config->tdata;
 		if (config->current_term->flags & TF_NAMED_SUBCONFIG)
 			/* we are supposed to skip single quoted text in here, or unquoted token */
 		{
-			register char *ptr = config->cursor;
-
-			if (ptr[0] == '"')
+			if (*(ptr = config->cursor) == '"')
 			{
 				ptr = find_doublequotes (ptr);
 				if (!ptr)
 				{
-					config_error (config, "Unmatched doublequotes detected");
+					config_error (config, "Unmatched doublequotes detected\n");
 					ptr = config->cursor;
 				} else
 					ptr++;					   /* skipping current doubleqoute */
@@ -592,10 +625,12 @@ ProcessSubSyntax (ConfigDef * config, FreeStorageElem ** tail, SyntaxDef * synta
 	{										   /* need to push back entire term's line into config buffer */
 		config->cursor = config->tline_start;
 	}
+
+/*  fprintf( stderr, "\nprocessing as subsyntax: [%s]", config->cursor );
+*/
 	PushSyntax (config, syntax);
 }
 
-/* create and format freestorage elem from the statement found */
 void
 ProcessStatement (ConfigDef * config)
 {
@@ -608,75 +643,15 @@ ProcessStatement (ConfigDef * config)
 	if ((pNext = AddFreeStorageElem (config->syntax, config->current_tail->tail, pterm, ID_ANY)) == NULL)
 		return;
 
-	if (config->current_data_len <= 0)
+	pNext->flags = config->current_flags;
+
+	if (config->current_data_len > 0 && !(pterm->flags & TF_DONT_REMOVE_COMMENTS))
 	{
-		pNext->argv = NULL;
-		pNext->argc = 0;
-	} else
-	{
-		int           i, count;
-		char         *cur;
-
-		pNext->flags = config->current_flags;
-
-		if (!(pterm->flags & TF_DONT_SPLIT))
-		{
-			cur = config->current_data;
-			for (pNext->argc = 0; *cur;)
-			{
-				for (count = 0; !isspace (*cur) && *cur; count++)
-					cur++;
-				while (isspace (*cur) && *cur)
-					cur++;
-				if (count)
-					pNext->argc++;
-			}
-		} else if (pterm->flags & TF_INDEXED)
-			pNext->argc = 2;
-		else
-			pNext->argc = 1;
-
-		if (pNext->argc == 0)
-			pNext->argv = NULL;
-		else
-		{
-			pNext->argv = CreateStringArray (pNext->argc);
-			pNext->argv[0] = (char *)safemalloc (config->current_data_len + 1);
-
-			cur = config->current_data;
-			i = 0;
-			if (pterm->flags & TF_DONT_SPLIT)
-			{
-				if (pterm->flags & TF_INDEXED)
-				{							   /* first token should be index thou */
-					for (count = 0; !isspace (*cur) && *cur; count++)
-						pNext->argv[0][count] = *(cur++);
-					while (isspace (*cur) && *cur)
-						cur++;
-					pNext->argv[0][count] = '\0';
-					i++;
-					pNext->argv[i] = &(pNext->argv[0][count + 1]);
-				}
-				/* the rest of the text is treated as single token */
-				strcpy (pNext->argv[i], cur);
-			} else
-			{
-				for (; i < pNext->argc; i++)
-				{
-					for (count = 0; !isspace (*cur) && *cur; count++)
-						pNext->argv[i][count] = *(cur++);
-					while (isspace (*cur) && *cur)
-						cur++;
-					if (!count)
-						break;
-
-					pNext->argv[i][count] = '\0';
-					if ((i + 1) < pNext->argc)
-						pNext->argv[i + 1] = &(pNext->argv[i][count + 1]);
-				}
-			}
-		}
+		stripcomments (config->current_data);
+		config->current_data_len = strlen (config->current_data);
 	}
+	args2FreeStorage (pNext, config->current_data, config->current_data_len);
+
 	config->current_tail->tail = &(pNext->next);
 	if (pterm->sub_syntax)
 		ProcessSubSyntax (config, &(pNext->sub), pterm->sub_syntax);
@@ -690,6 +665,7 @@ int
 ParseConfig (ConfigDef * config, FreeStorageElem ** tail)
 {
 	int           TopLevel = 0;
+	unsigned long flags;
 
 	PushStorage (config, tail);
 	/* get line */
@@ -697,9 +673,10 @@ ParseConfig (ConfigDef * config, FreeStorageElem ** tail)
 	{
 		while (GetNextStatement (config, 1))
 		{									   /* untill not end of text */
+			flags = 0x00;
 #ifdef DEBUG_PARSER
-	        fprintf (stderr, "\nSentence Found:[%s]\n,\tData=\t[%s]", config->tline, config->current_data);
-    		fprintf (stderr, "\nLooking for the Term(syn=%p)...", config->syntax );
+			fprintf (stderr, "\nSentence Found:[%.50s ...]\n,\tData=\t[%s]", config->tline, config->current_data);
+			fprintf (stderr, "\nLooking for the Term...");
 #endif
 			/* find term */
 			if ((config->current_term = FindStatementTerm (config->tline, config->syntax)))
@@ -707,27 +684,35 @@ ParseConfig (ConfigDef * config, FreeStorageElem ** tail)
 #ifdef DEBUG_PARSER
 				fprintf (stderr, "\nTerm Found:[%s]", config->current_term->keyword);
 #endif
-				if (config->current_term->flags & TF_SPECIAL_PROCESSING)
+				if (config->current_term->flags & TF_OBSOLETE)
+					config_error (config, "Heh, It seems that I've encountered obsolete config option. I'll ignore it for now, Ok ?!");
+  				if (config->current_term->flags & TF_SPECIAL_PROCESSING)
 				{
 					if (config->special)
 					{
 						FreeStorageElem **ctail = config->current_tail->tail;
 
-						if (!(*(config->special)) (config, ctail))
+						flags = (*(config->special)) (config, ctail);
+						if (get_flags (flags, SPECIAL_BREAK))
 							break;
-						for (; (*ctail); tail = &((*ctail)->next));
-						config->current_tail->tail = ctail;
+						if (get_flags (flags, SPECIAL_STORAGE_ADDED))
+						{
+							for (ctail = config->current_tail->tail; (*ctail); ctail = &((*ctail)->next));
+							tail = config->current_tail->tail = ctail;
+						}
 					}
-				} else
+				}
+				if (!get_flags (flags, SPECIAL_SKIP))
 					ProcessStatement (config);
-				if ((config->current_term->flags & TF_SYNTAX_TERMINATOR)|| IsLastOption (config) )
+
+				if ((config->current_term->flags & TF_SYNTAX_TERMINATOR) || IsLastOption (config))
 					break;
-			}else
+			} else
 			{
 #ifdef UNKNOWN_KEYWORD_WARNING
 				config_error (config, " unknown keyword encountered");
 #endif
-				if (IsLastOption (config))
+                if (IsLastOption (config))
 					break;
 			}
 		}									   /* end while( GetNextStatement() ) */
@@ -750,324 +735,6 @@ ParseConfig (ConfigDef * config, FreeStorageElem ** tail)
 	return 1;
 }
 
-/*********************************************************************************************/
-/*                                     FreeStorage management                                */
-/*********************************************************************************************/
-/* Create new FreeStorage Elem and add it to the supplied storage's tail */
-FreeStorageElem *
-AddFreeStorageElem (SyntaxDef * syntax, FreeStorageElem ** tail, TermDef * pterm, int id)
-{
-	FreeStorageElem *new_elem = NULL;
-
-	if (pterm == NULL)
-		pterm = FindTerm (syntax, TT_ANY, id);
-
-	if (pterm)
-	{
-		new_elem = (FreeStorageElem *) safemalloc (sizeof (FreeStorageElem));
-		new_elem->term = pterm;
-		new_elem->argc = 0;
-		new_elem->argv = NULL;
-		new_elem->flags = 0;
-		new_elem->next = *tail;
-		new_elem->sub = NULL;
-		*tail = new_elem;
-	}
-	return new_elem;
-}
-
-/* Duplicate existing FreeStorage Elem */
-FreeStorageElem *
-DupFreeStorageElem (FreeStorageElem * source)
-{
-	FreeStorageElem *new_elem = NULL;
-
-	if (source)
-	{
-		new_elem = (FreeStorageElem *) safemalloc (sizeof (FreeStorageElem));
-		new_elem->term = source->term;
-		new_elem->argc = source->argc;
-		/* duplicating argv here */
-		new_elem->argv = DupStringArray (source->argc, source->argv);
-		new_elem->flags = source->flags;
-		new_elem->next = NULL;
-		new_elem->sub = NULL;
-		if (new_elem->sub)
-		{
-			FreeStorageElem *psub, **pnew_sub = &(new_elem->sub);
-
-			for (psub = new_elem->sub; psub; psub = psub->next)
-			{
-				*pnew_sub = DupFreeStorageElem (psub);
-				pnew_sub = &((*pnew_sub)->next);
-			}
-		}
-	}
-	return new_elem;
-}
-
-void
-ReverseFreeStorageOrder (FreeStorageElem ** storage)
-{
-	FreeStorageElem *pNewHead = NULL, *pNext;
-
-	for (; *storage; *storage = pNext)
-	{
-		pNext = (*storage)->next;
-		(*storage)->next = pNewHead;
-		pNewHead = *storage;
-	}
-	*storage = pNewHead;
-}
-
-void
-CopyFreeStorage (FreeStorageElem ** to, FreeStorageElem * from)
-{
-	FreeStorageElem *pNew;
-
-	if (to == NULL)
-		return;
-	for (; from; from = from->next)
-	{
-		if ((pNew = DupFreeStorageElem (from)) == NULL)
-			continue;
-		pNew->next = *to;
-		*to = pNew;
-	}
-}
-
-int
-CountFreeStorageElems (FreeStorageElem * storage)
-{
-	int           count = 0;
-
-	for (; storage; storage = storage->next)
-		count++;
-	return count;
-}
-
-/* this one will scan list of FreeStorage elements and will move all elements with
-   specifyed flags mask into the garbadge_bin
- */
-
-void
-StorageCleanUp (FreeStorageElem ** storage, FreeStorageElem ** garbadge_bin, unsigned long mask)
-{
-	FreeStorageElem **ppCurr, *pToRem;
-
-	for (ppCurr = storage; *ppCurr; ppCurr = &((*ppCurr)->next))
-	{
-		while ((*ppCurr)->flags & mask)
-		{
-			pToRem = *ppCurr;
-			*ppCurr = pToRem->next;
-			pToRem->next = *garbadge_bin;
-			*garbadge_bin = pToRem;
-		}
-		if ((*ppCurr)->sub)
-			StorageCleanUp (&((*ppCurr)->sub), garbadge_bin, mask);
-	}
-}
-
-/* memory deallocation */
-void
-DestroyFreeStorage (FreeStorageElem ** storage)
-{
-	if (storage)
-		if (*storage)
-		{
-			DestroyFreeStorage (&((*storage)->next));
-			DestroyFreeStorage (&((*storage)->sub));
-			/* that will deallocate everything */
-			if ((*storage)->argc && (*storage)->argv)
-			{
-				if ((*storage)->argv[0])
-#ifdef DEBUG_PARSER
-				{
-					fprintf (stderr, "\n DestroyFreeStorage: deallocating [%s].", (*storage)->argv[0]);
-#endif
-					free ((*storage)->argv[0]);
-#ifdef DEBUG_PARSER
-				} else
-					fprintf (stderr, "\n DestroyFreeStorage: no data to deallocate.");
-#endif
-				free ((*storage)->argv);
-			}
-			free (*storage);
-			*storage = NULL;
-		}
-}
-
-int
-ReadFlagItem (unsigned long *set_flags, unsigned long *flags, FreeStorageElem * stored, flag_options_xref * xref)
-{
-	if (stored && xref)
-	{
-		Bool          value = True;
-
-		if (stored->term->type != TT_FLAG || get_flags (stored->term->flags, TF_INDEXED))
-			return 0;
-
-		if (stored->argc > 1)
-			value = (atol (stored->argv[1]) > 0);
-
-		while (xref->flag != 0)
-		{
-			if (xref->id_on == stored->term->id)
-				break;
-			if (xref->id_off == stored->term->id)
-			{
-				value = !value;
-				break;
-			}
-			xref++;
-		}
-		if (xref->flag != 0)
-		{
-			if (set_flags)
-				set_flags (*set_flags, xref->flag);
-			if (flags)
-			{
-				if (value)
-					set_flags (*flags, xref->flag);
-				else
-					clear_flags (*flags, xref->flag);
-			}
-		}
-		return 1;
-	}
-	return 0;
-}
-
-
-/* free storage post processing code */
-int
-ReadConfigItem (ConfigItem * item, FreeStorageElem * stored)
-{
-	if (item->memory && item->ok_to_free)
-		free (item->memory);
-	item->memory = NULL;
-
-	if (stored)
-	{
-		int           pos = 0;
-
-		item->memory = NULL;
-		item->ok_to_free = 0;
-		if (stored->argv == NULL || stored->argc == 0)
-			return 0;
-		if (stored->argv[pos] == NULL)
-			return 0;
-		if (stored->term->flags & TF_INDEXED)
-		{
-			item->index = atoi (stored->argv[pos++]);
-			if (stored->argc < 2)
-				return 0;
-			if (!stored->argv[pos])
-				return 0;
-		}
-
-		switch (stored->term->type)
-		{
-		 case TT_INTEGER:
-			 item->data.integer = atol (stored->argv[pos++]);
-			 break;
-		 case TT_COLOR:
-		 case TT_FONT:
-		 case TT_FILENAME:
-		 case TT_TEXT:
-		 case TT_PATHNAME:
-             if (stored->term->type != TT_TEXT && *(stored->argv[pos]) == '"')
-			 {
-				 item->memory = item->data.string = stripcpy2 (stored->argv[pos], 0);
-			 } else
-			 {
-				 item->memory = safemalloc (strlen (stored->argv[pos]) + 1);
-				 item->data.string = (char *)(item->memory);
-                 strcpy (item->data.string, stored->argv[pos]);
-			 }
-             ++pos;
-			 break;
-#if 0
-             item->memory = safemalloc (strlen (stored->argv[pos]) + 1);
-			 item->data.string = (char *)(item->memory);
-			 strcpy (item->data.string, stored->argv[pos++]);
-#endif
-			 break;
-		 case TT_QUOTED_TEXT:
-			 {
-                char         *ptr = stored->argv[pos], *tail;
-                char         *result = NULL;
-
-                if (*ptr != '"')
-                    ptr = find_doublequotes (ptr);
-                if (ptr)
-                {
-                    ptr++;
-                    if ((tail = find_doublequotes (ptr)) == NULL)
-                    {
-                        show_error("terminating quote missing in [%s]! Using whole line !", stored->argv[pos]);
-                        result = mystrdup (ptr);
-                    } else
-                        result = mystrndup (ptr, tail - ptr);
-                    /* stripping those backslashed doubleqoutes off of the text */
-                    for (ptr = result + 1; *ptr; ptr++)
-                        if (*ptr == '"' && *(ptr - 1) == '\\')
-                            strcpy (ptr - 1, ptr);
-                    pos++;
-                } else
-                    show_error ("bad quoted string [%s] for option [%s]. Ignoring!",ptr, stored->term->keyword);
-
-                item->memory = result ;
-                item->data.string = result ;
-#if 0
-                register int  i = 1;
-                int           len = strlen (stored->argv[pos]);
-
-				 for (; *ptr != '\0'; ptr++)
-					 if (*ptr == '"')
-						 break;
-				 for (; *(ptr + i) != '\0'; i++)
-				 {
-					 if (*(ptr + i) == '"')
-						 break;
-					 if (*(ptr + i) == '\\')
-						 if (*(ptr + (++i)) == '\0')
-							 break;
-				 }
-				 if (i < 2 || *ptr != '"')
-				 {
-					 fprintf (stderr, "\n%s: bad quoted string [%s]. Ignoring!", MyName, stored->argv[pos]);
-					 return 0;
-				 }
-				 if (*(ptr + i) == '\0')
-				 {
-					 fprintf (stderr, "\n%s: terminating quote missing in [%s]. Ignoring!", MyName, stored->argv[pos]);
-					 return 0;
-				 }
-				 len = i;
-				 item->memory = safemalloc (len);
-				 item->data.string = (char *)(item->memory);
-				 len--;
-				 for (ptr++, i = 0; i < len; i++)
-					 item->data.string[i] = *(ptr + i);
-
-                 item->data.string[i] = '\0';
-                 pos++;
-#endif
-             }
-			 break;
-		 case TT_GEOMETRY:
-			 item->data.geometry.flags =
-				 XParseGeometry (stored->argv[pos++],
-								 &(item->data.geometry.x),
-								 &(item->data.geometry.y), &(item->data.geometry.width), &(item->data.geometry.height));
-			 break;
-		}
-		return 1;
-	}
-	return 0;
-}
 
 /****************************************************************************************/
 /*                        Assorted utility functions                                    */
@@ -1080,86 +747,6 @@ FlushConfigBuffer (ConfigDef * config)
 	config->cursor = &(config->buffer[0]);
 }
 
-char        **
-CreateStringArray (size_t elem_num)
-{
-	char        **array = (char **)safemalloc (elem_num * sizeof (char *));
-	int           i;
-
-	for (i = 0; i < elem_num; i++)
-		array[i] = NULL;
-	return array;
-}
-
-size_t
-GetStringArraySize (int argc, char **argv)
-{
-	size_t        size = 0;
-
-	for (argc--; argc >= 0; argc--)
-		if (argv[argc])
-			size += strlen (argv[argc]) + 1;
-	return size;
-}
-
-char        **
-DupStringArray (int argc, char **argv)
-{
-	int           i;
-	size_t        data_size;
-	char        **array = CreateStringArray (argc);
-
-	data_size = GetStringArraySize (argc, argv);
-	if (data_size && array)
-	{
-		array[0] = (char *)safemalloc (data_size);
-		for (i = 0; i < data_size; i++)
-			array[0][i] = argv[0][i];
-		for (i = 1; i < argc; i++)
-			if (argv[i])
-				array[i] = array[0] + (argv[i] - argv[0]);
-	}
-	return array;
-}
-
-void
-AddStringToArray (int *argc, char ***argv, char *new_string)
-{
-	int           i;
-	size_t        data_size;
-	char        **array;
-
-	if (new_string == NULL)
-		return;
-
-	array = CreateStringArray (*argc + 1);
-	data_size = GetStringArraySize (*argc, *argv);
-	if (data_size && array)
-	{
-		array[0] = (char *)safemalloc (data_size + strlen (new_string) + 1);
-		for (i = 0; i < data_size; i++)
-			array[0][i] = (*argv)[0][i];
-		for (i = 1; i < *argc; i++)
-			if ((*argv)[i])
-				array[i] = array[0] + ((*argv)[i] - (*argv)[0]);
-		array[i] = array[0] + data_size;
-		strcpy (array[i], new_string);
-		(*argc)++;
-	}
-}
-
-/* end StringArray functionality */
-
-
-void
-init_asgeometry (ASGeometry * geometry)
-{
-	geometry->flags = XValue | YValue;
-    geometry->x = geometry->y = 0;
-    geometry->width = geometry->height = 1;
-}
-
-/***************************************************************************/
 /***************************************************************************/
 /***************************************************************************/
 /*                   config Writing stuff                                  */
@@ -1169,7 +756,7 @@ ConfigDef    *
 InitConfigWriter (char *myname, SyntaxDef * syntax, ConfigDataType type, void *source)
 {
 #ifdef WITH_CONFIG_WRITER
-	ConfigDef    *new_conf = NewConfig (myname, syntax, type, source, NULL);
+	ConfigDef    *new_conf = NewConfig (myname, syntax, type, source, NULL, True);
 
 	if (new_conf == NULL)
 		return NULL;
@@ -1188,6 +775,7 @@ InitConfigWriter (char *myname, SyntaxDef * syntax, ConfigDataType type, void *s
 
 			if (new_conf->fd != -1)
 				if (fstat (new_conf->fd, &file_stats) == 0)
+				{
 					if ((new_conf->buffer_size = file_stats.st_size) > 0)
 					{
 						int           bytes_read;
@@ -1201,13 +789,21 @@ InitConfigWriter (char *myname, SyntaxDef * syntax, ConfigDataType type, void *s
 							new_conf->buffer = NULL;
 							new_conf->buffer_size = 0;
 						}
+					} else
+					{						   /* file is empty, so continuing onto creating a new file */
+						new_conf->buffer = safemalloc (1);
+						new_conf->buffer[0] = '\0';
+						new_conf->buffer_size = 1;
 					}
+				}
 		}
 		if (new_conf->buffer == NULL)
 		{
 			DestroyConfig (new_conf);
 			return NULL;
 		}
+		new_conf->bytes_in = new_conf->buffer_size - 1;
+
 		new_conf->cursor = &(new_conf->buffer[0]);
 	}
 
@@ -1268,112 +864,188 @@ WriteBlock (struct WriteBuffer *t_buffer, char *block_start, char *block_end)
 	/*                     and 1 byte left for file terminator           */
 	if (t_buffer->allocated < t_buffer->used + bytes_to_add + 2)
 	{										   /* growing buffer by 1/8 of it's size */
-		char         *tmp;
 		size_t        add_size = t_buffer->used + bytes_to_add + 2 - t_buffer->allocated;
 
 		if (add_size < (t_buffer->allocated >> 3))
 			add_size = (t_buffer->allocated >> 3);
-		tmp = (char *)safemalloc (t_buffer->allocated + add_size);
-		memcpy (tmp, t_buffer->buffer, t_buffer->used);
-		free (t_buffer->buffer);
-		t_buffer->buffer = tmp;
+		if (t_buffer->buffer != NULL && t_buffer->allocated > 0)
+			t_buffer->buffer = realloc (t_buffer->buffer, t_buffer->allocated + add_size);
+		else
+			t_buffer->buffer = safemalloc (t_buffer->allocated + add_size);
 		t_buffer->allocated += add_size;
 	}
 	memcpy (t_buffer->buffer + t_buffer->used, block_start, bytes_to_add);
 	t_buffer->used += bytes_to_add;
 }
 
+
+char         *
+terminate (char *ptr, char terminator)
+{
+	if (*ptr != terminator && (*ptr == '\0' && *(ptr - 1) != terminator))
+		*(ptr++) = terminator;
+	return ptr;
+}
+
 /*
  * creates string representing freeStorage's elem and writes it into the
  * output buffer
  */
-void
+static void
 WriteFreeStorageElem (ConfigDef * config, struct WriteBuffer *t_buffer, FreeStorageElem * pElem, int level)
 {
-	char         *elem_buf;
-	size_t        elem_buf_size = level, params_size;
-	int           i;
+	static char  *elem_buf = NULL;
+	static long   buf_allocated = 0;
 
-	if (pElem == NULL)
+	size_t        elem_buf_size = 0, params_size;
+	register SyntaxDef *csyntax;
+	register char *ptr;
+
+	if (pElem == NULL || config->syntax == NULL)
+	{
+		if (elem_buf)
+			free (elem_buf);
+		elem_buf = NULL;
+		buf_allocated = 0;
 		return;
+	}
 	if (pElem->term == NULL)
 		return;
 
-	if (config->syntax->terminator != '\n')
-		elem_buf_size = 0;
+	csyntax = config->syntax;
+	/* now lets approximate our memory size needed to accomodate complete config line : */
+	/* ( allowing some slack just for simplier algorithm, since few bytes would not really matter ) */
+	/* first goes constants (denoted as C# below) : */
+	elem_buf_size += DISABLED_KEYWORD_SIZE	   /* C1 */
+		+ 1									   /* C2 */
+		+ 1									   /* C3 */
+		+ pElem->argc						   /* C4 */
+		+ 1;								   /* C5 */
+	/* now calculating variable lengths (denoted as V# below ): */
+	if ((ptr = config->current_prepend) != NULL)	/* V1 */
+		while (*(ptr++))
+			elem_buf_size++;
 
-	if (pElem->flags & CF_DISABLED_OPTION)
-		elem_buf_size += 1 + DISABLED_KEYWORD_SIZE;
+	ptr = csyntax->prepend_one;				   /* V2 */
+	while (*(ptr++))
+		elem_buf_size++;
 
-	if (!(pElem->term->flags & TF_NO_MYNAME_PREPENDING) && !(pElem->flags & CF_PUBLIC_OPTION))
-		elem_buf_size += 1 + strlen (config->myname);
-	if (pElem->term->keyword)
+	if ((ptr = config->myname) != NULL)		   /* V3 */
+		while (*(ptr++))
+			elem_buf_size++;
+
+	if ((ptr = pElem->term->keyword) != NULL)  /* V4 */
 		elem_buf_size += pElem->term->keyword_len;
 
-	elem_buf_size++;						   /* for separating space */
-	params_size = GetStringArraySize (pElem->argc, pElem->argv);
+	params_size = GetStringArraySize (pElem->argc, pElem->argv);	/* V5 */
 	elem_buf_size += params_size;
 
-
-	elem_buf_size++;						   /* for sentense terminator */
-	elem_buf_size++;						   /* for terminating '\0'    */
+	if ((ptr = csyntax->prepend_sub) != NULL)  /* V6 */
+		while (*(ptr++))
+			elem_buf_size++;
+	elem_buf_size++;
 
 	if (elem_buf_size > 0)
 	{
-		char         *ptr;
+		register char *src;
 
-		elem_buf = (char *)safemalloc (elem_buf_size);
-		i = 0;
-		if (config->syntax->terminator == '\n')
-			for (; i < level; i++)
-				elem_buf[i] = '\t';
-
-		ptr = &(elem_buf[i]);
-		if (pElem->flags & CF_DISABLED_OPTION)
+		if (buf_allocated < elem_buf_size)
 		{
-			strcpy (ptr, _disabled_keyword);
-			ptr += DISABLED_KEYWORD_SIZE;
-			*(ptr++) = ' ';
+			buf_allocated = elem_buf_size + (elem_buf_size >> 3);	/* to anticipate future buffer grows */
+			if (elem_buf != NULL)
+				free (elem_buf);
+			elem_buf = (char *)safemalloc (buf_allocated);
+		}
+		/*below is what's actually is using our memory: */
+		ptr = elem_buf;
+		if (config->current_prepend)		   /*V1: config->current_prepend */
+		{
+			src = config->current_prepend;
+			while (*src)
+				*(ptr++) = *(src++);
 		}
 
-		if (!(pElem->term->flags & TF_NO_MYNAME_PREPENDING) && !(pElem->flags & CF_PUBLIC_OPTION))
+		src = csyntax->prepend_one;			   /*V2: csyntax->prepend_one */
+		while (*src)
+			*(ptr++) = *(src++);
+
+		if (pElem->flags & CF_DISABLED_OPTION) /*C1: DISABLED_KEYWORD_SIZE */
 		{
-			*(ptr++) = MYNAME_CHAR;
-			strcpy (ptr, config->myname);
-			ptr += strlen (config->myname);
+			src = _disabled_keyword;
+			while (*src)
+				*(ptr++) = *(src++);
+			*(ptr++) = csyntax->token_separator;	/*C2: csyntax->token_separator */
 		}
-		if (pElem->term->keyword)
+
+		if (!(pElem->term->flags & TF_NO_MYNAME_PREPENDING)
+			&& !(pElem->flags & CF_PUBLIC_OPTION) && config->myname != NULL)
 		{
-			strcpy (ptr, pElem->term->keyword);
-			ptr += strlen (pElem->term->keyword);
+			*(ptr++) = MYNAME_CHAR;			   /*C3: MYNAME_CHAR */
+			src = config->myname;			   /*V3: config->myname */
+			while (*src)
+				*(ptr++) = *(src++);
+		}
+		if (pElem->term->keyword)			   /*V4: pElem->term->keyword */
+		{
+			src = pElem->term->keyword;
+			while (*src)
+				*(ptr++) = *(src++);
 		}
 		/* some beautification is in order here */
-		i = 0;
 		if (params_size)
 		{
-			*(ptr++) = '\t';
-			for (; i < pElem->argc; i++)
-				if (pElem->argv[i])
+			int           i;
+
+			*(ptr++) = csyntax->token_separator;	/*C4: argc*csyntax->token_separator */
+			for (i = 0; i < pElem->argc; i++)
+				if ((src = pElem->argv[i]) != NULL)
 				{
 					if (i)
-						*(ptr++) = ' ';
-					strcpy (ptr, pElem->argv[i]);
-					ptr += strlen (pElem->argv[i]);
+						*(ptr++) = csyntax->token_separator;
+					while (*src)
+						*(ptr++) = *(src++);   /*V5: argv[i] */
 				}
 		}
+		*ptr = '\0';						   /* so that termination will work */
+		if (pElem->sub == NULL || pElem->term->sub_syntax == NULL)	/*C5: csyntax->terminator */
+			ptr = terminate (ptr, csyntax->terminator);
+		else if (pElem->term->sub_syntax != NULL)
+		{
+			if (pElem->term->sub_syntax->terminator == csyntax->terminator)
+				ptr = terminate (ptr, csyntax->terminator);
+			else if (csyntax->terminator == '\0' && pElem->term->sub_syntax->terminator != '\0')
+				ptr = terminate (ptr, pElem->term->sub_syntax->terminator);
+		}
 
-		if (*ptr != config->syntax->terminator && (*ptr == '\0' && *(ptr - 1) != config->syntax->terminator))
-			*(ptr++) = config->syntax->terminator;
-		*ptr = '\0';
-		WriteBlock (t_buffer, elem_buf, NULL);
-		free (elem_buf);
+		if (*(ptr - 1) != csyntax->terminator) /* V6: min(csyntax->prepend_sub,1) */
+		{									   /* we don't want for tokens to get joined together */
+			src = csyntax->prepend_sub;
+			if (src != NULL && *src != '\0')
+				while (*src)
+					*(ptr++) = *(src++);
+			else
+				ptr = terminate (ptr, csyntax->token_separator);
+		}
+
+		WriteBlock (t_buffer, elem_buf, ptr);
 	}
 	if (pElem->sub)
 	{
 		FreeStorageElem *psub;
 
+		if (pElem->term->sub_syntax)
+			PushSyntax (config, pElem->term->sub_syntax);
 		for (psub = pElem->sub; psub; psub = psub->next)
 			WriteFreeStorageElem (config, t_buffer, psub, level + 1);
+		if (pElem->term->sub_syntax)
+		{
+			PopSyntax (config);
+			if ((pElem->term->sub_syntax->file_terminator) != '\0')
+			{
+				*elem_buf = pElem->term->sub_syntax->file_terminator;
+				WriteBlock (t_buffer, elem_buf, elem_buf + 1);
+			}
+		}
 	}
 }
 
@@ -1417,7 +1089,7 @@ ScanAndWriteExistant (ConfigDef * config, FreeStorageElem ** storage, struct Wri
 	FreeStorageElem *pCurr;
 
 	while (GetNextStatement (config, 0))
-	{										   /* untill not end of text */
+	{										   /* until not end of text */
 		TermDef      *pterm;
 
 		if (!(flags & WF_DISCARD_COMMENTS))
@@ -1431,21 +1103,29 @@ ScanAndWriteExistant (ConfigDef * config, FreeStorageElem ** storage, struct Wri
 				WriteBlock (t_buffer, config->tline_start, config->cursor);
 			continue;
 		}
+
+		pterm = FindStatementTerm (config->tline, config->syntax);
 		if (IsPublicOption (config))
 		{
-			if (!(flags & WF_DISCARD_PUBLIC))
-				WriteBlock (t_buffer, config->tline_start, config->cursor);
-			continue;
+			int           write_it = 1;
+
+			if (pterm)
+				write_it = !(pterm->flags & TF_NO_MYNAME_PREPENDING);
+			if (write_it)
+			{
+				if (!(flags & WF_DISCARD_PUBLIC))
+					WriteBlock (t_buffer, config->tline_start, config->cursor);
+				continue;
+			}
 		}
 
 		/* find term */
-		if ((pterm = FindStatementTerm (config->tline, config->syntax)))
+		if (pterm)
 		{
 			pCurr = FindTermAndRemove (storage, pterm);
 			if (pCurr)
 				WriteFreeStorageElem (config, t_buffer, pCurr, 0);
-		}
-		if ((pterm == NULL || pCurr == NULL) && (!(flags & WF_DISCARD_UNKNOWN)))
+		} else if (!(flags & WF_DISCARD_UNKNOWN))
 			WriteBlock (t_buffer, config->tline_start, config->cursor);
 
 		DestroyFreeStorage (&pCurr);		   /* no longer need it */
@@ -1461,8 +1141,8 @@ ScanAndWriteExistant (ConfigDef * config, FreeStorageElem ** storage, struct Wri
 /* main writing procedure ( returns size of the data written )             */
 
 long
-WriteConfig (ConfigDef * config, FreeStorageElem ** storage, ConfigDataType target_type, void **target,
-			 unsigned long flags)
+WriteConfig (ConfigDef * config, FreeStorageElem ** storage,
+			 ConfigDataType target_type, void **target, unsigned long flags)
 {
 #ifdef WITH_CONFIG_WRITER
 	struct WriteBuffer t_buffer;
@@ -1499,19 +1179,20 @@ WriteConfig (ConfigDef * config, FreeStorageElem ** storage, ConfigDataType targ
 	/* now saving buffer into file if we need to */
 	switch (target_type)
 	{
-        case CDT_Filename:
-            t_fd = open ((char *)(*target), O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
-            break;
-        case CDT_FilePtr:
-            t_fd = fileno ((FILE *) (*target));
-            break;
-        case CDT_FileDesc:
-            t_fd = *((int *)(*target));
-            break;
-        case CDT_Data:
-            (*target) = (void *)(t_buffer.buffer);
-            return t_buffer.used;
-    }
+	 case CDT_Filename:
+		 t_fd = open ((char *)(*target), O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
+		 break;
+	 case CDT_FilePtr:
+     case CDT_FilePtrAndData:
+         t_fd = fileno ((FILE *) (*target));
+		 break;
+	 case CDT_FileDesc:
+		 t_fd = *((int *)(*target));
+		 break;
+	 case CDT_Data:
+		 (*target) = (void *)(t_buffer.buffer);
+		 return t_buffer.used;
+	}
 	if (t_fd != -1)
 	{
 		write (t_fd, t_buffer.buffer, t_buffer.used);
@@ -1520,107 +1201,10 @@ WriteConfig (ConfigDef * config, FreeStorageElem ** storage, ConfigDataType targ
 	}
 
 	free (t_buffer.buffer);
+	WriteFreeStorageElem (NULL, NULL, NULL, 0);	/* freeing statically allocated buffer */
 
 	return t_buffer.used;
 #else
 	return 0;
 #endif
-}
-
-/* helper functions for writing config */
-
-char         *
-MyIntToString (int value)
-{
-	int           charnum, test = value;
-	char         *string;
-
-	for (charnum = (test < 0) ? 1 : 0; test; charnum++)
-		test /= 10;
-	if (charnum == 0)
-		charnum++;
-	charnum++;
-	string = (char *)safemalloc (charnum);
-	sprintf (string, "%d", value);
-	return string;
-}
-
-FreeStorageElem **
-Integer2FreeStorage (SyntaxDef * syntax, FreeStorageElem ** tail, int value, int id)
-{
-	FreeStorageElem *new_elem = AddFreeStorageElem (syntax, tail, NULL, id);
-
-	if (new_elem)
-	{
-		new_elem->argc = 1;
-		new_elem->argv = (char **)safemalloc (sizeof (char *));
-		new_elem->argv[0] = MyIntToString (value);
-		tail = &(new_elem->next);
-	}
-	return tail;
-}
-
-FreeStorageElem **
-String2FreeStorage (SyntaxDef * syntax, FreeStorageElem ** tail, char *string, int id)
-{
-	FreeStorageElem *new_elem;
-
-	if (string)
-		if (strlen (string))
-			if ((new_elem = AddFreeStorageElem (syntax, tail, NULL, id)) != NULL)
-			{
-				new_elem->argc = 1;
-				new_elem->argv = (char **)safemalloc (sizeof (char *));
-				new_elem->argv[0] = (char *)safemalloc (strlen (string) + 1);
-				strcpy (new_elem->argv[0], string);
-				tail = &(new_elem->next);
-			}
-	return tail;
-}
-
-FreeStorageElem **
-Geometry2FreeStorage (SyntaxDef * syntax, FreeStorageElem ** tail, ASGeometry * geometry, int id)
-{
-	char          geom_string[MAXLINELENGTH] = "";
-
-	if (geometry)
-	{
-		if (geometry->flags & WidthValue)
-			sprintf (geom_string, "=%d", geometry->width);
-		if (geometry->flags & HeightValue)
-			sprintf (geom_string + strlen (geom_string), "x%d", geometry->height);
-		if (geometry->flags & XValue)
-			sprintf (geom_string + strlen (geom_string), "%+d", geometry->x);
-		if (geometry->flags & YValue)
-			sprintf (geom_string + strlen (geom_string), "%+d", geometry->y);
-		tail = String2FreeStorage (syntax, tail, geom_string, id);
-	}
-	return tail;
-}
-
-FreeStorageElem **
-StringArray2FreeStorage (SyntaxDef * syntax, FreeStorageElem ** tail, char **strings, int index1, int index2, int id)
-{
-	FreeStorageElem *new_elem = NULL;
-	int           i;
-	char          ind_str[MAXLINELENGTH];
-	TermDef      *pterm = FindTerm (syntax, TT_ANY, id);
-
-	if (strings && pterm)
-		for (i = 0; i < index2 - index1 + 1; i++)
-		{
-			if (strings[i] == NULL)
-				continue;
-			if ((new_elem = AddFreeStorageElem (syntax, tail, pterm, id)) == NULL)
-				continue;
-			new_elem->argc = 2;
-			new_elem->argv = CreateStringArray (2);
-			sprintf (ind_str, "%d", i + index1);
-			new_elem->argv[0] = (char *)safemalloc (strlen (ind_str) + 1 + strlen (strings[i]) + 1);
-			strcpy (new_elem->argv[0], ind_str);
-			new_elem->argv[1] = new_elem->argv[0] + strlen (ind_str) + 1;
-			strcpy (new_elem->argv[1], strings[i]);
-			tail = &(new_elem->next);
-		}
-	return tail;
 }

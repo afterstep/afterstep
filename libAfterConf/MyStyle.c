@@ -42,7 +42,12 @@ SyntaxDef     MyStyleSyntax = {
 	'\0',
 	MyStyleTerms,
 	0,										   /* use default hash size */
-	NULL
+    '\t',
+    "",
+    "",
+    "Old style Gradient definition",
+	NULL,
+	0
 };
 
 

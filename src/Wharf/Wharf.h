@@ -1,11 +1,8 @@
-
 #define IN_MODULE
 #define MODULE_X_INTERFACE
-#include "../../include/afterbase.h"
-#include "../../include/aftersteplib.h"
+#include "../../include/asapp.h"
 #include "../../include/afterstep.h"
 #include "../../include/parse.h"
-#include "../../include/style.h"
 #include "../../include/screen.h"
 #include "../../include/module.h"
 
@@ -32,8 +29,7 @@
 #define clear_flags(var, val) ((var) &= ~(val))
 #endif
 
-typedef struct button_info button_info;
-typedef struct folder_info folder_info;
+#define DOUBLECLICKTIME 1
 
 enum /* button_info flags */
 {
@@ -45,7 +41,7 @@ enum /* button_info flags */
   WB_Module		= (1 <<  5)	/* was SwallowModule specified? */
 };
 
-struct button_info
+typedef struct button_info
 {
   button_info* next;
   folder_info* parent;			/* folder containing this button */
@@ -54,11 +50,9 @@ struct button_info
   char *title;
   int num_icons;
   ASImage *icons[MAX_OVERLAY];
-  int x, y;
-  int width;
-  int height;
-  ASImage *completeIcon;		/* icon with background */
-  Pixmap mask;
+  ASCanvas   *canvas;
+  ASTBarData *bar;
+
   Window IconWin;
   Window swallowed_win;
   XSizeHints hints;
@@ -67,39 +61,35 @@ struct button_info
   char swallow;
 #ifdef ENABLE_DND
   char *drop_action;
-#endif    
+#endif
   unsigned long flags;			/* see button flags enum above */
-};
+}button_info;
 
 enum /* folder_info flags */
 {
   WF_Shaped		= (1 <<  0),	/* is the folder shaped? */
-  WF_NeedTransUpdate	= (1 <<  1), 	/* do we need to update transparency 
+  WF_NeedTransUpdate	= (1 <<  1), 	/* do we need to update transparency
   					 * before mapping the folder? */
   WF_Mapped		= (1 <<  2)	/* is this folder mapped? */
 };
 
-struct folder_info
+typedef struct folder_info
 {
   folder_info* next;
   button_info* parent;			/* button which owns this folder */
   button_info* first;			/* pointer to first button */
+  int count;                /* count folded buttons */
+  ASCanvas *canvas;
   Window win;         			/* Window of the Folder */
-  int count;				/* count folded buttons */
-  int x, y;          			/* position of window on desktop */
-  int width;          			/* width of win in pixels */
-  int height;         			/* height of win in pixels */
-  int direction;      			/* direction of the folder */
-#ifdef SHAPE
-  Pixmap mask;				/* mask for shaping the folder window */
-#endif
-  unsigned long flags;			/* see folder flags enum above */
-};
+  int direction;                /* direction of the folder */
+  unsigned long flags;          /* see folder flags enum above */
+
+}folder_info;
 
 /*************************************************************************
  *
  * Subroutine Prototypes
- * 
+ *
  *************************************************************************/
 /* from Wharf.c */
 extern void   CreateWindow(void);
@@ -152,21 +142,3 @@ void update_transparency (folder_info * folder);
 void update_look (folder_info * folder);
 int x_error_handler (Display * dpy, XErrorEvent * error);
 
-extern Display *dpy;			/* which display are we talking to */
-extern int screen;
-/*
-extern Window Root;
-extern long d_depth;
-*/
-extern GC NormalGC;
-extern XFontStruct *font;
-#ifdef SHAPE
-extern GC ShapeGC;
-#endif /* SHAPE */
-
-extern MyStyle* Style;
-
-extern ASImage *back_pixmap;
-extern ASImageManager *imman;
-extern char *iconPath;
-extern char *pixmapPath;
