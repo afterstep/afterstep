@@ -1,2 +1,5 @@
 <section label="overview" id="overview">
+<para> This  is  the  file  that  initializes various Modules or programs when
+       afterstep is either started or restarted.  Each set  is  handled  within
+       Function stanzas.</para>
 </section>

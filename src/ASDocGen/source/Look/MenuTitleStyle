@@ -1,5 +1,5 @@
 <varlistentry id="options.MenuTitleStyle">
-	<term>MenuTitleStyle</term>
+	<term>MenuTitleStyle <emphasis remap='I'>"style_name"</emphasis></term>
 	<listitem>
 		<para>Specifies the MyStyle to use for menu titles.</para>
 	</listitem>

@@ -1,5 +1,5 @@
 <varlistentry id="options.AutoRaise">
-	<term>AutoRaise</term>
+	<term>AutoRaise <emphasis remap='I'>delay</emphasis></term>
 	<listitem>
 		<para>Specifies  the  delay  in  milliseconds  of  focus a window must
 		attain before being raised.</para>

@@ -1,6 +1,11 @@
 <varlistentry id="options.TitleButtonStyle">
-	<term>TitleButtonStyle</term>
+	<term>TitleButtonStyle <emphasis remap='I'>num</emphasis></term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para> Specifies how much space is put between leftmost  and  rightmost
+              titlebar  buttons,  and  the edges of the titlebar. If num is 0,
+              there is a two pixel buffer the buttons and the edge. If num  is
+              1, there is no space between the buttons and the edge. If num is 2 , then
+                distance between titlebar edge and titlebuttons is determined
+                by TitleButtonXOffset and TitleButtonYOffset.</para>
 	</listitem>
 </varlistentry>

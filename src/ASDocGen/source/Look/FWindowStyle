@@ -1,5 +1,5 @@
 <varlistentry id="options.FWindowStyle">
-	<term>FWindowStyle</term>
+	<term>FWindowStyle <emphasis remap='I'>"style_name"</emphasis></term>
 	<listitem>
 		<para>Specifies the MyStyle to use for the focused window decorations.</para>
 	</listitem>

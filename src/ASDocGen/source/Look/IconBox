@@ -1,5 +1,5 @@
 <varlistentry id="options.IconBox">
-	<term>IconBox</term>
+	<term>IconBox <emphasis remap='I'>left top right bottom</emphasis></term>
 	<listitem>
 		<para>Specifies a region of the screen in  which  to  place  iconified
 		windows.  Up to four icon boxes can be defined. If an IconBox is

@@ -1,5 +1,5 @@
 <varlistentry id="options.MenuSubItemStyle">
-	<term>MenuSubItemStyle</term>
+	<term>MenuSubItemStyle <emphasis remap='I'>"style_name"</emphasis></term>
 	<listitem>
 		<para>AfterStep now includes this new feature: when you select
 		an item from the menu - this item will be marked as recently used,

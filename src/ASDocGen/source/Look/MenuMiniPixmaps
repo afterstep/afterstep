@@ -1,5 +1,5 @@
 <varlistentry id="options.MenuMiniPixmaps">
-	<term>MenuMiniPixmaps</term>
+	<term>MenuMiniPixmaps <emphasis remap='I'>minis</emphasis></term>
 	<listitem>
 		<para>Specifies  whether  mini pixmaps should be included in menus. If
 		minis is 0, mini pixmaps are not included. If minis is  1,  mini

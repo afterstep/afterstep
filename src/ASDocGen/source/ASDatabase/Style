@@ -1,14 +1,13 @@
 <varlistentry id="options.Style">
 	<term>Style <emphasis remap='I'>"WM_NAME" option[s]</emphasis></term>
 	<listitem>
-		<para>The <emphasis remap='I'>"WM_NAME"</emphasis> can the window's name, class or resource string.  It can
-		also contain wildcards such as "*" or "?", which are matched in the usual
+		<para>The <emphasis remap='I'>"WM_NAME"</emphasis> can be the window's name, class or resource string.
+		It can also contain wildcards such as "*" or "?", which are matched in the usual
 		UNIX filename manner. Using the standard X11 <emphasis remap='B'>xprop(1)</emphasis> command at a
 		command prompt or the <emphasis remap='I'>Window Properties</emphasis> menu item entry under
 		<emphasis remap='I'>Desktop</emphasis> menu entry will return this (and other) property.</para>
 		<para>The <emphasis remap='I'>option[s]</emphasis> is a comma separated list containing all or some of
-		the following keywords.  If conflicting style options are specified, the
-		last one will be used:</para>
-		<para>See Also: <ulink url="ASDatabaseEntry#synopsis">Style definition</ulink> for further details.</para>
+		the keywords found in the <ulink url="ASDatabaseEntry#synopsis">Style definition</ulink>.</para>
+		<para>If conflicting style options are specified, the last one will be used.</para>
 	</listitem>
 </varlistentry>

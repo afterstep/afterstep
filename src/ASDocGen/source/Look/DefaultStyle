@@ -1,5 +1,5 @@
 <varlistentry id="options.DefaultStyle">
-	<term>DefaultStyle</term>
+	<term>DefaultStyle <emphasis remap='I'>"style_name"</emphasis></term>
 	<listitem>
 		<para>Specifies the MyStyle to use when no style has been specifically
 		defined for a given  situation. Note that if a style named

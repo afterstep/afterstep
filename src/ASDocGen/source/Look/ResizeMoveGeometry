@@ -1,5 +1,5 @@
 <varlistentry id="options.ResizeMoveGeometry">
-	<term>ResizeMoveGeometry</term>
+	<term>ResizeMoveGeometry <emphasis remap='I'>geom</emphasis></term>
 	<listitem>
 		<para>Specifies the location of the resize/move window. If this option
 		is not specified, the move/resize window will be centered on the

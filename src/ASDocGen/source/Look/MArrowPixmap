@@ -1,5 +1,5 @@
 <varlistentry id="options.MArrowPixmap">
-	<term>MArrowPixmap</term>
+	<term>MArrowPixmap <emphasis remap='I'>pixmap_name</emphasis></term>
 	<listitem>
 		<para>Specifies a pixmap to use as  the  submenu  indicator  in  popup
 		menus.</para>

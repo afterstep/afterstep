@@ -1,5 +1,5 @@
 <varlistentry id="options.DrawMenuBorders">
-	<term>DrawMenuBorders</term>
+	<term>DrawMenuBorders <emphasis remap='I'>0|1|2</emphasis></term>
 	<listitem>
 		<para>Specifies  the  look  of the (start)menu.  Using 0 will draw the
 		menu with no border on either the menu label or menu  item  por-

@@ -1,5 +1,5 @@
 <varlistentry id="options.DefaultFrame">
-	<term>DefaultFrame</term>
+	<term>DefaultFrame <emphasis remap='I'>"name"</emphasis></term>
 	<listitem>
 		<para>MyFrame to use as default for all windows.
 		Note: if you want a different framing for any window,

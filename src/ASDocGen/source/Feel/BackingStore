@@ -2,6 +2,6 @@
 	<term>BackingStore</term>
 	<listitem>
 		<para>Specifies that decorations should request backing store.   Refer
-		to AppsBackingStore above for further details.</para>
+		to AppsBackingStore for further details.</para>
 	</listitem>
 </varlistentry>

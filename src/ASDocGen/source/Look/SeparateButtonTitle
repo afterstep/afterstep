@@ -1,6 +1,9 @@
 <varlistentry id="options.SeparateButtonTitle">
-	<term>SeparateButtonTitle</term>
+	<term>SeparateButtonTitle <emphasis remap='I'>0|1</emphasis></term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Specifies  where  iconified  window  titles should be drawn.  If
+              it is 0, the title will be drawn at the top of the icon.   If
+              it  is 1, the title will be drawn in a separate window at the
+              below the icon.  The default value  is 1.</para>
 	</listitem>
 </varlistentry>

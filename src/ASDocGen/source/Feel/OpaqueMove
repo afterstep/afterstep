@@ -1,5 +1,5 @@
 <varlistentry id="options.OpaqueMove">
-	<term>OpaqueMove</term>
+	<term>OpaqueMove <emphasis remap='I'>%</emphasis></term>
 	<listitem>
 		<para>Specifies the maximum size window where opaque  window  movement
 		should  be used.  % is percent of the total screen area.  Set to

@@ -1,7 +1,7 @@
 <varlistentry id="options.KillBackgroundThreshold">
-	<term>KillBackgroundThreshold</term>
+	<term>KillBackgroundThreshold <emphasis remap='I'>size</emphasis></term>
 	<listitem>
-		<para>Here <size> is the maximum number of pixels in root
+		<para>Here size is the maximum number of pixels in root
 		background image. If image is bigger that this - it will be
 		unloaded from memory when desktop is switched and image is no
 		longer in use. Use it on systems with low memory.</para>

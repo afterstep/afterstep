@@ -1,6 +1,7 @@
 <varlistentry id="options.Path">
 	<term>Path</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>For the moment this has no meaning.</para>
+		<para>FIXME: add proper description here as soon it has.</para>
 	</listitem>
 </varlistentry>

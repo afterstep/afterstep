@@ -1,5 +1,5 @@
 <varlistentry id="options.EdgeScroll">
-	<term>EdgeScroll</term>
+	<term>EdgeScroll <emphasis remap='I'>horizontal vertical</term>
 	<listitem>
 		<para>Specifies the percentage of a page to  scroll  when  the  cursor
 		hits  the edge of a page. Setting EdgeScroll to 0 0 will disable

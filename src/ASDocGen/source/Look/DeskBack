@@ -1,7 +1,7 @@
 <varlistentry id="options.DeskBack">
-	<term>DeskBack</term>
+	<term>DeskBack <emphasis remap='I'>desk# "name"</emphasis></term>
 	<listitem>
-		<para>Specifies  what background to use for desk#. "background"
+		<para>Specifies  what background to use for desk#. "name"
 		can be either  image  filename  in  double-quotes,  or  the name
 		of background definition (see below).</para>
 	</listitem>

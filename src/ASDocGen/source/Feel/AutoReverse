@@ -1,5 +1,5 @@
 <varlistentry id="options.AutoReverse">
-	<term>AutoReverse</term>
+	<term>AutoReverse <emphasis remap='I'>0|1|2</emphasis></term>
 	<listitem>
 		<para>Specifies the window Warping (also called alt-tabbing) style.  0
 		(the  default)  causes switching among windows in one direction.

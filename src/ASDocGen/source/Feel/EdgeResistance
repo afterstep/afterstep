@@ -1,5 +1,5 @@
 <varlistentry id="options.EdgeResistance">
-	<term>EdgeResistance</term>
+	<term>EdgeResistance <emphasis remap='I'>delay pixels</emphasis></term>
 	<listitem>
 		<para> Specifies how hard it should be to change views within a desktop
 		by moving the mouse over the edge of the screen, and how hard it

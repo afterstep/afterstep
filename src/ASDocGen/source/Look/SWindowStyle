@@ -1,5 +1,5 @@
 <varlistentry id="options.SWindowStyle">
-	<term>SWindowStyle</term>
+	<term>SWindowStyle <emphasis remap='I'>"style_name"</emphasis></term>
 	<listitem>
 		<para>Specifies the MyStyle to use for the sticky window  decorations.</para>
 	</listitem>

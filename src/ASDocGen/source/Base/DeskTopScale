@@ -1,5 +1,5 @@
 <varlistentry id="options.DeskTopScale">
-	<term>DeskTopScale</term>
+	<term>DeskTopScale <emphasis remap='I'>number</emphasis></term>
 	<listitem>
 		<para>If the geometry is not specified, then a desktop reduction factor
 		is used to calculate the pager's size. Things in the pager

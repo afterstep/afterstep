@@ -1,6 +1,6 @@
 <varlistentry id="options.TitleButtonSpacingLeft">
-	<term>TitleButtonSpacingLeft</term>
+	<term>TitleButtonSpacingLeft <emphasis remap='I'>number</emphasis></term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para> Specifies  how  much  space  (in pixels) to put between left buttons and titlebar.</para>
 	</listitem>
 </varlistentry>

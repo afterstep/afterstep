@@ -1,5 +1,5 @@
 <varlistentry id="options.DeskTopSize">
-	<term>DeskTopSize</term>
+	<term>DeskTopSize <emphasis remap='I'>Columns x Rows</emphasis></term>
 	<listitem>
 		<para>Defines the number of view Columns by the number of view Rows of
 		the  desk(s)  in proportional units, i.e. 2x1 would show 2 views

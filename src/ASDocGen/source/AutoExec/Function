@@ -1,8 +1,11 @@
 <varlistentry id="options.Function">
-	<term>Function</term>
+	<term>Function <emphasis remap='I'>"InitFunction"</emphasis></term>
 	<listitem>
-		<para>"InitFunction" gets exectued on startup.</para>
-		<para>"RestartFunction" gets executed on restart.</para>
+		<para>gets exectued on startup.</para>
+	</listitem>
+	<term>Function <emphasis remap='I'>"RestartFunction"</emphasis></term>
+	<listitem>
+		<para>gets executed on restart.</para>
 		<para>See Also: <ulink url="Functions#synopsis">AS Function</ulink> for further details.</para>
 	</listitem>
 </varlistentry>

@@ -1,5 +1,5 @@
 <varlistentry id="options.MenuHiTitleStyle">
-	<term>MenuHiTitleStyle</term>
+	<term>MenuHiTitleStyle <emphasis remap='I'>"style_name"</emphasis></term>
 	<listitem>
 		<para>AfterStep now allows you to specify a MyStyle to be used
 		for the titlebar of the currently hilighted menu. AS soon as the menu goes out

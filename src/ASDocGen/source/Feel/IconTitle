@@ -6,7 +6,6 @@
 		ButtonTitleFocus in the look.name file. Note: less space is left
 		for the app's icon, so it will be resized  acordingly.   Only  a
 		portion of the icon title will be displayed until the icon gains
-		focus, and then the title "box" will expand to reveal  the  win-
-		dow's entire name.</para>
+		focus, and then the title "box" will expand to reveal  the  window's entire name.</para>
 	</listitem>
 </varlistentry>

@@ -1,5 +1,5 @@
 <varlistentry id="options.MenuHiliteStyle">
-	<term>MenuHiliteStyle</term>
+	<term>MenuHiliteStyle <emphasis remap='I'>"style_name"</emphasis></term>
 	<listitem>
 		<para>Specifies the MyStyle to use for hilighted menu items.</para>
 	</listitem>

@@ -1,5 +1,5 @@
 <varlistentry id="options.MenuStippleStyle">
-	<term>MenuStippleStyle</term>
+	<term>MenuStippleStyle <emphasis remap='I'>"style_name"</emphasis></term>
 	<listitem>
 		<para>Specifies the MyStyle to use for stippled menu items.</para>
 	</listitem>

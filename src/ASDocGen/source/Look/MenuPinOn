@@ -1,5 +1,5 @@
 <varlistentry id="options.MenuPinOn">
-	<term>MenuPinOn <emphasis remap='I'>image</emphasis></term>
+	<term>MenuPinOn <emphasis remap='I'>pixmap_name</emphasis></term>
 	<listitem>
 		<para>MenuPinOn is deprecated and AfterStep will reinterpret
                 it, and it will create new TitleButton using last unused
