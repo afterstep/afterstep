@@ -63,6 +63,7 @@ typedef enum {
   F_SAVE_WORKSPACE,
   F_ENDFUNC,
   F_ENDPOPUP,
+  F_TAKE_SCREENSHOT,
   F_Test,    /* for debugging purposes to be able to test new features before actually
               * enabling them for user */
   /* this functions require window as aparameter */
@@ -92,6 +93,8 @@ typedef enum {
   F_CHANGE_WINDOWS_DESK,
   F_BOOKMARK_WINDOW,
   F_PIN_MENU,
+  F_TAKE_WINDOWSHOT,
+  F_TAKE_FRAMESHOT,
   /* end of window functions */
   /* these are commands  to be used only by modules */
 /* end of window functions */

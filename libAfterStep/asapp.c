@@ -140,7 +140,8 @@ TermDef       FuncTerms[F_FUNCTIONS_NUM + 1] = {
 	FUNC_TERM2 (NEED_NAME | NEED_CMD, "SaveWorkspace", 13, F_SAVE_WORKSPACE), /* SaveWorkspace "name" file_name */
 	FUNC_TERM2 (TF_SYNTAX_TERMINATOR, "EndFunction", 11, F_ENDFUNC),
 	FUNC_TERM2 (TF_SYNTAX_TERMINATOR, "EndPopup", 8, F_ENDPOPUP),
-    FUNC_TERM2 (NEED_NAME | NEED_CMD, "Test", 4, F_Test),
+	FUNC_TERM ("TakeScreenShot", 14, F_TAKE_SCREENSHOT),
+	FUNC_TERM2 (NEED_NAME | NEED_CMD, "Test", 4, F_Test),
 
 	/* this functions require window as aparameter */
 	FUNC_TERM ("&nonsense&", 10, F_WINDOW_FUNC_START),	/* not really a command */
@@ -169,7 +170,9 @@ TermDef       FuncTerms[F_FUNCTIONS_NUM + 1] = {
 	FUNC_TERM2 (USES_NUMVALS, "WindowsDesk", 11, F_CHANGE_WINDOWS_DESK),	/* WindowDesk "name" new_desk */
     FUNC_TERM ("BookmarkWindow", 14, F_BOOKMARK_WINDOW),    /* BookmarkWindow "name" new_bookmark */
     FUNC_TERM ("PinMenu", 7, F_PIN_MENU),    /* PinMenu ["name"] */
-        /* end of window functions */
+	FUNC_TERM ("TakeWindowShot", 14, F_TAKE_WINDOWSHOT),
+	FUNC_TERM ("TakeFrameShot", 13, F_TAKE_FRAMESHOT),
+	/* end of window functions */
 	/* these are commands  to be used only by modules */
 	FUNC_TERM ("&nonsense&", 10, F_MODULE_FUNC_START),	/* not really a command */
 	FUNC_TERM ("Send_WindowList", 15, F_SEND_WINDOW_LIST),	/* */

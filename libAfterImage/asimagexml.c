@@ -269,7 +269,7 @@ Bool save_asimage_to_file(const char *file2bsaved, ASImage *im,
 
 	memset( &params, 0x00, sizeof(params) );
 	params.gif.flags = EXPORT_ALPHA ;
-	if (!mystrcasecmp(strtype, "jpeg") || !mystrcasecmp(strtype, "jpg"))  {
+	if (strtype == NULL || !mystrcasecmp(strtype, "jpeg") || !mystrcasecmp(strtype, "jpg"))  {
 		params.type = ASIT_Jpeg;
 		params.jpeg.quality = (compress==NULL)?-1:100-atoi(compress);
 		if( params.jpeg.quality > 100 )

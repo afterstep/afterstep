@@ -158,10 +158,11 @@ EndFunction
 
 Popup "Window"
         Title           "This window :"
- MiniPixmap "mini-menu.xpm"
-        Exec 		"Take A WindowShot" exec xwd -frame -out window.xwd
+	TakeScreenShot  "Take a shot of entire screen"
  MiniPixmap "mini-app.xpm"
-        Exec 		"Take A ScreenShot" exec xwd -root -out screen.xwd
+	TakeWindowShot  "Take a shot of the window"
+ MiniPixmap "mini-app.xpm"
+	TakeFrameShot   "Take a shot of the entire window frame"
  MiniPixmap "mini-app.xpm"
         Move            "Move"
  MiniPixmap "mini-as.xpm"
@@ -227,9 +228,10 @@ EndPopup
 #   I = Icon Window
 #   T = TitleBar
 #   W = Application Window
+#   A = Any context except for inside the TitleBar Boxes
 # Third Column is the Context (ie, modifier keys)
 #   N = No modifiers
-#   A = Any context except for inside the TitleBar Boxes
+#   A = Any modifier
 #   C = Control
 #   S = Shift
 #   M = Meta
@@ -327,7 +329,9 @@ Key Menu        A       A       Popup "0"
 Key Meta_L      A       A       WarpFore
 Key Meta_R      A       A       WarpBack
 # PC keys aren't always defined is keymaps
-Key Print       A       A       Exec "Take_ScreenShot" exec xwd -root -out screen `date +%Y%m%d%H%M%S`.xwd
+Key Print       A       N       TakeScreenShot
+Key Print       A       M       TakeWindowShot
+Key Print       A       C       TakeFrameShot
 Key Pause       A       A       Exec "xlock" exec xlock -nolock -mode random
 Key Sys_Req     A       A       GetHelp
 Key Scroll_Lock A       A       Desk 0

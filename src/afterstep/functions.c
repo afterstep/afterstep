@@ -84,6 +84,7 @@ void quickrestart_func_handler( FunctionData *data, ASEvent *event, int module )
 void send_window_list_func_handler( FunctionData *data, ASEvent *event, int module );
 void save_workspace_func_handler( FunctionData *data, ASEvent *event, int module );
 void test_func_handler( FunctionData *data, ASEvent *event, int module );
+void screenshot_func_handler( FunctionData *data, ASEvent *event, int module );
 
 /* handlers initialization function : */
 void SetupFunctionHandlers()
@@ -182,6 +183,10 @@ void SetupFunctionHandlers()
     function_handlers[F_QUICKRESTART]       = quickrestart_func_handler ;
     function_handlers[F_SEND_WINDOW_LIST]   = send_window_list_func_handler ;
     function_handlers[F_Test]               = test_func_handler ;
+
+	function_handlers[F_TAKE_WINDOWSHOT]    =
+	function_handlers[F_TAKE_FRAMESHOT]    =
+		function_handlers[F_TAKE_SCREENSHOT]    = screenshot_func_handler ;
 }
 
 /* complex functions are stored in hash table ComplexFunctions */
@@ -1297,6 +1302,44 @@ void send_window_list_func_handler( FunctionData *data, ASEvent *event, int modu
             restack_window_list( Scr.CurrentDesk, True );
     }
 }
+
+void screenshot_func_handler( FunctionData *data, ASEvent *event, int module )
+{
+	ASImage *im ;
+	Window target = None ;
+	sleep_a_little(5000);
+	if( event->client )
+		target = (data->func == F_TAKE_WINDOWSHOT)?event->client->w:event->client->frame;
+	im = grab_root_asimage( &Scr, target, True );
+	LOCAL_DEBUG_OUT( "grab_root_image returned %p", im );
+	if( im != NULL )
+	{
+		char *realfilename = NULL;
+		Bool replace = True ;
+		char *type = NULL ;
+#ifdef DONT_REPLACE_SCREENSHOT_FILES
+		replace = False ;
+#endif
+		if( data->text != NULL )
+		{
+			realfilename = PutHome(data->text);
+			type = strrchr( realfilename, '.' );
+			if( type != NULL )
+				++type ;
+		}
+		if( realfilename == NULL )
+		{
+			char default_template[128];
+			sprintf(&(default_template[0]), DEFAULT_SCREENSHOT_FILE ".%lu.jpg", time(NULL));
+			realfilename = PutHome(&(default_template[0]));
+		}
+
+		if( save_asimage_to_file(realfilename, im, type, NULL, NULL, 10, replace) )
+			show_warning( "screenshot saved as \"%s\"", realfilename );
+		free( realfilename ) ;
+	}
+}
+
 
 void test_func_handler( FunctionData *data, ASEvent *event, int module )
 {

@@ -14,67 +14,7 @@ extern "C" {
  *
  ***********************************************************************/
 
-/*
- * To use:
- * 1. set extern globals (MyName, dpy, screen)
- * 2. parse config file, calling mystyle_parse() when a "MyStyle"
- *    keyword is seen
- * 3. call mystyle_fix_styles(), which will create the default style (if
- *    necessary) and fill in unset style members
- * 4. call mystyle_find() to get style(s) by name; this pointer can be
- *    safely stored for later use
- *
- * Styles are now ready for use.
- *
- * 5. when drawing using styles, normally call mystyle_get_global_gcs()
- *    to get drawing GCs; for more control, call mystyle_set_gcs(),
- *    which sets any arbitrary set of GCs (see Notes for caveat, however)
- *
- * Backward compatibility (replaces step 2, above):
- *
- * 2a. find (or create, if necessary) the appropriate style
- * 2b. convert the config line into MyStyle command(s)
- * 2c. call mystyle_parse_member() to parse the modified config line
- *     into the MyStyle
- *
- * Notes:
- *  o it is always safe to create a style, even if that style will be
- *    later used by the parsing code
- *  o mystyle_set_gcs() will set the GC foreground, background, font,
- *    and fill style, and may set the tile, stipple, tile/stipple origin,
- *    function, clip mask, and clip origin
- *  o if the GCs returned by mystyle_get_global_gcs() are modified,
- *    change them back! otherwise, strange things could happen
- *  o mystyle_parse() and mystyle_parse_member() both need a pixmap path,
- *    which should be a colon (:) delimited list of paths to search for
- *    pixmaps (eg, "~/GNUstep/Library/Afterstep/backgrounds:.")
- *  o always call mystyle_fix_styles() after creating a style and before
- *    using it! the MyStyle code assumes some style members are defined
- *    (and it's mystyle_fix_styles()'s job to make sure they are)
- */
-
-#if 0				/* Example */
-FILE *fp;
-char *buf;
-   /* set externs */
-fp = fopen (...);
-buf = malloc (...);
-
-while (fgets (buf, /* buf size */ , fp) != NULL)
-  {
-    if (!mystrncasecmp (buf, "MyStyle", 7))
-      mystyle_parse (buf + 7, fp, pixmap_path, NULL);
-    ...
-  }
-
-...
-
-my_global_style = mystyle_find ("*MyName");
-if (my_global_style == NULL)
-  my_global_style = mystyle_new_with_name ("*MyName");
-mystyle_fix_styles ();
-#endif /* Example */
-
+struct ScreenInfo;
 struct ASImage;
 struct ASGradient;
 
@@ -262,6 +202,8 @@ void mystyle_merge_colors (MyStyle * style, int type, char *fore, char *back, ch
 
 void set_func_arg (char *text, FILE * fd, char **value, int *junk);
 ASImageBevel *mystyle_make_bevel (MyStyle *style, ASImageBevel *bevel, int hilite, Bool reverse);
+
+struct ASImage *grab_root_asimage( struct ScreenInfo *scr, Window target, Bool screenshot );
 
 extern MyStyle *mystyle_first;
 

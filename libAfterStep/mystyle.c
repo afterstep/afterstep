@@ -228,8 +228,8 @@ mystyle_translate_grad_type (int type)
 /****************************************************************************
  * grab a section of the screen and darken it
  ***************************************************************************/
-static ASImage *
-grab_root_asimage( ScreenInfo *scr )
+ASImage *
+grab_root_asimage( ScreenInfo *scr, Window target, Bool screenshot )
 {
 	XSetWindowAttributes attr ;
     XEvent event ;
@@ -245,6 +245,24 @@ grab_root_asimage( ScreenInfo *scr )
 	/* this only works if we use DefaultVisual - same visual as the Root window :*/
 	if( scr->asv->visual_info.visual != DefaultVisual( dpy, DefaultScreen(dpy) ) )
 		return NULL ;
+
+	if( target != None && target != scr->Root )
+	{
+		Window wdumm ;
+    	unsigned int udumm ;
+		int bw = 0 ;
+		int tx, ty, tw, th ;
+
+	    if( XGetGeometry(dpy, target, &wdumm, &tx, &ty, &tw, &th, &bw, &udumm )!= 0 )
+		{
+			/* we need root window position : */
+			XTranslateCoordinates (dpy, target, scr->Root, 0, 0, &tx, &ty, &wdumm);
+			x = tx - bw;
+			y = ty - bw;
+			width = tw + bw + bw;
+			height = th + bw + bw ;
+		}
+	}
 
 	if( x < 0 )
 	{
@@ -264,7 +282,7 @@ grab_root_asimage( ScreenInfo *scr )
 	if( height < 0 || width < 0 )
 		return NULL ;
 
-	attr.background_pixmap = ParentRelative ;
+	attr.background_pixmap = screenshot?None:ParentRelative ;
 	attr.backing_store = Always ;
 	attr.event_mask = ExposureMask ;
 	attr.override_redirect = True ;
@@ -285,9 +303,9 @@ grab_root_asimage( ScreenInfo *scr )
 	for( tick_count = 0 ; !XCheckWindowEvent( dpy, src, ExposureMask, &event ) && tick_count < 100 ; tick_count++)
   		wait_tick();
 	if( tick_count < 100 )
-        if( (root_im = pixmap2ximage( scr->asv, src, 0, 0, width, height, AllPlanes, 0 )) != NULL )
+        if( (root_im = pixmap2asimage( scr->asv, src, 0, 0, width, height, AllPlanes, False, 0 )) != NULL )
 		{
-			if( scr->RootClipArea.y < 0 || scr->RootClipArea.y < 0 )
+			if( (scr->RootClipArea.y < 0 || scr->RootClipArea.y < 0) && !screenshot )
 			{
 				ASImage *tmp ;
 
@@ -413,7 +431,7 @@ mystyle_make_image (MyStyle * style, int root_x, int root_y, int width, int heig
              }
              if( Scr.RootImage == NULL )
              {
-                if( (Scr.RootImage = grab_root_asimage( &Scr )) != NULL )
+                if( (Scr.RootImage = grab_root_asimage( &Scr, None, False )) != NULL )
                 {
                     root_w = Scr.RootImage->width;
                     root_h = Scr.RootImage->height;
