@@ -1,0 +1,4 @@
+<composite>
+	<img src="bars/title_lbtn_qnx_1"/>
+	<img x=30 width=3 height=23 tint="#607f7f7f" src="bars/title_lbtn_qnx_2"/>
+</composite>

@@ -744,7 +744,7 @@ estimate_titlebar_size( ASHints *hints, unsigned int *width_ret, unsigned int *h
         add_astbar_btnblock(tbar, 0, 0, 0, NO_ALIGN,
                             &(Scr.Look.ordered_buttons[0]), btn_mask,
                             Scr.Look.button_first_right,
-                            Scr.Look.TitleButtonXOffset, Scr.Look.TitleButtonYOffset, Scr.Look.TitleButtonSpacing,
+                            Scr.Look.TitleButtonXOffset[0], Scr.Look.TitleButtonYOffset[0], Scr.Look.TitleButtonSpacing[0],
                             TBTN_ORDER_L2R );
         /* label */
         add_astbar_label(   tbar, 1, 0, 0, ALIGN_LEFT, DEFAULT_TBAR_SPACING, DEFAULT_TBAR_SPACING, hints->names[0], hints->names_encoding[0]);
@@ -752,7 +752,7 @@ estimate_titlebar_size( ASHints *hints, unsigned int *width_ret, unsigned int *h
         add_astbar_btnblock(tbar, 2, 0, 0, NO_ALIGN,
                             &(Scr.Look.ordered_buttons[Scr.Look.button_first_right]), btn_mask,
                             TITLE_BUTTONS-Scr.Look.button_first_right,
-                            Scr.Look.TitleButtonXOffset, Scr.Look.TitleButtonYOffset, Scr.Look.TitleButtonSpacing,
+                            Scr.Look.TitleButtonXOffset[1], Scr.Look.TitleButtonYOffset[1], Scr.Look.TitleButtonSpacing[1],
                             TBTN_ORDER_R2L );
 
         set_astbar_style_ptr( tbar, BAR_STATE_UNFOCUSED, Scr.Look.MSMenu[MENU_BACK_TITLE] );
@@ -931,24 +931,24 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
 				int part_length = frame->part_length[i] ;
 
             	img = frame->parts[i]?frame->parts[i]->image:NULL ;
-				
-				if( img == NULL ) 
+
+				if( img == NULL )
 				{
 					if( i < FRAME_SIDES )
 					{
-						if( part_width == 0 ) 
+						if( part_width == 0 )
 							part_width = BOUNDARY_WIDTH ;
-						if( part_length == 0 ) 
+						if( part_length == 0 )
 							part_length = 1 ;
-						
+
 					}else
 					{
-						if( part_width == 0 ) 
+						if( part_width == 0 )
 						{
 							part_width = CORNER_WIDTH ;
 							set_flags( asw->internal_flags, ASWF_FirstCornerFollowsTbarSize<<(i-FRAME_SIDES)) ;
 						}
-						if( part_length == 0 ) 
+						if( part_length == 0 )
 							part_length = BOUNDARY_WIDTH ;
 					}
 				}
@@ -1108,7 +1108,7 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
           		                od->flip, ALIGN_VCENTER,
               		            &(Scr.Look.ordered_buttons[0]), btn_mask,
                   		        Scr.Look.button_first_right,
-                      		    Scr.Look.TitleButtonXOffset, Scr.Look.TitleButtonYOffset, Scr.Look.TitleButtonSpacing,
+                      		    Scr.Look.TitleButtonXOffset[0], Scr.Look.TitleButtonYOffset[0], Scr.Look.TitleButtonSpacing[0],
                           		od->left_btn_order );
 
 			/* right buttons : */
@@ -1118,7 +1118,7 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
               		            od->flip, ALIGN_VCENTER,
                   		        &(Scr.Look.ordered_buttons[Scr.Look.button_first_right]), btn_mask,
                       		    TITLE_BUTTONS - Scr.Look.button_first_right,
-                          		Scr.Look.TitleButtonXOffset, Scr.Look.TitleButtonYOffset, Scr.Look.TitleButtonSpacing,
+                          		Scr.Look.TitleButtonXOffset[1], Scr.Look.TitleButtonYOffset[1], Scr.Look.TitleButtonSpacing[1],
 	                            od->right_btn_order );
   		    /* titlebar balloons */
       		for( i = 0 ; i < TITLE_BUTTONS ; ++i )

@@ -1142,9 +1142,9 @@ set_asicon_layer( ASTile* tile, ASImageLayer *layer, unsigned int state, ASImage
 			if( get_flags( tile->flags, AS_TilePadLeft ) )
 			{
 				if( get_flags( tile->flags, AS_TilePadRight ) )
-					layer->clip_x = (im->width - max_width)>>1 ;
+					layer->clip_x = ((int)im->width - max_width)/2 ;
 				else
-					layer->clip_x = (im->width - max_width) ;
+					layer->clip_x = ((int)im->width - max_width) ;
 			}
 		}
         if( get_flags( tile->flags, AS_TileVScale ) )
@@ -1154,9 +1154,9 @@ set_asicon_layer( ASTile* tile, ASImageLayer *layer, unsigned int state, ASImage
 			if( get_flags( tile->flags, AS_TilePadTop ) )
 			{
 				if( get_flags( tile->flags, AS_TilePadBottom ) )
-					layer->clip_y = (im->height - max_height)>>1 ;
+					layer->clip_y = ((int)im->height - max_height)/2 ;
 				else
-					layer->clip_y = (im->height - max_height) ;
+					layer->clip_y = ((int)im->height - max_height ) ;
 			}
 		}
     }
@@ -2228,8 +2228,8 @@ LOCAL_DEBUG_OUT("back-try2(%p)", back );
         layers[l].merge_scanlines = merge_func ;
 
 #if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
-    show_progress("MERGING TBAR %p image %dx%d FROM:",
-                  tbar, tbar->width, tbar->height );
+    show_progress("MERGING TBAR %p image %dx%d using merge_func %d FROM:",
+                  tbar, tbar->width, tbar->height, tbar->composition_method[state] );
     print_astbar_tiles(tbar);
     show_progress("USING %d layers:", good_layers);
     for( l = 0 ; l < good_layers ; ++l )

@@ -1,0 +1,4 @@
+<hsv hue_offset=$ascs.Inactive2.hue saturation_offset=$ascs.Inactive2.saturation-50 value_offset=$ascs.Inactive2.value-80>
+	<img src="bars/title_tile_qnx"/>
+</hsv>
+

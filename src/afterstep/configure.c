@@ -97,6 +97,7 @@ static char         *MSMenuName[MENU_BACK_STYLES] = {NULL };
 /* parsing handling functions for different data types : */
 
 void          SetInts               (char *text, FILE * fd, char **arg1, int *arg2);
+void          SetInts2               (char *text, FILE * fd, char **arg1, int *arg2);
 void          SetFlag               (char *text, FILE * fd, char **arg, int *another);
 void          SetFlag2              (char *text, FILE * fd, char **arg, int *var);
 void          SetBox                (char *text, FILE * fd, char **arg, int *junk);
@@ -261,9 +262,15 @@ struct config main_config[] = {
     {"DecorateFrames", SetFlag2, (char **)DecorateFrames, (int *)&Scr.Look.flags},
 #endif /* NO_TEXTURE */
     {"TitleTextAlign", SetInts, (char **)&Scr.Look.TitleTextAlign, &dummy},
-    {"TitleButtonSpacing", SetInts, (char **)&Scr.Look.TitleButtonSpacing, (int *)&dummy},
-    {"TitleButtonXOffset", SetInts, (char **)&Scr.Look.TitleButtonXOffset, (int *)&dummy},
-    {"TitleButtonYOffset", SetInts, (char **)&Scr.Look.TitleButtonYOffset, (int *)&dummy},
+    {"TitleButtonSpacingLeft", SetInts, (char **)&Scr.Look.TitleButtonSpacing[0], &dummy},
+    {"TitleButtonSpacingRight", SetInts, (char **)&Scr.Look.TitleButtonSpacing[1], &dummy},
+    {"TitleButtonSpacing", SetInts2, (char **)&Scr.Look.TitleButtonSpacing[0], &Scr.Look.TitleButtonSpacing[1]},
+    {"TitleButtonXOffsetLeft", SetInts, (char **)&Scr.Look.TitleButtonXOffset[0], &dummy},
+    {"TitleButtonXOffsetRight", SetInts, (char **)&Scr.Look.TitleButtonXOffset[1], &dummy},
+    {"TitleButtonXOffset", SetInts2, (char **)&Scr.Look.TitleButtonXOffset[0], &Scr.Look.TitleButtonXOffset[1]},
+    {"TitleButtonYOffsetLeft", SetInts, (char **)&Scr.Look.TitleButtonYOffset[0], &dummy},
+    {"TitleButtonYOffsetRight", SetInts, (char **)&Scr.Look.TitleButtonYOffset[1], &dummy},
+    {"TitleButtonYOffset", SetInts2, (char **)&Scr.Look.TitleButtonYOffset[0], &Scr.Look.TitleButtonYOffset[1]},
     {"TitleButtonStyle", SetInts, (char **)&Scr.Look.TitleButtonStyle, (int *)&dummy},
     {"TitleButtonOrder", SetTButtonOrder, (char **)&(Scr.Look.button_xref[0]), (int*)&(Scr.Look.button_first_right)},
     {"TitleTextMode", SetTitleText, (char **)1, (int *)0},
@@ -1053,12 +1060,12 @@ FixLook( MyLook *look )
     switch( look->TitleButtonStyle )
     {
         case 0 :
-            look->TitleButtonXOffset = 3;
-            look->TitleButtonYOffset = 3;
+            look->TitleButtonXOffset[0] = look->TitleButtonXOffset[1] = 3;
+            look->TitleButtonYOffset[0] = look->TitleButtonYOffset[1] = 3;
             break ;
         case 1 :
-            look->TitleButtonXOffset = 1;
-            look->TitleButtonYOffset = 1;
+            look->TitleButtonXOffset[0] = look->TitleButtonXOffset[1] = 1;
+            look->TitleButtonYOffset[0] = look->TitleButtonYOffset[1] = 1;
             break ;
     }
 
@@ -1682,6 +1689,15 @@ void
 SetInts (char *text, FILE * fd, char **arg1, int *arg2)
 {
     sscanf (text, "%d%*c%d", (int *)arg1, (int *)arg2);
+/*    LOCAL_DEBUG_OUT( "text=[%s], arg1=%p, Scr.Feel.Autoreverse = %p, res = %d", text, arg1, &(Scr.Feel.AutoReverse), *((int*)arg1) );*/
+}
+
+void
+SetInts2 (char *text, FILE * fd, char **arg1, int *arg2)
+{
+    sscanf (text, "%d", (int *)arg1);
+	if( arg2 )
+		*arg2 = *(int*)arg1 ;
 /*    LOCAL_DEBUG_OUT( "text=[%s], arg1=%p, Scr.Feel.Autoreverse = %p, res = %d", text, arg1, &(Scr.Feel.AutoReverse), *((int*)arg1) );*/
 }
 

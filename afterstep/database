@@ -15,6 +15,8 @@
 # For all window to have the NEW and COOL Vertical Title bar on the side:
 # Style	"*"		VerticalTitle
 Style   "*"             Icon interface.xpm
+Style   "ASMenu"        NoButton 1, NoButton 3
+
 
 # modules :
 # note that only Wharf and WinList has AvoidCover set as AvoidCover causes effect of

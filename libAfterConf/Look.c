@@ -1845,12 +1845,12 @@ LookConfig2MyLook ( struct LookConfig * config, MyLook * look,
         switch (look->TitleButtonStyle)
         {
             case 0:                                   /* traditional AfterStep style */
-                look->TitleButtonXOffset = 3;
-                look->TitleButtonYOffset = 3;
-                break;
-            case 1:                                   /* freaking "WindowMaker" style */
-                look->TitleButtonXOffset = 1;
-                look->TitleButtonYOffset = 1;
+	            look->TitleButtonXOffset[0] = look->TitleButtonXOffset[1] = 3;
+    	        look->TitleButtonYOffset[0] = look->TitleButtonYOffset[1] = 3;
+        	    break ;
+        	case 1 :
+            	look->TitleButtonXOffset[0] = look->TitleButtonXOffset[1] = 1;
+            	look->TitleButtonYOffset[0] = look->TitleButtonYOffset[1] = 1;
                 break;
             case 2:                                   /* advanced AfterStep style */
                 /* nothing to do here - user must supply values for x/y offsets */

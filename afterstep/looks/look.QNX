@@ -1,0 +1,319 @@
+##########################################################################
+# Look by Romain Komorn (look.qnx11)
+#
+# An attempt to copy the QN-X11 theme for Sawfish
+#
+#------------------------------------------------------------------------
+# Styles :
+#
+# If there is a style named "default" and no default style is specified,
+# the "default" style will be used as the default
+# Inherited styles will override options.
+
+# default should never be used, so let's make it obvious when it *is* used
+MyStyle "default"
+  Font		DefaultSans.ttf-14
+  ForeColor	InactiveText1
+  BackColor	Inactive1
+  ~MyStyle
+
+MyStyle "TitleButtonBalloon"
+  ForeColor	HighActiveText
+  BackColor	HighActiveBack
+  Font		DefaultBold.ttf-14
+  ~MyStyle
+
+MyStyle "window_font"
+  Font		DefaultSans.ttf-14
+  TextStyle	0
+  ~MyStyle
+
+MyStyle "focused_window_style"
+  Inherit	window_font
+  ForeColor     ActiveText
+  BackColor     Active
+  BackPixmap    127 bars/title_tile_qnx_focused
+  ~MyStyle
+
+MyStyle "unfocused_window_style"
+  Inherit       window_font
+  ForeColor     InactiveText1
+  BackColor     Inactive1
+  BackPixmap    127 bars/title_tile_qnx_unfocused
+  ~MyStyle
+
+MyStyle "sticky_window_style"
+  Inherit       window_font
+  ForeColor     InactiveText2
+  #BackColor	Inactive2
+  BackPixmap    127 bars/title_tile_qnx_sticky
+  ~MyStyle
+
+#----------Menu MyStyles---------#
+MyStyle "menu_title_font"
+  Font          DefaultFancy.ttf-17
+  TextStyle     0
+  ~MyStyle
+
+MyStyle "menu_font"
+  Font          Default.ttf-16
+  TextStyle     0
+  ~MyStyle
+
+MyStyle "unfocused_menu_title_style"
+  Inherit       menu_title_font
+  ForeColor     InactiveText1
+  BackColor     HighInactive
+  BackGradient  6   HighInactiveDark HighInactiveLight
+  ~MyStyle
+
+MyStyle "focused_menu_title_style"
+  Inherit       menu_title_font
+  ForeColor	ActiveText
+  BackColor     HighActive
+  BackGradient  6  HighActiveDark HighActiveLight
+  ~MyStyle
+
+MyStyle "menu_item_style"
+  Inherit       menu_font
+  ForeColor     HighInactiveText
+  BackColor     HighInactiveBack
+  BackGradient  9   HighInactiveBackDark HighInactiveBackLight
+  ~MyStyle
+
+MyStyle "menu_hilite_style"
+  Font          DefaultBoldOblique.ttf-16
+  ForeColor     HighActiveText
+  BackColor     HighActiveBack
+  BackGradient  9  HighActiveBackLight HighActiveBackDark
+  ~MyStyle
+
+
+# make the stipple background the same as the menu item, or
+# strange border drawing artifacts could occur
+MyStyle "menu_stipple_style"
+  Inherit       menu_item_style
+  ForeColor	DisabledText
+  ~MyStyle
+
+MyStyle "menu_subitem_style"
+  Inherit       menu_item_style
+  Font		DefaultBold.ttf-12
+  ~MyStyle
+
+#----------Pager MyStyles---------#
+
+MyStyle "*PagerBalloon"
+	Inherit "TitleButtonBalloon"
+~MyStyle
+
+MyStyle "DeskStyle"
+# semitransparent gradient  :
+#	BackGradient	6	#77222222 #77EEEEEE
+##  Gradiated Pager -
+# 	BackGradient	2 cyan gray30
+##  Pixmapped Pager -
+# 	BackPixmap	128 Back.xpm
+##  Transparent Pager -
+	BackPixmap	129
+##  Translucent Pager tinted <color>
+# 	BackPixmap	129 #a8a8a8
+~MyStyle
+
+MyStyle "*PagerActiveDesk"
+   	Font 	       DefaultSansOblique.ttf-12
+	ForeColor      ActiveText
+   	BackColor      Active
+	BackGradient   8 ActiveDark  ActiveLight
+ ~MyStyle
+
+MyStyle "*PagerInActiveDesk"
+   	Font 	       DefaultSansOblique.ttf-12
+	ForeColor      HighInactiveText
+   	BackColor      HighInactiveBack
+   	BackGradient   6  HighInactiveBackDark HighInactiveBackLight
+ ~MyStyle
+
+MyStyle "*PagerFWindowStyle"
+    Inherit	focused_window_style
+    Font	5x8
+# gradients, pixmap allowed, but no transparency
+~MyStyle
+
+MyStyle "*PagerUWindowStyle"
+    Inherit	unfocused_window_style
+    Font	5x8
+# gradients, pixmap allowed, but no transparency
+~MyStyle
+
+MyStyle "*PagerSWindowStyle"
+    Inherit	sticky_window_style
+    Font	5x8
+# gradients, pixmap allowed, but no transparency
+~MyStyle
+
+#----------Wharf MyStyles---------#
+
+MyStyle "*WharfBalloon"
+	Inherit "TitleButtonBalloon"
+~MyStyle
+
+MyStyle "*WharfTile"
+	Font 	       DefaultSansOblique.ttf-12
+	ForeColor      InactiveText2
+	BackColor      Inactive2
+	BackMultiGradient   6 #10222222 0.0 alpha(20,Inactive2Dark) 0.3 alpha(30,Inactive2Light) 0.5 alpha(60,Active) 0.8 alpha(30,ActiveLight) 1.0
+~MyStyle
+
+MyStyle "*MonitorWharfTile"
+	Font 	       DefaultSansOblique.ttf-12
+	ForeColor      InactiveText2
+	BackColor      Inactive2
+	BackPixmap     129 #7f7f7f
+~MyStyle
+
+#----------WinList MyStyles---------#
+
+MyStyle "*WinListBalloon"
+	Inherit "TitleButtonBalloon"
+~MyStyle
+
+#----------iconized window  Button MyStyles---------#
+
+MyStyle "ButtonPixmap"
+  	BackColor     Black
+  	BackPixmap    128 ASBBlockDefault.xpm
+  ~MyStyle
+
+MyStyle "ButtonTitleFocus"
+  	Inherit	focused_window_style
+  	Font		DefaultSansBoldOblique.ttf-13
+  ~MyStyle
+
+MyStyle "ButtonTitleSticky"
+	Inherit sticky_window_style
+	Font    DefaultSansBoldOblique.ttf-13
+ ~MyStyle
+
+MyStyle "ButtonTitleUnfocus"
+	Inherit unfocused_window_style
+	Font    DefaultSansBoldOblique.ttf-13
+  ~MyStyle
+
+
+#---------- iconized window MyStyles end ---------#
+
+# [0|1] Show Title on Buttons how?
+SeparateButtonTitle 0
+# [x y] Size of application icons ?
+ButtonSize 64 64
+#  Border around iconifyied windows ?
+ButtonNoBorder
+
+#  [0-10] Allows selection of move/resize rubberband look
+RubberBand 2
+#  Corner where the resize box goes to: ++, +-, -+, -- (clockwise)
+#ResizeMoveGeometry ++
+
+# 3) TextStyle :
+#  Mode is either 0 (normal), 1 (big 3d), 2 (nice 3d)
+# 3-1) Text : fonts
+IconBox                 1 -80 -1 -1
+
+MyFrame "glass"
+	TitleBevel 		None
+	LeftBtnBackground	bars/title_lbtn_qnx
+	LeftBtnBackAlign	VScaled
+#	LeftSpacerBackground	bars/title_lspacer_glass_transp
+#	LeftSpacerBackAlign	VScaled
+	RightSpacerBackground	bars/title_rspacer_qnx
+	RightSpacerBackAlign	VScaled
+	RightBtnBackground	bars/title_rbtn_qnx
+	RightBtnBackAlign	VScaled,HTiled,LabelSize,Right
+#	Side North		bars/border_black.png
+	Side East		bars/frame_e_qnx
+	Side South		bars/frame_s_qnx
+	Side West		bars/frame_w_qnx
+#	Corner NW		bars/frame_e_qnx
+#	Corner NE		bars/frame_e_qnx
+	Corner SW		bars/frame_sw_qnx
+	Corner SE		bars/frame_se_qnx
+#	FrameUnfocusedStyle	"unfocused_frame_style"
+#	FrameFocusedStyle	"focused_frame_style"
+#	FrameStickyStyle	"sticky_frame_style"
+~MyFrame
+
+DefaultFrame "glass"
+DecorateFrames 1
+
+DefaultStyle "default"
+FWindowStyle "focused_window_style"
+UWindowStyle "unfocused_window_style"
+SWindowStyle "sticky_window_style"
+
+MenuItemStyle "menu_item_style"
+MenuTitleStyle "unfocused_window_style"
+#MenuTitleStyle "unfocused_menu_title_style"
+MenuHiliteStyle "menu_hilite_style"
+MenuStippleStyle "menu_stipple_style"
+MenuSubItemStyle  "menu_subitem_style"
+#MenuHiTitleStyle  "focused_menu_title_style"
+MenuHiTitleStyle  "focused_window_style"
+
+MArrowPixmap		arrow-dots.xpm
+#  [0/1/2] Draw lines between menu options ?
+DrawMenuBorders 1
+#  [0/1] Texture menu options individually, or the whole menu ?
+TextureMenuItemsIndividually 0
+# [0/1] Do you want minipixmaps in root menu ?
+MenuMiniPixmaps 1
+# [0/1] Sort Start menu entries by 1=alphabetical order, 0=date (default)
+StartMenuSortMode 1
+
+
+# 4) TileBar options :
+# [0/1/2] make a 3 pixel space(0);
+# 	or make a 1 pixel space (WM) beside buttons (1);
+#	or use custom offsets (2).
+TitleButtonStyle	2
+TitleButtonXOffsetLeft	7
+TitleButtonXOffsetRight	5
+TitleButtonYOffset	4
+#  define the number of pixels between titlebar buttons ; 0
+TitleButtonSpacingRight	1
+TitleButtonSpacingLeft	4
+
+TitleTextAlign          1
+
+# TitleButtons : [1] [3] [5] [7] [9] (title) [0] [8] [6] [4] [2]
+# order could be altered using TitleButtonOrder setting. Default is equivalent to :
+#
+# TitleButtonOrder 13579T08642
+#
+# for example all 10 buttons could be placed on one side of the title :
+#TitleButtonOrder 1357908642T
+
+TitleButtonOrder 315T642
+
+
+# Normal buttons
+TitleButton 1 buttons/qnx-switchwindow 	buttons/qnx-switchwindow-pressed
+TitleButton 2 buttons/qnx-close 	buttons/qnx-close-pressed
+TitleButton 3 buttons/qnx-menu 		buttons/qnx-menu-pressed
+TitleButton 4 buttons/qnx-shade  	buttons/qnx-shade-pressed
+TitleButton 6 buttons/qnx-iconify  	buttons/qnx-iconify-pressed
+
+# the following is used instead of MenuPinOn :
+
+TitleButton 5 buttons/qnx-pin buttons/qnx-pin-pressed
+
+TitleButtonBalloons
+TitleButtonBalloonBorderHilite	Right,Bottom
+TitleButtonBalloonXOffset	10
+TitleButtonBalloonYOffset	10
+TitleButtonBalloonDelay		200
+TitleButtonBalloonCloseDelay	2000
+TitleButtonBalloonStyle 	"TitleButtonBalloon"
+
+
+

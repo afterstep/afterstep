@@ -1,0 +1,21 @@
+<rotate id="arrow_short_small_icon" angle=240><img src="dots/arrow_short_small"/></rotate>
+<rotate id="arrow_short_medium_icon_rotated" angle=240><img src="dots/arrow_short_medium"/></rotate>
+
+<tile id="arrow_short_small_icon_black" tint="#487f7f7f">
+  <tile tint="InactiveText1">
+	<scale width=11 height=11>
+		<recall srcid="arrow_short_medium_icon_rotated"/>
+	</scale>
+  </tile>
+</tile>
+
+
+<pad color="#00000000" left=4 top=3>
+<composite>
+	<recall x=2 y=0 srcid="arrow_short_small_icon_black"/>
+	<solid  x=1 y=3 width=13 height=1 color=#7Fbbbbbb/>
+	<tile       y=-2 clip_height=13 tint="BaseDark">
+		<recall srcid="arrow_short_small_icon"/>
+	</tile>
+</composite>
+</pad>

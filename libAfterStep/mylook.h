@@ -286,9 +286,11 @@ typedef struct MyLook
         structure.
     */
     int TitleButtonStyle;     /* 0 - afterstep, 1 - WM old, 2 - free hand */
-    int TitleButtonSpacing;
-    int TitleButtonXOffset;
-    int TitleButtonYOffset;
+	/* array of two elements cos we allow different values for buttons
+	 * on the right and on the left :*/
+    int TitleButtonSpacing[2];
+    int TitleButtonXOffset[2];
+    int TitleButtonYOffset[2];
 
 /* title bar text alignment  */
 #define JUSTIFY_CENTER 0

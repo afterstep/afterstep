@@ -1,0 +1,6 @@
+<hsv hue_offset=$ascs.Active.hue
+     saturation_offset=$ascs.Active.saturation-80
+     value_offset=$ascs.Active.value-80>
+	<img src="dots/qnx-menu-red"/>
+</hsv>
+

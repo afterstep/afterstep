@@ -1,0 +1,8 @@
+<rotate angle=240>
+<hsv hue_offset=$ascs.Inactive1.hue
+     saturation_offset=$ascs.Inactive1.saturation-50
+     value_offset=$ascs.Inactive1.value-70>
+	<img src="dots/qnx-iconify-red"/>
+</hsv>
+</rotate>
+

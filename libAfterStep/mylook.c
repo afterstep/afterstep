@@ -207,7 +207,7 @@ mylook_init (MyLook * look, Bool free_resources, unsigned long what_flags /*see 
 	if (get_flags (what_flags, LL_Buttons))
 	{										   /* TODO: Titlebuttons - we 'll move them into  MyStyles */
 		/* we will translate button numbers from the user input */
-        look->TitleButtonSpacing = 2;
+        look->TitleButtonSpacing[0] = look->TitleButtonSpacing[1] = 2;
         look->TitleButtonStyle = 0;
         for (i = 0; i < TITLE_BUTTONS; i++)
         {
@@ -223,10 +223,10 @@ mylook_init (MyLook * look, Bool free_resources, unsigned long what_flags /*see 
         look->DefaultFrame = NULL ;
         look->FramesList = NULL ;
         look->TitleTextAlign = 0;
-		look->TitleButtonSpacing = 0;
 		look->TitleButtonStyle = 0;
-		look->TitleButtonXOffset = 0;
-		look->TitleButtonYOffset = 0;
+		look->TitleButtonSpacing[0] = look->TitleButtonSpacing[1] = 0;
+		look->TitleButtonXOffset[0] = look->TitleButtonXOffset[1] = 0;
+		look->TitleButtonYOffset[0] = look->TitleButtonYOffset[1] = 0;
     }
 
 	if (get_flags (what_flags, LL_SizeWindow))

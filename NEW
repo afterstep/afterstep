@@ -5,6 +5,8 @@ version 2.0 beta2
 	* Improved algorithm behind saving desktop state and restoring it on startup.
 	  To enable it add the following line to autoexec :
 	  Function "WorkspaceState"
+	* new <color domain="ascs" name="name" argb="color_value"/> tag to ASImage XML.
+          Could be used to define color aliases at the beginning of the xml script.
 
 
 version 2.0 beta1
