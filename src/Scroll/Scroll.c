@@ -23,39 +23,16 @@
 
 #include "../../configure.h"
 
-#include <stdio.h>
-#include <signal.h>
-#include <fcntl.h>
-#include <string.h>
-#include <unistd.h>
-#include <ctype.h>
-#include <stdlib.h>
-#include <sys/wait.h>
-#include <sys/time.h>
-#if defined ___AIX || defined _AIX || defined __QNX__ || defined ___AIXV3 || defined AIXV3 || defined _SEQUENT_
-#include <sys/select.h>
-#endif
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
-#include <X11/Xproto.h>
-#include <X11/Xatom.h>
-#include <X11/Intrinsic.h>
 #include <X11/cursorfont.h>
 #include <X11/Xmu/WinUtil.h>
 
 #include "../../include/aftersteplib.h"
-#include "../../include/module.h"
 #include "Scroll.h"
 
-char *MyName;
-int fd_width;
 int fd[2];
 
-Display *dpy;			/* which display are we talking to */
-Window Root;
-int screen;
-int x_fd;
-int d_depth;
 int ScreenWidth, ScreenHeight;
 
 char *BackColor = "black";
@@ -283,14 +260,6 @@ GetTargetWindow (Window * app_win)
   if (target_win != None)
     *app_win = target_win;
 }
-
-
-void
-nocolor (char *a, char *b)
-{
-  fprintf (stderr, "InitBanner: can't %s %s\n", a, b);
-}
-
 
 
 /****************************************************************************
