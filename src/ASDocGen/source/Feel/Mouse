@@ -16,7 +16,7 @@ mouse click occurred and can be any combination of the following:</para>
    A = Any of the above except for TitleButtons
 1-10 = TitleButton number of the TitleBar, corresponds to the
        entry in the <emphasis remap='I'>look.name</emphasis> file
-</literallayout> <!-- .fi -->
+</literallayout>
 
 <para>The action to be taken by the defined TitleButton is defined in the
 <emphasis remap='I'>feel.name</emphasis> file.  Defining a TitleButton without having a corresponding
@@ -33,7 +33,7 @@ are:</para>
    S = Shift
    M = Meta
    A = Any modifier
-</literallayout> <!-- .fi -->
+</literallayout>
 
 <para><emphasis remap='I'>Command</emphasis> can be any <command>afterstep</command> <emphasis remap='I'>Built-in</emphasis> command/
 function, <emphasis remap='I'>Popup</emphasis> or user defined <emphasis remap='I'>Function</emphasis>.</para>

@@ -1,2 +1,5 @@
 <section label="related" id="related">
+ <ulink url="ASDatabase">Database</ulink>
+ Gravity
+ <ulink url="ASDatabaseEntry">style definition</ulink>
 </section>

@@ -17,7 +17,7 @@ following:</para>
    W = Application Window
    A = Any of the above except for TitleButtons
 1-10 = TitleButton number of the TitleBar [ not very useful here ]
-</programlisting> <!-- .fi -->
+</programlisting>
 
 <para><emphasis remap='I'>modifier</emphasis> is the key-stroke combination associated with the
 <emphasis remap='I'>context</emphasis> entry, to issue the <emphasis remap='I'>Command</emphasis>. Valid <emphasis remap='I'>modifier</emphasis>'s
@@ -29,7 +29,7 @@ are:</para>
    S = Shift
    M = Meta
    A = Any modifier
-</literallayout> <!-- .fi -->
+</literallayout>
 
 <para><emphasis remap='I'>Command</emphasis> can be any <command>afterstep</command> <emphasis remap='I'>Built-in</emphasis> command/
 function, <emphasis remap='I'>Popup</emphasis> or user defined <emphasis remap='I'>Function</emphasis>.</para>
