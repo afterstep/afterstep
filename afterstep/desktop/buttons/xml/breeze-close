@@ -1,0 +1,14 @@
+
+<pad  top="3" color="#0fff">
+<composite >
+   <tile tint="#666" y="2" >
+      <img src="dots/x_boxy" />
+   </tile>
+   <tile tint="#444" y="1" >
+      <img src="dots/x_boxy" />
+   </tile>
+   <tile tint="Black" y="0" >
+      <img src="dots/x_boxy" />
+   </tile>
+</composite >
+</pad>

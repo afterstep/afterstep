@@ -1,0 +1,17 @@
+
+ <rotate  id="bla" angle="180">
+      <img src="dots/lined_arrow" />
+</rotate>
+<pad  top="3" color="#0fff">
+<composite >
+   <tile tint="#666" y="2" >
+      <recall srcid="bla" />
+   </tile>
+   <tile tint="#444" y="1" >
+      <recall srcid="bla" />
+   </tile>
+   <tile tint="Black" y="0" >
+      <recall srcid="bla" />
+   </tile>
+</composite >
+</pad>
