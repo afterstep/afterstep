@@ -59,6 +59,9 @@ GrabEm (ScreenInfo *scr, Cursor cursor)
 	 * to the windows */
 	grabbed_screen = scr ;
     grabbed_screen_focus = scr->Windows->focused ;
+    /* must not do that : */
+    /* scr->Windows->active = scr->Windows->focused ; */
+    LOCAL_DEBUG_OUT( "grabbed_screen_focus is %p", grabbed_screen_focus );
     hide_focus();
 
     mask = ButtonPressMask | ButtonReleaseMask | ButtonMotionMask |
@@ -113,6 +116,7 @@ UngrabEm ()
 
         if (grabbed_screen_focus != NULL)
         {
+            LOCAL_DEBUG_OUT( "grabbed_screen_focus is %p, active is %p", grabbed_screen_focus, grabbed_screen->Windows->active );
             focus_aswindow(grabbed_screen->Windows->active);
             grabbed_screen_focus = NULL ;
         }

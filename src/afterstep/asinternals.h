@@ -160,7 +160,7 @@ typedef struct ASWindow
         ASWT_Iconic2Withdrawn = ASWT_FROM_ICONIC|ASWT_TO_WITHDRAWN,
     }wm_state_transition ;
 
-
+    Time    last_restack_time ;
 
 	/********************************************************************/
 	/* END of NEW ASWindow frame decorations                            */
@@ -208,6 +208,10 @@ typedef struct ASWindowList
                               *     - may be different from hilited/ungrabbed if we changed active
                               *       client during house keeping operation */
     ASWindow *focused;       /* currently focused client. Will be NULL during housekeeping */
+    /* needed for proper AutoRaise implementation : */
+    time_t last_focus_change_sec;
+    time_t last_focus_change_usec;
+
     ASWindow *ungrabbed;     /* client that has no grab on mouse events */
     ASWindow *hilited;       /* client who's frame decorations has been hilited
                               * to show that it is focused. May not be same as focused/ungrabbed

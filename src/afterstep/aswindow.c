@@ -469,7 +469,6 @@ update_visibility( int desk )
                 client->root_y < vrect[r].y+(int)vrect[r].height )
             {
                 ASWIN_SET_FLAGS( asws[0], AS_Visible );
-
                 break;
             }
         }
@@ -746,6 +745,7 @@ LOCAL_DEBUG_CALLER_OUT( "%p,%lX,%d", t, sibling_window, stack_mode );
     if( dst_layer )
         vector_insert_elem( dst_layer->members, &t, 1, sibling, above );
 
+    t->last_restack_time = Scr.last_Timestamp ;
     restack_window_list( ASWIN_DESK(t), False );
 }
 

@@ -106,7 +106,6 @@ main (int argc, char **argv)
 
     /* These signals are mandatory : */
     signal (SIGUSR1, Restart);
-    signal (SIGALRM, AlarmHandler); /* see SetTimer() */
     /* These signals we would like to handle only if those are not handled already (by debugger): */
     IgnoreSignal(SIGINT);
     IgnoreSignal(SIGHUP);

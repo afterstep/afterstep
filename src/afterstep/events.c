@@ -47,7 +47,6 @@
  ************************************************************************/
 void DigestEvent    ( ASEvent *event );
 void afterstep_wait_pipes_input ();
-void SetTimer (int delay);
 
 void
 HandleEvents ()
@@ -67,7 +66,8 @@ HandleEvents ()
             /* before we exec any function - we ought to process any Unmap and Destroy
              * events to handle all the pending window destroys : */
             while( ASCheckTypedEvent( DestroyNotify, &(event.x)) ||
-                   ASCheckTypedEvent( UnmapNotify, &(event.x)))
+                   ASCheckTypedEvent( UnmapNotify, &(event.x)) ||
+                   ASCheckMaskEvent( FocusChangeMask, &(event.x)))
             {
                 DigestEvent( &event );
                 DispatchEvent( &event, False );
@@ -920,38 +920,29 @@ HandleButtonPress ( ASEvent *event, Bool deffered )
 	/* click to focus stuff goes here */
     if( asw != NULL )
     {
-        Bool          focus_accepted = False;
+        Bool eat_click = False;
+        Bool focus_accepted = False ;
 		if( !deffered )
 		{
   		    if (get_flags( Scr.Feel.flags, ClickToFocus) )
       		{
           		if ( asw != Scr.Windows->ungrabbed && (xbtn->state & nonlock_mods) == 0)
-              		focus_accepted = focus_aswindow(asw);
+                {
+                    if( Scr.Windows->focused != asw )
+                        focus_accepted = activate_aswindow( asw, False, False);
+                    if( focus_accepted && get_flags( Scr.Feel.flags, EatFocusClick ) )
+                        eat_click = True ;
+                }
 	        }
 
-  		    if (!ASWIN_GET_FLAGS(asw, AS_Visible))
-      		{
-          		if (get_flags(Scr.Feel.flags, ClickToRaise) && event->context == C_WINDOW
-              		&& (Scr.Feel.RaiseButtons & (1 << xbtn->button)) )
-	                RaiseWindow (asw);
-  		        else
-      		    {
-          		    if (Scr.Feel.AutoRaiseDelay > 0)
-	                {
-  		                SetTimer (Scr.Feel.AutoRaiseDelay);
-      		        } else
-          		    {
-#ifdef CLICKY_MODE_1
-	                    if (event->w != asw->w)
-#endif
-    	                {
-        	                if (Scr.Feel.AutoRaiseDelay == 0)
-            	                RaiseWindow (asw);
-                	    }
-	                }
-  	  	        }
-    		}
-	        if (!ASWIN_GET_FLAGS(asw, AS_Iconic))
+            if ( (get_flags(Scr.Feel.flags, ClickToRaise) &&
+                   (Scr.Feel.RaiseButtons == 0 || (Scr.Feel.RaiseButtons & (1 << xbtn->button)))) ||
+                  Scr.Feel.AutoRaiseDelay == 0 )
+            {
+                restack_window((asw),None,focus_accepted?Above:TopIf);
+            }
+
+            if (!ASWIN_GET_FLAGS(asw, AS_Iconic))
   		    {
       		    XSync (dpy, 0);
           		XAllowEvents (dpy, (event->context == C_WINDOW) ? ReplayPointer : AsyncPointer, CurrentTime);
@@ -961,7 +952,7 @@ HandleButtonPress ( ASEvent *event, Bool deffered )
 
         press_aswindow( asw, event->context );
 
-		if( focus_accepted )
+        if( eat_click )
             return;
     }
 
@@ -1064,10 +1055,8 @@ HandleEnterNotify (ASEvent *event)
         if (!get_flags(Scr.Feel.flags, ClickToFocus))
 		{
             if (Scr.Windows->focused != asw)
-                if (Scr.Feel.AutoRaiseDelay > 0 && !ASWIN_GET_FLAGS(asw, AS_Visible))
-                    SetTimer (Scr.Feel.AutoRaiseDelay);
-            focus_aswindow(asw);
-		}
+                activate_aswindow(asw, False, False);
+        }
         if (!ASWIN_GET_FLAGS(asw, AS_Iconic) && event->context == C_WINDOW )
             InstallWindowColormaps (asw);
     }
@@ -1210,36 +1199,6 @@ HandleShapeNotify (ASEvent *event)
 #endif /* SHAPE */
 }
 
-#if 1										   /* see SetTimer() */
-/**************************************************************************
- * For auto-raising windows, this routine is called
- *************************************************************************/
-volatile int  alarmed = False;
-void
-AlarmHandler (int nonsense)
-{
-	alarmed = True;
-    signal (SIGALRM, AlarmHandler);
-}
-#endif /* 1 */
-
-/****************************************************************************
- * Start/Stops the auto-raise timer
- ****************************************************************************/
-void
-SetTimer (int delay)
-{
-#ifdef TIME_WITH_SYS_TIME
-	struct itimerval value;
-
-	value.it_value.tv_usec = 1000 * (delay % 1000);
-	value.it_value.tv_sec = delay / 1000;
-	value.it_interval.tv_usec = 0;
-	value.it_interval.tv_sec = 0;
-	setitimer (ITIMER_REAL, &value, NULL);
-#endif
-}
-
 /***************************************************************************
  *
  * Waits for next X event, or for an auto-raise timeout.
@@ -1289,34 +1248,6 @@ afterstep_wait_pipes_input()
 	/* watch for timeouts */
 	if (timer_delay_till_next_alarm ((time_t *) & tv.tv_sec, (time_t *) & tv.tv_usec))
 		t = &tv;
-
-#if 1										   /* see SetTimer() */
-	{
-		struct itimerval value;
-		Window        child;
-		/* Do this prior to the select() call, in case the timer already expired,
-		 * in which case the select would never return. */
-		if (alarmed)
-		{
-            alarmed = False;
-            ASQueryPointerChild(Scr.Root,&child);
-            if ((Scr.Windows->focused != NULL) && (child == get_window_frame(Scr.Windows->focused)))
-                RaiseObscuredWindow(Scr.Windows->focused);
-			return ;
-		}
-#ifndef TIME_WITH_SYS_TIME
-		value.it_value.tv_usec = 0;
-		value.it_value.tv_sec = 0;
-#else
-		getitimer (ITIMER_REAL, &value);
-#endif
-		if (value.it_value.tv_sec > 0 || value.it_value.tv_usec > 0)
-			if (t == NULL || value.it_value.tv_sec < tv.tv_sec ||
-				(value.it_value.tv_sec == tv.tv_sec && value.it_value.tv_usec < tv.tv_usec))
-				t = &value.it_value;
-	}
-#endif /* 1 */
-
     retval = PORTABLE_SELECT(min (max_fd + 1, fd_width),&in_fdset,&out_fdset,NULL,t);
 
 	if (retval > 0)
@@ -1397,10 +1328,7 @@ afterstep_wait_pipes_input ()
             ASQueryPointerChild(None,&child);
             if ((Scr.Windows->focused != NULL) && (child == Scr.Windows->focused->frame))
 			{
-                if (!(Scr.Windows->focused->flags & VISIBLE))
-				{
-                    RaiseWindow (Scr.Windows->focused);
-				}
+                RaiseObscuredWindow (Scr.Windows->focused);
 			}
 			return 0;
 		}

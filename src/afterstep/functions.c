@@ -722,8 +722,16 @@ LOCAL_DEBUG_CALLER_OUT( "function %ld (val0 = %ld), event %d, window 0x%lX, wind
 
 void raiselower_func_handler( FunctionData *data, ASEvent *event, int module )
 {
-    restack_window (event->client,None,(data->func==F_RAISE)?Above:
-                                       ((data->func==F_RAISELOWER)?Opposite:Below));
+    if( event->client )
+    {
+        if( event->client->last_restack_time != CurrentTime &&
+            event->event_time != CurrentTime &&
+            event->client->last_restack_time >= event->event_time )
+            return ;
+
+        restack_window (event->client,None,(data->func==F_RAISE)?Above:
+                                           ((data->func==F_RAISELOWER)?Opposite:Below));
+    }
 }
 
 void raise_it_func_handler( FunctionData *data, ASEvent *event, int module )

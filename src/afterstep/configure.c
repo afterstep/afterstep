@@ -163,6 +163,7 @@ struct config main_config[] = {
     {"Function", ParseFunctionEntry, (char **)1, (int *)0},
 	{"Key", ParseKeyEntry, (char **)1, (int *)0},
 	{"ClickToFocus", SetFlag, (char **)ClickToFocus, (int *)EatFocusClick},
+    {"EatFocusClick", SetFlag, (char **)EatFocusClick, (int *)0},
     {"ClickToRaise", SetButtonList, (char **)&Scr.Feel.RaiseButtons, (int *)0},
 	{"MenusHigh", SetFlag, (char **)MenusHigh, (int *)0},
 	{"SloppyFocus", SetFlag, (char **)SloppyFocus, (int *)0},

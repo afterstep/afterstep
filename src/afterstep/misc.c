@@ -168,30 +168,6 @@ grab_window_keys (Window w, ASFlagType context_mask)
 
 
 
-#if 0										   /* (see SetTimer) */
-/**************************************************************************
- *
- * For auto-raising windows, this routine is called
- *
- *************************************************************************/
-
-static void
-autoraise_timer_handler (void *data)
-{
-	Window        child;
-    ASQueryPointerChild (Scr.Root, &child);
-	if (Scr.Focus != NULL && child == Scr.Focus->frame && !(Scr.Focus->flags & VISIBLE))
-		RaiseWindow (Scr.Focus);
-}
-#endif /* 0 */
-
-/***************************************************************************
- *
- * Start/Stops the auto-raise timer
- *
- ****************************************************************************/
-
-
 /******************************************************************************
  *
  * Grab ClickToRaise button press events for a window

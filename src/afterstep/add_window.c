@@ -1272,7 +1272,7 @@ make_aswindow_visible( ASWindow *asw, Bool deiconify )
     }
 #endif
 
-    RaiseWindow (asw);
+    RaiseObscuredWindow (asw);
     if (!get_flags(Scr.Feel.flags, ClickToFocus))
     {
         int x, y ;
@@ -1552,6 +1552,24 @@ LOCAL_DEBUG_OUT( "circulation completed with active window being %p", asw );
     Scr.Windows->warp_curr_index = -1 ;
 }
 
+void autoraise_aswindow( void *data )
+{
+    struct timeval tv;
+    time_t msec = Scr.Feel.AutoRaiseDelay ;
+    time_t exp_sec = Scr.Windows->last_focus_change_sec + (msec * 1000 + Scr.Windows->last_focus_change_usec) / 1000000;
+    time_t exp_usec = (msec * 1000 + Scr.Windows->last_focus_change_usec) % 1000000;
+
+    if( Scr.Windows->focused && !get_flags( AfterStepState, ASS_HousekeepingMode) )
+    {
+        gettimeofday (&tv, NULL);
+        if( exp_sec < tv.tv_sec ||
+            (exp_sec == tv.tv_sec && exp_usec <= tv.tv_usec ) )
+        {
+            RaiseObscuredWindow(Scr.Windows->focused);
+        }
+    }
+}
+
 Bool
 focus_aswindow( ASWindow *asw )
 {
@@ -1632,12 +1650,21 @@ focus_aswindow( ASWindow *asw )
         show_warning( "unable to focus window %lX that is about to be unmapped for client %lX, frame %lX", w, asw->w, asw->frame );
     else
     {
-        LOCAL_DEBUG_OUT( "focusing window %lX, client %lX, frame %lX", w, asw->w, asw->frame );
+        LOCAL_DEBUG_OUT( "focusing window %lX, client %lX, frame %lX, asw %p", w, asw->w, asw->frame, asw );
         XSetInputFocus (dpy, w, RevertToParent, Scr.last_Timestamp);
         if (get_flags(asw->hints->protocols, AS_DoesWmTakeFocus) && !ASWIN_GET_FLAGS(asw, AS_Dead))
             send_wm_protocol_request (asw->w, _XA_WM_TAKE_FOCUS, Scr.last_Timestamp);
 
         Scr.Windows->focused = asw ;
+        if (Scr.Feel.AutoRaiseDelay > 0)
+        {
+            struct timeval tv;
+
+            gettimeofday (&tv, NULL);
+            Scr.Windows->last_focus_change_sec =  tv.tv_sec;
+            Scr.Windows->last_focus_change_usec = tv.tv_usec;
+            timer_new (Scr.Feel.AutoRaiseDelay, autoraise_aswindow, Scr.Windows->focused);
+        }
     }
 
     XSync(dpy, False );
@@ -1701,7 +1728,7 @@ LOCAL_DEBUG_OUT( "Window is out of the screen - can't focus%s","");
             return False;                      /* we are out of screen - can't focus */
         }
         Scr.Windows->active = asw ;   /* must do that prior to UngrabEm, so that window gets focused */
-        focus_active_window();
+        res = focus_active_window();
     }
     return res;
 }

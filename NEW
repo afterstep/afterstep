@@ -485,6 +485,14 @@ version 1.99.0 AKA 2.0 beta1
 3. Feel options :
 
         ************************************************************************
+        EatFocusClick
+        ************************************************************************
+        When this flag is specified in feel file - AfterSTep will "eat" mouse
+        click, that was used to focus window in ClickToFocus mode. That means that
+        if you have any function assigned to mouse clicks on the titlebars -
+        those functions will only be executed if window is already focused.
+
+        ************************************************************************
         FollowTitleChanges
         ************************************************************************
         That will force AfterStep to reread and merge all the hints and
@@ -513,7 +521,7 @@ version 1.99.0 AKA 2.0 beta1
         edge, while being interactively moved/resized.
 
         ************************************************************************
-        WindowEdgeAttraction
+        WindowEdgeAttraction <distance>
         ************************************************************************
         Defines distance from which window will be attracted to the other
         window's edge, while being interactively moved/resized.
@@ -890,7 +898,45 @@ version 1.99.0 AKA 2.0 beta1
                                       instead of what was selected from the menu.
         -l --log              <val> - Spool all output into a file instead of
                                       printing it to the console.
+11. Compilation flags.
 
+        Below are the flags that could be used with ./configure script, and env
+        vars to be set in order to aid debugging.
+
+        ************************************************************************
+        --enable-gdb
+        ************************************************************************
+        Enables extensive output of debugging messages. Also that enables
+        debugging information in executable allowing for more descriptive
+        messages while debugging with gdb. Note : it is usefull to specify -l
+        option to avoid huge number of messages printed on console (see above).
+
+        ************************************************************************
+        --with-libefence
+        ************************************************************************
+        Enables memory corruption debugging using libEFence. It is usefull when
+        AfterStep crashes, and it is not then possible to backtrace/debug it in
+        gdb due to corrupted stack. Enabling libEFence will cause AfterSTep to
+        crash at exact moment when memory corruption occur, preventing it from
+        corrupting stack.
+
+        ************************************************************************
+        --enable-audit
+        ************************************************************************
+        Enables built in memory utilization auditing. That will cause AfterStep
+        to print error messages when memory gets deallocated that was never
+        allocated. Also that will print a long list of unfreed memory when
+        afterstep/module shuts down. That could be used to track down memory
+        leaks.
+
+        ************************************************************************
+        export CFLAGS=-DTRACE_ASIMAGES
+        ************************************************************************
+        Enabling that will cause libAfterImage to keep track of all the
+        ASImages being created/destroyed. You could then print list of those at
+        arbitrary moments, to see what images are loaded into memory.
+
+        ************************************************************************
 10. Depreciated
         10.1. Look :
              MenuPinOn
