@@ -1,0 +1,1 @@
+Exec "International text support" exec xterm -n VI -T VI -e vi &
