@@ -502,6 +502,8 @@ get_caller_func ()
 #endif
     }
 #endif
+	if( func_name == NULL )
+		func_name = unknown ;
     return func_name;
 }
 
