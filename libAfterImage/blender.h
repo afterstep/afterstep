@@ -213,6 +213,7 @@ void dissipate_scanlines( struct ASScanline *bottom, struct ASScanline *top, int
 /****f* libAfterImage/import/blend_scanlines_name2func()
  * SYNOPSIS
  * merge_scanlines_func blend_scanlines_name2func( const char *name );
+ * void list_scanline_merging(FILE* stream, const char *format);
  * INPUTS
  * name - string, identifying scanline merging function.
  * RETURN VALUE
@@ -221,10 +222,15 @@ void dissipate_scanlines( struct ASScanline *bottom, struct ASScanline *top, int
  * DESCRIPTION
  * blend_scanlines_name2func() will strip leading whitespaces off of
  * the supplied name, and then will attempt to match it against the list
- * of names of merging functions. It will then return pointer to the 
+ * of names of merging functions. It will then return pointer to the
  * function with matching name.
+ * list_scanline_merging() simply prints out description of implemented
+ * blending/merging methods onto the supplied stream, in supplied format.
+ * Format must include 2 string specs, like so : "%s - %s" where first
+ * one will be substituted to short method name, and second - description
  ****************/
 merge_scanlines_func blend_scanlines_name2func( const char *name );
+void list_scanline_merging(FILE* stream, const char *format);
 
 #endif             /* BLENDER_H_HEADER_INCLUDED */
 

@@ -15,7 +15,7 @@ LIB_OBJS= @AFTERBASE_C@ asfont.o asimage.o asvisual.o blender.o \
 LIB_DOCS= afterimage.h asfont.h asimage.h asvisual.h blender.h \
           import.h
 
-LIB_TUTORIALS= common.c asview.c asscale.c astile.c
+LIB_TUTORIALS= common.c asview.c asscale.c astile.c asmerge.c
 
 # end specifics
 ################################################################

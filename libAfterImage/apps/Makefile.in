@@ -1,4 +1,5 @@
-PROGS= asview asscale astile
+
+PROGS= asview asscale astile asmerge
 
 
 CC		= @CC@
@@ -120,6 +121,9 @@ asscale: asscale.o common.o
 
 astile: astile.o common.o
 		$(CC) astile.o common.o $(LIBRARIES) $(EXTRA_LIBRARIES) -o astile
+
+asmerge: asmerge.o common.o
+		$(CC) asmerge.o common.o $(LIBRARIES) $(EXTRA_LIBRARIES) -o asmerge
 
 .c.o:
 		$(CC) $(CCFLAGS) $(EXTRA_DEFINES) $(INCLUDES) $(EXTRA_INCLUDES) -c $*.c

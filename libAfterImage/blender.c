@@ -215,8 +215,8 @@ rgb2hls (CARD32 red, CARD32 green, CARD32 blue, CARD32 *luminance, CARD32 *satur
 	if( max_val != min_val )
 	{
 		int delta = max_val-min_val ;
-		if( *luminance == 0 ) ++(*luminance); 
-		else if( *luminance == 0x0000FFFF ) --(*luminance); 
+		if( *luminance == 0 ) ++(*luminance);
+		else if( *luminance == 0x0000FFFF ) --(*luminance);
 		*saturation = (*luminance < 0x00008000 )?
 							(delta<<15)/ *luminance :
 							(delta<<15)/ (0x0000FFFF - *luminance);
@@ -303,47 +303,60 @@ typedef struct merge_scanlines_func_desc {
     char *name ;
 	int name_len ;
 	merge_scanlines_func func;
+	char *short_desc;
 }merge_scanlines_func_desc;
 
-merge_scanlines_func_desc std_merge_scanlines_func_list[] = 
+merge_scanlines_func_desc std_merge_scanlines_func_list[] =
 {
-  { "add", 3, add_scanlines },
-  { "alphablend", 10, alphablend_scanlines },
-  { "allanon", 7, allanon_scanlines },
-  { "colorize", 8, colorize_scanlines },
-  { "darken", 6, darken_scanlines },
-  { "diff", 4, diff_scanlines },
-  { "dissipate", 9, dissipate_scanlines },
-  { "hue", 3, hue_scanlines },
-  { "lighten", 7, lighten_scanlines },
-  { "overlay", 7, overlay_scanlines },
-  { "saturate", 8, saturate_scanlines },
-  { "screen", 6, screen_scanlines },
-  { "sub", 3, sub_scanlines },
-  { "tint", 4, tint_scanlines },
-  { "value", 5, value_scanlines},
+  { "add", 3, add_scanlines, "color addition with saturation" },
+  { "alphablend", 10, alphablend_scanlines, "alpha-blending" },
+  { "allanon", 7, allanon_scanlines, "color values averaging" },
+  { "colorize", 8, colorize_scanlines, "hue and saturate bottom image same as top image" },
+  { "darken", 6, darken_scanlines, "use lowest color value from both images" },
+  { "diff", 4, diff_scanlines, "use absolute value of the color difference between two images" },
+  { "dissipate", 9, dissipate_scanlines, "randomly alpha-blend images"},
+  { "hue", 3, hue_scanlines, "hue bottom image same as top image"  },
+  { "lighten", 7, lighten_scanlines, "use highest color value from both images" },
+  { "overlay", 7, overlay_scanlines, "some wierd image overlaying(see GIMP)" },
+  { "saturate", 8, saturate_scanlines, "saturate bottom image same as top image"},
+  { "screen", 6, screen_scanlines, "another wierd image overlaying(see GIMP)" },
+  { "sub", 3, sub_scanlines, "color substraction with saturation" },
+  { "tint", 4, tint_scanlines, "tinting image with image" },
+  { "value", 5, value_scanlines, "value bottom image same as top image" },
   { NULL, 0, NULL }
 };
 
-merge_scanlines_func 
+merge_scanlines_func
 blend_scanlines_name2func( const char *name )
 {
 	register int i = 0;
-	
-	if( name == NULL ) 
+
+	if( name == NULL )
 		return NULL ;
     while( isspace(*name) ) ++name;
 	do
 	{
 		if( name[0] == std_merge_scanlines_func_list[i].name[0] )
-			if( mystrncasecmp( name, std_merge_scanlines_func_list[i].name, 
+			if( mystrncasecmp( name, std_merge_scanlines_func_list[i].name,
 			                   std_merge_scanlines_func_list[i].name_len ) == 0 )
 				return std_merge_scanlines_func_list[i].func ;
-	
+
 	}while( std_merge_scanlines_func_list[++i].name != NULL );
-	
+
 	return NULL ;
 
+}
+
+void
+list_scanline_merging(FILE* stream, const char *format)
+{
+	int i = 0 ;
+	do
+	{
+		fprintf( stream, format,
+			     std_merge_scanlines_func_list[i].name,
+			     std_merge_scanlines_func_list[i].short_desc  );
+	}while( std_merge_scanlines_func_list[++i].name != NULL );
 }
 
 void
@@ -380,144 +393,204 @@ void    /* this one was first implemented on XImages by allanon :) - mode 131  *
 allanon_scanlines( ASScanline *bottom, ASScanline *top, int unused )
 {
 	register int i = -1, max_i = bottom->width ;
-	register CARD32 *b = bottom->buffer, *t = top->buffer ;
-	max_i = (max_i + (max_i&0x0001)) * 4 ;
+	register CARD32 *ta = top->alpha, *ba = bottom->alpha;
+	register CARD32 *br = bottom->red, *bg = bottom->green, *bb = bottom->blue;
+	register CARD32 *tr = top->red, *tg = top->green, *tb = top->blue;
 	while( ++i < max_i )
-		b[i] = (b[i]+t[i])>>1 ;
+	{
+		if( ta[i] != 0 )
+		{
+			br[i] = (br[i]+tr[i])>>1 ;
+			bg[i] = (bg[i]+tg[i])>>1 ;
+			bb[i] = (bb[i]+tb[i])>>1 ;
+		}
+	}
 }
 
 void    /* this one was first implemented on XImages by allanon :) - mode 131  */
 tint_scanlines( ASScanline *bottom, ASScanline *top, int unused )
 {
 	register int i = -1, max_i = bottom->width ;
-	register CARD32 *b = bottom->buffer, *t = top->buffer ;
-	max_i = (max_i + (max_i&0x0001)) * 4 ;
+	register CARD32 *ta = top->alpha, *ba = bottom->alpha;
+#if 1
+	register CARD32 *tr = top->red, *tg = top->green, *tb = top->blue;
+	register CARD32 *br = bottom->red, *bg = bottom->green, *bb = bottom->blue;
 	while( ++i < max_i )
 	{
-		b[i] = (b[i]*(t[i]>>1))>>15 ;
+		if( ta[i] != 0 )
+		{
+			br[i] = (br[i]*(tr[i]>>1))>>15 ;
+			bg[i] = (bg[i]*(tg[i]>>1))>>15 ;
+			bb[i] = (bb[i]*(tb[i]>>1))>>15 ;
+		}
 	}
+#else
+	int chan ;
+	for ( chan = 0 ; chan < IC_ALPHA ; chan++)
+	{
+		register CARD32 *b = bottom->channels[chan] ;
+		register CARD32 *t = top->channels[chan] ;
+		for( i = 0 ; i < max_i ; ++i )
+			if( ta[i] )
+				b[i] = (b[i]*(t[i]>>1))>>15 ;
+	}
+
+#endif
 }
 
 void    /* addition with saturation : */
 add_scanlines( ASScanline *bottom, ASScanline *top, int unused )
 {
-	register int i = -1, max_i = bottom->width ;
-	register CARD32 *b = bottom->buffer, *t = top->buffer ;
+	register int i = -1, max_i = bottom->width, chan ;
+	register CARD32 *b ;
+	register CARD32 *t ;
 	register CARD32 *ba = bottom->alpha, *ta = top->alpha ;
 	while( ++i < max_i )
 	{
-		b[i] = (b[i]+t[i]) ;
-		if( b[i] > 0x0000FFFF )
-			b[i] = 0x0000FFFF ;
-		if( ta[i] < ba[i] )
+		if( ta[i] > ba[i] )
 			ba[i] = ta[i] ;
 	}
-	b = bottom->green ;
-	t = top->green ;
-	max_i = (max_i + (max_i&0x0001)) * 2 ;
-	for( i = 0 ; i < max_i ; ++i )
+	for ( chan = 0 ; chan < IC_ALPHA ; chan++)
 	{
-		b[i] = (b[i]+t[i]) ;
-		if( b[i] > 0x0000FFFF )
-			b[i] = 0x0000FFFF ;
+		b= bottom->channels[chan] ;
+		t= top->channels[chan] ;
+		for( i = 0 ; i < max_i ; ++i )
+			if( ta[i] )
+			{
+				b[i] = (b[i]+t[i]) ;
+				if( b[i] > 0x0000FFFF )
+					b[i] = 0x0000FFFF ;
+			}
 	}
 }
 
 void    /* substruction with saturation : */
 sub_scanlines( ASScanline *bottom, ASScanline *top, int unused )
 {
-	register int i = -1, max_i = bottom->width ;
+	register int i = -1, max_i = bottom->width, chan ;
 	register CARD32 *b = bottom->buffer, *t = top->buffer ;
 	register CARD32 *ba = bottom->alpha, *ta = top->alpha ;
-	max_i = (max_i + (max_i&0x0001)) * 3 ;
 	while( ++i < max_i )
 	{
-		int res = (int)b[i] - (int)t[i] ;
-		b[i] = res < 0 ? 0: res ;
-		if( ta[i] < ba[i] )
+		if( ta[i] > ba[i] )
 			ba[i] = ta[i] ;
+	}
+	for ( chan = 0 ; chan < IC_ALPHA ; chan++)
+	{
+		b= bottom->channels[chan] ;
+		t= top->channels[chan] ;
+		for( i = 0 ; i < max_i ; ++i )
+			if( ta[i] )
+			{
+				int res = (int)b[i] - (int)t[i] ;
+				b[i] = res < 0 ? 0: res ;
+			}
 	}
 }
 
 void    /* absolute pixel value difference : */
 diff_scanlines( ASScanline *bottom, ASScanline *top, int unused )
 {
-	register int i = -1, max_i = bottom->width ;
-	register CARD32 *b = bottom->buffer, *t = top->buffer ;
+	register int i = -1, max_i = bottom->width, chan ;
+	register CARD32 *b = bottom->blue, *t = top->blue ;
 	register CARD32 *ba = bottom->alpha, *ta = top->alpha ;
 	while( ++i < max_i )
 	{
-		register int res = (int)b[i] - (int)t[i] ;
-		b[i] = res < 0 ? -res: res ;
-		if( ta[i] < ba[i] )
-			ba[i] = ta[i] ;
+		if( ta[i] )
+		{
+			int res = (int)b[i] - (int)t[i] ;
+			if( ta[i] > ba[i] )
+				ba[i] = ta[i] ;
+			b[i] = res < 0 ? -res: res ;
+		}
 	}
-	b = bottom->green ;
-	t = top->green ;
-	max_i = (max_i + (max_i&0x0001)) * 2 ;
-	for( i = 0 ; i < max_i ; ++i )
+	for ( chan = IC_BLUE ; chan < IC_ALPHA ; chan++)
 	{
-		register int res = (int)b[i] - (int)t[i] ;
-		b[i] = res < 0 ? -res: res ;
+		b= bottom->channels[chan] ;
+		t= top->channels[chan] ;
+		for( i = 0 ; i < max_i ; ++i )
+			if( ta[i] )
+			{
+				int res = (int)b[i] - (int)t[i] ;
+				b[i] = res < 0 ? -res: res ;
+			}
 	}
 }
 
 void    /* darkest of the two makes it in : */
 darken_scanlines( ASScanline *bottom, ASScanline *top, int unused )
 {
-	register int i = -1, max_i = bottom->width ;
-	register CARD32 *b = bottom->buffer, *t = top->buffer ;
-	max_i = (max_i + (max_i&0x0001)) * 4 ;
+	register int i = -1, max_i = bottom->width, chan ;
+	register CARD32 *b = bottom->blue, *t = top->blue ;
+	register CARD32 *ba = bottom->alpha, *ta = top->alpha ;
 	while( ++i < max_i )
 	{
-		if( t[i] < b[i] )
-			b[i] = t[i] ;
+		if( ta[i] )
+		{
+			if( ta[i] < ba[i] )
+				ba[i] = ta[i] ;
+			if( t[i] < b[i] )
+				b[i] = t[i];
+		}
+	}
+	for( chan = IC_GREEN ; chan < IC_ALPHA ; ++chan )
+	{
+		b= bottom->channels[chan];
+		t= top->channels[chan] ;
+		for( i = 0 ; i < max_i ; ++i )
+			if( ta[i] && b[i] > t[i] )
+				b[i] = t[i];
 	}
 }
 
 void    /* lightest of the two makes it in : */
 lighten_scanlines( ASScanline *bottom, ASScanline *top, int unused )
 {
-	register int i = -1, max_i = bottom->width ;
-	register CARD32 *b = bottom->buffer, *t = top->buffer ;
+	register int i = -1, max_i = bottom->width, chan ;
+	register CARD32 *b = bottom->blue, *t = top->blue ;
 	register CARD32 *ba = bottom->alpha, *ta = top->alpha ;
 	while( ++i < max_i )
 	{
-		if( t[i] > b[i] )
-			b[i] = t[i] ;
-		if( ta[i] < ba[i] )
-			ba[i] = ta[i] ;
+		if( ta[i] )
+		{
+			if( ta[i] < ba[i] )
+				ba[i] = ta[i] ;
+			if( t[i] > b[i] )
+				b[i] = t[i];
+		}
 	}
-	b = bottom->green ;
-	t = top->green ;
-	max_i = (max_i + (max_i&0x0001)) * 2 ;
-	for( i = 0 ; i < max_i ; ++i )
+	for( chan = IC_GREEN ; chan < IC_ALPHA ; ++chan )
 	{
-		if( t[i] > b[i] )
-			b[i] = t[i] ;
+		b= bottom->channels[chan];
+		t= top->channels[chan] ;
+		for( i = 0 ; i < max_i ; ++i )
+			if( ta[i] && b[i] < t[i] )
+				b[i] = t[i];
 	}
 }
 
 void    /* guess what this one does - I could not :) */
 screen_scanlines( ASScanline *bottom, ASScanline *top, int unused )
 {
-	register int i = -1, max_i = bottom->width ;
+	register int i = -1, max_i = bottom->width, chan ;
 	register CARD32 *b = bottom->buffer, *t = top->buffer ;
 	register CARD32 *ba = bottom->alpha, *ta = top->alpha ;
-	max_i = (max_i + (max_i&0x0001)) * 3 ;
-	while( ++i < max_i )
+	for( chan = 0 ; chan < IC_ALPHA ; ++chan )
 	{
-		int res1 = 0x0000FFFF - (int)b[i] ;
-		int res2 = 0x0000FFFF - (int)t[i] ;
-		res1 = 0x0000FFFF - ((res1*res2)>>16);
-		if( res1 < 0 )
-			res1 = 0 ;
-		b[i] = res1 < 0 ? 0 : res1;
+		b= bottom->channels[chan];
+		t= top->channels[chan] ;
+		for( i = 0 ; i < max_i ; ++i )
+			if( ta[i] )
+			{
+				int res1 = 0x0000FFFF - (int)b[i] ;
+				int res2 = 0x0000FFFF - (int)t[i] ;
+				res1 = 0x0000FFFF - ((res1*res2)>>16);
+				b[i] = res1 < 0 ? 0 : res1;
+			}
 	}
-	max_i = bottom->width ;
 	for( i = 0 ; i < max_i ; ++i )
 	{
-		if( ta[i] < ba[i] )
+		if( ta[i] > ba[i] )
 			ba[i] = ta[i] ;
 	}
 }
@@ -525,22 +598,25 @@ screen_scanlines( ASScanline *bottom, ASScanline *top, int unused )
 void    /* somehow overlays bottom with top : */
 overlay_scanlines( ASScanline *bottom, ASScanline *top, int unused )
 {
-	register int i = -1, max_i = bottom->width ;
+	register int i = -1, max_i = bottom->width, chan ;
 	register CARD32 *b = bottom->buffer, *t = top->buffer ;
 	register CARD32 *ba = bottom->alpha, *ta = top->alpha ;
-	max_i = (max_i + (max_i&0x0001)) * 3 ;
-	while( ++i < max_i )
+	for( chan = 0 ; chan < IC_ALPHA ; ++chan )
 	{
-
-		int tmp_screen = 0x0000FFFF - (((0x0000FFFF - (int)b[i]) * (0x0000FFFF - (int)t[i])) >> 16);
-		int tmp_mult   = (b[i] * t[i]) >> 16;
-		int res = (b[i] * tmp_screen + (0x0000FFFF - (int)b[i]) * tmp_mult) >> 16;
-		b[i] = res < 0 ? 0 : res;
+		b= bottom->channels[chan];
+		t= top->channels[chan] ;
+		for( i = 0 ; i < max_i ; ++i )
+			if( ta[i] )
+			{
+				int tmp_screen = 0x0000FFFF - (((0x0000FFFF - (int)b[i]) * (0x0000FFFF - (int)t[i])) >> 16);
+				int tmp_mult   = (b[i] * t[i]) >> 16;
+				int res = (b[i] * tmp_screen + (0x0000FFFF - (int)b[i]) * tmp_mult) >> 16;
+				b[i] = res < 0 ? 0 : res;
+			}
 	}
-	max_i = bottom->width ;
 	for( i = 0 ; i < max_i ; ++i )
 	{
-		if( ta[i] < ba[i] )
+		if( ta[i] > ba[i] )
 			ba[i] = ta[i] ;
 	}
 }
@@ -554,19 +630,19 @@ hue_scanlines( ASScanline *bottom, ASScanline *top, int mode )
 	register CARD32 *tr = top->red, *tg = top->green, *tb = top->blue;
 
 	while( ++i < max_i )
-	{
-		CARD32 hue = rgb2hue( tr[i], tg[i], tb[i]);
-		if( hue > 0 )
+		if( ta[i] )
 		{
-			CARD32 saturation = rgb2saturation( br[i], bg[i], bb[i]);
-			CARD32 value = rgb2value( br[i], bg[i], bb[i]);;
+			CARD32 hue = rgb2hue( tr[i], tg[i], tb[i]);
+			if( hue > 0 )
+			{
+				CARD32 saturation = rgb2saturation( br[i], bg[i], bb[i]);
+				CARD32 value = rgb2value( br[i], bg[i], bb[i]);;
 
-			hsv2rgb(hue, saturation, value, &br[i], &bg[i], &bb[i]);
-
+				hsv2rgb(hue, saturation, value, &br[i], &bg[i], &bb[i]);
+			}
+			if( ta[i] < ba[i] )
+				ba[i] = ta[i] ;
 		}
-		if( ta[i] < ba[i] )
-			ba[i] = ta[i] ;
-	}
 }
 
 void
@@ -578,15 +654,16 @@ saturate_scanlines( ASScanline *bottom, ASScanline *top, int mode )
 	register CARD32 *tr = top->red, *tg = top->green, *tb = top->blue;
 
 	while( ++i < max_i )
-	{
-		CARD32 saturation, value;
-		CARD32 hue = rgb2hsv( br[i], bg[i], bb[i], &saturation, &value);
+		if( ta[i] )
+		{
+			CARD32 saturation, value;
+			CARD32 hue = rgb2hsv( br[i], bg[i], bb[i], &saturation, &value);
 
-		saturation = rgb2saturation( tr[i], tg[i], tb[i]);
-		hsv2rgb(hue, saturation, value, &br[i], &bg[i], &bb[i]);
-		if( ta[i] < ba[i] )
-			ba[i] = ta[i] ;
-	}
+			saturation = rgb2saturation( tr[i], tg[i], tb[i]);
+			hsv2rgb(hue, saturation, value, &br[i], &bg[i], &bb[i]);
+			if( ta[i] < ba[i] )
+				ba[i] = ta[i] ;
+		}
 }
 
 void
@@ -598,16 +675,17 @@ value_scanlines( ASScanline *bottom, ASScanline *top, int mode )
 	register CARD32 *tr = top->red, *tg = top->green, *tb = top->blue;
 
 	while( ++i < max_i )
-	{
-		CARD32 saturation, value;
-		CARD32 hue = rgb2hsv( br[i], bg[i], bb[i], &saturation, &value);
+		if( ta[i] )
+		{
+			CARD32 saturation, value;
+			CARD32 hue = rgb2hsv( br[i], bg[i], bb[i], &saturation, &value);
 
-		value = rgb2value( tr[i], tg[i], tb[i]);
-		hsv2rgb(hue, saturation, value, &br[i], &bg[i], &bb[i]);
+			value = rgb2value( tr[i], tg[i], tb[i]);
+			hsv2rgb(hue, saturation, value, &br[i], &bg[i], &bb[i]);
 
-		if( ta[i] < ba[i] )
-			ba[i] = ta[i] ;
-	}
+			if( ta[i] < ba[i] )
+				ba[i] = ta[i] ;
+		}
 }
 
 void
@@ -619,27 +697,27 @@ colorize_scanlines( ASScanline *bottom, ASScanline *top, int mode )
 	register CARD32 *tr = top->red, *tg = top->green, *tb = top->blue;
 
 	while( ++i < max_i )
-	{
-#if 1
-		CARD32 luminance, saturation ;
-		CARD32 hue = rgb2hls( tr[i], tg[i], tb[i], &luminance, &saturation );
-
-		luminance = rgb2luminance( br[i], bg[i], bb[i]);
-		hls2rgb(hue, luminance, saturation, &br[i], &bg[i], &bb[i]);
-#else
-		CARD32 h, l, s, r, g, b;
-		h = rgb2hls( br[i], bg[i], bb[i], &l, &s );
-		hls2rgb( h, l, s, &r, &g, &b );
-		if( r > br[i]+10 || r < br[i] - 10 )
+		if( ta[i] )
 		{
-			fprintf( stderr, "%X.%X.%X -> %X.%X.%X -> %X.%X.%X\n",  br[i], bg[i], bb[i], h, l, s, r, g, b );
-			fprintf( stderr, "%d.%d.%d -> %d.%d.%d -> %d.%d.%d\n",  br[i], bg[i], bb[i], h, l, s, r, g, b );
-		}
-#endif
+#if 1
+			CARD32 luminance, saturation ;
+			CARD32 hue = rgb2hls( tr[i], tg[i], tb[i], &luminance, &saturation );
 
-		if( ta[i] < ba[i] )
-			ba[i] = ta[i] ;
-	}
+			luminance = rgb2luminance( br[i], bg[i], bb[i]);
+			hls2rgb(hue, luminance, saturation, &br[i], &bg[i], &bb[i]);
+#else
+			CARD32 h, l, s, r, g, b;
+			h = rgb2hls( br[i], bg[i], bb[i], &l, &s );
+			hls2rgb( h, l, s, &r, &g, &b );
+			if( r > br[i]+10 || r < br[i] - 10 )
+			{
+				fprintf( stderr, "%X.%X.%X -> %X.%X.%X -> %X.%X.%X\n",  br[i], bg[i], bb[i], h, l, s, r, g, b );
+				fprintf( stderr, "%d.%d.%d -> %d.%d.%d -> %d.%d.%d\n",  br[i], bg[i], bb[i], h, l, s, r, g, b );
+			}
+#endif
+			if( ta[i] < ba[i] )
+				ba[i] = ta[i] ;
+		}
 }
 
 void
@@ -649,7 +727,7 @@ dissipate_scanlines( ASScanline *bottom, ASScanline *top, int unused )
 	register CARD32 *alpha = top->alpha, *ba = bottom->alpha;
 	register CARD32 *br = bottom->red, *bg = bottom->green, *bb = bottom->blue;
 	register CARD32 *tr = top->red, *tg = top->green, *tb = top->blue;
-	static   CARD32 rnd32_seed = 345824357;	
+	static   CARD32 rnd32_seed = 345824357;
 #define MAX_MY_RND32		0x00ffffffff
 #ifdef WORD64
 #define MY_RND32() \
@@ -663,7 +741,7 @@ dissipate_scanlines( ASScanline *bottom, ASScanline *top, int unused )
 	while( ++i < max_i )
 	{
 		int a = alpha[i] ;
-		if( a > 0 && (MY_RND32()&0x0000FFFF) < a )
+		if( a > 0 && MY_RND32() < a<<15 )
 		{
 			ba[i] += a ;
 			if( ba[i] > 0x0000FFFF )

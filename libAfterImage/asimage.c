@@ -1581,7 +1581,8 @@ copytintpad_scanline( ASScanline *src, ASScanline *dst, int offset, ARGB32 tint 
 		register CARD32 *psrc = src->channels[color]+src_offset;
 		register CARD32 *pdst = dst->channels[color];
 		int ratio = chan_tint[color];
-/*	fprintf( stderr, "channel %d, tint is %d(%X), src_offset = %d, dst_offset = %d psrc = %p, pdst = %p\n", color, ratio, ratio, src_offset, dst_offset, psrc, pdst );*/
+/*	fprintf( stderr, "channel %d, tint is %d(%X), src_width = %d, src_offset = %d, dst_width = %d, dst_offset = %d psrc = %p, pdst = %p\n", color, ratio, ratio, src->width, src_offset, dst->width, dst_offset, psrc, pdst );
+ */
 		{
 /*			register CARD32 fill = chan_fill[color]; */
 			for( i = 0 ; i < dst_offset ; ++i )
@@ -1591,7 +1592,7 @@ copytintpad_scanline( ASScanline *src, ASScanline *dst, int offset, ARGB32 tint 
 
 		if( get_flags(src->flags, 0x01<<color) )
 		{
-			if( ratio == 255 )
+			if( ratio >= 254 )
 				for( i = 0 ; i < copy_width ; ++i )
 					pdst[i] = psrc[i]<<8;
 			else if( ratio == 128 )
@@ -2283,6 +2284,10 @@ merge_layers( ASVisual *asv,
 	ASImageOutput  *imout ;
 	ASScanline dst_line, tmp_line ;
 	int i ;
+#ifdef DO_CLOCKING
+	time_t started = clock ();
+#endif
+
 LOCAL_DEBUG_CALLER_OUT( "dst_width = %d, dst_height = %d", dst_width, dst_height );
 	dst = safecalloc(1, sizeof(ASImage));
 	asimage_start (dst, dst_width, dst_height, compression_out);
@@ -2371,6 +2376,9 @@ LOCAL_DEBUG_OUT( "min_y = %d, max_y = %d", min_y, max_y );
 	free( imdecs );
 	free_scanline( &tmp_line, True );
 	free_scanline( &dst_line, True );
+#ifdef DO_CLOCKING
+	fprintf (stderr, "merge_layers time (clocks): %lu mlsec\n", ((clock () - started)*100)/CLOCKS_PER_SEC);
+#endif
 	return dst;
 }
 
