@@ -1295,7 +1295,7 @@ ico2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tabl
 #endif
 	if( im != NULL )
 	{
-        mask_bytes = (icon.bWidth>>3)+3/4 ;    /* everything is aligned by 32 bits */
+        mask_bytes = ((icon.bWidth>>3)+3)/4 ;    /* everything is aligned by 32 bits */
         mask_bytes *= 4 ;                      /* in bytes  */
         and_mask = safemalloc( mask_bytes );
         for( y = icon.bHeight-1 ; y >= 0 ; y-- )

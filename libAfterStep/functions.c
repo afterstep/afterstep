@@ -332,7 +332,7 @@ dup_func_data (FunctionData * dst, FunctionData * src)
 inline FunctionData *
 create_named_function( int func, char *name)
 {
-	FunctionData *fdata = safecalloc( 1, sizeof(FunctionData) );
+    FunctionData *fdata = safecalloc( 1, sizeof(FunctionData) );
 	init_func_data (fdata);
 	fdata->func = func;
     if( name )

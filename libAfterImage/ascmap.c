@@ -20,7 +20,7 @@
  */
 
 #undef LOCAL_DEBUG
-#define DO_CLOCKING
+#undef DO_CLOCKING
 
 #include "config.h"
 
