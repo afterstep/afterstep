@@ -956,6 +956,7 @@ RunCommand (FunctionData * fdata, unsigned int channel, Window w)
 	 default:
         {
             ASEvent event;
+			Bool defered = False ;
             memset( &event, 0x00, sizeof(ASEvent) );
             event.w = w;
             if ((event.client = window2ASWindow(w)) == NULL )
@@ -968,6 +969,7 @@ RunCommand (FunctionData * fdata, unsigned int channel, Window w)
                 event.x.xbutton.x_root = event.client->frame_canvas->root_x+1;
                 event.x.xbutton.y_root = event.client->frame_canvas->root_y+1;
             }
+			
             event.x.xany.type = ButtonRelease;
             event.x.xbutton.button = 1;
             event.x.xbutton.x = 0;
@@ -977,7 +979,9 @@ RunCommand (FunctionData * fdata, unsigned int channel, Window w)
             event.scr = ASDefaultScr ;
             event.event_time = Scr.last_Timestamp ;
             /* there must be no deffering on module commands ! */
-            ExecuteFunctionExt (fdata, &event, channel, True);
+
+			defered = ( w != None || !IsWindowFunc (fdata->func) );
+            ExecuteFunctionExt (fdata, &event, channel, defered);
         }
     }
     free_func_data (fdata);

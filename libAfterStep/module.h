@@ -71,7 +71,7 @@ extern "C" {
 //#define M_LOCKONSEND         (1<<19)
 
 
-#define MAX_MESSAGES          19
+#define MAX_MESSAGES          20
 #define MAX_MASK             ((1<<MAX_MESSAGES)-1)
 
 #define WAIT_AS_RESPONSE_TIMEOUT    20   /* seconds */

@@ -1859,6 +1859,7 @@ void LoadColorScheme();                        /* high level easy to use functio
 typedef struct WinTabsConfig
 {
 #define WINTABS_UseSkipList		(0x01<<1)
+#define WINTABS_HideWhenEmpty  	(0x01<<1)
 #define WINTABS_Geometry		(0x01<<2)
 #define WINTABS_MaxRows			(0x01<<5)
 #define WINTABS_MaxColumns		(0x01<<6)
@@ -1878,9 +1879,10 @@ typedef struct WinTabsConfig
 #define WINTABS_V_SPACING       (0x01<<19)
 
 #define 	ASWT_UseSkipList	WINTABS_UseSkipList
+#define 	ASWT_HideWhenEmpty	WINTABS_HideWhenEmpty
 	ASFlagType	flags ;
 	ASFlagType	set_flags ;
-    ASGeometry geometry ;
+    ASGeometry  geometry ;
 #define MAX_WINTABS_WINDOW_COUNT    64
 	unsigned int max_rows, max_columns ;
     unsigned int min_tab_width, max_tab_width ;

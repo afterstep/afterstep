@@ -75,11 +75,15 @@ typedef struct {
 
 	ASVector *tabs ;
 
+	ASWinTab  banner ;
+
 	int rows ;
 	int row_height ;
 
     int selected_tab ;
     int pressed_tab ;
+
+	int win_width, win_height ;
 
 }ASWinTabsState ;
 
@@ -116,7 +120,7 @@ void render_tabs( Bool canvas_resized );
 void on_destroy_notify(Window w);
 void select_tab( int tab );
 void press_tab( int tab );
-void set_tab_look( ASWinTab *aswt );
+void set_tab_look( ASWinTab *aswt, Bool no_bevel );
 
 unsigned int find_tab_by_position( int root_x, int root_y );
 void DeadPipe(int);
@@ -133,10 +137,7 @@ main( int argc, char **argv )
 
 
     ConnectX( ASDefaultScr, EnterWindowMask );
-    ConnectAfterStep (  M_END_WINDOWLIST |
-                        M_DESTROY_WINDOW |
-                    	WINDOW_CONFIG_MASK |
-                    	WINDOW_NAME_MASK, 0 );
+    ConnectAfterStep ( M_END_WINDOWLIST |M_DESTROY_WINDOW |M_SWALLOW_WINDOW|WINDOW_CONFIG_MASK|WINDOW_NAME_MASK, 0 );
     signal (SIGTERM, DeadPipe);
     signal (SIGKILL, DeadPipe);
     
@@ -147,15 +148,6 @@ main( int argc, char **argv )
 	LoadColorScheme();
 	LoadConfig ("wintabs", GetOptions);
     CheckConfigSanity();
-
-	if( Config->pattern != NULL )
-	{
-		WinTabsState.pattern_wrexp = compile_wild_reg_exp( Config->pattern ) ;
-	}else
-	{
-		show_error( "Empty Pattern requested for windows to be captured and tabbed - Abborting!");
-		DeadPipe(0);
-	}
 
 	SendInfo ("Send_WindowList", 0);
 
@@ -168,7 +160,15 @@ main( int argc, char **argv )
     WinTabsState.tabs_canvas = create_ascanvas( WinTabsState.tabs_window );
     map_canvas_window( WinTabsState.tabs_canvas, True );
     set_root_clip_area(WinTabsState.main_canvas );
+
 	/* delay mapping main canvas untill we actually swallowed something ! */
+	if( WinTabsState.pattern_wrexp == NULL || !get_flags(Config->flags, ASWT_HideWhenEmpty )) 
+	{	
+		map_canvas_window( WinTabsState.main_canvas, True );
+		set_flags( WinTabsState.flags, ASWT_StateMapped );
+		rearrange_tabs();
+	}
+
     /* map_canvas_window( WinTabsState.main_canvas, True ); */
     /* final cleanup */
 	XFlush (dpy);
@@ -246,6 +246,18 @@ CheckConfigSanity()
 
     if( Config == NULL )
         Config = CreateWinTabsConfig ();
+
+	if( Config->pattern != NULL )
+	{
+		WinTabsState.pattern_wrexp = compile_wild_reg_exp( Config->pattern ) ;
+	}else
+	{
+		show_warning( "Empty Pattern requested for windows to be captured and tabbed - will wait for swallow command");
+	    if( !get_flags(Config->geometry.flags, WidthValue) )
+			Config->geometry.width = 640 ;
+	    if( !get_flags(Config->geometry.flags, HeightValue) )
+			Config->geometry.height = 480 ;
+	}
 
     Config->gravity = NorthWestGravity ;
     if( get_flags(Config->geometry.flags, XNegative) )
@@ -405,7 +417,11 @@ process_message (unsigned long type, unsigned long *body)
         {
             LOCAL_DEBUG_OUT( "client deleted (%p)->window(%lX)->desk(%d)", saved_wd, saved_w, saved_desk );
         }
-    }
+    }else if( type == M_SWALLOW_WINDOW ) 
+	{
+        LOCAL_DEBUG_OUT( "SwallowWindow requested for window %lX/frame %lX ", body[0], body[1] );
+	}	 
+		
 }
 
 void
@@ -438,8 +454,14 @@ DispatchEvent (ASEvent * event)
                 {                        
                     ASFlagType changes = handle_canvas_config( mc );
                     if( get_flags( changes, CANVAS_RESIZED ) )
+					{	
+						if( tabs_num > 0 ) 
+						{	
+							WinTabsState.win_width = mc->width ; 
+							WinTabsState.win_height = mc->height ; 
+						}
                         rearrange_tabs();
-                    else if( get_flags( changes, CANVAS_MOVED ) )
+                    }else if( get_flags( changes, CANVAS_MOVED ) )
                     {
                         int i  = tabs_num;
                         ASWinTab *tabs = PVECTOR_HEAD( ASWinTab, WinTabsState.tabs );
@@ -467,6 +489,7 @@ DispatchEvent (ASEvent * event)
                     }else if( get_flags( tabs_changes, CANVAS_MOVED ) )
                     {
                         int i = tabs_num ;
+						rerender_tabs = update_astbar_transparency(WinTabsState.banner.bar, WinTabsState.tabs_canvas, True);
                         while( --i >= 0 ) 
                             if( update_astbar_transparency(tabs[i].bar, WinTabsState.tabs_canvas, True) )
                                 rerender_tabs = True ;
@@ -532,7 +555,8 @@ DispatchEvent (ASEvent * event)
 				/* now we need to update everything */
                             
                 while( --i >= 0 ) 
-                    set_tab_look( &(tabs[i]));
+                    set_tab_look( &(tabs[i]), False);
+				set_tab_look( &(WinTabsState.banner), True);
                 rearrange_tabs();
              }
 			break;
@@ -582,7 +606,7 @@ make_wintabs_window()
     shints.win_gravity = Config->gravity ;
 
 	extwm_hints.pid = getpid();
-    extwm_hints.flags = EXTWM_PID|EXTWM_StateSkipTaskbar|EXTWM_StateSkipPager|EXTWM_TypeASModule ;
+    extwm_hints.flags = EXTWM_PID|EXTWM_TypeASModule ;
 
 	set_client_hints( w, NULL, &shints, AS_DoesWmDeleteWindow, &extwm_hints );
 
@@ -591,6 +615,10 @@ make_wintabs_window()
     XSelectInput (dpy, w, PropertyChangeMask|StructureNotifyMask|SubstructureRedirectMask
                           /*|ButtonReleaseMask | ButtonPressMask */
                   );
+
+	WinTabsState.banner.bar = create_astbar();
+	set_tab_look( &WinTabsState.banner, True );
+
 
 	return w ;
 }
@@ -608,10 +636,17 @@ make_tabs_window( Window parent )
  * add/remove a tab code
  **************************************************************************/
 void
-set_tab_look( ASWinTab *aswt )
+set_tab_look( ASWinTab *aswt, Bool no_bevel )
 {
-	set_astbar_hilite( aswt->bar, BAR_STATE_UNFOCUSED, Config->ubevel );
-	set_astbar_hilite( aswt->bar, BAR_STATE_FOCUSED,   Config->fbevel );
+	if( no_bevel ) 
+	{
+		set_astbar_hilite( aswt->bar, BAR_STATE_UNFOCUSED, NO_HILITE|NO_HILITE_OUTLINE );
+		set_astbar_hilite( aswt->bar, BAR_STATE_FOCUSED,   NO_HILITE|NO_HILITE_OUTLINE );
+	}else
+	{	
+		set_astbar_hilite( aswt->bar, BAR_STATE_UNFOCUSED, Config->ubevel );
+		set_astbar_hilite( aswt->bar, BAR_STATE_FOCUSED,   Config->fbevel );
+	}
 	set_astbar_composition_method( aswt->bar, BAR_STATE_UNFOCUSED, Config->ucm );
 	set_astbar_composition_method( aswt->bar, BAR_STATE_FOCUSED,   Config->fcm );
 	set_astbar_style_ptr (aswt->bar, BAR_STATE_UNFOCUSED, Scr.Look.MSWindow[BACK_UNFOCUSED]);
@@ -629,7 +664,7 @@ add_tab( Window client, const char *name, INT32 encoding )
 	aswt.name = mystrdup(name);
 
 	aswt.bar = create_astbar();
-	set_tab_look( &aswt );
+	set_tab_look( &aswt, False );
 	add_astbar_label( aswt.bar, 0, 0, 0, Config->name_aligment, Config->h_spacing, Config->v_spacing, name, encoding);
 
 	append_vector( WinTabsState.tabs, &aswt, 1 );
@@ -689,7 +724,7 @@ place_tabs_line( ASWinTab *tabs, int y, int first, int last, int spare, int max_
 void
 rearrange_tabs()
 {
-    int tab_height = 0 ;
+	int tab_height = 0 ;
 	ASCanvas *mc = WinTabsState.main_canvas ;
 	int i ;
 	ASWinTab *tabs = PVECTOR_HEAD(ASWinTab,WinTabsState.tabs);
@@ -702,7 +737,21 @@ rearrange_tabs()
 
 	if( tabs_num == 0 ) 
 	{
-		if( get_flags( WinTabsState.flags, ASWT_StateMapped ) )
+		if(	WinTabsState.pattern_wrexp != NULL || !get_flags(Config->flags, ASWT_HideWhenEmpty ) )
+		{                      /* displaying banner with pattern or something else */
+			char *banner_text ;
+			if( Config->pattern ) 
+			{	
+				banner_text = safemalloc( 16 + strlen(Config->pattern) + 1 );
+				sprintf( banner_text, "Waiting for %s", Config->pattern );
+			}else
+			{
+				banner_text = safemalloc( 64 );
+				sprintf( banner_text, "Waiting for SwallowWindow command" );
+			}	 
+			add_astbar_label( WinTabsState.banner.bar, 2, 0, 0, Config->name_aligment, Config->h_spacing, Config->v_spacing, banner_text, 0);
+			free( banner_text );			
+		}else if( get_flags( WinTabsState.flags, ASWT_StateMapped ) )  /* hiding ourselves: */ 
 		{
 			XEvent xev ;
 		
@@ -717,6 +766,7 @@ rearrange_tabs()
 						&xev );
 			
 			clear_flags( WinTabsState.flags, ASWT_StateMapped );
+			return ;
 		}
 	}
 
@@ -724,16 +774,35 @@ rearrange_tabs()
         max_width = max_x ;
 
     LOCAL_DEBUG_OUT( "max_x = %d, max_y = %d, max_width = %d", max_x, max_y, max_width );
-    i = tabs_num ;
-	while( --i >= 0 )
-	{
-        int height = calculate_astbar_height( tabs[i].bar );
-        if( height > tab_height )
-            tab_height = height ;
-    }
+
+	tab_height = calculate_astbar_height( WinTabsState.banner.bar );
+	x = calculate_astbar_width( WinTabsState.banner.bar );
+	
+	if( tabs_num == 0 ) 
+	{	
+		max_y = tab_height ;
+		resize_canvas( WinTabsState.main_canvas, x, max_y );
+	}else
+	{	
+		resize_canvas( WinTabsState.main_canvas, WinTabsState.win_width, WinTabsState.win_height );
+		max_x = WinTabsState.win_width ; 
+		max_y = WinTabsState.win_height ;
+
+    	i = tabs_num ;
+		while( --i >= 0 )
+		{
+        	int height = calculate_astbar_height( tabs[i].bar );
+        	if( height > tab_height )
+            	tab_height = height ;
+    	}
+	}
 
     if( tab_height == 0 || max_x <= 0 || max_y <= 0 )
         return ;
+	
+    set_astbar_size( WinTabsState.banner.bar, x, tab_height );
+    move_astbar( WinTabsState.banner.bar, WinTabsState.tabs_canvas, 0, 0 );
+
     i = tabs_num ; 
     for( i = 0 ; i < tabs_num ; ++i ) 
     {    
@@ -763,6 +832,8 @@ rearrange_tabs()
         render_tabs( False );
     
     max_y -= y ;
+	if( max_y <= 0 ) 
+		max_y = 1 ;
     i = tabs_num ; 
     LOCAL_DEBUG_OUT( "moveresaizing %d client canvases to %dx%d%+d%+d", i, max_x, max_y, 0, y );
     while( --i >= 0 ) 
@@ -790,6 +861,10 @@ render_tabs( Bool canvas_resized )
             if( DoesBarNeedsRendering(tbar) || canvas_resized )
                 render_astbar( tbar, WinTabsState.tabs_canvas );
     }
+    
+	if( DoesBarNeedsRendering(WinTabsState.banner.bar) || canvas_resized )
+		render_astbar( WinTabsState.banner.bar, WinTabsState.tabs_canvas );
+
     if( is_canvas_dirty( WinTabsState.tabs_canvas ) )
 	{
         update_canvas_display( WinTabsState.tabs_canvas );

@@ -377,6 +377,7 @@ DoExecuteFunction ( ASScheduledFunction *sf )
     }
 
     /* Defer Execution may wish to alter this value */
+	LOCAL_DEBUG_OUT( "client = %p, IsWindowFunc() = %s", event->client, IsWindowFunc (func)?"Yes":"No" );
     if (IsWindowFunc (func))
 	{
 		int           do_defer = !(sf->defered), fin_event;
@@ -1493,7 +1494,10 @@ void swallow_window_func_handler( FunctionData *data, ASEvent *event, int module
 {
 	if( event->client ) 
 	{	
-		if( module < 0 && data->text ) 
+		if( data->text ) 
+			
+			
+			
 			module = FindModuleByName( data->text );
 		SendPacket( module, M_SWALLOW_WINDOW, 2, event->client->w, event->client->frame);
  	}	
