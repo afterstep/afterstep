@@ -1,6 +1,6 @@
 <varlistentry id="options.Quit">
-	<term>Quit</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
-	</listitem>
+    <term>Quit [<emphasis remap='I'>"name"</emphasis>]</term>
+    <listitem>
+	<para>Exits <command>afterstep</command>, generally causing X to exit too.</para>
+    </listitem>
 </varlistentry>

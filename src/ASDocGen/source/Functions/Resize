@@ -1,6 +1,6 @@
 <varlistentry id="options.Resize">
-	<term>Resize</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
-	</listitem>
+    <term>Resize [<emphasis remap='I'>"name"</emphasis>]</term>
+    <listitem>
+	<para>Allows the user to resize a window.</para>
+    </listitem>
 </varlistentry>

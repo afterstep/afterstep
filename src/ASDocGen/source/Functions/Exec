@@ -1,6 +1,8 @@
 <varlistentry id="options.Exec">
-	<term>Exec</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
-	</listitem>
+ <term>Exec <emphasis remap='I'>"name"</emphasis> <emphasis remap='I'>command</emphasis> [<option>-options</option>]</term>
+ <listitem>
+    <para>Specifies a sub process to initiate.  The <emphasis remap='I'>"name"</emphasis> is required for
+    ease of parsing.  The <emphasis remap='I'>command</emphasis> is the command or application to be
+    invoked along with any desired <option>-options</option>.</para>
+ </listitem>
 </varlistentry>

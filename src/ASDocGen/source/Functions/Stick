@@ -1,6 +1,7 @@
 <varlistentry id="options.Stick">
-	<term>Stick</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
-	</listitem>
+    <term>Stick [<emphasis remap='I'>"name"</emphasis>]</term>
+    <listitem>
+	<para>Makes a window sticky (stays on screen when desks/views are switched) if it
+	is not already sticky, or non-sticky if it is already sticky.</para>
+    </listitem>
 </varlistentry>

@@ -1,6 +1,10 @@
 <varlistentry id="options.Focus">
-	<term>Focus</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
-	</listitem>
+ <term>Focus</term>
+ <listitem>
+    <para>Moves the view or window as needed to make the selected window visible.
+    Sets the keyboard focus to the selected window. Raises the window if
+    needed to make it visible. Warps the pointer into the selected window in
+    focus-follows-mouse  mode.  Does not de-iconify.  This function is
+    primarily handy when used with a module such as the WinList.</para>
+</listitem>
 </varlistentry>

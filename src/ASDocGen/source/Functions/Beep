@@ -1,6 +1,6 @@
 <varlistentry id="options.Beep">
 	<term>Beep</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Make the window manager issue a beep - pretty useful eh? :)</para>
 	</listitem>
 </varlistentry>

@@ -1,6 +1,14 @@
 <varlistentry id="options.Module">
-	<term>Module</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
+<term>Module <emphasis remap='I'>ModuleName</emphasis> [<emphasis remap='I'>arguments</emphasis>]</term>
+  <listitem>
+<para>Specifies that <emphasis remap='I'>ModuleName</emphasis> should be spawned.</para>
+
+<para>Currently, many modules are included with <command>afterstep</command>. <emphasis remap='B'>Wharf(1x)</emphasis>
+and <emphasis remap='B'>Pager(1x)</emphasis> are two of the more popular ones. Wharf will normally
+be spawned during initialization instead of in response to a mouse binding
+or menu action. Modules can be short lived transient programs, or, like
+Wharf, can be intended to remain for the duration of the X session.
+Modules will be terminated by <command>afterstep</command> prior to restarts and quits,
+if possible.</para>
 	</listitem>
 </varlistentry>

@@ -1,6 +1,13 @@
 <varlistentry id="options.Scroll">
-	<term>Scroll</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
-	</listitem>
+    <term>Scroll <emphasis remap='I'>horizontal vertical</emphasis></term>
+    <listitem>
+	<para>Scrolls the desktop's view by <emphasis remap='I'>horizontal</emphasis> pages in the x-direction,
+        and <emphasis remap='I'>vertical</emphasis> pages in the y-direction. Either or both entries may be
+	negative. Both <emphasis remap='I'>horizontal</emphasis> and <emphasis remap='I'>vertical</emphasis> values are expressed
+        in percent of pages, so 100 would be one full page. Normally, scrolling
+	stops at the edge of the desktop.  If the <emphasis remap='I'>horizontal</emphasis> and
+        <emphasis remap='I'>vertical</emphasis> values are multiplied by 1000, then scrolling will wrap
+	around at the edge of the desktop.</para>
+	<para>The scroll function should not be called from pop-up menus.</para>
+    </listitem>
 </varlistentry>

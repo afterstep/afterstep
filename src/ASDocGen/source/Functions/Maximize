@@ -1,6 +1,13 @@
 <varlistentry id="options.Maximize">
-	<term>Maximize</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
-	</listitem>
+    <term>Maximize [<emphasis remap='I'>"name"</emphasis>] [<emphasis remap='I'>horizontal vertical</emphasis>]</term>
+    <listitem>
+	<para>Causes the window to alternately switch from a full-screen size to its
+	normal size.  Specifying the optional arguments of <emphasis remap='I'>horizontal</emphasis> and
+	<emphasis remap='I'>vertical</emphasis>, control can be attained as to the percentage of the full
+	screen that the new size of the window becomes.  If <emphasis remap='I'>horizontal</emphasis> &gt; 0,
+	then the horizontal dimension of the window will be set to
+	horizontal*screen_width/100. The vertical resizing is similar. Values
+	larger than 100 can be used with caution.  The defaults for <emphasis remap='I'>horizontal</emphasis>
+	and <emphasis remap='I'>vertical</emphasis> are 100s (ie, fullscreen).</para>
+    </listitem>
 </varlistentry>

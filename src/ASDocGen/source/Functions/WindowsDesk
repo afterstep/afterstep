@@ -1,6 +1,8 @@
 <varlistentry id="options.WindowsDesk">
-	<term>WindowsDesk</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
-	</listitem>
+ <term>WindowsDesk <emphasis remap='I'>new_desk</emphasis> [<literal>10000</literal>]</term>
+ <listitem>
+    <para>Moves the selected window to the desktop specified as <emphasis remap='I'>new_desk</emphasis>.
+    If second argument is set to 10000 then first is treated as relative 
+    desktop number.</para>
+ </listitem>
 </varlistentry>

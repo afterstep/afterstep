@@ -1,6 +1,6 @@
 <varlistentry id="options.Move">
-	<term>Move</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
-	</listitem>
+    <term>Move [<emphasis remap='I'>"name"</emphasis>]</term>
+    <listitem>
+	<para>Allows the user to move a window or iconified app.</para>
+    </listitem>
 </varlistentry>

@@ -1,6 +1,7 @@
 <varlistentry id="options.Destroy">
-	<term>Destroy</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
-	</listitem>
+    <term>Destroy [<emphasis remap='I'>"name"</emphasis>]</term>
+    <listitem>
+	<para>Sends the <emphasis remap='B'>XKillClient(3)</emphasis> to a window. Guaranteed to get rid of the
+	window.</para>
+    </listitem>
 </varlistentry>

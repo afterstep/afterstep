@@ -1,6 +1,6 @@
 <varlistentry id="options.Refresh">
-	<term>Refresh</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
-	</listitem>
+    <term>Refresh [<emphasis remap='I'>"name"</emphasis>]</term>
+    <listitem>
+	<para>Causes all windows on the screen to re-draw themselves.</para>
+    </listitem>
 </varlistentry>

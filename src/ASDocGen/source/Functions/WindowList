@@ -1,6 +1,21 @@
 <varlistentry id="options.WindowList">
-	<term>WindowList</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
-	</listitem>
+ <term>WindowList [<emphasis remap='I'>arg1 arg2</emphasis>]</term>
+ <listitem>
+    <para>Specifies the internal popup menu in which the titles of each open
+    application are displayed, should be popped up.  Selecting an item from the
+    list will cause the current desk to switch to the application's desk, and
+    will raise it if it's behind other windows.  If the application is currently
+    iconified, then it will be de-iconified normally.</para>
+
+    <para>Generally, if <emphasis remap='I'>arg1</emphasis> is an even number, then the windows will be listed
+    using the window name (the name that shows up in the title-bar); if
+    <emphasis remap='I'>arg1</emphasis> is an odd number, then the window's icon name is used.</para>
+
+    <para>Specifically, if <emphasis remap='I'>arg1</emphasis> is 0, 1 or 2, then all windows on all desks
+    will be shown.  If <emphasis remap='I'>arg1</emphasis> is 2 or 3, then only windows on the current
+    desk will be shown.  If <emphasis remap='I'>arg1</emphasis> is 4 or 5, then only windows on the
+    desk number specified with <emphasis remap='I'>arg2</emphasis>, will be shown.  Windows which have
+    WindowListSkip specified in their style will not be listed in the window
+    list.</para>
+ </listitem>
 </varlistentry>

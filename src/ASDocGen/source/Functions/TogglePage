@@ -1,6 +1,7 @@
 <varlistentry id="options.TogglePage">
-	<term>TogglePage</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
-	</listitem>
+    <term>TogglePage [<emphasis remap='I'>"name"</emphasis>]</term>
+    <listitem>
+	<para>Temporarily disables <emphasis remap='I'>EdgeScroll</emphasis>.  Edge scrolling can be re-enabled by
+	calling this again.</para>
+    </listitem>
 </varlistentry>

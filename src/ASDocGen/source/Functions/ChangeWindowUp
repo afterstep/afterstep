@@ -1,6 +1,10 @@
 <varlistentry id="options.ChangeWindowUp">
-	<term>ChangeWindowUp</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
-	</listitem>
+ <term>ChangeWindowUp [<emphasis remap='I'>"name" window_name</emphasis>]</term>
+ <listitem>
+    <para>Causes the pointer to move to the previous window in the list of windows
+    for which <emphasis remap='I'>CirculateSkip</emphasis> has not not been specified.</para>
+    <para>The mouse will jump to the first window whose name (or icon name or class)
+    matches <emphasis remap='I'>window_name</emphasis>. The <emphasis remap='I'>"name"</emphasis> entry then becomes required,
+    but serves no purpose if the function is not called from a menu or popup.</para>
+ </listitem>
 </varlistentry>

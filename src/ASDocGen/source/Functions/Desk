@@ -1,6 +1,12 @@
 <varlistentry id="options.Desk">
-	<term>Desk</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
-	</listitem>
+ <term>Desk <emphasis remap='I'>arg1</emphasis> [<emphasis remap='I'>arg2</emphasis>]</term>
+ <listitem>
+    <para>Changes current desk to another desk as surmised from the arguments
+    supplied.  If only <emphasis remap='I'>arg1</emphasis> is specified and is non-zero, then the
+    current desk will become "desk + arg1" and <emphasis remap='I'>arg2</emphasis> is ignored.
+    If <emphasis remap='I'>arg1</emphasis> is zero, then <emphasis remap='I'>arg2</emphasis> must be specified or no desk
+    change will occur; and <emphasis remap='I'>arg2</emphasis> will specify the desk to switch to.
+    Desk numbers are determined dynamically and must be between 2147483647
+    and -2147483648; meaning they can also be negative.</para>
+ </listitem>
 </varlistentry>

@@ -1,6 +1,6 @@
 <varlistentry id="options.Title">
-	<term>Title</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
-	</listitem>
+    <term>Title <emphasis remap='I'>"name"</emphasis></term>
+    <listitem>
+	<para>Insert a title line of heading <emphasis remap='I'>name</emphasis> into a popup or menu.</para>
+    </listitem>
 </varlistentry>

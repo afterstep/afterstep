@@ -1,6 +1,10 @@
 <varlistentry id="options.Iconify">
-	<term>Iconify</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
-	</listitem>
+    <term>Iconify [<emphasis remap='I'>"name"</emphasis>] [<emphasis remap='I'>value</emphasis>]</term>
+    <listitem>
+	<para>Iconifies a window if it is not already iconified, or de-iconifies it if
+	it is already iconified. If the optional argument <emphasis remap='I'>value</emphasis> is positive,
+	then only iconification will be allowed, and de-iconification will be
+	inhibited. If the optional argument is negative, only de-iconification will
+	be allowed.</para>
+    </listitem>
 </varlistentry>

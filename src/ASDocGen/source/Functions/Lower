@@ -1,6 +1,6 @@
 <varlistentry id="options.Lower">
-	<term>Lower</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
-	</listitem>
+    <term>Lower [<emphasis remap='I'>"name"</emphasis>]</term>
+    <listitem>
+	<para>Allows the user to lower a window.</para>
+    </listitem>
 </varlistentry>

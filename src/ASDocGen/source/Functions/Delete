@@ -1,6 +1,7 @@
 <varlistentry id="options.Delete">
-	<term>Delete</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
-	</listitem>
+    <term>Delete [<emphasis remap='I'>"name"</emphasis>]</term>
+    <listitem>
+	<para>Sends a WM_DELETE message to a window asking that it remove itself,
+	frequently causing the application to exit.</para>
+    </listitem>
 </varlistentry>

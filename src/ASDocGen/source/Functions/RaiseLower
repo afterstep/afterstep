@@ -1,6 +1,7 @@
 <varlistentry id="options.RaiseLower">
-	<term>RaiseLower</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
-	</listitem>
+    <term>RaiseLower [<emphasis remap='I'>"name"</emphasis>]</term>
+    <listitem>
+	<para>Alternately raises and lowers a window; i.e. if it's raised, the window
+	will lower, and vice versa.</para>
+    </listitem>
 </varlistentry>

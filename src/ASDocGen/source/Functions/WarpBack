@@ -1,6 +1,7 @@
 <varlistentry id="options.WarpBack">
-	<term>WarpBack</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
-	</listitem>
+ <term>WarpBack [<emphasis remap='I'>"name" window_name</emphasis>]</term>
+ <listitem>
+    <para>Same as <emphasis remap='I'>ChangeWindowDown</emphasis>, but uniconifies any iconified windows as it
+    focuses on them.</para>
+ </listitem>
 </varlistentry>

@@ -1,6 +1,7 @@
 <varlistentry id="options.PutOnBack">
-	<term>PutOnBack</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
-	</listitem>
+    <term>PutOnBack</term>
+    <listitem>
+	<para>Moves the target window to the bottom of its layer, or down one layer if
+	it is already at the bottom.</para>
+    </listitem>
 </varlistentry>

@@ -1,6 +1,7 @@
 <varlistentry id="options.Shade">
-	<term>Shade</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
-	</listitem>
+    <term>Shade [<emphasis remap='I'>"name"</emphasis>]</term>
+    <listitem>
+	<para>Emulates the MacOS WindowShade feature.  Once activated the window will
+	become a titlebar only.</para>
+    </listitem>
 </varlistentry>

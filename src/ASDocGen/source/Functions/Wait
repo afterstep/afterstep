@@ -1,6 +1,10 @@
 <varlistentry id="options.Wait">
-	<term>Wait</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
-	</listitem>
+ <term>Wait <emphasis remap='I'>app_name</emphasis></term>
+ <listitem>
+    <para>This is intended to be used in <command>afterstep</command> functions only. It causes
+    execution of a function to pause until a new window named <emphasis remap='I'>app_name</emphasis>
+    appears.  <command>afterstep</command> remains fully functional during a wait. This is
+    particularly useful in the InitFunction and RestartFunction, if you are
+    trying to start windows on specific desktops.</para>
+ </listitem>
 </varlistentry>

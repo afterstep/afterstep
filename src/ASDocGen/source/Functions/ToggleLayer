@@ -1,6 +1,8 @@
 <varlistentry id="options.ToggleLayer">
-	<term>ToggleLayer</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
-	</listitem>
+    <term>ToggleLayer <emphasis remap='I'>layer1</emphasis> <emphasis remap='I'>layer2</emphasis></term>
+    <listitem>
+	<para>Specifies that if the window is in <emphasis remap='I'>layer1</emphasis>, it should be placed in
+	<emphasis remap='I'>layer2</emphasis>.  Otherwise, it is placed in <emphasis remap='I'>layer1</emphasis>.  In either case,
+	the window will be placed on top of other windows in the target layer.</para>
+    </listitem>
 </varlistentry>

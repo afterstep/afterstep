@@ -1,6 +1,13 @@
 <varlistentry id="options.GotoPage">
-	<term>GotoPage</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
-	</listitem>
+ <term>GotoPage <emphasis remap='I'>x y</emphasis></term>
+ <listitem>
+    <para>Moves the desktop view to page <emphasis remap='I'>x y</emphasis>. The upper left page is (0,0),
+    the upper right is (N,0), where N is one less than the current number of
+    horizontal pages specified in the <emphasis remap='I'>DeskTopSize</emphasis> command detailed in the
+    <emphasis remap='B'>Pager(1)</emphasis> man page. The lower left page is (0,M), and the lower right
+    page is (N,M), where M is the desktop's vertical size as specified in the
+    <emphasis remap='I'>DeskTopSize</emphasis> command.</para>
+
+    <para>The GotoPage function should not be used in a pop-up menu.</para>
+ </listitem>
 </varlistentry>

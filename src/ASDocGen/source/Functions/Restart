@@ -1,6 +1,10 @@
 <varlistentry id="options.Restart">
-	<term>Restart</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
+    <term>Restart <emphasis remap='I'>"name"</emphasis> <emphasis remap='I'>WindowManagerName</emphasis></term>
+    <listitem>
+	<para>Restarts <emphasis remap='B'>X(1)</emphasis> with the given <emphasis remap='I'>WindowManagerName</emphasis>.  If
+        <emphasis remap='I'>WindowManagerName</emphasis> is<command>afterstep</command>, then this forces
+	<command>afterstep</command> to reread all of its configuration files and reinitiate
+	the session.  If <emphasis remap='I'>WindowManagerName</emphasis> is not in the default search
+	path, then the full path name should be given.</para>
 	</listitem>
 </varlistentry>

@@ -1,6 +1,10 @@
 <varlistentry id="options.Nop">
-	<term>Nop</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
-	</listitem>
+    <term>Nop ""</term>
+    <listitem>
+	<para>Inserts a horizontal line (&lt;HR&gt; type html line) in a menu entry list.</para>
+    </listitem>
+    <term>Nop "name"</term>
+    <listitem>
+	<para>Inserts a <emphasis remap='I'>name</emphasis> in the menu, stippled (disabled and grayed-out).</para>
+    </listitem>
 </varlistentry>

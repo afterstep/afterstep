@@ -1,6 +1,45 @@
 <varlistentry id="options.PopUp">
-	<term>PopUp</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
-	</listitem>
+ <term>PopUp <emphasis remap='I'>"popup_name"</emphasis></term>
+ <listitem>
+    <para>There are two situations where this might occur; as a popup menu stanza
+    definition, or in calling a previously defined menu declaration.</para>
+
+    <literallayout remap='.nf'>
+    Popup <emphasis remap='I'>"popup_name"</emphasis>
+    built-in_command  <emphasis remap='I'>"name"</emphasis> [<emphasis remap='I'>argument</emphasis>]
+    EndPopup
+    </literallayout> <!-- .fi -->
+
+    <para>Specfies the definition of a complex menu popup <emphasis remap='I'>"popup_name"</emphasis>, which
+    can be bound to a mouse button or key using <emphasis remap='I'>"popup_name"</emphasis> to recall
+    this declaration.  <emphasis remap='I'>built-in_command</emphasis> specifies which command will be
+    performed, utilizing it's syntax from this list of Built-In
+    Commands/Functions. <emphasis remap='I'>"name"</emphasis> specifies the name which will appear
+    within the menu for the given item, and additionally any <emphasis remap='I'>arguments</emphasis>
+    needed by the <emphasis remap='I'>built-in_command</emphasis>.  The Popup definition ends with the
+    keyword EndPopup. Sub-menus can be created by calling the Popup built-in
+    within another Popup declaration, as long as that sub-menu was defined
+    earlier in the configuration file.</para>
+
+    <para>Shortcut keys may be specified in the menu definition by preceding a
+    character with an ampersand. The ampersand will not be displayed, but the
+    character after it will be displayed at the right side of the same entry.
+    <!--  and if the user presses the corresponding key, then that item will be -->
+    <!--  activated as if it had been clicked upon. -->
+    Only alphanumeric characters
+    may be used as shortcut keys.  The shift state of the keyboard is ignored
+    when testing shortcut characters.</para>
+    <!--  Shortcut keys are not operative unless MENU_HOTKEYS was defined when -->
+    <!--  building AfterStep. If WINDOWLIST_HOTKETS was also defined, then hot -->
+    <!--  keys are automatically added to the WindowList when it is displayed. -->
+
+    <para>When calling a previously defined menu or a menu from a key-stroke
+    combination, Popup is simply used as a built-in command with the
+    <emphasis remap='I'>"name"</emphasis> referring to the previously defined Popup definitions name.</para>
+
+    <para>Popups can be bound to keys through the use of the key modifier. Popups
+    can be operated without using the mouse by binding to keys, and operating
+    via the up arrow, down arrow, and enter keys.  Refer to the <emphasis remap='I'>feel.name</emphasis>
+    files and below in EXAMPLES for examples.</para>
+ </listitem>
 </varlistentry>

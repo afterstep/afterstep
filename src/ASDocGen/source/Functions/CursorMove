@@ -1,6 +1,10 @@
 <varlistentry id="options.CursorMove">
-	<term>CursorMove</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
-	</listitem>
+ <term>CursorMove <emphasis remap='I'>horizontal vertical</emphasis></term>
+ <listitem>
+    <para>Moves the mouse pointer by <emphasis remap='I'>horizontal</emphasis> views in the x-direction, and
+    <emphasis remap='I'>vertical</emphasis> views in the y-direction. Either or both entries may be
+    negative. Both <emphasis remap='I'>horizontal</emphasis> and <emphasis remap='I'>vertical</emphasis> values are expressed in
+    percent of pages, so 100 would be one full view.</para>
+    <para>The CursorMove function should not be called from pop-up menus.</para>
+ </listitem>
 </varlistentry>

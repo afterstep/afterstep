@@ -1,6 +1,50 @@
 <varlistentry id="options.Function">
-	<term>Function</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
-	</listitem>
+<term>Function <emphasis remap='I'>"function_name"</emphasis></term>
+<listitem>
+<para>There are also two situations where this might occur as well; as a function
+definition stanza, or in calling a previously defined function decleration.</para>
+
+<literallayout remap='.nf'>
+Function <emphasis remap='I'>"function_name"</emphasis>
+    built-in_file <command>"action"</command> [<emphasis remap='I'>argument</emphasis>]
+EndFunction
+</literallayout> <!-- .fi -->
+
+<para>Specifies the definition of a complex function <emphasis remap='I'>"function_name"</emphasis>,
+which can later be bound to a mouse button or key using
+<emphasis remap='I'>"function_name"</emphasis> to recall this declaration.  <emphasis remap='I'>built-in_command</emphasis>
+specifies which command will be performed, taking its syntax from this
+list of Built-In Commands/Functions. <emphasis remap='I'>"action"</emphasis> specifies the action
+to take followed by any additional <emphasis remap='I'>arguments</emphasis> needed by the
+<emphasis remap='I'>built-in_command</emphasis>. Menus can be specified by using the <emphasis remap='I'>Popup</emphasis>
+command, as long as the menu was defined earlier in the configuration file.</para>
+
+<para>The trigger <emphasis remap='I'>actions</emphasis> which are recognized are Immediate (can be
+shortened to "I"), Motion, Click, DoubleClick and TripleClick. Immediate
+actions are executed as soon as the function is activated, even if a window
+has not been selected. If there are actions other than immediate ones,
+<command>afterstep</command> will wait to see if the user is clicking, double-clicking,
+triple-clicking or dragging the mouse; then will execute only the built-ins
+from the function definition whose trigger action matches the action
+performed by the user.  The clicking, double-clicking and triple-clicking
+concepts do not carry through to using keyboard shortcuts.</para>
+
+<para>Two special functions exist: InitFunction and RestartFunction. The
+InitFunction will be called when <command>afterstep</command> is started for the first
+time in any X session, and can be used to start modules and begin programs.
+The RestartFunction will be called when <command>afterstep</command> is restarted. It can
+be used to re-start modules but probably should not be used to start
+programs.  These two functions are defined in the <emphasis remap='I'>autoexec</emphasis> file.</para>
+
+<para>When calling a previously defined Function or a Function from a key-stroke
+combination, Function is simply used as a built-in command using the
+previously defined <emphasis remap='I'>"action"</emphasis> from the same <emphasis remap='I'>function_name</emphasis>.</para>
+
+<literallayout remap='.nf'>
+Function <emphasis remap='I'>built-in_command</emphasis> <emphasis remap='I'>"action"</emphasis> <emphasis remap='I'>function_name</emphasis>
+</literallayout> <!-- .fi -->
+
+<para>Refer to the <emphasis remap='I'>feel.name</emphasis> files and below in EXAMPLES for examples.</para>
+
+</listitem>
 </varlistentry>
