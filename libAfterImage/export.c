@@ -352,7 +352,7 @@ ASImage2png ( ASImage *im, const char *path, register ASImageExportParams *param
 	/* lets see if we have alpha channel indeed : */
 	if( has_alpha )
 	{
-		if( !get_flags( get_asimage_chanmask(im), SCL_DO_ALPHA) );
+		if( !get_flags( get_asimage_chanmask(im), SCL_DO_ALPHA) )
 			has_alpha = False ;
 	}
 	png_set_IHDR(png_ptr, info_ptr, im->width, im->height, 8,
@@ -661,7 +661,7 @@ Bool ASImage2gif( ASImage *im, const char *path,  ASImageExportParams *params )
 	if( params == NULL )
 		params = (ASImageExportParams *)&defaults ;
 
-	mapped_im = colormap_asimage( im, &cmap, 256, params->gif.dither, params->gif.opaque_threshold );
+	mapped_im = colormap_asimage( im, &cmap, 255, params->gif.dither, params->gif.opaque_threshold );
 
 	while( cmap_size < 256 && cmap_size < cmap.count )
 		cmap_size = cmap_size<<1 ;
@@ -718,8 +718,18 @@ Bool ASImage2gif( ASImage *im, const char *path,  ASImageExportParams *params )
 				FreeMapObject(gif_src.SColorMap);
 			}
 			if( gif )
+			{
+				if( get_flags( params->gif.flags, EXPORT_ALPHA) &&
+					get_flags( get_asimage_chanmask(im), SCL_DO_ALPHA) )
+				{
+					unsigned char bytes[5] = {0xff, 0xff, 0xff, 0xff, 0x00 };
+					bytes[4] = cmap.count ;
+					EGifPutExtension(gif, 0xf9, 5, &(bytes[0]));
+				}
+
 				if( EGifPutImageDesc(gif, 0, 0, im->width, im->height, FALSE, (dont_save_cmap)?NULL:gif_cmap ) == GIF_ERROR )
 					ASIM_PrintGifError();
+			}
 		}
 		free_gif_saved_images( images, count );
 	}
@@ -735,9 +745,17 @@ Bool ASImage2gif( ASImage *im, const char *path,  ASImageExportParams *params )
 	{
 		if( EGifPutScreenDesc(gif, im->width, im->height, cmap_size, 0, gif_cmap ) == GIF_ERROR )
 			ASIM_PrintGifError();
+		if( get_flags( params->gif.flags, EXPORT_ALPHA) &&
+			get_flags( get_asimage_chanmask(im), SCL_DO_ALPHA) )
+		{
+			unsigned char bytes[5] = {0xff, 0xff, 0xff, 0xff, 0x00 };
+			bytes[4] = cmap.count ;
+			EGifPutExtension(gif, 0xf9, 5, &(bytes[0]));
+		}
 		if( EGifPutImageDesc(gif, 0, 0, im->width, im->height, FALSE, NULL ) == GIF_ERROR )
 			ASIM_PrintGifError();
 	}
+
 	if( gif_cmap )
 	{
 		FreeMapObject(gif_cmap);

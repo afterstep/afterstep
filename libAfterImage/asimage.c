@@ -1305,6 +1305,7 @@ move_asimage_channel( ASImage *dst, int channel_dst, ASImage *src, int channel_s
 {
 	if( !AS_ASSERT(dst) && !AS_ASSERT(src) && channel_src >= 0 && channel_src < IC_NUM_CHANNELS &&
 		channel_dst >= 0 && channel_dst < IC_NUM_CHANNELS )
+	{
 		if( dst->width == src->width )
 		{
 			register int i = MIN(dst->height, src->height);
@@ -1317,7 +1318,9 @@ move_asimage_channel( ASImage *dst, int channel_dst, ASImage *src, int channel_s
 				dst_rows[i] = src_rows[i] ;
 				src_rows[i] = NULL ;
 			}
-		}
+		}else
+			show_debug( __FILE__,__FUNCTION__,__LINE__, "images size differ : %d and %d", src->width, dst->width );
+	}
 }
 
 

@@ -1,6 +1,7 @@
 #ifndef AS_SOCKET_H_HEADER_INCLUDED
 #define AS_SOCKET_H_HEADER_INCLUDED
 
+#include "aslist.h"
 struct ASBiDirList;
 
 /* socket setup code :		 														   */
@@ -50,7 +51,9 @@ typedef struct ASFIFOQueue
 	/* output pipe : */
 	int fd ;
 	enum {
-
+		ASFS_Empty = 0,
+		ASFS_WritePending,
+		ASFS_Closed
 	} state ;
 	/* actuall queue : */
 	struct ASBiDirList  queue ;

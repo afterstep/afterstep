@@ -1255,9 +1255,13 @@ gif2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tabl
 
 			if( sp->ExtensionBlocks )
 				for ( y = 0; y < sp->ExtensionBlockCount; y++)
-			 		if( sp->ExtensionBlocks[y].Function == 0xf9 &&
+				{
+					if( sp->ExtensionBlocks[y].Function == 0xf9 &&
 			 			(sp->ExtensionBlocks[y].Bytes[1]&0x01))
+					{
 			   		 	transparent = (int) sp->ExtensionBlocks[y].Bytes[4];
+					}
+				}
 			cmap = gif->SColorMap ;
 
 			cmap = (sp->ImageDesc.ColorMap == NULL)?gif->SColorMap:sp->ImageDesc.ColorMap;

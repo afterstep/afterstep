@@ -107,8 +107,17 @@ get_gif_image_desc( GifFileType *gif, SavedImage *im )
 	end_pos = ftell(gif->UserData);
 	if( status == GIF_OK )
 	{
+		int ext_count = im->ExtensionBlockCount ;
+		ExtensionBlock	*ext_ptr = im->ExtensionBlocks ;
+
+		im->ExtensionBlocks = NULL ;
+		im->ExtensionBlockCount = 0 ;
+
 		free_gif_saved_image( im, True );
 		memset( im, 0x00, sizeof(SavedImage));
+
+		im->ExtensionBlocks = ext_ptr ;
+		im->ExtensionBlockCount = ext_count ;
 
 		memcpy( &(im->ImageDesc), &(gif->Image), sizeof(GifImageDesc));
 		if( gif->Image.ColorMap )
@@ -145,11 +154,12 @@ get_gif_saved_images( GifFileType *gif, int subimage, SavedImage **ret, int *ret
 				{
 					int size = temp_save.ImageDesc.Width*temp_save.ImageDesc.Height ;
 					temp_save.RasterBits = realloc( temp_save.RasterBits, size );
-
 					if ((status = DGifGetLine(gif, (unsigned char*)temp_save.RasterBits, size))== GIF_OK)
 					{
 						if( curr_image == subimage || subimage < 0 )
+						{
 							append_gif_saved_image( &temp_save, ret, &(ret_count));
+						}
 					}
 					++curr_image ;
 				}
@@ -160,7 +170,7 @@ get_gif_saved_images( GifFileType *gif, int subimage, SavedImage **ret, int *ret
 				while (ExtData != NULL && status == GIF_OK )
 				{
             		/* Create an extension block with our data */
-            		if ((status = AddExtensionBlock(&temp_save, ExtData[0], (char*)&ExtData[1])) == GIF_OK)
+            		if ((status = AddExtensionBlock(&temp_save, ExtData[0], (char*)&(ExtData[1]))) == GIF_OK)
 				    	status = DGifGetExtensionNext(gif, &ExtData);
             		temp_save.Function = 0;
 				}

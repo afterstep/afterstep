@@ -26,9 +26,9 @@ unsigned int get_output_threshold();
 #define OUTPUT_LEVEL_ERROR          1
 #define OUTPUT_LEVEL_WARNING        4
 #define OUTPUT_DEFAULT_THRESHOLD    5
-#define OUTPUT_LEVEL_PROGRESS       OUTPUT_DEFAULT_THRESHOLD
-#define OUTPUT_LEVEL_ACTIVITY       OUTPUT_DEFAULT_THRESHOLD
-#define OUTPUT_VERBOSE_THRESHOLD    6
+#define OUTPUT_LEVEL_PROGRESS       OUTPUT_DEFAULT_THRESHOLD+1
+#define OUTPUT_LEVEL_ACTIVITY       OUTPUT_DEFAULT_THRESHOLD+2
+#define OUTPUT_VERBOSE_THRESHOLD    OUTPUT_DEFAULT_THRESHOLD+3
 #define OUTPUT_LEVEL_DEBUG          10   /* anything above it is hardcore debugging */
 
 unsigned int set_output_level( unsigned int level );

@@ -99,6 +99,7 @@ void usage(void) {
 		"  -t --type type     type of file to output to\n"
 		"  -v --version       display version and exit\n"
 		"  -V --verbose       increase verbosity\n"
+		"  -D --debug         show everything and debug messages\n"
 	);
 #else /* X_DISPLAY_MISSING */
 	printf(
@@ -111,6 +112,7 @@ void usage(void) {
 		"  -t --type type     type of file to output to\n"
 		"  -v --version       display version and exit\n"
 		"  -V --verbose       increase verbosity\n"
+		"  -D --debug         show everything and debug messages\n"
 	);
 #endif /* X_DISPLAY_MISSING */
 }
@@ -127,7 +129,6 @@ int main(int argc, char** argv) {
 
 	/* see ASView.1 : */
 	set_application_name(argv[0]);
-
 	// Parse command line.
 	for (i = 1 ; i < argc ; i++) {
 		if (!strcmp(argv[i], "--help") || !strcmp(argv[i], "-h")) {
@@ -138,7 +139,15 @@ int main(int argc, char** argv) {
 			version();
 			exit(0);
 		} else if (!strcmp(argv[i], "--verbose") || !strcmp(argv[i], "-V")) {
+#if (HAVE_AFTERBASE_FLAG==1)
+			set_output_threshold(OUTPUT_VERBOSE_THRESHOLD);
+#endif
 			verbose++;
+		} else if (!strcmp(argv[i], "--debug") || !strcmp(argv[i], "-D")) {
+#if (HAVE_AFTERBASE_FLAG==1)
+			set_output_threshold(OUTPUT_LEVEL_DEBUG);
+#endif
+			verbose+=2;
 		} else if (!strcmp(argv[i], "--no-display") || !strcmp(argv[i], "-n")) {
 			display = 0;
 		} else if ((!strcmp(argv[i], "--file") || !strcmp(argv[i], "-f")) && i < argc + 1) {
@@ -175,7 +184,7 @@ int main(int argc, char** argv) {
 	doc = xml_parse_doc(doc_str);
 	if (verbose > 1) {
 		xml_print(doc);
-		printf("\n");
+		fprintf(stderr, "\n");
 	}
 
 	if (doc_str && doc_str != default_doc_str) free(doc_str);
@@ -208,9 +217,9 @@ int main(int argc, char** argv) {
 	// Save the result image if desired.
 	if (doc_save && doc_save_type) {
 		if(!save_file(doc_save, im, doc_save_type)) {
-			printf("Save failed.\n");
+			show_error("Save failed.");
 		} else {
-			printf("Save successful.\n");
+			show_error("Save successful.");
 		}
 	}
 
@@ -270,7 +279,7 @@ Bool save_file(const char* file2bsaved, ASImage *im, const char* strtype) {
 	} else if (!mystrcasecmp(strtype, "tiff")) {
 		type = ASIT_Tiff;
 	} else {
-		printf("File type not found.\n");
+		show_error("File type not found.");
 		return(0);
 	}
 
@@ -352,13 +361,13 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 		if (src && !strcmp(src, "xroot:")) {
 			unsigned int width, height;
 			Pixmap rp = GetRootPixmap(None);
-			if (verbose) printf("Getting root pixmap.\n");
+			show_progress("Getting root pixmap.");
 			if (rp) {
 				get_drawable_size(rp, &width, &height);
 				result = pixmap2asimage(asv, rp, 0, 0, width, height, 0xFFFFFFFF, False, 100);
 			}
 		} else if (src) {
-			if (verbose) printf("Loading image [%s].\n", src);
+			show_progress("Loading image [%s].", src);
 			result = file2ASImage(src, 0xFFFFFFFF, SCREEN_GAMMA, 100, NULL);
 		}
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
@@ -372,10 +381,10 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 			if (!strcmp(ptr->tag, "srcid")) srcid = ptr->parm;
 		}
 		if (srcid) {
-			if (verbose) printf("Recalling image id [%s].\n", srcid);
+			show_progress("Recalling image id [%s].", srcid);
 			get_hash_item(image_hash, (ASHashableValue)(char*)srcid, (void**)&result);
 			if (result) result->ref_count++;
-			if (verbose > 1 && !result) printf("Image recall failed.\n");
+			else show_error("Image recall failed for id [%s].", srcid);
 		}
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
@@ -405,7 +414,7 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 		}
 		if (text && point > 0) {
 			struct ASFont *font = NULL;
-			if (verbose) printf("Rendering text [%s] with font [%s] size [%d].\n", text, font_name, point);
+			show_progress("Rendering text [%s] with font [%s] size [%d].", text, font_name, point);
 			if (!fontman) fontman = create_font_manager(dpy, NULL, NULL);
 			if (fontman) font = get_asfont(fontman, font_name, 0, point, ASF_GuessWho);
 			if (font != NULL) {
@@ -414,7 +423,7 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 				if (result && fgimage_str) {
 					ASImage* fgimage = NULL;
 					get_hash_item(image_hash, (ASHashableValue)(char*)fgimage_str, (void**)&fgimage);
-					if (verbose > 1) printf("Using image [%s] as foreground.\n", fgimage_str);
+					show_progress("Using image [%s] as foreground.", fgimage_str);
 					if (fgimage) {
 						fgimage = tile_asimage(asv, fgimage, 0, 0, result->width, result->height, 0, ASA_ASImage, 100, ASIMAGE_QUALITY_TOP);
 						move_asimage_channel(fgimage, IC_ALPHA, result, IC_ALPHA);
@@ -475,11 +484,11 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 			for (ptr = doc->child ; ptr && !result ; ptr = ptr->next) {
 				result = build_image_from_xml(ptr, NULL);
 			}
-			if (verbose > 1 && autoext)
-				printf("No format given.  File extension [%s] used as format.\n", ext);
-			if (verbose) printf("Saving image to file [%s].\n", dst);
+			if (autoext)
+				show_warning("No format given.  File extension [%s] used as format.", ext);
+			show_progress("Saving image to file [%s].", dst);
 			if (result && !save_file(dst, result, ext)) {
-				fprintf(stderr, "Unable to save image.\n");
+				show_error("Unable to save image into file [%s].", dst);
 			}
 		}
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
@@ -530,7 +539,7 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 			bevel.hihi_color = bevel.hi_color;
 			bevel.hilo_color = bevel.hi_color;
 			bevel.lolo_color = bevel.lo_color;
-			if (verbose) printf("Generating bevel with offsets [%d %d %d %d] and colors [#%08x #%08x].\n", bevel.left_inline, bevel.top_inline, bevel.right_inline, bevel.bottom_inline, (unsigned int)bevel.hi_color, (unsigned int)bevel.lo_color);
+			show_progress("Generating bevel with offsets [%d %d %d %d] and colors [#%08x #%08x].", bevel.left_inline, bevel.top_inline, bevel.right_inline, bevel.bottom_inline, (unsigned int)bevel.hi_color, (unsigned int)bevel.lo_color);
 			init_image_layers( &layer, 1 );
 			layer.im = imtmp;
 			layer.clip_width = imtmp->width;
@@ -651,10 +660,10 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 						gradient.offset[i] = 1.0 - gradient.offset[i];
 					}
 				}
-				if (verbose) printf("Generating [%dx%d] gradient with angle [%f] and npoints [%d/%d].\n", width, height, angle, npoints1, npoints2);
+				show_progress("Generating [%dx%d] gradient with angle [%f] and npoints [%d/%d].", width, height, angle, npoints1, npoints2);
 				if (verbose > 1) {
 					for (i = 0 ; i < gradient.npoints ; i++) {
-						printf("  Point [%d] has color [#%08x] and offset [%f].\n", i, (unsigned int)gradient.color[i], gradient.offset[i]);
+						show_progress("  Point [%d] has color [#%08x] and offset [%f].", i, (unsigned int)gradient.color[i], gradient.offset[i]);
 					}
 				}
 				result = make_gradient(asv, &gradient, width, height, SCL_DO_ALL, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
@@ -678,7 +687,7 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 			result = mirror_asimage(asv, imtmp, 0, 0, imtmp->width, imtmp->height, dir, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
 			my_destroy_asimage(imtmp);
 		}
-		if (verbose) printf("Mirroring image [%sally].\n", dir ? "horizont" : "vertic");
+		show_progress("Mirroring image [%sally].", dir ? "horizont" : "vertic");
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
 
@@ -698,7 +707,7 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 			result = blur_asimage_gauss(asv, imtmp, horz, vert, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
 			my_destroy_asimage(imtmp);
 		}
-		if (verbose) printf("Blurring image.\n");
+		show_progress("Blurring image.");
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
 
@@ -728,7 +737,7 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 			if (dir) {
 				result = flip_asimage(asv, imtmp, 0, 0, imtmp->width, imtmp->height, dir, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
 				my_destroy_asimage(imtmp);
-				if (verbose) printf("Rotating image [%f degrees].\n", angle);
+				show_progress("Rotating image [%f degrees].", angle);
 			} else {
 				result = imtmp;
 			}
@@ -769,7 +778,7 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 				result = scale_asimage(asv, imtmp, width, height, ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT);
 				my_destroy_asimage(imtmp);
 			}
-			if (verbose) printf("Scaling image to [%dx%d].\n", width, height);
+			show_progress("Scaling image to [%dx%d].", width, height);
 		}
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
@@ -815,7 +824,7 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 				result = tile_asimage(asv, imtmp, srcx, srcy, width, height, 0, ASA_ASImage, 100, ASIMAGE_QUALITY_TOP);
 				my_destroy_asimage(imtmp);
 			}
-			if (verbose) printf("Cropping image to [%dx%d].\n", width, height);
+			show_progress("Cropping image to [%dx%d].", width, height);
 		}
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
@@ -853,7 +862,7 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 				result = tile_asimage(asv, imtmp, 0, 0, width, height, 0, ASA_ASImage, 100, ASIMAGE_QUALITY_TOP);
 				my_destroy_asimage(imtmp);
 			}
-			if (verbose) printf("Tiling image to [%dx%d].\n", width, height);
+			show_progress("Tiling image to [%dx%d].", width, height);
 		}
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
@@ -887,7 +896,7 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 		if (width && height) {
 			result = create_asimage(width, height, ASIMAGE_QUALITY_TOP);
 			if (result) fill_asimage(asv, result, 0, 0, width, height, color);
-			if (verbose) printf("Creating solid color [#%08x] image [%dx%d].\n", (unsigned int)color, width, height);
+			show_progress("Creating solid color [#%08x] image [%dx%d].", (unsigned int)color, width, height);
 		}
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
@@ -965,17 +974,13 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 				height = layers[0].im->height;
 			}
 
-			if (verbose) {
-				printf("Compositing [%d] image(s) with op [%s].  Final geometry [%dx%d].", num, pop, width, height);
-				if (keep_trans) printf("  Keeping transparency.");
-				printf("\n");
-			}
+			show_progress("Compositing [%d] image(s) with op [%s].  Final geometry [%dx%d].", num, pop, width, height);
+			if (keep_trans) show_progress("  Keeping transparency.");
 			if (verbose > 1) {
 				int i;
 				for (i = 0 ; i < num ; i++) {
-					printf("  Image [%d] geometry [%dx%d+%d+%d]", i, layers[i].clip_width, layers[i].clip_height, layers[i].dst_x, layers[i].dst_y);
-					if (layers[i].tint) printf(" tint (#%08x)", (unsigned int)layers[i].tint);
-					printf(".\n");
+					show_progress("  Image [%d] geometry [%dx%d+%d+%d]", i, layers[i].clip_width, layers[i].clip_height, layers[i].dst_x, layers[i].dst_y);
+					if (layers[i].tint) show_progress(" tint (#%08x)", (unsigned int)layers[i].tint);
 				}
 			}
 
@@ -1008,7 +1013,7 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 
 	if (id && result) {
 		ASImage* imtmp = NULL;
-		if (verbose > 1) printf("Storing image id [%s].\n", id);
+		show_progress("Storing image id [%s].", id);
 		remove_hash_item(image_hash, (ASHashableValue)id, (void**)&imtmp, 1);
 		if (imtmp) my_destroy_asimage(imtmp);
 		add_hash_item(image_hash, (ASHashableValue)id, result);
@@ -1020,8 +1025,11 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 
 void my_destroy_asimage(ASImage* image) {
 	image->ref_count--;
-	if (verbose > 1 && image->ref_count < 0) printf("Destroying image [%08lx] with refcount [%d].\n", (unsigned long)image, image->ref_count);
-	if (image->ref_count < 0) destroy_asimage(&image);
+	if (image->ref_count < 0)
+	{
+		show_progress("Destroying image [%08lx] with refcount [%d].", (unsigned long)image, image->ref_count);
+		destroy_asimage(&image);
+	}
 }
 
 // Math expression parsing algorithm.  The basic math ops (add, subtract,
@@ -1059,9 +1067,7 @@ double parse_math(const char* str, char** endptr, double size) {
 		}
 	}
 	if (endptr) *endptr = (char*)str;
-	if (verbose > 2) {
-		printf("Parsed math [%s] with reference [%.2f] into number [%.2f].\n", startptr, size, total);
-	}
+	show_debug(__FILE__,__FUNCTION__,__LINE__,"Parsed math [%s] with reference [%.2f] into number [%.2f].", startptr, size, total);
 	return total;
 }
 
@@ -1129,23 +1135,23 @@ xml_elem_t* xml_parse_parm(const char* parm) {
 void xml_print(xml_elem_t* root) {
 	xml_elem_t* child;
 	if (!strcmp(root->tag, cdata_str)) {
-		printf("%s", root->parm);
+		fprintf(stderr, "%s", root->parm);
 	} else {
-		printf("<%s", root->tag);
+		fprintf(stderr, "<%s", root->tag);
 		if (root->parm) {
 			xml_elem_t* parm = xml_parse_parm(root->parm);
 			while (parm) {
 				xml_elem_t* p = parm->next;
-				printf(" %s=\"%s\"", parm->tag, parm->parm);
+				fprintf(stderr, " %s=\"%s\"", parm->tag, parm->parm);
 				free(parm->tag);
 				free(parm->parm);
 				free(parm);
 				parm = p;
 			}
 		}
-		printf(">");
+		fprintf(stderr, ">");
 		for (child = root->child ; child ; child = child->next) xml_print(child);
-		printf("</%s>", root->tag);
+		fprintf(stderr, "</%s>", root->tag);
 	}
 }
 
