@@ -1,6 +1,7 @@
 
 2004-11-30  sasha
 
+	* AfterStep 2.00.01 release
 	* added a configure option --disable-data-reinstall just for MG_Tak
 	  - it prevents image, font files from being copied over existing
 	  ones, and prevents HTML catalogue from being generated;
