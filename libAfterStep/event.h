@@ -146,7 +146,7 @@ void add_window_event_mask( Window w, long event_mask );
 
 #if !defined(EVENT_TRACE) || defined(NO_DEBUG_OUTPUT)
 #define SHOW_EVENT_TRACE(event) \
-	do{ if( get_output_threshold() >= OUTPUT_LEVEL_DEBUG ){ \
+    do{ if( get_output_threshold() >= OUTPUT_LEVEL_DEBUG ){ \
         	show_progress("****************************************************************"); \
         	show_progress("%s:%s:%d><<EVENT type(%d(%s))->x.window(%lx)->event.w(%lx)->client(%p)->context(%s)->send_event(%d)", __FILE__, __FUNCTION__, __LINE__, event->x.type, event_type2name((event)->x.type), (event)->x.xany.window, (event)->w, (event)->client, context2text((event)->context), (event)->x.xany.send_event); \
     	}}while(0)

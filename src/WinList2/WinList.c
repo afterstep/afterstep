@@ -226,15 +226,17 @@ CheckConfigSanity()
     if( get_flags(Config->geometry.flags, YNegative) )
         Config->anchor_y += Scr.MyDisplayHeight ;
 
+    mystyle_get_property (Scr.wmprops);
+
+    /* we better not do this to introduce ppl to new concepts in WinList : */
+#if 0
     if( Config->focused_style == NULL )
         Config->focused_style = mystrdup( default_winlist_style );
     if( Config->unfocused_style == NULL )
         Config->unfocused_style = mystrdup( default_winlist_style );
     if( Config->sticky_style == NULL )
         Config->sticky_style = mystrdup( default_winlist_style );
-    free( default_winlist_style );
-
-    mystyle_get_property (Scr.wmprops);
+#endif
 
     Scr.Look.MSWindow[BACK_UNFOCUSED] = mystyle_find( Config->unfocused_style );
     Scr.Look.MSWindow[BACK_FOCUSED] = mystyle_find( Config->focused_style );
@@ -242,10 +244,13 @@ CheckConfigSanity()
 
     for( i = 0 ; i < BACK_STYLES ; ++i )
     {
-        static char *default_window_style_name[BACK_STYLES] ={"focused_window_style","sticky_window_style","unfocused_window_style", NULL};
+        static char *default_window_style_name[BACK_STYLES] ={"focused_window_style","unfocused_window_style","sticky_window_style", NULL};
         if( Scr.Look.MSWindow[i] == NULL )
-            Scr.Look.MSWindow[i] = mystyle_find_or_default( default_window_style_name[i] );
+            Scr.Look.MSWindow[i] = mystyle_find( default_window_style_name[i] );
+        if( Scr.Look.MSWindow[i] == NULL )
+            Scr.Look.MSWindow[i] = mystyle_find_or_default( default_winlist_style );
     }
+    free( default_winlist_style );
 
 #if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
     PrintWinListConfig (Config);

@@ -103,7 +103,8 @@ CreateWinListConfig ()
 	config->show_name_type = ASN_Name;
     config->name_aligment = ALIGN_CENTER;
     config->balloon_conf = NULL;
-    config->h_spacing = config->h_spacing = DEFAULT_TBAR_SPACING;
+    config->h_spacing = config->v_spacing = DEFAULT_TBAR_SPACING;
+    config->fbevel = config->ubevel = config->sbevel = DEFAULT_TBAR_HILITE ;
 
 	return config;
 }
@@ -163,6 +164,8 @@ PrintWinListConfig (WinListConfig * config)
     fprintf (stderr, "WinListConfig.fcm = %d;\n", config->fcm);
     fprintf (stderr, "WinListConfig.ucm = %d;\n", config->ucm);
     fprintf (stderr, "WinListConfig.scm = %d;\n", config->scm);
+    fprintf (stderr, "WinListConfig.h_spacing = %d;\n", config->h_spacing);
+    fprintf (stderr, "WinListConfig.v_spacing = %d;\n", config->v_spacing);
 
 	fprintf (stderr, "WinListConfig.unfocused_style = %p;\n", config->unfocused_style);
 	if (config->unfocused_style)

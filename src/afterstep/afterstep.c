@@ -442,13 +442,28 @@ CaptureAllWindows (ScreenInfo *scr)
 
     /* map all the rest of the windows : */
     for (i = 0; i < nchildren; i++)
-        if (children[i] && window2ASWindow (children[i]) == NULL )
+        if (children[i] )
         {
-            /* weed out override redirect windows and unmapped windows : */
             unsigned long nitems = 0;
             unsigned long *state_prop = NULL ;
             int wm_state = DontCareState ;
+            int k ;
+            for( k = 0 ; k < 4 ; ++k )
+                if( children[i] == Scr.PanFrame[k].win )
+                {
+                    children[i] = None ;
+                    break;
+                }
 
+            if( children[i] == None )
+                continue;
+
+            if( children[i] == Scr.SizeWindow || children[i] == Scr.ServiceWin )
+                continue;
+
+            if( window2ASWindow (children[i])  )
+                continue;
+            /* weed out override redirect windows and unmapped windows : */
             if ( !XGetWindowAttributes (dpy, children[i], &attr) )
                 continue;
             if( attr.override_redirect )
