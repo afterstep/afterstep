@@ -247,7 +247,7 @@ find_envvar (char *var_start, int *end_pos)
 		name_start++;
 		for (i = 1; var_start[i] && var_start[i] != '}'; i++);
 	} else
-		for (i = 0; isalnum (var_start[i]) || var_start[i] == '_'; i++);
+		for (i = 0; isalnum ((int)var_start[i]) || var_start[i] == '_'; i++);
 
 	backup = var_start[i];
 	var_start[i] = '\0';
@@ -378,14 +378,14 @@ is_executable_in_path (const char *name)
 	}
 
 	/* cut leading "exec" enclosed in spaces */
-	for (; isspace (*name); name++);
-	if (!mystrncasecmp(name, "exec", 4) && isspace (name[4]))
+	for (; isspace ((int)*name); name++);
+	if (!mystrncasecmp(name, "exec", 4) && isspace ((int)name[4]))
 		name += 4;
-	for (; isspace (*name); name++);
+	for (; isspace ((int)*name); name++);
 	if (*name == '\0')
 		return 0;
 
-	for (i = 0; name[i] && !isspace (name[i]); i++);
+	for (i = 0; name[i] && !isspace ((int)name[i]); i++);
 	if (i == 0)
 		return 0;
 

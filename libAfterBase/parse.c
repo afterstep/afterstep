@@ -132,8 +132,8 @@ stripcpy (const char *source)
 {
 	const char   *ptr;
 
-	for (; isspace (*source); source++);
-	for (ptr = source + strlen (source); ptr > source && isspace (*(ptr - 1)); ptr--);
+	for (; isspace ((int)*source); source++);
+	for (ptr = source + strlen (source); ptr > source && isspace ((int)*(ptr - 1)); ptr--);
 	return mystrndup (source, ptr - source);
 }
 
@@ -169,7 +169,7 @@ stripcomments (char *source)
 	register char *ptr;
 
 	/* remove comments from the line */
-	while (isspace (*source))
+	while (isspace ((int)*source))
 		source++;
 	for (ptr = (char *)source; *ptr; ptr++)
 	{
@@ -185,18 +185,18 @@ stripcomments (char *source)
 		{									   /* checking if it is not a hex color code */
 			int           i;
 
-			for (i = 1; isxdigit (*(ptr + i)); i++);
+			for (i = 1; isxdigit ((int)*(ptr + i)); i++);
 
-			if (i < 4 || i > 13 || (*(ptr + i) && !isspace (*(ptr + i))))
+			if (i < 4 || i > 13 || (*(ptr + i) && !isspace ((int)*(ptr + i))))
 			{
-				for (ptr--; ptr > source && isspace (*ptr); ptr--);
+				for (ptr--; ptr > source && isspace ((int)*ptr); ptr--);
 				*(ptr + 1) = '\0';
 				/* we'll exit the loop automagically */
 			} else
 				ptr += i - 1;
 		}
 	}
-	for (ptr--; isspace (*ptr) && ptr > source; ptr--);
+	for (ptr--; isspace ((int)*ptr) && ptr > source; ptr--);
 	*(ptr + 1) = '\0';
 	return source;
 }
@@ -207,10 +207,10 @@ strip_whitespace (char *str)
 	char         *ptr;
 
 	/* strip trailing whitespace */
-	for (ptr = str + strlen (str); ptr > str && isspace (*(ptr - 1)); ptr--)
+	for (ptr = str + strlen (str); ptr > str && isspace ((int)*(ptr - 1)); ptr--)
 		*(ptr - 1) = '\0';
 	/* skip leading whitespace */
-	for (ptr = str; isspace (*ptr); ptr++);
+	for (ptr = str; isspace ((int)*ptr); ptr++);
 	return ptr;
 }
 
@@ -227,8 +227,8 @@ tokencpy (const char *source)
 {
 	const char   *ptr;
 
-	for (; isspace (*source); source++);
-	for (ptr = source; !isspace (*ptr) && *ptr; ptr++);
+	for (; isspace ((int)*source); source++);
+	for (ptr = source; !isspace ((int)*ptr) && *ptr; ptr++);
 	return mystrndup (source, ptr - source);
 }
 
@@ -241,7 +241,7 @@ tokenskip( char *start, unsigned int n_tokens )
     if( cur == NULL ) return cur ;
     for (i = 0; i < n_tokens; i++)
 	{
-		while (!isspace (*cur) && *cur)
+		while (!isspace ((int)*cur) && *cur)
         {   /* we have to match doublequotes if we encounter any, to allow for spaces in filenames */
 			if (*cur == '"')
 			{
@@ -254,7 +254,7 @@ tokenskip( char *start, unsigned int n_tokens )
 			cur++;
 		}
 
-		while (isspace (*cur) && *cur)
+		while (isspace ((int)*cur) && *cur)
 			cur++;
 		if (*cur == '\0')
 			break;
@@ -293,7 +293,7 @@ quotestr (char *dest, const char *src, int maxlen)
 	n--;
 	while (n && *src)
 	{
-		if (!isalnum (*src) && n > 1)
+		if (!isalnum ((int)*src) && n > 1)
 		{
 			*dest++ = '\\';
 			n--;
@@ -317,8 +317,8 @@ parse_token (const char *source, char **trg)
 {
 	char         *ptr;
 
-	for (; isspace (*source); source++);
-	for (ptr = (char *)source; !isspace (*ptr) && *ptr; ptr++);
+	for (; isspace ((int)*source); source++);
+	for (ptr = (char *)source; !isspace ((int)*ptr) && *ptr; ptr++);
 	*trg = mystrndup (source, ptr - source);
 	return ptr;
 }
@@ -328,7 +328,7 @@ parse_tab_token (const char *source, char **trg)
 {
 	char         *ptr;
 
-	for (; isspace (*source); source++);
+	for (; isspace ((int)*source); source++);
 	for (ptr = (char *)source; *ptr != '\t' && *ptr; ptr++);
 	*trg = mystrndup (source, ptr - source);
 	return ptr;
@@ -337,7 +337,7 @@ parse_tab_token (const char *source, char **trg)
 char         *
 parse_filename (const char *source, char **trg)
 {
-	for (; isspace (*source); source++);
+	for (; isspace ((int)*source); source++);
 
 	if (*source == '"')
 	{
@@ -355,7 +355,7 @@ parse_signed_int (register char *tline, int *val_return, int *sign_return)
 	int  val = 0, sign = 0;
 	register int i = 0 ;
 
-	while (isspace (tline[i])) ++i;
+	while (isspace ((int)tline[i])) ++i;
 
 	switch( tline[i] )
 	{ /* handling constructs like --10 or -+10 which is equivalent to -0-10or -0+10 */
@@ -377,7 +377,7 @@ parse_signed_int (register char *tline, int *val_return, int *sign_return)
 		case 'X' :  sign = 4; break;
 	  default : --i ;
 	}
-	while (isdigit (tline[++i]))
+	while (isdigit ((int)tline[++i]))
 		val = val * 10 + (int)(tline[i] - '0');
 
 	if( val_return )
@@ -393,7 +393,7 @@ parse_func_args (char *tline, char *unit, int *func_val)
 	tline = parse_signed_int( tline, func_val, NULL );
 
 	*unit = *tline;
-	if (isspace (*tline))
+	if (isspace ((int)*tline))
 		*unit = '\0' ;
 	return tline[0]?tline+1:tline;
 }
@@ -557,7 +557,7 @@ get_comma_item (char *ptr, char **item_start, char **item_end)
 
 	if (ptr == NULL)
 		return NULL;
-	while (*ptr && (isspace (*ptr) || *ptr == ','))
+	while (*ptr && (isspace ((int)*ptr) || *ptr == ','))
 		ptr++;
 	if (*ptr == '\0')
 		return NULL;
@@ -568,7 +568,7 @@ get_comma_item (char *ptr, char **item_start, char **item_end)
 		if ((*item_end = find_doublequotes (ptr)) == NULL)
 			return NULL;
 		ptr = *item_end;
-		while (*ptr && !(isspace (*ptr) || *ptr == ','))
+		while (*ptr && !(isspace ((int)*ptr) || *ptr == ','))
 			ptr++;
 	} else
 	{
