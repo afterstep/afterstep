@@ -52,7 +52,7 @@ destroy_desk_session (ASDeskSession * session)
 			free (session->feel_file);
 #ifdef ASFEEL_HEADER_FILE_INCLUDED
         if (session->feel)
-			destroy_asfeel(&(session->feel));
+			destroy_asfeel(session->feel, False);
 #endif
         if (session->background_file)
 			free (session->background_file);
@@ -422,7 +422,7 @@ change_desk_session_feel (ASSession * session, int desk, struct ASFeel *feel)
 		}
 
 		if ( old_feel )
-			destroy_asfeel(&(old_feel));
+			destroy_asfeel(old_feel, False);
 	}
 #endif
 }

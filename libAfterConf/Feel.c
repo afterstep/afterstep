@@ -204,7 +204,7 @@ DestroyFeelConfig (FeelConfig * config)
     register int i ;
 
     if( config->feel )
-        destroy_asfeel( &(config->feel) );
+        destroy_asfeel( config->feel, False );
     if( config->menu_locations )
     {
         for( i = 0 ; i < config->menu_locs_num ; i++ )
