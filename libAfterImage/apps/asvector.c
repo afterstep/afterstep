@@ -8,11 +8,9 @@
  * NAME
  * ASVector
  * SYNOPSIS
- * libAfterImage application for drawing multipoint linear gradients.
+ * libAfterImage application for drawing image representing array of 
+ * floating point values ( scientiofic data ).
  * DESCRIPTION
- * New steps described in this tutorial are :
- * ASGrad.1. Building gradient specs.
- * ASGrad.2. Actual rendering gradient.
  * SEE ALSO
  * Tutorial 1: ASView  - explanation of basic steps needed to use
  *                       libAfterImage and some other simple things.
@@ -133,7 +131,21 @@ int main(int argc, char* argv[])
 	    if( dpy )
   		    XCloseDisplay (dpy);
 #else
-		ASImage2file( vect_im, NULL, "asvector.jpg", ASIT_Jpeg, NULL );
+		{
+			CARD8 * buffer ; 
+			int size ;		   
+	  		if( ASImage2PNGBuff( vect_im, &buffer, &size, NULL ) ) 
+			{
+				FILE * pf = fopen("asvector.png", "w" ) ; 
+				if( pf ) 
+				{
+					fwrite( buffer, size, 1, pf );
+					fclose(pf);
+				}	 
+			}else
+				show_error( "failed to encode image as PNG"); 	 
+		}
+		ASImage2file( vect_im, NULL, "asvector_copy.png", ASIT_Png, NULL );
 		destroy_asimage( &vect_im );
 #endif
 	}
@@ -141,70 +153,3 @@ int main(int argc, char* argv[])
 }
 /**************/
 
-/****f* libAfterImage/tutorials/ASGrad.1 [5.1]
- * SYNOPSIS
- * Step 1. Building gradient specs.
- * DESCRIPTION
- * Multipoint gradient is defined as set of color values with offsets
- * of each point from the beginning of the gradient on 1.0 scale.
- * Offsets of the first and last point in gradient should always be
- * 0. and 1.0 respectively, and other points should go in between.
- * For example 2 point gradient will have always offsets 0. and 1.0,
- * 3 points gradient will have 0. for first color, 1.0 for last color
- * and anything in between for middle color.
- * If offset is incorrect - point will be skipped at the time of
- * rendering.
- *
- * There are 4 types of gradients supported : horizontal, top-left to
- * bottom-right diagonal, vertical and top-right to bottom-left diagonal.
- * Any cilindrical gradient could be drawn as a 3 point gradient with
- * border colors being the same.
- *
- * Each gradient point has ARGB color, which means that it is possible
- * to draw gradients in alpha channel as well as RGB. That makes for
- * semitransparent gradients, fading gradients, etc.
- * EXAMPLE
- *  	grad.type = atoi( argv[2] );
- * 		grad.npoints = 0 ;
- * 		grad.color = safemalloc( ((argc-2)/2)*sizeof(ARGB32));
- * 		grad.offset = safemalloc( ((argc-2)/2)*sizeof(double));
- * 		while( ++i < argc )
- * 		{
- * 			if( grad.npoints > 0 )
- * 			{
- * 				if( i == argc-1 )
- * 					grad.offset[grad.npoints] = 1.0;
- * 				else
- * 					grad.offset[grad.npoints] = atof( argv[i] );
- * 				++i ;
- * 			}
- *  		if( parse_argb_color( argv[i], &(grad.color[grad.npoints]))
- *              != argv[i] )
- * 				if(grad.offset[grad.npoints] >= 0. &&
- *                 grad.offset[grad.npoints]<= 1.0 )
- * 					grad.npoints++ ;
- * 		}
- * SEE ALSO
- * ARGB32, parse_argb_color(), ASGradient
- ********/
-/****f* libAfterImage/tutorials/ASGrad.2 [5.2]
- * SYNOPSIS
- * Step 2. Actually rendering gradient.
- * DESCRIPTION
- * All that is needed to draw gradient is to call make_gradient(),
- * passing pointer to ASGradient structure, that describes gradient.
- * Naturally size of the gradient is needed too. Another parameter is
- * filter - that is a bit mask that allows to draw gradient using only a
- * subset of the channels, represented by set bits. SCL_DO_ALL means
- * that all 4 channels must be rendered.
- * make_gradient() creates ASImage of requested size and fills it with
- * gradient. Special techinque based on error diffusion is utilized to
- * avoid sharp steps between grades of colors when limited range of
- * colors is used for gradient.
- * EXAMPLE
- * 		grad_im = make_gradient( asv, &grad, to_width, to_height,
- * 		        	             SCL_DO_ALL,
- *  		                     ASA_XImage, 0, ASIMAGE_QUALITY_DEFAULT );
- * NOTES
- * make_gradient(), ASScanline, ASImage.
- ********/
