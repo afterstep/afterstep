@@ -306,11 +306,11 @@ LOCAL_DEBUG_OUT( "item.bar(%p)->look(%p)", item->bar, look );
             add_astbar_spacer( item->bar, 1, 0, 0, NO_ALIGN, arrow_space, 1 );
     }
 #endif
-//        add_astbar_spacer( item->bar, 1, 0, 0, NO_ALIGN, 1, 1 );
+/*        add_astbar_spacer( item->bar, 1, 0, 0, NO_ALIGN, 1, 1 ); */
 
     if( get_flags( look->flags, MenuMiniPixmaps ) && icon_space > 0 )
     {
-        //set_astbar_tile_size( item->bar, MI_LEFT_SPACER_IDX, icon_space, 1 );
+        /*set_astbar_tile_size( item->bar, MI_LEFT_SPACER_IDX, icon_space, 1 ); */
         delete_astbar_tile( item->bar, MI_LEFT_ICON_IDX );
         /* now readd it as minipixmap :*/
         if( item->icon )
@@ -421,8 +421,6 @@ render_asmenu_bars( ASMenu *menu, Bool force )
         {
             update_canvas_display( menu->main_canvas );
             ASSync(False);
-			/* yield to let some time for menu redrawing to happen : */
-			//sleep_a_millisec(10);
 			menu->rendered = True ;
         }
     }
@@ -1154,7 +1152,7 @@ make_menu_hints( ASMenu *menu )
                    AS_Gravity|
                    AS_MinSize|
                    AS_MaxSize|
-                   AS_SizeInc;//|AS_VerticalTitle ;
+                   AS_SizeInc;/*|AS_VerticalTitle ; */
     hints->protocols = AS_DoesWmTakeFocus ;
     hints->function_mask = ~(AS_FuncPopup|     /* everything else is allowed ! */
                              AS_FuncMinimize|
@@ -1290,7 +1288,6 @@ show_asmenu( ASMenu *menu, int x, int y )
         }
     }
 #endif
-//    move_canvas( menu->main_canvas, status.x, status.y );
     menu->owner = AddInternalWindow( menu->main_canvas->w, &asiw, &hints, &status );
 
     /* need to cleanup if we failed : */

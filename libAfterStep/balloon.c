@@ -105,8 +105,6 @@ set_active_balloon_look()
             }
         }
         LOCAL_DEBUG_OUT( "Pointer at (%dx%d)", pointer_x, pointer_y );
-//        x = 0 ;
-//        y = 500 ;
 
         moveresize_canvas( BalloonState.active_canvas, x, y, width, height );
         handle_canvas_config( BalloonState.active_canvas );

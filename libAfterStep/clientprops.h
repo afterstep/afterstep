@@ -204,11 +204,6 @@ extern struct AtomXref      *EXTWM_State;
 
 /* Crossreferences of atoms into flag value for
    different atom list type of properties :*/
-//extern AtomXref MainHints[];    /*all top level atoms for purpose of easy interning */
-//extern AtomXref WM_Protocols[];
-//extern AtomXref EXTWM_WindowType[];
-//extern AtomXref EXTWM_State[];
-//extern AtomXref EXTWM_Protocols[];
 
 
 /************************************************************************/

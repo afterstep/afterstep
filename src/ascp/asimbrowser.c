@@ -120,7 +120,7 @@ int main(int argc, char** argv)
 	}
 
 	ConnectX( &Scr, PropertyChangeMask );
-//    ConnectAfterStep ( 0 );
+/*    ConnectAfterStep ( 0 ); */
 	InitSession();
 
 	LoadBaseConfig (GetBaseOptions);

@@ -179,7 +179,7 @@ build_btn_block( ASTile *tile,
         {
             tile->width = max_width + top_margin*2 ;
             tile->height = left_margin*2 ;
-            //pos = get_flags(order, TBTN_ORDER_REVERSE)?-top_margin:top_margin ;
+            /*pos = get_flags(order, TBTN_ORDER_REVERSE)?-top_margin:top_margin ; */
         }else
         {
             tile->width =  left_margin*2 ;
@@ -923,12 +923,13 @@ add_astbar_btnblock( ASTBarData * tbar, unsigned char col, unsigned char row, in
     if( tbar )
     {
         ASTile *tile = add_astbar_tile( tbar, AS_TileBtnBlock, col, row, flip, align );
-//        if( get_flags( flip, FLIP_VERTICAL ) )
-//        {
-//            int tmp = top_margin ; 
-//            top_margin = left_margin ; 
-//            left_margin = tmp ;    
-//        }    
+/*      if( get_flags( flip, FLIP_VERTICAL ) )
+        {
+            int tmp = top_margin ; 
+            top_margin = left_margin ; 
+            left_margin = tmp ;    
+       }    
+ */ 
         build_btn_block( tile, from_list, context_mask, count, left_margin, top_margin,
                          spacing, order );
         return tbar->tiles_num-1;

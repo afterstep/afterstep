@@ -232,7 +232,7 @@ LOCAL_DEBUG_OUT( "Failed to start ASImageOutput for ASImage %p and ASVisual %p",
 			xim_set_component( xim_buf.blue, ARGB32_BLUE8(im->back_color), count, xim_buf.width );
 
 		imout->output_image_scanline( imout, &xim_buf, 1 );
-//		LOCAL_DEBUG_OUT( "line %d, count = %d", i, count );
+/*		LOCAL_DEBUG_OUT( "line %d, count = %d", i, count ); */
 	}
 #ifdef DO_CLOCKING
 	fprintf (stderr, "asimage->ximage time (clocks): %lu\n", clock () - started);

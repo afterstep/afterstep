@@ -344,8 +344,9 @@ AddInternalWindow (Window w, ASInternalWindow **pinternal, ASHints **phints, ASS
     redecorate_window       ( tmp_win, False );
     on_window_title_changed ( tmp_win, False );
     set_window_wm_state( tmp_win, get_flags(status->flags, AS_Iconic) );
-//    RaiseWindow( tmp_win );
-//    activate_aswindow( tmp_win, False, False );
+/*  RaiseWindow( tmp_win );
+    activate_aswindow( tmp_win, False, False );
+ */
 
     /*
 	 * Reparenting generates an UnmapNotify event, followed by a MapNotify.

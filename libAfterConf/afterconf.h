@@ -461,7 +461,6 @@ struct FreeStorageElem **balloon2FreeStorage (struct SyntaxDef * syntax,
 				       struct FreeStorageElem ** tail,
 				       balloonConfig * config);
 
-//void BalloonConfig2BalloonLook(struct BalloonLook *blook, struct balloonConfig *config);
 void balloon_config2look( struct MyLook *look, balloonConfig *config );
 
 /***************************************************************************/

@@ -456,11 +456,11 @@ DeferExecution ( ASEvent *event, int cursor, int finish_event)
 LOCAL_DEBUG_CALLER_OUT( "cursor %d, event %d, window 0x%lX, window_name \"%s\", finish event %d",
                         cursor, event?event->x.type:-1, event?(unsigned long)event->w:0, event->client?ASWIN_NAME(event->client):"none", finish_event );
 
-//    if (event->context != C_ROOT && event->context != C_NO_CONTEXT)
-//        if ( finish_event == ButtonPress ||
-//            (finish_event == ButtonRelease && event->x.type != ButtonPress))
-//            return False;
-
+/*    if (event->context != C_ROOT && event->context != C_NO_CONTEXT)
+        if ( finish_event == ButtonPress ||
+            (finish_event == ButtonRelease && event->x.type != ButtonPress))
+            return False;
+*/
     if (!(res = !GrabEm (&Scr, Scr.Feel.cursors[cursor])))
 	{
         WaitEventLoop( event, finish_event, -1 );
@@ -570,7 +570,7 @@ ExecuteComplexFunction ( ASEvent *event, char *name )
     {
         if (DeferExecution (event, ASCUR_Select, ButtonPress))
 		{
-//            WaitForButtonsUpLoop ();
+/*            WaitForButtonsUpLoop (); */
 			return;
 		}
     }
@@ -593,8 +593,9 @@ ExecuteComplexFunction ( ASEvent *event, char *name )
     {
         /* some functions operate on button release instead of
          * presses. These gets really weird for complex functions ... */
-//        if (event->x.type == ButtonPress)
-//            event->x.type = ButtonRelease;
+/*        if (event->x.type == ButtonPress)
+            event->x.type = ButtonRelease;
+ */
         /* first running all the Imediate actions : */
         for( i = 0 ; i < func->items_num ; i++ )
             if( func->items[i].name )
@@ -604,7 +605,7 @@ ExecuteComplexFunction ( ASEvent *event, char *name )
 					ExecuteFunctionExt (&(func->items[i]), event, -1, True);
             }
     }
-//    WaitForButtonsUpLoop ();
+/*    WaitForButtonsUpLoop (); */
 	UngrabEm ();
     LOCAL_DEBUG_OUT( "at the end : event %d, window 0x%lX, asw(%p), window_name \"%s\", function name \"%s\"",
                         event?event->x.type:-1, event?(unsigned long)event->w:0, event->client, event->client?ASWIN_NAME(event->client):"none", name);
@@ -732,7 +733,6 @@ void moveresize_func_handler( FunctionData *data, ASEvent *event, int module )
             raise_scren_panframes( &Scr );
             mvrdata->below_sibling = get_lowest_panframe(&Scr);
             set_moveresize_restrains( mvrdata, asw->hints, asw->status);
-//            mvrdata->subwindow_func = on_deskelem_move_subwindow ;
             mvrdata->grid = make_desktop_grid(Scr.CurrentDesk, AS_LayerDesktop, False, 0, 0, asw);
             Scr.moveresize_in_progress = mvrdata ;
             ASWIN_SET_FLAGS( asw, AS_MoveresizeInProgress );
@@ -928,7 +928,6 @@ void paste_selection_func_handler( FunctionData *data, ASEvent *event, int modul
     PasteSelection (event->scr);
 }
 
-//#warning implement window bookmarking.
 void goto_bookmark_func_handler( FunctionData *data, ASEvent *event, int module )
 {
 	ASWindow *asw = bookmark2ASWindow( data->text );

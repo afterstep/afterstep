@@ -1267,7 +1267,6 @@ LOCAL_DEBUG_OUT( "old anchor(%dx%d%+d%+d), new_anchor(%dx%d%+d%+d)", asw->anchor
 LOCAL_DEBUG_OUT( "validated_anchor(%dx%d%+d%+d)", new_anchor.width, new_anchor.height, new_anchor.x, new_anchor.y );
         asw->anchor = new_anchor ;
         on_window_anchor_changed( asw );
-//        on_window_status_changed( asw, True, True );
 		enforce_avoid_cover( asw );
     }
 }

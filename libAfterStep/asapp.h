@@ -54,7 +54,6 @@ extern "C" {
 struct SyntaxDef;
 struct TermDef;
 struct ASSession;
-//#include "trace.h"
 
 /* compatibility macros : */
 #define GetFdWidth          get_fd_width

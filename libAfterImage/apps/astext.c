@@ -71,12 +71,15 @@ int main(int argc, char* argv[])
 	int screen = 0, depth = 0;
 	char *font_name = "test.ttf";
 	int size = 32 ;
+#if 0	
 	char *text ="CVS\t\t     command.c\tiobuff.c  rxvt.h.notmine  thai.c\n"
 				"Makefile\t     command.o\tiobuff.o  scrbuff.c\t  thai.h\n"
 				"Makefile.in\t     events.c\tlog	  scrbuff.h	  thai.o\n"
 				"afterstep.h	     events.o	main.c	  scrbuff.o	  unicode\n"
 				"aterm.exe	     feature.h	main.o	  screen.c	  utmp.c\n";
- 	//char *text = "Smart Brown Dog jumps\nOver The Lazy Fox,\nand falls into the ditch.";
+#else
+ 	char *text = "Smart Brown Dog jumps\nOver The Lazy Fox,\nand falls into the ditch.";
+#endif
 	ARGB32 text_color = ARGB32_White, back_color = ARGB32_Black;
 	char *text_color_name = "#FFFFFFFF", *back_color_name = "#FF000000";
 	char *fore_image_file = "fore.xpm", *back_image_file = "back.xpm" ;

@@ -418,7 +418,7 @@ SHOW_CHECKPOINT;
     if( get_flags( config->set_flags, WHARF_COMPOSITION_METHOD ) )
         Config->composition_method = config->composition_method;
 
-//LOCAL_DEBUG_OUT( "align_contents = %d", Config->align_contents );
+/*LOCAL_DEBUG_OUT( "align_contents = %d", Config->align_contents ); */
     if( get_flags( config->set_flags, WHARF_SOUND ) )
     {
         int i ;

@@ -296,7 +296,8 @@ change_iconbox_icon_desk( ASWindow *asw, int from_desk, int to_desk )
 void
 on_icon_changed( ASWindow *asw )
 {
-//    if( AS_ASSERT(asw) )
+    /* TODO : */
+	/* if( AS_ASSERT(asw) ) */
         return;
     /* we probably need to reshuffle entire iconbox when that happen : */
     if( asw->icon_title )

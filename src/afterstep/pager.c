@@ -81,7 +81,7 @@ HandlePaging (int HorWarpSize, int VertWarpSize, int *xl, int *yt,
 
 		/* fprintf (stderr, "-------- MoveOutline () called from pager.c\ntmp_win == 0xlX\n", (long int) tmp_win); */
 		/* Turn off the rubberband if its on */
-//        MoveOutline ( /*Scr.Root, */ tmp_win, 0, 0, 0, 0);
+		/*        MoveOutline ( Scr.Root,  tmp_win, 0, 0, 0, 0); */
 
 		/* Move the viewport */
 		/* and/or move the cursor back to the approximate correct location */
@@ -471,7 +471,7 @@ LOCAL_DEBUG_CALLER_OUT( "new_desk(%d)->old_desk(%d)", new_desk, old_desk );
 
     set_current_desk_prop ( Scr.wmprops, new_desk);
 
-    //SendPacket( -1, M_NEW_DESK, 1, new_desk);
+    /* SendPacket( -1, M_NEW_DESK, 1, new_desk); */
 	/* yeld to let modules handle desktop change */
 	sleep_a_millisec(500);
     /* Scan the window list, mapping windows on the new Desk, unmapping
@@ -1046,7 +1046,6 @@ LOCAL_DEBUG_CALLER_OUT( "desk(%d)->old_desk(%d)->new_back(%p)->old_back(%p)", de
 			XSetWindowBackgroundPixmap( dpy, Scr.Root, new_back->loaded_pixmap );
 			XClearWindow( dpy, Scr.Root );
 			set_xrootpmap_id (Scr.wmprops, new_back->loaded_pixmap );
-//	    	remove_desktop_cover();
 			return ;   
 		}
 	}		  

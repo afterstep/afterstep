@@ -393,8 +393,8 @@ static Bool do_smart_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry *
     ASVector *free_space_list =  build_free_space_list( asw, area, ASWIN_LAYER(asw) );
     XRectangle *rects = PVECTOR_HEAD(XRectangle,free_space_list);
     int i, selected = -1 ;
-    unsigned short w = asw->status->width;//+asw->status->frame_size[FR_W]+asw->status->frame_size[FR_E];
-    unsigned short h = asw->status->height;//+asw->status->frame_size[FR_N]+asw->status->frame_size[FR_S];
+    unsigned short w = asw->status->width;
+    unsigned short h = asw->status->height;
     unsigned short dw = w>100?w*5/100:5, dh = h>=100?h*5/100:5 ;
 
     LOCAL_DEBUG_OUT( "size=%dx%d, delta=%dx%d", w, h, dw, dh );
@@ -527,8 +527,8 @@ static Bool do_smart_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry *
 static Bool do_random_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry *area, Bool free_space_only )
 {
     int selected = -1 ;
-    unsigned int w = asw->status->width;//+asw->status->frame_size[FR_W]+asw->status->frame_size[FR_E];
-    unsigned int h = asw->status->height;//+asw->status->frame_size[FR_N]+asw->status->frame_size[FR_S];
+    unsigned int w = asw->status->width;
+    unsigned int h = asw->status->height;
     static   CARD32 rnd32_seed = 345824357;
     ASVector *free_space_list = NULL;
     XRectangle *rects = NULL;
@@ -594,8 +594,8 @@ static Bool
 do_maximized_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry *area)
 {
     int selected = -1 ;
-    unsigned int w = asw->status->width;//+asw->status->frame_size[FR_W]+asw->status->frame_size[FR_E];
-    unsigned int h = asw->status->height;//+asw->status->frame_size[FR_N]+asw->status->frame_size[FR_S];
+    unsigned int w = asw->status->width;
+    unsigned int h = asw->status->height;
     ASVector *free_space_list = NULL;
     XRectangle *rects = NULL;
     int i ;
@@ -777,7 +777,6 @@ static Bool do_manual_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry 
 		raise_scren_panframes( &Scr );
         mvrdata->below_sibling = get_lowest_panframe(&Scr);
         set_moveresize_restrains( mvrdata, asw->hints, asw->status);
-//            mvrdata->subwindow_func = on_deskelem_move_subwindow ;
         mvrdata->grid = make_desktop_grid( ASWIN_DESK(asw), ASWIN_LAYER(asw), False, 0, 0, asw );
         Scr.moveresize_in_progress = mvrdata ;
         InteractiveMoveLoop ();
@@ -797,8 +796,8 @@ static Bool find_closest_position( ASWindow *asw, ASWindowBox *aswbox, ASGeometr
 	short selected_x = x ;
 	short selected_y = y ;
 	int selected_factor = 0;
-    unsigned short w = status->width;//+asw->status->frame_size[FR_W]+asw->status->frame_size[FR_E];
-    unsigned short h = status->height;//+asw->status->frame_size[FR_N]+asw->status->frame_size[FR_S];
+    unsigned short w = status->width;
+    unsigned short h = status->height;
 
     LOCAL_DEBUG_OUT( "current=%dx%d%+d%+d", w, h, x, y );
     /* now we have to find the optimal rectangle from the list */

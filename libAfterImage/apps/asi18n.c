@@ -185,7 +185,7 @@ int main(int argc, char* argv[])
 	/* see ASText.2 : */
 	/*set_asfont_glyph_spacing( font, 10, 40 );*/
 	get_utf8_text_size( text, font, type_3d, &width, &height );
-	//get_text_size( text, font, type_3d, &width, &height );
+	/*get_text_size( text, font, type_3d, &width, &height );*/
 	if( fore_image_file )
 	{
 		ASImage *tmp = file2ASImage( fore_image_file, 0xFFFFFFFF,

@@ -75,7 +75,6 @@ typedef struct ASEvent
 	struct ScreenInfo  *scr;
     struct ASWindow    *client ;
     struct ASCanvas    *widget ;
-//    ASContextValue      context ;
     int                 context ;
 	XEvent 		 		x ;
 }ASEvent;

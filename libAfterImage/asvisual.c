@@ -1391,7 +1391,7 @@ Bool ASPutXImage( ASVisual *asv, Drawable d, GC gc, XImage *xim,
 		LOCAL_DEBUG_OUT( "XSHMIMAGE> PUT_XIM : using shared memory Put = %p", xim );
 		if( XShmPutImage( asv->dpy, d, gc, xim, src_x, src_y, dest_x, dest_y,width, height, True ) )
 		{
-//			add_hash_item( xshmimage_requests, AS_HASHABLE(req_seq), img_data->segment->shmid );
+			add_hash_item( xshmimage_requests, AS_HASHABLE(req_seq), img_data->segment->shmid );
 			img_data->wait_completion_event = True ;
 			return True ;
 		}

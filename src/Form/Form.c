@@ -46,7 +46,6 @@
 #endif
 
 #include "../../include/aftersteplib.h"
-//#include "../../include/afterstep.h"
 #include "../../include/style.h"
 #include "../../include/screen.h"
 #include "../../include/module.h"

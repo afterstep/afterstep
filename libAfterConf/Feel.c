@@ -171,7 +171,7 @@ flag_options_xref FeelFlagsXref[] = {
      /* focus : */
     {ClickToFocus          , FEEL_ClickToFocus_ID          , 0},
     {SloppyFocus           , FEEL_SloppyFocus_ID           , 0},
-//    {AutoFocusNewWindows   , FEEL_AutoFocus_ID             , 0},
+/*    {AutoFocusNewWindows   , FEEL_AutoFocus_ID             , 0}, */
      /* decorations : */
     {DecorateTransients    , FEEL_DecorateTransients_ID    , 0},
      /* placement : */

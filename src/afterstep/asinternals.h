@@ -330,7 +330,6 @@ int is_executable_in_path (const char *name);
 char * strip_whitespace (char *str);
 
 /* from configure.c */
-//extern XContext MenuContext;    /* context for afterstep menus */
 extern struct ASDatabase    *Database;
 
 /**************************************************************************/

@@ -579,7 +579,7 @@ make_wintabs_window()
     /* we will need to wait for PropertyNotify event indicating transition
 	   into Withdrawn state, so selecting event mask: */
     XSelectInput (dpy, w, PropertyChangeMask|StructureNotifyMask|SubstructureRedirectMask
-                          //|ButtonReleaseMask | ButtonPressMask 
+                          /*|ButtonReleaseMask | ButtonPressMask */
                   );
 
 	return w ;
@@ -950,7 +950,7 @@ on_destroy_notify(Window w)
 unsigned int
 find_tab_by_position( int root_x, int root_y )
 {
-//    int col = WinListState.columns_num ;
+/*    int col = WinListState.columns_num ; */
     int tabs_num  =  PVECTOR_USED(WinTabsState.tabs);
     int i = tabs_num ;
     ASWinTab *tabs = PVECTOR_HEAD(ASWinTab,WinTabsState.tabs);

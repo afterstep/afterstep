@@ -894,18 +894,18 @@ find_window_index( ASWindowData *wd )
 unsigned int
 find_button_by_position( int x, int y )
 {
-//    int col = WinListState.columns_num ;
+/*    int col = WinListState.columns_num ; */
     int i  = WinListState.windows_num;
-
-//    while( --col >= 0 )
-//        if( WinListState.col_x[col] > x )
-//        {
-//            ++col ;
-//            break;
-//        }
-
+/*
+    while( --col >= 0 )
+        if( WinListState.col_x[col] > x )
+        {
+            ++col ;
+            break;
+        }
+*/
     while( --i >= 0 )
-//        if( WinListState.bar_col[i] == col )
+/*        if( WinListState.bar_col[i] == col ) */
         {
             register ASTBarData *bar = WinListState.window_order[i]->bar ;
             if( bar )

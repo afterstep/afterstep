@@ -220,8 +220,9 @@ prepare_move_resize_data( ASMoveResizeData *data, ASWidget *parent, ASWidget *mr
     data->origin_x = parent->root_x + data->last_x - mr->root_x;
     data->origin_y = parent->root_y + data->last_y - mr->root_y;
     /* we should be using this methinks: */
-    //data->last_x = root_x ;
-    //data->last_y = root_y ;
+    /* data->last_x = root_x ;
+     * data->last_y = root_y ;
+	 */
 
 	/* " %u x %u %+d %+d " */
 	data->geometry_string = safemalloc( 1+6+3+6+2+6+2+6+1+1 +30/*for the heck of it*/);

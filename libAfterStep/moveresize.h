@@ -52,7 +52,6 @@ struct ASMoveResizeData;
 struct ASGrid;
 struct ASHints;
 struct ASStatusHints;
-//struct ASWidget;
 
 typedef	void (*as_interactive_pointer_handler)  (struct ASMoveResizeData *data, int x, int y);
 typedef	void (*as_interactive_apply_handler)    (struct ASMoveResizeData *data);
