@@ -200,15 +200,35 @@ destroy_bidirelem( ASBiDirList *l, ASBiDirElem *elem )
 }
 
 void
+pop_bidirelem( ASBiDirList *l, ASBiDirElem *elem )
+{
+	if( l == NULL || elem == NULL )
+		return ;
+	if( elem == l->head )
+        return ;
+    if( elem == l->tail )
+		l->tail = elem->prev ;
+	if( elem->next )
+		elem->next->prev = elem->prev ;
+	if( elem->prev )
+		elem->prev->next = elem->next ;
+    elem->prev = NULL ;
+    elem->next = l->head ;
+    if( l->head )
+        l->head->prev = elem ;
+    l->head = elem ;
+}
+
+void
 discard_bidirelem( ASBiDirList *l, void *data )
 {
 	ASBiDirElem *elem ;
 	if( l )
 	{
-		for( elem = l->head ; elem ; elem = elem->next ) 	
-			if( elem->data == data ) 
+		for( elem = l->head ; elem ; elem = elem->next )
+			if( elem->data == data )
 				break ;
-		if( elem ) 
-			destroy_bidirelem( l, elem );	
+		if( elem )
+			destroy_bidirelem( l, elem );
 	}
 }

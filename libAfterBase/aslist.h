@@ -19,6 +19,10 @@ typedef struct ASBiDirList
 #define LIST_START(l)  		((l)->head)
 #define LIST_END(l)    		((l)->tail)
 #define LISTELEM_DATA(e)    ((e)->data)
+#define LISTELEM_NEXT(e)    ((e)->next)
+#define LISTELEM_PREV(e)    ((e)->prev)
+#define LIST_GOTO_NEXT(e)    ((e)=(e)->next)
+#define LIST_GOTO_PREV(e)    ((e)=(e)->prev)
 
 
 ASBiDirList *create_asbidirlist(destroy_list_data_handler destroy_func);
@@ -28,6 +32,7 @@ void *append_bidirelem( ASBiDirList *l, void *data );
 void *prepend_bidirelem( ASBiDirList *l, void *data );
 void *insert_bidirelem_after( ASBiDirList *l, void *data, ASBiDirElem *after );
 void *insert_bidirelem_before( ASBiDirList *l, void *data, ASBiDirElem *before );
+void  pop_bidirelem( ASBiDirList *l, ASBiDirElem *elem );
 void  destroy_bidirelem( ASBiDirList *l, ASBiDirElem *elem );
 void  discard_bidirelem( ASBiDirList *l, void *data );
 
