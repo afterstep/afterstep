@@ -2849,6 +2849,8 @@ asimage2ximage (ASVisual *asv, ASImage *im)
 #endif
 	free_scanline(&xim_buf, True);
 
+	stop_image_output(&imout);
+	
 	return xim;
 }
 
