@@ -1041,8 +1041,6 @@ ParseThemeFile (const char *filename, char *myname)
 	ParseConfig (ConfigReader, &Storage);
 	PrintFreeStorage (Storage);
 
-	LOCAL_DEBUG_OUT( "Storage is %p", Storage );
-	LOCAL_DEBUG_OUT( "Storage->sub is %p", Storage->sub );
 	/* getting rid of all the crap first */
     StorageCleanUp (&Storage, &(config->more_stuff), CF_DISABLED_OPTION);
 

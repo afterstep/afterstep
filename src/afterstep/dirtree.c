@@ -30,7 +30,6 @@
 #include "../../configure.h"
 
 #include "../../libAfterStep/asapp.h"
-#include "../../include/myscandir.h"
 #include "dirtree.h"
 void          init_func_data (FunctionData * data);
 int           txt2func (const char *text, FunctionData * fdata, int quiet);

@@ -462,7 +462,6 @@ if test "x$with_libefence" = "xyes"; then
 fi
 
 dnl# define X_LOCALE.  need Linux, NetBSD and etc.
-
 if test "x$enable_xlocale" = "xyes"; then
   DEFINE_XLOCALE="-DX_LOCALE"
 fi

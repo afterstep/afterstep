@@ -105,22 +105,29 @@ detect_theme_file_type( const char * filename )
 	return type;
 }
 
-Bool unbzip2_file( const char *src, const char *dst )
+Bool untar_file( const char *src, const char *dst, ASThemeFileType type )
 {
+	int src_len = strlen( src );
+	int dst_len = strlen( dst );
+	char * command_line ;
 
-	return False;
-}
+	if( type == AST_ThemeTarBz2 )
+	{
+		command_line = safemalloc( 11 + src_len + 11 + dst_len + 6 + 1 );
+		sprintf( command_line, "bzip2 -dc \"%s\" | tar -C\"%s\" xf -", src, dst );
+	}else if( type == AST_ThemeTarGz )
+	{
+		command_line = safemalloc( 12 + src_len + 17 + dst_len + 1 + 1 );
+		sprintf( command_line, "gzip -dc \"%s\" | tar xf -C\"%s\"", src, dst );
+	}else if( type == AST_ThemeTar )
+	{
+		command_line = safemalloc( 7 + src_len + 6 + dst_len + 1 + 1 );
+		sprintf( command_line, "tar -C\"%s\" xf \"%s\"", src, dst );
+	}else
+		return False;
 
-Bool ungzip_file( const char *src, const char *dst )
-{
-
-	return False;
-}
-
-Bool untar_file( const char *src, const char *dst )
-{
-
-	return False;
+	spawn_child( command_line, TAR_SINGLETON_ID, 0, 0, 0, True, False, NULL );
+	return True;
 }
 
 ThemeConfig *
@@ -201,6 +208,29 @@ fix_apply_theme_script( ComplexFunction *install_func )
     }
 }
 
+void
+cleanup_dir( const char *dirname )
+{
+	struct direntry **list;
+	int           i, n;
+
+	n = my_scandir ((char*)dirname, &list, ignore_dots, NULL);
+	for (i = 0; i < n; i++)
+	{
+		char *tmp = make_file_name( dirname, list[i]->d_name );
+		if (S_ISDIR (list[i]->d_mode))
+		{
+			cleanup_dir( tmp );
+			rmdir( tmp );
+		}else
+			unlink( tmp );
+		free( tmp );
+		free (list[i]);
+	}
+	if (n > 0)
+		free (list);
+}
+
 Bool
 install_theme_file( const char *src )
 {
@@ -236,6 +266,10 @@ install_theme_file( const char *src )
 				show_error( "unable to create staging directory for theme files \"%s\"", theme_dir );
 				free( theme_dir );
 				return False;
+			}else
+			{
+				/* need to cleanup the dir */
+ 				cleanup_dir( theme_dir );
 			}
 		}
 		if( type == AST_ThemeTarBz2 && type == AST_ThemeTarGz )
@@ -258,23 +292,11 @@ install_theme_file( const char *src )
 	if( theme_tarball == NULL  )
 		theme_tarball = mystrdup( src );
 
-	if( type == AST_ThemeTarBz2 )
-	{	/* need to unbzip2 file */
-		if( unbzip2_file( src, theme_tarball ) )
-			type = AST_ThemeTar ;
-		else
-			type = AST_ThemeBad ;
-	}else if( type == AST_ThemeTarGz )
-	{	/* need to ungzip file */
-		if( ungzip_file( src, theme_tarball ) )
-			type = AST_ThemeTar ;
-		else
-			type = AST_ThemeBad ;
-	}
-
-	if( type == AST_ThemeTar )
+	if( type == AST_ThemeTar ||
+		type == AST_ThemeTarBz2 ||
+		type == AST_ThemeTarGz )
 	{	/* need to untar all the files into dir */
-		if( untar_file( theme_tarball, theme_dir ) )
+		if( untar_file( theme_tarball, theme_dir, type ) )
 			type = AST_ThemeScript ;
 		else
 			type = AST_ThemeBad ;

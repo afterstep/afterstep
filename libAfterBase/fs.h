@@ -2,12 +2,29 @@
 #define FS_H_HEADER_INCLUDED
 
 #include <time.h>
-time_t  get_file_modified_time (const char *filename);
-int		check_file_mode (const char *file, int mode);
+
+#include <sys/types.h>
+#include <dirent.h>
 
 #if !defined(S_IFREG) || !defined(S_IFDIR)
 #include <sys/stat.h>
 #endif
+
+struct direntry
+  {
+    mode_t d_mode;		/* S_IFDIR if a directory */
+    time_t d_mtime;
+    char d_name[1];
+  };
+
+typedef int (*my_sort_f) (struct direntry ** d1, struct direntry ** d2);
+
+int my_scandir (char *, struct direntry *(*[]), int (*select) (struct dirent *),
+		my_sort_f dcomp);
+int ignore_dots (struct dirent *e);
+
+time_t  get_file_modified_time (const char *filename);
+int		check_file_mode (const char *file, int mode);
 
 #define CheckFile(f) 	check_file_mode(f,S_IFREG)
 #define CheckDir(d) 	check_file_mode(d,S_IFDIR)
@@ -24,5 +41,7 @@ char   *make_file_name (const char *path, const char *file);
 char   *put_file_home (const char *path_with_home);
 char   *find_file (const char *file, const char *pathlist, int type);
 int 	is_executable_in_path (const char *name);
-
+int		my_scandir (char *dirname, struct direntry *(*namelist[]),
+					int (*select) (struct dirent *),
+					int (*dcomp) (struct direntry **, struct direntry **));
 #endif

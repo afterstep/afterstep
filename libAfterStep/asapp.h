@@ -170,7 +170,8 @@ typedef struct ASProgArgs
 #define MAX_SINGLETONS_NUM 				32
 #define BACKGROUND_SINGLETON_ID 		(MAX_SINGLETONS_NUM-1)
 #define AUDIO_SINGLETON_ID 				(MAX_SINGLETONS_NUM-2)
-#define MAX_USER_SINGLETONS_NUM 		(MAX_SINGLETONS_NUM-2)
+#define TAR_SINGLETON_ID 				(MAX_SINGLETONS_NUM-3)
+#define MAX_USER_SINGLETONS_NUM 		(MAX_SINGLETONS_NUM-3)
 /* Singleton is the child process of which we should not launch more then one
  * instance. singleton_id should be in range of 0...MAX_SINGLETONS_NUM. Some
  * IDs are reserved for special use - background drawing, sound playing, etc.
