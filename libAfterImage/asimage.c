@@ -102,7 +102,7 @@ asimage_start (ASImage * im, unsigned int width, unsigned int height)
 	{
 		asimage_init (im, True);
 		im->width = width;
-		im->buf_len = 1 + width + width / RLE_MAX_DIRECT_LEN + 1;
+		im->buf_len = width + width;
 		im->buffer = malloc (im->buf_len);
 
 		im->height = height;
@@ -158,10 +158,11 @@ asimage_apply_buffer (ASImage * im, ColorPart color, unsigned int y)
 void
 asimage_add_line (ASImage * im, ColorPart color, register CARD32 * data, unsigned int y)
 {
-	int             i = 0, bstart = 0, ccolor = 0;
+	int             i = 1, bstart = 0, ccolor = 0;
 	unsigned int    width;
 	register CARD8 *tail;
 	Bool            direct = True;
+	int write_direct =0, write_reps = 0;
 
 	if (im == NULL || data == NULL)
 		return;
@@ -170,7 +171,7 @@ asimage_add_line (ASImage * im, ColorPart color, register CARD32 * data, unsigne
 
 	width = im->width;
 	tail = im->buffer;
-/*	fprintf( stderr, "%d:%d:%2.2X ", y, color, data[0] ); */
+	fprintf( stderr, "%d:%d:%d<%2.2X ", y, color, 0, data[0] ); 
 
 	if( width == 1 )
 	{
@@ -179,23 +180,92 @@ asimage_add_line (ASImage * im, ColorPart color, register CARD32 * data, unsigne
 		tail[2] = RLE_EOL ;
 	}else
 	{
-		while( ++i < width )
+		do 
 		{
-			Bool save_block = (i == width-1);
-/*			fprintf( stderr, "%2.2X ", data[i] ); */
-			if( data[i] == data[ccolor] && !save_block )
+			while( i < width && data[i] == data[ccolor])
 			{
-				if( direct && i-ccolor >= RLE_THRESHOLD )
+				fprintf( stderr, "%d<%2.2X ", i, data[i] ); 
+				++i ;
+			}				
+			if( i >= ccolor + RLE_THRESHOLD ) 
+			{ /* we have to write repetition count and length */
+				register unsigned int rep_count = i - ccolor - RLE_THRESHOLD;
+
+				if (rep_count <= RLE_MAX_SIMPLE_LEN)
 				{
-					direct = False;
-					save_block = ccolor > bstart ;
+					tail[0] = (CARD8) rep_count;
+					fprintf( stderr, "\n%d:%d: >%d: %2.2X ", y, color, &(tail[0]) - im->buffer, tail[0] ); 
+					tail[1] = (CARD8) data[ccolor];
+					fprintf( stderr, "%d: %2.2X ", &(tail[1]) - im->buffer, tail[1] ); 
+					tail += 2 ;
+				} else
+				{
+					tail[0] = (CARD8) ((rep_count >> 8) & RLE_LONG_D)|RLE_LONG_B;
+					fprintf( stderr, "\n%d: %2.2X ", &(tail[0]) - im->buffer, tail[0] ); 
+					tail[1] = (CARD8) ((rep_count) & 0x00FF);
+					fprintf( stderr, "%d: %2.2X ", &(tail[1]) - im->buffer, tail[1] ); 
+					tail[2] = (CARD8) data[ccolor];
+					fprintf( stderr, "%d: %2.2X ", &(tail[2]) - im->buffer, tail[2] ); 
+					tail += 3 ;
 				}
-			}else if( direct )
+				bstart = ccolor = i;
+			}
+			fprintf( stderr, "\n"); 
+			while( i < width )
 			{
-				ccolor = (save_block)?i+1:i ;
-				save_block = save_block || (ccolor - bstart > RLE_MAX_DIRECT_LEN - RLE_THRESHOLD - 1) ;
+				fprintf( stderr, "%d<%2.2X ", i, data[i] ); 
+				if( data[i] != data[ccolor] ) 
+					ccolor = i ;
+				else if( i-ccolor <= RLE_THRESHOLD )
+					break;
+				++i ;
+			}
+			if( i == width ) 
+				ccolor = i ;
+			while( ccolor > bstart )
+			{/* we have to write direct block */
+				int dist = ccolor-bstart ;
+				if( dist > RLE_MAX_DIRECT_LEN ) 
+					dist = RLE_MAX_DIRECT_LEN ;
+				tail[0] = RLE_DIRECT_B | ((CARD8)(dist-1));
+				fprintf( stderr, "\n%d:%d: >%d: %2.2X ", y, color, &(tail[0]) - im->buffer, tail[0] ); 
+				tail -= bstart-1 ;
+				dist += bstart ; 
+				while ( bstart < dist )
+				{
+					tail[bstart] = (CARD8) data[bstart];
+					fprintf( stderr, "%d: %2.2X ", &(tail[bstart]) - im->buffer, tail[bstart] ); 
+					++bstart ;
+				}
+				tail += bstart ;
+			}
+			fprintf( stderr, "\n"); 
+		}while( i < width );
+#if 0			
+			Bool save_block = (i == width-1);
+			fprintf( stderr, "%2.2X ", data[i] ); 
+			if( direct ) 
+			{
+			  if( data[i] != data[ccolor] )
+				  ccolor = i;
+			  else
+			  {
+				  if( save_block ) 
+					  ccolor = i+1 ;
+				  else if( i-ccolor >= RLE_THRESHOLD )
+				  {
+					  if( save_block )
+						  write_reps = i + 1 - ccolor ;
+					  save_block = True ;
+				  }	  				  
+			  }
+			  if( save_block )
+				  write_direct = ccolor-bstart ;
+				  
 			}else
-				save_block = True ;
+			{
+				save_block = save_block || (data[i] != data[ccolor]) ;
+			}
 
 			if( save_block )
 			{
@@ -206,18 +276,18 @@ asimage_add_line (ASImage * im, ColorPart color, register CARD32 * data, unsigne
 					if (rep_count <= RLE_MAX_SIMPLE_LEN)
 					{
 						tail[0] = (CARD8) rep_count;
-/*						fprintf( stderr, "\n%d:%d: >%d: %2.2X ", y, color, &(tail[0]) - im->buffer, tail[0] ); */
+						fprintf( stderr, "\n%d:%d: >%d: %2.2X ", y, color, &(tail[0]) - im->buffer, tail[0] ); 
 						tail[1] = (CARD8) data[ccolor];
-/*						fprintf( stderr, "%d: %2.2X ", &(tail[1]) - im->buffer, tail[1] ); */
+						fprintf( stderr, "%d: %2.2X ", &(tail[1]) - im->buffer, tail[1] ); 
 						tail += 2 ;
 					} else
 					{
 						tail[0] = (CARD8) ((rep_count >> 8) & RLE_LONG_D)|RLE_LONG_B;
-/*						fprintf( stderr, "\n%d: %2.2X ", &(tail[0]) - im->buffer, tail[0] ); */
+						fprintf( stderr, "\n%d: %2.2X ", &(tail[0]) - im->buffer, tail[0] ); 
 						tail[1] = (CARD8) ((rep_count) & 0x00FF);
-/*						fprintf( stderr, "%d: %2.2X ", &(tail[1]) - im->buffer, tail[1] ); */
+						fprintf( stderr, "%d: %2.2X ", &(tail[1]) - im->buffer, tail[1] ); 
 						tail[2] = (CARD8) data[ccolor];
-/*						fprintf( stderr, "%d: %2.2X ", &(tail[2]) - im->buffer, tail[2] ); */
+						fprintf( stderr, "%d: %2.2X ", &(tail[2]) - im->buffer, tail[2] ); 
 						tail += 3 ;
 					}
 					bstart = ccolor = i;
@@ -230,19 +300,21 @@ asimage_add_line (ASImage * im, ColorPart color, register CARD32 * data, unsigne
 				if ( ccolor > bstart )
 				{/* we have to write direct block */
 					tail[0] = RLE_DIRECT_B | ((CARD8)(ccolor-bstart-1));
-/*					fprintf( stderr, "\n%d:%d: >%d: %2.2X ", y, color, &(tail[0]) - im->buffer, tail[0] ); */
+					fprintf( stderr, "\n%d:%d: >%d: %2.2X ", y, color, &(tail[0]) - im->buffer, tail[0] ); 
 					tail -= bstart-1 ;
 					while ( bstart < ccolor )
 					{
 						tail[bstart] = (CARD8) data[bstart];
-/*						fprintf( stderr, "%d: %2.2X ", &(tail[bstart]) - im->buffer, tail[bstart] ); */
+						fprintf( stderr, "%d: %2.2X ", &(tail[bstart]) - im->buffer, tail[bstart] ); 
 						++bstart ;
 					}
 					tail += bstart ;
+					direct = ( i-ccolor < RLE_THRESHOLD );
 				}
-/*				fprintf( stderr, "\n"); */
+				fprintf( stderr, "\n"); 
 			}
 		}
+#endif 
 	}
 
 	*(tail++) = RLE_EOL;

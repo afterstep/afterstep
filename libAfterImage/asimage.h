@@ -35,7 +35,7 @@ ctrl_byte3    := 1NNNNNNN (first bit is 1, remaining are length)
 #define RLE_MAX_DIRECT_LEN      127
 #define RLE_MAX_SIMPLE_LEN     	63
 #define RLE_MAX_LONG_LEN     	(64*256)
-#define RLE_THRESHOLD		2
+#define RLE_THRESHOLD		1
 
 typedef struct ASImage
 {
