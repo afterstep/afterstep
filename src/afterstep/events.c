@@ -365,7 +365,7 @@ DigestEvent( ASEvent *event )
         ASTBarData *pointer_bar = NULL ;
 		int pointer_root_x = xk->x_root;
 		int pointer_root_y = xk->y_root;
-		static int last_pointer_root_x = -1, last_pointer_root_y ; 
+		static int last_pointer_root_x = -1, last_pointer_root_y = -1; 
 
         /* Since key presses and button presses are grabbed in the frame
          * when we have re-parented windows, we need to find out the real
@@ -466,10 +466,10 @@ DigestEvent( ASEvent *event )
 
         on_astbar_pointer_action( pointer_bar, event->context, 
 								  (event->x.type == LeaveNotify),
-								  (last_pointer_x != pointer_x || last_pointer_y != pointer_y );
+								  (last_pointer_root_x != pointer_root_x || last_pointer_root_y != pointer_root_y) );
 		
-		last_pointer_x = pointer_x ;
-		last_pointer_y != pointer_y ;
+		last_pointer_root_x = pointer_root_x ;
+		last_pointer_root_y = pointer_root_y ;
 
 		if( asw != NULL && w != asw->w && w != asw->frame )
 			apply_context_cursor( w, &(Scr.Feel), event->context );
