@@ -1111,7 +1111,9 @@ ReadFlagItem (unsigned long *set_flags, unsigned long *flags, FreeStorageElem * 
 	{
 		Bool          value = True;
 
-        if (stored->term->type != TT_FLAG || get_flags (stored->term->flags, (TF_INDEXED|TF_DIRECTION_INDEXED)))
+        if (stored->term->type != TT_FLAG || 
+			get_flags (stored->term->flags, (TF_INDEXED|TF_DIRECTION_INDEXED)) ||
+			stored->sub != NULL )
 			return 0;
 
 		if (stored->argc > 1)

@@ -1,6 +1,9 @@
 #ifndef ASFONT_HEADER_ICLUDED
 #define ASFONT_HEADER_ICLUDED
 
+
+#include "char2uni.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -182,7 +185,6 @@ typedef struct ASFont
 
 }ASFont;
 /*************/
-
 /****s* libAfterImage/ASFontManager
  * NAME
  * ASFontManager
@@ -232,6 +234,40 @@ typedef enum ASText3DType{
 	AST_SunkenThick,
 	AST_3DTypes
 }ASText3DType;
+/*************/
+typedef enum {
+  ASCT_UTF8 = 0,
+  ASCT_Char	= 1,
+  ASCT_Unicode=sizeof(UNICODE_CHAR)
+}ASCharType;
+
+
+/****s* libAfterImage/ASTextAttributes
+ * NAME
+ * ASGlyphRange
+ * DESCRIPTION
+ * Organizes glyphs that belongs to the continuos range of char codes.
+ * ASGlyphRange structures could be tied together to cover entire
+ * codeset supported by the font.
+ * SOURCE
+ */
+typedef struct ASTextAttributes
+{
+#define ASTA_UseTabStops	(0x01<<0)	
+	unsigned int version ;                     /* structure version, so we can implement future 
+												* extensions without breaking binary apps */             
+	ASFlagType   rendition_flags ;
+	ASText3DType type;
+	ASCharType 	 char_type;
+ 	unsigned int tab_size ; 	                          	/* tab size in chars  - defaults to 8 */
+	unsigned int origin ;									/* distance from the left margin (in pixels) */
+	unsigned int *tab_stops ;				   				/* tab stops in pixels where left margin is 0 */				
+	unsigned int tab_stops_num ;
+
+#define ASTA_VERSION_1	1
+
+#define ASTA_VERSION_INTERNAL	ASTA_VERSION_1
+}ASTextAttributes;
 /*************/
 
 /****f* libAfterImage/asfont/create_font_manager()
@@ -436,16 +472,8 @@ struct ASImage *draw_unicode_text( const CARD32 *text,
  * using zero-terminated strings :
  * Note: if length <= 0 then call is equivalent to above. 
  */
-struct ASImage *draw_text_length( const char *text, 
-							struct ASFont *font, ASText3DType type, 
-							int compression, 
-							int length );
-struct ASImage *draw_utf8_text_length( const char *text, 
-							struct ASFont *font, ASText3DType type, 
-							int compression, 
-							int length );
-struct ASImage *draw_unicode_text_length( const CARD32 *text, 
-							struct ASFont *font, ASText3DType type, 
+struct ASImage *draw_fancy_text( const void *text,
+							struct ASFont *font, ASTextAttributes *attr,
 							int compression, 
 							int length );
 
@@ -458,16 +486,9 @@ Bool get_utf8_text_size( const char *text,
 Bool get_unicode_text_size( const CARD32 *text,
 	                struct ASFont *font, ASText3DType type,
                     unsigned int *width, unsigned int *height );
-Bool get_text_length_size( const char *text,
-	                struct ASFont *font, ASText3DType type,
-                    unsigned int *width, unsigned int *height,
-					int length );
-Bool get_utf8_text_length_size( const char *text,
-	                struct ASFont *font, ASText3DType type,
-                    unsigned int *width, unsigned int *height,
-					int length );
-Bool get_unicode_text_length_size( const CARD32 *text,
-	                struct ASFont *font, ASText3DType type,
+
+Bool get_fancy_text_size( const void *text,
+	                struct ASFont *font, ASTextAttributes *attr,
                     unsigned int *width, unsigned int *height,
 					int length );
 /****f* libAfterImage/asfont/get_asfont_glyph_spacing()

@@ -88,7 +88,7 @@ make_component_hilite (int cmp)
 inline        ARGB32
 GetHilite (ARGB32 background)
 {
-	return ((make_component_hilite ((background & 0xFF000000) >> 24) << 24) & 0xFF000000) |
+	return ((make_component_hilite ((background>>24) & 0x000000FF) << 24) & 0xFF000000) |
 		((make_component_hilite ((background & 0x00FF0000) >> 16) << 16) & 0x00FF0000) |
 		((make_component_hilite ((background & 0x0000FF00) >> 8) << 8) & 0x0000FF00) |
 		((make_component_hilite ((background & 0x000000FF))) & 0x000000FF);
@@ -1262,6 +1262,29 @@ mystyle_make_bevel (MyStyle * style, ASImageBevel * bevel, int hilite, Bool reve
             if( get_flags (hilite, NO_HILITE_OUTLINE) )
                 bevel->bottom_inline += extra_hilite ;
         }
+/* experimental code */
+#if 1
+		if( bevel->top_outline > 1 ) 
+		{	
+			bevel->top_inline += bevel->top_outline - 1 ;
+			bevel->top_outline = 1 ;
+		}
+		if( bevel->left_outline > 1 ) 
+		{	
+			bevel->left_inline += bevel->left_outline - 1 ;
+			bevel->left_outline = 1 ;
+		}
+		if( bevel->right_outline > 1 ) 
+		{	
+			bevel->right_inline += bevel->right_outline - 1 ;
+			bevel->right_outline = 1 ;
+		}
+		if( bevel->bottom_outline > 1 ) 
+		{	
+			bevel->bottom_inline += bevel->bottom_outline - 1 ;
+			bevel->bottom_outline = 1 ;
+		}
+#endif
 	} else if (bevel)
 		memset (bevel, 0x00, sizeof (ASImageBevel));
 

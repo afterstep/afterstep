@@ -71,22 +71,26 @@ int main(int argc, char* argv[])
 	int screen = 0, depth = 0;
 	char *font_name = "test.ttf";
 	int size = 32 ;
-	char *text = "Smart Brown Dog jumps\nOver The Lazy Fox,\nand falls into the ditch.";
+	char *text ="CVS\t\t     command.c\tiobuff.c  rxvt.h.notmine  thai.c\n"
+				"Makefile\t     command.o\tiobuff.o  scrbuff.c\t  thai.h\n"
+				"Makefile.in\t     events.c\tlog	  scrbuff.h	  thai.o\n"
+				"afterstep.h	     events.o	main.c	  scrbuff.o	  unicode\n"
+				"aterm.exe	     feature.h	main.o	  screen.c	  utmp.c\n";
+ 	//char *text = "Smart Brown Dog jumps\nOver The Lazy Fox,\nand falls into the ditch.";
 	ARGB32 text_color = ARGB32_White, back_color = ARGB32_Black;
 	char *text_color_name = "#FFFFFFFF", *back_color_name = "#FF000000";
 	char *fore_image_file = "fore.xpm", *back_image_file = "back.xpm" ;
 	Bool scale_fore_image = False, scale_back_image = False ;
 	ASImage *fore_im = NULL, *back_im = NULL;
 	ASImage *text_im = NULL ;
-	ASText3DType type_3d = AST_ShadeBelow ;
 	struct ASFontManager *fontman = NULL;
 	struct ASFont  *font = NULL;
 	unsigned int width, height ;
 	int i ;
 	int text_margin = size/2 ;
 	Bool monospaced = False ;
-
-
+	ASTextAttributes attr = {ASTA_VERSION_1, ASTA_UseTabStops, AST_ShadeBelow, ASCT_Char, 8, 0, NULL, 0 };
+	
 	/* see ASView.1 : */
 	set_application_name( argv[0] );
 #if (HAVE_AFTERBASE_FLAG==1)
@@ -117,11 +121,11 @@ int main(int argc, char* argv[])
 				text = argv[i+1] ;
 			else if( strncmp( argv[i], "-S", 2 ) == 0 )
 			{
-				type_3d = atoi(argv[i+1]);
-				if( type_3d >= AST_3DTypes )
+				attr.type = atoi(argv[i+1]);
+				if( attr.type >= AST_3DTypes )
 				{
 					show_error( "3D type is wrong. Using 2D Plain instead.");
-					type_3d = AST_Plain ;
+					attr.type = AST_Plain ;
 				}
 
 			}else if( strncmp( argv[i], "-c", 2 ) == 0 )
@@ -138,6 +142,7 @@ int main(int argc, char* argv[])
 				scale_back_image = (strcmp( argv[i+1], "scale") == 0);
 		}
 	}
+
 
 #ifndef X_DISPLAY_MISSING
     dpy = XOpenDisplay(NULL);
@@ -169,7 +174,9 @@ int main(int argc, char* argv[])
 
 	/* see ASText.2 : */
 	/*set_asfont_glyph_spacing( font, 10, 40 );*/
-    get_text_size( text, font, type_3d, &width, &height );
+    /* Simple way : get_text_size( text, font, attr.type, &width, &height ); */
+	/* Fancy way : */
+	get_fancy_text_size( text, font, &attr, &width, &height, 0 );
 	if( fore_image_file )
 	{
 		ASImage *tmp = file2ASImage( fore_image_file, 0xFFFFFFFF,
@@ -210,7 +217,9 @@ int main(int argc, char* argv[])
 	}
 
 	/* see ASText.3 : */
-    text_im = draw_text( text, font, type_3d, 0 );
+    /* simple way : text_im = draw_text( text, font, attr.type, 0 ); */
+	text_im = draw_fancy_text( text, font, &attr, 0, 0 );
+
 /*
 show_progress( "text_im->width = %d, text_im->height = %d", text_im->width, text_im->height );
 show_progress( "fore_im->width = %d, fore_im->height = %d", fore_im->width, fore_im->height );
