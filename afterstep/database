@@ -1,9 +1,7 @@
 ##########################################################################
 # Windows styles :
 #
-# "WM_CLASS" is obtained from :
-#	'Window Propeties' under Windows in the (start)menu, or
-# 	'Ident' under Modules in the (start)menu.
+# Syntax:
 # Style "WM_CLASS"	[Icon name.xpm | NoIcon], NoTitle, Sticky,
 # 			StaysOnTop, WindowListSkip, NoHandles, NoButtons #,
 #			StartsOnDesk #, ViewportX x, ViewportY y
@@ -11,10 +9,15 @@
 #                       NoFocus, NoBorder (== BorderWidth 0),
 #			NoTitle, SuppressIcons, AvoidCover, VerticalTitle,
 #			Prepos x y
+#
+# "WM_CLASS" is obtained:
+#   * under Unix from the 'xprop' command line program
+#   * under Microsoft Windows from the "Window Properties" in the (start)menu
 
+# Default icon
+Style   "*"             Icon interface.xpm
 # For all window to have the NEW and COOL Vertical Title bar on the side:
 # Style	"*"		VerticalTitle
-Style   "*"             Icon interface.xpm
 Style   "ASMenu"        NoButton 1, NoButton 3
 
 
@@ -59,7 +62,7 @@ Style   "XMcd"          Icon CDrom.xpm
 #different windows in xmms app
 Style   "xmms*"   		 Icon logos/Xmms
 Style   "XMMS_Player*"   NoTitle, NoHandles
-Style   "XMMS_Playlist*" Title, Handles
+Style   "XMMS_Playlist*" NoTitle, NoHandles
 
 #different windows in mplayer :
 Style  "MPlayer*"       Icon normal/MovieProjector, NoTitle, NoHandles
