@@ -19,6 +19,7 @@ typedef struct ASCanvas
 #define CANVAS_DIRTY				(0x01<<0)
 #define CANVAS_OUT_OF_SYNC			(0x01<<1)
 #define CANVAS_MASK_OUT_OF_SYNC		(0x01<<2)
+#define CANVAS_CONFIG_INVALID		(0x01<<3)
 
 /* these are not really a states but rather flags : */
 #define CANVAS_CONTAINER            (0x01<<16) /* user drawn - should not maintain our canvas Pixmap,

@@ -4,7 +4,9 @@
 		../../include/afterstep.h \
 		../../include/parser.h \
 		../../include/confdefs.h \
-		../../include/background.h
+		../../include/background.h \
+		../../include/screen.h \
+		../../libAfterImage/afterimage.h
 
 ./Base.o : \
 		../../configure.h \
@@ -12,6 +14,16 @@
 		../../include/afterstep.h \
 		../../include/parser.h \
 		../../include/confdefs.h
+
+./balloon.o : \
+		../../configure.h \
+		../../include/asapp.h \
+		../../include/afterstep.h \
+		../../include/mystyle.h \
+		../../include/parser.h \
+		../../include/confdefs.h \
+		../../include/balloon.h \
+		../../include/mylook.h
 
 ./Database.o : \
 		../../configure.h \
@@ -21,6 +33,17 @@
 		../../include/parser.h \
 		../../include/confdefs.h \
 		../../include/hints.h
+
+./Look.o : \
+		../../configure.h \
+		../../include/asapp.h \
+		../../include/afterstep.h \
+		../../include/mystyle.h \
+		../../include/parser.h \
+		../../include/parse.h \
+		../../include/screen.h \
+		../../include/mylook.h \
+		../../include/confdefs.h
 
 ./MyStyle.o : \
 		../../configure.h \
@@ -34,6 +57,15 @@
 		../../include/confdefs.h
 
 ./Pager.o : \
+		../../configure.h \
+		../../include/asapp.h \
+		../../include/afterstep.h \
+		../../include/mystyle.h \
+		../../include/parser.h \
+		../../include/confdefs.h \
+		../../include/balloon.h
+
+./Wharf.o : \
 		../../configure.h \
 		../../include/asapp.h \
 		../../include/afterstep.h \

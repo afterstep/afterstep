@@ -508,10 +508,23 @@ run_item_submenu( ASMenu *menu, int item )
 LOCAL_DEBUG_CALLER_OUT( "%p, %d, submenu(%p)", menu, item, menu->items[item].submenu );
     if( menu->items[item].submenu )
     {
-        close_asmenu_submenu( menu );
-        menu->submenu = run_submenu( menu, menu->items[item].submenu,
-                                        menu->main_canvas->root_x+menu->item_width-5,
-                                        menu->main_canvas->root_y+(menu->item_height*(item-(int)menu->top_item))-5 );
+	int x = menu->main_canvas->root_x ;
+	int y ;
+	ASQueryPointerRootXY( &x, &y );
+	x -= 5 ;
+	if( x  < menu->main_canvas->root_x + (menu->item_width/3) )
+	{
+	    int max_dx = Scr.MyDisplayWidth / 20 ;
+	    if( menu->main_canvas->root_x + (menu->item_width/3) - x  < max_dx )
+	        x = menu->main_canvas->root_x + (menu->item_width/3) ;
+	    else
+		x += max_dx ;
+	}
+        y = menu->main_canvas->root_y+(menu->item_height*(item+1-(int)menu->top_item))-5 ;
+/*	if( x > menu->main_canvas->root_x+menu->item_width-5 )
+	    x = menu->main_canvas->root_x+menu->item_width-5 ;
+*/      close_asmenu_submenu( menu );
+        menu->submenu = run_submenu( menu, menu->items[item].submenu, x, y);
     }
 }
 
@@ -737,7 +750,7 @@ menu_destroy( ASInternalWindow *asiw )
 /* End of Menu event handlers:                                           */
 /*************************************************************************/
 void
-show_asmenu(ASMenu *menu, int x, int y)
+show_asmenu( ASMenu *menu, int x, int y )
 {
     ASStatusHints status ;
     ASHints *hints = safecalloc( 1, sizeof(ASHints) );
@@ -810,17 +823,6 @@ show_asmenu(ASMenu *menu, int x, int y)
         hints->min_width  = tbar_width ;
     }
 
-    /* status hints : */
-    memset( &status, 0x00, sizeof( ASStatusHints ) );
-    status.flags = AS_StartPosition|
-                   AS_StartPositionUser|
-                   AS_StartSize|
-                   AS_StartSizeUser|
-                   AS_StartViewportX|
-                   AS_StartViewportY|
-                   AS_StartDesktop|
-                   AS_StartLayer;
-
     if( x <= MIN_MENU_X )
         x = MIN_MENU_X ;
     else if( x + menu->optimal_width > MAX_MENU_X )
@@ -835,6 +837,21 @@ show_asmenu(ASMenu *menu, int x, int y)
         y = MAX_MENU_Y - menu->optimal_height ;
         gravity = (gravity == NorthWestGravity)?SouthWestGravity:SouthEastGravity ;
     }
+    
+    hints->gravity = gravity ;
+    
+    
+    /* status hints : */
+    memset( &status, 0x00, sizeof( ASStatusHints ) );
+    status.flags = AS_StartPosition|
+                   AS_StartPositionUser|
+                   AS_StartSize|
+                   AS_StartSizeUser|
+                   AS_StartViewportX|
+                   AS_StartViewportY|
+                   AS_StartDesktop|
+                   AS_StartLayer;
+
     status.x = x;
     status.y = y;
     status.width = menu->optimal_width;

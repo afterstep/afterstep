@@ -13,4 +13,5 @@
 		../../include/decor.h \
 		../../libAfterImage/afterimage.h \
 		../../include/aswindata.h \
-		../../include/balloon.h
+		../../include/balloon.h \
+		../../include/event.h

@@ -3,7 +3,15 @@
 # Copyright (c) 1998, Guylhem AZNAR <guylhem@oeil.qc.ca>
 #
 
-LIB_INCS=
+LIB_INCS= ../include/asapp.h ../include/asdatabase.h ../include/aswindata.h \
+	  ../include/balloon.h ../include/clientprops.h \
+	  ../include/decor.h ../include/event.h ../include/freestor.h \
+	  ../include/functions.h ../include/font.h ../include/hints.h \
+	  ../include/loadimg.h ../include/moveresize.h ../include/myicon.h \
+	  ../include/mylook.h ../include/mystyle.h ../include/mystyle_property.h \
+	  ../include/parse.h ../include/parser.h ../include/screen.h \
+	  ../include/session.h ../include/wmprops.h
+							  
 
 # removed : mystrcasecmp.o mystrdup.o safemalloc.o
 #           sleep.o hostname.o getfdwidth.o

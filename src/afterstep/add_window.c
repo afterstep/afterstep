@@ -299,7 +299,7 @@ check_frame_canvas( ASWindow *asw, Bool required )
             canvas = create_ascanvas_container( w );
 LOCAL_DEBUG_OUT( "++CREAT Client(%lx(%s))->FRAME->canvas(%p)->window(%lx)", asw->w, ASWIN_NAME(asw)?ASWIN_NAME(asw):"noname", canvas, canvas->w );
         }else
-			invalidate_canvas_config( canvas );
+	    invalidate_canvas_config( canvas );
     }else if( canvas != NULL )
     {                                          /* destroy canvas here */
         w = canvas->w ;
@@ -353,7 +353,7 @@ check_client_canvas( ASWindow *asw, Bool required )
             canvas = create_ascanvas_container( w );
 LOCAL_DEBUG_OUT( "++CREAT Client(%lx(%s))->CLIENT->canvas(%p)->window(%lx)", asw->w, ASWIN_NAME(asw)?ASWIN_NAME(asw):"noname", canvas, canvas->w );
         }else
-			invalidate_canvas_config( canvas );
+	    invalidate_canvas_config( canvas );
     }else if( canvas != NULL )
     {                                          /* destroy canvas here */
         XWindowChanges xwc;                    /* our withdrawn geometry */
@@ -1567,6 +1567,7 @@ on_window_hints_changed( ASWindow *asw )
     SelectDecor (asw);
 
     /* we need to do the complete refresh of decorations : */
+    LOCAL_DEBUG_OUT( "redecorating window %p(\"%s\") to update to new hints...", asw, hints->names[0]?hints->names[0]:"none" );
     redecorate_window       ( asw, False );
 
     on_window_title_changed ( asw, False );
@@ -2221,16 +2222,18 @@ SetShape (ASWindow *asw, int w)
             int i ;
 			Window        wdumm;
 			int client_x = 0, client_y = 0 ;
+			unsigned int width, height, bw, unused_depth  ;
+			
+			XGetGeometry( dpy, asw->w, &wdumm, &client_x, &client_y, &width, &height, &bw, &unused_depth );
 
-			XTranslateCoordinates (dpy, asw->w, asw->frame, 0, 0, &client_x, &client_y, &wdumm);
             if( ASWIN_GET_FLAGS( asw, AS_Shaped ) && !ASWIN_GET_FLAGS(asw, AS_Dead) )
             {
 				/* we must use Translate coordinates since some of the canvases may not have updated
 				 * their config at the time */
     			LOCAL_DEBUG_OUT( "combining client shape at %+d%+d", client_x, client_y );
                 XShapeCombineShape (dpy, asw->frame, ShapeBounding,
-                                    client_x,
-                                    client_y,
+                                    client_x+bw,
+                                    client_y+bw,
                                     asw->w, ShapeBounding, ShapeSet);
             }else
             {
@@ -2240,8 +2243,8 @@ SetShape (ASWindow *asw, int w)
 				rect.x = client_x ;
 				rect.y = client_y ;
 				LOCAL_DEBUG_OUT( "setting client shape to rectangle at %+d%+d", rect.x, rect.y );
-                rect.width  = asw->client_canvas->width;
-                rect.height = asw->client_canvas->height;
+                rect.width  = width+bw*2;
+                rect.height = height+bw*2;
 
                 XShapeCombineRectangles (dpy, asw->frame, ShapeBounding,
                                          0, 0, &rect, 1, ShapeSet, Unsorted);
@@ -2287,12 +2290,15 @@ ClearShape (ASWindow *asw)
 #ifdef SHAPE
     if( asw && asw->frame_canvas )
     {
+	unsigned int width, height ;
         XRectangle    rect;
+
+	get_drawable_size( asw->frame_canvas->w, &width, &height );
         rect.x = 0;
         rect.y = 0;
-        rect.width  = asw->frame_canvas->width;
-        rect.height = asw->frame_canvas->height;
-
+        rect.width  = width;
+        rect.height = height;
+        LOCAL_DEBUG_OUT( "setting shape to rectangle %dx%d", rect.width, rect.height );
         XShapeCombineRectangles ( dpy, asw->frame, ShapeBounding,
                                   0, 0, &rect, 1, ShapeSet, Unsorted);
     }

@@ -67,6 +67,8 @@ refresh_canvas_config (ASCanvas * pc)
         if( height != pc->height )
             set_flags(changed, CANVAS_HEIGHT_CHANGED);
 
+	clear_flags (pc->state, CANVAS_CONFIG_INVALID);
+
 		if (width != pc->width || height != pc->height)
 		{
 			if (pc->canvas)
@@ -213,6 +215,9 @@ invalidate_canvas_config( ASCanvas *pc )
 {
 	if( pc )
 	{
+	    if( get_flags( pc->state, CANVAS_CONFIG_INVALID) )
+		return; 
+				
         LOCAL_DEBUG_OUT( "resizing to %dx%d", pc->width+1, pc->height+1 );
         XResizeWindow( dpy, pc->w, pc->width+1, pc->height+1 );
 #ifdef SHAPE
@@ -228,19 +233,20 @@ invalidate_canvas_config( ASCanvas *pc )
         }
 #endif
 
-        pc->width = 1;
+    		pc->width = 1;
 		pc->height = 1;
 		if (pc->canvas)
 		{
 			XFreePixmap (dpy, pc->canvas);
 			pc->canvas = None;
 		}
-        if (pc->mask && !get_flags( pc->state, CANVAS_CONTAINER ))
+	        if (pc->mask && !get_flags( pc->state, CANVAS_CONTAINER ))
 		{
 			XFreePixmap (dpy, pc->mask);
 			pc->mask = None;
 		}
 		set_flags (pc->state, CANVAS_DIRTY | CANVAS_OUT_OF_SYNC);
+		set_flags( pc->state, CANVAS_CONFIG_INVALID);
 	}
 }
 

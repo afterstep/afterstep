@@ -235,12 +235,12 @@ LOCAL_DEBUG_CALLER_OUT( "feel %p", feel);
            print_window_box (&(feel->window_boxes[i]), i);
     }
 
-#if 0
+#if 1
     if( feel->default_window_box == NULL )
     { /* build new default windowbox */
         i = feel->window_boxes_num ;
         feel->window_boxes = realloc( feel->window_boxes, sizeof(ASWindowBox)*(i+1) );
-        ++(feel->window_boxes);
+        ++(feel->window_boxes_num);
         feel->default_window_box = &(feel->window_boxes[i]);
         memset( feel->default_window_box, 0x00, sizeof(ASWindowBox));
         feel->default_window_box->name = mystrdup("default");

@@ -3,7 +3,9 @@
 		../include/asapp.h \
 		../libAfterImage/afterimage.h \
 		../include/screen.h \
-		../include/module.h
+		../include/module.h \
+		../include/wmprops.h \
+		../include/session.h
 
 ./asapp.o : \
 		../configure.h \
@@ -11,12 +13,43 @@
 		../include/afterstep.h \
 		../include/parser.h \
 		../include/screen.h \
-		../include/functions.h
+		../include/functions.h \
+		../include/session.h \
+		../include/balloon.h \
+		../include/mystyle.h \
+		../include/wmprops.h \
+		../libAfterImage/xpm.h
 
 ./asdatabase.o : \
 		../configure.h \
 		../include/asapp.h \
 		../include/asdatabase.h
+
+./asfeel.o : \
+		../configure.h \
+		../include/asapp.h \
+		../include/afterstep.h \
+		../include/parse.h \
+		../include/loadimg.h \
+		../include/parser.h \
+		../include/confdefs.h \
+		../include/mystyle.h \
+		../libAfterImage/afterimage.h \
+		../include/screen.h \
+		../include/balloon.h \
+		../include/asfeel.h
+
+./aswindata.o : \
+		../configure.h \
+		../include/asapp.h \
+		../include/afterstep.h \
+		../include/screen.h \
+		../include/module.h \
+		../include/mystyle.h \
+		../include/clientprops.h \
+		../include/wmprops.h \
+		../include/aswindata.h \
+		../include/decor.h
 
 ./background.o : \
 		../configure.h \
@@ -32,6 +65,8 @@
 		../include/asapp.h \
 		../include/mystyle.h \
 		../include/event.h \
+		../include/screen.h \
+		../include/decor.h \
 		../include/balloon.h
 
 ./clientprops.o : \
@@ -49,7 +84,9 @@
 		../include/screen.h \
 		../libAfterImage/afterimage.h \
 		../include/myicon.h \
-		../include/decor.h
+		../include/decor.h \
+		../include/event.h \
+		../include/balloon.h
 
 ./event.o : \
 		../configure.h \
@@ -57,6 +94,23 @@
 		../include/afterstep.h \
 		../include/screen.h \
 		../include/event.h
+
+./freestor.o : \
+		../configure.h \
+		../include/asapp.h \
+		../include/afterstep.h \
+		../include/parser.h \
+		../include/screen.h \
+		../include/freestor.h \
+		../include/functions.h
+
+./functions.o : \
+		../configure.h \
+		../include/asapp.h \
+		../include/afterstep.h \
+		../include/screen.h \
+		../include/parser.h \
+		../include/functions.h
 
 ./font.o : \
 		../configure.h \
@@ -80,6 +134,18 @@
 		../libAfterImage/afterimage.h \
 		../include/loadimg.h
 
+./moveresize.o : \
+		../configure.h \
+		../include/asapp.h \
+		../libAfterImage/afterimage.h \
+		../include/afterstep.h \
+		../include/event.h \
+		../include/mystyle.h \
+		../include/screen.h \
+		../include/hints.h \
+		../include/decor.h \
+		../include/moveresize.h
+
 ./myicon.o : \
 		../configure.h \
 		../include/asapp.h \
@@ -87,6 +153,19 @@
 		../include/loadimg.h \
 		../libAfterImage/afterimage.h \
 		../include/screen.h
+
+./mylook.o : \
+		../configure.h \
+		../include/asapp.h \
+		../include/afterstep.h \
+		../include/parse.h \
+		../include/loadimg.h \
+		../include/parser.h \
+		../include/confdefs.h \
+		../include/mystyle.h \
+		../libAfterImage/afterimage.h \
+		../include/screen.h \
+		../include/balloon.h
 
 ./mystyle.o : \
 		../configure.h \
@@ -108,6 +187,15 @@
 		../include/mystyle_property.h \
 		../include/wmprops.h
 
+./outline.o : \
+		../configure.h \
+		../include/asapp.h \
+		../libAfterImage/afterimage.h \
+		../include/afterstep.h \
+		../include/screen.h \
+		../include/decor.h \
+		../include/moveresize.h
+
 ./parse.o : \
 		../configure.h \
 		../include/asapp.h \
@@ -117,7 +205,9 @@
 		../configure.h \
 		../include/asapp.h \
 		../include/afterstep.h \
-		../include/parser.h
+		../include/parser.h \
+		../include/freestor.h \
+		../include/functions.h
 
 ./screen.o : \
 		../configure.h \

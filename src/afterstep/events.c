@@ -641,7 +641,7 @@ HandlePropertyNotify (ASEvent *event)
 #endif
     }
 
-//    if( (asw = event->client) == NULL )
+    if( (asw = event->client) == NULL )
         return ;
 
     if( IsNameProp(atom))
