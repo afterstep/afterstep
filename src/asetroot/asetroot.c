@@ -261,7 +261,6 @@ main (int argc, char **argv)
   int i, desks[2] =
   {-1, -1}, curr_desk = 0;
 
-  set_use_tmp_heap (FALSE);
   /* it's too complicated to track when to purge pixmap cache in case
      of changed backgrounds, so we just turn it off completely .
      Methods to avoid image loading from the same file twice are
@@ -975,11 +974,9 @@ GetOptions (const char *filename)
   /* reading global styles first */
   if (MyEnv.action == ACTION_DEFAULT)
     {
-      using_tmp_heap = set_use_tmp_heap (FALSE);
       mystyle_get_property (dpy, Scr.Root, Atoms[MYSTYLE_ATOM].atom, Atoms[MYSTYLE_ATOM].type);
       if (config->style_defs)
 	ProcessMyStyleDefinitions (&(config->style_defs), pixmapPath);
-      set_use_tmp_heap (using_tmp_heap);
     }
 
   /* now lets convert config into the list of desks and list
@@ -999,11 +996,9 @@ GetOptions (const char *filename)
     if (IsDeskInRange (curr_desk->desk) &&
 	curr_desk->back != NULL)
       DesksArray.desks_num++;
-  using_tmp_heap = set_use_tmp_heap (FALSE);
   if (DesksArray.desks)
     free (DesksArray.desks);
   DesksArray.desks = (ASDeskBack *) safemalloc (sizeof (ASDeskBack) * DesksArray.desks_num);
-  set_use_tmp_heap (using_tmp_heap);
 
   /* now we are ready to do the real thing */
   i = 0;

@@ -63,9 +63,16 @@ char *mystrndup (const char *str, size_t n);
 #include "../libAfterBase/mystring.h"
 #include "../libAfterBase/os.h"
 #include "../libAfterBase/sleep.h"
+#include "../libAfterBase/fs.h"
 
 
 #define GetFdWidth			get_fd_width
+#define PutHome(f)			put_file_home(f)
+#define CopyFile(f1,f2)		copy_file((f1),(f2))
+
+#define replaceEnvVar(p)	replace_envvar (p)
+#define findIconFile(f,p,t)	find_file(f,p,t)
+
 
 
 #define CLAMP(a,b,c)        ((a)<(b) ? (b) : ((a)>(c) ? (c) : (a)))
@@ -97,27 +104,10 @@ char *CatString3 (const char *, const char *, const char *);
 /* from sendinfo.c */
 void SendInfo (int *, char *, unsigned long);
 
-/* from findiconfile.c */
-char *findIconFile (const char *, const char *, int);
-
 /* from wild.c */
 int matchWildcards (const char *, const char *);
 
-void replaceEnvVar (char **);
 void CopyString (char **, char *);
-
-/* constructs filename from two parts */
-char *make_file_name (const char *path, const char *file);
-int CopyFile (const char *realfilename1, const char *realfilename2);
-
-int CheckMode (const char *file, int mode);
-#if !defined(S_IFREG) || !defined(S_IFDIR)
-#include <sys/stat.h>
-#endif
-#define CheckFile(f) 	CheckMode(f,S_IFREG)
-#define CheckDir(d) 	CheckMode(d,S_IFDIR)
-
-char *PutHome (const char *);
 
 #ifndef DEBUG_ALLOCS
 /*#define free(a)       safefree(a) */

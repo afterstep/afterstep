@@ -40,217 +40,54 @@
 #include "../include/aftersteplib.h"
 #include "../include/afterstep.h"
 
-/* our input-output data structures definitions */
+#include "../libAfterImage/afterimage.h"
 
-#include "../include/ascolor.h"
 #include "../include/loadimg.h"
-#include "../include/XImage_utils.h"
 
-#ifdef DEBUG_LOADIMAGE
-#define LOG1(a)       fprintf( stderr, a );
-#define LOG2(a,b)    fprintf( stderr, a, b );
-#define LOG3(a,b,c)    fprintf( stderr, a, b, c );
-#define LOG4(a,b,c,d)    fprintf( stderr, a, b, c, d );
-#else
-#define LOG1(a)
-#define LOG2(a,b)
-#define LOG3(a,b,c)
-#define LOG4(a,b,c,d)
-#endif
+#define SCREEN_GAMMA 1.0	/* default gamma correction value - */
+/* it can be adjusted via $SCREEN_GAMMA env. variable */
+typedef struct pixmap_ref
+  {
+    struct pixmap_ref *next;
+    int refcount;
+    char *name;
+    Pixmap pixmap;
+    Pixmap mask;
+  }
+pixmap_ref_t;
 
-/* Here we'll detect image type */
-int bReportErrorIfTypeUnknown = 1;
-/* we might have a compressed XPM file */
-int
-CheckIfCompressed (const char *realfilename)
+static ASVisual *_as_ASVisual = NULL;
+static pixmap_ref_t *pixmap_ref_first = NULL;
+static int use_pixmap_ref = 1;
+
+/********************************************************************/
+/* AfterStep ASVisual management 									*/
+/********************************************************************/
+ASVisual *
+GetASVisual()
 {
-  int len = strlen (realfilename);
-
-  if (len > 3 && strcasecmp (realfilename + len - 3, ".gz") == 0)
-    return 1;
-  if (len > 2 && strcasecmp (realfilename + len - 2, ".z") == 0)
-    return 1;
-  return 0;
-}
-
-#define FORMAT_TYPE_MAX_SIZE 128
-#define FORMAT_TYPE_MIN_SIZE 10
-
-/* return 0 if not detected      */
-int
-GetImageType (const char *realfilename)
-{
-  int fd;
-  unsigned char head[FORMAT_TYPE_MAX_SIZE];
-  int bytes_in = FORMAT_TYPE_MAX_SIZE;
-
-  if ((fd = open (realfilename, O_RDONLY)) == -1)
-    return -1;
-  bytes_in = read (fd, head, bytes_in);
-  close (fd);
-
-  if (bytes_in > FORMAT_TYPE_MIN_SIZE)
-    {
-      if (bytes_in < FORMAT_TYPE_MAX_SIZE)
-	head[bytes_in] = '\0';
-      else
-	head[bytes_in - 1] = '\0';
-
-      if (head[0] == 0xff && head[1] == 0xd8 && head[2] == 0xff)
-	return F_JPEG;
-      else if (head[0] == 'G' && head[1] == 'I' && head[2] == 'F')
-	return F_GIF;
-      else if (head[0] == head[1] && (head[0] == 'I' || head[0] == 'M'))
-	return F_TIFF;
-      else if (head[0] == 0xa && head[1] <= 5 && head[2] == 1)
-	return F_PCX;
-      else if (head[0] == 'B' && head[1] == 'M')
-	return F_BMP;
-      else if (head[0] == 0 && head[1] == 0 &&
-	       head[2] == 2 && head[3] == 0 &&
-	       head[4] == 0 && head[5] == 0 &&
-	       head[6] == 0 && head[7] == 0)
-	return F_TARGA;
-      else if (strncmp ((char *) head + 1, "PNG", (size_t) 3) == 0)
-	return F_PNG;
-      else if (strncmp ((char *) head, "#define", (size_t) 7) == 0)
-	return F_XBM;
-      else if (strstr ((char *) head, "XPM") != NULL)
-	return F_XPM;
-      else if (CheckIfCompressed (realfilename) != 0)
-	return F_XPM;
-      /* nothing yet for PCD */
-
-    }
-  return F_UNKNOWN;
-}
-
-
-
-int
-CreateTarget (LImageParams * pParams)
-{
-  pParams->m_Target = XCreatePixmap (pParams->m_dpy, pParams->m_w,
-				     pParams->m_width, pParams->m_height,
-				     pParams->m_depth);
-  XSync (pParams->m_dpy, False);
-  LOG2 ("\n loadimage.c: Target Pixmap created: %lu .", pParams->m_Target);
-  if (pParams->m_Target)
-    if ((pParams->m_pImage = CreateXImageAndData (pParams->m_dpy,
-						  pParams->m_visual,
-						  pParams->m_depth,
-						  ZPixmap, 0,
-						  pParams->m_width,
-						pParams->m_height)) == NULL)
-      {
-	XFreePixmap (pParams->m_dpy, pParams->m_Target);
-	pParams->m_Target = 0;
-      }
-  LOG2 ("\n loadimage.c: Target XImage %s.", (pParams->m_pImage) ? "created" : "failed");
-  return ((pParams->m_pImage == NULL) ? 0 : 1);
-}
-
-int
-CreateMask (LImageParams * pParams)
-{
-
-  pParams->m_Mask = XCreatePixmap (pParams->m_dpy, pParams->m_w,
-				   pParams->m_width, pParams->m_height,
-				   MASK_DEPTH);
-  if (pParams->m_Mask)
-    if ((pParams->m_pMaskImage = XGetImage (pParams->m_dpy, pParams->m_Mask, 0, 0,
-					pParams->m_width, pParams->m_height,
-					    AllPlanes, ZPixmap)) == NULL)
-      {
-	XFreePixmap (pParams->m_dpy, pParams->m_Mask);
-	pParams->m_Mask = 0;
-      }
-  LOG1 ("\nLoadImage: CreateMask done.");
-  return ((pParams->m_pMaskImage == NULL) ? 0 : 1);
+	if( _as_ASVisual == NULL ) 
+	{
+		int screen = DefaultScreen(dpy);
+		_as_ASVisual = create_asvisual( dpy, screen,DefaultDepth (dpy, screen), NULL);
+	
+	}
+	return _as_ASVisual ;
 }
 
 void
-XImageToPixmap (LImageParams * pParams, XImage * pImage, Pixmap * pTarget)
+CleanupASVisual()
 {
-  if (pImage == NULL)
-    {
-      if (*pTarget)
+	if( _as_ASVisual == NULL ) 
 	{
-	  LOG1 ("\nXImageToPixmap: XImageToPixmap pImage is NULL.");
-	  XFreePixmap (pParams->m_dpy, *pTarget);
-	  *pTarget = None;
+		destroy_asvisual(_as_ASVisual, False);
+		_as_ASVisual = NULL;
 	}
-      return;
-    }
-  LOG1 ("\nXImageToPixmap: XImageToPixmap pImage is not NULL.");
-  LOG4 ("\nXImageToPixmap: XImage depth=%u, format=%s, width=%d", pImage->depth, (pImage->format == ZPixmap) ? "ZPixmap" : ((pImage->format == XYBitmap) ? "XYBitmap" : "XYPixmap"), pImage->width)
-    LOG3 (", height=%d, bpp=%u ", pImage->height, pImage->bits_per_pixel)
-    if (*pTarget == None)
-    if ((*pTarget = XCreatePixmap (pParams->m_dpy, pParams->m_w,
-				   pParams->m_width, pParams->m_height,
-				   pImage->depth)))
-      {
-	if (pParams->m_gc)
-	  XFreeGC (pParams->m_dpy, pParams->m_gc);
-	pParams->m_gc = XCreateGC (pParams->m_dpy, *pTarget, 0, NULL);
-      }
-
-  if (*pTarget)
-    {
-      GC mgc = XCreateGC (pParams->m_dpy, *pTarget, 0, NULL);
-      XPutImage (pParams->m_dpy, *pTarget, mgc,
-		 pImage, 0, 0, 0, 0, pParams->m_width, pParams->m_height);
-      XFreeGC (pParams->m_dpy, mgc);
-    }
 }
 
-void
-CheckImageSize (LImageParams * pParams, unsigned int real_width, unsigned int real_height)
-{
-  if (pParams->m_width > 0 && pParams->m_x_net)
-    {
-      LOG3 ("\nCheckImageSize(): to_width = %d, from_width=%d", pParams->m_width, real_width)
-	if (pParams->m_width == real_width)
-	{
-	  free (pParams->m_x_net);
-	  pParams->m_x_net = NULL;
-	}
-      else
-	Scale (pParams->m_x_net, pParams->m_width, 0, real_width - 1);
-
-    }
-  else if (pParams->m_max_x > 0 && pParams->m_max_x < real_width)
-    pParams->m_width = pParams->m_max_x;
-  else
-    pParams->m_width = real_width;
-  LOG2 ("\nCheckImageSize(): width = %d", pParams->m_width)
-    if (pParams->m_height > 0 && pParams->m_y_net)
-    {
-      LOG3 ("\nCheckImageSize(): to_height = %d, from_height=%d", pParams->m_height, real_height)
-	if (pParams->m_height == real_height)
-	{
-	  free (pParams->m_y_net);
-	  pParams->m_y_net = NULL;
-	}
-      else
-	Scale (pParams->m_y_net, pParams->m_height, 0, real_height - 1);
-    }
-  else if (pParams->m_max_y > 0 && pParams->m_max_y < real_height)
-    pParams->m_height = pParams->m_max_y;
-  else
-    pParams->m_height = real_height;
-  LOG2 ("\nCheckImageSize(): height = %d", pParams->m_height)
-}
-
-/* main image loading code here */
-
-extern int LoadJPEGFile (LImageParams * pParams);
-extern int LoadXPMFile (LImageParams * pParams);
-extern void LoadPNGFile (LImageParams * pParams);
-
-pixmap_ref_t *pixmap_ref_first = NULL;
-int use_pixmap_ref = 1;
-
+/********************************************************************/
+/* pixmpa reference counting                                        */
+/********************************************************************/
 int
 set_use_pixmap_ref (int on)
 {
@@ -364,9 +201,74 @@ pixmap_ref_purge (void)
 	  }
       done = (ref == NULL);
     }
-  return count;
+	return count;
 }
 
+
+Pixmap
+LoadImageWithMask (Display * dpy, Window w, unsigned long max_colors, const char *realfilename, Pixmap * pMask)
+{
+	Pixmap p = None ;
+	pixmap_ref_t *ref = NULL;
+	
+	if (use_pixmap_ref)
+  	{
+  		ref = pixmap_ref_find_by_name (realfilename);
+    	if (ref != NULL)
+		{
+			pixmap_ref_increment (ref);
+			*pMask = ref->mask;
+			return ref->pixmap;
+		}
+    }
+
+	p = file2pixmap(GetASVisual(), w, realfilename, pMask);
+
+    if (use_pixmap_ref && p)
+    {
+  		pixmap_ref_new (realfilename, p, *pMask);
+    }
+	return p ;
+}
+
+Pixmap
+LoadImageWithMaskAndScale (Display * dpy, Window w, unsigned long max_colors, const char *realfilename, unsigned int to_width, unsigned int to_height, Pixmap * pMask)
+{
+	Pixmap p = None ;
+	ASImage *im ;
+	double gamma ;
+    char *gamma_str;
+	
+    if ((gamma_str = getenv ("SCREEN_GAMMA")) != NULL)
+      gamma = atof (gamma_str);
+    else
+      gamma = SCREEN_GAMMA;
+    if ( gamma == 0.0)
+      gamma = SCREEN_GAMMA;
+	
+	if( (im = file2ASImage( realfilename, 0xFFFFFFFF, gamma, 0, NULL )) != NULL )
+	{
+		if( to_width == 0 ) 
+			to_width = im->width ;
+		if( to_height == 0 ) 
+			to_height = im->height ;
+		if( im->width != to_width || im->height != to_height )
+		{
+			ASImage *scaled_im = scale_asimage( GetASVisual(), im, to_width, to_height,
+												pMask?ASA_XImage:ASA_ASImage,
+												0, ASIMAGE_QUALITY_DEFAULT );
+			if( scaled_im ) 
+			{
+				destroy_asimage( &im );
+				im = scaled_im ;
+			}
+		}
+		p = asimage2pixmap( GetASVisual(), w, im, NULL, True );
+		if( pMask ) 
+			*pMask = asimage2pixmap( GetASVisual(), w, im, NULL, True );
+	}
+	return p;
+}
 /* UnloadImage()
  * if pixmap is found in reference list, decrements reference count; else
  * XFreePixmap()'s the pixmap
@@ -423,248 +325,3 @@ UnloadMask (Pixmap mask)
   return 0;
 }
 
-/* this one will load image from file */
-Pixmap
-LoadImageEx (LImageParams * pParams)
-{
-
-  pixmap_ref_t *ref = NULL;
-  if (use_pixmap_ref)
-    {
-      ref = pixmap_ref_find_by_name (pParams->m_realfilename);
-      if (ref != NULL)
-	{
-	  pixmap_ref_increment (ref);
-	  pParams->m_Target = ref->pixmap;
-	  pParams->m_Mask = ref->mask;
-	  return ref->pixmap;
-	}
-    }
-
-  pParams->m_Target = None;
-  pParams->m_Mask = None;
-  pParams->m_pImage = NULL;
-  pParams->m_pMaskImage = NULL;
-  pParams->m_gc = None;
-  pParams->m_img_colormap = NULL;
-  {				/* adjusting gamma correction */
-    char *gamma_str;
-    if ((gamma_str = getenv ("SCREEN_GAMMA")) != NULL)
-      pParams->m_gamma = atof (gamma_str);
-    else
-      pParams->m_gamma = SCREEN_GAMMA;
-    if (pParams->m_gamma == 0.0)
-      pParams->m_gamma = SCREEN_GAMMA;
-    if (pParams->m_gamma != 1.0)
-      {
-	register int i;
-	double gamma_i = 1.0 / pParams->m_gamma;
-	pParams->m_gamma_table = safemalloc (256);
-	for (i = 0; i < 256; i++)
-	  pParams->m_gamma_table[i] = ADJUST_GAMMA8_INV ((CARD8) i, gamma_i);
-      }
-    else
-      pParams->m_gamma_table = NULL;
-  }
-
-  {				/* queriing window attributes */
-    XWindowAttributes win_attr;
-    XGetWindowAttributes (pParams->m_dpy, pParams->m_w, &win_attr);
-    LOG3 ("\nLoadImageWithMask: window size %dx%d", win_attr.width, win_attr.height);
-    if (pParams->m_max_x < 0)
-      pParams->m_max_x = win_attr.width;
-    if (pParams->m_max_y < 0)
-      pParams->m_max_y = win_attr.height;
-    pParams->m_colormap = win_attr.colormap;
-    pParams->m_visual = win_attr.visual;
-    pParams->m_depth = win_attr.depth;
-    if (pParams->m_width <= 0)
-      pParams->m_x_net = NULL;
-    if (pParams->m_height <= 0)
-      pParams->m_y_net = NULL;
-  }
-
-  LOG1 ("\nLoadImage: Checking file format...");
-  switch (GetImageType (pParams->m_realfilename))
-    {
-    case -1:
-      fprintf (stderr, "\n LoadImage: cannot read file[%s].", pParams->m_realfilename);
-      break;
-    case F_XPM:
-#ifdef XPM
-      LOG1 ("\nLoadImage: XPM format");
-      LoadXPMFile (pParams);
-#else
-      if (bReportErrorIfTypeUnknown)
-	{
-	  fprintf (stderr, "\n LoadImage: cannot load XPM file [%s]", pParams->m_realfilename);
-	  fprintf (stderr, "\n LoadImage: you need to install libXPM v 4.0 or higher, in order to read images of this format.");
-	}
-#endif /* XPM */
-      break;
-
-    case F_JPEG:
-#ifdef JPEG
-      LoadJPEGFile (pParams);
-      LOG1 ("\nLoadImage: JPEG format");
-#else
-      if (bReportErrorIfTypeUnknown)
-	{
-	  fprintf (stderr, "\n LoadImage: cannot load JPEG file [%s]", pParams->m_realfilename);
-	  fprintf (stderr, "\n LoadImage: you need to install libJPEG v 6.0 or higher, in order to read images of this format.");
-	}
-#endif /* JPEG */
-      break;
-
-    case F_PNG:
-#ifdef PNG
-      LoadPNGFile (pParams);
-      LOG1 ("\nLoadImage: PNG format");
-#else
-      if (bReportErrorIfTypeUnknown)
-	{
-	  fprintf (stderr, "\n LoadImage: cannot load PNG file [%s]", pParams->m_realfilename);
-	  fprintf (stderr, "\n LoadImage: you need to install libPNG, in order to read images of this format.");
-	}
-#endif /* PNG */
-      break;
-
-    default:
-      if (bReportErrorIfTypeUnknown)
-	fprintf (stderr, "\n LoadImage: Unknown or unsupported image format.\n");
-      break;
-    }
-
-  /* here deallocating resources if needed */
-  if (pParams->m_pImage)
-    {
-      LOG1 ("\nLoadImage: Destroying m_pImage..");
-      XDestroyImage (pParams->m_pImage);
-      pParams->m_pImage = NULL;
-      LOG1 (" Done.");
-    }
-
-  if (pParams->m_pMaskImage)
-    {
-      LOG1 ("\nLoadImage: Destroying m_pMaskImage..");
-      XDestroyImage (pParams->m_pMaskImage);
-      pParams->m_pMaskImage = NULL;
-      LOG1 (" Done.");
-    }
-
-  if (pParams->m_gc != 0)
-    {
-      LOG1 ("\nLoadImage: Freeing GC...");
-      XFreeGC (pParams->m_dpy, pParams->m_gc);
-      pParams->m_gc = 0;
-      LOG1 (" Done.");
-    }
-
-  if (pParams->m_gamma_table)
-    {
-      free (pParams->m_gamma_table);
-      pParams->m_gamma_table = NULL;
-    }
-
-  if (pParams->m_img_colormap)
-    {
-      free (pParams->m_img_colormap);
-      pParams->m_img_colormap = NULL;
-    }
-
-  if (use_pixmap_ref && pParams->m_Target)
-    {
-      pixmap_ref_new (pParams->m_realfilename, pParams->m_Target, pParams->m_Mask);
-    }
-  return pParams->m_Target;
-}
-
-void
-SetMask (LImageParams * pParams, Pixmap * pMask)
-{
-  if (pMask)
-    {
-      if (pParams->m_Target != None)
-	*pMask = pParams->m_Mask;
-      else
-	*pMask = None;
-    }
-  else if (pParams->m_Target != None && pParams->m_Mask)
-    {
-      XFreePixmap (pParams->m_dpy, pParams->m_Mask);
-      pParams->m_Mask = None;
-    }
-
-}
-
-Pixmap
-LoadImageWithMask (Display * dpy, Window w, unsigned long max_colors, const char *realfilename, Pixmap * pMask)
-{
-  LImageParams Params;
-
-  if (dpy == NULL || w == 0 || realfilename == NULL)
-    return 0;
-  if (strlen (realfilename) <= 0 || max_colors == 0)
-    return 0;
-
-  Params.m_dpy = dpy;
-  Params.m_w = w;
-  Params.m_max_colors = max_colors;
-  Params.m_realfilename = realfilename;
-
-  Params.m_width = 0;
-  Params.m_height = 0;
-
-  Params.m_max_x = 0;
-  Params.m_max_y = 0;
-
-  LOG2 ("\nLoadImageWithMask: filename: [%s].", realfilename);
-  LoadImageEx (&Params);
-  LOG1 ("\nLoadImageWithMask: image loaded, saving mask...");
-  SetMask (&Params, pMask);
-  LOG1 (" Done.");
-
-  return Params.m_Target;
-}
-
-Pixmap
-LoadImageWithMaskAndScale (Display * dpy, Window w, unsigned long max_colors, const char *realfilename, unsigned int to_width, unsigned int to_height, Pixmap * pMask)
-{
-  LImageParams Params;
-
-  if (dpy == NULL || w == 0 || realfilename == NULL)
-    return 0;
-  if (strlen (realfilename) <= 0 || max_colors == 0)
-    return 0;
-
-  Params.m_dpy = dpy;
-  Params.m_w = w;
-  Params.m_max_colors = max_colors;
-  Params.m_realfilename = realfilename;
-  Params.m_width = to_width;
-
-  Params.m_max_x = -1;
-  Params.m_max_y = -1;
-
-  if (to_width > 0)
-    Params.m_x_net = (int *) safemalloc (to_width * sizeof (int));
-  Params.m_height = to_height;
-  if (to_height > 0)
-    Params.m_y_net = (int *) safemalloc (to_height * sizeof (int));
-
-  LOG2 ("\nLoadImageWithMask: filename: [%s].", realfilename);
-  LoadImageEx (&Params);
-  LOG1 ("\nLoadImageWithMask: image loaded, saving mask...");
-  SetMask (&Params, pMask);
-
-  if (Params.m_x_net)
-    free (Params.m_x_net);
-  if (Params.m_y_net)
-    free (Params.m_y_net);
-
-  LOG1 (" Done.");
-
-  return Params.m_Target;
-}
-
-/*Pixmap LoadImage( Display *dpy, Window w, unsigned long max_colors, char* realfilename ){} */

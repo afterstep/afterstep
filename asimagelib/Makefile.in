@@ -2,7 +2,9 @@
 # Copyright (c) 1998, Guylhem AZNAR <guylhem@oeil.qc.ca>
 #
 
-LIB_OBJS= as_png.o as_jpeg.o as_xpm.o hashtable.o loadimg.o \
+# as_png.o as_jpeg.o as_xpm.o 
+
+LIB_OBJS= hashtable.o loadimg.o \
 		  mystyle.o mystyle_property.o stepgfx.o ximage_utils.o\
 		  pixmap.o balloon.o background.o
 

@@ -1,6 +1,8 @@
 #ifndef _MYSTYLE_
 #define _MYSTYLE_
 
+#include "../libAfterImage/afterimage.h"
+
 /***********************************************************************
  *
  * afterstep style include file
