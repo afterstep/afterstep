@@ -47,18 +47,5 @@ typedef struct GifFilePrivateType {
 
 extern int _GifError;
 
-#ifdef SYSV
-static char *VersionStr =
-        "Gif library module,\t\tEric S. Raymond\n\
-	(C) Copyright 1997 Eric S. Raymond\n";
-#else
-static char *VersionStr =
-	PROGRAM_NAME
-	"	IBMPC "
-	GIF_LIB_VERSION
-	"	Eric S. Raymond,	"
-	__DATE__ ",   " __TIME__ "\n"
-	"(C) Copyright 1997 Eric S. Raymond\n";
-#endif /* SYSV */
 
 #endif /* _GIF_LIB_PRIVATE_H */

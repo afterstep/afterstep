@@ -50,11 +50,11 @@ static GifPixelType CodeMask[] = {
     0x00, 0x01, 0x03, 0x07, 0x0f, 0x1f, 0x3f, 0x7f, 0xff
 };
 
-static char GifVersionPrefix[GIF_STAMP_LEN + 1] = GIF87_STAMP;
+static unsigned char GifVersionPrefix[GIF_STAMP_LEN + 1] = GIF87_STAMP;
 
 #define WRITE(_gif,_buf,_len)   \
   (((GifFilePrivateType*)_gif->Private)->Write ?    \
-   ((GifFilePrivateType*)_gif->Private)->Write(_gif,_buf,_len) :    \
+   ((GifFilePrivateType*)_gif->Private)->Write(_gif,(unsigned char *)_buf,(int)_len) :    \
    fwrite(_buf, 1, _len, ((GifFilePrivateType*)_gif->Private)->File))
 
 static int EGifPutWord(int Word, GifFileType *GifFile);
@@ -156,7 +156,7 @@ GifFileType* EGifOpen(void* userData, OutputFunc writeFunc)
 ******************************************************************************/
 void EGifSetGifVersion(const char *Version)
 {
-    strncpy(GifVersionPrefix + GIF_VERSION_POS, Version, 3);
+    memcpy(GifVersionPrefix + GIF_VERSION_POS, Version, 3);
 }
 
 /******************************************************************************

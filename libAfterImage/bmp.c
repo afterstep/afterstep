@@ -120,7 +120,7 @@ LOCAL_DEBUG_CALLER_OUT( "src = %p, offset_x = %d, offset_y = %d, to_width = %d, 
 		max_y = im->height ;
 	}
 	/* create bmp_info struct */
-	bmp_info = safecalloc( 1, sizeof(BITMAPINFO) );
+	bmp_info = (BITMAPINFO *)safecalloc( 1, sizeof(BITMAPINFO) );
 	bmp_info->bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
 	bmp_info->bmiHeader.biWidth = to_width ;
 	bmp_info->bmiHeader.biHeight = to_height ;
@@ -133,7 +133,7 @@ LOCAL_DEBUG_CALLER_OUT( "src = %p, offset_x = %d, offset_y = %d, to_width = %d, 
 	/* allocate DIB bits : */
 	line_size = ((to_width*3+3)/4)*4;          /* DWORD aligned */
 	pad = line_size-(to_width*3) ;
-	bits = safemalloc(line_size * to_height);
+	bits = (CARD8 *)safemalloc(line_size * to_height);
 	curr = bits + line_size * to_height ;
 
 	r = imdec->buffer.red ;

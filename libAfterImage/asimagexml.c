@@ -2422,9 +2422,6 @@ char *interpret_ctrl_codes( char *text )
 				case '\\': subst = '\\' ;  break ;	
 				case 'a' : subst = '\a' ;  break ;	 
 				case 'b' : subst = '\b' ;  break ;	 
-#ifndef _WIN32
-				case 'e' : subst = '\e' ;  break ;	 
-#endif
 				case 'f' : subst = '\f' ;  break ;	 
 				case 'n' : subst = '\n' ;  break ;	 
 				case 'r' : subst = '\r' ;  break ;	

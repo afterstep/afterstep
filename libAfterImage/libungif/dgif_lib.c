@@ -59,7 +59,7 @@ static int DGifBufferedInput(GifFileType *GifFile, GifByteType *Buf,
 ******************************************************************************/
 GifFileType *DGifOpen( void* userData, InputFunc readFunc )
 {
-    char Buf[GIF_STAMP_LEN+1];
+    unsigned char Buf[GIF_STAMP_LEN+1];
     GifFileType *GifFile;
     GifFilePrivateType *Private;
 
@@ -96,7 +96,7 @@ GifFileType *DGifOpen( void* userData, InputFunc readFunc )
     /* The GIF Version number is ignored at this time. Maybe we should do    */
     /* something more useful with it.					     */
     Buf[GIF_STAMP_LEN] = 0;
-    if (strncmp(GIF_STAMP, Buf, GIF_VERSION_POS) != 0) {
+    if (strncmp(GIF_STAMP, (char*)Buf, GIF_VERSION_POS) != 0) {
 	  _GifError = D_GIF_ERR_NOT_GIF_FILE;
 	  free((char *) Private);
 	  free((char *) GifFile);

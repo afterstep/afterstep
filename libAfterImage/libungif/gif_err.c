@@ -36,6 +36,11 @@ static char *VersionStr =
 	"(C) Copyright 1997 Eric S. Raymond\n";
 #endif /* SYSV */
 
+const char *GetGifVersionStr()
+{
+	return VersionStr;	
+}	 
+
 /*****************************************************************************
 * Return the last GIF error (0 if none) and reset the error.		     *
 *****************************************************************************/

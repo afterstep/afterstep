@@ -172,7 +172,7 @@ rlediff_compress( CARD8 *buffer,  short *diff, int size )
 	int comp_size = 1 ;
 	int i = 1;
 	//return 0;
-	buffer[0] = diff[0] ; 
+	buffer[0] = (CARD8)diff[0] ; 
 #if defined(DEBUG_COMPRESS) && !defined(NO_DEBUG_OUTPUT)
  	fprintf(stderr, "first byte: 0x%2.2X \n", buffer[0] );
 #endif				
@@ -528,7 +528,7 @@ compress_stored_data( ASStorage *storage, CARD8 *data, int size, ASFlagType *fla
 		int uncompressed_size = size ;
 
 		clear_flags( *flags, ASStorage_RLEDiffCompress );
-		if( storage->comp_buf_size < size ) 
+		if( (int)storage->comp_buf_size < size ) 
 		{	
 			storage->comp_buf_size = ((size/AS_STORAGE_PAGE_SIZE)+1)*AS_STORAGE_PAGE_SIZE ;
 			storage->comp_buf = realloc( storage->comp_buf, storage->comp_buf_size );
@@ -594,7 +594,7 @@ compress_stored_data( ASStorage *storage, CARD8 *data, int size, ASFlagType *fla
 		{
 			CARD32 *data32 = (CARD32*)data ;
 			size /= 4;
-			if( storage->comp_buf_size < size ) 
+			if( (int)(storage->comp_buf_size) < size ) 
 			{	
 				storage->comp_buf_size = ((size/AS_STORAGE_PAGE_SIZE)+1)*AS_STORAGE_PAGE_SIZE ;
 				storage->comp_buf = realloc( storage->comp_buf, storage->comp_buf_size );
@@ -620,7 +620,7 @@ compress_stored_data( ASStorage *storage, CARD8 *data, int size, ASFlagType *fla
 			}	 
 		}else if( tint != 0x000000FF ) 
 		{
-			if( storage->comp_buf_size < size ) 
+			if( (int)storage->comp_buf_size < size ) 
 			{	
 				storage->comp_buf_size = ((size/AS_STORAGE_PAGE_SIZE)+1)*AS_STORAGE_PAGE_SIZE ;
 				storage->comp_buf = realloc( storage->comp_buf, storage->comp_buf_size );
@@ -954,12 +954,12 @@ select_storage_slot( ASStorageBlock *block, int size )
 						break;
 
 					LOCAL_DEBUG_OUT( "start = %p, slot = %p, slot->size = %ld, end = %p, size = %d, size_to_match = %d", block->start, slot, slot->size, block->end, size, size_to_match );
-					if( ASStorageSlot_USABLE_SIZE(slot) >= size )
+					if((int)ASStorageSlot_USABLE_SIZE(slot) >= size )
 					{	
 						if( i - block->first_free > 50 ) ++(block->long_searches);
 						return slot;
 					}
-					if( ASStorageSlot_FULL_SIZE(slot)  >= size_to_match )
+					if( (int)ASStorageSlot_FULL_SIZE(slot)  >= size_to_match )
 					{
 						join_storage_slots( block, slots[i], slot );
 						if( i - block->first_free > 50 ) ++(block->long_searches);
@@ -980,7 +980,7 @@ select_storage_slot( ASStorageBlock *block, int size )
 	i = block->first_free;
 	if( i >= block->slots_count ) 
 		return NULL;
-    if( block->slots[i] == NULL || block->slots[i]->size < size ) 
+    if( block->slots[i] == NULL || (int)block->slots[i]->size < size ) 
 		return NULL;
 	return block->slots[i];		   
 }
@@ -995,7 +995,7 @@ split_storage_slot( ASStorageBlock *block, ASStorageSlot *slot, int to_size )
 	
 	slot->size = to_size ; 
 	
-	if( old_size <= ASStorageSlot_USABLE_SIZE(slot) )
+	if( old_size <= (int)ASStorageSlot_USABLE_SIZE(slot) )
 		return True;
 
 	new_slot = AS_STORAGE_GetNextSlot(slot);
@@ -1095,7 +1095,7 @@ store_data_in_block( ASStorageBlock *block, CARD8 *data, int size, int compresse
 	dst = &(slot->data[0]);
 	LOCAL_DEBUG_OUT( "dst = %p", dst );
 	memcpy( dst, data, compressed_size );
-	slot->flags = (flags | ASStorage_Used) ;
+	slot->flags = ((unsigned short)flags | ASStorage_Used) ;
 	slot->ref_count = ref_count;
 	slot->size = compressed_size ;
 	slot->uncompressed_size = size ;
@@ -1242,10 +1242,9 @@ convert_slot_to_ref( ASStorage *storage, ASStorageID id )
 		target_id = make_asstorage_id( block_idx+1, slot_id );
 		if( target_id == id ) 
 		{
-			int *a = NULL ; 	  
 			show_error( "Reference ID is the same as target_id: id = %lX, slot_id = %d", id, slot_id );
 #ifndef NO_DEBUG_OUTPUT
-			*a = 0 ;
+			{	int *a = NULL ; *a = 0 ;}
 #endif						   
 		}
 		/* don't increment refcount, becouse we oonly have one published reference to it so far */
@@ -1256,7 +1255,7 @@ convert_slot_to_ref( ASStorage *storage, ASStorageID id )
 		ref_index = StorageID2SlotIdx(id); ;
 		ref_slot = block->slots[ref_index] ;
 		
-		if( block->total_free > ref_slot->size )
+		if( block->total_free > (int)ref_slot->size )
 		{
 			/* there is a danger of us trying to reuse same block and defragmented it in between,
 			 * which will screw up the data */
@@ -1278,10 +1277,9 @@ convert_slot_to_ref( ASStorage *storage, ASStorageID id )
 			return NULL;		
 		if( target_id == id ) 
 		{	
-			int *a = NULL ; 
 			show_error( "Reference ID is the same as target_id: id = %lX" );
 #ifndef NO_DEBUG_OUTPUT
-			*a = 0 ;
+			{	int *a = NULL ; *a = 0 ;}
 #endif						   
 		}
 		
@@ -1319,7 +1317,7 @@ static void card8_card32_cpy( ASStorageDstBuffer *dst, void *src, size_t size)
 	register CARD32 *dst32 = (CARD32*)dst->buffer + dst->offset ;
 	register CARD8  *src8  = (CARD8*)src ;
 	register int i;
-	for( i = 0 ;  i < size ; ++i ) 
+	for( i = 0 ;  i < (int)size ; ++i ) 
 		dst32[i] = src8[i] ;
 }	 
 
@@ -1338,11 +1336,11 @@ card8_threshold( ASStorageDstBuffer *dst, void *src, size_t size)
 			 start, end, runs_count, size );
 #endif
 
-	while( i < size ) 
+	while( i < (int)size ) 
 	{
 		if( end < start ) 
 		{
-			while( i < size && src8[i] < threshold ) 
+			while( i < (int)size && src8[i] < threshold ) 
 				++i ;
 			start = i ;
 		}	 
@@ -1350,9 +1348,9 @@ card8_threshold( ASStorageDstBuffer *dst, void *src, size_t size)
 		fprintf( stderr, __FUNCTION__ ":1: start = %d, end = %d, i = %d\n", start, end, i );
 #endif
 		
-		if( i < size ) 
+		if( i < (int)size ) 
 		{	
-			while( i < size && src8[i] >= threshold ) 
+			while( i < (int)size && src8[i] >= threshold ) 
 				++i ;
 			end = i-1 ;
 		}
@@ -1625,7 +1623,7 @@ threshold_stored_data(ASStorage *storage, ASStorageID id, unsigned int *runs, in
 #ifdef DEBUG_THRESHOLD	  
 		fprintf( stderr, __FUNCTION__ ": id = 0x%lX, width = %d, threshold = %d\n", id, width, threshold );
 #endif
-		if( fetch_data_int( storage, id, &buf, 0, width, threshold, card8_threshold, &dumm) > 0 ) 
+		if( fetch_data_int( storage, id, &buf, 0, width, (CARD8)threshold, card8_threshold, &dumm) > 0 ) 
 		{
 			if( buf.start >= 0 && buf.end >= buf.start )
 			{
@@ -1700,7 +1698,7 @@ print_storage_slot(ASStorage *storage, ASStorageID id)
 			fprintf( stderr, " : {0x%X, %u, %lu, %lu, %u, {", 
 					 slot->flags, slot->ref_count, slot->size, slot->uncompressed_size, slot->index );
 
-			for( i = 0 ; i < slot->size ; ++i)
+			for( i = 0 ; i < (int)slot->size ; ++i)
 				fprintf( stderr, "%2.2X ", slot->data[i] ) ;
 			fprintf (stderr, "}}");
 			return slot->size + ASStorageSlot_SIZE ;

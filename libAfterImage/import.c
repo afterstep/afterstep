@@ -827,7 +827,6 @@ png2ASImage( const char * path, ASImageImportParams *params )
 						register unsigned int i;
 						for ( i = 0 ; i < buf.width ; ++i)
 						{
-							/*fprintf( stderr, "%2.2X          ", buf.alpha[i] );*/
 							if( buf.alpha[i] != 0x00FF )
 							{	
 								if( buf.alpha[i] == 0 )

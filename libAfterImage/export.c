@@ -450,7 +450,7 @@ ASImage2png ( ASImage *im, const char *path, register ASImageExportParams *param
 	if( grayscale )
 	{
 		row_pointer = safemalloc( im->width*(has_alpha?2:1));
-		for ( y = 0 ; y < im->height ; y++ )
+		for ( y = 0 ; y < (int)im->height ; y++ )
 		{
 			register int i = im->width;
 			CARD8   *ptr = (CARD8*)row_pointer;
@@ -472,7 +472,7 @@ ASImage2png ( ASImage *im, const char *path, register ASImageExportParams *param
 	{
 /*		fprintf( stderr, "saving : %s\n", path );*/
 		row_pointer = safecalloc( im->width * (has_alpha?4:3), 1 );
-		for (y = 0; y < im->height; y++)
+		for (y = 0; y < (int)im->height; y++)
 		{
 			register int i = im->width;
 			CARD8   *ptr = (CARD8*)(row_pointer+(i-1)*(has_alpha?4:3)) ;
@@ -614,7 +614,7 @@ ASImage2jpeg( ASImage *im, const char *path,  ASImageExportParams *params )
 	if( grayscale )
 	{
 		row_pointer[0] = safemalloc( im->width );
-		for (y = 0; y < im->height; y++)
+		for (y = 0; y < (int)im->height; y++)
 		{
 			register int i = im->width;
 			CARD8   *ptr = (CARD8*)row_pointer[0];
@@ -626,9 +626,9 @@ ASImage2jpeg( ASImage *im, const char *path,  ASImageExportParams *params )
 	}else
 	{
 		row_pointer[0] = safemalloc( im->width * 3 );
-		for (y = 0; y < im->height; y++)
+		for (y = 0; y < (int)im->height; y++)
 		{
-			register int i = im->width;
+			register int i = (int)im->width;
 			CARD8   *ptr = (CARD8*)(row_pointer[0]+(i-1)*3) ;
 LOCAL_DEBUG_OUT( "decoding  row %d", y );
 			imdec->decode_image_scanline( imdec );
@@ -851,7 +851,7 @@ Bool ASImage2gif( ASImage *im, const char *path,  ASImageExportParams *params )
  	gce_bytes[1] = (params->gif.animate_delay>>8)&0x00FF;
 	gce_bytes[2] =  params->gif.animate_delay&0x00FF;
 
-	while( cmap_size < 256 && cmap_size < cmap.count+(gce_bytes[0]&0x01) )
+	while( cmap_size < 256 && cmap_size < (int)cmap.count+(gce_bytes[0]&0x01) )
 		cmap_size = cmap_size<<1 ;
 	if( (gif_cmap = MakeMapObject(cmap_size, NULL )) == NULL )
 	{
@@ -941,7 +941,7 @@ Bool ASImage2gif( ASImage *im, const char *path,  ASImageExportParams *params )
 		row_pointer = safemalloc( im->width*sizeof(GifPixelType));
 
 		/* it appears to be much faster to write image out in line by line fashion */
-		for( y = 0 ; y < im->height ; y++ )
+		for( y = 0 ; y < (int)im->height ; y++ )
 		{
 			register int x = im->width ;
 			register int *src = mapped_im + x*y;

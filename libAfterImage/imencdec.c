@@ -831,7 +831,7 @@ decode_asscanline_ximage( ASImageDecoder *imdec, unsigned int skip, int y )
 		int offset_x = imdec->offset_x%xim_width ;
 /*fprintf( stderr, __FILE__ ":" __FUNCTION__ ": width=%d, xim_width=%d, skip = %d, offset_x = %d - tiling\n", width, xim->width, skip, imdec->offset_x );	*/
 
-		GET_SCANLINE(imdec->asv,xim,xim_scl,y,xim->data+xim->bytes_per_line*y);
+		GET_SCANLINE(imdec->asv,xim,xim_scl,y,(unsigned char*)xim->data+xim->bytes_per_line*y);
 		/* We also need to decode mask if we have one :*/
 		if( (xim = imdec->im->alt.mask_ximage ) != NULL )
 		{
@@ -840,7 +840,7 @@ decode_asscanline_ximage( ASImageDecoder *imdec, unsigned int skip, int y )
 			register int x = MIN((int)xim_scl->width,xim->width);
 			if( xim->depth == 8 )
 			{
-				CARD8  *src = xim->data+xim->bytes_per_line*y ;
+				CARD8  *src = (CARD8*)xim->data+xim->bytes_per_line*y ;
 				while(--x >= 0 ) dst[x] = (CARD32)(src[x]);
 			}else
 			{
@@ -883,7 +883,7 @@ decode_asscanline_ximage( ASImageDecoder *imdec, unsigned int skip, int y )
 /*fprintf( stderr, __FILE__ ":" __FUNCTION__ ":direct\n" );	*/
 		int old_offset = scl->offset_x ;
 		scl->offset_x = skip ;
-		GET_SCANLINE(imdec->asv,xim,scl,y,xim->data+xim->bytes_per_line*y);
+		GET_SCANLINE(imdec->asv,xim,scl,y,(unsigned char *)xim->data+xim->bytes_per_line*y);
 		/* We also need to decode mask if we have one :*/
 		if( (xim = imdec->im->alt.mask_ximage ) != NULL )
 		{
@@ -892,7 +892,7 @@ decode_asscanline_ximage( ASImageDecoder *imdec, unsigned int skip, int y )
 			register int x = MIN(width,xim_width);
 			if( xim->depth == 8 )
 			{
-				CARD8  *src = xim->data+xim->bytes_per_line*y ;
+				CARD8  *src = (CARD8*)xim->data+xim->bytes_per_line*y ;
 				while(--x >= 0 ) dst[x] = (CARD32)(src[x]);
 			}else
 			{
@@ -1265,7 +1265,7 @@ encode_image_scanline_mask_xim( ASImageOutput *imout, ASScanline *to_store )
 			register int x = MIN((unsigned int)(xim->width), to_store->width);
 			if( xim->depth == 8 )
 			{
-				CARD8 *dst = xim->data+xim->bytes_per_line*imout->next_line ;
+				CARD8 *dst = (CARD8*)xim->data+xim->bytes_per_line*imout->next_line ;
 				while( --x >= 0 )
 					dst[x] = (CARD8)(a[x]);
 			}else

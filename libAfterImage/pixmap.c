@@ -153,19 +153,20 @@ ValidatePixmap (Pixmap p, int bSetHandler, int bTransparent, unsigned int *pWidt
     /* we need to check if pixmap is still valid */
 	Window root;
     int junk;
+	unsigned int ujunk ;
 	if (bSetHandler)
 		oldXErrorHandler = XSetErrorHandler (pixmap_error_handler);
 
     if (bTransparent)
 	    p = GetRootPixmap (None);
 	if (!pWidth)
-  		pWidth = &junk;
+  		pWidth = &ujunk;
     if (!pHeight)
-	    pHeight = &junk;
+	    pHeight = &ujunk;
 
     if (p != None)
 	{
-  		if (!XGetGeometry (dpy, p, &root, &junk, &junk, pWidth, pHeight, &junk, &junk))
+  		if (!XGetGeometry (dpy, p, &root, &junk, &junk, pWidth, pHeight, &ujunk, &ujunk))
 			p = None;
     }
 	if(bSetHandler)
@@ -187,7 +188,7 @@ GetRootDimensions (int *width, int *height)
     if( dpy == NULL )
         return 0;
 	if (!XGetGeometry (dpy, RootWindow(dpy,DefaultScreen(dpy)), &root,
-					     &w_x, &w_y, width, height, &junk, &junk))
+					     &w_x, &w_y, (unsigned int *)width, (unsigned int *)height, &junk, &junk))
     {
     	*width = 0;
     	*height = 0;
@@ -676,7 +677,7 @@ Pixmap
 cut_win_pixmap (ASVisual *asv, Window win, Drawable src, int src_w, int src_h, int width,
 	  		    int height, GC gc, ARGB32 tint)
 {
-  unsigned int x = 0, y = 0;
+  int x = 0, y = 0;
 
   if (!GetWinPosition (win, &x, &y))
 	return None;
@@ -688,7 +689,7 @@ Pixmap
 CutWinPixmap (Window win, Drawable src, int src_w, int src_h, int width,
 	      int height, GC gc, ShadingInfo * shading)
 {
-  unsigned int x = 0, y = 0;
+  int x = 0, y = 0;
 
   if (!GetWinPosition (win, &x, &y))
 	return None;

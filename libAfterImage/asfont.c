@@ -1347,7 +1347,7 @@ utf8_to_unicode ( const unsigned char *s )
 
 inline ASGlyph *get_utf8_glyph( const char *utf8, ASFont *font )
 {
-	UNICODE_CHAR uc = utf8_to_unicode ( utf8 );
+	UNICODE_CHAR uc = utf8_to_unicode ( (const unsgned char*)utf8 );
 	return get_unicode_glyph( uc, font );
 }
 
@@ -1405,7 +1405,7 @@ goto_tab_stop( ASTextAttributes *attr, unsigned int space_size, unsigned int lin
 	unsigned int tab_stop = (((attr->origin + line_width)/tab_size)+1)*tab_size ;
 	if( attr->tab_stops != NULL && attr->tab_stops_num > 0 ) 	
 	{
-		int i ;
+		unsigned int i ;
 		for( i = 0 ; i < attr->tab_stops_num ; ++i ) 
 		{	
 			if( attr->tab_stops[i] < line_width )
