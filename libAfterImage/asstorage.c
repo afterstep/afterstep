@@ -261,7 +261,7 @@ store_data_in_block( ASStorageBlock *block, CARD8 *data, int size, int compresse
 	ASStorageSlot *slot ;
 	CARD8 *dst ;
 	slot = select_storage_slot( block, compressed_size );
-	LOCAL_DEBUG_OUT( "selected block %p for size %d (compressed %d) and flags %X", slot, size, compressed_size, flags );
+	LOCAL_DEBUG_OUT( "selected block %p for size %d (compressed %d) and flags %lX", slot, size, compressed_size, flags );
 	if( slot == NULL ) 
 		return 0;
 	if( ASStorageSlot_USABLE_SIZE(slot) > compressed_size ) 
@@ -321,7 +321,7 @@ store_data(ASStorage *storage, CARD8 *data, int size, ASFlagType flags)
 	int compressed_size = size ;
 	CARD8 *buffer = data;
 
-	LOCAL_DEBUG_CALLER_OUT( "data = %p, size = %d, flags = %d", data, size, flags );
+	LOCAL_DEBUG_CALLER_OUT( "data = %p, size = %d, flags = %lX", data, size, flags );
 	if( size <= 0 || data == NULL || storage == NULL ) 
 		return 0;
 		
@@ -340,14 +340,56 @@ store_data(ASStorage *storage, CARD8 *data, int size, ASFlagType flags)
 }
 
 
-CARD8* make_storage_test_data( int size )
+int  
+fetch_data(ASStorage *storage, ASStorageID id, CARD8 *buffer, int offset, int buf_size)
 {
-	CARD8 *data = malloc(size);
+	/* TODO */
+	return 0 ;	
+}
+
+
+/*************************************************************************/
+/* test code */
+/*************************************************************************/
+#ifdef TEST_ASSTORAGE
+
+#define STORAGE_TEST_KINDS	5
+static int StorageTestKinds[STORAGE_TEST_KINDS][2] = 
+{
+	{1024, 2048 },
+	{128*1024, 128 },
+	{256*1024, 64 },
+	{512*1024, 32 },
+	{1024*1024, 16 }
+};	 
+
+CARD8 Buffer[1024*1024] ;
+
+#define STORAGE_TEST_COUNT  16+32+64+128+2048	
+typedef struct ASStorageTest {
+	int size ;
+	CARD8 *data;
+	ASStorageID id ;
+}ASStorageTest;
+ 
+static ASStorageTest Tests[STORAGE_TEST_COUNT];
+
+void
+make_storage_test_data( ASStorageTest *test, int min_size, int max_size )
+{
+	int size = random()%max_size ;
 	int i ;
 	int seed = time(NULL);
+	
+	if( size <= min_size )
+		size += min_size ;
+ 	
+	test->size = size ; 	   
+	test->data = malloc(size);
+	
 	for( i = 0 ; i < size ; ++i ) 
-		data[i] = i+seed%(i+1)+data[i] ;
-	return data ;
+		test->data[i] = i+seed+test->data[i] ;
+	test->id = 0 ;
 }
 
 Bool 
@@ -355,8 +397,8 @@ test_asstorage()
 {
 	ASStorage *storage ;
 	ASStorageID id ;
-	CARD8 *test_data = NULL;
-	int test_data_size = 0;
+	int i, kind, test_count;
+	int min_size, max_size ;
 	ASFlagType test_flags = 0 ;
 	
 	printf("Testing storage creation ...");
@@ -366,18 +408,45 @@ test_asstorage()
 							else printf("success.\n");}while(0)
 	TEST_EVAL( storage != NULL ); 
 	
-	printf("Testing store_data for data %p size = %d, and flags 0x%lX...", test_data, test_data_size,
+	printf("Testing store_data for data %p size = %d, and flags 0x%lX...", NULL, 0,
 			test_flags);
-	id = store_data( storage, test_data, test_data_size, test_flags );
+	id = store_data( storage, NULL, 0, test_flags );
 	TEST_EVAL( id == 0 ); 
 
-	test_data_size = 1 ;
-	test_data = make_storage_test_data( test_data_size );
-	printf("Testing store_data for data %p size = %d, and flags 0x%lX...", test_data, test_data_size,
-			test_flags);
-	id = store_data( storage, test_data, test_data_size, test_flags );
-	TEST_EVAL( id != 0 ); 
-	free( test_data );
+	kind = 0 ; 
+	min_size = 1 ;
+	max_size = StorageTestKinds[kind][0] ; 
+	test_count = StorageTestKinds[kind][1] ;
+	for( i = 0 ; i < STORAGE_TEST_COUNT ; ++i ) 
+	{
+		make_storage_test_data( &(Tests[i]), min_size, max_size );
+		printf("Testing store_data for data %p size = %d, and flags 0x%lX...", Tests[i].data, Tests[i].size,
+				test_flags);
+		Tests[i].id = store_data( storage, Tests[i].data, Tests[i].size, test_flags );
+		TEST_EVAL( Tests[i].id != 0 ); 
+
+		if( --test_count <= 0 )
+		{
+			if( ++kind >= STORAGE_TEST_KINDS ) 
+				break;
+			min_size = max_size ;
+			max_size = StorageTestKinds[kind][0] ; 
+			test_count = StorageTestKinds[kind][1] ;
+		}		   
+	}	 
+
+	for( i = 0 ; i < STORAGE_TEST_COUNT ; ++i ) 
+	{
+		int size ;
+		int res ;
+		printf("Testing fetch_data for id %lX size = %d ...", Tests[i].id, Tests[i].size);
+		size = fetch_data(storage, Tests[i].id, &(Buffer[0]), 0, Tests[i].size);
+		TEST_EVAL( size == Tests[i].size ); 
+		
+		printf("Testing fetched data integrity ...");
+		res = memcmp( &(Buffer[0]), Tests[i].data, size );
+		TEST_EVAL( res == 0 ); 
+	}	 
 
 	printf("Testing storage destruction ...");
 	destroy_asstorage(&storage);
@@ -386,7 +455,6 @@ test_asstorage()
 	return True ;
 }
 
-#ifdef TEST_ASSTORAGE
 int main()
 {
 	set_output_threshold( 0 );
