@@ -60,17 +60,20 @@ create_aslayout( unsigned int dim_x, unsigned int dim_y )
     return layout;
 }
 
-static inline void
+static inline int
 destroy_layout_row( ASLayoutElem **prow )
 {
 	register ASLayoutElem *pelem = *prow;
+	int count = 0 ;
 	while( pelem )
 	{
 		register ASLayoutElem *tmp = pelem->right ;
         free( pelem );
 		pelem = tmp ;
+		++count;
 	}
 	*prow = NULL ;
+	return count;
 }
 
 void
@@ -149,6 +152,7 @@ insert_layout_elem( ASLayout *layout,
 		{
             elem->right = *pelem ;
             elem->below = *pelem2 ;
+			++(layout->count);
 		}
 		*pelem = elem ;
 		*pelem2 = elem ;
@@ -163,7 +167,7 @@ ASLayoutElem *
 gather_layout_elems( ASLayout *layout )
 {
     ASLayoutElem *head = NULL;
-	if( layout )
+	if( layout && layout->count > 0 )
 	{
 		register int i ;
 
@@ -187,6 +191,7 @@ gather_layout_elems( ASLayout *layout )
 		}
         for( i = 0 ; i < layout->dim_x ; i++ )
             layout->cols[i] = NULL ;
+		layout->count = 0 ;
     }
 	return head ;
 }
@@ -194,12 +199,13 @@ gather_layout_elems( ASLayout *layout )
 void
 flush_layout_elems( ASLayout *layout )
 {
-    if( layout )
+    if( layout && layout->count > 0 )
     {
         register int i ;
         for( i = 0 ; i < layout->dim_y ; i++ )
 			destroy_layout_row( &(layout->rows[i]));
 		destroy_layout_row( &(layout->disabled) );
+		layout->count = 0 ;
 	}
 }
 
@@ -219,7 +225,7 @@ ASLayoutElem *
 extract_layout_context( ASLayout *layout, int context )
 {
     ASLayoutElem *elem = NULL;
-    if( layout )
+    if( layout && layout->count )
     {
         register ASLayoutElem **pelem = NULL ;
 		if((pelem = get_layout_context_ptr( layout, context )) != NULL )
@@ -232,6 +238,7 @@ extract_layout_context( ASLayout *layout, int context )
                     *pelem = elem->below;
                     break;
                 }
+			--(layout->count) ;
 		}
     }
     return elem ;
@@ -240,7 +247,7 @@ extract_layout_context( ASLayout *layout, int context )
 ASLayoutElem *
 find_layout_context( ASLayout *layout, int context )
 {
-    if( layout )
+    if( layout && layout->count )
     {
         register ASLayoutElem **pelem = NULL ;
 		if((pelem = get_layout_context_ptr( layout, context )) != NULL )
@@ -269,6 +276,7 @@ disable_layout_elem( ASLayout *layout, ASLayoutElem **pelem )
         /* step three - stashing away for later reuse :*/
         elem->right = layout->disabled ;
         layout->disabled = elem ;
+		--(layout->count);
     }
 }
 
@@ -345,28 +353,46 @@ enable_layout_context( ASLayout *layout, int context, Bool batch )
 
 /**********************************************************************/
 /* spacing and side offset management                                 */
-void
+Bool
 set_layout_spacing( ASLayout *layout, unsigned int h_border, unsigned int v_border, unsigned int h_spacing, unsigned int v_spacing )
 {
+	Bool changed = False ;
     if( layout )
 	{
-    	layout->h_border = h_border ;
-  	    layout->v_border = v_border ;
-  		layout->h_spacing = h_spacing ;
-  		layout->v_spacing = v_spacing ;
+		changed = (	layout->h_border  != h_border ||
+  	    			layout->v_border  != v_border ||
+					layout->h_spacing != h_spacing ||
+					layout->v_spacing != v_spacing );
+		if( changed )
+		{
+    		layout->h_border = h_border ;
+  	    	layout->v_border = v_border ;
+  			layout->h_spacing = h_spacing ;
+  			layout->v_spacing = v_spacing ;
+		}
 	}
+	return changed;
 }
 
-void
+Bool
 set_layout_offsets( ASLayout *layout, int east, int north, int west, int south )
 {
+    Bool changed = False ;
     if( layout )
     {
-	    layout->offset_east  = east  ;
-  		layout->offset_north = north ;
-      	layout->offset_west  = west  ;
-      	layout->offset_south = south ;
-    }
+		changed = ( layout->offset_east  != east  ||
+  					layout->offset_north != north ||
+      				layout->offset_west  != west  ||
+					layout->offset_south != south );
+		if( changed )
+		{
+	    	layout->offset_east  = east  ;
+  			layout->offset_north = north ;
+      		layout->offset_west  = west  ;
+      		layout->offset_south = south ;
+		}
+	}
+	return changed;
 }
 
 /**********************************************************************/
@@ -375,7 +401,7 @@ void
 get_layout_fixed_size( ASLayout *layout, CARD32 *fixed_width, CARD32 *fixed_height )
 {
     int width = 0, height = 0 ;
-    if( layout )
+    if( layout && layout->count > 0 )
     {
         register int i ;
         if( fixed_width )
@@ -436,7 +462,7 @@ LOCAL_DEBUG_OUT( " layout %lX FIXED WIDTH is %d FIXED HEIGHT is %d", (unsigned l
 ASFlagType
 set_layout_context_fixed_size( ASLayout *layout, int context, unsigned int width, unsigned int height )
 {
-    if( layout )
+    if( layout && layout->count > 0 )
     {
         ASLayoutElem **pelem = get_layout_context_ptr( layout, context );
 		LOCAL_DEBUG_OUT( "setting fixedsize of context %d(%p) to %dx%d", context, *pelem, width, height );
@@ -454,7 +480,7 @@ set_layout_context_fixed_size( ASLayout *layout, int context, unsigned int width
 Bool
 get_layout_context_size( ASLayout *layout, int context, int *x, int *y, unsigned int *width, unsigned int *height )
 {
-    if( layout )
+    if( layout && layout->count > 0 )
     {
         ASLayoutElem **pelem = get_layout_context_ptr( layout, context );
 		if( pelem != NULL )
@@ -477,7 +503,7 @@ get_layout_context_size( ASLayout *layout, int context, int *x, int *y, unsigned
 ASLayoutElem *
 find_layout_point( ASLayout *layout, int x, int y, ASLayoutElem *start )
 {
-	if( layout )
+	if( layout && layout->count > 0 )
 	{
 		register int col = start? start->column : 0 ;
 

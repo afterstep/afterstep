@@ -69,7 +69,7 @@ typedef struct ASLayout
 
 #define ASLAYOUT_MAX_SIZE       64             /* 64x64 seems like a huge grid, */
                                                /* should be ample for anything  */
-    unsigned short dim_x, dim_y ;
+    unsigned short dim_x, dim_y, count ;
 
     ASLayoutElem **rows, **cols;                /* 2 dimentional array of pointers */
 
@@ -97,10 +97,10 @@ int  disable_layout_context( ASLayout *layout, int context, Bool batch );
 int  enable_layout_context( ASLayout *layout, int context, Bool batch );
 
 
-void set_layout_spacing( ASLayout *layout,
+Bool set_layout_spacing( ASLayout *layout,
 	                     unsigned int h_border, unsigned int v_border,
 						 unsigned int h_spacing, unsigned int v_spacing );
-void set_layout_offsets( ASLayout *layout,
+Bool set_layout_offsets( ASLayout *layout,
 	                     int east, int north, int west, int south );
 
 /* fixed size handling : */
