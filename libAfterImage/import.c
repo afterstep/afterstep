@@ -47,6 +47,81 @@
 #include "../include/asimage.h"
 #include "../include/parse.h"
 
+#define MAX_IMPORT_IMAGE_SIZE 	4000
+
+/***********************************************************************************/
+/* Some helper functions :                                                         */
+
+static FILE*
+open_image_file( const char *path )
+{
+	FILE *fp = NULL;
+	if ( path )
+		if ((fp = fopen (path, "rb")) == NULL)
+			show_error("cannot open image file \"%s\" for reading. Please check permissions.", path);
+	return fp ;
+}
+
+
+static void
+raw2scanline( register CARD8 *row, ASScanline *buf, CARD8 *gamma_table, unsigned int width, Bool grayscale, Bool do_alpha )
+{
+	register int x = width;
+
+	if( grayscale )
+		row += do_alpha? width<<1 : width ;
+	else
+		row += width*(do_alpha?4:3) ;
+
+	if( gamma_table )
+	{
+		if( !grayscale )
+		{
+			while ( --x >= 0 )
+			{
+				buf->xc1[x]  = gamma_table[row[0]];
+				buf->xc2[x]= gamma_table[row[1]];
+				buf->xc3[x] = gamma_table[row[2]];
+				if( do_alpha )
+				{
+					buf->alpha[x] = row[3];
+					--row;
+				}
+				row -= 3 ;
+			}
+		}else /* greyscale */
+			while ( --x >= 0 )
+			{
+				if( do_alpha )
+					buf->alpha[x] = *(--row);
+				buf->xc1 [x] = buf->xc2[x] = buf->xc3[x]  = gamma_table[*(--row)];
+			}
+	}else
+	{
+		if( !grayscale )
+		{
+			while ( --x >= 0 )
+			{
+				buf->xc1[x]  = row[0];
+				buf->xc2[x]= row[1];
+				buf->xc3[x] = row[2];
+				if( do_alpha )
+				{
+					buf->alpha[x] = row[3];
+					--row;
+				}
+				row -= 3 ;
+			}
+		}else /* greyscale */
+			while ( --x >= 0 )
+			{
+				if( do_alpha )
+					buf->alpha[x] = *(--row);
+				buf->xc1 [x] = buf->xc2[x] = buf->xc3[x]  = *(--row);
+			}
+	}
+}
+
 /***********************************************************************************/
 #ifdef XPM      /* XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM */
 #include <X11/xpm.h>
@@ -56,17 +131,16 @@ show_xpm_error (int Err)
 {
 	if (Err == XpmSuccess)
 		return 0;
-	fprintf (stderr, "\nlibXpm error: ");
 	if (Err == XpmOpenFailed)
-		fprintf (stderr, "error reading XPM file: %s\n", XpmGetErrorString (Err));
+		show_error("libXpm says: Error reading XPM file: %s", XpmGetErrorString (Err));
 	else if (Err == XpmColorFailed)
-		fprintf (stderr, "Couldn't allocate required colors\n");
+		show_error("libXpm says: Couldn't allocate required colors");
 	/* else if (Err == XpmFileInvalid)
 	   fprintf (stderr, "Invalid Xpm File\n"); */
 	else if (Err == XpmColorError)
-		fprintf (stderr, "Invalid Color specified in Xpm file\n");
+		show_error("libXpm says: Invalid Color specified in Xpm file");
 	else if (Err == XpmNoMemory)
-		fprintf (stderr, "Insufficient Memory\n");
+		show_error("libXpm says: Insufficient Memory");
 	return 1;
 }
 
@@ -361,6 +435,9 @@ LOCAL_DEBUG_OUT( "done building XPM color names hash - %d entries.", i );
 	return cmap;
 }
 
+#ifdef LOCAL_DEBUG
+Bool asimage_compare_line( ASImage*, int, CARD32*, CARD32*, int, Bool );
+#endif
 
 ASImage *
 xpm2ASImage( const char * path, ASFlagType what )
@@ -445,7 +522,7 @@ LOCAL_DEBUG_OUT( "do_alpha is %d. im->height = %d, im->width = %d", do_alpha, im
 #else  			/* XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM */
 
 ASImage *
-xpm2ASImage( const char * path, ASFlagType *what )
+xpm2ASImage( const char * path, ASFlagType what )
 {
 	show_error( "unable to load file \"%s\" - XPM image format is not supported.\n", path );
 	return NULL ;
@@ -458,7 +535,7 @@ xpm2ASImage( const char * path, ASFlagType *what )
 /***********************************************************************************/
 #ifdef PNG		/* PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG */
 ASImage *
-png2ASImage( const char * path, ASFlagType *what )
+png2ASImage( const char * path, ASFlagType what )
 {
 	static ASImage 	 *im = NULL ;
 
@@ -482,14 +559,8 @@ png2ASImage( const char * path, ASFlagType *what )
 
 	im = NULL ;
 
-	if( path == NULL )
-		return NULL ;
-
-	if ((fp = fopen (path, "rb")) == NULL)
-	{
-		show_error ("can't open image file \"%s\"", path);
+	if ((fp = open_image_file(path)) == NULL)
 		return NULL;
-	}
 
 	/* Create and initialize the png_struct with the desired error handler
 	 * functions.  If you want to use the default stderr and longjump method,
@@ -579,29 +650,8 @@ png2ASImage( const char * path, ASFlagType *what )
 				png_read_image (png_ptr, row_pointers);
 				for (y = 0; y < height; y++)
 				{
-					register int x = im->width ;
-					row = row_pointers[y] ;
-					if ( grayscale )
-					{
-						row += row_bytes ;
-						while( --x >= 0 )
-						{
-							if( do_alpha )
-								buf.alpha[x]  = *(--row);
-							buf.red[x] = buf.green[x] = buf.blue[x] = *(--row);
-						}
-					}else
-					{
-						for( x = 0 ; x < width ; x++ )
-						{
-							buf.red[x]   = row[0] ;
-							buf.green[x] = row[1] ;
-							buf.blue[x]  = row[2] ;
-							row += 3;
-							if( do_alpha )
-								buf.alpha[x]  = (*row++);
-						}
-					}
+					raw2scanline( row_pointers[y], &buf, NULL, buf.width, grayscale, do_alpha );
+
 					asimage_add_line (im, IC_RED,   buf.red, y);
 					asimage_add_line (im, IC_GREEN, buf.green, y);
 					asimage_add_line (im, IC_BLUE,  buf.blue, y);
@@ -625,7 +675,7 @@ png2ASImage( const char * path, ASFlagType *what )
 }
 #else 			/* PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG */
 ASImage *
-png2ASImage( const char * path, ASFlagType *what )
+png2ASImage( const char * path, ASFlagType what )
 {
 	show_error( "unable to load file \"%s\" - PNG image format is not supported.\n", path );
 	return NULL ;
@@ -657,7 +707,7 @@ my_error_exit (j_common_ptr cinfo)
 }
 
 ASImage *
-jpeg2ASImage( const char * path, ASFlagType *what )
+jpeg2ASImage( const char * path, ASFlagType what )
 {
 	/* TODO : implement gamma correction !!! */
 	double gamma = 1.0 ;
@@ -687,14 +737,8 @@ jpeg2ASImage( const char * path, ASFlagType *what )
 	 * requires it in order to read binary files.
 	 */
 
-	if (path == NULL)
+	if ((infile = open_image_file(path)) == NULL)
 		return NULL;
-
-	if ((infile = fopen (path, "rb")) == NULL)
-	{
-		fprintf (stderr, "can't open image file \"%s\"\n", path);
-		return NULL;
-	}
 
 	/* Step 1: allocate and initialize JPEG decompression object */
 	/* We set up the normal JPEG error routines, then override error_exit. */
@@ -746,45 +790,12 @@ jpeg2ASImage( const char * path, ASFlagType *what )
 	/*cinfo.output_scanline*/
 	while ( ++y < cinfo.output_height )
 	{
-		register int x = im->width ;
-		register JSAMPROW row ;
 		/* jpeg_read_scanlines expects an array of pointers to scanlines.
 		 * Here the array is only one element long, but you could ask for
 		 * more than one scanline at a time if that's more convenient.
 		 */
 		(void)jpeg_read_scanlines (&cinfo, buffer, 1);
-		row = buffer[0] ;
-		if( gamma_table )
-		{
-			if( cinfo.output_components == 3 )
-			{
-				row += im->width*3 ;
-				while ( --x >= 0 )
-				{
-					buf.red[x]  = gamma_table[row[0]];
-					buf.green[x]= gamma_table[row[1]];
-					buf.blue[x] = gamma_table[row[2]];
-					row -= 3 ;
-				}
-			}else /* greyscale */
-				while ( --x >= 0 )
-					buf.blue [x] = buf.green[x] = buf.red[x]  = gamma_table[row[x]];
-		}else
-		{
-			if( cinfo.output_components == 3 )
-			{
-				row += im->width*3 ;
-				while ( --x >= 0 )
-				{
-					buf.red[x]  = row[0];
-					buf.green[x]= row[1];
-					buf.blue[x] = row[2];
-					row -= 3 ;
-				}
-			}else /* greyscale */
-				while ( --x >= 0 )
-					buf.blue [x] = buf.green[x] = buf.red[x]  = row[x];
-		}
+		raw2scanline( buffer[0], &buf, gamma_table, im->width, (cinfo.output_components==1), False);
 		asimage_add_line (im, IC_RED,   buf.red  , y);
 		asimage_add_line (im, IC_GREEN, buf.green, y);
 		asimage_add_line (im, IC_BLUE,  buf.blue , y);
@@ -823,7 +834,7 @@ jpeg2ASImage( const char * path, ASFlagType *what )
 }
 #else 			/* JPEG JPEG JPEG JPEG JPEG JPEG JPEG JPEG JPEG JPEG JPEG JPEG JPEG */
 ASImage *
-jpeg2ASImage( const char * path, ASFlagType *what )
+jpeg2ASImage( const char * path, ASFlagType what )
 {
 	show_error( "unable to load file \"%s\" - JPEG image format is not supported.\n", path );
 	return NULL ;
@@ -836,7 +847,7 @@ jpeg2ASImage( const char * path, ASFlagType *what )
 /* XCF - GIMP's native file format : 											   */
 
 ASImage *
-xcf2ASImage( const char * path, ASFlagType *what )
+xcf2ASImage( const char * path, ASFlagType what )
 {
 	/* TODO : implement gamma correction !!! */
 	double gamma = 1.0 ;
@@ -856,14 +867,8 @@ xcf2ASImage( const char * path, ASFlagType *what )
 	 * VERY IMPORTANT: use "b" option to fopen() if you are on a machine that
 	 * requires it in order to read binary files.
 	 */
-	if (path == NULL)
+	if ((infile = open_image_file(path)) == NULL)
 		return NULL;
-
-	if ((infile = fopen (path, "rb")) == NULL)
-	{
-		fprintf (stderr, "can't open image file \"%s\"\n", path);
-		return NULL;
-	}
 
 	xcf_im = read_xcf_image( infile );
 	fclose( infile );
@@ -908,38 +913,7 @@ xcf2ASImage( const char * path, ASFlagType *what )
 		 * more than one scanline at a time if that's more convenient.
 		 */
 		(void)jpeg_read_scanlines (&cinfo, buffer, 1);
-		row = buffer[0] ;
-		if( gamma_table )
-		{
-			if( cinfo.output_components == 3 )
-			{
-				row += im->width*3 ;
-				while ( --x >= 0 )
-				{
-					buf.red[x]  = gamma_table[row[0]];
-					buf.green[x]= gamma_table[row[1]];
-					buf.blue[x] = gamma_table[row[2]];
-					row -= 3 ;
-				}
-			}else /* greyscale */
-				while ( --x >= 0 )
-					buf.blue [x] = buf.green[x] = buf.red[x]  = gamma_table[row[x]];
-		}else
-		{
-			if( cinfo.output_components == 3 )
-			{
-				row += im->width*3 ;
-				while ( --x >= 0 )
-				{
-					buf.red[x]  = row[0];
-					buf.green[x]= row[1];
-					buf.blue[x] = row[2];
-					row -= 3 ;
-				}
-			}else /* greyscale */
-				while ( --x >= 0 )
-					buf.blue [x] = buf.green[x] = buf.red[x]  = row[x];
-		}
+		raw2scanline( buffer[0], &buf, gamma_table, im->width, (cinfo.output_components==3), False);
 		asimage_add_line (im, IC_RED,   buf.red  , y);
 		asimage_add_line (im, IC_GREEN, buf.green, y);
 		asimage_add_line (im, IC_BLUE,  buf.blue , y);
@@ -955,4 +929,445 @@ xcf2ASImage( const char * path, ASFlagType *what )
 #endif
 	return im ;
 }
+
+/***********************************************************************************/
+/* PPM/PNM file format : 											   				   */
+ASImage *
+ppm2ASImage( const char * path, ASFlagType what )
+{
+	/* TODO : implement gamma correction !!! */
+	double gamma = 1.0 ;
+	CARD8  *gamma_table = NULL ;
+	ASImage *im = NULL ;
+	/* More stuff */
+	FILE         *infile;					   /* source file */
+#ifdef DO_CLOCKING
+	clock_t       started = clock ();
+#endif
+	ASScanline    buf;
+	int y;
+	unsigned int type = 0, width = 0, height = 0, colors = 0;
+#define PPM_BUFFER_SIZE 71                     /* Sun says that no line should be longer then this */
+	char buffer[PPM_BUFFER_SIZE];
+
+	if ((infile = open_image_file(path)) == NULL)
+		return NULL;
+
+	if( fgets( &(buffer[0]), PPM_BUFFER_SIZE, infile ) )
+	{
+		if( buffer[0] == 'P' )
+			switch( buffer[1] )
+			{    /* we only support RAWBITS formats : */
+					case '5' : 	type= 5 ; break ;
+					case '6' : 	type= 6 ; break ;
+					case '8' : 	type= 8 ; break ;
+				default:
+					show_error( "invalid or unsupported PPM/PNM file format in image file \"%s\"", path );
+			}
+		if( type > 0 )
+		{
+			while ( fgets( &(buffer[0]), PPM_BUFFER_SIZE, infile ) )
+			{
+				if( buffer[0] != '#' )
+				{
+					register int i = 0;
+					if( width > 0 )
+					{
+						colors = atoi(&(buffer[i]));
+						break;
+					}
+					width = atoi( &(buffer[i]) );
+					while ( buffer[i] != '\0' && !isspace(buffer[i]) ) ++i;
+					while ( isspace(buffer[i]) ) ++i;
+					if( buffer[i] != '\0')
+						height = atoi(&(buffer[i]));
+				}
+			}
+		}
+	}
+
+	if( type > 0 && colors <= 255 &&
+		width > 0 && width < MAX_IMPORT_IMAGE_SIZE &&
+		height > 0 && height < MAX_IMPORT_IMAGE_SIZE )
+	{
+		CARD8 *data ;
+		size_t row_size = width * ((type==6)?3:((type==8)?4:1));
+
+		data = safemalloc( row_size );
+
+		LOCAL_DEBUG_OUT("stored image size %dx%d", width,  height);
+		im = safecalloc( 1, sizeof( ASImage ) );
+		asimage_start( im, width,  height );
+		prepare_scanline( im->width, 0, &buf, False );
+		y = -1 ;
+		/*cinfo.output_scanline*/
+		while ( ++y < height )
+		{
+			if( fread( data, sizeof (char), row_size, infile ) < row_size )
+				break;
+
+			raw2scanline( data, &buf, gamma_table, im->width, (type==5), (type==8));
+
+			asimage_add_line (im, IC_RED,   buf.red  , y);
+			asimage_add_line (im, IC_GREEN, buf.green, y);
+			asimage_add_line (im, IC_BLUE,  buf.blue , y);
+			if( type == 8 )
+				asimage_add_line (im, IC_ALPHA,   buf.alpha  , y);
+		}
+		free_scanline(&buf, True);
+		free( data );
+	}
+	fclose( infile );
+#ifdef DO_CLOCKING
+	printf ("\n read time (clocks): %lu\n", clock () - started);
+	printf ("\n image loading time (clocks): %lu\n", clock () - started);
+#endif
+	return im ;
+}
+
+/***********************************************************************************/
+/* Windows BMP file format :   									   				   */
+static size_t
+bmp_read32 (FILE *fp, CARD32 *data, int count)
+{
+  	size_t total = count;
+	if( count > 0 )
+	{
+#ifdef WORDS_BIGENDIAN                         /* BMPs are encoded as Little Endian */
+		CARD8 *raw = (CARD8*)data ;
+#endif
+		total = fread((char*) data, sizeof (CARD8), count<<2, fp)>>2;
+		count = 0 ;
+#ifdef WORDS_BIGENDIAN                         /* BMPs are encoded as Little Endian */
+		while( count < total )
+		{
+			data[count] = (raw[0]<<24)|(raw[1]<<16)|(raw[2]<<8)|raw[3];
+			++count ;
+			raw += 4 ;
+		}
+#endif
+	}
+	return total;
+}
+
+static size_t
+bmp_read16 (FILE *fp, CARD16 *data, int count)
+{
+  	size_t total = count;
+	if( count > 0 )
+	{
+#ifdef WORDS_BIGENDIAN                         /* BMPs are encoded as Little Endian */
+		CARD8 *raw = (CARD8*)data ;
+#endif
+		total = fread((char*) data, sizeof (CARD8), count<<1, fp)>>1;
+		count = 0 ;
+#ifdef WORDS_BIGENDIAN                         /* BMPs are encoded as Little Endian */
+		while( count < total )
+		{
+			data[count] = (raw[0]<<16)|raw[1];
+			++count ;
+			raw += 2 ;
+		}
+#endif
+	}
+	return total;
+}
+
+typedef struct tagBITMAPFILEHEADER {
+#define BMP_SIGNATURE		0x4D42             /* "BM" */
+		CARD16  bfType;
+        CARD32  bfSize;
+        CARD32  bfReserved;
+        CARD32  bfOffBits;
+} BITMAPFILEHEADER;
+
+typedef struct tagBITMAPINFOHEADER
+	{
+	   CARD32 biSize;
+	   CARD32 biWidth,  biHeight;
+	   CARD16 biPlanes, biBitCount;
+	   CARD32 biCompression;
+	   CARD32 biSizeImage;
+	   CARD32 biXPelsPerMeter, biYPelsPerMeter;
+	   CARD32 biClrUsed, biClrImportant;
+}BITMAPINFOHEADER;
+
+ASImage *
+read_bmp_image( FILE *infile, size_t data_offset, BITMAPINFOHEADER *bmp_info,
+				ASScanline *buf, CARD8 *gamma_table,
+				unsigned int width, unsigned int height, Bool add_colormap )
+{
+	Bool success = False ;
+	CARD8 *cmap = NULL ;
+	int cmap_entries = 0, cmap_entry_size = 4, row_size ;
+	int y;
+	ASImage *im = NULL ;
+	CARD8 *data ;
+	int direction = -1 ;
+
+	if( bmp_read32( infile, &bmp_info->biSize, 1 ) )
+	{
+		if( bmp_info->biSize == 40 )
+		{/* long header */
+			bmp_read32( infile, &bmp_info->biWidth, 2 );
+			bmp_read16( infile, &bmp_info->biPlanes, 2 );
+			bmp_info->biCompression = 1 ;
+			success = (bmp_read32( infile, &bmp_info->biCompression, 6 )==6);
+		}else
+		{
+			CARD16 dumm[2] ;
+			bmp_read16( infile, &dumm[0], 2 );
+			bmp_info->biWidth = dumm[0] ;
+			bmp_info->biHeight = dumm[1] ;
+			success = ( bmp_read16( infile, &bmp_info->biPlanes, 2 ) == 2 );
+			bmp_info->biCompression = 0 ;
+		}
+	}
+#ifdef LOCAL_DEBUG
+	fprintf( stderr, "bmp.info.biSize = %ld(0x%lX)\n", bmp_info->biSize, bmp_info->biSize );
+	fprintf( stderr, "bmp.info.biWidth = %ld\nbmp.info.biHeight = %ld\n",  bmp_info->biWidth,  bmp_info->biHeight );
+	fprintf( stderr, "bmp.info.biPlanes = %d\nbmp.info.biBitCount = %d\n", bmp_info->biPlanes, bmp_info->biBitCount );
+	fprintf( stderr, "bmp.info.biCompression = %ld\n", bmp_info->biCompression );
+	fprintf( stderr, "bmp.info.biSizeImage = %ld\n", bmp_info->biSizeImage );
+#endif
+	if( (long)(bmp_info->biHeight) < 0 )
+		direction = 1 ;
+	if( height == 0 )
+		height  = direction == 1 ? -((long)(bmp_info->biHeight)):bmp_info->biHeight ;
+	if( width == 0 )
+		width = bmp_info->biWidth ;
+
+	if( !success || bmp_info->biCompression != 0 ||
+		width > MAX_IMPORT_IMAGE_SIZE ||
+		height > MAX_IMPORT_IMAGE_SIZE )
+	{
+		return NULL;
+	}
+	if( bmp_info->biBitCount < 16 )
+		cmap_entries = 0x01<<bmp_info->biBitCount ;
+
+	if( bmp_info->biSize != 40 )
+		cmap_entry_size = 3;
+	if( cmap_entries )
+	{
+		cmap = safemalloc( cmap_entries * cmap_entry_size );
+		fread(cmap, sizeof (CARD8), cmap_entries * cmap_entry_size, infile);
+	}
+
+	if( add_colormap )
+		data_offset += cmap_entries*cmap_entry_size ;
+
+	fseek( infile, data_offset, SEEK_SET );
+	row_size = (width*bmp_info->biBitCount)>>3 ;
+	if( row_size == 0 )
+		row_size = 1 ;
+	else
+		row_size = (row_size+3)/4 ;            /* everything is aligned by 32 bits */
+	row_size *= 4 ;                            /* in bytes  */
+	data = safemalloc( row_size );
+
+	im = safecalloc( 1, sizeof( ASImage ) );
+	asimage_start( im, width,  height );
+	/* Window BMP files are little endian  - we need to swap Red and Blue */
+	prepare_scanline( im->width, 0, buf, True );
+
+	y =( direction == 1 )?0:height-1 ;
+	fprintf( stderr, "direction = %d, y = %d\n", direction, y );
+	while( y >= 0 && y < height)
+	{
+		int x ;
+		if( fread( data, sizeof (char), row_size, infile ) < row_size )
+			break;
+		switch( bmp_info->biBitCount )
+		{
+			case 1 :
+				for( x = 0 ; x < bmp_info->biWidth ; x++ )
+				{
+					int entry = (data[x>>3]&(1<<(x&0x07)))?cmap_entry_size:0 ;
+					buf->red[x] = cmap[entry+2];
+					buf->green[x] = cmap[entry+1];
+					buf->blue[x] = cmap[entry];
+				}
+			    break ;
+			case 4 :
+				for( x = 0 ; x < bmp_info->biWidth ; x++ )
+				{
+					int entry = data[x>>1];
+					if(x&0x01)
+						entry = ((entry>>4)&0x0F)*cmap_entry_size ;
+					else
+						entry = (entry&0x0F)*cmap_entry_size ;
+					buf->red[x] = cmap[entry+2];
+					buf->green[x] = cmap[entry+1];
+					buf->blue[x] = cmap[entry];
+				}
+			    break ;
+			case 8 :
+				for( x = 0 ; x < bmp_info->biWidth ; x++ )
+				{
+					int entry = data[x]*cmap_entry_size ;
+					buf->red[x] = cmap[entry+2];
+					buf->green[x] = cmap[entry+1];
+					buf->blue[x] = cmap[entry];
+				}
+			    break ;
+			case 16 :
+				for( x = 0 ; x < bmp_info->biWidth ; ++x )
+				{
+					CARD8 c1 = data[x] ;
+					CARD8 c2 = data[++x];
+					buf->blue[x] =    c1&0x1F;
+					buf->green[x] = ((c1>>5)&0x07)|((c2<<3)&0x18);
+					buf->red[x] =   ((c2>>2)&0x1F);
+				}
+			    break ;
+			default:
+				raw2scanline( data, buf, gamma_table, im->width, False, (bmp_info->biBitCount==32));
+		}
+		asimage_add_line (im, IC_RED,   buf->red  , y);
+		asimage_add_line (im, IC_GREEN, buf->green, y);
+		asimage_add_line (im, IC_BLUE,  buf->blue , y);
+		y += direction ;
+	}
+	free( data );
+	if( cmap )
+		free( cmap );
+	return im ;
+}
+
+ASImage *
+bmp2ASImage( const char * path, ASFlagType what )
+{
+	/* TODO : implement gamma correction !!! */
+	double gamma = 1.0 ;
+	CARD8  *gamma_table = NULL ;
+	ASImage *im = NULL ;
+	/* More stuff */
+	FILE         *infile;					   /* source file */
+#ifdef DO_CLOCKING
+	clock_t       started = clock ();
+#endif
+	ASScanline    buf;
+	BITMAPFILEHEADER  bmp_header ;
+	BITMAPINFOHEADER  bmp_info;
+
+
+	if ((infile = open_image_file(path)) == NULL)
+		return NULL;
+
+	bmp_header.bfType = 0 ;
+	if( bmp_read16( infile, &bmp_header.bfType, 1 ) )
+		if( bmp_header.bfType == BMP_SIGNATURE )
+			if( bmp_read32( infile, &bmp_header.bfSize, 3 ) == 3 )
+				im = read_bmp_image( infile, bmp_header.bfOffBits, &bmp_info, &buf, gamma_table, 0, 0, False );
+#ifdef LOCAL_DEBUG
+	fprintf( stderr, "bmp.header.bfType = 0x%X\nbmp.header.bfSize = %ld\nbmp.header.bfOffBits = %ld(0x%lX)\n",
+					  bmp_header.bfType, bmp_header.bfSize, bmp_header.bfOffBits, bmp_header.bfOffBits );
+#endif
+	if( im != NULL )
+		free_scanline( &buf, True );
+	else
+		show_error( "invalid or unsupported BMP format in image file \"%s\"", path );
+
+	fclose( infile );
+#ifdef DO_CLOCKING
+	printf ("\n read time (clocks): %lu\n", clock () - started);
+	printf ("\n image loading time (clocks): %lu\n", clock () - started);
+#endif
+	return im ;
+}
+
+/***********************************************************************************/
+/* Windows ICO file format :   									   				   */
+
+ASImage *
+ico2ASImage( const char * path, ASFlagType what )
+{
+	/* TODO : implement gamma correction !!! */
+	double gamma = 1.0 ;
+	CARD8  *gamma_table = NULL ;
+	ASImage *im = NULL ;
+	/* More stuff */
+	FILE         *infile;					   /* source file */
+#ifdef DO_CLOCKING
+	clock_t       started = clock ();
+#endif
+	ASScanline    buf;
+	int y, mask_bytes;
+	CARD8  and_mask[8];
+	struct IconDirectoryEntry {
+    	CARD8  bWidth;
+    	CARD8  bHeight;
+    	CARD8  bColorCount;
+    	CARD8  bReserved;
+    	CARD16  wPlanes;
+    	CARD16  wBitCount;
+    	CARD32 dwBytesInRes;
+    	CARD32 dwImageOffset;
+	};
+	struct ICONDIR {
+    	CARD16          idReserved;
+    	CARD16          idType;
+    	CARD16          idCount;
+	} icon_dir;
+   	struct IconDirectoryEntry  icon;
+	BITMAPINFOHEADER bmp_info;
+
+	if ((infile = open_image_file(path)) == NULL)
+		return NULL;
+
+	icon_dir.idType = 0 ;
+	if( bmp_read16( infile, &icon_dir.idReserved, 3 ) == 3)
+		if( icon_dir.idType == 1 )
+		{
+			fread( &(icon.bWidth), sizeof(CARD8),4,infile );
+			bmp_read16( infile, &(icon.wPlanes), 2 );
+			if( bmp_read32( infile, &(icon.dwBytesInRes), 2 ) == 2 )
+			{
+				fseek( infile, icon.dwImageOffset, SEEK_SET );
+				im = read_bmp_image( infile, icon.dwImageOffset+40+(icon.bColorCount*4), &bmp_info, &buf, gamma_table,
+					                 icon.bWidth, icon.bHeight, (icon.bColorCount==0) );
+			}
+		}
+#ifdef LOCAL_DEBUG
+	fprintf( stderr, "icon.dir.idType = 0x%X\nicon.dir.idCount = %d\n",  icon_dir.idType, icon_dir.idCount );
+	fprintf( stderr, "icon[1].bWidth = %d(0x%X)\n",  icon.bWidth,  icon.bWidth );
+	fprintf( stderr, "icon[1].bHeight = %d(0x%X)\n",  icon.bHeight,  icon.bHeight );
+	fprintf( stderr, "icon[1].bColorCount = %d\n",  icon.bColorCount );
+	fprintf( stderr, "icon[1].dwImageOffset = %ld(0x%lX)\n",  icon.dwImageOffset,  icon.dwImageOffset );
+#endif
+	if( im != NULL )
+	{
+		mask_bytes = icon.bWidth>>3 ;
+		if( mask_bytes > 8 )
+			mask_bytes = 8 ;
+		for( y = icon.bHeight-1 ; y >= 0 ; y-- )
+		{
+			int x ;
+			if( fread( &(and_mask[0]), sizeof (CARD8), mask_bytes, infile ) < mask_bytes )
+				break;
+			for( x = 0 ; x < mask_bytes ; ++x )
+				fprintf( stderr, "%2.2X              ", and_mask[x] );
+			fprintf( stderr, "\n" );
+			for( x = 0 ; x < icon.bWidth ; ++x )
+			{
+				buf.alpha[x] = (and_mask[x>>3]&(0x80>>(x&0x7)))? 0x0000 : 0x00FF ;
+				fprintf( stderr, "%2.2X", buf.alpha[x] );
+			}
+			fprintf( stderr, "\n" );
+			asimage_add_line (im, IC_ALPHA, buf.alpha, y);
+		}
+		free_scanline( &buf, True );
+	}else
+		show_error( "invalid or unsupported ICO format in image file \"%s\"", path );
+
+	fclose( infile );
+#ifdef DO_CLOCKING
+	printf ("\n read time (clocks): %lu\n", clock () - started);
+	printf ("\n image loading time (clocks): %lu\n", clock () - started);
+#endif
+	return im ;
+
+}
+
 
