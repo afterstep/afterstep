@@ -37,6 +37,7 @@
 #include "../include/aswindow.h"
 #include "../include/trace.h"				   /* for deps */
 #include "../include/functions.h"
+#include "../include/hints.h"
 #include "../include/menus.h"
 #include "../include/misc.h"
 #include "../include/resources.h"
@@ -218,7 +219,7 @@ printf_aswindow (ASWindow * t)
 {
 	if (t)
 	{
-		fprintf (stderr, "\"%s\",0x%lX,0x%lX,...", t->name, t->frame, t->w);
+		fprintf (stderr, "\"%s\",0x%lX,0x%lX,...", t->all_hints->names[0], t->frame, t->w);
 	}
 }
 

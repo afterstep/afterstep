@@ -689,11 +689,11 @@ print_wild_reg_exp (wild_reg_exp * wrexp)
 int
 match_substring (reg_exp * rexp, char *string, size_t len, int dir)
 {
-	size_t        start = 0, end = len;
-	int           pos, offset, size;
+	signed int    start = 0, end = len; /* Important - we need signed int here !!! */
+	signed int    pos, offset, size;
 	register unsigned char *sym, *neg;
 	unsigned char c, r1;
-	int           skip, lead_len;
+	signed int    skip, lead_len;
 
 	if (rexp == NULL)
 		return 0;							   /* we've riched the end of the search */
@@ -758,7 +758,7 @@ match_substring (reg_exp * rexp, char *string, size_t len, int dir)
 			neg++;
 		}
 
-		if (offset < (int)start)
+		if (offset < start)
 		{									   /* we have a match - now try to match other regexps : */
 			int           bres = 0;
 
@@ -790,7 +790,6 @@ match_wild_reg_exp (char *string, wild_reg_exp * wrexp)
 		return 1;
 	if (wrexp->longest == NULL)
 		return -1;							   /* empty regexp matches nothing */
-
 	len = strlen (string);
 	if (len < wrexp->hard_total + wrexp->soft_total)
 		return -1;							   /* string is too short to match criteria */

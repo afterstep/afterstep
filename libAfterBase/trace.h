@@ -13,7 +13,7 @@
 /* Select section : select functions to trace here : */
 /* Xlib calls */
 #undef TRACE_XDestroyWindow
-#undef TRACE_XGetGeometry
+#define TRACE_XGetGeometry
 #undef TRACE_XNextEvent		/* all of the Event retreival functions */
 /* the following allows filtering events using event masks 
    (It also applicable to the tracing of DispatchEvent) : */
@@ -22,7 +22,7 @@
 #define ClientMask		(1L<<30)
 #define MappingMask		(1L<<31)
 /* use standard X event masks here : */
-#define EVENT_TRACE_MASK	(SubstructureRedirectMask)
+#define EVENT_TRACE_MASK	(0xFFFFFFFF)
 
 /* libafterstep functions */
 #undef TRACE_load_font		/* both load and unload actually */
@@ -32,13 +32,13 @@
 #undef TRACE_UnloadImage	/* both UnloadMask and UnloadImage */
 
 /* afterstep functions */
-#undef TRACE_AddWindow
+#define TRACE_AddWindow
 #undef TRACE_SetFocus
-#undef TRACE_SetupFrame
-#undef TRACE_ResizeFrame	/* both ResizeFrame and ResizeClent */
+#define TRACE_SetupFrame
+#define TRACE_ResizeFrame	/* both ResizeFrame and ResizeClent */
 #define TRACE_DispatchEvent	/* see also EVENT_TRACE_MASK above */
 
-#undef TRACE_ReparentIt
+#define TRACE_ReparentIt
 
 #undef TRACE_ExecuteFunction
 /* this will allow for selection of the particular type of functions to trace: */
@@ -50,7 +50,7 @@
 #define ModuleFuncMask		(1L<<6)
 #define MenuFuncMask		(1L<<7)
 /* use any combination of those in here : */
-#define FUNC_TRACE_MASK		WindowFuncMask
+#define FUNC_TRACE_MASK		0xFFFFFFFF
 
 /* End of the Select section */
 
