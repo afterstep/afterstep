@@ -610,17 +610,19 @@ load_config_file(const char *dirname, const char *filename, const char *myname, 
 
 void destroy_config_file( ASConfigFile *ascf ) 
 {
-	if( ascf->dirname ) 
-		free( ascf->dirname );
-	if( ascf->filename ) 
-		free( ascf->filename );
-	if( ascf->fullname ) 
-		free( ascf->fullname );
-	if( ascf->myname ) 
-		free( ascf->myname );
-	if( ascf->free_storage ) 
-		DestroyFreeStorage( &(ascf->free_storage) );
-	
+	if( ascf )
+	{	
+		if( ascf->dirname ) 
+			free( ascf->dirname );
+		if( ascf->filename ) 
+			free( ascf->filename );
+		if( ascf->fullname ) 
+			free( ascf->fullname );
+		if( ascf->myname ) 
+			free( ascf->myname );
+		if( ascf->free_storage ) 
+			DestroyFreeStorage( &(ascf->free_storage) );
+	}	
 }	 
 
 ASConfigFile *
@@ -673,6 +675,28 @@ decode_string( ASStorageID id, char *buffer, int buffer_length, int *stored_leng
 		buffer[bytes_out] = '\0' ;
 	}
 	return bytes_out;		
+}	   
+
+char*
+decode_string_alloc( ASStorageID id )
+{
+	char tmp_buffer[1] ;
+	int stored_length = 0 ;
+
+	if( stored_length )
+		stored_length = 0 ;
+
+	if( id != 0 )
+	{
+		fetch_data(NULL, id, &tmp_buffer[0], 0, 1, 0, &stored_length);	
+		if( stored_length > 0 ) 
+		{
+			char *str = safemalloc( stored_length );
+		 	fetch_data(NULL, id, str, 0, stored_length, 0, &stored_length);	 		   
+			return str;
+		}	 
+	}
+	return NULL;		
 }	   
 
 /*************************************************************************/
@@ -732,15 +756,18 @@ void merge_property_list( ASProperty *src, ASProperty *dst );
 void
 dup_property_contents( ASProperty *src, ASProperty *dst ) 
 {
-	if( src->type == ASProp_Integer ) 
-		dst->contents.integer = src->contents.integer ;
-	else if( src->type == ASProp_Data ) 
-		dst->contents.data = dup_data( NULL, src->contents.data );
-	else if( src->type == ASProp_File )
-		dst->contents.config_file = dup_config_file( src->contents.config_file );	
+	if( src && dst )
+	{	
+		if( src->type == ASProp_Integer ) 
+			dst->contents.integer = src->contents.integer ;
+		else if( src->type == ASProp_Data ) 
+			dst->contents.data = dup_data( NULL, src->contents.data );
+		else if( src->type == ASProp_File )
+			dst->contents.config_file = dup_config_file( src->contents.config_file );	
 
-	if( src->sub_props != NULL ) 
-		merge_property_list( src, dst );
+		if( src->sub_props != NULL ) 
+			merge_property_list( src, dst );
+	}
 }
 
 ASProperty *
@@ -793,13 +820,16 @@ void destroy_property( void *data )
 ASProperty *
 find_property_by_id( ASBiDirList *list, int id )	 
 {
-	ASBiDirElem *curr = LIST_START(list); 		
-	while( curr ) 
-	{
-		ASProperty *prop = (ASProperty*)LISTELEM_DATA(curr) ;	  
-		if( prop->id == id ) 
-			return prop;
-		LIST_GOTO_NEXT(curr);
+	if( list )
+	{	
+		ASBiDirElem *curr = LIST_START(list); 		
+		while( curr ) 
+		{
+			ASProperty *prop = (ASProperty*)LISTELEM_DATA(curr) ;	  
+			if( prop->id == id || id < 0  ) 
+				return prop;
+			LIST_GOTO_NEXT(curr);
+		}
 	}
 	return NULL;
 }
@@ -807,14 +837,17 @@ find_property_by_id( ASBiDirList *list, int id )
 ASProperty *
 find_property_by_id_name( ASBiDirList *list, int id, const char *name )	 
 {
-	ASBiDirElem *curr = LIST_START(list); 		
-	while( curr ) 
-	{
-		ASProperty *prop = (ASProperty*)LISTELEM_DATA(curr) ;	  
-		if( prop->id == id ) 
-			if( prop->name && name && strcmp(prop->name , name ) == 0 )
-				return prop;
-		LIST_GOTO_NEXT(curr);
+	if( list && name ) 
+	{	
+		ASBiDirElem *curr = LIST_START(list); 		
+		while( curr ) 
+		{
+			ASProperty *prop = (ASProperty*)LISTELEM_DATA(curr) ;	  
+			if( prop->id == id || id < 0 ) 
+				if( prop->name && strcmp(prop->name , name ) == 0 )
+					return prop;
+			LIST_GOTO_NEXT(curr);
+		}
 	}
 	return NULL;
 }
@@ -822,33 +855,39 @@ find_property_by_id_name( ASBiDirList *list, int id, const char *name )
 void
 remove_property_by_id( ASBiDirList *list, int id )	 
 {
-	ASBiDirElem *curr = LIST_START(list); 		
-	while( curr ) 
-	{
-		ASProperty *prop = (ASProperty*)LISTELEM_DATA(curr) ;	  
-		if( prop->id == id ) 
-		{	
-			destroy_bidirelem( list, curr );
-			return;
+	if( list )
+	{	
+		ASBiDirElem *curr = LIST_START(list); 		   
+		while( curr ) 
+		{
+			ASProperty *prop = (ASProperty*)LISTELEM_DATA(curr) ;	  
+			if( prop->id == id ) 
+			{	
+				destroy_bidirelem( list, curr );
+				return;
+			}
+			LIST_GOTO_NEXT(curr);
 		}
-		LIST_GOTO_NEXT(curr);
 	}
 }
 
 void
 remove_property_by_id_name( ASBiDirList *list, int id, const char *name )	 
 {
-	ASBiDirElem *curr = LIST_START(list); 		
-	while( curr ) 
-	{
-		ASProperty *prop = (ASProperty*)LISTELEM_DATA(curr) ;	  
-		if( prop->id == id ) 
-			if( prop->name && name && strcmp(prop->name , name ) == 0 )
-			{
-				destroy_bidirelem( list, curr );
-				return ;
-			}
-		LIST_GOTO_NEXT(curr);
+	if( list && name )
+	{	
+		ASBiDirElem *curr = LIST_START(list); 		
+		while( curr ) 
+		{
+			ASProperty *prop = (ASProperty*)LISTELEM_DATA(curr) ;	  
+			if( prop->id == id ) 
+				if( prop->name && strcmp(prop->name , name ) == 0 )
+				{
+					destroy_bidirelem( list, curr );
+					return ;
+				}
+			LIST_GOTO_NEXT(curr);
+		}
 	}
 }
 
@@ -986,7 +1025,7 @@ special_free_storage2property( FreeStorageElem **pcurr )
 ASProperty* 
 free_storage2property_list( FreeStorageElem *fs, ASProperty *pl )
 {
-	FreeStorageElem *curr = fs ;
+	FreeStorageElem *curr ;
 	ConfigItem    item;
 	ASProperty *prop = NULL;
 	
@@ -1112,7 +1151,7 @@ merge_property_list( ASProperty *src, ASProperty *dst )
 	iterate_asbidirlist( src->sub_props, merge_prop_into_list, dst->sub_props, NULL, False );		  	
 }
 /*************************************************************************/
-ASProperty* asmenu_dir2property( const char *dirname, const char *menu_path, ASProperty *owner_prop, int func );
+ASProperty* asmenu_dir2property( const char *dirname, const char *menu_path, ASProperty *owner_prop, int func, const char *extension, const char *mini_ext );
 void melt_menu_props( ASProperty *file, ASProperty *opts );
 
 ASProperty* 
@@ -1158,7 +1197,7 @@ load_current_config_fname( ASProperty* config, int id, const char *filename, con
 	if( cf ) 
 		free_storage2property_list( cf->free_storage, file );
 	else if( file_id == CONFIG_StartDir_ID ) 
-		asmenu_dir2property( filename, "", file, F_NOP );	
+		asmenu_dir2property( filename, "", file, F_NOP, NULL, NULL );	
 
 	if( options_id != 0 )
 	{	
@@ -1188,9 +1227,9 @@ load_current_config( ASProperty* config, int id, const char *myname,
 
 }
 /*************************************************************************/
-
 ASProperty* 
-asmenu_dir2property( const char *dirname, const char *menu_path, ASProperty *owner_prop, int func )
+asmenu_dir2property( const char *dirname, const char *menu_path, ASProperty *owner_prop, 
+					 int func, const char *extension, const char *mini_ext )
 {
 	struct direntry  **list;
 	int list_len, i ;
@@ -1199,7 +1238,14 @@ asmenu_dir2property( const char *dirname, const char *menu_path, ASProperty *own
 	ASConfigFile *include_cf = NULL ;
 	char *new_path ;		
 	ASProperty *item = NULL ;
-	
+	int mini_ext_len = mini_ext?strlen(mini_ext):0 ;
+	int ext_len = extension?strlen(extension):0 ; 
+
+	list_len = my_scandir ((char*)dirname, &list, no_dots_except_include, NULL);
+	LOCAL_DEBUG_OUT("dir \"%s\" has %d entries", dirname, list_len );
+	if( list_len <= 0 )
+		return NULL;
+	   
 	if( ptr == NULL ) 
 		ptr = dirname ;
 	else
@@ -1213,15 +1259,24 @@ asmenu_dir2property( const char *dirname, const char *menu_path, ASProperty *own
 	popup->contents.data = encode_string( dirname );
 	append_bidirelem( owner_prop->sub_props, popup );			   
 
-	list_len = my_scandir ((char*)dirname, &list, no_dots_except_include, NULL);
 	for (i = 0; i < list_len; i++)
 		if( list[i]->d_name[0] == '.' ) 
 		{
+			ASProperty *cmd ;
 			include_cf = load_config_file(dirname, list[i]->d_name, "afterstep", &includeSyntax );
 			include_file = create_property( CONFIG_IncludeFile_ID, ASProp_File, NULL, True );
 			append_bidirelem( popup->sub_props, include_file );			   
 			include_file->contents.config_file = include_cf ;
 			free_storage2property_list( include_cf->free_storage, include_file );
+
+			cmd = find_property_by_id( include_file->sub_props, INCLUDE_command_ID );	 
+
+			if( cmd ) 
+			{
+				ASProperty *cmd_func = find_property_by_id( cmd->sub_props, -1 );	 ;
+				if( cmd_func && cmd_func->id < F_FUNCTIONS_NUM )	
+					func = cmd_func->id ;
+			}	 
 			break;	
 		}
 	for (i = 0; i < list_len; i++)
@@ -1229,18 +1284,90 @@ asmenu_dir2property( const char *dirname, const char *menu_path, ASProperty *own
 		char *sub_path = make_file_name( dirname, list[i]->d_name );
 		if ( S_ISDIR (list[i]->d_mode) )
 		{	
-			ASProperty *sub_menu = asmenu_dir2property( sub_path, new_path, owner_prop, func ) ;
+			ASProperty *sub_menu = asmenu_dir2property( sub_path, new_path, owner_prop, func, extension, mini_ext ) ;
 			item = create_property( F_POPUP, ASProp_Data, sub_menu->name, True );
 			item->contents.data = encode_string( sub_path );
 			append_bidirelem( popup->sub_props, item );			   
 		}else if( list[i]->d_name[0] != '.' ) 
 		{
+			int len = strlen(list[i]->d_name);
+			char *stripped_name = NULL;
+			char *minipixmap = NULL ;
+			char hotkey = '\0' ;
+			int k ; 
+
+			if( ext_len > 0 && len > ext_len )
+			{	
+				if( strcmp(list[i]->d_name + len - ext_len, extension) == 0 ) 
+					stripped_name = mystrndup( list[i]->d_name, len - ext_len );
+				else if( strncmp(list[i]->d_name, extension, ext_len) == 0 ) 
+					stripped_name = mystrdup( list[i]->d_name + ext_len );
+			}
+			if( stripped_name == NULL )
+			{	
+				if( mini_ext_len > 0 && len > mini_ext_len )
+				{ 
+					if( strcmp( list[i]->d_name + len - mini_ext_len, mini_ext ) == 0 ) 
+						continue;				
+					if( strncmp( list[i]->d_name, mini_ext, mini_ext_len ) == 0 ) 
+						continue;				
+				}
+				stripped_name = mystrdup( list[i]->d_name );
+			}
+			
+			if( mini_ext_len > 0 )
+			{
+				for(k = 0; k < list_len; k++)
+					if( k != i && !S_ISDIR (list[k]->d_mode)) 
+					{
+						int mlen = strlen(list[k]->d_name);	  
+						if( mlen > mini_ext_len && len - ext_len == mlen - mini_ext_len)
+						{	 
+							if( strcmp( list[k]->d_name + mlen - mini_ext_len, mini_ext ) == 0) 
+							{
+								if( strncmp( list[k]->d_name, stripped_name, mlen - mini_ext_len ) == 0 )
+								{  /* found suitable minipixmap */
+									minipixmap = make_file_name( dirname, list[k]->d_name );
+									break;	
+								}
+							}else if( strncmp( list[k]->d_name, mini_ext, mini_ext_len ) == 0) 
+							{
+								if( strcmp( list[k]->d_name + mini_ext_len, stripped_name ) == 0 )
+								{  /* found suitable minipixmap */
+									minipixmap = make_file_name( dirname, list[k]->d_name + mini_ext_len );
+									break;	
+								}
+							}
+						}	  	   
+					}
+			}	
+
+			for( k = 0 ; stripped_name[k] != '\0' ; ++k ) 
+			{	
+				if( stripped_name[k] == '_' ) 
+				{
+					if( stripped_name[k+1] == '_' )	  
+					{
+						int l ;
+						for( l = k+2 ; stripped_name[l] != '\0' ; ++l)
+							stripped_name[l-2] = stripped_name[l] ;
+						hotkey = stripped_name[k] ;	
+					}else	 
+						stripped_name[k] = ' ' ;
+				}
+
+			}						 
+
 			if( func != F_NOP ) 
 			{
-				item = create_property( func, ASProp_Data, list[i]->d_name, True );
+				item = create_property( func, ASProp_Data, stripped_name, True );
 				item->contents.data = encode_string( sub_path );
 				append_bidirelem( popup->sub_props, item );
-				add_string_property( CONFIG_text_ID, sub_path, popup->sub_props );				   
+				add_string_property( CONFIG_text_ID, sub_path, item->sub_props );				   
+				if( minipixmap )
+					add_string_property( F_MINIPIXMAP, minipixmap, item->sub_props );				   							   
+				if( hotkey != '\0' )
+					add_char_property( CONFIG_hotkey_ID, hotkey, item->sub_props );				   
 			}else
 			{	
 				ASConfigFile *cf = NULL ;
@@ -1252,10 +1379,26 @@ asmenu_dir2property( const char *dirname, const char *menu_path, ASProperty *own
 					item->type = ASProp_File ;
 					item->contents.config_file = cf ;
 					if( item->name == NULL )
-						item->name = mystrdup( list[i]->d_name );
+					{	
+						item->name = stripped_name ;
+						stripped_name = NULL ;
+					}else
+						hotkey = scan_for_hotkey (stripped_name);
+				
+					if( minipixmap )
+						if( find_property_by_id( item->sub_props, F_MINIPIXMAP ) == NULL ) 	 
+							add_string_property( F_MINIPIXMAP, minipixmap, item->sub_props );				   							   
+					if( hotkey != '\0' )
+						if( find_property_by_id( item->sub_props, CONFIG_hotkey_ID ) == NULL ) 	 
+			   				add_char_property( CONFIG_hotkey_ID, hotkey, item->sub_props );				   
+
 				}else
 					destroy_config_file( cf ); 
 			}
+			if( stripped_name)
+				free( stripped_name );
+			if(minipixmap)
+				free(minipixmap);
 		}
 		free( sub_path );
 		free (list[i]);
@@ -1269,10 +1412,11 @@ Bool
 melt_menu_props_into_list(void *data, void *aux_data)
 {
 	ASProperty *popup = (ASProperty*)data;
-	ASBiDirList *list = (ASBiDirList*)aux_data;
+	ASProperty *dst = (ASProperty*)aux_data ;
+	ASBiDirList *list = dst->sub_props;
 	ASProperty *incl ;
 	ASProperty *dst_popup ;
-	ASProperty *tmp ;
+	char *name = NULL ;
 
 	incl = find_property_by_id( popup->sub_props, CONFIG_IncludeFile_ID );	 
 	dst_popup = find_property_by_id_name( list, popup->id, popup->name );
@@ -1284,8 +1428,99 @@ melt_menu_props_into_list(void *data, void *aux_data)
  		merge_property_list( popup, dst_popup );		
 	
 	if( incl )
+	{	
+		int func = F_NOP ;
+#define MAX_EXTENTION 256
+		char *extension = NULL ;
+		char *mini_ext = NULL ;
+		int order = 0 ;
+		ASBiDirElem *curr ; 		   
+		ASProperty *phony = NULL;
+
 		remove_property_by_id( dst_popup->sub_props, CONFIG_IncludeFile_ID );	 
-		
+		/* Pass 1 : collecting settings first : */
+		for( curr = LIST_START(incl->sub_props); curr != NULL ; LIST_GOTO_NEXT(curr) )
+		{
+			ASProperty *prop = (ASProperty*)LISTELEM_DATA(curr) ;	  
+			switch( prop->id )
+			{
+				case INCLUDE_keepname_ID           : /* OBSOLETE */   break ;
+				case INCLUDE_extension_ID          : 
+					if( extension )	free( extension ); 
+					extension = decode_string_alloc( prop->contents.data );
+					break ;
+				case INCLUDE_miniextension_ID      :
+					if( mini_ext )	free( mini_ext ); 
+					mini_ext = decode_string_alloc( prop->contents.data );
+					break ;
+						
+				case INCLUDE_minipixmap_ID         : /* OBSOLETE */   break ;
+				case INCLUDE_command_ID        	   : /* TODO */   break ;
+				case INCLUDE_order_ID       	   :    
+					order = prop->contents.integer ; break ;
+				case INCLUDE_RecentSubmenuItems_ID : /* TODO */   break ;
+				case INCLUDE_name_ID          	   : 
+					if( name )	free( name ); 
+					name = decode_string_alloc( prop->contents.data );
+					break ;
+			}
+		}
+		/* Pass 2 : including submenus : */
+		for( curr = LIST_START(incl->sub_props); curr != NULL ; LIST_GOTO_NEXT(curr) )
+		{	
+			ASProperty *prop = (ASProperty*)LISTELEM_DATA(curr) ;	  
+			if( prop->id == INCLUDE_include_ID )
+			{
+				char *fullfilename = PutHome( prop->name );
+				ASProperty *text_prop = find_property_by_id( prop->sub_props, CONFIG_text_ID );	 
+				int incl_func = func ;
+				ASProperty *sub_popup ;
+
+				LOCAL_DEBUG_OUT( "include \"%s\" with text_prop = %p", fullfilename, text_prop );
+				
+				if( text_prop != NULL ) 
+				{	  
+					char *txt = decode_string_alloc( text_prop->contents.data );
+					if( txt )
+					{	
+						TermDef *fd  ;
+						if( (fd = txt2fterm( txt, False)) != NULL )
+							incl_func = fd->id ;
+						free( txt );
+					}
+				}
+				if( phony == NULL ) 		
+					phony = create_property( CONFIG_StartDir_ID, ASProp_File, NULL, True );
+				LOCAL_DEBUG_OUT( "func = (%d) phony = %p, popup = %p", incl_func, phony, popup );
+				LOCAL_DEBUG_OUT( "popup->name = \"%s\"", popup->name );
+				sub_popup = asmenu_dir2property( fullfilename, popup->name, phony, 
+					 				 incl_func, extension, mini_ext );
+				
+				LOCAL_DEBUG_OUT( "sub_popup = %p", sub_popup );
+				print_hierarchy( sub_popup, 0 );
+				if( sub_popup != NULL )
+				{	 
+					merge_property_list( sub_popup, dst_popup );
+					discard_bidirelem( phony->sub_props, sub_popup );
+					if( phony->sub_props->count > 0 )
+					{	
+						melt_menu_props( phony, dst );
+						purge_asbidirlist( phony->sub_props );
+					}
+				}
+				free( fullfilename );
+			}	 
+		}
+		if( phony != NULL ) 		   
+			destroy_property( phony );
+		if( extension )
+			free( extension );
+		if( mini_ext )
+			free( mini_ext );
+	}
+	/* now we need to sort items according to order */
+
+	/* and now we need to add F_TITLE item for menu name */
 
 	return True;
 }
@@ -1293,10 +1528,10 @@ melt_menu_props_into_list(void *data, void *aux_data)
 void 
 melt_menu_props( ASProperty *src, ASProperty *dst )
 {
-	if( src->sub_props == NULL && dst->sub_props == NULL ) 
+	if( src->sub_props == NULL || dst == NULL ) 
 		return;
 	LOCAL_DEBUG_CALLER_OUT("(%p,%p)", src, dst );	
-	iterate_asbidirlist( src->sub_props, melt_menu_props_into_list, dst->sub_props, NULL, False );		  	
+	iterate_asbidirlist( src->sub_props, melt_menu_props_into_list, dst, NULL, False );		  	
 }
 
 /*************************************************************************/
