@@ -245,7 +245,6 @@ int main(int argc, char** argv) {
 
 	im = compose_asimage_xml(asv, NULL, NULL, doc_str, ASFLAGS_EVERYTHING, verbose, None, NULL);
 
-
 	if (doc_file && doc_str && doc_str != default_doc_str) free(doc_str);
 
 	/* Automagically determine the output type, if none was given. */
@@ -259,7 +258,7 @@ int main(int argc, char** argv) {
 		if(!save_asimage_to_file(doc_save, im, doc_save_type, NULL, NULL, 0, 1)) {
 			show_error("Save failed.");
 		} else {
-			show_error("Save successful.");
+			show_progress("Save successful.");
 		}
 	}
 

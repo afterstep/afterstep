@@ -142,6 +142,7 @@ asvar_get(const char* name) {
       if (!asvar) asvar_init();
       if (!asvar) return 0;
       get_hash_item(asvar, (ASHashableValue)name, (void**)&value);
+			if (!value) show_debug(__FILE__, "asvar_get", __LINE__, "Use of undefined variable [%s].", name);
       return value ? *value : 0;
 }
 
@@ -1026,12 +1027,18 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 		const char* refid = NULL;
 		const char* width_str = NULL;
 		const char* height_str = NULL;
+		ASImage* imtmp = NULL;
 		int width = 0, height = 0;
 		for (ptr = parm ; ptr ; ptr = ptr->next) {
 			if (!strcmp(ptr->tag, "id")) id = strdup(ptr->parm);
 			if (!strcmp(ptr->tag, "refid")) refid = ptr->parm;
 			if (!strcmp(ptr->tag, "width")) width_str = ptr->parm;
 			if (!strcmp(ptr->tag, "height")) height_str = ptr->parm;
+		}
+		if (width_str && height_str) {
+			for (ptr = doc->child ; ptr && !imtmp ; ptr = ptr->next) {
+				imtmp = build_image_from_xml(asv, imman, fontman, ptr, NULL, flags, verbose, display_win);
+			}
 		}
 		if (refid && width_str && height_str) {
 			ASImage* refimg = fetch_asimage(imman, refid );
@@ -1045,15 +1052,9 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 			width = parse_math(width_str, NULL, width);
 			height = parse_math(height_str, NULL, height);
 		}
-		if (width && height) {
-			ASImage* imtmp = NULL;
-			for (ptr = doc->child ; ptr && !imtmp ; ptr = ptr->next) {
-				imtmp = build_image_from_xml(asv, imman, fontman, ptr, NULL, flags, verbose, display_win);
-			}
-			if (imtmp) {
-				result = scale_asimage(asv, imtmp, width, height, ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT);
-				safe_asimage_destroy(imtmp);
-			}
+		if (imtmp) {
+			result = scale_asimage(asv, imtmp, width, height, ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT);
+			safe_asimage_destroy(imtmp);
 			show_progress("Scaling image to [%dx%d].", width, height);
 		}
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
