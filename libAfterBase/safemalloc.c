@@ -95,7 +95,10 @@ static size_t
 get_guarded_memory_size( char *ptr )
 {
 	unsigned long long_ptr = (unsigned long)ptr ;
-	size_t *size_ptr = (size_t*) (long_ptr&0xFFFFF000) ;
+	size_t *size_ptr ;
+	if( (long_ptr&0x00000FFF) == 0 )
+		long_ptr -= WIN32_PAGE_SIZE ;
+	size_ptr = (size_t*) (long_ptr&0xFFFFF000) ;
 #ifdef LOCAL_DEBUG
 	fprintf( stderr, "ALLOC: ptr %p seems to point to a block of %d bytes\n", ptr, *size_ptr );
 #endif
@@ -110,15 +113,23 @@ static void
 free_guarded_memory( void *ptr )
 {
 	unsigned long long_ptr = (unsigned long)ptr ;
-	size_t *size_ptr = (size_t*) (long_ptr&0xFFFFF000) ;
+	size_t *size_ptr ;
+	if( (long_ptr&0x00000FFF) == 0 )
+		long_ptr -= WIN32_PAGE_SIZE ;
+	size_ptr = (size_t*) (long_ptr&0xFFFFF000) ;
 	if( size_ptr[1] != AS_WIN32_PAGE_MAGIC  )
 	{	
 		char *suicide = NULL;
-		fprintf( stderr, "ALLOC: warning - freeing ptr %p that was not allocated properly\n", ptr );		   
+		fprintf( stderr, "FREE: warning - freeing ptr %p that was not allocated properly\n", ptr );		   
 		fflush( stderr );
 		*suicide = 1 ;		
 	}else
-		VirtualFree( ptr, 0, MEM_RELEASE );
+	{	
+#ifdef LOCAL_DEBUG
+		fprintf( stderr, "FREE: ptr %p points to a block of %d bytes. commit = %p\n", ptr, size_ptr[0], size_ptr );
+#endif
+		VirtualFree( size_ptr, 0, MEM_RELEASE );
+	}
 }	   
 
 #endif

@@ -60,7 +60,7 @@ typedef struct ASStorageBlock
 	int 	size ;
 
 	int   	total_free;
-	ASStorageSlot  *start;
+	ASStorageSlot  *start, *end;
 	/* array of pointers to slots is allocated separately, so that we can reallocate it 
 	   in case we have lots of small slots */
 	ASStorageSlot **slots;

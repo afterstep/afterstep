@@ -87,18 +87,27 @@ decompress_stored_data( ASStorage *storage, CARD8 *data, int size, int uncompres
 	return data;
 }
 
-ASStorageBlock *
+static ASStorageBlock *
 create_asstorage_block( int useable_size )
 {
 	int allocate_size = (((sizeof(ASStorageBlock)+sizeof(ASStorageSlot) + useable_size)/4096)+1)*4096 ;
-	void * ptr = malloc(allocate_size);
+#ifndef DEBUG_ALLOCS
+	void *ptr = malloc(allocate_size);
+#else
+	void *ptr = guarded_malloc(allocate_size);
+#endif
 	if( ptr == NULL ) 
 		return NULL;
 	ASStorageBlock *block = ptr ;
 	memset( block, 0x00, sizeof(ASStorageBlock));
 	block->size = allocate_size - sizeof(ASStorageBlock) ;
 	block->total_free = block->size - ASStorageSlot_SIZE ;
+	
+#ifndef DEBUG_ALLOCS
 	block->slots = calloc( AS_STORAGE_SLOTS_BATCH, sizeof(ASStorageSlot*));
+#else
+	block->slots = guarded_calloc( AS_STORAGE_SLOTS_BATCH, sizeof(ASStorageSlot*));
+#endif	  
 	block->slots_count = AS_STORAGE_SLOTS_BATCH ;
 	if( block->slots == NULL ) 
 	{	
@@ -106,6 +115,7 @@ create_asstorage_block( int useable_size )
 		return NULL;
 	}
 	block->start = (ASStorageSlot*)(ptr+sizeof(ASStorageBlock));
+	block->end = (ASStorageSlot*)(ptr+(allocate_size-ASStorageSlot_SIZE));
 	block->slots[0] = block->start ;
 	block->slots[0]->flags = 0 ;  /* slot of the free memory */ 
 	block->slots[0]->ref_count = 0 ;
@@ -113,11 +123,27 @@ create_asstorage_block( int useable_size )
 	block->slots[0]->uncompressed_size = block->size ;
 	block->last_used = 0;
 	block->first_free = 0 ;
-
+	
+	LOCAL_DEBUG_OUT("Storage block created : block ptr = %p, slots ptr = %p", block, block->slots );
+	
 	return block;
 }
 
-int
+static void
+destroy_asstorage_block( ASStorageBlock *block )
+{
+	LOCAL_DEBUG_OUT( "freeing block %p, size = %d", block, block->size );
+#ifndef DEBUG_ALLOCS
+	free( block->slots );
+	free( block );	  
+#else	
+	guarded_free( block->slots );
+	guarded_free( block );
+#endif
+
+}
+
+static int
 select_storage_block( ASStorage *storage, int compressed_size, ASFlagType flags )
 {
 	int i ;
@@ -139,7 +165,11 @@ select_storage_block( ASStorage *storage, int compressed_size, ASFlagType flags 
 	{
 		i = new_block = storage->blocks_count ;
 		storage->blocks_count += 16 ;
+#ifndef DEBUG_ALLOCS
 		storage->blocks = realloc( storage->blocks, storage->blocks_count*sizeof(ASStorageBlock*));
+#else
+		storage->blocks = guarded_realloc( storage->blocks, storage->blocks_count*sizeof(ASStorageBlock*));
+#endif		   
 		while( ++i < storage->blocks_count )
 			storage->blocks[i] = NULL ;
 	}	 
@@ -168,22 +198,49 @@ destroy_storage_slot( ASStorageBlock *block, int index )
 static inline void 
 join_storage_slots( ASStorageBlock *block, ASStorageSlot *from_slot, ASStorageSlot *to_slot )
 {
-	ASStorageSlot *s = AS_STORAGE_GetNextSlot(from_slot);
+	ASStorageSlot *s ;
 	do
 	{
+		s = AS_STORAGE_GetNextSlot(from_slot);
 		from_slot->size += ASStorageSlot_FULL_SIZE(s) ;	
 		destroy_storage_slot( block, s->index );
-	}while( s != to_slot );	
+	}while( s < to_slot );	
 }
 
 static inline void
 defragment_storage_block( ASStorageBlock *block )
 {
-	/* TODO */
-	
+	ASStorageSlot *first, *curr, *prev ;
+	int first_free = -1 ;
+	first = block->start ; 
+	while( first < block->end ) 
+	{	
+		LOCAL_DEBUG_OUT("first = %p", first );
+		if( first->flags == 0 ) 
+		{	
+			if( first_free < -1 )
+				first_free = first->index;
+			prev = NULL ;
+			curr = first ;
+			while( (curr = AS_STORAGE_GetNextSlot(curr)) < block->end )
+			{
+				LOCAL_DEBUG_OUT("curr = %p", curr );
+				if( curr->flags != 0 ) 
+					break;	 
+				prev = curr ;
+			}	 
+			if( prev != NULL ) 
+				join_storage_slots( block, first, prev );				   
+	   	}
+		first = AS_STORAGE_GetNextSlot(first);		   
+	}
+	block->first_free = first_free ;
+	/* Second pass. Here we want to move all the taken slots down, 
+	 * and all the free slots up. */
+
 }
 
-ASStorageSlot *
+static ASStorageSlot *
 select_storage_slot( ASStorageBlock *block, int size )
 {
 	int i = block->first_free, last_used = block->last_used ;
@@ -206,7 +263,10 @@ select_storage_slot( ASStorageBlock *block, int size )
 					return slots[i];
 				}	
 				size_to_match -= ASStorageSlot_FULL_SIZE(slot);
-				slot = AS_STORAGE_GetNextSlot(slot);											
+				slot = AS_STORAGE_GetNextSlot(slot);		
+				/* make sure we has not exceeded boundaries of the block */									   
+				if( slot >=  block->end )
+					break;
 			}			
 		}
 		++i ;
@@ -215,7 +275,7 @@ select_storage_slot( ASStorageBlock *block, int size )
 	/* no free slots of sufficient size - need to do defragmentation */
 	defragment_storage_block( block );
 	i = block->first_free;
-    if( block->slots[i] == NULL || block->slots[i]->size  < size ) 
+    if( block->slots[i] == NULL || block->slots[i]->size < size ) 
 		return NULL;
 	return block->slots[i];		   
 }
@@ -228,6 +288,9 @@ split_storage_slot( ASStorageBlock *block, ASStorageSlot *slot, int to_size )
 
 	slot->size = to_size ; 
 	new_slot = AS_STORAGE_GetNextSlot(slot);
+	if( new_slot >=  block->end )
+		return True;
+
 	new_slot->flags = 0 ;
 	new_slot->ref_count = 0 ;
 	new_slot->size = old_size - ASStorageSlot_USABLE_SIZE(slot) - ASStorageSlot_SIZE ;											   
@@ -254,7 +317,11 @@ split_storage_slot( ASStorageBlock *block, ASStorageSlot *slot, int to_size )
 				i = block->slots_count ;
 				block->last_used = i ;
 				block->slots_count += AS_STORAGE_SLOTS_BATCH ; 
+#ifndef DEBUG_ALLOCS
 				block->slots = realloc( block->slots, block->slots_count*sizeof(ASStorageSlot*));
+#else
+				block->slots = guarded_realloc( block->slots, block->slots_count*sizeof(ASStorageSlot*));
+#endif
 				memset( &(block->slots[i]),	0x00, AS_STORAGE_SLOTS_BATCH*sizeof(ASStorageSlot*) );
 			}	 
 		}
@@ -266,7 +333,7 @@ split_storage_slot( ASStorageBlock *block, ASStorageSlot *slot, int to_size )
 	return True;
 }
 
-int
+static int
 store_data_in_block( ASStorageBlock *block, CARD8 *data, int size, int compressed_size, ASFlagType flags )
 {
 	ASStorageSlot *slot ;
@@ -275,7 +342,7 @@ store_data_in_block( ASStorageBlock *block, CARD8 *data, int size, int compresse
 	LOCAL_DEBUG_OUT( "selected slot %p for size %d (compressed %d) and flags %lX", slot, size, compressed_size, flags );
 	if( slot == NULL ) 
 		return 0;
-	if( ASStorageSlot_USABLE_SIZE(slot) > compressed_size ) 
+	if( ASStorageSlot_USABLE_SIZE(slot) > compressed_size+ASStorageSlot_SIZE ) 
 		if( !split_storage_slot( block, slot, compressed_size ) ) 
 			return 0;
 
@@ -301,28 +368,58 @@ store_data_in_block( ASStorageBlock *block, CARD8 *data, int size, int compresse
 }
 
 
-static ASStorageSlot *
-find_storage_slot( ASStorage *storage, ASStorageID id )
+static inline ASStorageBlock *
+find_storage_block( ASStorage *storage, ASStorageID id )
 {	
-	if( id != 0 ) 
-	{
-		int block_idx = StorageID2BlockIdx(id);
-		if( block_idx >= 0 && block_idx < storage->blocks_count )  
-		{
-			ASStorageBlock *block ;
-			if( (block = storage->blocks[block_idx]) != NULL ) 
-			{
-				int slot_idx = StorageID2SlotIdx(id);
-				if( slot_idx >= 0 && slot_idx < block->slots_count ) 
-				{
-					if( block->slots[slot_idx] && block->slots[slot_idx]->flags != 0 )
-						return block->slots[slot_idx];
-				}
-			}	
-		}
-	}
+	int block_idx = StorageID2BlockIdx(id);
+	if( block_idx >= 0 && block_idx < storage->blocks_count )  
+		return storage->blocks[block_idx];
 	return NULL ;
 }
+
+static ASStorageSlot *
+find_storage_slot( ASStorageBlock *block, ASStorageID id )
+{	
+	if( block != NULL ) 
+	{
+		int slot_idx = StorageID2SlotIdx(id);
+		if( slot_idx >= 0 && slot_idx < block->slots_count ) 
+		{
+			if( block->slots[slot_idx] && block->slots[slot_idx]->flags != 0 )
+				return block->slots[slot_idx];
+		}
+	}	
+	return NULL ;
+}
+
+static inline void 
+free_storage_slot( ASStorageBlock *block, ASStorageSlot *slot)
+{
+	slot->flags = 0 ;
+	block->total_free += ASStorageSlot_USABLE_SIZE(slot) ;
+}	 
+
+static Bool 
+is_block_empty( ASStorageBlock *block)
+{
+	int i = block->last_used+1;
+	ASStorageSlot **slots = block->slots ;
+	while( --i >= 0 ) 
+	{
+		if( slots[i] )
+			if( slots[i]->flags != 0 ) 
+				return False;	 
+	}	
+	return True;	
+}	 
+
+static void 
+free_storage_block( ASStorage *storage, int block_idx  )
+{
+	ASStorageBlock *block = storage->blocks[block_idx] ;
+	storage->blocks[block_idx] = NULL ;
+	destroy_asstorage_block( block );
+}	 
 
 
 /************************************************************************/
@@ -383,38 +480,56 @@ store_data(ASStorage *storage, CARD8 *data, int size, ASFlagType flags)
 int  
 fetch_data(ASStorage *storage, ASStorageID id, CARD8 *buffer, int offset, int buf_size)
 {
-	ASStorageSlot *slot = find_storage_slot( storage, id );
-	if( slot )
-	{
-		int uncomp_size = slot->uncompressed_size ;
-		if( buffer && buf_size > 0 ) 
+	if( storage != NULL && id != 0 )
+	{	
+		ASStorageSlot *slot = find_storage_slot( find_storage_block( storage, id ), id );
+		if( slot )
 		{
-			int bytes_in = 0;
-			CARD8 *tmp = decompress_stored_data( storage, &(slot->data[0]), slot->size,
-													uncomp_size, slot->flags );
-			while( offset > uncomp_size ) offset -= uncomp_size ; 
-			while( offset < 0 ) offset += uncomp_size ; 
-			if( offset > 0 ) 
+			int uncomp_size = slot->uncompressed_size ;
+			if( buffer && buf_size > 0 ) 
 			{
-				bytes_in = uncomp_size-offset ; 
-				if( bytes_in  < buf_size ) 
-					bytes_in = buf_size ;
-				memcpy( buffer, tmp+offset, bytes_in ); 															
+				int bytes_in = 0;
+				CARD8 *tmp = decompress_stored_data( storage, &(slot->data[0]), slot->size,
+														uncomp_size, slot->flags );
+				while( offset > uncomp_size ) offset -= uncomp_size ; 
+				while( offset < 0 ) offset += uncomp_size ; 
+				if( offset > 0 ) 
+				{
+					bytes_in = uncomp_size-offset ; 
+					if( bytes_in  < buf_size ) 
+						bytes_in = buf_size ;
+					memcpy( buffer, tmp+offset, bytes_in ); 															
+				}
+				while( bytes_in  < buf_size ) 
+				{
+					int to_copy = buf_size - bytes_in ; 
+					if( to_copy > uncomp_size ) 
+						to_copy = uncomp_size ;
+					memcpy( buffer+bytes_in, tmp, to_copy ); 															
+					bytes_in += to_copy;
+				}
 			}
-			while( bytes_in  < buf_size ) 
-			{
-				int to_copy = buf_size - bytes_in ; 
-				if( to_copy > uncomp_size ) 
-					to_copy = uncomp_size ;
-				memcpy( buffer+bytes_in, tmp, to_copy ); 															
-				bytes_in += to_copy;
-			}
+			return uncomp_size ;
 		}
-		return uncomp_size ;
 	}
 	return 0 ;	
 }
 
+void 
+forget_data(ASStorage *storage, ASStorageID id)
+{
+	if( storage != NULL && id != 0 ) 
+	{
+		ASStorageBlock *block = find_storage_block( storage, id );
+ 		ASStorageSlot  *slot  = find_storage_slot( block, id );				
+		if( block && slot ) 
+		{
+			free_storage_slot(block, slot);
+			if( is_block_empty(block) ) 
+				free_storage_block( storage, StorageID2BlockIdx(id) );
+		}	 
+	}			  
+}
 
 /*************************************************************************/
 /* test code */
@@ -469,14 +584,14 @@ test_asstorage()
 	int min_size, max_size ;
 	ASFlagType test_flags = 0 ;
 	
-	printf("Testing storage creation ...");
+	fprintf(stderr, "Testing storage creation ...");
 	storage = create_asstorage();
 #define TEST_EVAL(val)   do{ \
-							if(!(val)){ printf("failed\n"); return False;} \
-							else printf("success.\n");}while(0)
+							if(!(val)){ fprintf(stderr, "failed\n"); return False;} \
+							else fprintf(stderr, "success.\n");}while(0)
 	TEST_EVAL( storage != NULL ); 
 	
-	printf("Testing store_data for data %p size = %d, and flags 0x%lX...", NULL, 0,
+	fprintf(stderr, "Testing store_data for data %p size = %d, and flags 0x%lX...", NULL, 0,
 			test_flags);
 	id = store_data( storage, NULL, 0, test_flags );
 	TEST_EVAL( id == 0 ); 
@@ -488,7 +603,7 @@ test_asstorage()
 	for( i = 0 ; i < STORAGE_TEST_COUNT ; ++i ) 
 	{
 		make_storage_test_data( &(Tests[i]), min_size, max_size );
-		printf("Testing store_data for data %p size = %d, and flags 0x%lX...", Tests[i].data, Tests[i].size,
+		fprintf(stderr, "Testing store_data for data %p size = %d, and flags 0x%lX...", Tests[i].data, Tests[i].size,
 				test_flags);
 		Tests[i].id = store_data( storage, Tests[i].data, Tests[i].size, test_flags );
 		TEST_EVAL( Tests[i].id != 0 ); 
@@ -508,16 +623,71 @@ test_asstorage()
 	{
 		int size ;
 		int res ;
-		printf("Testing fetch_data for id %lX size = %d ...", Tests[i].id, Tests[i].size);
+		fprintf(stderr, "Testing fetch_data for id %lX size = %d ...", Tests[i].id, Tests[i].size);
 		size = fetch_data(storage, Tests[i].id, &(Buffer[0]), 0, Tests[i].size);
 		TEST_EVAL( size == Tests[i].size ); 
 		
-		printf("Testing fetched data integrity ...");
+		fprintf(stderr, "Testing fetched data integrity ...");
 		res = memcmp( &(Buffer[0]), Tests[i].data, size );
 		TEST_EVAL( res == 0 ); 
 	}	 
 
-	printf("Testing storage destruction ...");
+	fgetc(stdin);
+	for( i = 0 ; i < STORAGE_TEST_COUNT ; ++i ) 
+	{
+		int size ;
+		int r = random();
+		if( (r&0x01) == 0 ) 
+			continue;
+		fprintf(stderr, "Testing forget_data for id %lX size = %d ...\n", Tests[i].id, Tests[i].size);
+		forget_data(storage, Tests[i].id);
+		size = fetch_data(storage, Tests[i].id, &(Buffer[0]), 0, Tests[i].size);
+		TEST_EVAL( size != Tests[i].size ); 
+		Tests[i].id = 0;
+		free( Tests[i].data );
+		Tests[i].data = NULL ; 
+		Tests[i].size = 0 ;
+	}	 
+	fgetc(stdin);
+	kind = 0 ; 
+	min_size = 1 ;
+	max_size = StorageTestKinds[kind][0] ; 
+	test_count = StorageTestKinds[kind][1] ;
+	for( i = 0 ; i < STORAGE_TEST_COUNT ; ++i ) 
+	{
+		if( Tests[i].id == 0 ) 
+		{	
+			make_storage_test_data( &(Tests[i]), min_size, max_size );
+			fprintf(stderr, "Testing store_data for data %p size = %d, and flags 0x%lX...\n", Tests[i].data, Tests[i].size,
+					test_flags);
+			Tests[i].id = store_data( storage, Tests[i].data, Tests[i].size, test_flags );
+			TEST_EVAL( Tests[i].id != 0 ); 
+		}
+		if( --test_count <= 0 )
+		{
+			if( ++kind >= STORAGE_TEST_KINDS ) 
+				break;
+			min_size = max_size ;
+			max_size = StorageTestKinds[kind][0] ; 
+			test_count = StorageTestKinds[kind][1] ;
+		}		   
+	}	 
+	
+	fgetc(stdin);
+	for( i = 0 ; i < STORAGE_TEST_COUNT ; ++i ) 
+	{
+		int size ;
+		int res ;
+		fprintf(stderr, "Testing fetch_data for id %lX size = %d ...", Tests[i].id, Tests[i].size);
+		size = fetch_data(storage, Tests[i].id, &(Buffer[0]), 0, Tests[i].size);
+		TEST_EVAL( size == Tests[i].size ); 
+		
+		fprintf(stderr, "Testing fetched data integrity ...");
+		res = memcmp( &(Buffer[0]), Tests[i].data, size );
+		TEST_EVAL( res == 0 ); 
+	}	 
+
+	fprintf(stderr, "Testing storage destruction ...");
 	destroy_asstorage(&storage);
 	TEST_EVAL( storage == NULL ); 
 	
@@ -530,3 +700,4 @@ int main()
 	return test_asstorage();
 }
 #endif
+
