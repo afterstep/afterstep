@@ -1,0 +1,187 @@
+*******************************************************************************
+****************                                            *******************
+****************   Inilah AfterStep 1.8.6 (AfterStep'95x)   *******************
+****************                                            *******************
+*******************************************************************************
+
+0. Ringkasan
+------------
+
+* Jadilah root (su root)
+
+* Sekarang jalankan "./install.script" atau
+                    "./configure ; make ;
+		      make install.all ; make install.man ;
+		      mv ~/.xinitrc ~/xinitrc.old ;
+		      echo afterstep > ~/.xinitrc ; startx"
+
+* Kemudian cobalah AfterStep... saya kira anda pasti menyukainya.
+  Jika memang ya, kami mohon pilihlah AfterStep di 
+  http://www.PLiG.org/xwinman/vote.html dengan demikian kami akan
+  tahu kalau kerja kami adalah suatu yang bermanfaat ;-)
+  
+
+1. Instruksi Kerjakanlah-Sendiri (Do-It-Yourself) : 
+--------------------------------------------------
+1-1. Jalankan perintah-perintah berikut untuk mengkonfigurasi dan
+     mengkompile AfterStep :
+     
+     Jalankan konfigurasi untuk menebak opsi sistem-ketergantungan :
+     
+     ./configure
+
+
+     Jika anda tidak bisa mengakses root, anda harus merubah path system instalasi
+     ke suatu tempat di mana anda mempunyai hak perijinan untuk menulis
+
+     Jalankan kompilasi sambil minum segelas kopi (minumlah dengan santai
+     jika komputer anda adalah komputer yang lambat sama seperti punya saya ;-])
+
+
+        make
+
+
+Perhatikan keluaran di monitor anda mungkin terdapat pesan kesalahan !
+
+1-2. Jadilah root untuk menjalankan perintah berikut : instalasi binary dan 
+     manual.
+
+        su root -c "make install.all ; make install.man"
+
+1-3. Sisipkan dalam ~/.xinitrc satu baris berikut : 'afterstep'
+
+	echo afterstep > ~/.xinitrc
+
+     (Jika anda tidak berhak mengakses root, gunakan perintah
+     'echo /homedirektorianda/terserahanda/afterstep > ~/.xinitrc')
+
+     Jika anda lebih suka dengan satu file konfigurasi daripada hirarki logika,
+     gunakan :
+
+	echo "afterstep -f ~/.steprc" > ~/.xinitrc
+
+1-4. Tes afterstep dengan mengetik :
+
+	startx > ~/AF-debug  2>&1
+
+1-5. Petunjuk
+
+     Jika semua ini tidak belum memuaskan anda, cobalah tengok file lain yang 
+     disertakan : tekan klik pada :
+
+     Start/Decoration/Looks/apasaya yang ingin ada coba
+     
+     Anda dapat merubah (bagaimana sebuah icon bereaksi ...) dan latar belakang
+     dengan cara yang sama :
+
+     Sebagai contoh, jika anda hanya ingin 2 tombol titel, klik pada :
+     
+	Start/Decorations/Feels/feel.purenext
+	Start/Quit/Restart this session
+
+
+     Tapi seandainya anda ingin memakai  tampilan & rasa yang *berbeda* untuk
+     tiap desktop, cobalah untuk mengkonfigirasinya
+     
+     Jika anda ingin memakai sebuah pengaman monitor (screen saver), 
+     gunakan xautolock dan xlock, kemudian jalankan :
+
+<<
+xautolock -time 5 -corners 00++ -locker "xlock -mode random -allowroot
+-timeelapsed -echokeys " &
+>>
+
+
+1-6. Sebelum anda bertanya :
+
+     Bacalah 'doc/1.0_t0_1.5' dan jalankan 'afterstepdoc'
+
+
+2. Hak cipta, lisensi, dan suatu yang legal :
+----------------------------------------------
+
+2-1. Hak cipta 
+
+MENURUT KONVENSI BERNE, HAK CIPTA ADALAH JELAS, WALAUPUN PENULIS TIDAK
+MENULISKAN KATA "HAK CIPTA" DI DALAM FILE MEREKA MEMILIK HAK INTELEKTUALNYA!
+
+Oleh karena itu, Hak Cipta (c) setiap file adalah miliknya (atau) milik penulisnya
+pada saat ditulis.
+
+2-2. Lisensi
+
+Seluruh program AfterStep di distribusikan di bawah lisensi GNU GPL v2. 
+AfterStep library  di distribusikan di bawah lisensi LGPL.
+Dokumentasi AfterStep di distribusikan di bawah lisensi LDP.
+
+Lihat doc/licenses/file untuk informasi selengkapnya.
+
+2-3. Perkecualian
+
+2-3-1. Hak cipta MIT/Evans dan Sutherland 
+
+Beberapa files dari src/, yang berasal dari twm, memiliki lisensi yang berbeda :
+add_window.c afteerstep.c border.c clientwin.c functions.c
+
+2-3-2. Headers
+
+Header file adalah milik public ; seperti yang dinyatakan oleh  Robert Nation
+dalam decorations.c :
+
+<<
+
+  Definitions of the hint structure and the constants are courtesy of
+  mitnits@bgumail.bgu.ac.il (Roman Mitnitski ), who sent this note,
+  after conferring with a friend at the OSF:
+
+ >  Hi, Rob
+ >
+ >  I'm happy to announce, that you can use motif public
+ >  headers in any way you can... I just got the letter from
+ >  my friend, it says literally:
+ >
+ >>    Hi.
+ >>
+ >> Yes, you can use motif public header files, in particular because there is
+ >> NO limitation on inclusion of this files in your programms....Also, no one
+ >> can put copyright to the NUMBERS (I mean binary flags for decorations) or
+ >> DATA STRUCTURES (I mean little structure used by motif to pass description
+ >> of the decorations to the mwm). Call it another name, if you are THAT MUCH
+ >> concerned.
+ >>
+ >> You can even use the little piece of code I've passed to you - we are
+ >> talking about 10M distribution against two pages of code.
+ >>
+ >> Don't be silly.
+ >>
+ >> Best wishes.
+ >> Eli
+
+>>
+
+
+3. Dimana saya bisa mencari ...
+-----------------------------------
+
+3-1. Informasi selengkapnya : www.afterstep.org
+
+3-2. Versi terbaru : ftp.afterstep.org
+
+3-3. Bantuan : mail ke afterstep@eosys.com dengan subjek : subscribe
+
+3-4. Pemrogram : mail ke afterstep-dev@eosys.com dengan subjek : subscribe
+
+3-5. Chat : channel #afterstep di EFNet
+Akses ke EFNet bisa dilakukan dengan koneksi ke irc.concentric.net
+
+
+4. Pengelola AfterStep :
+---------------------------
+
+Yach, saya sendiri :-)
+
+Email saya untuk tanggapan dan laporan bug.
+
+
+                                            Guylhem AZNAR <guylhem@oeil.qc.ca>
+                      versi Indonesia oleh Mohammad Nafiri <fiean@hotmail.com>

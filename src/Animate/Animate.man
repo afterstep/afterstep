@@ -1,0 +1,113 @@
+.\" t
+.\" @(#)Animate.1	02/07/00
+.TH Animate 1.8 "Feb 7 2000" Animate
+.UC
+.SH NAME
+\fBAnimate\fP \- the AfterStep iconify animation module
+
+.SH SYNOPSIS
+\fBAnimate\fP [\-f \fIconfig_file\fP] [\-v | \--version] [\-h | \--help]
+.sp
+Although \fBAnimate\fP can be run from the command line, it is normally 
+spawned by afterstep in the \fIautoexec\fP file, in the following manner:
+.nf
+.sp
+	Module	"I"	Animate
+.sp
+.fi
+or from within an afterstep menu file by 'Animate':
+.nf
+.sp
+% cat "~/GNUstep/Library/AfterStep/start/Modules/Animate"
+	Module "Animate" Animate
+	MiniPixmap "mini-as.xpm"
+.fi
+
+To stop the \fBAnimate\fP module, a menu item can be used:
+.nf
+.sp
+% cat "~/GNUstep/Library/AfterStep/start/Modules/Animate_Stop"
+	KillModuleByName "Stop Animate" Animate
+	MiniPixmap "mini-as.xpm"
+.fi
+
+.SH DESCRIPTION
+The \fBAnimate\fP module performs animation on window iconification and
+deiconification in several styles and colors.
+
+.SH OPTIONS
+.IP "\-f \fIconfig_file\fP"
+Use \fIconfig_file\fP instead of the default configuration file.
+
+.IP "\-h | \--help"
+Print a usage message and exit successfully.
+
+.IP "\-v | \--version"
+Print version information and exit successfully.
+
+.SH INITIALIZATION
+During initialization, \fBAnimate\fP will search for a configuration file
+which describes the colors, style and actions to take.  This file will be 
+the one specified by the \fI\-f\fP option (if given).  Else, the 
+~/GNUstep/Library/AfterStep/animate file will be used if it exists.  Else, 
+/usr/local/share/afterstep/animate will be used.
+
+.SH INVOCATION
+\fBAnimate\fP can be invoked from the \fIautoexec\fP file or from a menu
+item as shown in the Synopsis section above.
+
+AfterStep will search through the directories specified in the
+\fIModulePath\fP configuration in the \fIbase.#bpp\fP (where # is your
+colordepth) to attempt to locate Animate.
+
+.SH CONFIGURATION FILE
+\fBAnimate\fP reads the \fIanimate\fP file when it starts up and looks
+for it's configuration options:
+
+.IP "*AnimateColor \fBcolor\fP"
+Tells Animate what color (see rgb.txt) to draw the window outline with as
+it animates.
+
+.IP "*AnimateDelay \fBmsecs\fP"
+Tells Animate how many milliseconds to sleep between frames of animation.
+
+.IP "*AnimateIterations \fBiterations\fP"
+Tells Animate how many steps to break the animation into.
+
+.IP "*AnimateTwist \fBtwist\fP"
+Tells Animate how many revolutions to twist the iconification frame.
+
+.IP "*AnimateWidth \fBwidth\fP"
+Tells Animate how wide a line to draw with.  Note that with 0 produces a
+fast line at Width 1.
+
+.IP "*AnimateResize \fBmode\fP"
+Tells Animate what method to use to draw resizes.  \fIzoom\fP,  \fIzoom3D\fP,
+\fItwist\fP, \fIflip\fP, \fIturn\fP & \fIrandom\fP are currently supported.
+
+
+.SH FILES
+
+.IP \fI/usr/local/share/afterstep/animate\fP
+The global configuration file for system wide defaults of all users.
+
+.IP \fI$HOME/GNUstep/Library/AfterStep/animate\fP
+This file should be copied from the \fI/usr/local/share/afterstep/animate\fP and edited to suit a user's specific requirements.  This file, if it exists,
+will override the system wide default file.
+
+.SH EXAMPLES
+The example is the \fIanimate\fP file shipped, refer to the \fBFILES\fP
+section above for its configuration options.
+
+.SH AUTHORS
+Alfredo Kengi Kojima <kojima@inf.ufrgs.br>
+.nf
+Kaj Groner <kajg@mindspring.com>
+.nf
+Frank Scheelen <scheelen@worldonline.nl>
+.nf
+David Mihm <dmihm@swbell.net> [Man page]
+
+.SH SEE ALSO
+.BR afterstep (1),
+.BR Wharf (1)

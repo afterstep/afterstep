@@ -1,0 +1,21 @@
+/* XPM */
+static char * 4p_xpm[] = {
+"15 15 3 1",
+" 	c None",
+".	c #000000000000",
+"X	c #FFFF00000000",
+"               ",
+"               ",
+"               ",
+"               ",
+"    .......    ",
+"  ..XXXXXXX..  ",
+" .XXXXXXXXXXX. ",
+" .XXXXXXXXXXX. ",
+" .XXXXXXXXXXX. ",
+"  ..XXXXXXX..  ",
+"    .......    ",
+"               ",
+"               ",
+"               ",
+"               "};

@@ -1,0 +1,1 @@
+Exec "Shape" exec sh -c "killall xlock ; xlock -nolock -mode shape -inroot &"

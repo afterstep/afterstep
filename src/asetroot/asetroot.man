@@ -1,0 +1,197 @@
+.\" t
+.\" @(#)asetroot.1  12/10/98
+.TH asetroot 1.7.9 "Jun 16 1999" asetroot
+.UC
+.SH NAME
+\fBasetroot\fP \- the AfterStep desktop background management module
+
+.SH SYNOPSIS
+\fBasetroot\fP [\-f \fIconfig_file\fP] [\-v | \--version] [\-h | \--help] 
+[\-l | \--loadonly] [\-k | \--kill] [n [m]]
+.sp
+Although \fBasetroot\fP can be run from the command line, it is normally 
+spawned by afterstep in the \fIautoexec\fP file, in the following
+manner:
+.nf
+.sp
+	Module	"I"	asetroot
+	Wait	"I"	asetroot	
+.sp
+.fi
+In case you use asetroot to switch your root backgrounds 
+\fIWait\fP can be used as shown above.  This will insure that the 
+\fBasetroot\fP has set the root background before you start
+any furthur apps (like transparent aterms and Eterms).
+.sp
+or from within an afterstep menu file by 'asetroot':
+.nf
+.sp
+% cat "~/GNUstep/Library/AfterStep/start/Modules/asetroot"
+	Module "asetroot" asetroot
+	MiniPixmap "mini-as.xpm"
+.fi
+
+To stop the \fBasetroot\fP module, a menu item can be used:
+.nf
+.sp
+% cat "~/GNUstep/Library/AfterStep/start/Modules/asetroot_Stop"
+	KillModuleByName "Stop asetroot" asetroot
+	MiniPixmap "mini-as.xpm"
+.fi
+
+Note: if asetroot used with either  -k(--kill) or -l(--loadonly) 
+options it can be started both as a module or as regular app, as it 
+does not communicate with AfterStep in that case. You can even add it
+to your .xinitrc to load X root background prior to starting 
+window manager.
+
+.SH DESCRIPTION
+Depending on the options it is started with, \fBasetroot\fP can perform 
+different tasks:
+.sp
+Normal mode: \fBasetroot\fP will load root backgrounds for specifyed 
+range of desks into memory, it will set X property containing
+information  allowing usage of this backgrounds by other
+modules/applications, and will remain resident, tracking desk changes
+and changing root background accordingly. It is recommended that you
+don't use any other apps to switch backgrounds in this mode for this
+particular range of desks.
+.sp
+Load-only mode: \fBasetroot\fP will load root backgrounds for specifyed
+range of desks into memory, it will set X property containing
+information allowing usage of this backgrounds by other
+modules/applications. It will then quit,  leaving all the required
+images resident in X memory, leaving it to other apps to switch
+backgrounds (like Pager). That provides some memory savings, as you run
+only one module instead of two. 
+.sp
+Kill mode: It's not good to litter memory with multimegabyte images in
+the  memory. You can use kill mode of \fBasetroot\fP to cleanup memory
+from loaded images when they are no longer needed, for example when
+quiting AfterStep, or when using same background on all desks (in that
+latter case it's enough to set background once and it will stay there
+forever). Kill mode will kill all backgrounds - you can't specify desks
+range here!
+.sp
+\fBasetroot\fP was designed to be as bulletproof as possible, but
+improper usage can lead it to cause crashes in AfterStep, Pager, Wharf
+and transparent aterms, if you havily using transparency. By all means
+avoid running two  different asetroots on the same range of desks, at
+the same time.
+
+.SH ENVIRONMENT VARIABLES
+
+.IP $SCREEN_GAMMA
+Value of this env variable is used to gamma-correct PNG and JPEG images,
+when loading them from files. Default value of 1.0 is used if this 
+variable is not defined - which means no correction at all. Try using 
+2.2 for some older monitors to get brighter images.
+
+.SH OPTIONS
+.IP "\-f \fIconfig_file\fP"
+Use \fIconfig_file\fP instead of the default configuration file.
+
+.IP "\-h | \--help"
+Print a usage message and exit successfully.
+
+.IP "\-v | \--version"
+Print version information and exit successfully.
+
+.IP "\-l | \--loadonly"
+\fBasetroot\fP starts in Load-only mode ( see above ).
+
+.IP "\-k | \--kill"
+\fBasetroot\fP starts in Kill mode ( see above ).
+
+.IP "n [m]"
+Optional parameter that is limiting \fBasetroot\fP functionality to range 
+of desks. n - specifyes lower desk number, m - upper desk number.
+
+.SH INITIALIZATION
+During initialization, \fIasetroot\fP will search for a configuration 
+file which describes the image operations to perform on the root pixmap.  
+This file will be the one specified by the \fI\-f\fP option (if given).  
+Else, the ~/GNUstep/Library/AfterStep/asetroot file will be used if it 
+exists.  Else, /usr/local/share/afterstep/asetroot will be used.
+
+.SH CONFIGURATION OPTIONS
+
+.IP "*asetrootDeskBack  \fIdesk# ""background""\fP\"
+Specifyes what background to use for \fIdesk#\fP. \fI"background"\fP can
+be either image filename in doublequotes, or the name of background
+definition (see below).
+
+.IP "MyBackground ""\fIbackground_name\fP"""
+.IP "  \fIbackground_option\fP"
+.IP "~MyBackground"
+Specifies the beginning of a background definition. The background can
+be  referred to later by \fIbackground_name\fP. \fI~MyBackground\fP ends
+a  root background definition. The possible \fIbackground_option\fPs
+follow:
+
+.RS
+.IP "Use \fItype  ""data""\fP"
+Specifyes what to use as the root background. Possible \fItype\fP values
+are :
+.nf
+0: load image from the file. In that case \fI""data""\fP should specify
+filename.
+
+1: Use MyStyle definition to fill root. In that case \fI""data""\fP
+should specify one of the MyStyle names defined in your look file.
+
+2: Use external application to set root background. \fI""data""\fP
+should  specify command line options to this external app. By default
+xli is used. Change it to something else, if you want, in options to
+./configure.
+.fi
+.sp
+Note: remaining Background options are valid only for type of 0 !!!
+
+.sp
+remaining options will perform trasformations on the source image, 
+in this order: Cut->Tint->Scale->Align->Pad.
+
+.IP "Cut \fIgeometry\fP"
+will cut piece with specifyed \fIgeometry\fP from the source image.
+
+.IP "Tint \fIcolor\fP"
+will tint image with \fIcolor\fP. Use shades of gray to obtain darkened
+image. Note: this only works on TrueColor displays.
+
+.IP "Scale [\fIgeometry\fP]"
+scale image to specifyed \fIgeometry\fP. If \fIgeometry\fP is omitted
+asetroot will scale it to the screen size.
+
+.IP "Align [\fItype\fP]"
+it will align resulting image according to \fItype\fP. 
+Possible values are :
+.nf
+1: - align to the right of the screen
+2: - align to the bottom of the screen
+3: - align to the bottom-right of the screen
+0 or 4: - align to the center of the screen
+.fi
+This option works only in conjunction with the following Pad option.
+
+.IP "Pad [\fItype color\fP]"
+will pad image if it is smaller then screen with specifyed \fIcolor\fP.
+Possible \fItype\fP values are :
+.nf
+1: - pad horizontally and tile vertically 
+2: - pad vertically and tile
+horizontally 
+3: - pad both vertically and horizontally to make image the
+size of the screen.
+.fi
+
+.SH BUGS
+SCALE is produces low quality images.
+
+.SH AUTHOR
+Rafal Wierzbicki
+.nf
+Sasha Vasko (asimagelib)
+
+.SH SEE ALSO
+.BR afterstep (1)\  Pager (1)

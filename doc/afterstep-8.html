@@ -1,0 +1,121 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<HTML>
+<HEAD>
+ <META NAME="GENERATOR" CONTENT="SGML-Tools 1.0.9">
+ <TITLE>AfterStep 1.8 FAQ: AfterStep Modules</TITLE>
+ <LINK HREF="afterstep-9.html" REL=next>
+ <LINK HREF="afterstep-7.html" REL=previous>
+ <LINK HREF="afterstep.html#toc8" REL=contents>
+</HEAD>
+<BODY>
+<A HREF="afterstep-9.html">Next</A>
+<A HREF="afterstep-7.html">Previous</A>
+<A HREF="afterstep.html#toc8">Contents</A>
+<HR>
+<H2><A NAME="s8">8. AfterStep Modules</A></H2>
+
+<P>
+<P>
+<P>
+<H2><A NAME="ss8.1">8.1 What are AfterStep modules?</A>
+</H2>
+
+<P>AfterStep modules are programs that work with AfterStep, but aren't required by the 
+window manager.  Commonly seen modules are the Wharf, Pager, WinList, and asetroot.
+<P>
+<H2><A NAME="ss8.2">8.2 How can I get multiple Wharfs or Pagers?</A>
+</H2>
+
+<P>This procedure is outlined in depth at 
+<A HREF="http://www.tigr.net/afterstep/doc/MultiWharf-HOWTO.txt">http://www.tigr.net/afterstep/doc/MultiWharf-HOWTO.txt</A>.  Briefly:
+<P>Make a symbolic link from the Wharf binary to a new MyWharf. Edit your "wharf" 
+configuration file so that it has *MyWharf tags similar to existing *Wharf tags.
+Make sure you edit the "autoexec" file if you want this new MyWharf to start with 
+AfterStep. Also be sure to edit the "database" file so that there is a MyWharf Style
+exactly like the existing Wharf Style.
+<P>You can create multiple Pagers in a similar fashion.
+<P>
+<P>
+<H2><A NAME="ss8.3">8.3 Why can't I find the man page for Wharf?</A>
+</H2>
+
+<P>Spell it "Wharf" not "wharf"
+<P>Similarly the "Pager", "WinList" and "afterstep" man pages [the key here is 
+capitalization].
+<P>
+<H2><A NAME="ss8.4">8.4 What is the difference between Wharf and Zharf?</A>
+</H2>
+
+<P>The Wharf module can use pixmaps for buttons, the Zharf module can only use text.
+<P>
+<H2><A NAME="ss8.5">8.5 How do I change the Pager's size?</A>
+</H2>
+
+<P>There are really two questions here. Do you want to change the number of desks or views? 
+Or do you want to change the physical geometry of Pager?
+<P>In the "base.xxbpp" file, look at DeskTopSize. This defines the number of columns of 
+views by the number of rows (2x2 would give you 4 views in a square).
+<P>In the "pager" file, edit the *PagerGeometry tag (standard X geometry).
+<P>
+<H2><A NAME="ss8.6">8.6 Is it possible for an application to wait for the background to get loaded?</A>
+</H2>
+
+<P>
+<BLOCKQUOTE><CODE>
+<PRE>
+I put the rt [root tail] command as the last one to be executed 
+in autoexec.  So far, so good, it executes last.  But when my background 
+is loaded it covers the tailed text, until another message appears in 
+the file.  Is it possible for rt to wait for the background to get
+loaded?
+</PRE>
+</CODE></BLOCKQUOTE>
+<P>It is possible.  The background is displayed by the asetroot module.  So, you 
+should wait for asetroot to start before running any root window/background 
+dependent applications (like rt or Eterm).  Add the following line to your 
+autoexec file (or check that it's there):
+<P>
+<BLOCKQUOTE><CODE>
+<HR>
+<PRE>
+Module  "I"     asetroot 0 3
+Wait    "I"     asetroot
+</PRE>
+<HR>
+</CODE></BLOCKQUOTE>
+<P>The "Wait" line <EM>must</EM> precede the startup lines for the relevant 
+applications (in our example, rt).  By default, the "Wait" line will cause 
+AfterStep to wait for asetroot to load all of its backgrounds for all desks.
+<P>
+<H2><A NAME="ss8.7">8.7 How can I get rid of the desk name in my Pager?</A>
+</H2>
+
+<P>Set *PagerDecoration NoDeskLabel in the "pager" configuration file.
+<P>
+<H2><A NAME="ss8.8">8.8 How do I start an application on a specific desk or page?</A>
+</H2>
+
+<P>This is defined in the "database" configuration file. There are three paramaters one can 
+use.
+<UL>
+<LI>StartsOnDesk desk_number
+<P>This one will specify the desk number that applications with this tay will start on.
+Don't forget that desks are numbered starting with 0.
+</LI>
+<LI>VeiwportX x_coord
+<P>You can use this one to start an application on a specific page of a desk. The value 
+should be the x coordinate of the page, relative to the top-left corner of the desk.
+For instance, with a screen size of 1024x768, the argument value would be "1024" in order
+to open an application on the second column of pages.
+</LI>
+<LI>ViewportY y_coord
+<P>This does the same thing as ViewportX, but in the Y axis.
+</LI>
+</UL>
+<P>
+<HR>
+<A HREF="afterstep-9.html">Next</A>
+<A HREF="afterstep-7.html">Previous</A>
+<A HREF="afterstep.html#toc8">Contents</A>
+</BODY>
+</HTML>

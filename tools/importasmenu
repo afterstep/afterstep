@@ -1,0 +1,53 @@
+#!/bin/bash
+
+if [[ "X$1" = "X" || "X$2" = "X" ]]; then
+    echo "Usage: importasmenu <foreignmenudir> <targetasmenudir>";
+    exit;
+fi
+
+curpwd=$PWD
+targetdir=$2
+
+#rm -fr $2
+
+if [ ! -e $2 ]; then
+    if ! mkdir $2; then exit; fi
+fi
+
+cd $PWD/$1
+
+for d in `find . -maxdepth 1 -type d` ; do
+    if [[ "X$d" != "X.." && "X$d" != "X." ]] ; then 
+	importasmenu $d $2/$d
+    fi
+done;
+
+# processing KDE entries
+
+for f in `find . -maxdepth 1 -type f -name "*.kdelnk"` ; do
+
+    name=`grep "Name=" < $f | cut -c '6-'`
+    if [ "X$name" == "X" ]; then name=$f ; fi
+    echo "$name"  
+    if grep "Exec=" < $f > /dev/null ; then
+	echo "Exec \"$name\" exec " `grep "Exec=" < $f | grep -v Swallow | cut -c '6-'` "&" >"$2/$f"
+	echo "Exec \"$name\" exec " `grep "Exec=" < $f | grep -v Swallow | cut -c '6-'` "&"
+    fi
+done;
+
+#now processing GNOME entries
+
+for f in `find . -maxdepth 1 -type f -name "*.desktop"` ; do
+
+    name=`grep "Name=" < $f | cut -c '6-'`
+    if [ "X$name" == "X" ]; then name=$f ; fi
+    echo "$name"  
+    if grep "Exec=" < $f > /dev/null ; then
+	echo "Exec \"$name\" exec " `grep "Exec=" < $f | grep -v Swallow | grep -v Try |cut -c '6-'` "&" >"$2/$f"
+	echo "Exec \"$name\" exec " `grep "Exec=" < $f | grep -v Swallow | grep -v Try |cut -c '6-'` "&"
+    fi
+done;
+
+
+cd $curpwd
+

@@ -1,0 +1,12 @@
+./Scroll.h:
+
+./GrabWindow.o: \
+        ../../configure.h \
+        ../../include/module.h \
+        Scroll.h
+
+./Scroll.o: \
+        ../../configure.h \
+        ../../include/aftersteplib.h \
+        ../../include/module.h \
+        Scroll.h

@@ -1,0 +1,47 @@
+#!/bin/sh
+echo "AfterStep distibution cleanup script"
+echo "You must run this script in your distribution root dir, like that:"
+echo "cd /usr/src/AfterStep/AfterStep-devel && makeasclean" 
+
+# make clean
+dirs=`find . -name Makefile | sed 's/Makefile$//'`
+for i in $dirs; do
+  make -C $i clean
+  done
+
+# cleanup autoconf dir
+cd autoconf
+rm -f Makefile.defines Makefile.common Makefile.common.lib configure
+cd ..
+
+# removing all empty files from sources
+rm -f `find include asimagelib lib src -empty`
+
+# removing some debug leftovers from sources
+rm -f `find asimagelib lib src -name "errors"`
+# removing possibly diff or tmp files from src dir
+rm -f `find src -maxdepth 1 -type f`
+
+# remove configure droppings
+rm -f `find . -name "config.cache"`
+rm -f `find . -name "config.h"`
+rm -f `find . -name "config.log"`
+rm -f `find . -name "config.status"`
+rm -f `find . -name "*.in" -o -name ".*.in" | sed 's/.in$//'`
+
+# remove backups
+rm -f `find . -name "*~" -o -name ".*~"`
+rm -f `find . -name "*.bak" -o -name ".*.bak"`
+
+# remove object files and libraries
+rm -f `find . -name "*.o"`
+rm -f `find . -name "*.a"`
+rm -f `find . -name "*.so"`
+rm -f `find . -name "*.so.*"`
+
+# remove patch droppings
+rm -f `find . -name "*.rej" -o -name ".*.rej"`
+rm -f `find . -name "*.orig" -o -name ".*.orig"`
+
+# remove profiling information (for gprof)
+rm -f `find . -name "gmon.out"`

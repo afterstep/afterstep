@@ -1,0 +1,1 @@
+Exec "Petal" exec sh -c "killall xlock ; xlock -nolock -mode petal -inroot &"

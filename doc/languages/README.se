@@ -1,0 +1,143 @@
+****************************************************************************
+****************                                            ****************
+****************  Detta är AfterStep 1.8.6                  ****************
+****************                                            ****************
+****************************************************************************
+
+ 
+ 
+ 0. Kortfattat
+ ----------
+ 
+ * Bli root (su root)
+
+ * Nu kör antingen  "./install.script"
+            eller "./configure ;
+                   make ; make install ;
+                   mv ~/.xinitrc ~/xinitrc.old ;
+                   echo afterstep > ~/.xinitrc ; startx"
+
+ 
+ * Sedan provkör AfterStep... du kommer nog att älska det!.
+ Om så är fallet, var snäll och rösta för AfterStep på
+ http://www.PLiG.org/xwinman/vote.html så att vi får veta om vårt
+ arbete har något värde :-)
+ 
+ 1. Gör-det-själv instruktioner :
+ --------------------------------
+ 
+ 1-2. Kör följande kommandon för att konfigurera och kompilera AfterStep :
+ 
+      Kör configure för att gissa system-beroende optioner :
+ 
+         ./configure
+ 
+ Om du ej kan bli root, måste du förändra de systemomfattande 
+ installationssökvägarna till någonstans från din PATH där du har 
+ skrivtillstånd.
+ 
+ Börja kompilationen och ta en kopp kaffe (drick långsamt om din CPU är 
+ lika långsam som min :-] )
+ 
+       make
+ 
+ Observera om det finns någon output från kommandon ovan (evt. felmeddelande) !
+ 
+ 1-3. Bli root för att köra följande kommandon : installera binaries och man
+ sidorna.
+ 
+	su root -
+	make install
+	 
+ 1-4. Skriv i ~/.xinitrc denna enstaka rad : 'afterstep'
+ 
+       echo afterstep > ~/.xinitrc
+ 
+ ( Om du ej kan bli root, kör 'echo /myhome/somewhere/afterstep >~/.xinitrc' )
+ 
+ 1-5. Testa afterstep så här :
+ 
+       startx > ~/AF-debug  2>&1
+ 
+ 1-6. Tips
+ 
+ Om detta inte är din smak, försök de andra bifogade look filer : klicka på:
+ 
+       Start/Desktop/Looks/vad-du-än-vill-försöka
+ 
+ Du kan förändra feel (hur ikonerna beter sig ...) och backgrunder på liknande
+ sätt :
+ 
+ Till ex., om du vill ha endast 2 title buttons, klicka på :
+ 
+       Start/Desktop/Feels/feel.purenext
+       Start/Quit/Restart this session
+ 
+ Men om du vill ha olika look & feel filer till *varje* skrivbord, måste du
+ meddela detta till 'configure'.
+ 
+ Om du vill ha en skärmsläckare, fixa xautolock och xlock, sedan kör:
+
+ xautolock -time 5 -corners 00++ -locker "xlock -mode random -allowroot
+ -timeelapsed -echokeys " &
+
+ 
+ 1-7. Innan du ställer frågor:
+ 
+ Läs 'TODO/1.0_to_1.5' & kör 'afterstepdoc'
+ 
+ 2. Copyright, licenser, lagen :
+ -------------------------------------
+ 
+ 2-1. Implicita copyrights
+ SEDAN DEN BERN CONVENTIONEN ÄR COPYRIGHTS IMPLICITA, ÄVEN OM FÖRFATTARNA EJ
+ SKRIVER ORDET "COPYRIGHT" I FILEN, SÅ ÄR DENNA DERAS INTELLECTUELLA
+ EGENDOM !
+ Därför är varje fil Copyright av ägaren med skrivandets datum.
+ 
+ 2-2. Licens
+ Hela programmet "Afterstep" distribuerats under GNU GPL v2 licens.
+ Afterstep biblioteksfilerna distribuerats under LGPL licens.
+ Dokumentationen till Afterstep distribuerats under LDP licens.
+
+ Se doc/licenses/ filer för mer information.
+ 
+ 2-3. Undantag
+ 
+ 2-3-1. MIT/Evans & Sutherland copyright
+ 
+ På några filer från src/, ursprungligt från twm, tillämpas en annan licens:
+ afterstep.c borders.c clientwin.c functions.c
+ 
+ 2-3-2. Headers
+
+ Header filerna är offentlig egendom;
+
+ 
+ 3. Var kan jag hitta...
+ ----------------------
+ 
+ 3-1. Mer information : www.afterstep.org
+ 
+ 3-2. Nyaste versioner : ftp.afterstep.org
+ 
+ 3-3. Hjälp : epost till: afterstep@linuxcenter.com with subject: subscribe
+ 
+ 3-4. Programutvecklare : mail afterstep@linuxcenter.com with subject: subscribe
+ 
+ 
+ 
+ 4. Personen som underhåller AfterStep:
+ -------------------------
+ 
+ Det är jag :-)
+ 
+ Skicka epost till mig för att ge mig feedback eller bug rapporter.
+ 
+
+
+                                       Guylhem AZNAR <guylhem@oeil.qc.ca>
+                      Svensk version : Klaus Neumann <klaus.neumann@swipnet.se>
+
+
+

@@ -1,0 +1,20 @@
+#
+# Copyright (c) 1998, Guylhem AZNAR <guylhem@oeil.qc.ca>
+#
+
+OBJS            = as_png.o as_jpeg.o as_xpm.o hashtable.o loadimg.o \
+		  mystyle.o mystyle_property.o stepgfx.o ximage_utils.o\
+		  pixmap.o balloon.o background.o
+OBJSDLL         = $(OBJS)
+
+PROG            = libasimage.a
+DYNPROG         = libasimage.so
+LIBVER          = 1.9
+LIBVERMAJOR     = 1
+#INSTALLONBUILD  = install
+
+@MAKEFILECOMMONLIB@
+
+install:	install.lib
+
+uninstall:	uninstall.lib

@@ -1,0 +1,6 @@
+#------------------------------------------------------------------------
+# Clean
+#
+# What to do to any window after N seconds
+*Clean  3600 Iconify 1
+*Clean 86400 Delete

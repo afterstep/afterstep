@@ -1,0 +1,26 @@
+#!/bin/sh
+# Copyright (c) 1997-8 Guylhem AZNAR <guylhem@oeil.qc.ca>
+# Copyright (c) 1999 David Mihm <dmihm@swbell.net>
+
+echo
+echo "You must have root password to install AfterStep on systemwide dirs."
+echo "(press Ctrl-C to stop - 10 seconds to decide)"
+sleep 10s
+echo
+
+./configure && make && su root -c "make install"
+
+if [ -f ~/.xinitrc ] ; then
+  mv ~/.xinitrc ~/xinitrc.before.AfterStep
+fi
+
+echo "exec afterstep" > ~/.xinitrc
+
+echo
+echo
+echo "Now please run startx to use AfterStep !"
+echo
+echo Themes are handled from the menu.
+echo A HOWTO can be found at as.themes.org.
+echo
+

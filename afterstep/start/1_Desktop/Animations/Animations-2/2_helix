@@ -1,0 +1,1 @@
+Exec "Helix" exec sh -c "killall xlock ; xlock -nolock -mode helix -inroot &"

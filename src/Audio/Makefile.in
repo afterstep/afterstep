@@ -1,0 +1,22 @@
+#
+# Uncomment the line below to add builtin support for the
+# rplay library.  Also make sure that the AUDIO_* settings
+# are correct for your rplay installation.
+#
+
+#EXTRA_DEFINES = -DHAVE_RPLAY
+#EXTRA_INCLUDES = -I/usr/local/include
+#EXTRA_LIBRARIES = -L/usr/local/lib -lrplay
+
+OBJS		= Audio.o
+
+PROG		= Audio
+
+LIBS_ASDYN      = $(LIB_AFTERSTEP) $(LIBS_AUDIO)
+LIBS_DEPEND     = $(LIB_AFTERSTEP)
+
+@MAKEFILECOMMON@
+
+install:	install.bin install.man
+
+uninstall:	uninstall.bin uninstall.man

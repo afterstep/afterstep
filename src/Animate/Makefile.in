@@ -1,0 +1,14 @@
+EXTRA_LIBRARIES	= -lm
+
+OBJS		= Animate.o
+
+PROG		= Animate
+
+LIBS_ASDYN      = $(LIB_AFTERSTEP)
+LIBS_DEPEND     = $(LIB_AFTERSTEP)
+
+@MAKEFILECOMMON@
+
+install:	install.bin install.man
+
+uninstall:	uninstall.bin uninstall.man

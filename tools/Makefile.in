@@ -1,0 +1,8 @@
+
+SCRIPTS		= ascommand.pl importasmenu makeastheme.pl installastheme.pl
+
+@MAKEFILECOMMON@
+
+install:	install.script
+
+uninstall:	uninstall.script

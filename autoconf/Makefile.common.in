@@ -1,0 +1,129 @@
+#
+# Copyright (c) 1998, Guylhem AZNAR <guylhem@oeil.qc.ca>
+#
+
+@MAKEFILEDEFINES@
+
+all:            $(PROG)
+
+install.bin:	$(PROG)
+		$(INSTALL_PROGRAM) $(PROG) $(AFTER_BIN_DIR)
+
+install.lib:	@LIBPROG@ @LIBINSTALL@
+
+install.man:
+		@if test -f $(PROG).man; then \
+		  echo $(INSTALL_DATA) $(PROG).man $(AFTER_MAN_DIR)/$(PROG).1x; \
+		  $(INSTALL_DATA) $(PROG).man $(AFTER_MAN_DIR)/$(PROG).1x; \
+		fi
+
+install.script:
+		@for i in $(SCRIPTS); do \
+		  echo $(INSTALL_SCRIPT) $$i $(AFTER_BIN_DIR); \
+		  $(INSTALL_SCRIPT) $$i $(AFTER_BIN_DIR); \
+		done
+
+uninstall.bin:
+		$(RMF) $(AFTER_BIN_DIR)/$(PROG)
+
+uninstall.man:
+		$(RMF) $(AFTER_MAN_DIR)/$(PROG).1x
+
+uninstall.script:
+		@for i in $(SCRIPTS); do \
+		  echo $(RMF) $(AFTER_BIN_DIR)/$$i; \
+		  $(RMF) $(AFTER_BIN_DIR)/$$i; \
+		done
+
+clean:
+		$(RMF) $(PROG) *.o *~ *% *.bak \#* core
+
+distclean:
+		$(RMF) $(PROG) *.o *~ *% *.bak \#* *.orig core Makefile
+
+indent:
+		@SRCS=`echo "$(OBJS) " | sed "s/.o /.c /g"`; \
+		if test "x$$SRCS" == "x"; then exit; fi; \
+		for i in $$SRCS; do \
+		  if (indent < $$i > /tmp/$$i); then \
+		    echo "indent $$i"; \
+		    mv /tmp/$$i $$i; \
+		  fi; \
+		done
+
+deps:
+		echo -n > .depend ; \
+		buf="" ; \
+		for f in `find . -name "*.h"` ; do \
+		  if test "x$$buf" != "x"; then \
+		      echo $$buf >>.depend ; \
+		      echo "" >>.depend ; \
+		  fi; \
+		  buf="$$f:"; \
+		  for d in `grep "#include \"" <$$f | awk -F \" '{print $$2}'`; do \
+		      if test "x$$buf" != "x"; then \
+		         echo $$buf \\ >>.depend ; \
+		      fi; \
+		      echo -n "        " >>.depend ; \
+		      buf="$$d "; \
+		  done; \
+		done; \
+		if test "x$$buf" != "x"; then \
+		  echo $$buf >>.depend ; \
+		  buf="" ; \
+		  echo "" >>.depend ; \
+		fi ; \
+		for file in `find . -name "*.c"` ; do \
+		  if test "x$$buf" != "x"; then \
+		      echo $$buf >>.depend ; \
+		      echo >>.depend ; \
+		  fi; \
+		  buf="."`echo $$file | awk -F . '{print $$2}'`".o:" ; \
+		  for d in `grep "#include \"" < $$file | awk -F \" '{print $$2}'`; do \
+		      if test "x$$buf" != "x"; then \
+		         echo $$buf \\ >>.depend ; \
+		      fi; \
+		      echo -n "        " >>.depend ; \
+		      buf="$$d "; \
+		  done; \
+		done; \
+		if test "x$$buf" != "x"; then \
+		  echo $$buf >>.depend ; \
+		fi
+
+$(PROG):        $(OBJS) $(LIBS_DEPEND)
+		$(CC) $(OBJS) $(LIBRARIES) $(EXTRA_LIBRARIES) -o $(@)
+
+.c.o:
+		$(CC) $(CCFLAGS) $(EXTRA_DEFINES) $(INCLUDES) $(EXTRA_INCLUDES) -c $*.c
+
+#
+# include dependency files if they exist
+#
+# this is merely a precaution, but as it does not work with ansi make
+# we took it out
+#ifneq ($(wildcard .depend),)
+include .depend
+#endif
+
+../../lib/libafterstep.a:
+		cd ../../lib/; ${MAKE}
+
+../../asimagelib/libasimage.a:
+		cd ../../asimagelib/; ${MAKE}
+
+../Config/libasConfig.a:
+		cd ../Config/; ${MAKE}
+
+../../lib/libafterstep.so:
+		cd ../../lib/; ${MAKE}
+
+../../asimagelib/libasimage.so:
+		cd ../../asimagelib/; ${MAKE}
+
+../Config/libasConfig.so:
+		cd ../Config/; ${MAKE}
+
+#
+# End of Make.common
+#

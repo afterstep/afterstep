@@ -1,0 +1,229 @@
+****************************************************************************
+****************                                            ****************
+****************             To AfterStep 1.8.6             ****************
+****************                                            ****************
+****************************************************************************
+
+
+ VIVLIOTHIKES
++------------+
+Oi parakatw vivliothikes den einai aparaithtes gia na treksete to
+AfterStep wstoso, yposthrizontai apo ayto kathws kai apo ta diafora 
+modules tou.
+
+ o  libXpm
+ o  libjpeg
+ o  libpng
+
+ EGATASTASH
++----------+
+Aposympieste to paketo AfterStep-1.6.x.tar.(gz|bz2) kai sth synexeia
+ trekste
+
+	./install-script
+     h
+	./configure
+	make
+	make install
+        mv ~/.xinitrc ~/xinitrc.old
+        echo afterstep > ~/.xinitrc
+
+Meta, dokimaste to AfterStep. Einai sigouro oti tha sas aresei. An ontws 
+sas aresei pshfhste gia AfterStep sth dieythynsh 
+http://www.PLiG.org/xwinman/vote.html gia na doume an h douleia pou 
+kanoume aksizei kati! :-)
+
+ LEPTOMEREIS ODHGEIES
++--------------------+
+
+Aposympieste to paketo AfterStep-1.6.x.tar.(gz|bz2) kai trekste to 
+configure gia na mantepsei tis epiloges toy systhmatos :
+
+	./configure
+
+To configure pairnei diafores parametrous gia na energopoihsoun 
+(--enable), apenergopoihsoun (--disable) h na symperilavoun diafora 
+xarakthristika tou AfterStep. Mia plhrhs lista twn xarakthristikwn 
+mporei na emfanistei me ./configure --help, mia syntomh fainetai 
+parakatw. Oi proepilegmenes epiloges fainontai stis agyles ([..]).
+
+  --with-imageloader=APP  programma gia thn emfanish mh-XPM eikonwn
+			  [xli -onroot -quiet]
+  --with-helpcommand=APP  programma gia thn emfanish twn selidwn
+			  man se parathyro [xiterm -e man]
+  --with-startsort=METHOD methodos taksinomhshs tou start menu
+			  [SORTBYALPHA]
+  --enable-different-looknfeels
+			  energopoihsh diaforetikwn look&feel gia
+			  kathe desktop [oxi]
+  --with-desktops=DESKS   proepilegmenos arithmos desktop ston
+			  pager [4]
+  --with-deskgeometry=GEOM
+                          arithmos STHLWNxGRAMMWN gia kathe desktop [2x2]
+  --enable-newlook        yposthriskh gia to neo look format
+			  (MyStyles) [nai]
+  --enable-pagerbackground
+                          yposthriksh gia eikona-fonto ston pager [nai]
+  --enable-i18n           yposthriksh 18N [oxi]
+  --enable-xlocale        xrhsimopoihsh tou X_LOCALE [oxi]
+  --enable-menuwarp       "topothethsh" tou deikth-ponikiou sta menu [oxi]
+  --enable-savewindows    swsimo parathyrwn kai ksana-anoigma tous sthn
+			  epomenh ekkinhsh [nai]
+  --enable-makemenus      dhmiourgia tou start menu apo ton katalogo start/ [nai]
+  --enable-makemenusonboot
+                          panta dhmiourgia tou start menu me thn ekkinhsh tou
+			  AfterStep [oxi]
+  --enable-texture        yposthriksh gradient, XPM, kai JPEG yfwn [nai]
+  --enable-shade          yposthriksh shaded parathyrwn [nai]
+  --enable-virtual        yposthriksh eikonikwn desktop [nai]
+  --enable-windowlist     metaglwttish ths enswmatwmenhs listas-parathyrwn
+			  (window-list) [nai]
+  --enable-availability   psaksimo gia mh diathesima ekteleshma [nai]
+  --enable-staticlibs     syndesh me to libafterstep statika [nai]
+  --enable-script         metaglwttish gia Script module [nai]
+  --with-xpm              yposthriksh tou XPM format eikonwn [nai]
+  --with-jpeg             yposthriksh tou JPEG format eikonwn [nai]
+  --with-png              yposthriksh tou PNG format eikonwn [nai]
+
+An den mporeite na ginete root, prepei na allaksete tous katalogous
+egatastashs se katalogo, opou exete to dikaiwma eggrafhs xrhsimopoiwntas
+tis katallhles diadromes (paths) stis parakatw epiloges tou ./configure.
+
+  --prefix=PRE            egatastash aneksarthtwn-platformas arxeiwn
+ 			  sto PRE [/usr/local]
+  --bindir=DIR            ekteleshma arxeia sto DIR [PRE/bin]
+  --datadir=DIR           anagnwsima-mono aneksarthta-platformas arxeia
+			  sto DIR [PRE/share]
+  --mandir=DIR            selides voitheias man sto DIR [PRE/man]
+
+Arxiste th diadikasia tou metaglwttismou kai parakolouthiste thn eksodo
+twn parapanw entolwn gia pithana mhnymata lathous!!!
+
+	make
+
+Ginete root, h agnohste thn entolh su an exete allaksei to ./configure
+wste h egatastash na ginei sto $HOME katalogo kai ekteleste tis parakatw
+entoles gia thn egatastash twn ekteleshmwn arxeiwn kai twn arxeiwn 
+voitheias (man pages).
+
+	su root -
+	make install
+
+Eisagete mia klhsh tou window manager sto arxeio script twn X servers. An o
+katalogos me ta egatesthmena ekteleshma den einai sth metavlhth PATH tou
+xrhsth, tote valte thn plhrh diadromh sthn entolh echo. Eks' orismou, ta
+ekteleshma egatheistantai ston katalogo /usr/local kai ayto DEN einai sthn
+PATH tou root! :-)
+ 
+        echo afterstep > ~/.xinitrc
+
+An protimate na synexisete na xrhsimopoieite to palio .steprc arxeio
+parametropoihshs se antithesh me th logikh ierarxeia GNUstep, xrhsimopoihste
+ayth thn tropopoihmenh entolh echo gia to .xinitrc arxeio
+
+        echo "afterstep -f ~/.steprc" > ~/.xinitrc
+
+Gia na deite tyxon lathoi apo thn prwth ektelesh tou AfterStep, mporeite na
+anakateytheinete otidhpote tyxon prokypsei se arxeio, gia na to deite
+argotera.
+
+        startx > ~/AF-debug 2>&1
+ 
+An xrhsimopoieite RedHat kai/h to wmconfig, deite to arxeio README.redhat
+gia peraiterw plhrofories.
+
+ SYMBOULES
++---------+
+
+Diafora "looks" (to look tou desktop) symperilamvanontai sto paketo.
+Opoiodhpote apo ayta mporei na energopoihthei epilegontas to onoma tou apo 
+to menu.
+
+        (startmeu)->Desktop->Looks->look.***
+
+Yparxoun diafora "feels" (antistoixies plhktrwn kai tropos antidrashs twn 
+parathyrwn), eikones gia fonto kai Animations gia na dokimasete. Ola ayta 
+leitoyrgoun me ton idio tropo, me thn epilogh tou onomatos tous apo to menu 
+Desktop. Alla an thelete na xrhsimopoihsete  *diaforetika*  look&feel gia 
+*kathe*  desktop, ayto prepei na to peite sto ./configure.
+
+An thelete na allaksete h na prosthesete kati sto start menu, prepei prwta 
+na dhmiourghsete to arxeio, eite katw apo ton share katalogo, eite katw apo 
+ena dhmiourghmeno hdh start menu katalogo ~/GNUstep/Library/AfterStep/start 
+kai na plhroforhsete to AfterStep gia thn allagh.
+
+        (startmeu)->Desktop->Update startmenu
+
+ ERGALEIA
++--------+
+
+To AfterStep exei merika ergaleia gia peiramatismo katw apo ton katalogo 
+tools/. To "Uninstall-Old-AfterStep" einai ena script pou afairei palia 
+ekteleshma twn ekdosewn 1.3.x kai 1.4.x, selides man kai eggrafa. Apla 
+diavaste thn koryfh tou script gia na vreite pws xrhsimopoieitai. Xwris 
+parametrous, tha afairesei mono ta apolytws aparaithta arxeia tou AfterStep,
+afhnontas tis efarmoges pou erxontan me tis diafores ekdoseis. To "bughint" 
+arxeio xrhsimopoieitai otan vrethei kai prepei na anaferthei ena bug. Kai 
+ta dyo "makeasclean" kai "makeaspatch" xrhsimopoiountai gia na katharisoun 
+ton katalogo me ton kwdika (source) kai gia th dhmiourgia patches tou 
+paketou (se katallhlo format).
+
+ THEMATA
++-------+
+
+H megalh prosthikh sta ergaleia einai to theme-handler. Yparxoyn dyo Perl 
+scripts gia th dhmiourgia kai egatastash thematwn ftiagmena apo to idio 
+script. Yparxei ena arxeio readme, diavaste to kai arxiste th dhmiourgia 
+thematwn! Pros to paron, den yparxoun epiloges sto menu gia na 
+xrhsimopoihthoun ta scripts apo to AfterStep, alla mhn afhste to gegonos 
+ayto na sas apotharrynei. [ Telikos skopos : na exoume na zhthsoume 
+perissotero xwro ston eksyphreth tou ftp.afterstep.org gia ola ta themata! 
+PARAKALW diavaste to README sto themes/ katalogo tou ftp.afterstep.org gia 
+plhrofories gia to pws na steilei kaneis themata (syntoma ws selida sto 
+www.afterstep.org...) ].
+
+ FAQ (Frequently Asked Questions)
++--------------------------------+
+
+Prin arxisete diafores erwthseis, diavaste prwta to FAQ pou yparxei 
+sto paketo kanontas klik sto epanw eikonidio tou Wharf, h dialegontas
+AfterStepDoc apo to menu. To doc/1.0_to_1.5 arxeio perigrafei diafores 
+allages mexri thn ekdosh 1.5.x kai to README_new.options tis nees epiloges.
+
+ PATCHING
++--------+
+
+Gia na anavathmisteite se neoterh ekdosh xrhsimopoiwntas patch arxeio, prwta
+phgainete ston koryfh katalogo ths ekdoshs ayths (aytou pou periexei to 
+README arxeio). Meta dwste "make distclean" kai anavathmiste thn ekdosh me :
+
+    gunzip -c patch_file_name | patch -p1
+
+opou "patch_file_name" einai to onoma tou patch arxeiou (kati opws 
+1.6.0-01-creator-fixes_this.patch.gz). Meta mporeite na ksanarxisete th 
+metaglwttish me mia apo tis parapanw entoles.
+
+ SITES
++-----+
+
+Perissoteres plhrofories	:	http://www.afterstep.org/
+Nees ypo ekseliksh ekdoseis	:	ftp://ftp.afterstep.org/
+Voitheia			:	mail afterstep@linuxcenter.com
+					subject: subscribe
+Programmatistes			:	mail afterstep@linuxcenter.com
+					subject: subscribe
+Zwntanh omilia (irc)		:	#afterstep on EFNet
+	Prosvash sto EFNet mporei na ginei me syndesh se opoiodhpote EFNet
+	server :
+	irc.concentric.net ; irc.prison.net ; ircd.txdirect.net
+
+ YPEYTHYNOI EKSELIKSHS
++---------------------+
+
+Deite to TEAM arxeio.
+
+
+
+				    Guylhem AZNAR <guylhem@oeil.qc.ca>
+                          Metafrash Vasilis Papaconstantinou <vasilip@usa.net>
+                                    Vasileios Lourdas <lourdas@it.teithe.gr>

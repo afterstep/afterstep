@@ -1,0 +1,1 @@
+Exec "Clock" exec sh -c "killall xlock ; xlock -nolock -mode clock -inroot &"

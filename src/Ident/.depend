@@ -1,0 +1,8 @@
+./Ident.h:
+
+./Ident.o: \
+        ../../configure.h \
+        ../../include/aftersteplib.h \
+        ../../include/module.h \
+        ../../include/afterstep.h \
+        Ident.h

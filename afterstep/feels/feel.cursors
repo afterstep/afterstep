@@ -1,0 +1,294 @@
+##########################################################################
+# Root window feeling
+#
+#------------------------------------------------------------------------
+# Windows behaviour
+#
+# Alt-tab between windows, similar to Windows9x.  For instance:
+#  AutoReverse 0: default switching among the windows in one direction
+#  AutoReverse 1: #1->#2->#3->#4 and then #4->#3->#2->#1
+#  AutoReverse 2: #1->#2->#3->#4 and then #4->#1->#3->#2 etc.
+AutoReverse 0
+#
+# window switching through desks?
+AutoTabThroughDesks
+#
+# Automatically raise a window if mouse stays > 500 msec on it
+# AutoRaise 500
+#
+# Support Motif window manager function hints
+MWMFunctionHints
+#
+# Support Motif window manager decoration hints
+MWMDecorHints
+#
+# Allow overriding of Motif function hints
+MWMHintOverride
+#
+# While zapping, warp mouse pointer to
+#Xzap 12
+#Yzap 12
+#
+# Avoid problems with xpaint like applications which define their own icon
+# as a window and tell the window manager it's its icon
+KeepIconWindows
+#
+# Click on titlebar to focus window (ie put it in the foreground)
+#ClickToFocus
+#
+# Click on titlebar to raise window (ie put it in the foreground)
+#ClickToRaise
+#
+# Focus on window until pointer gets in another one
+SloppyFocus
+#
+# Iconify to original place
+StubbornIcons
+#
+# Uniconify to original place
+StubbornPlacement
+#
+# Optimize icon placement
+# StubbornIconPlacement
+#
+# Give a name to each icon
+IconTitle
+#
+# Icons follow you on the desktop
+StickyIcons
+#
+# Don't jump to an icon while zapping windows
+CirculateSkipIcons
+#
+# Center the screen on the current window while circulating
+#CenterOnCirculate
+#
+# Double click period in ms
+ClickTime 150
+#
+# Keep showing window while being moved if size<N%
+OpaqueMove 0
+#
+# Keep showing window while being resized if size<N%
+OpaqueResize 0
+#
+# Mouse pushing on screen edge : N% move
+EdgeScroll 500 500
+#
+# To avoid unwanted moving, edges resist during N ms
+EdgeResistance 500 100
+#
+# Place window in empty zones
+#SmartPlacement
+#
+# Random window placement
+RandomPlacement
+#
+# Windows can't chose where to place
+#NoPPosition
+#
+# Put a titlebar + various stuff on dialog boxes
+DecorateTransients
+#
+# Tell me what it means :-)
+AppsBackingStore
+BackingStore
+SaveUnders
+DontMoveOff
+ShadeAnimationSteps 3
+#XorValue 255
+#MenusHigh
+#PagingDefault 0
+#
+##########################################################################
+
+##########################################################################
+# Cursor
+#
+# Cursor THISTYPE THISCURSOR where type is :
+#
+#  0 POSITION      - used when initially placing windows
+#  1 TITLE         - used in a window title-bar
+#  2 DEFAULT       - used in windows that don't bother to set their cursor
+#  3 SYS           - used in one of the title-bar buttons
+#  4 MOVE          - used when moving or resizing windows.
+#  5 WAIT          - used during an EXEC builtin command.
+#  6 MENU          - used in a menus.
+#  7 SELECT        - used for various builtin commands such as iconify.
+#  8 DESTROY       - used for DESTROY and DELETE built-ins.
+#  9 TOP           - used in the top side-bar of a window
+# 10 RIGHT        - used in the right side-bar of a window
+#
+# while /usr/include/X11/cursorfont.h contains available cursors
+#
+#Cursor 5 68
+#Cursor 7 58
+
+CustomCursor 4 move.xbm move.xbm.mask
+CustomCursor 1 cursor.xbm cursor.xbm.mask
+CustomCursor 2 cursor.xbm cursor.xbm.mask
+CustomCursor 3 cursor.xbm cursor.xbm.mask
+CustomCursor 6 cursor.xbm cursor.xbm.mask
+CustomCursor 8 kill.xbm kill.xbm.mask
+CustomCursor 7 iconify.xbm iconify.xbm.mask
+CustomCursor 5 xm_hour32 xm_hour32m
+# TOP
+CustomCursor 9 resize_v.xbm resize_v.xbm.mask
+# BOTTOM
+CustomCursor 11 resize_v.xbm resize_v.xbm.mask
+# LEFT
+CustomCursor 12 resize_h.xbm resize_h.xbm.mask
+# RIGHT
+CustomCursor 10 resize_h.xbm resize_h.xbm.mask
+# TOP_LEFT
+CustomCursor 13 resize_br.xbm resize_br.xbm.mask
+# TOP_RIGHT
+CustomCursor 14 resize_tr.xbm resize_tr.xbm.mask
+# BOTTOM_LEFT
+CustomCursor 15 resize_tr.xbm resize_tr.xbm.mask
+# BOTTOM_RIGHT
+CustomCursor 16 resize_br.xbm resize_br.xbm.mask
+#
+##########################################################################
+
+##########################################################################
+# Functions
+#
+
+# Used to move icons on desktop
+
+Function "Move-or-Top"
+	Raise	        "Motion"
+        Move            "Motion"
+	RaiseLower	"Click"
+        ToggleLayer	"DoubleClick"
+EndFunction
+
+# Used to move windows on desktop
+
+Function "Move-or-Iconify"
+        Move            "Motion"
+        Iconify         "Click"
+EndFunction
+
+Function "Shade-and-top"
+	Raise	"Click"
+	Shade	"Click"
+EndFunction
+# Window operations
+
+Popup "Window"
+        Move            "Move"
+        Resize          "Resize"
+        Nop		""
+        Iconify		"(Un)Iconify"
+	Shade		"(Un)Shade"
+        Stick		"(Un)Stick"
+	Nop		""
+        Raise           "Raise"
+        Lower           "Lower"
+	Nop		""
+        Destroy         "Kill"
+        Delete          "Close"
+	Nop		""
+        Refresh         "Redraw"
+        Nop		""
+        Exec		"Info" exec xwininfo | xmessage -file -
+        Module		"Ident" Ident
+        Exec		"Props" exec xprop | xmessage -file -
+EndPopup
+
+##########################################################################
+# Key binding :
+#
+# [Zap button] [Window ops]   Title   [Iconify] [Shade] [Quit]
+#
+# Zap switches to next window, if middle clicked switches to previous one while
+#  right click open man file of the current window.
+#
+# Window ops lets you act on window geometry, size (...) if right clicked
+#  asks which window you want to switch to.
+#
+# Iconify button iconifies current window, if right clicked it maximises it.
+#
+# Shade swallows window under titlebar and makes it sticky, if right clicked
+#  it only makes it sticky, without swallowing it
+#
+# Quit closes current window, if right clicked it kills it
+##########################################################################
+
+##########################################################################
+# Calls
+#
+# There are 4 colums to the table
+# First column is the event (Mouse Click or Key Press)
+#   Mouse 0 specify any click in a TitleBar box
+#     Where can be 1 or 2 for first or second box
+#   Mouse 1 is left button, 2 is middle, 3 is right
+# Second Column is where the click takes place
+#   R = Root window (main background)
+#   F = Window Frame (the corners)
+#   S = Bottom bar
+#   I = Icon Window
+#   T = TitleBar
+#   W = Application Window
+# Third Column is the Context (ie, modifier keys)
+#   N = No modifiers
+#   A = Any context except for inside the TitleBar Boxes
+#   C = Control
+#   S = Shift
+#   M = Meta
+#   Combos are allowed (eg, CS = Control+Shift)
+# Fourth Column is the action to take upon click : function, popup, or action
+
+#
+# Mouse actions
+#
+Mouse 1		R	M	PopUp "Start"
+Mouse 2		R	M	PopUp "Window"
+Mouse 3		R	M	WindowList
+
+Mouse 2		T	A	PopUp "Window"
+Mouse 2         R       A       PopUp "Start"
+
+Mouse 3		F	A	PopUp "Window"
+
+Mouse 1		1	A	Function "Shade-and-top"
+
+Mouse 1         2       A       Delete
+Mouse 2         2       A       Destroy
+Mouse 3         2       A       Stick
+
+
+Mouse 1         4       A       Iconify
+Mouse 2         4       A       Stick
+Mouse 3         4       A       Stick
+
+Mouse 1         6       A       Shade
+Mouse 2         6       A       Maximize
+Mouse 3         6       A       Maximize
+
+Mouse 1         FS      A       Resize
+Mouse 2         FS      A       PopUp "Window"
+Mouse 3         FS      A       Move
+Mouse 1         T       A       Function "Move-or-Top"
+Mouse 2         T       A       PopUp "Window"
+Mouse 3         T       A       RaiseLower
+Mouse 0         I       A       Function "Move-or-Iconify"
+Mouse 3		I	A	PopUp "Window"
+Mouse 0		W	M	Move
+Mouse 3		W	M	Resize
+#
+# Keys actions
+#
+# control + arrow = 1 page
+Key Left        A       SC      Desk 0 0
+Key Right       A       SC      Desk 0 1
+Key Up          A       SC      Desk 0 2
+Key Down        A       SC      Desk 0 3
+# Windows-alike keys
+#
+# alt + tab = change window
+Key Tab         A       M      WarpFore
+# alt + q = return to window
+############################################################################

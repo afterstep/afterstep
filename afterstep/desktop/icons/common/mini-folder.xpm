@@ -1,0 +1,42 @@
+/* XPM */
+static char *mini-folder[] = {
+/* width height num_colors chars_per_pixel */
+"    15    15       20            1",
+/* colors */
+". c #000000",
+"# c #332623",
+"a c #4d2f2d",
+"b c #5b4933",
+"c c #704f46",
+"d c #776647",
+"e c #7f7f7f",
+"f c #545353",
+"g c #553344",
+"h c #7f877f",
+"i c #92664e",
+"j c #945f56",
+"k c None",
+"l c #918676",
+"m c #d3a577",
+"n c #aaaaaa",
+"o c #e3a48d",
+"p c #ffffff",
+"q c #e3d7d4",
+"r c #bac6ba",
+/* pixels */
+"kkkkkkkkkp.kkkk",
+"kkpnlpnlmjpf.kk",
+"kpmjmp.pppmj.kk",
+"pjioljmimjpppm.",
+"pdpijmmj.limmpo",
+"pbpipmjmpoilidi",
+"papcpjoijiiidcc",
+"p#pbpclliiidjcc",
+"p#papailjldccc#",
+"p.p#pbiiijjdcb.",
+"rfp.pcliijcbbb.",
+"knqfpjjdccbg#ff",
+"kp.nqpijcccffen",
+"knnprpccc.feenn",
+"kkkehcd.fennnkk"
+};

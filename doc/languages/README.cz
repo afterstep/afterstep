@@ -1,0 +1,162 @@
+
+****************************************************************************
+****************                                            ****************
+****************        AfterStep 1.8.6                     ****************
+****************                                            ****************
+****************************************************************************
+
+
+
+0. Shrnutí 
+----------
+
+* Staòte se rootem (su root)
+
+* Nyní mù¾ete buïto spustit 
+	./install.script
+  nebo pro pøípad, ¾e chcete mít celou instalaci více pod kontrolou,
+  zadejte tyto pøíkazy
+	./configure
+	make
+        make install
+	mv ~/.xinitrc ~/xinitrc.old
+        echo afterstep > ~/.xinitrc
+	startx
+
+* No a pak si vyzkou¹ejte AfterStep... snad se Vám bude líbit.
+A jestli se Vám opravdu líbí, tak pro nìj prosím volte na
+http://www.PLiG.org/xwinman/vote.html, tak¾e aspoò budeme moci vìdìt, ¾e
+na¹e práce má nìjakou cenu.
+
+1. Instrukce pro ruèní instalaci:
+---------------------------------
+
+1-2. Spus»te následující pøíkazy pro nakonfigurovaní a zkompilování
+AfterStepu:
+
+Spus»te configure pro zji¹tìní konfigurace Va¹eho systému.
+
+        ./configure
+
+Pokud nemáte na Va¹em systému práva roota, budete si muset zmìnit
+instalaèní cesty tak, abyste do nich mìli právo zapisovat a pokud nejsou
+ve Va¹í PATH, tak je tam pøidat.
+
+A nyní spus»te kompilaci a popøípadì si dejte ¹álek kávy (pijte ji pomalu,
+pokud je Va¹e CPU tak pomalé jako je to moje :-] )
+
+	make
+
+Sem tam se kouknìte, jestli tyhle pøíkazy a následná kompilace probíhají
+bezchybnì.
+
+1-3. Staòte se rootem pro nainstalování AfterStepu a pøidru¾ených
+spustitelných souborù a manových stránek.
+
+        su root -
+	make install
+	
+1-4. Do souboru ~/.xinitrc dejte tento jediný øádek: 'afterstep'
+
+	echo afterstep > ~/.xinitrc
+
+( Toto Vám nebude fungovat, pokud je binárka afterstepu umístìna v
+adresáøi, který není v promìnné PATH. V tomto pøípadì zadejte celou cestu
+k binárce: echo /adresáø/který/je/v/PATH/afterstep > ~/.xinitrc )
+
+Jestli¾e máte radìji starý styl konfigurace pomocí jednoho souboru ne¾
+logickou adresáøovou strukturu, pou¾ijte:
+
+	echo "afterstep -f ~/.steprc" > ~/.xinitrc
+
+1-5. Spus»te AfterStep a otestujte jej:
+
+	startx > ~/AF-debug  2>&1
+
+1-6. Rady
+
+Jestli¾e se Vám nelíbí defaultní nastavení vzhledu AfterStepu, zkuste si
+jiné "look" soubory: v menu si vyberte:
+
+	(startmenu)->Desktop->Looks->Kterýkoliv Soubor Dle Va¹eho Gusta
+
+Stejným zpùsobem mù¾ete také zmìnit ovládání AfterStepu ("feel" soubory)
+nebo pozadí:
+
+Napøíklad, pokud chcete mít jen 2 tlaèítka v horní li¹tì okna, kliknìte
+na:
+
+	(startmenu)->Desktop->Feels->feel.purenext
+	(startmenu)->Quit->Restart this session
+
+Ale kdy¾ chcete pou¾ívat *rùzných* "look" a "feel" souborù pro *rùzné*
+desktopy, odpovìzte tak, kdy¾ se Vás na to configure zeptá.
+
+Pokud chcete mít screen saver, musíte mít nainstalován xautolock a xlock.
+Pak spus»te:
+
+<<
+xautolock -time 5 -corners 00++ -locker "xlock -mode random -allowroot
+-timeelapsed -echokeys " &
+>>
+
+1-7. A teï, pøed jakoukoli otázkou:
+
+Pøeètìte si 'TODO/1.0_to_1.5' & run 'afterstepdoc'
+
+2. Autorská práva, licence, atd.
+--------------------------------
+
+2-1. Implicitní autorská práva
+
+OD DOB BERNSKÉ KONVENCE JSOU AUTORSKÁ PRÁVA IMPLICITNÍ, I KDY® AUTOØI
+NEPÍ©Í SLOVO "COPYRIGHT" V SOUBORU.
+
+Tak¾e, ka¾dý soubor je copyrightem (C) jeho autorù v dobì psaní.
+
+2-2. Licence
+
+Celý program AfterStep je distribuován pod GNU GPL v2 licencí.
+Knihovna AfterStep je distribuována pod LGPL licencí.
+Dokumentace AfterStepu je distribuována pod LDP licencí.
+
+Èti soubory v doc/licenses/ pro více informací.
+
+2-3. Vyjímky
+
+2-3-1. Copyright MIT/Evans & Sutherland
+
+Nìkteré soubory z adresáøe src/ pocházející z twm, jsou distribuovány pod
+jinou licencí. Jedná se o tyto soubory: 
+add_window.c afterstep.c borders.c clientwin.c functions.c
+
+2-3-2. Header soubory
+
+Header soubory jsou public domain.
+
+3. Kde mù¾ete nalézt...
+----------------------
+
+3-1. Více informací : www.afterstep.org
+
+3-2. Nové verze : ftp.afterstep.org
+
+3-3. Pomoc pøi problémech : po¹lete e-email na adresu afterstep@linuxcenter.com
+se slovem 'subscribe' v titulku (subjectu).
+
+3-4. Programátoøi: po¹lete e-mail na adresu afterstep@linuxcenter.com se
+slovem 'subscribe' v titulku (subjectu) nebo nìkomu z maintainerù.
+
+
+
+4. AfterStep maintainer :
+-------------------------
+
+No, to jsem já :-)
+
+Po¹lete mi e-mail s Va¹imi radostmi a starostmi èi oznámením o chybì. 
+
+
+                                            Guylhem AZNAR <guylhem@oeil.qc.ca>
+				    Pøeklad: radìji anonym :)
+

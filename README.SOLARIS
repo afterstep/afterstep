@@ -1,0 +1,42 @@
+Note for Solaris users:
+
+AfterStep builds and runs on (at least) the following versions of Solaris:
+
+        Solaris 2.5.1 with SunPro C 4.2 or gcc 2.7.2
+        Solaris 2.4 with IXI Motif and SunPro C 3.0.1
+
+It ought to build on Solaris 2.4 with normal OpenWindows too.
+
+There may be problems running some parts of AfterStep on 8bpp screens; these
+are not problems with Solaris per se - they affect all platforms.
+
+You should edit configure.h so that XPMLIBRARY contains the linker
+options needed to link with the Xpm library. In our systems here, libXpm.so
+is installed in /usr/local/lib, so I have:
+
+        #define XPMLIBRARY -L/usr/local/lib -R/usr/local/lib -lXpm
+
+(If you don't know what -L or -R do, read the man page for ld.)
+
+Whilst you are editing the configure.h file remember to change all the
+references to /usr/X11R6 to somewhere suitable for your machine.
+
+When you come to the final "make" which compiles everything, you will probably
+have to do something which tells the compiler where to find the Xpm header
+file (xpm.h). You should do this by defining the CDEBUGFLAGS macro on make's
+command line. Because xpm.h is installed on our network in
+/usr/local/include/X11, I do this:
+
+        make CDEBUGFLAGS=-I/usr/local/include
+
+A correctly configured imake should define SYSV and SVR4 in the Makefiles. If
+it doesn't (and IXI's imake doesn't) you will need to add them to the
+CDEBUGFLAGS macro as well. Something like:
+
+        make "CDEBUGFLAGS=-DSYSV -I/opt/IXI/X11 -I/opt/IXI/include"
+
+[If anyone has other broken versions of imake please email the afterstep
+maintainers so it can be mentioned here. Thanks!]
+ 
+
+						Chris Ridd <C.Ridd@isode.com>

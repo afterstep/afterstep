@@ -1,0 +1,29 @@
+Hi,
+
+I'd like to see the attached patch included in the next release of Afterstep.
+It adds the the following keywords:
+
+IconTYOffset: Moves the icon label up/down, including the rectangle. With
+               this, one can have the icontitle on the bottom of the icon.
+IconYOffset: Moves the icon picture up and down, so one can position it
+               whereever one wants on a higher than 64 pixels icon background
+IconTDrawbg: Toggles drawing of the rectangle under the icontitle
+
+Also, i added two more styles to 'TitleTextMode'. (3) can be used for a slight
+3d effect, (4) creates a simple outline aroud the text.
+
+To try it out, add
+
+IconTYOffset 66
+IconYOffset -21
+IconTDrawbg 0
+TitleTextMode 3 0 #000 #888 #fff #999 #fff #000
+
+to your looks file
+A ButtonPixmap file to be used with these settings is available at
+http://titan.cs.bonn.edu/~canavan/asb3.xpm
+To see the effect of the Titletextmode with these settings, try a dark
+color/texture for the active and a  bright (close to white) one for the
+inactive title bar.
+
+Rainer

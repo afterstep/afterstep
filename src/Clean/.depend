@@ -1,0 +1,7 @@
+./Clean.h:
+
+./Clean.o: \
+        ../../configure.h \
+        ../../include/aftersteplib.h \
+        ../../include/module.h \
+        Clean.h

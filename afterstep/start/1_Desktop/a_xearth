@@ -1,0 +1,2 @@
+Exec "X earth" exec xearth -nice 19 -nomarkers -stars -mag 1 &
+MiniPixmap "mini-recycler.xpm"

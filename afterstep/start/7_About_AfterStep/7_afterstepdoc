@@ -1,0 +1,2 @@
+Exec "AfterStep documentation" exec afterstepdoc &
+MiniPixmap "mini-as.xpm"

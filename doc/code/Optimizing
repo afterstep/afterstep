@@ -1,0 +1,15 @@
+How can you optimise your code ?
+
+* First, you must recompile AfterStep with gcc & add "-pg" to CFLAGS.
+  This can easily be done by ./configure --enable-gprof.
+
+* Then run AfterStep as usal, try as many thing as you can.
+
+* Finally, when you exit, a file gmon.out is created : copy afterstep
+  binary to current dir/a.out, and run gprof, or run gprof afterstep.
+
+The percentages represent CPU time spent is functions : optimize the most
+called ones !
+
+Guylhem
+Ethan

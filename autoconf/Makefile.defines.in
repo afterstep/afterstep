@@ -1,0 +1,61 @@
+#
+# Copyright (c) 1998, Guylhem AZNAR <guylhem@oeil.qc.ca>
+#
+
+CC		= @CC@
+CCFLAGS         = @CFLAGS@
+# -march=pentiumpro -mcpu=pentiumpro
+EXTRA_DEFINES	= @DEFINE_XLOCALE@
+
+RANLIB		= @RANLIB@
+AR		= ar clq
+CP		= @CP@
+MV		= @MV@
+RM		= @RM@
+RMF		= @RM@ -f
+MKDIR		= @MKDIR@
+
+YACC		= @YACC@
+LEX		= @LEX@
+YACCFLAGS	= -d
+LEXFLAGS	=
+
+INSTALL		= @INSTALL@
+INSTALL_PROGRAM	= @INSTALL@ -s -m 755
+INSTALL_DATA	= @INSTALL@ -m 644
+INSTALL_LIB	= @INSTALL@ -m 755
+INSTALL_SCRIPT	= @INSTALL@ -m 755
+
+INCS_X		= @X_CFLAGS@
+INCS_XPM	= @XPM_CFLAGS@
+INCS_JPEG	= @JPEG_CFLAGS@
+INCS_PNG	= @PNG_CFLAGS@
+INCLUDES	= $(INCS_X) $(INCS_XPM) $(INCS_JPEG) $(INCS_PNG)
+
+LIBS_X		= @x_libs@
+LIBS_XPM	= 
+LIBS_JPEG	= @JPEG_LIBS@
+LIBS_PNG	= @PNG_LIBS@
+LIBS_AUDIO	= @AUDIO_LIBS@
+LIBS_XEXTS	= 
+LIB_AFTERSTEP	= @AFTERSTEP_LIB@  
+LIB_ASIMAGE     = @ASIMAGE_LIB@
+LIB_WIDGETS     = @WIDGETS_LIB@
+LIBS_ASIMAGE    = $(LIB_ASIMAGE) $(LIB_AFTERSTEP) $(LIBS_JPEG) $(LIBS_PNG) $(LIBS_XPM)
+LIB_ASCONFIG    = @CONFIG_LIB@
+LIBRARIES	= $(LIBS_ASDYN) $(LIBS_XEXTS) $(LIBS_X)
+
+LIBDIR		= $(DESTDIR)@libdir@
+AFTER_BIN_DIR	= $(DESTDIR)@bindir@
+AFTER_MAN_DIR	= $(DESTDIR)@mandir@/man1
+AFTER_DOC_DIR	= $(DESTDIR)@datadir@/afterstep/doc
+AFTER_SHAREDIR	= $(DESTDIR)@datadir@/afterstep
+GNUSTEP		= @with_gnustep_dir@
+GNUSTEPLIB	= @with_gnustep_lib@
+AFTER_DIR	= @with_afterdir@
+AFTER_SAVE	= @with_afterdir@/.workspace_state
+AFTER_NONCF	= @with_afterdir@/non-configurable
+
+#
+# End of Make.defines
+#

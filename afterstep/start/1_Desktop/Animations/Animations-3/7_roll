@@ -1,0 +1,1 @@
+Exec "Roll" exec sh -c "killall xlock ; xlock -nolock -mode roll -inroot &"

@@ -1,0 +1,32 @@
+Now, the things I still want to do with it.  If you have suggestions, please
+send them to me, want to make this as useful as possible.
+
+To do: (in no particular order)
+ - Add the following configurable options:
+   - WinlistAction <action> <response>
+       Add more actions, like press, release, motion, 2x click, slide, etc.,
+         instead of just Click<x>
+   - WinlistTooLong (wrap|truncate|initials)
+       What to do if the names are too long.  (assuming you set MaxWidth)
+ - Allow the user to setup what is in the Op's and Detail's menu
+ - Possible allow diffent fonts/colors for submenus.
+ - Rob mentioned some people would like icons in the list if the window
+     if iconified.  I personally like the (), although  I am a but biased.
+     Let me know what you think/want, I will try.
+ - Place a small 3-D pixmap/bitmap next-to/around the windows that are
+     iconified instead of the ().
+ - Like to allow resizing of the window and have the buttons match the window
+     (ie.  You make it wider you get 2 columns of buttons, etc.)
+
+ - Fix the following:
+   - The function saferealloc, based on safemalloc by Rob Nation still doesn't
+     work correctly, I left it in the Mallocs.c file but I use the normal
+     realloc now.  (Being lazy on this one)
+   - Tune WinList to be more efficient  (Low priority, right now)
+
+I am open to, actually I am trolling for, suggestions/improvments/ideas/rags
+on this.
+
+Enjoy,
+Mike
+mfinger@mermaid.micro.umn.edu or Mike_Finger@atk.com

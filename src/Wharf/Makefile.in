@@ -1,0 +1,16 @@
+EXTRA_INCLUDES	= -I.
+
+EXTRA_DEFINES	= -DENABLE_DND -DENABLE_SOUND
+
+OBJS		= Wharf.o icons.o
+
+PROG		= Wharf
+
+LIBS_ASDYN      = $(LIBS_ASIMAGE)
+LIBS_DEPEND     = $(LIB_AFTERSTEP) $(LIB_ASIMAGE)
+
+@MAKEFILECOMMON@
+
+install:	install.bin install.man
+
+uninstall:	uninstall.bin uninstall.man

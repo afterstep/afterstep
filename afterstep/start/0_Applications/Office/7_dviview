@@ -1,0 +1,1 @@
+Exec "Dvi viewer" exec xdvi -background peachpuff -hl midnightblue -cr red -margins 1cm -s 4 &

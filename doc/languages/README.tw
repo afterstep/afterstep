@@ -1,0 +1,260 @@
+****************************************************************************
+****************					    ****************
+****************	  這是 AfterStep 1.8.6		    ****************
+****************					    ****************
+****************************************************************************
+
+在 doc/languages 下你可以找到這份  README 的翻譯版。如果沒有你的語
+言版本，*請寫一份並寄給我！
+
+如果你的 README 和這份不同：* 請寄給我你的修補以便更新它。
+
+
+  程式庫
++--------+
+
+下面的程式庫並不是執行及玩 AfterStep 所需要的，然而，在 AfterStep
+及它的模組裏已經有支援它們。
+
+ o  libXpm
+ o  libjpeg
+ o  libpng
+
+  安裝
++------+
+
+解開 AfterStep-1.6.x.tar(gz|bz2) 然後 -
+
+	./install.script
+	或是
+	./configure
+	make
+	make install
+	mv ~/.xinitrc ~/xinitrc.old
+	echo afterstep > ~/.xinitrc
+
+* 然後試試 AfterStep... 我想你會愛上它。
+
+如果真如此，請到 http://www.PLiG.org/xwinman/vote.html 投一票給
+AfterStep 來讓我們檢視是否付出的努力是有義意的 :-)
+
+  詳細的指示
++------------+
+
+解開 AfterStep-1.6.x.tar(gz|bz2)，然後執行 configure 來偵測不同系
+統的選項：
+
+	./configure
+
+Configure 有許多選項可以用， --disable 或--enable 或 include 屬於
+AfterStep 的不同建構。詳細的列表可以用 ./configure --help 來取得，
+下面是一些，它的內定值放在括弧內。
+
+  --with-imageloader=APP  用來顯示非 XPM 檔 [xli -onroot -quiet]
+  --with-helpcommand=APP  顯示視窗的線上手冊 [xiterm -e man]
+  --with-startsort=METHOD 啟動選單排序方法 [SORTBYALPHA]
+  --enable-different-looknfeels  每個桌面的不同 look&feel [no]
+  --with-desktops=DESKS   在 pager 下的內定桌面 [4]
+  --with-deskgeometry=GEOM  桌面的畫面會成為 COLUMNSxROWS [2x2]
+  --enable-newlook	  支援新式 look 選項 (MyStyles) [yes]
+  --enable-pagerbackground 用 Pager 來支援背景 [yes]
+  --enable-i18n 	  支援 I18N [no]
+  --enable-xlocale	  使用 X_LOCALE [no]
+  --enable-menuwarp	  將滑鼠指標包含到選單裏 [no]
+  --enable-savewindows	  儲存視窗再重開下一個執行項 [yes]
+  --enable-makemenus	  從 start/ 樹來製作選單 [yes]
+  --enable-makemenusonboot 總是把在開啟時製作 start 選單 [no]
+  --enable-texture	  支援 gradient, XPM, 和 JPEG textures [yes]
+  --enable-shade	  支援有影子的視窗 [yes]
+  --enable-virtual	  支援虛擬桌面 [yes]
+  --enable-saveunders	  從選單來要求 saveunders [yes]
+  --enable-windowlist	  編譯內建的視窗列表 [yes]
+  --enable-availability   檢查沒有的二進位檔 [yes]
+  --enable-staticlibs	  將固定地連接到 libafterstep 開啟 [yes]
+  --enable-script	  編譯 Script 模組   [yes]
+  --with-xpm		  支援 XPM 圖形格式  [yes]
+  --with-jpeg		  支援 JPEG 圖形格式 [yes]
+  --with-png		  支援 PNG 圖形格式  [yes]
+
+如果你無法成為 root，你就必須使用適當的路徑到 ./configure 選項後
+，以便更改整個系統的安裝路徑到你擁有"寫入"權利的路徑下：
+
+
+  --prefix=PRE		  安裝獨立於主機架構的檔案到 PRE [/usr/local] 裏
+  --bindir=DIR		  使用者的可執行檔放在 DIR [PRE/bin]　裏
+  --datadir=DIR 	  獨立於主機架構的唯讀資料到 DIR [PRE/share]
+  --mandir=DIR		  man 頁文件到 DIR [PRE/man]
+
+開始建造程序並監視上面命令的輸出情形是否有錯誤訊息!!
+
+	make
+
+成為 root，或用 su 命令，如果你更改 ./configure 來安裝到你的主目錄
+($HOME)裏，然後執行 install 來安裝二進位程式碼和 man 頁。
+
+	su root -
+	make install
+
+插入一個呼叫到視窗管理員的 X 伺服器使用者手稿裏。如果安裝二進位檔的
+目錄並不在你的 PATH 下，那麼請提供完整路徑到 echo 後面。內定所有的
+二進位檔會被安裝到 /usr/local 裏，而它也不在 root 的PATH 之下! :)
+
+	echo afterstep > ~/.xinitrc
+
+如果你想繼續使用舊的 .steprc 單檔案建構，而不使用 GNUstep 邏輯分層
+結構，請使用已改過的 .xinitrc 檔案
+
+	echo "afterstep -f ~/.steprc" > ~/.xinitrc
+
+要捕捉第一次執行  AfterStep 的錯誤訊息，你可以將任何可能發生的訊息導
+入到一個檔案裏，做為事後檢視用。
+
+	startx > ~/AF-debug 2>&1
+
+如果你使用 Red Hat 和/或 wmconfig (ick)，再看 README.redhat 有詳細
+資料。
+
+  提示
++------+
+
+有許多 "looks" (主題) 已包含到這個版本裏了。它們可以用下面的方式從
+選單裏來啟動．
+
+	(startmeu)->Desktop->Looks->look.***
+
+還有許多 "feels"  (鍵盤分佈及視窗回應)、背景圖片、以及動畫等可以試
+用看看的。使用方法跟上面一樣，只需在  Desktop 選單下來選擇它們即可
+。但是如果你想使用 *不一樣* 的 look 和 feel 檔案來給 *每個* 桌面使
+用，只需指定到
+
+./configure
+
+裏面。如果你想改變或增加選項到你的開始選單裏，你需要先建立一個檔案
+到共享目錄樹或是開始目錄樹 ~/GNUstep/Library/AfterStep/start 裏，
+然後再告訴 AfterStep 說選單已經被改變了。
+
+	(startmeu)->Desktop->Update startmenu
+
+  工具
++------+
+
+AfterStep 有幾個放在 tools/ 目錄裏的工具程式。"Uninstall-Old-AfterStep"
+是個命令手稿用來移除 1.3.x 和 1.4.x 舊版的二進位程式， man 頁和文
+件。只要看看這個命令手稿的前面部份即可知道它的用法。不加選項的話，
+它只會移除核心的 afterstep 檔案，只留下原版本附屬的應用軟體，"bughint"
+檔可以在尋找和報告臭虫時執行。"makeasclean" 和 "makeaspatch"兩者被
+用來清除原始程式樹並修補發行版 (以適檔的格式)。pagerconfig1_4to1_5
+是個轉譯 1.4.x pager 建構檔案成為較新的 1.5.x 格式之命令手稿。
+
+  主題
++------+
+
+在工具裏最大的新增功能是主題控制員。現在有兩個 perl 手稿用來製造及
+安裝由同樣是這個主題控制手稿的主題。裏面包含有 readme ，請檢查看看
+再開始製作主題! 目前在	AfterStep 裏並沒有選單用來使用這些手稿，但
+請不要因為這樣而來阻止任何人這麼做。[ 我們的目標是：請大家去請求在
+ftp.afterstep.org 主機上放上所有的主題! - 關於主題的發送詳情請閱讀
+ftp.afterstep.org 內的 /themes 目錄下的 README 檔案。
+(就快要變成 www.afterstep.org 裏的網頁之一...快了) ].
+
+  常問集 FAQ
++------------+
+
+現在，在你提出問題之前，請確認你已經閱讀了包含在這份發行版的常問題
+FAQ，只需在按一下前排的 Wharf 按鍵，或從功能選單裏選擇 AfterStepDoc。
+這個 doc/1.0_to_1.5 檔裏面詳列了許多直到 1.5.x 上不同處，而 
+README_new.options 列出新的選項。
+
+  修補
++------+
+
+如果使用修補檔來升級成新版本，請先 cd 到該版本的最上層目錄 (也就有
+這個 README 檔的那個目錄啦)。然後執行 "make distclean"，再用下面命
+令來修補這版本
+
+    gunzip -c patch_file_name | patch -p1
+
+這裏的 "patch_file_name" 是指修補檔 (例如像 1.6.0-01-creator-fixes_this.patch.gz)．
+然後你可以用前面的方法來重新開始編譯．
+
+  網站
++------+
+
+更多資訊		:		www.afterstep.org
+新版本: 		:		ftp.afterstep.org
+協助			:		mail afterstep@linuxcenter.com
+					subject: subscribe
+程式設計師		:		mail afterstep@linuxcenter.com
+					subject: subscribe
+聊天			:		#afterstep on EFNet
+要進入 EFNet 的話，只要連接到任何 efnet irc 伺服器即可:
+	irc.concentric.net ; irc.prison.net ; ircd.txdirect.net
+
+  維護者
++--------+
+
+請看 TEAM 檔案
+
+12.29.98
+
+ 法令
++------+
+
+ o 隱含版權
+
+自從伯恩會議後，版權是隱含的，甚至就算原作者並沒在他擁有的智慧財產裏
+書寫著 "版權所有" 的字眼。
+
+因此，在寫這份文件時，每一個檔案都由個別擁有者擁有它的版權 Copyright (C)
+
+ o 版權
+
+這個稱為 AfterStep 的全部程式是依據 GNU GPL (公眾執照) 第 2 版來發行的。
+AfterStep 程式庫則依據 LGPL 執照。
+AfterStep 文件用 LDP 執照來發行。
+
+詳情請參閱 doc/licenses/ 裏面的檔案。
+
+ o 例外
+
+	1. MIT/Evans & Sutherland copyright
+
+有些在 src/的檔案，檔名由 twm開始的，是採用不同的執照的：
+add_window.c afterstep.c borders.c clientwin.c functions.c
+
+	2. Headers 檔
+
+Headers 檔是公有領域的軟體； Robert Nation 在 decorations.c 有提到：
+
+<<
+
+  有益的結構以及常數的定義是由 mitnits@bgumail.bgu.ac.il (Roman Mitnitski )
+  貢獻的，在他和一位在 OSF 的朋友開完會後寄出這個註解：
+
+ >  你好， Rob
+ >
+ >  我很高興在這裏宣布，你可用任何方式來使用 motif 公有
+ >  headers 檔... 我剛接到我朋友的一封信，它的文字表述
+ >  如下：
+ >
+ >> 你好
+ >>
+ >> 嗯，你可以使用 motif 公有 header 檔案，特別是你可以在你的程式裏面
+ >> 包含進這些檔案，這並無限制...還有，禁止任何人
+ >> 將版權做成一些數字 (我意思是說以二進位旗標來掩飾) 或
+ >> 資料結構 (我意思是 motif 使用的小結構來將掩飾的敘述轉到 mwma 上)。
+ >> 或把它取成其他名稱，如果你很在乎的話。
+ >>
+ >> 你甚至可以使用我傳給你的那些小程式碼 - 我們正在談
+ >> 這兩頁程式碼的千萬發行量啊!
+ >>
+ >> 不要傻了。
+ >>
+ >> 祝好運
+ >>
+ >> Eli
+
+
+作者: Guylhem AZNAR <guylhem@oeil.qc.ca>
+中譯: 謝崑中 HSIEH, KUN-CHUNG  <linuxer.bbs@cis.nctu.edu.tw>
+

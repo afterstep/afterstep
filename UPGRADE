@@ -1,0 +1,64 @@
+///
+///     This is AfterStep UPGRADE
+///
+
+Theme usage changed slightly from shell scipting to perl scripts.  Users
+of earlier 1.7.x snapshots should verify that these following files match
+those in the share tree:
+
+$HOME/GNUstep/Library/AfterStep/start/Desktop/Theme/.include
+$HOME/GNUstep/Library/AfterStep/form
+
+Likewise it is always a good idea to _mv_ your old ~/G/L/A aside and
+start with the newly created tree upon your first run of AfterStep.
+
+---------------------------------------------------------------------------
+
+AfterStep 1.6.x+ - UPGRADE - December 10 1998 - (mihm)
+
+Before installing this release, all previous versions of the binary and
+modules should be removed.  A script is included to remove the old binaries,
+
+so locate some files to set the variables, for example:
+
+    ...to get the BIN variable
+	# find / -type f -perm +111 -name afterstep
+	/usr/bin/afterstep
+    ...to get the MAN variable
+	# find / -type f -name afterstep | grep man
+	/usr/bin/man/man1/afterstep.1
+    ...to get the DOC variable
+	# find / -type f -name afterstep-1.html
+	/usr/share/afterstep/doc/afterstep-1.html
+
+Now edit the /<src-root>/AfterStep-<version>/tools/Uninstall-Old-AfterStep
+file and replace the variables at the top with the ones you found, using our
+example above:
+
+	BIN=/usr/bin/
+	MAN=/usr/bin/man/man1/
+	DOC=/usr/share/afterstep/doc/
+
+Save and exit the script and run it:
+
+	/<src-root>/AfterStep-<version>/tools/Uninstall-Old-AfterStep
+
+By default, this script only removes the old man pages, afterstep binary and
+modules; leaving the AfterStep apps that were once shipped with the release,
+on the disk.  If you'd like to remove all of these as well (understanding
+that you'll need to reinstall them after obtaining them from the ftp site),
+you can issue the '-all' option.  This script will also mv all the existing
+users' ~/GNUstep/Library/AfterStep/ directory tree to a backup copy.  Some
+configuration files have been modified in the new release and to ensure
+that afterstep will start, these should be moved aside.  After starting,
+the old configuration files can be merged with the new configuration files,
+as long as close attention is paid when merging them.
+
+In addition to what the script removes, if you have not done any
+modifications to the (typically for 1.3.x-1.4.x) /usr/share/afterstep/
+directory tree, you can safely remove it. BE CAREFUL! Make sure you aren't
+using that directory for your configuration and have forgotten that you
+actually DID make a modification in there. :)
+
+A reminder: Always *move* your ~/G/L/A/ tree to a backup before starting a
+new version number of AfterStep, e.g 1.4.x to 1.5.x .  NO EXCEPTIONS!

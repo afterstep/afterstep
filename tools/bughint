@@ -1,0 +1,25 @@
+#!/bin/sh
+
+echo "Please include sysinfo.gz in your bug report"
+echo
+echo "Gathering information for bug tracking..."
+uname -a > sysinfo
+echo "=============== AfterStep ===============" >> sysinfo
+echo "afterstep version :">>sysinfo
+afterstep -v >> sysinfo
+echo "located at :">>sysinfo
+which afterstep >> sysinfo
+echo "=============== xdpyinfo ================" >> sysinfo
+xdpyinfo >> sysinfo
+echo "=============== env ================" >> sysinfo
+env >> sysinfo
+echo "=============== ldconfig ================" >> sysinfo
+if [ `uname` = 'Linux' ]; then
+	/sbin/ldconfig -p >> sysinfo
+else
+	/sbin/ldconfig -r >> sysinfo
+fi
+
+gzip -9 sysinfo
+
+echo done.

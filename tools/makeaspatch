@@ -1,0 +1,60 @@
+#!/bin/sh
+
+# personnal preferences
+ASDIR=/usr/src/AfterStep
+ASDEVNAME=AfterStep-devel
+ASCURNAME=AfterStep-current
+PATCH=/tmp/patch
+
+# make sure we do this in the right dir
+cd $ASDIR
+
+# remove the old devel version, and copy the new one
+rm -rf ${ASCURNAME}2 ${ASCURNAME}-2
+cp -r ${ASDEVNAME} ${ASCURNAME}-2
+
+# clean out the directories we'll be making the patch from
+(cd ${ASCURNAME} && tools/makeasclean)
+(cd ${ASCURNAME}-2 && tools/makeasclean)
+
+# make the patch
+diff -N -u -r ${ASCURNAME} ${ASCURNAME}-2 > ${PATCH}
+
+# check for c++-style comments
+if grep -q "//" ${PATCH}; then
+  echo "Warning!  Possible C++ comment(s) detected."
+  fi
+
+# try to make sure there's a ChangeLog entry
+if ! grep -q "ChangeLog" ${PATCH}; then
+  echo "Warning!  No ChangeLog entry detected."
+  fi
+
+# check the patch for files with no newline at the end; such files confuse 
+# the various versions of patch
+if grep -q "\\ No newline at end of file" ${PATCH}; then
+  echo "Warning!  Files with no newline at the end detected in patch."
+  echo "Please be sure all files have newlines at the end, otherwise some"
+  echo "versions of patch will be confused."
+  fi
+
+# try to make sure "make config" was run if configure.in was changed
+if grep -q "configure.in" ${PATCH} && ! grep -q "configure " ${PATCH}; then
+  echo "Warning!  Changes to configure.in detected, but configure does"
+  echo "not appear to be changed.  Please be sure to run:"
+  echo "make config"
+  echo "to update the configure script."
+elif test ${ASDEVNAME}/configure -ot ${ASDEVNAME}/autoconf/configure.in; then
+  echo "Warning!  configure appears to be older than configure.in.  Please"
+  echo "be sure to run:"
+  echo "make config"
+  echo "to update the configure script."
+fi
+
+# try to make sure that the version number was changed
+if ! grep -q "version=" ${PATCH}; then
+  echo "Warning!  No change to version number detected.  Please change the"
+  echo "version number with:"
+  echo "makeasversion major.minor.patchlevel"
+  echo "by incrementing the patchlevel.  For example, 1.7.0 would become 1.7.1."
+fi

@@ -1,0 +1,16 @@
+./asetroot.o: \
+        ../../configure.h \
+        ../../include/aftersteplib.h \
+        ../../include/afterstep.h \
+        ../../include/style.h \
+        ../../include/mystyle.h \
+        ../../include/screen.h \
+        ../../include/parser.h \
+        ../../include/confdefs.h \
+        ../../include/module.h \
+        ../../include/ascolor.h \
+        ../../include/stepgfx.h \
+        ../../include/XImage_utils.h \
+        ../../include/pixmap.h \
+        ../../include/loadimg.h \
+        ../../include/background.h

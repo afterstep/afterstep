@@ -1,0 +1,4 @@
+keepname
+include "@datadir@/afterstep/feels" ChangeFeel
+include "@with_afterdir@/feels" ChangeFeel
+extension feel.

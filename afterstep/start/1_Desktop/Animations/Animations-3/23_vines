@@ -1,0 +1,1 @@
+Exec "Vines" exec sh -c "killall xlock ; xlock -nolock -mode vines -inroot &"

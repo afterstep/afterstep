@@ -1,0 +1,1 @@
+Exec "pdf viewer" exec xpdf &

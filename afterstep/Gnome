@@ -1,0 +1,12 @@
+# Gnome config file, replace Desktop 0 etc with what you want
+# add more entries for more desks with GNOME
+
+*GnomeDeskName Desktop 0
+*GnomeDeskName Desktop 1
+*GnomeDeskName Desktop 2
+*GnomeDeskName Desktop 3
+
+# Virtual Pages, 0 disables, 1 enables. The gnome pager applet doesn't handle
+# these properly, I suggest using 0 for now
+
+*GnomePages 0

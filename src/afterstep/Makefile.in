@@ -1,0 +1,16 @@
+OBJS		= add_window.o afterstep.o borders.o clientwin.o \
+		colormaps.o configure.o decorations.o dirtree.o \
+		events.o frame.o functions.o gnome.o icons.o menus.o \
+		misc.o module.o move.o myscandir.o pager.o \
+		placement.o resize.o style.o windows.o menuitem.o
+
+PROG		= afterstep
+
+LIBS_ASDYN      = $(LIBS_ASIMAGE)
+LIBS_DEPEND     = $(LIB_AFTERSTEP) $(LIB_ASIMAGE)
+
+@MAKEFILECOMMON@
+
+install:	install.bin install.man
+
+uninstall:	uninstall.bin uninstall.man

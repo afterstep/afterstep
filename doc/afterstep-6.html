@@ -1,0 +1,106 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<HTML>
+<HEAD>
+ <META NAME="GENERATOR" CONTENT="SGML-Tools 1.0.9">
+ <TITLE>AfterStep 1.8 FAQ: GNOME</TITLE>
+ <LINK HREF="afterstep-7.html" REL=next>
+ <LINK HREF="afterstep-5.html" REL=previous>
+ <LINK HREF="afterstep.html#toc6" REL=contents>
+</HEAD>
+<BODY>
+<A HREF="afterstep-7.html">Next</A>
+<A HREF="afterstep-5.html">Previous</A>
+<A HREF="afterstep.html#toc6">Contents</A>
+<HR>
+<H2><A NAME="s6">6. GNOME</A></H2>
+
+<P>
+<P>
+<P>
+<H2><A NAME="ss6.1">6.1 What is GNOME, and why should I use it?</A>
+</H2>
+
+<P>The GNOME project is a lot of things.
+The following is taken from the GNOME FAQ, 
+<A HREF="http://www.gnome.org/gnomefaq/html/x37.html">http://www.gnome.org/gnomefaq/html/x37.html</A>
+<BLOCKQUOTE><CODE>
+<PRE>
+GNOME is the GUI desktop of the GNU Project.
+
+To quote from the original announcement from comp.os.linux.announce, GNOME is intended 
+to be "a free and complete set of user friendly applications and desktop tools, similar
+to CDE and KDE but based entirely on free software."
+
+I, your lowly FAQ maintainer, like to explain GNOME as everything that's expected in a 
+modern programming environment. In this respect, it is approximately equivalent to CDE, 
+Win32, NextStep, or KDE. The big difference is that, unlike any of the above-mentioned 
+examples, every single component of GNOME is Free Software. Not only that, but GNOME is 
+extremely customizable compared to most desktop environments.
+
+If all of this seems ambitious, that's because it is! Read on to find out more!
+</PRE>
+</CODE></BLOCKQUOTE>
+
+The entire GNOME FAQ can be read online at 
+<A HREF="http://www.gnome.org/gnomefaq/html/index.html">http://www.gnome.org/gnomefaq/html/index.html</A>.
+<P>
+<H2><A NAME="ss6.2">6.2 Why do window managers have to be GNOME compliant?</A>
+</H2>
+
+<P>They don't have to be.  Many popular window managers are not GNOME compliant, but because
+GNOME will probably be prevalent on *NIX desktops some day in the future, window managers
+wishing to provide as many features to users as possible should be GNOME compliant.
+<P>It must be noted that GNOME compliancy is always changing, and is not finalized 
+whatsoever.  Because of the pace of GNOME development, what worked one day, may not work
+the next.  AfterStep is not 100% compliant, in fact, no window manager is.  Some aspects
+of compliancy with GNOME cannot be implemented in AfterStep, because the window manager is
+much more powerful, virtual desktops and Pager, for example.  Some window managers do a 
+better job of compliancy than others.  AfterStep attempts to be compliant in as many
+regards at it can, but perfection is not possible.  If you are looking for a window 
+manager that can run with GNOME almost all the time, and do it well, AfterStep is a good
+choice.  If you want something that will cooperate with GNOME to the point of being GNOME,
+try something else.
+<P>
+<H2><A NAME="ss6.3">6.3 How do I get AfterStep to be GNOME compliant?</A>
+</H2>
+
+<P>The following are my (<CODE>ishamael@themes.org</CODE>) experiences with getting GNOME and AfterStep
+running together like any other window manager.  If you have any suggestions or other
+ways to do this, please email me.
+<P>While in your current window manager (be it AfterStep or another):
+<P>Set the WINDOW_MANAGER variable to "afterstep"  (in bash this can be done with 
+'export WINDOW_MANAGER="afterstep"'  you should put this in your bashrc file.)
+Run "gnomecc" and go to the "Window Manager" section.  "Add"
+<P>
+<UL>
+<LI>Name: AfterStep</LI>
+<LI>Command: afterstep</LI>
+<LI>Configuration Command: xterm</LI>
+</UL>
+<P>AfterStep is session managed, so check the box.
+At this point, save the settings, and close gnomecc (you might want to start it again and check it to make sure the addition is there).
+<P>You will also need to make a small change to the gnome-wm script (usually at 
+/usr/bin/gnome-wm or /usr/local/bin/gnome-wm).  The line that reads:
+<HR>
+<PRE>
+exec $WINDOW_MANAGER $*
+</PRE>
+<HR>
+
+change to:
+<HR>
+<PRE>
+exec $WINDOW_MANAGER
+</PRE>
+<HR>
+<P>Now, you should close X down, and put "gnome-session" in your .xinitrc (or however
+you start X), and start it up again. 
+<P>If all goes well, AfterStep and GNOME will start.  Also please make sure you are using the
+Gnome AfterStep module, and a GNOME compliant feel (such as feel.GNOME).
+<P>
+<HR>
+<A HREF="afterstep-7.html">Next</A>
+<A HREF="afterstep-5.html">Previous</A>
+<A HREF="afterstep.html#toc6">Contents</A>
+</BODY>
+</HTML>

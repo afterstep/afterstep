@@ -1,0 +1,1 @@
+Exec "Telnet" exec xterm -n telnet -T telnet -e telnet &

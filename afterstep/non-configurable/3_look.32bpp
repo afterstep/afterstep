@@ -1,0 +1,257 @@
+##########################################################################
+# Look by David Mihm (look.DEFAULT updated Aug 25, 1999)
+#
+#------------------------------------------------------------------------
+# Styles :
+#
+# If there is a style named "default" and no default style is specified, 
+# the "default" style will be used as the default
+# Inherited styles will override options.
+
+# default should never be used, so let's make it obvious when it *is* used
+MyStyle "default"
+  Font		-*-helvetica-*-r-*-*-12-*-*-*-*-*-*-*
+  ForeColor	red
+  BackColor	green
+  MaxColors 128
+  ~MyStyle
+
+#----------Window MyStyles---------#
+
+TitleButtonBalloons
+TitleButtonBalloonBorderColor	gray30
+TitleButtonBalloonBorderWidth	2
+TitleButtonBalloonDelay		200
+
+MyStyle "TitleButtonBalloon"
+  ForeColor	grey70
+  BackColor	Black
+  Font		-*-helvetica-*-r-*-*-10-*-*-*-*-*-*-*
+  ~MyStyle
+
+MyStyle "window_font"
+  Font		-*-lucida-bold-r-*-*-13-*-*-*-*-*-*-*
+  TextStyle	0
+  ~MyStyle
+
+MyStyle "focused_window_style"
+  Inherit	window_font
+  TextStyle	1
+  ForeColor     #E5E2E8				#basically white
+  BackColor	#475293
+  BackGradient	2	#6068DB	#475293
+  MaxColors	10
+  ~MyStyle
+
+MyStyle "unfocused_window_style"
+  Inherit       window_font
+  ForeColor     #050505
+  BackColor     #6e5b52
+  MaxColors	10
+  ~MyStyle
+
+MyStyle "sticky_window_style"
+  Inherit       window_font
+  ForeColor     #9E9EA7
+  BackColor	#4e2f2f
+  MaxColors	10
+  ~MyStyle
+
+
+#----------Menu MyStyles---------#
+MyStyle "menu_title_font"
+  Font          -*-lucida-bold-r-*-*-13-*-*-*-*-*-*-*
+  TextStyle     0
+  ~MyStyle
+  
+MyStyle "menu_font"
+  Font          -b&h-lucida-medium-r-*-*-12-*-*-*-*-*-*-*
+  TextStyle     0
+  ~MyStyle
+  
+MyStyle "menu_title_style"
+  Inherit       menu_title_font
+  ForeColor     grey70
+  BackColor     #050505                         #basically black
+  ~MyStyle
+  
+MyStyle "menu_item_style"
+  Inherit       menu_font
+  ForeColor     #E5E2E8                         #basically white
+  BackColor     grey30
+  ~MyStyle
+  
+MyStyle "menu_hilite_style"
+  Font          -*-helvetica-bold-r-*-*-13-*-*-*-*-*-*-*
+  ForeColor     white
+  BackColor     #475293
+  ~MyStyle
+
+MyStyle "menu_stipple_style"
+  Inherit       menu_item_style
+  ForeColor	grey70
+  ~MyStyle
+
+DefaultStyle "default"
+FWindowStyle "focused_window_style"
+UWindowStyle "unfocused_window_style"
+SWindowStyle "sticky_window_style"
+MenuItemStyle "menu_item_style"
+MenuTitleStyle "menu_title_style"
+MenuHiliteStyle "menu_hilite_style"
+MenuStippleStyle "menu_stipple_style"
+
+#----------Pager MyStyles---------#
+
+MyStyle "*PagerBalloon"
+  Font		-adobe-helvetica-bold-o-*-*-10-*-*-*-*-*-*-*
+  ForeColor	Black
+  BackColor	Grey70
+~MyStyle
+
+MyStyle "DeskStyle"
+  ForeColor	grey70
+  BackColor	grey30
+  BackPixmap	129
+~MyStyle
+
+MyStyle "*PagerActiveDesk"
+   Font 		-adobe-helvetica-bold-o-*-*-10-*-*-*-*-*-*-*
+   BackColor           #475293
+   ForeColor           Grey70
+~MyStyle
+
+MyStyle "*PagerInActiveDesk"
+   Font 		-adobe-helvetica-bold-o-*-*-10-*-*-*-*-*-*-*
+    BackColor           Grey30
+    ForeColor           Grey70
+~MyStyle
+
+MyStyle "*PagerFWindowStyle"
+    Inherit	focused_window_style
+    Font	5x8
+~MyStyle
+
+MyStyle "*PagerUWindowStyle"
+    Inherit	unfocused_window_style
+    Font	5x8
+~MyStyle
+
+MyStyle "*PagerSWindowStyle"
+    Inherit	sticky_window_style
+    Font	5x8
+~MyStyle
+
+#----------Wharf MyStyles---------#
+
+MyStyle "*WharfBalloon"
+  Font		-adobe-helvetica-bold-o-*-*-12-*-*-*-*-*-*-*
+  ForeColor	Black
+  BackColor	Grey70
+~MyStyle
+
+MyStyle "*WharfTile"
+  BackColor	grey50
+  BackPixmap	128 ASBBlockDefault.xpm
+~MyStyle
+
+#----------WinList MyStyles---------#
+
+MyStyle "*WinListBalloon"
+  Font		-b&h-lucida-medium-r-normal-*-10-*-*-*-p-*-iso8859-1
+  ForeColor	Black
+  BackColor	Wheat
+~MyStyle
+
+MyStyle "*WinList"
+  ForeColor     white
+  BackColor     gray10
+  Font		-b&h-lucida-medium-r-normal-*-*-100-*-*-p-*-iso8859-1
+  TextStyle  2
+  BackPixmap 129 #a8a8a8
+~MyStyle
+
+#----------Button MyStyles---------#
+
+MyStyle "ButtonPixmap"
+  BackColor     Black
+  BackPixmap    128 ASBBlockDefault.xpm
+  ~MyStyle
+
+MyStyle "ButtonTitleFocus"
+  Font		-*-helvetica-bold-r-*-*-10-*-*-*-*-*-*-*
+  ForeColor     grey70
+  BackColor     Black
+  ~MyStyle
+
+MyStyle "ButtonTitleSticky"
+  Font          -*-helvetica-bold-r-*-*-10-*-*-*-*-*-*-*
+  ForeColor     grey70
+  BackColor     Black
+  ~MyStyle
+
+MyStyle "ButtonTitleUnfocus"
+  Font          -*-helvetica-bold-r-*-*-10-*-*-*-*-*-*-*
+  ForeColor     grey70
+  BackColor     Black
+  ~MyStyle
+
+
+# [0|1] Show Title on Buttons how?
+SeparateButtonTitle 0
+# [x y] Size of buttons?
+ButtonSize 64 64
+#--------------------------
+
+
+# 2) Textures : avoid them on 8bpp !
+
+#   0 - No texture
+#   1 - Wharf-style gradient                            ^-
+#   2 - Horizontal one way gradient                     ¯-_
+#   3 - Horizontal from top/bottom to center            =-=
+#   4 - Vertical one way gradient from left to right    ||| | |  | |
+#   5 - Vertical from left/right to center              >>>>>><<<<<<
+# 128 - User defined pixmap
+# 129 - Transparent/Transluceny menu + valid xpm OR tint color
+
+MenuPinOn		as1.5-kill.xpm
+#MenuPinOff		as1.5-kill.xpm
+MArrowPixmap		arrow-dots.xpm
+
+# 2-5) : misc options
+#  Textures/Pixmaps on windows lowbar ?
+TexturedHandle
+#  Gradient on windows title ?
+#GradientText
+#  Border around iconifyied windows ?
+ButtonNoBorder
+#  [0/1/2] Draw lines between menu options ?
+DrawMenuBorders 1
+#  [0/1] Texture menu options individually, or the whole menu ?
+TextureMenuItemsIndividually 0
+#  Corner where the resize box goes to: ++, +-, -+, -- (clockwise)
+#ResizeMoveGeometry ++
+# [0/1] Do you want minipixmaps in root menu ?
+MenuMiniPixmaps 1
+# [0/1] Sort Start menu entries by 1=alphabetical order, 0=date (default)
+StartMenuSortMode 1
+# [0/1] make a space, or don't make a space (WM) beside buttons ; 1
+TitleButtonStyle	0
+#  define the number of pixels between titlebar buttons ; 0
+TitleButtonSpacing	2
+#  [0/1/2] Allows selection of move/resize rubberband look
+RubberBand 2
+
+# 3) TextStyle :
+#  Mode is either 0 (normal), 1 (big 3d), 2 (nice 3d)
+# 3-1) Text : fonts
+IconBox                 1 -64 -1 -1
+TitleTextAlign          2
+
+# TitleButtons : [1] [3] [5] [7] [9] (title) [0] [8] [6] [4] [2]
+TitleButton 1 as-switchwindow-a.xpm as-switchwindow-a-pressed.xpm
+TitleButton 2 as-kill.xpm as-kill-pressed.xpm
+TitleButton 3 as-menu-a.xpm as-menu-a-pressed.xpm
+TitleButton 4 as-shade-a.xpm as-shade-a-pressed.xpm
+TitleButton 6 as-iconize.xpm as-iconize-pressed.xpm

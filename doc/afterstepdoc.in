@@ -1,0 +1,27 @@
+#!/bin/sh
+#
+# GPL
+#
+# Copyright (C) 1998, Cristian Gafton <gafton@redhat.com>
+#               1998, Lars Torben Wilson <torben@netmill.com>
+#
+# If netscape isn't available, run lynx in a xiterm
+# First try standard path, then local, then other possible paths
+#
+
+for netscape in /usr/X11R6/bin/netscape /usr/bin/netscape \
+       /usr/local/bin/netscape /usr/local/netscape/netscape \
+       /opt/netscape/netscape /opt/bin/netscape ; do
+   if [ -x $netscape ] ; then
+     $netscape -remote \
+      openurl\(file:///@datadir@/afterstep/doc/afterstep.html\) 2>/dev/null \
+      || $netscape @datadir@/afterstep/doc/afterstep.html &
+               exit
+   fi
+done
+
+for lynx in /usr/bin/lynx /bin/lynx /usr/local/bin/lynx ; do
+    if [ -x $lynx ] ; then
+       exec xterm -bg black -fg white -sl 500 -vb -e $lynx @datadir@/afterstep/doc/afterstep.html &
+    fi
+done

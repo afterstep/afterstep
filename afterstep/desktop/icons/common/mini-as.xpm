@@ -1,0 +1,42 @@
+/* XPM */
+static char *mini-as[] = {
+/* width height num_colors chars_per_pixel */
+"    15    15       20            1",
+/* colors */
+". c #020202",
+"# c #131112",
+"a c #282727",
+"b c #201e1c",
+"c c #303058",
+"d c #160c9f",
+"e c #4632dd",
+"f c #615ca8",
+"g c #786be7",
+"h c #6454dd",
+"i c #3f2dc6",
+"j c #35a449",
+"k c #bd4b46",
+"l c #8966a0",
+"m c #8877df",
+"n c #a823b7",
+"o c #f4e810",
+"p c #9d94ed",
+"q c #f0edfe",
+"r c #a89ac0",
+/* pixels */
+"dddddiiiddiifff",
+"deeehggqghgmpqq",
+"deeeghgqgqqplpl",
+"deeeghhqghqmprr",
+"deehpheqeqqmklr",
+"deec.......fooo",
+"deea.......gglp",
+"deaa.......gglp",
+"dcbb.......hgmg",
+"dc#b...##..hggf",
+"dc.b.......fggg",
+"dc#b.......gpjm",
+"dc.#.....##fgmn",
+"da.aaab#..mmmmp",
+"dcaaab###mppmpp"
+};

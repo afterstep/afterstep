@@ -1,0 +1,1 @@
+Exec "Turtle" exec sh -c "killall xlock ; xlock -nolock -mode turtle -inroot &"

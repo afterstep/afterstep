@@ -1,0 +1,402 @@
+.\" t
+.\" @(#)Pager.1		02/07/00
+.TH Pager 1.8 "Feb 7 2000" Pager
+.UC
+.SH NAME
+\fBPager\fP \- the Afterstep desktop Pager module
+
+.SH SYNOPSIS
+\fBPager\fP [\-f \fIconfig_file\fP] [\-v | \--version] [\-h | \--help] 
+\fIfirst_desktop\fP \fIlast_desktop\fP
+.sp
+Although \fBPager\fP can be run from the command line, it is normally 
+spawned by afterstep in the \fIautoexec\fP file, in the following
+manner:
+.nf
+.sp
+	Module	"I"	Pager beginning_desktop# ending_desktop#
+	Wait	"I"	Pager
+.sp
+.fi
+In case you use Pager to switch your root backgrounds 
+\fIWait\fP can be used as shown above.  This will insure that the 
+\fBPager\fP has set the root background before you start
+any furthur apps (like transparent aterms and Eterms).
+.sp
+or from within an afterstep menu file by 'Pager':
+.nf
+.sp
+% cat "~/GNUstep/Library/AfterStep/start/Modules/Pager"
+	Module "Pager" Pager first_desktop last_desktop
+	MiniPixmap "mini-as.xpm"
+.fi
+
+To stop the \fBPager\fP module, a menu item can be used:
+.nf
+.sp
+% cat "~/GNUstep/Library/AfterStep/start/Modules/Pager_Stop"
+	KillModuleByName "Stop Pager" Pager
+	MiniPixmap "mini-as.xpm"
+.fi
+
+.SH DESCRIPTION
+The \fBPager\fP module shows a miniature view of the Afterstep desktops
+which are specified in the command line. This is a useful reminder of
+where your active windows are. Windows in the pager are accordingly to
+MyStyle definitions "*PagerUWindowStyle" - for unfocused windows,
+"*PagerFWindowStyle" - for focused windows and "*PagerSWindowStyle" -
+for sticky windows. If you never defined those MyStyles, Pager will
+default to same styles as used for actual windows.
+
+The \fBPager\fP can be used to change your viewport into the current
+desktop, to change desktops, or to move windows around.
+
+Pressing mouse button 1 or 2 in the \fBPager\fP will cause your viewport
+to change to the selected page of the selected desk. If you click with
+button 1 in the desk-label area, you will switch desks but not
+pages within the desk.
+
+Clicking and dragging with mouse button 2 on a miniature window in the
+\fBPager\fP will cause that window to be move to the location where you
+release the mouse button, but your viewport will not change. If you drag
+the window out of the pager and onto your desktop, a full size image of
+the window will appear for you to place. There is no way to pick up a
+full size image of the window and move it into the \fBPager\fP, however.
+Since some mice do not have button 2, provisions have been made to drag
+windows in the \fBPager\fP by pressing modifier-1 (usually Alt) and
+dragging with button 3.
+
+When iconified, the pager will work as a fully functional current page
+only pager. Windows and viewports can be moved within the icon of the
+pager. Users will want to make sure that they have no lines similar to
+
+Starting with version 1.7.122 Pager no longer loads background images 
+into the memory. Module asetroot should be used to accomplish that task.
+But Pager will still be able to switch backgrounds as you switch between
+desks, after you've run asetroot to load images. Use *PagerDontDrawBg
+option in pager config file to TURN background switching OFF.
+
+See asetroot man page for more information.
+
+.nf
+.sp
+	Style	"Pager"	Icon myIcon.[xpm|jpg|png]
+.sp
+.fi
+in their feel files.
+
+.SH OPTIONS
+.IP "\-f \fIconfig_file\fP"
+Use \fIconfig_file\fP instead of the default configuration file.
+
+.IP "\-h | \--help"
+Print a usage message and exit successfully.
+
+.IP "\-v | \--version"
+Print version information and exit successfully.
+
+.SH INITIALIZATION
+During initialization, \fBPager\fP will search for a configuration file
+which describes the images, locations and actions to take.  This file 
+will be the one specified by the \fI\-f\fP option (if given).  Else, the 
+~/GNUstep/Library/AfterStep/pager file will be used if it exists.  Else, 
+/usr/local/share/afterstep/pager will be used.
+
+If the \fBPager\fP executable is linked to another name, ie ln -s
+\fBPager\fP \fBOtherPager\fP, then another module called \fBOtherPager\fP
+can be started, with a completely different set of configurations than
+\fBPager\fP, simply by adding \fI*OtherPager\fP options following the same
+\fI*Pager\fP configuration options below to the \fIpager\fP file. This way
+multiple Pager programs can be used.
+
+.SH KEYBOARD FOCUS CONTROL
+You can direct the keyboard focus to any window on the current desktop
+by clicking with button 2 on its image in the pager. The window does
+not need to be visible, but it does need to be on the current page.
+
+.SH INVOCATION
+\fBPager\fP can be invoked from the \fIautoexec\fP file or from a menu
+item as shown in the Synopsis section above.
+
+AfterStep will search through the directories specified in the
+\fIModulePath\fP configuration in the \fIbase.#bpp\fP (where # is your
+colordepth) to attempt to locate \fBPager\fP.
+
+.SH CONFIGURATION FILES
+\fBPager\fP reads the \fIbase.#bpp\fP file and \fIpager\fP file when it
+starts up and looks for its configuration options.
+
+.SH CONFIGURATION OPTIONS \- \fIbase.#bpp\fP
+The following two configuration options are in the \fIbase.#bpp\fP file:
+
+.IP "*DeskTopSize \fIColumnsxRows\fP
+Defines the number of view \fIColumns\fP by the number of view
+\fIRows\fP of the desk(s) in proportional units, i.e. 2x1 would show
+2 views of one desk, one beside another.
+
+.IP "*DeskTopScale \fInumber\fP"
+If the geometry is not specified, then a desktop reduction factor is
+used to calculate the pager's size. Things in the pager window
+are shown at 1/\fInumber\fP of the actual size.
+
+.SH MyStyle DEFINITIONS
+Starting with version 1.7.60 Pager supports definition of most of
+it's visual parameters in look file as MyStyles. 
+Styles can also be defined in pager config file, but main contents of
+the look file will override them. Include them in your pager config
+to make sure that you get nice looking Pager even if styles are not 
+defined in look file.
+The following standard MyStyle names are used :
+
+.IP "*PagerUWindowStyle"
+(defaults to "unfocused_window_style") - unfocused window 
+representation's style. 
+Background pixmap and gradient can be used here.
+   
+.IP "*PagerFWindowStyle"
+(defaults to "focused_window_style") - focused window representation's
+style. Background pixmap and gradient can be used here.   
+
+.IP "*PagerSWindowStyle"
+(defaults to "sticky_window_style") - sticky window representation's
+style. Background pixmap and gradient can be used here.   
+
+.IP "*PagerActiveDesk" 
+active (selected) desk's label style. This style - defines only look of
+the desk's LABEL - to define how your actual desk window will look like
+-  you should use \fI*PagerStyle\fP option - see below. Background
+pixmap, gradient and transparency can be used here.   
+
+.IP "*PagerInActiveDesk" 
+Same as above, only for inactive desk's label. 
+Background pixmap, gradient and transparency can be used here.   
+
+.IP "*PagerDesk\fInumber\fP" 
+Defines Style of the desk representation in Pager's window. 
+This was added to allow for easier theme support. This style will
+be overriden by \fI*PagerStyle\fP option in pager config file.
+
+.IP "*PagerBalloon" 
+Mini-window balloon style.
+
+This definitions are dependant on Pager's name, so if you start Pager
+as WPager - you should change all the names, like so :
+"*PagerInActiveDesk" -> "*WPagerInActiveDesk"
+
+Different styles can be defined also for Desk's representations. See 
+*PagerStyle option below.    
+
+\fBNOTE: In order to make your look themeble all MyStyles must be
+defined  in main look file !\fP
+
+.SH CONFIGURATION OPTIONS \- \fIpager\fP
+The following configuration options are in the \fIpager\fP file:
+
+.IP "Balloons"
+Turns on the balloon feature. A "balloon" is displayed showing the name
+of the window the pointer is resting on in the \fBPager\fP. Currently
+only the window's icon name is shown. Note that balloons are not shown
+for the iconified pager. The balloon background and text  are configured
+with the MyStyle "*PagerBalloon". See \fBafterstep(1x)\fP  for more
+information on MyStyles.
+
+.IP "BalloonBorderWidth \fInumber\fP"
+Sets the width of the balloon window's border. Defaults to 1.
+
+.IP "BalloonBorderColor \fIcolor\fP"
+Sets the color of the balloon window's border. Defaults to black.
+
+.IP "BalloonYOffset \fInumber\fP"
+The balloon window is positioned to be horizontally centered against
+the application window it is describing. The vertical position may be
+set as an offset. Negative offsets of \fI-N\fP are placed \fIN\fP
+pixels above the pager window, positive offsets of \fI+N\fP are placed
+\fIN\fP pixels below. Defaults to +2.
+
+.IP "BalloonDelay \fInumber\fP"
+Specifies the period in milliseconds to delay the appearance of the
+balloon.
+
+.IP "*PagerStickyIcon"
+Allows the icons of iconified windows to follow you when switching
+desks. Without this option, the icons would stick to the desk the window
+was iconified in.
+
+.IP "*PagerDecoration \fIparam1[,param2[,...]]\fP"
+Allows you to decorate your pager to your liking.
+The following parameters can be specified :
+.RS
+.IP "DeskBorderWidth \fIwidth\fP", 
+Specifies the width of the border to be drawn
+around each desk
+.IP "DeskBorderColor \fIcolor\fP"
+Defines color of the Desk's border. Use it to override default 
+which is the style's foreground color
+.IP "NoPageSeparator"
+Turns OFF grid separating pages
+.IP "GridColor \fIcolor\fP"
+Specifies a different color than the fore color to draw grid lines. If
+this option is unused, then the same color specified with *PagerFore
+will be used for the grids.
+.IP "NoSelection"
+Turns OFF highliting of the current page
+.IP "SelectionColor \fIcolor\fP"
+Turns ON highliting of the current page, and specifies color of
+hilighting
+.IP "NoDeskLabel"
+Turns OFF desk's labeling
+.IP "LabelBelowDesk"
+That will place label below the desk instead of above the desk. Note:
+using gradients with this option will produce funky effect.
+.IP "HideInactiveLabel"
+When this option is specifyed - Pager will use shaped extensions to
+make label of all inactive desks transparent.
+.RE
+
+.IP "*PagerSmallFont \fIfont-name\fP"
+Specifies a font to use to label the window names in the pager. 
+It overrides font specifyed in Focused/Unfocused/Sticky window style
+in look file. It also displays text on background color - which
+can be usefull if BackPixmap is specifyed in window style.
+Window labels seem to be fairly useless for desktop scales of 32
+or greater.
+
+.IP "*PagerGeometry \fIgeometry\fP"
+Completely or partially specifies the pager windows location and
+geometry, in standard X11 notation. In order to maintain an undistorted
+aspect ratio, you might want to leave out either the width or height
+dimension of the geometry specification.
+
+.IP "*PagerStyle \fIdesk style\fP"
+Sets the \fIstyle\fP to be used for the desk \fIdesk\fP representation
+in the \fBPager\fP. Where \fIstyle\fP can be the name of any style 
+definition in the look file, and \fIdesk\fP is a number coresponding  to
+the desktop number: 0,1,2,3,N.... Use it if you want to specify a
+different style for \fBPager\fP background other than the default; which
+is the scaled down
+\fI*PagerDesktopImage\fP.
+.sp
+.nf
+*PagerStyle \fIdesk\fP DeskStyle1
+.sp
+.fi
+
+.IP "*PagerAlign \fILabelPosition\fP"
+Sets the alignment of the labels for the desktops. Use 0 for centered,
+>0 for left, <0 for right alignment. If <>0 the absolute value of
+\fILabelPosition\fP will be the distance between label text and
+window border.
+
+.IP "*PagerLabel \fIdesk label\fP"
+Assigns the text \fIlabel\fP to desk \fIdesk\fP in the pager window.
+Useful for assigning symbolic names to desktops, ie
+
+.IP "*PagerDontDrawBg"
+If specifyed, will not display background image, use this with xearth or 
+xfishtank, or with asetroot. 
+
+.IP "*PagerRows \fIrows\fP"
+Tells afterstep how many rows of desks to use when laying out the pager
+window. Set to 1 for horizontal \fBPager\fP and define \fIPagerColumns\fP.
+
+.IP "*PagerColumns \fIcolumns\fP"
+Tells afterstep how many columns of desks to use when laying out the
+pager window. Set to 1 for vertical \fBPager\fP and define
+\fIPagerRows\fP.
+
+.IP "*PagerIconGeometry \fIgeometry\fP"
+Specifies a size (optional) and location (optional) for the pager's icon 
+window. Since there is no easy way for Pager to determine the height of
+the icon's label, you will have to make an allowance for the icon  label
+height when using negative y-coordinates in the icon location
+specification (used to specify a location relative to the bottom instead
+of the top of the screen).
+
+.IP "*PagerStartIconic"
+Causes the pager to start iconified. 
+
+.SH FILES
+
+.IP \fI/usr/local/share/afterstep/pager\fP
+The global configuration file for system wide defaults of all users.
+
+.IP \fI$HOME/GNUstep/Library/AfterStep/pager\fP
+This file should be copied from the
+\fI/usr/local/share/afterstep/pager\fP and edited to suit the user's
+specific requirements.  This file, if it exists, will override the
+system wide default file.
+
+.IP \fI/usr/local/share/afterstep/base.[8|15|16|24|32]bpp\fP
+Contains the \fIDeskTopSize\fP & \fIDeskTopScale\fP global settings for
+the \fBPager\fP.
+
+.IP \fI$HOME/GNUstep/Library/AfterStep/base.[8|15|16|24|32]bpp\fP
+This file should be copied from the
+\fI/usr/local/share/afterstep/base.[8|15|16|24|32]bpp\fP and edited to
+suit the user's specific requirements for the \fIDeskTopSize\fP &
+\fIDeskTopScale\fP settings of the \fBPager\fP.
+
+.SH EXAMPLES
+The \fIpager\fP file shipped contains many examples, refer to the
+\fBFILES\fP section above for its configuration options.
+
+To have a \fBPager\fP oriented vertical on the desktop with 2 desks and
+1 view for each desk:
+.sp
+	...the \fIautoexec\fP file would contain \-
+.nf
+	Module	"I"	Pager 0 1
+	Wait		"I"	Pager
+.sp
+.fi
+	...the \fIbase.#bpp\fP file would contain \-
+.nf
+	DeskTopSize 1x1
+.sp
+.fi
+	...the \fIpager\fP file would contain (this modification) \-
+.nf
+	*PagerRows	2
+	*PagerColumns	1
+.sp
+.fi
+To have the \fBPager\fP swallowed in the \fBWharf\fP on one button, with
+only 1 desk and 4 views:
+.sp
+	...the \fIwharf\fP file would contain \-
+.fi
+	*Wharf Pager \- SwallowModule "Pager" Pager 0 0
+.sp
+.fi
+	...the \fIbase.#bpp\fP file would contain \-
+.nf
+	DeskTopSize 2x2
+.sp
+.fi
+	...the \fIpager\fP file would contain (this modification) \-
+.nf
+	*PagerRows	1
+	*PagerColumns	1
+.sp
+.fi
+An example of the \fBPager\fP swallowed in the \fBWharf\fP as a
+\fIFolder\fP is an example within the \fIwharf\fP file shipped.
+
+.SH AUTHORS
+Robert Nation
+.nf
+Alfredo Kojima
+.nf
+Guylhem Aznar
+.nf
+Ric Lister
+.nf
+Sasha Vasko
+.nf
+David Mihm <dmihm@swbell.net> [Man page]
+
+.SH SEE ALSO
+.BR afterstep (1),
+.BR Wharf (1),
+.BR xli (1),
+.BR X (1)

@@ -1,0 +1,26 @@
+/* XPM */
+static char * as_menu_a_xpm[] = {
+/* width height num_colors chars_per_pixel */
+"15 15 5 1",
+/* colors */
+" 	c white",
+".	c #5f5f5f",
+"X	c gray75",
+"o	c black",
+"O	c gray70",
+/* pixels */
+"              .",
+" XXXXXXXXXXXX..",
+" XoOOOOOOOOOX..",
+" XooOOOOOOOOX..",
+" XoooOOOOOOOX..",
+" XooooOOOOOOX..",
+" XoooooOOOOOX..",
+" XooooooOOOOX..",
+" XoooooooOOOX..",
+" XooooooooOOX..",
+" XoooooooooOX..",
+" XooooooooooX..",
+" XXXXXXXXXXXX..",
+" ..............",
+"..............."};

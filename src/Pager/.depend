@@ -1,0 +1,31 @@
+./Pager.h:
+
+./Pager.o: \
+        ../../configure.h \
+        ../../include/aftersteplib.h \
+        ../../include/afterstep.h \
+        ../../include/style.h \
+        ../../include/screen.h \
+        ../../include/module.h \
+        ../../include/parser.h \
+        ../../include/confdefs.h \
+        ../../include/mystyle.h \
+        ../../include/background.h \
+        Pager.h
+
+./x_pager.o: \
+        ../../configure.h \
+        ../../include/aftersteplib.h \
+        ../../include/afterstep.h \
+        ../../include/style.h \
+        ../../include/screen.h \
+        ../../include/module.h \
+        ../../include/parser.h \
+        ../../include/confdefs.h \
+        ../../include/ascolor.h \
+        ../../include/stepgfx.h \
+        ../../include/mystyle.h \
+        ../../include/XImage_utils.h \
+        ../../include/pixmap.h \
+        ../../include/background.h \
+        Pager.h

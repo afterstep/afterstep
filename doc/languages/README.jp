@@ -1,0 +1,279 @@
+****************************************************************************
+****************                                            ****************
+****************   This is AfterStep 1.8.6                  ****************
+****************                                            ****************
+****************************************************************************
+
+
+ ライブラリ
++----------+
+
+次のライブラリは、AfterStep を走らせるためには必ずしも必要ではないが、
+AfterStep やいくつかのモジュールではこれらのライブラリをサポートする。
+
+ o  libXpm
+ o  libjpeg
+ o  libpng
+
+ インストール
++------------+
+
+配布されている、AfterStep-1.6.x.tar(gz|bz2) を展開し、以下のコマンドを実行す
+る。
+
+	./install.script
+	OR
+	./configure
+	make
+	make install
+	mv ~/.xinitrc ~/xinitrc.old
+	echo afterstep > ~/.xinitrc
+
+AfterStep を使ってください...。あなたが気に入ってくれると私は願っている。も
+し気に入ったのなら、http://www.PLiG.org/xwinman/vote.html で AfterStep へ投
+票してくれることを願っている。私たちは、この開発が無駄ではないかを調査するた
+めに、その場所をチェックしている :-)。
+
+ DETAILED INSTRUCTIONS
++----------------------+
+
+配布されている、AfterStep-1.6.x.tar(gz|bz2) を展開し、システム依存のオプショ
+ンを調べるために、configure を実行する :
+
+        ./configure
+
+Configure はいくつかのオプションを持っている。これらのオプションは、--enable
+や --disable で設定することによって、AfterStep の様々な特徴を設定することが
+できる。完全なリストは、./configure --help を実行することによって取得するこ
+とができ、デフォルト値は括弧の中に表示される。
+
+  --with-imageloader=APP
+              XPM ではない画像を表示するのに使うもの [xli -onroot -quiet]
+  --with-helpcommand=APP
+              ウィンドウへ man ページを表示するコマンド [xiterm -e man]
+  --with-startsort=METHOD スタートメニューを整列するメソッド [SORTBYALPHA]
+  --enable-different-looknfeels
+			  各ディスクトップで別々の look&feel を使う [no] 
+  --with-desktops=DESKS   デフォルト時のページャのデスクトップの数 [4] 
+  --with-deskgeometry=GEOM
+			  ディスクトップを COLUMNSxROWS にする [2x2] 
+  --enable-newlook
+              新しい look オプションをサポートする (MyStyles) [yes] 
+  --enable-pagerbackground
+			  Pager でバックグラウンドサポートを供給する [yes] 
+  --enable-i18n           国際化サポート [no] 
+  --enable-xlocale        X_LOCALE を利用する [no] 
+  --enable-menuwarp       メニューへマウスポインタをワープする [no] 
+  --enable-savewindows
+              ウィンドウを保存して、次のセッションで再び開く [yes] 
+  --enable-makemenus      start/ ツリーからスタートメニューを作成する [yes] 
+  --enable-makemenusonboot
+			  AS が起動する時に常にスタートメニューを作成する [no] 
+  --enable-texture
+              グラデーションと XPM と JPEG テクスチャをサポートする [yes] 
+  --enable-shade          シェードウィンドウをサポートする [yes] 
+  --enable-virtual        仮想デスクトップをサポートする [yes] 
+  --enable-saveunders     request saveunders for menus [yes] 
+  --enable-windowlist     ビルトイン・ウィンドウリストをコンパイルする [yes] 
+  --enable-availability   利用できないバイナリのチェックをする [yes] 
+  --enable-staticlibs
+              libafterstep のスタティックリンクを有効にする [yes] 
+  --enable-script         Script モジュールをコンパイルする [yes] 
+  --with-xpm              XPM イメージフォーマットをサポートする [yes]
+  --with-jpeg             JPEG イメージフォーマットをサポートする [yes]
+  --with-png              PNG イメージフォーマットをサポートする [yes]
+
+(訳者注)
+もし、タイトルバーなどで日本語などの DBCS を表示したいのなら、--enable-i18n
+オプションを指定してください。この指定をすることによって、フォントをしている
+する部分で、フォントセットを使用することが可能になります。また、(libc5 を使
+う) Linux や NetBSD などのように、OS 自体にロケールが実装されていないために
+X Window System のロケールを使う必要がある場合は、--enable-xlocale も指定し
+てください。
+
+あなたが root になることができない場合は、インストールパスを書き込み可能なパ
+スのどこかに変更しなければいけません。
+
+  --prefix=PRE		      PRE 下にバイナリをインストールする [/usr/local]
+  --bindir=DIR            DIR 下に実行ファイルをインストールする [PRE/bin]
+  --datadir=DIR           DIR 下にバイナリデータをインストールする [PRE/share]
+  --mandir=DIR            DIR 下に man ドキュメントインストールする [PRE/man]
+
+configure を実行し始める前に、これらのディレクトリが存在するかどうかを確かめ
+なさい。ビルドし始めて、可能ならば、下のコマンドを実行したときに表示されるエ
+ラーメッセージを監視しなさい。
+
+	make
+
+root になるか、あなたの $HOME ディレクトリへインストールするために、
+./configure のオプションを変更したのであれば、su コマンドを実行せずに、そし
+てその後、バイナリや man ページをインストールするためのインストールプロセス
+を実行する。
+
+        su root -
+	make install
+
+X サーバのユーザスクリプト内でウィンドウマネージャを呼ぶところへ挿入する。イ
+ンストールされたバイナリにパスが通っていないのであれば、フルパスを入れる必要
+がある。デフォルトでは、バイナリは /usr/local へインストールされ、ここは、
+root のパスではない :)。
+
+	echo afterstep > ~/.xinitrc
+
+昔の設定ファイルの .steprc を使いつづけるのなら、以下のようにすべきだ。
+
+	echo "afterstep -f ~/.steprc" > ~/.xinitrc
+
+AfterStep を始めに実行した時にエラーの出力を監視するには、以下のようにファイ
+ルへリダイレクトする。
+
+	startx > ~/AF-debug 2>&1
+
+
+ ヒント
++------+
+
+いつくかの "looks" (theme-ish) は、このディストリビューションに含まれている。
+これらは、メニューから選択することができる。
+
+	(startmeu)->Desktop->Looks->look.***
+
+いくつかの "feels" (キーバインディングやwindow reactions)や、壁紙、アニメー
+ションがある。これらは同じように、デスクトップ下でメニューから選択することで
+有効にすることができる。しかし、もし各ディスクトップ毎に、違う look & feel
+を使いたいのなら、./configure を行うときにオプションを指定する。
+
+もし、スタートメニューを変更したり、項目を追加したければ、ファイルを始めに作
+成する必要があり、そのファイルは、共有ツリー下か、ユーザの
+~/GNUstep/Library/AfterStep/start ツリー内のどちらかを参照して作成される。そ
+の変更を AfterStep に反映するには以下のメニューを実行しなさい。
+
+	(startmeu)->Desktop->Update startmenu
+
+ ツール
++------+
+
+AfterStepには、tool/ ディレクトリ内にいくつかのツールがある。
+"Uninstall-Old-AfterStep" は、1.3.x や 1.4.x などの旧バージョンのバイナリや
+ドキュメントなどを削除するスクリプトである。使い方を調べるためには、このスク
+リプトの一部を単に読んでくれ。オプションなしでは、afterstep のコアファイルの
+み削除するだろう。ただし、リリース版に付属していたアプリケーションは削除され
+ない。"bughint" ファイルは、バグを見つけ、報告するときに実行されることができ
+る。"makeasclean" と "makeaspatch" の両方は、ソースツリーをきれいにして、
+パッチを作成するために使われる。"pagerconfig1_4to1_5 は、1.4.x のページャの
+設定ファイルから、1.5.x のフォーマットへ変換するスクリプトである。
+
+ テーマ
++------+
+
+加えられたツールで大きなものは、テーマハンドラである。同じテーマハンドラスク
+リプトによって作成されたテーマを作成してインストールするための 2 つの perl
+スクリプトがある。readme が含まれているので、これをチェックして、テーマを作
+成し始めよう。現在、AfterStep 内の間でのスクリプトを使うためのメニュー項目が
+ないが、作成するのをやめないで欲しい。 [ 目標: すべてのテーマのために、
+ftp.afterstep.org に場所を用意する。この提案について詳細は、
+ftp.afterstep.org の theme/ ディレクトリ下の README を読んでください。(もう
+すぐ、www.afterstep.org にも書かれるだろう)]
+
+ FAQ
++----+
+
+質問をする前に、Wharf の一番上のボタンをクリックするか、メニューから
+AfterStepDoc を選択することで表示される、配布されているファイルに含まれる
+FAQ を読んでください。doc/1.0_to_1.5 ファイルは、1.5.x に至るまでの差異につ
+いての情報が、README_new.option には新しいオプションについての詳細が書かれて
+いる。
+
+ サイト
++------+
+
+より多くの情報	:		www.afterstep.org
+開発バージョン	:		ftp.afterstep.org
+ヘルプ		:		mail afterstep@linuxcenter.com
+					subject: subscribe
+コードの管理	:		mail afterstep@linuxcenter.com
+					subject: subscribe
+チャット	:		#afterstep on EFNet
+EFNet へアクセスするには、以下のサーバなどの efnet irc サーバに接続すること
+で可能である :
+	irc.concentric.net ; irc.prison.net ; ircd.txdirect.net
+
+
+ TODO
++------+
+
+TODO/ 内は、いくつものファイルが見つかるだろう。このバージョンへのunrelease/
+や unstable/ にあるこれらのファイルを加えてみてくれ。あなたはまた、ascp への
+新機能の追加などをおこなうために、Nwanua を手助けすることができる。また、も
+し他の言語へREADMEがまだ翻訳されていないのであれば、翻訳してください。
+
+
+ メンテナンス
++------------+
+
+TEAM ファイルを調べなさい
+
+03.17.99
+
+ LEGAL
++------+
+
+ o 暗黙の著作権 :
+
+SINCE BERNE CONVENTION, COPYRIGHTS ARE IMPLICIT, EVEN IF AUTHORS DO NOT
+WRITE "COPYRIGHT" WORD IN THE FILE THEY OWN INTELLECTUAL PROPERTY !
+
+Therefore, every file is Copyright (C) by his (or its) respective(s) owner(s)
+at the date of writing.
+
+ o ライセンス
+
+AfterStep と呼ばれるすべてのプログラムは GNU GPL v2 ライセンスに属しています。
+AfterStep ライブラリは LGPL ライセンスに属しています。
+AfterStep のドキュメントは LDP ライセンスに属しています。
+
+より多くの情報を得るには、doc/licenses/ を参照してください。
+
+ o 例外
+
+    1. MIT/Evans と Sutherland の著作権
+
+src/ 内のいくつかのファイルに関しては、twm のソースコードをベースとしている
+ため、これらの部分は異なるライセンスによって保護されている :
+afterstep.c borders.c clientwin.c functions.c
+
+	2. ヘッダ
+
+ヘッダファイルはパブリックドメインである ; Robert Nation は、decorations.c
+で述べている :
+
+<<
+
+  Definitions of the hint structure and the constants are courtesy of
+  mitnits@bgumail.bgu.ac.il (Roman Mitnitski ), who sent this note,
+  after conferring with a friend at the OSF:
+
+ >  Hi, Rob
+ >
+ >  I'm happy to announce, that you can use motif public
+ >  headers in any way you can... I just got the letter from
+ >  my friend, it says literally:
+ >
+ >>    Hi.
+ >>
+ >> Yes, you can use motif public header files, in particular because there is
+ >> NO limitation on inclusion of this files in your programms....Also, no one
+ >> can put copyright to the NUMBERS (I mean binary flags for decorations) or
+ >> DATA STRUCTURES (I mean little structure used by motif to pass description
+ >> of the decorations to the mwm). Call it another name, if you are THAT MUCH
+ >> concerned.
+ >>
+ >> You can even use the little piece of code I've passed to you - we are
+ >> talking about 10M distribution against two pages of code.
+ >>
+ >> Don't be silly.
+ >>
+ >> Best wishes.
+ >> Eli
+
+>>

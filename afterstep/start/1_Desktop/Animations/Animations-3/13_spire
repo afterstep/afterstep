@@ -1,0 +1,1 @@
+Exec "Spiral" exec sh -c "killall xlock ; xlock -nolock -mode spiral -inroot &"

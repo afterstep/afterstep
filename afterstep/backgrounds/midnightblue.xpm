@@ -1,0 +1,8 @@
+/* XPM */
+static char *color[] = {
+/* columns rows colors chars-per-pixel */
+"2 2 1 1",
+".  c midnightblue",
+/* pixels */
+"..",
+".."};

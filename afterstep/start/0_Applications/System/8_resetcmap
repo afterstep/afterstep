@@ -1,0 +1,1 @@
+Exec "Reset color map" exec xstdcmap -default &

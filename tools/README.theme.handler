@@ -1,0 +1,139 @@
+AfterStep Themes Pack 0.4.2 by Lathi, Semyaza
+
+This version is the same version that ships with AfterStep 1.6.10 patch 02
+(or AfterStep 1.6.12).
+
+/*
+ *
+ * Copyright (c) 1998 Lathi <alcornd@earthlink.net>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.   See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *
+ */
+
+This bundle of two Perl scripts is used to implement themes in the
+Afterstep window manager for X (http://www.afterstep.org).  While Perl 
+is really cool, a better solution would be to implement this natively
+in AfterStep using C code.  I believe the AfterStep maintainers have
+every intention of doing this.  I wrote these scripts to "test the
+waters" and find out what would be involved in implementing themes for 
+AfterStep.  When AfterStep supports themes natively, I hope that the
+themes built with these scripts will be compatible (but there is no
+guarantee that will be the case).
+
+At this time, these scripts are becoming solid beta quality.  I would
+still highly recommend you to backup your configuration files in the
+~/GNUstep/Library/Afterstep dir.  The easiest way to undo a theme is
+to simply restore your old files.
+
+This theme pack currently supports the following modules and options:
+
+Wharf:			Pager:
+	BgColor			Align
+	Pixmap			Back
+	TextureColor		BalloonBack
+	TextureType		BalloonBorderColor
+				BalloonBorderWidth
+WinList:			BalloonFore
+	Font			DesktopImage
+	Fore			Font
+	Back			Hilight
+	Justify			Image
+	Pixmap (AS 1.5b6 pl2)	SmallFont
+
+Of course, the look file and desktop background is supported.  Also,
+any images specified in the look file or the module options above are
+also carried with the theme that is built.
+
+This theme pack expects to find the
+~/GNUstep/Library/AfterStep/desktop/themes directory.  Each theme
+should be a subdirectory from there.  When you download a theme, untar 
+it in the themes dir.  Also, when you build a theme, if you want to
+bundle any unique icons for use in the database file, put them in the
+specific subir of the themes dir.
+
+Also, the theme pack will only look in ~/GNUstep/Library/AfterStep for 
+module configuration files.  That means when building a theme, it only
+takes modifications from that dir.  If the config files aren't there, 
+makeastheme.pl will ignore that module.  When installing a theme, 
+installastheme.pl will only edit files in ~/GNUstep/Library/Afterstep.
+If it doesn't find any modules there, it will skip that module.  At a
+minimum, you should have 'wharf', 'pager', and 'winlist' files in the
+~/GNUstep/Library/AfterStep dir.
+
+Both installastheme.pl and makeastheme.pl take the same command line
+arguments.  The arguments can be in any order.  The directory from
+which the scripts are called is irrelevant.  All directory paths are
+coded into the scripts and double-checked at runtime.  After running
+installastheme.pl, you will need to manually restart AfterStep for the 
+changes to take place.
+
+When making the themes, you simply run 'makeastheme.pl' with the '--theme
+<theme_name>' argument and any any of the other command line arguments you
+might want to use.  This script will grab all the config files necessary
+and all images specified within those config files.  It then creates the
+theme in your '~/GNUstep/Library/AfterStep/desktop/themes' directory in
+both .tar.gz format and in a directory by the same name.
+
+Usage: [make|install]astheme.pl [--theme <theme_name>] [--no_wharf] [--no_pager] [--no_winlist] [--no_background]
+
+--theme:	this option is used to specify the theme to install.
+		With installastheme.pl it is mandatory.  With
+		makeastheme.pl if unspecified, the $USER
+		environmental variable will be used instead.
+
+--no_wharf:
+--no_pager:
+--no_winlist:
+--no_background:	Each of these options tell the scripts to skip 
+			processing for each of these modules.  For
+			makeastheme.pl it is similar to saying, "I
+			don't have anything interesting in this
+			module, don't store those options in the
+			theme."	For installastheme.pl it is similar to 
+			saying, "I really like my <module>, don't
+			change any settings in there."
+
+When installing the themes, a couple of interesting things take
+place.  First, the look file that comes with the theme is copied to
+the standard looks directory with the name look.<theme_name>.  Second, 
+the base.<your_bpp>bpp file is modified so that the PixmapPath has the 
+theme dir prepended to it.  This allows any images specified in the
+theme to be used rather than an image of the same name on your system
+already.  Third, if present, the wharf, pager, and winlist config
+files will be edited where ever the above supported options are found.
+Rather than just put the new themeified lines in the config files, a
+comment is inserted with the theme name and the original line is simply 
+commented out.  No backups are made of your original config files.  Be 
+smart, do this yourself.
+
+BUGS
+
+If you find any, you can email me (mailto:alcornd@earthlink.net) or
+the AfterStep mailing list (mailto:afterstep@linuxcenter.com).
+Alternatively, you can also probably find me on EfNet channel
+#afterstep as Lathi.
+
+And before anyone asks me, Eterm behaves in a funky way with this.  If 
+you have Eterms with the --trans option up and running when you reset
+the theme, the background won't get updated.  You can fix this by
+using the -W (-watch-background) option for Eterm so that it will
+notice when you change the background.
+
+TODO
+
+-- Implement uninstallastheme.pl
+-- Add support for sounds
+-- makeastheme.pl needs to be more modular as installastheme.pl

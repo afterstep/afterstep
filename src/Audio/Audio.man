@@ -1,0 +1,174 @@
+.\" t
+.\" @(#)Audio.1	02/07/00
+.TH Audio 1.8 "Feb 7 2000"
+.UC
+.SH NAME
+\fBAudio\fP \- the AfterStep Sounds module
+
+.SH SYNOPSIS
+\fBAudio\fP [\-f \fIconfig_file\fP] [\-v | \--version] [\-h | \--help]
+.sp
+Although \fBAudio\fP can be run from the command line, it is normally 
+spawned by afterstep in the \fIautoexec\fP file, in the following manner:
+.nf
+.sp
+	Module	"I"	Audio 
+.sp
+.nf
+or from within an afterstep menu file by 'Audio':
+.nf
+.sp
+% cat "~/GNUstep/Library/AfterStep/start/Modules/Audio"
+	Module "Audio" Audio
+	MiniPixmap "mini-as.xpm"
+.fi
+
+.SH DESCRIPTION
+The \fBAudio\fP module communicates with the AfterStep window manager to
+bind audio sounds to window manager actions. Different audio queues may be
+assigned to any window manager action. \fBAudio\fP can be used with
+any independent audio player, and therefore requires no special audio
+library APIs of its own. Simple in its design, it merely binds the audio
+filenames to particular actions and forks off the audio player program
+with the appropriate filename when that action occurs. 
+
+If You have Rplay client-server installed and working \fBAudio\fP can use 
+libRplay. It will try to autodetect it at the time of running configure
+and if it finds it  - "builtin-rplay" will be placed as the default
+AudioPlay type.
+
+In addition Audio can copy Audion samples from .au files into /dev/audio
+on itself, or it can dump contents of the specifyed files into STDOUT, 
+so you can redirect it anywhere you want.
+
+.SH OPTIONS
+.IP "\-f \fIconfig_file\fP"
+Use \fIconfig_file\fP instead of the default configuration file.
+
+.IP "\-h | \--help"
+Print a usage message and exit successfully.
+
+.IP "\-v | \--version"
+Print version information and exit successfully.
+
+.SH INITIALIZATION
+During initialization, \fBAudio\fP will search for a configuration file
+which describes the audio player and sound files associated with actions,
+to use.  This file will be the one specified by the \fI\-f\fP option (if 
+given).  Else, the ~/GNUstep/Library/AfterStep/audio file will be used 
+if it exists.  Else, /usr/local/share/afterstep/audio will be used.
+
+.SH INVOCATION
+\fBAudio\fP can be invoked from the \fIautoexec\fP file or from a menu
+item as shown in the Synopsis section above.
+
+AfterStep will search through the directories specified in the
+\fIModulePath\fP configuration in the \fIbase.#bpp\fP (where # is your
+colordepth) to attempt to locate \fBAudio\fP.
+
+.SH CONFIGURATION OPTIONS
+\fBAudio\fP reads the \fIaudio\fP file when it starts up and looks for
+its configuration options.
+
+.IP "*AudioPath \fIpath\fP"
+Specifies the \fIpath\fP to look for the audio files.  This option
+is ignored when rplay is used.
+
+.IP "*AudioPlayCmd \fIplayer\fP"
+This determines parameters for audio player program that will actually
+play the sounds, or any of the built-in players.  
+The following are built-in options :
+.IP ""
+.nf
+\fIbuiltin-rplay\fP -  builtin rplay support will be used 
+(must have rplay installed);
+\fIbuiltin-cat\fP - sound data will be sent to /dev/audio 
+directly (this can only be used if AfterStep runs on
+the same computer as X Server).
+\fIbuiltin-stdout\fP - sound data will be dumped into 
+STDOUT so you can redirect it anywhere you want.
+.fi
+.IP ""
+Anything other then these built in options will be considered a command 
+line parameters for the external player. External player itself has to 
+be specifyed at compile time using --with-soundplayer option for configure.
+Default is "play" utility from the SoX package.
+If this option is ommited then external player is used with no parameters.
+.IP ""
+Note: sound file to be played always goes as the last parameter in external 
+player's command line.
+
+.IP "*AudioDelay \fIseconds\fP"
+Specifies that sound events will only be played if they occur
+at least so many \fIseconds\fP after the previous event.  Sound events that
+occur during the delay period are ignored.  This option is useful if 
+you don't want several sounds playing at the same time.  The default
+delay is 0 which disables the audio delay.
+
+.IP "*AudioRplayHost \fIhostname\fP"
+Specifies what host the sounds will play on.  The \fIhostname\fP can also
+be an environment variable such as $HOSTDISPLAY. This option is only valid
+with builtin rplay support. If this is left out then Audio will attempt
+to connect to rplay daemon on the same host that is running X first, then
+to localhost. 
+
+.IP "*AudioRplayPriority \fIpriority\fP"
+Specifies what \fIpriority\fP will be assigned to the sounds when they
+are played.  This option is only valid with builtin rplay support.
+
+.IP "*AudioRplayVolume \fIlevel\fP"
+Specifies what volume \fIlevel\fP will be assigned to the sounds when they
+are played.  This option is only valid with builtin rplay support.
+
+.IP "*Audio \fIaction filename\fP"
+Binds the particular window manager \fIaction\fP that the sound
+\fIfilename\fP is played for.
+
+.RE
+.PP
+.RS
+The following \fBaction\fPs are available for sounds:
+.IP ""
+.nf
+startup 
+shutdown
+unknown
+add_window
+raise_window
+lower_window
+focus_change
+destroy_window
+iconify
+deiconify
+toggle_paging
+new_page
+new_desk
+configure_window
+window_name
+icon_name
+res_class
+res_name
+end_windowlist
+.fi
+
+.SH AUTHORS
+Sasha Vasko <sashav at sprintmail.com>
+.nf
+Frank Fejes <frank@ssax.com>
+.nf
+Dan Weeks <dan@mango.sfasu.edu>
+.nf
+Szijarto Szabolcs <saby@sch.bme.hu>
+.nf
+Mark Boyns <boyns@sdsu.edu>
+.nf
+Mark Scott <mscott@mcd.mot.com>
+.nf
+Robert Nation
+.nf
+David Mihm <dmihm@swbell.net> [man page]
+
+.SH SEE ALSO
+.BR afterstep (1),
+.BR rplay (1),
+.BR showaudio (1)

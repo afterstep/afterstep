@@ -1,0 +1,617 @@
+# 03/08/97 sample.steprc v2.0 fsf ffejes@midway.uchicago.edu
+# This was AfterStep v1.0 default configuration
+#
+# Use steprc files with afterstep -f myoldfile, but you'd better convert them
+# to new look & feel files !
+#
+# "compatibility" file will also be read to avoid strange crashings :)
+#
+# Distinctive Look and Feel Section #
+#///////////////////////////////////#
+# Foreground color for unfocused windows and default border color
+StdForeColor 		#111111
+# Background color for unfocused windows and handle color
+StdBackColor 		#bfbfbf
+# Text color for focused windows, menu highlights, and MenuTitle text
+HiForeColor 		White
+# Background Color of focused window and MenuTitle border
+#HiBackColor 		#000001
+HiBackColor 		#000044
+# Menu Border Color
+MenuBackColor		#bfbfbf
+# Menu Text Color
+MenuForeColor		Black
+
+# Set some cursors
+Cursor 5 68   # Set the WAIT cursor to the normal left_ptr
+Cursor 7 68   # Set the SELECT (iconify) cursor
+Cursor 8 68   # Set the DESTROY cursor
+
+# Set Gradient Texture Mapping
+# Define the texture type for the TitleBars, unfocused TitleBars,
+# Menu TitleBars, Menu Items, etc.
+#   0 - No texture
+#   1 - Wharf-style gradient
+#   2 - Horizontal one way gradient
+#   3 - Horizontal from top/bottom to center
+#   4 - Vertical one way gradient from left to right
+#   5 - Vertical from left/right to center
+# 128 - User specified pixmap
+TextureTypes 1 1 1 1 1 0
+
+# Set the number of colors to use on textures.
+# Default is 10 on 8bpp screens and 128 on +16bpp.
+TextureMaxColors 10 10 10 10
+
+# Texture Colors, given in Standard RGB X numbering
+# Window TitleBar textures
+TitleTextureColor	#303080	#000010
+# Unfocused TitleBar textures
+UTitleTextureColor	#a0a2a1	#606261
+# Menu TitleBar textures
+MTitleTextureColor	#303080	#000010
+# Menu Item textures
+MenuTextureColor	#606060	#d0d0d0
+
+# Don't change the titlebar's highlight's upon mouse click
+TitlebarNoPush
+# Gives titles to icons
+IconTitle
+
+# Menu Font
+Font                    -adobe-helvetica-medium-r-*-*-12-*-*-*-*-*-*-*
+# Window TitleBar Font
+WindowFont              -adobe-helvetica-bold-r-*-*-12-*-*-*-*-*-*-*
+# Icon Font
+IconFont                -adobe-helvetica-medium-r-*-*-8-*-*-*-*-*-*-*
+# Area where icons should show up (RightX, RightY, LeftX, LeftY)
+IconBox 0 -64 -1 -1
+
+#//////////////////#
+# Window Placement #
+#//////////////////#
+# RandomPlacement prevents user interaction while placing windows:
+# RandomPlacement
+
+# SmartPlacement makes new windows pop-up in blank regions of screen 
+# if possible, otherwise falls back to random or interactive placement
+#SmartPlacement
+
+# Percentage of a page (horizontal, vertical) to scroll when the 
+# cursor reaches the edge of a page ... 0 0 turns off scrolling
+EdgeScroll 0 0
+
+# Amount of Resistance for moving from desk to desk with the
+# mouse ... 0 0 allows for only window moves and resizes to
+# reach into the next desk
+EdgeResistance 0 0
+
+# Raise the Window when it is clicked on, but do not pass the click
+# on to the application ... very handy for text editors
+# Change 1 to 0 in order to get the "normal" ClickToFocus effect
+ClickToFocus 1
+
+# Raise the Window when the mouse travels into it and keep focus
+# until the mouse enters a new window
+#SloppyFocus
+
+# Miscellaneous voodoo commands - they may help you, they may not
+#AppsBackingStore
+#BackingStore
+#SaveUnders
+
+# This style of window movement draws the entire window as it
+# moves, instead of the "rubber-band" outlines
+# It has a number (N) attached to it (default 5).  If the 
+# window occupies less than N% of the screen, OpaqueMove is 
+# used. 0 <= N <= 100 
+OpaqueMove 100
+
+# NoPPosition instructs fvwm to ignore the PPosition field in window 
+# geometry hints.
+# Emacs annoyingly sets PPosition to (0,0)!
+NoPPosition
+
+#////////////////////////#
+# Miscellaneous Settings #
+#////////////////////////#
+# If you don't like the default 150 msec click delay for the complex functions
+# change this.
+ClickTime 150
+
+# Don't change to an icon when using Alt-Tab to page through open windows
+CirculateSkipIcons
+
+# StubbornIcons makes icons de-iconify into their original position on the
+# desktop, instead of on the current page.
+#StubbornIcons
+
+# Place a TitleBar and Handles on popup windows and dialog boxes
+DecorateTransients
+
+# With AutoPlacement, icons will normally place themselves underneath active
+# windows. This option changes that.
+#StubbornIconPlacement
+
+# If you want ALL you icons to follow you around the desktop (Sticky), try
+# this
+StickyIcons
+
+#///////////////////////////#
+# Pager and Virtual Desktop #
+#///////////////////////////#
+# Set up the virtual desktop and pager
+# Set the desk top size in units of physical screen size
+DeskTopSize 2x2
+# Sets the reduction scale used for the Pager
+DeskTopScale 32
+
+#//////////////#
+# Common Paths #
+#//////////////#
+# ModulePath is a colon-separated list, just like a regular unix PATH
+# Any Module must be found within the path in order to be located
+# and executed
+ModulePath          /usr/X11R6/bin
+# Another colon-separated list pointing to your pixmaps (color icons)
+PixmapPath          /usr/include/X11/pixmaps/
+# Path for your ugly black&white icons
+IconPath            /usr/include/X11/bitmaps/
+
+# Various styles & Icons which can be associated with specific applications
+# Sticky -- remains "stuck" on all desks
+# NoTitle -- window has NoTitle
+# StaysOnTop -- a regular window will not obscure this window
+# WindowListSkip -- this window will not show up in the
+#   window listing which can be used with a MiddleClick in 
+#   the root window (main background)
+# NoHandles -- No bottom bar
+# Select some common icon bitmaps for applications ; each icon file must
+# be located in your PixmapPath (color) or IconPath (b/w) as defined above
+Style "xterm" Icon monitor.xpm
+Style "*emacs*" Icon text.xpm
+Style "pine" Icon writeletter.xpm
+Style "ghostview" Icon text.xpm
+Style "xman" Icon xman.xpm
+Style "gimp" Icon 3dpaint.xpm
+Style "xli" Icon monalisa.xpm
+Style "xv" Icon xv1.xpm
+Style "moxfm*" Icon FileFolders.xpm
+Style "*lyx*" Icon text.xpm
+Style "LyX" Icon text.xpm
+Style "Untitled*" Icon YellowBlueRedGeometry.xpm
+Style "oclock" Sticky, NoTitle, StaysOnTop, WindowListSkip
+Style "*Pager" NoTitle, Sticky, StaysOnTop, WindowListSkip, NoHandles
+Style "xbiff" NoTitle, WindowListSkip
+Style "Minitabx11" StaysOnTop
+Style "Wharf" NoFocus,NoTitle, Sticky, WindowListSkip,StaysOnTop, NoHandles
+Style "Banner"	NoTitle, NoHandles, WindowListSkip, Sticky, StaysOnTop
+
+##################################
+# Animated Iconize Customization #
+##################################
+Module Animate
+# Draw the lines with black
+*AnimateColor Black
+# Delay 1 ms in between frames of animation
+*AnimateDelay 1
+# Break the animation into 12 steps
+*AnimateIterations 12
+# Make 1 full revolution in a twisted animation
+#*AnimateTwist 1
+# Width of line used to animate...0 fastest, larger numbers slower
+*AnimateWidth 0
+# Use the zoom method of resizing instead of the twist
+*AnimateResize zoom
+#*AnimateResize twist
+
+#/////////////////////#
+# Wharf Customization #
+#/////////////////////#
+# Customize your Wharf -- the pushable, pullable button bar on the right 
+# hand of your display
+# Animate Wharf's folders
+*WharfAnimate
+# Animate Wharf's compression into one icon
+*WharfAnimateMain
+# Start on the right top side of the screen
+*WharfGeometry -0+0
+# One vertical column
+*WharfColumns 1 
+
+# Create a pullout "Folder" as the first button on Wharf
+*Wharf AfterStep AFstep.xpm Folder
+  # Include all desired icons for this initial Folder here
+  # The first listed will be closest to Wharf upon expansion
+  # The last will be furthest
+  # This first will shut down AfterStep
+*Wharf Shutdown  shutdown.xpm  Quit
+  # Lock the display and use a random screensaver from the modelist
+*Wharf xlock KeysOnChain.xpm Exec "-" xlock -modelist "braid flame grav pyro qix rock spiral spline swarm worm" -mode random -duration 0 -allowroot -usefirst &
+  # Close the Folder
+*Wharf ~Folder
+  # Add a "Beat"iful little timepiece 
+  # MaxSwallow it in order to fit the full button
+*Wharf asclock nil MaxSwallow "asclock" asclock -12 -shape -position -1-1 &
+  # Check for mail ... this time only use a regular Swallow in order
+  # to capture the application in a 48x48 frame
+*Wharf xbiff   nil   Swallow "xbiff" xbiff -bg "#8e8a9e" -fg "#00003f" -geometry 45x45-1-1 &
+  # Examine your computer's load
+*Wharf xload nil  Swallow "xload" xload -nolabel -hl black -bg "#8e8a9e" -geometry 48x48-1-1 &
+*Wharf xload nil  Exec "" xterm -ut -T top -e top &
+  # Open up an xterm
+*Wharf xterm monitor.xpm   Exec "-" xterm -geometry 80x25 -sl 256 -sb -ls -T 'xterm@afterstep.org' &
+  # Start up GNU Emacs
+*Wharf emacs text.xpm Exec "-" emacs &
+  # Create amazing art with the freeware masterpiece, The GIMP
+*Wharf gimp 3dpaint.xpm Exec "-" gimp &
+  # Read some mail
+*Wharf pine writeletter.xpm Exec "-" xterm -T "pine" -e pine &
+  # Surf the web
+*Wharf Netscape netscape3.xpm Exec "-" netscape &
+  # Swallow a pager to quickly get an outlook on your virtual desktop
+  # Click on the different "desks" to change in between them
+*Wharf pager nil SwallowModule "Pager" Pager 0 0
+  # Edit this file in its own window
+*Wharf config interface.xpm Exec "-" xterm -n "Config" -T "AfterStep Configuration" -e vi ~/.steprc &
+  # Recycle your AfterStep session (Restart)
+*Wharf Recycler  recycler.xpm  Restart " " afterstep
+
+#/////////////////////////#
+# Initialization Function #
+#/////////////////////////#
+# Here we will put programs and modules that we wish to
+# load up automatically upon startup
+Function "InitFunction"
+        # Wait until Wharf is done loading so that our xterm will have 
+        # the focus when it is first created
+	Module	"I"	Wharf
+	Wait	"I"	Wharf
+	Exec	"I"	exec xterm -geometry +4+4 -sl 256 -sb -ls -T 'xterm@afterstep.org' &
+        # Place the green carpet image onto the background upon startup
+        # I personally recommend xli/xloadimage, but xv seems to be
+        # ubiquitous in the unix world so I'll use that 
+	# Exec	"I"	exec xv -root -quit /usr/lib/X11/afterstep/backgrounds/carpet.green.jpg
+	Exec	"I"	exec xsetroot -solid DarkGrey
+EndFunction
+
+# These will load up upon every subsequent Restart
+#Function "RestartFunction"
+#        Module  "I"     FvwmPager 0 0
+#EndFunction
+
+#///////////#
+# Functions #
+#///////////#
+# Now define some handy complex functions
+# Each function can be bound to a specific Mouse Button and
+# a specific window location (Title, TitleButton, Root Window, 
+# etc.) later on
+
+# This one will Raise the window on a Single Click, Shade 
+# (display only the TitleBar) on a DoubleClick, and make 
+# the window uncoverable by all other non-OnTop windows 
+# with a TripleClick.  A Click+Motion will move the
+# window around
+Function "Shade-or-Raise"
+	Move		"Motion"
+	Raise		"Click"
+	Shade		"DoubleClick"
+	PutOnTop	"TripleClick"
+EndFunction
+
+# This will move the window on mouse motion, maximize the
+# window (while leaving space for Wharf on the right) with a 
+# single MouseClick, roll up the window for a Shade with a 
+# DoubleClick, and put the window on top of all other windows
+# with a TripleClick (no regular window can be placed on top
+# of this window until the ontop window has been taken 
+# another PutOnTop TripleClick
+Function "Maximize_Function"
+	Move		"Motion"
+	Maximize	"Click" 94 100
+	Shade		"DoubleClick"
+ 	PutOnTop	"TripleClick"
+EndFunction
+
+# This one moves or (de)iconifies:
+# Icons will restore to full size with a single mouse click
+# Change "Click" to "DoubleClick" or "TripleClick" as desired
+Function "Move-or-Iconify"
+	Move 		"Motion"
+	Iconify		"Click"
+EndFunction
+
+# Pretty Simple...Mouse Motion Raises and Resizes the given
+# window.   A mouse click will also Raise it.  DoubleClick
+# will perform a Shade while TripleClick grants unobscurable
+# status
+Function "Resize-or-Raise"
+	Resize 		"Motion"
+	Raise		"Motion"
+	Raise		"Click"
+	Shade		"DoubleClick"
+	PutOnTop	"TripleClick"
+EndFunction
+
+# This is provided as a hint only.
+# Move to a known page on the desktop, then start an application in a
+# known location. Could also switch to a known desktop, I guess
+#Function "abs_coord"
+#       GoToPage "Immediate"    1,1
+#       Exec    "Immediate"     exec xcalc -geometry +100+100&
+#EndFunction
+
+#///////#
+# Menus #
+#///////#
+# Now define the menus - defer bindings until later
+
+# Here are some common applications...we will add this and the 
+# following menus to our main HotList menu
+Popup "Applications"
+        Title "Applications"
+        Exec   "xv"             exec xv &
+        Exec   "vi"             exec xterm -T vi -e vi &
+        Exec   "Ghostview"      exec ghostview &
+        Exec   "The Gimp"       exec gimp &
+        Exec   "GNU Emacs"      exec emacs &
+        Exec   "Bitmap"         exec bitmap &
+        Exec   "Xxgdb"          exec xxgdb &
+        Exec   "Calculator"     exec xcalc &
+EndPopup
+
+# Some diversionary tactics...xsnow is a personal favorite of mine
+Popup "Games"
+        Title "Games"
+        Exec    "Xsnow"         exec xsnow -nonopopup &
+        Exec    "Xboard"        exec xboard &
+        Exec    "XTetris"       exec xtetris &
+        Exec    "Xvier"         exec xvier &
+EndPopup
+
+# Various ScreenSavers that lock the display
+Popup "Xlock"
+	Title	"Xlock"
+	Exec	"Braid"		exec xlock -allowroot -usefirst -mode braid &
+	Exec	"Flame"		exec xlock -allowroot -usefirst -mode flame &
+	Exec	"Grav"		exec xlock -allowroot -usefirst -mode grav &
+	Exec	"Pyro"		exec xlock -allowroot -usefirst -mode pyro &
+	Exec	"Qix"		exec xlock -allowroot -usefirst -mode qix &
+	Exec	"Rock"		exec xlock -allowroot -usefirst -mode rock &
+	Exec	"Slip"		exec xlock -allowroot -usefirst -mode spiral &
+	Exec	"Spline"	exec xlock -allowroot -usefirst -mode spline &
+	Exec	"Swarm"		exec xlock -allowroot -usefirst -mode swarm &
+	Exec	"Worm"		exec xlock -allowroot -usefirst -mode worm &
+EndPopup
+
+# Some administrative tasks...note that Config opens up an
+# xterm and automatically edits this file
+Popup "Utilities"
+	Title  "Utilities"
+        Exec    "Config"        exec xterm -T "AfterStep Configuration" -e vi ~/.steprc &
+        Exec    "Top"           exec rxvt -T Top -n Top -e top &
+	Popup	"Xlock"		Xlock
+EndPopup
+
+# This menu allows you to quit, although why you would want
+# to do such a thing is beyond me
+Popup "Quit-Verify"
+	Title	"Quit?"
+	Quit	"Yes, Quit"
+	Restart "Restart"	afterstep
+	Nop	"No, Don't"
+EndPopup
+
+# Modules ... technically, asclock is a fully functioning
+# program, but I like to think of it as a nice module 
+Popup "Module-Popup"
+	Title	"Modules"
+	Exec    "asclock" exec asclock -12 -shape &
+	Module  "Banner"  Banner
+  Module  "Pager"   Pager 0 0
+  Module  "Wharf"   Wharf
+EndPopup
+
+# Animations ... screen savers run as the default background
+Popup "Animations"
+	Title	"Animations"
+	Exec	"Braid"		exec xlock -inroot -mode braid &
+	Exec	"Flame"		exec xlock -inroot -mode flame &
+	Exec	"Grav"		exec xlock -inroot -mode grav &
+	Exec	"Pyro"		exec xlock -inroot -mode pyro &
+	Exec	"Qix"		exec xlock -inroot -mode qix &
+	Exec	"Rock"		exec xlock -inroot -mode rock &
+	Exec	"Slip"		exec xlock -inroot -mode spiral &
+	Exec	"Spline"	exec xlock -inroot -mode spline &
+	Exec	"Swarm"		exec xlock -inroot -mode swarm &
+	Exec	"Worm"		exec xlock -inroot -mode worm &
+  # Stop the animation in the background
+	Exec	"Stop It"	exec kill -9 $(ps aux | grep xlock | grep -v grep | awk '{print $2}')
+EndPopup
+
+# Colors ... quick way to chage desktop coloring
+Popup "Colors"
+	Title	"Colors"
+	Exec	"Black"		exec xsetroot -solid Black
+	Exec	"Red"		exec xsetroot -solid Red
+	Exec	"Yellow"	exec xsetroot -solid Yellow
+	Exec	"Green"		exec xsetroot -solid Green
+	Exec	"Cyan"		exec xsetroot -solid Cyan
+	Exec	"Blue"		exec xsetroot -solid Blue
+	Exec	"Magenta"	exec xsetroot -solid Magenta
+	Exec	"White"		exec xsetroot -solid White
+EndPopup
+
+# Images ... quick way to view the included default background images
+Popup "Images"
+	Title	"Images"
+	Exec	"Brick"		exec xv -root -quit /usr/lib/X11/afterstep/backgrounds/brick.jpg
+	Exec	"Coins"		exec xv -root -quit /usr/lib/X11/afterstep/backgrounds/coins.jpg
+	Exec	"Dark Wood"	exec xv -root -quit /usr/lib/X11/afterstep/backgrounds/darkwood.jpg
+	Exec	"Eyes"		exec xv -root -quit /usr/lib/X11/afterstep/backgrounds/eyes.jpg
+	Exec	"Glass"		exec xv -root -quit /usr/lib/X11/afterstep/backgrounds/glass.jpg
+	Exec	"Green Carpet"	exec xv -root -quit /usr/lib/X11/afterstep/backgrounds/carpet.green.jpg
+	Exec	"Parquet"	exec xv -root -quit /usr/lib/X11/afterstep/backgrounds/parquet.jpg
+	Exec	"Pebbles"	exec xv -root -quit /usr/lib/X11/afterstep/backgrounds/pebbles.jpg
+	Exec	"Rock"		exec xv -root -quit /usr/lib/X11/afterstep/backgrounds/rock.tile.jpg
+	Exec	"Rope"		exec xv -root -quit /usr/lib/X11/afterstep/backgrounds/rope.weave.jpg
+	Exec	"Stucco"	exec xv -root -quit /usr/lib/X11/afterstep/backgrounds/stucco.jpg
+	Exec	"Tile"		exec xv -root -quit /usr/lib/X11/afterstep/backgrounds/tile.check.jpg
+	Exec	"Tree Bark"	exec xv -root -quit /usr/lib/X11/afterstep/backgrounds/bark.jpg
+	Exec	"Volcanic"	exec xv -root -quit /usr/lib/X11/afterstep/backgrounds/volcanic.jpg
+	Exec	"Wood"		exec xv -root -quit /usr/lib/X11/afterstep/backgrounds/wood.jpg
+EndPopup
+
+# Background settings ... choose from either Solid Colors or Color Images
+Popup "Backgrounds"
+	Title	"Backgrounds"
+	Popup	"Animations"	Animations
+	Popup 	"Colors"	Colors
+	Popup	"Images"	Images
+EndPopup
+
+# Here is our main Menu that will be seen upon left MouseClick
+# in the root window (background area) ... note that we have added
+# our above Menus to this one ... also note that menus must be
+# defined first before they can be placed in a different menu
+Popup "HotList"
+	Title 	"HotList"
+        Exec    "Xterm"         exec xterm -ls -sl 256 -sb -T 'xterm@afterstep.org' &
+        Exec    "Netscape"  exec netscape &
+        Popup   "Applications"  Applications
+	Popup	"Utilities"	Utilities
+        Popup   "Games"         Games
+	Popup	"Backgrounds"	Backgrounds
+        Popup   "Modules"       Module-Popup
+        Popup   "Exit" 	    Quit-Verify
+EndPopup
+
+# This defines the most common window operations
+Popup "Window Ops"
+        Title           "Window Ops"
+        Function        "Move"          Shade-or-Raise
+        Function        "Resize"        Resize-or-Raise
+        Raise           "Raise"
+        Lower           "Lower"
+	PutOnTop	"(Un)PutOnTop"
+        Iconify         "(De)Iconify"
+        Stick           "(Un)Stick"
+        Function        "(Un)Maximize"  Maximize_Function
+        Destroy         "Destroy"
+        Close           "Close"
+        Refresh         "Refresh Screen"
+EndPopup
+
+
+#////////////////#
+# Mouse Bindings #
+#////////////////#
+# First, for the mouse in the root window
+# Button 1 gives the HotList menu
+# Button 2 gives the WindowList menu (Listing of current windows)
+# Button 3 gives the WindowOps
+
+# There are 4 colums to the table
+# First column is the event (Mouse Click or Key Press)
+#   Mouse 0 specify any click in a TitleBar box
+#     Where can be 1 or 2 for first or second box
+#   Mouse 1 is left button, 2 is middle, 3 is right
+# Second Column is where the click takes place
+#   R = Root window (main background)
+#   F = Window Frame (the corners)
+#   S = Bottom bar
+#   I = Icon Window
+#   T = TitleBar
+#   W = Application Window
+# Third Column is the Context (ie, modifier keys)
+#   N = No modifiers
+#   A = Any context except for inside the TitleBar Boxes
+#   C = Control
+#   S = Shift
+#   M = Meta
+#   Combos are allowed (eg, CS = Control+Shift)
+# Fourth Column is the action to take upon click
+#   Action can be a function, popup, or regular action
+# Key #  # Where #  # Context#       # Action #
+Mouse 0         1       A       Iconify
+Mouse 0         2       A       Close
+Mouse 1		R   	A       PopUp "HotList"
+Mouse 1		FS	A	Function "Resize-or-Raise"
+Mouse 1		I	A	Function "Move-or-Iconify"
+Mouse 1		T	A	Function "Shade-or-Raise"
+Mouse 2         R       A       WindowList
+Mouse 2		FST	A	PopUp "Window Ops"
+Mouse 3		TSIF	A	Function "Maximize_Function"
+Mouse 3         R       A       PopUp "Window Ops"
+Mouse 3         W       M       RaiseLower
+
+#////////////////////#
+# Keyboard Shortcuts #
+#////////////////////#
+
+Key F1		A	M	Popup "HotList"
+Key F2		A	M	Popup "Window Ops"
+Key F3		A	M	WindowList
+# Alt-F4 will take a screenshot and save it in
+# the user's home directory as screen.xwd
+# Programs such as ImageMagick can then be used
+# to convert the xwd file into jpg or gif format
+Key F4		A	M	Exec "xwd" xwd -root -out ~/screen.xwd &
+Key F5 	        A	A       Iconify
+# Alt(Meta)-Tab pages through open, bordered windows
+Key Tab		A	M	CirculateUp
+
+# Arrow Keys
+# Control+Arrow scrolls to the next page on the desk
+Key Left        A       C       Scroll -100 0
+Key Right       A       C       Scroll +100 +0
+Key Up          A       C       Scroll +0   -100
+Key Down        A       C       Scroll +0   +100
+
+#////////////////////#
+# Module Definitions #
+#////////////////////#
+# Pager Configuration -- We have Swallow-ed Pager into the Wharf
+# Now let's change colors and make labels
+*PagerBack #908090
+*PagerFore #484048
+*PagerFont -adobe-helvetica-bold-r-*-*-10-*-*-*-*-*-*-*
+*PagerHilight #cab3ca
+*PagerGeometry -1-1
+*PagerLabel 0 Pager
+*PagerSmallFont 5x8
+
+# Start the Audio player  
+Module Audio    
+
+# Select your normal audio player
+#*AudioPlayCmd /usr/bin/showaudio
+
+# Select the directory containing your sounds
+#*AudioDir /home/frank/mac/sounds
+
+#*AudioDelay 1
+
+# Attach sounds to window manager events...some don't appear to function
+# as well as they could
+#*Audio startup gong.au
+#*Audio shutdown clink.au
+#*Audio add_window bong.au
+#*Audio raise_window drip.au
+#*Audio lower_window drip.au
+#*Audio focus_change drip.au    
+#*Audio destroy_window crash.au
+#*Audio iconify ploop.au
+#*Audio deiconify ploop.au
+#*Audio toggle_paging fwop.au
+#*Audio new_page beaming.au 
+#*Audio new_desk beam_trek.au
+#*Audio configure_window huh.au
+#*Audio window_name bong.au
+#*Audio icon_name beep.au
+#*Audio res_class bong.au
+#*Audio res_name beep.au
+#*Audio end_windowlist twang.au
+
+# qed

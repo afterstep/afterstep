@@ -1,0 +1,12 @@
+#! /bin/sh
+echo "Pager config file converter from versions prior to 1.5beta4"
+echo "Usage:"
+echo "pagerconf1_4to1_15 <yourpagerconfigfilename>"
+echo " "
+echo "Note: location of background files has changed since 1.5pre9"
+echo "for instance: ~/GNUstep/Library/AfterStep/non-configurable/desk3/background"
+echo "  changed to: ~/GNUstep/Library/AfterStep/non-configurable/3_background"
+echo "examine your config file after running this script and change "
+echo "all affected entries." 
+
+perl -ibak -pe 's/PagerXPM/PagerImage/;if (/PagerImage/) {  print; s/PagerImage/PagerDesktopImage/; }' $1

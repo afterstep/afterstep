@@ -1,0 +1,120 @@
+///
+///	This is AfterStep 1.8.0 INSTALL
+///
+
+ INSTALL
++-------+
+
+Unarchive the distribution AfterStep-<version>.tar.(gz|bz2) then -
+
+	./install.script
+		OR
+	./configure
+	make
+	make install
+	mv ~/.xinitrc ~/xinitrc.old
+	echo afterstep > ~/.xinitrc
+
+Then try AfterStep... I guess you'll love it.  If so, please vote for
+AfterStep at http://www.PLiG.org/xwinman/vote.html so we will check if our
+work is worth something :-)
+
+ DETAILED INSTRUCTIONS
++----------------------+
+
+Unarchive the distribution  AfterStep-1.7.x.tar(gz|bz2), then run
+configure to guess system-dependant options:
+
+        ./configure
+
+Configure has several options which can be fed to it to --disable or
+--enable or include various characteristics of AfterStep.  A complete listing
+can be obtained from ./configure --help, a few are below, defaults are listed
+within the brackets.
+
+  --with-imageloader=APP  used to display non-XPMs [xli -onroot -quiet]
+  --with-helpcommand=APP  display manpage for window [xiterm -e man]
+  --with-startsort=METHOD start menu sorting method [SORTBYALPHA]
+  --enable-different-looknfeels
+			  different look&feel for each desktop [no] 
+  --with-desktops=DESKS   default desktops in pager [4] 
+  --with-deskgeometry=GEOM
+			  desktop views as COLUMNSxROWS [2x2] 
+  --enable-newlook        support new look options (MyStyles) [yes] 
+  --enable-pagerbackground
+			  provide background support with the Pager [yes] 
+  --enable-i18n           support I18N [no] 
+  --enable-xlocale        using X_LOCALE [no] 
+  --enable-menuwarp       warp mouse pointer to menus [no] 
+  --enable-savewindows    save windows and re-open next session [yes] 
+  --enable-makemenus      make the start menu from the start/ tree [yes] 
+  --enable-makemenusonboot
+			  always make the start menu when starting AS [no] 
+  --enable-texture        support gradient, XPM, and JPEG textures [yes] 
+  --enable-shade          support shaded windows [yes] 
+  --enable-virtual        support virtual desktops [yes] 
+  --enable-saveunders     request saveunders for menus [yes] 
+  --enable-windowlist     compile built-in window-list [yes]
+  --enable-availability   check for unavailable binaries [yes] 
+  --enable-staticlibs     enable linking to libafterstep statically [yes] 
+  --enable-script         compile Script module [yes] 
+  --with-xpm              support XPM image format [yes]
+  --with-jpeg             support JPEG image format [yes]
+  --with-png              support PNG image format [yes]
+
+If you CANNOT become root, you will have to change systems-wide installation
+paths to someplace from your PATH where you have permisson to write by using
+the appropriate paths to the following ./configure options.
+
+  --prefix=PRE		  install architecture-independent files in PRE
+                          [/usr/local]
+  --bindir=DIR            user executables in DIR [PRE/bin]
+  --datadir=DIR           read-only architecture-independent data in DIR
+                          [PRE/share]
+  --mandir=DIR            man documentation in DIR [PRE/man]
+
+Make sure these directories exist before you start the configure, otherwise
+you'll have one file called bin, one called man, etc. :)  Begin the build
+process and monitor the output of the above commands for possible error
+messages!!!
+
+	make
+
+Become root, or omit the su command if you have changed ./configure to
+install in your $HOME, and execute the install process to install the binaries
+and man pages.
+
+        su root -
+	make install
+	
+Insert a call to the window manager within the X servers user script.  If the
+path to the installed binary is not in your PATH, then provide the full path
+to it in the echo.  By default the binaries are installed into /usr/local and
+this is NOT in root's PATH! :)
+
+	echo afterstep > ~/.xinitrc
+
+If you prefer to continue using the old .steprc single file configuration
+instead of the GNUstep logic hierarchy, use this modified version for the
+.xinitrc file
+
+	echo "afterstep -f ~/.steprc" > ~/.xinitrc
+
+To capture any error which might be output during the first run of AfterStep,
+you can direct any that might ocur into a file for inspection later.
+
+	startx > ~/AF-debug 2>&1
+
+ RPM METHOD
++----------+
+
+If you'd like to make an rpm directly from this tarball, you can use the
+AfterStep.spec file included in the tarball, or extract it and edit it
+to your liking.  By using the one supplied in the tarball -
+
+	rpm -tb AfterStep-1.7.x.tar.gz [or .bz2]
+
+Further information can be optained from the rpm man page.  The included
+AfterStep-redhat.tar.gz file is the menu used for this method.
+
+Feb 3, 2000

@@ -1,0 +1,1 @@
+Exec "Nose" exec sh -c "killall xlock ; xlock -nolock -mode nose -inroot &"

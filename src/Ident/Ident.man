@@ -1,0 +1,97 @@
+.\" t
+.\" @(#)Ident.1	02/07/00
+.TH Ident 1.8 "Feb 7 2000" Ident
+.UC
+.SH NAME
+\fBIdent\fP \- the AfterStep window identification module
+
+.SH SYNOPSIS
+\fBIdent\fP [\-f \fIconfig_file\fP] [\-v | \--version] [\-h | \--help]
+[\-w | \--window \fIwindow_id\fP]
+.sp
+Although \fBIdent\fP can be run from the command line, it is normally 
+spawned by afterstep from within an afterstep menu file by 'Ident':
+.nf
+.sp
+% cat "~/GNUstep/Library/AfterStep/start/Modules/Ident"
+	Module "Ident" Ident
+	MiniPixmap "mini-as.xpm"
+.fi
+
+To stop the \fBIdent\fP module, a menu item can be used:
+.nf
+.sp
+% cat "~/GNUstep/Library/AfterStep/start/Modules/Ident_Stop"
+	KillModuleByName "Stop Ident" Ident
+	MiniPixmap "mini-as.xpm"
+.fi
+(although \fBIdent\fP can simply be closed by using the Close button on the
+TitleBar, which will stop the \fBIdent\fP Module).
+
+.SH DESCRIPTION
+The \fBIdent\fP module prompts the user to select a target window, if
+the module was not launched from within a window context in AfterStep.
+After that, the \fBIdent\fP module pops up a window with information
+about the window which was selected.
+
+.SH OPTIONS
+.IP "\-f \fIconfig_file\fP"
+Use \fIconfig_file\fP instead of the default configuration file.
+
+.IP "\-h | \--help"
+Print a usage message and exit successfully.
+
+.IP "\-v | \--version"
+Print version information and exit successfully.
+
+.IP "\-w | \--window"
+Specifies the X resource id of the window about which information should 
+be displayed.
+
+.SH INITIALIZATION
+During initialization, \fBIdent\fP will search a configuration file
+which describes the colors and font to use.  This file will be the 
+one specified by the \fI\-f\fP option (if given).  Else, the 
+~/GNUstep/Library/AfterStep/ident file will be used if it exists.  Else, 
+/usr/local/share/afterstep/ident will be used.
+
+If the Ident executable is linked to another name, ie 'ln -s \fBIdent\fP
+\fBOtherIdentify\fP', then another module called \fBOtherIdentify\fP can
+be started, with a completely different set of configurations than
+\fBIdent\fP, simply by adding \fI*OtherIdentify\fP options following the
+same \fI*Identify\fP configuration options below to the \fIident\fP file.
+This way multiple Identify programs can be used.
+
+.SH INVOCATION
+\fBIdent\fP can be invoked from a menu item as shown in the Synopsis
+section above, or by binding the action 'Module Ident' to a key-stroke
+in the \fIfeel\fP file.
+
+AfterStep will search through the directories specified in the
+\fIModulePath\fP configuration in the \fIbase.#bpp\fP (where # is your
+colordepth) to attempt to locate Ident. Although nothing keeps you from
+launching Ident at start-up time, you probably don't want to.
+
+.SH CONFIGURATION OPTIONS
+\fBIdent\fP reads the \fIident\fP file when it starts up, and looks
+for its configuration options:
+
+.IP "*IdentFore \fIcolor\fP"
+Tells the module to use \fIcolor\fP instead of black for text.
+
+.IP "*IdentBack \fIcolor\fP"
+Tells the module to use \fIcolor\fP instead of black for the window
+background.
+
+.IP "*IdentFont \fIfontname\fP"
+Tells the module to use \fIfontname\fP instead of fixed for text.
+
+.SH AUTHOR
+Robert Nation
+
+Nobutaka Suzuki <nobuta-s@is.aist-nara.ac.jp>
+.nf
+David Mihm <dmihm@swbell.net> [Man page]
+
+.SH SEE ALSO
+.BR afterstep (1)

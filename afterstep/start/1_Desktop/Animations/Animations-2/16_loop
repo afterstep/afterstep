@@ -1,0 +1,1 @@
+Exec "Loop" exec sh -c "killall xlock ; xlock -nolock -mode loop -inroot &"

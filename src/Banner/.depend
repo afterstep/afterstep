@@ -1,0 +1,10 @@
+./Banner.o: \
+        ../../configure.h \
+        ../../include/sun_headers.h \
+        ../../include/alpha_header.h \
+        ../../include/aftersteplib.h \
+        ../../include/afterstep.xpm \
+        ../../include/afterstep.h \
+        ../../include/style.h \
+        ../../include/screen.h \
+        ../../include/module.h

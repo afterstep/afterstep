@@ -1,0 +1,128 @@
+/*
+ * Copyright (c) 1998 Sasha Vasko <sashav@sprintmail.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.   See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *
+ */
+
+/*#define DO_CLOCKING      */
+
+#define TRUE 1
+#define FALSE
+
+#include "../configure.h"
+
+#include <errno.h>
+#include <stdio.h>
+#include <ctype.h>
+#include <stdlib.h>
+
+#include "../include/aftersteplib.h"
+#include "../include/parser.h"
+
+#ifdef DEBUG_PARSER
+#define LOG1(a)       fprintf( stderr, a );
+#define LOG2(a,b)    fprintf( stderr, a, b );
+#define LOG3(a,b,c)    fprintf( stderr, a, b, c );
+#define LOG4(a,b,c,d)    fprintf( stderr, a, b, c, d );
+#else
+#define LOG1(a)
+#define LOG2(a,b)
+#define LOG3(a,b,c)
+#define LOG4(a,b,c,d)
+#endif
+
+HashValue
+GetHashValue (char *text, int hash_size)
+{
+  register int i;
+  HashValue hash_value = 0;
+  for (i = 0; i < ((sizeof (HashValue) - sizeof (char)) << 3); i++)
+    {
+      if (text[i] == '\0' || isspace (text[i]))
+	break;
+      hash_value += (((HashValue) (tolower (text[i]))) << i);
+    }
+  return hash_value % hash_size;
+}
+
+void
+InitHash (SyntaxDef * syntax)
+{
+  register int i;
+
+  if (syntax->term_hash_size <= 0)
+    syntax->term_hash_size = TERM_HASH_SIZE;
+  if (syntax->term_hash == NULL)
+    syntax->term_hash = (TermDef **) safemalloc (sizeof (TermDef *) * (syntax->term_hash_size));
+
+  for (i = 0; i < syntax->term_hash_size; i++)
+    syntax->term_hash[i] = NULL;
+}
+
+void
+BuildHash (SyntaxDef * syntax)
+{
+  HashValue hash_value;
+  TermDef *current;
+  int i;
+  for (i = 0; syntax->terms[i].keyword; i++)
+    syntax->terms[i].brother = NULL;
+
+  for (i = 0; syntax->terms[i].keyword; i++)
+    {
+      hash_value = GetHashValue (syntax->terms[i].keyword, syntax->term_hash_size);
+      if (syntax->term_hash[hash_value])
+	{
+	  for (current = syntax->term_hash[hash_value];
+	       current->brother;
+	       current = current->brother);
+	  current->brother = &(syntax->terms[i]);
+	}
+      else
+	syntax->term_hash[hash_value] = &(syntax->terms[i]);
+    }
+}
+
+TermDef *
+FindTerm (SyntaxDef * syntax, int type, int id)
+{
+  register int i;
+  if (syntax)
+    for (i = 0; syntax->terms[i].keyword; i++)
+      if (type == TT_ANY || type == syntax->terms[i].type)
+	if (id == ID_ANY || id == syntax->terms[i].id)
+	  return &(syntax->terms[i]);
+
+  return NULL;
+}
+
+/* this one will identify Term using Hash table
+   it will seT :
+   - current_term to the term found
+   Returns : NULL if no terms found, otherwise same as current_term.
+ */
+TermDef *
+FindStatementTerm (char *tline, SyntaxDef * syntax)
+{
+  HashValue hash_value;
+  TermDef *pterm;
+
+  hash_value = GetHashValue (tline, syntax->term_hash_size);
+  for (pterm = syntax->term_hash[hash_value]; pterm; pterm = pterm->brother)
+    if (mystrncasecmp (tline, pterm->keyword, pterm->keyword_len) == 0)
+      return pterm;
+  return NULL;
+}

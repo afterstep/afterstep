@@ -1,0 +1,80 @@
+.\" t
+.\" @(#)Gnome.1  04/04/99
+.TH Gnome 1.7.20 "April 4 1999" Gnome
+.UC
+.SH NAME
+\fBGnome\fP \- the AfterStep GNOME compliancy module
+
+.SH SYNOPSIS
+\fBGnome\fP [\-f \fIconfig_file\fP] [\-v | \--version] [\-h | \--help]
+.sp
+Although \fBGnome\fP can be run from the command line, it is normally 
+spawned by afterstep in the \fIautoexec\fP file, in the following manner:
+.nf
+.sp
+	Module	"I"	Gnome
+.sp
+.fi
+or from within an afterstep menu file by 'Gnome':
+.nf
+.sp
+% cat "~/GNUstep/Library/AfterStep/start/Modules/Gnome"
+	Module "Gnome" Gnome
+	MiniPixmap "mini-as.xpm"
+.fi
+
+To stop the \fBGnome\fP module, a menu item can be used:
+.nf
+.sp
+% cat "~/GNUstep/Library/AfterStep/start/Modules/Gnome_Stop"
+	KillModuleByName "Stop Gnome" Gnome
+	MiniPixmap "mini-as.xpm"
+.fi
+
+.SH DESCRIPTION
+\fBGnome\fP is a module that provides GNOME compliancy for AfterStep.  It translates AfterStep
+socket messages into GNOME hints and enables GNOME applications to interact with AfterStep
+as outlined in the GNOME compliant WM specs (which need to be updated by the way).  The module has been tested with gnome-libs 1.0.5/gnome-core 1.0.4.  
+More information on GNOME can be obtained at http://www.gnome.org and my page, which has information on how to get GNOME and AfterStep to play together nicely at http://mcss.mcmaster.ca/~rafal/afterstep
+
+.SH OPTIONS
+.IP "\-f \fIconfig_file\fP"
+Use \fIconfig_file\fP instead of the default configuration file.
+
+.IP "\-h | \--help"
+Print a usage message and exit successfully.
+
+.IP "\-v | \--version"
+Print version information and exit successfully.
+
+.SH INITIALIZATION
+\fIGnome\fP requires no configuration files, it will run with sensible
+defaults (4 desks, desks names Desktop 1, Desktop 2 etc).  The defaults
+can be overriden in the (optional) config file.  This file will be the one specified by the 
+\fI\-f\fP option (if given).  Else, the ~/GNUstep/Library/AfterStep/Gnome file will be used if it 
+exists.  Else, /usr/local/share/afterstep/Gnome will be used.
+
+.SH CONFIGURATION OPTIONS
+
+Config file is optional, if you run Gnome without one, you will get 4 desks with the GNOME
+pager, named Desktop 1, Desktop 2 etc.  These can be overriden in the config file:
+
+*GnomeDeskName SomeDesk Name
+.sp
+*GnomeDeskName SomeOtherDesk Name
+.sp
+*GnomeDeskName My Work Desk
+
+This will make GNOME see 3 desks, named, desk 1 - SomeDesk Name, desk 2 - SomeOtherDesk
+Name, desk 3 - My Work Desk
+
+*GnomePages 0|1 toggles virtual pages support on and off, I suggest using 0 at the moment, the gnome pager does not work well with virtual paging.
+
+.SH BUGS
+None as far as I know, if you find any please email me.
+
+.SH AUTHOR
+Rafal Wierzbicki <rafal@mcss.mcmaster.ca>
+
+.SH SEE ALSO
+.BR afterstep (1)\  Pager (1)

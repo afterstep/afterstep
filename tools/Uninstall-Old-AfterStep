@@ -1,0 +1,79 @@
+#!/bin/bash
+# 
+# UnInstall script for AfterStep version 1.0+
+# This script must be run as Root, if not it will exit
+# with an error explaining such.
+#
+# Now, Check that we are Root....
+# 
+
+if [ $UID != 0 ]; then
+	echo Sorry...  you must run the Uninstall script as Root
+	echo Otherwise you do not have permissions to erase the
+	echo old AfterStep files from their native directories.
+	echo Please login as root and run the Uninstaller again...
+	exit 1
+fi
+
+# First, set the Binary, Config and Man directory variables
+BIN=/usr/X11R6/bin/
+DOC=/usr/share/afterstep/doc/
+MAN=/usr/X11R6/man/man1/
+
+# If the user added the -all flag to the command, then we erase all files...
+if [ $1 = "-all" ]; then
+
+
+	BinList='afterstep ASSound Animate Audio Auto Banner Clean Form Ident Save Scroll Pager WPager XPager YPager ZPager Wharf WinList Zharf ascd asclock asfsm asfsm_lite asload asmail asmix asmixer asprint afterstepdoc'
+        DocList='afterstep.html afterstep-1.html afterstep-2.html afterstep-3.html afterstep-4.html afterstep-5.html afterstep-6.html afterstep-7.html afterstep-8.html afterstep-9.html'
+        ManList='afterstep.1x Animate.1x Audio.1x Auto.1x Banner.1x Clean.1x Form.1x Ident.1x Save.1x Scroll.1x Pager.1x Wharf.1x WinList.1x Zharf.1x ascd.1x asclock.1x asfsm.1x asmail.1x asmixer.1x'
+
+else
+#we onle delete the actual AfterStep files, not the APPS package...
+	BinList='afterstep ASSound Animate Audio Auto Banner Clean Form Ident Save Scroll Pager WPager XPager YPager ZPager Wharf WinList Zharf afterstepdoc'
+        DocList='afterstep.html afterstep-1.html afterstep-2.html afterstep-3.html afterstep-4.html afterstep-5.html afterstep-6.html afterstep-7.html afterstep-8.html afterstep-9.html'
+        ManList='afterstep.1x Animate.1x Audio.1x Auto.1x Banner.1x Clean.1x Form.1x Ident.1x Save.1x Scroll.1x Pager.1x Wharf.1x WinList.1x Zharf.1x' 
+fi
+
+
+for File in $BinList; do
+	rm -f $BIN$File
+	echo Removed Progrom file $File
+done 
+for File in $DocList; do
+	rm -f $DOC$File
+	echo Removed doc file $File
+done
+for File in $ManList; do
+	rm -f $MAN$File
+	echo Removed Man Page $File
+done
+
+# The added ~/G/L/A backup script - Search through the users Home dirs
+# for the AFterStep config dir's and back them up as 
+# ~/GNUStep/Library/AfterStep_Old
+
+# First prompt the user for the Base Home dir <Usually /home>
+echo Please enter your Base home directory [normally /home] ;
+read BaseHome
+if [ $BaseHome="" ]; then
+	BaseHome="/home"
+fi
+
+# Now, search the Home dirs for the G/L/A dir set..
+Users=`ls $BaseHome | grep ^[a-z]`
+
+for Directory in $Users; do
+	cd $BaseHome/$Directory
+	if [ -d $BaseHome/$Directory/GNUstep/Library/AfterStep ]; then
+		mv -f $BaseHome/$Directory/GNUstep/Library/AfterStep $BaseHome/$Directory/GNUstep/Library/AfterStep.old
+		echo Moved $BaseHome/$Directory/GNUstep/Library/AfterStep to backup file
+	fi
+done
+
+#
+# - Echo a message to the screen to tell the user we have finished, and point 
+#   them at the README file...
+DoneMessage='Done...  Please read the README file before installing AfterStep 1.5'
+echo $DoneMessage
+

@@ -1,0 +1,26 @@
+#!/bin/sh
+# don't forget to install ImageMagick !!!!
+
+analyse () { 
+if [ ! -d $DIRECTORY/jpg ]
+then
+ mkdir $DIRECTORY/jpg
+fi
+
+cd $DIRECTORY
+
+for i in *.xpm
+do convert -interlace None $i ./jpg/$i.jpg
+done
+cd jpg
+for i in ./*.xpm.jpg
+do mv $i `echo $i | sed /.xpm.jpg/s/.xpm.jpg/.jpg/`
+done
+cd ../..
+}
+
+DIRECTORY=backgrounds
+analyse
+
+echo " "
+echo "Done !"

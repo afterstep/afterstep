@@ -1,0 +1,70 @@
+.\" t
+.\" @(#)Banner.1	02/07/00
+.TH Banner 1.8 "Feb 7 2000" Banner
+.UC
+.SH NAME
+\fBBanner\fP \- the AfterStep start-up banner displaying module
+
+.SH SYNOPSIS
+\fBBanner\fP [\-v | \--version] [\-h | \--help] [\fIimage\fP]
+.sp
+Although \fBBanner\fP can be run from the command line, it is normally 
+spawned by afterstep in the \fIautoexec\fP file, in the following manner:
+.nf
+.sp
+	Module	"I"	Banner
+	Wait		"I"	Banner
+.sp
+.fi
+or from within an afterstep menu file by 'Banner':
+.nf
+.sp
+% cat "~/GNUstep/Library/AfterStep/start/Modules/Banner"
+	Module "Banner" Banner
+	MiniPixmap "mini-as.xpm"
+.fi
+
+To stop the \fBBanner\fP module, a menu item can be used:
+.nf
+.sp
+% cat "~/GNUstep/Library/AfterStep/start/Modules/Banner_Stop"
+	KillModuleByName "Stop Banner" Banner
+	MiniPixmap "mini-as.xpm"
+.fi
+
+.SH DESCRIPTION
+The \fBBanner\fP module displays an AfterStep Logo in the center of the
+screen for 3 seconds.
+
+.SH OPTIONS
+.IP "\-h | \--help"
+Print a usage message and exit successfully.
+
+.IP "\-v | \--version"
+Print version information and exit successfully.
+
+.SH INITIALIZATION
+During initialization, \fBBanner\fP will accept a command line parameter of
+the pixmap to display, i.e. \fIBanner Afterstep_logo-2.xpm\fP.
+
+.SH INVOCATION
+\fBBanner\fP can be invoked from the \fIautoexec\fP file or from binding the
+action "Module Banner \fI[image]\fP to a key-stroke in a \fIfeel\fP file,
+or from a menu as shown in the Synopsis section above.
+
+AfterStep will search through the directories specified in the
+\fIModulePath\fP configuration in the \fIbase.#bpp\fP (where # is your
+colordepth) to attempt to locate Banner.
+
+.SH CONFIGURATION OPTIONS
+\fBBanner\fP has no configuration file.
+
+.SH AUTHOR
+Robert Depenbrock <robert@eclipse.asta.uni-essen.de>
+.nf
+Robert Nation
+.nf
+David Mihm <dmihm@swbell.net> [Man page]
+
+.SH SEE ALSO
+.BR afterstep (1)

@@ -1,0 +1,18 @@
+EXTRA_INCLUDES	= -I.
+
+OBJS		= libyywrap.o lex.yy.o y.tab.o Instructions.o Script.o
+
+PROG		= Script
+
+LIBS_ASDYN      = $(LIB_AFTERSTEP) $(LIB_WIDGETS)
+LIBS_DEPEND     = $(LIB_AFTERSTEP) $(LIB_WIDGETS)
+
+@MAKEFILECOMMON@
+
+install:	install.bin install.man
+
+uninstall:	uninstall.bin uninstall.man
+
+compiler:
+	$(LEX) $(LEXFLAGS) Compiler/lexin
+	$(YACC) $(YACCFLAGS) Compiler/bisonin

@@ -1,0 +1,135 @@
++---------------------------------------------------------------------------+
+| Information on making an RPM of this is in the general README, the        |
+| contents of this file is if you want to compile your self without using   |
+| the RPM.                                                                  |
++---------------------------------------------------------------------------+
+
+Compiling AfterStep 1.7 with a RedHat 5.X box
+=============================================
+Intro.
+
+   OK - I am no pro writer so don't expect this README to be perfect or
+anything :)  Basically, I want to cut down on the "My Start menu keeps
+resetting when I restart X" problems.
+
+Credit.
+
+   Umm - Me for writing it?  No.   The whole AfterStep team deserves credit
+for it.   Without AfterStep, this document would not have been created, and
+besides, What would we use without AfterStep?  I shudder to think! :)
+
+
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+Ok, first off a bit of Info.  Red Hat 5.1 ships with AfterStep 1.4.?
+RedHat 5.2 ships with AfterStep 1.5beta4   Both are out of date.  You are
+reading this so I assume the version you have is 1.6.0  (And yes, we changed
+the versioning structure.  See www.afterstep.org for info on this)
+The first thing to do, get rid of the old AfterStep.  This is done by
+
+    rpm -e --nodeps AfterStep
+
+... which must (Of Course) must be done as root.  
+
+Now, go install AfterStep.  Read the README, which of course, being a smart,
+and skilled Linux user, you intend on doing anyway, right? :)  Get back here
+after you are done installing it...
+
+
+....  La la la..  Compile AfterStep, Compile...
+
+
+Ok - Done?  Good.  Now, there are a few things RedHat does "Differently"
+The Start Menu is configured by a program called wmconfig.  This makes 
+things a bit difficult for RedHat users, as the man pages and documentation
+do not cover this.  The wmconfig was designed to allow the various window  
+managers' authors the ability to rely on a global "Start" menu, while still
+allowing the user to add personalized menus atop that global one.
+This was a great idea, but it never inspired any easy to use tools.
+(Any aspiring developers interested in this position?)  :)
+
+   Anyway, in a nutshell, this is how the wmconfig program works.
+You issue the startx command to your computer. X reads in the xinit file
+and processes settings and commands in there before starting. The xinit
+files call upon wmconfig to read in the default "Start" menu, and any
+personal menus you create. Finally, after all the configuration is done,
+X loads.  When you start X, wmconfig will overwrite any changes you may
+have made to your start menu.
+
+   There are three ways around this; of them I will detail only 2.
+The third way, which is the most difficult is to actually use the wmconfig.
+The file formats are very much like the AfterStep formats, and in time I
+may play with it to see if I can make it work for us, but for now, I
+suggest using one of the following 2 workarounds.
+
+   Method #1
+ 
+     Edit /etc/X11/xinit/Xclients and remove, or comment out the line
+
+       wmconfig --output=afterstep --directories  .... etc
+
+This line is the line which outputs the menu to your directory. Disable it
+and your menu is safe :)
+
+   Method #2
+
+     Remove your ~/.wm_style file, and edit the ~/.xinitrc to contain only
+
+            exec afterstep
+
+
+And if you read back a few lines, I said I was going to detail only two.
+I kinda lied :)  This information was email-ed to me, and is definitely
+worth including. 
+(The authors words are not mine, etc., and the views expressed by said 
+ author do not reflect mine etc.) :):)
+
+
+As an alternative, Kai Puolamaki (Kai.Puolamaki@iki.fi) suggests that you
+configure your wmconfig utility to make things work better. This is likely 
+the best way to make these adjustments. Red Hat's wmconfig utility relies 
+on a system-wide directory, /etc/X11/wmconfig, but is adjustable by users
+through an individual directory, ~/.wmconfig. So, if you wanted a menu item,
+"Mail", containing both mutt and elm, you would add two files:
+
+
+     ~/.wmconfig/mutt
+     ~/.wmconfig/elm
+
+
+The file "mutt" would contain the following:
+
+
+     mutt name "Mutt"
+     mutt description "Mutt email client"
+     mutt group Mail
+     mutt exec "xterm -e mutt &"
+
+
+The file "elm" would be similar:
+
+
+     elm name "Elm"
+     elm description "Elm email client"
+     elm group Mail
+     elm exec "xterm -e elm &"
+
+
+More information is available from the wmconfig manpage. Note that there
+is an additional advantage to this syntax: it
+ensures that your menu changes are also available if you change window
+managers.
+
+
+Ok - for a new user, it may be confusing. I prefer not to use wmconfig.
+Different strokes for different folks though, so there you have it. :)
+
+
+And that is all. I may improve on this README soon, actually I hope I do.
+It is a mess I know, but I hope it is enough to get the point across. 
+Any questions, suggestions, complaints or general flames can be sent to me.
+
+ Email me, panther@dsis.net   or  The AfterStep Mailing List
+  Or, Find us on EFNet in #AfterStep :)  Good Luck :>  Enjoy! :)
+
+           Panther , Shadow on the IRC

@@ -1,0 +1,21 @@
+/* XPM */
+static char * 2_xpm[] = {
+"15 15 3 1",
+" 	c #FFFF00000000",
+".	c #000000000000",
+"X	c None",
+"XXXXXXXXXXXXXXX",
+"XXXXXXXXXXXXXXX",
+"XXXXXXXXXXXXXXX",
+"X.....XXX..... ",
+"XX.   .X.   .XX",
+"XXX.   .   .XXX",
+"XXXX.     .XXXX",
+"XXXXX.   .XXXXX",
+"XXXX.     .XXXX",
+"XXX.   .   .XXX",
+"XX.   .X.   .XX",
+"X.....XXX.....X",
+"XXXXXXXXXXXXXXX",
+"XXXXXXXXXXXXXXX",
+"XXXXXXXXXXXXXXX"};

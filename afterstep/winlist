@@ -1,0 +1,28 @@
+
+#------------------------------------------------------------------------
+# Tasks list
+#
+
+*WinListAction Click1 Iconify -1,Focus
+*WinListAction Click2 Shade
+*WinListAction Click3 Iconify
+*WinListUseSkipList
+*WinListUseIconNames
+
+# Geometries, unhidden WinList
+*WinListGeometry +0+0
+# hidden WinList
+*WinListHideGeometry +0+0
+
+*WinListMaxWidth 1024
+# down (vertical winlist) or across (horizontal titlebar) ?
+*WinListOrientation across
+*WinListAutoHide 0
+
+# Balloons
+*WinListBalloons
+*WinListBalloonDelay 0
+*WinListBalloonBorderWidth 1
+*WinListBalloonYOffset +1
+*WinListBalloonBorderColor black
+

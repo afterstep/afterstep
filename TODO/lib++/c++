@@ -1,0 +1,114 @@
+0. Everybody who writes a class must add the following public method:
+
+char *className() const { return "<name>"; }
+
+1. We have to change the directory structure:
+
+  afterstep                             stays the same
+  modules                               stays the same
+  doc                                   stays the same
+
+  lib                                   library functions that can
+                                        be used by other progs
+                                        former location: src/lib
+  lib++                                 new:
+                                        ...
+  include                               all the includes needed bye
+                                        the libs
+  src                                   the wm
+ 
+2. Configure script and config.h/os-dependant.h:
+They were not very comfortable, so I changed them. I´m not happy with
+them yet, but at least it´s not getting worse.
+There are some things that will not be needed after full move to C++.
+E.g. AFTER_INLINE: inline is a feature of standard C++, we don´t have
+to define there anything.
+
+3. C/C++ mixup
+I haven´t yet thought about it. At the moment, all I write is tested
+in a simple window. I won´t think about it before I finished the
+asLabel (simple graded label), asCSLabel (compound string graded
+label), asMenu and asCMenu (simple and compound menu resp.) classes. I
+think, this will take me four to six weeks.
+
+4. Documentation
+We should add good description to the classes/functions which can be
+extracted by a helper app. E.g. the header files contain the
+information (see diffpack by numerical objects, Example:
+/*>asError:*/
+class asError
+{
+  friend ostream &<<(....
+ public:
+  asError();
+  asError(Display *dpy);
+  ~asError();
+...
+}
+/*<asError:*/
+/*class:asError
+
+NAME:   asError - base class for error reporting
+
+SYNTAX: @asError
+
+KEYWORDS:
+
+DESCRIPTION:
+
+SEE ALSO:
+
+DEVELOPED BY:
+
+AUTHOR:
+
+End:
+*/)
+
+Here @asError is replaced by that what is parsed between the
+statements /*>name*/ and /*<name*/
+
+With this, we can produce man/html/ps etc. Another advantage would be
+that the manuals are always up to date. Nobody has to write an extra
+man-page.
+
+My suggestions:
+
+/*<class>name*/             starts parsing a class, ends with
+/*<end>*/
+
+/*<method>[name]            if name is ommitted, it is assumed,
+description                 that the previous method definition
+*/                          gives the name
+
+/*<function>[name]          see method, for C-files
+description
+*/
+
+/*<manual>name
+
+
+<title>...
+<author>
+
+<syntax>[@classes, @functions]
+
+<keywords>...
+
+<abstract>
+
+<sect>Description
+
+<sect>Methods
+
+<ref>
+(references)
+</ref>
+
+<dev>
+(developed by)
+</dev>
+*/
+
+
+					Juergen.Sawinski@urz.uni-heidelberg.de

@@ -1,0 +1,108 @@
+#
+# Copyright (c) 1998, Guylhem AZNAR <guylhem@oeil.qc.ca>
+#
+
+@MAKEFILEDEFINES@
+
+all:            @LIBPROG@ $(INSTALLONBUILD)
+
+install.bin:
+
+install.lib:	@LIBPROG@ @LIBINSTALL@
+
+install.man:
+
+install.script:
+
+install.dyn:
+		$(INSTALL_LIB) $(DYNPROG).$(LIBVER) $(LIBDIR)
+		-@/bin/rm -f $(LIBDIR)/$(DYNPROG).$(LIBVERMAJOR) $(LIBDIR)/$(DYNPROG)
+		ln -sf $(DYNPROG).$(LIBVER) $(LIBDIR)/$(DYNPROG).$(LIBVERMAJOR)
+		ln -sf $(DYNPROG).$(LIBVERMAJOR) $(LIBDIR)/$(DYNPROG)
+		@( \
+		 if test `uname` = "Linux"; then \
+		   if test $(LIBDIR) = "/lib" || test $(LIBDIR) = "/usr/lib"; then \
+		     echo "" > /dev/null; \
+		   elif grep -q $(LIBDIR) /etc/ld.so.conf > /dev/null 2>&1; then \
+		     echo "" > /dev/null; \
+		   else \
+		     echo "Unable to find $(LIBDIR) in ld.so.conf. In order to use "; \
+		     echo "$(DYNPROG), you may need to add it or set LD_LIBRARY_PATH."; \
+		   fi; \
+		   echo "ldconfig"; \
+		   ldconfig; \
+		 fi \
+		)
+
+uninstall.bin:
+
+uninstall.lib:
+
+uninstall.man:
+
+uninstall.script:
+
+clean:
+		$(RMF) $(PROG) *.so.* *.so *.o *~ *% *.bak \#* core
+
+distclean:
+		$(RMF) $(PROG) *.o *.so.* *~ *% *.bak \#* *.orig core Makefile
+
+indent:
+		@SRCS=`echo "$(OBJS) " | sed "s/.o /.c /g"`; \
+		if test "x$$SRCS" == "x"; then exit; fi; \
+		for i in $$SRCS; do \
+		  if (indent < $$i > /tmp/$$i); then \
+		    echo "indent $$i"; \
+		    mv /tmp/$$i $$i; \
+		  fi; \
+		done
+
+deps:		
+		echo -n > .depend ; \
+		buf="" ; \
+		for file in `find . -name "*.c"` ; do \
+		  if test "x$$buf" != "x"; then \
+		      echo $$buf >>.depend ; \
+		      echo >>.depend ; \
+		  fi; \
+		  buf="."`echo $$file | awk -F . '{print $$2}'`".o:" ; \
+		  for d in `grep "#include \"" < $$file | awk -F \" '{print $$2}'`; do \
+		      if test "x$$buf" != "x"; then \
+		         echo $$buf \\ >>.depend ; \
+		      fi; \
+		      echo -n "        " >>.depend ; \
+		      buf="$$d "; \
+		  done; \
+		done; \
+		if test "x$$buf" != "x"; then \
+		  echo $$buf >>.depend ; \
+		fi
+
+$(PROG):	$(OBJS)
+		$(RMF) $(PROG)
+		$(AR) $(PROG) $(OBJS)
+		$(RANLIB) $(PROG)
+
+.c.o:
+		$(CC) $(CCFLAGS) $(EXTRA_DEFINES) $(INCLUDES) $(EXTRA_INCLUDES) -c $*.c
+
+#
+# include dependency files if they exist
+#
+# this is merely a precaution, but as it does not work with ansi make
+# we took it out
+#ifneq ($(wildcard .depend),)
+include .depend
+#endif
+
+$(DYNPROG): $(DYNPROG).$(LIBVERMAJOR)
+	ln -sf $(DYNPROG).$(LIBVERMAJOR) $(DYNPROG)
+
+$(DYNPROG).$(LIBVERMAJOR): $(DYNPROG).$(LIBVER)
+	ln -sf $(DYNPROG).$(LIBVER) $(DYNPROG).$(LIBVERMAJOR)
+
+$(DYNPROG).$(LIBVER): $(OBJSDLL)
+	$(CC) -shared -Wl,-soname,$(DYNPROG).$(LIBVERMAJOR) -o $(DYNPROG).$(LIBVER) \
+	 $(OBJSDLL)
+

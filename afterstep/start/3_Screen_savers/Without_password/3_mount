@@ -1,0 +1,1 @@
+Exec "Mountain" exec xlock -nolock -mode mountain &

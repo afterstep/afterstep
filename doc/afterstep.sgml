@@ -1,0 +1,973 @@
+<!doctype Linuxdoc system>
+<article>
+<title>AfterStep 1.8 FAQ
+<author>Charlie Schmidt (<tt/ishamael@themes.org/)
+<date> 14 January 2000
+
+<abstract>
+This is the AfterStep version 1.8 FAQ.
+Copyright &copy 1996-2000, Frank Fejes, Jonathan B. Leffert, Kragen Sittler, Diego 
+Zamboni, Guyhelm Aznar, Andrew Sullivan, Sasha Vasko, Andrew Ferguson, and Charlie 
+Schmidt.  Freely redistributable under the terms of the LDP license, Version 2, January 
+1998.
+</abstract>
+
+<toc>
+
+<sect>General Information
+
+<p>
+<sect1>About this Document.
+<p>
+This document is an ever growing set of questions, statements, ideas and complaints about 
+AfterStep version 1.8.
+<p>
+You can get this FAQ at the following locations:
+<itemize>
+<item><url url="http://afterstep.davidv.net/">
+<item><url url="http://www.afterstep.org/FAQ/">
+<item><url url="ftp://ftp.afterstep.org/FAQ/">
+<item><url url="http://www.linuxdoc.org/"> (may be outdated)
+<item><url url="http://www.tigr.net/afterstep/faq/"> (thanks to Albert Dorofeev <tt/tigr@tigr.net/)
+</itemize>
+<p>
+The rest of this document assumes you are running AfterStep 1.8, there is no more 
+information pertaining to AfterStep 1.6.  If you are running a version of AfterStep prior
+to version 1.8, this document will suggests only one thing: upgrade.
+<p>
+<sect1>What is AfterStep?
+<p>
+AfterStep is a window manager for the X Window System (hereafter referred to as X).
+It was started to emulate the look and feel of NeXTSTEP(tm), but has evolved into 
+something that while still being able to emulate NeXT, can do much much more.  Without 
+using much memory or cpu time, AfterStep provides all the features one could want in a 
+window manager.
+<p>
+<sect1>What is AfterStep's history?
+<p>
+The following is taken from the AfterStep man page (<url url="http://www.afterstep.org/man/stable/afterstep.html">)
+<p>
+<tscreen><verb>
+       AfterStep  is  a continuation of the BowMan window manager
+       which was originally put together by Bo Yang.  BowMan  was
+       based  on  the  fvwm  window  manager,  written  by Robert
+       Nation.  Fvwm was based on code from twm.  And  so  on....
+       It  is  designed  not only to emulate some of the look and
+       feel of the NEXTSTEP(tm) user interface, but also  to  add
+       useful,  requested,  and neat features.  The changes which
+       comprise AfterStep's personality were originally  part  of
+       BowMan  development, but due to a desire to move past SIM-
+       PLE EMULATION and into a niche as its OWN valuable  window
+       manager, the previous designers decided to change the pro-
+       ject name and move on.
+</verb></tscreen>
+<p>
+<sect1>Fine, what if I'm not running AfterStep 1.8? Is there a FAQ for me?
+<p>
+Yes.  There should be a version of the AfterStep 1.6 FAQ available anywhere this document
+is located.  If you are using a version earlier than 1.6, it is strongly suggested you 
+upgrade.
+<p>
+<sect1>What is X? What are these "window managers" ?
+<p>
+"X" is shorthand for The X Window System. It is a basis for building graphical user 
+interfaces for UNIX (it is available for non-UNIX systems, but wasn't designed to be as 
+such). "X" is not the interface itself, just a foundation for one.  For more information, 
+check <url url="http://www.x.org">.
+
+A window manager is a program that manages your windows during your X session. AfterStep 
+is one of many available <url url="http://www.plig.org/xwinman/" name="window managers">.
+<p>
+<sect1>What are AfterStep's main features?
+<p>
+<itemize>
+<item> The Wharf.  Similar to NeXTSTEP's(tm) Dock, it allows applications to be Swallowed, 
+shortcuts with icons, and many other things.
+<item> The Pager.  Shows a miniature view of the Afterstep desktops, you can move between 
+them, and move windows around in the Pager as though it were a miniature desktop.
+<item> The WinList.  A list of all the windows, clicking on the items can show that window,
+destroy it, shade it, or anything you might want.
+<item> NeXTSTEP(tm) like look, feel, icons, and menus.
+<item> Very configurable.  Almost anything can be changed.
+</itemize>
+<p>
+<sect1>Is AfterStep 1.8 GNOME and/or KDE compliant?
+<p>
+As of version 1.7.59 AfterStep has been GNOME compliant through the Gnome module.  It is 
+not perfect yet, but near-100% compliance is on the way.
+<p>
+AfterStep works fine with KDE.  It may not be "compliant" per se, but the desktop icons KDE
+provides, and most of its other features work with AfterStep almost perfectly.
+<p>
+<sect1>Can I run it in Microsoft Windows(tm)?
+<p>
+Not unless you get an X server.  Take a look at <url url="http://www.rahul.net/kenton/xsites.html#XMicrosoft"> for more information on how to set one up.
+<p>
+Or, you could use an AfterStep like program named "LiteSTEP" to give your Windows 9x 
+interface an appearance quite similar to AfterStep. You can get more information about
+LiteSTEP at <url url="http://www.litestep.net">.  <em>Note</em>: please do note send 
+LiteSTEP related questions to the AfterStep mailing list, the AfterStep developers, or the
+maintainers of this FAQ, they <em>cannot</em> help you.
+<p>
+<sect1>Who develops AfterStep?
+<p>
+Many people.  Take a look at <url url="http://www.afterstep.org/Team.shtml"> for a list of
+current developers.  Read the TEAM file distributed with AfterStep for a list of all
+contributors.
+<p>
+<sect1>AfterStep is awesome! How can I help?
+<p>
+Send us money.  Seriously though, if you can help write AfterStep, or feel you can help
+the effort elsewhere, do so.  Hang out on irc (#afterstep, efnet), participate on the 
+mailing lists, suggest ideas, help code, etc etc.
+<p>
+<sect1>Who writes this FAQ?
+<p>
+The file is maintained by Charlie Schmidt (<tt/ishamael@themes.org/), with help from
+#afterstep, the developers, the mailing list, and anyone who finds a problem.
+<p>
+The initial version of the FAQ was written by Frank Fejes (<tt/frank@ssax.com/) and 
+Jonathan B. Leffert (<tt/j-leffert@uchicago.edu/).  Major additions were made by Kragen
+Sittler (<tt/kragen@tcsi.com/).  Diego Zamboni (<tt/zamboni@cs.purdue.edu/) maintained the
+file until Guylhem Aznar (<tt/guylhem@oeil.qc.ca/) took over development and the FAQ with
+the release of AfterStep 1.4.  Andrew Sullivan (<tt/asullivan@spring.ca/) took over the FAQ
+after Guylhem left the development of AfterStep to pursue other things (he now runs the 
+linuxdoc system).  The AfterStep version 1.6 FAQ has major parts written by Tomas Duewiger
+(<tt/td@music-satellite.de/), Sasha Vasko (<tt/sashav@sprintmail.com/) and Andrew Ferguson
+(<tt/andrew@owsla.cjb.net/).
+<p>
+Naturally, the FAQ is prepared in co-operation with the program developers, but any errors
+or omissions are now Charlie Schmidt's responsibility, so you should contact him to 
+compalin.  Please do <em>not</em> complain to the AfterStep developers that the FAQ has
+problems.  They do not maintain it.  Please note that it is likely to contain several 
+errors, since the maintainers are only human, and the rapid pace of development often 
+obsoletes facts quickly.
+<sect>Resources
+<p>
+
+<p>
+<sect1>Where can I find AfterStep resources, or help?
+<p>
+<itemize>
+<item>WWW Page
+<p>
+The official AfterStep web page is at <url url="http://www.afterstep.org/">.  This web site
+is under the excellent administration of David Mihm (<tt/webmaster@afterstep.org/), and is 
+kindly hosted by the generous people at <url url="http://www.wgs.com" name="WorkGroup Solutions, Inc">.
+<p>  
+<item>FTP site
+<p>
+The FTP site, <url url="ftp://ftp.afterstep.org/">, is the best place to get AfterStep.
+It also supports uploads (of asapps, documentation, themes, etc) at <url url="ftp://ftp.afterstep.org/incoming/">.  
+Please read the instructions about uploads before asking why your upload is not 
+immediately available. 
+<p>
+<item>AfterStep applets
+<p>
+The applets (asapps) that go with AfterStep are distributed separately.  The applet 
+distribution is maintained by Albert Dorofeev, (<tt/tigr@tigr.net/).  You can find the 
+applets at <url url="http://www.tigr.net/afterstep/as-apps/">.
+<p>
+<item>Man pages.
+<p>
+AfterStep is lucky to have David Mihm (<tt/webmaster@afterstep.org/) as its man page author.
+These simple pages tell you in clear consice words how to do what with AfterStep. 
+<em>Please</em> read the relevent man page before asking a question.  Also note that the
+Pager man page is 'man Pager' (note the capitalization).  The man pages can be read online
+at <url url="http://www.afterstep.org/man/stable/">.
+<p>
+<item>#afterstep
+<p>
+There is also #afterstep on EFnet IRC servers.  If you need an irc client, try looking
+at <url url="http://irc.themes.org">.  If you need an irc server, try irc.cdc.net,
+irc.mo.net, irc.txdirect.net, and <url url="http://www.efnet.net/stats/servers.html">.  You
+can also view, but not participate in, #afterstep conversation at 
+<url url="http://the-site.loonybin.net/~DrFloyd/dialog.html">.
+</itemize>
+<p>
+<sect1>What are the AfterStep mailing lists, and where are their archives?
+<p>
+There are two AfterStep mailing lists.  as-users, and as-devel.
+<itemize>
+<item>as-users.
+<p>
+as-users is the general AfterStep mailing list, open to all AfterStep questions, concerns
+and ideas (<em>NO</em> LiteSTEP, Window Maker, some-x-app questions unless it really does
+pertain to AfterStep, please).  A subscription can be obtained by emailing <tt/majordomo@afterstep.org/ with the content of "subscribe as-users".
+<p>
+<item>as-devel.
+<p>
+as-devel is the development AfterStep mailing list.  It is geared toward development 
+questions, ideas and complaints.  Subscribe by emailing <tt/majordomo@crystaltokyo.com/ 
+with  the content of "subscribe as-devel".
+</itemize>
+<p>
+The mailing list archives can be read at <url url="http://www.tigr.net/afterstep/mail/">.
+
+<sect>Getting and Installing AfterStep 1.8
+<p>
+
+<p>
+<sect1>Where can I get AfterStep 1.8?
+<p>
+You can download AfterStep 1.8 at any of the following locations:
+<itemize>
+<item><url url="http://www.afterstep.org/Download.shtml">
+<item><url url="ftp://ftp.digex.net/pub/X11/window-managers/afterstep/stable/">
+<item><url url="ftp://ftp-jcsu.jesus.cam.ac.uk/pub/afterstep/stable/">
+<item><url url="ftp://ftp.linux.co.za/pub/windowmanagers/afterstep/stable/">
+</itemize>
+<p>
+A more complete list of AfterStep download locations and mirrors is available at 
+<url url="http://www.afterstep.org/Mirrors.shtml">.
+<p>
+<sect1>What do I need to compile and install AfterStep?
+<p>
+Because AfterStep is an X application, you need to have X installed, and the X development
+libraries (note, in this case "development" means libraries need to compile things with X,
+not development level code).  You'll also need a C compiler, and image libraries.
+<itemize>
+<item><url url="ftp://metalab.unc.edu/pub/Linux/libs/X/!INDEX.html" name="libXpm">
+<item><url url="http://www.cdrom.com/pub/png/pngcode.html" name="libpng">
+<item><url url="ftp://ftp.uu.net/graphics/jpeg/" name="jpeg libraries">
+</itemize>
+<p>
+It is suggested you have at least the xpm libraries, if not all image types.  Because 
+AfterStep comes with all of its images in xpm format, if you do not compile with libXpm,
+many of the default looks will appear broken or lacking in images.  Save yourself the 
+trouble of converting images, install libXpm.
+<p>
+<sect1>Can I install AfterStep without being root?
+<p>
+Yes, before compiling AfterStep, do this:
+<enum>
+<item>mkdir &tilde/bin
+<item>mkdir -p &tilde/man/man1
+<item>./configure --prefix &tilde/
+</enum>
+Then follow the normal install directions, allowing you to <tt/make install/ without being
+root.
+<p>
+<sect1>How do I upgrade AfterStep?
+<p>
+The trick here is your &tilde/GNUstep/Library/AfterStep/ directory.  Move it somewhere 
+else (&tilde/GNUstep.backup for example).  Now start AfterStep, it will create a new
+&tilde/GNUstep/Library/AfterStep/ directory, and the correct directories under that.  You
+can now move your old config back in.  <em>Note</em>: This does not mean simply copying 
+over the new &tilde/GNUstep/Library/AfterStep/ directory with the backed up one.  
+Just make sure you don't copy over the new non-configurable directory.  This directory
+is not to be moved, edited, linked to /dev/null, or anything of the sort!
+<p>
+<sect1>What's up with all these compile errors?
+<p>
+Most likely, you don't have all the libraries AfterStep is looking for, such as libXpm,
+libpng, or jpeg libraries.  Make sure you have the X devel package (should have come with
+your operating system, if not, check <url url="http://www.xfree86.org">), and any image
+libraries you want.  
+<p>
+<sect1>What's up with this error about sgmltools?
+<p>
+This FAQ is maintained in SGML, according to the Linuxdoc DTD; a version of the FAQ is 
+included with every distribution of AfterStep.  In order to make the SGML readable, a 
+program called sgml2html (part of <url url="http://www.sgmltools.org" name="sgmltools">)
+converts it to HTML.  Because many people don't have sgmltools, and don't want to bother
+installing them, and because AfterStep looks for sgmltools when creating the Makefiles,
+there are bound to be minor errors.
+<p>
+As a result, the HTML version is also shipped with the distribution.  The SGML is still
+incuded with AfterStep, so that users can make the FAQ in text, dvi, and PostScript 
+formats, just use the sgmltools package to translate the SGML into whatever you please.
+<p>
+<sect1>What if I don't want to compile AfterStep, can I get a binary package, like rpm?
+<p>
+Yes.  <url url="http://www.afterstep.org/Download.shtml"> has a wide variety of binary
+packages available for download, including rpm, deb, and packages for other varients
+of Linux and Unix.  
+<p>
+Please keep in mind that many of these packages install AfterStep into /usr/ instead
+of /usr/local/, where compiling would install it.  If you choose to install a package,
+please locate your global AfterStep directory if you plan to configure AfterStep.
+<p>
+<sect1>How do I install AfterStep on SGI or SCO?
+<p>
+The problem with compiling on these systems was tracked down and reported by Benjamin J.
+Tracy (<tt/tracy@wsicorp.com/) and John Koch (<tt/JKOCH1@Tandy.com/).  The ordering of the
+libraries in the link command is wrong.  Just make sure that the AfterStep library appears
+<em>before</em> the -lX11 argument on the link command line in the Makefile.  
+<p>
+<sect1>How do I install AfterStep on MacOS X?
+<p>
+It's apparently a pain.  The following was sent by Sarwat Khan 
+(<tt/sarwat@interlog.com/) to the mailing list:
+
+<tscreen><verb> 
+As a side note, installing AS on MOSXS was a royal pain in
+the butt (I really had nothing better to do, and I was wondering what it
+would take to get it done). It's not AS's fault. I guess the biggest proble
+m
+I had was because MOSXS uses Frameworks for a lot of stuff, not your
+standard .o or .a libraries. So I didn't have to use -ljpeg, I had to use
+-framework OmniJPEG. Also, maX doesn't put the X11 stuff in the usual
+places, it puts them in /Local/Library/Xnext/XR6.4/[usr,bin,X11,whatever].
+I
+was able to get around that ok using configure, but then instead of using
+-lX11, I had to use "-F/L/L/Xnext/blah -framework X11", since he's made a
+bunch of libraries frameworks instead (which is ok, but getting AS's stuff
+to work with it was a pain in the ass). Also, he didn't include the X11
+headers (?!), so I had to collect them from several places (what I
+downloaded from ftp.x.org was incomplete) and merge them in order to get all
+the headers.
+
+A few sources included 'malloc.h'. That's not kept in /usr/include (or
+wherever), it's in /System/Library/Frameworks/System.framework/bsd/src/).
+Yay. Usually you use ProjectBuilder to build tools and it handles the dumb
+details for you.
+</verb></tscreen>
+
+<p>
+<sect1>How do I install AfterStep on a system with CDE?
+<p>
+The following are instructions provided by Matthew R. Hamilton
+(<tt/panic@primary.net/):
+
+<tscreen><verb>
+The system wide default files for CDE configuration are located in
+/usr/dt/config and Sun recommends that if any personal customizations are to
+be done that they be placed under the /etc/dt/config directory (which does
+not exist by default).  The first an most important file in adding new
+desktops to the system is located in
+/usr/dt/config/<LANGUAGE>/Xresources.d/.  It is here that you will see a
+file called Xresources.ow (this is the entry for OpenWindows).  It must
+start with Xresources and can have any meaningful extension.  For myself I
+called the AfterStep file Xresources.step.  There are four key resources
+used by dtlogin that go in this file.  They are as follows:
+Dtlogin*altDtName    ----->    This is the name of the new desktop
+Dtlogin*altDtKey       ----->  This is what window manager to run
+Dtlogin*altDtStart      -----> This is the configuration script
+Dtlogin*altDtLogo     ----->   This is the logo that appears in the dtlogin
+                               window and is a 237x237 XPM file located in
+			       /usr/dt/appconfig/icons/C/ (If that is not 
+			       correct just do a find on the logo in the 
+			       .ow file in the /usr/dt directory.  
+			       NOTE: These files have an extension of .pm 
+			       not.xpm, don't ask me why but that is the 
+			       way Sun does it.
+
+
+Now the configuration file indicated in the Xresources.step file is located
+in /usr/dt/config.  I stuck to Sun's naming convention and called mine
+Xsession.step.  You can just copy the Xsession.ow to Xsession.step and
+customize it.  There are three areas that I modified.  The first was the
+environment variable SDT_ALT_SESSION and had it point to
+/usr/dt/config/Xsession.step2.  You can also customize the hello message via
+either the DTDSPMSG or SDT_ALT_HELLO environment variables.  The
+Xsession.step2 file is next called and is where the .Xinitrc file is run
+from.  You can just copy the Xsession.ow2 file to Xsession.step2 and modify
+it to just run the .xinitrc file from the user's home directory or run a
+system wide .xinitrc file.  On Solaris 2.5 the default .Xinitrc file is
+located in /usr/openwin/lib/Xinitrc while on Solars 2.6 it is in
+/usr/dt/config/Xinitrc.
+
+There are two other things you can modify in CDE.  There is a directory
+/usr/dt/config/images.  In that directory there are about 5 Sun raster
+images.  The one that is of interest here is Solaris.im8.  This is the image
+that displays the Welcome to Solaris in different languages.  It is a
+549x515 image and if you place any raster image of similar proportions in
+its place, it will be displayed instead of the one with the multi lingual
+welcome message.  I would of course recommend keeping a backup of the
+original and just making symlinks to the images you want.  Finally the file
+/usr/dt/config/<LANG>/Xresources contains some basic resources for the
+dtlogin window.  You can change the messages displayed.  I will leave that
+up to you as an exercise to figure out what the strings are and to have fun
+customizing your CDE desktops.
+
+</verb></tscreen>
+
+<sect>Problems After Installing
+<p>
+
+<p>
+<sect1>I keep getting this "Cannot open display" error when I run AfterStep, what gives?
+<p>
+Don't try to run AfterStep as a command from the console.  Since it is a window manager
+you need to start it with X (or from X).  The easiest way to do this is 
+<tscreen><code>echo "exec afterstep" > &tilde/.xinitrc</code></tscreen>
+There are other ways to do this, incuding just starting an aterm in .xinitrc, and running
+afterstep from the terminal, xdm start scripts, and various other techniques.
+<p>
+<sect1>Why isn't my alt key working in emacs anymore?
+<p>
+Because AfterStep stole it.  The default feel AfterStep comes with uses the alt key in
+addition to other key combinations to do various tasks, such as minimize windows, bring 
+up the startmenu, and switch desktops.  Edit your feel file and remove the references to
+the alt key, or use the supplied feel.ICCCM.  feel.ICCCM has no key combination bindings,
+and thus emacs will work fine.
+<p>
+<sect1>I use RedHat Linux, and my startmenu changes keep disappearing, why?
+<p>
+RedHat, in an attempt to make your system easier to use, has a utility "wmconfig."
+What it is supposed to do is serve menus for all window managers, so that you can have
+the same startmenu in every window manager.  However, since many people like to just use
+one window manager, or don't want to edit their menus via wmconfig, there are a variety of
+solutions presented:
+<p>
+David Mihm (<tt/webmaster@afterstep.org/), suggests you simply avoid wmconfig this way:
+
+<tscreen><code>
+echo "exec afterstep" > &tilde/.xinitrc
+echo "exec afterstep" > &tilde/.xsession
+chmod 700 &tilde/.xsession
+</code></tscreen>
+
+<p>
+Matteo Lunardi (<tt/matteo.lunardi@usa.net/) has offered a work-around in some versions.
+In the xinit-1.4.2.noarch.rpm, he edited the file /etc/X11/xinit/XClients:
+
+<tscreen><code>
+if [ -f $HOME/.wm_style ] ; then
+    WMSTYLE=Cat $HOME/.wm_style         case "$WMSTYLE" in
+        Afterstep*|AfterStep*)
+            # we have to start up afterstep
+            if [ -x /usr/X11R6/bin/afterstep -a -f
+/usr/share/afterstep/wmconfig.conf ] ; then
+#               if [ ! -d $HOME/GNUstep/Library/AfterStep ]; then
+                     mkdir -p $HOME/GNUstep/Library/AfterStep
+                     wmconfig --output=afterstep --directories \
+                        /usr/share/afterstep/wmconfig.conf 2>/dev/null
+#               fi
+                env > "$HOME"/Xrootenv.0
+                # if this works, we stop here
+                eval "exec /usr/X11R6/bin/afterstep" >
+"$HOME"/.AfterStep-errors 2>&1
+            fi
+</code></tscreen>
+
+In this case the change was to add comment marks ("#") to the "if" lines.  Apparently
+it also works to add the comment marks to the "mkdir" and "wmconfig" lines.
+<p>
+
+Chris Wood (<tt/chris@hillwood93.freeserve.co.uk/), suggests that you can actually use 
+wmconfig to make things easier for yourself.  (Keep in mind that the information here 
+is in no way a complete wmconfig guide, and that the man pages or RedHat's documentation
+is a much better source of information)  So, if you wanted a menu item, "Mail", 
+containing both mutt and elm, you would add two files:
+
+<tscreen><code>
+&tilde/.wmconfig/mutt
+&tilde/.wmconfig/elm
+</code></tscreen>
+
+The file "mutt" would contain the following:
+
+<tscreen><code>
+mutt name "Mutt"
+mutt description "Mutt email client"
+mutt group Mail
+mutt exec "xterm -e mutt &"
+</code></tscreen>
+
+The file "elm" would be similar:
+
+<tscreen><code>
+elm name "Elm"
+elm description "Elm email client"
+elm group Mail
+elm exec "xterm -e elm &"
+</code></tscreen>
+<p>
+<sect1>How do I report a bug or suggest a new feature?
+<p>
+Tell someone.  Email the as-devel list, <tt/bugs@afterstep.org/, jump on irc, whatever. 
+Just make the issue known to the maintainers.  
+If it is a bug, someone will get to fixing it.  If it is an idea for a new
+feature, keep in mind that the developers may not want to add it for a variety of reasons.
+It may be difficult to add, and not worth the work, such as "shaped titlebars" (which 
+will never happen), or it may not be a good idea in their eyes.  At any rate, they key
+is to tell other people of your problems and ideas.
+<p>
+<sect>AfterStep Configuration
+<p>
+
+<p>
+<sect1>Where are the AfterStep configuration files?
+<p>
+There are two places AfterStep configuration files could be.  The global directory is 
+usually /usr/local/share/afterstep/ (unless you installed from a binary package, or 
+specified a different place).  All configuration files should be here, and really 
+shouldn't be edited.  The preferred method for changing your configuration is copying
+the file you wish to change to &tilde/GNUstep/Library/AfterStep/, the personal 
+configuration file directory.  When AfterStep starts, it first reads 
+&tilde/GNUstep/Library/AfterStep for files, and those that it does not find, it reads from
+/usr/local/share/afterstep.
+<p>
+<sect1>Explain what all these configuration files do.
+<p>
+The following is a list of all the AfterStep configuration files, and their purpose:
+<itemize>
+<item>Gnome - used to configure the Gnome module, man Gnome for more information.
+<item>animate - animation settings.  Animations take place when you iconify things
+<item>asetroot - used to configure the asetroot module.  This module controls the background for AfterStep, man asetroot for more information.
+<item>asmail - used to configure the asmail applet.  You can download the asmail applet and other AfterStep applets at <url url="http://www.tigr.net/afterstep/as-apps">.
+<item>audio - used to configure the Audio module that supplies AfterStep with sound 
+effects for certain events.
+<item>autoexec - defines what is run when AfterStep starts and restarts.
+<item>base.xxbpp - tells AfterStep where to look for its modules (ModulePath), pixmaps (PixmapPath), scripts and cursors.  It also tells pager its size and dimensions.
+<item>clean - configures the Clean module. Clean reduces clutter on your screen by Iconifying or Deleting windows after a certain period of inactivity.
+<item>compatibility - read if AfterStep is run with -f .steprc.
+<item>database - a list of applications and their attributes.  You can tell AfterStep what icon they should iconify to, if the window has a title bar or not, if it has a vertical title bar, etc.
+<item>feel.name - defines how AfterStep acts.
+<item>forms - all the AfterStep forms.
+<item>ident - configure the Ident module.  Useful for finding window information.
+<item>look.name - defines how AfterStep looks.
+<item>pager - for configuring the Pager module.
+<item>scroll - for configuring the Scroll module.
+<item>wharf - Wharf module config file.
+<item>winlist - WinList module config file.
+<item>zharf - Zharf module configuration file.
+</itemize>
+
+A more in-depth explanation of these files can be found in the <url url="http://www.afterstep.org/man/stable/" name="man pages">.
+<p>
+<sect1>What is this .steprc everyone keeps talking about?
+<p>
+.steprc was the old AfterStep configuration file.  In eariler versions you put all your
+configuration (look, feel, Wharf, Pager, startmenu, etc) into the .steprc, and it was read
+when AfterStep started.  This style has been abandoned for the split file directory 
+structure configuration style.  The current style makes it easier to configure AfterStep,
+and apply themes.
+<p>
+<sect1>How do I add things to my startmenu?
+<p>
+Add entries in the start/ directory structure in your AfterStep configuration directory.
+To add an entry for Pine in an xterm, for example, you would create a file 'pine' in
+the correct directory, and put:
+<tscreen><code>
+Exec "Pine" exec xterm -e pine
+</code></tscreen>
+in it.  Then update your startmenu, and there should be an entry "Pine"
+<p>
+<sect1>How do I remove some of these titlebar buttons?
+<p>
+Edit your look file. The TitleButton tags tell AfterStep which images to use for which
+titlebar buttons. The syntax is:  
+<tscreen><code>TitleButton button_number unclicked_image clicked_image</code></tscreen> 
+Where the button number is from 1-10: [1][3][5][7][9] (title) [10][8][6][4][2]. 
+<p>
+<sect1>How do I change what happens when I click on a certain titlebar button?
+<p>
+Edit your feel file. The Mouse actions section defines what happens when you click on 
+certain things in AfterStep.  
+<tscreen><code>Mouse mouse_button_number  titlebar_button_number context action</code></tscreen> 
+is the syntax.
+<p>
+<sect1>How do I remove the titlebar from a window?
+<p>
+You'll need to find the WM_CLASS of the window.  AfterStep provides a tool "Ident" for
+finding out information about all the windows.  Run Ident, and click on the window you need
+information on.  The Class: item is the WM_CLASS.
+<p>
+Next edit your database file.  You should add an entry like this:
+<tscreen><code>Style	"WM_CLASS"	NoTitle</code></tscreen>
+<p>
+The database file also changes other attributes, such as VerticalTitle, NoBorder, Sticky
+and others.  Consult the AfterStep man page (man afterstep) for more information.
+<p>
+<sect1>I don't want window focus to follow the mouse, how do I change it so it acts like Microsoft Windows(tm)?
+<p>
+Take a look at the feel.ClickToFocus.  Using this feel, you have to click on the window to
+give it focus, just like in Microsoft Windows(tm). 
+<p>
+If you already have a feel you like, and just want to add this feature, look through your
+feel file for "Raise" and "Focus" stuff, and compare the settings to those in 
+feel.ClickToFocus.  
+<p>
+<sect1>What are these MyStyles I keep hearing about?
+<p>
+MyStyles are a new development in AfterStep configuration. Using MyStyles, all look 
+related information (module looks, windows, icons, etc) can be put in the look file.
+<p>
+What MyStyles provide is the ability to define a group of settings for a particular 
+configuration option. For example, a MyStyle defining the look of a focused window
+can define it's font, pixmap, text color, text style, and let another MyStyle define 
+the look of an unfocused window.  Because the two MyStyles are separate, you can have 
+focused and unfocused windows that look <em>completly</em> different, very easily.
+<p>
+<sect1>How do I get applications to iconify to a different place?
+<p>
+The IconBox setting in the look file.  It uses standard X geometry to define a rectangle
+of the screen to put icons.
+<p>
+<sect1>Suddenly, some windows stay on top of everything else, why?
+<p>
+With the default feel, and many others, double-clicking on a window titlebar toggles a
+window's always-on-top state. Double-click again to remove it.  If you want to remove
+this feature, locate the lines in your feel file that look similar to this (there may be
+several of them):
+<tscreen><code>
+ToggleLayer	"DoubleClick 0 1"
+</code></tscreen>
+and comment them out, or change them.
+<p>
+It is also possible that you have inadvertently changed your feel. Predictably enough,
+different feel files define functions such as this differently. Take a look at the 
+supplied feel files to get an idea of their differences, and perhaps identify what feel 
+you may unknowningly be using.
+<p>
+Also, on many systems, using <url url="http://www.winehq.com" name="wine"> seems to 
+interfere with the feel of AfterStep.  Reselecting the feel file from the startmenu
+appears to fix this problem.  
+<p>
+<sect1>Is there a graphical configuration program for AfterStep?
+<p>
+If you are using 1.6, yes. However, since 1.6 is outdated, it is suggested you upgrade.
+Andrew Ferguson (<tt/andrew@owsla.cjb.net/) is developing a new ascp to use AfterStep's native
+configuration parser.  There will be a new 1.8 release once this project is completed.
+Email him, or check the 1.9 tree to use developmental ascp (please note <em>development</em>.
+It will not compile, nor work at this point in time.)
+
+<sect>GNOME
+<p>
+
+<p>
+<sect1>What is GNOME, and why should I use it?
+<p>
+The GNOME project is a lot of things.
+The following is taken from the GNOME FAQ, <url url="http://www.gnome.org/gnomefaq/html/x37.html">
+<tscreen><verb>
+GNOME is the GUI desktop of the GNU Project.
+
+To quote from the original announcement from comp.os.linux.announce, GNOME is intended 
+to be "a free and complete set of user friendly applications and desktop tools, similar
+to CDE and KDE but based entirely on free software."
+
+I, your lowly FAQ maintainer, like to explain GNOME as everything that's expected in a 
+modern programming environment. In this respect, it is approximately equivalent to CDE, 
+Win32, NextStep, or KDE. The big difference is that, unlike any of the above-mentioned 
+examples, every single component of GNOME is Free Software. Not only that, but GNOME is 
+extremely customizable compared to most desktop environments.
+
+If all of this seems ambitious, that's because it is! Read on to find out more!
+</verb></tscreen>
+The entire GNOME FAQ can be read online at <url url="http://www.gnome.org/gnomefaq/html/index.html">.
+<p>
+<sect1>Why do window managers have to be GNOME compliant?
+<p>
+They don't have to be.  Many popular window managers are not GNOME compliant, but because
+GNOME will probably be prevalent on *NIX desktops some day in the future, window managers
+wishing to provide as many features to users as possible should be GNOME compliant.
+<p>
+It must be noted that GNOME compliancy is always changing, and is not finalized 
+whatsoever.  Because of the pace of GNOME development, what worked one day, may not work
+the next.  AfterStep is not 100% compliant, in fact, no window manager is.  Some aspects
+of compliancy with GNOME cannot be implemented in AfterStep, because the window manager is
+much more powerful, virtual desktops and Pager, for example.  Some window managers do a 
+better job of compliancy than others.  AfterStep attempts to be compliant in as many
+regards at it can, but perfection is not possible.  If you are looking for a window 
+manager that can run with GNOME almost all the time, and do it well, AfterStep is a good
+choice.  If you want something that will cooperate with GNOME to the point of being GNOME,
+try something else.
+<p>
+<sect1>How do I get AfterStep to be GNOME compliant?
+<p>
+The following are my (<tt/ishamael@themes.org/) experiences with getting GNOME and AfterStep
+running together like any other window manager.  If you have any suggestions or other
+ways to do this, please email me.
+<p>
+While in your current window manager (be it AfterStep or another):
+<p>
+Set the WINDOW_MANAGER variable to "afterstep"  (in bash this can be done with 
+'export WINDOW_MANAGER="afterstep"'  you should put this in your bashrc file.)
+Run "gnomecc" and go to the "Window Manager" section.  "Add"
+<p>
+<itemize>
+<item>Name: AfterStep
+<item>Command: afterstep
+<item>Configuration Command: xterm
+</itemize>
+<p>
+AfterStep is session managed, so check the box.
+At this point, save the settings, and close gnomecc (you might want to start it again and check it to make sure the addition is there).
+<p>
+You will also need to make a small change to the gnome-wm script (usually at 
+/usr/bin/gnome-wm or /usr/local/bin/gnome-wm).  The line that reads:
+<code>exec $WINDOW_MANAGER $*</code>
+change to:
+<code>exec $WINDOW_MANAGER</code>
+<p>
+Now, you should close X down, and put "gnome-session" in your .xinitrc (or however
+you start X), and start it up again. 
+<p>
+If all goes well, AfterStep and GNOME will start.  Also please make sure you are using the
+Gnome AfterStep module, and a GNOME compliant feel (such as feel.GNOME).
+<p>
+<sect>Graphics issues
+<p>
+
+<p>
+<sect1>Why do Swallowed apps and icons keep disappearing from the Wharf?
+<p>
+You're probably running at 8 bits per pixel, or 256 colors.  If you run out of colors,
+some applications can't run, or don't appear correctly.  Either run at a higher color 
+depth, or reduce colors elsewhere.  There is an excellent set of low color icons (21 
+colors total) at <url url="http://the-labs.com/AfterStep/Icons/">.
+<p>
+<sect1>Why are the Netscape buttons deformed? Why does Netscape get its own colormap?
+<p>
+Again, this is probably an issue with 8bpp, either reduce colors elsewhere, or sacrifice
+resolution for color depth (run at a lower resolution with more colors).
+<p>
+<sect1>How do I create an icon with a transparent pixel?
+<p>
+The Gimp (<url url="http://www.gimp.org/">) supports transparency in images, you could
+easily modify an existing pixmap to be transparent, or make a new image.
+<p>
+You could also edit a .xpm file with a normal text editor, and make part of it transparent
+(hint, the color for transparency is "none").
+<p>
+<sect1>Why are PNGs and JPEGs darker when they get loaded into AfterStep?
+<p>
+Try setting your $SCREEN_GAMMA to something like 2.2 (export SCREEN_GAMMA=2.2) from the
+shell you start AS (or put it in your .xinitrc) and stop X, then start it again.
+<p>
+<sect1>Why doesn't some program work in 16bpp?
+<p>
+Several (although decreasingly many) 8bpp programs don't work on displays
+without a PseudoColor visual available.  Several PC X servers don't support
+PseudoColor visuals on displays running in TrueColor mode. You should buy an
+SGI. Or run two simultaneous X servers, if you're on Linux.
+Note for SGI users willing to play with their bpp :
+One has to tweak the arguments to X in /usr/lib/X11/xdm/Xservers.
+The following worked for Tim Buller (<tt/buller@math.ukans.edu/)
+
+<tscreen><verb>
+:0 secure /usr/bin/X11/X -bs -c -nobitscale -visid 0x34
+</verb></tscreen>
+Where Visual ID 0x34 (reported by xdpyinfo) is:
+<tscreen><verb>
+  visual:    visual id:    0x34
+    class:    TrueColor
+    depth:    24 planes
+    available colormap entries:    256 per subfield
+    red, green, blue masks:    0xff, 0xff00, 0xff0000
+    significant bits in color specification:    8 bits
+</verb></tscreen>
+
+<p>
+<sect1>How do I change the background in AfterStep?
+<p>
+Using asetroot, the AfterStep desktop background management module.  asetroot sets images
+to the background, but can also modify them before doing so.  It is compliant with 
+"transparent" terminals, such as aterm or Eterm, and with AfterStep transparency effects.
+<p>
+The simplest way to set a new background, is to place the image in the backgrounds/ 
+directory of an AfterStep configuration directory (&tilde/GNUstep/Library/AfterStep/, 
+usually), and update the startmenu.  The new image should be selectable from the startmenu
+under start->Desktop->Pictures.  You can select it, and asetroot will tile it as the 
+background.
+<p>
+<sect1>How can I make the background centered, instead of tiled?
+<p>
+Because asetroot can modify an image, or display it different ways, centering a background
+is a simple task.
+<p>
+Edit your "asetroot" configuration file, and put:
+<tscreen><code>
+MyBackground "back0"
+    Use 0 "&tilde/GNUstep/Library/AfterStep/non-configurable/0_background"
+    Pad 4 black
+    Align 4
+~MyBackground
+
+*asetrootDeskBack  0  "back0"
+</code></tscreen>
+This will center the image, and pad the other unused space with black.
+More information about changing how the image is displayed can be read in the asetroot
+man page.
+<p>
+<sect1>Why do some applications not have icons?
+<p>
+Application icons are set in the "database" configuration file.  Since the developers
+don't use every application ever made, obviously they can't provide settings for icons for
+all of them.  What is provided are settings for commonly used programs.  Add your own for
+your applications by looking at the provided examples.
+
+<p>
+<sect1>What is this transparent terminal I keep seeing?
+<p>
+Probably aterm if you're looking at AfterStep screenshots, or Eterm.  Both aterm and Eterm
+emulate transparency by aligning the background pixmap correctly in their own backgrounds.Thus making it seem like the desktop background is showing through.
+<p>
+aterm can be downloaded at <url url="http://members.xoom.com/sashav/aterm/"> or 
+<url url="ftp://ftp.afterstep.org/apps/aterm/">, Eterm can be downloaded wherever you can
+find <url url="http://www.enlightenment.org" name="Enlightenment">.  aterm is preferred,
+as it was developed with AfterStep in mind, and uses considerably less resources than 
+Eterm.
+<p>
+<sect1>How come some pixmaps look messed up when I set them as the aterm background?
+<p>
+The image you're setting to the background probably isn't indexed, Benjamin Tovar 
+(<tt/al707198@academ01.ccm.itesm.mx/) informs me:
+<tscreen><verb>
+advise to index the colors of the xpm. Unless you are an eagle, you wont notice much 
+difference if you index the images (with the Index: Optimal Palette, in Gimp for example)
+for instance with 64 levels.  With this, the time from when you call xiterm and appears
+reduces very much, and allows the use of "complex" images in xiterm.
+
+If the image is not that complex, also you can try to index with very few levels and 
+obtain an "optimal" speed.
+</verb></tscreen>
+
+<sect>AfterStep Modules
+<p>
+
+<p>
+<sect1>What are AfterStep modules?
+<p>
+AfterStep modules are programs that work with AfterStep, but aren't required by the 
+window manager.  Commonly seen modules are the Wharf, Pager, WinList, and asetroot.
+<p>
+<sect1>How can I get multiple Wharfs or Pagers?
+<p>
+This procedure is outlined in depth at 
+<url url="http://www.tigr.net/afterstep/doc/MultiWharf-HOWTO.txt">.  Briefly:
+<p>
+Make a symbolic link from the Wharf binary to a new MyWharf. Edit your "wharf" 
+configuration file so that it has *MyWharf tags similar to existing *Wharf tags.
+Make sure you edit the "autoexec" file if you want this new MyWharf to start with 
+AfterStep. Also be sure to edit the "database" file so that there is a MyWharf Style
+exactly like the existing Wharf Style.
+<p>
+You can create multiple Pagers in a similar fashion.
+
+<p>
+<sect1>Why can't I find the man page for Wharf?
+<p>
+Spell it "Wharf" not "wharf"
+<p>
+Similarly the "Pager", "WinList" and "afterstep" man pages [the key here is 
+capitalization].
+<p>
+<sect1>What is the difference between Wharf and Zharf?
+<p>
+The Wharf module can use pixmaps for buttons, the Zharf module can only use text.
+<p>
+<sect1>How do I change the Pager's size?
+<p>
+There are really two questions here. Do you want to change the number of desks or views? 
+Or do you want to change the physical geometry of Pager?
+<p>
+In the "base.xxbpp" file, look at DeskTopSize. This defines the number of columns of 
+views by the number of rows (2x2 would give you 4 views in a square).
+<p>
+In the "pager" file, edit the *PagerGeometry tag (standard X geometry).
+<p>
+<sect1>Is it possible for an application to wait for the background to get loaded?
+<p>
+<tscreen><verb>
+I put the rt [root tail] command as the last one to be executed 
+in autoexec.  So far, so good, it executes last.  But when my background 
+is loaded it covers the tailed text, until another message appears in 
+the file.  Is it possible for rt to wait for the background to get
+loaded?
+</verb></tscreen>
+
+It is possible.  The background is displayed by the asetroot module.  So, you 
+should wait for asetroot to start before running any root window/background 
+dependent applications (like rt or Eterm).  Add the following line to your 
+autoexec file (or check that it's there):
+
+<tscreen><code>
+Module  "I"     asetroot 0 3
+Wait    "I"     asetroot
+</code></tscreen>
+
+The "Wait" line <em>must</em> precede the startup lines for the relevant 
+applications (in our example, rt).  By default, the "Wait" line will cause 
+AfterStep to wait for asetroot to load all of its backgrounds for all desks.
+<p>
+<sect1>How can I get rid of the desk name in my Pager?
+<p>
+Set *PagerDecoration NoDeskLabel in the "pager" configuration file.
+<p>
+<sect1>How do I start an application on a specific desk or page?
+<p>
+This is defined in the "database" configuration file. There are three paramaters one can 
+use.
+<itemize>
+<item>StartsOnDesk desk_number
+<p>
+This one will specify the desk number that applications with this tay will start on.
+Don't forget that desks are numbered starting with 0.
+<item>VeiwportX x_coord
+<p>
+You can use this one to start an application on a specific page of a desk. The value 
+should be the x coordinate of the page, relative to the top-left corner of the desk.
+For instance, with a screen size of 1024x768, the argument value would be "1024" in order
+to open an application on the second column of pages.
+<item>ViewportY y_coord
+<p>
+This does the same thing as ViewportX, but in the Y axis.
+</itemize>
+<p>
+<sect>Themes
+<p>
+
+<p>
+<sect1>What is a "theme"?
+<p>
+Simply put, a theme is a group of configuration settings and images that when used 
+together looks good.  Themes are pre-made, complete settings for your window manager.
+<p>
+AfterStep themes are new feature of the window manager, and since 1.7.160, are completly
+implemented.
+<p>
+<sect1>Where can I find AfterStep themes?
+<p>
+<itemize>
+<item><url url="http://as.themes.org/">
+<item><url url="ftp://ftp.afterstep.org/themes/">
+</itemize>
+<p>
+Both of these locations allow users to download a variety of themes, and upload their own.
+<p>
+<sect1>How do I install an AfterStep theme?
+<p>
+It is <em>very</em> easy to install a theme.  Simply download the theme.tar.gz file
+and put it in &tilde/GNUstep/Library/AfterStep/themes/, update your startmenu, and select
+the theme from the start->Desktop->Theme menu.
+<p>
+<sect1>How do I make an AfterStep theme?
+<p>
+Edit your look file, pager, wharf, and winlist configurations so that it all looks good.
+Make some images to go with it, and select Create Theme from the menu. The new 
+theme.tar.gz will appear in &tilde/GNUstep/Library/AfterStep/.
+<p>
+<sect1>Where can I get help on themes?
+<p>
+Read the documentation provided on <url url="http://as.themes.org/">, if you still have a
+question, email the mailing list or as@themes.org.
+<p>
+<sect>Miscellany
+<p>
+
+<p>
+<sect1>What is this "shade" thing?
+<p>
+Shade is a window feature that many prefer to iconifying.  Instead of minimizing a window
+into an icon, it scrolls the window contents up into the titlebar.  It is nice because 
+you do not have to define an icon for the window in the "database" file, and many find
+it easier to keep track of windows if they still appear in the middle of the screen.
+<p>
+<sect1>How do I use Microsoft Windows(tm) TrueType fonts in AfterStep?
+<p>
+This isn't really an AfterStep issue, rather an X question.  Download and install a 
+TrueType font server, such as <url url="ftp://metalab.unc.edu/pub/Linux/X11/fonts/" name="xfstt">.  
+Many distributions are now shipping with some sort of TrueType font server.  Consult
+your documentation to use this feature of your distribution.
+<p>
+</article>
+
+
+
+
+

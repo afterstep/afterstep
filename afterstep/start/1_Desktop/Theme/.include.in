@@ -1,0 +1,4 @@
+keepname
+include "@datadir@/afterstep/themes" Exec installastheme.pl
+include "@with_afterdir@/themes" Exec installastheme.pl
+extension .tar.gz

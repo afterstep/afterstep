@@ -1,0 +1,1 @@
+Exec "Right Handed (1 2 3)" exec xmodmap -e "pointer = 1 2 3" &

@@ -1,0 +1,107 @@
+DRAFT
+
+C++/C CONVENTIONS IN AFTERSTEP
+
+1 Directory structure
+2 Naming conventions
+3 Methods
+4 C/C++ Mixup
+5 Documentation
+
+
+1 DIRECTORY STRUCTURE
+
+(Here, ~ (tilde) refers to the build top dir.)
+
+  ~/afterstep				Configuration
+					(later copied to e.g. /usr/share)
+
+  ~/					Scripts and things,               
+					helper applications 
+					(e.g. docex.pl, which extracts
+					descriptions and things)
+  					System dependend configuration
+					(compile time options)
+
+  ~/lib					Libraries
+  ~/lib/as++				Base AfterStep C++ lib
+  ~/lib/asw++				AfterStep C++ widget lib
+					
+  ~/include				Includes, header files from
+					~/lib go here
+
+  ~/doc					Documentation 
+					(development specific)
+
+  ~/doc/afterdoc			Documentation
+					(Afterstep documentation)
+
+  ~/src					The afterstep window manager
+					source code + module source codes
+					& application source codes
+
+
+2 NAMING CONVENTIONS
+
+To keep the sources as easy as possible to maintain, every developer should 
+stick to these naming conventions (they are meant only for C++).
+
+Methods should be clearly named. This may lead to long names, but makes it
+much easier to read! The first word starts with a small letter, next words 
+are directly appended with a capital letter, e.g. setGeometry().
+(Annotation: This is especially meant for public methods. Hidden methods
+of course may be a bit more cryptic.)
+
+Variables (see methods). All words start with small letters and are seperated
+by an underscore, e.g. file_name.
+
+
+3 METHODS
+
+"char *className() const { return "name"; }" must be implemented in
+every class.
+
+3.1 templates
+
+Class		Description					Who does it?
+-----------------------------------------------------------------------
+HashTable	hashing table
+
+3.2 as++ library
+
+Methods		Description					Who does it?
+-----------------------------------------------------------------------
+msec(int)	sleep
+usec(int)	sleep
+strtok
+strtol
+strdup
+
+
+Class		Description					Who does it?
+-----------------------------------------------------------------------
+asSysinfo	hostName(), osType()
+asDisplay	c++ wrapper for basic X display macros		jsawinsk
+asError		methods for errors, warnings and information
+		(X compatible)
+
+asDir		sth like ls, sorting, file type etc.
+asDirTree	recursive directory tree (public asDir)
+asPath		useful methods for paths and files		guylhem
+		(should honour wild cards, maybe regexp?)
+asModule	module communications
+		(use iostream)	
+asParser	parser class for configuration files
+		(see Xlib option functions)
+
+
+
+4 C/C++ Mixup
+
+No hints yet.
+
+
+5 Documentation
+
+There will a parser that extracts information from header files.
+

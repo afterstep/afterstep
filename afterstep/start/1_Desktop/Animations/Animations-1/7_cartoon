@@ -1,0 +1,1 @@
+Exec "Cartoon" exec sh -c "killall xlock ; xlock -nolock -mode cartoon -inroot &"

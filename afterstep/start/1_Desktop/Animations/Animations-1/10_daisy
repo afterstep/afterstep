@@ -1,0 +1,1 @@
+Exec "Daisy" exec sh -c "killall xlock ; xlock -nolock -mode daisy -inroot &"

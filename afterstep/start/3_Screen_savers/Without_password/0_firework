@@ -1,0 +1,1 @@
+Exec "Firework" exec xlock -nolock -mode pyro &

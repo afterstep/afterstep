@@ -1,0 +1,40 @@
+./List.h:
+
+./WinList.h: \
+        ../../configure.h \
+        ../../include/aftersteplib.h \
+        ../../include/afterstep.h \
+        ../../include/style.h \
+        ../../include/screen.h \
+        ../../include/module.h \
+        ../../include/parse.h \
+        ../../include/ascolor.h \
+        ../../include/stepgfx.h \
+        ../../include/XImage_utils.h \
+        ../../include/pixmap.h \
+        ../../include/loadimg.h \
+        ButtonArray.h \
+        List.h
+
+./ButtonArray.h:
+
+./List.o: \
+        ../../configure.h \
+        List.h \
+        ../../include/aftersteplib.h \
+        ../../include/module.h \
+        ../../include/sun_headers.h \
+        ../../include/alpha_header.h
+
+./WinList.o: \
+        WinList.h
+
+./ButtonArray.o: \
+        ../../configure.h \
+        ../../include/aftersteplib.h \
+        ../../include/afterstep.h \
+        ../../include/style.h \
+        ../../include/screen.h \
+        ../../include/ascolor.h \
+        ../../include/stepgfx.h \
+        ButtonArray.h

@@ -1,0 +1,123 @@
+.\" t
+.\" @(#)Tile.1  02/07/00
+.TH Tile 1.8 "Feb 7 2000" Tile
+.UC
+.SH NAME
+\fBTile\fP \- the AfterStep window tiler module
+
+.SH SYNOPSIS
+\fBTile\fP [\-f \fIconfig_file\fP] [\-v | \--version] [\-h | \--help]
+[\-f \fIconfig_file\fP] [\-h | \--help] [\-v | \--version] [\-a] [\-desk] 
+[\-h] [\-m] [\-mn \fIarg\fP] [\-noraise] [\-noresize] [\-nostretch] [\-r] 
+[\-s] [\-t] [\-u]
+.sp
+Although \fBTile\fP can be run from the command line, it is normally 
+spawned by afterstep from within an afterstep menu file by 'Tile':
+.nf
+.sp
+% cat "~/GNUstep/Library/AfterStep/start/Modules/Tile"
+	Module "Tile" Tile
+	MiniPixmap "mini-as.xpm"
+.fi
+
+.SH DESCRIPTION
+The \fBTile\fP module attempts to tile windows on the current desktop view
+subject to certain constraints.  Horizontal or vertical tiling is performed
+so that each window does not overlap another, and by default each window
+is resized to its nearest resize increment (note sometimes some space
+might appear between tiled windows -- this is why).
+
+.SH OPTIONS
+.IP "\-f \fIconfig_file\fP"
+Use \fIconfig_file\fP instead of the default configuration file.
+
+.IP "\-h | \--help"
+Print a usage message and exit successfully.
+
+.IP "\-v | \--version"
+Print version information and exit successfully.
+
+.IP "\-a"
+Causes \fIall\fP window styles to be affected, even ones with the
+WindowListSkip style.
+
+.IP "\-desk"
+Causes all windows on the desk to be cascaded instead of the current
+screen only.
+
+.IP "\-h"
+Tiles horizontally (default is to tile vertically).
+
+.IP "\-m"
+Causes maximized windows to also be affected (implied by \-all).
+
+.IP "\-mn \fIarg\fP"
+Tiles up to \fIarg\fP windows in tile direction.  If more windows
+exist, a new direction row or column is created (in effect, a matrix
+is created).
+
+.IP "\-noraise"
+Inhibits window raising, leaving the depth ordering intact.
+
+.IP "\-noresize"
+Inhibits window resizing, leaving window sizes intact.
+
+.IP "\-nostretch"
+Inhibits window growth to fit tile.  Windows are shrunk to fit the
+tile but not expanded.
+
+.IP "\-r"
+Reverses the window sequence.
+
+.IP "\-s"
+Causes sticky windows to also be affected (implied by \-all).
+
+.IP "\-t"
+Causes transient windows to also be affected (implied by \-all).
+
+.IP "\-u"
+Causes untitled windows to also be affected (implied by \-all).
+
+.SH INITIALIZATION
+\fBTile\fP has no configuration file.
+
+.SH INVOCATION
+\fBTile\fP can be invoked from the \fIautoexec\fP file or by binding the
+action "Module Tile \fI[args]\fP" to a key-stroke in a \fIfeel\fP file,
+or from a menu item as  shown in the Synopsis section above.
+
+AfterStep will search through the directories specified in the
+\fIModulePath\fP configuration in the \fIbase.#bpp\fP (where # is your
+colordepth) to attempt to locate Tile.
+
+.SH CONFIGURATION OPTIONS
+Command-line arguments passed to \fBTile\fP are described in the 
+\fIOPTIONS\fP section, above.
+
+Up to four numbers can be placed on the command line that are not
+switches.  The first pair specify an x and y offset to start the first
+window (default is 0, 0).  The second pair specify an absolute
+coordinate reference denoting the lower right bounding box for tiling.
+If any number is suffixed with the letter p, then it is taken to be a
+pixel value, otherwise it is interpreted as a screen percentage.
+Specifying zero for any parameter is equivalent to not specifying it.
+
+.SH EXAMPLES
+This invocation will horizontally tile windows with a bounding box which
+starts at 10 by 10 percent into and down the screen and ends at 90 by 90
+percent into and down the screen.
+.EX
+Tile -h 10 10 90 90
+.EE
+
+.SH BUGS
+It is probably not a good idea to delete windows while windows are
+being tiled.
+
+.SH AUTHOR
+Andrew Veliath
+.nf
+David Mihm <dmihm@swbell.net> [Man page]
+
+.SH SEE ALSO
+.BR afterstep (1)

@@ -1,0 +1,1 @@
+Exec "Executor (Mac)" exec executor -geometry 800x600+-1+-23 -nosplash &

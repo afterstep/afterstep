@@ -1,0 +1,143 @@
+The following features will be added during 1.6 version :
+
+o add theme support
+
+o A shortcut for navigating through wharf would be great
+
+o The sounds "startup" and "shutdown" are not played. Is this my problem?
+
+o Wouldn't it be much easier to reference the icons defined in the wharf
+  file instead of retyping the whole stuff in database? The information from
+  wharf should be subsidiary to the database configuration ...
+
+o finish asconf in afscript
+
+o add an option to make menus unshading at opening
+
+o add locales support
+
+o improve afscript (a bit slow, default script are useless)
+
+o finish ReadPipeConfig (in configure.c) to allow on-fly reconfiguration with
+  our future asconf interface : need to code a ReReadConfigFile(char *filename)
+
+o Replace asclock specific icon colordepth selection by a wider option (for
+asmail, wharf ? Or make them use asmail.yourbpp, wharf.yourbpp)
+
+o 1. Choose a look which has a transparent background for the root window
+menu [New Features]
+  2. Open a root window menu, and choose an option whose submenu is taller
+than the screen [Desktop -> Cursors]
+  3. Scroll down.
+The lines which are scrolled in are messed up.
+
+o Add Jpg2Xpm fct to afterlib to handle jpg better than an external prg.
+
+o Finish theme management
+
+o winlist : should never hide any other window titlebar when SmartPlacement
+is on
+
+o winlist / wharf / zharf option : "hide" (make 2 pixel wide) when mouse
+isn't on the active zone
+
+o When title can't stand in titlebar (too little), make it scroll enlessly
+left to right
+
+o Merge 1.0-to-1.5/ stuff to FAQ
+
+o audio bug : plays startup sound on shading
+
+o asload bug : requires too many color to start (only needs 2)
+
+o Add "shade" to popups
+
+o Add an option for wharf to randomly choose a pixmap into a list
+
+o iconifyied pager is bugged
+
+o add pager-mouse-keys configure option
+
+o Add a second title pixmap that would only reside directly beneath the title
+words
+
+o Change defaults menus to include '&' shortcuts
+
+o Wharf bug : -0 -0 don't work well, you have to use -1 -1 instead
+
+o Bug : the little border over titlebars & handlings becomes the same color of
+the rootbg time to time.
+
+o Correct icon label code : if the text needs clipping, the leading part of the
+text is removed, instead of the trailing part !!!!
+
+o Put all the patches in AS, then check the mixup, especially memory leaks
+
+o Add MaxSwallowModule to Wharf (for pagers)
+
+o use different options for menus (hilight, text, borders, bg) instead of stdfg
+& stdbg ...
+
+o support for scaling a pixmap for titlebars and menu items instead of tiling
+
+o textured or gradient handles that arent the same as the titlebar
+
+o add tile / center option to pager xpm
+
+o add gradient support to pager : from a corner color X to another corner
+color Y
+
+o make asmail use PixmapPath from base file (like wharf & zharf do)
+
+o complete StartOnDesk (i.e. Style "xemacs" StartsOnDesk 1 Page 4) so that not
+all applications that starts in Desk 1 will start in the top left page.
+
+o include nice .xinitrc sample with xmodmap -e "keycode 22 = BackSpace"
+& all classical stuff 
+
+o an intelligent iconbox, 64x64, opening like wharf folders to reduce desktop
+usage
+
+o Add to Pager the feature to show in little windows nonxpm files too ; avoid
+unnecessary redraws (especially with big jpegs :)
+
+o Fix pager memory leaks
+
+o Make possible to drag windows to the pager
+
+o Merge ASSound & Audio
+
+o Change unix sockets to more X stuff ala XClientMessages
+
+o Animate support for Animated Logos (Multiple XPM)
+
+o AfterStep support for animated icons (idem)
+
+o manpages for : asload, asmix
+
+o fix ßß stuff
+
+o use zap/help button to drag windows in the Pager
+
+o include nicer sounds & configure Audio module for them !
+
+o use db for 'database' rather than current "Styles" : include a frontend
+to add/modify/delete things in this database
+
+o use enlightenment-like pixmaps for windows decoration (titlebar, borders ...)
+
+o recode wharf to be DND "feedable" + use right click on a icon to configure its
+options (command line, name, icon.xpm, ...)
+
+o create AfterVoice to talk to AfterStep
+
+o include OpaqueWindowZoom & Rotation, cf. Animate.c  (any demomaker to help ?)
+
+o create a asman better & easyier to use than xman (for GetHelp function, an
+info version of the FAQ ...)
+
+Finally :
+
+recode everything in C++ and get rid of original TWM parts & copyright (big
+move to full GPL !), then add some scheme as compile time option for dynamic
+configuration (like scvwm)

@@ -1,0 +1,24 @@
+#
+# Copyright (c) 1998, Guylhem AZNAR <guylhem@oeil.qc.ca>
+#
+
+OBJS            = audit.o catstring3.o copystring.o \
+	          findfile.o font.o getcolor.o getfdwidth.o \
+		  homeanddirs.o hostname.o Xmodule.o ASmodule.o \
+		  mystrcasecmp.o mystrdup.o parse.o parser.o termhash.o \
+		  readpacket.o safemalloc.o sleep.o strncmp.o \
+		  timer.o wild.o asproperty.o
+
+OBJSDLL         = $(OBJS)
+
+PROG            = libafterstep.a
+DYNPROG         = libafterstep.so
+LIBVER          = 1.5
+LIBVERMAJOR     = 1
+#INSTALLONBUILD  = install
+
+@MAKEFILECOMMONLIB@
+
+install:	install.lib
+
+uninstall:	uninstall.lib

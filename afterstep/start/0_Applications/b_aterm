@@ -1,0 +1,2 @@
+Exec "AfterStep terminal" exec aterm -tr -sh 60 -bg black -fg white &
+MiniPixmap "mini-app.xpm"

@@ -1,0 +1,1 @@
+Exec "Tube" exec sh -c "killall xlock ; xlock -nolock -mode tube -inroot &"

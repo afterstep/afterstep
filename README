@@ -1,0 +1,122 @@
+///
+///	This is AfterStep 1.8.6 README
+///
+
+You can find translated versions of this README in doc/languages.  If there's
+no version corresponding to your language please write it and send it to me!
+If your README is too different from this one please send me patches to
+update it.
+
+ INSTALL
++-------+
+
+Please see the INSTALL file for installation notes.
+
+ LIBRARIES
++---------+
+
+The following libraries are not necessarily required to run and enjoy
+AfterStep however, support for them is included within AfterStep and it's
+various Modules.
+
+ o  xpm		(ftp://metalab.unc.edu/pub/Linux/libs/X/)
+ o  jpeg	(ftp://ftp.uu.net/graphics/jpeg/)
+ o  png 	(http://www.cdrom.com/pub/png/pngcode.html)
+
+If you use a package management system (like RedHat, Mandrake etc) you will
+need to get the appropriate <libname>-devel rpm and not the actual source code
+mentioned above.
+
+ THEMES
++------+
+
+Themes are a simple 3 1/2 step procedure:
+	1/2) mkdir ~/GNUstep/Library/AfterStep/themes
+		(if it doesn't already exist    ^ )
+	1) download <themename>.tar.gz into the above dir (or mv it into it)
+	2) Update menu (start->Desktop->Update startmenu)
+	3) Select the theme from the menu (start->Desktop->Theme->)
+
+
+ HINTS
++------+
+
+Several "looks" (theme-ish) are included within the distribution.  Any of
+these can be started by selecting the name of the look from the menu.
+
+	(startmeu)->Desktop->Looks->*
+
+There are several "feels" (key bindings and window reactions), background
+Pictures, and Animations to try out as well.  These all work the same way,
+by selecting them from the menu under Desktop. But if you want to use
+*different* look & feel files for *each* desktop, just tell that to
+./configure.
+
+If you wish to change or make additions to the startmenu, you will need to
+first create the file, either under the share tree or in a created start dir
+tree in the users ~/GNUstep/Library/AfterStep/start tree, then inform AfterStep
+about the menu change by.
+
+	(startmeu)->Desktop->Update startmenu
+
+ TOOLS
++------+
+
+AfterStep has a few tools to play with which are in the tools/ directory.
+The "Uninstall-Old-AfterStep" is a script to use to remove the old binaries
+of 1.3.x and 1.4.x binaries, man pages and documents.  Simply read the top
+portion of this script to find the usage.  Without any options, it will only
+remove the core afterstep files, leaving the apps that used to be shipped
+with the releases.
+
+ BUGS
++----+
+
+The "bughint" file can be run when finding and reporting bugs.  Please then
+mail this plus any other relevant info (not a complete core file, please!) to
+bugs@afterstep.org .
+
+Both "makeasclean" and "makeaspatch" are used to clean out the source tree and
+making patches to the distribution (in a proper format). pagerconfig1_4to1_5
+is a script to translate the 1.4.x pager config files to the newer 1.5.x
+format.
+
+ FAQ
++----+
+
+Now before asking any questions, be sure to read the FAQ that is included
+in this distribution by clicking on the top Wharf button, or selecting
+AfterStepDoc from the menu.  The doc/1.0_to_1.5 file lists several
+differemces along the way to 1.5.x and the README_new.options lists new
+options.
+
+ SITES
++------+
+
+More informations	:		www.afterstep.org
+New development versions:		ftp.afterstep.org
+Help			:		mail majordomo@afterstep.org
+					Body: subscribe as-users <email>
+Coders			:		mail majordomo@crystaltokyo.com
+					Body: subscribe as-devel <email>
+Bugs			:		mail bugs@afterstep.org
+Chat			:		#afterstep on EFNet
+Access to EFNet can be done by connecting to any efnet irc server :
+	irc.concentric.net ; irc.prison.net ; ircd.txdirect.net
+
+
+ TODO
++------+
+
+In TODO/ you'll find stuff to be put in.  Feel free to add this to this
+version : debug unreleased/ or unstable/.  You can also help Nwanua adding
+new features to ascp!  Please also translate README to your language if it
+hasn't been done yet.
+
+
+ MAINTAINERS
++------------+
+
+Check out the TEAM file.
+
+Feb 3, 2000

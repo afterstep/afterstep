@@ -1,0 +1,1 @@
+Exec "Mountain" exec sh -c "killall xlock ; xlock -nolock -mode mountain -inroot &"

@@ -1,0 +1,2 @@
+Exec "rxvt terminal" exec rxvt -bg black -fg grey70 -sl 500 -vb &
+MiniPixmap "mini-app.xpm"

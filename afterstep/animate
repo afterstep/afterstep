@@ -1,0 +1,14 @@
+#------------------------------------------------------------------------
+# Animate
+#
+*AnimateColor white
+*AnimateDelay 1
+*AnimateIterations 25
+*AnimateTwist 1
+*AnimateWidth 3
+*AnimateResize Turn
+#*AnimateResize Flip
+#*AnimateResize Twist
+#*AnimateResize Random
+#*AnimateResize Zoom
+#*AnimateResize Zoom3D

@@ -1,0 +1,145 @@
+****************************************************************************
+****************                                            ****************
+**************** Acesta este AfterStep 1.8.6                ****************
+****************                                            ****************
+****************************************************************************
+
+
+
+0. Pe scurt
+------------
+
+* Deveniti root (su root)
+
+* Acum sau rulati "./install.script"
+              sau "./configure ; make ;
+                   make install ;
+                   mv ~/.xinitrc ~/xinitrc.old ;
+                   echo afterstep > ~/.xinitrc ; startx"
+
+* Apoi incercati AfterStep... Presupun ca o sa va placa.
+Daca e asa, votati pentru AfterStep la http://www.PLiG.org/xwinman/vote.html
+pentru ca sa vedem daca merita munca noastra :-)
+
+1. Instructiuni pentru instalare
+---------------------------------
+
+1-2. Executati urmatoarele comenzi pentru a configura si compila AfterStep :
+
+Rulati 'configure' pentru a determina optiunile dependente de sistem :
+
+      ./configure
+
+Daca nu puteti deveni root, va trebui sa inlocuiti caile de instalare
+globala in ceva in PATH -ul dvs, unde aveti permisiuni de scriere.
+Lansati compilarea si serviti o cana de cafea (beti incet daca CPU-ul dvs
+e la fel de lent ca si al meu :-] )
+
+        make
+
+Supravegheati rezultatele comenzilor de mai sus pentru posibile mesaje de
+eroare !
+
+1.3 Deveniti root ca sa executati urmatoarele comenzi : instalati binarele
+si paginile de manual.
+
+        su root -
+	make install
+	
+1-4. Puneti aceasta linie in ~/.xinitrc : 'afterstep'
+
+        echo afterstep > ~/.xinitrc
+
+( daca nu puteti deveni root, folositi
+ 'echo /directorulmeu/undeva/afterstep >~/.xinitrc' )
+
+Daca preferati un singur fisier de configuratie, in loc de ierarhia logica,
+folositi : 
+
+        echo "afterstep -f ~/.steprc" > ~/.xinitrc
+
+1-5. Testati afterstep by tastand :
+
+        startx > ~/AF-debug  2>&1
+
+1-6. Smecherii
+
+Daca aceasta nu vi se potriveste, incercati celelalte fisiere incluse :
+faceti click pe :
+
+       Start/Desktop/Looks/ce credeti dvs
+
+Puteti schimba simtul (felul in care se retrage icon-ul ...) si tapetul
+la fel :
+
+De exemplu, daca doriti doar 2 butoane de titlu, faceti click pe :
+
+        Start/Desktop/Feels/feel.purenext
+        Start/Quit/Restart this session
+
+Dara daca doriti sa dati un aspect *diferit* pentru *fiecare* desktop,
+spuneti asta lui 'configure'.
+
+Daca doriti un screen-saver, luati xautolock si xlock, iar apoi rulati :
+
+<<
+xautolock -time 5 -corners 00++ -locker "xlock -mode random -allowroot
+-timeelapsed -echokeys " &
+>>
+
+1-7. Acum, inainte de a pune vreo intrebare :
+
+Cititi 'TODO/1.0_to_1.5' si rulati 'afterstepdoc'
+
+2. Drept de autor, licenta, improvizatii legale :
+--------------------------------------------------
+
+DE LA CONVENTIA DE LA BERNA, DREPTUL DE AUTOR ESTE IMPLICIT, CHIAR
+DACA AUTORII NU SCRIU CUVANTUL "COPYRIGHT" IN FISIERUL PE CARE IL
+POSEDA INTELECTUAL.
+
+Astfel, orice fisier este Copyright (C) de respaectivul(ii) sai proprietar(i)
+la momentul scrierii.
+
+2-2. Licenta 
+
+Tot programul numit AfterStep este distribuit sub licenta GNU GPL v2.
+Libraria AfterStep este distribuita sub licenta LGPL.
+Documantatia AfterStep este distribuita sub licenta LDP.
+
+Vezi doc/licenses/ pentru mai multe informatii.
+
+2-3. Exceptii
+
+2-3-1. Copyright-ul MIT/Evans & Sutherland
+
+Cateva fisiere din src/, initial din twm, sunt cuprinse sub o licenta
+diferita : add_window.c afterstep.c borders.c clientwin.c functions.c
+
+2-3-2. Headere
+
+Headerele sunt de domeniu public ; Robert Nation afirma in decorations.c :
+
+
+3. Unde pot gasi...
+----------------------
+
+3-1. Mai multe informatii : www.afterstep.org
+
+3-2. Noi versiuni : ftp.afterstep.org
+
+3-3. Ajutor : mail afterstep@linuxcenter.com with subject: subscribe
+
+3-4. Coderi : mail afterstep@linuxcenter.com with subject: subscribe
+
+
+4. Mentinatorul AfterStep-ului :
+---------------------------------
+
+Ei bine, eu sunt :-)
+
+Dati-mi un email pentru a raporta bug-uri:
+
+
+      					     Guylhem AZNAR <guylhem@oeil.qc.ca>
+		    Romanian translation: Gelu G. Lupas <karellen@cryogen.com>

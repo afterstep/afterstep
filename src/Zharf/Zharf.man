@@ -1,0 +1,207 @@
+.\" t
+.\" @(#)Zharf.1	02/07/00
+.TH Zharf 1.8 "Feb 7 2000"
+.UC
+.SH NAME
+\fBZharf\fP \- the AfterStep button panel module
+
+.SH SYNOPSIS
+\fBZharf\fP [\-f \fIconfig_file\fP] [\-v | \--version] [\-h | \--help]
+.sp
+Although \fBZharf\fP can be run from the command line, it is normally 
+spawned by afterstep in the \fIautoexec\fP file, in the following manner:
+.nf
+.sp
+	Module	"I"	Zharf
+	Wait		"I"	Zharf
+.sp
+.fi
+\fIWait\fP is used to allow \fBZharf\fP to swallow the apps specified in the
+\fIzharf\fP file prior to afterstep starting other apps which use the same
+name.
+.sp
+or from within an afterstep menu file by 'Zharf':
+.nf
+.sp
+% cat "~/GNUstep/Library/AfterStep/start/Modules/Zharf"
+	Module "Zharf" Zharf
+	MiniPixmap "mini-as.xpm"
+.fi
+
+To stop the \fBZharf\fP module, a menu item can be used:
+.nf
+.sp
+% cat "~/GNUstep/Library/AfterStep/start/Modules/Zharf_Stop"
+	KillModuleByName "Stop Zharf" Zharf
+	MiniPixmap "mini-as.xpm"
+.fi
+
+.SH DESCRIPTION
+The \fBZharf\fP module is a free floating application loader/button panel
+similar to the \fBWharf\fP that can execute programs or "Swallow" running
+programs,  but also displays a label under the icon (if specified).
+\fBZwharf\fP could also be used as simply a text version of \fBWharf\fP.
+Folders are not supported.
+
+All mouse buttons are captured to initiate the command specified, however
+some swallowed apps might capure certain mouse buttons for its use.
+
+.SH OPTIONS
+.IP "\-f \fIconfig_file\fP"
+Use \fIconfig_file\fP instead of the default configuration file.
+
+.IP "\-h | \--help"
+Print a usage message and exit successfully.
+
+.IP "\-v | \--version"
+Print version information and exit successfully.
+
+.SH INITIALIZATION
+During initialization, \fIZharf\fP will search for a configuration file 
+which describes the button panel geometry, color, icons, and actions.  
+This file will be the one specified by the \fI\-f\fP option (if given).  
+Else, the ~/GNUstep/Library/AfterStep/zharf file will be used if it 
+exists.  Else, /usr/local/share/afterstep/zharf will be used.
+
+If the \fBZharf\fP executable is linked to another name, ie 'ln -s
+\fBZharf\fP \fBOtherZharf\fP', then another module called \fBOtherZharf\fP
+can be started, with a completely different set of configurations than
+\fBZharf\fP, simply by adding configuration options with the keywords
+\fB*OtherZharf\fP.  This way multiple \fBZharf\fP programs can be used. 
+Note that the symlinked module can not be called Zharf<something>, as
+aftrestep will pressume the standard Zharf binary.
+
+.SH INVOCATION
+\fBZharf\fP can be invoked from the \fIautoexec\fP file or from a menu
+item as shown in the Synopsis section above.
+
+AfterStep will search through the directories specified in the
+\fIModulePath\fP configuration in the \fIbase.#bpp\fP (where # is your
+colordepth) to attempt to locate \fBWharf\fP; as well as searching through
+the \fIPixmapPath\fP for the pixmaps & \fIIconPath\fP for the bitmaps
+supplied in the configuration options.
+
+.SH CONFIGURATION OPTIONS
+\fBZharf\fP reads the \fIzharf\fP file when it starts up and looks for
+it's configuration options:
+
+.IP "*ZharfGeometry \fIgeometry\fP"
+Specifies the \fBZharf\fP window location and/or size. If the size is
+not specified, \fBZharf\fP will auto-size itself in a reasonable manner.
+The geometry is a standard X11 window geometry specification.
+
+.IP "*ZharfFont \fIfont\fP"
+Specifies the font to be used for labeling the buttons.
+
+.IP "*ZharfRows \fIrows\fP"
+Specifies the number of rows of buttons to be created. If unspecified,
+2 rows will be used.
+
+.IP "*ZharfColumns \fIcolumns\fP"
+Specifies the number of \fIcolumns\fP of buttons to be created. If
+unspecified, the number of columns will be set to the number of buttons
+requested, divided by the number of \fI*ZharfRows rows\fP. If both 
+\fI*ZharfRows rows\fP and \fI*ZharfRows columns\fP are specified, but do
+not specify as many buttons as are defined, then the users columns
+specification will be ignored.
+
+.IP "*ZharfFore \fIcolor\fP"
+Specifies the color for button label text and monochrome icons.
+
+.IP "*ZharfBack \fIcolor\fP"
+Specifies the color for the buttons.
+
+.IP "*Zharf\fI[(WxH)]\fP \fIlabel icon command\fP"
+If the optional \fI(WxH)\fP is specified, then this button will be
+\fIW\fP times the normal button width and \fIH\fP times the normal button
+height. NOTE: The entire \fBZharf\fP will be resized to \fIW\fP if
+vertically priented; or \fIH\fP if vertically oriented.
+
+The \fIlabel\fP field is what appears on the button bar, or below an
+\fIicon\fP; if an \fIicon\fP is used. If \fIlabel\fP is "-" then the
+button label will not be displayed.
+
+The \fIicon\fP field specifies an X11 bitmap file, XPM, JPEG, or PNG color
+icon file to display on the button. This icon will be displayed over the
+\fIZharfBackColor\fP and above the \fIlabel\fP.  Transparent icons are
+allowed.
+
+The \fIcommand\fP specifies an AfterStep built-in command (as described
+in the afterstep man page). If \fIcommand\fP is an AfterStep Exec command,
+then the button will remain pushed in until a window whose name or class
+matches the qouted portion of the command. This is intended
+to provide visual feedback to the user that the action requested will be
+performed. If the quoted portion contains no characters, then the
+button will pop out immediately.  Note that user can continue pressing the
+button, and re-executing the command, even when it looks "pressed in."
+
+.RE
+.PP
+.RS
+The following \fBZharf\fP commands are available:
+
+.IP "Swallow ""\fIwindow-name\fP"" \fIcommand\fP"
+Causes \fBZharf\fP to run \fIcommand\fP, capture the first window whose 
+name or resource is \fIwindow-name\fP, and display it in the associated 
+button. The application window will be shrunk to fit the size of the 
+button.
+
+.IP "MaxSwallow ""\fIwindow-name\fP"" \fIcommand\fP"
+Like \fISwallow\fP, except the button will be resized to fit the 
+application.
+
+.IP "SwallowModule ""\fIwindow-name\fP"" \fIcommand\fP"
+Like \fISwallow\fP, except the \fIcommand\fP is an AfterStep module.
+
+.IP "MaxSwallowModule ""\fIwindow-name\fP"" \fIcommand\fP"
+Like \fIMaxSwallow\fP, except the \fIcommand\fP is an AfterStep module.
+
+.SH FILES
+
+.IP \fI/usr/local/share/afterstep/zharf\fP
+The global configuration file for system wide defaults of all users.
+
+.IP \fI$HOME/GNUstep/Library/AfterStep/zharf\fP
+This file should be copied from the \fI/usr/local/share/afterstep/zharf\fP and edited to suit the user's specific requirements.  This file, if exists, will override the system wide default file.
+
+.IP \fI/usr/local/share/afterstep/base.[8|15|16|24|32]bpp\fP
+Contains the \fIIconPath\fP & \fIPixmapPath\fP global settings for the
+\fBZharf\fP.
+
+.IP \fI$HOME/GNUstep/Library/AfterStep/base.[8|15|16|24|32]bpp\fP
+This file should be copied from the\fI/usr/local/share/afterstep/base.[8|15|16|24|32]bpp\fP and edited to suit the user's specific requirements for the \fIIconPath\fP & \fIPixmapPath\fP settings of the \fBWharf\fP.
+
+.SH EXAMPLES
+The \fIzharf\fP file shipped contains many examples, refer to the 
+\fBCONFIGURATION OPTIONS\fP section above for its configuration options.
+
+To swallow the \fBPager\fP module into the \fBZharf\fP:
+.sp
+	*Zharf(4x1) - - SwallowModule "Pager" Pager 0 3
+
+This will captures the \fBPager\fP into button that is 4 times the width
+of the other buttons. Since "-" is used for the button label and icon, the
+\fBPager\fP will be resized to fit into the button's borders.
+
+To have a button with a pixmap:
+.sp
+	*Zharf Doc AfterStep3.xpm Exec "-" afterstepdoc &
+
+Or with a bitmap and a label:
+.sp
+	*Zharf Raise Up Raise
+
+The "Up" is an X11 standard bitmap.
+
+
+.SH AUTHORS
+Guylhem Aznar
+.nf
+Robert Nation
+.nf
+David Mihm <dmihm@swbell.net> [Man page]
+
+.SH SEE ALSO
+.BR afterstep (1),
+.BR Wharf (1),
+.BR Pager (1)

@@ -1,0 +1,233 @@
+****************************************************************************
+****************                                            ****************
+****************   Dette er AfterStep 1.8.6                ****************
+****************                                            ****************
+****************************************************************************
+  
+ LIBRARIES
++---------+
+
+De følgende libraries(biblioteker) er strengt tatt ikke nødvendige for å kjøre
+Afterstep, men de er støttet av Afterstep og endel moduler.
+
+ o  libXpm
+ o  libjpeg
+ o  libpng
+
+ INSTALL
++-------+
+
+Hvordan installerer jeg AfterStep?
+Det finnes to måter å gjøre dette på. 
+I begge tilfeller må du laste ned og pakke opp fila først :)
+
+Om den er .bz2: tar yxvf <file>
+Om den er .tgz/tar.gz : tar zxvf <file>
+etterpå: cd oppakket katalog
+
+ 0. Den raske, automatiserte måten:
+ ----------------------------------
+ 
+ * Sørg for at du er root (su root)
+
+ * Kjør enten "./install.script"
+            eller "./configure ;
+                   make ; make install ;
+                   mv ~/.xinitrc ~/xinitrc.old ;
+                   echo afterstep > ~/.xinitrc ; startx"
+
+ 
+ * Prøv Afterstep. Du liker det sikkert, og hvis du ikke gjør det, kan du fikse temmelig mye på det på egenhånd :O
+ Hvis du liker det, hadde det vært fint om du ville stemme på oss på http://www.PLiG.org/xwinman/vote.html
+ På denne måten får vi vite om arbeidet blir satt pris på
+ 
+ 1. Manuell overstyring:
+ --------------------------------
+ 
+ 1-2. Kjør configure for å undersøke system-spesifikke instillinger:
+ 
+         ./configure
+ 
+
+Configure kan ta flere parametre for å --disable eller --enable
+eller inkludere forskjellige deler av Afterstep. En komplett liste
+kan hentes fra ./configure --help, som vises nedenfor.
+Tekst i klammer viser standard-verdien
+
+  --with-imageloader=APP   	used to display non-XPMs [xli -onroot -quiet]
+  --with-helpcommand=APP   	display manpage for window [xiterm -e man]
+  --with-startsort=METHOD  	start menu sorting method [SORTBYALPHA]
+  --enable-different-lookn 	feels  different look&feel for each desktop [no] 
+  --with-desktops=DESKS    	default desktops in pager [4] 
+  --with-deskgeometry=GEOM  	desktop views as COLUMNSxROWS [2x2] 
+  --enable-newlook		support new look options (MyStyles) [yes] 
+  --enable-pagerbackground	provide background support with the Pager [yes] 
+  --enable-i18n           	support I18N [no] 
+  --enable-xlocale        	using X_LOCALE [no] 
+  --enable-menuwarp       	warp mouse pointer to menus [no] 
+  --enable-savewindows    	save windows and re-open next session [yes] 
+  --enable-makemenus      	make the start menu from the start/ tree [yes] 
+  --enable-makemenusonboot	always make the start menu when starting AS [no] 
+  --enable-texture        	support gradient, XPM, and JPEG textures [yes] 
+  --enable-shade          	support shaded windows [yes] 
+  --enable-virtual        	support virtual desktops [yes] 
+  --enable-saveunders     	request saveunders for menus [yes] 
+  --enable-windowlist     	compile built-in window-list [yes]
+  --enable-availability   	check for unavailable binaries [yes] 
+  --enable-staticlibs     	enable linking to libafterstep statically [yes] 
+  --enable-script         	compile Script module [yes] 
+  --with-xpm              	support XPM image format [yes]
+  --with-jpeg             	support JPEG image format [yes]
+  --with-png              	support PNG image format [yes]
+
+ Om du ikke har root tilgang, må du forandre de systemomfattende 
+ installasjons-stiene (les: endre path) til en plass du har skrivetilgang.
+ 
+ Start kompileringen, om du har en treg maskin, ta deg en kopp kaffe og finn noe å lese i :)
+ 
+       make
+ 
+ Legg merke til eventuelle feilbeskjeder under kompileringen (Warnings)
+ Om du velger å gjøre noe annet enn å sitte foran maskinen for å speide etter warnings, kan det være en god ide å  
+ kjøre make >> logfile. Alt som skulle ha blitt skrevet til skjermen blir nå skrevet til logfile.
+
+1: Bli root for å kjøre make install (Installerer binaries og manpages)
+ 
+	su root -
+	make install
+	 
+2: Du må sette opp X til å starte AfterStep som standard.
+	Dette gjør du ved å legge inn ~afterstep i homedir/.xinitrc, hvor ~er path hvor afterstep startfila er lokalisert
+
+	Denne kommandoen skriver 'afterstep' på første linje i ~/.xinitrc  : 
+ 
+      echo afterstep > ~/.xinitrc
+ 
+ ( Hvis du ikke er root, blir dette 'echo /myhome/somewhere/afterstep >~/.xinitrc' )
+ 
+3: Teste Afterstep
+ 
+      startx > ~/AF-debug  2>&1
+	Denne kommandoen sender startoppbeskjedene inn i ei fil 	
+
+ HINTS
++------+
+ 
+ Om standard-utseendet til Afterstep ikke er din smak, finnes det mange Looks du kan prøve
+ 
+	(startmeu)->Desktop->Looks->look.XXX
+ 
+ Det finnes også flere "feels" (hvordan vinduer, ikoner og knapper oppfører seg), animasjoner og bakgrunner du 
+ kan velge mellom med et enkelt museklikk. Du kan tilogmed ha en animasjon til bakgrunn!
+
+ For eksempel: Jeg vil bare ha to title-buttons!
+ 
+	 (startmeu)->Desktop->Feels->feek.XXX
+	 Etterpå kan det være lurt å restarte afterstep (startmenu)->Quit/restart->restart
+ 
+ Om du vil ha ulike Looks og Feels til hvert skrivebord, må du si ifra om dette til configure
+ Prøv configure --help
+ 
+ Om du vil ha skjermspareren din til å kicke inn etter fx. 5 min, fiks xautolock og xlock, før du starter:
+
+ xautolock -time 5 -corners 00++ -locker "xlock -mode random -allowroot -timeelapsed -echokeys " &
+
+ Om du vil endre startmenyen, må du først lage fila, enten under "share" treet eller i en lagd start katalog i 
+ homedir/GNUstep/Library/AfterStep/start tree og informere AfterStep om menyforandringen via 
+ (startmeu)->Desktop->Update startmenu
+
+
+THEMES
++-------+
+
+I tools/ biblioteket finnes programmer for å fjerne gamle installasjoner av
+versjon 1.3x og 1.4x. Les begynnelsen av hvert script for å finne ut hvordan det virker. 
+Uten parametre vil ikke scriptet fjerne programmer som har blitt utgitt med afterstep, 
+bare <core> filer. "makeasclean" og "makeaspatch" brukes til å rense source treet og lage 
+patcher til distribusjonen(i rett format). 
+pagerconfig1_4to1_5 er et script som oversette 1.4x pager konfigurasjons-filer til det nye 1.5x formatet
+
+ UTILS
++-------+
+
+Det kjekkeste av verktøyene er kanskje "theme-handleren".
+Den består av to Perl script til å lage og installere themes lagd av theme-handler
+Les README fila for mer informasjon. Etterpå lager du hauger av themes! 
+Det er virkelig gøy å lage egne Themes. [Målet: å måtte spørre om mer plass hos serveren for ftp.afterstep.org
+som det er mp3er i omløp. Det tar kanskje ei stund.. menmen ;)
+Sjekk ftp.afterstep.org/themes/README for informasjon om hvordan du distribuerer themes'ene dine til andre.
+Dette kommer snart opp som en side på www.afterstep.org
+
+
+
+ FAQ
++----+
+Før du stiller noen spørsmål, les FAQen som er inkludert i distribusjonen ved å velge 
+AfterStepDoc fra menyen. Det er mange forskjeller mellom =<v1.0 og >=1.5 . 
+Fila doc/1.0_to_1.5 forklarer dette.
+
+
+ TODO
++------+
+
+I TODO/ finner du saker som skal puttes inn i distribusjonen.
+
+
+ SITES
++------+
+
+Mer informasjon		:		www.afterstep.org
+Utvikler-versjoner	:		ftp.afterstep.org
+Hjelp			:		mail afterstep@linuxcenter.com
+					subject: subscribe
+Codere			:		mail afterstep@linuxcenter.com
+					subject: subscribe
+Chat			:		#afterstep on EFNet
+En EFNet server til de som ikke vet om noen: irc.homelien.no
+
+
+ MAINTAINERS
++------------+
+
+Sjekk ut TEAM fila.
+
+
+
+ LEGAL (på originalspråket for å unngå unøyaktigheter)
++------+
+
+ o Implicit copyrights:
+
+SINCE BERNE CONVENTION, COPYRIGHTS ARE IMPLICIT, EVEN IF AUTHORS DO NOT
+WRITE "COPYRIGHT" WORD IN THE FILE THEY OWN INTELLECTUAL PROPERTY !
+
+Therefore, every file is Copyright (C) by his (or its) respective(s) owner(s)
+at the date of writing.
+
+ o License
+
+The whole program called AfterStep is distribued under GNU GPL v2 license.
+AfterStep library is distributed under LGPL license.
+AfterStep documentation is distributed under LDP license.
+
+See doc/licenses/ files for more informations.
+
+ o Exceptions
+
+	1. MIT/Evans & Sutherland copyright
+
+Some files from src/, initially from twm, are covered by a different license :
+add_window.c afterstep.c borders.c clientwin.c functions.c
+
+	2. Headers
+
+Headers files are public domain ; Robert Nation stated in decorations.c :
+
+
+
+----------------------------------------------------------
+ Norsk versjon av: Per Christian Henden <painiac@c2i.net>  
+----------------------------------------------------------
+
+
+Hovedansvarlig for AfterStep prosjektet er Guylhem AZNAR <guylhem@oeil.qc.ca>

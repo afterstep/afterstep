@@ -1,0 +1,7 @@
+#------------------------------------------------------------------------
+# Ident
+#
+# Just choose colors and a fonts
+*IdentBack Grey30
+*IdentFore Grey70
+*IdentFont -adobe-helvetica-medium-r-*-*-12-*-*-*-*-*-*-*

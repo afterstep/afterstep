@@ -1,0 +1,384 @@
+.\" t
+.\" @(#)Wharf.1		02/07/00
+.TH Wharf 1.8 "Feb 7 2000" Wharf
+.UC
+.SH NAME
+\fBWharf\fP \- the AfterStep "application dock" module
+
+.SH SYNOPSIS
+\fBWharf\fP [\-f \fIconfig_file\fP] [\-v | \--version] [\-h | \--help]
+.sp
+Although \fBWharf\fP can be run from the command line, it is normally 
+spawned by afterstep in the \fIautoexec\fP file, in the following manner:
+.nf
+.sp
+	Module	"I"	Wharf
+	Wait		"I"	Wharf
+.sp
+.fi
+\fIWait\fP is used to allow \fBWharf\fP to swallow the apps specified in the
+\fIwharf\fP file prior to afterstep starting other apps which use the same
+name.
+.sp
+or from within an afterstep menu file by 'Wharf':
+.nf
+.sp
+% cat "~/GNUstep/Library/AfterStep/start/Modules/Wharf"
+	Module "Wharf" Wharf
+	MiniPixmap "mini-as.xpm"
+.fi
+
+To stop the \fBWharf\fP module, a menu item can be used:
+.nf
+.sp
+% cat "~/GNUstep/Library/AfterStep/start/Modules/Wharf_Stop"
+	KillModuleByName "Stop Wharf" Wharf
+	MiniPixmap "mini-as.xpm"
+.fi
+
+.SH DESCRIPTION
+The \fBWharf\fP module is a free-floating application loader that can
+execute programs, "Swallow" running programs, and contain "Folders" of
+more applications, among other things.
+
+Pressing mouse button 1 on a button triggers either a "Folder" to open,
+or an application to run, while pressing mouse button 3 will cause
+the entire /fBWharf/fP to withdraw to the nearest corner in an iconized
+state. Some swallowed apps have mouse button 2 bound for its use.
+
+.SH OPTIONS
+.IP "\-f \fIconfig_file\fP"
+Use \fIconfig_file\fP instead of the default configuration file.
+
+.IP "\-h | \--help"
+Print a usage message and exit successfully.
+
+.IP "\-v | \--version"
+Print version information and exit successfully.
+
+.SH INITIALIZATION
+During initialization, \fBWharf\fP will search for a configuration
+file which describes the button panel geometry, color, icons, and
+applications to use/swallow. This file will be the one specified by the 
+\fI\-f\fP option (if given).  Else, the ~/GNUstep/Library/AfterStep/wharf 
+file will be used if it exists.  Else, /usr/local/share/afterstep/wharf 
+will be used.
+
+If the \fBWharf\fP executable is linked to another name, ie ln -s \fBWharf\fP
+\fBOtherWharf\fP, then another module called \fBOtherWharf\fP can be started,
+with a completely different set of configurations than \fBWharf\fP, simply by
+adding configuration options with the keywords \fI*OtherWharf\fP.
+This way multiple \fBWharf\fP programs can be used.  Note that the symlinked
+module can not be called Wharf<something>, as aftrestep will pressume
+the standard Wharf binary.
+
+.SH INVOCATION
+\fBWharf\fP can be invoked from the \fIautoexec\fP file or from a menu
+item as shown in the Synopsis section above.
+
+AfterStep will search through the directories specified in the
+\fIModulePath\fP configuration in the \fIbase.#bpp\fP (where # is your
+colordepth) to attempt to locate \fBWharf\fP; as well as searching through
+the \fIPixmapPath\fP for the pixmaps & \fIIconPath\fP for the bitmaps
+supplied in the configuration options.
+
+.SH CONFIGURATION OPTIONS
+\fBWharf\fP reads the \fIwharf\fP file when it starts up and looks for
+it's configuration options:
+
+.IP "MyStyle ""*WharfTile"""
+Specifies the style of the wharf button tiles, including background color, 
+background pixmap (which may be transparent), and background gradient. 
+This method of specifying the background is preferred over the BgColor, 
+MaxColors, Pixmap, TextureColor, and TextureType options, although those 
+(older) options do still work. See \fBafterstep(1x)\fP for details on the 
+\fIMyStyle\fP format.
+
+.IP "*WharfTextureType \fItype\fP"
+Specifies the type of gradient fill or pixmap to be used on 
+\fBWharf\fP's buttons.  Valid values for type are:
+.nf
+0 - No texture - use \fIWharfBgColor\fP to set the desired color
+1 - Gradient from upper-left to lower right
+2 - Horizontal one way gradient from top to bottom
+3 - Horizontal cylindrical gradient from top/bottom to center
+4 - Vertical one way gradient from left to right
+5 - Vertical cylindrical gradient from left/right to center
+128 - User defined pixmap
+.fi
+The default is the builtin \fIWharf\fP texture pixmap.
+
+.IP "*WharfTextureColor \fIfrom\fP \fIto\fP"
+When used with a \fI*WharfTextureType\fP of 1 through 5, designates the
+ends of the color gradient's range to be used on \fBWharf\fP's buttons.
+
+.IP "*WharfPixmap \fIpixmap\fP"
+Sets the pixmap file to be used as \fBWharf\fP's button.  To be used
+with \fI*WharfTextureType 128\fP. If the pixmap is transparent, 
+\fBWharf\fP will be transparent (shaped). The path need not be specified 
+if the pixmap is in the \fIPixmapPath\fP specified in the \fIbase.#bpp\fP 
+file. Valid pixmaps are XPM, JPEG, or PNG.
+
+.IP "*WharfBgColor \fIcolor\fP"
+If \fI*WharfTextureType 0\fP is specified, \fIWharf\fP's buttons
+will be filled with \fIcolor\fP.
+
+.IP "*WharfMaxColors \fInumber\fP"
+Specifies the maximum \fInumber\fP of colors to use on a gradient
+fill.
+
+.IP "*WharfAnimate"
+If specified, the opening and closing of Folders will be animated, 
+rather than simply drawn in one frame.
+
+.IP "*WharfAnimateMain"
+Designates that full-length \fIWharf\fP withdraws will be animated.
+
+.IP "*WharfAnimateDelay \fIdelay\fP"
+Specifies the \fIdelay\fP in milliseconds that the animation will pause
+between each move when opening or closing a folder.
+
+.IP "*WharfAnimateSteps \fIsteps\fP"
+Specifies the \fIsteps\fP a Folder takes in animating while opening or
+closing.  This translates into the Folder button moving
+<button-size>/\fIsteps\fP pixels each step.
+
+.IP "*WharfAnimateStepsMain \fIsteps\fP"
+Specifies the \fIsteps\fP the main Wharf takes in iconification or
+de-iconification upon mouse button 3 being pressed. This translates into
+the main Wharf moving <button-size>/\fIsteps\fP pixels each step.
+
+.IP "*WharfBalloons"
+Turns on the balloon feature. A "balloon" is displayed showing the name 
+of the button the pointer is resting on in the \fBWharf\fP. The balloon 
+background and text are configured with the MyStyle "*WharfBalloon".
+See \fBafterstep(1x)\fP for more information on MyStyles.
+
+.IP "*WharfBalloonBorderWidth \fInumber\fP"
+Sets the width of the balloon window's border. Defaults to 1.
+
+.IP "*WharfBalloonBorderColor \fIcolor\fP"
+Sets the color of the balloon window's border. Defaults to black.
+
+.IP "*WharfBalloonDelay \fInumber\fP"
+Specifies the period in milliseconds to delay the appearance of the balloon.
+
+.IP "*WharfBalloonYOffset \fInumber\fP"
+The balloon window is positioned to be horizontally centered against
+the \fBWharf\fP window it is describing. The vertical position may be
+set as an offset. Negative offsets of \fI-N\fP are placed \fIN\fP
+pixels above the \fBWharf\fP window, positive offsets of \fI+N\fP are 
+placed \fIN\fP pixels below. Defaults to +2.
+
+.IP "*WharfFullPush"
+If specified, the entire \fBWharf\fP button background will be offset down
+and to the right 2 pixels when pushed.  Especially useful with
+\fI*WharfNoBorder\fP textures.
+
+.IP "*WharfNoPush"
+If specified, the entire \fBWharf\fP button will not appear as if it is
+being pushed in.
+
+.IP "*WharfNoBorder"
+Denotes that beveled borders should not be drawn around the \fBWharf\fP
+button. Useful with textures or pixmaps that include their own bevels.
+
+.IP "*WharfWithdrawStyle \fIstyle\fP"
+Specifies the circumstances under which button 3 should cause the 
+\fBWharf\fP to withdraw to a corner. If \fIstyle\fP is 0, button 3 will 
+do nothing. If \fIstyle\fP is 1 (the default), a click on any button in 
+the toplevel bar will cause \fBWharf\fP to withdraw to the nearest 
+corner. If \fIstyle\fP is 2, a click on either the first or the last 
+button in the toplevel bar will cause the withdrawal. The undocumented 
+\fINoWithdraw\fP option, which does much the same thing, is deprecated - 
+use \fIWithdrawStyle\fP instead.
+
+.IP "*WharfForceSize"
+If specified, will force pixmaps larger than 64x64 to the default
+size of 64x64.  Pixmaps smaller than 64x64 are not supported.  This has
+no effect on the icons used for applications.
+
+.IP "*WharfRows \fIrows\fP"
+Specifies the number of \fIrows\fP of buttons to be created. This will 
+give your \fBWharf\fP a horizontal layout, with the number of rows equal 
+to the number specified in \fIrows\fP. If unspecified, the number of rows 
+will be set to 1.  If the \fIrows\fP are set to a number greater than 1, 
+then there will be that number of rows with enough columns to satisfy the 
+requested number of buttons.  Only one of \fI*WharfRows\fP or 
+\fI*WharfColumns\fP should be specified.
+
+.IP "*WharfColumns \fIcolumns\fP"
+Specifies the number of \fIcolumns\fP of buttons to be created. This will 
+give your \fBWharf\fP a vertical layout, with the number of columns equal 
+to the number specificed in \fIcolumns\fP. If unspecified, the number of 
+columns will be set to 1.  If the \fIcolumns\fP are set to a number 
+greater than 1, then there will be that number of columns with enough 
+rows to satisfy the requested number of buttons.  Only one of 
+\fI*WharfRows\fP or \fI*WharfColumns\fP should be specified.
+
+.IP "*WharfGeometry \fIgeometry\fP"
+Specifies the \fBWharf\fP window location and/or size.  If the size is 
+not specified, Wharf will auto-size itself in a reasonable manner. The 
+\fIgeometry\fP is a standard X11 window geometry specification; see 
+\fBXParseGeometry(3x)\fP, and \fBEXAMPLES\fP (below) for further details.
+
+.IP "*Wharf \fIlabel-for-balloon icon command\fP"
+The \fIlabel-for-balloon\fP is what appears in the \fIBalloons\fP if
+balloons are used, otherwise this entry is still required.  Multiple 
+entries can refer to the same wharf button by using the same 
+\fIlabel-for-balloon\fP.
+
+The \fIicon\fP field specifies an X11 bitmap file, XPM, JPEG, or PNG color
+icon file or a comma-delimited set of pixmaps containing the icon(s) to
+display on the button. These icon(s) will be displayed in front of the 
+\fIWharfTextureColor\fP, \fIWharfPixmap\fP, or \fIWharfBgColor\fP, and 
+behind any \fISwallow\fPed windows.  Transparent icons are allowed.
+
+The \fIcommand\fP specifies an AfterStep built-in command (as described
+in the afterstep man page) which should be executed when a button is 
+pressed, or a \fBWharf\fP command.
+
+.RE
+.PP
+.RS
+The following \fBWharf\fP commands are available:
+
+.IP "Swallow ""\fIwindow-name\fP"" \fIcommand\fP"
+Causes \fBWharf\fP to run \fIcommand\fP, capture the first window whose 
+name or resource is \fIwindow-name\fP, and display it in the associated 
+button. The application window will be shrunk to fit the size of the 
+button.
+
+.IP "MaxSwallow ""\fIwindow-name\fP"" \fIcommand\fP"
+Like \fISwallow\fP, except the button will be resized to fit the 
+application.
+
+.IP "SwallowModule ""\fIwindow-name\fP"" \fIcommand\fP"
+Like \fISwallow\fP, except the \fIcommand\fP is an AfterStep module.
+
+.IP "MaxSwallowModule ""\fIwindow-name\fP"" \fIcommand\fP"
+Like \fIMaxSwallow\fP, except the \fIcommand\fP is an AfterStep module.
+
+.IP "DropExec ""\fIlabel\fP"" \fIcommand %s %d\fP
+Specifies a \fIcommand\fP to run when the associated button receives a 
+Offix Drag & Drop event.  \fI%s\fP (if present) will be replaced with 
+the dropped data, and \fI%d\fP (if present) will be replaced with the 
+data type. See \fBEXAMPLES\fP below for an example.
+
+.IP "Size \fIwidth\fP \fIheight\fP"
+Sets the size of the associated button, overriding any other size 
+consideration.
+
+The \fBWharf\fP button size depends on several things.  The order of
+precedence is:
+
+.nf
+1) Size definition
+2) MaxSwallow'd window size
+3) \fIWharfPixmap\fP size
+4) Use 64x64.
+.fi
+
+.IP "Transient"
+Specifies that this button will not perform any action, will not be 
+pushable, and will not have an associated balloon.
+
+.IP "Folder ""\fIfolder-name\fP"""
+Defines a slide-out folder inside the current folder.  The following 
+button definitions will be placed inside of the subfolder, until a 
+\fI*Wharf ~Folder\fP line is encountered.  See the \fBEXAMPLES\fP 
+section below for an example. Folders may be nested.
+
+.SH FILES
+
+.IP \fI/usr/local/share/afterstep/wharf\fP
+The global configuration file for system wide defaults of all users.
+
+.IP \fI$HOME/GNUstep/Library/AfterStep/wharf\fP
+This file should be copied from the \fI/usr/local/share/afterstep/wharf\fP and edited to suit the user's specific requirements.  This file, if exists, will override the system wide default file.
+
+.IP \fI/usr/local/share/afterstep/base.[8|15|16|24|32]bpp\fP
+Contains the \fIIconPath\fP & \fIPixmapPath\fP global settings for the
+\fBWharf\fP.
+
+.IP \fI$HOME/GNUstep/Library/AfterStep/base.[8|15|16|24|32]bpp\fP
+This file should be copied from the\fI/usr/local/share/afterstep/base.[8|15|16|24|32]bpp\fP and edited to suit the user's specific requirements for the \fIIconPath\fP & \fIPixmapPath\fP settings of the \fBWharf\fP.
+
+.SH EXAMPLES
+The \fIwharf\fP file shipped contains many examples, refer to the 
+\fBCONFIGURATION OPTIONS\fP section above for its configuration options.
+
+\fBWharf\fP geometries are fundamentally an offset with a value of pixels 
+from a specified corner of the screen, with format [+-]X[+-]Y. The + and - 
+definitions for the offset specify which corner of the screen to place 
+\fBWharf\fP in. Here's a nifty picture to illustrate:
+
+.nf
+________________
+|++          -+|
+|              |
+|              |
+|              |
+|+-          --|
+----------------
+.fi
+
+For example, \fIGeometry\fP -5-5 would place \fBWharf\fP in the lower 
+right hand corner, 5 pixels left and 5 pixels up from the corner.
+
+To create slide-out folders in \fBWharf\fP the following format must 
+be used:
+.nf
+
+*Wharf files Folders.xpm,3_dots.xpm Folder
+*Wharf xftp 3DRings.xpm	Exec "" xftp &
+*Wharf xdir FolderDeposit.xpm Exec "" xdir &
+*Wharf moxfm FilingCabinet.xpm Exec "" moxfm &
+*Wharf ~Folder
+
+.fi
+The first line of this set tells Wharf that this button definition will 
+be a folder.  All of the button definitions between the \fIFolder\fP and 
+the line with the definition of \fI*Wharf ~Folder\fP will appear on the 
+"files" folder when it is exposed.  To expose the "files" folder simply 
+click on the Wharf button with the Folders.xpm icon showing.  A button 
+bar will appear perpendicular to your Wharf bar and toward the center of 
+the screen.  On this smaller bar will be the three icons that were configured 
+between the \fIFolder\fP and \fI~Folder\fP parts of the \fBWharf\fP 
+configuration.  Folders may be nested.
+ 
+
+\fBWharf\fP supports the OffiX Drag and Drop standard.  The following is 
+an example of a \fIDropExec\fP line:
+.nf
+
+*Wharf trash Recyler.xpm DropExec "" rm %s
+*Wharf trash - Restart "" afterstep
+
+.fi
+
+The button will restart AfterStep when pushed.  If a file is dragged
+onto into it, \fIrm\fP will be called with \fI%s\fP being replaced 
+by the dropped filename.
+
+.SH AUTHORS
+Beat Christen <bchriste@iiic.ethz.ch>
+.nf
+Frank Fejes <frank@ssax.com>
+.nf
+Alfredo Kengi Kojima <kojima@inf.ufrgs.br>
+.nf
+Dan Weeks <dan@mango.sfasu.edu>
+.nf
+Bo Yang <eric@coeus.ucsd.edu>
+.nf
+Robert Nation
+.nf
+David Mihm <dmihm@swbell.net> [Man page]
+.nf
+Ethan Fischer <allanon@crystaltokyo.com>
+
+.SH SEE ALSO
+.BR afterstep (1),
+.BR Pager (1),
+.BR X (1)

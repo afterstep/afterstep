@@ -1,0 +1,1 @@
+Exec "Sierpinski" exec sh -c "killall xlock ; xlock -nolock -mode sierpinski -inroot &"

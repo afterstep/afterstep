@@ -1,0 +1,1 @@
+Exec "Sphere" exec sh -c "killall xlock ; xlock -nolock -mode sphere -inroot &"

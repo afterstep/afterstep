@@ -1,0 +1,1 @@
+Exec "Galaxy" exec sh -c "killall xlock ; xlock -nolock -mode galaxy -inroot &"

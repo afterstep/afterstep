@@ -1,0 +1,107 @@
+.\" t
+.\" @(#)Clean.1		02/07/00
+.TH Clean 1.8 "Feb 7 2000"
+.UC
+.SH NAME
+\fBClean\fP \- the AfterStep desktop clutter reduction module
+
+.SH SYNOPSIS
+\fBClean\fP [\-f \fIconfig_file\fP] [\-v | \--version] [\-h | \--help]
+.sp
+Although \fBClean\fP can be run from the command line, it is normally 
+spawned by afterstep in the \fIautoexec\fP file, in the following manner:
+.nf
+.sp
+        Module  "I"     Clean
+.sp
+.fi
+or from within an afterstep menu file by 'Clean':
+.nf
+.sp
+% cat "~/GNUstep/Library/AfterStep/start/Modules/Clean"
+        Module "Clean" Clean
+        MiniPixmap "mini-as.xpm"
+.fi
+
+To stop the \fBClean\fP module, a menu item can be used:
+.nf
+.sp
+% cat "~/GNUstep/Library/AfterStep/start/Modules/Clean_Stop"
+	KillModuleByName "Stop Clean" Clean
+	MiniPixmap "mini-as.xpm"
+.fi
+
+.SH DESCRIPTION
+The \fBClean\fP module performs actions on windows which have not had
+the keyboard focus for a specific length of time. This is intended to
+help alleviate the problem of leaving programs running in unused
+portions of your desktop.
+
+.SH OPTIONS
+.IP "\-f \fIconfig_file\fP"
+Use \fIconfig_file\fP instead of the default configuration file.
+
+.IP "\-h | \--help"
+Print a usage message and exit successfully.
+
+.IP "\-v | \--version"
+Print version information and exit successfully.
+
+.SH INITIALIZATION
+During initialization, \fBClean\fP will search for a configuration file
+which describes the time-outs and the actions to take.  This file will be 
+the one specified by the \fI\-f\fP option (if given).  Else, the 
+~/GNUstep/Library/AfterStep/clean file will be used if it exists.  Else, 
+/usr/local/share/afterstep/clean will be used.
+
+If the \fBClean\fP executable is linked to another name, ie 'ln -s
+\fBClean\fP \fBOtherClean\fP', then another module called \fBOtherClean\fP
+can be started, with a completely different set of configurations than
+\fBClean\fP, simply by adding \fI*OtherClean\fP options following the same
+\fI*Clean\fP configuration options below to the \fIclean\fP file. This way
+multiple Cleaning modules can be used.
+
+.SH INVOCATION
+\fBClean\fP can be invoked from the \fIautoexec\fP file or by binding the
+action "Module Clean \fI[args]\fP" to a key-stroke in a \fIfeel\fP file,
+or from a menu item as  shown in the Synopsis section above.
+
+AfterStep will search through the directories specified in the
+\fIModulePath\fP configuration in the \fIbase.#bpp\fP (where # is your
+colordepth) to attempt to locate Clean.
+
+.SH CONFIGURATION FILE
+\fBClean\fP reads the \fIclean\fP file when it starts up and looks for
+its configuration options:
+
+.IP "*Clean \fBseconds\fP \fBcommand\fP"
+Tells Clean to sleep for x number of seconds after a window loses focus
+before it executes the given command; where \fBcommand\fP is any built-in
+AfterStep command.
+
+.SH EXAMPLES
+At most 3 actions can be specified on any one line.
+
+.IP "*Clean 3600 Iconify 1"
+This will sleep for 3600 seconds (1 hour) and then \fIIconify\fP all windows not having been given focus within that 1 hour.  The 1 after \fIIconify\fP defines that only iconification should occur.  Refer to the \fIafterstep.man\fP for further detail on \fIIconify\fP options.
+
+.IP "*Clean 86400 Delete"
+This will sleep for 86400 seconds (24 hours) and then \fBDelete\fP all windows not having been given focus within that 24 hours.  Refer to the \fIafterstep.man\fP for further detail on \fBDelete\fP.
+
+.SH FILES
+.IP \fI/usr/local/share/afterstep/clean\fP
+The global configuration file for system wide defaults of all users.
+
+.IP \fI$HOME/GNUstep/Library/AfterStep/clean\fP
+This file should be copied from the \fI/usr/local/share/afterstep/clean\fP and edited to suit a users specific requirements.  This file, if it exists,
+will override the system wide default file.
+
+.SH AUTHORS
+Robert Nation 
+.nf
+David Taylor <dtaylor@cit.nepean.uws.edu.au>
+.nf
+David Mihm <dmihm@swbell.net> [Man page]
+
+.SH SEE ALSO
+.BR afterstep (1)

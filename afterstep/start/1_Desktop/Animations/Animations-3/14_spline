@@ -1,0 +1,1 @@
+Exec "Spline" exec sh -c "killall xlock ; xlock -nolock -mode spline -inroot &"

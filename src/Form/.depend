@@ -1,0 +1,4 @@
+./Form.o: \
+        ../../configure.h \
+        ../../include/aftersteplib.h \
+        ../../include/module.h

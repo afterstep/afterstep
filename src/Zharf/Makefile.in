@@ -1,0 +1,12 @@
+OBJS		= Zharf.o icons.o
+
+PROG		= Zharf
+
+LIBS_ASDYN      = $(LIBS_ASIMAGE)
+LIBS_DEPEND     = $(LIB_AFTERSTEP) $(LIB_ASIMAGE)
+
+@MAKEFILECOMMON@
+
+install:	install.bin install.man
+
+uninstall:	uninstall.bin uninstall.man

@@ -1,0 +1,1 @@
+Exec "Newsreader" exec xterm -n tin -T News -e tin &

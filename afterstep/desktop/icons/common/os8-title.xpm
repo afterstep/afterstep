@@ -1,0 +1,29 @@
+/* XPM */
+static char * titlebar_xpm[] = {
+/* width height num_colors chars_per_pixel */
+"6 19 4 1",
+/* colors */
+" 	c #c7c7cb",
+".	c white",
+"X	c #909090",
+"o	c #656565",
+/* pixels */
+"      ",
+"      ",
+"      ",
+"      ",
+"......",
+"XXXXXX",
+"oooooo",
+"......",
+"XXXXXX",
+"oooooo",
+"......",
+"XXXXXX",
+"oooooo",
+"......",
+"XXXXXX",
+"oooooo",
+"      ",
+"      ",
+"      "};

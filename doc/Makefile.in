@@ -1,0 +1,24 @@
+
+SCRIPTS		= afterstepdoc
+
+@MAKEFILECOMMON@
+
+install: install.script install.data
+
+uninstall: uninstall.script uninstall.data
+
+install.data:	
+	$(INSTALL_DATA) afterstep.html $(AFTER_DOC_DIR)
+	$(INSTALL_DATA) afterstep-1.html $(AFTER_DOC_DIR)
+	$(INSTALL_DATA) afterstep-2.html $(AFTER_DOC_DIR)
+	$(INSTALL_DATA) afterstep-3.html $(AFTER_DOC_DIR)
+	$(INSTALL_DATA) afterstep-4.html $(AFTER_DOC_DIR)
+	$(INSTALL_DATA) afterstep-5.html $(AFTER_DOC_DIR)
+	$(INSTALL_DATA) afterstep-6.html $(AFTER_DOC_DIR)
+	$(INSTALL_DATA) afterstep-7.html $(AFTER_DOC_DIR)
+	$(INSTALL_DATA) afterstep-8.html $(AFTER_DOC_DIR)
+	$(INSTALL_DATA) afterstep-9.html $(AFTER_DOC_DIR)
+	$(INSTALL_DATA) afterstep-10.html $(AFTER_DOC_DIR)
+
+uninstall.data:
+	$(RMF) -r $(AFTER_DOC_DIR)

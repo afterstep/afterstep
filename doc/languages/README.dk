@@ -1,0 +1,176 @@
+****************************************************************************
+****************                                            ****************
+****************   Dette er AfterStep 1.8.6                 ****************
+****************                                            ****************
+****************************************************************************
+
+
+
+0. Snart
+--------
+
+* Bliv root (su root)
+
+* Nu kør "./install.script"
+	    eller "./configure ; make ;
+                  make install ;
+		  mv ~/.xinitrc ~/xinitrc.old ;
+		  echo afterstep > ~/.xinitrc ; startx"
+
+* Bagefter prøv AfterStep... jeg syntes du vil elker det !
+Vote fra AfterStep på http://www.PLiG.org/xwinman/vote.html derfor kunne vi
+ved hvis vores verk er nytte !
+
+1. Gør-Det-Sælv Instructions :
+--------------------------------
+
+1-2. Kør følgende for at configure og compile AfterStep :
+
+Kør configure for at finde henses computer options:
+
+        ./configure
+
+Hvis du kan ikke bliv root, tager fra install et andere PATH hvor du
+kunne skriv.
+
+Stat compilation og have en kop kaffe (drikke langsom hvis hendes CPU er
+som mine :-)
+
+	make
+
+See på felj advarsen !
+
+1-3. Bliv root for at køre følgende:
+
+        su root -
+	make install
+	
+1-4. Skriv i ~/.xinitrc 'afterstep'
+
+	echo afterstep > ~/.xinitrc
+
+(Hvis du kunne ikke bliv root, 'echo /myhome/somewhere/afterstep >~/.xinitrc')
+
+Hvis du bedste elsker én configurationfiler :
+
+	echo "afterstep -f ~/.steprc" > ~/.xinitrc
+
+1-5. Prøv afterstep med :
+
+	startx > ~/AF-debug  2>&1
+
+1-6. Hjælp
+
+Hvis du kan ikke lige denne skærm, prøv andere look : klik på :
+
+	Start/Desktop/Looks/hvad du vil prøv
+
+Du kan også prøv andre feeks :
+
+feks., du kan har 2 titelbuttons med :
+
+	Start/Desktop/Feels/feel.purenext
+	Start/Quit/Restart this session
+
+Men hvis du vil har en look & feel på hver skærm, svar på configure spørge !
+
+Fra en sparskærm, finde xautolock & xlock, og kør :
+
+<<
+xautolock -time 5 -corners 00++ -locker "xlock -mode random -allowroot
+-timeelapsed -echokeys " &
+>>
+
+1-7. Nu, først du spørge ingenting :
+
+Læse 'TODO/1.0_to_1.5' & kør 'afterstepdoc'
+
+2. Copyright, license, legal kludge :
+-------------------------------------
+
+2-1. Implicit copyrights
+
+SINCE BERNE CONVENTION, COPYRIGHTS ARE IMPLICIT, EVEN IF AUTHORS DO NOT
+WRITE "COPYRIGHT" WORD IN THE FILE THEY OWN INTELLECTUAL PROPERTY !
+
+Therefore, every file is Copyright (C) by his (or its) respective(s) owner(s)
+at the date of writing.
+
+2-2. License
+
+The whole program called AfterStep is distribued under GNU GPL v2 license.
+AfterStep library is distributed under LGPL license.
+AfterStep documentation is distributed under LDP license.
+
+See doc/licenses/ files for more informations.
+
+2-3. Exceptions
+
+2-3-1. MIT/Evans & Sutherland copyright
+
+Some files from src/, initially from twm, are covered by a different license :
+add_window.c afterstep.c borders.c clientwin.c functions.c
+
+2-3-2. Headers
+
+Headers files are public domain ; Robert Nation stated in decorations.c :
+
+<<
+
+  Definitions of the hint structure and the constants are courtesy of
+  mitnits@bgumail.bgu.ac.il (Roman Mitnitski ), who sent this note,
+  after conferring with a friend at the OSF:
+
+ >  Hi, Rob
+ >
+ >  I'm happy to announce, that you can use motif public
+ >  headers in any way you can... I just got the letter from
+ >  my friend, it says literally:
+ >
+ >>    Hi.
+ >>
+ >> Yes, you can use motif public header files, in particular because there is
+ >> NO limitation on inclusion of this files in your programms....Also, no one
+ >> can put copyright to the NUMBERS (I mean binary flags for decorations) or
+ >> DATA STRUCTURES (I mean little structure used by motif to pass description
+ >> of the decorations to the mwm). Call it another name, if you are THAT MUCH
+ >> concerned.
+ >>
+ >> You can even use the little piece of code I've passed to you - we are
+ >> talking about 10M distribution against two pages of code.
+ >>
+ >> Don't be silly.
+ >>
+ >> Best wishes.
+ >> Eli
+
+>>
+
+
+
+3. Hvor kunne jeg finde...
+--------------------------
+
+3-1. Mere informationen : www.afterstep.org
+
+3-2. Ny versions : ftp.afterstep.org
+
+3-3. Hjælp : mail afterstep@linuxcenter.com with subject: subscribe
+
+3-4. Coders : mail afterstep@linuxcenter.com with subject: subscribe
+
+3-5. For at snakke : #afterstep på EFNet
+Du skal åbne en EFNet connection på irc.concentric.net
+
+
+
+4. AfterStep maintainer :
+-------------------------
+
+Det er jeg :-)
+
+Send mig epost fra takken eller bugs.
+(unskyld for min dansk, jeg ved det er ikke meget ved)
+
+                                            Guylhem AZNAR <guylhem@oeil.qc.ca>
+

@@ -1,0 +1,2 @@
+Exec "X fishtank" exec xfishtank -d -b 50 -f 12 &
+MiniPixmap "mini-recycler.xpm"

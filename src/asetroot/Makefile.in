@@ -1,0 +1,11 @@
+OBJS		= asetroot.o
+PROG		= asetroot
+
+LIBS_ASDYN      = $(LIB_ASCONFIG) $(LIBS_ASIMAGE)
+LIBS_DEPEND	= $(LIB_AFTERSTEP) $(LIB_ASIMAGE) $(LIB_ASCONFIG)
+
+@MAKEFILECOMMON@
+
+install:	install.bin install.man
+
+uninstall:	uninstall.bin uninstall.man

@@ -1,0 +1,15 @@
+OBJS		= Pager.o x_pager.o
+
+PROG		= Pager
+LIBS_ASDYN      = $(LIB_ASCONFIG) $(LIBS_ASIMAGE)
+LIBS_DEPEND	= $(LIB_AFTERSTEP) $(LIB_ASIMAGE) $(LIB_ASCONFIG)
+
+@MAKEFILECOMMON@
+
+install:	install.bin install.man
+#        ln -s -f Pager $(DESTDIR)$(BINDIR)/WPager
+#        ln -s -f Pager $(DESTDIR)$(BINDIR)/XPager
+#        ln -s -f Pager $(DESTDIR)$(BINDIR)/YPager
+#        ln -s -f Pager $(DESTDIR)$(BINDIR)/ZPager
+
+uninstall:	uninstall.bin uninstall.man

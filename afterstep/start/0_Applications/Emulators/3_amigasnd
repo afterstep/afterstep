@@ -1,0 +1,1 @@
+Exec "UAE with sound (Amiga)" exec uae -S 2 -b 8 -R 22050 &

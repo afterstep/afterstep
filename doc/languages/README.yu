@@ -1,0 +1,171 @@
+****************************************************************************
+****************                                            ****************
+****************   Ovo je AfterStep 1.8.6 (AfterStep'9x)    ****************
+****************                                            ****************
+****************************************************************************
+
+0. Sum
+
+* Prijavi se kao root (su - root)
+
+* Sada ili pokreni "./install.script" 
+       ili "./configure ; make ;
+            make install ;
+            mv ~/.xinitrc ~/xinitrc.old;
+            echo afterstep > ~/.xinitrc ; startx"
+
+* Onda probaj AfterStep ... pretpostavljam da ce vam se svidjati
+  Ako je tako, molim te glasaj za AfterStem na:
+  http://www.PLiG.org/xwinman/vote.html tako da mozemo da proverimo da li
+  nas rad vredi nesto :).
+
+1. Uradi sam instrukcije:
+
+1-2. Izvrsi sledece komande da bi iskonfigurisao i kompajlirao AfterStep:
+
+Startuj configure da podesio opcije vezane za tvoj sistem:
+
+  ./configure
+
+Ako ne mozes da postanes root moraces da promenis globalne sistemske 
+instalacine putanje (direktorijume) negde iz tvog PATH-a gde imas dozvolu
+pisanja.
+
+Pokreni kompajliranje, onda uzmi solju kafe (pi polako posebno ako ti je
+procesor spor kao moj :-] )
+
+  make
+
+Pregledaj obavestenja prethodnih komandi zbog mogucih poruka o greskama !
+
+1-3. Postani root da bi izvrsio sledece komande : instaliranje izvrsnih
+file-ova i man stranica.
+
+  su root -
+  make install
+  
+1-4. Upisi ~/.xinitrc ovu jedinu liniju  : 'afterstep'
+
+ echo afterstep > ~/.xinitrc
+
+(Ako nemate pristup root nalog mozes pokusati nesto ovako:
+'echo /myhome/somewhere/afterstep >~/.xinitrc' )
+
+Ako volite da koristis jedan konfiguracioni file umesto logicke hijararhije,
+koristite:
+        echo "afterstep -f ~/.steprc" > ~/.xinitrc
+
+1-5. Testiraj AfterStep kucajuci:
+
+   startx > ~/AF-Debug 2>&1
+
+1-6. Saveti
+
+  Ako ti se ovo je svidja , probaj ostale file-ovde sa "izgledima" : klikni
+na:
+
+        Start/Desktop/Looks/whatever you feel like trying
+ 
+Mozes promeniti "osecaj" (nacin na koji reaguju ikone ... ) i pozadinu na isti
+nacin :
+
+Na primer ako zelis samo 2 mala dugmeta, click on:
+
+        Start/Desktop/Feels/feel.purenext
+        Start/Quit/Restart this session
+
+Ako zelis da koristis razlicit "izgled" i "osecaj" za svaki desktop samo
+navedi to configur-u.
+
+Ako zelis screen saver, nabavi xautolock i xlock, i onda startuj :
+
+<<
+xautolock -time 5 -corners 00++ -locker "xlock -mode random -allowroot
+-timeelapsed -echokeys " &
+>>
+
+1-7. Sada pre nego pitas bilo koje pitanje :
+
+ procitaj: 'TODO/1.0_to_1.5' & run 'afterstepdoc' 
+
+2. Copyright, licenca i legalne zackoljice :
+--------------------------------------------
+
+2-1. Implicitni Copyright
+
+OD BERNE KONVENCIJE, COPYRIGHT JE IMPLICITNI CAK I AKO AUTOR JE NAPISE
+REC "COPYRIGHT" U FILE-U KOJI POSEDUJU INTELEKTUALNU SVOJINU !
+
+Prema tome, svaki file je Copyrught (C) od njegovih postovanih vlasnika na dan
+pisanja.
+
+2-2. Licenca
+
+Ceo program nazvan AfterStep se distribuira  pod GNU GPL v2 licencom.
+AfterStep bibljoteka je distribuirana pod LGPL licentom.
+AfterStep dokumentacija je distribuirana pod LPD licencom.
+
+pogledaj doc/licence/ za vise informacija.
+
+2-3. Izuzeci
+
+2-3-1. MIT/Evans & Sutherland copyright
+
+Neki file-ovi iz src/, uzeti iz twm-a, su pokriveni drugim licencama:
+add_window.c afterstep.c borders.c clientwin.c functions.c
+
+2-3-2. Hederi
+
+Heder file-ovi su u javnom domenu;  Robert Nation pocinje u decorations.c :
+
+<<
+
+  Definicije hint strukture i konstanti su vlasnistvo :
+  mitnits@bgumail.bgu.ac.il (Roman Mitnitski ), koji je poslao ovu poruku
+  posle razgovora sa prijateljem iz OFS-a:
+
+  > Hi, Rob
+  > Zadovoljstvo mi je da objavim da ti mozes da koristis javne motif
+  > hedere na koji god zelis nacin ... Upravo sam dobio pismo od mog
+  > prijatelja koji bukvalno kaze:
+  >
+  >> Hi.
+  >> 
+  >> Da, mozes da koristis javne motif heder file-ove, iz razloga sto 
+  >> ne postoji ogranicenje u upotrebi ovih file-ova u tvojim programima...
+  >> Takodje, niko ne moze da postavi copyright na brojeve (mislim na binarne
+  >> flag-ove za dekoraciju) ili STRUKTURE PODATAKA (mislim na male strukture
+  >> koje motif koristi da posalje opis dekoracije mwm-u). Nazovi ih
+  >> drugacijim imenom ako si toliko zabrinut.
+  >>
+  >> Mozes cak da koristis i mali deo koda koji sam ti poslao - ovde govorimo 
+  >> o distribuciji od 10Mb nasuprot dve stranice koda.
+  >>
+  >> Nemoj da si smesan.
+  >>
+  >> Najbolje zelje
+  >> Eli
+
+>>
+
+3. Gde mogu da nadjem ...
+-------------------------
+
+3-1. vise informacija  : www.afterstep.org
+
+3-2. nove verzije : ftp.afterstep.org
+
+3-3. Pomoc: mail afterstep@linuxcenter.com sa subject-om: subscribe
+
+3-4. Programeri mail afterstep-dev@linuxcenter.com sa subject-om: subscribe
+
+4. AfterStep maintainer :
+-------------------------
+
+Pa to sam ja :-)
+
+Posalji mi email sa vasim misljenjem,predlozima i obavestenjima o bug-ovima.
+
+					Guylhem AZNAR <guylhem@oeil.qc.ca>
+		Preveo na srpski jezik: Nikola Savic (niks@siton.org.yu)
+Posaljite mi e-mail sa vasim misljenjem o prevodu i predlozima za poboljsanje.

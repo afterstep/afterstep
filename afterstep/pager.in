@@ -1,0 +1,104 @@
+#------------------------------------------------------------------------
+# Pager
+#
+
+# Generalities
+Balloons
+BalloonFont		-adobe-helvetica-bold-o-*-*-10-*-*-*-*-*-*-*
+#BalloonBorderWidth	2
+#BalloonBorderColor	Grey30
+#BalloonYOffset		2
+#BalloonDelay		120
+
+# Pager-executables name specific options
+# That will override font specifyed in look. file styles
+
+*PagerStickyIcons
+#*PagerSmallFont		5x8
+
+# Use it to decorate Pager to your liking.
+# possible decoration parameters are :
+#PagerDecoration option - possible values :
+#   DeskBorderWidth #      - border width around desks
+#   DeskBorderColor <color>- color of the border around desks 
+#                            (default is style's foreground)
+#   NoPageSeparator        - removes lines separating one page from another
+#   NoSelection            - removes frame surrounding selected page 
+#   SelectionColor <color> - color of the frame surrounding selected page
+#   GridColor <color>      - defines color of page separating grid and desk 
+#                            borders
+#   NoDeskLabel            - removes label from the desk
+#   HideInactiveLabel      - use shaped extensions to hide labels of inactive
+#                            desks
+#   LabelBelowDesk         - will place label below desk vs. above
+
+#*PagerDecoration  DeskBorderWidth 1, DeskBorderColor red, NoPageSeparator, GridColor green, NoSelection
+
+*PagerGeometry       -1+19
+
+# PagerStyle is used to define look of Pager's desk window. 
+# Relevant look must be defined in your look file or in this file
+# Note that look file's definition will override definition in here
+
+*PagerStyle     0       DeskStyle
+*PagerStyle     1       DeskStyle
+*PagerStyle     2       DeskStyle
+*PagerStyle     3       DeskStyle
+
+# use *PagerDontDrawBg  with xearth, xfishtank, ... to avoid redrawing
+# background
+#*PagerDontDrawBg    
+*PagerAlign          0
+*PagerLabel          0       Work
+*PagerLabel          1       WWW
+*PagerLabel          2       Mail
+*PagerLabel          3       Games
+*PagerRows	     1
+*PagerColumns        @with_desktops@
+#*PagerIconGeometry	+0-0
+#*PagerStartIconic
+
+##########################################################################
+########    Unless you know why these entries below	##################
+########    are here,  gnore them!	Thank you.	##################
+##########################################################################
+*WPagerStickyIcons
+*WPagerSmallFont      5x8
+*WPagerGeometry       -0-1
+#*WPagerStyle          0       DeskStyle
+*WPagerDesktopImage   0       @with_afterdir@/non-configurable/0_background
+*WPagerAlign          0
+*WPagerLabel          0       Work
+#*WPagerDontDrawBg
+*WPagerRows           1
+*WPagerColumns        1
+*XPagerStickyIcons
+*XPagerSmallFont      5x8
+*XPagerGeometry       -0-1
+#*XPagerStyle         1       DeskStyle
+*XPagerDesktopImage   1       @with_afterdir@/non-configurable/1_background
+*XPagerAlign          0
+*XPagerLabel          1       WWW
+#*XPagerDontDrawBg
+*XPagerRows           1
+*XPagerColumns        1
+*YPagerStickyIcons
+*YPagerSmallFont      5x8
+*YPagerGeometry       -0-1
+#*YPagerStyle         2       DeskStyle
+*YPagerDesktopImage   2       @with_afterdir@/non-configurable/2_background
+*YPagerAlign          0
+*YPagerLabel          2       Mail
+#*YPagerDontDrawBg
+*YPagerRows           1
+*YPagerColumns        1
+*ZPagerStickyIcons
+*ZPagerSmallFont      5x8
+*ZPagerGeometry       -0-1
+#*ZPagerStyle         3       DeskStyle
+*ZPagerDesktopImage   3       @with_afterdir@/non-configurable/3_background
+*ZPagerAlign          0
+*ZPagerLabel          3       Games
+#*ZPagerDontDrawBg
+*ZPagerRows           1
+*ZPagerColumns        1

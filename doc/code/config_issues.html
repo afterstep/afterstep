@@ -1,0 +1,121 @@
+<HTML>
+<HEAD>
+<TITLE>AfterStep configuration Reading/Writing/Exchange issues</TITLE>
+</HEAD>
+<BODY>
+<h1>AfterStep configuration Reading/Writing/Exchange issues</h1>
+<hr>
+<h2>Problem</h2>
+Many ,  many years ago, in the dark ages of Personal Computers and windowing
+interfaces there was AfterStep the Window Manager.<br>
+(joke)<br>
+In order to achive world dominance and ease of use goals Afterstep will need
+the following configuration related features :
+<ol>
+<li>GUI configuration tool (ASCP);
+<li>Dynamic configurability;
+<li>unifyed code for reading-writing configuration files;
+<li>comment friendly configuration file writing.  
+</ol>
+At the moment every AS module has it's custom code to read configuration from
+the plain text files. Such approach has advantage of simplicity. 
+But it has also several disadvantages: 
+<ol>
+<li>this code is usable only by this particular module, and needs to be
+reimplemented in ASCP, which is causing possible differences in the way ASCP
+and AS treating same options, slows down ASCP development;
+<li>in order to implement dynamic configurability this way - config will need
+to be written down into file - and file reread by module, which sucks.
+<li>as far as code is duplicated in many places bugs needs to be fixed
+everywhere instead of just one place. We've seen many things like that.
+<li>code like, base file processing is duplicated in any module.
+</ol>
+Idea is to provide unifyed code that would be parsing configuration files,
+according to supplied structure, and would return values of different
+parameters. Also this should be capable of writing configuration files,
+without destroying comments if user wants to do so.   
+<hr>
+
+<h2>Solutions</h2>
+<h3>Simple/nested constructs</h3>
+In AfterStep configuration there are two different types of constructs :
+<ol>
+<li>Simple constructs - most afterstep options are simple constructs, and
+consists of pair  &lt;OptionName&gt;&lt;parameters&gt;
+<li><a name="nested_def"></a>Nested constructs - some options :
+<ol>
+<li>MyStyles
+<li>Style (database file)
+<li>PagerDecoration
+<li>Wharf folders
+<li>autoexec file.
+</ol> 
+these options introduce structures that consists of several Simple constructs.
+</ol>
+As the result configuration of any module and Afterstep overall can be
+represented by tree of configuration pairs &lt;OptionName&gt;&lt;parameters&gt;, where any
+nested construct will be represented by additional branch.  
+
+<h3><a name="term_def"></a>Term</h3>
+It is not a good idea to store OptionName in each configuration pair - there
+could be several option with the same name ( like *PagerStyle ), so storing 
+this name in option would waste some memory. Besides it would be good to
+attach some information about how this option must be treated. That leads us
+to the consept of the <b>Term</b>.<br>
+<b>Term</b> is nothing but the structure that identifies configuration option
+and ways of it's processing. As logic dictates it contains the following data:
+<ul>
+<li><b><i>flags</i></b> - flags identifying any special way of processing option. That could
+be combination of several flags. Flags could say for instance that option is
+indexed - which means that first parameter is index in array, in which
+following data should be inserted - for example PagerStyle, or that could be a
+flag indicating that option's parameters should not be split into space
+separated pieces, like for Wharf entries.
+<li><b><i>keyword</i></b> - keyword identifying this option in config file.
+<li><b><i>type</i></b> - data type of option's parameter. That allows for some standartized
+processing of data - for instance integer type would get first parameter
+converted into integer value.
+<li><b><i>id</i></b> - unique identifyer of this option in the multitude of all available
+Afterstep options. That is usefull in processing functions, so we don't have
+to check the keyword, to find out what option we are dealing with.
+</ul>
+
+<h3>Syntax</h3>
+Collection of <a href="#term_def">Terms</a>, that can be used in single
+module's config makes <b>Syntax</b> of this module's config.<br>
+Interesting thing here is that hwithin the configuration we can have like
+sub-configurations. For example in database file, each Style record is
+sub-configuration - and so is any <a href="#nested_def">nested
+construct</a>. That means that it has a subset of terms.<br>
+That leads us to nessessity to supply more information to parsing code:
+<ol>
+<li><b><i>terminator</i></b> - character that separates one option from
+another. Generally in Afterstep configuration that could be either '\n'
+character or ','.
+<li><b><i>file_terminator</i></b> - character that terminates entire
+configuration file. That could be either '\0' - when end of file terminates
+file, or '\n' in case of some sub-configurations. 
+</ol>
+<p>
+As the result we can define module's config can be defined as the combination
+of :
+<ul>
+<li><b><i>terms</b></i> - array of <a href="#term_def">term</a>
+definitions;
+<li><b><i>terminator</b></i> - character that separates options from one another;
+<li><b><i>terminator</b></i> - character that terminates configuration file.
+</ul>
+  
+<h3>FreeStorage</h3>
+This &lt;OptionName&gt;&lt;parameters&gt; pair consept leads us to the
+definition of the <b>FreeStorage</b>. <b>FreeStorage</b> is a tree of all configuration
+pairs. Each configuration pair will become <b>FreeStorageElem</B>. This free storage
+elem should uniquely identify what Option it represents, and it will hold all
+parameters of this option.<br>
+Generaly option's parameters are nothing but space separated list of text
+items. That is not a rule indeed - some options, most notable wharf entries
+can consist of stuff that should not be separated - like command lines of
+applications to start.
+
+</BODY>
+</HTML>

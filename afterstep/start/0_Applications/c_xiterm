@@ -1,0 +1,2 @@
+Exec "Xi terminal" exec xiterm -bg black -fg grey70 -sl 500 -vb &
+MiniPixmap "mini-app.xpm"

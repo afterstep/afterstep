@@ -1,0 +1,8 @@
+./Gnome.h:
+
+./Gnome.o: \
+        ../../configure.h \
+        ../../include/module.h \
+        ../../include/aftersteplib.h \
+        ../../include/afterstep.h \
+        Gnome.h

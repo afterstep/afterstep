@@ -1,0 +1,68 @@
+How can you make a patch ?
+
+* Put the original AfterStep in some dir, let's say AfterStep-old/
+
+* Put your new source tree in something like AfterStep-new/
+
+* Then run :
+diff -N -u -r AfterStep-old/ AfterStep-new/ > yourname-patch
+gzip yourname-patch
+
+* People will apply your patch by just running :
+tar -zxvf AfterStep-old.tgz
+gunzip yourname-patch.gz
+patch -p0 < yourname-patch
+
+Guylhem
+
+-----------
+
+Alternatively, you can use makeaspatch, makeasclean and makeasversion, included
+in the tools dir of the AS distribution.  makeasclean cleans the AS source 
+tree, and makeaspatch makes a patch.
+
+* Put makeaspatch, makeasclean, makeasversion in your path
+* Put the original AfterStep source in /usr/src/AfterStep/AfterStep-current
+* Put your modified version in /usr/src/AfterStep/AfterStep-devel
+* cd /usr/src/AfterStep/AfterStep-devel
+* run makeasclean
+* run makeasversion (with an argument for the patch number
+  e.g. 'makeasversion 1.7.76')
+* If there is a Makefile, now use 'make config'; otherwise run this:
+
+  autoconf --localdir=autoconf autoconf/configure.in > \
+  configure ; chmod 755 configure
+  autoheader --localdir=autoconf autoconf/configure.in > \
+  autoconf/config.h.in ; chmod 644 autoconf/config.h.in
+
+* Run makeaspatch, which makes the patch as /tmp/patch
+* Look at your patch and make sure there aren't any silly mistakes :)
+* Check your patch by patching the original code, compiling, and testing
+  cd /usr/src/AfterStep/AfterStep-current
+  cat /tmp/patch | patch -p1
+  # the next line is paranoia only - makeaspatch will have done this already
+  makeasclean
+  install.script
+* gzip the patch
+  gzip /tmp/patch
+* Send it to the AS maintainers!
+
+Ethan
+
+-----------
+
+To apply a patch (or patches), I find the following method easiest:
+
+* download a version of AS, and the patches for that version, say 1.7.0 
+  (so the patches will be named 1.7.0-xx-*)
+* extract AS:
+  tar xzf AfterStep-1.7.0.tar.gz
+* apply the patches:
+  cd AfterStep-1.7.0
+  gzip -dc ../1.7.0-* | patch -p1
+
+If the patches are not gzipped, change the last step to:
+
+* cat ../1.7.0-* | patch -p1
+
+Ethan

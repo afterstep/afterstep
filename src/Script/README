@@ -1,0 +1,46 @@
+Hi !
+
+1. Description
+
+This is the new AfterStep configuration interface.
+
+1. Why ?
+
+Since I haven't heard of ascp for a long time, I think it's a dead project.
+Therefore, I started working on asconf concept (since AS 1.4.0).
+
+2. How is it done ?
+
+It was supposed to be in GTK, but once I discovered script, a superb GPL
+scripting language, which made me stop the first asconf tryout for portability
+reasons.
+Basically, it's a port of script from Frédéric Lecordier, with some goodies
+added for AfterStep.
+
+3. Great ! Lemme play with it !
+
+Now it's quite usable BUT IT IS NOT READY yet !
+To see what it looks like, try Samples/DeskSetup.jpg.
+
+4. When will it be ready ?
+
+I'm spending many time on this project.
+My first concern is usability, i.e. avoid hangups, crashes (...) which is now
+quite good (afscript included in AS 1.5pre3 wasn't that good)
+Then I have to introduce AS specific functions (see TODO) to ease script
+creation.
+And maybe code a GUI builder if I can't find any on internet.
+
+So you see, there's still a lot of work.
+
+But asconf will be present in AS 1.5 to configure everything but look (kinda
+hard for now)
+
+5. That's all !
+
+Now I'm going to improve afscript & make some scripts to configure AfterStep
+:-)
+
+Have fun !
+
+Guylhem AZNAR <guylhem@oeil.qc.ca>

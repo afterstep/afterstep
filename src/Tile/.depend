@@ -1,0 +1,5 @@
+./Tile.o: \
+        ../../configure.h \
+        ../../include/aftersteplib.h \
+        ../../include/afterstep.h \
+        ../../include/module.h

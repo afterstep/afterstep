@@ -1,0 +1,1 @@
+Exec "GNUplot" exec xterm -T "GNU Plot" -e gnuplot &

@@ -1,0 +1,272 @@
+####################
+# Look by Stephane Boyer (Metallic)
+# 	modified by David Mihm, Dec 6 1999
+#
+#-------------------
+
+# 1) Styles :
+#
+# If there is a style named "default" and no default style is specified, 
+# the "default" style will be used as the default
+# Inherited styles will override options.
+
+# default should never be used, so let's make it obvious when it *is* used
+MyStyle "default"
+  Font		-adobe-helvetica-medium-r-*-*-12-*-*-*-*-*-*-*
+  ForeColor	#111111
+  BackColor	#bfbfbf
+  ~MyStyle
+
+#----------Window MyStyles---------#
+
+TitleButtonBalloons
+TitleButtonBalloonBorderColor   #111111
+TitleButtonBalloonBorderWidth   2
+TitleButtonBalloonDelay         200
+
+MyStyle "TitleButtonBalloon"
+  ForeColor     #111111
+  BackColor     #bfbfbf
+  Font          -adobe-helvetica-medium-r-*-*-12-*-*-*-*-*-*-*
+  ~MyStyle      
+
+MyStyle "focus_colors"
+  ForeColor	White
+  BackColor	#000044
+  MaxColors	32
+  BackGradient	1	#ffffff #000000
+  ~MyStyle
+
+MyStyle "unfocus_colors"
+  ForeColor	#111111
+  BackColor	#bfbfbf
+  MaxColors	32
+  BackGradient	1	 Grey65 Grey40
+  ~MyStyle
+
+MyStyle "sticky_colors"
+  ForeColor	#111111
+  BackColor	DarkGreen
+  MaxColors	32
+  BackGradient	1	 Grey85 Grey65
+  ~MyStyle
+
+MyStyle "window_font"
+  Font		-adobe-helvetica-bold-r-*-*-12-*-*-*-*-*-*-*
+  Inherit	focus_colors
+  TextStyle	2
+  ~MyStyle
+
+MyStyle "focused_window_style"
+  Inherit	window_font
+  Inherit	focus_colors
+  ~MyStyle
+
+MyStyle "unfocused_window_style"
+  Inherit	window_font
+  Inherit	unfocus_colors
+  ~MyStyle
+
+MyStyle "sticky_window_style"
+  Inherit	window_font
+  Inherit	sticky_colors
+  ~MyStyle
+
+#----------Menu MyStyles---------#
+
+MyStyle "menu_font"
+  Font          -adobe-helvetica-medium-r-*-*-12-*-*-*-*-*-*-*
+  TextStyle     0
+  ~MyStyle
+
+MyStyle "menu_title_style"
+  Inherit	menu_font
+  TextStyle	2
+  MaxColors	32
+  ForeColor	White
+  BackColor	#3a3a3a
+  BackGradient  1        Grey40 Grey65
+  ~MyStyle
+
+MyStyle "menu_item_style"
+  Inherit	menu_font
+  TextStyle	0
+  MaxColors	32
+  ForeColor	Black
+  BackColor	#bfbfbf
+  BackMultiGradient	6 #656565 0.0 #797979 0.2 #c7c7c7 0.4 #596D79 0.6 #414165 0.9 #1818a6 1.0
+  ~MyStyle
+
+MyStyle "menu_hilite_style"
+  Inherit	menu_font
+  TextStyle	0
+  ForeColor	Black
+  BackColor	White
+  BackGradient     4 #c7c7c7 #656565
+  MaxColors	32
+  ~MyStyle
+
+MArrowPixmap            arrow.xpm
+MenuPinOn               fuf-kill-pressed.xpm
+MenuPinOff              fuf-kill.xpm
+
+# make the stipple background the same as the menu item, or 
+# strange border drawing artifacts could occur.
+MyStyle	"menu_stipple_style"
+  Inherit	menu_item_style
+  ~MyStyle
+
+DefaultStyle		"default"
+FWindowStyle		"focused_window_style"
+UWindowStyle		"unfocused_window_style"
+SWindowStyle		"sticky_window_style"
+MenuItemStyle		"menu_item_style"
+MenuTitleStyle		"menu_title_style"
+MenuHiliteStyle		"menu_hilite_style"
+MenuStippleStyle	"menu_stipple_style"
+
+#----------Pager MyStyles---------#
+
+MyStyle "*PagerBalloon"
+  Font		-adobe-helvetica-bold-o-*-*-10-*-*-*-*-*-*-*
+  ForeColor	Black
+  BackColor	Grey70
+~MyStyle
+
+MyStyle "DeskStyle"
+  ForeColor	grey70
+  BackColor	grey30
+ BackGradient	1 #000000 #ffffff
+~MyStyle
+
+MyStyle "*PagerActiveDesk"
+   Inherit	focused_window_style
+   Font 		-adobe-helvetica-bold-o-*-*-10-*-*-*-*-*-*-*
+~MyStyle
+
+MyStyle "*PagerInActiveDesk"
+   Inherit	unfocused_window_style
+   Font 		-adobe-helvetica-bold-o-*-*-10-*-*-*-*-*-*-*
+~MyStyle
+
+MyStyle "*PagerFWindowStyle"
+    Inherit	focused_window_style
+    Font	5x8
+~MyStyle
+
+MyStyle "*PagerUWindowStyle"
+    Inherit	unfocused_window_style
+    Font	5x8
+~MyStyle
+
+MyStyle "*PagerSWindowStyle"
+    Inherit	sticky_window_style
+    Font	5x8
+~MyStyle
+
+#----------Wharf MyStyles---------#
+
+MyStyle "*WharfBalloon"
+  Font		-adobe-helvetica-bold-o-*-*-12-*-*-*-*-*-*-*
+  ForeColor	Black
+  BackColor	Grey70
+~MyStyle
+
+MyStyle "*WharfTile"
+  BackColor	grey50
+  BackPixmap	128 ASBBlockDefault.xpm
+~MyStyle
+
+#----------WinList MyStyles---------#
+
+MyStyle "*WinListBalloon"
+  Font		-b&h-lucida-medium-r-normal-*-10-*-*-*-p-*-iso8859-1
+  ForeColor	Black
+  BackColor	Wheat
+~MyStyle
+
+MyStyle "*WinList"
+  ForeColor     white
+  BackColor     gray10
+  Font		-b&h-lucida-medium-r-normal-*-*-100-*-*-p-*-iso8859-1
+  TextStyle  2
+  BackPixmap 129 #a8a8a8
+  MaxColors 10
+~MyStyle
+
+#----------Button MyStyles---------#
+
+MyStyle "ButtonPixmap"
+  BackMultiGradient	6 #656565 0.0 #797979 0.2 #c7c7c7 0.4 #596D79 0.6 #414165 0.8 #1818a6 1.0
+  ~MyStyle
+  
+MyStyle "ButtonTitleFocus"
+  Inherit       focused_window_style
+  Font          -adobe-helvetica-medium-r-*-*-8-*-*-*-*-*-*-*
+  ~MyStyle      
+  
+MyStyle "ButtonTitleSticky"
+  Inherit       sticky_window_style
+  Font          -adobe-helvetica-medium-r-*-*-8-*-*-*-*-*-*-*
+  ~MyStyle      
+  
+MyStyle "ButtonTitleUnfocus"
+  Inherit       unfocused_window_style
+  Font          -adobe-helvetica-medium-r-*-*-8-*-*-*-*-*-*-*
+  ~MyStyle      
+  
+  
+# [0|1] Show Title on Buttons how?
+SeparateButtonTitle 1 
+# [x y] Size of buttons?
+#ButtonSize 48 64
+#--------------------------
+
+# 2) Textures : avoid them on 8bpp !
+
+#   0 - No texture
+#   1 - Wharf-style gradient                            ^-
+#   2 - Horizontal one way gradient                     ¯-_
+#   3 - Horizontal from top/bottom to center            =-=
+#   4 - Vertical one way gradient from left to right    ||| | |  | |
+#   5 - Vertical from left/right to center              >>>>>><<<<<<
+# 128 - User defined pixmap
+# 129 - Transparent menu/Transluceny menu + valid xpm OR tint color
+
+# 2-5) : misc options
+#  Textures/Pixmaps on windows lowbar ?
+TexturedHandle
+#  Gradient on windows title ?
+#GradientText
+#  Border around iconifyied windows ?
+ButtonNoBorder
+#  [0/1/2] Draw lines between menu options ?
+DrawMenuBorders 1
+#  [0/1] Texture menu options individually, or the whole menu ?
+TextureMenuItemsIndividually 0
+#  [0/1] Do you want minipixmaps in startmenu ?
+MenuMiniPixmaps 1
+#  [0/1] Sort Start menu entries by 1=alphabetical order, 0=date (default)
+StartMenuSortMode 1
+#  [0/1] make a space, or don't make a space (WM) beside buttons
+TitleButtonStyle  0
+#  Define the number of pixels between titlebar buttons
+#TitleButtonSpacing       0
+#  [0/1/2] Allows selection of move/resize rubberband look
+RubberBand 2
+
+# 3) TextStyle :
+#  Mode is either 0 (normal), 1 (big 3d), 2 (nice 3d)
+#  Corner where the resize box goes to : ++, +-, -+, -- (clockwise)
+ResizeMoveGeometry -+
+
+IconBox                 130 -130 -70 -70
+TitleTextAlign          0
+TitlebarNoPush
+
+# TitleButtons : [1] [3] [5] [7] [9] (title) [0] [8] [6] [4] [2]
+TitleButton 1 fuf-switchwindow.xpm fuf-switchwindow-pressed.xpm
+TitleButton 2 fuf-kill.xpm fuf-kill-pressed.xpm
+TitleButton 3 fuf-windowmenu.xpm fuf-windowmenu-pressed.xpm
+TitleButton 4 fuf-shade.xpm fuf-shade-pressed.xpm
+TitleButton 6 fuf-iconify.xpm fuf-iconify-pressed.xpm

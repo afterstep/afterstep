@@ -1,0 +1,75 @@
+#!/bin/sh
+
+tab="	"
+
+files="doc/languages/README.* README autoconf/configure.in"
+
+usage()
+{
+  echo "Usage:"
+  echo "makeasversion <version>"
+  echo "  <version> is of the form major.minor.patchlevel"
+  exit 1
+}
+
+# make sure we have a (valid) new version
+if test "x$1" = "x"; then
+  echo "makeasversion: no version passed on command line"
+  echo ""
+  usage
+fi
+
+if ! echo $1 | grep -q -E '^[0-9]+[.][0-9]+[.][0-9]+$'; then
+  echo "makeasversion: invalid version passed on command line"
+  echo "Valid versions are of the form major.minor.patchlevel (eg, 1.7.0)."
+  echo ""
+  usage
+fi
+
+# get the current version number
+version=`grep "^version=" autoconf/configure.in | cut -f2 -d\"`
+
+if test "x$version" = "x"; then
+  echo "makeasversion: unable to determine old version from autoconf/configure.in"
+  exit 1
+fi
+
+echo "Old version was $version."
+echo "New version is $1."
+echo ""
+
+for i in README doc/languages/README.*; do
+  echo $i
+  cat $i | sed "s/AfterStep $version/AfterStep $1/" > /tmp/makeasversion.tmp
+  mv /tmp/makeasversion.tmp $i
+done
+
+
+for i in afterstep/base.*bpp.in; do
+  echo $i
+  cat $i | sed "s/AfterStep $version/AfterStep $1/" > /tmp/makeasversion.tmp
+  mv /tmp/makeasversion.tmp $i
+done
+
+i="autoconf/configure.in"
+echo $i
+cat $i | sed "s/^version=\"$version\"/version=\"$1\"/" > /tmp/makeasversion.tmp
+mv /tmp/makeasversion.tmp $i
+
+i="AfterStep.spec"
+echo $i
+cat $i | sed -e "s/^\(%define.*fver.*\)$version/\1$1/" \
+             -e "s/^\(%define.*version.*\)$version/\1$1/" > /tmp/makeasversion.tmp
+mv /tmp/makeasversion.tmp $i
+
+echo ""
+echo ""
+echo "Unless an error was printed, makeasversion was successful!  Please"
+echo "be sure to run:"
+echo "make config"
+echo "to update the configure script."
+
+
+
+
+

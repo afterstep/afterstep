@@ -1,0 +1,1 @@
+Exec "Ftp" exec xterm -n ftp -T ftp -e ftp &
