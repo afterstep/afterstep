@@ -267,6 +267,7 @@ print_my_backtrace (long *ebp, long *esp, long *eip)
 {
 #if defined(_ASMi386_SIGCONTEXT_H)
 	int           frame_no = 0;
+    char          **dummy ;
 
 	fprintf (stderr, " Stack Backtrace :\n");
 	if (ebp < (long *)0x08074000			   /* stack can't possibly go below that */
@@ -284,7 +285,8 @@ print_my_backtrace (long *ebp, long *esp, long *eip)
 				fprintf (stderr, " in [%s+0x%lX(%lu)]", func_name, offset, offset);
 			else
 			{
-				func_name = *__backtrace_symbols ((void **)&eip, 1);
+                dummy = __backtrace_symbols ((void **)&eip, 1);
+                func_name = *dummy ;
 				if (*func_name != '[')
 					fprintf (stderr, " in %s()", func_name);
 			}
@@ -315,8 +317,8 @@ print_my_backtrace (long *ebp, long *esp, long *eip)
 			if (func_name == unknown)
 			{
 #ifdef HAVE_EXECINFO_H
-
-				func_name = *__backtrace_symbols ((void **)&esp, 1);
+                dummy = __backtrace_symbols ((void **)&esp, 1)
+                func_name = *dummy;
 				if (*func_name != '[')
 					fprintf (stderr, "  [%s]", func_name);
 				else
