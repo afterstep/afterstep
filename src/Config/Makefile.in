@@ -13,5 +13,6 @@ LIBVERMAJOR     = 1
 @MAKEFILECOMMONLIB@
 
 
-install.inc
+install.inc:
+
 

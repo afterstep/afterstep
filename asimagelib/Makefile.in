@@ -2,7 +2,7 @@
 # Copyright (c) 1998, Guylhem AZNAR <guylhem@oeil.qc.ca>
 #
 
-# as_png.o as_jpeg.o as_xpm.o 
+# as_png.o as_jpeg.o as_xpm.o
 
 LIB_OBJS= hashtable.o loadimg.o \
 		  mystyle.o mystyle_property.o stepgfx.o ximage_utils.o\
@@ -16,5 +16,6 @@ LIBVERMAJOR     = 1
 
 @MAKEFILECOMMONLIB@
 
-install.inc
+install.inc:
+
 

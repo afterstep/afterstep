@@ -3,12 +3,12 @@
 # Copyright (c) 1998, Guylhem AZNAR <guylhem@oeil.qc.ca>
 #
 
-LIB_INCS= 
+LIB_INCS=
 
-# removed : mystrcasecmp.o mystrdup.o safemalloc.o 
-#           sleep.o hostname.o getfdwidth.o 
-#           audit.o strncmp.o homeanddirs.o 
-#           findfile.o 
+# removed : mystrcasecmp.o mystrdup.o safemalloc.o
+#           sleep.o hostname.o getfdwidth.o
+#           audit.o strncmp.o homeanddirs.o
+#           findfile.o
 #
 LIB_OBJS= catstring3.o copystring.o \
 	      font.o getcolor.o \
@@ -26,4 +26,6 @@ LIBVERMAJOR     = 1
 @MAKEFILECOMMONLIB@
 
 
-install.inc
+install.inc:
+
+
