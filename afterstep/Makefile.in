@@ -27,27 +27,30 @@ install:
 		$(MKDIR) -p $(AFTER_SHAREDIR)/$$D; \
 		echo "Installing images from $$D to $(AFTER_SHAREDIR)/$$D "; \
 		if [ -d $$D/xml ] ; then \
-			list=`$(FIND) $$D/xml/ -type f -maxdepth 1`; \
+			list=`ls $$D/xml/ `; \
 			for I in $$list; do \
-				fname=`basename $$I`; \
-				echo -n "."; \
-			    $(INSTALL_DATA) $$D/xml/$$fname $(AFTER_SHAREDIR)/$$D/$$fname; \
+				if [ -f $$D/xml/$$I ] ; then \
+					echo -n "."; \
+			    		$(INSTALL_DATA) $$D/xml/$$I $(AFTER_SHAREDIR)/$$D/$$I; \
+				fi; \
 			done ; \
 		fi; \
 		if [ -d $$D/$(IMAGE_FORMAT) ] ; then \
-			list=`$(FIND) $$D/$(IMAGE_FORMAT)/ -type f -maxdepth 1`; \
+			list=`ls $$D/$(IMAGE_FORMAT)/`; \
 			for I in $$list; do \
-				fname=`basename $$I`; \
-				echo -n "."; \
-				$(INSTALL_DATA) $$D/$(IMAGE_FORMAT)/$$fname $(AFTER_SHAREDIR)/$$D/$$fname; \
+				if [ -f $$D/$(IMAGE_FORMAT)/$$I ] ; then \
+					echo -n "."; \
+					$(INSTALL_DATA) $$D/$(IMAGE_FORMAT)/$$I $(AFTER_SHAREDIR)/$$D/$$I; \
+				fi; \
 			done ; \
 		fi; \
 		if [ -r $$D/jpg ] ; then \
-			list=`$(FIND) $$D/jpg/ -type f  -maxdepth 1`; \
+			list=`ls $$D/jpg/`; \
 			for I in $$list; do \
-				fname=`basename $$I`; \
-				echo -n "."; \
-		    	$(INSTALL_DATA) $$D/jpg/$$fname $(AFTER_SHAREDIR)/$$D/$$fname; \
+				if [ -f $$D/jpg/$$I ] ; then \
+					echo -n "."; \
+				    	$(INSTALL_DATA) $$D/jpg/$$I $(AFTER_SHAREDIR)/$$D/$$I; \
+				fi; \
 			done ; \
 		fi; \
 		echo ""; \
