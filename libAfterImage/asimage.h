@@ -433,6 +433,9 @@ typedef struct ASImageOutput
 	unsigned int	 tiling_step;   /* each line written will be repeated
 									 * with this step until we exceed
 									 * image size */
+	unsigned int 	 tiling_range;  /* Limits region in which we need to
+									 * tile. If set to 0 then image height
+									 * is used */
 	int 	    	 bottom_to_top; /* -1 if we should output in
 									 * bottom to top order, +1 otherwise*/
 
@@ -1061,8 +1064,9 @@ do{	if( (src).offset_x > 0 || (dst).offset_x > 0 ) \
  switch(r)                                              							\
  {  case 0:	SCANLINE_FUNC(shrink_component11,(src),(dst),(scales),(len));break;   	\
 	case 1: SCANLINE_FUNC(shrink_component, (src),(dst),(scales),(len));	break;  \
-	case 2:	SCANLINE_FUNC(enlarge_component12,(src),(dst),(scales),(len));break ; 	\
-	case 3:	SCANLINE_FUNC(enlarge_component23,(src),(dst),(scales),(len));break;  	\
+	case 2: SCANLINE_FUNC(enlarge_component_dumb,(src),(dst),(scales),(len));break ;\
+	case 3:	SCANLINE_FUNC(enlarge_component12,(src),(dst),(scales),(len));break ; 	\
+	case 4:	SCANLINE_FUNC(enlarge_component23,(src),(dst),(scales),(len));break;  	\
 	default:SCANLINE_FUNC(enlarge_component,  (src),(dst),(scales),(len));        	\
  }
 

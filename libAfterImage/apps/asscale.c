@@ -119,7 +119,7 @@ int main(int argc, char* argv[])
 		ASImage2file( scaled_im, NULL, "asscale.jpg", ASIT_Jpeg, NULL );
 		destroy_asimage( &scaled_im );
 		destroy_asimage( &im );
-#endif					
+#endif
 	}
     return 0 ;
 }

@@ -164,7 +164,7 @@ enlarge_component23( register CARD32 *src, register CARD32 *dst, int *scales, in
 				if( dst[k]&0x7F000000 )
 					dst[k] = 0 ;
 				c2 = INTERPOLATE_B_COLOR3(c1,c2,c3,c3);
-				dst[k+1] = (c2&0x7F000000 )?0:c2;
+  				dst[k+1] = (c2&0x7F000000 )?0:c2;
 			}
 		}
 	}
@@ -180,15 +180,26 @@ enlarge_component( register CARD32 *src, register CARD32 *dst, int *scales, int 
   * as much as possible */
 	int i = 0;
 	int c1 = src[0];
+	register int T ;
 	--len ;
+	if( len < 1 )
+	{
+		CARD32 c = INTERPOLATE_COLOR1(c1) ;
+		for( i = 0 ; i < scales[0] ; ++i )
+			dst[i] = c;
+		return;
+	}
 	do
 	{
-		register int step = INTERPOLATION_TOTAL_STEP(src[i],src[i+1]);
-		register int T ;
 		register short S = scales[i];
+		register int step = INTERPOLATION_TOTAL_STEP(src[i],src[i+1]);
+
+		if( i+1 == len )
+			T = INTERPOLATION_TOTAL_START(c1,src[i],src[i+1],src[i+1],S);
+		else
+			T = INTERPOLATION_TOTAL_START(c1,src[i],src[i+1],src[i+2],S);
 
 /*		LOCAL_DEBUG_OUT( "pixel %d, S = %d, step = %d", i, S, step );*/
-		T = INTERPOLATION_TOTAL_START(c1,src[i],src[i+1],src[i+2],S);
 		if( step )
 		{
 			register int n = 0 ;
@@ -206,11 +217,25 @@ enlarge_component( register CARD32 *src, register CARD32 *dst, int *scales, int 
 			dst += scales[i] ;
 		}
 		c1 = src[i];
-		if( ++i >= len )
-			break;
-	}while(1);
+	}while(++i < len );
 	*dst = INTERPOLATE_COLOR1(src[i]) ;
 /*LOCAL_DEBUG_OUT( "%d pixels written", k );*/
+}
+
+static inline void
+enlarge_component_dumb( register CARD32 *src, register CARD32 *dst, int *scales, int len )
+{/* we skip all checks as it is static function and we want to optimize it
+  * as much as possible */
+	int i = 0, k = 0;
+	do
+	{
+		register CARD32 c = INTERPOLATE_COLOR1(src[i]);
+		int max_k = k+scales[i];
+		do
+		{
+			dst[k] = c ;
+		}while( ++k < max_k );
+	}while( ++i < len );
 }
 
 /* this will shrink array based on count of items in src per one dst item with averaging */
@@ -555,7 +580,7 @@ check_scale_parameters( ASImage *src, unsigned int *to_width, unsigned int *to_h
 }
 
 int *
-make_scales( unsigned short from_size, unsigned short to_size )
+make_scales( unsigned short from_size, unsigned short to_size, unsigned short tail )
 {
 	int *scales ;
 	unsigned short smaller = MIN(from_size,to_size);
@@ -564,12 +589,12 @@ make_scales( unsigned short from_size, unsigned short to_size )
 	int eps;
 
 	if( from_size < to_size )
-	{	smaller--; bigger-- ; }
+	{	smaller-=tail; bigger-=tail ; }
 	if( smaller == 0 )
 		smaller = 1;
 	if( bigger == 0 )
 		bigger = 1;
-	scales = safecalloc( smaller, sizeof(int));
+	scales = safecalloc( smaller+tail, sizeof(int));
 	eps = -(bigger>>1);
 	/* now using Bresengham algoritm to fiill the scales :
 	 * since scaling is merely transformation
@@ -693,6 +718,29 @@ scale_image_up( ASImageDecoder *imdec, ASImageOutput *imout, int h_ratio, int *s
 	free_scanline(&step, True);
 }
 
+void
+scale_image_up_dumb( ASImageDecoder *imdec, ASImageOutput *imout, int h_ratio, int *scales_h, int* scales_v)
+{
+	ASScanline src_line;
+	int	line_len = MIN(imout->im->width, imdec->out_width);
+	int	out_width = imout->im->width;
+
+	prepare_scanline( out_width, QUANT_ERR_BITS, &src_line, imout->asv->BGR_mode );
+
+	imout->tiling_step = 1 ;
+	while( imdec->next_line < imdec->out_height )
+	{
+		imdec->decode_image_scanline( imdec );
+		src_line.flags = imdec->buffer.flags ;
+		CHOOSE_SCANLINE_FUNC(h_ratio,imdec->buffer,src_line,scales_h,line_len);
+		imout->tiling_range = scales_v[imdec->next_line];
+		imout->output_image_scanline( imout, &src_line, 1);
+		imout->next_line += scales_v[imdec->next_line]-1;
+	}
+	free_scanline(&src_line, True);
+}
+
+
 /* *****************************************************************************/
 /* ASImage transformations : 												  */
 /* *****************************************************************************/
@@ -717,15 +765,21 @@ scale_asimage( ASVisual *asv, ASImage *src, unsigned int to_width, unsigned int 
 		h_ratio = 0;
 	else if( to_width < src->width )
 		h_ratio = 1;
-	else if( src->width > 1 )
+	else
 	{
-		h_ratio = to_width/(src->width-1);
-		if( h_ratio*(src->width-1) < to_width )
-			h_ratio++ ;
-	}else
-		h_ratio = to_width ;
-	scales_h = make_scales( src->width, to_width );
-	scales_v = make_scales( src->height, to_height );
+		if ( quality == ASIMAGE_QUALITY_POOR )
+			h_ratio = 1 ;
+		else if( src->width > 1 )
+		{
+			h_ratio = (to_width/(src->width-1))+1;
+			if( h_ratio*(src->width-1) < to_width )
+				++h_ratio ;
+		}else
+			h_ratio = to_width ;
+		++h_ratio ;
+	}
+	scales_h = make_scales( src->width, to_width, ( quality == ASIMAGE_QUALITY_POOR )?0:1 );
+	scales_v = make_scales( src->height, to_height, ( quality == ASIMAGE_QUALITY_POOR )?0:1 );
 #ifdef LOCAL_DEBUG
 	{
 	  register int i ;
@@ -749,6 +803,8 @@ scale_asimage( ASVisual *asv, ASImage *src, unsigned int to_width, unsigned int 
 	{
 		if( to_height <= src->height ) 					   /* scaling down */
 			scale_image_down( imdec, imout, h_ratio, scales_h, scales_v );
+		else if( quality == ASIMAGE_QUALITY_POOR )
+			scale_image_up_dumb( imdec, imout, h_ratio, scales_h, scales_v );
 		else
 			scale_image_up( imdec, imout, h_ratio, scales_h, scales_v );
 		stop_image_output( &imout );

@@ -322,6 +322,13 @@ query_screen_visual( ASVisual *asv, Display *dpy, int screen, Window root, int d
 	asv->own_colormap = (attr.colormap != DefaultColormap( dpy, screen ));
 	asv->white_pixel = white_xcol.pixel ;
 	asv->black_pixel = black_xcol.pixel ;
+	fprintf( stderr, "Selected visual 0x%lx: depth %d, class %d, RGB masks: 0x%lX, 0x%lX, 0x%lX.\n",
+			 asv->visual_info.visualid,
+			 asv->visual_info.depth,
+			 asv->visual_info.class,
+			 asv->visual_info.red_mask,
+			 asv->visual_info.green_mask,
+			 asv->visual_info.blue_mask );
 #else
 	asv->white_pixel = ARGB32_White ;
 	asv->black_pixel = ARGB32_Black ;

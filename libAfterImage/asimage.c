@@ -1949,13 +1949,14 @@ decode_image_scanline_beveled( ASImageDecoder *imdec )
 /* *********************************************************************/
 /*						  ENCODER : 								  */
 inline static void
-tile_ximage_line( XImage *xim, unsigned int line, int step )
+tile_ximage_line( XImage *xim, unsigned int line, int step, int range )
 {
 	register int i ;
 	int xim_step = step*xim->bytes_per_line ;
 	char *src_line = xim->data+xim->bytes_per_line*line ;
 	char *dst_line = src_line+xim_step ;
-	for( i = line+step ; i < xim->height && i >= 0 ; i+=step )
+	int max_i = MIN((int)xim->height,(int)line+range), min_i = MAX(0,(int)line-range) ;
+	for( i = line+step ; i < max_i && i >= min_i ; i+=step )
 	{
 		memcpy( dst_line, src_line, xim->bytes_per_line );
 		dst_line += xim_step ;
@@ -1978,7 +1979,8 @@ encode_image_scanline_mask_xim( ASImageOutput *imout, ASScanline *to_store )
 		}
 		if( imout->tiling_step > 0 )
 			tile_ximage_line( xim, imout->next_line,
-			                  imout->bottom_to_top*imout->tiling_step );
+			                  imout->bottom_to_top*imout->tiling_step,
+							  (imout->tiling_range ? imout->tiling_range:imout->im->height) );
 		imout->next_line += imout->bottom_to_top;
 	}
 #endif
@@ -2001,7 +2003,8 @@ encode_image_scanline_xim( ASImageOutput *imout, ASScanline *to_store )
 
 		if( imout->tiling_step > 0 )
 			tile_ximage_line( imout->im->alt.ximage, imout->next_line,
-			                  imout->bottom_to_top*imout->tiling_step );
+			                  imout->bottom_to_top*imout->tiling_step,
+							  (imout->tiling_range ? imout->tiling_range:imout->im->height) );
 		imout->next_line += imout->bottom_to_top;
 	}
 }
@@ -2021,26 +2024,28 @@ LOCAL_DEBUG_CALLER_OUT( "imout->next_line = %d, imout->im->height = %d", imout->
 		{
 			int bytes_count ;
 			register int i, color ;
-			int max_i = imout->im->height ;
+			int line = imout->next_line ;
+			int range = (imout->tiling_range ? imout->tiling_range:imout->im->height);
+			int max_i = MIN((int)imout->im->height,line+range), min_i = MAX(0,line-range) ;
 			int step =  imout->bottom_to_top*imout->tiling_step;
 
 			for( color = 0 ; color < IC_NUM_CHANNELS ; color++ )
 			{
 				if( get_flags(to_store->flags,0x01<<color))
-					bytes_count = asimage_add_line(imout->im, color, to_store->channels[color]+to_store->offset_x,   imout->next_line);
+					bytes_count = asimage_add_line(imout->im, color, to_store->channels[color]+to_store->offset_x, line);
 				else if( chan_fill[color] != imout->chan_fill[color] )
-					bytes_count = asimage_add_line_mono( imout->im, color, chan_fill[color], imout->next_line);
+					bytes_count = asimage_add_line_mono( imout->im, color, chan_fill[color], line);
 				else
 				{
-					asimage_erase_line( imout->im, color, imout->next_line );
-					for( i = imout->next_line+step ; i < max_i && i >= 0 ; i+=step )
+					asimage_erase_line( imout->im, color, line );
+					for( i = line+step ; i < max_i && i >= min_i ; i+=step )
 						asimage_erase_line( imout->im, color, i );
 					continue;
 				}
-				for( i = imout->next_line+step ; i < max_i && i >= 0 ; i+=step )
+				for( i = line+step ; i < max_i && i >= min_i ; i+=step )
 				{
 /*						fprintf( stderr, "copy-encoding color %d, from lline %d to %d, %d bytes\n", color, imout->next_line, i, bytes_count );*/
-					asimage_dup_line( imout->im, color, imout->next_line, i, bytes_count );
+					asimage_dup_line( imout->im, color, line, i, bytes_count );
 				}
 			}
 		}else
@@ -2067,13 +2072,14 @@ LOCAL_DEBUG_CALLER_OUT( "imout->next_line = %d, imout->im->height = %d", imout->
 }
 
 inline static void
-tile_argb32_line( ARGB32 *data, unsigned int line, int step, unsigned int width, unsigned int height )
+tile_argb32_line( ARGB32 *data, unsigned int line, int step, unsigned int width, unsigned int height, int range )
 {
 	register int i ;
 	ARGB32 *src_line = data+width*line ;
 	ARGB32 *dst_line = src_line+width ;
+	int max_i = MIN((int)height,(int)line+range), min_i = MAX(0,(int)line-range) ;
 
-	for( i = line+step ; i < height && i >= 0 ; i+=step )
+	for( i = line+step ; i < max_i && i >= min_i ; i+=step )
 	{
 		memcpy( dst_line, src_line, width*sizeof(ARGB32));
 		dst_line += step;
@@ -2109,7 +2115,8 @@ encode_image_scanline_argb32( ASImageOutput *imout, ASScanline *to_store )
 		if( imout->tiling_step > 0 )
 			tile_argb32_line( imout->im->alt.argb32, imout->next_line,
 			                  imout->bottom_to_top*imout->tiling_step,
-							  imout->im->width, imout->im->height );
+							  imout->im->width, imout->im->height,
+							  (imout->tiling_range ? imout->tiling_range:imout->im->height));
 		imout->next_line += imout->bottom_to_top;
 	}
 }
