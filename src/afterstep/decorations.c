@@ -1110,7 +1110,15 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
 
 			compile_tbar_layout( tbar_layout_row, od->default_tbar_elem_row, frame->left_layout, frame->right_layout );
 			compile_tbar_layout( tbar_layout_col, od->default_tbar_elem_col, frame->left_layout, frame->right_layout );
-			
+
+#if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPU) 
+			for( i = 0 ; i < MYFRAME_TITLE_BACKS ; ++i )
+			{
+				LOCAL_DEBUG_OUT( "TitlebarLayout col[%d] = %d", i, tbar_layout_col[i] );
+				LOCAL_DEBUG_OUT( "TitlebarLayout row[%d] = %d", i, tbar_layout_row[i] );
+			}
+#endif						
+
 			for( i = MYFRAME_TITLE_BACK_LBTN ; i < MYFRAME_TITLE_BACKS ; ++i )
 				if( frame->title_backs[i] && frame->title_backs[i]->image )
 				{

@@ -776,7 +776,10 @@ MyFrame *add_myframe_from_def( ASHashTable *list, MyFrameDefinition *fd, ASFlagT
     if( get_flags( fd->set_title_attr, MYFRAME_CondenseTitlebarSet ) )
         frame->condense_titlebar = fd->condense_titlebar;
     if( get_flags( fd->set_title_attr, MYFRAME_LeftTitlebarLayoutSet ) )
+	{
         frame->left_layout = fd->left_layout;
+		LOCAL_DEBUG_OUT( "LeftTitlebarLayout = 0x%X", fd->left_layout );		
+	}
     if( get_flags( fd->set_title_attr, MYFRAME_RightTitlebarLayoutSet ) )
         frame->right_layout = fd->right_layout;
     if( get_flags( fd->set_title_attr, MYFRAME_TitleFCMSet ) )
