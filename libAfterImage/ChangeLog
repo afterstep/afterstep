@@ -1,0 +1,887 @@
+2001-10-10  sashav
+		updated documentation and deps
+
+		Fixed configure script to be able to compile libAfterImage and
+		libAfterBase at once
+
+		completed update of the documentation for libAfterImage
+
+2001-10-09  sashav
+		Updated most of the libAfterImage inline documentation. ascmap
+		h is left to do.
+
+2001-10-01  sashav
+		completed updating libAfterImage to work with no X display; 
+		cleaned up in preparation for release
+
+2001-09-28  sashav
+		Updated e-mail address
+
+2001-09-26  sashav
+		synchin
+
+2001-09-14  sashav
+		debugged ascp to the degree that all the panels are shown correctly
+
+2001-09-13  sashav
+		Added visibility to newly created basic widgets.
+		Upgraded to typesafe MIN/MAX using prototype from the LInux kernel.
+		Fixed libAfterImage to do type-safe MIN/MAX.
+
+2001-09-06  allanon
+		 o (ascompose) fixed segfault when free()'ing xml tree
+
+2001-09-04  allanon
+		 o (libAfterImage) added blur_asimage_gauss() to do a gaussian blur; this
+		   function currently only supports horizontal blurs
+		 o (ascompose) added <blur> as an undocumented feature, for testing only
+
+2001-09-01  sashav
+		moved ascp into libAfterConf and begun work on getting it fixed
+		for recent changes to libAfterSTep/Image. Fixed main.c and lib.c
+
+2001-08-30  sashav
+		added cvsignore to libAfterImage/apps
+
+		Fixed Transparency in asrender - several bugs in mytexture.c that was.
+		Added MyBackground and DeskBack to look configuration.
+		added release_asimage_by_name to asimage.c
+
+		Implemented AS customized geometry parsing function; Added stub
+		for XParseGeometry; Fixe astile and asscale to compile without X
+
+2001-08-29  sashav
+		Rewrote window hierarchy handling in asrender, and started
+		implementing transparency handling
+
+		further configure, Makefile and code cleanup to get it to
+		compile without X
+
+2001-08-28  allanon
+		 o (ascompose) started adding support for --without-x
+		 o (ascompose) changed the default text spacing to 3; this needs to be
+		   an option instead
+
+		 o (ascompose) finalized and documented inherited attributes of <composite>:
+		   crefid, x, y, and tint
+		 o (ascompose) added support for compiling --without-x
+		 o (ascompose) new command-line option --root-window; when given, the
+		   final result image of ascompose will be drawn to the root window
+		   instead of a new window
+
+2001-08-28  sashav
+		freetype compilation fixes
+
+		Fixed numerous bugs in libAfterImage of various severity.
+		Got asclook to render default look correctly.
+
+		fixed freetype detection
+
+2001-08-27  sashav
+		fixed magic number usage in ASImage
+
+		improved configure scripts for libAfterImage to automagically
+		mkae/install apps
+
+2001-08-25  allanon
+		 o (ascompose) fixed x,y handling for <composite>; yes, i know i still
+		   haven't documented them - they're obviously not ready yet :)
+
+2001-08-25  sashav
+		fixed  ability to load several TRuyeType fonts with different
+		point size
+
+		fixed asrender and asclook to actually render default look
+		properly and not segfault in pad_asimage
+
+		added vert and horizontal spacing for fonts; Added ability to
+		load several TRuyeType fonts with different point size
+
+2001-08-22  sashav
+		completed library configure cleanup - adding aslook subdir
+
+2001-08-21  allanon
+		 o (ascompose) added documentation for <crop> to README
+		 o (ascompose) added "srcx" and "srcy" to <crop>
+
+2001-08-21  sashav
+		fixed nasty bug where if dst_x = 0 - and top image is smaller
+		then bottom one - merge_layer generates garbadge
+
+2001-08-20  sashav
+		Added image cloning/padding functionality to libAfterImage
+
+2001-08-19  sashav
+		Implemented layer allowing libAfterBase and libAfterImage to
+		work even without X
+
+2001-08-17  sashav
+		Added code for Buttons, Icons and empty items to asrennderer.
+		Fixed bugs in image referencing using ImageManager.
+		Added render_pad_align_image.
+
+2001-08-16  sashav
+		updated ascompose to use init_image_layer for layer
+		initialization - it was missing back_color to be set to default
+		 Updated init_image_layer accordingly
+
+		Fixed utterly ugly bug in image decompression code where first position in channel  data
+		get corrupted with the data from adjusten channels.
+		Fixe mytexture tile generation to simply set image's background to back_color.
+		Added copy_asimage_channel
+
+		Moved back_color into ASImage to maintain image consistency between subsequent decodings
+		and encodings.
+		Changed back_color to solid_color in ASImageLayer, to use it only when image is NULL.
+		Updated everything accordingly.
+		Changed asimage2ximage to restore missing scanlines based on image's back_color.
+
+2001-08-15  sashav
+		*** empty log message ***
+
+2001-08-15  allanon
+		 o (ascompose) made <composite> attrib "op" optional
+		 o (ascompose) added "merge" to <composite>
+		 o (ascompose) added "keep-transparency" to <composite>
+		 o (ascompose) added "refid" to all of the options that support width
+		   and height options
+		 o (ascompose) made <tile> attrib "width" and "height" optional
+		 o (ascompose) added new tag <text> and documentation to README
+		 o (ascompose) added new tag <bevel> and documentation to README
+		 o (ascompose) added new tag <solid> and documentation to README
+		 o (ascompose) now uses refcounts to deallocate images when possible
+
+2001-08-14  sashav
+		Fixed corners drawing while drawing the inline of the bevel.
+		Fixed ImageDecoder to allow for im meber to be NULL, but back_color - not 0
+		Improved merge_layers to only merge portions of scanlines that overlap - without
+		padding top scanline. Updated all blenders accordingly.
+
+		added bevel with solid inlines; Fixed gradiented bevel drawing
+		on very large distances; updated deps
+
+2001-08-13  sashav
+		Implemented create/init_image_layers
+		Implemented AddLabel in asrenderer
+		Fixed mystyle_draw_text
+
+2001-08-10  sashav
+		added sanity checks to bevel parameter.
+		Need to fix bevel increment calculations for inline.
+
+		Split asimage.c into 3 files - asimage.c, transform.c and ximage.c, with
+		asimage.h being split up accordingly.
+		Fixed bug in create_asimage code to check for validity of compression parameter.
+		Fixed introduced bug in merge_layers where we forgot to skip first layer in the main loop.
+
+2001-08-10  allanon
+		 o sync commit so sasha can see a problem with <bevel>
+
+2001-08-09  sashav
+		Mostly implemented window background rendering and layers merging in
+		asrender code.
+
+2001-08-08  allanon
+		 o (ascompose) reordered usage message to be alphabetical
+		 o (ascompose) upped version to 1.2
+		 o (ascompose) added automagical output format detection based on extension
+		 o (ascompose) added id parameters to all xml tags
+		 o (ascompose) added <recall> and <save> xml tags, and docs to README
+
+2001-08-08  sashav
+		Changed license of libAfterBase and libAfterImage to LGPL
+
+2001-08-07  sashav
+		Updated MyTexture, MyLook and MyStyle to use libAfterImage.
+		Rewrote session management a bit for saner look/feel management.
+		Added CursorManager code.
+		Added asclook app to libAfterConf to provide for preview of arbitrary looks.
+		Fixed several bugs in Image loading code.
+
+		Fixed bug found by k0walski where file export filters would return False even if
+		save was successful.
+
+		Updated ascompose with ability to save images into any supported file format(kowalski)
+		Also added ability to write out image without displaying it first.
+
+2001-07-26  sashav
+		Finally brought giflib to its knees by implementing lots of cludges to work around its bugs.
+		Thank god gif's colormap is stored uncompressed!
+		Now libAfterImage can both read and write multiimage gif files.
+		HipHip Hooray!
+
+2001-07-25  sashav
+		playing cat and mouse with giflib bugs - and there are plenty of those.
+		We'll need to move portions of it into libAfterImage to ease the pain.
+
+		Minor cleanup in gif writer
+
+2001-07-24  sashav
+		fixed several bugs in colormap generation, and implemented gif
+		output filter ( sort of )
+
+2001-07-23  sashav
+		completed colormapping code allowing for different degrees of dithering
+
+2001-07-22  sashav
+		polished colormap calculation quite a bit and made it to
+		allocate just the right amount of colors by adding more passes
+
+2001-07-20  sashav
+		completed implementation of quantization and colormapping of images.
+		Debugged, but still can be optimized for speed.
+
+2001-07-19  sashav
+		Implemented some experimetal code to create colormapped images
+		and allow for dithering and optimum color selection.
+
+2001-07-17  sashav
+		Rewrote MyLook from config generation .
+		Updated MyStyles to use ASImages and ASFonts
+
+2001-07-16  sashav
+		Added image reference to libAfterImage
+		Fixed font dereferencing ( see release_font() ).
+		Started implementation of libAfterImage interface in libAfterStep.
+
+2001-07-13  sashav
+		Updated docs to reflect recent API changes
+
+		removed dos end-of-lines - just neatpicking :)
+
+		Fixed libAfterImage to compile nicely when libAfterBase is not available
+
+		Implemented mirror_asimage() for image mirroring (as you could
+		have guessed :)
+
+		Fixed clobbered variable in export.c;
+		Fixed missing SHOW/START_TIME in afterbase.h.in
+		Added MMX notice to README's.
+
+		fixed compile bug in ASImage2gif
+
+		Added get_drawable_size to afterbase.c (damn allanon :)
+		Added define for mystrcmp
+		Added check for libAfterBase presence before setting output threshold in asmerge
+
+		added mirroring capability to asflip
+
+		Upped library version to 0.81
+
+2001-07-13  allanon
+		o added <mirror> xml tag to ascompose, and documentation in README
+
+		 o added <gradient> xml tag to ascompose, and documentation to README
+		 o added <rotate> xml tag to ascompose, and documentation to README
+		 o added test.xml, which contains the xml used during testing
+
+2001-07-12  sashav
+		Added templaites for image export filters.
+		Implemented RGB and greyscale JPEG image writing.
+		Implemented  RGB and greyscale PNG image writing with or without alpha channel.
+		Added usefull SHOW_TIME and START_TIME macros to libAfterBase
+
+2001-07-11  sashav
+		fixed configure in libAfterImage to have separate enablers for
+		static and shared libs
+
+		fixed installation of afterimage-libs script
+
+		added afterimag.h to incs
+
+		disabled doc.html generation on make install - that was stupid
+		to try and do that.
+
+		updated documentation
+
+		Added final astext tutorial comments.
+		Reupdated documentation.
+
+		fixed doc installation in Makefile
+
+		fixed headers locating in /usr/local/include
+
+		final fix to installation and Makefiles
+
+		updated Makefile to install include files as well
+
+		fixed standalon configure run
+
+2001-07-11  allanon
+		added ascompose, an XML-based image composition tool
+
+2001-07-10  sashav
+		Updated documentation abit to refelect recent code changes and make it easier to link from main index
+		page.
+
+		fixed bug in xpm parser where spaces would get treated
+		incorrectlt in colormap; added READMEs;
+
+2001-07-09  sashav
+		Fixed parse_argb_color.
+		Added options to astile and asflip for easier operation.
+		Fixed asgrad to treat gradient type well, if gradient is not specified.
+		Added few more points to asgrad sample gradient to create better illusion of the rainbow.
+
+		Fixed bug in 3D text rendering causing us to skip scanline inbetween lines of text.
+		Added sample image  rose512.jpg, and TTF font: test.ttf.
+		Added nice defaults to all the sample apps, so that ppl can see libAfterImage
+		in its full beauty.
+
+		Changed astile to tile to twice the size of the image
+
+		Adde Usage to all the examples. Fixed segfault in asscale. 
+		Added error message on image file not found. Added texturized
+		text sample images.
+
+		Added functionality to move_asimage_channel to be able to
+		move to arbitrary channels from arbitrary channels.
+		Added documenting comments to astext.c and fixed text layout abit.
+
+		Added report of the scale factor to asscale
+
+2001-07-08  sashav
+		added usage display to asflip and asgrad and fixed some other
+		places where parse_argb_color would be called prior to dpy initialized
+
+		fixed parse_argb_color to check for dpy not being NULL - to
+		avoid segfaults, babe
+
+		added clocking to draw_text; added usage and more sophisticated
+		usage to astext
+
+2001-07-07  sashav
+		fixed 3D drawing and implemented all 6 modes
+
+2001-07-06  sashav
+		asfont fixin
+
+		fixed glyph compression again;
+		Started implementing 3D text.
+
+		fixed layers merging to correctly draw the background layer
+		when image is missing; Fixed spacing calculations, while
+		drawing text
+
+		Fixed bug in asimage.c where fake_im was not initialized;
+		Corrected glyph compression code
+
+2001-07-05  sashav
+		fixed text size calculations; fixed (almost) bevel drawing  - 
+		need to think about what to do with clip_width/height in Layer specs
+
+		Temporarily plugged bug in layer merging descovered by allanon, when
+		bottommost layer does not have any image in it.
+
+		Reimplemented image output to allow for flexible support for many image formats -
+		right now it could be ASImage itself, XImage, mask XImage and  ARGB32.
+		Surprisingly that simplified code quite abit.
+		Fixed ugly bug in create_asimage.
+		Completed and debugged astext tutorial.
+
+2001-07-04  sashav
+		fixed lots of bugs in glyph compressing and rendering, still
+		something is wrong with size calculation func. Added
+		move_asimage_channel to swap channels on images
+
+2001-07-03  sashav
+		added prototypes for asflip, asgrad and astext examples
+		tutorials/testapps to the libAfterIMage suit
+
+		implemented asgrad, asflip and astext. Althou astext still
+		needs some work.
+
+		implemented astext properly
+
+2001-07-02  sashav
+		Added ASMerge example, and added translator from function name
+		to function for scanline merging/blending.
+
+		Completed ASMerge implementation. Used it to debug all the merging routines.
+		Everything works perfect now.
+		Added doc/html/asmerge.html - another tutorial.
+		Added list_scanline_merging function to blender.c so that we can show
+		descriptions on different merging methods.
+
+2001-06-29  sashav
+		Added ASScale and ASTile examples with documentation and stuff.
+		Fixed bug in asimage.c causing artifacts when image is tiled with TOP quality.
+		cleabed up cvsignore in include/
+
+		fixed and simplified configure script for examples to
+		libAfterImage. Have a good day :)
+
+2001-06-28  sashav
+		Added documenting comments to asview.c so it generates nice little
+		Tutorial as the result.
+		Added lots of X functions to xref files, so now all the source code is
+		very nicely crossreferenced.
+		Added references to asview to other headers etc.
+
+2001-06-27  sashav
+		Completed documenting asfont.h
+		Added afterimage.h with library overview
+		got rid of old doc files
+		added freetype and X11 xrefs so that docs are nicely crosslinked with X docs
+
+2001-06-26  sashav
+		added Makefile targets fopr autogeneration of documentation in
+		man and HTML formats. Added installation procedure for those.
+
+		asfont.h documentation  50% done
+
+2001-06-25  sashav
+		Documented blender.h and import.h - asfont.h to go.
+		Also it sound like a good idea to add afterimage.h with overview notes about
+		libAfterImage and references to components.
+
+2001-06-24  sashav
+		rewrote libraries includes generation; fixed freetype checking
+		to skip old garbadge left over in X11R6 dir
+
+		completed fixing libraries includes
+
+2001-06-22  sashav
+		Completed documenting asimage.h and asvisual.h.
+		asfont.h and import.h to go
+
+		fixed libAfterImage include to always use -I gcc flag
+
+2001-06-21  owsla
+		added stop_image_output() to asimage2mask_ximage()
+
+		plugged a mem leak, asimage2ximage() wasn't doing stop_image_output() on
+		it's ASImageOutput struct
+
+2001-06-21  sashav
+		got asview to compile cleanly and find all the relevant
+		libraries - need to think about simplifying configure scripts
+		and headers there
+
+		MOre documentation writing - ASImage.h is almost done.
+
+2001-06-20  sashav
+		asimage.html and asimage.man updates
+
+		Implemented proper generation of mask XImage (1bpp)
+
+		autogenerate man page for asimage.h
+
+2001-06-19  sashav
+		Implemented ARGB->pixel conversion for 32 and 24 bit True color visual
+		Fixed parse_argb_color to correctly treat 12 digit color value as 48bit RGB.
+		More libAfterImage documenting
+
+		more doc
+
+		Fixed bug in find_file preventing it from finding files when not NULL search path is specified.
+		Fixed bug in asimage2pixmap causing it to use wrong gc variable.
+		Added more documentation to asimage.h and respectively to asimage.html
+
+2001-06-18  sashav
+		man pages writing
+
+		Added lots of self documenting comments to libAfterImage/asimage.h to allow
+		for automagic documentation generation using robodoc package. Seems
+		to be the only package that works decently.
+
+		libAfterImage manpages update
+
+2001-06-18  owsla
+		fixed some typos for you Sasha :)
+
+2001-06-17  sashav
+		started implementing sample repository of example libAfterImage apps
+
+2001-06-15  sashav
+		Added prototypes of the man pages for libAfterImage
+
+		added MMX enabling switch to libAfterImage configure
+
+2001-06-14  sashav
+		Completed Pseudo-color support with colormap allocation and ximage handling.
+		Added create_asimage and destroy_asimage for convinience.
+		Added missing stuff to libAfterImage/afterbase.h to make it completely
+		independant.
+		libAfterImage thus should be ready for release - only to write up some docs :)
+
+2001-06-13  sashav
+		completed flip-flopping code.
+		Added show_debug to show_* series in libAfterBase/output.c
+		started working on collor allocation on PseudoColor visuals
+
+2001-06-12  sashav
+		fixed configure to produce correct dependencies
+
+		completed implementation of image alpha beveling.
+		completed implementation of image flipping - need some cleanup
+		thou to allow for tiling.
+
+2001-06-11  sashav
+		Hopefully fixed memory allocations audit on libAfterBase.
+
+		Added ASImageBevel to allow for transparent bevelling of images while merging layers.
+		Hopefully fixed X libs in configure script - need to rerun autoconf
+
+		added configclean target to the top level makefile; fixed
+		libraries makefiles to correctly generate .depend files
+
+		fixed configure scripts to not do extra checks when invoked
+		from one another
+
+2001-06-11  owsla
+		updated .cvsignore files
+
+2001-06-10  sashav
+		got rid of old image loading stuff. LoadImageWithMask moved
+		into resources.h and is now simple shortcut to libAfterImage loader
+
+2001-06-09  sashav
+		made test to compile; Fixed several bugs in libAfterImage; 
+		optimized 2bpp handling in xpm code; builtin xpm handler is
+		about 2 times as fast as libXpm on small images and 5 times on
+		larger ones
+
+2001-06-08  sashav
+		fixed compilation bug in import.c
+
+		configure fixes
+
+		rebuilt configure scripts
+
+		updated configure scripts
+
+		further progress - src/test compiles now, but need to redo
+		libAfterImage/configure
+
+		Completed custom xpm implementation. Needs to be debugged thou.
+
+		updated configure scripts to reflect addition of the xpm
+		parsing code
+
+		hopefully fixed main configure script to gracefully handle
+		libraries configuration as well. MOved configure.h and some
+		other headers into include dir, so it could be used by modules
+
+2001-06-07  sashav
+		Fixed MyName requests in selfdiag.c;
+		Added xpm.c to implement custom xpm handling code - appears to be
+		rather simple and effective.
+		Most of the things are implemented, except for top level routine.
+
+		cleaned configure script for libafterimage. added afterimage
+		libs script to print list of LD_FLAGS for linking with libafterimage
+
+2001-06-06  sashav
+		fixed bug found by allanon when asimage2ximage would produce
+		black ximage due to unset flags in scanline
+
+2001-06-04  owsla
+		updated configure
+
+		updated the .cvsignore files
+
+2001-06-04  sashav
+		started documenting libAfterImage
+
+		fixed bug in configure --with-jpeg
+
+		sorted out compilation problems, and test now builds with new libAfterImage
+
+		added missing .depend
+
+2001-06-03  sashav
+		got libAfterImage to compile
+
+2001-06-02  sashav
+		hopefully resolved libAfterImage dependancy on libAfterBase
+
+2001-06-01  sashav
+		started up libAfterImage
+
+		separated libAfterImage files from the rest of the crowd
+
+2001-05-30  sashav
+		completed fixing old lib files to compensate for file relocation.
+		There needs to be something done to Mkaefiles and configure to correctly set up
+		include paths and libraries.
+
+		Prototyped ASRenderer interface
+
+2001-05-28  sashav
+		Split ASVisual from ScreenInfo and rearranged ARGB32.
+		Added ASGradient to asimage.h and made gradient_t to be a synonym to it.
+		That should allow for better library independancy - visual will go with libAfterImage
+		while ScreenInfo will move into libAfterStep , or, possibly will split up even more.
+		Goal is to make libAfterImage completely independant from everything else.
+
+2001-05-23  allanon
+		Updated FSF snail mail address.
+
+2001-05-12  sashav
+		added code to check for valid channels while flipping
+
+2001-05-10  sashav
+		Completed gradients drawing code. Started  on flipping code.
+		Added direction reverse to output method.
+
+2001-05-09  sashav
+		Implemented vertical gradient drawing.
+		sorted out relationship between channel numbering and ARGB32 component
+		order - its the same now.
+
+		fixed mono line encoding to add zero terminator at the end; 
+		fixed scanline back_color initialization to have alpha at 0xFF
+		 fixed decoration layouting to not use stack memory in linked
+		list; fixed property event handler to initialize variable to
+		NULL; Afterstep now starts , althou does not do anything usefull
+
+2001-05-08  sashav
+		coded gradients drawing using ASImages with smoothing and dithering -
+		works very blasted fast.
+		Fixed numerous include's issues
+
+2001-05-07  sashav
+		fixed create_screen_window for InputOnly windows
+		fixed bug in screen initialization where Colormap ID would get lost
+		fixed bug in desktop creation code where desktop->scr would never get initialized.
+		Added show_progress function to work similarly to show_warning/error
+		Rearranged thresholds for output verbosity
+		Added stdargs.h  to import.c - suggested by Sean Dague
+
+2001-05-04  sashav
+		completed ASFont implementation as needed at the moment - there will need to be some
+		work done in order to adapt it to locale support.( as well as in several other places).
+		changed glyph compression algorithm once again to run length encode only 0s and
+		FFs, and store rest in raw format. That allows to cut down on memory since we
+		don't use 2 bytes anymore.
+		3 step antialiasing works now.
+		Off to image rotation and gradient drawing.
+
+2001-05-03  sashav
+		Improved glyph compression algorithm so
+		now it actually reduces size, even on ery small fonts.
+		Tryed to implement additional glyph smoothing, but something is wrong - disabled for now.
+
+2001-05-02  sashav
+		fixed font drawing to group glyphs as close together as possible - make for much
+		nicer effect.
+
+		debugged X11 fonts loading and drawing. Still need to do something about negative
+		left bearings - ought to really offset a pen to overlap charcters
+
+2001-05-01  sashav
+		Implemented antialiasing for native X  fonts - still needs some
+		debuggin.
+
+2001-04-30  sashav
+		added RLE compression to the font glyph cache.
+		added character range specification for the font.
+		added right-to-left writing order on per font basis.
+
+2001-04-27  sashav
+		implemented text drawing using precached TTF fonts -- needs addition of
+		locale support in future.
+		Fixed image merging to do clipping correctly.
+		Added image background color
+
+		fixed freetype headers problems and a bug in font hashing
+
+2001-04-26  sashav
+		moved scanline merging functions into separate file
+
+		fixed most blending function so not to tresspass alpha channel
+		boundaries. Added tint_scanlines and implemented dissipation
+
+		started implementing font manager and freetype support
+
+2001-04-25  sashav
+		fixed bug in image loading where piexls would get shifted by one to the right.
+		added 14 image blending functions - almost matching that of the GIMP's
+		capabilities, except for multiply and divide modes, which I don't see much sense in.
+		Added RGB->HSV->RGB and RGB->HLS->RGB conversion functions.
+
+2001-04-24  sashav
+		cleaned up output/encoding functionality.
+		Added quality parameters to dynamically adjust quality on per image basis.
+		Implemented alpha blending and generic layer merging framework.
+
+2001-04-23  sashav
+		debugging tiler
+
+		debugged tiling functionality and optimized it so not to do repeated compression
+		on the same data. Added compression ratio specification on per image basis.
+		OPtimized buffer copy to use 32bit data transfer. Implemented tinting( as a part of tiling process ).
+
+		added tile_image() - needs debugging
+
+2001-04-22  sashav
+		ASImageDecoder
+
+2001-04-20  sashav
+		added TIFF import and implemented generic image loading function with
+		search capabilities and subimage loading.
+		Fixed two more bugs in image scaling.
+
+		added GIF import filter; added configure code to detect gif and
+		tiff libraries
+
+2001-04-19  sashav
+		Added support for .PNM, .PPM, .ICO, .BMP image file formats -
+		TIFF and GIF to go
+
+		.CUR is the same as .ICO only type = 2
+
+2001-04-18  sashav
+		xcf image loading now works, but only gets you first layer with the same size as
+		whole image. Need to implement layers merging for ASImages to get complete
+		support for GIMP's xcf files
+
+		fixed bug in xcf channel loading - theer are no such thing as
+		channel type
+
+2001-04-17  sashav
+		most of the preparation work for xcf reading is done -
+		now off to actually create ASImage from it.
+		added code to poupulate ASScanline with 0's where data is not available;
+
+		minor quality tweaks in rations 1-2 scaling up. Started
+		implementing ASImageDecoder for automatic tinting/tiling
+
+2001-04-16  sashav
+		IMplemented JPEG input filter for ASImage.
+		Fixed long standing bug in image scaling causing wierdness in scaling UP with
+		small ratios.
+		Started implemntation of XCF file reader.
+
+2001-04-15  sashav
+		implemented png file reader and fixed blatant bug in scale
+		image up where first line got garbadge in it
+
+2001-04-14  sashav
+		compilation fixes
+
+2001-04-13  sashav
+		Implemented xpm loading into asimage. Updated asimage to correctly use ScreenInfo.
+		implemented create_screen_pixmap and create_screen_ximage
+
+		fixed test abit to not spit lots of warnings
+
+2001-04-08  sashav
+		fixed bugs in scaling down code with ratio > 2; It appears that
+		you can create windows with different visual only if you create
+		new colormap and allocate border color from it as well. Fixed
+		screen.c accordingly. We keep black and white pixels and
+		colormap in ScreenInfo now - should use it instead of X macros
+
+2001-04-06  sashav
+		hopefully fixed bug in 2x scaling up code
+
+		implemented workaround for some stupid X servers that denys you your constitutional
+		right to use whatever Visual you like.
+
+		couple bugfixes for new visual handling code.
+		moved ximage->scanline->ximage code from asimage.c to screen.c
+		still need to implement PseudoClor handling
+
+2001-04-05  sashav
+		same old Ximage cleanup
+
+		reworked ScreenInfo abit to include visual info.
+		Added screen.c to libafterstep to collect together
+		all the Screen/display related stuff - ConnectX, MyXErrorHandle,
+		and several new things : init_screen and destroy_screen. nolock_mods
+		has been moved outside of the ScreenInfo as it is per-display and not per-screen
+		stuff. all_screens global variable holds pointers to all ScreenInfo structrures for
+		available screens. Added query_visual_info to try and obtain best possible
+		visual for AfterStep to use. Need to move ximage->as->ximage conversion stuff
+		into screen.c. ConnectX now takes only one parameter - pointer to ScreenInfo is discontinued
+
+2001-04-04  sashav
+		asimage->ximage debugging again - this time about 50% 
+		performance increase.
+
+		more optimization to ximage output algorithm - that was the
+		last of it I'm sick and tired from this stuff
+
+2001-04-03  sashav
+		fixed bug in line interpolation causing stripy artifacts in
+		scaling up
+
+		Some tweaks to XImage writing code to speed things up - we were spending
+		upto 30% of time writing XImages - unacceptable.
+
+		mmx debugged
+
+2001-04-02  sashav
+		aaa
+
+		Added some MMX inline assembly to image scaling code to hopefully make it faster -
+		 need to verify if that indeed is the case.
+
+2001-04-01  sashav
+		scaling speed optimizations
+
+2001-03-31  sashav
+		debugged new scaling code - scale up is rather nice even with
+		huge ratio - check out src/test
+
+2001-03-30  sashav
+		debugged scaling down algorithm  - it now works and scale
+		things down rather nicely. Thus we have a proof of concept and
+		can proceed on to scaling up - which is mopstly implemented already
+
+		Implemented complete scaling Up procedure for arbitrary ratio - if it'll
+		work then similar stuff will go for 1-2 and 2-3 ratios.
+		Added reshape_winlist to WinList to actually generate layout of titlebars based
+		on WinList data and store pointers to them in appropriate place in WMDecor
+		structures. It now needs to be debugged as a prototype for other modules.
+
+2001-03-29  sashav
+		completed implementation of scaling down of ASImages.
+		Added dithering capabilities to ASImage->XImage conversion to hopefully
+		produce better results on 16bpp and 15bpp
+		Fixed bug in ASWinLIst message processing to create WinList if it did not exist.
+		Fixed Bug in afterstep to initialize handlers in main window list to correct functions.
+
+		defined structure of high level scaling API
+
+2001-03-28  sashav
+		some theory investigation into up scaling algorithms with smoothing
+
+		Added AS message reading/partiall handling to new WinList.
+		Moved get_window_* functions into aswinlist.c
+		Changed the way process_message is called - it now takes ASMessage * as a param.
+		Made everything compiling.
+
+2001-03-27  sashav
+		the best variant of compression algorithm - average compression
+		ratio is about 75for highly random images(nature) and 30for
+		regular images (naked body, etc.); no off to more exciting things
+
+2001-03-26  sashav
+		fixed compression code
+
+2001-03-24  owsla
+		removed static keyword from libasimage_decode_line, this was preventing it
+		from being exported in the lib, which made the test program fail
+
+2001-03-23  sashav
+		optimized asimage decompression algorithm
+		scaling down algorithm implemented/.
+
+		extensive asimage debugging - compression now seems to work fine
+
+2001-03-22  sashav
+		Completed implementation of Pixmap->ASImage->Pixmap cycle
+		Now off to debugging and implementing of scaling/alpha-blending/etc.
+
+2000-12-12  sashav
+		libasimage has been renamed to libasGUI
+
+2000-09-18  sashav
+		make_indent
+
+2000-05-15  sashav
+		asImageFromXImageTest
+
