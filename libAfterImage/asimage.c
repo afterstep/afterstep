@@ -1180,13 +1180,13 @@ LOCAL_DEBUG_CALLER_OUT( "im->width = %d, color = %d, y = %d, skip = %d, out_widt
 }
 
 
-CARD8*
+inline CARD8*
 asimage_copy_line (register CARD8 *src, int width)
 {
 	register int i = 0;
 
 	/* merely copying the data */
-	if ( AS_ASSERT(src))
+	if ( src == NULL )
 		return NULL;
 	while (src[i] != RLE_EOL && width )
 	{
