@@ -1469,12 +1469,24 @@ constrain_size (ASHints * hints, ASStatusHints * status, unsigned int max_width,
 			minWidth = hints->min_width;
 		if (minHeight < hints->min_height)
 			minHeight = hints->min_height;
+	}else if( get_flags (hints->flags, AS_BaseSize))
+	{
+		if (minWidth < hints->base_width)
+			minWidth = hints->base_width;
+		if (minHeight < hints->base_height)
+			minHeight = hints->base_height;
 	}
+	
 	if (get_flags (hints->flags, AS_BaseSize))
 	{
 		baseWidth = hints->base_width;
 		baseHeight = hints->base_height;
+	}else if (get_flags (hints->flags, AS_MinSize))
+	{
+		baseWidth = minWidth ;
+		baseHeight = minHeight ;	
 	}
+	
 	if (get_flags (hints->flags, AS_MaxSize))
 	{
 		if (max_width == 0 || max_width > hints->max_width)
@@ -1488,10 +1500,11 @@ constrain_size (ASHints * hints, ASStatusHints * status, unsigned int max_width,
 		if (max_height == 0)
             max_height = MAX ((unsigned int)minHeight, clean_height);
 	}
-
+	LOCAL_DEBUG_OUT( "base_size = %dx%d, min_size = %dx%d, curr_size = %dx%d, max_size = %dx%d", baseWidth, baseHeight, minWidth, minHeight, clean_width, clean_height, max_width, max_height );
 	/* First, clamp to min and max values  */
     clean_width = FIT_IN_RANGE (minWidth, clean_width, max_width);
     clean_height = FIT_IN_RANGE (minHeight, clean_height, max_height);
+	LOCAL_DEBUG_OUT( "clumped_size = %dx%d", clean_width, clean_height );
 
 	/* Second, fit to base + N * inc */
 	if (get_flags (hints->flags, AS_SizeInc))
@@ -1500,6 +1513,7 @@ constrain_size (ASHints * hints, ASStatusHints * status, unsigned int max_width,
 		yinc = hints->height_inc;
         clean_width = (((clean_width - baseWidth) / xinc) * xinc) + baseWidth;
         clean_height = (((clean_height - baseHeight) / yinc) * yinc) + baseHeight;
+		LOCAL_DEBUG_OUT( "inced_size = %dx%d", clean_width, clean_height );
 	}
 
 	/* Third, adjust for aspect ratio */
@@ -1549,6 +1563,7 @@ constrain_size (ASHints * hints, ASStatusHints * status, unsigned int max_width,
                     clean_width -= delta;
 			}
 		}
+		LOCAL_DEBUG_OUT( "aspected_size = %dx%d", clean_width, clean_height );
 	}
     status->width = clean_width + status->frame_size[FR_W]+status->frame_size[FR_E] ;
     status->height = clean_height + status->frame_size[FR_N]+status->frame_size[FR_S] ;

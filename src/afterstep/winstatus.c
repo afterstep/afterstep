@@ -755,6 +755,7 @@ on_window_status_changed( ASWindow *asw, Bool update_display, Bool reconfigured 
         return ;
 
 LOCAL_DEBUG_CALLER_OUT( "(%p,%s Update display,%s Reconfigured)", asw, update_display?"":"Don't", reconfigured?"":"Not" );
+LOCAL_DEBUG_OUT( "status geometry = %dx%d%+d%+d", asw->status->width, asw->status->height, asw->status->x, asw->status->y );
     if( ASWIN_GET_FLAGS(asw, AS_Iconic ) )
     {
         unfocus_mystyle = ASWIN_GET_FLAGS(asw, AS_Sticky )?
@@ -823,6 +824,7 @@ LOCAL_DEBUG_CALLER_OUT( "(%p,%s Update display,%s Reconfigured)", asw, update_di
         else
             ASWIN_CLEAR_FLAGS( asw, AS_ShapedDecor );
 
+LOCAL_DEBUG_OUT( "status geometry = %dx%d%+d%+d", asw->status->width, asw->status->height, asw->status->x, asw->status->y );
         if( changed || reconfigured )
         {/* now we need to update frame sizes in status */
             unsigned int *frame_size = &(asw->status->frame_size[0]) ;
@@ -847,7 +849,9 @@ LOCAL_DEBUG_CALLER_OUT( "(%p,%s Update display,%s Reconfigured)", asw, update_di
                     frame_size[i] = 0;
             }
             frame_size[od->tbar_side] += tbar_size ;
+LOCAL_DEBUG_OUT( "status geometry = %dx%d%+d%+d frame_size = %d,%d,%d,%d", asw->status->width, asw->status->height, asw->status->x, asw->status->y, frame_size[0], frame_size[1], frame_size[2], frame_size[3] );
             anchor2status ( asw->status, asw->hints, &(asw->anchor));
+LOCAL_DEBUG_OUT( "status geometry = %dx%d%+d%+d", asw->status->width, asw->status->height, asw->status->x, asw->status->y );
         }
     }
 
@@ -1055,16 +1059,21 @@ init_aswindow_status( ASWindow *t, ASStatusHints *status )
     {
         if( ! get_flags( t->status->flags, AS_StartsIconic ) )
         {
-            int x, y ;
+            int x = -1, y = -1;
             if( get_flags( t->hints->flags, AS_Transient|AS_ShortLived ) )
             {
-                x = Scr.MyDisplayWidth ;
-                y = Scr.MyDisplayHeight ;
+                x = Scr.MyDisplayWidth/2 ;
+                y = Scr.MyDisplayHeight/2 ;
             }else
+			{
                 ASQueryPointerRootXY( &x, &y );
-
-            t->status->x = x - t->status->width/2 ;
-            t->status->y = y - t->status->height/2 ;
+				if( x < 0 || x > Scr.MyDisplayWidth )
+					x = Scr.MyDisplayWidth/2 ; 
+				if( y < 0 || y > Scr.MyDisplayHeight )
+					y = Scr.MyDisplayHeight/2 ; 
+			}
+            t->status->x = x - (int)t->status->width/2 ;
+            t->status->y = y - (int)t->status->height/2 ;
             pending_placement = !get_flags( t->hints->flags, AS_ShortLived ) ;
         }
     }

@@ -234,17 +234,17 @@ check_client_canvas( ASWindow *asw, Bool required )
             if( asw->frame == None || (w = asw->w) == None )
                 return NULL ;
 
-            XReparentWindow (dpy, w, asw->frame, 0, 0);
+            attributes.event_mask = AS_CLIENT_EVENT_MASK;
+            if( asw->internal )
+			{
+	            XWindowAttributes internal_attr ;
+                XGetWindowAttributes( dpy, w, &internal_attr );
+                attributes.event_mask |= internal_attr.your_event_mask;
+			}
+		    quietly_reparent_window( w, asw->frame, 0, 0, attributes.event_mask );
 
             valuemask = (CWEventMask | CWDontPropagate);
-            attributes.event_mask = AS_CLIENT_EVENT_MASK;
             attributes.do_not_propagate_mask = ButtonPressMask | ButtonReleaseMask;
-            if( asw->internal )
-            {
-                XWindowAttributes attr ;
-                if( XGetWindowAttributes( dpy, w, &attr ) )
-                    attributes.event_mask |= attr.your_event_mask;
-            }
 
             if (get_flags(Scr.Feel.flags, AppsBackingStore))
             {

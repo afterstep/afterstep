@@ -1172,6 +1172,7 @@ HandleConfigureRequest ( ASEvent *event )
 		xwc.width = cre->width;
 		xwc.height = cre->height;
 		xwc.border_width = cre->border_width;
+		LOCAL_DEBUG_OUT( "Configuring untracked window %X to %dx%d%+d%+d and bw = %d, (flags=%X)", event->w, cre->width, cre->height, cre->x, cre->y, cre->border_width, xwcm );
         XConfigureWindow (dpy, event->w, xwcm, &xwc);
 		return;
 	}

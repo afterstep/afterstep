@@ -288,7 +288,7 @@ print_signal_context (struct sigcontext *psc)
 		fprintf (stderr, "  EDI: 0x%8.8lX\n", (unsigned long)(psc->edi));
 #elif defined(_ASMAXP_SIGCONTEXT_H) || defined(__ASM_MIPS_SIGCONTEXT_H) || defined(__ASM_SH_SIGCONTEXT_H)
 		for (; i < 32; i++)
-			fprintf (stderr, "  #%d: 0x%8.8lX\n", i, (unsigned long)(psc->sc_reg[i]));
+			fprintf (stderr, "  #%d: 0x%8.8lX\n", i, (unsigned long)(psc->sc_regs[i]));
 #elif defined(_ASM_PPC_SIGCONTEXT_H)
 		for (; i < 32; i++)
 			fprintf (stderr, "  #%d: 0x%8.8lX\n", i, (unsigned long)(psc->regs->gpr[i]));

@@ -178,6 +178,12 @@ AddWindow (Window w)
 		return (NULL);
 	}
 
+	/* we want to set event mask as soon as possible so not to miss eny configure
+	 * request that happen after we get client's geometry in collect_hints,
+	 * and the moment when we afctually setup client's decorations. 
+	 */
+	XSelectInput( dpy, w, AS_CLIENT_EVENT_MASK );
+		
     if( collect_hints( &Scr, w, HINT_ANY, &raw_hints ) )
     {
         if( is_output_level_under_threshold(OUTPUT_LEVEL_HINTS) )
@@ -196,6 +202,7 @@ AddWindow (Window w)
 		{
 			show_warning( "Failed to merge window management hints for window %X", w );
 			free ((char *)tmp_win);
+			XSelectInput( dpy, w, 0 );
 			return (NULL);
 		}
 		tmp_win->hints = hints ;
@@ -203,6 +210,7 @@ AddWindow (Window w)
 	{
 		show_warning( "Unable to obtain window management hints for window %X", w );
 		free ((char *)tmp_win);
+		XSelectInput( dpy, w, 0 );
 		return (NULL);
 	}
     SelectDecor (tmp_win);
