@@ -27,53 +27,12 @@ int main(int argc, char* argv[])
 {
 	char *image_file = "rose512.jpg" ;
 	ASImage *im ;
-	ARGB32 test_colors[] = {
-		0xff0000,
-
-		0xfe0100,	0xbe3f00,	0x807e00,
-
-		0x7f7f00,
-
-		0x7e8000, 	0x3fbe00,	0x01fe00,
-
-		0x00ff00,
-
-		0x00fe01,   0x00be3f,   0x00807e,
-
-		0x007f7f,
-
-		0x007e80,  	0x003fbe,	0x0001fe,
-
-		0x0000ff,
-
-		0x0100fe,   0x3F00be,	0x7e0080,
-
-		0x7f007f,
-
-		0x80007e,   0xbe003f,	0xfe0001,
-
-		0xff0000,
-
-		0x0
-	};
 	int i ;
 	/* see ASView.1 : */
 	set_application_name( argv[0] );
 #if (HAVE_AFTERBASE_FLAG==1)
 	set_output_threshold(OUTPUT_LEVEL_DEBUG);
 #endif
-
-	for ( i = 0 ; test_colors[i] != 0 ; ++i )
-	{
-		CARD32 hue16 = rgb2hue( ARGB32_RED16(test_colors[i]),
-					            ARGB32_GREEN16(test_colors[i]),
-					   		    ARGB32_BLUE16(test_colors[i]));
-		fprintf( stderr, "%d:rgb = #%2.2lX%2.2lX%2.2lX, hue8 = %ld, hue16 = %ld\n", i,
-			             ARGB32_RED8(test_colors[i]),
-						 ARGB32_GREEN8(test_colors[i]),
-						 ARGB32_BLUE8(test_colors[i]),
-						 hue16>>8,hue16);
-	}
 
 	if( argc > 1 )
 	{
@@ -110,7 +69,7 @@ int main(int argc, char* argv[])
 									 "ASView" );
 		if( w != None )
 		{
-			Pixmap p ;
+			Pixmap p, p1 ;
 
 	  		XMapRaised   (dpy, w);
 			/* see ASView.5 : */
