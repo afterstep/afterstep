@@ -30,8 +30,8 @@
  *
  * 		We use the folowing formula to determine contrasting hues :
  * 		ActiveText	  = Base  ( same as background )
- * 		InactiveText1 = Base - 180 + Angle
- * 		InactiveText2 = Base - 180 + Angle
+ * 		InactiveText1 = Inactive1 - 180
+ * 		InactiveText2 = Inactive2 - 180
  *
  *
  * 		P.S. AS the matter of fact we only use 6 primary colors as ActiveText uses
@@ -56,20 +56,21 @@
 
 typedef struct ASColorScheme
 {
-	unsigned int angle ;
-	unsigned int base_hue, base_sat, base_val ;
+	int angle ;
+	int base_hue, base_sat, base_val ;
 	ARGB32       base_argb ;
-	unsigned int inactive1_hue, inactive1_sat, inactive1_val ;
+	int inactive1_hue, inactive1_sat, inactive1_val ;
 	ARGB32       inactive1_argb ;
-	unsigned int inactive2_hue, inactive2_sat, inactive2_val ;
+	int inactive2_hue, inactive2_sat, inactive2_val ;
 	ARGB32       inactive2_argb ;
-	unsigned int active_hue, active_sat, active_val ;
+	int active_hue, active_sat, active_val ;
 	ARGB32       active_argb ;
-	unsigned int inactive_text1_hue, inactive_text1_sat, inactive_text1_val ;
+	int inactive_text1_hue, inactive_text1_sat, inactive_text1_val ;
 	ARGB32       inactive_text1_argb ;
-	unsigned int inactive_text2_hue, inactive_text2_sat, inactive_text2_val ;
+	int inactive_text2_hue, inactive_text2_sat, inactive_text2_val ;
 	ARGB32       inactive_text2_argb ;
 
+	int 		 active_text_sat, active_text_val ;
 	ARGB32       active_text_argb ;
 	ARGB32       high_inactive_argb ;
 	ARGB32       high_active_argb ;
@@ -81,9 +82,7 @@ typedef struct ASColorScheme
 	ARGB32       active_grad[2] ;
 	ARGB32       high_inactive_grad[2] ;
 	ARGB32       high_active_grad[2] ;
-
-
-};
+}ASColorScheme;
 
 #define ASCS_MIN_ANGLE	0
 #define ASCS_MAX_ANGLE	60
@@ -104,15 +103,13 @@ typedef struct ASColorScheme
 #define ASCS_WHITING_SATURATION_LEVEL	5
 #define ASCS_BLACKING_BRIGHTNESS_LEVEL	30
 
-#define ASCS_BLACK_O_WHITE_CRITERIA(argb)  (((ARGB32_RED8(argb)>>1)+ \
-                                             (ARGB32_GREEN8(argb))+ \
-											 (ARGB32_BLUE8(argb)>>2))>214)
+#define ASCS_BLACK_O_WHITE_CRITERIA16(r16,g16,b16)  ((((r16)>>17)+((g16)>>16)+((b16)>>18))>214)
 
 #define ASCS_HIGH_BRIGHTNESS_OFFSET	 		10
 #define ASCS_DISABLED_SATURATION_LEVEL		5
 #define ASCS_GRADIENT_BRIGHTNESS_OFFSET 	10
 
-ASColorScheme *make_ascolor_scheme( ARGB32 base, unsigned int angle );
+ASColorScheme *make_ascolor_scheme( ARGB32 base, int angle );
 
 #endif COLORSCHEME_H_HEADER_DEFINED
 
