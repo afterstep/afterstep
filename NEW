@@ -1,3 +1,8 @@
+version 2.0.4 release
+	* Desktop Cover tint is now same as Base color from selected colorscheme. 
+	* added look.Breeze contributed by ziph.
+	* updated FAQs and moved them under ASDocGen generated tree.
+
 version 2.0.3 release
 	* added several MyFrame features : 
 		TitleFHue, TitleUHue, TitleSHue, TitleFocusedHue, TitleUnfocusedHue,
