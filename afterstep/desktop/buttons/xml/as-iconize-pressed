@@ -3,6 +3,6 @@
 		<solid color="gray75" width=15 height=15/>
 	</bevel>
 	<tile tint=#010101>
-	 ÿÿÿÿÿÿÿ<img src="dots/windows_small"/>
+		<img src="dots/windows_small"/>
 	</tile>
 </composite>

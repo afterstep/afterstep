@@ -6,14 +6,13 @@
 #
 
 Function "InitFunction"
-        Module  "I"     asetroot 0 @with_desktops_1@ -l
-	Module  "I"     Animate
+#	Module  "I"     Animate
 	Module  "I"     Wharf
 	Wait    "I"     Wharf
 	Module  "I"     Pager 0 @with_desktops_1@
 	Module  "I"     WinList
-	Module  "I"	Banner
-	Wait    "I"     Banner
+#	Module  "I"	Banner
+#	Wait    "I"     Banner
 	Exec    "I"     sh @with_afterdir@/.workspace_state &
 EndFunction
 
@@ -23,8 +22,7 @@ EndFunction
 
 Function "RestartFunction"
 # remove the following line if minimizing memory usage (see above):
-	Module  "I"     asetroot 0 @with_desktops_1@ -l
-	Module  "I"     Animate
+#	Module  "I"     Animate
 	Module  "I"     Wharf
 	Wait    "I"     Wharf
 	Module  "I"     Pager 0 @with_desktops_1@

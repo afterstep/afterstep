@@ -4,13 +4,14 @@
 #------------------------------------------------------------------------
 # Styles :
 #
-# If there is a style named "default" and no default style is specified, 
+# If there is a style named "default" and no default style is specified,
 # the "default" style will be used as the default
 # Inherited styles will override options.
 
 # default should never be used, so let's make it obvious when it *is* used
 MyStyle "default"
-  Font		-*-helvetica-*-r-*-*-12-*-*-*-*-*-*-*
+#  Font		-*-helvetica-*-r-*-*-12-*-*-*-*-*-*-*
+  Font		Default.ttf.12
   ForeColor	red
   BackColor	green
   MaxColors 128
@@ -63,24 +64,24 @@ MyStyle "menu_title_font"
   Font          -*-lucida-bold-r-*-*-13-*-*-*-*-*-*-*
   TextStyle     0
   ~MyStyle
-  
+
 MyStyle "menu_font"
   Font          -b&h-lucida-medium-r-*-*-12-*-*-*-*-*-*-*
   TextStyle     0
   ~MyStyle
-  
+
 MyStyle "menu_title_style"
   Inherit       menu_title_font
   ForeColor     grey70
   BackColor     #050505                         #basically black
   ~MyStyle
-  
+
 MyStyle "menu_item_style"
   Inherit       menu_font
   ForeColor     #E5E2E8                         #basically white
   BackColor     grey30
   ~MyStyle
-  
+
 MyStyle "menu_hilite_style"
   Font          -*-helvetica-bold-r-*-*-13-*-*-*-*-*-*-*
   ForeColor     white
