@@ -22,7 +22,6 @@
 /* #define LOCAL_DEBUG */
 /* #define DO_CLOCKING */
 
-#define HAVE_MMX
 #define USE_64BIT_FPU
 
 #include <malloc.h>
