@@ -431,7 +431,6 @@ Bool create_image_xim( ASVisual *asv, ASImage *im, ASAltImFormats format )
 		int depth = 0 ;
 		if( format == ASA_MaskXImage )
 			depth = get_flags(im->flags, ASIM_XIMAGE_8BIT_MASK )? 8: 1;
-		fprintf( stderr, "creating xim size %dx%d\n", im->width, im->height );
 		if( scratch )
 			*dst = create_visual_scratch_ximage( asv, im->width, im->height, depth );
 		else

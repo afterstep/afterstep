@@ -752,13 +752,14 @@ release_old_background( int desk, Bool forget )
 	free( imname );
 
 #ifdef LOCAL_DEBUG
-    LOCAL_DEBUG_OUT( "syncing %s","");
+    LOCAL_DEBUG_OUT( "syncing, loaded_pixmap = %lX", back->loaded_pixmap );
     ASSync(False);
 #endif
 	if( back->loaded_pixmap && (forget || Scr.Feel.conserve_memory > 0) ) 
 	{
 		if( Scr.RootBackground->pmap == back->loaded_pixmap ) 
 			Scr.RootBackground->pmap = None ;
+		LOCAL_DEBUG_OUT( "destroying pixmap %lX", back->loaded_pixmap );
 		destroy_visual_pixmap( Scr.asv, &(back->loaded_pixmap));			
 	}	 
 }
