@@ -1,5 +1,5 @@
 <varlistentry id="options.QuickRestart">
-	<term>QuickRestart <emphasis> look|feel|look+feel</term>
+	<term>QuickRestart <emphasis remap='I'> look|feel|look+feel</emphasis></term>
 	<listitem>
 		<para>Causes AfterStep to reload specified config.</para>
 	</listitem>
