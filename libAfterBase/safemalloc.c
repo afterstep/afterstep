@@ -9,7 +9,7 @@
 #undef safemalloc
 #endif /* DEBUG_ALLOCS */
 
-/* always undef free, as it will be both redefined with and without 
+/* always undef free, as it will be both redefined with and without
    DEBUG_ALLOC */
 #undef free
 
@@ -203,7 +203,7 @@ free_tmp (void *ptr)
 /***********************************************************************
  *
  *  Procedure:
- *	safemalloc - mallocs specified space or exits if there's a 
+ *	safemalloc - mallocs specified space or exits if there's a
  *		     problem
  *
  ***********************************************************************/
@@ -234,6 +234,26 @@ safemalloc (size_t length)
 	if (ptr == (char *)0)
 	{
 		fprintf (stderr, "malloc of %d bytes failed. Exiting\n", length);
+		exit (1);
+	}
+	return ptr;
+}
+
+void         *
+safecalloc (size_t num, size_t blength)
+{
+	char         *ptr;
+
+    if (blength <= 0)
+        blength = 1;
+    if (num <= 0)
+        num = 1;
+
+    ptr = calloc (num, blength);
+
+	if (ptr == (char *)0)
+	{
+        fprintf (stderr, "calloc of %d blocks of %d bytes each failed. Exiting\n", num, blength);
 		exit (1);
 	}
 	return ptr;

@@ -2,16 +2,16 @@
 #define AFTERSTEP_AUDIT_H
 
 /*
- * This code is a (hopefully) nearly transparent way to keep track of 
- * memory allocations and deallocations, to make finding memory leaks 
+ * This code is a (hopefully) nearly transparent way to keep track of
+ * memory allocations and deallocations, to make finding memory leaks
  * easier.  GCC is required (for the __FUNCTION__ preprocessor macro).
  *
- * To use it, define DEBUG_ALLOCS before including this header, and call 
+ * To use it, define DEBUG_ALLOCS before including this header, and call
  * print_unfreed_mem() whenever an audit is desired, like so:
  *
  * #ifdef DEBUG_ALLOCS
  * print_unfreed_mem();
- * #endif 
+ * #endif
  */
 
 #ifndef DEBUG_ALLOCS
@@ -24,6 +24,7 @@ int as_assert (void *p, const char *fname, int line, const char *call);
 
 #define malloc(a) countmalloc(__FUNCTION__, __LINE__, a)
 #define safemalloc(a) countmalloc(__FUNCTION__, __LINE__, a)
+#define safecalloc(a) countcalloc(__FUNCTION__, __LINE__, a, b)
 #define calloc(a, b) countcalloc(__FUNCTION__, __LINE__, a, b)
 #define realloc(a, b) countrealloc(__FUNCTION__, __LINE__, a, b)
 #define free(a) countfree(__FUNCTION__, __LINE__, a)
