@@ -90,7 +90,9 @@ SetBackgroundTexture (ASWindow * t, Window win, MyStyle * style, Pixmap cache)
   int need_to_free_cache = 0;
 
   if (style->texture_type == TEXTURE_SOLID)
+{
     XSetWindowBackground (dpy, win, style->colors.back);
+}
 #ifndef NO_TEXTURE
   else if (style->texture_type < TEXTURE_PIXMAP)
     {
@@ -109,10 +111,7 @@ SetBackgroundTexture (ASWindow * t, Window win, MyStyle * style, Pixmap cache)
     XSetWindowBackgroundPixmap (dpy, win, style->back_icon.pix);
   else if (style->texture_type >= TEXTURE_TRANSPARENT)
     {
-      if (cache == None)
-	XSetWindowBackgroundPixmap (dpy, win, ParentRelative);
-      else
-	XSetWindowBackgroundPixmap (dpy, win, cache);
+      XSetWindowBackgroundPixmap (dpy, win, cache);
     }
 #endif /* NO_TEXTURE */
 
@@ -376,8 +375,8 @@ SetBorder (ASWindow * t, Bool is_focus, Bool force, Bool Mapped,
 
   if (t->flags & (TITLE | BORDER))
     {
-      XSetWindowBorder (dpy, t->Parent, BlackPixel (dpy, DefaultScreen (dpy)));
-      XSetWindowBorder (dpy, t->frame, BlackPixel (dpy, DefaultScreen (dpy)));
+      XSetWindowBorder (dpy, t->Parent, Scr.asv->black_pixel);
+      XSetWindowBorder (dpy, t->frame, Scr.asv->black_pixel);
     }
   if (t->flags & TITLE)
     SetTitleBar (t, is_focus, False);

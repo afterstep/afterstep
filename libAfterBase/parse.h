@@ -1,6 +1,11 @@
 #ifndef AS_PARSE_H_HEADER_INCLUDED
 #define AS_PARSE_H_HEADER_INCLUDED
 
+#ifdef __STDC__
+/* included for the declaration of config.action below */
+#include <stdio.h>
+#endif
+
 /* used for parsing configuration */
 struct config
 {

@@ -530,8 +530,8 @@ ParseColor (const char *input, int from[3], int to[3])
   sto = (char *) safemalloc (strlen (input));
   sscanf (input, "%s %s", sfrom, sto);
 
-  if ((!XParseColor (dpy, DefaultColormap (dpy, Scr.screen), sfrom, &color1)) ||
-      (!XParseColor (dpy, DefaultColormap (dpy, Scr.screen), sto, &color2)))
+  if ((!XParseColor (dpy, Scr.asv->colormap, sfrom, &color1)) ||
+      (!XParseColor (dpy, Scr.asv->colormap, sto, &color2)))
     {
       free (sfrom);
       free (sto);

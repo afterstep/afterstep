@@ -971,6 +971,12 @@ LOCAL_DEBUG_OUT( "Colormap %lX, parent %lX, %ux%u%+d%+d, bw = %d, class %d",
 			attributes->border_pixel = asv->black_pixel ;
 			set_flags(mask, CWBorderPixel );
 		}
+		/* If the parent window and the new window have different bit 
+		** depths (such as on a Solaris box with 8bpp root window and 
+		** 24bpp child windows), ParentRelative will not work. */
+		if (get_flags(mask, CWBackPixmap) && attributes->background_pixmap == ParentRelative) {
+			clear_flags(mask, CWBackPixmap);
+		}
 	}
 	LOCAL_DEBUG_OUT( "parent = %lX, mask = 0x%lX, VisualID = 0x%lX, Border Pixel = %ld, colormap = %lX",
 					  parent, mask, asv->visual_info.visual->visualid, attributes->border_pixel, attributes->colormap );

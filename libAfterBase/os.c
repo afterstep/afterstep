@@ -24,10 +24,10 @@
 #include "config.h"
 #include "astypes.h"
 #include "output.h"
-#include "audit.h"
 #include "mystring.h"
 #include "safemalloc.h"
 #include "os.h"
+#include "audit.h"
 
 #if defined (__sun__) && defined (SVR4)
 /* Solaris has sysinfo instead of gethostname.  */

@@ -1323,11 +1323,8 @@ MakeMenu (MenuRoot * mr)
   if( mr->width <= 0 ) mr->width = 2 ;
   if( mr->height <= 0 ) mr->height = 2 ;
 
-  mr->w = XCreateWindow (dpy, Scr.Root, 0, 0, (unsigned int) (mr->width),
-			 (unsigned int) mr->height, (unsigned int) 0,
-			 CopyFromParent, (unsigned int) InputOutput,
-			 (Visual *) CopyFromParent,
-			 valuemask, &attributes);
+  mr->w = create_visual_window(Scr.asv, Scr.Root, 0, 0, mr->width,
+			 mr->height, 0, InputOutput, valuemask, &attributes);
   /* allow us to set a menu's position before calling AddWindow */
   hints.flags = USPosition;
   XSetNormalHints (dpy, mr->w, &hints);

@@ -467,13 +467,12 @@ ExecuteFunction (FunctionCode func, char *action, Window in_w, ASWindow * tmp_wi
 	attributes.background_pixmap = ParentRelative;
 	attributes.backing_store = NotUseful;
 
-	w = XCreateWindow (dpy, Scr.Root, 0, 0,
+	w = create_visual_window(Scr.asv, Scr.Root, 0, 0,
 			   (unsigned int) Scr.MyDisplayWidth,
 			   (unsigned int) Scr.MyDisplayHeight,
 			   (unsigned int) 0,
-			   CopyFromParent, (unsigned int) CopyFromParent,
-			   (Visual *) CopyFromParent, valuemask,
-			   &attributes);
+			   InputOutput,
+			   valuemask, &attributes);
 	XMapWindow (dpy, w);
 	XDestroyWindow (dpy, w);
 	XFlush (dpy);

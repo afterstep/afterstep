@@ -23,11 +23,11 @@
 
 #include "config.h"
 #include "astypes.h"
-#include "audit.h"
 #include "output.h"
 #include "safemalloc.h"
 #include "selfdiag.h"
 #include "aslist.h"
+#include "audit.h"
 
 #define DEALLOC_CACHE_SIZE      1024
 static ASBiDirElem* deallocated_mem[DEALLOC_CACHE_SIZE+10] ;

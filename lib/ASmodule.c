@@ -220,13 +220,12 @@ LoadBaseConfig (char *global_config_file, void (*read_base_options_func) (const 
     {
       char *realconfigfile;
       char configfile[255];
-      int depth = DefaultDepth (dpy, DefaultScreen (dpy));
-      sprintf (configfile, "%s/base.%dbpp", AFTER_DIR, depth);
+      sprintf (configfile, "%s/base.%dbpp", AFTER_DIR, Scr.asv->visual_info.depth);
       realconfigfile = (char *) PutHome (configfile);
       if (CheckFile (realconfigfile) == -1)
 	{
 	  free (realconfigfile);
-	  sprintf (configfile, "%s/base.%dbpp", AFTER_SHAREDIR, depth);
+	  sprintf (configfile, "%s/base.%dbpp", AFTER_SHAREDIR, Scr.asv->visual_info.depth);
 	  realconfigfile = PutHome (configfile);
 	}
       read_base_options_func (realconfigfile);
@@ -255,7 +254,7 @@ LoadConfig (char *global_config_file, char *config_file_name, void (*read_option
       free (realconfigfile);
     }
   strcpy( configfile, AFTER_DIR );
-  sprintf (configfile+strlen(AFTER_DIR), "/" THEME_FILE, 0, DefaultDepth(dpy,Scr.screen));
+  sprintf (configfile+strlen(AFTER_DIR), "/" THEME_FILE, 0, Scr.asv->visual_info.depth);
   realconfigfile = (char *) PutHome (configfile);
   if ((CheckFile (realconfigfile)) != -1)
   {

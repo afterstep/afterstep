@@ -29,10 +29,10 @@
 /*#define LOCAL_DEBUG*/
 
 #include "astypes.h"
-#include "audit.h"
 #include "ashash.h"
 #include "safemalloc.h"
 #include "output.h"
+#include "audit.h"
 
 
 ASHashKey default_hash_func (ASHashableValue value, ASHashKey hash_size)

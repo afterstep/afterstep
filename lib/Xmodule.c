@@ -203,12 +203,12 @@ ConnectX (ScreenInfo * scr, char *display_name, unsigned long message_mask)
       fprintf (stderr, "%s: Screen %d is not valid ", MyName, (int) scr->screen);
       exit (1);
     }
-  scr->d_depth = DefaultDepth (dpy, scr->screen);
   scr->MyDisplayWidth = DisplayWidth (dpy, scr->screen);
   scr->MyDisplayHeight = DisplayHeight (dpy, scr->screen);
   scr->CurrentDesk = -1;
   
   scr->asv = create_asvisual( dpy, scr->screen, scr->d_depth, NULL );
+  scr->d_depth = scr->asv->visual_info.depth;
 
 #ifdef HAVE_XINERAMA
   if( XineramaQueryExtension(dpy, &XineEventBase, &XineErrorBase))

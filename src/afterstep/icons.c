@@ -230,7 +230,7 @@ CreateIconWindow (ASWindow * tmp_win)
 
   valuemask = CWBorderPixel | CWCursor | CWEventMask | CWBackPixmap;
   attributes.background_pixmap = ParentRelative;
-  attributes.border_pixel = BlackPixel (dpy, Scr.screen);
+  attributes.border_pixel = Scr.asv->black_pixel;
   attributes.cursor = Scr.ASCursors[DEFAULT];
   attributes.event_mask = (ButtonPressMask | ButtonReleaseMask |
 			   ExposureMask | KeyPressMask | EnterWindowMask |
@@ -241,9 +241,8 @@ CreateIconWindow (ASWindow * tmp_win)
 	     if( tmp_win->icon_title_w )
 	         XDestroyWindow(dpy, tmp_win->icon_title_w);
     tmp_win->icon_title_w =
-      XCreateWindow (dpy, Scr.Root, -999, -999, 16, 16, 0,
-		     CopyFromParent, CopyFromParent, CopyFromParent,
-		     valuemask, &attributes);
+      create_visual_window(Scr.asv, Scr.Root, -999, -999, 16, 16, 0,
+		     InputOutput, valuemask, &attributes);
       }
 
   if ((tmp_win->flags & ICON_OURS) &&
@@ -252,9 +251,8 @@ CreateIconWindow (ASWindow * tmp_win)
   	  if( tmp_win->icon_pixmap_w )
 		  XDestroyWindow(dpy, tmp_win->icon_pixmap_w);
       tmp_win->icon_pixmap_w =
-	XCreateWindow (dpy, Scr.Root, -999, -999, 16, 16, 0,
-		       CopyFromParent, CopyFromParent, CopyFromParent,
-		       valuemask, &attributes);
+	create_visual_window(Scr.asv, Scr.Root, -999, -999, 16, 16, 0,
+		   InputOutput, valuemask, &attributes);
     }
   else
     {

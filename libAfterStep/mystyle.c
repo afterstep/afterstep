@@ -630,15 +630,13 @@ mystyle_set_global_gcs (MyStyle * style)
     {
       XGCValues gcv;
       unsigned long gcm;
-      int screen = DefaultScreen(dpy);
 
       gcv.graphics_exposures = False;
       gcm = GCGraphicsExposures;
-      ForeGC = XCreateGC (dpy, RootWindow (dpy, screen), gcm, &gcv);
-      BackGC = XCreateGC (dpy, RootWindow (dpy, screen), gcm, &gcv);
-      ReliefGC = XCreateGC (dpy, RootWindow (dpy, screen), gcm, &gcv);
-      ShadowGC = XCreateGC (dpy, RootWindow (dpy, screen), gcm, &gcv);
-
+      ForeGC = create_visual_gc (Scr.asv, Scr.Root, gcm, &gcv);
+      BackGC = create_visual_gc (Scr.asv, Scr.Root, gcm, &gcv);
+      ReliefGC = create_visual_gc (Scr.asv, Scr.Root, gcm, &gcv);
+      ShadowGC = create_visual_gc (Scr.asv, Scr.Root, gcm, &gcv);
       make_GCs = 0;
     }
 
@@ -849,8 +847,6 @@ mystyle_find_or_default (const char *name)
 void
 mystyle_merge_styles (MyStyle * parent, MyStyle * child, Bool override, Bool copy)
 {
-  int screen = DefaultScreen(dpy);
-
   if (parent->set_flags & F_FONT)
     {
       if ((override == True) && (child->user_flags & F_FONT))
@@ -997,14 +993,14 @@ mystyle_merge_styles (MyStyle * parent, MyStyle * child, Bool override, Bool cop
 					set_flags( child->inherit_flags, F_BACKTRANSPIXMAP );
 	  		}else
 	  		{
-	    		GC gc = DefaultGC (dpy, screen);
-		    	child->back_icon.pix = XCreatePixmap (dpy, RootWindow (dpy, screen), parent->back_icon.width, parent->back_icon.height, DefaultDepth (dpy, screen));
+	    		GC gc = create_visual_gc (Scr.asv, Scr.Root, 0, NULL);
+		    	child->back_icon.pix = XCreatePixmap (dpy, Scr.Root, parent->back_icon.width, parent->back_icon.height, Scr.asv->visual_info.depth);
 		    	XCopyArea (	dpy, parent->back_icon.pix, child->back_icon.pix, gc,
 	  						0, 0, parent->back_icon.width, parent->back_icon.height, 0, 0);
 	    		if (parent->back_icon.mask != None)
 				{
 					GC mgc = XCreateGC (dpy, parent->back_icon.mask, 0, NULL);
-					child->back_icon.pix = XCreatePixmap (dpy, RootWindow (dpy, screen), parent->back_icon.width, parent->back_icon.height, 1);
+					child->back_icon.pix = XCreatePixmap (dpy, Scr.Root, parent->back_icon.width, parent->back_icon.height, 1);
 					XCopyArea (dpy, parent->back_icon.pix, child->back_icon.pix, mgc,
 			  				   0, 0, parent->back_icon.width, parent->back_icon.height, 0, 0);
 					XFreeGC (dpy, mgc);
@@ -1017,6 +1013,7 @@ mystyle_merge_styles (MyStyle * parent, MyStyle * child, Bool override, Bool cop
 	    		child->back_icon.height = parent->back_icon.height;
 		    	child->user_flags |= F_BACKPIXMAP | (parent->set_flags & F_BACKTRANSPIXMAP);
 		    	child->inherit_flags &= ~(F_BACKPIXMAP | F_BACKTRANSPIXMAP);
+		    	XFreeGC (dpy, gc);
 	  		}
 		}
     }

@@ -1869,10 +1869,10 @@ SetCustomCursor (char *text, FILE * fd, char **arg, int *junk)
       return;
     }
 
-  fore.pixel = BlackPixel (dpy, screen);
-  back.pixel = WhitePixel (dpy, screen);
-  XQueryColor (dpy, DefaultColormap (dpy, screen), &fore);
-  XQueryColor (dpy, DefaultColormap (dpy, screen), &back);
+  fore.pixel = Scr.asv->black_pixel;
+  back.pixel = Scr.asv->white_pixel;
+  XQueryColor (dpy, Scr.asv->colormap, &fore);
+  XQueryColor (dpy, Scr.asv->colormap, &back);
 
   if (cursor == None || mask == None)
     {

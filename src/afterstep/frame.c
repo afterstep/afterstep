@@ -311,7 +311,7 @@ frame_create_windows (ASWindow * tmp_win)
 
   valuemask = CWBackPixmap | CWBorderPixel | CWCursor | CWEventMask;
   attributes.background_pixmap = ParentRelative;
-  attributes.border_pixel = BlackPixel (dpy, Scr.screen);
+  attributes.border_pixel = Scr.asv->black_pixel;
   if (Scr.flags & BackingStore)
     {
       valuemask |= CWBackingStore;
@@ -353,9 +353,9 @@ frame_create_windows (ASWindow * tmp_win)
 	      break;
 	    }
 	  tmp_win->fw[i] =
-	    XCreateWindow (dpy, tmp_win->frame, tmp_win->fp[i].x, tmp_win->fp[i].y,
-		      tmp_win->fp[i].w, tmp_win->fp[i].h, 0, CopyFromParent,
-		       InputOutput, CopyFromParent, valuemask, &attributes);
+	    create_visual_window(Scr.asv, tmp_win->frame, tmp_win->fp[i].x, 
+	    	tmp_win->fp[i].y, tmp_win->fp[i].w, tmp_win->fp[i].h, 0, 
+	    	InputOutput, valuemask, &attributes);
 	  XSaveContext (dpy, tmp_win->fw[i], ASContext, (caddr_t) tmp_win);
 	}
     }

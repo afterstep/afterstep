@@ -403,9 +403,8 @@ main (int argc, char **argv)
   /* the SizeWindow will be moved into place in LoadASConfig() */
   attributes.override_redirect = True;
   attributes.bit_gravity = NorthWestGravity;
-  Scr.SizeWindow = XCreateWindow (dpy, Scr.Root, -999, -999, 10, 10, 0, 0,
-				  CopyFromParent, CopyFromParent,
-			    CWBitGravity | CWOverrideRedirect, &attributes);
+  Scr.SizeWindow = create_visual_window(Scr.asv, Scr.Root, -999, -999, 10, 10, 0,
+				  InputOutput, CWBitGravity | CWOverrideRedirect, &attributes);
 
   /* read config file, set up menus, colors, fonts */
   LoadASConfig (display_name, 0, 1, 1, 1);
@@ -416,25 +415,23 @@ main (int argc, char **argv)
     {
       Scr.gray_pixmap =
 	XCreatePixmapFromBitmapData (dpy, Scr.Root, g_bits, g_width, g_height,
-		 WhitePixel (dpy, Scr.screen), BlackPixel (dpy, Scr.screen),
+		 Scr.asv->white_pixel, Scr.asv->black_pixel,
 				     Scr.d_depth);
       Scr.light_gray_pixmap =
 	XCreatePixmapFromBitmapData (dpy, Scr.Root, l_g_bits, l_g_width, l_g_height,
-		 WhitePixel (dpy, Scr.screen), BlackPixel (dpy, Scr.screen),
+		 Scr.asv->white_pixel, Scr.asv->black_pixel,
 				     Scr.d_depth);
       Scr.sticky_gray_pixmap =
 	XCreatePixmapFromBitmapData (dpy, Scr.Root, s_g_bits, s_g_width, s_g_height,
-		 WhitePixel (dpy, Scr.screen), BlackPixel (dpy, Scr.screen),
+		 Scr.asv->white_pixel, Scr.asv->black_pixel,
 				     Scr.d_depth);
     }
   /* create a window which will accept the keyboard focus when no other
      windows have it */
   attributes.event_mask = KeyPressMask | FocusChangeMask;
   attributes.override_redirect = True;
-  Scr.NoFocusWin = XCreateWindow (dpy, Scr.Root, -10, -10, 10, 10, 0, 0,
-				  InputOnly, CopyFromParent,
-				  CWEventMask | CWOverrideRedirect,
-				  &attributes);
+  Scr.NoFocusWin = create_visual_window(Scr.asv, Scr.Root, -10, -10, 10, 10, 0,
+				  InputOnly, CWEventMask | CWOverrideRedirect, &attributes);
   XMapWindow (dpy, Scr.NoFocusWin);
 
   XSetInputFocus (dpy, Scr.NoFocusWin, RevertToParent, CurrentTime);
@@ -835,7 +832,7 @@ InitVariables (int shallresetdesktop)
   NoClass.res_name = NoName;
   NoClass.res_class = NoName;
 
-  Scr.d_depth = DefaultDepth (dpy, Scr.screen);
+  Scr.d_depth = Scr.asv->visual_info.depth;
   Scr.ASRoot.w = Scr.Root;
   Scr.ASRoot.next = 0;
   XGetWindowAttributes (dpy, Scr.Root, &(Scr.ASRoot.attr));
@@ -1346,39 +1343,34 @@ initPanFrames ()
 
   attributes.cursor = Scr.ASCursors[TOP];
   Scr.PanFrameTop.win =
-    XCreateWindow (dpy, Scr.Root,
+    create_visual_window(Scr.asv, Scr.Root,
 		   0, 0,
 		   Scr.MyDisplayWidth, PAN_FRAME_THICKNESS,
 		   0,		/* no border */
-		   CopyFromParent, InputOnly,
-		   CopyFromParent,
-		   valuemask, &attributes);
+		   InputOnly, valuemask, &attributes);
   attributes.cursor = Scr.ASCursors[LEFT];
   Scr.PanFrameLeft.win =
-    XCreateWindow (dpy, Scr.Root,
+    create_visual_window(Scr.asv, Scr.Root,
 		   0, PAN_FRAME_THICKNESS,
 		   PAN_FRAME_THICKNESS,
 		   Scr.MyDisplayHeight - 2 * PAN_FRAME_THICKNESS,
 		   0,		/* no border */
-		   CopyFromParent, InputOnly, CopyFromParent,
-		   valuemask, &attributes);
+		   InputOnly, valuemask, &attributes);
   attributes.cursor = Scr.ASCursors[RIGHT];
   Scr.PanFrameRight.win =
-    XCreateWindow (dpy, Scr.Root,
+    create_visual_window(Scr.asv, Scr.Root,
 	      Scr.MyDisplayWidth - PAN_FRAME_THICKNESS, PAN_FRAME_THICKNESS,
 		   PAN_FRAME_THICKNESS,
 		   Scr.MyDisplayHeight - 2 * PAN_FRAME_THICKNESS,
 		   0,		/* no border */
-		   CopyFromParent, InputOnly, CopyFromParent,
-		   valuemask, &attributes);
+		   InputOnly, valuemask, &attributes);
   attributes.cursor = Scr.ASCursors[BOTTOM];
   Scr.PanFrameBottom.win =
-    XCreateWindow (dpy, Scr.Root,
+    create_visual_window(Scr.asv, Scr.Root,
 		   0, Scr.MyDisplayHeight - PAN_FRAME_THICKNESS,
 		   Scr.MyDisplayWidth, PAN_FRAME_THICKNESS,
 		   0,		/* no border */
-		   CopyFromParent, InputOnly, CopyFromParent,
-		   valuemask, &attributes);
+		   InputOnly, valuemask, &attributes);
   Scr.PanFrameTop.isMapped = Scr.PanFrameLeft.isMapped =
     Scr.PanFrameRight.isMapped = Scr.PanFrameBottom.isMapped = False;
 

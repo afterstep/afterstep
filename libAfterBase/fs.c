@@ -30,12 +30,12 @@
 #include <errno.h>
 #include <sys/stat.h>
 
-#include "audit.h"
 #include "astypes.h"
 #include "mystring.h"
 #include "safemalloc.h"
 #include "fs.h"
 #include "output.h"
+#include "audit.h"
 
 
 /*

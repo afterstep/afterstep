@@ -11,12 +11,11 @@ GetColor (char *name)
 {
   XColor color;
   int screen = DefaultScreen(dpy);
-  Colormap colormap = DefaultColormap (dpy, screen);
 
   color.pixel = 0;
-  if (!XParseColor (dpy, colormap, name, &color))
+  if (!XParseColor (dpy, Scr.asv->colormap, name, &color))
     fprintf (stderr, "%s: can't parse %s\n", MyName, name);
-  else if (!XAllocColor (dpy, colormap, &color))
+  else if (!XAllocColor (dpy, Scr.asv->colormap, &color))
     fprintf (stderr, "%s: can't alloc %s\n", MyName, name);
   return color.pixel;
 }
@@ -32,10 +31,9 @@ GetShadow (unsigned long background)
 {
   XColor bg_color;
   int screen = DefaultScreen(dpy);
-  Colormap colormap = DefaultColormap (dpy, screen);
 
   bg_color.pixel = background;
-  XQueryColor (dpy, colormap, &bg_color);
+  XQueryColor (dpy, Scr.asv->colormap, &bg_color);
 
   /* pure black: use gray */
   if (bg_color.red == 0 && bg_color.green == 0 && bg_color.blue == 0)
@@ -45,7 +43,7 @@ GetShadow (unsigned long background)
   bg_color.green = (bg_color.green & 0xffff) >> 1;
   bg_color.blue = (bg_color.blue & 0xffff) >> 1;
 
-  if (!XAllocColor (dpy, colormap, &bg_color))
+  if (!XAllocColor (dpy, Scr.asv->colormap, &bg_color))
     {
       fprintf (stderr, "%s: can't alloc shadow color", MyName);
       bg_color.pixel = background;
@@ -65,13 +63,12 @@ GetHilite (unsigned long background)
 {
   XColor bg_color, white_p;
   int screen = DefaultScreen(dpy);
-  Colormap colormap = DefaultColormap (dpy, screen);
 
   bg_color.pixel = background;
-  XQueryColor (dpy, colormap, &bg_color);
+  XQueryColor (dpy, Scr.asv->colormap, &bg_color);
 
   white_p.pixel = WhitePixel (dpy, screen);
-  XQueryColor (dpy, colormap, &white_p);
+  XQueryColor (dpy, Scr.asv->colormap, &white_p);
 
   /* pure black: use gray */
   if (bg_color.red == 0 && bg_color.green == 0 && bg_color.blue == 0)
@@ -95,7 +92,7 @@ GetHilite (unsigned long background)
 #undef max
 #endif
 
-  if (!XAllocColor (dpy, colormap, &bg_color))
+  if (!XAllocColor (dpy, Scr.asv->colormap, &bg_color))
     {
       fprintf (stderr, "%s: can't alloc hilight color", MyName);
       bg_color.pixel = background;

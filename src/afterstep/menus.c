@@ -448,7 +448,7 @@ PaintEntry (MenuRoot * mr, MenuItem * mi)
     }
   else if (style->texture_type >= TEXTURE_TRANSPARENT)
     {
-      XSetWindowBackgroundPixmap (dpy, mr->w, ParentRelative);
+      XSetWindowBackgroundPixmap (dpy, mr->w, None);
       XClearArea (dpy, mr->w, x_offset, y_offset, width, y_height, False);
     }
   else

@@ -29,11 +29,11 @@
 
 #include "astypes.h"
 #include "output.h"
-#include "audit.h"
 #include "parse.h"
 #include "safemalloc.h"
 #include "xwrap.h"
 #include "xprop.h"
+#include "audit.h"
 
 /* X property access : */
 Bool

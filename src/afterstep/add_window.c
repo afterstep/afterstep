@@ -123,7 +123,7 @@ create_titlebar_windows (ASWindow * tmp_win)
 
   valuemask = CWBackPixmap | CWBorderPixel | CWCursor | CWEventMask;
   attributes.background_pixmap = ParentRelative;
-  attributes.border_pixel = BlackPixel (dpy, Scr.screen);
+  attributes.border_pixel = Scr.asv->black_pixel;
   if (Scr.flags & BackingStore)
     {
       valuemask |= CWBackingStore;
@@ -134,11 +134,10 @@ create_titlebar_windows (ASWindow * tmp_win)
   attributes.cursor = Scr.ASCursors[TITLE_CURSOR];
   tmp_win->title_x = -999;
   tmp_win->title_y = -999;
-  tmp_win->title_w =
-    XCreateWindow (dpy, tmp_win->frame, tmp_win->title_x, tmp_win->title_y,
-	     tmp_win->title_width, (tmp_win->title_height + tmp_win->bw), 0,
-		   CopyFromParent, InputOutput, CopyFromParent,
-		   valuemask, &attributes);
+  tmp_win->title_w = create_visual_window(Scr.asv, tmp_win->frame, 
+    tmp_win->title_x, tmp_win->title_y, tmp_win->title_width, 
+    (tmp_win->title_height + tmp_win->bw), 0, InputOutput, valuemask, 
+    &attributes);
   XSaveContext (dpy, tmp_win->title_w, ASContext, (caddr_t) tmp_win);
   return True;
 }
@@ -284,7 +283,7 @@ create_titlebutton_windows (ASWindow * tmp_win)
     return False;
   valuemask = CWBackPixmap | CWBorderPixel | CWCursor | CWEventMask;
   attributes.background_pixmap = ParentRelative;
-  attributes.border_pixel = BlackPixel (dpy, DefaultScreen (dpy));
+  attributes.border_pixel = Scr.asv->black_pixel;
   if (Scr.flags & BackingStore)
     {
       valuemask |= CWBackingStore;
@@ -304,10 +303,9 @@ create_titlebutton_windows (ASWindow * tmp_win)
 	  !(tmp_win->buttons & (BUTTON1 << (i + i))))
 	{
 	  tmp_win->left_w[i] =
-	    XCreateWindow (dpy, tmp_win->frame, -999, -999,
+	    create_visual_window(Scr.asv, tmp_win->frame, -999, -999,
 		  Scr.button_width[i + i + 1], Scr.button_height[i + i + 1],
-			   0, CopyFromParent, InputOutput,
-			   CopyFromParent, valuemask, &attributes);
+			   0, InputOutput, valuemask, &attributes);
 	  XSaveContext (dpy, tmp_win->left_w[i], ASContext, (caddr_t) tmp_win);
 	  tmp_win->nr_left_buttons++;
 	  tmp_win->space_taken_left_buttons += Scr.button_width[i + i + 1] + Scr.TitleButtonSpacing;
@@ -318,10 +316,9 @@ create_titlebutton_windows (ASWindow * tmp_win)
 	  !(tmp_win->buttons & (BUTTON1 << (i * 2 + 1))))
 	{
 	  tmp_win->right_w[i] =
-	    XCreateWindow (dpy, tmp_win->frame, -999, -999,
+	    create_visual_window(Scr.asv, tmp_win->frame, -999, -999,
 			   Scr.button_width[(i + i + 2) % 10], Scr.button_height[(i + i + 2) % 10],
-			   0, CopyFromParent, InputOutput,
-			   CopyFromParent, valuemask, &attributes);
+			   0, InputOutput, valuemask, &attributes);
 	  XSaveContext (dpy, tmp_win->right_w[i], ASContext, (caddr_t) tmp_win);
 	  tmp_win->nr_right_buttons++;
 	  tmp_win->space_taken_right_buttons += Scr.button_width[(i + i + 2) % 10] + Scr.TitleButtonSpacing;
@@ -694,7 +691,7 @@ AddWindow (Window w)
       attributes.background_pixmap = ParentRelative;
       valuemask |= CWBackPixmap;
     }
-  attributes.border_pixel = BlackPixel (dpy, DefaultScreen (dpy));
+  attributes.border_pixel = Scr.asv->black_pixel;
 
   attributes.cursor = Scr.ASCursors[DEFAULT];
   attributes.event_mask = (SubstructureRedirectMask | ButtonPressMask |
@@ -707,21 +704,23 @@ AddWindow (Window w)
     }
   /* What the heck, we'll always reparent everything from now on! */
   tmp_win->frame =
-    XCreateWindow (dpy, Scr.Root, tmp_win->frame_x, tmp_win->frame_y,
+    create_visual_window(Scr.asv, Scr.Root, tmp_win->frame_x, tmp_win->frame_y,
 		   tmp_win->frame_width, tmp_win->frame_height,
-		   tmp_win->bw, CopyFromParent, InputOutput,
-		   CopyFromParent, valuemask, &attributes);
+		   tmp_win->bw, InputOutput, valuemask, &attributes);
 
   attributes.save_under = FALSE;
 
   /* Thats not all, we'll double-reparent the window ! */
   attributes.cursor = Scr.ASCursors[DEFAULT];
   tmp_win->Parent =
-    XCreateWindow (dpy, tmp_win->frame, -999, -999, 16, 16,
-		   tmp_win->bw, CopyFromParent,
-		   InputOutput, CopyFromParent, valuemask, &attributes);
+    create_visual_window(Scr.asv, tmp_win->frame, -999, -999, 16, 16,
+		   tmp_win->bw, InputOutput, valuemask, &attributes);
 
+#if 0
+  /* ParentRelative is not safe unless we're sure that the bpp of the 
+  ** parent (root) window is the same as our visual's bpp. */
   XSetWindowBackgroundPixmap (dpy, tmp_win->frame, ParentRelative);
+#endif
   XSetWindowBackgroundPixmap (dpy, tmp_win->Parent, ParentRelative);
 
   if (Scr.flags & BackingStore)
@@ -742,19 +741,17 @@ AddWindow (Window w)
 	{
 	  attributes.cursor = Scr.ASCursors[BOTTOM_LEFT + i];
 	  tmp_win->corners[i] =
-	    XCreateWindow (dpy, tmp_win->frame, 0, 0,
+	    create_visual_window(Scr.asv, tmp_win->frame, 0, 0,
 			   tmp_win->corner_width, tmp_win->boundary_height,
-			   0, CopyFromParent, InputOutput,
-			   CopyFromParent, valuemask, &attributes);
+			   0, InputOutput, valuemask, &attributes);
 	}
     }
   if (tmp_win->flags & BORDER)
     {
       attributes.cursor = Scr.ASCursors[BOTTOM];
       tmp_win->side =
-	XCreateWindow (dpy, tmp_win->frame, 0, 0, tmp_win->boundary_height,
-		       tmp_win->boundary_height, 0, CopyFromParent,
-		       InputOutput, CopyFromParent, valuemask,
+	create_visual_window(Scr.asv, tmp_win->frame, 0, 0, tmp_win->boundary_height,
+		       tmp_win->boundary_height, 0, InputOutput, valuemask,
 		       &attributes);
     }
   create_titlebar_windows (tmp_win);

@@ -26,10 +26,10 @@
 #include <unistd.h>
 
 #include "astypes.h"
-#include "audit.h"
 #include "safemalloc.h"
 #include "output.h"
 #include "layout.h"
+#include "audit.h"
 
 
 /* these are used to perform different size/position adjustments in order

@@ -22,11 +22,11 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "audit.h"
 #include "astypes.h"
 #include "mystring.h"
 #include "safemalloc.h"
 #include "regexp.h"
+#include "audit.h"
 
 /************************************************************************/
 /************************************************************************/

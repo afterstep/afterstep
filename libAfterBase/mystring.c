@@ -25,10 +25,10 @@
 #include <string.h>
 
 #include "astypes.h"
-#include "audit.h"
 #include "output.h"
 #include "safemalloc.h"
 #include "mystring.h"
+#include "audit.h"
 
 int
 mystrcasecmp (const char *s1, const char *s2)

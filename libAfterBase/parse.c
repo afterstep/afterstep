@@ -22,11 +22,11 @@
 
 #include "config.h"
 #include "astypes.h"
-#include "audit.h"
 #include "mystring.h"
 #include "safemalloc.h"
 #include "xwrap.h"
 #include "parse.h"
+#include "audit.h"
 
 /****************************************************************************
  * parse_argb_color - should be used for all your color parsing needs
