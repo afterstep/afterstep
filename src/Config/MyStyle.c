@@ -480,15 +480,164 @@ mystyle_create_from_definition (MyStyleDefinition * def)
 	}
 	style->inherit_flags &= ~F_BACKPIXMAP;
 #endif
-}
+    }
 #endif
-if (def->set_flags & F_DRAWTEXTBACKGROUND)
-{
-	style->user_flags |= F_DRAWTEXTBACKGROUND;
-	style->inherit_flags &= ~F_DRAWTEXTBACKGROUND;
-	if (def->draw_text_background == 0)
-		style->flags &= ~F_DRAWTEXTBACKGROUND;
+    if (def->set_flags & F_DRAWTEXTBACKGROUND)
+    {
+        style->user_flags |= F_DRAWTEXTBACKGROUND;
+        style->inherit_flags &= ~F_DRAWTEXTBACKGROUND;
+        if (def->draw_text_background == 0)
+            style->flags &= ~F_DRAWTEXTBACKGROUND;
+    }
+
+    style->set_flags = style->inherit_flags | style->user_flags;
 }
 
-style->set_flags = style->inherit_flags | style->user_flags;
+MyStyleDefinition *
+GetMyStyleDefinition (MyStyleDefinition ** list, const char *name, Bool add_new)
+{
+	register MyStyleDefinition *style = NULL;
+
+	if (name)
+	{
+		for (style = *list; style != NULL; style = style->next)
+			if (mystrcasecmp (style->name, name) == 0)
+				break;
+		if (style == NULL && add_new)
+		{									   /* add new style here */
+			style = AddMyStyleDefinition (list);
+			style->name = mystrdup (name);
+		}
+	}
+	return style;
 }
+
+
+void
+MergeMyStyleText (MyStyleDefinition ** list, const char *name,
+				  const char *new_font, const char *new_fcolor, const char *new_bcolor, int new_style)
+{
+	register MyStyleDefinition *style = NULL;
+
+	if ((style = GetMyStyleDefinition (list, name, True)) != NULL)
+	{
+		if (new_font)
+		{
+			if (style->font)
+				free (style->font);
+			style->font = mystrdup (new_font);
+            SET_SET_FLAG (*style, F_FONT);
+		}
+		if (new_fcolor)
+		{
+			if (style->fore_color)
+				free (style->fore_color);
+			style->fore_color = mystrdup (new_fcolor);
+			SET_SET_FLAG (*style, F_FORECOLOR);
+		}
+		if (new_bcolor)
+		{
+			if (style->back_color)
+				free (style->back_color);
+			style->back_color = mystrdup (new_bcolor);
+			SET_SET_FLAG (*style, F_BACKCOLOR);
+		}
+		if (new_style >= 0)
+		{
+			style->text_style = new_style;
+			SET_SET_FLAG (*style, F_TEXTSTYLE);
+		}
+	}
+}
+
+void
+MergeMyStyleTextureOld (MyStyleDefinition ** list, const char *name,
+						int type, char *color_from, char *color_to, char *pixmap)
+{
+	register MyStyleDefinition *style;
+
+	if ((style = GetMyStyleDefinition (list, name, True)) == NULL)
+		return;
+
+    if( !get_flags (style->set_flags, F_BACKPIXMAP) )
+    {
+#if 0
+        TextureDef *t = add_texture_def( &(style->back), &(style->back_layers));
+        type = pixmap_type2texture_type( type );
+        if ( TEXTURE_IS_ICON(type) )
+        {
+            if (pixmap != NULL )
+            {
+                set_string_value (&(t->data.icon.image), pixmap, &(style->set_flags), F_BACKTEXTURE);
+                t->type = type;
+            }
+        } else if ( TEXTURE_IS_GRADIENT(type) )
+        {
+            if (color_from != NULL && color_to != NULL)
+            {
+                make_old_gradient (t, type, color_from, color_to);
+            }
+        } else if( TEXTURE_IS_TRANSPARENT(type) && pixmap )
+        {
+            set_string_value (&(t->data.icon.tint), pixmap, &(style->set_flags), F_BACKTEXTURE);
+            style->back[0].type = type;
+        }
+#endif
+    }
+}
+
+FreeStorageElem **
+MyStyleDef2FreeStorage (SyntaxDef * syntax, FreeStorageElem ** tail, MyStyleDefinition * def)
+{
+	register int  i;
+	FreeStorageElem **new_tail;
+
+	if (def == NULL)
+		return tail;
+
+	new_tail = QuotedString2FreeStorage (syntax, tail, NULL, def->name, MYSTYLE_START_ID);
+	if (new_tail == tail)
+		return tail;
+
+	tail = &((*tail)->sub);
+
+	for (i = 0; i < def->inherit_num; i++)
+		tail = QuotedString2FreeStorage (&MyStyleSyntax, tail, NULL, def->inherit[i], MYSTYLE_INHERIT_ID);
+
+	if (get_flags (def->set_flags, F_FONT))
+		tail = String2FreeStorage (&MyStyleSyntax, tail, def->font, MYSTYLE_FONT_ID);
+
+	if (get_flags (def->set_flags, F_FORECOLOR))
+		tail = String2FreeStorage (&MyStyleSyntax, tail, def->fore_color, MYSTYLE_FORECOLOR_ID);
+
+	if (get_flags (def->set_flags, F_BACKCOLOR))
+		tail = String2FreeStorage (&MyStyleSyntax, tail, def->back_color, MYSTYLE_BACKCOLOR_ID);
+
+	if (get_flags (def->set_flags, F_TEXTSTYLE))
+        tail = Integer2FreeStorage (&MyStyleSyntax, tail, NULL, def->text_style, MYSTYLE_TEXTSTYLE_ID);
+
+    if (get_flags (def->set_flags, F_BACKPIXMAP))
+#if 0
+		for( i = 0 ; i < def->back_layers ; i++ )
+        	tail = TextureDef2FreeStorage (&MyStyleSyntax, tail, &(def->back[i]), MYSTYLE_BACKPIXMAP_ID);
+#endif
+	if (get_flags (def->set_flags, F_DRAWTEXTBACKGROUND))
+       	tail = Integer2FreeStorage (&MyStyleSyntax, tail, NULL, def->draw_text_background, MYSTYLE_DRAWTEXTBACKGROUND_ID);
+
+	tail = Flag2FreeStorage (&MyStyleSyntax, tail, MYSTYLE_DONE_ID);
+
+	return new_tail;
+}
+
+FreeStorageElem **
+MyStyleDefs2FreeStorage (SyntaxDef * syntax, FreeStorageElem ** tail, MyStyleDefinition * defs)
+{
+	while (defs)
+	{
+		tail = MyStyleDef2FreeStorage (syntax, tail, defs);
+		defs = defs->next;
+	}
+	return tail;
+}
+
+

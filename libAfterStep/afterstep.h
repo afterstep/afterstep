@@ -79,16 +79,16 @@
 #define SCROLL_REGION 2		/* region around screen edge that */
 				/* triggers scrolling */
 
-#define NO_HILITE     0x0000
-#define TOP_HILITE    0x0001
-#define RIGHT_HILITE  0x0002
-#define BOTTOM_HILITE 0x0004
-#define LEFT_HILITE   0x0008
-#define NORMAL_HILITE 0x000F
-#define EXTRA_HILITE  0x0010
-#define FULL_HILITE   0x001F
-#define NO_HILITE_OUTLINE  0x0020
-#define HILITE_MASK   0x003F
+#define NO_HILITE     0
+#define TOP_HILITE    (0x01<<0)
+#define RIGHT_HILITE  (0x01<<1)
+#define BOTTOM_HILITE (0x01<<2)
+#define LEFT_HILITE   (0x01<<3)
+#define NORMAL_HILITE (TOP_HILITE|RIGHT_HILITE|BOTTOM_HILITE|LEFT_HILITE)
+#define EXTRA_HILITE  (0x01<<4)
+#define FULL_HILITE   (EXTRA_HILITE|NORMAL_HILITE)
+#define NO_HILITE_OUTLINE  (0x01<<5)
+#define HILITE_MASK   (NO_HILITE_OUTLINE|FULL_HILITE)
 
 #define DEFAULT_TBAR_HILITE   (BOTTOM_HILITE|RIGHT_HILITE)
 #define DEFAULT_MENU_HILITE   (BOTTOM_HILITE|RIGHT_HILITE)
@@ -279,20 +279,6 @@ typedef struct
   int right, bottom;
 }
 ASBox;
-
-typedef enum {
-	ASB_State_Up = 0,
-	ASB_State_Down,
-	ASB_State_SemiChecked,
-	ASB_State_Checked,
-	ASB_StateCount  = 0x03          /* must always be a mask !!! */
-}ASButtonStates ;
-
-typedef struct ASButton
-{
-  ASButtonStates 	 state;
-  MyIcon            *shapes[ASB_StateCount];    /* icons to draw when button is any of the states */
-}ASButton;
 
 typedef struct ASCursor
 {

@@ -359,7 +359,7 @@ args2FreeStorage (FreeStorageElem * pelem, char *data, int data_len)
 		} else
 		{
 			max_argc++;
-			if (pelem->term->flags & TF_INDEXED)
+            if (get_flags(pelem->term->flags, (TF_INDEXED|TF_DIRECTION_INDEXED)))
 				max_argc++;
 		}
 
@@ -565,15 +565,12 @@ ASButton     *
 free_storage2button (FreeStorageElem * stored, int *ppos)
 {
     register ASButton *pbutton = NULL;
-#if 0
     register int s ;
-    pbutton = create_asbutton ();
+    pbutton = safecalloc( 1, sizeof(ASButton));
 	for( s = 0 ; s < ASB_StateCount && *ppos < stored->argc ; ++s )
 	{
-		pbutton->shapes[s] = create_asicon (NULL);
-		pbutton->shapes[s]->filename = mystrdup (stored->argv[(*ppos)++]);
+        pbutton->shapes[s] = mystrdup (stored->argv[(*ppos)++]);
 	}
-#endif
     return pbutton;
 }
 
@@ -860,13 +857,59 @@ ReadConfigItem (ConfigItem * item, FreeStorageElem * stored)
 			ret_code = 1;
 		}
 
-		if (stored->term->flags & TF_INDEXED)
+        if (get_flags(stored->term->flags, TF_INDEXED))
 		{
 			if (!check_avail_args (stored, pos, 1))
 				return ret_code;
 			item->index = atoi (stored->argv[pos++]);
-		}
-
+        }else if (get_flags(stored->term->flags, TF_DIRECTION_INDEXED))
+        {
+            register char *ptr ;
+			if (!check_avail_args (stored, pos, 1))
+				return ret_code;
+            ptr = stored->argv[pos];
+            /* custom code to parse frame sides very fast :*/
+            if( ptr[0] == 'W' || ptr[0] == 'w' )
+                item->index = FR_W ;
+            else if( ptr[0] == 'E' || ptr[0] == 'e' )
+                item->index = FR_E ;
+            else if( ptr[0] == 'N' || ptr[0] == 'n' )
+            {
+                if( ptr[1] == 'W' || ptr[1] == 'w' )
+                    item->index = FR_NW ;
+                else if( ptr[1] == 'E' || ptr[1] == 'e' )
+                    item->index = FR_NE ;
+                else
+                {
+                    register int i = 0;
+                    while( i < 5 && ptr[i] != '\0' ) ++i;
+                    if( ptr[1] == 'W' || ptr[1] == 'w' )
+                        item->index = FR_NW ;
+                    else if( ptr[1] == 'E' || ptr[1] == 'e' )
+                        item->index = FR_NE ;
+                    else
+                        item->index = FR_N ;
+                }
+            }else if( ptr[0] == 'S' || ptr[0] == 's' )
+            {
+                if( ptr[1] == 'W' || ptr[1] == 'w' )
+                    item->index = FR_SW ;
+                else if( ptr[1] == 'E' || ptr[1] == 'e' )
+                    item->index = FR_SE ;
+                else
+                {
+                    register int i = 0;
+                    while( i < 5 && ptr[i] != '\0' ) ++i;
+                    if( ptr[1] == 'W' || ptr[1] == 'w' )
+                        item->index = FR_SW ;
+                    else if( ptr[1] == 'E' || ptr[1] == 'e' )
+                        item->index = FR_SE ;
+                    else
+                        item->index = FR_S ;
+                }
+            }
+            ++pos;
+        }
 		switch (item->type)
 		{
 		 case TT_FLAG:
@@ -965,7 +1008,7 @@ ReadFlagItem (unsigned long *set_flags, unsigned long *flags, FreeStorageElem * 
 	{
 		Bool          value = True;
 
-		if (stored->term->type != TT_FLAG || get_flags (stored->term->flags, TF_INDEXED))
+        if (stored->term->type != TT_FLAG || get_flags (stored->term->flags, (TF_INDEXED|TF_DIRECTION_INDEXED)))
 			return 0;
 
 		if (stored->argc > 1)
@@ -1319,7 +1362,7 @@ ASButton2FreeStorage (SyntaxDef * syntax, FreeStorageElem ** tail, int index, AS
 		int i ;
 
 		for( i =0; i < ASB_StateCount ; ++i )
-			list[i] = b->shapes[i]? b->shapes[i]->filename: _as_nothing_ ;
+            list[i] = b->shapes[i]? b->shapes[i]: _as_nothing_ ;
 		list[i] = NULL ;
 
 		ind_str = string_from_int (index);

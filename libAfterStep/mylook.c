@@ -318,20 +318,55 @@ myframe_load ( MyFrame * frame, ASImageManager *imman )
                 frame->parts[i] = NULL;
             }
         }
+    if( frame->title_back_filename )
+    {
+        frame->title_back = safecalloc( 1, sizeof(icon_t));
+        if( !load_icon (frame->title_back, frame->title_back_filename, imman) )
+        {
+            free( frame->title_back );
+            frame->title_back = NULL;
+        }
+    }
 }
 
 Bool
 filename2myframe_part (MyFrame *frame, int part, char *filename)
 {
+    char **dst = NULL ;
     if (filename && frame && part>= 0 && part < FRAME_PARTS)
-	{
-        if( frame->part_filenames[part] )
-            free( frame->part_filenames[part] );
-        frame->part_filenames[part] = mystrdup(filename);
+        dst = &(frame->part_filenames[part]);
+    else
+        dst = &(frame->title_back_filename);
+    if( dst )
+    {
+        if( *dst )
+            free( *dst );
+        *dst = mystrdup(filename);
         return True;
     }
     return False;
 }
+
+Bool
+set_myframe_style (MyFrame *frame, unsigned int style, Bool title, char *stylename)
+{
+    char **dst = NULL ;
+    if( style >= BACK_STYLES )
+        style = BACK_DEFAULT ;
+    if( title )
+        dst = &(frame->title_style_names[style]);
+    else
+        dst = &(frame->frame_style_names[style]);
+    if( dst )
+    {
+        if( *dst )
+            free( *dst );
+        *dst = mystrdup(stylename);
+        return True;
+    }
+    return False;
+}
+
 
 Bool
 myframe_has_parts(const MyFrame *frame, ASFlagType mask)
@@ -356,8 +391,26 @@ destroy_myframe( MyFrame **pframe )
     {
         register int i = FRAME_PARTS;
         while( --i >= 0 )
+        {
             if( pf->parts[i] )
                 destroy_icon( &(pf->parts[i]) );
+            if( pf->part_filenames[i] )
+                free( pf->part_filenames[i] );
+        }
+
+        if( pf->title_back )
+            destroy_icon( &(pf->title_back) );
+        if( pf->title_back_filename )
+            free( pf->title_back_filename );
+
+        for( i = 0 ; i < BACK_STYLES ; ++i )
+        {
+            if( pf->title_style_names[i] )
+                free( pf->title_style_names[i] );
+            if( pf->frame_style_names[i] )
+                free( pf->frame_style_names[i] );
+        }
+
         pf->magic = 0 ;
         free( pf );
         *pframe = NULL ;

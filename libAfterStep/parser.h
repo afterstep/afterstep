@@ -43,6 +43,8 @@ typedef struct TermDef
   /* this options should not be supported by ASCP */
   /* and must be filtered out and converted into */
   /* respective non-depreciated options by libASConfig */
+#define TF_DIRECTION_INDEXED (1<<22) /* North,South, East,West, NorthWest, NorthEast, SouthWest, SouthEast as index */
+
 
   unsigned long flags;		/* combination of any of above values */
   char *keyword;
@@ -67,6 +69,7 @@ typedef struct TermDef
 #define TT_INTARRAY    17	/* array of the integer numbers */
 #define TT_CURSOR      18   /* ASCursor - pair of filenames */
 #define TT_OPTIONAL_PATHNAME 19   /* optional quoted text - could be empty */
+#define TT_DIRECTION   20   /* North,South, East,West, NorthWest, NorthEast, SouthWest, SouthEast */
 
 #define TT_CUSTOM      64	/* modules can define custom types starting */
   /* with this one */

@@ -102,6 +102,22 @@ destroy_icon(icon_t **picon)
 }
 
 
+void destroy_asbutton( ASButton *btn, Bool reusable )
+{
+    if( btn )
+    {
+        int i = ASB_StateCount;
+        while( --i >= 0 )
+            if( btn->shapes[i] )
+            {
+                free( btn->shapes[i] );
+                btn->shapes[i] = NULL ;
+            }
+        if( !reusable )
+            free( btn );
+    }
+}
+
 Bool
 load_button( button_t *button, char **filenames, ASImageManager *imman )
 {

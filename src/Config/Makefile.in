@@ -2,7 +2,7 @@
 # Copyright (c) 1998, Guylhem AZNAR <guylhem@oeil.qc.ca>
 #
 
-LIB_OBJS        = ASetRoot.o Base.o balloon.o Database.o MyStyle.o Pager.o Wharf.o WinList.o
+LIB_OBJS        = ASetRoot.o Base.o balloon.o Database.o Look.o MyStyle.o Pager.o Wharf.o WinList.o
 
 LIB_NAME        = LIBAFTERCONF
 LIB_STATIC      = libasConfig.a

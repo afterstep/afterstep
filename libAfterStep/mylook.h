@@ -16,6 +16,10 @@ struct MyFrame;
 struct ASHashTable;
 struct ScreenInfo;
 
+#define ICON_STYLE_FOCUS   "ButtonTitleFocus"
+#define ICON_STYLE_STICKY  "ButtonTitleSticky"
+#define ICON_STYLE_UNFOCUS "ButtonTitleUnfocus"
+
 #define DEFAULT_OBJ_NAME        "default"
 #define ICON_OBJ_PREFIX 	    "icon_"
 #define VERTICAL_OBJ_PREFIX 	"vert_"
@@ -33,7 +37,21 @@ typedef enum
     TitlebarNoPush      = (0x01 << 4),
     IconNoBorder        = (0x01 << 5),
     SeparateButtonTitle = (0x01 << 6),    /* icon title is a separate window */
-    DecorateFrames      = (0x01 << 7)
+    DecorateFrames      = (0x01 << 7),
+  /* this flags add up to the above set for no-flag options, so we can track
+     what option was specifyed in config */
+    LOOK_TitleButtonSpacing = (0x01 << 8),
+    LOOK_TitleButtonStyle   = (0x01 << 9),
+    LOOK_TitleButtonXOffset = (0x01 << 10),
+    LOOK_TitleButtonYOffset = (0x01 << 11),
+    LOOK_ResizeMoveGeometry = (0x01 << 12),
+    LOOK_StartMenuSortMode  = (0x01 << 13),
+    LOOK_DrawMenuBorders    = (0x01 << 14),
+    LOOK_ButtonSize         = (0x01 << 15),
+    LOOK_RubberBand         = (0x01 << 16),
+    LOOK_ShadeAnimationSteps= (0x01 << 17),
+    LOOK_TitleTextAlign     = (0x01 << 18)
+
 }LookFlags;
 
 /* this flags can be used to selectively load some parts of Look */
@@ -100,31 +118,6 @@ typedef struct MyDesktopConfig
 	char *layout_name ;
 }MyDesktopConfig;
 
-/*********************************************************************
- * Window decorations Frame can be defined as such :
- *
- * MyFrame "name"
- *     [Inherit     "name"]
- * #traditional form :
- *     [FrameN   <pixmap>]
- *     [FrameE   <pixmap>]
- *     [FrameS   <pixmap>]
- *     [FrameW   <pixmap>]
- *     [FrameNE  <pixmap>]
- *     [FrameNW  <pixmap>]
- *     [FrameSE  <pixmap>]
- *     [FrameSW  <pixmap>]
- * #alternative form :
- *     [Side        North|South|East|West|Any [<pixmap>]] - if pixmap is ommited -
- *                                                          empty bevel will be drawn
- *     [NoSide      North|South|East|West|Any]
- *     [Corner      NorthEast|SouthEast|NorthWest|SouthWest|Any <pixmap>] - if pixmap is ommited -
- *                                                                          empty bevel will be drawn
- *     [NoCorner    NorthEast|SouthEast|NorthWest|SouthWest|Any]
- *     [SideSize    North|South|East|West|Any <WIDTHxLENGTH>] - pixmap will be scaled to this size
- *     [CornerSize  NorthEast|SouthEast|NorthWest|SouthWest|Any <WIDTHxHEIGHT>]
- * ~MyFrame
- */
 typedef struct MyFrame
 {
     unsigned long magic ;
@@ -132,8 +125,16 @@ typedef struct MyFrame
     ASFlagType flags; /* first 8 bits represent one enabled side/corner each */
     struct icon_t    *parts[FRAME_PARTS];
     char             *part_filenames[FRAME_PARTS];
+    char             *title_style_names[BACK_STYLES];
+    char             *frame_style_names[BACK_STYLES];
+    char             *title_back_filename;
+    struct icon_t    *title_back;
     unsigned int part_width[FRAME_PARTS];
     unsigned int part_length[FRAME_PARTS];
+    ASFlagType   part_bevel[FRAME_PARTS];
+    ASFlagType   part_align[FRAME_PARTS];
+    ASFlagType   title_bevel;
+    ASFlagType   title_align, title_back_align;
 #define MYFRAME_HOR_MASK    ((0x01<<FR_N)|(0x01<<FR_S))
 #define MYFRAME_VERT_MASK   ((0x01<<FR_W)|(0x01<<FR_E))
 #define IsSideVertical(side)  ((side) == FR_W || (side)== FR_E)

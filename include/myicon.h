@@ -18,6 +18,18 @@ icon_t;
 
 typedef icon_t MyIcon;
 
+typedef enum {
+	ASB_State_Up = 0,
+	ASB_State_Down,
+    ASB_StateCount
+}ASButtonStates ;
+
+typedef struct ASButton
+{
+    ASButtonStates     state;
+    char              *shapes[ASB_StateCount];    /* icons to draw when button is any of the states */
+}ASButton;
+
 typedef struct button_t
 {
     MyIcon unpressed;		/* icon to draw when button is not pressed */
@@ -33,6 +45,7 @@ Bool load_icon (icon_t *icon, const char *filename, struct ASImageManager *imman
 void free_icon_resources( icon_t icon );
 void destroy_icon(icon_t **picon);
 
+void destroy_asbutton( ASButton *btn, Bool reusable );
 Bool load_button( button_t *button, char **filenames, struct ASImageManager *imman );
 void free_button_resources( button_t *button );
 

@@ -106,7 +106,7 @@ typedef struct mystyle_definition
     int back_pixmap_type;
     char *back_pixmap;
     int draw_text_background;
-#define SET_SET_FLAG(d,f)  d.set_flags |= f
+#define SET_SET_FLAG(d,f)  do{(d).set_flags |= (f);}while(0)
     unsigned long set_flags;
     int finished;		/* if this one is set to 0 - MyStyle was not terminated with ~MyStyle
 				 * error should be displayed as the result and this definition
@@ -143,11 +143,157 @@ void PrintMyStyleDefinitions (MyStyleDefinition * list);
 void
   ProcessMyStyleDefinitions (MyStyleDefinition ** list);
 
+void MergeMyStyleText (MyStyleDefinition ** list, const char *name,
+                  const char *new_font, const char *new_fcolor, const char *new_bcolor, int new_style);
+void MergeMyStyleTextureOld (MyStyleDefinition ** list, const char *name,
+                        int type, char *color_from, char *color_to, char *pixmap);
+FreeStorageElem **MyStyleDefs2FreeStorage (SyntaxDef * syntax, FreeStorageElem ** tail, MyStyleDefinition * defs);
+
+
+/**************************************************************************/
+/*                        MyFrame parsing definitions                     */
+/**************************************************************************/
+#define MYFRAME_ID_START	(MYSTYLE_ID_END+1)
+
+#define MYFRAME_START_ID 	(MYFRAME_ID_START)
+#define MYFRAME_North_ID        (MYFRAME_ID_START+1)
+#define MYFRAME_East_ID         (MYFRAME_ID_START+2)
+#define MYFRAME_South_ID        (MYFRAME_ID_START+3)
+#define MYFRAME_West_ID         (MYFRAME_ID_START+4)
+#define MYFRAME_NorthWest_ID    (MYFRAME_ID_START+5)
+#define MYFRAME_NorthEast_ID    (MYFRAME_ID_START+6)
+#define MYFRAME_SouthWest_ID    (MYFRAME_ID_START+7)
+#define MYFRAME_SouthEast_ID    (MYFRAME_ID_START+8)
+#define MYFRAME_Side_ID                 (MYFRAME_ID_START+9)
+#define MYFRAME_NoSide_ID               (MYFRAME_ID_START+10)
+#define MYFRAME_Corner_ID               (MYFRAME_ID_START+11)
+#define MYFRAME_NoCorner_ID             (MYFRAME_ID_START+12)
+#define MYFRAME_TitleUnfocusedStyle_ID  (MYFRAME_ID_START+13)
+#define MYFRAME_TitleFocusedStyle_ID    (MYFRAME_ID_START+14)
+#define MYFRAME_TitleStickyStyle_ID     (MYFRAME_ID_START+15)
+#define MYFRAME_FrameUnfocusedStyle_ID  (MYFRAME_ID_START+16)
+#define MYFRAME_FrameFocusedStyle_ID    (MYFRAME_ID_START+17)
+#define MYFRAME_FrameStickyStyle_ID     (MYFRAME_ID_START+18)
+#define MYFRAME_TitleBackground_ID      (MYFRAME_ID_START+19)
+#define MYFRAME_SideSize_ID             (MYFRAME_ID_START+20)
+#define MYFRAME_SideAlign_ID            (MYFRAME_ID_START+21)
+#define MYFRAME_SideBevel_ID            (MYFRAME_ID_START+22)
+#define MYFRAME_CornerSize_ID           (MYFRAME_ID_START+23)
+#define MYFRAME_CornerAlign_ID          (MYFRAME_ID_START+24)
+#define MYFRAME_CornerBevel_ID          (MYFRAME_ID_START+25)
+#define MYFRAME_TitleBevel_ID           (MYFRAME_ID_START+26)
+#define MYFRAME_TitleAlign_ID           (MYFRAME_ID_START+27)
+#define MYFRAME_TitleBackgroundAlign_ID (MYFRAME_ID_START+28)
+#define MYFRAME_Inherit_ID              (MYFRAME_ID_START+29)
+#define MYFRAME_DONE_ID         (MYFRAME_ID_START+30)
+
+#define MYFRAME_ID_END      (MYFRAME_ID_START+40)
+
+#define ALIGN_ID_START      (MYFRAME_ID_END+1)
+#define ALIGN_Left_ID       (ALIGN_ID_START+1)
+#define ALIGN_Top_ID        (ALIGN_ID_START+2)
+#define ALIGN_Right_ID      (ALIGN_ID_START+3)
+#define ALIGN_Bottom_ID     (ALIGN_ID_START+4)
+#define ALIGN_HTiled_ID     (ALIGN_ID_START+5)
+#define ALIGN_VTiled_ID     (ALIGN_ID_START+6)
+#define ALIGN_HScaled_ID    (ALIGN_ID_START+7)
+#define ALIGN_VScaled_ID    (ALIGN_ID_START+8)
+#define ALIGN_LabelSize_ID  (ALIGN_ID_START+9)
+#define ALIGN_ID_END        (ALIGN_ID_START+10)
+
+#define BEVEL_ID_START      (ALIGN_ID_END+1)
+#define BEVEL_Left_ID       (BEVEL_ID_START+1)
+#define BEVEL_Top_ID        (BEVEL_ID_START+2)
+#define BEVEL_Right_ID      (BEVEL_ID_START+3)
+#define BEVEL_Bottom_ID     (BEVEL_ID_START+4)
+#define BEVEL_Extra_ID      (BEVEL_ID_START+5)
+#define BEVEL_NoOutline_ID  (BEVEL_ID_START+6)
+#define BEVEL_ID_END        (BEVEL_ID_START+10)
+
+/*********************************************************************
+ * Window decorations Frame can be defined as such :
+ *
+ * MyFrame "name"
+ *     [Inherit     "name"]
+ * #traditional form :
+ *     [North       <pixmap>]
+ *     [East        <pixmap>]
+ *     [South       <pixmap>]
+ *     [West        <pixmap>]
+ *     [NorthEast   <pixmap>]
+ *     [NorthWest   <pixmap>]
+ *     [SouthEast   <pixmap>]
+ *     [SouthWest   <pixmap>]
+ * #alternative form :
+ *     [Side        North|South|East|West|Any [<pixmap>]] - if pixmap is ommited -
+ *                                                          empty bevel will be drawn
+ *     [NoSide      North|South|East|West|Any]
+ *     [Corner      NorthEast|SouthEast|NorthWest|SouthWest|Any <pixmap>] - if pixmap is ommited -
+ *                                                                          empty bevel will be drawn
+ *     [NoCorner    NorthEast|SouthEast|NorthWest|SouthWest|Any]
+ * #new settings :
+ *     [TitleUnfocusedStyle   <style>
+ *     [TitleFocusedStyle     <style>
+ *     [TitleStickyStyle      <style>
+ *     [FrameUnfocusedStyle   <style>
+ *     [FrameFocusedStyle     <style>
+ *     [FrameStickyStyle      <style>
+ *     [TitleBackground       <pixmap>] - gets overlayed over background and under the text
+ * #additional attributes :
+ *     [SideSize        North|South|East|West|Any <WIDTHxLENGTH>] - pixmap will be scaled to this size
+ *     [SideAlign       North|South|East|West|Any Left,Top,Right,Bottom,HTiled,VTiled,HScaled,VScaled]
+ *     [SideBevel       North|South|East|West|Any None|[Left,Top,Right,Bottom,Extra,NoOutline]]
+ *     [CornerSize      NorthEast|SouthEast|NorthWest|SouthWest|Any <WIDTHxHEIGHT>]
+ *     [CornerAlign     NorthEast|SouthEast|NorthWest|SouthWest|Any Left,Top,Right,Bottom,HTiled,VTiled,HScaled,VScaled]
+ *     [CornerBevel     NorthEast|SouthEast|NorthWest|SouthWest|Any None|[Left,Top,Right,Bottom,Extra,NoOutline]]
+ *     [TitleBevel      None|[Left,Top,Right,Bottom,Extra,NoOutline]
+ *     [TitleAlign      None|[Left,Top,Right,Bottom]
+ *     [TitleBackgroundAlign  None|[Left,Top,Right,Bottom,HTiled,VTiled,HScaled,VScaled,LabelSize]
+ * ~MyFrame
+ */
+
+extern SyntaxDef MyFrameSyntax;
+/* use this in module term definition to add MyStyle parsing functionality */
+#define INCLUDE_MYFRAME	{TF_NO_MYNAME_PREPENDING,"MyFrame", 7, TT_QUOTED_TEXT, MYFRAME_START_ID, &MyFrameSyntax}
+
+typedef struct MyFrameDefinition
+{
+    struct MyFrameDefinition *next;
+
+    char        *name;
+    ASFlagType   flags; /* first 8 bits represent one enabled side/corner each */
+    char        *parts[FRAME_PARTS];
+    char        *title_styles[BACK_STYLES];
+    char        *frame_styles[BACK_STYLES];
+    char        *title_back;
+    unsigned int part_width[FRAME_PARTS];
+    unsigned int part_length[FRAME_PARTS];
+    ASFlagType   part_bevel[FRAME_PARTS];
+    ASFlagType   part_align[FRAME_PARTS];
+    ASFlagType   title_bevel;
+    ASFlagType   title_align, title_back_align;
+
+    char       **inheritance_list ;
+    int          inheritance_num ;
+
+}MyFrameDefinition;
+
+/* this functions work exactly like MyStyle stuff ( see above ) */
+void DestroyMyFrameDefinitions (MyFrameDefinition ** list);
+MyFrameDefinition **ProcessMyFrameOptions (FreeStorageElem * options,
+					   MyFrameDefinition ** tail);
+
+/* converts MYFRAME defs back into FreeStorage */
+FreeStorageElem **MyFrameDefs2FreeStorage (SyntaxDef * syntax,
+					   FreeStorageElem ** tail,
+					   MyFrameDefinition * defs);
+
+/**************************************************************************/
 /**************************************************************************/
 /*                        balloon pasring definitions                       */
 /**************************************************************************/
 
-#define BALLOON_ID_START            (MYSTYLE_ID_END+1)
+#define BALLOON_ID_START            (BEVEL_ID_END+1)
 
 #define BALLOON_USED_ID	 			 BALLOON_ID_START
 #define BALLOON_BorderColor_ID		(BALLOON_ID_START+1)
@@ -354,6 +500,7 @@ typedef struct
   }
 ASetRootConfig;
 
+MyBackgroundConfig *ParseMyBackgroundOptions (FreeStorageElem * Storage, char *myname);
 ASetRootConfig *ParseASetRootOptions (const char *filename, char *myname);
 /*
  * all data members that has been used from ASetRootConfig structure, returned
@@ -363,6 +510,8 @@ ASetRootConfig *ParseASetRootOptions (const char *filename, char *myname);
 
 void DestroyASetRootConfig (ASetRootConfig * config);
 void myback_parse (char *tline, FILE * fd, char **myname, int *mylook);
+void DestroyMyBackgroundConfig (MyBackgroundConfig ** head);
+
 
 /***************************************************************************/
 /***************************************************************************/
@@ -727,5 +876,205 @@ int WriteWharfOptions (const char *filename, char *myname,
 		       WharfConfig * config, unsigned long flags);
 
 /***************************************************************************/
+/***************************************************************************/
+/*                 Supported HINTS parsing definitions                     */
+/***************************************************************************/
+
+#define HINTS_ID_START              (WHEV_END_ID+1)
+#define HINTS_ICCCM_ID              (HINTS_ID_START+HINTS_ICCCM)
+#define HINTS_GroupLead_ID          (HINTS_ID_START+HINTS_GroupLead)
+#define HINTS_Transient_ID          (HINTS_ID_START+HINTS_Transient)
+#define HINTS_Motif_ID              (HINTS_ID_START+HINTS_Motif)
+#define HINTS_Gnome_ID              (HINTS_ID_START+HINTS_Gnome)
+#define HINTS_ExtendedWM_ID         (HINTS_ID_START+HINTS_ExtendedWM)
+#define HINTS_XResources_ID         (HINTS_ID_START+HINTS_XResources)
+#define HINTS_ASDatabase_ID         (HINTS_ID_START+HINTS_ASDatabase)
+#define HINTS_ID_END                (HINTS_ID_START+HINTS_Supported)
+
+/****************************************************************************/
+/*                                LOOK OPTIONS 	   		   	    */
+/****************************************************************************/
+#define DESK_CONFIG_BACK	0
+#define DESK_CONFIG_LAYOUT	1
+
+#define LOOK_ID_START               (HINTS_ID_END+1)
+
+#define LOOK_DEPRECIATED_ID_START	(LOOK_ID_START)
+#define LOOK_Font_ID			(LOOK_DEPRECIATED_ID_START)
+#define LOOK_WindowFont_ID		(LOOK_DEPRECIATED_ID_START+1)
+#define LOOK_MTitleForeColor_ID		(LOOK_DEPRECIATED_ID_START+2)
+#define LOOK_MTitleBackColor_ID		(LOOK_DEPRECIATED_ID_START+3)
+#define LOOK_MenuForeColor_ID		(LOOK_DEPRECIATED_ID_START+4)
+#define LOOK_MenuBackColor_ID		(LOOK_DEPRECIATED_ID_START+5)
+#define LOOK_MenuHiForeColor_ID		(LOOK_DEPRECIATED_ID_START+6)
+#define LOOK_MenuHiBackColor_ID		(LOOK_DEPRECIATED_ID_START+7)
+#define LOOK_MenuStippleColor_ID	(LOOK_DEPRECIATED_ID_START+8)
+#define LOOK_StdForeColor_ID		(LOOK_DEPRECIATED_ID_START+9)
+#define LOOK_StdBackColor_ID		(LOOK_DEPRECIATED_ID_START+10)
+#define LOOK_StickyForeColor_ID 	(LOOK_DEPRECIATED_ID_START+11)
+#define LOOK_StickyBackColor_ID 	(LOOK_DEPRECIATED_ID_START+12)
+#define LOOK_HiForeColor_ID		(LOOK_DEPRECIATED_ID_START+13)
+#define LOOK_HiBackColor_ID		(LOOK_DEPRECIATED_ID_START+14)
+#define LOOK_IconFont_ID		(LOOK_DEPRECIATED_ID_START+15)
+#define LOOK_TitleTextMode_ID		(LOOK_DEPRECIATED_ID_START+16)
+
+#ifndef NO_TEXTURE
+#define LOOK_TextureTypes_ID		(LOOK_DEPRECIATED_ID_START+17)
+#define LOOK_TextureMaxColors_ID	(LOOK_DEPRECIATED_ID_START+18)
+#define LOOK_TitleTextureColor_ID	(LOOK_DEPRECIATED_ID_START+19)	/* title */
+#define LOOK_UTitleTextureColor_ID	(LOOK_DEPRECIATED_ID_START+20)	/* unfoc tit */
+#define LOOK_STitleTextureColor_ID	(LOOK_DEPRECIATED_ID_START+21)	/* stic tit */
+#define LOOK_MTitleTextureColor_ID	(LOOK_DEPRECIATED_ID_START+22)	/* menu title */
+#define LOOK_MenuTextureColor_ID	(LOOK_DEPRECIATED_ID_START+23)	/* menu items */
+#define LOOK_MenuHiTextureColor_ID	(LOOK_DEPRECIATED_ID_START+24)	/* sel items */
+#define LOOK_MenuPixmap_ID		(LOOK_DEPRECIATED_ID_START+25)	/* menu entry */
+#define LOOK_MenuHiPixmap_ID		(LOOK_DEPRECIATED_ID_START+26)	/* hil m entr */
+#define LOOK_MTitlePixmap_ID		(LOOK_DEPRECIATED_ID_START+27)	/* menu title */
+#define LOOK_TitlePixmap_ID		(LOOK_DEPRECIATED_ID_START+28)	/* foc tit */
+#define LOOK_UTitlePixmap_ID		(LOOK_DEPRECIATED_ID_START+29)	/* unfoc tit */
+#define LOOK_STitlePixmap_ID		(LOOK_DEPRECIATED_ID_START+30)	/* stick tit */
+
+#define LOOK_ButtonTextureType_ID	(LOOK_DEPRECIATED_ID_START+31)
+#define LOOK_ButtonBgColor_ID		(LOOK_DEPRECIATED_ID_START+32)
+#define LOOK_ButtonTextureColor_ID	(LOOK_DEPRECIATED_ID_START+33)
+#define LOOK_ButtonMaxColors_ID		(LOOK_DEPRECIATED_ID_START+34)
+#define LOOK_ButtonPixmap_ID		(LOOK_DEPRECIATED_ID_START+35)
+#endif
+
+#define LOOK_DEPRECIATED_ID_END		(LOOK_DEPRECIATED_ID_START+48)
+
+/* non depreciated options : */
+#define LOOK_SUPPORTED_ID_START		(LOOK_DEPRECIATED_ID_END)
+
+#define LOOK_IconBox_ID             (LOOK_SUPPORTED_ID_START)
+
+#ifndef NO_TEXTURE
+#define LOOK_MArrowPixmap_ID		(LOOK_SUPPORTED_ID_START+1)	/* menu arrow */
+#define LOOK_MenuPinOn_ID           (LOOK_SUPPORTED_ID_START+2) /* menu pin */
+#define LOOK_MenuPinOff_ID          (LOOK_SUPPORTED_ID_START+3)
+#define LOOK_TxtrMenuItmInd_ID		(LOOK_SUPPORTED_ID_START+4)
+#define LOOK_MenuMiniPixmaps_ID		(LOOK_SUPPORTED_ID_START+5)
+#define LOOK_TextGradientColor_ID	(LOOK_SUPPORTED_ID_START+6)	/* title text */
+#define LOOK_GradientText_ID		(LOOK_SUPPORTED_ID_START+7)
+#define LOOK_TexturedHandle_ID		(LOOK_SUPPORTED_ID_START+8)
+#define LOOK_TitlebarNoPush_ID		(LOOK_SUPPORTED_ID_START+9)
+#define LOOK_ButtonNoBorder_ID		(LOOK_SUPPORTED_ID_START+10)
+#endif /* NO_TEXTURE */
+#define LOOK_TitleTextAlign_ID		(LOOK_SUPPORTED_ID_START+11)
+#define LOOK_TitleButtonSpacing_ID	(LOOK_SUPPORTED_ID_START+12)
+#define LOOK_TitleButtonStyle_ID	(LOOK_SUPPORTED_ID_START+13)
+#define LOOK_TitleButtonXOffset_ID	(LOOK_SUPPORTED_ID_START+14)
+#define LOOK_TitleButtonYOffset_ID	(LOOK_SUPPORTED_ID_START+15)
+#define LOOK_TitleButton_ID         (LOOK_SUPPORTED_ID_START+16)
+#define LOOK_IconTitleButton_ID     (LOOK_SUPPORTED_ID_START+17)
+#define LOOK_ResizeMoveGeometry_ID  (LOOK_SUPPORTED_ID_START+18)
+#define LOOK_StartMenuSortMode_ID   (LOOK_SUPPORTED_ID_START+19)
+#define LOOK_DrawMenuBorders_ID     (LOOK_SUPPORTED_ID_START+20)
+
+#define LOOK_ButtonSize_ID          (LOOK_SUPPORTED_ID_START+21)
+#define LOOK_SeparateButtonTitle_ID (LOOK_SUPPORTED_ID_START+22)
+
+#define LOOK_RubberBand_ID          (LOOK_SUPPORTED_ID_START+23)
+#define LOOK_ShadeAnimationSteps_ID (LOOK_SUPPORTED_ID_START+24)
+
+#define LOOK_WindowStyle_ID_START   (LOOK_SUPPORTED_ID_START+26)
+#define LOOK_FWindowStyle_ID		(LOOK_WindowStyle_ID_START+BACK_FOCUSED)
+#define LOOK_UWindowStyle_ID		(LOOK_WindowStyle_ID_START+BACK_UNFOCUSED)
+#define LOOK_SWindowStyle_ID		(LOOK_WindowStyle_ID_START+BACK_STICKY)
+#define LOOK_DefaultStyle_ID		(LOOK_WindowStyle_ID_START+BACK_DEFAULT)
+#define LOOK_WindowStyle_ID_END		(LOOK_WindowStyle_ID_START+BACK_STYLES)
+
+#define LOOK_MenuStyle_ID_START		(LOOK_WindowStyle_ID_END)
+#define LOOK_MenuItemStyle_ID		(LOOK_MenuStyle_ID_START+MENU_BACK_ITEM)
+#define LOOK_MenuTitleStyle_ID		(LOOK_MenuStyle_ID_START+MENU_BACK_TITLE)
+#define LOOK_MenuHiliteStyle_ID		(LOOK_MenuStyle_ID_START+MENU_BACK_HILITE)
+#define LOOK_MenuStippleStyle_ID	(LOOK_MenuStyle_ID_START+MENU_BACK_STIPPLE)
+#define LOOK_MenuStyle_ID_END		(LOOK_MenuStyle_ID_START+MENU_BACK_STYLES)
+
+#define LOOK_MenuFrame_ID           (LOOK_MenuStyle_ID_END+1)
+#define LOOK_SupportedHints_ID      (LOOK_MenuStyle_ID_END+2)
+
+#define LOOK_DeskConfig_ID_START    (LOOK_MenuStyle_ID_END+3)
+#define LOOK_DeskBack_ID            (LOOK_DeskConfig_ID_START+DESK_CONFIG_BACK)
+#define LOOK_DeskLayout_ID          (LOOK_DeskConfig_ID_START+DESK_CONFIG_LAYOUT)
+#define LOOK_DeskConfig_ID_END      (LOOK_DeskConfig_ID_START+4)
+
+#define LOOK_SUPPORTED_ID_END		(LOOK_SUPPORTED_ID_START+64)
+#define LOOK_ID_END			(LOOK_SUPPORTED_ID_END)
+
+typedef struct DesktopConfig
+{
+  int desk;
+  char *back_name;
+  char *layout_name;
+  MyBackgroundConfig *back;
+
+  struct DesktopConfig *next;
+}DesktopConfig;
+
+void DestroyDesktopConfig (DesktopConfig ** head);
+DesktopConfig *ParseDesktopOptions (DesktopConfig **plist, ConfigItem * item, int id);
+
+typedef struct LookConfig
+{
+
+/* this are values for different LOOK flags */
+  unsigned long flags;
+  unsigned long set_flags;
+
+  ASBox icon_boxes[MAX_BOXES];
+  short unsigned int icon_boxes_num;
+
+#ifndef NO_TEXTURE
+  char *menu_arrow;		/* menu arrow */
+  char *menu_pin_on;		/* menu pin */
+  char *menu_pin_off;
+
+  char *text_gradient[2];	/* title text */
+#endif				/* NO_TEXTURE */
+  unsigned short int title_text_align;
+  short int title_button_spacing;
+  unsigned short int title_button_style;
+  short int title_button_x_offset;
+  short int title_button_y_offset;
+  ASButton *normal_buttons[MAX_BUTTONS];       /* titlebar buttons for windows */
+  ASButton *icon_buttons[MAX_BUTTONS];         /* titlebar buttons for iconifyed windows */
+  ASGeometry resize_move_geometry;
+  unsigned short int start_menu_sort_mode;
+  unsigned short int draw_menu_borders;
+  ASBox button_size;
+
+  unsigned int rubber_band;
+  unsigned int shade_animation_steps;
+
+  char *window_styles[BACK_STYLES];
+  char *menu_styles[MENU_BACK_STYLES];
+
+  balloonConfig *balloon_conf;
+  MyStyleDefinition *style_defs;
+  MyFrameDefinition *frame_defs;
+  MyBackgroundConfig *back_defs;
+  DesktopConfig      *desk_configs;
+
+  char *menu_frame ;
+
+  struct ASSupportedHints *supported_hints ;
+
+  FreeStorageElem *more_stuff;
+
+}
+LookConfig;
+
+LookConfig *CreateLookConfig ();
+void DestroyLookConfig (LookConfig * config);
+
+LookConfig *ParseLookOptions (const char *filename, char *myname);
+struct MyLook *LookConfig2MyLook ( struct LookConfig *config, struct MyLook *look,
+			  			   	       struct ASImageManager *imman,
+								   struct ASFontManager *fontman,
+                                   Bool free_resources, Bool do_init,
+								   unsigned long what_flags	);
+/***************************************************************************/
+
 
 #endif /* CONF_DEFS_H_FILE_INCLUDED */
