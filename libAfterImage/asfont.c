@@ -23,15 +23,20 @@
 /*#define DO_CLOCKING*/
 
 #include <unistd.h>
-#ifdef HAVE_FREETYPE
-#include <freetype/freetype.h>
-#include FT_FREETYPE_H
-#endif
-
-#define INCLUDE_ASFONT_PRIVATE
 
 #include "../include/aftersteplib.h"
 #include <X11/Intrinsic.h>
+
+#ifdef HAVE_FREETYPE
+#ifndef HAVE_FT2BUILD_H
+#include <freetype/freetype.h>
+#else
+#include <ft2build.h>
+#include FT_FREETYPE_H
+#endif
+#endif
+
+#define INCLUDE_ASFONT_PRIVATE
 
 #include "../include/afterstep.h"
 #include "../include/screen.h"
@@ -191,7 +196,10 @@ get_asfont( ASFontManager *fontman, const char *font_string, int face_no, int si
 			if( font == NULL )
 				font = open_X11_font( fontman, font_string );
 			if( font != NULL )
-				add_hash_item( fontman->fonts_hash, (ASHashableValue)(char*)font_string, font);
+			{
+				font->name = mystrdup( font_string );
+				add_hash_item( fontman->fonts_hash, (ASHashableValue)(char*)font->name, font);
+			}				
 		}
 	}
 	return font;

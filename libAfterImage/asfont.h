@@ -27,6 +27,7 @@ typedef struct ASFont
 	unsigned long 	magic ;
 
 	struct ASFontManager *fontman;              /* our owner */
+	char 				 *name;
 
 	ASFontType  	type ;
 #ifdef HAVE_FREETYPE
