@@ -16,7 +16,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#undef LOCAL_DEBUG
+//#define LOCAL_DEBUG
 
 #ifdef _WIN32
 #include "win32/config.h"
@@ -160,7 +160,7 @@ apply_tool_2D( ASDrawContext *ctx, int curr_x, int curr_y, CARD8 ratio )
 				for( x = 0 ; x < aw ; ++x ) 
 				{
 					CARD32 v = ratio ;
-					v = (v*src[x])>>8 ;
+					v = (v*src[x])/255 ;
 					if( dst[x] < v ) 
 						dst[x] = v ;
 					/*
@@ -181,7 +181,7 @@ apply_tool_point( ASDrawContext *ctx, int curr_x, int curr_y, CARD8 ratio )
 	int cw = ctx->canvas_width ;
 	if( ratio != 0 && curr_x >= 0 && curr_x < cw && curr_y >= 0 && curr_y < ctx->canvas_height ) 
 	{	
-		CARD32 value = (ctx->tool->matrix[0]*(CARD32)ratio)>>8 ;
+		CARD32 value = (ctx->tool->matrix[0]*(CARD32)ratio)/255 ;
 		CARD8 *dst = ctx->canvas + curr_y * cw ; 
 
 		if( dst[curr_x] < value ) 
@@ -448,13 +448,17 @@ render_supersampled_pixel( ASDrawContext *ctx, int xs, int ys )
 		unsigned int y = ys>>SUPERSAMPLING_BITS; 
 		unsigned int v = (nxe*nye)>>8 ;	  
 			
+		//if( v > 96 && v < 128 ) v = 129 ;
 		CTX_PUT_PIXEL( ctx, x, y, v ) ; 
 		LOCAL_DEBUG_OUT( "x = %d, y = %d, xe = %d, ye = %d, v = 0x%x", x, y, xe, ye, v );
 		v = (xe*(nye))>>8 ;	  
+		//if( v > 96 && v < 128 ) v = 129 ;
 		CTX_PUT_PIXEL( ctx, x+1, y, v ) ; 
 		v = ((nxe)*ye)>>8 ;
+		//if( v > 96 && v < 128 ) v = 129 ;
 		CTX_PUT_PIXEL( ctx, x, ++y, v ) ; 
 		v = (xe*ye)>>8 ;	  
+		//if( v > 96 && v < 128 ) v = 129 ;
 		CTX_PUT_PIXEL( ctx, x+1, y, v ) ; 
 	}
 }	
@@ -542,6 +546,100 @@ ctx_draw_bezier( ASDrawContext *ctx, int x0, int y0, int x1, int y1, int x2, int
 	}
 	if( bstack ) 
 		free( bstack );
+}
+
+typedef struct ASScanlinePart
+{
+	int y ;
+	int x0, x1;
+}ASScanlinePart;
+
+
+static void 
+ctx_flood_fill( ASDrawContext *ctx, int x_from, int y, int x_to, CARD8 min_val, CARD8 max_val )
+{
+	int ch = ctx->canvas_height ;
+	int cw = ctx->canvas_width ;
+	
+	ASScanlinePart *sstack = NULL ;
+	int sstack_size = 0, sstack_used = 0 ;
+	
+	LOCAL_DEBUG_OUT( "(%d,%d,%d)", x_from, y, x_to );
+#define ADD_ScanlinePart(X0,Y0,X1)	\
+	do{ \
+		if( ((X0)>=0 || (X1)>=0 ) && ((X0)<cw||(X1)<cw) && \
+			 (Y0)>=0 && (Y0)<ch ){ \
+			while( sstack_used >= sstack_size ) { \
+				sstack_size += 2048/sizeof(ASScanlinePart); \
+				sstack = realloc( sstack, sstack_size*sizeof(ASScanlinePart)); \
+			} \
+			LOCAL_DEBUG_OUT( "(%d,%d,%d)", X0, Y0, X1 ); \
+			sstack[sstack_used].x0=X0; \
+			sstack[sstack_used].y=Y0; \
+			sstack[sstack_used].x1=X1; \
+			++sstack_used ; \
+		} \
+	}while(0)
+
+	ADD_ScanlinePart(x_from,y,x_to);
+
+	while( sstack_used > 0 )
+	{
+		--sstack_used ; 
+		x_from = sstack[sstack_used].x0 ; 
+		x_to = sstack[sstack_used].x1 ; 
+		y = sstack[sstack_used].y ; 
+		if( x_from <  0 )
+			x_from = 0 ; 
+		if( x_to >= cw ) 
+			x_to = cw - 1 ; 
+		if( x_from <= x_to ) 
+		{	
+			/* here we have to check for lines below and above */
+			if( y > 0 ) 
+			{
+				CARD8 *data = ctx->canvas + (y-1)*cw ; 
+				int xc = x_from ; 
+
+				while( xc <= x_to ) 
+				{	
+					int x0 = xc, x1 = xc ; 
+					while( x0 >= 0 && data[x0] <= max_val && data[x0]  >= min_val ) --x0;
+					++x0 ;
+					while( x1 < cw && data[x1] <= max_val && data[x1]  >= min_val ) ++x1;
+					--x1 ; 
+					LOCAL_DEBUG_OUT( "x = %d, y = %d, data[x] = 0x%X, x0 = %d, x1 = %d", xc, y-1, data[xc], x0, x1 );
+					
+					if( x0 <= x1 ) 
+						ADD_ScanlinePart(x0,y-1,x1);					
+					while( xc <= x_to && xc <= x1+1 ) ++xc ; 
+				}
+			}	 
+			if( y < ch-1 ) 
+			{
+				CARD8 *data = ctx->canvas + (y+1)*cw ; 
+				int xc = x_from ; 
+
+				while( xc <= x_to ) 
+				{	
+					int x0 = xc, x1 = xc ; 
+					while( x0 >= 0 && data[x0] <= max_val && data[x0]  >= min_val ) --x0;
+					++x0 ;
+					while( x1 < cw && data[x1] <= max_val && data[x1]  >= min_val ) ++x1;
+					--x1 ; 
+					LOCAL_DEBUG_OUT( "x = %d, y = %d, data[x] = 0x%X, x0 = %d, x1 = %d", xc, y+1, data[xc], x0, x1 );
+					if( x0 <= x1 ) 
+						ADD_ScanlinePart(x0,y+1,x1);					
+					while( xc <= x_to && xc <= x1+1 ) ++xc ; 
+				}
+			}	 
+ 			CTX_FILL_HLINE(ctx,x_from,y,x_to,255);		
+		}
+	}	 
+	if( sstack ) 
+		free( sstack );
+	
+	
 }
 
 /*************************************************************************
@@ -715,12 +813,119 @@ asim_cube_bezier( ASDrawContext *ctx, int x1, int y1, int x2, int y2, int x3, in
 }
 
 void
+asim_straight_ellips( ASDrawContext *ctx, int x, int y, int rx, int ry, Bool fill ) 
+{
+	if( ctx && rx > 0 && ry > 0 &&
+		x + rx >= 0 && y+ry >= 0 && 
+		x - rx  < ctx->canvas_width && y - ry < ctx->canvas_height ) 
+	{	
+		int max_y = ry ; 
+		int rx2 = rx*rx, ry2 = ry * ry ; 
+		
+		if( y + ry  > ctx->canvas_height ) 
+			max_y = ctx->canvas_height - y ; 
+		if( y - ry  < 0 && y > max_y ) 
+			max_y = y ; 
+
+		if( fill ) 
+		{
+			int y1 = 0; 
+			int x1 = rx-1;
+			int ty = rx*rx ;
+			int tx = x1*x1 ;
+			
+			do
+			{
+				while( tx > ty ) 
+				{
+					tx -= (x1<<1)+1 ;
+					--x1 ;
+				}
+				CTX_FILL_HLINE(ctx,x-x1,y+y1,x+x1,255);
+				CTX_FILL_HLINE(ctx,x-x1,y-y1,x+x1,255);
+				ty -= (((y1<<1)+1)*rx2)/ry2;
+			
+			}while( ++y1 < max_y ); 
+		}
+		
+		asim_move_to( ctx, x+rx, y );
+		if(  x < -16000 || y < -16000 || x > 16000 || y > 16000 ) 
+		{  /* somewhat imprecise approximation using 4 bezier curves */
+			int drx = rx*142 ;       /* that gives us precision of about 0.05% which is 
+									* pretty good for integer math */
+			int dry = ry*142 ;
+			rx  = rx << 8 ; 
+			ry  = ry << 8 ; 
+			x  = x << 8 ; 
+			y  = y << 8 ; 
+			ctx_draw_bezier( ctx, x+rx, y, x+rx, y+dry, x+drx, y+ry, x, y+ry );
+			ctx_draw_bezier( ctx, x, y+ry, x-drx, y+ry, x-rx, y+dry, x-rx, y );
+			ctx_draw_bezier( ctx, x-rx, y, x-rx, y-dry, x-drx, y-ry, x, y-ry );
+			ctx_draw_bezier( ctx, x, y-ry, x+drx, y-ry, x+rx, y-dry, x+rx, y );
+	 	}else
+		{		  
+			x = x<<4 ; 
+			y = y<<4 ; 
+			rx = rx<<4 ;
+			ry = ry<<4 ;
+			max_y = (max_y << 4) + 4;
+
+			{
+				int min_r = rx - 4, max_r = rx + 4 ; 
+				int y1 = 0; 
+				int x1 = max_r;
+				int min_ty = min_r * min_r ;
+				int max_ty = max_r * max_r ;
+				int tx = max_ty ;
+			
+				do
+				{
+					int start_tx, start_x1 ;
+					int d ;
+					while( tx > max_ty ) 
+					{
+						--x1; 
+						tx -= (x1<<1)+1 ;
+					}	 
+					start_tx = tx ; 
+					start_x1 = x1 ;
+
+					
+					while( tx > min_ty && x1 >= 0) 
+					{
+						render_supersampled_pixel( ctx, (x-x1)<<4, (y+y1)<<4 );
+						render_supersampled_pixel( ctx, (x-x1)<<4, (y-y1)<<4 );
+						render_supersampled_pixel( ctx, (x+x1)<<4, (y+y1)<<4 );
+						render_supersampled_pixel( ctx, (x+x1)<<4, (y-y1)<<4 );
+						--x1; 
+						tx -= (x1<<1)+1 ;
+					}
+					tx = start_tx ; 
+					x1 = start_x1 ;
+					d = (((y1<<1)+1)*rx2)/ry2 ;
+					min_ty -= d;
+					max_ty -= d;
+				}while( ++y1 <= max_y ); 
+			}
+		}		
+	}		
+}	 
+
+
+void
 asim_circle( ASDrawContext *ctx, int x, int y, int r, Bool fill ) 
 {
-	if( ctx && r > 0 ) 
+	asim_straight_ellips( ctx, x, y, r, r, fill );
+#if 0	 
+	if( ctx && r > 0 && 
+		x + r >= 0 && y+r >= 0 && x - r  < ctx->canvas_width && y - r < ctx->canvas_height ) 
 	{	
-		int dr = r*142 ;       /* that gives us precision of about 0.05% which is 
-								* pretty good for integer math */
+		int max_y = r ; 
+		if( y + r  > ctx->canvas_width ) 
+			max_y = ctx->canvas_width - y ; 
+		if( y - r  < 0 && y > max_y ) 
+			max_y = y ; 
+
 		if( fill ) 
 		{
 			int y1 = 0; 
@@ -739,24 +944,66 @@ asim_circle( ASDrawContext *ctx, int x, int y, int r, Bool fill )
 				CTX_FILL_HLINE(ctx,x-x1,y-y1,x+x1,255);
 				ty -= (y1<<1)+1;
 			
-			}while( ++y1 < r ); 
+			}while( ++y1 < max_y ); 
 		}
 		
 		asim_move_to( ctx, x+r, y );
-		x = x<<8 ; 
-		y = y<<8 ; 
-		r = r<<8 ;
-#if 0
-		ctx_draw_bezier( ctx, x+r, y, x+r, y+r43, x-r, y+r43, x-r, y );
-		ctx_draw_bezier( ctx, x-r, y, x-r, y-r43, x+r, y-r43, x+r, y );
-#else
-		/* this is more precise approximation : */
-		ctx_draw_bezier( ctx, x+r, y, x+r, y+dr, x+dr, y+r, x, y+r );
-		ctx_draw_bezier( ctx, x, y+r, x-dr, y+r, x-r, y+dr, x-r, y );
-		ctx_draw_bezier( ctx, x-r, y, x-r, y-dr, x-dr, y-r, x, y-r );
-		ctx_draw_bezier( ctx, x, y-r, x+dr, y-r, x+r, y-dr, x+r, y );
-#endif
+		if(  x < -16000 || y < -16000 || x > 16000 || y > 16000 ) 
+		{  /* somewhat imprecise approximation using 4 bezier curves */
+			int dr = r*142 ;       /* that gives us precision of about 0.05% which is 
+									* pretty good for integer math */
+			r  = r << 8 ; 
+			x  = x << 8 ; 
+			y  = y << 8 ; 
+			ctx_draw_bezier( ctx, x+r, y, x+r, y+dr, x+dr, y+r, x, y+r );
+			ctx_draw_bezier( ctx, x, y+r, x-dr, y+r, x-r, y+dr, x-r, y );
+			ctx_draw_bezier( ctx, x-r, y, x-r, y-dr, x-dr, y-r, x, y-r );
+			ctx_draw_bezier( ctx, x, y-r, x+dr, y-r, x+r, y-dr, x+r, y );
+	 	}else
+		{		  
+			x = x<<4 ; 
+			y = y<<4 ; 
+			r = r<<4 ;
+			max_y = (max_y << 4) + 4;
+
+			{
+				int min_r = r - 4, max_r = r + 4 ; 
+				int y1 = 0; 
+				int x1 = max_r;
+				int min_ty = min_r * min_r ;
+				int max_ty = max_r * max_r ;
+				int tx = max_ty ;
+			
+				do
+				{
+					int start_tx, start_x1 ;
+					while( tx > max_ty ) 
+					{
+						--x1; 
+						tx -= (x1<<1)+1 ;
+					}	 
+					start_tx = tx ; 
+					start_x1 = x1 ;
+
+					
+					while( tx > min_ty && x1 >= 0) 
+					{
+						render_supersampled_pixel( ctx, (x-x1)<<4, (y+y1)<<4 );
+						render_supersampled_pixel( ctx, (x-x1)<<4, (y-y1)<<4 );
+						render_supersampled_pixel( ctx, (x+x1)<<4, (y+y1)<<4 );
+						render_supersampled_pixel( ctx, (x+x1)<<4, (y-y1)<<4 );
+						--x1; 
+						tx -= (x1<<1)+1 ;
+					}
+					tx = start_tx ; 
+					x1 = start_x1 ;
+					min_ty -= (y1<<1)+1;
+					max_ty -= (y1<<1)+1;
+				}while( ++y1 <= max_y ); 
+			}
+		}		
 	}		
+#endif
 }	 
 
 /* Sinus lookup table */
@@ -866,14 +1113,33 @@ asim_ellips( ASDrawContext *ctx, int x, int y, int rx, int ry, int angle, Bool f
 }	 
 
 
+void 
+asim_flood_fill( ASDrawContext *ctx, int x, int y, CARD8 min_val, CARD8 max_val ) 
+{
+	if( ctx && x >= 0 && x < ctx->canvas_width && y >= 0 && y < ctx->canvas_height )
+	{
+		int x0 = x, x1 = x ; 
+		int cw = ctx->canvas_width ;
+		CARD8 *data = ctx->canvas + y*cw ; 
+		while( x0 >= 0 && data[x0] <= max_val && data[x0]  >= min_val ) --x0;
+		++x0 ;
+		while( x1 < cw && data[x1] <= max_val && data[x1]  >= min_val ) ++x1;
+		--x1 ; 
+		LOCAL_DEBUG_OUT( "x = %d, y = %d, data[x] = 0x%X, x0 = %d, x1 = %d", x, y, data[x], x0, x1 );
+		
+		if( x0 <= x1 ) 
+			ctx_flood_fill( ctx, x0, y, x1, min_val, max_val );			
+	}		   
+}	 
+
 void
 asim_rectangle( ASDrawContext *ctx, int x, int y, int width, int height ) 
 {
 	asim_move_to( ctx, x, y );
-	asim_line_to_generic( ctx, x+width, y, ctx_draw_line_solid_aa);	 		
-	asim_line_to_generic( ctx, x+width, y+height, ctx_draw_line_solid_aa);	 		   
-	asim_line_to_generic( ctx, x, y+height, ctx_draw_line_solid_aa);	 		   
-	asim_line_to_generic( ctx, x, y, ctx_draw_line_solid_aa);	 		   
+	asim_line_to_generic( ctx, x+width, y, ctx_draw_line_solid);	 		
+	asim_line_to_generic( ctx, x+width, y+height, ctx_draw_line_solid);	 		   
+	asim_line_to_generic( ctx, x, y+height, ctx_draw_line_solid);	 		   
+	asim_line_to_generic( ctx, x, y, ctx_draw_line_solid);	 		   
 }	 
 
 
@@ -1060,11 +1326,16 @@ int main(int argc, char **argv )
 	for( i = 0 ; i < 180 ; i+=5 ) 
 		asim_ellips( ctx, 595, 550, 198, 40, i, False );
 
-
 	asim_circle( ctx, 705, 275, 90, True );
 
+	asim_circle( ctx, -40000, 500, 40500, False );
+	asim_circle( ctx, -10000, 500, 10499, False );
 
-
+/*	asim_flood_fill( ctx, 664, 166, 0, 126 ); 
+	asim_flood_fill( ctx, 670, 77, 0, 126 ); 
+	asim_flood_fill( ctx, 120, 80, 0, 126 ); 
+	asim_flood_fill( ctx, 300, 460, 0, 126 ); 
+*/
 #if 1
 	/* commit drawing : */
 	apply_draw_context( drawing1, ctx, SCL_DO_ALPHA ); 
