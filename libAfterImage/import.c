@@ -179,7 +179,9 @@ file2ASImage( const char *file, ASFlagType what, double gamma, unsigned int comp
 			im = as_image_file_loaders[file_type](realfilename, what, gamma, gamma_table, subimage, compression);
 		else
 			show_error( "Support for the format of image file \"%s\" has not been implemented yet.", realfilename );
-
+#ifndef NO_DEBUG_OUTPUT
+		show_progress( "image loaded from \"%s\"", realfilename );
+#endif
 		if( realfilename != file )
 			free( realfilename );
 	}else

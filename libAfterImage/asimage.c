@@ -460,12 +460,13 @@ store_asimage( ASImageManager* imageman, ASImage *im, const char *name )
 	if( !AS_ASSERT(im) )
 		if( AS_ASSERT_NOTVAL(im->magic, MAGIC_ASIMAGE) )
 			im = NULL ;
-
 	if( !AS_ASSERT(imageman) && !AS_ASSERT(im) && !AS_ASSERT((char*)name) )
 		if( im->imageman == NULL )
 		{
+			int hash_res ;
 			im->name = mystrdup( name );
-			res = (add_hash_item( imageman->image_hash, (ASHashableValue)(char*)im->name, im) == ASH_Success);
+			hash_res = add_hash_item( imageman->image_hash, (ASHashableValue)(char*)(im->name), im);
+			res = ( hash_res == ASH_Success);
 			if( !res )
 			{
 				free( im->name );

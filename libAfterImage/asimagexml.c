@@ -1200,7 +1200,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
  * tile - tile an image to specified area.
  * SYNOPSIS
  *  <tile id="new_id" refid="other_image" width="pixels" height="pixels"
- *        x_origin="pixels" y_origin="pixels" tint="color">
+ *        x_origin="pixels" y_origin="pixels" tint="color" complement=0|1>
  * ATTRIBUTES
  * id       Optional. Image will be given this name for future reference.
  * refid    Optional. An image ID defined with the "id" parameter for
@@ -1221,6 +1221,9 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
  *          Tinting can both lighten and darken an image. Tinting color
  *          0 or #7f7f7f7f yields no tinting. Tinting can be performed
  *          on any channel, including alpha channel.
+ * complement Optional. Will use color that is the complement to tint color
+ *          for the tinting, if set to 1. Default is 0.
+ *
  * NOTES
  * This tag applies to the first image contained within the tag.  Any
  * further images will be discarded.
@@ -1235,6 +1238,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 		int width = 0, height = 0, xorig = 0, yorig = 0;
 		ARGB32 tint = 0 ;
 		ASImage* imtmp = NULL;
+		char *complement_str = NULL ;
 		for (ptr = parm ; ptr ; ptr = ptr->next) {
 			if (!strcmp(ptr->tag, "id")) id = strdup(ptr->parm);
 			else if (!strcmp(ptr->tag, "refid")) refid = ptr->parm;
@@ -1243,6 +1247,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 			else if (!strcmp(ptr->tag, "width")) width_str = ptr->parm;
 			else if (!strcmp(ptr->tag, "height")) height_str = ptr->parm;
 			else if (!strcmp(ptr->tag, "tint")) parse_argb_color(ptr->parm, &tint);
+			else if (!strcmp(ptr->tag, "complement")) complement_str = ptr->parm;
 		}
 		for (ptr = doc->child ; ptr && !imtmp ; ptr = ptr->next) {
 			imtmp = build_image_from_xml(asv, imman, fontman, ptr, NULL, flags, verbose, display_win);
@@ -1262,7 +1267,26 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 			if (height_str) height = parse_math(height_str, NULL, height);
 			if (xorig_str) xorig = parse_math(xorig_str, NULL, width);
 			if (yorig_str) yorig = parse_math(yorig_str, NULL, height);
-			if (width > 0 && height > 0) {
+			if (width > 0 && height > 0)
+			{
+				if( complement_str )
+				{
+					register char *ptr = complement_str ;
+					CARD32 a = ARGB32_ALPHA8(tint),
+						   r = ARGB32_RED8(tint),
+						   g = ARGB32_GREEN8(tint),
+						   b = ARGB32_BLUE8(tint) ;
+					while( *ptr )
+					{
+						if( *ptr == 'a' ) 		a = ~a ;
+						else if( *ptr == 'r' ) 	r = ~r ;
+						else if( *ptr == 'g' ) 	g = ~g ;
+						else if( *ptr == 'b' ) 	b = ~b ;
+						++ptr ;
+					}
+
+					tint = MAKE_ARGB32(a, r, g, b );
+				}
 				result = tile_asimage(asv, imtmp, xorig, yorig, width, height, tint, ASA_ASImage, 100, ASIMAGE_QUALITY_TOP);
 				safe_asimage_destroy(imtmp);
 			}
