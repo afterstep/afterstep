@@ -62,6 +62,7 @@
 #include "asimage.h"
 #include "xcf.h"
 #include "xpm.h"
+#include "ungif.h"
 #include "import.h"
 
 
@@ -1252,37 +1253,25 @@ gif2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tabl
 
 	if ((fp = open_image_file(path)) == NULL)
 		return NULL;
-SHOW_CHECKPOINT ;
-	if( (gif = DGifOpenFileHandle(fileno(fp))) != NULL )
+	if( (gif = open_gif_read(fp)) != NULL )
 	{
 		SavedImage	*sp = NULL ;
-		if( (status = DGifSlurp(gif)) == GIF_OK )
+		int count = 0 ;
+		if( (status = get_gif_saved_images(gif, subimage, &sp, &count )) == GIF_OK )
 		{
 			GifPixelType *row_pointer ;
-			if( subimage >= 0 && subimage < gif->ImageCount )
-				sp = &gif->SavedImages[subimage];
-			else
-				sp = &gif->SavedImages[0];
 
-SHOW_CHECKPOINT ;
-   			for ( y = 0; y < sp->ExtensionBlockCount; y++)
-			 	if( sp->ExtensionBlocks[y].Function == 0xf9 &&
-			 		(sp->ExtensionBlocks[y].Bytes[1]&0x01))
-			   		 transparent = (int) sp->ExtensionBlocks[y].Bytes[4];
-
-SHOW_CHECKPOINT ;
+			if( sp->ExtensionBlocks )
+				for ( y = 0; y < sp->ExtensionBlockCount; y++)
+			 		if( sp->ExtensionBlocks[y].Function == 0xf9 &&
+			 			(sp->ExtensionBlocks[y].Bytes[1]&0x01))
+			   		 	transparent = (int) sp->ExtensionBlocks[y].Bytes[4];
 			cmap = gif->SColorMap ;
-			for( y = 0 ; y < cmap->ColorCount ; y++ )
-fprintf( stderr, "%d: %2.2X %2.2X %2.2X\n", y, cmap->Colors[y].Red, cmap->Colors[y].Green, cmap->Colors[y].Blue );
 
 			cmap = (sp->ImageDesc.ColorMap == NULL)?gif->SColorMap:sp->ImageDesc.ColorMap;
-fprintf( stderr, "private colormap = %p, using colormap = %p\n", sp->ImageDesc.ColorMap, cmap );
-			for( y = 0 ; y < cmap->ColorCount ; y++ )
-fprintf( stderr, "%d: %2.2X %2.2X %2.2X\n", y, cmap->Colors[y].Red, cmap->Colors[y].Green, cmap->Colors[y].Blue );
 		    width = sp->ImageDesc.Width;
 		    height = sp->ImageDesc.Height;
 
-SHOW_CHECKPOINT ;
 			if( cmap != NULL && (row_pointer = sp->RasterBits) != NULL &&
 			    width < MAX_IMPORT_IMAGE_SIZE && height < MAX_IMPORT_IMAGE_SIZE )
 			{
@@ -1290,7 +1279,6 @@ SHOW_CHECKPOINT ;
 
 				im = create_asimage( width, height, compression );
 				prepare_scanline( im->width, 0, &buf, False );
-SHOW_CHECKPOINT ;
 				for (y = 0; y < height; ++y)
 				{
 					int x ;
@@ -1317,22 +1305,14 @@ SHOW_CHECKPOINT ;
 						asimage_add_line (im, IC_ALPHA,  buf.alpha, y);
 				}
 				free_scanline(&buf, True);
-SHOW_CHECKPOINT ;
 			}
+			free_gif_saved_images( sp, count );
 		}else
 			ASIM_PrintGifError();
-SHOW_CHECKPOINT ;
-		/* this is needed as giflib/ungiflib has bugs freeing memory twice :*/
-		for( y = 0 ; y < gif->ImageCount ; y++ )
-			if( gif->SavedImages[y].ImageDesc.ColorMap == gif->Image.ColorMap)
-			{
-				gif->Image.ColorMap = NULL ;
-				break;
-			}
 		DGifCloseFile(gif);
+		fclose( fp );
 	}
 	SHOW_TIME("image loading",started);
-SHOW_CHECKPOINT ;
 	return im ;
 }
 #else 			/* GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF GIF */

@@ -62,6 +62,7 @@
 #include "asimage.h"
 #include "xcf.h"
 #include "xpm.h"
+#include "ungif.h"
 #include "import.h"
 #include "export.h"
 #include "ascmap.h"
@@ -650,8 +651,10 @@ ASImage2ico ( ASImage *im, const char *path,  ASImageExportParams *params )
 
 Bool ASImage2gif( ASImage *im, const char *path,  ASImageExportParams *params )
 {
-	GifFileType *gif ;
+	FILE *outfile = NULL, *infile = NULL;
+	GifFileType *gif = NULL ;
 	ColorMapObject *gif_cmap ;
+	Bool dont_save_cmap = False ;
 	ASGifExportParams defaults = { ASIT_Gif,EXPORT_ALPHA|EXPORT_APPEND, 4, 127 };
 	ASColormap         cmap;
 	int *mapped_im ;
@@ -659,140 +662,95 @@ Bool ASImage2gif( ASImage *im, const char *path,  ASImageExportParams *params )
 	GifPixelType *row_pointer ;
 	Bool new_image = True ;
 	START_TIME(started);
+	int cmap_size = 1;
 
 	LOCAL_DEBUG_CALLER_OUT ("(\"%s\")", path);
 
 	if( params == NULL )
 		params = (ASImageExportParams *)&defaults ;
 
-	/*EGifSetGifVersion("87a");*/
-show_warning( "." );
-
 	mapped_im = colormap_asimage( im, &cmap, 256, params->gif.dither, params->gif.opaque_threshold );
 
-/*	if( !get_flags( params->gif.flags, EXPORT_ALPHA) )
-		cmap.has_opaque = False ;
-	else
-		transp_idx = cmap.count ;
- */
-	if( (gif_cmap = MakeMapObject(256, NULL )) == NULL )
+	while( cmap_size < 256 && cmap_size < cmap.count )
+		cmap_size = cmap_size<<1 ;
+	if( (gif_cmap = MakeMapObject(cmap_size, NULL )) == NULL )
 	{
 		ASIM_PrintGifError();
 		return False;
 	}
-	for( y = 0 ; y < MIN(cmap.count,256) ; y++ )
-	{
-		gif_cmap->Colors[y].Red = cmap.entries[y].red ;
-		gif_cmap->Colors[y].Green = cmap.entries[y].green ;
-		gif_cmap->Colors[y].Blue = cmap.entries[y].blue ;
-		fprintf( stderr, "%d: %2.2X %2.2X %2.2X\n", y, gif_cmap->Colors[y].Red, gif_cmap->Colors[y].Green, gif_cmap->Colors[y].Blue );
-	}
+	memcpy( &(gif_cmap->Colors[0]), &(cmap.entries[0]), MIN(cmap.count,cmap_size)*3 );
 
-	if( (gif = EGifOpenFileName((char*)path, get_flags(params->gif.flags, EXPORT_APPEND)?TRUE:FALSE)) == NULL )
+	if( get_flags(params->gif.flags, EXPORT_APPEND) )
+		infile = fopen( path, "rb" );
+	if( infile != NULL )
 	{
+		SavedImage *images = NULL ;
+		int count = 0 ;
 		/* TODO: do something about multiimage files !!! */
-		gif = DGifOpenFileName(path);
-		if( gif == NULL || DGifSlurp(gif) == GIF_ERROR)
+		gif = open_gif_read(infile);
+		if( gif == NULL || get_gif_saved_images(gif, -1, &images, &count) == GIF_ERROR)
 		{
 			ASIM_PrintGifError();
 			if( gif )
 				DGifCloseFile(gif);
-			gif = EGifOpenFileName((char*)path, FALSE) ;
+			fclose( infile );
+			gif = NULL ;
 		}else
 		{
 			GifFileType gif_src ;
-			int i ;
 
 			new_image = False ;
 			gif_src = *gif ;
-fprintf( stderr, "SColorMap = %p\n", gif->SColorMap );
 			gif->SColorMap = NULL ;
-			gif->SavedImages = NULL ;
-fprintf( stderr, "Image.colormap = %p\n", gif->Image.ColorMap );
 			gif->Image.ColorMap = NULL ;
-show_progress( "." );
 			DGifCloseFile(gif);
-  			gif = EGifOpenFileName((char*)path, FALSE );
-
-show_progress( "." );
+			fclose( infile );
+			outfile = open_writeable_image_file( path );
+			gif = EGifOpenFileHandle(fileno(outfile));
 			if( gif != NULL )
 			{
-				if( EGifPutScreenDesc(gif, gif_src.SWidth, gif_src.SHeight,
+				int status;
+				if( ( status = EGifPutScreenDesc(gif, gif_src.SWidth, gif_src.SHeight,
 				                       gif_src.SColorResolution,
 									   gif_src.SBackGroundColor,
-									   gif_src.SColorMap ) == GIF_ERROR )
+									   gif_src.SColorMap )) == GIF_OK )
+					status = write_gif_saved_images( gif, images, count );
+				if( status != GIF_OK )
 					ASIM_PrintGifError();
-
-				if( gif_src.SColorMap )
-					FreeMapObject(gif_src.SColorMap);
 			}
-
-			for( i = 0 ; i < gif_src.ImageCount ; ++i )
-			{
-				SavedImage	*sp = &gif_src.SavedImages[i];
-				int		SavedHeight = sp->ImageDesc.Height;
-				int		SavedWidth = sp->ImageDesc.Width;
-				ExtensionBlock	*ep;
-
-				/* this allows us to delete images by nuking their rasters */
-				if (sp->RasterBits == NULL || gif == NULL )
-				{
-					if (sp->ImageDesc.ColorMap)
-	    				FreeMapObject(sp->ImageDesc.ColorMap);
-					if (sp->ExtensionBlocks)
-	    				FreeExtension(sp);
-					continue;
-				}
-
-#if 1
-				if (sp->ExtensionBlocks)
-				{
-        			for ( y = 0; y < sp->ExtensionBlockCount; y++)
-					{
-            			ep = &sp->ExtensionBlocks[y];
-            			if (EGifPutExtension(gif,
-               				(ep->Function != 0) ? ep->Function : '\0',
-               				ep->ByteCount, ep->Bytes) == GIF_ERROR)
-                			ASIM_PrintGifError();
-					}
-					FreeExtension(sp);
-    			}
-#endif
-fprintf( stderr, "SavedImage[%d].colormap = %p\n", i, sp->ImageDesc.ColorMap );
-				if (EGifPutImageDesc(gif, sp->ImageDesc.Left, sp->ImageDesc.Top,
-			     	SavedWidth, SavedHeight, sp->ImageDesc.Interlace, sp->ImageDesc.ColorMap
-			     	) == GIF_ERROR)
-					ASIM_PrintGifError();
-
-				if (sp->ImageDesc.ColorMap)
-    				FreeMapObject(sp->ImageDesc.ColorMap);
-
-				for (y = 0; y < SavedHeight; y++)
-				{
-	    			if (EGifPutLine(gif,
-			    		sp->RasterBits + y * SavedWidth, SavedWidth) == GIF_ERROR)
-						ASIM_PrintGifError();
-				}
-	    		free((char *)sp->RasterBits);
+			if( gif_src.SColorMap )
+			{  /* we only want to save private colormap if it is any different from
+			    * screen colormap ( saves us  768 bytes per image ) */
+				if( gif_cmap->ColorCount == gif_src.SColorMap->ColorCount )
+					dont_save_cmap = ( memcmp( gif_cmap->Colors, gif_src.SColorMap->Colors, gif_cmap->ColorCount*sizeof(GifColorType)) == 0 );
+				FreeMapObject(gif_src.SColorMap);
 			}
 			if( gif )
-				if( EGifPutImageDesc(gif, 0, 0, im->width, im->height, FALSE, gif_cmap ) == GIF_ERROR )
+				if( EGifPutImageDesc(gif, 0, 0, im->width, im->height, FALSE, (dont_save_cmap)?NULL:gif_cmap ) == GIF_ERROR )
 					ASIM_PrintGifError();
 		}
+		free_gif_saved_images( images, count );
+	}
+
+	if( gif == NULL )
+	{
+		outfile = open_writeable_image_file( path );
+		if( (gif = EGifOpenFileHandle(fileno(outfile))) == NULL )
+			ASIM_PrintGifError();
 	}
 
 	if( new_image && gif )
 	{
-		ColorMapObject *gif_gcmap = MakeMapObject(256, NULL );
-		memset( gif_gcmap->Colors, 0x00, 256*3 );
-		if( EGifPutScreenDesc(gif, im->width, im->height, 256, 0, gif_gcmap ) == GIF_ERROR )
+		if( EGifPutScreenDesc(gif, im->width, im->height, cmap_size, 0, gif_cmap ) == GIF_ERROR )
 			ASIM_PrintGifError();
-		FreeMapObject(gif_gcmap);
-		if( EGifPutImageDesc(gif, 0, 0, im->width, im->height, FALSE, gif_cmap ) == GIF_ERROR )
+		if( EGifPutImageDesc(gif, 0, 0, im->width, im->height, FALSE, NULL ) == GIF_ERROR )
 			ASIM_PrintGifError();
 	}
-	FreeMapObject(gif_cmap);
-	gif_cmap = NULL ;
+	if( gif_cmap )
+	{
+		FreeMapObject(gif_cmap);
+		gif_cmap = NULL ;
+	}
 	if( gif )
 	{
 		row_pointer = safemalloc( im->width*sizeof(GifPixelType));
