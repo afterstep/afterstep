@@ -360,9 +360,12 @@ text_property2string( XTextProperty *tprop)
 static long *
 get_as_property ( Window w, Atom property, size_t * data_size, CARD32 *version)
 {
-	
-    CARD32 *result = NULL;
+     long *result = NULL;
 #ifndef X_DISPLAY_MISSING
+	
+	/* property data is stored as array of longs, but header[1] still holds its size in 
+	 * 32 bit values - should be carefull here : */
+	
 	union 
 	{	
 		unsigned char *uc_ptr ;
@@ -370,7 +373,8 @@ get_as_property ( Window w, Atom property, size_t * data_size, CARD32 *version)
 	}header, data;
 	int           actual_format;
 	Atom          actual_type;
-    CARD32		  junk, size;
+    CARD32		  size;
+	long		  junk;
 
     if( w == None || property == None )
         return False;
@@ -385,7 +389,7 @@ get_as_property ( Window w, Atom property, size_t * data_size, CARD32 *version)
 
     if( version )
         *version   = header.long_ptr[0];
-    size = header.long_ptr[1];
+    size = header.long_ptr[1];  /* size in 32 bit values */ 
     if( data_size )
         *data_size = size;
     size /= sizeof(CARD32);
@@ -477,7 +481,7 @@ set_32bit_proplist (Window w, Atom property, Atom type, CARD32* list, long nitem
 #ifndef X_DISPLAY_MISSING
     if (w != None && property != None )
 	{
-		LOCAL_DEBUG_OUT( "nitems = %d", nitems );
+		LOCAL_DEBUG_OUT( "nitems = %ld", nitems );
         if( nitems > 0 )
         {
 			long *buffer = (long*)list ;
