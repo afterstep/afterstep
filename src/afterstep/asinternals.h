@@ -486,17 +486,12 @@ void InitDatabase (Bool free_resources);
 void InitLook (struct MyLook *look, Bool free_resources);
 void InitFeel (struct ASFeel *feel, Bool free_resources);
 
-#define PARSE_BASE_CONFIG       (0x01<<0)
-#define PARSE_LOOK_CONFIG       (0x01<<1)
-#define PARSE_FEEL_CONFIG       (0x01<<2)
-#define PARSE_DATABASE_CONFIG   (0x01<<3)
-/* some synonims : */
-#define BASE_CONFIG_CHANGED     PARSE_BASE_CONFIG
-#define LOOK_CONFIG_CHANGED     PARSE_LOOK_CONFIG
-#define FEEL_CONFIG_CHANGED     PARSE_FEEL_CONFIG
-#define DATABASE_CONFIG_CHANGED PARSE_DATABASE_CONFIG
+#define PARSE_BASE_CONFIG       BASE_CONFIG
+#define PARSE_LOOK_CONFIG       LOOK_CONFIG
+#define PARSE_FEEL_CONFIG       FEEL_CONFIG
+#define PARSE_DATABASE_CONFIG   DATABASE_CONFIG
+
 #define PARSE_EVERYTHING        (0xFFFFFFFF)
-#define EVERYTHING_CHANGED      (0xFFFFFFFF)
 
 void LoadASConfig (int thisdesktop, ASFlagType what);
 

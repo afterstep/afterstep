@@ -1072,7 +1072,7 @@ on_menu_look_feel_changed( ASInternalWindow *asiw, ASFeel *feel, MyLook *look, A
 			menu->items_num = 0 ;
         }
 
-        if( get_flags( what, FEEL_CONFIG_CHANGED ) )
+        if( get_flags( what, FEEL_CONFIG ) )
         {
             MenuData *md = FindPopup (menu->name, False);
             if( md == NULL )

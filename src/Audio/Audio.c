@@ -30,13 +30,12 @@
 
 #include "../../configure.h"
 #include "../../libAfterStep/asapp.h"
+#include "../../libAfterStep/screen.h"
+#include "../../libAfterStep/event.h"
+#include "../../libAfterStep/wmprops.h"
+#include "../../libAfterConf/afterconf.h"
 
-#define BUILTIN_STARTUP		MAX_MESSAGES
-#define BUILTIN_SHUTDOWN	MAX_MESSAGES+1
-#define BUILTIN_UNKNOWN		MAX_MESSAGES+2
-#define MAX_BUILTIN			3
-
-#define MAX_SOUNDS			(MAX_MESSAGES+MAX_BUILTIN)
+#define MAX_SOUNDS			AFTERSTEP_EVENTS_NUM
 
 /*
  * rplay stuff:
@@ -49,26 +48,20 @@ int           rplay_fd = -1;
 RPLAY        *rplay_table[MAX_SOUNDS];
 #endif
 
-/* globals */
-static int    fd_width;
-static int    fd[2];
-static int    x_fd;
-
-AudioConfig 	*config = NULL ;
-SessionConfig 	*Session = NULL ;
-char         	*AudioPath = NULL ;
+AudioConfig 	*Config = NULL ;
 
 /* Event mask - we want all events */
 #define mask_reg MAX_MASK
 
 /* prototypes */
-Bool          SetupSound ();
+Bool SetupSound ();
 
-void          Loop (int *);
-void          process_message (unsigned long, unsigned long *);
-void          DeadPipe (int);
-void          GetOptions (const char *filename);
-void          done (int);
+void DeadPipe (int);
+void GetBaseOptions (const char *filename/* unused */);
+void GetOptions (const char *filename);
+void HandleEvents();
+void DispatchEvent (ASEvent * event);
+void process_message (send_data_type type, send_data_type *body);
 
 /* this is the pointer to one of the play functions, chosen in SetupSound() : */
 Bool (*audio_play) (short) = NULL;
@@ -87,29 +80,22 @@ int
 main (int argc, char **argv)
 {
 	/* Save our program name - for error messages */
-	InitMyApp (CLASS_AUDIO, argc, argv, NULL, OPTION_SINGLE|OPTION_RESTART);
-	signal (SIGQUIT, DeadPipe);
-	signal (SIGSEGV, DeadPipe);
-	signal (SIGTERM, DeadPipe);
+    InitMyApp (CLASS_AUDIO, argc, argv, NULL, NULL, 0 );
 
-	x_fd = ConnectX (PropertyChangeMask, False);
-	InternUsefulAtoms ();
-
-	Session = GetASSession (Scr.d_depth, MyArgs.override_home, MyArgs.override_share);
-	if( MyArgs.override_config )
-		SetSessionOverride( Session, MyArgs.override_config );
-
-	/* connect to AfterStep */
-	fd_width = get_fd_width ();
-	fd[0] = fd[1] = ConnectAfterStep (mask_reg, Scr.wmprops);
+    ConnectX( &Scr, PropertyChangeMask );
+    ConnectAfterStep ( mask_reg);
+	
+	Config = CreateAudioConfig();
+	
+	LOCAL_DEBUG_OUT("parsing Options ...%s","");
+    LoadBaseConfig (GetBaseOptions);
+	LoadColorScheme();
+    LoadConfig ("audio", GetOptions);
 
 #ifdef HAVE_RPLAY_H
 	memset( rplay_table, 0x00, sizeof(RPLAY *)*MAX_SOUNDS);
 #endif
 	memset( sound_table, 0x00, sizeof(char *)*MAX_SOUNDS);
-
-	GetSessionPaths(Session, NULL, &AudioPath, NULL, NULL, NULL, NULL);
-    GetOptions("audio");
 
 	if (!SetupSound ())
 	{
@@ -120,9 +106,9 @@ main (int argc, char **argv)
 	/*
 	 * Play the startup sound.
 	 */
-	audio_play (BUILTIN_STARTUP);
-	SendInfo (fd, "Nop", 0);
-	Loop (fd);
+	audio_play (EVENT_Startup);
+	SendInfo ( "Nop", 0);
+    HandleEvents();
 
 	return 0;
 }
@@ -136,10 +122,10 @@ Bool SetupSoundEntry( int code, char *sound )
 
     filename1 = mystrdup(sound);
     replaceEnvVar (&filename1);
-    if( CheckFile( filename1 ) < 0 && AudioPath != NULL )
+    if( CheckFile( filename1 ) < 0 && Environment->audio_path != NULL )
     {
-        filename2 = safemalloc( strlen(AudioPath)+1+strlen(filename1)+1 );
-        sprintf( filename2, "%s/%s", AudioPath, filename1 );
+        filename2 = safemalloc( strlen(Environment->audio_path)+1+strlen(filename1)+1 );
+        sprintf( filename2, "%s/%s", Environment->audio_path, filename1 );
         free( filename1 );
         filename1 = filename2 ;
         if( CheckFile( filename2 ) < 0 )
@@ -148,11 +134,12 @@ Bool SetupSoundEntry( int code, char *sound )
             filename1 = NULL ;
         }
     }
-    if( sound_table[code] ) free (sound_table[code]);
+    if( sound_table[code] ) 
+		free (sound_table[code]);
     sound_table[code] = filename1 ;
 
 #ifdef HAVE_RPLAY_H
-	if( config->rplay_host == NULL )
+	if( Config->rplay_host == NULL )
 		sound = sound_table[code] ;
 
     if( sound )
@@ -162,8 +149,8 @@ Bool SetupSoundEntry( int code, char *sound )
 		rplay_table[code] = rplay_create (RPLAY_PLAY);
 		rplay_set (rplay_table[code], RPLAY_APPEND,
                    RPLAY_SOUND, sound,
-                   RPLAY_PRIORITY, config->rplay_priority,
-                   RPLAY_VOLUME, config->rplay_volume, NULL);
+                   RPLAY_PRIORITY, Config->rplay_priority,
+                   RPLAY_VOLUME, Config->rplay_volume, NULL);
 	}
 #endif
 	return True ;
@@ -174,11 +161,11 @@ Bool SetupSound ()
 	register int i ;
 	int sounds_configured = 0 ;
 
-    if( config == NULL ) return False ;
+    if( Config == NULL ) return False ;
     /* first lets build our sounds table and see if we actually have anything to play :*/
 
 	for( i = 0 ; i < MAX_SOUNDS ; i++ )
-		if( SetupSoundEntry( i, config->sounds[i] ) )
+		if( SetupSoundEntry( i, Config->sounds[i] ) )
 			sounds_configured++ ;
 
 	if( sounds_configured <= 0 )
@@ -192,12 +179,12 @@ Bool SetupSound ()
     /*
 	 * Builtin rplay support is enabled when AudioPlayCmd == builtin-rplay.
 	 */
-    if (!mystrcasecmp (config->playcmd, "builtin-rplay"))
+    if (!mystrcasecmp (Config->playcmd, "builtin-rplay"))
 	{
-        if( config->rplay_host )
+        if( Config->rplay_host )
         {
-            replaceEnvVar (&(config->rplay_host));
-            rplay_fd = rplay_open (config->rplay_host);
+            replaceEnvVar (&(Config->rplay_host));
+            rplay_fd = rplay_open (Config->rplay_host);
         }else if( (rplay_fd = rplay_open_display ()) < 0 )
 			rplay_fd = rplay_open ("localhost");
 
@@ -210,17 +197,17 @@ Bool SetupSound ()
         return True;
 	}
 #endif
-    if( mystrcasecmp (config->playcmd, "builtin-cat")== 0 )
+    if( mystrcasecmp (Config->playcmd, "builtin-cat")== 0 )
 	{
 		audio_play = audio_player_cat ;
-    }else if( mystrcasecmp (config->playcmd, "builtin-stdout")== 0)
+    }else if( mystrcasecmp (Config->playcmd, "builtin-stdout")== 0)
 	{
 		audio_play = audio_player_stdout ;
 	}else
 	{
 		audio_play = audio_player_ext ;
-        if( config->playcmd == NULL )
-            config->playcmd = mystrdup("");
+        if( Config->playcmd == NULL )
+            Config->playcmd = mystrdup("");
 	}
 
 	return (audio_play!=NULL) ;
@@ -231,26 +218,43 @@ Bool SetupSound ()
  *  GetOptions      - read the sound configuration file.
  ***********************************************************************/
 void
+GetBaseOptions (const char *filename/* unused*/)
+{
+    START_TIME(started);
+	ReloadASEnvironment( NULL, NULL, NULL, False );
+    SHOW_TIME("BaseConfigParsingTime",started);
+}
+
+
+void
 GetOptions (const char *filename)
 {
-	char *realfilename = MakeSessionFile( Session, filename, False );
-    if( config )
-	{
-        DestroyAudioConfig( config );
-		config = NULL ;
-	}
+    AudioConfig *config = ParseAudioOptions (filename, MyName);
+	int i ;
+    START_TIME(option_time);
 
-	if( realfilename )
-	{
-  		config = ParseAudioOptions( realfilename, MyName );
-		free( realfilename );
-	}
+    /* Need to merge new config with what we have already :*/
+    /* now lets check the config sanity : */
+    /* mixing set and default flags : */
+    Config->set_flags |= config->set_flags;
 
-    if( config == NULL )
-	{
-  		show_error("no audio configuration available - exiting");
-  		exit(0);
-    }
+  	if( config->playcmd != NULL ) 
+		set_string_value( &(Config->playcmd), config->playcmd, NULL, 0 );
+	for( i = 0 ; i < AFTERSTEP_EVENTS_NUM ; ++i ) 
+  		if( config->sounds[i] != NULL ) 
+			set_string_value( &(Config->sounds[i]), config->sounds[i], NULL, 0 );
+    
+	if( get_flags(config->set_flags, AUDIO_SET_DELAY) )
+        Config->delay = config->delay;
+    if( get_flags(config->set_flags, AUDIO_SET_RPLAY_HOST) && config->rplay_host != NULL )
+		set_string_value( &(Config->rplay_host), config->rplay_host, NULL, 0 );
+    if( get_flags(config->set_flags, AUDIO_SET_RPLAY_PRIORITY) )
+        Config->rplay_priority = config->rplay_priority;
+    if( get_flags(config->set_flags, AUDIO_SET_RPLAY_VOLUME) )
+        Config->rplay_volume = config->rplay_volume;
+
+    DestroyAudioConfig (config);
+    SHOW_TIME("Config parsing",option_time);
 }
 
 /***********************************************************************
@@ -259,37 +263,91 @@ GetOptions (const char *filename)
  *	Loop - wait for data to process
  *
  ***********************************************************************/
-void
-Loop (int *fd)
+void HandleEvents()
 {
-	unsigned long code;
-	ASMessage    *asmsg = NULL;
+	ASEvent event;
+    Bool has_x_events = False ;
+    while (True)
+    {
+        while((has_x_events = XPending (dpy)) )
+        {
+            if( ASNextEvent (&(event.x), True) )
+            {
+                event.client = NULL ;
+                setup_asevent_from_xevent( &event );
+                DispatchEvent( &event );
+			}
+        }
+        module_wait_pipes_input ( process_message );
+    }
+}
+
+void
+DispatchEvent (ASEvent * event)
+{
+    SHOW_EVENT_TRACE(event);
+    switch (event->x.type)
+    {
+	    case PropertyNotify:
+			handle_wmprop_event (Scr.wmprops, &(event->x));
+			return ;
+        default:
+            return;
+    }
+}
+
+void
+process_message (send_data_type type, send_data_type *body)
+{
 	time_t        now = 0;
 	static time_t last_time = 0;
-
-	while (1)
+	int code = -1 ;
+	
+    LOCAL_DEBUG_OUT( "received message %lX", type );
+		
+	if( type == M_PLAY_SOUND ) 
 	{
-		asmsg = CheckASMessage (fd[1], -1);
-		if (asmsg)
-		{
-			code = asmsg->header[1];
-			if (asmsg->header[0] == START_FLAG && code >= 0 && code < MAX_MESSAGES )
-			{
-				if( code == ASM_PlaySound)
-					if( asmsg->header[2] > 3 && asmsg->body )
-						SetupSoundEntry( code, (char*)&(asmsg->body[3]));
-			}else
-				code = -1;
-			DestroyASMessage (asmsg);
-			now = time (0);
-            if (code >= 0 && now >= (last_time + (time_t) config->delay))
-            {   /* Play the sound. */
-                if( audio_play ( code ) )
-                    last_time = now;
-			}
-		}
+		CARD32 *pbuf = &(body[4]);
+       	char *new_name = deserialize_string( &pbuf, NULL );
+  		SetupSoundEntry( EVENT_PlaySound, new_name);
+		free( new_name );
+		code = EVENT_PlaySound ;
+	}else if( (type&WINDOW_PACKET_MASK) != 0 )
+	{
+		struct ASWindowData *wd = fetch_window_by_id( body[0] );
+		WindowPacketResult res ;
+        /* saving relevant client info since handle_window_packet could destroy the actuall structure */
+		ASFlagType old_state = wd?wd->state_flags:0 ; 
+        show_activity( "message %lX window %X data %p", type, body[0], wd );
+		res = handle_window_packet( type, body, &wd );
+		LOCAL_DEBUG_OUT( "result = %d", res );
+        if( res == WP_DataCreated )
+		{	
+			code = EVENT_WindowAdded ;
+		}else if( res == WP_DataChanged )
+		{	
+			
+		}else if( res == WP_DataDeleted )
+        {
+			code = EVENT_WindowDestroyed ;
+        }
+    }else if( type == M_NEW_DESKVIEWPORT )
+    {
+		code = EVENT_DeskViewportChanged ;
+	}else if( type == M_NEW_CONFIG )
+	{
+	 	code = EVENT_Config ;
+	}else if( type == M_NEW_MODULE_CONFIG )
+	{
+		code = EVENT_ModuleConfig ;
 	}
+    now = time (0);
+	if( code >= 0 )
+	    if ( now >= (last_time + (time_t) Config->delay))
+			if( audio_play ( code ) )
+    	    	last_time = now;
 }
+
 
 
 /***********************************************************************
@@ -301,21 +359,18 @@ Loop (int *fd)
 void
 DeadPipe (int nonsense)
 {
-	done (0);
-}
+	audio_play (EVENT_Shutdown);
+    if( Config )
+        DestroyAudioConfig (Config);
 
-/***********************************************************************
- *
- *  Procedure:
- *	done - common exit point for Audio.
- *
- ***********************************************************************/
-void
-done (int n)
-{
-	audio_play (BUILTIN_SHUTDOWN);
-	/* printf("shutdown \n"); */
-	exit (n);
+    FreeMyAppResources();
+#ifdef DEBUG_ALLOCS
+    print_unfreed_mem ();
+#endif /* DEBUG_ALLOCS */
+
+    XFlush (dpy);
+    XCloseDisplay (dpy);
+    exit (0);
 }
 
 /***********************************************************************
@@ -365,9 +420,6 @@ Bool audio_player_cat(short sound)
 {
   FILE *af ;
   Bool res = False;
-    if( !sound_table[sound] )
-        sound = BUILTIN_UNKNOWN ;
-
     if (sound_table[sound] )
 	{
 		if( (af = fopen( "/dev/audio", "wb" )) != NULL )
@@ -381,10 +433,9 @@ Bool audio_player_cat(short sound)
 
 Bool audio_player_stdout(short sound)
 {
-    if( !sound_table[sound] )
-        sound = BUILTIN_UNKNOWN ;
-
-    return audio_player_cat_file( sound, stdout );
+    if( sound_table[sound] )
+	    return audio_player_cat_file( sound, stdout );
+	return False;
 }
 
 /******************************************************************/
@@ -393,12 +444,9 @@ Bool audio_player_stdout(short sound)
 Bool audio_player_ext(short sound)
 {
     if( check_singleton_child(AUDIO_SINGLETON_ID,False) > 0 ) return False ;/* previous command still running */
-    if( !sound_table[sound] )
-        sound = BUILTIN_UNKNOWN ;
-
     if( sound_table[sound] == NULL ) return False; /* nothing to do */
 
-    spawn_child( SOUNDPLAYER, AUDIO_SINGLETON_ID, -1, None, 0, True, False, config->playcmd, sound_table[sound], NULL );
+    spawn_child( SOUNDPLAYER, AUDIO_SINGLETON_ID, -1, None, 0, True, False, Config->playcmd, sound_table[sound], NULL );
 
     return True ;
 }

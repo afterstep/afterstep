@@ -1020,7 +1020,7 @@ commit_config_change( int func )
 		if ( _as_config_change_count > 0 )
     	{
         	if( func == F_CHANGE_THEME )
-				Done ( True, NULL );
+				QuickRestart ("theme");
         	else if( func == F_CHANGE_COLORSCHEME )
 				QuickRestart ("look");
 			else
@@ -1442,13 +1442,13 @@ void test_func_handler( FunctionData *data, ASEvent *event, int module )
 void
 QuickRestart (char *what)
 {
-    Bool          what_flags = 0;
+    unsigned long what_flags = 0;
     Bool          update_background = False;
 
 	if (what == NULL)
 		return;
 
-    if (strcasecmp (what, "all") == 0)
+    if (strcasecmp (what, "all") == 0 || strcasecmp (what, "theme") == 0)
         what_flags = PARSE_EVERYTHING;
     else if (strcasecmp (what, "look&feel") == 0)
         what_flags = PARSE_LOOK_CONFIG|PARSE_FEEL_CONFIG;
@@ -1474,6 +1474,7 @@ QuickRestart (char *what)
 
 	if (update_background)
         SendPacket( -1, M_NEW_BACKGROUND, 1, 1);
+	SendPacket( -1, M_NEW_CONFIG, 1, what_flags);
 }
 
 

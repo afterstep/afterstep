@@ -35,6 +35,13 @@ extern "C" {
 
 #define CLASS_CUSTOM		"ASCustom"
 
+#define BASE_CONFIG     	(0x01<<0)
+#define LOOK_CONFIG     	(0x01<<1)
+#define FEEL_CONFIG     	(0x01<<2)
+#define DATABASE_CONFIG 	(0x01<<3)
+#define AUTOEXEC_CONFIG 	(0x01<<4)
+#define COLORSCHEME_CONFIG 	(0x01<<5)
+#define THEME_CONFIG 		(0x01<<6)
 
 #define START_FLAG 0xffffffff
 
@@ -51,12 +58,16 @@ extern "C" {
 #define M_RES_NAME           (1<<10)
 #define M_END_WINDOWLIST     (1<<11)
 #define M_STACKING_ORDER     (1<<12)
-#define M_LOCKONSEND         (1<<13)
-#define M_NEW_BACKGROUND     (1<<14)
-#define M_NEW_THEME          (1<<15)
+#define M_NEW_BACKGROUND     (1<<13)
+#define M_NEW_CONFIG         (1<<14)
+#define M_NEW_MODULE_CONFIG	 (1<<15)
+#define M_PLAY_SOUND		 (1<<16)
 
-#define MAX_MESSAGES          15
-#define MAX_MASK             (((1<<MAX_MESSAGES)-1) & ~M_LOCKONSEND)
+#define M_LOCKONSEND         (1<<17)
+
+
+#define MAX_MESSAGES          17
+#define MAX_MASK             ((1<<MAX_MESSAGES)-1)
 
 #define WAIT_AS_RESPONSE_TIMEOUT    20   /* seconds */
 

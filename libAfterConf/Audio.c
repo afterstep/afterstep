@@ -59,11 +59,8 @@ TermDef       EventTerms[] = {
     {TF_DONT_SPLIT|TF_NO_MYNAME_PREPENDING, "startup", 7,           TT_FILENAME, EVENT_Startup_ID            , NULL},
     {TF_DONT_SPLIT|TF_NO_MYNAME_PREPENDING, "shutdown", 8,          TT_FILENAME, EVENT_Shutdown_ID           , NULL},
     
-	{TF_DONT_SPLIT|TF_NO_MYNAME_PREPENDING, "new_theme", 9,         TT_FILENAME, EVENT_Theme_ID              , NULL},
-	{TF_DONT_SPLIT|TF_NO_MYNAME_PREPENDING, "new_look", 8,          TT_FILENAME, EVENT_Look_ID               , NULL},
-	{TF_DONT_SPLIT|TF_NO_MYNAME_PREPENDING, "new_feel", 8,          TT_FILENAME, EVENT_Feel_ID               , NULL},
-	{TF_DONT_SPLIT|TF_NO_MYNAME_PREPENDING, "base_config", 10,      TT_FILENAME, EVENT_BaseConfig_ID         , NULL},
-	{TF_DONT_SPLIT|TF_NO_MYNAME_PREPENDING, "module_config", 12,    TT_FILENAME, EVENT_ModuleConfig_ID       , NULL},
+	{TF_DONT_SPLIT|TF_NO_MYNAME_PREPENDING, "config", 6,         	TT_FILENAME, EVENT_Config_ID             , NULL},
+	{TF_DONT_SPLIT|TF_NO_MYNAME_PREPENDING, "module_config", 13,    TT_FILENAME, EVENT_ModuleConfig_ID       , NULL},
     
 	{0, NULL, 0, 0, 0}						   /* end of structure */
 };

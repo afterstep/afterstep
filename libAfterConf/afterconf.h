@@ -1767,12 +1767,10 @@ void DestroyAnimateConfig (AnimateConfig * config);
 #define	EVENT_DeskViewportChanged	14
 #define	EVENT_Startup				15
 #define	EVENT_Shutdown				16
-#define	EVENT_Theme					17
-#define	EVENT_Look					18
-#define	EVENT_Feel					19
-#define	EVENT_BaseConfig			20
-#define	EVENT_ModuleConfig			21
-#define	AFTERSTEP_EVENTS_NUM 		22
+#define	EVENT_Config				17
+#define	EVENT_ModuleConfig			18
+#define	EVENT_PlaySound				19
+#define	AFTERSTEP_EVENTS_NUM 		20
 
 
 #define EVENT_ID_START          		(ANIMATE_ID_END+1)
@@ -1794,10 +1792,7 @@ void DestroyAnimateConfig (AnimateConfig * config);
 #define EVENT_DeskViewportChanged_ID    (EVENT_ID_START+EVENT_DeskViewportChanged)
 #define EVENT_Startup_ID                (EVENT_ID_START+EVENT_Startup)
 #define EVENT_Shutdown_ID               (EVENT_ID_START+EVENT_Shutdown)				
-#define EVENT_Theme_ID               	(EVENT_ID_START+EVENT_Theme)				   
-#define EVENT_Look_ID               	(EVENT_ID_START+EVENT_Look)				   
-#define EVENT_Feel_ID               	(EVENT_ID_START+EVENT_Feel)				   
-#define EVENT_BaseConfig_ID            	(EVENT_ID_START+EVENT_BaseConfig)				   
+#define EVENT_Config_ID               	(EVENT_ID_START+EVENT_Config)				   
 #define EVENT_ModuleConfig_ID          	(EVENT_ID_START+EVENT_ModuleConfig)				   
 
 #define EVENT_ID_END          			(EVENT_ID_START+AFTERSTEP_EVENTS_NUM)
@@ -1816,25 +1811,23 @@ void DestroyAnimateConfig (AnimateConfig * config);
 
 typedef struct
 {
-  char *playcmd;
-  char *sounds[AFTERSTEP_EVENTS_NUM] ;
+	char *playcmd;
+  	char *sounds[AFTERSTEP_EVENTS_NUM] ;
 
 #define AUDIO_SET_DELAY  			(0x01<<0)
 #define AUDIO_SET_RPLAY_HOST		(0x01<<1)
 #define AUDIO_SET_RPLAY_PRIORITY  	(0x01<<2)
 #define AUDIO_SET_RPLAY_VOLUME  	(0x01<<3)
   
-  ASFlagType set_flags ;
+	ASFlagType set_flags ;
 
-  int delay;
-  char *rplay_host;
-  int rplay_priority;
-  int rplay_volume;
+	int delay;
+	char *rplay_host;
+	int rplay_priority;
+	int rplay_volume;
 
-  struct FreeStorageElem *more_stuff;
-
-}
-AudioConfig;
+	struct FreeStorageElem *more_stuff;
+}AudioConfig;
 
 AudioConfig *CreateAudioConfig ();
 AudioConfig *ParseAudioOptions (const char *filename, char *myname);
