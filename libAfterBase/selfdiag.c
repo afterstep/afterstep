@@ -252,7 +252,9 @@ void print_my_backtrace( long* ebp, long *esp )
 #if defined(_ASMi386_SIGCONTEXT_H)
     fprintf( stderr, " Stack Backtrace :\n");
     fprintf( stderr, "   FRAME       NEXT FRAME  FUNCTION\n");
-    while( ebp != NULL ) 
+    while( ebp != NULL && 
+           ebp > (long*)0x08074000  /* stack can't possibly go below that */
+	 ) 
     {
       long offset = 0 ;
       char* func_name = NULL;
