@@ -1,8 +1,0 @@
-[Desktop Entry]
-Name=AfterStep
-Exec=afterstep
-Terminal=False
-TryExec=afterstep
-
-[Window Manager]
-SessionManaged=true

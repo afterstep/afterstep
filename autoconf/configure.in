@@ -619,6 +619,7 @@ autoconf/Makefile.common.lib \
 configure.h \
 Makefile \
 AfterStep.spec \
+AfterStep.desktop \
 \
 afterstep/Makefile \
 \
