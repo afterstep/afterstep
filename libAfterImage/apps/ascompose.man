@@ -1,10 +1,10 @@
 .\" Source: ascompose.c 
-.\" Generated with ROBODoc Version 3.2.3 (Jan  7 2002)
+.\" Generated with ROBODoc Version 3.2.3 (Jul 29 2001)
 .\" ROBODoc (c) 1994-2001 by Frans Slothouber and Jacco van Weert.
 .\" t
 .\" @(#)ascompose.c.3
-.TH ascompose.c 1 "Tue Jan 08 2002" ascompose.c 3
-.PM Generated from ascompose.c with ROBODoc v3.2.3 on Tue Jan 08 11:47:28 2002
+.TH ascompose.c 1 "Thu Jan 10 2002" ascompose.c 3
+.PM Generated from ascompose.c with ROBODoc v3.2.3 on Thu Jan 10 00:31:56 2002
 
 .SH libAfterImage/ascompose
 .SS\fB NAME\fP 
@@ -29,7 +29,7 @@
 .nf
  \fBascompose\fP reads supplied XML data, and manipulates image accordingly\.
  It could transform images from files of any supported file format,
- draw gradients, render anialiased texturized \fBtext\fP, perform
+ draw gradients, render antialiased texturized \fBtext\fP, perform
  superimposition of arbitrary number of images, and \fBsave\fP images into
  files of any of supported output file formats\.
 
@@ -42,7 +42,7 @@
  Internal image format is 32bit ARGB with 8bit per channel\.
 
  Last image referenced, will be displayed in X \fBwindow\fP, unless \-n option
- is specifyed\. If \-r option is specifyed, then this image will be
+ is specified\. If \-r option is specified, then this image will be
  displayed in root \fBwindow\fP of X display, effectively setting a background
  for a desktop\. If \-o option is specified, this image will also be
  saved into the file or requested type\.
@@ -51,7 +51,7 @@
  allowing it to be used on web servers and any other place\. It does not
  even require X libraries in that case\.
 
- Supported filetypes for input are :
+ Supported file types for input are :
  XPM   \- via internal code, or libXpm library\.
  JPEG  \- via libJpeg library\.
  PNG   \- via libPNG library\.
@@ -91,6 +91,32 @@
                        debug messages\.
 
 .fi
+.SS\fB PORTABILITY\fP 
+.nf
+ \fBascompose\fP could be used both with and without X \fBwindow\fP system\. It has
+ been tested on most UNIX flavors on both 32 and 64 bit architecture\.
+ It has also been tested under CYGWIN environment on Windows 95/NT/2000
+
+.fi
+.SS\fB USES\fP 
+.nf
+ \fBlibAfterImage\fP         all the image manipulation routines\.
+ libAfterBase          Optionally\. Misc data handling such as hash
+                       tables and console io\. Must be used when compiled
+                       without X \fBWindow\fP support\.
+ libJPEG               JPEG image format support\.
+ libPNG                PNG image format support\.
+ libungif              GIF image format support\.
+ libTIFF               TIFF image format support\.
+
+.fi
+.SS\fB AUTHOR\fP 
+.nf
+\fB  Ethan Fisher          <allanon at crystaltokyo dot com>
+ Sasha Vasko           <sasha at aftercode dot net>
+ Eric Kowalski         <eric at beancrock dot net>
+\fP 
+.fi
 
 .PP
 .SH libAfterImage/ascompose/sample
@@ -105,10 +131,10 @@
     static char* default_doc_str = "\\
     <\fBcomposite\fP op=hue>\\
       <\fBcomposite\fP op=add>\\
-        <\fBscale\fP width=512 height=384><img src=rose512\.jpg/></\fBscale\fP>\\
-        <\fBtile\fP width=512 height=384><img src=back\.xpm/></\fBtile\fP>\\
+        <\fBscale\fP width=512 height=384><\fBimg\fP src=rose512\.jpg/></\fBscale\fP>\\
+        <\fBtile\fP width=512 height=384><\fBimg\fP src=back\.xpm/></\fBtile\fP>\\
       </\fBcomposite\fP>\\
-      <\fBtile\fP width=512 height=384><img src=fore\.xpm/></\fBtile\fP>\\
+      <\fBtile\fP width=512 height=384><\fBimg\fP src=fore\.xpm/></\fBtile\fP>\\
     </\fBcomposite\fP>\\
     ";
 .fi
@@ -119,15 +145,15 @@
 .nf
  Here is the list and description of possible XML \fBtags\fP to use in the
  script :
-    img       \- load image from the file\.
+    \fBimg\fP       \- load image from the file\.
     \fBrecall\fP    \- \fBrecall\fP previously loaded/generated image by its name\.
     \fBtext\fP      \- render \fBtext\fP string into new image\.
     \fBsave\fP      \- \fBsave\fP an image into the file\.
     \fBbevel\fP     \- draw \fBsolid\fP \fBbevel\fP frame around the image\.
     \fBgradient\fP  \- render multipoint \fBgradient\fP\.
     \fBmirror\fP    \- create \fBmirror\fP copy of an image\.
-    \fBblur\fP      \- perform gaussian blurr on an image\.
-    \fBrotate\fP    \- \fBrotate\fP/\fBflip\fP image in 90 degree inscrements\.
+    \fBblur\fP      \- perform gaussian \fBblur\fP on an image\.
+    \fBrotate\fP    \- \fBrotate\fP/\fBflip\fP image in 90 degree increments\.
     \fBscale\fP     \- \fBscale\fP an image to arbitrary size\.
     \fBcrop\fP      \- \fBcrop\fP an image to arbitrary size\.
     \fBtile\fP      \- \fBtile\fP an image to arbitrary size\.
@@ -148,49 +174,35 @@
  Operator precedence is NOT supported\.  Percentages are allowed, and
  apply to the "size" parameter of this function\.
 
-/
-* Math expression parsing algorithm\. */
-ouble parse_math(const char* str, char** endptr, double size) {
-double total = 0;
-char op = '+';
-char minus = 0;
-const char* startptr = str;
-while (*str) {
-    while (isspace((int)*str)) str++;
-    if (!op) {
-        if (*str == '+' || *str == '\-' || *str == '*' || *str == '/') op = *str++;
-        else if (*str == '\-') { minus = 1; str++; }
-        else if (*str == ')') { str++; break; }
-        else break;
-    } else {
-        char* ptr;
-        double num;
-        if (*str == '(') num = parse_math(str + 1, &ptr, size);
-        else num = strtod(str, &ptr);
-        if (str != ptr) {
-            if (*ptr == '%') num *= size / 100\.0, ptr++;
-            if (minus) num = \-num;
-            if (op == '+') total += num;
-            else if (op == '\-') total \-= num;
-            else if (op == '*') total *= num;
-            else if (op == '/' && num) total /= num;
-        } else break;
-        str = ptr;
-        op = '\\0';
-        minus = 0;
-    }
-}
-if (endptr) *endptr = (char*)str;
-show_debug(__FILE__,__FUNCTION__,__LINE__,"Parsed math [%s] with reference [%\.2f] into number [%\.2f]\.", startptr, size, total);
-return total;
+ Each tag is only allowed to return ONE image\.
 
-* Each tag is only allowed to return ONE image\. */
-SImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
-xml_elem_t* ptr;
-char* id = NULL;
-\fBASImage\fP* result = NULL;
-***** \fBlibAfterImage\fP/\fBascompose\fP/\fBtags\fP/img
 
+.fi
+
+.PP
+.SH libAfterImage/ascompose/tags/img
+.SS\fB NAME\fP 
+.nf
+\fR  \fBimg\fP \- load image from the file\.
+\fP 
+.fi
+.SS\fB SYNOPSIS\fP 
+.nf
+ <\fBimg\fP id="new_img_id" src=filename/>
+
+.fi
+.SS\fB ATTRIBUTES\fP 
+.nf
+ id     Optional\.  Image will be given this name for future reference\.
+ src    Required\.  The filename (NOT URL) of the image file to load\.
+
+.fi
+.SS\fB NOTES\fP 
+.nf
+\fR  The special image src "xroot:" will import the background image
+ of the root X \fBwindow\fP, if any\.  No attempt will be made to offset this
+ image to fit the location of the resulting \fBwindow\fP, if one is displayed\.
+\fP 
 .fi
 
 .PP
@@ -272,7 +284,7 @@ char* id = NULL;
           standard AS image file formats: xpm, jpg, png, gif, tiff\.
  compress Optional\.  Compression level if supported by output file
           format\. Valid values are in range of 0 \- 100 and any of
-          "defalte", "jpeg", "ojpeg", "packbits" for TIFF files\.
+          "deflate", "jpeg", "ojpeg", "packbits" for TIFF files\.
           Note that JPEG and GIF will produce images with deteriorated
           \fBquality\fP when compress is greater then 0\. For JPEG default is
           25, for PNG default is 6 and for GIF it is 0\.
@@ -282,7 +294,7 @@ char* id = NULL;
  replace  Optional\. Causes \fBascompose\fP to delete file if the file with the
           same name already exists\. Valid values are 0 and 1\. Default
           is 1 \- files are deleted before being saved\. Disable this to
-          get multyimage animated gifs\.
+          get multimage animated gifs\.
  delay    Optional\. Delay to be stored in GIF image\. This could be used
           to create animated gifs\. Note that you have to set replace="0"
           and then write several images into the GIF file with the same
@@ -549,7 +561,7 @@ char* id = NULL;
           image\.
  \fBtint\fP     Optional\. Additionally \fBtint\fP an image to specified color\.
           Tinting can both lighten and darken an image\. Tinting color
-          0 or #7f7f7f7f yeilds no tinting\. Tinting can be performed
+          0 or #7f7f7f7f yields no tinting\. Tinting can be performed
           on any channel, including \fBalpha\fP channel\.
 
 .fi
@@ -742,13 +754,18 @@ char* id = NULL;
           Optional\. Default is image height\. Tile image to this height
           prior to superimposition\.
  \fBtile\fP     Optional\. Default is 0\. If set will cause image to be tiled
-          across entire composition, unless overriden by clip_width or
+          across entire composition, unless overridden by clip_width or
           clip_height\.
  \fBtint\fP     Optional\. Additionally \fBtint\fP an image to specified color\.
           Tinting can both lighten and darken an image\. Tinting color
-          0 or #7f7f7f7f yeilds no tinting\. Tinting can be performed
+          0 or #7f7f7f7f yields no tinting\. Tinting can be performed
           on any channel, including \fBalpha\fP channel\.
 \fP 
+.fi
+.SS\fB SEE ALSO\fP 
+.nf
+ \fBlibAfterImage\fP
+
 .fi
 
 .PP

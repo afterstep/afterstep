@@ -10,7 +10,7 @@ AC_INIT(Makefile.in)
 
 AC_CONFIG_HEADER(config.h:config.h.in)
 
-version="0.80"
+version="0.91"
 version_major="0"
 lib_name="LIBAFTERIMAGE"
 lib_file_name="libAfterImage"
