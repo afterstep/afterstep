@@ -5624,7 +5624,7 @@ if test "x$enable_ascp" = "xyes"; then
     echo "$as_me:5624: checking libraries required by ascp" >&5
 echo $ECHO_N "checking libraries required by ascp... $ECHO_C" >&6
     if fltk-config --libs >/dev/null  ;then
-	ASCP=src/ascp ;
+	ASCP=ascp ;
 	present_libs="$LDFLAGS $LIBS $x_libs $AFTERIMAGE_LIBS";
 	for l in `fltk-config --libs` ;	do
 
@@ -5652,7 +5652,7 @@ if test "x$enable_ascp" = "xyes"; then
     echo "$as_me:5652: checking headers required by ascp" >&5
 echo $ECHO_N "checking headers required by ascp... $ECHO_C" >&6
     if fltk-config --cflags >/dev/null  ;then
-	ASCP=src/ascp ;
+	ASCP=ascp ;
 	present_incs="$CCFLAGS $x_includes";
 	for l in `fltk-config --cflags` ;	do
 	    inc_found=no
