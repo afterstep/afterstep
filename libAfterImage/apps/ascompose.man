@@ -3,8 +3,8 @@
 .\" ROBODoc (c) 1994-2001 by Frans Slothouber and Jacco van Weert.
 .\" t
 .\" @(#)ascompose.c.3
-.TH ascompose.c 1 "Mon Jan 14 2002" ascompose.c 3
-.PM Generated from ascompose.c with ROBODoc v3.2.3 on Mon Jan 14 22:57:24 2002
+.TH ascompose.c 1 "Tue Jan 15 2002" ascompose.c 3
+.PM Generated from ascompose.c with ROBODoc v3.2.3 on Tue Jan 15 15:08:04 2002
 
 .SH libAfterImage/ascompose
 .SS\fB NAME\fP 
