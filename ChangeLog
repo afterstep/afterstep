@@ -1,4 +1,6 @@
  o Applied patch to get AfterStep to change Icon when Title is changing.
+   New feel option  - FollowTitleChanges in feel has to be used to enable 
+   this feature.
  o Fixed Tile's -h handling.
  o added support for maximization to not exceed screen size, while 
    working with xinerama.
