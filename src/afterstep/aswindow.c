@@ -312,7 +312,7 @@ add_aswindow_to_layer( ASWindow *asw, int layer )
         /* inserting window into the top of the new layer */
     LOCAL_DEBUG_OUT( "adding window %p to layer %p (%d)", asw, dst_layer, layer );
         if( !AS_ASSERT(dst_layer) )
-            vector_insert_elem( dst_layer->members, &asw, 1, NULL, False );
+            vector_insert_elem( dst_layer->members, &asw, 1, NULL, True );
     }
 }
 
@@ -651,10 +651,15 @@ is_window_obscured (ASWindow * above, ASWindow * below)
         {
             register ASWindow *t ;
             if( (t = members[i]) == below )
+			{
 				return False;
-            else if( ASWIN_DESK(t) == ASWIN_DESK(below) )
+            }else if( ASWIN_DESK(t) == ASWIN_DESK(below) )
+			{
                 if (IS_OVERLAPING(t,below))
+				{
 					return True;
+				}
+			}
         }
     }else if (above != NULL )
     {   /* checking if window "above" is completely obscuring any of the
@@ -709,18 +714,28 @@ LOCAL_DEBUG_CALLER_OUT( "%p,%lX,%d", t, sibling_window, stack_mode );
     /* 2. do all the occlusion checks whithin our layer */
 	if (stack_mode == TopIf)
 	{
+		LOCAL_DEBUG_OUT( "stack_mode = %s", "TopIf");			
         if (is_window_obscured (sibling, t))
 			occlusion = OCCLUSION_BELOW;
 	} else if (stack_mode == BottomIf)
 	{
+		LOCAL_DEBUG_OUT( "stack_mode = %s", "BottomIf");			
         if (is_window_obscured (t, sibling))
 			occlusion = OCCLUSION_ABOVE;
 	} else if (stack_mode == Opposite)
 	{
         if (is_window_obscured (sibling, t))
+		{
 			occlusion = OCCLUSION_BELOW;
-        else if (is_window_obscured (t, sibling))
+			LOCAL_DEBUG_OUT( "stack_mode = opposite, occlusion = %s", "below");			
+        }else if (is_window_obscured (t, sibling))
+		{
 			occlusion = OCCLUSION_ABOVE;
+			LOCAL_DEBUG_OUT( "stack_mode = opposite, occlusion = %s", "above");
+		}else
+		{
+			LOCAL_DEBUG_OUT( "stack_mode = opposite, occlusion = %s","none" ); 
+		}
 	}
 	if (sibling)
         if (ASWIN_LAYER(sibling) != ASWIN_LAYER(t) )

@@ -434,9 +434,18 @@ SHOW_CHECKPOINT;
                 finished = True;
         case MotionNotify:
 			/* update location of the pager_view window */
-            new_x = event->x.xmotion.x_root - data->parent->root_x;
-            new_y = event->x.xmotion.y_root - data->parent->root_y;
+			{
+				/* must get current pointer position as we may get late while 
+				   doing all the redrawiong stuff */
+				if( !ASQueryPointerRootXY( &new_x, &new_y ) )
+				{
+					new_x = event->x.xmotion.x_root ;
+					new_y = event->x.xmotion.y_root ;
+				}
+          		new_x -= data->parent->root_x;
+          		new_y -= data->parent->root_y;
 LOCAL_DEBUG_OUT("new = %+d%+d, finished = %d", new_x, new_y, finished );
+			}
 			data->pointer_func (data, new_x, new_y);
 			break;
         default:

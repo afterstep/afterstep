@@ -1,1 +1,1 @@
-Exec "x11amp" exec x11amp &
+Exec "xmms" exec xmms &

@@ -33,7 +33,7 @@ BalloonBorderHilite	Right,Bottom
 #                            desks
 #   LabelBelowDesk         - will place label below desk vs. above
 
-#*PagerDecoration  DeskBorderWidth 1, DeskBorderColor red, NoPageSeparator, GridColor green, NoSelection
+*PagerDecoration  DeskBorderWidth 1, DeskBorderColor BaseDark, GridColor Inactive2Dark, SelectionColor HighActiveLight
 
 *PagerGeometry       -1+27
 
