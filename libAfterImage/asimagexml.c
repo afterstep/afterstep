@@ -520,6 +520,60 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 		}
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
+/****** libAfterImage/asimagexml/tags/color
+ * NAME
+ * color - defines symbolic name for a color and set of variables.
+ * SYNOPSIS
+ * <color name="sym_name" argb=colorvalue/>
+ * ATTRIBUTES
+ * name   Symbolic name for the color value, to be used to refer to that color.
+ * argb   8 characters hex definition of the color or other symbolic color name.
+ * NOTES
+ * In addition to defining symbolic name for the color this tag will define
+ * 7 other variables : sym_name.red, sym_name, green, sym_name.blue,
+ *                     sym_name.alpha, sym_name.hue, sym_name.saturation,
+ *                     sym_name.value
+ ******/
+	if (!strcmp(doc->tag, "color")) {
+		xml_elem_t* parm = xml_parse_parm(doc->parm);
+		const char* name = NULL;
+		const char* argb_text = NULL;
+		for (ptr = parm ; ptr ; ptr = ptr->next) {
+			if (!strcmp(ptr->tag, "name")) name = strdup(ptr->parm);
+			if (!strcmp(ptr->tag, "argb")) argb_text = ptr->parm;
+		}
+		if (name && argb_text) {
+			ARGB32 argb = ARGB32_Black;
+			if( parse_argb_color( argb_text, &argb ) != argb_text )
+			{
+				static char tmp[256];
+				CARD32 hue16, sat16, val16 ;
+
+#ifdef HAVE_AFTERBASE
+	   			show_progress("defining synonim [%s] for color value #%8.8X.", name, argb);
+	   			register_custom_color( name, argb );
+#endif
+				sprintf( tmp, "%s.alpha", name );
+				asxml_var_insert( tmp, ARGB32_ALPHA8(argb) );
+				sprintf( tmp, "%s.red", name );
+				asxml_var_insert( tmp, ARGB32_RED8(argb) );
+				sprintf( tmp, "%s.green", name );
+				asxml_var_insert( tmp, ARGB32_GREEN8(argb) );
+				sprintf( tmp, "%s.blue", name );
+				asxml_var_insert( tmp, ARGB32_BLUE8(argb) );
+
+				hue16 = rgb2hsv( ARGB32_RED16(argb), ARGB32_GREEN16(argb), ARGB32_BLUE16(argb), &sat16, &val16 );
+
+				sprintf( tmp, "%s.hue", name );
+				asxml_var_insert( tmp, hue162degrees( hue16 ) );
+				sprintf( tmp, "%s.saturation", name );
+				asxml_var_insert( tmp, val162percent( sat16 ) );
+				sprintf( tmp, "%s.value", name );
+				asxml_var_insert( tmp, val162percent( val16 ) );
+			}
+		}
+		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
+	}
 
 /****** libAfterImage/asimagexml/tags/text
  * NAME
