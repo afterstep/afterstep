@@ -222,9 +222,9 @@ prepare_scanline( unsigned int width, unsigned int shift, ASScanline *reusable_m
 	aligned_width = width + (width&0x00000001);
 	sl->buffer = ptr = safemalloc (((aligned_width*4)+4)*sizeof(CARD32));
 
-	sl->red 	= (CARD32*)(((long)ptr>>3)*8);
-	sl->green 	= sl->red   + aligned_width;
-	sl->blue 	= sl->green + aligned_width;
+	sl->xc1 = sl->red 	= (CARD32*)(((long)ptr>>3)*8);
+	sl->xc2 = sl->green = sl->red   + aligned_width;
+	sl->xc3 = sl->blue 	= sl->green + aligned_width;
 	sl->alpha 	= sl->blue  + aligned_width;
 	/* this way we can be sure that our buffers have size of multiplies of 8s
 	 * and thus we can skip unneeded checks in code */
@@ -1176,258 +1176,6 @@ put_ximage_buffer_pseudo (XImage *xim, ASScanline * xim_buf, unsigned int line)
 	}
 }
 
-
-static inline void
-fill_ximage_buffer (unsigned char *xim_line, ASScanline * xim_buf, int BGR_mode, int byte_order, int bpp)
-{
-	int           i, width = xim_buf->width;
-	register CARD32 *r = xim_buf->red, *g = xim_buf->green, *b = xim_buf->blue;
-	register CARD8  *src = (CARD8 *) xim_line;
-#ifdef LOCAL_DEBUG
-    static int debug_count = 10 ;
-#endif
-	if (BGR_mode != byte_order)
-	{
-		r = xim_buf->blue;
-		b = xim_buf->red ;
-	}
-	if ( ascolor_true_depth == 24)
-	{
-		for (i = 0 ; i < width; i++)
-		{   						   			/* must add LSB/MSB checking */
-			r[i] = src[0];
-			g[i] = src[1];
-			b[i] = src[2];
-			src += 3;
-		}
-	} else if (ascolor_true_depth == 32)
-	{
-		if (byte_order == MSBFirst)
-			for (i = 0 ; i < width; i++)
-			{
-				r[i] = src[1];
-				g[i] = src[2];
-				b[i] = src[3];
-				src+= 4;
-			}
-		else
-			for (i = 0 ; i < width; i++)
-			{
-				r[i] = src[0];
-				g[i] = src[1];
-				b[i] = src[2];
-				src+=4;
-			}
-	} else if (ascolor_true_depth == 16)
-	{										   /* must add LSB/MSB checking */
-LOCAL_DEBUG_OUT( "reading row in 16bpp with %s: ", (byte_order == MSBFirst)?"MSBFirst":"no MSBFirst" );
-		if (byte_order == MSBFirst)
-			for (i = 0 ; i < width; i++)
-			{
-				r[i] =  (src[0]&0xF8);
-				g[i] = ((src[0]&0x07)<<5)|((src[1]&0xE0)>>3);
-				b[i] =  (src[1]&0x1F)<<3;
-				src += 2;
-			}
-		else
-			for (i = 0 ; i < width; i++)
-			{
-				r[i] =  (src[1]&0xF8);
-				g[i] = ((src[1]&0x07)<<5)|((src[0]&0xE0)>>3);;
-				b[i] =  (src[0]&0x1F)<<3;
-#ifdef LOCAL_DEBUG
-				if( debug_count > 0 )
-				{
-fprintf( stderr, "rgb #%2.2lX%2.2lX%2.2lX in: 0x%4.4X( %2.2X %2.2X )\n", r[i], g[i], b[i], *((unsigned short*)src), src[0], src[1] );
-					debug_count-- ;
-				}
-#endif
-				src += 2;
-			}
-	} else if (ascolor_true_depth == 15)
-	{										   /* must add LSB/MSB checking */
-		if (byte_order == MSBFirst)
-			for (i = 0 ; i < width; i++)
-			{
-				r[i] =  (src[0]&0x7C)<<1;
-				g[i] = ((src[0]&0x03)<<6)|((src[1]&0xE0)>>2);
-				b[i] =  (src[1]&0x1F)<<3;
-				src += 2;
-			}
-		else
-			for (i = 0 ; i < width; i++)
-			{
-				r[i] =  (src[1]&0x7C)<<1;
-				g[i] = ((src[1]&0x03)<<6)|((src[0]&0xE0)>>2);
-				b[i] =  (src[0]&0x1F)<<3;
-				src += 2;
-			}
-	} else
-	{										   /* below 8 bpp handling */
-		for (i = 0 ; i < width; i++)
-			pixel_to_color_low( src[i], r+i, g+i, b+i );
-	}
-}
-
-void
-put_ximage_buffer (unsigned char *xim_line, ASScanline * xim_buf, int BGR_mode, int byte_order, int bpp)
-{
-	int           i, width = xim_buf->width, step = width+(width&0x01);
-	register CARD32 *r = xim_buf->red, *g = xim_buf->green, *b = xim_buf->blue;
-	register CARD8  *src = (CARD8 *) xim_line;
-#ifdef LOCAL_DEBUG
-    static int debug_count = 10 ;
-#endif
-
-/*fprintf( stderr, "bpp = %d, MSBFirst = %d \n", bpp, byte_order==MSBFirst ) ;*/
-	if (BGR_mode != byte_order)
-	{
-		r = xim_buf->blue;
-		b = xim_buf->red ;
-	}
-	if ( ascolor_true_depth == 24)
-	{
-		for (i = 0 ; i < width; i++)
-		{   						   			/* must add LSB/MSB checking */
-			src[0] = ((r[i]&0x00FFFF00)!=0)?0xFF:r[i];
-			src[1] = ((g[i]&0x00FFFF00)!=0)?0xFF:g[i];
-			src[2] = ((b[i]&0x00FFFF00)!=0)?0xFF:b[i];
-			src += 3;
-		}
-	} else if (ascolor_true_depth == 32)
-	{
-		if (byte_order == MSBFirst)
-			for (i = 0 ; i < width; i++)
-			{
-				src[1] = ((r[i]&0x00FFFF00)!=0)?0xFF:r[i];
-				src[2] = ((g[i]&0x00FFFF00)!=0)?0xFF:g[i];
-				src[3] = ((b[i]&0x00FFFF00)!=0)?0xFF:b[i];
-				src+= 4;
-			}
-		else
-			for (i = 0 ; i < width; i++)
-			{
-				src[0] = ((r[i]&0x00FFFF00)!=0)?0xFF:r[i];
-				src[1] = ((g[i]&0x00FFFF00)!=0)?0xFF:g[i];
-				src[2] = ((b[i]&0x00FFFF00)!=0)?0xFF:b[i];
-				src+=4;
-			}
-	} else if (ascolor_true_depth == 16)
-	{										   /* must add LSB/MSB checking */
-#if 1
-			register CARD32 c = (r[0]<<20) | (g[0]<<10) | (b[0]);
-			register CARD16 *src = (CARD16*)xim_line;
-LOCAL_DEBUG_OUT( "writing row in 16bpp with %s: ", (byte_order == MSBFirst)?"MSBFirst":"no MSBFirst" );
-			i = 0 ;
-			do
-			{
-				if (byte_order == MSBFirst)
-					src[i] = ((c>>17)&0x0007)|((c>>1)&0xE000)|((c>>20)&0x00F8)|((c<<5)&0x1F00);
-				else
-					src[i] = ((c>>7)&0x07E0)|((c>>12)&0xF800)|((c>>3)&0x001F);
-				if( ++i >= width )
-					break;
-				/* carry over quantization error allow for error diffusion:*/
-/*				c = ((c>>1)&0x00300403)+((g[i-step]<<20) | (g[i]<<10) | (g[i+step]));*/
-				c = ((c>>1)&0x00300403)+((r[i]<<20) | (g[i]<<10) | (b[i]));
-				{
-					register CARD32 d = c&0x300C0300 ;
-					if( d )
-					{
-						if( c&0x30000000 )
-							d |= 0x0FF00000;
-						if( c&0x000C0000 )
-							d |= 0x0003FC00 ;
-						if( c&0x00000300 )
-							d |= 0x000000FF ;
-						c ^= d;
-					}
-/*fprintf( stderr, "c = 0x%X, d = 0x%X, c^d = 0x%X\n", c, d, c^d );*/
-				}
-			}while(1);
-#else
-			register CARD32 red=0, green=0, blue=0;
-			for (i = 0 ; i < width; i++)
-			{/* diffusion to compensate for quantization error :*/
-				red   =  (r[i]+red > 0x00FF)?0x00FF:r[i]+red ;
-				blue  =  (b[i]+blue > 0x00FF)?0x00FF:b[i]+blue ;
-/*
-				green  =  (g[i]+green > 0x00FF)?0x00FF:g[i]+green ;
-				src[1] = (green>>5) ;
-				src[0] = (CARD8)(0xE0&(green<<3));
-*/
-				if( g[i] > (0x00FF^green) )
-				{
-					if (byte_order == MSBFirst)
-					{
-						src[0] = red|0x07;
-						src[1] = (CARD8)(0xE0|(blue>>3));
-					}else
-					{
-						src[1] = red|0x07;
-						src[0] = (CARD8)(0xE0|(blue>>3));
-					}
-  					green = 0x01;
-				}else
-				{
-					green+=g[i];
-					if (byte_order == MSBFirst)
-					{
-						src[0] = (red&0xF8)|(green>>5);
-						src[1] = (CARD8)(((green<<3)&0xE0)|(blue>>3));
-					}else
-					{
-						src[1] = (red&0xF8)|(green>>5);
-						src[0] = (CARD8)(((green<<3)&0xE0)|(blue>>3));
-					}
-					green = (green&0x03)>>1;
-				}
-/*				green = (green&0x03)>>1; */
-				red =   (red&0x07)>>1;
-				blue =  (blue&0x07)>>1;
-				src += 2;
-			}
-#endif
-	} else if (ascolor_true_depth == 15)
-	{										   /* must add LSB/MSB checking */
-			register CARD32 c = (r[0]<<20) | (g[0]<<10) | (b[0]);
-			register CARD16 *src = (CARD16*)xim_line;
-LOCAL_DEBUG_OUT( "writing row in 15bpp with %s: ", (byte_order == MSBFirst)?"MSBFirst":"no MSBFirst" );
-			i = 0;
-			do
-			{
-/*				c += (g[i-step]<<20) | (g[i]<<10) | (g[i+step]); */
-
-				if (byte_order == MSBFirst)
-					src[i] = ((c>>18)&0x0003)|((c>>2)&0xE000)|((c>>21)&0x007C)|((c<<5)&0x1F00);
-				else
-					src[i] = ((c>>8)&0x03E0)|((c>>13)&0x7C00)|((c>>3)&0x001F);
-				if( ++i >= width )
-					break;
-			 	/* carry over quantization error allow for error diffusion:*/
-				c = ((c>>1)&0x00300C03)+((r[i]<<20) | (g[i]<<10) | (b[i]));
-				{
-					register CARD32 d = c&0x300C0300 ;
-					if( d )
-					{
-						if( c&0x30000000 )
-							d |= 0x0FF00000;
-						if( c&0x000C0000 )
-							d |= 0x0003FC00 ;
-						if( c&0x00000300 )
-							d |= 0x000000FF ;
-/*fprintf( stderr, "c = 0x%X, d = 0x%X, c^d = 0x%X\n", c, d, c^d );*/
-						c ^= d;
-					}
-				}
-			}while(1);
-	} else
-	{										   /* below 8 bpp handling */
-		for (i = 0 ; i < width; i++)
-			src[i] = color_to_pixel_low( r[i], g[i], b[i] );
-	}
-}
-
 void
 output_image_line_fine( ASImageOutput *imout, ASScanline *new_line, int ratio )
 {
@@ -1462,13 +1210,8 @@ output_image_line_fine( ASImageOutput *imout, ASScanline *new_line, int ratio )
 		{
 			if( imout->next_line < imout->xim->height )
 			{
-				if( ascolor_true_depth == 0 )
-					put_ximage_buffer_pseudo( imout->xim, imout->used, imout->next_line );
-				else
-				{
-					put_ximage_buffer (imout->xim_line, imout->used, 0, imout->xim->byte_order, imout->xim->bits_per_pixel );
-					imout->xim_line += imout->bpl;
-				}
+				PUT_SCANLINE(&Scr,imout->xim,imout->used,imout->next_line,imout->xim_line);
+				imout->xim_line += imout->bpl;
 			}
 		}else if( imout->next_line < imout->im->height )
 			ENCODE_SCANLINE(imout->im,*(imout->used),imout->next_line);
@@ -1505,13 +1248,8 @@ output_image_line_fast( ASImageOutput *imout, ASScanline *new_line, int ratio )
 		{
 			if( imout->next_line < imout->xim->height )
 			{
-				if( ascolor_true_depth == 0 )
-					put_ximage_buffer_pseudo( imout->xim, imout->used, imout->next_line );
-				else
-				{
-					put_ximage_buffer (imout->xim_line, imout->used, 0, imout->xim->byte_order, imout->xim->bits_per_pixel );
-					imout->xim_line += imout->bpl;
-				}
+				PUT_SCANLINE(&Scr,imout->xim,imout->used,imout->next_line,imout->xim_line);
+				imout->xim_line += imout->bpl;
 			}
 		}else if( imout->next_line < imout->im->height )
 			ENCODE_SCANLINE(imout->im,*(imout->used),imout->next_line);
@@ -1772,6 +1510,7 @@ asimage_from_ximage (XImage * xim)
 	if( ascolor_true_depth == 0 )
 		for (i = 0; i < height; i++)
 		{
+
 			fill_ximage_buffer_pseudo( xim, &xim_buf, i );
 			asimage_add_line (im, IC_RED,   xim_buf.red, i);
 			asimage_add_line (im, IC_GREEN, xim_buf.green, i);
@@ -1780,7 +1519,7 @@ asimage_from_ximage (XImage * xim)
 	else                                       /* TRue color visual */
 		for (i = 0; i < height; i++)
 		{
-			fill_ximage_buffer (xim_line, &xim_buf, 0, xim->byte_order, xim->bits_per_pixel );
+			GET_SCANLINE(&Scr,xim,&xim_buf,i,xim_line);
 			asimage_add_line (im, IC_RED,   xim_buf.red, i);
 			asimage_add_line (im, IC_GREEN, xim_buf.green, i);
 			asimage_add_line (im, IC_BLUE,  xim_buf.blue, i);
