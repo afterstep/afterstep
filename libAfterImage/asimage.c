@@ -1862,9 +1862,12 @@ decode_image_scanline_beveled( ASImageDecoder *imdec )
 		int left_margin = MAX(0, imdec->bevel_left);
 		int right_margin = MIN((int)scl->width, imdec->bevel_right);
 		int y = imdec->next_line-bevel->top_outline ;
-
 		if( imdec->im )
 			y %= imdec->im->height ;
+
+		if( left_margin < scl->width )
+			decode_asscanline( scl, imdec->im, imdec->back_color, imdec->filter, left_margin,
+							   y, imdec->offset_x );
 
 		draw_solid_bevel_line( scl, -1, left_margin, right_margin, scl->width,
 							   bevel->hi_color, bevel->lo_color,
@@ -1872,9 +1875,6 @@ decode_image_scanline_beveled( ASImageDecoder *imdec )
 
 		if( left_margin < scl->width )
 		{
-			decode_asscanline( scl, imdec->im, imdec->back_color, imdec->filter, left_margin,
-							   y, imdec->offset_x );
-
 			if( get_flags( bevel->type, BEVEL_SOLID_INLINE ) )
 			{
 				if( y_out < imdec->bevel_top+(int)bevel->top_inline)
