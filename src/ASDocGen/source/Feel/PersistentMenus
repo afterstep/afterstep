@@ -1,5 +1,5 @@
-<varlistentry id="options.FollowTitleChanges">
-	<term>FollowTitleChanges</term>
+<varlistentry id="options.PersistentMenus">
+	<term>PersistentMenus</term>
 	<listitem>
 	<para>Right now if you try to open a menu when its already opened - that will
         cause menu to close. To disable this behaviour and instead pop-up a menu

@@ -1,5 +1,5 @@
 <varlistentry id="options.NoSnapKey">
-	<term>NoSnapKey<emphasis remap='I'>key</emphasis></term>
+	<term>NoSnapKey <emphasis remap='I'>key</emphasis></term>
 	<listitem>
 	<para>AfterSTep now has a feature that "snaps" windows to different
 	desktop features, such as edges of other windows and edge of the screen.

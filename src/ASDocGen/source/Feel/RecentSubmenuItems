@@ -1,5 +1,5 @@
 <varlistentry id="options.RecentSubmenuItems">
-	<term>RecentSubmenuItems<emphasis remap='I'>number_of_items</emphasis></term>
+	<term>RecentSubmenuItems <emphasis remap='I'>number_of_items</emphasis></term>
 	<listitem>
 		<para>Defines maximum number of recently used submenu items
 		to be listed under menu item. Set to 0 to disable feature.

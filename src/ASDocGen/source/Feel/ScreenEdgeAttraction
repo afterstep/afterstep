@@ -1,5 +1,5 @@
 <varlistentry id="options.ScreenEdgeAtraction">
-	<term>ScreenEdgeAttraction<emphasis remap='I'>distance</emphasis></term>
+	<term>ScreenEdgeAttraction <emphasis remap='I'>distance</emphasis></term>
 	<listitem>
 		<para>Defines distance from which window will be attracted to
 		the screen edge, while being interactively moved/resized.</para>
