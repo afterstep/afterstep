@@ -604,3 +604,18 @@ asim_casestring_compare (ASHashableValue value1, ASHashableValue value2)
 	return 0;
 }
 
+int
+asim_get_drawable_size (Drawable d, unsigned int *ret_w, unsigned int *ret_h)
+{
+	Window        root;
+	unsigned int  ujunk;
+	int           junk;
+	*ret_w = 0;
+	*ret_h = 0;
+	if( d )
+		if (XGetGeometry (dpy, d, &root, &junk, &junk, ret_w, ret_h, &ujunk, &ujunk) != 0)
+			return 1;
+	return 0;
+}
+
+

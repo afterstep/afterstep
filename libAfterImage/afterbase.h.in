@@ -188,6 +188,7 @@ inline void asim_nonGNUC_debugout_stub( const char *format, ...);
 char   *asim_mystrndup(const char *str, size_t n);
 #define mystrndup(s,n)    	 asim_mystrndup(s,n)
 #define mystrncasecmp(s,s2,n)    strncasecmp(s,s2,n)
+#define mystrcasecmp(s,s2)       strcasecmp(s,s2)
 
 /* from libAfterBase/fs.h : */
 int		asim_check_file_mode (const char *file, int mode);
@@ -202,6 +203,8 @@ char   *asim_find_file (const char *file, const char *pathlist, int type);
 #define find_file(f,p,t) asim_find_file(f,p,t)
 
 extern Display *dpy ;
+int asim_get_drawable_size (Drawable d, unsigned int *ret_w, unsigned int *ret_h);
+#define get_drawable_size(d,w,h) asim_get_drawable_size((d),(w),(h))
 
 const char *asim_parse_argb_color( const char *color, CARD32 *pargb );
 #define parse_argb_color(c,p) asim_parse_argb_color((c),(p))
