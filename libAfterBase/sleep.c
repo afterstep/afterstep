@@ -26,7 +26,7 @@ sleep_a_little (int n)
 	value.tv_usec = n % 1000000;
 	value.tv_sec = n / 1000000;
 
-	(void)select (1, 0, 0, 0, &value);
+	PORTABLE_SELECT (1, 0, 0, 0, &value);
 }
 
 
