@@ -44,7 +44,11 @@
 # X TErms. Note that only one of this will be displayed on Wharf, as they all
 # have same button name. Change button name ( first column after *Wharf) to make them a separate buttons :
 
-*Wharf term aterm Exec "-" aterm -tr -tint blue -fg yellow -bg black &
+*Wharf term aterm Exec "-" aterm &
+
+# aterm 1.0 should pick MyStuyle from look, if it does not the following is a nice alternative :
+#*Wharf term aterm Exec "-" aterm -tr -tint blue -fg yellow -bg black &
+
 *Wharf term rxvt  Exec "-" rxvt  -tr -fg yellow -bg black &
 *Wharf term eterm Exec "-" eterm -tr -tint blue -fg yellow -bg black &
 *Wharf term xterm Exec "-" xterm -fg yellow -bg blue &
@@ -52,7 +56,7 @@
 #
 # Midnight commander file manager in the term of choice :
 #
-*Wharf MidnightCommander normal/MCInMonitorShadow Exec "-" aterm -g 130x35 -tr -tint blue -fg yellow -bg black -e mc &
+*Wharf MidnightCommander normal/MCInMonitorShadow Exec "-" aterm -g 130x35 -e mc &
 *Wharf MidnightCommander normal/MCInMonitorShadow Exec "-" rxvt  -g 130x35 -tr -fg yellow -bg black -e mc  &
 *Wharf MidnightCommander normal/MCInMonitorShadow Exec "-" eterm -g 130x35 -tr -tint blue -fg yellow -bg black -e mc &
 *Wharf MidnightCommander normal/MCInMonitorShadow Exec "-" xterm -g 130x35 -fg yellow -bg blue -e mc &

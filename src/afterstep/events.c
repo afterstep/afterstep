@@ -464,7 +464,8 @@ DigestEvent( ASEvent *event )
         }
 
         on_astbar_pointer_action( pointer_bar, event->context, (event->x.type == LeaveNotify) );
-		apply_context_cursor( w, &(Scr.Feel), event->context );
+		if( asw != NULL && w != asw->w && w != asw->frame )
+			apply_context_cursor( w, &(Scr.Feel), event->context );
         event->widget  = canvas ;
         /* we have to do this at all times !!!! */
         /* if( event->x.type == ButtonRelease && Scr.Windows->pressed )

@@ -194,21 +194,20 @@ apply_context_cursor( Window w, ASFeel *feel, unsigned long context )
 			case C_FrameSW : c = feel->cursors[ASCUR_BottomLeft] ; 	break ;
 			case C_FrameSE : c = feel->cursors[ASCUR_BottomRight] ; break ;
 			default:
-				if( get_flags(context,C_FRAME) )
+				if( get_flags(context,C_TButtonAll) )
+					c = feel->cursors[ASCUR_Sys] ;
+				else if( get_flags(context,C_FRAME) )
 					c = feel->cursors[ASCUR_Move] ;
 		}
 
 		if( c == None && get_flags(context,C_FRAME) )
 			c = feel->cursors[ASCUR_Move] ;
 		LOCAL_DEBUG_OUT( "context %s, selected cursor %ld, window %lX", context2text(context), c, w );
-		if( c != None )
+		if( last_window != w || last_cursor != c )
 		{
-			if( last_window != w || last_cursor != c )
-			{
-				last_cursor = c ;
-				last_window = w ;
-	        	XDefineCursor (dpy, w, c);
-			}
+			last_cursor = c ;
+			last_window = w ;
+        	XDefineCursor (dpy, w, c);
 		}
 	}
 }
