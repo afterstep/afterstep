@@ -84,9 +84,18 @@ module_setup_socket (Window w, const char *display_string)
 		fprintf (stderr, "using %s for intermodule communications.\n", tmp);
 	}
 #else
+	{
+        char *tmpdir = getenv("TMPDIR");
+        static char *default_tmp_dir = "/tmp" ;
+        if( tmpdir != NULL )
+            if( CheckDir( tmpdir ) < 0 )
+                tmpdir = NULL ;
 
-  tmp = safemalloc (9 + 32 + strlen (display_string) + 1);
-  sprintf (tmp, "/tmp/afterstep-%d.%s", getuid(), display_string);
+        if( tmpdir == NULL )
+            tmpdir = default_tmp_dir ;
+        tmp = safemalloc (strlen(tmpdir)+11+32 + strlen (display_string) + 1);
+        sprintf (tmp, "%s/afterstep-%d.%s", tmpdir, getuid(), display_string);
+	}
 #endif
 
   XChangeProperty (dpy, w, _AS_MODULE_SOCKET, XA_STRING, 8,
