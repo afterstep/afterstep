@@ -376,6 +376,7 @@ GetASImageFromFile (char *file)
 char         *
 stripcpy3 (const char *source, const Bool Warn)
 {
+	const char *orig_source = source ;
 	while ((*source != '"') && (*source != 0))
 		source++;
 	if (*source != 0)
@@ -385,7 +386,7 @@ stripcpy3 (const char *source, const Bool Warn)
 	if (*source == 0)
 	{
 		if (Warn)
-			tline_error ("bad binding");
+			show_warning ("bad binding [%s]", orig_source);
 		return 0;
 	}
 	source++;
@@ -1549,7 +1550,7 @@ SetCursor (char *text, FILE * fd, char **arg, int *junk)
 
 	num = sscanf (text, "%d %d", &cursor_num, &cursor_style);
 	if ((num != 2) || (cursor_num >= MAX_CURSORS) || (cursor_num < 0))
-		tline_error ("bad Cursor");
+		show_warning( "bad Cursor number in [%s]", text );
 	else
     {
         Cursor new_c = XCreateFontCursor (dpy, cursor_style);
@@ -1558,6 +1559,7 @@ SetCursor (char *text, FILE * fd, char **arg, int *junk)
             if( Scr.Feel.cursors[cursor_num] && Scr.Feel.cursors[cursor_num] != Scr.standard_cursors[cursor_num])
                 XFreeCursor( dpy, Scr.Feel.cursors[cursor_num] );
             Scr.Feel.cursors[cursor_num] = new_c ;
+			LOCAL_DEBUG_OUT( "New X Font cursor created for cursor_num %d", cursor_num );
         }
     }
 }
@@ -1576,7 +1578,7 @@ SetCustomCursor (char *text, FILE * fd, char **arg, int *junk)
 	num = sscanf (text, "%d %s %s", &cursor_num, f_cursor, f_mask);
 	if ((num != 3) || (cursor_num >= MAX_CURSORS) || (cursor_num < 0))
 	{
-		tline_error ("bad Cursor");
+		show_warning( "bad Cursor number in [%s]", text );
 		return;
 	}
 
@@ -1587,7 +1589,7 @@ SetCustomCursor (char *text, FILE * fd, char **arg, int *junk)
 		free (path);
 	} else
 	{
-		tline_error ("Cursor mask not found");
+		show_warning( "Cursor mask requested in [%s] could not be found", text );
 		return;
 	}
 
@@ -1598,7 +1600,7 @@ SetCustomCursor (char *text, FILE * fd, char **arg, int *junk)
 		free (path);
 	} else
 	{
-		tline_error ("cursor bitmap not found");
+		show_warning( "Cursor bitmap requested in [%s] could not be found", text );
 		return;
 	}
 
@@ -1609,7 +1611,7 @@ SetCustomCursor (char *text, FILE * fd, char **arg, int *junk)
 
 	if (cursor == None || mask == None)
 	{
-		tline_error ("unrecognized format for cursor");
+		show_warning( "Cursor mask or bitmap requested in [%s] could not be loaded", text );
 		return;
 	}
 
@@ -1619,6 +1621,7 @@ SetCustomCursor (char *text, FILE * fd, char **arg, int *junk)
         if( Scr.Feel.cursors[cursor_num] && Scr.Feel.cursors[cursor_num] != Scr.standard_cursors[cursor_num])
             XFreeCursor( dpy, Scr.Feel.cursors[cursor_num] );
         Scr.Feel.cursors[cursor_num] = new_c ;
+		LOCAL_DEBUG_OUT( "New Custom X cursor created for cursor_num %d", cursor_num );
     }
     XFreePixmap (dpy, mask);
     XFreePixmap (dpy, cursor);
