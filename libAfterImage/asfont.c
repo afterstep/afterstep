@@ -473,12 +473,12 @@ LOCAL_DEBUG_OUT( "loading glyph range of %lu-%lu", r->min_char, r->max_char );
 		r->glyphs = safecalloc( len, sizeof(ASGlyph) );
 		for( i = 0 ; i < len ; i++ )
 		{
-			int w = chars[i].rbearing ;
-			if( chars[i].lbearing < 0 )
-				w -= chars[i].lbearing ;
+			int w = chars[i].rbearing - chars[i].lbearing ;
 			r->glyphs[i].lead = chars[i].lbearing ;
 			r->glyphs[i].width = MAX(w,chars[i].width) ;
 			total_width += r->glyphs[i].width ;
+			if( chars[i].lbearing > 0 )
+				total_width += chars[i].lbearing ;
 		}
 		p = XCreatePixmap( dpy, Scr.Root, total_width, height, 1 );
 		if( *gc == NULL )
@@ -502,6 +502,8 @@ LOCAL_DEBUG_OUT( "loading glyph range of %lu-%lu", r->min_char, r->max_char );
 			 * overlap each other : */
 			XDrawImageString16( dpy, p, *gc, pen_x-offset, xfs->ascent, &test_char, 1 );
 			pen_x += r->glyphs[i].width ;
+			if( chars[i].lbearing > 0 )
+				pen_x += chars[i].lbearing ;
 		}
 		/*XDrawImageString( dpy, p, *gc, 0, xfs->ascent, test_str_char, len );*/
 		xim = XGetImage( dpy, p, 0, 0, total_width, height, 0xFFFFFFFF, ZPixmap );
@@ -513,6 +515,8 @@ LOCAL_DEBUG_OUT( "loading glyph range of %lu-%lu", r->min_char, r->max_char );
 			int width = r->glyphs[i].width;
 			unsigned char *row = &(buffer[0]);
 
+			if( chars[i].lbearing > 0 )
+				pen_x += chars[i].lbearing ;
 			for( y = 0 ; y < height ; y++ )
 			{
 				for( x = 0 ; x < width ; x++ )
@@ -1005,6 +1009,7 @@ LOCAL_DEBUG_OUT( "scanline buffer memory allocated %d", map.width*line_height*si
 
 				if( font->pen_move_dir == RIGHT_TO_LEFT )
 					pen_x  -= width ;
+
 				while( y < start_y )
 				{
 					register CARD32 *dst = scanlines[y]+pen_x;
@@ -1038,7 +1043,7 @@ LOCAL_DEBUG_OUT( "scanline buffer memory allocated %d", map.width*line_height*si
 					++y;
 				}
 				if( font->pen_move_dir == LEFT_TO_RIGHT )
-					pen_x  += width ;
+  					pen_x  += width ;
 			}
 		}
 	}while( map.glyphs[i] != GLYPH_EOT );
