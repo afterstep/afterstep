@@ -1384,6 +1384,8 @@ SHOW_CHECKPOINT;
 			}
 		}while(1);
 	else
+	{
+		SHOW_CHECKPOINT;
 		do
 		{
 			src[i] = ENCODE_LSBF_555((c>>13),(c>>8),(c>>3));
@@ -1405,6 +1407,7 @@ SHOW_CHECKPOINT;
 				}
 			}
 		}while(1);
+	}
 }
 
 void
