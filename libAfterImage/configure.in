@@ -150,9 +150,16 @@ dnl# Check for X :
 dnl# check for X, if top level configure script did not do that yet :
 if test "x$PATH_XTRA_CHECKED" != "xyes"; then
 	AC_PATH_XTRA
+else
+  if test "x$have_x" != "xyes"; then
+	  AC_DEFINE(X_DISPLAY_MISSING)
+  fi
 fi
-x_libs="$LDFLAGS $X_LIBS $X_EXTRA_LIBS $X_PRE_LIBS"
-AC_CHECK_LIB(X11, XOpenDisplay, [x_libs="-lX11 $x_libs"],,$x_libs)
+
+if test "x$have_x" = "xyes"; then
+  x_libs="$LDFLAGS $X_LIBS $X_EXTRA_LIBS $X_PRE_LIBS"
+  AC_CHECK_LIB(X11, XOpenDisplay, [x_libs="-lX11 $x_libs"],,$x_libs)
+fi
 
 dnl# Construct Gnu/AfterStep path from pieces
 with_gnustep_lib=${with_gnustep_dir}/${with_gnustep_lib}
@@ -365,8 +372,8 @@ HAVE_AFTERBASE_FLAG=0
 if test "x$have_afterbase" = "xyes"; then
     HAVE_AFTERBASE_FLAG=1
 	AFTERBASE_C=
-    AFTERIMAGE_LIBS="-lAfterBase $AFTERIMAGE_LIBS"
-	AFTERIMAGE_APPS_LIBS="-L../ -L../../libAfterBase -lAfterImage -lAfterBase $AFTERIMAGE_LIBS_EXTERNAL"
+    AFTERIMAGE_LIBS="$AFTERIMAGE_LIBS -lAfterBase"
+	AFTERIMAGE_APPS_LIBS="-L../ -L../../libAfterBase -lAfterImage $AFTERIMAGE_LIBS_EXTERNAL -lAfterBase"
     AC_DEFINE(HAVE_AFTERBASE)
 	AC_MSG_RESULT($AFTERBASE_CFLAGS)
 else

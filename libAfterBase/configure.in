@@ -136,6 +136,10 @@ AC_C_INLINE
 dnl# check for X, if top level configure script did not do that yet :
 if test "x$PATH_XTRA_CHECKED" != "xyes"; then
 	AC_PATH_XTRA
+else 
+  if test "x$have_x" != "xyes"; then
+	  AC_DEFINE(X_DISPLAY_MISSING)
+  fi
 fi	
 
 dnl# Check for headers
@@ -202,10 +206,6 @@ AC_SUBST(LIBINSTALL)
 AC_SUBST(DEFINE_XLOCALE)
 AC_SUBST(sgmltools)
 AC_SUBST(PERL)
-
-dnl# Write results
-
-AC_CONFIG_HEADER(config.h)
 
 dnl# Common parts of the Makefile
 

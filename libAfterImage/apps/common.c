@@ -135,3 +135,54 @@ set_window_background_and_free( Window w, Pixmap p )
 }
 /**************/
 
+/****f* libAfterImage/tutorials/wait_closedown()
+ * SYNOPSIS
+ * void wait_closedown( Window w );
+ * INPUTS
+ * w - ID of the window from which to wait for events.
+ * DESCRIPTION
+ * User action requesting window to be closed is generally received
+ * first by Window Manager. Window Manager is then handles it down to
+ * the window by sending it ClientMessage event with first 32 bit word
+ * of data set to the value of WM_DELETE_WINDOW Atom.
+ * Accordingly, all client has to do is wait for such event from X server
+ * and, when received, it should destroy its window and generally exit.
+ *
+ * NOTES
+ * It is recommended that XFlush() is issued right after XDestroyWindow()
+ * as Window Manager itself may attempt to do something with the window
+ * until it receives DestroyNotify event.
+ * SEE ALSO
+ * ICCCM, Window
+ * SOURCE
+ */
+void
+wait_closedown( Window w )
+{
+#ifndef X_DISPLAY_MISSING
+    if( dpy == NULL || w == None )
+		return ;
+
+	XSelectInput (dpy, w, (StructureNotifyMask | ButtonPress));
+
+	while(w != None)
+  	{
+    	XEvent event ;
+	    XNextEvent (dpy, &event);
+  		switch(event.type)
+		{
+	  		case ClientMessage:
+			    if ((event.xclient.format != 32) ||
+	  			    (event.xclient.data.l[0] != _XA_WM_DELETE_WINDOW))
+					break ;
+		  	case ButtonPress:
+				XDestroyWindow( dpy, w );
+				XFlush( dpy );
+				w = None ;
+				break ;
+		}
+  	}
+    XCloseDisplay (dpy);
+#endif
+}
+/**************/

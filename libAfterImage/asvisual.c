@@ -22,8 +22,6 @@
 
 #include <malloc.h>
 
-#include <X11/Xlib.h>
-
 #include "afterbase.h"
 #include "asvisual.h"
 

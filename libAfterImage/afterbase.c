@@ -617,4 +617,13 @@ asim_get_drawable_size (Drawable d, unsigned int *ret_w, unsigned int *ret_h)
 	return 0;
 }
 
+#ifdef X_DISPLAY_MISSING
+void XDestroyImage( void* d){}
+int XGetWindowAttributes( void*d, Window w, unsigned long m, void* s){  return 0;}
+void *XGetImage( void* dpy,Drawable d,int x,int y,unsigned int width,unsigned int height, unsigned long m,int t)
+{return NULL ;}
+unsigned long XGetPixel(void* d, int x, int y){return 0;}
+int XQueryColors(void* a,Colormap c,void* x,int m){return 0;}
+#endif
+
 

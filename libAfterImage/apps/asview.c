@@ -25,9 +25,6 @@ void usage()
 
 int main(int argc, char* argv[])
 {
-	Window w ;
-	ASVisual *asv ;
-	int screen, depth ;
 	char *image_file = "rose512.jpg" ;
 	ASImage *im ;
 	/* see ASView.1 : */
@@ -49,19 +46,20 @@ int main(int argc, char* argv[])
 		show_warning( "Image filename was not specified. Using default: \"%s\"", image_file );
 		usage();
 	}
-
-    dpy = XOpenDisplay(NULL);
-	_XA_WM_DELETE_WINDOW = XInternAtom( dpy, "WM_DELETE_WINDOW", False);
-	screen = DefaultScreen(dpy);
-	depth = DefaultDepth( dpy, screen );
 	/* see ASView.2 : */
 	im = file2ASImage( image_file, 0xFFFFFFFF, SCREEN_GAMMA, 0, NULL );
 
 	if( im != NULL )
 	{
-		/* writing result into the file */
-		ASImage2file( im, NULL, "asview.gif", ASIT_Gif, NULL );
-
+#ifndef X_DISPLAY_MISSING
+		Window w ;
+		ASVisual *asv ;
+		int screen, depth ;
+	
+	    dpy = XOpenDisplay(NULL);
+		_XA_WM_DELETE_WINDOW = XInternAtom( dpy, "WM_DELETE_WINDOW", False);
+		screen = DefaultScreen(dpy);
+		depth = DefaultDepth( dpy, screen );
 		/* see ASView.3 : */
 		asv = create_asvisual( dpy, screen, depth, NULL );
 		/* see ASView.4 : */
@@ -72,7 +70,6 @@ int main(int argc, char* argv[])
 		{
 			Pixmap p ;
 
-			XSelectInput (dpy, w, (StructureNotifyMask | ButtonPress));
 	  		XMapRaised   (dpy, w);
 			/* see ASView.5 : */
 			p = asimage2pixmap( asv, DefaultRootWindow(dpy), im, NULL,
@@ -81,30 +78,14 @@ int main(int argc, char* argv[])
 			/* see common.c:set_window_background_and_free(): */
 			p = set_window_background_and_free( w, p );
 		}
-		/* see ASView.6 : */
-	    while(w != None)
-  		{
-    		XEvent event ;
-	        XNextEvent (dpy, &event);
-  		    switch(event.type)
-			{
-		  		case ButtonPress:
-					break ;
-	  		    case ClientMessage:
-			        if ((event.xclient.format == 32) &&
-	  			        (event.xclient.data.l[0] == _XA_WM_DELETE_WINDOW))
-		  			{
-						XDestroyWindow( dpy, w );
-						XFlush( dpy );
-						w = None ;
-				    }
-					break;
-			}
-  		}
+		/* see common.c: wait_closedown() : */
+		wait_closedown(w);
+#else
+		/* writing result into the file */
+		ASImage2file( im, NULL, "asview.jpg", ASIT_Jpeg, NULL );
+#endif
 	}
 
-    if( dpy )
-        XCloseDisplay (dpy);
     return 0 ;
 }
 /**************/
@@ -216,41 +197,3 @@ int main(int argc, char* argv[])
  * SEE ALSO
  * asimage2pixmap(), destroy_asimage(), set_window_background_and_free()
  ********/
-/****f* libAfterImage/tutorials/ASView.6 [1.6]
- * SYNOPSIS
- * Step 6. Waiting for user to close our window.
- * DESCRIPTION
- * User action requesting window to be closed is generally received
- * first by Window Manager. Window Manager is then handles it down to
- * the window by sending it ClientMessage event with first 32 bit word
- * of data set to the value of WM_DELETE_WINDOW Atom.
- * Accordingly, all client has to do is wait for such event from X server
- * and, when received, it should destroy its window and generally exit.
- * EXAMPLE
- *     while(w != None)
- *     {
- *         XEvent event ;
- *         XNextEvent (dpy, &event);
- *         switch(event.type)
- *         {
- *             case ButtonPress:
- *                 break ;
- *             case ClientMessage:
- *                 if ((event.xclient.format == 32) &&
- *                     (event.xclient.data.l[0] == _XA_WM_DELETE_WINDOW))
- *                 {
- *                     XDestroyWindow( dpy, w );
- *                     XFlush( dpy );
- *                     w = None ;
- *                 }
- *                 break;
- *         }
- *     }
- * NOTES
- * It is recommended that XFlush() is issued right after XDestroyWindow()
- * as Window Manager itself may attempt to do something with the window
- * until it receives DestroyNotify event.
- * SEE ALSO
- * ICCCM, Window
- ********/
-

@@ -36,9 +36,6 @@ void usage()
 
 int main(int argc, char* argv[])
 {
-	Window w ;
-	ASVisual *asv ;
-	int screen, depth ;
 	char *image_file = "rose512.jpg" ;
 	int dummy, to_width, to_height, geom_flags = 0;
 	ASImage *im ;
@@ -63,15 +60,13 @@ int main(int argc, char* argv[])
 		              image_file );
 		usage();
 	}
-    dpy = XOpenDisplay(NULL);
-	_XA_WM_DELETE_WINDOW = XInternAtom( dpy, "WM_DELETE_WINDOW", False);
-	screen = DefaultScreen(dpy);
-	depth = DefaultDepth( dpy, screen );
 	/* see ASView.2 : */
 	im = file2ASImage( image_file, 0xFFFFFFFF, SCREEN_GAMMA, 0, NULL );
 
 	if( im != NULL )
 	{
+		ASVisual *asv ;
+		ASImage *scaled_im ;
 		/* Making sure tiling geometry is sane : */
 		if( !get_flags(geom_flags, WidthValue ) )
 			to_width = im->width*2 ;
@@ -82,53 +77,50 @@ int main(int argc, char* argv[])
 				(double)to_width/(double)(im->width),
 				(double)to_height/(double)(im->height) );
 
-		/* see ASView.3 : */
-		asv = create_asvisual( dpy, screen, depth, NULL );
-		/* see ASView.4 : */
-		w = create_top_level_window( asv, DefaultRootWindow(dpy), 32, 32,
-			                         to_width, to_height, 1, 0, NULL,
-									 "ASScale" );
-		if( w != None )
+#ifndef X_DISPLAY_MISSING
 		{
-			Pixmap p ;
-			ASImage *scaled_im ;
+			Window w ;
+			int screen, depth ;
 
-			XSelectInput (dpy, w, (StructureNotifyMask | ButtonPress));
-	  		XMapRaised   (dpy, w);
-			/* see ASScale.2 : */
-			scaled_im = scale_asimage( asv, im, to_width, to_height,
-				                       ASA_XImage, 0, ASIMAGE_QUALITY_DEFAULT );
-			destroy_asimage( &im );
-			/* see ASView.5 : */
-			p = asimage2pixmap( asv, DefaultRootWindow(dpy), scaled_im,
-				                NULL, True );
-			destroy_asimage( &scaled_im );
-			/* see common.c: set_window_background_and_free() : */
-			p = set_window_background_and_free( w, p );
-		}
-		/* see ASView.6 : */
-	    while(w != None)
-  		{
-    		XEvent event ;
-	        XNextEvent (dpy, &event);
-  		    switch(event.type)
+		    dpy = XOpenDisplay(NULL);
+			_XA_WM_DELETE_WINDOW = XInternAtom( dpy, "WM_DELETE_WINDOW", False);
+			screen = DefaultScreen(dpy);
+			depth = DefaultDepth( dpy, screen );
+			/* see ASView.3 : */
+			asv = create_asvisual( dpy, screen, depth, NULL );
+			/* see ASView.4 : */
+			w = create_top_level_window( asv, DefaultRootWindow(dpy), 32, 32,
+				                         to_width, to_height, 1, 0, NULL,
+										 "ASScale" );
+			if( w != None )
 			{
-		  		case ButtonPress:
-					break ;
-	  		    case ClientMessage:
-			        if ((event.xclient.format == 32) &&
-	  			        (event.xclient.data.l[0] == _XA_WM_DELETE_WINDOW))
-		  			{
-						XDestroyWindow( dpy, w );
-						XFlush( dpy );
-						w = None ;
-				    }
-					break;
+				Pixmap p ;
+
+		  		XMapRaised   (dpy, w);
+				/* see ASScale.2 : */
+				scaled_im = scale_asimage( asv, im, to_width, to_height,
+					                       ASA_XImage, 0, ASIMAGE_QUALITY_DEFAULT );
+				destroy_asimage( &im );
+				/* see ASView.5 : */
+				p = asimage2pixmap( asv, DefaultRootWindow(dpy), scaled_im,
+					                NULL, True );
+				destroy_asimage( &scaled_im );
+				/* see common.c: set_window_background_and_free() : */
+				p = set_window_background_and_free( w, p );
 			}
-  		}
+			/* see common.c: wait_closedown() : */
+			wait_closedown(w);
+		}
+#else
+		asv = create_asvisual( NULL, 0, 0, NULL );
+		scaled_im = scale_asimage( asv, im, to_width, to_height,
+			                       ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT );
+		/* writing result into the file */
+		ASImage2file( scaled_im, NULL, "asscale.jpg", ASIT_Jpeg, NULL );
+		destroy_asimage( &scaled_im );
+		destroy_asimage( &im );
+#endif					
 	}
-    if( dpy )
-        XCloseDisplay (dpy);
     return 0 ;
 }
 /**************/
