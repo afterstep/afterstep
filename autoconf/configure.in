@@ -137,6 +137,7 @@ if test "x$CYGWIN" != "xyes" -a "x$GCC" = "xyes" ; then
 fi
 
 dnl# Add -g
+STRIP_BINARIES=
 if test "x$enable_gdb" = "xyes"; then
   if ! test -n "`echo $CFLAGS' ' | grep '\-g ' 2> /dev/null`" ; then
 	CFLAGS="$CFLAGS -g"
@@ -145,6 +146,7 @@ if test "x$enable_gdb" = "xyes"; then
 	LDFLAGS="$LDFLAGS -g"
   fi
 else
+  STRIP_BINARIES="-s"
   DIRTY_CFLAGS="$CFLAGS"
   CFLAGS="-DNO_DEBUG_OUTPUT"
   for f in $DIRTY_CFLAGS; do 
@@ -527,7 +529,7 @@ AC_SUBST(build_os)
 AC_SUBST(build_cpu)
 AC_SUBST(build_vendor)
 
-
+AC_SUBST(STRIP_BINARIES)
 AC_SUBST(version)
 AC_SUBST(app_version)
 AC_SUBST(libafterstep_version)
