@@ -1646,13 +1646,17 @@ void refresh_client( long old_desk, ASWindowData *wd )
     if( old_desk != wd->desk )
     {
         forget_desk_client( old_desk, wd );
-        add_desk_client( d, wd );
-        LOCAL_DEBUG_OUT( "reparenting client to desk %ld", d->desk );
-        quietly_reparent_canvas( wd->canvas, d->desk_canvas->w, CLIENT_EVENT_MASK, False );
+		if( d != NULL ) 
+		{
+	        add_desk_client( d, wd );
+  		    LOCAL_DEBUG_OUT( "reparenting client to desk %ld", d->desk );
+      		quietly_reparent_canvas( wd->canvas, d->desk_canvas->w, CLIENT_EVENT_MASK, False );
+		}
     }
     set_client_name( wd, True );
     set_astbar_focused( wd->bar, wd->canvas, wd->focused );
-    place_client( d, wd, False, False );
+	if( d != NULL ) 
+	    place_client( d, wd, False, False );
     LOCAL_DEBUG_OUT( "all done%s", "" );
 }
 
@@ -1700,7 +1704,7 @@ set_desktop_pixmap( int desk, Pixmap pmap )
     LOCAL_DEBUG_OUT( "desk(%d)->d(%p)->pmap(%lX)->size(%dx%d)", desk, d, pmap, width, height );
     if( pmap == None  )
         return ;
-    if( d == None )
+    if( d == NULL )
     {
         XFreePixmap( dpy, pmap );
         return;
@@ -1824,7 +1828,7 @@ translate_client_pos_main( int x, int y, unsigned int width, unsigned int height
         y < PagerState.main_canvas->height+PagerState.main_canvas->root_y )
     {
         int i = PagerState.desks_num ;
-        if( (d=get_pager_desk( desk )) )
+        if( (d=get_pager_desk( desk )) != NULL )
         {
             if( d->desk_canvas->root_x > x+width  || d->desk_canvas->root_x+d->desk_canvas->width  <= x ||
                 d->desk_canvas->root_y > y+height || d->desk_canvas->root_y+d->desk_canvas->height <= y )
@@ -2049,7 +2053,7 @@ start_moveresize_client( ASWindowData *wd, Bool move, ASEvent *event )
                                             event,
                                             apply_client_move,
                                             complete_client_move );
-    }else
+    }else if( d != NULL )
     {
         if( get_flags( wd->state_flags, AS_Shaded ) )
         {
