@@ -995,6 +995,7 @@ build_btn_block( ASTile *tile,
         {
             tile->width = max_width + top_margin*2 ;
             tile->height = left_margin*2 ;
+            //pos = get_flags(order, TBTN_ORDER_REVERSE)?-top_margin:top_margin ;
         }else
         {
             tile->width =  left_margin*2 ;
@@ -1006,7 +1007,7 @@ build_btn_block( ASTile *tile,
         {
             if( get_flags(order, TBTN_ORDER_VERTICAL) )
             {
-                blk->buttons[k].x = left_margin+((max_width - blk->buttons[k].width)>>1) ;
+                blk->buttons[k].x = top_margin+((max_width - blk->buttons[k].width)>>1) ;
                 tile->height += blk->buttons[k].height+spacing ;
                 if( get_flags(order, TBTN_ORDER_REVERSE) )
                 {
@@ -1169,7 +1170,7 @@ set_asicon_layer( ASTile* tile, ASImageLayer *layer, unsigned int state, ASImage
 		}
         if( get_flags( tile->flags, AS_TileVScale ) )
             dst_height = max_height ;
-		else if( get_flags( tile->flags, AS_TileVResize ) && max_height < im->height )
+        else if( get_flags( tile->flags, AS_TileVResize ) && max_height < im->height )
 		{
 			if( get_flags( tile->flags, AS_TilePadTop ) )
 			{
@@ -1734,6 +1735,12 @@ add_astbar_btnblock( ASTBarData * tbar, unsigned char col, unsigned char row, in
     if( tbar )
     {
         ASTile *tile = add_astbar_tile( tbar, AS_TileBtnBlock, col, row, flip, align );
+//        if( get_flags( flip, FLIP_VERTICAL ) )
+//        {
+//            int tmp = top_margin ; 
+//            top_margin = left_margin ; 
+//            left_margin = tmp ;    
+//        }    
         build_btn_block( tile, from_list, context_mask, count, left_margin, top_margin,
                          spacing, order );
         return tbar->tiles_num-1;
@@ -2051,8 +2058,8 @@ render_astbar (ASTBarData * tbar, ASCanvas * pc)
     short row_height[AS_TileRows] = {0};
     short col_x[AS_TileColumns] = {0};
     short row_y[AS_TileRows] = {0};
-    unsigned char floating_cols[AS_TileColumns] = {0};
-    unsigned char floating_rows[AS_TileRows] = {0};
+    short floating_cols[AS_TileColumns] = {0};
+    short floating_rows[AS_TileRows] = {0};
     int floating_cols_count = 0, floating_rows_count = 0;
     short space_left_x, space_left_y ;
     int x = 0, y = 0 ;
@@ -2119,8 +2126,12 @@ LOCAL_DEBUG_OUT("back-try2(%p)", back );
 			{
             	if( col_width[pos] < tbar->tiles[l].width )
                 	col_width[pos] = tbar->tiles[l].width;
-            	if( ASTileHFloating(tbar->tiles[l]) )
-                    ++floating_cols[pos] ;
+                /* floating column has at least one element padded/resizable in horizontal dir,
+                 * and no fixed elements */
+                if( !ASTileHFloating(tbar->tiles[l]) )
+                    floating_cols[pos] = -1 ;
+                else if( floating_cols[pos] >= 0 )
+                    ++floating_cols[pos] ; 
             }
             
             pos = ASTileRow(tbar->tiles[l]);
@@ -2128,7 +2139,11 @@ LOCAL_DEBUG_OUT("back-try2(%p)", back );
 			{
             	if( row_height[pos] < tbar->tiles[l].height )
                 	row_height[pos] = tbar->tiles[l].height;
-            	if( ASTileVFloating(tbar->tiles[l]) )
+                /* floating row has at least one element padded/resizable in vertical dir,
+                 * and no fixed elements */
+                if( !ASTileVFloating(tbar->tiles[l]) )
+                    floating_rows[pos] = -1;
+                else if( floating_rows[pos] >= 0 ) 
                     ++floating_rows[pos] ;
             }
         }
@@ -2142,10 +2157,14 @@ LOCAL_DEBUG_OUT("back-try2(%p)", back );
             space_left_x -= col_width[l]+tbar->h_spacing ;
         if( row_height[l] > 0 )
             space_left_y -= row_height[l]+tbar->v_spacing ;
-        if( floating_cols[l] )
+        if( floating_cols[l] > 0 )
             ++floating_cols_count;
-        if( floating_rows[l] )
+        else
+            floating_cols[l] = 0 ;
+        if( floating_rows[l] > 0)
             ++floating_rows_count;
+        else
+            floating_rows[l] = 0 ;
     }
     space_left_x += tbar->h_spacing ;
     space_left_y += tbar->v_spacing ;
@@ -2243,7 +2262,7 @@ LOCAL_DEBUG_OUT("back-try2(%p)", back );
                                         col_width[col], tbar->tiles[l].width ) ;
             tbar->tiles[l].x = col_x[col] + pad_x;
 
-            if( !ASTileHResizeable( tbar->tiles[l] ) )
+            if( !ASTileVResizeable( tbar->tiles[l] ) )
                 pad_y = make_tile_pad(  get_flags(tbar->tiles[l].flags, AS_TilePadTop),
                                         get_flags(tbar->tiles[l].flags, AS_TilePadBottom),
                                         row_height[row],tbar->tiles[l].height);

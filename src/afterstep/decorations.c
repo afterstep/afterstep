@@ -115,7 +115,7 @@ ASOrientation VertOrientation =
     &NormalY, &NormalX, &NormalHeight, &NormalWidth,
     FLIP_VERTICAL,
     {0, 0, 0, 0, 0},
-    {6, 5, 4, 3, 2, 1, 0}
+    {7, 6, 5, 4, 3, 2, 1}
 };
 
 inline ASOrientation*
@@ -1092,7 +1092,8 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
 			for( i = MYFRAME_TITLE_BACK_LBTN ; i <= MYFRAME_TITLE_BACK_LSPACER ; ++i )
 				if( frame->title_backs[i] && frame->title_backs[i]->image )
 				{
-					add_astbar_icon( asw->tbar,
+                    LOCAL_DEBUG_OUT( "Adding Left Title Back #%d", i );
+                    add_astbar_icon( asw->tbar,
                              	od->default_tbar_elem_col[ASO_TBAR_ELEM_LBTN+i],
                              	od->default_tbar_elem_row[ASO_TBAR_ELEM_LBTN+i],
                              	od->flip, fix_background_align(frame->title_backs_align[i]),
@@ -1103,6 +1104,7 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
 				if( frame->title_backs[i] && frame->title_backs[i]->image )
 				{
 					int idx = ASO_TBAR_ELEM_RSPACER-MYFRAME_TITLE_BACK_RSPACER+i ;
+                    LOCAL_DEBUG_OUT( "Adding Right Title Back #%d", i );
 					add_astbar_icon( asw->tbar,
                              	od->default_tbar_elem_col[idx],
                              	od->default_tbar_elem_row[idx],
