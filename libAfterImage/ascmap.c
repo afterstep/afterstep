@@ -326,7 +326,7 @@ color_hash2colormap( ASColormap *cmap, unsigned int max_colors )
 		int start_slot = 0 ;
 		int quota = max_colors-cmap_idx ;
 
-		for( i = 0 ; i <= index->buckets_num ; i++ )
+		for( i = 0 ; i < index->buckets_num ; i++ )
 			total += index->buckets[i].count ;
 
 		for( i = 0 ; i < index->buckets_num ; i++ )

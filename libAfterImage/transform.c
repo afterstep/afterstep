@@ -1757,16 +1757,16 @@ Bool fill_asimage( ASVisual *asv, ASImage *im,
 	if( asv == NULL || im == NULL )
 		return False;
 	if( x < 0 )
-	{	width -= x ; x = 0 ; }
+	{	width += x ; x = 0 ; }
 	if( y < 0 )
-	{	height -= y ; y = 0 ; }
+	{	height += y ; y = 0 ; }
 
 	if( width <= 0 || height <= 0 || x >= (int)im->width || y >= (int)im->height )
 		return False;
 	if( x+width > (int)im->width )
-		width = im->width-x ;
+		width = (int)im->width-x ;
 	if( y+height > (int)im->height )
-		height = im->height-y ;
+		height = (int)im->height-y ;
 
 	if((imout = start_image_output( asv, im, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT)) == NULL )
 		return False ;
@@ -1785,13 +1785,15 @@ Bool fill_asimage( ASVisual *asv, ASImage *im,
 		{
 			CARD32 alpha = ARGB32_ALPHA8(color), red = ARGB32_RED8(color),
 				   green = ARGB32_GREEN8(color), blue = ARGB32_BLUE8(color);
-			CARD32 *a = imdec->buffer.alpha, *r = imdec->buffer.red, *g = imdec->buffer.green,
-				   *b = imdec->buffer.blue  ;
+			CARD32 	*a = imdec->buffer.alpha + x ; 
+			CARD32 	*r = imdec->buffer.red + x ;
+			CARD32 	*g = imdec->buffer.green + x ;
+			CARD32 	*b = imdec->buffer.blue + x  ;
 			for( i = 0 ; i < height ; i++ )
 			{
 				register int k ;
 				imdec->decode_image_scanline( imdec );
-				for( k = x ; k < width ; ++k )
+				for( k = 0 ; k < width ; ++k )
 				{
 					a[k] = alpha ;
 					r[k] = red ;

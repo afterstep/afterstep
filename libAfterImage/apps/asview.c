@@ -81,6 +81,7 @@ int main(int argc, char* argv[])
 		depth = DefaultDepth( dpy, screen );
 		/* see ASView.3 : */
 		asv = create_asvisual( dpy, screen, depth, NULL );
+		
 		/* see ASView.4 : */
 		w = create_top_level_window( asv, DefaultRootWindow(dpy), 32, 32,
 			                         im->width, im->height, 1, 0, NULL,
