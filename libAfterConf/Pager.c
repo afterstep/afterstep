@@ -179,18 +179,23 @@ ReadDecorations (PagerConfig * config, FreeStorageElem * pCurr)
 	  {
 	  case PAGER_DECOR_NOLABEL_ID:
 	    config->flags &= ~USE_LABEL;
+		set_flags( config->set_flags, USE_LABEL );
 	    break;
 	  case PAGER_DECOR_NOSEPARATOR_ID:
 	    config->flags &= ~PAGE_SEPARATOR;
+		set_flags( config->set_flags, PAGE_SEPARATOR );
 	    break;
 	  case PAGER_DECOR_NOSELECTION_ID:
 	    config->flags &= ~SHOW_SELECTION;
+		set_flags( config->set_flags, SHOW_SELECTION );
 	    break;
 	  case PAGER_DECOR_LABEL_BELOW_ID:
 	    config->flags |= LABEL_BELOW_DESK;
+		set_flags( config->set_flags, LABEL_BELOW_DESK );
 	    break;
 	  case PAGER_DECOR_HIDE_INACTIVE_ID:
 	    config->flags |= HIDE_INACTIVE_LABEL;
+		set_flags( config->set_flags, HIDE_INACTIVE_LABEL );
 	    break;
 	  }
       else
@@ -204,17 +209,21 @@ ReadDecorations (PagerConfig * config, FreeStorageElem * pCurr)
 	    case PAGER_DECOR_SEL_COLOR_ID:
 	      config->selection_color = item.data.string;
 	      config->flags |= SHOW_SELECTION;
+		  set_flags( config->set_flags, PAGER_SET_SELECTION_COLOR|SHOW_SELECTION );
 	      break;
 	    case PAGER_DECOR_GRID_COLOR_ID:
 	      config->grid_color = item.data.string;
 	      config->flags |= DIFFERENT_GRID_COLOR;
+		  set_flags( config->set_flags, PAGER_SET_GRID_COLOR|DIFFERENT_GRID_COLOR );
 	      break;
 	    case PAGER_DECOR_BORDER_WIDTH_ID:
 	      config->border_width = item.data.integer;
+		  set_flags( config->set_flags, PAGER_SET_BORDER_WIDTH );
 	      break;
 	    case PAGER_DECOR_BORDER_COLOR_ID:
 	      config->border_color = item.data.string;
 	      config->flags |= DIFFERENT_BORDER_COLOR;
+		  set_flags( config->set_flags, PAGER_SET_BORDER_COLOR|DIFFERENT_BORDER_COLOR );
 	      break;
 	    default:
 	      item.ok_to_free = 1;
@@ -255,18 +264,23 @@ ParsePagerOptions (const char *filename, char *myname, int desk1, int desk2)
 	  {
 	  case PAGER_DRAW_BG_ID:
 	    config->flags &= ~REDRAW_BG;
+		set_flags( config->set_flags, REDRAW_BG ) ;
 	    break;
 	  case PAGER_START_ICONIC_ID:
 	    config->flags |= START_ICONIC;
+		set_flags( config->set_flags, START_ICONIC ) ;
 	    break;
 	  case PAGER_FAST_STARTUP_ID:
 	    config->flags |= FAST_STARTUP;
+		set_flags( config->set_flags, FAST_STARTUP ) ;
 	    break;
 	  case PAGER_SET_ROOT_ID:
 	    config->flags |= SET_ROOT_ON_STARTUP;
+		set_flags( config->set_flags, SET_ROOT_ON_STARTUP ) ;
 	    break;
 	  case PAGER_STICKY_ICONS_ID:
 	    config->flags |= STICKY_ICONS;
+		set_flags( config->set_flags, STICKY_ICONS ) ;
 	    break;
 	  }
       else

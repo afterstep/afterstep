@@ -169,8 +169,7 @@ main (int argc, char **argv)
   char *global_config_file = NULL;
 
   /* explicitly initializing parameters before everything else */
-  Pager.bStarted = 0;		/* not started yet */
-  Pager.CurentRootBack = 0;	/* no root background yet */
+  memset( &Pager, 0x00, sizeof(Pager) );
   Pager.Flags = PAGER_FLAGS_DEFAULT;
 
   /* Save our program name - for error messages */
@@ -242,6 +241,9 @@ main (int argc, char **argv)
   LOG2 ("\n%s is parsing Options ...", MyName)
     LoadBaseConfig (global_config_file, GetBaseOptions);
   LoadConfig (global_config_file, "pager", GetOptions);
+  GetLook (NULL);
+  FixLook ();
+
 
 #ifdef PAGER_BACKGROUND
   /* retrieve root bckgrounds data */
@@ -1135,7 +1137,15 @@ GetOptions (const char *filename)
 /*   WritePagerOptions( filename, MyName, Pager.desk1, Pager.desk2, config, WF_DISCARD_UNKNOWN|WF_DISCARD_COMMENTS );
  */
 
-  Pager.Flags = config->flags;
+  for( i = 0 ; i < PAGER_FLAGS_MAX_SHIFT ; ++i )
+	  if( get_flags( config->set_flags, (0x01<<i)) )
+	  {
+		  if( get_flags( config->flags, (0x01<<i)) )
+			  set_flags(Pager.Flags, (0x01<<i));
+		  else
+			  clear_flags(Pager.Flags, (0x01<<i));
+	  }
+	  			  
   if( get_flags( config->set_flags, PAGER_SET_ALIGN ) )
 	  Look.TitleAlign = config->align;
   if( get_flags( config->set_flags, PAGER_SET_ROWS ) )
@@ -1189,22 +1199,26 @@ fprintf( stderr, "windows size will be %dx%d (%dx%d) %d\n", window_w, window_h, 
 	  icon_x = config->icon_geometry.x;
     if (config->icon_geometry.flags & YValue)
 	  icon_y = config->icon_geometry.y;
+  }
 
-    for (i = 0; i < Pager.ndesks; i++)
-	{
-  	  if (Pager.Desks[i].label)
-		free (Pager.Desks[i].label);
-	  Pager.Desks[i].label = config->labels[i];
-  	}
+  for (i = 0; i < Pager.ndesks; i++)
+	  if( config->labels[i] )
+	  {
+		if (Pager.Desks[i].label)
+		  free (Pager.Desks[i].label);
+	    Pager.Desks[i].label = config->labels[i];
+  	  }
 #ifdef PAGER_BACKGROUND
     for (i = 0; i < Pager.ndesks; i++)
 	{
-      if (Pager.Desks[i].StyleName)
-		free (Pager.Desks[i].StyleName);
-      Pager.Desks[i].StyleName = config->styles[i];
-    }
+	  if( config->styles[i] )
+	  {
+  	    if (Pager.Desks[i].StyleName)
+			free (Pager.Desks[i].StyleName);
+	    Pager.Desks[i].StyleName = config->styles[i];
+  	  }
+	}	  
 #endif
-  }
 /*  
   if( icon_w <= 0 ) 
 	icon_w = 64 ;
@@ -1217,41 +1231,36 @@ fprintf( stderr, "windows size will be %dx%d (%dx%d) %d\n", window_w, window_h, 
       load_font (config->small_font_name, &(Look.windowFont));
       free (config->small_font_name);
     }
-  else
+  else if( get_flags( config->set_flags, PAGER_SET_SMALL_FONT ) )
     Look.windowFont.font = NULL;
 
   if (config->selection_color)
     {
       Look.SelectionColor = GetColor (config->selection_color);
       free (config->selection_color);
-    }else
+    }else if( get_flags( config->set_flags, PAGER_SET_SELECTION_COLOR ) )
       Look.SelectionColor = GetColor (DEFAULT_BORDER_COLOR);
 
   if (config->grid_color)
     {
       Look.GridColor = GetColor (config->grid_color);
       free (config->grid_color);
-    }else
+    }else if( get_flags( config->set_flags, PAGER_SET_GRID_COLOR ) )
       Look.GridColor = GetColor (DEFAULT_BORDER_COLOR);
   if (config->border_color)
     {
       Look.BorderColor = GetColor (config->border_color);
       free (config->border_color);
-    }else
+    }else if( get_flags( config->set_flags, PAGER_SET_BORDER_COLOR ) )
       Look.BorderColor  = GetColor (DEFAULT_BORDER_COLOR);
 
-  Look.DeskBorderWidth = config->border_width;
+  if( get_flags( config->set_flags, PAGER_SET_BORDER_WIDTH ) )
+	  Look.DeskBorderWidth = config->border_width;
 
   if (config->style_defs)
     ProcessMyStyleDefinitions (&(config->style_defs), pixmapPath);
 
   DestroyPagerConfig (config);
-
-  LOG1 ("\n GetLook()")
-    GetLook (NULL);
-
-  LOG1 ("\n FixLook()")
-    FixLook ();
 
 #ifdef DO_CLOCKING
   fprintf (stderr, "\n Config parsing time (clocks): %lu\n", clock () - started);

@@ -143,26 +143,31 @@ extern char *pixmapPath;
 /*                             Pager                                        */
 /****************************************************************************/
 /* flags used in configuration */
-#define USE_LABEL   		(1<<0)
-#define START_ICONIC		(1<<1)
-#define REDRAW_BG		(1<<2)
-#define STICKY_ICONS		(1<<3)
-#define LABEL_BELOW_DESK 	(1<<4)
-#define HIDE_INACTIVE_LABEL	(1<<5)
-#define PAGE_SEPARATOR		(1<<6)
+#define USE_LABEL   			(1<<0)
+#define START_ICONIC			(1<<1)
+#define REDRAW_BG				(1<<2)
+#define STICKY_ICONS			(1<<3)
+#define LABEL_BELOW_DESK 		(1<<4)
+#define HIDE_INACTIVE_LABEL		(1<<5)
+#define PAGE_SEPARATOR			(1<<6)
 #define DIFFERENT_GRID_COLOR	(1<<7)
 #define DIFFERENT_BORDER_COLOR	(1<<8)
 #define SHOW_SELECTION          (1<<9)
-#define FAST_STARTUP		(1<<10)
-#define SET_ROOT_ON_STARTUP	(1<<11)
+#define FAST_STARTUP			(1<<10)
+#define SET_ROOT_ON_STARTUP		(1<<11)
+#define PAGER_FLAGS_MAX_SHIFT 	11
 #define PAGER_FLAGS_DEFAULT	(USE_LABEL|REDRAW_BG|PAGE_SEPARATOR|SHOW_SELECTION)
 /* set/unset flags : */
-#define PAGER_SET_GEOMETRY  (1<<16)
+#define PAGER_SET_GEOMETRY  		(1<<16)
 #define PAGER_SET_ICON_GEOMETRY  	(1<<17)
 #define PAGER_SET_ALIGN 			(1<<18)
 #define PAGER_SET_SMALL_FONT 		(1<<19)
 #define PAGER_SET_ROWS 				(1<<20)
 #define PAGER_SET_COLUMNS 			(1<<21)
+#define PAGER_SET_SELECTION_COLOR	(1<<22)
+#define PAGER_SET_GRID_COLOR		(1<<23)	
+#define PAGER_SET_BORDER_COLOR		(1<<24)	
+#define PAGER_SET_BORDER_WIDTH		(1<<25)	
 
 
 /* ID's used in our config */

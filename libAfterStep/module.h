@@ -59,8 +59,9 @@ extern module_t *Module;
 #define M_UNSHADE	     (1<<19)
 #define M_LOCKONSEND         (1<<20)
 #define M_NEW_BACKGROUND     (1<<21)
+#define M_NEW_THEME		     (1<<22)
 
-#define MAX_MESSAGES          22
+#define MAX_MESSAGES          23
 #define MAX_MASK             (((1<<MAX_MESSAGES)-1) & ~M_LOCKONSEND)
 
 /* M_LOCKONSEND when set causes afterstep to wait for the module to send an
