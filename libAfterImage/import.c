@@ -263,6 +263,102 @@ get_asimage( ASImageManager* imageman, const char *file, ASFlagType what, unsign
 	return im;
 }
 
+ASImageListEntry *
+get_asimage_list( ASVisual *asv, const char *dir,
+	              ASFlagType preview_type, double gamma,
+				  unsigned int preview_width, unsigned int preview_height,
+				  unsigned int preview_compression,
+				  unsigned int *count_ret )
+{
+	ASImageListEntry *im_list = NULL ;
+	ASImageListEntry **curr = &im_list, *last = NULL ;
+	struct direntry  **list;
+	int           i, n;
+	int dir_name_len ;
+
+
+	if( asv == NULL || dir == NULL )
+		return NULL ;
+
+	dir_name_len = strlen(dir);
+	n = my_scandir ((char*)dir, &list, ignore_dots, NULL);
+	if( n > 0 )
+	{
+		for (i = 0; i < n; i++)
+		{
+			if (!S_ISDIR (list[i]->d_mode))
+			{
+				ASImageFileTypes file_type ;
+				char *realfilename ;
+
+				realfilename = safemalloc( dir_name_len + 1 + strlen(list[i]->d_name));
+				sprintf( realfilename, "%s/%s", dir, list[i]->d_name );
+				file_type = check_image_type( realfilename );
+				if( file_type != ASIT_Unknown && as_image_file_loaders[file_type] == NULL )
+					file_type = ASIT_Unknown ;
+
+				*curr = safecalloc( 1, sizeof(ASImageListEntry) );
+				if( last )
+					last->next = *curr ;
+				last = *curr ;
+
+				last->name = mystrdup( list[i]->d_name );
+				last->fullfilename = realfilename ;
+				last->type = file_type ;
+
+				if( last->type != ASIT_Unknown && preview_type != 0 )
+				{
+					ASImage *im = as_image_file_loaders[file_type](realfilename, 0xFFFFFFFF, gamma, NULL, 0, 100);
+					if( im )
+					{
+						int scale_width = im->width ;
+						int scale_height = im->height ;
+						int tile_width = im->width ;
+						int tile_height = im->height ;
+
+						if( preview_width > 0 )
+						{
+							if( get_flags( preview_type, SCALE_PREVIEW_H ) )
+								scale_width = preview_width ;
+							else
+								tile_width = preview_width ;
+						}
+						if( preview_height > 0 )
+						{
+							if( get_flags( preview_type, SCALE_PREVIEW_V ) )
+								scale_height = preview_height ;
+							else
+								tile_height = preview_height ;
+						}
+						if( scale_width != im->width || scale_height != im->height )
+						{
+							ASImage *tmp = scale_asimage( asv, im, scale_width, scale_height, ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT );
+							if( tmp != NULL )
+							{
+								destroy_asimage( &im );
+								im = tmp ;
+							}
+						}
+						if( tile_width != im->width || tile_height != im->height )
+						{
+							ASImage *tmp = tile_asimage( asv, im, 0, 0, tile_width, tile_height, TINT_NONE, ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT );
+							if( tmp != NULL )
+							{
+								destroy_asimage( &im );
+								im = tmp ;
+							}
+						}
+					}
+
+					last->preview = im ;
+				}
+			}
+		}
+	}
+	return im_list;
+}
+
+
 /***********************************************************************************/
 /* Some helper functions :                                                         */
 
@@ -1543,9 +1639,9 @@ load_xml2ASImage( ASImageManager *imman, const char *path, unsigned int compress
 			{
 				safe_asimage_destroy( im );
 				im = tmp ;
-			}		
+			}
 		}
-		
+
 		free( doc_str );
 	}
 

@@ -50,7 +50,18 @@ Style   "xcalc"         Icon xcalc.xpm
 Style   "xli"           Icon monalisa.xpm
 Style   "xman"          Icon xman.xpm
 Style   "XMcd"          Icon CDrom.xpm
+
+#different windows in xmms app
 Style   "xmms"          Icon logos/Xmms, NoTitle, NoHandles
+Style   "XMMS_Playlist" Title, Handles
+Style   "Load file*"    Title, Handles
+
+#different windows in mplayer :
+Style  "MPlayer*"       Icon normal/MovieProjector, NoTitle, NoHandles
+Style  "MPlayer-Video*" Title, Handles
+
+
+#some other apps
 Style   "XFce*"         NoTitle, Sticky, BorderWidth 4, WindowListSkip, NoHandles
 Style   "XFBD*"         Sticky
 Style	"XPostit*"	    Icon Text.xpm

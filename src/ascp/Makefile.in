@@ -2,9 +2,11 @@ OBJS_ASCP       = ascp.o ascpui.o
 
 OBJS_ASCOLOR    = ascolor.o
 
-OBJS		= $(OBJS_ASCP) $(OBJS_ASCOLOR)
+OBJS_ASIMBROWSER = asimbrowser.o
 
-PROG		= @ASCP@ ascolor
+OBJS		= $(OBJS_ASCP) $(OBJS_ASCOLOR) $(OBJS_ASIMBROWSER)
+
+PROG		= ascp ascolor asimbrowser
 
 INCS_PRIVATE	= @ASCP_INCLUDES@
 
@@ -20,6 +22,9 @@ ascp:	        $(OBJS_ASCP) $(LIBS_DEPEND)
 
 ascolor:        $(OBJS_ASCOLOR) $(LIBS_DEPEND)
 		$(CC) $(OBJS_ASCOLOR) $(LIBS_ALL) -o $(@)
+
+asimbrowser:	$(OBJS_ASIMBROWSER) $(LIBS_DEPEND)
+		$(CC) $(OBJS_ASIMBROWSER) $(LIBS_ALL) -o $(@)
 
 
 install:	install.bin install.man

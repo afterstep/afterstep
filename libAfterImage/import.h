@@ -161,8 +161,8 @@ ASImage *get_asimage( ASImageManager* imageman, const char *file, ASFlagType wha
 #define SCALE_PREVIEW_H	(0x01<<1)
 #define SCALE_PREVIEW_V	(0x01<<2)
 
-ASImageListEntry *get_asimage_list( ASImageManager* imageman, const char *dir,
-	                                ASFlagType preview_type,
+ASImageListEntry *get_asimage_list( struct ASVisual *asv, const char *dir,
+	                                ASFlagType preview_type, double gamma,
 									unsigned int preview_width, unsigned int preview_height,
 									unsigned int preview_compression,
 									unsigned int *count_ret );

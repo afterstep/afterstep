@@ -199,7 +199,7 @@ build_theme_config( const char *theme_dir )
 			{
 				char *name = list[i]->d_name ;
 				Bool added_new = True ;
-				LOCAL_DEBUG_OUT( "chacking file \"%s\"", name );
+				LOCAL_DEBUG_OUT( "checking file \"%s\"", name );
 				if( mystrncasecmp( name, "look", 4 ) == 0 )
 				{
 					LOCAL_DEBUG_OUT( "adding Install/Change look command for \"%s\"", name );
