@@ -549,6 +549,8 @@ HandlePropertyNotify ()
 		}
 	}else
 	{
+#warning "fix handling of updated window management hints"	
+#if 0		
 		switch (Event.xproperty.atom)
 		{
 	  	 case XA_WM_HINTS:
@@ -587,6 +589,7 @@ HandlePropertyNotify ()
 			 }
 			 break;
 		}
+#endif
 	}
 }
 
@@ -707,8 +710,6 @@ HandleDestroyNotify ()
 void
 HandleMapRequest ()
 {
-	extern long   isIconicState;
-
 	Event.xany.window = Event.xmaprequest.window;
 
 	if (XFindContext (dpy, Event.xany.window, ASContext, (caddr_t *) & Tmp_win) == XCNOENT)
@@ -727,18 +728,13 @@ HandleMapRequest ()
 	/* If it's not merely iconified, and we have hints, use them. */
 	if (!(Tmp_win->flags & ICONIFIED))
 	{
-		int           state;
+		int           state = NormalState;
 
-		if (Tmp_win->wmhints && (Tmp_win->wmhints->flags & StateHint))
-			state = Tmp_win->wmhints->initial_state;
-		else
-			state = NormalState;
-
-		if (Tmp_win->flags & STARTICONIC)
+		if( get_flags( Tmp_win->status->flags, AS_Iconic ) )
 			state = IconicState;
+		else if( get_flags( Tmp_win->status->flags, AS_Shaded ) )
+			state = ZoomState;
 
-		if (isIconicState != DontCareState)
-			state = isIconicState;
 
 		XGrabServer (dpy);
 		switch (state)
@@ -747,7 +743,7 @@ HandleMapRequest ()
 		 case NormalState:
 		 case InactiveState:
 		 default:
-			 if (Tmp_win->Desk == Scr.CurrentDesk)
+			 if (Tmp_win->status->desktop == Scr.CurrentDesk)
 			 {
 				 XMapWindow (dpy, Tmp_win->w);
 				 XMapWindow (dpy, Tmp_win->frame);
@@ -807,7 +803,7 @@ HandleMapNotify ()
 		XUnmapWindow (dpy, Tmp_win->icon_pixmap_w);
 	XMapSubwindows (dpy, Tmp_win->frame);
 
-	if (Tmp_win->Desk == Scr.CurrentDesk)
+	if (Tmp_win->status->desktop == Scr.CurrentDesk)
 	{
 		XMapWindow (dpy, Tmp_win->frame);
 	}
@@ -934,9 +930,9 @@ HandleUnmapNotify ()
 		{
 			if (Tmp_win->old_bw)
 				XSetWindowBorderWidth (dpy, Event.xunmap.window, Tmp_win->old_bw);
-			if ((!(Tmp_win->flags & SUPPRESSICON)) &&
-				(Tmp_win->wmhints && (Tmp_win->wmhints->flags & IconWindowHint)))
-				XUnmapWindow (dpy, Tmp_win->wmhints->icon_window);
+			if (get_flags(Tmp_win->hints->flags, AS_Icon) &&
+				((Tmp_win->hints->flags)&(AS_ClientIcon|AS_ClientIconPixmap)) == AS_ClientIcon )
+				XUnmapWindow (dpy, Tmp_win->hints->icon.window);
 		} else
 		{
 			RestoreWithdrawnLocation (Tmp_win, False);

@@ -933,7 +933,7 @@ SetupFrame (ASWindow * tmp_win, int x, int y, int w, int h, Bool sendEvent)
 #endif /* !NO_TEXTURE */
 
 	if (tmp_win->attr.height <= 0)
-		tmp_win->attr.height = tmp_win->normal_hints.height_inc;
+		tmp_win->attr.height = tmp_win->hints->height_inc;
 
 	XMoveResizeWindow (dpy, tmp_win->Parent, cx, cy, tmp_win->attr.width, tmp_win->attr.height);
 	/* client window may need to be moved to 0,0 due to win_gravity */
@@ -1035,7 +1035,7 @@ SetupFrame (ASWindow * tmp_win, int x, int y, int w, int h, Bool sendEvent)
  */
 
 		if (client_event.xconfigure.height <= 0)
-			client_event.xconfigure.height = tmp_win->normal_hints.height_inc;
+			client_event.xconfigure.height = tmp_win->hints->height_inc;
 
 
 		client_event.xconfigure.border_width = tmp_win->bw;
@@ -1143,7 +1143,7 @@ SetFocus (Window w, ASWindow * Fw, Bool circulated)
 	if (Fw && Fw->focus_var)
 		return False;
 
-	if (Fw && (Fw->Desk != Scr.CurrentDesk))
+	if (Fw && (Fw->status->desktop != Scr.CurrentDesk))
 	{
 		Fw = NULL;
 		w = Scr.NoFocusWin;
@@ -1196,13 +1196,12 @@ SetFocus (Window w, ASWindow * Fw, Bool circulated)
 			w = Fw->icon_pixmap_w;
 	}
 
-	if (!((Fw) && (Fw->wmhints) && (Fw->wmhints->flags & InputHint) &&
-		  (Fw->wmhints->input == False)))
+	if (!(Fw && get_flags(Fw->hints->flags, AS_AcceptsFocus)))
 	{
 		/* Window will accept input focus */
 		XSetInputFocus (dpy, w, RevertToParent, lastTimestamp);
 		Scr.Focus = Fw;
-	} else if ((Scr.Focus) && (Scr.Focus->Desk == Scr.CurrentDesk))
+	} else if ((Scr.Focus) && (Scr.Focus->status->desktop == Scr.CurrentDesk))
 	{
 		/* Window doesn't want focus. Leave focus alone */
 		/* XSetInputFocus (dpy,Scr.Hilite->w , RevertToParent, lastTimestamp); */
@@ -1213,7 +1212,7 @@ SetFocus (Window w, ASWindow * Fw, Bool circulated)
 		Scr.Focus = NULL;
 		focusAccepted = False;
 	}
-	if ((Fw) && (Fw->flags & DoesWmTakeFocus))
+	if ((Fw) && get_flags(Fw->hints->protocols, AS_DoesWmTakeFocus))
 		send_clientmessage (w, _XA_WM_TAKE_FOCUS, lastTimestamp);
 
 	XSync (dpy, 0);

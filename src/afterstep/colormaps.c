@@ -62,7 +62,7 @@ HandleColormapNotify (void)
 	if (cevent->new)
 	{
 		XGetWindowAttributes (dpy, Tmp_win->w, &(Tmp_win->attr));
-		if ((Tmp_win == colormap_win) && (Tmp_win->number_cmap_windows == 0))
+		if ((Tmp_win == colormap_win) && (Tmp_win->hints->cmap_windows == NULL))
 			last_cmap = Tmp_win->attr.colormap;
 		ReInstall = True;
 	} else if ((cevent->state == ColormapUninstalled) && (last_cmap == cevent->colormap))
@@ -77,7 +77,7 @@ HandleColormapNotify (void)
 		if ((Tmp_win) && (cevent->new))
 		{
 			XGetWindowAttributes (dpy, Tmp_win->w, &(Tmp_win->attr));
-			if ((Tmp_win == colormap_win) && (Tmp_win->number_cmap_windows == 0))
+			if ((Tmp_win == colormap_win) && (Tmp_win->hints->cmap_windows == NULL))
 				last_cmap = Tmp_win->attr.colormap;
 			ReInstall = True;
 		} else if ((Tmp_win) &&
@@ -148,11 +148,11 @@ InstallWindowColormaps (ASWindow * tmp)
 	{
 		return;
 	}
-	if (tmp->number_cmap_windows > 0)
+	if (tmp->hints->cmap_windows != NULL)
 	{
-		for (i = tmp->number_cmap_windows - 1; i >= 0; i--)
+		for (i = 0; tmp->hints->cmap_windows[i] != None; ++i)
 		{
-			w = tmp->cmap_windows[i];
+			w = tmp->hints->cmap_windows[i];
 			if (w == tmp->w)
 				ThisWinInstalled = True;
 			XGetWindowAttributes (dpy, w, &attributes);
@@ -224,24 +224,3 @@ UninstallRootColormap ()
 	return;
 }
 
-
-
-/*****************************************************************************
- *
- * Gets the WM_COLORMAP_WINDOWS property from the window
- *   This property typically doesn't exist, but a few applications
- *   use it. These seem to occur mostly on SGI machines.
- *
- ****************************************************************************/
-void
-FetchWmColormapWindows (ASWindow * tmp)
-{
-	if (tmp->cmap_windows != (Window *) NULL)
-		XFree ((void *)tmp->cmap_windows);
-
-	if (!XGetWMColormapWindows (dpy, tmp->w, &(tmp->cmap_windows), &(tmp->number_cmap_windows)))
-	{
-		tmp->number_cmap_windows = 0;
-		tmp->cmap_windows = NULL;
-	}
-}
