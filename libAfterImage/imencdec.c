@@ -316,11 +316,11 @@ start_image_decoding( ASVisual *asv,ASImage *im, ASFlagType filter,
 	}else
 	{
 		if( offset_x < 0 )
-			offset_x = im->width - (offset_x%im->width);
+			offset_x = (int)im->width + (offset_x%(int)im->width);
 		else
 			offset_x %= im->width ;
 		if( offset_y < 0 )
-			offset_y = im->height - (offset_y%im->height);
+			offset_y = (int)im->height + (offset_y%(int)im->height);
 		else
 			offset_y %= im->height ;
 		if( out_width == 0 )
