@@ -24,7 +24,9 @@
  * Defines default value for screen gamma correction.
  * SOURCE
  */
-#define SCREEN_GAMMA 1.0
+
+#define SCREEN_GAMMA 2.2
+#define DEFAULT_PNG_IMAGE_GAMMA     0.45455
 /*************/
 /****s* libAfterImage/ASImageFileTypes
  * NAME

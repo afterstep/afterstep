@@ -115,7 +115,7 @@ file2ASImage( const char *file, ASFlagType what, double gamma, unsigned int comp
 	if( (g_var = getenv( "SCREEN_GAMMA" )) != NULL )
 		gamma = atof(g_var);
 
-	if( file ) 
+	if( file )
 	{
 		filename_len = strlen(file);
 
@@ -257,7 +257,7 @@ static char *
 locate_image_file( const char *file, char **paths )
 {
 	char *realfilename = NULL;
-	if( file != NULL ) 
+	if( file != NULL )
 	{
 		if( CheckFile( file ) == 0 )
 		{
@@ -308,7 +308,7 @@ check_image_type( const char *realfilename )
 		DEBUG_OUT("%s: head[0]=0x%2.2X(%d),head[2]=0x%2.2X(%d)\n", realfilename+filename_len-4, head[0], head[0], head[2], head[2] );
 /*		fprintf( stderr, " IMAGE FILE HEADER READS : [%s][%c%c%c%c%c%c%c%c][%s], bytes_in = %d\n", (char*)&(head[0]),
 						head[0], head[1], head[2], head[3], head[4], head[5], head[6], head[7], strstr ((char *)&(head[0]), "XPM"),bytes_in );
- */		
+ */
 		if( bytes_in > 3 )
 		{
 			if( head[0] == 0xff && head[1] == 0xd8 && head[2] == 0xff)
@@ -346,12 +346,12 @@ check_image_type( const char *realfilename )
 			else
 			{/* the nastiest check - for XML files : */
 				register int i ;
-				
+
 				type = ASIT_XMLScript ;
 				while( bytes_in > 0 && type == ASIT_XMLScript )
 				{
 					for( i = 0 ; i < bytes_in ; ++i ) if( !isspace(head[i]) ) break;
-					if( i >= bytes_in ) 
+					if( i >= bytes_in )
 						bytes_in = fread( &(head[0]), sizeof(CARD8), FILE_HEADER_SIZE, fp );
 					else if( head[i] != '<' )
 						type = ASIT_Unknown ;
@@ -360,8 +360,8 @@ check_image_type( const char *realfilename )
 				}
 				while( bytes_in > 0 && type == ASIT_XMLScript )
 				{
-					for( i = 0 ; i < bytes_in ; ++i ) 
-						if( !isspace(head[i]) ) 
+					for( i = 0 ; i < bytes_in ; ++i )
+						if( !isspace(head[i]) )
 						{
 							if( !isprint(head[i]) )
 							{
@@ -370,10 +370,10 @@ check_image_type( const char *realfilename )
 							}else if( head[i] == '>' )
 								break ;
 						}
-							
-					if( i >= bytes_in ) 
+
+					if( i >= bytes_in )
 						bytes_in = fread( &(head[0]), sizeof(CARD8), FILE_HEADER_SIZE, fp );
-					else 
+					else
 						break ;
 				}
 			}
@@ -492,7 +492,7 @@ xpm2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tabl
 		show_error("cannot open image file \"%s\" for reading. Please check permissions.", path);
 		return NULL;
 	}
-	
+
 	im = xpm_file2ASImage( xpm_file, compression );
 	close_xpm_file( &xpm_file );
 
@@ -515,7 +515,7 @@ xpm_data2ASImage( const char **data, ASFlagType what, double gamma, CARD8 *gamma
 		show_error("cannot read XPM data.");
 		return NULL;
 	}
-	
+
 	im = xpm_file2ASImage( xpm_file, compression );
 	close_xpm_file( &xpm_file );
 
@@ -541,7 +541,7 @@ ASImage *
 png2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_table, int subimage, unsigned int compression )
 {
 	FILE 		 *fp ;
-	double 		  image_gamma = 1.0;
+    double        image_gamma = DEFAULT_PNG_IMAGE_GAMMA;
 	png_structp   png_ptr;
 	png_infop     info_ptr;
 	png_uint_32   width, height;
@@ -620,11 +620,11 @@ png2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tabl
 					color_type = PNG_COLOR_TYPE_GRAY_ALPHA ;
   */
 				if (png_get_sRGB (png_ptr, info_ptr, &intent))
-					png_set_sRGB (png_ptr, info_ptr, image_gamma);
+                    png_set_sRGB (png_ptr, info_ptr, DEFAULT_PNG_IMAGE_GAMMA);
 				else if (png_get_gAMA (png_ptr, info_ptr, &image_gamma))
 					png_set_gamma (png_ptr, gamma, image_gamma);
-				else 
-					png_set_gamma (png_ptr, gamma, 1.0);
+				else
+                    png_set_gamma (png_ptr, gamma, DEFAULT_PNG_IMAGE_GAMMA);
 
 				/* Optional call to gamma correct and add the background to the palette
 				 * and update info structure.  REQUIRED if you are expecting libpng to
@@ -635,7 +635,7 @@ png2ASImage( const char * path, ASFlagType what, double gamma, CARD8 *gamma_tabl
 				im = create_asimage( width, height, compression );
 				prepare_scanline( im->width, 0, &buf, False );
 				do_alpha = ((color_type & PNG_COLOR_MASK_ALPHA) != 0 );
-				grayscale = ( color_type == PNG_COLOR_TYPE_GRAY_ALPHA || 
+				grayscale = ( color_type == PNG_COLOR_TYPE_GRAY_ALPHA ||
 				              color_type == PNG_COLOR_TYPE_GRAY) ;
 
 				row_bytes = png_get_rowbytes (png_ptr, info_ptr);
@@ -1505,20 +1505,20 @@ load_xml2ASImage( ASImageManager *imman, const char *path, unsigned int compress
 	char *slash, *curr_path = NULL ;
 	char *doc_str = NULL ;
 	ASImage *im = NULL ;
-	
+
 	memset( &fake_asv, 0x00, sizeof(ASVisual) );
 	if( (slash = strrchr( path, '/' )) != NULL )
 		curr_path = mystrndup( path, slash-path );
-	
+
 	if((doc_str = load_file(path)) == NULL )
 		show_error( "unable to load file \"%s\" file is either too big or is not readable.\n", path );
 	else
 	{
-		im = compose_asimage_xml(&fake_asv, imman, NULL, doc_str, 0, 0, None, curr_path);	
+		im = compose_asimage_xml(&fake_asv, imman, NULL, doc_str, 0, 0, None, curr_path);
 		free( doc_str );
 	}
-	
-	if( curr_path ) 
+
+	if( curr_path )
 		free( curr_path );
 	return im ;
 }
@@ -1531,7 +1531,7 @@ xml2ASImage( const char *path, ASFlagType what, double gamma, CARD8 *gamma_table
 	START_TIME(started);
 
 	im = load_xml2ASImage( NULL, path, compression );
-	
+
 	SHOW_TIME("image loading",started);
 	return im ;
 }
