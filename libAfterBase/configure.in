@@ -7,7 +7,7 @@ dnl#Copyright (c) 1998 Juergen Sawinski <Juergen.Sawinski@urz.uni-heidelberg.de>
 dnl#Copyright (c) 1997 1998 Guylhem AZNAR <guylhem@oeil.qc.ca>
 
 
-AC_INIT(libAfterBase,1.02,as-bugs@afterstep.org,libAfterBase.tar)
+AC_INIT(libAfterBase,1.03,as-bugs@afterstep.org,libAfterBase.tar)
 
 version=$PACKAGE_VERSION
 version_major="1"
@@ -70,7 +70,6 @@ dnl# AfterSTep already checked everything for us
     AC_SUBST(LEX)
     AC_SUBST(LEXLIB)
     AC_SUBST(YACC)
-    AC_SUBST(sgmltools)
 	if test "x$GCC" = "xyes" -a "x$CYGWIN" = "xno" ; then
       if test -z "`echo $CFLAGS | grep '\-fPIC' 2> /dev/null`" ; then
 		CFLAGS="$CFLAGS -fPIC"
@@ -258,7 +257,6 @@ AC_SUBST(X_CFLAGS)
 AC_SUBST(LIBPROG)
 AC_SUBST(LIBINSTALL)
 AC_SUBST(DEFINE_XLOCALE)
-AC_SUBST(sgmltools)
 AC_SUBST(PERL)
 
 if test "x$enable_audit" = "xyes"; then 

@@ -1,26 +1,42 @@
 %define	name	AfterStep
 %define	fver	@version@
 %define	version	@version@
-%define	release	1
-%define	serial	1
+%define release 3
+%define epoch   20
 %define	prefix	/usr/X11R6
+%define gdesk   /usr/share
+%define generic 1
+%define fedora 0
+%{?_with_fedora:%define fedora 1}
+%define mandrake 0
+%{?_with_mandrake:%define mandrake 1}
+%if %{fedora}
+   %define generic 0
+%endif
+%if %{mandrake}
+   %define generic 0
+%endif
 
 Summary:	AfterStep Window Manager (NeXTalike)
 Name:		%{name}
 Version:	%{version}
 Release:	%{release}
-Serial:		%{serial}
+Epoch:		%{epoch}
 Copyright:	GPL
 Group:		User Interface/Desktops
 URL:		http://www.afterstep.org
 Vendor:		The AfterStep Team (see TEAM in docdir)
-Source:		ftp://ftp.afterstep.org/devel/snapshots/%{name}-%{fver}.tar.bz2
-#Source1:	AfterStep-redhat.tar.gz
-#Patch0:
+Source0:	ftp://ftp.afterstep.org/stable/%{name}-%{fver}.tar.gz
+Source1:	Xclients.afterstep
+Source2:	afterstep
+Source3: AfterStep.kdm
+Source4: AfterStep.menu
+Source5: AfterStep.menumethod
 Distribution:	The AfterStep TEAM
-Packager:	David Mihm <webmaster@afterstep.org>
+Packager:	Sean Dague <sean at dague dot net>
 BuildRoot:	%{_tmppath}/%{name}-%{version}-root
-Requires: %{name}-libs
+Requires:	%{name}-libs = %{version}
+Requires: xloadimage
 
 %description
   AfterStep is a Window Manager for X which started by emulating the
@@ -42,6 +58,7 @@ version:	%{version}
 release:	%{release}
 copyright:	GPL
 group:		User Interface/Desktops
+Provides: %{name}-libs = %{version}
 
 %description libs
   Libraries neeeded by AfterStep 2.0
@@ -52,40 +69,73 @@ version:	%{version}
 release:	%{release}
 copyright:	GPL
 group:		User Interface/Desktops
-Requires: %{name}-libs
+Requires: %{name}-libs = %{version}
 
 %description devel
   AftterStep libs include files
 
 %prep
 %setup -q -n %{name}-%{fver}
-#%patch0 -p1
-
-# RedHat's version of the startmenu
-# rm -rf afterstep/start
-# tar xzf $RPM_SOURCE_DIR/AfterStep-redhat.tar.gz
 
 CFLAGS=$RPM_OPT_FLAGS \
-./configure --prefix=%{prefix} --datadir=/usr/share \
-    --disable-staticlibs --enable-sharedlibs \
-	 --with-helpcommand="aterm -e man" \
-	 --with-desktops=1 --with-imageloader="qiv --root"
+./configure \
+	--prefix=%{prefix}                        \
+	--datadir=%{prefix}/share                 \
+	--disable-staticlibs                      \
+	--enable-sharedlibs                       \
+	--with-xpm                                \
+	--with-jpeg                               \
+	--with-png                                \
+	--with-ttf                                \
+	--with-tiff                               \
+	--with-gif                                \
+	--with-jpeg                               \
+	--enable-ascp                             \
+	--enable-i18n                             \
+	--with-helpcommand="aterm -e man"         \
+	--with-desktops=1 --with-deskgeometry=2x3 \
+	--with-imageloader="xsetbg"               \
+	--disable-send-postcard-to-developer
 
 %build
 make
 
-if [ -x /usr/bin/sgml2html ]; then sgml2html doc/afterstep.sgml; fi
 cd src/ASDocGen && ./ASDocGen -l log.html -t html && cd ../..
 
 %install
-if [ -d $RPM_BUILD_ROOT ]; then rm -rf $RPM_BUILD_ROOT; fi
+if [[ -d $RPM_BUILD_ROOT ]]; then rm -rf $RPM_BUILD_ROOT; fi
 mkdir -p $RPM_BUILD_ROOT
 
-make DESTDIR=$RPM_BUILD_ROOT install
+make DESTDIR=$RPM_BUILD_ROOT LDCONFIG=/bin/true install
 rm -f $RPM_BUILD_ROOT%{prefix}/bin/{sessreg,xpmroot}
 for f in libAfter{Base,Conf,Image,Step}; do
    cp -a $f/$f.so* %{buildroot}%{prefix}/lib
 done
+
+%if %{fedora}
+#fedora-config prep
+install -d $RPM_BUILD_ROOT%{gdesk}/switchdesk/
+install -m 0644 %{SOURCE1} $RPM_BUILD_ROOT%{gdesk}/switchdesk/
+install -d $RPM_BUILD_ROOT/etc/X11/gdm/Sessions/
+install -m 0644 %{SOURCE2} $RPM_BUILD_ROOT/etc/X11/gdm/Sessions/
+install -d %{buildroot}%{gdesk}/xsessions/
+install -m 0644 AfterStep.desktop.final %{buildroot}%{gdesk}/xsessions/afterstep.desktop
+install -d %{buildroot}%{gdesk}/gnome/wm-properties/
+install -m 0644 AfterStep.desktop.final %{buildroot}%{gdesk}/gnome/wm-properties/afterstep.desktop
+rm -f %{buildroot}%{prefix}/share/xsessions/AfterStep.desktop
+rmdir %{buildroot}%{prefix}/share/xsessions/
+%endif
+%if %{mandrake}
+# mandrake menu items
+install -d $RPM_BUILD_ROOT/etc/X11/wmsession.d/
+install -m 0644 %{SOURCE3} $RPM_BUILD_ROOT/etc/X11/wmsession.d/42AfterStep
+install -d $RPM_BUILD_ROOT/usr/lib/menu/afterstep
+install -m 0644 %{SOURCE4} $RPM_BUILD_ROOT/usr/lib/menu/afterstep
+install -d $RPM_BUILD_ROOT/etc/menu-methods/
+install -m 0755 %{SOURCE5} $RPM_BUILD_ROOT/etc/menu-methods/AfterStep
+rm -f %{buildroot}%{prefix}/share/xsessions/AfterStep.desktop
+rmdir %{buildroot}%{prefix}/share/xsessions/
+%endif
 
 %clean
 rm -rf %{buildroot}
@@ -93,21 +143,44 @@ rm -rf %{buildroot}
 %files
 %defattr(-,root,root)
 %doc ChangeLog NEW README* TEAM UPGRADE doc/languages doc/licences doc/code TODO doc/*.html
+%doc src/ASDocGen/html/*html
+
 %{prefix}/bin/*
-%{prefix}/lib/*
-%config /usr/share/afterstep
-%config /usr/share/gnome/wm-properties/AfterStep.desktop
+%dir %{prefix}/share/afterstep
+%{prefix}/share/afterstep/*
+%{prefix}/man/man1/*
+%if %{fedora}
+/etc/X11/gdm/Sessions/afterstep
+%{gdesk}/switchdesk/Xclients.afterstep
+%{gdesk}/xsessions/afterstep.desktop
+%{gdesk}/gnome/wm-properties/afterstep.desktop
+%endif
+%if %{mandrake}
+/etc/X11/wmsession.d/42AfterStep
+/usr/lib/menu/afterstep
+/etc/menu-methods/AfterStep
+%endif
+%if %{generic}
+%{prefix}/share/xsessions/AfterStep.desktop
+%endif
 
 %files libs
 %defattr(-,root,root)
-%doc libAfterImage/README src/ASDocGen/html/*
+%doc libAfterImage/README 
 %{prefix}/lib/*
-%{prefix}/man/*/*
 
 %files devel
 %defattr(-,root,root)
+%dir %{prefix}/include/libAfterBase
+%dir %{prefix}/include/libAfterConf
+%dir %{prefix}/include/libAfterImage
+%dir %{prefix}/include/libAfterStep
 %{prefix}/include/libAfterBase/*
+%{prefix}/include/libAfterConf/*
 %{prefix}/include/libAfterImage/*
+%{prefix}/include/libAfterStep/*
+%{prefix}/man/man3/*
+%doc src/ASDocGen/html/API/*html
 
 %pre
 for i in /usr /usr/local /usr/X11R6 ; do
@@ -126,6 +199,19 @@ done
 %postun -p /sbin/ldconfig
 
 %changelog
+* Mon Mar  7 2005 Sean Dague <sean@dague.net> 20:2.00.03-3
+- set provides manually on libs, move some docs to main and devel
+
+* Sun Mar  6 2005 Sean Dague <sean@dague.net> 2.00.03-2
+- add with tagging to fedora vs. mandrake issues
+
+* Thu Mar 03 2005 J.Krebs <rpm_speedy@yahoo.com> 2.00.03-1
+- brought up to 2.00.03 release
+- separated Fedora desktop config files into a separate rpm
+
+* Sat Feb 26 2005 Sean Dague <sean@dague.net> 2.00.02-2
+- brought up to 2.00.02 release
+
 * Wed Sep 28 2004 Graydon Saunders <graydon@epiphyte.net> 2.00.00
 - added %%{prefix}
 - added the man pages to the -libs package

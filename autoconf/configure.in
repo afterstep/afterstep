@@ -7,17 +7,17 @@ dnl#Copyright (c) 1998 Juergen Sawinski <Juergen.Sawinski@urz.uni-heidelberg.de>
 dnl#Copyright (c) 1997 1998 Guylhem AZNAR <guylhem@oeil.qc.ca>
 
 dnl#AC_INIT(afterstep/autoexec.in)
-AC_INIT(AfterStep,2.00.03,as-bugs@afterstep.org,AfterStep.tar)
+AC_INIT(AfterStep,2.00.04,as-bugs@afterstep.org,AfterStep.tar)
 AC_CONFIG_AUX_DIR(autoconf)
 AC_CONFIG_HEADER(config.h:autoconf/config.h.in)
 
 version=$PACKAGE_VERSION
 app_version=$PACKAGE_VERSION
-libafterstep_version="1.03"
+libafterstep_version="1.04"
 libafterstep_version_major="1"
 libafterstep_name="LIBAFTERSTEP"
 libafterstep_file_name="libAfterStep"
-libafterconf_version="1.03"
+libafterconf_version="1.04"
 libafterconf_version_major="1"
 libafterconf_name="LIBAFTERCONF"
 libafterconf_file_name="libAfterConf"
@@ -621,7 +621,6 @@ AC_SUBST(AFTERCONF_STATIC_LIB)
 AC_SUBST(WIDGETS_STATIC_LIB)
 AC_SUBST(LIBPROG)
 AC_SUBST(LIBINSTALL)
-AC_SUBST(sgmltools)
 AC_SUBST(with_afterdir)
 AC_SUBST(with_imageloader)
 AC_SUBST(with_soundplayer)

@@ -6,7 +6,7 @@ dnl#Copyright (c) 2001,1998 Sasha Vasko <sasha at aftercode.net>
 dnl#Copyright (c) 1998 Juergen Sawinski <Juergen.Sawinski@urz.uni-heidelberg.de>
 dnl#Copyright (c) 1997 1998 Guylhem AZNAR <guylhem@oeil.qc.ca>
 
-AC_INIT(libAfterImage,1.03,as-bugs@afterstep.org,libAfterImage.tar)
+AC_INIT(libAfterImage,1.04,as-bugs@afterstep.org,libAfterImage.tar)
 
 AC_CONFIG_HEADER(config.h:config.h.in)
 
@@ -99,7 +99,6 @@ dnl# AfterSTep already checked everything for us
     AC_SUBST(LEX)
     AC_SUBST(LEXLIB)
     AC_SUBST(YACC)
-    AC_SUBST(sgmltools)
     if test "x$have_shmimage" = "xyes"; then
 		AC_DEFINE(XSHMIMAGE)
     fi
@@ -654,7 +653,6 @@ AC_SUBST(X_CFLAGS)
 AC_SUBST(LIBPROG)
 AC_SUBST(LIBINSTALL)
 AC_SUBST(DEFINE_XLOCALE)
-AC_SUBST(sgmltools)
 AC_SUBST(PERL)
 
 dnl# Write results
