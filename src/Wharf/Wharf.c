@@ -1114,25 +1114,33 @@ update_wharf_folder_shape( ASWharfFolder *aswf )
 /*			fprintf( stderr, "%s: boundary = %dx%d%+d%+d, canvas = %dx%d\n", 
 						__FUNCTION__, sr.width, sr.height, sr.x, sr.y, aswf->canvas->width, aswf->canvas->height ); */
 			
-			if( sr.x > 0 )
-			{	 
-				sr.width = sr.x ;
-				sr.x = 0 ;
-			}else if( sr.width < aswf->canvas->width ) 
-			{
-				sr.x = sr.width ;
-				sr.width = aswf->canvas->width - sr.width ;
-			}
-			
-			if( sr.y > 0 ) 
+			if( sr.width < aswf->canvas->width ) 
 			{	
-				sr.height = sr.y ;
-				sr.y = 0 ;
-			}else if( sr.height < aswf->canvas->height ) 
-			{
-				sr.y = sr.height ;
-				sr.height = aswf->canvas->height - sr.height ;
-			}
+				if( sr.x > 0 )
+				{	 
+					sr.width = sr.x ;
+					sr.x = 0 ;
+				}else 
+				{
+					sr.x = sr.width ;
+					sr.width = aswf->canvas->width - sr.width ;
+				}
+			}else
+				sr.width = 0 ;
+			
+			if( sr.height < aswf->canvas->height ) 
+			{	
+				if( sr.y > 0 ) 
+				{	
+					sr.height = sr.y ;
+					sr.y = 0 ;
+				}else 
+				{
+					sr.y = sr.height ;
+					sr.height = aswf->canvas->height - sr.height ;
+				}
+			}else
+				sr.height = 0 ;
 #if 0
 			fprintf( stderr, "%s: substr_boundary = %dx%d%+d%+d canvas = %dx%d%+d%+d\n", 
 					 __FUNCTION__, sr.width, sr.height, sr.x, sr.y,  
