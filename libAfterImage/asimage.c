@@ -1248,7 +1248,7 @@ fprintf( stderr, "rgb #%2.2lX%2.2lX%2.2lX in: 0x%4.4X( %2.2X %2.2X )\n", r[i], g
 	}
 }
 
-static inline void
+void
 put_ximage_buffer (unsigned char *xim_line, ASScanline * xim_buf, int BGR_mode, int byte_order, int bpp)
 {
 	int           i, width = xim_buf->width;
@@ -1257,12 +1257,12 @@ put_ximage_buffer (unsigned char *xim_line, ASScanline * xim_buf, int BGR_mode, 
 #ifdef LOCAL_DEBUG
     static int debug_count = 10 ;
 #endif
-
 	if (BGR_mode != byte_order)
 	{
 		r = xim_buf->blue;
 		b = xim_buf->red ;
 	}
+
 	if ( bpp == 24)
 	{
 		for (i = 0 ; i < width; i++)
@@ -1292,75 +1292,84 @@ put_ximage_buffer (unsigned char *xim_line, ASScanline * xim_buf, int BGR_mode, 
 			}
 	} else if (bpp == 16)
 	{										   /* must add LSB/MSB checking */
+			register CARD32 red=0, green=0, blue=0;
 LOCAL_DEBUG_OUT( "writing row in 16bpp with %s: ", (byte_order == MSBFirst)?"MSBFirst":"no MSBFirst" );
-		if (byte_order == MSBFirst)
-		{
-			CARD32 red, green, blue, err_red = 0, err_green = 0, err_blue = 0;
 			for (i = 0 ; i < width; i++)
-			{ /* diffusion to compensate for quantization error :*/
-				register CARD32 c;
-				c = r[i]+err_red ;	red   = ((c&0x00FFFF00)!=0)?0x000000FF:c; err_red = (red&0x07)>>1 ;
-				c = g[i]+err_green; green = ((c&0x00FFFF00)!=0)?0x000000FF:c; err_green = (green&0x03)>>1 ;
-				c = b[i]+err_blue ; blue  = ((c&0x00FFFF00)!=0)?0x000000FF:c; err_blue = (blue&0x07)>>1 ;
-				src[0] = (CARD8)((red&0xF8)|(green>>5));
-				src[1] = (CARD8)(((green<<3)&0xE0)|(blue>>3));
-				src += 2;
-			}
-		}else
-		{
-			for (i = 1 ; i < width; i++)
 			{/* diffusion to compensate for quantization error :*/
-				register CARD32 c, green;
-			    green = g[i]+(g[i-1]&0x03>>1);
-				if( (green&0x00FFFF00) != 0 )
+				red   =  (r[i]+red > 0x00FF)?0x00FF:r[i]+red ;
+				blue  =  (b[i]+blue > 0x00FF)?0x00FF:b[i]+blue ;
+
+				if( g[i] > (0x00FF^green) ) 
 				{
-					c =  r[i]+(r[i-1]&0x07>>1) ;
-					src[1] = (CARD8)(((c|((c&0x0100)-0x00FF))&0xF8)|(green>>5));
-					c =  b[i]+(b[i-1]&0x07>>1) ;
-					src[0] = (CARD8)(((green<<3)&0xE0)|(((c|((c&0x0100)-0x00FF))>>3)&0x1F));
+					if (byte_order == MSBFirst)
+					{
+						src[0] = red|0x07;	
+						src[1] = (CARD8)(0xE0|(blue>>3));
+					}else
+					{
+						src[1] = red|0x07;	
+						src[0] = (CARD8)(0xE0|(blue>>3));
+					}
+  					green = 0x01;
 				}else
 				{
-					c =  r[i]+(r[i-1]&0x07>>1) ;
-					src[1] = (CARD8)(((c|((c&0x0100)-0x00FF))&0xF8)|0x07);
-					c =  b[i]+(b[i-1]&0x07>>1) ;
-					src[0] = (CARD8)(0xE0|((c|((c&0x0100)-0x00FF))>>3));
+					green+=g[i];
+					if (byte_order == MSBFirst)
+					{
+						src[0] = (red&0xF8)|(green>>5);	
+						src[1] = (CARD8)(((green<<3)&0xE0)|(blue>>3));
+					}else
+					{
+						src[1] = (red&0xF8)|(green>>5);	
+						src[0] = (CARD8)(((green<<3)&0xE0)|(blue>>3));
+					}
+					green = (green&0x03)>>1;
 				}
-#ifdef LOCAL_DEBUG
-				if( debug_count > 0 )
-				{
-fprintf( stderr, "source #%2.2lX%2.2lX%2.2lX error #%2.2lX%2.2lX%2.2lX result #%2.2lX%2.2lX%2.2lX out: 0x%4.4X( %2.2X %2.2X )\n", r[i], g[i], b[i], err_red, err_green, err_blue, red, green, blue, *((unsigned short*)src), src[0], src[1] );
-					debug_count-- ;
-				}
-#endif
+				red =   (red&0x07)>>1; 
+				blue =  (blue&0x07)>>1;
 				src += 2;
 			}
-		}
 	} else if (bpp == 15)
 	{										   /* must add LSB/MSB checking */
-		CARD32 err_red = 0, err_green = 0, err_blue = 0;
-		CARD32 red, green, blue;
-		if (byte_order == MSBFirst)
+			register CARD32 red=0, green=0, blue=0;
+LOCAL_DEBUG_OUT( "writing row in 15bpp with %s: ", (byte_order == MSBFirst)?"MSBFirst":"no MSBFirst" );
 			for (i = 0 ; i < width; i++)
 			{/* diffusion to compensate for quantization error :*/
-				register CARD32 c;
-				c = r[i]+err_red ;	red   = ((c&0x00FFFF00)!=0)?0x000000FF:c; err_red = (red&0x07)>>1 ;
-				c = g[i]+err_green; green = ((c&0x00FFFF00)!=0)?0x000000FF:c; err_green = (green&0x07)>>1 ;
-				c = b[i]+err_blue ; blue  = ((c&0x00FFFF00)!=0)?0x000000FF:c; err_blue = (blue&0x07)>>1 ;
-				src[0] = (CARD8)((red << 2) | (( green >> 3) & 0x03 ))&0x7F;
-				src[1] = (CARD8)((green << 5) |  blue);
-				src += 2;
+				red   =  (r[i]+red > 0x00FF)?0x007F:(r[i]+red)>>1 ;
+				blue  =  (b[i]+blue > 0x00FF)?0x00FF:b[i]+blue ;
+
+				if( g[i] > (0x00FF^green) ) 
+				{
+					if (byte_order == MSBFirst)
+					{
+						src[0] = red|0x03;	
+						src[1] = (CARD8)(0xE0|(blue>>3));
+					}else
+					{
+						src[1] = red|0x03;	
+						src[0] = (CARD8)(0xE0|(blue>>3));
+					}
+  					green = 0x01;
+				}else
+				{
+					green+=g[i];
+					if (byte_order == MSBFirst)
+					{
+						src[0] = (red&0xF8)|(green>>6);	
+						src[1] = (CARD8)(((green<<3)&0xE0)|(blue>>3));
+					}else
+					{
+						src[1] = (red&0xF8)|(green>>6);	
+						src[0] = (CARD8)(((green<<3)&0xE0)|(blue>>3));
+					}
+					green = (green&0x03)>>1;
+				}
+				red =   red&0x03; 
+				blue =  (blue&0x07)>>1;
+				src += 2; 
 			}
-		else
-			for (i = 0 ; i < width; i++)
-			{/* diffusion to compensate for quantization error :*/
-				register CARD32 c;
-				c = r[i]+err_red ;	red   = ((c&0x00FFFF00)!=0)?0x000000FF:c; err_red = (red&0x07)>>1 ;
-				c = g[i]+err_green; green = ((c&0x00FFFF00)!=0)?0x000000FF:c; err_green = (green&0x07)>>1 ;
-				c = b[i]+err_blue ; blue  = ((c&0x00FFFF00)!=0)?0x000000FF:c; err_blue = (blue&0x07)>>1 ;
 				src[1] = (CARD8)(((red>>1)&0x7C)|(green >> 6))&0x7F;
 				src[0] = (CARD8)(((green<<3)*0xC0)|(blue>>2));
-				src += 2;
-			}
 	} else
 	{										   /* below 8 bpp handling */
 		for (i = 0 ; i < width; i++)
