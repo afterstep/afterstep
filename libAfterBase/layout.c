@@ -548,7 +548,7 @@ set_layout_context_fixed_size( ASLayout *layout, int context, unsigned int width
     if( layout && layout->count > 0 )
     {
         ASLayoutElem **pelem = get_layout_context_ptr( layout, context );
-		LOCAL_DEBUG_OUT( "setting fixedsize of context %d(%p) to %dx%d", context, *pelem, width, height );
+		LOCAL_DEBUG_OUT( "setting fixedsize of context %d(%p) to %dx%d", context, pelem?*pelem:NULL, width, height );
 		if( pelem != NULL )
 		{
             register ASLayoutElem *elem = *pelem ;
@@ -665,12 +665,12 @@ collect_sizes( ASLayout *layout, int *layout_size, int *layout_fixed_size, Bool 
                 {
                     span = pelem->h_span;
                     pnext = pelem->below;
-                    fixed_size = get_flags( pelem->flags, LF_FixedWidth )?pelem->fixed_width+(pelem->bw<<1):0 ;
+                    fixed_size = get_flags( pelem->flags, LF_FixedWidth )?pelem->fixed_width+(pelem->bw<<1)+spacing:0 ;
                 }else
                 {
                     span = pelem->v_span;
                     pnext = pelem->right;
-                    fixed_size = get_flags( pelem->flags, LF_FixedHeight )?pelem->fixed_height+(pelem->bw<<1):0 ;
+                    fixed_size = get_flags( pelem->flags, LF_FixedHeight )?pelem->fixed_height+(pelem->bw<<1)+spacing:0 ;
                 }
 
                 if( span == max_span && fixed_size > 0 )
@@ -882,24 +882,7 @@ moveresize_layout( ASLayout *layout, unsigned int width, unsigned int height, Bo
         return False;
     /* first working on width/x position */
     spacing_needed = collect_sizes( layout, &(as_layout_width[0]), &(as_layout_fixed_width[0]), True );
-#ifdef LOCAL_DEBUG
-	for( i = 0 ; i < layout->dim_x  ; ++i )
-		fprintf( stderr, "\t%d", as_layout_fixed_width[i]);
-	fprintf( stderr, "\n" );
-	for( i = 0 ; i < layout->dim_x  ; ++i )
-		fprintf( stderr, "\t%d", as_layout_width[i]);
-	fprintf( stderr, "\n" );
-#endif
 	adjust_sizes( layout->width, width, layout->dim_x, &(as_layout_width[0]), &(as_layout_fixed_width[0]) );
-#ifdef LOCAL_DEBUG
-	fprintf( stderr, "\n" );
-	for( i = 0 ; i < layout->dim_x  ; ++i )
-		fprintf( stderr, "\t%d", as_layout_fixed_width[i]);
-	fprintf( stderr, "\n" );
-	for( i = 0 ; i < layout->dim_x  ; ++i )
-		fprintf( stderr, "\t%d", as_layout_width[i]);
-	fprintf( stderr, "\n" );
-#endif
     apply_sizes(layout->h_spacing, layout->offset_west+layout->v_border, layout->dim_x, &(as_layout_width[0]), &(as_layout_fixed_width[0]), &(as_layout_x[0]) );
 
 #ifdef LOCAL_DEBUG
@@ -916,8 +899,23 @@ moveresize_layout( ASLayout *layout, unsigned int width, unsigned int height, Bo
 #endif
     /* then working on height/y position */
     spacing_needed = collect_sizes( layout, &(as_layout_height[0]), &(as_layout_fixed_height[0]), False );
+	for( i = 0 ; i < layout->dim_y  ; ++i )
+		fprintf( stderr, "\t%d", as_layout_fixed_height[i]);
+	fprintf( stderr, "\n" );
     adjust_sizes( layout->height, height, layout->dim_y, &(as_layout_height[0]), &(as_layout_fixed_height[0]) );
     apply_sizes(layout->v_spacing, layout->offset_north+layout->h_border, layout->dim_y, &(as_layout_height[0]), &(as_layout_fixed_height[0]), &(as_layout_y[0]) );
+#ifdef LOCAL_DEBUG
+	fprintf( stderr, "\nHeights adjustmmnt : height=%d/%d, spacing = %d, border %d, offset = %d\n", layout->height, height, layout->v_spacing, layout->h_border, layout->offset_north );
+	for( i = 0 ; i < layout->dim_y  ; ++i )
+		fprintf( stderr, "\t%d", as_layout_fixed_height[i]);
+	fprintf( stderr, "\n" );
+	for( i = 0 ; i < layout->dim_y  ; ++i )
+		fprintf( stderr, "\t%d", as_layout_height[i]);
+	fprintf( stderr, "\n" );
+	for( i = 0 ; i < layout->dim_y  ; ++i )
+		fprintf( stderr, "\t%d", as_layout_y[i] );
+	fprintf( stderr, "\n" );
+#endif
 
     /* now we can actually apply our calculations : */
     /* becouse of the static arrays we cann not recurse while we need
