@@ -1,0 +1,564 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
+                   "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd">
+<!-- lifted from troff+man by doclifter -->
+<refentry id='wharfman'>
+<!--  t -->
+<!--  @(#)Wharf.1		02/07/00 -->
+<refmeta>
+<refentrytitle>Wharf</refentrytitle>
+<manvolnum>1.8</manvolnum>
+<refmiscinfo class='date'>Feb 7 2000</refmiscinfo>
+<refmiscinfo class='source'>Wharf</refmiscinfo>
+</refmeta>
+<refnamediv id='name'>
+<refname>Wharf</refname>
+<refpurpose>the AfterStep "application dock" module</refpurpose>
+</refnamediv>
+<!-- body begins here -->
+<refsynopsisdiv id='synopsis'>
+<cmdsynopsis>
+  <command>Wharf</command>    <arg choice='opt'>-f <replaceable>config_file</replaceable></arg>
+    <group choice='opt'><arg choice='plain'>-v </arg><arg choice='plain'>--version </arg></group>
+    <group choice='opt'><arg choice='plain'>-h </arg><arg choice='plain'>--help </arg></group>
+    <arg choice='plain'><replaceable>AlthoughWharfcanberunfromthecommandline,itisnormallyspawnedbyafterstepintheautoexecfile,inthefollowingmanner:Module"I"WharfWait"I"WharfWaitisusedtoallowWharftoswallowtheappsspecifiedinthewharffilepriortoafterstepstartingotherappswhichusethesamename.orfromwithinanafterstepmenufileby'Wharf':%cat"~/GNUstep/Library/AfterStep/start/Modules/Wharf"Module"Wharf"WharfMiniPixmap"mini-as.xpm"</replaceable></arg>
+    <sbr/>
+    <arg choice='plain'><replaceable>TostoptheWharfmodule,amenuitemcanbeused:%cat"~/GNUstep/Library/AfterStep/start/Modules/Wharf_Stop"KillModuleByName"StopWharf"WharfMiniPixmap"mini-as.xpm"</replaceable></arg>
+    <sbr/>
+</cmdsynopsis>
+</refsynopsisdiv>
+
+
+<refsect1 id='description'><title>DESCRIPTION</title>
+<para>The <command>Wharf</command> module is a free-floating application loader that can
+execute programs, "Swallow" running programs, and contain "Folders" of
+more applications, among other things.</para>
+
+<para>Pressing mouse button 1 on a button triggers either a "Folder" to open,
+or an application to run, while pressing mouse button 3 will cause
+the entire /fBWharf/fP to withdraw to the nearest corner in an iconized
+state. Some swallowed apps have mouse button 2 bound for its use.</para>
+
+</refsect1>
+
+<refsect1 id='options'><title>OPTIONS</title>
+<variablelist remap='IP'>
+  <varlistentry>
+  <term>-f <emphasis remap='I'>config_file</emphasis></term>
+  <listitem>
+<para>Use <emphasis remap='I'>config_file</emphasis> instead of the default configuration file.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>-h | --help</term>
+  <listitem>
+<para>Print a usage message and exit successfully.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>-v | --version</term>
+  <listitem>
+<para>Print version information and exit successfully.</para>
+
+  </listitem>
+  </varlistentry>
+</variablelist>
+</refsect1>
+
+<refsect1 id='initialization'><title>INITIALIZATION</title>
+<para>During initialization, <command>Wharf</command> will search for a configuration
+file which describes the button panel geometry, color, icons, and
+applications to use/swallow. This file will be the one specified by the 
+<option>-f</option> option (if given).  Else, the ~/GNUstep/Library/AfterStep/wharf 
+file will be used if it exists.  Else, /usr/local/share/afterstep/wharf 
+will be used.</para>
+
+<para>If the <command>Wharf</command> executable is linked to another name, ie ln -s <command>Wharf</command>
+<emphasis remap='B'>OtherWharf</emphasis>, then another module called <emphasis remap='B'>OtherWharf</emphasis> can be started,
+with a completely different set of configurations than <command>Wharf</command>, simply by
+adding configuration options with the keywords <emphasis remap='I'>*OtherWharf</emphasis>.
+This way multiple <command>Wharf</command> programs can be used.  Note that the symlinked
+module can not be called Wharf&lt;something&gt;, as aftrestep will pressume
+the standard Wharf binary.</para>
+
+</refsect1>
+
+<refsect1 id='invocation'><title>INVOCATION</title>
+<para><command>Wharf</command> can be invoked from the <emphasis remap='I'>autoexec</emphasis> file or from a menu
+item as shown in the Synopsis section above.</para>
+
+<para>AfterStep will search through the directories specified in the
+<emphasis remap='I'>ModulePath</emphasis> configuration in the <emphasis remap='I'>base.#bpp</emphasis> (where # is your
+colordepth) to attempt to locate <command>Wharf</command>; as well as searching through
+the <emphasis remap='I'>PixmapPath</emphasis> for the pixmaps &amp; <emphasis remap='I'>IconPath</emphasis> for the bitmaps
+supplied in the configuration options.</para>
+
+</refsect1>
+
+<refsect1 id='configuration_options'><title>CONFIGURATION OPTIONS</title>
+<para><command>Wharf</command> reads the <emphasis remap='I'>wharf</emphasis> file when it starts up and looks for
+it's configuration options:</para>
+
+<variablelist remap='IP'>
+  <varlistentry>
+  <term>MyStyle "*WharfTile"</term>
+  <listitem>
+<para>Specifies the style of the wharf button tiles, including background color, 
+background pixmap (which may be transparent), and background gradient. 
+This method of specifying the background is preferred over the BgColor, 
+MaxColors, Pixmap, TextureColor, and TextureType options, although those 
+(older) options do still work. See <emphasis remap='B'>afterstep(1x)</emphasis> for details on the 
+<emphasis remap='I'>MyStyle</emphasis> format.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>*WharfTextureType <emphasis remap='I'>type</emphasis></term>
+  <listitem>
+<para>Specifies the type of gradient fill or pixmap to be used on 
+<command>Wharf</command>'s buttons.  Valid values for type are:</para>
+<literallayout remap='.nf'>
+0 - No texture - use <emphasis remap='I'>WharfBgColor</emphasis> to set the desired color
+1 - Gradient from upper-left to lower right
+2 - Horizontal one way gradient from top to bottom
+3 - Horizontal cylindrical gradient from top/bottom to center
+4 - Vertical one way gradient from left to right
+5 - Vertical cylindrical gradient from left/right to center
+128 - User defined pixmap
+</literallayout> <!-- .fi -->
+<para>The default is the builtin <command>Wharf</command> texture pixmap.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>*WharfTextureColor <emphasis remap='I'>from</emphasis> <emphasis remap='I'>to</emphasis></term>
+  <listitem>
+<para>When used with a <emphasis remap='I'>*WharfTextureType</emphasis> of 1 through 5, designates the
+ends of the color gradient's range to be used on <command>Wharf</command>'s buttons.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>*WharfPixmap <emphasis remap='I'>pixmap</emphasis></term>
+  <listitem>
+<para>Sets the pixmap file to be used as <command>Wharf</command>'s button.  To be used
+with <emphasis remap='I'>*WharfTextureType 128</emphasis>. If the pixmap is transparent, 
+<command>Wharf</command> will be transparent (shaped). The path need not be specified 
+if the pixmap is in the <emphasis remap='I'>PixmapPath</emphasis> specified in the <emphasis remap='I'>base.#bpp</emphasis> 
+file. Valid pixmaps are XPM, JPEG, or PNG.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>*WharfBgColor <emphasis remap='I'>color</emphasis></term>
+  <listitem>
+<para>If <emphasis remap='I'>*WharfTextureType 0</emphasis> is specified, <command>Wharf</command>'s buttons
+will be filled with <emphasis remap='I'>color</emphasis>.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>*WharfMaxColors <emphasis remap='I'>number</emphasis></term>
+  <listitem>
+<para>Specifies the maximum <emphasis remap='I'>number</emphasis> of colors to use on a gradient
+fill.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>*WharfAnimate</term>
+  <listitem>
+<para>If specified, the opening and closing of Folders will be animated, 
+rather than simply drawn in one frame.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>*WharfAnimateMain</term>
+  <listitem>
+<para>Designates that full-length <command>Wharf</command> withdraws will be animated.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>*WharfAnimateDelay <emphasis remap='I'>delay</emphasis></term>
+  <listitem>
+<para>Specifies the <emphasis remap='I'>delay</emphasis> in milliseconds that the animation will pause
+between each move when opening or closing a folder.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>*WharfAnimateSteps <emphasis remap='I'>steps</emphasis></term>
+  <listitem>
+<para>Specifies the <emphasis remap='I'>steps</emphasis> a Folder takes in animating while opening or
+closing.  This translates into the Folder button moving
+&lt;button-size&gt;/<emphasis remap='I'>steps</emphasis> pixels each step.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>*WharfAnimateStepsMain <emphasis remap='I'>steps</emphasis></term>
+  <listitem>
+<para>Specifies the <emphasis remap='I'>steps</emphasis> the main Wharf takes in iconification or
+de-iconification upon mouse button 3 being pressed. This translates into
+the main Wharf moving &lt;button-size&gt;/<emphasis remap='I'>steps</emphasis> pixels each step.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>*WharfBalloons</term>
+  <listitem>
+<para>Turns on the balloon feature. A "balloon" is displayed showing the name 
+of the button the pointer is resting on in the <command>Wharf</command>. The balloon 
+background and text are configured with the MyStyle "*WharfBalloon".
+See <emphasis remap='B'>afterstep(1x)</emphasis> for more information on MyStyles.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>*WharfBalloonBorderWidth <emphasis remap='I'>number</emphasis></term>
+  <listitem>
+<para>Sets the width of the balloon window's border. Defaults to 1.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>*WharfBalloonBorderColor <emphasis remap='I'>color</emphasis></term>
+  <listitem>
+<para>Sets the color of the balloon window's border. Defaults to black.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>*WharfBalloonDelay <emphasis remap='I'>number</emphasis></term>
+  <listitem>
+<para>Specifies the period in milliseconds to delay the appearance of the balloon.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>*WharfBalloonYOffset <emphasis remap='I'>number</emphasis></term>
+  <listitem>
+<para>The balloon window is positioned to be horizontally centered against
+the <command>Wharf</command> window it is describing. The vertical position may be
+set as an offset. Negative offsets of <option>-N</option> are placed <emphasis remap='I'>N</emphasis>
+pixels above the <command>Wharf</command> window, positive offsets of <emphasis remap='I'>+N</emphasis> are 
+placed <emphasis remap='I'>N</emphasis> pixels below. Defaults to +2.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>*WharfFullPush</term>
+  <listitem>
+<para>If specified, the entire <command>Wharf</command> button background will be offset down
+and to the right 2 pixels when pushed.  Especially useful with
+<emphasis remap='I'>*WharfNoBorder</emphasis> textures.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>*WharfNoPush</term>
+  <listitem>
+<para>If specified, the entire <command>Wharf</command> button will not appear as if it is
+being pushed in.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>*WharfNoBorder</term>
+  <listitem>
+<para>Denotes that beveled borders should not be drawn around the <command>Wharf</command>
+button. Useful with textures or pixmaps that include their own bevels.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>*WharfWithdrawStyle <emphasis remap='I'>style</emphasis></term>
+  <listitem>
+<para>Specifies the circumstances under which button 3 should cause the 
+<command>Wharf</command> to withdraw to a corner. If <emphasis remap='I'>style</emphasis> is 0, button 3 will 
+do nothing. If <emphasis remap='I'>style</emphasis> is 1 (the default), a click on any button in 
+the toplevel bar will cause <command>Wharf</command> to withdraw to the nearest 
+corner. If <emphasis remap='I'>style</emphasis> is 2, a click on either the first or the last 
+button in the toplevel bar will cause the withdrawal. The undocumented 
+<emphasis remap='I'>NoWithdraw</emphasis> option, which does much the same thing, is deprecated - 
+use <emphasis remap='I'>WithdrawStyle</emphasis> instead.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>*WharfForceSize</term>
+  <listitem>
+<para>If specified, will force pixmaps larger than 64x64 to the default
+size of 64x64.  Pixmaps smaller than 64x64 are not supported.  This has
+no effect on the icons used for applications.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>*WharfRows <emphasis remap='I'>rows</emphasis></term>
+  <listitem>
+<para>Specifies the number of <emphasis remap='I'>rows</emphasis> of buttons to be created. This will 
+give your <command>Wharf</command> a horizontal layout, with the number of rows equal 
+to the number specified in <emphasis remap='I'>rows</emphasis>. If unspecified, the number of rows 
+will be set to 1.  If the <emphasis remap='I'>rows</emphasis> are set to a number greater than 1, 
+then there will be that number of rows with enough columns to satisfy the 
+requested number of buttons.  Only one of <emphasis remap='I'>*WharfRows</emphasis> or 
+<emphasis remap='I'>*WharfColumns</emphasis> should be specified.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>*WharfColumns <emphasis remap='I'>columns</emphasis></term>
+  <listitem>
+<para>Specifies the number of <emphasis remap='I'>columns</emphasis> of buttons to be created. This will 
+give your <command>Wharf</command> a vertical layout, with the number of columns equal 
+to the number specificed in <emphasis remap='I'>columns</emphasis>. If unspecified, the number of 
+columns will be set to 1.  If the <emphasis remap='I'>columns</emphasis> are set to a number 
+greater than 1, then there will be that number of columns with enough 
+rows to satisfy the requested number of buttons.  Only one of 
+<emphasis remap='I'>*WharfRows</emphasis> or <emphasis remap='I'>*WharfColumns</emphasis> should be specified.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>*WharfGeometry <emphasis remap='I'>geometry</emphasis></term>
+  <listitem>
+<para>Specifies the <command>Wharf</command> window location and/or size.  If the size is 
+not specified, Wharf will auto-size itself in a reasonable manner. The 
+<emphasis remap='I'>geometry</emphasis> is a standard X11 window geometry specification; see 
+<emphasis remap='B'>XParseGeometry(3x)</emphasis>, and <emphasis remap='B'>EXAMPLES</emphasis> (below) for further details.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>*Wharf <emphasis remap='I'>label-for-balloon icon command</emphasis></term>
+  <listitem>
+<para>The <emphasis remap='I'>label-for-balloon</emphasis> is what appears in the <emphasis remap='I'>Balloons</emphasis> if
+balloons are used, otherwise this entry is still required.  Multiple 
+entries can refer to the same wharf button by using the same 
+<emphasis remap='I'>label-for-balloon</emphasis>.</para>
+
+<para>The <emphasis remap='I'>icon</emphasis> field specifies an X11 bitmap file, XPM, JPEG, or PNG color
+icon file or a comma-delimited set of pixmaps containing the icon(s) to
+display on the button. These icon(s) will be displayed in front of the 
+<emphasis remap='I'>WharfTextureColor</emphasis>, <emphasis remap='I'>WharfPixmap</emphasis>, or <emphasis remap='I'>WharfBgColor</emphasis>, and 
+behind any <emphasis remap='I'>Swallow</emphasis>ed windows.  Transparent icons are allowed.</para>
+
+<para>The <emphasis remap='I'>command</emphasis> specifies an AfterStep built-in command (as described
+in the afterstep man page) which should be executed when a button is 
+pressed, or a <command>Wharf</command> command.</para>
+
+  </listitem>
+  </varlistentry>
+</variablelist>
+<!-- .RE -->
+
+<!-- .RS -->
+<para>The following <command>Wharf</command> commands are available:</para>
+
+<variablelist remap='IP'>
+  <varlistentry>
+  <term>Swallow "<emphasis remap='I'>window-name</emphasis>" <emphasis remap='I'>command</emphasis></term>
+  <listitem>
+<para>Causes <command>Wharf</command> to run <emphasis remap='I'>command</emphasis>, capture the first window whose 
+name or resource is <emphasis remap='I'>window-name</emphasis>, and display it in the associated 
+button. The application window will be shrunk to fit the size of the 
+button.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>MaxSwallow "<emphasis remap='I'>window-name</emphasis>" <emphasis remap='I'>command</emphasis></term>
+  <listitem>
+<para>Like <emphasis remap='I'>Swallow</emphasis>, except the button will be resized to fit the 
+application.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>SwallowModule "<emphasis remap='I'>window-name</emphasis>" <emphasis remap='I'>command</emphasis></term>
+  <listitem>
+<para>Like <emphasis remap='I'>Swallow</emphasis>, except the <emphasis remap='I'>command</emphasis> is an AfterStep module.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>MaxSwallowModule "<emphasis remap='I'>window-name</emphasis>" <emphasis remap='I'>command</emphasis></term>
+  <listitem>
+<para>Like <emphasis remap='I'>MaxSwallow</emphasis>, except the <emphasis remap='I'>command</emphasis> is an AfterStep module.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>DropExec "<emphasis remap='I'>label</emphasis>" <emphasis remap='I'>command %s %d</emphasis></term>
+  <listitem>
+<para>Specifies a <emphasis remap='I'>command</emphasis> to run when the associated button receives a 
+Offix Drag &amp; Drop event.  <emphasis remap='I'>%s</emphasis> (if present) will be replaced with 
+the dropped data, and <emphasis remap='I'>%d</emphasis> (if present) will be replaced with the 
+data type. See <emphasis remap='B'>EXAMPLES</emphasis> below for an example.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>Size <emphasis remap='I'>width</emphasis> <emphasis remap='I'>height</emphasis></term>
+  <listitem>
+<para>Sets the size of the associated button, overriding any other size 
+consideration.</para>
+
+<para>The <command>Wharf</command> button size depends on several things.  The order of
+precedence is:</para>
+
+<literallayout remap='.nf'>
+1) Size definition
+2) MaxSwallow'd window size
+3) <emphasis remap='I'>WharfPixmap</emphasis> size
+4) Use 64x64.
+</literallayout> <!-- .fi -->
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>Transient</term>
+  <listitem>
+<para>Specifies that this button will not perform any action, will not be 
+pushable, and will not have an associated balloon.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>Folder "<emphasis remap='I'>folder-name</emphasis>"</term>
+  <listitem>
+<para>Defines a slide-out folder inside the current folder.  The following 
+button definitions will be placed inside of the subfolder, until a 
+<emphasis remap='I'>*Wharf ~Folder</emphasis> line is encountered.  See the <emphasis remap='B'>EXAMPLES</emphasis> 
+section below for an example. Folders may be nested.</para>
+
+  </listitem>
+  </varlistentry>
+</variablelist>
+</refsect1>
+
+<refsect1 id='files'><title>FILES</title>
+<variablelist remap='IP'>
+  <varlistentry>
+  <term><filename>/usr/local/share/afterstep/wharf</filename></term>
+  <listitem>
+<para>The global configuration file for system wide defaults of all users.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>$HOME/GNUstep/Library/AfterStep/wharf</emphasis></term>
+  <listitem>
+<para>This file should be copied from the <filename>/usr/local/share/afterstep/wharf</filename> and edited to suit the user's specific requirements.  This file, if exists, will override the system wide default file.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><filename>/usr/local/share/afterstep/base.[8|15|16|24|32]bpp</filename></term>
+  <listitem>
+<para>Contains the <emphasis remap='I'>IconPath</emphasis> &amp; <emphasis remap='I'>PixmapPath</emphasis> global settings for the
+<command>Wharf</command>.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>$HOME/GNUstep/Library/AfterStep/base.[8|15|16|24|32]bpp</emphasis></term>
+  <listitem>
+<para>This file should be copied from the<filename>/usr/local/share/afterstep/base.[8|15|16|24|32]bpp</filename> and edited to suit the user's specific requirements for the <emphasis remap='I'>IconPath</emphasis> &amp; <emphasis remap='I'>PixmapPath</emphasis> settings of the <command>Wharf</command>.</para>
+
+  </listitem>
+  </varlistentry>
+</variablelist>
+</refsect1>
+
+<refsect1 id='examples'><title>EXAMPLES</title>
+<para>The <emphasis remap='I'>wharf</emphasis> file shipped contains many examples, refer to the 
+<emphasis remap='B'>CONFIGURATION OPTIONS</emphasis> section above for its configuration options.</para>
+
+<para><command>Wharf</command> geometries are fundamentally an offset with a value of pixels 
+from a specified corner of the screen, with format [+-]X[+-]Y. The + and - 
+definitions for the offset specify which corner of the screen to place 
+<command>Wharf</command> in. Here's a nifty picture to illustrate:</para>
+
+<literallayout remap='.nf'>
+________________
+|++          -+|
+|              |
+|              |
+|              |
+|+-          --|
+----------------
+</literallayout> <!-- .fi -->
+
+<para>For example, <emphasis remap='I'>Geometry</emphasis> -5-5 would place <command>Wharf</command> in the lower 
+right hand corner, 5 pixels left and 5 pixels up from the corner.</para>
+
+<para>To create slide-out folders in <command>Wharf</command> the following format must 
+be used:</para>
+<literallayout remap='.nf'>
+
+*Wharf files Folders.xpm,3_dots.xpm Folder
+*Wharf xftp 3DRings.xpm	Exec "" xftp &amp;
+*Wharf xdir FolderDeposit.xpm Exec "" xdir &amp;
+*Wharf moxfm FilingCabinet.xpm Exec "" moxfm &amp;
+*Wharf ~Folder
+
+</literallayout> <!-- .fi -->
+<para>The first line of this set tells Wharf that this button definition will 
+be a folder.  All of the button definitions between the <emphasis remap='I'>Folder</emphasis> and 
+the line with the definition of <emphasis remap='I'>*Wharf ~Folder</emphasis> will appear on the 
+"files" folder when it is exposed.  To expose the "files" folder simply 
+click on the Wharf button with the Folders.xpm icon showing.  A button 
+bar will appear perpendicular to your Wharf bar and toward the center of 
+the screen.  On this smaller bar will be the three icons that were configured 
+between the <emphasis remap='I'>Folder</emphasis> and <emphasis remap='I'>~Folder</emphasis> parts of the <command>Wharf</command> 
+configuration.  Folders may be nested.</para>
+ 
+
+<para><command>Wharf</command> supports the OffiX Drag and Drop standard.  The following is 
+an example of a <emphasis remap='I'>DropExec</emphasis> line:</para>
+<literallayout remap='.nf'>
+
+*Wharf trash Recyler.xpm DropExec "" rm %s
+*Wharf trash - Restart "" afterstep
+
+</literallayout> <!-- .fi -->
+
+<para>The button will restart AfterStep when pushed.  If a file is dragged
+onto into it, <emphasis remap='I'>rm</emphasis> will be called with <emphasis remap='I'>%s</emphasis> being replaced 
+by the dropped filename.</para>
+
+</refsect1>
+
+<refsect1 id='authors'><title>AUTHORS</title>
+<para>Beat Christen &lt;bchriste@iiic.ethz.ch&gt;</para>
+<literallayout remap='.nf'>
+Frank Fejes &lt;frank@ssax.com&gt;
+</literallayout><literallayout remap='.nf'>
+Alfredo Kengi Kojima &lt;kojima@inf.ufrgs.br&gt;
+</literallayout><literallayout remap='.nf'>
+Dan Weeks &lt;dan@mango.sfasu.edu&gt;
+</literallayout><literallayout remap='.nf'>
+Bo Yang &lt;eric@coeus.ucsd.edu&gt;
+</literallayout><literallayout remap='.nf'>
+Robert Nation
+</literallayout><literallayout remap='.nf'>
+David Mihm &lt;dmihm@swbell.net&gt; [Man page]
+</literallayout><literallayout remap='.nf'>
+Ethan Fischer &lt;allanon@crystaltokyo.com&gt;
+
+</literallayout></refsect1>
+
+<refsect1 id='see_also'><title>SEE ALSO</title>
+<para><citerefentry><refentrytitle>afterstep</refentrytitle><manvolnum>1</manvolnum></citerefentry>,
+<citerefentry><refentrytitle>Pager</refentrytitle><manvolnum>1</manvolnum></citerefentry>,
+<citerefentry><refentrytitle>X</refentrytitle><manvolnum>1</manvolnum></citerefentry>,
+<citerefentry><refentrytitle>Zharf</refentrytitle><manvolnum>1</manvolnum></citerefentry></para>
+</refsect1>
+</refentry>
+

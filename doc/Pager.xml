@@ -1,0 +1,629 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
+                   "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd">
+<!-- lifted from troff+man by doclifter -->
+<refentry id='pagerman'>
+<!--  t -->
+<!--  @(#)Pager.1		02/07/00 -->
+<refmeta>
+<refentrytitle>Pager</refentrytitle>
+<manvolnum>1.8</manvolnum>
+<refmiscinfo class='date'>Feb 7 2000</refmiscinfo>
+<refmiscinfo class='source'>Pager</refmiscinfo>
+</refmeta>
+<refnamediv id='name'>
+<refname>Pager</refname>
+<refpurpose>the Afterstep desktop Pager module</refpurpose>
+</refnamediv>
+<!-- body begins here -->
+<refsynopsisdiv id='synopsis'>
+<cmdsynopsis>
+  <command>Pager</command>    <arg choice='opt'>-f <replaceable>config_file</replaceable></arg>
+    <group choice='opt'><arg choice='plain'>-v </arg><arg choice='plain'>--version </arg></group>
+    <group choice='opt'><arg choice='plain'>-h </arg><arg choice='plain'>--help </arg></group>
+    <arg choice='plain'><replaceable>first_desktoplast_desktop</replaceable></arg>
+</cmdsynopsis>
+</refsynopsisdiv>
+
+
+<refsect1 id='usage'><title>USAGE</title>
+
+<para>Although <command>Pager</command> can be run from the command line, it is normally 
+spawned by afterstep in the <emphasis remap='I'>autoexec</emphasis> file, in the following
+manner:</para>
+<literallayout remap='.nf'>
+
+	Module	"I"	Pager beginning_desktop# ending_desktop#
+	Wait	"I"	Pager
+
+</literallayout> <!-- .fi -->
+<para>In case you use Pager to switch your root backgrounds 
+<emphasis remap='I'>Wait</emphasis> can be used as shown above.  This will insure that the 
+<command>Pager</command> has set the root background before you start
+any furthur apps (like transparent aterms and Eterms).</para>
+
+<para>or from within an afterstep menu file by 'Pager':</para>
+<literallayout remap='.nf'>
+
+% cat "~/GNUstep/Library/AfterStep/start/Modules/Pager"
+	Module "Pager" Pager first_desktop last_desktop
+	MiniPixmap "mini-as.xpm"
+</literallayout> <!-- .fi -->
+
+<para>To stop the <command>Pager</command> module, a menu item can be used:</para>
+<literallayout remap='.nf'>
+
+% cat "~/GNUstep/Library/AfterStep/start/Modules/Pager_Stop"
+	KillModuleByName "Stop Pager" Pager
+	MiniPixmap "mini-as.xpm"
+</literallayout> <!-- .fi -->
+
+</refsect1>
+
+<refsect1 id='description'><title>DESCRIPTION</title>
+<para>The <command>Pager</command> module shows a miniature view of the Afterstep desktops
+which are specified in the command line. This is a useful reminder of
+where your active windows are. Windows in the pager are accordingly to
+MyStyle definitions "*PagerUWindowStyle" - for unfocused windows,
+"*PagerFWindowStyle" - for focused windows and "*PagerSWindowStyle" -
+for sticky windows. If you never defined those MyStyles, Pager will
+default to same styles as used for actual windows.</para>
+
+<para>The <command>Pager</command> can be used to change your viewport into the current
+desktop, to change desktops, or to move windows around.</para>
+
+<para>Pressing mouse button 1 or 2 in the <command>Pager</command> will cause your viewport
+to change to the selected page of the selected desk. If you click with
+button 1 in the desk-label area, you will switch desks but not
+pages within the desk.</para>
+
+<para>Clicking and dragging with mouse button 2 on a miniature window in the
+<command>Pager</command> will cause that window to be move to the location where you
+release the mouse button, but your viewport will not change. If you drag
+the window out of the pager and onto your desktop, a full size image of
+the window will appear for you to place. There is no way to pick up a
+full size image of the window and move it into the <command>Pager</command>, however.
+Since some mice do not have button 2, provisions have been made to drag
+windows in the <command>Pager</command> by pressing modifier-1 (usually Alt) and
+dragging with button 3.</para>
+
+<para>When iconified, the pager will work as a fully functional current page
+only pager. Windows and viewports can be moved within the icon of the
+pager. Users will want to make sure that they have no lines similar to</para>
+
+<para>Starting with version 1.7.122 Pager no longer loads background images 
+into the memory. Module asetroot should be used to accomplish that task.
+But Pager will still be able to switch backgrounds as you switch between
+desks, after you've run asetroot to load images. Use *PagerDontDrawBg
+option in pager config file to TURN background switching OFF.</para>
+
+<para>See asetroot man page for more information.</para>
+
+<literallayout remap='.nf'>
+
+	Style	"Pager"	Icon myIcon.[xpm|jpg|png]
+
+</literallayout> <!-- .fi -->
+<para>in their feel files.</para>
+
+</refsect1>
+
+<refsect1 id='options'><title>OPTIONS</title>
+<variablelist remap='IP'>
+  <varlistentry>
+  <term>-f <emphasis remap='I'>config_file</emphasis></term>
+  <listitem>
+<para>Use <emphasis remap='I'>config_file</emphasis> instead of the default configuration file.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>-h | --help</term>
+  <listitem>
+<para>Print a usage message and exit successfully.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>-v | --version</term>
+  <listitem>
+<para>Print version information and exit successfully.</para>
+
+  </listitem>
+  </varlistentry>
+</variablelist>
+</refsect1>
+
+<refsect1 id='initialization'><title>INITIALIZATION</title>
+<para>During initialization, <command>Pager</command> will search for a configuration file
+which describes the images, locations and actions to take.  This file 
+will be the one specified by the <option>-f</option> option (if given).  Else, the 
+~/GNUstep/Library/AfterStep/pager file will be used if it exists.  Else, 
+/usr/local/share/afterstep/pager will be used.</para>
+
+<para>If the <command>Pager</command> executable is linked to another name, ie ln -s
+<command>Pager</command> <emphasis remap='B'>OtherPager</emphasis>, then another module called <emphasis remap='B'>OtherPager</emphasis>
+can be started, with a completely different set of configurations than
+<command>Pager</command>, simply by adding <emphasis remap='I'>*OtherPager</emphasis> options following the same
+<emphasis remap='I'>*Pager</emphasis> configuration options below to the <emphasis remap='I'>pager</emphasis> file. This way
+multiple Pager programs can be used.</para>
+
+</refsect1>
+
+<refsect1 id='keyboard_focus_control'><title>KEYBOARD FOCUS CONTROL</title>
+<para>You can direct the keyboard focus to any window on the current desktop
+by clicking with button 2 on its image in the pager. The window does
+not need to be visible, but it does need to be on the current page.</para>
+
+</refsect1>
+
+<refsect1 id='invocation'><title>INVOCATION</title>
+<para><command>Pager</command> can be invoked from the <emphasis remap='I'>autoexec</emphasis> file or from a menu
+item as shown in the Synopsis section above.</para>
+
+<para>AfterStep will search through the directories specified in the
+<emphasis remap='I'>ModulePath</emphasis> configuration in the <emphasis remap='I'>base.#bpp</emphasis> (where # is your
+colordepth) to attempt to locate <command>Pager</command>.</para>
+
+</refsect1>
+
+<refsect1 id='configuration_files'><title>CONFIGURATION FILES</title>
+<para><command>Pager</command> reads the <emphasis remap='I'>base.#bpp</emphasis> file and <emphasis remap='I'>pager</emphasis> file when it
+starts up and looks for its configuration options.</para>
+
+</refsect1>
+
+<refsect1 id='configuration_options__fibasebppfp'><title>CONFIGURATION OPTIONS - <emphasis remap='I'>base.#bpp</emphasis></title>
+<para>The following two configuration options are in the <emphasis remap='I'>base.#bpp</emphasis> file:</para>
+
+<variablelist remap='IP'>
+  <varlistentry>
+  <term>*DeskTopSize <emphasis remap='I'>ColumnsxRows</emphasis></term>
+  <listitem>
+<para>Defines the number of view <emphasis remap='I'>Columns</emphasis> by the number of view
+<emphasis remap='I'>Rows</emphasis> of the desk(s) in proportional units, i.e. 2x1 would show
+2 views of one desk, one beside another.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>*DeskTopScale <emphasis remap='I'>number</emphasis></term>
+  <listitem>
+<para>If the geometry is not specified, then a desktop reduction factor is
+used to calculate the pager's size. Things in the pager window
+are shown at 1/<emphasis remap='I'>number</emphasis> of the actual size.</para>
+
+  </listitem>
+  </varlistentry>
+</variablelist>
+</refsect1>
+
+<refsect1 id='mystyle_definitions'><title>MyStyle DEFINITIONS</title>
+<para>Starting with version 1.7.60 Pager supports definition of most of
+it's visual parameters in look file as MyStyles. 
+Styles can also be defined in pager config file, but main contents of
+the look file will override them. Include them in your pager config
+to make sure that you get nice looking Pager even if styles are not 
+defined in look file.
+The following standard MyStyle names are used :</para>
+
+<variablelist remap='IP'>
+  <varlistentry>
+  <term>*PagerUWindowStyle</term>
+  <listitem>
+<para>(defaults to "unfocused_window_style") - unfocused window 
+representation's style. 
+Background pixmap and gradient can be used here.</para>
+   
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>*PagerFWindowStyle</term>
+  <listitem>
+<para>(defaults to "focused_window_style") - focused window representation's
+style. Background pixmap and gradient can be used here.</para>   
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>*PagerSWindowStyle</term>
+  <listitem>
+<para>(defaults to "sticky_window_style") - sticky window representation's
+style. Background pixmap and gradient can be used here.</para>   
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>*PagerActiveDesk</term>
+  <listitem>
+<para>active (selected) desk's label style. This style - defines only look of
+the desk's LABEL - to define how your actual desk window will look like
+-  you should use <emphasis remap='I'>*PagerStyle</emphasis> option - see below. Background
+pixmap, gradient and transparency can be used here.</para>   
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>*PagerInActiveDesk</term>
+  <listitem>
+<para>Same as above, only for inactive desk's label. 
+Background pixmap, gradient and transparency can be used here.</para>   
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>*PagerDesk<emphasis remap='I'>number</emphasis></term>
+  <listitem>
+<para>Defines Style of the desk representation in Pager's window. 
+This was added to allow for easier theme support. This style will
+be overriden by <emphasis remap='I'>*PagerStyle</emphasis> option in pager config file.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>*PagerBalloon</term>
+  <listitem>
+<para>Mini-window balloon style.</para>
+
+<para>This definitions are dependant on Pager's name, so if you start Pager
+as WPager - you should change all the names, like so :
+"*PagerInActiveDesk" -&gt; "*WPagerInActiveDesk"</para>
+
+<para>Different styles can be defined also for Desk's representations. See 
+*PagerStyle option below.</para>    
+
+<para><emphasis remap='B'>NOTE: In order to make your look themeble all MyStyles must be
+defined  in main look file !</emphasis></para>
+
+  </listitem>
+  </varlistentry>
+</variablelist>
+</refsect1>
+
+<refsect1 id='configuration_options__fipagerfp'><title>CONFIGURATION OPTIONS - <emphasis remap='I'>pager</emphasis></title>
+<para>The following configuration options are in the <emphasis remap='I'>pager</emphasis> file:</para>
+
+<variablelist remap='IP'>
+  <varlistentry>
+  <term>Balloons</term>
+  <listitem>
+<para>Turns on the balloon feature. A "balloon" is displayed showing the name
+of the window the pointer is resting on in the <command>Pager</command>. Currently
+only the window's icon name is shown. Note that balloons are not shown
+for the iconified pager. The balloon background and text  are configured
+with the MyStyle "*PagerBalloon". See <emphasis remap='B'>afterstep(1x)</emphasis>  for more
+information on MyStyles.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>BalloonBorderWidth <emphasis remap='I'>number</emphasis></term>
+  <listitem>
+<para>Sets the width of the balloon window's border. Defaults to 1.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>BalloonBorderColor <emphasis remap='I'>color</emphasis></term>
+  <listitem>
+<para>Sets the color of the balloon window's border. Defaults to black.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>BalloonYOffset <emphasis remap='I'>number</emphasis></term>
+  <listitem>
+<para>The balloon window is positioned to be horizontally centered against
+the application window it is describing. The vertical position may be
+set as an offset. Negative offsets of <option>-N</option> are placed <emphasis remap='I'>N</emphasis>
+pixels above the pager window, positive offsets of <emphasis remap='I'>+N</emphasis> are placed
+<emphasis remap='I'>N</emphasis> pixels below. Defaults to +2.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>BalloonDelay <emphasis remap='I'>number</emphasis></term>
+  <listitem>
+<para>Specifies the period in milliseconds to delay the appearance of the
+balloon.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>*PagerStickyIcon</term>
+  <listitem>
+<para>Allows the icons of iconified windows to follow you when switching
+desks. Without this option, the icons would stick to the desk the window
+was iconified in.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>*PagerDecoration <emphasis remap='I'>param1[,param2[,...]]</emphasis></term>
+  <listitem>
+<para>Allows you to decorate your pager to your liking.
+The following parameters can be specified :</para>
+  <!-- .RS -->
+    <variablelist remap='IP'>
+      <varlistentry>
+      <term>DeskBorderWidth <emphasis remap='I'>width</emphasis></term>
+      <listitem>
+<para>Specifies the width of the border to be drawn
+around each desk</para>
+      </listitem>
+      </varlistentry>
+      <varlistentry>
+      <term>DeskBorderColor <emphasis remap='I'>color</emphasis></term>
+      <listitem>
+<para>Defines color of the Desk's border. Use it to override default 
+which is the style's foreground color</para>
+      </listitem>
+      </varlistentry>
+      <varlistentry>
+      <term>NoPageSeparator</term>
+      <listitem>
+<para>Turns OFF grid separating pages</para>
+      </listitem>
+      </varlistentry>
+      <varlistentry>
+      <term>GridColor <emphasis remap='I'>color</emphasis></term>
+      <listitem>
+<para>Specifies a different color than the fore color to draw grid lines. If
+this option is unused, then the same color specified with *PagerFore
+will be used for the grids.</para>
+      </listitem>
+      </varlistentry>
+      <varlistentry>
+      <term>NoSelection</term>
+      <listitem>
+<para>Turns OFF highliting of the current page</para>
+      </listitem>
+      </varlistentry>
+      <varlistentry>
+      <term>SelectionColor <emphasis remap='I'>color</emphasis></term>
+      <listitem>
+<para>Turns ON highliting of the current page, and specifies color of
+hilighting</para>
+      </listitem>
+      </varlistentry>
+      <varlistentry>
+      <term>NoDeskLabel</term>
+      <listitem>
+<para>Turns OFF desk's labeling</para>
+      </listitem>
+      </varlistentry>
+      <varlistentry>
+      <term>LabelBelowDesk</term>
+      <listitem>
+<para>That will place label below the desk instead of above the desk. Note:
+using gradients with this option will produce funky effect.</para>
+      </listitem>
+      </varlistentry>
+      <varlistentry>
+      <term>HideInactiveLabel</term>
+      <listitem>
+<para>When this option is specified - Pager will use shaped extensions to
+make label of all inactive desks transparent.</para>
+      </listitem>
+      </varlistentry>
+    </variablelist>
+  </listitem>
+  </varlistentry>
+</variablelist>
+<!-- .RE -->
+
+<variablelist remap='IP'>
+  <varlistentry>
+  <term>*PagerSmallFont <emphasis remap='I'>font-name</emphasis></term>
+  <listitem>
+<para>Specifies a font to use to label the window names in the pager. 
+It overrides font specified in Focused/Unfocused/Sticky window style
+in look file. It also displays text on background color - which
+can be usefull if BackPixmap is specified in window style.
+Window labels seem to be fairly useless for desktop scales of 32
+or greater.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>*PagerGeometry <emphasis remap='I'>geometry</emphasis></term>
+  <listitem>
+<para>Completely or partially specifies the pager windows location and
+geometry, in standard X11 notation. In order to maintain an undistorted
+aspect ratio, you might want to leave out either the width or height
+dimension of the geometry specification.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>*PagerStyle <emphasis remap='I'>desk style</emphasis></term>
+  <listitem>
+<para>Sets the <emphasis remap='I'>style</emphasis> to be used for the desk <emphasis remap='I'>desk</emphasis> representation
+in the <command>Pager</command>. Where <emphasis remap='I'>style</emphasis> can be the name of any style 
+definition in the look file, and <emphasis remap='I'>desk</emphasis> is a number coresponding  to
+the desktop number: 0,1,2,3,N.... Use it if you want to specify a
+different style for <command>Pager</command> background other than the default; which
+is the scaled down
+<emphasis remap='I'>*PagerDesktopImage</emphasis>.</para>
+
+<literallayout remap='.nf'>
+*PagerStyle <emphasis remap='I'>desk</emphasis> DeskStyle1
+
+</literallayout> <!-- .fi -->
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>*PagerAlign <emphasis remap='I'>LabelPosition</emphasis></term>
+  <listitem>
+<para>Sets the alignment of the labels for the desktops. Use 0 for centered,
+&gt;0 for left, &lt;0 for right alignment. If &lt;&gt;0 the absolute value of
+<emphasis remap='I'>LabelPosition</emphasis> will be the distance between label text and
+window border.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>*PagerLabel <emphasis remap='I'>desk label</emphasis></term>
+  <listitem>
+<para>Assigns the text <emphasis remap='I'>label</emphasis> to desk <emphasis remap='I'>desk</emphasis> in the pager window.
+Useful for assigning symbolic names to desktops, ie</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>*PagerDontDrawBg</term>
+  <listitem>
+<para>If specified, will not display background image, use this with xearth or 
+xfishtank, or with asetroot.</para> 
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>*PagerRows <emphasis remap='I'>rows</emphasis></term>
+  <listitem>
+<para>Tells afterstep how many rows of desks to use when laying out the pager
+window. Set to 1 for horizontal <command>Pager</command> and define <emphasis remap='I'>PagerColumns</emphasis>.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>*PagerColumns <emphasis remap='I'>columns</emphasis></term>
+  <listitem>
+<para>Tells afterstep how many columns of desks to use when laying out the
+pager window. Set to 1 for vertical <command>Pager</command> and define
+<emphasis remap='I'>PagerRows</emphasis>.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>*PagerIconGeometry <emphasis remap='I'>geometry</emphasis></term>
+  <listitem>
+<para>Specifies a size (optional) and location (optional) for the pager's icon 
+window. Since there is no easy way for Pager to determine the height of
+the icon's label, you will have to make an allowance for the icon  label
+height when using negative y-coordinates in the icon location
+specification (used to specify a location relative to the bottom instead
+of the top of the screen).</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>*PagerStartIconic</term>
+  <listitem>
+<para>Causes the pager to start iconified.</para> 
+
+  </listitem>
+  </varlistentry>
+</variablelist>
+</refsect1>
+
+<refsect1 id='files'><title>FILES</title>
+<variablelist remap='IP'>
+  <varlistentry>
+  <term><filename>/usr/local/share/afterstep/pager</filename></term>
+  <listitem>
+<para>The global configuration file for system wide defaults of all users.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>$HOME/GNUstep/Library/AfterStep/pager</emphasis></term>
+  <listitem>
+<para>This file should be copied from the
+<filename>/usr/local/share/afterstep/pager</filename> and edited to suit the user's
+specific requirements.  This file, if it exists, will override the
+system wide default file.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><filename>/usr/local/share/afterstep/base.[8|15|16|24|32]bpp</filename></term>
+  <listitem>
+<para>Contains the <emphasis remap='I'>DeskTopSize</emphasis> &amp; <emphasis remap='I'>DeskTopScale</emphasis> global settings for
+the <command>Pager</command>.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>$HOME/GNUstep/Library/AfterStep/base.[8|15|16|24|32]bpp</emphasis></term>
+  <listitem>
+<para>This file should be copied from the
+<filename>/usr/local/share/afterstep/base.[8|15|16|24|32]bpp</filename> and edited to
+suit the user's specific requirements for the <emphasis remap='I'>DeskTopSize</emphasis> &amp;
+<emphasis remap='I'>DeskTopScale</emphasis> settings of the <command>Pager</command>.</para>
+
+  </listitem>
+  </varlistentry>
+</variablelist>
+</refsect1>
+
+<refsect1 id='examples'><title>EXAMPLES</title>
+<para>The <emphasis remap='I'>pager</emphasis> file shipped contains many examples, refer to the
+<emphasis remap='B'>FILES</emphasis> section above for its configuration options.</para>
+
+<para>To have a <command>Pager</command> oriented vertical on the desktop with 2 desks and
+1 view for each desk:</para>
+
+<para>	...the <emphasis remap='I'>autoexec</emphasis> file would contain -</para>
+<literallayout remap='.nf'>
+	Module	"I"	Pager 0 1
+	Wait		"I"	Pager
+
+</literallayout> <!-- .fi -->
+<para>	...the <emphasis remap='I'>base.#bpp</emphasis> file would contain -</para>
+<literallayout remap='.nf'>
+	DeskTopSize 1x1
+
+</literallayout> <!-- .fi -->
+<para>	...the <emphasis remap='I'>pager</emphasis> file would contain (this modification) -</para>
+<literallayout remap='.nf'>
+	*PagerRows	2
+	*PagerColumns	1
+
+</literallayout> <!-- .fi -->
+<para>To have the <command>Pager</command> swallowed in the <emphasis remap='B'>Wharf</emphasis> on one button, with
+only 1 desk and 4 views:</para>
+
+<para>	...the <emphasis remap='I'>wharf</emphasis> file would contain -
+	*Wharf Pager - SwallowModule "Pager" Pager 0 0</para>
+
+<para>	...the <emphasis remap='I'>base.#bpp</emphasis> file would contain -</para>
+<literallayout remap='.nf'>
+	DeskTopSize 2x2
+
+</literallayout> <!-- .fi -->
+<para>	...the <emphasis remap='I'>pager</emphasis> file would contain (this modification) -</para>
+<literallayout remap='.nf'>
+	*PagerRows	1
+	*PagerColumns	1
+
+</literallayout> <!-- .fi -->
+<para>An example of the <command>Pager</command> swallowed in the <emphasis remap='B'>Wharf</emphasis> as a
+<emphasis remap='I'>Folder</emphasis> is an example within the <emphasis remap='I'>wharf</emphasis> file shipped.</para>
+
+</refsect1>
+
+<refsect1 id='authors'><title>AUTHORS</title>
+<para>Robert Nation</para>
+<literallayout remap='.nf'>
+Alfredo Kojima
+</literallayout><literallayout remap='.nf'>
+Guylhem Aznar
+</literallayout><literallayout remap='.nf'>
+Ric Lister
+</literallayout><literallayout remap='.nf'>
+Sasha Vasko
+</literallayout><literallayout remap='.nf'>
+David Mihm &lt;dmihm@swbell.net&gt; [Man page]
+
+</literallayout></refsect1>
+
+<refsect1 id='see_also'><title>SEE ALSO</title>
+<para><citerefentry><refentrytitle>afterstep</refentrytitle><manvolnum>1</manvolnum></citerefentry>,
+<citerefentry><refentrytitle>Wharf</refentrytitle><manvolnum>1</manvolnum></citerefentry>,
+<citerefentry><refentrytitle>xli</refentrytitle><manvolnum>1</manvolnum></citerefentry>,
+<citerefentry><refentrytitle>X</refentrytitle><manvolnum>1</manvolnum></citerefentry></para>
+</refsect1>
+</refentry>
+

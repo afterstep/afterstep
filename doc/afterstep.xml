@@ -1,0 +1,2688 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
+                   "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd">
+<!-- lifted from troff+man by doclifter -->
+<refentry id='afterstepman'>
+<!--  t -->
+<!--  @(#)afterstep.1		02/07/00 -->
+<refmeta>
+<refentrytitle>afterstep</refentrytitle>
+<manvolnum>1.8</manvolnum>
+<refmiscinfo class='date'>Feb 7 2000</refmiscinfo>
+<refmiscinfo class='source'>afterstep</refmiscinfo>
+</refmeta>
+<refnamediv id='name'>
+<refname>afterstep</refname>
+<refpurpose>X11 window manager</refpurpose>
+</refnamediv>
+<!-- body begins here -->
+<refsynopsisdiv id='synopsis'>
+<cmdsynopsis>
+  <command>afterstep</command>    <arg choice='opt'>-d <replaceable>displayname</replaceable></arg>
+    <arg choice='opt'>--debug </arg>
+    <arg choice='opt'>-f <replaceable>steprc_file</replaceable></arg>
+    <arg choice='opt'>-s </arg>
+    <group choice='opt'><arg choice='plain'>-v </arg><arg choice='plain'>--version </arg></group>
+    <group choice='opt'><arg choice='plain'>-c </arg><arg choice='plain'>--config </arg></group>
+    <sbr/>
+</cmdsynopsis>
+</refsynopsisdiv>
+
+
+<refsect1 id='description'><title>DESCRIPTION</title>
+<para><command>afterstep</command> is an X11 window manager with a NEXTSTEP look and feel but
+which attempts to go beyond this to provide new features and flexiblilty.</para>
+
+</refsect1>
+
+<refsect1 id='options'><title>OPTIONS</title>
+<variablelist remap='IP'>
+  <varlistentry>
+  <term>-d <emphasis remap='I'>[host]:display[.screen]</emphasis></term>
+  <listitem>
+<para>Manage the display <emphasis remap='I'>[host]:display[.screen]</emphasis> instead of the name obtained
+from the environment variable $DISPLAY. $DISPLAY may be unix:0.0, :0.0 or :0,
+which doesn't work too well when passed through rsh to another machine, so
+$HOSTDISPLAY will also be set, and will use a network-ready description
+of the display.  Unfortunately, $HOSTDISPLAY will use the TCP/IP transport
+protocol, even for a local connection, so $DISPLAY should be used for
+local connections, as it may use unix-domain sockets, which are faster.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>--debug</term>
+  <listitem>
+<para>Puts X transactions in synchronous mode, which dramatically slows things
+down, but guarantees that <emphasis remap='B'>afterstep's</emphasis> internal error messages are
+correct.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>-f <emphasis remap='I'>streprc_file</emphasis></term>
+  <listitem>
+<para>Causes <command>afterstep</command> to use the old <emphasis remap='I'>streprc_file</emphasis> format instead of
+the default <filename>/usr/local/share/afterstep</filename> or user specific
+<filename>~/GNUstep/Library/AfterStep</filename> directory, where the window manager
+configuration files are located. <command>afterstep</command> will set both the $DISPLAY
+and $HOSTDISPLAY environment variables which will be inherited by all of its
+children; refer to the -d <emphasis remap='I'>host:display.screen</emphasis> to override these.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>-s</term>
+  <listitem>
+<para>This will run <command>afterstep</command> on only the specified screen of a multi-screen
+display.  Normally, <command>afterstep</command> will attempt to manage all screens of a
+multi-screen display and treat each screen independantly.  The "specified
+screen" is the one provided by the $DISPLAY environment variable, or
+provided through the <option>-d displayname</option> option.  Restarts as well as Quits
+of <command>afterstep</command> need to be performed separately on each screen.  The use
+of <emphasis remap='I'>EdgeScroll 0 0</emphasis> is strongly recommended for multi-screen displays.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>-v | --version</term>
+  <listitem>
+<para>Prints out the version number of <command>afterstep</command>.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>-c | --config</term>
+  <listitem>
+<para>Prints out the directory configuration specified to <command>afterstep</command> at
+compile time.</para>
+
+  </listitem>
+  </varlistentry>
+</variablelist>
+</refsect1>
+
+<refsect1 id='initialization'><title>INITIALIZATION</title>
+<para>During  initialization, <command>afterstep</command> will search for the configuration
+files which define the look, feel, and functionality.  The system default
+configuration files are located under <filename>/usr/local/share/afterstep</filename>; but
+if copied (and edited to suit a user's needs) to
+<filename>~/GNUstep/Library/AfterStep</filename>, these will override the global share
+files.  If the basic "working" configuration files are not found in either
+<filename>/usr/local/share/afterstep/non-configurable</filename> or
+<filename>~/GNUstep/Library/AfterStep/non-configurable</filename>, afterstep will exit.
+If these "working" configuration files have been corrupted or are from a
+previous incompatible version, afterstep will exit. Also realize that a
+system administrator or software packager might have these installed in
+alternate locations, finding them should not be hard.</para>
+
+</refsect1>
+
+<refsect1 id='invocation'><title>INVOCATION</title>
+<para><command>afterstep</command> is typically invoked from users' <filename>~/.xinitrc</filename> as
+"exec afterstep", located as the last line in this file.  xdm or asdm et al
+use the <filename>~/.xsession</filename> file.</para>
+
+</refsect1>
+
+<refsect1 id='anatomy_of_the_desktop'><title>ANATOMY OF THE DESKTOP</title>
+<para>The default AfterStep starts with the module <emphasis remap='B'>WinList(1)</emphasis> running as
+a dark grey bar originating from the upper left corner of the screen.
+This is to function in a manner similar to the Windows(R) StartBar, where
+windows appear when opened and can be Maximized from. The <emphasis remap='B'>Pager(1)</emphasis>
+is also started in the upper right hand corner. This module controls which
+desktop and or view is visable as well as handles the graphics picked for
+the root background. Along the lower right hand of the screen and moving
+upwards is the module <emphasis remap='B'>Wharf(1)</emphasis>; this acts as a button bar in or from
+which applications can be started. A default <emphasis remap='I'>startmenu</emphasis> was also
+provided which was created from the default <emphasis remap='I'>start/</emphasis> directory
+structure. Clicking with the left mouse button on the root background will
+bring this menu up, from which applications can be launched. <command>afterstep</command>
+itself creates the decorations for windows. The top decoration is called
+the TitleBar; it contains various window action controlling buttons along
+with the window's title. The lower decoration is called the Handles (or low
+bar or BottomBar); it contains the window resizing handles.</para>
+
+</refsect1>
+
+<refsect1 id='modules'><title>MODULES</title>
+<para>A Module is a separate program, which runs as a separate unix process,
+but transmits commands for <command>afterstep</command> to execute.  These Modules get
+many kinds of window information from <command>afterstep</command>, but typically use
+their own configuration files. Users can write their own modules to do
+any weird or bizarre manipulations, without affecting the integrity of
+<command>afterstep</command> itself.</para>
+
+<para>Modules are documented in their own man pages.</para>
+
+</refsect1>
+
+<refsect1 id='environment_variables'><title>ENVIRONMENT VARIABLES</title>
+<variablelist remap='IP'>
+  <varlistentry>
+  <term>$SCREEN_GAMMA</term>
+  <listitem>
+<para>Value of this env variable is used to gamma-correct PNG and JPEG images,
+when loading them from files. Default value of 1.0 is used if this
+variable is not defined - which means no correction at all. Try using
+2.2 for some older monitors to get brighter images.</para>
+
+  </listitem>
+  </varlistentry>
+</variablelist>
+</refsect1>
+
+<refsect1 id='configuration_directories'><title>CONFIGURATION DIRECTORIES</title>
+<para>There are several files within numerous directories which control and or
+provide configurations for <command>afterstep</command>.</para>
+
+<para>The <emphasis remap='I'>backgrounds/</emphasis> directory is where <command>afterstep</command> looks for
+root background images for insertion into the menu, so that picking one of
+these images causes <emphasis remap='B'>Pager(1)</emphasis> to load the image into the root
+background. The <emphasis remap='B'>Pager(1)</emphasis> must be running to utilize the menu
+<emphasis remap='I'>Pictures</emphasis> entry. Valid images are currently XPM, JPEG, and PNG;
+provided the associated development libraries were located during compile
+and libraries are available during runtime.</para>
+
+<para>The <emphasis remap='I'>desktop/</emphasis> directory contains the <emphasis remap='I'>buttons/</emphasis>, <emphasis remap='I'>icons/</emphasis>, and
+<emphasis remap='I'>sounds/</emphasis> directories.</para>
+
+<para>The <emphasis remap='I'>desktop/buttons/</emphasis> directory is the location <command>afterstep</command> looks
+for the bitmaps or pixmaps to be used for the <emphasis remap='I'>TitleButtons</emphasis>.  These
+are the "icons" which control options for a window, e.g. <emphasis remap='I'>shaded</emphasis>,
+<emphasis remap='I'>iconified</emphasis>, and <emphasis remap='I'>quit</emphasis> to name a few.  Pixmaps for the buttons are
+defined in the <emphasis remap='I'>look.name</emphasis> file and the actions taken are described in
+the <emphasis remap='I'>feel.name</emphasis> file.</para>
+
+<para>The <emphasis remap='I'>desktop/icons/</emphasis> directory contains the icons which <command>afterstep</command>
+and its modules use. It is divided into three subdirectories, <emphasis remap='I'>8bpp/</emphasis>,
+<emphasis remap='I'>16bpp/</emphasis>, and <emphasis remap='I'>common/</emphasis>. With the default configuration, <emphasis remap='I'>8bpp/</emphasis>
+is used only when in 8bpp, <emphasis remap='I'>16bpp/</emphasis> is used only when in 15bpp or
+better, and <emphasis remap='I'>common/</emphasis> is always used.</para>
+
+<para>The <emphasis remap='I'>desktop/sounds/</emphasis> directory contains the sounds used by
+<command>afterstep</command> and its modules. See the <emphasis remap='B'>Audio(1)</emphasis> man page for more
+details on sound in AfterStep.</para>
+
+<para>The <emphasis remap='I'>feels/</emphasis> directory contains configuration files used to customize
+the feel of AfterStep. Any feel files created should be placed within this
+directory, and upon the next rebuild of the <emphasis remap='I'>startmenu</emphasis>, they will
+appear under DeskTop-&gt;Feels in the menu. See the <emphasis remap='I'>feel.name</emphasis> section
+below for more details.</para>
+
+<para>The <emphasis remap='I'>looks/</emphasis> directory contains configuration files used to customize
+the look of AfterStep.  Any look files created should be placed within this
+directory, and upon the next rebuild of the <emphasis remap='I'>startmenu</emphasis>, they will
+appear under DeskTop-&gt;Looks in the menu.  See the <emphasis remap='I'>look.name</emphasis> section
+below for more details.</para>
+
+<para>The <emphasis remap='I'>non-configurable/</emphasis> directory contains "working" copies of your
+configuration files; these are the <emphasis remap='B'>Pager(1)</emphasis>'s image files, the current
+<emphasis remap='I'>feel.name</emphasis>, <emphasis remap='I'>look.name</emphasis> and <emphasis remap='I'>startmenu</emphasis> files. Editing these
+files is a futile attempt unless you know that these files get overwritten;
+ergo the name "non-configurable".</para>
+
+<para>When running <command>afterstep</command> in multiscreen environment (but with
+<emphasis remap='B'>NO xinerama!</emphasis>) it is possible to choose separate looks, feels and
+backgrounds for each screen. Just select needed item from the menu, while
+staying on the specific screen, and if screen is not 0 (first screen),
+then screen number will be appended to the "working" file name, and it will
+be used subsequently by <command>afterstep</command> in favor of the default file from
+screen 0(first screen).</para>
+
+<para>The <emphasis remap='I'>start/</emphasis> directory contains the start menu directory tree, which
+is used to build the popup desktop menu (startmenu). See the <emphasis remap='I'>startmenu</emphasis>
+section below for more details.</para>
+
+<para>Also refer to the FILES section near the end of this man page.</para>
+
+</refsect1>
+
+<refsect1 id='configuration_options__fiautoexecfp'><title>CONFIGURATION OPTIONS - <emphasis remap='I'>autoexec</emphasis></title>
+<para>This is the file that initializes various Modules or programs when
+<command>afterstep</command> is either started or restared.  Each set is handled within
+Function stanzas.  During the invocation of <command>afterstep</command>:</para>
+<literallayout remap='.nf'>
+	Function "InitFunction"
+
+or during a restart called via the menu or other button:
+	Function "RestartFunction"
+</literallayout> <!-- .fi -->
+<para>Refer to the BUILT-IN COMMANDS/FUNCTIONS and EXAMPLES sections below.</para>
+
+<para>When running <command>afterstep</command> in multiscreen environment (but with
+<emphasis remap='B'>NO xinerama!</emphasis>) it is possible have separate Init/Restart functions
+for each screen. For example if you want to run different Init function
+on screen 1 (second screen), you should name it like so :</para>
+<literallayout remap='.nf'>
+	Function "InitScreen1Function"
+
+respectfully separate restart function should be named :
+	Function "RestartScreen1Function"
+</literallayout> <!-- .fi -->
+
+
+</refsect1>
+
+<refsect1 id='configuration_options__fibasebppfp'><title>CONFIGURATION OPTIONS - <emphasis remap='I'>base.#bpp</emphasis></title>
+<para>There should exist one base.#bpp configuration file for each colordepth.
+The # can be any of 8, 15, 16, 24, and 32; which are the colordepths
+available by most Xservers.</para>
+
+<variablelist remap='IP'>
+  <varlistentry>
+  <term>ModulePath <emphasis remap='I'>path[:path]</emphasis></term>
+  <listitem>
+<para>Specifies the <emphasis remap='I'>paths</emphasis> to locate the <emphasis remap='I'>Modules</emphasis> in.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>IconPath <emphasis remap='I'>path[:path]</emphasis></term>
+  <listitem>
+<para>Specifies the <emphasis remap='I'>paths</emphasis> to locate the bitmaps in, typically used only if
+XPM, JPEG, or PNG images aren't available. Valid bitmaps are standard X11
+XBM's.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>PixmapPath <emphasis remap='I'>path[:path]</emphasis></term>
+  <listitem>
+<para>Specifies the <emphasis remap='I'>paths</emphasis> to locate the pixmaps in.  Valid pixmaps are
+currently XPM, JPEG, and PNG.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>*ScriptPath <emphasis remap='I'>path[:path]</emphasis></term>
+  <listitem>
+<para>Specifies the <emphasis remap='I'>paths</emphasis> to locate the scripts for use with the
+<emphasis remap='I'>Script</emphasis> Module.</para>
+
+<para>Refer to the <emphasis remap='B'>Pager(1)</emphasis> man page for the other settings.</para>
+
+  </listitem>
+  </varlistentry>
+</variablelist>
+</refsect1>
+
+<refsect1 id='configuration_options__ficompatibilityfp'><title>CONFIGURATION OPTIONS - <emphasis remap='I'>compatibility</emphasis></title>
+<para>This file is only used with the <option>-f steprc_file</option> option.  It defines a
+few needed configuration options which were not in the old .steprc files.</para>
+
+<variablelist remap='IP'>
+  <varlistentry>
+  <term>PixmapPath <emphasis remap='I'>path[:path]</emphasis></term>
+  <listitem>
+<para>Specifies the <emphasis remap='I'>paths</emphasis> to locate the pixmaps in.  Valid pixmaps are
+currently XPM, JPEG, and PNG.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>TitleButton <emphasis remap='I'>button unclicked_image clicked_image</emphasis></term>
+  <listitem>
+<para><emphasis remap='I'>button</emphasis> defines the button location number from 1 to 10 in the following
+layout: [1] [3] [5] [7] [9] (title) [10] [8] [6] [4] [2].</para>
+
+<para><emphasis remap='I'>unclicked_image</emphasis> is the bitmap or pixmap to be used during the static
+state of the associated buton location.</para>
+
+<para><emphasis remap='I'>clicked_image</emphasis> is the bitmap or pixmap to be used during a clicked
+state of the associated button location.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>DrawMenuBorders <emphasis remap='I'>0|1|2</emphasis></term>
+  <listitem>
+<para>Specifies the look of the (start)menu.  Using <literal>0</literal> will draw the
+menu with no border on either the menu <emphasis remap='I'>label</emphasis> or menu <emphasis remap='I'>item</emphasis>
+portions.  Using <literal>1</literal> will draw a border around each menu <emphasis remap='I'>label</emphasis> and
+around the menu <emphasis remap='I'>item</emphasis>.  Using <literal>2</literal> will drawn a border around the
+menu <emphasis remap='I'>label</emphasis> and the entire menu <emphasis remap='I'>item</emphasis> list.  The border colors are
+calculated from the <emphasis remap='I'>BackColor</emphasis> under <emphasis remap='I'>MyStyle menu_item</emphasis> of the
+<emphasis remap='I'>look.name</emphasis>. The "hilight" (top &amp; left) color is one half lighter than
+the <emphasis remap='I'>BackColor color</emphasis> and the "shadow" (bottom &amp; right) is one half
+darker than the <emphasis remap='I'>BackColor color</emphasis>.  If the <emphasis remap='I'>BackColor color</emphasis> is
+black, the color grey is used.</para>
+
+  </listitem>
+  </varlistentry>
+</variablelist>
+</refsect1>
+
+<refsect1 id='configuration_options__fidatabasefp'><title>CONFIGURATION OPTIONS - <emphasis remap='I'>database</emphasis></title>
+<para>This file contains window properties for application windows which controls
+their "behavior" within <command>afterstep</command>.</para>
+
+<variablelist remap='IP'>
+  <varlistentry>
+  <term>Style <emphasis remap='I'>"WM_NAME" option[s]</emphasis></term>
+  <listitem>
+<para>The <emphasis remap='I'>"WM_NAME"</emphasis> can the window's name, class or resource string.  It can
+also contain wildcards such as "*" or "?", which are matched in the usual
+UNIX filename manner. Using the standard X11 <emphasis remap='B'>xprop(1)</emphasis> command at a
+command prompt or the <emphasis remap='I'>Window Properties</emphasis> menu item entry under
+<emphasis remap='I'>Desktop</emphasis> menu entry will return this (and other) property.</para>
+  <!-- .RS -->
+<para>The <emphasis remap='I'>option[s]</emphasis> is a comma separated list containing all or some of
+the following keywords.  If conflicting style options are specified, the
+last one will be used:</para>
+
+    <variablelist remap='IP'>
+      <varlistentry>
+      <term>FocusStyle [<emphasis remap='I'>style</emphasis>]</term>
+      <listitem>
+<para>Specifies a MyStyle to be used for this window when it has the keyboard
+focus.  If <emphasis remap='I'>style</emphasis> is unspecified, the default focus style will be
+used instead (see <emphasis remap='I'>FWindowStyle</emphasis>, below).</para>
+
+      </listitem>
+      </varlistentry>
+      <varlistentry>
+      <term>StickyStyle <emphasis remap='I'>style</emphasis></term>
+      <listitem>
+<para>Specifies a MyStyle to be used for this window when it does not have the
+keyboard focus, and is sticky.  If <emphasis remap='I'>style</emphasis> is unspecified, the default
+sticky style will be used instead (see <emphasis remap='I'>SWindowStyle</emphasis>, below).</para>
+
+      </listitem>
+      </varlistentry>
+      <varlistentry>
+      <term>UnfocusStyle <emphasis remap='I'>style</emphasis></term>
+      <listitem>
+<para>Specifies a MyStyle to be used for this window when it does not have the
+keyboard focus, and is not sticky.  If <emphasis remap='I'>style</emphasis> is unspecified, the
+default unfocus style will be used instead (see <emphasis remap='I'>UWindowStyle</emphasis>, below).</para>
+
+      </listitem>
+      </varlistentry>
+      <varlistentry>
+      <term><emphasis remap='I'>AvoidCover</emphasis> | <emphasis remap='I'>AllowCover</emphasis></term>
+      <listitem>
+<para>Specifies that other windows should not be allowed to cover the app window.
+Prevents other windows from moving in front of (or behind) the app window.
+If <emphasis remap='I'>SmartPlacement</emphasis> is specified in the <emphasis remap='I'>feel</emphasis> file, windows will
+not be allowed to automatically place themselves over the app window, if
+possible. <emphasis remap='I'>AllowCover</emphasis> turns off <emphasis remap='I'>AvoidCover</emphasis>. The default is
+<emphasis remap='I'>AllowCover</emphasis>.</para>
+
+      </listitem>
+      </varlistentry>
+      <varlistentry>
+      <term><emphasis remap='I'>BorderWidth width</emphasis></term>
+      <listitem>
+<para>Specifying this in conjunction with <emphasis remap='I'>NoHandles</emphasis>, sets the border width
+of a window to be <emphasis remap='I'>width</emphasis>. A <emphasis remap='I'>width</emphasis> of <literal>0</literal> causes no border.
+ This option has no affect if not used with <emphasis remap='I'>NoHandles</emphasis>.  The default
+is <literal>1</literal> implicitly for all windows.</para>
+
+<!--  .IP "\fIHandleWidth width\fP" -->
+<!--  Specifies the \fIwidth\fP of the resize handles on the -->
+<!--  The default \fIwidth\fP is 8 pixels. -->
+
+      </listitem>
+      </varlistentry>
+      <varlistentry>
+      <term><emphasis remap='I'>NoFocus</emphasis> | <emphasis remap='I'>Focus</emphasis></term>
+      <listitem>
+<para>This will set the window to refuse any input focus.  The default is
+<emphasis remap='I'>Focus</emphasis> implicitly for all windows.</para>
+
+      </listitem>
+      </varlistentry>
+      <varlistentry>
+      <term><emphasis remap='I'>Icon [/path/]name.[xpm|jpg|png]</emphasis> | <emphasis remap='I'>NoIcon</emphasis></term>
+      <listitem>
+<para>Specifies the [/path/]name.[xpm|jpg|png] to use when iconified, overriding
+any icon the app itself might provide.  <emphasis remap='I'>NoIcon</emphasis> turns this off for the
+specified app and the icon will simply disappear when the app is iconified.
+Refer to the EXAMPLES below for a method to make all icons disappear. The
+default is to use the app's supplied icon or the icon specified with the
+WM_NAME of "Unknown" or "*".</para>
+
+      </listitem>
+      </varlistentry>
+      <varlistentry>
+      <term><emphasis remap='I'>NoTitle</emphasis> | <emphasis remap='I'>Title</emphasis></term>
+      <listitem>
+<para>Specifies that <command>afterstep</command> should not put a title bar decoration on the
+app.  The default is <emphasis remap='I'>Title</emphasis> implicitly for all windows.</para>
+
+      </listitem>
+      </varlistentry>
+      <varlistentry>
+      <term><emphasis remap='I'>NoHandles</emphasis> | <emphasis remap='I'>Handles</emphasis></term>
+      <listitem>
+<para>Specifies that the app window will not display the "low bar" decoration.
+This also removes the ability to resize windows with the resize handles on
+the "low bar" ends.  The default is <emphasis remap='I'>Handles</emphasis> implicitly for all
+windows.</para>
+
+      </listitem>
+      </varlistentry>
+      <varlistentry>
+      <term><emphasis remap='I'>WindowListSkip</emphasis> | <emphasis remap='I'>WindowListHit</emphasis></term>
+      <listitem>
+<para>Specifies that the app name will be omitted from both the internal Window
+List (default click of mouse buttons 2 &amp; 3 on the root window), and the
+<emphasis remap='B'>WinList(1)</emphasis> module bar.  The default is <emphasis remap='I'>WindowListHit</emphasis> implicitly
+for all windows.</para>
+
+      </listitem>
+      </varlistentry>
+      <varlistentry>
+      <term><emphasis remap='I'>CirculateSkip</emphasis> | <emphasis remap='I'>CirculateHit</emphasis></term>
+      <listitem>
+<para>Causes windows to be skipped over when the ChangeWindowUp, ChangeWindowDown or
+Warp (also called alt-tabbing) functions are invoked.  The default is
+<emphasis remap='I'>CirculateHit</emphasis> implicitly for all windows.</para>
+
+      </listitem>
+      </varlistentry>
+      <varlistentry>
+      <term><emphasis remap='I'>StaysOnTop</emphasis> | <emphasis remap='I'>StaysPut</emphasis> | <emphasis remap='I'>StaysOnBack</emphasis></term>
+      <listitem>
+<para><emphasis remap='I'>StaysOnTop</emphasis> causes the window to always try to stay above all other
+open windows.  If the window was explicitly lowered, it will loose this
+charateristic until explicitly told to stay on top again by calling the
+<emphasis remap='I'>Buit-in Function</emphasis> <emphasis remap='I'>PutOnTop</emphasis>. <emphasis remap='I'>StaysOnBack</emphasis> causes a window to
+always try to remain behind all open windows. The default is <emphasis remap='I'>StaysPut</emphasis>
+implicitly for all windows, which doesn't specify any specific stacking
+order of open windows.</para>
+
+<para><emphasis remap='I'>NOTE: deprecated, use Layer instead.</emphasis></para>
+
+      </listitem>
+      </varlistentry>
+      <varlistentry>
+      <term>Layer <emphasis remap='I'>layer</emphasis></term>
+      <listitem>
+<para>Specifies what layer this window should be in.  <emphasis remap='I'>layer</emphasis> may be any
+integer (positive, negative, or zero).  Windows are grouped according to
+their layer, and may not be moved out of their layer.  Windows in higher
+layers will be above windows in lower layers.  By default, windows are
+placed in layer 0.  <emphasis remap='I'>StaysOnBack</emphasis> corresponds to <userinput>Layer -1</userinput>, and
+<emphasis remap='I'>StaysOnTop</emphasis> corresponds to <emphasis remap='I'>Layer 1</emphasis>.</para>
+
+      </listitem>
+      </varlistentry>
+      <varlistentry>
+      <term><emphasis remap='I'>Sticky</emphasis> | <emphasis remap='I'>Slippery</emphasis></term>
+      <listitem>
+<para>Causes the app window to stick to it's location for each desktop that
+becomes current, allowing the window to "follow" while changings desks/
+views.  The default is <emphasis remap='I'>Slippery</emphasis> implicitly for all windows.</para>
+
+      </listitem>
+      </varlistentry>
+      <varlistentry>
+      <term><emphasis remap='I'>StartIconic</emphasis> | <emphasis remap='I'>StartNormal</emphasis></term>
+      <listitem>
+<para>Causes the app to start and immediately iconify itself to the <emphasis remap='I'>IconBox</emphasis>.
+The default is <emphasis remap='I'>StartNormal</emphasis> implicitly for all windows.</para>
+
+      </listitem>
+      </varlistentry>
+      <varlistentry>
+      <term><emphasis remap='I'>StartsOnDesk number</emphasis> | <emphasis remap='I'>StartsAnyWhere</emphasis></term>
+      <listitem>
+<para>Causes the app window to start on the specified <emphasis remap='I'>desk</emphasis> number. If
+<emphasis remap='I'>SmartPlacement</emphasis> is used in the <emphasis remap='I'>feel.name</emphasis> file, the window will
+appear on the specified <emphasis remap='I'>desk</emphasis> number, but will require interaction to
+place it; unless it was called with geometry settings. Specific
+<emphasis remap='I'>Viewports</emphasis> are also allowed, refer to them below.  The default is
+<emphasis remap='I'>StartsAnyWhere</emphasis> implicitly for all windows.</para>
+
+      </listitem>
+      </varlistentry>
+      <varlistentry>
+      <term><emphasis remap='I'>VerticalTitle</emphasis> | <emphasis remap='I'>HorizontalTitle</emphasis></term>
+      <listitem>
+<para>Causes the window titlebar to be placed vertically along the left side of
+the window, instead of horizontally across the top.</para>
+
+      </listitem>
+      </varlistentry>
+      <varlistentry>
+      <term><emphasis remap='I'>ViewportX number</emphasis></term>
+      <listitem>
+<para>Specifies the coordinate along the x-axis that <command>afterstep</command> should
+place a window.  This allows opening a window on a particular desk and view.
+<emphasis remap='I'>number</emphasis> is measured in pixels and the screen resolution is the outline
+of a desk's particular boundaries; where it will then place it upon another
+desk or view.  Combined with <emphasis remap='I'>ViewportY</emphasis>, a window can be given geometry
+by <command>afterstep</command> and be placed in the desired desktop and view.</para>
+
+      </listitem>
+      </varlistentry>
+      <varlistentry>
+      <term><emphasis remap='I'>ViewportY number</emphasis></term>
+      <listitem>
+<para>Specifies the coordinate along the y-axis that <command>afterstep</command> should
+place a window.  This allows opening a window on a particular desk and view.
+<emphasis remap='I'>number</emphasis> is measured in pixels and the screen resolution is the outline
+of a desk's particular boundaries; where it will then place it upon another
+desk or view.  Combined with <emphasis remap='I'>ViewportX</emphasis>, a window can be given geometry
+by <command>afterstep</command> and be placed in the desired desktop and view.</para>
+
+      </listitem>
+      </varlistentry>
+      <varlistentry>
+      <term><emphasis remap='I'>NoButton number</emphasis> | <emphasis remap='I'>Button number</emphasis></term>
+      <listitem>
+<para>Specifing a <emphasis remap='I'>number</emphasis> to each use of <emphasis remap='I'>NoButton</emphasis> will cause that
+buttons number to not be displayed in the title bar. See <emphasis remap='I'>TitleButtons</emphasis>
+above for the <emphasis remap='I'>number</emphasis> and their location on the title bar.  The default
+is to display all buttons defined in the <emphasis remap='I'>look.name</emphasis> file if the
+following conditions are met: there is a valid bitmap or pixmap specified
+for the button in the <emphasis remap='I'>look.name</emphasis> file; and the button has not been
+forced not to display by the use of Motif WM hints specified (set on) in
+the <emphasis remap='I'>feel.name</emphasis> file. The default is <emphasis remap='I'>Button number</emphasis> implicitly for
+all windows.</para>
+
+      </listitem>
+      </varlistentry>
+      <varlistentry>
+      <term><emphasis remap='I'>SuppressIcons</emphasis></term>
+      <listitem>
+<para>Specifies that no icon should be shown for any window being iconified,
+similar to NoIcon.</para>
+
+      </listitem>
+      </varlistentry>
+      <varlistentry>
+      <term><emphasis remap='I'>DefaultGeometry WIDTHxHEIGHT+X+Y</emphasis></term>
+      <listitem>
+<para>Specifies initial placement for the given window, to be used in absense of
+USPosition geometry (command line specified one). Default behaviour is to
+either do Random or Smart placement or let user drag window around.
+Any of the geometry values can be ommited, and either of position values
+could be negative, in which case it will be added to screen size, effectively
+allowing placement relative to right/bottom edge. Just like standard X
+geometry.</para>
+      </listitem>
+      </varlistentry>
+    </variablelist>
+  </listitem>
+  </varlistentry>
+</variablelist>
+<!-- .RE -->
+
+</refsect1>
+
+<refsect1 id='configuration_options__fifeelnamefp'><title>CONFIGURATION OPTIONS - <emphasis remap='I'>feel.name</emphasis></title>
+<variablelist remap='IP'>
+  <varlistentry>
+  <term><emphasis remap='I'>AutoReverse 0|1|2</emphasis></term>
+  <listitem>
+<para>Specifies the window Warping (also called alt-tabbing) style. <literal>0</literal> (the
+default) causes switching among windows in one direction.  <literal>1</literal> causes a
+closed loop switching - #1-&gt;#2-&gt;#3-&gt;#4 then #4-&gt;#3-&gt;#2-&gt;#1. <literal>2</literal> causes
+an open loop switching - #1-&gt;#2-&gt;#3-&gt;#4 then #4-&gt;#1-&gt;#2-&gt;#3 etc.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>AutoTabThroughDesks</emphasis></term>
+  <listitem>
+<para>In conjunction with <emphasis remap='I'>AutoReverse</emphasis>, this will Warp (alt-tab) through
+windows on all desks.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>AutoRaise delay</emphasis></term>
+  <listitem>
+<para>Specifies the <emphasis remap='I'>delay</emphasis> in milliseconds of focus a window must attain
+before being raised.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>MWMFunctionHints</emphasis></term>
+  <listitem>
+<para>Adds support for Motif window manager function hints.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>MWMDecorHints</emphasis></term>
+  <listitem>
+<para>Adds support for Motif window manager decoration hints.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>MWMHintOverride</emphasis></term>
+  <listitem>
+<para>Allows Motif window manager function hints to be overridden by
+<command>afterstep</command> window styles.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>Xzap number</emphasis></term>
+  <listitem>
+<para>Specifies the horizontal offset of the cursor when warping. This offset
+is relative to the upper-left corner of the window being warped to.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>Yzap number</emphasis></term>
+  <listitem>
+<para>Specifies the vertical offset of the cursor when warping. This offset is
+relative to the upper-left corner of the window being warped to.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>KeepIconWindows</emphasis></term>
+  <listitem>
+<para>Specifies that applications should be allowed to specify their own icon
+windows.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>Titlebarnopush</emphasis></term>
+  <listitem>
+<para>Specifying this will disable the illusion that the title bars are being
+pressed when clicked upon.  Without this option, clicking the title bar will
+cause it to invert its colors, making it appear to be a 3D button being
+pressed in.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>ClickToFocus</emphasis></term>
+  <listitem>
+<para>Specifies that the keyboard input (aka focus) stays with one window
+until a new window's TitleBar is clicked on, or gains focus through
+Warping or de-iconification.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>ClickToRaise</emphasis> <emphasis remap='I'>buttons</emphasis></term>
+  <listitem>
+<para>Specifies that windows should be raised when a button is clicked in the
+titlebar, handle (low bar), or application area.  <emphasis remap='I'>buttons</emphasis> specifies
+the list of buttons which triggers this function.</para>
+
+<para>In <emphasis remap='I'>AutoRaise</emphasis> mode  this will simply raise the window if the click
+is before the delay  specified in <emphasis remap='I'>AutoRaise</emphasis>.  In
+<emphasis remap='I'>ClickToFocus</emphasis> mode, this will raise the window and give it focus.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>SloppyFocus</emphasis></term>
+  <listitem>
+<para>Specifies that windows retain focus until the mouse moves to another window,
+or Warping causes another window to gain focus.</para>
+
+<para><emphasis remap='I'>SloppyFocus</emphasis> has no effect if <emphasis remap='I'>ClickToFocus</emphasis> is also specified.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>StubbornIcons</emphasis></term>
+  <listitem>
+<para>Specifies that icons should uniconify to their original desk. By default,
+icons uniconify to the current desk.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>StubbornPlacement</emphasis></term>
+  <listitem>
+<para>Specifies that new windows should avoid being placed over icons.</para>
+
+<!--  \fIStubbornIconPlacement\fP has no effect unless \fISmartPlacement\fP is -->
+<!--  also specified. ? -->
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>StubbornIconPlacement</emphasis></term>
+  <listitem>
+<para>Specifies that icons should avoid being hidden behind windows placed over the
+<emphasis remap='I'>IconBox</emphasis> by moving themselves around (dancing icons).</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>IconTitle</emphasis></term>
+  <listitem>
+<para>Specifies that a title should be displayed under an iconified app.  The
+colors used are the <emphasis remap='I'>ForeColor</emphasis> and <emphasis remap='I'>BackColor</emphasis> of the
+<emphasis remap='I'>ButtonTitleFocus</emphasis> in the <emphasis remap='I'>look.name</emphasis> file. Note: less space
+is left for the app's icon, so it will be resized acordingly.  Only a
+portion of the icon title will be displayed until the icon gains focus, and
+then the title "box" will expand to reveal the window's entire name.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>StickyIcons</emphasis></term>
+  <listitem>
+<para>Specifies that icons should stick to the screen's glass and follow it from
+desk/view to desk/view.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>CirculateSkipIcons</emphasis></term>
+  <listitem>
+<para>Specifies that all icons should be skipped when Warping (alt-tabbing)
+between windows.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>CenterOnCirculate</emphasis></term>
+  <listitem>
+<para>Specifies that when Warping (alt-tabbing), the desktop page containing the
+window to which the pointer is moving will be automatically selected and
+<command>afterstep</command> will attempt to center the target window in the desktop
+viewport, rather than just flipping to the desktop the window resides in.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>ClickTime delay</emphasis></term>
+  <listitem>
+<para>Specifies that <command>afterstep</command> should consider two mouse clicks made within
+<emphasis remap='I'>delay</emphasis> milliseconds to be a double mouse click, and not two single
+mouse clicks. The default delay is 150 milliseconds.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>OpaqueMove %</emphasis></term>
+  <listitem>
+<para>Specifies the maximum size window where opaque window movement should be
+used.  <emphasis remap='I'>%</emphasis> is percent of the total screen area.  Set to <literal>0</literal>, all
+windows will be moved using the traditional rubber-band outline.  Set to
+<literal>100</literal>, all windows will be move as solid windows. The default is
+<literal>5</literal> which allows small windows to be moved in an opaque manner, but
+large windows to be moved as rubber-bands.  Using this option with
+large values can slow down video response on slower systems.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>OpaqueResize %</emphasis></term>
+  <listitem>
+<para>Specifies the maximum size window where opaque resizing should be used.
+<emphasis remap='I'>%</emphasis> is percent of the total screen area.  Set to <literal>0</literal>, all
+windows will be resized using the traditional rubber-band outline.  Set to
+<literal>100</literal>, all windows will be resized as solid windows. The default is
+<literal>5</literal> which allows small windows to be resized in an opaque manner, but
+large windows to be resized as rubber-bands.  Using this option with
+large values can slow down video response on slower systems.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>EdgeScroll horizontal vertical</emphasis></term>
+  <listitem>
+<para>Specifies the percentage of a page to scroll when the cursor hits the edge
+of a page. Setting <emphasis remap='I'>EdgeScroll</emphasis> to <emphasis remap='I'>0 0</emphasis> will disable scrolling.
+Setting this option to <emphasis remap='I'>100 100</emphasis> will scroll whole pages. Set to
+<emphasis remap='I'>1000 1000</emphasis>, scrolling will wrap around at the edge of the desktop.
+Both <emphasis remap='I'>horizontal</emphasis> and <emphasis remap='I'>vertical</emphasis> should be positive numbers.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>EdgeResistance delay pixels</emphasis></term>
+  <listitem>
+<para>Specifies how hard it should be to change views within a desktop by moving
+the mouse over the edge of the screen, and how hard it should be to move a
+window over the edge of a screen.</para>
+
+<para>The <emphasis remap='I'>delay</emphasis> in milliseconds, defines how long the pointer must spend at
+the screen edge before that view becomes current.  This is useful in
+conjunction with <emphasis remap='I'>EdgeScroll 100 100</emphasis>, so the views don't get switched
+accidently.</para>
+
+<para>The <emphasis remap='I'>pixels</emphasis> defines how far over the edge a window must "appear" to
+move before it actually moves partially off the screen.</para>
+
+<para>Note that with <emphasis remap='I'>EdgeScroll 0 0</emphasis>, it is still possible to move or resize
+windows across the edge of the current screen. By setting the <emphasis remap='I'>pixels</emphasis>
+parameter of <emphasis remap='I'>EdgeResistance</emphasis> to 10000, this type of motion is
+impossible. However, with <emphasis remap='I'>EdgeResistances</emphasis> less than 10000, but
+greater than 0, moving over pages becomes difficult but not impossible.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>SmartPlacement</emphasis></term>
+  <listitem>
+<para>Specifies that windows be placed in areas that no other windows occupy,
+otherwise user intervention becomes required for placement.  Have fun, try
+specifying both. :-)</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>RandomPlacement</emphasis></term>
+  <listitem>
+<para>Specifies that windows which would normally require user intervention for
+placement be automagically placed in ever-so-slightly random locations.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>NoPPosition</emphasis></term>
+  <listitem>
+<para>Species that <command>afterstep</command> should ignore the PPosition field when placing
+new windows, in other words, windows can't choose where to place themselves.
+Adherence to the PPosition field is required for some applications.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>DecorateTransients</emphasis></term>
+  <listitem>
+<para>Specifies that transient windows (pop-up dialog boxes), which are normally
+not decorated, should be given the usual title and low bars.  Note: some
+pop-up windows and menus are not managed by the window manager, so do not
+get these decorations.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>AppsBackingStore</emphasis></term>
+  <listitem>
+<para>Specifies that app windows should request backing store.  X-terminals and low
+memory systems should avoid this as redrawing will be quicker than pulling
+the saved image from swap space.  Backing store will always be faster than
+redraw on machines that have enough memory. This causes non-ICCCM compliance.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>BackingStore</emphasis></term>
+  <listitem>
+<para>Specifies that decorations should request backing store.  Refer to
+<emphasis remap='I'>AppsBackingStore</emphasis> above for further details.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>SaveUnders</emphasis></term>
+  <listitem>
+<para>Specifies that <command>afterstep</command> frames should request saveunders.  This will
+cause <command>afterstep</command> to save those portions of windows that are not visible
+to system memory.  This can significantly improve the performance during
+opaque moves, but it causes a significant increase in memory usage.
+This can also cause garbled display with some applications.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>DontMoveOff</emphasis></term>
+  <listitem>
+<para>Specifies that windows should not be moved off or initially placed off of
+the desktop.  A few programs will not work correctly if you use this option.
+This only keeps windows from being completely lost off the edge of the
+desktop. It insists on keeping 16 pixels on the desktop, but does not
+attempt to keep the entire window on the desk.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>XorValue value</emphasis></term>
+  <listitem>
+<para>Specifies the <emphasis remap='I'>value</emphasis> with which bits are XOR'ed when doing rubber-band
+window moving or resizing. Setting this value is a trial-and-error process.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>MenusHigh</emphasis></term>
+  <listitem>
+<para>Specifies that any pop-up menu's submenu should appear at the top of the
+parent menu instead of starting at the point in the parent window where
+the submenu item lies.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>FollowTitleChanges</emphasis></term>
+  <listitem>
+<para>Makes <command>afterstep</command> to change application's icon when it changes its
+title, if some other icon was specified in database for this new name.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>PagingDefault 0|1</emphasis></term>
+  <listitem>
+<para>Specifies if Paging should be enabled (<literal>1</literal>) or disabled (<literal>0</literal>).
+Paging is set to enabled by default.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>Cursor <emphasis remap='I'>cursor_number cursor_type</emphasis></term>
+  <listitem>
+<para>Specifies the <emphasis remap='I'>cursor_type</emphasis> for the given <emphasis remap='I'>cursor_number</emphasis>.  Valid
+<emphasis remap='I'>cursor_numbers</emphasis> are 0 though 10 and listed in all the shipped
+<emphasis remap='I'>feel.name</emphasis> files. The <emphasis remap='I'>cursor_types</emphasis> are listed in the
+ /usr/include/X11/cursorfont.h file.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>Functions</term>
+  <listitem>
+<para>Specifies a function definition and is covered in the BUILT-IN
+COMMAND/FUNCTION below.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>Popup</term>
+  <listitem>
+<para>Specifies a menu popup definition and is covered in the BUILT-IN
+COMMAND/FUNCTION below.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>Mouse <emphasis remap='I'>button</emphasis> <emphasis remap='I'>context</emphasis> <emphasis remap='I'>modifier</emphasis> <emphasis remap='I'>Command</emphasis></term>
+  <listitem>
+<para>Specifies a mouse binding definition. <emphasis remap='I'>button</emphasis> is the mouse button
+number [0, 1, 2, or 3]. If <emphasis remap='I'>button</emphasis> is zero, then any mouse button
+invoked issues the <emphasis remap='I'>Command</emphasis>.  <emphasis remap='I'>context</emphasis> describes where the
+mouse click occurred and can be any combination of the following:</para>
+
+<literallayout remap='.nf'>
+   R = Root window (main background)
+   F = Window Frame (the BottomBar handle corners)
+   S = Window TitleBar or BottomBar
+   I = Iconified Button (minimized window icon)
+   T = Window TitleBar
+   W = Application Window
+   A = Any of the above except for TitleButtons
+1-10 = TitleButton number of the TitleBar, corresponds to the
+       entry in the <emphasis remap='I'>look.name</emphasis> file
+</literallayout> <!-- .fi -->
+
+<para>The action to be taken by the defined TitleButton is defined in the
+<emphasis remap='I'>feel.name</emphasis> file.  Defining a TitleButton without having a corresponding
+entry in the <emphasis remap='I'>feel.name</emphasis> file will cause the TitleButton icon to be
+displayed, but not react when pressed.</para>
+
+<para><emphasis remap='I'>modifier</emphasis> is the key-stroke combination associated with the
+<emphasis remap='I'>context</emphasis> entry, to issue the <emphasis remap='I'>Command</emphasis>. Valid <emphasis remap='I'>modifier</emphasis>'s
+are:</para>
+
+<literallayout remap='.nf'>
+   N = No modifiers
+   C = Control
+   S = Shift
+   M = Meta
+   A = Any modifier
+</literallayout> <!-- .fi -->
+
+<para><emphasis remap='I'>Command</emphasis> can be any <command>afterstep</command> <emphasis remap='I'>Built-in</emphasis> command/
+function, <emphasis remap='I'>Popup</emphasis> or user defined <emphasis remap='I'>Function</emphasis>.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>Key <emphasis remap='I'>keyname</emphasis> <emphasis remap='I'>context</emphasis> <emphasis remap='I'>modifier</emphasis> <emphasis remap='I'>Command</emphasis></term>
+  <listitem>
+<para>Specifies a key-stroke binding definition, similar to <emphasis remap='I'>Mouse</emphasis> above.
+<emphasis remap='I'>keyname</emphasis> is the keyboard key name. Valid <emphasis remap='I'>keyname</emphasis>'s are found in
+the /usr/X11/include/X11/keysymdef.h file and are specified here without
+the leading "XK_".  The <emphasis remap='I'>context</emphasis> describes where the mouse is resting
+when the <emphasis remap='I'>keyname</emphasis> is pressed and can be any combinationof the
+following:</para>
+
+<programlisting remap='.nf'>
+   R = Root window (main background)
+   F = Window Frame (the BottomBar handle corners)
+   S = Window TitleBar or BottomBar
+   I = Iconified Button (minimized window icon)
+   T = Window TitleBar
+   W = Application Window
+   A = Any of the above except for TitleButtons
+1-10 = TitleButton number of the TitleBar [ not very useful here ]
+</programlisting> <!-- .fi -->
+
+<para><emphasis remap='I'>modifier</emphasis> is the key-stroke combination associated with the
+<emphasis remap='I'>context</emphasis> entry, to issue the <emphasis remap='I'>Command</emphasis>. Valid <emphasis remap='I'>modifier</emphasis>'s
+are:</para>
+
+<literallayout remap='.nf'>
+   N = No modifiers
+   C = Control
+   S = Shift
+   M = Meta
+   A = Any modifier
+</literallayout> <!-- .fi -->
+
+<para><emphasis remap='I'>Command</emphasis> can be any <command>afterstep</command> <emphasis remap='I'>Built-in</emphasis> command/
+function, <emphasis remap='I'>Popup</emphasis> or user defined <emphasis remap='I'>Function</emphasis>.</para>
+
+  </listitem>
+  </varlistentry>
+</variablelist>
+</refsect1>
+
+<refsect1 id='configuration_options__filooknamefp'><title>CONFIGURATION OPTIONS - <emphasis remap='I'>look.name</emphasis></title>
+<variablelist remap='IP'>
+  <varlistentry>
+  <term>ButtonTextureType <emphasis remap='I'>type</emphasis></term>
+  <listitem>
+<para>Deprecated.  Use MyStyle "ButtonPixmap" instead.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>ButtonMaxColors <emphasis remap='I'>maximum</emphasis></term>
+  <listitem>
+<para>Deprecated.  Use MyStyle "ButtonPixmap" instead.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>ButtonBgColor <emphasis remap='I'>color</emphasis></term>
+  <listitem>
+<para>Deprecated.  Use MyStyle "ButtonPixmap" instead.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>ButtonTextureColor <emphasis remap='I'>from</emphasis> <emphasis remap='I'>to</emphasis></term>
+  <listitem>
+<para>Deprecated.  Use MyStyle "ButtonPixmap" instead.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>ButtonPixmap <emphasis remap='I'>pixmap_name</emphasis></term>
+  <listitem>
+<para>Deprecated.  Use MyStyle "ButtonPixmap" instead.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>DecorateFrames [<emphasis remap='I'>0|1</emphasis>]</term>
+  <listitem>
+<para>Specifies that windows should not have a lowbar, and should have a frame.
+The frame width and height are defined by the width and height of the
+associated pixmaps (see <emphasis remap='I'>FrameNorth</emphasis>, <emphasis remap='I'>FrameSouth</emphasis>, etc).</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>FrameNorth <emphasis remap='I'>pixmap_name</emphasis></term>
+  <listitem>
+<para>Specifies the pixmap to be displayed in the top border of the window frame,
+<emphasis remap='I'>DecorateFrames</emphasis> is set. See <emphasis remap='I'>BackPixmap</emphasis> below for details on
+what <emphasis remap='I'>pixmap_name</emphasis>s are allowed.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>FrameSouth <emphasis remap='I'>pixmap_name</emphasis></term>
+  <listitem>
+<para>Specifies the pixmap to be displayed in the bottom border of the window
+frame, if <emphasis remap='I'>DecorateFrames</emphasis> is set. See <emphasis remap='I'>BackPixmap</emphasis> below for
+details on what <emphasis remap='I'>pixmap_name</emphasis>s are allowed.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>FrameEast <emphasis remap='I'>pixmap_name</emphasis></term>
+  <listitem>
+<para>Specifies the pixmap to be displayed in the right border of the window
+frame, if <emphasis remap='I'>DecorateFrames</emphasis> is set. See <emphasis remap='I'>BackPixmap</emphasis> below for
+details on what <emphasis remap='I'>pixmap_name</emphasis>s are allowed.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>FrameWest <emphasis remap='I'>pixmap_name</emphasis></term>
+  <listitem>
+<para>Specifies the pixmap to be displayed in the left border of the window
+frame, if <emphasis remap='I'>DecorateFrames</emphasis> is set. See <emphasis remap='I'>BackPixmap</emphasis> below for
+details on what <emphasis remap='I'>pixmap_name</emphasis>s are allowed.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>FrameNE <emphasis remap='I'>pixmap_name</emphasis></term>
+  <listitem>
+<para>Specifies the pixmap to be displayed in the top right corner of the window
+frame, if <emphasis remap='I'>DecorateFrames</emphasis> is set. See <emphasis remap='I'>BackPixmap</emphasis> below for
+details on what <emphasis remap='I'>pixmap_name</emphasis>s are allowed.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>FrameSE <emphasis remap='I'>pixmap_name</emphasis></term>
+  <listitem>
+<para>Specifies the pixmap to be displayed in the bottom right corner of the
+window frame, if <emphasis remap='I'>DecorateFrames</emphasis> is set. See <emphasis remap='I'>BackPixmap</emphasis> below
+for details on what <emphasis remap='I'>pixmap_name</emphasis>s are allowed.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>FrameNW <emphasis remap='I'>pixmap_name</emphasis></term>
+  <listitem>
+<para>Specifies the pixmap to be displayed in the top left corner of the window
+frame, if <emphasis remap='I'>DecorateFrames</emphasis> is set. See <emphasis remap='I'>BackPixmap</emphasis> below for
+details on what <emphasis remap='I'>pixmap_name</emphasis>s are allowed.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>FrameSW <emphasis remap='I'>pixmap_name</emphasis></term>
+  <listitem>
+<para>Specifies the pixmap to be displayed in the bottom left corner of the
+window frame, if <emphasis remap='I'>DecorateFrames</emphasis> is set. See <emphasis remap='I'>BackPixmap</emphasis> below
+for details on what <emphasis remap='I'>pixmap_name</emphasis>s are allowed.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>MArrowPixmap <emphasis remap='I'>pixmap_name</emphasis></term>
+  <listitem>
+<para>Specifies a pixmap to use as the submenu indicator in popup menus. See
+<emphasis remap='I'>BackPixmap</emphasis> below for details on what <emphasis remap='I'>pixmap_name</emphasis>s are
+allowed.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>MenuPinOn <emphasis remap='I'>pixmap_name</emphasis></term>
+  <listitem>
+<para>Specifies a pixmap to use as the pinned menu indicator in popup menus.
+See <emphasis remap='I'>BackPixmap</emphasis> below for details on what <emphasis remap='I'>pixmap_name</emphasis>s are
+allowed.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>MenuPinOff <emphasis remap='I'>pixmap_name</emphasis></term>
+  <listitem>
+<para>Specifies a pixmap to use as the unpinned menu indicator in popup menus.
+See <emphasis remap='I'>BackPixmap</emphasis> below for details on what <emphasis remap='I'>pixmap_name</emphasis>s are
+allowed.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>TexturedHandle</term>
+  <listitem>
+<para>Specifies that the resize handles on the bottom of windows should be
+textured. The titlebar texture will be used.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>TextGradientColor <emphasis remap='I'>from</emphasis> <emphasis remap='I'>to</emphasis></term>
+  <listitem>
+<para>Specifies a gradient to be applied to the focused window titlebar text.
+<emphasis remap='I'>TextGradientColor</emphasis> is ignored unless <emphasis remap='I'>GradientText</emphasis> is also
+given. The gradient colors start at <emphasis remap='I'>from</emphasis> and end at <emphasis remap='I'>to</emphasis>.
+<emphasis remap='I'>from</emphasis> and <emphasis remap='I'>to</emphasis> are standard X11 color definitions.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>GradientText</term>
+  <listitem>
+<para>Specifies that the gradient specified by <emphasis remap='I'>TextGradientColor</emphasis> should
+be applied to the focused window titlebar text.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>ButtonNoBorder</term>
+  <listitem>
+<para>Specifies that the border normally drawn around iconified windows should
+be omitted.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>DrawMenuBorders <emphasis remap='I'>border_style</emphasis></term>
+  <listitem>
+<para>Specifies the menu border style. <emphasis remap='I'>border_style</emphasis> can be one of the
+following:</para>
+
+<literallayout remap='.nf'>
+0: no borders
+1: borders around each title and each item
+2: borders around each title and all items
+3: borders around each title, all items, and the hilighted item
+</literallayout> <!-- .fi -->
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>TextureMenuItemsIndividually <emphasis remap='I'>texture_style</emphasis></term>
+  <listitem>
+<para>Specifies how textures should be applied to menu items. If
+<emphasis remap='I'>texture_style</emphasis> is 0, menu items are textured as a group. If
+<emphasis remap='I'>texture_style</emphasis> is 1, menu items are textured individually.  This
+option is ignored if the menu item MyStyle background uses a
+transparency effect.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>SeparateButtonTitle <emphasis remap='I'>onoff</emphasis></term>
+  <listitem>
+<para>Specifies where iconified window titles should be drawn.  If <emphasis remap='I'>onoff</emphasis>
+is 0, the title will be drawn at the top of the icon.  If <emphasis remap='I'>onoff</emphasis> is
+1, the title will be drawn in a separate window at the below the icon.
+The default value of <emphasis remap='I'>onoff</emphasis> is 1.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>ButtonSize <emphasis remap='I'>width</emphasis> <emphasis remap='I'>height</emphasis></term>
+  <listitem>
+<para>Specifies the size of iconified windows.  Every iconified window button
+will be exactly <emphasis remap='I'>width</emphasis> pixels wide and <emphasis remap='I'>height</emphasis> pixels high.
+This includes titles drawn at the top, but not the separate title window
+created by <emphasis remap='I'>SeparateButtonTitle</emphasis>.  If either <emphasis remap='I'>width</emphasis> or
+<emphasis remap='I'>height</emphasis> is less than one, that dimension will not be fixed.  The
+default is ButtonSize 0 0.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>ResizeMoveGeometry <emphasis remap='I'>geom</emphasis></term>
+  <listitem>
+<para>Specifies the location of the resize/move window. If this option is not
+specified, the move/resize window will be centered on the screen.
+<emphasis remap='I'>geom</emphasis> may be any one of the following:</para>
+
+<literallayout remap='.nf'>
+++: upper-left corner
+-+: upper-right corner
++-: lower-left corner
+--: lower-right corner
+</literallayout> <!-- .fi -->
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>MenuMiniPixmaps <emphasis remap='I'>minis</emphasis></term>
+  <listitem>
+<para>Specifies whether mini pixmaps should be included in menus. If
+<emphasis remap='I'>minis</emphasis> is 0, mini pixmaps are not included. If <emphasis remap='I'>minis</emphasis> is 1,
+mini pixmaps are included. Note that mini pixmaps will not be added to
+menus until the next time menus are updated. Mini pixmaps can cause AS
+to take much longer to load over a network.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>IconFont <emphasis remap='I'>font</emphasis></term>
+  <listitem>
+<para>Deprecated.  Use MyStyle "ButtonPixmap", "ButtonTitleFocus",
+"ButtonTitleSticky", and "ButtonTitleUnfocus" instead.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>IconBox <emphasis remap='I'>left</emphasis> <emphasis remap='I'>top</emphasis> <emphasis remap='I'>right</emphasis> <emphasis remap='I'>bottom</emphasis></term>
+  <listitem>
+<para>Specifies a region of the screen in which to place iconified windows. Up
+to four icon boxes can be defined. If an <emphasis remap='I'>IconBox</emphasis> is provided,
+icons will automatically be placed in them, if possible. Otherwise, they
+will be placed in the upper left corner of the screen. Each time a
+window is iconified, a new place is found for it, unless the icon has
+been moved manually. An available space is searched for from left to
+right, then top to bottom. Icons will not be automatically placed on top
+of other icons, but they may be placed underneath application windows if
+<emphasis remap='I'>StubbornIconPlacement</emphasis> has not been specified. If left or right is
+negative, then <emphasis remap='B'>AfterStep</emphasis> will add the screen width to it.  If top
+or bottom is negative, then <emphasis remap='B'>AfterStep</emphasis> will add the screen height
+to it. Note that -0 is not parsed as the right or bottom pixel on the
+screen. Use -1 instead. The <emphasis remap='I'>IconBox</emphasis> will normally be filled from
+left to right, then top to bottom.  However, if the right edge of the
+<emphasis remap='I'>IconBox</emphasis> is closer to the right edge of the screen than the left
+edge of the <emphasis remap='I'>IconBox</emphasis> is to the left edge of the screen, then it
+will be filled from right to left.  Similarly for top to bottom.  For
+example, "2 2 -1 -1" will result in an <emphasis remap='I'>IconBox</emphasis> which fills from
+right to left, then bottom to top.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>RubberBand <emphasis remap='I'>type</emphasis></term>
+  <listitem>
+<para>Specifies the <emphasis remap='I'>RubberBand</emphasis> type to use when moving or resizing
+non-opaque windows.  There are 10 styles:</para>
+
+<programlisting remap='.nf'>
+0: the window is represented as a number of rectangles
+1: one rectangle the size of the window
+2: one crossed-out rectangle the size of the window
+3: rectangles showing the titlebar and handles, if the
+   window has them
+4: rectange for the window outline, with secondry corners
+   stretching half way up the sides for the top left and
+   botton right
+5: as for 4 but with teriary corners going 2/3rds up the
+   secondry corners
+6: small window corners and a crosshair at the centre
+7: CAD-style lines stretching from screen edges to form
+   the window outline
+8: 2 pixel wire frame containing a fixed grid
+9: like 0 except the rectangles are thinner (1 pixel lines
+   instead of 3-4).
+</programlisting> <!-- .fi -->
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>TitleTextAlign <emphasis remap='I'>alignment</emphasis></term>
+  <listitem>
+<para>Specifies the alignment of the window title in the titlebar.  The
+allowable values for <emphasis remap='I'>alignment</emphasis> are as follows:</para>
+
+<literallayout remap='.nf'>
+1: left aligned
+2: right aligned
+3: center aligned (default)
+</literallayout> <!-- .fi -->
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>TitlebarNoPush</term>
+  <listitem>
+<para>Specifies that the titlebar should not to appear to be "pushed in" when
+clicked with a mouse button. This is useful to reduce video strain or if
+textured pixmaps that do not look good "pushed in" are used.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>TitleButton <emphasis remap='I'>num</emphasis> <emphasis remap='I'>pixmap_name</emphasis></term>
+  <listitem>
+<para>Specifies a pixmap to use as a titlebar button.  Up to 10 buttons are
+possible. <emphasis remap='I'>num</emphasis> specifies the position of the button on the window
+and is an integer from 1 to 10. The positions are indicated as below:</para>
+<literallayout remap='.nf'>
+[1] [3] [5] [7] [9] TitleBarText [10] [8] [6] [4] [2]
+</literallayout> <!-- .fi -->
+
+<para>The action to be taken by the defined TitleButton is defined in the
+<emphasis remap='I'>feel.name</emphasis> file.  Defining a TitleButton without having a corresponding
+entry in the <emphasis remap='I'>feel.name</emphasis> file will cause the TitleButton icon to be
+displayed, but not react when pressed.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>TitleButtonStyle <emphasis remap='I'>num</emphasis></term>
+  <listitem>
+<para>Specifies how much space is put between leftmost and rightmost titlebar
+buttons, and the edges of the titlebar. If <emphasis remap='I'>num</emphasis> is 0, there is a
+two pixel buffer the buttons and the edge. If <emphasis remap='I'>num</emphasis> is 1, there is
+no space between the buttons and the edge.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>TitleButtonSpacing <emphasis remap='I'>num</emphasis></term>
+  <listitem>
+<para>Specifies how much space (in pixels) to put between titlebar buttons.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>TitleButtonBalloons</term>
+  <listitem>
+<para>Turns on the balloon feature. A "balloon" is displayed showing the
+function(s) bound to a titlebar button. The balloon background and text
+are configured with the MyStyle "TitleButtonBalloon".</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>TitleButtonBalloonBorderWidth <emphasis remap='I'>number</emphasis></term>
+  <listitem>
+<para>Sets the width of the balloon window's border. Defaults to 1.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>TitleButtonBalloonBorderColor <emphasis remap='I'>color</emphasis></term>
+  <listitem>
+<para>Sets the color of the balloon window's border. Defaults to black.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>TitleButtonBalloonYOffset <emphasis remap='I'>number</emphasis></term>
+  <listitem>
+<para>The balloon window is positioned to be horizontally centered against
+the titlebar button it is describing. The vertical position may be
+set as an offset. Negative offsets of <option>-N</option> are placed <emphasis remap='I'>N</emphasis>
+pixels above the pager window, positive offsets of <emphasis remap='I'>+N</emphasis> are placed
+<emphasis remap='I'>N</emphasis> pixels below. Defaults to +2.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>TitleButtonBalloonDelay <emphasis remap='I'>number</emphasis></term>
+  <listitem>
+<para>Specifies the period in milliseconds to delay the appearance of the
+balloon.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>DefaultStyle "<emphasis remap='I'>style_name</emphasis>"</term>
+  <listitem>
+<para>Specifies the <emphasis remap='I'>MyStyle</emphasis> to use when no style has been specifically
+defined for a given situation. Note that if a style named "default" has
+been defined and DefaultStyle has not, the "default" style will be used
+as the default.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>FWindowStyle "<emphasis remap='I'>style_name</emphasis>"</term>
+  <listitem>
+<para>Specifies the <emphasis remap='I'>MyStyle</emphasis> to use for the focused window decorations.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>UWindowStyle "<emphasis remap='I'>style_name</emphasis>"</term>
+  <listitem>
+<para>Specifies the <emphasis remap='I'>MyStyle</emphasis> to use for the unfocused window decorations.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>SWindowStyle "<emphasis remap='I'>style_name</emphasis>"</term>
+  <listitem>
+<para>Specifies the <emphasis remap='I'>MyStyle</emphasis> to use for the sticky window decorations.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>MenuItemStyle "<emphasis remap='I'>style_name</emphasis>"</term>
+  <listitem>
+<para>Specifies the <emphasis remap='I'>MyStyle</emphasis> to use for menu items.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>MenuTitleStyle "<emphasis remap='I'>style_name</emphasis>"</term>
+  <listitem>
+<para>Specifies the <emphasis remap='I'>MyStyle</emphasis> to use for menu titles.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>MenuHiliteStyle "<emphasis remap='I'>style_name</emphasis>"</term>
+  <listitem>
+<para>Specifies the <emphasis remap='I'>MyStyle</emphasis> to use for hilighted menu items.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>MenuStippleStyle "<emphasis remap='I'>style_name</emphasis>"</term>
+  <listitem>
+<para>Specifies the <emphasis remap='I'>MyStyle</emphasis> to use for stippled menu items.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>MyStyle "ButtonPixmap"</term>
+  <listitem>
+<para>Specifies the background tile of iconified windows.  Inherits from the
+old ButtonPixmap, IconFont, ButtonTextureType, ButtonMaxColors,
+ButtonBgColor, and ButtonTextureColor options, and also inherits from
+FWindowStyle.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>MyStyle "ButtonTitleFocus"</term>
+  <listitem>
+<para>Specifies how focused iconified window titles should look.  Inherits from
+FWindowStyle.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>MyStyle "ButtonTitleSticky"</term>
+  <listitem>
+<para>Specifies how sticky iconified window titles should look.  Inherits from
+SWindowStyle.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>MyStyle "ButtonTitleUnfocus"</term>
+  <listitem>
+<para>Specifies how unfocused iconified window titles should look.  Inherits from
+UWindowStyle.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>MyStyle "<emphasis remap='I'>style_name</emphasis>"</term>
+  <term>  <emphasis remap='I'>style_option</emphasis></term>
+  <term>~MyStyle</term>
+  <listitem>
+<para>Specifies the beginning of a look style definition. The style can be
+referred to later by <emphasis remap='I'>style_name</emphasis>. <emphasis remap='I'>~MyStyle</emphasis> ends a look style
+definition. The possible <emphasis remap='I'>style_option</emphasis>s follow:</para>
+
+  <!-- .RS -->
+    <variablelist remap='IP'>
+      <varlistentry>
+      <term>Font <emphasis remap='I'>font</emphasis></term>
+      <listitem>
+<para>Specifies the font associated with this style. <emphasis remap='I'>font</emphasis> is a standard
+X11 font definition.</para>
+
+      </listitem>
+      </varlistentry>
+      <varlistentry>
+      <term>ForeColor <emphasis remap='I'>color</emphasis></term>
+      <listitem>
+<para>Specifies the text color associated with this style. <emphasis remap='I'>color</emphasis> is a
+standard X11 color definition.</para>
+
+      </listitem>
+      </varlistentry>
+      <varlistentry>
+      <term>BackColor <emphasis remap='I'>color</emphasis></term>
+      <listitem>
+<para>Specifies the background color associated with this style. <emphasis remap='I'>color</emphasis>
+is a standard X11 color definition.</para>
+
+      </listitem>
+      </varlistentry>
+      <varlistentry>
+      <term>TextStyle <emphasis remap='I'>style</emphasis></term>
+      <listitem>
+<para>Specifies the text <emphasis remap='I'>style</emphasis> associated with this style. <emphasis remap='I'>style</emphasis>
+can be 0, 1, or 2:</para>
+
+<literallayout remap='.nf'>
+0: normal text
+1: 3d effect #1
+2: 3d effect #2
+</literallayout> <!-- .fi -->
+
+      </listitem>
+      </varlistentry>
+      <varlistentry>
+      <term>DrawTextBackground [<emphasis remap='I'>0|1</emphasis>]</term>
+      <listitem>
+<para>Specifies that the area behind text drawn in this style should be cleared
+to <emphasis remap='I'>BackColor</emphasis>.  The argument is optional.  If the argument is 0,
+this option is turned off; if it is omitted or is nonzero, the option is
+turned on.</para>
+
+      </listitem>
+      </varlistentry>
+      <varlistentry>
+      <term>MaxColors <emphasis remap='I'>maximum</emphasis></term>
+      <listitem>
+<para>Specifies the <emphasis remap='I'>maximum</emphasis> number of colors that the <emphasis remap='I'>BackGradient</emphasis>
+can use. jpegs specified with <emphasis remap='I'>BackPixmap</emphasis> will also be limited to
+this number of colors.</para>
+
+      </listitem>
+      </varlistentry>
+      <varlistentry>
+      <term>BackGradient <emphasis remap='I'>type</emphasis> <emphasis remap='I'>from</emphasis> <emphasis remap='I'>to</emphasis></term>
+      <listitem>
+<para>Specifies that a gradient should be used as a background instead of a
+solid color. The gradient colors start at <emphasis remap='I'>from</emphasis> and end at <emphasis remap='I'>to</emphasis>.
+<emphasis remap='I'>from</emphasis> and <emphasis remap='I'>to</emphasis> are standard X11 color definitions. <emphasis remap='I'>type</emphasis>
+can be 1, 2, 3, 4, or 5:</para>
+
+<literallayout remap='.nf'>
+1: Wharf-style diagonal gradient
+2: Horizontal from top to bottom
+3: Horizontal from top/bottom to center
+4: Vertical from left to right
+5: Vertical from left/right to center
+</literallayout> <!-- .fi -->
+
+      </listitem>
+      </varlistentry>
+      <varlistentry>
+      <term>BackMultiGradient <emphasis remap='I'>type</emphasis> <emphasis remap='I'>offset1</emphasis> <emphasis remap='I'>color1</emphasis> ... <emphasis remap='I'>offsetN</emphasis> <emphasis remap='P->I'> colorN</emphasis></term>
+      <listitem>
+<para>Specifies that a gradient should be used as a background instead of a
+solid color. The gradient colors start at <emphasis remap='I'>color1</emphasis> and end at
+<emphasis remap='I'>colorN</emphasis>. Each color has an <emphasis remap='I'>offset</emphasis> associated with it. The
+<emphasis remap='I'>offset</emphasis> is a number between 0.0 and 1.0, and specifies where in
+the gradient the colors are to be placed.  The colors are standard X11
+color definitions. At least two colors must be given. The offsets are
+non-decreasing numbers between 0.0 and 1.0. If the first offset is not
+0.0, it will be set to 0.0. If the last offset is not 1.0, it will be
+set to 1.0. <emphasis remap='I'>type</emphasis> may be any of the following:</para>
+
+<literallayout remap='.nf'>
+6: diagonal from top-left to bottom-right
+7: diagonal from bottom-left to top-right
+8: top to bottom
+9: left to right
+</literallayout> <!-- .fi -->
+
+      </listitem>
+      </varlistentry>
+      <varlistentry>
+      <term>BackPixmap <emphasis remap='I'>type</emphasis> <emphasis remap='I'>pixmap_name|color_name</emphasis></term>
+      <listitem>
+<para>Specifies that a pixmap should be used as a background instead of a
+solid color. This option has two forms, depending on the value of
+<emphasis remap='I'>type</emphasis>. If <emphasis remap='I'>type</emphasis> is 128, the second parameter, <emphasis remap='I'>pixmap_name</emphasis>
+must be the name of an xpm, jpeg, or png image which can be found in
+<emphasis remap='I'>PixmapPath</emphasis>. If <emphasis remap='I'>type</emphasis> is 129, the root pixmap (desktop
+background) will be used, and the optional second parameter must be a
+color with which the root pixmap will be shaded.  If <emphasis remap='I'>type</emphasis> is 130,
+the root pixmap will be averaged with the specified pixmap, and the
+result will be used as the background.  In order for <emphasis remap='I'>type</emphasis> 129
+or <emphasis remap='I'>type</emphasis> 130 to work properly, your desktop background must be set
+by a program that also sets the _XROOTPMAP_ID property on the root
+window, such as asetroot or Esetroot.</para>
+
+<literallayout remap='.nf'>
+128: tiled pixmap from the upper left
+129: "transparent" (or tinted with color)
+130: translucent pixmap
+</literallayout> <!-- .fi -->
+
+      </listitem>
+      </varlistentry>
+      <varlistentry>
+      <term>Inherit "<emphasis remap='I'>style_name</emphasis>"</term>
+      <listitem>
+<para>Specifies a <emphasis remap='I'>MyStyle</emphasis> to inherit options from. Options from
+<emphasis remap='I'>style_name</emphasis> will override previously specified options for this
+style. <emphasis remap='I'>Inherit</emphasis> is a good way to save memory and network bandwidth
+if the same <emphasis remap='I'>BackPixmap</emphasis> is used for several styles, as the pixmap
+will only be loaded for the inherited style.</para>
+
+      </listitem>
+      </varlistentry>
+    </variablelist>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</refsect1>
+
+<refsect1 id='configuration_options__fistartmenufp'><title>CONFIGURATION OPTIONS - <emphasis remap='I'>startmenu</emphasis></title>
+<para>The <emphasis remap='I'>startmenu</emphasis> is built from the <emphasis remap='I'>start/</emphasis> tree by utilizing files
+which have the menu items as command strings within them.  The basic
+structure of a command string is as follows:</para>
+<literallayout remap='.nf'>
+
+<emphasis remap='I'>Exec</emphasis> <emphasis remap='I'>"name"</emphasis> exec command [-options]
+</literallayout> <!-- .fi -->
+
+<para>Where <emphasis remap='I'>Exec</emphasis> is a built-in command (see below); <emphasis remap='I'>"name"</emphasis> is what
+will appear as the entry in the created <emphasis remap='I'>startmenu</emphasis>; exec invokes a
+subprocess (via <emphasis remap='B'>exec(3)</emphasis>) for the given "command"; and "command" is
+whatever program is to be invoked along with any "-options" that might be
+desired.</para>
+
+<variablelist remap='IP'>
+  <varlistentry>
+  <term><markup>.include</markup></term>
+  <listitem>
+
+<para>Any directory in the <emphasis remap='I'>start/</emphasis> directory tree may have an <markup>.include</markup>
+file. Also, any directory which is subsequently included (via this
+<emphasis remap='I'>include</emphasis> directive) may also have an <markup>.include</markup> file.  Valid
+entries for an <markup>.include</markup> file are as follows:</para>
+
+  <!-- .RS -->
+    <variablelist remap='IP'>
+      <varlistentry>
+      <term>Command <emphasis remap='I'>command</emphasis> [<emphasis remap='I'>args</emphasis>]</term>
+      <listitem>
+<para>Specifies an AfterStep function to apply to all items in this directory.
+Does not apply to subdirectories or included directories. The resulting
+function will be:</para>
+
+<para><emphasis remap='I'>command</emphasis> "menu name" <emphasis remap='I'>args</emphasis> /menu/item/full/path</para>
+
+      </listitem>
+      </varlistentry>
+      <varlistentry>
+      <term>Extension <emphasis remap='I'>ext</emphasis></term>
+      <listitem>
+<para>Specifies an extension to strip from all filenames in this directory
+prior to placing them in the menu as menu item names.  For example, an
+<emphasis remap='I'>ext</emphasis> of "look." will cause the file "look.DEFAULT" to show up as
+"DEFAULT" in the menu, and an <emphasis remap='I'>ext</emphasis> of ".tar.gz" will cause the file
+"theme.tar.gz" to show up as "theme" in the menu.</para>
+
+      </listitem>
+      </varlistentry>
+      <varlistentry>
+      <term>Include "<emphasis remap='I'>path</emphasis>" [<emphasis remap='I'>command</emphasis> [<emphasis remap='I'>args</emphasis>]]</term>
+      <listitem>
+<para>Specifies the path to another directory, whose contents will be included
+in this menu. If <emphasis remap='I'>command</emphasis> is given, it will be applied to all items
+in the included directory as if a <emphasis remap='I'>Command</emphasis> directive (see above)
+had been given, except that subdirectories of the included directory are
+also affected.</para>
+
+      </listitem>
+      </varlistentry>
+      <varlistentry>
+      <term>KeepName</term>
+      <listitem>
+<para>Specifies that the directory name should be retained when creating the
+distilled menu, so that it can be referred to by name in a <emphasis remap='I'>PopUp</emphasis>
+statement (see BUILT-IN COMMANDS/FUNCTIONS, below). The toplevel menu
+(start) has this option on by default.</para>
+
+      </listitem>
+      </varlistentry>
+      <varlistentry>
+      <term>MiniPixmap <emphasis remap='I'>pixmap</emphasis></term>
+      <listitem>
+<para>Specifies a pixmap to display to the left of the menu item which invokes
+this menu, and in the title of this menu.</para>
+
+      </listitem>
+      </varlistentry>
+      <varlistentry>
+      <term>Name <emphasis remap='I'>name</emphasis></term>
+      <listitem>
+<para>Specifies the <emphasis remap='I'>name</emphasis> of this folder in the final menu displayed to
+the user. This name will be overridden if the folder's filename includes
+an order; use the order command (below), instead.</para>
+
+      </listitem>
+      </varlistentry>
+      <varlistentry>
+      <term>Order <emphasis remap='I'>order</emphasis></term>
+      <listitem>
+<para>Specifies where in its parent menu the item which invokes this menu should
+appear. A menu without this option will be given an order of 10000 by
+default.</para>
+
+      </listitem>
+      </varlistentry>
+    </variablelist>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</refsect1>
+
+<refsect1 id='builtin_commandsfunctions'><title>BUILT-IN COMMANDS/FUNCTIONS</title>
+<para><command>afterstep</command> supports a small set of built in functions which can be
+bound to key-stroke combinations or mouse buttons.  These can also be
+embeded within <emphasis remap='I'>Function</emphasis> statements or within menu statements in a
+<emphasis remap='I'>feel.name</emphasis> file. NOTE: [<emphasis remap='I'>"name"</emphasis>] in the following is used in a
+popup or menu item entry to define the name which will appear in said
+pop-up or menu.</para>
+
+<variablelist remap='IP'>
+  <varlistentry>
+  <term>Nop ""</term>
+  <listitem>
+<para>Inserts a horizontal line (&lt;HR&gt; type html line) in a menu entry list.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>Nop "name"</term>
+  <listitem>
+<para>Inserts a <emphasis remap='I'>name</emphasis> in the menu, stippled (disabled and grayed-out).</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>Title <emphasis remap='I'>"name"</emphasis></term>
+  <listitem>
+<para>Insert a title line of heading <emphasis remap='I'>name</emphasis> into a popup or menu.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>Beep</term>
+  <listitem>
+<para>Make the window manager issue a beep - pretty useful eh? :)</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>Quit [<emphasis remap='I'>"name"</emphasis>]</term>
+  <listitem>
+<para>Exits <command>afterstep</command>, generally causing X to exit too.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>Restart <emphasis remap='I'>"name"</emphasis> <emphasis remap='I'>WindowManagerName</emphasis></term>
+  <listitem>
+<para>Restarts <emphasis remap='B'>X(1)</emphasis> with the given <emphasis remap='I'>WindowManagerName</emphasis>.  If
+<emphasis remap='I'>WindowManagerName</emphasis> is<command>afterstep</command>, then this forces
+<command>afterstep</command> to reread all of its configuration files and reinitiate
+the session.  If <emphasis remap='I'>WindowManagerName</emphasis> is not in the default search
+path, then the full path name should be given.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>Refresh [<emphasis remap='I'>"name"</emphasis>]</term>
+  <listitem>
+<para>Causes all windows on the screen to re-draw themselves.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>Move [<emphasis remap='I'>"name"</emphasis>]</term>
+  <listitem>
+<para>Allows the user to move a window or iconified app.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>Resize [<emphasis remap='I'>"name"</emphasis>]</term>
+  <listitem>
+<para>Allows the user to resize a window.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>Raise [<emphasis remap='I'>"name"</emphasis>]</term>
+  <listitem>
+<para>Allows the user to raise a window.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>Lower [<emphasis remap='I'>"name"</emphasis>]</term>
+  <listitem>
+<para>Allows the user to lower a window.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>RaiseLower [<emphasis remap='I'>"name"</emphasis>]</term>
+  <listitem>
+<para>Alternately raises and lowers a window; i.e. if it's raised, the window
+will lower, and vice versa.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>PutOnTop</term>
+  <listitem>
+<para>Moves the target window to the top of its layer, or up one layer if it
+is already at the top.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>PutOnBack</term>
+  <listitem>
+<para>Moves the target window to the bottom of its layer, or down one layer if
+it is already at the bottom.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>SetLayer <emphasis remap='I'>layer</emphasis></term>
+  <listitem>
+<para>Moves the target window to layer <emphasis remap='I'>layer</emphasis>.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>ToggleLayer <emphasis remap='I'>layer1</emphasis> <emphasis remap='I'>layer2</emphasis></term>
+  <listitem>
+<para>Specifies that if the window is in <emphasis remap='I'>layer1</emphasis>, it should be placed in
+<emphasis remap='I'>layer2</emphasis>.  Otherwise, it is placed in <emphasis remap='I'>layer1</emphasis>.  In either case,
+the window will be placed on top of other windows in the target layer.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>Shade [<emphasis remap='I'>"name"</emphasis>]</term>
+  <listitem>
+<para>Emulates the MacOS WindowShade feature.  Once activated the window will
+become a titlebar only.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>Delete [<emphasis remap='I'>"name"</emphasis>]</term>
+  <listitem>
+<para>Sends a WM_DELETE message to a window asking that it remove itself,
+frequently causing the application to exit.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>Destroy [<emphasis remap='I'>"name"</emphasis>]</term>
+  <listitem>
+<para>Sends the <emphasis remap='B'>XKillClient(3)</emphasis> to a window. Guaranteed to get rid of the
+window.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>Close [<emphasis remap='I'>"name"</emphasis>]</term>
+  <listitem>
+<para>First sends the WM_DELETE message, if this is not understood, then the
+<emphasis remap='B'>XKillClient(3)</emphasis> is sent to the window.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>Iconify [<emphasis remap='I'>"name"</emphasis>] [<emphasis remap='I'>value</emphasis>]</term>
+  <listitem>
+<para>Iconifies a window if it is not already iconified, or de-iconifies it if
+it is already iconified. If the optional argument <emphasis remap='I'>value</emphasis> is positive,
+then only iconification will be allowed, and de-iconification will be
+inhibited. If the optional argument is negative, only de-iconification will
+be allowed.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>Maximize [<emphasis remap='I'>"name"</emphasis>] [<emphasis remap='I'>horizontal vertical</emphasis>]</term>
+  <listitem>
+<para>Causes the window to alternately switch from a full-screen size to its
+normal size.  Specifying the optional arguments of <emphasis remap='I'>horizontal</emphasis> and
+<emphasis remap='I'>vertical</emphasis>, control can be attained as to the percentage of the full
+screen that the new size of the window becomes.  If <emphasis remap='I'>horizontal</emphasis> &gt; 0,
+then the horizontal dimension of the window will be set to
+horizontal*screen_width/100. The vertical resizing is similar. Values
+larger than 100 can be used with caution.  The defaults for <emphasis remap='I'>horizontal</emphasis>
+and <emphasis remap='I'>vertical</emphasis> are 100s (ie, fullscreen).</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>Stick [<emphasis remap='I'>"name"</emphasis>]</term>
+  <listitem>
+<para>Makes a window sticky (stays on screen when desks/views are switched) if it
+is not already sticky, or non-sticky if it is already sticky.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>Scroll <emphasis remap='I'>horizontal vertical</emphasis></term>
+  <listitem>
+<para>Scrolls the desktop's view by <emphasis remap='I'>horizontal</emphasis> pages in the x-direction,
+and <emphasis remap='I'>vertical</emphasis> pages in the y-direction. Either or both entries may be
+negative. Both <emphasis remap='I'>horizontal</emphasis> and <emphasis remap='I'>vertical</emphasis> values are expressed
+in percent of pages, so 100 would be one full page. Normally, scrolling
+stops at the edge of the desktop.  If the <emphasis remap='I'>horizontal</emphasis> and
+<emphasis remap='I'>vertical</emphasis> values are multiplied by 1000, then scrolling will wrap
+around at the edge of the desktop.</para>
+
+<para>The scroll function should not be called from pop-up menus.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>TogglePage [<emphasis remap='I'>"name"</emphasis>]</term>
+  <listitem>
+<para>Temporarily disables <emphasis remap='I'>EdgeScroll</emphasis>.  Edge scrolling can be re-enabled by
+calling this again.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>CursorMove <emphasis remap='I'>horizontal vertical</emphasis></term>
+  <listitem>
+<para>Moves the mouse pointer by <emphasis remap='I'>horizontal</emphasis> views in the x-direction, and
+<emphasis remap='I'>vertical</emphasis> views in the y-direction. Either or both entries may be
+negative. Both <emphasis remap='I'>horizontal</emphasis> and <emphasis remap='I'>vertical</emphasis> values are expressed in
+percent of pages, so 100 would be one full view.</para>
+
+<para>The CursorMove function should not be called from pop-up menus.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>ChangeWindowUp [<emphasis remap='I'>"name" window_name</emphasis>]</term>
+  <listitem>
+<para>Causes the pointer to move to the previous window in the list of windows
+for which <emphasis remap='I'>CirculateSkip</emphasis> has not not been specified.</para>
+
+<para>The mouse will jump to the first window whose name (or icon name or class)
+matches <emphasis remap='I'>window_name</emphasis>. The <emphasis remap='I'>"name"</emphasis> entry then becomes required,
+but serves no purpose if the function is not called from a menu or popup.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>ChangeWindowDown [<emphasis remap='I'>"name" window_name</emphasis>]</term>
+  <listitem>
+<para>Causes the pointer to move to the previous window in the list of windows for
+which <emphasis remap='I'>CirculateSkip</emphasis> has not not been specified.</para>
+
+<para>The mouse will jump (going backwards) to the first window whose name (or
+icon name or class) matches <emphasis remap='I'>window_name</emphasis>. The <emphasis remap='I'>"name"</emphasis> entry
+then becomes required, but serves no purpose if the function is not called
+from a menu or popup.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>WarpFore [<emphasis remap='I'>"name" window_name</emphasis>]</term>
+  <listitem>
+<para>Same as <emphasis remap='I'>ChangeWindowUp</emphasis>, but uniconifies any iconified windows as it
+focuses on them.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>WarpBack [<emphasis remap='I'>"name" window_name</emphasis>]</term>
+  <listitem>
+<para>Same as <emphasis remap='I'>ChangeWindowDown</emphasis>, but uniconifies any iconified windows as it
+focuses on them.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>Wait <emphasis remap='I'>app_name</emphasis></term>
+  <listitem>
+<para>This is intended to be used in <command>afterstep</command> functions only. It causes
+execution of a function to pause until a new window named <emphasis remap='I'>app_name</emphasis>
+appears.  <command>afterstep</command> remains fully functional during a wait. This is
+particularly useful in the InitFunction and RestartFunction, if you are
+trying to start windows on specific desktops.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>Focus</term>
+  <listitem>
+<para>Moves the view or window as needed to make the selected window visible.
+Sets the keyboard focus to the selected window. Raises the window if
+needed to make it visible. Warps the pointer into the selected window in
+focus-follows-mouse  mode.  Does not de-iconify.  This function is
+primarily handy when used with a module such as the WinList.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>Desk <emphasis remap='I'>arg1</emphasis> [<emphasis remap='I'>arg2</emphasis>]</term>
+  <listitem>
+<para>Changes current desk to another desk as surmised from the arguments
+supplied.  If only <emphasis remap='I'>arg1</emphasis> is specified and is non-zero, then the
+current desk will become "desk + arg1" and <emphasis remap='I'>arg2</emphasis> is ignored.
+If <emphasis remap='I'>arg1</emphasis> is zero, then <emphasis remap='I'>arg2</emphasis> must be specified or no desk
+change will occur; and <emphasis remap='I'>arg2</emphasis> will specify the desk to switch to.
+Desk numbers are determined dynamically and must be between 2147483647
+and -2147483648; meaning they can also be negative.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>WindowsDesk <emphasis remap='I'>new_desk</emphasis> [<literal>10000</literal>]</term>
+  <listitem>
+<para>Moves the selected window to the desktop specified as <emphasis remap='I'>new_desk</emphasis>.
+If second argument is set to 10000 then first is treated as relative 
+desktop number.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>GotoPage <emphasis remap='I'>x y</emphasis></term>
+  <listitem>
+<para>Moves the desktop view to page <emphasis remap='I'>x y</emphasis>. The upper left page is (0,0),
+the upper right is (N,0), where N is one less than the current number of
+horizontal pages specified in the <emphasis remap='I'>DeskTopSize</emphasis> command detailed in the
+<emphasis remap='B'>Pager(1)</emphasis> man page. The lower left page is (0,M), and the lower right
+page is (N,M), where M is the desktop's vertical size as specified in the
+<emphasis remap='I'>DeskTopSize</emphasis> command.</para>
+
+<para>The GotoPage function should not be used in a pop-up menu.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>WindowList [<emphasis remap='I'>arg1 arg2</emphasis>]</term>
+  <listitem>
+<para>Specifies the internal popup menu in which the titles of each open
+application are displayed, should be popped up.  Selecting an item from the
+list will cause the current desk to switch to the application's desk, and
+will raise it if it's behind other windows.  If the application is currently
+iconified, then it will be de-iconified normally.</para>
+
+<para>Generally, if <emphasis remap='I'>arg1</emphasis> is an even number, then the windows will be listed
+using the window name (the name that shows up in the title-bar); if
+<emphasis remap='I'>arg1</emphasis> is an odd number, then the window's icon name is used.</para>
+
+<para>Specifically, if <emphasis remap='I'>arg1</emphasis> is 0, 1 or 2, then all windows on all desks
+will be shown.  If <emphasis remap='I'>arg1</emphasis> is 2 or 3, then only windows on the current
+desk will be shown.  If <emphasis remap='I'>arg1</emphasis> is 4 or 5, then only windows on the
+desk number specified with <emphasis remap='I'>arg2</emphasis>, will be shown.  Windows which have
+WindowListSkip specified in their style will not be listed in the window
+list.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>Exec <emphasis remap='I'>"name"</emphasis> <emphasis remap='I'>command</emphasis> [<option>-options</option>]</term>
+  <listitem>
+<para>Specifies a sub process to initiate.  The <emphasis remap='I'>"name"</emphasis> is required for
+ease of parsing.  The <emphasis remap='I'>command</emphasis> is the command or application to be
+invoked along with any desired <option>-options</option>.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>PopUp <emphasis remap='I'>"popup_name"</emphasis></term>
+  <listitem>
+<para>There are two situations where this might occur; as a popup menu stanza
+definition, or in calling a previously defined menu declaration.</para>
+
+<literallayout remap='.nf'>
+Popup <emphasis remap='I'>"popup_name"</emphasis>
+    built-in_command  <emphasis remap='I'>"name"</emphasis> [<emphasis remap='I'>argument</emphasis>]
+EndPopup
+</literallayout> <!-- .fi -->
+
+<para>Specfies the definition of a complex menu popup <emphasis remap='I'>"popup_name"</emphasis>, which
+can be bound to a mouse button or key using <emphasis remap='I'>"popup_name"</emphasis> to recall
+this declaration.  <emphasis remap='I'>built-in_command</emphasis> specifies which command will be
+performed, utilizing it's syntax from this list of Built-In
+Commands/Functions. <emphasis remap='I'>"name"</emphasis> specifies the name which will appear
+within the menu for the given item, and additionally any <emphasis remap='I'>arguments</emphasis>
+needed by the <emphasis remap='I'>built-in_command</emphasis>.  The Popup definition ends with the
+keyword EndPopup. Sub-menus can be created by calling the Popup built-in
+within another Popup declaration, as long as that sub-menu was defined
+earlier in the configuration file.</para>
+
+<para>Shortcut keys may be specified in the menu definition by preceding a
+character with an ampersand. The ampersand will not be displayed, but the
+character after it will be displayed at the right side of the same entry.
+<!--  and if the user presses the corresponding key, then that item will be -->
+<!--  activated as if it had been clicked upon. -->
+Only alphanumeric characters
+may be used as shortcut keys.  The shift state of the keyboard is ignored
+when testing shortcut characters.</para>
+<!--  Shortcut keys are not operative unless MENU_HOTKEYS was defined when -->
+<!--  building AfterStep. If WINDOWLIST_HOTKETS was also defined, then hot -->
+<!--  keys are automatically added to the WindowList when it is displayed. -->
+
+<para>When calling a previously defined menu or a menu from a key-stroke
+combination, Popup is simply used as a built-in command with the
+<emphasis remap='I'>"name"</emphasis> referring to the previously defined Popup definitions name.</para>
+
+<para>Popups can be bound to keys through the use of the key modifier. Popups
+can be operated without using the mouse by binding to keys, and operating
+via the up arrow, down arrow, and enter keys.  Refer to the <emphasis remap='I'>feel.name</emphasis>
+files and below in EXAMPLES for examples.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>Function <emphasis remap='I'>"function_name"</emphasis></term>
+  <listitem>
+<para>There are also two situations where this might occur as well; as a function
+definition stanza, or in calling a previously defined function decleration.</para>
+
+<literallayout remap='.nf'>
+Function <emphasis remap='I'>"function_name"</emphasis>
+    built-in_file <command>"action"</command> [<emphasis remap='I'>argument</emphasis>]
+EndFunction
+</literallayout> <!-- .fi -->
+
+<para>Specifies the definition of a complex function <emphasis remap='I'>"function_name"</emphasis>,
+which can later be bound to a mouse button or key using
+<emphasis remap='I'>"function_name"</emphasis> to recall this declaration.  <emphasis remap='I'>built-in_command</emphasis>
+specifies which command will be performed, taking its syntax from this
+list of Built-In Commands/Functions. <emphasis remap='I'>"action"</emphasis> specifies the action
+to take followed by any additional <emphasis remap='I'>arguments</emphasis> needed by the
+<emphasis remap='I'>built-in_command</emphasis>. Menus can be specified by using the <emphasis remap='I'>Popup</emphasis>
+command, as long as the menu was defined earlier in the configuration file.</para>
+
+<para>The trigger <emphasis remap='I'>actions</emphasis> which are recognized are Immediate (can be
+shortened to "I"), Motion, Click, DoubleClick and TripleClick. Immediate
+actions are executed as soon as the function is activated, even if a window
+has not been selected. If there are actions other than immediate ones,
+<command>afterstep</command> will wait to see if the user is clicking, double-clicking,
+triple-clicking or dragging the mouse; then will execute only the built-ins
+from the function definition whose trigger action matches the action
+performed by the user.  The clicking, double-clicking and triple-clicking
+concepts do not carry through to using keyboard shortcuts.</para>
+
+<para>Two special functions exist: InitFunction and RestartFunction. The
+InitFunction will be called when <command>afterstep</command> is started for the first
+time in any X session, and can be used to start modules and begin programs.
+The RestartFunction will be called when <command>afterstep</command> is restarted. It can
+be used to re-start modules but probably should not be used to start
+programs.  These two functions are defined in the <emphasis remap='I'>autoexec</emphasis> file.</para>
+
+<para>When calling a previously defined Function or a Function from a key-stroke
+combination, Function is simply used as a built-in command using the
+previously defined <emphasis remap='I'>"action"</emphasis> from the same <emphasis remap='I'>function_name</emphasis>.</para>
+
+<literallayout remap='.nf'>
+Function <emphasis remap='I'>built-in_command</emphasis> <emphasis remap='I'>"action"</emphasis> <emphasis remap='I'>function_name</emphasis>
+</literallayout> <!-- .fi -->
+
+<para>Refer to the <emphasis remap='I'>feel.name</emphasis> files and below in EXAMPLES for examples.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>Module <emphasis remap='I'>ModuleName</emphasis> [<emphasis remap='I'>arguments</emphasis>]</term>
+  <listitem>
+<para>Specifies that <emphasis remap='I'>ModuleName</emphasis> should be spawned.</para>
+
+<para>Currently, many modules are included with <command>afterstep</command>. <emphasis remap='B'>Wharf(1x)</emphasis>
+and <emphasis remap='B'>Pager(1x)</emphasis> are two of the more popular ones. Wharf will normally
+be spawned during initialization instead of in response to a mouse binding
+or menu action. Modules can be short lived transient programs, or, like
+Wharf, can be intended to remain for the duration of the X session.
+Modules will be terminated by <command>afterstep</command> prior to restarts and quits,
+if possible.</para>
+
+  </listitem>
+  </varlistentry>
+</variablelist>
+</refsect1>
+
+<refsect1 id='files'><title>FILES</title>
+<variablelist remap='IP'>
+  <varlistentry>
+  <term><filename>/usr/local/share/afterstep/.workspace_state</filename></term>
+  <listitem>
+<para>The global empty file which is copied, upon the first invocation of
+<command>afterstep</command>, into that users newly created
+$HOME/GNUstep/Library/AfterStep tree.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>$HOME/GNUstep/Library/AfterStep/.workspace_state</emphasis></term>
+  <listitem>
+<para>The global file where applications still running are saved, including
+geometry (if possible) and options, when AfterStep is exitted normally.
+This ability can be disabled during configure or by closing all running
+applications before exiting AfterStep.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><filename>/usr/local/share/afterstep/autoexec</filename></term>
+  <listitem>
+<para>The global configuration file that specifies which modules and/or programs
+to start upon <emphasis remap='B'>afterstep's</emphasis> invocation or restart.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>$HOME/GNUstep/Library/AfterStep/autoexec</emphasis></term>
+  <listitem>
+<para>This file should be copied from the
+<filename>/usr/local/share/afterstep/autoexec</filename> and edited to suit the user's
+specific requirements.  This file, if it exists, will override the system
+wide default file.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><filename>/usr/local/share/afterstep/base.[8|15|16|24|32]bpp</filename></term>
+  <listitem>
+<para>The global configuration file setting the paths and a few <emphasis remap='B'>Pager(1)</emphasis>
+options for the desired colordepth.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>$HOME/GNUstep/Library/AfterStep/base.[8|15|16|24|32]bpp</emphasis></term>
+  <listitem>
+<para>This file should be copied from the
+<filename>/usr/local/share/afterstep/base.[8|15|16|24|32]bpp</filename> and edited to suit
+the user's specific requirements. This file, if it exists, will override the
+system wide default file.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><filename>/usr/local/share/afterstep/compatibility</filename></term>
+  <listitem>
+<para>The global configuration file to be used in conjunction with the <option>-f
+steprc_file</option> to gain a limited amount of compatiblity with the ancient
+steprc file structure.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>$HOME/GNUstep/Library/AfterStep/compatibility</emphasis></term>
+  <listitem>
+<para>This file should be copied from the
+<filename>/usr/local/share/afterstep/compatibility</filename> and edited to suit the
+user's specific requirements. This file, if it exists, will override the
+system wide default file.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><filename>/usr/local/share/afterstep/database</filename></term>
+  <listitem>
+<para>The global configuration file containing entries for <emphasis remap='I'>styles</emphasis> of
+some applications.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>$HOME/GNUstep/Library/AfterStep/database</emphasis></term>
+  <listitem>
+<para>This file should be copied from the
+<filename>/usr/local/share/afterstep/database</filename> and edited to suit the
+user's specific requirements. This file, if it exists, will override the
+system wide default file.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><filename>/usr/local/share/afterstep/non-configurable/[0|1|2|3]_background</filename></term>
+  <listitem>
+<para>The default background for each desk shipped with AfterStep.  These files
+will be copied, upon the first invocation of <command>afterstep</command>, into that
+user's newly created $HOME/GNUstep/Library/AfterStep/non-configurable/ tree.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><filename>/usr/local/share/afterstep/non-configurable/[0|1|2|3]_feel.[8|15|16|24|32]bpp</filename></term>
+  <listitem>
+<para>The "feel.DEFAULT" for each desktop as shipped with AfterStep.  These files
+will be copied, upon the first invocation of <command>afterstep</command>, into that
+user's newly created $HOME/GNUstep/Library/AfterStep/non-configurable/ tree.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><filename>/usr/local/share/afterstep/non-configurable/[0|1|2|3]_look.[8|15|16|24|32]bpp</filename></term>
+  <listitem>
+<para>The "look.DEFAULT" for each desktop as shipped with AfterStep.  These files
+will be copied, upon the first invocation of <command>afterstep</command>, into that
+user's newly created $HOME/GNUstep/Library/AfterStep/non-configurable/ tree.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><filename>/usr/local/share/afterstep/start/.include</filename></term>
+  <listitem>
+<para>An include directive which controls various things in the startmenu; for
+instance the version number that appears on the menu.  If this file is
+copied to the $HOME directory, then the version number will not increment
+upon subsequent upgrades.</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><filename>/usr/local/share/afterstep/start/Desktop/Look/.include</filename></term>
+  <listitem>
+<para>A file that is required for Look menu operations
+(<emphasis remap='I'>$HOME/GNUstep/Library/AfterStep/start/Desktop/Look/.include</emphasis>
+overrides this file).</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><filename>/usr/local/share/afterstep/start/Desktop/Feel/.include</filename></term>
+  <listitem>
+<para>A file that is required for Feel menu operations
+(<emphasis remap='I'>$HOME/GNUstep/Library/AfterStep/start/Desktop/Feel/.include</emphasis>
+overrides this file).</para>
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><filename>/usr/local/share/afterstep/start/Desktop/Theme/.include</filename></term>
+  <listitem>
+<para>A file that is required for Theme menu operations
+(<emphasis remap='I'>$HOME/GNUstep/Library/AfterStep/start/Desktop/Theme/.include</emphasis>
+overrides this file).</para>
+
+
+  </listitem>
+  </varlistentry>
+</variablelist>
+</refsect1>
+
+<refsect1 id='examples'><title>EXAMPLES</title>
+<para>AfterStep ships with the configuration files themeselves as examples.  A
+few examples from various configuration files are below to show those that
+are possible, but not in the default files.</para>
+
+<variablelist remap='IP'>
+  <varlistentry>
+  <term>database</term>
+  <listitem>
+
+<para>To have all iconified apps "disappear" (not be displayed as an icon:</para>
+
+<literallayout remap='.nf'>
+Style	"*"	NoIcon
+</literallayout> <!-- .fi -->
+
+<para>To have an app which has a small TitleBar area not display the 1,2 and 4
+TitleButtons, and stick to each desk, as well as using the icq.xpm icon
+when iconified:</para>
+
+<literallayout remap='.nf'>
+Style	"ICQ"	Icon icq.xpm, Sticky, NoButton 1, NoButton 2, NoButton 4
+</literallayout> <!-- .fi -->
+
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>feel.name</term>
+  <listitem>
+
+<para>To have a right click menu which has some Window Operands:</para>
+
+<literallayout remap='.nf'>
+Popup "Window-Ops"
+	Title	 "Window Ops"
+	Function "Move"          Shade-or-Raise
+	Function "Resize"        Resize-or-Raise
+	Raise	 "Raise"
+	Lower	 "Lower"
+	PutOnTop "(Un)PutOnTop"
+	Stick	 "(Un)Stick"
+	Function "(Un)Maximize"  Maximize_Function
+	Destroy	 "Destroy"
+	Close	 "Close"
+	Refresh	 "Refresh Screen"
+	Exec	 "Window Properties" exec xprop | xmessage -center -title 'xprop' -file -
+EndPopup
+
+	...then assign this Popup the right mouse button click on the
+	desktop:
+
+</literallayout><literallayout remap='.nf'>
+Mouse 3         R       A       PopUp "Window-Ops"
+</literallayout> <!-- .fi -->
+
+  </listitem>
+  </varlistentry>
+</variablelist>
+</refsect1>
+
+<refsect1 id='keyboard_shortcuts'><title>KEYBOARD SHORTCUTS</title>
+<para>All window-manager operations can be performed from the keyboard, so
+mouse-less operation should not be difficult. In addition to scrolling
+around the desktop by binding the Scroll built-in to appropriate keys,
+Pop-ups, move, resize and most other built-ins can be bound to keys. Once
+a built-in function is started, the pointer is moved by using the up, down,
+left, and right arrows, and the action is terminated by pressing return.
+Holding down the shift key will cause the pointer movement to go in larger
+steps, and holding down the control key will cause the cursor movement to
+go in smaller steps. Standard emacs and vi cursor movement controls (^n,
+^p, ^f, ^b, and ^j, ^k, ^h, ^l) can be used instead of the arrow keys.</para>
+
+</refsect1>
+
+<refsect1 id='special_note_for_xfree86_users'><title>SPECIAL NOTE FOR XFREE86 USERS</title>
+<para>XFree86 provides a virtual screen whose operation can be confusing when
+used in conjunction with this virtual window manager. With XFree86, windows
+which appear on the virtual screen actually get drawn into video memory, so
+the virtual screen size is limited by available video memory.</para>
+
+<para>With AfterStep's virtual desktop manager, <emphasis remap='B'>Pager(1)</emphasis>, windows which do
+not appear on the screen do not actually get drawn into video RAM. The size
+of the virtual desktop is limited to about 32,000 by 32,000 pixels. It is
+probably impractical to use a virtual desktop more than about 5 times the
+visible screen in each direction. Note that memory usage with the virtual
+desktop is a function of the number of windows which exist. The size of the
+desktop makes no difference.</para>
+
+<para>When becoming familiar with AfterStep, it is recommended that you
+disable XFree86's virtual screen, by setting the virtual screen size to
+the physical screen size. When familiar with AfterStep, you may want
+to re-enable XFree86's virtual screen.</para>
+
+</refsect1>
+
+<refsect1 id='authors'><title>AUTHORS</title>
+<literallayout remap='.nf'>
+Frank Fejes (frank@canweb.net)
+Alfredo Kenji Kojima (kojima@inf.ufrgs.br)
+Dan Weeks (dan@mango.sfasu.edu)
+Guylhem Aznar (guylhem@oeil.qc.ca)
+Chris Ridd (C.Ridd@isode.com)
+Rob Malda (malda@imagegroup.com)
+Ethan Fischer &lt;allanon@crystaltokyo.com&gt;
+David Mihm &lt;dmihm@swbell.net&gt; [Man page]
+Sasha Vasko &lt;sasha at aftercode.net&gt;
+</literallayout> <!-- .fi -->
+
+</refsect1>
+
+<refsect1 id='see_also'><title>SEE ALSO</title>
+<para><citerefentry><refentrytitle>X</refentrytitle><manvolnum>1</manvolnum></citerefentry>,
+<citerefentry><refentrytitle>Animate</refentrytitle><manvolnum>1</manvolnum></citerefentry>,
+<citerefentry><refentrytitle>Audio</refentrytitle><manvolnum>1</manvolnum></citerefentry>,
+<citerefentry><refentrytitle>Banner</refentrytitle><manvolnum>1</manvolnum></citerefentry>,
+<citerefentry><refentrytitle>Cascade</refentrytitle><manvolnum>1</manvolnum></citerefentry>,
+<citerefentry><refentrytitle>Clean</refentrytitle><manvolnum>1</manvolnum></citerefentry>,
+<citerefentry><refentrytitle>Form</refentrytitle><manvolnum>1</manvolnum></citerefentry>,
+<citerefentry><refentrytitle>Ident</refentrytitle><manvolnum>1</manvolnum></citerefentry>,
+<citerefentry><refentrytitle>Pager</refentrytitle><manvolnum>1</manvolnum></citerefentry>,
+<citerefentry><refentrytitle>Save</refentrytitle><manvolnum>1</manvolnum></citerefentry>,
+<citerefentry><refentrytitle>Script</refentrytitle><manvolnum>1</manvolnum></citerefentry>,
+<citerefentry><refentrytitle>Scroll</refentrytitle><manvolnum>1</manvolnum></citerefentry>,
+<citerefentry><refentrytitle>Tile</refentrytitle><manvolnum>1</manvolnum></citerefentry>,
+<citerefentry><refentrytitle>Wharf</refentrytitle><manvolnum>1</manvolnum></citerefentry>,
+<citerefentry><refentrytitle>WinList</refentrytitle><manvolnum>1</manvolnum></citerefentry>,
+<citerefentry><refentrytitle>Zharf</refentrytitle><manvolnum>1</manvolnum></citerefentry></para>
+
+</refsect1>
+
+<refsect1 id='bugs'><title>BUGS</title>
+<para>Bugs? we don't see no stinking bugs! :) Seriously, they are only bugs if
+you report them - then they can be fixed.</para>
+
+</refsect1>
+
+<refsect1 id='copyrights'><title>COPYRIGHTS</title>
+<para>AfterStep is distributed under GNU GPL v2; however, AfterStep
+was based on BowMan which derived from Fvwm code, which is in
+turn derived from twm code, thus some C source files from
+AfterStep share copyrights with twm.</para>
+
+<para>AfterStep is copyright 1996 by Frank Fejes, Alfredo Kojima,
+and Dan Weeks.</para>
+
+<para>AfterStep is copyright 1998 by Guylhem Aznar, Raphael Goulais,
+and Rob Malda.</para>
+
+<para>AfterStep is copyright 1999 by Ethan Fischer, Sasha Vasko.</para>
+
+<para>Please see the file COPYING included with the AfterStep distribution
+for the conditions that are incumbent on the users of AfterStep due
+to its relations to fvwm and twm.</para>
+
+<para>AUTHORS AND ALL OTHER CONTRIBUTERS DISCLAIM ALL WARRANTIES WITH REGARD TO
+THIS SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND
+FITNESS, IN NO EVENT SHALL ANY CONTRIBUTOR BE LIABLE FOR ANY SPECIAL,
+INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
+OR OTHER TORTUOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+PERFORMANCE OF THIS SOFTWARE.</para>
+
+</refsect1>
+
+<refsect1 id='history'><title>HISTORY</title>
+<para>AfterStep is a continuation of the BowMan window manager which was
+originally put together by Bo Yang.  BowMan was based on the fvwm window
+manager, written by Robert Nation.  Fvwm was based on code from twm.  And
+so on....  It is designed not only to emulate some of the look and feel of
+the NEXTSTEP(tm) user interface, but also to add useful, requested, and neat
+features.  The changes which comprise AfterStep's personality were
+originally part of BowMan development, but due to a desire to move past
+SIMPLE EMULATION and into a niche as its OWN valuable window manager, the
+previous designers decided to change the project name and move on.</para>
+
+<para>Some major changes from <emphasis remap='B'><citerefentry><refentrytitle>fvwm</refentrytitle><manvolnum>1</manvolnum></citerefentry></emphasis> 1.24 include:</para>
+<literallayout remap='.nf'>
+
+1. NEXTSTEP(tm)-alike title bar, title buttons, borders
+   and corners.
+2. AfterStep's <emphasis remap='B'>W<citerefentry><refentrytitle>harf</refentrytitle><manvolnum>1</manvolnum></citerefentry></emphasis>. To avoid copyright
+   complications it is not called a "Dock".
+3. NEXTSTEP(tm) style menus. However the menus are not
+   controlled by applications, they are more like pop-up
+   service lists on the root window.
+4. NEXTSTEP(tm) style icons. The default icons are
+   consistent with those in the NEXTSTEP(tm) interface,
+   but they are configurable.
+5. Dissociation of <emphasis remap='B'>P<citerefentry><refentrytitle>ager</refentrytitle><manvolnum>1</manvolnum></citerefentry></emphasis> desktops for background
+   pixmaps and configuration: each desktop can have its
+   own configuration, its own look, its own background
+   picture and all this can be changed on fly with the
+   Start/Desktop menu.
+</literallayout> <!-- .fi -->
+
+<para>However, flexibility was not traded off. Initiation files, in
+<filename>~/GNUstep/Library/AfterStep</filename>, recognize most of the <emphasis remap='B'><citerefentry><refentrytitle>fvwm</refentrytitle><manvolnum>1</manvolnum></citerefentry></emphasis>
+commands.</para>
+
+</refsect1>
+
+<refsect1 id='icccm_compliance'><title>ICCCM COMPLIANCE</title>
+<para>AfterStep attempts to be ICCCM 2.0 compliant.  As of this release,
+colormap handling is not completely ICCCM compliant. In addition, ICCCM
+states that it should be possible for applications to receive ANY keystroke,
+which is not consistent with the keyboard shortcut approach used in
+AfterStep and most other window managers.  The user can disable any
+AfterStep keystroke that should be passed to the application and not
+intercepted by the window manager.  An ICCCM compliant <emphasis remap='I'>feel</emphasis> file
+is included - feel.ICCCM from the <emphasis remap='I'>startmenu</emphasis>.</para>
+</refsect1>
+</refentry>
+
