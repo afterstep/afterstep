@@ -16,7 +16,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 #undef LOCAL_DEBUG
-/*#define DO_CLOCKING*/
+#define DO_CLOCKING
 
 #ifdef _WIN32
 #include "win32/config.h"
@@ -1381,6 +1381,13 @@ apply_text_3D_type( ASText3DType type,
 		case AST_EmbossedThick :
 				(*width)+=3; (*height)+=3 ;
 				break ;
+		case AST_OutlineAbove :
+		case AST_OutlineBelow :
+				(*width) += 1; (*height) += 1 ;
+				break ;
+		case AST_OutlineFull :
+				(*width) += 2; (*height) += 2 ;
+				break ;
 		default  :
 				break ;
 	}
@@ -1702,20 +1709,63 @@ render_asglyph( CARD8 **scanlines, CARD8 *row,
 				if( ratio != 0xFF && data != 0 )
 					data = ((data*ratio)>>8)+1 ;
 			}
-			if( data >= ratio || data > dst[x] )
-				dst[x] = data ;
+			if( data > dst[x] ) 
+				dst[x] = (data > 255)? 0xFF:data ;
 			--count;
 		}
 		++y;
 	}
 }
 
+inline static void
+render_asglyph_over( CARD8 **scanlines, CARD8 *row,
+                int start_x, int y, int width, int height,
+				CARD32 value )
+{
+	int count = -1 ;
+	int max_y = y + height ;
+	CARD32 anti_data = 0;
+	register CARD32 data = 0;
+	while( y < max_y )
+	{
+		register CARD8 *dst = scanlines[y]+start_x;
+		register int x = -1;
+		while( ++x < width )
+		{
+/*fprintf( stderr, "data = %X, count = %d, x = %d, y = %d\n", data, count, x, y );*/
+			if( count < 0 )
+			{
+				data = *(row++);
+				if( (data&0x80) != 0)
+				{
+					data = ((data&0x7F)<<1);
+					if( data != 0 )
+						++data;
+				}else
+				{
+					count = data&0x3F ;
+					data = ((data&0x40) != 0 )? 0xFF: 0x00;
+				}
+				anti_data = 256 - data ;
+			}
+			if( data >= 254 ) 
+				dst[x] = value ;
+			else
+				dst[x] = ((CARD32)dst[x]*anti_data + value*data)>>8 ;
+			--count;
+		}
+		++y;
+	}
+}
+
+
+
 static ASImage *
 draw_text_internal( const char *text, ASFont *font, ASTextAttributes *attr, int compression, int length )
 {
 	ASGlyphMap map ;
-	CARD8 *memory;
-	CARD8 **scanlines ;
+	CARD8 *memory, *rgb_memory = NULL;
+	CARD8 **scanlines, **rgb_scanlines = NULL ;
 	int i = 0, offset = 0, line_height, space_size, base_line;
 	ASImage *im;
 	int pen_x = 0, pen_y = 0;
@@ -1723,6 +1773,8 @@ draw_text_internal( const char *text, ASFont *font, ASTextAttributes *attr, int 
 #ifdef DO_CLOCKING
 	time_t started = clock ();
 #endif
+	CARD32 back_color = 0 ;
+	CARD32 alpha_7 = 0x007F, alpha_9 = 0x009F, alpha_A = 0x00AF, alpha_C = 0x00CF, alpha_F = 0x00FF, alpha_E = 0x00EF;
 
 LOCAL_DEBUG_CALLER_OUT( "text = \"%s\", font = %p, compression = %d", text, font, compression );
 	if( !get_text_glyph_map( text, font, &map, attr, length) )
@@ -1745,14 +1797,39 @@ LOCAL_DEBUG_OUT( "text size = %dx%d pixels", map.width, map.height );
 	base_line = font->max_ascend;
 LOCAL_DEBUG_OUT( "line_height is %d, space_size is %d, base_line is %d", line_height, space_size, base_line );
 	scanlines = safemalloc( line_height*sizeof(CARD8*));
-LOCAL_DEBUG_OUT( "scanline list memory allocated %d", line_height*sizeof(CARD8*) );
-	memory = safecalloc( line_height,map.width*sizeof(CARD8));
-LOCAL_DEBUG_OUT( "scanline buffer memory allocated %d", map.width*line_height*sizeof(CARD8) );
-	do
+	memory = safecalloc( 1, line_height*map.width);
+	for( i = 0 ; i < line_height ; ++i ) 
 	{
 		scanlines[i] = memory + offset;
 		offset += map.width;
-	}while ( ++i < line_height );
+	}
+	if( attr->type >= AST_OutlineAbove ) 
+	{
+		CARD32 fc = attr->fore_color ;
+		offset = 0 ;
+		rgb_scanlines = safemalloc( line_height*3*sizeof(CARD8*));
+		rgb_memory = safecalloc( 1, line_height*map.width*3);
+		for( i = 0 ; i < line_height*3 ; ++i ) 
+		{
+			rgb_scanlines[i] = rgb_memory + offset;
+			offset += map.width;
+		}
+		if( (ARGB32_RED16(fc)*222+ARGB32_GREEN16(fc)*707+ARGB32_BLUE16(fc) *71)/1000 < 0x07FFF ) 
+		{	
+			back_color = 0xFF ;
+			memset( rgb_memory, back_color, line_height*map.width*3 );
+		}
+	}	 
+	if( ARGB32_ALPHA8(attr->fore_color) > 0 ) 
+	{
+		CARD32 a = ARGB32_ALPHA8(attr->fore_color);
+		alpha_7 = (0x007F*a)>>8 ;
+		alpha_9 = (0x009F*a)>>8 ;
+		alpha_A = (0x00AF*a)>>8 ;
+		alpha_C = (0x00CF*a)>>8 ;
+		alpha_E	= (0x00EF*a)>>8 ;
+		alpha_F = (0x00FF*a)>>8 ;
+	}	 
 
 	i = -1 ;
 	if(get_flags(font->flags, ASF_RightToLeft))
@@ -1767,20 +1844,29 @@ LOCAL_DEBUG_OUT( "scanline buffer memory allocated %d", map.width*line_height*si
 			int y;
 			for( y = 0 ; y < line_height ; ++y )
 			{
-				register int x = 0;
-				register CARD8 *line = scanlines[y];
 #if 1
 #if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
-				x = 0;
-				while( x < map.width )
-					fprintf( stderr, "%2.2X ", scanlines[y][x++] );
-				fprintf( stderr, "\n" );
+				{				
+					int x = 0;
+					while( x < map.width )
+						fprintf( stderr, "%2.2X ", scanlines[y][x++] );
+					fprintf( stderr, "\n" );
+				}
 #endif
 #endif
- 				im->channels[IC_ALPHA][pen_y+y] = store_data( NULL, line, map.width, ASStorage_RLEDiffCompress, 0);
-				for( x = 0; x < (int)map.width; ++x )
-					line[x] = 0;
+ 				im->channels[IC_ALPHA][pen_y+y] = store_data( NULL, scanlines[y], map.width, ASStorage_RLEDiffCompress, 0);
+				if( attr->type >= AST_OutlineAbove ) 
+				{
+	 				im->channels[IC_RED][pen_y+y] 	= store_data( NULL, rgb_scanlines[y], map.width, ASStorage_RLEDiffCompress, 0);
+	 				im->channels[IC_GREEN][pen_y+y] = store_data( NULL, rgb_scanlines[y+line_height], map.width, ASStorage_RLEDiffCompress, 0);
+	 				im->channels[IC_BLUE][pen_y+y]  = store_data( NULL, rgb_scanlines[y+line_height+line_height], map.width, ASStorage_RLEDiffCompress, 0);
+				}	 
 			}
+			
+			memset( memory, 0x00, line_height*map.width );
+			if( attr->type >= AST_OutlineAbove ) 
+				memset( rgb_memory, back_color, line_height*map.width*3 );
+			
 			pen_x = get_flags(font->flags, ASF_RightToLeft)? map.width : 0;
 			pen_y += line_height;
 			if( pen_y <0 )
@@ -1818,38 +1904,60 @@ LOCAL_DEBUG_OUT( "scanline buffer memory allocated %d", map.width*line_height*si
 				switch( attr->type )
 				{
 					case AST_Plain :
-						render_asglyph( scanlines, asg->pixmap, start_x, y, asg->width, asg->height, 0x00FF );
+						render_asglyph( scanlines, asg->pixmap, start_x, y, asg->width, asg->height, alpha_F );
 					    break ;
 					case AST_Embossed :
-						render_asglyph( scanlines, asg->pixmap, start_x, y, asg->width, asg->height, 0x00FF );
-						render_asglyph( scanlines, asg->pixmap, start_x+2, y+2, asg->width, asg->height, 0x009F );
-						render_asglyph( scanlines, asg->pixmap, start_x+1, y+1, asg->width, asg->height, 0x00CF );
+						render_asglyph( scanlines, asg->pixmap, start_x, y, asg->width, asg->height, alpha_F );
+						render_asglyph( scanlines, asg->pixmap, start_x+2, y+2, asg->width, asg->height, alpha_9 );
+						render_asglyph( scanlines, asg->pixmap, start_x+1, y+1, asg->width, asg->height, alpha_C );
  					    break ;
 					case AST_Sunken :
-						render_asglyph( scanlines, asg->pixmap, start_x, y, asg->width, asg->height, 0x009F );
-						render_asglyph( scanlines, asg->pixmap, start_x+2, y+2, asg->width, asg->height, 0x00FF );
-						render_asglyph( scanlines, asg->pixmap, start_x+1, y+1, asg->width, asg->height, 0x00CF );
+						render_asglyph( scanlines, asg->pixmap, start_x, y, asg->width, asg->height, alpha_9 );
+						render_asglyph( scanlines, asg->pixmap, start_x+2, y+2, asg->width, asg->height, alpha_F );
+						render_asglyph( scanlines, asg->pixmap, start_x+1, y+1, asg->width, asg->height, alpha_C );
 					    break ;
 					case AST_ShadeAbove :
-						render_asglyph( scanlines, asg->pixmap, start_x, y, asg->width, asg->height, 0x007F );
-						render_asglyph( scanlines, asg->pixmap, start_x+3, y+3, asg->width, asg->height, 0x00FF );
+						render_asglyph( scanlines, asg->pixmap, start_x, y, asg->width, asg->height, alpha_7 );
+						render_asglyph( scanlines, asg->pixmap, start_x+3, y+3, asg->width, asg->height, alpha_F );
 					    break ;
 					case AST_ShadeBelow :
-						render_asglyph( scanlines, asg->pixmap, start_x+3, y+3, asg->width, asg->height, 0x007F );
-						render_asglyph( scanlines, asg->pixmap, start_x, y, asg->width, asg->height, 0x00FF );
+						render_asglyph( scanlines, asg->pixmap, start_x+3, y+3, asg->width, asg->height, alpha_7 );
+						render_asglyph( scanlines, asg->pixmap, start_x, y, asg->width, asg->height, alpha_F );
 					    break ;
 					case AST_EmbossedThick :
-						render_asglyph( scanlines, asg->pixmap, start_x, y, asg->width, asg->height, 0x00FF );
-						render_asglyph( scanlines, asg->pixmap, start_x+1, y+1, asg->width, asg->height, 0x00EF );
-						render_asglyph( scanlines, asg->pixmap, start_x+3, y+3, asg->width, asg->height, 0x007F );
-						render_asglyph( scanlines, asg->pixmap, start_x+2, y+2, asg->width, asg->height, 0x00CF );
+						render_asglyph( scanlines, asg->pixmap, start_x, y, asg->width, asg->height, alpha_F );
+						render_asglyph( scanlines, asg->pixmap, start_x+1, y+1, asg->width, asg->height, alpha_E );
+						render_asglyph( scanlines, asg->pixmap, start_x+3, y+3, asg->width, asg->height, alpha_7 );
+						render_asglyph( scanlines, asg->pixmap, start_x+2, y+2, asg->width, asg->height, alpha_C );
  					    break ;
 					case AST_SunkenThick :
-						render_asglyph( scanlines, asg->pixmap, start_x, y, asg->width, asg->height, 0x007F );
-						render_asglyph( scanlines, asg->pixmap, start_x+1, y+1, asg->width, asg->height, 0x00AF );
-						render_asglyph( scanlines, asg->pixmap, start_x+3, y+3, asg->width, asg->height, 0x00FF );
-						render_asglyph( scanlines, asg->pixmap, start_x+2, y+2, asg->width, asg->height, 0x00CF );
+						render_asglyph( scanlines, asg->pixmap, start_x, y, asg->width, asg->height, alpha_7 );
+						render_asglyph( scanlines, asg->pixmap, start_x+1, y+1, asg->width, asg->height, alpha_A );
+						render_asglyph( scanlines, asg->pixmap, start_x+3, y+3, asg->width, asg->height, alpha_F );
+						render_asglyph( scanlines, asg->pixmap, start_x+2, y+2, asg->width, asg->height, alpha_C );
  					    break ;
+					case AST_OutlineAbove :
+						render_asglyph( scanlines, asg->pixmap, start_x, y, asg->width, asg->height, alpha_A );
+						render_asglyph( scanlines, asg->pixmap, start_x+1, y+1, asg->width, asg->height, alpha_F );
+						render_asglyph_over( rgb_scanlines, asg->pixmap, start_x+1, y+1, asg->width, asg->height, ARGB32_RED8(attr->fore_color) );
+						render_asglyph_over( &rgb_scanlines[line_height], asg->pixmap, start_x+1, y+1, asg->width, asg->height, ARGB32_GREEN8(attr->fore_color) );
+						render_asglyph_over( &rgb_scanlines[line_height*2], asg->pixmap, start_x+1, y+1, asg->width, asg->height, ARGB32_BLUE8(attr->fore_color) );
+					    break ;
+					case AST_OutlineBelow :
+						render_asglyph( scanlines, asg->pixmap, start_x, y, asg->width, asg->height, alpha_F );
+						render_asglyph( scanlines, asg->pixmap, start_x+1, y+1, asg->width, asg->height, alpha_A );
+						render_asglyph_over( rgb_scanlines, asg->pixmap, start_x, y, asg->width, asg->height, ARGB32_RED8(attr->fore_color) );
+						render_asglyph_over( &rgb_scanlines[line_height], asg->pixmap, start_x, y, asg->width, asg->height, ARGB32_GREEN8(attr->fore_color) );
+						render_asglyph_over( &rgb_scanlines[line_height*2], asg->pixmap, start_x, y, asg->width, asg->height, ARGB32_BLUE8(attr->fore_color) );
+					    break ;
+					case AST_OutlineFull :
+						render_asglyph( scanlines, asg->pixmap, start_x, y, asg->width, asg->height, alpha_A );
+						render_asglyph( scanlines, asg->pixmap, start_x+1, y+1, asg->width, asg->height, alpha_F );
+						render_asglyph( scanlines, asg->pixmap, start_x+2, y+2, asg->width, asg->height, alpha_A );
+						render_asglyph_over( rgb_scanlines, asg->pixmap, start_x+1, y+1, asg->width, asg->height, ARGB32_RED8(attr->fore_color) );
+						render_asglyph_over( &rgb_scanlines[line_height], asg->pixmap, start_x+1, y+1, asg->width, asg->height, ARGB32_GREEN8(attr->fore_color) );
+						render_asglyph_over( &rgb_scanlines[line_height*2], asg->pixmap, start_x+1, y+1, asg->width, asg->height, ARGB32_BLUE8(attr->fore_color) );
+					    break ;
 				  default:
 				        break ;
 				}
@@ -1862,6 +1970,10 @@ LOCAL_DEBUG_OUT( "scanline buffer memory allocated %d", map.width*line_height*si
     free_glyph_map( &map, True );
 	free( memory );
 	free( scanlines );
+	if( rgb_memory ) 
+		free( rgb_memory );
+	if( rgb_scanlines ) 
+		free( rgb_scanlines );
 #ifdef DO_CLOCKING
 	fprintf (stderr, __FUNCTION__ " time (clocks): %lu mlsec\n", ((clock () - started)*100)/CLOCKS_PER_SEC);
 #endif
@@ -1871,7 +1983,7 @@ LOCAL_DEBUG_OUT( "scanline buffer memory allocated %d", map.width*line_height*si
 ASImage *
 draw_text( const char *text, ASFont *font, ASText3DType type, int compression )
 {
-	ASTextAttributes attr = {ASTA_VERSION_INTERNAL, 0, 0, ASCT_Char, 8, 0, NULL, 0 }; 
+	ASTextAttributes attr = {ASTA_VERSION_INTERNAL, 0, 0, ASCT_Char, 8, 0, NULL, 0, ARGB32_White }; 
 	attr.type = type ;
 	if( IsUTF8Locale() ) 
 		attr.char_type = ASCT_UTF8 ;
@@ -1881,7 +1993,7 @@ draw_text( const char *text, ASFont *font, ASText3DType type, int compression )
 ASImage *
 draw_unicode_text( const UNICODE_CHAR *text, ASFont *font, ASText3DType type, int compression )
 {
-	ASTextAttributes attr = {ASTA_VERSION_INTERNAL, 0, 0, ASCT_Unicode, 8, 0, NULL, 0 }; 
+	ASTextAttributes attr = {ASTA_VERSION_INTERNAL, 0, 0, ASCT_Unicode, 8, 0, NULL, 0, ARGB32_White }; 
 	attr.type = type ;
 	return draw_text_internal( (const char*)text, font, &attr, compression, 0/*autodetect length*/ );
 }
@@ -1889,7 +2001,7 @@ draw_unicode_text( const UNICODE_CHAR *text, ASFont *font, ASText3DType type, in
 ASImage *
 draw_utf8_text( const char *text, ASFont *font, ASText3DType type, int compression )
 {
-	ASTextAttributes attr = {ASTA_VERSION_INTERNAL, 0, 0, ASCT_UTF8, 8, 0, NULL, 0 }; 
+	ASTextAttributes attr = {ASTA_VERSION_INTERNAL, 0, 0, ASCT_UTF8, 8, 0, NULL, 0, ARGB32_White }; 
 	attr.type = type ;
 	return draw_text_internal( text, font, &attr, compression, 0/*autodetect length*/ );
 }
@@ -1897,7 +2009,7 @@ draw_utf8_text( const char *text, ASFont *font, ASText3DType type, int compressi
 ASImage *
 draw_fancy_text( const void *text, ASFont *font, ASTextAttributes *attr, int compression, int length )
 {
-	ASTextAttributes internal_attr = {ASTA_VERSION_INTERNAL, 0, 0, ASCT_Char, 8, 0, NULL, 0 }; 
+	ASTextAttributes internal_attr = {ASTA_VERSION_INTERNAL, 0, 0, ASCT_Char, 8, 0, NULL, 0, ARGB32_White }; 
 	if( attr != NULL ) 
 	{	
 		internal_attr = *attr;

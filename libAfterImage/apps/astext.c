@@ -57,7 +57,8 @@ void usage()
 	printf( "         text - text to be drawn;\n");
 	printf( "         3D_style - 3D style of text. One of the following:\n");
 	printf( "             0 - plain 2D tetx, 1 - embossed, 2 - sunken, 3 - shade above,\n");
-	printf( "             4 - shade below, 5 - embossed thick 6 - sunken thick.\n");
+	printf( "             4 - shade below, 5 - embossed thick, 6 - sunken thick.\n");
+	printf( "             7 - ouline above, 8 - ouline below, 9 - full ouline.\n");
 	printf( "         resize_type - tells how texture/image should be transformed to fit\n");
 	printf( "                       the text size. Could be: scale or tile. Default is tile\n");
 	printf( "         -m make font monospaced. \n");
@@ -82,7 +83,8 @@ int main(int argc, char* argv[])
 #endif
 	ARGB32 text_color = ARGB32_White, back_color = ARGB32_Black;
 	char *text_color_name = "#FFFFFFFF", *back_color_name = "#FF000000";
-	char *fore_image_file = "fore.xpm", *back_image_file = "back.xpm" ;
+	char *fore_image_file = "fore.xpm" ;
+	char *back_image_file = "back.xpm" ;
 	Bool scale_fore_image = False, scale_back_image = False ;
 	ASImage *fore_im = NULL, *back_im = NULL;
 	ASImage *text_im = NULL ;
@@ -92,7 +94,7 @@ int main(int argc, char* argv[])
 	int i ;
 	int text_margin = size/2 ;
 	Bool monospaced = False ;
-	ASTextAttributes attr = {ASTA_VERSION_1, ASTA_UseTabStops, AST_ShadeBelow, ASCT_Char, 8, 0, NULL, 0 };
+	ASTextAttributes attr = {ASTA_VERSION_1, ASTA_UseTabStops, AST_ShadeBelow, ASCT_Char, 8, 0, NULL, 0, ARGB32_White };
 	
 	/* see ASView.1 : */
 	set_application_name( argv[0] );
@@ -171,6 +173,10 @@ int main(int argc, char* argv[])
 
 	parse_argb_color( text_color_name, &text_color );
 	parse_argb_color( back_color_name, &back_color );
+
+	attr.fore_color = text_color ;
+	if( attr.type >= AST_OutlineAbove ) 
+		fore_image_file = NULL ;
 
 	/* see ASView.3 : */
 	asv = create_asvisual( dpy, screen, depth, NULL );

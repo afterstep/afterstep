@@ -285,7 +285,7 @@ $(LIB_STATIC):	$(LIB_OBJS) $(LIB_INCS) config.h
 		$(RANLIB) $(LIB_STATIC)
 
 test_asstorage:
-		$(CC) $(CCFLAGS) $(EXTRA_DEFINES) -DTEST_ASSTORAGE$(INCLUDES) $(EXTRA_INCLUDES) -c asstorage.c -o asstorage_test.o
+		$(CC) $(CCFLAGS) $(EXTRA_DEFINES) -DTEST_ASSTORAGE $(INCLUDES) $(EXTRA_INCLUDES) -c asstorage.c -o asstorage_test.o
 		$(CC) asstorage_test.o $(LIBRARIES) $(EXTRA_LIBRARIES) -o asstorage_test
 
 

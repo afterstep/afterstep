@@ -538,6 +538,7 @@ compress_stored_data( ASStorage *storage, CARD8 *data, int size, ASFlagType *fla
 					comp_size = rlediff_compress_bitmap8( buffer, data, uncompressed_size, bitmap_threshold );
 			}else 
 			{
+				short tint = bitmap_threshold ;
 				if( get_flags( *flags, ASStorage_32Bit ) ) 
 				{	
 					uncompressed_size = size / 4 ;
@@ -548,6 +549,13 @@ compress_stored_data( ASStorage *storage, CARD8 *data, int size, ASFlagType *fla
 				}else
 					compute_diff8( storage->diff_buf, data, uncompressed_size ); 	  
 				
+				if( tint < 255 )
+				{
+					int i;
+					short *diff = storage->diff_buf ; 
+					for( i = 0 ; i < uncompressed_size ; ++i ) 
+						diff[i] = (diff[i]*tint)/256 ;
+				}	 
 				comp_size = rlediff_compress( buffer, storage->diff_buf, uncompressed_size );
 			}
 
@@ -567,25 +575,48 @@ compress_stored_data( ASStorage *storage, CARD8 *data, int size, ASFlagType *fla
 		LOCAL_DEBUG_OUT( "size = %d, compressed_size = %d, flags = 0x%lX", size, comp_size, *flags );
 	}	 
 
-	if( buffer == data && get_flags( *flags, ASStorage_32Bit ) )
+	if( buffer == data )
 	{
-		CARD32 *data32 = (CARD32*)data ;
-		size /= 4;
-		if( storage->comp_buf_size < size ) 
-		{	
-			storage->comp_buf_size = ((size/AS_STORAGE_PAGE_SIZE)+1)*AS_STORAGE_PAGE_SIZE ;
-			storage->comp_buf = realloc( storage->comp_buf, storage->comp_buf_size );
-		}
-		buffer = storage->comp_buf ;
-		if( get_flags( *flags, ASStorage_8BitShift ) )
+		CARD32 tint = get_flags( *flags, ASStorage_Bitmap )? 0x00FF : bitmap_threshold ;
+		if( get_flags( *flags, ASStorage_32Bit ) )
+		{
+			CARD32 *data32 = (CARD32*)data ;
+			size /= 4;
+			if( storage->comp_buf_size < size ) 
+			{	
+				storage->comp_buf_size = ((size/AS_STORAGE_PAGE_SIZE)+1)*AS_STORAGE_PAGE_SIZE ;
+				storage->comp_buf = realloc( storage->comp_buf, storage->comp_buf_size );
+			}
+			buffer = storage->comp_buf ;
+			if( tint != 0x000000FF ) 
+			{	
+				if( get_flags( *flags, ASStorage_8BitShift ) )
+					for( comp_size = 0 ; comp_size < size ; ++comp_size )
+						buffer[comp_size] = (data32[comp_size]*tint)>>16 ;
+				else
+					for( comp_size = 0 ; comp_size < size ; ++comp_size )
+						buffer[comp_size] = (data32[comp_size]*tint)>>8 ;
+			}else
+			{
+				if( get_flags( *flags, ASStorage_8BitShift ) )
+					for( comp_size = 0 ; comp_size < size ; ++comp_size )
+						buffer[comp_size] = (data32[comp_size]>>8) ;
+				else
+					for( comp_size = 0 ; comp_size < size ; ++comp_size )
+						buffer[comp_size] = data32[comp_size] ;
+			}	 
+		}else if( tint != 0x000000FF ) 
+		{
+			if( storage->comp_buf_size < size ) 
+			{	
+				storage->comp_buf_size = ((size/AS_STORAGE_PAGE_SIZE)+1)*AS_STORAGE_PAGE_SIZE ;
+				storage->comp_buf = realloc( storage->comp_buf, storage->comp_buf_size );
+			}
+			buffer = storage->comp_buf ;
 			for( comp_size = 0 ; comp_size < size ; ++comp_size )
-				buffer[comp_size] = (data32[comp_size]>>8) ;
-		else
-			for( comp_size = 0 ; comp_size < size ; ++comp_size )
-				buffer[comp_size] = data32[comp_size] ;
-		
-	}	 
-		
+				buffer[comp_size] = (((CARD32)data[comp_size])*tint)>>8 ;
+		}	 
+	}	
 	if( compressed_size ) 
 		*compressed_size = comp_size ;
 	return buffer;
@@ -1402,8 +1433,13 @@ store_data(ASStorage *storage, CARD8 *data, int size, ASFlagType flags, CARD8 bi
 	LOCAL_DEBUG_CALLER_OUT( "data = %p, size = %d, flags = %lX", data, size, flags );
 	if( size <= 0 || data == NULL || storage == NULL ) 
 		return 0;
-	if( bitmap_threshold32 == 0 ) 
-		bitmap_threshold32 = AS_STORAGE_DEFAULT_BMAP_THRESHOLD ;
+	if( get_flags( flags, ASStorage_Bitmap ) )
+	{
+		if( bitmap_threshold32 == 0 ) 
+			bitmap_threshold32 = AS_STORAGE_DEFAULT_BMAP_THRESHOLD ;
+	}else
+		bitmap_threshold32 = 0x000000FF ;  /* to disable the tint ! */ 
+			 
 	if( !get_flags(flags, ASStorage_Reference))
 		if( get_flags( flags, ASStorage_CompressionType ) || get_flags( flags, ASStorage_32Bit ) )
 			buffer = compress_stored_data( storage, data, size, &flags, &compressed_size, bitmap_threshold32 );
@@ -1413,6 +1449,36 @@ store_data(ASStorage *storage, CARD8 *data, int size, ASFlagType flags, CARD8 bi
 								  compressed_size, 0, flags );
 }
 
+ASStorageID 
+store_data_tinted(ASStorage *storage, CARD8 *data, int size, ASFlagType flags, CARD8 tint)
+{
+	int compressed_size = size ;
+	CARD8 *buffer = data;
+	CARD32 tint32 = tint ;
+
+	if( storage == NULL ) 
+		storage = get_default_asstorage();
+
+	LOCAL_DEBUG_CALLER_OUT( "data = %p, size = %d, flags = %lX", data, size, flags );
+	if( size <= 0 || data == NULL || storage == NULL ) 
+		return 0;
+	
+	if( get_flags( flags, ASStorage_Bitmap ) )
+	{
+		if( tint32 == 0 ) 
+			tint32 = 0x000000FF ;
+		else
+			tint32 = (tint32 * AS_STORAGE_DEFAULT_BMAP_THRESHOLD) >>8 ;
+	}
+	
+	if( !get_flags(flags, ASStorage_Reference))
+		if( get_flags( flags, ASStorage_CompressionType ) || get_flags( flags, ASStorage_32Bit ) )
+			buffer = compress_stored_data( storage, data, size, &flags, &compressed_size, tint32 );
+	
+	return store_compressed_data( storage, buffer, 
+								  get_flags( flags, ASStorage_32Bit )?size/4:size, 
+								  compressed_size, 0, flags );
+}
 
 
 int  

@@ -2,11 +2,13 @@
 #define ASFONT_HEADER_ICLUDED
 
 
+#include "asvisual.h"
 #include "char2uni.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
 
 /****h* libAfterImage/asfont.h
  * DESCRIPTION
@@ -232,6 +234,9 @@ typedef enum ASText3DType{
 	AST_ShadeBelow,
 	AST_EmbossedThick,
 	AST_SunkenThick,
+	AST_OutlineAbove,
+	AST_OutlineBelow,
+	AST_OutlineFull,
 	AST_3DTypes
 }ASText3DType;
 /*************/
@@ -263,6 +268,8 @@ typedef struct ASTextAttributes
 	unsigned int origin ;									/* distance from the left margin (in pixels) */
 	unsigned int *tab_stops ;				   				/* tab stops in pixels where left margin is 0 */				
 	unsigned int tab_stops_num ;
+
+	ARGB32		fore_color ;   /* used with 3D type of Outlined */
 
 #define ASTA_VERSION_1	1
 

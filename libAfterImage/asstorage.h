@@ -139,6 +139,8 @@ typedef CARD32 ASStorageID ;
 
 
 ASStorageID store_data(ASStorage *storage, CARD8 *data, int size, ASFlagType flags, CARD8 bitmap_threshold);
+ASStorageID store_data_tinted(ASStorage *storage, CARD8 *data, int size, ASFlagType flags, CARD8 tint);
+
 /* data will be fetched fromthe slot identified by id and placed into buffer. 
  * Data will be fetched from offset  and will count buf_size bytes if buf_size is greater then
  * available data - data will be tiled to accomodate this size, unless NotTileable is set */
