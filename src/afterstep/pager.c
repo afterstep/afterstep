@@ -391,6 +391,8 @@ load_myback_image( int desk, MyBackground *back )
     }
     if( im != NULL )
     {
+        ASImage *scaled_im = NULL ;
+        ASImage *tiled_im = NULL ;
         /* crop and or tint */
         if( back->cut.flags != 0 || (back->tint != TINT_NONE && back->tint != TINT_LEAVE_SAME))
         {
@@ -402,7 +404,6 @@ load_myback_image( int desk, MyBackground *back )
 		LOCAL_DEBUG_OUT( "scale.height = %d", back->scale.height );
 		if( get_flags(back->scale.flags, (WidthValue|HeightValue)) )
         {
-            ASImage *tmp_im ;
             int width = im->width ;
             int height = im->height ;
             if( get_flags(back->scale.flags, WidthValue) )
@@ -411,12 +412,12 @@ load_myback_image( int desk, MyBackground *back )
                 height = back->scale.height;
             if( width != im->width || height != im->height )
             {
-                tmp_im = scale_asimage( Scr.asv, im, width, height, ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT );
-				LOCAL_DEBUG_OUT( "image scaled to %dx%d. tmp_im = %p", width, height, tmp_im );
-                if( tmp_im && tmp_im != im )
+                scaled_im = scale_asimage( Scr.asv, im, width, height, ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT );
+                LOCAL_DEBUG_OUT( "image scaled to %dx%d. tmp_im = %p", width, height, scaled_im );
+                if( scaled_im != im )
                 {
                     safe_asimage_destroy( im );
-                    im = tmp_im ;
+                    im = scaled_im ;
                 }
             }
         }
@@ -424,7 +425,6 @@ load_myback_image( int desk, MyBackground *back )
         if( back->align_flags != NO_ALIGN && (im->width != Scr.MyDisplayWidth || im->height != Scr.MyDisplayHeight))
         {
             int x = 0, y = 0;
-            ASImage *tmp_im ;
             x = Scr.MyDisplayWidth - im->width ;
             if( get_flags( back->align_flags, ALIGN_LEFT ) )
                 x = 0 ;
@@ -437,12 +437,12 @@ load_myback_image( int desk, MyBackground *back )
             else if( get_flags( back->align_flags, ALIGN_VCENTER ) )
                 y /= 2;
 
-            tmp_im = pad_asimage( Scr.asv, im, x, y, Scr.MyDisplayWidth, Scr.MyDisplayHeight, back->pad_color,
+            tiled_im = pad_asimage( Scr.asv, im, x, y, Scr.MyDisplayWidth, Scr.MyDisplayHeight, back->pad_color,
                                            ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT );
-            if( tmp_im )
+            if( tiled_im != im )
             {
                 safe_asimage_destroy( im );
-                im = tmp_im ;
+                im = tiled_im ;
             }
         }
     }
@@ -456,6 +456,7 @@ release_old_background( int desk, Bool forget )
     ASImage *im = NULL ;
     char *imname ;
 
+LOCAL_DEBUG_CALLER_OUT("%d,%d", desk, forget);
     if( back == NULL || back->type == MB_BackCmd )
         return ;
 
@@ -484,11 +485,16 @@ release_old_background( int desk, Bool forget )
 
     if( im != NULL )
     {
-        if( forget )
+        if( forget || im->width*im->height >= Scr.Look.KillBackgroundThreshold )
         {
-            while( safe_asimage_destroy( im ) >= 0 );
-        }else if( im->width*im->height >= Scr.Look.KillBackgroundThreshold )
+            LOCAL_DEBUG_OUT( "im = %p, ref_count = %d", im, im->ref_count );
             safe_asimage_destroy( im );
+            if( Scr.RootImage == im )
+            {
+                safe_asimage_destroy( im );
+                Scr.RootImage = NULL ;
+            }
+        }
     }
 }
 
@@ -546,6 +552,8 @@ make_desktop_image( int desk, MyBackground *new_back )
     if( new_im )
         LOCAL_DEBUG_OUT( "im(%p)->ref_count(%d)->name(\"%s\")", new_im, new_im->ref_count, new_im->name );
 #endif
+    if( new_imname )
+        free( new_imname );
     return new_im;
 }
 
@@ -598,24 +606,27 @@ LOCAL_DEBUG_CALLER_OUT( "desk(%d)->old_desk(%d)->new_back(%p)->old_back(%p)", de
         {
 			if( Scr.wmprops->root_pixmap == bh->pmap )
 				set_xrootpmap_id (Scr.wmprops, None );
-      	    LOCAL_DEBUG_OUT( "root pixmap with id %X destroyed", bh->pmap );
-		    XFreePixmap( dpy, bh->pmap );
+            XFreePixmap( dpy, bh->pmap );
+            ASSync(False);
+            LOCAL_DEBUG_OUT( "root pixmap with id %lX destroyed", bh->pmap );
             bh->pmap = None ;
         }
         if( bh->pmap == None )
 		{
             bh->pmap = create_visual_pixmap( Scr.asv, Scr.Root, new_im->width, new_im->height, 0 );
-			LOCAL_DEBUG_OUT( "new root pixmap created with id %X and size %dx%d", bh->pmap, new_im->width, new_im->height );
+            LOCAL_DEBUG_OUT( "new root pixmap created with id %lX and size %dx%d", bh->pmap, new_im->width, new_im->height );
 		}else
-			LOCAL_DEBUG_OUT( "using root pixmap created with id %X", bh->pmap );
-		
+            LOCAL_DEBUG_OUT( "using root pixmap created with id %lX", bh->pmap );
+
         bh->pmap_width = new_im->width ;
         bh->pmap_height = new_im->height ;
         bh->im = new_im;
 
-        LOCAL_DEBUG_OUT( "width(%d)->height(%d)", new_im->width, new_im->height );
+        ASSync(False);
+        LOCAL_DEBUG_OUT( "width(%d)->height(%d)->pixmap(%lX)", new_im->width, new_im->height, bh->pmap );
 
         asimage2drawable( Scr.asv, bh->pmap, new_im, NULL, 0, 0, 0, 0, new_im->width, new_im->height, True);
+        flush_asimage_cache(new_im);
         XSetWindowBackgroundPixmap( dpy, Scr.Root, bh->pmap );
         XClearWindow( dpy, Scr.Root );
 		if( old_pmap == bh->pmap )
@@ -627,6 +638,8 @@ LOCAL_DEBUG_CALLER_OUT( "desk(%d)->old_desk(%d)->new_back(%p)->old_back(%p)", de
         set_xrootpmap_id (Scr.wmprops, bh->pmap );
     }else
         set_xrootpmap_id (Scr.wmprops, None );
+    ASSync(False);
+    print_asimage_registry();
 }
 
 /*************************************************************************

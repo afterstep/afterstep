@@ -42,7 +42,6 @@
 #include "afterstep.h"
 #include "screen.h"
 #include "mystyle.h"
-#include "loadimg.h"
 #include "background.h"
 
 
@@ -328,14 +327,12 @@ FreeDeskBackArray (ASDeskBackArray * backs, int free_pixmaps)
 								break;
 
 					if (k >= i)
-						UnloadImage (backs->desks[i].data.pixmap);
+                        XFreePixmap(dpy,backs->desks[i].data.pixmap);
 				}
 		}
 		free (backs->desks);
 		backs->desks = NULL;
-		if (free_pixmaps)
-			pixmap_ref_purge ();
-	}
+    }
 	backs->desks_num = 0;
 }
 

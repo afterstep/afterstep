@@ -478,8 +478,7 @@ free_func_hash ()
 {
 	if (FuncSyntax.term_hash)
 	{
-		free (FuncSyntax.term_hash);
-		FuncSyntax.term_hash = NULL;
+        FreeSyntaxHash (&FuncSyntax);
 	}
 }
 
@@ -508,6 +507,8 @@ FreeMyAppResources()
     clientprops_cleanup ();
     destroy_wmprops (Scr.wmprops, False);
     wmprops_cleanup ();
+    free_func_hash();
+    purge_asimage_registry();
     flush_ashash_memory_pool();
     destroy_asvisual( Scr.asv, False );
     flush_asbidirlist_memory_pool();

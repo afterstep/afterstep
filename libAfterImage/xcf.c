@@ -323,10 +323,7 @@ free_xcf_hierarchy( XcfHierarchy *hierarchy )
 			level = next ;
 		}
 		if( hierarchy->image )
-		{
-			asimage_init( hierarchy->image, True );
-			free( hierarchy->image );
-		}
+            destroy_asimage( &hierarchy->image );
 		free( hierarchy );
 	}
 }

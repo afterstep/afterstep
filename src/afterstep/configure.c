@@ -45,7 +45,6 @@
 
 #include "dirtree.h"
 
-#include "../../libAfterStep/loadimg.h"
 #include "../../libAfterStep/session.h"
 #include "../../libAfterStep/mystyle_property.h"
 
@@ -687,7 +686,6 @@ InitLook (MyLook *look, Bool free_resources)
     Scr.default_icon_box = NULL ;
     Scr.icon_boxes = NULL ;
 
-    pixmap_ref_purge ();
     /* temporary old-style fonts : */
     memset(&StdFont, 0x00, sizeof(MyFont));
     memset(&WindowFont, 0x00, sizeof(MyFont));
@@ -1366,6 +1364,10 @@ SetTitleButton (char *tline, FILE * fd, char **junk, int *junk2)
 
     if( !load_button( &(Scr.Look.buttons[num]), files, Scr.image_manager ) )
         show_error( "wrong number of parameters given with TitleButton");
+    if( files[0] )
+        free(files[0] ) ;
+    if( files[1] )
+        free(files[1] ) ;
 }
 
 /*****************************************************************************
@@ -1453,7 +1455,9 @@ SetCustomCursor (char *text, FILE * fd, char **arg, int *junk)
         Scr.Feel.cursors[cursor_num] = new_c ;
     }
     XFreePixmap (dpy, mask);
-	XFreePixmap (dpy, cursor);
+    XFreePixmap (dpy, cursor);
+    ASSync(False);
+    LOCAL_DEBUG_OUT( "mask %lX and cursor %lX freed", mask, cursor );
 }
 
 /*****************************************************************************

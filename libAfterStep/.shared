@@ -12,7 +12,6 @@ LIBAFTERSTEP_OBJS = \
 		$(LIBAFTERSTEP_PATH)/functions.c \
 		$(LIBAFTERSTEP_PATH)/font.c \
 		$(LIBAFTERSTEP_PATH)/hints.c \
-		$(LIBAFTERSTEP_PATH)/loadimg.c \
 		$(LIBAFTERSTEP_PATH)/module.c \
 		$(LIBAFTERSTEP_PATH)/moveresize.c \
 		$(LIBAFTERSTEP_PATH)/myicon.c \
@@ -37,7 +36,6 @@ LIBAFTERSTEP_INCS = \
 		$(LIBAFTERSTEP_PATH)/functions.h \
 		$(LIBAFTERSTEP_PATH)/font.h \
 		$(LIBAFTERSTEP_PATH)/hints.h \
-		$(LIBAFTERSTEP_PATH)/loadimg.h \
 		$(LIBAFTERSTEP_PATH)/moveresize.h \
 		$(LIBAFTERSTEP_PATH)/myicon.h \
 		$(LIBAFTERSTEP_PATH)/mylook.h \

@@ -1,9 +1,3 @@
-./dirtree.h: \
-		../../libAfterStep/functions.h
-
-./menus.h: \
-		../../libAfterStep/functions.h
-
 ./asinternals.h: \
 		../../libAfterStep/asapp.h \
 		../../libAfterImage/afterimage.h \
@@ -19,6 +13,12 @@
 		../../libAfterStep/parser.h \
 		menus.h
 
+./dirtree.h: \
+		../../libAfterStep/functions.h
+
+./menus.h: \
+		../../libAfterStep/functions.h
+
 ./add_window.o: \
 		../../configure.h \
 		asinternals.h
@@ -26,9 +26,12 @@
 ./afterstep.o: \
 		../../configure.h \
 		asinternals.h \
-		../../libAfterStep/loadimg.h \
 		../../libAfterStep/session.h \
 		../../libAfterStep/wmprops.h
+
+./aswindow.o: \
+		../../configure.h \
+		asinternals.h
 
 ./colormaps.o: \
 		../../configure.h \
@@ -38,7 +41,6 @@
 		../../configure.h \
 		asinternals.h \
 		dirtree.h \
-		../../libAfterStep/loadimg.h \
 		../../libAfterStep/session.h \
 		../../libAfterStep/mystyle_property.h \
 		../../libAfterConf/afterconf.h
@@ -56,7 +58,6 @@
 ./events.o: \
 		../../configure.h \
 		asinternals.h \
-		../../libAfterStep/loadimg.h \
 		../../libAfterStep/wmprops.h \
 		../../libAfterStep/moveresize.h
 
@@ -66,6 +67,22 @@
 		../../libAfterStep/session.h \
 		../../libAfterStep/moveresize.h
 
+./functions_old.o: \
+		../../configure.h \
+		../../include/aftersteplib.h \
+		../../include/afterstep.h \
+		../../include/parse.h \
+		../../include/misc.h \
+		../../include/style.h \
+		../../include/screen.h \
+		../../include/module.h \
+		globals.h \
+		menus.h
+
+./housekeeping.o: \
+		../../configure.h \
+		asinternals.h
+
 ./icons.o: \
 		../../configure.h \
 		asinternals.h
@@ -73,12 +90,21 @@
 ./menuitem.o: \
 		../../configure.h \
 		asinternals.h \
-		../../libAfterStep/loadimg.h \
 		dirtree.h
 
 ./menus.o: \
 		../../configure.h \
 		asinternals.h \
+		menus.h
+
+./menus_old.o: \
+		../../configure.h \
+		../../include/aftersteplib.h \
+		../../include/afterstep.h \
+		../../include/parse.h \
+		../../include/misc.h \
+		../../include/style.h \
+		../../include/screen.h \
 		menus.h
 
 ./misc.o: \
@@ -103,39 +129,10 @@
 
 ./placement.o: \
 		../../configure.h \
-		asinternals.h
+		asinternals.h \
+		../../libAfterStep/moveresize.h
 
 ./windows.o: \
 		../../configure.h \
 		asinternals.h \
-		menus.h
-
-./aswindow.o: \
-		../../configure.h \
-		asinternals.h
-
-./functions_old.o: \
-		../../configure.h \
-		../../include/aftersteplib.h \
-		../../include/afterstep.h \
-		../../include/parse.h \
-		../../include/misc.h \
-		../../include/style.h \
-		../../include/screen.h \
-		../../include/module.h \
-		globals.h \
-		menus.h
-
-./housekeeping.o: \
-		../../configure.h \
-		asinternals.h
-
-./menus_old.o: \
-		../../configure.h \
-		../../include/aftersteplib.h \
-		../../include/afterstep.h \
-		../../include/parse.h \
-		../../include/misc.h \
-		../../include/style.h \
-		../../include/screen.h \
 		menus.h

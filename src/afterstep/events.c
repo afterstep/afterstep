@@ -33,7 +33,6 @@
 #include <unistd.h>
 #include <signal.h>
 
-#include "../../libAfterStep/loadimg.h"
 #include "../../libAfterStep/wmprops.h"
 #include "../../libAfterStep/moveresize.h"
 
@@ -692,7 +691,10 @@ HandlePropertyNotify (ASEvent *event)
 void
 HandleClientMessage (ASEvent *event)
 {
-    LOCAL_DEBUG_OUT("ClientMessage(\"%s\")", XGetAtomName( dpy, event->x.xclient.message_type ));
+    char *aname = NULL ;
+    LOCAL_DEBUG_OUT("ClientMessage(\"%s\")", (aname = XGetAtomName( dpy, event->x.xclient.message_type )));
+    if( aname != NULL )
+        XFree( aname );
 
     if ((event->x.xclient.message_type == _XA_WM_CHANGE_STATE) &&
         (event->client) &&

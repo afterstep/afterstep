@@ -146,6 +146,8 @@ LOCAL_DEBUG_CALLER_OUT( "top(%p)->supermenu(%p)->menu(%p)->submenu(%p)", ASTopmo
 
             if( menu->name )
                 free( menu->name );
+            if( menu->title )
+                free( menu->title );
             menu->magic = 0 ;
             free( menu );
             *pmenu = NULL ;
@@ -527,18 +529,18 @@ run_item_submenu( ASMenu *menu, int item )
 LOCAL_DEBUG_CALLER_OUT( "%p, %d, submenu(%p)", menu, item, menu->items[item].submenu );
     if( menu->items[item].submenu )
     {
-	int x = menu->main_canvas->root_x ;
-	int y ;
-	ASQueryPointerRootXY( &x, &y );
-	x -= 5 ;
-	if( x  < menu->main_canvas->root_x + (menu->item_width/3) )
-	{
-	    int max_dx = Scr.MyDisplayWidth / 20 ;
-	    if( menu->main_canvas->root_x + (menu->item_width/3) - x  < max_dx )
-	        x = menu->main_canvas->root_x + (menu->item_width/3) ;
-	    else
-		x += max_dx ;
-	}
+        int x = menu->main_canvas->root_x ;
+        int y ;
+        ASQueryPointerRootXY( &x, &y );
+        x -= 5 ;
+        if( x  < menu->main_canvas->root_x + (menu->item_width/3) )
+        {
+            int max_dx = Scr.MyDisplayWidth / 20 ;
+            if( menu->main_canvas->root_x + (menu->item_width/3) - x  < max_dx )
+                x = menu->main_canvas->root_x + (menu->item_width/3) ;
+            else
+            x += max_dx ;
+        }
         y = menu->main_canvas->root_y+(menu->item_height*(item+1-(int)menu->top_item))-5 ;
 /*	if( x > menu->main_canvas->root_x+menu->item_width-5 )
 	    x = menu->main_canvas->root_x+menu->item_width-5 ;

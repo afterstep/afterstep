@@ -38,7 +38,7 @@
  *
  ***************************************************************************/
 
-#define LOCAL_DEBUG
+#undef LOCAL_DEBUG
 
 #include "../../configure.h"
 
@@ -52,8 +52,6 @@
 #include <dirent.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-
-#include "../../libAfterStep/loadimg.h"
 
 #include "dirtree.h"
 

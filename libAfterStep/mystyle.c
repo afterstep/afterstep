@@ -24,7 +24,6 @@
 
 #include "asapp.h"
 #include "afterstep.h"
-#include "loadimg.h"
 #include "parser.h"
 #include "mystyle.h"
 #include "screen.h"
@@ -71,15 +70,18 @@ static char  *DefaultMyStyleName = "default";
 static void
 mystyle_free_back_icon( MyStyle *style )
 {
-    if( get_flags( style->user_flags, F_EXTERNAL_BACKPIX ) )
-    style->back_icon.pix = None ;
-    if( get_flags( style->user_flags, F_EXTERNAL_BACKMASK ) )
+    if( !get_flags (style->inherit_flags, F_BACKPIXMAP) )
     {
-    style->back_icon.mask = None ;
-    style->back_icon.alpha = None ;
-    }
+        if( get_flags( style->user_flags, F_EXTERNAL_BACKPIX ) )
+            style->back_icon.pix = None ;
+        if( get_flags( style->user_flags, F_EXTERNAL_BACKMASK ) )
+        {
+            style->back_icon.mask = None ;
+            style->back_icon.alpha = None ;
+        }
 
-    free_icon_resources (style->back_icon);
+        free_icon_resources (style->back_icon);
+    }
     memset (&(style->back_icon), 0x00, sizeof (style->back_icon));
 }
 
@@ -845,7 +847,10 @@ mystyle_free_resources( MyStyle *style )
             free (style->gradient.offset);
         }
 		if( !get_flags (style->inherit_flags, F_BACKTRANSPIXMAP) )
+        {
+            LOCAL_DEBUG_OUT( "calling mystyle_free_back_icon for style %p", style );
             mystyle_free_back_icon(style);
+        }
 #endif
     }
 }
@@ -1153,6 +1158,7 @@ mystyle_merge_styles (MyStyle * parent, MyStyle * child, Bool override, Bool cop
 	{
 		if ((override == True) && (child->user_flags & F_BACKPIXMAP))
 		{
+            LOCAL_DEBUG_OUT( "calling mystyle_free_back_icon for style %p", child );
             mystyle_free_back_icon(child);
 		}
 		if ((override == True) || !(child->set_flags & F_BACKPIXMAP))
@@ -1471,6 +1477,7 @@ mystyle_parse_member (MyStyle * style, char *str, const char *PixmapPath)
 				 char         *tmp = stripcpy (ptr);
 
 				 clear_flags (style->inherit_flags, F_BACKTRANSPIXMAP | F_BACKPIXMAP);
+                 LOCAL_DEBUG_OUT( "calling mystyle_free_back_icon for style %p", style );
                  mystyle_free_back_icon(style);
 
 				 if (type < TEXTURE_TEXTURED_START || type >= TEXTURE_TEXTURED_END)

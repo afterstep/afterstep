@@ -23,7 +23,6 @@
 
 #include "asapp.h"
 #include "afterstep.h"
-#include "loadimg.h"
 #include "parser.h"
 #include "mystyle.h"
 #include "screen.h"
@@ -509,6 +508,8 @@ destroy_myframe( MyFrame **pframe )
             if( pf->frame_style_names[i] )
                 free( pf->frame_style_names[i] );
         }
+        if( pf->name )
+            free( pf->name );
 
         pf->magic = 0 ;
         free( pf );

@@ -451,33 +451,6 @@ mystyle_create_from_definition (MyStyleDefinition * def)
 		LOCAL_DEBUG_OUT ("MyStyle \"%s\": BackPixmap %d image = %p, tint = 0x%X", style->name,
 						 style->texture_type, style->back_icon.image, style->tint);
 
-#if 0
-		char         *path;
-		Pixmap        pix, mask;
-
-		if ((path = findIconFile (def->back_pixmap, PixmapPath, R_OK)) != NULL &&
-			(pix = LoadImageWithMask (dpy, RootWindow (dpy, DefaultScreen (dpy)), colors, path, &mask)) != None)
-		{
-			Window        r;
-			int           d;
-
-			XGetGeometry (dpy, pix, &r, &d, &d, &style->back_icon.width, &style->back_icon.height, &d, &d);
-			if (style->user_flags & F_BACKPIXMAP)
-			{
-				free_icon_resources (style->back_icon);
-			}
-			style->back_icon.pix = pix;
-			style->back_icon.mask = mask;
-			style->texture_type = def->back_pixmap_type;
-			style->user_flags |= F_BACKPIXMAP;
-		} else
-			mystyle_error ("unable to load pixmap: '%s'\n", style->name, def->back_pixmap);
-
-		if (path != NULL)
-			free (path);
-	}
-	style->inherit_flags &= ~F_BACKPIXMAP;
-#endif
     }
 #endif
     if (def->set_flags & F_DRAWTEXTBACKGROUND)

@@ -37,6 +37,9 @@
 #include "blender.h"
 #include "asimage.h"
 
+#ifdef TRACK_ASIMAGES
+static ASHashTable *__as_image_registry = NULL ;
+#endif
 
 static void decode_asscanline_native( ASImageDecoder *imdec, unsigned int skip, int y );
 static void decode_asscanline_ximage( ASImageDecoder *imdec, unsigned int skip, int y );
@@ -163,6 +166,23 @@ asimage_init (ASImage * im, Bool free_resources)
 }
 
 void
+flush_asimage_cache( ASImage *im )
+{
+#ifndef X_DISPLAY_MISSING
+			if( im->alt.ximage )
+            {
+				XDestroyImage( im->alt.ximage );
+                im->alt.ximage = NULL ;
+            }
+			if( im->alt.mask_ximage )
+            {
+				XDestroyImage( im->alt.mask_ximage );
+                im->alt.mask_ximage = NULL ;
+            }
+#endif
+}
+
+void
 asimage_start (ASImage * im, unsigned int width, unsigned int height, unsigned int compression)
 {
 	if (im)
@@ -215,7 +235,18 @@ create_asimage( unsigned int width, unsigned int height, unsigned int compressio
 	{
 		free( im );
 		im = NULL ;
-	}
+#ifdef TRACK_ASIMAGES
+        show_error( "failed to create ASImage of size %dx%d with compression %d", width, height, compression );
+#endif
+    }else
+    {
+#ifdef TRACK_ASIMAGES
+        show_progress( "created ASImage %d of size %dx%d with compression %d", im, width, height, compression );
+        if( __as_image_registry == NULL )
+            __as_image_registry = create_ashash( 0, pointer_hash_value, NULL, NULL );
+        add_hash_item( __as_image_registry, AS_HASHABLE(im), im );
+#endif
+    }
 	return im;
 }
 
@@ -225,13 +256,113 @@ destroy_asimage( ASImage **im )
 	if( im )
 		if( *im && !AS_ASSERT_NOTVAL((*im)->imageman,NULL))
 		{
+#ifdef TRACK_ASIMAGES
+            show_progress( "destroying ASImage %p of size %dx%d", *im, (*im)->width, (*im)->height );
+            remove_hash_item( __as_image_registry, AS_HASHABLE(im), NULL, False );
+#endif
 			asimage_init( *im, True );
-/*fprintf( stderr, "destroying image : %p\n", *im );*/
 			(*im)->magic = 0;
 			free( *im );
 			*im = NULL ;
 		}
 }
+
+void print_asimage_func (ASHashableValue value)
+{
+    ASImage *im = (ASImage*)value ;
+    if( im && im->magic == MAGIC_ASIMAGE )
+    {
+        int k;
+        unsigned int red_mem = 0, green_mem = 0, blue_mem = 0, alpha_mem = 0;
+        unsigned int red_count = 0, green_count = 0, blue_count = 0, alpha_count = 0;
+        fprintf( stderr,"\n\tASImage[%p].size = %dx%d;\n",  im, im->width, im->height );
+        fprintf( stderr,"\tASImage[%p].back_color = 0x%lX;\n", im, im->back_color );
+        fprintf( stderr,"\tASImage[%p].buffer = %p;\n", im, im->buffer);
+        fprintf( stderr,"\tASImage[%p].buf_used = %d;\n", im, im->buf_used );
+        fprintf( stderr,"\tASImage[%p].buf_len = %d;\n", im, im->buf_len );
+        fprintf( stderr,"\tASImage[%p].max_compressed_width = %d;\n", im, im->max_compressed_width);
+        fprintf( stderr,"\t\tASImage[%p].alt.ximage = %p;\n", im, im->alt.ximage );
+        if( im->alt.ximage )
+        {
+            fprintf( stderr,"\t\t\tASImage[%p].alt.ximage.bytes_per_line = %d;\n", im, im->alt.ximage->bytes_per_line);
+            fprintf( stderr,"\t\t\tASImage[%p].alt.ximage.size = %dx%d;\n", im, im->alt.ximage->width, im->alt.ximage->height);
+        }
+        fprintf( stderr,"\t\tASImage[%p].alt.mask_ximage = %p;\n", im, im->alt.mask_ximage);
+        if( im->alt.mask_ximage )
+        {
+            fprintf( stderr,"\t\t\tASImage[%p].alt.mask_ximage.bytes_per_line = %d;\n", im, im->alt.mask_ximage->bytes_per_line);
+            fprintf( stderr,"\t\t\tASImage[%p].alt.mask_ximage.size = %dx%d;\n", im, im->alt.mask_ximage->width, im->alt.mask_ximage->height);
+        }
+        fprintf( stderr,"\t\tASImage[%p].alt.argb32 = %p;\n", im, im->alt.argb32 );
+        fprintf( stderr,"\t\tASImage[%p].alt.vector = %p;\n", im, im->alt.vector );
+        fprintf( stderr,"\tASImage[%p].imageman = %p;\n", im, im->imageman );
+        fprintf( stderr,"\tASImage[%p].ref_count = %d;\n", im, im->ref_count );
+        fprintf( stderr,"\tASImage[%p].name = \"%s\";\n", im, im->name );
+        fprintf( stderr,"\tASImage[%p].flags = 0x%lX;\n", im, im->flags );
+
+        for( k = 0 ; k < im->height ; k++ )
+    	{
+            unsigned int tmp ;
+
+            tmp = asimage_print_line( im, IC_RED  , k, 0 );
+            if( tmp > 0 )
+            {
+                ++red_count;
+                red_mem += tmp ;
+            }
+            tmp = asimage_print_line( im, IC_GREEN, k, 0 );
+            if( tmp > 0 )
+            {
+                ++green_count;
+                green_mem += tmp ;
+            }
+            tmp = asimage_print_line( im, IC_BLUE , k, 0 );
+            if( tmp > 0 )
+            {
+                ++blue_count;
+                blue_mem += tmp ;
+            }
+            tmp = asimage_print_line( im, IC_ALPHA, k, 0 );
+            if( tmp > 0 )
+            {
+                ++alpha_count;
+                alpha_mem += tmp ;
+            }
+        }
+
+        fprintf( stderr,"\tASImage[%p].uncompressed_size = %d;\n", im, im->width*red_count +
+                                                                    im->width*green_count +
+                                                                    im->width*blue_count +
+                                                                    im->width*alpha_count );
+        fprintf( stderr,"\tASImage[%p].compressed_size = %d;\n",   im, red_mem + green_mem +blue_mem + alpha_mem );
+        fprintf( stderr,"\t\tASImage[%p].channel[red].lines_count = %d;\n", im, red_count );
+        fprintf( stderr,"\t\tASImage[%p].channel[red].memory_used = %d;\n", im, red_mem );
+        fprintf( stderr,"\t\tASImage[%p].channel[green].lines_count = %d;\n", im, green_count );
+        fprintf( stderr,"\t\tASImage[%p].channel[green].memory_used = %d;\n", im, green_mem );
+        fprintf( stderr,"\t\tASImage[%p].channel[blue].lines_count = %d;\n", im, blue_count );
+        fprintf( stderr,"\t\tASImage[%p].channel[blue].memory_used = %d;\n", im, blue_mem );
+        fprintf( stderr,"\t\tASImage[%p].channel[alpha].lines_count = %d;\n", im, alpha_count );
+        fprintf( stderr,"\t\tASImage[%p].channel[alpha].memory_used = %d;\n", im, alpha_mem );
+    }
+}
+
+void
+print_asimage_registry()
+{
+#ifdef TRACK_ASIMAGES
+    print_ashash( __as_image_registry, print_asimage_func );
+#endif
+}
+
+void
+purge_asimage_registry()
+{
+#ifdef TRACK_ASIMAGES
+    if( __as_image_registry )
+        destroy_ashash( &__as_image_registry );
+#endif
+}
+
 
 Bool create_image_xim( ASVisual *asv, ASImage *im, ASAltImFormats format )
 {
@@ -394,7 +525,7 @@ release_asimage( ASImage *im )
 	{
 		if( im->magic == MAGIC_ASIMAGE )
 		{
-			if( --(im->ref_count) < 0 )
+            if( --(im->ref_count) <= 0 )
 			{
 				ASImageManager *imman = im->imageman ;
 				if( !AS_ASSERT(imman) )
@@ -444,10 +575,10 @@ safe_asimage_destroy( ASImage *im )
 			ASImageManager *imman = im->imageman ;
 			if( imman != NULL )
 			{
-				if( --(im->ref_count) < 0 )
+                res = --(im->ref_count) ;
+                if( im->ref_count <= 0 )
 					remove_hash_item(imman->image_hash, (ASHashableValue)(char*)im->name, NULL, True);
-				res = im->ref_count ;
-			}else
+            }else
 			{
 				destroy_asimage( &im );
 				res = -1 ;
@@ -1215,7 +1346,8 @@ void print_asimage( ASImage *im, int flags, char * func, int line )
 			total_mem+=asimage_print_line( im, IC_RED  , k, flags );
 			total_mem+=asimage_print_line( im, IC_GREEN, k, flags );
 			total_mem+=asimage_print_line( im, IC_BLUE , k, flags );
-    	}
+            total_mem+=asimage_print_line( im, IC_ALPHA , k, flags );
+        }
     	fprintf( stderr, "%s:%d> Total memory : %u - image size %dx%d ratio %d%%\n", func, line, total_mem, im->width, im->height, (total_mem*100)/(im->width*im->height*3) );
 	}else
 		fprintf( stderr, "%s:%d> Attempted to print NULL ASImage.\n", func, line);

@@ -21,13 +21,13 @@
 
 #include <unistd.h>
 
-/* #define LOCAL_DEBUG */
+#define LOCAL_DEBUG
 
 #include "asapp.h"
 #include "afterstep.h"
-#include "loadimg.h"
 #include "../libAfterImage/afterimage.h"
 #include "screen.h"
+#include "event.h"
 
 void
 asimage2icon (ASImage * im, icon_t * icon, Bool ignore_alpha)
@@ -45,8 +45,10 @@ asimage2icon (ASImage * im, icon_t * icon, Bool ignore_alpha)
 			if (depth == 8)
 				icon->alpha = asimage2alpha (Scr.asv, Scr.Root, im, NULL, False, False);
 		}
+        LOCAL_DEBUG_OUT(" icon pixmaps: %lX,%lX,%lX", icon->pix, icon->mask, icon->alpha );
 		icon->width = im->width;
 		icon->height = im->height;
+        flush_asimage_cache(im);
 	}
 }
 
@@ -61,7 +63,7 @@ load_icon (icon_t *icon, const char *filename, ASImageManager *imman )
         else
 		{
             asimage2icon (im, icon, False);
-            LOCAL_DEBUG_OUT("icon file %s loaded into ASImage %p(imman %p) using imageman = %p and has size %dx%d", filename, im, im->imageman, imman, icon->width, icon->height );
+            LOCAL_DEBUG_OUT("icon file \"%s\" loaded into ASImage %p(imman %p) using imageman = %p and has size %dx%d", filename, im, im->imageman, imman, icon->width, icon->height );
 		}
         return (icon->image != NULL);
 	}
@@ -73,11 +75,13 @@ void
 free_icon_resources (icon_t icon)
 {
 	if (icon.pix)
-		UnloadImage (icon.pix);
+        XFreePixmap(dpy, icon.pix);
 	if (icon.mask)
-		UnloadMask (icon.mask);
+        XFreePixmap(dpy, icon.mask);
 	if (icon.alpha)
-		UnloadMask (icon.alpha);
+        XFreePixmap(dpy, icon.alpha);
+    ASSync(False);
+    LOCAL_DEBUG_OUT( "icon's pixmap freed: %lX,%lX,%lX", icon.pix, icon.mask, icon.alpha );
 	if (icon.image)
 		safe_asimage_destroy (icon.image);
 }
@@ -89,11 +93,13 @@ destroy_icon(icon_t **picon)
     if( pi )
     {
         if (pi->pix)
-            UnloadImage(pi->pix);
+            XFreePixmap(dpy, pi->pix);
         if (pi->mask)
-            UnloadMask (pi->mask);
+            XFreePixmap(dpy, pi->mask);
         if (pi->alpha)
-            UnloadMask (pi->alpha);
+            XFreePixmap(dpy, pi->alpha);
+        ASSync(False);
+        LOCAL_DEBUG_OUT( "icon's pixmap freed for icon %p: %lX,%lX,%lX", pi, pi->pix, pi->mask, pi->alpha );
         if (pi->image)
             safe_asimage_destroy (pi->image);
         free( pi );

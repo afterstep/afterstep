@@ -69,14 +69,22 @@ copy_file (const char *realfilename1, const char *realfilename2)
 	FILE         *targetfile, *sourcefile;
 	int           c;
 
-	targetfile = fopen (realfilename2, "w");
-	if (targetfile == NULL)
+#ifdef __CYGWIN__
+    targetfile = fopen (realfilename2, "wb");
+#else
+    targetfile = fopen (realfilename2, "w");
+#endif
+    if (targetfile == NULL)
 	{
 		fprintf (stderr, "can't open %s !\n", realfilename2);
 		return (-1);
 	}
-	sourcefile = fopen (realfilename1, "r");
-	if (sourcefile == NULL)
+#ifdef __CYGWIN__
+    sourcefile = fopen (realfilename1, "rb");
+#else
+    sourcefile = fopen (realfilename1, "r");
+#endif
+    if (sourcefile == NULL)
 	{
 		fprintf (stderr, "can't open %s !\n", realfilename1);
 		return (-2);
@@ -89,8 +97,8 @@ copy_file (const char *realfilename1, const char *realfilename2)
 	return 0;
 }
 
-char* 
-load_file(const char* realfilename) 
+char*
+load_file(const char* realfilename)
 {
 	struct stat st;
 	FILE* fp;

@@ -672,6 +672,14 @@ int mmx_off(void);
  * 	frees datamembers of the supplied ASImage structure, and
  * 	initializes it to all 0.
  *********/
+/****f* libAfterImage/asimage/flush_asimage_cache()
+ * SYNOPSIS
+ * void flush_asimage_cache (ASImage * im );
+ * INPUTS
+ * im             - pointer to valid ASImage structure
+ * DESCRIPTION
+ *  destroys XImage and mask XImage kept from previous conversions to/from X Pixmap.
+ *********/
 /****f* libAfterImage/asimage/asimage_start()
  * SYNOPSIS
  * void asimage_start (ASImage * im, unsigned int width,
@@ -739,6 +747,7 @@ int mmx_off(void);
  * asview.c: ASView.5
  *********/
 void asimage_init (ASImage * im, Bool free_resources);
+void flush_asimage_cache( ASImage *im );
 void asimage_start (ASImage * im, unsigned int width, unsigned int height, unsigned int compression);
 ASImage *create_asimage( unsigned int width, unsigned int height, unsigned int compression);
 ASImage *clone_asimage( ASImage *src, ASFlagType filter );
@@ -1089,6 +1098,13 @@ void copy_asimage_lines( ASImage *dst, unsigned int offset_dst,
 unsigned int asimage_print_line (ASImage * im, ColorPart color,
 				 unsigned int y, unsigned long verbosity);
 void print_asimage( ASImage *im, int flags, char * func, int line );
+
+void print_asimage_func (ASHashableValue value);
+#define print_asimage_ptr (ptr)  print_asimage_func(AS_HASHABLE(ptr))
+void print_asimage_registry();                 /* TRACK_ASIMAGES must be defined for this to work */
+void purge_asimage_registry();
+
+
 /* the following 5 macros will in fact unfold into huge but fast piece of code : */
 /* we make poor compiler work overtime unfolding all this macroses but I bet it  */
 /* is still better then C++ templates :)									     */

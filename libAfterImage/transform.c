@@ -841,9 +841,7 @@ scale_asimage( ASVisual *asv, ASImage *src, unsigned int to_width, unsigned int 
 #endif
 	if((imout = start_image_output( asv, dst, out_format, QUANT_ERR_BITS, quality )) == NULL )
 	{
-		asimage_init(dst, True);
-		free( dst );
-		dst = NULL ;
+        destroy_asimage( &dst );
 	}else
 	{
 		if( to_height <= src->height ) 					   /* scaling down */
@@ -891,10 +889,8 @@ LOCAL_DEBUG_CALLER_OUT( "offset_x = %d, offset_y = %d, to_width = %d, to_height 
 #endif
 	if((imout = start_image_output( asv, dst, out_format, (tint!=0)?8:0, quality)) == NULL )
 	{
-		asimage_init(dst, True);
-		free( dst );
-		dst = NULL ;
-	}else
+        destroy_asimage( &dst );
+    }else
 	{
 		int y, max_y = to_height;
 LOCAL_DEBUG_OUT("tiling actually...%s", "");
@@ -998,10 +994,8 @@ LOCAL_DEBUG_CALLER_OUT( "dst_width = %d, dst_height = %d", dst_width, dst_height
 			if( imdecs[i] )
 				stop_image_decoding( &(imdecs[i]) );
 
-		asimage_init(dst, True);
-		free( dst );
-		dst = NULL ;
-	}else
+        destroy_asimage( &dst );
+    }else
 	{
 		int y, max_y = 0;
 		int min_y = dst_height;
@@ -1338,10 +1332,8 @@ LOCAL_DEBUG_CALLER_OUT( "type = 0x%X, width=%d, height = %d, filter = 0x%X", gra
 		line_len = MAX(width,height)<<1 ;
 	if((imout = start_image_output( asv, im, out_format, QUANT_ERR_BITS, quality)) == NULL )
 	{
-		asimage_init(im, True);
-		free( im );
-		im = NULL ;
-	}else
+        destroy_asimage( &im );
+    }else
 	{
 		int dither_lines = MIN(imout->quality+1, MAX_GRADIENT_DITHER_LINES) ;
 		ASScanline *lines;
@@ -1417,10 +1409,8 @@ LOCAL_DEBUG_CALLER_OUT( "offset_x = %d, offset_y = %d, to_width = %d, to_height 
 #endif
 	if((imout = start_image_output( asv, dst, out_format, 0, quality)) == NULL )
 	{
-		asimage_init(dst, True);
-		free( dst );
-		dst = NULL ;
-	}else
+        destroy_asimage( &dst );
+    }else
 	{
 		ASImageDecoder *imdec ;
 		ASScanline result ;
@@ -1538,10 +1528,8 @@ LOCAL_DEBUG_CALLER_OUT( "offset_x = %d, offset_y = %d, to_width = %d, to_height 
 #endif
 	if((imout = start_image_output( asv, dst, out_format, 0, quality)) == NULL )
 	{
-		asimage_init(dst, True);
-		free( dst );
-		dst = NULL ;
-	}else
+        destroy_asimage( &dst );
+    }else
 	{
 		ASImageDecoder *imdec ;
 		ASScanline result ;
@@ -1632,10 +1620,8 @@ LOCAL_DEBUG_CALLER_OUT( "dst_x = %d, dst_y = %d, to_width = %d, to_height = %d",
 #endif
 	if((imout = start_image_output( asv, dst, out_format, 0, quality)) == NULL )
 	{
-		asimage_init(dst, True);
-		free( dst );
-		dst = NULL ;
-	}else
+        destroy_asimage( &dst );
+    }else
 	{
 		ASImageDecoder *imdec = NULL;
 		ASScanline result ;
@@ -1969,8 +1955,7 @@ ASImage* blur_asimage_gauss(ASVisual* asv, ASImage* src, double horz, double ver
 
 	imout = start_image_output(asv, dst, out_format, 0, quality);
 	if (!imout) {
-		asimage_init(dst, True);
-		free(dst);
+        destroy_asimage( &dst );
 #ifdef HAVE_MMX
 		mmx_off();
 #endif
@@ -1979,8 +1964,7 @@ ASImage* blur_asimage_gauss(ASVisual* asv, ASImage* src, double horz, double ver
 
 	imdec = start_image_decoding(asv, src, SCL_DO_ALL, 0, 0, dst->width, dst->height, NULL);
 	if (!imdec) {
-		asimage_init(dst, True);
-		free(dst);
+        destroy_asimage( &dst );
 #ifdef HAVE_MMX
 		mmx_off();
 #endif
@@ -2069,10 +2053,8 @@ LOCAL_DEBUG_CALLER_OUT( "offset_x = %d, offset_y = %d, to_width = %d, to_height 
 	set_decoder_shift(imdec,8);
 	if((imout = start_image_output( asv, dst, out_format, 8, quality)) == NULL )
 	{
-		asimage_init(dst, True);
-		free( dst );
-		dst = NULL ;
-	}else
+        destroy_asimage( &dst );
+    }else
 	{
 	    CARD32 from_hue1 = 0, from_hue2 = 0, to_hue1 = 0, to_hue2 = 0 ;
 		int y, max_y = to_height;

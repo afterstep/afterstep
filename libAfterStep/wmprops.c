@@ -957,9 +957,7 @@ set_xrootpmap_id (ASWMProps * wmprops, Pixmap new_pmap)
 	{
 		set_32bit_property (wmprops->scr->Root, _XROOTPMAP_ID, XA_CARDINAL, new_pmap);
 		XFlush (dpy);
-		if (wmprops->root_pixmap != None && wmprops->root_pixmap != ParentRelative && wmprops->root_pixmap != new_pmap)
-			XFreePixmap (dpy, wmprops->root_pixmap);
-		wmprops->root_pixmap = new_pmap;
+        wmprops->root_pixmap = new_pmap;
 	}
 }
 

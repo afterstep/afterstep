@@ -41,7 +41,6 @@
 		afterstep.h \
 		screen.h \
 		mystyle.h \
-		loadimg.h \
 		background.h
 
 ./balloon.o : \
@@ -112,12 +111,6 @@
 		clientprops.h \
 		hints.h
 
-./loadimg.o : \
-		../configure.h \
-		asapp.h \
-		../libAfterImage/afterimage.h \
-		loadimg.h
-
 ./module.o : \
 		../configure.h \
 		asapp.h \
@@ -143,15 +136,14 @@
 		../configure.h \
 		asapp.h \
 		afterstep.h \
-		loadimg.h \
 		../libAfterImage/afterimage.h \
-		screen.h
+		screen.h \
+		event.h
 
 ./mylook.o : \
 		../configure.h \
 		asapp.h \
 		afterstep.h \
-		loadimg.h \
 		parser.h \
 		mystyle.h \
 		screen.h \
@@ -162,7 +154,6 @@
 		../configure.h \
 		asapp.h \
 		afterstep.h \
-		loadimg.h \
 		parser.h \
 		mystyle.h \
 		screen.h \

@@ -28,7 +28,6 @@
 
 #include <X11/cursorfont.h>
 
-#include "../../libAfterStep/loadimg.h"
 #include "../../libAfterStep/session.h"
 #include "../../libAfterStep/wmprops.h"
 
@@ -168,6 +167,10 @@ main (int argc, char **argv)
 	XShapeQueryExtension (dpy, &ShapeEventBase, &ShapeErrorBase);
 #endif /* SHAPE */
 
+   /* make sure we're on the right desk, and the _WIN_DESK property is set */
+    Scr.CurrentDesk = INVALID_DESK ;
+    ChangeDesks (Scr.wmprops->desktop_current);
+
     /* Load config ... */
     /* read config file, set up menus, colors, fonts */
     InitBase (False);
@@ -189,10 +192,6 @@ main (int argc, char **argv)
 #endif										/* UnGrabbed !!!!!*/
 	/**********************************************************/
     XDefineCursor (dpy, Scr.Root, Scr.Feel.cursors[DEFAULT]);
-
-   /* make sure we're on the right desk, and the _WIN_DESK property is set */
-    Scr.CurrentDesk = INVALID_DESK ;
-    ChangeDesks (Scr.wmprops->desktop_current);
 
     SetupFunctionHandlers();
     DoAutoexec(get_flags( AfterStepState, ASS_Restarting));
@@ -364,6 +363,19 @@ CleanupScreen()
         Scr.rdisplay_string = NULL ;
     }
 
+    if( Scr.RootBackground )
+    {
+        if( Scr.RootBackground->pmap )
+        {
+            if( Scr.wmprops->root_pixmap == Scr.RootBackground->pmap )
+                set_xrootpmap_id (Scr.wmprops, None );
+            XFreePixmap( dpy, Scr.RootBackground->pmap );
+            ASSync(False);
+            LOCAL_DEBUG_OUT( "root pixmap with id %lX destroyed", Scr.RootBackground->pmap );
+            Scr.RootBackground->pmap = None ;
+        }
+        free( Scr.RootBackground );
+    }
     destroy_wmprops( Scr.wmprops, False);
     destroy_image_manager( Scr.image_manager, False );
 LOCAL_DEBUG_OUT("destroying font manager : %s","");
@@ -531,7 +543,6 @@ LOCAL_DEBUG_CALLER_OUT( "%s restart, cmd=\"%s\"", restart?"Do":"Don't", command?
     InitBase(True);
     free_func_hash ();
     /* pixmap references */
-    pixmap_ref_purge ();
     build_xpm_colormap (NULL);
 
     /* Really make sure that the connection is closed and cleared! */
@@ -549,6 +560,8 @@ LOCAL_DEBUG_CALLER_OUT( "%s restart, cmd=\"%s\"", restart?"Do":"Don't", command?
         restack_window_list(INVALID_DESK, True);
         clientprops_cleanup ();
         wmprops_cleanup ();
+        free_func_hash();
+        purge_asimage_registry();
         flush_ashash_memory_pool();
         destroy_asvisual( Scr.asv, False );
         flush_asbidirlist_memory_pool();
