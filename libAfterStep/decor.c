@@ -2428,6 +2428,7 @@ LOCAL_DEBUG_CALLER_OUT( "%p,%p", parent, canvas );
 		}else
 			client_event.xconfigure.above = Scr.Root;
         client_event.xconfigure.override_redirect = False;
+		LOCAL_DEBUG_OUT( "geom= %dx%d%+d%+d", client_event.xconfigure.width, client_event.xconfigure.height, client_event.xconfigure.x, client_event.xconfigure.y );
         XSendEvent (dpy, canvas->w, False, StructureNotifyMask, &client_event);
     }
 }

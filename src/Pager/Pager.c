@@ -106,7 +106,8 @@ typedef struct ASPagerState
 
     int page_rows,  page_columns ;
 	/* x and y size of desktop */
-	int desk_width, desk_height ;
+	int vscaled_desk_width, vscaled_desk_height ;  /* calculated in accordance to Scale param in database */
+	int desk_width, desk_height ;                  /* adjusted for the size of title */
 	/* area of the main window used up by labels, borders and other garbadge :*/
 	int wasted_width, wasted_height ;
 	/* x and y size of virtual screen size inside desktop mini-window */
@@ -174,8 +175,8 @@ int
 main (int argc, char **argv)
 {
     int i;
-    char *cptr = NULL ;
     INT32 desk1 = 0, desk2 = 0;
+	int desk_cnt = 0 ;
 
     /* Save our program name - for error messages */
     InitMyApp (CLASS_PAGER, argc, argv, pager_usage, NULL, 0 );
@@ -183,25 +184,17 @@ main (int argc, char **argv)
     memset( &PagerState, 0x00, sizeof(PagerState));
 	PagerState.page_rows = PagerState.page_columns = 1 ;
 
-    for( i = 1 ; i< argc && argv[i] == NULL ; ++i);
-    if( i < argc )
-    {
-        cptr = argv[i];
-        while (isspace (*cptr))
-            cptr++;
-        desk1 = atoi (cptr);
-        while (!(isspace (*cptr)) && (*cptr))
-            cptr++;
-        while (isspace (*cptr))
-            cptr++;
-
-        if (!(*cptr) && i+1 < argc )
-            cptr = argv[i + 1];
-    }
-	if (cptr)
-        desk2 = atoi (cptr);
-	else
-        desk2 = desk1;
+    for( i = 1 ; i< argc ; ++i)
+		if( argv[i] != NULL && isspace (argv[i][0]) )
+		{
+			++desk_cnt ;
+			if( desk_cnt == 1 )
+				desk1 = atoi (argv[i]);
+			else if( desk_cnt == 2 )
+				desk2 = atoi (argv[i]);
+			else
+				break;
+	    }
 
     if (desk2 < desk1)
 	{
@@ -321,6 +314,8 @@ CheckConfigSanity()
         Config = CreatePagerConfig (PagerState.desks_num);
     if( Config->rows == 0 )
         Config->rows = 1;
+	else if( Config->rows > PagerState.desks_num )
+		Config->rows = PagerState.desks_num ;
 
     if( Config->columns == 0 ||
         Config->rows*Config->columns != PagerState.desks_num )
@@ -329,21 +324,28 @@ CheckConfigSanity()
     if( Config->rows*Config->columns < PagerState.desks_num )
         ++(Config->columns);
 
+	LOCAL_DEBUG_OUT( "columns = %d, rows = %d, desks = %ld, start_desk = %ld", Config->columns, Config->rows, PagerState.desks_num, PagerState.start_desk );
+
     Config->gravity = NorthWestGravity ;
     if( get_flags(Config->geometry.flags, XNegative) )
         Config->gravity = get_flags(Config->geometry.flags, YNegative)? SouthEastGravity:NorthEastGravity;
     else if( get_flags(Config->geometry.flags, YNegative) )
         Config->gravity = SouthWestGravity;
 
+    if (Config->geometry.width <= Config->columns )
+		clear_flags(Config->geometry.flags, WidthValue);
+    if (!get_flags(Config->geometry.flags, WidthValue) )
+		Config->geometry.width = PagerState.vscaled_desk_width*Config->columns ;
 
-    if (get_flags(Config->geometry.flags, WidthValue) && Config->geometry.width > Config->columns )
-       PagerState.desk_width = Config->geometry.width/Config->columns ;
+	PagerState.desk_width = Config->geometry.width/Config->columns ;
+	Config->geometry.width = PagerState.desk_width*Config->columns ;
 
-    Config->geometry.width = PagerState.desk_width*Config->columns ;
+    if (Config->geometry.height <= Config->rows )
+		clear_flags(Config->geometry.flags, HeightValue);
+    if (!get_flags(Config->geometry.flags, HeightValue) || Config->geometry.height <= Config->rows )
+		Config->geometry.height = PagerState.vscaled_desk_height*Config->rows ;
 
-    if (get_flags(Config->geometry.flags, HeightValue) && Config->geometry.height > Config->rows )
-        PagerState.desk_height = Config->geometry.height/Config->rows ;
-
+    PagerState.desk_height = Config->geometry.height/Config->rows ;
     Config->geometry.height = PagerState.desk_height*Config->rows ;
 
     if( !get_flags(Config->geometry.flags, XValue))
@@ -589,8 +591,8 @@ GetBaseOptions (const char *filename)
     Scr.Vy = 0;
     PagerState.vscreen_width = Scr.VxMax + Scr.MyDisplayWidth;
     PagerState.vscreen_height = Scr.VyMax + Scr.MyDisplayHeight;
-    PagerState.desk_width = PagerState.vscreen_width/Scr.VScale;
-    PagerState.desk_height = PagerState.vscreen_height/Scr.VScale;
+    PagerState.vscaled_desk_width = PagerState.vscreen_width/Scr.VScale;
+    PagerState.vscaled_desk_height = PagerState.vscreen_height/Scr.VScale;
 
     SHOW_TIME("BaseConfigParsingTime",started);
     LOCAL_DEBUG_OUT("desk_size(%dx%d),vscreen_size(%dx%d),vscale(%d)", PagerState.desk_width, PagerState.desk_height, PagerState.vscreen_width, PagerState.vscreen_height, Scr.VScale );
@@ -1105,6 +1107,8 @@ redecorate_pager_desks()
     XSetWindowAttributes attr;
 	int wasted_x = Config->border_width * (Config->columns+1) ;
 	int wasted_y = Config->border_width * (Config->rows+1);
+	int max_title_width = 0 ;
+	int max_title_height = 0 ;
 
     for( i = 0 ; i < PagerState.desks_num ; ++i )
     {
@@ -1158,17 +1162,19 @@ redecorate_pager_desks()
                 add_astbar_btnblock( d->title, flip?0:1, 0, flip, NO_ALIGN, &(Config->shade_btn), 0xFFFFFFFF, 1, 1, 1, 0, 0);
             if( get_flags( Config->flags, VERTICAL_LABEL ) )
             {
-                d->title_width = calculate_astbar_width( d->title );
+				int size = calculate_astbar_width( d->title );
+				if( size  > max_title_width )
+					max_title_width = size ;
                 d->title_height = PagerState.desk_height - Config->border_width*2;
 				wasted_x += d->title_width ;
             }else
             {
+                int size = calculate_astbar_height( d->title );
                 d->title_width = PagerState.desk_width-Config->border_width*2;
-                d->title_height = calculate_astbar_height( d->title );
+				if( size  > max_title_height )
+					max_title_height = size ;
 				wasted_y += d->title_height ;
             }
-			if( just_created )
-				place_desk_title( d );
         }else
         {
             if( d->title )
@@ -1218,6 +1224,23 @@ redecorate_pager_desks()
         }
     }
 
+    if( get_flags( Config->flags, USE_LABEL ) )
+    {
+		for( i = 0 ; i < PagerState.desks_num ; ++i )
+    	{	/* create & moveresize label bar : */
+        	ASPagerDesk *d = &(PagerState.desks[i]);
+
+            if( get_flags( Config->flags, VERTICAL_LABEL ) )
+
+                d->title_width = max_title_width;
+            else
+                d->title_height = max_title_height;
+			place_desk_title( d );
+		}
+		wasted_x += max_title_width*Config->columns ;
+		wasted_y += max_title_height*Config->rows ;
+	}
+
 	/* if wasted space changed and configured geometry does not specify size -
 	 * adjust desk_width/height accordingly :
 	 */
@@ -1233,6 +1256,7 @@ redecorate_pager_desks()
 	if( !get_flags( Config->geometry.flags, HeightValue ) )
 	{
 		int delta = ((wasted_y - PagerState.wasted_height)+(Config->rows/2))/Config->rows ;
+		LOCAL_DEBUG_OUT( "wasted_y = %d, (old was = %d) - adjusting desk_height by %d", wasted_y, PagerState.wasted_height, delta );
 		if( delta != 0 )
 		{
 			PagerState.desk_height += delta ;

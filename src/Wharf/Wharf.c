@@ -181,6 +181,7 @@ void exec_pending_swallow( ASWharfFolder *aswf );
 void check_swallow_window( ASWindowData *wd );
 void update_wharf_folder_transprency( ASWharfFolder *aswf, Bool force );
 void update_wharf_folder_styles( ASWharfFolder *aswf, Bool force );
+void on_wharf_button_confreq( ASWharfButton *aswb, ASEvent *event );
 
 
 /***********************************************************************
@@ -588,6 +589,17 @@ DispatchEvent (ASEvent * event)
                 }
             }
             break ;
+        case ConfigureRequest:
+			{
+            	ASMagic *obj = fetch_object( event->w ) ;
+                if( obj != NULL && obj->magic == MAGIC_WHARF_BUTTON )
+                {
+                    ASWharfButton *aswb = (ASWharfButton*)obj;
+					on_wharf_button_confreq( aswb, event );
+				}
+			}
+            break;
+
 	    case ClientMessage:
             {
 #ifdef LOCAL_DEBUG
@@ -1753,6 +1765,56 @@ check_swallow_window( ASWindowData *wd )
 /*************************************************************************/
 /* Event handling                                                        */
 /*************************************************************************/
+void
+on_wharf_button_confreq( ASWharfButton *aswb, ASEvent *event )
+{
+	if( aswb && aswb->swallowed )
+	{
+		XConfigureRequestEvent *cre = &(event->x.xconfigurerequest);
+	    XWindowChanges xwc;
+        unsigned long xwcm;
+		int re_width = aswb->desired_width ;
+		int re_height = aswb->desired_height ;
+
+        xwcm = CWX | CWY | CWWidth | CWHeight | (cre->value_mask&CWBorderWidth);
+
+		if( get_flags( cre->value_mask, CWWidth )  )
+		{
+			if( get_flags( aswb->flags, ASW_MaxSwallow ) ||
+				(Config->force_size.width == 0 && !get_flags(aswb->flags, ASW_FixedWidth)))
+			{
+        		aswb->desired_width = cre->width;
+			}
+			re_width = cre->width ;
+		}
+		if( get_flags( cre->value_mask, CWHeight )  )
+		{
+	    	if( get_flags( aswb->flags, ASW_MaxSwallow ) ||
+				(Config->force_size.height == 0 && !get_flags(aswb->flags, ASW_FixedHeight)) )
+			{
+        		aswb->desired_height = cre->height;
+			}
+			re_height = cre->height ;
+		}
+
+		xwc.width = min( aswb->desired_width, re_width );
+   		xwc.height = min( aswb->desired_height, re_height );
+
+		xwc.x = make_tile_pad( get_flags(Config->align_contents,PAD_LEFT),
+                               get_flags(Config->align_contents,PAD_RIGHT),
+                               aswb->canvas->width, xwc.width );
+		xwc.y = make_tile_pad( get_flags(Config->align_contents,PAD_TOP),
+                               get_flags(Config->align_contents,PAD_BOTTOM),
+                               aswb->canvas->height, xwc.height );
+
+		xwc.border_width = cre->border_width;
+
+		LOCAL_DEBUG_OUT( "Configuring swallowed window %lX to req(%dx%d%+d%+d bw = %d)- actual(%dx%d%+d%+d), (flags=%lX)", (unsigned long)aswb->swallowed->current->w, cre->width, cre->height, cre->x, cre->y, cre->border_width, xwc.width, xwc.height, xwc.x, xwc.y, xwcm );
+        XConfigureWindow (dpy, aswb->swallowed->current->w, xwcm, &xwc);
+		return;
+	}
+}
+
 Bool
 on_wharf_button_moveresize( ASWharfButton *aswb, ASEvent *event )
 {
@@ -1765,21 +1827,23 @@ on_wharf_button_moveresize( ASWharfButton *aswb, ASEvent *event )
         swallowed_changes = handle_canvas_config ( sc );
         if( get_flags(swallowed_changes, CANVAS_RESIZED ) )
         {
-            aswb->desired_width = sc->width ;
-            aswb->desired_height = sc->height ;
             update_wharf_folder_size( aswb->parent );
         }
         if( get_flags(changes, CANVAS_RESIZED ) )
         {
-            move_canvas( sc,
-                         make_tile_pad( get_flags(Config->align_contents,PAD_LEFT),
-                                        get_flags(Config->align_contents,PAD_RIGHT),
-                                        aswb->canvas->width, sc->width      ),
-                         make_tile_pad( get_flags(Config->align_contents,PAD_TOP),
-                                        get_flags(Config->align_contents,PAD_BOTTOM),
-                                        aswb->canvas->height, sc->height    ));
+		    int swidth = min( aswb->desired_width, aswb->swallowed->current->width );
+    		int sheight = min( aswb->desired_height, aswb->swallowed->current->height );
+
+			moveresize_canvas( aswb->swallowed->current,
+                       make_tile_pad( get_flags(Config->align_contents,PAD_LEFT),
+                                      get_flags(Config->align_contents,PAD_RIGHT),
+                                      aswb->canvas->width, swidth      ),
+                       make_tile_pad( get_flags(Config->align_contents,PAD_TOP),
+                                      get_flags(Config->align_contents,PAD_BOTTOM),
+                                      aswb->canvas->height, sheight    ),
+                       swidth, sheight );
         }
-        if( swallowed_changes == 0 && changes != 0 )
+        if( !get_flags(swallowed_changes, CANVAS_RESIZED ) && changes != 0 )
             send_swallowed_configure_notify(aswb);
     }
 

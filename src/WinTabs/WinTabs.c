@@ -514,8 +514,8 @@ rearrange_tabs()
 	i = PVECTOR_USED(WinTabsState.tabs) ;
 	while( --i >= 0 )
 	{
-		int width  = get_astbar_label_width( tabs[i]->bar );
-		int height = get_astbar_label_height( tabs[i]->bar );
+		int width  = calculate_astbar_width( tabs[i].bar );
+		int height = calculate_astbar_height( tabs[i].bar );
 
 		if( height > max_height )
 			max_height = height ;

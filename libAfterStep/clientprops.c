@@ -341,7 +341,7 @@ read_wm_protocols (ASRawHints * hints, Window w)
     LOCAL_DEBUG_CALLER_OUT( "window(%lX)", w );
 	if (hints && w != None)
 	{
-		CARD32        *protocols;
+		CARD32        *protocols = NULL;
 		long          nprotos = 0;
 
 		hints->wm_protocols = 0;

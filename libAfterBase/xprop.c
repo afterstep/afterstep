@@ -187,15 +187,17 @@ read_32bit_proplist (Window w, Atom property, long estimate, CARD32 ** list, lon
 			res = (res && (unitems > 0));	   /* bad property */
 		}
 
-		if (res)
+		if (!res)
 		{
 			*nitems = 0;
+			*list = NULL ;
 		}else
 		{
 			register int i = unitems ;
-			*list = safemalloc(unitems*sizeof(CARD32));
+			register CARD32 *data32  = safemalloc(unitems*sizeof(CARD32));
 			while( --i >= 0 )
-				*list[i] = buffer[i] ;
+				data32[i] = buffer[i] ;
+			*list = data32 ;
 			*nitems = unitems ;
 		}
 		if ( buffer )
