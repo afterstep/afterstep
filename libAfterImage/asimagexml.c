@@ -184,8 +184,9 @@ compose_asimage_xml(ASVisual *asv, ASImageManager *imman, ASFontManager *fontman
 {
 	ASImage* im = NULL;
 	xml_elem_t* doc;
-	ASImageManager *my_imman = imman ;
-	ASFontManager  *my_fontman = fontman ;
+	ASImageManager *my_imman = imman, *old_as_xml_imman = _as_xml_image_manager ;
+	ASFontManager  *my_fontman = fontman, *old_as_xml_fontman = _as_xml_font_manager ; ;
+
 
       asxml_var_init();
 
@@ -215,6 +216,8 @@ compose_asimage_xml(ASVisual *asv, ASImageManager *imman, ASFontManager *fontman
 			LOCAL_DEBUG_OUT( "created image manager %p with search path \"%s\"", my_imman, my_imman->search_path[0] );
 			if( path2 )
 				free( path2 );
+			/* we'll want to reuse it in case of recursion */
+			_as_xml_image_manager = my_imman;
 		}
 
 		if( my_fontman == NULL )
@@ -238,6 +241,8 @@ compose_asimage_xml(ASVisual *asv, ASImageManager *imman, ASFontManager *fontman
 					path2 = (char*)path ;
 			}
 			my_fontman = create_font_manager( asv->dpy, path2, NULL );
+			/* we'll want to reuse it in case of recursion */
+			_as_xml_font_manager = my_fontman ;
 			if( path2 && path2 != path )
 				free( path2 );
 		}
@@ -248,14 +253,17 @@ compose_asimage_xml(ASVisual *asv, ASImageManager *imman, ASFontManager *fontman
 		}
 LOCAL_DEBUG_OUT( "result im = %p, im->imman	= %p, my_imman = %p, im->magic = %8.8X", im, im?im->imageman:NULL, my_imman, im?im->magic:0 );
 
-		if( my_imman != imman && my_imman != _as_xml_image_manager )
+		if( my_imman != imman && my_imman != old_as_xml_imman )
 		{
 			if( im && im->imageman == my_imman )
 				forget_asimage( im );
 			destroy_image_manager(my_imman, False);
 		}
-		if( my_fontman != fontman && my_fontman != _as_xml_font_manager  )
+		if( my_fontman != fontman && my_fontman != old_as_xml_fontman  )
 			destroy_font_manager(my_fontman, False);
+		/* must restore managers to its original state */
+		_as_xml_image_manager = old_as_xml_imman   ;
+		_as_xml_font_manager =  old_as_xml_fontman ;
 	}
 
 	/* Delete the xml. */
@@ -524,52 +532,70 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
  * NAME
  * color - defines symbolic name for a color and set of variables.
  * SYNOPSIS
- * <color name="sym_name" argb=colorvalue/>
+ * <color name="sym_name" domain="var_domain" argb=colorvalue/>
  * ATTRIBUTES
  * name   Symbolic name for the color value, to be used to refer to that color.
  * argb   8 characters hex definition of the color or other symbolic color name.
+ * domain string to be used to prepend names of defined variables.
  * NOTES
  * In addition to defining symbolic name for the color this tag will define
- * 7 other variables : sym_name.red, sym_name, green, sym_name.blue,
- *                     sym_name.alpha, sym_name.hue, sym_name.saturation,
- *                     sym_name.value
+ * 7 other variables : domain.sym_name.red, domain.sym_name.green, domain.sym_name.blue,
+ *                     domain.sym_name.alpha, domain.sym_name.hue, domain.sym_name.saturation,
+ *                     domain.sym_name.value
  ******/
 	if (!strcmp(doc->tag, "color")) {
 		xml_elem_t* parm = xml_parse_parm(doc->parm);
 		const char* name = NULL;
 		const char* argb_text = NULL;
+		const char* var_domain = NULL;
 		for (ptr = parm ; ptr ; ptr = ptr->next) {
 			if (!strcmp(ptr->tag, "name")) name = strdup(ptr->parm);
 			if (!strcmp(ptr->tag, "argb")) argb_text = ptr->parm;
+			if (!strcmp(ptr->tag, "domain")) var_domain = ptr->parm;
 		}
 		if (name && argb_text) {
 			ARGB32 argb = ARGB32_Black;
 			if( parse_argb_color( argb_text, &argb ) != argb_text )
 			{
-				static char tmp[256];
+				char *tmp;
 				CARD32 hue16, sat16, val16 ;
+				int vd_len = var_domain?strlen(var_domain):0 ;
+
+				tmp = safemalloc( vd_len + 1+ strlen(name )+32+1 ) ;
+
+				if( var_domain && var_domain[0] != '\0' )
+				{
+					if( var_domain[vd_len-1] != '.' )
+					{
+						sprintf( tmp, "%s.", var_domain );
+						++vd_len ;
+					}else
+						strcpy( tmp, var_domain );
+				}
+
 
 #ifdef HAVE_AFTERBASE
 	   			show_progress("defining synonim [%s] for color value #%8.8X.", name, argb);
 	   			register_custom_color( name, argb );
 #endif
-				sprintf( tmp, "%s.alpha", name );
+				sprintf( tmp+vd_len, "%s.alpha", name );
 				asxml_var_insert( tmp, ARGB32_ALPHA8(argb) );
-				sprintf( tmp, "%s.red", name );
+				sprintf( tmp+vd_len, "%s.red", name );
 				asxml_var_insert( tmp, ARGB32_RED8(argb) );
-				sprintf( tmp, "%s.green", name );
+				sprintf( tmp+vd_len, "%s.green", name );
 				asxml_var_insert( tmp, ARGB32_GREEN8(argb) );
-				sprintf( tmp, "%s.blue", name );
+				sprintf( tmp+vd_len, "%s.blue", name );
 				asxml_var_insert( tmp, ARGB32_BLUE8(argb) );
 
 				hue16 = rgb2hsv( ARGB32_RED16(argb), ARGB32_GREEN16(argb), ARGB32_BLUE16(argb), &sat16, &val16 );
 
-				sprintf( tmp, "%s.hue", name );
+				sprintf( tmp+vd_len, "%s.hue", name );
 				asxml_var_insert( tmp, hue162degrees( hue16 ) );
-				sprintf( tmp, "%s.saturation", name );
+				sprintf( tmp+vd_len, "%s.saturation", name );
 				asxml_var_insert( tmp, val162percent( sat16 ) );
-				sprintf( tmp, "%s.value", name );
+				sprintf( tmp+vd_len, "%s.value", name );
 				asxml_var_insert( tmp, val162percent( val16 ) );
+				free( tmp );
 			}
 		}
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
@@ -938,7 +964,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 			if (npoints1 > 1) {
 				int i;
 				if (offset_str && npoints1 > npoints2) npoints1 = npoints2;
-				gradient.color = NEW_ARRAY(ARGB32, npoints1);
+				gradient.color = safecalloc(npoints1, sizeof(ARGB32));
 				gradient.offset = NEW_ARRAY(double, npoints1);
 				for (p = color_str ; isspace((int)*p) ; p++);
 				for (npoints1 = 0 ; *p ; ) {
@@ -946,7 +972,11 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 					if (*p) for ( ; *p && !isspace((int)*p) ; p++);
 					for ( ; isspace((int)*p) ; p++);
 					ch = *p; *p = '\0';
-					if (parse_argb_color(pb, gradient.color + npoints1)) npoints1++;
+					if (parse_argb_color(pb, gradient.color + npoints1) != pb)
+					{
+						npoints1++;
+					}else
+						show_warning( "failed to parse color [%s] - defaulting to black", pb );
 					*p = ch;
 				}
 				if (offset_str) {
@@ -1866,17 +1896,26 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
               sprintf(buf, "%s.height", id);
               asxml_var_insert(buf, result->height);
               free(buf);
-		if( !store_asimage( imman, result, id ) )
+		if( result->imageman != NULL )
 		{
-			show_warning("Failed to store image id [%s].", id);
+			ASImage *tmp = clone_asimage(result, SCL_DO_ALL );
 			safe_asimage_destroy(result );
-			result = fetch_asimage( imman, id );
-			/*show_warning("Old image with the name fetched as %p.", result);*/
-		}else
+			result = tmp ;
+		}
+		if( result )
 		{
-			/* normally generated image will be destroyed right away, so we need to
-			 * increase ref count, in order to preserve it for future uses : */
-			dup_asimage( result );
+			if( !store_asimage( imman, result, id ) )
+			{
+				show_warning("Failed to store image id [%s].", id);
+				safe_asimage_destroy(result );
+				result = fetch_asimage( imman, id );
+				/*show_warning("Old image with the name fetched as %p.", result);*/
+			}else
+			{
+				/* normally generated image will be destroyed right away, so we need to
+			 	* increase ref count, in order to preserve it for future uses : */
+				dup_asimage( result );
+			}
 		}
 	}
 

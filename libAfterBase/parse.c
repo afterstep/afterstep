@@ -85,12 +85,14 @@ get_custom_color(const char* name, CARD32 *color) {
 	ASHashData hdata = {0} ;
 	if( custom_argb_colornames )
 	{
+		/* show_progress( "Looking up custom color \"%s\"...", name ); */
       	if( get_hash_item(custom_argb_colornames, AS_HASHABLE(name), &hdata.vptr) != ASH_Success )
 		{
 			show_debug(__FILE__, "asvar_get", __LINE__, "Use of undefined variable [%s].", name);
 		}else
 		{
 			*color = hdata.c32 ;
+			show_progress( "Custom color \"%s\" found with argb #%8.8X", name, *color );
 			return True;
 		}
 	}
@@ -473,6 +475,7 @@ const char *parse_argb_color( const char *color, CARD32 *pargb )
 		{
 			register char *ptr = (char*)&(color[0]);
 			register int i = 0;
+			Bool success = True ;
 
 			while( isalnum((int)ptr[i]) ) ++i;
 			if( ptr[i] != '\0' )
@@ -484,15 +487,34 @@ const char *parse_argb_color( const char *color, CARD32 *pargb )
 				XColor xcol, xcol_scr ;
 				/* does not really matter here what screen to use : */
 				if( AS_ASSERT(dpy) )
-					return color ;
-
-				if( XLookupColor( dpy, DefaultColormap(dpy,DefaultScreen(dpy)), ptr, &xcol, &xcol_scr) )
-					*pargb = 0xFF000000|((xcol.red<<8)&0x00FF0000)|(xcol.green&0x0000FF00)|((xcol.blue>>8)&0x000000FF);
+					success = False ;
+				else
+				{
+					if( XLookupColor( dpy, DefaultColormap(dpy,DefaultScreen(dpy)), ptr, &xcol, &xcol_scr) )
+						*pargb = 0xFF000000|((xcol.red<<8)&0x00FF0000)|(xcol.green&0x0000FF00)|((xcol.blue>>8)&0x000000FF);
+					else
+						success = False ;
+				}
 #endif
 			}
 			if( ptr != &(color[0]) )
 				free( ptr );
-			return &(color[i]);
+			if( !success )
+			{
+				int orig_i = i ;
+				ptr = (char*)&(color[0]);
+
+				while( isalnum((int)ptr[i]) || ptr[i] == '.' || ptr[i] == '_') ++i;
+				if( orig_i < i )
+				{
+					if( ptr[i] != '\0' )
+						ptr = mystrndup(&(color[0]), i );
+					success = get_custom_color( ptr, pargb);
+					if( ptr != &(color[0]) )
+						free( ptr );
+				}
+			}
+			return success?&(color[i]):color;
 		}
 	}
 	return color;
