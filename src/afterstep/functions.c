@@ -95,8 +95,9 @@ extern ASDirs as_dirs;
  *
  ***********************************************************************/
 void
-ExecuteFunction (FunctionCode func, char *action, ASEvent *event, long val1, long val2,
-				 int val1_unit, int val2_unit, MenuRoot * menu, int Module)
+ExecuteFunction ( FunctionCode func, char *action, ASEvent *event,
+                  long val1, long val2, int val1_unit, int val2_unit,
+                  MenuRoot * menu, int Module)
 {
 	ASWindow     *t = NULL;
 	char         *realfilename, tmpfile[255];

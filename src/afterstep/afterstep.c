@@ -74,6 +74,7 @@
 #include "../../include/misc.h"
 #include "../../include/style.h"
 #include "../../include/screen.h"
+#include "../../include/event.h"
 #include "../../include/module.h"
 #include "../../include/loadimg.h"
 #include "../../include/clientprops.h"
@@ -324,7 +325,7 @@ main (int argc, char **argv)
     enable_hints_support( Scr.supported_hints, HINTS_GroupLead );
     enable_hints_support( Scr.supported_hints, HINTS_Transient );
 
-
+    event_setup( True /*Bool local*/ );
 
 	if (debugging)
 		set_synchronous_mode (True);
@@ -465,13 +466,11 @@ main (int argc, char **argv)
 	if (Restarting)
 	{
 		if (Scr.RestartFunction != NULL)
-			ExecuteFunction (F_FUNCTION, NULL, None, NULL, &Event, C_ROOT, 0, 0,
-							 0, 0, Scr.RestartFunction, -1);
+            ExecuteFunction (F_FUNCTION, NULL, NULL, 0, 0, 0, 0, Scr.RestartFunction, -1);
 	} else
 	{
 		if (Scr.InitFunction != NULL)
-			ExecuteFunction (F_FUNCTION, NULL, None, NULL, &Event, C_ROOT, 0, 0,
-							 0, 0, Scr.InitFunction, -1);
+            ExecuteFunction (F_FUNCTION, NULL, NULL, 0, 0, 0, 0, Scr.InitFunction, -1);
 	}
 	XDefineCursor (dpy, Scr.Root, Scr.ASCursors[DEFAULT]);
 
@@ -588,8 +587,7 @@ CaptureAllWindows (void)
 			XFindContext (dpy, children[i], MenuContext, &dummy) == XCNOENT)
 		{
 			XUnmapWindow (dpy, children[i]);
-			Event.xmaprequest.window = children[i];
-			HandleMapRequest ();
+            AddWindow (children[i]);
 		}
 	}
 
@@ -843,11 +841,8 @@ InitVariables (int shallresetdesktop)
 	Scr.ASRoot.hints = safecalloc( 1, sizeof(ASHints));
 	Scr.ASRoot.status = safecalloc( 1, sizeof(ASStatusHints));
 	Scr.ASRoot.next = 0;
-	XGetWindowAttributes (dpy, Scr.Root, &(Scr.ASRoot.attr));
-	Scr.root_pushes = 0;
-	Scr.pushed_window = &Scr.ASRoot;
 
-	Scr.MyDisplayWidth = DisplayWidth (dpy, Scr.screen);
+    Scr.MyDisplayWidth = DisplayWidth (dpy, Scr.screen);
 	Scr.MyDisplayHeight = DisplayHeight (dpy, Scr.screen);
 
 	Scr.NoBoundaryWidth = 0;
@@ -858,6 +853,8 @@ InitVariables (int shallresetdesktop)
 	Scr.Ungrabbed = NULL;
 
 	Scr.VScale = 32;
+
+    ColormapSetup();
 
 	if (shallresetdesktop == 1)
 	{

@@ -25,7 +25,7 @@ typedef struct MenuItem
     val_type val1;		/* values needed for F_SCROLL */
     val_type val2;
     val_type val1_unit;		/* units for val1, val2 */
-    val_type val2_unit;		/* pixels (unit=1) or percent of screen 
+    val_type val2_unit;		/* pixels (unit=1) or percent of screen
 				 * (unit = Scr.MyDisplayWidth/Height */
     Bool is_hilited;		/* is the item selected? */
     short strlen;		/* strlen(item) */
@@ -71,7 +71,7 @@ typedef struct MouseButton
     val_type val1;
     val_type val2;
     val_type val1_unit;		/* units for val1, val2 */
-    val_type val2_unit;		/* pixels (unit=1) or percent of screen 
+    val_type val2_unit;		/* pixels (unit=1) or percent of screen
 				 * (unit = Scr.MyDisplayWidth/Height */
     struct MouseButton *NextButton;
   }
@@ -131,8 +131,7 @@ int txt2func( const char* text, FunctionData* fdata, int quiet );
 int parse_func( const char* text, FunctionData* data, int quiet );
 int free_func_data( FunctionData* data );
 
-void ExecuteFunction (FunctionCode, char *, Window, ASWindow *, XEvent *,
-			     unsigned long, long, long, int, int,
+void ExecuteFunction (FunctionCode, char *, ASEvent *, long, long, int, int,
 			     struct MenuRoot *, int);
 void FocusOn (ASWindow *, int, Bool);
 
@@ -164,7 +163,7 @@ int RunCommand( char* cmd, int channel, Window w );
 void do_menu(MenuRoot * menu, MenuRoot * parent);
 Bool configure_menu(MenuRoot * menu, MenuRoot * parent);
 void setup_menu_pixmaps(MenuRoot * menu);
-Bool HandleMenuEvent (MenuRoot * menu, XEvent * event);
+Bool HandleMenuEvent (MenuRoot * menu, ASEvent * event);
 Bool map_menu(MenuRoot * menu, int context);
 Bool unmap_menu (MenuRoot * menu);
 Bool pin_menu(MenuRoot * menu);

@@ -1029,7 +1029,7 @@ on_window_title_changed( ASWindow *asw, Bool update_display )
 }
 
 void
-on_window_status_changed( ASWindow *asw, Bool update_display )
+on_window_status_changed( ASWindow *asw, Bool update_display, Bool reconfigured )
 {
     char *unfocus_mystyle = NULL ;
     int i ;
@@ -1069,7 +1069,7 @@ on_window_status_changed( ASWindow *asw, Bool update_display )
         if( asw->tbar )
             if( set_astbar_style( asw->tbar, BAR_STATE_UNFOCUSED, unfocus_mystyle ) )
                 changed = True ;
-        if( changed )
+        if( changed || reconfigured )
         {/* now we need to update frame sizes in status */
             int tbar_side = FR_N ;
             unsigned int *frame_size = &(asw->status->frame_size[0]) ;
@@ -1527,11 +1527,8 @@ LOCAL_DEBUG_OUT( "unmaping client window 0x%lX", (unsigned long)asw->w );
 				{
 		  			if (Scr.PreviousFocus == Scr.Focus)
 						Scr.PreviousFocus = NULL;
-					if ((Scr.flags & ClickToFocus) && (asw->next))
-						SetFocus (asw->next->w, asw->next, False);
-					else
-						SetFocus (Scr.NoFocusWin, NULL, False);
-				}
+                    focus_next_aswindow (asw);
+                }
 			}
 		}
 LOCAL_DEBUG_OUT( "updating status to iconic for client %p(\"%s\")", asw, ASWIN_NAME(asw) );
@@ -1566,7 +1563,7 @@ LOCAL_DEBUG_OUT( "updating status to iconic for client %p(\"%s\")", asw, ASWIN_N
         asw->status->icon_window = None ;
     }
 
-    on_window_status_changed( asw, True );
+    on_window_status_changed( asw, True, False );
     return True;
 }
 
@@ -1743,6 +1740,16 @@ hilite_aswindow( ASWindow *asw )
     }
 }
 
+void
+hide_hilite()
+{
+    if( Scr.Hilite != NULL )
+    {
+        on_window_hilite_changed (Scr.Hilite, False);
+        Scr.Hilite = NULL ;
+    }
+}
+
 /***********************************************************************
  *
  *  Procedure:
@@ -1901,7 +1908,7 @@ AddWindow (Window w)
 
     redecorate_window       ( tmp_win, False );
     on_window_title_changed ( tmp_win, False );
-    on_window_status_changed( tmp_win, False );
+    on_window_status_changed( tmp_win, False, True );
 
     /*
 	 * Reparenting generates an UnmapNotify event, followed by a MapNotify.
@@ -1966,8 +1973,8 @@ Destroy (ASWindow *asw, Bool kill_client)
 		return;
 
     XUnmapWindow (dpy, asw->frame);
-    XRemoveFromSaveSet (dpy, Event.xunmap.window);
-    XSelectInput (dpy, Event.xunmap.window, NoEventMask);
+    XRemoveFromSaveSet (dpy, asw->w);
+    XSelectInput (dpy, asw->w, NoEventMask);
     XSync (dpy, 0);
 
     Broadcast (M_DESTROY_WINDOW, 3, asw->w, asw->frame, (unsigned long)asw);

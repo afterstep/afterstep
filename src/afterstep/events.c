@@ -47,6 +47,7 @@
 #include "../../include/afterstep.h"
 #include "../../include/module.h"
 #include "../../include/parse.h"
+#include "../../include/decor.h"
 #include "../../include/misc.h"
 #include "../../include/style.h"
 #include "../../include/screen.h"
@@ -76,7 +77,7 @@ static int warping_direction = 0;
 
 #ifdef SHAPE
 extern int    ShapeEventBase;
-void          HandleShapeNotify (void);
+void          HandleShapeNotify (ASEvent *event);
 #endif /* SHAPE */
 
 
@@ -151,11 +152,12 @@ HandleEvents ()
 void
 DigestEvent( ASEvent *event )
 {
+    register int i ;
     setup_asevent_from_xevent( event );
     event->client = window2ASWindow( event->w );
     event->context = C_ROOT ;
     event->widget = NULL ;
-    if( (event->event_class & ASE_POINTER_EVENTS) != 0 && event->client )
+    if( (event->eclass & ASE_POINTER_EVENTS) != 0 && event->client )
     {
         /* now lets determine the context of the event : (former GetContext)*/
         Window   w = event->w ;
@@ -175,11 +177,10 @@ DigestEvent( ASEvent *event )
                 event->context = C_CLIENT ;
             }else if( w != asw->frame )
             {
-                register int i = FRAME_SIDES ;
+                i = FRAME_SIDES ;
                 while( --i >= 0 )
                     if( asw->frame_sides[i]->w == w )
                     {
-                        int tbar_context ;
                         canvas = asw->frame_sides[i];
                         /* determine what part of the frame : */
                         event->context = C_FRAME ;
@@ -196,11 +197,12 @@ DigestEvent( ASEvent *event )
                 }else
                 {
                     Window dumm;
-                    XTransalteCoordinates(dpy,Scr.Root,w,xk->x_root, xk->y_root, &(xk->x), &(xk->y), &dumm );
+                    XTranslateCoordinates(dpy,Scr.Root,w,xk->x_root, xk->y_root, &(xk->x), &(xk->y), &dumm );
                 }
             }
             if( event->context == C_FRAME )
             {
+                int tbar_context ;
                 if( (tbar_context = check_astbar_point( asw->tbar, xk->x_root, xk->y_root )) != C_NO_CONTEXT )
                     event->context = tbar_context ;
                 else
@@ -208,7 +210,10 @@ DigestEvent( ASEvent *event )
                     for( i = 0 ; i < FRAME_PARTS ; ++i )
                         if( asw->frame_bars[i] != NULL &&
                             (tbar_context = check_astbar_point( asw->frame_bars[i], xk->x_root, xk->y_root )) != C_NO_CONTEXT )
+                        {
+                            event->context = tbar_context ;
                             break;
+                        }
                 }
             }
             event->w = w ;
@@ -224,7 +229,7 @@ DigestEvent( ASEvent *event )
                     if( c != C_NO_CONTEXT )
                         event->context = c ;
                 }
-            }else( asw->icon_title_canvas && w == asw->icon_title_canvas->w )
+            }else if( asw->icon_title_canvas && w == asw->icon_title_canvas->w )
             {
                 canvas = asw->icon_title_canvas ;
                 event->context = C_IconTitle ;
@@ -246,82 +251,93 @@ DispatchEvent ( ASEvent *event )
 
     switch (event->x.type)
 	{
-	 case Expose:
-         HandleExpose (event);
-		 break;
-	 case DestroyNotify:
-         HandleDestroyNotify (event);
-		 break;
-	 case MapRequest:
-         HandleMapRequest (event);
-		 break;
-	 case MapNotify:
-         HandleMapNotify (event);
-		 break;
-	 case UnmapNotify:
-         HandleUnmapNotify (event);
-		 break;
-	 case ButtonPress:
-		 /* if warping, a button press, non-warp keypress, or pointer motion
-		  * indicates that the warp is done */
-         warp_ungrab (event->client, True);
-         HandleButtonPress (event);
-		 break;
-	 case EnterNotify:
-         HandleEnterNotify (event);
-		 break;
-	 case LeaveNotify:
-         HandleLeaveNotify (event);
-#if 0
-		 /* if warping, leaving a window means that we need to ungrab, but
-		  * the ungrab should be taken care of by the FocusOut */
-         warp_ungrab (event->client, False);
-#endif
-		 break;
-	 case FocusIn:
-         HandleFocusIn (event);
-         if (event->client != NULL)
-		 {
-			 if (warp_in_process)
-                 warp_grab (event->client);
-			 else
-                 ChangeWarpIndex (event->client->warp_index, F_WARP_F);
-		 }
-		 break;
-	 case FocusOut:
-		 /* if warping, this is the normal way to determine that we should ungrab
-		  * window events */
-         warp_ungrab (event->client, False);
-		 break;
-	 case MotionNotify:
-		 /* if warping, a button press, non-warp keypress, or pointer motion
-		  * indicates that the warp is done */
-         warp_ungrab (event->client, True);
-		 break;
-	 case ConfigureRequest:
-         HandleConfigureRequest (event);
-		 break;
-	 case ClientMessage:
-         HandleClientMessage (event);
-		 break;
-	 case PropertyNotify:
-         HandlePropertyNotify (event);
-		 break;
-	 case KeyPress:
-		 /* if a key has been pressed and it's not one of those that cause
-		    warping, we know the warping is finished */
-         HandleKeyPress (event);
-		 break;
-	 case ColormapNotify:
-         HandleColormapNotify (event);
-		 break;
-	 default:
-#ifdef SHAPE
-         if (event->x.type == (ShapeEventBase + ShapeNotify))
-             HandleShapeNotify (event);
-#endif /* SHAPE */
+        case KeyPress:
+            /* if a key has been pressed and it's not one of those that cause
+                warping, we know the warping is finished */
+            HandleKeyPress (event);
+            break;
+        case ButtonPress:
+            /* if warping, a button press, non-warp keypress, or pointer motion
+            * indicates that the warp is done */
+            warp_ungrab (event->client, True);
+            HandleButtonPress (event);
+            break;
+        case MotionNotify:
+            /* if warping, a button press, non-warp keypress, or pointer motion
+            * indicates that the warp is done */
+            warp_ungrab (event->client, True);
+            break;
+        case EnterNotify:
+            HandleEnterNotify (event);
+            break;
+        case LeaveNotify:
+            HandleLeaveNotify (event);
+    #if 0
+            /* if warping, leaving a window means that we need to ungrab, but
+            * the ungrab should be taken care of by the FocusOut */
+            warp_ungrab (event->client, False);
+    #endif
+            break;
+        case FocusIn:
+            HandleFocusIn (event);
+            if (event->client != NULL)
+            {
+                if (warp_in_process)
+                    warp_grab (event->client);
+                else
+                    ChangeWarpIndex (event->client->warp_index, F_WARP_F);
+            }
+            break;
+        case FocusOut:
+            /* if warping, this is the normal way to determine that we should ungrab
+            * window events */
+            warp_ungrab (event->client, False);
+            break;
+        case Expose:
+            HandleExpose (event);
+            break;
+        case DestroyNotify:
+            HandleDestroyNotify (event);
+            break;
+        case UnmapNotify:
+            HandleUnmapNotify (event);
+            break;
+        case MapNotify:
+            HandleMapNotify (event);
+            break;
+        case MapRequest:
+            HandleMapRequest (event);
+            break;
+        case ConfigureNotify:
+            if( event->client )
+            {
+                on_window_moveresize( event->client, event->w, event->x.xconfigure.x,
+                                                               event->x.xconfigure.y,
+                                                               event->x.xconfigure.width,
+                                                               event->x.xconfigure.height );
+                if( event->w == event->client->frame )
+                    UpdateVisibility();
+            }
+            break;
+        case ConfigureRequest:
+            HandleConfigureRequest (event);
+            break;
+        case PropertyNotify:
+            HandlePropertyNotify (event);
+            break;
+        case ColormapNotify:
+            HandleColormapNotify (event);
+            break;
+        case ClientMessage:
+            HandleClientMessage (event);
+            break;
+        default:
+    #ifdef SHAPE
+            if (event->x.type == (ShapeEventBase + ShapeNotify))
+                HandleShapeNotify (event);
+    #endif /* SHAPE */
 
-		 break;
+            break;
 	}
 	return;
 }
@@ -340,14 +356,11 @@ DispatchEvent ( ASEvent *event )
 void
 HandleFocusIn ( ASEvent *event )
 {
-	XEvent        d;
-	Window        w;
-
-    while (ASCheckTypedEvent (FocusIn, &event.x));
-    DigestEvent( &event );
+    while (ASCheckTypedEvent (FocusIn, &event->x));
+    DigestEvent( event );
 
     if (event->client != Scr.Hilite)
-        BroadcastFocusChange( event->client );
+        broadcast_focus_change( event->client );
     /* note that hilite_aswindow changes value of Scr.Hilite!!! */
     hilite_aswindow( event->client );
 }
@@ -362,7 +375,6 @@ void
 HandleKeyPress ( ASEvent *event )
 {
 	FuncKey      *key;
-	Window        dummy;
     XKeyEvent *xk = &(event->x.xkey);
     unsigned int modifier = (xk->state & Scr.nonlock_mods);
 
@@ -372,7 +384,7 @@ HandleKeyPress ( ASEvent *event )
 		 * same keysym and different keycodes. This converts all
 		 * the cases to one keycode. */
         xk->keycode = XKeysymToKeycode (dpy, XKeycodeToKeysym (dpy, xk->keycode, 0));
-		if ((key->keycode == Event.xkey.keycode) &&
+        if ((key->keycode == xk->keycode) &&
 			((key->mods == (modifier & (~LockMask))) ||
              (key->mods == AnyModifier)) && (key->cont & event->context))
 		{
@@ -422,14 +434,14 @@ HandlePropertyNotify (ASEvent *event)
 	int           num;
 #endif
     ASWindow       *asw;
-    XPropertyEvent *xprop = &(event->x);
+    XPropertyEvent *xprop = &(event->x.xproperty);
 
 	/* force updates for "transparent" windows */
-    if (xprop->atom == _XROOTPMAP_ID && event->window == Scr.Root)
+    if (xprop->atom == _XROOTPMAP_ID && event->w == Scr.Root)
 	{
         if (Scr.RootImage)
 			destroy_asimage (&(Scr.RootImage));
-        for (asw = Scr.ASRoot.next; asw != NULL; asw = win->next)
+        for (asw = Scr.ASRoot.next; asw != NULL; asw = asw->next)
             update_window_transparency( asw );
 		/* use move_menu() to update transparent menus; this is a kludge, but it works */
 		if ((*Scr.MSMenuTitle).texture_type == 129 || (*Scr.MSMenuItem).texture_type == 129 ||
@@ -583,7 +595,7 @@ HandleMapRequest (ASEvent *event )
     /* If the window has never been mapped before ... */
     if (event->client == NULL)
     {
-        if( (event->client = AddWindow (Event.xany.window)) == NULL )
+        if( (event->client = AddWindow (event->w)) == NULL )
             return;
     }else /* If no hints, or currently an icon, just "deiconify" */
         iconify_window( event->client, False );
@@ -608,7 +620,7 @@ HandleMapNotify ( ASEvent *event )
 	 * when it really isn't.
 	 */
 	XGrabServer (dpy);
-    unmap_canvas_window(dpy, asw->icon_canvas );
+    unmap_canvas_window(asw->icon_canvas );
     XMapSubwindows (dpy, asw->frame);
 
 #warning "recode the way windows are removed from screen when desktop changes (make it ICCCM compliant)"
@@ -642,10 +654,7 @@ HandleMapNotify ( ASEvent *event )
 void
 HandleUnmapNotify (ASEvent *event )
 {
-	int           dstx, dsty;
-	Window        dumwin;
 	XEvent        dummy;
-	extern ASWindow *colormap_win;
     ASWindow *asw = event->client ;
 
     if ( event->x.xunmap.event == Scr.Root )
@@ -668,7 +677,7 @@ HandleUnmapNotify (ASEvent *event )
 	{
         Bool destroyed = False ;
         XGrabServer (dpy);
-        destroyed = ASCheckTypedWindowEvent ( Event.xunmap.window, DestroyNotify, &dummy) ;
+        destroyed = ASCheckTypedWindowEvent ( event->w, DestroyNotify, &dummy) ;
         /*
         * The program may have unmapped the client window, from either
         * NormalState or IconicState.  Handle the transition to WithdrawnState.
@@ -703,7 +712,7 @@ HandleButtonPress ( ASEvent *event )
 
         if (get_flags( Scr.flags, ClickToFocus) )
         {
-            if ( asw != Scr.Ungrabbed && (xbtn->state & Scr.nonlock_mods) == 0))
+            if ( asw != Scr.Ungrabbed && (xbtn->state & Scr.nonlock_mods) == 0)
                 focus_accepted = focus_aswindow(asw, False);
         }
 
@@ -785,6 +794,7 @@ HandleEnterNotify (ASEvent *event)
 {
     XEnterWindowEvent *ewp = &(event->x.xcrossing);
 	XEvent        d;
+    ASWindow *asw = event->client;
 
 	/* look for a matching leaveNotify which would nullify this enterNotify */
     if (ASCheckTypedWindowEvent ( ewp->window, LeaveNotify, &d))
@@ -813,10 +823,10 @@ HandleEnterNotify (ASEvent *event)
 	{
         if (!get_flags(Scr.flags, ClickToFocus) && !get_flags(Scr.flags, SloppyFocus))
             hide_focus();
-        InstallRootColormap(NULL);
+        InstallRootColormap();
 		return;
     }else if( event->context != C_WINDOW )
-        InstallAfterStepColormap(NULL);
+        InstallAfterStepColormap();
 
 	/* make sure its for one of our windows */
     if (asw == NULL )
@@ -847,29 +857,27 @@ HandleEnterNotify (ASEvent *event)
  *
  ************************************************************************/
 void
-HandleLeaveNotify ()
+HandleLeaveNotify ( ASEvent *event )
 {
-	/* If we leave the root window, then we're really moving
+    XEnterWindowEvent *ewp = &(event->x.xcrossing);
+    /* If we leave the root window, then we're really moving
 	 * another screen on a multiple screen display, and we
 	 * need to de-focus and unhighlight to make sure that we
 	 * don't end up with more than one highlighted window at a time */
-	if (Event.xcrossing.window == Scr.Root)
+    if (ewp->window == Scr.Root)
 	{
-		if (Event.xcrossing.mode == NotifyNormal)
+        if (ewp->mode == NotifyNormal)
 		{
-			if (Event.xcrossing.detail != NotifyInferior)
+            if (ewp->detail != NotifyInferior)
 			{
 				if (Scr.Focus != NULL)
-				{
-					SetFocus (Scr.NoFocusWin, NULL, False);
-				}
-				if (Scr.Hilite != NULL)
-					SetBorder (Scr.Hilite, False, True, True, None);
-			}
+                    hide_focus();
+                if (Scr.Hilite != NULL)
+                    hide_hilite();
+            }
 		}
 	}
 }
-
 
 /***********************************************************************
  *
@@ -878,88 +886,81 @@ HandleLeaveNotify ()
  *
  ************************************************************************/
 void
-HandleConfigureRequest ()
+HandleConfigureRequest ( ASEvent *event )
 {
-	XWindowChanges xwc;
-	unsigned long xwcm;
-	int           x, y, width, height;
-	XConfigureRequestEvent *cre = &Event.xconfigurerequest;
+    XConfigureRequestEvent *cre = &(event->x.xconfigurerequest);
+    ASWindow *asw = event->client ;
+    XWindowChanges xwc;
 
-	/*
-	 * Event.xany.window is Event.xconfigurerequest.parent, so Tmp_win will
-	 * be wrong
-	 */
-	Event.xany.window = cre->window;		   /* mash parent field */
-	Tmp_win = window2ASWindow( cre->window );
-
-	/*
+    /*
 	 * According to the July 27, 1988 ICCCM draft, we should ignore size and
 	 * position fields in the WM_NORMAL_HINTS property when we map a window.
 	 * Instead, we'll read the current geometry.  Therefore, we should respond
 	 * to configuration requests for windows which have never been mapped.
 	 */
 
-	if (Tmp_win == NULL)
+    if (asw == NULL)
 	{
-		xwcm = cre->value_mask & (CWX | CWY | CWWidth | CWHeight | CWBorderWidth);
+        unsigned long xwcm;
+        xwcm = cre->value_mask & (CWX | CWY | CWWidth | CWHeight | CWBorderWidth);
 		xwc.x = cre->x;
 		xwc.y = cre->y;
-
 		xwc.width = cre->width;
 		xwc.height = cre->height;
 		xwc.border_width = cre->border_width;
-		XConfigureWindow (dpy, Event.xany.window, xwcm, &xwc);
+        XConfigureWindow (dpy, event->w, xwcm, &xwc);
 		return;
 	}
-	if (cre->value_mask & CWStackMode)
+
+    if (cre->value_mask & CWStackMode)
 	{
         ASWindow     *otherwin = window2ASWindow( cre->above);
 
 		xwc.sibling = (((cre->value_mask & CWSibling) &&
                         ( otherwin != NULL))?otherwin->frame : cre->above);
 		xwc.stack_mode = cre->detail;
-		XConfigureWindow (dpy, Tmp_win->frame, cre->value_mask & (CWSibling | CWStackMode), &xwc);
+        XConfigureWindow (dpy, asw->frame, cre->value_mask & (CWSibling | CWStackMode), &xwc);
 		XSync (dpy, False);
 		CorrectStackOrder ();
 	}
+
 #ifdef SHAPE
 	{
 		int           xws, yws, xbs, ybs;
 		unsigned      wws, hws, wbs, hbs;
 		int           boundingShaped, clipShaped;
 
-		XShapeQueryExtents (dpy, Tmp_win->w, &boundingShaped, &xws, &yws, &wws,
+        XShapeQueryExtents (dpy, asw->w, &boundingShaped, &xws, &yws, &wws,
 							&hws, &clipShaped, &xbs, &ybs, &wbs, &hbs);
-		Tmp_win->wShaped = boundingShaped;
+        asw->wShaped = boundingShaped;
 	}
 #endif /* SHAPE */
 
-	/* for restoring */
+    /* for restoring */
 	if (cre->value_mask & CWBorderWidth)
-	{
-		Tmp_win->old_bw = cre->border_width;
-	}
+        asw->status->border_width = cre->border_width;
 
-	x = Tmp_win->frame_x;
-	y = Tmp_win->frame_y;
-	width = Tmp_win->frame_width;
-	height = Tmp_win->frame_height;
-	get_resize_geometry (Tmp_win, cre->x, cre->y, cre->width, cre->height,
-						 (cre->value_mask & CWX) ? &x : NULL,
-						 (cre->value_mask & CWY) ? &y : NULL,
-						 (cre->value_mask & CWWidth) ? &width : NULL,
-						 (cre->value_mask & CWHeight) ? &height : NULL);
+    /* now we need to update window's anchor : */
 
-	/*
-	 * SetupWindow (x,y) are the location of the upper-left outer corner and
-	 * are passed directly to XMoveResizeWindow (frame).  The (width,height)
-	 * are the inner size of the frame.  The inner width is the same as the
-	 * requested client window width; the inner height is the same as the
-	 * requested client window height plus any title bar slop.
-	 */
-    on_window_status_changed( Tmp_win, True );
-	UpdateVisibility ();
+    if( cre->value_mask & (CWWidth|CWHeight|CWX|CWY) )
+    {
+        XRectangle new_anchor = asw->anchor;
+        int grav_x, grav_y ;
+        get_gravity_offsets (asw->hints, &grav_x, &grav_y);
 
+
+        if( cre->value_mask&CWWidth )
+            new_anchor.width = cre->width ;
+        if( cre->value_mask&CWHeight )
+            new_anchor.height = cre->height ;
+        if( cre->value_mask&CWX )
+            new_anchor.x = make_anchor_pos ( asw->status, cre->x, new_anchor.width, Scr.Vx, grav_x, Scr.VxMax+Scr.MyDisplayWidth );
+        if( cre->value_mask&CWY )
+            new_anchor.y = make_anchor_pos ( asw->status, cre->y, new_anchor.height, Scr.Vy, grav_y, Scr.VyMax+Scr.MyDisplayHeight );
+
+        asw->anchor = new_anchor ;
+        on_window_status_changed( asw, True, True );
+    }
 }
 
 /***********************************************************************
@@ -970,16 +971,16 @@ HandleConfigureRequest ()
  ***********************************************************************/
 #ifdef SHAPE
 void
-HandleShapeNotify (void)
+HandleShapeNotify (ASEvent *event)
 {
-	XShapeEvent  *sev = (XShapeEvent *) & Event;
+    XShapeEvent  *sev = (XShapeEvent *) &(event->x);
 
-	if (!Tmp_win)
+    if (!event->client)
 		return;
 	if (sev->kind != ShapeBounding)
 		return;
-	Tmp_win->wShaped = sev->shaped;
-    SetShape (Tmp_win, 0/*Tmp_win->frame_width*/);
+    event->client->wShaped = sev->shaped;
+    SetShape (event->client, 0/*Tmp_win->frame_width*/);
 }
 #endif /* SHAPE */
 

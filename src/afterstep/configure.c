@@ -1216,7 +1216,7 @@ titlebar_sanity_check (void)
 		if (ASWIN_HFLAGS(t, AS_Titlebar))
 		{
             redecorate_window( t, False );
-            on_window_status_changed( t, True );
+            on_window_status_changed( t, True, False );
         }
 	}
 }
@@ -1656,7 +1656,7 @@ LoadASConfig (const char *display_name, int thisdesktop, Bool parse_menu,
 		for (win = Scr.ASRoot.next; win != NULL; win = win->next)
 		{
             redecorate_window( win, False );
-            on_window_status_changed( win, True );
+            on_window_status_changed( win, True, False );
         }
 	}
 

@@ -1,11 +1,12 @@
 OBJS		= add_window.o afterstep.o clientwin.o \
 		colormaps.o configure.o decorations.o dirtree.o \
-		events.o frame.o functions.o gnome.o icons.o menus.o \
+                events.o functions.o gnome.o icons.o menus.o \
 		misc.o module.o move.o myscandir.o pager.o \
 		placement.o resize.o windows.o menuitem.o
 
 # style.o - discontinued
 # borders.o - discontinued
+# frame.o - discontinued
 
 PROG		= afterstep
 

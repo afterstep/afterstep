@@ -73,8 +73,9 @@ extern struct config *match_string2 (struct config *, char *);
 extern void LoadASConfig (const char *, int, Bool, Bool, Bool);
 
 /* events.c: */
-void DigestEvent( ASEvent *event );
-extern void HandleEvents (struct ASEvent *event);
+void HandleEvents ();
+void DigestEvent( struct ASEvent *event );
+
 extern void HandleFocusIn (struct ASEvent *event);
 extern void HandleFocusOut (struct ASEvent *event);
 extern void HandleDestroyNotify (struct ASEvent *event);
@@ -136,7 +137,7 @@ extern void afterstep_err (const char *, const char *, const char *, const char 
 #ifndef IN_MODULE
 extern char *fit_horizontal_text (MyFont, char *, int, int);
 extern char *fit_vertical_text (MyFont, char *, int, int);
-extern void DispatchEvent (void);
+void DispatchEvent  ( ASEvent *event );
 extern void HandleExpose (ASEvent *event);
 int AS_XNextEvent (Display *, XEvent *);
 #endif /* IN_MODULE */

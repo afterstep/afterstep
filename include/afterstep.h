@@ -134,6 +134,7 @@ FrameSide;
 #define C_FrameEnd      (C_FrameSE)
 
 #define C_WINDOW        (0x01<<8)
+#define C_CLIENT        C_WINDOW
 #define C_TITLE         (0x01<<9)
 #define C_IconTitle     (0x01<<10)
 #define C_IconButton    (0x01<<11)
@@ -341,13 +342,15 @@ void hide_focus();
 Bool focus_aswindow( ASWindow *asw, Bool circulated );
 void focus_next_aswindow( ASWindow *asw );     /* should be called when window is unmapped or destroyed */
 
+void hide_hilite();                            /* unhilites currently highlited window */
 void hilite_aswindow( ASWindow *asw );         /* actually hilites focused window on reception of event */
 
 void redecorate_window( ASWindow *asw, Bool free_resources );
 void update_window_transparency( ASWindow *asw );
 void on_window_moveresize( ASWindow *asw, Window w, int x, int y, unsigned int width, unsigned int height );
+void on_icon_changed( ASWindow *asw );
 void on_window_title_changed( ASWindow *asw, Bool update_display );
-void on_window_status_changed( ASWindow *asw, Bool update_display );
+void on_window_status_changed( ASWindow *asw, Bool update_display, Bool reconfigured );
 void on_window_hilite_changed( ASWindow *asw, Bool focused );
 void on_window_pressure_changed( ASWindow *asw, int pressed_context );
 

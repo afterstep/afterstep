@@ -149,6 +149,7 @@ Bool draw_canvas_image( ASCanvas *pc, ASImage *im, int x, int y );
 void update_canvas_display( ASCanvas *pc );
 void resize_canvas( ASCanvas *pc, unsigned int width, unsigned int height );
 void moveresize_canvas (ASCanvas * pc, int x, int y, unsigned int width, unsigned int height);
+void unmap_canvas_window( ASCanvas *pc );
 
 
 

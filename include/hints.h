@@ -221,7 +221,7 @@ ASHints *merge_hints( struct ASRawHints *raw, struct ASDatabase *db, ASStatusHin
 Bool update_protocols( struct ScreenInfo *scr, Window w, ASSupportedHints *list, ASFlagType *pprots, ASFlagType *pfuncs );
 Bool update_colormaps( struct ScreenInfo *scr, Window w, ASSupportedHints *list, Window **pcmap_windows );
 Bool update_property_hints( Window w, Atom property, ASHints *hints, ASStatusHints *status );
-Bool update_property_hints_manager( Window w, Atom property, ASSupportedHints *list, 
+Bool update_property_hints_manager( Window w, Atom property, ASSupportedHints *list,
                                     ASHints *hints, ASStatusHints *status );
 
 void destroy_hints( ASHints *clean, Bool reusable );
@@ -234,6 +234,7 @@ void get_gravity_offsets (ASHints *hints, int *xp, int *yp);
 int translate_asgeometry( struct ScreenInfo *scr, ASGeometry *asg, int *px, int *py, unsigned int *pwidth, unsigned int *pheight );
 void real2virtual (ASStatusHints *status, int *x, int *y, int vx, int vy );
 void virtual2real (ASStatusHints *status, int *x, int *y, int vx, int vy);
+int make_anchor_pos (ASStatusHints * status, int pos, unsigned int size, int vpos, int grav, int max_pos);
 int make_detach_pos( ASHints *hints, ASStatusHints *status, int pos, unsigned int size, int vpos, Bool x_axis );
 ASFlagType change_placement( struct ScreenInfo *scr, ASHints *hints, ASStatusHints *status, XPoint *anchor, ASStatusHints *new_status, int vx, int vy, ASFlagType what );
 
