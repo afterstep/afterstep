@@ -171,7 +171,7 @@ static unsigned long total_service = 0;
 static int    service_mode = 0 ;
 static int    cleanup_mode = 0 ;
 
-int set_audit_cleanup_mode(int mode) 
+int set_audit_cleanup_mode(int mode)
 { int old = cleanup_mode; cleanup_mode = mode ; return old;}
 
 void          count_alloc (const char *fname, int line, void *ptr, size_t length, int type);
@@ -295,7 +295,7 @@ count_find_and_extract (const char *fname, int line, void *ptr, int type)
 		service_mode++ ;
 		if( remove_hash_item (allocs_hash, (ASHashableValue)ptr, (void**)&m, False) == ASH_Success )
 		{
-			if( allocs_hash->items_num <= 0 ) 
+			if( allocs_hash->items_num <= 0 )
 				destroy_ashash(&allocs_hash);
 			if( (m->type & 0xff) != (type & 0xff) )
                 		show_error( "while deallocating pointer %p discovered that it was allocated with different type\n   Called from %s:%d", ptr, fname, line );
@@ -482,7 +482,7 @@ output_unfreed_mem (FILE *stream)
     fprintf (stream, "   Total reallocs: %lu\n", reallocations);
     fprintf (stream, "   Total deallocs: %lu\n", deallocations);
     fprintf (stream, "Max allocs at any one time: %lu\n", max_allocations);
-    fprintf (stream, "Lost audit memory: %lu\n", total_service);
+    fprintf (stream, "Lost audit memory: %lu\n", total_service - deallocated_used*sizeof(mem));
     fprintf (stream, "      Lost memory: %lu\n", total_alloc);
     fprintf (stream, "    Lost X memory: %lu\n", total_x_alloc);
     fprintf (stream, " Max audit memory: %lu\n", max_service);
@@ -661,7 +661,7 @@ print_unfreed_mem_stats (const char *file, const char *func, int line, const cha
     fprintf( stderr, "%s:%s:%s:%d: Memory audit counts: allocs %lu, reallocs: %lu, deallocs: %lu, max simultaneous %lu\n",
                      MyName, file, func, line, allocations, reallocations, deallocations, max_allocations);
     fprintf( stderr, "%s:%s:%s:%d: Memory audit used memory: private %lu, X %lu, audit %lu, max private %lu, max X %lu, max audit %lu\n",
-                     MyName, file, func, line, total_alloc, total_x_alloc, total_service, max_alloc, max_x_alloc, max_service);
+                     MyName, file, func, line, total_alloc, total_x_alloc, total_service - deallocated_used*sizeof(mem), max_alloc, max_x_alloc, max_service);
 }
 
 Pixmap
