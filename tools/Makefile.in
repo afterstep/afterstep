@@ -1,5 +1,5 @@
 
-SCRIPTS		= ascommand.pl importasmenu makeastheme.pl installastheme.pl
+SCRIPTS		= ascommand.pl importasmenu makeastheme.pl installastheme.pl postcard.sh Xpm2Jpg
 
 @MAKEFILECOMMON@
 

@@ -814,6 +814,7 @@ spawn_child( const char *cmd, int singleton_id, int screen, Window w, int contex
         char *arg, *screen_str = NULL, *w_str = NULL, *context_str = NULL ;
 		int env_s = 0;
 		char **envvars = AS_environ ; 
+		int font_path_slot = -1, image_path_slot = -1 ;
 
         va_list ap;
 		LOCAL_DEBUG_OUT( "dpy = %p, DisplayString = \"%s\"", dpy, display );
@@ -828,7 +829,23 @@ spawn_child( const char *cmd, int singleton_id, int screen, Window w, int contex
 /* how the hell could we get environment otherwise ? */
 #endif
 		if( envvars ) 
-			for( env_s = 0  ; envvars[env_s] != NULL ; ++env_s );
+		{
+			int font_path_len = strlen(ASFONT_PATH_ENVVAR);
+			int image_path_len = strlen(ASIMAGE_PATH_ENVVAR);
+			for( env_s = 0  ; envvars[env_s] != NULL ; ++env_s )
+			{
+				if( font_path_slot < 0 && strlen(envvars[env_s]) > font_path_len ) 
+					if(strncmp(envvars[env_s], ASFONT_PATH_ENVVAR, font_path_len)==0)
+						font_path_slot = env_s ; 
+				if( image_path_slot < 0 && strlen(envvars[env_s]) > image_path_len) 
+					if(strncmp(envvars[env_s], ASIMAGE_PATH_ENVVAR, image_path_len)==0)
+						image_path_slot = env_s ;
+			}	
+		}
+		if( font_path_slot < 0 ) 
+			++env_s ;
+		if( image_path_slot  < 0 ) 
+			++env_s ;
 		envp = safecalloc( env_s+2, sizeof(char*));
 
 		/* environment variabless to pass to child process */
@@ -838,7 +855,27 @@ spawn_child( const char *cmd, int singleton_id, int screen, Window w, int contex
         
 		envp[env_s] = safemalloc(8+strlen(display)+1);
 		sprintf( envp[env_s], "DISPLAY=%s", display );
-
+		++env_s ;
+		if( Environment ) 
+		{
+			if( Environment->pixmap_path != NULL ) 
+			{	
+				int slot_no = image_path_slot ; 
+				if( slot_no < 0 ) 
+					slot_no = env_s++ ; 
+					
+				envp[slot_no] = safemalloc(strlen( ASIMAGE_PATH_ENVVAR ) + 1 + strlen(Environment->pixmap_path)+1) ;
+				sprintf( envp[slot_no], "%s=%s", ASIMAGE_PATH_ENVVAR, Environment->pixmap_path );
+			}
+			if( Environment->font_path ) 
+			{	
+				int slot_no = font_path_slot ; 
+				if( slot_no < 0 ) 
+					slot_no = env_s++ ; 
+				envp[slot_no] = safemalloc(strlen( ASFONT_PATH_ENVVAR ) + 1 + strlen(Environment->font_path)+1) ;
+				sprintf( envp[slot_no], "%s=%s", ASFONT_PATH_ENVVAR, Environment->font_path );
+			}
+		}	 
 			
         len = strlen((char*)cmd);
         if( pass_args )
@@ -963,7 +1000,7 @@ LOCAL_DEBUG_OUT( "len = %d, cmdl = \"%s\" strlen = %d", len, cmdl, strlen(cmdl) 
 		}	
 #endif			   
      
-        LOCAL_DEBUG_OUT("execl(\"%s\")", cmdl );
+        LOCAL_DEBUG_OUT("execle(\"%s\")", cmdl );
         /* fprintf( stderr, "len=%d: execl(\"%s\")", len, cmdl ); */
 
         /* CYGWIN does not handle close-on-exec gracefully - whave to do it ourselves : */

@@ -1,5 +1,5 @@
 #!/bin/sh
-# don't forget to install ImageMagick !!!!
+# no need to install ImageMagick !!!!
 
 analyse () { 
 if [ ! -d $DIRECTORY/jpg ]
@@ -10,7 +10,7 @@ fi
 cd $DIRECTORY
 
 for i in *.xpm
-do convert -interlace None $i ./jpg/$i.jpg
+do ascompose -n -s "<save format=jpeg compress=0 dst=\"./jpg/$i.jpg\"><img src=\"$i\"/></save>";
 done
 cd jpg
 for i in ./*.xpm.jpg
@@ -19,7 +19,7 @@ done
 cd ../..
 }
 
-DIRECTORY=backgrounds
+DIRECTORY=.
 analyse
 
 echo " "

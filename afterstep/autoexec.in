@@ -16,6 +16,7 @@ Function "InitFunction"
 	Module  "I"     Pager 0 @with_desktops_1@
 	Module  "I"	Banner
 	Function "I"    WorkspaceState
+	Exec	"I"	exec "@with_afterdir@/non-configurable/send_postcard.sh"
 EndFunction
 
 #------------------------------------------------------------------------

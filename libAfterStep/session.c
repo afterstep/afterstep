@@ -651,11 +651,14 @@ check_AfterStep_dirtree ( char * ashome, Bool create_non_conf )
 	{
 		CheckOrCreate (ashome);
 
-#if defined(DO_SEND_POSTCARD) && defined(HAVE_POPEN)
+#if defined(DO_SEND_POSTCARD) /*&& defined(HAVE_POPEN) */
 		/* send some info to sasha @ aftercode.net */
 		{
 			FILE *p;
-		    p = popen ("mail -s \"AfterStep installation info\" sasha@aftercode.net", "w");
+			char *filename = make_file_name(ashome, ".postcard");
+		    /*p = popen ("mail -s \"AfterStep installation info\" sasha@aftercode.net", "w");*/
+			p = fopen( filename, "wt" );
+			free(filename);
 		    if (p)
 			{
 				fprintf( p, "AfterStep_Version=\"%s\";\n", VERSION );
@@ -716,7 +719,10 @@ check_AfterStep_dirtree ( char * ashome, Bool create_non_conf )
 					}
 			    }
 
-				pclose (p);
+				/*pclose (p);*/
+				fclose(p);
+				filename = make_file_name(ashome, ".postcard");
+		    /*p = popen ("mail -s \"AfterStep installation info\" sasha@aftercode.net", "w");*/
 		    }
 		}
 #endif
@@ -768,10 +774,25 @@ check_AfterStep_dirtree ( char * ashome, Bool create_non_conf )
 	
 	if( create_non_conf )
     {
+		char *postcard_fname ;
+		FILE *f ;
         fullfilename = make_file_name (ashome, AFTER_NONCF);
         /* legacy non-configurable dir: */
         CheckOrCreate(fullfilename);
+		postcard_fname = make_file_name( fullfilename, "send_postacrd.sh" );
         free( fullfilename );
+		
+		f = fopen( postcard_fname, "wt" );
+		if( f ) 
+		{
+			fprintf( f, "#!/bin/sh\n\n" );
+			fprintf( f, "xterm -e \"%s/postcard.sh\"\n", AFTER_BIN_DIR );
+			fprintf( f, "rm %s\n", postcard_fname );
+		}
+		fclose( f );
+		chmod (postcard_fname, 0700);
+		free(postcard_fname);
+
     }
 
 }
