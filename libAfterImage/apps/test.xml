@@ -27,7 +27,7 @@ My current testing XML.
 it owns your soul
 and all your relatives will pity you, when you discover just how devoted you are.</text>
   <bevel edge-color="#dfdfdfdf #df8f8f8f" corner-color="#ffffffff #ffafafaf #ff2f2f2f" outer-edge="2 2 -1 -1" inner-edge="8 8 -6 -6"><gradient x=20 y=6 width=450 height=500 tint="#7d7f7f7f" colors="#ff007fff #7f00ffff #ff007fff #ff0000ff #ff000000 #ffffff00" offsets="0.0 0.125 0.25 0.5625 0.8 1.0"/></bevel>
-  <rotate dir="vertical" x=20 y=300><text bgcolor="#ffffffff" tint="#7f7f7f7f">AfterStep  owns jjjijijiji you
+  <mirror dir="vertical" x=20 y=300><text bgcolor="#ffffffff" tint="#7f7f7f7f">AfterStep  owns jjjijijiji you
 it owns your soul
-and all your relatives will pity you, when you discover just how devoted you are.</text></rotate>
+and all your relatives will pity you, when you discover just how devoted you are.</text></mirror>
 </composite>

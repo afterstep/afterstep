@@ -320,7 +320,7 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 				if (verbose) printf("Generating [%dx%d] gradient with angle [%f], colors [%s], offsets [%s], and npoints [%d/%d].\n", width, height, angle, color_str, offset_str ? offset_str : "(none given)", npoints1, npoints2);
 				if (verbose > 1) {
 					for (i = 0 ; i < gradient.npoints ; i++) {
-						printf("  Point [%d] has color [#%08x] and offset [%f].\n", i, gradient.color[i], gradient.offset[i]);
+						printf("  Point [%d] has color [#%08x] and offset [%f].\n", i, (unsigned int)gradient.color[i], gradient.offset[i]);
 					}
 				}
 				result = make_gradient(asv, &gradient, width, height, 0xFFFFFFFF, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
@@ -329,9 +329,7 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
 
-#if 0
-	// This should mirror the image, not rotate it.
-	if (!strcmp(doc->tag, "flip")) {
+	if (!strcmp(doc->tag, "mirror")) {
 		xml_elem_t* parm = xml_parse_parm(doc->parm);
 		ASImage* imtmp = NULL;
 		int dir = 0;
@@ -342,13 +340,14 @@ ASImage* build_image_from_xml(xml_elem_t* doc, xml_elem_t** rparm) {
 			imtmp = build_image_from_xml(ptr, NULL);
 		}
 		if (imtmp) {
-			result = flip_asimage(asv, imtmp, 0, 0, imtmp->width, imtmp->height, dir ? FLIP_UPSIDEDOWN : FLIP_VERTICAL, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
+printf("Mirror.\n");
+			result = mirror_asimage(asv, imtmp, 0, 0, imtmp->width, imtmp->height, dir, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
+if (!result) printf("Mirror failed.\n");
 			destroy_asimage(&imtmp);
 		}
-		if (verbose) printf("Flipping image [%sally].\n", dir ? "horizont" : "vertic");
+		if (verbose) printf("Mirroring image [%sally].\n", dir ? "horizont" : "vertic");
 		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
-#endif
 
 	if (!strcmp(doc->tag, "rotate")) {
 		xml_elem_t* parm = xml_parse_parm(doc->parm);

@@ -86,6 +86,10 @@ possible XML tags are:
   angle    Required.  Given in degrees.  Possible values are currently 
            "90", "180", and "270".  Rotates the image through the given 
            angle.
+<mirror dir="vertical">
+  dir      Required.  Possible values are "vertical" and "horizontal".  
+           The image will be flipped over the x-axis if dir is vertical, 
+           and flipped over the y-axis if dir is horizontal.
 
 As an example, the default XML used by ascompose is:
 
