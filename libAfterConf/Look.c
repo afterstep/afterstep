@@ -1778,7 +1778,7 @@ LookConfig2MyLook ( struct LookConfig * config, MyLook * look,
 
 			test_str = safemalloc (max_digits * 4 + 11);
 			sprintf (test_str, " %lu x %lu %+ld %+ld ", test_val, test_val, test_val, test_val);
-			mystyle_get_text_geometry(focus_style, test_str, strlen(test_str), &width, &height);
+/*			mystyle_get_text_geometry(focus_style, test_str, strlen(test_str), &width, &height); */
 			free (test_str);
 		}
 

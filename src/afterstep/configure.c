@@ -1021,14 +1021,19 @@ FixLook( MyLook *look )
     set_balloon_look( look->balloon_look );
 
     /* checking sanity of the move-resize window geometry :*/
-    if( !get_flags(look->resize_move_geometry.flags, WidthValue ) )
-        look->resize_move_geometry.width = XTextWidth (look->MSWindow[BACK_FOCUSED]->font.font, " +88888 x +88888 ", 17);
+    if( (look->resize_move_geometry.flags&(HeightValue|WidthValue)) != (HeightValue|WidthValue))
+	{
+		int width = 0;
+		int height = 0 ;
+		get_text_size( " +88888 x +88888 ", look->MSWindow[BACK_FOCUSED]->font.as_font, look->MSWindow[BACK_FOCUSED]->text_style, &width, &height );
+    	if( !get_flags(look->resize_move_geometry.flags, WidthValue ) )
+	        look->resize_move_geometry.width = width + SIZE_VINDENT * 2;
 
-    if( !get_flags(look->resize_move_geometry.flags, HeightValue ) )
-        look->resize_move_geometry.height = look->MSWindow[BACK_FOCUSED]->font.height + SIZE_VINDENT * 2;
+	    if( !get_flags(look->resize_move_geometry.flags, HeightValue ) )
+    	    look->resize_move_geometry.height = height + SIZE_VINDENT * 2;
 
-    set_flags( look->resize_move_geometry.flags, HeightValue|WidthValue );
-
+	    set_flags( look->resize_move_geometry.flags, HeightValue|WidthValue );
+	}
     if( look->supported_hints == NULL )
     {
         look->supported_hints = create_hints_list();
@@ -1189,6 +1194,10 @@ LoadASConfig (int thisdesktop, ASFlagType what)
 {
     char            *tline = NULL;
     ASImageManager  *old_image_manager = Scr.image_manager ;
+    ASFontManager   *old_font_manager  = Scr.font_manager ;
+    char            *old_pixmap_path = PixmapPath ;
+    char            *old_font_path   = FontPath ;
+
 
 #ifndef DIFFERENTLOOKNFEELFOREACHDESKTOP
 	/* only one look & feel should be used */
@@ -1204,21 +1213,31 @@ LoadASConfig (int thisdesktop, ASFlagType what)
 		{
             if( (configfile = make_session_file(Session, BASE_FILE, False/* no longer use #bpp in filenames */ )) != NULL )
             {
-                char * old_pixmap_path = PixmapPath ;
-
                 InitBase (True);
                 ParseConfigFile (configfile, &tline);
                 /* Save base filename to pass to modules */
-                if( (old_pixmap_path == NULL && PixmapPath != NULL )||
-                    (old_pixmap_path != NULL && PixmapPath == NULL )||
-                    (old_pixmap_path != NULL && PixmapPath != NULL && strcmp(old_pixmap_path, PixmapPath) == 0 ) )
+                if( mystrcmp(old_pixmap_path, PixmapPath) == 0 ||
+					(PixmapPath != NULL && Scr.image_manager == NULL) )
                 {
                     Scr.image_manager = create_image_manager( NULL, 2.2, PixmapPath, getenv( "IMAGE_PATH" ), getenv( "PATH" ), NULL );
-                    InitLook (&Scr.Look, True);
-                    set_flags(what, PARSE_LOOK_CONFIG);
+					if( !get_flags(what, PARSE_LOOK_CONFIG) )
+					{
+                    	InitLook (&Scr.Look, True);
+                    	set_flags(what, PARSE_LOOK_CONFIG);
+					}
+	                show_progress("Pixmap Path changed to \"%s:%s\" ...", PixmapPath?PixmapPath:"", getenv( "PATH" ));
+				}
+                if( mystrcmp(old_font_path, FontPath) == 0 ||
+					(FontPath!= NULL && Scr.font_manager == NULL) )
+                {
+                    Scr.font_manager = create_font_manager( dpy, FontPath, NULL );
+					if( !get_flags(what, PARSE_LOOK_CONFIG) )
+					{
+                    	InitLook (&Scr.Look, True);
+                    	set_flags(what, PARSE_LOOK_CONFIG);
+					}
+	                show_progress("Font Path changed to \"%s\" ...", FontPath?FontPath:"");
                 }
-                if( old_pixmap_path )
-                    free( old_pixmap_path );
                 show_progress("BASE configuration loaded from \"%s\" ...", configfile);
                 free( configfile );
             }else
@@ -1311,7 +1330,13 @@ LoadASConfig (int thisdesktop, ASFlagType what)
 		Scr.image_manager = NULL ;
 		/* Yes, override config file */
         InitBase (True);
-        InitLook (&Scr.Look, True);
+        if( mystrcmp(old_pixmap_path, PixmapPath) == 0 ||
+			(PixmapPath!= NULL && Scr.image_manager == NULL) )
+	        Scr.image_manager = create_image_manager( NULL, 2.2, PixmapPath, getenv( "IMAGE_PATH" ), getenv( "PATH" ), NULL );
+		if( mystrcmp(old_font_path, FontPath) == 0 ||
+			(FontPath!= NULL && Scr.font_manager == NULL) )
+	        Scr.font_manager = create_font_manager( dpy, FontPath, NULL );
+		InitLook (&Scr.Look, True);
         InitFeel (&Scr.Feel, True);
         InitDatabase (True);
         ParseConfigFile (Session->overriding_file, &tline);
@@ -1359,6 +1384,12 @@ LoadASConfig (int thisdesktop, ASFlagType what)
         }
         destroy_image_manager( old_image_manager, False );
     }
+    if( old_font_manager && old_font_manager != Scr.font_manager )
+        destroy_font_manager( old_font_manager, False );
+    if( old_pixmap_path && old_pixmap_path != PixmapPath )
+        free( old_pixmap_path );
+    if( old_font_path && old_font_path != FontPath )
+        free( old_font_path );
 }
 
 /*****************************************************************************

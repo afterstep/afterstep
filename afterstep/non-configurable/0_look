@@ -11,7 +11,7 @@
 # default should never be used, so let's make it obvious when it *is* used
 MyStyle "default"
 #  Font		-*-helvetica-*-r-*-*-12-*-*-*-*-*-*-*
-  Font		Default.ttf.12
+  Font		DefaultBold.ttf
   ForeColor	red
   BackColor	green
   MaxColors 128
@@ -27,11 +27,11 @@ TitleButtonBalloonDelay		200
 MyStyle "TitleButtonBalloon"
   ForeColor	grey70
   BackColor	Black
-  Font		-*-helvetica-*-r-*-*-10-*-*-*-*-*-*-*
+  Font		DefaultBold.ttf-12
   ~MyStyle
 
 MyStyle "window_font"
-  Font		-*-lucida-bold-r-*-*-13-*-*-*-*-*-*-*
+  Font		DefaultBold.ttf
   TextStyle	0
   ~MyStyle
 
@@ -61,12 +61,12 @@ MyStyle "sticky_window_style"
 
 #----------Menu MyStyles---------#
 MyStyle "menu_title_font"
-  Font          -*-lucida-bold-r-*-*-13-*-*-*-*-*-*-*
+  Font		DefaultFancy.ttf 20
   TextStyle     0
   ~MyStyle
 
 MyStyle "menu_font"
-  Font          -b&h-lucida-medium-r-*-*-12-*-*-*-*-*-*-*
+  Font		DefaultBold.ttf 18
   TextStyle     0
   ~MyStyle
 
@@ -83,7 +83,7 @@ MyStyle "menu_item_style"
   ~MyStyle
 
 MyStyle "menu_hilite_style"
-  Font          -*-helvetica-bold-r-*-*-13-*-*-*-*-*-*-*
+  Font		DefaultBoldOblique.ttf 18
   ForeColor     white
   BackColor     #475293
   ~MyStyle

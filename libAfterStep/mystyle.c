@@ -52,17 +52,8 @@ struct config mystyle_config[] = {
 	{"", NULL, NULL}
 };
 
-/* the GCs are static, but they are still used outside mystyle.c */
-static GC     ForeGC = None;
-static GC     BackGC = None;
-static GC     ReliefGC = None;
-static GC     ShadowGC = None;
-
 static int    style_func;
 static char  *style_arg;
-
-static MyStyle *old_GC_style = NULL;
-static int       make_GCs = 1;
 
 static char  *DefaultMyStyleName = "default";
 
@@ -207,187 +198,6 @@ void
 mystyle_fix_styles (void)
 {
     mystyle_list_fix_styles (NULL);
-}
-
-static void   mystyle_draw_textline (Window w, Drawable text_trg, MyStyle * style, const char *text, int len, int x,
-									 int y);
-
-#ifdef I18N
-#undef FONTSET
-#define FONTSET (*style).font.fontset
-#endif
-
-void
-mystyle_get_text_geometry (MyStyle * style, const char *str, int len, int *width, int *height)
-{
-	const char   *ptr;
-	int           mw = 0, mh = 0;
-
-	while (len > 0)
-	{
-		int           w;
-
-		for (ptr = str; len > 0 && *ptr != '\n' && *ptr; ptr++, len--);
-		w = XTextWidth (style->font.font, str, ptr - str);
-		if (mw < w)
-			mw = w;
-		mh += style->font.height;
-		if (*ptr == '\n')
-		{
-			++ptr;
-			--len;
-		}
-		str = ptr;
-	}
-	if (width != NULL)
-		*width = mw;
-	if (height != NULL)
-		*height = mh;
-}
-
-static void
-mystyle_do_draw_text (Window w, Drawable text_trg, MyStyle * style, const char *text, int x, int y)
-{
-	while (*text != '\0')
-	{
-		const char   *ptr;
-
-		for (ptr = text; *ptr != '\0' && *ptr != '\n'; ptr++);
-		mystyle_draw_textline (w, text_trg, style, text, ptr - text, x, y);
-		y += style->font.height;
-		text = (*ptr == '\n') ? ptr + 1 : ptr;
-	}
-}
-
-void
-mystyle_draw_texturized_text (Window w, MyStyle * style, MyStyle * fore_texture, const char *text, int x, int y)
-{
-	int           width, height;
-	Pixmap        fore_pix = None;
-
-	mystyle_set_global_gcs (style);
-	mystyle_get_text_geometry (style, text, strlen (text), &width, &height);
-	if ((style->set_flags & F_DRAWTEXTBACKGROUND) && (style->flags & F_DRAWTEXTBACKGROUND))
-	{
-		XSetFillStyle (dpy, BackGC, FillSolid);
-		XFillRectangle (dpy, w, BackGC, x - 2, y - style->font.y - 2, width + 4, height + 4);
-#ifndef NO_TEXTURE
-		if ((style->texture_type != 0) && (style->back_icon.pix != None))
-			XSetFillStyle (dpy, BackGC, FillTiled);
-#endif /* !NO_TEXTURE */
-	}
-
-	if (fore_texture != NULL)
-	{
-		if (fore_texture->texture_type <= TEXTURE_PIXMAP)
-			fore_pix = mystyle_make_pixmap (fore_texture, width, height, None);
-		else
-		{
-			Window        ch;
-			int           root_x = x, root_y = y;
-
-			XTranslateCoordinates (dpy, w, Scr.Root, x, y, &root_x, &root_y, &ch);
-			fore_pix = mystyle_make_pixmap_overlay (fore_texture, root_x, root_y, width, height, None);
-		}
-	}
-
-	if (fore_pix != None)
-	{
-		Pixmap        mask;
-		GC            old_fore_gc = ForeGC;
-		XGCValues     gcv;
-
-		mask = XCreatePixmap (dpy, Scr.Root, width + 1, height + 1, 1);
-		gcv.foreground = 0;
-		gcv.function = GXcopy;
-		gcv.font = style->font.font->fid;
-		ForeGC = XCreateGC (dpy, mask, GCFunction | GCForeground | GCFont, &gcv);
-		XFillRectangle (dpy, mask, ForeGC, 0, 0, width, height);
-		XSetForeground (dpy, ForeGC, 1);
-
-		mystyle_do_draw_text (w, mask, style, text, x, y);
-
-		XFreeGC (dpy, ForeGC);
-		ForeGC = old_fore_gc;
-		XSetClipOrigin (dpy, ForeGC, x, y);
-		XSetClipMask (dpy, ForeGC, mask);
-		XCopyArea (dpy, fore_pix, w, ForeGC, 0, 0, width, height, x, y);
-		XSetClipMask (dpy, ForeGC, None);
-		XFreePixmap (dpy, mask);
-		XFreePixmap (dpy, fore_pix);
-	} else
-		mystyle_do_draw_text (w, w, style, text, x, y);
-}
-
-void
-mystyle_draw_text (Window w, MyStyle * style, const char *text, int x, int y)
-{
-	mystyle_draw_texturized_text (w, style, NULL, text, x, y);
-}
-
-void
-mystyle_draw_vertical_text (Window w, MyStyle * style, const char *text, int x, int y)
-{
-	char         *rotated = make_tricky_text ((char *)text);
-
-	if (rotated)
-	{
-		mystyle_draw_texturized_text (w, style, NULL, rotated, x, y);
-		free (rotated);
-	}
-}
-
-void
-mystyle_draw_texturized_vertical_text (Window w, MyStyle * style, MyStyle * fore_texture, const char *text, int x,
-									   int y)
-{
-	char         *rotated = make_tricky_text ((char *)text);
-
-	if (rotated)
-	{
-		mystyle_draw_texturized_text (w, style, fore_texture, rotated, x, y);
-		free (rotated);
-	}
-}
-
-static void
-mystyle_draw_textline (Window w, Drawable text_trg, MyStyle * style, const char *text, int len, int x, int y)
-{
-	switch (style->text_style)
-	{
-/* 3d look #1 */
-	 case 1:
-		 XDrawString (dpy, w, ReliefGC, x - 2, y - 2, text, len);
-		 XDrawString (dpy, w, ReliefGC, x - 1, y - 2, text, len);
-		 XDrawString (dpy, w, ReliefGC, x + 0, y - 2, text, len);
-		 XDrawString (dpy, w, ReliefGC, x + 1, y - 2, text, len);
-		 XDrawString (dpy, w, ReliefGC, x + 2, y - 2, text, len);
-
-		 XDrawString (dpy, w, ReliefGC, x - 2, y - 1, text, len);
-		 XDrawString (dpy, w, ReliefGC, x - 2, y + 0, text, len);
-		 XDrawString (dpy, w, ReliefGC, x - 2, y + 1, text, len);
-		 XDrawString (dpy, w, ReliefGC, x - 2, y + 2, text, len);
-
-		 XDrawString (dpy, w, ShadowGC, x + 2, y + 0, text, len);
-		 XDrawString (dpy, w, ShadowGC, x + 2, y + 1, text, len);
-		 XDrawString (dpy, w, ShadowGC, x + 2, y + 2, text, len);
-		 XDrawString (dpy, w, ShadowGC, x + 1, y + 2, text, len);
-		 XDrawString (dpy, w, ShadowGC, x + 0, y + 2, text, len);
-
-		 XDrawString (dpy, text_trg, ForeGC, x + 0, y + 0, text, len);
-		 break;
-/* 3d look #2 */
-	 case 2:
-		 XDrawString (dpy, w, ShadowGC, x - 1, y - 1, text, len);
-		 XDrawString (dpy, w, ReliefGC, x + 0, y + 0, text, len);
-		 XDrawString (dpy, text_trg, ForeGC, x + 1, y + 1, text, len);
-		 break;
-/* normal text */
-	 default:
-	 case 0:
-		 XDrawString (dpy, text_trg, ForeGC, x + 0, y + 0, text, len);
-		 break;
-	}
 }
 
 int
@@ -710,124 +520,6 @@ mystyle_set_window_background (Window w, MyStyle * style)
 		XSetWindowBackground (dpy, w, style->colors.back);
 }
 
-/*
- * set the standard global drawing GCs
- * avoids resetting the GCs when possible
- * if passed a NULL pointer, forces update of the cached GCs if possible
- * WARNING: the GCs are invalid until this function is called
- */
-void
-mystyle_set_global_gcs (MyStyle * style)
-{
-/* make the drawing GCs if necessary */
-	if (make_GCs)
-	{
-		XGCValues     gcv;
-		unsigned long gcm;
-
-		gcv.graphics_exposures = False;
-		gcm = GCGraphicsExposures;
-		ForeGC = create_visual_gc (Scr.asv, Scr.Root, gcm, &gcv);
-		BackGC = create_visual_gc (Scr.asv, Scr.Root, gcm, &gcv);
-		ReliefGC = create_visual_gc (Scr.asv, Scr.Root, gcm, &gcv);
-		ShadowGC = create_visual_gc (Scr.asv, Scr.Root, gcm, &gcv);
-		make_GCs = 0;
-	}
-
-/* set the GCs if the style is different */
-    if (style == NULL && old_GC_style != NULL)
-    {  /* force update the current style if it still exists */
-        mystyle_set_gcs (old_GC_style, ForeGC, BackGC, ReliefGC, ShadowGC);
-    } else if (old_GC_style != style)
-	{
-        old_GC_style = style;
-		mystyle_set_gcs (style, ForeGC, BackGC, ReliefGC, ShadowGC);
-	}
-}
-
-void
-mystyle_set_gcs (MyStyle * style, GC foreGC, GC backGC, GC reliefGC, GC shadowGC)
-{
-	XGCValues     gcv;
-	unsigned long gcm;
-
-/* set the drawing GC */
-	ARGB2PIXEL (Scr.asv, style->colors.fore, &gcv.foreground);
-	ARGB2PIXEL (Scr.asv, style->colors.back, &gcv.background);
-	gcv.font = style->font.font->fid;
-	gcv.fill_style = FillSolid;
-	gcm = GCForeground | GCBackground | GCFont | GCFillStyle;
-	if (foreGC != None)
-		XChangeGC (dpy, foreGC, gcm, &gcv);
-
-	ARGB2PIXEL (Scr.asv, style->colors.back, &gcv.foreground);
-#ifndef NO_TEXTURE
-	if ((style->texture_type != 0) && (style->back_icon.pix != None))
-	{
-		gcv.fill_style = FillTiled;
-		gcv.tile = style->back_icon.pix;
-		gcm |= GCTile;
-	}
-#endif /* NO_TEXTURE */
-	if (backGC != None)
-		XChangeGC (dpy, backGC, gcm, &gcv);
-
-/* set the relief GC */
-	ARGB2PIXEL (Scr.asv, style->relief.fore, &gcv.foreground);
-	ARGB2PIXEL (Scr.asv, style->relief.back, &gcv.background);
-	gcv.fill_style = FillSolid;
-	gcm = GCForeground | GCBackground | GCFont | GCFillStyle;
-	if (reliefGC != None)
-		XChangeGC (dpy, reliefGC, gcm, &gcv);
-
-/* set the shadow GC */
-	ARGB2PIXEL (Scr.asv, style->relief.back, &gcv.foreground);
-	ARGB2PIXEL (Scr.asv, style->relief.fore, &gcv.background);
-	gcv.fill_style = FillSolid;
-	gcm = GCForeground | GCBackground | GCFont | GCFillStyle;
-	if (shadowGC != None)
-		XChangeGC (dpy, shadowGC, gcm, &gcv);
-}
-
-void
-mystyle_get_global_gcs (MyStyle * style, GC * foreGC, GC * backGC, GC * reliefGC, GC * shadowGC)
-{
-	mystyle_set_global_gcs (style);
-	if (foreGC != NULL)
-		*foreGC = ForeGC;
-	if (backGC != NULL)
-		*backGC = BackGC;
-	if (reliefGC != NULL)
-		*reliefGC = ReliefGC;
-	if (shadowGC != NULL)
-		*shadowGC = ShadowGC;
-}
-
-void
-mystyle_free_global_gcs()
-{
-    if (ForeGC != NULL)
-    {
-        XFreeGC( dpy, ForeGC );
-        ForeGC = NULL;
-    }
-    if (BackGC != NULL)
-    {
-        XFreeGC( dpy, BackGC );
-        BackGC = NULL;
-    }
-    if (ReliefGC != NULL)
-    {
-        XFreeGC( dpy, ReliefGC );
-        ReliefGC = NULL;
-    }
-    if (ShadowGC != NULL)
-    {
-        XFreeGC( dpy, ShadowGC );
-        ShadowGC = NULL;
-    }
-}
-
 /*************************************************************************/
 /* Mystyle creation/deletion                                             */
 /*************************************************************************/
@@ -865,10 +557,7 @@ mystyle_init (MyStyle  *style)
 	style->name = NULL;
 	style->text_style = 0;
 	style->font.name = NULL;
-	style->font.font = NULL;
-#ifdef I18N
-	style->font.fontset = NULL;
-#endif
+	style->font.as_font = NULL;
 	style->colors.fore = ARGB32_White;
 	style->colors.back = ARGB32_Black;
 	style->relief.fore = style->colors.back;
@@ -898,8 +587,6 @@ mystyle_destroy (ASHashableValue value, void *data)
     if ( data != NULL)
     {
         MyStyle *style = (MyStyle*) data ;
-        if( style == old_GC_style )
-            old_GC_style = NULL ;
         mystyle_free_resources( style );
         style->magic = 0 ;                 /* invalidating memory block */
         free (data);

@@ -15,11 +15,11 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
+#define LOCAL_DEBUG
+/*#define DO_CLOCKING*/
 
 #include "config.h"
 
-/*#define LOCAL_DEBUG*/
-/*#define DO_CLOCKING*/
 
 #define DO_X11_ANTIALIASING
 #define DO_2STEP_X11_ANTIALIASING
@@ -137,7 +137,7 @@ open_freetype_font( ASFontManager *fontman, const char *font_string, int face_no
 	{
 		char *realfilename;
 		FT_Face face ;
-LOCAL_DEBUG_OUT( "looking for \"%s\"", font_string );
+		LOCAL_DEBUG_OUT( "looking for \"%s\" in \"%s\"", font_string, fontman->font_path );
 		if( (realfilename = find_file( font_string, fontman->font_path, R_OK )) == NULL )
 		{/* we might have face index specifier at the end of the filename */
 			char *tmp = mystrdup( font_string );

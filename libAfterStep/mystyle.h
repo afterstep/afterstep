@@ -208,17 +208,8 @@ GC CreateTintGC (Drawable d, unsigned long tintColor, int function);
 /* just a nice error printing function */
 void mystyle_error (char *format, char *name, char *text2);
 
-/* these functions change the global style */
-void mystyle_set_global_gcs (MyStyle * style);
-void mystyle_set_gcs (MyStyle * style, GC foreGC, GC backGC, GC reliefGC, GC shadowGC);
-void mystyle_get_global_gcs (MyStyle * style, GC * foreGC, GC * backGC, GC * reliefGC, GC * shadowGC);
-void mystyle_free_global_gcs();
 merge_scanlines_func mystyle_translate_texture_type( int texture_type );
-void mystyle_get_text_geometry (MyStyle * style, const char *str, int len, int *width, int *height);
-void mystyle_draw_text (Window w, MyStyle * style, const char *text, int x, int y);
-void mystyle_draw_vertical_text (Window w, MyStyle * style, const char *text, int ix, int y);
-void mystyle_draw_texturized_text (Window w, MyStyle * style, MyStyle *fore_texture, const char *text, int x, int y);
-void mystyle_draw_texturized_vertical_text (Window w, MyStyle * style, MyStyle *fore_texture, const char *text, int x, int y);
+
 int mystyle_translate_grad_type( int type );
 ASImage *mystyle_draw_text_image( MyStyle *style, const char *text );
 unsigned int mystyle_get_font_height( MyStyle *style );

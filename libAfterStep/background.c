@@ -127,9 +127,9 @@ BackgroundSetMyStyle (char *style_name)
 			GC            backGC, foreGC;
 
 			pix = XCreatePixmap (dpy, Scr.Root, 1, 1, Scr.d_depth);
-			mystyle_get_global_gcs (style, &foreGC, &backGC, NULL, NULL);
+/*			mystyle_get_global_gcs (style, &foreGC, &backGC, NULL, NULL);
 			XDrawPoint (dpy, pix, (backGC != None) ? backGC : foreGC, 1, 1);
-		}
+  */		}
 		BackgroundSetPixmap (pix);
 	}
 	/* we will need this pixmap ID later to destroy it gracefully */

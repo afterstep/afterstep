@@ -30,7 +30,6 @@
 
 #ifdef I18N
 #define MAX_FONTSET_NAME_LENGTH  256
-#undef  MODULE_REUSE_LOADED_FONT
 #endif
 
 void
@@ -62,11 +61,7 @@ mystyle_list_set_property (ASWMProps *wmprops, ASHashTable *list )
 		prop[i++] = style->set_flags;
 		prop[i++] = XInternAtom (dpy, style->name, False);
 		prop[i++] = style->text_style;
-#ifdef MODULE_REUSE_LOADED_FONT
-		prop[i++] = style->font.font->fid;
-#else
 		prop[i++] = XInternAtom (dpy, style->font.name, False);
-#endif
 		prop[i++] = style->colors.fore;
 		prop[i++] = style->colors.back;
 		prop[i++] = style->relief.fore;
@@ -291,5 +286,4 @@ mystyle_get_property (ASWMProps *wmprops)
 
 	/* force update of global gcs */
     mystyle_fix_styles ();
-	mystyle_set_global_gcs (NULL);
 }

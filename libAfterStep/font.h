@@ -16,13 +16,6 @@ typedef struct MyFont
   {
     char *name;				/* name of the font */
 	struct ASFont *as_font ;   	/* libAfterImage's font */
-    XFontStruct *font;		/* font structure */
-#ifdef I18N
-    XFontSet fontset;
-#endif
-    int height;				/* height of the font */
-    int width;				/* width of the font */
-    int y;					/* Y coordinate to draw characters */
   }
 MyFont;
 

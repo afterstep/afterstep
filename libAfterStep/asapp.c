@@ -470,9 +470,9 @@ InitMyApp (  const char *app_class, int argc, char **argv, void (*version_func) 
 		PrepareSyntax (&FuncSyntax);
     set_output_threshold( MyArgs.verbosity_level );
     if(MyArgs.log_file)
-	if( freopen( MyArgs.log_file, "w", stderr ) == NULL ) 
+	if( freopen( MyArgs.log_file, "w", stderr ) == NULL )
 	    show_system_error( "failed to redirect output into file \"%s\"", MyArgs.log_file );
-    
+
 #ifdef DEBUG_TRACE_X
     trace_enable_function(MyArgs.trace_calls);
 #endif
@@ -506,7 +506,6 @@ void
 FreeMyAppResources()
 {
     balloon_init (True);
-    mystyle_free_global_gcs ();
     mystyle_destroy_all();
     destroy_image_manager( Scr.image_manager, False );
     destroy_font_manager( Scr.font_manager, False );
