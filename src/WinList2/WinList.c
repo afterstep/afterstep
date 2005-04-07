@@ -960,8 +960,9 @@ configure_tbar_props( ASTBarData *tbar, ASWindowData *wd, Bool focus_only )
 	if( !focus_only ) 
 	{
     	delete_astbar_tile( tbar, -1 );
-    	tbar->h_border = Config->h_spacing ;
-    	tbar->v_border = Config->v_spacing ;
+//    	tbar->h_border = Config->h_spacing ;
+//    	tbar->v_border = Config->v_spacing ;
+		LOCAL_DEBUG_OUT( "setting bar border to %+d, %+d", tbar->h_border, tbar->v_border );
     	set_astbar_style_ptr( tbar, BAR_STATE_FOCUSED, Scr.Look.MSWindow[BACK_FOCUSED] );
     	set_astbar_hilite( tbar, BACK_FOCUSED, Config->fbevel );
     	set_astbar_composition_method( tbar, BACK_FOCUSED, Config->fcm );

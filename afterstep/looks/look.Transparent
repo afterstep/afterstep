@@ -23,13 +23,13 @@ MyStyle "TitleButtonBalloon"
   ~MyStyle
 
 MyStyle "window_font"
-  Font		DefaultSansBold.ttf-16
+  Font		DefaultSans.ttf-16
   TextStyle	7
   ~MyStyle
 
 MyStyle "focused_window_style"
-  Inherit	"window_font"
-  TextStyle	3
+  Font		DefaultSansBold.ttf-16
+  TextStyle	8
   ForeColor     ActiveText
   BackColor	Active
   BackGradient	6	alpha(60,ActiveDark)	alpha(60,ActiveLight)

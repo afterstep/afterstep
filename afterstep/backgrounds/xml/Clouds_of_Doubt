@@ -1,5 +1,5 @@
 <scale width=$xroot.width height=$xroot.height>
-	<hsv hue_offset=$ascs.Base.hue value_offset=10>
+	<hsv hue_offset=$ascs.Base.hue value_offset=1>
 		<img src=".CloudsOfDoubt"/>
 	</hsv>
 </scale>

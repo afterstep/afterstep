@@ -1217,7 +1217,7 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
                           tbar_layout_col[ASO_TBAR_ELEM_LBL],
                           tbar_layout_row[ASO_TBAR_ELEM_LBL],
                           od->flip,
-                          title_align, DEFAULT_TBAR_SPACING, max( asw->tbar->top_bevel, asw->tbar->bottom_bevel),
+                          title_align, DEFAULT_TBAR_SPACING, /*max( asw->tbar->top_bevel, asw->tbar->bottom_bevel)*/0,
                           asw->hints->names[0], asw->hints->names_encoding[0]);
 		
 			/* all the buttons go after the label to be rendered over it */

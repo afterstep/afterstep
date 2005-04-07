@@ -625,6 +625,9 @@ calculate_astbar_height (ASTBarData * tbar)
     if (tbar)
     {
         register int i = tbar->tiles_num ;
+#if	defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
+         print_astbar_tiles(tbar); 
+#endif
         while( --i >= 0 )
             if( ASTileType(tbar->tiles[i]) != AS_TileFreed &&
                 !ASTileIgnoreHeight(tbar->tiles[i]))
@@ -732,14 +735,14 @@ update_astbar_bevel_size (ASTBarData * tbar)
 		if (tbar->style[i])
 		{
             mystyle_make_bevel (tbar->style[i], &bevel, tbar->hilite[i], False);
-			if (tbar->left_bevel < bevel.left_outline)
-				tbar->left_bevel = bevel.left_outline;
-			if (tbar->top_bevel < bevel.top_outline)
-				tbar->top_bevel = bevel.top_outline;
-			if (tbar->right_bevel < bevel.right_outline)
-				tbar->right_bevel = bevel.right_outline;
-			if (tbar->bottom_bevel < bevel.bottom_outline)
-				tbar->bottom_bevel = bevel.bottom_outline;
+			if (tbar->left_bevel < bevel.left_outline + bevel.left_inline)
+				tbar->left_bevel = bevel.left_outline + bevel.left_inline;
+			if (tbar->top_bevel < bevel.top_outline + bevel.top_inline)
+				tbar->top_bevel = bevel.top_outline + bevel.top_inline;
+			if (tbar->right_bevel < bevel.right_outline + bevel.right_inline)
+				tbar->right_bevel = bevel.right_outline + bevel.right_inline;
+			if (tbar->bottom_bevel < bevel.bottom_outline + bevel.bottom_inline)
+				tbar->bottom_bevel = bevel.bottom_outline + bevel.bottom_inline;
 		}
 }
 
@@ -1427,8 +1430,10 @@ LOCAL_DEBUG_OUT("back-try2(%p)", back );
             }
         }
     /* pass 2: see how much space we have left that needs to be floating to some rows/columns : */
-    space_left_x = tbar->width - (h_bevel_size+tbar->h_border*2+bevel.left_inline+bevel.right_inline);
-    space_left_y = tbar->height- (v_bevel_size+tbar->v_border*2+bevel.top_inline+bevel.bottom_inline);
+    LOCAL_DEBUG_OUT( "bar_size = %dx%d", tbar->width, tbar->height );
+
+    space_left_x = tbar->width -(h_bevel_size+tbar->h_border*2+bevel.left_inline+bevel.right_inline);
+    space_left_y = tbar->height-(v_bevel_size+tbar->v_border*2+bevel.top_inline+bevel.bottom_inline);
     LOCAL_DEBUG_OUT( "from: space_left_x = %d, space_left_y = %d", space_left_x, space_left_y );
     for( l = 0 ; l < AS_TileColumns ; ++l )
     {
@@ -1495,7 +1500,7 @@ LOCAL_DEBUG_OUT("back-try2(%p)", back );
 
     /* pass 5: now we determine offset of each row/column : */
     x = bevel.left_outline+bevel.left_inline+tbar->h_border ;
-    y = bevel.top_outline +bevel.top_inline+tbar->v_border ;
+    y = bevel.top_outline+bevel.top_inline+tbar->v_border ;
     for( l = 0 ; l < AS_TileColumns ; ++l )
     {
         col_x[l] = x ;
