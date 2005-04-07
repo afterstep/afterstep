@@ -16,9 +16,9 @@ MyStyle "default"
   ~MyStyle
 
 MyStyle "TitleButtonBalloon"
+  Font		DefaultSans.ttf-13
   ForeColor	HighActiveText
   BackColor	HighActiveBack
-  Font		DefaultBold.ttf-13
   ~MyStyle
 
 MyStyle "window_font"
@@ -50,12 +50,12 @@ MyStyle "sticky_window_style"
 
 #----------Menu MyStyles---------#
 MyStyle "menu_title_font"
-  Font          DefaultFancy.ttf-13
-  TextStyle     7
+  Font          DefaultSans.ttf-13
+  TextStyle     0
   ~MyStyle
 
 MyStyle "menu_font"
-  Font          Default.ttf-14
+  Font          DefaultSans.ttf-13
   TextStyle     0
   ~MyStyle
 
@@ -81,8 +81,7 @@ MyStyle "menu_item_style"
   ~MyStyle
 
 MyStyle "menu_hilite_style"
-  Font          DefaultBoldOblique.ttf-14
-  TextStyle     7
+  Font          DefaultSansBold.ttf-13
   ForeColor     HighActiveText
   BackColor     HighActiveBack
   BackGradient  9  HighActiveBackLight HighActiveBackDark
