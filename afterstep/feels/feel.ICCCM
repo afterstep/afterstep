@@ -270,7 +270,7 @@ EndPopup
 #
 # Mouse actions
 #
-Mouse 1         R       A       PopUp "Start Menu"  0
+Mouse 1         R       A       PopUp "0"  0
 Mouse 2         R       A       WindowList 2
 Mouse 3         R       A       WindowList
 Mouse 1         1       A       ChangeWindowUp
