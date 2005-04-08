@@ -114,6 +114,7 @@ void process_message (unsigned long type, unsigned long *body);
 void DispatchEvent (ASEvent * Event);
 Window make_wintabs_window();
 Window make_tabs_window( Window parent );
+void do_swallow_window( ASWindowData *wd );
 void check_swallow_window( ASWindowData *wd );
 void rearrange_tabs();
 void render_tabs( Bool canvas_resized );
@@ -258,6 +259,10 @@ CheckConfigSanity()
 	    if( !get_flags(Config->geometry.flags, HeightValue) )
 			Config->geometry.height = 480 ;
 	}
+
+	WinTabsState.win_width = Config->geometry.width ; 
+	WinTabsState.win_height = Config->geometry.height ; 
+
 
     Config->gravity = NorthWestGravity ;
     if( get_flags(Config->geometry.flags, XNegative) )
@@ -419,7 +424,10 @@ process_message (unsigned long type, unsigned long *body)
         }
     }else if( type == M_SWALLOW_WINDOW ) 
 	{
-        LOCAL_DEBUG_OUT( "SwallowWindow requested for window %lX/frame %lX ", body[0], body[1] );
+        struct ASWindowData *wd = fetch_window_by_id( body[0] );
+		LOCAL_DEBUG_OUT( "SwallowWindow requested for window %lX/frame %lX, wd = %p ", body[0], body[1], wd );
+		if( wd )
+			do_swallow_window( wd );
 	}	 
 		
 }
@@ -803,7 +811,6 @@ rearrange_tabs()
     set_astbar_size( WinTabsState.banner.bar, x, tab_height );
     move_astbar( WinTabsState.banner.bar, WinTabsState.tabs_canvas, 0, 0 );
 
-    i = tabs_num ; 
     for( i = 0 ; i < tabs_num ; ++i ) 
     {    
         int width  = calculate_astbar_width( tabs[i].bar );
@@ -812,8 +819,9 @@ rearrange_tabs()
         if( width > max_width )
             width = max_width ;
         if( x + width > max_x )
-        {    
-            place_tabs_line( tabs, y, start, i - 1, max_x - x, max_width, tab_height );
+        {   
+			if( i  > 0 )  
+            	place_tabs_line( tabs, y, start, i - 1, max_x - x, max_width, tab_height );
             if( y + tab_height > max_y ) 
                 break;
             y += tab_height ; 
@@ -914,32 +922,14 @@ press_tab( int tab )
  * Swallowing code
  **************************************************************************/
 void
-check_swallow_window( ASWindowData *wd )
+do_swallow_window( ASWindowData *wd )
 {
-    Window w;
+	Window w;
     int try_num = 0 ;
     ASCanvas *nc ;
     char *name = NULL ;
 	INT32 encoding ;
 	ASWinTab *aswt = NULL ;
-	int i = 0;
-
-    if( wd == NULL && !get_flags( wd->state_flags, AS_Mapped))
-        return;
-
-	/* first lets check if we have already swallowed this one : */
-	i = PVECTOR_USED(WinTabsState.tabs);
-	aswt = PVECTOR_HEAD(ASWinTab,WinTabsState.tabs);
-	while( --i >= 0 )
-		if( aswt[i].client == wd->client )
-			return ;
-
-	/* now lets try and match its name : */
-	name = get_window_name( wd, Config->pattern_type, &encoding );
-    LOCAL_DEBUG_OUT( "name(\"%s\")->icon_name(\"%s\")->res_class(\"%s\")->res_name(\"%s\")",
-                     wd->window_name, wd->icon_name, wd->res_class, wd->res_name );
-	if( match_wild_reg_exp( name, WinTabsState.pattern_wrexp) != 0 )
-		return ;
 
 	/* we have a match */
 	/* now we actually swallow the window : */
@@ -1016,6 +1006,36 @@ check_swallow_window( ASWindowData *wd )
     ASSync(False);
     ungrab_server();
 }
+
+
+void
+check_swallow_window( ASWindowData *wd )
+{
+    char *name = NULL ;
+	INT32 encoding ;
+	ASWinTab *aswt = NULL ;
+	int i = 0;
+
+    if( wd == NULL && !get_flags( wd->state_flags, AS_Mapped))
+        return;
+
+	/* first lets check if we have already swallowed this one : */
+	i = PVECTOR_USED(WinTabsState.tabs);
+	aswt = PVECTOR_HEAD(ASWinTab,WinTabsState.tabs);
+	while( --i >= 0 )
+		if( aswt[i].client == wd->client )
+			return ;
+
+	/* now lets try and match its name : */
+	name = get_window_name( wd, Config->pattern_type, &encoding );
+    LOCAL_DEBUG_OUT( "name(\"%s\")->icon_name(\"%s\")->res_class(\"%s\")->res_name(\"%s\")",
+                     wd->window_name, wd->icon_name, wd->res_class, wd->res_name );
+	if( match_wild_reg_exp( name, WinTabsState.pattern_wrexp) != 0 )
+		return ;
+	
+	do_swallow_window( wd );
+}
+
 
 void 
 on_destroy_notify(Window w)
