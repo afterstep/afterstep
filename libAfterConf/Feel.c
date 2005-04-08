@@ -239,8 +239,7 @@ windowbox_parse (char *tline, FILE * fd, char **unused1, int *unused2)
 FeelConfig *
 CreateFeelConfig ()
 {
-  FeelConfig *config = (FeelConfig *) safemalloc (sizeof (FeelConfig));
-  memset( config, 0x00, sizeof( FeelConfig ) );
+  FeelConfig *config = (FeelConfig *) safecalloc (1, sizeof (FeelConfig));
   config->more_stuff = NULL;
 
   config->feel = create_asfeel();
@@ -323,7 +322,7 @@ ParseKeyBinding( ConfigItem *item, FreeStorageElem *func_elem, struct FuncKey **
     { /* gotta add it to the keyboard hash */
 		FuncKey *tmp ;
 
-		tmp = (FuncKey *) safemalloc (sizeof (FuncKey));
+		tmp = (FuncKey *) safecalloc (1, sizeof (FuncKey));
 
         tmp->next = *keyboard;
 		*keyboard = tmp ;

@@ -222,7 +222,7 @@ Bool read_text_property (Window w, Atom property, XTextProperty ** trg)
 			if ((*trg)->value)
 				XFree ((*trg)->value);
 		} else
-			*trg = (XTextProperty *) safemalloc (sizeof (XTextProperty));
+			*trg = (XTextProperty *) safecalloc (1, sizeof (XTextProperty));
 
 		if (XGetTextProperty (dpy, w, *trg, property) == 0)
 		{

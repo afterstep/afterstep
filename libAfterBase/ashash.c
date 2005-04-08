@@ -95,9 +95,7 @@ create_ashash (ASHashKey size,
 	hash = safemalloc (sizeof (ASHashTable));
 	init_ashash (hash, False);
 
-	hash->buckets = safemalloc (sizeof (ASHashBucket) * size);
-	memset (hash->buckets, 0x00, sizeof (ASHashBucket) * size);
-
+	hash->buckets = safecalloc (size, sizeof (ASHashBucket));
 	hash->size = size;
 
 	if (hash_func)
@@ -182,8 +180,8 @@ add_item_to_bucket (ASHashBucket * bucket, ASHashItem * item, long (*compare_fun
 
 #ifdef DEBUG_ALLOCS
 #undef add_hash_item
-#undef safemalloc
-void* safemalloc(size_t);
+#undef safecalloc
+void* safecalloc(size_t,size_t);
 #undef free
 #endif
 
@@ -214,7 +212,7 @@ add_hash_item (ASHashTable * hash, ASHashableValue value, void *data)
     if( deallocated_used > 0 )
         item = deallocated_mem[--deallocated_used];
     else
-        item = safemalloc (sizeof (ASHashItem));
+        item = safecalloc (1, sizeof (ASHashItem));
 
 	item->next = NULL;
 	item->value = value;
@@ -233,7 +231,7 @@ add_hash_item (ASHashTable * hash, ASHashableValue value, void *data)
 }
 
 #ifdef DEBUG_ALLOCS
-#define safemalloc(a) countmalloc(__FUNCTION__, __LINE__, a)
+#define safecalloc(a) countcalloc(__FUNCTION__, __LINE__, a,b)
 #define add_hash_item(a,b,c) countadd_hash_item(__FUNCTION__, __LINE__,a,b,c)
 #define free(a) countfree(__FUNCTION__, __LINE__, a)
 #endif
@@ -363,7 +361,7 @@ sort_hash_items (ASHashTable * hash, ASHashableValue * values, void **data, unsi
 		if (max_items == 0)
 			max_items = hash->items_num;
 
-		buckets = safemalloc (hash->buckets_used * sizeof (ASHashBucket));
+		buckets = safecalloc (hash->buckets_used, sizeof (ASHashBucket));
 		for (i = 0; i < hash->size; i++)
 			if (hash->buckets[i])
 				buckets[k++] = hash->buckets[i];

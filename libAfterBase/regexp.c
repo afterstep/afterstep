@@ -297,8 +297,7 @@ parse_reg_exp (short int lead_len, unsigned char **data)
 	if (lead_len == 0 && p_sym == NULL)
 		return NULL;
 
-	trg = safemalloc (sizeof (reg_exp));
-	memset (trg, 0x00, sizeof (reg_exp));
+	trg = safecalloc (1, sizeof (reg_exp));
 
 	trg->lead_len = lead_len;
 	trg->size = 0;
@@ -422,7 +421,7 @@ parse_wild_reg_exp (unsigned char **data)
 		}
 	} else
 	{
-		trg = safemalloc (sizeof (wild_reg_exp));
+		trg = safecalloc (1, sizeof (wild_reg_exp));
 		trg->max_size = p_reg->size;
 		trg->longest = p_reg;
 		trg->head = trg->tail = p_reg;

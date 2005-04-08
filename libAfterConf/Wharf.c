@@ -173,9 +173,8 @@ flag_options_xref WharfFlags[] = {
 WharfButton  *
 CreateWharfButton ()
 {
-	WharfButton  *btn = (WharfButton *) safemalloc (sizeof (WharfButton));
+	WharfButton  *btn = (WharfButton *) safecalloc (1, sizeof (WharfButton));
 
-	memset (btn, 0x00, sizeof (WharfButton));
 	return btn;
 }
 
@@ -227,9 +226,8 @@ DestroyWharfButton (WharfButton **pbtn)
 WharfConfig  *
 CreateWharfConfig ()
 {
-	WharfConfig  *config = (WharfConfig *) safemalloc (sizeof (WharfConfig));
+	WharfConfig  *config = (WharfConfig *) safecalloc (1, sizeof (WharfConfig));
 
-	memset (config, 0x00, sizeof (WharfConfig));
 	/* let's initialize Base config with some nice values: */
 	config->geometry.flags = WidthValue | HeightValue;
 	config->geometry.width = config->geometry.height = 64;

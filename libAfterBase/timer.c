@@ -59,7 +59,7 @@ timer_new (time_t msec, void (*handler) (void *), void *data)
 	Timer        *timer;
 	time_t        sec, usec;
 
-	timer = (Timer *) safemalloc (sizeof (Timer));
+	timer = (Timer *) safecalloc (1, sizeof (Timer));
 
 	timer->next = timer_first;
 	timer_first = timer;

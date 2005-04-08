@@ -242,7 +242,7 @@ ParseMouseEntry (char *tline, FILE * fd, char **junk, int *junk2)
         Scr.Feel.buttons2grab &= ~(1 << (button - 1));
 
     temp = Scr.Feel.MouseButtonRoot;
-    Scr.Feel.MouseButtonRoot = (MouseButton *) safemalloc (sizeof (MouseButton));
+    Scr.Feel.MouseButtonRoot = (MouseButton *) safecalloc (1, sizeof (MouseButton));
     Scr.Feel.MouseButtonRoot->NextButton = temp;
 
     Scr.Feel.MouseButtonRoot->fdata = fdata;
@@ -298,7 +298,7 @@ ParseKeyEntry (char *tline, FILE * fd, char **junk, int *junk2)
 
 			if (keycode != 0 )
 			{
-				FuncKey      *tmp = (FuncKey *) safemalloc (sizeof (FuncKey));
+				FuncKey      *tmp = (FuncKey *) safecalloc (1, sizeof (FuncKey));
 
                 tmp->next = Scr.Feel.FuncKeyRoot;
                 Scr.Feel.FuncKeyRoot = tmp;

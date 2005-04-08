@@ -155,7 +155,7 @@ FreeSyntaxHash (SyntaxDef * syntax)
 void
 PushSyntax (ConfigDef * config, SyntaxDef * syntax)
 {
-	SyntaxStack  *pnew = (SyntaxStack *) safemalloc (sizeof (SyntaxStack));
+	SyntaxStack  *pnew = (SyntaxStack *) safecalloc (1, sizeof (SyntaxStack));
 
 	/* saving our status to be able to come back to it later */
 	if (config->current_syntax)
@@ -240,7 +240,7 @@ PopSyntax (ConfigDef * config)
 void
 PushStorage (ConfigDef * config, FreeStorageElem ** tail)
 {
-	StorageStack *pnew = (StorageStack *) safemalloc (sizeof (StorageStack));
+	StorageStack *pnew = (StorageStack *) safecalloc (1, sizeof (StorageStack));
 
 	pnew->tail = tail;
 	pnew->next = config->current_tail;

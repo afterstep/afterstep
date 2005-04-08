@@ -314,7 +314,7 @@ CheckASMessageFine (int t_sec, int t_usec)
 #endif
 	if (FD_ISSET (fd, &in_fdset))
 	{
-		msg = (ASMessage *) safemalloc (sizeof (ASMessage));
+		msg = (ASMessage *) safecalloc (1, sizeof (ASMessage));
 		if (ReadASPacket (fd, msg->header, &(msg->body)) <= 0)
 		{
 			free (msg);

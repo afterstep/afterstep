@@ -79,7 +79,7 @@ create_asfeel()
 {
 	ASFeel *feel ;
 
-    feel = safemalloc( sizeof(ASFeel));
+    feel = safecalloc( 1, sizeof(ASFeel));
 	init_asfeel( feel );
 	return feel;
 }

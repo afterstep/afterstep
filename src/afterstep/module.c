@@ -260,7 +260,7 @@ LOCAL_DEBUG_OUT("Incoming message in proto 1%s","");
 LOCAL_DEBUG_OUT("Incoming message in proto 2%s","");
             if (pfunc == NULL)
 			{
-				pfunc = (FunctionData *) safemalloc (sizeof (FunctionData));
+				pfunc = (FunctionData *) safecalloc (1, sizeof (FunctionData));
 				init_func_data (pfunc);
 				ibuf->func = pfunc;
 			}

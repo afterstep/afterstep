@@ -239,7 +239,7 @@ style_new (name_list ** tail)
 {
 	name_list    *nl;
 
-	nl = (name_list *) safemalloc (sizeof (name_list));
+	nl = (name_list *) safecalloc (1, sizeof (name_list));
 
 	style_init (nl);
 

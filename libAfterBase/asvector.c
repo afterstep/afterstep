@@ -66,7 +66,7 @@ alloc_vector( ASVector *v, size_t new_size )
             v->allocated = new_size ;
 
         if( v->memory ) free( v->memory );
-        v->memory = safemalloc( v->allocated * v->unit );
+        v->memory = safecalloc( 1, v->allocated*v->unit );
     }
     v->used = 0 ;
     return v->memory;
@@ -100,7 +100,7 @@ realloc_vector( ASVector *v, size_t new_size )
                 v->used = 0 ;
             }
         }else
-            v->memory = safemalloc( v->allocated * v->unit );
+            v->memory = safecalloc( 1, v->allocated * v->unit );
     }
 LOCAL_DEBUG_CALLER_OUT("%p, %lu(*%d)| new memory = %p", v, (unsigned long)new_size, v?v->unit:0, v->memory );
     return v->memory;

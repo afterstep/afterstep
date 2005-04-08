@@ -218,13 +218,9 @@ AddFreeStorageElem (SyntaxDef * syntax, FreeStorageElem ** tail, TermDef * pterm
 
 	if (pterm)
 	{
-		new_elem = (FreeStorageElem *) safemalloc (sizeof (FreeStorageElem));
+		new_elem = (FreeStorageElem *) safecalloc (1, sizeof (FreeStorageElem));
 		new_elem->term = pterm;
-		new_elem->argc = 0;
-		new_elem->argv = NULL;
-		new_elem->flags = 0;
 		new_elem->next = *tail;
-		new_elem->sub = NULL;
 		*tail = new_elem;
 	}
 	return new_elem;
@@ -238,14 +234,12 @@ DupFreeStorageElem (FreeStorageElem * source)
 
 	if (source)
 	{
-		new_elem = (FreeStorageElem *) safemalloc (sizeof (FreeStorageElem));
+		new_elem = (FreeStorageElem *) safecalloc (1, sizeof (FreeStorageElem));
 		new_elem->term = source->term;
 		new_elem->argc = source->argc;
 		/* duplicating argv here */
 		new_elem->argv = DupStringArray (source->argc, source->argv);
 		new_elem->flags = source->flags;
-		new_elem->next = NULL;
-		new_elem->sub = NULL;
 		if (new_elem->sub)
 		{
 			FreeStorageElem *psub, **pnew_sub = &(new_elem->sub);
@@ -436,8 +430,7 @@ free_storage2func (FreeStorageElem * stored, int *ppos)
 	if (stored->term == NULL)
 		return NULL;
 
-	pfunc = (struct FunctionData *)safemalloc (sizeof (struct FunctionData));
-	memset (pfunc, 0x00, sizeof (struct FunctionData));
+	pfunc = (struct FunctionData *)safecalloc (1, sizeof (struct FunctionData));
 
 	pfunc->func = stored->term->id;
 

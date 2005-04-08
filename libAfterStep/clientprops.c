@@ -307,7 +307,7 @@ read_wm_hints (ASRawHints * hints, Window w)
 				if (parent_hints_func (hints->wm_hints->window_group, &parent_hints))
 				{
 					if (hints->group_leader == NULL)
-						hints->group_leader = (ASParentHints *) safemalloc (sizeof (ASParentHints));
+						hints->group_leader = (ASParentHints *) safecalloc (1, sizeof (ASParentHints));
 					*(hints->group_leader) = parent_hints;
 				}
 			}
@@ -344,7 +344,7 @@ read_wm_transient_for (ASRawHints * hints, Window w)
 			if (transient_for != w && parent_hints_func (transient_for, &parent_hints))
 			{
 				if (hints->transient_for == NULL)
-					hints->transient_for = (ASParentHints *) safemalloc (sizeof (ASParentHints));
+					hints->transient_for = (ASParentHints *) safecalloc (1, sizeof (ASParentHints));
 				*(hints->transient_for) = parent_hints;
 			}
 	}

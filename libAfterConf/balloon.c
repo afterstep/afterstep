@@ -41,10 +41,7 @@
 balloonConfig *
 Create_balloonConfig ()
 {
-  balloonConfig *config = (balloonConfig *) safemalloc (sizeof (balloonConfig));
-  /* let's initialize Base config with some nice values: */
-  memset( config, 0x00, sizeof (balloonConfig));
-
+  balloonConfig *config = (balloonConfig *) safecalloc (1, sizeof (balloonConfig));
   return config;
 }
 
