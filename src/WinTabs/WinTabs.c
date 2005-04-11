@@ -703,10 +703,9 @@ delete_tab( int index )
 }    
 
 void
-place_tabs_line( ASWinTab *tabs, int y, int first, int last, int spare, int max_width, int tab_height )
+place_tabs_line( ASWinTab *tabs, int x, int y, int first, int last, int spare, int max_width, int tab_height )
 {
     int i ;
-    int x = 0;
     int delta = spare / (last+1-first) ;
 
     for( i = first ; i <= last ; ++i ) 
@@ -741,7 +740,7 @@ rearrange_tabs()
     int max_x = mc->width ; 
     int max_y = mc->height ; 
     int max_width = Config->max_tab_width ; 
-    int start = 0 ;
+    int start = 0, start_x ;
 
 	if( tabs_num == 0 ) 
 	{
@@ -778,21 +777,18 @@ rearrange_tabs()
 		}
 	}
 
-    if( max_width <= 0 || max_width > max_x )
-        max_width = max_x ;
-
-    LOCAL_DEBUG_OUT( "max_x = %d, max_y = %d, max_width = %d", max_x, max_y, max_width );
-
 	tab_height = calculate_astbar_height( WinTabsState.banner.bar );
 	x = calculate_astbar_width( WinTabsState.banner.bar );
 	
 	if( tabs_num == 0 ) 
 	{	
 		max_y = tab_height ;
-		resize_canvas( WinTabsState.main_canvas, x, max_y );
+		if( resize_canvas( WinTabsState.main_canvas, x, max_y ) != 0 ) 
+			return;
 	}else
 	{	
-		resize_canvas( WinTabsState.main_canvas, WinTabsState.win_width, WinTabsState.win_height );
+		if( resize_canvas( WinTabsState.main_canvas, WinTabsState.win_width, WinTabsState.win_height ) != 0 ) 
+			return;
 		max_x = WinTabsState.win_width ; 
 		max_y = WinTabsState.win_height ;
 
@@ -807,10 +803,17 @@ rearrange_tabs()
 
     if( tab_height == 0 || max_x <= 0 || max_y <= 0 )
         return ;
-	
+
+	if( max_width <= 0 || max_width > max_x )
+        max_width = max_x ;
+
+    LOCAL_DEBUG_OUT( "max_x = %d, max_y = %d, max_width = %d", max_x, max_y, max_width );
+		   
     set_astbar_size( WinTabsState.banner.bar, x, tab_height );
     move_astbar( WinTabsState.banner.bar, WinTabsState.tabs_canvas, 0, 0 );
 
+	start = 0 ;
+	start_x = x ;
     for( i = 0 ; i < tabs_num ; ++i ) 
     {    
         int width  = calculate_astbar_width( tabs[i].bar );
@@ -821,15 +824,19 @@ rearrange_tabs()
         if( x + width > max_x )
         {   
 			if( i  > 0 )  
-            	place_tabs_line( tabs, y, start, i - 1, max_x - x, max_width, tab_height );
+            	place_tabs_line( tabs, start_x, y, start, i - 1, max_x - x, max_width, tab_height );
             if( y + tab_height > max_y ) 
                 break;
             y += tab_height ; 
             x = 0 ;
+			start = i ;
+			start_x = 0 ;
         }else if( i == tabs_num - 1 )
         {    
-            place_tabs_line( tabs, y, start, i, max_x - (x+width), max_width, tab_height );
+            place_tabs_line( tabs, start_x, y, start, i, max_x - (x+width), max_width, tab_height );
             x = 0 ;
+			start = i+1 ;
+			start_x = 0 ;
         }else
             x += width ;
     }
