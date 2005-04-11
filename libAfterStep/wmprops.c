@@ -76,6 +76,19 @@ Atom          _AS_CURRENT_DESK = None;
 Atom          _AS_CURRENT_VIEWPORT = None;
 Atom  		  _AS_SERVICE_WINDOW = None;
 
+Atom  		_AS_TBAR_PROPS		        = None;
+Atom  		_AS_BUTTON_CLOSE	     	= None;
+Atom  		_AS_BUTTON_CLOSE_PRESSED 	= None;
+Atom  		_AS_BUTTON_MAXIMIZE	     	= None;
+Atom  		_AS_BUTTON_MAXIMIZE_PRESSED = None;
+Atom  		_AS_BUTTON_MINIMIZE	     	= None;
+Atom  		_AS_BUTTON_MINIMIZE_PRESSED = None;
+Atom  		_AS_BUTTON_SHADE 			= None;
+Atom  		_AS_BUTTON_SHADE_PRESSED	= None;
+Atom  		_AS_BUTTON_MENU 			= None;
+Atom  		_AS_BUTTON_MENU_PRESSED 	= None;
+
+
 /* Crossreferences of atoms into flag value for
    different atom list type of properties :*/
 
@@ -124,7 +137,22 @@ AtomXref  _WMPropAtoms[] = {
     {"_AS_CURRENT_DESK", &_AS_CURRENT_DESK},   /* current afterstep desk */
     {"_AS_CURRENT_VIEWPORT", &_AS_CURRENT_VIEWPORT},   /* current afterstep viewport */
     {"_AS_SERVICE_WINDOW", &_AS_SERVICE_WINDOW},   /* current afterstep Scr.ServiceWin */
-    {NULL, NULL, 0, None}
+    
+#define WMPROPS_ATOM_DESC(a)   { #a, &a }
+
+    WMPROPS_ATOM_DESC(_AS_TBAR_PROPS),
+    WMPROPS_ATOM_DESC(_AS_BUTTON_CLOSE),
+    WMPROPS_ATOM_DESC(_AS_BUTTON_CLOSE_PRESSED),
+    WMPROPS_ATOM_DESC(_AS_BUTTON_MAXIMIZE),
+    WMPROPS_ATOM_DESC(_AS_BUTTON_MAXIMIZE_PRESSED),
+    WMPROPS_ATOM_DESC(_AS_BUTTON_MINIMIZE),
+	WMPROPS_ATOM_DESC(_AS_BUTTON_MINIMIZE_PRESSED),
+	WMPROPS_ATOM_DESC(_AS_BUTTON_SHADE),
+    WMPROPS_ATOM_DESC(_AS_BUTTON_SHADE_PRESSED),
+    WMPROPS_ATOM_DESC(_AS_BUTTON_MENU),
+    WMPROPS_ATOM_DESC(_AS_BUTTON_MENU_PRESSED),
+	
+	{NULL, NULL, 0, None}
 };
 
 AtomXref  *WMPropAtoms = &_WMPropAtoms[0];
@@ -616,6 +644,27 @@ read_as_service_window (ASWMProps * wmprops, Bool deleted)
 	return False;
 }
 
+Bool
+read_as_tbar_props (ASWMProps * wmprops, Bool deleted)
+{
+	Bool          res = False;
+
+	if (wmprops)
+	{
+		if (wmprops->as_tbar_props_data)
+		{
+			free (wmprops->as_tbar_props_data);
+			wmprops->as_tbar_props_data = NULL;
+		}
+		wmprops->as_tbar_props_size = 0;
+		if (deleted)
+			return False;
+		res = read_as_property (wmprops->selection_window, _AS_STYLE,
+								&(wmprops->as_tbar_props_size), &(wmprops->as_tbar_props_version), &(wmprops->as_tbar_props_data));
+	}
+	return res;
+}
+
 
 
 /******************** Property management functions: **************************/
@@ -677,6 +726,8 @@ prop_description_struct WMPropsDescriptions_volitile[] = {
 	{&_AS_MODULE_SOCKET, read_as_module_socket, WMC_ASModule, 0},
 	{&_AS_VIRTUAL_ROOT, read_as_virtual_root, WMC_ASVirtualRoot, 0},
 	{&_AS_SERVICE_WINDOW, read_as_service_window, WMC_ASServiceWindow, 0},
+	{&_AS_TBAR_PROPS, read_as_tbar_props, WMC_ASTBarProps, 0},
+	
 	{NULL, NULL, 0, 0}
 };
 

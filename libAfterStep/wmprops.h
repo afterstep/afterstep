@@ -53,6 +53,19 @@ extern Atom  _AS_CURRENT_DESK            ;
 extern Atom  _AS_CURRENT_VIEWPORT        ;
 extern Atom  _AS_SERVICE_WINDOW          ;
 
+extern Atom  _AS_TBAR_PROPS		         ;
+extern Atom  _AS_BUTTON_CLOSE	         ;
+extern Atom  _AS_BUTTON_CLOSE_PRESSED    ;
+extern Atom  _AS_BUTTON_MAXIMIZE	     ;
+extern Atom  _AS_BUTTON_MAXIMIZE_PRESSED ;
+extern Atom  _AS_BUTTON_MINIMIZE	     ;
+extern Atom  _AS_BUTTON_MINIMIZE_PRESSED ;
+extern Atom  _AS_BUTTON_SHADE 		     ;
+extern Atom  _AS_BUTTON_SHADE_PRESSED    ;
+extern Atom  _AS_BUTTON_MENU 		     ;
+extern Atom  _AS_BUTTON_MENU_PRESSED     ;
+
+
 extern struct AtomXref *WMPropAtoms;    /*all top level atoms for purpose of easy interning */
 
 
@@ -78,9 +91,24 @@ typedef enum
     WMC_ASVirtualRoot   = (0x01<<13),
     WMC_ASDesks         = (0x01<<14),
     WMC_ASViewport      = (0x01<<15),
-    WMC_ASServiceWindow = (0x01<<16)
+    WMC_ASServiceWindow = (0x01<<16),
+	WMC_ASTBarProps	 	= (0x01<<17)
+	
 }WMPropClass;
 
+typedef struct ASTBarProps
+{	
+	CARD32 align ;
+	CARD32 bevel ;
+	CARD32 h_border, v_border ;
+	CARD32 buttons_spacing ;
+	CARD32 buttons_num ; 
+	struct ASButtonPropElem
+	{
+		CARD32 kind ;
+		CARD32 pmap, mask ;		
+	}*buttons;
+}ASTBarProps ;
 
 typedef struct ASWMProps
 {
@@ -156,6 +184,11 @@ typedef struct ASWMProps
     ASFlagType     set_props ;
 
 	Window 	as_service_window ;
+
+	size_t  as_tbar_props_size ;            /* in bytes */
+    CARD32  as_tbar_props_version ;
+    CARD32 *as_tbar_props_data ;
+
 }ASWMProps;
 
 /*************************************************************************/
