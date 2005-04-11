@@ -27,6 +27,7 @@ struct wild_reg_exp;
 
 
 /* this are pure flags */
+#define STYLE_IGNORE_CONFIG     (1 << 9)   /* Ignore ConfigRequests for the client */   
 #define STYLE_LONG_LIVING       (1 << 10)
 #define STYLE_STICKY            (1 << 11)
 #define STYLE_TITLE             (1 << 12)

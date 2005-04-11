@@ -473,6 +473,7 @@ struct
 	{STYLE_XRESOURCES_HINTS, 	"HonorXResources", 		"NoXResources"},
 	{STYLE_FOCUS_ON_MAP, 		"FocusOnMap", 			"NoFocusOnMap"},
 	{STYLE_LONG_LIVING,			"LongLiving",			"ShortLiving"},
+	{STYLE_IGNORE_CONFIG,  		"IgnoreConfig",			"HonorConfig"},
 	{0,NULL, NULL}};
 
 const char *Gravity2text[] =

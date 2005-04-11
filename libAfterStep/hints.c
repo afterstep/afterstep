@@ -1132,6 +1132,7 @@ merge_asdb_hints (ASHints * clean, ASRawHints * raw, ASDatabaseRecord * db_rec, 
 		{STYLE_HANDLES, AS_Handles, 0, 0, AS_Handles},
 		{STYLE_FOCUS_ON_MAP, AS_FocusOnMap, 0, 0, AS_FocusOnMap},
 		{STYLE_LONG_LIVING, 0, AS_ShortLived, AS_ShortLived, 0},
+		{STYLE_IGNORE_CONFIG, AS_IgnoreConfigRequest, 0, 0, AS_IgnoreConfigRequest},
 		{0, 0, 0, 0, 0}
 	};
 

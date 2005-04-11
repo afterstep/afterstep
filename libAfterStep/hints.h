@@ -87,6 +87,7 @@ struct ScreenInfo;
 #define AS_FocusOnMap           (1<<24)
 #define AS_ShortLived           (1<<25)
 #define AS_Module				(1<<26)
+#define AS_IgnoreConfigRequest  (1<<27)
 
 /***********************************************************/
 /* AS supported protocols :                                */
