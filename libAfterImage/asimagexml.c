@@ -1883,10 +1883,14 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 #define  ASXML_ALIGN_BOTTOM (0x01<<3)
 			int *align ;
 			int i ;
+			merge_scanlines_func op_func = blend_scanlines_name2func(pop);
 
+			if( op_func == NULL ) 
+				op_func = alphablend_scanlines ;
 			/* Build the layers first. */
 			layers = create_image_layers( num );
 			align = safecalloc( num, sizeof(int));
+
 			for (num = 0, ptr = doc->child ; ptr ; ptr = ptr->next) 
 			{
 				int x = 0, y = 0;
@@ -1963,7 +1967,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 					layers[num].clip_height = clip_height ;
 					layers[num].tint = tint;
 					layers[num].bevel = 0;
-					layers[num].merge_scanlines = blend_scanlines_name2func(pop);
+					layers[num].merge_scanlines = op_func;
 					if( clip_width + x > 0 )
 					{
 						if( width < clip_width + x )
