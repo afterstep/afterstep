@@ -106,7 +106,7 @@ typedef struct ASTBarProps
 	struct ASButtonPropElem
 	{
 		CARD32 kind ;
-		CARD32 pmap, mask ;		
+		CARD32 pmap, mask, alpha ;		
 	}*buttons;
 }ASTBarProps ;
 
@@ -226,8 +226,13 @@ void set_clients_list (ASWMProps * wmprops, Window *list, int nclients);
 void set_stacking_order (ASWMProps * wmprops, Window *list, int nclients);
 void set_active_window_prop (ASWMProps * wmprops, Window active);
 void set_service_window_prop (ASWMProps *wmprops, Window service_win );
+void set_astbar_props( ASWMProps *wmprops, ASTBarProps *tbar_props );
+ASTBarProps *get_astbar_props( ASWMProps *wmprops );
+
 
 void flush_wmprop_data(ASWMProps *wmprops, ASFlagType what );
+
+
 
 /* automated event handling : */
 WMPropClass handle_wmprop_event( ASWMProps *wmprops, XEvent *event );

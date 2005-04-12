@@ -85,6 +85,12 @@ typedef struct {
 
 	int win_width, win_height ;
 
+	ASTBarProps *tbar_props ;
+
+	MyButton close_button ; 
+	MyButton menu_button ;
+	MyButton unswallow_button ;
+
 }ASWinTabsState ;
 
 ASWinTabsState WinTabsState = { 0 };
@@ -123,7 +129,12 @@ void select_tab( int tab );
 void press_tab( int tab );
 void set_tab_look( ASWinTab *aswt, Bool no_bevel );
 
-unsigned int find_tab_by_position( int root_x, int root_y );
+int find_tab_by_position( int root_x, int root_y );
+/* above function may also return : */
+#define BANNER_TAB_INDEX -1		   
+#define INVALID_TAB_INDEX -2
+
+
 void DeadPipe(int);
 
 int
@@ -240,8 +251,10 @@ DeadPipe (int nonsense)
 void
 CheckConfigSanity()
 {
-    int i ;
+    
+	int i ;
     char *default_style = safemalloc( 1+strlen(MyName)+1);
+	
 	default_style[0] = '*' ;
 	strcpy( &(default_style[1]), MyName );
 
@@ -279,6 +292,39 @@ CheckConfigSanity()
         Config->anchor_y += Scr.MyDisplayHeight ;
 
     mystyle_get_property (Scr.wmprops);
+
+	WinTabsState.tbar_props = get_astbar_props(Scr.wmprops );
+	if( WinTabsState.tbar_props != NULL ) 
+	{
+		for( i = 0 ; i < WinTabsState.tbar_props->buttons_num ; ++i ) 
+		{
+			MyIcon *icon = NULL ;
+			if( WinTabsState.tbar_props->buttons[i].kind == _AS_BUTTON_CLOSE ) 
+				icon = &(WinTabsState.close_button.unpressed);
+			else if( WinTabsState.tbar_props->buttons[i].kind == _AS_BUTTON_CLOSE_PRESSED ) 	
+				icon = &(WinTabsState.close_button.pressed);	 
+			else if( WinTabsState.tbar_props->buttons[i].kind == _AS_BUTTON_MAXIMIZE ) 
+				icon = &(WinTabsState.unswallow_button.unpressed);
+			else if( WinTabsState.tbar_props->buttons[i].kind == _AS_BUTTON_MAXIMIZE_PRESSED ) 	
+				icon = &(WinTabsState.unswallow_button.pressed);	 
+			else if( WinTabsState.tbar_props->buttons[i].kind == _AS_BUTTON_MENU ) 
+				icon = &(WinTabsState.menu_button.unpressed);
+			else if( WinTabsState.tbar_props->buttons[i].kind == _AS_BUTTON_MENU_PRESSED ) 	
+				icon = &(WinTabsState.menu_button.pressed);	 
+			if( icon != NULL ) 
+				icon_from_pixmaps( icon, WinTabsState.tbar_props->buttons[i].pmap, WinTabsState.tbar_props->buttons[i].mask, WinTabsState.tbar_props->buttons[i].alpha );
+		}	 
+		WinTabsState.close_button.width = max( WinTabsState.close_button.unpressed.width, WinTabsState.close_button.pressed.width );
+		WinTabsState.close_button.height = max( WinTabsState.close_button.unpressed.height, WinTabsState.close_button.pressed.height );
+		WinTabsState.close_button.context = C_TButton0 ; 
+		WinTabsState.unswallow_button.width = max( WinTabsState.unswallow_button.unpressed.width, WinTabsState.unswallow_button.pressed.width );
+		WinTabsState.unswallow_button.height = max( WinTabsState.unswallow_button.unpressed.height, WinTabsState.unswallow_button.pressed.height );
+		WinTabsState.unswallow_button.context = C_TButton1 ; 
+		WinTabsState.menu_button.width = max( WinTabsState.menu_button.unpressed.width, WinTabsState.menu_button.pressed.width );
+		WinTabsState.menu_button.height = max( WinTabsState.menu_button.unpressed.height, WinTabsState.menu_button.pressed.height );
+		WinTabsState.menu_button.context = C_TButton2 ; 
+		
+	}	 
 
     Scr.Look.MSWindow[BACK_UNFOCUSED] = mystyle_find( Config->unfocused_style );
     Scr.Look.MSWindow[BACK_FOCUSED] = mystyle_find( Config->focused_style );
@@ -443,11 +489,27 @@ DispatchEvent (ASEvent * event)
 
     if( (event->eclass & ASE_POINTER_EVENTS) != 0 )
     {
-        pointer_tab  = find_tab_by_position( event->x.xmotion.x_root, event->x.xmotion.y_root );
+		int pointer_root_x = event->x.xkey.x_root;
+		int pointer_root_y = event->x.xkey.y_root;
+		static int last_pointer_root_x = -1, last_pointer_root_y = -1; 
+        
+		pointer_tab  = find_tab_by_position( pointer_root_x, pointer_root_y );
         LOCAL_DEBUG_OUT( "pointer at %d,%d - pointer_tab = %d", event->x.xmotion.x_root, event->x.xmotion.y_root, pointer_tab );
-        if( pointer_tab >= PVECTOR_USED(WinTabsState.tabs) )
-            pointer_tab = -1 ;
-    }
+		if( pointer_tab == BANNER_TAB_INDEX ) 
+		{
+            int tbar_context ;
+			if( (tbar_context = check_astbar_point( WinTabsState.banner.bar, pointer_root_x, pointer_root_y )) != C_NO_CONTEXT )
+			{	
+	            event->context = tbar_context ;
+	        	on_astbar_pointer_action( WinTabsState.banner.bar, tbar_context, 
+								  		 (event->x.type == LeaveNotify),
+								  		 (last_pointer_root_x != pointer_root_x || last_pointer_root_y != pointer_root_y) );
+			}
+		}	 
+		last_pointer_root_x = pointer_root_x ;
+		last_pointer_root_y = pointer_root_y ;
+    
+	}
     LOCAL_DEBUG_OUT( "mc.geom = %dx%d%+d%+d", mc->width, mc->height, mc->root_x, mc->root_y );
     switch (event->x.type)
     {
@@ -574,6 +636,26 @@ DispatchEvent (ASEvent * event)
 /********************************************************************/
 /* showing our main window :                                        */
 /********************************************************************/
+void
+show_hint( Bool redraw )
+{		   
+	char *banner_text ;
+	if( Config->pattern ) 
+	{	
+		banner_text = safemalloc( 16 + strlen(Config->pattern) + 1 );
+		sprintf( banner_text, "Waiting for %s", Config->pattern );
+	}else
+	{
+		banner_text = safemalloc( 64 );
+		sprintf( banner_text, "Waiting for SwallowWindow command" );
+	}	 
+	add_astbar_label( WinTabsState.banner.bar, 0, 0, 0, Config->name_aligment, Config->h_spacing, Config->v_spacing, banner_text, 0);
+	free( banner_text );	
+
+	if( redraw ) 
+		rearrange_tabs();
+}
+
 Window
 make_wintabs_window()
 {
@@ -583,8 +665,10 @@ make_wintabs_window()
 	int x, y ;
     unsigned int width = max(Config->geometry.width,1);
     unsigned int height = max(Config->geometry.height,1);
-
     XSetWindowAttributes attributes;
+	MyButton *buttons[3] ;
+	int buttons_num ;
+
     attributes.background_pixmap = ParentRelative;
     switch( Config->gravity )
 	{
@@ -625,7 +709,26 @@ make_wintabs_window()
                   );
 
 	WinTabsState.banner.bar = create_astbar();
+	
 	set_tab_look( &WinTabsState.banner, True );
+
+	show_hint( False );
+
+	buttons_num = 0 ;
+	if( WinTabsState.menu_button.width > 0 )
+		buttons[buttons_num++] = &WinTabsState.menu_button ;
+	if( WinTabsState.unswallow_button.width > 0 )
+		buttons[buttons_num++] = &WinTabsState.unswallow_button ;
+	if( WinTabsState.close_button.width > 0 )
+		buttons[buttons_num++] = &WinTabsState.close_button ;
+    add_astbar_btnblock(WinTabsState.banner.bar,
+  		                1, 0, 0, ALIGN_CENTER, &buttons[0], 0xFFFFFFFF, buttons_num,
+                      	2, 2, 
+						2,
+                        TBTN_ORDER_L2R );
+    set_astbar_balloon( WinTabsState.banner.bar, C_TButton0, "Close window in current tab", AS_Text_ASCII );
+	set_astbar_balloon( WinTabsState.banner.bar, C_TButton1, "Unswallow (release) window in current tab", AS_Text_ASCII );
+	set_astbar_balloon( WinTabsState.banner.bar, C_TButton2, "Window menu", AS_Text_ASCII );
 
 
 	return w ;
@@ -700,6 +803,9 @@ delete_tab( int index )
     if( tabs[index].name ) 
         free( tabs[index].name );
     vector_remove_index( WinTabsState.tabs, index );
+
+	if( PVECTOR_USED(WinTabsState.tabs) == 0 )
+		show_hint( False );
 }    
 
 void
@@ -746,18 +852,6 @@ rearrange_tabs()
 	{
 		if(	WinTabsState.pattern_wrexp != NULL || !get_flags(Config->flags, ASWT_HideWhenEmpty ) )
 		{                      /* displaying banner with pattern or something else */
-			char *banner_text ;
-			if( Config->pattern ) 
-			{	
-				banner_text = safemalloc( 16 + strlen(Config->pattern) + 1 );
-				sprintf( banner_text, "Waiting for %s", Config->pattern );
-			}else
-			{
-				banner_text = safemalloc( 64 );
-				sprintf( banner_text, "Waiting for SwallowWindow command" );
-			}	 
-			add_astbar_label( WinTabsState.banner.bar, 2, 0, 0, Config->name_aligment, Config->h_spacing, Config->v_spacing, banner_text, 0);
-			free( banner_text );			
 		}else if( get_flags( WinTabsState.flags, ASWT_StateMapped ) )  /* hiding ourselves: */ 
 		{
 			XEvent xev ;
@@ -1058,7 +1152,7 @@ on_destroy_notify(Window w)
         }    
 }    
 
-unsigned int
+int
 find_tab_by_position( int root_x, int root_y )
 {
 /*    int col = WinListState.columns_num ; */
@@ -1073,9 +1167,14 @@ find_tab_by_position( int root_x, int root_y )
     if( root_x  >= 0 && root_y >= 0 &&
         root_x < tc->width && root_y < tc->height )
     {
-        for( i = 0 ; i < tabs_num ; ++i ) 
+		register ASTBarData *bar = WinTabsState.banner.bar ;
+        if( bar->win_x <= root_x && bar->win_x+bar->width > root_x &&
+            bar->win_y <= root_y && bar->win_y+bar->height > root_y )
+			return BANNER_TAB_INDEX;
+
+		for( i = 0 ; i < tabs_num ; ++i ) 
         {
-            register ASTBarData *bar = tabs[i].bar ;
+            bar = tabs[i].bar ;
             LOCAL_DEBUG_OUT( "Checking tab %d at %dx%d%+d%+d", i, bar->width, bar->height, bar->win_x, bar->win_y );
             if( bar->win_x <= root_x && bar->win_x+bar->width > root_x &&
                 bar->win_y <= root_y && bar->win_y+bar->height > root_y )
@@ -1083,6 +1182,6 @@ find_tab_by_position( int root_x, int root_y )
         }
     }
 
-    return i;
+    return i>= tabs_num ? INVALID_TAB_INDEX : i;
 }
 

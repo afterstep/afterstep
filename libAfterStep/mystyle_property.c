@@ -60,7 +60,8 @@ mystyle_list_set_property (ASWMProps *wmprops, ASHashTable *list )
 		prop[i++] = style->relief.back;
 		prop[i++] = style->texture_type;
 		prop[i++] = style->max_colors;
-		make_icon_pixmaps( &(style->back_icon), False );
+		if( style->back_icon.pix == None ) 
+			make_icon_pixmaps( &(style->back_icon), False );
 		prop[i++] = style->back_icon.pix;
 		prop[i++] = style->back_icon.mask;
 		prop[i++] = style->tint;
@@ -117,6 +118,8 @@ mystyle_get_property (ASWMProps *wmprops)
 		MyStyle      *style;
 		char         *name;
 		CARD32 flags = prop[i + 0];
+		Pixmap back_pix, back_mask, back_alpha ;
+
 		name = XGetAtomName (dpy, prop[i + 1]);
 		if ((style = mystyle_find (name)) == NULL)
 			style = mystyle_new_with_name (name);
@@ -168,10 +171,10 @@ mystyle_get_property (ASWMProps *wmprops)
 		style->relief.back = prop[i + 7];
 		style->texture_type = prop[i + 8];
 		style->max_colors = prop[i + 9];
-		style->back_icon.pix = prop[i + 10];
-		style->back_icon.mask = prop[i + 11];
+		back_pix = prop[i + 10];
+		back_mask = prop[i + 11];
 		style->tint = prop[i + 12];
-		style->back_icon.alpha = prop[i + 13];
+		back_alpha = prop[i + 13];
         set_flags(style->user_flags, F_EXTERNAL_BACKPIX|F_EXTERNAL_BACKMASK);
 		/* unused/reserved : */
 /*    style->tint = prop[i + 14];
@@ -202,28 +205,13 @@ mystyle_get_property (ASWMProps *wmprops)
 			style->inherit_flags &= ~F_BACKGRADIENT;
 		}
 		/* if there's a backpixmap, make sure it's valid and get its geometry */
-		if (style->back_icon.pix != None)
+		if (back_pix != None)
 		{
-			Window        junk_w;
-			int           junk;
-
-			if (!XGetGeometry
-				(dpy, style->back_icon.pix, &junk_w, &junk, &junk, &style->back_icon.width, &style->back_icon.height,
-				 &junk, &junk))
-				style->back_icon.pix = None;
-			else
-			{
-				if (style->back_icon.mask)
-					style->back_icon.image = picture2asimage (ASDefaultVisual, style->back_icon.pix, style->back_icon.mask,
-															  0, 0, style->back_icon.width, style->back_icon.height,
-															  AllPlanes, False, 0);
-				else
-					style->back_icon.image = picture2asimage (ASDefaultVisual, style->back_icon.pix, style->back_icon.alpha,
-															  0, 0, style->back_icon.width, style->back_icon.height,
-															  AllPlanes, False, 0);
+ 			icon_from_pixmaps( &(style->back_icon), back_pix, back_mask, back_alpha );
+			if( style->back_icon.image != NULL ) 
 				clear_flags (style->inherit_flags, F_BACKPIXMAP|F_BACKTRANSPIXMAP);
-			}
 		}
+
 		if (style->back_icon.pix == None && 
 			style->texture_type != TEXTURE_TRANSPARENT && 
 			style->texture_type != TEXTURE_TRANSPARENT_TWOWAY)

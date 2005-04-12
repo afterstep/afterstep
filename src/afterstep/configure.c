@@ -1243,6 +1243,92 @@ redecorate_aswindow_iter_func(void *data, void *aux_data)
     return True;
 }
 
+void 
+advertise_tbar_props()
+{
+	ASTBarProps props ; 
+	MyFrame *frame = myframe_find(NULL);
+	MouseButton  *btn;
+	int i, k ; 
+
+#define TBAR_BUTTONS_OF_CONCERN 5
+	struct 
+	{
+		Atom *kind, *kind_down;
+	 	int func;
+		MyButton *btn;
+	}buttons[TBAR_BUTTONS_OF_CONCERN] = 
+	{	{ &_AS_BUTTON_CLOSE, 	&_AS_BUTTON_CLOSE_PRESSED, 		F_CLOSE, 	NULL },
+		{ &_AS_BUTTON_MAXIMIZE, &_AS_BUTTON_MAXIMIZE_PRESSED, 	F_MAXIMIZE, NULL },
+		{ &_AS_BUTTON_MINIMIZE, &_AS_BUTTON_MINIMIZE_PRESSED, 	F_ICONIFY, 	NULL },
+		{ &_AS_BUTTON_SHADE, 	&_AS_BUTTON_SHADE_PRESSED, 		F_SHADE, 	NULL },
+		{ &_AS_BUTTON_MENU, 	&_AS_BUTTON_MENU_PRESSED, 		F_POPUP, 	NULL }};
+
+	
+	props.align = frame->title_align ;
+	props.bevel = frame->title_fbevel|frame->title_ubevel ;
+	props.h_border = max(Scr.Look.TitleButtonXOffset[0],Scr.Look.TitleButtonXOffset[1]);
+	props.v_border = max(Scr.Look.TitleButtonYOffset[0],Scr.Look.TitleButtonYOffset[1]);
+	props.buttons_spacing = max(Scr.Look.TitleButtonSpacing[0],Scr.Look.TitleButtonSpacing[1]);
+		
+    for (btn = Scr.Feel.MouseButtonRoot; btn != NULL; btn = btn->NextButton)
+		if ( (btn->Context & C_TButtonAll) )
+		{
+			for( i = 0 ; i < TBAR_BUTTONS_OF_CONCERN ; ++i )
+			{
+				if( btn->fdata->func == buttons[i].func && buttons[i].btn == NULL )
+				{/* now lets find that button in look : */
+				 	for( k = 0  ; k < TITLE_BUTTONS ; ++k ) 
+						if ( Scr.Look.buttons[k].unpressed.image != NULL &&
+						     (btn->Context&Scr.Look.buttons[k].context) != 0 )
+						{
+							buttons[i].btn = &(Scr.Look.buttons[k]);
+							break;	
+						}
+					break;	
+				}	 
+			}
+		}
+	props.buttons_num = 0 ; 
+	for( i = 0 ; i < TBAR_BUTTONS_OF_CONCERN ; ++i )
+		if( buttons[i].btn != NULL ) 
+		{
+			++props.buttons_num	;
+			if( buttons[i].btn->pressed.image != NULL && 
+				buttons[i].btn->pressed.image != buttons[i].btn->unpressed.image )
+				++props.buttons_num	;
+		}	 
+	props.buttons = safemalloc( props.buttons_num*sizeof(struct ASButtonPropElem));
+	k = 0 ;
+	for( i = 0 ; i < TBAR_BUTTONS_OF_CONCERN ; ++i ) 
+		if( buttons[i].btn != NULL ) 
+		{
+			MyIcon *icon = &(buttons[i].btn->unpressed);
+			if( icon->pix == None ) 
+				make_icon_pixmaps( icon, False );
+	
+			props.buttons[k].kind = *(buttons[i].kind);
+			props.buttons[k].pmap = icon->pix;
+			props.buttons[k].mask = icon->mask;
+			props.buttons[k].alpha = icon->alpha;
+	   		++k ;
+			if( buttons[i].btn->pressed.image != NULL && 
+				buttons[i].btn->pressed.image != buttons[i].btn->unpressed.image )
+			{	  
+				icon = &(buttons[i].btn->pressed);
+				if( icon->pix == None ) 
+					make_icon_pixmaps( icon, False );
+				props.buttons[k].kind = *(buttons[i].kind_down);
+				props.buttons[k].pmap = icon->pix;
+				props.buttons[k].mask = icon->mask;
+				props.buttons[k].alpha = icon->alpha;
+				++k ;
+			}
+		}	 
+
+	set_astbar_props( Scr.wmprops, &props ); 
+}
+
 
 /*************************************************************************/
 /* reading confiug files now :                                           */
@@ -1524,12 +1610,14 @@ LoadASConfig (int thisdesktop, ASFlagType what)
 		}
     }
 
-    if( get_flags(what, PARSE_LOOK_CONFIG|PARSE_FEEL_CONFIG))
+    if( get_flags(what, PARSE_BASE_CONFIG|PARSE_LOOK_CONFIG|PARSE_FEEL_CONFIG))
 	{
+        ASHashIterator  i;
 		ARGB32 cursor_fore = ARGB32_White ;
 		ARGB32 cursor_back = ARGB32_Black ;
 
 		fix_menu_pin_on( &Scr.Look );
+		
 		/* also need to recolor cursors ! */
 		if( Scr.Look.CursorFore )
 			parse_argb_color( Scr.Look.CursorFore, &cursor_fore );
@@ -1537,23 +1625,16 @@ LoadASConfig (int thisdesktop, ASFlagType what)
 	   		parse_argb_color( Scr.Look.CursorBack, &cursor_back );
 		recolor_feel_cursors( &Scr.Feel, cursor_fore, cursor_back );
 		XDefineCursor (dpy, Scr.Root, Scr.Feel.cursors[ASCUR_Default]);
-	}
-	if( get_flags(what, PARSE_LOOK_CONFIG|PARSE_FEEL_CONFIG))
-	{
-        ASHashIterator  i;
-        if( start_hash_iteration (Scr.Feel.Popups, &i) )
+        
+		if( start_hash_iteration (Scr.Feel.Popups, &i) )
             do
             {
 				reload_menu_pmaps( (MenuData *)curr_hash_data(&i) );
             }while( next_hash_item( &i ));
+		
+		advertise_tbar_props();
 	}
 	   
-    /* TODO: update the menus */
-    if (get_flags(what, PARSE_BASE_CONFIG|PARSE_LOOK_CONFIG|PARSE_FEEL_CONFIG))
-	{
-		/* TODO: update mouse cursor ! */
-    }
-
     /* force update of window frames */
     if (get_flags(what, PARSE_BASE_CONFIG|PARSE_LOOK_CONFIG|PARSE_FEEL_CONFIG|PARSE_DATABASE_CONFIG))
     {
