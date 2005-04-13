@@ -82,8 +82,15 @@ balloon_config2look( MyLook *look, balloonConfig *config )
             look->balloon_look = safecalloc( 1, sizeof(ASBalloonLook) );
 
         if( config == NULL )
+		{	
             memset( look->balloon_look, 0x00, sizeof(ASBalloonLook) );
-        else
+			look->balloon_look->show = True ;
+        	look->balloon_look->xoffset = 5 ;
+        	look->balloon_look->yoffset = 5 ;
+			look->balloon_look->style = mystyle_list_find_or_default (NULL, NULL);
+			look->balloon_look->delay = 200 ;
+			look->balloon_look->close_delay = 2000 ;
+		}else
         {
             look->balloon_look->show = get_flags( config->set_flags, BALLOON_USED );
             look->balloon_look->border_hilite = config->border_hilite ;

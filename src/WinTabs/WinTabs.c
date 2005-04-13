@@ -60,6 +60,9 @@ typedef struct ASWinTab
 	ASTBarData 		*bar ;
 	ASCanvas 		*client_canvas ;
 
+	Bool closed ;
+	XRectangle 	swallow_location ;
+
 }ASWinTab;
 
 typedef struct {
@@ -75,6 +78,7 @@ typedef struct {
 
 	ASVector *tabs ;
 
+#define BANNER_LABEL_IDX  1	
 	ASWinTab  banner ;
 
 	int rows ;
@@ -94,6 +98,10 @@ typedef struct {
 }ASWinTabsState ;
 
 ASWinTabsState WinTabsState = { 0 };
+
+#define C_CloseButton 		C_TButton0
+#define C_UnswallowButton 	C_TButton1
+#define C_MenuButton 		C_TButton2
 
 
 #define WINTABS_TAB_EVENT_MASK    (ButtonReleaseMask | ButtonPressMask | \
@@ -130,6 +138,10 @@ void press_tab( int tab );
 void set_tab_look( ASWinTab *aswt, Bool no_bevel );
 
 int find_tab_by_position( int root_x, int root_y );
+void send_swallow_command();
+void close_current_tab();
+void unswallow_current_tab();
+
 /* above function may also return : */
 #define BANNER_TAB_INDEX -1		   
 #define INVALID_TAB_INDEX -2
@@ -316,13 +328,13 @@ CheckConfigSanity()
 		}	 
 		WinTabsState.close_button.width = max( WinTabsState.close_button.unpressed.width, WinTabsState.close_button.pressed.width );
 		WinTabsState.close_button.height = max( WinTabsState.close_button.unpressed.height, WinTabsState.close_button.pressed.height );
-		WinTabsState.close_button.context = C_TButton0 ; 
+		WinTabsState.close_button.context = C_CloseButton ; 
 		WinTabsState.unswallow_button.width = max( WinTabsState.unswallow_button.unpressed.width, WinTabsState.unswallow_button.pressed.width );
 		WinTabsState.unswallow_button.height = max( WinTabsState.unswallow_button.unpressed.height, WinTabsState.unswallow_button.pressed.height );
-		WinTabsState.unswallow_button.context = C_TButton1 ; 
+		WinTabsState.unswallow_button.context = C_UnswallowButton ; 
 		WinTabsState.menu_button.width = max( WinTabsState.menu_button.unpressed.width, WinTabsState.menu_button.pressed.width );
 		WinTabsState.menu_button.height = max( WinTabsState.menu_button.unpressed.height, WinTabsState.menu_button.pressed.height );
-		WinTabsState.menu_button.context = C_TButton2 ; 
+		WinTabsState.menu_button.context = C_MenuButton ; 
 		
 	}	 
 
@@ -344,7 +356,19 @@ CheckConfigSanity()
     PrintWinTabsConfig (Config);
     Print_balloonConfig ( Config->balloon_conf );
 #endif
-    balloon_config2look( &(Scr.Look), Config->balloon_conf );
+	
+	balloon_config2look( &(Scr.Look), Config->balloon_conf );
+	if( Config->balloon_conf == NULL ) 
+	{
+/*		
+		Scr.Look.balloon_look->show = True ;
+        Scr.Look.balloon_look->xoffset = 5 ;
+        Scr.Look.balloon_look->yoffset = 5 ;
+		Scr.Look.balloon_look->style = mystyle_list_find_or_default (NULL, NULL);
+		Scr.Look.balloon_look->close_delay = 2000 ;
+ */
+	}	 
+		
     LOCAL_DEBUG_OUT( "balloon mystyle = %p (\"%s\")", Scr.Look.balloon_look->style,
                     Scr.Look.balloon_look->style?Scr.Look.balloon_look->style->name:"none" );
     set_balloon_look( Scr.Look.balloon_look );
@@ -572,6 +596,15 @@ DispatchEvent (ASEvent * event)
         case ButtonPress:
             if( pointer_tab >= 0 ) 
                 press_tab( pointer_tab );
+			else if( pointer_tab == BANNER_TAB_INDEX ) 
+			{
+				switch( event->context ) 
+				{
+					case C_MenuButton :		send_swallow_command();		break ;	
+					case C_CloseButton : 	close_current_tab();    	break ;	
+					case C_UnswallowButton: unswallow_current_tab();   	break ;	
+				}		  
+			}	 
             break;
         case ButtonRelease:
             press_tab( -1 );    
@@ -712,8 +745,6 @@ make_wintabs_window()
 	
 	set_tab_look( &WinTabsState.banner, True );
 
-	show_hint( False );
-
 	buttons_num = 0 ;
 	if( WinTabsState.menu_button.width > 0 )
 		buttons[buttons_num++] = &WinTabsState.menu_button ;
@@ -726,9 +757,12 @@ make_wintabs_window()
                       	2, 2, 
 						2,
                         TBTN_ORDER_L2R );
-    set_astbar_balloon( WinTabsState.banner.bar, C_TButton0, "Close window in current tab", AS_Text_ASCII );
-	set_astbar_balloon( WinTabsState.banner.bar, C_TButton1, "Unswallow (release) window in current tab", AS_Text_ASCII );
-	set_astbar_balloon( WinTabsState.banner.bar, C_TButton2, "Window menu", AS_Text_ASCII );
+    set_astbar_balloon( WinTabsState.banner.bar, C_CloseButton, "Close window in current tab", AS_Text_ASCII );
+	set_astbar_balloon( WinTabsState.banner.bar, C_MenuButton, "Select new window to be swallowed", AS_Text_ASCII );
+	set_astbar_balloon( WinTabsState.banner.bar, C_UnswallowButton, "Unswallow (release) window in current tab", AS_Text_ASCII );
+
+	/* this must be added after buttons, so that it will have index of 1 */
+	show_hint( False );
 
 
 	return w ;
@@ -779,6 +813,8 @@ add_tab( Window client, const char *name, INT32 encoding )
 	add_astbar_label( aswt.bar, 0, 0, 0, Config->name_aligment, Config->h_spacing, Config->v_spacing, name, encoding);
 
 	append_vector( WinTabsState.tabs, &aswt, 1 );
+
+	delete_astbar_tile( WinTabsState.banner.bar, BANNER_LABEL_IDX );
 
     return PVECTOR_TAIL(ASWinTab,WinTabsState.tabs)-1;
 }
@@ -1074,6 +1110,10 @@ do_swallow_window( ASWindowData *wd )
 
     /* first thing - we reparent window and its icon if there is any */
     nc = aswt->client_canvas = create_ascanvas_container( wd->client );
+	aswt->swallow_location.x = nc->root_x ; 
+	aswt->swallow_location.y = nc->root_y ; 
+	aswt->swallow_location.width = nc->width ; 
+	aswt->swallow_location.height = nc->height ; 
     XReparentWindow( dpy, wd->client, WinTabsState.main_window, WinTabsState.main_canvas->width - nc->width, WinTabsState.main_canvas->height - nc->height );
     XSelectInput (dpy, wd->client, StructureNotifyMask);
     XAddToSaveSet (dpy, wd->client);
@@ -1184,4 +1224,44 @@ find_tab_by_position( int root_x, int root_y )
 
     return i>= tabs_num ? INVALID_TAB_INDEX : i;
 }
+
+void send_swallow_command()
+{
+	SendTextCommand ( F_SWALLOW_WINDOW, "-", MyName, 0);
+}	 
+
+void close_current_tab()
+{
+	int curr = WinTabsState.selected_tab ;
+    int tabs_num  =  PVECTOR_USED(WinTabsState.tabs);
+    ASWinTab *tabs = PVECTOR_HEAD(ASWinTab,WinTabsState.tabs);
+	
+	if( tabs_num > 0 && curr >= 0 && curr < tabs_num ) 
+	{
+		if( tabs[curr].closed ) 
+			XDestroyWindow( dpy, tabs[curr].client); 	
+		else
+		{	
+			send_wm_protocol_request(tabs[curr].client, _XA_WM_DELETE_WINDOW, CurrentTime);
+			tabs[curr].closed = True ;
+		}
+	}		   
+}	 
+
+void unswallow_current_tab()
+{
+	int curr = WinTabsState.selected_tab ;
+    int tabs_num  =  PVECTOR_USED(WinTabsState.tabs);
+    ASWinTab *tabs = PVECTOR_HEAD(ASWinTab,WinTabsState.tabs);
+	
+	if( tabs_num > 0 && curr >= 0 && curr < tabs_num ) 
+	{
+		XReparentWindow( dpy, tabs[curr].client, Scr.Root, tabs[curr].swallow_location.x, tabs[curr].swallow_location.y );
+		XResizeWindow( dpy, tabs[curr].client, tabs[curr].swallow_location.width, tabs[curr].swallow_location.height );
+		delete_tab( curr ); 		
+		rearrange_tabs();
+	}	
+}	 
+
+
 

@@ -89,6 +89,10 @@ struct ScreenInfo;
 #define AS_Module				(1<<26)
 #define AS_IgnoreConfigRequest  (1<<27)
 
+#define NOLOOK_HINT_FLAGS	(AS_IgnoreConfigRequest|AS_Module|AS_ShortLived| \
+							 AS_AvoidCover|AS_AcceptsFocus|AS_ClickToFocus)
+
+
 /***********************************************************/
 /* AS supported protocols :                                */
 #define AS_DoesWmTakeFocus 		(1<<0)

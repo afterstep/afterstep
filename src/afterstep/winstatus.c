@@ -838,6 +838,8 @@ on_window_title_changed( ASWindow *asw, Bool update_display )
 {
     if( AS_ASSERT(asw) )
         return ;
+    if( is_output_level_under_threshold(OUTPUT_LEVEL_HINTS) )
+		print_clean_hints( NULL, NULL, asw->hints );
     if( asw->tbar )
     {
         ASCanvas *canvas = ASWIN_HFLAGS(asw, AS_VerticalTitle)?asw->frame_sides[FR_W]:asw->frame_sides[FR_N];
@@ -936,7 +938,9 @@ update_window_tbar_size(	ASWindow *asw )
         unsigned int tbar_width = 0 ;
         unsigned int tbar_height = 0 ;
         int x_offset = 0, y_offset = 0 ;
-        if( ASWIN_HFLAGS(asw, AS_VerticalTitle) )
+        LOCAL_DEBUG_OUT( "IsVertical = %lX", ASWIN_HFLAGS(asw, AS_VerticalTitle) );
+		
+		if( ASWIN_HFLAGS(asw, AS_VerticalTitle) )
         {
             tbar_size = calculate_astbar_width( asw->tbar );
             tbar_width = tbar_size ; 

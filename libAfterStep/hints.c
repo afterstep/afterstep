@@ -1421,8 +1421,11 @@ update_property_hints_manager (Window w, Atom property, ASSupportedHints * list,
 				hints->icon_name_idx = clean.icon_name_idx;
 				show_debug (__FILE__, __FUNCTION__, __LINE__, "names set");
 
-				hints->flags = clean.flags ;
-				hints->function_mask = clean.function_mask ;
+				/* Must not do that as it requires sugnificant changes in decorations and stuff : 
+				 * and should be done only when FollowTitleChanges is requested */
+				/* hints->flags = clean.flags ;
+				   hints->function_mask = clean.function_mask ;
+				 */
 			} else if (property == XA_WM_HINTS)
 			{
 
