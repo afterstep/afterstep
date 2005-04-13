@@ -120,7 +120,7 @@ ASWinTabsState WinTabsState = { 0 };
 WinTabsConfig *Config = NULL ;
 /**********************************************************************/
 
-void CheckConfigSanity();
+void CheckConfigSanity(const char *pattern_override);
 void GetBaseOptions (const char *filename);
 void GetOptions (const char *filename);
 void HandleEvents();
@@ -152,12 +152,23 @@ void DeadPipe(int);
 int
 main( int argc, char **argv )
 {
-    /* Save our program name - for error messages */
+    int i ;
+	char *pattern_override = NULL ;
+	/* Save our program name - for error messages */
 	set_DeadPipe_handler(DeadPipe);
     InitMyApp (CLASS_GADGET, argc, argv, NULL, NULL, 0 );
 	LinkAfterStepConfig();
 
     set_signal_handler( SIGSEGV );
+    for( i = 1 ; i< argc ; ++i)
+	{
+		LOCAL_DEBUG_OUT( "argv[%d] = \"%s\", original argv[%d] = \"%s\"", i, argv[i], i, MyArgs.saved_argv[i]);	  
+		if( argv[i] != NULL )
+		{ 	
+	    	if( strcmp( argv[i] , "--pattern" ) == 0 && i+1 < argc &&  argv[i+1] != NULL )
+				pattern_override = argv[i+1];
+		}
+	}
 
 
     ConnectX( ASDefaultScr, EnterWindowMask );
@@ -171,7 +182,7 @@ main( int argc, char **argv )
     LoadBaseConfig ( GetBaseOptions);
 	LoadColorScheme();
 	LoadConfig ("wintabs", GetOptions);
-    CheckConfigSanity();
+    CheckConfigSanity(pattern_override);
 
 	SendInfo ("Send_WindowList", 0);
 
@@ -261,7 +272,7 @@ DeadPipe (int nonsense)
 }
 
 void
-CheckConfigSanity()
+CheckConfigSanity(const char *pattern_override)
 {
     
 	int i ;
@@ -273,18 +284,27 @@ CheckConfigSanity()
     if( Config == NULL )
         Config = CreateWinTabsConfig ();
 
+	if( MyArgs.geometry.flags != 0 ) 
+		Config->geometry = MyArgs.geometry ;
+	if( pattern_override ) 
+	{	
+		if( Config->pattern )
+			free( Config->pattern );
+		Config->pattern = mystrdup(pattern_override);
+	}
 	if( Config->pattern != NULL )
 	{
 		WinTabsState.pattern_wrexp = compile_wild_reg_exp( Config->pattern ) ;
 	}else
 	{
 		show_warning( "Empty Pattern requested for windows to be captured and tabbed - will wait for swallow command");
-	    if( !get_flags(Config->geometry.flags, WidthValue) )
-			Config->geometry.width = 640 ;
-	    if( !get_flags(Config->geometry.flags, HeightValue) )
-			Config->geometry.height = 480 ;
 	}
 
+    if( !get_flags(Config->geometry.flags, WidthValue) )
+		Config->geometry.width = 640 ;
+    if( !get_flags(Config->geometry.flags, HeightValue) )
+		Config->geometry.height = 480 ;
+	
 	WinTabsState.win_width = Config->geometry.width ; 
 	WinTabsState.win_height = Config->geometry.height ; 
 
@@ -663,14 +683,14 @@ DispatchEvent (ASEvent * event)
                 LOCAL_DEBUG_OUT( "AS Styles updated!%s","");
 				mystyle_list_destroy_all(&(Scr.Look.styles_list));
 				LoadColorScheme();
-				CheckConfigSanity();
+				CheckConfigSanity(NULL);
 				/* now we need to update everything */
                             
                 while( --i >= 0 ) 
                     set_tab_look( &(tabs[i]), False);
 				set_tab_look( &(WinTabsState.banner), True);
                 rearrange_tabs(False );
-             }
+            }
 			break;
     }
 }
@@ -1274,8 +1294,8 @@ void unswallow_current_tab()
 	
 	if( tabs_num > 0 && curr >= 0 && curr < tabs_num ) 
 	{
-		XReparentWindow( dpy, tabs[curr].client, Scr.Root, tabs[curr].swallow_location.x, tabs[curr].swallow_location.y );
 		XResizeWindow( dpy, tabs[curr].client, tabs[curr].swallow_location.width, tabs[curr].swallow_location.height );
+		XReparentWindow( dpy, tabs[curr].client, Scr.Root, tabs[curr].swallow_location.x, tabs[curr].swallow_location.y );
 		delete_tab( curr ); 		
 		rearrange_tabs( False );
 	}	
