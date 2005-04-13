@@ -53,9 +53,13 @@ dirtree_new (void)
 	return tree;
 }
 
+#define ASSERT_TREE(t)  do{if((t)==NULL){show_debug(__FILE__, __FUNCTION__,__LINE__,"dirtree is NULL%s","");return;}}while(0)
+#define ASSERT_TREE_INT(t,r)  do{if((t)==NULL){show_debug(__FILE__, __FUNCTION__,__LINE__,"dirtree is NULL%s","");return (r);}}while(0)
+
 void
 dirtree_remove (dirtree_t * tree)
 {
+	ASSERT_TREE(tree);
 	if (tree->parent != NULL && tree->parent->child != NULL)
 	{
 		if (tree->parent->child == tree)
@@ -78,6 +82,7 @@ dirtree_remove (dirtree_t * tree)
 void
 dirtree_delete (dirtree_t * tree)
 {
+	ASSERT_TREE(tree);
 	/* find and remove ourself from our parent's list */
 	dirtree_remove (tree);
 
@@ -108,6 +113,8 @@ make_absolute (const char *path1, const char *path2)
 {
 	char         *path;
 
+	if( path1 == NULL || path2 == NULL )
+		return mystrdup("./") ;
 	if (*path2 == '/' || *path2 == '~' || *path2 == '$')
 		path = PutHome (path2);
 	else
@@ -143,7 +150,8 @@ dirtree_fill_from_dir (dirtree_t * tree)
 {
 	struct direntry **list;
 	int           i, n;
-
+	
+	ASSERT_TREE(tree);
 	n = my_scandir (tree->path, &list, no_dots_except_include, NULL);
 	for (i = 0; i < n; i++)
 	{
@@ -172,33 +180,38 @@ dirtree_fill_from_dir (dirtree_t * tree)
 dirtree_t    *
 dirtree_new_from_dir (const char *dir)
 {
-	dirtree_t    *tree = dirtree_new ();
-	char   *p;
-	int start_mark = 0, end_mark ;
-	register int i = 0 ;
-	register char *ptr = (char*)dir ;
+	
+	dirtree_t    *tree = NULL ; 
 
-	while( ptr[i] ) ++i ;
-	end_mark = i ;
+	if( dir )
+	{	
+		char   *p;
+		int start_mark = 0, end_mark ;
+		register int i = 0 ;
+		register char *ptr = (char*)dir ;
+		tree = dirtree_new ();
+	
+		while( ptr[i] ) ++i ;
+		end_mark = i ;
 
-	p = tree->path = safemalloc( i+1 );
-	do{ p[i] = ptr[i]; } while( --i >= 0 );
-	while( --i > 0 )
-		if( ptr[i] =='/' )
-		{
-			end_mark = i ;
-			break ;
-		}
+		p = tree->path = safemalloc( i+1 );
+		do{ p[i] = ptr[i]; } while( --i >= 0 );
+		while( --i > 0 )
+			if( ptr[i] =='/' )
+			{
+				end_mark = i ;
+				break ;
+			}
 
-	while( --i >= 0 )
-		if( ptr[i] =='/' )
-		{
-			start_mark = i+1 ;
-			break ;
-		}
-	tree->name = mystrndup (&(ptr[start_mark]), end_mark-start_mark);
-	dirtree_fill_from_dir (tree);
-
+		while( --i >= 0 )
+			if( ptr[i] =='/' )
+			{
+				start_mark = i+1 ;
+				break ;
+			}
+		tree->name = mystrndup (&(ptr[start_mark]), end_mark-start_mark);
+		dirtree_fill_from_dir (tree);
+	}
 	return tree;
 }
 
@@ -206,6 +219,8 @@ dirtree_new_from_dir (const char *dir)
 void
 dirtree_move_children (dirtree_t * tree1, dirtree_t * tree2)
 {
+	ASSERT_TREE(tree1);
+	ASSERT_TREE(tree2);
 	if (tree2->child != NULL)
 	{
 		dirtree_t    *t1, *t2 = NULL;
@@ -225,14 +240,17 @@ void
 dirtree_set_command (dirtree_t * tree, struct FunctionData *command, int recurse)
 {
 	dirtree_t    *t;
-
-	for (t = tree->child; t != NULL; t = t->next)
-	{
-		t->command = *command;
-		if (t->command.text != NULL)
-			t->command.text = mystrdup (t->command.text);
-		if (recurse)
-			dirtree_set_command (t, command, 1);
+	ASSERT_TREE(tree);
+	if( command )
+	{	
+		for (t = tree->child; t != NULL; t = t->next)
+		{
+			t->command = *command;
+			if (t->command.text != NULL)
+				t->command.text = mystrdup (t->command.text);
+			if (recurse)
+				dirtree_set_command (t, command, 1);
+		}
 	}
 }
 
@@ -242,8 +260,13 @@ dirtree_parse (dirtree_t * tree, const char *file)
 	FILE         *fp;
 	char         *str;
 
+	if( file == NULL ) 
+		return 1 ;
 	if ((fp = fopen (file, "r")) == NULL)
 		return 1;
+	
+	ASSERT_TREE_INT(tree,1);
+	
 	str = safemalloc (8192);
 	while (fgets (str, 8192, fp) != NULL)
 	{
@@ -357,6 +380,7 @@ void
 dirtree_parse_include (dirtree_t * tree)
 {
 	dirtree_t    *t;
+	ASSERT_TREE(tree);
 
 	/* parse the first .include */
 	for (t = tree->child; t != NULL; t = t->next)
@@ -381,6 +405,7 @@ void
 dirtree_set_base_order (dirtree_t * tree, int base_order)
 {
 	dirtree_t    *t;
+	ASSERT_TREE(tree);
 	
 	if( tree->base_order == 0 ) 
 		tree->base_order = base_order ; 
@@ -403,6 +428,7 @@ dirtree_remove_order (dirtree_t * tree)
 	dirtree_t    *t;
 	char         *ptr;
 	int           order = strtol (tree->name, &ptr, 10);
+	ASSERT_TREE(tree);
 
 	if (ptr != tree->name && *ptr == '_')
 	{
@@ -417,6 +443,8 @@ void
 dirtree_merge (dirtree_t * tree)
 {
 	dirtree_t    *t;
+	ASSERT_TREE(tree);
+	
 	/* PASS1: merge all the subdirs of the current dir */
 	for (t = tree->child; t != NULL; t = t->next)
 	{
@@ -480,6 +508,9 @@ dirtree_compar (const dirtree_t ** d1, const dirtree_t ** d2)
 	int           diff = 0;
 	dirtree_compar_f *compar;
 
+	ASSERT_TREE_INT(*d1,1);
+	ASSERT_TREE_INT(*d2,-1);
+
 	for (compar = dirtree_compar_list; diff == 0 && *compar != NULL; compar++)
 		diff = (*compar) (d1, d2);
 	return diff;
@@ -527,6 +558,8 @@ dirtree_sort (dirtree_t * tree)
 	int           i, n;
 	dirtree_t    *t;
 	dirtree_t   **list;
+
+	ASSERT_TREE(tree);
 
 	if (tree->child == NULL)
 		return;
@@ -665,7 +698,7 @@ void
 dirtree_print_tree (dirtree_t * tree, int depth)
 {
 	dirtree_t    *t;
-
+	ASSERT_TREE(tree);
 	fprintf (stderr, "%*s%s%s(%s: order = %d: base_order = %d: flags = %x)\n", depth, "", tree->name,
 			 (tree->flags & DIRTREE_DIR) ? "/ " : " ", tree->icon,
 			 tree->order, tree->base_order, tree->flags);

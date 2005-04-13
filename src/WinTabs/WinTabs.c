@@ -130,7 +130,7 @@ Window make_wintabs_window();
 Window make_tabs_window( Window parent );
 void do_swallow_window( ASWindowData *wd );
 void check_swallow_window( ASWindowData *wd );
-void rearrange_tabs();
+void rearrange_tabs( Bool dont_resize_window );
 void render_tabs( Bool canvas_resized );
 void on_destroy_notify(Window w);
 void select_tab( int tab );
@@ -190,7 +190,7 @@ main( int argc, char **argv )
 	{	
 		map_canvas_window( WinTabsState.main_canvas, True );
 		set_flags( WinTabsState.flags, ASWT_StateMapped );
-		rearrange_tabs();
+		rearrange_tabs( False );
 	}
 
     /* map_canvas_window( WinTabsState.main_canvas, True ); */
@@ -502,6 +502,34 @@ process_message (unsigned long type, unsigned long *body)
 		
 }
 
+Bool
+on_tabs_canvas_config()
+{
+	int tabs_num  = PVECTOR_USED(WinTabsState.tabs);
+    ASWinTab *tabs = PVECTOR_HEAD( ASWinTab, WinTabsState.tabs );
+	int tabs_changes = handle_canvas_config( WinTabsState.tabs_canvas );
+
+    if( tabs_changes != 0 )
+	{
+		safe_asimage_destroy( Scr.RootImage );	  
+        set_root_clip_area(WinTabsState.tabs_canvas );
+	}
+                    
+    if( get_flags( tabs_changes, CANVAS_MOVED ) )
+    {
+        int i = tabs_num ;
+		Bool rerender_tabs = False ;
+
+		rerender_tabs = update_astbar_transparency(WinTabsState.banner.bar, WinTabsState.tabs_canvas, True);
+        while( --i >= 0 ) 
+            if( update_astbar_transparency(tabs[i].bar, WinTabsState.tabs_canvas, True) )
+                rerender_tabs = True ;
+		if( !rerender_tabs ) 
+			tabs_changes = 0 ; 
+    }    
+	return tabs_changes;    
+}	 
+
 void
 DispatchEvent (ASEvent * event)
 {
@@ -540,9 +568,7 @@ DispatchEvent (ASEvent * event)
 	    case ConfigureNotify:
             {
                 int tabs_num  = PVECTOR_USED(WinTabsState.tabs);
-                ASWinTab *tabs = PVECTOR_HEAD( ASWinTab, WinTabsState.tabs );
                 Bool rerender_tabs = False ;
-                int tabs_changes = 0 ;
                 
                 if( event->w == WinTabsState.main_window ) 
                 {                        
@@ -554,43 +580,26 @@ DispatchEvent (ASEvent * event)
 							WinTabsState.win_width = mc->width ; 
 							WinTabsState.win_height = mc->height ; 
 						}
-                        rearrange_tabs();
+                        rearrange_tabs( True );
                     }else if( get_flags( changes, CANVAS_MOVED ) )
                     {
                         int i  = tabs_num;
                         ASWinTab *tabs = PVECTOR_HEAD( ASWinTab, WinTabsState.tabs );
-                        tabs_changes = handle_canvas_config( WinTabsState.tabs_canvas );
+
+						rerender_tabs = on_tabs_canvas_config();
                             
-                        if( tabs_changes != 0 )
-                            safe_asimage_destroy( Scr.RootImage );
                         while( --i >= 0 ) 
                         {
                             handle_canvas_config( tabs[i].client_canvas );
-                            if( update_astbar_transparency(tabs[i].bar, WinTabsState.tabs_canvas, True) )
-                                rerender_tabs = True ;
                             send_swallowed_configure_notify(&(tabs[i]));
                         }    
                     }    
                 }else if( event->w == WinTabsState.tabs_window ) 
                 {
-                    tabs_changes = handle_canvas_config( WinTabsState.tabs_canvas );
-                    if( tabs_changes != 0 )
-                        set_root_clip_area(WinTabsState.tabs_canvas );
-                    
-                    if( get_flags( tabs_changes, CANVAS_RESIZED ) )
-                    {
-                        render_tabs( True );
-                    }else if( get_flags( tabs_changes, CANVAS_MOVED ) )
-                    {
-                        int i = tabs_num ;
-						rerender_tabs = update_astbar_transparency(WinTabsState.banner.bar, WinTabsState.tabs_canvas, True);
-                        while( --i >= 0 ) 
-                            if( update_astbar_transparency(tabs[i].bar, WinTabsState.tabs_canvas, True) )
-                                rerender_tabs = True ;
-                    }        
+					rerender_tabs = on_tabs_canvas_config();
                 }
                 if( rerender_tabs ) 
-                    render_tabs( tabs_changes&CANVAS_RESIZED );
+                    render_tabs( get_flags( rerender_tabs, CANVAS_RESIZED ));
             }
 	        break;
         case ButtonPress:
@@ -660,7 +669,7 @@ DispatchEvent (ASEvent * event)
                 while( --i >= 0 ) 
                     set_tab_look( &(tabs[i]), False);
 				set_tab_look( &(WinTabsState.banner), True);
-                rearrange_tabs();
+                rearrange_tabs(False );
              }
 			break;
     }
@@ -686,7 +695,7 @@ show_hint( Bool redraw )
 	free( banner_text );	
 
 	if( redraw ) 
-		rearrange_tabs();
+		rearrange_tabs( False );
 }
 
 Window
@@ -871,7 +880,7 @@ place_tabs_line( ASWinTab *tabs, int x, int y, int first, int last, int spare, i
 }
 
 void
-rearrange_tabs()
+rearrange_tabs( Bool dont_resize_window )
 {
 	int tab_height = 0 ;
 	ASCanvas *mc = WinTabsState.main_canvas ;
@@ -913,12 +922,16 @@ rearrange_tabs()
 	if( tabs_num == 0 ) 
 	{	
 		max_y = tab_height ;
-		if( resize_canvas( WinTabsState.main_canvas, x, max_y ) != 0 ) 
-			return;
+		if( !dont_resize_window )
+			if( resize_canvas( WinTabsState.main_canvas, x, max_y ) != 0 ) 
+				return;
+		max_x = x = mc->width ; 
+		tab_height = mc->height ;
 	}else
 	{	
-		if( resize_canvas( WinTabsState.main_canvas, WinTabsState.win_width, WinTabsState.win_height ) != 0 ) 
-			return;
+		if( !dont_resize_window )
+			if( resize_canvas( WinTabsState.main_canvas, WinTabsState.win_width, WinTabsState.win_height ) != 0 ) 
+				return;
 		max_x = WinTabsState.win_width ; 
 		max_y = WinTabsState.win_height ;
 
@@ -973,8 +986,8 @@ rearrange_tabs()
     if( i >= tabs_num )    
         y += tab_height ; 
     
-    if( (moveresize_canvas( WinTabsState.tabs_canvas, 0, 0, max_x, y ) & CANVAS_RESIZED) == 0 ) 
-        render_tabs( False );
+    if( (moveresize_canvas( WinTabsState.tabs_canvas, 0, 0, max_x, y )&CANVAS_RESIZED)!= 0 );
+		render_tabs(True);
     
     max_y -= y ;
 	if( max_y <= 0 ) 
@@ -1068,6 +1081,9 @@ do_swallow_window( ASWindowData *wd )
 	INT32 encoding ;
 	ASWinTab *aswt = NULL ;
 
+	if( wd->client == WinTabsState.main_window )
+		return;
+
 	/* we have a match */
 	/* now we actually swallow the window : */
     grab_server();
@@ -1142,7 +1158,7 @@ do_swallow_window( ASWindowData *wd )
     
     select_tab( PVECTOR_USED(WinTabsState.tabs)-1 );
 
-    rearrange_tabs();
+    rearrange_tabs( False );
 
     ASSync(False);
     ungrab_server();
@@ -1160,6 +1176,8 @@ check_swallow_window( ASWindowData *wd )
     if( wd == NULL && !get_flags( wd->state_flags, AS_Mapped))
         return;
 
+	if( wd->client == WinTabsState.main_window )
+		return;
 	/* first lets check if we have already swallowed this one : */
 	i = PVECTOR_USED(WinTabsState.tabs);
 	aswt = PVECTOR_HEAD(ASWinTab,WinTabsState.tabs);
@@ -1187,7 +1205,7 @@ on_destroy_notify(Window w)
         if( tabs[i].client == w ) 
         {
             delete_tab( i );
-            rearrange_tabs();
+            rearrange_tabs( False );
             return ; 
         }    
 }    
@@ -1259,7 +1277,7 @@ void unswallow_current_tab()
 		XReparentWindow( dpy, tabs[curr].client, Scr.Root, tabs[curr].swallow_location.x, tabs[curr].swallow_location.y );
 		XResizeWindow( dpy, tabs[curr].client, tabs[curr].swallow_location.width, tabs[curr].swallow_location.height );
 		delete_tab( curr ); 		
-		rearrange_tabs();
+		rearrange_tabs( False );
 	}	
 }	 
 
