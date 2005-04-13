@@ -1314,6 +1314,7 @@ HandleConfigureRequest ( ASEvent *event )
 	if( ASWIN_HFLAGS(asw, AS_IgnoreConfigRequest ) )
 	{	
 		LOCAL_DEBUG_OUT( "Ignoring ConfigureRequest for client %p as required by hints", asw );
+		send_canvas_configure_notify(asw->frame_canvas, asw->client_canvas);
 		return;
 	}
 

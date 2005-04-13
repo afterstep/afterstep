@@ -30,9 +30,6 @@
 #include "shape.h"
 #include "canvas.h"
 
-/* we do it here so that we can make it dependant on fewest possible number 
- * of header, so we can reuse it in other apps */
-extern ScreenInfo Scr;
 
 inline Bool
 get_current_canvas_geometry( ASCanvas * pc, int *px, int *py, unsigned int *pwidth, unsigned int *pheight, unsigned int *pbw )
@@ -173,8 +170,8 @@ create_ascanvas (Window w)
 	{
 		pc = safecalloc (1, sizeof (ASCanvas));
 		pc->w = w;
-		LOCAL_DEBUG_CALLER_OUT( "<<#########>>canvas %p created for window %lX", pc, pc->w );
 		refresh_canvas_config (pc);
+		LOCAL_DEBUG_CALLER_OUT( "<<#########>>canvas %p created for w: %lX; geom = %dx%d%+d%+d, bw = %d", pc, pc->w, pc->width, pc->height, pc->root_x, pc->root_y, pc->bw );
 	}
 	return pc;
 }
@@ -188,9 +185,9 @@ create_ascanvas_container (Window w)
 	{
 		pc = safecalloc (1, sizeof (ASCanvas));
 		pc->w = w;
-		LOCAL_DEBUG_CALLER_OUT( "<<#########>>container canvas %p created for window %lX", pc, pc->w );
         pc->state = CANVAS_CONTAINER ;
 		refresh_canvas_config (pc);
+		LOCAL_DEBUG_CALLER_OUT( "<<#########>>container canvas %p created for w: %lX; geom = %dx%d%+d%+d, bw = %d", pc, pc->w, pc->width, pc->height, pc->root_x, pc->root_y , pc->bw);
 	}
 	return pc;
 }
