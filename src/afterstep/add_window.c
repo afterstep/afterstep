@@ -245,7 +245,6 @@ AddWindow (Window w)
     enlist_aswindow( tmp_win );
     redecorate_window  ( tmp_win, False );
     /* saving window management properties : */
-    set_window_wm_state( tmp_win, get_flags(status.flags, AS_Iconic) );
     set_client_desktop( tmp_win->w, ASWIN_DESK(tmp_win) );
 
 	/* we have to set shape on frame window. If window has title - 
@@ -257,7 +256,8 @@ AddWindow (Window w)
 	    on_window_title_changed ( tmp_win, False );
 	else 
 		SetShape( tmp_win, 0 );
-
+	/* Must do it now or else Java will freak out !!! */
+    XMapRaised (dpy, tmp_win->w);
 	RaiseWindow(tmp_win);
 
 /*^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ End Grab ^^^^^^^^^^^^^^^^^^^^ */
@@ -275,6 +275,7 @@ AddWindow (Window w)
         }
     }
 
+    set_window_wm_state( tmp_win, get_flags(status.flags, AS_Iconic) );
  
 	if( ASWIN_HFLAGS( tmp_win, AS_AvoidCover )  )
 		enforce_avoid_cover( tmp_win );
