@@ -234,7 +234,7 @@ prepare_move_resize_data( ASMoveResizeData *data, ASWidget *parent, ASWidget *mr
     data->geom_bar = create_astbar();
     set_astbar_style(data->geom_bar, BAR_STATE_UNFOCUSED, look->MSWindow[BACK_FOCUSED]->name );
 
-    add_astbar_label( data->geom_bar, 0, 0, 0, ALIGN_CENTER, DEFAULT_TBAR_SPACING, DEFAULT_TBAR_SPACING, "88888 x 88888 +88888 +88888", AS_Text_ASCII );
+    add_astbar_label( data->geom_bar, 0, 0, 0, ALIGN_CENTER, 1, 1, "88888 x 88888 +88888 +88888", AS_Text_ASCII );
     width = calculate_astbar_width( data->geom_bar );
     height = calculate_astbar_height( data->geom_bar );
     if( width < look->resize_move_geometry.width )

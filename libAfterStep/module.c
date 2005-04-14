@@ -43,6 +43,7 @@
 #include "wmprops.h"
 #include "session.h"
 #include "colorscheme.h"
+#include "myicon.h"
 
 #define  ASSocketWriteInt32(sb,d,i)  socket_buffered_write( (sb), (d), (i)*sizeof(CARD32))
 #define  ASSocketWriteInt16(sb,d,i)  socket_buffered_write( (sb), (d), (i)*sizeof(CARD16))
@@ -483,6 +484,53 @@ LoadConfig (char *config_file_name, void (*read_options_func) (const char *))
         }
     }else
         read_options_func (Session->overriding_file);
+}
+
+/*************************************************************************/
+/* some ASTBarProps utilities to be used by modules : 
+ *************************************************************************/
+void 
+button_from_astbar_props( struct ASTBarProps *tbar_props, struct button_t *button, 
+						  int context, Atom kind, Atom kind_pressed )
+{
+	if( button == NULL ) 
+		return;
+	
+	free_button_resources( button ) ;
+	memset( button, 0x00, sizeof(MyButton));
+
+	if( tbar_props != NULL )
+	{	
+		int i ;	 
+		for( i = 0 ; i < tbar_props->buttons_num ; ++i ) 
+		{
+			MyIcon *icon = NULL ;
+			if( tbar_props->buttons[i].kind == kind ) 
+				icon = &(button->unpressed);
+			else if( tbar_props->buttons[i].kind == kind_pressed ) 	
+				icon = &(button->pressed);	 
+			if( icon != NULL ) 
+				icon_from_pixmaps( icon, tbar_props->buttons[i].pmap, 
+										 tbar_props->buttons[i].mask, 
+										 tbar_props->buttons[i].alpha );
+		}	 
+		button->width = max( button->unpressed.width, button->width );
+		button->height = max( button->unpressed.height, button->height );
+		button->context = context ; 
+	}
+}
+
+void
+destroy_astbar_props( struct ASTBarProps **props ) 
+{
+	if( props ) 
+		if( *props )
+		{	
+			if( (*props)->buttons ) 
+				free((*props)->buttons);
+			free( *props );
+			*props = NULL ;
+		}
 }
 
 

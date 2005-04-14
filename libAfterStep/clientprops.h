@@ -588,6 +588,8 @@ ASRawHints *collect_hints (struct ScreenInfo *scr, Window w, ASFlagType what, AS
 void destroy_raw_hints( ASRawHints *hints, Bool reusable );
 void clientprops_cleanup ();
 
+void read_wm_protocols (ASRawHints * hints, Window w);
+
 /* printing functions :
  * if func and stream are not specified - fprintf(stderr) is used ! */
 void print_wm_hints         ( stream_func func, void* stream, XWMHints *hints );

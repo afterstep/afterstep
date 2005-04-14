@@ -127,6 +127,8 @@ TermDef       MyFrameTerms[] = {
     {TF_NO_MYNAME_PREPENDING, "TitleFocusedSaturation", 22,   TT_UINTEGER,         MYFRAME_TitleFSat_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "TitleUnfocusedSaturation", 24, TT_UINTEGER,         MYFRAME_TitleUSat_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "TitleStickySaturation", 21,    TT_UINTEGER,         MYFRAME_TitleSSat_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "TitleHSpacing", 13,    TT_UINTEGER,         MYFRAME_TitleHSpacing_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "TitleVSpacing", 13,    TT_UINTEGER,         MYFRAME_TitleVSpacing_ID, NULL},
 	{TF_NO_MYNAME_PREPENDING|TF_NONUNIQUE, "Inherit", 7, TT_QUOTED_TEXT,              MYFRAME_Inherit_ID, NULL},
     {TF_NO_MYNAME_PREPENDING | TF_SYNTAX_TERMINATOR, "~MyFrame", 8, TT_FLAG, MYFRAME_DONE_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "LeftBtnBackground", 17,  TT_FILENAME,     MYFRAME_LeftBtnBackground_ID, NULL},
@@ -591,6 +593,14 @@ ProcessMyFrameOptions (FreeStorageElem * options, MyFrameDefinition ** tail)
                 case MYFRAME_TitleSSat_ID :
                     fd->title_ssat = item.data.integer;
                     set_flags( fd->set_title_attr, MYFRAME_TitleSSatSet );
+                    break;
+                case MYFRAME_TitleHSpacing_ID :
+                    fd->title_h_spacing = item.data.integer;
+                    set_flags( fd->set_title_attr, MYFRAME_TitleHSpacingSet );
+                    break;
+                case MYFRAME_TitleVSpacing_ID :
+                    fd->title_v_spacing = item.data.integer;
+                    set_flags( fd->set_title_attr, MYFRAME_TitleVSpacingSet );
                     break;
 
                 case MYFRAME_Inherit_ID :

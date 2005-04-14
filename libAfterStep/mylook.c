@@ -343,6 +343,9 @@ create_myframe()
 	frame->title_fsat = frame->title_usat = frame->title_ssat = -1 ;
 	frame->title_fhue = frame->title_uhue = frame->title_shue = -1 ;
 
+    frame->title_h_spacing = DEFAULT_TBAR_HSPACING;
+	frame->title_v_spacing = DEFAULT_TBAR_VSPACING;
+
     return frame;
 
 }
@@ -396,7 +399,8 @@ create_default_myframe(ASFlagType default_title_align)
     frame->condense_titlebar = 0 ;
 	frame->left_layout = MYFRAME_DEFAULT_TITLE_LAYOUT ;
 	frame->right_layout = MYFRAME_DEFAULT_TITLE_LAYOUT ;
-    frame->spacing = 1;
+    frame->title_h_spacing = DEFAULT_TBAR_HSPACING;
+	frame->title_v_spacing = DEFAULT_TBAR_VSPACING;
     return frame ;
 }
 
@@ -482,6 +486,10 @@ inherit_myframe( MyFrame *frame, MyFrame *ancestor )
         if( get_flags( ancestor->set_title_attr, MYFRAME_TitleSSatSet ) )
             frame->title_ssat = ancestor->title_ssat;
 
+	    if( get_flags( ancestor->set_title_attr, MYFRAME_TitleHSpacingSet ) )
+			frame->title_h_spacing = ancestor->title_h_spacing;
+		if( get_flags( ancestor->set_title_attr, MYFRAME_TitleVSpacingSet ) )
+			frame->title_v_spacing = ancestor->title_v_spacing;
 
         frame->set_title_attr |= ancestor->set_title_attr ;
 

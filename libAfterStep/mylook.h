@@ -232,6 +232,9 @@ typedef struct MyFrame
 #define MYFRAME_TitleSSatSet         (0x01<<26)
 #define MYFRAME_TitleSatSet          (MYFRAME_TitleFSatSet|MYFRAME_TitleUSatSet|MYFRAME_TitleSSatSet)
 
+#define MYFRAME_TitleHSpacingSet     (0x01<<27)
+#define MYFRAME_TitleVSpacingSet     (0x01<<28)
+
     ASFlagType   title_fbevel, title_ubevel, title_sbevel;
     unsigned int title_fcm, title_ucm, title_scm ;
     int 		 title_fhue, title_uhue, title_shue; 
@@ -247,7 +250,7 @@ typedef struct MyFrame
 #define IsFrameCorner(p)   ((p)>=FRAME_SIDES)
 #define IsFramePart(f,p)   (get_flags((f)->parts_mask,0x01<<(p))&&((f)->parts[(p)] || (((f)->part_width[(p)] || p >= FRAME_SIDES) && (f)->part_length[(p)])))
 
-    unsigned int spacing ;
+    int title_h_spacing, title_v_spacing ;
 
 	unsigned long left_layout, right_layout ;
 

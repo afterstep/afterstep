@@ -97,7 +97,8 @@ CreateWinTabsConfig ()
 	config->pattern_type = ASN_Name;
     config->name_aligment = ALIGN_CENTER;
     config->balloon_conf = NULL;
-    config->h_spacing = config->v_spacing = DEFAULT_TBAR_SPACING;
+    config->h_spacing = DEFAULT_TBAR_HSPACING;
+	config->v_spacing = DEFAULT_TBAR_VSPACING;
     config->fbevel = config->ubevel = config->sbevel = DEFAULT_TBAR_HILITE ;
 
 	return config;

@@ -1308,19 +1308,27 @@ get_astbar_props( ASWMProps *wmprops )
 		tbar_props = safecalloc( 1, sizeof(ASTBarProps));
 		tbar_props->align = prop[0] ; 
 		tbar_props->bevel = prop[1] ; 
-		tbar_props->h_border = prop[2] ; 
-		tbar_props->v_border = prop[3] ; 
-		tbar_props->buttons_spacing = prop[4] ; 
-		tbar_props->buttons_num = prop[5] ; 
+		tbar_props->title_h_spacing = prop[2] ;
+		tbar_props->title_v_spacing = prop[3] ;
+		tbar_props->buttons_h_border = prop[4] ; 
+		tbar_props->buttons_v_border = prop[5] ; 
+		tbar_props->buttons_spacing = prop[6] ; 
+		tbar_props->buttons_num = prop[7] ; 
 		nbuttons = tbar_props->buttons_num;
-		tbar_props->buttons = safemalloc( nbuttons*sizeof(struct ASButtonPropElem));
-		for( i = 0 ; i < nbuttons ; ++i ) 
+		if( nbuttons > 10 || (nbuttons*4+8)*sizeof(CARD32) > wmprops->as_tbar_props_size)
 		{
-			tbar_props->buttons[i].kind = prop[6+i*3];
-			tbar_props->buttons[i].pmap = prop[6+i*3+1];
-			tbar_props->buttons[i].mask = prop[6+i*3+2];
-			tbar_props->buttons[i].alpha = prop[6+i*3+3];
-		}	 
+			tbar_props->buttons_num = 0 ;
+		}else
+		{		 
+			tbar_props->buttons = safemalloc( nbuttons*sizeof(struct ASButtonPropElem));
+			for( i = 0 ; i < nbuttons ; ++i ) 
+			{
+				tbar_props->buttons[i].kind = prop[8+i*3];
+				tbar_props->buttons[i].pmap = prop[8+i*3+1];
+				tbar_props->buttons[i].mask = prop[8+i*3+2];
+				tbar_props->buttons[i].alpha = prop[8+i*3+3];
+			}	 
+		}
 	}	 
 	
 	return tbar_props;	   
@@ -1340,22 +1348,24 @@ set_astbar_props( ASWMProps *wmprops, ASTBarProps *tbar_props )
 	if( tbar_props ) 
 	{
 		int i, nbuttons = tbar_props->buttons_num;
-		size = sizeof (CARD32) * (nbuttons*4 + 6);
+		size = sizeof (CARD32) * (nbuttons*4 + 8);
 		prop = safecalloc ( 1, size );
 		prop[0] = tbar_props->align ; 
 		prop[1] = tbar_props->bevel ; 
-		prop[2] = tbar_props->h_border ; 
-		prop[3] = tbar_props->v_border ; 
-		prop[4] = tbar_props->buttons_spacing ; 
-		prop[5] = tbar_props->buttons_num ; 
+		prop[2] = tbar_props->title_h_spacing ;
+		prop[3] = tbar_props->title_v_spacing ;
+		prop[4] = tbar_props->buttons_h_border ; 
+		prop[5] = tbar_props->buttons_v_border ; 
+		prop[6] = tbar_props->buttons_spacing ; 
+		prop[7] = tbar_props->buttons_num ; 
 	
 
 		for( i = 0 ; i < nbuttons ; ++i ) 
 		{
-			prop[6+i*3] = tbar_props->buttons[i].kind ;
-			prop[6+i*3+1] = tbar_props->buttons[i].pmap ;
-			prop[6+i*3+2] = tbar_props->buttons[i].mask ;
-			prop[6+i*3+3] = tbar_props->buttons[i].alpha ;
+			prop[8+i*3] = tbar_props->buttons[i].kind ;
+			prop[8+i*3+1] = tbar_props->buttons[i].pmap ;
+			prop[8+i*3+2] = tbar_props->buttons[i].mask ;
+			prop[8+i*3+3] = tbar_props->buttons[i].alpha ;
 		}	 
 	}
 
@@ -1372,6 +1382,8 @@ set_astbar_props( ASWMProps *wmprops, ASTBarProps *tbar_props )
 	wmprops->as_tbar_props_size = size;
 	wmprops->as_tbar_props_version = version;
 }
+
+
 
 /********************************************************************************/
 /* We need to handle Property Notify Events : 						            */

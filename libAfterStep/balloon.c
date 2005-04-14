@@ -138,8 +138,7 @@ display_active_balloon()
 			}
         BalloonState.active_canvas = create_ascanvas(BalloonState.active_window);
         BalloonState.active_bar = create_astbar();
-        add_astbar_label( BalloonState.active_bar, 0, 0, 0, ALIGN_CENTER, DEFAULT_TBAR_SPACING,
-		DEFAULT_TBAR_SPACING, BalloonState.active->text, BalloonState.active->encoding );
+        add_astbar_label( BalloonState.active_bar, 0, 0, 0, ALIGN_CENTER, 1, 1, BalloonState.active->text, BalloonState.active->encoding );
         set_active_balloon_look();
         map_canvas_window( BalloonState.active_canvas, True );
 

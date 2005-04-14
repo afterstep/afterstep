@@ -937,18 +937,6 @@ add_astbar_tile( ASTBarData *tbar, int type, unsigned char col, unsigned char ro
 			set_flags( align_flags, FIT_LABEL_WIDTH );
 	}	 
 
-#if 0
-    if( get_flags( flip, FLIP_VERTICAL ) )
-        align_flags = (((align&PAD_H_MASK)>>PAD_H_OFFSET)<<PAD_V_OFFSET)|
-                      (((align&PAD_V_MASK)>>PAD_V_OFFSET)<<PAD_H_OFFSET)|
-                      (((align&RESIZE_H_MASK)>>RESIZE_H_OFFSET)<<RESIZE_V_OFFSET)|
-                      (((align&RESIZE_V_MASK)>>RESIZE_V_OFFSET)<<RESIZE_H_OFFSET) ;
-
-    if( get_flags( flip, FLIP_UPSIDEDOWN ) )
-        align_flags = ((align_flags&0x0005)<<1)|((align_flags&(0x0005<<1))>>1)|(align_flags&RESIZE_MASK);
-#endif
-
-
 	LOCAL_DEBUG_CALLER_OUT( "type = %d, flip = %d, align = 0x%X, align_flags = 0x%lX", type, flip, align, align_flags );
     align_flags &= (PAD_MASK|RESIZE_MASK|FIT_LABEL_SIZE);
 
@@ -1110,7 +1098,6 @@ LOCAL_DEBUG_CALLER_OUT( "tbar(%p)->index(%d)->label(ENC = %ld, TXT=\"%s\")", tba
     }
 	return changed;
 }
-
 
 Bool
 change_astbar_first_label (ASTBarData * tbar, const char *label, unsigned long encoding)

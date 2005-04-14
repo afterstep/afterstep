@@ -100,7 +100,8 @@ typedef struct ASTBarProps
 {	
 	CARD32 align ;
 	CARD32 bevel ;
-	CARD32 h_border, v_border ;
+	CARD32 title_h_spacing, title_v_spacing ;
+	CARD32 buttons_h_border, buttons_v_border ;
 	CARD32 buttons_spacing ;
 	CARD32 buttons_num ; 
 	struct ASButtonPropElem

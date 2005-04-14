@@ -872,6 +872,11 @@ MyFrame *add_myframe_from_def( ASHashTable *list, MyFrameDefinition *fd, ASFlagT
     if( get_flags( fd->set_title_attr, MYFRAME_TitleSSatSet ) )
         frame->title_ssat = fd->title_ssat;
 	
+    if( get_flags( fd->set_title_attr, MYFRAME_TitleHSpacingSet ) )
+		frame->title_h_spacing = fd->title_h_spacing;
+	if( get_flags( fd->set_title_attr, MYFRAME_TitleVSpacingSet ) )
+		frame->title_v_spacing = fd->title_v_spacing;
+
 	
 	for( i = 0 ; i < MYFRAME_TITLE_BACKS ; ++i )
 	{
@@ -1267,8 +1272,10 @@ advertise_tbar_props()
 	
 	props.align = frame->title_align ;
 	props.bevel = frame->title_fbevel|frame->title_ubevel ;
-	props.h_border = max(Scr.Look.TitleButtonXOffset[0],Scr.Look.TitleButtonXOffset[1]);
-	props.v_border = max(Scr.Look.TitleButtonYOffset[0],Scr.Look.TitleButtonYOffset[1]);
+	props.title_h_spacing = frame->title_h_spacing ;
+	props.title_v_spacing = frame->title_v_spacing ;
+	props.buttons_h_border = max(Scr.Look.TitleButtonXOffset[0],Scr.Look.TitleButtonXOffset[1]);
+	props.buttons_v_border = max(Scr.Look.TitleButtonYOffset[0],Scr.Look.TitleButtonYOffset[1]);
 	props.buttons_spacing = max(Scr.Look.TitleButtonSpacing[0],Scr.Look.TitleButtonSpacing[1]);
 		
     for (btn = Scr.Feel.MouseButtonRoot; btn != NULL; btn = btn->NextButton)

@@ -834,8 +834,8 @@ estimate_titlebar_size( ASHints *hints, unsigned int *width_ret, unsigned int *h
         ASFlagType btn_mask ; 
 
 		btn_mask = compile_titlebuttons_mask (hints);
-        tbar->h_spacing = DEFAULT_TBAR_SPACING ;
-        tbar->v_spacing = DEFAULT_TBAR_SPACING ;
+        tbar->h_spacing = DEFAULT_TBAR_HSPACING ;
+        tbar->v_spacing = DEFAULT_TBAR_VSPACING ;
         /* left buttons : */
         add_astbar_btnblock(tbar, 0, 0, 0, NO_ALIGN,
                             &(Scr.Look.ordered_buttons[0]), btn_mask,
@@ -844,7 +844,7 @@ estimate_titlebar_size( ASHints *hints, unsigned int *width_ret, unsigned int *h
                             TBTN_ORDER_L2R );
       
 		/* label */
-        add_astbar_label(   tbar, 1, 0, 0, ALIGN_LEFT, DEFAULT_TBAR_SPACING, DEFAULT_TBAR_SPACING, hints->names[0], hints->names_encoding[0]);
+        add_astbar_label(   tbar, 1, 0, 0, ALIGN_LEFT, DEFAULT_TBAR_HSPACING, DEFAULT_TBAR_VSPACING, hints->names[0], hints->names_encoding[0]);
         /* right buttons : */
         add_astbar_btnblock(tbar, 2, 0, 0, NO_ALIGN,
                             &(Scr.Look.ordered_buttons[Scr.Look.button_first_right]), btn_mask,
@@ -1002,7 +1002,7 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
 		{
 	        LOCAL_DEBUG_OUT( "setting icon label to %s", ASWIN_ICON_NAME(asw) );
 	        add_astbar_label( asw->icon_title, 0, 0, 0, frame->title_align,
-							  DEFAULT_TBAR_SPACING, DEFAULT_TBAR_SPACING,
+							  DEFAULT_TBAR_HSPACING, DEFAULT_TBAR_VSPACING,
 						      ASWIN_ICON_NAME(asw),
 							  (asw->hints->icon_name_idx < 0)?AS_Text_ASCII :
 														  asw->hints->names_encoding[asw->hints->icon_name_idx]);
@@ -1217,7 +1217,7 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
                           tbar_layout_col[ASO_TBAR_ELEM_LBL],
                           tbar_layout_row[ASO_TBAR_ELEM_LBL],
                           od->flip,
-                          title_align, DEFAULT_TBAR_SPACING, /*max( asw->tbar->top_bevel, asw->tbar->bottom_bevel)*/0,
+                          title_align, frame->title_h_spacing, frame->title_v_spacing,
                           asw->hints->names[0], asw->hints->names_encoding[0]);
 		
 			/* all the buttons go after the label to be rendered over it */
