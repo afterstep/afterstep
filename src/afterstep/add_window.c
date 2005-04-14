@@ -218,7 +218,6 @@ AddWindow (Window w)
     tmp_win->wm_state_transition = get_flags(status.flags, AS_Iconic)?ASWT_Withdrawn2Iconic:ASWT_Withdrawn2Normal ;
 
     pending_placement = init_aswindow_status( tmp_win, &status );
-
 #ifdef SHAPE
     XShapeSelectInput (dpy, tmp_win->w, ShapeNotifyMask);
 #endif
@@ -231,10 +230,8 @@ AddWindow (Window w)
 	 * gotten one for anything up to here, however.
 	 */
     ASSync( False );
-	if( !pending_placement )
-	{
-	    grab_server();
-	}
+    grab_server();
+/*vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv Start Grab vvvvvvvvvvvvvvvvvvvvv */
     if (validate_drawable(tmp_win->w, NULL, NULL) == None)
 	{
 		destroy_hints(tmp_win->hints, False);
@@ -247,6 +244,9 @@ AddWindow (Window w)
 	/* add the window into the afterstep list */
     enlist_aswindow( tmp_win );
     redecorate_window  ( tmp_win, False );
+    /* saving window management properties : */
+    set_window_wm_state( tmp_win, get_flags(status.flags, AS_Iconic) );
+    set_client_desktop( tmp_win->w, ASWIN_DESK(tmp_win) );
 
 	/* we have to set shape on frame window. If window has title - 
 	 * on_window_title_changed will take care of it - otherwise we force it
@@ -258,9 +258,13 @@ AddWindow (Window w)
 	else 
 		SetShape( tmp_win, 0 );
 
+	RaiseWindow(tmp_win);
+
+/*^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ End Grab ^^^^^^^^^^^^^^^^^^^^ */
+	ungrab_server();
+
     if( pending_placement )
     {
-		RaiseWindow(tmp_win);
         on_window_status_changed( tmp_win, False, True );
         if( !place_aswindow( tmp_win ) )
         {
@@ -270,10 +274,7 @@ AddWindow (Window w)
 			 */
         }
     }
-    /* saving window management properties : */
-    set_client_desktop( tmp_win->w, ASWIN_DESK(tmp_win) );
-    set_window_wm_state( tmp_win, get_flags(status.flags, AS_Iconic) );
-	RaiseWindow(tmp_win);
+
  
 	if( ASWIN_HFLAGS( tmp_win, AS_AvoidCover )  )
 		enforce_avoid_cover( tmp_win );
@@ -284,8 +285,6 @@ AddWindow (Window w)
 	 * WithdrawnState in HandleUnmapNotify.  Map state gets set correctly
 	 * again in HandleMapNotify.
      */
-	if( !pending_placement )
-		ungrab_server();
     broadcast_config (M_ADD_WINDOW, tmp_win);
     broadcast_window_name( tmp_win );
     broadcast_res_names( tmp_win );
