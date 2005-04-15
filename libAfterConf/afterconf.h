@@ -420,9 +420,10 @@ struct FreeStorageElem **MyStyleDefs2FreeStorage (struct SyntaxDef * syntax, str
 #define MYFRAME_TitleUSat_ID			(MYFRAME_ID_START+44)
 #define MYFRAME_TitleSSat_ID			(MYFRAME_ID_START+45)
 #define MYFRAME_Inherit_ID              (MYFRAME_ID_START+46)
-#define MYFRAME_TitleHSpacing_ID 		(MYFRAME_ID_START+47)
-#define MYFRAME_TitleVSpacing_ID 		(MYFRAME_ID_START+48)
-#define MYFRAME_DONE_ID                 (MYFRAME_ID_START+49)
+#define MYFRAME_InheritDefaults_ID      (MYFRAME_ID_START+47)
+#define MYFRAME_TitleHSpacing_ID 		(MYFRAME_ID_START+48)
+#define MYFRAME_TitleVSpacing_ID 		(MYFRAME_ID_START+49)
+#define MYFRAME_DONE_ID                 (MYFRAME_ID_START+50)
 
 #define MYFRAME_TitleBackground_ID_START	(MYFRAME_DONE_ID+1)
 #define MYFRAME_LeftBtnBackground_ID		(MYFRAME_TitleBackground_ID_START+MYFRAME_TITLE_BACK_LBTN	)

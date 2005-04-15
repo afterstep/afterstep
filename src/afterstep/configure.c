@@ -780,9 +780,13 @@ make_styles (MyLook *look)
 
 MyFrame *add_myframe_from_def( ASHashTable *list, MyFrameDefinition *fd, ASFlagType default_title_align )
 {
-    MyFrame *frame = create_myframe();
+    MyFrame *frame;
     int i ;
-    frame->name = mystrdup( fd->name );
+
+	frame = get_flags(fd->flags,MYFRAME_INHERIT_DEFAULTS)? 
+				create_default_myframe(default_title_align) : create_myframe();
+    
+	frame->name = mystrdup( fd->name );
     for( i = 0 ; i < fd->inheritance_num ; ++i )
     {
 		ASHashData hdata ;

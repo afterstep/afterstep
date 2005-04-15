@@ -254,7 +254,8 @@ typedef struct MyFrame
 
 	unsigned long left_layout, right_layout ;
 
-#define MYFRAME_NOBORDER	(0x01<<0)
+#define MYFRAME_NOBORDER			(0x01<<0)
+#define MYFRAME_INHERIT_DEFAULTS	(0x01<<1)
 	ASFlagType flags ;
 	ASFlagType set_flags ;
 

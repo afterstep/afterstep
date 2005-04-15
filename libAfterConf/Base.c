@@ -168,8 +168,11 @@ ParseBaseOptions (const char *filename, char *myname)
 				 config->desktop_scale = 1;
 			 break;
 		 case BASE_TermCommand_ID :
-		 	if( item.index  < MAX_TERM_COMMANDS || item.index >= 0 ) 
-				set_string_value(&(config->term_command[item.index]), item.data.string, NULL, 0 );		 	
+		 	 if( item.index  < MAX_TERM_COMMANDS || item.index >= 0 ) 
+			 {	
+			 	set_string_value(&(config->term_command[item.index]), item.data.string, NULL, 0 );		 	
+			 	break;
+			 }
 		 default:
 			 item.ok_to_free = 1;
 		}
@@ -327,7 +330,8 @@ BaseConfig2ASEnvironment( register BaseConfig *config, ASEnvironment **penv )
 			{	
 				env->term_command = mystrdup( config->term_command[i] );
 				break;
-			}
+			}else
+				show_warning( "TermCommand %s is not in the path", config->term_command[i] );
 		}	 
 	if( env->term_command == NULL ) 
 	{
