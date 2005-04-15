@@ -91,6 +91,7 @@ TermDef       BevelTerms[] = {
     {TF_NO_MYNAME_PREPENDING, "Bottom", 6,      TT_FLAG, BEVEL_Bottom_ID   , NULL},
     {TF_NO_MYNAME_PREPENDING, "Extra", 5,       TT_FLAG, BEVEL_Extra_ID    , NULL},
     {TF_NO_MYNAME_PREPENDING, "NoOutline", 9,   TT_FLAG, BEVEL_NoOutline_ID, NULL},
+	{TF_NO_MYNAME_PREPENDING, "NoInline", 8,    TT_FLAG, BEVEL_NoInline_ID, NULL},
     {0, NULL, 0, 0, 0}
 };
 
@@ -117,6 +118,7 @@ flag_options_xref BevelFlagsXref[] = {
     {BOTTOM_HILITE, BEVEL_Bottom_ID, BEVEL_None_ID},
     {EXTRA_HILITE, BEVEL_Extra_ID, BEVEL_None_ID},
     {NO_HILITE_OUTLINE, BEVEL_NoOutline_ID, BEVEL_None_ID},
+    {NO_HILITE_INLINE, BEVEL_NoInline_ID, BEVEL_None_ID},
     {0, 0, 0}
 };
 

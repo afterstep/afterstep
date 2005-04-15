@@ -165,15 +165,15 @@ typedef struct ASTBarData {
 	unsigned char h_spacing, v_spacing;
     /* 48 bytes */
 	ASTile *tiles;
-	unsigned int tiles_num ;
-    /* 56 bytes */
     struct ASBalloon *balloon;
-    /* 60 bytes */
+    /* 56 bytes */
+	unsigned short tiles_num ;
+    /* 58 bytes */
     unsigned char composition_method[2] ;         /* focused/unfocused may have different composition methods */
     unsigned char hilite[2] ;
-    /* 64 bytes */
+    /* 62 bytes */
 	short hue[2], sat[2] ;
-    /* 68 bytes */
+    /* 70 bytes */
 }ASTBarData ;
 
 ASTBtnData *create_astbtn();

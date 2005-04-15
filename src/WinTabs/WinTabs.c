@@ -154,6 +154,7 @@ void send_swallow_command();
 void close_current_tab();
 Bool unswallow_current_tab();
 void  update_focus();
+void handle_tab_name_change( ASEvent *event );
 
 /* above function may also return : */
 #define BANNER_TAB_INDEX -1		   
@@ -663,46 +664,54 @@ DispatchEvent (ASEvent * event)
 	        break;
 	    case PropertyNotify:
 			LOCAL_DEBUG_OUT( "property %s(%lX), _XROOTPMAP_ID = %lX, event->w = %lX, root = %lX", XGetAtomName(dpy, event->x.xproperty.atom), event->x.xproperty.atom, _XROOTPMAP_ID, event->w, Scr.Root );
-			handle_wmprop_event (Scr.wmprops, &(event->x));
-            if( event->x.xproperty.atom == _AS_BACKGROUND )
-            {
-                LOCAL_DEBUG_OUT( "root background updated!%s","");
-                safe_asimage_destroy( Scr.RootImage );
-                Scr.RootImage = NULL ;
-            }else if( event->x.xproperty.atom == _AS_STYLE )
-			{
-                int i  = PVECTOR_USED(WinTabsState.tabs);
-                ASWinTab *tabs = PVECTOR_HEAD( ASWinTab, WinTabsState.tabs );
+			if( event->w == Scr.Root || event->w == Scr.wmprops->selection_window ) 
+			{	
+				handle_wmprop_event (Scr.wmprops, &(event->x));
+            	if( event->x.xproperty.atom == _AS_BACKGROUND )
+            	{
+                	LOCAL_DEBUG_OUT( "root background updated!%s","");
+                	safe_asimage_destroy( Scr.RootImage );
+                	Scr.RootImage = NULL ;
+            	}else if( event->x.xproperty.atom == _AS_STYLE )
+				{
+                	int i  = PVECTOR_USED(WinTabsState.tabs);
+                	ASWinTab *tabs = PVECTOR_HEAD( ASWinTab, WinTabsState.tabs );
                 
-                LOCAL_DEBUG_OUT( "AS Styles updated!%s","");
-				mystyle_list_destroy_all(&(Scr.Look.styles_list));
-				LoadColorScheme();
-				CheckConfigSanity(NULL);
-				/* now we need to update everything */
+                	LOCAL_DEBUG_OUT( "AS Styles updated!%s","");
+					mystyle_list_destroy_all(&(Scr.Look.styles_list));
+					LoadColorScheme();
+					CheckConfigSanity(NULL);
+					/* now we need to update everything */
                             
-                while( --i >= 0 ) 
-                    set_tab_look( &(tabs[i]), False);
-				set_tab_look( &(WinTabsState.banner), True);
-                rearrange_tabs(False );
-            }else if( event->x.xproperty.atom == _AS_TBAR_PROPS )
-			{
-                int i  = PVECTOR_USED(WinTabsState.tabs);
-                ASWinTab *tabs = PVECTOR_HEAD( ASWinTab, WinTabsState.tabs );
-		 		retrieve_wintabs_astbar_props();		
+                	while( --i >= 0 ) 
+                    	set_tab_look( &(tabs[i]), False);
+					set_tab_look( &(WinTabsState.banner), True);
+                	rearrange_tabs(False );
+            	}else if( event->x.xproperty.atom == _AS_TBAR_PROPS )
+				{
+                	int i = PVECTOR_USED(WinTabsState.tabs);
+                	ASWinTab *tabs = PVECTOR_HEAD( ASWinTab, WinTabsState.tabs );
+		 			retrieve_wintabs_astbar_props();		
                 
-				show_banner_buttons();
+					show_banner_buttons();
 				
-				while( --i >= 0 ) 
-				{	
-                    set_tab_look( &(tabs[i]), False);
-					set_tab_title( &(tabs[i]) );
-				}
+					set_tab_look( &(WinTabsState.banner), False);
+					if( i > 0 ) 
+						show_hint(True);
 				
-				set_tab_look( &(WinTabsState.banner), False);
-				show_hint(True);
+					while( --i >= 0 ) 
+					{	
+                    	set_tab_look( &(tabs[i]), False);
+						set_tab_title( &(tabs[i]) );
+					}
 				
-                rearrange_tabs(False );
-            }
+                	rearrange_tabs(False );
+            	}
+			}else if( IsNameProp(event->x.xproperty.atom) )
+			{                  /* Maybe name change on the client !!! */
+				handle_tab_name_change( event );				 		
+				
+			}	 
 			break;
     }
 }
@@ -808,7 +817,7 @@ make_wintabs_window()
     shints.win_gravity = Config->gravity ;
 
 	extwm_hints.pid = getpid();
-    extwm_hints.flags = EXTWM_PID|EXTWM_TypeASModule ;
+    extwm_hints.flags = EXTWM_PID|EXTWM_TypeASModule|EXTWM_TypeNormal ;
 
 	set_client_hints( w, NULL, &shints, AS_DoesWmDeleteWindow, &extwm_hints );
 
@@ -937,6 +946,8 @@ delete_tab( int index )
     XRemoveFromSaveSet (dpy, tabs[index].client);
     XSelectInput (dpy, tabs[index].client, NoEventMask);
     destroy_ascanvas( &(tabs[index].client_canvas) );
+	XDestroyWindow(dpy, tabs[index].frame_canvas->w );
+	destroy_ascanvas( &(tabs[index].frame_canvas) );
     if( tabs[index].name ) 
         free( tabs[index].name );
     vector_remove_index( WinTabsState.tabs, index );
@@ -969,6 +980,39 @@ place_tabs_line( ASWinTab *tabs, int x, int y, int first, int last, int spare, i
     }    
 
     
+}
+
+void 
+moveresize_client( ASWinTab *aswt, int x, int y, int width, int height )
+{
+	int frame_width = width, frame_height = height ;
+	if( get_flags( aswt->hints.flags, AS_MaxSize ) )
+	{
+		if( aswt->hints.max_width < width ) 
+			width = aswt->hints.max_width ;
+		if( aswt->hints.max_height < height ) 
+			height = aswt->hints.max_height ;
+	}	 
+	
+	if( get_flags( aswt->hints.flags, AS_SizeInc ) )
+	{
+		int min_w = 0, min_h = 0 ; 
+		if( get_flags( aswt->hints.flags, AS_MinSize ) )
+		{
+			min_w = aswt->hints.min_width ;
+			min_h = aswt->hints.min_height ;
+		}	 
+		if( width > min_w && aswt->hints.width_inc < width  ) 
+			width = min_w + ((width - min_w)/aswt->hints.width_inc)*aswt->hints.width_inc ;
+
+		if( height > min_h && aswt->hints.height_inc < height  ) 
+			height = min_h + ((height - min_h)/aswt->hints.height_inc)*aswt->hints.height_inc ;
+	}	 
+
+	moveresize_canvas( aswt->frame_canvas, 0, y, frame_width, frame_height );    
+    moveresize_canvas( aswt->client_canvas, (frame_width - width)/2, (frame_height - height)/2, width, height );
+	XSetWindowBackground( dpy, aswt->frame_canvas->w, Scr.asv->black_pixel );
+	XClearWindow( dpy, aswt->frame_canvas->w );
 }
 
 void
@@ -1066,14 +1110,17 @@ rearrange_tabs( Bool dont_resize_window )
             x = 0 ;
 			start = i ;
 			start_x = 0 ;
-        }else if( i == tabs_num - 1 )
+        }
+		
+		if( i == tabs_num - 1 )
         {    
             place_tabs_line( tabs, start_x, y, start, i, max_x - (x+width), max_width, tab_height );
             x = 0 ;
 			start = i+1 ;
 			start_x = 0 ;
-        }else
-            x += width ;
+        }
+        
+		x += width ;
     }
     if( i >= tabs_num )    
         y += tab_height ; 
@@ -1088,8 +1135,7 @@ rearrange_tabs( Bool dont_resize_window )
     LOCAL_DEBUG_OUT( "moveresaizing %d client canvases to %dx%d%+d%+d", i, max_x, max_y, 0, y );
     while( --i >= 0 ) 
     {    
-		moveresize_canvas( tabs[i].frame_canvas, 0, y, max_x, max_y );    
-        moveresize_canvas( tabs[i].client_canvas, 0, y, max_x, max_y );    
+		moveresize_client( &(tabs[i]), 0, y, max_x, max_y );
     }
 	
 	if( !get_flags( WinTabsState.flags, ASWT_StateMapped ) )
@@ -1137,7 +1183,7 @@ select_tab( int tab )
     {
         ASWinTab *new_tab = PVECTOR_HEAD(ASWinTab,WinTabsState.tabs)+tab ;
         set_astbar_focused(new_tab->bar, WinTabsState.tabs_canvas, True);
-        XRaiseWindow( dpy, new_tab->client );
+        XRaiseWindow( dpy, new_tab->frame_canvas->w );
         WinTabsState.selected_tab = tab ;
 		update_focus();
     }
@@ -1239,7 +1285,7 @@ do_swallow_window( ASWindowData *wd )
 	aswt->hints.flags = wd->flags ;
 	check_wm_protocols( aswt );
     XReparentWindow( dpy, wd->client, aswt->frame_canvas->w, WinTabsState.win_width - nc->width, WinTabsState.win_height - nc->height );
-    XSelectInput (dpy, wd->client, StructureNotifyMask);
+    XSelectInput (dpy, wd->client, StructureNotifyMask|PropertyChangeMask);
     XAddToSaveSet (dpy, wd->client);
 
 #if 0   /* TODO : implement support for icons : */
@@ -1261,6 +1307,7 @@ do_swallow_window( ASWindowData *wd )
 #endif
     handle_canvas_config( nc );
 
+	map_canvas_window( aswt->frame_canvas, True );
     map_canvas_window( nc, True );
     send_swallowed_configure_notify(aswt);
     
@@ -1407,5 +1454,44 @@ update_focus()
 	}	
 }	 
 
+void handle_tab_name_change( ASEvent *event )
+{
+    int tabs_num  =  PVECTOR_USED(WinTabsState.tabs);
+    ASWinTab *tabs = PVECTOR_HEAD(ASWinTab,WinTabsState.tabs);
+	int i ;
 
+	for( i = 0 ; i < tabs_num ; ++i ) 
+	{
+		if( tabs[i].client == event->w  )
+			break;	  
+	}	 
+	
+	if( i < tabs_num ) 
+	{
+		ASRawHints    raw;
+		ASHints       clean;
+		ASSupportedHints *list = create_hints_list ();
+		
+		enable_hints_support (list, HINTS_ICCCM);
+		enable_hints_support (list, HINTS_ExtendedWM);
+		
+		collect_hints (ASDefaultScr, tabs[i].client, HINT_NAME, &raw);
+		merge_hints (&raw, NULL, NULL, list, HINT_NAME, &clean);
+		destroy_hints_list( &list );		
+
+		if( clean.names[0] ) 
+		{
+			if( strcmp( clean.names[0], tabs[i].name ) != 0 )
+			{
+				free( tabs[i].name );
+				tabs[i].name = mystrdup( clean.names[0] );
+				tabs[i].name_encoding = clean.names_encoding[0] ;
+				set_tab_title( &(tabs[i]) );
+				rearrange_tabs( False );
+			}	 
+		}	 
+		destroy_hints( &clean, True );
+		destroy_raw_hints ( &raw, True);
+	}	 
+}	 
 

@@ -482,6 +482,7 @@ struct FreeStorageElem **MyStyleDefs2FreeStorage (struct SyntaxDef * syntax, str
 #define BEVEL_Bottom_ID     (BEVEL_ID_START+5)
 #define BEVEL_Extra_ID      (BEVEL_ID_START+6)
 #define BEVEL_NoOutline_ID  (BEVEL_ID_START+7)
+#define BEVEL_NoInline_ID   (BEVEL_ID_START+8)
 #define BEVEL_ID_END        (BEVEL_ID_START+10)
 
 #define TBAR_LAYOUT_ID_START  		(BEVEL_ID_END+1)

@@ -969,7 +969,7 @@ static ASFlagType extwm_types_start_properties[][3] = {
 	{EXTWM_TypeNormal, AS_LayerNormal, 0},  
 	{EXTWM_TypeUtility, AS_LayerTop, 0}, 	
 	{EXTWM_TypeSplash, AS_LayerTop, AS_ShortLived },
-	{EXTWM_TypeASModule, AS_LayerService, AS_StartsSticky },
+	{EXTWM_TypeASModule, AS_LayerNormal, AS_StartsSticky },
 	{0, 0, 0}
 };
 static ASFlagsXref extwm_type_xref[] = {	   /*Flag              Set if Set,      Clear if Set,     Set if Clear,    Clear if Clear  */
@@ -1051,7 +1051,9 @@ merge_extwm_hints (ASHints * clean, ASRawHints * raw,
 			for (i = 0; extwm_types_start_properties[i][0] != 0; i++)
 				if (get_flags (eh->flags, extwm_types_start_properties[i][0]))
 				{
-					status->layer = extwm_types_start_properties[i][1];
+					if( !get_flags (status->flags, AS_StartLayer) ||
+						status->layer < extwm_types_start_properties[i][1] ) 
+						status->layer = extwm_types_start_properties[i][1];
 					set_flags (status->flags, AS_StartLayer);
 					set_flags (status->flags, extwm_types_start_properties[i][2]);
 				}

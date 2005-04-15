@@ -88,17 +88,26 @@ make_component_hilite (int cmp)
 inline        ARGB32
 GetHilite (ARGB32 background)
 {
-	return ((make_component_hilite ((background>>24) & 0x000000FF) << 24) & 0xFF000000) |
-		((make_component_hilite ((background & 0x00FF0000) >> 16) << 16) & 0x00FF0000) |
-		((make_component_hilite ((background & 0x0000FF00) >> 8) << 8) & 0x0000FF00) |
-		((make_component_hilite ((background & 0x000000FF))) & 0x000000FF);
+	CARD32 a = make_component_hilite (ARGB32_ALPHA8 (background));
+	CARD32 r = make_component_hilite (ARGB32_RED8 (background));
+	CARD32 g = make_component_hilite (ARGB32_GREEN8 (background));
+	CARD32 b = make_component_hilite (ARGB32_BLUE8 (background));
+
+	return MAKE_ARGB32 (a, r, g, b);
 }
 
 /* This routine computes the shadow color from the background color */
 inline        ARGB32
 GetShadow (ARGB32 background)
 {
-	return (background >> 1) & 0x7F7F7F7F;
+	CARD16        a, r, g, b;
+
+	a = (ARGB32_ALPHA8 (background))*3/4;
+	r = (ARGB32_RED8 (background))*3/4;
+	g = (ARGB32_GREEN8 (background))*3/4;
+	b = (ARGB32_BLUE8 (background))*3/4;
+	
+	return MAKE_ARGB32 (a, r, g, b);
 }
 
 inline        ARGB32
@@ -106,14 +115,10 @@ GetAverage (ARGB32 foreground, ARGB32 background)
 {
 	CARD16        a, r, g, b;
 
-	a = ARGB32_ALPHA8 (foreground) + ARGB32_ALPHA8 (background);
-	a = (a<<3)/10;
-	r = ARGB32_RED8 (foreground) + ARGB32_RED8 (background);
-	r = (r<<3)/10;
-	g = ARGB32_GREEN8 (foreground) + ARGB32_GREEN8 (background);
-	g = (g<<3)/10;
-	b = ARGB32_BLUE8 (foreground) + ARGB32_BLUE8 (background);
-	b = (b<<3)/10;
+	a = (ARGB32_ALPHA8 (foreground) + ARGB32_ALPHA8 (background))/2;
+	r = (ARGB32_RED8 (foreground) + ARGB32_RED8 (background))/2;
+	g = (ARGB32_GREEN8 (foreground) + ARGB32_GREEN8 (background))/2;
+	b = (ARGB32_BLUE8 (foreground) + ARGB32_BLUE8 (background))/2;
 	return MAKE_ARGB32 (a, r, g, b);
 }
 
@@ -1184,27 +1189,30 @@ mystyle_make_bevel (MyStyle * style, ASImageBevel * bevel, int hilite, Bool reve
 			bevel->lo_color = style->relief.back;
 			bevel->lolo_color = GetShadow (style->relief.back);
 		}
-		bevel->hilo_color = GetAverage (style->relief.fore, style->relief.back);
+		bevel->hilo_color = GetAverage (bevel->hi_color, bevel->lo_color);
 #if 1
         if( !get_flags (hilite, NO_HILITE_OUTLINE) )
         {
-            if (get_flags (hilite, NORMAL_HILITE) )
+			if (get_flags (hilite, NORMAL_HILITE) )
             {
                 bevel->left_outline = bevel->top_outline = bevel->right_outline = bevel->bottom_outline = 1;
                 bevel->left_inline = bevel->top_inline =
-                    bevel->right_inline = bevel->bottom_inline = extra_hilite + 1;
+                    bevel->right_inline = bevel->bottom_inline = extra_hilite + get_flags( hilite, NO_HILITE_INLINE )?0:1;
             } else
             {
 #ifndef DONT_HILITE_PLAIN
                 bevel->left_inline = bevel->top_inline = bevel->right_inline = bevel->bottom_inline = extra_hilite;
 #endif
             }
-        }
+        }else if( get_flags( hilite, NO_HILITE_INLINE ) )
+			clear_flags( hilite, NO_HILITE_INLINE );
+
 #endif
         if (get_flags (hilite, LEFT_HILITE))
 		{
 			bevel->left_outline++;
-			bevel->left_inline++;
+			if( !get_flags( hilite, NO_HILITE_INLINE ) )
+				bevel->left_inline++;
             if( get_flags (hilite, NO_HILITE_OUTLINE) )
             {
                 bevel->left_outline++;
@@ -1214,45 +1222,51 @@ mystyle_make_bevel (MyStyle * style, ASImageBevel * bevel, int hilite, Bool reve
 		if (get_flags (hilite, TOP_HILITE))
 		{
 			bevel->top_outline++;
-			bevel->top_inline++;
+			if( !get_flags( hilite, NO_HILITE_INLINE ) )
+				bevel->top_inline++;
             if( get_flags (hilite, NO_HILITE_OUTLINE) )
                 bevel->top_inline += extra_hilite ;
         }
 		if (get_flags (hilite, RIGHT_HILITE))
 		{
 			bevel->right_outline++;
-			bevel->right_inline++;
+			if( !get_flags( hilite, NO_HILITE_INLINE ) )
+				bevel->right_inline++;
             if( get_flags (hilite, NO_HILITE_OUTLINE) )
                 bevel->right_inline += extra_hilite ;
 		}
 		if (get_flags (hilite, BOTTOM_HILITE))
 		{
 			bevel->bottom_outline++;
-			bevel->bottom_inline++;
+			if( !get_flags( hilite, NO_HILITE_INLINE ) )
+				bevel->bottom_inline++;
             if( get_flags (hilite, NO_HILITE_OUTLINE) )
                 bevel->bottom_inline += extra_hilite ;
         }
 /* experimental code */
 #if 1
-		if( bevel->top_outline > 1 ) 
+		if( !get_flags( hilite, NO_HILITE_INLINE ) )
 		{	
-			bevel->top_inline += bevel->top_outline - 1 ;
-			bevel->top_outline = 1 ;
-		}
-		if( bevel->left_outline > 1 ) 
-		{	
-			bevel->left_inline += bevel->left_outline - 1 ;
-			bevel->left_outline = 1 ;
-		}
-		if( bevel->right_outline > 1 ) 
-		{	
-			bevel->right_inline += bevel->right_outline - 1 ;
-			bevel->right_outline = 1 ;
-		}
-		if( bevel->bottom_outline > 1 ) 
-		{	
-			bevel->bottom_inline += bevel->bottom_outline - 1 ;
-			bevel->bottom_outline = 1 ;
+			if( bevel->top_outline > 1 ) 
+			{	
+				bevel->top_inline += bevel->top_outline - 1 ;
+				bevel->top_outline = 1 ;
+			}
+			if( bevel->left_outline > 1 ) 
+			{	
+				bevel->left_inline += bevel->left_outline - 1 ;
+				bevel->left_outline = 1 ;
+			}
+			if( bevel->right_outline > 1 ) 
+			{	
+				bevel->right_inline += bevel->right_outline - 1 ;
+				bevel->right_outline = 1 ;
+			}
+			if( bevel->bottom_outline > 1 ) 
+			{	
+				bevel->bottom_inline += bevel->bottom_outline - 1 ;
+				bevel->bottom_outline = 1 ;
+			}
 		}
 #endif
 	} else if (bevel)
