@@ -656,10 +656,10 @@ DispatchEvent (ASEvent * event)
             break;
 
         case ClientMessage:
-            if ((event->x.xclient.format == 32) &&
-                (event->x.xclient.data.l[0] == _XA_WM_DELETE_WINDOW))
-			{
-                DeadPipe(0);
+            if ( event->x.xclient.format == 32 )
+			{	
+				if( event->x.xclient.data.l[0] == _XA_WM_DELETE_WINDOW )
+			    	DeadPipe(0);
 			}
 	        break;
 	    case PropertyNotify:
@@ -853,7 +853,7 @@ make_frame_window( Window parent )
 {
 	static XSetWindowAttributes attr ;
     Window w ;
-	attr.event_mask = SubstructureRedirectMask ;
+	attr.event_mask = SubstructureRedirectMask|FocusChangeMask ;
 	attr.background_pixel = Scr.asv->black_pixel;
 
     w = create_visual_window( Scr.asv, parent, 0, 0, WinTabsState.win_width, WinTabsState.win_height, 0, InputOutput, CWEventMask|CWBackPixel, &attr );
@@ -932,11 +932,15 @@ add_tab( Window client, const char *name, INT32 encoding )
 void
 delete_tab( int index ) 
 {
+	int tabs_num = PVECTOR_USED(WinTabsState.tabs) ;
     ASWinTab *tabs = PVECTOR_HEAD(ASWinTab,WinTabsState.tabs);
+	int tab_to_select = -1 ; 
+	if( index >= tabs_num ) 
+		return ;
     if( WinTabsState.selected_tab == index ) 
     {    
         WinTabsState.selected_tab = -1 ;
-        select_tab( (index > 0) ? index-1:index+1 );
+        tab_to_select = (index > 0) ? index-1:index ;
     }
     if( WinTabsState.pressed_tab == index ) 
     {    
@@ -954,6 +958,8 @@ delete_tab( int index )
 
 	if( PVECTOR_USED(WinTabsState.tabs) == 0 )
 		show_hint( False );
+	else if( tab_to_select >= 0 )
+		select_tab( tab_to_select );
 }    
 
 void
@@ -1171,6 +1177,8 @@ render_tabs( Bool canvas_resized )
 void 
 select_tab( int tab )
 {
+	ASWinTab *new_tab ;
+
     if( tab == WinTabsState.selected_tab ) 
         return ; 
     if( WinTabsState.selected_tab >= 0 && WinTabsState.selected_tab < PVECTOR_USED( WinTabsState.tabs ) )
@@ -1179,14 +1187,15 @@ select_tab( int tab )
         set_astbar_focused(old_tab->bar, WinTabsState.tabs_canvas, False);
         WinTabsState.selected_tab = -1 ;
     }    
-    if( tab >= 0 && tab < PVECTOR_USED( WinTabsState.tabs ) )
-    {
-        ASWinTab *new_tab = PVECTOR_HEAD(ASWinTab,WinTabsState.tabs)+tab ;
-        set_astbar_focused(new_tab->bar, WinTabsState.tabs_canvas, True);
-        XRaiseWindow( dpy, new_tab->frame_canvas->w );
-        WinTabsState.selected_tab = tab ;
-		update_focus();
-    }
+    if( tab < 0 || tab >= PVECTOR_USED( WinTabsState.tabs ) )
+		tab = 0 ;
+		
+    new_tab = PVECTOR_HEAD(ASWinTab,WinTabsState.tabs)+tab ;
+    set_astbar_focused(new_tab->bar, WinTabsState.tabs_canvas, True);
+    XRaiseWindow( dpy, new_tab->frame_canvas->w );
+    WinTabsState.selected_tab = tab ;
+	ASSync(False);
+	update_focus();
 }    
 
 void 
@@ -1285,7 +1294,7 @@ do_swallow_window( ASWindowData *wd )
 	aswt->hints.flags = wd->flags ;
 	check_wm_protocols( aswt );
     XReparentWindow( dpy, wd->client, aswt->frame_canvas->w, WinTabsState.win_width - nc->width, WinTabsState.win_height - nc->height );
-    XSelectInput (dpy, wd->client, StructureNotifyMask|PropertyChangeMask);
+    XSelectInput (dpy, wd->client, StructureNotifyMask|PropertyChangeMask|FocusChangeMask);
     XAddToSaveSet (dpy, wd->client);
 
 #if 0   /* TODO : implement support for icons : */
@@ -1320,10 +1329,19 @@ do_swallow_window( ASWindowData *wd )
 }
 
 
+Bool check_swallow_name( char *name ) 
+{	
+	if( name ) 
+	{		   	
+		if( match_wild_reg_exp( name, WinTabsState.pattern_wrexp) == 0 )
+			return True;
+	}
+	return False ;
+}
+
 void
 check_swallow_window( ASWindowData *wd )
 {
-    char *name = NULL ;
 	INT32 encoding ;
 	ASWinTab *aswt = NULL ;
 	int i = 0;
@@ -1341,11 +1359,23 @@ check_swallow_window( ASWindowData *wd )
 			return ;
 
 	/* now lets try and match its name : */
-	name = get_window_name( wd, Config->pattern_type, &encoding );
-    LOCAL_DEBUG_OUT( "name(\"%s\")->icon_name(\"%s\")->res_class(\"%s\")->res_name(\"%s\")",
+	LOCAL_DEBUG_OUT( "name(\"%s\")->icon_name(\"%s\")->res_class(\"%s\")->res_name(\"%s\")",
                      wd->window_name, wd->icon_name, wd->res_class, wd->res_name );
-	if( match_wild_reg_exp( name, WinTabsState.pattern_wrexp) != 0 )
-		return ;
+	
+	if( get_flags( Config->set_flags, WINTABS_PatternType ) )
+	{	
+		if( !check_swallow_name(get_window_name( wd, Config->pattern_type, &encoding )) )
+			return ;
+	}else
+	{
+		if( !check_swallow_name( wd->window_name ) && 
+			!check_swallow_name( wd->icon_name ) && 
+			!check_swallow_name( wd->res_class ) && 
+			!check_swallow_name( wd->res_name ) )
+		{
+			return;
+		}		   
+	}	 
 	
 	do_swallow_window( wd );
 }
@@ -1426,7 +1456,7 @@ Bool unswallow_current_tab()
 	int curr = WinTabsState.selected_tab ;
     int tabs_num  =  PVECTOR_USED(WinTabsState.tabs);
     ASWinTab *tabs = PVECTOR_HEAD(ASWinTab,WinTabsState.tabs);
-	
+	LOCAL_DEBUG_OUT( "curr = %d, tabs_num = %d", curr, tabs_num );
 	if( tabs_num > 0 && curr >= 0 && curr < tabs_num ) 
 	{
 		XResizeWindow( dpy, tabs[curr].client, tabs[curr].swallow_location.width, tabs[curr].swallow_location.height );
@@ -1444,7 +1474,8 @@ update_focus()
 	int curr = WinTabsState.selected_tab ;
     int tabs_num  =  PVECTOR_USED(WinTabsState.tabs);
     ASWinTab *tabs = PVECTOR_HEAD(ASWinTab,WinTabsState.tabs);
-		
+
+	LOCAL_DEBUG_OUT( "curr = %d, tabs_num = %d, focused = %ld", curr, tabs_num, get_flags(WinTabsState.flags, ASWT_StateFocused ) );	   
 	if( tabs_num > 0 && curr >= 0 && curr < tabs_num && get_flags(WinTabsState.flags, ASWT_StateFocused )) 
 	{
 		if( get_flags( tabs[curr].wm_protocols, AS_DoesWmTakeFocus ) )

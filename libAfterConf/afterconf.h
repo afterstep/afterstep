@@ -1884,6 +1884,7 @@ typedef struct WinTabsConfig
 
 #define WINTABS_H_SPACING       (0x01<<18)
 #define WINTABS_V_SPACING       (0x01<<19)
+#define WINTABS_PatternType	    (0x01<<20)
 
 #define 	ASWT_UseSkipList	WINTABS_UseSkipList
 #define 	ASWT_HideWhenEmpty	WINTABS_HideWhenEmpty
