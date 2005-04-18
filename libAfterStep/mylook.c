@@ -220,6 +220,8 @@ mylook_init (MyLook * look, Bool free_resources, unsigned long what_flags /*see 
 	if (get_flags (what_flags, LL_MenuIcons))
 	{
 		look->MenuArrow = NULL;
+		look->minipixmap_width = 48 ;
+		look->minipixmap_height = 48 ;
     }
 
 	if (get_flags (what_flags, LL_Buttons))

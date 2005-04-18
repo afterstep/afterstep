@@ -1,3 +1,19 @@
+version 2.0.5 release
+	* Added MinipixmapSize <Width> <Height> to look config to set maximum size 
+	of menu minipixmaps
+	* Added TitleVSpacing and TitleHSpacing to MyFrame to allow for changing 
+	distance from tbar border to text.
+	* Added InheritDefaults to MyFrame so to be able to init MyFrame to whatever 
+	defaults should be - in case you only want to make minor alteration to default 
+	MyFrame.
+	* Added IgnoreConfig to database settings to allow for disabling of handling 
+	of ConfigRequests coming from client.
+	* Added --pattern <pattern> to WinTabs module to allow for setting pattern 
+	from cmd line.
+	* Lots of WinTabs fixes and improvements.
+	* Added SwallowWindow "name" <module_name> built-in to allow for selection of 
+	a window to be swallowed by module, such as WinTabs.
+
 version 2.0.4 release
 	* Desktop Cover tint is now same as Base color from selected colorscheme. 
 	* added look.Breeze contributed by ziph.

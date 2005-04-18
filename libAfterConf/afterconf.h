@@ -1417,8 +1417,9 @@ int WriteWharfOptions (const char *filename, char *myname,
 #define LOOK_CoverAnimationSteps_ID				(LOOK_SUPPORTED_ID_START+61)				  
 #define LOOK_CoverAnimationType_ID				(LOOK_SUPPORTED_ID_START+62)
 #define LOOK_SupportedHints_ID  				(LOOK_SUPPORTED_ID_START+63)							  
+#define LOOK_MinipixmapSize_ID					(LOOK_SUPPORTED_ID_START+64)
 
-#define LOOK_SUPPORTED_ID_END		(LOOK_SUPPORTED_ID_START+64)
+#define LOOK_SUPPORTED_ID_END		(LOOK_SUPPORTED_ID_START+65)
 #define LOOK_ID_END			(LOOK_SUPPORTED_ID_END)
 
 typedef struct DesktopConfig

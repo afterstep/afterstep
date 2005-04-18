@@ -288,6 +288,8 @@ TextureMenuItemsIndividually 0
 #ResizeMoveGeometry ++
 # [0/1] Do you want minipixmaps in root menu ?
 MenuMiniPixmaps 1
+# changes default maximum minipixmap size ( 48x48 ) to smaller 24x24 : 
+MinipixmapSize 24 24
 # [0/1] Sort Start menu entries by 1=alphabetical order, 0=date (default)
 StartMenuSortMode 1
 # [0/1] make a space, or don't make a space (WM) beside buttons ; 1

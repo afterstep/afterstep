@@ -283,6 +283,7 @@ struct config main_config[] = {
     {"StartMenuSortMode"				, SetInts, (char **)&TmpLook.StartMenuSortMode, (int *)&dummy},
     {"DrawMenuBorders"					, SetInts, (char **)&TmpLook.DrawMenuBorders, (int *)&dummy},
     {"ButtonSize"						, SetInts, (char **)&TmpLook.ButtonWidth, (int *)&TmpLook.ButtonHeight},
+    {"MinipixmapSize"					, SetInts, (char **)&TmpLook.minipixmap_width, (int *)&TmpLook.minipixmap_height},
     {"SeparateButtonTitle"				, SetLookFlag, (char **)SeparateButtonTitle, NULL},
     {"RubberBand"						, SetInts, (char **)&TmpLook.RubberBand, &dummy},
     {"DefaultStyle"						, assign_string, (char **)&MSWindowName[BACK_DEFAULT], (int *)0},
@@ -727,6 +728,12 @@ merge_look( MyLook *to, MyLook *from )
     to->DrawMenuBorders = from->DrawMenuBorders ; 
     to->ButtonWidth  = from->ButtonWidth ; 
 	to->ButtonHeight = from->ButtonHeight ; 
+    to->minipixmap_width  = from->minipixmap_width ; 
+	to->minipixmap_height = from->minipixmap_height ; 
+	
+	asxml_var_insert("minipixmap.width", to->minipixmap_width);
+	asxml_var_insert("minipixmap.height", to->minipixmap_height);
+
     to->RubberBand = from->RubberBand ; 
     to->menu_icm = from->menu_icm ; 
     to->menu_hcm = from->menu_hcm ; 

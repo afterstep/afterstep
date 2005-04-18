@@ -332,6 +332,8 @@ typedef struct MyLook
 	unsigned int configured_icon_areas_num ;
     unsigned int ButtonWidth, ButtonHeight;
 
+	unsigned int minipixmap_width, minipixmap_height ;
+
     /* misc stuff */
     int RubberBand;
 
