@@ -1474,6 +1474,7 @@ init_aswindow_status( ASWindow *t, ASStatusHints *status )
         validate_window_anchor( t, &(t->anchor) );    
         anchor2status ( t->status, t->hints, &(t->anchor));
     }    
+
     return pending_placement;
 }
 

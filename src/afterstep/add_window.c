@@ -263,9 +263,10 @@ AddWindow (Window w)
 /*^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ End Grab ^^^^^^^^^^^^^^^^^^^^ */
 	ungrab_server();
 
+	/* doing that for any window seems to resolve java sizing bugs */
+    on_window_status_changed( tmp_win, False, True );
     if( pending_placement )
     {
-        on_window_status_changed( tmp_win, False, True );
         if( !place_aswindow( tmp_win ) )
         {
             LOCAL_DEBUG_OUT( "window status initialization failed for %lX - will put it where it is", w );
@@ -274,6 +275,7 @@ AddWindow (Window w)
 			 */
         }
     }
+
 
     set_window_wm_state( tmp_win, get_flags(status.flags, AS_Iconic) );
  

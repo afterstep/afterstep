@@ -251,7 +251,8 @@ ParseWinTabsOptions (const char *filename, char *myname)
                 case WINTABS_Pattern_ID:
                     config->pattern_type = item.index % ASN_NameTypes;
                     LOCAL_DEBUG_OUT( "old_pattern = %p, new pattern = %s", config->pattern, item.data.string );
-					set_string_value( &(config->pattern), item.data.string, config->set_flags, WINTABS_PatternType );
+		set_string_value( &(config->pattern), item.data.string, 
+				  &(config->set_flags), WINTABS_PatternType );
                     break;
                 case WINTABS_UnfocusedStyle_ID:
                     REPLACE_STRING (config->unfocused_style, item.data.string);

@@ -2,7 +2,8 @@
   <gradient width="$minipixmap.width" height="$minipixmap.height"
   colors="BaseDark BaseLight" angle="45"/>
 
-  <img tile="1" tint="#7fffffff"
-  src="tiles/PsychiatristsImminently.mini"/>
+  	<scale tile="1" tint="#7fffffff" width="$minipixmap.width" height="$minipixmap.height">
+		<img src="tiles/PsychiatristsImminently.mini"/>
+	</scale>
 </composite>
 

@@ -1,4 +1,6 @@
 <tile tint="Base">
-  <img src="tiles/DorchesterConsolidated.mini"/>
+	<scale  width="$minipixmap.width" height="$minipixmap.height"> 
+		<img src="tiles/DorchesterConsolidated.mini"/>
+	</scale>
 </tile>
 

@@ -1,4 +1,6 @@
 <tile tint="Base">
-  <img tile="1" src="tiles/EvilCarWash.mini"/>
+	<scale  width="$minipixmap.width" height="$minipixmap.height"> 
+		<img tile="1" src="tiles/EvilCarWash.mini"/>
+	</scale>
 </tile>
 

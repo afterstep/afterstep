@@ -2,6 +2,8 @@
   <gradient width="$minipixmap.width" height="$minipixmap.height"
   colors="BaseDark BaseLight" angle="45"/>
 
-  <img tile="1" src="tiles/DorchesterConsolidated.mini"/>
+  	<scale width="$minipixmap.width" height="$minipixmap.height">
+		<img src="tiles/DorchesterConsolidated.mini"/>
+	</scale>
 </composite>
 
