@@ -1,0 +1,6 @@
+<varlistentry id="options.MinipixmapSize">
+	<term>MinipixmapSize <emphasis remap='I'>x y</emphasis></term>
+	<listitem>
+		<para>Changes the default maximum minipixmap size ( 48x48 ) to a user specified value</para>
+	</listitem>
+</varlistentry>
