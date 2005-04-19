@@ -107,7 +107,7 @@ write_doc_header( ASXMLInterpreterState *state )
 				fprintf( state->dest_fp, PHPCurrPageFormat, GlossaryName );
 
 			fprintf( state->dest_fp, PHPXrefFormat, "visualdoc","F.A.Q.","faq", "" );
-			fprintf( state->dest_fp, PHPXrefFormat, "visualdoc","Copyright","authors", "" );
+			fprintf( state->dest_fp, PHPXrefFormat, "visualdoc","Copyright","copyright", "" );
 			fprintf( state->dest_fp, "<hr>\n" );
 			if( state->display_purpose[0] != '\0' )
 				fprintf( state->dest_fp, "<br><table width=100%%><tr>"
