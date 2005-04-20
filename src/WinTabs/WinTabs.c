@@ -68,6 +68,8 @@ typedef struct ASWinTab
 	ASFlagType wm_protocols ;
 
 	XSizeHints	hints ;
+	
+	time_t      last_selected ;
 
 }ASWinTab;
 
@@ -141,6 +143,7 @@ void check_swallow_window( ASWindowData *wd );
 void rearrange_tabs( Bool dont_resize_window );
 void render_tabs( Bool canvas_resized );
 void on_destroy_notify(Window w);
+void on_unmap_notify(Window w);
 void select_tab( int tab );
 void press_tab( int tab );
 void set_tab_look( ASWinTab *aswt, Bool no_bevel );
@@ -153,6 +156,7 @@ int find_tab_by_position( int root_x, int root_y );
 void send_swallow_command();
 void close_current_tab();
 Bool unswallow_current_tab();
+Bool unswallow_tab(int t);
 void  update_focus();
 void handle_tab_name_change( ASEvent *event );
 
@@ -520,21 +524,18 @@ on_tabs_canvas_config()
 
     if( tabs_changes != 0 )
 	{
-		safe_asimage_destroy( Scr.RootImage );	  
-        set_root_clip_area(WinTabsState.tabs_canvas );
-	}
-                    
-    if( get_flags( tabs_changes, CANVAS_MOVED ) )
-    {
         int i = tabs_num ;
 		Bool rerender_tabs = False ;
+
+		safe_asimage_destroy( Scr.RootImage );	  
+        set_root_clip_area(WinTabsState.tabs_canvas );
 
 		rerender_tabs = update_astbar_transparency(WinTabsState.banner.bar, WinTabsState.tabs_canvas, True);
         while( --i >= 0 ) 
             if( update_astbar_transparency(tabs[i].bar, WinTabsState.tabs_canvas, True) )
                 rerender_tabs = True ;
 		if( !rerender_tabs ) 
-			tabs_changes = 0 ; 
+			clear_flags(tabs_changes, CANVAS_MOVED); 
     }    
 	return tabs_changes;    
 }	 
@@ -651,6 +652,9 @@ DispatchEvent (ASEvent * event)
                 press_tab( pointer_tab );        
             }    
             break ;
+        case UnmapNotify:
+            on_unmap_notify(event->w);
+            break;
         case DestroyNotify:
             on_destroy_notify(event->w);
             break;
@@ -810,7 +814,7 @@ make_wintabs_window()
 			break;
 	}
     LOCAL_DEBUG_OUT( "creating main window with geometry %dx%d%+d%+d", width, height, x, y );
-    w = create_visual_window( Scr.asv, Scr.Root, x, y, width, height, 0, InputOutput, CWBackPixmap, &attributes);
+    w = create_visual_window( Scr.asv, Scr.Root, x, y, 1, 1, 0, InputOutput, CWBackPixmap, &attributes);
     set_client_names( w, "WinTabs", "WINTABS", CLASS_GADGET, MyName );
 
     shints.flags = USPosition|USSize|PWinGravity;
@@ -939,19 +943,27 @@ delete_tab( int index )
 		return ;
     if( WinTabsState.selected_tab == index ) 
     {    
+		int i;
         WinTabsState.selected_tab = -1 ;
-        tab_to_select = (index > 0) ? index-1:index ;
+		for( i = 0 ; i < tabs_num ; ++i ) 
+			if( i != index )
+			{
+				if( tab_to_select >= 0 ) 
+					if( tabs[tab_to_select].last_selected >= tabs[i].last_selected )
+						continue;
+				tab_to_select = i ;
+			}
     }
     if( WinTabsState.pressed_tab == index ) 
     {    
         WinTabsState.pressed_tab = -1 ;
     }
     destroy_astbar( &(tabs[index].bar) );
-    XRemoveFromSaveSet (dpy, tabs[index].client);
     XSelectInput (dpy, tabs[index].client, NoEventMask);
     destroy_ascanvas( &(tabs[index].client_canvas) );
 	XDestroyWindow(dpy, tabs[index].frame_canvas->w );
 	destroy_ascanvas( &(tabs[index].frame_canvas) );
+    XRemoveFromSaveSet (dpy, tabs[index].client);
     if( tabs[index].name ) 
         free( tabs[index].name );
     vector_remove_index( WinTabsState.tabs, index );
@@ -1194,6 +1206,7 @@ select_tab( int tab )
     set_astbar_focused(new_tab->bar, WinTabsState.tabs_canvas, True);
     XRaiseWindow( dpy, new_tab->frame_canvas->w );
     WinTabsState.selected_tab = tab ;
+	new_tab->last_selected = time(NULL);
 	ASSync(False);
 	update_focus();
 }    
@@ -1395,6 +1408,20 @@ on_destroy_notify(Window w)
         }    
 }    
 
+void 
+on_unmap_notify(Window w)
+{
+    ASWinTab *tabs = PVECTOR_HEAD(ASWinTab,WinTabsState.tabs);
+    int i = PVECTOR_USED(WinTabsState.tabs) ;
+    while( --i >= 0 ) 
+        if( tabs[i].client == w ) 
+        {
+			unswallow_tab( i );
+            return ; 
+        }    
+}    
+
+
 int
 find_tab_by_position( int root_x, int root_y )
 {
@@ -1451,21 +1478,25 @@ void close_current_tab()
 	}		   
 }	 
 
-Bool unswallow_current_tab()
+Bool unswallow_tab(int t)
 {
-	int curr = WinTabsState.selected_tab ;
     int tabs_num  =  PVECTOR_USED(WinTabsState.tabs);
     ASWinTab *tabs = PVECTOR_HEAD(ASWinTab,WinTabsState.tabs);
-	LOCAL_DEBUG_OUT( "curr = %d, tabs_num = %d", curr, tabs_num );
-	if( tabs_num > 0 && curr >= 0 && curr < tabs_num ) 
+	LOCAL_DEBUG_OUT( "tab = %d, tabs_num = %d", t, tabs_num );
+	if( tabs_num > 0 && t >= 0 && t < tabs_num ) 
 	{
-		XResizeWindow( dpy, tabs[curr].client, tabs[curr].swallow_location.width, tabs[curr].swallow_location.height );
-		XReparentWindow( dpy, tabs[curr].client, Scr.Root, tabs[curr].swallow_location.x, tabs[curr].swallow_location.y );
-		delete_tab( curr ); 		
+		XResizeWindow( dpy, tabs[t].client, tabs[t].swallow_location.width, tabs[t].swallow_location.height );
+		XReparentWindow( dpy, tabs[t].client, Scr.Root, tabs[t].swallow_location.x, tabs[t].swallow_location.y );
+		delete_tab( t ); 		
 		rearrange_tabs( False );
 		return True;
 	}	
 	return False;
+}	 
+
+Bool unswallow_current_tab()
+{
+	return unswallow_tab(WinTabsState.selected_tab);
 }	 
 
 void 
@@ -1506,23 +1537,30 @@ void handle_tab_name_change( ASEvent *event )
 		enable_hints_support (list, HINTS_ICCCM);
 		enable_hints_support (list, HINTS_ExtendedWM);
 		
-		collect_hints (ASDefaultScr, tabs[i].client, HINT_NAME, &raw);
-		merge_hints (&raw, NULL, NULL, list, HINT_NAME, &clean);
+		memset( &raw, 0x00, sizeof(ASRawHints));
+		memset( &clean, 0x00, sizeof(ASHints));
+		
+		if( collect_hints (ASDefaultScr, tabs[i].client, HINT_NAME, &raw) )
+		{
+			if( merge_hints (&raw, NULL, NULL, list, HINT_NAME, &clean) )
+			{
+				if( clean.names[0] ) 
+				{
+					if( strcmp( clean.names[0], tabs[i].name ) != 0 )
+					{
+						free( tabs[i].name );
+						tabs[i].name = mystrdup( clean.names[0] );
+						tabs[i].name_encoding = clean.names_encoding[0] ;
+						set_tab_title( &(tabs[i]) );
+						rearrange_tabs( False );
+					}	 
+				}	 
+				destroy_hints( &clean, True );
+			}
+			destroy_raw_hints ( &raw, True);
+		}
 		destroy_hints_list( &list );		
 
-		if( clean.names[0] ) 
-		{
-			if( strcmp( clean.names[0], tabs[i].name ) != 0 )
-			{
-				free( tabs[i].name );
-				tabs[i].name = mystrdup( clean.names[0] );
-				tabs[i].name_encoding = clean.names_encoding[0] ;
-				set_tab_title( &(tabs[i]) );
-				rearrange_tabs( False );
-			}	 
-		}	 
-		destroy_hints( &clean, True );
-		destroy_raw_hints ( &raw, True);
 	}	 
 }	 
 
