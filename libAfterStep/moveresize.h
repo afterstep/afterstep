@@ -75,6 +75,20 @@ typedef struct ASOutlineSegment
 	Bool vertical ;
 }ASOutlineSegment;
 
+typedef struct ASHintWindow
+{
+	Window           w;
+    ASCanvas        *canvas ;
+    ASTBarData      *bar ;
+	struct ScreenInfo 	*scr;
+	struct MyLook   *look ;
+}ASHintWindow;
+
+ASHintWindow *create_ashint_window( ScreenInfo *scr, 	struct MyLook *look, const char *hint );
+void destroy_ashint_window( ASHintWindow **hw );
+void update_ashint_text( ASHintWindow *hw, const char *new_text );
+void update_ashint_geometry( ASHintWindow *hw, Bool force_redraw );
+
 typedef struct ASMoveResizeData
 {
 	/* mandatrory things : */
@@ -90,18 +104,13 @@ typedef struct ASMoveResizeData
 	/* Internally managed things : */
 	as_interactive_pointer_handler  pointer_func;
 
-	char 	   	    *geometry_string;
-	Window           geometry_display;
 	MRRectangle curr, last, start;
 	int 			 bw ; /* bloody border width */
 	
-    unsigned int     geometry_window_width ;
-    unsigned int     geometry_window_height ;
-#ifdef NO_ASRENDER
-    ASCanvas        *geom_canvas ;
-    ASTBarData      *geom_bar ;
-#endif
-    /* ratios to be applied to geometry before displaying : */
+	char 	   	    *geometry_string;
+	struct ASHintWindow *geometry_display;
+    
+	/* ratios to be applied to geometry before displaying : */
     unsigned int     geom_x_mult, geom_x_div ;
     unsigned int     geom_y_mult, geom_y_div ;
     int              geom_x_origin, geom_y_origin ;

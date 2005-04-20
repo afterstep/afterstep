@@ -307,8 +307,8 @@ move_outline( ASMoveResizeData * data )
             xwc.stack_mode = Below ;
 		}else
 			xwc.stack_mode = Above ;
-        XConfigureWindow( dpy, data->geometry_display, mask, &xwc );
-        xwc.sibling = data->geometry_display;
+        XConfigureWindow( dpy, data->geometry_display->w, mask, &xwc );
+        xwc.sibling = data->geometry_display->w;
         mask |= CWSibling|CWX|CWY|CWWidth|CWHeight ;
         xwc.stack_mode = Below ;
 		for( i = 0 ; i < count ; ++i )

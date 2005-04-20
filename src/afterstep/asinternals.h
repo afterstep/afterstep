@@ -34,6 +34,7 @@ struct MenuItem;
 struct ASEvent;
 struct ASFeel;
 struct MyLook;
+struct ASHintWindow;
 
 struct ASWindow;
 typedef struct ASInternalWindow
@@ -528,7 +529,7 @@ void DispatchEvent  ( struct ASEvent *event, Bool deferred );
 void HandleEvents   ();
 void InteractiveMoveLoop ();
 void WaitForButtonsUpLoop ();
-Bool WaitEventLoop( struct ASEvent *event, int finish_event_type, long timeout );
+Bool WaitEventLoop( struct ASEvent *event, int finish_event_type, long timeout, struct ASHintWindow *hint );
 Bool IsClickLoop( struct ASEvent *event, unsigned int end_mask, unsigned int click_time );
 ASWindow *WaitWindowLoop( char *pattern, long timeout );
 void ConfigureNotifyLoop();

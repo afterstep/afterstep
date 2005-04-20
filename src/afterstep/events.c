@@ -148,7 +148,7 @@ WaitForButtonsUpLoop ()
 }
 
 Bool
-WaitEventLoop( ASEvent *event, int finish_event_type, long timeout )
+WaitEventLoop( ASEvent *event, int finish_event_type, long timeout, ASHintWindow *hint )
 {
 	unsigned long mask = ButtonPressMask | ButtonReleaseMask |
 						 ExposureMask | KeyPressMask | ButtonMotionMask |
@@ -177,6 +177,8 @@ WaitEventLoop( ASEvent *event, int finish_event_type, long timeout )
 		}
         DigestEvent( event );
         DispatchEvent( event, done );
+		if( event->x.type == MotionNotify && hint ) 
+			update_ashint_geometry( hint, False );
     }
 
     return True ;
@@ -236,6 +238,8 @@ WaitWindowLoop( char *pattern, long timeout )
 	time_t click_end_time = end_time / 4;
 	time_t start_time = time(NULL);
 	ASWindow *asw = NULL ;
+	ASHintWindow *hint ;
+	char *text ;
 
 	end_time += start_time ;
 	click_end_time += start_time ;
@@ -247,6 +251,9 @@ WaitWindowLoop( char *pattern, long timeout )
     if( (asw = complex_pattern2ASWindow( pattern )) != NULL )
   		return asw;
 
+	text = safemalloc(64+strlen(pattern)+1);
+	sprintf( text, "Waiting for window matching \"%s\" ... Press button to cancel.", pattern );
+	hint = create_ashint_window( ASDefaultScr, &(Scr.Look), text);
 	while (!done)
 	{
 		do
@@ -265,11 +272,15 @@ WaitWindowLoop( char *pattern, long timeout )
 					{
 						end_time = click_end_time ;
 						break;
-					}
-
-                    if( (event.x.type == MapNotify || event.x.type == PropertyNotify )&& event.client )
+					}else if( event.x.type == MotionNotify && hint ) 
+						update_ashint_geometry( hint, False );
+                    
+					if( (event.x.type == MapNotify || event.x.type == PropertyNotify )&& event.client )
                         if( (asw = complex_pattern2ASWindow( pattern )) != NULL )
+						{
+							destroy_ashint_window( &hint );
                             return asw;
+						}
                 }
 			}
 			if( time(NULL) > end_time )
@@ -284,6 +295,7 @@ WaitWindowLoop( char *pattern, long timeout )
 			break;
 		afterstep_wait_pipes_input ();
 	}
+	destroy_ashint_window( &hint );
     return NULL;
 }
 

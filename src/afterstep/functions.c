@@ -479,25 +479,28 @@ LOCAL_DEBUG_CALLER_OUT( "cursor %d, event %d, window 0x%lX, window_name \"%s\", 
 */
     if (!(res = !GrabEm (ASDefaultScr, Scr.Feel.cursors[cursor])))
 	{
-	WaitEventLoop( event, finish_event, -1 );
-	LOCAL_DEBUG_OUT( "window(%lX)->root(%lX)->subwindow(%lX)", event->x.xbutton.window, event->x.xbutton.root, event->x.xbutton.subwindow );
-	if (event->client == NULL)
-	{
-	    res = True ;
-	    /* since we grabbed cursor we may get clicks over client windows as reported
-	     * relative to the root window, in which case we have to check subwindow to
-	     * see what client was clicked */
-	    if( event->x.xbutton.subwindow != event->w )
-	    {
-		event->client = window2ASWindow( event->x.xbutton.subwindow );
-		if( event->client != NULL )
+		ASHintWindow *hint = create_ashint_window( ASDefaultScr,  &(Scr.Look), "Please select target window");
+   		WaitEventLoop( event, finish_event, -1, hint );
+		destroy_ashint_window( &hint );
+
+		LOCAL_DEBUG_OUT( "window(%lX)->root(%lX)->subwindow(%lX)", event->x.xbutton.window, event->x.xbutton.root, event->x.xbutton.subwindow );
+		if (event->client == NULL)
 		{
-		    res = False ;
-		    event->w = event->x.xbutton.subwindow ;
+	    	res = True ;
+	    	/* since we grabbed cursor we may get clicks over client windows as reported
+	     	* relative to the root window, in which case we have to check subwindow to
+	     	* see what client was clicked */
+	    	if( event->x.xbutton.subwindow != event->w )
+	    	{
+				event->client = window2ASWindow( event->x.xbutton.subwindow );
+				if( event->client != NULL )
+				{
+		    		res = False ;
+		    		event->w = event->x.xbutton.subwindow ;
+				}
+	    	}
 		}
-	    }
-	}
-	UngrabEm ();
+		UngrabEm ();
     }
     if( res )
 	XBell (dpy, event->scr->screen);
