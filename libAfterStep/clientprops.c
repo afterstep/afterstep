@@ -1054,9 +1054,10 @@ handle_client_property_update (Window w, Atom property, ASRawHints * raw)
 			read_func = read_extwm_state;
 		else
 			return False;
-
+		
 		read_func (raw, w);
-		return True;
+		
+		return (validate_drawable( w, NULL, NULL )==w);
 	}
 	return False;
 }
@@ -1081,7 +1082,7 @@ handle_manager_property_update (Window w, Atom property, ASRawHints * raw)
 			read_extwm_icon_name (raw, w);
 			read_extwm_visible_name (raw, w);
 			read_extwm_visible_icon_name (raw, w);
-			return True;
+			return (validate_drawable( w, NULL, NULL )==w);
 		} else if (property == _XA_WM_HINTS)
 			read_func = read_wm_hints;
 		else if (property == _XA_WM_NORMAL_HINTS)
@@ -1102,7 +1103,7 @@ handle_manager_property_update (Window w, Atom property, ASRawHints * raw)
 			return False;
 		}
 		read_func (raw, w);
-		return True;
+		return (validate_drawable( w, NULL, NULL )==w);
 	} else
 		show_debug (__FILE__, __FUNCTION__, __LINE__, "incomplete parameters (%X, %X, %p)", w, property, raw);
 

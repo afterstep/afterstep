@@ -1364,7 +1364,7 @@ inline ASGlyph *get_utf8_glyph( const char *utf8, ASFont *font )
 
 typedef struct ASGlyphMap
 {
-	unsigned int  height, width ;
+	int  height, width ;
 #define MAX_SPECIAL_GLYPH	((ASGlyph*)0x00000003)
 #define GLYPH_TAB	((ASGlyph*)0x00000003)
 #define GLYPH_SPACE	((ASGlyph*)0x00000002)

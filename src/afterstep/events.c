@@ -849,7 +849,9 @@ HandlePropertyNotify (ASEvent *event)
 										Database,
                                         asw->hints, asw->status ) )
         {
-            show_debug( __FILE__, __FUNCTION__, __LINE__, "New name is \"%s\", icon_name \"%s\", following title change ? %s", 
+            if( ASWIN_GET_FLAGS( asw, AS_Dead ) )
+				return;
+			show_debug( __FILE__, __FUNCTION__, __LINE__, "New name is \"%s\", icon_name \"%s\", following title change ? %s", 
 				        ASWIN_NAME(asw), ASWIN_ICON_NAME(asw), get_flags( Scr.Feel.flags, FollowTitleChanges)?"yes":"no" );
 	    	LOCAL_DEBUG_OUT( "hints flags = %lX, ShortLived ? %lX ", asw->hints->flags, ASWIN_HFLAGS( asw, AS_ShortLived ) );
 			if( old_name && strcmp( old_name, ASWIN_NAME(asw) ) != 0 )

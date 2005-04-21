@@ -105,7 +105,7 @@ struct ASFont;
 typedef struct ASGlyph
 {
 	CARD8 		   *pixmap ;        /* glyph's RLE encoded pixmap */
-	unsigned short 	width, height ;	/* meaningfull width and height
+	short 	width, height ;	/* meaningfull width and height
 									 * of the glyphs pixmap */
 	short  lead, step ;			    /* distance pen position to glyph
 									 * beginning and to the next glyph */
@@ -172,21 +172,21 @@ typedef struct ASFont
 	ASGlyph         default_glyph;  /* valid glyph to be drawn when
 									 * code is not valid */
 
-	unsigned int 	max_height;  /* maximiu height of the character
+	int 			max_height;  /* maximiu height of the character
 								  * glyph */
 	int	            max_ascend,  /* maximum distance from the baseline
 								  * to the top of the character glyph */
 					max_descend; /* need both descend and ascend to be 
 								    able to dynamically recalculate font 
 								    height while adding new characters */
-	unsigned int	space_size;  /* fixed width value to be used when
+	int				space_size;  /* fixed width value to be used when
 								  * rendering spaces and tabs */
 	int 			spacing_x, spacing_y;
 	/* If these are set to anything above 0 then all the glyphs has to be 
 	 * padded ( if its smaller then the cell ) or scaled down 
 	 * ( if its bigger then the cell )
 	 */								   
-	unsigned int    cell_width, cell_height ;
+	int    cell_width, cell_height ;
 
 #ifdef HAVE_FREETYPE
 	FT_Face  		ft_face;        /* free type font handle */

@@ -1367,7 +1367,7 @@ update_property_hints_manager (Window w, Atom property, ASSupportedHints * list,
 	if (handle_manager_property_update (w, property, &raw))
 	{
 		ASHints       clean;
-
+		memset( &clean, 0x00, sizeof(ASHints));
 		show_debug (__FILE__, __FUNCTION__, __LINE__, "property update handled");
 		if (property == _XA_WM_STATE)
 		{
