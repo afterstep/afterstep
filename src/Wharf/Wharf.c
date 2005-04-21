@@ -1271,6 +1271,7 @@ update_wharf_folder_transprency( ASWharfFolder *aswf, Bool force )
 			ASWharfButton *aswb= &(aswf->buttons[i]);
 			if( update_astbar_transparency( aswb->bar, aswb->canvas, force ) )
 			{
+				invalidate_canvas_save( aswb->canvas );
 				render_wharf_button( aswb );
 				update_canvas_display( aswb->canvas );
 			}
@@ -1287,12 +1288,16 @@ change_button_focus(ASWharfButton *aswb, Bool focused )
 	
 	if( aswb == NULL && focused && Scr.Look.MSWindow[BACK_FOCUSED] == NULL ) 
 		return ;
-	
-	set_astbar_focused( aswb->bar, NULL, focused );			   
-	render_wharf_button( aswb );
-	update_canvas_display( aswb->canvas );
-	update_wharf_folder_shape( aswb->parent );
 
+	if( set_astbar_focused( aswb->bar, NULL, focused ) )
+	{	
+		if( !swap_save_canvas( aswb->canvas ) )	   
+		{		
+			render_wharf_button( aswb );
+		}
+		update_canvas_display( aswb->canvas );
+		update_wharf_folder_shape( aswb->parent );
+	}
 	if( focused ) 
 		WharfState.focused_button = aswb ;
 	else if( WharfState.focused_button == aswb )
@@ -1311,6 +1316,7 @@ update_wharf_folder_styles( ASWharfFolder *aswf, Bool force )
 			set_astbar_style_ptr( aswb->bar, BAR_STATE_FOCUSED, Scr.Look.MSWindow[Scr.Look.MSWindow[BACK_FOCUSED]?BACK_FOCUSED:BACK_UNFOCUSED] );
 			if( set_astbar_style_ptr( aswb->bar, BAR_STATE_UNFOCUSED, Scr.Look.MSWindow[BACK_UNFOCUSED] ))
 			{
+				invalidate_canvas_save( aswb->canvas );
 				render_wharf_button( aswb );
 				update_canvas_display( aswb->canvas );
 			}
@@ -2264,8 +2270,10 @@ on_wharf_button_moveresize( ASWharfButton *aswb, ASEvent *event )
         update_astbar_transparency( aswb->bar, aswb->canvas, False );
 
     if( changes != 0 && (DoesBarNeedsRendering(aswb->bar) || is_canvas_needs_redraw( aswb->canvas )))
+	{
+		invalidate_canvas_save( aswb->canvas );
         render_wharf_button( aswb );
-
+	}
 #ifndef SHAPE
     swallowed_changes = 0 ;                    /* if no shaped extentions - ignore the changes */
 #endif
