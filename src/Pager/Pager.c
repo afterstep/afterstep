@@ -1095,8 +1095,9 @@ restack_desk_windows( ASPagerDesk *d )
 			    clients[i]->canvas  &&
 				clients[i]->canvas->w )
 			{
-                curr[k] = clients[i]->canvas->w ;
-				++k ;
+				LOCAL_DEBUG_OUT("k = %d, w = %lX, client = %lX, wd = %p, name = \"%s\"", 
+								 k, clients[i]->canvas->w,clients[i]->client, clients[i], clients[i]->window_name );
+                curr[k++] = clients[i]->canvas->w ;
 			}
         }
     }
@@ -1862,6 +1863,7 @@ change_desk_stacking( int desk, unsigned int clients_num, Window *clients )
     if( d->clients_num < clients_num )
     {
         d->clients = realloc( d->clients, clients_num*sizeof(ASWindowData*));
+		memset( d->clients, 0x00, clients_num*sizeof(ASWindowData*) );
         d->clients_num = clients_num ;
     }
     for( i = 0 ; i < clients_num ; ++i )
