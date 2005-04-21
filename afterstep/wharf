@@ -50,13 +50,13 @@
 #*Wharf term aterm Exec "-" aterm -tr -tint blue -fg yellow -bg black &
 
 *Wharf term rxvt  Exec "-" rxvt  -tr -fg yellow -bg black &
-*Wharf term eterm Exec "-" eterm -tr -tint blue -fg yellow -bg black &
+*Wharf term eterm Exec "-" eterm -O --tint blue -fg yellow -bg black &
 *Wharf term xterm Exec "-" xterm -fg yellow -bg blue &
 
 #
 # Midnight commander file manager in the term of choice :
 #
-*Wharf MidnightCommander normal/MCInMonitorShadow ExecInTerm  if(aterm){-tr -sh 50 -fade 70} if(eterm){-O -sh 50) if(rxvt){-tr} "-" -g 130x35 -e mc --colors directory=,default:executable=,default:link=,default:device=,default:special=,default:normal=,default:selected=,transparent:marked=yellow,default:markselect=yellow,brown:core=cyan,default &
+*Wharf MidnightCommander normal/MCInMonitorShadow ExecInTerm  if(aterm){-tr -tint blue -fade 70} if(eterm){-O --tint blue) if(rxvt){-tr} "-" -g 130x35 -e mc --colors directory=,default:executable=,default:link=,default:device=,default:special=,default:normal=,default:selected=,transparent:marked=yellow,default:markselect=yellow,brown:core=cyan,default &
 
 #
 # First available GUI file manager :
@@ -120,7 +120,7 @@
 #
 # First available IRC client :
 #
-*Wharf IRC	normal/IRCTransparent ExecInTerm "BitchX" -title "BitchX IRC" +sb -tr -sh 50 -fg white -bg black -e BitchX irc.freenode.net &
+*Wharf IRC	normal/IRCTransparent ExecInTerm "BitchX" -title "BitchX IRC" +sb if(aterm){-tr -sh 50 -fg white -bg black} if(eterm){-O --shade 50 -f white -b black) if(rxvt){-tr -fg white -bg black} if(xterm){-fg white -bg black} -e BitchX irc.freenode.net &
 *Wharf IRC  	normal/IRCTransparent Exec "XCHAT" xchat &
 
 #
