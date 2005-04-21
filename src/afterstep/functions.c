@@ -1023,23 +1023,118 @@ void exec_func_handler( FunctionData *data, ASEvent *event, int module )
     XSync (dpy, 0);
 }
 
+int find_escaped_chr_pos( const char *str, char c )
+{
+	int i ; 
+	for( i = 0 ; str[i] != '\0' ; ++i ) 
+	{
+		if( str[i] == '\\' ) 
+		{	
+			if( str[++i] == '\0' ) 
+				break;
+		}else if( str[i] == c ) 
+			break;
+	}		   
+	return i;	
+}	 
+
+char *parse_term_cmdl( const char *term_name, const char *term_command, const char *cmdl )
+{
+	int term_name_len, cmdl_len, curr_full, curr_cmdl;
+	char *full_cmdl = NULL ; 
+	Bool first = True ;
+	
+	if( term_name == NULL || term_command == NULL || cmdl == NULL ) 
+		return NULL;
+
+	LOCAL_DEBUG_OUT( "term_name = \"%s\", term_command = \"%s\", cmdl = \"%s\"", 
+					 term_name, term_command, cmdl );
+	curr_full = strlen(term_command);
+	cmdl_len  = strlen(cmdl);
+	term_name_len = strlen(term_name);
+	curr_cmdl = 0 ;
+	full_cmdl = safemalloc( curr_full+4+cmdl_len+1 );
+	
+	strcpy( full_cmdl, term_command );
+
+	while( curr_cmdl < cmdl_len ) 
+	{
+		while( isspace(cmdl[curr_cmdl])) ++curr_cmdl;
+		if( mystrncasecmp( &(cmdl[curr_cmdl]), "if(", 3 ) == 0 ) 
+		{
+			int tmp ;
+
+			curr_cmdl += 3 ;
+			tmp = curr_cmdl ; 
+			curr_cmdl += find_escaped_chr_pos( &(cmdl[curr_cmdl]), '}' )+1;
+			while( isspace(cmdl[tmp]) ) ++tmp ;
+			if( mystrncasecmp( &(cmdl[tmp]), term_name, term_name_len ) == 0 )
+			{
+				tmp += term_name_len ;	  
+				while( isspace(cmdl[tmp]) ) ++tmp ;
+				if( cmdl[tmp] == ')' )
+				{
+					++tmp ;
+					while( isspace(cmdl[tmp]) ) ++tmp ;
+					if( cmdl[tmp] == '{' ) 
+						++tmp ;
+					while( isspace(cmdl[tmp]) ) ++tmp ;
+					full_cmdl[curr_full++] = ' ';
+					while( tmp < curr_cmdl-1 ) 
+						full_cmdl[curr_full++] = cmdl[tmp++];
+				}
+			}
+		}else	 
+		{
+			if( first )
+			{	
+				if( cmdl[curr_cmdl] != '-' ) 	
+				{
+					if( cmdl[curr_cmdl] != '\0' ) 	  
+						sprintf( &(full_cmdl[curr_full]), " -e %s", &(cmdl[curr_cmdl]));
+					else
+						full_cmdl[curr_full] = '\0' ;
+					return full_cmdl;
+				}	 
+				first = False ;
+			}
+			
+			if( strncmp( &(cmdl[curr_cmdl]), "-e ", 3 ) == 0 ) 
+			{
+				sprintf( &(full_cmdl[curr_full]), " %s", &(cmdl[curr_cmdl]));
+				return full_cmdl;
+			}	 
+			
+			full_cmdl[curr_full++] = ' ';
+			while( curr_cmdl < cmdl_len && !isspace(cmdl[curr_cmdl])) 
+				full_cmdl[curr_full++] = cmdl[curr_cmdl++];
+		}	 
+		
+	}	 
+	full_cmdl[curr_full] = '\0' ;
+	
+	return full_cmdl;	
+}	 
+
 void exec_in_term_func_handler( FunctionData *data, ASEvent *event, int module )
 {
 	if( Environment->term_command != NULL && data->text != NULL ) 
 	{
-		char *full_cmdl = safemalloc( strlen(Environment->term_command)+4+strlen(data->text)+1 );
-    	XGrabPointer( dpy, Scr.Root, True,
-			      	ButtonPressMask | ButtonReleaseMask,
-		  	GrabModeAsync, GrabModeAsync, Scr.Root, Scr.Feel.cursors[ASCUR_Wait], CurrentTime);
-    	XSync (dpy, 0);
-		if( data->text[0] == '-' ) 
-			sprintf(full_cmdl, "%s %s", Environment->term_command, data->text );
-		else
-			sprintf(full_cmdl, "%s -e %s", Environment->term_command, data->text );
-		LOCAL_DEBUG_OUT( "full_cmdl = [%s]", full_cmdl );
-    	spawn_child( full_cmdl, -1, -1, None, C_NO_CONTEXT, True, False, NULL );
-		free( full_cmdl );
-    	XUngrabPointer (dpy, CurrentTime);
+		char *full_cmdl = NULL;
+		char *term_name = strrchr( Environment->term_command, '/' );
+		term_name = (term_name == NULL )? Environment->term_command: term_name+1 ;
+		full_cmdl = parse_term_cmdl( term_name, Environment->term_command, data->text );
+		if( full_cmdl ) 
+		{	
+			LOCAL_DEBUG_OUT( "full_cmdl = [%s]", full_cmdl );
+    		XGrabPointer( dpy, Scr.Root, True,
+			      		ButtonPressMask | ButtonReleaseMask,
+		  		GrabModeAsync, GrabModeAsync, Scr.Root, Scr.Feel.cursors[ASCUR_Wait], CurrentTime);
+    		XSync (dpy, 0);
+    		spawn_child( full_cmdl, -1, -1, None, C_NO_CONTEXT, True, False, NULL );
+    		XUngrabPointer (dpy, CurrentTime);
+			free( full_cmdl );
+		}
     	XSync (dpy, 0);
 	}
 }
