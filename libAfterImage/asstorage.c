@@ -915,7 +915,7 @@ defragment_storage_block( ASStorageBlock *block )
 	}
 	
 	block->total_free = total_free ;
-	LOCAL_DEBUG_OUT( "total_free after defrag = %ld", total_free );
+	LOCAL_DEBUG_OUT( "total_free after defrag = %ld, first_free = %d, last_used = %d", total_free, block->first_free, block->last_used );
 	
 	slots = block->slots ;
 	for( i = 0 ; i <= block->last_used ; ++i ) 
@@ -1105,7 +1105,7 @@ store_data_in_block( ASStorageBlock *block, CARD8 *data, int size, int compresse
 	block->total_free -= ASStorageSlot_FULL_SIZE(slot);
 	
 	dst = ASStorage_Data(slot);
-	LOCAL_DEBUG_OUT( "dst = %p", dst );
+	LOCAL_DEBUG_OUT( "dst = %p, compressed_size = %d", dst, compressed_size );
 	memcpy( dst, data, compressed_size );
 	slot->flags = ((unsigned short)flags | ASStorage_Used) ;
 	slot->ref_count = ref_count;
@@ -1115,7 +1115,7 @@ store_data_in_block( ASStorageBlock *block, CARD8 *data, int size, int compresse
 	if( slot->index == block->first_free ) 
 	{
 		int i = block->first_free ;
-		while( ++i < block->last_used ) 
+		while( ++i <= block->last_used ) 
 			if( block->slots[i] && 
 				block->slots[i]->flags == 0 && block->slots[i]->size > 0 ) 
 				break;
@@ -1785,7 +1785,7 @@ dup_data(ASStorage *storage, ASStorageID id)
 	if( storage != NULL && id != 0 )
 	{	
 		ASStorageSlot *slot = find_storage_slot( find_storage_block( storage, id ), id );
-		LOCAL_DEBUG_OUT( "slot = %p", slot );
+		LOCAL_DEBUG_OUT( "slot = %p, slot->index = %d, index(id) = %d", slot, slot?slot->index:-1, StorageID2SlotIdx(id) );
 		if( slot )
 		{
 			ASStorageSlot *target_slot = NULL;
@@ -1827,11 +1827,12 @@ dup_data(ASStorage *storage, ASStorageID id)
 #ifdef TEST_ASSTORAGE
 #include "afterimage.h"
 
-#define STORAGE_TEST_KINDS	6
+#define STORAGE_TEST_KINDS	7
 static int StorageTestKinds[STORAGE_TEST_KINDS][2] = 
 {
-	{100, 1 },
-	{4096, 10000 },
+	{10, 10000 },
+	{100, 5000 },
+	{4096, 5000 },
 	{128*1024, 128 },
 	{256*1024, 32 },
 	{512*1024, 16 },
@@ -1840,7 +1841,7 @@ static int StorageTestKinds[STORAGE_TEST_KINDS][2] =
 
 CARD8 Buffer[1024*1024] ;
 /* #define STORAGE_TEST_COUNT  1 */
-#define STORAGE_TEST_COUNT  8+16+32+128+10000+1 
+#define STORAGE_TEST_COUNT  8+16+32+128+5000+5000+10000
 typedef struct ASStorageTest {
 	int size ;
 	CARD8 *data;
@@ -2240,7 +2241,7 @@ test_asstorage(Bool interactive, int all_test_count, ASFlagType test_flags )
 			fprintf(stderr, "Testing dup_data for id %lX size = %d ...\n", Tests[k].id, Tests[k].size);
 			Tests[i].id = dup_data(storage, Tests[k].id );
 			TEST_EVAL( Tests[i].id != 0 ); 
-			fprintf(stderr, "Testing dupped data fetching ...\n");
+			fprintf(stderr, "Dupped to id %lX - Testing dupped data fetching ...\n", Tests[i].id);
 			Tests[i].size = Tests[k].size ;
 			Tests[i].data = Tests[k].data ;
 			Tests[i].linked = True ;
@@ -2405,7 +2406,7 @@ int main(int argc, char **argv )
 	fprintf(stderr, "running tests ( res = %d ) ...\n", res );	
 	if( res == 0 )
 		res = test_asstorage(interactive, test_count, 0);
-#if 0	  
+#if 1
 	if( res == 0 )
 		res = test_asstorage(interactive, test_count, ASStorage_RLEDiffCompress);
 	if( res == 0 )
