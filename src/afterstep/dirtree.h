@@ -26,11 +26,12 @@ typedef struct dirtree_t
 /* flags for dirtree_t.flags */
 enum
 {
-  DIRTREE_ID		= (1 << 16) - 1, /* ID assigned to this menu */
-  DIRTREE_DIR		= (1 << 16),	 /* if this item a submenu */
-  DIRTREE_KEEPNAME	= (1 << 17),	 /* if we should keep the menu name for the PopUp command */
-  DIRTREE_MINIPIXMAP = (1 << 18),
-  DIRTREE_RECENT_ITEMS_SET=(1 << 19), 
+  DIRTREE_ID				= (0x01 << 16) - 1, /* ID assigned to this menu */
+  DIRTREE_DIR				= (0x01 << 16),	 /* if this item a submenu */
+  DIRTREE_KEEPNAME			= (0x01 << 17),	 /* if we should keep the menu name for the PopUp command */
+  DIRTREE_MINIPIXMAP 		= (0x01 << 18),
+  DIRTREE_RECENT_ITEMS_SET	= (0x01 << 19), 
+  DIRTREE_SHOW_UNAVAILABLE	= (0x01 << 20), 
   DIRTREE_LAST
 };
 

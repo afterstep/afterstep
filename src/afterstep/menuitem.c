@@ -416,6 +416,7 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf, Bool reload_submenus)
 			fdata = NULL ; 
 			if( fp2 != NULL  )
 			{
+				Bool available = True ;
 				char *name = NULL ;
 				FunctionData *valid_func = NULL ; 
 				FunctionData *minipixmap = NULL ;
@@ -433,8 +434,11 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf, Bool reload_submenus)
 		                fdata->name = mystrdup( t->stripped_name );
 #ifndef NO_AVAILABILITYCHECK
 					if ( fdata->func!= F_ExecInTerm && (IsSwallowFunc(fdata->func) || IsExecFunc(fdata->func)))
-						if (!is_executable_in_path (fdata->text))
+					{	
+						available = is_executable_in_path (fdata->text);
+						if( !available )
 							fdata->func = F_NOP;
+					}
 #endif					
 					if( fdata->func == F_MINIPIXMAP )
 					{
@@ -462,20 +466,29 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf, Bool reload_submenus)
 						destroy_func_data( &fdata );
 					}
 				}
-				if( valid_func  ) 
-					MenuDataItemFromFunc (menu, valid_func);
-				else
+				if( available || get_flags(tree->flags, DIRTREE_SHOW_UNAVAILABLE))
+				{	
+					if( valid_func  ) 
+						MenuDataItemFromFunc (menu, valid_func);
+					else
+					{
+						fdata = create_named_function(F_NOP, name?name:t->stripped_name);
+	  					fdata->text = mystrdup (t->name);
+	          			MenuDataItemFromFunc (menu, fdata);
+					}
+					if( minipixmap ) 
+						MenuDataItemFromFunc (menu, minipixmap);
+					else if( t->icon != NULL )
+					{
+						fdata = create_named_function(F_MINIPIXMAP, t->icon);
+	          			MenuDataItemFromFunc (menu, fdata);
+					}
+				}else
 				{
-					fdata = create_named_function(F_NOP, name?name:t->stripped_name);
-	  				fdata->text = mystrdup (t->name);
-	          		MenuDataItemFromFunc (menu, fdata);
-				}
-				if( minipixmap ) 
-					MenuDataItemFromFunc (menu, minipixmap);
-				else if( t->icon != NULL )
-				{
-					fdata = create_named_function(F_MINIPIXMAP, t->icon);
-	          		MenuDataItemFromFunc (menu, fdata);
+					if( valid_func )
+						destroy_func_data(&valid_func);
+					if( minipixmap )
+						destroy_func_data(&minipixmap);
 				}
 				if( name ) 
 					free( name );
@@ -483,16 +496,24 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf, Bool reload_submenus)
 			
 			if( fp2 == NULL || lines_read == 0 )
 			{
+				Bool available = True ;
 				fdata = create_named_function(F_EXEC, t->stripped_name);
 				fdata->text = mystrdup (t->name);
-				if (!is_executable_in_path (fdata->text))
+#ifndef NO_AVAILABILITYCHECK
+				available = is_executable_in_path (fdata->text);
+				if( !available )		   
 					fdata->func = F_NOP;
-	            MenuDataItemFromFunc (menu, fdata);
-				if( t->icon != NULL )
-				{
-					fdata = create_named_function(F_MINIPIXMAP, t->icon);
-	          		MenuDataItemFromFunc (menu, fdata);
-				}
+#endif			
+				if( available || get_flags(tree->flags, DIRTREE_SHOW_UNAVAILABLE))
+				{	
+					MenuDataItemFromFunc (menu, fdata);
+					if( t->icon != NULL )
+					{
+						fdata = create_named_function(F_MINIPIXMAP, t->icon);
+	          			MenuDataItemFromFunc (menu, fdata);
+					}
+				}else if( fdata )
+					destroy_func_data(&fdata);					   /* insurance measure */
 			}
             
             if (fp2)

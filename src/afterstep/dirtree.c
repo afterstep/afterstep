@@ -326,7 +326,9 @@ dirtree_parse (dirtree_t * tree, const char *file)
 			}
 		} else if (!mystrncasecmp (ptr, "keepname", 8))
 			tree->flags |= DIRTREE_KEEPNAME;
-		else if (!mystrncasecmp (ptr, "extension", 9))
+		else   if (!mystrncasecmp (ptr, "ShowUnavailable", 15))
+			tree->flags |= DIRTREE_SHOW_UNAVAILABLE;
+		   else if (!mystrncasecmp (ptr, "extension", 9))
 		{
 			char         *tmp;
 

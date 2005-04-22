@@ -1,0 +1,7 @@
+
+# this option will cause AfterStep to show menu items even if unavailable 
+# on system, but greyd out.
+
+ShowUnavailable
+
+

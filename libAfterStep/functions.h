@@ -206,6 +206,7 @@ typedef struct MenuData
     short items_num;        /* number of items in the menu */
 
 	unsigned int    recent_items ;
+
 }MenuData;
 
 #define MAX_MENU_ITEM_HEIGHT    (ASDefaultScrHeight>>5)
