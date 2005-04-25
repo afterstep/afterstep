@@ -250,6 +250,19 @@ LOCAL_DEBUG_OUT( "item(\"%s\")->minipixmap(\"%s\")->icon(%p)", mdi->item?mdi->it
     {
         if( (item->submenu = FindPopup (mdi->fdata->text, True)) == NULL )
             set_flags( item->flags, AS_MenuItemDisabled );
+		else
+		{
+			MenuDataItem *smdi = item->submenu->first ;
+
+			while( smdi ) 
+			{
+				if( smdi->fdata->func != F_TITLE )
+					break;
+				smdi = smdi->next ;
+			}	 
+			if( smdi == NULL ) 
+				set_flags( item->flags, AS_MenuItemDisabled );	
+		}	 
     }else if( get_flags( mdi->flags, MD_Disabled ) || mdi->fdata->func == F_NOP )
         set_flags( item->flags, AS_MenuItemDisabled );
 
@@ -764,7 +777,7 @@ static inline void
 run_item_submenu( ASMenu *menu, int item )
 {
 LOCAL_DEBUG_CALLER_OUT( "%p, %d, submenu(%p)", menu, item, menu->items[item].submenu );
-    if( menu->items[item].submenu )
+    if( menu->items[item].submenu && !get_flags( menu->items[item].flags, AS_MenuItemDisabled ) )
     {
         int x = menu->main_canvas->root_x+(int)menu->main_canvas->bw ;
         int y ;
