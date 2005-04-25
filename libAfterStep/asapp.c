@@ -600,6 +600,8 @@ InitMyApp (  const char *app_class, int argc, char **argv, void (*version_func) 
 
 	asxml_var_insert("minipixmap.width", 48);
 	asxml_var_insert("minipixmap.height", 48);
+	asxml_var_insert("title.font.size", 14);
+	asxml_var_insert("menu.font.size", 16);
 
 }
 
