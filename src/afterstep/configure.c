@@ -1005,6 +1005,8 @@ void
 FixLook( MyLook *look )
 {
     ASFlagType default_title_align = ALIGN_LEFT ;
+	int tbar_font_size = 0 ;
+	int menu_font_size = 0 ;
     int i ;
 #ifdef LOCAL_DEBUG
     LOCAL_DEBUG_OUT( "syncing %s","");
@@ -1044,6 +1046,21 @@ FixLook( MyLook *look )
     LOCAL_DEBUG_OUT( "syncing %s","");
     ASSync(False);
 #endif
+
+	for( i = 0 ; i < BACK_STYLES ; ++i ) 
+		if( look->MSWindow[i] )
+			if( look->MSWindow[i]->font.as_font )
+				if( look->MSWindow[i]->font.as_font->max_height > tbar_font_size ) 
+					tbar_font_size = look->MSWindow[i]->font.as_font->max_height ;
+	asxml_var_insert("title.font.size", tbar_font_size);
+	
+	for( i = 0 ; i < MENU_BACK_STYLES ; ++i ) 
+		if( look->MSMenu[i] )
+			if( look->MSMenu[i]->font.as_font )
+				if( look->MSMenu[i]->font.as_font->max_height > menu_font_size ) 
+					menu_font_size = look->MSMenu[i]->font.as_font->max_height ;
+	asxml_var_insert("menu.font.size", menu_font_size);
+
 
     mystyle_list_set_property (Scr.wmprops, look->styles_list);
 #ifdef LOCAL_DEBUG
