@@ -84,6 +84,8 @@ typedef struct {
 	Bool postpone_display ;
 	time_t last_message_time ;
 
+	ASTBarProps *tbar_props ;
+
 }ASWinListState ;
 
 ASWinListState WinListState = { 0, NULL, None, NULL, NULL };
@@ -209,6 +211,15 @@ DeadPipe (int nonsense)
 }
 
 void
+retrieve_winlist_astbar_props()
+{
+	destroy_astbar_props( &(WinListState.tbar_props) );
+	
+	WinListState.tbar_props = get_astbar_props(Scr.wmprops );
+}	 
+
+
+void
 CheckConfigSanity()
 {
     int i ;
@@ -245,21 +256,17 @@ CheckConfigSanity()
     if( get_flags(Config->geometry.flags, YNegative) )
         Config->anchor_y += Scr.MyDisplayHeight ;
 
+	retrieve_winlist_astbar_props();
     mystyle_get_property (Scr.wmprops);
-
-    /* we better not do this to introduce ppl to new concepts in WinList : */
-#if 0
-    if( Config->focused_style == NULL )
-        Config->focused_style = mystrdup( default_winlist_style );
-    if( Config->unfocused_style == NULL )
-        Config->unfocused_style = mystrdup( default_winlist_style );
-    if( Config->sticky_style == NULL )
-        Config->sticky_style = mystrdup( default_winlist_style );
-#endif
+    for( i = 0 ; i < BACK_STYLES ; ++i )
+		Scr.Look.MSWindow[i] = NULL ;
 
     Scr.Look.MSWindow[BACK_UNFOCUSED] = mystyle_find( Config->unfocused_style );
+	LOCAL_DEBUG_OUT( "Configured MyStyle %d \"%s\" is %p", BACK_UNFOCUSED, Config->unfocused_style?Config->unfocused_style:"(null)", Scr.Look.MSWindow[BACK_UNFOCUSED] );
     Scr.Look.MSWindow[BACK_FOCUSED] = mystyle_find( Config->focused_style );
+	LOCAL_DEBUG_OUT( "Configured MyStyle %d \"%s\" is %p", BACK_FOCUSED, Config->focused_style?Config->focused_style:"(null)", Scr.Look.MSWindow[BACK_FOCUSED] );
     Scr.Look.MSWindow[BACK_STICKY] = mystyle_find( Config->sticky_style );
+	LOCAL_DEBUG_OUT( "Configured MyStyle %d \"%s\" is %p", BACK_STICKY, Config->sticky_style?Config->sticky_style:"(null)", Scr.Look.MSWindow[BACK_STICKY] );
 
     for( i = 0 ; i < BACK_STYLES ; ++i )
     {
@@ -268,6 +275,7 @@ CheckConfigSanity()
             Scr.Look.MSWindow[i] = mystyle_find( default_window_style_name[i] );
         if( Scr.Look.MSWindow[i] == NULL )
             Scr.Look.MSWindow[i] = mystyle_find_or_default( default_winlist_style );
+		LOCAL_DEBUG_OUT( "MyStyle %d is \"%s\"", i, Scr.Look.MSWindow[i]?Scr.Look.MSWindow[i]->name:"none" );
     }
     free( default_winlist_style );
 
@@ -330,11 +338,11 @@ GetOptions (const char *filename)
         Config->min_col_width = config->min_col_width;
 
     if( config->unfocused_style )
-        set_string_value( &(Config->unfocused_style), mystrdup(config->unfocused_style), NULL, 0 );
+        set_string_value( &(Config->unfocused_style), stripcpy2(config->unfocused_style,False), NULL, 0 );
     if( config->focused_style )
-        set_string_value( &(Config->focused_style), mystrdup(config->focused_style), NULL, 0 );
+        set_string_value( &(Config->focused_style), stripcpy2(config->focused_style,False), NULL, 0 );
     if( config->sticky_style )
-        set_string_value( &(Config->sticky_style), mystrdup(config->sticky_style), NULL, 0 );
+        set_string_value( &(Config->sticky_style), stripcpy2(config->sticky_style,False), NULL, 0 );
 
     if( get_flags(config->set_flags, WINLIST_UseName) )
         Config->show_name_type = config->show_name_type;
@@ -375,6 +383,7 @@ GetOptions (const char *filename)
         ProcessMyStyleDefinitions (&(config->style_defs));
     SHOW_TIME("Config parsing",option_time);
 }
+
 
 /****************************************************************************/
 /* PROCESSING OF AFTERSTEP MESSAGES :                                       */
@@ -508,7 +517,15 @@ DispatchEvent (ASEvent * event)
 				rearrange_winlist_window( False );
                 for( i = 0 ; i < WinListState.windows_num ; ++i )
 					refresh_winlist_button( WinListState.window_order[i]->bar, WinListState.window_order[i], False );
-			}
+			}else if( event->x.xproperty.atom == _AS_TBAR_PROPS )
+			{
+				int i ;
+		 		retrieve_winlist_astbar_props();		
+				update_winlist_styles();
+				rearrange_winlist_window( False );
+                for( i = 0 ; i < WinListState.windows_num ; ++i )
+					refresh_winlist_button( WinListState.window_order[i]->bar, WinListState.window_order[i], False );
+            }
 			break;
     }
 }
@@ -955,26 +972,66 @@ configure_tbar_props( ASTBarData *tbar, ASWindowData *wd, Bool focus_only )
 {
 	INT32 encoding = AS_Text_ASCII ;
 	char *name = get_window_name(wd, Config->show_name_type, &encoding );
-    ASFlagType align = ALIGN_TOP|ALIGN_BOTTOM ;
 
 	if( !focus_only ) 
 	{
+	    ASFlagType align = ALIGN_TOP|ALIGN_BOTTOM ;
+		int h_spacing = Config->h_spacing ;
+		int v_spacing = Config->v_spacing ;
+		int fbevel = Config->fbevel ;
+		int sbevel = Config->sbevel ;
+		int ubevel = Config->ubevel ;
+
+				   
     	delete_astbar_tile( tbar, -1 );
-//    	tbar->h_border = Config->h_spacing ;
-//    	tbar->v_border = Config->v_spacing ;
 		LOCAL_DEBUG_OUT( "setting bar border to %+d, %+d", tbar->h_border, tbar->v_border );
     	set_astbar_style_ptr( tbar, BAR_STATE_FOCUSED, Scr.Look.MSWindow[BACK_FOCUSED] );
-    	set_astbar_hilite( tbar, BACK_FOCUSED, Config->fbevel );
+		if( WinListState.tbar_props )
+		{
+			if( !get_flags( Config->set_flags, WINLIST_Align ) )
+				align = WinListState.tbar_props->align ;
+			else
+				align = Config->name_aligment ;
+		    if( !get_flags( Config->set_flags, WINLIST_H_SPACING) )
+				h_spacing = WinListState.tbar_props->title_h_spacing ;
+    		if( !get_flags( Config->set_flags, WINLIST_V_SPACING) )
+    			v_spacing = WinListState.tbar_props->title_v_spacing ;
+			if( !get_flags( Config->set_flags, WINLIST_FBevel ) )
+			{	
+				fbevel = WinListState.tbar_props->bevel ;
+				if( fbevel == 0  ) 
+					fbevel = DEFAULT_TBAR_HILITE ;
+			}
+			if( !get_flags( Config->set_flags, WINLIST_SBevel ) )
+			{	
+				sbevel = WinListState.tbar_props->bevel ;
+				if( sbevel == 0  ) 
+					sbevel = DEFAULT_TBAR_HILITE ;
+			}
+
+			if( !get_flags( Config->set_flags, WINLIST_UBevel ) )
+			{	
+				ubevel = WinListState.tbar_props->bevel ;
+				if( fbevel == 0  ) 
+					fbevel = DEFAULT_TBAR_HILITE ;
+			}
+
+		}	 
+
+		if( sbevel == 0  ) 
+			sbevel = DEFAULT_TBAR_HILITE ;
+
+    	set_astbar_hilite( tbar, BACK_FOCUSED, fbevel );
     	set_astbar_composition_method( tbar, BACK_FOCUSED, Config->fcm );
     	if( get_flags(wd->state_flags, AS_Sticky) )
     	{
         	set_astbar_style_ptr( tbar, BAR_STATE_UNFOCUSED, Scr.Look.MSWindow[BACK_STICKY] );
-        	set_astbar_hilite( tbar, BACK_UNFOCUSED, Config->sbevel );
+        	set_astbar_hilite( tbar, BACK_UNFOCUSED, sbevel );
         	set_astbar_composition_method( tbar, BACK_FOCUSED, Config->scm );
     	}else
     	{
         	set_astbar_style_ptr( tbar, BAR_STATE_UNFOCUSED, Scr.Look.MSWindow[BACK_UNFOCUSED] );
-        	set_astbar_hilite( tbar, BACK_UNFOCUSED, Config->ubevel );
+        	set_astbar_hilite( tbar, BACK_UNFOCUSED, ubevel );
         	set_astbar_composition_method( tbar, BACK_FOCUSED, Config->ucm );
     	}
 
@@ -983,10 +1040,10 @@ configure_tbar_props( ASTBarData *tbar, ASWindowData *wd, Bool focus_only )
     	{
         	char *iconic_name = safemalloc(1+strlen(name)+1+1);
         	sprintf(iconic_name, "(%s)", name );
-        	add_astbar_label( tbar, 0, 0, 0, align, 0, 0, iconic_name, encoding);
+        	add_astbar_label( tbar, 0, 0, 0, align, h_spacing, v_spacing, iconic_name, encoding);
         	free( iconic_name );
     	}else
-        	add_astbar_label( tbar, 0, 0, 0, align, 0, 0, name, encoding);
+        	add_astbar_label( tbar, 0, 0, 0, align, h_spacing, v_spacing, name, encoding);
     	set_astbar_balloon( tbar, 0, name, encoding );
 	}
     set_astbar_focused( tbar, WinListState.main_canvas, wd->focused );

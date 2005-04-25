@@ -149,14 +149,14 @@ MyStyle "*PagerActiveDesk"
    	Font 	       DefaultSansOblique.ttf-12
 	ForeColor      ActiveText
    	BackColor      Active
-	BackPixmap    125 bars/title_tile_glass_focused
+   	BackGradient	7	ActiveDark	ActiveLight
  ~MyStyle
 
 MyStyle "*PagerInActiveDesk"
    	Font 	       DefaultSansOblique.ttf-12
-	ForeColor      HighInactiveText
-   	BackColor      HighInactiveBack
-   	BackPixmap    125 bars/title_tile_glass_menu
+	ForeColor      InactiveText2
+   	BackColor      Inactive2
+   	BackGradient	7	Inactive2Dark	Inactive2Light
  ~MyStyle
 
 MyStyle "Pager_font"
@@ -210,6 +210,23 @@ MyStyle "*MonitorWharfTile"
 ~MyStyle
 
 #----------WinList MyStyles---------#
+
+MyStyle "WinListUnFocusedBar"
+	Inherit "unfocused_window_style"
+	BackGradient	7 	Inactive1Dark	Inactive1Light
+~MyStyle
+
+MyStyle "WinListFocusedBar"
+	Inherit "focused_window_style"
+	BackGradient	7	ActiveDark	ActiveLight
+~MyStyle
+
+MyStyle "WinListStickyBar"
+	Inherit "sticky_window_style"
+	BackGradient	7	Inactive2Dark	Inactive2Light
+~MyStyle
+
+
 
 MyStyle "*WinListBalloon"
 	Inherit "TitleButtonBalloon"

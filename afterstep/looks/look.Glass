@@ -130,7 +130,7 @@ MyStyle "*PagerBalloon"
 
 MyStyle "DeskStyle"
 # semitransparent gradient  :
-	BackGradient	6	#77222222 #77EEEEEE
+	BackGradient	8	#77222222 #77EEEEEE
 ##  Gradiated Pager -
 # 	BackGradient	2 cyan gray30
 ##  Pixmapped Pager -
@@ -145,14 +145,14 @@ MyStyle "*PagerActiveDesk"
    	Font 	       DefaultSansOblique.ttf-12
 	ForeColor      ActiveText
    	BackColor      Active
-	BackPixmap    125 bars/title_tile_glass_focused
+	BackMultiGradient	8  Saturation(20,ActiveLight) 0.0 ActiveDark 0.3 Saturation(90,ActiveLight)	   
  ~MyStyle
 
 MyStyle "*PagerInActiveDesk"
    	Font 	       DefaultSansOblique.ttf-12
-	ForeColor      HighInactiveText
-   	BackColor      HighInactiveBack
-   	BackPixmap    125 bars/title_tile_glass_menu
+	ForeColor      InactiveText2
+   	BackColor      Inactive2
+	BackMultiGradient	8  Saturation(20,Inactive2Light) 0.0 Inactive2Dark 0.3 Saturation(90,Inactive2Light)	   
  ~MyStyle
 
 MyStyle "Pager_font"
@@ -207,6 +207,21 @@ MyStyle "*MonitorWharfTile"
 ~MyStyle
 
 #----------WinList MyStyles---------#
+
+MyStyle "WinListUnFocusedBar"
+	Inherit       	"unfocused_window_style"
+	BackMultiGradient	8  Saturation(20,Inactive1Light) 0.0 Inactive1Dark 0.3 Saturation(90,Inactive1Light)	   
+~MyStyle
+
+MyStyle "WinListFocusedBar"
+	Inherit       	"focused_window_style"
+	BackMultiGradient	8  Saturation(20,ActiveLight) 0.0 ActiveDark 0.3 Saturation(90,ActiveLight)
+~MyStyle
+
+MyStyle "WinListStickyBar"
+	Inherit       	"sticky_window_style"
+	BackMultiGradient	8  Saturation(20,Inactive2Light) 0.0 Inactive2Dark 0.3 Saturation(90,Inactive2Light)	
+~MyStyle
 
 MyStyle "*WinListBalloon"
 	Inherit "TitleButtonBalloon"
