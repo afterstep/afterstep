@@ -1,17 +1,24 @@
 *WinListGeometry        +0+0
 *WinListMinSize         10000    #will be truncated to thescreen size
 #*WinListMaxSize         400
-*WinListBevel           Right,Bottom
-*WinListAlign           Left,Right,Bottom,Top
 *WinListMaxRows         1
 #*WinListMaxColumns      3
 *WinListFillRowsFirst
 *WinListUseSkipList
-*WinListSpacing		1
 
-*WinListUnfocusedStyle  "unfocused_window_style"
-*WinListFocusedStyle  	"focused_window_style"
-*WinListStickyStyle  	"sticky_window_style"
+# Titlebar parameters from the look will be used, or you can override it :
+#*WinListSpacing	 1
+#*WinListBevel           Right,Bottom
+#*WinListAlign           Left,Right,Bottom,Top
+
+# MyStyles to be used - feel free to override :
+*WinListUnfocusedStyle  "WinListUnFocusedBar"
+*WinListFocusedStyle  	"WinListFocusedBar"
+*WinListStickyStyle  	"WinListStickyBar"
+# if none of the above is available then defaults MyStyles are used instead : 
+# Defaults are :   "unfocused_window_style" "focused_window_style" "sticky_window_style" 
+#               or "*WinList" 
+#      last choice "default"
 
 *WinListUseName 1
 
