@@ -267,7 +267,7 @@ DecorateFrames 1
 # [0|1] Show Title on Buttons how?
 SeparateButtonTitle 0
 # [x y] Size of application icons ?
-ButtonSize 64 64
+ButtonSize 48 48
 #--------------------------
 
 # Also lets define colors for the cursor ( from selected colorscheme ) :

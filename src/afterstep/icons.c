@@ -143,8 +143,14 @@ Bool rearrange_icon_iter_func(void *data, void *aux_data)
 
     if( asw->icon_button )
     {
-        width = calculate_astbar_width( asw->icon_button );
-        height = calculate_astbar_height( asw->icon_button );
+		if( Scr.Look.ButtonWidth == 0 ) 
+			width = calculate_astbar_width( asw->icon_button );
+		else
+			width = Scr.Look.ButtonWidth ; 
+		if( Scr.Look.ButtonHeight == 0 ) 
+        	height = calculate_astbar_height( asw->icon_button );
+		else
+			height = Scr.Look.ButtonHeight ;
     }
     if( asw->icon_title )
     {

@@ -974,7 +974,7 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
 			ASImage *icon_image = get_window_icon_image( asw );
     		check_tbar( &(asw->icon_button), (asw->icon_canvas != NULL), AS_ICON_MYSTYLE,
             		    icon_image, icon_image?icon_image->width:0, icon_image?icon_image->height:0,/* scaling icon image */
-                		0, ALIGN_CENTER,
+                		0, ALIGN_CENTER|RESIZE_H_SCALE|RESIZE_V_SCALE,
                 		DEFAULT_TBAR_HILITE, DEFAULT_TBAR_HILITE,
                 		TEXTURE_TRANSPIXMAP_ALPHA, TEXTURE_TRANSPIXMAP_ALPHA,
                 		C_IconButton );

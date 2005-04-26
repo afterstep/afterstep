@@ -598,8 +598,12 @@ InitMyApp (  const char *app_class, int argc, char **argv, void (*version_func) 
     trace_enable_function(as_app_args.trace_calls);
 #endif
 
-	asxml_var_insert("minipixmap.width", 48);
-	asxml_var_insert("minipixmap.height", 48);
+	asxml_var_insert("icon.button.width", 64);
+	asxml_var_insert("icon.button.height", 64);
+	asxml_var_insert("icon.width", 48);
+	asxml_var_insert("icon.height", 48);
+	asxml_var_insert("minipixmap.width", 24);
+	asxml_var_insert("minipixmap.height", 24);
 	asxml_var_insert("title.font.size", 14);
 	asxml_var_insert("menu.font.size", 16);
 
