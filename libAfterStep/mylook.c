@@ -150,8 +150,10 @@ mylook_init (MyLook * look, Bool free_resources, unsigned long what_flags /*see 
 
 		if (get_flags (what_flags, LL_DeskBacks))
 			destroy_ashash( &(look->backs_list) );
+
 		if (get_flags (what_flags, LL_DeskConfigs))
 			destroy_ashash( &(look->desk_configs) );
+
 		if (get_flags (what_flags, LL_MenuIcons))
 		{
             if (look->MenuArrow != NULL)
@@ -705,11 +707,6 @@ void myback_delete( MyBackground **myback, ASImageManager *imman )
 		{	
 			if( ASDefaultScr->RootBackground && ASDefaultScr->RootBackground->pmap == (*myback)->loaded_pixmap )
 			{	
-	            if( ASDefaultScr->wmprops && ASDefaultScr->wmprops->root_pixmap == ASDefaultScr->RootBackground->pmap )
-				{	
-    	            set_xrootpmap_id (ASDefaultScr->wmprops, None );
-					set_as_background(ASDefaultScr->wmprops, None );
-				}
 				ASDefaultScr->RootBackground->pmap = None;
 			}
 			destroy_visual_pixmap( ASDefaultVisual, &((*myback)->loaded_pixmap) );

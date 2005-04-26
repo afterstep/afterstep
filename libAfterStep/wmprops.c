@@ -1016,6 +1016,35 @@ set_as_background (ASWMProps * wmprops, Pixmap new_pmap)
 	}
 }
 
+void
+set_xrootpmap_id (ASWMProps * wmprops, Pixmap new_pmap)
+{
+	if (wmprops)
+	{
+        set_32bit_property (wmprops->scr->Root, _XROOTPMAP_ID, XA_PIXMAP, new_pmap);
+		XFlush (dpy);
+        wmprops->root_pixmap = new_pmap;
+	}
+}
+
+void
+validate_rootpmap_props(ASWMProps *wmprops)
+{
+	if( wmprops )
+	{
+		if( wmprops->root_pixmap )
+		{	
+			if( !validate_drawable( wmprops->root_pixmap, NULL, NULL ) )
+	    		set_xrootpmap_id (wmprops, None );
+		}
+		if( wmprops->as_root_pixmap ) 
+		{	
+			if( !validate_drawable( wmprops->as_root_pixmap, NULL, NULL ) )
+	    		set_as_background (wmprops, None );
+		}
+	}
+}
+
 
 CARD32
 as_desk2ext_desk (ASWMProps * wmprops, INT32 as_desk)
@@ -1235,16 +1264,6 @@ flush_wmprop_data (ASWMProps * wmprops, ASFlagType what)
 	}
 }
 
-void
-set_xrootpmap_id (ASWMProps * wmprops, Pixmap new_pmap)
-{
-	if (wmprops)
-	{
-        set_32bit_property (wmprops->scr->Root, _XROOTPMAP_ID, XA_PIXMAP, new_pmap);
-		XFlush (dpy);
-        wmprops->root_pixmap = new_pmap;
-	}
-}
 
 void
 set_clients_list (ASWMProps * wmprops, Window *list, int nclients)

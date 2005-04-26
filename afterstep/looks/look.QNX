@@ -121,17 +121,13 @@ MyStyle "DeskStyle"
 ~MyStyle
 
 MyStyle "*PagerActiveDesk"
+    Inherit	"focused_window_style"
    	Font 	       DefaultSansOblique.ttf-12
-	ForeColor      ActiveText
-   	BackColor      Active
-	BackGradient   8 ActiveDark  ActiveLight
  ~MyStyle
 
 MyStyle "*PagerInActiveDesk"
+    Inherit	"sticky_window_style"
    	Font 	       DefaultSansOblique.ttf-12
-	ForeColor      HighInactiveText
-   	BackColor      HighInactiveBack
-   	BackGradient   6  HighInactiveBackDark HighInactiveBackLight
  ~MyStyle
 
 MyStyle "Pager_font"

@@ -216,6 +216,7 @@ void set_as_style (ASWMProps *wmprops, CARD32 size, CARD32 version, CARD32 *data
 /* both of these should be used for the same pmap id : */
 void set_as_background (ASWMProps * wmprops, Pixmap new_pmap);
 void set_xrootpmap_id (ASWMProps *wmprops, Pixmap new_pmap );
+void validate_rootpmap_props(ASWMProps *wmprops);
 
 
 CARD32 as_desk2ext_desk( ASWMProps *wmprops, INT32 as_desk );

@@ -653,6 +653,7 @@ InitLook (MyLook *look, Bool free_resources)
 {
 	int i ;
     /* actuall MyLook cleanup : */
+
     mylook_init (look, free_resources, LL_Everything );
 
     /* other related things : */
@@ -1479,6 +1480,7 @@ LoadASConfig (int thisdesktop, ASFlagType what)
 
         if (get_flags(what, PARSE_LOOK_CONFIG))
 		{
+
 			stop_all_background_xfer();
 			LoadColorScheme();
 
@@ -1697,8 +1699,10 @@ LoadASConfig (int thisdesktop, ASFlagType what)
     }
 
     ConfigureNotifyLoop();
+
     remove_desktop_cover();
 
+	validate_rootpmap_props(Scr.wmprops);
 }
 
 /*****************************************************************************

@@ -1,6 +1,8 @@
+<scale width="$minipixmap.width" height="$minipixmap.height">
 <composite>
     <gradient width=48 height=48 colors="#FF444466 #FF666688" angle=45/>
     <gradient x=10 y=10 width=20 height=10 colors="#FFADADAD #FFCDCDCD" angle=90/>
     <gradient x=20 y=20 width=20 height=10 colors="#FF000000 #FF000066" angle=90/>
     <gradient x=13 y=30 width=20 height=10 colors="#FF7A7A89 #FF9A9AA9" angle=90/>
 </composite>
+</scale>
