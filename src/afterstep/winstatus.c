@@ -864,7 +864,8 @@ on_window_title_changed( ASWindow *asw, Bool update_display )
 					SetShape( asw, 0 );
             }
     }
-    if( asw->icon_title )
+    LOCAL_DEBUG_OUT( "icon_title = %p, icon_name = \"%s\"", asw->icon_title, ASWIN_ICON_NAME(asw)?ASWIN_ICON_NAME(asw):"(null)" );
+	if( asw->icon_title )
     {
         if( change_astbar_first_label( asw->icon_title, ASWIN_ICON_NAME(asw), (asw->hints->icon_name_idx<0)?AS_Text_ASCII:asw->hints->names_encoding[asw->hints->icon_name_idx] ) )
             on_icon_changed( asw );
@@ -1565,6 +1566,7 @@ LOCAL_DEBUG_OUT( "unmaping client window 0x%lX", (unsigned long)asw->w );
         if( asw->icon_canvas != asw->icon_title_canvas )
             map_canvas_window(asw->icon_title_canvas, True );
         on_window_status_changed( asw, False, True );
+		on_icon_changed( asw );
 LOCAL_DEBUG_OUT( "updating status to iconic for client %p(\"%s\")", asw, ASWIN_NAME(asw) );
     }else
     {   /* Performing transition IconicState->NormalState  */

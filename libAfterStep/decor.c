@@ -1068,8 +1068,10 @@ LOCAL_DEBUG_CALLER_OUT( "tbar(%p)->index(%d)->label(ENC = %ld, TXT=\"%s\")", tba
     if (tbar && tbar->tiles)
 	{
         ASLabel *lbl = &(tbar->tiles[index].data.label);
-        if( ASTileType(tbar->tiles[index]) != AS_TileLabel )
+		if( ASTileType(tbar->tiles[index]) != AS_TileLabel )
             return False;
+		LOCAL_DEBUG_OUT( "old_label(ENC = %ld, TXT=\"%s\" )", lbl->encoding, lbl->text?lbl->text:"null" );
+        
 
         if (label == NULL)
 		{

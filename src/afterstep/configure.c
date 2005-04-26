@@ -499,7 +499,10 @@ init_old_look_variables (Bool free_resources)
 void
 merge_old_look_variables (MyLook *look)
 {
-    char         *button_style_names[BACK_STYLES] = {"ButtonTitleFocus", "ButtonTitleUnfocus", "ButtonTitleSticky", "ButtonTitleDefault" };
+    char         *button_style_names[BACK_STYLES] = {AS_ICON_TITLE_FOCUS_MYSTYLE, 
+													 AS_ICON_TITLE_UNFOCUS_MYSTYLE, 
+													 AS_ICON_TITLE_STICKY_MYSTYLE, 
+													 "ButtonTitleDefault" };
     MyStyle      *button_styles[BACK_STYLES];
     int i ;
 
@@ -727,11 +730,14 @@ merge_look( MyLook *to, MyLook *from )
     to->resize_move_geometry = from->resize_move_geometry ; 
     to->StartMenuSortMode = from->StartMenuSortMode ; 
     to->DrawMenuBorders = from->DrawMenuBorders ; 
-    to->ButtonWidth  = from->ButtonWidth ; 
-	to->ButtonHeight = from->ButtonHeight ; 
-    to->minipixmap_width  = from->minipixmap_width ; 
-	to->minipixmap_height = from->minipixmap_height ; 
+    to->ButtonWidth  = (from->ButtonWidth == 0)? 64 :from->ButtonWidth  ; 
+	to->ButtonHeight = (from->ButtonHeight== 0)? to->ButtonWidth :from->ButtonHeight ; 
+    to->minipixmap_width  = (from->minipixmap_width == 0)? 24 : from->minipixmap_width ; 
+	to->minipixmap_height = (from->minipixmap_height == 0)?to->minipixmap_width:from->minipixmap_height; 
 	
+	asxml_var_insert("icon.button.width", to->ButtonWidth);
+	asxml_var_insert("icon.button.height", to->ButtonHeight);
+
 	asxml_var_insert("minipixmap.width", to->minipixmap_width);
 	asxml_var_insert("minipixmap.height", to->minipixmap_height);
 

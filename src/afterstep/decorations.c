@@ -530,7 +530,6 @@ LOCAL_DEBUG_OUT( "++CREAT tbar(%p)->context(%s)", *tbar, context2text(context) )
 
         set_astbar_style( *tbar, BAR_STATE_FOCUSED, mystyle_name );
         set_astbar_style( *tbar, BAR_STATE_UNFOCUSED, "default" );
-        delete_astbar_tile( *tbar, -1 );
         if( img )
         {
             LOCAL_DEBUG_OUT("adding bar icon %p %ux%u", img, img->width, img->height );
@@ -895,7 +894,6 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
     char *mystyle_name = Scr.Look.MSWindow[BACK_FOCUSED]->name;
     char *frame_mystyle_name = NULL ;
     int *frame_contexts  = &(od->frame_contexts[0]);
-	Bool add_icon_label = (asw->icon_title==NULL) ;
 	Bool tbar_created = False;
 	Bool status_changed = False ;
 
@@ -998,23 +996,14 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
     
 	if( asw->icon_title )
     {
-		if( add_icon_label )
-		{
-	        LOCAL_DEBUG_OUT( "setting icon label to %s", ASWIN_ICON_NAME(asw) );
-	        add_astbar_label( asw->icon_title, 0, 0, 0, frame->title_align,
-							  DEFAULT_TBAR_HSPACING, DEFAULT_TBAR_VSPACING,
-						      ASWIN_ICON_NAME(asw),
-							  (asw->hints->icon_name_idx < 0)?AS_Text_ASCII :
-														  asw->hints->names_encoding[asw->hints->icon_name_idx]);
-		}else if( old_hints == NULL || mystrcmp(ASWIN_ICON_NAME(asw), old_hints->icon_name) != 0 )
-		{
-	        set_astbar_style( asw->icon_title, BAR_STATE_FOCUSED, AS_ICON_TITLE_MYSTYLE );
-  	    	set_astbar_style( asw->icon_title, BAR_STATE_UNFOCUSED, "default" );
-			change_astbar_first_label( asw->icon_title,
-									   ASWIN_ICON_NAME(asw),
-		  							  (asw->hints->icon_name_idx < 0)?AS_Text_ASCII :
-																	  asw->hints->names_encoding[asw->hints->icon_name_idx]);
-		}
+	    LOCAL_DEBUG_OUT( "setting icon label to %s", ASWIN_ICON_NAME(asw) );
+	    add_astbar_label( asw->icon_title, 0, 0, 0, frame->title_align,
+							DEFAULT_TBAR_HSPACING, DEFAULT_TBAR_VSPACING,
+						    ASWIN_ICON_NAME(asw),
+							(asw->hints->icon_name_idx < 0)?AS_Text_ASCII :
+							asw->hints->names_encoding[asw->hints->icon_name_idx]);
+	    set_astbar_style( asw->icon_title, BAR_STATE_FOCUSED, AS_ICON_TITLE_MYSTYLE );
+  	    set_astbar_style( asw->icon_title, BAR_STATE_UNFOCUSED, AS_ICON_TITLE_UNFOCUS_MYSTYLE );
     }
 
     if( asw->hints->mystyle_names[BACK_FOCUSED] )

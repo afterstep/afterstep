@@ -154,9 +154,12 @@ Bool rearrange_icon_iter_func(void *data, void *aux_data)
     }
     if( asw->icon_title )
     {
-        title_width = calculate_astbar_width( asw->icon_title );
+		title_width = calculate_astbar_width( asw->icon_title );
+		if( title_width <  Scr.Look.ButtonWidth ) 
+			title_width = Scr.Look.ButtonWidth ;
         title_height = calculate_astbar_height( asw->icon_title );
-    }
+    	LOCAL_DEBUG_OUT( "title_size = %dx%d", title_width, title_height );
+	}
 
     whole_width = (width == 0)?title_width:width ;
     whole_height = height + title_height ;
@@ -239,8 +242,8 @@ LOCAL_DEBUG_OUT( "new : %+d%+d", new_x, new_y );
 LOCAL_DEBUG_OUT( "placing an icon at %+d%+d, base %+d%+d whole %dx%d button %dx%d", x, y, box_x, box_y, whole_width, whole_height, width, height );
     if( asw->icon_title_canvas && asw->icon_title_canvas != asw->icon_canvas )
     {
-        moveresize_canvas( asw->icon_canvas, box_x+x, box_y+y, width, height );
-        moveresize_canvas( asw->icon_title_canvas, box_x+x, box_y+y+height, width, height );
+        moveresize_canvas( asw->icon_canvas, box_x+x+(title_width-width)/2, box_y+y, width, height );
+        moveresize_canvas( asw->icon_title_canvas, box_x+x, box_y+y+height, title_width, title_height );
     }else
         moveresize_canvas( asw->icon_canvas, box_x+x, box_y+y, whole_width, whole_height );
 
@@ -333,20 +336,27 @@ change_iconbox_icon_desk( ASWindow *asw, int from_desk, int to_desk )
 void
 on_icon_changed( ASWindow *asw )
 {
-	/* if( AS_ASSERT(asw) ) */
+	if( AS_ASSERT(asw) )
         return;
     /* we probably need to reshuffle entire iconbox when that happen : */
     if( asw->icon_title )
     {
-        int tbar_size = calculate_astbar_width( asw->icon_title );
-        set_astbar_size( asw->icon_title, tbar_size, asw->icon_title?asw->icon_title->height:0 );
-        render_astbar( asw->icon_title, asw->icon_title_canvas );
+        int width = calculate_astbar_width( asw->icon_title );
+        int height = calculate_astbar_height( asw->icon_title );
+		if( width <  Scr.Look.ButtonWidth ) 
+			width = Scr.Look.ButtonWidth ;
+        set_astbar_size( asw->icon_title, width, height );
+		if( asw->icon_title_canvas && asw->icon_title_canvas != asw->icon_canvas ) 
+		{	
+	    	resize_canvas( asw->icon_title_canvas, width, height );
+			handle_canvas_config( asw->icon_title_canvas );
+		}
+        render_astbar( asw->icon_title, asw->icon_title_canvas?asw->icon_title_canvas:asw->icon_canvas );
     }
     if( asw->icon_button )
     {
-
-
-    }
+        render_astbar( asw->icon_button, asw->icon_canvas );
+	}
     update_canvas_display( asw->icon_canvas );
     update_canvas_display( asw->icon_title_canvas );
 }

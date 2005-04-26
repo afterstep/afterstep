@@ -278,6 +278,8 @@ get_canvas_position( ASCanvas *pc, Window *pparent, int *px, int *py, unsigned i
 Bool
 make_canvas_rectangle (ASCanvas * pc, ASImage * im, int x, int y, int *cx, int *cy, int *cwidth, int *cheight)
 {
+	if( pc == NULL || im == NULL || cx == NULL || cy == NULL ||cwidth == NULL || cheight == NULL ) 
+		return False;
 	*cwidth = im->width;
 	*cheight = im->height;
 	*cx = x;
@@ -346,6 +348,9 @@ fill_canvas_mask (ASCanvas * pc, int win_x, int win_y, int width, int height)
 {
 	int           real_x, real_y;
 	int           real_width, real_height;
+
+	if( pc == NULL ) 
+		return;
 
     if (pc->shape != None && !get_flags( pc->state, CANVAS_CONTAINER ) )
 	{
@@ -421,8 +426,11 @@ void
 update_canvas_display_mask (ASCanvas * pc, Bool force)
 {
 #ifdef SHAPE
-LOCAL_DEBUG_CALLER_OUT( "canvas(%p)->window(%lx)->canvas_pixmap(%lx)->size(%dx%d)", pc, pc->w, pc->canvas, pc->width, pc->height );
-    if (pc && pc->w != None )
+LOCAL_DEBUG_CALLER_OUT( "canvas(%p)", pc );
+    if( pc == NULL )
+        return ;
+	LOCAL_DEBUG_OUT( "window(%lx)->canvas_pixmap(%lx)->size(%dx%d)", pc->w, pc->canvas, pc->width, pc->height );
+    if ( pc->w != None )
 	{
         if( force || !get_flags( pc->state, CANVAS_CONTAINER ))
         {
@@ -485,7 +493,11 @@ void  trace_update_canvas_display (ASCanvas * pc, const char *file, int line)
 void
 update_canvas_display (ASCanvas * pc)
 {
-LOCAL_DEBUG_CALLER_OUT( "canvas(%p)->window(%lx)->canvas_pixmap(%lx)->size(%dx%d)", pc, pc->w, pc->canvas, pc->width, pc->height );
+	LOCAL_DEBUG_CALLER_OUT( "canvas(%p)", pc );
+    if( pc == NULL )
+        return ;
+
+	LOCAL_DEBUG_OUT( "window(%lx)->canvas_pixmap(%lx)->size(%dx%d)", pc->w, pc->canvas, pc->width, pc->height );
     if (pc && pc->w != None )
 	{
         if( !get_flags( pc->state, CANVAS_CONTAINER ) )
@@ -585,8 +597,12 @@ swap_save_canvas( ASCanvas *pc )
 void
 clear_canvas_shape (ASCanvas * pc, Bool force_for_container)
 {
-LOCAL_DEBUG_CALLER_OUT( "canvas(%p)->window(%lx)->canvas_pixmap(%lx)->size(%dx%d)", pc, pc->w, pc->canvas, pc->width, pc->height );
-    if (pc && pc->w != None )
+	LOCAL_DEBUG_CALLER_OUT( "canvas(%p)", pc );
+	if( pc == NULL )
+        return ;
+
+	LOCAL_DEBUG_OUT( "window(%lx)->canvas_pixmap(%lx)->size(%dx%d)", pc->w, pc->canvas, pc->width, pc->height );
+    if ( pc->w != None )
 	{
         if( !get_flags( pc->state, CANVAS_CONTAINER ) || force_for_container )
         {
@@ -607,10 +623,13 @@ check_canvas_shaped( ASCanvas *pc)
 {
     Bool           boundingShaped= False;
 #ifdef SHAPE
-    int           dumm;
-    unsigned      udumm;
-    XShapeQueryExtents (dpy, pc->w,
-                        &boundingShaped, &dumm, &dumm, &udumm, &udumm, &dumm, &dumm, &dumm, &udumm, &udumm);
+	if( pc ) 
+	{	
+    	int           dumm;
+    	unsigned      udumm;
+    	XShapeQueryExtents (dpy, pc->w,
+                        	&boundingShaped, &dumm, &dumm, &udumm, &udumm, &dumm, &dumm, &dumm, &udumm, &udumm);
+	}
 #endif
     return boundingShaped ;
 }
@@ -808,6 +827,9 @@ resize_canvas (ASCanvas * pc, unsigned int width, unsigned int height)
 {
     ASFlagType changes = 0 ;        
 
+	if( pc == NULL ) 
+		return 0;
+
     LOCAL_DEBUG_CALLER_OUT( "canvas(%p)->window(%lx)->geom(%ux%u)", pc, pc->w, width, height );
     /* Setting background to None to avoid background pixmap tiling
 	 * while resizing */
@@ -842,7 +864,11 @@ ASFlagType
 moveresize_canvas (ASCanvas * pc, int x, int y, unsigned int width, unsigned int height)
 {
     ASFlagType changes = 0 ;
-    LOCAL_DEBUG_CALLER_OUT( "canvas(%p)->window(%lx)->geom(%ux%u%+d%+d)", pc, pc->w, width, height, x, y );
+	
+	if( pc == NULL ) 
+		return 0;
+    
+	LOCAL_DEBUG_CALLER_OUT( "canvas(%p)->window(%lx)->geom(%ux%u%+d%+d)", pc, pc->w, width, height, x, y );
     /* Setting background to None to avoid background pixmap tiling
 	 * while resizing */
 
@@ -879,6 +905,9 @@ moveresize_canvas (ASCanvas * pc, int x, int y, unsigned int width, unsigned int
 void
 move_canvas (ASCanvas * pc, int x, int y)
 {
+	if( pc == NULL ) 
+		return;
+
 LOCAL_DEBUG_CALLER_OUT( "canvas(%p)->window(%lx)->geom(%+d%+d)", pc, pc->w, x, y );
     XMoveWindow (dpy, pc->w, x, y);
 }
@@ -897,8 +926,12 @@ unmap_canvas_window( ASCanvas *pc )
 void
 map_canvas_window( ASCanvas *pc, Bool raised )
 {
-	LOCAL_DEBUG_CALLER_OUT( "pc=%p, raised = %s", pc , raised ? "True":"False" );
-    if( pc && pc->w != None )
+	LOCAL_DEBUG_CALLER_OUT( "pc=%p", pc );
+	if( pc == NULL ) 
+		return;
+
+	LOCAL_DEBUG_OUT( "raised = %s", raised ? "True":"False" );
+    if( pc->w != None )
     {
         if( raised )
             XMapRaised( dpy, pc->w );
@@ -963,7 +996,7 @@ reparent_canvas_window( ASCanvas *pc, Window dst, int x, int y )
 void
 add_canvas_grid( ASGrid *grid, ASCanvas *canvas, int outer_gravity, int inner_gravity, int vx, int vy )
 {
-    if( canvas )
+    if( canvas && grid )
     {
         int x = canvas->root_x + vx ;
         int y = canvas->root_y + vy ;
@@ -978,15 +1011,18 @@ LOCAL_DEBUG_CALLER_OUT( "(%p,%ux%u%+d%+d)", canvas, canvas->width, canvas->heigh
 void
 set_root_clip_area( ASCanvas *canvas )
 {
-    ASDefaultScr->RootClipArea.x = canvas->root_x+(int)canvas->bw;
-    ASDefaultScr->RootClipArea.y = canvas->root_y+(int)canvas->bw;
-    ASDefaultScr->RootClipArea.width  = canvas->width;
-    ASDefaultScr->RootClipArea.height = canvas->height;
-    if( ASDefaultScr->RootImage )
-    {
-        safe_asimage_destroy( ASDefaultScr->RootImage );
-        ASDefaultScr->RootImage = NULL ;
-    }
+	if( canvas )
+	{	
+    	ASDefaultScr->RootClipArea.x = canvas->root_x+(int)canvas->bw;
+    	ASDefaultScr->RootClipArea.y = canvas->root_y+(int)canvas->bw;
+    	ASDefaultScr->RootClipArea.width  = canvas->width;
+    	ASDefaultScr->RootClipArea.height = canvas->height;
+    	if( ASDefaultScr->RootImage )
+    	{
+        	safe_asimage_destroy( ASDefaultScr->RootImage );
+        	ASDefaultScr->RootImage = NULL ;
+    	}
+	}
 }
 
 /*************************************************************************/

@@ -212,17 +212,17 @@ MyStyle "ButtonPixmap"
 
 MyStyle "ButtonTitleFocus"
   	Inherit		"focused_window_style"
-  	Font		DefaultSansBoldOblique.ttf-13
+  	Font		DefaultSansBoldOblique.ttf-10
   ~MyStyle
 
 MyStyle "ButtonTitleSticky"
 	Inherit "sticky_window_style"
-	Font    DefaultSansBoldOblique.ttf-13
+	Font    DefaultSansBoldOblique.ttf-10
  ~MyStyle
 
 MyStyle "ButtonTitleUnfocus"
 	Inherit "unfocused_window_style"
-	Font    DefaultSansBoldOblique.ttf-13
+	Font    DefaultSansBoldOblique.ttf-10
   ~MyStyle
 
 
