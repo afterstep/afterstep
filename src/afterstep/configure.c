@@ -499,7 +499,8 @@ init_old_look_variables (Bool free_resources)
 void
 merge_old_look_variables (MyLook *look)
 {
-    char         *button_style_names[BACK_STYLES] = {AS_ICON_TITLE_FOCUS_MYSTYLE, 
+    char         *button_style_names[BACK_STYLES] = 
+{AS_ICON_TITLE_MYSTYLE, 
 													 AS_ICON_TITLE_UNFOCUS_MYSTYLE, 
 													 AS_ICON_TITLE_STICKY_MYSTYLE, 
 													 "ButtonTitleDefault" };
