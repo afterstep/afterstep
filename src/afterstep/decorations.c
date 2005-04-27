@@ -363,6 +363,7 @@ LOCAL_DEBUG_OUT( "--DESTR Client(%lx(%s))->CLIENT->canvas(%p)->window(%lx)", asw
          * Prevent the receipt of an UnmapNotify in case we are simply restarting,
          * since that would cause a transition to the Withdrawn state.
 		 */
+#if 0
         if( !ASWIN_GET_FLAGS(asw, AS_Dead) && get_parent_window( w ) == asw->frame )
         {
             if( get_flags( AfterStepState, ASS_Shutdown ) )
@@ -373,6 +374,7 @@ LOCAL_DEBUG_OUT( "--DESTR Client(%lx(%s))->CLIENT->canvas(%p)->window(%lx)", asw
             XConfigureWindow (dpy, w, CWX|CWY|CWWidth|CWHeight|CWBorderWidth, &xwc);
         }
         XSync (dpy, 0);
+#endif
     }
 
     return (asw->client_canvas = canvas);
