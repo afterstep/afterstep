@@ -1,4 +1,4 @@
-/*
+/* 
  * Copyright (c) 2002,2003 Sasha Vasko <sasha@aftercode.net>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -1285,6 +1285,7 @@ save_aswindow_anchor( ASWindow *asw, Bool hor, Bool vert )
 void
 moveresize_aswindow_wm( ASWindow *asw, int x, int y, unsigned int width, unsigned int height, Bool save_anchor )
 {
+	LOCAL_DEBUG_CALLER_OUT( "asw(%p)->geom(%dx%d%+d%+d)->save_anchor(%d)", asw, x, y, width, height, save_anchor );
     if( !AS_ASSERT(asw) )
     {
         ASStatusHints scratch_status  = *(asw->status);

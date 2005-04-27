@@ -156,7 +156,7 @@ typedef struct FunctionData
 #define DEFAULT_OTHERS      0
     INT32 unit_val[MAX_FUNC_ARGS];
     char unit[MAX_FUNC_ARGS] ;
-#define APPLY_VALUE_UNIT(size,value,unit) ((((unit)>0)?(value)*(unit):(value)*(size))/100)
+#define APPLY_VALUE_UNIT(size,value,unit) (((unit)>0)?(value)*(unit):((value)*(size))/100)
 
 #define DEFAULT_MAXIMIZE    100
 

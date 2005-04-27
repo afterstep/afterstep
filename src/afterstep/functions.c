@@ -681,6 +681,7 @@ void moveresize_func_handler( FunctionData *data, ASEvent *event, int module )
 	int height = asw->status->height ;
 
 	new_val1 = APPLY_VALUE_UNIT(Scr.MyDisplayWidth,data->func_val[0],data->unit_val[0]);
+	LOCAL_DEBUG_OUT( "val1 = %ld, unit1 = %ld, new_val1 = %d", data->func_val[0],data->unit_val[0], new_val1 );
 	new_val2 = APPLY_VALUE_UNIT(Scr.MyDisplayHeight,data->func_val[1],data->unit_val[1]);
 	if( data->func == F_MOVE )
 	{

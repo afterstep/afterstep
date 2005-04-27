@@ -1,4 +1,5 @@
 /*
+ * Copyright (C) 2005 Fabian Yamaguchi <fabiany at gmx.net>
  * Copyright (C) 2004 Sasha Vasko <sasha at aftercode.net>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -40,6 +41,7 @@
 #include "../../libAfterStep/aswindata.h"
 #include "../../libAfterStep/balloon.h"
 #include "../../libAfterStep/event.h"
+#include "../../libAfterStep/shape.h"
 
 #include "../../libAfterConf/afterconf.h"
 
@@ -62,6 +64,10 @@
 #define ARRANGE_NoStretch	(0x01<<11)
 #define ARRANGE_Resize		(0x01<<12)
 #define ARRANGE_Tile		(0x01<<13)
+#define ARRANGE_OffsetX_Set		(0x01<<14)
+#define ARRANGE_OffsetY_Set		(0x01<<15)
+#define ARRANGE_MaxWidth_Set	(0x01<<16)
+#define ARRANGE_MaxHeight_Set	(0x01<<17)
 
 struct ASArrangeState
 {
@@ -73,6 +79,9 @@ struct ASArrangeState
 	int max_width, max_height ;
 	
 	int curr_x, curr_y ;
+
+	Window *clients_order ;
+	int clients_num ; 
 	   
 }ArrangeState;
 
@@ -88,7 +97,7 @@ void process_message (send_data_type type, send_data_type *body);
 void tile_windows();
 void cascade_windows();
 void DeadPipe(int);
-
+void fix_available_area();
 
 int
 atopixel (char *s, int size)
@@ -98,10 +107,13 @@ atopixel (char *s, int size)
     	return 0;
   	if (s[l-1] == 'p' || s[l-1] == 'P' )
     {
+	    /* number was followed by a p/P
+	     * => number was already a pixel-value */
 		s[l-1] = '\0' ;
 		return atoi (s);
     }
-  	return (atoi (s) * size) / 100;
+  	/* return s percent of size */
+	return (atoi (s) * size) / 100;
 }
 
 
@@ -118,6 +130,11 @@ main( int argc, char **argv )
 
     ConnectX( ASDefaultScr, 0 );
 
+	memset( &ArrangeState, 0x00, sizeof(ArrangeState));
+	ArrangeState.incx = 20 ; 
+	ArrangeState.incy = 20 ; 
+
+    /* Check the Name of the Program to see wether to tile or cascade*/
 	if( mystrcasecmp( MyName , "Tile" ) == 0 )
 		set_flags( ArrangeState.flags, ARRANGE_Tile	);
 
@@ -125,16 +142,33 @@ main( int argc, char **argv )
 	{
 		if( argv[i] == NULL )
 			continue;
+		/*
+		  From manpage of old Cascade:
+		  Up to four numbers can be placed in the command line
+		  that are not switches.
+		  The first pair specify an x and y offset to start
+		  the first window (default 0, 0). The second pair
+		  specify a maximal width and height for layered windows.
+		*/
 		if( isdigit( argv[i][0] ) )
 		{
 			if( nargc == 0 ) 
-				ArrangeState.offset_x = atoi( argv[i] );
-			if( nargc == 1 ) 
-				ArrangeState.offset_y = atoi( argv[i] );
-			if( nargc == 2 ) 
-				ArrangeState.max_width = atoi( argv[i] );
-			if( nargc == 3 ) 
-				ArrangeState.max_height = atoi( argv[i] );
+			{	
+				ArrangeState.offset_x = atopixel( argv[i],  Scr.MyDisplayWidth );
+				set_flags( ArrangeState.flags, ARRANGE_OffsetX_Set );
+			}else if( nargc == 1 ) 
+			{	
+				ArrangeState.offset_y = atopixel( argv[i], Scr.MyDisplayHeight  );
+				set_flags( ArrangeState.flags, ARRANGE_OffsetY_Set );
+			}else if( nargc == 2 ) 
+			{	
+				ArrangeState.max_width = atopixel( argv[i], Scr.MyDisplayWidth );
+				set_flags( ArrangeState.flags, ARRANGE_MaxWidth_Set );
+			}else if( nargc == 3 ) 
+			{	
+				ArrangeState.max_height = atopixel( argv[i], Scr.MyDisplayHeight );
+				set_flags( ArrangeState.flags, ARRANGE_MaxHeight_Set );
+			}
 			++nargc ;
 		}else if( argv[i][0] == '-' ) 
 		{
@@ -240,7 +274,7 @@ void HandleEvents()
     while (True)
     {
         module_wait_pipes_input ( process_message );
-	}
+    }
 }
 
 void
@@ -280,8 +314,9 @@ process_message (send_data_type type, send_data_type *body)
 
 	if( type == M_END_WINDOWLIST )
 	{
-		/* rearrange windows */		
-		if( set_flags( ArrangeState.flags, ARRANGE_Tile	) ) 
+		/* rearrange windows */		   
+		fix_available_area();
+		if( get_flags( ArrangeState.flags, ARRANGE_Tile	) ) 
 			tile_windows();
 		else
 			cascade_windows();
@@ -292,7 +327,12 @@ process_message (send_data_type type, send_data_type *body)
 		struct ASWindowData *wd = fetch_window_by_id( body[0] );
 
 		show_progress( "message %X window %X ", type, body[0] );
-		handle_window_packet( type, body, &wd );
+		if( handle_window_packet( type, body, &wd ) == WP_DataCreated )
+		{
+			ArrangeState.clients_order = realloc( ArrangeState.clients_order, sizeof(Window)*(ArrangeState.clients_num+1) );
+			ArrangeState.clients_order[	ArrangeState.clients_num] = wd->client ; 
+			++ArrangeState.clients_num ;
+		}	 
 	}
 }
 
@@ -300,36 +340,81 @@ process_message (send_data_type type, send_data_type *body)
 /********************************************************************/
 /* showing our main window :                                        */
 /********************************************************************/
+
+Bool
+window_is_suitable(ASWindowData *wd)
+{
+	/* we do not want to arrange AfterSTep's modules */
+	if( get_flags( wd->flags, AS_Module|AS_SkipWinList ) == (AS_Module|AS_SkipWinList))
+		return False;
+	/* also we do not want to arrange AvoidCover windows : */
+	if( get_flags( wd->flags, AS_AvoidCover ) )
+		return False;
+	/* return if window is untitled and we don't want
+	   to arrange untitled windows  */
+	if( !get_flags( ArrangeState.flags, ARRANGE_Untitled ) && wd->window_name == NULL)
+		return False;
+	/* return if window is transient and we don't want
+	   to arrange transient windows. */
+	if( !get_flags( ArrangeState.flags, ARRANGE_Transient ) && get_flags( wd->flags, AS_Transient ) )
+		return False;
+	/* return if window is sticky and we don't want
+	   to arrange sticky windows. */
+	if( !get_flags( ArrangeState.flags, ARRANGE_Sticky ) && get_flags( wd->state_flags, AS_Sticky ) )
+		return False;
+	/* return if window is maximized and we don't want
+	   to arrange maximized windows. */
+	if( !get_flags( ArrangeState.flags, ARRANGE_Maximized ) && get_flags( wd->state_flags, AS_MaximizedX|AS_MaximizedY ) )
+		return False;
+
+	/* Passed all tests. You're in. */
+	return True;
+}
+
 void 
 tile_windows()
 {
-	
+  
 	
 }	 
 
 
 Bool 
-cascade_winlist_iter(void *data, void *aux_data)
+cascade_window(ASWindowData *wd)
 {
-	ASWindowData *wd = data ;	
-	static char msg[256];
-	if( !get_flags( ArrangeState.flags, ARRANGE_Untitled ) && get_flags( wd->flags, AS_Titlebar ) )
-		return True;
-	if( !get_flags( ArrangeState.flags, ARRANGE_Transient ) && get_flags( wd->flags, AS_Transient ) )
-		return True;
-	if( !get_flags( ArrangeState.flags, ARRANGE_Sticky ) && get_flags( wd->state_flags, AS_Sticky ) )
-		return True;
-	if( !get_flags( ArrangeState.flags, ARRANGE_Maximized ) && get_flags( wd->state_flags, AS_MaximizedX|AS_MaximizedY ) )
-		return True;
+	send_signed_data_type vals[2] ;	
+	send_signed_data_type units[2] ;	
+		
+	if(!window_is_suitable( wd ))
+		return True; /* next window please */
 
 	if( !get_flags( ArrangeState.flags, ARRANGE_NoRaise ) )
-		SendInfo ( "Raise", wd->client );
+		SendNumCommand ( F_RAISE, NULL, NULL, NULL, wd->client );
 
-	sprintf( &msg[0], "Move %up %up", ArrangeState.curr_x, ArrangeState.curr_y);
-	SendInfo( &msg[0], wd->client );
-
+	/* This is to indicate that values are in pixels : */
+	units[0] = 1 ; 
+	units[1] = 1 ;
+	 
+	vals[0] = ArrangeState.curr_x ; 
+	vals[1] = ArrangeState.curr_y ;
+	LOCAL_DEBUG_OUT( "moving client %lX \"%s\" to %+d%+d", wd->client, wd->window_name, ArrangeState.curr_x, ArrangeState.curr_y );
 	ArrangeState.curr_x += ArrangeState.incx ;
 	ArrangeState.curr_y += ArrangeState.incy ;
+	
+	SendNumCommand ( F_MOVE, NULL, &(vals[0]), &(units[0]), wd->client );
+
+	if( get_flags( ArrangeState.flags, ARRANGE_Resize ) )
+	{
+		/* No-Stretch */
+		if ( get_flags( ArrangeState.flags, ARRANGE_NoStretch) &&
+		     (wd->frame_rect.width < ArrangeState.max_width))
+			return True;
+		
+		vals[0] = ArrangeState.max_width ; 
+		vals[1] = ArrangeState.max_height ;
+		SendNumCommand ( F_RESIZE, NULL, &(vals[0]), &(units[0]), wd->client );
+	}
+
 
 	return True;   
 }
@@ -338,8 +423,78 @@ cascade_winlist_iter(void *data, void *aux_data)
 void 
 cascade_windows()
 {
+	int i ;
+	ASWindowData *wd ;
 	ArrangeState.curr_x = ArrangeState.offset_x ;
 	ArrangeState.curr_y = ArrangeState.offset_y ;
-	iterate_window_data( cascade_winlist_iter, NULL);	
+	if( get_flags( ArrangeState.flags, ARRANGE_Reversed ) ) 
+	{
+		i = ArrangeState.clients_num ; 	
+		while( --i >= 0 ) 
+		{
+			if( (wd = fetch_window_by_id( ArrangeState.clients_order[i] ))!= NULL ) 
+				cascade_window( wd );				
+		}	 
+	}else
+	{
+		for( i = 0 ; i < ArrangeState.clients_num  ; ++i ) 
+		{
+			if( (wd = fetch_window_by_id( ArrangeState.clients_order[i] ))!= NULL ) 
+				cascade_window( wd );				
+		}	 
+	}		 
+}
+
+void 
+fix_available_area()
+{
+	ASVector *list = create_asvector( sizeof(XRectangle) );
+    XRectangle seed_rect;
+	int i, largest = 0 ;
+	ASWindowData *wd ;
+	XRectangle *rects ;
+
+    /* must seed the list with the single rectangle representing the area : */
+    seed_rect.x = 0 ;
+    seed_rect.y = 0 ;
+    seed_rect.width = Scr.MyDisplayWidth ;
+    seed_rect.height = Scr.MyDisplayHeight ;
+
+    append_vector( list, &seed_rect, 1 );
+	
+	for( i = 0 ; i < ArrangeState.clients_num  ; ++i ) 
+	{
+		if( (wd = fetch_window_by_id( ArrangeState.clients_order[i] ))!= NULL ) 
+		{
+			if( get_flags( wd->flags, AS_AvoidCover ) && ! get_flags( wd->state_flags, AS_Iconic) ) 
+			{	
+				subtract_rectangle_from_list( list, wd->frame_rect.x, wd->frame_rect.y, 
+												    wd->frame_rect.x+(int)wd->frame_rect.width,
+													wd->frame_rect.y+(int)wd->frame_rect.height );	  
+			}
+		}
+	}	 
+	
+	print_rectangles_list(list);
+
+	i = PVECTOR_USED(list);
+	rects = PVECTOR_HEAD(XRectangle,list);
+	while( --i > 0 ) 
+	{	
+    	if( rects[largest].width*rects[largest].height < rects[i].width*rects[i].height ) 
+			largest = i ; 
+	}
+
+	if( !get_flags( ArrangeState.flags, ARRANGE_OffsetX_Set ) )
+		ArrangeState.offset_x = rects[largest].x;
+		
+	if( !get_flags( ArrangeState.flags, ARRANGE_OffsetY_Set ) )
+		ArrangeState.offset_y = rects[largest].y;
+				
+	if( !get_flags( ArrangeState.flags, ARRANGE_MaxWidth_Set ) )
+		ArrangeState.max_width = rects[largest].width;
+	
+	if( !get_flags( ArrangeState.flags, ARRANGE_MaxHeight_Set ) )
+		ArrangeState.max_height = rects[largest].height;
 }
 

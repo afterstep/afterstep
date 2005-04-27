@@ -23,6 +23,13 @@ Bool subtract_shape_rectangle( struct ASVector *shape, XRectangle *rect, unsigne
 Bool apply_shape_to_window( struct ASVector *shape, Window w );
 Bool query_shape_from_window( struct ASVector *shape, Window w );
 
+/* This version differs from above, in that its tryes to compile a list 
+ * of as many rectangles as possible : */
+void subtract_rectangle_from_list( ASVector *list, int left, int top, int right, int bottom );
+void print_rectangles_list( ASVector *list );
+
+
+
 #ifdef __cplusplus
 }
 #endif

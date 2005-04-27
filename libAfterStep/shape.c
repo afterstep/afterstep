@@ -338,6 +338,24 @@ print_shape( ASVector *shape )
 	return False;
 }
 
+void
+print_rectangles_list( ASVector *list )
+{
+#if !defined(NO_DEBUG_OUTPUT)
+    XRectangle *rects = PVECTOR_HEAD(XRectangle,list);
+    int i = PVECTOR_USED(list);
+
+    fprintf( stderr, "\tRectangles.count = %d;\n", i );
+    while ( --i >= 0 )
+    {
+        fprintf( stderr, "\tRectangles[%d].x = %d;\n", i, rects[i].x );
+        fprintf( stderr, "\tRectangles[%d].y = %d;\n", i, rects[i].y );
+        fprintf( stderr, "\tRectangles[%d].width = %d;\n", i, rects[i].width );
+        fprintf( stderr, "\tRectangles[%d].height = %d;\n", i, rects[i].height );
+    }
+#endif
+}
+
 
 Bool
 add_shape_mask( struct ASVector *shape, struct ASImage *mask_im )
@@ -386,6 +404,89 @@ apply_shape_to_window( struct ASVector *shape, Window w )
 {
 
 	return False;
+}
+
+
+/*************************************************************************/
+/* This version differs from above, in that its tryes to compile a list 
+ * of as many rectangles as possible : */
+void
+subtract_rectangle_from_list( ASVector *list, int left, int top, int right, int bottom )
+{
+    register int i = PVECTOR_USED(list);
+    XRectangle *rects = PVECTOR_HEAD(XRectangle,list);
+    XRectangle tmp ;
+    /* must trace in reverse order ! */
+    while( --i >= 0 )
+    {
+        int r_left = rects[i].x, r_right = rects[i].x+(int)rects[i].width ;
+        int r_top = rects[i].y, r_bottom = rects[i].y+(int)rects[i].height ;
+        Bool disected = False ;
+        /* we can build at most 4 rectangles from each substraction : */
+        if( top < r_bottom && bottom > r_top )
+        {   /* we may need to create 2 vertical rectangles ( left and right ) :*/
+            /* left rectangle : */
+            tmp.y = r_top ;
+            tmp.height = r_bottom - r_top ;
+             if( left > r_left && left < r_right )
+            {
+                rects[i].x = r_left ;
+                rects[i].width = left - r_left ;
+                /* y and height remain unchanged ! */
+                disected = True ;
+            }
+            /* right rectangle : */
+            if( right > r_left && right < r_right )
+            {
+                tmp.x = right ;
+                tmp.width = r_right - right ;
+                if( disected )
+                {
+                    append_vector( list, &tmp, 1 );
+                    rects = PVECTOR_HEAD(XRectangle,list); /* memory may have gotten reallocated */
+                }else
+                {
+                    rects[i] = tmp ;
+                    disected = True ;
+                }
+            }
+        }
+        if( left < r_right && right > r_left )
+        {   /* we may need to create 2 horizontal rectangles ( top and bottom ) :*/
+            /* top rectangle : */
+            tmp.x = r_left ;
+            tmp.width = r_right - r_left ;
+            if( top > r_top && top < r_bottom )
+            {
+                tmp.y = r_top ;
+                tmp.height = top- r_top ;
+                if( disected )
+                {
+                    append_vector( list, &tmp, 1 );
+                    rects = PVECTOR_HEAD(XRectangle,list); /* memory may have gotten reallocated */
+                }else
+                {
+                    rects[i] = tmp ;
+                    disected = True ;
+                }
+            }
+            /* bottom rectangle */
+            if( bottom > r_top && bottom < r_bottom )
+            {
+                tmp.y = bottom ;
+                tmp.height = r_bottom- bottom ;
+                if( disected )
+                {
+                    append_vector( list, &tmp, 1 );
+                    rects = PVECTOR_HEAD(XRectangle,list); /* memory may have gotten reallocated */
+                }else
+                {
+                    rects[i] = tmp ;
+                    disected = True ;
+                }
+            }
+        }
+    }
 }
 
 
