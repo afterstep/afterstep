@@ -158,7 +158,7 @@ get_parent_window( Window w )
 	Window parent = None ;
 #ifndef X_DISPLAY_MISSING
     Window        root, *children = NULL;
-    unsigned int  child_count;
+    unsigned int  child_count = 0;
 
 	XSync( dpy, False );
     XQueryTree (dpy, w, &root, &parent, &children, &child_count);

@@ -37,7 +37,7 @@ init_ashints (ASHints * hints)
 {
 	if (hints)
 	{										   /* some defaults to start with : */
-		hints->flags = AS_Gravity | AS_AcceptsFocus | AS_Titlebar | AS_Handles | AS_Border;
+		hints->flags = AS_Gravity | AS_AcceptsFocus | AS_Titlebar | AS_IconTitle | AS_Handles | AS_Border;
         /* can't gracefully close the window if it does not support WM_DELETE_WINDOW */
         hints->function_mask = ~(AS_FuncClose|AS_FuncPinMenu);
         hints->gravity = NorthWestGravity;
@@ -273,7 +273,7 @@ merge_hints (ASRawHints * raw, ASDatabase * db, ASStatusHints * status,
 	if ((clean = reusable_memory) == NULL)
 		clean = (ASHints *) safecalloc (1, sizeof (ASHints));
 	else
-		memset (reusable_memory, 0x00, sizeof (ASHints));
+		memset (clean, 0x00, sizeof (ASHints));
 	if (status)
 		memset (status, 0x00, sizeof (ASStatusHints));
 

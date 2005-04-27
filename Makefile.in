@@ -8,6 +8,7 @@ confsdirs= autoconf libAfterBase libAfterImage
 subdirs		= libAfterBase libAfterImage libAfterStep libAfterConf \
 		  src/afterstep \
 		  src/Animate \
+		  src/Arrange \
 		  src/Banner \
 		  src/Ident \
 		  src/Pager \

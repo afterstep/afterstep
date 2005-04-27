@@ -213,29 +213,54 @@ MyStyle "*aterm"
 	BackGradient   6 Inactive2Light  alpha(50,Inactive2Dark)
 ~MyStyle
 
-
+#####################################################
 #----------Minimized window Button MyStyles---------#
 
 MyStyle "ButtonPixmap"
   	BackColor     Black
-  	BackPixmap    128 ASBBlockDefault.xpm
-  ~MyStyle
+  	BackGradient  6	Inactive2Dark Inactive2Light
+~MyStyle
+
+MyStyle "ButtonText"
+	TextStyle	0
+  	Font		Default.ttf-13
+~MyStyle
 
 MyStyle "ButtonTitleFocus"
   	Inherit		"focused_window_style"
-  	Font		DefaultSansBoldOblique.ttf-13
+	Inherit		"ButtonText"
   ~MyStyle
 
 MyStyle "ButtonTitleSticky"
 	Inherit "sticky_window_style"
-	Font    DefaultSansBoldOblique.ttf-13
+	Inherit		"ButtonText"
  ~MyStyle
 
 MyStyle "ButtonTitleUnfocus"
 	Inherit "unfocused_window_style"
-	Font    DefaultSansBoldOblique.ttf-13
+	Inherit		"ButtonText"
   ~MyStyle
 
+# [0|1] Show Title on Buttons how?
+SeparateButtonTitle 0
+#  Border around iconifyied windows ?
+ButtonNoBorder
+ButtonBevel	Right,Bottom
+ButtonAlign	HCenter
+# button border defines an area to be drawn around the icon
+# 8+48+8 == 64
+ButtonBorder	8
+# [x y] Size of application icons ?
+ButtonSize 64 64
+
+# Finally the Icon box defines Left Top Right Bottom sides of an area where 
+# minimized windows should go. Give it enough size so that both button and 
+# title text will fit  in there ( 64+16 = 80 )
+IconBox                 1 -80 -1 -1
+
+
+###################################################################
+# Title balloons : 
 
 TitleButtonBalloons
 TitleButtonBalloonBorderHilite	Right,Bottom
@@ -245,14 +270,8 @@ TitleButtonBalloonDelay		200
 TitleButtonBalloonCloseDelay	2000
 TitleButtonBalloonStyle 	"TitleButtonBalloon"
 
-#----------Window MyStyles---------#
 
-# [0|1] Show Title on Buttons how?
-SeparateButtonTitle 0
-# [x y] Size of application icons ?
-ButtonSize 64 64
-#--------------------------
-
+###################################################################
 # Also lets define colors for the cursor ( from selected colorscheme ) :
 
 CursorFore "Cursor"
@@ -261,8 +280,6 @@ CursorBack "ActiveText"
 ###################################################################
 # 2-5) : misc options
 
-#  Border around iconifyied windows ?
-ButtonNoBorder
 #  [0/1/2] Draw lines between menu options ?
 DrawMenuBorders 1
 #  [0/1] Texture menu options individually, or the whole menu ?
@@ -283,7 +300,6 @@ RubberBand 2
 # 3) TextStyle :
 #  Mode is either 0 (normal), 1 (big 3d), 2 (nice 3d)
 # 3-1) Text : fonts
-IconBox                 1 -80 -1 -1
 TitleTextAlign          2
 
 # 4) TileBar options :

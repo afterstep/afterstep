@@ -358,7 +358,6 @@ LOCAL_DEBUG_OUT( "++CREAT Client(%lx(%s))->CLIENT->canvas(%p)->window(%lx)", asw
 
 LOCAL_DEBUG_OUT( "--DESTR Client(%lx(%s))->CLIENT->canvas(%p)->window(%lx)", asw->w, ASWIN_NAME(asw)?ASWIN_NAME(asw):"noname", canvas, canvas->w );
         destroy_ascanvas( &canvas );
-        unregister_aswindow( w );
 
         /*
          * Prevent the receipt of an UnmapNotify in case we are simply restarting,

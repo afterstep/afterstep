@@ -1189,20 +1189,6 @@ LOCAL_DEBUG_CALLER_OUT( "(%p,%s focused)", asw, focused?"":"not" );
 			LOCAL_DEBUG_OUT( "canvas save swapped for side %d", i );
 			update_canvas = NULL ;
 		}
-#if 0				  
-		if( focused )
-		{
-			save_canvas(update_canvas);
-		}else
-		{
-			if( restore_canvas(asw->frame_sides[i]) )
-			{
-				LOCAL_DEBUG_OUT( "canvas restored for side %d", i );
-				update_canvas = NULL ;
-			}
-		}
-#endif
-
 		if( i == od->tbar_side )
 			set_astbar_focused( asw->tbar, update_canvas, focused );
 
@@ -1218,7 +1204,7 @@ LOCAL_DEBUG_CALLER_OUT( "(%p,%s focused)", asw, focused?"":"not" );
         asw->internal->on_hilite_changed( asw->internal, NULL, focused );
     if( ASWIN_GET_FLAGS( asw, AS_ShapedDecor ) )
         SetShape( asw, 0 );
-    if(!ASWIN_GET_FLAGS(asw, AS_Iconic))
+    if(ASWIN_GET_FLAGS(asw, AS_Iconic))
 	{	
         set_astbar_focused( asw->icon_button, asw->icon_canvas, focused );
         set_astbar_focused( asw->icon_title, asw->icon_title_canvas, focused );

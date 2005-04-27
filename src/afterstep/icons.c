@@ -155,13 +155,24 @@ Bool rearrange_icon_iter_func(void *data, void *aux_data)
     if( asw->icon_title )
     {
 		title_width = calculate_astbar_width( asw->icon_title );
-		if( title_width <  Scr.Look.ButtonWidth ) 
-			title_width = Scr.Look.ButtonWidth ;
+		if( title_width < width ) 
+			title_width = width ;
         title_height = calculate_astbar_height( asw->icon_title );
     	LOCAL_DEBUG_OUT( "title_size = %dx%d", title_width, title_height );
 	}
 
-    whole_width = (width == 0)?title_width:width ;
+	if( get_flags(Scr.Look.flags, SeparateButtonTitle) ) 
+	{	
+		if( title_width > width ) 
+		{	
+			if( title_width > width*3 ) 
+				title_width = width * 3 ;
+			whole_width = title_width ;
+		}else
+			whole_width = width ;
+	}else
+	    whole_width = (width == 0)? title_width : width ;
+
     whole_height = height + title_height ;
     /* now we could determine where exactly to place icon to : */
     x = -whole_width ;
