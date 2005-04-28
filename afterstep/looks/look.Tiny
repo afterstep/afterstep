@@ -207,24 +207,39 @@ MyStyle "*aterm"
 
 MyStyle "ButtonPixmap"
   	BackColor     Black
-  	BackPixmap    128 ASBBlockDefault.xpm
-  ~MyStyle
+  	BackGradient	6	Inactive2Dark	Inactive2Light
+~MyStyle
+
+MyStyle "ButtonText"
+	TextStyle	0
+  	Font		DefaultSans.ttf-10
+~MyStyle
 
 MyStyle "ButtonTitleFocus"
   	Inherit		"focused_window_style"
-  	Font		DefaultSansBoldOblique.ttf-10
+	Inherit		"ButtonText"
   ~MyStyle
 
 MyStyle "ButtonTitleSticky"
 	Inherit "sticky_window_style"
-	Font    DefaultSansBoldOblique.ttf-10
+	Inherit		"ButtonText"
  ~MyStyle
 
 MyStyle "ButtonTitleUnfocus"
 	Inherit "unfocused_window_style"
-	Font    DefaultSansBoldOblique.ttf-10
+	Inherit		"ButtonText"
   ~MyStyle
 
+# [0|1] Show Title on Buttons how?
+SeparateButtonTitle 0
+#  Border around iconifyied windows ?
+#ButtonNoBorder
+ButtonBevel	None
+ButtonAlign	Center,VScaled,HScaled
+# button border defines an area to be drawn around the icon in addition to bevel
+ButtonIconSpacing  2
+# [x y] Size of application icons ?
+ButtonSize 40 40
 
 TitleButtonBalloons
 TitleButtonBalloonBorderHilite	Right,Bottom
@@ -264,11 +279,6 @@ DefaultFrame "tiny"
 DecorateFrames 1
 
 
-# [0|1] Show Title on Buttons how?
-SeparateButtonTitle 0
-# [x y] Size of application icons ?
-ButtonSize 48 48
-#--------------------------
 
 # Also lets define colors for the cursor ( from selected colorscheme ) :
 

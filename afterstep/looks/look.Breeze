@@ -135,14 +135,14 @@ MyStyle "*PagerActiveDesk"
    	Font 	       DefaultSansOblique.ttf-12
 	ForeColor      ActiveText
    	BackColor      Active
-	BackPixmap    125 bars/title_tile_glass_focused
+	BackMultiGradient	8  Saturation(20,ActiveLight) 0.0 ActiveDark 0.3 Alpha(50,Saturation(90,ActiveLight))
  ~MyStyle
 
 MyStyle "*PagerInActiveDesk"
    	Font 	       DefaultSansOblique.ttf-12
 	ForeColor      HighInactiveText
    	BackColor      HighInactiveBack
-   	BackPixmap    125 bars/title_tile_glass_menu
+	BackMultiGradient	8  Saturation(20,Inactive2Light) 0.0 Inactive2Dark 0.3 Alpha(50,Saturation(90,Inactive2Light))	
  ~MyStyle
 
 MyStyle "Pager_font"
@@ -204,6 +204,21 @@ MyStyle "*WinListBalloon"
 	Inherit "TitleButtonBalloon"
 ~MyStyle
 
+MyStyle "WinListUnFocusedBar"
+	Inherit       	"unfocused_window_style"
+	BackMultiGradient	8  Saturation(20,Inactive1Light) 0.0 Inactive1Dark 0.3 Alpha(50,Saturation(90,Inactive1Light))	   
+~MyStyle
+
+MyStyle "WinListFocusedBar"
+	Inherit       	"focused_window_style"
+	BackMultiGradient	8  Saturation(20,ActiveLight) 0.0 ActiveDark 0.3 Alpha(50,Saturation(90,ActiveLight))
+~MyStyle
+
+MyStyle "WinListStickyBar"
+	Inherit       	"sticky_window_style"
+	BackMultiGradient	8  Saturation(20,Inactive2Light) 0.0 Inactive2Dark 0.3 Alpha(50,Saturation(90,Inactive2Light))	
+~MyStyle
+
 
 
 #----------aterm MyStyles---------#
@@ -219,22 +234,28 @@ MyStyle "*aterm"
 
 MyStyle "ButtonPixmap"
   	BackColor     Black
-  	BackPixmap    128 ASBBlockDefault.xpm
-  ~MyStyle
+  	BackGradient  6	Inactive2Dark Inactive2Light
+~MyStyle
+
+MyStyle "ButtonText"
+	TextStyle	0
+  	Font		Default.ttf-13
+	BackPixmap    	128 bars/title_tile_breeze
+~MyStyle
 
 MyStyle "ButtonTitleFocus"
   	Inherit		"focused_window_style"
-  	Font		DefaultSansBoldOblique.ttf-13
+	Inherit		"ButtonText"
   ~MyStyle
 
 MyStyle "ButtonTitleSticky"
 	Inherit "sticky_window_style"
-	Font    DefaultSansBoldOblique.ttf-13
+	Inherit		"ButtonText"
  ~MyStyle
 
 MyStyle "ButtonTitleUnfocus"
 	Inherit "unfocused_window_style"
-	Font    DefaultSansBoldOblique.ttf-13
+	Inherit		"ButtonText"
   ~MyStyle
 
 # Also lets define colors for the cursor ( from selected colorscheme ) :
@@ -248,10 +269,15 @@ CursorBack "ActiveText"
 
 # [0|1] Show Title on Buttons how?
 SeparateButtonTitle 0
+#  Border around iconifyied windows ?
+#ButtonNoBorder
+ButtonBevel	None
+ButtonAlign	Center
+# button border defines an area to be drawn around the icon in addition to bevel
+# 0(bevel)+4(spacing)+56(icon)+4(spacing)+0(bevel) == 64
+ButtonIconSpacing  4
 # [x y] Size of application icons ?
 ButtonSize 64 64
-#  Border around iconifyied windows ?
-ButtonNoBorder
 
 #  [0-10] Allows selection of move/resize rubberband look
 RubberBand 2

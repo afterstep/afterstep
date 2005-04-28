@@ -976,11 +976,12 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
 		{
 			ASImage *icon_image = get_window_icon_image( asw );
     		check_tbar( &(asw->icon_button), (asw->icon_canvas != NULL), AS_ICON_MYSTYLE,
-            		    icon_image, icon_image?icon_image->width:0, icon_image?icon_image->height:0,/* scaling icon image */
-                		0, ALIGN_CENTER|RESIZE_H_SCALE|RESIZE_V_SCALE,
-                		DEFAULT_TBAR_HILITE, DEFAULT_TBAR_HILITE,
+            		    icon_image, Scr.Look.ButtonWidth, Scr.Look.ButtonHeight,/* scaling icon image */
+                		0, Scr.Look.ButtonAlign,
+                		Scr.Look.ButtonBevel, Scr.Look.ButtonBevel,
                 		TEXTURE_TRANSPIXMAP_ALPHA, TEXTURE_TRANSPIXMAP_ALPHA,
                 		C_IconButton );
+			
 			if( icon_image )
     	    	safe_asimage_destroy( icon_image );
 		}
@@ -989,6 +990,7 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
     {
         set_astbar_style( asw->icon_button, BAR_STATE_UNFOCUSED, AS_ICON_MYSTYLE );
         set_astbar_style( asw->icon_button, BAR_STATE_FOCUSED, AS_ICON_MYSTYLE );
+		asw->icon_button->h_border = asw->icon_button->v_border = Scr.Look.ButtonIconSpacing ;
     }
 
     /* 7) now we have to create bar for icon title (optional) */

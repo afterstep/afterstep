@@ -1520,10 +1520,6 @@ LOCAL_DEBUG_CALLER_OUT( "client = %p, iconify = %d", asw, iconify );
         else if( asw->icon_title_canvas )
             asw->status->icon_window = asw->icon_title_canvas->w ;
 
-		LOCAL_DEBUG_OUT( "hilited == %p", Scr.Windows->hilited );
-    	if( Scr.Windows->hilited == asw )
-			hide_hilite();
-
         if (get_flags(Scr.Feel.flags, ClickToFocus) || get_flags(Scr.Feel.flags, SloppyFocus))
         {
             if (asw == Scr.Windows->focused)
@@ -1545,15 +1541,20 @@ LOCAL_DEBUG_OUT( "unmaping client window 0x%lX", (unsigned long)asw->w );
                     complete_wm_state_transition( asw, IconicState );
                 }
             }
+			ASSync(False);
         }
-        /* finally mapping the icon windows : */
+		
+		LOCAL_DEBUG_OUT( "hilited == %p", Scr.Windows->hilited );
+    	if( Scr.Windows->hilited == asw )
+			hide_hilite();
+        
+		/* finally mapping the icon windows : */
         add_iconbox_icon( asw );
         restack_window( asw, None, Below );
         map_canvas_window(asw->icon_canvas, True );
         if( asw->icon_canvas != asw->icon_title_canvas )
             map_canvas_window(asw->icon_title_canvas, True );
         on_window_status_changed( asw, False, True );
-		on_icon_changed( asw );
 LOCAL_DEBUG_OUT( "updating status to iconic for client %p(\"%s\")", asw, ASWIN_NAME(asw) );
     }else
     {   /* Performing transition IconicState->NormalState  */

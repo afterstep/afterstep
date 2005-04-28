@@ -331,6 +331,8 @@ typedef struct MyLook
     ASGeometry *configured_icon_areas ;
 	unsigned int configured_icon_areas_num ;
     unsigned int ButtonWidth, ButtonHeight;
+    unsigned int ButtonIconSpacing;
+	ASFlagType   ButtonAlign, ButtonBevel;
 
 	unsigned int minipixmap_width, minipixmap_height ;
 

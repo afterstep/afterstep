@@ -1,4 +1,6 @@
 version 2.0.5 release
+	* ButtonBevel, ButtonAlign, ButtonIconSpacing look options added 
+	  to allow for better configuration of iconic window button look.
 	* menu will not include any unavailable items by default. To keep them 
 	  in menu - you have to add .include file with option ShowUnavailable 
 	  set in it.

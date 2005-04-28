@@ -213,7 +213,10 @@ SyntaxDef includeSyntax =
     {TF_NO_MYNAME_PREPENDING, "StartMenuSortMode", 17, TT_UINTEGER, LOOK_StartMenuSortMode_ID, NULL}, \
     {TF_NO_MYNAME_PREPENDING, "DrawMenuBorders", 15, TT_UINTEGER, LOOK_DrawMenuBorders_ID, NULL}, \
     {TF_NO_MYNAME_PREPENDING, "ButtonSize", 10, TT_BOX, LOOK_ButtonSize_ID, NULL}, \
-	{TF_NO_MYNAME_PREPENDING, "MinipixmapSize", 14, TT_BOX, LOOK_MinipixmapSize_ID, NULL}, \
+    {TF_NO_MYNAME_PREPENDING, "ButtonIconSpacing", 17, TT_UINTEGER, LOOK_ButtonIconSpacing_ID, NULL}, \
+    {TF_NO_MYNAME_PREPENDING, "ButtonBevel", 11, TT_FLAG, LOOK_ButtonBevel_ID, &BevelSyntax}, \
+    {TF_NO_MYNAME_PREPENDING, "ButtonAlign", 11, TT_FLAG, LOOK_ButtonAlign_ID, &AlignSyntax}, \
+ 	{TF_NO_MYNAME_PREPENDING, "MinipixmapSize", 14, TT_BOX, LOOK_MinipixmapSize_ID, NULL}, \
     {TF_NO_MYNAME_PREPENDING, "SeparateButtonTitle", 19, TT_FLAG, LOOK_SeparateButtonTitle_ID, NULL}, \
     {TF_NO_MYNAME_PREPENDING, "RubberBand", 10, TT_UINTEGER, LOOK_RubberBand_ID, NULL}, \
     {TF_NO_MYNAME_PREPENDING, "DefaultStyle", 12, TT_QUOTED_TEXT, LOOK_DefaultStyle_ID, NULL}, \

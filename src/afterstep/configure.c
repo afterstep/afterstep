@@ -313,6 +313,9 @@ struct config main_config[] = {
 	{"CoverAnimationSteps"				, SetInts, (char**)&(TmpFeel.desk_cover_animation_steps), NULL },
 	{"CoverAnimationType"				, SetInts, (char**)&(TmpFeel.desk_cover_animation_type), NULL },
 	{"AnimateDeskChange"				, SetFlag, (char**)AnimateDeskChange, &dummy },
+	{"ButtonIconSpacing" 				, SetInts, (char **)&TmpLook.ButtonIconSpacing, &dummy},
+    {"ButtonBevel"						, bevel_parse, (char**)"afterstep", (int*)&(TmpLook.ButtonBevel)},
+    {"ButtonAlign"						, align_parse, (char**)"afterstep", (int*)&(TmpLook.ButtonAlign)},
 	{"", 0, (char **)0, (int *)0}
 };
 
@@ -733,6 +736,10 @@ merge_look( MyLook *to, MyLook *from )
     to->DrawMenuBorders = from->DrawMenuBorders ; 
     to->ButtonWidth  = (from->ButtonWidth == 0)? 64 :from->ButtonWidth  ; 
 	to->ButtonHeight = (from->ButtonHeight== 0)? to->ButtonWidth :from->ButtonHeight ; 
+	to->ButtonIconSpacing = from->ButtonIconSpacing;
+	to->ButtonAlign  = from->ButtonAlign;
+	to->ButtonBevel  = from->ButtonBevel;
+
     to->minipixmap_width  = (from->minipixmap_width == 0)? 24 : from->minipixmap_width ; 
 	to->minipixmap_height = (from->minipixmap_height == 0)?to->minipixmap_width:from->minipixmap_height; 
 	

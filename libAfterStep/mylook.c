@@ -271,6 +271,10 @@ mylook_init (MyLook * look, Bool free_resources, unsigned long what_flags /*see 
         look->configured_icon_areas_num = 0;
 		look->ButtonWidth = 64;
 		look->ButtonHeight = 64;
+		look->ButtonIconSpacing = 2;
+		look->ButtonAlign  = ALIGN_CENTER|RESIZE_H_SCALE|RESIZE_V_SCALE;
+		look->ButtonBevel  = DEFAULT_TBAR_HILITE;
+
         look->DefaultIcon = NULL;
     }
 

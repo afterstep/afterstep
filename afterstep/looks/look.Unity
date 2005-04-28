@@ -247,23 +247,42 @@ MyStyle "*aterm"
 
 MyStyle "ButtonPixmap"
   	BackColor     Black
-  	BackPixmap    128 ASBBlockDefault.xpm
-  ~MyStyle
+  	BackGradient  6	Inactive2Dark Inactive2Light
+~MyStyle
+
+MyStyle "ButtonText"
+	TextStyle	0
+  	Font		DefaultSans.ttf-13
+~MyStyle
 
 MyStyle "ButtonTitleFocus"
-  	Inherit		"focused_window_style"
-  	Font		DefaultSansBoldOblique.ttf-13
+  	Inherit		"WinListFocusedBar"
+	Inherit		"ButtonText"
   ~MyStyle
 
 MyStyle "ButtonTitleSticky"
-	Inherit "sticky_window_style"
-	Font    DefaultSansBoldOblique.ttf-13
+	Inherit "WinListStickyBar"
+	Inherit		"ButtonText"
  ~MyStyle
 
 MyStyle "ButtonTitleUnfocus"
-	Inherit "unfocused_window_style"
-	Font    DefaultSansBoldOblique.ttf-13
+	Inherit "WinListUnFocusedBar"
+	Inherit		"ButtonText"
   ~MyStyle
+
+# [0|1] Show Title on Buttons how?
+SeparateButtonTitle 0
+#  Border around iconifyied windows ?
+#ButtonNoBorder
+ButtonBevel	Right,Bottom
+ButtonAlign	Center
+# button border defines an area to be drawn around the icon in addition to bevel
+# 2(bevel)+2(spacing)+56(icon)+2(spacing)+2(bevel) == 64
+ButtonIconSpacing  2
+# [x y] Size of application icons ?
+ButtonSize 64 64
+
+
 
 # Also lets define colors for the cursor ( from selected colorscheme ) :
 
@@ -271,15 +290,6 @@ CursorFore "Cursor"
 CursorBack "ActiveText"
 #####################################################################
 
-
-#---------- iconized window MyStyles end ---------#
-
-# [0|1] Show Title on Buttons how?
-SeparateButtonTitle 0
-# [x y] Size of application icons ?
-ButtonSize 64 64
-#  Border around iconifyied windows ?
-ButtonNoBorder
 
 #  [0-10] Allows selection of move/resize rubberband look
 RubberBand 2
