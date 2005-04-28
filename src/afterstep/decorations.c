@@ -363,7 +363,7 @@ LOCAL_DEBUG_OUT( "--DESTR Client(%lx(%s))->CLIENT->canvas(%p)->window(%lx)", asw
          * Prevent the receipt of an UnmapNotify in case we are simply restarting,
          * since that would cause a transition to the Withdrawn state.
 		 */
-#if 0
+#if 1
         if( !ASWIN_GET_FLAGS(asw, AS_Dead) && get_parent_window( w ) == asw->frame )
         {
             if( get_flags( AfterStepState, ASS_Shutdown ) )
@@ -441,7 +441,7 @@ check_icon_title_canvas( ASWindow *asw, Bool required, Bool reuse_icon_canvas )
 	Window w;
 
     if( canvas &&
-        ((reuse_icon_canvas && canvas != asw->icon_canvas) || !required) )
+        (reuse_icon_canvas && canvas != asw->icon_canvas && !required) )
     {
         w = canvas->w ;
 LOCAL_DEBUG_OUT( "--DESTR Client(%lx(%s))->ICONT->canvas(%p)->window(%lx)", asw->w, ASWIN_NAME(asw)?ASWIN_NAME(asw):"noname", canvas, canvas->w );
@@ -1298,7 +1298,7 @@ LOCAL_DEBUG_OUT( "as?w(%p)->free_res(%d)", asw, free_resources );
         check_side_canvas( asw, FR_N, False );
 
 		if( asw->icon_canvas == asw->icon_title_canvas )
-			asw->icon_canvas = NULL ;
+			asw->icon_title_canvas = NULL ;
 		if( asw->icon_title_canvas && asw->icon_title_canvas->w )
 	        check_icon_title_canvas( asw, False, False );
 		if( asw->icon_canvas && asw->icon_canvas->w )
