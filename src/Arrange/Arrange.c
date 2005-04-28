@@ -26,6 +26,7 @@
 
 #include <signal.h>
 #include <unistd.h>
+#include <stdlib.h>
 
 #include "../../libAfterImage/afterimage.h"
 
@@ -42,6 +43,8 @@
 #include "../../libAfterStep/balloon.h"
 #include "../../libAfterStep/event.h"
 #include "../../libAfterStep/shape.h"
+
+#include "../../libAfterBase/aslist.h"
 
 #include "../../libAfterConf/afterconf.h"
 
@@ -80,10 +83,14 @@ struct ASArrangeState
 	
 	int curr_x, curr_y ;
 
-	Window *clients_order ;
-	int clients_num ; 
+	ASBiDirList *clients_order;
 	   
 }ArrangeState;
+
+typedef struct
+{
+  Window cl;
+}client_item;
 
 /**********************************************************************/
 /**********************************************************************/
@@ -98,6 +105,12 @@ void tile_windows();
 void cascade_windows();
 void DeadPipe(int);
 void fix_available_area();
+
+void
+destroy_client_item(void *data)
+{
+	free((client_item *) data);
+}
 
 int
 atopixel (char *s, int size)
@@ -132,7 +145,8 @@ main( int argc, char **argv )
 
 	memset( &ArrangeState, 0x00, sizeof(ArrangeState));
 	ArrangeState.incx = 20 ; 
-	ArrangeState.incy = 20 ; 
+	ArrangeState.incy = 20 ;
+	ArrangeState.clients_order = create_asbidirlist( destroy_client_item );
 
     /* Check the Name of the Program to see wether to tile or cascade*/
 	if( mystrcasecmp( MyName , "Tile" ) == 0 )
@@ -310,7 +324,9 @@ GetBaseOptions (const char *filename)
 void
 process_message (send_data_type type, send_data_type *body)
 {
-    LOCAL_DEBUG_OUT( "received message %lX", type );
+	client_item *new_item;
+	
+  LOCAL_DEBUG_OUT( "received message %lX", type );
 
 	if( type == M_END_WINDOWLIST )
 	{
@@ -321,6 +337,7 @@ process_message (send_data_type type, send_data_type *body)
 		else
 			cascade_windows();
 		/* exit */
+		destroy_asbidirlist( &(ArrangeState.clients_order) );
 		DeadPipe (0);
 	}else if( (type&WINDOW_PACKET_MASK) != 0 )
 	{
@@ -329,9 +346,9 @@ process_message (send_data_type type, send_data_type *body)
 		show_progress( "message %X window %X ", type, body[0] );
 		if( handle_window_packet( type, body, &wd ) == WP_DataCreated )
 		{
-			ArrangeState.clients_order = realloc( ArrangeState.clients_order, sizeof(Window)*(ArrangeState.clients_num+1) );
-			ArrangeState.clients_order[	ArrangeState.clients_num] = wd->client ; 
-			++ArrangeState.clients_num ;
+			new_item = safemalloc( sizeof(client_item) );
+			new_item->cl = wd->client;
+			append_bidirelem( ArrangeState.clients_order, new_item);
 		}	 
 	}
 }
@@ -380,8 +397,12 @@ tile_windows()
 
 
 Bool 
-cascade_window(ASWindowData *wd)
+cascade_window(void *data, void *aux_data)
 {
+	ASWindowData *wd = fetch_window_by_id( ((client_item *) data)->cl );
+	if(wd == NULL)
+		return True;
+
 	send_signed_data_type vals[2] ;	
 	send_signed_data_type units[2] ;	
 		
@@ -423,26 +444,29 @@ cascade_window(ASWindowData *wd)
 void 
 cascade_windows()
 {
-	int i ;
-	ASWindowData *wd ;
 	ArrangeState.curr_x = ArrangeState.offset_x ;
 	ArrangeState.curr_y = ArrangeState.offset_y ;
-	if( get_flags( ArrangeState.flags, ARRANGE_Reversed ) ) 
-	{
-		i = ArrangeState.clients_num ; 	
-		while( --i >= 0 ) 
-		{
-			if( (wd = fetch_window_by_id( ArrangeState.clients_order[i] ))!= NULL ) 
-				cascade_window( wd );				
-		}	 
-	}else
-	{
-		for( i = 0 ; i < ArrangeState.clients_num  ; ++i ) 
-		{
-			if( (wd = fetch_window_by_id( ArrangeState.clients_order[i] ))!= NULL ) 
-				cascade_window( wd );				
-		}	 
-	}		 
+	
+	
+	iterate_asbidirlist( ArrangeState.clients_order, cascade_window,
+			     NULL, NULL, get_flags( ArrangeState.flags, ARRANGE_Reversed));
+}
+
+Bool
+fix_area(void *data, void *list)
+{
+	ASWindowData *wd = fetch_window_by_id( ((client_item *) data)->cl );
+	
+	if(wd == NULL)
+		return True;
+	
+	if( get_flags( wd->flags, AS_AvoidCover ) && ! get_flags( wd->state_flags, AS_Iconic) ) 
+	{	
+		subtract_rectangle_from_list( (ASVector *) list, wd->frame_rect.x, wd->frame_rect.y, 
+					      wd->frame_rect.x+(int)wd->frame_rect.width,
+					      wd->frame_rect.y+(int)wd->frame_rect.height );	  
+	}
+	return True;
 }
 
 void 
@@ -451,7 +475,6 @@ fix_available_area()
 	ASVector *list = create_asvector( sizeof(XRectangle) );
     XRectangle seed_rect;
 	int i, largest = 0 ;
-	ASWindowData *wd ;
 	XRectangle *rects ;
 
     /* must seed the list with the single rectangle representing the area : */
@@ -462,19 +485,9 @@ fix_available_area()
 
     append_vector( list, &seed_rect, 1 );
 	
-	for( i = 0 ; i < ArrangeState.clients_num  ; ++i ) 
-	{
-		if( (wd = fetch_window_by_id( ArrangeState.clients_order[i] ))!= NULL ) 
-		{
-			if( get_flags( wd->flags, AS_AvoidCover ) && ! get_flags( wd->state_flags, AS_Iconic) ) 
-			{	
-				subtract_rectangle_from_list( list, wd->frame_rect.x, wd->frame_rect.y, 
-												    wd->frame_rect.x+(int)wd->frame_rect.width,
-													wd->frame_rect.y+(int)wd->frame_rect.height );	  
-			}
-		}
-	}	 
-	
+
+    iterate_asbidirlist( ArrangeState.clients_order, fix_area, list, NULL, False);
+    
 	print_rectangles_list(list);
 
 	i = PVECTOR_USED(list);
