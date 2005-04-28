@@ -377,7 +377,8 @@ LOCAL_DEBUG_OUT( "--DESTR Client(%lx(%s))->CLIENT->canvas(%p)->window(%lx)", asw
 #endif
     }
 
-    return (asw->client_canvas = canvas);
+	asw->client_canvas = canvas;
+    return canvas;
 }
 
 /* creating/destroying our icon window : */
@@ -427,8 +428,9 @@ LOCAL_DEBUG_OUT( "--DESTR Client(%lx(%s))->ICON->canvas(%p)->window(%lx)", asw->
         else
             destroy_registered_window( w );
     }
+	asw->icon_canvas = canvas;
 
-    return (asw->icon_canvas = canvas);
+	return canvas;
 }
 
 /* creating/destroying our icon title window : */
@@ -470,8 +472,10 @@ LOCAL_DEBUG_OUT( "++CREAT Client(%lx(%s))->ICONT->canvas(%p)->window(%lx)", asw-
         }else
 			invalidate_canvas_config( canvas );
     }
+	
+	asw->icon_title_canvas = canvas;
 
-    return (asw->icon_title_canvas = canvas);
+    return canvas;
 }
 
 ASImage*
@@ -906,7 +910,7 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
 	/* 4) we need to prepare icon title window : */
 	check_icon_title_canvas( asw, (ASWIN_HFLAGS( asw, AS_IconTitle) &&
                                    get_flags(Scr.Feel.flags, IconTitle) &&
-       	                          !get_flags(Scr.Feel.flags, SuppressIcons)),
+								  !get_flags(Scr.Feel.flags, SuppressIcons)),
            	                      !get_flags(Scr.Look.flags, SeparateButtonTitle)&&
                	                  (asw->icon_canvas!=NULL) );
 
@@ -1274,7 +1278,7 @@ redecorate_window( ASWindow *asw, Bool free_resources )
 {
 	int i ;
 
-LOCAL_DEBUG_OUT( "asw(%p)->free_res(%d)", asw, free_resources );
+LOCAL_DEBUG_OUT( "as?w(%p)->free_res(%d)", asw, free_resources );
     if( AS_ASSERT(asw) )
         return ;
 
@@ -1293,8 +1297,12 @@ LOCAL_DEBUG_OUT( "asw(%p)->free_res(%d)", asw, free_resources );
         check_side_canvas( asw, FR_S, False );
         check_side_canvas( asw, FR_N, False );
 
-        check_icon_title_canvas( asw, False, False );
-        check_icon_canvas( asw, False );
+		if( asw->icon_canvas == asw->icon_title_canvas )
+			asw->icon_canvas = NULL ;
+		if( asw->icon_title_canvas && asw->icon_title_canvas->w )
+	        check_icon_title_canvas( asw, False, False );
+		if( asw->icon_canvas && asw->icon_canvas->w )
+	        check_icon_canvas( asw, False );
         check_client_canvas( asw, False );
         check_frame_canvas( asw, False );
 
