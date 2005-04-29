@@ -269,6 +269,7 @@ compose_asimage_xml(ASVisual *asv, ASImageManager *imman, ASFontManager *fontman
 	xml_elem_t* doc;
 	ASImageManager *my_imman = imman, *old_as_xml_imman = _as_xml_image_manager ;
 	ASFontManager  *my_fontman = fontman, *old_as_xml_fontman = _as_xml_font_manager ; ;
+	int my_imman_curr_dir_path_idx = MAX_SEARCH_PATHS ;
 
     asxml_var_init();
 
@@ -288,7 +289,17 @@ compose_asimage_xml(ASVisual *asv, ASImageManager *imman, ASFontManager *fontman
 			if( _as_xml_image_manager == NULL )
 				_as_xml_image_manager = create_generic_imageman( path );/* we'll want to reuse it in case of recursion */
 			my_imman = _as_xml_image_manager ;
-		}
+		}else
+		{
+			register int i = 0;
+			char **paths = my_imman->search_path ;
+			while( i < MAX_SEARCH_PATHS && paths[i] != NULL ) ++i;
+			if( i < MAX_SEARCH_PATHS ) 
+			{	
+				paths[i] = (char*)path ;			
+				my_imman_curr_dir_path_idx = i ;
+			}
+		}	 
 
 		if( my_fontman == NULL )
 		{
@@ -309,7 +320,9 @@ LOCAL_DEBUG_OUT( "result im = %p, im->imman	= %p, my_imman = %p, im->magic = %8.
 			if( im && im->imageman == my_imman )
 				forget_asimage( im );
 			destroy_image_manager(my_imman, False);
-		}
+		}else if( my_imman_curr_dir_path_idx < MAX_SEARCH_PATHS ) 
+			imman->search_path[my_imman_curr_dir_path_idx] = NULL ;			
+
 		if( my_fontman != fontman && my_fontman != old_as_xml_fontman  )
 			destroy_font_manager(my_fontman, False);
 		/* must restore managers to its original state */
