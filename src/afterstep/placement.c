@@ -826,7 +826,7 @@ static Bool do_tile_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry *a
             {
                 if( get_flags( aswbox->flags, ASA_VerticalPriority ) )
                 {
-                    if( get_flags( aswbox->flags, ASA_ReverseOrder ) )
+                    if( get_flags( aswbox->flags, ASA_ReverseOrder ) || get_flags (aswbox->flags, ASA_ReverseOrderH ) )
                     {
                         if( rects[selected].x > rects[i].x )
                             continue;
@@ -839,7 +839,7 @@ static Bool do_tile_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry *a
                         if( rects[selected].x == rects[i].x && rects[selected].y < rects[i].y )
                             continue;
                     }
-                }else if( get_flags( aswbox->flags, ASA_ReverseOrder ) )
+                }else if( get_flags( aswbox->flags, ASA_ReverseOrder ) || get_flags( aswbox->flags, ASA_ReverseOrderV ) )
                 {
                     if( rects[selected].y > rects[i].y )
                         continue;
@@ -877,10 +877,20 @@ static Bool do_cascade_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry
     int newpos = aswbox->cascade_pos + 25;
     int x = newpos, y = newpos;
 
-    if( get_flags( aswbox->flags, ASA_ReverseOrder ) )
+    if( get_flags( aswbox->flags, ASA_ReverseOrder ) ||
+        ( get_flags( aswbox->flags, ASA_ReverseOrderV ) &&
+          get_flags( aswbox->flags, ASA_ReverseOrderH ) ) ) 
     {
         x = ((int)(area->width) + area->x) - newpos ;
         y = ((int)(area->height) + area->y) - newpos ;
+    }else if( get_flags( aswbox->flags, ASA_ReverseOrderV ) )
+    {
+        x = newpos + area->x ;
+        y = ((int)(area->height) + area->y) - newpos ;
+    }else if( get_flags( aswbox->flags, ASA_ReverseOrderH ) )
+    {
+        x = ((int)(area->width) + area->x) - newpos ;
+        y = newpos + area->y ;
     }else
     {
         x = newpos + area->x ;
