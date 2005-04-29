@@ -126,6 +126,12 @@ typedef struct ASPagerState
 
     Window      selection_bars[4];
     XRectangle  selection_bar_rects[4] ;
+
+	ASTBarProps *tbar_props ;
+
+#define C_ShadeButton 		C_TButton0	
+	   
+	MyButton shade_button ;
 }ASPagerState;
 
 ASPagerState PagerState;
@@ -349,10 +355,26 @@ DeadPipe (int nonsense)
 }
 
 
+void
+retrieve_pager_astbar_props()
+{
+	destroy_astbar_props( &(PagerState.tbar_props) );
+	
+	PagerState.tbar_props = get_astbar_props(Scr.wmprops );
+
+    free_button_resources( &PagerState.shade_button );
+	PagerState.shade_button.context = C_NO_CONTEXT ;
+    if( Config->shade_button[0] )
+    {
+        if( load_button( &PagerState.shade_button, Config->shade_button, Scr.image_manager ) )
+			PagerState.shade_button.context = C_ShadeButton ;
+    }else
+		button_from_astbar_props( PagerState.tbar_props, &PagerState.shade_button, C_ShadeButton, _AS_BUTTON_SHADE, _AS_BUTTON_SHADE_PRESSED );
+}	 
+
+
 /*****************************************************************************
- *
  * This routine is responsible for reading and parsing the config file
- *
  ****************************************************************************/
 void
 CheckConfigSanity()
@@ -467,9 +489,12 @@ CheckConfigSanity()
 
 
     if( !get_flags( Config->set_flags, PAGER_SET_ACTIVE_BEVEL ) )
-        Config->active_desk_bevel = NORMAL_HILITE ;
+        Config->active_desk_bevel = DEFAULT_TBAR_HILITE ;
     if( !get_flags( Config->set_flags, PAGER_SET_INACTIVE_BEVEL ) )
-        Config->inactive_desk_bevel = NORMAL_HILITE|NO_HILITE_OUTLINE;
+        Config->inactive_desk_bevel = DEFAULT_TBAR_HILITE;
+
+	retrieve_pager_astbar_props();
+
     LOCAL_DEBUG_OUT("active_bevel = %lX, inactive_bevel = %lX", Config->active_desk_bevel, Config->inactive_desk_bevel );
 	mystyle_get_property (Scr.wmprops);
 
@@ -521,27 +546,6 @@ LOCAL_DEBUG_OUT( "desk_style %d: \"%s\" ->%p(\"%s\")->colors(%lX,%lX)", i, buf, 
         }
     }
     /* shade button : */
-    if( Config->shade_btn )
-    {
-        free_button_resources( Config->shade_btn );
-        if( Config->shade_button[0] == NULL )
-        {
-            free( Config->shade_btn );
-            Config->shade_btn = NULL ;
-        }
-    }
-    if( Config->shade_button[0] )
-    {
-        if( Config->shade_btn == NULL )
-            Config->shade_btn = safecalloc( 1, sizeof(button_t));
-        if( !load_button(Config->shade_btn, Config->shade_button, Scr.image_manager ) )
-        {
-            free( Config->shade_btn );
-            Config->shade_btn = NULL;
-        }else
-			Config->shade_btn->context = C_TButton0 ;
-    }
-
     Scr.Feel.EdgeResistanceMove = 5;
     Scr.Feel.EdgeAttractionScreen = 5;
     Scr.Feel.EdgeAttractionWindow  = 10;
@@ -1246,31 +1250,52 @@ redecorate_pager_desks()
         if( get_flags( Config->flags, USE_LABEL ) )
         {
             int align = Config->align ;
+			ASFlagType ibevel = Config->inactive_desk_bevel;
+			ASFlagType abevel = Config->active_desk_bevel;
+			int h_spacing = Config->h_spacing ;
+			int v_spacing = Config->v_spacing ;
             int flip = get_flags(Config->flags, VERTICAL_LABEL)?FLIP_VERTICAL:0;
 			Bool just_created = False ;
+
+			if( !get_flags( Config->set_flags, PAGER_SET_ALIGN ) )
+				align = PagerState.tbar_props->align ;
+			if( !get_flags( Config->set_flags, PAGER_SET_ACTIVE_BEVEL ) )
+				abevel = PagerState.tbar_props->bevel ;
+			if( !get_flags( Config->set_flags, PAGER_SET_INACTIVE_BEVEL ) )
+				ibevel = PagerState.tbar_props->bevel ;
+			h_spacing = PagerState.tbar_props->title_h_spacing ;
+			v_spacing = PagerState.tbar_props->title_v_spacing ;
 
             if( d->title == NULL )
             {
                 d->title = create_astbar();
                 d->title->context = C_TITLE ;
 				just_created = True ;
-            }
-            set_astbar_hilite( d->title, BAR_STATE_UNFOCUSED, Config->inactive_desk_bevel);
-            set_astbar_hilite( d->title, BAR_STATE_FOCUSED, Config->active_desk_bevel);
+            }else /* delete label if it was previously created : */
+	            delete_astbar_tile( d->title, -1 );
+				
+            set_astbar_hilite( d->title, BAR_STATE_UNFOCUSED, ibevel);
+            set_astbar_hilite( d->title, BAR_STATE_FOCUSED,   abevel);
 
             set_astbar_style_ptr( d->title, BAR_STATE_FOCUSED, Config->MSDeskTitle[DESK_ACTIVE] );
             set_astbar_style_ptr( d->title, BAR_STATE_UNFOCUSED, Config->MSDeskTitle[DESK_INACTIVE] );
-            /* delete label if it was previously created : */
-            delete_astbar_tile( d->title, -1 );
+            
             if( Config->labels && Config->labels[i] )
-                add_astbar_label( d->title, 0, flip?1:0, flip, align, 0, 0, Config->labels[i], AS_Text_ASCII );
+                add_astbar_label( d->title, 0, flip?1:0, flip, align, h_spacing, v_spacing, Config->labels[i], AS_Text_ASCII );
             else
             {
                 sprintf( buf, "Desk %ld", PagerState.start_desk+i );
-                add_astbar_label( d->title, 0, flip?1:0, flip, align, 0, 0, buf, AS_Text_ASCII );
+                add_astbar_label( d->title, 0, flip?1:0, flip, align, h_spacing, v_spacing, buf, AS_Text_ASCII );
             }
-            if( Config->shade_btn )
-                add_astbar_btnblock( d->title, flip?0:1, 0, flip, NO_ALIGN, &(Config->shade_btn), 0xFFFFFFFF, 1, 1, 1, 0, 0);
+            if( PagerState.shade_button.context != C_NO_CONTEXT )
+			{	
+				MyButton *list[1] ;
+				list[0] = &(PagerState.shade_button);
+                add_astbar_btnblock(d->title, flip?0:1, 0, flip, NO_ALIGN, &list[0], 0xFFFFFFFF, 1, 
+									PagerState.tbar_props->buttons_h_border, 
+									PagerState.tbar_props->buttons_v_border, 
+									PagerState.tbar_props->buttons_spacing, 0);
+			}
             if( get_flags( Config->flags, VERTICAL_LABEL ) )
             {
 				int size = calculate_astbar_width( d->title );
@@ -2516,7 +2541,12 @@ LOCAL_DEBUG_OUT( "state(0x%X)->state&ButtonAnyMask(0x%X)", event->x.xbutton.stat
                 }
 				redecorate_pager_desks();
 				rearrange_pager_desks( False );
-			}
+			}else if( event->x.xproperty.atom == _AS_TBAR_PROPS )
+			{
+		 		retrieve_pager_astbar_props();		
+				redecorate_pager_desks();
+				rearrange_pager_desks( False );
+            }
 			return ;
         default:
             return;

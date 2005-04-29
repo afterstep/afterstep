@@ -773,8 +773,9 @@ show_banner_buttons()
 	delete_astbar_tile( WinTabsState.banner.bar, BANNER_BUTTONS_IDX );
 	add_astbar_btnblock(WinTabsState.banner.bar,
   		                1, 0, 0, ALIGN_CENTER, &buttons[0], 0xFFFFFFFF, buttons_num,
-                      	2, 2, 
-						2,
+                      	WinTabsState.tbar_props->buttons_h_border, 
+						WinTabsState.tbar_props->buttons_v_border, 
+						WinTabsState.tbar_props->buttons_spacing,
                         TBTN_ORDER_L2R );
     set_astbar_balloon( WinTabsState.banner.bar, C_CloseButton, "Close window in current tab", AS_Text_ASCII );
 	set_astbar_balloon( WinTabsState.banner.bar, C_MenuButton, "Select new window to be swallowed", AS_Text_ASCII );

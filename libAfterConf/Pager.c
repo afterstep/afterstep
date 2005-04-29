@@ -235,8 +235,6 @@ DestroyPagerConfig (PagerConfig * config)
     Destroy_balloonConfig (config->balloon_conf);
     DestroyFreeStorage (&(config->more_stuff));
 	DestroyMyStyleDefinitions (&(config->style_defs));
-	if( config->shade_btn ) 
-		free( config->shade_btn );
 	free (config);
 }
 

@@ -49,14 +49,20 @@ BalloonBorderHilite	Right,Bottom
 # use *PagerDontDrawBg  with xearth, xfishtank, ... to avoid redrawing
 # background
 #*PagerDontDrawBg
-*PagerAlign          Center
 *PagerLabel          0       Work
 *PagerLabel          1       WWW
 *PagerLabel          2       Mail
 *PagerLabel          3       Games
-*PagerRows	     	 @with_desktops@
+*PagerRows	     @with_desktops@
 *PagerColumns        1
-*PagerShadeButton	 default-shade-dark 		 default-shade-dark-pressed
+
+# use this options to override global look : 
+#*PagerShadeButton	 	default-shade-dark 		 default-shade-dark-pressed
+#*PagerAlign             	Center
+#*PagerActiveDeskBevel   	Right,Bottom
+#*PagerInactiveDeskBevel   	Right,Bottom
+
+# Iconic Pager options - for when Pager is swallowed minimized in Wharf : 
 #*PagerIconGeometry	+0-0
 #*PagerStartIconic
 

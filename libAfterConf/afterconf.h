@@ -760,6 +760,9 @@ typedef struct
     char *selection_color;
     char *grid_color;
     char *border_color;
+
+	int h_spacing, v_spacing ;
+
     balloonConfig *balloon_conf;
     MyStyleDefinition *style_defs;
     struct FreeStorageElem *more_stuff;
@@ -774,7 +777,6 @@ typedef struct
 #define DESK_STYLES     2
     struct MyStyle *MSDeskTitle[DESK_STYLES];
     struct MyStyle **MSDeskBack;
-    struct button_t *shade_btn ;
 
     ASFlagType  active_desk_bevel ;
     ASFlagType  inactive_desk_bevel ;
