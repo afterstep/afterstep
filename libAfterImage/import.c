@@ -459,6 +459,10 @@ locate_image_file( const char *file, char **paths )
 				register int i = 0;
 				do
 				{
+					if( i > 0 ) 
+					{	
+						show_progress( "looking for image \"%s\" in path [%s]", file, paths[i] );
+					}		
 					realfilename = find_file( file, paths[i], R_OK );
 				}while( realfilename == NULL && paths[i++] != NULL );
 			}
