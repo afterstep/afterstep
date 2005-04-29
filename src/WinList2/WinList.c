@@ -1035,7 +1035,6 @@ configure_tbar_props( ASTBarData *tbar, ASWindowData *wd, Bool focus_only )
         	set_astbar_composition_method( tbar, BACK_FOCUSED, Config->ucm );
     	}
 
-    	align = Config->name_aligment ;
     	if( get_flags( wd->state_flags, AS_Iconic ) && name != NULL && name[0] != '\0')
     	{
         	char *iconic_name = safemalloc(1+strlen(name)+1+1);
