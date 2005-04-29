@@ -46,6 +46,9 @@ int main(int argc, char* argv[])
 {
 	char *image_file = "rose512.jpg" ;
 	ASImage *im ;
+	ASVisual *asv ;
+	int screen, depth ;
+
 	/* see ASView.1 : */
 	set_application_name( argv[0] );
 #if (HAVE_AFTERBASE_FLAG==1)
@@ -72,6 +75,17 @@ int main(int argc, char* argv[])
 						"Using default: \"%s\"", image_file );
 		usage();
 	}
+#ifndef X_DISPLAY_MISSING
+	dpy = XOpenDisplay(NULL);
+	XSynchronize (dpy, True);
+	_XA_WM_DELETE_WINDOW = XInternAtom( dpy, "WM_DELETE_WINDOW", 
+										False);
+	screen = DefaultScreen(dpy);
+	depth = DefaultDepth( dpy, screen );
+	/* see ASView.3 : */
+	asv = create_asvisual( dpy, screen, depth, NULL );
+	/*asv = create_asvisual_for_id( dpy, screen, depth, 0x25, None, NULL ); */
+#endif	
 	/* see ASView.2 : */
 	im = file2ASImage( image_file, 0xFFFFFFFF, SCREEN_GAMMA, 0, getenv("IMAGE_PATH"), NULL );
 
@@ -84,8 +98,6 @@ int main(int argc, char* argv[])
 	{
 #ifndef X_DISPLAY_MISSING
 		Window w ;
-		ASVisual *asv ;
-		int screen, depth ;
 #if 0
 		XRectangle *rects ;	unsigned int rects_count =0; int i ;
 		rects = get_asimage_channel_rects( im, IC_ALPHA, 10, 
@@ -97,15 +109,6 @@ int main(int argc, char* argv[])
 					 rects[i].x, rects[i].y );
 #endif
 
-	    dpy = XOpenDisplay(NULL);
-		XSynchronize (dpy, True);
-		_XA_WM_DELETE_WINDOW = XInternAtom( dpy, "WM_DELETE_WINDOW", 
-											False);
-		screen = DefaultScreen(dpy);
-		depth = DefaultDepth( dpy, screen );
-		/* see ASView.3 : */
-		asv = create_asvisual( dpy, screen, depth, NULL );
-		/*asv = create_asvisual_for_id( dpy, screen, depth, 0x25, None, NULL ); */
 
 #if 0		 
 		/* test example for fill_asimage : */
@@ -155,12 +158,14 @@ int main(int argc, char* argv[])
 		}
 		/* see common.c: wait_closedown() : */
 		wait_closedown(w);
-		destroy_asvisual( asv, False );
 #else
 		/* writing result into the file */
 		ASImage2file( im, NULL, "asview.jpg", ASIT_Jpeg, NULL );
 #endif
 	}
+	if( asv ) 
+		destroy_asvisual( asv, False );
+
 #ifdef DEBUG_ALLOCS
     flush_ashash_memory_pool();
 	asxml_var_cleanup();

@@ -1,6 +1,5 @@
-
-Preload images.
 <img id="back" src=back.xpm/>
+Preload images.
 <img id="fore" src=fore.xpm/>
 <img id="ice" src="/tmp/IceAlpha-0.5.png"/>
 <img id="redbrush" src="/tmp/RedbrushAlpha-0.5.png"/>
