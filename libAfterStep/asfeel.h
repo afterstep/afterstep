@@ -129,18 +129,20 @@ typedef struct ASWindowBox
 {
 
 #define ASA_Virtual				(0x01<<0)
-#define ASA_ReverseOrder		(0x01<<1)
-#define ASA_VerticalPriority	(0x01<<2)
-#define ASA_AreaSet				(0x01<<3)
-#define ASA_MainStrategySet		(0x01<<4)
-#define ASA_BackupStrategySet  	(0x01<<5)
-#define ASA_MinWidthSet			(0x01<<6)
-#define ASA_MinHeightSet		(0x01<<7)
-#define ASA_MaxWidthSet			(0x01<<8)
-#define ASA_MaxHeightSet		(0x01<<9)
-#define ASA_DesktopSet          (0x01<<10)
-#define ASA_MinLayerSet         (0x01<<11)
-#define ASA_MaxLayerSet         (0x01<<12)
+#define ASA_ReverseOrderH		(0x01<<1)
+#define ASA_ReverseOrderV		(0x01<<2)
+#define ASA_ReverseOrder		(ASA_ReverseOrderH|ASA_ReverseOrderV)
+#define ASA_VerticalPriority	(0x01<<3)
+#define ASA_AreaSet				(0x01<<4)
+#define ASA_MainStrategySet		(0x01<<5)
+#define ASA_BackupStrategySet  	(0x01<<6)
+#define ASA_MinWidthSet			(0x01<<7)
+#define ASA_MinHeightSet		(0x01<<8)
+#define ASA_MaxWidthSet			(0x01<<9)
+#define ASA_MaxHeightSet		(0x01<<10)
+#define ASA_DesktopSet          (0x01<<11)
+#define ASA_MinLayerSet         (0x01<<12)
+#define ASA_MaxLayerSet         (0x01<<13)
 
 	ASFlagType 	set_flags;
 	ASFlagType 	flags;

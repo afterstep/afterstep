@@ -102,6 +102,8 @@ TermDef       WindowBoxTerms[] = {
     {TF_NO_MYNAME_PREPENDING, "MaxLayer", 8,          TT_INTEGER, WINDOWBOX_MaxLayer_ID      , NULL},
     {TF_NO_MYNAME_PREPENDING, "VerticalPriority", 16, TT_FLAG,    WINDOWBOX_VerticalPriority_ID, NULL},
 	{TF_NO_MYNAME_PREPENDING, "ReverseOrder", 12,     TT_FLAG,    WINDOWBOX_ReverseOrder_ID    , NULL},
+	{TF_NO_MYNAME_PREPENDING, "ReverseOrderHorizontal", 22,     TT_FLAG,    WINDOWBOX_ReverseOrderHorizontal_ID    , NULL},
+	{TF_NO_MYNAME_PREPENDING, "ReverseOrderVertical", 20,       TT_FLAG,    WINDOWBOX_ReverseOrderVertical_ID    , NULL},
     {TF_NO_MYNAME_PREPENDING |
 	 TF_SYNTAX_TERMINATOR,    "~WindowBox", 10, TT_FLAG, WINDOWBOX_DONE_ID, NULL},
 	{0, NULL, 0, 0, 0}

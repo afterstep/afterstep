@@ -1,4 +1,6 @@
 version 2.0.5 release
+	* Added ReverseOrderHorizontal and REverseOrderVertical to 
+	  windowbox flags
 	* ButtonBevel, ButtonAlign, ButtonIconSpacing look options added 
 	  to allow for better configuration of iconic window button look.
 	* menu will not include any unavailable items by default. To keep them 

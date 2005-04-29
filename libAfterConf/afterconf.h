@@ -1659,9 +1659,11 @@ struct FreeStorageElem **ComplexFunction2FreeStorage( struct SyntaxDef *syntax, 
 #define WINDOWBOX_MaxLayer_ID           (WINDOWBOX_ID_START+11)
 #define WINDOWBOX_VerticalPriority_ID   (WINDOWBOX_ID_START+12)
 #define WINDOWBOX_ReverseOrder_ID       (WINDOWBOX_ID_START+13)
-#define WINDOWBOX_DONE_ID               (WINDOWBOX_ID_START+14)
+#define WINDOWBOX_ReverseOrderHorizontal_ID	(WINDOWBOX_ID_START+14)
+#define WINDOWBOX_ReverseOrderVertical_ID  	(WINDOWBOX_ID_START+15)
+#define WINDOWBOX_DONE_ID               (WINDOWBOX_ID_START+16)
 
-#define WINDOWBOX_ID_END            	(WINDOWBOX_ID_START+16)
+#define WINDOWBOX_ID_END            	(WINDOWBOX_ID_START+17)
 
 /* we don't really need FeelConfig since feel does not cary
    any information that requires char2bin conversion and consecutive

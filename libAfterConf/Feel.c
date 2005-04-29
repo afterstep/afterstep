@@ -33,6 +33,8 @@
 flag_options_xref WindowBoxFlagsXref[] = {
     { ASA_Virtual			, WINDOWBOX_Virtual_ID, 0},
     { ASA_VerticalPriority	, WINDOWBOX_VerticalPriority_ID, 0},
+    { ASA_ReverseOrderH		, WINDOWBOX_ReverseOrderHorizontal_ID, 0},
+    { ASA_ReverseOrderV		, WINDOWBOX_ReverseOrderVertical_ID, 0},
     { ASA_ReverseOrder		, WINDOWBOX_ReverseOrder_ID, 0},
     {0, 0, 0}
 };

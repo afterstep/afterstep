@@ -1302,7 +1302,7 @@ redecorate_pager_desks()
 				if( size  > max_title_width )
 					max_title_width = size ;
                 d->title_height = PagerState.desk_height - Config->border_width*2;
-				wasted_x += d->title_width ;
+				/*we do it below using max_title_width : wasted_x += d->title_width ; */
             }else
             {
                 int size = calculate_astbar_height( d->title );
@@ -1310,7 +1310,7 @@ redecorate_pager_desks()
                 d->title_width = PagerState.desk_width-Config->border_width*2;
 				if( size  > max_title_height )
 					max_title_height = size ;
-				wasted_y += d->title_height ;
+				/*we do it below using max_title_height : wasted_y += d->title_height ;*/
             }
         }else
         {
