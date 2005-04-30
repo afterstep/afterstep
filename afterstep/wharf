@@ -56,7 +56,7 @@
 #
 # Midnight commander file manager in the term of choice :
 #
-*Wharf MidnightCommander normal/MCInMonitorShadow ExecInTerm  if(aterm){-tr -tint blue -fade 70} if(eterm){-O --tint blue) if(rxvt){-tr} "-" -g 130x35 -e mc --colors directory=,default:executable=,default:link=,default:device=,default:special=,default:normal=,default:selected=,transparent:marked=yellow,default:markselect=yellow,brown:core=cyan,default &
+*Wharf MidnightCommander normal/MCInMonitorShadow ExecInTerm "-" -g 130x35 if(aterm){-tr -tint blue} if(eterm){-O --tint blue) if(rxvt){-tr} -e mc --colors directory=,default:executable=,default:link=,default:device=,default:special=,default:normal=,default:selected=,transparent:marked=yellow,default &
 
 #
 # First available GUI file manager :
