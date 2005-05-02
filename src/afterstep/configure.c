@@ -190,6 +190,7 @@ struct config main_config[] = {
     {"RecentSubmenuItems", SetInts, (char**)&TmpFeel.recent_submenu_items, (int*)&dummy},
 	{"WinListSortOrder", SetInts, (char**)&TmpFeel.winlist_sort_order, (int *)&dummy},
 	{"WinListHideIcons", SetFlag, (char**)WinListHideIcons, (int *)&dummy},
+	{"SuppressIcons", SetFlag, (char**)SuppressIcons, (int *)&dummy},
 
     /* look options */
 	/* obsolete stuff */

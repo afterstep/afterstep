@@ -440,16 +440,16 @@ check_icon_title_canvas( ASWindow *asw, Bool required, Bool reuse_icon_canvas )
     ASCanvas *canvas = asw->icon_title_canvas;
 	Window w;
 
-    if( canvas &&
-        (reuse_icon_canvas && canvas != asw->icon_canvas && !required) )
-    {
-        w = canvas->w ;
-LOCAL_DEBUG_OUT( "--DESTR Client(%lx(%s))->ICONT->canvas(%p)->window(%lx)", asw->w, ASWIN_NAME(asw)?ASWIN_NAME(asw):"noname", canvas, canvas->w );
-        destroy_ascanvas( &canvas );
-        destroy_registered_window( w );
-    }
-
-    if( required )
+	if( !required ) 
+	{	
+    	if( canvas && canvas != asw->icon_canvas )
+    	{
+        	w = canvas->w ;
+			LOCAL_DEBUG_OUT( "--DESTR Client(%lx(%s))->ICONT->canvas(%p)->window(%lx)", asw->w, ASWIN_NAME(asw)?ASWIN_NAME(asw):"noname", canvas, canvas->w );
+        	destroy_ascanvas( &canvas );
+        	destroy_registered_window( w );
+		}
+    }else  /* if( required ) */
     {
         if( reuse_icon_canvas )
             canvas = asw->icon_canvas ;
