@@ -180,6 +180,8 @@ WharfConfig *Config = NULL;
 int Rows_override = -1 ;
 int Columns_override = -1 ;
 
+Atom _AS_WHARF_CLOSE = None ;
+
 #define WHARF_BUTTON_EVENT_MASK   (ButtonReleaseMask |\
                                    ButtonPressMask | LeaveWindowMask | EnterWindowMask |\
                                    StructureNotifyMask | SubstructureRedirectMask )
@@ -198,6 +200,7 @@ ASWharfFolder *build_wharf_folder( WharfButton *list, ASWharfButton *parent, Boo
 Bool display_wharf_folder( ASWharfFolder *aswf, int left, int top, int right, int bottom );
 Bool display_main_folder();
 void withdraw_wharf_folder( ASWharfFolder *aswf );
+static inline void withdraw_wharf_subfolders( ASWharfFolder *aswf );
 void on_wharf_moveresize( ASEvent *event );
 void destroy_wharf_folder( ASWharfFolder **paswf );
 void on_wharf_pressed( ASEvent *event );
@@ -243,6 +246,7 @@ main (int argc, char **argv)
     memset( &WharfState, 0x00, sizeof(WharfState));
 
     ConnectX( ASDefaultScr, EnterWindowMask );
+	_AS_WHARF_CLOSE = XInternAtom( dpy, "_AS_WHARF_CLOSE", False );
     ConnectAfterStep (M_TOGGLE_PAGING |
                     M_NEW_DESKVIEWPORT |
                     M_END_WINDOWLIST |
@@ -724,11 +728,16 @@ DispatchEvent (ASEvent * event)
                 LOCAL_DEBUG_OUT("ClientMessage(\"%s\",data=(%lX,%lX,%lX,%lX,%lX)", name, event->x.xclient.data.l[0], event->x.xclient.data.l[1], event->x.xclient.data.l[2], event->x.xclient.data.l[3], event->x.xclient.data.l[4]);
                 XFree( name );
 #endif
-                if ( event->x.xclient.format == 32 &&
-                    event->x.xclient.data.l[0] == _XA_WM_DELETE_WINDOW )
-                {
-                    DeadPipe(0);
-                }
+                if ( event->x.xclient.format == 32 )
+				{	
+					if( event->x.xclient.data.l[0] == _XA_WM_DELETE_WINDOW )
+                	{
+                    	DeadPipe(0);
+                	}else if ( event->x.xclient.data.l[0] == _AS_WHARF_CLOSE )
+                	{
+						withdraw_wharf_subfolders( WharfState.root_folder );
+					}
+				}		  
             }
             break;
         case ReparentNotify :
@@ -1134,6 +1143,11 @@ destroy_wharf_folder( ASWharfFolder **paswf )
         {
             ASWharfButton *aswb = &(aswf->buttons[i]);
 			int i ;
+			if( aswb->swallowed ) 
+			{	
+				send_wm_protocol_request(aswb->swallowed->current->w, _XA_WM_DELETE_WINDOW, CurrentTime);
+
+			}
             if( aswb->name )
                 free( aswb->name );
             destroy_astbar(&(aswb->bar));
@@ -1871,9 +1885,6 @@ LOCAL_DEBUG_OUT( "unmapping canvas %p at %dx%d%+d%+d", aswf->canvas, aswf->canva
 	unmap_wharf_subfolders( aswf );
 }
 
-static inline void
-withdraw_wharf_subfolders( ASWharfFolder *aswf );
-
 void
 withdraw_wharf_folder( ASWharfFolder *aswf )
 {
@@ -1911,7 +1922,22 @@ withdraw_wharf_subfolders( ASWharfFolder *aswf )
     int i = aswf->buttons_num;
     while ( --i >= 0 )
     {
-        if( aswf->buttons[i].folder &&
+        if( aswf->buttons[i].swallowed ) 
+		{
+			ASCanvas *sc = aswf->buttons[i].swallowed->current ;
+			if( sc )
+			{	
+				XClientMessageEvent ev;
+				ev.type = ClientMessage;
+				ev.window = sc->w;
+				ev.message_type = _AS_WHARF_CLOSE;
+				ev.format = 32;
+				ev.data.l[0] = _AS_WHARF_CLOSE;
+				ev.data.l[1] = CurrentTime;
+    			XSendEvent (dpy, sc->w, False, 0, (XEvent *) & ev);
+			}
+		}	 
+		if( aswf->buttons[i].folder &&
             get_flags( aswf->buttons[i].folder->flags, ASW_Mapped ) )
             withdraw_wharf_folder( aswf->buttons[i].folder );
     }
