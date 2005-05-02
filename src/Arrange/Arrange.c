@@ -71,6 +71,7 @@
 #define ARRANGE_OffsetY_Set		(0x01<<15)
 #define ARRANGE_MaxWidth_Set	(0x01<<16)
 #define ARRANGE_MaxHeight_Set	(0x01<<17)
+#define ARRANGE_Tile_Horizontally	(0x01<<18)
 
 struct ASArrangeState
 {
@@ -82,6 +83,10 @@ struct ASArrangeState
 	int max_width, max_height ;
 	
 	int curr_x, curr_y ;
+
+	int *elem, *group;
+	int *elem_size, *group_size;
+	int start_elem;
 
 	ASBiDirList *clients_order;
 	   
@@ -210,6 +215,11 @@ main( int argc, char **argv )
 					case 'r' :	   /* Reverses the window sequence. */	
 						set_flags( ArrangeState.flags, ARRANGE_Reversed );
 				    	break ;
+				
+				        case 'H': /* For tiling: Tile horizontally (Default is vertically ) */
+					
+						set_flags( ArrangeState.flags, ARRANGE_Tile_Horizontally );
+				        break;
 				}
 			}else if( mystrcasecmp( argv[i], "-desk" ) == 0 )
 			{
@@ -318,46 +328,6 @@ GetBaseOptions (const char *filename)
 	ReloadASEnvironment( NULL, NULL, NULL, False );
 }
 
-/****************************************************************************/
-/* PROCESSING OF AFTERSTEP MESSAGES :                                       */
-/****************************************************************************/
-void
-process_message (send_data_type type, send_data_type *body)
-{
-	client_item *new_item;
-	
-  LOCAL_DEBUG_OUT( "received message %lX", type );
-
-	if( type == M_END_WINDOWLIST )
-	{
-		/* rearrange windows */		   
-		fix_available_area();
-		if( get_flags( ArrangeState.flags, ARRANGE_Tile	) ) 
-			tile_windows();
-		else
-			cascade_windows();
-		/* exit */
-		destroy_asbidirlist( &(ArrangeState.clients_order) );
-		DeadPipe (0);
-	}else if( (type&WINDOW_PACKET_MASK) != 0 )
-	{
-		struct ASWindowData *wd = fetch_window_by_id( body[0] );
-
-		show_progress( "message %X window %X ", type, body[0] );
-		if( handle_window_packet( type, body, &wd ) == WP_DataCreated )
-		{
-			new_item = safemalloc( sizeof(client_item) );
-			new_item->cl = wd->client;
-			append_bidirelem( ArrangeState.clients_order, new_item);
-		}	 
-	}
-}
-
-
-/********************************************************************/
-/* showing our main window :                                        */
-/********************************************************************/
-
 Bool
 window_is_suitable(ASWindowData *wd)
 {
@@ -388,11 +358,147 @@ window_is_suitable(ASWindowData *wd)
 	return True;
 }
 
+
+/****************************************************************************/
+/* PROCESSING OF AFTERSTEP MESSAGES :                                       */
+/****************************************************************************/
+void
+process_message (send_data_type type, send_data_type *body)
+{
+	client_item *new_item;
+	
+  LOCAL_DEBUG_OUT( "received message %lX", type );
+
+	if( type == M_END_WINDOWLIST )
+	{
+		/* rearrange windows */		   
+		fix_available_area();
+		if( get_flags( ArrangeState.flags, ARRANGE_Tile	) ) 
+			tile_windows();
+		else
+			cascade_windows();
+		/* exit */
+		destroy_asbidirlist( &(ArrangeState.clients_order) );
+		DeadPipe (0);
+	}else if( (type&WINDOW_PACKET_MASK) != 0 )
+	{
+		struct ASWindowData *wd = fetch_window_by_id( body[0] );
+		
+		show_progress( "message %X window %X ", type, body[0] );
+		if( handle_window_packet( type, body, &wd ) == WP_DataCreated )
+		{
+			new_item = safemalloc( sizeof(client_item) );
+			new_item->cl = wd->client;
+			append_bidirelem( ArrangeState.clients_order, new_item);
+		}
+	}
+}
+
+
+/********************************************************************/
+/* showing our main window :                                        */
+/********************************************************************/
+Bool
+count_managed_windows(void *data, void *aux_data)
+{
+	ASWindowData *wd = fetch_window_by_id( ((client_item *) data)->cl );
+	int *c = (int *) aux_data;
+	if(window_is_suitable(wd))
+		(*c)++;
+	return True;
+}
+
+
+Bool
+tile_window(void *data, void *aux_data)
+{
+	
+	ASWindowData *wd = fetch_window_by_id( ((client_item *) data)->cl );
+
+	/* used by SendNumCommand */
+	send_signed_data_type vals[2] ;	
+	send_signed_data_type units[2] ;
+
+	if(! window_is_suitable( wd ))
+	  return True; /* Next window please */
+
+       /* If group is full */
+	if(*(ArrangeState.elem) ==
+	   (ArrangeState.start_elem +
+	    ArrangeState.count * *(ArrangeState.elem_size)))
+	{
+		/* Make new group */
+		*(ArrangeState.group)+= *(ArrangeState.group_size);
+		/* Make this the first item of the new group */
+		*(ArrangeState.elem) = ArrangeState.start_elem;
+	}
+	
+	/* Raise the client if allowed */
+	if( !get_flags( ArrangeState.flags, ARRANGE_NoRaise ) )
+		SendNumCommand ( F_RAISE, NULL, NULL, NULL, wd->client );
+	
+	
+	/* Indicate that we're talking pixels. */
+	units[0] = units[1] = 1;
+	vals[0] = ArrangeState.curr_x; vals[1] = ArrangeState.curr_y;
+	/* Move window */
+	SendNumCommand ( F_MOVE, NULL, &(vals[0]), &(units[0]), wd->client );
+
+	
+	vals[0] = ArrangeState.max_width ; 
+	vals[1] = ArrangeState.max_height ;
+	SendNumCommand ( F_RESIZE, NULL, &(vals[0]), &(units[0]), wd->client );
+	
+	
+	(*(ArrangeState.elem))+= *ArrangeState.elem_size;
+	return True;
+}
+
 void 
 tile_windows()
 {
-  
+	int n_windows = 0;
+	iterate_asbidirlist( ArrangeState.clients_order,
+			     count_managed_windows, &n_windows, NULL, False);
 	
+	int n_groups = ArrangeState.clients_order->count / ArrangeState.count;
+	if(ArrangeState.clients_order->count % ArrangeState.count)
+		n_groups++;
+	
+	LOCAL_DEBUG_OUT("ngroups: %d", n_groups);
+
+	ArrangeState.curr_x = ArrangeState.offset_x ;
+	ArrangeState.curr_y = ArrangeState.offset_y ;
+	
+
+	if(get_flags( ArrangeState.flags, ARRANGE_Tile_Horizontally))
+	{
+		ArrangeState.start_elem = ArrangeState.curr_x;
+		ArrangeState.elem = &ArrangeState.curr_x;
+		ArrangeState.group = &ArrangeState.curr_y;
+		
+		ArrangeState.max_width = Scr.MyDisplayWidth / ArrangeState.count;
+		ArrangeState.max_height = Scr.MyDisplayHeight / n_groups ;
+		
+		ArrangeState.elem_size = &ArrangeState.max_width; 
+		ArrangeState.group_size =  &ArrangeState.max_height;
+		
+	}else
+	{
+		ArrangeState.start_elem = ArrangeState.curr_y;
+		ArrangeState.elem = &ArrangeState.curr_y;
+		ArrangeState.group = &ArrangeState.curr_x;
+		
+		ArrangeState.max_width = Scr.MyDisplayWidth / n_groups;
+		ArrangeState.max_height = Scr.MyDisplayHeight / ArrangeState.count ;
+		
+		ArrangeState.elem_size = &ArrangeState.max_height;
+		ArrangeState.group_size = &ArrangeState.max_width ;
+	}
+	
+
+	iterate_asbidirlist( ArrangeState.clients_order, tile_window,
+			     NULL, NULL, get_flags( ArrangeState.flags, ARRANGE_Reversed));
 }	 
 
 
@@ -405,10 +511,11 @@ cascade_window(void *data, void *aux_data)
 
 	send_signed_data_type vals[2] ;	
 	send_signed_data_type units[2] ;	
-		
-	if(!window_is_suitable( wd ))
-		return True; /* next window please */
 
+	if(! window_is_suitable( wd ))
+	  return True; /* Next window please */
+
+	/* Raise the client if allowed */
 	if( !get_flags( ArrangeState.flags, ARRANGE_NoRaise ) )
 		SendNumCommand ( F_RAISE, NULL, NULL, NULL, wd->client );
 
