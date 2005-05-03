@@ -12,7 +12,7 @@ precedence is:</para>
 2) MaxSwallow'd window size
 3) <emphasis remap='I'>WharfPixmap</emphasis> size
 4) Use 64x64.
-</literallayout> <!-- .fi -->
+</literallayout>
 <para>This is a Wharf specific Function.</para>
 </listitem>
 </varlistentry>

@@ -8,7 +8,7 @@
     Popup <emphasis remap='I'>"popup_name"</emphasis>
     built-in_command  <emphasis remap='I'>"name"</emphasis> [<emphasis remap='I'>argument</emphasis>]
     EndPopup
-    </literallayout> <!-- .fi -->
+    </literallayout> 
 
     <para>Specfies the definition of a complex menu popup <emphasis remap='I'>"popup_name"</emphasis>, which
     can be bound to a mouse button or key using <emphasis remap='I'>"popup_name"</emphasis> to recall
@@ -24,14 +24,14 @@
     <para>Shortcut keys may be specified in the menu definition by preceding a
     character with an ampersand. The ampersand will not be displayed, but the
     character after it will be displayed at the right side of the same entry.
-    <!--  and if the user presses the corresponding key, then that item will be -->
-    <!--  activated as if it had been clicked upon. -->
+    and if the user presses the corresponding key, then that item will be
+    activated as if it had been clicked upon.
     Only alphanumeric characters
     may be used as shortcut keys.  The shift state of the keyboard is ignored
     when testing shortcut characters.</para>
-    <!--  Shortcut keys are not operative unless MENU_HOTKEYS was defined when -->
-    <!--  building AfterStep. If WINDOWLIST_HOTKETS was also defined, then hot -->
-    <!--  keys are automatically added to the WindowList when it is displayed. -->
+    Shortcut keys are not operative unless MENU_HOTKEYS was defined when
+    building AfterStep. If WINDOWLIST_HOTKETS was also defined, then hot
+    keys are automatically added to the WindowList when it is displayed.
 
     <para>When calling a previously defined menu or a menu from a key-stroke
     combination, Popup is simply used as a built-in command with the
