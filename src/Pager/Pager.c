@@ -276,7 +276,8 @@ void HandleEvents()
     while (True)
     {
     LOCAL_DEBUG_OUT( "wait_as_resp = %d", PagerState.wait_as_response );
-        if (PagerState.wait_as_response > 0)
+
+        while(PagerState.wait_as_response > 0)
         {
             ASMessage *msg = CheckASMessage (WAIT_AS_RESPONSE_TIMEOUT);
             if (msg)
@@ -284,19 +285,18 @@ void HandleEvents()
                 process_message (msg->header[1], msg->body);
                 DestroyASMessage (msg);
             }
-        }else
-        {
-            while((has_x_events = XPending (dpy)) && --PagerState.wait_as_response <= 0 )
-            {
-                if( ASNextEvent (&(event.x), True) )
-                {
-                    event.client = NULL ;
-                    setup_asevent_from_xevent( &event );
-                    DispatchEvent( &event );
-				}
-            }
-            module_wait_pipes_input ( process_message );
+			--PagerState.wait_as_response ;
         }
+        while((has_x_events = XPending (dpy)) )
+        {
+            if( ASNextEvent (&(event.x), True) )
+            {
+                event.client = NULL ;
+                setup_asevent_from_xevent( &event );
+                DispatchEvent( &event );
+			}
+        }
+        module_wait_pipes_input ( process_message );
     }
 }
 
@@ -2488,7 +2488,18 @@ LOCAL_DEBUG_OUT( "state(0x%X)->state&ButtonAnyMask(0x%X)", event->x.xbutton.stat
         case MotionNotify :
 			root_pointer_moved = True ;
             if( (event->x.xbutton.state&Button3Mask) )
+			{	
+				XEvent        d;
+				sleep_a_millisec(10);
+				ASSync(False);
+				while (ASCheckTypedEvent ( MotionNotify, &d))
+				{
+					event->x = d ;
+					setup_asevent_from_xevent( event );	  
+				}
                 on_scroll_viewport( event );
+				sleep_a_millisec(100);
+			}
 			return ;
 	    case ClientMessage:
             LOCAL_DEBUG_OUT("ClientMessage(\"%s\",data=(%lX,%lX,%lX,%lX,%lX)", XGetAtomName( dpy, event->x.xclient.message_type ), event->x.xclient.data.l[0], event->x.xclient.data.l[1], event->x.xclient.data.l[2], event->x.xclient.data.l[3], event->x.xclient.data.l[4]);
@@ -2734,19 +2745,10 @@ on_scroll_viewport( ASEvent *event )
             {
                 int sx = (px*PagerState.vscreen_width)/d->background->width ;
                 int sy = (py*PagerState.vscreen_height)/d->background->height ;
-                /* now calculating delta */
-                sx -= Scr.Vx;
-                sy -= Scr.Vy;
-                /* now translating delta into persentage of the screen width */
-                sx = (100 * sx) / Scr.MyDisplayWidth;
-                sy = (100 * sy) / Scr.MyDisplayHeight;
-                /* we don't want to move in very small increments */
-                if (sx < PAGE_MOVE_THRESHOLD && sy < PAGE_MOVE_THRESHOLD &&
-                    sx > -(PAGE_MOVE_THRESHOLD) && sy > -(PAGE_MOVE_THRESHOLD))
-                    return;
-                sprintf (command, "Scroll %d %d\n", sx, sy);
+				
+                sprintf (command, "GotoDeskViewport %ld%+d%+d\n", d->desk + PagerState.start_desk, sx, sy);
                 SendInfo ( command, 0);
-                PagerState.wait_as_response++;
+				++PagerState.wait_as_response ;
             }
         }
     }
@@ -2791,19 +2793,6 @@ LOCAL_DEBUG_OUT( "pointer root pos(%+d%+d)", px, py );
                         {
                             new_vx = (px*PagerState.vscreen_width)/d->background->width ;
                             new_vy = (py*PagerState.vscreen_height)/d->background->height ;
-                            /* now calculating delta */
-                            new_vx -= Scr.Vx;
-                            new_vy -= Scr.Vy;
-                            /* now translating delta into persentage of the screen width */
-                            new_vx = (100 * new_vx) / Scr.MyDisplayWidth;
-                            new_vy = (100 * new_vy) / Scr.MyDisplayHeight;
-#if 0
-                            /* we don't want to move in very small increments */
-                            if (event->type == MotionNotify)
-                                if (sx < PAGE_MOVE_THRESHOLD && sy < PAGE_MOVE_THRESHOLD &&
-                                    sx > -(PAGE_MOVE_THRESHOLD) && sy > -(PAGE_MOVE_THRESHOLD))
-                                return;
-#endif
                         }else
                         {   /*  calculate destination page : */
                             new_vx  = (px*PagerState.page_columns)/d->background->width ;
@@ -2817,7 +2806,7 @@ LOCAL_DEBUG_OUT( "pointer root pos(%+d%+d)", px, py );
 					else
                     	sprintf (command, "Desk 0 %d\n", new_desk);
                     SendInfo (command, 0);
-                    PagerState.wait_as_response++;
+					++PagerState.wait_as_response ;
                 }
             }
         }
