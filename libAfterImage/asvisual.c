@@ -1291,7 +1291,7 @@ destroy_xshmimage_segment(ASHashableValue value, void *data)
 	ASXShmImage *img_data = (ASXShmImage*)data ;
 	if( img_data->segment != NULL )
 	{
-		LOCAL_DEBUG_OUT( "XSHMIMAGE> FREE_SEG : segent to be freed: shminfo = %p, seg = %d ", img_data->segment, img_data->segment->shmid );
+		LOCAL_DEBUG_OUT( "XSHMIMAGE> FREE_SEG : img_data = %p : segent to be freed: shminfo = %p ", img_data, img_data->segment );
 		XShmDetach (dpy, img_data->segment);
 		save_shm_area( img_data->segment->shmaddr, img_data->segment->shmid, img_data->size );
 		free( img_data->segment );
@@ -1300,7 +1300,7 @@ destroy_xshmimage_segment(ASHashableValue value, void *data)
 			free( img_data );
 	}else
 	{
-		LOCAL_DEBUG_OUT( "XSHMIMAGE> FREE_SEG : segment data is NULL already value = %ld!!", value );
+		LOCAL_DEBUG_OUT( "XSHMIMAGE> FREE_SEG : img_data = %p : segment data is NULL already value = %ld!!", img_data, value );
 	}
 }
 
@@ -1333,11 +1333,11 @@ destroy_xshmimage_image(ASHashableValue value, void *data)
 			orig_XShmImage_destroy_image( img_data->ximage );
 		else
 			XFree ((char *)img_data->ximage);
-		LOCAL_DEBUG_OUT( "XSHMIMAGE> FREE_XIM : ximage freed: xim = %p", img_data->ximage);
+		LOCAL_DEBUG_OUT( "XSHMIMAGE> FREE_XIM : ximage freed: img_data = %p, xim = %p", img_data, img_data->ximage);
 		img_data->ximage = NULL ;
 		if( img_data->segment != NULL && !img_data->wait_completion_event )
 		{
-			if( destroy_xshm_segment( img_data->segment->shmid ) )
+			if( destroy_xshm_segment( img_data->segment->shmseg ) )
 				return ;
 			img_data->segment = NULL ;
 		}
@@ -1406,7 +1406,7 @@ ximage2shmseg( XImage *xim )
 void registerXShmImage( XImage *ximage, XShmSegmentInfo* shminfo )
 {
 	ASXShmImage *data = safecalloc( 1, sizeof(ASXShmImage));
-	LOCAL_DEBUG_OUT( "XSHMIMAGE> CREATE_XIM : image created: xiom = %p, shminfo = %p, segment = %d, data = %p", ximage, shminfo, shminfo->shmid, ximage->data );
+	LOCAL_DEBUG_OUT( "XSHMIMAGE> CREATE_XIM : img_data = %p : image created: xiom = %p, shminfo = %p, segment = %d, data = %p", data, ximage, shminfo, shminfo->shmid, ximage->data );
 	data->ximage = ximage ;
 	data->segment = shminfo ;
 	data->size = ximage->bytes_per_line * ximage->height ;
