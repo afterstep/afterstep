@@ -173,8 +173,8 @@ mylook_init (MyLook * look, Bool free_resources, unsigned long what_flags /*see 
 
         if (get_flags (what_flags, LL_Layouts) )
         {
-            if( look->DefaultFrame )
-                destroy_myframe( &(look->DefaultFrame) );
+            if( look->DefaultFrameName )
+                free( look->DefaultFrameName );
             if( look->FramesList )
                 destroy_ashash( &(look->FramesList));
         }
@@ -242,7 +242,7 @@ mylook_init (MyLook * look, Bool free_resources, unsigned long what_flags /*see 
 
 	if (get_flags (what_flags, LL_Layouts))
     {
-        look->DefaultFrame = NULL ;
+        look->DefaultFrameName = NULL ;
         look->FramesList = NULL ;
         look->TitleTextAlign = 0;
 		look->TitleButtonStyle = 0;
@@ -511,10 +511,15 @@ MyFrame *
 myframe_find( const char *name )
 {
     ASHashData hdata;
-	hdata.vptr = ASDefaultScr->Look.DefaultFrame ;
-    if( name && ASDefaultScr->Look.FramesList )
-        if( get_hash_item( ASDefaultScr->Look.FramesList, AS_HASHABLE(name), &hdata.vptr) != ASH_Success )
-            return ASDefaultScr->Look.DefaultFrame ;
+	hdata.vptr = NULL ;
+    if(  ASDefaultScr->Look.FramesList )
+	{
+		if( name )
+        	if( get_hash_item( ASDefaultScr->Look.FramesList, AS_HASHABLE(name), &hdata.vptr) != ASH_Success )
+            	hdata.vptr = NULL ;
+		if( hdata.vptr == NULL && ASDefaultScr->Look.DefaultFrameName != NULL )
+			get_hash_item( ASDefaultScr->Look.FramesList, AS_HASHABLE(ASDefaultScr->Look.DefaultFrameName), &hdata.vptr);
+	}
     return (MyFrame *)hdata.vptr ;
 }
 

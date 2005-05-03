@@ -86,7 +86,6 @@ static int           MenuPinOnButton = -1 ;
 
 static MyStyleDefinition *MyStyleList = NULL ;
 static MyFrameDefinition *MyFrameList = NULL ;
-static char              *DefaultFrameName = NULL ;
 static MyFrameDefinition *LegacyFrameDef = NULL ;
 
 static balloonConfig BalloonConfig = {0, 0, 0, 0, 0, 0, NULL };
@@ -255,7 +254,7 @@ struct config main_config[] = {
     {"DeskBack"							, deskback_parse, NULL, NULL },
     {"*asetrootDeskBack"				, deskback_parse, NULL, NULL },        /* pretending to be asteroot here */
     {"MyFrame"							, myframe_parse, (char**)"afterstep", (int*)&MyFrameList},
-    {"DefaultFrame"						, assign_string, (char**)&DefaultFrameName, (int*)0},
+    {"DefaultFrame"						, assign_string, (char**)&TmpLook.DefaultFrameName, (int*)0},
     {"DontDrawBackground"				, SetLookFlag, (char **)DontDrawBackground, NULL},
     {"CursorFore"						, assign_string, &TmpLook.CursorFore, (int *)0},    /* foreground color to be used for coloring pointer's cursor */
     {"CursorBack"						, assign_string, &TmpLook.CursorBack, (int *)0},    /* background color to be used for coloring pointer's cursor */
@@ -681,8 +680,6 @@ InitLook (MyLook *look, Bool free_resources)
         unload_font (&IconFont);
         DestroyMyStyleDefinitions (&MyStyleList);
         DestroyMyFrameDefinitions (&MyFrameList);
-        if( DefaultFrameName )
-            free( DefaultFrameName );
 		if( LegacyFrameDef )
 			DestroyMyFrameDefinitions( &LegacyFrameDef );
         if( BalloonConfig.style )
@@ -712,7 +709,6 @@ InitLook (MyLook *look, Bool free_resources)
 		MSMenuName[i] = NULL ;
 
 	MyFrameList = NULL ;
-    DefaultFrameName = NULL ;
 	LegacyFrameDef = NULL ;
     memset( &BalloonConfig, 0x00, sizeof(BalloonConfig));
 }
@@ -749,6 +745,8 @@ merge_look( MyLook *to, MyLook *from )
 
 	asxml_var_insert("minipixmap.width", to->minipixmap_width);
 	asxml_var_insert("minipixmap.height", to->minipixmap_height);
+
+	to->DefaultFrameName = from->DefaultFrameName ; 
 
     to->RubberBand = from->RubberBand ; 
     to->menu_icm = from->menu_icm ; 
@@ -1089,7 +1087,11 @@ FixLook( MyLook *look )
     else if(look->TitleTextAlign == JUSTIFY_CENTER )
         default_title_align = ALIGN_CENTER ;
 
-    /* update frame geometries */
+	if( look->DefaultFrameName == NULL ) 
+		look->DefaultFrameName = mystrdup("default");
+    check_myframes_list( look );
+    
+	/* update frame geometries */
     if (get_flags( look->flags, DecorateFrames))
     {
         MyFrameDefinition *fd ;
@@ -1099,35 +1101,31 @@ FixLook( MyLook *look )
         PrintMyFrameDefinitions (MyFrameList, 1);
 #endif
         LOCAL_DEBUG_OUT( "MyFrameList %p", MyFrameList );
-        if( MyFrameList || LegacyFrameDef )
-            check_myframes_list( look );
         for( fd = MyFrameList ; fd != NULL ; fd = fd->next )
         {
             LOCAL_DEBUG_OUT( "processing MyFrameDefinition %p", fd );
-            frame = add_myframe_from_def( look->FramesList, fd, default_title_align|ALIGN_VCENTER );
-            myframe_load ( frame, Scr.image_manager );
+            if( (frame = add_myframe_from_def( look->FramesList, fd, default_title_align|ALIGN_VCENTER )) != NULL ) 
+            	myframe_load ( frame, Scr.image_manager );
         }
-		if( LegacyFrameDef && DefaultFrameName  == NULL )
+		if( LegacyFrameDef )
 		{
             LOCAL_DEBUG_OUT( "processing legacy MyFrameDefinition %p", LegacyFrameDef );
-            frame = add_myframe_from_def( look->FramesList, LegacyFrameDef, default_title_align|ALIGN_VCENTER );
-            myframe_load ( frame, Scr.image_manager );
-			if( look->DefaultFrame == NULL )
-				look->DefaultFrame = frame ;
+			LegacyFrameDef->name = mystrdup(look->DefaultFrameName);
+            if( (frame = add_myframe_from_def( look->FramesList, LegacyFrameDef, default_title_align|ALIGN_VCENTER )) != NULL )
+            	myframe_load ( frame, Scr.image_manager );
 		}
         DestroyMyFrameDefinitions (&MyFrameList);
 		DestroyMyFrameDefinitions (&LegacyFrameDef);
-        if( look->DefaultFrame == NULL && DefaultFrameName != NULL )
-        {
-			ASHashData hdata ;
-            if( get_hash_item( look->FramesList, AS_HASHABLE(DefaultFrameName), &hdata.vptr) == ASH_Success )
-				look->DefaultFrame = hdata.vptr ;
-            LOCAL_DEBUG_OUT( "DefaultFrameName is \"%s\": found frame %p with that name.", DefaultFrameName, look->DefaultFrame );
-        }
-    }else if( look->DefaultFrame != NULL )
-		destroy_myframe( &(look->DefaultFrame) );
-    if( look->DefaultFrame == NULL )
-        look->DefaultFrame = create_default_myframe(default_title_align|ALIGN_VCENTER);
+        LOCAL_DEBUG_OUT( "DefaultFrameName is \"%s\".", look->DefaultFrameName );
+    }
+
+	if( myframe_find( look->DefaultFrameName ) == NULL ) 
+	{	
+        MyFrame *dmf = create_default_myframe(default_title_align|ALIGN_VCENTER);
+		dmf->name = mystrdup(look->DefaultFrameName);
+		if( add_hash_item( look->FramesList, AS_HASHABLE(dmf->name), dmf ) != ASH_Success ) 
+			destroy_myframe( &dmf );
+	}
 
 #ifdef LOCAL_DEBUG
     LOCAL_DEBUG_OUT( "syncing %s","");

@@ -1436,7 +1436,7 @@ void HandleShmCompletion(ASEvent *event)
 {
 #ifdef XSHMIMAGE
     XShmCompletionEvent  *sev = (XShmCompletionEvent*) &(event->x);
-	LOCAL_DEBUG_OUT( "XSHMIMAGE> EVENT : offset   %ld(%lx)", (long)sev->offset, (unsigned long)(sev->offset) );
+	LOCAL_DEBUG_OUT( "XSHMIMAGE> EVENT : offset   %ld(%lx), shmseg = %lx", (long)sev->offset, (unsigned long)(sev->offset), sev->shmseg );
 	if( !is_background_xfer_ximage( sev->shmseg ) )
 		destroy_xshm_segment( sev->shmseg );
 #endif /* SHAPE */

@@ -359,8 +359,8 @@ typedef struct MyLook
 
     struct ASSupportedHints *supported_hints;
 
-    struct MyFrame *DefaultFrame;
     struct ASHashTable *FramesList ;/* hash table of named MyFrames */
+	char *DefaultFrameName;
 
     struct ASBalloonLook *balloon_look ;
 
