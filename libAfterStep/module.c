@@ -141,7 +141,7 @@ send_module_msg_function (CARD32 func,
 						  const char *name, const char *text, const send_signed_data_type *func_val, const send_signed_data_type *unit_val)
 {
 	CARD32        spare_func_val[2] = { 0, 0 };
-	CARD32        spare_unit_val[2] = { 100, 100 };
+	CARD32        spare_unit_val[2] = { 0, 0 };
 
     ASSocketWriteInt32 (&as_module_out_buffer, &func, 1 );
     ASSocketWriteString(&as_module_out_buffer , name);

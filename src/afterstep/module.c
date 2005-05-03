@@ -179,11 +179,11 @@ ReadModuleInput (module_t *module, size_t * offset, size_t size, void *ptr)
 static void
 CheckCmdTextSize (module_t *module, CARD32 * size, CARD32 * curr_len, char **text)
 {
-	/* max command length is 255 */
-	if (*size > 255)
+	/* max command length is 1024 */
+	if (*size > 1024)
 	{
         show_error("command from module '%s' is too big (%d)", module->name, *size);
-		*size = 255;
+		*size = 1024;
 	}
 
 	/* need to be able to read in command */
