@@ -14,6 +14,7 @@ Function "InitFunction"
 	Module  "I"     Wharf
 	Wait    "I"     Wharf
 	Module  "I"     Pager 0 @with_desktops_1@
+	Module  "I"     WinTabs
 	Module  "I"	Banner
 	Function "I"    WorkspaceState
 	Exec	"I"	exec "@with_afterdir@/non-configurable/send_postcard.sh"

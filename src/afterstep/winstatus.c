@@ -1236,7 +1236,9 @@ LOCAL_DEBUG_CALLER_OUT( "(%p,%s)", asw, context2text(pressed_context));
         /* now posting all the changes on display :*/
         for( i = FRAME_SIDES; --i >= 0; )
             if( is_canvas_dirty(asw->frame_sides[i]) )
+			{
                 update_canvas_display( asw->frame_sides[i] );
+			}
         if( asw->internal && asw->internal->on_pressure_changed )
             asw->internal->on_pressure_changed( asw->internal, pressed_context&C_CLIENT );
     }else /* Iconic !!! */
