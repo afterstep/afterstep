@@ -1,6 +1,266 @@
 
+2005-05-04  sasha
+
+	* AfterStep 2.00.05 release
+
+2005-05-03  born2late
+
+	* typo cosmetics
+
+2005-05-03  sasha
+
+	* typho in asinternals.h
+	* improved Pager's handling of viewport switching with Button3
+	* Fixed bugs in scroll function handling
+	* changed the way DefaultFrame is handled, not fetch it by name
+	  each time, instead of storing direct pointer, which was causing
+	  double deallocation of it
+	* Fixed segfault in shared memory cleanup code; Still segfaulting
+	  on restart in FramesList cleanup code
+
+2005-05-02  fabs
+
+	* Added experimental tiling-support.
+
+2005-05-02  sasha
+
+	* added ability to wharf to close subwharfs, and also to terminate
+	  subwharfs when Wharf is stopped.
+	* fixed missing support for SuppressIcons keyword
+
+2005-04-29  sasha
+
+	* fixed Wharf config - apparently to long a command line causes it
+	  to crash
+	* added image path to ASImageManager's search path, so that
+	  referensed images could be found from local dir.
+
+2005-04-29  vae
+
+	* added some sweet placement.c changes, specifically adding
+	  functionality for ReverseOrderVertical and ReverseOrderHorizontal
+
+2005-04-29  sasha
+
+	* changed asview.c to open display prior to the image so that
+	  display size variables would get set properly
+	* Added REverseOrderHorizontal and ReverseOrderVertical to
+	  windowbox flags ( in config only )
+	* added image path to ASImageManager's search path, so that
+	  referensed images could be found from local dir.
+	* Fixed name alignment to follow global look too
+	* implemented in Pager support for global titlebar options such as
+	  spacing, align, bevel and icon of the shade button
+
+2005-04-28  sasha
+
+	* name of cascade option fixed from Arrange
+	* Implemented ButtonAlign, ButtonBevel and ButtonIconSpacing
+	  options in look for flexible config of minimized window's buttons
+	* applied patch converting array of ids to bidirectional list
+	* fixed icon_canvas segfault
+	*  amybe fixed stack coruupotion due to icon title and icon proper
+	  being same canvas
+
+2005-04-27  sasha
+
+	* wierdness in XSync
+	* some look and icons fixes
+	* tidyed up menu entries for Cascade, Tile, Gnome and Zharf
+	* fixed handling of F_MOVE and F_RESIZE where pixel values are
+	  used; Applied changes to Arrange module to do cascading
+	  contributed by fabs; Added code to Arrange module to Avoid
+	  AvoidCOver windows
+
+2005-04-26  sasha
+
+	* typho in configure.c
+	* debugged icons handling when. Still need to work on
+	  SeparateIconTitle
+	* fixed handling of ButtonSize setting - it was ignored
+	* updated winlist config to use different MyStyles on some looks
+
+2005-04-25  sasha
+
+	* changes to fix Pager in look.QNX and to make modules not
+	  disappear under cover window
+	* added .width and .height and .button.width and .button.height xml
+	  vars
+	* added .font.size and .font.size xml variables available withon
+	  AfterStep only
+	*  added ability for WinList to use ASTBar properties advertised by
+	  AfterStep from look. Fixed look.Glass and look.Unity
+	* added checks to not show empty menus
+
+2005-04-22  sasha
+
+	* added ShowUnavailable configure option to enable showing
+	  unavailable items in menu as greyed out entries
+	* Fixed off-by-one bug in ASStorage causing wierd artefact and
+	  possibly segfaults, due to occupied slots being reused improperly
+
+2005-04-22  born2late
+
+	* updated forcesize info based on comments of sasha on irc
+
+2005-04-21  sasha
+
+	* improved speed of wharf button focusing by using canvas swapping
+	  feature
+	* hopefully fixed Segfault when window changes name at the time of
+	  destruction
+	* implemented ExecInTerm parameters optional for different term
+	  types using syntax: if(term){opts}
+
+2005-04-20  sasha
+
+	* fexed BadMatch bug in Pager when some window would make it into
+	  stacking order several times
+	* implemented helpfull hints for cases where we deffer execution of
+	  wait for window to appear
+
+2005-04-19  sasha
+
+	* Fixed numerous bugs in WinTabs - should work great now
+
+2005-04-19  born2late
+
+	* make php output be in sync with website copyright layout again
+	* added new config options to docs.
+
+2005-04-18  sasha
+
+	* seems to have resolved all java sizing issues now; Fixed menu
+	  minipixmaps to get scaled to minipixmap.width
+	* Added MinipixmapSize to look config to override default 48x48;
+	* Fixed WinTabs swallowing by pattern when name type is not set;
+	  Fixed WinTabs focus handling to include own windows; Fixed
+	  WinTabs selected tab handling for the last tab
+
+2005-04-15  sasha
+
+	* Implemented tab name tracking in WinTabs and fixed multirow tabs
+	  layout; Implemented SizeInc handling for apps that support it
+	* Fixed bug in TermCommand parsing; Added InheritDefaults option to
+	  MyFrame
+
+2005-04-14  sasha
+
+	* added TitleHSpacing and TitleVSpacing to MyFrame; Fixed spacing
+	  of different titlebars; Implemented proper focusing in WinTabs;
+	  Implemented better support for tbar props;
+
+2005-04-13  sasha
+
+	* fixed broken initial placement with java apps in jre 1.4 - All
+	  that is needed is to set WM_STATE property just after reparenting
+	  while server is still grabbed
+
+2005-04-13  born2late
+
+	* updates and changed filenames so they do not conflict with
+	  asdocgen under windows
+
+2005-04-13  sasha
+
+	* added --pattern and --geometry cmdline opts to WinTabs
+	* Added checks for NULL dirtree in menu melting code; Added
+	  handling of configure events to WinTabs
+	* Fixed handling of window name change - should not update hints
+	  flags or functions - that may break some things. Implemented
+	  pressing on Buttons in WinTabs;Enabled Balloons by default
+
+2005-04-13  born2late
+
+	* added useless introduction to docs
+
+2005-04-13  sasha
+
+	* debugging java behaviour
+
+2005-04-12  sasha
+
+	* added X property to convey titlebar look guidelines to moidules
+
+2005-04-11  sasha
+
+	* began implementing new property to pass info about window
+	  titlebar config over to modules for consistent look/feel
+	* fixed segfault when wrong op= to composite tag is used
+	* Implemented IgnoreConfig database flag to block ConfigureRequests
+	  from some confused apps such as java 1.4, browsers, etc.
+	* debugged title layouting in WinTabs
+
+2005-04-08  sasha
+
+	* Some WinTabs debugging
+	* replaced lots of mallocs with callocs to ensure that memory gets
+	  zeroed out
+
+2005-04-07  sasha
+
+	* fixed root menu not working
+	* added CREDITS files for everyone who ever contributed a
+	  background or something
+	* added OceanWave background image - needs some work
+	* completed look.Tiny
+
+2005-04-06  sasha
+
+	* fixed fonts in look.Transparent; Fixed layout of text in WinList
+	* new backgrounds and debugged condensed vertical tbar
+
+2005-04-05  sasha
+
+	* java placement debugging and artifacts with condense Titlebar
+	* added look.Tiny and debugged frame bevel handling in MyFrame
+
+2005-04-04  sasha
+
+	* added pre-resizing of frame subwindows ahead of the resizing of
+	  actuall frame window to make window-resizing look faster and
+	  smoother
+	* fixes and improvements to get WinTabs module to work properly
+	* removed inline's froom functions all exported functions in
+	  libAfterImage
+
+2005-04-01  sasha
+
+	* implemented SwallowWindow AfterStep Built-in - now need to work
+	  on WinTabs
+	* debugged handling of ClickToFocus event processing code
+
+2005-03-30  sasha
+
+	* implemented PopUp syntax with function data given the priority.
+	  Debugged right mouse click actions in Wharf
+
+2005-03-29  sasha
+
+	* implemented ExecInTerm function and ability to specify Wharf's
+	  button action on right mouse click
+
+2005-03-29  born2late
+
+	* added wharf mystyles to docs.
+
+2005-03-28  sasha
+
+	* added failover option to keycode parsing
+	* fixed data install, to simply copy default config files from
+	  other dirst, instead of maintaining copies
+	* fixed root background changin
+	* added standard options --geometry --myname --gravity and Pager
+	  and Wharf's specific options --rows --cols to override whats in
+	  config files, so that we can have easy layout from autoexec
+
+2005-03-25  sasha
+
+	* minor fixes
+
 2005-03-22  sasha
 
+	* Updated ChangeLogs for 2.0.4 release
 	* AfterStep 2.00.04 release
 	* made desktop cover tint to be similar to Base color from selected
 	  colorscheme
@@ -459,12 +719,6 @@
 	* M.-A. DARCHE: - Captured image filenames have now different
 	  prefixes, "capture_window",	"capture_framedwindow" and
 	  "capture_screen".
-	* M.-A. DARCHE: - Renamed in the non-configurable/0_feel "Take
-	  screen shot" menu entries into:   * Capture window image   *
-	  Capture framed window image	* Capture screen image - The order
-	  is also changed so that it is more logical, from narrow (window)
-	  to   wide (screen) focus. This order should be more logical and
-	  thus more user   friendly.
 
 2004-12-02  madarche
 
@@ -1477,8 +1731,6 @@
 
 	* Fixed Wharf bevel and Align options to be flag and not print
 	  silly warnings
-	* updated default look/feel/background in non-configurable of the
-	  distro to be the same as in other places
 	* Fixed bug in handling of Viewport setting in database when only
 	  one of the x or y is set.It was using X set flag for y value and
 	  wise versa

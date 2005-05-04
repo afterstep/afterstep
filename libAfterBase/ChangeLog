@@ -1,6 +1,16 @@
 
+2005-04-27  sasha
+
+	* some look and icons fixes
+
+2005-04-08  sasha
+
+	* replaced lots of mallocs with callocs to ensure that memory gets
+	  zeroed out
+
 2005-03-22  sasha
 
+	* Updated ChangeLogs for 2.0.4 release
 	* made desktop cover tint to be similar to Base color from selected
 	  colorscheme
 	* cleaned up stale help files; got rid of sgmltools deps; updated

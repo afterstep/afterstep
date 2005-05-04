@@ -1,6 +1,44 @@
 
+2005-05-03  sasha
+
+	* Fixed segfault in shared memory cleanup code; Still segfaulting
+	  on restart in FramesList cleanup code
+
+2005-04-29  sasha
+
+	* added image path to ASImageManager's search path, so that
+	  referensed images could be found from local dir.
+	* changed asview.c to open display prior to the image so that
+	  display size variables would get set properly
+	* added image path to ASImageManager's search path, so that
+	  referensed images could be found from local dir.
+
+2005-04-26  sasha
+
+	* fixed handling of ButtonSize setting - it was ignored
+
+2005-04-22  sasha
+
+	* Fixed off-by-one bug in ASStorage causing wierd artefact and
+	  possibly segfaults, due to occupied slots being reused improperly
+
+2005-04-21  sasha
+
+	* hopefully fixed Segfault when window changes name at the time of
+	  destruction
+
+2005-04-11  sasha
+
+	* fixed segfault when wrong op= to composite tag is used
+
+2005-04-04  sasha
+
+	* removed inline's froom functions all exported functions in
+	  libAfterImage
+
 2005-03-22  sasha
 
+	* Updated ChangeLogs for 2.0.4 release
 	* made desktop cover tint to be similar to Base color from selected
 	  colorscheme
 	* cleaned up stale help files; got rid of sgmltools deps; updated
