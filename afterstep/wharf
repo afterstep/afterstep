@@ -221,3 +221,38 @@
 #
 #  End of the MonitorWharf configuration
 ##########################################################################
+
+##########################################################################
+# AskWharf - graphical frontend for postcard.sh:
+#
+#------------------------------------------------------------------------
+
+
+
+*AskWharfRows 2
+*AskWharfGeometry +100+100
+*AskWharfBevel	none
+*AskWharfFitContents
+*AskWharfShapeToContent
+
+*AskWharf spacer2 - Size 1 570
+*AskWharf spacer2 - Transient
+*AskWharf spacer2 - Nop "-"
+
+*AskWharf Message - Size 800 570
+*AskWharf Message - Transient
+*AskWharf Message bars/postcard_msg.xml Nop "-"
+
+*AskWharf spacer1 - Size 1 570
+*AskWharf spacer1 - Transient
+*AskWharf spacer1 - Nop "-"
+
+*AskWharf Yes - Size 230 45
+*AskWharf Yes bars/postcard_yes Nop "-"
+
+*AskWharf No - Size 230 45
+*AskWharf No bars/postcard_no Nop "-"
+
+*AskWharf Maybe - Size 340 45
+*AskWharf Maybe bars/postcard_maybe Nop "-"
+

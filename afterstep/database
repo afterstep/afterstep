@@ -24,6 +24,7 @@ Style   "Untitled*"     Icon AfterStep3.xpm
 # Wharf and modules
 # note that only Wharf and WinList has AvoidCover set as AvoidCover causes effect of
 # moving other windows out of the way when window is resized/placed
+Style   "AskWharf"      Handles,  NoTitle, Sticky, Layer 4, CirculateSkip, WindowListSkip, NoHandles, AvoidCover, BorderWidth 0
 Style   "*Wharf"        NoTitle, Sticky, Layer 4, CirculateSkip, WindowListSkip, NoHandles, AvoidCover, BorderWidth 0
 Style   "*WharfWithdrawn"        NoTitle, Sticky, Layer 3, WindowListSkip, NoHandles, AvoidCover, ShortLiving, BorderWidth 0
 Style   "Banner"        NoTitle, Sticky, Layer 2, WindowListSkip, NoHandles

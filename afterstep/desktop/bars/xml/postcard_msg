@@ -1,0 +1,22 @@
+<composite id=DeskaTopa>
+    <tile tint=#fcfefc width="800" height="570">
+	<solid color="fcfefc" opacity="80" width="5" height="5"/>
+    </tile>
+    <text y=20 x=30 fgcolor="#000000" font="DefaultBold.ttf" point="20" spacing="5" type="0">Please  send  the  developers  a  postcard !!!</text>
+
+    <text y=70 x=30 fgcolor="#000000" font="DefaultBold.ttf" point="20" spacing="5" type="0">And finally we are coming to the fun part.</text>
+
+    <text y=130 x=30 fgcolor="#000000" font="DefaultBold.ttf" point="20" type="0">AfterStep is the only compensation that developers of this lousy</text>
+    <text y=170 x=30 fgcolor="#000000" font="DefaultBold.ttf" point="20" type="0">software get  -  a single message will automagically be  e-mailed</text>
+    <text y=210 x=30 fgcolor="#000000" font="DefaultBold.ttf" point="20" type="0">anytime your ~/.afterstep directory needs to be rebuilt.</text>
+
+    <text y=270 x=30 fgcolor="#000000" font="DefaultBold.ttf" point="20" type="0">This message  will contain such  vital information  as  date,  time,</text>
+    <text y=310 x=30 fgcolor="#000000" font="DefaultBold.ttf" point="20" type="0">your X server color depth, number of X screens, number of xinerama</text>
+    <text y=350 x=30 fgcolor="#000000" font="DefaultBold.ttf" point="20" type="0">screens, version of your compiler and kernel, and a list of  linked</text>
+    <text y=390 x=30 fgcolor="#000000" font="DefaultBold.ttf" point="20" type="0">to libraries.</text>
+
+    <text y=450 x=30 fgcolor="#000000" font="DefaultBold.ttf" point="20" type="0">If you object to this e-mailing activity, simply deny it below.</text>
+    <text y=510 x=30 fgcolor="#000000" font="DefaultBold.ttf" point="20" spacing="5" type="0">That  is  all!  Now  enjoy  your  eyecandy  :)</text>
+
+    <text y=550 x=1 fgcolor="#000000" font="DefaultBold.ttf" point="20" spacing="5" type="0">-------------------------------------------------</text>
+</composite>

@@ -1,0 +1,6 @@
+<composite id=ask-answer-maybe>
+    <tile tint=#fcfefc width="340" height="45">
+	<solid color="fcfefc" opacity="80" width="5" height="5"/>
+    </tile>
+    <text y=10 x=10 fgcolor="#000000" font="DefaultBold.ttf" point="20" spacing="5" type="0"> I'll send it myself</text>
+</composite>
