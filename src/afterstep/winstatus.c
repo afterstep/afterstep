@@ -920,10 +920,11 @@ on_window_hints_changed( ASWindow *asw )
 	if( hints2decorations( asw, old_hints ) )
 	    on_window_status_changed( asw, False, True );
 
+	if( mystrcmp( old_hints->res_name, hints->res_name ) != 0 || 
+		mystrcmp( old_hints->res_class, hints->res_class ) != 0)
+  		broadcast_res_names( asw );
 	if( mystrcmp( old_hints->names[0], hints->names[0] ) != 0 )
 	    broadcast_window_name( asw );
-	if( mystrcmp( old_hints->res_name, hints->res_name ) != 0 )
-  		broadcast_res_names( asw );
 	if( mystrcmp( old_hints->icon_name, hints->icon_name ) != 0 )
 	    broadcast_icon_name( asw );
 

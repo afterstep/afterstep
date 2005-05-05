@@ -1516,10 +1516,11 @@ send_aswindow_data_iter_func(void *data, void *aux_data)
 	module_id.ptr = aux_data ;
 
     SendConfig (module_id.id, M_CONFIGURE_WINDOW, asw);
-    SendString (module_id.id, M_WINDOW_NAME, asw->w,asw->frame, asw, asw->hints->names[0], asw->hints->names_encoding[0]);
-    SendString (module_id.id, M_ICON_NAME, asw->w, asw->frame, asw, asw->hints->icon_name, asw->hints->names_encoding[asw->hints->icon_name_idx]);
+	/* always start with RES_CLASS to let module know if this is a DockApp or not */
     SendString (module_id.id, M_RES_CLASS, asw->w, asw->frame, asw, asw->hints->res_class, asw->hints->names_encoding[asw->hints->res_class_idx]);
     SendString (module_id.id, M_RES_NAME,  asw->w, asw->frame, asw, asw->hints->res_name, asw->hints->names_encoding[asw->hints->res_name_idx]);
+    SendString (module_id.id, M_ICON_NAME, asw->w, asw->frame, asw, asw->hints->icon_name, asw->hints->names_encoding[asw->hints->icon_name_idx]);
+    SendString (module_id.id, M_WINDOW_NAME, asw->w,asw->frame, asw, asw->hints->names[0], asw->hints->names_encoding[0]);
     return True;
 }
 

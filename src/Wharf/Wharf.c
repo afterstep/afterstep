@@ -2172,9 +2172,10 @@ check_swallow_window( ASWindowData *wd )
 		ASSync(False);
 		grab_swallowed_canvas_btns( ic, aswb, withdraw_btn );
     }
-    aswb->swallowed->current = ( get_flags( wd->state_flags, AS_Iconic ) &&
-                                    aswb->swallowed->iconic != NULL )?
-                                aswb->swallowed->iconic:aswb->swallowed->normal;
+    aswb->swallowed->current = aswb->swallowed->normal;
+	if( aswb->swallowed->iconic != NULL )
+		if( (wd->res_class && strcasecmp(wd->res_class, "DockApp") == 0) || get_flags( wd->state_flags, AS_Iconic ) )
+			aswb->swallowed->current = aswb->swallowed->iconic ;
     handle_canvas_config( aswb->swallowed->current );
     LOCAL_DEBUG_OUT( "client(%lX)->icon(%lX)->current(%lX)", wd->client, wd->icon, aswb->swallowed->current->w );
 

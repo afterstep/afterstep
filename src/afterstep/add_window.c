@@ -289,9 +289,9 @@ AddWindow (Window w)
 	 * again in HandleMapNotify.
      */
     broadcast_config (M_ADD_WINDOW, tmp_win);
-    broadcast_window_name( tmp_win );
     broadcast_res_names( tmp_win );
     broadcast_icon_name( tmp_win );
+    broadcast_window_name( tmp_win );
 
     InstallWindowColormaps (tmp_win);
 	set_flags( tmp_win->internal_flags, ASWF_WindowComplete) ;
@@ -361,9 +361,9 @@ AddInternalWindow (Window w, ASInternalWindow **pinternal, ASHints **phints, ASS
 	 * again in HandleMapNotify.
      */
     broadcast_config (M_ADD_WINDOW, tmp_win);
-    broadcast_window_name( tmp_win );
     broadcast_res_names( tmp_win );
     broadcast_icon_name( tmp_win );
+    broadcast_window_name( tmp_win );
 
 #if 0
 /* TODO : */
