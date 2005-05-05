@@ -2184,8 +2184,23 @@ check_swallow_window( ASWindowData *wd )
     if( get_flags( aswb->flags, ASW_MaxSwallow ) ||
 		(Config->force_size.height == 0 && !get_flags(aswb->flags, ASW_FixedHeight)) )
         aswb->desired_height = aswb->swallowed->current->height;
-    swidth = min( aswb->desired_width, aswb->swallowed->current->width );
-    sheight = min( aswb->desired_height, aswb->swallowed->current->height );
+
+    swidth = aswb->swallowed->current->width ;
+	if( get_flags( wd->flags, AS_MinSize ) && swidth < wd->hints.min_width)
+   		swidth = wd->hints.min_width;
+	if( swidth == 1 ) 
+   		swidth = aswb->desired_width;
+	else if( swidth > aswb->desired_width ) 
+		swidth = aswb->desired_width ;
+    
+    sheight = aswb->swallowed->current->height ;
+	if( get_flags( wd->flags, AS_MinSize ) && sheight < wd->hints.min_height)
+   		sheight = wd->hints.min_height;
+	if( sheight == 1 ) 
+   		sheight = aswb->desired_height;
+	else if( sheight > aswb->desired_height ) 
+		sheight = aswb->desired_height ;
+
     moveresize_canvas( aswb->swallowed->current,
                        make_tile_pad( get_flags(Config->align_contents,PAD_LEFT),
                                       get_flags(Config->align_contents,PAD_RIGHT),

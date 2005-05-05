@@ -1366,6 +1366,38 @@ init_aswindow_status( ASWindow *t, ASStatusHints *status )
 	}
 	LOCAL_DEBUG_OUT( "status->pos = %+d%+d, Scr.Vpos = %+d%+d", t->status->x, t->status->y, Scr.Vx, Scr.Vy );
 
+	if( get_flags (t->hints->flags, AS_MinSize) ) 
+	{	
+		int width = t->status->width ;
+		int height = t->status->height ;
+		if( (!get_flags (t->status->flags, AS_StartSizeUser) && width < t->hints->min_width) || width == 1 )
+			width = min( t->hints->min_width, Scr.MyDisplayWidth );
+		if( (!get_flags (t->status->flags, AS_StartSizeUser) && height < t->hints->min_height) || height == 1 )
+			width = min( t->hints->min_height, Scr.MyDisplayHeight );
+		if( width != t->status->width || height != t->status->height ) 
+		{
+			int dx = 0, dy = 0 ;
+			if( t->hints->gravity == EastGravity || 
+				t->hints->gravity == SouthEastGravity || 
+				t->hints->gravity == NorthEastGravity ||
+				t->hints->gravity == CenterGravity )
+				dx = (int)(t->status->width) - width ; 
+			if( t->hints->gravity == SouthGravity || 
+				t->hints->gravity == SouthEastGravity || 
+				t->hints->gravity == SouthWestGravity ||
+				t->hints->gravity == CenterGravity)
+				dy = (int)(t->status->height) - height ; 
+			if( t->hints->gravity == EastGravity || t->hints->gravity == CenterGravity ) 
+				dx = dx/2 ;
+			if( t->hints->gravity == SouthGravity || t->hints->gravity == CenterGravity ) 
+				dy = dy/2 ;
+			t->status->x += dx ;			
+			t->status->y += dy ;			   
+			t->status->width = width ;			   
+			t->status->height = height ;			   
+			XResizeWindow( dpy, t->w, width, height );
+		}	 
+	}
     if( !get_flags(AfterStepState, ASS_NormalOperation) )
     {
         int min_x, min_y, max_x, max_y ;
