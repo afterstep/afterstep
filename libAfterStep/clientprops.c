@@ -300,6 +300,7 @@ read_wm_hints (ASRawHints * hints, Window w)
 			XFree (hints->wm_hints);
 
 		if ((hints->wm_hints = XGetWMHints (dpy, w)) != NULL)
+		{	
 			if (get_flags (hints->wm_hints->flags, WindowGroupHint) && hints->wm_hints->window_group != w)
 			{
 				ASParentHints parent_hints;
@@ -311,6 +312,20 @@ read_wm_hints (ASRawHints * hints, Window w)
 					*(hints->group_leader) = parent_hints;
 				}
 			}
+			if( get_flags (hints->wm_hints->flags, IconWindowHint) )
+			{
+				/* some apps are written by truly insane ppl, most notably those 
+				 * designed to be docked in Window Maker's dock 
+				 * So lets bite the bullet and check if it is indeed sane :*/
+				if( get_parent_window( hints->wm_hints->icon_window ) == w ) 
+					hints->wm_hints->icon_window = w ; 
+				/* while merging hints we will disable iconification for the window that 
+				 * has icon window same as client */
+
+				if( hints->wm_hints->icon_window == None )
+					clear_flags (hints->wm_hints->flags, IconWindowHint);
+			}	 
+		}
 	}
 }
 

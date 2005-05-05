@@ -886,7 +886,7 @@ on_window_hints_changed( ASWindow *asw )
         return ;
     if( is_output_level_under_threshold(OUTPUT_LEVEL_HINTS) )
         print_hints( NULL, NULL, &raw_hints );
-    hints = merge_hints( &raw_hints, Database, NULL, Scr.Look.supported_hints, HINT_ANY, NULL );
+    hints = merge_hints( &raw_hints, Database, NULL, Scr.Look.supported_hints, HINT_ANY, NULL, asw->w );
     destroy_raw_hints( &raw_hints, True );
     if( hints )
     {

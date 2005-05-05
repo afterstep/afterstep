@@ -245,7 +245,7 @@ typedef struct ASSupportedHints
 }}
 
 ASHints *merge_hints( struct ASRawHints *raw, struct ASDatabase *db, ASStatusHints *status,
-                      ASSupportedHints *list, ASFlagType what, ASHints* reusable_memory );
+                      ASSupportedHints *list, ASFlagType what, ASHints* reusable_memory, Window client );
 void merge_asdb_hints (ASHints * clean, struct ASRawHints * raw, struct ASDatabaseRecord * db_rec, ASStatusHints * status, ASFlagType what);
 
 void check_motif_hints_sanity (struct MwmHints * motif_hints);
@@ -264,7 +264,7 @@ void update_cmd_line_hints (Window w, Atom property,
 					   ASHints * hints, ASStatusHints * status);
 
 void check_status_sanity (struct ScreenInfo * scr, ASStatusHints * status);
-void check_hints_sanity (struct ScreenInfo * scr, ASHints * clean);
+void check_hints_sanity (struct ScreenInfo * scr, ASHints * clean, Window client);
 
 
 void destroy_hints( ASHints *clean, Bool reusable );

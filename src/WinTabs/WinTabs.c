@@ -1543,7 +1543,7 @@ void handle_tab_name_change( ASEvent *event )
 		
 		if( collect_hints (ASDefaultScr, tabs[i].client, HINT_NAME, &raw) )
 		{
-			if( merge_hints (&raw, NULL, NULL, list, HINT_NAME, &clean) )
+			if( merge_hints (&raw, NULL, NULL, list, HINT_NAME, &clean, tabs[i].client) )
 			{
 				if( clean.names[0] ) 
 				{

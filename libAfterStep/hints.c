@@ -193,7 +193,7 @@ merge_command_line (ASHints * clean, ASStatusHints * status, ASRawHints * raw)
 }
 
 void
-check_hints_sanity (ScreenInfo * scr, ASHints * clean)
+check_hints_sanity (ScreenInfo * scr, ASHints * clean, Window client)
 {
 	if (clean)
 	{
@@ -219,6 +219,14 @@ check_hints_sanity (ScreenInfo * scr, ASHints * clean)
 		if (get_flags (clean->flags, AS_Icon))
 			if (clean->icon_file == NULL && clean->icon.pixmap == None)
 				clear_flags (clean->flags, AS_Icon);
+
+		if( clean->icon.window == client ) 
+		{
+			clean->icon.window = None ; 
+			clear_flags( clean->function_mask, AS_FuncMinimize );
+			clear_flags( clean->flags, AS_ClientIcon );
+		}	 
+			
 
 		if (clean->frame_name == NULL)
 			clear_flags (clean->flags, AS_Frame);
@@ -261,7 +269,7 @@ check_status_sanity (ScreenInfo * scr, ASStatusHints * status)
 /* Hints merging functions : */
 ASHints      *
 merge_hints (ASRawHints * raw, ASDatabase * db, ASStatusHints * status,
-			 ASSupportedHints * list, ASFlagType what, ASHints * reusable_memory)
+			 ASSupportedHints * list, ASFlagType what, ASHints * reusable_memory, Window client)
 {
 	ASHints      *clean = NULL;
 	ASDatabaseRecord db_rec, *pdb_rec;
@@ -330,7 +338,7 @@ merge_hints (ASRawHints * raw, ASDatabase * db, ASStatusHints * status,
 	if (get_flags (what, HINT_STARTUP) )
 		merge_command_line (clean, status, raw);
 
-	check_hints_sanity (raw->scr, clean);
+	check_hints_sanity (raw->scr, clean, client);
 	check_status_sanity (raw->scr, status);
 
 	/* this is needed so if user changes the list of supported hints -
@@ -358,7 +366,7 @@ update_protocols (ScreenInfo * scr, Window w, ASSupportedHints * list, ASFlagTyp
 
 	if (collect_hints (scr, w, HINT_PROTOCOL, &raw) != NULL)
 	{
-		if (merge_hints (&raw, NULL, NULL, list, HINT_PROTOCOL, &clean) != NULL)
+		if (merge_hints (&raw, NULL, NULL, list, HINT_PROTOCOL, &clean, w) != NULL)
 		{
 			if (pprots)
 				if ((changed = (*pprots != clean.protocols)))
@@ -388,7 +396,7 @@ update_colormaps (ScreenInfo * scr, Window w, ASSupportedHints * list, CARD32 **
 
 	if (collect_hints (scr, w, HINT_COLORMAP, &raw) != NULL)
 	{
-		if (merge_hints (&raw, NULL, NULL, list, HINT_COLORMAP, &clean) != NULL)
+		if (merge_hints (&raw, NULL, NULL, list, HINT_COLORMAP, &clean, w) != NULL)
 		{
 			old_win = *pcmap_windows;
 			new_win = clean.cmap_windows;
@@ -1384,7 +1392,7 @@ update_property_hints_manager (Window w, Atom property, ASSupportedHints * list,
 			}
 			return changed;
 		}
-		if (hints && merge_hints (&raw, db, NULL, list, HINT_ANY, &clean) != NULL)
+		if (hints && merge_hints (&raw, db, NULL, list, HINT_ANY, &clean, w) != NULL)
 		{
 
 			show_debug (__FILE__, __FUNCTION__, __LINE__, "hints merged");
