@@ -461,8 +461,12 @@ tile_windows()
 	iterate_asbidirlist( ArrangeState.clients_order,
 			     count_managed_windows, &n_windows, NULL, False);
 	
-	int n_groups = ArrangeState.clients_order->count / ArrangeState.count;
-	if(ArrangeState.clients_order->count % ArrangeState.count)
+	/* If number of elements per group was not set */
+	if(ArrangeState.count == 0)
+	  ArrangeState.count = n_windows; /*Put all elements in one group*/
+	
+	int n_groups = n_windows / ArrangeState.count;
+	if(n_windows % ArrangeState.count)
 		n_groups++;
 	
 	LOCAL_DEBUG_OUT("ngroups: %d", n_groups);
@@ -477,8 +481,13 @@ tile_windows()
 		ArrangeState.elem = &ArrangeState.curr_x;
 		ArrangeState.group = &ArrangeState.curr_y;
 		
-		ArrangeState.max_width = Scr.MyDisplayWidth / ArrangeState.count;
-		ArrangeState.max_height = Scr.MyDisplayHeight / n_groups ;
+		/* Watchout: max_width is now maximum width of a single window */
+		ArrangeState.max_width =
+			abs(ArrangeState.max_width - ArrangeState.curr_x)
+			/ ArrangeState.count;
+		ArrangeState.max_height =
+			abs(ArrangeState.max_height - ArrangeState.curr_y)
+			/ n_groups ;
 		
 		ArrangeState.elem_size = &ArrangeState.max_width; 
 		ArrangeState.group_size =  &ArrangeState.max_height;
@@ -489,8 +498,13 @@ tile_windows()
 		ArrangeState.elem = &ArrangeState.curr_y;
 		ArrangeState.group = &ArrangeState.curr_x;
 		
-		ArrangeState.max_width = Scr.MyDisplayWidth / n_groups;
-		ArrangeState.max_height = Scr.MyDisplayHeight / ArrangeState.count ;
+		/* Watchout: max_width is now maximum width of a single window */
+		ArrangeState.max_width =
+			abs(ArrangeState.max_width - ArrangeState.curr_x)
+			/ n_groups;
+		ArrangeState.max_height =
+			abs(ArrangeState.max_height - ArrangeState.curr_y)
+			/ ArrangeState.count ;
 		
 		ArrangeState.elem_size = &ArrangeState.max_height;
 		ArrangeState.group_size = &ArrangeState.max_width ;
