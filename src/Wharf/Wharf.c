@@ -2174,8 +2174,16 @@ check_swallow_window( ASWindowData *wd )
     }
     aswb->swallowed->current = aswb->swallowed->normal;
 	if( aswb->swallowed->iconic != NULL )
-		if( (wd->res_class && strcasecmp(wd->res_class, "DockApp") == 0) || get_flags( wd->state_flags, AS_Iconic ) )
+	{	
+		if( get_flags( wd->flags, AS_WMDockApp ) ||
+#if 0
+			(wd->res_class && strcasecmp(wd->res_class, "DockApp") == 0) || 
+#endif				
+			get_flags( wd->state_flags, AS_Iconic ) )
+		{
 			aswb->swallowed->current = aswb->swallowed->iconic ;
+		}
+	}
     handle_canvas_config( aswb->swallowed->current );
     LOCAL_DEBUG_OUT( "client(%lX)->icon(%lX)->current(%lX)", wd->client, wd->icon, aswb->swallowed->current->w );
 
@@ -2210,6 +2218,22 @@ check_swallow_window( ASWindowData *wd )
                                       get_flags(Config->align_contents,PAD_BOTTOM),
                                       aswb->canvas->height, sheight    ),
                        swidth, sheight );
+	if( !get_flags( wd->flags, AS_ClientIcon ) ) 
+	{  /* workaround for broken wmdock apps that draw into icon, that is a child of a client, 
+		* and at the same time not properly sized ( Just don't ask - some ppl are wierd ) */
+		XWMHints *wm_hints = XGetWMHints (dpy, wd->client);
+		LOCAL_DEBUG_OUT( "wmfire workaround step1: wm_hints = %p", wm_hints );
+		if( wm_hints ) 
+		{
+			LOCAL_DEBUG_OUT( "wmfire workaround step2: icon_window_hint = %ld, icon_window = %lX", get_flags (wm_hints->flags, IconWindowHint), wm_hints->icon_window );
+			if( get_flags (wm_hints->flags, IconWindowHint) && wm_hints->icon_window != None )				   
+			{	
+				LOCAL_DEBUG_OUT( "wmfire workaround step3: resizing to %dx%d", swidth, sheight );
+				XResizeWindow( dpy, wm_hints->icon_window, swidth, sheight );
+			}
+			XFree (wm_hints);			   
+		}
+	}
     map_canvas_window( aswb->swallowed->current, True );
     send_swallowed_configure_notify(aswb);
 	update_wharf_folder_size( aswf );

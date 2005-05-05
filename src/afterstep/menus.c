@@ -1386,7 +1386,7 @@ show_asmenu( ASMenu *menu, int x, int y )
 		destroy_asdb_record( db_rec, False );
     }
     /* lets make sure we got everything right : */
-    check_hints_sanity (ASDefaultScr, hints, menu->main_canvas->w );
+    check_hints_sanity (ASDefaultScr, hints, &status, menu->main_canvas->w );
     check_status_sanity (ASDefaultScr, &status);
 
 #if 0

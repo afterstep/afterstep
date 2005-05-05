@@ -88,6 +88,8 @@ struct ScreenInfo;
 #define AS_ShortLived           (1<<25)
 #define AS_Module				(1<<26)
 #define AS_IgnoreConfigRequest  (1<<27)
+#define AS_WMDockApp				(1<<28)  /* res_class == "DockApp" and main 
+										  * window is 1x1 (just don't ask why)*/ 
 
 #define NOLOOK_HINT_FLAGS	(AS_IgnoreConfigRequest|AS_Module|AS_ShortLived| \
 							 AS_AvoidCover|AS_AcceptsFocus|AS_ClickToFocus)
@@ -263,8 +265,8 @@ Bool update_property_hints_manager( Window w, Atom property, ASSupportedHints *l
 void update_cmd_line_hints (Window w, Atom property, 
 					   ASHints * hints, ASStatusHints * status);
 
+void check_hints_sanity (struct ScreenInfo * scr, ASHints * clean, ASStatusHints * status, Window client);
 void check_status_sanity (struct ScreenInfo * scr, ASStatusHints * status);
-void check_hints_sanity (struct ScreenInfo * scr, ASHints * clean, Window client);
 
 
 void destroy_hints( ASHints *clean, Bool reusable );

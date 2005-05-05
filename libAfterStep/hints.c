@@ -193,7 +193,7 @@ merge_command_line (ASHints * clean, ASStatusHints * status, ASRawHints * raw)
 }
 
 void
-check_hints_sanity (ScreenInfo * scr, ASHints * clean, Window client)
+check_hints_sanity (ScreenInfo * scr, ASHints * clean, ASStatusHints * status, Window client)
 {
 	if (clean)
 	{
@@ -225,6 +225,12 @@ check_hints_sanity (ScreenInfo * scr, ASHints * clean, Window client)
 			clean->icon.window = None ; 
 			clear_flags( clean->function_mask, AS_FuncMinimize );
 			clear_flags( clean->flags, AS_ClientIcon );
+		}	 
+
+		if( status && status->width == 1 && status->height == 1 ) 
+		{
+			if( clean->res_class && strcasecmp( clean->res_class, "DockApp" ) )
+				set_flags( clean->flags, AS_WMDockApp ); 	   
 		}	 
 			
 
@@ -338,7 +344,7 @@ merge_hints (ASRawHints * raw, ASDatabase * db, ASStatusHints * status,
 	if (get_flags (what, HINT_STARTUP) )
 		merge_command_line (clean, status, raw);
 
-	check_hints_sanity (raw->scr, clean, client);
+	check_hints_sanity (raw->scr, clean, status, client);
 	check_status_sanity (raw->scr, status);
 
 	/* this is needed so if user changes the list of supported hints -

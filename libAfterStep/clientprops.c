@@ -317,8 +317,20 @@ read_wm_hints (ASRawHints * hints, Window w)
 				/* some apps are written by truly insane ppl, most notably those 
 				 * designed to be docked in Window Maker's dock 
 				 * So lets bite the bullet and check if it is indeed sane :*/
-				if( get_parent_window( hints->wm_hints->icon_window ) == w ) 
-					hints->wm_hints->icon_window = w ; 
+				if( hints->wm_hints->icon_window != w )
+				{
+					unsigned int width, height ;
+					if( !validate_drawable (hints->wm_hints->icon_window, &width, &height) )
+						hints->wm_hints->icon_window = None ;
+					else if( get_parent_window( hints->wm_hints->icon_window ) == w ) 
+					{	
+						if( width == 1 && height == 1 ) 
+						{      /* broken wmdock app - icon is animated, yet not properly sized */
+							XResizeWindow( dpy, hints->wm_hints->icon_window, 64, 64 );
+						}
+						hints->wm_hints->icon_window = w ; 
+					}
+				}
 				/* while merging hints we will disable iconification for the window that 
 				 * has icon window same as client */
 
