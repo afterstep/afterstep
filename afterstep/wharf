@@ -241,7 +241,7 @@
 
 *AskWharf Message - Size 800 570
 *AskWharf Message - Transient
-*AskWharf Message bars/postcard_msg.xml Nop "-"
+*AskWharf Message bars/postcard_msg Nop "-"
 
 *AskWharf spacer1 - Size 1 570
 *AskWharf spacer1 - Transient
