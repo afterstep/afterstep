@@ -897,7 +897,7 @@ void setlayer_func_handler( FunctionData *data, ASEvent *event, int module )
 void change_desk_func_handler( FunctionData *data, ASEvent *event, int module )
 {
     if( event->client )
-	change_aswindow_desktop( event->client, data->func_val[0] );
+	change_aswindow_desktop( event->client, data->func_val[0], False );
 }
 
 void toggle_status_func_handler( FunctionData *data, ASEvent *event, int module )

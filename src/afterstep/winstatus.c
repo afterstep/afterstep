@@ -1571,8 +1571,7 @@ LOCAL_DEBUG_OUT( "updating status to iconic for client %p(\"%s\")", asw, ASWIN_N
             if( asw->icon_canvas != asw->icon_title_canvas )
                 unmap_canvas_window(asw->icon_title_canvas );
 
-            ASWIN_DESK(asw) = get_flags(Scr.Feel.flags, StubbornIcons)?asw->DeIconifyDesk:Scr.CurrentDesk;
-            quietly_reparent_aswindow( asw, (ASWIN_DESK(asw)==Scr.CurrentDesk)?Scr.Root:Scr.ServiceWin, True );
+			change_aswindow_desktop( asw, get_flags(Scr.Feel.flags, StubbornIcons)?asw->DeIconifyDesk:Scr.CurrentDesk, True );
         }
 
         asw->status->icon_window = None ;
@@ -1765,12 +1764,15 @@ LOCAL_DEBUG_OUT( "changing window's layer to %d", layer );
     }
 }
 
-void change_aswindow_desktop( ASWindow *asw, int new_desk )
+void change_aswindow_desktop( ASWindow *asw, int new_desk, Bool force )
 {
     int old_desk ;
     if( AS_ASSERT(asw) )
         return ;
-    if( ASWIN_DESK(asw) == new_desk || ASWIN_GET_FLAGS(asw, AS_Sticky))
+	if( ASWIN_GET_FLAGS(asw, AS_Sticky) ) 
+		new_desk = Scr.CurrentDesk ;
+    
+	if( !force && ASWIN_DESK(asw) == new_desk )
         return ;
 
     old_desk = ASWIN_DESK(asw) ;
