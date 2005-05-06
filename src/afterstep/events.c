@@ -456,6 +456,11 @@ DigestEvent( ASEvent *event )
                         }
                 }
             }
+			if( event->context == C_NO_CONTEXT && get_flags(Scr.Feel.flags, ClickToFocus) )
+			{
+				w = asw->frame ; 
+				event->context = C_FRAME ;
+			}	 
             event->w = w ;
         }else
         {
@@ -749,7 +754,7 @@ HandleKeyPress ( ASEvent *event )
     if( get_flags( AfterStepState, ASS_WarpingMode ) )
         EndWarping();
 
-	LOCAL_DEBUG_OUT( "client = %p", event->client );
+	LOCAL_DEBUG_OUT( "client = %p, context = %s", event->client, context2text((event)->context));
 	/* if we get here, no function key was bound to the key.  Send it
      * to the client if it was in a window we know about: */
     if (event->client)
