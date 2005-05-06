@@ -341,6 +341,7 @@ struct ASTBarData;
 									 LeaveWindowMask 	| \
                                      SubstructureRedirectMask| \
                                      StructureNotifyMask| \
+								     KeyPressMask 		| \
                                      PointerMotionMask)  /* needed for proper Balloons operation */
 
 #define AS_CANVAS_EVENT_MASK 		(ButtonPressMask 	| \
