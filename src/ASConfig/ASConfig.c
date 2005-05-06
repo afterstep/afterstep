@@ -811,7 +811,7 @@ asmenu_dir2property( const char *dirname, const char *menu_path, ASProperty *own
 			{	
 				ASConfigFile *cf = NULL ;
 			
-				cf = load_config_file(dirname, list[i]->d_name, "afterstep", &FuncSyntax, NULL );
+				cf = load_config_file(dirname, list[i]->d_name, "afterstep", pFuncSyntax, NULL );
 				item = free_storage2property_list( cf->free_storage, popup );				
 				if( item )
 				{	

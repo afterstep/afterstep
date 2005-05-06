@@ -2197,7 +2197,7 @@ check_swallow_window( ASWindowData *wd )
     swidth = aswb->swallowed->current->width ;
 	if( get_flags( wd->flags, AS_MinSize ) && swidth < wd->hints.min_width)
    		swidth = wd->hints.min_width;
-	if( swidth == 1 ) 
+	if( swidth <= 2 ) 
    		swidth = aswb->desired_width;
 	else if( swidth > aswb->desired_width ) 
 		swidth = aswb->desired_width ;
@@ -2205,7 +2205,7 @@ check_swallow_window( ASWindowData *wd )
     sheight = aswb->swallowed->current->height ;
 	if( get_flags( wd->flags, AS_MinSize ) && sheight < wd->hints.min_height)
    		sheight = wd->hints.min_height;
-	if( sheight == 1 ) 
+	if( sheight <= 2 ) 
    		sheight = aswb->desired_height;
 	else if( sheight > aswb->desired_height ) 
 		sheight = aswb->desired_height ;
