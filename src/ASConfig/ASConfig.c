@@ -35,6 +35,7 @@
 #include "ASConfig.h"
 #include "configfile.h"
 #include "asproperty.h"
+#include "xmlrpc.h"
 
 /*************************************************************************/
 
@@ -327,7 +328,7 @@ special_free_storage2property( FreeStorageElem **pcurr )
 					add_integer_property( CONFIG_height_ID, item.data.geometry.height, prop );
 		    	break ;
 	 		case TT_SPECIAL : 	/* should be handled based on its type : */ 
-				if( curr->term->id == WHARF_Wharf_ID )			
+				if( curr->term->id == WHARF_Wharf_ID && curr->argv != NULL )			
 				{
 					LOCAL_DEBUG_OUT( "Wharf item with storage : argc = %d, argv[0] = \"%s\", argv[1] = \"%s\", argv[2] = \"%s\", sub = %p", curr->argc, curr->argv[0], curr->argv[1], curr->argv[2], curr->sub );
 					prop = create_property( curr->term->id, ASProp_Phony, curr->argv[0], True );
@@ -1258,15 +1259,32 @@ print_hierarchy( ASProperty *root, int level )
 	
 }	 
 
+void 
+handle_asconfig_command(char *buffer, int buffer_len, FILE *out_stream)
+{	
+	ASXmlRPCPacket *packet = safecalloc( 1, sizeof(ASXmlRPCPacket) );
+
+	packet->xml = mystrndup(buffer, buffer_len) ; 
+	packet->size = packet->allocated_size = buffer_len ; 
+	
+	if( xml2rpc_packet( packet ) ) 
+	{
+	}else
+		show_warning( "failed to parse rpc packet" );
+	print_rpc_packet( packet ) ;
+	destroy_rpc_packet( &packet );
+}		
+
 void interactive_loop()
 {
-#define BUFFER_SIZE 1024	
+#define BUFFER_SIZE 8192
 	char buffer[BUFFER_SIZE] ;
 	
+	fprintf( stdout, "#" );
 	while( fgets( &buffer[0], BUFFER_SIZE, stdin ) != NULL )
 	{
 		/* now we need to process the command */
-/*		handle_asconfig_command(buffer, strlen(buffer)-1, stdout);		   */
-		
+		handle_asconfig_command(buffer, strlen(buffer)-1, stdout);		  
+		fprintf( stdout, "#" );
 	}	 
 }	 

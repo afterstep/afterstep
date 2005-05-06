@@ -458,6 +458,7 @@ TermDef FunctionTerms[] =
 };
 
 extern TermDef       WharfTerms[];
+extern TermDef       WharfFolderTerms[];
 
 /**************************************************************************
  * Syntaxes : 
@@ -492,6 +493,7 @@ void LinkAfterStepConfig()
 						PopupTerms,	
 						FunctionTerms,
 						WharfTerms,
+						WharfFolderTerms,
 						NULL } ;
 	while( termsets[i] ) 
 	{

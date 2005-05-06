@@ -205,6 +205,70 @@ rpc_packet2xml( ASXmlRPCPacket* packet )
 	return False;	
 }	 
 
+Bool print_rpc_packet_params(void *data, void *aux_data)
+{
+	ASXmlRPCValue	*p = (ASXmlRPCValue*)data;
+	int level = *((int*)aux_data) ; 
+	char *prompt = safemalloc(32+level+1);
+	int i ; 
+	++level ;
+	for( i = 0 ; i < level ; ++i ) 
+		prompt[i] = '\t' ;
+	sprintf( prompt+level, (level == 1)?"param(%p)":"value(%p)", p ); 
+	if( p ) 
+	{
+		show_progress( "%s.type = %d;\n", prompt, p->type );	  
+		show_progress( "%s.name = \"%s\";\n", prompt, p->name?p->name:"(null)" );	  
+		if( p->type == XMLRPC_struct_ID || p->type == XMLRPC_array_ID ) 
+		{
+		 	if( p->value.members != NULL ) 
+				iterate_asbidirlist( p->value.members, print_rpc_packet_params, &level, NULL, False);
+			
+		}else
+			show_progress( "%s.cdata = \"%s\";\n", prompt, p->value.cdata?p->value.cdata:"(null)" );	  
+	}	 
+	free( prompt );
+	return True;
+}	 
+
+
+void 
+print_rpc_packet( ASXmlRPCPacket *packet ) 
+{
+	show_progress( "RPCPacket = %p;\n", packet );	
+	if( packet ) 
+	{
+		show_progress( "RPCPacket.response = %d;\n", packet->response );	  
+		show_progress( "RPCPacket.name = \"%s\";\n", packet->name?packet->name:"(null)" );	  
+		show_progress( "RPCPacket.xml = \"%s\";\n", packet->xml );	  
+		show_progress( "RPCPacket.size = %d;\n", packet->size );	  
+		show_progress( "RPCPacket.allocated_size = %d;\n", packet->allocated_size );	  
+		if( packet->params )
+			iterate_asbidirlist( packet->params, print_rpc_packet_params, NULL, NULL, False);
+	}	 
+}	 
+
+void 
+destroy_rpc_packet( ASXmlRPCPacket **ppacket )
+{
+	if( ppacket ) 
+	{
+		ASXmlRPCPacket *packet = *ppacket ;
+		if( packet ) 
+		{
+			if( packet->name ) 
+				free( packet );
+			if( packet->xml && packet->allocated_size > 0 ) 
+				free( packet->xml );
+			if( packet->params )							   
+				destroy_asbidirlist( &(packet->params) );
+			free( packet );
+			*ppacket = NULL ;
+		}		  
+	}	 
+}
+
+
 /*************************************************************************/
 void start__tag( xml_elem_t *doc, xml_elem_t *parm, ASXmlRPCState *state ){}
 	

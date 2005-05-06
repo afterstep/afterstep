@@ -185,4 +185,13 @@ void end__tag( xml_elem_t *doc, xml_elem_t *parm, ASXmlRPCState *state );
 
 extern ASXmlRPCTagHandlingInfo SupportedXmlRPCTagInfo[XMLRPC_SUPPORTED_IDS];
 
+
+void print_rpc_packet( ASXmlRPCPacket *packet );
+void destroy_rpc_packet( ASXmlRPCPacket **ppacket );
+Bool rpc_packet2xml( ASXmlRPCPacket* packet );
+Bool xml2rpc_packet( ASXmlRPCPacket* packet );
+
+
+
+
 #endif /*XMLRPC_H_HEADER_INCLUDED */
