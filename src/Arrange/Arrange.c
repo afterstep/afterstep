@@ -94,7 +94,7 @@ struct ASArrangeState
 
 typedef struct
 {
-  Window cl;
+	Window cl;
 }client_item;
 
 /**********************************************************************/
@@ -149,8 +149,15 @@ main( int argc, char **argv )
     ConnectX( ASDefaultScr, 0 );
 
 	memset( &ArrangeState, 0x00, sizeof(ArrangeState));
+	
+	
+	/* Set some sane default values if still unset */
+	
+	ArrangeState.max_width = Scr.MyDisplayWidth ;
+	ArrangeState.max_height = Scr.MyDisplayHeight ;
 	ArrangeState.incx = 20 ; 
 	ArrangeState.incy = 20 ;
+	
 	ArrangeState.clients_order = create_asbidirlist( destroy_client_item );
 
     /* Check the Name of the Program to see wether to tile or cascade*/
@@ -281,13 +288,14 @@ main( int argc, char **argv )
 
     ConnectAfterStep (WINDOW_CONFIG_MASK |
                       WINDOW_NAME_MASK |
-                      M_END_WINDOWLIST, 0);
+                      M_END_WINDOWLIST|
+		      M_NEW_DESKVIEWPORT, 0);
 
     /* Request a list of all windows, while we load our config */
     SendInfo ("Send_WindowList", 0);
 
     LoadBaseConfig ( GetBaseOptions);
-
+    
 	/* And at long last our main loop : */
     HandleEvents();
 	return 0 ;
@@ -331,7 +339,10 @@ GetBaseOptions (const char *filename)
 Bool
 window_is_suitable(ASWindowData *wd)
 {
-	/* we do not want to arrange AfterSTep's modules */
+	ASRawHints raw;
+	ExtendedWMHints *eh;
+	
+        /* we do not want to arrange AfterSTep's modules */
 	if( get_flags( wd->flags, AS_Module|AS_SkipWinList ) == (AS_Module|AS_SkipWinList))
 		return False;
 	/* also we do not want to arrange AvoidCover windows : */
@@ -352,6 +363,20 @@ window_is_suitable(ASWindowData *wd)
 	/* return if window is maximized and we don't want
 	   to arrange maximized windows. */
 	if( !get_flags( ArrangeState.flags, ARRANGE_Maximized ) && get_flags( wd->state_flags, AS_MaximizedX|AS_MaximizedY ) )
+		return False;
+	
+	
+	/* No hints, no arrangment. */
+	if( !collect_hints (ASDefaultScr, wd->client, HINT_ANY, &raw))
+		return False;
+	
+	eh = &(raw.extwm_hints);
+	if( !get_flags ( eh->flags, EXTWM_DESKTOP) )
+		return False;	
+	
+	/* If we only want to arrange windows on current desktop and
+	   window is no on current desktop */
+	if( get_flags( ArrangeState.flags, ARRANGE_Desk ) && (eh->desktop != Scr.CurrentDesk))
 		return False;
 
 	/* Passed all tests. You're in. */
@@ -391,6 +416,9 @@ process_message (send_data_type type, send_data_type *body)
 			new_item->cl = wd->client;
 			append_bidirelem( ArrangeState.clients_order, new_item);
 		}
+	}else if( type == M_NEW_DESKVIEWPORT )
+	{
+		Scr.CurrentDesk = body[2];
 	}
 }
 
@@ -412,6 +440,8 @@ count_managed_windows(void *data, void *aux_data)
 Bool
 tile_window(void *data, void *aux_data)
 {
+	int buf_size = 256;
+	char buf[buf_size];
 	
 	ASWindowData *wd = fetch_window_by_id( ((client_item *) data)->cl );
 
@@ -437,7 +467,6 @@ tile_window(void *data, void *aux_data)
 	if( !get_flags( ArrangeState.flags, ARRANGE_NoRaise ) )
 		SendNumCommand ( F_RAISE, NULL, NULL, NULL, wd->client );
 	
-	
 	/* Indicate that we're talking pixels. */
 	units[0] = units[1] = 1;
 	vals[0] = ArrangeState.curr_x; vals[1] = ArrangeState.curr_y;
@@ -450,6 +479,12 @@ tile_window(void *data, void *aux_data)
 	SendNumCommand ( F_RESIZE, NULL, &(vals[0]), &(units[0]), wd->client );
 	
 	
+	/* Transfer window onto CurrentDesk */
+	/* Maybe we should check if window is already on this desk. */
+	snprintf(buf, buf_size - 1, "WindowsDesk  \"-\" %d", Scr.CurrentDesk);
+	buf[ buf_size - 1] = '\0';
+	SendInfo(buf, wd->client);
+
 	(*(ArrangeState.elem))+= *ArrangeState.elem_size;
 	return True;
 }
@@ -461,7 +496,10 @@ tile_windows()
 	iterate_asbidirlist( ArrangeState.clients_order,
 			     count_managed_windows, &n_windows, NULL, False);
 	
-	/* If number of elements per group was not set */
+	LOCAL_DEBUG_OUT("Number of windows to be arranged: %d\n", n_windows);
+	LOCAL_DEBUG_OUT("max_width/max_height: %d/%d\n", ArrangeState.max_width, ArrangeState.max_height);
+		
+        /* If number of elements per group was not set */
 	if(ArrangeState.count == 0)
 	  ArrangeState.count = n_windows; /*Put all elements in one group*/
 	
@@ -474,6 +512,7 @@ tile_windows()
 	ArrangeState.curr_x = ArrangeState.offset_x ;
 	ArrangeState.curr_y = ArrangeState.offset_y ;
 	
+	LOCAL_DEBUG_OUT("curr_x/curr_y: %d/%d\n", ArrangeState.curr_x, ArrangeState.curr_y);
 
 	if(get_flags( ArrangeState.flags, ARRANGE_Tile_Horizontally))
 	{
@@ -483,11 +522,9 @@ tile_windows()
 		
 		/* Watchout: max_width is now maximum width of a single window */
 		ArrangeState.max_width =
-			abs(ArrangeState.max_width - ArrangeState.curr_x)
-			/ ArrangeState.count;
+			ArrangeState.max_width / ArrangeState.count;
 		ArrangeState.max_height =
-			abs(ArrangeState.max_height - ArrangeState.curr_y)
-			/ n_groups ;
+			ArrangeState.max_height/ n_groups ;
 		
 		ArrangeState.elem_size = &ArrangeState.max_width; 
 		ArrangeState.group_size =  &ArrangeState.max_height;
@@ -500,11 +537,9 @@ tile_windows()
 		
 		/* Watchout: max_width is now maximum width of a single window */
 		ArrangeState.max_width =
-			abs(ArrangeState.max_width - ArrangeState.curr_x)
-			/ n_groups;
+			ArrangeState.max_width / n_groups;
 		ArrangeState.max_height =
-			abs(ArrangeState.max_height - ArrangeState.curr_y)
-			/ ArrangeState.count ;
+			ArrangeState.max_height / ArrangeState.count ;
 		
 		ArrangeState.elem_size = &ArrangeState.max_height;
 		ArrangeState.group_size = &ArrangeState.max_width ;
@@ -519,6 +554,9 @@ tile_windows()
 Bool 
 cascade_window(void *data, void *aux_data)
 {
+	int buf_size = 256;
+	char buf[buf_size];
+	
 	ASWindowData *wd = fetch_window_by_id( ((client_item *) data)->cl );
 	if(wd == NULL)
 		return True;
@@ -557,6 +595,12 @@ cascade_window(void *data, void *aux_data)
 		SendNumCommand ( F_RESIZE, NULL, &(vals[0]), &(units[0]), wd->client );
 	}
 
+
+	/* Transfer window onto CurrentDesk */
+	/* Maybe we should check if window is already on this desk. */
+	snprintf(buf, buf_size - 1, "WindowsDesk  \"-\" %d", Scr.CurrentDesk);
+	buf[ buf_size - 1] = '\0';
+	SendInfo(buf, wd->client);
 
 	return True;   
 }
