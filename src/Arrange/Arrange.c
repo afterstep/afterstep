@@ -85,8 +85,10 @@ struct ASArrangeState
 	int curr_x, curr_y ;
 
 	int *elem, *group;
-	int *elem_size, *group_size;
-	int start_elem;
+	int *elem_size, *group_size; /* in pixels */
+	int start_elem; /* position of start_elem */
+
+	int tile_width, tile_height;
 
 	ASBiDirList *clients_order;
 	   
@@ -339,8 +341,6 @@ GetBaseOptions (const char *filename)
 Bool
 window_is_suitable(ASWindowData *wd)
 {
-	ASRawHints raw;
-	ExtendedWMHints *eh;
 	
         /* we do not want to arrange AfterSTep's modules */
 	if( get_flags( wd->flags, AS_Module|AS_SkipWinList ) == (AS_Module|AS_SkipWinList))
@@ -364,19 +364,10 @@ window_is_suitable(ASWindowData *wd)
 	   to arrange maximized windows. */
 	if( !get_flags( ArrangeState.flags, ARRANGE_Maximized ) && get_flags( wd->state_flags, AS_MaximizedX|AS_MaximizedY ) )
 		return False;
-	
-	
-	/* No hints, no arrangment. */
-	if( !collect_hints (ASDefaultScr, wd->client, HINT_ANY, &raw))
-		return False;
-	
-	eh = &(raw.extwm_hints);
-	if( !get_flags ( eh->flags, EXTWM_DESKTOP) )
-		return False;	
-	
+		
 	/* If we only want to arrange windows on current desktop and
-	   window is no on current desktop */
-	if( get_flags( ArrangeState.flags, ARRANGE_Desk ) && (eh->desktop != Scr.CurrentDesk))
+	   window is not on current desktop */
+	if( get_flags( ArrangeState.flags, ARRANGE_Desk ) && (wd->desk != Scr.CurrentDesk))
 		return False;
 
 	/* Passed all tests. You're in. */
@@ -444,6 +435,8 @@ tile_window(void *data, void *aux_data)
 	char buf[buf_size];
 	
 	ASWindowData *wd = fetch_window_by_id( ((client_item *) data)->cl );
+	if(!wd)
+		return True;
 
 	/* used by SendNumCommand */
 	send_signed_data_type vals[2] ;	
@@ -467,24 +460,27 @@ tile_window(void *data, void *aux_data)
 	if( !get_flags( ArrangeState.flags, ARRANGE_NoRaise ) )
 		SendNumCommand ( F_RAISE, NULL, NULL, NULL, wd->client );
 	
-	/* Indicate that we're talking pixels. */
+       /* Indicate that we're talking pixels. */
 	units[0] = units[1] = 1;
 	vals[0] = ArrangeState.curr_x; vals[1] = ArrangeState.curr_y;
 	/* Move window */
 	SendNumCommand ( F_MOVE, NULL, &(vals[0]), &(units[0]), wd->client );
 
 	
-	vals[0] = ArrangeState.max_width ; 
-	vals[1] = ArrangeState.max_height ;
+	/* Resize window */
+	vals[0] = ArrangeState.tile_width ; 
+	vals[1] = ArrangeState.tile_height ;
 	SendNumCommand ( F_RESIZE, NULL, &(vals[0]), &(units[0]), wd->client );
 	
-	
-	/* Transfer window onto CurrentDesk */
-	/* Maybe we should check if window is already on this desk. */
-	snprintf(buf, buf_size - 1, "WindowsDesk  \"-\" %d", Scr.CurrentDesk);
-	buf[ buf_size - 1] = '\0';
-	SendInfo(buf, wd->client);
 
+	/* Transfer window onto CurrentDesk */
+	if( wd->desk != Scr.CurrentDesk )
+	{
+		snprintf(buf, buf_size - 1, "WindowsDesk  \"-\" %d", Scr.CurrentDesk);
+		buf[ buf_size - 1] = '\0';
+		SendInfo(buf, wd->client);
+	}
+	
 	(*(ArrangeState.elem))+= *ArrangeState.elem_size;
 	return True;
 }
@@ -504,6 +500,8 @@ tile_windows()
 	  ArrangeState.count = n_windows; /*Put all elements in one group*/
 	
 	int n_groups = n_windows / ArrangeState.count;
+	/* If not all windows fit in n_groups groups, an
+	 * extra group for remaining windows is needed.*/
 	if(n_windows % ArrangeState.count)
 		n_groups++;
 	
@@ -520,14 +518,13 @@ tile_windows()
 		ArrangeState.elem = &ArrangeState.curr_x;
 		ArrangeState.group = &ArrangeState.curr_y;
 		
-		/* Watchout: max_width is now maximum width of a single window */
-		ArrangeState.max_width =
+		ArrangeState.tile_width =
 			ArrangeState.max_width / ArrangeState.count;
-		ArrangeState.max_height =
+		ArrangeState.tile_height =
 			ArrangeState.max_height/ n_groups ;
 		
-		ArrangeState.elem_size = &ArrangeState.max_width; 
-		ArrangeState.group_size =  &ArrangeState.max_height;
+		ArrangeState.elem_size = &ArrangeState.tile_width; 
+		ArrangeState.group_size =  &ArrangeState.tile_height;
 		
 	}else
 	{
@@ -535,14 +532,13 @@ tile_windows()
 		ArrangeState.elem = &ArrangeState.curr_y;
 		ArrangeState.group = &ArrangeState.curr_x;
 		
-		/* Watchout: max_width is now maximum width of a single window */
-		ArrangeState.max_width =
+		ArrangeState.tile_width =
 			ArrangeState.max_width / n_groups;
-		ArrangeState.max_height =
+		ArrangeState.tile_height =
 			ArrangeState.max_height / ArrangeState.count ;
 		
-		ArrangeState.elem_size = &ArrangeState.max_height;
-		ArrangeState.group_size = &ArrangeState.max_width ;
+		ArrangeState.elem_size = &ArrangeState.tile_height;
+		ArrangeState.group_size = &ArrangeState.tile_width ;
 	}
 	
 
@@ -558,7 +554,7 @@ cascade_window(void *data, void *aux_data)
 	char buf[buf_size];
 	
 	ASWindowData *wd = fetch_window_by_id( ((client_item *) data)->cl );
-	if(wd == NULL)
+	if(!wd)
 		return True;
 
 	send_signed_data_type vals[2] ;	
@@ -597,11 +593,13 @@ cascade_window(void *data, void *aux_data)
 
 
 	/* Transfer window onto CurrentDesk */
-	/* Maybe we should check if window is already on this desk. */
-	snprintf(buf, buf_size - 1, "WindowsDesk  \"-\" %d", Scr.CurrentDesk);
-	buf[ buf_size - 1] = '\0';
-	SendInfo(buf, wd->client);
-
+	if( wd->desk != Scr.CurrentDesk )
+	{
+		snprintf(buf, buf_size - 1, "WindowsDesk  \"-\" %d", Scr.CurrentDesk);
+		buf[ buf_size - 1] = '\0';
+		SendInfo(buf, wd->client);
+	}
+	
 	return True;   
 }
 	
