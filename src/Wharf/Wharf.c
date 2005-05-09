@@ -540,7 +540,7 @@ GetBaseOptions (const char *filename)
 {
     START_TIME(started);
 
-	ReloadASEnvironment( NULL, NULL, NULL, False );
+	ReloadASEnvironment( NULL, NULL, NULL, False, True );
 
     SHOW_TIME("BaseConfigParsingTime",started);
 }
@@ -770,6 +770,13 @@ DispatchEvent (ASEvent * event)
 				update_wharf_folder_styles( WharfState.root_folder, True );
 			}
             break;
+		default:
+#ifdef XSHMIMAGE
+			LOCAL_DEBUG_OUT( "XSHMIMAGE> EVENT : completion_type = %d, event->type = %d ", Scr.ShmCompletionEventType, event->x.type );
+			if( event->x.type == Scr.ShmCompletionEventType )
+				handle_ShmCompletion( event );
+#endif /* SHAPE */
+			break;
     }
 }
 

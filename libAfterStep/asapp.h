@@ -171,6 +171,9 @@ typedef struct ASProgArgs
 
 typedef struct ASEnvironment
 {
+#define ASE_NoSharedMemory		(0x01<<0)
+  ASFlagType flags ; 
+
   char *module_path;
   char *audio_path;
   char *icon_path;

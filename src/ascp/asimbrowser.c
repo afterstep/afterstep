@@ -169,7 +169,7 @@ GetBaseOptions (const char *filename)
 {
     START_TIME(started);
 
-	ReloadASEnvironment( NULL, NULL, NULL, False );
+	ReloadASEnvironment( NULL, NULL, NULL, False, False );
 
     SHOW_TIME("BaseConfigParsingTime",started);
 }

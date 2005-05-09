@@ -49,6 +49,7 @@ TermDef       BaseTerms[] = {
     {TF_NO_MYNAME_PREPENDING, "DeskTopSize", 11,    TT_GEOMETRY, BASE_DESKTOP_SIZE_ID   , NULL},
     {TF_NO_MYNAME_PREPENDING, "DeskTopScale", 12,   TT_INTEGER,  BASE_DESKTOP_SCALE_ID  , NULL},
     {TF_NO_MYNAME_PREPENDING|TF_INDEXED, "TermCommand", 11,    TT_TEXT,     BASE_TermCommand_ID  , NULL},
+    {TF_NO_MYNAME_PREPENDING, "DisableSharedMemory", 19,   TT_FLAG,  BASE_NoSharedMemory_ID  , NULL},
 	{0, NULL, 0, 0, 0}
 };
 
@@ -66,6 +67,12 @@ SyntaxDef     BaseSyntax = {
 	NULL,
 	0
 };
+
+flag_options_xref BaseFlags[] = {
+	{BASE_NO_SHARED_MEMORY, BASE_NoSharedMemory_ID, 0},
+    {0, 0, 0}
+};
+
 
 BaseConfig   *
 CreateBaseConfig ()
@@ -127,6 +134,8 @@ ParseBaseOptions (const char *filename, char *myname)
 	{
 		if (pCurr->term == NULL)
 			continue;
+		if (ReadFlagItem (&(config->set_flags), &(config->flags), pCurr, BaseFlags))
+            continue;
 		if (!ReadConfigItem (&item, pCurr))
 			continue;
 		switch (pCurr->term->id)
@@ -153,6 +162,7 @@ ParseBaseOptions (const char *filename, char *myname)
 			 set_string_value( &(config->myname_path), item.data.string, NULL, 0 );
 			 break;
 		 case BASE_DESKTOP_SIZE_ID:
+		 	 set_flags( config->set_flags, BASE_DESKTOP_SIZE_SET );
 			 config->desktop_size = item.data.geometry;
 			 /* errorneous value check */
 			 if (!(config->desktop_size.flags & WidthValue))
@@ -162,6 +172,7 @@ ParseBaseOptions (const char *filename, char *myname)
 			 config->desktop_size.flags = WidthValue | HeightValue;
 			 break;
 		 case BASE_DESKTOP_SCALE_ID:
+		 	 set_flags( config->set_flags, BASE_DESKTOP_SCALE_SET );
 			 config->desktop_scale = item.data.integer;
 			 /* errorneous value check */
 			 if (config->desktop_scale < 1)
@@ -345,11 +356,21 @@ BaseConfig2ASEnvironment( register BaseConfig *config, ASEnvironment **penv )
 			env->term_command = mystrdup( "xterm -fg yellow -bg blue" );
 	}
 	show_progress( "ExecInTerm will use: \"%s\"", env->term_command );
+	if( get_flags(config->set_flags, BASE_NO_SHARED_MEMORY ) )
+	{	
+		if( get_flags(config->flags, BASE_NO_SHARED_MEMORY ) )
+			set_flags( env->flags, ASE_NoSharedMemory );
+		else
+			clear_flags( env->flags, ASE_NoSharedMemory );
+	}
 	*penv = env ;
 }
 
 Bool
-ReloadASEnvironment( ASImageManager **old_imageman, ASFontManager **old_fontman, BaseConfig **config_return, Bool flush_images )
+ReloadASEnvironment( ASImageManager **old_imageman, 
+					 ASFontManager **old_fontman, 
+					 BaseConfig **config_return, 
+					 Bool flush_images, Bool support_shared_images )
 {
 	char *old_pixmap_path = NULL ;
 	char *old_font_path = NULL ;
@@ -441,6 +462,18 @@ ReloadASEnvironment( ASImageManager **old_imageman, ASFontManager **old_fontman,
 	else if( scr->VScale >= scr->MyDisplayHeight/2 ) 
 		scr->VScale = scr->MyDisplayHeight/2 ;
 
+#ifdef XSHMIMAGE
+	if( support_shared_images ) 
+	{
+		if(get_flags( env->flags, ASE_NoSharedMemory ) )
+			disable_shmem_images ();
+		else
+			enable_shmem_images ();
+	}
+SHOW_CHECKPOINT;
+#endif
+
+	
 	return (config!=NULL);
 }
 

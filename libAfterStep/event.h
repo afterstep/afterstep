@@ -149,6 +149,8 @@ Bool query_pointer( Window w,
 
 void add_window_event_mask( Window w, long event_mask );
 
+void handle_ShmCompletion(ASEvent *event);
+
 #if !defined(EVENT_TRACE) || defined(NO_DEBUG_OUTPUT)
 #define SHOW_EVENT_TRACE(event) \
     do{ if( get_output_threshold() >= OUTPUT_LEVEL_DEBUG ){ \

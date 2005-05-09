@@ -392,7 +392,7 @@ CheckConfigSanity(const char *pattern_override)
 void
 GetBaseOptions (const char *filename)
 {
-	ReloadASEnvironment( NULL, NULL, NULL, False );
+	ReloadASEnvironment( NULL, NULL, NULL, False, True );
 }
 
 void
@@ -716,6 +716,13 @@ DispatchEvent (ASEvent * event)
 				handle_tab_name_change( event );				 		
 				
 			}	 
+			break;
+		default:
+#ifdef XSHMIMAGE
+			LOCAL_DEBUG_OUT( "XSHMIMAGE> EVENT : completion_type = %d, event->type = %d ", Scr.ShmCompletionEventType, event->x.type );
+			if( event->x.type == Scr.ShmCompletionEventType )
+				handle_ShmCompletion( event );
+#endif /* SHAPE */
 			break;
     }
 }

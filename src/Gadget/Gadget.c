@@ -245,7 +245,7 @@ CheckConfigSanity()
 void
 GetBaseOptions (const char *filename)
 {
-	ReloadASEnvironment( NULL, NULL, NULL, False );
+	ReloadASEnvironment( NULL, NULL, NULL, False, False );
 }
 
 void

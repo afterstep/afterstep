@@ -228,10 +228,15 @@ void LinkAfterStepConfig();
 #define BASE_DESKTOP_SIZE_ID	BASE_ID_START+7
 #define BASE_DESKTOP_SCALE_ID	BASE_ID_START+8
 #define BASE_TermCommand_ID		BASE_ID_START+9
-#define BASE_ID_END             BASE_ID_START+10
+#define BASE_NoSharedMemory_ID	BASE_ID_START+10
+#define BASE_ID_END             BASE_ID_START+11
 
 typedef struct
 {
+#define BASE_NO_SHARED_MEMORY	(0x01<<0)	
+#define BASE_DESKTOP_SIZE_SET	(0x01<<16)	  
+#define BASE_DESKTOP_SCALE_SET	(0x01<<17)	  
+	ASFlagType flags, set_flags ; 
     char *module_path;
     char *audio_path;
     char *icon_path;
@@ -260,7 +265,8 @@ void ExtractPath (BaseConfig * config,
 
 void BaseConfig2ASEnvironment( register BaseConfig *config, ASEnvironment **penv );
 void ReloadASImageManager( ASImageManager **old_imageman );
-Bool ReloadASEnvironment( struct ASImageManager **old_imageman, struct ASFontManager **old_fontman, BaseConfig **config_return, Bool flush_images );
+Bool ReloadASEnvironment( struct ASImageManager **old_imageman, struct ASFontManager **old_fontman, BaseConfig **config_return, 
+						  Bool flush_images, Bool support_shared_images );
 
 /*
  * all data members that has been used from BaseConfig structure, returned

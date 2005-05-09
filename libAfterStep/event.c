@@ -489,4 +489,12 @@ wait_event( XEvent *event, Window w, int mask, int max_wait )
     return (tick_count < max_wait);
 }
 
+void handle_ShmCompletion(ASEvent *event)
+{
+#ifdef XSHMIMAGE
+    XShmCompletionEvent  *sev = (XShmCompletionEvent*) &(event->x);
+	LOCAL_DEBUG_OUT( "XSHMIMAGE> EVENT : offset   %ld(%lx), shmseg = %lx", (long)sev->offset, (unsigned long)(sev->offset), sev->shmseg );
+	destroy_xshm_segment( sev->shmseg );
+#endif /* SHAPE */
+}
 

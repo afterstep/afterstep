@@ -173,10 +173,6 @@ SHOW_CHECKPOINT;
 SHOW_CHECKPOINT;
 	XSync (dpy, 0);
 SHOW_CHECKPOINT;
-#ifdef XSHMIMAGE
-	enable_shmem_images ();
-SHOW_CHECKPOINT;
-#endif
     set_parent_hints_func( afterstep_parent_hints_func ); /* callback for collect_hints() */
 SHOW_CHECKPOINT;
     SetupModules();

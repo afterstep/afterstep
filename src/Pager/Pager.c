@@ -668,7 +668,7 @@ GetBaseOptions (const char *filename)
 
     START_TIME(started);
 
-	ReloadASEnvironment( NULL, NULL, NULL, False );
+	ReloadASEnvironment( NULL, NULL, NULL, False, True );
 
 	if (Environment->desk_pages_h > 0 )
         PagerState.page_columns = Environment->desk_pages_h;
@@ -2560,6 +2560,11 @@ LOCAL_DEBUG_OUT( "state(0x%X)->state&ButtonAnyMask(0x%X)", event->x.xbutton.stat
             }
 			return ;
         default:
+#ifdef XSHMIMAGE
+			LOCAL_DEBUG_OUT( "XSHMIMAGE> EVENT : completion_type = %d, event->type = %d ", Scr.ShmCompletionEventType, event->x.type );
+			if( event->x.type == Scr.ShmCompletionEventType )
+				handle_ShmCompletion( event );
+#endif /* SHAPE */
             return;
     }
     update_pager_shape();

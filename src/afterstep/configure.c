@@ -1474,7 +1474,7 @@ LoadASConfig (int thisdesktop, ASFlagType what)
         const char *const_configfile;
         if (get_flags(what, PARSE_BASE_CONFIG))
 		{
-			if( ReloadASEnvironment( &old_image_manager, &old_font_manager, NULL, get_flags(what, PARSE_LOOK_CONFIG) ) )
+			if( ReloadASEnvironment( &old_image_manager, &old_font_manager, NULL, get_flags(what, PARSE_LOOK_CONFIG), True ) )
 			{
 				if( !get_flags(what, PARSE_LOOK_CONFIG) )
 				{
@@ -1612,7 +1612,7 @@ LoadASConfig (int thisdesktop, ASFlagType what)
         }
 	} else
 	{
-		ReloadASEnvironment( &old_image_manager, &old_font_manager, NULL, True );
+		ReloadASEnvironment( &old_image_manager, &old_font_manager, NULL, True, True );
 		LoadColorScheme();
 		memset( &TmpLook, 0x00, sizeof(TmpLook));
 		InitLook (&TmpLook, False );
