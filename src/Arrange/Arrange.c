@@ -381,21 +381,35 @@ window_is_suitable(ASWindowData *wd)
 void
 process_message (send_data_type type, send_data_type *body)
 {
+	static Bool done = False;
 	client_item *new_item;
 	
   LOCAL_DEBUG_OUT( "received message %lX", type );
 
 	if( type == M_END_WINDOWLIST )
 	{
-		/* rearrange windows */		   
-		fix_available_area();
-		if( get_flags( ArrangeState.flags, ARRANGE_Tile	) ) 
-			tile_windows();
-		else
-			cascade_windows();
-		/* exit */
-		destroy_asbidirlist( &(ArrangeState.clients_order) );
-		DeadPipe (0);
+		if( done )
+		{
+			/* exit */
+			destroy_asbidirlist( &(ArrangeState.clients_order) );
+			DeadPipe (0);
+		}else
+		{
+			/* rearrange windows */		   
+			fix_available_area();
+			if( get_flags( ArrangeState.flags, ARRANGE_Tile	) ) 
+				tile_windows();
+			else
+				cascade_windows();
+			
+			done = True;
+			/* Hack: Request another window-list. Next time we
+			 * receive M_END_WINDOWLIST we can be sure all of our
+			 * move/resize/whatever commands have been executed and it's
+			 * safe to die. */
+			SendInfo ("Send_WindowList", 0);
+		}
+	    
 	}else if( (type&WINDOW_PACKET_MASK) != 0 )
 	{
 		struct ASWindowData *wd = fetch_window_by_id( body[0] );
