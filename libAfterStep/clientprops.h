@@ -28,6 +28,7 @@ typedef enum
     HINTS_Supported
 }HintsTypes;
 
+#if 0
 /***********************************************************/
 /* AS Startup flags :                                      */
 #define AS_StartPosition        (1<<0)
@@ -121,7 +122,7 @@ typedef enum
 #define ASHINTS_STATIC_DATA 	 28     /* number of elements below that are not */
                                         /* dynamic arrays */
 
-
+#endif
 /************************************************************************/
 /*		globals (atom IDs)					*/
 /************************************************************************/
@@ -208,6 +209,9 @@ extern struct AtomXref      *EXTWM_State;
 /************************************************************************/
 /* 		ICCCM window hints		 			*/
 /************************************************************************/
+
+/* our own enchancement to XWMHints flags : */
+#define IconWindowIsChildHint	(1L << 14)
 
 
 /*

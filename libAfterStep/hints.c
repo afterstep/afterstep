@@ -575,7 +575,8 @@ merge_icccm_hints (ASHints * clean, ASRawHints * raw,
 				clean->icon.window = wmh->icon_window;
 				set_flags (clean->flags, AS_ClientIcon);
 				clear_flags (clean->flags, AS_ClientIconPixmap);
-
+				if( get_flags (wmh->flags, IconWindowIsChildHint) )
+					set_flags (clean->flags, AS_WMDockApp);
 			} else if (get_flags (wmh->flags, IconPixmapHint) && wmh->icon_pixmap != None)
 			{
 				clean->icon.pixmap = wmh->icon_pixmap;

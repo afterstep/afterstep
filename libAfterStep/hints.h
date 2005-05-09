@@ -88,8 +88,11 @@ struct ScreenInfo;
 #define AS_ShortLived           (1<<25)
 #define AS_Module				(1<<26)
 #define AS_IgnoreConfigRequest  (1<<27)
-#define AS_WMDockApp				(1<<28)  /* res_class == "DockApp" and main 
-										  * window is 1x1 (just don't ask why)*/ 
+#define AS_WMDockApp			(1<<28)  /* res_class == "DockApp" and main 
+										  * window is 1x1 (just don't ask why)
+										  * usually that means that icon 
+										  * window should be animated */ 
+
 
 #define NOLOOK_HINT_FLAGS	(AS_IgnoreConfigRequest|AS_Module|AS_ShortLived| \
 							 AS_AvoidCover|AS_AcceptsFocus|AS_ClickToFocus)

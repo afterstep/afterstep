@@ -328,7 +328,8 @@ read_wm_hints (ASRawHints * hints, Window w)
 						{      /* broken wmdock app - icon is animated, yet not properly sized */
 							XMoveResizeWindow( dpy, hints->wm_hints->icon_window, 0, 0, 64, 64 );
 						}
-						hints->wm_hints->icon_window = w ; 
+						set_flags( hints->wm_hints->flags, IconWindowIsChildHint );
+						hints->wm_hints->icon_window = w ;
 					}
 				}
 				/* while merging hints we will disable iconification for the window that 
