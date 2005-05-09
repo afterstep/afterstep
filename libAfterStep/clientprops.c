@@ -326,7 +326,7 @@ read_wm_hints (ASRawHints * hints, Window w)
 					{	
 						if( width == 1 && height == 1 ) 
 						{      /* broken wmdock app - icon is animated, yet not properly sized */
-							XResizeWindow( dpy, hints->wm_hints->icon_window, 64, 64 );
+							XMoveResizeWindow( dpy, hints->wm_hints->icon_window, 0, 0, 64, 64 );
 						}
 						hints->wm_hints->icon_window = w ; 
 					}

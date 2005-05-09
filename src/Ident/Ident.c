@@ -582,6 +582,8 @@ fill_window_data()
 	SHOW_FLAG(wd->flags,BaseSize);
 	SHOW_FLAG(wd->flags,Gravity);
 	SHOW_FLAG(wd->flags,Module);
+	SHOW_FLAG(wd->flags,IgnoreConfigRequest);
+	SHOW_FLAG(wd->flags,WMDockApp);
 	
 	add_property("Specified hint values:", buf, AS_Text_ASCII, True);
 

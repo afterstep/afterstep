@@ -220,6 +220,12 @@ check_hints_sanity (ScreenInfo * scr, ASHints * clean, ASStatusHints * status, W
 			if (clean->icon_file == NULL && clean->icon.pixmap == None)
 				clear_flags (clean->flags, AS_Icon);
 
+		if( status && status->width <= 2 && status->height <= 2 ) 
+		{
+			if( clean->res_class && strcasecmp( clean->res_class, "DockApp" ) == 0 )
+				set_flags( clean->flags, AS_WMDockApp ); 	   
+		}	 
+			
 		if( clean->icon.window == client ) 
 		{
 			clean->icon.window = None ; 
@@ -227,12 +233,6 @@ check_hints_sanity (ScreenInfo * scr, ASHints * clean, ASStatusHints * status, W
 			clear_flags( clean->flags, AS_ClientIcon );
 		}	 
 
-		if( status && status->width == 1 && status->height == 1 ) 
-		{
-			if( clean->res_class && strcasecmp( clean->res_class, "DockApp" ) )
-				set_flags( clean->flags, AS_WMDockApp ); 	   
-		}	 
-			
 
 		if (clean->frame_name == NULL)
 			clear_flags (clean->flags, AS_Frame);
