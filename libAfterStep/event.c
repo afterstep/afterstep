@@ -19,9 +19,16 @@
 
 #include "../configure.h"
 #include "asapp.h"
+#include "../libAfterImage/afterimage.h"
 #include "afterstep.h"
 #include "screen.h"
 #include "event.h"
+
+#ifdef XSHMIMAGE
+# include <sys/ipc.h>
+# include <sys/shm.h>
+# include <X11/extensions/XShm.h>
+#endif
 
 static Bool   as_xserver_is_local = False;     /* True if we are running on the same host as X Server */
 
