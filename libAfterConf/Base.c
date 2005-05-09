@@ -465,7 +465,7 @@ ReloadASEnvironment( ASImageManager **old_imageman,
 #ifdef XSHMIMAGE
 	if( support_shared_images ) 
 	{
-		if(get_flags( env->flags, ASE_NoSharedMemory ) )
+		if(get_flags( e->flags, ASE_NoSharedMemory ) )
 			disable_shmem_images ();
 		else
 			enable_shmem_images ();
