@@ -44,6 +44,7 @@ extern struct SyntaxDef     *BevelSyntaxPtr;
 extern struct SyntaxDef      AnimateSyntax;
 extern struct SyntaxDef      AudioSyntax;
 extern struct SyntaxDef      BaseSyntax;
+extern struct SyntaxDef      CleanSyntax;
 extern struct SyntaxDef      ColorSyntax;
 extern struct SyntaxDef      DatabaseSyntax;
 extern struct SyntaxDef      FeelSyntax;
@@ -2008,6 +2009,38 @@ void DestroyAnimateConfig (AnimateConfig * config);
 
 /**************************************************************************/
 /***************************************************************************/
+/*                        Clean pasring definitions                 */
+/***************************************************************************/
+
+
+#define CLEAN_ID_START       		(ANIMATE_ID_END+1)
+#define CLEAN_Clean_ID				CLEAN_ID_START
+#define CLEAN_ID_END        		CLEAN_ID_START+20
+
+/* config data structure */
+typedef struct CleanLineConfig
+{
+  int seconds;
+  FunctionData *action;
+  struct CleanLineConfig *next ;
+}CleanLineConfig;
+
+
+typedef struct
+{
+	struct CleanLineConfig *lines ;
+	struct FreeStorageElem *more_stuff;
+
+}CleanConfig;
+
+CleanConfig *CreateCleanConfig ();
+CleanConfig *ParseCleanOptions (const char *filename, char *myname);
+int WriteCleanOptions (const char *filename, char *myname,
+			 CleanConfig * config, unsigned long flags);
+void DestroyCleanConfig (CleanConfig * config);
+
+/**************************************************************************/
+/***************************************************************************/
 /*                        Audio pasring definitions                 */
 /***************************************************************************/
 /***************************************************************************/
@@ -2036,7 +2069,7 @@ void DestroyAnimateConfig (AnimateConfig * config);
 #define	AFTERSTEP_EVENTS_NUM 		20
 
 
-#define EVENT_ID_START          		(ANIMATE_ID_END+1)
+#define EVENT_ID_START          		(CLEAN_ID_END+1)
 
 #define EVENT_WindowAdded_ID            (EVENT_ID_START+EVENT_WindowAdded)
 #define EVENT_WindowNames_ID            (EVENT_ID_START+EVENT_WindowNames)    		
