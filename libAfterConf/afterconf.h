@@ -41,6 +41,7 @@ extern struct SyntaxDef      AlignSyntax;
 extern struct SyntaxDef     *BevelSyntaxPtr;
 
 /* All top level syntax definitions are listed below : */
+extern struct SyntaxDef      ArrangeSyntax;  /* really is an empty syntax */  
 extern struct SyntaxDef      AnimateSyntax;
 extern struct SyntaxDef      AudioSyntax;
 extern struct SyntaxDef      BaseSyntax;

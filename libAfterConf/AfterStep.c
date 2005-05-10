@@ -49,6 +49,26 @@ SyntaxDef     DummyPopupFuncSyntax = {
 	NULL,	0
 };
 
+TermDef       DummyTerms[] =
+{
+    {0, NULL, 0, 0, 0}
+};
+
+
+SyntaxDef     ArrangeSyntax = {
+	'\n',
+	'\0',
+	DummyTerms,
+	0,										   /* use default hash size */
+    ' ',
+	"",
+	"\t",
+	"Module:Arrange",
+	"Arrange",
+	"AfterStep module for arranging windows in a tiling or cascading order",
+	NULL,
+	0
+};
 
 
 

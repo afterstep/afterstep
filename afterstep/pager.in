@@ -54,7 +54,7 @@ BalloonBorderHilite	Right,Bottom
 *PagerLabel          2       Mail
 *PagerLabel          3       Games
 *PagerRows	     @with_desktops@
-*PagerColumns        1
+*PagerColumns        2
 
 # use this options to override global look : 
 #*PagerShadeButton	 	default-shade-dark 		 default-shade-dark-pressed

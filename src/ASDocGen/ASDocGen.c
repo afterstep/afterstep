@@ -51,6 +51,7 @@ SyntaxDef* TopLevelSyntaxes[] =
 	&WinTabsSyntax,
     &AnimateSyntax,
     &AudioSyntax,
+	&ArrangeSyntax,
 	NULL
 };	 
 
