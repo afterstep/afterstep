@@ -158,7 +158,7 @@ void close_current_tab();
 Bool unswallow_current_tab();
 Bool unswallow_tab(int t);
 void  update_focus();
-void handle_tab_name_change( ASEvent *event );
+Bool handle_tab_name_change( Window client );
 
 /* above function may also return : */
 #define BANNER_TAB_INDEX -1		   
@@ -713,7 +713,7 @@ DispatchEvent (ASEvent * event)
             	}
 			}else if( IsNameProp(event->x.xproperty.atom) )
 			{                  /* Maybe name change on the client !!! */
-				handle_tab_name_change( event );				 		
+				handle_tab_name_change( event->w );				 		
 				
 			}	 
 			break;
@@ -1343,7 +1343,8 @@ do_swallow_window( ASWindowData *wd )
     
     select_tab( PVECTOR_USED(WinTabsState.tabs)-1 );
 
-    rearrange_tabs( False );
+	if( !handle_tab_name_change( wd->client ) )
+	    rearrange_tabs( False );
 
     ASSync(False);
     ungrab_server();
@@ -1524,15 +1525,16 @@ update_focus()
 	}	
 }	 
 
-void handle_tab_name_change( ASEvent *event )
+Bool handle_tab_name_change( Window client)
 {
     int tabs_num  =  PVECTOR_USED(WinTabsState.tabs);
     ASWinTab *tabs = PVECTOR_HEAD(ASWinTab,WinTabsState.tabs);
 	int i ;
+	Bool changed = False ;
 
 	for( i = 0 ; i < tabs_num ; ++i ) 
 	{
-		if( tabs[i].client == event->w  )
+		if( tabs[i].client == client  )
 			break;	  
 	}	 
 	
@@ -1561,6 +1563,7 @@ void handle_tab_name_change( ASEvent *event )
 						tabs[i].name_encoding = clean.names_encoding[0] ;
 						set_tab_title( &(tabs[i]) );
 						rearrange_tabs( False );
+						changed = True ;
 					}	 
 				}	 
 				destroy_hints( &clean, True );
@@ -1570,5 +1573,6 @@ void handle_tab_name_change( ASEvent *event )
 		destroy_hints_list( &list );		
 
 	}	 
+	return changed ;
 }	 
 
