@@ -2110,6 +2110,7 @@ check_swallow_window( ASWindowData *wd )
 	Bool withdraw_btn ;
     ASCanvas *nc ;
     int swidth, sheight ;
+	Window icon_w = None ;
 
     if( wd == NULL && !get_flags( wd->state_flags, AS_Mapped))
         return;
@@ -2168,14 +2169,26 @@ check_swallow_window( ASWindowData *wd )
     sleep_a_millisec(100);
 	grab_swallowed_canvas_btns( nc, aswb, withdraw_btn );
 
-    if( get_flags( wd->flags, AS_ClientIcon ) && !get_flags( wd->flags, AS_ClientIconPixmap) &&
-		wd->icon != None )
+    if( get_flags( wd->flags, AS_ClientIcon ) && !get_flags( wd->flags, AS_ClientIconPixmap) )
+		icon_w = wd->icon ;
+	else if( get_flags( wd->flags, AS_WMDockApp ) ) 
+	{
+		XWMHints *wm_hints ;
+		if ((wm_hints = XGetWMHints (dpy, wd->client)) != NULL)
+		{
+			if( get_flags (wm_hints->flags, IconWindowHint) )
+				icon_w = wm_hints->icon_window ;
+			XFree (wm_hints);
+		}	
+	}
+
+	if( icon_w != None ) 
     {
-        ASCanvas *ic = create_ascanvas_container( wd->icon );
+        ASCanvas *ic = create_ascanvas_container( icon_w );
         aswb->swallowed->iconic = ic;
-        XReparentWindow( dpy, wd->icon, aswb->canvas->w, (aswb->canvas->width-ic->width)/2, (aswb->canvas->height-ic->height)/2 );
-        register_object( wd->icon, (ASMagic*)aswb );
-        XSelectInput (dpy, wd->icon, StructureNotifyMask);
+        XReparentWindow( dpy, icon_w, aswb->canvas->w, (aswb->canvas->width-ic->width)/2, (aswb->canvas->height-ic->height)/2 );
+        register_object( icon_w, (ASMagic*)aswb );
+        XSelectInput (dpy, icon_w, StructureNotifyMask);
 		ASSync(False);
 		grab_swallowed_canvas_btns( ic, aswb, withdraw_btn );
     }
@@ -2192,7 +2205,7 @@ check_swallow_window( ASWindowData *wd )
 		}
 	}
     handle_canvas_config( aswb->swallowed->current );
-    LOCAL_DEBUG_OUT( "client(%lX)->icon(%lX)->current(%lX)", wd->client, wd->icon, aswb->swallowed->current->w );
+    LOCAL_DEBUG_OUT( "client(%lX)->icon(%lX)->current(%lX)", wd->client, icon_w, aswb->swallowed->current->w );
 
     if( get_flags( aswb->flags, ASW_MaxSwallow ) ||
 		(Config->force_size.width == 0 && !get_flags(aswb->flags, ASW_FixedWidth)))
