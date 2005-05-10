@@ -72,6 +72,7 @@
 #define ARRANGE_MaxWidth_Set	(0x01<<16)
 #define ARRANGE_MaxHeight_Set	(0x01<<17)
 #define ARRANGE_Tile_Horizontally	(0x01<<18)
+#define ARRANGE_AllDesks                (0x01<<19)
 
 struct ASArrangeState
 {
@@ -285,6 +286,8 @@ main( int argc, char **argv )
 				++i ;
 				ArrangeState.count = atoi( argv[i] );
 			}
+			else if( mystrcasecmp( argv[i], "-alldesks") == 0)
+			  set_flags(ArrangeState.flags, ARRANGE_AllDesks);
 		}							   
 	}
 
@@ -365,9 +368,19 @@ window_is_suitable(ASWindowData *wd)
 	if( !get_flags( ArrangeState.flags, ARRANGE_Maximized ) && get_flags( wd->state_flags, AS_MaximizedX|AS_MaximizedY ) )
 		return False;
 		
-	/* If we only want to arrange windows on current desktop and
-	   window is not on current desktop */
-	if( get_flags( ArrangeState.flags, ARRANGE_Desk ) && (wd->desk != Scr.CurrentDesk))
+	/* return if window is not on current desk and we don't want
+	   to arrange windows of all desks. */
+	if( !get_flags( ArrangeState.flags, ARRANGE_AllDesks) && (wd->desk != Scr.CurrentDesk) )
+		return False;
+
+	/* return if window is not on current screen and we don't want
+	   to arrange windows on the whole desk. */
+	if( !get_flags( ArrangeState.flags, ARRANGE_Desk) &&
+	     (  ( wd->frame_rect.x < Scr.Vx )
+	     || ( wd->frame_rect.y < Scr.Vy )
+	     || ( wd->frame_rect.x > (Scr.MyDisplayWidth + Scr.Vx) )
+	     || ( wd->frame_rect.y > (Scr.MyDisplayHeight + Scr.Vy) ))
+	  )
 		return False;
 
 	/* Passed all tests. You're in. */
@@ -423,7 +436,10 @@ process_message (send_data_type type, send_data_type *body)
 		}
 	}else if( type == M_NEW_DESKVIEWPORT )
 	{
+		LOCAL_DEBUG_OUT("M_NEW_DESKVIEWPORT(desk = %ld,Vx=%ld,Vy=%ld)", body[2], body[0], body[1]);
 		Scr.CurrentDesk = body[2];
+		Scr.Vx = body[0];
+		Scr.Vy = body[1];
 	}
 }
 
