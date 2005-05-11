@@ -273,7 +273,7 @@ CommandLineOpts as_standard_cmdl_options[STANDARD_CMDL_OPTS_NUM] =
 /* 2*/{"h", "help",    "Display uasge information and stop",   NULL, handler_show_info, NULL, SHOW_USAGE},
 /* 3*/{NULL,"debug",   "Debugging: Run in Synchronous mode",  NULL, handler_set_flag, &(as_app_args.flags), ASS_Debugging},
 /* 4*/{"s", "single",  "Run on single screen only", NULL, handler_set_flag, &(as_app_args.flags), ASS_SingleScreen},
-/* 5*/{"r", "restart", "Run as if it was restarted","same as regular startup, only runs RestartFunction\ninstead of InitFunction",
+/* 5*/{"r", "restart", "Run as if it was restarted","same as regular startup, only \nruns RestartFunctioninstead of InitFunction",
                                                            handler_set_flag, &(as_app_args.flags), ASS_Restarting},
 #define OPTION_HAS_ARGS     6
 /* 6*/{"d", "display", "Specify what X display we should connect to","Overrides $DISPLAY environment variable",
@@ -300,11 +300,11 @@ CommandLineOpts as_standard_cmdl_options[STANDARD_CMDL_OPTS_NUM] =
 /*16*/{NULL, "trace-func","Debugging: Trace calls to a function with requested name", NULL,
                                                            handler_set_string, &(as_app_args.trace_calls), 0, CMO_HasArgs },
 #endif
-/*17*/{"l", "log","Save all output into the file instead of printing it to console", NULL,
+/*17*/{"l", "log","Save all output into the file", "(instead of printing it to console)",
                                                            handler_set_string, &(as_app_args.log_file), 0, CMO_HasArgs },
-/*18*/{"L", "locale","Set language locale to be used while displaying text", NULL,
+/*18*/{"L", "locale","Set language locale", "to be used while displaying text",
                                                            handler_set_string, &(as_app_args.locale), 0, CMO_HasArgs },
-/*19*/{NULL, "myname","Overrides module name to be used while parsing config files and reporting to AfterStep", NULL,
+/*19*/{NULL, "myname","Overrides module name", "will be used while parsing config files\nand reporting to AfterStep",
                                                            handler_set_string, &(MyName), 0, CMO_HasArgs },
 /*20*/{NULL, "geometry","Overrides module's geometry", NULL,
                                                            handler_set_geometry, &(as_app_args.geometry), 0, CMO_HasArgs },

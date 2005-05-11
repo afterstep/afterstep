@@ -148,13 +148,21 @@ PagerConfig *Config = NULL;
 int Rows_override = 0 ;
 int Columns_override = 0 ;
 
+CommandLineOpts Pager_cmdl_options[3] =
+{
+	{NULL, "rows","Overrides module's layout rows", NULL, handler_set_int, &Rows_override, 0, CMO_HasArgs },
+	{NULL, "cols","Overrides module's layout cols", NULL, handler_set_int, &Columns_override, 0, CMO_HasArgs },
+    {NULL, NULL, NULL, NULL, NULL, NULL, 0 }
+};
+
 
 void
 pager_usage (void)
 {
-	printf ("Usage:\n"
-			"%s [--version] [--help] [--rows rows] [--cols cols] n m\n"
-			"%*s where desktops n through m are displayed\n", MyName, (int)strlen (MyName), MyName);
+	printf (OPTION_USAGE_FORMAT " [--rows rows] [--cols cols] n m\n", MyName );
+	print_command_line_opt("standard_options are ", as_standard_cmdl_options, ASS_Restarting);
+	print_command_line_opt("additional options are ", Pager_cmdl_options, 0);
+	printf("The last two numbers n and m define a range of desktops to be displayed.\n"); 
 	exit (0);
 }
 
@@ -188,7 +196,7 @@ main (int argc, char **argv)
 
     /* Save our program name - for error messages */
 	set_DeadPipe_handler(DeadPipe);
-    InitMyApp (CLASS_PAGER, argc, argv, pager_usage, NULL, 0 );
+    InitMyApp (CLASS_PAGER, argc, argv, pager_usage, NULL, ASS_Restarting );
 	LinkAfterStepConfig();
 
     memset( &PagerState, 0x00, sizeof(PagerState));

@@ -580,6 +580,9 @@ ASRawHints;
 /*                           Interface                                   */
 /*************************************************************************/
 /* low level */
+CARD32 read_extwm_desktop_val ( Window w);
+
+
 /* X Resources : */
 void init_xrm();
 void load_user_database();

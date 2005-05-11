@@ -1845,6 +1845,7 @@ void LoadColorScheme();                        /* high level easy to use functio
  *  *WinTabsStickyStyle      "style"
  *  *WinTabsUseSkipList      width
  *  *WinTabsPattern          0|1|2|3 <pattern>  # 0 - Name, 1 - icon, 2 - res_name, 3 - res_class
+ *  *WinTabsExcludePattern   0|1|2|3 <pattern>  # 0 - Name, 1 - icon, 2 - res_name, 3 - res_class
  *  *WinTabsAlign            Left,Right,Top,Bottom
  *  *WinTabsBevel            None,Left,Right,Top, Bottom, NoOutline
  *  *WinTabsFBevel           None,Left,Right,Top, Bottom, NoOutline
@@ -1874,6 +1875,8 @@ void LoadColorScheme();                        /* high level easy to use functio
 #define WINTABS_Spacing_ID              (WINTABS_ID_START+20)
 #define WINTABS_HSpacing_ID             (WINTABS_ID_START+21)
 #define WINTABS_VSpacing_ID             (WINTABS_ID_START+22)
+#define WINTABS_ExcludePattern_ID		(WINTABS_ID_START+23)
+#define WINTABS_AllDesks_ID				(WINTABS_ID_START+24)
 
 
 #define WINTABS_BALLOONS_ID             (WINTABS_ID_START+31)
@@ -1883,9 +1886,10 @@ void LoadColorScheme();                        /* high level easy to use functio
 
 typedef struct WinTabsConfig
 {
-#define WINTABS_UseSkipList		(0x01<<1)
+#define WINTABS_UseSkipList		(0x01<<0)
 #define WINTABS_HideWhenEmpty  	(0x01<<1)
-#define WINTABS_Geometry		(0x01<<2)
+#define WINTABS_AllDesks	  	(0x01<<2)
+#define WINTABS_Geometry		(0x01<<3)
 #define WINTABS_MaxRows			(0x01<<5)
 #define WINTABS_MaxColumns		(0x01<<6)
 #define WINTABS_MaxTabWidth     (0x01<<7)
@@ -1903,9 +1907,11 @@ typedef struct WinTabsConfig
 #define WINTABS_H_SPACING       (0x01<<18)
 #define WINTABS_V_SPACING       (0x01<<19)
 #define WINTABS_PatternType	    (0x01<<20)
+#define WINTABS_ExcludePatternType	    (0x01<<20)
 
-#define 	ASWT_UseSkipList	WINTABS_UseSkipList
-#define 	ASWT_HideWhenEmpty	WINTABS_HideWhenEmpty
+#define ASWT_UseSkipList	WINTABS_UseSkipList
+#define ASWT_HideWhenEmpty	WINTABS_HideWhenEmpty
+
 	ASFlagType	flags ;
 	ASFlagType	set_flags ;
     ASGeometry  geometry ;
@@ -1919,6 +1925,8 @@ typedef struct WinTabsConfig
 
 	ASNameTypes     pattern_type ; /* 0, 1, 2, 3 */
 	char 		   *pattern ;
+	ASNameTypes     exclude_pattern_type ; /* 0, 1, 2, 3 */
+	char 		   *exclude_pattern ;
     ASFlagType      name_aligment ;
     ASFlagType      fbevel, ubevel, sbevel ;
     int             ucm, fcm, scm;             /* composition methods */

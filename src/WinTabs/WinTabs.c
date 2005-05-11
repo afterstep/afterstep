@@ -77,6 +77,8 @@ typedef struct {
 
 #define ASWT_StateMapped	(0x01<<0)
 #define ASWT_StateFocused	(0x01<<1)
+#define ASWT_AllDesks		(0x01<<2)
+
 	ASFlagType flags ;
 
     Window main_window, tabs_window ;
@@ -84,6 +86,7 @@ typedef struct {
 	ASCanvas *tabs_canvas ;
 
 	wild_reg_exp *pattern_wrexp ;
+	wild_reg_exp *exclude_pattern_wrexp ;
 
 	ASVector *tabs ;
 
@@ -104,6 +107,8 @@ typedef struct {
 	MyButton close_button ; 
 	MyButton menu_button ;
 	MyButton unswallow_button ;
+
+	CARD32      my_desktop ;
 
 }ASWinTabsState ;
 
@@ -130,7 +135,7 @@ ASWinTabsState WinTabsState = { 0 };
 WinTabsConfig *Config = NULL ;
 /**********************************************************************/
 
-void CheckConfigSanity(const char *pattern_override);
+void CheckConfigSanity(const char *pattern_override, const char *exclude_pattern_override);
 void GetBaseOptions (const char *filename);
 void GetOptions (const char *filename);
 void HandleEvents();
@@ -167,14 +172,34 @@ Bool handle_tab_name_change( Window client );
 
 void DeadPipe(int);
 
+CommandLineOpts WinTabs_cmdl_options[4] =
+{
+	{NULL, "pattern","Overrides module's inclusion pattern", NULL, handler_set_string, NULL, 0, CMO_HasArgs },
+	{NULL, "exclude-pattern","Overrides module's exclusion pattern", NULL, handler_set_string, NULL, 0, CMO_HasArgs },
+	{NULL, "all-desks","Swallow windows from any desktop", NULL, handler_set_flag, NULL, 0, 0 },
+    {NULL, NULL, NULL, NULL, NULL, NULL, 0 }
+};
+
+
+void
+WinTabs_usage (void)
+{
+	printf (OPTION_USAGE_FORMAT " [--pattern <pattern>] [--exclude-pattern <pattern>] [--all-desks]\n", MyName );
+	print_command_line_opt("standard_options are ", as_standard_cmdl_options, ASS_Restarting);
+	print_command_line_opt("additional options are ", WinTabs_cmdl_options, 0);
+	exit (0);
+}
+
+
 int
 main( int argc, char **argv )
 {
     int i ;
 	char *pattern_override = NULL ;
+	char *exclude_pattern_override = NULL ;
 	/* Save our program name - for error messages */
 	set_DeadPipe_handler(DeadPipe);
-    InitMyApp (CLASS_GADGET, argc, argv, NULL, NULL, 0 );
+    InitMyApp (CLASS_GADGET, argc, argv, WinTabs_usage, NULL, ASS_Restarting );
 	LinkAfterStepConfig();
 
     set_signal_handler( SIGSEGV );
@@ -185,6 +210,10 @@ main( int argc, char **argv )
 		{ 	
 	    	if( strcmp( argv[i] , "--pattern" ) == 0 && i+1 < argc &&  argv[i+1] != NULL )
 				pattern_override = argv[i+1];
+	    	else if( strcmp( argv[i] , "--exclude-pattern" ) == 0 && i+1 < argc &&  argv[i+1] != NULL )
+				exclude_pattern_override = argv[i+1];
+			else if( strcmp( argv[i] , "--all-desks" ) == 0 || strcmp( argv[i] , "-alldesks" ) == 0 )
+				set_flags( WinTabsState.flags, ASWT_AllDesks );
 		}
 	}
 
@@ -200,7 +229,7 @@ main( int argc, char **argv )
     LoadBaseConfig ( GetBaseOptions);
 	LoadColorScheme();
 	LoadConfig ("wintabs", GetOptions);
-    CheckConfigSanity(pattern_override);
+    CheckConfigSanity(pattern_override, exclude_pattern_override);
 
 	SendInfo ("Send_WindowList", 0);
 
@@ -297,7 +326,7 @@ retrieve_wintabs_astbar_props()
 }	 
 
 void
-CheckConfigSanity(const char *pattern_override)
+CheckConfigSanity(const char *pattern_override, const char *exclude_pattern_override)
 {
     
 	int i ;
@@ -317,13 +346,28 @@ CheckConfigSanity(const char *pattern_override)
 			free( Config->pattern );
 		Config->pattern = mystrdup(pattern_override);
 	}
+	if( exclude_pattern_override ) 
+	{	
+		if( Config->exclude_pattern )
+			free( Config->exclude_pattern );
+		Config->exclude_pattern = mystrdup(exclude_pattern_override);
+	}
+
 	if( Config->pattern != NULL )
 	{
 		WinTabsState.pattern_wrexp = compile_wild_reg_exp( Config->pattern ) ;
+		if( Config->exclude_pattern )
+		{
+LOCAL_DEBUG_OUT( "exclude_pattern = \"%s\"", Config->exclude_pattern );
+			WinTabsState.exclude_pattern_wrexp = compile_wild_reg_exp( Config->exclude_pattern ) ;
+		}
 	}else
 	{
 		show_warning( "Empty Pattern requested for windows to be captured and tabbed - will wait for swallow command");
 	}
+
+	if( get_flags(Config->flags, WINTABS_AllDesks ) )
+		set_flags( WinTabsState.flags, ASWT_AllDesks );		
 
     if( !get_flags(Config->geometry.flags, WidthValue) )
 		Config->geometry.width = 640 ;
@@ -478,9 +522,6 @@ send_swallowed_configure_notify(ASWinTab *aswt)
     }
 }
 
-
-
-
 void
 process_message (unsigned long type, unsigned long *body)
 {
@@ -498,9 +539,10 @@ process_message (unsigned long type, unsigned long *body)
         LOCAL_DEBUG_OUT( "message %lX window %lX data %p", type, body[0], wd );
         res = handle_window_packet( type, body, &wd );
         LOCAL_DEBUG_OUT( "\t res = %d, data %p", res, wd );
-        if( res == WP_DataCreated || res == WP_DataChanged )
+        if( (res == WP_DataCreated || res == WP_DataChanged) && WinTabsState.pattern_wrexp != NULL )
         {
-            check_swallow_window( wd );
+			if( wd->window_name != NULL )  /* must wait for all the names transferred */ 
+            	check_swallow_window( wd );
         }else if( res == WP_DataDeleted )
         {
             LOCAL_DEBUG_OUT( "client deleted (%p)->window(%lX)->desk(%d)", saved_wd, saved_w, saved_desk );
@@ -539,6 +581,15 @@ on_tabs_canvas_config()
     }    
 	return tabs_changes;    
 }	 
+
+Bool
+recheck_swallow_windows(void *data, void *aux_data)
+{
+	ASWindowData *wd = (ASWindowData *)data;
+	check_swallow_window( wd );			
+	return True;
+}
+
 
 void
 DispatchEvent (ASEvent * event)
@@ -684,7 +735,7 @@ DispatchEvent (ASEvent * event)
                 	LOCAL_DEBUG_OUT( "AS Styles updated!%s","");
 					mystyle_list_destroy_all(&(Scr.Look.styles_list));
 					LoadColorScheme();
-					CheckConfigSanity(NULL);
+					CheckConfigSanity(NULL, NULL);
 					/* now we need to update everything */
                             
                 	while( --i >= 0 ) 
@@ -714,8 +765,18 @@ DispatchEvent (ASEvent * event)
 			}else if( IsNameProp(event->x.xproperty.atom) )
 			{                  /* Maybe name change on the client !!! */
 				handle_tab_name_change( event->w );				 		
-				
-			}	 
+			}else if(   event->x.xproperty.atom == _XA_NET_WM_DESKTOP && 
+						event->w == WinTabsState.main_window && 
+						!get_flags( WinTabsState.flags, ASWT_AllDesks )) 
+			{
+				CARD32 new_desk = read_extwm_desktop_val(WinTabsState.main_window);
+				if( WinTabsState.my_desktop != new_desk )
+				{	
+					WinTabsState.my_desktop = new_desk ;
+					if( WinTabsState.pattern_wrexp != NULL ) 
+						iterate_window_data( recheck_swallow_windows, NULL);
+				}
+			}
 			break;
 		default:
 #ifdef XSHMIMAGE
@@ -1361,6 +1422,17 @@ Bool check_swallow_name( char *name )
 	return False ;
 }
 
+Bool check_no_swallow_name( char *name ) 
+{	
+	LOCAL_DEBUG_OUT( "name = \"%s\", excl_wrexp = %p", name, WinTabsState.exclude_pattern_wrexp );
+	if( name && WinTabsState.exclude_pattern_wrexp) 
+	{		   	
+		if( match_wild_reg_exp( name, WinTabsState.exclude_pattern_wrexp) == 0 )
+			return True;
+	}
+	return False ;
+}
+
 void
 check_swallow_window( ASWindowData *wd )
 {
@@ -1380,6 +1452,10 @@ check_swallow_window( ASWindowData *wd )
 		if( aswt[i].client == wd->client )
 			return ;
 
+	if( !get_flags( WinTabsState.flags, ASWT_AllDesks ) )
+		if( read_extwm_desktop_val( wd->client ) != WinTabsState.my_desktop ) 
+			return ;
+
 	/* now lets try and match its name : */
 	LOCAL_DEBUG_OUT( "name(\"%s\")->icon_name(\"%s\")->res_class(\"%s\")->res_name(\"%s\")",
                      wd->window_name, wd->icon_name, wd->res_class, wd->res_name );
@@ -1394,6 +1470,20 @@ check_swallow_window( ASWindowData *wd )
 			!check_swallow_name( wd->icon_name ) && 
 			!check_swallow_name( wd->res_class ) && 
 			!check_swallow_name( wd->res_name ) )
+		{
+			return;
+		}		   
+	}	 
+	if( get_flags( Config->set_flags, WINTABS_ExcludePatternType ) )
+	{	
+		if( check_no_swallow_name(get_window_name( wd, Config->exclude_pattern_type, &encoding )) )
+			return ;
+	}else
+	{
+		if( check_no_swallow_name( wd->window_name ) ||
+			check_no_swallow_name( wd->icon_name ) || 
+			check_no_swallow_name( wd->res_class ) || 
+			check_no_swallow_name( wd->res_name ) )
 		{
 			return;
 		}		   

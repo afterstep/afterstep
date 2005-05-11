@@ -42,6 +42,7 @@ TermDef       WinTabsTerms[] = {
     {0, "MaxTabWidth", 11, TT_INTEGER, WINTABS_MaxTabWidth_ID, NULL},
     {0, "MinTabWidth", 11, TT_INTEGER, WINTABS_MinTabWidth_ID, NULL},
     {TF_INDEXED, "Pattern", 7, TT_QUOTED_TEXT, WINTABS_Pattern_ID, NULL},
+    {TF_INDEXED, "ExcludePattern", 14, TT_QUOTED_TEXT, WINTABS_ExcludePattern_ID, NULL},
     {0, "Align", 5, TT_FLAG, WINTABS_Align_ID, &AlignSyntax},
     {0, "Bevel", 5, TT_FLAG, WINTABS_Bevel_ID, &BevelSyntax},
     {0, "FBevel", 6, TT_FLAG, WINTABS_FBevel_ID, &BevelSyntax},
@@ -62,6 +63,7 @@ TermDef       WinTabsTerms[] = {
     {0, "FocusedStyle", 12, TT_TEXT, WINTABS_FocusedStyle_ID, NULL},
     {0, "StickyStyle", 11, TT_TEXT, WINTABS_StickyStyle_ID, NULL},
     {0, "UseSkipList", 11, TT_FLAG, WINTABS_UseSkipList_ID, NULL},
+    {0, "AllDesks", 8, TT_FLAG, WINTABS_AllDesks_ID, NULL},
 /* including MyStyles definitions processing */
 	INCLUDE_MYSTYLE,
 
@@ -200,6 +202,9 @@ ParseWinTabsOptions (const char *filename, char *myname)
                 case WINTABS_UseSkipList_ID:
                     SET_CONFIG_FLAG (config->flags, config->set_flags, WINTABS_UseSkipList);
                     break;
+                case WINTABS_AllDesks_ID:
+                    SET_CONFIG_FLAG (config->flags, config->set_flags, WINTABS_AllDesks);
+                    break;
                 case WINTABS_Align_ID :
                     set_flags( config->set_flags, WINTABS_Align );
                     config->name_aligment = ParseAlignOptions( pCurr->sub );
@@ -253,6 +258,12 @@ ParseWinTabsOptions (const char *filename, char *myname)
                     LOCAL_DEBUG_OUT( "old_pattern = %p, new pattern = %s", config->pattern, item.data.string );
 		set_string_value( &(config->pattern), item.data.string, 
 				  &(config->set_flags), WINTABS_PatternType );
+                    break;
+                case WINTABS_ExcludePattern_ID:
+                    config->exclude_pattern_type = item.index % ASN_NameTypes;
+                    LOCAL_DEBUG_OUT( "old_excl_pattern = %p, new excl_pattern = %s", config->exclude_pattern, item.data.string );
+					set_string_value( &(config->exclude_pattern), item.data.string, 
+				  &(config->set_flags), WINTABS_ExcludePatternType );
                     break;
                 case WINTABS_UnfocusedStyle_ID:
                     REPLACE_STRING (config->unfocused_style, item.data.string);

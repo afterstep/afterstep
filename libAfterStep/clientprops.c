@@ -578,6 +578,16 @@ read_extwm_desktop (ASRawHints * hints, Window w)
 	}
 }
 
+CARD32
+read_extwm_desktop_val ( Window w)
+{
+	CARD32 val = 0;
+	if ( w != None)
+		read_32bit_property (w, _XA_NET_WM_DESKTOP, &val);
+	return val;
+}
+
+
 void
 read_extwm_window_type (ASRawHints * hints, Window w)
 {
