@@ -165,7 +165,10 @@ main( int argc, char **argv )
 
     /* Check the Name of the Program to see wether to tile or cascade*/
 	if( mystrcasecmp( MyName , "Tile" ) == 0 )
+	{
 		set_flags( ArrangeState.flags, ARRANGE_Tile	);
+		set_flags( ArrangeState.flags, ARRANGE_Resize);
+	}
 
 	for( i = 1 ; i< argc ; ++i)
 	{
@@ -235,7 +238,11 @@ main( int argc, char **argv )
 			{
 				/* Causes all windows on the desk to be cascaded instead of the current screen only. */
 				set_flags( ArrangeState.flags, ARRANGE_Desk );
-			}else if( mystrcasecmp( argv[i], "-flatx" ) == 0 )
+			}else if( mystrcasecmp( argv[i], "-alldesks") == 0)
+			{
+				set_flags(ArrangeState.flags, ARRANGE_AllDesks);
+			}
+			else if( mystrcasecmp( argv[i], "-flatx" ) == 0 )
 			{
 				/* Inhibits border width increment. */
 				set_flags( ArrangeState.flags, ARRANGE_FlatX );
@@ -275,8 +282,14 @@ main( int argc, char **argv )
 			{ 
 				/* Forces all windows to resize to the constrained width and height (if given). */
 				set_flags( ArrangeState.flags, ARRANGE_Resize );
+			}else if( mystrcasecmp( argv[i], "-noresize") == 0)
+			{
+				clear_flags( ArrangeState.flags, ARRANGE_Resize );
 			}else if( mystrcasecmp( argv[i], "-tile") == 0 )
+			{
 				set_flags( ArrangeState.flags, ARRANGE_Tile	);
+				set_flags(ArrangeState.flags, ARRANGE_Resize );
+			}
 			/* these applies to tiling only : */    
 			else if( mystrcasecmp( argv[i], "-mn") == 0 && i+1 < argc )
 			{
@@ -286,8 +299,7 @@ main( int argc, char **argv )
 				++i ;
 				ArrangeState.count = atoi( argv[i] );
 			}
-			else if( mystrcasecmp( argv[i], "-alldesks") == 0)
-			  set_flags(ArrangeState.flags, ARRANGE_AllDesks);
+			
 		}							   
 	}
 
@@ -497,10 +509,11 @@ tile_window(void *data, void *aux_data)
 	SendNumCommand ( F_MOVE, NULL, &(vals[0]), &(units[0]), wd->client );
 
 	
-	/* Resize window */
+	/* Resize window if allowed*/
 	vals[0] = ArrangeState.tile_width ; 
 	vals[1] = ArrangeState.tile_height ;
-	SendNumCommand ( F_RESIZE, NULL, &(vals[0]), &(units[0]), wd->client );
+	if( get_flags(ArrangeState.flags, ARRANGE_Resize ))
+	  SendNumCommand ( F_RESIZE, NULL, &(vals[0]), &(units[0]), wd->client );
 	
 
 	/* Transfer window onto CurrentDesk */
@@ -618,7 +631,8 @@ cascade_window(void *data, void *aux_data)
 		
 		vals[0] = ArrangeState.max_width ; 
 		vals[1] = ArrangeState.max_height ;
-		SendNumCommand ( F_RESIZE, NULL, &(vals[0]), &(units[0]), wd->client );
+		if( get_flags( ArrangeState.flags, ARRANGE_Resize) )
+		  SendNumCommand ( F_RESIZE, NULL, &(vals[0]), &(units[0]), wd->client );
 	}
 
 
