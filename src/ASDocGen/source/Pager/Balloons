@@ -1,6 +1,11 @@
 <varlistentry id="options.Balloons">
 	<term>Balloons</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Turns on the balloon feature. A "balloon" is displayed showing
+		the name of the window the pointer is resting on in the <command>Pager</command>.
+		Currently only the window's icon name is shown. Note that balloons are
+		not shown for the iconified pager. The balloon background and text are
+		configured with the MyStyle "*PagerBalloon".</para>
+		<para>See Also: <ulink="MyStyle">MyStyle definition</ulink> for details.</para>
 	</listitem>
 </varlistentry>

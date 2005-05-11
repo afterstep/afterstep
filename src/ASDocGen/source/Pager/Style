@@ -1,5 +1,5 @@
 <varlistentry id="options.Style">
-	<term>Style</term>
+	<term>Style <emphasis remap='I'>desk style</emphasis></term>
 	<listitem>
 		<para>Sets  the  style  to be used for the desk desk representation in
 		the Pager. Where style can be the name of any  style  definition

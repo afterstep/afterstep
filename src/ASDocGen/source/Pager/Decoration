@@ -1,7 +1,10 @@
 <varlistentry id="options.Decoration">
-	<term>Decoration</term>
+	<term>Decoration <emphasis remap='I'>param1[,param2[,...]]</emphasis></term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Allows you to decorate your pager to your liking.
+		The following parameters can be specified : NoDeskLabel, NoPageSeparator,
+		NoSelection, SelectionColor, GridColor, DeskBorderWidth, DeskBorderColor,
+		LabelBelowDesk, HideInactiveLabels, VerticalLabel.</para>
 		<para>See Also: <ulink url="PagerDecorations#synopsis">Pager Decoration options</ulink> for further details.</para>
 	</listitem>
 </varlistentry>

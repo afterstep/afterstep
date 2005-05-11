@@ -1,6 +1,6 @@
 <varlistentry id="options.Title">
       <term><emphasis remap='I'>Title</emphasis></term>
       <listitem>
-<para>Specifies that <command>afterstep</command> should put a title bar decoration on the app. The is the default.</para>
+<para>Specifies that <command>afterstep</command> should put a title bar decoration on the app. This the default.</para>
       </listitem>
 </varlistentry>
