@@ -50,13 +50,13 @@
 #*Wharf term aterm Exec "-" aterm -tr -tint blue -fg yellow -bg black &
 
 *Wharf term rxvt  Exec "-" rxvt  -tr -fg yellow -bg black &
-*Wharf term eterm Exec "-" eterm -O --tint blue -fg yellow -bg black &
+*Wharf term eterm Exec "-" Eterm -O --tint blue -fg yellow -bg black &
 *Wharf term xterm Exec "-" xterm -fg yellow -bg blue &
 
 #
 # Midnight commander file manager in the term of choice :
 #
-*Wharf MidnightCommander normal/MCInMonitorShadow ExecInTerm "-" -g 130x35 if(aterm){-tr -tint blue} if(eterm){-O --tint blue) if(rxvt){-tr} -e mc --colors directory=,default:executable=,default:link=,default:device=,default:special=,default:normal=,default:selected=,transparent:marked=yellow,default &
+*Wharf MidnightCommander normal/MCInMonitorShadow ExecInTerm "-" -g 130x35 if(aterm){-tr -tint blue} if(Eterm){-O --tint blue) if(rxvt){-tr} -e mc --colors directory=,default:executable=,default:link=,default:device=,default:special=,default:normal=,default:selected=,transparent:marked=yellow,default &
 
 #
 # First available GUI file manager :
@@ -75,16 +75,19 @@
 #
 # First available GUI Web Browser :
 #
+*Wharf WebBrowser normal/WWW    Exec x-www-browser &
 *Wharf WebBrowser logos/Firefox Exec "Firefox" firefox &
 *Wharf WebBrowser logos/Firefox Exec "Firefox2" mozilla-firefox &
 *Wharf WebBrowser logos/mozilla Exec "Mozilla" mozilla &
 *Wharf WebBrowser logos/Opera   Exec "Opera Web Browser" opera &
+*Wharf WebBrowser normal/WWW    Exec sensible-browser &
 
 #
 # First available GUI e-mail client :
 #
-*Wharf Mail	normal/MailBox2 Exec "kmail" kmail &
 *Wharf Mail	normal/MailBox2 Exec "mozilla-mail" mozilla --mail &
+*Wharf Mail	normal/MailBox2 Exec "mozilla-thunderbird"  mozilla-thunderbird &
+*Wharf Mail	normal/MailBox2 Exec "kmail" kmail &
 *Wharf Mail	normal/MailBox2 Exec "balsa" balsa &
 *Wharf Mail	normal/MailBox2 ExecInTerm "Pine" -title "Pine e-mail and news reader" -e pine &
 
@@ -98,9 +101,10 @@
 #
 # First available GUI text editor :
 #
+*Wharf TextEditor Text.xpm Exec "NEdit" nedit &
 *Wharf TextEditor Text.xpm Exec "cooledit" cooledit --look next &
 *Wharf TextEditor logos/GNU Exec "XEmacs" xemacs &
-*Wharf TextEditor Text.xpm Exec "VIM" vim &
+*Wharf TextEditor Text.xpm Exec "VIM" gvim &
 
 #
 # First available Word processor :
@@ -120,7 +124,7 @@
 #
 # First available IRC client :
 #
-*Wharf IRC	normal/IRCTransparent ExecInTerm "BitchX" -title "BitchX IRC" +sb if(aterm){-tr -sh 50 -fg white -bg black} if(eterm){-O --shade 50 -f white -b black) if(rxvt){-tr -fg white -bg black} if(xterm){-fg white -bg black} -e BitchX irc.freenode.net &
+*Wharf IRC	normal/IRCTransparent ExecInTerm "BitchX" -title "BitchX IRC" +sb if(aterm){-tr -sh 50 -fg white -bg black} if(Eterm){-O --shade 50 -f white -b black) if(rxvt){-tr -fg white -bg black} if(xterm){-fg white -bg black} -e BitchX irc.freenode.net &
 *Wharf IRC  	normal/IRCTransparent Exec "XCHAT" xchat &
 
 #
@@ -206,6 +210,7 @@
 
 *MonitorWharf asfsm - Swallow "asfsm_lite" asfsm_lite -bg Grey30 -fg Grey70 -bp None -pbg Grey40 -pfg Grey70 -pbp None -i 30 &
 *MonitorWharf loadmonitor - Swallow "asload" asload -shape -exe "aterm -e top" &
+*MonitorWharf loadmonitor - Swallow "wmavgload" wmavgload -shape -led red &
 *MonitorWharf loadmonitor - Swallow "wmcpuload" wmcpuload -bl -w &
 *MonitorWharf asmon  - Swallow "asmon" asmon &
 *MonitorWharf wmtop  - Swallow "wmtop" wmtop &
@@ -213,10 +218,14 @@
 *MonitorWharf asmail - Swallow "asmail" asmail -geometry +0+0 &
 
 # one of the clocks - first available :
-*MonitorWharf clock - Swallow "asclock" asclock -shape -12 -position +1+1 &
+*MonitorWharf clock - Swallow "asclock" asclock -shape -24 -position +1+1 &
+*MonitorWharf clock - Swallow "wmclockmon" wmclockmon &
+*MonitorWharf clock - Swallow "wmitime" wmitime &
 *MonitorWharf clock - Swallow "xclock" xclock -bg gray10 -fg cyan -digital -brief &
 *MonitorWharf clock - Exec "r" evolution &
 *MonitorWharf clock - Exec "r" korganizer &
+
+*MonitorWharf wmfire  - Swallow "wmfire" wmfire &
 
 #
 #  End of the MonitorWharf configuration

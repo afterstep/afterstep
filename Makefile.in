@@ -5,6 +5,8 @@ confsdirs= autoconf libAfterBase libAfterImage
 
 ####
 
+libdirs		= libAfterBase libAfterImage libAfterStep libAfterConf
+
 subdirs		= libAfterBase libAfterImage libAfterStep libAfterConf \
 		  src/afterstep \
 		  src/Animate \
@@ -38,6 +40,9 @@ subdirs		= libAfterBase libAfterImage libAfterStep libAfterConf \
 all:	AfterStep.desktop.final
 	@for I in ${subdirs}; do if [ -d $$I ]; then (cd $$I; ${MAKE} $@ || exit 1); fi; done
 
+libs:	AfterStep.desktop.final
+	@for I in ${libdirs} ; do if [ -d $$I ]; then (cd $$I; ${MAKE} $@ || exit 1); fi; done
+
 AfterStep.desktop.final:
 	@$(CP) AfterStep.desktop AfterStep.desktop.final; \
 	echo "Exec=$(AFTER_BIN_DIR)/afterstep" >> AfterStep.desktop.final ; \
@@ -68,7 +73,7 @@ install.bin: mkdir.bin
 	@for I in ${subdirs}; do if [ -d $$I ]; then (cd $$I; ${MAKE} install.bin || exit 1); fi; done
 
 install.lib: mkdir.lib
-	@for I in ${subdirs}; do if [ -d $$I ]; then (cd $$I; ${MAKE} install.lib || exit 1); fi; done
+	@for I in ${libdirs}; do if [ -d $$I ]; then (cd $$I; ${MAKE} install.lib || exit 1); fi; done
 
 install.man: mkdir.man
 	@for I in ${subdirs}; do if [ -d $$I ]; then (cd $$I; ${MAKE} install.man || exit 1); fi; done

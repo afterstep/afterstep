@@ -46,6 +46,8 @@ Style   "wmmail"        NoTitle, Sticky, StaysOnTop, WindowListSkip, NoHandles
 Style   "wmmixer"       NoTitle, Sticky, StaysOnTop, WindowListSkip, NoHandles
 Style   "wmrack"        NoTitle, Sticky, StaysOnTop, WindowListSkip, NoHandles
 Style   "*term"         Icon linux-penguin.xpm
+Style   "*eterm"        Icon eterm
+Style   "*rxvt"         Icon rxvt
 Style   "aterm"         Icon aterm
 
 # Web browsers
