@@ -1,2 +1,2 @@
-Module "Tile" Arrange --myname Tile
+Module "Tile" Arrange --myname Tile -mn 2 
 MiniPixmap "mini-as.xpm"
