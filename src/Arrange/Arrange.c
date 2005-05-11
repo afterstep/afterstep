@@ -509,13 +509,19 @@ tile_window(void *data, void *aux_data)
 	SendNumCommand ( F_MOVE, NULL, &(vals[0]), &(units[0]), wd->client );
 
 	
-	/* Resize window if allowed*/
-	vals[0] = ArrangeState.tile_width ; 
-	vals[1] = ArrangeState.tile_height ;
-	if( get_flags(ArrangeState.flags, ARRANGE_Resize ))
-	  SendNumCommand ( F_RESIZE, NULL, &(vals[0]), &(units[0]), wd->client );
+	/* Make sure we don't stretch if ARRANGE_NoStretch was set */
+	if ( !( get_flags( ArrangeState.flags, ARRANGE_NoStretch) &&
+		(    (wd->frame_rect.width < ArrangeState.tile_width)
+		  || (wd->frame_rect.height < ArrangeState.tile_height)
+		 )))
+	{
+		/* Resize window if allowed*/
+		vals[0] = ArrangeState.tile_width ; 
+		vals[1] = ArrangeState.tile_height ;
+		if( get_flags(ArrangeState.flags, ARRANGE_Resize ))
+			SendNumCommand ( F_RESIZE, NULL, &(vals[0]), &(units[0]), wd->client );
+	}
 	
-
 	/* Transfer window onto CurrentDesk */
 	if( wd->desk != Scr.CurrentDesk )
 	{
@@ -624,15 +630,17 @@ cascade_window(void *data, void *aux_data)
 
 	if( get_flags( ArrangeState.flags, ARRANGE_Resize ) )
 	{
-		/* No-Stretch */
-		if ( get_flags( ArrangeState.flags, ARRANGE_NoStretch) &&
-		     (wd->frame_rect.width < ArrangeState.max_width))
-			return True;
-		
-		vals[0] = ArrangeState.max_width ; 
-		vals[1] = ArrangeState.max_height ;
-		if( get_flags( ArrangeState.flags, ARRANGE_Resize) )
-		  SendNumCommand ( F_RESIZE, NULL, &(vals[0]), &(units[0]), wd->client );
+		/* Make sure we don't stretch of ARRANGE_NoStretch was set */
+		if ( !( get_flags( ArrangeState.flags, ARRANGE_NoStretch) &&
+		       (    (wd->frame_rect.width < ArrangeState.max_width)
+		         || (wd->frame_rect.height < ArrangeState.max_height)
+		       )))
+		{
+			vals[0] = ArrangeState.max_width ; 
+			vals[1] = ArrangeState.max_height ;
+			if( get_flags( ArrangeState.flags, ARRANGE_Resize) )
+				SendNumCommand ( F_RESIZE, NULL, &(vals[0]), &(units[0]), wd->client );
+		}
 	}
 
 
