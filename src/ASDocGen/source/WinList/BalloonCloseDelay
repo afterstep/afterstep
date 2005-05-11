@@ -1,5 +1,5 @@
 <varlistentry id="options.BalloonCloseDelay">
-	<term>BalloonCloseDelay</term>
+	<term>BalloonCloseDelay <emphasis remap='I'>number</emphasis></term>
 	<listitem>
 		<para>Determines the delay in ms between when balloon is shown and
 		before it disapears.</para>

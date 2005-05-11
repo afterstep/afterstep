@@ -1,6 +1,6 @@
 <varlistentry id="options.WinListHideIcons">
 	<term>WinListHideIcons</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>When set, Icons in internal WindowList ( the window that pops up if you right click on root window) will not be shown.</para>
 	</listitem>
 </varlistentry>
