@@ -78,6 +78,7 @@ typedef struct {
 #define ASWT_StateMapped	(0x01<<0)
 #define ASWT_StateFocused	(0x01<<1)
 #define ASWT_AllDesks		(0x01<<2)
+#define ASWT_Transparent	(0x01<<3)
 
 	ASFlagType flags ;
 
@@ -203,6 +204,7 @@ main( int argc, char **argv )
 	LinkAfterStepConfig();
 
     set_signal_handler( SIGSEGV );
+	set_flags( WinTabsState.flags, ASWT_Transparent );  /* default */
     for( i = 1 ; i< argc ; ++i)
 	{
 		LOCAL_DEBUG_OUT( "argv[%d] = \"%s\", original argv[%d] = \"%s\"", i, argv[i], i, MyArgs.saved_argv[i]);	  
@@ -214,6 +216,8 @@ main( int argc, char **argv )
 				exclude_pattern_override = argv[i+1];
 			else if( strcmp( argv[i] , "--all-desks" ) == 0 || strcmp( argv[i] , "-alldesks" ) == 0 )
 				set_flags( WinTabsState.flags, ASWT_AllDesks );
+			else if( strcmp( argv[i] , "--transparent" ) == 0 || strcmp( argv[i] , "-tr" ) == 0 )
+				set_flags( WinTabsState.flags, ASWT_Transparent );
 		}
 	}
 
@@ -709,7 +713,24 @@ DispatchEvent (ASEvent * event)
         case DestroyNotify:
             on_destroy_notify(event->w);
             break;
-
+		case Expose :
+#if 1
+			{	  
+                int i = PVECTOR_USED(WinTabsState.tabs);
+                ASWinTab *tabs = PVECTOR_HEAD( ASWinTab, WinTabsState.tabs );
+				while( ASCheckTypedWindowEvent( event->w, Expose, &(event->x) ) );
+				while( --i >= 0 ) 
+				{	
+					if( event->w == tabs[i].frame_canvas->w ) 
+					{
+						XSetBackground(dpy, Scr.DrawGC, Scr.asv->black_pixel);
+						XFillRectangle(dpy, tabs[i].frame_canvas->w, Scr.DrawGC, 0, 0, tabs[i].frame_canvas->width, tabs[i].frame_canvas->height);
+						break;	
+					}	 
+				}
+			}
+#endif
+		    break ;
         case ClientMessage:
             if ( event->x.xclient.format == 32 )
 			{	
@@ -925,11 +946,22 @@ Window
 make_frame_window( Window parent )
 {
 	static XSetWindowAttributes attr ;
+	ASFlagType attr_mask ;
     Window w ;
 	attr.event_mask = SubstructureRedirectMask|FocusChangeMask ;
-	attr.background_pixel = Scr.asv->black_pixel;
-
-    w = create_visual_window( Scr.asv, parent, 0, 0, WinTabsState.win_width, WinTabsState.win_height, 0, InputOutput, CWEventMask|CWBackPixel, &attr );
+	attr_mask = CWEventMask ;
+	if( get_flags( WinTabsState.flags, ASWT_Transparent ) )
+	{
+		attr.background_pixmap = ParentRelative;
+		attr_mask |= CWBackPixmap ;
+		attr.event_mask |= ExposureMask ;
+		LOCAL_DEBUG_OUT( "Is transparent %s", "" );
+	}else
+	{		 
+		attr.background_pixel = Scr.asv->white_pixel;
+		attr_mask |= CWBackPixel ;
+	}
+    w = create_visual_window( Scr.asv, parent, 0, 0, WinTabsState.win_width, WinTabsState.win_height, 0, InputOutput, attr_mask, &attr );
     return w;
 }
 
@@ -1098,8 +1130,11 @@ moveresize_client( ASWinTab *aswt, int x, int y, int width, int height )
 
 	moveresize_canvas( aswt->frame_canvas, 0, y, frame_width, frame_height );    
     moveresize_canvas( aswt->client_canvas, (frame_width - width)/2, (frame_height - height)/2, width, height );
-	XSetWindowBackground( dpy, aswt->frame_canvas->w, Scr.asv->black_pixel );
-	XClearWindow( dpy, aswt->frame_canvas->w );
+	if( !get_flags( WinTabsState.flags, ASWT_Transparent ) )
+	{	
+		XSetWindowBackground( dpy, aswt->frame_canvas->w, Scr.asv->black_pixel );
+		XClearWindow( dpy, aswt->frame_canvas->w );
+	}
 }
 
 void
@@ -1399,7 +1434,7 @@ do_swallow_window( ASWindowData *wd )
     handle_canvas_config( nc );
 
 	map_canvas_window( aswt->frame_canvas, True );
-    map_canvas_window( nc, True );
+	map_canvas_window( nc, True );
     send_swallowed_configure_notify(aswt);
     
     select_tab( PVECTOR_USED(WinTabsState.tabs)-1 );
