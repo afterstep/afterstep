@@ -143,7 +143,8 @@ main( int argc, char **argv )
 {
 	int i ;
 	int nargc = 0 ;
-    /* Save our program name - for error messages */
+	Bool resize_touched = False;
+	/* Save our program name - for error messages */
 	set_DeadPipe_handler(DeadPipe);
     InitMyApp (CLASS_ARRANGE, argc, argv, NULL, NULL, OPTION_SINGLE|OPTION_RESTART );
 
@@ -282,13 +283,16 @@ main( int argc, char **argv )
 			{ 
 				/* Forces all windows to resize to the constrained width and height (if given). */
 				set_flags( ArrangeState.flags, ARRANGE_Resize );
+				resize_touched = True;
 			}else if( mystrcasecmp( argv[i], "-noresize") == 0)
 			{
 				clear_flags( ArrangeState.flags, ARRANGE_Resize );
+				resize_touched = True;
 			}else if( mystrcasecmp( argv[i], "-tile") == 0 )
 			{
 				set_flags( ArrangeState.flags, ARRANGE_Tile	);
-				set_flags(ArrangeState.flags, ARRANGE_Resize );
+				if(! resize_touched )
+					set_flags(ArrangeState.flags, ARRANGE_Resize );
 			}
 			/* these applies to tiling only : */    
 			else if( mystrcasecmp( argv[i], "-mn") == 0 && i+1 < argc )
