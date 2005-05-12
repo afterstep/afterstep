@@ -27,15 +27,12 @@ subdirs		= libAfterBase libAfterImage libAfterStep libAfterConf \
 
 #		  src/asetroot \
 #		  src/Audio \
-#		  src/Cascade \
 #		  src/Clean \
 #		  src/Form \
 #		  src/Gnome \
 #		  src/Save \
 #		  src/Scroll \
-#		  src/Sound \
-#		  src/Tile \
-#		  src/Zharf @SCRIPT_DIR@
+#		  src/Sound @SCRIPT_DIR@
 
 all:	AfterStep.desktop.final
 	@for I in ${subdirs}; do if [ -d $$I ]; then (cd $$I; ${MAKE} $@ || exit 1); fi; done

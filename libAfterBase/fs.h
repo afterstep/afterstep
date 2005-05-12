@@ -27,6 +27,7 @@ int my_scandir (char *, struct direntry *(*[]), int (*select) (const char *),
 		my_sort_f dcomp);
 int ignore_dots (const char *dname);
 int no_dots_except_include (const char *d_name);
+int no_dots_except_directory (const char *d_name);
 
 
 time_t  get_file_modified_time (const char *filename);

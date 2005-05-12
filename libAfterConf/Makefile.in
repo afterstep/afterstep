@@ -2,6 +2,9 @@
 # Copyright (c) 1998, Guylhem AZNAR <guylhem@oeil.qc.ca>
 #
 
+LIBS_PRIVATE      = ../libAfterConf/libAfterConf.a ../libAfterStep/libAfterStep.a\
+		    ../libAfterImage/libAfterImage.a ../libAfterBase/libAfterBase.a
+
 LIB_INCS= afterconf.h
 
 LIB_OBJS        = AfterStep.o AlignBevel.o Animate.o ASetRoot.o Audio.o \
@@ -19,10 +22,14 @@ LIBVERMAJOR     = @libafterconf_version_major@
 
 CONFIG_SCRIPT=afterconf-config 
 
-LIBS_PRIVATE      = ../src/afterstep/$(LIB_AFTERSTEP) ../src/afterstep/$(LIB_AFTERIMAGE) ../src/afterstep/$(LIB_AFTERBASE) $(LIBS_AFTERIMAGE)
-
 
 @MAKEFILECOMMONLIB@
+
+test_asdesktop_entry.o: DesktopEntry.c
+		$(CC) $(CCFLAGS) $(EXTRA_DEFINES) -DTEST_AS_DESKTOP_ENTRY $(INCLUDES) $(EXTRA_INCLUDES) -c DesktopEntry.c -o test_asdesktop_entry.o
+
+test_asdesktop_entry:	test_asdesktop_entry.o
+		$(CC) test_asdesktop_entry.o $(USER_LD_FLAGS) $(LIBS_ALL) $(LIBS_AFTERIMAGE) -o test_asdesktop_entry
 
 
 install.inc:
