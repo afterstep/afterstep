@@ -56,7 +56,7 @@
 #define ARRANGE_Sticky		(0x01<<2)
 #define ARRANGE_Maximized	(0x01<<3)
 #define ARRANGE_All			(ARRANGE_Untitled|ARRANGE_Transient| \
-							 ARRANGE_Sticky|ARRANGE_Maximized)
+							 ARRANGE_Sticky|ARRANGE_Maximized| ARRANGE_WinlistSkip)
 #define ARRANGE_Reversed	(0x01<<4)
 #define ARRANGE_Desk		(0x01<<5)
 #define ARRANGE_FlatX		(0x01<<6)
@@ -73,6 +73,7 @@
 #define ARRANGE_MaxHeight_Set	(0x01<<17)
 #define ARRANGE_Tile_Horizontally	(0x01<<18)
 #define ARRANGE_AllDesks                (0x01<<19)
+#define ARRANGE_WinlistSkip             (0x01<<20)
 
 struct ASArrangeState
 {
@@ -362,12 +363,20 @@ window_is_suitable(ASWindowData *wd)
 {
 	
         /* we do not want to arrange AfterSTep's modules */
-	if( get_flags( wd->flags, AS_Module|AS_SkipWinList ) == (AS_Module|AS_SkipWinList))
+	if( get_flags( wd->flags, AS_Module))
 		return False;
+	
 	/* also we do not want to arrange AvoidCover windows : */
 	if( get_flags( wd->flags, AS_AvoidCover ) )
 		return False;
-	/* return if window is untitled and we don't want
+	
+	/* return if window has WinlistSkip set and we don't we
+	   don't want to arrange such windows. */
+	if( !get_flags( ArrangeState.flags, ARRANGE_WinlistSkip) &&
+	    get_flags( wd->flags, AS_SkipWinList))
+		return False;
+	
+        /* return if window is untitled and we don't want
 	   to arrange untitled windows  */
 	if( !get_flags( ArrangeState.flags, ARRANGE_Untitled ) && wd->window_name == NULL)
 		return False;
