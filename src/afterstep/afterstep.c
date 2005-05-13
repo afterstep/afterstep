@@ -20,7 +20,9 @@
 #include "../../configure.h"
 #define LOCAL_DEBUG
 
+
 #include "asinternals.h"
+#include "../../libAfterConf/afterconf.h"
 
 #include <signal.h>
 #include <fcntl.h>
@@ -644,6 +646,11 @@ Done (Bool restart, char *command )
 #endif
 
 LOCAL_DEBUG_CALLER_OUT( "%s restart, cmd=\"%s\"", restart?"Do":"Don't", command?command:"");
+
+	XSelectInput( dpy, Scr.Root, 0 );	   
+	SendPacket (-1, M_SHUTDOWN, 0);
+	FlushAllQueues(); 
+	sleep_a_millisec(1000);
 
     /* lets duplicate the string so we don't accidental;y delete it while closing self down */
     if( restart )

@@ -79,6 +79,7 @@ typedef struct {
 #define ASWT_StateFocused	(0x01<<1)
 #define ASWT_AllDesks		(0x01<<2)
 #define ASWT_Transparent	(0x01<<3)
+#define ASWT_ShutDownInProgress	(0x01<<4)
 
 	ASFlagType flags ;
 
@@ -223,7 +224,8 @@ main( int argc, char **argv )
 
 
     ConnectX( ASDefaultScr, EnterWindowMask );
-    ConnectAfterStep ( M_END_WINDOWLIST |M_DESTROY_WINDOW |M_SWALLOW_WINDOW|WINDOW_CONFIG_MASK|WINDOW_NAME_MASK, 0 );
+    ConnectAfterStep ( M_END_WINDOWLIST |M_DESTROY_WINDOW |M_SWALLOW_WINDOW|
+					   WINDOW_CONFIG_MASK|WINDOW_NAME_MASK|M_SHUTDOWN, 0 );
     signal (SIGTERM, DeadPipe);
     signal (SIGKILL, DeadPipe);
     
@@ -293,18 +295,23 @@ DeadPipe (int nonsense)
 		already_dead = True ;
 	}
     
-	LOCAL_DEBUG_OUT( "reparenting clients back to the Root%s","" );
-	while( unswallow_current_tab() );
+	if( !get_flags( WinTabsState.flags, ASWT_ShutDownInProgress) )
+	{	
+		LOCAL_DEBUG_OUT( "reparenting clients back to the Root%s","" );
+
+		while( unswallow_current_tab() );
     
+		ASSync(False );
+    }	  
+	if( WinTabsState.main_canvas )
+    	destroy_ascanvas( &WinTabsState.main_canvas );
+    if( WinTabsState.main_window )
+        XDestroyWindow( dpy, WinTabsState.main_window );
 	ASSync(False );
-    fflush(stderr);
+	fflush(stderr);
     
     FreeMyAppResources();
 
-    if( WinTabsState.main_canvas )
-        destroy_ascanvas( &WinTabsState.main_canvas );
-    if( WinTabsState.main_window )
-        XDestroyWindow( dpy, WinTabsState.main_window );
     if( Config )
         DestroyWinTabsConfig(Config);
 
@@ -557,6 +564,10 @@ process_message (unsigned long type, unsigned long *body)
 		LOCAL_DEBUG_OUT( "SwallowWindow requested for window %lX/frame %lX, wd = %p ", body[0], body[1], wd );
 		if( wd )
 			do_swallow_window( wd );
+	}else if( type == M_SHUTDOWN )
+	{
+		set_flags( WinTabsState.flags, ASWT_ShutDownInProgress);
+		DeadPipe(0);
 	}	 
 		
 }

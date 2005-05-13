@@ -69,11 +69,12 @@ struct button_t;
 #define M_NEW_MODULE_CONFIG	 (1<<17)
 #define M_PLAY_SOUND		 (1<<18)
 #define M_SWALLOW_WINDOW	 (1<<19)
+#define M_SHUTDOWN			 (1<<20)
 
 //#define M_LOCKONSEND         (1<<19)
 
 
-#define MAX_MESSAGES          20
+#define MAX_MESSAGES          21
 #define MAX_MASK             ((1<<MAX_MESSAGES)-1)
 
 #define WAIT_AS_RESPONSE_TIMEOUT    20   /* seconds */
