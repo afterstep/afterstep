@@ -34,6 +34,7 @@ struct button_t;
 #define CLASS_SCROLL        "Scroll"
 #define CLASS_WHARF         "Wharf"
 #define CLASS_WINLIST       "WinList"
+#define CLASS_WINTABS       "WinTabs"
 #define CLASS_TEST		    "Test"
 #define CLASS_GADGET		"Gadget"
 
@@ -117,6 +118,11 @@ void module_wait_pipes_input ( void (*as_msg_handler) (send_data_type type, send
 
 /* returns fd of the AfterStep connection */
 int ConnectAfterStep (send_data_type message_mask, send_data_type lock_on_send_mask);
+void SetAfterStepDisconnected();
+
+int get_module_out_fd();
+int get_module_in_fd();
+
 void SendInfo (char *message, send_ID_type window);
 void SendNumCommand ( int func, const char *name, const send_signed_data_type *func_val, const send_signed_data_type *unit_val, send_ID_type window);
 void SendTextCommand ( int func, const char *name, const char *text, send_ID_type window);

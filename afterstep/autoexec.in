@@ -14,7 +14,8 @@ Function "InitFunction"
 	Module  "I"     Wharf
 	Wait    "I"     Wharf
 	Module  "I"     Pager 0 @with_desktops_1@
-	Module  "I"     WinTabs --geometry +5+100 --pattern "aterm*" --exclude-pattern "mc*" 
+	Module  "I:WinTabs:AtermTabs"  WinTabs --myname AtermTabs --pattern "aterm*" --exclude-pattern "mc*" --geometry +5+100 --title "aterm tabs"
+	Wait    "I:WinTabs:AtermTabs"  AtermTabs
 	Module  "I"	Banner
 	Function "I"    WorkspaceState
 	Exec	"I"	exec "@with_afterdir@/non-configurable/send_postcard.sh"
@@ -34,6 +35,7 @@ Function "RestartFunction"
 	Module  "I"     Wharf
 	Wait    "I"     Wharf
 	Module  "I"     Pager 0 @with_desktops_1@
-	Module  "I"     WinTabs --geometry +5+100 --pattern "aterm*"
+#WinTabs should survive through the restart - no need to bring it up again :
+#	Module  "I"     WinTabs --geometry +5+100 --pattern "aterm*"
 EndFunction
 

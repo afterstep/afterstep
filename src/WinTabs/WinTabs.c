@@ -125,6 +125,8 @@ ASWinTabsState WinTabsState = { 0 };
 	                               LeaveWindowMask   | EnterWindowMask | \
                                    StructureNotifyMask|PointerMotionMask )
 
+#define WINTABS_MESSAGE_MASK      (M_END_WINDOWLIST |M_DESTROY_WINDOW |M_SWALLOW_WINDOW| \
+					   			   WINDOW_CONFIG_MASK|WINDOW_NAME_MASK|M_SHUTDOWN)
 /**********************************************************************/
 /**********************************************************************/
 /* Our configuration options :                                        */
@@ -137,7 +139,8 @@ ASWinTabsState WinTabsState = { 0 };
 WinTabsConfig *Config = NULL ;
 /**********************************************************************/
 
-void CheckConfigSanity(const char *pattern_override, const char *exclude_pattern_override);
+void CheckConfigSanity(const char *pattern_override, const char *exclude_pattern_override, 
+					   const char *title_override, const char *icon_title_override);
 void GetBaseOptions (const char *filename);
 void GetOptions (const char *filename);
 void HandleEvents();
@@ -174,11 +177,13 @@ Bool handle_tab_name_change( Window client );
 
 void DeadPipe(int);
 
-CommandLineOpts WinTabs_cmdl_options[4] =
+CommandLineOpts WinTabs_cmdl_options[6] =
 {
 	{NULL, "pattern","Overrides module's inclusion pattern", NULL, handler_set_string, NULL, 0, CMO_HasArgs },
 	{NULL, "exclude-pattern","Overrides module's exclusion pattern", NULL, handler_set_string, NULL, 0, CMO_HasArgs },
 	{NULL, "all-desks","Swallow windows from any desktop", NULL, handler_set_flag, NULL, 0, 0 },
+	{NULL, "title","Overrides module's main window title", NULL, handler_set_string, NULL, 0, CMO_HasArgs },
+	{NULL, "icon-title","Overrides module's title in iconic state", NULL, handler_set_string, NULL, 0, CMO_HasArgs },
     {NULL, NULL, NULL, NULL, NULL, NULL, 0 }
 };
 
@@ -186,11 +191,29 @@ CommandLineOpts WinTabs_cmdl_options[4] =
 void
 WinTabs_usage (void)
 {
-	printf (OPTION_USAGE_FORMAT " [--pattern <pattern>] [--exclude-pattern <pattern>] [--all-desks]\n", MyName );
+	printf (OPTION_USAGE_FORMAT " [--pattern <pattern>] \n\t[--exclude-pattern <pattern>]\n\t[--all-desks] [--title <title>] [--icon-title <icon_title>]\n", MyName );
 	print_command_line_opt("standard_options are ", as_standard_cmdl_options, ASS_Restarting);
 	print_command_line_opt("additional options are ", WinTabs_cmdl_options, 0);
 	exit (0);
 }
+
+void OnDisconnect( int nonsense ) 
+{
+   	int i = PVECTOR_USED(WinTabsState.tabs);
+LOCAL_DEBUG_OUT( "remaining clients %d", i );
+    if( i > 0 )            
+	{	
+		clear_flags( WinTabsState.flags, ASWT_ShutDownInProgress);
+		SetAfterStepDisconnected();
+		window_data_cleanup();
+		XSelectInput( dpy, Scr.Root, EnterWindowMask|PropertyChangeMask );
+		/* Scr.wmprops->selection_window = None ; */
+		/* don't really want to terminate as that will kill our clients.
+		 * running without AfterStep is not really bad, except that we won't be 
+		 * able to swallow any new windows */
+	}else
+		DeadPipe(0);
+}	 
 
 
 int
@@ -199,6 +222,7 @@ main( int argc, char **argv )
     int i ;
 	char *pattern_override = NULL ;
 	char *exclude_pattern_override = NULL ;
+	char *title_override = NULL, *icon_title_override = NULL ;
 	/* Save our program name - for error messages */
 	set_DeadPipe_handler(DeadPipe);
     InitMyApp (CLASS_GADGET, argc, argv, WinTabs_usage, NULL, ASS_Restarting );
@@ -219,14 +243,20 @@ main( int argc, char **argv )
 				set_flags( WinTabsState.flags, ASWT_AllDesks );
 			else if( strcmp( argv[i] , "--transparent" ) == 0 || strcmp( argv[i] , "-tr" ) == 0 )
 				set_flags( WinTabsState.flags, ASWT_Transparent );
+	    	else if( strcmp( argv[i] , "--title" ) == 0 && i+1 < argc &&  argv[i+1] != NULL )
+				title_override = argv[i+1];
+	    	else if( strcmp( argv[i] , "--icon-title" ) == 0 && i+1 < argc &&  argv[i+1] != NULL )
+				icon_title_override = argv[i+1];
 		}
 	}
 
 
     ConnectX( ASDefaultScr, EnterWindowMask );
-    ConnectAfterStep ( M_END_WINDOWLIST |M_DESTROY_WINDOW |M_SWALLOW_WINDOW|
-					   WINDOW_CONFIG_MASK|WINDOW_NAME_MASK|M_SHUTDOWN, 0 );
-    signal (SIGTERM, DeadPipe);
+    ConnectAfterStep ( WINTABS_MESSAGE_MASK, 0 );               /* no AfterStep */
+	
+	signal (SIGPIPE, OnDisconnect);
+    
+	signal (SIGTERM, DeadPipe);
     signal (SIGKILL, DeadPipe);
     
     balloon_init (False);
@@ -235,7 +265,7 @@ main( int argc, char **argv )
     LoadBaseConfig ( GetBaseOptions);
 	LoadColorScheme();
 	LoadConfig ("wintabs", GetOptions);
-    CheckConfigSanity(pattern_override, exclude_pattern_override);
+    CheckConfigSanity(pattern_override, exclude_pattern_override, title_override, icon_title_override);
 
 	SendInfo ("Send_WindowList", 0);
 
@@ -294,7 +324,8 @@ DeadPipe (int nonsense)
 		if( already_dead ) 	return;/* non-reentrant function ! */
 		already_dead = True ;
 	}
-    
+
+LOCAL_DEBUG_OUT( "DeadPipe%s", "" );    
 	if( !get_flags( WinTabsState.flags, ASWT_ShutDownInProgress) )
 	{	
 		LOCAL_DEBUG_OUT( "reparenting clients back to the Root%s","" );
@@ -310,6 +341,7 @@ DeadPipe (int nonsense)
 	ASSync(False );
 	fflush(stderr);
     
+	window_data_cleanup();
     FreeMyAppResources();
 
     if( Config )
@@ -337,7 +369,8 @@ retrieve_wintabs_astbar_props()
 }	 
 
 void
-CheckConfigSanity(const char *pattern_override, const char *exclude_pattern_override)
+CheckConfigSanity(const char *pattern_override, const char *exclude_pattern_override, 
+				  const char *title_override, const char *icon_title_override)
 {
     
 	int i ;
@@ -352,17 +385,19 @@ CheckConfigSanity(const char *pattern_override, const char *exclude_pattern_over
 	if( MyArgs.geometry.flags != 0 ) 
 		Config->geometry = MyArgs.geometry ;
 	if( pattern_override ) 
-	{	
-		if( Config->pattern )
-			free( Config->pattern );
-		Config->pattern = mystrdup(pattern_override);
-	}
+		set_string_value(&(Config->pattern), mystrdup(pattern_override), NULL, 0);
 	if( exclude_pattern_override ) 
-	{	
-		if( Config->exclude_pattern )
-			free( Config->exclude_pattern );
-		Config->exclude_pattern = mystrdup(exclude_pattern_override);
-	}
+		set_string_value(&(Config->exclude_pattern), mystrdup(exclude_pattern_override), NULL, 0);
+   	if( title_override ) 
+		set_string_value(&(Config->title), mystrdup(title_override), NULL, 0 );
+   	if( icon_title_override ) 
+		set_string_value(&(Config->icon_title), mystrdup(icon_title_override), NULL, 0 );
+
+	if( Config->icon_title == NULL && Config->title != NULL ) 
+	{
+		Config->icon_title = safemalloc( strlen(Config->title)+32 );
+		sprintf( Config->icon_title, "%s - iconic", Config->title );
+	}	 
 
 	if( Config->pattern != NULL )
 	{
@@ -567,7 +602,9 @@ process_message (unsigned long type, unsigned long *body)
 	}else if( type == M_SHUTDOWN )
 	{
 		set_flags( WinTabsState.flags, ASWT_ShutDownInProgress);
-		DeadPipe(0);
+		if( get_module_out_fd() >= 0 ) 
+			close( get_module_out_fd() );
+		OnDisconnect(0);
 	}	 
 		
 }
@@ -752,9 +789,17 @@ DispatchEvent (ASEvent * event)
 	    case PropertyNotify:
 			LOCAL_DEBUG_OUT( "property %s(%lX), _XROOTPMAP_ID = %lX, event->w = %lX, root = %lX", XGetAtomName(dpy, event->x.xproperty.atom), event->x.xproperty.atom, _XROOTPMAP_ID, event->w, Scr.Root );
 			if( event->w == Scr.Root || event->w == Scr.wmprops->selection_window ) 
-			{	
-				handle_wmprop_event (Scr.wmprops, &(event->x));
-            	if( event->x.xproperty.atom == _AS_BACKGROUND )
+			{
+				if( event->w == Scr.Root && event->x.xproperty.atom == _XA_WIN_SUPPORTING_WM_CHECK )
+				{
+			    	destroy_wmprops( Scr.wmprops, False );
+					Scr.wmprops = setup_wmprops( &Scr, 0, 0xFFFFFFFF, NULL );
+					retrieve_wintabs_astbar_props();
+					show_banner_buttons();
+				}else 
+					handle_wmprop_event (Scr.wmprops, &(event->x));
+            	
+				if( event->x.xproperty.atom == _AS_BACKGROUND )
             	{
                 	LOCAL_DEBUG_OUT( "root background updated!%s","");
                 	safe_asimage_destroy( Scr.RootImage );
@@ -767,9 +812,8 @@ DispatchEvent (ASEvent * event)
                 	LOCAL_DEBUG_OUT( "AS Styles updated!%s","");
 					mystyle_list_destroy_all(&(Scr.Look.styles_list));
 					LoadColorScheme();
-					CheckConfigSanity(NULL, NULL);
+					CheckConfigSanity(NULL, NULL, NULL, NULL);
 					/* now we need to update everything */
-                            
                 	while( --i >= 0 ) 
                     	set_tab_look( &(tabs[i]), False);
 					set_tab_look( &(WinTabsState.banner), True);
@@ -783,7 +827,7 @@ DispatchEvent (ASEvent * event)
 					show_banner_buttons();
 				
 					set_tab_look( &(WinTabsState.banner), False);
-					if( i > 0 ) 
+					if( i == 0 ) 
 						show_hint(True);
 				
 					while( --i >= 0 ) 
@@ -793,7 +837,15 @@ DispatchEvent (ASEvent * event)
 					}
 				
                 	rearrange_tabs(False );
-            	}
+            	}else if( event->x.xproperty.atom == _AS_MODULE_SOCKET && get_module_out_fd() < 0 )
+				{
+					if( ConnectAfterStep(WINTABS_MESSAGE_MASK, 0) >= 0)
+					{
+							  
+						SendInfo ("Send_WindowList", 0);
+						XSelectInput( dpy, Scr.Root, EnterWindowMask );
+					}
+				}	 
 			}else if( IsNameProp(event->x.xproperty.atom) )
 			{                  /* Maybe name change on the client !!! */
 				handle_tab_name_change( event->w );				 		
@@ -808,7 +860,7 @@ DispatchEvent (ASEvent * event)
 					if( WinTabsState.pattern_wrexp != NULL ) 
 						iterate_window_data( recheck_swallow_windows, NULL);
 				}
-			}
+			}	 
 			break;
 		default:
 #ifdef XSHMIMAGE
@@ -862,6 +914,9 @@ show_banner_buttons()
 {
 	MyButton *buttons[3] ;
 	int buttons_num = 0;
+	int h_border = 1 ; 
+	int v_border = 1 ;
+	int spacing = 1 ; 
 	
 	if( WinTabsState.menu_button.width > 0 )
 		buttons[buttons_num++] = &WinTabsState.menu_button ;
@@ -869,17 +924,26 @@ show_banner_buttons()
 		buttons[buttons_num++] = &WinTabsState.unswallow_button ;
 	if( WinTabsState.close_button.width > 0 )
 		buttons[buttons_num++] = &WinTabsState.close_button ;
-    
-	delete_astbar_tile( WinTabsState.banner.bar, BANNER_BUTTONS_IDX );
-	add_astbar_btnblock(WinTabsState.banner.bar,
-  		                1, 0, 0, ALIGN_CENTER, &buttons[0], 0xFFFFFFFF, buttons_num,
-                      	WinTabsState.tbar_props->buttons_h_border, 
-						WinTabsState.tbar_props->buttons_v_border, 
-						WinTabsState.tbar_props->buttons_spacing,
-                        TBTN_ORDER_L2R );
-    set_astbar_balloon( WinTabsState.banner.bar, C_CloseButton, "Close window in current tab", AS_Text_ASCII );
-	set_astbar_balloon( WinTabsState.banner.bar, C_MenuButton, "Select new window to be swallowed", AS_Text_ASCII );
-	set_astbar_balloon( WinTabsState.banner.bar, C_UnswallowButton, "Unswallow (release) window in current tab", AS_Text_ASCII );
+	if( WinTabsState.tbar_props )
+	{	
+      	h_border = WinTabsState.tbar_props->buttons_h_border ;
+		v_border = WinTabsState.tbar_props->buttons_v_border ;
+		spacing = WinTabsState.tbar_props->buttons_spacing ;
+	}
+	    
+	delete_astbar_tile( WinTabsState.banner.bar, -1 );
+	if( buttons_num > 0 ) 
+	{	
+		add_astbar_btnblock(WinTabsState.banner.bar,
+  			            	1, 0, 0, ALIGN_CENTER, &buttons[0], 0xFFFFFFFF, buttons_num,
+            	        	h_border, v_border, spacing, TBTN_ORDER_L2R );
+    	set_astbar_balloon( WinTabsState.banner.bar, C_CloseButton, "Close window in current tab", AS_Text_ASCII );
+		set_astbar_balloon( WinTabsState.banner.bar, C_MenuButton, "Select new window to be swallowed", AS_Text_ASCII );
+		set_astbar_balloon( WinTabsState.banner.bar, C_UnswallowButton, "Unswallow (release) window in current tab", AS_Text_ASCII );
+	}
+   	if( PVECTOR_USED(WinTabsState.tabs) == 0 )
+		show_hint(False);
+
 }	  
 
 Window
@@ -916,7 +980,9 @@ make_wintabs_window()
 	}
     LOCAL_DEBUG_OUT( "creating main window with geometry %dx%d%+d%+d", width, height, x, y );
     w = create_visual_window( Scr.asv, Scr.Root, x, y, 1, 1, 0, InputOutput, CWBackPixmap, &attributes);
-    set_client_names( w, "WinTabs", "WINTABS", CLASS_GADGET, MyName );
+    set_client_names( w, Config->title?Config->title:"WinTabs", 
+						 Config->icon_title?Config->icon_title:"WinTabs - iconic", 
+					  	 CLASS_WINTABS, MyName );
 
     shints.flags = USPosition|USSize|PWinGravity;
     shints.win_gravity = Config->gravity ;
@@ -1081,8 +1147,11 @@ delete_tab( int index )
     vector_remove_index( WinTabsState.tabs, index );
 
 	if( PVECTOR_USED(WinTabsState.tabs) == 0 )
+	{
+		if( get_module_out_fd() < 0 ) 
+			DeadPipe(0);
 		show_hint( False );
-	else if( tab_to_select >= 0 )
+	}else if( tab_to_select >= 0 )
 		select_tab( tab_to_select );
 }    
 

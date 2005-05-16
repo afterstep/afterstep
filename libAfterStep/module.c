@@ -116,48 +116,60 @@ get_module_in_fd()
 static inline void
 send_module_msg_header (Window w, CARD32 bytes)
 {
-    CARD32 w32 = w ;
-    ASSocketWriteInt32 ( &as_module_out_buffer, &w32, 1 );
-    ASSocketWriteInt32 ( &as_module_out_buffer, &bytes, 1 );
+    if( as_module_out_buffer.fd >= 0 ) 
+	{	
+		CARD32 w32 = w ;
+    	ASSocketWriteInt32 ( &as_module_out_buffer, &w32, 1 );
+    	ASSocketWriteInt32 ( &as_module_out_buffer, &bytes, 1 );
+	}
 }
 
 static inline void
 send_module_msg_tail ()
 {
-	CARD32           cont = F_FUNCTIONS_NUM;
+    if( as_module_out_buffer.fd >= 0 ) 
+	{	
+		CARD32           cont = F_FUNCTIONS_NUM;
 
-    ASSocketWriteInt32 ( &as_module_out_buffer, &cont, 1 );
-	socket_write_flush ( &as_module_out_buffer );
+    	ASSocketWriteInt32 ( &as_module_out_buffer, &cont, 1 );
+		socket_write_flush ( &as_module_out_buffer );
+	}
 }
 
 static inline void
 send_module_msg_raw ( void *data, size_t bytes )
 {
-	socket_buffered_write(&as_module_out_buffer, data, bytes);
+    if( as_module_out_buffer.fd >= 0 ) 
+	{	
+		socket_buffered_write(&as_module_out_buffer, data, bytes);
+	}
 }
 
 static inline void
 send_module_msg_function (CARD32 func,
 						  const char *name, const char *text, const send_signed_data_type *func_val, const send_signed_data_type *unit_val)
 {
-	CARD32        spare_func_val[2] = { 0, 0 };
-	CARD32        spare_unit_val[2] = { 0, 0 };
+    if( as_module_out_buffer.fd >= 0 ) 
+	{	
+		CARD32        spare_func_val[2] = { 0, 0 };
+		CARD32        spare_unit_val[2] = { 0, 0 };
 
-    ASSocketWriteInt32 (&as_module_out_buffer, &func, 1 );
-    ASSocketWriteString(&as_module_out_buffer , name);
-    ASSocketWriteString(&as_module_out_buffer , text);
-	if (func_val != NULL)
-	{
-		spare_func_val[0] = func_val[0] ;
-		spare_func_val[1] = func_val[1] ;
+    	ASSocketWriteInt32 (&as_module_out_buffer, &func, 1 );
+    	ASSocketWriteString(&as_module_out_buffer , name);
+    	ASSocketWriteString(&as_module_out_buffer , text);
+		if (func_val != NULL)
+		{
+			spare_func_val[0] = func_val[0] ;
+			spare_func_val[1] = func_val[1] ;
+		}
+		if (unit_val != NULL)
+		{
+			spare_unit_val[0] = unit_val[0] ;
+			spare_unit_val[1] = unit_val[1] ;
+		}
+    	ASSocketWriteInt32 (&as_module_out_buffer, &(spare_func_val[0]), 2);
+    	ASSocketWriteInt32 (&as_module_out_buffer, &(spare_unit_val[0]), 2);
 	}
-	if (unit_val != NULL)
-	{
-		spare_unit_val[0] = unit_val[0] ;
-		spare_unit_val[1] = unit_val[1] ;
-	}
-    ASSocketWriteInt32 (&as_module_out_buffer, &(spare_func_val[0]), 2);
-    ASSocketWriteInt32 (&as_module_out_buffer, &(spare_unit_val[0]), 2);
 }
 
 /***********************************************************************
@@ -166,15 +178,18 @@ send_module_msg_function (CARD32 func,
 void
 SendInfo ( char *message, send_ID_type window)
 {
-	size_t        len;
-LOCAL_DEBUG_OUT( "message to afterstep:\"%s\"", message );
-    if (message != NULL)
-	{
-		if ((len = strlen (message)) > 0)
+    if( as_module_out_buffer.fd >= 0 ) 
+	{	
+		size_t        len;
+	LOCAL_DEBUG_OUT( "message to afterstep:\"%s\"", message );
+    	if (message != NULL)
 		{
-			send_module_msg_header(window, len);
-			send_module_msg_raw(message, len);
-			send_module_msg_tail ();
+			if ((len = strlen (message)) > 0)
+			{
+				send_module_msg_header(window, len);
+				send_module_msg_raw(message, len);
+				send_module_msg_tail ();
+			}
 		}
 	}
 }
@@ -184,7 +199,7 @@ void
 SendCommand( FunctionData * pfunc, send_ID_type window)
 {
 LOCAL_DEBUG_OUT( "sending command %p to the astep", pfunc );
-	if (pfunc != NULL)
+	if (pfunc != NULL && as_module_out_buffer.fd >= 0 ) 
 	{
 		send_module_msg_header(window, 0);
         send_module_msg_function(pfunc->func, pfunc->name, pfunc->text, pfunc->func_val, pfunc->unit_val);
@@ -197,7 +212,7 @@ SendTextCommand ( int func, const char *name, const char *text, send_ID_type win
 {
 	send_signed_data_type          dummy_val[2] = { 0, 0 };
 
-	if (IsValidFunc (func))
+	if (IsValidFunc (func) && as_module_out_buffer.fd >= 0 ) 
 	{
 		send_module_msg_header(window, 0);
 		send_module_msg_function(func, (char*)name, (char*)text, dummy_val, dummy_val);
@@ -208,7 +223,7 @@ SendTextCommand ( int func, const char *name, const char *text, send_ID_type win
 void
 SendNumCommand ( int func, const char *name, const send_signed_data_type *func_val, const send_signed_data_type *unit_val, send_ID_type window)
 {
-	if (IsValidFunc (func))
+	if (IsValidFunc (func) && as_module_out_buffer.fd >= 0)
 	{
 		send_module_msg_header(window, 0);
 		send_module_msg_function(func, (char*)name, NULL, func_val, unit_val);
@@ -240,6 +255,9 @@ ReadASPacket (int fd, send_data_type *header, send_data_type **body)
 	size_t        bytes_to_read;
 	int           bytes_in = 0;
 	char         *cbody;
+
+	if( fd < 0 )
+		return -1;
 
 	bytes_to_read = 3 * sizeof (send_data_type);
 	cbody = (char *)header;
@@ -299,6 +317,9 @@ CheckASMessageFine (int t_sec, int t_usec)
 	ASMessage    *msg = NULL;
 	struct timeval tv;
     int           fd = get_module_in_fd();
+
+	if( fd < 0 ) 
+		return NULL;
 
 	FD_ZERO (&in_fdset);
 	FD_SET (fd, &in_fdset);
@@ -396,29 +417,38 @@ ConnectAfterStep (send_data_type message_mask, send_data_type lock_on_send_mask)
 	signal (SIGPIPE, ASDeadPipe);
     fd = ASDefaultScr->wmprops?socket_connect_client(ASDefaultScr->wmprops->as_socket_filename):-1;
 
-    if (fd < 0)
-	{
-        show_error("unable to establish connection to AfterStep");
-		exit (1);
-	}
-
     set_module_in_fd( fd );
     set_module_out_fd( fd );
 
-	/* assuming that unsigned long will be limited to 32 chars : */
-	temp = safemalloc (9 + 1 +max(strlen (MyName),32) + 1 + 1);
-    sprintf (temp, "SET_NAME \"%s\"", MyName);
-    SendInfo ( temp, None);
-	free (temp);
+    if (fd < 0)
+	{
+        show_error("unable to establish connection to AfterStep");
+	}else
+	{	
 
-	sprintf (mask_mesg, "SET_MASK %lu %lu\n", (unsigned long)message_mask, (unsigned long) lock_on_send_mask);
-    SendInfo ( mask_mesg, None);
-	
+		/* assuming that unsigned long will be limited to 32 chars : */
+		temp = safemalloc (9 + 1 +max(strlen (MyName),32) + 1 + 1);
+    	sprintf (temp, "SET_NAME \"%s\"", MyName);
+    	SendInfo ( temp, None);
+		free (temp);
+
+		sprintf (mask_mesg, "SET_MASK %lu %lu\n", (unsigned long)message_mask, (unsigned long) lock_on_send_mask);
+    	SendInfo ( mask_mesg, None);
+	}
     /* don't really have to do this here, but anyway : */
     InitSession();
     return fd;
 }
 
+void 
+SetAfterStepDisconnected()
+{
+    set_module_in_fd( -1 );
+    set_module_out_fd( -1 );
+}	 
+/*************************************************************************/
+/*************************************************************************/
+	
 void
 LoadBaseConfig(void (*read_base_options_func) (const char *))
 {

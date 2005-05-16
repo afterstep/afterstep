@@ -1877,6 +1877,8 @@ void LoadColorScheme();                        /* high level easy to use functio
 #define WINTABS_VSpacing_ID             (WINTABS_ID_START+22)
 #define WINTABS_ExcludePattern_ID		(WINTABS_ID_START+23)
 #define WINTABS_AllDesks_ID				(WINTABS_ID_START+24)
+#define WINTABS_Title_ID				(WINTABS_ID_START+25)
+#define WINTABS_IconTitle_ID	 		(WINTABS_ID_START+26)
 
 
 #define WINTABS_BALLOONS_ID             (WINTABS_ID_START+31)
@@ -1931,6 +1933,7 @@ typedef struct WinTabsConfig
     ASFlagType      fbevel, ubevel, sbevel ;
     int             ucm, fcm, scm;             /* composition methods */
     unsigned int    h_spacing, v_spacing ;
+	char 		   *title, *icon_title ;
 
     balloonConfig *balloon_conf;
     MyStyleDefinition *style_defs;

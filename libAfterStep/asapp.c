@@ -714,13 +714,16 @@ void
 InitSession()
 {
     /* initializing our dirs names */
-    Session = GetNCASSession(ASDefaultScr, as_app_args.override_home, as_app_args.override_share);
-    if( as_app_args.override_config )
-        set_session_override( Session, as_app_args.override_config, 0 );
-    if( as_app_args.override_look )
-        set_session_override( Session, as_app_args.override_look, F_CHANGE_LOOK );
-    if( as_app_args.override_feel )
-        set_session_override( Session, as_app_args.override_feel, F_CHANGE_FEEL );
+	if( Session == NULL ) 
+	{	
+    	Session = GetNCASSession(ASDefaultScr, as_app_args.override_home, as_app_args.override_share);
+    	if( as_app_args.override_config )
+        	set_session_override( Session, as_app_args.override_config, 0 );
+    	if( as_app_args.override_look )
+        	set_session_override( Session, as_app_args.override_look, F_CHANGE_LOOK );
+    	if( as_app_args.override_feel )
+        	set_session_override( Session, as_app_args.override_feel, F_CHANGE_FEEL );
+	}
 }
 
 
@@ -751,6 +754,7 @@ FreeMyAppResources()
     flush_asbidirlist_memory_pool();
     free( as_app_args.saved_argv );
     destroy_assession( Session );
+	Session = NULL ;
 	destroy_asenvironment( &Environment );
 	is_executable_in_path ( NULL );
 #ifdef XSHMIMAGE

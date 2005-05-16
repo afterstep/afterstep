@@ -64,6 +64,8 @@ TermDef       WinTabsTerms[] = {
     {0, "StickyStyle", 11, TT_TEXT, WINTABS_StickyStyle_ID, NULL},
     {0, "UseSkipList", 11, TT_FLAG, WINTABS_UseSkipList_ID, NULL},
     {0, "AllDesks", 8, TT_FLAG, WINTABS_AllDesks_ID, NULL},
+    {0, "Title", 5, TT_TEXT, WINTABS_Title_ID, NULL},
+    {0, "IconTitle", 9, TT_TEXT, WINTABS_IconTitle_ID, NULL},
 /* including MyStyles definitions processing */
 	INCLUDE_MYSTYLE,
 
@@ -162,6 +164,10 @@ PrintWinTabsConfig (WinTabsConfig * config)
 	fprintf (stderr, "WINTABSConfig.sticky_style = %p;\n", config->sticky_style);
 	if (config->sticky_style)
 		fprintf (stderr, "WINTABSConfig.sticky_style = \"%s\";\n", config->sticky_style);
+	if (config->title)
+		fprintf (stderr, "WINTABSConfig.title = \"%s\";\n", config->title);
+	if (config->icon_title)
+		fprintf (stderr, "WINTABSConfig.icon_title = \"%s\";\n", config->icon_title);
 }
 
 WinTabsConfig *
@@ -306,6 +312,12 @@ ParseWinTabsOptions (const char *filename, char *myname)
                     set_flags( config->set_flags, WINTABS_V_SPACING );
                     config->v_spacing = item.data.integer;
                     break ;
+                case WINTABS_Title_ID:
+					set_string_value( &(config->title), item.data.string, NULL, 0 );
+                    break;
+                case WINTABS_IconTitle_ID:
+					set_string_value( &(config->icon_title), item.data.string, NULL, 0 );
+                    break;
 
                 default:
                     item.ok_to_free = 1;

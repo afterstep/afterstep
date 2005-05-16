@@ -132,11 +132,12 @@ main( int argc, char **argv )
     set_signal_handler( SIGSEGV );
 
     ConnectX( ASDefaultScr, EnterWindowMask );
-    ConnectAfterStep (M_FOCUS_CHANGE |
+    if( ConnectAfterStep (M_FOCUS_CHANGE |
                       M_DESTROY_WINDOW |
                       WINDOW_CONFIG_MASK |
                       WINDOW_NAME_MASK |
-                      M_END_WINDOWLIST, 0);
+                      M_END_WINDOWLIST, 0) < 0 ) 
+		exit(1);               /* no AfterStep */
     balloon_init (False);
     Config = CreateWinListConfig ();
 

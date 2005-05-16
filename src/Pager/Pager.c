@@ -238,7 +238,7 @@ main (int argc, char **argv)
         PagerState.desks[i].desk = PagerState.start_desk+i ;
 
     ConnectX( ASDefaultScr, EnterWindowMask );
-    ConnectAfterStep (  M_ADD_WINDOW |
+    if( ConnectAfterStep (  M_ADD_WINDOW |
                         M_CONFIGURE_WINDOW |
 						M_STATUS_CHANGE |
                         M_DESTROY_WINDOW |
@@ -248,7 +248,8 @@ main (int argc, char **argv)
                         M_WINDOW_NAME |
                         M_ICON_NAME |
                         M_END_WINDOWLIST|
-                        M_STACKING_ORDER, 0);
+                        M_STACKING_ORDER, 0) < 0 ) 
+		exit(1);               /* no AfterStep */
 
     balloon_init (False);
 

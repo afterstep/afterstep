@@ -457,14 +457,16 @@ add_name_to_list (char **list, char *name, unsigned char *encoding_list, unsigne
 		return -1;
 	}
 
+#if 0	
 	for (; i > 0; i--)
 	{
 		list[i] = list[i - 1];
 		encoding_list[i] = encoding_list[i-1] ;
 	}
-	list[0] = name;
-	encoding_list[0] = encoding ;
-	return 0;
+#endif
+	list[i] = name;
+	encoding_list[i] = encoding ;
+	return i;
 }
 
 static int
@@ -492,6 +494,13 @@ merge_icccm_hints (ASHints * clean, ASRawHints * raw,
 		return;
 	if (get_flags (what, HINT_NAME))
 	{										   /* adding all the possible window names in order of increasing importance */
+		if (raw->wm_name)
+			add_name_to_list (clean->names, text_property2string (raw->wm_name), clean->names_encoding, AS_Text_ASCII);
+		if (raw->wm_icon_name)
+		{
+			clean->icon_name_idx = add_name_to_list (clean->names, text_property2string (raw->wm_icon_name), clean->names_encoding, AS_Text_ASCII);
+			clean->icon_name     = (clean->icon_name_idx < 0 )?NULL:clean->names[clean->icon_name_idx];
+		}
 		if (raw->wm_class)
 		{
 			if (raw->wm_class->res_class)
@@ -505,14 +514,6 @@ merge_icccm_hints (ASHints * clean, ASRawHints * raw,
 				clean->res_name = (clean->res_name_idx < 0 )?NULL:clean->names[clean->res_name_idx];
 			}
 		}
-		if (raw->wm_icon_name)
-		{
-			clean->icon_name_idx = add_name_to_list (clean->names, text_property2string (raw->wm_icon_name), clean->names_encoding, AS_Text_ASCII);
-			clean->icon_name     = (clean->icon_name_idx < 0 )?NULL:clean->names[clean->icon_name_idx];
-		}
-
-		if (raw->wm_name)
-			add_name_to_list (clean->names, text_property2string (raw->wm_name), clean->names_encoding, AS_Text_ASCII);
 	}
 
 	if (get_flags (what, HINT_STARTUP) && status != NULL)
@@ -1025,12 +1026,12 @@ merge_extwm_hints (ASHints * clean, ASRawHints * raw,
 
 	if (get_flags (what, HINT_NAME))
 	{
+		if (eh->visible_name)
+			add_name_to_list (clean->names, text_property2string (eh->visible_name), clean->names_encoding, AS_Text_UTF8);
 		if (eh->name)
 			add_name_to_list (clean->names, text_property2string (eh->name), clean->names_encoding, AS_Text_UTF8);
 		if (eh->icon_name)
 			clean->icon_name_idx = add_name_to_list (clean->names, text_property2string (eh->icon_name), clean->names_encoding, AS_Text_UTF8);
-		if (eh->visible_name)
-			add_name_to_list (clean->names, text_property2string (eh->visible_name), clean->names_encoding, AS_Text_UTF8);
 		if (eh->visible_icon_name)
 			clean->icon_name_idx = add_name_to_list (clean->names, text_property2string (eh->visible_icon_name), clean->names_encoding, AS_Text_UTF8);
 		clean->icon_name = (clean->icon_name_idx <0 )?NULL: clean->names[clean->icon_name_idx] ;
