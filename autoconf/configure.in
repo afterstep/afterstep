@@ -538,6 +538,12 @@ if test "x$enable_ascp" = "xyes"; then
     fi;
 fi;
 
+pkg_modules="gtk+-2.0 >= 2.0.0"
+PKG_CHECK_MODULES(PACKAGE, [$pkg_modules])
+ASCP_GTK_LIBS=$PACKAGE_LIBS
+ASCP_GTK_INCLUDES=$PACKAGE_CFLAGS
+
+
 dnl# Electric Fence goes at the end
 if test "x$with_libefence" = "xyes"; then
   AC_CHECK_LIB(efence,malloc,x_libs="$x_libs -lefence")
@@ -672,7 +678,7 @@ AC_SUBST_FILE(MAKEFILECOMMONLIB)
 dnl# These should be created before everything else, as it gets included by other files : 
 AC_CONFIG_FILES([autoconf/Makefile.defines autoconf/Makefile.common autoconf/Makefile.common.lib])
 
-if test -d src/ascp ; then AC_CONFIG_FILES([src/ascp/Makefile src/ascp/fltk/Makefile src/ascp/gtk/Makefile]) fi
+if test -d src/ascp ; then AC_CONFIG_FILES([src/ascp/Makefile src/ascp/fltk/Makefile src/ascp/gtk/Makefile  src/ascp/gtk/ASWallpaper/Makefile]) fi
 
 if test -d src/asetroot ; 	then AC_CONFIG_FILES([src/asetroot/Makefile]) fi
 if test -d src/Animate ; 	then AC_CONFIG_FILES([src/Animate/Makefile]) fi

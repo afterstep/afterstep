@@ -1,0 +1,23 @@
+OBJS_ASWALLPAPER       = callbacks.o interface.o main.o support.o
+
+OBJS		= $(OBJS_ASWALLPAPER)
+
+PROG		= ASWallpaper 
+
+INCS_PRIVATE	= @ASCP_GTK_INCLUDES@
+
+LIBS_PRIVATE      = ../../$(LIB_AFTERCONF) ../../$(LIB_AFTERSTEP) \
+					../../$(LIB_AFTERIMAGE) ../../$(LIB_AFTERBASE) @ASCP_GTK_LIBS@ $(LIBS_AFTERIMAGE)
+LIBS_DEPEND     = ../../$(LIB_AFTERBASE) ../../$(LIB_AFTERIMAGE) ../../$(LIB_AFTERSTEP) ../../$(LIB_AFTERCONF)
+
+@MAKEFILECOMMON@
+
+module.clean:
+
+
+ASWallpaper:	        $(OBJS_ASWALLPAPER) $(LIBS_DEPEND)
+		$(CC) $(OBJS_ASWALLPAPER) $(LIBS_ALL) -o $(@)
+
+install:	install.bin install.man
+
+uninstall:	uninstall.bin uninstall.man
