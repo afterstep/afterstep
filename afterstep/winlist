@@ -20,7 +20,8 @@
 #               or "*WinList" 
 #      last choice "default"
 
-*WinListUseName 1
+# 0 is normal Name, 1 - icon name, 2 - res_class, 3 - res_name
+*WinListUseName 0
 
 *WinListAction Click1 Iconify -1,Focus
 *WinListAction Click2 Shade
