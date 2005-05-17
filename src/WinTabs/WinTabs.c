@@ -678,6 +678,7 @@ DispatchEvent (ASEvent * event)
     LOCAL_DEBUG_OUT( "mc.geom = %dx%d%+d%+d", mc->width, mc->height, mc->root_x, mc->root_y );
     switch (event->x.type)
     {
+		case ReparentNotify :
 	    case ConfigureNotify:
             {
                 int tabs_num  = PVECTOR_USED(WinTabsState.tabs);
