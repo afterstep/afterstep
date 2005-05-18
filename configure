@@ -310,7 +310,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT CXX CXXFLAGS ac_ct_CXX LN_S build build_cpu build_vendor build_os host host_cpu host_vendor host_os INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA RANLIB ac_ct_RANLIB RM MV CP MKDIR PERL FIND XARGS LDCONFIG LEX LEXLIB LEX_OUTPUT_ROOT YACC CPP X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS EGREP x_libraries AUDIO_LIBS AUDIO_PLAY_CMD PKG_CONFIG PACKAGE_CFLAGS PACKAGE_LIBS target target_cpu target_vendor target_os STRIP_BINARIES version app_version libafterstep_version libafterstep_version_major libafterstep_name libafterstep_file_name libafterwidget_version libafterwidget_version_major libafterwidget_name libafterwidget_file_name libafterconf_version libafterconf_version_major libafterconf_name libafterconf_file_name with_locale image_format ASCP_FLTK ASCP_FLTK_LIBS ASCP_FLTK_INCLUDES ASCP_GTK ASCP_GTK_LIBS ASCP_GTK_INCLUDES user_ldflags x_libs xine_libs xext_lib x_includes XEXT_LIB AFTERBASE_LIB AFTERIMAGE_LIB AFTERIMAGE_LIBS AFTERSTEP_LIB AFTERCONF_LIB WIDGETS_LIB AFTERBASE_STATIC_LIB AFTERIMAGE_STATIC_LIB AFTERSTEP_STATIC_LIB AFTERCONF_STATIC_LIB WIDGETS_STATIC_LIB LIBPROG LIBINSTALL with_afterdir with_imageloader with_soundplayer with_helpcommand with_startsort with_desktops with_desktops_1 with_deskgeometry no_data_reinstall enable_different_looknfeels enable_pagerbackground enable_i18n enable_menuwarp enable_savewindows enable_texture enable_shade enable_virtual enable_saveunders enable_windowlist enable_availability enable_fixeditems SCRIPT_DIR LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT CXX CXXFLAGS ac_ct_CXX LN_S build build_cpu build_vendor build_os host host_cpu host_vendor host_os INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA RANLIB ac_ct_RANLIB RM MV CP MKDIR PERL FIND XARGS LDCONFIG LEX LEXLIB LEX_OUTPUT_ROOT YACC CPP X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS EGREP x_libraries AUDIO_LIBS AUDIO_PLAY_CMD PKG_CONFIG GTK_CFLAGS GTK_LIBS target target_cpu target_vendor target_os STRIP_BINARIES version app_version libafterstep_version libafterstep_version_major libafterstep_name libafterstep_file_name libafterwidget_version libafterwidget_version_major libafterwidget_name libafterwidget_file_name libafterconf_version libafterconf_version_major libafterconf_name libafterconf_file_name with_locale image_format ASCP_FLTK ASCP_FLTK_LIBS ASCP_FLTK_INCLUDES ASCP_GTK ASCP_GTK_LIBS ASCP_GTK_INCLUDES user_ldflags x_libs xine_libs xext_lib x_includes XEXT_LIB AFTERBASE_LIB AFTERIMAGE_LIB AFTERIMAGE_LIBS AFTERSTEP_LIB AFTERCONF_LIB WIDGETS_LIB AFTERBASE_STATIC_LIB AFTERIMAGE_STATIC_LIB AFTERSTEP_STATIC_LIB AFTERCONF_STATIC_LIB WIDGETS_STATIC_LIB LIBPROG LIBINSTALL with_afterdir with_imageloader with_soundplayer with_helpcommand with_startsort with_desktops with_desktops_1 with_deskgeometry no_data_reinstall enable_different_looknfeels enable_pagerbackground enable_i18n enable_menuwarp enable_savewindows enable_texture enable_shade enable_virtual enable_saveunders enable_windowlist enable_availability enable_fixeditems SCRIPT_DIR LIBOBJS LTLIBOBJS'
 ac_subst_files='LIBAFTERBASEFILES LIBAFTERIMAGEFILES LIBAFTERSTEPFILES LIBAFTERCONFFILES MAKEFILEDEFINES MAKEFILECOMMON MAKEFILECOMMONLIB'
 
 # Initialize some variables set by options.
@@ -4036,8 +4036,8 @@ test -n "$YACC" || YACC="yacc"
 
 export YACC
 
-{ echo "$as_me:$LINENO: checking linkage type..." >&5
-echo "$as_me: checking linkage type..." >&6;}
+echo "$as_me:$LINENO: checking linkage type" >&5
+echo $ECHO_N "checking linkage type... $ECHO_C" >&6
 if test "x$enable_staticlibs" = "xyes"; then
    echo "$as_me:$LINENO: result: static" >&5
 echo "${ECHO_T}static" >&6
@@ -7978,9 +7978,9 @@ echo "${ECHO_T}no" >&6
 fi
 
 	fi
-	echo "$as_me:$LINENO: checking if gtk++ 2.0 is available" >&5
-echo $ECHO_N "checking if gtk++ 2.0 is available... $ECHO_C" >&6
 	if test "$PKG_CONFIG" = "no" ; then
+		echo "$as_me:$LINENO: checking if gtk++ 2.0 is available" >&5
+echo $ECHO_N "checking if gtk++ 2.0 is available... $ECHO_C" >&6
 		echo "$as_me:$LINENO: result: pkg-config is not found. Cannot check for gtk++ 2.0." >&5
 echo "${ECHO_T}pkg-config is not found. Cannot check for gtk++ 2.0." >&6
 	else
@@ -8048,23 +8048,23 @@ echo $ECHO_N "checking for $pkg_modules... $ECHO_C" >&6
 echo "${ECHO_T}yes" >&6
             succeeded=yes
 
-            echo "$as_me:$LINENO: checking PACKAGE_CFLAGS" >&5
-echo $ECHO_N "checking PACKAGE_CFLAGS... $ECHO_C" >&6
-            PACKAGE_CFLAGS=`$PKG_CONFIG --cflags "$pkg_modules"`
-            echo "$as_me:$LINENO: result: $PACKAGE_CFLAGS" >&5
-echo "${ECHO_T}$PACKAGE_CFLAGS" >&6
+            echo "$as_me:$LINENO: checking GTK_CFLAGS" >&5
+echo $ECHO_N "checking GTK_CFLAGS... $ECHO_C" >&6
+            GTK_CFLAGS=`$PKG_CONFIG --cflags "$pkg_modules"`
+            echo "$as_me:$LINENO: result: $GTK_CFLAGS" >&5
+echo "${ECHO_T}$GTK_CFLAGS" >&6
 
-            echo "$as_me:$LINENO: checking PACKAGE_LIBS" >&5
-echo $ECHO_N "checking PACKAGE_LIBS... $ECHO_C" >&6
-            PACKAGE_LIBS=`$PKG_CONFIG --libs "$pkg_modules"`
-            echo "$as_me:$LINENO: result: $PACKAGE_LIBS" >&5
-echo "${ECHO_T}$PACKAGE_LIBS" >&6
+            echo "$as_me:$LINENO: checking GTK_LIBS" >&5
+echo $ECHO_N "checking GTK_LIBS... $ECHO_C" >&6
+            GTK_LIBS=`$PKG_CONFIG --libs "$pkg_modules"`
+            echo "$as_me:$LINENO: result: $GTK_LIBS" >&5
+echo "${ECHO_T}$GTK_LIBS" >&6
         else
-            PACKAGE_CFLAGS=""
-            PACKAGE_LIBS=""
+            GTK_CFLAGS=""
+            GTK_LIBS=""
             ## If we have a custom action on failure, don't print errors, but
             ## do set a variable so people can do so.
-            PACKAGE_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "$pkg_modules"`
+            GTK_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "$pkg_modules"`
 
         fi
 
@@ -8085,7 +8085,7 @@ echo "${ECHO_T}$PACKAGE_LIBS" >&6
 
 		if test "x$ASCP_GTK" = "xascp_gtk"; then
 			present_libs="$LDFLAGS $LIBS $x_libs $AFTERIMAGE_LIBS";
-			for l in `echo "$PACKAGE_LIBS"`; do
+			for l in `echo "$GTK_LIBS"`; do
 	  	  	lib_found=no
 	  	  	for p in `echo "$present_libs"` ; do
 			  	if test "x$l" = "x$p" ; then
@@ -8096,10 +8096,8 @@ echo "${ECHO_T}$PACKAGE_LIBS" >&6
 		  		ASCP_GTK_LIBS="$ASCP_GTK_LIBS $l" ;
 	  	  	fi;
 			done;
-			echo "$as_me:$LINENO: result: $ASCP_GTK_LIBS" >&5
-echo "${ECHO_T}$ASCP_GTK_LIBS" >&6
 			present_incs="$CCFLAGS $x_includes";
-			for l in `echo "$PACKAGE_CFLAGS"` ;	do
+			for l in `echo "$GTK_CFLAGS"` ;	do
 	  			inc_found=no
 		  		for p in `echo "$present_incs"` ; do
 					if test "x$l" = "x$p" ; then
@@ -8113,8 +8111,6 @@ echo "${ECHO_T}$ASCP_GTK_LIBS" >&6
 					ASCP_GTK_INCLUDES="$ASCP_GTK_INCLUDES $l" ;
 	  			fi;
 			done;
-			echo "$as_me:$LINENO: result: $ASCP_GTK_INCLUDES" >&5
-echo "${ECHO_T}$ASCP_GTK_INCLUDES" >&6
 			enable_ascp=yes ;
 		fi
 	fi
@@ -9247,8 +9243,8 @@ s,@x_libraries@,$x_libraries,;t t
 s,@AUDIO_LIBS@,$AUDIO_LIBS,;t t
 s,@AUDIO_PLAY_CMD@,$AUDIO_PLAY_CMD,;t t
 s,@PKG_CONFIG@,$PKG_CONFIG,;t t
-s,@PACKAGE_CFLAGS@,$PACKAGE_CFLAGS,;t t
-s,@PACKAGE_LIBS@,$PACKAGE_LIBS,;t t
+s,@GTK_CFLAGS@,$GTK_CFLAGS,;t t
+s,@GTK_LIBS@,$GTK_LIBS,;t t
 s,@target@,$target,;t t
 s,@target_cpu@,$target_cpu,;t t
 s,@target_vendor@,$target_vendor,;t t

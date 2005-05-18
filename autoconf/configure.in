@@ -216,12 +216,12 @@ export LEXLIB
 AC_PROG_YACC
 export YACC
 
-AC_CHECKING(linkage type)
+AC_MSG_CHECKING([linkage type])
 if test "x$enable_staticlibs" = "xyes"; then
-   AC_MSG_RESULT(static)
+   AC_MSG_RESULT([static])
 else
    enable_sharedlibs="yes"
-   AC_MSG_RESULT(dynamic)
+   AC_MSG_RESULT([dynamic])
 fi
 
 dnl# Check for X :
@@ -497,17 +497,17 @@ if test "x$enable_ascp" = "xyes"; then
 	if test -z "$PKG_CONFIG"; then
     		AC_PATH_PROG(PKG_CONFIG, pkg-config,no)
 	fi
-	AC_MSG_CHECKING(if gtk++ 2.0 is available)
 	if test "$PKG_CONFIG" = "no" ; then
+		AC_MSG_CHECKING(if gtk++ 2.0 is available)
 		AC_MSG_RESULT(pkg-config is not found. Cannot check for gtk++ 2.0.)
 	else
 		ASCP_GTK=ascp_gtk
 		pkg_modules="gtk+-2.0 >= 2.0.0"
-		PKG_CHECK_MODULES(PACKAGE, [$pkg_modules],,[ASCP_GTK=])
+		PKG_CHECK_MODULES(GTK, [$pkg_modules],,[ASCP_GTK=])
 		
 		if test "x$ASCP_GTK" = "xascp_gtk"; then
 			present_libs="$LDFLAGS $LIBS $x_libs $AFTERIMAGE_LIBS";
-			for l in `echo "$PACKAGE_LIBS"`; do
+			for l in `echo "$GTK_LIBS"`; do
 	  	  	lib_found=no
 	  	  	for p in `echo "$present_libs"` ; do
 			  	if test "x$l" = "x$p" ; then
@@ -518,9 +518,9 @@ if test "x$enable_ascp" = "xyes"; then
 		  		ASCP_GTK_LIBS="$ASCP_GTK_LIBS $l" ;
 	  	  	fi;
 			done;
-			AC_MSG_RESULT($ASCP_GTK_LIBS)
+dnl#			AC_MSG_RESULT($ASCP_GTK_LIBS)
 			present_incs="$CCFLAGS $x_includes";
-			for l in `echo "$PACKAGE_CFLAGS"` ;	do
+			for l in `echo "$GTK_CFLAGS"` ;	do
 	  			inc_found=no
 		  		for p in `echo "$present_incs"` ; do
 					if test "x$l" = "x$p" ; then
@@ -534,7 +534,7 @@ if test "x$enable_ascp" = "xyes"; then
 					ASCP_GTK_INCLUDES="$ASCP_GTK_INCLUDES $l" ;
 	  			fi;
 			done;
-			AC_MSG_RESULT($ASCP_GTK_INCLUDES)
+dnl#			AC_MSG_RESULT($ASCP_GTK_INCLUDES)
 			enable_ascp=yes ;
 		fi
 	fi
