@@ -30,54 +30,88 @@ GtkWidget*
 create_window1 (void)
 {
   GtkWidget *window1;
-  GtkWidget *vbox1;
+  GtkWidget *main_vbox;
+  GtkWidget *list_hbox, *list_vbox;
+  GtkWidget *list_label ;
+  GtkWidget *list, *list_preview, *item, *item_label ;
+  GList *backs_list = NULL;
+
   GtkWidget *Select;
-  GtkWidget *hbox1;
-  GtkWidget *button8;
-  GtkWidget *Quir;
+  GtkWidget *button_generate_as_bg;
+  GtkWidget *Quit;
+
+  GtkWidget *buttons_hbox;
 
   window1 = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-  gtk_window_set_title (GTK_WINDOW (window1), _("window1"));
+  gtk_window_set_title (GTK_WINDOW (window1), _("AfterStep Wallpaper Manager"));
 
-  vbox1 = gtk_vbox_new (FALSE, 0);
-  gtk_widget_show (vbox1);
-  gtk_container_add (GTK_CONTAINER (window1), vbox1);
+  main_vbox = gtk_vbox_new (FALSE, 0);
+  gtk_widget_show (main_vbox);
+  gtk_container_add (GTK_CONTAINER (window1), main_vbox);
 
+  list_hbox = gtk_hbox_new (FALSE, 0);
+  gtk_widget_show (list_hbox);
+  gtk_box_pack_start (GTK_BOX (main_vbox), list_hbox, FALSE, FALSE, 0);
+
+  list_vbox = gtk_vbox_new (FALSE, 0);
+  gtk_widget_show (list_vbox);
+  gtk_box_pack_start (GTK_BOX (list_hbox), list_vbox, FALSE, FALSE, 5);
+	
+  list_label = gtk_label_new ("Images in your private backgrounds folder:");
+  gtk_misc_set_alignment (GTK_MISC (list_label), 0, 0);
+  gtk_box_pack_start (GTK_BOX (list_vbox), list_label, FALSE, FALSE, 5);
+  gtk_widget_show (list_label);
+  
+  list = gtk_list_new();
+  gtk_box_pack_end (GTK_BOX (list_vbox), list, FALSE, FALSE, 0);
+  gtk_widget_show (list);
+  item_label=gtk_label_new("first");
+  gtk_misc_set_alignment (GTK_MISC (item_label), 0, 0);
+  item=gtk_list_item_new();
+  gtk_container_add(GTK_CONTAINER(item), item_label);
+  gtk_widget_show(item_label);
+  gtk_container_add(GTK_CONTAINER(list), item);
+  gtk_widget_show(item);
+  gtk_widget_set_size_request (list, 200, 300);
+
+
+  buttons_hbox = gtk_hbox_new (FALSE, 0);
+  gtk_widget_show (buttons_hbox);
+  gtk_box_pack_end (GTK_BOX (main_vbox), buttons_hbox, FALSE, FALSE, 5);
+	
   Select = gtk_button_new_from_stock ("gtk-open");
   gtk_widget_show (Select);
-  gtk_box_pack_start (GTK_BOX (vbox1), Select, FALSE, FALSE, 0);
+  gtk_box_pack_start (GTK_BOX (buttons_hbox), Select, FALSE, FALSE, 0);
 
-  hbox1 = gtk_hbox_new (FALSE, 0);
-  gtk_widget_show (hbox1);
-  gtk_box_pack_start (GTK_BOX (vbox1), hbox1, TRUE, TRUE, 0);
+  button_generate_as_bg = gtk_button_new_with_mnemonic (_("Generate AS wallpaper"));
+  gtk_widget_show (button_generate_as_bg);
+  gtk_box_pack_start (GTK_BOX (buttons_hbox), button_generate_as_bg, FALSE, FALSE, 0);
+  gtk_widget_set_size_request (button_generate_as_bg, 150, -1);
 
-  button8 = gtk_button_new_with_mnemonic (_("Generate AS wallpaper"));
-  gtk_widget_show (button8);
-  gtk_box_pack_start (GTK_BOX (hbox1), button8, FALSE, FALSE, 0);
-  gtk_widget_set_size_request (button8, 150, -1);
+  Quit = gtk_button_new_from_stock ("gtk-quit");
+  gtk_widget_show (Quit);
+  gtk_box_pack_start (GTK_BOX (buttons_hbox), Quit, FALSE, FALSE, 0);
+  gtk_widget_set_size_request (Quit, 150, -1);
 
-  Quir = gtk_button_new_from_stock ("gtk-quit");
-  gtk_widget_show (Quir);
-  gtk_box_pack_start (GTK_BOX (hbox1), Quir, FALSE, FALSE, 0);
-  gtk_widget_set_size_request (Quir, 150, -1);
+
 
   g_signal_connect ((gpointer) Select, "clicked",
-                    G_CALLBACK (on_button7_clicked),
+                    G_CALLBACK (on_open_clicked),
                     NULL);
-  g_signal_connect ((gpointer) button8, "clicked",
-                    G_CALLBACK (on_button8_clicked),
+  g_signal_connect ((gpointer) button_generate_as_bg, "clicked",
+                    G_CALLBACK (on_generate_as_bg_clicked),
                     NULL);
-  g_signal_connect ((gpointer) Quir, "clicked",
-                    G_CALLBACK (on_button9_clicked),
+  g_signal_connect ((gpointer) Quit, "clicked",
+                    G_CALLBACK (on_quit_clicked),
                     NULL);
 
   /* Store pointers to all widgets, for use by lookup_widget(). */
-  GLADE_HOOKUP_OBJECT_NO_REF (window1, window1, "window1");
-  GLADE_HOOKUP_OBJECT (window1, vbox1, "vbox1");
-  GLADE_HOOKUP_OBJECT (window1, Select, "Select");
-  GLADE_HOOKUP_OBJECT (window1, hbox1, "hbox1");
-  GLADE_HOOKUP_OBJECT (window1, button8, "button8");
-  GLADE_HOOKUP_OBJECT (window1, Quir, "Quir");
+//  GLADE_HOOKUP_OBJECT_NO_REF (window1, window1, "window1");
+//  GLADE_HOOKUP_OBJECT (window1, vbox1, "vbox1");
+//  GLADE_HOOKUP_OBJECT (window1, Select, "Select");
+//  GLADE_HOOKUP_OBJECT (window1, hbox1, "hbox1");
+//  GLADE_HOOKUP_OBJECT (window1, button_generate_as_bg, "button_generate_as_bg");
+//  GLADE_HOOKUP_OBJECT (window1, Quit, "Quit");
 
   return window1;
 }
@@ -88,8 +122,8 @@ create_filechooserdialog2 (void)
   GtkWidget *filechooserdialog2;
   GtkWidget *dialog_vbox2;
   GtkWidget *dialog_action_area2;
-  GtkWidget *button10;
-  GtkWidget *button11;
+  GtkWidget *button_file_cancel;
+  GtkWidget *button_file_open;
 
   filechooserdialog2 = gtk_file_chooser_dialog_new ("", NULL, GTK_FILE_CHOOSER_ACTION_OPEN, NULL);
   gtk_window_set_type_hint (GTK_WINDOW (filechooserdialog2), GDK_WINDOW_TYPE_HINT_DIALOG);
@@ -101,31 +135,32 @@ create_filechooserdialog2 (void)
   gtk_widget_show (dialog_action_area2);
   gtk_button_box_set_layout (GTK_BUTTON_BOX (dialog_action_area2), GTK_BUTTONBOX_END);
 
-  button10 = gtk_button_new_from_stock ("gtk-cancel");
-  gtk_widget_show (button10);
-  gtk_dialog_add_action_widget (GTK_DIALOG (filechooserdialog2), button10, GTK_RESPONSE_CANCEL);
-  GTK_WIDGET_SET_FLAGS (button10, GTK_CAN_DEFAULT);
+  button_file_cancel = gtk_button_new_from_stock ("gtk-cancel");
+  gtk_widget_show (button_file_cancel);
+  gtk_dialog_add_action_widget (GTK_DIALOG (filechooserdialog2), button_file_cancel, GTK_RESPONSE_CANCEL);
+  GTK_WIDGET_SET_FLAGS (button_file_cancel, GTK_CAN_DEFAULT);
 
-  button11 = gtk_button_new_from_stock ("gtk-open");
-  gtk_widget_show (button11);
-  gtk_dialog_add_action_widget (GTK_DIALOG (filechooserdialog2), button11, GTK_RESPONSE_OK);
-  GTK_WIDGET_SET_FLAGS (button11, GTK_CAN_DEFAULT);
+  button_file_open = gtk_button_new_from_stock ("gtk-open");
+  gtk_widget_show (button_file_open);
+  gtk_dialog_add_action_widget (GTK_DIALOG (filechooserdialog2), button_file_open, GTK_RESPONSE_OK);
+  GTK_WIDGET_SET_FLAGS (button_file_open, GTK_CAN_DEFAULT);
 
-  g_signal_connect ((gpointer) button10, "clicked",
-                    G_CALLBACK (on_button10_clicked),
-                    NULL);
-  g_signal_connect ((gpointer) button11, "clicked",
-                    G_CALLBACK (on_button11_clicked),
+  g_signal_connect_swapped (G_OBJECT (button_file_cancel),
+	                        "clicked", G_CALLBACK (gtk_widget_destroy),
+		 			        G_OBJECT (filechooserdialog2));
+
+  g_signal_connect ((gpointer) button_file_open, "clicked",
+                    G_CALLBACK (on_file_open_clicked),
                     NULL);
 
   /* Store pointers to all widgets, for use by lookup_widget(). */
   GLADE_HOOKUP_OBJECT_NO_REF (filechooserdialog2, filechooserdialog2, "filechooserdialog2");
   GLADE_HOOKUP_OBJECT_NO_REF (filechooserdialog2, dialog_vbox2, "dialog_vbox2");
   GLADE_HOOKUP_OBJECT_NO_REF (filechooserdialog2, dialog_action_area2, "dialog_action_area2");
-  GLADE_HOOKUP_OBJECT (filechooserdialog2, button10, "button10");
-  GLADE_HOOKUP_OBJECT (filechooserdialog2, button11, "button11");
+  GLADE_HOOKUP_OBJECT (filechooserdialog2, button_file_cancel, "button_file_cancel");
+  GLADE_HOOKUP_OBJECT (filechooserdialog2, button_file_open, "button_file_open");
 
-  gtk_widget_grab_default (button11);
+  gtk_widget_grab_default (button_file_open);
   return filechooserdialog2;
 }
 
