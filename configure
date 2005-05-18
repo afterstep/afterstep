@@ -7936,56 +7936,56 @@ echo "${ECHO_T}$ASCP_FLTK_INCLUDES" >&6
 	  		ASCP_FLTK=ascp-fltk ;
   		fi;
 	fi;
-    echo "$as_me:$LINENO: checking libraries required by GTK version of ascp" >&5
-echo $ECHO_N "checking libraries required by GTK version of ascp... $ECHO_C" >&6
-    if gtk-config --libs >/dev/null  ;then
-		present_libs="$LDFLAGS $LIBS $x_libs $AFTERIMAGE_LIBS";
-		for l in `gtk-config --libs`; do
-	  	  lib_found=no
-	  	  for p in `echo "$present_libs"` ; do
-			  if test "x$l" = "x$p" ; then
-    		    lib_found=yes;
-		  	  fi;
-	  	  done;
-	  	  if test "x$lib_found" != "xyes" ; then
-		  	ASCP_GTK_LIBS="$ASCP_GTK_LIBS $l" ;
-	  	  fi;
-		done;
-		echo "$as_me:$LINENO: result: $ASCP_GTK_LIBS" >&5
-echo "${ECHO_T}$ASCP_GTK_LIBS" >&6
-	    echo "$as_me:$LINENO: checking headers required by ascp-gtk" >&5
-echo $ECHO_N "checking headers required by ascp-gtk... $ECHO_C" >&6
+	if test -z "$PKG_CONFIG"; then
+    		# Extract the first word of "pkg-config", so it can be a program name with args.
+set dummy pkg-config; ac_word=$2
+echo "$as_me:$LINENO: checking for $ac_word" >&5
+echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6
+if test "${ac_cv_path_PKG_CONFIG+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  case $PKG_CONFIG in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_PKG_CONFIG="$PKG_CONFIG" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+  for ac_exec_ext in '' $ac_executable_extensions; do
+  if $as_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_PKG_CONFIG="$as_dir/$ac_word$ac_exec_ext"
+    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+done
 
-  		if gtk-config --cflags >/dev/null  ;then
-			present_incs="$CCFLAGS $x_includes";
-			for l in `gtk-config --cflags` ;	do
-	  			inc_found=no
-		  		for p in `echo "$present_incs"` ; do
-					if test "x$l" = "x$p" ; then
-    		  			inc_found=yes;
-					fi;
-					if test "x$l" = "x-I$p" ; then
-    		  			inc_found=yes;
-					fi;
-	  			done;
-	  			if test "x$inc_found" != "xyes" ; then
-					ASCP_GTK_INCLUDES="$ASCP_GTK_INCLUDES $l" ;
-	  			fi;
-			done;
-			echo "$as_me:$LINENO: result: $ASCP_GTK_INCLUDES" >&5
-echo "${ECHO_T}$ASCP_GTK_INCLUDES" >&6
-			enable_ascp=yes ;
-	  		ASCP_GTK=ascp-gtk ;
-  		fi;
-	fi;
-	if test "x$enable_ascp" = "xno"; then
-		echo "$as_me:$LINENO: result: neither fltk nor GTK found" >&5
-echo "${ECHO_T}neither fltk nor GTK found" >&6
-		echo "You have to install FLTK or GTK libaries in order to be able to compile ascp."
-    fi;
-fi;
+  test -z "$ac_cv_path_PKG_CONFIG" && ac_cv_path_PKG_CONFIG="no"
+  ;;
+esac
+fi
+PKG_CONFIG=$ac_cv_path_PKG_CONFIG
 
-pkg_modules="gtk+-2.0 >= 2.0.0"
+if test -n "$PKG_CONFIG"; then
+  echo "$as_me:$LINENO: result: $PKG_CONFIG" >&5
+echo "${ECHO_T}$PKG_CONFIG" >&6
+else
+  echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+fi
+
+	fi
+	echo "$as_me:$LINENO: checking if gtk++ 2.0 is available" >&5
+echo $ECHO_N "checking if gtk++ 2.0 is available... $ECHO_C" >&6
+	if test "$PKG_CONFIG" = "no" ; then
+		echo "$as_me:$LINENO: result: pkg-config is not found. Cannot check for gtk++ 2.0." >&5
+echo "${ECHO_T}pkg-config is not found. Cannot check for gtk++ 2.0." >&6
+	else
+		ASCP_GTK=ascp_gtk
+		pkg_modules="gtk+-2.0 >= 2.0.0"
 
   succeeded=no
 
@@ -8065,7 +8065,7 @@ echo "${ECHO_T}$PACKAGE_LIBS" >&6
             ## If we have a custom action on failure, don't print errors, but
             ## do set a variable so people can do so.
             PACKAGE_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "$pkg_modules"`
-            echo $PACKAGE_PKG_ERRORS
+
         fi
 
 
@@ -8079,14 +8079,52 @@ echo "${ECHO_T}$PACKAGE_LIBS" >&6
   if test $succeeded = yes; then
      :
   else
-     { { echo "$as_me:$LINENO: error: Library requirements ($pkg_modules) not met; consider adjusting the PKG_CONFIG_PATH environment variable if your libraries are in a nonstandard prefix so pkg-config can find them." >&5
-echo "$as_me: error: Library requirements ($pkg_modules) not met; consider adjusting the PKG_CONFIG_PATH environment variable if your libraries are in a nonstandard prefix so pkg-config can find them." >&2;}
-   { (exit 1); exit 1; }; }
+     ASCP_GTK=
   fi
 
-ASCP_GTK_LIBS=$PACKAGE_LIBS
-ASCP_GTK_INCLUDES=$PACKAGE_CFLAGS
 
+		if test "x$ASCP_GTK" = "xascp_gtk"; then
+			present_libs="$LDFLAGS $LIBS $x_libs $AFTERIMAGE_LIBS";
+			for l in `echo "$PACKAGE_LIBS"`; do
+	  	  	lib_found=no
+	  	  	for p in `echo "$present_libs"` ; do
+			  	if test "x$l" = "x$p" ; then
+    		    	lib_found=yes;
+		  	  	fi;
+	  	  	done;
+	  	  	if test "x$lib_found" != "xyes" ; then
+		  		ASCP_GTK_LIBS="$ASCP_GTK_LIBS $l" ;
+	  	  	fi;
+			done;
+			echo "$as_me:$LINENO: result: $ASCP_GTK_LIBS" >&5
+echo "${ECHO_T}$ASCP_GTK_LIBS" >&6
+			present_incs="$CCFLAGS $x_includes";
+			for l in `echo "$PACKAGE_CFLAGS"` ;	do
+	  			inc_found=no
+		  		for p in `echo "$present_incs"` ; do
+					if test "x$l" = "x$p" ; then
+    		  			inc_found=yes;
+					fi;
+					if test "x$l" = "x-I$p" ; then
+    		  			inc_found=yes;
+					fi;
+	  			done;
+	  			if test "x$inc_found" != "xyes" ; then
+					ASCP_GTK_INCLUDES="$ASCP_GTK_INCLUDES $l" ;
+	  			fi;
+			done;
+			echo "$as_me:$LINENO: result: $ASCP_GTK_INCLUDES" >&5
+echo "${ECHO_T}$ASCP_GTK_INCLUDES" >&6
+			enable_ascp=yes ;
+		fi
+	fi
+
+	if test "x$enable_ascp" = "xno"; then
+		echo "$as_me:$LINENO: result: neither fltk nor GTK found" >&5
+echo "${ECHO_T}neither fltk nor GTK found" >&6
+		echo "You have to install FLTK or GTK libaries in order to be able to compile ascp."
+    fi;
+fi;
 
 if test "x$with_libefence" = "xyes"; then
   echo "$as_me:$LINENO: checking for malloc in -lefence" >&5
