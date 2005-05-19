@@ -14,6 +14,7 @@
 #include <string.h>
 #include <stdio.h>
 
+#include <gdk/gdk.h>	
 #include <gdk/gdkkeysyms.h>
 #include <gtk/gtk.h>
 
@@ -29,40 +30,36 @@
   g_object_set_data (G_OBJECT (component), name, widget)
 
 
-ASImageListEntry *PrivateBackgroundsList = NULL ;
-int PrivateBackgroundsCount = 0;
-
-
-void
-fill_private_backgrounds_list(GtkListStore *model)
+static void free_buffer (guchar *pixels, gpointer data)
 {
-    GtkTreeIter iter;
-	
-	ASImageListEntry *curr ;
-	char *private_back_dir = PutHome("~/.afterstep/backgrounds");
-
-	if( PrivateBackgroundsList )
-		destroy_asimage_list( &PrivateBackgroundsList );
-	PrivateBackgroundsList = get_asimage_list( Scr.asv, private_back_dir,
-	              						       LOAD_PREVIEW, Scr.image_manager->gamma, 0, 0,
-											   0, &PrivateBackgroundsCount, ignore_dots );
-
-	curr = PrivateBackgroundsList ;
-	while( curr )
-	{
-		if( curr->preview )
-		{
-	        gtk_list_store_append (GTK_LIST_STORE (model), &iter);
-    	    gtk_list_store_set (GTK_LIST_STORE (model), &iter, 0, curr->name, 1, curr, -1);
-		}
-		curr = curr->next ;
-	}
+	g_free (pixels);
 }
+
+
+GdkPixbuf *
+ASImage2GdkPixbuf( ASImage *im ) 
+{
+	GdkPixbuf *pb = NULL ; 
+	if( im ) 
+	{
+		ASImage *tmp = tile_asimage( Scr.asv, im, 0, 0, im->width, im->height, TINT_LEAVE_SAME, ASA_ARGB32, 0, ASIMAGE_QUALITY_DEFAULT );
+		if( tmp ) 
+		{	
+			guchar *data = (guchar*)tmp->alt.argb32 ; 
+			pb = gdk_pixbuf_new_from_data( data, GDK_COLORSPACE_RGB, True, 8, tmp->width, tmp->height, tmp->width*4, free_buffer, NULL );
+			if( pb != NULL ) 
+				tmp->alt.argb32 = NULL ;
+			destroy_asimage( &tmp );
+		}
+	}	 
+	return pb;
+}	 
+
 
 void 
 on_main_list_cursor_change(GtkTreeView *treeview, gpointer user_data)
 {
-	GtkWidget *list_preview = user_data ;
+	GtkImage *list_preview = WallpaperState.list_preview ;
 	GtkTreeIter iter ;
 	GtkTreePath *path ;
 	GtkTreeViewColumn *focus_column ;
@@ -73,118 +70,242 @@ on_main_list_cursor_change(GtkTreeView *treeview, gpointer user_data)
 
 	 
 	gtk_tree_view_get_cursor( treeview, &path, &focus_column );
-	if( gtk_tree_model_get_iter(model, &iter, path ) )
-	{	
-		gtk_tree_model_get_value( model, &iter, 1, &val );
-	 	p = g_value_peek_pointer( &val );
-	}
+	if( path && focus_column )
+		if( gtk_tree_model_get_iter(model, &iter, path ) )
+		{	
+			gtk_tree_model_get_value( model, &iter, 1, &val );
+	 		p = g_value_peek_pointer( &val );
+		}
 
 	if( (curr = p) != NULL && curr->preview ) 
 	{
 		/* TODO : display image */
-		
+		GdkPixbuf *pb = ASImage2GdkPixbuf( curr->preview );
+		gtk_image_set_from_pixbuf( list_preview, pb );
+		gdk_pixbuf_unref( pb ); 		   
 	}	 
 
 }
 
+int 
+on_list_preview_moveresize( GtkWidget *widget, GdkEventConfigure *event, gpointer user_data )
+{
+	int w = event->width ;		
+	int h = event->height ;
+	if( w * 3 > h * 4 ) 
+		w = h*4/3 ;
+	else if( w * 3 < h * 4 ) 
+		h = w * 3/4 ;
+/*
+	gtk_widget_set_size_request( GTK_WIDGET(WallpaperState.list_preview), w, h );	
+	gtk_fixed_move (WallpaperState.list_preview_container, 
+				   GTK_WIDGET(WallpaperState.list_preview), (event->width-w)/2, (event->height-h)/2);
+*/
+	return FALSE;
+}
+
+void
+on_list_add_clicked(GtkButton *button, gpointer user_data)
+{
+	
+}
+void
+on_list_del_clicked(GtkButton *button, gpointer user_data)
+{
+	
+}
+
+void
+on_list_apply_clicked(GtkButton *button, gpointer user_data)
+{
+	
+}
+
+void
+on_make_xml_clicked(GtkButton *button, gpointer user_data)
+{
+	
+}
 
 
-GtkWidget*
+
+
+void
 create_main_window (void)
 {
-  GtkWidget *main_window;
-  GtkWidget *main_vbox;
-  GtkWidget *list_hbox;
-  GtkWidget *list_window, *list, *list_preview ;
+    GtkWidget *main_vbox;
+  	GtkWidget *Quit;
 
-    GtkListStore *model;
+	GtkWidget *buttons_hbox;
+
+  	WallpaperState.main_window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  	gtk_window_set_title (GTK_WINDOW (WallpaperState.main_window), _("AfterStep Wallpaper Manager"));
+
+  	main_vbox = gtk_vbox_new (FALSE, 0);
+  	gtk_widget_show (main_vbox);
+  	gtk_container_add (GTK_CONTAINER (WallpaperState.main_window), main_vbox);
+
+  	WallpaperState.list_hbox = gtk_hbox_new (FALSE, 0);
+  	gtk_widget_show (WallpaperState.list_hbox);
+  	gtk_box_pack_start (GTK_BOX (main_vbox), WallpaperState.list_hbox, TRUE, TRUE, 5);
+
+  	buttons_hbox = gtk_hbutton_box_new ();
+  	gtk_hbutton_box_set_layout_default(GTK_BUTTONBOX_SPREAD);
+  	gtk_widget_show (buttons_hbox);
+  	gtk_box_pack_end (GTK_BOX (main_vbox), buttons_hbox, FALSE, FALSE, 5);
+	
+  	Quit = gtk_button_new_from_stock ("gtk-quit");
+  	gtk_widget_show (Quit);
+  	gtk_box_pack_start (GTK_BOX (buttons_hbox), Quit, FALSE, FALSE, 20);
+  	gtk_widget_set_size_request (Quit, 150, -1);
+  
+  	g_signal_connect ((gpointer) Quit, "clicked",
+    	                G_CALLBACK (on_quit_clicked),
+        	            NULL);
+
+  	/* Store pointers to all widgets, for use by lookup_widget(). */
+  	GLADE_HOOKUP_OBJECT_NO_REF (WallpaperState.main_window, WallpaperState.main_window, "main_window");
+  	GLADE_HOOKUP_OBJECT (WallpaperState.main_window, Quit, "Quit");
+}
+
+GtkWidget*
+create_list_button( GtkWidget *buttons_hbox, const char *stock, GCallback func )
+{
+	GtkWidget *btn = gtk_button_new_from_stock (stock);
+  	gtk_widget_show (btn);
+  	gtk_box_pack_start (GTK_BOX (buttons_hbox), btn, FALSE, FALSE, 0);
+  	g_signal_connect ((gpointer) btn, "clicked", G_CALLBACK (func), NULL);
+	return btn;	
+}	   
+
+void
+create_backs_list()
+{
+	GtkWidget *list_window ;
     GtkCellRenderer *cell;
     GtkTreeViewColumn *column;
+	GtkWidget *vbox ;
+	GtkWidget *buttons_hbox;
 
-  GtkWidget *Select;
-  GtkWidget *button_generate_as_bg;
-  GtkWidget *Quit;
-
-  GtkWidget *buttons_hbox;
-
-  main_window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-  gtk_window_set_title (GTK_WINDOW (main_window), _("AfterStep Wallpaper Manager"));
-
-  main_vbox = gtk_vbox_new (FALSE, 0);
-  gtk_widget_show (main_vbox);
-  gtk_container_add (GTK_CONTAINER (main_window), main_vbox);
-
-  list_hbox = gtk_hbox_new (FALSE, 0);
-  gtk_widget_show (list_hbox);
-  gtk_box_pack_start (GTK_BOX (main_vbox), list_hbox, FALSE, FALSE, 5);
+  	vbox = gtk_vbox_new (FALSE, 0);
+  	gtk_widget_show (vbox);
+  	gtk_box_pack_start (GTK_BOX (WallpaperState.list_hbox), vbox, FALSE, FALSE, 5);
 
   	list_window = gtk_scrolled_window_new (NULL, NULL);
     gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (list_window),
 				    				GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
-	gtk_box_pack_start (GTK_BOX (list_hbox), list_window, FALSE, FALSE, 5);
-    gtk_widget_set_size_request (list_window, 200, 300);
+	gtk_box_pack_start (GTK_BOX (vbox), list_window, TRUE, TRUE, 0);
+	gtk_widget_set_size_request (list_window, 200, 240);
 	gtk_widget_show (list_window);
-	list = gtk_tree_view_new();
-    model = gtk_list_store_new (2, G_TYPE_STRING, G_TYPE_POINTER);
-    gtk_scrolled_window_add_with_viewport (GTK_SCROLLED_WINDOW (list_window), list);
-    gtk_tree_view_set_model (GTK_TREE_VIEW (list), GTK_TREE_MODEL (model));
-    gtk_widget_show (list);
+
+	buttons_hbox = gtk_hbutton_box_new ();
+  	gtk_hbutton_box_set_layout_default(GTK_BUTTONBOX_SPREAD);
+  	gtk_widget_show (buttons_hbox);
+  	gtk_box_pack_end (GTK_BOX (vbox), buttons_hbox, FALSE, FALSE, 5);
+	
+	/* creating the list widget itself */
+	WallpaperState.backs_list = GTK_TREE_VIEW(gtk_tree_view_new());
+    WallpaperState.list_model = GTK_TREE_MODEL(gtk_list_store_new (2, G_TYPE_STRING, G_TYPE_POINTER));
+    gtk_scrolled_window_add_with_viewport (GTK_SCROLLED_WINDOW (list_window), GTK_WIDGET(WallpaperState.backs_list));
+    gtk_tree_view_set_model (WallpaperState.backs_list, WallpaperState.list_model);
+    gtk_widget_show (GTK_WIDGET(WallpaperState.backs_list));
     cell = gtk_cell_renderer_text_new ();
     column = gtk_tree_view_column_new_with_attributes ("Images in your private backgrounds folder:", cell, "text", 0, NULL);
-    gtk_tree_view_append_column (GTK_TREE_VIEW (list), GTK_TREE_VIEW_COLUMN (column));
+    gtk_tree_view_append_column (WallpaperState.backs_list, GTK_TREE_VIEW_COLUMN (column));
 
-	list_preview = gtk_image_new();
-  	gtk_widget_show (list_preview);
-  	gtk_widget_set_size_request (list_preview, 320, 240);
-  	gtk_box_pack_end (GTK_BOX (list_hbox), list_preview, FALSE, FALSE, 5);
-
-  	g_signal_connect ((gpointer) list, "cursor-changed",
-                       G_CALLBACK (on_main_list_cursor_change),
-                       list_preview);
-
-  fill_private_backgrounds_list(model);
+  	g_signal_connect ((gpointer) WallpaperState.backs_list, "cursor-changed",
+                       G_CALLBACK (on_main_list_cursor_change), NULL);
 
 
-  buttons_hbox = gtk_hbox_new (FALSE, 0);
-  gtk_widget_show (buttons_hbox);
-  gtk_box_pack_end (GTK_BOX (main_vbox), buttons_hbox, FALSE, FALSE, 5);
-	
-  Select = gtk_button_new_from_stock ("gtk-open");
-  gtk_widget_show (Select);
-  gtk_box_pack_start (GTK_BOX (buttons_hbox), Select, FALSE, FALSE, 20);
-
-  button_generate_as_bg = gtk_button_new_with_mnemonic (_("Generate AS wallpaper"));
-  gtk_widget_show (button_generate_as_bg);
-  gtk_box_pack_start (GTK_BOX (buttons_hbox), button_generate_as_bg, FALSE, FALSE, 20);
-  gtk_widget_set_size_request (button_generate_as_bg, 150, -1);
-
-  Quit = gtk_button_new_from_stock ("gtk-quit");
-  gtk_widget_show (Quit);
-  gtk_box_pack_start (GTK_BOX (buttons_hbox), Quit, FALSE, FALSE, 20);
-  gtk_widget_set_size_request (Quit, 150, -1);
-
-
-
-  g_signal_connect ((gpointer) Select, "clicked",
-                    G_CALLBACK (on_open_clicked),
-                    NULL);
-  g_signal_connect ((gpointer) button_generate_as_bg, "clicked",
-                    G_CALLBACK (on_generate_as_bg_clicked),
-                    NULL);
-  g_signal_connect ((gpointer) Quit, "clicked",
-                    G_CALLBACK (on_quit_clicked),
-                    NULL);
-
-  /* Store pointers to all widgets, for use by lookup_widget(). */
-  GLADE_HOOKUP_OBJECT_NO_REF (main_window, main_window, "main_window");
-//  GLADE_HOOKUP_OBJECT (window1, vbox1, "vbox1");
-//  GLADE_HOOKUP_OBJECT (window1, Select, "Select");
-//  GLADE_HOOKUP_OBJECT (window1, hbox1, "hbox1");
-//  GLADE_HOOKUP_OBJECT (window1, button_generate_as_bg, "button_generate_as_bg");
-//  GLADE_HOOKUP_OBJECT (window1, Quit, "Quit");
-
-  return main_window;
+	/* adding list manipulation buttons : */
+  	
+	WallpaperState.list_add_button = create_list_button( buttons_hbox, GTK_STOCK_ADD, G_CALLBACK(on_list_add_clicked) );
+	WallpaperState.list_del_button = create_list_button( buttons_hbox, GTK_STOCK_DELETE, G_CALLBACK(on_list_del_clicked) );
+	WallpaperState.list_apply_button = create_list_button( buttons_hbox, GTK_STOCK_APPLY, G_CALLBACK(on_list_apply_clicked) );
 }
+
+void 
+create_list_preview()
+{
+	GtkWidget *vbox ;
+	GtkWidget *buttons_hbox;
+
+  	vbox = gtk_vbox_new (FALSE, 0);
+  	gtk_widget_show (vbox);
+  	gtk_box_pack_end (GTK_BOX (WallpaperState.list_hbox), vbox, TRUE, TRUE, 5);
+
+  	WallpaperState.list_preview_container = gtk_aspect_frame_new (NULL, 0.5, 0.5, 4.0/3.0, FALSE );
+	gtk_box_pack_start (GTK_BOX (vbox), WallpaperState.list_preview_container, TRUE, TRUE, 0);
+	gtk_widget_set_size_request (WallpaperState.list_preview_container, 320, 240);
+	gtk_widget_show (WallpaperState.list_preview_container);
+
+
+	WallpaperState.list_preview = GTK_IMAGE(gtk_image_new_from_pixbuf(NULL));
+  	gtk_widget_show (GTK_WIDGET(WallpaperState.list_preview));
+  	gtk_widget_set_size_request (GTK_WIDGET(WallpaperState.list_preview), 320, 240);
+	gtk_container_add (GTK_CONTAINER (WallpaperState.list_preview_container), 
+											GTK_WIDGET(WallpaperState.list_preview));
+
+//  	g_signal_connect ((gpointer) WallpaperState.list_preview_container, "configure-event",
+//                       G_CALLBACK (on_list_preview_moveresize), NULL);
+
+	buttons_hbox = gtk_hbutton_box_new ();
+  	gtk_hbutton_box_set_layout_default(GTK_BUTTONBOX_SPREAD);
+  	gtk_widget_show (buttons_hbox);
+  	gtk_box_pack_end (GTK_BOX (vbox), buttons_hbox, FALSE, FALSE, 5);
+
+	WallpaperState.make_xml_button = create_list_button( buttons_hbox, GTK_STOCK_PROPERTIES, G_CALLBACK(on_make_xml_clicked) );
+	gtk_button_set_label( GTK_BUTTON(WallpaperState.make_xml_button), "Tweak this wallpaper" );
+}
+
+void 
+on_private_backs_changed()
+{
+	if( !get_flags( WallpaperState.flags, DISPLAY_SYSTEM_BACKS ) )
+	{	
+    	GtkTreeIter iter;
+		ASImageListEntry *curr ;
+	
+		curr = WallpaperState.private_backs_list ;
+		while( curr )
+		{
+        	gtk_list_store_append (GTK_LIST_STORE (WallpaperState.list_model), &iter);
+   	    	gtk_list_store_set (GTK_LIST_STORE (WallpaperState.list_model), &iter, 0, curr->name, 1, curr, -1);
+			curr = curr->next ;
+		}
+	}
+}
+
+void
+reload_private_backs_list()
+{	
+	char *private_back_dir = PutHome("~/.afterstep/backgrounds");
+	ASImageListEntry *old = WallpaperState.private_backs_list ;
+	WallpaperState.private_backs_list = get_asimage_list( Scr.asv, private_back_dir,
+	              						       LOAD_PREVIEW, Scr.image_manager->gamma, 0, 0,
+											   0, &WallpaperState.private_backs_count, ignore_dots );
+	free( private_back_dir );
+
+	on_private_backs_changed();
+
+	if( old )
+		destroy_asimage_list( &old );
+}
+
+void 
+init_ASWallpaper()
+{
+	memset( &WallpaperState, 0x00, sizeof(ASWallpaperState));
+	
+	create_main_window(); 
+	create_backs_list();
+	create_list_preview();
+
+	reload_private_backs_list();
+
+	g_signal_connect (G_OBJECT (WallpaperState.main_window), "destroy", G_CALLBACK (gtk_main_quit), NULL);
+  	gtk_widget_show (WallpaperState.main_window);
+}	 
 
 GtkWidget*
 create_filechooserdialog2 (void)

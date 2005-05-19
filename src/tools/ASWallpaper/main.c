@@ -15,11 +15,13 @@
 #include "interface.h"
 #include "support.h"
 
+
+ASWallpaperState WallpaperState ;
+
 int
 main (int argc, char *argv[])
 {
 	GdkDisplay *gdk_display ;
-  	GtkWidget *main_window;
 	int i ; 
 	static char *deleted_arg = "_deleted_arg_" ;
 
@@ -53,8 +55,7 @@ main (int argc, char *argv[])
    * (except popup menus), just so that you see something after building
    * the project. Delete any components that you don't want shown initially.
    */
-  main_window = create_main_window ();
-  gtk_widget_show (main_window);
+  init_ASWallpaper();
   
 
   gtk_main ();
