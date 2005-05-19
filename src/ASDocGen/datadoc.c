@@ -356,20 +356,7 @@ convert_data_file( const char *source_dir, const char *dst_dir, ASXMLInterpreter
 		}
 		curr = curr->next ;
 	}
-
-	curr = im_list ;
-	while( curr )
-	{
-		ASImageListEntry *to_delete = curr ; 
-		curr = curr->next ;
-		if( to_delete->preview ) 
-			safe_asimage_destroy( to_delete->preview );
-		if( to_delete->name )
-			free( to_delete->name );
-		if( to_delete->fullfilename )
-			free( to_delete->fullfilename );
-		free( to_delete );
-	}
+	destroy_asimage_list( &im_list );
 }
 
 

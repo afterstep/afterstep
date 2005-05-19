@@ -329,6 +329,29 @@ get_asimage( ASImageManager* imageman, const char *file, ASFlagType what, unsign
 	return im;
 }
 
+void
+destroy_asimage_list( ASImageListEntry **plist )
+{
+	if( plist )
+	{		   
+		ASImageListEntry *curr = *plist ;
+		while( curr )
+		{
+			ASImageListEntry *to_delete = curr ; 
+			curr = curr->next ;
+			if( to_delete->preview ) 
+				safe_asimage_destroy( to_delete->preview );
+			if( to_delete->name )
+				free( to_delete->name );
+			if( to_delete->fullfilename )
+				free( to_delete->fullfilename );
+			free( to_delete );
+		}
+		*plist = NULL ;
+	}
+}
+
+
 ASImageListEntry *
 get_asimage_list( ASVisual *asv, const char *dir,
 	              ASFlagType preview_type, double gamma,

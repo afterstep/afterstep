@@ -191,6 +191,7 @@ ASImageListEntry *get_asimage_list( struct ASVisual *asv, const char *dir,
 									unsigned int preview_compression,
 									unsigned int *count_ret,
 									int (*select) (const char *) );
+void destroy_asimage_list( ASImageListEntry **plist );
 
 
 /****f* libAfterImage/import/file2pixmap()

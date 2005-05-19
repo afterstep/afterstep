@@ -17,10 +17,21 @@ CursorPath              @with_afterdir@/desktop/cursors:@datadir@/afterstep/desk
 #
 ##########################################################################
 
+# This sets the size of the virtual desktop :
+DeskTopSize @with_deskgeometry@
+
+
+# Uncomment this if you run X remotely, or have issues with shared memory :
+#DisableSharedMemory
+
+# Selects terminal emulator to be used by AfterStep with ExecInTerm command:
+#TermCommand 0  aterm
+#TermCommand 1  rxvt
+#TermCommand 2  xterm
+
 ##########################################################################
 # Pager
 #
-DeskTopSize @with_deskgeometry@
 DeskTopScale 32
 #
 ##########################################################################

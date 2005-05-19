@@ -183,7 +183,11 @@ struct ASImageManager *get_screen_image_manager(ScreenInfo *scr);
 void get_Xinerama_rectangles (ScreenInfo * scr);
 #endif
 Bool set_synchronous_mode (Bool enable);
+
+int ConnectXDisplay (Display *display, ScreenInfo * scr, Bool as_manager);
+/* this is a shortcut to above : */
 int ConnectX (ScreenInfo * scr, unsigned long event_mask);
+
 void setup_modifiers ();
 
 #define  create_screen_window(scr,p,x,y,w,h,bw,c,mask,attr) \

@@ -234,21 +234,18 @@ ASErrorHandler (Display * dpy, XErrorEvent * event)
 
 
 int
-ConnectX (ScreenInfo * scr, unsigned long event_mask)
+ConnectXDisplay (Display *display, ScreenInfo * scr, Bool as_manager)
 {
-    
+    if( display == NULL ) 
+		return -1;
+
+	dpy = display ;
+	
 	if( scr == NULL ) 
 	{
 		if( ASDefaultScr == NULL ) 
 			ASDefaultScr = safecalloc( 1, sizeof(ScreenInfo));
 		scr = ASDefaultScr ;
-	}
-	/* Initialize X connection */
-	
-    if (!(dpy = XOpenDisplay (MyArgs.display_name)))
-	{
-        show_error("Can't open display \"%s\". Exiting!", XDisplayName (MyArgs.display_name));
-		exit (1);
 	}
 
 	x_fd = XConnectionNumber (dpy);
@@ -291,7 +288,7 @@ ConnectX (ScreenInfo * scr, unsigned long event_mask)
     scr->RootClipArea.width = scr->MyDisplayWidth;
     scr->RootClipArea.height = scr->MyDisplayHeight;
 
-    if( (scr->wmprops = setup_wmprops( scr, (event_mask&SubstructureRedirectMask), 0xFFFFFFFF, NULL )) == NULL )
+    if( (scr->wmprops = setup_wmprops( scr, as_manager, 0xFFFFFFFF, NULL )) == NULL )
         return -1;
 
     scr->asv = create_asvisual (dpy, scr->screen, DefaultDepth(dpy,scr->screen), NULL);
@@ -319,12 +316,25 @@ ConnectX (ScreenInfo * scr, unsigned long event_mask)
 	scr->ShmCompletionEventType = XShmGetEventBase(dpy) + ShmCompletion;
 #endif /* SHAPE */
 
-    XSelectInput (dpy, scr->Root, event_mask);
-
 	init_screen_gcs(scr);
 
 	return x_fd;
 }
+
+int
+ConnectX (ScreenInfo * scr, unsigned long event_mask)
+{
+    if (!(dpy = XOpenDisplay (MyArgs.display_name)))
+	{
+        show_error("Can't open display \"%s\". Exiting!", XDisplayName (MyArgs.display_name));
+		exit (1);
+	}
+
+	ConnectXDisplay (dpy, scr, (event_mask&SubstructureRedirectMask));
+    XSelectInput (dpy, scr->Root, event_mask);
+	return x_fd;
+}
+
 
 /***********************************************************************
  *  Procedure:
