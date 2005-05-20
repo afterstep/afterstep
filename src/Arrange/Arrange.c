@@ -489,13 +489,13 @@ tile_window(void *data, void *aux_data)
 	int buf_size = 256;
 	char buf[buf_size];
 	
-	ASWindowData *wd = fetch_window_by_id( ((client_item *) data)->cl );
-	if(!wd)
-		return True;
-
 	/* used by SendNumCommand */
 	send_signed_data_type vals[2] ;	
 	send_signed_data_type units[2] ;
+
+	ASWindowData *wd = fetch_window_by_id( ((client_item *) data)->cl );
+	if(!wd)
+		return True;
 
 	if(! window_is_suitable( wd ))
 	  return True; /* Next window please */
@@ -555,6 +555,7 @@ void
 tile_windows()
 {
 	int n_windows = 0;
+	int n_groups;
 	iterate_asbidirlist( ArrangeState.clients_order,
 			     count_managed_windows, &n_windows, NULL, False);
 	
@@ -565,7 +566,7 @@ tile_windows()
 	if(ArrangeState.count == 0)
 	  ArrangeState.count = n_windows; /*Put all elements in one group*/
 	
-	int n_groups = n_windows / ArrangeState.count;
+	n_groups = n_windows / ArrangeState.count;
 	/* If not all windows fit in n_groups groups, an
 	 * extra group for remaining windows is needed.*/
 	if(n_windows % ArrangeState.count)
@@ -618,13 +619,13 @@ cascade_window(void *data, void *aux_data)
 {
 	int buf_size = 256;
 	char buf[buf_size];
-	
+	send_signed_data_type vals[2] ;	
+	send_signed_data_type units[2] ;	
+
 	ASWindowData *wd = fetch_window_by_id( ((client_item *) data)->cl );
 	if(!wd)
 		return True;
 
-	send_signed_data_type vals[2] ;	
-	send_signed_data_type units[2] ;	
 
 	if(! window_is_suitable( wd ))
 	  return True; /* Next window please */
