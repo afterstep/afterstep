@@ -28,6 +28,7 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <regex.h>
+#include <stdio.h>
 
 #include "../../libAfterImage/afterimage.h"
 
@@ -46,6 +47,7 @@
 #include "../../libAfterStep/shape.h"
 
 #include "../../libAfterBase/aslist.h"
+#include "../../libAfterBase/ashash.h"
 
 #include "../../libAfterConf/afterconf.h"
 
@@ -92,6 +94,7 @@ void move_handler(ASWindowData *wd);
 void kill_handler(ASWindowData *wd);
 void jump_handler(ASWindowData *wd);
 void ls_handler(ASWindowData *wd);
+void iconify_handler(ASWindowData *wd);
 
 void move_handler(ASWindowData *wd)
 {
@@ -117,26 +120,43 @@ void kill_handler(ASWindowData *wd)
 void jump_handler(ASWindowData *wd)
 {
 	/* used by SendNumCommand */
-	send_signed_data_type vals[2] ;	
-	send_signed_data_type units[2] ;
+	send_signed_data_type vals[1] ;	
+	send_signed_data_type units[1] ;
 	
 	LOCAL_DEBUG_OUT("Jump handler called");
 
 	/* Indicate that we're talking pixels. */
-	units[0] = units[1] = 1;
+	units[0] = 1;
 	vals[0] = -1;
-	vals[1] = -1;
-
+	
 	/* Deiconify window if necessary */
 	if(get_flags( wd->state_flags, AS_Iconic))
 		SendNumCommand(F_ICONIFY, NULL, &(vals[0]), &(units[0]), wd->client);
 	/* Give window focus */
-	SendNumCommand(F_FOCUS, NULL, &(vals[0]), &(units[0]), wd->client);
+	SendNumCommand(F_FOCUS, NULL, NULL, NULL, wd->client);
 }
 
 void ls_handler(ASWindowData *wd)
 {
 	printf("%s\n", wd->window_name);
+}
+
+void iconify_handler(ASWindowData *wd)
+{
+	/* used by SendNumCommand */
+	send_signed_data_type vals[1] ;	
+	send_signed_data_type units[1] ;
+	
+	LOCAL_DEBUG_OUT("Iconify handler called");
+
+	/* Indicate that we're talking pixels. */
+	units[0] = 1;
+	vals[0] = 1;
+	
+	/* Iconify window if not iconified */
+	if(! get_flags( wd->state_flags, AS_Iconic))
+		SendNumCommand(F_ICONIFY, NULL, &(vals[0]), &(units[0]), wd->client);
+	
 }
 
 /* Returns a list of windows which match the given pattern
@@ -283,23 +303,37 @@ process_message (send_data_type type, send_data_type *body)
 {
 	ASBiDirList *matches;
 	client_item *new_item;
+	
+	static Bool done = False;
+
 	LOCAL_DEBUG_OUT( "received message %lX", type );
   
 	if( type == M_END_WINDOWLIST )
 	{
-		matches = extract_matches(WinCommandState.clients_order, WinCommandState.pattern );
-		if(!matches)
-		{
-			LOCAL_DEBUG_OUT("No windows matches pattern %s", WinCommandState.pattern);
+		if( done)
 			Quit_WinCommand();
-		}
-		
-		iterate_asbidirlist( matches, apply_operations, NULL,
+		else
+		{
+			matches = extract_matches(WinCommandState.clients_order, WinCommandState.pattern );
+			if(!matches)
+			{
+				LOCAL_DEBUG_OUT("No windows matches pattern %s", WinCommandState.pattern);
+				Quit_WinCommand();
+			}
+			
+			iterate_asbidirlist( matches, apply_operations, NULL,
 				     NULL, False);
 		
-		destroy_asbidirlist( &matches );
-
-		Quit_WinCommand();
+			destroy_asbidirlist( &matches );
+			
+			done = True;
+			/* Hack: Request another window-list. Next time we
+			 * receive M_END_WINDOWLIST we can be sure all of our
+			 * move/resize/whatever commands have been executed and
+			 * it's safe to die. */
+			SendInfo ("Send_WindowList", 0);
+		}
+		
 
 	}else if( (type&WINDOW_PACKET_MASK) != 0 )
 	{
@@ -347,7 +381,8 @@ main( int argc, char **argv )
 	add_hash_item(WinCommandState.handlers, AS_HASHABLE(strdup("kill")), kill_handler);
 	add_hash_item(WinCommandState.handlers, AS_HASHABLE(strdup("jump")), jump_handler);
 	add_hash_item(WinCommandState.handlers, AS_HASHABLE(strdup("ls")), ls_handler);
-	
+	add_hash_item(WinCommandState.handlers, AS_HASHABLE(strdup("iconify")), iconify_handler);
+
 	/* Traverse arguments */
 	for( i = 1 ; i< argc ; ++i)
 	{
