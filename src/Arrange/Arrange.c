@@ -515,6 +515,10 @@ tile_window(void *data, void *aux_data)
 	if( !get_flags( ArrangeState.flags, ARRANGE_NoRaise ) )
 		SendNumCommand ( F_RAISE, NULL, NULL, NULL, wd->client );
 	
+	vals[0] = -1; units[0] = 1;
+	if( get_flags( wd->state_flags, AS_Iconic) )
+		SendNumCommand( F_ICONIFY, NULL, &(vals[0]), &(units[0]), wd->client );
+
        /* Indicate that we're talking pixels. */
 	units[0] = units[1] = 1;
 	vals[0] = ArrangeState.curr_x; vals[1] = ArrangeState.curr_y;
