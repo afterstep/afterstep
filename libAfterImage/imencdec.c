@@ -1397,14 +1397,14 @@ inline static void
 tile_argb32_line( ARGB32 *data, unsigned int line, int step, unsigned int width, unsigned int height, int range )
 {
 	register int i ;
-	ARGB32 *src_line = data+width*line ;
-	ARGB32 *dst_line = src_line+width ;
+	ARGB32 *src_line = data+line*width ;
+	ARGB32 *dst_line = src_line+step*width ;
 	int max_i = MIN((int)height,(int)line+range), min_i = MAX(0,(int)line-range) ;
 
 	for( i = line+step ; i < max_i && i >= min_i ; i+=step )
 	{
 		memcpy( dst_line, src_line, width*sizeof(ARGB32));
-		dst_line += step;
+		dst_line += step*width;
 	}
 }
 

@@ -31,6 +31,7 @@ main (int argc, char *argv[])
 			argv[i] = deleted_arg ;
   	LinkAfterStepConfig();
   	InitSession();
+	LoadColorScheme();
 
 #ifdef ENABLE_NLS
   	bindtextdomain (GETTEXT_PACKAGE, PACKAGE_LOCALE_DIR);
