@@ -55,32 +55,37 @@ ASImage2GdkPixbuf( ASImage *im, Bool copy )
 	GdkPixbuf *pb = NULL ; 
 	if( im ) 
 	{
-		guchar *data = (guchar*)im->alt.argb32 ; 
+		ARGB32 *argb = im->alt.argb32 ;
+		ASImage *tmp = NULL ;
+		int i, k = 0;
+		int size = im->width*im->height;
+		guchar *data ;
 
-		if( data == NULL ) 
-		{	
-			ASImage *tmp = tile_asimage( Scr.asv, im, 0, 0, im->width, im->height, TINT_LEAVE_SAME, ASA_ARGB32, 0, ASIMAGE_QUALITY_DEFAULT );
-			if( tmp ) 
-			{	
-				guchar *data = (guchar*)tmp->alt.argb32 ; 
-				pb = gdk_pixbuf_new_from_data( data, GDK_COLORSPACE_RGB, True, 8, tmp->width, tmp->height, tmp->width*4, free_buffer, NULL );
-				if( pb != NULL ) 
-					tmp->alt.argb32 = NULL ;
-				destroy_asimage( &tmp );
-			}
-		}else
+		if( argb == NULL) 
 		{
-			pb = gdk_pixbuf_new_from_data( data, GDK_COLORSPACE_RGB, True, 8, im->width, im->height, im->width*4, free_buffer, NULL );
-			if( pb != NULL ) 
-			{
-			 	if( copy ) 
-				{
-					im->alt.argb32 = safemalloc( im->width*im->height*4 );
-					memcpy( im->alt.argb32, data, im->width*im->height*4 ); 	 
-				}else			  
-					im->alt.argb32 = NULL ;			
-			}
-		}	 
+			tmp = tile_asimage( Scr.asv, im, 0, 0, im->width, im->height, TINT_LEAVE_SAME, ASA_ARGB32, 0, ASIMAGE_QUALITY_DEFAULT );
+			if( tmp == NULL ) 
+				return NULL;
+			argb = tmp->alt.argb32 ;
+		}
+		
+		data = safemalloc( size*4 );
+		for( i = 0 ; i < size ; ++i ) 
+		{
+			data[k] = ARGB32_RED8(argb[i]);
+			data[++k] = ARGB32_GREEN8(argb[i]);
+			data[++k] = ARGB32_BLUE8(argb[i]);
+			data[++k] = ARGB32_ALPHA8(argb[i]);
+			++k;
+		}
+		
+		pb = gdk_pixbuf_new_from_data( data, GDK_COLORSPACE_RGB, True, 8, im->width, im->height, im->width*4, free_buffer, NULL );
+		if( pb == NULL ) 
+			free( data );
+			
+		if( tmp ) 
+			destroy_asimage( &tmp );
+			
 	}	 
 	return pb;
 }	 
