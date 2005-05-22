@@ -515,6 +515,7 @@ tile_window(void *data, void *aux_data)
 	if( !get_flags( ArrangeState.flags, ARRANGE_NoRaise ) )
 		SendNumCommand ( F_RAISE, NULL, NULL, NULL, wd->client );
 	
+	/* If the client is iconified, deiconify it. */
 	vals[0] = -1; units[0] = 1;
 	if( get_flags( wd->state_flags, AS_Iconic) )
 		SendNumCommand( F_ICONIFY, NULL, &(vals[0]), &(units[0]), wd->client );
@@ -633,6 +634,11 @@ cascade_window(void *data, void *aux_data)
 	/* Raise the client if allowed */
 	if( !get_flags( ArrangeState.flags, ARRANGE_NoRaise ) )
 		SendNumCommand ( F_RAISE, NULL, NULL, NULL, wd->client );
+
+	/* If the client is iconified, deiconify it. */
+	vals[0] = -1; units[0] = 1;
+	if( get_flags( wd->state_flags, AS_Iconic) )
+		SendNumCommand( F_ICONIFY, NULL, &(vals[0]), &(units[0]), wd->client );
 
 	/* This is to indicate that values are in pixels : */
 	units[0] = 1 ; 
