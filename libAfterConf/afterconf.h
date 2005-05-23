@@ -1879,6 +1879,7 @@ void LoadColorScheme();                        /* high level easy to use functio
 #define WINTABS_AllDesks_ID				(WINTABS_ID_START+24)
 #define WINTABS_Title_ID				(WINTABS_ID_START+25)
 #define WINTABS_IconTitle_ID	 		(WINTABS_ID_START+26)
+#define WINTABS_SkipTransients_ID		(WINTABS_ID_START+27)
 
 
 #define WINTABS_BALLOONS_ID             (WINTABS_ID_START+31)
@@ -1909,10 +1910,12 @@ typedef struct WinTabsConfig
 #define WINTABS_H_SPACING       (0x01<<18)
 #define WINTABS_V_SPACING       (0x01<<19)
 #define WINTABS_PatternType	    (0x01<<20)
-#define WINTABS_ExcludePatternType	    (0x01<<20)
+#define WINTABS_ExcludePatternType	    (0x01<<21)
+#define WINTABS_SkipTransients	(0x01<<22)
 
-#define ASWT_UseSkipList	WINTABS_UseSkipList
-#define ASWT_HideWhenEmpty	WINTABS_HideWhenEmpty
+
+#define ASWT_UseSkipList		WINTABS_UseSkipList
+#define ASWT_HideWhenEmpty		WINTABS_HideWhenEmpty
 
 	ASFlagType	flags ;
 	ASFlagType	set_flags ;

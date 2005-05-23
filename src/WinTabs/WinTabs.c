@@ -80,6 +80,7 @@ typedef struct {
 #define ASWT_AllDesks		(0x01<<2)
 #define ASWT_Transparent	(0x01<<3)
 #define ASWT_ShutDownInProgress	(0x01<<4)
+#define ASWT_SkipTransients		(0x01<<5)
 
 	ASFlagType flags ;
 
@@ -177,13 +178,14 @@ Bool handle_tab_name_change( Window client );
 
 void DeadPipe(int);
 
-CommandLineOpts WinTabs_cmdl_options[6] =
+CommandLineOpts WinTabs_cmdl_options[7] =
 {
 	{NULL, "pattern","Overrides module's inclusion pattern", NULL, handler_set_string, NULL, 0, CMO_HasArgs },
 	{NULL, "exclude-pattern","Overrides module's exclusion pattern", NULL, handler_set_string, NULL, 0, CMO_HasArgs },
 	{NULL, "all-desks","Swallow windows from any desktop", NULL, handler_set_flag, NULL, 0, 0 },
 	{NULL, "title","Overrides module's main window title", NULL, handler_set_string, NULL, 0, CMO_HasArgs },
 	{NULL, "icon-title","Overrides module's title in iconic state", NULL, handler_set_string, NULL, 0, CMO_HasArgs },
+	{NULL, "skip-transients","Disregard any transient window(dialog)", NULL, handler_set_flag, NULL, 0, 0 },
     {NULL, NULL, NULL, NULL, NULL, NULL, 0 }
 };
 
@@ -247,6 +249,8 @@ main( int argc, char **argv )
 				title_override = argv[i+1];
 	    	else if( strcmp( argv[i] , "--icon-title" ) == 0 && i+1 < argc &&  argv[i+1] != NULL )
 				icon_title_override = argv[i+1];
+			else if( strcmp( argv[i] , "--skip-transients" ) == 0 )
+				set_flags( WinTabsState.flags, ASWT_SkipTransients );
 		}
 	}
 
@@ -412,8 +416,17 @@ LOCAL_DEBUG_OUT( "exclude_pattern = \"%s\"", Config->exclude_pattern );
 		show_warning( "Empty Pattern requested for windows to be captured and tabbed - will wait for swallow command");
 	}
 
-	if( get_flags(Config->flags, WINTABS_AllDesks ) )
-		set_flags( WinTabsState.flags, ASWT_AllDesks );		
+	if( get_flags(Config->set_flags, WINTABS_AllDesks ) )
+	{	
+		if( get_flags(Config->flags, WINTABS_AllDesks ) )
+			set_flags( WinTabsState.flags, ASWT_AllDesks );		
+	}
+	if( get_flags(Config->set_flags, WINTABS_SkipTransients ) )
+	{	
+		if( get_flags(Config->flags, WINTABS_SkipTransients ) )
+			set_flags( WinTabsState.flags, ASWT_SkipTransients );		
+	}
+
 
     if( !get_flags(Config->geometry.flags, WidthValue) )
 		Config->geometry.width = 640 ;
@@ -1561,6 +1574,11 @@ check_swallow_window( ASWindowData *wd )
 
 	if( wd->client == WinTabsState.main_window )
 		return;
+	if( get_flags( WinTabsState.flags, ASWT_SkipTransients ) )
+	{
+		if( get_flags( wd->flags, AS_Transient ) )
+			return;
+	}	 
 	/* first lets check if we have already swallowed this one : */
 	i = PVECTOR_USED(WinTabsState.tabs);
 	aswt = PVECTOR_HEAD(ASWinTab,WinTabsState.tabs);

@@ -66,6 +66,7 @@ TermDef       WinTabsTerms[] = {
     {0, "AllDesks", 8, TT_FLAG, WINTABS_AllDesks_ID, NULL},
     {0, "Title", 5, TT_TEXT, WINTABS_Title_ID, NULL},
     {0, "IconTitle", 9, TT_TEXT, WINTABS_IconTitle_ID, NULL},
+    {0, "SkipTransients", 14, TT_FLAG, WINTABS_SkipTransients_ID, NULL},
 /* including MyStyles definitions processing */
 	INCLUDE_MYSTYLE,
 
@@ -168,6 +169,9 @@ PrintWinTabsConfig (WinTabsConfig * config)
 		fprintf (stderr, "WINTABSConfig.title = \"%s\";\n", config->title);
 	if (config->icon_title)
 		fprintf (stderr, "WINTABSConfig.icon_title = \"%s\";\n", config->icon_title);
+	fprintf (stderr, "WinTabsConfig.SkipTransients = %s;\n",
+			 get_flags (config->flags, WINTABS_SkipTransients) ? "True" : "False");
+
 }
 
 WinTabsConfig *
@@ -210,6 +214,9 @@ ParseWinTabsOptions (const char *filename, char *myname)
                     break;
                 case WINTABS_AllDesks_ID:
                     SET_CONFIG_FLAG (config->flags, config->set_flags, WINTABS_AllDesks);
+                    break;
+                case WINTABS_SkipTransients_ID:
+                    SET_CONFIG_FLAG (config->flags, config->set_flags, WINTABS_SkipTransients);
                     break;
                 case WINTABS_Align_ID :
                     set_flags( config->set_flags, WINTABS_Align );
