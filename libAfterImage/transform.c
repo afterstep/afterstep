@@ -2270,6 +2270,10 @@ LOCAL_DEBUG_CALLER_OUT( "sx1 = %d, sx2 = %d, sy1 = %d, sy2 = %d, to_width = %d, 
 	if( src && (imdec = start_image_decoding(asv, src, SCL_DO_ALL, 0, 0, src->width, 0, NULL)) == NULL )
 		return NULL;
 
+	if( slice_x_end == 0 && slice_x_start > 0 ) 
+		slice_x_end = slice_x_start + 1 ;
+	if( slice_y_end == 0 && slice_y_start > 0 ) 
+		slice_y_end = slice_y_start + 1 ;
 	if( slice_x_end > src->width ) 
 		slice_x_end = src->width ;
 	if( slice_y_end > src->height ) 
