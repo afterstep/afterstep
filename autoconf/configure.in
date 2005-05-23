@@ -697,6 +697,7 @@ if test -d src/Script ; 	then AC_CONFIG_FILES([src/Script/Makefile src/Script/Wi
 if test -d src/Scroll ; 	then AC_CONFIG_FILES([src/Scroll/Makefile]) fi
 if test -d src/Sound ; 		then AC_CONFIG_FILES([src/Sound/Makefile]) fi
 if test -d src/Wharf ; 		then AC_CONFIG_FILES([src/Wharf/Makefile]) fi
+if test -d src/WinList2 ; 	then AC_CONFIG_FILES([src/WinCommand/Makefile]) fi
 if test -d src/WinList2 ; 	then AC_CONFIG_FILES([src/WinList2/Makefile]) fi
 if test -d src/WinTabs ; 	then AC_CONFIG_FILES([src/WinTabs/Makefile]) fi
 if test -d src/Gadget ; 	then AC_CONFIG_FILES([src/Gadget/Makefile]) fi

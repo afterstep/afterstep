@@ -8522,6 +8522,8 @@ if test -d src/Sound ; 		then           ac_config_files="$ac_config_files src/So
  fi
 if test -d src/Wharf ; 		then           ac_config_files="$ac_config_files src/Wharf/Makefile"
  fi
+if test -d src/WinList2 ; 	then           ac_config_files="$ac_config_files src/WinCommand/Makefile"
+ fi
 if test -d src/WinList2 ; 	then           ac_config_files="$ac_config_files src/WinList2/Makefile"
  fi
 if test -d src/WinTabs ; 	then           ac_config_files="$ac_config_files src/WinTabs/Makefile"
@@ -9082,6 +9084,7 @@ do
   "src/Scroll/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/Scroll/Makefile" ;;
   "src/Sound/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/Sound/Makefile" ;;
   "src/Wharf/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/Wharf/Makefile" ;;
+  "src/WinCommand/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/WinCommand/Makefile" ;;
   "src/WinList2/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/WinList2/Makefile" ;;
   "src/WinTabs/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/WinTabs/Makefile" ;;
   "src/Gadget/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/Gadget/Makefile" ;;
