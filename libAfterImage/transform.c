@@ -2203,8 +2203,139 @@ LOCAL_DEBUG_OUT("adjusting actually...%s", "");
 	return dst;
 }
 
+static void 
+slice_scanline( ASScanline *dst, ASScanline *src, int start_x, int end_x )
+{
+	CARD32 *sa = src->alpha, *da = dst->alpha ;
+	CARD32 *sr = src->red, *dr = dst->red ;
+	CARD32 *sg = src->green, *dg = dst->green ;
+	CARD32 *sb = src->blue, *db = dst->blue ;
+	int max_x = min( start_x, dst->width);
+	int tail = (int)src->width - end_x ; 
+	int tiling_step = end_x - start_x ;
+	int x1, x2, max_x2 ;
+	
+	for( x1 = 0 ; x1 < max_x ; ++x1 ) 
+	{
+		da[x1] = sa[x1] ; 
+		dr[x1] = sr[x1] ; 
+		dg[x1] = sg[x1] ; 
+		db[x1] = sb[x1] ;	  
+	}
+	if( x1 >= dst->width )
+		return;
+	max_x2 = (int) dst->width - tail ; 
+	max_x = min(end_x, max_x2);		
+	for( ; x1 < max_x ; ++x1 )
+	{
+  		x2 = x1 ;
+		for( x2 = x1 ; x2 < max_x2 ; x2 += tiling_step )
+		{
+			da[x2] = sa[x1] ; 
+			dr[x2] = sr[x1] ; 
+			dg[x2] = sg[x1] ; 
+			db[x2] = sb[x1] ;	  
+		}				  
+	}	 
+	x1 = src->width - tail ;
+	x2 = max(max_x2,start_x) ; 
+	max_x = src->width ;
+	max_x2 = dst->width ;
+	LOCAL_DEBUG_OUT( "x1 = %d, x2 = %d, max_x1 = %d, max_x2 = %d", x1, x2, max_x, max_x2 );
+	for( ; x1 < max_x && x2 < max_x2; ++x1, ++x2 )
+	{
+		da[x2] = sa[x1] ; 
+		dr[x2] = sr[x1] ; 
+		dg[x2] = sg[x1] ; 
+		db[x2] = sb[x1] ;	  
+	}
+}	 
 
 
+ASImage*
+slice_asimage( ASVisual *asv, ASImage *src,
+			   unsigned int slice_x_start, unsigned int slice_x_end,
+			   unsigned int slice_y_start, unsigned int slice_y_end,
+			   unsigned int to_width,
+			   unsigned int to_height,
+			   ASAltImFormats out_format,
+			   unsigned int compression_out, int quality )
+{
+	ASImage *dst = NULL ;
+	ASImageDecoder *imdec ;
+	ASImageOutput  *imout ;
+	START_TIME(started);
+
+LOCAL_DEBUG_CALLER_OUT( "sx1 = %d, sx2 = %d, sy1 = %d, sy2 = %d, to_width = %d, to_height = %d", slice_x_start, slice_x_end, slice_y_start, slice_y_end, to_width, to_height );
+	if( src && (imdec = start_image_decoding(asv, src, SCL_DO_ALL, 0, 0, src->width, 0, NULL)) == NULL )
+		return NULL;
+
+	if( slice_x_end > src->width ) 
+		slice_x_end = src->width ;
+	if( slice_y_end > src->height ) 
+		slice_y_end = src->height ;
+	if( slice_x_start > slice_x_end ) 
+		slice_x_start = (slice_x_end > 0 ) ? slice_x_end-1 : 0 ;
+	if( slice_y_start > slice_y_end ) 
+		slice_y_start = (slice_y_end > 0 ) ? slice_y_end-1 : 0 ;
+
+	dst = create_destination_image( to_width, to_height, out_format, compression_out, src->back_color);
+#ifdef HAVE_MMX
+	mmx_init();
+#endif
+	if((imout = start_image_output( asv, dst, out_format, 0, quality)) == NULL )
+	{
+        destroy_asimage( &dst );
+    }else
+	{
+		ASScanline *out_buf = prepare_scanline( to_width, 0, NULL, asv->BGR_mode );
+		int max_y = min( slice_y_start, dst->height);
+		int tail = (int)src->height - slice_y_end ; 
+		int y1, y2, max_y2 ;
+
+		out_buf->flags = 0xFFFFFFFF ;
+		imout->tiling_step = 0;
+		LOCAL_DEBUG_OUT( "max_y = %d", max_y );
+		for( y1 = 0 ; y1 < max_y ; ++y1 ) 
+		{
+			imdec->decode_image_scanline( imdec );
+			slice_scanline( out_buf, &(imdec->buffer), slice_x_start, slice_x_end );
+			imout->output_image_scanline( imout, out_buf, 1);
+		}	 
+		imout->tiling_step = (int)slice_y_end - (int)slice_y_start;
+		max_y2 = (int) dst->height - tail ; 
+		max_y = min(slice_y_end, max_y2);
+		LOCAL_DEBUG_OUT( "y1 = %d, max_y = %d", y1, max_y );		   
+		for( ; y1 < max_y ; ++y1 )
+		{
+			imdec->decode_image_scanline( imdec );
+			slice_scanline( out_buf, &(imdec->buffer), slice_x_start, slice_x_end );
+			imout->output_image_scanline( imout, out_buf, 1);
+		}
+
+		imout->tiling_step = 0;
+		imout->next_line = y2 =  max(max_y2,slice_y_start) ; 
+		imdec->next_line = y1 = src->height - tail ;
+		max_y = src->height ;
+		if( y2 + max_y - y1 > dst->height ) 
+			max_y = dst->height + y1 - y2 ;
+		LOCAL_DEBUG_OUT( "y1 = %d, max_y = %d", y1, max_y );		   
+		for( ; y1 < max_y ; ++y1 )
+		{
+			imdec->decode_image_scanline( imdec );
+			slice_scanline( out_buf, &(imdec->buffer), slice_x_start, slice_x_end );
+			imout->output_image_scanline( imout, out_buf, 1);
+		}
+		stop_image_output( &imout );
+	}
+#ifdef HAVE_MMX
+	mmx_off();
+#endif
+	stop_image_decoding( &imdec );
+
+	SHOW_TIME("", started);
+	return dst;
+}
 /* ********************************************************************************/
 /* The end !!!! 																 */
 /* ********************************************************************************/

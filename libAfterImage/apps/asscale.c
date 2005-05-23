@@ -42,12 +42,14 @@ int main(int argc, char* argv[])
 	int dummy, geom_flags = 0;
 	unsigned int to_width, to_height ;
 	ASImage *im ;
+	int slice_x_start = 0, slice_x_end = 0, slice_y_start = 0, slice_y_end = 0 ;
 
 	/* see ASView.1 : */
 	set_application_name( argv[0] );
 
 	if( argc > 1 )
 	{
+		int i = 2;
 		if( strncmp( argv[1], "-h", 2 ) == 0 )
 		{
 			usage();
@@ -57,6 +59,20 @@ int main(int argc, char* argv[])
 		if( argc > 2 )   /* see ASScale.1 : */
 			geom_flags = XParseGeometry( argv[2], &dummy, &dummy,
 			                             &to_width, &to_height );
+	
+		while( ++i < argc )
+		{	
+			if( strncmp( argv[i], "-sx1", 4 ) == 0 && i+1 < argc )
+				slice_x_start = atoi(argv[++i]) ;
+			else if( strncmp( argv[i], "-sx2", 4 ) == 0 && i+1 < argc )
+				slice_x_end = atoi(argv[++i]) ;
+			else if( strncmp( argv[i], "-sy1", 4 ) == 0 && i+1 < argc )
+				slice_y_start = atoi(argv[++i]) ;
+			else if( strncmp( argv[i], "-sy2", 4 ) == 0 && i+1 < argc )
+				slice_y_end = atoi(argv[++i]) ;
+		}
+			   
+	
 	}else
 	{
 		show_warning( "no image file or scale geometry - defaults used:"
@@ -105,9 +121,20 @@ int main(int argc, char* argv[])
 
 		  		XMapRaised   (dpy, w);
 				/* see ASScale.2 : */
-				scaled_im = scale_asimage( asv, im, to_width, to_height,
-					                       ASA_XImage, 0, 
-										   ASIMAGE_QUALITY_DEFAULT );
+				if( slice_x_start == 0 && slice_x_end == 0 && 
+					slice_y_start == 0 && slice_y_end == 0 )
+				{
+					scaled_im = scale_asimage( asv, im, to_width, to_height,
+					                       	ASA_XImage, 0, 
+										   	ASIMAGE_QUALITY_DEFAULT );
+				}else
+				{
+					scaled_im = slice_asimage( asv, im, slice_x_start, slice_x_end, 
+											   slice_y_start, slice_y_end,
+											to_width, to_height,
+					                       	ASA_ASImage, 0, 
+										   	ASIMAGE_QUALITY_DEFAULT );
+				}					   
 				destroy_asimage( &im );
 				/* see ASView.5 : */
 				p = asimage2pixmap(asv, DefaultRootWindow(dpy), scaled_im,

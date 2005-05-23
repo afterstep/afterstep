@@ -484,6 +484,15 @@ create_asimage_from_vector( ASVisual *asv, double *vector,
 							ASVectorPalette *palette,
 							ASAltImFormats out_format,
 							unsigned int compression, int quality );
+ASImage*
+slice_asimage( ASVisual *asv, ASImage *src,
+			   unsigned int slice_x_start, unsigned int slice_x_end,
+			   unsigned int slice_y_start, unsigned int slice_y_end,
+			   unsigned int to_width,
+			   unsigned int to_height,
+			   ASAltImFormats out_format,
+			   unsigned int compression_out, int quality );
+
 
 #ifdef __cplusplus
 }
