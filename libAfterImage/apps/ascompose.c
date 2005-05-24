@@ -209,7 +209,7 @@ void usage(void) {
  * parameters are given :
  * SOURCE
  */
-#if 1
+#if 0
 static char* default_doc_str = "\
 <composite op=hue>\
   <composite op=add>\
@@ -224,7 +224,12 @@ static char* default_doc_str = "\
 <printf format=\
 \"original image size in pixels=%d\n\" val=$rose.width*$rose.height/>";
 #else	
-static char* default_doc_str = "<img src=AfterStepBeauty/>";
+static char* default_doc_str = "\
+  <composite op=add>\
+    <scale width=512 height=proportional>\
+		<img id=rose src=rose512.jpg/></scale>\
+    <tile width=512 height=384><img src=back.xpm/></tile>\
+  </composite>";
 #endif
 /*******/
 char *load_stdin();	

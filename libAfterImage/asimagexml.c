@@ -101,6 +101,7 @@
  * 	blur      - perform gaussian blur on an image.
  * 	rotate    - rotate/flip image in 90 degree increments.
  * 	scale     - scale an image to arbitrary size.
+ * 	slice     - enlarge image to arbitrary size leaving corners unchanged.
  * 	crop      - crop an image to arbitrary size.
  * 	tile      - tile an image to arbitrary size.
  * 	hsv       - adjust Hue, Saturation and Value of an image.
@@ -490,6 +491,9 @@ typedef struct ASImageXMLState
  	ASVisual 		*asv;
 	ASImageManager 	*imman ;
 	ASFontManager 	*fontman ;
+
+	int verbose ;
+	Window display_win ;
 	
 }ASImageXMLState;
 
@@ -530,183 +534,46 @@ ASImage *commit_xml_image_built( ASImageXMLState *state, char *id, ASImage *resu
 	return result;
 }
 
-
-
-/* Each tag is only allowed to return ONE image. */
-ASImage*
-build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontman, xml_elem_t* doc, xml_elem_t** rparm, ASFlagType flags, int verbose, Window display_win)
+static void
+translate_tag_size(	const char *width_str, const char *height_str, ASImage *imtmp, ASImage *refimg, int *width_ret, int *height_ret )
 {
-	xml_elem_t* ptr;
-	char* id = NULL;
-	ASImage* result = NULL;
-
-	ASImageXMLState state ; 
-
-	memset( &state, 0x00, sizeof(state));
-	state.asv = asv ; 
-	state.imman = imman ; 
-	state.fontman = fontman ; 
-/****** libAfterImage/asimagexml/img
- * NAME
- * img - load image from the file.
- * SYNOPSIS
- * <img id="new_img_id" src=filename/>
- * ATTRIBUTES
- * id     Optional.  Image will be given this name for future reference.
- * src    Required.  The filename (NOT URL) of the image file to load.
- * NOTES
- * The special image src "xroot:" will import the background image
- * of the root X window, if any.  No attempt will be made to offset this
- * image to fit the location of the resulting window, if one is displayed.
- ******/
-	if (!strcmp(doc->tag, "img")) {
-		xml_elem_t* parm = xml_parse_parm(doc->parm, NULL);
-		const char* src = NULL;
-		for (ptr = parm ; ptr ; ptr = ptr->next) {
-			if (!strcmp(ptr->tag, "id")) id = strdup(ptr->parm);
-			if (!strcmp(ptr->tag, "src")) src = ptr->parm;
-		}
-		if (src && !strcmp(src, "xroot:")) {
-			unsigned int width, height;
-			Pixmap rp = GetRootPixmap(None);
-			show_progress("Getting root pixmap.");
-			if (rp) {
-				get_drawable_size(rp, &width, &height);
-				result = pixmap2asimage(asv, rp, 0, 0, width, height, 0xFFFFFFFF, False, 100);
-			}
-		} else if (src) {
-			show_progress("Loading image [%s] using imman (%p) with search path \"%s\".", src, imman, imman?imman->search_path[0]:"");
-#if 1
-			result = get_asimage( imman, src, 0xFFFFFFFF, 100 );
-#else
-			result = file2ASImage(src, 0xFFFFFFFF, SCREEN_GAMMA, 100, NULL);
-#endif
-
-		}
-		if (rparm) *rparm = parm; 
-		else xml_elem_delete(NULL, parm);
+	int width_ref = 1;
+	int height_ref = 1;
+	int width = 0, height = 0 ; 
+	LOCAL_DEBUG_OUT("width_str = \"%s\", height_str = \"%s\", imtmp = %p, refimg = %p", width_str?width_str:"(null)", height_str?height_str:"(null)", imtmp, refimg ); 
+	
+	if( imtmp ) 
+	{	
+		width_ref = width = imtmp->width ;
+		height_ref = height = imtmp->height ;
 	}
-
-/****** libAfterImage/asimagexml/recall
- * NAME
- * recall - recall previously generated and named image by its id.
- * SYNOPSIS
- * <recall id="new_id" srcid="image_id">
- * ATTRIBUTES
- * id       Optional.  Image will be given this name for future reference.
- * srcid    Required.  An image ID defined with the "id" parameter for
- *          any previously created image.
- ******/
-	if (!strcmp(doc->tag, "recall")) {
-		xml_elem_t* parm = xml_parse_parm(doc->parm, NULL);
-		const char* srcid = NULL;
-		for (ptr = parm ; ptr ; ptr = ptr->next) {
-			if (!strcmp(ptr->tag, "id")) id = strdup(ptr->parm);
-			if (!strcmp(ptr->tag, "srcid")) srcid = ptr->parm;
-		}
-		if (srcid) {
-			show_progress("Recalling image id [%s] from imman %p.", srcid, imman);
-			result = fetch_asimage(imman, srcid );
-			if (!result)
-				show_error("Image recall failed for id [%s].", srcid);
-		}
-		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
+	if (refimg) 
+	{
+		width_ref = refimg->width;
+		height_ref = refimg->height;
 	}
-/****** libAfterImage/asimagexml/release
- * NAME
- * release - release(destroy if possible) previously generated and named image by its id.
- * SYNOPSIS
- * <release srcid="image_id">
- * ATTRIBUTES
- * srcid    Required.  An image ID defined with the "id" parameter for
- *          any previously created image.
- ******/
-	if (!strcmp(doc->tag, "release")) {
-		xml_elem_t* parm = xml_parse_parm(doc->parm, NULL);
-		const char* srcid = NULL;
-		for (ptr = parm ; ptr ; ptr = ptr->next) {
-			if (!strcmp(ptr->tag, "srcid")) srcid = ptr->parm;
-		}
-		if (srcid) 
-		{
-			show_progress("Releasing image id [%s] from imman %p.", srcid, imman);
-			release_asimage_by_name(imman, (char*)srcid );
-		}
-		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
+	if( width_str ) 
+	{	
+		if( width_str[0] == '$' || isdigit( (int)width_str[0] ) )
+			width = (int)parse_math(width_str, NULL, width);
 	}
-/****** libAfterImage/asimagexml/color
- * NAME
- * color - defines symbolic name for a color and set of variables.
- * SYNOPSIS
- * <color name="sym_name" domain="var_domain" argb=colorvalue/>
- * ATTRIBUTES
- * name   Symbolic name for the color value, to be used to refer to that color.
- * argb   8 characters hex definition of the color or other symbolic color name.
- * domain string to be used to prepend names of defined variables.
- * NOTES
- * In addition to defining symbolic name for the color this tag will define
- * 7 other variables : 	domain.sym_name.red, domain.sym_name.green, 
- * 					   	domain.sym_name.blue, domain.sym_name.alpha, 
- * 					  	domain.sym_name.hue, domain.sym_name.saturation,
- *                     	domain.sym_name.value
- ******/
-	if (!strcmp(doc->tag, "color")) {
-		xml_elem_t* parm = xml_parse_parm(doc->parm, NULL);
-		const char* name = NULL;
-		const char* argb_text = NULL;
-		const char* var_domain = NULL;
-		for (ptr = parm ; ptr ; ptr = ptr->next) {
-			if (!strcmp(ptr->tag, "name")) name = strdup(ptr->parm);
-			if (!strcmp(ptr->tag, "argb")) argb_text = ptr->parm;
-			if (!strcmp(ptr->tag, "domain")) var_domain = ptr->parm;
-		}
-		if (name && argb_text) {
-			ARGB32 argb = ARGB32_Black;
-			if( parse_argb_color( argb_text, &argb ) != argb_text )
-			{
-				char *tmp;
-				CARD32 hue16, sat16, val16 ;
-				int vd_len = var_domain?strlen(var_domain):0 ;
-
-				tmp = safemalloc( vd_len + 1+ strlen(name )+32+1 ) ;
-
-				if( var_domain && var_domain[0] != '\0' )
-				{
-					if( var_domain[vd_len-1] != '.' )
-					{
-						sprintf( tmp, "%s.", var_domain );
-						++vd_len ;
-					}else
-						strcpy( tmp, var_domain );
-				}
-
-
-#ifdef HAVE_AFTERBASE
-	   			show_progress("defining synonim [%s] for color value #%8.8X.", name, argb);
-	   			register_custom_color( name, argb );
-#endif
-				sprintf( tmp+vd_len, "%s.alpha", name );
-				asxml_var_insert( tmp, ARGB32_ALPHA8(argb) );
-				sprintf( tmp+vd_len, "%s.red", name );
-				asxml_var_insert( tmp, ARGB32_RED8(argb) );
-				sprintf( tmp+vd_len, "%s.green", name );
-				asxml_var_insert( tmp, ARGB32_GREEN8(argb) );
-				sprintf( tmp+vd_len, "%s.blue", name );
-				asxml_var_insert( tmp, ARGB32_BLUE8(argb) );
-
-				hue16 = rgb2hsv( ARGB32_RED16(argb), ARGB32_GREEN16(argb), ARGB32_BLUE16(argb), &sat16, &val16 );
-
-				sprintf( tmp+vd_len, "%s.hue", name );
-				asxml_var_insert( tmp, hue162degrees( hue16 ) );
-				sprintf( tmp+vd_len, "%s.saturation", name );
-				asxml_var_insert( tmp, val162percent( sat16 ) );
-				sprintf( tmp+vd_len, "%s.value", name );
-				asxml_var_insert( tmp, val162percent( val16 ) );
-				free( tmp );
-			}
-		}
-		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
+	if( height_str ) 
+	{	
+		if( height_str[0] == '$' || isdigit( (int)height_str[0] ) )
+			height = (int)parse_math(height_str, NULL, height);
 	}
+	if( width_str && height_ref > 0 && mystrcasecmp(width_str,"proportional") == 0 )
+		width = (width_ref * height) / height_ref ;
+	else if( height_str && width_ref > 0 && mystrcasecmp(height_str,"proportional") == 0 )
+		height = (height_ref * width) / width_ref ;
+	if( width_ret ) 
+		*width_ret = (width==0)?(imtmp?imtmp->width:(refimg?refimg->width:0)):width;
+	if( height_ret ) 
+		*height_ret = (height==0)?(imtmp?imtmp->height:(refimg?refimg->height:0)):height;
+
+	LOCAL_DEBUG_OUT("width = %d, height = %d", *width_ret, *height_ret ); 
+
+}
 
 /****** libAfterImage/asimagexml/text
  * NAME
@@ -733,1092 +600,96 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
  * <text> without bgcolor, fgcolor, fgimage, or bgimage will NOT
  * produce visible output by itself.  See EXAMPLES below.
  ******/
-	if (!strcmp(doc->tag, "text")) {
-		xml_elem_t* parm = xml_parse_parm(doc->parm, NULL);
-		const char* text = NULL;
-		const char* font_name = "fixed";
-		const char* fgimage_str = NULL;
-		const char* bgimage_str = NULL;
-		const char* fgcolor_str = NULL;
-		const char* bgcolor_str = NULL;
-		ARGB32 fgcolor = ARGB32_White, bgcolor = ARGB32_Black;
-		int point = 12, spacing = 0, type = AST_Plain;
-		for (ptr = parm ; ptr ; ptr = ptr->next) {
-			if (!strcmp(ptr->tag, "id")) id = strdup(ptr->parm);
-			if (!strcmp(ptr->tag, "font")) font_name = ptr->parm;
-			if (!strcmp(ptr->tag, "point")) point = strtol(ptr->parm, NULL, 0);
-			if (!strcmp(ptr->tag, "spacing")) spacing = strtol(ptr->parm, NULL, 0);
-			if (!strcmp(ptr->tag, "fgimage")) fgimage_str = ptr->parm;
-			if (!strcmp(ptr->tag, "bgimage")) bgimage_str = ptr->parm;
-			if (!strcmp(ptr->tag, "fgcolor")) fgcolor_str = ptr->parm;
-			if (!strcmp(ptr->tag, "bgcolor")) bgcolor_str = ptr->parm;
-			if (!strcmp(ptr->tag, "type")) type = strtol(ptr->parm, NULL, 0);
-		}
-		for (ptr = doc->child ; ptr && !result ; ptr = ptr->next) {
-			if (!strcmp(ptr->tag, cdata_str)) text = ptr->parm;
-		}
-		if (text && point > 0) {
-			struct ASFont *font = NULL;
-			show_progress("Rendering text [%s] with font [%s] size [%d].", text, font_name, point);
-			if (fontman) font = get_asfont(fontman, font_name, 0, point, ASF_GuessWho);
-			if (font != NULL) {
-				set_asfont_glyph_spacing(font, spacing, 0);
-				result = draw_text(text, font, type, 0);
-				if (result && fgimage_str) {
-					ASImage* fgimage = NULL;
-					fgimage = get_asimage(imman, fgimage_str, 0xFFFFFFFF, 100 );
-					show_progress("Using image [%s](%p) as foreground. Text size is %dx%d", fgimage_str, fgimage, result->width, result->height);
-					if (fgimage) {
-						ASImage *tmp = tile_asimage(asv, fgimage, 0, 0, result->width, result->height, 0, ASA_ASImage, 100, ASIMAGE_QUALITY_TOP);
-						if( tmp )
-						{
-					   		release_asimage( fgimage );
-							fgimage = tmp ;
-						}
-						move_asimage_channel(fgimage, IC_ALPHA, result, IC_ALPHA);
-						safe_asimage_destroy(result);
-						result = fgimage;
+static ASImage *
+handle_asxml_tag_text( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm )
+{
+	ASImage *result = NULL ;
+	xml_elem_t* ptr ;
+	const char* text = NULL;
+	const char* font_name = "fixed";
+	const char* fgimage_str = NULL;
+	const char* bgimage_str = NULL;
+	const char* fgcolor_str = NULL;
+	const char* bgcolor_str = NULL;
+	ARGB32 fgcolor = ARGB32_White, bgcolor = ARGB32_Black;
+	int point = 12, spacing = 0, type = AST_Plain;
+	LOCAL_DEBUG_OUT("doc = %p, parm = %p", doc, parm ); 
+	for (ptr = parm ; ptr ; ptr = ptr->next) {
+		if (!strcmp(ptr->tag, "font")) font_name = ptr->parm;
+		else if (!strcmp(ptr->tag, "point")) point = strtol(ptr->parm, NULL, 0);
+		else if (!strcmp(ptr->tag, "spacing")) spacing = strtol(ptr->parm, NULL, 0);
+		else if (!strcmp(ptr->tag, "fgimage")) fgimage_str = ptr->parm;
+		else if (!strcmp(ptr->tag, "bgimage")) bgimage_str = ptr->parm;
+		else if (!strcmp(ptr->tag, "fgcolor")) fgcolor_str = ptr->parm;
+		else if (!strcmp(ptr->tag, "bgcolor")) bgcolor_str = ptr->parm;
+		else if (!strcmp(ptr->tag, "type")) type = strtol(ptr->parm, NULL, 0);
+	}
+	for (ptr = doc->child ; ptr && text == NULL ; ptr = ptr->next)
+		if (!strcmp(ptr->tag, cdata_str)) text = ptr->parm;
+	
+	if (text && point > 0) 
+	{
+		struct ASFont *font = NULL;
+		show_progress("Rendering text [%s] with font [%s] size [%d].", text, font_name, point);
+		if (state->fontman) font = get_asfont(state->fontman, font_name, 0, point, ASF_GuessWho);
+		if (font != NULL) {
+			set_asfont_glyph_spacing(font, spacing, 0);
+			result = draw_text(text, font, type, 0);
+			if (result && fgimage_str) {
+				ASImage* fgimage = NULL;
+				fgimage = get_asimage(state->imman, fgimage_str, 0xFFFFFFFF, 100 );
+				show_progress("Using image [%s](%p) as foreground. Text size is %dx%d", fgimage_str, fgimage, result->width, result->height);
+				if (fgimage) {
+					ASImage *tmp = tile_asimage(state->asv, fgimage, 0, 0, result->width, result->height, 0, ASA_ASImage, 100, ASIMAGE_QUALITY_TOP);
+					if( tmp )
+					{
+					   	release_asimage( fgimage );
+						fgimage = tmp ;
 					}
-				}
-				if (result && fgcolor_str) {
-					ASImage* fgimage = create_asimage(result->width, result->height, ASIMAGE_QUALITY_TOP);
-					parse_argb_color(fgcolor_str, &fgcolor);
-					fill_asimage(asv, fgimage, 0, 0, result->width, result->height, fgcolor);
 					move_asimage_channel(fgimage, IC_ALPHA, result, IC_ALPHA);
 					safe_asimage_destroy(result);
 					result = fgimage;
 				}
-				if (result && (bgcolor_str || bgimage_str)) {
-					ASImageLayer layers[2];
-					init_image_layers(&(layers[0]), 2);
-					if (bgimage_str) layers[0].im = fetch_asimage(imman, bgimage_str);
-					if (bgcolor_str)
-						if( parse_argb_color(bgcolor_str, &bgcolor) != bgcolor_str )
-						{
-							if( layers[0].im != NULL )
-								layers[0].im->back_color = bgcolor ;
-							else
-								layers[0].solid_color = bgcolor ;
-						}
-					result->back_color = fgcolor ;
-					layers[0].dst_x = 0;
-					layers[0].dst_y = 0;
-					layers[0].clip_width = result->width;
-					layers[0].clip_height = result->height;
-					layers[0].bevel = NULL;
-					layers[1].im = result;
-					layers[1].dst_x = 0;
-					layers[1].dst_y = 0;
-					layers[1].clip_width = result->width;
-					layers[1].clip_height = result->height;
-					result = merge_layers(asv, layers, 2, result->width, result->height, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
-					safe_asimage_destroy( layers[0].im );
-				}
 			}
-		}
-		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
-	}
-
-/****** libAfterImage/asimagexml/save
- * NAME
- * save - write generated/loaded image into the file of one of the
- *        supported types
- * SYNOPSIS
- * <save id="new_id" dst="filename" format="format" compress="value"
- *       opacity="value" replace="0|1" delay="mlsecs">
- * ATTRIBUTES
- * id       Optional.  Image will be given this name for future reference.
- * dst      Optional.  Name of file image will be saved to. If omitted
- *          image will be dumped into stdout - usefull for CGI apps.
- * format   Optional.  Ouput format of saved image.  Defaults to the
- *          extension of the "dst" parameter.  Valid values are the
- *          standard AS image file formats: xpm, jpg, png, gif, tiff.
- * compress Optional.  Compression level if supported by output file
- *          format. Valid values are in range of 0 - 100 and any of
- *          "deflate", "jpeg", "ojpeg", "packbits" for TIFF files.
- *          Note that JPEG and GIF will produce images with deteriorated
- *          quality when compress is greater then 0. For JPEG default is
- *          25, for PNG default is 6 and for GIF it is 0.
- * opacity  Optional. Level below which pixel is considered to be
- *          transparent, while saving image as XPM or GIF. Valid values
- *          are in range 0-255. Default is 127.
- * replace  Optional. Causes ascompose to delete file if the file with the
- *          same name already exists. Valid values are 0 and 1. Default
- *          is 1 - files are deleted before being saved. Disable this to
- *          get multimage animated gifs.
- * delay    Optional. Delay to be stored in GIF image. This could be used
- *          to create animated gifs. Note that you have to set replace="0"
- *          and then write several images into the GIF file with the same
- *          name.
- * NOTES
- * This tag applies to the first image contained within the tag.  Any
- * further images will be discarded.
- *******/
-	if (!strcmp(doc->tag, "save")) {
-		xml_elem_t* parm = xml_parse_parm(doc->parm, NULL);
-		const char* dst = NULL;
-		const char* ext = NULL;
-		const char* compress = NULL ;
-		const char* opacity = NULL ;
-		int delay = 0 ;
-		int replace = 1;
-		/*<save id="" dst="" format="" compression="" delay="" replace="" opacity=""> */
-		int autoext = 0;
-		for (ptr = parm ; ptr ; ptr = ptr->next) {
-			if (!strcmp(ptr->tag, "id")) id = strdup(ptr->parm);
-			else if (!strcmp(ptr->tag, "dst")) dst = ptr->parm;
-			else if (!strcmp(ptr->tag, "format")) ext = ptr->parm;
-			else if (!strncmp(ptr->tag, "compress", 8)) compress = ptr->parm;
-			else if (!strcmp(ptr->tag, "opacity")) opacity = ptr->parm;
-			else if (!strcmp(ptr->tag, "delay"))   delay = atoi(ptr->parm);
-			else if (!strcmp(ptr->tag, "replace")) replace = atoi(ptr->parm);
-		}
-		if (dst && !ext) {
-			ext = strrchr(dst, '.');
-			if (ext) ext++;
-			autoext = 1;
-		}
-		for (ptr = doc->child ; ptr && !result ; ptr = ptr->next) {
-			result = build_image_from_xml(asv, imman, fontman, ptr, NULL, flags, verbose, display_win);
-		}
-		if ( autoext && ext )
-			show_warning("No format given.  File extension [%s] used as format.", ext);
-		show_progress("reSaving image to file [%s].", dst?dst:"stdout");
-		if (result && get_flags( flags, ASIM_XML_ENABLE_SAVE) )
-		{
-			show_progress("Saving image to file [%s].", dst?dst:"stdout");
-			if( !save_asimage_to_file(dst, result, ext, compress, opacity, delay, replace))
-				show_error("Unable to save image into file [%s].", dst?dst:"stdout");
-		}
-		if (rparm) *rparm = parm;
-		else xml_elem_delete(NULL, parm);
-	}
-
-/****** libAfterImage/asimagexml/bevel
- * NAME
- * bevel - draws solid bevel frame around the image.
- * SYNOPSIS
- * <bevel id="new_id" colors="color1 color2"
- *        border="left top right bottom" solid=0|1>
- * ATTRIBUTES
- * id       Optional.  Image will be given this name for future reference.
- * colors   Optional.  Whitespace-separated list of colors.  Exactly two
- *          colors are required.  Default is "#ffdddddd #ff555555".  The
- *          first color is the color of the upper and left edges, and the
- *          second is the color of the lower and right edges.
- * borders  Optional.  Whitespace-separated list of integer values.
- *          Default is "10 10 10 10".  The values represent the offsets
- *          toward the center of the image of each border: left, top,
- *          right, bottom.
- * solid    Optional - default is 1. If set to 0 will draw bevel gradually
- *          fading into the image.
- * NOTES
- * This tag applies to the first image contained within the tag.  Any
- * further images will be discarded.
- ******/
-	if (!strcmp(doc->tag, "bevel")) {
-		xml_elem_t* parm = xml_parse_parm(doc->parm, NULL);
-		ASImage* imtmp = NULL;
-		char* color_str = NULL;
-		char* border_str = NULL;
-		int solid = 1 ;
-		for (ptr = parm ; ptr ; ptr = ptr->next) {
-			if (!strcmp(ptr->tag, "id")) id = strdup(ptr->parm);
-			if (!strcmp(ptr->tag, "colors")) color_str = ptr->parm;
-			if (!strcmp(ptr->tag, "border")) border_str = ptr->parm;
-			if (!strcmp(ptr->tag, "solid")) solid = atoi(ptr->parm);
-		}
-		for (ptr = doc->child ; ptr && !imtmp ; ptr = ptr->next) {
-			imtmp = build_image_from_xml(asv, imman, fontman, ptr, NULL, flags, verbose, display_win);;
-		}
-		if (imtmp) {
-			ASImageBevel bevel;
-			ASImageLayer layer;
-			if( solid )
-				bevel.type = BEVEL_SOLID_INLINE;
-			bevel.hi_color = 0xffdddddd;
-			bevel.lo_color = 0xff555555;
-			bevel.top_outline = 0;
-			bevel.left_outline = 0;
-			bevel.right_outline = 0;
-			bevel.bottom_outline = 0;
-			bevel.top_inline = 10;
-			bevel.left_inline = 10;
-			bevel.right_inline = 10;
-			bevel.bottom_inline = 10;
-			if (color_str) {
-				char* p = color_str;
-				while (isspace((int)*p)) p++;
-				p = (char*)parse_argb_color(p, &bevel.hi_color);
-				while (isspace((int)*p)) p++;
-				parse_argb_color(p, &bevel.lo_color);
+			if (result && fgcolor_str) {
+				ASImage* fgimage = create_asimage(result->width, result->height, ASIMAGE_QUALITY_TOP);
+				parse_argb_color(fgcolor_str, &fgcolor);
+				fill_asimage(state->asv, fgimage, 0, 0, result->width, result->height, fgcolor);
+				move_asimage_channel(fgimage, IC_ALPHA, result, IC_ALPHA);
+				safe_asimage_destroy(result);
+				result = fgimage;
 			}
-			if (border_str) {
-				char* p = (char*)border_str;
-				bevel.left_inline = (unsigned short)parse_math(p, &p, imtmp->width);
-				bevel.top_inline = (unsigned short)parse_math(p, &p, imtmp->height);
-				bevel.right_inline = (unsigned short)parse_math(p, &p, imtmp->width);
-				bevel.bottom_inline = (unsigned short)parse_math(p, &p, imtmp->height);
-			}
-			bevel.hihi_color = bevel.hi_color;
-			bevel.hilo_color = bevel.hi_color;
-			bevel.lolo_color = bevel.lo_color;
-			show_progress("Generating bevel with offsets [%d %d %d %d] and colors [#%08x #%08x].", bevel.left_inline, bevel.top_inline, bevel.right_inline, bevel.bottom_inline, (unsigned int)bevel.hi_color, (unsigned int)bevel.lo_color);
-			init_image_layers( &layer, 1 );
-			layer.im = imtmp;
-			layer.clip_width = imtmp->width;
-			layer.clip_height = imtmp->height;
-			layer.bevel = &bevel;
-			result = merge_layers(asv, &layer, 1, imtmp->width, imtmp->height, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
-			safe_asimage_destroy(imtmp);
-		}
-		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
-	}
-
-/****** libAfterImage/asimagexml/gradient
- * NAME
- * gradient - render multipoint gradient.
- * SYNOPSIS
- * <gradient id="new_id" angle="degrees" width="pixels" height="pixels"
- *           colors ="color1 color2 color3 [...]"
- *           offsets="fraction1 fraction2 fraction3 [...]"/>
- * ATTRIBUTES
- * id       Optional.  Image will be given this name for future reference.
- * refid    Optional.  An image ID defined with the "id" parameter for
- *          any previously created image.  If set, percentages in "width"
- *          and "height" will be derived from the width and height of the
- *          refid image.
- * width    Required.  The gradient will have this width.
- * height   Required.  The gradient will have this height.
- * colors   Required.  Whitespace-separated list of colors.  At least two
- *          colors are required.  Each color in this list will be visited
- *          in turn, at the intervals given by the offsets attribute.
- * offsets  Optional.  Whitespace-separated list of floating point values
- *          ranging from 0.0 to 1.0.  The colors from the colors attribute
- *          are given these offsets, and the final gradient is rendered
- *          from the combination of the two.  If both colors and offsets
- *          are given but the number of colors and offsets do not match,
- *          the minimum of the two will be used, and the other will be
- *          truncated to match.  If offsets are not given, a smooth
- *          stepping from 0.0 to 1.0 will be used.
- * angle    Optional.  Given in degrees.  Default is 0.  This is the
- *          direction of the gradient.  Currently the only supported
- *          values are 0, 45, 90, 135, 180, 225, 270, 315.  0 means left
- *          to right, 90 means top to bottom, etc.
- *****/
-	if (!strcmp(doc->tag, "gradient")) {
-		xml_elem_t* parm = xml_parse_parm(doc->parm, NULL);
-		const char* refid = NULL;
-		const char* width_str = NULL;
-		const char* height_str = NULL;
-		int width = 0, height = 0;
-		double angle = 0;
-		char* color_str = NULL;
-		char* offset_str = NULL;
-		for (ptr = parm ; ptr ; ptr = ptr->next) {
-			if (!strcmp(ptr->tag, "id")) id = strdup(ptr->parm);
-			if (!strcmp(ptr->tag, "width")) width_str = ptr->parm;
-			if (!strcmp(ptr->tag, "height")) height_str = ptr->parm;
-			if (!strcmp(ptr->tag, "angle")) angle = strtod(ptr->parm, NULL);
-			if (!strcmp(ptr->tag, "colors")) color_str = ptr->parm;
-			if (!strcmp(ptr->tag, "offsets")) offset_str = ptr->parm;
-		}
-		if (refid && width_str && height_str) {
-			ASImage* refimg = fetch_asimage( imman, refid);
-			if (refimg) {
-				width = (int)parse_math(width_str, NULL, refimg->width);
-				height = (int)parse_math(height_str, NULL, refimg->height);
-			}
-			safe_asimage_destroy(refimg);
-		}
-		if (!refid && width_str && height_str) {
-			width = (int)parse_math(width_str, NULL, width);
-			height = (int)parse_math(height_str, NULL, height);
-		}
-		if (width && height && color_str) {
-			ASGradient gradient;
-			int reverse = 0, npoints1 = 0, npoints2 = 0;
-			char* p;
-			angle = fmod(angle, 2 * PI);
-			if (angle > 2 * PI * 15 / 16 || angle < 2 * PI * 1 / 16) {
-				gradient.type = GRADIENT_Left2Right;
-			} else if (angle < 2 * PI * 3 / 16) {
-				gradient.type = GRADIENT_TopLeft2BottomRight;
-			} else if (angle < 2 * PI * 5 / 16) {
-				gradient.type = GRADIENT_Top2Bottom;
-			} else if (angle < 2 * PI * 7 / 16) {
-				gradient.type = GRADIENT_BottomLeft2TopRight; reverse = 1;
-			} else if (angle < 2 * PI * 9 / 16) {
-				gradient.type = GRADIENT_Left2Right; reverse = 1;
-			} else if (angle < 2 * PI * 11 / 16) {
-				gradient.type = GRADIENT_TopLeft2BottomRight; reverse = 1;
-			} else if (angle < 2 * PI * 13 / 16) {
-				gradient.type = GRADIENT_Top2Bottom; reverse = 1;
-			} else {
-				gradient.type = GRADIENT_BottomLeft2TopRight;
-			}
-			for (p = color_str ; isspace((int)*p) ; p++);
-			for (npoints1 = 0 ; *p ; npoints1++) {
-				if (*p) for ( ; *p && !isspace((int)*p) ; p++);
-				for ( ; isspace((int)*p) ; p++);
-			}
-			if (offset_str) {
-				for (p = offset_str ; isspace((int)*p) ; p++);
-				for (npoints2 = 0 ; *p ; npoints2++) {
-					if (*p) for ( ; *p && !isspace((int)*p) ; p++);
-					for ( ; isspace((int)*p) ; p++);
-				}
-			}
-			if (npoints1 > 1) {
-				int i;
-				if (offset_str && npoints1 > npoints2) npoints1 = npoints2;
-				gradient.color = safecalloc(npoints1, sizeof(ARGB32));
-				gradient.offset = NEW_ARRAY(double, npoints1);
-				for (p = color_str ; isspace((int)*p) ; p++);
-				for (npoints1 = 0 ; *p ; ) {
-					char* pb = p, ch;
-					if (*p) for ( ; *p && !isspace((int)*p) ; p++);
-					for ( ; isspace((int)*p) ; p++);
-					ch = *p; *p = '\0';
-					if (parse_argb_color(pb, gradient.color + npoints1) != pb)
+			if (result && (bgcolor_str || bgimage_str)) {
+				ASImageLayer layers[2];
+				init_image_layers(&(layers[0]), 2);
+				if (bgimage_str) layers[0].im = fetch_asimage(state->imman, bgimage_str);
+				if (bgcolor_str)
+					if( parse_argb_color(bgcolor_str, &bgcolor) != bgcolor_str )
 					{
-						npoints1++;
-					}else
-						show_warning( "failed to parse color [%s] - defaulting to black", pb );
-					*p = ch;
-				}
-				if (offset_str) {
-					for (p = offset_str ; isspace((int)*p) ; p++);
-					for (npoints2 = 0 ; *p ; ) {
-						char* pb = p, ch;
-						if (*p) for ( ; *p && !isspace((int)*p) ; p++);
-						ch = *p; *p = '\0';
-						gradient.offset[npoints2] = strtod(pb, &pb);
-						if (pb == p) npoints2++;
-						*p = ch;
-						for ( ; isspace((int)*p) ; p++);
+						if( layers[0].im != NULL )
+							layers[0].im->back_color = bgcolor ;
+						else
+							layers[0].solid_color = bgcolor ;
 					}
-				} else {
-					for (npoints2 = 0 ; npoints2 < npoints1 ; npoints2++)
-						gradient.offset[npoints2] = (double)npoints2 / (npoints1 - 1);
-				}
-				gradient.npoints = npoints1;
-				if (npoints2 && gradient.npoints > npoints2)
-					gradient.npoints = npoints2;
-				if (reverse) {
-					for (i = 0 ; i < gradient.npoints / 2 ; i++) {
-						int i2 = gradient.npoints - 1 - i;
-						ARGB32 c = gradient.color[i];
-						double o = gradient.offset[i];
-						gradient.color[i] = gradient.color[i2];
-						gradient.color[i2] = c;
-						gradient.offset[i] = gradient.offset[i2];
-						gradient.offset[i2] = o;
-					}
-					for (i = 0 ; i < gradient.npoints ; i++) {
-						gradient.offset[i] = 1.0 - gradient.offset[i];
-					}
-				}
-				show_progress("Generating [%dx%d] gradient with angle [%f] and npoints [%d/%d].", width, height, angle, npoints1, npoints2);
-				if (verbose > 1) {
-					for (i = 0 ; i < gradient.npoints ; i++) {
-						show_progress("  Point [%d] has color [#%08x] and offset [%f].", i, (unsigned int)gradient.color[i], gradient.offset[i]);
-					}
-				}
-				result = make_gradient(asv, &gradient, width, height, SCL_DO_ALL, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
-				if( gradient.color ) 
-					free( gradient.color );
-				if( gradient.offset )
-					free( gradient.offset );
+				result->back_color = fgcolor ;
+				layers[0].dst_x = 0;
+				layers[0].dst_y = 0;
+				layers[0].clip_width = result->width;
+				layers[0].clip_height = result->height;
+				layers[0].bevel = NULL;
+				layers[1].im = result;
+				layers[1].dst_x = 0;
+				layers[1].dst_y = 0;
+				layers[1].clip_width = result->width;
+				layers[1].clip_height = result->height;
+				result = merge_layers(state->asv, layers, 2, result->width, result->height, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
+				safe_asimage_destroy( layers[0].im );
 			}
 		}
-		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
 	}
 
-/****** libAfterImage/asimagexml/mirror
- * NAME
- * mirror - create new image as mirror copy of an old one.
- * SYNOPSIS
- *  <mirror id="new_id" dir="direction">
- * ATTRIBUTES
- * id       Optional. Image will be given this name for future reference.
- * dir      Required. Possible values are "vertical" and "horizontal".
- *          The image will be flipped over the x-axis if dir is vertical,
- *          and flipped over the y-axis if dir is horizontal.
- * NOTES
- * This tag applies to the first image contained within the tag.  Any
- * further images will be discarded.
- ******/
-	if (!strcmp(doc->tag, "mirror")) {
-		xml_elem_t* parm = xml_parse_parm(doc->parm, NULL);
-		ASImage* imtmp = NULL;
-		int dir = 0;
-		int static_im  = 0; 
-		for (ptr = parm ; ptr ; ptr = ptr->next) {
-			if (!strcmp(ptr->tag, "id")) id = strdup(ptr->parm);
-			if (!strcmp(ptr->tag, "dir")) dir = !mystrcasecmp(ptr->parm, "vertical");
-			if (!strcmp(ptr->tag, "static")) static_im = atoi(ptr->parm);
-		}
-		for (ptr = doc->child ; ptr && !imtmp ; ptr = ptr->next) {
-			imtmp = build_image_from_xml(asv, imman, fontman, ptr, NULL, flags, verbose, display_win);
-		}
-		if (imtmp) {
-			result = mirror_asimage(asv, imtmp, 0, 0, imtmp->width, imtmp->height, dir,
-									ASA_ASImage, 
-									0, ASIMAGE_QUALITY_DEFAULT);
-			safe_asimage_destroy(imtmp);
-		}
-		show_progress("Mirroring image [%sally].", dir ? "horizont" : "vertic");
-		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
-	}
-/****** libAfterImage/asimagexml/background
- * NAME
- * background - set image's background color.
- * SYNOPSIS
- *  <background id="new_id" color="color">
- * ATTRIBUTES
- * id       Optional. Image will be given this name for future reference.
- * color    Required. Color to be used for background - fills all the
- *          spaces in image with missing pixels.
- * NOTES
- * This tag applies to the first image contained within the tag.  Any
- * further images will be discarded.
- ******/
-	if (!strcmp(doc->tag, "background")) {
-		xml_elem_t* parm = xml_parse_parm(doc->parm, NULL);
-		ASImage* imtmp = NULL;
-		ARGB32 argb = ARGB32_Black;
-		for (ptr = parm ; ptr ; ptr = ptr->next) {
-			if (!strcmp(ptr->tag, "id")) id = strdup(ptr->parm);
-			if (!strcmp(ptr->tag, "color")) parse_argb_color( ptr->parm, &argb );
-		}
-		for (ptr = doc->child ; ptr && !imtmp ; ptr = ptr->next) {
-			imtmp = build_image_from_xml(asv, imman, fontman, ptr, NULL, flags, verbose, display_win);
-		}
-		if (imtmp) {
-			result = clone_asimage( imtmp, SCL_DO_ALL );
-			safe_asimage_destroy(imtmp);
-			result->back_color = argb ;
-		}
-		show_progress( "Setting back_color for image %p to 0x%8.8X", result, argb );
-		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
-	}
-/****** libAfterImage/asimagexml/blur
- * NAME
- * blur - perform a gaussian blurr on an image.
- * SYNOPSIS
- * <blur id="new_id" horz="radius" vert="radius" channels="argb">
- * ATTRIBUTES
- * id       Optional. Image will be given this name for future reference.
- * horz     Optional. Horizontal radius of the blur in pixels.
- * vert     Optional. Vertical radius of the blur in pixels.
- * channels Optional. Applys blur only on listed color channels:
- *                       a - alpha,
- *                       r - red,
- *                       g - green,
- *                       b - blue
- * NOTES
- * This tag applies to the first image contained within the tag.  Any
- * further images will be discarded.
- ******/
-	if (!strcmp(doc->tag, "blur")) {
-		xml_elem_t* parm = xml_parse_parm(doc->parm, NULL);
-		ASImage* imtmp = NULL;
-		int horz = 0, vert = 0;
-        int filter = SCL_DO_ALL;
-		for (ptr = parm ; ptr ; ptr = ptr->next) {
-			if (!strcmp(ptr->tag, "id")) id = strdup(ptr->parm);
-            else if (!strcmp(ptr->tag, "horz")) horz = atoi(ptr->parm);
-            else if (!strcmp(ptr->tag, "vert")) vert = atoi(ptr->parm);
-            else if (!strcmp(ptr->tag, "channels"))
-            {
-                int i = 0 ;
-                char *str = &(ptr->parm[0]) ;
-                filter = 0 ;
-                while( str[i] != '\0' )
-                {
-                    if( str[i] == 'a' )
-                        filter |= SCL_DO_ALPHA ;
-                    else if( str[i] == 'r' )
-                        filter |= SCL_DO_RED ;
-                    else if( str[i] == 'g' )
-                        filter |= SCL_DO_GREEN ;
-                    else if( str[i] == 'b' )
-                        filter |= SCL_DO_BLUE ;
-                    ++i ;
-                }
-            }
-		}
-		for (ptr = doc->child ; ptr && !imtmp ; ptr = ptr->next) {
-			imtmp = build_image_from_xml(asv, imman, fontman, ptr, NULL, flags, verbose, display_win);
-		}
-		if (imtmp) {
-            result = blur_asimage_gauss(asv, imtmp, horz, vert, filter, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
-			safe_asimage_destroy(imtmp);
-		}
-		show_progress("Blurring image.");
-		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
-	}
-
-/****** libAfterImage/asimagexml/rotate
- * NAME
- * rotate - rotate an image in 90 degree increments (flip).
- * SYNOPSIS
- *  <rotate id="new_id" angle="degrees">
- * ATTRIBUTES
- * id       Optional. Image will be given this name for future reference.
- * angle    Required.  Given in degrees.  Possible values are currently
- *          "90", "180", and "270".  Rotates the image through the given
- *          angle.
- * NOTES
- * This tag applies to the first image contained within the tag.  Any
- * further images will be discarded.
- ******/
-	if (!strcmp(doc->tag, "rotate")) {
-		xml_elem_t* parm = xml_parse_parm(doc->parm, NULL);
-		ASImage* imtmp = NULL;
-		double angle = 0;
-		for (ptr = parm ; ptr ; ptr = ptr->next) {
-			if (!strcmp(ptr->tag, "id")) id = strdup(ptr->parm);
-			if (!strcmp(ptr->tag, "angle")) angle = strtod(ptr->parm, NULL);
-		}
-		for (ptr = doc->child ; ptr && !imtmp ; ptr = ptr->next) {
-			imtmp = build_image_from_xml(asv, imman, fontman, ptr, NULL, flags, verbose, display_win);;
-		}
-		if (imtmp) {
-			int dir = 0;
-			angle = fmod(angle, 2 * PI);
-			if (angle > 2 * PI * 7 / 8 || angle < 2 * PI * 1 / 8) {
-				dir = 0;
-			} else if (angle < 2 * PI * 3 / 8) {
-				dir = FLIP_VERTICAL;
-			} else if (angle < 2 * PI * 5 / 8) {
-				dir = FLIP_UPSIDEDOWN;
-			} else {
-				dir = FLIP_VERTICAL | FLIP_UPSIDEDOWN;
-			}
-			if (dir) {
-				int width = imtmp->width ;
-				int height = imtmp->height ;
-				if( get_flags(dir, FLIP_VERTICAL))
-				{
-					width = imtmp->height ;
-					height = imtmp->width ;	
-				}	 
-				result = flip_asimage(asv, imtmp, 0, 0, width, height, dir, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
-				safe_asimage_destroy(imtmp);
-				show_progress("Rotating image [%f degrees].", angle);
-			} else {
-				result = imtmp;
-			}
-		}
-		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
-	}
-
-/****** libAfterImage/asimagexml/scale
- * NAME
- * scale - scale image to arbitrary size
- * SYNOPSIS
- * <scale id="new_id" ref_id="other_imag" width="pixels" height="pixels">
- * ATTRIBUTES
- * id       Optional. Image will be given this name for future reference.
- * refid    Optional.  An image ID defined with the "id" parameter for
- *          any previously created image.  If set, percentages in "width"
- *          and "height" will be derived from the width and height of the
- *          refid image.
- * width    Required.  The image will be scaled to this width.
- * height   Required.  The image will be scaled to this height.
- * NOTES
- * This tag applies to the first image contained within the tag.  Any
- * further images will be discarded.
- * If you want to keep image proportions while scaling - use "proportional"
- * instead of specific size for particular dimention.
- ******/
-	if (!strcmp(doc->tag, "scale")) {
-		xml_elem_t* parm = xml_parse_parm(doc->parm, NULL);
-		const char* refid = NULL;
-		const char* width_str = NULL;
-		const char* height_str = NULL;
-		ASImage* imtmp = NULL;
-		int width = 0, height = 0;
-		int static_im = 0;
-		for (ptr = parm ; ptr ; ptr = ptr->next) {
-			if (!strcmp(ptr->tag, "id")) id = strdup(ptr->parm);
-			if (!strcmp(ptr->tag, "refid")) refid = ptr->parm;
-			if (!strcmp(ptr->tag, "width")) width_str = ptr->parm;
-			if (!strcmp(ptr->tag, "height")) height_str = ptr->parm;
-			if (!strcmp(ptr->tag, "static")) static_im = atoi(ptr->parm);
-		}
-		if (width_str && height_str) 
-		{
-			int width_ref = 1;
-			int height_ref = 1;
-			for (ptr = doc->child ; ptr && !imtmp ; ptr = ptr->next) 
-				imtmp = build_image_from_xml(asv, imman, fontman, ptr, NULL, flags, verbose, display_win);
-			if( imtmp ) 
-			{	
-				width_ref = width = imtmp->width ;
-				height_ref = height = imtmp->height ;
-			}
-			if (refid ) 
-			{
-				ASImage* refimg = fetch_asimage(imman, refid );
-				if (refimg) 
-				{
-					width_ref = refimg->width;
-					height_ref = refimg->height;
-					release_asimage( refimg );
-				}
-			}
-			if( width_str[0] == '$' || isdigit( (int)width_str[0] ) )
-				width = (int)parse_math(width_str, NULL, width);
-			if( height_str[0] == '$' || isdigit( (int)height_str[0] ) )
-				height = (int)parse_math(height_str, NULL, height);
-			if( mystrcasecmp(width_str,"proportional") == 0 )
-				width = (width_ref * height) / height_ref ;
-			else if( mystrcasecmp(height_str,"proportional") == 0 )
-				height = (height_ref * width) / width_ref ;
-		}
-		if (imtmp && width > 0 && height > 0 ) {
-			show_progress("Scaling image to [%dx%d].", width, height);
-			result = scale_asimage( asv, imtmp, width, height, 
-									ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT);
-			safe_asimage_destroy(imtmp);
-		}
-		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
-	}
-
-/****** libAfterImage/asimagexml/crop
- * NAME
- * crop - crop image to arbitrary area within it.
- * SYNOPSIS
- *  <crop id="new_id" refid="other_image" srcx="pixels" srcy="pixels"
- *        width="pixels" height="pixels" tint="color">
- * ATTRIBUTES
- * id       Optional. Image will be given this name for future reference.
- * refid    Optional. An image ID defined with the "id" parameter for
- *          any previously created image.  If set, percentages in "width"
- *          and "height" will be derived from the width and height of the
- *          refid image.
- * srcx     Optional. Default is "0". Skip this many pixels from the left.
- * srcy     Optional. Default is "0". Skip this many pixels from the top.
- * width    Optional. Default is "100%".  Keep this many pixels wide.
- * height   Optional. Default is "100%".  Keep this many pixels tall.
- * tint     Optional. Additionally tint an image to specified color.
- *          Tinting can both lighten and darken an image. Tinting color
- *          0 or #7f7f7f7f yeilds no tinting. Tinting can be performed on
- *          any channel, including alpha channel.
- * NOTES
- * This tag applies to the first image contained within the tag.  Any
- * further images will be discarded.
- ******/
-	if (!strcmp(doc->tag, "crop")) {
-		xml_elem_t* parm = xml_parse_parm(doc->parm, NULL);
-		const char* refid = NULL;
-		const char* srcx_str = NULL;
-		const char* srcy_str = NULL;
-		const char* width_str = NULL;
-		const char* height_str = NULL;
-		ARGB32 tint = 0 ;
-		int width = 0, height = 0, srcx = 0, srcy = 0;
-		ASImage* imtmp = NULL;
-		for (ptr = parm ; ptr ; ptr = ptr->next) {
-			if (!strcmp(ptr->tag, "id")) id = strdup(ptr->parm);
-			if (!strcmp(ptr->tag, "refid")) refid = ptr->parm;
-			if (!strcmp(ptr->tag, "srcx")) srcx_str = ptr->parm;
-			if (!strcmp(ptr->tag, "srcy")) srcy_str = ptr->parm;
-			if (!strcmp(ptr->tag, "width")) width_str = ptr->parm;
-			if (!strcmp(ptr->tag, "height")) height_str = ptr->parm;
-			if (!strcmp(ptr->tag, "tint")) parse_argb_color(ptr->parm, &tint);
-		}
-		for (ptr = doc->child ; ptr && !imtmp ; ptr = ptr->next) {
-			imtmp = build_image_from_xml(asv, imman, fontman, ptr, NULL, flags, verbose, display_win);
-		}
-		if (imtmp) {
-			width = imtmp->width;
-			height = imtmp->height;
-			if (refid) {
-				ASImage* refimg = fetch_asimage(imman, refid);
-				if (refimg) {
-					width = refimg->width;
-					height = refimg->height;
-				}
-				safe_asimage_destroy( refimg );
-			}
-			if (srcx_str) srcx = (int)parse_math(srcx_str, NULL, width);
-			if (srcy_str) srcy = (int)parse_math(srcy_str, NULL, height);
-			if (width_str) width = (int)parse_math(width_str, NULL, width);
-			if (height_str) height = (int)parse_math(height_str, NULL, height);
-			if (width > (int)imtmp->width) width = imtmp->width;
-			if (height > (int)imtmp->height) height = imtmp->height;
-			if (width > 0 && height > 0) {
-				result = tile_asimage(asv, imtmp, srcx, srcy, width, height, tint, ASA_ASImage, 100, ASIMAGE_QUALITY_TOP);
-				safe_asimage_destroy(imtmp);
-			}
-			show_progress("Cropping image to [%dx%d].", width, height);
-		}
-		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
-	}
-/****** libAfterImage/asimagexml/tile
- * NAME
- * tile - tile an image to specified area.
- * SYNOPSIS
- *  <tile id="new_id" refid="other_image" width="pixels" height="pixels"
- *        x_origin="pixels" y_origin="pixels" tint="color" complement=0|1>
- * ATTRIBUTES
- * id       Optional. Image will be given this name for future reference.
- * refid    Optional. An image ID defined with the "id" parameter for
- *          any previously created image.  If set, percentages in "width"
- *          and "height" will be derived from the width and height of the
- *          refid image.
- * width    Optional. Default is "100%". The image will be tiled to this
- *          width.
- * height   Optional. Default is "100%". The image will be tiled to this
- *          height.
- * x_origin Optional. Horizontal position on infinite surface, covered
- *          with tiles of the image, from which to cut out resulting
- *          image.
- * y_origin Optional. Vertical position on infinite surface, covered
- *          with tiles of the image, from which to cut out resulting
- *          image.
- * tint     Optional. Additionally tint an image to specified color.
- *          Tinting can both lighten and darken an image. Tinting color
- *          0 or #7f7f7f7f yields no tinting. Tinting can be performed
- *          on any channel, including alpha channel.
- * complement Optional. Will use color that is the complement to tint color
- *          for the tinting, if set to 1. Default is 0.
- *
- * NOTES
- * This tag applies to the first image contained within the tag.  Any
- * further images will be discarded.
- ******/
-	if (!strcmp(doc->tag, "tile")) {
-		xml_elem_t* parm = xml_parse_parm(doc->parm, NULL);
-		const char* refid = NULL;
-		const char* xorig_str = NULL;
-		const char* yorig_str = NULL;
-		const char* width_str = "100%";
-		const char* height_str = "100%";
-		int width = 0, height = 0, xorig = 0, yorig = 0;
-		ARGB32 tint = 0 ;
-		ASImage* imtmp = NULL;
-		char *complement_str = NULL ;
-		for (ptr = parm ; ptr ; ptr = ptr->next) {
-			if (!strcmp(ptr->tag, "id")) id = strdup(ptr->parm);
-			else if (!strcmp(ptr->tag, "refid")) refid = ptr->parm;
-			else if (!strcmp(ptr->tag, "x_origin")) xorig_str = ptr->parm;
-			else if (!strcmp(ptr->tag, "y_origin")) yorig_str = ptr->parm;
-			else if (!strcmp(ptr->tag, "width")) width_str = ptr->parm;
-			else if (!strcmp(ptr->tag, "height")) height_str = ptr->parm;
-			else if (!strcmp(ptr->tag, "tint")) parse_argb_color(ptr->parm, &tint);
-			else if (!strcmp(ptr->tag, "complement")) complement_str = ptr->parm;
-		}
-		for (ptr = doc->child ; ptr && !imtmp ; ptr = ptr->next) {
-			imtmp = build_image_from_xml(asv, imman, fontman, ptr, NULL, flags, verbose, display_win);
-		}
-		if (imtmp) {
-			width = imtmp->width;
-			height = imtmp->height;
-			if (refid) {
-				ASImage* refimg = fetch_asimage(imman, refid);;
-				if (refimg) {
-					width = refimg->width;
-					height = refimg->height;
-				}
-				safe_asimage_destroy( refimg );
-			}
-			if (width_str) width = (int)parse_math(width_str, NULL, width);
-			if (height_str) height = (int)parse_math(height_str, NULL, height);
-			if (xorig_str) xorig = (int)parse_math(xorig_str, NULL, width);
-			if (yorig_str) yorig = (int)parse_math(yorig_str, NULL, height);
-			if (width > 0 && height > 0)
-			{
-				if( complement_str )
-				{
-					register char *ptr = complement_str ;
-					CARD32 a = ARGB32_ALPHA8(tint),
-						   r = ARGB32_RED8(tint),
-						   g = ARGB32_GREEN8(tint),
-						   b = ARGB32_BLUE8(tint) ;
-					while( *ptr )
-					{
-						if( *ptr == 'a' ) 		a = ~a ;
-						else if( *ptr == 'r' ) 	r = ~r ;
-						else if( *ptr == 'g' ) 	g = ~g ;
-						else if( *ptr == 'b' ) 	b = ~b ;
-						++ptr ;
-					}
-
-					tint = MAKE_ARGB32(a, r, g, b );
-				}
-				result = tile_asimage(asv, imtmp, xorig, yorig, width, height, tint, ASA_ASImage, 100, ASIMAGE_QUALITY_TOP);
-				safe_asimage_destroy(imtmp);
-			}
-			show_progress("Tiling image to [%dx%d].", width, height);
-		}
-		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
-	}
-/****** libAfterImage/asimagexml/hsv
- * NAME
- * hsv - adjust Hue, Saturation and/or Value of an image and optionally
- * tile an image to arbitrary area.
- * SYNOPSIS
- * <hsv id="new_id" refid="other_image"
- *      x_origin="pixels" y_origin="pixels" width="pixels" height="pixels"
- *      affected_hue="degrees|color" affected_radius="degrees"
- *      hue_offset="degrees" saturation_offset="value"
- *      value_offset="value">
- * ATTRIBUTES
- * id       Optional. Image will be given this name for future reference.
- * refid    Optional. An image ID defined with the "id" parameter for
- *          any previously created image.  If set, percentages in "width"
- *          and "height" will be derived from the width and height of the
- *          refid image.
- * width    Optional. Default is "100%". The image will be tiled to this
- *          width.
- * height   Optional. Default is "100%". The image will be tiled to this
- *          height.
- * x_origin Optional. Horizontal position on infinite surface, covered
- *          with tiles of the image, from which to cut out resulting
- *          image.
- * y_origin Optional. Vertical position on infinite surface, covered
- *          with tiles of the image, from which to cut out resulting
- *          image.
- * affected_hue    Optional. Limits effects to the renage of hues around
- *          this hue. If numeric value is specified - it is treated as
- *          degrees on 360 degree circle, with :
- *              red = 0,
- *              yellow = 60,
- *              green = 120,
- *              cyan = 180,
- *              blue = 240,
- *              magenta = 300.
- *          If colorname or value preceded with # is specified here - it
- *          will be treated as RGB color and converted into hue
- *          automagically.
- * affected_radius
- *          Optional. Value in degrees to be used in order to
- *          calculate the range of affected hues. Range is determined by
- *          substracting and adding this value from/to affected_hue.
- * hue_offset
- *          Optional. Value by which to adjust the hue.
- * saturation_offset
- *          Optional. Value by which to adjust the saturation.
- * value_offset
- *          Optional. Value by which to adjust the value.
- * NOTES
- * One of the Offsets must be not 0, in order for operation to be
- * performed.
- *
- * This tag applies to the first image contained within the tag.  Any
- * further images will be discarded.
- ******/
-	if (!strcmp(doc->tag, "hsv")) {
-		xml_elem_t* parm = xml_parse_parm(doc->parm, NULL);
-		const char* refid = NULL;
-		const char* xorig_str = NULL;
-		const char* yorig_str = NULL;
-		const char* width_str = "100%";
-		const char* height_str = "100%";
-		int affected_hue = 0, affected_radius = 360 ;
-		int hue_offset = 0, saturation_offset = 0, value_offset = 0 ;
-		int width = 0, height = 0, xorig = 0, yorig = 0;
-		ASImage* imtmp = NULL;
-		for (ptr = parm ; ptr ; ptr = ptr->next) {
-			if (!strcmp(ptr->tag, "id")) id = strdup(ptr->parm);
-			else if (!strcmp(ptr->tag, "refid")) refid = ptr->parm;
-			else if (!strcmp(ptr->tag, "x_origin")) xorig_str = ptr->parm;
-			else if (!strcmp(ptr->tag, "y_origin")) yorig_str = ptr->parm;
-			else if (!strcmp(ptr->tag, "width")) width_str = ptr->parm;
-			else if (!strcmp(ptr->tag, "height")) height_str = ptr->parm;
-			else if (!strcmp(ptr->tag, "affected_hue"))
-			{
-				if( isdigit( (int)ptr->parm[0] ) )
-					affected_hue = (int)parse_math(ptr->parm, NULL, 360);
-				else
-				{
-					ARGB32 color = 0;
-					if( parse_argb_color( ptr->parm, &color ) != ptr->parm )
-					{
-						affected_hue = rgb2hue( ARGB32_RED16(color),
-												ARGB32_GREEN16(color),
-												ARGB32_BLUE16(color));
-  					    affected_hue = hue162degrees( affected_hue );
-					}
-				}
-			}
-			else if (!strcmp(ptr->tag, "affected_radius")) 	affected_radius = (int)parse_math(ptr->parm, NULL, 360);
-			else if (!strcmp(ptr->tag, "hue_offset")) 		hue_offset = (int)parse_math(ptr->parm, NULL, 360);
-			else if (!strcmp(ptr->tag, "saturation_offset"))saturation_offset = (int)parse_math(ptr->parm, NULL, 100);
-			else if (!strcmp(ptr->tag, "value_offset")) 	value_offset = (int)parse_math(ptr->parm, NULL, 100);
-		}
-		if( hue_offset == -1 && saturation_offset == -1 ) 
-		{
-			hue_offset = 0 ; 
-			saturation_offset = -99 ;
-		}
-		for (ptr = doc->child ; ptr && !imtmp ; ptr = ptr->next) {
-			imtmp = build_image_from_xml(asv, imman, fontman, ptr, NULL, flags, verbose, display_win);
-		}
-		if (imtmp) {
-			width = imtmp->width;
-			height = imtmp->height;
-			if (refid) {
-				ASImage* refimg = fetch_asimage(imman, refid);;
-				if (refimg) {
-					width = refimg->width;
-					height = refimg->height;
-				}
-				safe_asimage_destroy( refimg );
-			}
-			if (width_str) width = (int)parse_math(width_str, NULL, width);
-			if (height_str) height = (int)parse_math(height_str, NULL, height);
-			if (xorig_str) xorig = (int)parse_math(xorig_str, NULL, width);
-			if (yorig_str) yorig = (int)parse_math(yorig_str, NULL, height);
-			if (width > 0 && height > 0 &&
-				(hue_offset!=0 || saturation_offset != 0 || value_offset != 0 )) {
-				result = adjust_asimage_hsv(asv, imtmp, xorig, yorig, width, height,
-				                            affected_hue, affected_radius,
-											hue_offset, saturation_offset, value_offset,
-				                            ASA_ASImage, 100, ASIMAGE_QUALITY_TOP);
-				safe_asimage_destroy(imtmp);
-			}
-			show_progress("adjusting HSV of the image by [%d,%d,%d] affected hues are %+d-%+d.result = %p", hue_offset, saturation_offset, value_offset, affected_hue-affected_radius, affected_hue+affected_radius, result);
-		}
-		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
-	}
-
-/****** libAfterImage/asimagexml/pad
- * NAME
- * pad - pad an image with solid color rectangles.
- * SYNOPSIS
- * <pad id="new_id" refid="other_image" left="pixels" top="pixels"
- *      right="pixels" bottom="pixels" color="color">
- * ATTRIBUTES
- * id       Optional. Image will be given this name for future reference.
- * refid    Optional. An image ID defined with the "id" parameter for
- *          any previously created image.  If set, percentages in "pixel"
- *          pad values will be derived from the width and height of the
- *          refid image.
- * left     Optional. Size to add to the left of the image.
- * top      Optional. Size to add to the top of the image.
- * right    Optional. Size to add to the right of the image.
- * bottom   Optional. Size to add to the bottom of the image.
- * color    Optional. Color value to fill added areas with. It could be
- *          transparent of course. Default is #FF000000 - totally black.
- * NOTES
- * This tag applies to the first image contained within the tag.  Any
- * further images will be discarded.
- ******/
-	if (!strcmp(doc->tag, "pad")) {
-		xml_elem_t* parm = xml_parse_parm(doc->parm, NULL);
-		const char* refid = NULL;
-		const char* left_str = "0";
-		const char* top_str  = "0";
-		const char* right_str  = "0";
-		const char* bottom_str  = "0";
-		ARGB32 color  = ARGB32_Black;
-		int left = 0, top = 0, right = 0, bottom = 0;
-		ASImage* imtmp = NULL;
-		for (ptr = parm ; ptr ; ptr = ptr->next) {
-			if (!strcmp(ptr->tag, "id")) id = strdup(ptr->parm);
-			else if (!strcmp(ptr->tag, "refid"))  refid = ptr->parm;
-			else if (!strcmp(ptr->tag, "left"))   left_str = ptr->parm;
-			else if (!strcmp(ptr->tag, "top"))    top_str = ptr->parm;
-			else if (!strcmp(ptr->tag, "right"))  right_str = ptr->parm;
-			else if (!strcmp(ptr->tag, "bottom")) bottom_str = ptr->parm;
-			else if (!strcmp(ptr->tag, "color"))  parse_argb_color(ptr->parm, &color);
-		}
-		for (ptr = doc->child ; ptr && !imtmp ; ptr = ptr->next) {
-			imtmp = build_image_from_xml(asv, imman, fontman, ptr, NULL, flags, verbose, display_win);
-		}
-		if (imtmp) {
-			int width = imtmp->width;
-			int height = imtmp->height;
-			if (refid) {
-				ASImage* refimg = fetch_asimage(imman, refid);
-				if (refimg) {
-					width = refimg->width;
-					height = refimg->height;
-				}
-				safe_asimage_destroy( refimg );
-			}
-			if (left_str) left = (int)parse_math(left_str, NULL, width);
-			if (top_str)  top = (int)parse_math(top_str, NULL, height);
-			if (right_str) right = (int)parse_math(right_str, NULL, width);
-			if (bottom_str)  bottom = (int)parse_math(bottom_str, NULL, height);
-			if (left > 0 || top > 0 || right > 0 || bottom > 0 )
-			{
-				result = pad_asimage(asv, imtmp, left, top, width+left+right, height+top+bottom,
-					                 color, ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT);
-				safe_asimage_destroy(imtmp);
-			}
-			show_progress("Padding image to [%dx%d%+d%+d].", width+left+right, height+top+bottom, left, top);
-		}
-		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
-	}
-
-/****** libAfterImage/asimagexml/solid
- * NAME
- * solid - generate image of specified size and fill it with solid color.
- * SYNOPSIS
- * <solid id="new_id" color="color" opacity="opacity" 
- * 	width="pixels" height="pixels"/>
- * ATTRIBUTES
- * id       Optional. Image will be given this name for future reference.
- * color    Optional.  Default is "#ffffffff".  An image will be created
- *          and filled with this color.
- * width    Required.  The image will have this width.
- * height   Required.  The image will have this height.
- * opacity  Optional. Default is 100. Values from 0 to 100 represent the
- *          opacity of resulting image with 100 being completely opaque.
- * 		    Effectively overrides alpha component of the color setting.
- ******/
-	if (!strcmp(doc->tag, "solid")) {
-		xml_elem_t* parm = xml_parse_parm(doc->parm, NULL);
-		const char* refid = NULL;
-		const char* width_str = NULL;
-		const char* height_str = NULL;
-		int width = 0, height = 0;
-		Bool opacity_set = False ;
-		int opacity = 100 ;
-		ARGB32 color = ARGB32_White;
-		for (ptr = parm ; ptr ; ptr = ptr->next) {
-			if (!strcmp(ptr->tag, "id")) id = strdup(ptr->parm);
-			if (!strcmp(ptr->tag, "refid")) refid = ptr->parm;
-			if (!strcmp(ptr->tag, "color")) parse_argb_color(ptr->parm, &color);
-			if (!strcmp(ptr->tag, "width")) width_str = ptr->parm;
-			if (!strcmp(ptr->tag, "height")) height_str = ptr->parm;
-			if (!strcmp(ptr->tag, "opacity")) { opacity = atol(ptr->parm); opacity_set = True ; }
-		}
-		if (refid && width_str && height_str) {
-			ASImage* refimg = fetch_asimage(imman, refid);
-			if (refimg) {
-				width = (int)parse_math(width_str, NULL, refimg->width);
-				height = (int)parse_math(height_str, NULL, refimg->height);
-			}
-			safe_asimage_destroy( refimg );
-		}
-		if (!refid && width_str && height_str) {
-			width = (int)parse_math(width_str, NULL, 0);
-			height = (int)parse_math(height_str, NULL, 0);
-		}
-		if (width && height) {
-			CARD32 a, r, g, b ;
-			result = create_asimage(width, height, ASIMAGE_QUALITY_TOP);
-			if( opacity < 0 ) opacity = 0 ;
-			else if( opacity > 100 )  opacity = 100 ;
-			a = opacity_set? (0x000000FF * (CARD32)opacity)/100: ARGB32_ALPHA8(color);
-			r = ARGB32_RED8(color);
-			g = ARGB32_GREEN8(color);
-			b = ARGB32_BLUE8(color);
-			color = MAKE_ARGB32(a,r,g,b);
-			if (result) fill_asimage(asv, result, 0, 0, width, height, color);
-			show_progress("Creating solid color [#%08x] image [%dx%d].", (unsigned int)color, width, height);
-		}
-		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
-	}
-
+	return result;
+}	
 /****** libAfterImage/asimagexml/composite
  * NAME
  * composite - superimpose arbitrary number of images on top of each
@@ -1880,245 +751,1448 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
  * SEE ALSO
  * libAfterImage
  ******/
-	if (!strcmp(doc->tag, "composite")) {
-		xml_elem_t* parm = xml_parse_parm(doc->parm, NULL);
-		const char* pop = "alphablend";
-		int keep_trans = 0;
-		int merge = 0;
-		int num;
-		int static_im = 0 ;
-		for (ptr = parm ; ptr ; ptr = ptr->next) {
-			if (!strcmp(ptr->tag, "id")) id = strdup(ptr->parm);
-			if (!strcmp(ptr->tag, "op")) pop = ptr->parm;
-			if (!strcmp(ptr->tag, "keep-transparency")) keep_trans = strtol(ptr->parm, NULL, 0);
-			if (!strcmp(ptr->tag, "merge") && !mystrcasecmp(ptr->parm, "clip")) merge = 1;
-			if (!strcmp(ptr->tag, "static")) static_im = atoi(ptr->parm);
-		}
-		/* Find out how many subimages we have. */
-		num = 0;
-		for (ptr = doc->child ; ptr ; ptr = ptr->next) {
-			if (strcmp(ptr->tag, cdata_str)) num++;
-		}
-		if (num) {
-			int width = 0, height = 0;
-			ASImageLayer *layers;
+static ASImage *
+handle_asxml_tag_composite( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm )
+{
+	ASImage *result = NULL ;
+	xml_elem_t* ptr ;
+	const char* pop = "alphablend";
+	int keep_trans = 0;
+	int merge = 0;
+	int num = 0;
+	int width = 0, height = 0;
+	ASImageLayer *layers;
 #define  ASXML_ALIGN_LEFT 	(0x01<<0)
 #define  ASXML_ALIGN_RIGHT 	(0x01<<1)
 #define  ASXML_ALIGN_TOP    (0x01<<2)
 #define  ASXML_ALIGN_BOTTOM (0x01<<3)
-			int *align ;
-			int i ;
-			merge_scanlines_func op_func = blend_scanlines_name2func(pop);
+	int *align ;
+	int i ;
+	merge_scanlines_func op_func = blend_scanlines_name2func(pop);
 
-			if( op_func == NULL ) 
-				op_func = alphablend_scanlines ;
-			/* Build the layers first. */
-			layers = create_image_layers( num );
-			align = safecalloc( num, sizeof(int));
-
-			for (num = 0, ptr = doc->child ; ptr ; ptr = ptr->next) 
-			{
-				int x = 0, y = 0;
-				int clip_x = 0, clip_y = 0;
-				int clip_width = 0, clip_height = 0;
-				ARGB32 tint = 0;
-				Bool tile = False ;
-				xml_elem_t* sparm = NULL;
-				if (!strcmp(ptr->tag, cdata_str)) continue;
-				if( (layers[num].im = build_image_from_xml(asv, imman, fontman, ptr, &sparm, flags, verbose, display_win)) != NULL )
-				{
-					clip_width = layers[num].im->width;
-					clip_height = layers[num].im->height;
-				}
-				if (sparm) 
-				{
-					xml_elem_t* tmp;
-					const char* x_str = NULL;
-					const char* y_str = NULL;
-					const char* clip_x_str = NULL;
-					const char* clip_y_str = NULL;
-					const char* clip_width_str = NULL;
-					const char* clip_height_str = NULL;
-					const char* refid = NULL;
-					for (tmp = sparm ; tmp ; tmp = tmp->next) {
-						if (!strcmp(tmp->tag, "crefid")) refid = tmp->parm;
-						else if (!strcmp(tmp->tag, "x")) x_str = tmp->parm;
-						else if (!strcmp(tmp->tag, "y")) y_str = tmp->parm;
-						else if (!strcmp(tmp->tag, "clip_x")) clip_x_str = tmp->parm;
-						else if (!strcmp(tmp->tag, "clip_y")) clip_y_str = tmp->parm;
-						else if (!strcmp(tmp->tag, "clip_width")) clip_width_str = tmp->parm;
-						else if (!strcmp(tmp->tag, "clip_height")) clip_height_str = tmp->parm;
-						else if (!strcmp(tmp->tag, "tint")) parse_argb_color(tmp->parm, &tint);
-						else if (!strcmp(tmp->tag, "tile")) tile = True;
-						else if (!strcmp(tmp->tag, "align"))
-						{
-							if (!strcmp(tmp->parm, "left"))set_flags( align[num], ASXML_ALIGN_LEFT);
-							else if (!strcmp(tmp->parm, "right"))set_flags( align[num], ASXML_ALIGN_RIGHT);
-							else if (!strcmp(tmp->parm, "center"))set_flags( align[num], ASXML_ALIGN_LEFT|ASXML_ALIGN_RIGHT);
-						}else if (!strcmp(tmp->tag, "valign"))
-						{
-							if (!strcmp(tmp->parm, "top"))set_flags( align[num], ASXML_ALIGN_TOP) ;
-							else if (!strcmp(tmp->parm, "bottom"))set_flags( align[num], ASXML_ALIGN_BOTTOM);
-							else if (!strcmp(tmp->parm, "middle"))set_flags( align[num], ASXML_ALIGN_TOP|ASXML_ALIGN_BOTTOM);
-						}
-					}
-					if (refid) {
-						ASImage* refimg = fetch_asimage(imman, refid);
-						if (refimg) {
-							x = refimg->width;
-							y = refimg->height;
-						}
-						safe_asimage_destroy(refimg );
-					}
-					x = x_str ? (int)parse_math(x_str, NULL, x) : 0;
-					y = y_str ? (int)parse_math(y_str, NULL, y) : 0;
-					clip_x = clip_x_str ? (int)parse_math(clip_x_str, NULL, x) : 0;
-					clip_y = clip_y_str ? (int)parse_math(clip_y_str, NULL, y) : 0;
-					if( clip_width_str )
-						clip_width = (int)parse_math(clip_width_str, NULL, clip_width);
-					else if( tile )
-						clip_width = 0 ;
-					if( clip_height_str )
-						clip_height = (int)parse_math(clip_height_str, NULL, clip_height);
-					else if( tile )
-						clip_height = 0 ;
-				}
-				if (layers[num].im) {
-					layers[num].dst_x = x;
-					layers[num].dst_y = y;
-					layers[num].clip_x = clip_x;
-					layers[num].clip_y = clip_y;
-					layers[num].clip_width = clip_width ;
-					layers[num].clip_height = clip_height ;
-					layers[num].tint = tint;
-					layers[num].bevel = 0;
-					layers[num].merge_scanlines = op_func;
-					if( clip_width + x > 0 )
-					{
-						if( width < clip_width + x )
-							width = clip_width + x;
-					}else
-					 	if (width < (int)(layers[num].im->width)) width = layers[num].im->width;
-					if( clip_height + y > 0 )
-					{
-						if( height < clip_height + y )
-							height = clip_height + y ;
-					}else
-						if (height < (int)(layers[num].im->height)) height = layers[num].im->height;
-					num++;
-				}
-				if (sparm) xml_elem_delete(NULL, sparm);
-			}
-
-			if (num && merge && layers[0].im ) {
-				width = layers[0].im->width;
-				height = layers[0].im->height;
-			}
-
-
-	   		for (i = 0 ; i < num ; i++)
-			{
-				if( get_flags(align[i], ASXML_ALIGN_LEFT|ASXML_ALIGN_RIGHT ) )
-				{
-					int im_width = ( layers[i].clip_width == 0 )? layers[i].im->width : layers[i].clip_width ;
-					int x = 0 ;
-					if( get_flags( align[i], ASXML_ALIGN_RIGHT ) )
-						x = width - im_width ;
-					if( get_flags( align[i], ASXML_ALIGN_LEFT ) )
-						x /= 2;
-					layers[i].dst_x = x;
-				}
-				if( get_flags(align[i], ASXML_ALIGN_TOP|ASXML_ALIGN_BOTTOM ) )
-				{
-					int im_height = ( layers[i].clip_height == 0 )? layers[i].im->height : layers[i].clip_height;
-					int y = 0 ;
-					if( get_flags( align[i], ASXML_ALIGN_BOTTOM ) )
-						y = height - im_height ;
-					if( get_flags( align[i], ASXML_ALIGN_TOP ) )
-						y /= 2;
-					layers[i].dst_y = y;
-				}
-				if( layers[i].clip_width == 0 )
-					layers[i].clip_width = width - layers[i].dst_x;
-				if( layers[i].clip_height == 0 )
-					layers[i].clip_height = height - layers[i].dst_y;
-			}
-
-			show_progress("Compositing [%d] image(s) with op [%s].  Final geometry [%dx%d].", num, pop, width, height);
-			if (keep_trans) show_progress("  Keeping transparency.");
-			if (verbose > 1) {
-				for (i = 0 ; i < num ; i++) {
-					show_progress("  Image [%d] geometry [%dx%d+%d+%d]", i, layers[i].clip_width, layers[i].clip_height, layers[i].dst_x, layers[i].dst_y);
-					if (layers[i].tint) show_progress(" tint (#%08x)", (unsigned int)layers[i].tint);
-				}
-			}
-
-			if (num) {
-				result = merge_layers( asv, layers, num, width, height, 
-									   ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
-				if (keep_trans && result && layers[0].im) {
-					copy_asimage_channel(result, IC_ALPHA, layers[0].im, IC_ALPHA);
-				}
-				while (--num >= 0 )
-					safe_asimage_destroy( layers[num].im );
-			}
-			free(align);
-			free(layers);
-		}
-		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
+	LOCAL_DEBUG_OUT("doc = %p, parm = %p", doc, parm ); 
+	for (ptr = parm ; ptr ; ptr = ptr->next) {
+		if (!strcmp(ptr->tag, "op")) pop = ptr->parm;
+		else if (!strcmp(ptr->tag, "keep-transparency")) keep_trans = strtol(ptr->parm, NULL, 0);
+		else if (!strcmp(ptr->tag, "merge") && !mystrcasecmp(ptr->parm, "clip")) merge = 1;
 	}
+	/* Find out how many subimages we have. */
+	for (ptr = doc->child ; ptr ; ptr = ptr->next) 
+		if (strcmp(ptr->tag, cdata_str)) num++;
 
-	if (!strcmp(doc->tag, "printf")) 
+	if( num == 0 ) 
 	{
-		xml_elem_t* parm = xml_parse_parm(doc->parm, NULL);
-		const char* format = NULL;
-		const char* var = NULL;
-		int val = 0 ;
-		Bool use_val = False ;
-		int arg_count = 0, i;
-		for (ptr = parm ; ptr ; ptr = ptr->next) 
-		{
-			if (!strcmp(ptr->tag, "format")) format = ptr->parm;
-			else if (!strcmp(ptr->tag, "var")) { var = ptr->parm; use_val = False; }
-			else if (!strcmp(ptr->tag, "val")) { val = (int)parse_math(ptr->parm, NULL, 0); use_val = True; }
-		}
-   		
-		for( i = 0 ; format[i] != '\0' ; ++i )
-			if( format[i] == '%' )
-			{
-				if( format[i+1] != '%' ) 
-			 		++arg_count ; 
-				else 
-					++i ;
-			}
-		
-		if( format != NULL ) 
-		{	
-			char *interpreted_format = interpret_ctrl_codes( mystrdup(format) );
-			if( use_val && arg_count == 1) 
-				printf( interpreted_format, val );
-			else if( var != NULL && arg_count == 1 ) 
-				printf( interpreted_format, asxml_var_get(var) );				
-			else if( arg_count == 0 )
-				fputs( interpreted_format, stdout );				   
-			free( interpreted_format );
-		}
-		
-		if (rparm) *rparm = parm; else xml_elem_delete(NULL, parm);
-
-		if( result == NULL ) 
-			return NULL;
+		show_warning( "composite tag with no subimages to compose from specified!");	  
+		return NULL;
 	}
+
+	if( op_func == NULL ) 
+	{	
+		LOCAL_DEBUG_OUT( "defaulting to alpha-blending%s","");
+		op_func = alphablend_scanlines ;
+	}
+	/* Build the layers first. */
+	layers = create_image_layers( num );
+	align = safecalloc( num, sizeof(int));
+
+	for (num = 0, ptr = doc->child ; ptr ; ptr = ptr->next) 
+	{
+		int x = 0, y = 0;
+		int clip_x = 0, clip_y = 0;
+		int clip_width = 0, clip_height = 0;
+		ARGB32 tint = 0;
+		Bool tile = False ;
+		xml_elem_t* sparm = NULL;
+		if (!strcmp(ptr->tag, cdata_str)) continue;
+		if( (layers[num].im = build_image_from_xml(state->asv, state->imman, state->fontman, ptr, &sparm, state->flags, state->verbose, state->display_win)) != NULL )
+		{
+			clip_width = layers[num].im->width;
+			clip_height = layers[num].im->height;
+		}
+		if (sparm) 
+		{
+			xml_elem_t* tmp;
+			const char* x_str = NULL;
+			const char* y_str = NULL;
+			const char* clip_x_str = NULL;
+			const char* clip_y_str = NULL;
+			const char* clip_width_str = NULL;
+			const char* clip_height_str = NULL;
+			const char* refid = NULL;
+			for (tmp = sparm ; tmp ; tmp = tmp->next) {
+				if (!strcmp(tmp->tag, "crefid")) refid = tmp->parm;
+				else if (!strcmp(tmp->tag, "x")) x_str = tmp->parm;
+				else if (!strcmp(tmp->tag, "y")) y_str = tmp->parm;
+				else if (!strcmp(tmp->tag, "clip_x")) clip_x_str = tmp->parm;
+				else if (!strcmp(tmp->tag, "clip_y")) clip_y_str = tmp->parm;
+				else if (!strcmp(tmp->tag, "clip_width")) clip_width_str = tmp->parm;
+				else if (!strcmp(tmp->tag, "clip_height")) clip_height_str = tmp->parm;
+				else if (!strcmp(tmp->tag, "tint")) parse_argb_color(tmp->parm, &tint);
+				else if (!strcmp(tmp->tag, "tile")) tile = True;
+				else if (!strcmp(tmp->tag, "align"))
+				{
+					if (!strcmp(tmp->parm, "left"))set_flags( align[num], ASXML_ALIGN_LEFT);
+					else if (!strcmp(tmp->parm, "right"))set_flags( align[num], ASXML_ALIGN_RIGHT);
+					else if (!strcmp(tmp->parm, "center"))set_flags( align[num], ASXML_ALIGN_LEFT|ASXML_ALIGN_RIGHT);
+				}else if (!strcmp(tmp->tag, "valign"))
+				{
+					if (!strcmp(tmp->parm, "top"))set_flags( align[num], ASXML_ALIGN_TOP) ;
+					else if (!strcmp(tmp->parm, "bottom"))set_flags( align[num], ASXML_ALIGN_BOTTOM);
+					else if (!strcmp(tmp->parm, "middle"))set_flags( align[num], ASXML_ALIGN_TOP|ASXML_ALIGN_BOTTOM);
+				}
+			}
+			if (refid) {
+				ASImage* refimg = fetch_asimage(state->imman, refid);
+				if (refimg) {
+					x = refimg->width;
+					y = refimg->height;
+				}
+				safe_asimage_destroy(refimg );
+			}
+			x = x_str ? (int)parse_math(x_str, NULL, x) : 0;
+			y = y_str ? (int)parse_math(y_str, NULL, y) : 0;
+			clip_x = clip_x_str ? (int)parse_math(clip_x_str, NULL, x) : 0;
+			clip_y = clip_y_str ? (int)parse_math(clip_y_str, NULL, y) : 0;
+			if( clip_width_str )
+				clip_width = (int)parse_math(clip_width_str, NULL, clip_width);
+			else if( tile )
+				clip_width = 0 ;
+			if( clip_height_str )
+				clip_height = (int)parse_math(clip_height_str, NULL, clip_height);
+			else if( tile )
+				clip_height = 0 ;
+		}
+		if (layers[num].im) {
+			layers[num].dst_x = x;
+			layers[num].dst_y = y;
+			layers[num].clip_x = clip_x;
+			layers[num].clip_y = clip_y;
+			layers[num].clip_width = clip_width ;
+			layers[num].clip_height = clip_height ;
+			layers[num].tint = tint;
+			layers[num].bevel = 0;
+			layers[num].merge_scanlines = op_func;
+			if( clip_width + x > 0 )
+			{
+				if( width < clip_width + x )
+					width = clip_width + x;
+			}else
+				if (width < (int)(layers[num].im->width)) width = layers[num].im->width;
+			if( clip_height + y > 0 )
+			{
+				if( height < clip_height + y )
+					height = clip_height + y ;
+			}else
+				if (height < (int)(layers[num].im->height)) height = layers[num].im->height;
+			num++;
+		}
+		if (sparm) xml_elem_delete(NULL, sparm);
+	}
+
+	if (num && merge && layers[0].im ) {
+		width = layers[0].im->width;
+		height = layers[0].im->height;
+	}
+
+
+	for (i = 0 ; i < num ; i++)
+	{
+		if( get_flags(align[i], ASXML_ALIGN_LEFT|ASXML_ALIGN_RIGHT ) )
+		{
+			int im_width = ( layers[i].clip_width == 0 )? layers[i].im->width : layers[i].clip_width ;
+			int x = 0 ;
+			if( get_flags( align[i], ASXML_ALIGN_RIGHT ) )
+				x = width - im_width ;
+			if( get_flags( align[i], ASXML_ALIGN_LEFT ) )
+				x /= 2;
+			layers[i].dst_x = x;
+		}
+		if( get_flags(align[i], ASXML_ALIGN_TOP|ASXML_ALIGN_BOTTOM ) )
+		{
+			int im_height = ( layers[i].clip_height == 0 )? layers[i].im->height : layers[i].clip_height;
+			int y = 0 ;
+			if( get_flags( align[i], ASXML_ALIGN_BOTTOM ) )
+				y = height - im_height ;
+			if( get_flags( align[i], ASXML_ALIGN_TOP ) )
+				y /= 2;
+			layers[i].dst_y = y;
+		}
+		if( layers[i].clip_width == 0 )
+			layers[i].clip_width = width - layers[i].dst_x;
+		if( layers[i].clip_height == 0 )
+			layers[i].clip_height = height - layers[i].dst_y;
+	}
+
+	show_progress("Compositing [%d] image(s) with op [%s].  Final geometry [%dx%d].", num, pop, width, height);
+	if (keep_trans) show_progress("  Keeping transparency.");
+	if (state->verbose > 1) {
+		for (i = 0 ; i < num ; i++) {
+			show_progress("  Image [%d] geometry [%dx%d+%d+%d]", i, layers[i].clip_width, layers[i].clip_height, layers[i].dst_x, layers[i].dst_y);
+			if (layers[i].tint) show_progress(" tint (#%08x)", (unsigned int)layers[i].tint);
+		}
+	}
+
+	result = merge_layers( state->asv, layers, num, width, height, 
+							ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
+	if (keep_trans && result && layers[0].im)
+		copy_asimage_channel(result, IC_ALPHA, layers[0].im, IC_ALPHA);
+	
+	while (--num >= 0 )
+		safe_asimage_destroy( layers[num].im );
+	
+	free(align);
+	free(layers);
+
+	return result;
+}
+
+/****** libAfterImage/asimagexml/img
+ * NAME
+ * img - load image from the file.
+ * SYNOPSIS
+ * <img id="new_img_id" src=filename/>
+ * ATTRIBUTES
+ * id     Optional.  Image will be given this name for future reference.
+ * src    Required.  The filename (NOT URL) of the image file to load.
+ * NOTES
+ * The special image src "xroot:" will import the background image
+ * of the root X window, if any.  No attempt will be made to offset this
+ * image to fit the location of the resulting window, if one is displayed.
+ ******/
+static ASImage *
+handle_asxml_tag_img( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm)
+{
+	ASImage *result = NULL ;
+	const char* src = NULL;
+	xml_elem_t* ptr ;
+	LOCAL_DEBUG_OUT("doc = %p, parm = %p", doc, parm ); 
+	for (ptr = parm ; ptr ; ptr = ptr->next) {
+		if (!strcmp(ptr->tag, "src")) src = ptr->parm;
+	}
+	if (src && !strcmp(src, "xroot:")) {
+		unsigned int width, height;
+		Pixmap rp = GetRootPixmap(None);
+		show_progress("Getting root pixmap.");
+		if (rp) {
+			get_drawable_size(rp, &width, &height);
+			result = pixmap2asimage(state->asv, rp, 0, 0, width, height, 0xFFFFFFFF, False, 100);
+		}
+	} else if (src) {
+		show_progress("Loading image [%s] using imman (%p) with search path \"%s\".", src, state->imman, state->imman?state->imman->search_path[0]:"");
+		result = get_asimage( state->imman, src, 0xFFFFFFFF, 100 );
+	}
+	return result;
+}	
+
+/****** libAfterImage/asimagexml/recall
+ * NAME
+ * recall - recall previously generated and named image by its id.
+ * SYNOPSIS
+ * <recall id="new_id" srcid="image_id">
+ * ATTRIBUTES
+ * id       Optional.  Image will be given this name for future reference.
+ * srcid    Required.  An image ID defined with the "id" parameter for
+ *          any previously created image.
+ ******/
+static ASImage *
+handle_asxml_tag_recall( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm)
+{
+	ASImage *result = NULL ;
+	LOCAL_DEBUG_OUT("doc = %p, parm = %p", doc, parm ); 
+	while ( parm && !result ) 
+	{	
+		if (!strcmp(parm->tag, "srcid"))
+		{ 
+			show_progress("Recalling image id [%s] from imman %p.", parm->parm, state->imman);
+			result = fetch_asimage(state->imman, parm->parm );
+			if (!result)
+				show_error("Image recall failed for id [%s].", parm->parm);
+		}	
+		parm = parm->next ;
+	}
+	return result;
+}	
+
+/****** libAfterImage/asimagexml/release
+ * NAME
+ * release - release(destroy if possible) previously generated and named image by its id.
+ * SYNOPSIS
+ * <release srcid="image_id">
+ * ATTRIBUTES
+ * srcid    Required.  An image ID defined with the "id" parameter for
+ *          any previously created image.
+ ******/
+static ASImage *
+handle_asxml_tag_release( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm)
+{
+	xml_elem_t* ptr ;
+	LOCAL_DEBUG_OUT("doc = %p, parm = %p", doc, parm ); 
+	for (ptr = parm ; ptr ; ptr = ptr->next) 
+		if (!strcmp(ptr->tag, "srcid"))
+		{
+			show_progress("Releasing image id [%s] from imman %p.", ptr->parm, state->imman);
+			release_asimage_by_name(state->imman, (char*)ptr->parm );
+			break;
+		}
+	return NULL;
+}	
+
+/****** libAfterImage/asimagexml/color
+ * NAME
+ * color - defines symbolic name for a color and set of variables.
+ * SYNOPSIS
+ * <color name="sym_name" domain="var_domain" argb=colorvalue/>
+ * ATTRIBUTES
+ * name   Symbolic name for the color value, to be used to refer to that color.
+ * argb   8 characters hex definition of the color or other symbolic color name.
+ * domain string to be used to prepend names of defined variables.
+ * NOTES
+ * In addition to defining symbolic name for the color this tag will define
+ * 7 other variables : 	domain.sym_name.red, domain.sym_name.green, 
+ * 					   	domain.sym_name.blue, domain.sym_name.alpha, 
+ * 					  	domain.sym_name.hue, domain.sym_name.saturation,
+ *                     	domain.sym_name.value
+ ******/
+static ASImage *
+handle_asxml_tag_color( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm)
+{
+	xml_elem_t* ptr ;
+	const char* name = NULL;
+	const char* argb_text = NULL;
+	const char* var_domain = NULL;
+	LOCAL_DEBUG_OUT("doc = %p, parm = %p", doc, parm ); 
+	for (ptr = parm ; ptr ; ptr = ptr->next) {
+		if (!strcmp(ptr->tag, "name")) name = strdup(ptr->parm);
+		else if (!strcmp(ptr->tag, "argb")) argb_text = ptr->parm;
+		else if (!strcmp(ptr->tag, "domain")) var_domain = ptr->parm;
+	}
+	if (name && argb_text) {
+		ARGB32 argb = ARGB32_Black;
+		if( parse_argb_color( argb_text, &argb ) != argb_text )
+		{
+			char *tmp;
+			CARD32 hue16, sat16, val16 ;
+			int vd_len = var_domain?strlen(var_domain):0 ;
+
+			tmp = safemalloc( vd_len + 1+ strlen(name )+32+1 ) ;
+
+			if( var_domain && var_domain[0] != '\0' )
+			{
+				if( var_domain[vd_len-1] != '.' )
+				{
+					sprintf( tmp, "%s.", var_domain );
+					++vd_len ;
+				}else
+					strcpy( tmp, var_domain );
+			}
+
+
+#ifdef HAVE_AFTERBASE
+	   		show_progress("defining synonim [%s] for color value #%8.8X.", name, argb);
+	   		register_custom_color( name, argb );
+#endif
+			sprintf( tmp+vd_len, "%s.alpha", name );
+			asxml_var_insert( tmp, ARGB32_ALPHA8(argb) );
+			sprintf( tmp+vd_len, "%s.red", name );
+			asxml_var_insert( tmp, ARGB32_RED8(argb) );
+			sprintf( tmp+vd_len, "%s.green", name );
+			asxml_var_insert( tmp, ARGB32_GREEN8(argb) );
+			sprintf( tmp+vd_len, "%s.blue", name );
+			asxml_var_insert( tmp, ARGB32_BLUE8(argb) );
+
+			hue16 = rgb2hsv( ARGB32_RED16(argb), ARGB32_GREEN16(argb), ARGB32_BLUE16(argb), &sat16, &val16 );
+
+			sprintf( tmp+vd_len, "%s.hue", name );
+			asxml_var_insert( tmp, hue162degrees( hue16 ) );
+			sprintf( tmp+vd_len, "%s.saturation", name );
+			asxml_var_insert( tmp, val162percent( sat16 ) );
+			sprintf( tmp+vd_len, "%s.value", name );
+			asxml_var_insert( tmp, val162percent( val16 ) );
+			free( tmp );
+		}
+	}
+	return NULL;
+}
+/****** libAfterImage/asimagexml/printf
+ * NAME
+ * printf - prints variable value to standard output.
+ * SYNOPSIS
+ * <printf format="format_string" var="variable_name" val="value"/>
+ * ATTRIBUTES
+ * format_string  Standard C format string with exactly 1 placeholder.
+ * var            Name of the variable, which value will be printed.
+ * val            math expression to be printed.
+ * NOTES
+ ******/
+static ASImage *
+handle_asxml_tag_printf( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm)
+{
+	xml_elem_t* ptr ;
+	const char* format = NULL;
+	const char* var = NULL;
+	int val = 0 ;
+	Bool use_val = False ;
+	int arg_count = 0, i;
+	LOCAL_DEBUG_OUT("doc = %p, parm = %p", doc, parm ); 
+	for (ptr = parm ; ptr ; ptr = ptr->next) 
+	{
+		if (!strcmp(ptr->tag, "format")) format = ptr->parm;
+		else if (!strcmp(ptr->tag, "var")) { var = ptr->parm; use_val = False; }
+		else if (!strcmp(ptr->tag, "val")) { val = (int)parse_math(ptr->parm, NULL, 0); use_val = True; }
+	}
+   		
+	for( i = 0 ; format[i] != '\0' ; ++i )
+		if( format[i] == '%' )
+		{
+			if( format[i+1] != '%' ) 
+			 	++arg_count ; 
+			else 
+				++i ;
+		}
+		
+	if( format != NULL ) 
+	{	
+		char *interpreted_format = interpret_ctrl_codes( mystrdup(format) );
+		if( use_val && arg_count == 1) 
+			printf( interpreted_format, val );
+		else if( var != NULL && arg_count == 1 ) 
+			printf( interpreted_format, asxml_var_get(var) );				
+		else if( arg_count == 0 )
+			fputs( interpreted_format, stdout );				   
+		free( interpreted_format );
+	}
+		
+	return NULL;
+}
+/****** libAfterImage/asimagexml/gradient
+ * NAME
+ * gradient - render multipoint gradient.
+ * SYNOPSIS
+ * <gradient id="new_id" angle="degrees" 
+ *           refid="refid" width="pixels" height="pixels"
+ *           colors ="color1 color2 color3 [...]"
+ *           offsets="fraction1 fraction2 fraction3 [...]"/>
+ * ATTRIBUTES
+ * id       Optional.  Image will be given this name for future reference.
+ * refid    Optional.  An image ID defined with the "id" parameter for
+ *          any previously created image.  If set, percentages in "width"
+ *          and "height" will be derived from the width and height of the
+ *          refid image.
+ * width    Optional.  The result will have this width.
+ * height   Optional.  The result will have this height.
+ * colors   Required.  Whitespace-separated list of colors.  At least two
+ *          colors are required.  Each color in this list will be visited
+ *          in turn, at the intervals given by the offsets attribute.
+ * offsets  Optional.  Whitespace-separated list of floating point values
+ *          ranging from 0.0 to 1.0.  The colors from the colors attribute
+ *          are given these offsets, and the final gradient is rendered
+ *          from the combination of the two.  If both colors and offsets
+ *          are given but the number of colors and offsets do not match,
+ *          the minimum of the two will be used, and the other will be
+ *          truncated to match.  If offsets are not given, a smooth
+ *          stepping from 0.0 to 1.0 will be used.
+ * angle    Optional.  Given in degrees.  Default is 0.  This is the
+ *          direction of the gradient.  Currently the only supported
+ *          values are 0, 45, 90, 135, 180, 225, 270, 315.  0 means left
+ *          to right, 90 means top to bottom, etc.
+ *****/
+static ASImage *
+handle_asxml_tag_gradient( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm, int width, int height)
+{
+	ASImage *result = NULL ;
+	xml_elem_t* ptr ;
+	double angle = 0;
+	char* color_str = NULL;
+	char* offset_str = NULL;
+	LOCAL_DEBUG_OUT("doc = %p, parm = %p, width = %d, height = %d", doc, parm, width, height ); 
+	for (ptr = parm ; ptr ; ptr = ptr->next) {
+		if (!strcmp(ptr->tag, "angle")) angle = strtod(ptr->parm, NULL);
+		else if (!strcmp(ptr->tag, "colors")) color_str = ptr->parm;
+		else if (!strcmp(ptr->tag, "offsets")) offset_str = ptr->parm;
+	}
+	if ( color_str) 
+	{
+		ASGradient gradient;
+		int reverse = 0, npoints1 = 0, npoints2 = 0;
+		char* p;
+		angle = fmod(angle, 2 * PI);
+		if (angle > 2 * PI * 15 / 16 || angle < 2 * PI * 1 / 16) {
+			gradient.type = GRADIENT_Left2Right;
+		} else if (angle < 2 * PI * 3 / 16) {
+			gradient.type = GRADIENT_TopLeft2BottomRight;
+		} else if (angle < 2 * PI * 5 / 16) {
+			gradient.type = GRADIENT_Top2Bottom;
+		} else if (angle < 2 * PI * 7 / 16) {
+			gradient.type = GRADIENT_BottomLeft2TopRight; reverse = 1;
+		} else if (angle < 2 * PI * 9 / 16) {
+			gradient.type = GRADIENT_Left2Right; reverse = 1;
+		} else if (angle < 2 * PI * 11 / 16) {
+			gradient.type = GRADIENT_TopLeft2BottomRight; reverse = 1;
+		} else if (angle < 2 * PI * 13 / 16) {
+			gradient.type = GRADIENT_Top2Bottom; reverse = 1;
+		} else {
+			gradient.type = GRADIENT_BottomLeft2TopRight;
+		}
+		for (p = color_str ; isspace((int)*p) ; p++);
+		for (npoints1 = 0 ; *p ; npoints1++) {
+			if (*p) for ( ; *p && !isspace((int)*p) ; p++);
+			for ( ; isspace((int)*p) ; p++);
+		}
+		if (offset_str) {
+			for (p = offset_str ; isspace((int)*p) ; p++);
+			for (npoints2 = 0 ; *p ; npoints2++) {
+				if (*p) for ( ; *p && !isspace((int)*p) ; p++);
+				for ( ; isspace((int)*p) ; p++);
+			}
+		}
+		if (npoints1 > 1) {
+			int i;
+			if (offset_str && npoints1 > npoints2) npoints1 = npoints2;
+			gradient.color = safecalloc(npoints1, sizeof(ARGB32));
+			gradient.offset = NEW_ARRAY(double, npoints1);
+			for (p = color_str ; isspace((int)*p) ; p++);
+			for (npoints1 = 0 ; *p ; ) {
+				char* pb = p, ch;
+				if (*p) for ( ; *p && !isspace((int)*p) ; p++);
+				for ( ; isspace((int)*p) ; p++);
+				ch = *p; *p = '\0';
+				if (parse_argb_color(pb, gradient.color + npoints1) != pb)
+				{
+					npoints1++;
+				}else
+					show_warning( "failed to parse color [%s] - defaulting to black", pb );
+				*p = ch;
+			}
+			if (offset_str) {
+				for (p = offset_str ; isspace((int)*p) ; p++);
+				for (npoints2 = 0 ; *p ; ) {
+					char* pb = p, ch;
+					if (*p) for ( ; *p && !isspace((int)*p) ; p++);
+					ch = *p; *p = '\0';
+					gradient.offset[npoints2] = strtod(pb, &pb);
+					if (pb == p) npoints2++;
+					*p = ch;
+					for ( ; isspace((int)*p) ; p++);
+				}
+			} else {
+				for (npoints2 = 0 ; npoints2 < npoints1 ; npoints2++)
+					gradient.offset[npoints2] = (double)npoints2 / (npoints1 - 1);
+			}
+			gradient.npoints = npoints1;
+			if (npoints2 && gradient.npoints > npoints2)
+				gradient.npoints = npoints2;
+			if (reverse) {
+				for (i = 0 ; i < gradient.npoints / 2 ; i++) {
+					int i2 = gradient.npoints - 1 - i;
+					ARGB32 c = gradient.color[i];
+					double o = gradient.offset[i];
+					gradient.color[i] = gradient.color[i2];
+					gradient.color[i2] = c;
+					gradient.offset[i] = gradient.offset[i2];
+					gradient.offset[i2] = o;
+				}
+				for (i = 0 ; i < gradient.npoints ; i++) {
+					gradient.offset[i] = 1.0 - gradient.offset[i];
+				}
+			}
+			show_progress("Generating [%dx%d] gradient with angle [%f] and npoints [%d/%d].", width, height, angle, npoints1, npoints2);
+			if (state->verbose > 1) {
+				for (i = 0 ; i < gradient.npoints ; i++) {
+					show_progress("  Point [%d] has color [#%08x] and offset [%f].", i, (unsigned int)gradient.color[i], gradient.offset[i]);
+				}
+			}
+			result = make_gradient(state->asv, &gradient, width, height, SCL_DO_ALL, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
+			if( gradient.color ) 
+				free( gradient.color );
+			if( gradient.offset )
+				free( gradient.offset );
+		}
+	}
+	return result;
+}
+
+/****** libAfterImage/asimagexml/solid
+ * NAME
+ * solid - generate image of specified size and fill it with solid color.
+ * SYNOPSIS
+ * <solid id="new_id" color="color" opacity="opacity" 
+ * 	width="pixels" height="pixels"
+ *	refid="refid" width="pixels" height="pixels"/>
+ * 
+ * ATTRIBUTES
+ * id       Optional. Image will be given this name for future reference.
+ * width    Optional.  The result will have this width.
+ * height   Optional.  The result will have this height.
+ * refid    Optional.  An image ID defined with the "id" parameter for
+ *          any previously created image.  If set, percentages in "width"
+ *          and "height" will be derived from the width and height of the
+ *          refid image.
+ * color    Optional.  Default is "#ffffffff".  An image will be created
+ *          and filled with this color.
+ * width    Required.  The image will have this width.
+ * height   Required.  The image will have this height.
+ * opacity  Optional. Default is 100. Values from 0 to 100 represent the
+ *          opacity of resulting image with 100 being completely opaque.
+ * 		    Effectively overrides alpha component of the color setting.
+ ******/
+static ASImage *
+handle_asxml_tag_solid( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm, int width, int height)
+{
+	ASImage *result = NULL ;
+	xml_elem_t* ptr;
+	Bool opacity_set = False ;
+	int opacity = 100 ;
+	ARGB32 color = ARGB32_White;
+	CARD32 a, r, g, b ;
+	LOCAL_DEBUG_OUT("doc = %p, parm = %p, width = %d, height = %d", doc, parm, width, height ); 
+	for (ptr = parm ; ptr ; ptr = ptr->next) {
+		if (!strcmp(ptr->tag, "color")) parse_argb_color(ptr->parm, &color);
+		else if (!strcmp(ptr->tag, "opacity")) { opacity = atol(ptr->parm); opacity_set = True ; }
+	}
+	show_progress("Creating solid color [#%08x] image [%dx%d].", (unsigned int)color, width, height);
+	result = create_asimage(width, height, ASIMAGE_QUALITY_TOP);
+	if( opacity < 0 ) opacity = 0 ;
+	else if( opacity > 100 )  opacity = 100 ;
+	a = opacity_set? (0x000000FF * (CARD32)opacity)/100: ARGB32_ALPHA8(color);
+	r = ARGB32_RED8(color);
+	g = ARGB32_GREEN8(color);
+	b = ARGB32_BLUE8(color);
+	color = MAKE_ARGB32(a,r,g,b);
+	if (result) 
+		fill_asimage(state->asv, result, 0, 0, width, height, color);
+
+	return result;
+}
+
+
+
+/****** libAfterImage/asimagexml/save
+ * NAME
+ * save - write generated/loaded image into the file of one of the
+ *        supported types
+ * SYNOPSIS
+ * <save id="new_id" dst="filename" format="format" compress="value"
+ *       opacity="value" replace="0|1" delay="mlsecs">
+ * ATTRIBUTES
+ * id       Optional.  Image will be given this name for future reference.
+ * dst      Optional.  Name of file image will be saved to. If omitted
+ *          image will be dumped into stdout - usefull for CGI apps.
+ * format   Optional.  Ouput format of saved image.  Defaults to the
+ *          extension of the "dst" parameter.  Valid values are the
+ *          standard AS image file formats: xpm, jpg, png, gif, tiff.
+ * compress Optional.  Compression level if supported by output file
+ *          format. Valid values are in range of 0 - 100 and any of
+ *          "deflate", "jpeg", "ojpeg", "packbits" for TIFF files.
+ *          Note that JPEG and GIF will produce images with deteriorated
+ *          quality when compress is greater then 0. For JPEG default is
+ *          25, for PNG default is 6 and for GIF it is 0.
+ * opacity  Optional. Level below which pixel is considered to be
+ *          transparent, while saving image as XPM or GIF. Valid values
+ *          are in range 0-255. Default is 127.
+ * replace  Optional. Causes ascompose to delete file if the file with the
+ *          same name already exists. Valid values are 0 and 1. Default
+ *          is 1 - files are deleted before being saved. Disable this to
+ *          get multimage animated gifs.
+ * delay    Optional. Delay to be stored in GIF image. This could be used
+ *          to create animated gifs. Note that you have to set replace="0"
+ *          and then write several images into the GIF file with the same
+ *          name.
+ * NOTES
+ * This tag applies to the first image contained within the tag.  Any
+ * further images will be discarded.
+ *******/
+static ASImage *
+handle_asxml_tag_save( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm, ASImage *imtmp)
+{
+	ASImage *result = NULL ;
+	xml_elem_t* ptr ;
+	const char* dst = NULL;
+	const char* ext = NULL;
+	const char* compress = NULL ;
+	const char* opacity = NULL ;
+	int delay = 0 ;
+	int replace = 1;
+	/*<save id="" dst="" format="" compression="" delay="" replace="" opacity=""> */
+	int autoext = 0;
+	LOCAL_DEBUG_OUT("doc = %p, parm = %p, imtmp = %p", doc, parm, imtmp ); 
+	for (ptr = parm ; ptr ; ptr = ptr->next) {
+		if (!strcmp(ptr->tag, "dst")) dst = ptr->parm;
+		else if (!strcmp(ptr->tag, "format")) ext = ptr->parm;
+		else if (!strncmp(ptr->tag, "compress", 8)) compress = ptr->parm;
+		else if (!strcmp(ptr->tag, "opacity")) opacity = ptr->parm;
+		else if (!strcmp(ptr->tag, "delay"))   delay = atoi(ptr->parm);
+		else if (!strcmp(ptr->tag, "replace")) replace = atoi(ptr->parm);
+	}
+	if (dst && !ext) {
+		ext = strrchr(dst, '.');
+		if (ext) ext++;
+		autoext = 1;
+	}
+	
+	result = imtmp;
+	
+	if ( autoext && ext )
+		show_warning("No format given.  File extension [%s] used as format.", ext);
+	show_progress("reSaving image to file [%s].", dst?dst:"stdout");
+	if (result && get_flags( state->flags, ASIM_XML_ENABLE_SAVE) )
+	{
+		show_progress("Saving image to file [%s].", dst?dst:"stdout");
+		if( !save_asimage_to_file(dst, result, ext, compress, opacity, delay, replace))
+			show_error("Unable to save image into file [%s].", dst?dst:"stdout");
+	}
+
+	return result;
+}
+
+/****** libAfterImage/asimagexml/background
+ * NAME
+ * background - set image's background color.
+ * SYNOPSIS
+ *  <background id="new_id" color="color">
+ * ATTRIBUTES
+ * id       Optional. Image will be given this name for future reference.
+ * color    Required. Color to be used for background - fills all the
+ *          spaces in image with missing pixels.
+ * NOTES
+ * This tag applies to the first image contained within the tag.  Any
+ * further images will be discarded.
+ ******/
+static ASImage *
+handle_asxml_tag_background( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm, ASImage *imtmp)
+{
+	ASImage *result = NULL ;
+	xml_elem_t* ptr ;
+	ARGB32 argb = ARGB32_Black;
+	LOCAL_DEBUG_OUT("doc = %p, parm = %p, imtmp = %p", doc, parm, imtmp ); 
+	for (ptr = parm ; ptr ; ptr = ptr->next) {
+		if (!strcmp(ptr->tag, "color")) parse_argb_color( ptr->parm, &argb );
+	}
+	if (imtmp) {
+		result = clone_asimage( imtmp, SCL_DO_ALL );
+		result->back_color = argb ;
+	}
+	show_progress( "Setting back_color for image %p to 0x%8.8X", result, argb );
+	return result;
+}
+
+/****** libAfterImage/asimagexml/blur
+ * NAME
+ * blur - perform a gaussian blurr on an image.
+ * SYNOPSIS
+ * <blur id="new_id" horz="radius" vert="radius" channels="argb">
+ * ATTRIBUTES
+ * id       Optional. Image will be given this name for future reference.
+ * horz     Optional. Horizontal radius of the blur in pixels.
+ * vert     Optional. Vertical radius of the blur in pixels.
+ * channels Optional. Applys blur only on listed color channels:
+ *                       a - alpha,
+ *                       r - red,
+ *                       g - green,
+ *                       b - blue
+ * NOTES
+ * This tag applies to the first image contained within the tag.  Any
+ * further images will be discarded.
+ ******/
+static ASImage *
+handle_asxml_tag_blur( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm, ASImage *imtmp)
+{
+	ASImage *result = NULL ;
+	xml_elem_t* ptr ;
+	int horz = 0, vert = 0;
+    int filter = SCL_DO_ALL;
+	LOCAL_DEBUG_OUT("doc = %p, parm = %p, imtmp = %p", doc, parm, imtmp ); 
+	for (ptr = parm ; ptr ; ptr = ptr->next) 
+	{
+		if (!strcmp(ptr->tag, "horz")) horz = atoi(ptr->parm);
+        else if (!strcmp(ptr->tag, "vert")) vert = atoi(ptr->parm);
+        else if (!strcmp(ptr->tag, "channels"))
+        {
+            int i = 0 ;
+            char *str = &(ptr->parm[0]) ;
+            filter = 0 ;
+            while( str[i] != '\0' )
+            {
+                if( str[i] == 'a' )
+                    filter |= SCL_DO_ALPHA ;
+                else if( str[i] == 'r' )
+                    filter |= SCL_DO_RED ;
+                else if( str[i] == 'g' )
+                    filter |= SCL_DO_GREEN ;
+                else if( str[i] == 'b' )
+                    filter |= SCL_DO_BLUE ;
+                ++i ;
+            }
+        }
+	}
+    result = blur_asimage_gauss(state->asv, imtmp, horz, vert, filter, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
+	show_progress("Blurrer image with radii %d, %d.", horz, vert);
+	return result;
+}
+
+
+
+/****** libAfterImage/asimagexml/bevel
+ * NAME
+ * bevel - draws solid bevel frame around the image.
+ * SYNOPSIS
+ * <bevel id="new_id" colors="color1 color2" 
+ * 		  width="pixels" height="pixels" refid="refid"
+ *        border="left top right bottom" solid=0|1>
+ * ATTRIBUTES
+ * id       Optional.  Image will be given this name for future reference.
+ * colors   Optional.  Whitespace-separated list of colors.  Exactly two
+ *          colors are required.  Default is "#ffdddddd #ff555555".  The
+ *          first color is the color of the upper and left edges, and the
+ *          second is the color of the lower and right edges.
+ * borders  Optional.  Whitespace-separated list of integer values.
+ *          Default is "10 10 10 10".  The values represent the offsets
+ *          toward the center of the image of each border: left, top,
+ *          right, bottom.
+ * solid    Optional - default is 1. If set to 0 will draw bevel gradually
+ *          fading into the image.
+ * width    Optional. The result will have this width.
+ * height   Optional. The result will have this height.
+ * refid    Optional.  An image ID defined with the "id" parameter for
+ *          any previously created image.  If set, percentages in "width"
+ *          and "height" will be derived from the width and height of the
+ *          refid image.
+ * NOTES
+ * This tag applies to the first image contained within the tag.  Any
+ * further images will be discarded.
+ ******/
+static ASImage *
+handle_asxml_tag_bevel( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm, ASImage *imtmp, int width, int height)
+{
+	ASImage *result = NULL ;
+	xml_elem_t* ptr ;
+	char* color_str = NULL;
+	char* border_str = NULL;
+	int solid = 1 ;
+	LOCAL_DEBUG_OUT("doc = %p, parm = %p, imtmp = %p, width = %d, height = %d", doc, parm, imtmp, width, height ); 
+	for (ptr = parm ; ptr ; ptr = ptr->next) {
+		if (!strcmp(ptr->tag, "colors")) color_str = ptr->parm;
+		else if (!strcmp(ptr->tag, "border")) border_str = ptr->parm;
+		else if (!strcmp(ptr->tag, "solid")) solid = atoi(ptr->parm);
+	}
+	if (imtmp) 
+	{
+		ASImageBevel bevel;
+		ASImageLayer layer;
+		if( solid )
+			bevel.type = BEVEL_SOLID_INLINE;
+		bevel.hi_color = 0xffdddddd;
+		bevel.lo_color = 0xff555555;
+		bevel.top_outline = 0;
+		bevel.left_outline = 0;
+		bevel.right_outline = 0;
+		bevel.bottom_outline = 0;
+		bevel.top_inline = 10;
+		bevel.left_inline = 10;
+		bevel.right_inline = 10;
+		bevel.bottom_inline = 10;
+		if (color_str) {
+			char* p = color_str;
+			while (isspace((int)*p)) p++;
+			p = (char*)parse_argb_color(p, &bevel.hi_color);
+			while (isspace((int)*p)) p++;
+			parse_argb_color(p, &bevel.lo_color);
+		}
+		if (border_str) {
+			char* p = (char*)border_str;
+			bevel.left_inline = (unsigned short)parse_math(p, &p, width);
+			bevel.top_inline = (unsigned short)parse_math(p, &p, height);
+			bevel.right_inline = (unsigned short)parse_math(p, &p, width);
+			bevel.bottom_inline = (unsigned short)parse_math(p, &p, height);
+		}
+		bevel.hihi_color = bevel.hi_color;
+		bevel.hilo_color = bevel.hi_color;
+		bevel.lolo_color = bevel.lo_color;
+		show_progress("Generating bevel with offsets [%d %d %d %d] and colors [#%08x #%08x].", bevel.left_inline, bevel.top_inline, bevel.right_inline, bevel.bottom_inline, (unsigned int)bevel.hi_color, (unsigned int)bevel.lo_color);
+		init_image_layers( &layer, 1 );
+		layer.im = imtmp;
+		layer.clip_width = width;
+		layer.clip_height = height;
+		layer.bevel = &bevel;
+		result = merge_layers(state->asv, &layer, 1, width, height, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
+	}
+	return result;
+}
+
+/****** libAfterImage/asimagexml/mirror
+ * NAME
+ * mirror - create new image as mirror copy of an old one.
+ * SYNOPSIS
+ *  <mirror id="new_id" dir="direction" 
+ * 			width="pixels" height="pixels" refid="refid">
+ * ATTRIBUTES
+ * id       Optional. Image will be given this name for future reference.
+ * dir      Required. Possible values are "vertical" and "horizontal".
+ *          The image will be flipped over the x-axis if dir is vertical,
+ *          and flipped over the y-axis if dir is horizontal.
+ * width    Optional.  The result will have this width.
+ * height   Optional.  The result will have this height.
+ * refid    Optional.  An image ID defined with the "id" parameter for
+ *          any previously created image.  If set, percentages in "width"
+ *          and "height" will be derived from the width and height of the
+ *          refid image.
+ * NOTES
+ * This tag applies to the first image contained within the tag.  Any
+ * further images will be discarded.
+ ******/
+static ASImage *
+handle_asxml_tag_mirror( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm, ASImage *imtmp, int width, int height)
+{
+	ASImage *result = NULL ;
+	xml_elem_t* ptr ;
+	int dir = 0;
+	LOCAL_DEBUG_OUT("doc = %p, parm = %p, imtmp = %p, width = %d, height = %d", doc, parm, imtmp, width, height ); 
+	for (ptr = parm ; ptr ; ptr = ptr->next) {
+		if (!strcmp(ptr->tag, "dir")) dir = !mystrcasecmp(ptr->parm, "vertical");
+	}
+	result = mirror_asimage(state->asv, imtmp, 0, 0, width, height, dir,
+							ASA_ASImage, 
+							0, ASIMAGE_QUALITY_DEFAULT);
+	show_progress("Mirroring image [%sally].", dir ? "horizont" : "vertic");
+	return result;
+}
+
+/****** libAfterImage/asimagexml/rotate
+ * NAME
+ * rotate - rotate an image in 90 degree increments (flip).
+ * SYNOPSIS
+ *  <rotate id="new_id" angle="degrees"
+ * 			width="pixels" height="pixels" refid="refid">
+  * ATTRIBUTES
+ * id       Optional. Image will be given this name for future reference.
+ * angle    Required.  Given in degrees.  Possible values are currently
+ *          "90", "180", and "270".  Rotates the image through the given
+ *          angle.
+ * width    Optional.  The result will have this width.
+ * height   Optional.  The result will have this height.
+ * refid    Optional.  An image ID defined with the "id" parameter for
+ *          any previously created image.  If set, percentages in "width"
+ *          and "height" will be derived from the width and height of the
+ *          refid image.
+ * NOTES
+ * This tag applies to the first image contained within the tag.  Any
+ * further images will be discarded.
+ ******/
+static ASImage *
+handle_asxml_tag_rotate( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm, ASImage *imtmp, int width, int height)
+{
+	ASImage *result = NULL ;
+	xml_elem_t* ptr ;
+	double angle = 0;
+	int dir = 0;
+	LOCAL_DEBUG_OUT("doc = %p, parm = %p, imtmp = %p, width = %d, height = %d", doc, parm, imtmp, width, height ); 
+	for (ptr = parm ; ptr ; ptr = ptr->next) 
+		if (!strcmp(ptr->tag, "angle")) angle = strtod(ptr->parm, NULL);
+	
+	angle = fmod(angle, 2 * PI);
+	if (angle > 2 * PI * 7 / 8 || angle < 2 * PI * 1 / 8)
+		dir = 0;
+	else if (angle < 2 * PI * 3 / 8)
+		dir = FLIP_VERTICAL;
+	else if (angle < 2 * PI * 5 / 8)
+		dir = FLIP_UPSIDEDOWN;
+	else 
+		dir = FLIP_VERTICAL | FLIP_UPSIDEDOWN;
+	if (dir) 
+	{
+		if( get_flags(dir, FLIP_VERTICAL))
+		{
+			int tmp = width ;
+			width = height ;
+			height = tmp ;	
+		}	 
+		result = flip_asimage(state->asv, imtmp, 0, 0, width, height, dir, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
+		show_progress("Rotating image [%f degrees].", angle);
+	} else 
+		result = imtmp;
+
+	return result;
+}
+
+/****** libAfterImage/asimagexml/scale
+ * NAME
+ * scale - scale image to arbitrary size
+ * SYNOPSIS
+ * <scale id="new_id" ref_id="other_imag" width="pixels" height="pixels">
+ * ATTRIBUTES
+ * id       Optional. Image will be given this name for future reference.
+ * refid    Optional.  An image ID defined with the "id" parameter for
+ *          any previously created image.  If set, percentages in "width"
+ *          and "height" will be derived from the width and height of the
+ *          refid image.
+ * width    Required.  The image will be scaled to this width.
+ * height   Required.  The image will be scaled to this height.
+ * NOTES
+ * This tag applies to the first image contained within the tag.  Any
+ * further images will be discarded.
+ * If you want to keep image proportions while scaling - use "proportional"
+ * instead of specific size for particular dimention.
+ ******/
+static ASImage *
+handle_asxml_tag_scale( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm, ASImage *imtmp, int width, int height)
+{
+	ASImage *result = NULL ;
+	LOCAL_DEBUG_OUT("doc = %p, parm = %p, imtmp = %p, width = %d, height = %d", doc, parm, imtmp, width, height ); 
+	show_progress("Scaling image to [%dx%d].", width, height);
+	result = scale_asimage( state->asv, imtmp, width, height, 
+							ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT);
+	return result;
+}
+/****** libAfterImage/asimagexml/slice
+ * NAME
+ * slice - slice image to arbitrary size leaving corners unchanged
+ * SYNOPSIS
+ * <slice id="new_id" ref_id="other_imag" width="pixels" height="pixels"
+ *        x_start="slice_x_start" x_end="slice_x_end"
+ * 		  y_start="slice_y_start" y_end="slice_y_end">
+ * ATTRIBUTES
+ * id       Optional. Image will be given this name for future reference.
+ * refid    Optional.  An image ID defined with the "id" parameter for
+ *          any previously created image.  If set, percentages in "width"
+ *          and "height" will be derived from the width and height of the
+ *          refid image.
+ * width    Required.  The image will be scaled to this width.
+ * height   Required.  The image will be scaled to this height.
+ * x_start  Optional. Position at which vertical image slicing begins. 
+ * 			Corresponds to the right side of the left corners.
+ * x_end    Optional. Position at which vertical image slicing end.
+ * 			Corresponds to the left side of the right corners.
+ * y_start  Optional. Position at which horisontal image slicing begins. 
+ *          Corresponds to the bottom side of the top corners.
+ * y_end    Optional. Position at which horisontal image slicing end.
+ * 			Corresponds to the top side of the bottom corners.
+ * NOTES
+ * This tag applies to the first image contained within the tag.  Any
+ * further images will be discarded.
+ * Contents of the image between x_start and x_end will be tiled 
+ * horizontally. Contents of the image between y_start and y_end will be 
+ * tiled vertically. This is usefull to get background images to fit the 
+ * size of the text or a widget, while preserving its borders undistorted, 
+ * which is the usuall result of simple scaling.
+ * If you want to keep image proportions while resizing-use "proportional"
+ * instead of specific size for particular dimention.
+ ******/
+static ASImage *
+handle_asxml_tag_slice( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm, ASImage *imtmp, int width, int height)
+{
+	ASImage *result = NULL ;
+	xml_elem_t* ptr;
+	int start_x = 0, end_x = 0 ;
+	int start_y = 0, end_y = 0 ;
+	LOCAL_DEBUG_OUT("doc = %p, parm = %p, imtmp = %p, width = %d, height = %d", doc, parm, imtmp, width, height ); 
+	for (ptr = parm ; ptr ; ptr = ptr->next) 
+	{
+		if (!strcmp(ptr->tag, "start_x")) 		start_x = parse_math(ptr->parm, NULL, width);
+		else if (!strcmp(ptr->tag, "end_x")) 	end_x = parse_math(ptr->parm, NULL, width);
+		else if (!strcmp(ptr->tag, "start_y")) 	start_y = parse_math(ptr->parm, NULL, height);
+		else if (!strcmp(ptr->tag, "end_y")) 	end_y = parse_math(ptr->parm, NULL, height);
+	}
+
+	show_progress("Slicing image to [%dx%d].", width, height);
+	result = slice_asimage( state->asv, imtmp, start_x, end_x, start_y, end_y, width, height, 
+							ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT);
+	return result;
+}
+
+/****** libAfterImage/asimagexml/crop
+ * NAME
+ * crop - crop image to arbitrary area within it.
+ * SYNOPSIS
+ *  <crop id="new_id" refid="other_image" srcx="pixels" srcy="pixels"
+ *        width="pixels" height="pixels" tint="color">
+ * ATTRIBUTES
+ * id       Optional. Image will be given this name for future reference.
+ * refid    Optional. An image ID defined with the "id" parameter for
+ *          any previously created image.  If set, percentages in "width"
+ *          and "height" will be derived from the width and height of the
+ *          refid image.
+ * srcx     Optional. Default is "0". Skip this many pixels from the left.
+ * srcy     Optional. Default is "0". Skip this many pixels from the top.
+ * width    Optional. Default is "100%".  Keep this many pixels wide.
+ * height   Optional. Default is "100%".  Keep this many pixels tall.
+ * tint     Optional. Additionally tint an image to specified color.
+ *          Tinting can both lighten and darken an image. Tinting color
+ *          0 or #7f7f7f7f yeilds no tinting. Tinting can be performed on
+ *          any channel, including alpha channel.
+ * NOTES
+ * This tag applies to the first image contained within the tag.  Any
+ * further images will be discarded.
+ ******/
+static ASImage *
+handle_asxml_tag_crop( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm, ASImage *imtmp, int width, int height)
+{
+	ASImage *result = NULL ;
+	xml_elem_t* ptr;
+	ARGB32 tint = 0 ;
+	int srcx = 0, srcy = 0;
+	LOCAL_DEBUG_OUT("doc = %p, parm = %p, imtmp = %p, width = %d, height = %d", doc, parm, imtmp, width, height ); 
+	for (ptr = parm ; ptr ; ptr = ptr->next) {
+		if (!strcmp(ptr->tag, "srcx")) srcx = parse_math(ptr->parm, NULL, width);
+		else if (!strcmp(ptr->tag, "srcy")) srcy = parse_math(ptr->parm, NULL, height);
+		else if (!strcmp(ptr->tag, "tint")) parse_argb_color(ptr->parm, &tint);
+	}
+	show_progress("Cropping image to [%dx%d].", width, height);
+	result = tile_asimage(state->asv, imtmp, srcx, srcy, width, height, tint, ASA_ASImage, 100, ASIMAGE_QUALITY_TOP);
+	return result;
+}
+
+/****** libAfterImage/asimagexml/tile
+ * NAME
+ * tile - tile an image to specified area.
+ * SYNOPSIS
+ *  <tile id="new_id" refid="other_image" width="pixels" height="pixels"
+ *        x_origin="pixels" y_origin="pixels" tint="color" complement=0|1>
+ * ATTRIBUTES
+ * id       Optional. Image will be given this name for future reference.
+ * refid    Optional. An image ID defined with the "id" parameter for
+ *          any previously created image.  If set, percentages in "width"
+ *          and "height" will be derived from the width and height of the
+ *          refid image.
+ * width    Optional. Default is "100%". The image will be tiled to this
+ *          width.
+ * height   Optional. Default is "100%". The image will be tiled to this
+ *          height.
+ * x_origin Optional. Horizontal position on infinite surface, covered
+ *          with tiles of the image, from which to cut out resulting
+ *          image.
+ * y_origin Optional. Vertical position on infinite surface, covered
+ *          with tiles of the image, from which to cut out resulting
+ *          image.
+ * tint     Optional. Additionally tint an image to specified color.
+ *          Tinting can both lighten and darken an image. Tinting color
+ *          0 or #7f7f7f7f yields no tinting. Tinting can be performed
+ *          on any channel, including alpha channel.
+ * complement Optional. Will use color that is the complement to tint color
+ *          for the tinting, if set to 1. Default is 0.
+ *
+ * NOTES
+ * This tag applies to the first image contained within the tag.  Any
+ * further images will be discarded.
+ ******/
+static ASImage *
+handle_asxml_tag_tile( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm, ASImage *imtmp, int width, int height)
+{
+	ASImage *result = NULL ;
+	xml_elem_t* ptr;
+	int xorig = 0, yorig = 0;
+	ARGB32 tint = 0 ;
+	char *complement_str = NULL ;
+	LOCAL_DEBUG_OUT("doc = %p, parm = %p, imtmp = %p, width = %d, height = %d", doc, parm, imtmp, width, height ); 
+	for (ptr = parm ; ptr ; ptr = ptr->next) {
+		if (!strcmp(ptr->tag, "x_origin")) xorig = parse_math(ptr->parm, NULL, width);
+		else if (!strcmp(ptr->tag, "y_origin")) yorig = parse_math(ptr->parm, NULL, height);
+		else if (!strcmp(ptr->tag, "tint")) parse_argb_color(ptr->parm, &tint);
+		else if (!strcmp(ptr->tag, "complement")) complement_str = ptr->parm;
+	}
+	if( complement_str )
+	{
+		register char *ptr = complement_str ;
+		CARD32 a = ARGB32_ALPHA8(tint),
+				r = ARGB32_RED8(tint),
+				g = ARGB32_GREEN8(tint),
+				b = ARGB32_BLUE8(tint) ;
+		while( *ptr )
+		{
+			if( *ptr == 'a' ) 		a = ~a ;
+			else if( *ptr == 'r' ) 	r = ~r ;
+			else if( *ptr == 'g' ) 	g = ~g ;
+			else if( *ptr == 'b' ) 	b = ~b ;
+			++ptr ;
+		}
+
+		tint = MAKE_ARGB32(a, r, g, b );
+	}
+	show_progress("Tiling image to [%dx%d].", width, height);
+	result = tile_asimage(state->asv, imtmp, xorig, yorig, width, height, tint, ASA_ASImage, 100, ASIMAGE_QUALITY_TOP);
+	return result;
+}
+
+/****** libAfterImage/asimagexml/hsv
+ * NAME
+ * hsv - adjust Hue, Saturation and/or Value of an image and optionally
+ * tile an image to arbitrary area.
+ * SYNOPSIS
+ * <hsv id="new_id" refid="other_image"
+ *      x_origin="pixels" y_origin="pixels" width="pixels" height="pixels"
+ *      affected_hue="degrees|color" affected_radius="degrees"
+ *      hue_offset="degrees" saturation_offset="value"
+ *      value_offset="value">
+ * ATTRIBUTES
+ * id       Optional. Image will be given this name for future reference.
+ * refid    Optional. An image ID defined with the "id" parameter for
+ *          any previously created image.  If set, percentages in "width"
+ *          and "height" will be derived from the width and height of the
+ *          refid image.
+ * width    Optional. Default is "100%". The image will be tiled to this
+ *          width.
+ * height   Optional. Default is "100%". The image will be tiled to this
+ *          height.
+ * x_origin Optional. Horizontal position on infinite surface, covered
+ *          with tiles of the image, from which to cut out resulting
+ *          image.
+ * y_origin Optional. Vertical position on infinite surface, covered
+ *          with tiles of the image, from which to cut out resulting
+ *          image.
+ * affected_hue    Optional. Limits effects to the renage of hues around
+ *          this hue. If numeric value is specified - it is treated as
+ *          degrees on 360 degree circle, with :
+ *              red = 0,
+ *              yellow = 60,
+ *              green = 120,
+ *              cyan = 180,
+ *              blue = 240,
+ *              magenta = 300.
+ *          If colorname or value preceded with # is specified here - it
+ *          will be treated as RGB color and converted into hue
+ *          automagically.
+ * affected_radius
+ *          Optional. Value in degrees to be used in order to
+ *          calculate the range of affected hues. Range is determined by
+ *          substracting and adding this value from/to affected_hue.
+ * hue_offset
+ *          Optional. Value by which to adjust the hue.
+ * saturation_offset
+ *          Optional. Value by which to adjust the saturation.
+ * value_offset
+ *          Optional. Value by which to adjust the value.
+ * NOTES
+ * One of the Offsets must be not 0, in order for operation to be
+ * performed.
+ *
+ * This tag applies to the first image contained within the tag.  Any
+ * further images will be discarded.
+ ******/
+static ASImage *
+handle_asxml_tag_hsv( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm, ASImage *imtmp, int width, int height)
+{
+	ASImage *result = NULL ;
+	xml_elem_t* ptr;
+	int affected_hue = 0, affected_radius = 360 ;
+	int hue_offset = 0, saturation_offset = 0, value_offset = 0 ;
+	int xorig = 0, yorig = 0;
+	LOCAL_DEBUG_OUT("doc = %p, parm = %p, imtmp = %p, width = %d, height = %d", doc, parm, imtmp, width, height ); 
+	for (ptr = parm ; ptr ; ptr = ptr->next) 
+	{
+		if (!strcmp(ptr->tag, "x_origin")) xorig = parse_math(ptr->parm, NULL, width);
+		else if (!strcmp(ptr->tag, "y_origin")) yorig = parse_math(ptr->parm, NULL, height);
+		else if (!strcmp(ptr->tag, "affected_hue"))
+		{
+			if( isdigit( (int)ptr->parm[0] ) )
+				affected_hue = (int)parse_math(ptr->parm, NULL, 360);
+			else
+			{
+				ARGB32 color = 0;
+				if( parse_argb_color( ptr->parm, &color ) != ptr->parm )
+				{
+					affected_hue = rgb2hue( ARGB32_RED16(color),
+											ARGB32_GREEN16(color),
+											ARGB32_BLUE16(color));
+  					affected_hue = hue162degrees( affected_hue );
+				}
+			}
+		}
+		else if (!strcmp(ptr->tag, "affected_radius")) 	affected_radius = (int)parse_math(ptr->parm, NULL, 360);
+		else if (!strcmp(ptr->tag, "hue_offset")) 		hue_offset = (int)parse_math(ptr->parm, NULL, 360);
+		else if (!strcmp(ptr->tag, "saturation_offset"))saturation_offset = (int)parse_math(ptr->parm, NULL, 100);
+		else if (!strcmp(ptr->tag, "value_offset")) 	value_offset = (int)parse_math(ptr->parm, NULL, 100);
+	}
+	if( hue_offset == -1 && saturation_offset == -1 ) 
+	{
+		hue_offset = 0 ; 
+		saturation_offset = -99 ;
+	}
+	show_progress("adjusting HSV of the image by [%d,%d,%d] affected hues are %+d-%+d.result = %p", hue_offset, saturation_offset, value_offset, affected_hue-affected_radius, affected_hue+affected_radius, result);
+	if (hue_offset!=0 || saturation_offset != 0 || value_offset != 0 ) 
+	{
+		result = adjust_asimage_hsv(state->asv, imtmp, xorig, yorig, width, height,
+				                    affected_hue, affected_radius,
+									hue_offset, saturation_offset, value_offset,
+				                    ASA_ASImage, 100, ASIMAGE_QUALITY_TOP);
+	}
+	return result;
+}
+
+/****** libAfterImage/asimagexml/pad
+ * NAME
+ * pad - pad an image with solid color rectangles.
+ * SYNOPSIS
+ * <pad id="new_id" left="pixels" top="pixels"
+ *      right="pixels" bottom="pixels" color="color"
+ * 		refid="refid" width="pixels" height="pixels">
+ * ATTRIBUTES
+ * id       Optional. Image will be given this name for future reference.
+ * width    Optional.  The result will have this width.
+ * height   Optional.  The result will have this height.
+ * refid    Optional.  An image ID defined with the "id" parameter for
+ *          any previously created image.  If set, percentages in "width"
+ *          and "height" will be derived from the width and height of the
+ *          refid image.
+ * left     Optional. Size to add to the left of the image.
+ * top      Optional. Size to add to the top of the image.
+ * right    Optional. Size to add to the right of the image.
+ * bottom   Optional. Size to add to the bottom of the image.
+ * color    Optional. Color value to fill added areas with. It could be
+ *          transparent of course. Default is #FF000000 - totally black.
+ * NOTES
+ * This tag applies to the first image contained within the tag.  Any
+ * further images will be discarded.
+ ******/
+static ASImage *
+handle_asxml_tag_pad( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm, ASImage *imtmp, int width, int height)
+{
+	ASImage *result = NULL ;
+	xml_elem_t* ptr;
+	ARGB32 color  = ARGB32_Black;
+	int left = 0, top = 0, right = 0, bottom = 0;
+	LOCAL_DEBUG_OUT("doc = %p, parm = %p, imtmp = %p, width = %d, height = %d", doc, parm, imtmp, width, height ); 
+	for (ptr = parm ; ptr ; ptr = ptr->next) {
+		if (!strcmp(ptr->tag, "left"))   left = parse_math(ptr->parm, NULL, width);
+		else if (!strcmp(ptr->tag, "top"))    top = parse_math(ptr->parm, NULL, height);
+		else if (!strcmp(ptr->tag, "right"))  right = parse_math(ptr->parm, NULL, width);
+		else if (!strcmp(ptr->tag, "bottom")) bottom = parse_math(ptr->parm, NULL, height);
+		else if (!strcmp(ptr->tag, "color"))  parse_argb_color(ptr->parm, &color);
+	}
+	show_progress("Padding image to [%dx%d%+d%+d].", width+left+right, height+top+bottom, left, top);
+	if (left > 0 || top > 0 || right > 0 || bottom > 0 )
+		result = pad_asimage(state->asv, imtmp, left, top, width+left+right, height+top+bottom,
+					            color, ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT);
+	return result;
+}
+
+/* Each tag is only allowed to return ONE image. */
+ASImage*
+build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontman, xml_elem_t* doc, xml_elem_t** rparm, ASFlagType flags, int verbose, Window display_win)
+{
+	xml_elem_t* ptr;
+	char* id = NULL;
+	ASImage* result = NULL;
+	Bool handled = False ;
+
+	ASImageXMLState state ; 
+
+	memset( &state, 0x00, sizeof(state));
+	state.flags = flags ;
+	state.asv = asv ; 
+	state.imman = imman ; 
+	state.fontman = fontman ; 
+	state.verbose = verbose ;
+	state.display_win = display_win ;
+
+	if( doc ) 
+	{		 
+		xml_elem_t* parm = xml_parse_parm(doc->parm, NULL);
+		xml_elem_t* ptr ;
+		char* refid = NULL;
+		char* width_str = NULL;
+		char* height_str = NULL;
+		ASImage *refimg = NULL ; 
+		int width = 0, height = 0 ;
+		for (ptr = parm ; ptr ; ptr = ptr->next)
+		{	
+			if (ptr->tag[0] == 'i' && ptr->tag[1] == 'd' && ptr->tag[2] == '\0')
+				id = strdup(ptr->parm);
+			else if (strcmp(ptr->tag, "refid") == 0 ) 	refid = ptr->parm ;
+			else if (strcmp(ptr->tag, "width") == 0 ) 	width_str = ptr->parm ;
+			else if (strcmp(ptr->tag, "height") == 0 ) 	height_str = ptr->parm ;
+		}		
+
+		if( refid ) 
+			refimg = fetch_asimage( imman, refid);
+		handled = True ;
+		if (!strcmp(doc->tag, "composite")) 
+			result = handle_asxml_tag_composite( &state, doc, parm );  	
+		else if (!strcmp(doc->tag, "text")) 
+			result = handle_asxml_tag_text( &state, doc, parm );  	
+		else if (!strcmp(doc->tag, "img")) 
+			result = handle_asxml_tag_img( &state, doc, parm );
+		else if (!strcmp(doc->tag, "recall")) 
+			result = handle_asxml_tag_recall( &state, doc, parm );
+		else if (!strcmp(doc->tag, "release"))
+			result = handle_asxml_tag_release( &state, doc, parm );
+		else if (!strcmp(doc->tag, "color"))
+			result = handle_asxml_tag_color( &state, doc, parm ); 
+		else if (!strcmp(doc->tag, "printf"))
+			result = handle_asxml_tag_printf( &state, doc, parm ); 
+		else if ( !strcmp(doc->tag, "gradient") )
+		{	
+			translate_tag_size(	width_str, height_str, NULL, refimg, &width, &height );  
+			if( width > 0 && height > 0 )
+				result = handle_asxml_tag_gradient( &state, doc, parm, width, height ); 	   
+		}else if (!strcmp(doc->tag, "solid"))
+		{	
+			translate_tag_size(	width_str, height_str, NULL, refimg, &width, &height );  
+			if( width > 0 && height > 0 )
+				result = handle_asxml_tag_solid( &state, doc, parm, width, height);
+		}else
+		{	
+			ASImage *imtmp = NULL ; 
+	
+			for (ptr = doc->child ; ptr && !imtmp ; ptr = ptr->next) 
+				imtmp = build_image_from_xml(asv, imman, fontman, ptr, NULL, flags, verbose, display_win);
+
+			if( imtmp ) 
+			{	
+				if (imtmp && !strcmp(doc->tag, "save")) 
+					result = handle_asxml_tag_save( &state, doc, parm, imtmp ); 	
+				else if (imtmp && !strcmp(doc->tag, "background")) 
+					result = handle_asxml_tag_background( &state, doc, parm, imtmp ); 	
+				else if (imtmp && !strcmp(doc->tag, "blur")) 
+					result = handle_asxml_tag_blur( &state, doc, parm, imtmp ); 	
+				else 
+				{	
+					translate_tag_size(	width_str, height_str, imtmp, refimg, &width, &height );   
+		
+					if ( width > 0 && height > 0 )
+					{ 
+						if( !strcmp(doc->tag, "bevel") )
+							result = handle_asxml_tag_bevel( &state, doc, parm, imtmp, width, height ); 	   
+						else if( !strcmp(doc->tag, "mirror") )
+							result = handle_asxml_tag_mirror( &state, doc, parm, imtmp, width, height);
+						else if ( !strcmp(doc->tag, "rotate"))
+					   		result = handle_asxml_tag_rotate( &state, doc, parm, imtmp, width, height);
+						else if (!strcmp(doc->tag, "scale"))
+							result = handle_asxml_tag_scale( &state, doc, parm, imtmp, width, height);
+						else if (!strcmp(doc->tag, "slice"))
+							result = handle_asxml_tag_slice( &state, doc, parm, imtmp, width, height);
+						else if (!strcmp(doc->tag, "crop"))
+							result = handle_asxml_tag_crop( &state, doc, parm, imtmp, width, height);
+						else if (!strcmp(doc->tag, "tile"))
+							result = handle_asxml_tag_tile( &state, doc, parm, imtmp, width, height);
+						else if (!strcmp(doc->tag, "hsv"))
+							result = handle_asxml_tag_hsv( &state, doc, parm, imtmp, width, height);
+						else if (!strcmp(doc->tag, "pad"))
+							result = handle_asxml_tag_pad( &state, doc, parm, imtmp, width, height);
+					}		
+				}
+				
+				if( result != imtmp ) 
+					safe_asimage_destroy(imtmp);
+			}
+		}
+		
+		if( refimg ) 
+			release_asimage( refimg );
+		
+		if (rparm) *rparm = parm; 
+		else xml_elem_delete(NULL, parm);
+	}
+	LOCAL_DEBUG_OUT("result = %p, id = \"%s\"", result, id?id:"(null)" );
+
+
 
 	/* No match so far... see if one of our children can do any better.*/
-	if (!result) {
+	if (!result) 
+	{
 		xml_elem_t* tparm = NULL;
 		for (ptr = doc->child ; ptr && !result ; ptr = ptr->next) 
 		{
 			xml_elem_t* sparm = NULL;
-			ASImage* imtmp = build_image_from_xml(asv, imman, fontman, ptr, &sparm, flags, verbose, display_win);
-			LOCAL_DEBUG_OUT("imtmp = %p", imtmp );
-			if (imtmp) 
+			result = build_image_from_xml(asv, imman, fontman, ptr, &sparm, flags, verbose, display_win);
+			if (result) 
 			{
 				if (tparm) xml_elem_delete(NULL, tparm);
 				tparm = sparm; 
@@ -2128,40 +2202,13 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 		else xml_elem_delete(NULL, tparm);
 	}
 
+	LOCAL_DEBUG_OUT("result = %p", result );
 	result = commit_xml_image_built( &state, id, result );
-#if 0	
-	if (id && result) 
+	LOCAL_DEBUG_OUT("result = %p", result );
+	if( result )
 	{
-    	char* buf = NEW_ARRAY(char, strlen(id) + 1 + 6 + 1);
-		show_progress("Storing image id [%s] with image manager %p .", id, imman);
-        sprintf(buf, "%s.width", id);
-        asxml_var_insert(buf, result->width);
-        sprintf(buf, "%s.height", id);
-        asxml_var_insert(buf, result->height);
-        free(buf);
-		if( result->imageman != NULL )
-		{
-			ASImage *tmp = clone_asimage(result, SCL_DO_ALL );
-			safe_asimage_destroy(result );
-			result = tmp ;
-		}
-		if( result )
-		{
-			if( !store_asimage( imman, result, id ) )
-			{
-				show_warning("Failed to store image id [%s].", id);
-				safe_asimage_destroy(result );
-				result = fetch_asimage( imman, id );
-				/*show_warning("Old image with the name fetched as %p.", result);*/
-			}else
-			{
-				/* normally generated image will be destroyed right away, so we need to
-			 	* increase ref count, in order to preserve it for future uses : */
-				dup_asimage( result );
-			}
-		}
-	}
-#endif
+		LOCAL_DEBUG_OUT("result's size = %dx%d", result->width, result->height );	
+	}	 
 	return result;
 }
 
