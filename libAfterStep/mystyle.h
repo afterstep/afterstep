@@ -45,10 +45,10 @@ typedef struct MyStyle
     ColorPair colors;
     ColorPair relief;
     int texture_type;
-    int max_colors;
     icon_t back_icon;		/* background pixmap */
     ASGradient gradient;	/* background gradient */
     ARGB32 tint;
+	int slice_x_start, slice_x_end, slice_y_start, slice_y_end ;
   }
 MyStyle;
 
@@ -64,7 +64,7 @@ enum				/* MyStyle options */
     F_FONT          = (1 << 4),
     F_FORECOLOR     = (1 << 5),
     F_BACKCOLOR     = (1 << 6),
-    F_MAXCOLORS     = (1 << 7),
+    F_SLICE	     	= (1 << 7),
     F_BACKGRADIENT  = (1 << 8),
     F_BACKPIXMAP    = (1 << 9),
     F_TEXTSTYLE     = (1 << 10),
@@ -75,6 +75,7 @@ enum				/* MyStyle options */
     F_EXTERNAL_BACKMASK  = (1 << 15),
 	F_TRANSPARENT		 = (1 << 16)           /* if set MyStyle is transparent, and everything that is drawn with it,
 												* must be updated on background changes */
+  
   };
 
 #define TransparentMS(style)  (get_flags((style)->set_flags, F_TRANSPARENT))

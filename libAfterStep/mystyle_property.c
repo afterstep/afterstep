@@ -38,7 +38,7 @@ mystyle_list_set_property (ASWMProps *wmprops, ASHashTable *list )
     if( !start_hash_iteration( list, &iterator ) ) return ;
 	do
 	{
-        nelements += 9 + 7 + ((MyStyle*)curr_hash_data(&iterator))->gradient.npoints * 4;
+        nelements += 9 + 4 + 6 + ((MyStyle*)curr_hash_data(&iterator))->gradient.npoints * 4;
     }while( next_hash_item(&iterator));
 
 	prop = safemalloc (sizeof (CARD32) * nelements);
@@ -59,7 +59,10 @@ mystyle_list_set_property (ASWMProps *wmprops, ASHashTable *list )
 		prop[i++] = style->relief.fore;
 		prop[i++] = style->relief.back;
 		prop[i++] = style->texture_type;
-		prop[i++] = style->max_colors;
+		prop[i++] = style->slice_x_start;
+		prop[i++] = style->slice_x_end;
+		prop[i++] = style->slice_y_start;
+		prop[i++] = style->slice_y_end;
 		if( style->back_icon.pix == None ) 
 			make_icon_pixmaps( &(style->back_icon), False );
 		prop[i++] = style->back_icon.pix;
@@ -83,7 +86,7 @@ mystyle_list_set_property (ASWMProps *wmprops, ASHashTable *list )
 		}
     }while( next_hash_item(&iterator));
 	/* set the property version to 1.2 */
-    set_as_style (wmprops, nelements *  sizeof (CARD32), (1 << 8) + 2, prop );
+    set_as_style (wmprops, nelements *  sizeof (CARD32), (1 << 8) + 3, prop );
     free (prop);
 }
 
@@ -106,7 +109,7 @@ mystyle_get_property (ASWMProps *wmprops)
 	/* do we know how to handle this version? */
     version = wmprops->as_styles_version ;
     /* do we know how to handle this version? */
-	if (version != (1 << 8) + 2)
+	if (version != (1 << 8) + 3)
 	{
         show_error("style property has unknown version %d.%d", (int)version >> 8, (int)version & 0xff);
 		return;
@@ -170,16 +173,19 @@ mystyle_get_property (ASWMProps *wmprops)
 		style->relief.fore = prop[i + 6];
 		style->relief.back = prop[i + 7];
 		style->texture_type = prop[i + 8];
-		style->max_colors = prop[i + 9];
-		back_pix = prop[i + 10];
-		back_mask = prop[i + 11];
-		style->tint = prop[i + 12];
-		back_alpha = prop[i + 13];
+		style->slice_x_start = prop[i + 9];
+		style->slice_x_end = prop[i + 10];
+		style->slice_y_start = prop[i + 11];
+		style->slice_y_end = prop[i + 12];
+		back_pix = prop[i + 13];
+		back_mask = prop[i + 14];
+		style->tint = prop[i + 15];
+		back_alpha = prop[i + 16];
         set_flags(style->user_flags, F_EXTERNAL_BACKPIX|F_EXTERNAL_BACKMASK);
 		/* unused/reserved : */
-/*    style->tint = prop[i + 14];
+/*    style->tint = prop[i + 17];
  */
-		style->gradient.npoints = prop[i + 15];
+		style->gradient.npoints = prop[i + 18];
 /*	  show_warning( "checking if gradient data in style \"%s\": (set flags are : 0x%X)", style->name, style->inherit_flags);
  */
 		if (style->gradient.npoints > 0 )
@@ -192,12 +198,12 @@ mystyle_get_property (ASWMProps *wmprops)
 
 			for (k = 0; k < style->gradient.npoints; k++)
  			{
-				style->gradient.color[k] = prop[i + 16 + k * 4 + 0];
+				style->gradient.color[k] = prop[i + 9+4+6 + k * 4 + 0];
 				/*
 				   style->gradient.color[k].green = prop[i + 16 + k * 4 + 1];
 				   style->gradient.color[k].blue = prop[i + 16 + k * 4 + 2];
 				 */
-				style->gradient.offset[k] = (double)prop[i + 16 + k * 4 + 3] / 0x1000000;
+				style->gradient.offset[k] = (double)prop[i + 9+4+6+ k * 4 + 3] / 0x1000000;
                 LOCAL_DEBUG_OUT ("gradient color at offset %f is %lX", style->gradient.offset[k],
 								 style->gradient.color[k]);
 			}
@@ -229,7 +235,7 @@ mystyle_get_property (ASWMProps *wmprops)
 			}
 		}
 
-		i += 9 + 7 + style->gradient.npoints * 4;
+		i += 9 + 4 + 6 + style->gradient.npoints * 4;
 		LOCAL_DEBUG_OUT( "user_flags = 0x%X, inherit_flags = 0x%X", style->user_flags, style->inherit_flags );
 		style->set_flags = style->user_flags | style->inherit_flags;
 	}

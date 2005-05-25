@@ -512,10 +512,17 @@ mystyle_make_image (MyStyle * style, int root_x, int root_y, int width, int heig
 		break;
 	 case TEXTURE_SHAPED_SCALED_PIXMAP:
 	 case TEXTURE_SCALED_PIXMAP:
-		 im = scale_asimage (ASDefaultVisual, style->back_icon.image, preflip_width, preflip_height, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
-		 if( flip != 0 )
-		 	im = mystyle_flip_image( im, width, height, flip );
-		 break;
+	 	if( get_flags( style->set_flags, F_SLICE ) )
+		{
+			im = slice_asimage (ASDefaultVisual, style->back_icon.image, 
+								style->slice_x_start, style->slice_x_end,
+								style->slice_y_start, style->slice_y_end,
+								preflip_width, preflip_height, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);			   
+		}else	 
+			im = scale_asimage (ASDefaultVisual, style->back_icon.image, preflip_width, preflip_height, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
+		if( flip != 0 )
+			im = mystyle_flip_image( im, width, height, flip );
+		break;
 	 case TEXTURE_SHAPED_PIXMAP:
 	 case TEXTURE_PIXMAP:
 		 im = tile_asimage (ASDefaultVisual, style->back_icon.image,
@@ -566,8 +573,15 @@ mystyle_make_image (MyStyle * style, int root_x, int root_y, int width, int heig
 				 if (style->texture_type >= TEXTURE_SCALED_TRANSPIXMAP &&
 					 style->texture_type < TEXTURE_SCALED_TRANSPIXMAP_END)
 				 {
-					 scaled_im = scale_asimage (ASDefaultVisual, layers[1].im, preflip_width, preflip_height,
-												ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
+				 	if( get_flags( style->set_flags, F_SLICE ) )
+					{
+						scaled_im = slice_asimage (ASDefaultVisual, layers[1].im, 
+												style->slice_x_start, style->slice_x_end,
+												style->slice_y_start, style->slice_y_end,
+												preflip_width, preflip_height, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);			   
+					}else	 
+						 scaled_im = scale_asimage (ASDefaultVisual, layers[1].im, preflip_width, preflip_height,
+													ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
 					 /* here layers[1].im is always style->back_icon.image, so we should not destroy it ! */
 					 if (scaled_im)
 						 layers[1].im = mystyle_flip_image( scaled_im, width, height, flip );
@@ -900,19 +914,22 @@ mystyle_merge_styles (MyStyle * parent, MyStyle * child, Bool override, Bool cop
 			}
 		}
 	}
-	if (parent->set_flags & F_MAXCOLORS)
+	if (parent->set_flags & F_SLICE)
 	{
-		if ((override == True) || !(child->set_flags & F_MAXCOLORS))
+		if ((override == True) || !(child->set_flags & F_SLICE))
 		{
-			child->max_colors = parent->max_colors;
+			child->slice_x_start = parent->slice_x_start;
+			child->slice_x_end = parent->slice_x_end;
+			child->slice_y_start = parent->slice_y_start;
+			child->slice_y_end = parent->slice_y_end;
 			if (copy == False)
 			{
-				child->user_flags &= ~F_MAXCOLORS;
-				child->inherit_flags |= F_MAXCOLORS;
+				child->user_flags &= ~F_SLICE;
+				child->inherit_flags |= F_SLICE;
 			} else
 			{
-				child->user_flags |= F_MAXCOLORS;
-				child->inherit_flags &= ~F_MAXCOLORS;
+				child->user_flags |= F_SLICE;
+				child->inherit_flags &= ~F_SLICE;
 			}
 		}
 	}

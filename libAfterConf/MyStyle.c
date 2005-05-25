@@ -147,6 +147,10 @@ PrintMyStyleDefinitions (MyStyleDefinition * list)
 		if (list->back_color)
 			fprintf (stderr, "\n\tBackColor %s", list->back_color);
 		fprintf (stderr, "\n\tTextStyle %d", list->text_style);
+		fprintf (stderr, "\n\tSliceXStart %d", list->slice_x_start);
+		fprintf (stderr, "\n\tSliceXEnd %d", list->slice_x_end);
+		fprintf (stderr, "\n\tSliceYStart %d", list->slice_y_start);
+		fprintf (stderr, "\n\tSliceYEnd %d", list->slice_y_end);
 		if( get_flags( list->flags, MYSTYLE_DRAW_TEXT_BACKGROUND ) )
 			fprintf (stderr, "\n\tDrawTextBackground");
 		if( list->texture_type > 0 )
@@ -252,6 +256,22 @@ ProcessMyStyleOptions (FreeStorageElem * options, MyStyleDefinition ** tail)
 		 case MYSTYLE_TEXTSTYLE_ID:
 			(*tail)->text_style = item.data.integer;
 			set_flags( (*tail)->flags, MYSTYLE_TEXT_STYLE_SET );
+			break;
+		 case MYSTYLE_SliceXStart_ID:
+			(*tail)->slice_x_start = item.data.integer;
+			set_flags( (*tail)->flags, MYSTYLE_SLICE_SET );
+			break;
+		 case MYSTYLE_SliceXEnd_ID:
+			(*tail)->slice_x_end = item.data.integer;
+			set_flags( (*tail)->flags, MYSTYLE_SLICE_SET );
+			break;
+		 case MYSTYLE_SliceYStart_ID:
+			(*tail)->slice_y_start = item.data.integer;
+			set_flags( (*tail)->flags, MYSTYLE_SLICE_SET );
+			break;
+		 case MYSTYLE_SliceYEnd_ID:
+			(*tail)->slice_y_end = item.data.integer;
+			set_flags( (*tail)->flags, MYSTYLE_SLICE_SET );
 			break;
 		 case MYSTYLE_BACKGRADIENT_ID:
 			if( options->argc != 3 )
@@ -398,6 +418,14 @@ mystyle_create_from_definition (MyStyleDefinition * def)
 	{
 		set_flags( style->user_flags, F_TEXTSTYLE );
 		style->text_style = def->text_style;
+	}
+	if( get_flags(def->flags, MYSTYLE_SLICE_SET ) )
+	{
+		set_flags( style->user_flags, F_SLICE );
+		style->slice_x_start = def->slice_x_start;
+		style->slice_x_end = def->slice_x_end;
+		style->slice_y_start = def->slice_y_start;
+		style->slice_y_end = def->slice_y_end;
 	}
 	if( def->fore_color )
 	{

@@ -288,12 +288,16 @@ void DestroyBaseConfig (BaseConfig * config);
 #define MYSTYLE_FORECOLOR_ID			MYSTYLE_ID_START+3
 #define MYSTYLE_BACKCOLOR_ID			MYSTYLE_ID_START+4
 #define MYSTYLE_TEXTSTYLE_ID			MYSTYLE_ID_START+5
-#define MYSTYLE_MAXCOLORS_ID			MYSTYLE_ID_START+6
-#define MYSTYLE_BACKGRADIENT_ID			MYSTYLE_ID_START+7
-#define MYSTYLE_BACKMULTIGRADIENT_ID	MYSTYLE_ID_START+8
-#define MYSTYLE_BACKPIXMAP_ID  			MYSTYLE_ID_START+9
-#define MYSTYLE_DRAWTEXTBACKGROUND_ID 	MYSTYLE_ID_START+10
-#define MYSTYLE_DONE_ID					MYSTYLE_ID_START+11
+#define MYSTYLE_BACKGRADIENT_ID			MYSTYLE_ID_START+6
+#define MYSTYLE_BACKMULTIGRADIENT_ID	MYSTYLE_ID_START+7
+#define MYSTYLE_BACKPIXMAP_ID  			MYSTYLE_ID_START+8
+#define MYSTYLE_DRAWTEXTBACKGROUND_ID 	MYSTYLE_ID_START+9
+#define MYSTYLE_SliceXStart_ID			MYSTYLE_ID_START+10
+#define MYSTYLE_SliceXEnd_ID			MYSTYLE_ID_START+11
+#define MYSTYLE_SliceYStart_ID			MYSTYLE_ID_START+12
+#define MYSTYLE_SliceYEnd_ID			MYSTYLE_ID_START+13
+
+#define MYSTYLE_DONE_ID					MYSTYLE_ID_START+14
 
 #define MYSTYLE_ID_END					MYSTYLE_ID_START+20
 
@@ -308,6 +312,10 @@ void DestroyBaseConfig (BaseConfig * config);
 {TF_NO_MYNAME_PREPENDING,"BackMultiGradient", 17, TT_INTEGER, MYSTYLE_BACKMULTIGRADIENT_ID},\
 {TF_NO_MYNAME_PREPENDING,"BackPixmap",	10,TT_INTEGER, MYSTYLE_BACKPIXMAP_ID	, NULL},\
 {TF_NO_MYNAME_PREPENDING,"DrawTextBackground",18,TT_FLAG, MYSTYLE_DRAWTEXTBACKGROUND_ID, NULL},\
+{TF_NO_MYNAME_PREPENDING,"SliceXStart",	11, TT_INTEGER, MYSTYLE_SliceXStart_ID	, NULL},\
+{TF_NO_MYNAME_PREPENDING,"SliceXEnd",	9, TT_INTEGER, MYSTYLE_SliceXEnd_ID	, NULL},\
+{TF_NO_MYNAME_PREPENDING,"SliceYStart",	11, TT_INTEGER, MYSTYLE_SliceYStart_ID	, NULL},\
+{TF_NO_MYNAME_PREPENDING,"SliceYEnd",	9, TT_INTEGER, MYSTYLE_SliceYEnd_ID	, NULL},\
 {TF_NO_MYNAME_PREPENDING|TF_SYNTAX_TERMINATOR,"~MyStyle", 	8, TT_FLAG, MYSTYLE_DONE_ID		, NULL}
 
 extern struct SyntaxDef MyStyleSyntax;
@@ -319,6 +327,7 @@ typedef struct mystyle_definition
 #define MYSTYLE_DRAW_TEXT_BACKGROUND	(0x01<<0)
 #define MYSTYLE_FINISHED				(0x01<<1)
 #define MYSTYLE_TEXT_STYLE_SET			(0x01<<2)
+#define MYSTYLE_SLICE_SET				(0x01<<3)
    	ASFlagType flags;
 
 	char   *name;
@@ -337,6 +346,8 @@ typedef struct mystyle_definition
     double *back_grad_offsets;
 
     char   *back_pixmap;
+
+	int slice_x_start, slice_x_end, slice_y_start, slice_y_end ;
 
     struct  FreeStorageElem *more_stuff;
     struct  mystyle_definition *next;	/* as long as there could be several MyStyle definitions
