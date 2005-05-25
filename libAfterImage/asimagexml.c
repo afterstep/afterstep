@@ -768,11 +768,11 @@ handle_asxml_tag_composite( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t*
 #define  ASXML_ALIGN_BOTTOM (0x01<<3)
 	int *align ;
 	int i ;
-	merge_scanlines_func op_func = blend_scanlines_name2func(pop);
+	merge_scanlines_func op_func = NULL ;
 
 	LOCAL_DEBUG_OUT("doc = %p, parm = %p", doc, parm ); 
 	for (ptr = parm ; ptr ; ptr = ptr->next) {
-		if (!strcmp(ptr->tag, "op")) pop = ptr->parm;
+		if (!strcmp(ptr->tag, "op")) { pop = ptr->parm; op_func = blend_scanlines_name2func(pop); }
 		else if (!strcmp(ptr->tag, "keep-transparency")) keep_trans = strtol(ptr->parm, NULL, 0);
 		else if (!strcmp(ptr->tag, "merge") && !mystrcasecmp(ptr->parm, "clip")) merge = 1;
 	}
@@ -786,6 +786,7 @@ handle_asxml_tag_composite( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t*
 		return NULL;
 	}
 
+	
 	if( op_func == NULL ) 
 	{	
 		LOCAL_DEBUG_OUT( "defaulting to alpha-blending%s","");

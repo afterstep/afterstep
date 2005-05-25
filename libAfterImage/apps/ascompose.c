@@ -209,7 +209,7 @@ void usage(void) {
  * parameters are given :
  * SOURCE
  */
-#if 0
+#if 1
 static char* default_doc_str = "\
 <composite op=hue>\
   <composite op=add>\
