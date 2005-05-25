@@ -178,6 +178,8 @@ extern Atom _XA_NET_WM_STATE_BELOW;
 extern Atom _XA_NET_WM_PID;
 extern Atom _XA_NET_WM_PING;
 
+extern Atom _XA_AS_MOVERESIZE;
+
 extern struct AtomXref      *EXTWM_State;
 
 #define IsNameProp(a) \

@@ -347,6 +347,8 @@ typedef struct ASVisual
 	void *glx_scratch_gc_indirect ; /* (GLXContext) */
 	void *glx_scratch_gc_direct ;	/* (GLXContext) */
 
+	Window scratch_window;
+
 #ifndef X_DISPLAY_MISSING
 #define ARGB2PIXEL(asv,argb,pixel) 		   \
 	(asv)->color2pixel_func((asv),(argb),(pixel))

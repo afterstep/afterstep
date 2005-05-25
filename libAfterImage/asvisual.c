@@ -499,6 +499,8 @@ destroy_asvisual( ASVisual *asv, Bool reusable )
 		if( asv->glx_scratch_gc_indirect )
 			glXDestroyContext(dpy, asv->glx_scratch_gc_indirect );
 #endif
+		if( asv->scratch_window ) 
+			XDestroyWindow( asv->dpy, asv->scratch_window );
 
 #endif /*ifndef X_DISPLAY_MISSING */
 		if( !reusable )
@@ -1072,13 +1074,11 @@ create_visual_gc( ASVisual *asv, Window root, unsigned long mask, XGCValues *gcv
 #ifndef X_DISPLAY_MISSING
 	if( asv )
 	{
-		Window scratch_window = 0 ;
 		XGCValues scratch_gcv ;
-		if( (scratch_window = create_visual_window( asv, root, -20, -20, 10, 10, 0, InputOutput, 0, NULL )) != None )
-		{
-			gc = XCreateGC( asv->dpy, scratch_window, mask, gcvalues?gcvalues:&scratch_gcv );
-			XDestroyWindow( asv->dpy, scratch_window );
-		}
+		if( asv->scratch_window == None ) 
+			asv->scratch_window = create_visual_window( asv, root, -20, -20, 10, 10, 0, InputOutput, 0, NULL );
+		if( asv->scratch_window != None )
+			gc = XCreateGC( asv->dpy, asv->scratch_window, gcvalues?mask:0, gcvalues?gcvalues:&scratch_gcv );
 	}
 #endif
 	return gc;
@@ -1090,7 +1090,9 @@ create_visual_pixmap( ASVisual *asv, Window root, unsigned int width, unsigned i
 #ifndef X_DISPLAY_MISSING
 	Pixmap p = None ;
 	if( asv != NULL )
+	{	
 		p = XCreatePixmap( asv->dpy, root, MAX(width,(unsigned)1), MAX(height,(unsigned)1), (depth==0)?asv->true_depth:depth );
+	}
 	return p;
 #else
 	return None ;
