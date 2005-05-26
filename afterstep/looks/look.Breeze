@@ -114,10 +114,6 @@ MyStyle "*PagerBalloon"
 ~MyStyle
 
 
-MyStyle "focused_window_style""
-	Inherit "TitleButtonBalloon"
-~MyStyle
-
 MyStyle "DeskStyle"
 # semitransparent gradient  :
 	BackGradient	6	#77222222 #77EEEEEE
