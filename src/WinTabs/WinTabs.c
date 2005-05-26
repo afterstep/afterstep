@@ -1702,7 +1702,7 @@ void close_current_tab()
 	if( tabs_num > 0 && curr >= 0 && curr < tabs_num ) 
 	{
 		if( tabs[curr].closed ) 
-			XDestroyWindow( dpy, tabs[curr].client); 	
+			XKillClient( dpy, tabs[curr].client); 	
 		else
 		{	
 			send_wm_protocol_request(tabs[curr].client, _XA_WM_DELETE_WINDOW, CurrentTime);

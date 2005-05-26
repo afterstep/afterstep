@@ -1153,7 +1153,10 @@ destroy_wharf_folder( ASWharfFolder **paswf )
 			if( aswb->swallowed ) 
 			{	
 				send_wm_protocol_request(aswb->swallowed->current->w, _XA_WM_DELETE_WINDOW, CurrentTime);
-
+				ASSync(False);
+				sleep_a_millisec(200);
+				XKillClient(dpy, aswb->swallowed->current->w );
+				ASSync(False);
 			}
             if( aswb->name )
                 free( aswb->name );
