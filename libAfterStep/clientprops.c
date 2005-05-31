@@ -1148,6 +1148,24 @@ handle_manager_property_update (Window w, Atom property, ASRawHints * raw)
 	return False;
 }
 
+Bool 
+get_extwm_state_flags (Window w, ASFlagType *flags)
+{
+	if (flags && w != None)
+	{
+		CARD32         *protocols;
+		long          nprotos = 0;
+
+        if (read_32bit_proplist (w, _XA_NET_WM_STATE, 6, &protocols, &nprotos))
+		{
+			translate_atom_list (flags, EXTWM_State, protocols, nprotos);
+			free (protocols);
+			return True;
+		}
+	}
+	return False;
+}
+
 
 
 /**********************************************************************************/
@@ -1183,6 +1201,11 @@ set_client_state (Window w, struct ASStatusHints *status)
 			{
 				extwm_states[used++] = _XA_NET_WM_STATE_SHADED;
 				gnome_state |= WIN_STATE_SHADED;
+			}
+			if (get_flags (status->flags, AS_Hidden))
+			{
+				extwm_states[used++] = _XA_NET_WM_STATE_HIDDEN;
+				gnome_state |= WIN_STATE_HIDDEN;
 			}
 			if (get_flags (status->flags, AS_MaximizedX))
 			{

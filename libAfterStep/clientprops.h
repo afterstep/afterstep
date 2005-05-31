@@ -613,6 +613,9 @@ void print_hints            ( stream_func func, void* stream, ASRawHints *hints 
 Bool handle_client_property_update ( Window w, Atom property, ASRawHints *raw );
 Bool handle_manager_property_update( Window w, Atom property, ASRawHints *raw );
 
+Bool get_extwm_state_flags (Window w, ASFlagType *flags);
+
+
 /*************************************************************************/
 /****************** Setting properties - updating hints : ****************/
 /*************************************************************************/

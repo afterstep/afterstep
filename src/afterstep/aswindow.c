@@ -770,6 +770,7 @@ delist_aswindow( ASWindow *t )
 	publish_aswindow_list( Scr.Windows, False );	   
 }
 
+#if 0
 void
 update_visibility( int desk )
 {
@@ -846,6 +847,7 @@ update_visibility( int desk )
         ASCanvas *frame = asws[i]->frame_canvas ;
 		int client_left, client_right, client_bottom, client_top ; 
         int r ;
+		Bool visible = False;
 
         if( ASWIN_GET_FLAGS( asws[i], AS_Iconic ) )
         {
@@ -855,7 +857,7 @@ update_visibility( int desk )
         }else if( ASWIN_GET_FLAGS( asws[i], AS_Shaded ) )
             client = frame ;
 
-        ASWIN_CLEAR_FLAGS( asws[0], AS_Visible );
+        ASWIN_CLEAR_FLAGS( asws[0], AS_Hidden );
 
         r = VECTOR_USED(*rects);
 		client_left = client->root_x ;
@@ -869,12 +871,15 @@ update_visibility( int desk )
                 client_bottom > vrect[r].y &&
                 client_top    < vrect[r].y+(int)vrect[r].height )
             {
-                ASWIN_SET_FLAGS( asws[0], AS_Visible );
+				visible = True ;
                 break;
             }
         }
+		if( !visible ) 
+			ASWIN_SET_FLAGS( asws[0], AS_Hidden );
     }
 }
+#endif
 
 void
 restack_window_list( int desk, Bool send_msg_only )

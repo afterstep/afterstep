@@ -81,6 +81,8 @@ typedef struct {
 #define ASWT_Transparent	(0x01<<3)
 #define ASWT_ShutDownInProgress	(0x01<<4)
 #define ASWT_SkipTransients		(0x01<<5)
+#define ASWT_StateShaded		(0x01<<6)
+#define ASWT_StateSticky		(0x01<<7)
 
 	ASFlagType flags ;
 
@@ -170,6 +172,8 @@ Bool unswallow_current_tab();
 Bool unswallow_tab(int t);
 void  update_focus();
 Bool handle_tab_name_change( Window client );
+void update_tabs_desktop();
+void update_tabs_state();
 
 /* above function may also return : */
 #define BANNER_TAB_INDEX -1		   
@@ -860,20 +864,45 @@ DispatchEvent (ASEvent * event)
 						XSelectInput( dpy, Scr.Root, EnterWindowMask );
 					}
 				}	 
+			}else if(   event->w == WinTabsState.main_window )
+			{
+			 	if( event->x.xproperty.atom == _XA_NET_WM_DESKTOP ) 
+				{
+					CARD32 new_desk = read_extwm_desktop_val(WinTabsState.main_window);
+
+					if( !get_flags( WinTabsState.flags, ASWT_AllDesks )) 
+					{
+						if( WinTabsState.my_desktop != new_desk )
+						{	
+							WinTabsState.my_desktop = new_desk ;
+							if( WinTabsState.pattern_wrexp != NULL ) 
+								iterate_window_data( recheck_swallow_windows, NULL);
+						}
+					}else
+						WinTabsState.my_desktop = new_desk ;
+
+					update_tabs_desktop();
+				}else if( event->x.xproperty.atom == _XA_NET_WM_STATE ) 
+				{
+					ASFlagType extwm_flags = 0 ; 
+					if( get_extwm_state_flags (WinTabsState.main_window, &extwm_flags) )
+					{
+						ASFlagType new_state = get_flags(extwm_flags, EXTWM_StateShaded)?ASWT_StateShaded:0;
+
+						new_state |= get_flags(extwm_flags, EXTWM_StateSticky)?ASWT_StateSticky:0;
+						LOCAL_DEBUG_OUT( "old_state = %lX, new_state = %lX", (WinTabsState.flags&(ASWT_StateShaded|ASWT_StateSticky)), new_state );
+						if( (WinTabsState.flags&(ASWT_StateShaded|ASWT_StateSticky)) != new_state )
+						{
+							clear_flags( WinTabsState.flags, ASWT_StateShaded|ASWT_StateSticky );
+							set_flags( WinTabsState.flags, new_state );
+							update_tabs_state();
+						}		  
+					}		
+					
+				}	 
 			}else if( IsNameProp(event->x.xproperty.atom) )
 			{                  /* Maybe name change on the client !!! */
 				handle_tab_name_change( event->w );				 		
-			}else if(   event->x.xproperty.atom == _XA_NET_WM_DESKTOP && 
-						event->w == WinTabsState.main_window && 
-						!get_flags( WinTabsState.flags, ASWT_AllDesks )) 
-			{
-				CARD32 new_desk = read_extwm_desktop_val(WinTabsState.main_window);
-				if( WinTabsState.my_desktop != new_desk )
-				{	
-					WinTabsState.my_desktop = new_desk ;
-					if( WinTabsState.pattern_wrexp != NULL ) 
-						iterate_window_data( recheck_swallow_windows, NULL);
-				}
 			}	 
 			break;
 		default:
@@ -1388,12 +1417,18 @@ void
 select_tab( int tab )
 {
 	ASWinTab *new_tab ;
+	ASStatusHints status = {0};
+	ASFlagType default_status_flags = get_flags(WinTabsState.flags,ASWT_StateShaded)?AS_Shaded:0;
+
+	default_status_flags |= get_flags(WinTabsState.flags,ASWT_StateSticky)?AS_Sticky:0;
 
     if( tab == WinTabsState.selected_tab ) 
         return ; 
     if( WinTabsState.selected_tab >= 0 && WinTabsState.selected_tab < PVECTOR_USED( WinTabsState.tabs ) )
     {
         ASWinTab *old_tab =  PVECTOR_HEAD(ASWinTab,WinTabsState.tabs)+WinTabsState.selected_tab ;
+		status.flags = AS_Hidden|default_status_flags ; 
+		set_client_state (old_tab->client, &status);
         set_astbar_focused(old_tab->bar, WinTabsState.tabs_canvas, False);
         WinTabsState.selected_tab = -1 ;
     }    
@@ -1401,6 +1436,8 @@ select_tab( int tab )
 		tab = 0 ;
 		
     new_tab = PVECTOR_HEAD(ASWinTab,WinTabsState.tabs)+tab ;
+	status.flags = default_status_flags ; 
+	set_client_state (new_tab->client, &status);
     set_astbar_focused(new_tab->bar, WinTabsState.tabs_canvas, True);
     XRaiseWindow( dpy, new_tab->frame_canvas->w );
     WinTabsState.selected_tab = tab ;
@@ -1507,6 +1544,8 @@ do_swallow_window( ASWindowData *wd )
     XReparentWindow( dpy, wd->client, aswt->frame_canvas->w, WinTabsState.win_width - nc->width, WinTabsState.win_height - nc->height );
     XSelectInput (dpy, wd->client, StructureNotifyMask|PropertyChangeMask|FocusChangeMask);
     XAddToSaveSet (dpy, wd->client);
+	
+	set_client_desktop (wd->client, WinTabsState.my_desktop );	 
 
 #if 0   /* TODO : implement support for icons : */
     if( get_flags( wd->flags, AS_ClientIcon ) && !get_flags( wd->flags, AS_ClientIconPixmap) &&
@@ -1718,6 +1757,10 @@ Bool unswallow_tab(int t)
 	LOCAL_DEBUG_OUT( "tab = %d, tabs_num = %d", t, tabs_num );
 	if( tabs_num > 0 && t >= 0 && t < tabs_num ) 
 	{
+		XDeleteProperty( dpy, tabs[t].client, _XA_NET_WM_STATE );
+		XDeleteProperty( dpy, tabs[t].client, _XA_WIN_STATE );
+		XDeleteProperty( dpy, tabs[t].client, _XA_NET_WM_DESKTOP );
+		XDeleteProperty( dpy, tabs[t].client, _XA_WIN_WORKSPACE );
 		XResizeWindow( dpy, tabs[t].client, tabs[t].swallow_location.width, tabs[t].swallow_location.height );
 		XReparentWindow( dpy, tabs[t].client, Scr.Root, tabs[t].swallow_location.x, tabs[t].swallow_location.y );
 		delete_tab( t ); 		
@@ -1800,3 +1843,31 @@ Bool handle_tab_name_change( Window client)
 	return changed ;
 }	 
 
+void 
+update_tabs_desktop()
+{	
+	int i = PVECTOR_USED(WinTabsState.tabs);
+    ASWinTab *tabs = PVECTOR_HEAD( ASWinTab, WinTabsState.tabs );
+	while( --i >= 0) 
+		set_client_desktop (tabs[i].client, WinTabsState.my_desktop );	
+}
+
+void 
+update_tabs_state()
+{	
+	ASStatusHints status = {0};
+	int i = PVECTOR_USED(WinTabsState.tabs);
+    ASWinTab *tabs = PVECTOR_HEAD( ASWinTab, WinTabsState.tabs );
+	
+	status.flags = get_flags(WinTabsState.flags,ASWT_StateShaded)?AS_Shaded:0;
+	status.flags |= get_flags(WinTabsState.flags,ASWT_StateSticky)?AS_Sticky:0;
+
+	while( --i >= 0) 
+	{	
+		if( i == WinTabsState.selected_tab ) 
+			clear_flags( status.flags, AS_Hidden );
+		else
+			set_flags( status.flags, AS_Hidden );
+		set_client_state (tabs[i].client, &status);
+	}
+}

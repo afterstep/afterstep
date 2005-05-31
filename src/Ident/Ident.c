@@ -542,7 +542,7 @@ fill_window_data()
 	SHOW_FLAG(wd->state_flags,Dead);     
 	SHOW_FLAG(wd->state_flags,Mapped);
 	SHOW_FLAG(wd->state_flags,IconMapped);
-	SHOW_FLAG(wd->state_flags,Visible);
+	SHOW_FLAG(wd->state_flags,Hidden);
 	SHOW_FLAG(wd->state_flags,Shaped);
 	SHOW_FLAG(wd->state_flags,ShapedDecor);
 	SHOW_FLAG(wd->state_flags,ShapedIcon);

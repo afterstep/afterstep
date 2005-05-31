@@ -103,7 +103,7 @@ LOCAL_DEBUG_CALLER_OUT( "top(%p)->supermenu(%p)->menu(%p)->submenu(%p)", ASTopmo
         {
             /* cannot use Destroy directly - must go through the normal channel: */
             unmap_canvas_window( menu->submenu->main_canvas );
-            ASWIN_CLEAR_FLAGS(menu->submenu->owner, AS_Visible);
+            ASWIN_SET_FLAGS(menu->submenu->owner, AS_Hidden);
             ASWIN_SET_FLAGS(menu->submenu->owner, AS_UnMapPending);
 			menu->submenu = NULL ;
         }else
@@ -134,7 +134,7 @@ LOCAL_DEBUG_CALLER_OUT( "top(%p)->supermenu(%p)->menu(%p)->submenu(%p)", ASTopmo
             if( menu->owner )
             {
                 ASWIN_SET_FLAGS(menu->owner, AS_Dead );
-                ASWIN_CLEAR_FLAGS(menu->owner, AS_Visible);
+                ASWIN_SET_FLAGS(menu->owner, AS_Hidden);
                 ASWIN_SET_FLAGS(menu->owner, AS_UnMapPending);
             }
             destroy_registered_window( w );
@@ -183,8 +183,8 @@ LOCAL_DEBUG_CALLER_OUT( "top(%p)->supermenu(%p)->menu(%p)->submenu(%p)", ASTopmo
             {
                 /* cannot use Destroy directly - must go through the normal channel: */
                 unmap_canvas_window( menu->main_canvas );
-                ASWIN_CLEAR_FLAGS(menu->owner, AS_Visible);
-                ASWIN_SET_FLAGS(menu->owner, AS_UnMapPending);
+                ASWIN_SET_FLAGS(menu->owner, AS_Hidden );
+                ASWIN_SET_FLAGS(menu->owner, AS_UnMapPending );
             }else
                 destroy_asmenu( &(menu));
             *pmenu = NULL ;
