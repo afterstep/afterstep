@@ -1202,7 +1202,10 @@ void
 place_tabs_line( ASWinTab *tabs, int x, int y, int first, int last, int spare, int max_width, int tab_height )
 {
     int i ;
-    int delta = spare / (last+1-first) ;
+    int delta = 0;
+	
+	if( last+1 > first  ) 
+		delta = spare / (last+1-first) ;
 
     for( i = first ; i <= last ; ++i ) 
     {
@@ -1239,13 +1242,19 @@ moveresize_client( ASWinTab *aswt, int x, int y, int width, int height )
 	if( get_flags( aswt->hints.flags, AS_SizeInc ) )
 	{
 		int min_w = 0, min_h = 0 ; 
+		if( aswt->hints.width_inc == 0 ) 
+			aswt->hints.width_inc = 1;
+		if( aswt->hints.height_inc == 0 ) 
+			aswt->hints.height_inc = 1;
 		if( get_flags( aswt->hints.flags, AS_MinSize ) )
 		{
 			min_w = aswt->hints.min_width ;
 			min_h = aswt->hints.min_height ;
 		}	 
 		if( width > min_w && aswt->hints.width_inc < width  ) 
+		{
 			width = min_w + ((width - min_w)/aswt->hints.width_inc)*aswt->hints.width_inc ;
+		}
 
 		if( height > min_h && aswt->hints.height_inc < height  ) 
 			height = min_h + ((height - min_h)/aswt->hints.height_inc)*aswt->hints.height_inc ;
