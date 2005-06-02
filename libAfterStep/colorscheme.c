@@ -236,14 +236,13 @@ make_mono_ascolor_scheme( ARGB32 base )
 	LOCAL_DEBUG_OUT( "base_shade = %d, Inactive1 shade = %d", base_shade, shade );
 	cs->main_colors[ASMC_Inactive1] 	= MAKE_ARGB32_SHADE100(base_alpha16,shade);
 	cs->main_values[ASMC_Inactive1] 	= shade;
+	inactive1_val = shade ;
 	LOCAL_DEBUG_OUT( "Inactive1 color = #%8.8lX", cs->main_colors[ASMC_Inactive1] );
 	make_mono_grad_argb( &(cs->main_colors[ASMC_Inactive1Dark]), base_alpha16, shade,
 						 &(cs->main_values[ASMC_Inactive1Dark]) );
 	shade = make_text_shade( shade );
 	cs->main_colors[ASMC_InactiveText1] = MAKE_ARGB32_SHADE100(base_alpha16,shade);
 	cs->main_values[ASMC_InactiveText1] 	= shade;
-	inactive1_val = shade ;
-
 
 	shade = offset_shade( base_shade, ASCS_MONO_SIMILAR_OFFSET, False) ;
 	cs->main_colors[ASMC_Inactive2] 	= MAKE_ARGB32_SHADE100(base_alpha16,shade);

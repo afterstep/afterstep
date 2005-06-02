@@ -8,6 +8,7 @@
 #include "../../../../libAfterImage/afterimage.h"
 #include "../../../../libAfterStep/asapp.h"
 #include "../../../../libAfterStep/screen.h"
+#include "../../../../libAfterStep/colorscheme.h"
 
 
 #include <sys/types.h>
@@ -257,11 +258,11 @@ GtkStyle *get_colorschemed_style_button()
 		color_name2GdkColor("HighInactive", &(ASGtkStyleButton->mid[GTK_STATE_PRELIGHT]   ));
 		color_name2GdkColor("Active"	  , &(ASGtkStyleButton->mid[GTK_STATE_SELECTED]   ));
 		color_name2GdkColor("Inactive1"   , &(ASGtkStyleButton->mid[GTK_STATE_INSENSITIVE]));
-		color_name2GdkColor("InactiveText1"   , &(ASGtkStyleButton->text[GTK_STATE_NORMAL]     ));
-		color_name2GdkColor("InactiveText2"   , &(ASGtkStyleButton->text[GTK_STATE_ACTIVE]     ));
+		color_name2GdkColor("HighInactiveText", &(ASGtkStyleButton->text[GTK_STATE_NORMAL]     ));
+		color_name2GdkColor("HighInactiveText", &(ASGtkStyleButton->text[GTK_STATE_ACTIVE]     ));
 		color_name2GdkColor("HighInactiveText", &(ASGtkStyleButton->text[GTK_STATE_PRELIGHT]   ));
 		color_name2GdkColor("ActiveText"	  , &(ASGtkStyleButton->text[GTK_STATE_SELECTED]   ));
-		color_name2GdkColor("InactiveText1"   , &(ASGtkStyleButton->text[GTK_STATE_INSENSITIVE]));
+		color_name2GdkColor("DisabledText"    , &(ASGtkStyleButton->text[GTK_STATE_INSENSITIVE]));
 
 		color_name2GdkColor("HighInactiveDark" , &(ASGtkStyleButton->base[GTK_STATE_NORMAL]     ));
 		color_name2GdkColor("HighInactive"     , &(ASGtkStyleButton->base[GTK_STATE_ACTIVE]     ));
@@ -279,11 +280,24 @@ GtkStyle *get_colorschemed_style_button()
 	return ASGtkStyleButton;
 }	 
 
-void 
+void  
 colorize_gtk_window( GtkWidget *window )
 {
 	GdkColor bg ;
-	color_name2GdkColor("BaseLight", &bg);
+	ARGB32 argb ;
+	CARD32 val ;
+
+	parse_argb_color( "Base", &argb );
+	val = ASCS_BLACK_O_WHITE_CRITERIA16_VAL(ARGB32_RED16(argb),ARGB32_GREEN16(argb),ARGB32_BLUE16(argb));
+	if( val >= 0x09FFF )
+	{	
+		LOCAL_DEBUG_OUT( "Base is light, val = 0x%lX", val);
+		color_name2GdkColor("BaseDark", &bg);
+	}else
+	{
+		LOCAL_DEBUG_OUT( "Base is dark, val = 0x%lX", val);
+		color_name2GdkColor("BaseLight", &bg);
+	}
   	gtk_widget_modify_bg( window, GTK_STATE_NORMAL, &bg );
 }	
 
