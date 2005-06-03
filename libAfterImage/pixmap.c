@@ -267,9 +267,9 @@ scale_pixmap (ASVisual *asv, Pixmap src, int src_w, int src_h, int width, int he
 		src_im = pixmap2ximage(asv, src, 0, 0, src_w, src_h, AllPlanes, 0 );
 		if( src_im ) 
 		{
-			if( src_w != width && src_h != height ) 
+			if( src_w != width || src_h != height ) 
 			{
-				ASImage *tmp = scale_asimage( asv, src_im, width, height,
+				ASImage *tmp = scale_asimage( asv, src_im, width, height, 
 				                              (tint != TINT_LEAVE_SAME)?ASA_ASImage:ASA_XImage, 
 											  0, ASIMAGE_QUALITY_DEFAULT );
 				destroy_asimage( &src_im );

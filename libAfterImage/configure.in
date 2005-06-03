@@ -572,9 +572,15 @@ if test "x$have_afterbase" = "xyes"; then
     else
     	AFTERIMAGE_LIBS="-lAfterBase $AFTERIMAGE_LIBS"
     fi
-    AFTERIMAGE_APPS_LIBS="-L../ -L../../libAfterBase -lAfterImage $AFTERIMAGE_LIBS"
-    AFTERIMAGE_TEST_LIBS="-L./ -L../libAfterBase -lAfterImage $AFTERIMAGE_LIBS"
-    AFTERIMAGE_LIB_LIBS="-L./ -L../libAfterBase $AFTERIMAGE_LIBS"
+    if test -r "../libAfterBase/astypes.h"; then
+    	AFTERIMAGE_APPS_LIBS="-L../ -L../../libAfterBase -lAfterImage $AFTERIMAGE_LIBS"
+    	AFTERIMAGE_TEST_LIBS="-L./ -L../libAfterBase -lAfterImage $AFTERIMAGE_LIBS"
+    	AFTERIMAGE_LIB_LIBS="-L./ -L../libAfterBase $AFTERIMAGE_LIBS"
+    else
+    	AFTERIMAGE_APPS_LIBS="-L../ -L$libdir -lAfterImage $AFTERIMAGE_LIBS"
+    	AFTERIMAGE_TEST_LIBS="-L./ -L$libdir -lAfterImage $AFTERIMAGE_LIBS"
+    	AFTERIMAGE_LIB_LIBS="-L./ -L$libdir $AFTERIMAGE_LIBS"
+    fi
     AC_DEFINE(HAVE_AFTERBASE,1,[Define if libAfterBase is available])
 	AC_MSG_RESULT(yes  $AFTERBASE_INCS_PATH)
 else

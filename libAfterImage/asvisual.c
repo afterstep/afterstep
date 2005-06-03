@@ -1091,6 +1091,8 @@ create_visual_pixmap( ASVisual *asv, Window root, unsigned int width, unsigned i
 	Pixmap p = None ;
 	if( asv != NULL )
 	{	
+		if( root == None ) 
+			root = RootWindow(asv->dpy,DefaultScreen(asv->dpy));
 		p = XCreatePixmap( asv->dpy, root, MAX(width,(unsigned)1), MAX(height,(unsigned)1), (depth==0)?asv->true_depth:depth );
 	}
 	return p;
