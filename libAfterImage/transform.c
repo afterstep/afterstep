@@ -2210,7 +2210,7 @@ slice_scanline( ASScanline *dst, ASScanline *src, int start_x, int end_x )
 	CARD32 *sr = src->red, *dr = dst->red ;
 	CARD32 *sg = src->green, *dg = dst->green ;
 	CARD32 *sb = src->blue, *db = dst->blue ;
-	int max_x = min( start_x, dst->width);
+	int max_x = min( start_x, (int)dst->width);
 	int tail = (int)src->width - end_x ; 
 	int tiling_step = end_x - start_x ;
 	int x1, x2, max_x2 ;
@@ -2308,7 +2308,7 @@ LOCAL_DEBUG_CALLER_OUT( "sx1 = %d, sx2 = %d, sy1 = %d, sy2 = %d, to_width = %d, 
 		}	 
 		imout->tiling_step = (int)slice_y_end - (int)slice_y_start;
 		max_y2 = (int) dst->height - tail ; 
-		max_y = min(slice_y_end, max_y2);
+		max_y = min((int)slice_y_end, max_y2);
 		LOCAL_DEBUG_OUT( "y1 = %d, max_y = %d", y1, max_y );		   
 		for( ; y1 < max_y ; ++y1 )
 		{
@@ -2318,7 +2318,7 @@ LOCAL_DEBUG_CALLER_OUT( "sx1 = %d, sx2 = %d, sy1 = %d, sy2 = %d, to_width = %d, 
 		}
 
 		imout->tiling_step = 0;
-		imout->next_line = y2 =  max(max_y2,slice_y_start) ; 
+		imout->next_line = y2 =  max(max_y2,(int)slice_y_start) ; 
 		imdec->next_line = y1 = src->height - tail ;
 		max_y = src->height ;
 		if( y2 + max_y - y1 > dst->height ) 

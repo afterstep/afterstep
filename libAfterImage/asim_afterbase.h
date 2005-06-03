@@ -130,14 +130,14 @@ void asim_nonGNUC_debugout_stub( const char *format, ...);
 /* Some usefull debugging macros : */
 #ifdef __GNUC__
 
-#if defined(LOCAL_DEBUG)||defined(DEBUG)||defined(DEBUG_ALL)
+#if (!defined(NO_DEBUG_OUTPUT))&&(defined(LOCAL_DEBUG)||defined(DEBUG)||defined(DEBUG_ALL))
 #define DEBUG_OUT(format,args...) \
     do{ fprintf( stderr, "%s:%s:%s:%d:>" format "\n", get_application_name(), __FILE__, __FUNCTION__, __LINE__, ## args );}while(0)
 #else
 #define DEBUG_OUT(format,args...)
 #endif /* DEBUG */
 
-#if defined(LOCAL_DEBUG)||defined(DEBUG_ALL)
+#if (!defined(NO_DEBUG_OUTPUT))&&(defined(LOCAL_DEBUG)||defined(DEBUG_ALL))
 #define LOCAL_DEBUG_OUT(format,args...) \
     do{ fprintf( stderr, "%s:%s:%s:%d:>" format "\n", get_application_name(), __FILE__, __FUNCTION__, __LINE__, ## args );}while(0)
 #define LOCAL_DEBUG_CALLER_OUT(format,args...) \
@@ -149,7 +149,7 @@ void asim_nonGNUC_debugout_stub( const char *format, ...);
 
 #elif  __STDC_VERSION__ >= 199901              /* C99 standard provides support for this as well : */
 
-#if defined(LOCAL_DEBUG)||defined(DEBUG)||defined(DEBUG_ALL)
+#if (!defined(NO_DEBUG_OUTPUT))&&(defined(LOCAL_DEBUG)||defined(DEBUG)||defined(DEBUG_ALL))
 #define DEBUG_OUT(...) \
     do{ fprintf( stderr, "%s:%s:%s:%d:>", get_application_name(), __FILE__, __FUNCTION__, __LINE__ ); \
         fprintf( stderr, __VA_ARGS__); \
@@ -159,7 +159,7 @@ void asim_nonGNUC_debugout_stub( const char *format, ...);
 #define DEBUG_OUT(...)
 #endif /* DEBUG */
 
-#if defined(LOCAL_DEBUG)||defined(DEBUG_ALL)
+#if (!defined(NO_DEBUG_OUTPUT))&&(defined(LOCAL_DEBUG)||defined(DEBUG_ALL))
 #define LOCAL_DEBUG_OUT(...) \
     do{ fprintf( stderr, "%s:%s:%s:%d:>", get_application_name(), __FILE__, __FUNCTION__, __LINE__ ); \
         fprintf( stderr, __VA_ARGS__); \
@@ -177,13 +177,13 @@ void asim_nonGNUC_debugout_stub( const char *format, ...);
 
 #else  /* non __GNUC__ or C99 compliant compiler : */
 
-#if defined(LOCAL_DEBUG)||defined(DEBUG)||defined(DEBUG_ALL)
+#if (!defined(NO_DEBUG_OUTPUT))&&(defined(LOCAL_DEBUG)||defined(DEBUG)||defined(DEBUG_ALL))
 #define DEBUG_OUT           asim_nonGNUC_debugout
 #else
 #define DEBUG_OUT           asim_nonGNUC_debugout_stub
 #endif /* DEBUG */
 
-#if defined(LOCAL_DEBUG)||defined(DEBUG_ALL)
+#if (!defined(NO_DEBUG_OUTPUT))&&(defined(LOCAL_DEBUG)||defined(DEBUG_ALL))
 #define LOCAL_DEBUG_OUT     asim_nonGNUC_debugout
 #define LOCAL_DEBUG_CALLER_OUT     asim_nonGNUC_debugout_stub
 #else
@@ -193,9 +193,9 @@ void asim_nonGNUC_debugout_stub( const char *format, ...);
 
 #endif
 
-#ifdef DO_CLOCKING
+#if defined(DO_CLOCKING) && !defined(NO_DEBUG_OUTPUT)
 #define START_TIME(started)  time_t started = clock()
-#define SHOW_TIME(s,started) fprintf (stderr, __FUNCTION__ " " s " time (clocks): %lu mlsec\n", ((clock () - (started))*100)/CLOCKS_PER_SEC)
+#define SHOW_TIME(s,started) fprintf (stderr, "%s " s " time (clocks): %lu mlsec\n", __FUNCTION__, ((clock () - (started))*100)/CLOCKS_PER_SEC)
 #else
 #define START_TIME(started)  unsigned long started = 0
 #define SHOW_TIME(s,started) started = 0

@@ -101,7 +101,7 @@ asvisual_empty_XErrorHandler (Display * dpy, XErrorEvent * event)
     return 0;
 }
 /***************************************************************************/
-#ifdef LOCAL_DEBUG
+#if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
 Status
 debug_AllocColor( const char *file, const char *func, int line, ASVisual *asv, Colormap cmap, XColor *pxcol )
 {
