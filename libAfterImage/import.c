@@ -138,7 +138,7 @@ as_image_loader_func as_image_file_loaders[ASIT_Unknown] =
 	tiff2ASImage,
 	xml2ASImage ,
 	NULL,
-	NULL,
+	tga2ASImage,
 	NULL
 };
  
@@ -1817,9 +1817,9 @@ typedef struct ASTGAHeader
 		CARD16 FirstEntryIndex ;
 		CARD16 ColorMapLength ;  /* number of entries */ 
 		CARD8  ColorMapEntrySize ;  /* number of bits per entry */ 
-	} ColorMapSpec;	
-	struct 
-	{
+	}ColormapSpec;
+	struct
+	{		
 		CARD16 XOrigin;
 		CARD16 YOrigin;
 		CARD16 Width;
@@ -1828,7 +1828,7 @@ typedef struct ASTGAHeader
 #define TGA_LeftToRight		(0x01<<4)
 #define TGA_TopToBottom		(0x01<<5)
 		CARD8  Descriptor;
-	} ImageSpec;
+	}ImageSpec;
 
 }ASTGAHeader;
 
@@ -1847,37 +1847,75 @@ typedef struct ASTGAImageData
 	CARD8 *data ; 
 }ASTGAImageData;
 
-static Bool load_tga_colormapped(FILE *infile, ASTGAHeader *tga, ASTGAColorMap *cmap, ASScanline *buf, CARD8 *read_buf )
+static Bool load_tga_colormapped(FILE *infile, ASTGAHeader *tga, ASTGAColorMap *cmap, ASScanline *buf, CARD8 *read_buf, CARD8 *gamma_table )
 {
 		
 	return True;
 }
 
-static Bool load_tga_truecolor(FILE *infile, ASTGAHeader *tga, ASTGAColorMap *cmap, ASScanline *buf, CARD8 *read_buf )
+static Bool load_tga_truecolor(FILE *infile, ASTGAHeader *tga, ASTGAColorMap *cmap, ASScanline *buf, CARD8 *read_buf, CARD8 *gamma_table )
+{
+	CARD32 *a = buf->alpha ;
+	CARD32 *r = buf->red ;
+	CARD32 *g = buf->green ;
+	CARD32 *b = buf->blue ;
+	int bpp = (tga->ImageSpec.Depth+7)/8;
+	int bpl = buf->width*bpp;
+	if( fread( read_buf, 1, bpl, infile ) != bpl ) 		   
+		return False;
+	if( bpp == 3 ) 
+	{	
+		int i;
+		if( gamma_table )
+			for( i = 0 ; i < buf->width ; ++i ) 
+			{
+				b[i] = gamma_table[*(read_buf++)];	
+				g[i] = gamma_table[*(read_buf++)];	  
+				r[i] = gamma_table[*(read_buf++)];	  
+			}	 
+		else
+			for( i = 0 ; i < buf->width ; ++i ) 
+			{
+				b[i] = *(read_buf++);	
+				g[i] = *(read_buf++);	  
+				r[i] = *(read_buf++);	  
+			}	 
+		set_flags( buf->flags, SCL_DO_RED|SCL_DO_GREEN|SCL_DO_BLUE );
+	}else if( bpp == 4 )
+	{
+		int i;
+		for( i = 0 ; i < buf->width ; ++i ) 
+		{
+			b[i] = *(read_buf++);	
+			g[i] = *(read_buf++);	  
+			r[i] = *(read_buf++);	  
+			a[i] = *(read_buf++);	  
+		}	 
+		set_flags( buf->flags, SCL_DO_RED|SCL_DO_GREEN|SCL_DO_BLUE|SCL_DO_ALPHA );
+	}	 
+
+	return True;
+}
+
+static Bool load_tga_bw(FILE *infile, ASTGAHeader *tga, ASTGAColorMap *cmap, ASScanline *buf, CARD8 *read_buf, CARD8 *gamma_table )
 {
 		
 	return True;
 }
 
-static Bool load_tga_bw(FILE *infile, ASTGAHeader *tga, ASTGAColorMap *cmap, ASScanline *buf, CARD8 *read_buf )
+static Bool load_tga_rle_colormapped(FILE *infile, ASTGAHeader *tga, ASTGAColorMap *cmap, ASScanline *buf, CARD8 *read_buf, CARD8 *gamma_table )
 {
 		
 	return True;
 }
 
-static Bool load_tga_rle_colormapped(FILE *infile, ASTGAHeader *tga, ASTGAColorMap *cmap, ASScanline *buf, CARD8 *read_buf )
+static Bool load_tga_rle_truecolor(FILE *infile, ASTGAHeader *tga, ASTGAColorMap *cmap, ASScanline *buf, CARD8 *read_buf, CARD8 *gamma_table )
 {
 		
 	return True;
 }
 
-static Bool load_tga_rle_truecolor(FILE *infile, ASTGAHeader *tga, ASTGAColorMap *cmap, ASScanline *buf, CARD8 *read_buf )
-{
-		
-	return True;
-}
-
-static Bool load_tga_rle_bw(FILE *infile, ASTGAHeader *tga, ASTGAColorMap *cmap, ASScanline *buf, CARD8 *read_buf )
+static Bool load_tga_rle_bw(FILE *infile, ASTGAHeader *tga, ASTGAColorMap *cmap, ASScanline *buf, CARD8 *read_buf, CARD8 *gamma_table )
 {
 		
 	return True;
@@ -1893,32 +1931,35 @@ tga2ASImage( const char * path, ASImageImportParams *params )
 	FILE         *infile;					   /* source file */
 	ASTGAHeader   tga;
 	ASTGAColorMap *cmap = NULL ;
- 	ASTGAImageData *img_data = NULL ;
 	int width = 1, height = 1;
 	START_TIME(started);
 
 
 	if ((infile = open_image_file(path)) == NULL)
 		return NULL;
-	if( fread( &tga, 1, sizeof(ASTGAHeader), infile ) == sizeof(ASTGAHeader) ) 
+	if( fread( &tga, 1, 3, infile ) == 3 ) 
+	if( fread( &tga.ColormapSpec, 1, 5, infile ) == 5 ) 
+	if( fread( &tga.ImageSpec, 1, 10, infile ) == 10 ) 
 	{
 		Bool success = True ;
-		Bool (*load_row_func)(FILE *infile, ASTGAHeader *tga, ASTGAColorMap *cmap, ASScanline *buf, CARD8 *read_buf );
+		Bool (*load_row_func)(FILE *infile, ASTGAHeader *tga, ASTGAColorMap *cmap, ASScanline *buf, CARD8 *read_buf, CARD8 *gamma_table );
 
 		if( tga.IDLength > 0 ) 
 			success = (fseek( infile, tga.IDLength, SEEK_CUR )==0);
 		if( success && tga.ColorMapType != 0 ) 
 		{
 			cmap = safecalloc( 1, sizeof(ASTGAColorMap));
-			cmap->bytes_per_entry = (tga.ColorMapSpec.ColorMapEntrySize+7)/8;
-			cmap->bytes_total = cmap->bytes_per_entry*tga.ColorMapSpec.ColorMapLength; 
+			cmap->bytes_per_entry = (tga.ColormapSpec.ColorMapEntrySize+7)/8;
+			cmap->bytes_total = cmap->bytes_per_entry*tga.ColormapSpec.ColorMapLength; 
 			cmap->data = safemalloc( cmap->bytes_total);
 			success = ( fread( cmap->data, 1, cmap->bytes_total, infile ) == cmap->bytes_total );
-		}	 
+		}else if( tga.ImageSpec.Depth != 24 && tga.ImageSpec.Depth != 32 )
+			success = False ;
+	 
 		if( success ) 
 		{
 			success = False;
-			if( tga.ImageType == TGA_NoImageData )
+			if( tga.ImageType != TGA_NoImageData )
 			{	
 				width = tga.ImageSpec.Width ; 
 				height = tga.ImageSpec.Height ; 
@@ -1956,7 +1997,7 @@ tga2ASImage( const char * path, ASImageImportParams *params )
 					toggle_image_output_direction( imout );
 				for( y = 0 ; y < height ; ++y ) 
 				{	
-					if( !load_row_func( infile, &tga, cmap, &buf, read_buf ) )
+					if( !load_row_func( infile, &tga, cmap, &buf, read_buf, params->gamma_table ) )
 						break;
 					imout->output_image_scanline( imout, &buf, 1);
 				}

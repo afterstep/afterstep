@@ -114,6 +114,7 @@ ASImage *ico2ASImage ( const char * path, ASImageImportParams *params );
 ASImage *gif2ASImage ( const char * path, ASImageImportParams *params );
 ASImage *tiff2ASImage( const char * path, ASImageImportParams *params );
 ASImage *xml2ASImage ( const char * path, ASImageImportParams *params );
+ASImage *tga2ASImage ( const char * path, ASImageImportParams *params );
 
 
 /****f* libAfterImage/import/file2ASImage()
