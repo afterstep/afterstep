@@ -155,8 +155,19 @@ list_preview_size_alloc   ( GtkWidget *widget,
 void
 on_list_add_clicked(GtkButton *button, gpointer user_data)
 {
-	
+	GtkWidget *filechooser = create_filechooserdialog2();
+	if (gtk_dialog_run (GTK_DIALOG (filechooser)) == GTK_RESPONSE_ACCEPT)
+  	{
+    	char *filename;
+
+    	filename = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (filechooser));
+    	/* open_file (filename); */
+    	g_free (filename);
+	}
+
+	gtk_widget_destroy (filechooser);
 }
+
 void
 on_list_del_clicked(GtkButton *button, gpointer user_data)
 {
@@ -474,7 +485,7 @@ create_list_preview()
 
 	WallpaperState.list_preview = GTK_IMAGE(gtk_image_new_from_pixbuf(NULL));
   	gtk_widget_show (GTK_WIDGET(WallpaperState.list_preview));
-  	gtk_widget_set_size_request( GTK_WIDGET(WallpaperState.list_preview),
+   	gtk_widget_set_size_request( GTK_WIDGET(WallpaperState.list_preview),
 								 WallpaperState.preview_width, 
 								 WallpaperState.preview_height );
 	
@@ -586,13 +597,6 @@ create_filechooserdialog2 (void)
   g_signal_connect ((gpointer) button_file_open, "clicked",
                     G_CALLBACK (on_file_open_clicked),
                     NULL);
-
-  /* Store pointers to all widgets, for use by lookup_widget(). */
-  GLADE_HOOKUP_OBJECT_NO_REF (filechooserdialog2, filechooserdialog2, "filechooserdialog2");
-  GLADE_HOOKUP_OBJECT_NO_REF (filechooserdialog2, dialog_vbox2, "dialog_vbox2");
-  GLADE_HOOKUP_OBJECT_NO_REF (filechooserdialog2, dialog_action_area2, "dialog_action_area2");
-  GLADE_HOOKUP_OBJECT (filechooserdialog2, button_file_cancel, "button_file_cancel");
-  GLADE_HOOKUP_OBJECT (filechooserdialog2, button_file_open, "button_file_open");
 
   gtk_widget_grab_default (button_file_open);
   return filechooserdialog2;
