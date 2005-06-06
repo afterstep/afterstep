@@ -1,6 +1,7 @@
 <varlistentry id="options.TitleButtonBalloonXOffset">
-	<term>TitleButtonBalloonXOffset<emphasis remap='I'>value_in_pixels</emphasis></term>
+	<term>TitleButtonBalloonXOffset <emphasis remap='I'>offset</emphasis></term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Specifies the horizontal offset (in pixels) to use when displaying balloons.</para>
 	</listitem>
 </varlistentry>
+

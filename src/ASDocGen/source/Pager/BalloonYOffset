@@ -1,5 +1,5 @@
 <varlistentry id="options.BalloonYOffset">
-	<term>BalloonYOffset</term>
+	<term>BalloonYOffset <emphasis remap='I'>offset</emphasis></term>
 	<listitem>
 		<para>The balloon window is positioned  to  be  horizontally  centered
 		against  the  application  window it is describing. The vertical

@@ -1,6 +1,6 @@
 <varlistentry id="options.BalloonXOffset">
-	<term>BalloonXOffset</term>
+	<term>BalloonXOffset <emphasis remap='I'>offset</emphasis></term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Specifies the horizontal offset (in pixels) to use when displaying balloons.</para>
 	</listitem>
 </varlistentry>

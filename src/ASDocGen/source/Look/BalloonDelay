@@ -1,5 +1,5 @@
 <varlistentry id="options.BalloonDelay">
-	<term>BalloonDelay <emphasis remap='I'>number</emphasis></term>
+	<term>BalloonDelay <emphasis remap='I'>milliseconds</emphasis></term>
 	<listitem>
 		<para>Specifies the period in milliseconds to delay the appearance of the balloon.</para>
 	</listitem>
