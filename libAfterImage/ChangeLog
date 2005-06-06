@@ -1,6 +1,45 @@
 
+2005-06-03  sasha
+
+	* implemented rudimentary Targa files reading
+	* fixes in libAfterImage for compilation and installation without
+	  libAfterBase - eliminated debug output, type casts, etc.
+	* Fixed create_visual_pixmap to work with root = None; Fixed
+	  scale_pixmap to scale even in one direction only; Fixed configure
+	  to set path to libAfterBase to more sensible values
+
+2005-06-02  sasha
+
+	* implementing import of TGA files
+
+2005-05-25  sasha
+
+	* fixed gc creation code to not create a new window each time gc
+	  needs to be created
+	* fixed merge function selection code in composite tag handler
+
+2005-05-24  sasha
+
+	* rewrote xml handling code and broke some stuff
+
+2005-05-23  sasha
+
+	* implemented slice_asimage function as yet another method of
+	  enlarging images where corners remain unchanged, but middle part
+	  gets tiled
+
+2005-05-20  sasha
+
+	* Fixed bug in tiling of ARGB32 data in libAI and implemented
+	  dynamic resizing of preview in ASWallpaper
+
+2005-05-19  sasha
+
+	* Improvements to enable gtk apps to interoperate with libAS
+
 2005-05-17  vae
 
+	* AfterStep release v 2.1.0 - changelogs - vae
 	* AfterStep release v 2.1.0 - vae
 
 2005-05-17  sasha

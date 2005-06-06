@@ -1,6 +1,115 @@
 
+2005-06-06  vae
+
+	* AfterStep release v 2.1.1
+
+2005-06-06  born2late
+
+	* added docs for arrange module - eventually check layout
+	* fixme count now: 212
+
+2005-06-03  sasha
+
+	* implemented rudimentary Targa files reading
+	* fixes in libAfterImage for compilation and installation without
+	  libAfterBase - eliminated debug output, type casts, etc.
+	* Fixed create_visual_pixmap to work with root = None; Fixed
+	  scale_pixmap to scale even in one direction only; Fixed configure
+	  to set path to libAfterBase to more sensible values
+
+2005-06-02  sasha
+
+	* implementing import of TGA files
+	* fixed bug in calculation of monochromatic color scheme where
+	  shade of the InactiveText was used instead of its background;
+	  Added check for base brightness in determining of how to colorize
+	  main gtk window
+
+2005-06-01  sasha
+
+	* implemented proper colorscheming of gtk widgets
+	* [no log message]
+
+2005-05-31  sasha
+
+	* added support for NET_WM_STATE Extended WM hints to WinTabs - it
+	  propagates it down to children
+
+2005-05-26  sasha
+
+	* fixed focused window style in look.Breeze
+	* added code to Wharf and WinTabs to kill swallowed clients for
+	  sure
+
+2005-05-25  sasha
+
+	* fixed gc creation code to not create a new window each time gc
+	  needs to be created
+	* implemented Sliced images as BackPixmaps in MyStyles
+	* fixed merge function selection code in composite tag handler
+
+2005-05-24  sasha
+
+	* rewrote xml handling code and broke some stuff
+
+2005-05-23  sasha
+
+	* implemented slice_asimage function as yet another method of
+	  enlarging images where corners remain unchanged, but middle part
+	  gets tiled
+	* added --skip-transients option to WinTabs
+	* added Makefile for WinCommand
+
+2005-05-22  fabs
+
+	* Deiconify window-code added to cascade_window. I had only added
+	  it to tile_window earlier.
+
+2005-05-21  sasha
+
+	* fixed GdkPixbuf generation from ASImage to properly set
+	  copmponenets
+
+2005-05-21  born2late
+
+	* added the most asked question on irc by newbies
+
+2005-05-20  sasha
+
+	* Fixed bug in tiling of ARGB32 data in libAI and implemented
+	  dynamic resizing of preview in ASWallpaper
+
+2005-05-20  fabs
+
+	* applied patch from FreeBSD-package-maintainer.
+	* some cleaning, a bug-fix.
+	* Deiconify iconified windows when they're being tiled/cascaded.
+
+2005-05-19  fabs
+
+	* Initial revision of WinCommand.c.
+	* Added CLASS_WINCOMMAND.
+
+2005-05-19  sasha
+
+	* Improvements to enable gtk apps to interoperate with libAS
+	* new layout with list management buttons and resizeable preview
+
+2005-05-18  sasha
+
+	* Implemented background list in ASWallpaper as a GtkTreeView
+	* fixed configure script to display proper messages while testing
+	  for gtk availability
+	* hopefully fixed check for gtk2.0 to not kill configure
+	* some prelimenary work on Wallpaper chooser layout
+
+2005-05-17  sasha
+
+	* further development of Desktop Categories and entries ssunsystem
+
 2005-05-17  vae
 
+	* AfterStep release v 2.1.0 - changelogs - vae
 	* AfterStep release v 2.1.0 - vae
 
 2005-05-17  sasha
