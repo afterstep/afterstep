@@ -22,7 +22,7 @@ Make sure version numbers for libraries are changed as well if library has chang
 16) tar zcpvf AfterStep-2.00.05-noimages.tar.gz AfterStep-2.00.05-noimages
 17) tar cpvf AfterStep-2.00.05-noimages.tar AfterStep-2.00.05-noimages
 18) bzip2 AfterStep-2.00.05-noimages.tar
-19) upload tarballs, CahngeLog and NEW files on ftp.afterstep.org
+19) upload tarballs, ChangeLog and NEW files on ftp.afterstep.org
 20) upload tarballs on upload.sf.net/incoming/
 21) Add file release on Sourceforge.
 22) Annonce release on freshmeat.net
