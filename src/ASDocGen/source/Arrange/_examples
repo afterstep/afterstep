@@ -1,2 +1,7 @@
 <section label="examples" id="examples">
+    <para>This  invocation  will  horizontally  tile windows with a bounding box
+    which starts at 10 by 10 percent into and down the screen and ends  at
+    90 by 90 percent into and down the screen.</para>
+       
+    <para>Arrange 10 10 90 90 -tile -H</para>
 </section>

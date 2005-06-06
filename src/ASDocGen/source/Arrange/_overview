@@ -1,2 +1,94 @@
 <section label="overview" id="overview">
+<refsect1 id='invocation'><title>DESCRIPTION</title>
+    <para>Arrange was developed to replace Tile and Cascade which were
+    present in AfterStep 1.8 and stopped working with the
+    introduction of AfterStep 2.0. Like Tile and Cascade Arrange
+    can be used to tile or cascade windows subject to certain
+    constraints.</para>
+    <para>By default Arrange will cascade windows located on the current
+    screen.</para>
+</refsect1>
+
+<refsect1 id='invocation'><title>OPTIONS</title>
+<para>
+	<varlistentry><term>-a</term>
+	        <listitem><para>Causes  all  window  styles  to be affected, even ones with the
+                WindowListSkip style.</para></listitem></varlistentry>
+        <varlistentry><term>-alldesks</term>
+                <listitem><para>Causes windows on all desks to be effected.</para></listitem></varlistentry>
+
+        <varlistentry><term>-desk</term>
+	        <listitem><para>Causes all windows on the desk to be cascaded  instead  of  the
+                current screen only.</para></listitem></varlistentry>
+
+        <varlistentry><term>-H</term>
+	        <listitem><para>Causes windows to be tiled horizontaly. This will only
+                have an effect if -tile is passed.</para></listitem></varlistentry>
+
+        <varlistentry><term>-incx arg</term>
+                <listitem><para>Specifies a horizontal increment which is successively added to
+                arranged windows.  arg is a  percentage  of  screen  width,  or
+                pixel value if a p is suffixed.  Default is 20p.</para></listitem></varlistentry>
+
+        <varlistentry><term>-incy arg</term>
+                <listitem><para>Specifies  a  vertical increment which is successively added to
+                arranged windows.  arg is a percentage  of  screen  height,  or
+                pixel value if a p is suffixed.  Default is 20p.</para></listitem></varlistentry>
+            
+        <varlistentry><term>-m</term>
+	        <listitem><para>Causes maximized windows to also be affected (implied by -all).</para></listitem></varlistentry>
+
+        <varlistentry><term>-mn arg</term>
+                <listitem><para>Tiles  up  to  arg  windows in tile direction.  If more windows
+                exist, a new direction row or column is created (in  effect,  a
+                matrix is created).</para></listitem></varlistentry>
+
+        <varlistentry><term>-noraise</term>
+                <listitem><para>Inhibits window raising, leaving the depth ordering intact.</para></listitem></varlistentry>
+
+        <varlistentry><term>-nostretch</term>
+                <listitem><para>Inhibits window expansion when using the -resize option.   Win-
+                dows  will  only shrink to fit the maximal width and height (if given).</para></listitem></varlistentry>
+
+        <varlistentry><term>-r</term>
+	        <listitem><para>Reverses the window sequence.</para></listitem></varlistentry>
+
+        <varlistentry><term>-resize</term>
+                <listitem><para>Forces all windows to  resize  to  the  constrained  width  and
+                height (if given).</para></listitem></varlistentry>
+
+        <varlistentry><term>-s</term>
+	        <listitem><para>Causes sticky windows to also be affected (implied by -all).</para></listitem></varlistentry>
+
+        <varlistentry><term>-t</term>
+	        <listitem><para>Causes transient windows to also be affected (implied by -all).</para></listitem></varlistentry>
+
+        <varlistentry><term>-tile</term>
+	        <listitem><para>Causes windows to be tiled not cascaded.</para></listitem></varlistentry>
+
+        <varlistentry><term>-u</term>
+	        <listitem><para>Causes untitled windows to also be affected (implied by  -all).</para></listitem></varlistentry>
+</para>
+</refsect1>
+
+
+<refsect1 id='invocation'><title>INVOCATION</title>
+    <para>Arrange can be invoked from the autoexec file or by binding the
+    action "Module  Arrange  [args]"  to a key-stroke in a feel file.</para>
+</refsect1>
+
+<refsect1 id='invocation'><title>CONFIGURATION OPTIONS</title>
+    <para>Command-line arguments passed to Arrange are  described  in  the  OPTIONS
+    section.</para>
+    <para>Up  to  four  numbers  can  be placed on the command line that are not
+    switches.  The first pair specify an x and y offset to start the first
+    window (default is 0, 0).  The second pair specify an absolute coordi-
+    nate reference denoting the lower right bounding box for  tiling.   If
+    any  number  is  suffixed  with the letter p, then it is taken to be a
+    pixel value, otherwise it  is  interpreted  as  a  screen  percentage.
+    Specifying  zero for any parameter is equivalent to not specifying it.</para>
+</refsect1>
+
+
+
 </section>
