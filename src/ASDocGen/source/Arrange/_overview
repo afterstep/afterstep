@@ -49,6 +49,8 @@
         <varlistentry><term>-nostretch</term>
                 <listitem><para>Inhibits window expansion when using the -resize option.   Win-
                 dows  will  only shrink to fit the maximal width and height (if given).</para></listitem></varlistentry>
+	<varlistentry><term>-pattern arg</term>
+	        <listitem><para>Only arrange windows matching the supplied pattern.</para></listitem></varlistentry>
 
         <varlistentry><term>-r</term>
 	        <listitem><para>Reverses the window sequence.</para></listitem></varlistentry>

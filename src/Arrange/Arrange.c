@@ -26,6 +26,8 @@
 
 #include <signal.h>
 #include <unistd.h>
+#include <sys/types.h>
+#include <regex.h>
 #include <stdlib.h>
 
 #include "../../libAfterImage/afterimage.h"
@@ -91,6 +93,8 @@ struct ASArrangeState
 	int start_elem; /* position of start_elem */
 
 	int tile_width, tile_height;
+
+	char *pattern;
 
 	ASBiDirList *clients_order;
 	   
@@ -294,8 +298,11 @@ main( int argc, char **argv )
 				set_flags( ArrangeState.flags, ARRANGE_Tile	);
 				if(! resize_touched )
 					set_flags(ArrangeState.flags, ARRANGE_Resize );
+			}else if( mystrcasecmp( argv[i], "-pattern") == 0 && i+1 <argc && argv[i+1] != NULL)
+			{
+				ArrangeState.pattern = argv[i+1];
 			}
-			/* these applies to tiling only : */    
+			/* these apply to tiling only : */    
 			else if( mystrcasecmp( argv[i], "-mn") == 0 && i+1 < argc )
 			{
 				/* Tiles up to \fIarg\fP windows in tile direction.  If more windows
@@ -361,7 +368,8 @@ GetBaseOptions (const char *filename)
 Bool
 window_is_suitable(ASWindowData *wd)
 {
-	
+	regex_t my_reg;
+        
         /* we do not want to arrange AfterSTep's modules */
 	if( get_flags( wd->flags, AS_Module))
 		return False;
@@ -408,6 +416,23 @@ window_is_suitable(ASWindowData *wd)
 	  )
 		return False;
 
+	/* If a pattern was specified, check if window matches*/
+	if( ArrangeState.pattern )
+	{		
+		if(regcomp( &my_reg, ArrangeState.pattern, REG_EXTENDED | REG_ICASE ) != 0)
+			return False;
+		
+		
+                /* If pattern doesn't match */
+		if( regexec( &my_reg, wd->window_name, 0, NULL, 0) )
+		{
+			regfree( &my_reg );
+			return False;
+		}
+		regfree( &my_reg );
+	}
+	
+	
 	/* Passed all tests. You're in. */
 	return True;
 }
