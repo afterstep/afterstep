@@ -75,6 +75,8 @@ typedef struct
 	Window cl;
 }client_item;
 
+char *DEFAULT_PATTERN = "";
+
 /* Prototypes: */
 
 void GetBaseOptions (const char *filename);
@@ -115,6 +117,7 @@ void move_handler(ASWindowData *wd)
 void kill_handler(ASWindowData *wd)
 {
 	LOCAL_DEBUG_OUT("Kill handler called");
+	SendNumCommand(F_DESTROY, NULL, NULL, NULL, wd->client);
 }
 
 void jump_handler(ASWindowData *wd)
@@ -138,7 +141,12 @@ void jump_handler(ASWindowData *wd)
 
 void ls_handler(ASWindowData *wd)
 {
-	printf("%s\n", wd->window_name);
+	fprintf( stdout, "Name: %s\n", wd->window_name );
+	fprintf( stdout, "X: %ld\n", wd->frame_rect.x );
+	fprintf( stdout, "Y: %ld\n", wd->frame_rect.y );
+	fprintf( stdout, "Width: %ld\n", wd->frame_rect.width );
+	fprintf( stdout, "Height: %ld\n", wd->frame_rect.height );
+	fprintf( stdout, "\n" );
 }
 
 void iconify_handler(ASWindowData *wd)
@@ -359,7 +367,6 @@ int
 main( int argc, char **argv )
 {
 	int i ;
-	Bool pattern_read = False;
 
 	/* Save our program name - for error messages */
 	set_DeadPipe_handler(DeadPipe);
@@ -405,29 +412,19 @@ main( int argc, char **argv )
 			/* generic */
 			else if( mystrcasecmp( argv[i], "-all") == 0)
 				set_flags( WinCommandState.flags, WINCOMMAND_ActOnAll );
-				
-		}else
-		{
-			/*It's a pattern then. */
-			if( !pattern_read )
-			{	
 			
-				WinCommandState.pattern = argv[i];
-				pattern_read = True;
-			}else
-			{
-				/*Pattern was read already.
-				  This is an operation. */
-				append_bidirelem(WinCommandState.operations, argv[i]);
-			}
+			else if( mystrcasecmp( argv[i], "-pattern") == 0 && i+1 < argc && argv[i] != NULL)
+				WinCommandState.pattern = argv[i+1];
+			
+		}else
+		{	
+			append_bidirelem(WinCommandState.operations, argv[i]);
 		}
 	}
 	
-	if(!pattern_read)
-	{
-		LOCAL_DEBUG_OUT("No pattern specified.");
-		return 0;
-	}
+	if( WinCommandState.pattern == NULL)
+		WinCommandState.pattern = DEFAULT_PATTERN;
+	
 
     ConnectAfterStep (WINDOW_CONFIG_MASK |
                       WINDOW_NAME_MASK |
