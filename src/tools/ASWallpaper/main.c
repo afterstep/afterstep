@@ -28,7 +28,7 @@ main (int argc, char *argv[])
   	InitMyApp (CLASS_ASCP, argc, argv, NULL, NULL, 0 );
 	for( i = 1 ; i < argc ; ++i ) 
 		if( argv[i] == NULL ) 
-			argv[i] = deleted_arg ;
+			argv[i] = strdup(deleted_arg) ;
   	LinkAfterStepConfig();
   	InitSession();
 	LoadColorScheme();
