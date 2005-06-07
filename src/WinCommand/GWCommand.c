@@ -180,7 +180,7 @@ int main(int argc, char **argv)
 			argv[i] = strdup(deleted_arg) ;
   	LinkAfterStepConfig();
   	InitSession();
-	LoadColorScheme();
+	
 	
 	if( argc < 2)
 	{
@@ -194,6 +194,7 @@ int main(int argc, char **argv)
 	gtk_init( &argc, &argv);
 	gdk_display = gdk_display_get_default();
 	
+	LoadColorScheme();
 	ConnectXDisplay (gdk_x11_display_get_xdisplay(gdk_display), NULL, False);
 	ReloadASEnvironment( NULL, NULL, NULL, False, True );
     

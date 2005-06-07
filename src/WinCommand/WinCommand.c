@@ -67,6 +67,7 @@ struct ASWinCommandState
 	ASHashTable *handlers;
 	
 	int x_dest, y_dest; /* Move */
+	int new_width, new_height;
 
 }WinCommandState;
 
@@ -93,6 +94,7 @@ void Quit_WinCommand(void);
 /* Prototypes - Handlers: */
 
 void move_handler(ASWindowData *wd);
+void resize_handler(ASWindowData *wd);
 void kill_handler(ASWindowData *wd);
 void jump_handler(ASWindowData *wd);
 void ls_handler(ASWindowData *wd);
@@ -112,6 +114,22 @@ void move_handler(ASWindowData *wd)
 	/* Move window */
 	SendNumCommand ( F_MOVE, NULL, &(vals[0]), &(units[0]), wd->client );
 	
+}
+
+void resize_handler(ASWindowData *wd)
+{
+	/* used by SendNumCommand */
+	send_signed_data_type vals[2] ;	
+	send_signed_data_type units[2] ;
+	
+	LOCAL_DEBUG_OUT("Resize handler called");
+
+	/* Indicate that we're talking pixels. */
+	units[0] = units[1] = 1;
+	vals[0] = WinCommandState.new_width; vals[1] = WinCommandState.new_height;
+	/* Move window */
+	SendNumCommand ( F_RESIZE, NULL, &(vals[0]), &(units[0]), wd->client );
+
 }
 
 void kill_handler(ASWindowData *wd)
@@ -385,6 +403,7 @@ main( int argc, char **argv )
 	
 	/* Register handlers */
 	add_hash_item(WinCommandState.handlers, AS_HASHABLE(strdup("move")), move_handler);
+	add_hash_item(WinCommandState.handlers, AS_HASHABLE(strdup("resize")), resize_handler);
 	add_hash_item(WinCommandState.handlers, AS_HASHABLE(strdup("kill")), kill_handler);
 	add_hash_item(WinCommandState.handlers, AS_HASHABLE(strdup("jump")), jump_handler);
 	add_hash_item(WinCommandState.handlers, AS_HASHABLE(strdup("ls")), ls_handler);
@@ -409,6 +428,17 @@ main( int argc, char **argv )
 				i++;
 				WinCommandState.y_dest = atopixel( argv[i], Scr.MyDisplayHeight);
 			}
+			/* Resize */
+			else if( mystrcasecmp ( argv[i], "-width") == 0 && i+1 < argc && argv[i] != NULL)
+			{
+				i++;
+				WinCommandState.new_width = atopixel ( argv[i], Scr.MyDisplayWidth);
+			}else if( mystrcasecmp ( argv[i], "-height") == 0 && i+1 < argc && argv[i] != NULL)
+			{
+				i++;
+				WinCommandState.new_height = atopixel ( argv[i], Scr.MyDisplayHeight);
+			}
+			
 			/* generic */
 			else if( mystrcasecmp( argv[i], "-all") == 0)
 				set_flags( WinCommandState.flags, WINCOMMAND_ActOnAll );
