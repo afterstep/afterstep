@@ -31,7 +31,6 @@ main (int argc, char *argv[])
 			argv[i] = strdup(deleted_arg) ;
   	LinkAfterStepConfig();
   	InitSession();
-	LoadColorScheme();
 
 #ifdef ENABLE_NLS
   	bindtextdomain (GETTEXT_PACKAGE, PACKAGE_LOCALE_DIR);
@@ -43,6 +42,7 @@ main (int argc, char *argv[])
   	gtk_init (&argc, &argv);
 
 	gdk_display = gdk_display_get_default();
+	LoadColorScheme();
 	
 	ConnectXDisplay (gdk_x11_display_get_xdisplay(gdk_display), NULL, False);
 	ReloadASEnvironment( NULL, NULL, NULL, False, True );

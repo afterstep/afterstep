@@ -571,6 +571,7 @@ create_filechooserdialog2 (void)
   GtkWidget *button_file_open;
 
   filechooserdialog2 = gtk_file_chooser_dialog_new ("", NULL, GTK_FILE_CHOOSER_ACTION_OPEN, NULL);
+#if 0
   gtk_window_set_type_hint (GTK_WINDOW (filechooserdialog2), GDK_WINDOW_TYPE_HINT_DIALOG);
 
   dialog_vbox2 = GTK_DIALOG (filechooserdialog2)->vbox;
@@ -599,6 +600,7 @@ create_filechooserdialog2 (void)
                     NULL);
 
   gtk_widget_grab_default (button_file_open);
+#endif
   return filechooserdialog2;
 }
 
