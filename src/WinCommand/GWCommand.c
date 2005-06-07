@@ -16,6 +16,14 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
+#include "../../configure.h"
+#include "../../libAfterStep/asapp.h"
+#include "../../libAfterStep/module.h"
+#include "../../libAfterConf/afterconf.h"
+
+
+#include <gdk/gdkx.h>
+
 #include <gtk/gtk.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -162,6 +170,17 @@ usage(void)
 
 int main(int argc, char **argv)
 {
+	GdkDisplay *gdk_display ;
+	int i ; 
+	static char *deleted_arg = "_deleted_arg_" ;
+
+  	InitMyApp (CLASS_ASCP, argc, argv, NULL, NULL, 0 );
+	for( i = 1 ; i < argc ; ++i ) 
+		if( argv[i] == NULL ) 
+			argv[i] = deleted_arg ;
+  	LinkAfterStepConfig();
+  	InitSession();
+	LoadColorScheme();
 	
 	if( argc < 2)
 	{
@@ -173,6 +192,16 @@ int main(int argc, char **argv)
 	
 	
 	gtk_init( &argc, &argv);
+	gdk_display = gdk_display_get_default();
+	
+	ConnectXDisplay (gdk_x11_display_get_xdisplay(gdk_display), NULL, False);
+	ReloadASEnvironment( NULL, NULL, NULL, False, True );
+    
+	ConnectAfterStep (WINDOW_CONFIG_MASK |
+                      WINDOW_NAME_MASK |
+                      M_END_WINDOWLIST|
+				      M_NEW_DESKVIEWPORT, 0);
+	
 	init_gui( params, argv);
 	gtk_main();
 	

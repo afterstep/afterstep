@@ -1,6 +1,10 @@
-OBJS            = WinCommand.o
+OBJS_WINCOMMAND  = WinCommand.o
 
-PROG		= WinCommand
+OBJS_GWCOMMAND  = GWCommand.o
+
+OBJS            = $(OBJS_WINCOMMAND) $(OBJS_GWCOMMAND)
+
+PROG		= WinCommand GWCommand
 
 LIBS_PRIVATE      = $(LIB_AFTERCONF) $(LIB_AFTERSTEP) \
 					$(LIB_AFTERIMAGE) $(LIB_AFTERBASE) $(LIBS_AFTERIMAGE)
@@ -9,8 +13,14 @@ LIBS_DEPEND     = $(LIB_AFTERBASE) $(LIB_AFTERIMAGE) $(LIB_AFTERSTEP) \
 
 @MAKEFILECOMMON@
 
-$(PROG):        $(OBJS) $(LIBS_DEPEND)
-		$(CC) $(OBJS) $(LIBS_ALL) -o $(@)
+WinCommand:	        $(OBJS_WINCOMMAND) $(LIBS_DEPEND)
+		$(CC) $(OBJS_WINCOMMAND) $(LIBS_ALL) -o $(@)
+
+GWCommand.o:		GWCommand.c
+		$(CC) $(CCFLAGS) $(EXTRA_DEFINES) $(INCLUDES) $(EXTRA_INCLUDES) @ASCP_GTK_INCLUDES@ -c $*.c
+
+GWCommand:	        $(OBJS_GWCOMMAND) $(LIBS_DEPEND)
+		$(CC) $(OBJS_GWCOMMAND) $(LIBS_ALL) @ASCP_GTK_LIBS@ $(LIBS_AFTERIMAGE) -o $(@)
 
 module.clean:
 		
