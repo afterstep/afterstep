@@ -1,6 +1,7 @@
 
 2005-06-08  sasha
 
+	* libAfterImage release v.1.07
 	* fixed segfault on closing of asview
 
 2005-06-06  vae
