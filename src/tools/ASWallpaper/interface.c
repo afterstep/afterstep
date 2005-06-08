@@ -5,8 +5,8 @@
 #define LOCAL_DEBUG
 
 #include "../../../../configure.h"
-#include "../../../../libAfterImage/afterimage.h"
 #include "../../../../libAfterStep/asapp.h"
+#include "../../../../libAfterImage/afterimage.h"
 #include "../../../../libAfterStep/screen.h"
 #include "../../../../libAfterStep/colorscheme.h"
 
@@ -156,6 +156,7 @@ void
 on_list_add_clicked(GtkButton *button, gpointer user_data)
 {
 	GtkWidget *filechooser = create_filechooserdialog2();
+#if 1
 	if (gtk_dialog_run (GTK_DIALOG (filechooser)) == GTK_RESPONSE_ACCEPT)
   	{
     	char *filename;
@@ -166,6 +167,7 @@ on_list_add_clicked(GtkButton *button, gpointer user_data)
 	}
 
 	gtk_widget_destroy (filechooser);
+#endif
 }
 
 void
@@ -333,6 +335,7 @@ colorize_gtk_tree_view( GtkCellRenderer *cell, GtkTreeViewColumn *column )
 void  
 colorize_gtk_widget(GtkWidget *widget, gpointer data)
 {
+
 	GtkStyle *style = data?GTK_STYLE(data):NULL;
 	int i ; 
 
@@ -345,6 +348,7 @@ colorize_gtk_widget(GtkWidget *widget, gpointer data)
 	LOCAL_DEBUG_OUT( "widget %p", widget );
 	if( GTK_IS_CONTAINER(widget) )
 		gtk_container_forall( GTK_CONTAINER(widget), colorize_gtk_widget, data );
+
 }	 
 
 
@@ -455,7 +459,7 @@ create_backs_list()
 	}
 
 	/* adding list manipulation buttons : */
-  	
+
 	WallpaperState.list_add_button = create_list_button( buttons_hbox, GTK_STOCK_ADD, G_CALLBACK(on_list_add_clicked) );
 	WallpaperState.list_del_button = create_list_button( buttons_hbox, GTK_STOCK_DELETE, G_CALLBACK(on_list_del_clicked) );
 	WallpaperState.list_apply_button = create_list_button( buttons_hbox, GTK_STOCK_APPLY, G_CALLBACK(on_list_apply_clicked) );
@@ -570,7 +574,12 @@ create_filechooserdialog2 (void)
   GtkWidget *button_file_cancel;
   GtkWidget *button_file_open;
 
-  filechooserdialog2 = gtk_file_chooser_dialog_new ("", NULL, GTK_FILE_CHOOSER_ACTION_OPEN, NULL);
+  filechooserdialog2 = gtk_file_chooser_dialog_new ("Open File",
+				      GTK_WINDOW(WallpaperState.main_window),
+				      GTK_FILE_CHOOSER_ACTION_OPEN,
+				      GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+				      GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT,
+				      NULL);
 #if 0
   gtk_window_set_type_hint (GTK_WINDOW (filechooserdialog2), GDK_WINDOW_TYPE_HINT_DIALOG);
 

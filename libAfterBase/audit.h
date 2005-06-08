@@ -43,7 +43,7 @@ int as_assert (void *p, const char *fname, int line, const char *call);
 
 # define malloc(a) countmalloc(__FUNCTION__, __LINE__, a)
 # define safemalloc(a) countmalloc(__FUNCTION__, __LINE__, a)
-# define safecalloc(a,b) countcalloc(__FUNCTION__, __LINE__, a, b)
+# define safecalloc(a,b)   countcalloc(__FUNCTION__, __LINE__, a, b)
 # define calloc(a, b) countcalloc(__FUNCTION__, __LINE__, a, b)
 # define realloc(a, b) countrealloc(__FUNCTION__, __LINE__, a, b)
 # define free(a) countfree(__FUNCTION__, __LINE__, a)

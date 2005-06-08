@@ -231,7 +231,7 @@ add_hash_item (ASHashTable * hash, ASHashableValue value, void *data)
 }
 
 #ifdef DEBUG_ALLOCS
-#define safecalloc(a) countcalloc(__FUNCTION__, __LINE__, a,b)
+#define safecalloc(a,b) countcalloc(__FUNCTION__, __LINE__, a,b)
 #define add_hash_item(a,b,c) countadd_hash_item(__FUNCTION__, __LINE__,a,b,c)
 #define free(a) countfree(__FUNCTION__, __LINE__, a)
 #endif
@@ -360,7 +360,7 @@ sort_hash_items (ASHashTable * hash, ASHashableValue * values, void **data, unsi
 
 		if (max_items == 0)
 			max_items = hash->items_num;
-
+		
 		buckets = safecalloc (hash->buckets_used, sizeof (ASHashBucket));
 		for (i = 0; i < hash->size; i++)
 			if (hash->buckets[i])

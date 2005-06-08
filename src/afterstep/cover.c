@@ -24,6 +24,8 @@
 
 #include "../../configure.h"
 
+#include "asinternals.h"
+
 #include <stdarg.h>
 
 #if TIME_WITH_SYS_TIME
@@ -38,7 +40,6 @@
 #endif
 
 #include "../../libAfterStep/colorscheme.h"
-#include "asinternals.h"
 
 /**************************************************************************
  * Different Desktop change Animation types

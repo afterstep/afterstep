@@ -521,7 +521,7 @@ InitMyApp (  const char *app_class, int argc, char **argv, void (*version_func) 
 
     memset( &as_app_args, 0x00, sizeof(ASProgArgs) );
 	as_app_args.locale = mystrdup(AFTER_LOCALE);
-	if (strlen(as_app_args.locale) == 0)
+	if (as_app_args.locale[0] == '\0')
 	{
 		free( as_app_args.locale );
 		as_app_args.locale = mystrdup(getenv("LANG"));
