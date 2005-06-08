@@ -156,6 +156,10 @@ int main(int argc, char* argv[])
 			/* see common.c:set_window_background_and_free(): */
 			p = set_window_background_and_free( w, p );
 		}
+		/* no longer need this - lets clean it up :*/
+		destroy_asvisual( asv, False );
+		asv = NULL ;
+
 		/* see common.c: wait_closedown() : */
 		wait_closedown(w);
 #else
@@ -163,8 +167,6 @@ int main(int argc, char* argv[])
 		ASImage2file( im, NULL, "asview.jpg", ASIT_Jpeg, NULL );
 #endif
 	}
-	if( asv ) 
-		destroy_asvisual( asv, False );
 
 #ifdef DEBUG_ALLOCS
     flush_ashash_memory_pool();
