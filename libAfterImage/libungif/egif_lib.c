@@ -204,9 +204,10 @@ int EGifPutScreenDesc(GifFileType *GifFile,
     /* Put the screen descriptor into the file: */
     EGifPutWord(Width, GifFile);
     EGifPutWord(Height, GifFile);
-    Buf[0] = (ColorMap ? 0x80 : 0x00) |
-	     ((ColorRes - 1) << 4) |
-	     (ColorMap->BitsPerPixel - 1);
+	if( ColorMap ) 
+    	Buf[0] = 0x80 | ((ColorRes - 1) << 4) |	(ColorMap->BitsPerPixel - 1);
+	else
+    	Buf[0] = 0x00 | ((ColorRes - 1) << 4) ;
     Buf[1] = BackGround;
     Buf[2] = 0;
 #ifndef DEBUG_NO_PREFIX

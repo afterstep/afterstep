@@ -1058,7 +1058,7 @@ static ASImage *
 handle_asxml_tag_color( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm)
 {
 	xml_elem_t* ptr ;
-	const char* name = NULL;
+	char* name = NULL;
 	const char* argb_text = NULL;
 	const char* var_domain = NULL;
 	LOCAL_DEBUG_OUT("doc = %p, parm = %p", doc, parm ); 
@@ -1110,7 +1110,8 @@ handle_asxml_tag_color( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* par
 			sprintf( tmp+vd_len, "%s.value", name );
 			asxml_var_insert( tmp, val162percent( val16 ) );
 			free( tmp );
-		}
+		}else
+			free( name );
 	}
 	return NULL;
 }
@@ -2186,7 +2187,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 
 
 	/* No match so far... see if one of our children can do any better.*/
-	if (!result) 
+	if (!result  && doc ) 
 	{
 		xml_elem_t* tparm = NULL;
 		for (ptr = doc->child ; ptr && !result ; ptr = ptr->next) 

@@ -939,7 +939,7 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
         check_side_canvas( asw, od->sbar_side, False );
         check_side_canvas( asw, od->left_side, False );
         check_side_canvas( asw, od->right_side, False );
-    }else if( frame != old_frame || (get_flags( old_hints->flags, AS_Handles ) != ASWIN_HFLAGS(asw, AS_Handles)))
+    }else if( frame != old_frame || (old_hints && get_flags( old_hints->flags, AS_Handles ) != ASWIN_HFLAGS(asw, AS_Handles)))
 	{
 	    check_side_canvas( asw, od->sbar_side, myframe_has_parts(frame, FRAME_BTM_MASK) );
   		check_side_canvas( asw, od->left_side, myframe_has_parts(frame, FRAME_LEFT_MASK) );

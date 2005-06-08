@@ -253,9 +253,8 @@ LOCAL_DEBUG_OUT("Incoming message in proto 1%s","");
 		{
             /* for module->afterstep communications - 32 bit values are always used : */
             CARD32        curr_len;
-            CARD32        tmp32, tmp32_val[2], tmp32_unit[2] ;
+            CARD32        tmp32, tmp32_val[2] = {0,0}, tmp32_unit[2] = {0,0} ;
 			register FunctionData *pfunc = ibuf->func;
-            int i ;
 
 LOCAL_DEBUG_OUT("Incoming message in proto 2%s","");
             if (pfunc == NULL)
@@ -298,15 +297,24 @@ LOCAL_DEBUG_OUT("Incoming message in proto 2%s","");
 			}
             LOCAL_DEBUG_OUT( "text_size = %ld, pfunc->text = %p", ibuf->text_size, pfunc->text );
             if (res > 0)
+			{	
                 res = ReadModuleInput (module, &offset, sizeof (tmp32_val), &(tmp32_val[0]));
+				if (res > 0)
+				{	
+    	        	pfunc->func_val[0] = tmp32_val[0] ;
+					pfunc->func_val[1] = tmp32_val[1] ;
+				}
+			}
+
 
 			if (res > 0)
+			{	
                 res = ReadModuleInput (module, &offset, sizeof (tmp32_unit), &(tmp32_unit[0]));
-
-            for( i = 0 ; i < MAX_FUNC_ARGS ; ++i )
-            {
-                pfunc->func_val[i] = tmp32_val[i] ;
-                pfunc->unit_val[i] = tmp32_unit[i] ;
+				if (res > 0)
+				{	
+					pfunc->unit_val[0] = tmp32_unit[0] ;
+					pfunc->unit_val[1] = tmp32_unit[1] ;
+				}
             }
 
 			if (res > 0 && IsValidFunc (pfunc->func))

@@ -1299,18 +1299,17 @@ LOCAL_DEBUG_OUT( "protocols=0x%lX", protocols );
 		if( extwm_nitems > 0 )
 		{
 			int i ;
-			list = realloc( list, sizeof(CARD32)*extwm_nitems );
+			list = realloc( list, sizeof(CARD32)*(nitems+extwm_nitems) );
 			for( i = 0  ; i < extwm_nitems ; ++i )
 				list[nitems+i] = extwm_list[i] ;
 			free( extwm_list );
 			nitems += extwm_nitems ;
 		}	 
 
-        if (nitems > 0)
-		{
+        if (nitems > 0 && list )
 			set_32bit_proplist (w, _XA_WM_PROTOCOLS, XA_ATOM, list, nitems);
+		if( list )
 			free (list);
-		}
 	}
 }
 

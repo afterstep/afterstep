@@ -278,19 +278,19 @@ Bool compare_names( ASHints *old, ASHints *hints );
 ASFlagType compare_hints( ASHints *old, ASHints *hints );
 ASFlagType function2mask( int function );
 void constrain_size ( ASHints *hints, ASStatusHints *status,
-                 	  unsigned int max_width, unsigned int max_height );
+                 	  int max_width, int max_height );
 void get_gravity_offsets (ASHints *hints, int *xp, int *yp);
 int translate_asgeometry( struct ScreenInfo *scr, ASGeometry *asg, int *px, int *py, unsigned int *pwidth, unsigned int *pheight );
 void real2virtual (ASStatusHints *status, int *x, int *y, int vx, int vy );
 void virtual2real (ASStatusHints *status, int *x, int *y, int vx, int vy);
-int make_anchor_pos (ASStatusHints * status, int pos, unsigned int size, int vpos, int grav, int max_pos);
+int make_anchor_pos (ASStatusHints * status, int pos, int size, int vpos, int grav, int max_pos);
 void make_detach_pos (ASHints * hints, ASStatusHints * status, XRectangle *anchor, int *detach_x, int *detach_y);
 ASFlagType change_placement( struct ScreenInfo *scr, ASHints *hints, ASStatusHints *status, XPoint *anchor, ASStatusHints *new_status, int vx, int vy, ASFlagType what );
 
-void status2anchor( XRectangle *anchor, struct ASHints *hints, struct ASStatusHints *status, unsigned int vwidth, unsigned int vheight );
+void status2anchor( XRectangle *anchor, struct ASHints *hints, struct ASStatusHints *status, int vwidth, int vheight );
 void anchor2status( struct ASStatusHints *status, struct ASHints *hints, XRectangle *anchor );
 
-int calculate_viewport( int *pos, unsigned int size, unsigned int scr_vpos, unsigned int scr_size, int max_viewport );
+int calculate_viewport( int *pos, int size, int scr_vpos, int scr_size, int max_viewport );
 char *make_client_geometry_string (struct ScreenInfo * scr, ASHints *hints, ASStatusHints *status, XRectangle *anchor, int vx, int vy, char **pure_geometry);
 char *make_client_command( struct ScreenInfo *scr, ASHints *hints, ASStatusHints *status, XRectangle *anchor, int vx, int vy);
 

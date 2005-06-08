@@ -1379,7 +1379,7 @@ rearrange_tabs( Bool dont_resize_window )
     if( i >= tabs_num )    
         y += tab_height ; 
     
-    if( (moveresize_canvas( WinTabsState.tabs_canvas, 0, 0, max_x, y )&CANVAS_RESIZED)!= 0 );
+    if( (moveresize_canvas( WinTabsState.tabs_canvas, 0, 0, max_x, y )&CANVAS_RESIZED)!= 0 )
 		render_tabs(True);
     
     max_y -= y ;
@@ -1617,7 +1617,7 @@ check_swallow_window( ASWindowData *wd )
 	ASWinTab *aswt = NULL ;
 	int i = 0;
 
-    if( wd == NULL && !get_flags( wd->state_flags, AS_Mapped))
+    if( wd == NULL || !get_flags( wd->state_flags, AS_Mapped))
         return;
 
 	if( wd->client == WinTabsState.main_window )

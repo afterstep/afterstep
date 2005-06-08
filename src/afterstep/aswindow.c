@@ -130,8 +130,8 @@ char *pid2cmd ( int pid )
 			buf[MAX_CMDLINE_SIZE-1] = '\0' ;
 			cmd = mystrdup( &buf[0] );
 		}		
+	    fclose (f);
 	}
-    fclose (f);
 	return cmd;
 }
 

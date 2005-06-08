@@ -91,10 +91,10 @@ dirtree_delete (dirtree_t * tree)
 		dirtree_delete (tree->child);
 
 	/* free members */
-	if (tree->name != NULL)
-		free (tree->name);
 	if (tree->stripped_name != NULL && tree->stripped_name != tree->name )
 		free (tree->stripped_name);
+	if (tree->name != NULL)
+		free (tree->name);
 	if (tree->path != NULL)
 		free (tree->path);
 	if (tree->icon != NULL)
@@ -260,12 +260,14 @@ dirtree_parse (dirtree_t * tree, const char *file)
 	FILE         *fp;
 	char         *str;
 
+	ASSERT_TREE_INT(tree,1);
+	
 	if( file == NULL ) 
 		return 1 ;
+	
 	if ((fp = fopen (file, "r")) == NULL)
 		return 1;
 	
-	ASSERT_TREE_INT(tree,1);
 	
 	str = safemalloc (8192);
 	while (fgets (str, 8192, fp) != NULL)

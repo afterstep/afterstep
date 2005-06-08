@@ -141,8 +141,8 @@ parse_func (const char *text, FunctionData * data, int quiet)
 			} else if (isdigit (*ptr))
 			{
 				int           count;
-				char          unit;
-				int           val;
+				char          unit = '\0';
+				int           val = 0;
 
 				for (count = 1; isdigit (*(ptr + count)); count++);
 				if (*(ptr + count) != '\0' && !isspace (*(ptr + count)))

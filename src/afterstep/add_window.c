@@ -528,34 +528,34 @@ LOCAL_DEBUG_CALLER_OUT("%p, %d", asw, restart );
                startups are transparent for it */
             map_too = True ;
         }
-    }
-    /*
-     * Prevent the receipt of an UnmapNotify, since that would
-     * cause a transition to the Withdrawn state.
-     */
-    if( !ASWIN_GET_FLAGS(asw, AS_Dead) )
-    {
-        XSelectInput (dpy, asw->w, NoEventMask);
-        if( get_parent_window( asw->w ) == asw->frame )
-        {
-            ASStatusHints withdrawn_state ;
-            /* !!! Most of it has been done in datach_basic_widget : */
-            XReparentWindow (dpy, asw->w, Scr.Root, x, y);
-            withdrawn_state.flags = AS_Withdrawn ;
-            withdrawn_state.icon_window = None ;
-            set_client_state( asw->w, &withdrawn_state );
+    	/*
+     	* Prevent the receipt of an UnmapNotify, since that would
+     	* cause a transition to the Withdrawn state.
+     	*/
+    	if( !ASWIN_GET_FLAGS(asw, AS_Dead) )
+    	{
+        	XSelectInput (dpy, asw->w, NoEventMask);
+        	if( get_parent_window( asw->w ) == asw->frame )
+        	{
+            	ASStatusHints withdrawn_state ;
+            	/* !!! Most of it has been done in datach_basic_widget : */
+            	XReparentWindow (dpy, asw->w, Scr.Root, x, y);
+            	withdrawn_state.flags = AS_Withdrawn ;
+            	withdrawn_state.icon_window = None ;
+            	set_client_state( asw->w, &withdrawn_state );
 
-            if( width > 0 && height > 0 )
-                XResizeWindow( dpy, asw->w, width, height );
-            XSetWindowBorderWidth (dpy, asw->w, bw);
+            	if( width > 0 && height > 0 )
+                	XResizeWindow( dpy, asw->w, width, height );
+            	XSetWindowBorderWidth (dpy, asw->w, bw);
 
-            if( map_too )
-                XMapWindow (dpy, asw->w);
-            XSync( dpy, False );
-        }
-        /* signaling client that we no longer handle it : */
-        set_multi32bit_property (asw->w, _XA_WM_STATE, _XA_WM_STATE, 2, WithdrawnState, None);
-    }
+            	if( map_too )
+                	XMapWindow (dpy, asw->w);
+            	XSync( dpy, False );
+        	}
+        	/* signaling client that we no longer handle it : */
+        	set_multi32bit_property (asw->w, _XA_WM_STATE, _XA_WM_STATE, 2, WithdrawnState, None);
+    	}
+	}
 }
 
 /**********************************************************************/

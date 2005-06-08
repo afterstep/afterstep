@@ -442,8 +442,8 @@ DestroyConfig (ConfigDef * config)
 	if (config->current_data)
 		free (config->current_data);
 	while (PopSyntax (config));
-	if (config->current_syntax);
-	free (config->current_syntax);
+	if (config->current_syntax)
+		free (config->current_syntax);
 	while (PopStorage (config));
 	if (config->current_prepend)
 		free (config->current_prepend);

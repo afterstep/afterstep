@@ -345,7 +345,7 @@ InstallWindowColormaps (ASWindow *asw)
     Window        main_w = Scr.Root ;
 
 	/* If no window, then install root colormap */
-    if ( asw != NULL )
+    if ( asw != NULL && !ASWIN_GET_FLAGS(asw, AS_Dead))
     {
         if (asw->hints && asw->hints->cmap_windows != NULL)
         {
@@ -364,7 +364,7 @@ InstallWindowColormaps (ASWindow *asw)
         }
         main_w = asw->w ;
     }
-    if (!main_cmap_installed && !ASWIN_GET_FLAGS(asw, AS_Dead) )
+    if (!main_cmap_installed )
 	{
         XGetWindowAttributes (dpy, main_w, &attr);
         if( attr.colormap )
@@ -380,7 +380,7 @@ UninstallWindowColormaps (ASWindow *asw)
     Window        main_w = Scr.Root ;
 
 	/* If no window, then install root colormap */
-    if ( asw != NULL )
+    if ( asw != NULL && !ASWIN_GET_FLAGS(asw, AS_Dead))
     {
         if (asw->hints && asw->hints->cmap_windows != NULL)
         {
@@ -398,7 +398,7 @@ UninstallWindowColormaps (ASWindow *asw)
         }
         main_w = asw->w ;
     }
-    if (!main_cmap_done && !ASWIN_GET_FLAGS(asw, AS_Dead))
+    if (!main_cmap_done)
 	{
         XGetWindowAttributes (dpy, main_w, &attr);
         uninstall_colormap(attr.colormap, main_w);

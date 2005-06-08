@@ -2262,14 +2262,15 @@ slice_asimage( ASVisual *asv, ASImage *src,
 			   unsigned int compression_out, int quality )
 {
 	ASImage *dst = NULL ;
-	ASImageDecoder *imdec ;
-	ASImageOutput  *imout ;
+	ASImageDecoder *imdec = NULL ;
+	ASImageOutput  *imout = NULL ;
 	START_TIME(started);
 
 LOCAL_DEBUG_CALLER_OUT( "sx1 = %d, sx2 = %d, sy1 = %d, sy2 = %d, to_width = %d, to_height = %d", slice_x_start, slice_x_end, slice_y_start, slice_y_end, to_width, to_height );
-	if( src && (imdec = start_image_decoding(asv, src, SCL_DO_ALL, 0, 0, src->width, 0, NULL)) == NULL )
+	if( src == NULL )
 		return NULL;
-
+	if( (imdec = start_image_decoding(asv, src, SCL_DO_ALL, 0, 0, src->width, 0, NULL)) == NULL )
+		return NULL;
 	if( slice_x_end == 0 && slice_x_start > 0 ) 
 		slice_x_end = slice_x_start + 1 ;
 	if( slice_y_end == 0 && slice_y_start > 0 ) 

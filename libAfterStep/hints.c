@@ -1554,7 +1554,7 @@ function2mask (int function)
  ****************************************************************************/
 
 void
-constrain_size (ASHints * hints, ASStatusHints * status, unsigned int max_width, unsigned int max_height)
+constrain_size (ASHints * hints, ASStatusHints * status, int max_width, int max_height)
 {
     int minWidth = 1, minHeight = 1;
     int xinc = 1, yinc = 1, delta;
@@ -1719,7 +1719,7 @@ translate_asgeometry (ScreenInfo * scr, ASGeometry * asg, int *px, int *py, unsi
 		} else if (get_flags (asg->flags, YNegative))
 			grav = SouthWestGravity;
 	}
-	if (get_flags (asg->flags, WidthValue))
+	if ( asg && get_flags (asg->flags, WidthValue))
 	{
 		width = asg->width;
 		if (pwidth)
@@ -1727,46 +1727,52 @@ translate_asgeometry (ScreenInfo * scr, ASGeometry * asg, int *px, int *py, unsi
 	} else if (pwidth)
 		width = *pwidth;
 
-	if (get_flags (asg->flags, HeightValue))
+	if (asg && get_flags (asg->flags, HeightValue))
 	{
 		height = asg->height;
 		if (pheight)
 			*pheight = height;
 	} else if (pheight)
 		height = *pheight;
-
-	if (get_flags (asg->flags, XValue) && px)
-	{
-		if (get_flags (asg->flags, XNegative))
+	if( asg )
+	{	
+		if (get_flags (asg->flags, XValue) && px)
 		{
-			if (asg->x <= 0)
-				*px = scr->MyDisplayWidth + asg->x;
-			else
-				*px = scr->MyDisplayWidth - asg->x;
-			*px -= width;
-		} else
-			*px = asg->x;
-	}
-	if (get_flags (asg->flags, YValue) && py)
-	{
-		if (get_flags (asg->flags, YNegative))
+			if (get_flags (asg->flags, XNegative))
+			{
+				if (asg->x <= 0)
+					*px = scr->MyDisplayWidth + asg->x;
+				else
+					*px = scr->MyDisplayWidth - asg->x;
+				*px -= width;
+			} else
+				*px = asg->x;
+		}
+		if (get_flags (asg->flags, YValue) && py)
 		{
-			if (asg->x <= 0)
-				*py = scr->MyDisplayHeight + asg->y;
-			else
-				*py = scr->MyDisplayHeight - asg->y;
-			*py -= height;
-		} else
-			*py = asg->y;
-	}
+			if (get_flags (asg->flags, YNegative))
+			{
+				if (asg->x <= 0)
+					*py = scr->MyDisplayHeight + asg->y;
+				else
+					*py = scr->MyDisplayHeight - asg->y;
+				*py -= height;
+			} else
+				*py = asg->y;
+		}
+	}else
+	{
+		if( px ) *px = 0 ;	
+		if( py ) *py = 0 ;
+	}	 
 
 	return grav;
 }
 
 int
-make_anchor_pos (ASStatusHints * status, int pos, unsigned int size, int vpos, int grav, int max_pos)
+make_anchor_pos (ASStatusHints * status, int pos, int size, int vpos, int grav, int max_pos)
 {											   /* anchor position is always in virtual coordinates */
-	unsigned int  bw = 0;
+	int  bw = 0;
 
 	if (get_flags (status->flags, AS_StartBorderWidth))
 		bw = status->border_width;
@@ -1884,7 +1890,7 @@ make_detach_pos (ASHints * hints, ASStatusHints * status, XRectangle *anchor, in
  */
 
 void
-status2anchor (XRectangle * anchor, ASHints * hints, ASStatusHints * status, unsigned int vwidth, unsigned int vheight)
+status2anchor (XRectangle * anchor, ASHints * hints, ASStatusHints * status, int vwidth, int vheight)
 {
 	if (get_flags (status->flags, AS_Size))
 	{
@@ -2052,7 +2058,7 @@ change_placement (ScreenInfo * scr, ASHints * hints, ASStatusHints * status, XPo
 }
 
 int
-calculate_viewport (int *pos, unsigned int size, unsigned int scr_vpos, unsigned int scr_size, int max_viewport)
+calculate_viewport (int *pos, int size, int scr_vpos, int scr_size, int max_viewport)
 {
 	int           viewport = -1;
 

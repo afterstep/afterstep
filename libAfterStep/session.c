@@ -836,7 +836,7 @@ get_session_file (ASSession * session, int desk, int function, Bool no_default)
             return session->overriding_look ;
         if( session->overriding_feel && function == F_CHANGE_FEEL )
             return session->overriding_feel ;
-        if( session->overriding_theme && ( function == F_CHANGE_THEME || F_CHANGE_THEME_FILE ))
+        if( session->overriding_theme && ( function == F_CHANGE_THEME || function == F_CHANGE_THEME_FILE ))
             return session->overriding_theme ;
         if( session->overriding_colorscheme && function == F_CHANGE_COLORSCHEME )
             return session->overriding_colorscheme ;

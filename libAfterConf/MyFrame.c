@@ -504,132 +504,135 @@ ProcessMyFrameOptions (FreeStorageElem * options, MyFrameDefinition ** tail)
             fd = AddMyFrameDefinition (tail);
 
         rel_id = options->term->id - MYFRAME_START_ID;
-        if (rel_id == 0)
-		{
-            if (fd->name != NULL)
+		if( fd ) 
+		{	
+        	if (rel_id == 0 )
 			{
-				show_error("MyFrame \"%s\": Previous MyFrame definition [%s] was not terminated correctly, and will be ignored.",
-                           item.data.string, fd->name);
-				DestroyMyFrameDefinitions (tail);
-                fd = AddMyFrameDefinition (tail);
-			}
-            set_string_value (&(fd->name), item.data.string, NULL, 0);
-        } else if( rel_id <= FRAME_PARTS )
-		{
-            --rel_id ;
-            set_string_value (&(fd->parts[rel_id]), item.data.string, &(fd->set_parts), (0x01<<rel_id));
-            set_flags( fd->parts_mask, (0x01<<rel_id));
-        }else
-        {
-            rel_id = item.index ;
-            LOCAL_DEBUG_OUT( "item.index = %d", item.index );
-            if( rel_id < 0 || rel_id >= FRAME_PARTS )
-                rel_id = 0 ;
-            switch( options->term->id )
-            {
-                case MYFRAME_Side_ID :
-                case MYFRAME_Corner_ID :
-                    set_string_value (&(fd->parts[rel_id]), item.data.string, &(fd->set_parts), (0x01<<rel_id));
-                    set_flags( fd->parts_mask, (0x01<<rel_id));
-                    break;
-                case MYFRAME_TitleUnfocusedStyle_ID :
-                    set_string_value (&(fd->title_styles[BACK_UNFOCUSED]), item.data.string, NULL, 0);
-                    break;
-                case MYFRAME_TitleFocusedStyle_ID :
-                    set_string_value (&(fd->title_styles[BACK_FOCUSED]), item.data.string, NULL, 0);
-                    break;
-                case MYFRAME_TitleStickyStyle_ID :
-                    set_string_value (&(fd->title_styles[BACK_STICKY]), item.data.string, NULL, 0);
-                    break;
-                case MYFRAME_FrameUnfocusedStyle_ID :
-                    set_string_value (&(fd->frame_styles[BACK_UNFOCUSED]), item.data.string, NULL, 0);
-                    break;
-                case MYFRAME_FrameFocusedStyle_ID :
-                    set_string_value (&(fd->frame_styles[BACK_FOCUSED]), item.data.string, NULL, 0);
-                    break;
-                case MYFRAME_FrameStickyStyle_ID :
-                    set_string_value (&(fd->frame_styles[BACK_STICKY]), item.data.string, NULL, 0);
-                    break;
-                case MYFRAME_SideSize_ID :
-                case MYFRAME_CornerSize_ID :
-                    if( get_flags( item.data.geometry.flags, WidthValue) )
-                        fd->part_width[rel_id] = item.data.geometry.width ;
-                    else
-                        fd->part_width[rel_id] = 0 ;
-                    if( get_flags( item.data.geometry.flags, HeightValue) )
-                        fd->part_length[rel_id] = item.data.geometry.height ;
-                    else
-                        fd->part_length[rel_id] = 0 ;
-                    set_flags( fd->set_part_size, (0x01<<rel_id));
-                    break;
-                case MYFRAME_TitleCM_ID :
-                    fd->title_fcm = item.data.integer;
-                    fd->title_ucm = item.data.integer;
-                    fd->title_scm = item.data.integer;
-                    set_flags( fd->set_title_attr, MYFRAME_TitleCMSet );
-                    break;
-                case MYFRAME_TitleFCM_ID :
-                    fd->title_fcm = item.data.integer;
-                    set_flags( fd->set_title_attr, MYFRAME_TitleFCMSet );
-                    break;
-                case MYFRAME_TitleUCM_ID :
-                    fd->title_ucm = item.data.integer;
-                    set_flags( fd->set_title_attr, MYFRAME_TitleUCMSet );
-                    break;
-                case MYFRAME_TitleSCM_ID :
-                    fd->title_scm = item.data.integer;
-                    set_flags( fd->set_title_attr, MYFRAME_TitleSCMSet );
-                    break;
-                case MYFRAME_TitleFHue_ID :
-					set_string_value (&(fd->title_fhue), item.data.string, &(fd->set_title_attr), MYFRAME_TitleFHueSet);
-                    break;
-                case MYFRAME_TitleUHue_ID :
-					set_string_value (&(fd->title_uhue), item.data.string, &(fd->set_title_attr), MYFRAME_TitleUHueSet);
-                    break;
-                case MYFRAME_TitleSHue_ID :
-					set_string_value (&(fd->title_shue), item.data.string, &(fd->set_title_attr), MYFRAME_TitleSHueSet);
-                    break;
-                case MYFRAME_TitleFSat_ID :
-                    fd->title_fsat = item.data.integer;
-                    set_flags( fd->set_title_attr, MYFRAME_TitleFSatSet );
-                    break;
-                case MYFRAME_TitleUSat_ID :
-                    fd->title_usat = item.data.integer;
-                    set_flags( fd->set_title_attr, MYFRAME_TitleUSatSet );
-                    break;
-                case MYFRAME_TitleSSat_ID :
-                    fd->title_ssat = item.data.integer;
-                    set_flags( fd->set_title_attr, MYFRAME_TitleSSatSet );
-                    break;
-                case MYFRAME_TitleHSpacing_ID :
-                    fd->title_h_spacing = item.data.integer;
-                    set_flags( fd->set_title_attr, MYFRAME_TitleHSpacingSet );
-                    break;
-                case MYFRAME_TitleVSpacing_ID :
-                    fd->title_v_spacing = item.data.integer;
-                    set_flags( fd->set_title_attr, MYFRAME_TitleVSpacingSet );
-                    break;
+            	if (fd->name != NULL)
+				{
+					show_error("MyFrame \"%s\": Previous MyFrame definition [%s] was not terminated correctly, and will be ignored.",
+                           	item.data.string, fd->name);
+					DestroyMyFrameDefinitions (tail);
+                	fd = AddMyFrameDefinition (tail);
+				}
+            	set_string_value (&(fd->name), item.data.string, NULL, 0);
+        	} else if( rel_id <= FRAME_PARTS )
+			{
+            	--rel_id ;
+            	set_string_value (&(fd->parts[rel_id]), item.data.string, &(fd->set_parts), (0x01<<rel_id));
+            	set_flags( fd->parts_mask, (0x01<<rel_id));
+        	}else
+        	{
+            	rel_id = item.index ;
+            	LOCAL_DEBUG_OUT( "item.index = %d", item.index );
+            	if( rel_id < 0 || rel_id >= FRAME_PARTS )
+                	rel_id = 0 ;
+            	switch( options->term->id )
+            	{
+                	case MYFRAME_Side_ID :
+                	case MYFRAME_Corner_ID :
+                    	set_string_value (&(fd->parts[rel_id]), item.data.string, &(fd->set_parts), (0x01<<rel_id));
+                    	set_flags( fd->parts_mask, (0x01<<rel_id));
+                    	break;
+                	case MYFRAME_TitleUnfocusedStyle_ID :
+                    	set_string_value (&(fd->title_styles[BACK_UNFOCUSED]), item.data.string, NULL, 0);
+                    	break;
+                	case MYFRAME_TitleFocusedStyle_ID :
+                    	set_string_value (&(fd->title_styles[BACK_FOCUSED]), item.data.string, NULL, 0);
+                    	break;
+                	case MYFRAME_TitleStickyStyle_ID :
+                    	set_string_value (&(fd->title_styles[BACK_STICKY]), item.data.string, NULL, 0);
+                    	break;
+                	case MYFRAME_FrameUnfocusedStyle_ID :
+                    	set_string_value (&(fd->frame_styles[BACK_UNFOCUSED]), item.data.string, NULL, 0);
+                    	break;
+                	case MYFRAME_FrameFocusedStyle_ID :
+                    	set_string_value (&(fd->frame_styles[BACK_FOCUSED]), item.data.string, NULL, 0);
+                    	break;
+                	case MYFRAME_FrameStickyStyle_ID :
+                    	set_string_value (&(fd->frame_styles[BACK_STICKY]), item.data.string, NULL, 0);
+                    	break;
+                	case MYFRAME_SideSize_ID :
+                	case MYFRAME_CornerSize_ID :
+                    	if( get_flags( item.data.geometry.flags, WidthValue) )
+                        	fd->part_width[rel_id] = item.data.geometry.width ;
+                    	else
+                        	fd->part_width[rel_id] = 0 ;
+                    	if( get_flags( item.data.geometry.flags, HeightValue) )
+                        	fd->part_length[rel_id] = item.data.geometry.height ;
+                    	else
+                        	fd->part_length[rel_id] = 0 ;
+                    	set_flags( fd->set_part_size, (0x01<<rel_id));
+                    	break;
+                	case MYFRAME_TitleCM_ID :
+                    	fd->title_fcm = item.data.integer;
+                    	fd->title_ucm = item.data.integer;
+                    	fd->title_scm = item.data.integer;
+                    	set_flags( fd->set_title_attr, MYFRAME_TitleCMSet );
+                    	break;
+                	case MYFRAME_TitleFCM_ID :
+                    	fd->title_fcm = item.data.integer;
+                    	set_flags( fd->set_title_attr, MYFRAME_TitleFCMSet );
+                    	break;
+                	case MYFRAME_TitleUCM_ID :
+                    	fd->title_ucm = item.data.integer;
+                    	set_flags( fd->set_title_attr, MYFRAME_TitleUCMSet );
+                    	break;
+                	case MYFRAME_TitleSCM_ID :
+                    	fd->title_scm = item.data.integer;
+                    	set_flags( fd->set_title_attr, MYFRAME_TitleSCMSet );
+                    	break;
+                	case MYFRAME_TitleFHue_ID :
+						set_string_value (&(fd->title_fhue), item.data.string, &(fd->set_title_attr), MYFRAME_TitleFHueSet);
+                    	break;
+                	case MYFRAME_TitleUHue_ID :
+						set_string_value (&(fd->title_uhue), item.data.string, &(fd->set_title_attr), MYFRAME_TitleUHueSet);
+                    	break;
+                	case MYFRAME_TitleSHue_ID :
+						set_string_value (&(fd->title_shue), item.data.string, &(fd->set_title_attr), MYFRAME_TitleSHueSet);
+                    	break;
+                	case MYFRAME_TitleFSat_ID :
+                    	fd->title_fsat = item.data.integer;
+                    	set_flags( fd->set_title_attr, MYFRAME_TitleFSatSet );
+                    	break;
+                	case MYFRAME_TitleUSat_ID :
+                    	fd->title_usat = item.data.integer;
+                    	set_flags( fd->set_title_attr, MYFRAME_TitleUSatSet );
+                    	break;
+                	case MYFRAME_TitleSSat_ID :
+                    	fd->title_ssat = item.data.integer;
+                    	set_flags( fd->set_title_attr, MYFRAME_TitleSSatSet );
+                    	break;
+                	case MYFRAME_TitleHSpacing_ID :
+                    	fd->title_h_spacing = item.data.integer;
+                    	set_flags( fd->set_title_attr, MYFRAME_TitleHSpacingSet );
+                    	break;
+                	case MYFRAME_TitleVSpacing_ID :
+                    	fd->title_v_spacing = item.data.integer;
+                    	set_flags( fd->set_title_attr, MYFRAME_TitleVSpacingSet );
+                    	break;
 
-                case MYFRAME_Inherit_ID :
-                    {
-                        fd->inheritance_list = realloc( fd->inheritance_list, (fd->inheritance_num+1)*sizeof(char*));
-                        fd->inheritance_list[fd->inheritance_num] = item.data.string ;
-                        ++(fd->inheritance_num);
-                    }
-                    break;
-                default:
-					{
-						int index = options->term->id - MYFRAME_TitleBackground_ID_START ;
-						if( index >= 0 && index < MYFRAME_TITLE_BACKS )
+                	case MYFRAME_Inherit_ID :
+                    	{
+                        	fd->inheritance_list = realloc( fd->inheritance_list, (fd->inheritance_num+1)*sizeof(char*));
+                        	fd->inheritance_list[fd->inheritance_num] = item.data.string ;
+                        	++(fd->inheritance_num);
+                    	}
+                    	break;
+                	default:
 						{
-		                    set_string_value (&(fd->title_backs[index]), item.data.string, NULL, 0);
-						}else
-						{
-							item.ok_to_free = 1;
-        		            show_warning( "Unexpected MyFrame definition keyword \"%s\" . Ignoring.", options->term->keyword );
+							int index = options->term->id - MYFRAME_TitleBackground_ID_START ;
+							if( index >= 0 && index < MYFRAME_TITLE_BACKS )
+							{
+		                    	set_string_value (&(fd->title_backs[index]), item.data.string, NULL, 0);
+							}else
+							{
+								item.ok_to_free = 1;
+        		            	show_warning( "Unexpected MyFrame definition keyword \"%s\" . Ignoring.", options->term->keyword );
+							}
 						}
-					}
-            }
+            	}
+			}    
         }
     }
     if (fd != NULL )

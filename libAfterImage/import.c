@@ -840,7 +840,7 @@ png2ASImage( const char * path, ASImageImportParams *params )
 						raw2scanline( row_pointers[y], &buf, NULL, buf.width, grayscale, do_alpha );
 						im->channels[IC_RED][y] = store_data( NULL, (CARD8*)buf.red, buf.width*4, rgb_flags, 0);
 					}else
-						im->channels[IC_RED][y] = store_data( NULL, row_pointers[y], buf.width, rgb_flags, 0);
+						im->channels[IC_RED][y] = store_data( NULL, row_pointers[y], im->width, rgb_flags, 0);
 					
 					if( grayscale ) 
 					{	

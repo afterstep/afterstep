@@ -719,8 +719,9 @@ store_colors( CARD8 *data, ASScanline *curr_buf, int bpp, int comp, int offset_x
 	}else
 		out = &(curr_buf->alpha[offset_x]);
 
-	for( i = 0 ; i < width ; i++ )
-		out[i] = data[i] ;
+	if( out ) 
+  		for( i = 0 ; i < width ; i++ )
+			out[i] = data[i] ;
 }
 
 void

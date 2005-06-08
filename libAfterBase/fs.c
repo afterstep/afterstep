@@ -117,6 +117,7 @@ copy_file (const char *realfilename1, const char *realfilename2)
     if (sourcefile == NULL)
 	{
 		fprintf (stderr, "can't open %s !\n", realfilename1);
+		fclose (targetfile);
 		return (-2);
 	}
 	while ((c = getc (sourcefile)) != EOF)

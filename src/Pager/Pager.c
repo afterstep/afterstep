@@ -451,14 +451,14 @@ CheckConfigSanity()
         if( get_flags(Config->geometry.flags, XNegative) )
         {
             Config->gravity = NorthEastGravity ;
-            real_x += Scr.MyDisplayWidth ;
+            real_x += (int)Scr.MyDisplayWidth ;
         }
-        if( real_x + Config->geometry.width  < 0 )
+        if( real_x + (int)Config->geometry.width  < 0 )
             Config->geometry.x = get_flags(Config->geometry.flags, XNegative)?
-                                    Config->geometry.width-Scr.MyDisplayWidth : 0 ;
-        else if( real_x > Scr.MyDisplayWidth )
+                                    (int)Config->geometry.width-(int)Scr.MyDisplayWidth : 0 ;
+        else if( real_x > (int)Scr.MyDisplayWidth )
             Config->geometry.x = get_flags(Config->geometry.flags, XNegative)?
-                                    0 : Scr.MyDisplayWidth-Config->geometry.width ;
+                                    0 : (int)Scr.MyDisplayWidth-(int)Config->geometry.width ;
     }
     if( !get_flags(Config->geometry.flags, YValue) )
     {
@@ -469,14 +469,14 @@ CheckConfigSanity()
         if( get_flags(Config->geometry.flags, YNegative) )
         {
             Config->gravity = (Config->gravity==NorthEastGravity)?SouthEastGravity:SouthWestGravity ;
-            real_y += Scr.MyDisplayHeight ;
+            real_y += (int)Scr.MyDisplayHeight ;
         }
-        if( real_y + Config->geometry.height  < 0 )
+        if( real_y + (int)Config->geometry.height  < 0 )
             Config->geometry.y = get_flags(Config->geometry.flags, YNegative)?
-                                    Config->geometry.height-Scr.MyDisplayHeight : 0 ;
-        else if( real_y > Scr.MyDisplayHeight )
+                                    (int)Config->geometry.height-(int)Scr.MyDisplayHeight : 0 ;
+        else if( real_y > (int)Scr.MyDisplayHeight )
             Config->geometry.y = get_flags(Config->geometry.flags, YNegative)?
-                                    0 : Scr.MyDisplayHeight-Config->geometry.height ;
+                                    0 : (int)Scr.MyDisplayHeight-(int)Config->geometry.height ;
     }
 
 

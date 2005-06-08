@@ -380,7 +380,7 @@ start_doc_file( const char * dest_dir, const char *doc_path, const char *doc_pos
 void
 end_doc_file( ASXMLInterpreterState *state )	
 {
-	if( state->dest_fp );
+	if( state->dest_fp )
 	{
 		write_doc_footer( state );	
 		fclose( state->dest_fp );

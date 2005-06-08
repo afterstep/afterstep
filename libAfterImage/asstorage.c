@@ -1397,7 +1397,7 @@ fetch_data_int( ASStorage *storage, ASStorageID id, ASStorageDstBuffer *buffer, 
 {
 	ASStorageSlot *slot = find_storage_slot( find_storage_block( storage, id ), id );
 	LOCAL_DEBUG_OUT( "slot = %p", slot );
-	if( slot )
+	if( slot && buffer && buf_size > 0 )
 	{
 		int uncomp_size = slot->uncompressed_size ;
 		*original_size = uncomp_size ;
@@ -1417,7 +1417,6 @@ fetch_data_int( ASStorage *storage, ASStorageID id, ASStorageDstBuffer *buffer, 
 		if( bitmap_value == 0 ) 
 			bitmap_value = AS_STORAGE_DEFAULT_BMAP_VALUE ;
 
-		if( buffer && buf_size > 0 ) 
 		{
 			CARD8 *tmp = decompress_stored_data( storage, ASStorage_Data(slot), slot->size,
 													uncomp_size, slot->flags, bitmap_value );
@@ -1475,7 +1474,7 @@ destroy_asstorage(ASStorage **pstorage)
 	
 	if( storage ) 
 	{	
-		if( storage->blocks != NULL || storage->blocks_count  > 0 )
+		if( storage->blocks != NULL && storage->blocks_count  > 0 )
 		{
 			int i ;
 			for( i = 0 ; i < storage->blocks_count ; ++i ) 

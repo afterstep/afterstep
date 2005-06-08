@@ -325,13 +325,15 @@ convert_data_file( const char *source_dir, const char *dst_dir, ASXMLInterpreter
 				link = ADD_TAG(p,ulink);
 				append_CDATA_line( link, curr->name,name_len );
 			}
-			link->parm = safemalloc( 6+name_len+32);
-			sprintf( link->parm, "url=\"%s\"", curr->name );
+			if( link ) 
+			{	
+				link->parm = safemalloc( 6+name_len+32);
+				sprintf( link->parm, "url=\"%s\"", curr->name );
+				LOCAL_DEBUG_OUT( "%s", link->parm );
+			}
 			
 			make_data_file_info( curr, state, preview_saved );
 
-			LOCAL_DEBUG_OUT( "%s", link->parm );
-			
 			printf( "." );
 			fflush(stdout);
 

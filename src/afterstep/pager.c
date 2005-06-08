@@ -682,7 +682,7 @@ release_old_background( int desk, Bool forget )
             LOCAL_DEBUG_OUT( "im = %p, ref_count = %d", im, im->ref_count );
             if( safe_asimage_destroy( im ) <= 0 )
 				im = NULL ;
-        }else if( strcmp( im->name, imname) != 0 )	 /* we need to store it for future use ! */
+        }else if( im != NULL && strcmp( im->name, imname) != 0 )	 /* we need to store it for future use ! */
 		{	                                     	 /* for future references we store image under imname */
 			if( im->ref_count > 1 )
 			{ 		   /* then something else is using this image, and we need to duplicate it  */		   

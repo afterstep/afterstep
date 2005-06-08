@@ -8,7 +8,7 @@ extern "C" {
 #endif
 
 #ifdef __GNUC__
-#define ASIM_PrintGifError() do{ fprintf( stderr, "%s():%d:<%s> ",__FUNCTION__, __LINE__, path ); PrintGifError(); }while(0)
+#define ASIM_PrintGifError() do{ fprintf( stderr, "%s():%d:<%s> ",__FUNCTION__, __LINE__, path?path:"null" ); PrintGifError(); }while(0)
 #else
 #define ASIM_PrintGifError() do{ PrintGifError(); }while(0)
 #endif

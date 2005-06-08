@@ -613,11 +613,13 @@ merge_old_look_variables (MyLook *look)
 void
 InitFeel (ASFeel *feel, Bool free_resources)
 {
-    if (free_resources && feel)
-		destroy_asfeel( feel, True );
-    feel->magic = MAGIC_ASFEEL ;
-	init_asfeel( feel );
-
+	if( feel ) 
+	{	
+    	if (free_resources)
+			destroy_asfeel( feel, True );
+    	feel->magic = MAGIC_ASFEEL ;
+		init_asfeel( feel );
+	}
 }
 
 void 

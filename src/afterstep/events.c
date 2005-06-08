@@ -813,7 +813,7 @@ HandlePropertyNotify (ASEvent *event)
         }
         if(Scr.RootBackground && Scr.RootBackground->im != NULL )
         {
-            if( Scr.RootBackground->pmap && Scr.wmprops->root_pixmap == Scr.RootBackground->pmap );
+            if( Scr.RootBackground->pmap && Scr.wmprops->root_pixmap == Scr.RootBackground->pmap )
                 Scr.RootImage = dup_asimage(Scr.RootBackground->im) ;
         }
 		if( Scr.wmprops->as_root_pixmap != Scr.wmprops->root_pixmap ) 
@@ -1076,12 +1076,12 @@ HandleUnmapNotify (ASEvent *event )
 
     grab_server();
     destroyed = ASCheckTypedWindowEvent ( event->w, DestroyNotify, &dummy) ;
-	LOCAL_DEBUG_OUT("wm_state_transition = 0x%X", event->client->wm_state_transition );
-	if( !get_flags( event->client->wm_state_transition, ASWT_FROM_WITHDRAWN ) )
-    	event->client->wm_state_transition = ASWIN_GET_FLAGS(event->client, AS_Iconic)?ASWT_Iconic2Withdrawn:ASWT_Normal2Withdrawn ;
+	LOCAL_DEBUG_OUT("wm_state_transition = 0x%X", asw->wm_state_transition );
+	if( !get_flags( asw->wm_state_transition, ASWT_FROM_WITHDRAWN ) )
+    	asw->wm_state_transition = ASWIN_GET_FLAGS(asw, AS_Iconic)?ASWT_Iconic2Withdrawn:ASWT_Normal2Withdrawn ;
 	else
-		event->client->wm_state_transition = ASWT_Withdrawn2Withdrawn ;
-    Destroy (event->client, destroyed);               /* do not need to mash event before */
+		asw->wm_state_transition = ASWT_Withdrawn2Withdrawn ;
+    Destroy (asw, destroyed);               /* do not need to mash event before */
     ungrab_server();
     ASFlush ();
 }

@@ -1299,7 +1299,7 @@ update_wharf_folder_transprency( ASWharfFolder *aswf, Bool force )
 				render_wharf_button( aswb );
 				update_canvas_display( aswb->canvas );
 			}
-			if( aswb->folder && get_flags( aswb->folder->flags, ASW_Mapped )  );
+			if( aswb->folder && get_flags( aswb->folder->flags, ASW_Mapped )  )
 				update_wharf_folder_transprency( aswb->folder, force );
 		}
 		/*update_wharf_folder_shape( aswf ); */
@@ -1310,7 +1310,7 @@ void
 change_button_focus(ASWharfButton *aswb, Bool focused )
 {
 	
-	if( aswb == NULL && focused && Scr.Look.MSWindow[BACK_FOCUSED] == NULL ) 
+	if( aswb == NULL || (focused && Scr.Look.MSWindow[BACK_FOCUSED] == NULL) ) 
 		return ;
 
 	if( set_astbar_focused( aswb->bar, NULL, focused ) )
@@ -1344,7 +1344,7 @@ update_wharf_folder_styles( ASWharfFolder *aswf, Bool force )
 				render_wharf_button( aswb );
 				update_canvas_display( aswb->canvas );
 			}
-			if( aswb->folder && get_flags( aswb->folder->flags, ASW_Mapped )  );
+			if( aswb->folder && get_flags( aswb->folder->flags, ASW_Mapped )  )
 				update_wharf_folder_styles( aswb->folder, force );
 		}
 		update_wharf_folder_shape( aswf );
@@ -2115,7 +2115,7 @@ check_swallow_window( ASWindowData *wd )
     int swidth, sheight ;
 	Window icon_w = None ;
 
-    if( wd == NULL && !get_flags( wd->state_flags, AS_Mapped))
+    if( wd == NULL || !get_flags( wd->state_flags, AS_Mapped))
         return;
     LOCAL_DEBUG_OUT( "name(\"%s\")->icon_name(\"%s\")->res_class(\"%s\")->res_name(\"%s\")",
                      wd->window_name, wd->icon_name, wd->res_class, wd->res_name );
