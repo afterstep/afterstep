@@ -24,8 +24,8 @@ main (int argc, char *argv[])
 	GdkDisplay *gdk_display ;
 	int i ; 
 	static char *deleted_arg = "_deleted_arg_" ;
-
-  	InitMyApp (CLASS_ASCP, argc, argv, NULL, NULL, 0 );
+  	
+	InitMyApp (CLASS_ASCP, argc, argv, NULL, NULL, 0 );
 	for( i = 1 ; i < argc ; ++i ) 
 		if( argv[i] == NULL ) 
 			argv[i] = strdup(deleted_arg) ;
@@ -42,11 +42,11 @@ main (int argc, char *argv[])
   	gtk_init (&argc, &argv);
 
 	gdk_display = gdk_display_get_default();
-	LoadColorScheme();
 	
+	LoadColorScheme();
+
 	ConnectXDisplay (gdk_x11_display_get_xdisplay(gdk_display), NULL, False);
 	ReloadASEnvironment( NULL, NULL, NULL, False, True );
-	
 	/*MyArgs.display_name*/
 
   add_pixmap_directory (DEFAULT_PIXMAP_DIR);
@@ -57,7 +57,6 @@ main (int argc, char *argv[])
    * the project. Delete any components that you don't want shown initially.
    */
   init_ASWallpaper();
-  
 
   gtk_main ();
   return 0;

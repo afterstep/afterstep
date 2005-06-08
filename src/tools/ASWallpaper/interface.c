@@ -161,9 +161,9 @@ on_list_add_clicked(GtkButton *button, gpointer user_data)
   	{
     	char *filename;
 
-    	filename = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (filechooser));
+    	filename = gtk_file_selection_get_filename (GTK_FILE_SELECTION (filechooser));
     	/* open_file (filename); */
-    	g_free (filename);
+    	/* g_free (filename); */
 	}
 
 	gtk_widget_destroy (filechooser);
@@ -574,13 +574,14 @@ create_filechooserdialog2 (void)
   GtkWidget *button_file_cancel;
   GtkWidget *button_file_open;
 
-  filechooserdialog2 = gtk_file_chooser_dialog_new ("Open File",
+  filechooserdialog2 = gtk_file_selection_new("Select background image file : ");
+#if 0
+  	gtk_file_chooser_dialog_new ("Open File",
 				      GTK_WINDOW(WallpaperState.main_window),
 				      GTK_FILE_CHOOSER_ACTION_OPEN,
 				      GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
 				      GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT,
 				      NULL);
-#if 0
   gtk_window_set_type_hint (GTK_WINDOW (filechooserdialog2), GDK_WINDOW_TYPE_HINT_DIALOG);
 
   dialog_vbox2 = GTK_DIALOG (filechooserdialog2)->vbox;
