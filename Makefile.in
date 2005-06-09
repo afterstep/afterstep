@@ -5,9 +5,9 @@ confsdirs= autoconf libAfterBase libAfterImage
 
 ####
 
-libdirs		= libAfterBase libAfterImage libAfterStep libAfterConf
+libdirs		= libAfterBase libAfterImage libAfterStep libAfterConf @LIBASGTKDIR@
 
-subdirs		= libAfterBase libAfterImage libAfterStep libAfterConf \
+subdirs		= libAfterBase libAfterImage libAfterStep libAfterConf @LIBASGTKDIR@ \
 		  src/afterstep \
 		  src/Animate \
 		  src/Arrange \

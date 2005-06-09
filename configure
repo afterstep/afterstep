@@ -310,8 +310,8 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT CXX CXXFLAGS ac_ct_CXX LN_S build build_cpu build_vendor build_os host host_cpu host_vendor host_os INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA RANLIB ac_ct_RANLIB RM MV CP MKDIR PERL FIND XARGS LDCONFIG LEX LEXLIB LEX_OUTPUT_ROOT YACC CPP X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS EGREP x_libraries AUDIO_LIBS AUDIO_PLAY_CMD PKG_CONFIG GTK_CFLAGS GTK_LIBS target target_cpu target_vendor target_os STRIP_BINARIES version app_version libafterstep_version libafterstep_version_major libafterstep_name libafterstep_file_name libafterwidget_version libafterwidget_version_major libafterwidget_name libafterwidget_file_name libafterconf_version libafterconf_version_major libafterconf_name libafterconf_file_name with_locale image_format ASCP_FLTK ASCP_FLTK_LIBS ASCP_FLTK_INCLUDES ASCP_GTK ASCP_GTK_LIBS ASCP_GTK_INCLUDES user_ldflags x_libs xine_libs xext_lib x_includes XEXT_LIB AFTERBASE_LIB AFTERIMAGE_LIB AFTERIMAGE_LIBS AFTERSTEP_LIB AFTERCONF_LIB WIDGETS_LIB AFTERBASE_STATIC_LIB AFTERIMAGE_STATIC_LIB AFTERSTEP_STATIC_LIB AFTERCONF_STATIC_LIB WIDGETS_STATIC_LIB LIBPROG LIBINSTALL with_afterdir with_imageloader with_soundplayer with_helpcommand with_startsort with_desktops with_desktops_1 with_deskgeometry no_data_reinstall enable_different_looknfeels enable_pagerbackground enable_i18n enable_menuwarp enable_savewindows enable_texture enable_shade enable_virtual enable_saveunders enable_windowlist enable_availability enable_fixeditems SCRIPT_DIR LIBOBJS LTLIBOBJS'
-ac_subst_files='LIBAFTERBASEFILES LIBAFTERIMAGEFILES LIBAFTERSTEPFILES LIBAFTERCONFFILES MAKEFILEDEFINES MAKEFILECOMMON MAKEFILECOMMONLIB'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT CXX CXXFLAGS ac_ct_CXX LN_S build build_cpu build_vendor build_os host host_cpu host_vendor host_os INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA RANLIB ac_ct_RANLIB RM MV CP MKDIR PERL FIND XARGS LDCONFIG LEX LEXLIB LEX_OUTPUT_ROOT YACC CPP X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS EGREP x_libraries AUDIO_LIBS AUDIO_PLAY_CMD PKG_CONFIG GTK_CFLAGS GTK_LIBS target target_cpu target_vendor target_os STRIP_BINARIES version app_version libafterstep_version libafterstep_version_major libafterstep_name libafterstep_file_name libafterwidget_version libafterwidget_version_major libafterwidget_name libafterwidget_file_name libafterconf_version libafterconf_version_major libafterconf_name libafterconf_file_name libasgtk_version libasgtk_version_major libasgtk_name libasgtk_file_name with_locale image_format ASCP_FLTK ASCP_FLTK_LIBS ASCP_FLTK_INCLUDES ASCP_GTK GTK_INCLUDES user_ldflags x_libs xine_libs xext_lib x_includes XEXT_LIB AFTERBASE_LIB AFTERIMAGE_LIB AFTERIMAGE_LIBS AFTERSTEP_LIB AFTERCONF_LIB WIDGETS_LIB AFTERBASE_STATIC_LIB AFTERIMAGE_STATIC_LIB AFTERSTEP_STATIC_LIB AFTERCONF_STATIC_LIB WIDGETS_STATIC_LIB LIBPROG LIBINSTALL with_afterdir with_imageloader with_soundplayer with_helpcommand with_startsort with_desktops with_desktops_1 with_deskgeometry no_data_reinstall enable_different_looknfeels enable_pagerbackground enable_i18n enable_menuwarp enable_savewindows enable_texture enable_shade enable_virtual enable_saveunders enable_windowlist enable_availability enable_fixeditems SCRIPT_DIR LIBASGTKDIR LIBOBJS LTLIBOBJS'
+ac_subst_files='LIBAFTERBASEFILES LIBAFTERIMAGEFILES LIBAFTERSTEPFILES LIBAFTERCONFFILES LIBASGTKFILES MAKEFILEDEFINES MAKEFILECOMMON MAKEFILECOMMONLIB'
 
 # Initialize some variables set by options.
 ac_init_help=
@@ -906,13 +906,14 @@ Optional Packages:
   --with-jpeg-includes=DIR use JPEG includes in DIR
   --with-png               support PNG image format [yes]
   --with-png-includes=DIR  use PNG includes in DIR
-  --with-ungif            compile support for gif image format using libungif [no]
-  --with-gif              compile support for gif image format using libgif [no]
+  --with-ungif             compile support for gif image format using libungif [no]
+  --with-gif               compile support for gif image format using libgif [no]
   --with-gif-includes=DIR  use GIF includes in DIR
   --with-tiff              support TIFF image format [yes]
   --with-tiff-includes=DIR use TIFF includes in DIR
   --with-ttf               support True Type Fonts via FreeType library [yes]
   --with-ttf-includes=DIR  use FreeType includes in DIR
+  --with-gtk               use GTK 2.0 widget libraries where possible [yes]
   --with-locale=LOCALE    locale name you want to use
   --with-libefence        compile with libefence to debug buffer overruns [no]
   --with-x                use the X Window System
@@ -1415,6 +1416,10 @@ libafterconf_version="1.05"
 libafterconf_version_major="1"
 libafterconf_name="LIBAFTERCONF"
 libafterconf_file_name="libAfterConf"
+libasgtk_version="1.00"
+libasgtk_version_major="1"
+libasgtk_name="LIBASGTK"
+libasgtk_file_name="libASGTK"
 
 
 test "x$prefix" = xNONE && prefix=$ac_default_prefix
@@ -1592,6 +1597,12 @@ if test "${with_tff_includes+set}" = set; then
   ttf_includes="$withval"
 else
   ttf_includes=NO
+fi;
+
+# Check whether --with-gtk or --without-gtk was given.
+if test "${with_gtk+set}" = set; then
+  withval="$with_gtk"
+
 fi;
 
 # Check whether --enable-i18n or --disable-i18n was given.
@@ -7840,6 +7851,7 @@ if test "x$enable_staticlibs" = "xyes"; then
    AFTERIMAGE_LIB="../../libAfterImage/libAfterImage.a"
    AFTERSTEP_LIB="../../libAfterStep/libAfterStep.a"
    AFTERCONF_LIB="../../libAfterConf/libAfterConf.a"
+   ASGTK_LIB="../../libASGTK/libASGTK.a"
    WIDGETS_LIB="../Script/Widgets/libWidgets.a"
    LIBPROG='$(LIB_STATIC)'
    LIBINSTALL="install.static"
@@ -7849,6 +7861,7 @@ else
    		AFTERIMAGE_LIB="../../libAfterImage/libAfterImage.dll.a"
    		AFTERSTEP_LIB="../../libAfterStep/libAfterStep.dll.a"
    		AFTERCONF_LIB="../../libAfterConf/libAfterConf.dll.a"
+   		ASGTK_LIB="../../libASGTK/libASGTK.dll.a"
    		WIDGETS_LIB="../Script/Widgets/libWidgets.dll.a"
    		LIBPROG='$(LIB_SHARED_CYG)'
    		LIBINSTALL="install.cyg"
@@ -7857,6 +7870,7 @@ else
    		AFTERIMAGE_LIB="../../libAfterImage/libAfterImage.so"
    		AFTERSTEP_LIB="../../libAfterStep/libAfterStep.so"
    		AFTERCONF_LIB="../../libAfterConf/libAfterConf.so"
+		ASGTK_LIB="../../libASGTK/libASGTK.so"
    		WIDGETS_LIB="../Script/Widgets/libWidgets.so"
    		LIBPROG='$(LIB_SHARED)'
    		LIBINSTALL="install.dyn"
@@ -7867,6 +7881,7 @@ AFTERBASE_STATIC_LIB="../../libAfterBase/libAfterBase.a"
 AFTERIMAGE_STATIC_LIB="../../libAfterImage/libAfterImage.a"
 AFTERSTEP_STATIC_LIB="../../libAfterStep/libAfterStep.a"
 AFTERCONF_STATIC_LIB="../../libAfterConf/libAfterConf.a"
+ASGTK_STATIC_LIB="../../libASGTK/libASGTK.dll.a"
 WIDGETS_STATIC_LIB="../Script/Widgets/libWidgets.a"
 
 
@@ -7891,51 +7906,11 @@ ASCP_GTK_LIBS=
 ASCP_GTK_INCLUDES=
 ASCP_GTK=
 
-if test "x$enable_ascp" = "xyes"; then
-    echo "$as_me:$LINENO: checking libraries required by FLTK version of ascp" >&5
-echo $ECHO_N "checking libraries required by FLTK version of ascp... $ECHO_C" >&6
-	enable_ascp=no ;
+have_gtk=
+if test "$with_gtk" = no; then
+	have_gtk=disabled
+else
 
-    if fltk-config --libs >/dev/null  ;then
-		present_libs="$LDFLAGS $LIBS $x_libs $AFTERIMAGE_LIBS";
-		for l in `fltk-config --ldstaticflags`; do
-	  	  lib_found=no
-	  	  for p in `echo "$present_libs"` ; do
-			  if test "x$l" = "x$p" ; then
-    		    lib_found=yes;
-		  	  fi;
-	  	  done;
-	  	  if test "x$lib_found" != "xyes" ; then
-		  	ASCP_FLTK_LIBS="$ASCP_FLTK_LIBS $l" ;
-	  	  fi;
-		done;
-		echo "$as_me:$LINENO: result: $ASCP_FLTK_LIBS" >&5
-echo "${ECHO_T}$ASCP_FLTK_LIBS" >&6
-	    echo "$as_me:$LINENO: checking headers required by ascp-fltk" >&5
-echo $ECHO_N "checking headers required by ascp-fltk... $ECHO_C" >&6
-
-  		if fltk-config --cflags >/dev/null  ;then
-			present_incs="$CCFLAGS $x_includes";
-			for l in `fltk-config --cflags` ;	do
-	  			inc_found=no
-		  		for p in `echo "$present_incs"` ; do
-					if test "x$l" = "x$p" ; then
-    		  			inc_found=yes;
-					fi;
-					if test "x$l" = "x-I$p" ; then
-    		  			inc_found=yes;
-					fi;
-	  			done;
-	  			if test "x$inc_found" != "xyes" ; then
-					ASCP_FLTK_INCLUDES="$ASCP_FLTK_INCLUDES $l" ;
-	  			fi;
-			done;
-			echo "$as_me:$LINENO: result: $ASCP_FLTK_INCLUDES" >&5
-echo "${ECHO_T}$ASCP_FLTK_INCLUDES" >&6
-			enable_ascp=yes ;
-	  		ASCP_FLTK=ascp-fltk ;
-  		fi;
-	fi;
 	if test -z "$PKG_CONFIG"; then
     		# Extract the first word of "pkg-config", so it can be a program name with args.
 set dummy pkg-config; ac_word=$2
@@ -7983,8 +7958,9 @@ fi
 echo $ECHO_N "checking if gtk++ 2.0 is available... $ECHO_C" >&6
 		echo "$as_me:$LINENO: result: pkg-config is not found. Cannot check for gtk++ 2.0." >&5
 echo "${ECHO_T}pkg-config is not found. Cannot check for gtk++ 2.0." >&6
+		have_gtk=no
 	else
-		ASCP_GTK=ascp_gtk
+		have_gtk=yes
 		pkg_modules="gtk+-2.0 >= 2.0.0"
 
   succeeded=no
@@ -8079,11 +8055,20 @@ echo "${ECHO_T}$GTK_LIBS" >&6
   if test $succeeded = yes; then
      :
   else
-     ASCP_GTK=
+     have_gtk=no
   fi
 
 
-		if test "x$ASCP_GTK" = "xascp_gtk"; then
+		if test "x$have_gtk" = "xyes"; then
+			CLEAN_GTK_LIBS=
+			CLEAN_GTK_CFLAGS=
+
+
+cat >>confdefs.h <<\_ACEOF
+#define HAVE_GTK 1
+_ACEOF
+
+
 			present_libs="$LDFLAGS $LIBS $x_libs $AFTERIMAGE_LIBS";
 			for l in `echo "$GTK_LIBS"`; do
 	  	  	lib_found=no
@@ -8093,7 +8078,7 @@ echo "${ECHO_T}$GTK_LIBS" >&6
 		  	  	fi;
 	  	  	done;
 	  	  	if test "x$lib_found" != "xyes" ; then
-		  		ASCP_GTK_LIBS="$ASCP_GTK_LIBS $l" ;
+		  		CLEAN_GTK_LIBS="$CLEAN_GTK_LIBS $l" ;
 	  	  	fi;
 			done;
 			present_incs="$CCFLAGS $x_includes";
@@ -8108,11 +8093,108 @@ echo "${ECHO_T}$GTK_LIBS" >&6
 					fi;
 	  			done;
 	  			if test "x$inc_found" != "xyes" ; then
-					ASCP_GTK_INCLUDES="$ASCP_GTK_INCLUDES $l" ;
+					CLEAN_GTK_CFLAGS="$CLEAN_GTK_CFLAGS $l" ;
 	  			fi;
 			done;
-			enable_ascp=yes ;
+			GTK_CFLAGS=$CLEAN_GTK_CFLAGS ;
+			GTK_LIBS=$CLEAN_GTK_LIBS ;
 		fi
+	fi
+fi
+
+GTK_INCLUDES=$GTK_CFLAGS
+
+
+if test "x$enable_ascp" = "xyes"; then
+    echo "$as_me:$LINENO: checking libraries required by FLTK version of ascp" >&5
+echo $ECHO_N "checking libraries required by FLTK version of ascp... $ECHO_C" >&6
+	enable_ascp=no ;
+
+    if fltk-config --libs >/dev/null  ;then
+		present_libs="$LDFLAGS $LIBS $x_libs $AFTERIMAGE_LIBS";
+		for l in `fltk-config --ldstaticflags`; do
+	  	  lib_found=no
+	  	  for p in `echo "$present_libs"` ; do
+			  if test "x$l" = "x$p" ; then
+    		    lib_found=yes;
+		  	  fi;
+	  	  done;
+	  	  if test "x$lib_found" != "xyes" ; then
+		  	ASCP_FLTK_LIBS="$ASCP_FLTK_LIBS $l" ;
+	  	  fi;
+		done;
+		echo "$as_me:$LINENO: result: $ASCP_FLTK_LIBS" >&5
+echo "${ECHO_T}$ASCP_FLTK_LIBS" >&6
+	    echo "$as_me:$LINENO: checking headers required by ascp-fltk" >&5
+echo $ECHO_N "checking headers required by ascp-fltk... $ECHO_C" >&6
+
+  		if fltk-config --cflags >/dev/null  ;then
+			present_incs="$CCFLAGS $x_includes";
+			for l in `fltk-config --cflags` ;	do
+	  			inc_found=no
+		  		for p in `echo "$present_incs"` ; do
+					if test "x$l" = "x$p" ; then
+    		  			inc_found=yes;
+					fi;
+					if test "x$l" = "x-I$p" ; then
+    		  			inc_found=yes;
+					fi;
+	  			done;
+	  			if test "x$inc_found" != "xyes" ; then
+					ASCP_FLTK_INCLUDES="$ASCP_FLTK_INCLUDES $l" ;
+	  			fi;
+			done;
+			echo "$as_me:$LINENO: result: $ASCP_FLTK_INCLUDES" >&5
+echo "${ECHO_T}$ASCP_FLTK_INCLUDES" >&6
+			enable_ascp=yes ;
+	  		ASCP_FLTK=ascp-fltk ;
+  		fi;
+	fi;
+	if test -z "$PKG_CONFIG"; then
+    		# Extract the first word of "pkg-config", so it can be a program name with args.
+set dummy pkg-config; ac_word=$2
+echo "$as_me:$LINENO: checking for $ac_word" >&5
+echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6
+if test "${ac_cv_path_PKG_CONFIG+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  case $PKG_CONFIG in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_PKG_CONFIG="$PKG_CONFIG" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+  for ac_exec_ext in '' $ac_executable_extensions; do
+  if $as_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_PKG_CONFIG="$as_dir/$ac_word$ac_exec_ext"
+    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+done
+
+  test -z "$ac_cv_path_PKG_CONFIG" && ac_cv_path_PKG_CONFIG="no"
+  ;;
+esac
+fi
+PKG_CONFIG=$ac_cv_path_PKG_CONFIG
+
+if test -n "$PKG_CONFIG"; then
+  echo "$as_me:$LINENO: result: $PKG_CONFIG" >&5
+echo "${ECHO_T}$PKG_CONFIG" >&6
+else
+  echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+fi
+
+	fi
+	if test "x$have_gtk" = "xyes" ; then
+		ASCP_GTK=ascp_gtk
+		enable_ascp=yes ;
 	fi
 
 	if test "x$enable_ascp" = "xno"; then
@@ -8121,6 +8203,11 @@ echo "${ECHO_T}neither fltk nor GTK found" >&6
 		echo "You have to install FLTK or GTK libaries in order to be able to compile ascp."
     fi;
 fi;
+
+if test "x$have_gtk" != "xyes"; then
+   	ASGTK_LIB=
+	ASGTK_STATIC_LIB=
+fi
 
 if test "x$with_libefence" = "xyes"; then
   echo "$as_me:$LINENO: checking for malloc in -lefence" >&5
@@ -8467,6 +8554,11 @@ test -n "$target_alias" &&
 
 
 
+
+
+
+
+
 MAKEFILEDEFINES=./autoconf/Makefile.defines
 MAKEFILECOMMON=./autoconf/Makefile.common
 MAKEFILECOMMONLIB=./autoconf/Makefile.common.lib
@@ -8474,6 +8566,14 @@ LIBAFTERBASEFILES=./libAfterBase/.shared
 LIBAFTERIMAGEFILES=./libAfterImage/.shared
 LIBAFTERSTEPFILES=./libAfterStep/.shared
 LIBAFTERCONFFILES=./libAfterConf/.shared
+
+if test "x$have_gtk" == "xyes"; then
+	LIBASGTKFILES=./libASGTK/.shared
+	LIBASGTKDIR=libASGTK
+fi
+
+
+
 
 
 
@@ -8531,6 +8631,9 @@ if test -d src/WinTabs ; 	then           ac_config_files="$ac_config_files src/W
 if test -d src/Gadget ; 	then           ac_config_files="$ac_config_files src/Gadget/Makefile"
  fi
 if test -d src/test ; 		then           ac_config_files="$ac_config_files src/test/Makefile"
+ fi
+
+if test "x$have_gtk" = "xyes"; then                     ac_config_files="$ac_config_files libASGTK/asgtk-config libASGTK/Makefile"
  fi
 
                                                                                                                                                                                                                                                                     ac_config_files="$ac_config_files configure.h Makefile AfterStep.spec AfterStep.desktop afterstep/Makefile doc/Makefile doc/afterstepdoc libAfterStep/afterstep-config libAfterStep/Makefile libAfterConf/Makefile src/afterstep/Makefile tools/Makefile tools/installastheme.pl tools/makeastheme.pl tools/postcard.sh afterstep/base afterstep/audio afterstep/autoexec afterstep/pager afterstep/start/.include afterstep/start/1_Desktop/Feel/.include afterstep/start/1_Desktop/Color_Scheme/.include afterstep/start/1_Desktop/Look/.include afterstep/start/1_Desktop/Theme/.include afterstep/start/1_Desktop/Pictures/.include afterstep/start/2_Modules/Pager"
@@ -9089,6 +9192,8 @@ do
   "src/WinTabs/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/WinTabs/Makefile" ;;
   "src/Gadget/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/Gadget/Makefile" ;;
   "src/test/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/test/Makefile" ;;
+  "libASGTK/asgtk-config" ) CONFIG_FILES="$CONFIG_FILES libASGTK/asgtk-config" ;;
+  "libASGTK/Makefile" ) CONFIG_FILES="$CONFIG_FILES libASGTK/Makefile" ;;
   "configure.h" ) CONFIG_FILES="$CONFIG_FILES configure.h" ;;
   "Makefile" ) CONFIG_FILES="$CONFIG_FILES Makefile" ;;
   "AfterStep.spec" ) CONFIG_FILES="$CONFIG_FILES AfterStep.spec" ;;
@@ -9267,14 +9372,17 @@ s,@libafterconf_version@,$libafterconf_version,;t t
 s,@libafterconf_version_major@,$libafterconf_version_major,;t t
 s,@libafterconf_name@,$libafterconf_name,;t t
 s,@libafterconf_file_name@,$libafterconf_file_name,;t t
+s,@libasgtk_version@,$libasgtk_version,;t t
+s,@libasgtk_version_major@,$libasgtk_version_major,;t t
+s,@libasgtk_name@,$libasgtk_name,;t t
+s,@libasgtk_file_name@,$libasgtk_file_name,;t t
 s,@with_locale@,$with_locale,;t t
 s,@image_format@,$image_format,;t t
 s,@ASCP_FLTK@,$ASCP_FLTK,;t t
 s,@ASCP_FLTK_LIBS@,$ASCP_FLTK_LIBS,;t t
 s,@ASCP_FLTK_INCLUDES@,$ASCP_FLTK_INCLUDES,;t t
 s,@ASCP_GTK@,$ASCP_GTK,;t t
-s,@ASCP_GTK_LIBS@,$ASCP_GTK_LIBS,;t t
-s,@ASCP_GTK_INCLUDES@,$ASCP_GTK_INCLUDES,;t t
+s,@GTK_INCLUDES@,$GTK_INCLUDES,;t t
 s,@user_ldflags@,$user_ldflags,;t t
 s,@x_libs@,$x_libs,;t t
 s,@xine_libs@,$xine_libs,;t t
@@ -9316,6 +9424,7 @@ s,@enable_windowlist@,$enable_windowlist,;t t
 s,@enable_availability@,$enable_availability,;t t
 s,@enable_fixeditems@,$enable_fixeditems,;t t
 s,@SCRIPT_DIR@,$SCRIPT_DIR,;t t
+s,@LIBASGTKDIR@,$LIBASGTKDIR,;t t
 s,@LIBOBJS@,$LIBOBJS,;t t
 s,@LTLIBOBJS@,$LTLIBOBJS,;t t
 /@LIBAFTERBASEFILES@/r $LIBAFTERBASEFILES
@@ -9326,6 +9435,8 @@ s,@LIBAFTERIMAGEFILES@,,;t t
 s,@LIBAFTERSTEPFILES@,,;t t
 /@LIBAFTERCONFFILES@/r $LIBAFTERCONFFILES
 s,@LIBAFTERCONFFILES@,,;t t
+/@LIBASGTKFILES@/r $LIBASGTKFILES
+s,@LIBASGTKFILES@,,;t t
 /@MAKEFILEDEFINES@/r $MAKEFILEDEFINES
 s,@MAKEFILEDEFINES@,,;t t
 /@MAKEFILECOMMON@/r $MAKEFILECOMMON

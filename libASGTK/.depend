@@ -1,0 +1,5 @@
+./asgtkapp.o : \
+		../configure.h \
+		asgtk.h \
+		../libAfterStep/module.h \
+		../libAfterConf/afterconf.h

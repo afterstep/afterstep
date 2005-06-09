@@ -21,6 +21,10 @@ libafterconf_version="1.05"
 libafterconf_version_major="1"
 libafterconf_name="LIBAFTERCONF"
 libafterconf_file_name="libAfterConf"
+libasgtk_version="1.00"
+libasgtk_version_major="1"
+libasgtk_name="LIBASGTK"
+libasgtk_file_name="libASGTK"
 
 dnl# Setup command-line options
 
@@ -52,21 +56,22 @@ AC_ARG_WITH(deskgeometry,	[  --with-deskgeometry=GEOM desktop views as COLUMNSxR
 with_desktops_1=`expr ${with_desktops} - 1`
 
 dnl# The following is passed directly to libAfterImage configure :
-AC_ARG_WITH(xpm,	    [  --with-xpm               support XPM image format [[yes]]])
-AC_ARG_WITH(builtin_xpm,    [  --with-builtin-xpm       use builtin XPM parsing/handling instead of libXpm [[yes]]])
-AC_ARG_WITH(xpm_includes,   [  --with-xpm-includes=DIR  use libXpm includes in DIR( when builtin XPM handling is disabled )], xpm_includes="$withval", xpm_includes=NO)
-AC_ARG_WITH(jpeg,		    [  --with-jpeg              support JPEG image format [[yes]]])
-AC_ARG_WITH(jpeg_includes,  [  --with-jpeg-includes=DIR use JPEG includes in DIR], jpeg_includes="$withval", jpeg_includes=NO)
-AC_ARG_WITH(png,		    [  --with-png               support PNG image format [[yes]]])
-AC_ARG_WITH(png_includes,   [  --with-png-includes=DIR  use PNG includes in DIR], png_includes="$withval", png_includes=NO)
-AC_ARG_WITH(ungif,		[  --with-ungif            compile support for gif image format using libungif [[no]] ],with_ungif=$withval,with_ungif="no")
-AC_ARG_WITH(gif,		[  --with-gif              compile support for gif image format using libgif [[no]] ],with_gif=$withval,with_gif="no")
-AC_ARG_WITH(gif_includes,   [  --with-gif-includes=DIR  use GIF includes in DIR], gif_includes="$withval", gif_includes=NO)
-AC_ARG_WITH(tiff,		    [  --with-tiff              support TIFF image format [[yes]]])
-AC_ARG_WITH(tiff_includes,  [  --with-tiff-includes=DIR use TIFF includes in DIR], tiff_includes="$withval", tiff_includes=NO)
+AC_ARG_WITH(xpm,	    	[  --with-xpm               support XPM image format [[yes]]])
+AC_ARG_WITH(builtin_xpm,    	[  --with-builtin-xpm       use builtin XPM parsing/handling instead of libXpm [[yes]]])
+AC_ARG_WITH(xpm_includes,   	[  --with-xpm-includes=DIR  use libXpm includes in DIR( when builtin XPM handling is disabled )], xpm_includes="$withval", xpm_includes=NO)
+AC_ARG_WITH(jpeg,		[  --with-jpeg              support JPEG image format [[yes]]])
+AC_ARG_WITH(jpeg_includes,  	[  --with-jpeg-includes=DIR use JPEG includes in DIR], jpeg_includes="$withval", jpeg_includes=NO)
+AC_ARG_WITH(png,		[  --with-png               support PNG image format [[yes]]])
+AC_ARG_WITH(png_includes,   	[  --with-png-includes=DIR  use PNG includes in DIR], png_includes="$withval", png_includes=NO)
+AC_ARG_WITH(ungif,		[  --with-ungif             compile support for gif image format using libungif [[no]] ],with_ungif=$withval,with_ungif="no")
+AC_ARG_WITH(gif,		[  --with-gif               compile support for gif image format using libgif [[no]] ],with_gif=$withval,with_gif="no")
+AC_ARG_WITH(gif_includes,   	[  --with-gif-includes=DIR  use GIF includes in DIR], gif_includes="$withval", gif_includes=NO)
+AC_ARG_WITH(tiff,		[  --with-tiff              support TIFF image format [[yes]]])
+AC_ARG_WITH(tiff_includes,  	[  --with-tiff-includes=DIR use TIFF includes in DIR], tiff_includes="$withval", tiff_includes=NO)
 
-AC_ARG_WITH(tff,		    [  --with-ttf               support True Type Fonts via FreeType library [[yes]]])
-AC_ARG_WITH(tff_includes,   [  --with-ttf-includes=DIR  use FreeType includes in DIR], ttf_includes="$withval", ttf_includes=NO)
+AC_ARG_WITH(tff,		[  --with-ttf               support True Type Fonts via FreeType library [[yes]]])
+AC_ARG_WITH(tff_includes,   	[  --with-ttf-includes=DIR  use FreeType includes in DIR], ttf_includes="$withval", ttf_includes=NO)
+AC_ARG_WITH(gtk,	    	[  --with-gtk               use GTK 2.0 widget libraries where possible [[yes]]])
 
 dnl# compile-time switches
 AC_ARG_ENABLE(i18n,		[  --enable-i18n           support I18N [[no]] ],enable_i18n=$enableval,enable_i18n="no")
@@ -405,6 +410,7 @@ if test "x$enable_staticlibs" = "xyes"; then
    AFTERIMAGE_LIB="../../libAfterImage/libAfterImage.a"
    AFTERSTEP_LIB="../../libAfterStep/libAfterStep.a"
    AFTERCONF_LIB="../../libAfterConf/libAfterConf.a"
+   ASGTK_LIB="../../libASGTK/libASGTK.a"
    WIDGETS_LIB="../Script/Widgets/libWidgets.a"
    LIBPROG='$(LIB_STATIC)'
    LIBINSTALL="install.static"
@@ -414,6 +420,7 @@ else
    		AFTERIMAGE_LIB="../../libAfterImage/libAfterImage.dll.a"
    		AFTERSTEP_LIB="../../libAfterStep/libAfterStep.dll.a"
    		AFTERCONF_LIB="../../libAfterConf/libAfterConf.dll.a"
+   		ASGTK_LIB="../../libASGTK/libASGTK.dll.a"
    		WIDGETS_LIB="../Script/Widgets/libWidgets.dll.a"
    		LIBPROG='$(LIB_SHARED_CYG)'
    		LIBINSTALL="install.cyg"
@@ -422,6 +429,7 @@ else
    		AFTERIMAGE_LIB="../../libAfterImage/libAfterImage.so"
    		AFTERSTEP_LIB="../../libAfterStep/libAfterStep.so"
    		AFTERCONF_LIB="../../libAfterConf/libAfterConf.so"
+		ASGTK_LIB="../../libASGTK/libASGTK.so"
    		WIDGETS_LIB="../Script/Widgets/libWidgets.so"
    		LIBPROG='$(LIB_SHARED)'
    		LIBINSTALL="install.dyn"
@@ -432,6 +440,7 @@ AFTERBASE_STATIC_LIB="../../libAfterBase/libAfterBase.a"
 AFTERIMAGE_STATIC_LIB="../../libAfterImage/libAfterImage.a"
 AFTERSTEP_STATIC_LIB="../../libAfterStep/libAfterStep.a"
 AFTERCONF_STATIC_LIB="../../libAfterConf/libAfterConf.a"
+ASGTK_STATIC_LIB="../../libASGTK/libASGTK.dll.a"
 WIDGETS_STATIC_LIB="../Script/Widgets/libWidgets.a"
 
 
@@ -452,6 +461,65 @@ ASCP_FLTK=
 ASCP_GTK_LIBS=
 ASCP_GTK_INCLUDES=
 ASCP_GTK=
+
+have_gtk=
+if test "$with_gtk" = no; then
+	have_gtk=disabled
+else
+
+	if test -z "$PKG_CONFIG"; then
+    		AC_PATH_PROG(PKG_CONFIG, pkg-config,no)
+	fi
+	if test "$PKG_CONFIG" = "no" ; then
+		AC_MSG_CHECKING(if gtk++ 2.0 is available)
+		AC_MSG_RESULT(pkg-config is not found. Cannot check for gtk++ 2.0.)
+		have_gtk=no
+	else
+		have_gtk=yes
+		pkg_modules="gtk+-2.0 >= 2.0.0"
+		PKG_CHECK_MODULES(GTK, [$pkg_modules],,[have_gtk=no])
+
+		if test "x$have_gtk" = "xyes"; then
+			CLEAN_GTK_LIBS=
+			CLEAN_GTK_CFLAGS=
+	
+			AC_DEFINE(HAVE_GTK,1,GTK++ v.2.0 or higher is available )
+
+			present_libs="$LDFLAGS $LIBS $x_libs $AFTERIMAGE_LIBS";
+			for l in `echo "$GTK_LIBS"`; do
+	  	  	lib_found=no
+	  	  	for p in `echo "$present_libs"` ; do
+			  	if test "x$l" = "x$p" ; then
+    		    	lib_found=yes;
+		  	  	fi;
+	  	  	done;
+	  	  	if test "x$lib_found" != "xyes" ; then
+		  		CLEAN_GTK_LIBS="$CLEAN_GTK_LIBS $l" ;
+	  	  	fi;
+			done;
+			present_incs="$CCFLAGS $x_includes";
+			for l in `echo "$GTK_CFLAGS"` ;	do
+	  			inc_found=no
+		  		for p in `echo "$present_incs"` ; do
+					if test "x$l" = "x$p" ; then
+    		  			inc_found=yes;
+					fi;
+					if test "x$l" = "x-I$p" ; then
+    		  			inc_found=yes;
+					fi;
+	  			done;
+	  			if test "x$inc_found" != "xyes" ; then
+					CLEAN_GTK_CFLAGS="$CLEAN_GTK_CFLAGS $l" ;
+	  			fi;
+			done;
+			GTK_CFLAGS=$CLEAN_GTK_CFLAGS ;
+			GTK_LIBS=$CLEAN_GTK_LIBS ;
+		fi
+	fi
+fi
+
+GTK_INCLUDES=$GTK_CFLAGS
+
 
 if test "x$enable_ascp" = "xyes"; then
     AC_MSG_CHECKING(libraries required by FLTK version of ascp)
@@ -497,46 +565,9 @@ if test "x$enable_ascp" = "xyes"; then
 	if test -z "$PKG_CONFIG"; then
     		AC_PATH_PROG(PKG_CONFIG, pkg-config,no)
 	fi
-	if test "$PKG_CONFIG" = "no" ; then
-		AC_MSG_CHECKING(if gtk++ 2.0 is available)
-		AC_MSG_RESULT(pkg-config is not found. Cannot check for gtk++ 2.0.)
-	else
+	if test "x$have_gtk" = "xyes" ; then
 		ASCP_GTK=ascp_gtk
-		pkg_modules="gtk+-2.0 >= 2.0.0"
-		PKG_CHECK_MODULES(GTK, [$pkg_modules],,[ASCP_GTK=])
-		
-		if test "x$ASCP_GTK" = "xascp_gtk"; then
-			present_libs="$LDFLAGS $LIBS $x_libs $AFTERIMAGE_LIBS";
-			for l in `echo "$GTK_LIBS"`; do
-	  	  	lib_found=no
-	  	  	for p in `echo "$present_libs"` ; do
-			  	if test "x$l" = "x$p" ; then
-    		    	lib_found=yes;
-		  	  	fi;
-	  	  	done;
-	  	  	if test "x$lib_found" != "xyes" ; then
-		  		ASCP_GTK_LIBS="$ASCP_GTK_LIBS $l" ;
-	  	  	fi;
-			done;
-dnl#			AC_MSG_RESULT($ASCP_GTK_LIBS)
-			present_incs="$CCFLAGS $x_includes";
-			for l in `echo "$GTK_CFLAGS"` ;	do
-	  			inc_found=no
-		  		for p in `echo "$present_incs"` ; do
-					if test "x$l" = "x$p" ; then
-    		  			inc_found=yes;
-					fi;
-					if test "x$l" = "x-I$p" ; then
-    		  			inc_found=yes;
-					fi;
-	  			done;
-	  			if test "x$inc_found" != "xyes" ; then
-					ASCP_GTK_INCLUDES="$ASCP_GTK_INCLUDES $l" ;
-	  			fi;
-			done;
-dnl#			AC_MSG_RESULT($ASCP_GTK_INCLUDES)
-			enable_ascp=yes ;
-		fi
+		enable_ascp=yes ;
 	fi
 
 	if test "x$enable_ascp" = "xno"; then
@@ -544,6 +575,11 @@ dnl#			AC_MSG_RESULT($ASCP_GTK_INCLUDES)
 		echo "You have to install FLTK or GTK libaries in order to be able to compile ascp."
     fi;
 fi;
+
+if test "x$have_gtk" != "xyes"; then 
+   	ASGTK_LIB=
+	ASGTK_STATIC_LIB=
+fi
 
 dnl# Electric Fence goes at the end
 if test "x$with_libefence" = "xyes"; then
@@ -601,14 +637,19 @@ AC_SUBST(libafterconf_version)
 AC_SUBST(libafterconf_version_major)
 AC_SUBST(libafterconf_name)
 AC_SUBST(libafterconf_file_name)
+AC_SUBST(libasgtk_version)
+AC_SUBST(libasgtk_version_major)
+AC_SUBST(libasgtk_name)
+AC_SUBST(libasgtk_file_name)
 AC_SUBST(with_locale)
 AC_SUBST(image_format)
 AC_SUBST(ASCP_FLTK)
 AC_SUBST(ASCP_FLTK_LIBS)
 AC_SUBST(ASCP_FLTK_INCLUDES)
 AC_SUBST(ASCP_GTK)
-AC_SUBST(ASCP_GTK_LIBS)
-AC_SUBST(ASCP_GTK_INCLUDES)
+AC_SUBST(GTK_LIBS)
+AC_SUBST(GTK_CFLAGS)
+AC_SUBST(GTK_INCLUDES)
 AC_SUBST(user_ldflags)
 AC_SUBST(x_libs)
 AC_SUBST(xine_libs)
@@ -667,10 +708,18 @@ LIBAFTERIMAGEFILES=./libAfterImage/.shared
 LIBAFTERSTEPFILES=./libAfterStep/.shared
 LIBAFTERCONFFILES=./libAfterConf/.shared
 
+if test "x$have_gtk" == "xyes"; then 
+	LIBASGTKFILES=./libASGTK/.shared
+	LIBASGTKDIR=libASGTK
+fi
+
 AC_SUBST_FILE(LIBAFTERBASEFILES)
 AC_SUBST_FILE(LIBAFTERIMAGEFILES)
 AC_SUBST_FILE(LIBAFTERSTEPFILES)
 AC_SUBST_FILE(LIBAFTERCONFFILES)
+AC_SUBST_FILE(LIBASGTKFILES)
+
+AC_SUBST(LIBASGTKDIR)
 
 AC_SUBST_FILE(MAKEFILEDEFINES)
 AC_SUBST_FILE(MAKEFILECOMMON)
@@ -702,6 +751,8 @@ if test -d src/WinList2 ; 	then AC_CONFIG_FILES([src/WinList2/Makefile]) fi
 if test -d src/WinTabs ; 	then AC_CONFIG_FILES([src/WinTabs/Makefile]) fi
 if test -d src/Gadget ; 	then AC_CONFIG_FILES([src/Gadget/Makefile]) fi
 if test -d src/test ; 		then AC_CONFIG_FILES([src/test/Makefile]) fi
+
+if test "x$have_gtk" = "xyes"; then AC_CONFIG_FILES([libASGTK/asgtk-config libASGTK/Makefile]) fi
 
 AC_OUTPUT(\
 configure.h \

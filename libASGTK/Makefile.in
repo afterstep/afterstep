@@ -1,0 +1,29 @@
+#
+# Copyright (c) 2005, Sasha Vasko <sasha at aftercode.net>
+#
+
+LIB_INCS= 	asgtk.h asgtkapp.h
+
+LIB_OBJS= asgtkapp.o
+
+CONFIG_SCRIPT= asgtk-config
+
+LIB_DIR_NAME    = libASGTK
+LIB_NAME        = LIBASGTK
+LIB_STATIC      = libASGTK.a
+LIB_SHARED      = libASGTK.so
+LIB_SHARED_CYG  = cygASGTK.dll
+LIB_SHARED_CYG_AR  = libASGTK.dll.a
+LIBVER          = @libasgtk_version@
+LIBVERMAJOR     = @libasgtk_version_major@
+
+INCS_PRIVATE	= @GTK_INCLUDES@
+
+LIBS_PRIVATE      = ../src/afterstep/$(LIB_AFTERCONF) ../src/afterstep/$(LIB_AFTERSTEP) \
+		    ../src/afterstep/$(LIB_AFTERIMAGE) ../src/afterstep/$(LIB_AFTERBASE) \
+		    @GTK_LIBS@ $(LIBS_AFTERIMAGE)
+
+@MAKEFILECOMMONLIB@
+
+
+
