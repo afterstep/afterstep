@@ -1379,8 +1379,8 @@ rearrange_tabs( Bool dont_resize_window )
     if( i >= tabs_num )    
         y += tab_height ; 
     
-    if( (moveresize_canvas( WinTabsState.tabs_canvas, 0, 0, max_x, y )&CANVAS_RESIZED)!= 0 )
-		render_tabs(True);
+    moveresize_canvas( WinTabsState.tabs_canvas, 0, 0, max_x, y );
+	render_tabs(True);
     
     max_y -= y ;
 	if( max_y <= 0 ) 
