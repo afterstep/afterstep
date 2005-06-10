@@ -37,26 +37,6 @@ on_main_list_selection_change(GtkTreeSelection *selection, gpointer user_data)
   	}
 }
 
-#if 0
-void 
-list_preview_size_alloc   ( GtkWidget *widget,
-							GtkAllocation *allocation,
-							gpointer user_data )
-{
-	int w = allocation->width ;		   
-	int h = allocation->height ;
-	LOCAL_DEBUG_OUT( "####!!! SizeAlloc for %p is %dx%d%+d%+d", widget, allocation->width, allocation->height, allocation->x, allocation->y );
-    LOCAL_DEBUG_OUT( "####!!! recquisition was %dx%d",  widget->requisition.width,  widget->requisition.height );
-	if( WallpaperState.preview_width != w || WallpaperState.preview_height != h ) 
-	{
-		WallpaperState.preview_width = w ; 
-		WallpaperState.preview_height = h ;
-		on_main_list_selection_change(gtk_tree_view_get_selection(WallpaperState.backs_list), NULL);
-	}	 
-}								  
-
-#endif
-
 void
 on_list_add_clicked(GtkButton *button, gpointer user_data)
 {

@@ -31,18 +31,14 @@
 #include "asgtkimageview.h"
 
 /*  local function prototypes  */
-
-
-/*  private variables  */
-
-static GtkAspectFrameClass *parent_class = NULL;
-
 static void asgtk_image_view_class_init (ASGtkImageViewClass *klass);
 static void asgtk_image_view_init (ASGtkImageView *iv);
 static void asgtk_image_view_dispose (GObject *object);
 static void asgtk_image_view_finalize (GObject *object);
 static void asgtk_image_view_style_set (GtkWidget *widget, GtkStyle  *prev_style);
 
+/*  private variables  */
+static GtkAspectFrameClass *parent_class = NULL;
 
 GType
 asgtk_image_view_get_type (void)
