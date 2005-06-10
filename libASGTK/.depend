@@ -1,5 +1,16 @@
 ./asgtkapp.o : \
 		../configure.h \
+		../include/afterbase.h \
+		../libAfterStep/asapp.h \
 		asgtk.h \
 		../libAfterStep/module.h \
 		../libAfterConf/afterconf.h
+
+./asgtkimageview.o : \
+		../configure.h \
+		../include/afterbase.h \
+		../libAfterImage/afterimage.h \
+		../libAfterStep/asapp.h \
+		../libAfterStep/screen.h \
+		asgtk.h \
+		asgtkimageview.h

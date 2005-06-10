@@ -2,9 +2,9 @@
 # Copyright (c) 2005, Sasha Vasko <sasha at aftercode.net>
 #
 
-LIB_INCS= 	asgtk.h asgtkapp.h
+LIB_INCS= 	asgtk.h asgtkapp.h asgtkimageview.h
 
-LIB_OBJS= asgtkapp.o
+LIB_OBJS= asgtkapp.o asgtkimageview.o
 
 CONFIG_SCRIPT= asgtk-config
 

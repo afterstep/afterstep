@@ -1,6 +1,8 @@
 LIBASGTK_OBJS = \
-		$(LIBASGTK_PATH)/asgtkapp.c
+		$(LIBASGTK_PATH)/asgtkapp.c \
+		$(LIBASGTK_PATH)/asgtkimageview.c
 
 LIBASGTK_INCS = \
 		$(LIBASGTK_PATH)/asgtk.h \
-		$(LIBASGTK_PATH)/asgtkapp.h
+		$(LIBASGTK_PATH)/asgtkapp.h \
+		$(LIBASGTK_PATH)/asgtkimageview.h

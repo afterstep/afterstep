@@ -57,6 +57,7 @@ typedef enum
 	/* reserved for future implementation : */
 	ASIT_Xbm,
 	ASIT_Targa,
+	ASIT_Supported = ASIT_Targa,
 	ASIT_Pcx,
 	ASIT_Unknown
 }ASImageFileTypes;

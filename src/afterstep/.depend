@@ -29,6 +29,7 @@
 ./afterstep.o: \
 		../../configure.h \
 		asinternals.h \
+		../../libAfterConf/afterconf.h \
 		../../libAfterStep/session.h \
 		../../libAfterStep/wmprops.h \
 		../../libAfterStep/moveresize.h
@@ -54,8 +55,8 @@
 
 ./cover.o: \
 		../../configure.h \
-		../../libAfterStep/colorscheme.h \
-		asinternals.h
+		asinternals.h \
+		../../libAfterStep/colorscheme.h
 
 ./decorations.o: \
 		../../configure.h \

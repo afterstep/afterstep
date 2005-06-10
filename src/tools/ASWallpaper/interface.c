@@ -9,17 +9,7 @@
 #include "../../../../libAfterImage/afterimage.h"
 #include "../../../../libAfterStep/screen.h"
 #include "../../../../libAfterStep/colorscheme.h"
-
-
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#include <string.h>
-#include <stdio.h>
-
-#include <gdk/gdk.h>	
-#include <gdk/gdkkeysyms.h>
-#include <gtk/gtk.h>
+#include "../../../../libASGTK/asgtk.h"
 
 #include "callbacks.h"
 #include "interface.h"
@@ -32,64 +22,6 @@
 #define GLADE_HOOKUP_OBJECT_NO_REF(component,widget,name) \
   g_object_set_data (G_OBJECT (component), name, widget)
 
-GdkColor* color_name2GdkColor( const char *name, GdkColor *color )
-{
-	ARGB32 argb ;
-
-	parse_argb_color( name, &argb );
-	color->pixel = argb ;
-	color->red = ARGB32_RED16(argb);
-	color->green = ARGB32_GREEN16(argb);
-	color->blue = ARGB32_BLUE16(argb);
-	return color;
-}
-
-static void free_buffer (guchar *pixels, gpointer data)
-{
-	g_free (pixels);
-}
-
-
-GdkPixbuf *
-ASImage2GdkPixbuf( ASImage *im, Bool copy ) 
-{
-	GdkPixbuf *pb = NULL ; 
-	if( im ) 
-	{
-		ARGB32 *argb = im->alt.argb32 ;
-		ASImage *tmp = NULL ;
-		int i, k = 0;
-		int size = im->width*im->height;
-		guchar *data ;
-
-		if( argb == NULL) 
-		{
-			tmp = tile_asimage( Scr.asv, im, 0, 0, im->width, im->height, TINT_LEAVE_SAME, ASA_ARGB32, 0, ASIMAGE_QUALITY_DEFAULT );
-			if( tmp == NULL ) 
-				return NULL;
-			argb = tmp->alt.argb32 ;
-		}
-		
-		data = safemalloc( size*4 );
-		for( i = 0 ; i < size ; ++i ) 
-		{
-			data[k] = ARGB32_RED8(argb[i]);
-			data[++k] = ARGB32_GREEN8(argb[i]);
-			data[++k] = ARGB32_BLUE8(argb[i]);
-			data[++k] = ARGB32_ALPHA8(argb[i]);
-			++k;
-		}
-		
-		pb = gdk_pixbuf_new_from_data( data, GDK_COLORSPACE_RGB, True, 8, im->width, im->height, im->width*4, free_buffer, NULL );
-		if( pb == NULL ) 
-			free( data );
-			
-		if( tmp ) 
-			destroy_asimage( &tmp );
-			
-	}	 
-	return pb;
-}	 
 
 static void
 on_main_list_selection_change(GtkTreeSelection *selection, gpointer user_data)
@@ -100,41 +32,12 @@ on_main_list_selection_change(GtkTreeSelection *selection, gpointer user_data)
   	if (gtk_tree_selection_get_selected (selection, &model, &iter)) 
 	{
 		gpointer p = NULL ;
-		ASImageListEntry *curr ;
-
     	gtk_tree_model_get (model, &iter, 1, &p, -1);
-		if( (curr = p) != NULL && curr->preview ) 
-		{
-			GdkPixbuf *pb = NULL ; 
-			ASImage *scaled = NULL, *tiled = NULL; 
-			int scaled_w = (curr->preview->width * WallpaperState.preview_width )/ Scr.MyDisplayWidth ; 
-			int scaled_h = (curr->preview->height * WallpaperState.preview_height )/ Scr.MyDisplayHeight ;
-			ASAltImFormats format = ( scaled_w != WallpaperState.preview_width || scaled_h != WallpaperState.preview_height )? ASA_ASImage: ASA_ARGB32 ;
-			
-			LOCAL_DEBUG_OUT( "scaled size is %dx%d", scaled_w, scaled_h );
-			scaled = scale_asimage( Scr.asv, curr->preview, scaled_w, scaled_h, format, 0, ASIMAGE_QUALITY_DEFAULT );			
-			if( scaled && ( scaled_w != WallpaperState.preview_width || scaled_h != WallpaperState.preview_height ))
-			{
-				tiled = tile_asimage( Scr.asv, scaled, 0, 0, 
-									  WallpaperState.preview_width, 
-									  WallpaperState.preview_height, 
-									  TINT_LEAVE_SAME, ASA_ARGB32, 0, ASIMAGE_QUALITY_DEFAULT );				   
-				LOCAL_DEBUG_OUT( "tiled size is %dx%d", tiled->width, tiled->height );
-			}	 
-			pb = ASImage2GdkPixbuf( tiled?tiled:(scaled?scaled:curr->preview), False );
-			if( tiled ) 
-				destroy_asimage( &tiled );
-			if( scaled ) 
-				destroy_asimage( &scaled );
-			gtk_image_set_from_pixbuf( WallpaperState.list_preview, pb );
-			gdk_pixbuf_unref( pb ); 		   
-		    LOCAL_DEBUG_OUT( "####!!! recquisition is %dx%d",  
-							 GTK_WIDGET(WallpaperState.list_preview)->requisition.width,  
-							 GTK_WIDGET(WallpaperState.list_preview)->requisition.height );
-		}	 
+		asgtk_image_view_set_entry ( ASGTK_IMAGE_VIEW(WallpaperState.list_preview), p);
   	}
 }
 
+#if 0
 void 
 list_preview_size_alloc   ( GtkWidget *widget,
 							GtkAllocation *allocation,
@@ -151,6 +54,8 @@ list_preview_size_alloc   ( GtkWidget *widget,
 		on_main_list_selection_change(gtk_tree_view_get_selection(WallpaperState.backs_list), NULL);
 	}	 
 }								  
+
+#endif
 
 void
 on_list_add_clicked(GtkButton *button, gpointer user_data)
@@ -187,170 +92,6 @@ on_make_xml_clicked(GtkButton *button, gpointer user_data)
 {
 	
 }
-
-GtkStyle *ASGtkStyleNormal = NULL; 
-GtkStyle *ASGtkStyleButton = NULL; 
-GtkStyle *get_colorschemed_style_normal()
-{
-	if( ASGtkStyleNormal == NULL ) 
-	{
-		ASGtkStyleNormal = gtk_style_copy(GTK_WIDGET(WallpaperState.main_window)->style); 		
-		color_name2GdkColor("InactiveText1"   , &(ASGtkStyleNormal->fg[GTK_STATE_NORMAL]));
-		color_name2GdkColor("InactiveText2"   , &(ASGtkStyleNormal->fg[GTK_STATE_ACTIVE]));
-		color_name2GdkColor("HighInactiveText", &(ASGtkStyleNormal->fg[GTK_STATE_PRELIGHT]));
-		color_name2GdkColor("ActiveText"	  , &(ASGtkStyleNormal->fg[GTK_STATE_SELECTED]));
-		color_name2GdkColor("DisabledText"    , &(ASGtkStyleNormal->fg[GTK_STATE_INSENSITIVE]));
-		color_name2GdkColor("Inactive1"   , &(ASGtkStyleNormal->bg[GTK_STATE_NORMAL]     ));
-		color_name2GdkColor("Inactive2"   , &(ASGtkStyleNormal->bg[GTK_STATE_ACTIVE]     ));
-		color_name2GdkColor("HighInactive", &(ASGtkStyleNormal->bg[GTK_STATE_PRELIGHT]   ));
-		color_name2GdkColor("Active"	  , &(ASGtkStyleNormal->bg[GTK_STATE_SELECTED]   ));
-		color_name2GdkColor("Inactive1"   , &(ASGtkStyleNormal->bg[GTK_STATE_INSENSITIVE]));
-		color_name2GdkColor("Inactive1Light"   , &(ASGtkStyleNormal->light[GTK_STATE_NORMAL]     ));
-		color_name2GdkColor("Inactive2Light"   , &(ASGtkStyleNormal->light[GTK_STATE_ACTIVE]     ));
-		color_name2GdkColor("HighInactiveLight", &(ASGtkStyleNormal->light[GTK_STATE_PRELIGHT]   ));
-		color_name2GdkColor("ActiveLight"  	   , &(ASGtkStyleNormal->light[GTK_STATE_SELECTED]   ));
-		color_name2GdkColor("Inactive1Light"   , &(ASGtkStyleNormal->light[GTK_STATE_INSENSITIVE]));
-		color_name2GdkColor("Inactive1Dark"   , &(ASGtkStyleNormal->dark[GTK_STATE_NORMAL]     ));
-		color_name2GdkColor("Inactive2Dark"   , &(ASGtkStyleNormal->dark[GTK_STATE_ACTIVE]     ));
-		color_name2GdkColor("HighInactiveDark", &(ASGtkStyleNormal->dark[GTK_STATE_PRELIGHT]   ));
-		color_name2GdkColor("ActiveDark"	  , &(ASGtkStyleNormal->dark[GTK_STATE_SELECTED]   ));
-		color_name2GdkColor("Inactive1Dark"   , &(ASGtkStyleNormal->dark[GTK_STATE_INSENSITIVE]));
-		color_name2GdkColor("Inactive1"   , &(ASGtkStyleNormal->mid[GTK_STATE_NORMAL]     ));
-		color_name2GdkColor("Inactive2"   , &(ASGtkStyleNormal->mid[GTK_STATE_ACTIVE]     ));
-		color_name2GdkColor("HighInactive", &(ASGtkStyleNormal->mid[GTK_STATE_PRELIGHT]   ));
-		color_name2GdkColor("Active"	  , &(ASGtkStyleNormal->mid[GTK_STATE_SELECTED]   ));
-		color_name2GdkColor("Inactive1"   , &(ASGtkStyleNormal->mid[GTK_STATE_INSENSITIVE]));
-		color_name2GdkColor("InactiveText1"   , &(ASGtkStyleNormal->text[GTK_STATE_NORMAL]     ));
-		color_name2GdkColor("InactiveText2"   , &(ASGtkStyleNormal->text[GTK_STATE_ACTIVE]     ));
-		color_name2GdkColor("HighInactiveText", &(ASGtkStyleNormal->text[GTK_STATE_PRELIGHT]   ));
-		color_name2GdkColor("ActiveText"	  , &(ASGtkStyleNormal->text[GTK_STATE_SELECTED]   ));
-		color_name2GdkColor("InactiveText1"   , &(ASGtkStyleNormal->text[GTK_STATE_INSENSITIVE]));
-
-		color_name2GdkColor("Inactive1"   , &(ASGtkStyleNormal->base[GTK_STATE_NORMAL]     ));
-		color_name2GdkColor("Inactive2"   , &(ASGtkStyleNormal->base[GTK_STATE_ACTIVE]     ));
-		color_name2GdkColor("HighInactive", &(ASGtkStyleNormal->base[GTK_STATE_PRELIGHT]   ));
-		color_name2GdkColor("Active"	  , &(ASGtkStyleNormal->base[GTK_STATE_SELECTED]   ));
-		color_name2GdkColor("Inactive1"   , &(ASGtkStyleNormal->base[GTK_STATE_INSENSITIVE]));
-#if 0
-		color_name2GdkColor("", &(ASGtkStyleNormal->text_aa[GTK_STATE_NORMAL]     ));
-		color_name2GdkColor("", &(ASGtkStyleNormal->text_aa[GTK_STATE_ACTIVE]     ));
-		color_name2GdkColor("", &(ASGtkStyleNormal->text_aa[GTK_STATE_PRELIGHT]   ));
-		color_name2GdkColor("", &(ASGtkStyleNormal->text_aa[GTK_STATE_SELECTED]   ));
-		color_name2GdkColor("", &(ASGtkStyleNormal->text_aa[GTK_STATE_INSENSITIVE]));
-#endif
-	}	 
-	return ASGtkStyleNormal;
-}	 
-GtkStyle *get_colorschemed_style_button()
-{
-	if( ASGtkStyleButton == NULL ) 
-	{
-		ASGtkStyleButton = gtk_style_copy(GTK_WIDGET(WallpaperState.main_window)->style); 		
-		color_name2GdkColor("HighInactiveText", &(ASGtkStyleButton->fg[GTK_STATE_NORMAL]));
-		color_name2GdkColor("HighInactiveText", &(ASGtkStyleButton->fg[GTK_STATE_ACTIVE]));
-		color_name2GdkColor("HighInactiveText", &(ASGtkStyleButton->fg[GTK_STATE_PRELIGHT]));
-		color_name2GdkColor("ActiveText"	  , &(ASGtkStyleButton->fg[GTK_STATE_SELECTED]));
-		color_name2GdkColor("DisabledText"    , &(ASGtkStyleButton->fg[GTK_STATE_INSENSITIVE]));
-		color_name2GdkColor("HighInactiveBack" , &(ASGtkStyleButton->bg[GTK_STATE_NORMAL]     ));
-		color_name2GdkColor("HighInactiveLight", &(ASGtkStyleButton->bg[GTK_STATE_ACTIVE]     ));
-		color_name2GdkColor("HighInactive"     , &(ASGtkStyleButton->bg[GTK_STATE_PRELIGHT]   ));
-		color_name2GdkColor("Active"	       , &(ASGtkStyleButton->bg[GTK_STATE_SELECTED]   ));
-		color_name2GdkColor("HighInactive"     , &(ASGtkStyleButton->bg[GTK_STATE_INSENSITIVE]));
-		color_name2GdkColor("Inactive1Light"   , &(ASGtkStyleButton->light[GTK_STATE_NORMAL]     ));
-		color_name2GdkColor("Inactive2Light"   , &(ASGtkStyleButton->light[GTK_STATE_ACTIVE]     ));
-		color_name2GdkColor("HighInactiveLight", &(ASGtkStyleButton->light[GTK_STATE_PRELIGHT]   ));
-		color_name2GdkColor("ActiveLight"  	   , &(ASGtkStyleButton->light[GTK_STATE_SELECTED]   ));
-		color_name2GdkColor("Inactive1Light"   , &(ASGtkStyleButton->light[GTK_STATE_INSENSITIVE]));
-		color_name2GdkColor("Inactive1Dark"   , &(ASGtkStyleButton->dark[GTK_STATE_NORMAL]     ));
-		color_name2GdkColor("Inactive2Dark"   , &(ASGtkStyleButton->dark[GTK_STATE_ACTIVE]     ));
-		color_name2GdkColor("HighInactiveDark", &(ASGtkStyleButton->dark[GTK_STATE_PRELIGHT]   ));
-		color_name2GdkColor("ActiveDark"	  , &(ASGtkStyleButton->dark[GTK_STATE_SELECTED]   ));
-		color_name2GdkColor("Inactive1Dark"   , &(ASGtkStyleButton->dark[GTK_STATE_INSENSITIVE]));
-		color_name2GdkColor("Inactive1"   , &(ASGtkStyleButton->mid[GTK_STATE_NORMAL]     ));
-		color_name2GdkColor("Inactive2"   , &(ASGtkStyleButton->mid[GTK_STATE_ACTIVE]     ));
-		color_name2GdkColor("HighInactive", &(ASGtkStyleButton->mid[GTK_STATE_PRELIGHT]   ));
-		color_name2GdkColor("Active"	  , &(ASGtkStyleButton->mid[GTK_STATE_SELECTED]   ));
-		color_name2GdkColor("Inactive1"   , &(ASGtkStyleButton->mid[GTK_STATE_INSENSITIVE]));
-		color_name2GdkColor("HighInactiveText", &(ASGtkStyleButton->text[GTK_STATE_NORMAL]     ));
-		color_name2GdkColor("HighInactiveText", &(ASGtkStyleButton->text[GTK_STATE_ACTIVE]     ));
-		color_name2GdkColor("HighInactiveText", &(ASGtkStyleButton->text[GTK_STATE_PRELIGHT]   ));
-		color_name2GdkColor("ActiveText"	  , &(ASGtkStyleButton->text[GTK_STATE_SELECTED]   ));
-		color_name2GdkColor("DisabledText"    , &(ASGtkStyleButton->text[GTK_STATE_INSENSITIVE]));
-
-		color_name2GdkColor("HighInactiveDark" , &(ASGtkStyleButton->base[GTK_STATE_NORMAL]     ));
-		color_name2GdkColor("HighInactive"     , &(ASGtkStyleButton->base[GTK_STATE_ACTIVE]     ));
-		color_name2GdkColor("HighInactiveLight", &(ASGtkStyleButton->base[GTK_STATE_PRELIGHT]   ));
-		color_name2GdkColor("Active"	       , &(ASGtkStyleButton->base[GTK_STATE_SELECTED]   ));
-		color_name2GdkColor("HighInactive"     , &(ASGtkStyleButton->base[GTK_STATE_INSENSITIVE]));
-#if 0
-		color_name2GdkColor("", &(ASGtkStyleButton->text_aa[GTK_STATE_NORMAL]     ));
-		color_name2GdkColor("", &(ASGtkStyleButton->text_aa[GTK_STATE_ACTIVE]     ));
-		color_name2GdkColor("", &(ASGtkStyleButton->text_aa[GTK_STATE_PRELIGHT]   ));
-		color_name2GdkColor("", &(ASGtkStyleButton->text_aa[GTK_STATE_SELECTED]   ));
-		color_name2GdkColor("", &(ASGtkStyleButton->text_aa[GTK_STATE_INSENSITIVE]));
-#endif
-	}	 
-	return ASGtkStyleButton;
-}	 
-
-void  
-colorize_gtk_window( GtkWidget *window )
-{
-	GdkColor bg ;
-	ARGB32 argb ;
-	CARD32 val ;
-
-	parse_argb_color( "Base", &argb );
-	val = ASCS_BLACK_O_WHITE_CRITERIA16_VAL(ARGB32_RED16(argb),ARGB32_GREEN16(argb),ARGB32_BLUE16(argb));
-	if( val >= 0x09FFF )
-	{	
-		LOCAL_DEBUG_OUT( "Base is light, val = 0x%lX", val);
-		color_name2GdkColor("BaseDark", &bg);
-	}else
-	{
-		LOCAL_DEBUG_OUT( "Base is dark, val = 0x%lX", val);
-		color_name2GdkColor("BaseLight", &bg);
-	}
-  	gtk_widget_modify_bg( window, GTK_STATE_NORMAL, &bg );
-}	
-
-void 
-colorize_gtk_tree_view( GtkCellRenderer *cell, GtkTreeViewColumn *column )
-{
-#if 0	  
-	GdkColor bg;
-	GdkColor fg;
-	
-	color_name2GdkColor("Inactive1", &bg);
-	color_name2GdkColor("InactiveText1", &fg);
-
-	g_object_set(G_OBJECT(cell), "background-gdk", &bg, "foreground-gdk", &fg, NULL );
-	g_object_set(G_OBJECT(column), "background-gdk", &bg, "foreground-gdk", &fg, NULL );
-#else
-	gtk_widget_set_style( GTK_WIDGET(cell), get_colorschemed_style_normal());
-#endif
-	
-}	   
-
-void  
-colorize_gtk_widget(GtkWidget *widget, gpointer data)
-{
-
-	GtkStyle *style = data?GTK_STYLE(data):NULL;
-	int i ; 
-
-	if( style == NULL ) 
-		style = get_colorschemed_style_normal();
-
-	gtk_widget_set_style( widget, style);
-	for( i = 0 ; i < 5 ; ++i ) 
-		gtk_widget_modify_fg(widget, i, &(style->fg[i]));
-	LOCAL_DEBUG_OUT( "widget %p", widget );
-	if( GTK_IS_CONTAINER(widget) )
-		gtk_container_forall( GTK_CONTAINER(widget), colorize_gtk_widget, data );
-
-}	 
-
 
 
 void
@@ -470,13 +211,20 @@ create_list_preview()
 {
 	GtkWidget *vbox ;
 	GtkWidget *buttons_hbox;
+	int preview_width ; 
 
   	vbox = gtk_vbox_new (FALSE, 0);
   	gtk_widget_show (vbox);
   	gtk_box_pack_end (GTK_BOX (WallpaperState.list_hbox), vbox, TRUE, TRUE, 5);
 
-	WallpaperState.preview_height = INITIAL_PREVIEW_HEIGHT ;
-	WallpaperState.preview_width = (WallpaperState.preview_height *Scr.MyDisplayWidth)/Scr.MyDisplayHeight;
+	WallpaperState.list_preview = asgtk_image_view_new();
+	preview_width = (INITIAL_PREVIEW_HEIGHT *Scr.MyDisplayWidth)/Scr.MyDisplayHeight ;
+	gtk_widget_set_size_request (WallpaperState.list_preview, preview_width, INITIAL_PREVIEW_HEIGHT);
+	asgtk_image_view_set_aspect (WallpaperState.list_preview, Scr.MyDisplayWidth, Scr.MyDisplayHeight );
+	gtk_box_pack_start (GTK_BOX (vbox), WallpaperState.list_preview, TRUE, TRUE, 0);
+	gtk_widget_show (WallpaperState.list_preview);
+
+#if 0
 
 
   	WallpaperState.list_preview_container = gtk_aspect_frame_new (NULL, 0.5, 0.5, (gfloat)Scr.MyDisplayWidth/(gfloat)Scr.MyDisplayHeight, FALSE );
@@ -498,7 +246,7 @@ create_list_preview()
 
 	g_signal_connect ((gpointer) WallpaperState.list_preview, "size-allocate",
                        G_CALLBACK (list_preview_size_alloc), NULL);
-	
+#endif	
 	buttons_hbox = gtk_hbutton_box_new ();
   	gtk_hbutton_box_set_layout_default(GTK_BUTTONBOX_SPREAD);
   	gtk_widget_show (buttons_hbox);
@@ -506,7 +254,7 @@ create_list_preview()
 
 	WallpaperState.make_xml_button = create_list_button( buttons_hbox, GTK_STOCK_PROPERTIES, G_CALLBACK(on_make_xml_clicked) );
 	gtk_button_set_label( GTK_BUTTON(WallpaperState.make_xml_button), "Tweak this wallpaper" );
-	gtk_widget_set_size_request (WallpaperState.make_xml_button, WallpaperState.preview_width, -1);	
+	gtk_widget_set_size_request (WallpaperState.make_xml_button, preview_width, -1);	
 #if (GTK_MAJOR_VERSION>=2) && (GTK_MINOR_VERSION>=6)	
 	gtk_button_set_image( GTK_BUTTON(WallpaperState.make_xml_button),gtk_image_new_from_stock(GTK_STOCK_PROPERTIES, GTK_ICON_SIZE_BUTTON) );
 #endif
@@ -524,12 +272,14 @@ on_private_backs_changed()
 		curr = WallpaperState.private_backs_list ;
 		while( curr )
 		{
-			if( curr->preview ) 
+			LOCAL_DEBUG_OUT( "adding item \"%s\"", curr->name );			
+			if( curr->type <= ASIT_Supported ) 
 			{	
         		gtk_list_store_append (GTK_LIST_STORE (WallpaperState.list_model), &iter);
-   	    		gtk_list_store_set (GTK_LIST_STORE (WallpaperState.list_model), &iter, 0, curr->name, 1, curr, -1);
-				curr = curr->next ;
+   	    		
+				gtk_list_store_set (GTK_LIST_STORE (WallpaperState.list_model), &iter, 0, curr->name, 1, curr, -1);
 			}
+			curr = curr->next ;
 		}
 	}
 }
@@ -540,7 +290,7 @@ reload_private_backs_list()
 	char *private_back_dir = PutHome("~/.afterstep/backgrounds");
 	ASImageListEntry *old = WallpaperState.private_backs_list ;
 	WallpaperState.private_backs_list = get_asimage_list( Scr.asv, private_back_dir,
-	              						       LOAD_PREVIEW, Scr.image_manager->gamma, 0, 0,
+	              						       0, Scr.image_manager->gamma, 0, 0,
 											   0, &WallpaperState.private_backs_count, ignore_dots );
 	free( private_back_dir );
 

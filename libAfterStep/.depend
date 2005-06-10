@@ -85,6 +85,7 @@
 ./event.o : \
 		../configure.h \
 		asapp.h \
+		../libAfterImage/afterimage.h \
 		afterstep.h \
 		screen.h \
 		event.h
@@ -132,7 +133,8 @@
 		module.h \
 		wmprops.h \
 		session.h \
-		colorscheme.h
+		colorscheme.h \
+		myicon.h
 
 ./moveresize.o : \
 		../configure.h \

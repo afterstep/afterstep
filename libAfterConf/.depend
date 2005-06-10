@@ -66,6 +66,14 @@
 		../libAfterStep/mylook.h \
 		afterconf.h
 
+./Clean.o : \
+		../configure.h \
+		../libAfterStep/asapp.h \
+		../libAfterStep/afterstep.h \
+		../libAfterStep/parser.h \
+		../libAfterStep/hints.h \
+		afterconf.h
+
 ./Color.o : \
 		../configure.h \
 		../libAfterStep/asapp.h \

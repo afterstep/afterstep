@@ -78,6 +78,13 @@ struct ASImageManager *get_screen_image_manager(ScreenInfo *scr)
 	return scr->image_manager;	
 }	 
 
+struct ASVisual *get_screen_visual(ScreenInfo *scr)
+{
+	if( scr == NULL ) 
+		scr = ASDefaultScr;
+	return scr->asv;	
+}	 
+
 
 ScreenInfo *get_current_screen()
 {

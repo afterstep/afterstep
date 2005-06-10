@@ -63,3 +63,184 @@ init_asgtkapp( int argc, char *argv[], const char *module_name, void (*custom_us
 	ReloadASEnvironment( NULL, NULL, NULL, False, True );
 	/*MyArgs.display_name*/
 }
+
+
+GdkColor* color_name2GdkColor( const char *name, GdkColor *color )
+{
+	ARGB32 argb ;
+
+	parse_argb_color( name, &argb );
+	color->pixel = argb ;
+	color->red = ARGB32_RED16(argb);
+	color->green = ARGB32_GREEN16(argb);
+	color->blue = ARGB32_BLUE16(argb);
+	return color;
+}
+
+static GtkStyle *ASGtkStyleNormal = NULL; 
+static GtkStyle *ASGtkStyleButton = NULL; 
+
+GtkStyle *get_colorschemed_style_normal()
+{
+	if( ASGtkStyleNormal == NULL ) 
+	{
+		ASGtkStyleNormal = gtk_style_new();/* gtk_style_copy(GTK_WIDGET(WallpaperState.main_window)->style); 		*/
+		color_name2GdkColor("InactiveText1"   , &(ASGtkStyleNormal->fg[GTK_STATE_NORMAL]));
+		color_name2GdkColor("InactiveText2"   , &(ASGtkStyleNormal->fg[GTK_STATE_ACTIVE]));
+		color_name2GdkColor("HighInactiveText", &(ASGtkStyleNormal->fg[GTK_STATE_PRELIGHT]));
+		color_name2GdkColor("ActiveText"	  , &(ASGtkStyleNormal->fg[GTK_STATE_SELECTED]));
+		color_name2GdkColor("DisabledText"    , &(ASGtkStyleNormal->fg[GTK_STATE_INSENSITIVE]));
+		color_name2GdkColor("Inactive1"   , &(ASGtkStyleNormal->bg[GTK_STATE_NORMAL]     ));
+		color_name2GdkColor("Inactive2"   , &(ASGtkStyleNormal->bg[GTK_STATE_ACTIVE]     ));
+		color_name2GdkColor("HighInactive", &(ASGtkStyleNormal->bg[GTK_STATE_PRELIGHT]   ));
+		color_name2GdkColor("Active"	  , &(ASGtkStyleNormal->bg[GTK_STATE_SELECTED]   ));
+		color_name2GdkColor("Inactive1"   , &(ASGtkStyleNormal->bg[GTK_STATE_INSENSITIVE]));
+		color_name2GdkColor("Inactive1Light"   , &(ASGtkStyleNormal->light[GTK_STATE_NORMAL]     ));
+		color_name2GdkColor("Inactive2Light"   , &(ASGtkStyleNormal->light[GTK_STATE_ACTIVE]     ));
+		color_name2GdkColor("HighInactiveLight", &(ASGtkStyleNormal->light[GTK_STATE_PRELIGHT]   ));
+		color_name2GdkColor("ActiveLight"  	   , &(ASGtkStyleNormal->light[GTK_STATE_SELECTED]   ));
+		color_name2GdkColor("Inactive1Light"   , &(ASGtkStyleNormal->light[GTK_STATE_INSENSITIVE]));
+		color_name2GdkColor("Inactive1Dark"   , &(ASGtkStyleNormal->dark[GTK_STATE_NORMAL]     ));
+		color_name2GdkColor("Inactive2Dark"   , &(ASGtkStyleNormal->dark[GTK_STATE_ACTIVE]     ));
+		color_name2GdkColor("HighInactiveDark", &(ASGtkStyleNormal->dark[GTK_STATE_PRELIGHT]   ));
+		color_name2GdkColor("ActiveDark"	  , &(ASGtkStyleNormal->dark[GTK_STATE_SELECTED]   ));
+		color_name2GdkColor("Inactive1Dark"   , &(ASGtkStyleNormal->dark[GTK_STATE_INSENSITIVE]));
+		color_name2GdkColor("Inactive1"   , &(ASGtkStyleNormal->mid[GTK_STATE_NORMAL]     ));
+		color_name2GdkColor("Inactive2"   , &(ASGtkStyleNormal->mid[GTK_STATE_ACTIVE]     ));
+		color_name2GdkColor("HighInactive", &(ASGtkStyleNormal->mid[GTK_STATE_PRELIGHT]   ));
+		color_name2GdkColor("Active"	  , &(ASGtkStyleNormal->mid[GTK_STATE_SELECTED]   ));
+		color_name2GdkColor("Inactive1"   , &(ASGtkStyleNormal->mid[GTK_STATE_INSENSITIVE]));
+		color_name2GdkColor("InactiveText1"   , &(ASGtkStyleNormal->text[GTK_STATE_NORMAL]     ));
+		color_name2GdkColor("InactiveText2"   , &(ASGtkStyleNormal->text[GTK_STATE_ACTIVE]     ));
+		color_name2GdkColor("HighInactiveText", &(ASGtkStyleNormal->text[GTK_STATE_PRELIGHT]   ));
+		color_name2GdkColor("ActiveText"	  , &(ASGtkStyleNormal->text[GTK_STATE_SELECTED]   ));
+		color_name2GdkColor("InactiveText1"   , &(ASGtkStyleNormal->text[GTK_STATE_INSENSITIVE]));
+
+		color_name2GdkColor("Inactive1"   , &(ASGtkStyleNormal->base[GTK_STATE_NORMAL]     ));
+		color_name2GdkColor("Inactive2"   , &(ASGtkStyleNormal->base[GTK_STATE_ACTIVE]     ));
+		color_name2GdkColor("HighInactive", &(ASGtkStyleNormal->base[GTK_STATE_PRELIGHT]   ));
+		color_name2GdkColor("Active"	  , &(ASGtkStyleNormal->base[GTK_STATE_SELECTED]   ));
+		color_name2GdkColor("Inactive1"   , &(ASGtkStyleNormal->base[GTK_STATE_INSENSITIVE]));
+#if 0
+		color_name2GdkColor("", &(ASGtkStyleNormal->text_aa[GTK_STATE_NORMAL]     ));
+		color_name2GdkColor("", &(ASGtkStyleNormal->text_aa[GTK_STATE_ACTIVE]     ));
+		color_name2GdkColor("", &(ASGtkStyleNormal->text_aa[GTK_STATE_PRELIGHT]   ));
+		color_name2GdkColor("", &(ASGtkStyleNormal->text_aa[GTK_STATE_SELECTED]   ));
+		color_name2GdkColor("", &(ASGtkStyleNormal->text_aa[GTK_STATE_INSENSITIVE]));
+#endif
+	}	 
+	return ASGtkStyleNormal;
+}	 
+
+GtkStyle *get_colorschemed_style_button()
+{
+	if( ASGtkStyleButton == NULL ) 
+	{
+		ASGtkStyleButton = gtk_style_copy(get_colorschemed_style_normal());
+		color_name2GdkColor("HighInactiveText", &(ASGtkStyleButton->fg[GTK_STATE_NORMAL]));
+		color_name2GdkColor("HighInactiveText", &(ASGtkStyleButton->fg[GTK_STATE_ACTIVE]));
+		color_name2GdkColor("HighInactiveText", &(ASGtkStyleButton->fg[GTK_STATE_PRELIGHT]));
+		color_name2GdkColor("ActiveText"	  , &(ASGtkStyleButton->fg[GTK_STATE_SELECTED]));
+		color_name2GdkColor("DisabledText"    , &(ASGtkStyleButton->fg[GTK_STATE_INSENSITIVE]));
+		color_name2GdkColor("HighInactiveBack" , &(ASGtkStyleButton->bg[GTK_STATE_NORMAL]     ));
+		color_name2GdkColor("HighInactiveLight", &(ASGtkStyleButton->bg[GTK_STATE_ACTIVE]     ));
+		color_name2GdkColor("HighInactive"     , &(ASGtkStyleButton->bg[GTK_STATE_PRELIGHT]   ));
+		color_name2GdkColor("Active"	       , &(ASGtkStyleButton->bg[GTK_STATE_SELECTED]   ));
+		color_name2GdkColor("HighInactive"     , &(ASGtkStyleButton->bg[GTK_STATE_INSENSITIVE]));
+		color_name2GdkColor("Inactive1Light"   , &(ASGtkStyleButton->light[GTK_STATE_NORMAL]     ));
+		color_name2GdkColor("Inactive2Light"   , &(ASGtkStyleButton->light[GTK_STATE_ACTIVE]     ));
+		color_name2GdkColor("HighInactiveLight", &(ASGtkStyleButton->light[GTK_STATE_PRELIGHT]   ));
+		color_name2GdkColor("ActiveLight"  	   , &(ASGtkStyleButton->light[GTK_STATE_SELECTED]   ));
+		color_name2GdkColor("Inactive1Light"   , &(ASGtkStyleButton->light[GTK_STATE_INSENSITIVE]));
+		color_name2GdkColor("Inactive1Dark"   , &(ASGtkStyleButton->dark[GTK_STATE_NORMAL]     ));
+		color_name2GdkColor("Inactive2Dark"   , &(ASGtkStyleButton->dark[GTK_STATE_ACTIVE]     ));
+		color_name2GdkColor("HighInactiveDark", &(ASGtkStyleButton->dark[GTK_STATE_PRELIGHT]   ));
+		color_name2GdkColor("ActiveDark"	  , &(ASGtkStyleButton->dark[GTK_STATE_SELECTED]   ));
+		color_name2GdkColor("Inactive1Dark"   , &(ASGtkStyleButton->dark[GTK_STATE_INSENSITIVE]));
+		color_name2GdkColor("Inactive1"   , &(ASGtkStyleButton->mid[GTK_STATE_NORMAL]     ));
+		color_name2GdkColor("Inactive2"   , &(ASGtkStyleButton->mid[GTK_STATE_ACTIVE]     ));
+		color_name2GdkColor("HighInactive", &(ASGtkStyleButton->mid[GTK_STATE_PRELIGHT]   ));
+		color_name2GdkColor("Active"	  , &(ASGtkStyleButton->mid[GTK_STATE_SELECTED]   ));
+		color_name2GdkColor("Inactive1"   , &(ASGtkStyleButton->mid[GTK_STATE_INSENSITIVE]));
+		color_name2GdkColor("HighInactiveText", &(ASGtkStyleButton->text[GTK_STATE_NORMAL]     ));
+		color_name2GdkColor("HighInactiveText", &(ASGtkStyleButton->text[GTK_STATE_ACTIVE]     ));
+		color_name2GdkColor("HighInactiveText", &(ASGtkStyleButton->text[GTK_STATE_PRELIGHT]   ));
+		color_name2GdkColor("ActiveText"	  , &(ASGtkStyleButton->text[GTK_STATE_SELECTED]   ));
+		color_name2GdkColor("DisabledText"    , &(ASGtkStyleButton->text[GTK_STATE_INSENSITIVE]));
+
+		color_name2GdkColor("HighInactiveDark" , &(ASGtkStyleButton->base[GTK_STATE_NORMAL]     ));
+		color_name2GdkColor("HighInactive"     , &(ASGtkStyleButton->base[GTK_STATE_ACTIVE]     ));
+		color_name2GdkColor("HighInactiveLight", &(ASGtkStyleButton->base[GTK_STATE_PRELIGHT]   ));
+		color_name2GdkColor("Active"	       , &(ASGtkStyleButton->base[GTK_STATE_SELECTED]   ));
+		color_name2GdkColor("HighInactive"     , &(ASGtkStyleButton->base[GTK_STATE_INSENSITIVE]));
+#if 0
+		color_name2GdkColor("", &(ASGtkStyleButton->text_aa[GTK_STATE_NORMAL]     ));
+		color_name2GdkColor("", &(ASGtkStyleButton->text_aa[GTK_STATE_ACTIVE]     ));
+		color_name2GdkColor("", &(ASGtkStyleButton->text_aa[GTK_STATE_PRELIGHT]   ));
+		color_name2GdkColor("", &(ASGtkStyleButton->text_aa[GTK_STATE_SELECTED]   ));
+		color_name2GdkColor("", &(ASGtkStyleButton->text_aa[GTK_STATE_INSENSITIVE]));
+#endif
+	}	 
+	return ASGtkStyleButton;
+}	 
+
+void  
+colorize_gtk_window( GtkWidget *window )
+{
+	GdkColor bg ;
+	ARGB32 argb ;
+	CARD32 val ;
+
+	parse_argb_color( "Base", &argb );
+	val = ASCS_BLACK_O_WHITE_CRITERIA16_VAL(ARGB32_RED16(argb),ARGB32_GREEN16(argb),ARGB32_BLUE16(argb));
+	if( val >= 0x09FFF )
+	{	
+		LOCAL_DEBUG_OUT( "Base is light, val = 0x%lX", val);
+		color_name2GdkColor("BaseDark", &bg);
+	}else
+	{
+		LOCAL_DEBUG_OUT( "Base is dark, val = 0x%lX", val);
+		color_name2GdkColor("BaseLight", &bg);
+	}
+  	gtk_widget_modify_bg( window, GTK_STATE_NORMAL, &bg );
+}	
+
+void 
+colorize_gtk_tree_view( GtkCellRenderer *cell, GtkTreeViewColumn *column )
+{
+#if 0	  
+	GdkColor bg;
+	GdkColor fg;
+	
+	color_name2GdkColor("Inactive1", &bg);
+	color_name2GdkColor("InactiveText1", &fg);
+
+	g_object_set(G_OBJECT(cell), "background-gdk", &bg, "foreground-gdk", &fg, NULL );
+	g_object_set(G_OBJECT(column), "background-gdk", &bg, "foreground-gdk", &fg, NULL );
+#else
+	gtk_widget_set_style( GTK_WIDGET(cell), get_colorschemed_style_normal());
+#endif
+	
+}	   
+
+void  
+colorize_gtk_widget(GtkWidget *widget, gpointer data)
+{
+
+	GtkStyle *style = data?GTK_STYLE(data):NULL;
+	int i ; 
+
+	if( style == NULL ) 
+		style = get_colorschemed_style_normal();
+
+	gtk_widget_set_style( widget, style);
+	for( i = 0 ; i < 5 ; ++i ) 
+		gtk_widget_modify_fg(widget, i, &(style->fg[i]));
+	LOCAL_DEBUG_OUT( "widget %p", widget );
+	if( GTK_IS_CONTAINER(widget) )
+		gtk_container_forall( GTK_CONTAINER(widget), colorize_gtk_widget, data );
+
+}	 
+
+
+

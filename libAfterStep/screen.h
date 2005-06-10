@@ -176,6 +176,7 @@ int get_screen_height(ScreenInfo *scr);
 int get_screen_current_desk(ScreenInfo *scr);
 struct MyLook *get_screen_look(ScreenInfo *scr);
 struct ASImageManager *get_screen_image_manager(ScreenInfo *scr);
+struct ASVisual *get_screen_visual(ScreenInfo *scr);
 
 
 
