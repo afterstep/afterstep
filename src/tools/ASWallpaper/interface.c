@@ -220,33 +220,10 @@ create_list_preview()
 	WallpaperState.list_preview = asgtk_image_view_new();
 	preview_width = (INITIAL_PREVIEW_HEIGHT *Scr.MyDisplayWidth)/Scr.MyDisplayHeight ;
 	gtk_widget_set_size_request (WallpaperState.list_preview, preview_width, INITIAL_PREVIEW_HEIGHT);
-	asgtk_image_view_set_aspect (WallpaperState.list_preview, Scr.MyDisplayWidth, Scr.MyDisplayHeight );
+	asgtk_image_view_set_aspect (ASGTK_IMAGE_VIEW(WallpaperState.list_preview), Scr.MyDisplayWidth, Scr.MyDisplayHeight );
 	gtk_box_pack_start (GTK_BOX (vbox), WallpaperState.list_preview, TRUE, TRUE, 0);
 	gtk_widget_show (WallpaperState.list_preview);
 
-#if 0
-
-
-  	WallpaperState.list_preview_container = gtk_aspect_frame_new (NULL, 0.5, 0.5, (gfloat)Scr.MyDisplayWidth/(gfloat)Scr.MyDisplayHeight, FALSE );
-	gtk_box_pack_start (GTK_BOX (vbox), WallpaperState.list_preview_container, TRUE, TRUE, 0);
-	gtk_widget_set_size_request (WallpaperState.list_preview_container, 
-								 WallpaperState.preview_width+2, 
-								 WallpaperState.preview_height+2);
-	gtk_widget_show (WallpaperState.list_preview_container);
-
-
-	WallpaperState.list_preview = GTK_IMAGE(gtk_image_new_from_pixbuf(NULL));
-  	gtk_widget_show (GTK_WIDGET(WallpaperState.list_preview));
-   	gtk_widget_set_size_request( GTK_WIDGET(WallpaperState.list_preview),
-								 WallpaperState.preview_width, 
-								 WallpaperState.preview_height );
-	
-	gtk_container_add (GTK_CONTAINER (WallpaperState.list_preview_container), 
-					    GTK_WIDGET(WallpaperState.list_preview));
-
-	g_signal_connect ((gpointer) WallpaperState.list_preview, "size-allocate",
-                       G_CALLBACK (list_preview_size_alloc), NULL);
-#endif	
 	buttons_hbox = gtk_hbutton_box_new ();
   	gtk_hbutton_box_set_layout_default(GTK_BUTTONBOX_SPREAD);
   	gtk_widget_show (buttons_hbox);

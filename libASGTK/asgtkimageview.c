@@ -1,10 +1,5 @@
 /* 
- * Copyright (C) 2005 Sasha Vasko
- * Shamless rip-off from the GIMP - hence the original copyright : 
- * 
- * 
- * The GIMP -- an image manipulation program
- * Copyright (C) 1995 Spencer Kimball and Peter Mattis
+ * Copyright (C) 2005 Sasha Vasko <sasha at aftercode.net>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +13,8 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *
  */
 
 #define LOCAL_DEBUG
@@ -31,6 +27,7 @@
 
 
 #include "asgtk.h"
+#include "asgtkai.h"
 #include "asgtkimageview.h"
 
 /*  local function prototypes  */
@@ -130,54 +127,6 @@ asgtk_image_view_style_set (GtkWidget *widget,
                         &widget->style->base[GTK_STATE_NORMAL]);
 }
 
-static void free_buffer (guchar *pixels, gpointer data)
-{
-	g_free (pixels);
-}
-
-GdkPixbuf *
-ASImage2GdkPixbuf( ASImage *im, Bool copy ) 
-{
-	GdkPixbuf *pb = NULL ; 
-	if( im ) 
-	{
-		int k = 0, i;
-		int size = im->width*im->height;
-		guchar *data ;
-		ASImageDecoder *imdec;
-		
-		data = safemalloc( size*4 );
-		if ((imdec = start_image_decoding(get_screen_visual(NULL), im, SCL_DO_ALL, 0, 0, im->width, im->height, NULL)) != NULL )
-		{	 
-			for (i = 0; i < (int)im->height; i++)
-			{	
-				CARD32 *r, *g, *b, *a ; 
-				int x ; 
-				imdec->decode_image_scanline( imdec ); 
-				r = imdec->buffer.red ;
-				g = imdec->buffer.green ;
-				b = imdec->buffer.blue ;
-				a = imdec->buffer.alpha ;
-				for( x = 0 ; x < im->width ; ++x ) 
-				{
-					data[k] = r[x];
-					data[++k] = g[x];
-					data[++k] = b[x];
-					data[++k] = a[x];
-					++k;
-				}	 
-			}
-			stop_image_decoding( &imdec );
-		}
-		
-
-		pb = gdk_pixbuf_new_from_data( data, GDK_COLORSPACE_RGB, True, 8, im->width, im->height, im->width*4, free_buffer, NULL );
-		if( pb == NULL ) 
-			free( data );
-	}	 
-	return pb;
-}	 
-
 static void
 display_image_view(ASGtkImageView *iv)	
 {
@@ -222,7 +171,7 @@ display_image_view(ASGtkImageView *iv)
 			if( tiled ){LOCAL_DEBUG_OUT( "tiled size is %dx%d", tiled->width, tiled->height );}
 		}	 
 	}
-	pb = ASImage2GdkPixbuf( tiled?tiled:(scaled?scaled:im), False );
+	pb = ASImage2GdkPixbuf( tiled?tiled:(scaled?scaled:im) );
 	if( tiled ) 
 		destroy_asimage( &tiled );
 	if( scaled ) 
