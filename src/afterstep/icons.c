@@ -200,16 +200,16 @@ LOCAL_DEBUG_OUT( "trying area #%d : %s%s, %dx%d%+d%+d", rd->curr_area, get_flags
 LOCAL_DEBUG_OUT( "last: %dx%d%+d%+d", rd->last_width, rd->last_height, rd->last_x, rd->last_y );
 
 		if( get_flags(geom->flags, XNegative) )
-	    new_x = rd->last_x /*- rd->last_width */ - whole_width ;
+	    new_x = rd->last_x - whole_width ;
         else
             new_x = rd->last_x + rd->last_width ;
 
         if( new_x < 0 || new_x+whole_width > geom->width )
         {  /* lets try and go to the next row and see if that makes a difference */
             if( get_flags(geom->flags, YNegative) )
-                rd->last_y = rd->last_y - rd->last_height ;
+                rd->last_y -=  rd->last_height ;
             else
-                rd->last_y = rd->last_y + rd->last_height ;
+                rd->last_y += rd->last_height ;
             rd->last_x = get_flags( geom->flags, XNegative )?geom->width-1: 0 ;
 
             if( get_flags(geom->flags, XNegative) )
@@ -218,7 +218,9 @@ LOCAL_DEBUG_OUT( "last: %dx%d%+d%+d", rd->last_width, rd->last_height, rd->last_
             rd->last_x = new_x ;
 
         new_y = rd->last_y ;
-        if( get_flags(geom->flags, YNegative) )
+        new_x = rd->last_x;
+	
+	if( get_flags(geom->flags, YNegative) )
             new_y = rd->last_y - whole_height ;
 
 LOCAL_DEBUG_OUT( "new : %+d%+d", new_x, new_y );
