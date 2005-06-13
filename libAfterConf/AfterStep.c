@@ -226,6 +226,7 @@ SyntaxDef includeSyntax =
 
 #define AFTERSTEP_LOOK_TERMS \
 	{TF_NO_MYNAME_PREPENDING, "IconBox", 7, TT_BOX, LOOK_IconBox_ID, NULL}, \
+    {TF_NO_MYNAME_PREPENDING, "IconsGrowVertically", 18, TT_FLAG, LOOK_IconsGrowVertically_ID, NULL}, \
     {TF_NO_MYNAME_PREPENDING, "MArrowPixmap", 12, TT_FILENAME, LOOK_MArrowPixmap_ID, NULL}, \
     {TF_NO_MYNAME_PREPENDING, "MenuPinOn", 9, TT_FILENAME, LOOK_MenuPinOn_ID, NULL}, \
     {TF_NO_MYNAME_PREPENDING, "MenuMiniPixmaps", 15, TT_FLAG, LOOK_MenuMiniPixmaps_ID, NULL}, \

@@ -1,5 +1,6 @@
 
 /*
+ * Copyright (C) 2005 Fabian Yamaguchi <fabiany at gmx.net>
  * Copyright (C) 1998 Sasha Vasko <sasha at aftercode.net>
  * Copyright (C) 1995 Bo Yang
  * Copyright (C) 1993 Robert Nation
@@ -130,10 +131,32 @@ Bool rearrange_icon_iter_func(void *data, void *aux_data)
     int width = 0, height = 0, title_width = 0, title_height = 0;
     int whole_width = 0, whole_height = 0 ;
     int x, y, box_x = 0, box_y = 0;
-	Bool placed = False ;
-	ASGeometry *geom = NULL ;
+    Bool placed = False ;
+    ASGeometry *geom = NULL ;
 
-	if( AS_ASSERT(asw) || AS_ASSERT(rd) )
+    int new_x = -1, new_y = -1 ;
+
+    /*
+      p stands for primary coordinate, the coordinate which is changed
+      first when trying to place a new icon. In the past, this
+      was the x coordinate. In that case the y coordinate is the
+      secondary coordinate (s), that means we move it only if the primary
+      coordinate is no longer valid after moving it. (Start a new
+      row if row is full)
+    */
+
+    int *new_p, *new_s;
+    int *geom_size_p, *geom_size_s;
+    unsigned int PNegative, SNegative;
+    int *last_p, *last_s;
+    int *whole_p, *whole_s;
+    int *last_p_size, *last_s_size;
+    
+
+    Bool vertical = get_flags(Scr.Look.flags, IconsGrowVertically);
+    
+    
+    if( AS_ASSERT(asw) || AS_ASSERT(rd) )
 		return False;
 
 	LOCAL_DEBUG_OUT( "asw(%p)->magic(%lX)->icon_canvas(%p)->icon_title_canvas(%p)->icon_button(%p)->icon_title(%p)",
@@ -191,37 +214,79 @@ Bool rearrange_icon_iter_func(void *data, void *aux_data)
 		fix_iconbox_area( geom, whole_width, whole_height );
 	}
 
+
+    /* Set primary/secondary-pointers */
+    if( vertical )
+    {
+	    
+	    new_p = &new_y;
+	    new_s = &new_x;
+	    geom_size_p = &(geom->height);
+	    geom_size_s = &(geom->width);
+	    PNegative = YNegative;
+	    SNegative = XNegative;
+	    last_p = &(rd->last_y);
+	    last_s = &(rd->last_x);
+	    whole_p = &whole_height;
+	    whole_s = &whole_width;
+	    last_p_size = &(rd->last_height);
+	    last_s_size = &(rd->last_width);
+	    
+    }else{
+	    
+	    new_p = &new_x;
+	    new_s = &new_y;
+	    geom_size_p = &(geom->width);
+	    geom_size_s = &(geom->height);
+	    PNegative = XNegative;
+	    SNegative = YNegative;
+	    last_p = &(rd->last_x);
+	    last_s = &(rd->last_y);
+	    whole_p = &whole_width;
+	    whole_s = &whole_height;
+	    last_p_size = &(rd->last_width);
+	    last_s_size = &(rd->last_height);
+    }
+    
+
 	LOCAL_DEBUG_OUT( "entering loop : areas_num = %d", rd->ib->areas_num );
     while( rd->curr_area < rd->ib->areas_num )
     {
-        int new_x = -1, new_y = -1 ;
+	    new_x = new_y = -1;
 
 LOCAL_DEBUG_OUT( "trying area #%d : %s%s, %dx%d%+d%+d", rd->curr_area, get_flags(geom->flags, XNegative)?"XNeg":"XPos", get_flags(geom->flags, YNegative)?"YNeg":"YPos", geom->width, geom->height, geom->x, geom->y );
 LOCAL_DEBUG_OUT( "last: %dx%d%+d%+d", rd->last_width, rd->last_height, rd->last_x, rd->last_y );
 
-		if( get_flags(geom->flags, XNegative) )
-	    new_x = rd->last_x - whole_width ;
-        else
-            new_x = rd->last_x + rd->last_width ;
-
-        if( new_x < 0 || new_x+whole_width > geom->width )
+           /* change primary coordinate */ 
+		if( get_flags(geom->flags, PNegative) )
+		  *new_p = *last_p - *whole_p ;
+		else
+		  *new_p = *last_p + *last_p_size ;
+		
+		/* if primary-coordinate is now invalid */
+        if( *new_p < 0 || *new_p + *whole_p > *geom_size_p )
         {  /* lets try and go to the next row and see if that makes a difference */
-            if( get_flags(geom->flags, YNegative) )
-                rd->last_y -=  rd->last_height ;
+          /* change secondary coordinate */  
+	  if( get_flags(geom->flags, SNegative) )
+                *last_s -=  *last_s_size ;
             else
-                rd->last_y += rd->last_height ;
-            rd->last_x = get_flags( geom->flags, XNegative )?geom->width-1: 0 ;
+                *last_s += *last_s_size ;
+            
+	  /* reset primary coordinate */
+	    *last_p = get_flags( geom->flags, PNegative )? *geom_size_p - 1: 0 ;
 
-            if( get_flags(geom->flags, XNegative) )
-                rd->last_x = new_x = rd->last_x - whole_width ;
+	    /* adjust primary coordinate if PNegative */
+            if( get_flags(geom->flags, PNegative) )
+                *(new_p) = *last_p -= *whole_p ;
         }else
-            rd->last_x = new_x ;
+            *last_p = *new_p ;
 
-        new_y = rd->last_y ;
-        new_x = rd->last_x;
+        *new_s = *last_s ;
+        *new_p = *last_p ;
 	
-	if( get_flags(geom->flags, YNegative) )
-            new_y = rd->last_y - whole_height ;
+	/* Adjust secondary coordinate if SNegative*/
+	if( get_flags(geom->flags, SNegative) )
+            *new_s = *last_s - *whole_s ;
 
 LOCAL_DEBUG_OUT( "new : %+d%+d", new_x, new_y );
         if( new_x >= 0 && new_x+whole_width <= geom->width &&
@@ -260,9 +325,9 @@ LOCAL_DEBUG_OUT( "placing an icon at %+d%+d, base %+d%+d whole %dx%d button %dx%
     }else
         moveresize_canvas( asw->icon_canvas, box_x+x, box_y+y, whole_width, whole_height );
 
-    rd->last_width  = whole_width  ;
-    if( whole_height > rd->last_height )
-        rd->last_height = whole_height ;
+    *last_p_size  = *whole_p  ;
+    if( *whole_s > *last_s_size )
+        *last_s_size= *whole_s ;
     return True;
 }
 

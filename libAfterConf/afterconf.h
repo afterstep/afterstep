@@ -1411,6 +1411,9 @@ int WriteWharfOptions (const char *filename, char *myname,
 #define LOOK_SeparateButtonTitle_ID				(LOOK_SUPPORTED_ID_START+38)
 #define LOOK_RubberBand_ID						(LOOK_SUPPORTED_ID_START+39)					  
 #define LOOK_WindowStyle_ID_START				(LOOK_SUPPORTED_ID_START+40)
+
+#define LOOK_IconsGrowVertically_ID                             (LOOK_SUPPORTED_ID_START+41)
+
 #define LOOK_DefaultStyle_ID					LOOK_WindowStyle_ID_START						  
 #define LOOK_FWindowStyle_ID					(LOOK_WindowStyle_ID_START+1)						  
 #define LOOK_UWindowStyle_ID					(LOOK_WindowStyle_ID_START+2)						  

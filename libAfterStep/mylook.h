@@ -42,7 +42,8 @@ typedef enum
     SeparateButtonTitle = (0x01 << 5),    /* icon title is a separate window */
     DecorateFrames      = (0x01 << 6),
     DontDrawBackground	= (0x01 << 7),
-  /* this flags add up to the above set for no-flag options, so we can track
+    IconsGrowVertically = (0x01 << 8),
+    /* this flags add up to the above set for no-flag options, so we can track
      what option was specifyed in config */
     LOOK_TitleButtonSpacing = (0x01 << 16),
     LOOK_TitleButtonStyle   = (0x01 << 17),

@@ -262,6 +262,7 @@ struct config main_config[] = {
 	{"CustomCursor"						, SetCustomCursor, (char **)0, (int *)0},
 	{"Cursor"							, SetCursor, (char **)0, (int *)0},
     /***********************************/
+    {"IconsGrowVertically", SetLookFlag, (char **)IconsGrowVertically, (int *) 0},
 	{"MenuPinOn"						, assign_string, &MenuPinOn, (int *)0},    /* menu pin */
     {"MArrowPixmap"						, assign_pixmap, (char **)&TmpLook.MenuArrow, (int *)0},   /* menu arrow */
     {"TitlebarNoPush"					, SetLookFlag, (char **)TitlebarNoPush, NULL},
