@@ -7,6 +7,7 @@
 
 #include "asgtkapp.h"
 #include "asgtkimageview.h"
+#include "asgtkimagedir.h"
 
 
 #endif /* #ifndef ASGTK_H_HEADER_INCLUDED */

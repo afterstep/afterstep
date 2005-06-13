@@ -329,23 +329,76 @@ get_asimage( ASImageManager* imageman, const char *file, ASFlagType what, unsign
 	return im;
 }
 
+ASImageListEntry * 
+ref_asimage_list_entry( ASImageListEntry *entry )
+{
+	if( entry ) 
+	{
+		if( IS_ASIMAGE_LIST_ENTRY(entry) )
+			++(entry->ref_count);
+		else
+			entry = NULL ; 
+	}
+	return entry;
+}
+	 
+ASImageListEntry *
+unref_asimage_list_entry( ASImageListEntry *entry )
+{
+	if( entry ) 
+	{	
+		if( IS_ASIMAGE_LIST_ENTRY(entry) )
+		{
+			--(entry->ref_count);
+			if( entry->ref_count  <= 0 )
+			{
+				ASImageListEntry *prev = entry->prev ; 
+				ASImageListEntry *next = entry->next ; 
+				if( !IS_ASIMAGE_LIST_ENTRY(prev) )
+					prev = NULL ; 
+				if( !IS_ASIMAGE_LIST_ENTRY(next) )
+					next = NULL ; 
+				if( prev ) 
+					prev->next = next ; 
+				if( next ) 
+					next->prev = prev ; 
+
+				if( entry->preview ) 
+					safe_asimage_destroy( entry->preview );
+				if( entry->name )
+					free( entry->name );
+				if( entry->fullfilename )
+					free( entry->fullfilename );
+				memset( entry, 0x00, sizeof(ASImageListEntry));
+				free( entry );
+				entry = NULL ; 
+			}	 
+		}else
+			entry = NULL ;
+	}
+	return entry;
+}	 
+
+ASImageListEntry *
+create_asimage_list_entry()
+{
+	ASImageListEntry *entry = safecalloc( 1, sizeof(ASImageListEntry));
+	entry->ref_count = 1 ; 
+	entry->magic = MAGIC_ASIMAGE_LIST_ENTRY ; 
+	return entry;
+}
+
 void
 destroy_asimage_list( ASImageListEntry **plist )
 {
 	if( plist )
 	{		   
 		ASImageListEntry *curr = *plist ;
-		while( curr )
-		{
+		while( IS_ASIMAGE_LIST_ENTRY(curr) )
+		{	
 			ASImageListEntry *to_delete = curr ; 
 			curr = curr->next ;
-			if( to_delete->preview ) 
-				safe_asimage_destroy( to_delete->preview );
-			if( to_delete->name )
-				free( to_delete->name );
-			if( to_delete->fullfilename )
-				free( to_delete->fullfilename );
-			free( to_delete );
+		 	unref_asimage_list_entry( to_delete );
 		}
 		*plist = NULL ;
 	}
@@ -389,9 +442,10 @@ get_asimage_list( ASVisual *asv, const char *dir,
 					file_type = ASIT_Unknown ;
 
 				++count ;
-				*curr = safecalloc( 1, sizeof(ASImageListEntry) );
+				*curr = create_asimage_list_entry();
 				if( last )
 					last->next = *curr ;
+				(*curr)->prev = last ;
 				last = *curr ;
 				curr = &(last->next);
 

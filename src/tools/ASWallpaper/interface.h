@@ -13,8 +13,7 @@ typedef struct ASWallpaperState
 	GtkWidget   *main_window ; 
 
 	GtkWidget   *list_hbox;	
-	GtkTreeView *backs_list ;
-	GtkTreeModel *list_model ;
+	GtkWidget   *backs_list ;
 	
 	GtkWidget    *list_add_button ;
 	GtkWidget    *list_del_button ;

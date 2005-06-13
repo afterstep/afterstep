@@ -71,13 +71,18 @@ typedef enum
  */
 typedef struct ASImageListEntry
 {
-	struct ASImageListEntry *next ;
+#define MAGIC_ASIMAGE_LIST_ENTRY            0xA3A311E4
+#define IS_ASIMAGE_LIST_ENTRY(e)  (((e)!=NULL)&&((e)->magic==MAGIC_ASIMAGE_LIST_ENTRY)&&((e)->ref_count>0)) 
+
+	unsigned long magic ; 
+	struct ASImageListEntry *prev, *next ;
 	char   *name ;
 	char   *fullfilename ;
 
 	ASImageFileTypes 	type;
 	ASImage 		   *preview;
 
+	int ref_count;
 }ASImageListEntry;
 /*************/
 
@@ -193,6 +198,10 @@ ASImageListEntry *get_asimage_list( struct ASVisual *asv, const char *dir,
 									unsigned int preview_compression,
 									unsigned int *count_ret,
 									int (*select) (const char *) );
+
+ASImageListEntry *ref_asimage_list_entry( ASImageListEntry *entry );
+ASImageListEntry *unref_asimage_list_entry( ASImageListEntry *entry );
+ASImageListEntry *create_asimage_list_entry();
 void destroy_asimage_list( ASImageListEntry **plist );
 
 

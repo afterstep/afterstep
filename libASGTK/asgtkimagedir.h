@@ -12,26 +12,34 @@
 
 struct ASImageListEntry;
 struct ASImage;
+struct _ASGtkImageDir;
+	
+typedef void (*_ASGtkImageDir_sel_handler)(struct _ASGtkImageDir *id, gpointer user_data);
+
 
 typedef struct _ASGtkImageDir
 {
 	GtkScrolledWindow       parent_instance;
 	
-	char *title ;
 	char *fulldirname ;
 	struct ASImageListEntry *entries;
+	struct ASImageListEntry *curr_selection;
 	
 	GtkTreeView     	*tree_view;
 	GtkTreeModel    	*tree_model;
 	GtkCellRenderer 	*cell;
     GtkTreeViewColumn 	*column;
 
-
+	/* screw GTK signals - hate its guts */
+	_ASGtkImageDir_sel_handler sel_change_handler;
+	gpointer sel_change_user_data;
+		
 }ASGtkImageDir;
 
 typedef struct _ASGtkImageDirClass
 {
-  GtkAspectFrameClass  parent_class;
+  GtkScrolledWindowClass  parent_class;
+
 }ASGtkImageDirClass;
 
 
@@ -39,11 +47,15 @@ GType       asgtk_image_dir_get_type  (void) G_GNUC_CONST;
 
 GtkWidget * asgtk_image_dir_new       ();
 
-void  asgtk_image_dir_set_path( char *fulldirname );
-void  asgtk_image_dir_set_title( char *title );
-void  asgtk_image_dir_set_sel_handler( void (*handler)(GtkTreeSelection *selection, gpointer user_data), gpointer user_data );
-struct ASImageListEntry *asgtk_image_dir_get_selection();
-void  asgtk_image_dir_refresh();
+void  asgtk_image_dir_set_path( ASGtkImageDir *id, char *fulldirname );
+void  asgtk_image_dir_set_title( ASGtkImageDir *id, const gchar *title );
+void  asgtk_image_dir_set_sel_handler( ASGtkImageDir *id, _ASGtkImageDir_sel_handler sel_change_handler, gpointer user_data );
+struct ASImageListEntry *asgtk_image_dir_get_selection( ASGtkImageDir *id );
+void  asgtk_image_dir_refresh( ASGtkImageDir *id );
+
+/* standard selection handler linking dir to ASGTKImageView window : */
+void asgtk_image_dir2view_sel_handler(ASGtkImageDir *id, gpointer user_data);
+
 
 
 #endif  /*  ASGTKIMAGEDIR_H_HEADER_INCLUDED  */

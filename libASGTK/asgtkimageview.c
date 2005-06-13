@@ -98,8 +98,8 @@ asgtk_image_view_init (ASGtkImageView *iv)
 static void
 asgtk_image_view_dispose (GObject *object)
 {
-  	/* ASGtkImageView *iv = ASGTK_IMAGE_VIEW (object); */
-
+  	ASGtkImageView *iv = ASGTK_IMAGE_VIEW (object);
+	unref_asimage_list_entry(iv->image_entry);
   	G_OBJECT_CLASS (parent_class)->dispose (object);
 }
 
@@ -247,7 +247,8 @@ asgtk_image_view_set_entry ( ASGtkImageView *iv,
 	g_return_if_fail (ASGTK_IS_IMAGE_VIEW (iv));
 
 	LOCAL_DEBUG_OUT( " ASGtk image view object's %p entry to %p", iv, image_entry );
-	iv->image_entry = image_entry ;
+	unref_asimage_list_entry(iv->image_entry);
+	iv->image_entry = ref_asimage_list_entry(image_entry) ;
 	
 	if (iv->image_entry)
     {
