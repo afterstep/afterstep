@@ -3,7 +3,7 @@
 # Copyright (c) 1998, Guylhem AZNAR <guylhem@oeil.qc.ca>
 #
 
-LIB_INCS= 	afterstep.h asapp.h asdatabase.h asfeel.h aswindata.h \
+LIB_INCS= 	afterstep.h asapp.h ascommand.h asdatabase.h asfeel.h aswindata.h \
 		  balloon.h canvas.h clientprops.h colorscheme.h \
 		  decor.h event.h freestor.h \
 		  functions.h font.h hints.h \
@@ -18,11 +18,11 @@ LIB_INCS= 	afterstep.h asapp.h asdatabase.h asfeel.h aswindata.h \
 #           audit.o strncmp.o homeanddirs.o
 #           findfile.o asproperty.o catstring3.o copystring.o termhash.o
 #
-LIB_OBJS= asapp.o asdatabase.o asfeel.o aswindata.o \
+LIB_OBJS= asapp.o ascommand.o asdatabase.o asfeel.o aswindata.o \
                   balloon.o canvas.o clientprops.o colorscheme.o decor.o event.o \
                   freestor.o functions.o font.o hints.o module.o \
 		  moveresize.o myicon.o mylook.o mystyle.o mystyle_property.o \
-		  outline.o parser.o screen.o session.o shape.o wmprops.o
+		  outline.o operations.o parser.o screen.o session.o shape.o wmprops.o
 
 CONFIG_SCRIPT= afterstep-config
 
