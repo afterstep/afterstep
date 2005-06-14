@@ -71,7 +71,6 @@ Bool process_message ( send_data_type type, send_data_type *body );
 ASBiDirList *extract_matches(ASBiDirList *src, const char *pattern);
 Bool apply_operations(void *data, void *aux_data);
 void destroy_client_item(void *data);
-int atopixel (char *s, int size);
 
 
 ASWinCommandState WinCommandState;
@@ -423,23 +422,6 @@ destroy_client_item(void *data)
 	free((client_item *) data);
 }
 
-int
-atopixel (char *s, int size)
-{
-  	int l = strlen (s);
-  	if (l < 1)
-		return 0;
-  	if (s[l-1] == 'p' || s[l-1] == 'P' )
-	{
-		/* number was followed by a p/P
-		 * => number was already a pixel-value */
-		s[l-1] = '\0' ;
-		return atoi (s);
-	}
-  	/* return s percent of size */
-	return (atoi (s) * size) / 100;
-}
-
 /****************************************************************************/
 /* PROCESSING OF AFTERSTEP MESSAGES :                                       */
 /****************************************************************************/
@@ -493,22 +475,3 @@ process_message (send_data_type type, send_data_type *body)
 
 /****************** /private ************************/
 
-int main(int argc, char **argv)
-{
-	move_params mp = {200, 200};
-	
-	ascom_init( &argc, &argv );
-	ascom_update_winlist();
-	
-	/* select_all( True ); */
-	/* select_windows_on_screen(True);*/
-	/* select_windows_by_pattern("emacs", False, False); */
-	select_focused_window( True );
-	
-	ascom_do("iconify", &mp);
-	
-	ascom_wait();
-	
-	ascom_deinit();
-	return 0;
-}
