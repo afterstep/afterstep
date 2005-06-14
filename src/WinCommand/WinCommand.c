@@ -22,32 +22,14 @@
 
 #include "../../configure.h"
 #include "../../libAfterStep/asapp.h"
+#include "../../libAfterStep/ascommand.h"
+#include "../../libAfterStep/operations.h"
+#include "../../libAfterStep/screen.h"
+#include "../../libAfterBase/aslist.h"
 
-#include <signal.h>
 #include <unistd.h>
 #include <stdlib.h>
-#include <sys/types.h>
-#include <regex.h>
 #include <stdio.h>
-
-#include "../../libAfterImage/afterimage.h"
-
-#include "../../libAfterStep/afterstep.h"
-#include "../../libAfterStep/screen.h"
-#include "../../libAfterStep/module.h"
-#include "../../libAfterStep/mystyle.h"
-#include "../../libAfterStep/mystyle_property.h"
-#include "../../libAfterStep/parser.h"
-#include "../../libAfterStep/clientprops.h"
-#include "../../libAfterStep/wmprops.h"
-#include "../../libAfterStep/decor.h"
-#include "../../libAfterStep/aswindata.h"
-#include "../../libAfterStep/balloon.h"
-#include "../../libAfterStep/event.h"
-#include "../../libAfterStep/shape.h"
-
-#include "../../libAfterBase/aslist.h"
-#include "../../libAfterBase/ashash.h"
 
 #include "../../libAfterConf/afterconf.h"
 
@@ -62,200 +44,13 @@ struct ASWinCommandState
 {
 	ASFlagType flags ;
 	char *pattern;
-	ASBiDirList *clients_order;
 	ASBiDirList *operations;
-	ASHashTable *handlers;
 	
 	int x_dest, y_dest; /* Move */
-	int new_width, new_height;
+	int new_width, new_height; /* resize */
 
 }WinCommandState;
 
-typedef struct
-{
-	Window cl;
-}client_item;
-
-char *DEFAULT_PATTERN = "";
-
-/* Prototypes: */
-
-void GetBaseOptions (const char *filename);
-void HandleEvents();
-void process_message (send_data_type type, send_data_type *body);
-void DeadPipe(int);
-
-ASBiDirList *extract_matches(ASBiDirList *src, const char *pattern);
-Bool apply_operations(void *data, void *aux_data);
-void destroy_client_item(void *data);
-int atopixel (char *s, int size);
-void Quit_WinCommand(void);
-
-/* Prototypes - Handlers: */
-
-void move_handler(ASWindowData *wd);
-void resize_handler(ASWindowData *wd);
-void kill_handler(ASWindowData *wd);
-void jump_handler(ASWindowData *wd);
-void ls_handler(ASWindowData *wd);
-void iconify_handler(ASWindowData *wd);
-
-void move_handler(ASWindowData *wd)
-{
-	/* used by SendNumCommand */
-	send_signed_data_type vals[2] ;	
-	send_signed_data_type units[2] ;
-	
-	LOCAL_DEBUG_OUT("Move handler called");
-
-	/* Indicate that we're talking pixels. */
-	units[0] = units[1] = 1;
-	vals[0] = WinCommandState.x_dest; vals[1] = WinCommandState.y_dest;
-	/* Move window */
-	SendNumCommand ( F_MOVE, NULL, &(vals[0]), &(units[0]), wd->client );
-	
-}
-
-void resize_handler(ASWindowData *wd)
-{
-	/* used by SendNumCommand */
-	send_signed_data_type vals[2] ;	
-	send_signed_data_type units[2] ;
-	
-	LOCAL_DEBUG_OUT("Resize handler called");
-
-	/* Indicate that we're talking pixels. */
-	units[0] = units[1] = 1;
-	vals[0] = WinCommandState.new_width; vals[1] = WinCommandState.new_height;
-	/* Move window */
-	SendNumCommand ( F_RESIZE, NULL, &(vals[0]), &(units[0]), wd->client );
-
-}
-
-void kill_handler(ASWindowData *wd)
-{
-	LOCAL_DEBUG_OUT("Kill handler called");
-	SendNumCommand(F_DESTROY, NULL, NULL, NULL, wd->client);
-}
-
-void jump_handler(ASWindowData *wd)
-{
-	/* used by SendNumCommand */
-	send_signed_data_type vals[1] ;	
-	send_signed_data_type units[1] ;
-	
-	LOCAL_DEBUG_OUT("Jump handler called");
-
-	/* Indicate that we're talking pixels. */
-	units[0] = 1;
-	vals[0] = -1;
-	
-	/* Deiconify window if necessary */
-	if(get_flags( wd->state_flags, AS_Iconic))
-		SendNumCommand(F_ICONIFY, NULL, &(vals[0]), &(units[0]), wd->client);
-	/* Give window focus */
-	SendNumCommand(F_FOCUS, NULL, NULL, NULL, wd->client);
-}
-
-void ls_handler(ASWindowData *wd)
-{
-	fprintf( stdout, "Name: %s\n", wd->window_name );
-	fprintf( stdout, "X: %ld\n", wd->frame_rect.x );
-	fprintf( stdout, "Y: %ld\n", wd->frame_rect.y );
-	fprintf( stdout, "Width: %ld\n", wd->frame_rect.width );
-	fprintf( stdout, "Height: %ld\n", wd->frame_rect.height );
-	fprintf( stdout, "\n" );
-}
-
-void iconify_handler(ASWindowData *wd)
-{
-	/* used by SendNumCommand */
-	send_signed_data_type vals[1] ;	
-	send_signed_data_type units[1] ;
-	
-	LOCAL_DEBUG_OUT("Iconify handler called");
-
-	/* Indicate that we're talking pixels. */
-	units[0] = 1;
-	vals[0] = 1;
-	
-	/* Iconify window if not iconified */
-	if(! get_flags( wd->state_flags, AS_Iconic))
-		SendNumCommand(F_ICONIFY, NULL, &(vals[0]), &(units[0]), wd->client);
-	
-}
-
-/* Returns a list of windows which match the given pattern
-   or NULL if no window matches. */
-
-ASBiDirList *
-extract_matches(ASBiDirList *src, const char *pattern)
-{
-	regex_t my_reg;
-	ASBiDirElem *curr;
-	ASWindowData *wd;
-	ASBiDirList *dest = NULL;
-
-	/* No destruction-function passed so that nothing is
-	   destroyed when list is destroyed since these client_items
-	   still have to be available to clients_order. */
-	
-	if(regcomp( &my_reg, pattern, REG_EXTENDED | REG_ICASE ) != 0)
-	{
-		LOCAL_DEBUG_OUT("Error compiling regex");
-		return NULL;
-	}
-	
-        /* Foreach element of the window-list */
-	for( curr = src->head; curr != NULL; curr = curr->next)
-	{
-		wd = fetch_window_by_id( ((client_item *)curr->data)->cl );
-		/* If the pattern matches */
-		if(regexec( &my_reg, wd->window_name, 0, NULL, 0) == 0)
-		{
-			if(!dest)
-				dest = create_asbidirlist( NULL );
-			
-			LOCAL_DEBUG_OUT("%s matches pattern", wd->window_name);
-			append_bidirelem( dest, curr->data);
-			if( !get_flags( WinCommandState.flags, WINCOMMAND_ActOnAll))
-			{
-				regfree(&my_reg);
-				return dest;
-			}		
-		}
-	}
-	regfree(&my_reg);
-	return dest;
-}
-
-Bool
-apply_operations(void *data, void *aux_data)
-{
-	ASWindowData *wd = fetch_window_by_id( ((client_item *) data)->cl );
-	ASBiDirElem *curr;
-	void *h;
-	
-	for(curr = (WinCommandState.operations)->head;
-	    curr != NULL; curr = curr->next)
-	{
-		/* If lookup wasn't successful, move along */
-		if(get_hash_item( WinCommandState.handlers,
-				  AS_HASHABLE(curr->data), &h) != ASH_Success)
-		{
-			LOCAL_DEBUG_OUT("handler %s not found", (char *) curr->data);
-			continue;
-		}		
-		((WinC_handler) h) ( wd );
-	}
-	return True;
-}
-
-void
-destroy_client_item(void *data)
-{
-	free((client_item *) data);
-}
 
 int
 atopixel (char *s, int size)
@@ -275,109 +70,11 @@ atopixel (char *s, int size)
 }
 
 
-void
-HandleEvents(void)
-{
-    while (True)
-    {
-        module_wait_pipes_input ( process_message );
-    }
-}
 
 void
 Quit_WinCommand(void)
 {
-	destroy_ashash( &(WinCommandState.handlers) );
 	destroy_asbidirlist( &(WinCommandState.operations) );
-	destroy_asbidirlist( &(WinCommandState.clients_order) );
-	DeadPipe (0);
-}
-
-void
-DeadPipe (int nonsense)
-{
-	static int already_dead = False ; 
-	if( already_dead ) 
-		return;/* non-reentrant function ! */
-	already_dead = True ;
-    
-	window_data_cleanup();
-
-	FreeMyAppResources();
-    
-#ifdef DEBUG_ALLOCS
-    print_unfreed_mem ();
-#endif /* DEBUG_ALLOCS */
-
-    XFlush (dpy);			/* need this for SetErootPixmap to take effect */
-	XCloseDisplay (dpy);		/* need this for SetErootPixmap to take effect */
-    exit (0);
-}
-
-void
-GetBaseOptions (const char *filename)
-{
-	ReloadASEnvironment( NULL, NULL, NULL, False, False );
-}
-
-
-/****************************************************************************/
-/* PROCESSING OF AFTERSTEP MESSAGES :                                       */
-/****************************************************************************/
-void
-process_message (send_data_type type, send_data_type *body)
-{
-	ASBiDirList *matches;
-	client_item *new_item;
-	
-	static Bool done = False;
-
-	LOCAL_DEBUG_OUT( "received message %lX", type );
-  
-	if( type == M_END_WINDOWLIST )
-	{
-		if( done)
-			Quit_WinCommand();
-		else
-		{
-			matches = extract_matches(WinCommandState.clients_order, WinCommandState.pattern );
-			if(!matches)
-			{
-				LOCAL_DEBUG_OUT("No windows matches pattern %s", WinCommandState.pattern);
-				Quit_WinCommand();
-			}
-			
-			iterate_asbidirlist( matches, apply_operations, NULL,
-				     NULL, False);
-		
-			destroy_asbidirlist( &matches );
-			
-			done = True;
-			/* Hack: Request another window-list. Next time we
-			 * receive M_END_WINDOWLIST we can be sure all of our
-			 * move/resize/whatever commands have been executed and
-			 * it's safe to die. */
-			SendInfo ("Send_WindowList", 0);
-		}
-		
-
-	}else if( (type&WINDOW_PACKET_MASK) != 0 )
-	{
-		struct ASWindowData *wd = fetch_window_by_id( body[0] );
-		
-		if( handle_window_packet( type, body, &wd ) == WP_DataCreated )
-		{
-			new_item = safemalloc( sizeof(client_item) );
-			new_item->cl = wd->client;
-			append_bidirelem( WinCommandState.clients_order, new_item);
-		}
-	}else if( type == M_NEW_DESKVIEWPORT )
-	{
-		LOCAL_DEBUG_OUT("M_NEW_DESKVIEWPORT(desk = %ld,Vx=%ld,Vy=%ld)", body[2], body[0], body[1]);
-		Scr.CurrentDesk = body[2];
-		Scr.Vx = body[0];
-		Scr.Vy = body[1];
-	}
 }
 
 
@@ -385,30 +82,17 @@ int
 main( int argc, char **argv )
 {
 	int i ;
+	ASBiDirElem *curr;
+	char *command;
 
-	/* Save our program name - for error messages */
-	set_DeadPipe_handler(DeadPipe);
 	InitMyApp (CLASS_WINCOMMAND, argc, argv, NULL, NULL, OPTION_SINGLE|OPTION_RESTART );
-	
-	set_signal_handler( SIGSEGV );
-	
 	ConnectX( ASDefaultScr, 0 );
+
 	
+	/* Initialize State */
 	memset( &WinCommandState, 0x00, sizeof(WinCommandState));
-
-	WinCommandState.clients_order = create_asbidirlist( destroy_client_item );
 	WinCommandState.operations = create_asbidirlist( NULL );
-	WinCommandState.handlers = create_ashash(7, string_hash_value, string_compare,
-						 string_destroy_without_data);
 	
-	/* Register handlers */
-	add_hash_item(WinCommandState.handlers, AS_HASHABLE(strdup("move")), move_handler);
-	add_hash_item(WinCommandState.handlers, AS_HASHABLE(strdup("resize")), resize_handler);
-	add_hash_item(WinCommandState.handlers, AS_HASHABLE(strdup("kill")), kill_handler);
-	add_hash_item(WinCommandState.handlers, AS_HASHABLE(strdup("jump")), jump_handler);
-	add_hash_item(WinCommandState.handlers, AS_HASHABLE(strdup("ls")), ls_handler);
-	add_hash_item(WinCommandState.handlers, AS_HASHABLE(strdup("iconify")), iconify_handler);
-
 	/* Traverse arguments */
 	for( i = 1 ; i< argc ; ++i)
 	{
@@ -448,6 +132,7 @@ main( int argc, char **argv )
 			
 		}else
 		{	
+			LOCAL_DEBUG_OUT("Adding operation: %s", argv[i]);
 			append_bidirelem(WinCommandState.operations, argv[i]);
 		}
 	}
@@ -455,18 +140,51 @@ main( int argc, char **argv )
 	if( WinCommandState.pattern == NULL)
 		WinCommandState.pattern = DEFAULT_PATTERN;
 	
+	ascom_init(&argc, &argv);
+	ascom_update_winlist();
 
-    ConnectAfterStep (WINDOW_CONFIG_MASK |
-                      WINDOW_NAME_MASK |
-                      M_END_WINDOWLIST|
-		      M_NEW_DESKVIEWPORT, 0);
-
-    /* Request a list of all windows, while we load our config */
-    SendInfo ("Send_WindowList", 0);
-
-    LoadBaseConfig ( GetBaseOptions);
-    
-	/* And at long last our main loop : */
-    HandleEvents();
+	/* apply operations */
+	for( curr = WinCommandState.operations->head;
+	     curr != NULL; curr = curr->next)
+	{
+		command = (char *) curr->data;
+		LOCAL_DEBUG_OUT("command: %s", command);
+		
+		/* if this command needs no arguments and just_one = false */
+		if(mystrcasecmp ( command, "iconify") == 0 || 
+		   mystrcasecmp (command, "kill")  == 0||
+		   mystrcasecmp(command, "ls") == 0)
+		{
+			select_windows_by_pattern(WinCommandState.pattern, True, False);
+			ascom_do(command, NULL);
+		}
+		else if(mystrcasecmp ( command, "jump") == 0)
+		{
+			select_windows_by_pattern(WinCommandState.pattern, True, True);
+			ascom_do(command, NULL);
+		}
+		else if(mystrcasecmp ( command, "move") == 0)
+		{
+			move_params params;
+			params.x = WinCommandState.x_dest;
+			params.y = WinCommandState.y_dest;
+			select_windows_by_pattern(WinCommandState.pattern, True, False);
+			ascom_do(command, &params);
+		}
+		else if(mystrcasecmp ( command, "resize") == 0)
+		{
+			resize_params params;
+			params.width = WinCommandState.new_width;
+			params.height = WinCommandState.new_height;
+			select_windows_by_pattern(WinCommandState.pattern, True, False);
+			ascom_do(command, &params);
+		}
+		
+	}
+	
+	ascom_wait();
+	ascom_deinit();
+	Quit_WinCommand();
+	
 	return 0 ;
 }

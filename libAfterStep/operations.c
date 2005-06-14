@@ -53,7 +53,7 @@
 
 #include "ascommand.h"
 
-extern ASWinCommandState WinCommandState;
+extern ASASCommandState ASCommandState;
 
 void move_handler(ASWindowData *wd, void *data)
 {

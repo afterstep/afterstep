@@ -65,15 +65,118 @@ typedef struct
 char *DEFAULT_PATTERN = "";
 
 
-void DeadPipe(int);
-Bool process_message ( send_data_type type, send_data_type *body );
-
 ASBiDirList *extract_matches(ASBiDirList *src, const char *pattern);
 Bool apply_operations(void *data, void *aux_data);
 void destroy_client_item(void *data);
 
 
-ASWinCommandState WinCommandState;
+ASASCommandState ASCommandState;
+
+/****************** private *************************/
+
+void
+DeadPipe (int nonsense)
+{
+	static int already_dead = False ; 
+	if( already_dead ) 
+		return;/* non-reentrant function ! */
+	already_dead = True ;
+    
+	window_data_cleanup();
+
+	FreeMyAppResources();
+    
+#ifdef DEBUG_ALLOCS
+    print_unfreed_mem ();
+#endif /* DEBUG_ALLOCS */
+
+    XFlush (dpy);			/* need this for SetErootPixmap to take effect */
+	XCloseDisplay (dpy);		/* need this for SetErootPixmap to take effect */
+    exit (0);
+}
+
+
+/****************************************************************************/
+/* PROCESSING OF AFTERSTEP MESSAGES :                                       */
+/****************************************************************************/
+Bool
+process_message (send_data_type type, send_data_type *body)
+{
+	client_item *new_item;
+	WindowPacketResult res;
+	ASBiDirElem *curr;
+
+	LOCAL_DEBUG_OUT( "received message %lX", type );
+  
+	if( type == M_END_WINDOWLIST )
+	{
+		
+		return True;
+
+	}else if( (type&WINDOW_PACKET_MASK) != 0 )
+	{
+		struct ASWindowData *wd = fetch_window_by_id( body[0] );
+		
+		if( (res = handle_window_packet( type, body, &wd )) == WP_DataCreated )
+		{
+			new_item = safemalloc( sizeof(client_item) );
+			new_item->cl = wd->client;
+			append_bidirelem( ASCommandState.clients_order, new_item);
+		
+		}else if( res == WP_DataDeleted )
+		{
+			/* Delete element */
+			for( curr = ASCommandState.clients_order->head;
+			     curr != NULL; curr = curr->next)
+			{
+				if( ((client_item *)(curr->data)) ->cl  == wd->client)
+					destroy_bidirelem( ASCommandState.clients_order, curr);
+			}
+			
+		}
+	
+	}else if( type == M_NEW_DESKVIEWPORT )
+	{
+		LOCAL_DEBUG_OUT("M_NEW_DESKVIEWPORT(desk = %ld,Vx=%ld,Vy=%ld)", body[2], body[0], body[1]);
+		Scr.CurrentDesk = body[2];
+		Scr.Vx = body[0];
+		Scr.Vy = body[1];
+	}
+
+	return False;
+}
+
+Bool
+apply_operations(void *data, void *aux_data)
+{
+	ASWindowData *wd = fetch_window_by_id( ((client_item *) data)->cl );
+	ASBiDirElem *curr;
+	void *h;
+	
+	for(curr = (ASCommandState.operations)->head;
+	    curr != NULL; curr = curr->next)
+	{
+		/* If lookup wasn't successful, move along */
+		if(get_hash_item( ASCommandState.handlers,
+				  AS_HASHABLE(curr->data), &h) != ASH_Success)
+		{
+			LOCAL_DEBUG_OUT("handler %s not found", (char *) curr->data);
+			continue;
+		}		
+		((WinC_handler) h) ( wd, aux_data );
+	}
+	return True;
+}
+
+void
+destroy_client_item(void *data)
+{
+	free((client_item *) data);
+}
+
+
+/****************** /private ************************/
+
 
 /*************** Public ****************/
 
@@ -95,22 +198,22 @@ ascom_init ( int *arg_c, char **arg_v[] )
 	
 	ConnectX( ASDefaultScr, 0 );
 	
-	memset( &WinCommandState, 0x00, sizeof(WinCommandState));
+	memset( &ASCommandState, 0x00, sizeof(ASCommandState));
 	
-	WinCommandState.selected_wins = create_asbidirlist( NULL );
-	WinCommandState.clients_order = create_asbidirlist( destroy_client_item );
-	WinCommandState.operations = create_asbidirlist( NULL );
+	ASCommandState.selected_wins = create_asbidirlist( NULL );
+	ASCommandState.clients_order = create_asbidirlist( destroy_client_item );
+	ASCommandState.operations = create_asbidirlist( NULL );
 	
-	WinCommandState.handlers = create_ashash(7, string_hash_value, string_compare,
+	ASCommandState.handlers = create_ashash(7, string_hash_value, string_compare,
 						 string_destroy_without_data);
 	
 	/* Register handlers */
-	add_hash_item(WinCommandState.handlers, AS_HASHABLE(strdup("move")), move_handler);
-	add_hash_item(WinCommandState.handlers, AS_HASHABLE(strdup("resize")), resize_handler);
-	add_hash_item(WinCommandState.handlers, AS_HASHABLE(strdup("kill")), kill_handler);
-	add_hash_item(WinCommandState.handlers, AS_HASHABLE(strdup("jump")), jump_handler);
-	add_hash_item(WinCommandState.handlers, AS_HASHABLE(strdup("ls")), ls_handler);
-	add_hash_item(WinCommandState.handlers, AS_HASHABLE(strdup("iconify")), iconify_handler);
+	add_hash_item(ASCommandState.handlers, AS_HASHABLE(strdup("move")), move_handler);
+	add_hash_item(ASCommandState.handlers, AS_HASHABLE(strdup("resize")), resize_handler);
+	add_hash_item(ASCommandState.handlers, AS_HASHABLE(strdup("kill")), kill_handler);
+	add_hash_item(ASCommandState.handlers, AS_HASHABLE(strdup("jump")), jump_handler);
+	add_hash_item(ASCommandState.handlers, AS_HASHABLE(strdup("ls")), ls_handler);
+	add_hash_item(ASCommandState.handlers, AS_HASHABLE(strdup("iconify")), iconify_handler);
 		
 	
 	
@@ -129,11 +232,11 @@ ascom_init ( int *arg_c, char **arg_v[] )
 void
 ascom_deinit(void)
 {
-	destroy_ashash( &(WinCommandState.handlers) );
+	destroy_ashash( &(ASCommandState.handlers) );
        
-	destroy_asbidirlist( &(WinCommandState.operations) );
-	destroy_asbidirlist( &(WinCommandState.selected_wins) );
-	destroy_asbidirlist( &(WinCommandState.clients_order) );
+	destroy_asbidirlist( &(ASCommandState.operations) );
+	destroy_asbidirlist( &(ASCommandState.selected_wins) );
+	destroy_asbidirlist( &(ASCommandState.clients_order) );
 	DeadPipe (0);
 }
 
@@ -171,27 +274,27 @@ ascom_do( const char *op, void *data )
 
 	LOCAL_DEBUG_OUT("ascom_do called: op = %s", op);
 
-	purge_asbidirlist( WinCommandState.operations );
+	purge_asbidirlist( ASCommandState.operations );
 	
 	copy = haystack = strdup( op );
 	while ( (iter = strtok( haystack , " ") ) )
 	{
 		LOCAL_DEBUG_OUT("Adding operation: %s", iter);
-		append_bidirelem(WinCommandState.operations, strdup(iter) );	
+		append_bidirelem(ASCommandState.operations, strdup(iter) );	
 		haystack = NULL;
 	}
 
 	free( copy );
 
 	
-	if(WinCommandState.selected_wins->head == NULL)
+	if(ASCommandState.selected_wins->head == NULL)
 	{
 		LOCAL_DEBUG_OUT("No windows were selected.");
 		return;
 	}
 	
 	
-	iterate_asbidirlist( WinCommandState.selected_wins, apply_operations, data,
+	iterate_asbidirlist( ASCommandState.selected_wins, apply_operations, data,
 			     NULL, False);
 	
 }
@@ -199,7 +302,7 @@ ascom_do( const char *op, void *data )
 void
 ascom_set_flag( ASFlagType fl )
 {
-	set_flags(WinCommandState.flags, fl);
+	set_flags(ASCommandState.flags, fl);
 }
 
 /*
@@ -228,15 +331,15 @@ select_all( Bool add)
 
 	if( ! add )
 	{
-		purge_asbidirlist( WinCommandState.selected_wins );
+		purge_asbidirlist( ASCommandState.selected_wins );
 		return;
 	}
 	
-	for( curr = WinCommandState.clients_order->head;
+	for( curr = ASCommandState.clients_order->head;
 	     curr != NULL; curr = curr->next)
 	{
 		
-		append_bidirelem( WinCommandState.selected_wins, curr->data );
+		append_bidirelem( ASCommandState.selected_wins, curr->data );
 	}
 	
 }
@@ -254,7 +357,7 @@ select_windows_by_pattern( const char *pattern, Bool add, Bool just_one)
 		return;
 	}
 	
-	for( curr = WinCommandState.clients_order->head;
+	for( curr = ASCommandState.clients_order->head;
 	     curr != NULL; curr = curr->next)
 	{
 		wd = fetch_window_by_id( ((client_item *)curr->data)->cl );
@@ -263,9 +366,9 @@ select_windows_by_pattern( const char *pattern, Bool add, Bool just_one)
 		if(regexec( &my_reg, wd->window_name, 0, NULL, 0) == 0)
 		{
 			if( add )
-				append_bidirelem( WinCommandState.selected_wins, curr->data );
+				append_bidirelem( ASCommandState.selected_wins, curr->data );
 			else
-				discard_bidirelem ( WinCommandState.selected_wins, curr->data ); 
+				discard_bidirelem ( ASCommandState.selected_wins, curr->data ); 
 			if( just_one )
 			{
 				regfree(&my_reg);
@@ -283,7 +386,7 @@ select_windows_on_screen( Bool add)
 	ASBiDirElem *curr;
 	ASWindowData *wd;
 
-	for( curr = WinCommandState.clients_order->head;
+	for( curr = ASCommandState.clients_order->head;
 	     curr != NULL; curr = curr->next)
 	{
 		
@@ -301,9 +404,9 @@ select_windows_on_screen( Bool add)
 			continue;
 		
 		if( add )
-			append_bidirelem( WinCommandState.selected_wins, curr->data );
+			append_bidirelem( ASCommandState.selected_wins, curr->data );
 		else
-			discard_bidirelem ( WinCommandState.selected_wins, curr->data );
+			discard_bidirelem ( ASCommandState.selected_wins, curr->data );
 		
 	}
 	
@@ -315,7 +418,7 @@ select_windows_on_desk( Bool add)
 	ASBiDirElem *curr;
 	ASWindowData *wd;
 
-	for( curr = WinCommandState.clients_order->head;
+	for( curr = ASCommandState.clients_order->head;
 	     curr != NULL; curr = curr->next)
 	{
 		
@@ -326,9 +429,9 @@ select_windows_on_desk( Bool add)
 			continue;
 		
 		if( add )
-			append_bidirelem( WinCommandState.selected_wins, curr->data );
+			append_bidirelem( ASCommandState.selected_wins, curr->data );
 		else
-			discard_bidirelem ( WinCommandState.selected_wins, curr->data );
+			discard_bidirelem ( ASCommandState.selected_wins, curr->data );
 		
 	}
 	
@@ -341,7 +444,7 @@ select_focused_window( Bool add )
 	ASBiDirElem *curr;
 	ASWindowData *wd;
 
-	for( curr = WinCommandState.clients_order->head;
+	for( curr = ASCommandState.clients_order->head;
 	     curr != NULL; curr = curr->next)
 	{
 		
@@ -350,9 +453,9 @@ select_focused_window( Bool add )
 		if( wd->focused )
 		{
 			if( add )
-				append_bidirelem( WinCommandState.selected_wins, curr->data );
+				append_bidirelem( ASCommandState.selected_wins, curr->data );
 			else
-				discard_bidirelem ( WinCommandState.selected_wins, curr->data );
+				discard_bidirelem ( ASCommandState.selected_wins, curr->data );
 			
 			return;
 		}		
@@ -365,113 +468,9 @@ select_focused_window( Bool add )
 void
 clear_selection( void )
 {
-	purge_asbidirlist(WinCommandState.selected_wins );
+	purge_asbidirlist(ASCommandState.selected_wins );
 }
 
 /****************** /public **********************/
 
-/****************** private *************************/
-
-void
-DeadPipe (int nonsense)
-{
-	static int already_dead = False ; 
-	if( already_dead ) 
-		return;/* non-reentrant function ! */
-	already_dead = True ;
-    
-	window_data_cleanup();
-
-	FreeMyAppResources();
-    
-#ifdef DEBUG_ALLOCS
-    print_unfreed_mem ();
-#endif /* DEBUG_ALLOCS */
-
-    XFlush (dpy);			/* need this for SetErootPixmap to take effect */
-	XCloseDisplay (dpy);		/* need this for SetErootPixmap to take effect */
-    exit (0);
-}
-
-
-Bool
-apply_operations(void *data, void *aux_data)
-{
-	ASWindowData *wd = fetch_window_by_id( ((client_item *) data)->cl );
-	ASBiDirElem *curr;
-	void *h;
-	
-	for(curr = (WinCommandState.operations)->head;
-	    curr != NULL; curr = curr->next)
-	{
-		/* If lookup wasn't successful, move along */
-		if(get_hash_item( WinCommandState.handlers,
-				  AS_HASHABLE(curr->data), &h) != ASH_Success)
-		{
-			LOCAL_DEBUG_OUT("handler %s not found", (char *) curr->data);
-			continue;
-		}		
-		((WinC_handler) h) ( wd, aux_data );
-	}
-	return True;
-}
-
-void
-destroy_client_item(void *data)
-{
-	free((client_item *) data);
-}
-
-/****************************************************************************/
-/* PROCESSING OF AFTERSTEP MESSAGES :                                       */
-/****************************************************************************/
-Bool
-process_message (send_data_type type, send_data_type *body)
-{
-	client_item *new_item;
-	WindowPacketResult res;
-	ASBiDirElem *curr;
-
-	LOCAL_DEBUG_OUT( "received message %lX", type );
-  
-	if( type == M_END_WINDOWLIST )
-	{
-		
-		return True;
-
-	}else if( (type&WINDOW_PACKET_MASK) != 0 )
-	{
-		struct ASWindowData *wd = fetch_window_by_id( body[0] );
-		
-		if( (res = handle_window_packet( type, body, &wd )) == WP_DataCreated )
-		{
-			new_item = safemalloc( sizeof(client_item) );
-			new_item->cl = wd->client;
-			append_bidirelem( WinCommandState.clients_order, new_item);
-		
-		}else if( res == WP_DataDeleted )
-		{
-			/* Delete element */
-			for( curr = WinCommandState.clients_order->head;
-			     curr != NULL; curr = curr->next)
-			{
-				if( ((client_item *)(curr->data)) ->cl  == wd->client)
-					destroy_bidirelem( WinCommandState.clients_order, curr);
-			}
-			
-		}
-	
-	}else if( type == M_NEW_DESKVIEWPORT )
-	{
-		LOCAL_DEBUG_OUT("M_NEW_DESKVIEWPORT(desk = %ld,Vx=%ld,Vy=%ld)", body[2], body[0], body[1]);
-		Scr.CurrentDesk = body[2];
-		Scr.Vx = body[0];
-		Scr.Vy = body[1];
-	}
-
-	return False;
-}
-
-
-/****************** /private ************************/
 

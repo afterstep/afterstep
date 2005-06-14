@@ -33,6 +33,7 @@
 
 /* Flags: none right now */
 
+extern char *DEFAULT_PATTERN;
 
 typedef struct
 {
@@ -45,7 +46,7 @@ typedef struct
 	int x_dest, y_dest; /* Move */
 	int new_width, new_height;
 
-} ASWinCommandState;
+} ASASCommandState;
 
 void ascom_init( int *arg_c, char **arg_v[] );
 void ascom_deinit( void );
