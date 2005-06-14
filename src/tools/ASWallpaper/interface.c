@@ -24,10 +24,30 @@
 
 
 void
+on_filechooser_close_clicked(GtkButton *button, gpointer user_data)
+{
+	if(WallpaperState.filechooser != NULL)
+	{	
+		gtk_widget_hide (WallpaperState.filechooser);
+	}
+}
+
+void
 on_list_add_clicked(GtkButton *button, gpointer user_data)
 {
-	GtkWidget *filechooser = create_filechooserdialog2();
 #if 1
+	GtkButton *close_button ; 
+	if( WallpaperState.filechooser == NULL ) 
+	{	
+		WallpaperState.filechooser = asgtk_image_browser_new();
+	
+		close_button = asgtk_image_browser_add_main_button (ASGTK_IMAGE_BROWSER(WallpaperState.filechooser), "gtk-close", G_CALLBACK(on_filechooser_close_clicked), NULL);
+  		gtk_widget_set_size_request (GTK_WIDGET(close_button), 150, -1);
+	}
+	
+	gtk_widget_show (GTK_WIDGET(WallpaperState.filechooser));
+#else 
+	GtkWidget *filechooser = create_filechooserdialog2();
 	if (gtk_dialog_run (GTK_DIALOG (filechooser)) == GTK_RESPONSE_ACCEPT)
   	{
     	const char *filename;

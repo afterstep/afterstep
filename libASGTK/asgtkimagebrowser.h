@@ -20,10 +20,12 @@ typedef struct _ASGtkImageBrowser
 	GtkWindow       parent_instance;
 	
 	char *current_dir ;
-	GtkWidget 				 *list_hbox;
+	GtkWidget 				 *dir_list ;
 	struct _ASGtkImageDir	 *image_dir ; 
-	struct _ASGtkImageView *preview ; 
-	GtkWidget *buttons_hbox;
+	struct _ASGtkImageView   *preview ; 
+	GtkWidget 				 *list_hbox;
+	GtkWidget 				 *main_buttons_hbox;
+	GtkWidget 				 *sel_buttons_hbox;
 
 }ASGtkImageBrowser;
 
@@ -36,7 +38,11 @@ typedef struct _ASGtkImageBrowserClass
 
 GType       asgtk_image_browser_get_type  (void) G_GNUC_CONST;
 
-GtkWidget * asgtk_image_browser_new       ();
+GtkWidget *asgtk_image_browser_new       ();
+GtkWidget *asgtk_image_browser_add_main_button( ASGtkImageBrowser *ib, const char *stock, GCallback func, gpointer user_data );
+GtkWidget *asgtk_image_browser_add_selection_button( ASGtkImageBrowser *ib, const char *stock, GCallback func );
+void asgtk_image_browser_refresh( ASGtkImageBrowser *ib );
+void asgtk_image_browser_change_dir( ASGtkImageBrowser *ib, const char *dir );
 
 
 #endif  /*  ASGTKIMAGEBROWSER_H_HEADER_INCLUDED  */

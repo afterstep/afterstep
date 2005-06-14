@@ -235,7 +235,7 @@ void  asgtk_image_dir_refresh( ASGtkImageDir *id )
 	
 		id->entries = get_asimage_list( get_screen_visual(NULL),  id->fulldirname,
 	              	   			        0, get_screen_image_manager(NULL)->gamma, 0, 0,
-										0, &count, ignore_dots );
+										0, &count, NULL );
 		
 		curr = id->entries ;
 		while( curr )
