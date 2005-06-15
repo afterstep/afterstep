@@ -205,6 +205,7 @@ ASImageListEntry *ref_asimage_list_entry( ASImageListEntry *entry );
 ASImageListEntry *unref_asimage_list_entry( ASImageListEntry *entry );
 ASImageListEntry *create_asimage_list_entry();
 void destroy_asimage_list( ASImageListEntry **plist );
+char *format_asimage_list_entry_details( ASImageListEntry *entry );
 
 
 /****f* libAfterImage/import/file2pixmap()

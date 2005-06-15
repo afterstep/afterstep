@@ -172,6 +172,8 @@ asgtk_image_dir_new ()
 
 	selection = gtk_tree_view_get_selection(id->tree_view);
    	g_signal_connect (selection, "changed",  G_CALLBACK (asgtk_image_dir_sel_handler), id);
+	
+	colorize_gtk_tree_view_window( GTK_WIDGET(id) );
 
 	LOCAL_DEBUG_OUT( "created image ASGtkImageDir object %p", id );	
 	return GTK_WIDGET (id);

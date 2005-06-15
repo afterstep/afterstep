@@ -143,6 +143,31 @@ as_image_loader_func as_image_file_loaders[ASIT_Unknown] =
 	NULL,
 	NULL
 };
+
+const char *as_image_file_type_names[ASIT_Unknown+1] =
+{
+	"XPM" ,
+	"Z-compressed XPM" ,
+	"GZ-compressed XPM" ,
+	"PNG" ,
+	"JPEG",
+	"GIMP Xcf" ,
+	"PPM" ,
+	"PNM" ,
+	"MS Windows Bitmap" ,
+	"MS Windows Icon" ,
+	"MS Windows Cursor" ,
+	"GIF" ,
+	"TIFF",
+	"AfterStep XML" ,
+	"XBM",
+	"Targa",
+	"PCX",
+	"HTML",
+	"XML",
+	"Unknown"
+};
+
  
 ASImage *
 file2ASImage_extra( const char *file, ASImageImportParams *iparams )
@@ -513,6 +538,23 @@ get_asimage_list( ASVisual *asv, const char *dir,
 #endif
 	return im_list;
 }
+
+char *format_asimage_list_entry_details( ASImageListEntry *entry )
+{
+	char *details_text ;
+
+	if( entry ) 
+	{	
+		int type = (entry->type>ASIT_Unknown)?ASIT_Unknown:entry->type ; 
+		details_text = safemalloc(128);
+		if( entry->preview ) 
+			sprintf( details_text, "File type: %s; Size %dx%d", as_image_file_type_names[type], entry->preview->width, entry->preview->height ); 	  
+		else 
+			sprintf( details_text, "File type: %s", as_image_file_type_names[type]);
+	}else
+		details_text = mystrdup("");		   
+	return details_text;
+}	 
 
 
 /***********************************************************************************/

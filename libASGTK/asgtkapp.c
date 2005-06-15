@@ -243,4 +243,32 @@ colorize_gtk_widget(GtkWidget *widget, gpointer data)
 }	 
 
 
+void  
+colorize_gtk_tree_view_window(GtkWidget *widget)
+{
+	colorize_gtk_widget( widget, get_colorschemed_style_button());
+	gtk_widget_set_style( widget, get_colorschemed_style_normal());
+}
+
+GtkWidget*
+asgtk_add_button_to_box( GtkBox *hbox, const char *stock, const char * label, GCallback func, gpointer user_data )
+{
+	GtkWidget *btn ; 
+	if( stock != NULL ) 
+	{	
+		btn = gtk_button_new_from_stock (stock);
+		if( label ) 
+			gtk_button_set_label( GTK_BUTTON(btn), label );
+	}else if( label )
+		btn = gtk_button_new_with_label (label); 
+	else
+		btn = gtk_button_new (); 
+  	gtk_widget_show (btn);
+  	gtk_box_pack_start (hbox, btn, FALSE, FALSE, 0);
+  	g_signal_connect ((gpointer) btn, "clicked", G_CALLBACK (func), user_data);
+	colorize_gtk_widget( GTK_WIDGET(btn), get_colorschemed_style_button());
+	return btn;	
+}
+
+
 
