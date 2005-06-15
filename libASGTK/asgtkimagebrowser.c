@@ -119,6 +119,26 @@ asgtk_image_browser_style_set (GtkWidget *widget,
   GTK_WIDGET_CLASS (parent_class)->style_set (widget, prev_style);
 }
 
+static char *asgtk_image_browser_make_fullfilename( ASGtkImageBrowser *ib, const char *filename ) 
+{			   
+	if( filename[0] == '.' && filename[1] == '\0' ) 
+		return mystrdup(ib->current_dir);
+	
+	if( filename[0] == '.' && filename[1] == '.' && filename[2] == '\0' ) 
+	{	
+		char *sep = strrchr(ib->current_dir, '/'); 
+		if( sep > ib->current_dir ) 
+			return mystrndup(ib->current_dir, sep - ib->current_dir );
+		
+		return mystrdup( "/" );
+	}
+	
+	if(filename[0] == '/')
+		return mystrdup(filename);
+	
+	return make_file_name( ib->current_dir, filename) ;
+}
+
 static void
 asgtk_image_browser_dir_activate (GtkTreeView       *tree_view,
 	   							  GtkTreePath       *path,
@@ -137,8 +157,12 @@ asgtk_image_browser_dir_activate (GtkTreeView       *tree_view,
 	if( filename[0] == '.' && filename[1] == '\0' ) 
 	{	
 	 	/* already in current dir - do nothing */	
-	}else 
+	}else
+	{
+		filename = asgtk_image_browser_make_fullfilename( ib, filename );
 		asgtk_image_browser_change_dir( ib, filename ); 
+		free( filename );
+	}
 }
 
 static void
@@ -156,11 +180,9 @@ asgtk_image_browser_dir_select (GtkTreeSelection *selection, gpointer user_data)
 		/* TODO : change directory/populate file list */  
 		if( filename[0] == '.' && filename[1] == '\0' ) 
 			asgtk_image_dir_set_path(ASGTK_IMAGE_DIR(ib->image_dir), ib->current_dir);
-		else if(filename[0] == '/')
-			asgtk_image_dir_set_path(ASGTK_IMAGE_DIR(ib->image_dir), filename);
-		else
-		{	
-  			filename = make_file_name( ib->current_dir, filename) ;
+		else 
+		{	 
+			filename = asgtk_image_browser_make_fullfilename( ib, filename );
 			asgtk_image_dir_set_path(ASGTK_IMAGE_DIR(ib->image_dir), filename);
 			free (filename);
 		}
@@ -344,21 +366,36 @@ asgtk_image_browser_refresh( ASGtkImageBrowser *ib )
 		/* Add current dir entry as the first item :*/
 		gtk_list_store_append (dir_store, &iter);
 		gtk_list_store_set (dir_store, &iter, 0, ".", -1);
+		
+		if( strcmp(ib->current_dir, "/") != 0 ) 
+		{	
+			gtk_list_store_append (dir_store, &iter);
+			gtk_list_store_set (dir_store, &iter, 0, "..", -1);
+		}	
 
 		/* Add subdirs :*/		
 		{   	   
 			struct direntry  **list = NULL;
-			int n = my_scandir (ib->current_dir, &list, ignore_dots, NULL);
-
+	 		int n = my_scandir (ib->current_dir, &list, NULL, NULL);
+			LOCAL_DEBUG_OUT( " scandir indicates %d entries in list", n );
 			if( n > 0 )
 			{
 				int i ;
 				for (i = 0; i < n; i++)
 				{
-					if (S_ISDIR (list[i]->d_mode))
+					if (S_ISDIR (list[i]->d_mode) )
 					{
-						gtk_list_store_append (dir_store, &iter);
-						gtk_list_store_set (dir_store, &iter, 0, list[i]->d_name, -1);
+						Bool skip = False ;
+						if( list[i]->d_name[0] == '.' )
+						{
+							skip = ( list[i]->d_name[1] == '\0' ||
+								     ( list[i]->d_name[1] == '.' && list[i]->d_name[2] == '\0' ) );
+						}
+						if( !skip ) 
+						{	
+							gtk_list_store_append (dir_store, &iter);
+							gtk_list_store_set (dir_store, &iter, 0, list[i]->d_name, -1);
+						}
 					}	 
 					free( list[i] );
 				}
@@ -380,9 +417,12 @@ asgtk_image_browser_refresh( ASGtkImageBrowser *ib )
 				}		 
 			}	 
 		}		
-	}		 
-	gtk_list_store_append (dir_store, &iter);
-	gtk_list_store_set (dir_store, &iter, 0, "/", -1);
+	}	
+	if( ib->current_dir	 == NULL || strcmp(ib->current_dir, "/") != 0 ) 
+	{	
+		gtk_list_store_append (dir_store, &iter);
+		gtk_list_store_set (dir_store, &iter, 0, "/", -1);
+	}
 	
 }
 
@@ -390,18 +430,30 @@ void
 asgtk_image_browser_change_dir( ASGtkImageBrowser *ib, const char *dir ) 
 {
 	char * fullfilename ;
+	int fullnamelen ;
 	
 	g_return_if_fail (ASGTK_IS_IMAGE_BROWSER (ib));
 	
 	fullfilename = PutHome(dir?dir:"~/");
+	fullnamelen = strlen( fullfilename ) ;
+	while( fullnamelen > 1 && fullfilename[fullnamelen-1] == '/' )
+	{	
+		fullfilename[fullnamelen-1] = '\0' ; 
+		--fullnamelen ;
+	}
 
 	LOCAL_DEBUG_OUT( " changing dir for  %p: current dir = \"%s\", new dir = \"%s\"", ib, ib->current_dir?ib->current_dir:"null", fullfilename );
 	if( ib->current_dir == NULL || strcmp( ib->current_dir, fullfilename ) != 0 )
 	{
+		char *title = safemalloc( 128+fullnamelen+1 ); 
 		if( ib->current_dir	)
 			free( ib->current_dir );
 		
 		ib->current_dir = fullfilename ; 
+		sprintf( title, "AfterStep image browser: %s", fullfilename );
+		gtk_window_set_title(GTK_WINDOW(ib), title );
+		free( title );
+
 		asgtk_image_browser_refresh( ib );
 	}	 
 	

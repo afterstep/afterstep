@@ -556,7 +556,6 @@ my_scandir (char *dirname, struct direntry *(*namelist[]),
 	int           n;						   /* Count of nl used so far */
 	int           sizenl;					   /* Number of entries in nl array */
 	int           j;
-	size_t        realsize;
 	char         *filename;					   /* For building filename to pass to stat */
 	char         *p;						   /* Place where filename starts */
 	struct stat   buf;
@@ -605,32 +604,17 @@ my_scandir (char *dirname, struct direntry *(*namelist[]),
 				}
 				nl = nnl;
 			}
-			realsize = offsetof (struct direntry, d_name)+strlen (e->d_name) + 1;
-			nl[n] = (struct direntry *)safemalloc (realsize);
-			if (nl[n] == NULL)
-			{
-				for (j = 0; j < n; j++)
-					free (nl[j]);
-				free (nl);
-				free (filename);
-				closedir (d);
-				return -1;
-			}
 			/* Fill in the fields using stat() */
 			strcpy (p, e->d_name);
-			if (stat (filename, &buf) == -1)
-			{
-				for (j = 0; j <= n; j++)
-					free (nl[j]);
-				free (nl);
-				free (filename);
-				closedir (d);
-				return -1;
+			if (stat (filename, &buf) != -1)
+			{	
+				size_t realsize = offsetof (struct direntry, d_name)+strlen (e->d_name) + 1;
+				nl[n] = (struct direntry *)safemalloc (realsize);
+				nl[n]->d_mode = buf.st_mode;
+				nl[n]->d_mtime = buf.st_mtime;
+				strcpy (nl[n]->d_name, e->d_name);
+				n++;
 			}
-			nl[n]->d_mode = buf.st_mode;
-			nl[n]->d_mtime = buf.st_mtime;
-			strcpy (nl[n]->d_name, e->d_name);
-			n++;
 		}
 	}
 	free (filename);

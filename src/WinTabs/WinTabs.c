@@ -29,6 +29,7 @@
 #include <signal.h>
 #include <unistd.h>
 
+/* #include <X11/keysym.h> */
 #include "../../libAfterImage/afterimage.h"
 
 #include "../../libAfterStep/afterstep.h"
@@ -123,10 +124,12 @@ ASWinTabsState WinTabsState = { 0 };
 #define C_UnswallowButton 	C_TButton1
 #define C_MenuButton 		C_TButton2
 
-
+#define WINTABS_SWITCH_KEYCODE	  49	/* XKeysymToKeycode (dpy, XK_grave) */
+#define WINTABS_SWITCH_MOD        Mod1Mask
 #define WINTABS_TAB_EVENT_MASK    (ButtonReleaseMask | ButtonPressMask | \
 	                               LeaveWindowMask   | EnterWindowMask | \
-                                   StructureNotifyMask|PointerMotionMask )
+                                   StructureNotifyMask|PointerMotionMask| \
+								   	KeyPressMask )
 
 #define WINTABS_MESSAGE_MASK      (M_END_WINDOWLIST |M_DESTROY_WINDOW |M_SWALLOW_WINDOW| \
 					   			   WINDOW_CONFIG_MASK|WINDOW_NAME_MASK|M_SHUTDOWN)
@@ -733,6 +736,29 @@ DispatchEvent (ASEvent * event)
                     render_tabs( get_flags( rerender_tabs, CANVAS_RESIZED ));
             }
 	        break;
+        case KeyPress:
+			{
+				XKeyEvent *xk = &(event->x.xkey);	
+				if( xk->keycode == WINTABS_SWITCH_KEYCODE && xk->state == WINTABS_SWITCH_MOD ) 
+				{	
+					if( WinTabsState.selected_tab+1 < PVECTOR_USED( WinTabsState.tabs ) )
+				 		select_tab( WinTabsState.selected_tab+1 );    		
+					else
+						select_tab( 0 );    		   
+					/* XBell (dpy, event->scr->screen); */
+				}else if( xk->window != WinTabsState.tabs_window ) 
+				{	
+					if( WinTabsState.selected_tab >= 0 && WinTabsState.selected_tab < PVECTOR_USED( WinTabsState.tabs ) )
+    				{
+        				ASWinTab *old_tab =  PVECTOR_HEAD(ASWinTab,WinTabsState.tabs)+WinTabsState.selected_tab ;
+	
+						xk->window = old_tab->client;
+        	    		XSendEvent (dpy, xk->window, False, KeyPressMask, &(event->x));
+					}
+				}
+
+			}	 
+			break;
         case ButtonPress:
             if( pointer_tab >= 0 ) 
                 press_tab( pointer_tab );
@@ -1037,7 +1063,7 @@ make_wintabs_window()
 
     /* we will need to wait for PropertyNotify event indicating transition
 	   into Withdrawn state, so selecting event mask: */
-    XSelectInput (dpy, w, PropertyChangeMask|StructureNotifyMask|FocusChangeMask 
+    XSelectInput (dpy, w, PropertyChangeMask|StructureNotifyMask|FocusChangeMask|KeyPressMask 
                           /*|ButtonReleaseMask | ButtonPressMask */
                   );
 
@@ -1059,6 +1085,7 @@ make_tabs_window( Window parent )
     Window w ;
 	attr.event_mask = WINTABS_TAB_EVENT_MASK ;
     w = create_visual_window( Scr.asv, parent, 0, 0, 1, 1, 0, InputOutput, CWEventMask, &attr );
+	XGrabKey( dpy, WINTABS_SWITCH_KEYCODE, WINTABS_SWITCH_MOD, w, True, GrabModeAsync, GrabModeAsync);
     return w;
 }
 
@@ -1068,7 +1095,7 @@ make_frame_window( Window parent )
 	static XSetWindowAttributes attr ;
 	ASFlagType attr_mask ;
     Window w ;
-	attr.event_mask = SubstructureRedirectMask|FocusChangeMask ;
+	attr.event_mask = SubstructureRedirectMask|FocusChangeMask|KeyPressMask ;
 	attr_mask = CWEventMask ;
 	if( get_flags( WinTabsState.flags, ASWT_Transparent ) )
 	{
@@ -1082,6 +1109,7 @@ make_frame_window( Window parent )
 		attr_mask |= CWBackPixel ;
 	}
     w = create_visual_window( Scr.asv, parent, 0, 0, WinTabsState.win_width, WinTabsState.win_height, 0, InputOutput, attr_mask, &attr );
+	XGrabKey( dpy, WINTABS_SWITCH_KEYCODE, WINTABS_SWITCH_MOD, w, True, GrabModeAsync, GrabModeAsync);
     return w;
 }
 
@@ -1553,7 +1581,8 @@ do_swallow_window( ASWindowData *wd )
     XReparentWindow( dpy, wd->client, aswt->frame_canvas->w, WinTabsState.win_width - nc->width, WinTabsState.win_height - nc->height );
     XSelectInput (dpy, wd->client, StructureNotifyMask|PropertyChangeMask|FocusChangeMask);
     XAddToSaveSet (dpy, wd->client);
-	
+    
+	XGrabKey( dpy, WINTABS_SWITCH_KEYCODE, WINTABS_SWITCH_MOD, wd->client, True, GrabModeAsync, GrabModeAsync);	  
 	set_client_desktop (wd->client, WinTabsState.my_desktop );	 
 
 #if 0   /* TODO : implement support for icons : */
@@ -1766,6 +1795,7 @@ Bool unswallow_tab(int t)
 	LOCAL_DEBUG_OUT( "tab = %d, tabs_num = %d", t, tabs_num );
 	if( tabs_num > 0 && t >= 0 && t < tabs_num ) 
 	{
+		/* XGrabKey( dpy, WINTABS_SWITCH_KEYCODE, Mod1Mask|Mod2Mask, w, True, GrabModeAsync, GrabModeAsync); */
 		XDeleteProperty( dpy, tabs[t].client, _XA_NET_WM_STATE );
 		XDeleteProperty( dpy, tabs[t].client, _XA_WIN_STATE );
 		XDeleteProperty( dpy, tabs[t].client, _XA_NET_WM_DESKTOP );

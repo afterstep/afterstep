@@ -139,6 +139,8 @@ as_image_loader_func as_image_file_loaders[ASIT_Unknown] =
 	xml2ASImage ,
 	NULL,
 	tga2ASImage,
+	NULL,
+	NULL,
 	NULL
 };
  
@@ -571,7 +573,10 @@ check_image_type( const char *realfilename )
 	FILE *fp ;
 	ASImageFileTypes type = ASIT_Unknown ;
 	/* lets check if we have compressed xpm file : */
-	if( filename_len > 7 && mystrncasecmp( realfilename+filename_len-7, ".xpm.gz", 7 ) == 0 )
+	if( filename_len > 5 && (mystrncasecmp( realfilename+filename_len-5, ".html", 5 ) == 0 || 
+							 mystrncasecmp( realfilename+filename_len-4, ".htm", 4 ) == 0 ))
+		type = ASIT_HTML;
+	else if( filename_len > 7 && mystrncasecmp( realfilename+filename_len-7, ".xpm.gz", 7 ) == 0 )
 		type = ASIT_GZCompressedXpm;
 	else if( filename_len > 6 && mystrncasecmp( realfilename+filename_len-6, ".xpm.Z", 6 ) == 0 )
 		type = ASIT_ZCompressedXpm ;
@@ -608,6 +613,11 @@ check_image_type( const char *realfilename )
 						 mystrncasecmp(realfilename+filename_len-4, ".ICO", 4)==0) )
 				type = ASIT_Cur;
 		}
+		if( type == ASIT_Unknown && bytes_in  > 6 )
+		{
+			if( mystrncasecmp( head, "<HTML>", 6 ) == 0 )
+				type = ASIT_HTML;	
+		}	 
 		if( type == ASIT_Unknown && bytes_in  > 8 )
 		{
 			if( strncmp((char *)&(head[0]), XCF_SIGNATURE, (size_t) XCF_SIGNATURE_LEN) == 0)
@@ -619,36 +629,55 @@ check_image_type( const char *realfilename )
 				type = ASIT_Xbm;
 			else
 			{/* the nastiest check - for XML files : */
-				register int i ;
+				int i ;
 
 				type = ASIT_XMLScript ;
+				for( i = 0 ; i < bytes_in ; ++i ) if( !isspace(head[i]) ) break;
 				while( bytes_in > 0 && type == ASIT_XMLScript )
 				{
-					for( i = 0 ; i < bytes_in ; ++i ) if( !isspace(head[i]) ) break;
 					if( i >= bytes_in )
+					{	
 						bytes_in = fread( &(head[0]), sizeof(CARD8), FILE_HEADER_SIZE, fp );
+						for( i = 0 ; i < bytes_in ; ++i ) if( !isspace(head[i]) ) break;
+					}
 					else if( head[i] != '<' )
 						type = ASIT_Unknown ;
-					else
-						break ;
-				}
-				while( bytes_in > 0 && type == ASIT_XMLScript )
-				{
-					for( i = 0 ; i < bytes_in ; ++i )
-						if( !isspace(head[i]) )
+					else if( mystrncasecmp( &(head[i]), "<!DOCTYPE ", 10 ) == 0 ) 
+					{	
+						type = ASIT_XML ;
+						for( i += 9 ; i < bytes_in ; ++i ) if( !isspace(head[i]) ) break;
+						if( i < bytes_in ) 
 						{
-							if( !isprint(head[i]) )
+					 		if( mystrncasecmp( &(head[i]), "afterstep-image-xml", 19 ) == 0 ) 			
 							{
-								type = ASIT_Unknown ;
-								break ;
-							}else if( head[i] == '>' )
+								i += 19 ;	  
+								type = ASIT_XMLScript ;
+							}
+						}	 
+					}else
+					{
+						while( bytes_in > 0 && type == ASIT_XMLScript )
+						{
+							while( ++i < bytes_in )
+								if( !isspace(head[i]) )
+								{
+									if( !isprint(head[i]) )
+									{
+										type = ASIT_Unknown ;
+										break ;
+									}else if( head[i] == '>' )
+										break ;
+								}
+
+							if( i >= bytes_in )
+							{	
+								bytes_in = fread( &(head[0]), sizeof(CARD8), FILE_HEADER_SIZE, fp );
+								i = 0 ; 
+							}else
 								break ;
 						}
-
-					if( i >= bytes_in )
-						bytes_in = fread( &(head[0]), sizeof(CARD8), FILE_HEADER_SIZE, fp );
-					else
-						break ;
+						break;
+					}	
 				}
 			}
 		}

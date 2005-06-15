@@ -59,6 +59,8 @@ typedef enum
 	ASIT_Targa,
 	ASIT_Supported = ASIT_Targa,
 	ASIT_Pcx,
+	ASIT_HTML,
+	ASIT_XML,
 	ASIT_Unknown
 }ASImageFileTypes;
 /*************/
