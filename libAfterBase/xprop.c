@@ -184,6 +184,7 @@ read_32bit_proplist (Window w, Atom property, long estimate, CARD32 ** list, lon
 		if (bytes_after > 0 && res)
 		{
 			XFree (buffer.long_ptr);
+			buffer.long_ptr = NULL ; 
 			res =
 				(XGetWindowProperty
 				 (dpy, w, property, 0, estimate + (bytes_after >> 2), False,
@@ -394,6 +395,7 @@ get_as_property ( Window w, Atom property, size_t * data_size, CARD32 *version)
     size /= sizeof(CARD32);
 
 	XFree (header.long_ptr);
+	header.long_ptr = NULL ;
 	if (actual_type == XA_INTEGER)
 	{
 		unsigned long actual_size = 0;
