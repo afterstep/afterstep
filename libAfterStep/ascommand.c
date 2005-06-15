@@ -63,6 +63,7 @@ typedef struct
 }client_item;
 
 char *DEFAULT_PATTERN = "";
+Bool selection_in_progress = False;
 
 
 ASBiDirList *extract_matches(ASBiDirList *src, const char *pattern);
@@ -246,7 +247,7 @@ void
 ascom_update_winlist( void )
 {
 	Bool complete = False;
-	void clear_selection();
+	clear_selection();
 	SendInfo ("Send_WindowList", 0);
 	
 	while( ! complete )
@@ -324,32 +325,37 @@ ascom_wait( void )
 
 /* Selection-functions */
 void
-select_all( Bool add)
+select_all( void )
 {
 	ASBiDirElem *curr;
+	ASBiDirList *new_selection = create_asbidirlist(NULL);
 	
-
-	if( ! add )
-	{
-		purge_asbidirlist( ASCommandState.selected_wins );
-		return;
-	}
+	if(selection_in_progress)
+	  curr = ASCommandState.selected_wins->head;
+	else
+	  curr = ASCommandState.clients_order->head;
 	
-	for( curr = ASCommandState.clients_order->head;
+	for( ;
 	     curr != NULL; curr = curr->next)
 	{
 		
-		append_bidirelem( ASCommandState.selected_wins, curr->data );
+		append_bidirelem( new_selection, curr->data );
 	}
 	
+	destroy_asbidirlist(&ASCommandState.selected_wins);
+	ASCommandState.selected_wins = new_selection;
+	
+	selection_in_progress = True;
 }
 
 void
-select_windows_by_pattern( const char *pattern, Bool add, Bool just_one)
+select_windows_by_pattern( const char *pattern, Bool just_one)
 {
 	ASBiDirElem *curr;
 	ASWindowData *wd;
 	regex_t my_reg;
+	
+	ASBiDirList *new_selection = create_asbidirlist(NULL);
 	
 	if(regcomp( &my_reg, pattern, REG_EXTENDED | REG_ICASE ) != 0)
 	{
@@ -357,37 +363,51 @@ select_windows_by_pattern( const char *pattern, Bool add, Bool just_one)
 		return;
 	}
 	
-	for( curr = ASCommandState.clients_order->head;
-	     curr != NULL; curr = curr->next)
+	if( selection_in_progress)
+		curr = ASCommandState.selected_wins->head;
+	else
+		curr = ASCommandState.clients_order->head;
+	
+	for( ; curr != NULL; curr = curr->next)
 	{
 		wd = fetch_window_by_id( ((client_item *)curr->data)->cl );
 		
 		/* If the pattern matches */
 		if(regexec( &my_reg, wd->window_name, 0, NULL, 0) == 0)
 		{
-			if( add )
-				append_bidirelem( ASCommandState.selected_wins, curr->data );
-			else
-				discard_bidirelem ( ASCommandState.selected_wins, curr->data ); 
+			
+			append_bidirelem( new_selection, curr->data );
+			
 			if( just_one )
 			{
+				destroy_asbidirlist(&ASCommandState.selected_wins);
+				ASCommandState.selected_wins = new_selection;
 				regfree(&my_reg);
+				selection_in_progress = True;
 				return;
 			}		
 		}	
 	}
 	
+	destroy_asbidirlist(&ASCommandState.selected_wins);
+	ASCommandState.selected_wins = new_selection;
 	regfree(&my_reg);
+	selection_in_progress = True;
 }
 
 void
-select_windows_on_screen( Bool add)
+select_windows_on_screen( void )
 {
 	ASBiDirElem *curr;
 	ASWindowData *wd;
+	ASBiDirList *new_selection = create_asbidirlist(NULL);
 
-	for( curr = ASCommandState.clients_order->head;
-	     curr != NULL; curr = curr->next)
+	if(selection_in_progress)
+		curr = ASCommandState.selected_wins->head;
+	else
+		curr = ASCommandState.clients_order->head;
+
+	for( ;curr != NULL; curr = curr->next)
 	{
 		
 		wd = fetch_window_by_id( ((client_item *)curr->data)->cl );
@@ -403,23 +423,32 @@ select_windows_on_screen( Bool add)
 			)
 			continue;
 		
-		if( add )
-			append_bidirelem( ASCommandState.selected_wins, curr->data );
-		else
-			discard_bidirelem ( ASCommandState.selected_wins, curr->data );
+		
+		append_bidirelem( new_selection, curr->data );
+		
 		
 	}
 	
+	destroy_asbidirlist(&ASCommandState.selected_wins);
+	ASCommandState.selected_wins = new_selection;
+	selection_in_progress = True;
 }
 
 void
-select_windows_on_desk( Bool add)
+select_windows_on_desk( void )
 {
 	ASBiDirElem *curr;
 	ASWindowData *wd;
+	ASBiDirList *new_selection = create_asbidirlist(NULL);
 
-	for( curr = ASCommandState.clients_order->head;
-	     curr != NULL; curr = curr->next)
+	
+	if(selection_in_progress)
+		curr = ASCommandState.selected_wins->head;
+	else
+		curr = ASCommandState.clients_order->head;
+	
+
+	for( ; curr != NULL; curr = curr->next)
 	{
 		
 		wd = fetch_window_by_id( ((client_item *)curr->data)->cl );
@@ -428,23 +457,31 @@ select_windows_on_desk( Bool add)
 		if( (wd->desk != Scr.CurrentDesk) )
 			continue;
 		
-		if( add )
-			append_bidirelem( ASCommandState.selected_wins, curr->data );
-		else
-			discard_bidirelem ( ASCommandState.selected_wins, curr->data );
+		
+		append_bidirelem( new_selection, curr->data );
+		
 		
 	}
 	
+	destroy_asbidirlist(&ASCommandState.selected_wins);
+	ASCommandState.selected_wins = new_selection;
+	selection_in_progress = True;
 }
 
 /* not working right now */
 void
-select_focused_window( Bool add )
+select_focused_window( void )
 {
 	ASBiDirElem *curr;
 	ASWindowData *wd;
+	ASBiDirList *new_selection = create_asbidirlist(NULL);
+	
+	if(selection_in_progress)
+		curr = ASCommandState.selected_wins->head;
+	else
+		curr = ASCommandState.clients_order->head;
 
-	for( curr = ASCommandState.clients_order->head;
+	for( ;
 	     curr != NULL; curr = curr->next)
 	{
 		
@@ -452,23 +489,27 @@ select_focused_window( Bool add )
 		
 		if( wd->focused )
 		{
-			if( add )
-				append_bidirelem( ASCommandState.selected_wins, curr->data );
-			else
-				discard_bidirelem ( ASCommandState.selected_wins, curr->data );
 			
+			append_bidirelem( new_selection, curr->data );
+			destroy_asbidirlist(&ASCommandState.selected_wins);
+			ASCommandState.selected_wins = new_selection;
+			selection_in_progress = True;
 			return;
 		}		
 
 	}
 
+	destroy_asbidirlist(&ASCommandState.selected_wins);
+	ASCommandState.selected_wins = new_selection;
+	selection_in_progress = True;
 }
 
 
 void
 clear_selection( void )
 {
-	purge_asbidirlist(ASCommandState.selected_wins );
+	destroy_asbidirlist(&ASCommandState.selected_wins);
+	selection_in_progress = False;
 }
 
 /****************** /public **********************/

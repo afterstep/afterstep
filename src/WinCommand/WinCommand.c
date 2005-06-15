@@ -128,8 +128,11 @@ main( int argc, char **argv )
 				set_flags( WinCommandState.flags, WINCOMMAND_ActOnAll );
 			
 			else if( mystrcasecmp( argv[i], "-pattern") == 0 && i+1 < argc && argv[i] != NULL)
+			{
 				WinCommandState.pattern = argv[i+1];
-			
+				i++;
+			}
+
 		}else
 		{	
 			LOCAL_DEBUG_OUT("Adding operation: %s", argv[i]);
@@ -143,6 +146,15 @@ main( int argc, char **argv )
 	ascom_init(&argc, &argv);
 	ascom_update_winlist();
 
+	/* honor flags */
+	if( get_flags( WinCommandState.flags, WINCOMMAND_Desk))
+		select_windows_on_desk();
+	else if( ! get_flags( WinCommandState.flags, WINCOMMAND_AllDesks))
+		select_windows_on_screen();
+
+	select_windows_by_pattern(WinCommandState.pattern,
+				  !get_flags(WinCommandState.flags, WINCOMMAND_ActOnAll));
+	
 	/* apply operations */
 	for( curr = WinCommandState.operations->head;
 	     curr != NULL; curr = curr->next)
@@ -150,25 +162,12 @@ main( int argc, char **argv )
 		command = (char *) curr->data;
 		LOCAL_DEBUG_OUT("command: %s", command);
 		
-		/* if this command needs no arguments and just_one = false */
-		if(mystrcasecmp ( command, "iconify") == 0 || 
-		   mystrcasecmp (command, "kill")  == 0||
-		   mystrcasecmp(command, "ls") == 0)
-		{
-			select_windows_by_pattern(WinCommandState.pattern, True, False);
-			ascom_do(command, NULL);
-		}
-		else if(mystrcasecmp ( command, "jump") == 0)
-		{
-			select_windows_by_pattern(WinCommandState.pattern, True, True);
-			ascom_do(command, NULL);
-		}
-		else if(mystrcasecmp ( command, "move") == 0)
+		
+		if(mystrcasecmp ( command, "move") == 0)
 		{
 			move_params params;
 			params.x = WinCommandState.x_dest;
 			params.y = WinCommandState.y_dest;
-			select_windows_by_pattern(WinCommandState.pattern, True, False);
 			ascom_do(command, &params);
 		}
 		else if(mystrcasecmp ( command, "resize") == 0)
@@ -176,8 +175,10 @@ main( int argc, char **argv )
 			resize_params params;
 			params.width = WinCommandState.new_width;
 			params.height = WinCommandState.new_height;
-			select_windows_by_pattern(WinCommandState.pattern, True, False);
 			ascom_do(command, &params);
+		}else
+		{
+			ascom_do(command, NULL);
 		}
 		
 	}

@@ -57,12 +57,12 @@ void ascom_do( const char *operation, void *data );
 void ascom_wait( void ); /* wait until all operations have been executed */
 
 /* selection */
-void select_all(Bool add);
-void select_windows_by_pattern(const char *pattern, Bool add, Bool just_one);
-void select_windows_on_screen( Bool add );
-void select_windows_on_desk ( Bool add );
+void select_all( void );
+void select_windows_by_pattern(const char *pattern, Bool just_one);
+void select_windows_on_screen( void );
+void select_windows_on_desk ( void );
 
-void select_focused_window( Bool add );
+void select_focused_window( void );
 
 void clear_selection( void );
 
