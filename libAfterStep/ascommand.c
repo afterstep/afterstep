@@ -325,7 +325,7 @@ ascom_wait( void )
 
 /* Selection-functions */
 void
-select_all( void )
+select_all( Bool unselect )
 {
 	ASBiDirElem *curr;
 	ASBiDirList *new_selection = create_asbidirlist(NULL);
@@ -338,8 +338,8 @@ select_all( void )
 	for( ;
 	     curr != NULL; curr = curr->next)
 	{
-		
-		append_bidirelem( new_selection, curr->data );
+		if( !unselect )
+			append_bidirelem( new_selection, curr->data );
 	}
 	
 	destroy_asbidirlist(&ASCommandState.selected_wins);
@@ -349,7 +349,7 @@ select_all( void )
 }
 
 void
-select_windows_by_pattern( const char *pattern, Bool just_one)
+select_windows_by_pattern( const char *pattern, Bool just_one, Bool unselect)
 {
 	ASBiDirElem *curr;
 	ASWindowData *wd;
@@ -376,18 +376,18 @@ select_windows_by_pattern( const char *pattern, Bool just_one)
 		if(regexec( &my_reg, wd->window_name, 0, NULL, 0) == 0)
 		{
 			
-			append_bidirelem( new_selection, curr->data );
-			
-			if( just_one )
-			{
-				destroy_asbidirlist(&ASCommandState.selected_wins);
-				ASCommandState.selected_wins = new_selection;
-				regfree(&my_reg);
-				selection_in_progress = True;
-				return;
-			}		
+			if( ! unselect )
+				append_bidirelem( new_selection, curr->data );
+		}else
+		{
+			if ( unselect )
+				append_bidirelem( new_selection, curr->data );
 		}	
+	
+		if( new_selection->head && just_one )
+			break;
 	}
+	
 	
 	destroy_asbidirlist(&ASCommandState.selected_wins);
 	ASCommandState.selected_wins = new_selection;
@@ -396,7 +396,7 @@ select_windows_by_pattern( const char *pattern, Bool just_one)
 }
 
 void
-select_windows_on_screen( void )
+select_windows_on_screen( Bool unselect )
 {
 	ASBiDirElem *curr;
 	ASWindowData *wd;
@@ -412,20 +412,37 @@ select_windows_on_screen( void )
 		
 		wd = fetch_window_by_id( ((client_item *)curr->data)->cl );
 		
-		/* skip this window if it's not on current-desk. */
-		if( (wd->desk != Scr.CurrentDesk) )
-			continue;
-		/* skip this window if it's not on current-screen */
-		if((  ( wd->frame_rect.x < Scr.Vx )
-		       || ( wd->frame_rect.y < Scr.Vy )
-		       || ( wd->frame_rect.x > (Scr.MyDisplayWidth + Scr.Vx) )
-		       || ( wd->frame_rect.y > (Scr.MyDisplayHeight + Scr.Vy) ))
-			)
-			continue;
+
+		if( unselect )
+		{
 		
+			/* add this window if it's not on current screen or desk */
+			if( (wd->desk != Scr.CurrentDesk) || 
+			    
+			    (  ( wd->frame_rect.x < Scr.Vx )
+			       || ( wd->frame_rect.y < Scr.Vy )
+			       || ( wd->frame_rect.x > (Scr.MyDisplayWidth + Scr.Vx) )
+			       || ( wd->frame_rect.y > (Scr.MyDisplayHeight + Scr.Vy) ))
+			    
+				)
+				append_bidirelem( new_selection, curr->data );
+
+		}else
+		{
+			/* skip this window if it's not on current-desk. */
+			if( (wd->desk != Scr.CurrentDesk) )
+				continue;
 		
-		append_bidirelem( new_selection, curr->data );
-		
+			/* skip this window if it's not on current-screen */
+			if((  ( wd->frame_rect.x < Scr.Vx )
+			      || ( wd->frame_rect.y < Scr.Vy )
+			      || ( wd->frame_rect.x > (Scr.MyDisplayWidth + Scr.Vx) )
+			      || ( wd->frame_rect.y > (Scr.MyDisplayHeight + Scr.Vy) ))
+				)
+				continue;
+			
+			append_bidirelem( new_selection, curr->data );
+		}
 		
 	}
 	
@@ -435,7 +452,7 @@ select_windows_on_screen( void )
 }
 
 void
-select_windows_on_desk( void )
+select_windows_on_desk( Bool unselect )
 {
 	ASBiDirElem *curr;
 	ASWindowData *wd;
@@ -452,14 +469,10 @@ select_windows_on_desk( void )
 	{
 		
 		wd = fetch_window_by_id( ((client_item *)curr->data)->cl );
-		
-		/* skip this window if it's not on current-desk. */
-		if( (wd->desk != Scr.CurrentDesk) )
-			continue;
-		
-		
-		append_bidirelem( new_selection, curr->data );
-		
+	
+		if( (unselect && (wd->desk != Scr.CurrentDesk) ) || 
+		    (!unselect && (wd->desk == Scr.CurrentDesk)) )
+			append_bidirelem( new_selection, curr->data );
 		
 	}
 	
@@ -470,7 +483,7 @@ select_windows_on_desk( void )
 
 /* not working right now */
 void
-select_focused_window( void )
+select_focused_window( Bool unselect )
 {
 	ASBiDirElem *curr;
 	ASWindowData *wd;
@@ -487,7 +500,7 @@ select_focused_window( void )
 		
 		wd = fetch_window_by_id( ((client_item *)curr->data)->cl );
 		
-		if( wd->focused )
+		if( (wd->focused && !unselect) || (!wd->focused && unselect))
 		{
 			
 			append_bidirelem( new_selection, curr->data );
