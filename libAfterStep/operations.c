@@ -142,3 +142,40 @@ void iconify_handler(ASWindowData *wd, void *data)
 	
 }
 
+void send_to_desk_handler(ASWindowData *wd, void *data)
+{
+	int dest = (int) ((send_to_desk_params *) data)->desk;
+       /* used by SendNumCommand */
+	send_signed_data_type vals[1] ;	
+	send_signed_data_type units[1] ;
+	
+	LOCAL_DEBUG_OUT("send_to_desk handler called");
+
+	/* Indicate that we're talking pixels. */
+	units[0] = 1;
+	vals[0] = dest;
+	
+	/* send to desk if it's not already on this desk */
+	if( wd->desk != dest)
+		SendNumCommand(F_CHANGE_WINDOWS_DESK, NULL, &(vals[0]), &(units[0]), wd->client);
+	
+}
+
+void center_handler(ASWindowData *wd, void *data)
+{
+	LOCAL_DEBUG_OUT("center handler called");
+	/* used by SendNumCommand */
+	send_signed_data_type vals[2] ;	
+	send_signed_data_type units[2] ;
+
+	
+	/* Indicate that we're talking pixels. */
+	units[0] = units[1] = 1;
+	
+	/* calculate dest-coords. */
+	vals[0] = (Scr.MyDisplayWidth - wd->frame_rect.width)/2;
+	vals[1] = (Scr.MyDisplayHeight - wd->frame_rect.height)/2;
+
+        /* Move window */
+	SendNumCommand ( F_MOVE, NULL, &(vals[0]), &(units[0]), wd->client );
+}

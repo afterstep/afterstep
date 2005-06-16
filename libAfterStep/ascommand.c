@@ -164,6 +164,7 @@ apply_operations(void *data, void *aux_data)
 			LOCAL_DEBUG_OUT("handler %s not found", (char *) curr->data);
 			continue;
 		}		
+		LOCAL_DEBUG_OUT("executing handler %s for %s", (char *) curr->data, wd->window_name);
 		((WinC_handler) h) ( wd, aux_data );
 	}
 	return True;
@@ -215,8 +216,9 @@ ascom_init ( int *arg_c, char **arg_v[] )
 	add_hash_item(ASCommandState.handlers, AS_HASHABLE(strdup("jump")), jump_handler);
 	add_hash_item(ASCommandState.handlers, AS_HASHABLE(strdup("ls")), ls_handler);
 	add_hash_item(ASCommandState.handlers, AS_HASHABLE(strdup("iconify")), iconify_handler);
-		
-	
+	add_hash_item(ASCommandState.handlers, AS_HASHABLE(strdup("sendtodesk")), send_to_desk_handler);
+	add_hash_item(ASCommandState.handlers, AS_HASHABLE(strdup("center")), center_handler);
+
 	
 	ConnectAfterStep (WINDOW_CONFIG_MASK |
 			  WINDOW_NAME_MASK |
@@ -275,8 +277,9 @@ ascom_do( const char *op, void *data )
 
 	LOCAL_DEBUG_OUT("ascom_do called: op = %s", op);
 
-	purge_asbidirlist( ASCommandState.operations );
-	
+	destroy_asbidirlist( &ASCommandState.operations );
+	ASCommandState.operations = create_asbidirlist(NULL);
+
 	copy = haystack = strdup( op );
 	while ( (iter = strtok( haystack , " ") ) )
 	{
@@ -354,7 +357,8 @@ select_windows_by_pattern( const char *pattern, Bool just_one, Bool unselect)
 	ASBiDirElem *curr;
 	ASWindowData *wd;
 	regex_t my_reg;
-	
+	int ret;
+
 	ASBiDirList *new_selection = create_asbidirlist(NULL);
 	
 	if(regcomp( &my_reg, pattern, REG_EXTENDED | REG_ICASE ) != 0)
@@ -372,20 +376,18 @@ select_windows_by_pattern( const char *pattern, Bool just_one, Bool unselect)
 	{
 		wd = fetch_window_by_id( ((client_item *)curr->data)->cl );
 		
-		/* If the pattern matches */
-		if(regexec( &my_reg, wd->window_name, 0, NULL, 0) == 0)
+		
+                ret = regexec( &my_reg, wd->window_name, 0, NULL, 0);
+		if( ((ret == 0) && !unselect) || ( (ret != 0) && unselect) )
 		{
 			
-			if( ! unselect )
-				append_bidirelem( new_selection, curr->data );
-		}else
-		{
-			if ( unselect )
-				append_bidirelem( new_selection, curr->data );
-		}	
-	
-		if( new_selection->head && just_one )
+			append_bidirelem( new_selection, curr->data );
+		
+			if( new_selection->head && just_one )
 			break;
+			
+		}
+		
 	}
 	
 	

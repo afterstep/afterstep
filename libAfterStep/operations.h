@@ -30,7 +30,8 @@ void kill_handler(ASWindowData *wd, void *data);
 void jump_handler(ASWindowData *wd, void *data);
 void ls_handler(ASWindowData *wd, void *data);
 void iconify_handler(ASWindowData *wd, void *data);
-
+void send_to_desk_handler(ASWindowData *wd, void *data);
+void center_handler(ASWindowData *wd, void *data);
 
 typedef struct
 {
@@ -43,5 +44,10 @@ typedef struct
 	int width, height;
 
 } resize_params;
+
+typedef struct
+{
+	int desk;
+} send_to_desk_params;
 
 #endif
