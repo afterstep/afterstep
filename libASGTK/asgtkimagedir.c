@@ -234,6 +234,7 @@ void  asgtk_image_dir_refresh( ASGtkImageDir *id )
 		int count ;
 		GtkTreeIter iter;
 		ASImageListEntry *curr ;
+		Bool first = True;
 	
 		id->entries = get_asimage_list( get_screen_visual(NULL),  id->fulldirname,
 	              	   			        0, get_screen_image_manager(NULL)->gamma, 0, 0,
@@ -247,9 +248,15 @@ void  asgtk_image_dir_refresh( ASGtkImageDir *id )
 			{	
         		gtk_list_store_append (GTK_LIST_STORE (id->tree_model), &iter);
 				gtk_list_store_set (GTK_LIST_STORE (id->tree_model), &iter, 0, curr->name, 1, curr, -1);
+				if( first ) 
+				{
+					gtk_tree_selection_select_iter(gtk_tree_view_get_selection(id->tree_view),&iter);
+					first = False;		
+				}	 
 			}
 			curr = curr->next ;
 		}
+		//asgtk_image_dir_sel_handler(gtk_tree_view_get_selection(id->tree_view), id);
 	}		   
 }	 
 

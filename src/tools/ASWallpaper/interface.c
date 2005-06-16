@@ -36,7 +36,7 @@ void
 on_list_add_clicked(GtkButton *button, gpointer user_data)
 {
 #if 1
-	GtkButton *close_button ; 
+	GtkWidget *close_button ; 
 	if( WallpaperState.filechooser == NULL ) 
 	{	
 		WallpaperState.filechooser = asgtk_image_browser_new();
@@ -143,7 +143,6 @@ void
 create_backs_list()
 {
 	GtkWidget *vbox ;
-	GtkWidget *buttons_hbox;
   	
 	vbox = gtk_vbox_new (FALSE, 0);
   	gtk_widget_show (vbox);
@@ -154,11 +153,6 @@ create_backs_list()
 	gtk_widget_set_size_request (WallpaperState.backs_list, 200, INITIAL_PREVIEW_HEIGHT);
 	gtk_widget_show (WallpaperState.backs_list);
 
-	buttons_hbox = gtk_hbutton_box_new ();
-  	gtk_hbutton_box_set_layout_default(GTK_BUTTONBOX_SPREAD);
-  	gtk_widget_show (buttons_hbox);
-  	gtk_box_pack_end (GTK_BOX (vbox), buttons_hbox, FALSE, FALSE, 5);
-	
 	/* creating the list widget itself */
 	asgtk_image_dir_set_title(ASGTK_IMAGE_DIR(WallpaperState.backs_list),"Images in your private backgrounds folder:");
 
@@ -167,41 +161,30 @@ create_backs_list()
 	
 	/* adding list manipulation buttons : */
 
-	WallpaperState.list_add_button = create_list_button( buttons_hbox, GTK_STOCK_ADD, G_CALLBACK(on_list_add_clicked) );
-	WallpaperState.list_del_button = create_list_button( buttons_hbox, GTK_STOCK_DELETE, G_CALLBACK(on_list_del_clicked) );
-	WallpaperState.list_apply_button = create_list_button( buttons_hbox, GTK_STOCK_APPLY, G_CALLBACK(on_list_apply_clicked) );
+	WallpaperState.list_add_button = asgtk_add_button_to_box( NULL, GTK_STOCK_ADD, "Browse for more", G_CALLBACK(on_list_add_clicked), NULL );
+  	gtk_box_pack_end (GTK_BOX (vbox), WallpaperState.list_add_button, FALSE, FALSE, 5);
+
 }
 
 void 
 create_list_preview()
 {
-	GtkWidget *vbox ;
-	GtkWidget *buttons_hbox;
 	int preview_width ; 
-
-  	vbox = gtk_vbox_new (FALSE, 0);
-  	gtk_widget_show (vbox);
-  	gtk_box_pack_end (GTK_BOX (WallpaperState.list_hbox), vbox, TRUE, TRUE, 5);
 
 	WallpaperState.list_preview = asgtk_image_view_new();
 	preview_width = (INITIAL_PREVIEW_HEIGHT *Scr.MyDisplayWidth)/Scr.MyDisplayHeight ;
 	gtk_widget_set_size_request (WallpaperState.list_preview, preview_width, INITIAL_PREVIEW_HEIGHT);
 	asgtk_image_view_set_aspect (ASGTK_IMAGE_VIEW(WallpaperState.list_preview), Scr.MyDisplayWidth, Scr.MyDisplayHeight );
-	gtk_box_pack_start (GTK_BOX (vbox), WallpaperState.list_preview, TRUE, TRUE, 0);
+  	gtk_box_pack_end (GTK_BOX (WallpaperState.list_hbox), WallpaperState.list_preview, TRUE, TRUE, 0);
 	gtk_widget_show (WallpaperState.list_preview);
 
-	buttons_hbox = gtk_hbutton_box_new ();
-  	gtk_hbutton_box_set_layout_default(GTK_BUTTONBOX_SPREAD);
-  	gtk_widget_show (buttons_hbox);
-  	gtk_box_pack_end (GTK_BOX (vbox), buttons_hbox, FALSE, FALSE, 5);
+	WallpaperState.list_apply_button = asgtk_add_button_to_box( NULL, GTK_STOCK_APPLY, NULL, G_CALLBACK(on_list_apply_clicked), NULL );
+	WallpaperState.make_xml_button = asgtk_add_button_to_box( NULL, GTK_STOCK_PROPERTIES, "Make XML", G_CALLBACK(on_make_xml_clicked), NULL );
+	WallpaperState.list_del_button = asgtk_add_button_to_box( NULL, GTK_STOCK_DELETE, NULL, G_CALLBACK(on_list_del_clicked), NULL );
 
-	WallpaperState.make_xml_button = create_list_button( buttons_hbox, GTK_STOCK_PROPERTIES, G_CALLBACK(on_make_xml_clicked) );
-	gtk_button_set_label( GTK_BUTTON(WallpaperState.make_xml_button), "Tweak this wallpaper" );
-	gtk_widget_set_size_request (WallpaperState.make_xml_button, preview_width, -1);	
-#if (GTK_MAJOR_VERSION>=2) && (GTK_MINOR_VERSION>=6)	
-	gtk_button_set_image( GTK_BUTTON(WallpaperState.make_xml_button),gtk_image_new_from_stock(GTK_STOCK_PROPERTIES, GTK_ICON_SIZE_BUTTON) );
-#endif
-	colorize_gtk_widget( GTK_WIDGET(WallpaperState.make_xml_button), get_colorschemed_style_button() );
+	asgtk_image_view_add_tool( ASGTK_IMAGE_VIEW(WallpaperState.list_preview), WallpaperState.list_apply_button, 0 );
+	asgtk_image_view_add_tool( ASGTK_IMAGE_VIEW(WallpaperState.list_preview), WallpaperState.make_xml_button, 5 );
+	asgtk_image_view_add_tool( ASGTK_IMAGE_VIEW(WallpaperState.list_preview), WallpaperState.list_del_button, 5 );
 }
 
 void

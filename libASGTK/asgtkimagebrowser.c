@@ -220,6 +220,13 @@ static void asgtk_image_browser_path_entry( GtkWidget *widget, gpointer data )
 		asgtk_image_browser_change_dir( ib, entry_text ); 
 	}
 }
+
+static void 
+asgtk_image_browser_scale_toggle( GtkWidget *checkbutton, gpointer data )
+{
+  	ASGtkImageBrowser *ib = ASGTK_IMAGE_BROWSER (data);
+	asgtk_image_view_enable_scaling( ib->preview, GTK_TOGGLE_BUTTON (checkbutton)->active );	
+}
 	
 	
 
@@ -269,11 +276,7 @@ asgtk_image_browser_file_sel_handler(ASGtkImageDir *id, gpointer user_data)
 	if( ib ) 
 	{	
 		ASImageListEntry *le = asgtk_image_dir_get_selection( id ); 
-		char *details_text ; 
 		asgtk_image_view_set_entry ( ib->preview, le);
-		details_text = format_asimage_list_entry_details( le );
-		gtk_label_set_text( GTK_LABEL(ib->details_label), details_text );
-		free( details_text ); 
 		unref_asimage_list_entry( le );
 	}
 }
@@ -287,7 +290,7 @@ asgtk_image_browser_new ()
     GtkWidget *main_vbox;
 	GtkWidget *separator;
 	GtkWidget *shortcuts_hbox, *btn ; 
-	GtkWidget *list_vbox, *preview_vbox, *details_hbox ; 
+	GtkWidget *list_vbox, *preview_vbox ; 
 
     ib = g_object_new (ASGTK_TYPE_IMAGE_BROWSER, NULL);
 	colorize_gtk_window( GTK_WIDGET(ib) );	
@@ -383,25 +386,17 @@ asgtk_image_browser_new ()
 	gtk_widget_set_size_request (GTK_WIDGET(ib->preview), PREVIEW_WIDTH, PREVIEW_HEIGHT);
 	gtk_box_pack_start (GTK_BOX (preview_vbox), GTK_WIDGET(ib->preview), TRUE, TRUE, 0);
 	gtk_widget_show (GTK_WIDGET(ib->preview));
-
-	details_hbox = gtk_hbutton_box_new ();
-  	gtk_widget_show (details_hbox);
-  	gtk_box_pack_end (GTK_BOX (preview_vbox), details_hbox, FALSE, FALSE, 5);
+	asgtk_image_view_enable_tiling( ib->preview, FALSE );	   
 
 	ib->scale_check_box = gtk_check_button_new_with_label( "Scale to fit" );
 	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(ib->scale_check_box), TRUE );
 	gtk_widget_show (ib->scale_check_box);
-	gtk_box_pack_start (GTK_BOX (details_hbox), ib->scale_check_box, FALSE, FALSE, 0);
 	colorize_gtk_widget( ib->scale_check_box, get_colorschemed_style_normal() );  
-
-	ib->details_label = gtk_label_new("");
-	gtk_widget_show (ib->details_label);
-	gtk_box_pack_end (GTK_BOX (details_hbox), ib->details_label, TRUE, TRUE, 0);
-
-	ib->sel_buttons_hbox = gtk_hbutton_box_new ();
-  	gtk_hbutton_box_set_layout_default(GTK_BUTTONBOX_SPREAD);
-  	gtk_widget_show (ib->sel_buttons_hbox);
-  	gtk_box_pack_end (GTK_BOX (preview_vbox), ib->sel_buttons_hbox, FALSE, FALSE, 5);
+	g_signal_connect (G_OBJECT (ib->scale_check_box), "toggled",
+	              	  G_CALLBACK (asgtk_image_browser_scale_toggle), (gpointer) ib);
+	
+	gtk_button_set_alignment( GTK_BUTTON(ib->scale_check_box), 1.0, 0.5);
+	asgtk_image_view_add_detail( ib->preview, ib->scale_check_box, 0 );
 
 	/* changing to default dir : */
 	asgtk_image_dir_set_sel_handler( ASGTK_IMAGE_DIR(ib->image_dir), asgtk_image_browser_file_sel_handler, ib);
@@ -423,10 +418,13 @@ asgtk_image_browser_add_main_button( ASGtkImageBrowser *ib, const char *stock, G
 GtkWidget*
 asgtk_image_browser_add_selection_button( ASGtkImageBrowser *ib, const char *stock, GCallback func )
 {
+	GtkWidget *btn ;
 	if( !ASGTK_IS_IMAGE_BROWSER (ib))
 		return NULL; 
 
-	return asgtk_add_button_to_box( GTK_BOX (ib->sel_buttons_hbox), stock, NULL, func, ib->image_dir );   
+	btn = asgtk_add_button_to_box( NULL, stock, NULL, func, ib->image_dir );   
+ 	asgtk_image_view_add_tool( ib->preview, btn, 0 );	
+	return btn;
 }	   
 
 void 
@@ -506,6 +504,29 @@ asgtk_image_browser_refresh( ASGtkImageBrowser *ib )
 	
 }
 
+static void
+add_dir_to_history( ASGtkImageBrowser *ib, const char *dir ) 
+{
+	GtkTreeModel* model = gtk_combo_box_get_model( GTK_COMBO_BOX(ib->path_combo) );	
+	GtkTreeIter  iter;
+
+	if( gtk_tree_model_get_iter_first( model, &iter ) )
+	{
+		do
+		{
+			gchar *val = NULL ;
+			gtk_tree_model_get (model, &iter, 0, &val, -1);
+			if( val && strcmp( dir, val ) == 0 ) 
+			{
+				gtk_list_store_remove( GTK_LIST_STORE(model), &iter );
+				break;	
+			}	 
+		}while(gtk_tree_model_iter_next(model, &iter));			 
+	}	 
+	gtk_combo_box_prepend_text (GTK_COMBO_BOX(ib->path_combo), dir );
+	gtk_combo_box_set_active (GTK_COMBO_BOX(ib->path_combo), 0);
+}
+
 void
 asgtk_image_browser_change_dir( ASGtkImageBrowser *ib, const char *dir ) 
 {
@@ -539,8 +560,7 @@ asgtk_image_browser_change_dir( ASGtkImageBrowser *ib, const char *dir )
 		sprintf( title, "AfterStep image browser: %s", fullfilename );
 		gtk_window_set_title(GTK_WINDOW(ib), title );
 		free( title );
-		gtk_combo_box_prepend_text (GTK_COMBO_BOX(ib->path_combo), fullfilename );
-		gtk_combo_box_set_active (GTK_COMBO_BOX(ib->path_combo), 0);
+		add_dir_to_history( ib, fullfilename ); 
 		asgtk_image_browser_refresh( ib );
 	}	 
 	

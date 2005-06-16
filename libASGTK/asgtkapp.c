@@ -258,13 +258,19 @@ asgtk_add_button_to_box( GtkBox *hbox, const char *stock, const char * label, GC
 	{	
 		btn = gtk_button_new_from_stock (stock);
 		if( label ) 
+		{	
 			gtk_button_set_label( GTK_BUTTON(btn), label );
+#if (GTK_MAJOR_VERSION>=2) && (GTK_MINOR_VERSION>=6)	   
+			gtk_button_set_image( GTK_BUTTON(btn), gtk_image_new_from_stock(stock, GTK_ICON_SIZE_BUTTON) );
+#endif
+		}
 	}else if( label )
 		btn = gtk_button_new_with_label (label); 
 	else
 		btn = gtk_button_new (); 
   	gtk_widget_show (btn);
-  	gtk_box_pack_start (hbox, btn, FALSE, FALSE, 0);
+	if( hbox )
+  		gtk_box_pack_start (hbox, btn, FALSE, FALSE, 0);
   	g_signal_connect ((gpointer) btn, "clicked", G_CALLBACK (func), user_data);
 	colorize_gtk_widget( GTK_WIDGET(btn), get_colorschemed_style_button());
 	return btn;	

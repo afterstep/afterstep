@@ -15,7 +15,7 @@ struct ASImage;
 
 typedef struct _ASGtkImageView
 {
-	GtkAspectFrame       parent_instance;
+	GtkFrame       	parent_instance;
 	
 	struct ASImageListEntry *image_entry;
 	/* if set, that will cause image to be tiled to this size and 
@@ -23,7 +23,18 @@ typedef struct _ASGtkImageView
 	int 			  aspect_x, aspect_y ;
 	int 			  view_width, view_height ;
 	
-	GtkWidget     *view;
+	GtkWidget	   	*frame;
+	GtkWidget      	*view;
+	GtkWidget      	*scrolled_window;
+
+	GtkWidget 		*details_hbox;
+	GtkWidget 		*tools_hbox;
+	GtkWidget		*details_label ;
+
+
+#define ASGTK_IMAGE_VIEW_NO_SCALING		(0x01<<0)
+#define ASGTK_IMAGE_VIEW_NO_TILING		(0x01<<1)
+	ASFlagType     flags;
 
 }ASGtkImageView;
 
@@ -42,5 +53,9 @@ void        asgtk_image_view_set_entry ( ASGtkImageView *iv,
 void        asgtk_image_view_set_aspect ( ASGtkImageView *iv,
 								   		  int aspect_x, int aspect_y );
 
+void 		asgtk_image_view_enable_scaling( ASGtkImageView *iv, Bool enabled );
+void 		asgtk_image_view_enable_tiling( ASGtkImageView *iv, Bool enabled );
+void 		asgtk_image_view_add_detail( ASGtkImageView *iv, GtkWidget *detail, int spacing );
+void 		asgtk_image_view_add_tool( ASGtkImageView *iv, GtkWidget *tool, int spacing );
 
 #endif  /*  ASGTKIMAGEVIEW_H_HEADER_INCLUDED  */
