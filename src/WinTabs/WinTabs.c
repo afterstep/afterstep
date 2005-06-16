@@ -1570,7 +1570,7 @@ do_swallow_window( ASWindowData *wd )
 
     /* first thing - we reparent window and its icon if there is any */
     nc = aswt->client_canvas = create_ascanvas_container( wd->client );
-	aswt->frame_canvas = create_ascanvas( make_frame_window(WinTabsState.main_window) );
+	aswt->frame_canvas = create_ascanvas_container( make_frame_window(WinTabsState.main_window) );
 	aswt->swallow_location.x = nc->root_x ; 
 	aswt->swallow_location.y = nc->root_y ; 
 	aswt->swallow_location.width = nc->width ; 
