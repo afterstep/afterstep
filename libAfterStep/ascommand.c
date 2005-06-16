@@ -258,6 +258,36 @@ ascom_update_winlist( void )
 
 }
 
+/* run ascom_update_winlist first */
+char **
+ascom_get_win_names( void )
+{
+	ASBiDirElem *curr;
+	ASWindowData *wd;
+	int n_names = 0;
+	char **ret = NULL;
+	int i = 0;
+
+	if(ASCommandState.clients_order->head == NULL)
+		return NULL;
+
+	for( curr = ASCommandState.clients_order->head;
+	     curr != NULL; curr = curr->next)
+		n_names++;
+	
+	ret = safemalloc(sizeof(char *) * n_names + 1);
+	
+	for( curr = ASCommandState.clients_order->head;
+	     curr != NULL; curr = curr->next)
+	{
+		wd = fetch_window_by_id( ((client_item *)curr->data)->cl );
+		ret[i++] = strdup(wd->window_name);
+	}
+	
+	ret[n_names] = NULL;
+	
+	return ret;
+}
 
 /*
   op can contain an unlimited amount of

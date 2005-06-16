@@ -52,6 +52,7 @@ void ascom_init( void );
 void ascom_deinit( void );
 
 void ascom_update_winlist( void );
+char **ascom_get_win_names( void );
 void ascom_do( const char *operation, void *data );
 
 void ascom_wait( void ); /* wait until all operations have been executed */
