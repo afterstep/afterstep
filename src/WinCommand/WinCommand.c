@@ -84,7 +84,7 @@ main( int argc, char **argv )
 	int i ;
 	ASBiDirElem *curr;
 	char *command;
-
+	
 	InitMyApp (CLASS_WINCOMMAND, argc, argv, NULL, NULL, OPTION_SINGLE|OPTION_RESTART );
 	ConnectX( ASDefaultScr, 0 );
 
@@ -127,6 +127,12 @@ main( int argc, char **argv )
 			else if( mystrcasecmp( argv[i], "-all") == 0)
 				set_flags( WinCommandState.flags, WINCOMMAND_ActOnAll );
 			
+			else if( mystrcasecmp( argv[i], "-alldesks") == 0)
+				set_flags( WinCommandState.flags, WINCOMMAND_AllDesks );
+			
+			else if( mystrcasecmp( argv[i], "-desk") == 0)
+				set_flags( WinCommandState.flags, WINCOMMAND_Desk );
+			
 			else if( mystrcasecmp( argv[i], "-pattern") == 0 && i+1 < argc && argv[i] != NULL)
 			{
 				WinCommandState.pattern = argv[i+1];
@@ -143,17 +149,17 @@ main( int argc, char **argv )
 	if( WinCommandState.pattern == NULL)
 		WinCommandState.pattern = DEFAULT_PATTERN;
 	
-	ascom_init(&argc, &argv);
+	ascom_init();
 	ascom_update_winlist();
 
 	/* honor flags */
 	if( get_flags( WinCommandState.flags, WINCOMMAND_Desk))
-		select_windows_on_desk();
+		select_windows_on_desk(False);
 	else if( ! get_flags( WinCommandState.flags, WINCOMMAND_AllDesks))
-		select_windows_on_screen();
+		select_windows_on_screen(False);
 
 	select_windows_by_pattern(WinCommandState.pattern,
-				  !get_flags(WinCommandState.flags, WINCOMMAND_ActOnAll));
+				  !get_flags(WinCommandState.flags, WINCOMMAND_ActOnAll), False);
 	
 	/* apply operations */
 	for( curr = WinCommandState.operations->head;
@@ -189,3 +195,4 @@ main( int argc, char **argv )
 	
 	return 0 ;
 }
+

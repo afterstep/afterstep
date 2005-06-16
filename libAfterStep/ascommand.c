@@ -187,18 +187,12 @@ destroy_client_item(void *data)
  */
 
 void
-ascom_init ( int *arg_c, char **arg_v[] )
+ascom_init ( void )
 {
-	int argc = *arg_c;
-	char **argv = *arg_v;
 
-	/* Save our program name - for error messages */
 	set_DeadPipe_handler(DeadPipe);
-	InitMyApp (CLASS_WINCOMMAND, argc, argv, NULL, NULL, OPTION_SINGLE|OPTION_RESTART );
-	
 	set_signal_handler( SIGSEGV );
 	
-	ConnectX( ASDefaultScr, 0 );
 	
 	memset( &ASCommandState, 0x00, sizeof(ASCommandState));
 	

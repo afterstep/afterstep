@@ -48,7 +48,7 @@ typedef struct
 
 } ASASCommandState;
 
-void ascom_init( int *arg_c, char **arg_v[] );
+void ascom_init( void );
 void ascom_deinit( void );
 
 void ascom_update_winlist( void );
