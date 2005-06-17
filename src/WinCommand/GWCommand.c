@@ -94,11 +94,13 @@ void jump_wrapper(void);
 
 action_t Actions[] = 
 {
+	{"center", 0, no_args_wrapper },
+	{"center jump", 0, jump_wrapper },
 	{"iconify", 0, no_args_wrapper },
+	{"jump", 0, jump_wrapper},
 	{"kill", 0, no_args_wrapper },
 	{"move", 1, move_wrapper},
 	{"sendtodesk", 2, send_to_desk_wrapper},
-	{"jump", 0, jump_wrapper},
 	{ NULL, 0, NULL }
 };
 
@@ -366,7 +368,13 @@ no_args_wrapper(void)
 
 void move_wrapper(void)
 {
+	move_params p;
+	p.x = atoi (gtk_entry_get_text(GTK_ENTRY(entry1)));
+	p.y = atoi (gtk_entry_get_text(GTK_ENTRY(entry2)));
+	select_windows_by_pattern
+		(gtk_entry_get_text(GTK_ENTRY(pattern_entry)), False, False);
 	
+	ascom_do(GWCommandState.action, &p);
 }
 
 void send_to_desk_wrapper(void)
