@@ -64,6 +64,9 @@
   GtkWidget *label1;
   GtkEntryCompletion *completion;
   GtkTreeModel *completion_model;
+  GtkWidget *run_button;
+  GtkWidget *hbox2;
+
 /* /ugly gui-definitions */
 
 
@@ -184,10 +187,18 @@ create_window (void)
 	gtk_widget_show (alignment2);
 	gtk_container_add (GTK_CONTAINER (frame2), alignment2);
 	
+	hbox2 = gtk_hbox_new (FALSE, 0);
+	gtk_widget_show (hbox2);
+	gtk_container_add (GTK_CONTAINER (alignment2), hbox2);
+	
 	pattern_entry = gtk_entry_new ();
 	gtk_widget_show (pattern_entry);
-	gtk_container_add (GTK_CONTAINER (alignment2), pattern_entry);
+	gtk_box_pack_start (GTK_BOX (hbox2), pattern_entry, TRUE, TRUE, 0);
 	
+	run_button = gtk_button_new_with_label("go!");
+	gtk_widget_show (run_button);
+	gtk_box_pack_start (GTK_BOX (hbox2), run_button, TRUE, TRUE, 0);
+
 	completion = gtk_entry_completion_new();
 	gtk_entry_set_completion (GTK_ENTRY (pattern_entry), completion);
 	g_object_unref (completion);
@@ -324,10 +335,18 @@ void
 on_action_combo_changed                (GtkComboBox     *combobox,
                                         gpointer         user_data)
 {
-	/* this is not nice - we need to strdup the text !!! */
-	if( (GWCommandState.action = (char*)asgtk_combo_box_get_active_text( combobox )) != NULL )
+	char *new_action = (char *) asgtk_combo_box_get_active_text( combobox );
+       
+	free( GWCommandState.action);
+	GWCommandState.action = NULL;
+	
+	if( new_action != NULL )
 	{	
+		
+		GWCommandState.action = strdup(new_action);
 		action_t *a = get_action_by_name(GWCommandState.action);
+		if( a == NULL ) return;
+		
 		gtk_notebook_set_current_page (GTK_NOTEBOOK(notebook1), a->param_page );
 	}
 }
@@ -416,7 +435,8 @@ int main(int argc, char **argv)
 		}else
 		{
 			/* It's the command! */
-			GWCommandState.action = argv[i];
+			
+			GWCommandState.action =  argv[i];
 		}
 	}
 
@@ -454,8 +474,10 @@ int main(int argc, char **argv)
 	if( index == -1 )
 		index = 0;
 	
-	GWCommandState.action = Actions[index].name;
-
+	/* Up to this point, GWCommand.action either points to NULL
+	   or so an adress of an argument on the stack: no free. */
+	GWCommandState.action = strdup ( Actions[index].name );
+	
 	gtk_combo_box_set_active(GTK_COMBO_BOX(action_combo), index);
 	gtk_notebook_set_current_page (GTK_NOTEBOOK(notebook1), Actions[index].param_page);
 
@@ -470,6 +492,9 @@ int main(int argc, char **argv)
 	g_signal_connect ((gpointer) pattern_entry, "activate",
 			 G_CALLBACK (on_pattern_activate), NULL);
 
+	g_signal_connect( (gpointer) run_button, "clicked",
+			  G_CALLBACK (on_pattern_activate), NULL);
+
 
 	gtk_widget_show(my_window);
 	gtk_main();
@@ -483,6 +508,7 @@ int main(int argc, char **argv)
 	while( GWCommandState.win_list[i] != NULL)
 		free( GWCommandState.win_list[i++] );
 	free( GWCommandState.win_list );
-	
+	free(GWCommandState.action );
+
 	return 0;
 }
