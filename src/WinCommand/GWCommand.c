@@ -324,12 +324,15 @@ on_action_combo_changed                (GtkComboBox     *combobox,
                                         gpointer         user_data)
 {
 	action_t *a;
-	GWCommandState.action =
-		gtk_combo_box_get_active_text (GTK_COMBO_BOX( action_combo ));
-	
-	a = get_action_by_name(GWCommandState.action);
+	GtkTreeIter  iter ;
+	GtkTreeModel *model = gtk_combo_box_get_model( combobox );
 
-	gtk_notebook_set_current_page (GTK_NOTEBOOK(notebook1), a->param_page );
+	if( gtk_combo_box_get_active_iter( combobox, &iter ) )
+	{	
+		gtk_tree_model_get (model, &iter, 0, &(GWCommandState.action), -1);
+		a = get_action_by_name(GWCommandState.action);
+		gtk_notebook_set_current_page (GTK_NOTEBOOK(notebook1), a->param_page );
+	}
 }
 
 void
