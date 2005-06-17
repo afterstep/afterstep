@@ -186,6 +186,8 @@ asgtk_image_dir_set_path( ASGtkImageDir *id, char *fulldirname )
 {
 	g_return_if_fail (ASGTK_IS_IMAGE_DIR (id));
 	
+	if( id->fulldirname == NULL && fulldirname == NULL ) 
+		return;
 	if( id->fulldirname && fulldirname && strcmp(id->fulldirname, fulldirname)== 0  ) 
 		return;
 	if( id->fulldirname  ) 
@@ -196,6 +198,27 @@ asgtk_image_dir_set_path( ASGtkImageDir *id, char *fulldirname )
 
 	if( fulldirname ) 
 		id->fulldirname = mystrdup(fulldirname);
+	
+	asgtk_image_dir_refresh( id );		 
+}	 
+
+void  
+asgtk_image_dir_set_mini( ASGtkImageDir *id, char *mini_extension )
+{
+	g_return_if_fail (ASGTK_IS_IMAGE_DIR (id));
+	
+	if( id->mini_extension == NULL && mini_extension == NULL ) 
+		return;
+	if( id->mini_extension && mini_extension && strcmp(id->mini_extension, mini_extension)== 0  ) 
+		return;
+	if( id->mini_extension  ) 
+	{	
+		free( id->mini_extension );
+		id->mini_extension = NULL ; 
+	}
+
+	if( mini_extension ) 
+		id->mini_extension = mystrdup(mini_extension);
 	
 	asgtk_image_dir_refresh( id );		 
 }	 
@@ -240,6 +263,7 @@ void  asgtk_image_dir_refresh( ASGtkImageDir *id )
 		int count ;
 		GtkTreeIter iter;
 		ASImageListEntry *curr ;
+		int mini_ext_len = id->mini_extension?strlen(id->mini_extension): 0;
 	
 		id->entries = get_asimage_list( get_screen_visual(NULL),  id->fulldirname,
 	              	   			        0, get_screen_image_manager(NULL)->gamma, 0, 0,
@@ -248,8 +272,20 @@ void  asgtk_image_dir_refresh( ASGtkImageDir *id )
 		curr = id->entries ;
 		while( curr )
 		{
+			Bool mini = False ;
 			LOCAL_DEBUG_OUT( "adding item \"%s\"", curr->name );			
-			if( curr->type <= ASIT_Supported ) 
+			if( mini_ext_len > 1 ) 
+			{
+				if( id->mini_extension[mini_ext_len-1] == '.' ) 
+					mini = (strncmp (curr->name, id->mini_extension, mini_ext_len ) == 0);
+				else
+				{
+					int name_len = strlen( curr->name );
+					if( name_len > mini_ext_len ) 
+						mini = (strncmp (&(curr->name[name_len-mini_ext_len]), id->mini_extension, mini_ext_len ) == 0);
+				}
+			}	 
+			if( !mini && curr->type <= ASIT_Supported ) 
 			{	
         		gtk_list_store_append (GTK_LIST_STORE (id->tree_model), &iter);
 				gtk_list_store_set (GTK_LIST_STORE (id->tree_model), &iter, 0, curr->name, 1, curr, -1);
@@ -264,4 +300,29 @@ void  asgtk_image_dir_refresh( ASGtkImageDir *id )
 		asgtk_image_dir_sel_handler(gtk_tree_view_get_selection(id->tree_view), id);
 	}
 }	 
+
+Bool 
+asgtk_image_dir_make_mini_names( ASGtkImageDir *id, ASImageListEntry *entry, char **name_return, char **fullname_return ) 
+{
+	if( id->mini_extension ) 
+	{			   
+		int mini_ext_len = strlen(id->mini_extension);
+		char *mini_filename = safemalloc( strlen(entry->name)+mini_ext_len+1 );
+
+		if( id->mini_extension[mini_ext_len-1] == '.' )
+			sprintf(mini_filename,"%s%s", id->mini_extension, entry->name );
+		else
+			sprintf(mini_filename,"%s%s", entry->name, id->mini_extension );
+
+		if( fullname_return ) 
+			*fullname_return = make_file_name( id->fulldirname, mini_filename );
+		if( name_return ) 
+			*name_return = mini_filename ;
+		else 
+			free( mini_filename );	  
+		return True;
+	}
+	return False;
+
+}	   
 

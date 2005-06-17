@@ -1587,6 +1587,7 @@ void screenshot_func_handler( FunctionData *data, ASEvent *event, int module )
 		if( save_asimage_to_file(realfilename, im, type, compress, NULL, 0, replace) )
 			show_warning( "screenshot saved as \"%s\"", realfilename );
 		free( realfilename ) ;
+		destroy_asimage( &im );
 	}
 }
 

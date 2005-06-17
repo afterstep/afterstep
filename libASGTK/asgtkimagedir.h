@@ -22,6 +22,7 @@ typedef struct _ASGtkImageDir
 	GtkScrolledWindow       parent_instance;
 	
 	char *fulldirname ;
+	char *mini_extension ;
 	struct ASImageListEntry *entries;
 	struct ASImageListEntry *curr_selection;
 	
@@ -48,10 +49,12 @@ GType       asgtk_image_dir_get_type  (void) G_GNUC_CONST;
 GtkWidget * asgtk_image_dir_new       ();
 
 void  asgtk_image_dir_set_path( ASGtkImageDir *id, char *fulldirname );
+void  asgtk_image_dir_set_mini( ASGtkImageDir *id, char *mini_extension );
 void  asgtk_image_dir_set_title( ASGtkImageDir *id, const gchar *title );
 void  asgtk_image_dir_set_sel_handler( ASGtkImageDir *id, _ASGtkImageDir_sel_handler sel_change_handler, gpointer user_data );
 struct ASImageListEntry *asgtk_image_dir_get_selection( ASGtkImageDir *id );
 void  asgtk_image_dir_refresh( ASGtkImageDir *id );
+Bool asgtk_image_dir_make_mini_names( ASGtkImageDir *id, ASImageListEntry *entry, char **name_return, char **fullname_return );
 
 /* standard selection handler linking dir to ASGTKImageView window : */
 void asgtk_image_dir2view_sel_handler(ASGtkImageDir *id, gpointer user_data);
