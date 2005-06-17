@@ -50,6 +50,9 @@ GtkWidget * asgtk_image_view_new       ();
 
 void        asgtk_image_view_set_entry ( ASGtkImageView *iv,
                                          struct ASImageListEntry *image_entry);
+/* don't forget to unref it after you done : */
+struct ASImageListEntry *asgtk_image_view_get_entry( ASGtkImageView *iv );
+
 void        asgtk_image_view_set_aspect ( ASGtkImageView *iv,
 								   		  int aspect_x, int aspect_y );
 

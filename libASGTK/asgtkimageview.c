@@ -356,8 +356,19 @@ asgtk_image_view_set_entry ( ASGtkImageView *iv,
 			gtk_image_set_from_stock( GTK_IMAGE(iv->view), GTK_STOCK_MISSING_IMAGE, GTK_ICON_SIZE_BUTTON );
 #endif
 	}else
+	{	
 		gtk_label_set_text( GTK_LABEL(iv->details_label), NO_IMAGE_TEXT );
+		gtk_image_set_from_stock( GTK_IMAGE(iv->view), GTK_STOCK_MISSING_IMAGE, GTK_ICON_SIZE_BUTTON );
+	}
 		
+}
+
+ASImageListEntry *
+asgtk_image_view_get_entry( ASGtkImageView *iv )
+{
+	if( ASGTK_IS_IMAGE_VIEW (iv) )
+		return ref_asimage_list_entry(iv->image_entry);
+	return NULL ;
 }
 
 void        
@@ -458,4 +469,5 @@ asgtk_image_view_add_tool( ASGtkImageView *iv, GtkWidget *tool, int spacing  )
 		gtk_container_set_border_width(GTK_CONTAINER(iv->tools_hbox), 1);
 	}
 }
+
 

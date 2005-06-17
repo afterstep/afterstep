@@ -9,7 +9,10 @@
 #include "../../../../libAfterImage/afterimage.h"
 #include "../../../../libAfterStep/screen.h"
 #include "../../../../libAfterStep/colorscheme.h"
+#include "../../../../libAfterStep/module.h"
 #include "../../../../libASGTK/asgtk.h"
+
+#include <unistd.h>		   
 
 #include "callbacks.h"
 #include "interface.h"
@@ -61,16 +64,46 @@ on_list_add_clicked(GtkButton *button, gpointer user_data)
 #endif
 }
 
+Bool 
+asgtk_yes_no_question1( GtkWidget *main_window, const char *format, const char *detail1 ) 	
+{
+	Bool result = False ;
+	GtkWidget *dialog = gtk_message_dialog_new (GTK_WINDOW(main_window),
+               				                    GTK_DIALOG_DESTROY_WITH_PARENT,
+                                  				GTK_MESSAGE_QUESTION,
+                                  				GTK_BUTTONS_YES_NO,
+												format, detail1 );
+ 	result = ( gtk_dialog_run (GTK_DIALOG (dialog)) == GTK_RESPONSE_YES);
+ 	gtk_widget_destroy (dialog);	
+	return result;
+}
+
 void
 on_list_del_clicked(GtkButton *button, gpointer user_data)
 {
-	
+	ASGtkImageView *iv = ASGTK_IMAGE_VIEW(user_data);
+	ASImageListEntry *entry = asgtk_image_view_get_entry( iv );
+	if( entry ) 
+	{	
+		if( asgtk_yes_no_question1( WallpaperState.main_window, "Do you really want to delete private background file \"%s\" ???", entry->name ) )
+		{
+			unlink( entry->fullfilename );
+			asgtk_image_dir_refresh( ASGTK_IMAGE_DIR(WallpaperState.backs_list) );	 
+		}	 
+		unref_asimage_list_entry( entry );
+	}
 }
 
 void
 on_list_apply_clicked(GtkButton *button, gpointer user_data)
 {
-	
+	ASGtkImageView *iv = ASGTK_IMAGE_VIEW(user_data);
+	ASImageListEntry *entry = asgtk_image_view_get_entry( iv );
+	if( entry ) 
+	{	
+		SendTextCommand ( F_CHANGE_BACKGROUND, NULL, entry->fullfilename, 0);
+		unref_asimage_list_entry( entry );
+	}
 }
 
 void
@@ -178,9 +211,9 @@ create_list_preview()
   	gtk_box_pack_end (GTK_BOX (WallpaperState.list_hbox), WallpaperState.list_preview, TRUE, TRUE, 0);
 	gtk_widget_show (WallpaperState.list_preview);
 
-	WallpaperState.list_apply_button = asgtk_add_button_to_box( NULL, GTK_STOCK_APPLY, NULL, G_CALLBACK(on_list_apply_clicked), NULL );
-	WallpaperState.make_xml_button = asgtk_add_button_to_box( NULL, GTK_STOCK_PROPERTIES, "Make XML", G_CALLBACK(on_make_xml_clicked), NULL );
-	WallpaperState.list_del_button = asgtk_add_button_to_box( NULL, GTK_STOCK_DELETE, NULL, G_CALLBACK(on_list_del_clicked), NULL );
+	WallpaperState.list_apply_button = asgtk_add_button_to_box( NULL, GTK_STOCK_APPLY, NULL, G_CALLBACK(on_list_apply_clicked), WallpaperState.list_preview );
+	WallpaperState.make_xml_button = asgtk_add_button_to_box( NULL, GTK_STOCK_PROPERTIES, "Make XML", G_CALLBACK(on_make_xml_clicked), WallpaperState.list_preview );
+	WallpaperState.list_del_button = asgtk_add_button_to_box( NULL, GTK_STOCK_DELETE, NULL, G_CALLBACK(on_list_del_clicked), WallpaperState.list_preview );
 
 	asgtk_image_view_add_tool( ASGTK_IMAGE_VIEW(WallpaperState.list_preview), WallpaperState.list_apply_button, 0 );
 	asgtk_image_view_add_tool( ASGTK_IMAGE_VIEW(WallpaperState.list_preview), WallpaperState.make_xml_button, 5 );

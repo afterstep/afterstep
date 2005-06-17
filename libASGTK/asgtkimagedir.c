@@ -131,9 +131,11 @@ asgtk_image_dir_sel_handler(GtkTreeSelection *selection, gpointer user_data)
 		gpointer p = NULL ;
     	gtk_tree_model_get (model, &iter, 1, &p, -1);
 		id->curr_selection = (ASImageListEntry*)p;
-		if( id->sel_change_handler )
-			id->sel_change_handler( id, id->sel_change_user_data ); 
-  	}
+  	}else
+		id->curr_selection = NULL ;
+		
+	if( id->sel_change_handler )
+		id->sel_change_handler( id, id->sel_change_user_data ); 
 }
 
 void
@@ -184,6 +186,8 @@ asgtk_image_dir_set_path( ASGtkImageDir *id, char *fulldirname )
 {
 	g_return_if_fail (ASGTK_IS_IMAGE_DIR (id));
 	
+	if( id->fulldirname && fulldirname && strcmp(id->fulldirname, fulldirname)== 0  ) 
+		return;
 	if( id->fulldirname  ) 
 	{	
 		free( id->fulldirname );
@@ -226,15 +230,16 @@ asgtk_image_dir_get_selection(ASGtkImageDir *id )
 
 void  asgtk_image_dir_refresh( ASGtkImageDir *id )
 {
+	int items = 0 ;
 	g_return_if_fail (ASGTK_IS_IMAGE_DIR (id));
 	gtk_list_store_clear( GTK_LIST_STORE (id->tree_model) );
 	destroy_asimage_list( &(id->entries) );
+	id->curr_selection = NULL ;
 	if( id->fulldirname ) 
 	{
 		int count ;
 		GtkTreeIter iter;
 		ASImageListEntry *curr ;
-		Bool first = True;
 	
 		id->entries = get_asimage_list( get_screen_visual(NULL),  id->fulldirname,
 	              	   			        0, get_screen_image_manager(NULL)->gamma, 0, 0,
@@ -248,15 +253,15 @@ void  asgtk_image_dir_refresh( ASGtkImageDir *id )
 			{	
         		gtk_list_store_append (GTK_LIST_STORE (id->tree_model), &iter);
 				gtk_list_store_set (GTK_LIST_STORE (id->tree_model), &iter, 0, curr->name, 1, curr, -1);
-				if( first ) 
-				{
+				if( ++items == 1 ) 
 					gtk_tree_selection_select_iter(gtk_tree_view_get_selection(id->tree_view),&iter);
-					first = False;		
-				}	 
 			}
 			curr = curr->next ;
 		}
-		//asgtk_image_dir_sel_handler(gtk_tree_view_get_selection(id->tree_view), id);
 	}		   
+	if( items == 0 ) 
+	{	
+		asgtk_image_dir_sel_handler(gtk_tree_view_get_selection(id->tree_view), id);
+	}
 }	 
 

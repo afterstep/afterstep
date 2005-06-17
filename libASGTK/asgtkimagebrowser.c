@@ -222,6 +222,17 @@ static void asgtk_image_browser_path_entry( GtkWidget *widget, gpointer data )
 }
 
 static void 
+asgtk_image_browser_path_changed( GtkWidget *widget, gpointer data )
+{
+ 	ASGtkImageBrowser *ib = ASGTK_IMAGE_BROWSER (data);
+	if( ib ) 
+	{	
+  		const gchar *entry_text = asgtk_combo_box_get_active_text(GTK_COMBO_BOX(ib->path_combo));
+		asgtk_image_browser_change_dir( ib, entry_text ); 
+	}
+}
+
+static void 
 asgtk_image_browser_scale_toggle( GtkWidget *checkbutton, gpointer data )
 {
   	ASGtkImageBrowser *ib = ASGTK_IMAGE_BROWSER (data);
@@ -277,7 +288,8 @@ asgtk_image_browser_file_sel_handler(ASGtkImageDir *id, gpointer user_data)
 	{	
 		ASImageListEntry *le = asgtk_image_dir_get_selection( id ); 
 		asgtk_image_view_set_entry ( ib->preview, le);
-		unref_asimage_list_entry( le );
+		if( le )
+			unref_asimage_list_entry( le );
 	}
 }
 
@@ -322,6 +334,8 @@ asgtk_image_browser_new ()
 	if( ib->path_entry ) 
 		g_signal_connect ( G_OBJECT (ib->path_entry), "activate",
 		      			   G_CALLBACK (asgtk_image_browser_path_entry), (gpointer) ib);
+	g_signal_connect (G_OBJECT(ib->path_combo), "changed",
+			  			G_CALLBACK (asgtk_image_browser_path_changed), (gpointer) ib);
 
 
 #if 0
@@ -510,6 +524,8 @@ add_dir_to_history( ASGtkImageBrowser *ib, const char *dir )
 	GtkTreeModel* model = gtk_combo_box_get_model( GTK_COMBO_BOX(ib->path_combo) );	
 	GtkTreeIter  iter;
 
+	g_signal_handlers_block_by_func(G_OBJECT(ib->path_combo), 
+								    G_CALLBACK (asgtk_image_browser_path_changed), (gpointer) ib);
 	if( gtk_tree_model_get_iter_first( model, &iter ) )
 	{
 		do
@@ -525,6 +541,9 @@ add_dir_to_history( ASGtkImageBrowser *ib, const char *dir )
 	}	 
 	gtk_combo_box_prepend_text (GTK_COMBO_BOX(ib->path_combo), dir );
 	gtk_combo_box_set_active (GTK_COMBO_BOX(ib->path_combo), 0);
+	g_signal_handlers_unblock_by_func(G_OBJECT(ib->path_combo), 
+								    G_CALLBACK (asgtk_image_browser_path_changed), (gpointer) ib);
+
 }
 
 void
