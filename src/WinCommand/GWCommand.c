@@ -22,6 +22,7 @@
 #include "../../libAfterStep/ascommand.h"
 #include "../../libAfterStep/operations.h"
 #include "../../libAfterConf/afterconf.h"
+#include "../../libASGTK/asgtk.h"
 
 
 #include <gdk/gdkx.h>
@@ -323,14 +324,10 @@ void
 on_action_combo_changed                (GtkComboBox     *combobox,
                                         gpointer         user_data)
 {
-	action_t *a;
-	GtkTreeIter  iter ;
-	GtkTreeModel *model = gtk_combo_box_get_model( combobox );
-
-	if( gtk_combo_box_get_active_iter( combobox, &iter ) )
+	/* this is not nice - we need to strdup the text !!! */
+	if( (GWCommandState.action = (char*)asgtk_combo_box_get_active_text( combobox )) != NULL )
 	{	
-		gtk_tree_model_get (model, &iter, 0, &(GWCommandState.action), -1);
-		a = get_action_by_name(GWCommandState.action);
+		action_t *a = get_action_by_name(GWCommandState.action);
 		gtk_notebook_set_current_page (GTK_NOTEBOOK(notebook1), a->param_page );
 	}
 }

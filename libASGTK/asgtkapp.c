@@ -276,5 +276,17 @@ asgtk_add_button_to_box( GtkBox *hbox, const char *stock, const char * label, GC
 	return btn;	
 }
 
+const char *
+asgtk_combo_box_get_active_text( GtkComboBox *combobox ) 
+{		   
+	GtkTreeIter  iter ;
+	GtkTreeModel *model = gtk_combo_box_get_model( combobox );
+	char * text ;
 
+	if( !gtk_combo_box_get_active_iter( combobox, &iter ) )
+		return NULL;
+	
+	gtk_tree_model_get (model, &iter, 0, &text, -1);
+	return text;
+}
 
