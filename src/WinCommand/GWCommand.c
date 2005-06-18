@@ -459,11 +459,13 @@ void jump_wrapper(void)
 void default_defaults(void)
 {
 	gtk_toggle_button_set_active ( GTK_TOGGLE_BUTTON(thisscreen_radio), TRUE);
+	GWCommandState.area = THIS_SCREEN;
 }
 
 void jump_defaults(void)
 {
 	gtk_toggle_button_set_active ( GTK_TOGGLE_BUTTON(alldesks_radio), TRUE);
+	GWCommandState.area = ALL_DESKS;
 }
 
 /****************************/
