@@ -212,6 +212,11 @@ Function "Move-or-Iconify"
         Iconify         "Click"
 EndFunction
 
+Function "Resize-or-Top"
+        Resize          "Motion"
+        RaiseLower      "Click"
+EndFunction
+
 # Window operations
 Popup "Window"
         Title           "This window :"
@@ -321,12 +326,11 @@ Mouse 3         6       A       Maximize
 Mouse 1         7       A       Delete
 Mouse 2         7       A       WindowList 2
 Mouse 3         7       A       PopUp "Window menu" Window
-Mouse 1         FS      A       Resize
-Mouse 2         FS      A       Move
-Mouse 3         FS      A       Move
+Mouse 1         FS      A       Function "Resize-or-Top"
+Mouse 2         FS      A       Function "Resize-or-Top"
+Mouse 3         FS      A       Function "Resize-or-Top"
 Mouse 1         T       A       Function "Move-or-Top"
 Mouse 2         T       A       Function "Move-or-Normal"
-#Mouse 2         T       A       RaiseLower
 Mouse 3         T       A       RaiseLower
 Mouse 0         I       A       Function "Move-or-Iconify"
 
