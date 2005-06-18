@@ -1,0 +1,6 @@
+<varlistentry id="options.IconsGrowVertically">
+	<term>IconsGrowVertically</term>
+	<listitem>
+		<para>Specifies that the Iconbox(es) should be filled vertically first.</para>
+	</listitem>
+</varlistentry>
