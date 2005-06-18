@@ -69,7 +69,6 @@
 
 /* /ugly gui-definitions */
 
-
 typedef struct
 {
 	char *name;
@@ -78,11 +77,17 @@ typedef struct
 } action_t ;
 
 
+typedef
+enum{ THIS_SCREEN = 0, THIS_DESK, ALL_DESKS }
+selected_area;
+
+
 struct ASGWCommandState
 {
 	char *action;
 	ASFlagType flags;
 	char **win_list;
+	selected_area area;
 } GWCommandState;
 
 /******** Prototypes *********************/
@@ -360,10 +365,38 @@ on_pattern_activate ( GtkEntry *entry,
 	
 	/* call the wrapper */
 	act = get_action_by_name(GWCommandState.action);
+	
+	if( GWCommandState.area == THIS_SCREEN )
+		select_windows_on_screen( False );
+	else if ( GWCommandState.area == THIS_DESK )
+		select_windows_on_desk( False );
+	
 	act->exec_wrapper();
 
 	gtk_main_quit();
 }
+
+void
+on_thisscreen_radio_toggled (GtkToggleButton *togglebutton,
+			     gpointer         user_data)
+{
+	GWCommandState.area = THIS_SCREEN;
+}
+
+void
+on_thisdesk_radio_toggled (GtkToggleButton *togglebutton,
+			     gpointer         user_data)
+{
+	GWCommandState.area = THIS_DESK;
+}
+
+void
+on_alldesks_radio_toggled (GtkToggleButton *togglebutton,
+			   gpointer         user_data)
+{
+	GWCommandState.area = ALL_DESKS;
+}
+
 
 /*********************************/
 
@@ -494,6 +527,22 @@ int main(int argc, char **argv)
 
 	g_signal_connect( (gpointer) run_button, "clicked",
 			  G_CALLBACK (on_pattern_activate), NULL);
+
+	g_signal_connect ((gpointer) thisscreen_radio, "toggled",
+			  G_CALLBACK (on_thisscreen_radio_toggled),
+			  NULL);
+
+	g_signal_connect ((gpointer) thisdesk_radio, "toggled",
+			  G_CALLBACK (on_thisdesk_radio_toggled),
+			  NULL);
+	
+	g_signal_connect ((gpointer) alldesks_radio, "toggled",
+			  G_CALLBACK (on_alldesks_radio_toggled),
+			  NULL);
+	
+	/* Set active radio-button. Emits signal "toggled" which is
+	 * why it's placed after the g_signal_connects. */
+	gtk_toggle_button_set_active ( GTK_TOGGLE_BUTTON(thisscreen_radio), TRUE);
 
 
 	gtk_widget_show(my_window);
