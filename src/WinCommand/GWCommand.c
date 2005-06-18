@@ -74,6 +74,7 @@ typedef struct
 	char *name;
 	int param_page;
 	void (*exec_wrapper)(void);
+	void (*init_defaults)(void);
 } action_t ;
 
 
@@ -99,18 +100,21 @@ void move_wrapper(void);
 void send_to_desk_wrapper(void);
 void jump_wrapper(void);
 
+void default_defaults(void);
+void jump_defaults(void);
+
 /******** /Prototypes ********************/
 
 action_t Actions[] = 
 {
-	{"center", 0, no_args_wrapper },
-	{"center jump", 0, jump_wrapper },
-	{"iconify", 0, no_args_wrapper },
-	{"jump", 0, jump_wrapper},
-	{"kill", 0, no_args_wrapper },
-	{"move", 1, move_wrapper},
-	{"sendtodesk", 2, send_to_desk_wrapper},
-	{ NULL, 0, NULL }
+	{"center", 0, no_args_wrapper, default_defaults },
+	{"center jump", 0, jump_wrapper, jump_defaults },
+	{"iconify", 0, no_args_wrapper, default_defaults },
+	{"jump", 0, jump_wrapper, jump_defaults},
+	{"kill", 0, no_args_wrapper, default_defaults},
+	{"move", 1, move_wrapper, default_defaults},
+	{"sendtodesk", 2, send_to_desk_wrapper, default_defaults},
+	{ NULL, 0, NULL, NULL}
 };
 
 /* Creates a tree model containing the completions */
@@ -140,7 +144,7 @@ create_window (void)
 
 	window1 = gtk_window_new (GTK_WINDOW_TOPLEVEL);
 	gtk_window_set_title (GTK_WINDOW (window1), "GWCommand");
-	
+
 	frame1 = gtk_frame_new (NULL);
 	gtk_widget_show (frame1);
 	gtk_container_add (GTK_CONTAINER (window1), frame1);
@@ -308,6 +312,9 @@ create_window (void)
 	gtk_misc_set_padding (GTK_MISC (label1), 5, 0);
 	
 	gtk_widget_grab_focus (pattern_entry);
+	
+	colorize_gtk_window( window1 ); 
+
 	return window1;
 }
 
@@ -353,6 +360,7 @@ on_action_combo_changed                (GtkComboBox     *combobox,
 		if( a == NULL ) return;
 		
 		gtk_notebook_set_current_page (GTK_NOTEBOOK(notebook1), a->param_page );
+		a->init_defaults();
 	}
 }
 
@@ -363,7 +371,6 @@ on_pattern_activate ( GtkEntry *entry,
 	action_t *act;
 	clear_selection();
 	
-	/* call the wrapper */
 	act = get_action_by_name(GWCommandState.action);
 	
 	if( GWCommandState.area == THIS_SCREEN )
@@ -371,6 +378,7 @@ on_pattern_activate ( GtkEntry *entry,
 	else if ( GWCommandState.area == THIS_DESK )
 		select_windows_on_desk( False );
 	
+	/* call the wrapper */
 	act->exec_wrapper();
 
 	gtk_main_quit();
@@ -446,6 +454,18 @@ void jump_wrapper(void)
 	ascom_do(GWCommandState.action, NULL);
 }
 
+/* init_defaults */
+
+void default_defaults(void)
+{
+	gtk_toggle_button_set_active ( GTK_TOGGLE_BUTTON(thisscreen_radio), TRUE);
+}
+
+void jump_defaults(void)
+{
+	gtk_toggle_button_set_active ( GTK_TOGGLE_BUTTON(alldesks_radio), TRUE);
+}
+
 /****************************/
 
 int main(int argc, char **argv)
@@ -511,9 +531,6 @@ int main(int argc, char **argv)
 	   or so an adress of an argument on the stack: no free. */
 	GWCommandState.action = strdup ( Actions[index].name );
 	
-	gtk_combo_box_set_active(GTK_COMBO_BOX(action_combo), index);
-	gtk_notebook_set_current_page (GTK_NOTEBOOK(notebook1), Actions[index].param_page);
-
 	/* connect signals */
 	g_signal_connect (G_OBJECT (my_window), "destroy",
 			  G_CALLBACK (destroy), NULL);
@@ -539,11 +556,14 @@ int main(int argc, char **argv)
 	g_signal_connect ((gpointer) alldesks_radio, "toggled",
 			  G_CALLBACK (on_alldesks_radio_toggled),
 			  NULL);
-	
-	/* Set active radio-button. Emits signal "toggled" which is
-	 * why it's placed after the g_signal_connects. */
-	gtk_toggle_button_set_active ( GTK_TOGGLE_BUTTON(thisscreen_radio), TRUE);
 
+	gtk_combo_box_set_active(GTK_COMBO_BOX(action_combo), index);
+	gtk_notebook_set_current_page (GTK_NOTEBOOK(notebook1), Actions[index].param_page);
+	
+	
+	if( Actions[index].init_defaults)
+		Actions[index].init_defaults();
+	
 
 	gtk_widget_show(my_window);
 	gtk_main();
