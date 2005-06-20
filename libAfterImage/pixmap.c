@@ -106,8 +106,13 @@ GetRootPixmap (Atom id)
 {
 	Pixmap currentRootPixmap = None;
 #ifndef X_DISPLAY_MISSING
+	static Atom root_pmap_atom = None ; 
 	if (id == None)
-  		id = XInternAtom (dpy, "_XROOTPMAP_ID", True);
+	{
+		if( root_pmap_atom == None ) 	  
+  			root_pmap_atom = XInternAtom (dpy, "_XROOTPMAP_ID", True);
+		id = root_pmap_atom ;
+	}
 
     if (id != None)
     {
@@ -556,6 +561,14 @@ cut_pixmap ( ASVisual *asv, Pixmap src, Pixmap trg,
 
     if( y+height >= screen_h )
 	    h = screen_h - y ;
+	if( (src_w == 0 || src_h == 0) && src != None ) 
+	{
+		Window root;
+      	unsigned int dum;
+      	int dummy;
+		if (!XGetGeometry (dpy, src, &root, &dummy, &dummy, &src_w, &src_h, &dum, &dum))
+			src = None ;
+	}	 
 
 	if (src == None) /* we don't have root pixmap ID */
     { /* we want to create Overrideredirect window overlapping out window

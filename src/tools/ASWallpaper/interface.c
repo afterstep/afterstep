@@ -99,6 +99,17 @@ on_make_xml_clicked(GtkButton *button, gpointer user_data)
 }
 
 void
+on_edit_xml_clicked(GtkButton *button, gpointer user_data)
+{
+	ASGtkImageDir *id = ASGTK_IMAGE_DIR(user_data);
+	ASImageListEntry *entry = asgtk_image_dir_get_selection( id );
+	if( WallpaperState.xml_editor == NULL ) 
+		WallpaperState.xml_editor = asgtk_xml_editor_new();
+	gtk_widget_show( WallpaperState.xml_editor );
+	asgtk_xml_editor_set_entry( ASGTK_XML_EDITOR(WallpaperState.xml_editor), entry );
+}
+
+void
 on_list_add_clicked(GtkButton *button, gpointer user_data)
 {
 	ASGtkImageDir *id = ASGTK_IMAGE_DIR(user_data);
@@ -170,6 +181,31 @@ on_browse_clicked(GtkButton *button, gpointer user_data)
 	gtk_widget_show (GTK_WIDGET(WallpaperState.filechooser));
 }
 
+static void
+backs_list_sel_handler(ASGtkImageDir *id, gpointer user_data)
+{
+	ASGtkImageView *iv = ASGTK_IMAGE_VIEW(user_data);
+	g_return_if_fail (ASGTK_IS_IMAGE_DIR (id));
+
+	gtk_widget_hide( WallpaperState.xml_editor );
+	if( iv ) 
+	{	
+		ASImageListEntry *le = asgtk_image_dir_get_selection( id ); 
+		asgtk_image_view_set_entry ( iv, le);
+		
+		if( le->type == ASIT_XMLScript ) 
+		{	
+			gtk_widget_show(WallpaperState.edit_xml_button);
+			gtk_widget_hide(WallpaperState.make_xml_button);
+		}else
+		{
+			gtk_widget_hide(WallpaperState.edit_xml_button);
+			gtk_widget_show(WallpaperState.make_xml_button);
+		}		   
+		if( le )
+			unref_asimage_list_entry( le );
+	}
+}
 
 
 void
@@ -254,10 +290,10 @@ create_backs_list()
 	
 	/* adding list manipulation buttons : */
 
-	WallpaperState.list_add_button = asgtk_add_button_to_box( NULL, GTK_STOCK_REFRESH, "Update AfterStep Menu", G_CALLBACK(on_update_as_menu_clicked), NULL );
-  	gtk_box_pack_end (GTK_BOX (vbox), WallpaperState.list_add_button, FALSE, FALSE, 0);
-	WallpaperState.list_add_button = asgtk_add_button_to_box( NULL, GTK_STOCK_ADD, "Browse for more", G_CALLBACK(on_browse_clicked), NULL );
-  	gtk_box_pack_end (GTK_BOX (vbox), WallpaperState.list_add_button, FALSE, FALSE, 5);
+	WallpaperState.list_update_as_button = asgtk_add_button_to_box( NULL, GTK_STOCK_REFRESH, "Update AfterStep Menu", G_CALLBACK(on_update_as_menu_clicked), NULL );
+  	gtk_box_pack_end (GTK_BOX (vbox), WallpaperState.list_update_as_button, FALSE, FALSE, 0);
+	WallpaperState.list_browse_button = asgtk_add_button_to_box( NULL, GTK_STOCK_ADD, "Browse for more", G_CALLBACK(on_browse_clicked), NULL );
+  	gtk_box_pack_end (GTK_BOX (vbox), WallpaperState.list_browse_button, FALSE, FALSE, 5);
 
 }
 
@@ -292,15 +328,19 @@ init_ASWallpaper()
 	create_backs_list();
 	create_list_preview();
 	
-	WallpaperState.list_apply_button = asgtk_add_button_to_box( NULL, GTK_STOCK_APPLY, NULL, G_CALLBACK(on_list_apply_clicked), WallpaperState.backs_list );
+	WallpaperState.sel_apply_button = asgtk_add_button_to_box( NULL, GTK_STOCK_APPLY, NULL, G_CALLBACK(on_list_apply_clicked), WallpaperState.backs_list );
 	WallpaperState.make_xml_button = asgtk_add_button_to_box( NULL, GTK_STOCK_PROPERTIES, "Make XML", G_CALLBACK(on_make_xml_clicked), WallpaperState.backs_list );
-	WallpaperState.list_del_button = asgtk_add_button_to_box( NULL, GTK_STOCK_DELETE, NULL, G_CALLBACK(on_list_del_clicked), WallpaperState.backs_list );
+	WallpaperState.edit_xml_button = asgtk_add_button_to_box( NULL, GTK_STOCK_PROPERTIES, "Edit XML", G_CALLBACK(on_edit_xml_clicked), WallpaperState.backs_list );
+	WallpaperState.sel_del_button = asgtk_add_button_to_box( NULL, GTK_STOCK_DELETE, NULL, G_CALLBACK(on_list_del_clicked), WallpaperState.backs_list );
 
-	asgtk_image_view_add_tool( ASGTK_IMAGE_VIEW(WallpaperState.list_preview), WallpaperState.list_apply_button, 0 );
+	gtk_widget_hide(WallpaperState.edit_xml_button);
+
+	asgtk_image_view_add_tool( ASGTK_IMAGE_VIEW(WallpaperState.list_preview), WallpaperState.sel_apply_button, 0 );
 	asgtk_image_view_add_tool( ASGTK_IMAGE_VIEW(WallpaperState.list_preview), WallpaperState.make_xml_button, 5 );
-	asgtk_image_view_add_tool( ASGTK_IMAGE_VIEW(WallpaperState.list_preview), WallpaperState.list_del_button, 5 );
+	asgtk_image_view_add_tool( ASGTK_IMAGE_VIEW(WallpaperState.list_preview), WallpaperState.edit_xml_button, 5 );
+	asgtk_image_view_add_tool( ASGTK_IMAGE_VIEW(WallpaperState.list_preview), WallpaperState.sel_del_button, 5 );
 	
-	asgtk_image_dir_set_sel_handler( ASGTK_IMAGE_DIR(WallpaperState.backs_list), asgtk_image_dir2view_sel_handler, WallpaperState.list_preview);
+	asgtk_image_dir_set_sel_handler( ASGTK_IMAGE_DIR(WallpaperState.backs_list), backs_list_sel_handler, WallpaperState.list_preview);
 
 	reload_private_backs_list();
 

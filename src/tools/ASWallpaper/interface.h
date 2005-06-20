@@ -15,14 +15,19 @@ typedef struct ASWallpaperState
 	GtkWidget   *list_hbox;	
 	GtkWidget   *backs_list ;
 	
-	GtkWidget    *list_add_button ;
-	GtkWidget    *list_del_button ;
-	GtkWidget    *list_apply_button ;
-	
+	GtkWidget    *list_browse_button ;
+	GtkWidget    *list_update_as_button ;
+
 	GtkWidget    *list_preview ; 
+	GtkWidget    *sel_del_button ;
+	GtkWidget    *sel_apply_button ;
 	GtkWidget    *make_xml_button ;
+	GtkWidget    *edit_xml_button ;
+
+	
 
 	GtkWidget    *filechooser ;
+	GtkWidget    *xml_editor ;
 
 #define INITIAL_PREVIEW_HEIGHT	300
 

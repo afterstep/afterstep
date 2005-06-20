@@ -9,6 +9,7 @@
 #include "asgtkimageview.h"
 #include "asgtkimagedir.h"
 #include "asgtkimagebrowser.h"
+#include "asgtkxmleditor.h"
 
 
 #endif /* #ifndef ASGTK_H_HEADER_INCLUDED */
