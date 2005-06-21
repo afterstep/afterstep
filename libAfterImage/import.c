@@ -539,7 +539,7 @@ get_asimage_list( ASVisual *asv, const char *dir,
 	return im_list;
 }
 
-char *format_asimage_list_entry_details( ASImageListEntry *entry )
+char *format_asimage_list_entry_details( ASImageListEntry *entry, Bool vertical )
 {
 	char *details_text ;
 
@@ -548,7 +548,7 @@ char *format_asimage_list_entry_details( ASImageListEntry *entry )
 		int type = (entry->type>ASIT_Unknown)?ASIT_Unknown:entry->type ; 
 		details_text = safemalloc(128);
 		if( entry->preview ) 
-			sprintf( details_text, "File type: %s; Size %dx%d", as_image_file_type_names[type], entry->preview->width, entry->preview->height ); 	  
+			sprintf( details_text, vertical?"File type: %s\nSize %dx%d":"File type: %s; Size %dx%d", as_image_file_type_names[type], entry->preview->width, entry->preview->height ); 	  
 		else 
 			sprintf( details_text, "File type: %s", as_image_file_type_names[type]);
 	}else

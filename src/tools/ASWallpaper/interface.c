@@ -98,15 +98,25 @@ on_make_xml_clicked(GtkButton *button, gpointer user_data)
 
 }
 
+void gtk_xml_editor_destroy( GtkWidget *widget, gpointer user_data ) 
+{
+	WallpaperState.xml_editor = NULL ;
+}	 
+
 void
 on_edit_xml_clicked(GtkButton *button, gpointer user_data)
 {
 	ASGtkImageDir *id = ASGTK_IMAGE_DIR(user_data);
 	ASImageListEntry *entry = asgtk_image_dir_get_selection( id );
 	if( WallpaperState.xml_editor == NULL ) 
+	{	
 		WallpaperState.xml_editor = asgtk_xml_editor_new();
+		g_signal_connect (G_OBJECT (WallpaperState.xml_editor), "destroy", G_CALLBACK (gtk_xml_editor_destroy), NULL);
+	}
+
 	gtk_widget_show( WallpaperState.xml_editor );
 	asgtk_xml_editor_set_entry( ASGTK_XML_EDITOR(WallpaperState.xml_editor), entry );
+	unref_asimage_list_entry( entry );
 }
 
 void
@@ -187,7 +197,8 @@ backs_list_sel_handler(ASGtkImageDir *id, gpointer user_data)
 	ASGtkImageView *iv = ASGTK_IMAGE_VIEW(user_data);
 	g_return_if_fail (ASGTK_IS_IMAGE_DIR (id));
 
-	gtk_widget_hide( WallpaperState.xml_editor );
+	if( WallpaperState.xml_editor )
+		gtk_widget_hide( WallpaperState.xml_editor );
 	if( iv ) 
 	{	
 		ASImageListEntry *le = asgtk_image_dir_get_selection( id ); 

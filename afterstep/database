@@ -32,6 +32,7 @@ Style   "WinList"       NoTitle, Sticky, Layer 3, WindowListSkip, NoHandles, Avo
 # to make sure Pager always stays open we place it into the highest used level :
 Style   "*Pager"        NoTitle, Sticky, Layer 4, WindowListSkip, NoHandles, AvoidCover, BorderWidth 0
 Style   "ASMenu"        NoButton 1, NoButton 3
+Style   "WinTabs"       Layer 0, Slippery
 
 # Wharf apps and AfterStep close apps and terms
 Style   "*clock"        StaysOnTop, WindowListSkip, NoHandles

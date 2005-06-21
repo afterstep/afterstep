@@ -30,6 +30,7 @@ typedef struct _ASGtkImageView
 	GtkWidget 		*details_hbox;
 	GtkWidget 		*tools_hbox;
 	GtkWidget		*details_label ;
+	GtkWidget       *details_frame ;
 
 
 #define ASGTK_IMAGE_VIEW_NO_SCALING		(0x01<<0)
@@ -46,7 +47,9 @@ typedef struct _ASGtkImageViewClass
 
 GType       asgtk_image_view_get_type  (void) G_GNUC_CONST;
 
-GtkWidget * asgtk_image_view_new       ();
+GtkWidget *asgtk_image_view_new       ();
+GtkWidget *asgtk_image_view_new_horizontal ();
+
 
 void        asgtk_image_view_set_entry ( ASGtkImageView *iv,
                                          struct ASImageListEntry *image_entry);
@@ -60,5 +63,6 @@ void 		asgtk_image_view_enable_scaling( ASGtkImageView *iv, Bool enabled );
 void 		asgtk_image_view_enable_tiling( ASGtkImageView *iv, Bool enabled );
 void 		asgtk_image_view_add_detail( ASGtkImageView *iv, GtkWidget *detail, int spacing );
 void 		asgtk_image_view_add_tool( ASGtkImageView *iv, GtkWidget *tool, int spacing );
+void 		asgtk_image_view_refresh( ASGtkImageView *iv, Bool reload_file );
 
 #endif  /*  ASGTKIMAGEVIEW_H_HEADER_INCLUDED  */

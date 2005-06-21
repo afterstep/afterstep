@@ -520,8 +520,8 @@ ASImage *commit_xml_image_built( ASImageXMLState *state, char *id, ASImage *resu
 			if( !store_asimage( state->imman, result, id ) )
 			{
 				show_warning("Failed to store image id [%s].", id);
-				safe_asimage_destroy(result );
-				result = fetch_asimage( state->imman, id );
+				//safe_asimage_destroy(result );
+				//result = fetch_asimage( state->imman, id );
 				/*show_warning("Old image with the name fetched as %p.", result);*/
 			}else
 			{
