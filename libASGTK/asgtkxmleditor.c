@@ -20,6 +20,8 @@
 #define LOCAL_DEBUG
 #include "../configure.h"
 
+#include <unistd.h>
+
 #include "../include/afterbase.h"
 #include "../libAfterImage/afterimage.h"
 #include "../libAfterStep/asapp.h"
@@ -36,7 +38,7 @@ static void asgtk_xml_editor_init (ASGtkXMLEditor *iv);
 static void asgtk_xml_editor_dispose (GObject *object);
 static void asgtk_xml_editor_finalize (GObject *object);
 static void asgtk_xml_editor_style_set (GtkWidget *widget, GtkStyle  *prev_style);
-
+static void check_save_changes( ASGtkXMLEditor *xe );
 
 /*  private variables  */
 static GtkWindowClass *parent_class = NULL;
@@ -96,6 +98,8 @@ asgtk_xml_editor_dispose (GObject *object)
   	ASGtkXMLEditor *xe = ASGTK_XML_EDITOR (object);
 	if( xe->entry ) 
 	{
+		check_save_changes( xe ); 
+
 		LOCAL_DEBUG_OUT( " entry ref_count = %d", xe->entry->ref_count );
 		if( unref_asimage_list_entry(xe->entry) ) 
 			LOCAL_DEBUG_OUT( " entry ref_count = %d", xe->entry->ref_count );
@@ -131,7 +135,7 @@ get_xml_editor_text( ASGtkXMLEditor *xe )
 }
 
 static void 
-bad_xml_warning( GtkWidget *main_window, const char *format, const char *detail1, const char *detail2 ) 	
+xml_editor_warning( GtkWidget *main_window, const char *format, const char *detail1, const char *detail2 ) 	
 {
 	GtkWidget *dialog = gtk_message_dialog_new (GTK_WINDOW(main_window),
                				                    GTK_DIALOG_DESTROY_WITH_PARENT,
@@ -164,32 +168,69 @@ on_refresh_clicked(GtkButton *button, gpointer user_data)
 			asgtk_image_view_refresh( xe->image_view, False );
 		}else
 		{
-			bad_xml_warning( GTK_WIDGET(xe), "Failed to render image from changed xml.", NULL, NULL ); 	   				
+			xml_editor_warning( GTK_WIDGET(xe), "Failed to render image from changed xml.", NULL, NULL ); 	   				
 		}		 
 	}
 	gtk_widget_set_sensitive( xe->refresh_btn, FALSE );
 }
 
+static Bool
+save_text_buffer_to_file( ASGtkXMLEditor *xe, const char *filename ) 
+{
+	char *text = get_xml_editor_text(xe);
+	FILE *fp = fopen( filename, "wb" );
+	Bool result = False ; 
+	if( fp ) 
+	{	
+		int len = strlen(text);
+		if( fwrite( text, 1, len, fp ) == len ) 
+			result = True;
+		else
+			xml_editor_warning( GTK_WIDGET(xe), "Failed to write to file \"%s\" : %s.", filename, g_strerror (errno) ); 	   				   		   
+		fclose( fp ) ;
+		result = True ; 
+	}else
+	{
+		xml_editor_warning( GTK_WIDGET(xe), "Failed to open file \"%s\" : %s.", filename, g_strerror (errno) ); 	   				   		
+	}	 
+	free( text );
+	return result ;
+}
+
+
 static void
 on_save_clicked(GtkButton *button, gpointer user_data)
 {
 	ASGtkXMLEditor *xe = ASGTK_XML_EDITOR(user_data);
-	char *text = get_xml_editor_text(xe);
-	FILE *fp = fopen( xe->entry->fullfilename, "wb" );
-	fwrite( text, strlen(text), 1, fp );
-	fclose( fp ) ;
-	free( text );
-	gtk_widget_set_sensitive( xe->save_btn, FALSE );
-	gtk_widget_set_sensitive( xe->save_as_btn, FALSE );
-}
-
-static void
-on_save_as_clicked(GtkButton *button, gpointer user_data)
-{
-	ASGtkXMLEditor *xe = ASGTK_XML_EDITOR(user_data);
-
-	gtk_widget_set_sensitive( xe->save_btn, FALSE );
-	gtk_widget_set_sensitive( xe->save_as_btn, FALSE );
+	char *filename = xe->entry->fullfilename ; 
+	if( button == GTK_BUTTON(xe->save_as_btn) ) 
+	{
+		GtkWidget *filesel = gtk_file_selection_new( "Save as : ");
+	 	gtk_file_selection_set_filename( GTK_FILE_SELECTION(filesel), filename );
+		if( gtk_dialog_run( GTK_DIALOG(filesel)) == GTK_RESPONSE_CANCEL )
+			filename = NULL ; 
+		else
+			filename = mystrdup(gtk_file_selection_get_filename( GTK_FILE_SELECTION(filesel)));
+		gtk_widget_destroy( filesel );
+	}	 
+	if( filename ) 
+	{	
+		if( filename != xe->entry->fullfilename && 
+			strcmp(filename, xe->entry->fullfilename ) != 0 ) 
+		{
+			if( CheckFile( filename ) == 0 ) 
+				if( asgtk_yes_no_question1( GTK_WIDGET(xe), "File with the name \"%s\" already exists. Overwrite it ?", filename ) )
+					unlink( filename );
+		}
+		if( save_text_buffer_to_file( xe, filename ) )
+		{	
+			xe->dirty = False ;
+			gtk_widget_set_sensitive( xe->save_btn, FALSE );
+			gtk_widget_set_sensitive( xe->save_as_btn, FALSE );
+		}
+		if( filename != xe->entry->fullfilename ) 
+			free( filename );
+	}
 }
 
 static void        
@@ -197,6 +238,7 @@ on_text_changed  (GtkTextBuffer *textbuffer, gpointer user_data)
 {
 	ASGtkXMLEditor *xe = ASGTK_XML_EDITOR(user_data);
 	
+	xe->dirty = True ; 
 	gtk_widget_set_sensitive( xe->refresh_btn, TRUE );
 	gtk_widget_set_sensitive( xe->save_btn, TRUE );
 	gtk_widget_set_sensitive( xe->save_as_btn, TRUE );
@@ -215,6 +257,17 @@ asgtk_xml_editor_scale_toggle( GtkWidget *checkbutton, gpointer data )
 	{
 		asgtk_image_view_set_aspect ( xe->image_view, -1, -1 );
 		asgtk_image_view_enable_tiling( xe->image_view, FALSE );	
+	}	 
+}
+
+static void 
+check_save_changes( ASGtkXMLEditor *xe ) 
+{
+	if( xe->dirty )
+	{
+		xe->dirty = False ;
+		if( asgtk_yes_no_question1( GTK_WIDGET(xe), "Contents of the xml script \"%s\" changed. Save changes ?", xe->entry->name ) )
+			save_text_buffer_to_file( xe, xe->entry->fullfilename );
 	}	 
 }
 
@@ -266,7 +319,7 @@ asgtk_xml_editor_new ()
 
 	xe->refresh_btn = asgtk_add_button_to_box( NULL, GTK_STOCK_REFRESH, NULL, G_CALLBACK(on_refresh_clicked), xe );
 	xe->save_btn = asgtk_add_button_to_box( NULL, GTK_STOCK_SAVE, NULL, G_CALLBACK(on_save_clicked), xe );
-	xe->save_as_btn = asgtk_add_button_to_box( NULL, GTK_STOCK_SAVE_AS, NULL, G_CALLBACK(on_save_as_clicked), xe );
+	xe->save_as_btn = asgtk_add_button_to_box( NULL, GTK_STOCK_SAVE_AS, NULL, G_CALLBACK(on_save_clicked), xe );
 
 	gtk_widget_set_sensitive( xe->refresh_btn, FALSE );
 	gtk_widget_set_sensitive( xe->save_btn, FALSE );
@@ -303,6 +356,7 @@ asgtk_xml_editor_set_entry ( ASGtkXMLEditor *xe,
 	g_return_if_fail (ASGTK_IS_XML_EDITOR (xe));
 
 	LOCAL_DEBUG_OUT( " ASGtk XML Editor object's %p entry to %p", xe, entry );
+	check_save_changes( xe ); 
 	
 	unref_asimage_list_entry(xe->entry);
 
@@ -327,6 +381,7 @@ asgtk_xml_editor_set_entry ( ASGtkXMLEditor *xe,
 		gtk_text_buffer_set_text (buffer, NULL, 0);
 	}
 
+	xe->dirty = False ; 
 	gtk_widget_set_sensitive( xe->refresh_btn, FALSE );
 	gtk_widget_set_sensitive( xe->save_btn, FALSE );
 	gtk_widget_set_sensitive( xe->save_as_btn, FALSE );

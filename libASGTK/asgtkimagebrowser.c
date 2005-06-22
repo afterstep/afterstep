@@ -300,7 +300,6 @@ asgtk_image_browser_new ()
 {
 	ASGtkImageBrowser *ib;
     GtkWidget *main_vbox;
-	GtkWidget *separator;
 	GtkWidget *shortcuts_hbox, *btn ; 
 	GtkWidget *list_vbox, *preview_vbox ; 
 
@@ -354,11 +353,9 @@ asgtk_image_browser_new ()
 
 
     /* separator really goes above the buttons box, so it is added second from the end ! */
-	separator = gtk_hseparator_new();
-	gtk_widget_show (separator);
-	gtk_box_pack_end (GTK_BOX (main_vbox), separator, FALSE, FALSE, 5);
-
-	colorize_gtk_widget( GTK_WIDGET(separator), get_colorschemed_style_button() );  
+	ib->separator = gtk_hseparator_new();
+	gtk_box_pack_end (GTK_BOX (main_vbox), ib->separator, FALSE, FALSE, 5);
+	colorize_gtk_widget( GTK_WIDGET(ib->separator), get_colorschemed_style_button() );  
 	   
 	/* now designing dirlist controls : */
 #if 0
@@ -425,7 +422,8 @@ asgtk_image_browser_add_main_button( ASGtkImageBrowser *ib, const char *stock, G
 {
 	if(!ASGTK_IS_IMAGE_BROWSER (ib))
 		return NULL;
-
+	
+	gtk_widget_show (ib->separator);
 	return asgtk_add_button_to_box( GTK_BOX (ib->main_buttons_hbox), stock, NULL, func, user_data );   
 }	   
 

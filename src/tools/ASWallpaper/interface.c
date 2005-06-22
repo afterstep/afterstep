@@ -27,26 +27,11 @@
 
 
 void
-on_filechooser_close_clicked(GtkButton *button, gpointer user_data)
+gtk_image_browser_destroy(GtkWidget *widget, gpointer user_data)
 {
 	if(WallpaperState.filechooser != NULL)
-	{	
-		gtk_widget_hide (WallpaperState.filechooser);
-	}
-}
-
-Bool 
-asgtk_yes_no_question1( GtkWidget *main_window, const char *format, const char *detail1 ) 	
-{
-	Bool result = False ;
-	GtkWidget *dialog = gtk_message_dialog_new (GTK_WINDOW(main_window),
-               				                    GTK_DIALOG_DESTROY_WITH_PARENT,
-                                  				GTK_MESSAGE_QUESTION,
-                                  				GTK_BUTTONS_YES_NO,
-												format, detail1 );
- 	result = ( gtk_dialog_run (GTK_DIALOG (dialog)) == GTK_RESPONSE_YES);
- 	gtk_widget_destroy (dialog);	
-	return result;
+		WallpaperState.filechooser = NULL ; 
+	gtk_widget_set_sensitive( GTK_WIDGET(WallpaperState.list_browse_button), TRUE );
 }
 
 void
@@ -101,6 +86,7 @@ on_make_xml_clicked(GtkButton *button, gpointer user_data)
 void gtk_xml_editor_destroy( GtkWidget *widget, gpointer user_data ) 
 {
 	WallpaperState.xml_editor = NULL ;
+	gtk_widget_set_sensitive( GTK_WIDGET(WallpaperState.edit_xml_button), TRUE );
 }	 
 
 void
@@ -117,6 +103,8 @@ on_edit_xml_clicked(GtkButton *button, gpointer user_data)
 	gtk_widget_show( WallpaperState.xml_editor );
 	asgtk_xml_editor_set_entry( ASGTK_XML_EDITOR(WallpaperState.xml_editor), entry );
 	unref_asimage_list_entry( entry );
+
+	gtk_widget_set_sensitive( GTK_WIDGET(WallpaperState.edit_xml_button), FALSE );
 }
 
 void
@@ -178,30 +166,34 @@ on_browse_clicked(GtkButton *button, gpointer user_data)
 {
 	if( WallpaperState.filechooser == NULL ) 
 	{	
-		GtkWidget *close_button, *add_button, *apply_button ; 
+		GtkWidget *add_button, *apply_button ; 
 		WallpaperState.filechooser = asgtk_image_browser_new();
 	
-		close_button = asgtk_image_browser_add_main_button (ASGTK_IMAGE_BROWSER(WallpaperState.filechooser), "gtk-close", G_CALLBACK(on_filechooser_close_clicked), NULL);
+		/* close_button = asgtk_image_browser_add_main_button (ASGTK_IMAGE_BROWSER(WallpaperState.filechooser), "gtk-close", G_CALLBACK(on_filechooser_close_clicked), NULL); */
 		add_button = asgtk_image_browser_add_selection_button (ASGTK_IMAGE_BROWSER(WallpaperState.filechooser), GTK_STOCK_ADD, G_CALLBACK(on_list_add_clicked)); 
 		apply_button = asgtk_image_browser_add_selection_button (ASGTK_IMAGE_BROWSER(WallpaperState.filechooser), GTK_STOCK_APPLY, G_CALLBACK(on_list_apply_clicked));
-  		
-		gtk_widget_set_size_request (GTK_WIDGET(close_button), 150, -1);
+
+		g_signal_connect (G_OBJECT (WallpaperState.filechooser), "destroy", G_CALLBACK (gtk_image_browser_destroy), NULL);  		   
+		/*gtk_widget_set_size_request (GTK_WIDGET(close_button), 150, -1);*/
 	}
 	
 	gtk_widget_show (GTK_WIDGET(WallpaperState.filechooser));
+	gtk_widget_set_sensitive( GTK_WIDGET(WallpaperState.list_browse_button), FALSE );
 }
 
 static void
 backs_list_sel_handler(ASGtkImageDir *id, gpointer user_data)
 {
 	ASGtkImageView *iv = ASGTK_IMAGE_VIEW(user_data);
+	ASImageListEntry *le;
 	g_return_if_fail (ASGTK_IS_IMAGE_DIR (id));
-
-	if( WallpaperState.xml_editor )
-		gtk_widget_hide( WallpaperState.xml_editor );
+	
+	le = asgtk_image_dir_get_selection( id ); 
+	if( WallpaperState.xml_editor && le->type == ASIT_XMLScript )
+		asgtk_xml_editor_set_entry( ASGTK_XML_EDITOR( WallpaperState.xml_editor), le );
+	
 	if( iv ) 
 	{	
-		ASImageListEntry *le = asgtk_image_dir_get_selection( id ); 
 		asgtk_image_view_set_entry ( iv, le);
 		
 		if( le->type == ASIT_XMLScript ) 
@@ -213,9 +205,9 @@ backs_list_sel_handler(ASGtkImageDir *id, gpointer user_data)
 			gtk_widget_hide(WallpaperState.edit_xml_button);
 			gtk_widget_show(WallpaperState.make_xml_button);
 		}		   
-		if( le )
-			unref_asimage_list_entry( le );
 	}
+	if( le )
+		unref_asimage_list_entry( le );
 }
 
 
@@ -223,9 +215,8 @@ void
 create_main_window (void)
 {
     GtkWidget *main_vbox;
-  	GtkWidget *Quit;
 
-	GtkWidget *separator, *buttons_hbox;
+	GtkWidget *buttons_hbox;
 
   	WallpaperState.main_window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   	gtk_window_set_title (GTK_WINDOW (WallpaperState.main_window), _("AfterStep Wallpaper Manager"));
@@ -245,26 +236,9 @@ create_main_window (void)
   	gtk_widget_show (buttons_hbox);
   	gtk_box_pack_end (GTK_BOX (main_vbox), buttons_hbox, FALSE, FALSE, 5);
     /* separator really goes above the buttons box, so it is added second from the end ! */
-	separator = gtk_hseparator_new();
-	gtk_widget_show (separator);
-	gtk_box_pack_end (GTK_BOX (main_vbox), separator, FALSE, FALSE, 5);
-
-	colorize_gtk_widget( GTK_WIDGET(separator), get_colorschemed_style_button() );  
-
-	   
-  	Quit = gtk_button_new_from_stock ("gtk-quit");
-  	gtk_widget_show (Quit);
-  	gtk_box_pack_start (GTK_BOX (buttons_hbox), Quit, FALSE, FALSE, 20);
-  	gtk_widget_set_size_request (Quit, 150, -1);
-	colorize_gtk_widget( GTK_WIDGET(Quit), get_colorschemed_style_button() );  
-
-  	g_signal_connect ((gpointer) Quit, "clicked",
-    	                G_CALLBACK (on_quit_clicked),
-        	            NULL);
 
   	/* Store pointers to all widgets, for use by lookup_widget(). */
   	GLADE_HOOKUP_OBJECT_NO_REF (WallpaperState.main_window, WallpaperState.main_window, "main_window");
-  	GLADE_HOOKUP_OBJECT (WallpaperState.main_window, Quit, "Quit");
 }
 
 GtkWidget*
