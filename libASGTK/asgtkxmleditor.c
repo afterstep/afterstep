@@ -167,7 +167,7 @@ on_refresh_clicked(GtkButton *button, gpointer user_data)
 			bad_xml_warning( GTK_WIDGET(xe), "Failed to render image from changed xml.", NULL, NULL ); 	   				
 		}		 
 	}
-	gtk_widget_hide( xe->refresh_btn );
+	gtk_widget_set_sensitive( xe->refresh_btn, FALSE );
 }
 
 static void
@@ -179,8 +179,8 @@ on_save_clicked(GtkButton *button, gpointer user_data)
 	fwrite( text, strlen(text), 1, fp );
 	fclose( fp ) ;
 	free( text );
-	gtk_widget_hide( xe->save_btn );
-	gtk_widget_hide( xe->save_as_btn );
+	gtk_widget_set_sensitive( xe->save_btn, FALSE );
+	gtk_widget_set_sensitive( xe->save_as_btn, FALSE );
 }
 
 static void
@@ -188,8 +188,8 @@ on_save_as_clicked(GtkButton *button, gpointer user_data)
 {
 	ASGtkXMLEditor *xe = ASGTK_XML_EDITOR(user_data);
 
-	gtk_widget_hide( xe->save_btn );
-	gtk_widget_hide( xe->save_as_btn );
+	gtk_widget_set_sensitive( xe->save_btn, FALSE );
+	gtk_widget_set_sensitive( xe->save_as_btn, FALSE );
 }
 
 static void        
@@ -197,9 +197,9 @@ on_text_changed  (GtkTextBuffer *textbuffer, gpointer user_data)
 {
 	ASGtkXMLEditor *xe = ASGTK_XML_EDITOR(user_data);
 	
-	gtk_widget_show( xe->refresh_btn );
-	gtk_widget_show( xe->save_btn );
-	gtk_widget_show( xe->save_as_btn );
+	gtk_widget_set_sensitive( xe->refresh_btn, TRUE );
+	gtk_widget_set_sensitive( xe->save_btn, TRUE );
+	gtk_widget_set_sensitive( xe->save_as_btn, TRUE );
 }
 
 static void 
@@ -268,12 +268,12 @@ asgtk_xml_editor_new ()
 	xe->save_btn = asgtk_add_button_to_box( NULL, GTK_STOCK_SAVE, NULL, G_CALLBACK(on_save_clicked), xe );
 	xe->save_as_btn = asgtk_add_button_to_box( NULL, GTK_STOCK_SAVE_AS, NULL, G_CALLBACK(on_save_as_clicked), xe );
 
-	gtk_widget_hide( xe->refresh_btn );
-	gtk_widget_hide( xe->save_btn );
-	gtk_widget_hide( xe->save_as_btn );
+	gtk_widget_set_sensitive( xe->refresh_btn, FALSE );
+	gtk_widget_set_sensitive( xe->save_btn, FALSE );
+	gtk_widget_set_sensitive( xe->save_as_btn, FALSE );
 
 	asgtk_image_view_add_tool( xe->image_view, xe->refresh_btn, 0 );
-	asgtk_image_view_add_tool( xe->image_view, xe->save_btn, 0 );
+	asgtk_image_view_add_tool( xe->image_view, xe->save_btn, 3 );
 	asgtk_image_view_add_tool( xe->image_view, xe->save_as_btn, 0 );
 
    	g_signal_connect (gtk_text_view_get_buffer (GTK_TEXT_VIEW (xe->text_view)), 
@@ -327,9 +327,9 @@ asgtk_xml_editor_set_entry ( ASGtkXMLEditor *xe,
 		gtk_text_buffer_set_text (buffer, NULL, 0);
 	}
 
-	gtk_widget_hide( xe->refresh_btn );
-	gtk_widget_hide( xe->save_btn );
-	gtk_widget_hide( xe->save_as_btn );
+	gtk_widget_set_sensitive( xe->refresh_btn, FALSE );
+	gtk_widget_set_sensitive( xe->save_btn, FALSE );
+	gtk_widget_set_sensitive( xe->save_as_btn, FALSE );
 
 }
 

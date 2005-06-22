@@ -141,7 +141,7 @@ GtkStyle *get_colorschemed_style_button()
 		color_name2GdkColor("HighInactiveText", &(ASGtkStyleButton->fg[GTK_STATE_ACTIVE]));
 		color_name2GdkColor("HighInactiveText", &(ASGtkStyleButton->fg[GTK_STATE_PRELIGHT]));
 		color_name2GdkColor("ActiveText"	  , &(ASGtkStyleButton->fg[GTK_STATE_SELECTED]));
-		color_name2GdkColor("DisabledText"    , &(ASGtkStyleButton->fg[GTK_STATE_INSENSITIVE]));
+		color_name2GdkColor("HighInactiveText", &(ASGtkStyleButton->fg[GTK_STATE_INSENSITIVE]));
 		color_name2GdkColor("HighInactiveBack" , &(ASGtkStyleButton->bg[GTK_STATE_NORMAL]     ));
 		color_name2GdkColor("HighInactiveLight", &(ASGtkStyleButton->bg[GTK_STATE_ACTIVE]     ));
 		color_name2GdkColor("HighInactive"     , &(ASGtkStyleButton->bg[GTK_STATE_PRELIGHT]   ));

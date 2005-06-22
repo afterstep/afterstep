@@ -275,7 +275,7 @@ setup_asgtk_image_view_layout_vert( ASGtkImageView *iv )
 static void 
 setup_asgtk_image_view_layout_hor( ASGtkImageView *iv )	
 {
-	GtkWidget *main_hbox, *buttons_vbox ;
+	GtkWidget *main_hbox, *buttons_vbox, *buttons_frame ;
 	
 	/***************************************/
 	/* Layout code : */   
@@ -284,13 +284,20 @@ setup_asgtk_image_view_layout_hor( ASGtkImageView *iv )
 	gtk_container_add (GTK_CONTAINER (iv), main_hbox);
 
 	gtk_box_pack_start( GTK_BOX(main_hbox), iv->frame, TRUE, TRUE, 0 );
-	
+
 	buttons_vbox = gtk_vbox_new(FALSE, 0);
 	gtk_widget_show (buttons_vbox);
 	gtk_box_pack_end (GTK_BOX (main_hbox), buttons_vbox, TRUE, TRUE, 0);
-
+	
+	buttons_frame = gtk_frame_new(NULL);
+  	gtk_widget_show (buttons_frame);
+	gtk_container_set_border_width(GTK_CONTAINER(buttons_frame), 0);
+	gtk_frame_set_shadow_type (GTK_FRAME (buttons_frame), GTK_SHADOW_NONE);
+	colorize_gtk_widget( buttons_frame, get_colorschemed_style_normal() );
+	gtk_container_add (GTK_CONTAINER (buttons_frame), iv->tools_hbox);
+	
 	gtk_box_pack_start (GTK_BOX (buttons_vbox), iv->details_frame, FALSE, FALSE, 5);
-	gtk_box_pack_end (GTK_BOX (buttons_vbox), iv->tools_hbox, TRUE, TRUE, 0);
+	gtk_box_pack_end (GTK_BOX (buttons_vbox), buttons_frame, TRUE, TRUE, 0);
 }
 
 static void 
@@ -325,7 +332,7 @@ asgtk_image_view_make_parts( ASGtkImageView *iv, Bool horizontal )
 	gtk_frame_set_shadow_type (GTK_FRAME (iv->details_frame), GTK_SHADOW_IN );
 	colorize_gtk_widget( iv->details_frame, get_colorschemed_style_normal() );
 	
-	iv->tools_hbox = horizontal?gtk_vbutton_box_new ():gtk_hbutton_box_new ();
+	iv->tools_hbox = horizontal?gtk_vbox_new (FALSE,0):gtk_hbutton_box_new ();
 	gtk_container_set_border_width(GTK_CONTAINER(iv->tools_hbox), 0);
 	gtk_button_box_set_layout(GTK_BUTTON_BOX(iv->tools_hbox), GTK_BUTTONBOX_END/*SPREAD*/);
   	gtk_widget_show (iv->tools_hbox);
@@ -495,11 +502,12 @@ asgtk_image_view_add_tool( ASGtkImageView *iv, GtkWidget *tool, int spacing  )
 	g_return_if_fail (ASGTK_IS_IMAGE_VIEW (iv));
 	if( tool ) 
 	{	
-		if( GTK_IS_VBUTTON_BOX(iv->details_hbox) ) 
+		if( GTK_IS_VBOX(iv->tools_hbox) ) 
 		{
-			gtk_widget_set_size_request( tool, iv->details_hbox->allocation.width, -1 );	
-		}	 
- 		gtk_box_pack_start (GTK_BOX (iv->tools_hbox), tool, TRUE, TRUE, spacing );		   		
+			//gtk_widget_set_size_request( tool, iv->details_label->requisition.width, -1 );	
+			gtk_box_pack_end (GTK_BOX (iv->tools_hbox), tool, FALSE, FALSE, spacing );		   		   
+		}else	 
+ 			gtk_box_pack_start (GTK_BOX (iv->tools_hbox), tool, TRUE, TRUE, spacing );		   		
 		gtk_container_set_border_width(GTK_CONTAINER(iv->tools_hbox), 1);
 	}
 }
