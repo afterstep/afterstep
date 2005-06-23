@@ -27,6 +27,8 @@ typedef struct _ASGtkXMLEditor
 	GtkWidget       *refresh_btn ; 
 	GtkWidget       *save_btn ; 
 	GtkWidget       *save_as_btn ; 
+	GtkWidget       *render_selection_btn ; 
+	GtkWidget       *validate_btn ; 
 
 	Bool 			 dirty ;
 			

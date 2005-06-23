@@ -307,6 +307,15 @@ reload_private_backs_list()
 	free( private_back_dir );
 }
 
+void
+on_destroy(GtkWidget *widget, gpointer user_data)
+{
+	if( WallpaperState.xml_editor ) 
+		gtk_widget_destroy( GTK_WIDGET(WallpaperState.xml_editor) );
+		
+	gtk_main_quit();
+}
+
 void 
 init_ASWallpaper()
 {
@@ -332,7 +341,7 @@ init_ASWallpaper()
 
 	reload_private_backs_list();
 
-	g_signal_connect (G_OBJECT (WallpaperState.main_window), "destroy", G_CALLBACK (gtk_main_quit), NULL);
+	g_signal_connect (G_OBJECT (WallpaperState.main_window), "destroy", G_CALLBACK (on_destroy), NULL);
   	gtk_widget_show (WallpaperState.main_window);
 }	 
 

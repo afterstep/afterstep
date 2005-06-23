@@ -364,7 +364,8 @@ asgtk_image_view_make_parts( ASGtkImageView *iv, Bool horizontal )
 	
 	iv->tools_hbox = horizontal?gtk_vbox_new (FALSE,0):gtk_hbutton_box_new ();
 	gtk_container_set_border_width(GTK_CONTAINER(iv->tools_hbox), 0);
-	gtk_button_box_set_layout(GTK_BUTTON_BOX(iv->tools_hbox), GTK_BUTTONBOX_END/*SPREAD*/);
+	if( GTK_IS_BUTTON_BOX(iv->tools_hbox) )
+		gtk_button_box_set_layout(GTK_BUTTON_BOX(iv->tools_hbox), GTK_BUTTONBOX_END/*SPREAD*/);
   	gtk_widget_show (iv->tools_hbox);
 	
 	iv->details_hbox = horizontal?gtk_vbutton_box_new ():gtk_hbutton_box_new ();

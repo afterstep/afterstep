@@ -124,13 +124,19 @@ asgtk_xml_editor_style_set (GtkWidget *widget,
 }
 
 static char *
-get_xml_editor_text( ASGtkXMLEditor *xe )
+get_xml_editor_text( ASGtkXMLEditor *xe, Bool selection_only )
 {
 	GtkTextBuffer *buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (xe->text_view));
 	GtkTextIter start, end ;
-		
-	gtk_text_buffer_get_start_iter( buffer, &start );
-	gtk_text_buffer_get_end_iter( buffer, &end );
+
+	if( selection_only ) 
+		selection_only = gtk_text_buffer_get_selection_bounds( buffer, &start, &end );
+		   
+	if( !selection_only ) 
+	{	
+		gtk_text_buffer_get_start_iter( buffer, &start );
+		gtk_text_buffer_get_end_iter( buffer, &end );
+	}
 	return gtk_text_buffer_get_text( buffer, &start, &end, TRUE );
 }
 
@@ -146,6 +152,111 @@ xml_editor_warning( GtkWidget *main_window, const char *format, const char *deta
  	gtk_widget_destroy (dialog);	
 }
 
+static char* 
+get_validated_text( ASGtkXMLEditor *xe, Bool selection, Bool report_success )
+{
+	ASXmlBuffer xb ; 
+	int char_count = 0, tags_count = 0, last_separator = 0 ;
+	char *text = get_xml_editor_text(xe, selection);
+	Bool success = False ;
+	GtkTextBuffer *buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (xe->text_view));
+	GtkTextIter start, end ;
+	
+	memset( &xb, 0x00, sizeof(xb));
+ 	do
+	{	
+		reset_xml_buffer( &xb );
+		while( text[char_count] != '\0' ) 
+		{
+			char cc = text[char_count]; 
+			while( xb.state >= 0 && spool_xml_tag( &xb, &cc, 1 ) <= 0)
+			{	
+				LOCAL_DEBUG_OUT("[%c] : state=%d, tags_count=%d, level = %d, tag_type = %d", 
+									cc, xb.state, xb.tags_count, xb.level, xb.tag_type );
+			}
+			LOCAL_DEBUG_OUT("[%c] : state=%d, tags_count=%d, level = %d, tag_type = %d", 
+							cc, xb.state, xb.tags_count, xb.level, xb.tag_type );
+
+			if( xb.state >= 0 ) 
+			{	
+				if( isspace(text[char_count]) || 
+					text[char_count] == '<' ||
+					text[char_count] == '>' ||
+					text[char_count] == '=' ||
+					text[char_count] == '\"' ||
+					text[char_count] == '/'
+					) 
+					last_separator = char_count ; 
+			}
+			++char_count ;
+			if( ( xb.state == ASXML_Start && xb.tags_count > 0 && xb.level == 0) || 
+			  	xb.state < 0 ) 
+				break;
+		}		   
+		tags_count += xb.tags_count ;
+		if( xb.state < 0 ) 
+		{
+			switch( xb.state ) 
+			{
+				case ASXML_BadStart : 	xml_editor_warning( GTK_WIDGET(xe), "Text encountered before opening tag bracket - not XML format", NULL, NULL ); break;
+				case ASXML_BadTagName : xml_editor_warning( GTK_WIDGET(xe), "Invalid characters in tag name", NULL, NULL  );break;
+				case ASXML_UnexpectedSlash : xml_editor_warning( GTK_WIDGET(xe), "Unexpected '/' encountered", NULL, NULL );break;
+				case ASXML_UnmatchedClose :  xml_editor_warning( GTK_WIDGET(xe), "Closing tag encountered without opening tag", NULL, NULL  );break;
+				case ASXML_BadAttrName :   xml_editor_warning( GTK_WIDGET(xe), "Invalid characters in attribute name", NULL, NULL  );break;
+				case ASXML_MissingAttrEq : xml_editor_warning( GTK_WIDGET(xe), "Attribute name not followed by '=' character", NULL, NULL  );break;
+				default:
+					xml_editor_warning( GTK_WIDGET(xe), "Premature end of the input", NULL, NULL );break;
+			}
+			if( gtk_text_buffer_get_selection_bounds( buffer, &start, &end ) ) 
+			{	
+				int offset = gtk_text_iter_get_offset (&start);
+				char_count += offset ;
+				last_separator += offset ;
+			}
+			if( char_count > last_separator ) 
+			{	
+				gtk_text_buffer_get_iter_at_offset( buffer, &start, last_separator);
+				gtk_text_buffer_get_iter_at_offset( buffer, &end, char_count);
+			}else
+			{	  
+				gtk_text_buffer_get_iter_at_offset( buffer, &start, char_count-1);
+				gtk_text_buffer_get_iter_at_offset( buffer, &end, char_count);
+			}
+			gtk_text_buffer_select_range( buffer, &start, &end );
+			break;
+		}else if( text[char_count] == '\0' ) 
+		{	
+			if( xb.state == ASXML_Start && tags_count == 0 ) 
+			{
+				xml_editor_warning( GTK_WIDGET(xe), "Script contains no valid XML tags", NULL, NULL );
+			}else if( xb.state >= 0 && xb.state != ASXML_Start ) 
+			{
+				xml_editor_warning( GTK_WIDGET(xe), "XML Script is not properly terminated", NULL, NULL );
+			}else if( xb.state == ASXML_Start && xb.level > 0 ) 
+			{
+				xml_editor_warning( GTK_WIDGET(xe), "XML Script contains unterminated XML tags", NULL, NULL );
+			}else
+			{	
+				if( report_success ) 
+				{	
+					if( gtk_text_buffer_get_selection_bounds( buffer, &start, &end ) ) 
+						xml_editor_warning( GTK_WIDGET(xe), "Selected XML seems to be syntactically valid", NULL, NULL );
+					else
+						xml_editor_warning( GTK_WIDGET(xe), "XML Script seems to be syntactically valid", NULL, NULL );
+				}
+				success = True ;
+			}
+		}
+	}while( text[char_count] != '\0' );		
+	reset_xml_buffer( &xb );
+	if( !success ) 
+	{	
+		g_free( text );
+		text = NULL ;
+	}
+	return text;
+}
+	
 
 static void
 on_refresh_clicked(GtkButton *button, gpointer user_data)
@@ -155,9 +266,11 @@ on_refresh_clicked(GtkButton *button, gpointer user_data)
 
 	if( xe->entry ) 
 	{	
-		char *text = get_xml_editor_text(xe);
+		char *text = get_validated_text( xe, (button == GTK_BUTTON(xe->render_selection_btn)), False );
 		ASImage *im ;
-		
+
+		if( text == NULL ) 
+			return ;   
 		im = compose_asimage_xml(asv, get_screen_image_manager(NULL), get_screen_font_manager(NULL), text, ASFLAGS_EVERYTHING, False, None, NULL);
 		g_free( text );
 		if( im ) 
@@ -171,13 +284,23 @@ on_refresh_clicked(GtkButton *button, gpointer user_data)
 			xml_editor_warning( GTK_WIDGET(xe), "Failed to render image from changed xml.", NULL, NULL ); 	   				
 		}		 
 	}
-	gtk_widget_set_sensitive( xe->refresh_btn, FALSE );
+	gtk_widget_set_sensitive( xe->refresh_btn, ( button == GTK_BUTTON(xe->render_selection_btn) ) );
 }
+
+static void
+on_validate_clicked(GtkButton *button, gpointer user_data)
+{
+	ASGtkXMLEditor *xe = ASGTK_XML_EDITOR(user_data);
+	char *text = get_validated_text( xe, True, True );
+	if( text ) 
+		g_free( text );
+}
+
 
 static Bool
 save_text_buffer_to_file( ASGtkXMLEditor *xe, const char *filename ) 
 {
-	char *text = get_xml_editor_text(xe);
+	char *text = get_xml_editor_text(xe, FALSE);
 	FILE *fp = fopen( filename, "wb" );
 	Bool result = False ; 
 	if( fp ) 
@@ -337,12 +460,16 @@ asgtk_xml_editor_new ()
 	xe->refresh_btn = asgtk_add_button_to_box( NULL, GTK_STOCK_REFRESH, NULL, G_CALLBACK(on_refresh_clicked), xe );
 	xe->save_btn = asgtk_add_button_to_box( NULL, GTK_STOCK_SAVE, NULL, G_CALLBACK(on_save_clicked), xe );
 	xe->save_as_btn = asgtk_add_button_to_box( NULL, GTK_STOCK_SAVE_AS, NULL, G_CALLBACK(on_save_clicked), xe );
+	xe->render_selection_btn = asgtk_add_button_to_box( NULL, GTK_STOCK_SAVE_AS, "Render Selection", G_CALLBACK(on_refresh_clicked), xe ) ; 
+	xe->validate_btn = asgtk_add_button_to_box( NULL, GTK_STOCK_REFRESH, "Validate XML", G_CALLBACK(on_validate_clicked), xe ) ; 
 
 	gtk_widget_set_sensitive( xe->refresh_btn, FALSE );
 	gtk_widget_set_sensitive( xe->save_btn, FALSE );
 	gtk_widget_set_sensitive( xe->save_as_btn, FALSE );
 
-	asgtk_image_view_add_tool( xe->image_view, xe->refresh_btn, 0 );
+	asgtk_image_view_add_tool( xe->image_view, xe->validate_btn, 0 );
+	asgtk_image_view_add_tool( xe->image_view, xe->render_selection_btn, 3 );
+	asgtk_image_view_add_tool( xe->image_view, xe->refresh_btn, 3 );
 	asgtk_image_view_add_tool( xe->image_view, xe->save_btn, 3 );
 	asgtk_image_view_add_tool( xe->image_view, xe->save_as_btn, 0 );
 
