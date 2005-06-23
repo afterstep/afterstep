@@ -115,6 +115,8 @@ typedef struct {
 	MyButton unswallow_button ;
 
 	CARD32      my_desktop ;
+	
+	ASHashTable *unswallowed_apps ; 
 
 }ASWinTabsState ;
 
@@ -177,6 +179,8 @@ void  update_focus();
 Bool handle_tab_name_change( Window client );
 void update_tabs_desktop();
 void update_tabs_state();
+void register_unswallowed_client( Window client );
+Bool check_unswallowed_client( Window client ); 
 
 /* above function may also return : */
 #define BANNER_TAB_INDEX -1		   
@@ -1581,7 +1585,8 @@ do_swallow_window( ASWindowData *wd )
     XReparentWindow( dpy, wd->client, aswt->frame_canvas->w, WinTabsState.win_width - nc->width, WinTabsState.win_height - nc->height );
     XSelectInput (dpy, wd->client, StructureNotifyMask|PropertyChangeMask|FocusChangeMask);
     XAddToSaveSet (dpy, wd->client);
-    
+	register_unswallowed_client( wd->client );    
+
 	XGrabKey( dpy, WINTABS_SWITCH_KEYCODE, WINTABS_SWITCH_MOD, wd->client, True, GrabModeAsync, GrabModeAsync);	  
 	set_client_desktop (wd->client, WinTabsState.my_desktop );	 
 
@@ -1671,6 +1676,8 @@ check_swallow_window( ASWindowData *wd )
 	LOCAL_DEBUG_OUT( "name(\"%s\")->icon_name(\"%s\")->res_class(\"%s\")->res_name(\"%s\")",
                      wd->window_name, wd->icon_name, wd->res_class, wd->res_name );
 	
+	if( check_unswallowed_client( wd->client ) )
+		return;
 	if( get_flags( Config->set_flags, WINTABS_PatternType ) )
 	{	
 		if( !check_swallow_name(get_window_name( wd, Config->pattern_type, &encoding )) )
@@ -1910,3 +1917,23 @@ update_tabs_state()
 		set_client_state (tabs[i].client, &status);
 	}
 }
+
+void 
+register_unswallowed_client( Window client ) 
+{
+	if( WinTabsState.unswallowed_apps == NULL ) 
+		WinTabsState.unswallowed_apps = create_ashash( 0, NULL, NULL, NULL ); 	 
+
+	add_hash_item( WinTabsState.unswallowed_apps, AS_HASHABLE(client), NULL );
+}
+
+
+Bool 
+check_unswallowed_client( Window client ) 
+{
+	ASHashData hdata = {0} ;
+	if( WinTabsState.unswallowed_apps != NULL ) 
+		return (get_hash_item( WinTabsState.unswallowed_apps, AS_HASHABLE(client), &hdata.vptr ) == ASH_Success );
+	return False;
+}
+
