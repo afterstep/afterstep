@@ -420,8 +420,7 @@ Key Print       A       S       TakeWindowShot
 #Key Print       A       S       Exec "windowshot" exec xwd -nobdrs -out ~/window.xwd && mogrify -format png ~/window.xwd && rm ~/window.xwd
 Key Print       A       M       TakeFrameShot
 #Key Print       A       M       Exec "frameshot" exec xwd -frame -out ~/frame.xwd && mogrify -format png ~/frame.xwd && rm ~/frame.xwd 
-Key Pause       A       A       Exec "xlock" exec xlock -mode random
-#Key Pause       A       A       Exec "xscreensaver" exec xscreensaver-command -lock
+Key Pause       A       A       Exec "xscreensaver" exec xscreensaver-command -lock
 Key Sys_Req     A       A       GetHelp
 #Key Scroll_Lock A       A       Desk 0
 
