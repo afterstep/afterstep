@@ -32,10 +32,13 @@ typedef struct _ASGtkImageView
 	GtkWidget		*details_label ;
 	GtkWidget       *details_frame ;
 
-
-#define ASGTK_IMAGE_VIEW_NO_SCALING		(0x01<<0)
-#define ASGTK_IMAGE_VIEW_NO_TILING		(0x01<<1)
-	ASFlagType     flags;
+/* resize flags */
+#define ASGTK_IMAGE_VIEW_SCALE_TO_VIEW		(0x01<<0)
+#define ASGTK_IMAGE_VIEW_TILE_TO_VIEW		(0x01<<1)
+#define ASGTK_IMAGE_VIEW_SCALE_TO_ASPECT	(0x01<<2)
+#define ASGTK_IMAGE_VIEW_TILE_TO_ASPECT		(0x01<<3)
+#define ASGTK_IMAGE_VIEW_RESIZE_ALL	(0x0F) 
+	unsigned long     flags;
 
 }ASGtkImageView;
 
@@ -59,8 +62,9 @@ struct ASImageListEntry *asgtk_image_view_get_entry( ASGtkImageView *iv );
 void        asgtk_image_view_set_aspect ( ASGtkImageView *iv,
 								   		  int aspect_x, int aspect_y );
 
-void 		asgtk_image_view_enable_scaling( ASGtkImageView *iv, Bool enabled );
-void 		asgtk_image_view_enable_tiling( ASGtkImageView *iv, Bool enabled );
+/* see above for what flags are allowed */
+void 		asgtk_image_view_set_resize( ASGtkImageView *iv, unsigned long resize_flags, unsigned long set_mask );
+
 void 		asgtk_image_view_add_detail( ASGtkImageView *iv, GtkWidget *detail, int spacing );
 void 		asgtk_image_view_add_tool( ASGtkImageView *iv, GtkWidget *tool, int spacing );
 void 		asgtk_image_view_refresh( ASGtkImageView *iv, Bool reload_file );

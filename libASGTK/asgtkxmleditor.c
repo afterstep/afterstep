@@ -245,19 +245,32 @@ on_text_changed  (GtkTextBuffer *textbuffer, gpointer user_data)
 }
 
 static void 
-asgtk_xml_editor_scale_toggle( GtkWidget *checkbutton, gpointer data )
+asgtk_xml_editor_screen_aspect_toggle( GtkWidget *checkbutton, gpointer data )
 {
   	ASGtkXMLEditor *xe = ASGTK_XML_EDITOR (data);
 	if( GTK_TOGGLE_BUTTON (checkbutton)->active ) 
 	{	
 		asgtk_image_view_set_aspect ( xe->image_view,
 								   	  get_screen_width(NULL), get_screen_height(NULL) );
-		asgtk_image_view_enable_tiling( xe->image_view, TRUE );	
+		asgtk_image_view_set_resize ( xe->image_view, 
+									  ASGTK_IMAGE_VIEW_TILE_TO_ASPECT, 
+									  ASGTK_IMAGE_VIEW_TILE_TO_ASPECT );
 	}else
 	{
 		asgtk_image_view_set_aspect ( xe->image_view, -1, -1 );
-		asgtk_image_view_enable_tiling( xe->image_view, FALSE );	
+		asgtk_image_view_set_resize ( xe->image_view, 0, ASGTK_IMAGE_VIEW_TILE_TO_ASPECT );
 	}	 
+}
+
+static void 
+asgtk_xml_editor_scale_to_view_toggle( GtkWidget *checkbutton, gpointer data )
+{
+  	ASGtkXMLEditor *xe = ASGTK_XML_EDITOR (data);
+	if( GTK_TOGGLE_BUTTON (checkbutton)->active ) 
+		asgtk_image_view_set_resize ( xe->image_view, ASGTK_IMAGE_VIEW_SCALE_TO_VIEW, 
+									  				  ASGTK_IMAGE_VIEW_SCALE_TO_VIEW );
+	else
+		asgtk_image_view_set_resize ( xe->image_view, 0, ASGTK_IMAGE_VIEW_SCALE_TO_VIEW);
 }
 
 static void 
@@ -277,7 +290,7 @@ GtkWidget *
 asgtk_xml_editor_new ()
 {
 	ASGtkXMLEditor *xe;
-	GtkWidget *main_vbox;
+	GtkWidget *main_vbox; 
 	GtkWidget *scrolled_window ; 
 	GtkWidget *panes ; 
 	GtkWidget *scale_check_box ;
@@ -300,6 +313,10 @@ asgtk_xml_editor_new ()
 	gtk_widget_show (GTK_WIDGET(xe->image_view));
 	asgtk_image_view_set_aspect ( xe->image_view,
 							   	  get_screen_width(NULL), get_screen_height(NULL) );
+	asgtk_image_view_set_resize ( xe->image_view, 
+								  ASGTK_IMAGE_VIEW_SCALE_TO_VIEW|
+							 	  ASGTK_IMAGE_VIEW_TILE_TO_ASPECT, 
+								  ASGTK_IMAGE_VIEW_RESIZE_ALL );
 	   
 	xe->text_view = gtk_text_view_new ();
 	scrolled_window = gtk_scrolled_window_new(NULL, NULL);
@@ -338,11 +355,18 @@ asgtk_xml_editor_new ()
 	gtk_widget_show (scale_check_box);
 	colorize_gtk_widget( scale_check_box, get_colorschemed_style_normal() );  
 	g_signal_connect (G_OBJECT (scale_check_box), "toggled",
-	              	  G_CALLBACK (asgtk_xml_editor_scale_toggle), (gpointer) xe);
-	
+	              	  G_CALLBACK (asgtk_xml_editor_screen_aspect_toggle), (gpointer) xe);
 	gtk_button_set_alignment( GTK_BUTTON(scale_check_box), 1.0, 0.5);
 	asgtk_image_view_add_detail( xe->image_view, scale_check_box, 0 );
 
+	scale_check_box = gtk_check_button_new_with_label( "Scale to fit this view" );
+	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(scale_check_box), TRUE );
+	gtk_widget_show (scale_check_box);
+	colorize_gtk_widget( scale_check_box, get_colorschemed_style_normal() );  
+	g_signal_connect (G_OBJECT (scale_check_box), "toggled",
+	              	  G_CALLBACK (asgtk_xml_editor_scale_to_view_toggle), (gpointer) xe);
+	gtk_button_set_alignment( GTK_BUTTON(scale_check_box), 1.0, 0.5);
+	asgtk_image_view_add_detail( xe->image_view, scale_check_box, 0 );
 	LOCAL_DEBUG_OUT( "created image ASGtkXMLEditor object %p", xe );	
 	return GTK_WIDGET (xe);
 }

@@ -131,8 +131,8 @@ display_image_view(ASGtkImageView *iv)
 	ASImage *im = iv->image_entry?iv->image_entry->preview:NULL ;
 	GdkPixbuf *pb = NULL ; 
 	ASImage *scaled = NULL, *tiled = NULL; 
-	int scaled_w ;
-	int scaled_h ;
+	int scaled_w, scaled_h;
+	int tiled_h, tiled_w ;
 	ASVisual *asv = get_screen_visual(NULL);
 	int view_w, view_h ; 
 			
@@ -146,54 +146,84 @@ display_image_view(ASGtkImageView *iv)
 	view_h = iv->view_height ;
 	if( view_w <= 0 || view_h <= 0 )
 		return ;
-	if( !get_flags( iv->flags, ASGTK_IMAGE_VIEW_NO_SCALING ) )
+
+ 	scaled_w = im->width ; 
+	scaled_h = im->height ;
+
+	if( get_flags( iv->flags, ASGTK_IMAGE_VIEW_SCALE_TO_VIEW) )
 	{	
-		if( iv->aspect_x > 0 && iv->aspect_y > 0 && 
-			!get_flags( iv->flags, ASGTK_IMAGE_VIEW_NO_TILING ) )
+		if( get_flags( iv->flags, ASGTK_IMAGE_VIEW_TILE_TO_ASPECT) && 
+			iv->aspect_x > 0 && iv->aspect_y > 0 )
 		{	
 			scaled_w = (im->width * view_w )/ iv->aspect_x ; 
 			scaled_h = (im->height * view_h )/ iv->aspect_y ;
 		}else
-		{
+		{	
 			scaled_w = view_w ;
 			scaled_h = view_h ;	
-		
-		}	 
-	}else
+		}
+	}else if( get_flags( iv->flags, ASGTK_IMAGE_VIEW_SCALE_TO_ASPECT) && 
+			  iv->aspect_x > 0 && iv->aspect_y > 0 )
 	{	
-	 	scaled_w = im->width ; 
-		scaled_h = im->height ;
-	}			  
-	LOCAL_DEBUG_OUT( "scaled size is %dx%d", scaled_w, scaled_h );
+		scaled_w = iv->aspect_x ; 
+		scaled_h = iv->aspect_y ; 
+	}
+		
+	tiled_w = scaled_w ; 
+	tiled_h = scaled_h ;
+
+	if( get_flags( iv->flags, ASGTK_IMAGE_VIEW_TILE_TO_ASPECT) && 
+		iv->aspect_x > 0 && iv->aspect_y > 0 )
+	{
+		if( get_flags( iv->flags, ASGTK_IMAGE_VIEW_SCALE_TO_VIEW) )
+		{
+			if( tiled_w < view_w ) 
+				tiled_w = view_w ;
+			if( tiled_h < view_h ) 
+				tiled_h = view_h ;
+		}else	 
+		{	
+			if( tiled_w < iv->aspect_x ) 
+				tiled_w = iv->aspect_x ;
+			if( tiled_h < iv->aspect_y ) 
+				tiled_h = iv->aspect_y ;
+		}		
+	}	 
+	if( get_flags( iv->flags, ASGTK_IMAGE_VIEW_TILE_TO_VIEW) )
+	{
+		if( tiled_w < view_w ) 
+			tiled_w = view_w ;
+		if( tiled_h < view_h ) 
+			tiled_h = view_h ;
+	}	 
+
+
+	LOCAL_DEBUG_OUT( "scaled size is %dx%d, tiled size %dx%d", scaled_w, scaled_h, tiled_w, tiled_h );
 	if( scaled_w != im->width || scaled_h != im->height ) 
 	{	
 		scaled = scale_asimage( asv, im, scaled_w, scaled_h, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT );			
-		im = scaled ;
+		if( scaled ) 
+			im = scaled ;
 	}
 	
-
-	if( !get_flags( iv->flags, ASGTK_IMAGE_VIEW_NO_TILING ) )
+	if( tiled_w != im->width || tiled_h != im->height ) 
 	{	
-		if( im->width != view_w || im->height != view_h )
-		{
-			tiled = tile_asimage(   asv, scaled, 0, 0, 
-									view_w, view_h, 
-									TINT_LEAVE_SAME, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT );				   
-			if( tiled )
-			{
-				im = tiled ;
-				LOCAL_DEBUG_OUT( "tiled size is %dx%d", tiled->width, tiled->height );
-			}
-		}	 
+		tiled = tile_asimage(   asv, im, 0, 0, tiled_w, tiled_h, 
+								TINT_LEAVE_SAME, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT );				   
+		if( tiled ) 
+			im = tiled ;
 	}
-	
+
 	pb = ASImage2GdkPixbuf( im );
 	if( tiled ) 
 		destroy_asimage( &tiled );
 	if( scaled ) 
 		destroy_asimage( &scaled );
-	gtk_image_set_from_pixbuf( GTK_IMAGE(iv->view), pb );
-	gdk_pixbuf_unref( pb ); 		   
+	if( pb ) 
+	{	
+		gtk_image_set_from_pixbuf( GTK_IMAGE(iv->view), pb );
+		gdk_pixbuf_unref( pb ); 		   
+	}
 	LOCAL_DEBUG_OUT( "####!!! recquisition is %dx%d",  
 						GTK_WIDGET(iv->view)->requisition.width,  
 						GTK_WIDGET(iv->view)->requisition.height );
@@ -287,7 +317,7 @@ setup_asgtk_image_view_layout_hor( ASGtkImageView *iv )
 
 	buttons_vbox = gtk_vbox_new(FALSE, 0);
 	gtk_widget_show (buttons_vbox);
-	gtk_box_pack_end (GTK_BOX (main_hbox), buttons_vbox, TRUE, TRUE, 0);
+	gtk_box_pack_end (GTK_BOX (main_hbox), buttons_vbox, FALSE, FALSE, 0);
 	
 	buttons_frame = gtk_frame_new(NULL);
   	gtk_widget_show (buttons_frame);
@@ -439,50 +469,30 @@ asgtk_image_view_set_aspect ( ASGtkImageView *iv,
 }
 
 void 
-asgtk_image_view_enable_scaling( ASGtkImageView *iv, Bool enabled )
+asgtk_image_view_set_resize( ASGtkImageView *iv, unsigned long resize_flags, unsigned long set_mask )
 {
+	unsigned long new_flags; 
 	g_return_if_fail (ASGTK_IS_IMAGE_VIEW (iv));
+
+	new_flags = (iv->flags & (~set_mask))|(resize_flags&set_mask);
+	if( new_flags == iv->flags ) 
+		return;
 		
-	if( enabled ) 
+	iv->flags = new_flags ;
+	if( get_flags( new_flags, ASGTK_IMAGE_VIEW_SCALE_TO_VIEW|ASGTK_IMAGE_VIEW_TILE_TO_VIEW) ) 
 	{	
 		gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (iv->scrolled_window),
 				    					GTK_POLICY_NEVER, GTK_POLICY_NEVER);
-		clear_flags( iv->flags, ASGTK_IMAGE_VIEW_NO_SCALING);
 	}else
-	{
-		if( get_flags( iv->flags, ASGTK_IMAGE_VIEW_NO_TILING) )
-			gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (iv->scrolled_window),
-						    				GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
-		set_flags( iv->flags, ASGTK_IMAGE_VIEW_NO_SCALING);
-	}
-	if( iv->image_entry ) 
-	{
-		display_image_view(iv);
-	}
-}
-
-void 
-asgtk_image_view_enable_tiling( ASGtkImageView *iv, Bool enabled )
-{
-	g_return_if_fail (ASGTK_IS_IMAGE_VIEW (iv));
-		
-	if( enabled ) 
 	{
 		gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (iv->scrolled_window),
-				    					GTK_POLICY_NEVER, GTK_POLICY_NEVER);
-		clear_flags( iv->flags, ASGTK_IMAGE_VIEW_NO_TILING);
-	}else
-	{
-		if( get_flags( iv->flags, ASGTK_IMAGE_VIEW_NO_SCALING) )
-			gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (iv->scrolled_window),
-						    				GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
-		set_flags( iv->flags, ASGTK_IMAGE_VIEW_NO_TILING);
+					    				GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
 	}
 	if( iv->image_entry ) 
 	{
 		display_image_view(iv);
 	}
-}
+}	 
 
 void 
 asgtk_image_view_add_detail( ASGtkImageView *iv, GtkWidget *detail, int spacing )

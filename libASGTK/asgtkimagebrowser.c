@@ -236,7 +236,10 @@ static void
 asgtk_image_browser_scale_toggle( GtkWidget *checkbutton, gpointer data )
 {
   	ASGtkImageBrowser *ib = ASGTK_IMAGE_BROWSER (data);
-	asgtk_image_view_enable_scaling( ib->preview, GTK_TOGGLE_BUTTON (checkbutton)->active );	
+	asgtk_image_view_set_resize ( ib->preview, 
+								  GTK_TOGGLE_BUTTON (checkbutton)->active?
+								  ASGTK_IMAGE_VIEW_SCALE_TO_VIEW:0,
+								  ASGTK_IMAGE_VIEW_SCALE_TO_VIEW );
 }
 	
 	
@@ -397,7 +400,7 @@ asgtk_image_browser_new ()
 	gtk_widget_set_size_request (GTK_WIDGET(ib->preview), PREVIEW_WIDTH, PREVIEW_HEIGHT);
 	gtk_box_pack_start (GTK_BOX (preview_vbox), GTK_WIDGET(ib->preview), TRUE, TRUE, 0);
 	gtk_widget_show (GTK_WIDGET(ib->preview));
-	asgtk_image_view_enable_tiling( ib->preview, FALSE );	   
+	asgtk_image_view_set_resize ( ib->preview, ASGTK_IMAGE_VIEW_SCALE_TO_VIEW, ASGTK_IMAGE_VIEW_RESIZE_ALL );
 
 	ib->scale_check_box = gtk_check_button_new_with_label( "Scale to fit" );
 	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(ib->scale_check_box), TRUE );

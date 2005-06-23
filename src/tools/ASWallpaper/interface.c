@@ -291,6 +291,9 @@ create_list_preview()
 	preview_width = (INITIAL_PREVIEW_HEIGHT *Scr.MyDisplayWidth)/Scr.MyDisplayHeight ;
 	gtk_widget_set_size_request (WallpaperState.list_preview, preview_width, INITIAL_PREVIEW_HEIGHT);
 	asgtk_image_view_set_aspect (ASGTK_IMAGE_VIEW(WallpaperState.list_preview), Scr.MyDisplayWidth, Scr.MyDisplayHeight );
+	asgtk_image_view_set_resize (ASGTK_IMAGE_VIEW(WallpaperState.list_preview), 
+								 ASGTK_IMAGE_VIEW_SCALE_TO_VIEW|
+								 ASGTK_IMAGE_VIEW_TILE_TO_ASPECT, ASGTK_IMAGE_VIEW_RESIZE_ALL );
   	gtk_box_pack_end (GTK_BOX (WallpaperState.list_hbox), WallpaperState.list_preview, TRUE, TRUE, 0);
 	gtk_widget_show (WallpaperState.list_preview);
 
