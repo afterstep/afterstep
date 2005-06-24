@@ -158,10 +158,10 @@ asgtk_image_dir_new ()
   	
     id = g_object_new (ASGTK_TYPE_IMAGE_DIR, NULL);
 
-	id->tree_view = GTK_TREE_VIEW(gtk_tree_view_new());;
-	id->tree_model = GTK_TREE_MODEL(gtk_list_store_new (2, G_TYPE_STRING, G_TYPE_POINTER));;
+	id->tree_view = GTK_TREE_VIEW(gtk_tree_view_new());
+	id->tree_model = GTK_TREE_MODEL(gtk_list_store_new (2, G_TYPE_STRING, G_TYPE_POINTER));
 
-    gtk_scrolled_window_add_with_viewport (GTK_SCROLLED_WINDOW (id), GTK_WIDGET(id->tree_view));
+    gtk_container_add (GTK_CONTAINER(id), GTK_WIDGET(id->tree_view));
     gtk_tree_view_set_model (id->tree_view, id->tree_model);
     gtk_widget_show (GTK_WIDGET(id->tree_view));
     id->cell = gtk_cell_renderer_text_new ();
@@ -171,8 +171,6 @@ asgtk_image_dir_new ()
 	
 	selection = gtk_tree_view_get_selection(id->tree_view);
 	gtk_tree_selection_set_mode(selection, GTK_SELECTION_SINGLE);
-
-	selection = gtk_tree_view_get_selection(id->tree_view);
    	g_signal_connect (selection, "changed",  G_CALLBACK (asgtk_image_dir_sel_handler), id);
 	
 	colorize_gtk_tree_view_window( GTK_WIDGET(id) );
@@ -254,7 +252,11 @@ asgtk_image_dir_get_selection(ASGtkImageDir *id )
 void  asgtk_image_dir_refresh( ASGtkImageDir *id )
 {
 	int items = 0 ;
+	char *curr_sel ;
 	g_return_if_fail (ASGTK_IS_IMAGE_DIR (id));
+	
+	curr_sel = mystrdup(id->curr_selection?id->curr_selection->name:"");
+
 	gtk_list_store_clear( GTK_LIST_STORE (id->tree_model) );
 	destroy_asimage_list( &(id->entries) );
 	id->curr_selection = NULL ;
@@ -291,10 +293,14 @@ void  asgtk_image_dir_refresh( ASGtkImageDir *id )
 				gtk_list_store_set (GTK_LIST_STORE (id->tree_model), &iter, 0, curr->name, 1, curr, -1);
 				if( ++items == 1 ) 
 					gtk_tree_selection_select_iter(gtk_tree_view_get_selection(id->tree_view),&iter);
+				else if( strcmp(curr->name, curr_sel) == 0 ) 
+					gtk_tree_selection_select_iter(gtk_tree_view_get_selection(id->tree_view),&iter);
 			}
 			curr = curr->next ;
 		}
 	}		   
+	if( curr_sel ) 
+		free( curr_sel );
 	if( items == 0 ) 
 	{	
 		asgtk_image_dir_sel_handler(gtk_tree_view_get_selection(id->tree_view), id);

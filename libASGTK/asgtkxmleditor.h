@@ -14,6 +14,7 @@ struct ASImage;
 struct ASImageListEntry;
 struct _ASGtkXMLEditor;
 	
+typedef void (*_ASGtkXMLEditor_handler)(struct _ASGtkXMLEditor *xe, gpointer user_data, Bool new_file);
 
 typedef struct _ASGtkXMLEditor
 {
@@ -30,7 +31,17 @@ typedef struct _ASGtkXMLEditor
 	GtkWidget       *render_selection_btn ; 
 	GtkWidget       *validate_btn ; 
 
+	GtkTreeView     *tags_list;
+	GtkWidget       *add_tag_button;
+	GtkWidget       *tag_example;
+
 	Bool 			 dirty ;
+
+	/* screw GTK signals - hate its guts */
+	_ASGtkXMLEditor_handler file_change_handler;
+	gpointer file_change_user_data;
+		
+
 			
 }ASGtkXMLEditor;
 
@@ -47,6 +58,9 @@ GtkWidget * asgtk_xml_editor_new       ();
 void        asgtk_xml_editor_set_entry ( ASGtkXMLEditor *xe,
                                          struct ASImageListEntry *entry);
 
+void  		asgtk_xml_editor_file_change_handler( ASGtkXMLEditor *xe, 
+												  _ASGtkXMLEditor_handler change_handler, 
+												  gpointer user_data );
 
 
 #endif  /*  ASGTKIMAGEDIR_H_HEADER_INCLUDED  */

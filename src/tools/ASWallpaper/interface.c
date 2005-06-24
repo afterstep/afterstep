@@ -89,6 +89,19 @@ void gtk_xml_editor_destroy( GtkWidget *widget, gpointer user_data )
 	gtk_widget_set_sensitive( GTK_WIDGET(WallpaperState.edit_xml_button), TRUE );
 }	 
 
+void on_backgrounds_dir_changed( ASGtkXMLEditor *xe, gpointer user_data, Bool new_file)
+{
+	ASGtkImageDir *id = ASGTK_IMAGE_DIR(id);
+	if( new_file ) 
+		asgtk_image_dir_refresh( id );
+	else
+	{
+		ASImageListEntry *le = asgtk_image_dir_get_selection( id );
+		asgtk_image_view_set_entry ( ASGTK_IMAGE_VIEW(WallpaperState.list_preview), le);
+		unref_asimage_list_entry( le );
+	}	 
+}	 
+
 void
 on_edit_xml_clicked(GtkButton *button, gpointer user_data)
 {
@@ -98,6 +111,9 @@ on_edit_xml_clicked(GtkButton *button, gpointer user_data)
 	{	
 		WallpaperState.xml_editor = asgtk_xml_editor_new();
 		g_signal_connect (G_OBJECT (WallpaperState.xml_editor), "destroy", G_CALLBACK (gtk_xml_editor_destroy), NULL);
+		asgtk_xml_editor_file_change_handler( ASGTK_XML_EDITOR(WallpaperState.xml_editor), 
+											  on_backgrounds_dir_changed, 
+											  WallpaperState.backs_list );
 	}
 
 	gtk_widget_show( WallpaperState.xml_editor );
@@ -188,26 +204,29 @@ backs_list_sel_handler(ASGtkImageDir *id, gpointer user_data)
 	ASImageListEntry *le;
 	g_return_if_fail (ASGTK_IS_IMAGE_DIR (id));
 	
-	le = asgtk_image_dir_get_selection( id ); 
-	if( WallpaperState.xml_editor && le->type == ASIT_XMLScript )
-		asgtk_xml_editor_set_entry( ASGTK_XML_EDITOR( WallpaperState.xml_editor), le );
-	
-	if( iv ) 
+	le = asgtk_image_dir_get_selection( id );
+	asgtk_image_view_set_entry ( iv, le);
+
+	if( le != NULL ) 
 	{	
-		asgtk_image_view_set_entry ( iv, le);
-		
-		if( le->type == ASIT_XMLScript ) 
+		if( WallpaperState.xml_editor && le->type == ASIT_XMLScript )
+			asgtk_xml_editor_set_entry( ASGTK_XML_EDITOR( WallpaperState.xml_editor), le );
+	
+		if( iv ) 
 		{	
-			gtk_widget_show(WallpaperState.edit_xml_button);
-			gtk_widget_hide(WallpaperState.make_xml_button);
-		}else
-		{
-			gtk_widget_hide(WallpaperState.edit_xml_button);
-			gtk_widget_show(WallpaperState.make_xml_button);
-		}		   
-	}
-	if( le )
+		
+			if( le->type == ASIT_XMLScript ) 
+			{	
+				gtk_widget_show(WallpaperState.edit_xml_button);
+				gtk_widget_hide(WallpaperState.make_xml_button);
+			}else
+			{
+				gtk_widget_hide(WallpaperState.edit_xml_button);
+				gtk_widget_show(WallpaperState.make_xml_button);
+			}		   
+		}
 		unref_asimage_list_entry( le );
+	}
 }
 
 
