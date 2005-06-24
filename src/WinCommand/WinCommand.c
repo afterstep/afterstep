@@ -34,11 +34,19 @@
 #include "../../libAfterConf/afterconf.h"
 
 /* Flags: */
-#define WINCOMMAND_ActOnAll	(0x01<<0)
-#define WINCOMMAND_Desk         (0x01<<1)
-#define WINCOMMAND_AllDesks     (0x01<<2)
+#define WINCOMMAND_ActOnAll	    (0x01<<0)
+#define WINCOMMAND_Desk             (0x01<<1)
+#define WINCOMMAND_AllDesks         (0x01<<2)
+
 
 typedef void (*WinC_handler)(ASWindowData *wd);
+
+typedef struct
+{
+	char *name;
+	void (*exec_wrapper)(const char *action);
+	void (*init_defaults)(void);
+} action_t ;
 
 struct ASWinCommandState
 {
@@ -48,9 +56,43 @@ struct ASWinCommandState
 	
 	int x_dest, y_dest; /* Move */
 	int new_width, new_height; /* resize */
+	int desk; /* send to desk */
 
 }WinCommandState;
 
+/******** Prototypes *********************/
+void no_args_wrapper(const char *action);
+void move_wrapper(const char *action);
+void send_to_desk_wrapper(const char *action);
+void jump_wrapper(const char *action);
+
+void default_defaults(void);
+void jump_defaults(void);
+/*****************************************/
+
+action_t Actions[] = 
+{
+	{"center", no_args_wrapper, default_defaults },
+	{"center jump", jump_wrapper, jump_defaults },
+	{"iconify", no_args_wrapper, default_defaults },
+	{"jump", jump_wrapper, jump_defaults},
+	{"kill", no_args_wrapper, default_defaults},
+	{"move", move_wrapper, default_defaults},
+	{"sendtodesk", send_to_desk_wrapper, default_defaults},
+	{ NULL, NULL, NULL}
+};
+
+action_t *get_action_by_name(const char *needle)
+{
+	int i;
+	LOCAL_DEBUG_OUT("needle: %s", needle);
+
+	for( i = 0; Actions[i].name != NULL; i++)
+		if(mystrcasecmp(Actions[i].name, needle) == 0)
+			return &Actions[i];
+	LOCAL_DEBUG_OUT("get_action_by_name returns NULL");
+	return NULL;
+}
 
 int
 atopixel (char *s, int size)
@@ -77,6 +119,68 @@ Quit_WinCommand(void)
 	destroy_asbidirlist( &(WinCommandState.operations) );
 }
 
+/* init-defaults */
+
+void default_defaults(void)
+{
+	set_flags( WinCommandState.flags, WINCOMMAND_ActOnAll );
+}
+
+void jump_defaults(void)
+{
+	set_flags( WinCommandState.flags, WINCOMMAND_AllDesks );
+	clear_flags( WinCommandState.flags, WINCOMMAND_ActOnAll );
+}
+
+/* exec_wrappers */
+
+void
+no_args_wrapper(const char *action)
+{
+	LOCAL_DEBUG_OUT("no_args_wrapper called: %s", action);
+	select_windows_by_pattern
+		(WinCommandState.pattern, False, False);
+	ascom_do(action, NULL);
+}
+
+void
+move_wrapper(const char *action)
+{
+	move_params p;
+	
+	LOCAL_DEBUG_OUT("move_wrapper called: %s", action);
+	
+	p.x = WinCommandState.x_dest;
+	p.y = WinCommandState.y_dest;
+	select_windows_by_pattern
+		(WinCommandState.pattern, False, False);
+	ascom_do(action, &p);
+}
+
+void
+send_to_desk_wrapper(const char *action)
+{
+	send_to_desk_params p;
+	p.desk = WinCommandState.desk;
+	
+	LOCAL_DEBUG_OUT("send_to_desk_wrapper called: %s, desk = %d",
+			action, p.desk);
+	
+	select_windows_by_pattern
+		(WinCommandState.pattern, False, False);
+	ascom_do(action, &p);
+}
+
+void
+jump_wrapper(const char *action)
+{
+	LOCAL_DEBUG_OUT("jump_wrapper called: %s", action);
+
+	select_windows_by_pattern
+		(WinCommandState.pattern, True, False);
+
+	ascom_do(action, NULL);
+}
 
 int
 main( int argc, char **argv )
@@ -84,7 +188,8 @@ main( int argc, char **argv )
 	int i ;
 	ASBiDirElem *curr;
 	char *command;
-	
+	action_t *a;
+
 	InitMyApp (CLASS_WINCOMMAND, argc, argv, NULL, NULL, OPTION_SINGLE|OPTION_RESTART );
 	ConnectX( ASDefaultScr, 0 );
 
@@ -121,6 +226,10 @@ main( int argc, char **argv )
 			{
 				i++;
 				WinCommandState.new_height = atopixel ( argv[i], Scr.MyDisplayHeight);
+			}else if( mystrcasecmp ( argv[i], "-new_desk") == 0 && i+1 < argc && argv[i] != NULL)
+			{
+				i++;
+				WinCommandState.desk = atoi( argv[i] );
 			}
 			
 			/* generic */
@@ -152,6 +261,12 @@ main( int argc, char **argv )
 	ascom_init();
 	ascom_update_winlist();
 
+	/* execute default_handlers */
+	for( curr = WinCommandState.operations->head;
+	     curr != NULL; curr = curr->next)
+		if ( (a = get_action_by_name( (char *) curr->data)) )
+			a->init_defaults();
+	
 	/* honor flags */
 	if( get_flags( WinCommandState.flags, WINCOMMAND_Desk))
 		select_windows_on_desk(False);
@@ -168,24 +283,8 @@ main( int argc, char **argv )
 		command = (char *) curr->data;
 		LOCAL_DEBUG_OUT("command: %s", command);
 		
-		
-		if(mystrcasecmp ( command, "move") == 0)
-		{
-			move_params params;
-			params.x = WinCommandState.x_dest;
-			params.y = WinCommandState.y_dest;
-			ascom_do(command, &params);
-		}
-		else if(mystrcasecmp ( command, "resize") == 0)
-		{
-			resize_params params;
-			params.width = WinCommandState.new_width;
-			params.height = WinCommandState.new_height;
-			ascom_do(command, &params);
-		}else
-		{
-			ascom_do(command, NULL);
-		}
+		if ( (a = get_action_by_name( (char *) curr->data)) )
+			a->exec_wrapper((char *) curr->data);
 		
 	}
 	
