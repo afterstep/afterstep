@@ -209,7 +209,7 @@ typedef struct MenuData
 
 }MenuData;
 
-#define MAX_MENU_ITEM_HEIGHT    (ASDefaultScrHeight>>5)
+#define MAX_MENU_ITEM_HEIGHT    (ASDefaultScrHeight>>4)
 #define MAX_MENU_WIDTH          (ASDefaultScrWidth>>1)
 #define MAX_MENU_HEIGHT         ((ASDefaultScrHeight*9)/10)
 #define MIN_MENU_X              5
