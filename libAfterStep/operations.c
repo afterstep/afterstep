@@ -163,11 +163,11 @@ void send_to_desk_handler(ASWindowData *wd, void *data)
 
 void center_handler(ASWindowData *wd, void *data)
 {
-	LOCAL_DEBUG_OUT("center handler called");
 	/* used by SendNumCommand */
 	send_signed_data_type vals[2] ;	
 	send_signed_data_type units[2] ;
 
+	LOCAL_DEBUG_OUT("center handler called");
 	
 	/* Indicate that we're talking pixels. */
 	units[0] = units[1] = 1;
