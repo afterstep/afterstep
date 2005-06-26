@@ -65,6 +65,7 @@ void no_args_wrapper(const char *action);
 void move_wrapper(const char *action);
 void send_to_desk_wrapper(const char *action);
 void jump_wrapper(const char *action);
+void resize_wrapper(const char *action);
 
 void default_defaults(void);
 void jump_defaults(void);
@@ -78,6 +79,7 @@ action_t Actions[] =
 	{"jump", jump_wrapper, jump_defaults},
 	{"kill", no_args_wrapper, default_defaults},
 	{"move", move_wrapper, default_defaults},
+	{"resize", resize_wrapper, default_defaults},
 	{"sendtodesk", send_to_desk_wrapper, default_defaults},
 	{ NULL, NULL, NULL}
 };
@@ -180,6 +182,17 @@ jump_wrapper(const char *action)
 		(WinCommandState.pattern, True, False);
 
 	ascom_do(action, NULL);
+}
+
+void
+resize_wrapper(const char *action)
+{
+	resize_params p;
+	
+	p.width = WinCommandState.new_width;
+	p.height = WinCommandState.new_height;
+
+	ascom_do("resize", &p);
 }
 
 int

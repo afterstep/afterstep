@@ -66,6 +66,11 @@
   GtkTreeModel *completion_model;
   GtkWidget *run_button;
   GtkWidget *hbox2;
+  GtkWidget *table3;
+  GtkWidget *label14;
+  GtkWidget *label15;
+  GtkWidget *entry4;
+  GtkWidget *entry5;
 
 /* /ugly gui-definitions */
 
@@ -99,6 +104,7 @@ void no_args_wrapper(void);
 void move_wrapper(void);
 void send_to_desk_wrapper(void);
 void jump_wrapper(void);
+void resize_wrapper(void);
 
 void default_defaults(void);
 void jump_defaults(void);
@@ -113,8 +119,9 @@ action_t Actions[] =
 	{"jump", 0, jump_wrapper, jump_defaults},
 	{"kill", 0, no_args_wrapper, default_defaults},
 	{"move", 1, move_wrapper, default_defaults},
-	{"sendtodesk", 2, send_to_desk_wrapper, default_defaults},
-	{ NULL, 0, NULL, NULL}
+	{"resize", 2, resize_wrapper, default_defaults},
+	{"sendtodesk", 3, send_to_desk_wrapper, default_defaults},
+        { NULL, 0, NULL, NULL}
 };
 
 /* Creates a tree model containing the completions */
@@ -287,6 +294,36 @@ create_window (void)
 			  (GtkAttachOptions) (GTK_EXPAND | GTK_FILL),
 			  (GtkAttachOptions) (0), 0, 0);
 	
+	table3 = gtk_table_new (2, 2, TRUE);
+	gtk_widget_show (table3);
+	gtk_container_add (GTK_CONTAINER (notebook1), table3);
+	
+	label14 = gtk_label_new ("Width:");
+	gtk_widget_show (label14);
+	gtk_table_attach (GTK_TABLE (table3), label14, 0, 1, 0, 1,
+			  (GtkAttachOptions) (GTK_FILL),
+			  (GtkAttachOptions) (0), 0, 0);
+	gtk_misc_set_alignment (GTK_MISC (label14), 0, 0.5);
+	
+	label15 = gtk_label_new ("Height:");
+	gtk_widget_show (label15);
+	gtk_table_attach (GTK_TABLE (table3), label15, 0, 1, 1, 2,
+			  (GtkAttachOptions) (GTK_FILL),
+			  (GtkAttachOptions) (0), 0, 0);
+	gtk_misc_set_alignment (GTK_MISC (label15), 0, 0.5);
+	
+	entry4 = gtk_entry_new ();
+	gtk_widget_show (entry4);
+	gtk_table_attach (GTK_TABLE (table3), entry4, 1, 2, 1, 2,
+			  (GtkAttachOptions) (GTK_EXPAND | GTK_FILL),
+			  (GtkAttachOptions) (0), 0, 0);
+	
+	entry5 = gtk_entry_new ();
+	gtk_widget_show (entry5);
+	gtk_table_attach (GTK_TABLE (table3), entry5, 1, 2, 0, 1,
+			  (GtkAttachOptions) (GTK_EXPAND | GTK_FILL),
+			  (GtkAttachOptions) (0), 0, 0);
+
 	hbox1 = gtk_hbox_new (FALSE, 0);
 	gtk_widget_show (hbox1);
 	gtk_container_add (GTK_CONTAINER (notebook1), hbox1);
@@ -432,6 +469,17 @@ void move_wrapper(void)
 	move_params p;
 	p.x = atoi (gtk_entry_get_text(GTK_ENTRY(entry1)));
 	p.y = atoi (gtk_entry_get_text(GTK_ENTRY(entry2)));
+	select_windows_by_pattern
+		(gtk_entry_get_text(GTK_ENTRY(pattern_entry)), False, False);
+	
+	ascom_do(GWCommandState.action, &p);
+}
+
+void resize_wrapper(void)
+{
+	resize_params p;
+	p.width = atoi (gtk_entry_get_text(GTK_ENTRY(entry4)));
+	p.height = atoi (gtk_entry_get_text(GTK_ENTRY(entry5)));
 	select_windows_by_pattern
 		(gtk_entry_get_text(GTK_ENTRY(pattern_entry)), False, False);
 	
