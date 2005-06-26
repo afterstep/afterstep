@@ -269,7 +269,7 @@ compose_asimage_xml(ASVisual *asv, ASImageManager *imman, ASFontManager *fontman
 	ASImage* im = NULL;
 	xml_elem_t* doc;
 	ASImageManager *my_imman = imman, *old_as_xml_imman = _as_xml_image_manager ;
-	ASFontManager  *my_fontman = fontman, *old_as_xml_fontman = _as_xml_font_manager ; ;
+	ASFontManager  *my_fontman = fontman, *old_as_xml_fontman = _as_xml_font_manager ;
 	int my_imman_curr_dir_path_idx = MAX_SEARCH_PATHS ;
 
     asxml_var_init();
