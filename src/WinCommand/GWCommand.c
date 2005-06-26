@@ -347,6 +347,7 @@ void
 on_action_combo_changed                (GtkComboBox     *combobox,
                                         gpointer         user_data)
 {
+	action_t *a;
 	char *new_action = (char *) asgtk_combo_box_get_active_text( combobox );
        
 	free( GWCommandState.action);
@@ -356,7 +357,7 @@ on_action_combo_changed                (GtkComboBox     *combobox,
 	{	
 		
 		GWCommandState.action = strdup(new_action);
-		action_t *a = get_action_by_name(GWCommandState.action);
+		a = get_action_by_name(GWCommandState.action);
 		if( a == NULL ) return;
 		
 		gtk_notebook_set_current_page (GTK_NOTEBOOK(notebook1), a->param_page );
