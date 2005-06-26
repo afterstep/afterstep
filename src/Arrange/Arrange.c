@@ -29,6 +29,7 @@
 #include <sys/types.h>
 #include <regex.h>
 #include <stdlib.h>
+#include <math.h>
 
 #include "../../libAfterImage/afterimage.h"
 
@@ -76,6 +77,7 @@
 #define ARRANGE_Tile_Horizontally	(0x01<<18)
 #define ARRANGE_AllDesks                (0x01<<19)
 #define ARRANGE_WinlistSkip             (0x01<<20)
+#define ARRANGE_SmartTile                 (0x01<<21)
 
 struct ASArrangeState
 {
@@ -298,6 +300,10 @@ main( int argc, char **argv )
 				set_flags( ArrangeState.flags, ARRANGE_Tile	);
 				if(! resize_touched )
 					set_flags(ArrangeState.flags, ARRANGE_Resize );
+			}
+			else if( mystrcasecmp( argv[i], "-smart") == 0)
+			{
+				set_flags(ArrangeState.flags, ARRANGE_SmartTile);
 			}else if( mystrcasecmp( argv[i], "-pattern") == 0 && i+1 <argc && argv[i+1] != NULL)
 			{
 				ArrangeState.pattern = argv[i+1];
@@ -590,8 +596,12 @@ tile_windows()
 		
         /* If number of elements per group was not set */
 	if(ArrangeState.count == 0)
-	  ArrangeState.count = n_windows; /*Put all elements in one group*/
-	
+	{
+		if( ! get_flags(ArrangeState.flags, ARRANGE_SmartTile) )
+			ArrangeState.count = n_windows; /*Put all elements in one group*/
+		else
+			ArrangeState.count = (int) sqrt(n_windows);
+	}
 	n_groups = n_windows / ArrangeState.count;
 	/* If not all windows fit in n_groups groups, an
 	 * extra group for remaining windows is needed.*/
