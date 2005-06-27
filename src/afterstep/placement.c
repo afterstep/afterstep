@@ -1120,9 +1120,6 @@ Bool place_aswindow( ASWindow *asw )
                      asw->status->width, asw->status->height, asw->status->x, asw->status->y,
                      asw->anchor.width, asw->anchor.height, asw->anchor.x, asw->anchor.y );
 
-    if( ASWIN_GET_FLAGS(asw, AS_MaximizedX|AS_MaximizedY ) )
-        return place_aswindow_in_windowbox( asw, Scr.Feel.default_window_box, ASP_UseBackupStrategy, True );
-
     if( asw->hints->windowbox_name )
     {
         aswbox = find_window_box( &(Scr.Feel), asw->hints->windowbox_name );
@@ -1152,7 +1149,18 @@ Bool place_aswindow( ASWindow *asw )
             if( aswbox[i].min_height > asw->status->height || (aswbox[i].max_height > 0 && aswbox[i].max_height < asw->status->height) )
                 continue;
 
-            if( place_aswindow_in_windowbox( asw, &(aswbox[i]), ASP_UseMainStrategy , False ))
+		    if( ASWIN_GET_FLAGS(asw, AS_MaximizedX|AS_MaximizedY ) )
+			{
+	            if( aswbox[i].area.x > asw->status->x+(int)(asw->status->width) || 
+					aswbox[i].area.y > asw->status->y+(int)(asw->status->height)||
+					aswbox[i].area.x+(int)aswbox[i].area.width < asw->status->x ||
+					aswbox[i].area.y+(int)aswbox[i].area.height < asw->status->y )
+    	            continue;
+			}	 
+
+		    if( ASWIN_GET_FLAGS(asw, AS_MaximizedX|AS_MaximizedY ) )
+        		return place_aswindow_in_windowbox( asw, Scr.Feel.default_window_box, ASP_UseBackupStrategy, True );
+			else if( place_aswindow_in_windowbox( asw, &(aswbox[i]), ASP_UseMainStrategy , False ))
                 return True;
         }
     }
