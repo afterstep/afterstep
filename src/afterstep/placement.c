@@ -1159,7 +1159,7 @@ Bool place_aswindow( ASWindow *asw )
 			}	 
 
 		    if( ASWIN_GET_FLAGS(asw, AS_MaximizedX|AS_MaximizedY ) )
-        		return place_aswindow_in_windowbox( asw, Scr.Feel.default_window_box, ASP_UseBackupStrategy, True );
+        		return place_aswindow_in_windowbox( asw, &(aswbox[i]), ASP_UseBackupStrategy, True );
 			else if( place_aswindow_in_windowbox( asw, &(aswbox[i]), ASP_UseMainStrategy , False ))
                 return True;
         }
