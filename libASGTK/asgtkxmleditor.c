@@ -43,6 +43,8 @@ static void asgtk_xml_editor_tag_activate ( GtkTreeView       *tree_view,
 	   									    GtkTreePath       *path,
 				 							GtkTreeViewColumn *column,
 				 							gpointer           user_data);
+static void asgtk_xml_editor_tag_selected ( GtkTreeSelection *selection, 
+											gpointer user_data);
 
 /*  private variables  */
 static GtkWindowClass *parent_class = NULL;
@@ -427,52 +429,116 @@ check_save_changes( ASGtkXMLEditor *xe )
 	}	 
 }
 
-static char *ASXMLScriptTagsHelp[] = 
+#define MAX_ASXML_SCRIPT_TAG	22
+
+static char *ASXMLScriptTagsHelp[MAX_ASXML_SCRIPT_TAG] = 
 {
-	"id, font, point, fgcolor, bgcolor, fgimage, bgimage, spacing",
-	"id, op - alphablend|allanon|tint|..., keep-transparency, merge",
-	"id - string ID to assign to loaded image, src - file to load from",
+	"renders text string into new image, using specific font, size and texture."
+,
+	"superimposes arbitrary number of images on top of each other. Compositing \"op\" could be one of the follwoing : \n"
+	"add, alphablend, allanon, colorize, darken, diff, dissipate, hue, lighten, overlay, saturate, screen, sub, tint, value.\n"
+	"All tags surrounded by this tag may have some of the common attributes in addition to their normal ones : \n"
+	"crefid=\"ref_id\" (If set, percentages in \"x\" and \"y\" will be "
+	"derived from the width and height of the crefid image.) "
+	"x=\"child_offset_x\" y=\"child_offset_y\" align=\"right|center|left\" "
+	"valign=\"top|middle|bottom\" clip_x=\"child_origin_x\" clip_y=\"child_origin_y\" "
+	"clip_width=\"child_tile_width\" clip_height=\"child_tile_height\" tile=\"0|1\" tint=\"color\"."
+,
+	"loads image from the file. If src=\"xroot\" root background image is used."
+,
+	"recall previously generated and named image by its id."
+,
+	"releases(destroy if possible) previously generated and named image by its id."
+,
+	"defines symbolic name for a color and set of variables. \n"
+	"In addition to defining symbolic name for the color this tag will define 7 other variables :\n"
+	" domain.sym_name.red, domain.sym_name.green, domain.sym_name.blue, domain.sym_name.alpha,"
+ 	" domain.sym_name.hue, domain.sym_name.saturation, domain.sym_name.value ."
+,
+	"prints variable value to standard output.\n"
+	"format_string is a Standard C format string with exactly 1 placeholder; "
+	"var is a name of the variable, which value will be printed and val is a math expression to be printed."
+,
+	"renders multipoint gradient.\n"
+	"offsets are represented as floating point values in the range of 0.0 to 1.0. If offsets are not given, a smooth"
+	" stepping from 0.0 to 1.0 will be used.\n"
+	" angle is given in degrees. Default is 0. Supported values are 0, 45, 90, 135, 180, 225, 270, 315."
+,
+	"generates image of specified size and fill it with solid or semitransparent color. Opacity ranges from 0 to 100 with 100 being completely opaque."
+,
+	"writes generated/loaded image into the file of one of the supported formats: jpg, bmp, xcf, png, xpm, tiff.\n"
+	"compress value is relevant to jpg format (0 to 100) or png format (0 to 10)."
+,
+	"sets image's background color. Applies to first child only."
+,
+	"performs a gaussian blurr on an image. It is possible to selectively blur only some of the channels : a-alpha, r-red, g-green, b-blue. Applies to first child only."
+,
+	"draws solid or semitransparent bevel frame around the image. Applies to first child only."
+,
+	"creates new image as mirror copy of an old one."
+,
+	"rotates an image in 90 degree increments (flip)."
+,
+	"scales image to arbitrary size. \n"
+	"If you want to keep image proportions while scaling - use \"proportional\" instead of specific size for particular dimention."
+,
+	"slices image to arbitrary size leaving corners unchanged.\n"
+	"Contents of the image between x_start and x_end will be tiled horizontally. "
+	"Contents of the image between y_start and y_end will be tiled vertically. "
+	"This is usefull to get background images to fit the size of the text or a widget, while preserving its borders undistorted, "
+	"which is the usuall result of simple scaling.\n"
+	"If you want to keep image proportions while resizing-use \"proportional\" instead of specific size for particular dimention."
+,
+	"crops image to arbitrary area within it, optionally tinting it to specific color."
+,
+	"tiles an image to specified area, optionally tinting it to specific color."
+,
+	"adjusts Hue, Saturation and/or Value of an image and optionally tile an image to arbitrary area.\n"
+	"Hue is measured in degrees from 0 to 360, saturation and value are measured from 0 to 100. One of the offsets must be not 0 for this tag to actually work."
+,
+	"pads an image with solid color rectangles."
+,
 	NULL
 };
-static char *ASXMLScriptTags[][2] = 
+static char *ASXMLScriptTags[MAX_ASXML_SCRIPT_TAG][2] = 
 {
-{ 	"text", "<text id=\"new_id\" font=\"font\" point=\"size\" fgcolor=\"color\""
+{ 	"text", "\n<text id=\"new_id\" font=\"font\" point=\"size\" fgcolor=\"color\""
   			" bgcolor=\"color\" fgimage=\"image_id\" bgimage=\"image_id\" "
-  			" spacing=\"points\">Insert Text here</text>" },
-{	"composite","<composite id=\"new_id\" op=\"op_desc\" keep-transparency=\"0|1\" merge=\"0|1\"></composite>"},
+  			" spacing=\"points\">Insert Text here</text>\n" },
+{	"composite","\n<composite id=\"new_id\" op=\"op_desc\" keep-transparency=\"0|1\" merge=\"0|1\">\n</composite>\n"},
 {	"img","<img id=\"new_img_id\" src=\"filename\"/>"},
 {	"recall","<recall id=\"new_id\" srcid=\"image_id\"/>"},
 {	"release", "<release srcid=\"image_id\"/>"},
-{	"color", "<color name=\"sym_name\" domain=\"var_domain\" argb=\"colorvalue\"/>" },
-{	"printf", "<printf format=\"format_string\" var=\"variable_name\" val=\"value\"/>" },
-{	"gradient", "<gradient id=\"new_id\" angle=\"degrees\" refid=\"refid\""
+{	"color", "\n<color name=\"sym_name\" domain=\"var_domain\" argb=\"colorvalue\"/>\n" },
+{	"printf", "\n<printf format=\"format_string\" var=\"variable_name\" val=\"value\"/>\n" },
+{	"gradient", "\n<gradient id=\"new_id\" angle=\"degrees\" refid=\"refid\""
 				" width=\"pixels\" height=\"pixels\" colors =\"color1 [...]\""
-				" offsets=\"fraction1 [...]\"/>" },
-{	"solid", "<solid id=\"new_id\" color=\"color\" opacity=\"opacity\""
- 			 " width=\"pixels\" height=\"pixels\" refid=\"refid\"/>"},
-{	"save", "<save id=\"new_id\" dst=\"filename\" format=\"format\" compress=\"value\""
- 			" opacity=\"value\" replace=\"0|1\" delay=\"mlsecs\"></save>"},
-{	"background", "<background id=\"new_id\" color=\"color\"></background>"},
-{	"blur", "<blur id=\"new_id\" horz=\"radius\" vert=\"radius\" channels=\"argb\"></blur>"},
-{	"bevel", "<bevel id=\"new_id\" colors=\"color1 color2\" width=\"pixels\""
-			 " height=\"pixels\" refid=\"refid\" border=\"left top right bottom\" solid=0|1></bevel>"},
-{	"mirror","<mirror id=\"new_id\" dir=\"direction\" width=\"pixels\" height=\"pixels\" refid=\"refid\"></mirror>" },
-{	"rotate","<rotate id=\"new_id\" angle=\"degrees\" width=\"pixels\" height=\"pixels\" refid=\"refid\"></rotate>"},
-{	"scale", "<scale id=\"new_id\" ref_id=\"other_imag\" width=\"pixels\" height=\"pixels\"></scale>"},
-{	"slice", "<slice id=\"new_id\" ref_id=\"other_imag\" width=\"pixels\" height=\"pixels\""
+				" offsets=\"fraction1 [...]\"/>\n" },
+{	"solid", "\n<solid id=\"new_id\" color=\"color\" opacity=\"opacity\""
+ 			 " width=\"pixels\" height=\"pixels\" refid=\"refid\"/>\n"},
+{	"save", "\n<save id=\"new_id\" dst=\"filename\" format=\"format\" compress=\"value\""
+ 			" opacity=\"value\" replace=\"0|1\" delay=\"mlsecs\">\n</save>\n"},
+{	"background", "\n<background id=\"new_id\" color=\"color\">\n</background>\n"},
+{	"blur", "\n<blur id=\"new_id\" horz=\"radius\" vert=\"radius\" channels=\"argb\">\n</blur>\n"},
+{	"bevel", "\n<bevel id=\"new_id\" colors=\"color1 color2\" width=\"pixels\""
+			 " height=\"pixels\" refid=\"refid\" border=\"left top right bottom\" solid=0|1>\n</bevel>\n"},
+{	"mirror","\n<mirror id=\"new_id\" dir=\"vertical|horizontal\" width=\"pixels\" height=\"pixels\" refid=\"refid\">\n</mirror>\n" },
+{	"rotate","\n<rotate id=\"new_id\" angle=\"90|180|270\" width=\"pixels\" height=\"pixels\" refid=\"refid\">\n</rotate>\n"},
+{	"scale", "\n<scale id=\"new_id\" ref_id=\"other_imag\" width=\"pixels\" height=\"pixels\">\n</scale>\n"},
+{	"slice", "\n<slice id=\"new_id\" ref_id=\"other_imag\" width=\"pixels\" height=\"pixels\""
 			 " x_start=\"slice_x_start\" x_end=\"slice_x_end\" y_start=\"slice_y_start\""
-			 " y_end=\"slice_y_end\"></slice>"},
-{	"crop",  "<crop id=\"new_id\" refid=\"other_image\" srcx=\"pixels\" srcy=\"pixels\""
- 			 " width=\"pixels\" height=\"pixels\" tint=\"color\"></crop>"},
-{	"tile",  "<tile id=\"new_id\" refid=\"other_image\" width=\"pixels\" height=\"pixels\""
- 			 " x_origin=\"pixels\" y_origin=\"pixels\" tint=\"color\" complement=0|1></tile>"},
-{	"hsv",   "<hsv id=\"new_id\" refid=\"other_image\" x_origin=\"pixels\" y_origin=\"pixels\""
+			 " y_end=\"slice_y_end\">\n</slice>\n"},
+{	"crop",  "\n<crop id=\"new_id\" refid=\"other_image\" srcx=\"pixels\" srcy=\"pixels\""
+ 			 " width=\"pixels\" height=\"pixels\" tint=\"color\">\n</crop>\n"},
+{	"tile",  "\n<tile id=\"new_id\" refid=\"other_image\" width=\"pixels\" height=\"pixels\""
+ 			 " x_origin=\"pixels\" y_origin=\"pixels\" tint=\"color\" complement=0|1>\n</tile>\n"},
+{	"hsv",   "\n<hsv id=\"new_id\" refid=\"other_image\" x_origin=\"pixels\" y_origin=\"pixels\""
 			 " width=\"pixels\" height=\"pixels\" affected_hue=\"degrees|color\""
 			 " affected_radius=\"degrees\" hue_offset=\"degrees\""
-			 " saturation_offset=\"value\" value_offset=\"value\"></hsv>"},
-{	"pad",   "<pad id=\"new_id\" left=\"pixels\" top=\"pixels\""
+			 " saturation_offset=\"value\" value_offset=\"value\">\n</hsv>\n"},
+{	"pad",   "\n<pad id=\"new_id\" left=\"pixels\" top=\"pixels\""
 		     " right=\"pixels\" bottom=\"pixels\" color=\"color\""
-			 " refid=\"refid\" width=\"pixels\" height=\"pixels\"></pad>"},
+			 " refid=\"refid\" width=\"pixels\" height=\"pixels\">\n</pad>\n"},
 {	NULL, NULL }
 };	 
 
@@ -490,7 +556,7 @@ make_xml_tags_list( ASGtkXMLEditor *xe )
 
 	
 	xe->tags_list = GTK_TREE_VIEW(gtk_tree_view_new());
-	tree_model = GTK_TREE_MODEL(gtk_list_store_new (2, G_TYPE_STRING, G_TYPE_STRING));
+	tree_model = GTK_TREE_MODEL(gtk_list_store_new (3, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING));
 	
 	scrolled_window = gtk_scrolled_window_new(NULL, NULL);
 	gtk_widget_set_size_request (scrolled_window, 120, 300);
@@ -510,6 +576,9 @@ make_xml_tags_list( ASGtkXMLEditor *xe )
    	//g_signal_connect (selection, "changed",  G_CALLBACK (asgtk_image_dir_sel_handler), id);
 	g_signal_connect ( xe->tags_list, "row_activated",
 						G_CALLBACK (asgtk_xml_editor_tag_activate), xe);
+	
+	g_signal_connect (gtk_tree_view_get_selection (GTK_TREE_VIEW (xe->tags_list)), "changed",
+		    		  G_CALLBACK (asgtk_xml_editor_tag_selected), xe);
 
 	colorize_gtk_tree_view_window( scrolled_window );
 	
@@ -517,7 +586,11 @@ make_xml_tags_list( ASGtkXMLEditor *xe )
 	for( i = 0 ; ASXMLScriptTags[i][0] ; ++i ) 
 	{	
 		gtk_list_store_append (store, &iter);
-		gtk_list_store_set (store, &iter, 0, ASXMLScriptTags[i][0], 1, ASXMLScriptTags[i][1], -1);
+		gtk_list_store_set (store, &iter, 
+							0, ASXMLScriptTags[i][0], 
+							1, ASXMLScriptTags[i][1], 
+							2, ASXMLScriptTagsHelp[i]?ASXMLScriptTagsHelp[i]:"",
+							-1);
 	}
 
 	return scrolled_window;
@@ -560,6 +633,42 @@ asgtk_xml_editor_tag_activate ( GtkTreeView       *tree_view,
 		insert_tag_template_at_cursor( xe, tag_template );	  
 }
 
+static void
+asgtk_xml_editor_tag_selected ( GtkTreeSelection *selection, gpointer user_data)
+{
+	ASGtkXMLEditor *xe = ASGTK_XML_EDITOR (user_data);
+  	GtkTreeModel *model;
+  	GtkTreeIter iter;
+	char *tag_template = NULL ;
+  	char *tag_help = NULL ;
+
+  	if (gtk_tree_selection_get_selected (selection, &model, &iter)) 
+	{
+		GtkTextBuffer *buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (xe->help_view));
+		int tag_template_len = 0;
+	  	gtk_tree_model_get (model, &iter, 1, &tag_template, 2, &tag_help, -1);
+		if( tag_template ) 
+		{
+			if( tag_template[0] == '\n' ) 
+				++tag_template;
+			tag_template_len = strlen(tag_template);
+			gtk_text_buffer_set_text( buffer, tag_template, tag_template_len );
+		}
+		if( tag_help ) 
+		{
+			if( tag_template_len == 0 ) 
+				gtk_text_buffer_set_text( buffer, tag_help, strlen(tag_help));
+			else
+			{
+				GtkTextIter iter ; 
+				gtk_text_buffer_get_iter_at_offset( buffer, &iter, tag_template_len );
+				gtk_text_buffer_insert( buffer, &iter, tag_help, strlen(tag_help)); 	 
+			}	 
+		}		
+	}
+}
+
+
 static void 
 on_insert_tag_clicked( GtkWidget *button, gpointer data )
 {
@@ -586,10 +695,10 @@ asgtk_xml_editor_new ()
 {
 	ASGtkXMLEditor *xe;
 	GtkWidget *main_vbox; 
-	GtkWidget *scrolled_window ; 
+	GtkWidget *scrolled_window; 
 	GtkWidget *panes ; 
 	GtkWidget *scale_check_box ;
-	GtkWidget *edit_hbox, *tags_vbox, *edit_vbox; 
+	GtkWidget *edit_hbox, *tags_vbox, *edit_vpanes; 
 	GtkWidget *insert_tag_btn ;
   	
     xe = g_object_new (ASGTK_TYPE_XML_EDITOR, NULL);
@@ -622,16 +731,15 @@ asgtk_xml_editor_new ()
 	tags_vbox = gtk_vbox_new (FALSE, 0);
   	gtk_widget_show (tags_vbox);
 	gtk_box_set_spacing( GTK_BOX(tags_vbox), 3 );
-	edit_vbox = gtk_vbox_new (FALSE, 0);
-  	gtk_widget_show (edit_vbox);
-	gtk_box_set_spacing( GTK_BOX(edit_vbox), 3 );
+	edit_vpanes = gtk_vpaned_new ();
+  	gtk_widget_show (edit_vpanes);
 
 	gtk_box_pack_start (GTK_BOX (edit_hbox), tags_vbox, FALSE, FALSE, 0);
-	gtk_box_pack_start (GTK_BOX (edit_hbox), edit_vbox, TRUE, TRUE, 0);
+	gtk_box_pack_start (GTK_BOX (edit_hbox), edit_vpanes, TRUE, TRUE, 0);
 
 	scrolled_window = make_xml_tags_list( ASGTK_XML_EDITOR(xe) );
 	gtk_box_pack_start (GTK_BOX (tags_vbox), scrolled_window, TRUE, TRUE, 0);
-
+	gtk_scrolled_window_set_shadow_type( GTK_SCROLLED_WINDOW(scrolled_window), GTK_SHADOW_IN );
 	insert_tag_btn = asgtk_add_button_to_box( NULL, GTK_STOCK_ADD, "Insert Tag template", G_CALLBACK(on_insert_tag_clicked), xe );
 	gtk_box_pack_end (GTK_BOX (tags_vbox), insert_tag_btn, FALSE, FALSE, 0);
 		
@@ -644,10 +752,28 @@ asgtk_xml_editor_new ()
     gtk_container_add (GTK_CONTAINER(scrolled_window), GTK_WIDGET(xe->text_view));
 	gtk_widget_show( scrolled_window );
 	gtk_widget_show( xe->text_view );
+	gtk_scrolled_window_set_shadow_type( GTK_SCROLLED_WINDOW(scrolled_window), GTK_SHADOW_IN );
 
-	gtk_box_pack_start (GTK_BOX (edit_vbox), scrolled_window, TRUE, TRUE, 0);
+	gtk_paned_pack1 (GTK_PANED (edit_vpanes), scrolled_window, TRUE, TRUE);
+	
+	xe->help_view = gtk_text_view_new ();
+	gtk_text_view_set_wrap_mode( GTK_TEXT_VIEW(xe->help_view), GTK_WRAP_WORD );
+	gtk_text_view_set_editable( GTK_TEXT_VIEW(xe->help_view), FALSE );
+	scrolled_window = gtk_scrolled_window_new(NULL, NULL);
+	gtk_widget_set_size_request (scrolled_window, 600, 100);
+	gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolled_window),
+				    				GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
+
+    gtk_container_add (GTK_CONTAINER(scrolled_window), GTK_WIDGET(xe->help_view));
+	gtk_widget_show( scrolled_window );
+	gtk_widget_show( xe->help_view );
+	gtk_scrolled_window_set_shadow_type( GTK_SCROLLED_WINDOW(scrolled_window), GTK_SHADOW_IN );
+	colorize_gtk_widget( scrolled_window, get_colorschemed_style_normal() );
+
+	gtk_paned_pack2 (GTK_PANED (edit_vpanes), scrolled_window, FALSE, FALSE);
+
 	gtk_paned_pack2 (GTK_PANED (panes), edit_hbox, TRUE, TRUE);
-    
+
 	colorize_gtk_window( GTK_WIDGET(xe) );
 
 

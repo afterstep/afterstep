@@ -34,6 +34,7 @@ typedef struct _ASGtkXMLEditor
 	GtkTreeView     *tags_list;
 	GtkWidget       *add_tag_button;
 	GtkWidget       *tag_example;
+	GtkWidget	    *help_view;
 
 	Bool 			 dirty ;
 
