@@ -1133,9 +1133,9 @@ Bool place_aswindow( ASWindow *asw )
 
     if( aswbox == NULL )
     {
-        int i = Scr.Feel.window_boxes_num;
+        int i;
         aswbox = &(Scr.Feel.window_boxes[0]);
-        while( --i >= 0 )
+        for( i = 0 ; i < Scr.Feel.window_boxes_num ; ++i )
         {
 			LOCAL_DEBUG_OUT("window_box \"%s\": main_strategy = %d, backup_strategy = %d", 
 		   					aswbox[i].name, aswbox[i].main_strategy, aswbox[i].backup_strategy);
