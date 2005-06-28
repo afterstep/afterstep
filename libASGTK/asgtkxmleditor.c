@@ -96,6 +96,7 @@ static void
 asgtk_xml_editor_init (ASGtkXMLEditor *id)
 {
 	id->entry = NULL ;
+	id->color_sel = NULL ;
 }
 
 static void
@@ -110,6 +111,11 @@ asgtk_xml_editor_dispose (GObject *object)
 		if( unref_asimage_list_entry(xe->entry) ) 
 			LOCAL_DEBUG_OUT( " entry ref_count = %d", xe->entry->ref_count );
 		xe->entry = NULL ;
+		if( xe->color_sel ) 
+		{	
+			gtk_widget_destroy( GTK_WIDGET(xe->color_sel) );
+			xe->color_sel = NULL ;
+		}
 	}
   	G_OBJECT_CLASS (parent_class)->dispose (object);
 }
@@ -731,6 +737,48 @@ on_insert_tag_clicked( GtkWidget *button, gpointer data )
   	}
 }
 
+static void 
+on_color_sel_destroy( GtkWidget *widget, gpointer data ) 
+{
+	ASGtkXMLEditor *xe = ASGTK_XML_EDITOR (data);
+	xe->color_sel = NULL ;
+	gtk_widget_set_sensitive( GTK_WIDGET(xe->color_browser_btn), TRUE );
+}	 
+
+static void 
+on_insert_color_clicked( GtkWidget *button, gpointer data )
+{
+  	ASGtkXMLEditor *xe = ASGTK_XML_EDITOR (data);
+	if( xe->color_sel != NULL ) 
+	{	
+		char *col_str = asgtk_color_selection_get_color_str(xe->color_sel);
+		if( col_str ) 
+		{
+			GtkTextBuffer *buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (xe->text_view));	
+			gtk_text_buffer_insert_at_cursor( buffer, "\"", 1 );	  
+			gtk_text_buffer_insert_at_cursor( buffer, col_str, strlen(col_str) );	  
+			gtk_text_buffer_insert_at_cursor( buffer, "\"", 1 );	  
+			free( col_str );
+		}	 
+	}
+}
+static void 
+on_color_browser_clicked( GtkWidget *button, gpointer data )
+{
+  	ASGtkXMLEditor *xe = ASGTK_XML_EDITOR (data);
+	if( xe->color_sel == NULL ) 
+	{	
+		GtkWidget *select_btn ; 
+		xe->color_sel = ASGTK_COLOR_SELECTION(asgtk_color_selection_new());
+		g_signal_connect (G_OBJECT (xe->color_sel), "destroy", G_CALLBACK (on_color_sel_destroy), xe);
+
+		select_btn = asgtk_color_selection_add_main_button( xe->color_sel, GTK_STOCK_ADD, G_CALLBACK(on_insert_color_clicked), xe );
+		gtk_button_set_label( GTK_BUTTON(select_btn), "Insert Color" );
+	}
+	gtk_widget_show( GTK_WIDGET(xe->color_sel) );
+	gtk_widget_set_sensitive( GTK_WIDGET(xe->color_browser_btn), FALSE );
+}
+
 /*  public functions  */
 GtkWidget *
 asgtk_xml_editor_new ()
@@ -782,9 +830,13 @@ asgtk_xml_editor_new ()
 	scrolled_window = make_xml_tags_list( ASGTK_XML_EDITOR(xe) );
 	gtk_box_pack_start (GTK_BOX (tags_vbox), scrolled_window, TRUE, TRUE, 0);
 	gtk_scrolled_window_set_shadow_type( GTK_SCROLLED_WINDOW(scrolled_window), GTK_SHADOW_IN );
+	
+	xe->color_browser_btn = asgtk_add_button_to_box( NULL, GTK_STOCK_ADD, "Color Selector", G_CALLBACK(on_color_browser_clicked), xe );
+	gtk_box_pack_end (GTK_BOX (tags_vbox), xe->color_browser_btn, FALSE, FALSE, 0);
+
 	insert_tag_btn = asgtk_add_button_to_box( NULL, GTK_STOCK_ADD, "Insert Tag template", G_CALLBACK(on_insert_tag_clicked), xe );
 	gtk_box_pack_end (GTK_BOX (tags_vbox), insert_tag_btn, FALSE, FALSE, 0);
-		
+	
 	xe->text_view = gtk_text_view_new ();
 	scrolled_window = gtk_scrolled_window_new(NULL, NULL);
 	gtk_widget_set_size_request (scrolled_window, 400, 200);

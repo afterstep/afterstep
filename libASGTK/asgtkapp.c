@@ -65,7 +65,8 @@ init_asgtkapp( int argc, char *argv[], const char *module_name, void (*custom_us
 }
 
 
-GdkColor* color_name2GdkColor( const char *name, GdkColor *color )
+GdkColor* 
+color_name2GdkColor( const char *name, GdkColor *color )
 {
 	ARGB32 argb ;
 
@@ -76,6 +77,17 @@ GdkColor* color_name2GdkColor( const char *name, GdkColor *color )
 	color->blue = ARGB32_BLUE16(argb);
 	return color;
 }
+
+char *
+GdkColor2string( GdkColor *color, int alpha )
+{
+	char buffer[10] ;
+	if( alpha >= 0 )
+		sprintf( &buffer[0], "#%2.2X%2.2X%2.2X%2.2X", alpha>>8, color->red>>8, color->green>>8, color->blue>>8 );
+	else
+		sprintf( &buffer[0], "#%2.2X%2.2X%2.2X", color->red>>8, color->green>>8, color->blue>>8 );
+	return mystrdup(&buffer[0]);
+}	 
 
 static GtkStyle *ASGtkStyleNormal = NULL; 
 static GtkStyle *ASGtkStyleButton = NULL; 

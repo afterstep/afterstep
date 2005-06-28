@@ -10,6 +10,7 @@
 #include "asgtkimagedir.h"
 #include "asgtkimagebrowser.h"
 #include "asgtkxmleditor.h"
+#include "asgtkcolorsel.h"
 
 
 #endif /* #ifndef ASGTK_H_HEADER_INCLUDED */

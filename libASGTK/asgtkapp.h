@@ -10,6 +10,8 @@ void
 init_asgtkapp( int argc, char *argv[], const char *module_name, void (*custom_usage_func) (void), ASFlagType opt_mask);
 
 GdkColor* color_name2GdkColor( const char *name, GdkColor* color );
+char *GdkColor2string( GdkColor *color, int alpha );
+
 GtkStyle* get_colorschemed_style_normal();
 GtkStyle* get_colorschemed_style_button();
 

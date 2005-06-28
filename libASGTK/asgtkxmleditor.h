@@ -13,6 +13,7 @@
 struct ASImage;
 struct ASImageListEntry;
 struct _ASGtkXMLEditor;
+struct _ASGtkColorSelection;
 	
 typedef void (*_ASGtkXMLEditor_handler)(struct _ASGtkXMLEditor *xe, gpointer user_data, Bool new_file);
 
@@ -35,6 +36,9 @@ typedef struct _ASGtkXMLEditor
 	GtkWidget       *add_tag_button;
 	GtkWidget       *tag_example;
 	GtkWidget	    *help_view;
+
+	GtkWidget		*color_browser_btn ;
+	struct _ASGtkColorSelection *color_sel ;
 
 	Bool 			 dirty ;
 
