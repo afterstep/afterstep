@@ -559,7 +559,7 @@ make_xml_tags_list( ASGtkXMLEditor *xe )
 	tree_model = GTK_TREE_MODEL(gtk_list_store_new (3, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING));
 	
 	scrolled_window = gtk_scrolled_window_new(NULL, NULL);
-	gtk_widget_set_size_request (scrolled_window, 120, 300);
+	gtk_widget_set_size_request (scrolled_window, 100, 200);
 	gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolled_window),
 				    				GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC );
 	gtk_widget_show(scrolled_window);
@@ -601,14 +601,56 @@ insert_tag_template_at_cursor( ASGtkXMLEditor *xe, const char *text )
 {
 	GtkTextBuffer *buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (xe->text_view));
 	GtkTextMark *mark ; 
-	GtkTextIter start, end ;
+	GtkTextIter start, end, line_start ;
 	int text_len = strlen(text);
 	int start_mark ;
+	int start_line_no ;
+	char *start_text, *filler = NULL ; 
+	int i, curr_line_start, filler_len = 0 ;
+	Bool skip_leading_eol = False  ;
 
 	mark = gtk_text_buffer_get_insert( buffer );
 	gtk_text_buffer_get_iter_at_mark( buffer, &start, mark );
+	start_line_no = gtk_text_iter_get_line( &start );
+	gtk_text_buffer_get_iter_at_line( buffer, &line_start, start_line_no );
+
+	start_text = gtk_text_iter_get_text( &line_start, &start );
+	if( start_text ) 
+	{
+		for( i = 0 ; start_text[i] != '\0' ; ++i ) 
+			if( !isspace(start_text[i]) )
+				break;
+		if( start_text[i] == '\0' ) 
+			skip_leading_eol = True ;
+		if( i > 0 ) 
+		{
+			filler_len = i ;
+			filler = mystrndup(start_text, i );
+		}
+		free( start_text ); 	
+	}	 
+
 	start_mark = gtk_text_iter_get_offset(&start);
-	gtk_text_buffer_insert_at_cursor( buffer, text, text_len);
+	curr_line_start = 0 ;
+	for( i = 0 ; text[i] != '\0' ; ++i ) 
+	{
+		if( text[i] == '\n' ) 
+		{
+			if( !skip_leading_eol || i > 0 )
+			{	
+				gtk_text_buffer_insert_at_cursor( buffer, &text[curr_line_start], i+1-curr_line_start);	
+				if( filler ) 
+				{	
+					gtk_text_buffer_insert_at_cursor( buffer, filler, filler_len);	  
+					text_len += filler_len ;
+				}
+			}
+			curr_line_start = i + 1 ; 
+		}	 
+	}	 
+	if( i > curr_line_start ) 
+		gtk_text_buffer_insert_at_cursor( buffer, &text[curr_line_start], i-curr_line_start);	
+	
 	gtk_text_buffer_get_iter_at_offset( buffer, &start, start_mark );
 	gtk_text_buffer_get_iter_at_offset( buffer, &end, start_mark+text_len );
 	gtk_text_buffer_select_range( buffer, &start, &end);
@@ -698,7 +740,7 @@ asgtk_xml_editor_new ()
 	GtkWidget *scrolled_window; 
 	GtkWidget *panes ; 
 	GtkWidget *scale_check_box ;
-	GtkWidget *edit_hbox, *tags_vbox, *edit_vpanes; 
+	GtkWidget *edit_hbox, *tags_vbox, *edit_vpanes, *save_hbox; 
 	GtkWidget *insert_tag_btn ;
   	
     xe = g_object_new (ASGTK_TYPE_XML_EDITOR, NULL);
@@ -714,7 +756,7 @@ asgtk_xml_editor_new ()
 	gtk_box_pack_start (GTK_BOX (main_vbox), panes, TRUE, TRUE, 0);
 
 	xe->image_view = ASGTK_IMAGE_VIEW(asgtk_image_view_new_horizontal());
-	gtk_widget_set_size_request (GTK_WIDGET(xe->image_view), 400, 300);
+	gtk_widget_set_size_request (GTK_WIDGET(xe->image_view), 320, 240);
 	gtk_paned_pack1 (GTK_PANED (panes), GTK_WIDGET(xe->image_view), TRUE, TRUE);
 	gtk_widget_show (GTK_WIDGET(xe->image_view));
 	asgtk_image_view_set_aspect ( xe->image_view,
@@ -745,7 +787,7 @@ asgtk_xml_editor_new ()
 		
 	xe->text_view = gtk_text_view_new ();
 	scrolled_window = gtk_scrolled_window_new(NULL, NULL);
-	gtk_widget_set_size_request (scrolled_window, 600, 300);
+	gtk_widget_set_size_request (scrolled_window, 400, 200);
 	gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolled_window),
 				    				GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
 
@@ -760,7 +802,7 @@ asgtk_xml_editor_new ()
 	gtk_text_view_set_wrap_mode( GTK_TEXT_VIEW(xe->help_view), GTK_WRAP_WORD );
 	gtk_text_view_set_editable( GTK_TEXT_VIEW(xe->help_view), FALSE );
 	scrolled_window = gtk_scrolled_window_new(NULL, NULL);
-	gtk_widget_set_size_request (scrolled_window, 600, 100);
+	gtk_widget_set_size_request (scrolled_window, 600, 50);
 	gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolled_window),
 				    				GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
 
@@ -779,20 +821,24 @@ asgtk_xml_editor_new ()
 
 	/* buttons : */
 
-	xe->refresh_btn = asgtk_add_button_to_box( NULL, GTK_STOCK_REFRESH, NULL, G_CALLBACK(on_refresh_clicked), xe );
-	xe->save_btn = asgtk_add_button_to_box( NULL, GTK_STOCK_SAVE, NULL, G_CALLBACK(on_save_clicked), xe );
-	xe->save_as_btn = asgtk_add_button_to_box( NULL, GTK_STOCK_SAVE_AS, NULL, G_CALLBACK(on_save_clicked), xe );
+	save_hbox = gtk_hbutton_box_new ();
+  	gtk_widget_show (save_hbox);
+
 	xe->render_selection_btn = asgtk_add_button_to_box( NULL, GTK_STOCK_SAVE_AS, "Render Selection", G_CALLBACK(on_refresh_clicked), xe ) ; 
+	xe->refresh_btn = asgtk_add_button_to_box( NULL, GTK_STOCK_REFRESH, NULL, G_CALLBACK(on_refresh_clicked), xe );
 	xe->validate_btn = asgtk_add_button_to_box( NULL, GTK_STOCK_REFRESH, "Validate XML", G_CALLBACK(on_validate_clicked), xe ) ; 
+	xe->save_btn = asgtk_add_button_to_box( GTK_BOX(save_hbox), GTK_STOCK_SAVE, NULL, G_CALLBACK(on_save_clicked), xe );
+	xe->save_as_btn = asgtk_add_button_to_box( GTK_BOX(save_hbox), GTK_STOCK_SAVE_AS, NULL, G_CALLBACK(on_save_clicked), xe );
 
 	gtk_widget_set_sensitive( xe->refresh_btn, FALSE );
 	gtk_widget_set_sensitive( xe->save_btn, FALSE );
 
-	asgtk_image_view_add_tool( xe->image_view, xe->validate_btn, 0 );
+	asgtk_image_view_add_tool( xe->image_view, save_hbox, 0 ); 
+	asgtk_image_view_add_tool( xe->image_view, xe->validate_btn, 3 );
 	asgtk_image_view_add_tool( xe->image_view, xe->render_selection_btn, 3 );
 	asgtk_image_view_add_tool( xe->image_view, xe->refresh_btn, 3 );
-	asgtk_image_view_add_tool( xe->image_view, xe->save_btn, 3 );
-	asgtk_image_view_add_tool( xe->image_view, xe->save_as_btn, 0 );
+	//asgtk_image_view_add_tool( xe->image_view, xe->save_btn, 3 );
+	//asgtk_image_view_add_tool( xe->image_view, xe->save_as_btn, 0 );
 
    	g_signal_connect (gtk_text_view_get_buffer (GTK_TEXT_VIEW (xe->text_view)), 
 					  "changed",  G_CALLBACK (on_text_changed), xe);
