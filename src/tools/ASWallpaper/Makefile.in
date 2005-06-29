@@ -18,6 +18,6 @@ module.clean:
 ASWallpaper:	        $(OBJS_ASWALLPAPER) $(LIBS_DEPEND)
 		$(CC) $(OBJS_ASWALLPAPER) $(LIBS_ALL) -o $(@)
 
-install:	install.bin install.man
+install:	install.bin
 
-uninstall:	uninstall.bin uninstall.man
+uninstall:	uninstall.bin

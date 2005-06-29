@@ -755,9 +755,34 @@ on_insert_color_clicked( GtkWidget *button, gpointer data )
 		if( col_str ) 
 		{
 			GtkTextBuffer *buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (xe->text_view));	
-			gtk_text_buffer_insert_at_cursor( buffer, "\"", 1 );	  
+			GtkTextIter start, end;
+			int insmark ;
+			char *tmp ; 
+			Bool open_quote = True, close_quote = True ; 
+			
+			gtk_text_buffer_get_iter_at_mark (buffer, &start,
+            			                        gtk_text_buffer_get_mark (buffer, "insert"));
+			insmark = gtk_text_iter_get_offset(&start);
+			if( insmark > 0 ) 
+			{	
+				end = start ;
+				gtk_text_buffer_get_iter_at_offset (buffer, &start, insmark-1 );
+				tmp = gtk_text_buffer_get_text (buffer, &start, &end, FALSE );
+				if( tmp ) 
+				{	
+					if( tmp[0] == '\"' ) 
+					{
+						open_quote = False ; 
+						close_quote = ( tmp[1] != '\"' );
+					}
+					free( tmp );
+				}
+			}
+			if( open_quote ) 
+				gtk_text_buffer_insert_at_cursor( buffer, "\"", 1 );	  
 			gtk_text_buffer_insert_at_cursor( buffer, col_str, strlen(col_str) );	  
-			gtk_text_buffer_insert_at_cursor( buffer, "\"", 1 );	  
+			if( close_quote ) 
+				gtk_text_buffer_insert_at_cursor( buffer, "\"", 1 );	  
 			free( col_str );
 		}	 
 	}

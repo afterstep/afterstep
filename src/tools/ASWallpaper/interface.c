@@ -76,11 +76,127 @@ on_list_apply_clicked(GtkButton *button, gpointer user_data)
 		unref_asimage_list_entry( entry );
 	}
 }
+typedef struct ASGtkMakeXMLDlg
+{
+	GtkWidget *dlg ; 
+	ASImageListEntry *entry ;	  
+	GtkWidget *scale_check_box ;
+	GtkWidget *color_check_box ;
+	GtkWidget *border_check_box ;
+
+	GtkWidget *tint_radio ; 
+	GtkWidget *hsv_radio ; 
+
+	GtkWidget *border_width ; 
+	GtkWidget *solid_check_box ; 
+
+
+}ASGtkMakeXMLDlg;
 
 void
-on_make_xml_clicked(GtkButton *button, gpointer user_data)
+on_make_xml_dlg_destroy(GtkWidget *widget, gpointer user_data)
 {
+	ASGtkMakeXMLDlg *mx = (ASGtkMakeXMLDlg*)user_data ;
+	if( mx )
+	{ 
+		if( mx->entry ) 
+		{	
+			unref_asimage_list_entry( mx->entry );
+			mx->entry = NULL ; 
+		}
+		free( mx );
+	}
+}
 
+void
+on_make_xml_clicked(GtkButton *clicked_button, gpointer user_data)
+{
+	ASGtkImageDir *id = ASGTK_IMAGE_DIR(user_data);
+	ASGtkMakeXMLDlg *mx = safecalloc( 1, sizeof( ASGtkMakeXMLDlg ) );
+	GtkWidget *frame, *box, *box2 ;
+		
+	mx->entry = asgtk_image_dir_get_selection( id );
+	if( mx->entry == NULL ) 
+	{
+		free( mx ); 	  
+		return;
+	}
+	mx->dlg = gtk_dialog_new_with_buttons( "Making new XML based on selected image", 
+											GTK_WINDOW(WallpaperState.main_window),
+										   	GTK_DIALOG_MODAL|GTK_DIALOG_DESTROY_WITH_PARENT, 
+											GTK_STOCK_CANCEL, GTK_RESPONSE_REJECT,
+											GTK_STOCK_OK, GTK_RESPONSE_ACCEPT,
+											NULL
+										  );
+	g_signal_connect_swapped (  GTK_OBJECT (mx->dlg), "response",              
+								G_CALLBACK (gtk_widget_destroy), GTK_OBJECT (mx->dlg));
+    gtk_container_set_border_width (GTK_CONTAINER (mx->dlg), 5);
+    //gtk_widget_set_size_request (mx->dlg, 400, 300);
+
+	mx->scale_check_box = gtk_check_button_new_with_label( "Scale image to screen size" );
+	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(mx->scale_check_box), TRUE );
+	colorize_gtk_widget( mx->scale_check_box, get_colorschemed_style_normal() );
+    gtk_box_pack_start (GTK_BOX (GTK_DIALOG(mx->dlg)->vbox), mx->scale_check_box, FALSE, FALSE, 0);
+
+	mx->color_check_box = gtk_check_button_new_with_label( "Adjust image color based on selected Color Scheme." );
+	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(mx->color_check_box), TRUE );
+	//colorize_gtk_widget( mx->color_check_box, get_colorschemed_style_normal() );
+    //gtk_box_pack_start (GTK_BOX (GTK_DIALOG(mx->dlg)->vbox), mx->color_check_box, FALSE, FALSE, 0);
+	
+	frame = gtk_frame_new(NULL);
+    gtk_box_pack_start (GTK_BOX (GTK_DIALOG(mx->dlg)->vbox), frame, FALSE, FALSE, 5);
+	gtk_frame_set_label_widget( GTK_FRAME(frame), mx->color_check_box );
+
+	box = gtk_vbox_new( TRUE, 5 );
+	gtk_container_add (GTK_CONTAINER (frame), box);
+	gtk_container_set_border_width (GTK_CONTAINER (box), 5);
+
+	mx->tint_radio = gtk_radio_button_new_with_label( NULL, "Use Tinting (suitable for mostly grayscale images)" );
+	gtk_box_pack_start (GTK_BOX (box), mx->tint_radio, FALSE, FALSE, 0);
+	mx->hsv_radio = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(mx->tint_radio), "Use Hue rotation (suitable for colorfull images)" );
+	gtk_box_pack_start (GTK_BOX (box), mx->hsv_radio, FALSE, FALSE, 0);
+	colorize_gtk_widget( frame, get_colorschemed_style_normal() );
+	gtk_widget_show_all (box);
+	gtk_widget_show (box);
+	   
+	mx->border_check_box = gtk_check_button_new_with_label( "Draw Border around the image" );
+	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(mx->border_check_box), TRUE );
+	colorize_gtk_widget( mx->border_check_box, get_colorschemed_style_normal() );
+    
+	frame = gtk_frame_new(NULL);
+    gtk_box_pack_start (GTK_BOX (GTK_DIALOG(mx->dlg)->vbox), frame, FALSE, FALSE, 5);
+	gtk_frame_set_label_widget( GTK_FRAME(frame), mx->border_check_box );
+
+	box = gtk_vbox_new( TRUE, 5 );
+	gtk_container_set_border_width (GTK_CONTAINER (box), 5);
+	gtk_container_add (GTK_CONTAINER (frame), box);
+
+	mx->solid_check_box = gtk_check_button_new_with_label( "Draw solid bevel" );
+	gtk_box_pack_start (GTK_BOX (box), mx->solid_check_box, FALSE, FALSE, 0);
+	
+	box2 = gtk_hbox_new( FALSE, 5 );
+	//gtk_container_set_border_width (GTK_CONTAINER (box2), 5);
+	gtk_box_pack_start (GTK_BOX (box), box2, TRUE, TRUE, 0);
+
+	gtk_box_pack_start (GTK_BOX (box2), gtk_label_new("Border width : "), FALSE, FALSE, 0);
+	mx->border_width = gtk_spin_button_new_with_range( 1.0, Scr.MyDisplayWidth/2, 1.0 ); 
+	gtk_box_pack_start (GTK_BOX (box2), mx->border_width, FALSE, FALSE, 0);
+	gtk_widget_show_all (box2);
+	
+	colorize_gtk_widget( frame, get_colorschemed_style_normal() );
+	gtk_widget_show_all (box);
+	gtk_widget_show (box);
+
+	gtk_widget_show_all (mx->dlg);
+
+	if( gtk_dialog_run( GTK_DIALOG(mx->dlg) ) == GTK_RESPONSE_OK ) 
+	{
+		
+		
+	}	 
+
+	unref_asimage_list_entry( mx->entry );
+	free( mx );
 }
 
 void gtk_xml_editor_destroy( GtkWidget *widget, gpointer user_data ) 
