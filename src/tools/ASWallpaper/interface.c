@@ -309,6 +309,25 @@ make_minixml_from_image( ASGtkMakeXMLDlg* mx, ASGtkImageDir *id )
 	return True;
 }	 
 
+void 
+set_make_xml_widgets_sensitive( GtkWidget *button, gpointer user_data ) 
+{
+	ASGtkMakeXMLDlg *mx	= (ASGtkMakeXMLDlg *)user_data ;
+	Bool active = gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(button)); 	 
+
+	if( button == mx->color_check_box ) 
+	{
+		gtk_widget_set_sensitive( mx->tint_radio, active );
+		gtk_widget_set_sensitive( mx->hsv_radio, active );
+	}else if( button == mx->border_check_box ) 
+	{
+		gtk_widget_set_sensitive( mx->border_width, active );
+		gtk_widget_set_sensitive( mx->solid_check_box, active );
+		gtk_widget_set_sensitive( mx->single_color_check_box, active );
+		gtk_widget_set_sensitive( mx->outline_check_box, active );
+	}
+}
+
 void
 on_make_xml_clicked(GtkButton *clicked_button, gpointer user_data)
 {
@@ -346,6 +365,9 @@ on_make_xml_clicked(GtkButton *clicked_button, gpointer user_data)
 	//colorize_gtk_widget( mx->color_check_box, get_colorschemed_style_normal() );
     //gtk_box_pack_start (GTK_BOX (GTK_DIALOG(mx->dlg)->vbox), mx->color_check_box, FALSE, FALSE, 0);
 	
+	g_signal_connect ((gpointer) mx->color_check_box, "clicked", G_CALLBACK (set_make_xml_widgets_sensitive), mx);
+
+		   
 	frame = gtk_frame_new(NULL);
     gtk_box_pack_start (GTK_BOX (GTK_DIALOG(mx->dlg)->vbox), frame, FALSE, FALSE, 5);
 	gtk_frame_set_label_widget( GTK_FRAME(frame), mx->color_check_box );
@@ -365,7 +387,9 @@ on_make_xml_clicked(GtkButton *clicked_button, gpointer user_data)
 	mx->border_check_box = gtk_check_button_new_with_label( "Draw Border around the image" );
 	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(mx->border_check_box), TRUE );
 	colorize_gtk_widget( mx->border_check_box, get_colorschemed_style_normal() );
-    
+
+	g_signal_connect ((gpointer) mx->border_check_box, "clicked", G_CALLBACK (set_make_xml_widgets_sensitive), mx);    
+	
 	frame = gtk_frame_new(NULL);
     gtk_box_pack_start (GTK_BOX (GTK_DIALOG(mx->dlg)->vbox), frame, FALSE, FALSE, 5);
 	gtk_frame_set_label_widget( GTK_FRAME(frame), mx->border_check_box );
@@ -409,7 +433,19 @@ on_make_xml_clicked(GtkButton *clicked_button, gpointer user_data)
 
 	gtk_widget_show_all (mx->dlg);
 
-	response = gtk_dialog_run( GTK_DIALOG(mx->dlg) );
+	do
+	{	
+		const char *name ;
+		response = gtk_dialog_run( GTK_DIALOG(mx->dlg) );
+		if( response == GTK_RESPONSE_ACCEPT ) 
+		{	
+			name = gtk_entry_get_text( GTK_ENTRY(mx->back_name) );
+			if( name == NULL || strlen(name) == 0 ) 
+				asgtk_warning2( WallpaperState.main_window, "Empty name specified for a new background.", NULL, NULL ); 	   				   		   			   			
+			else
+				break;
+		}
+	}while( response == GTK_RESPONSE_ACCEPT ); 
 	if( response == GTK_RESPONSE_ACCEPT ) 
 	{
 		if( make_xml_from_image( mx, id ) ) 
