@@ -308,17 +308,17 @@ void  asgtk_image_dir_refresh( ASGtkImageDir *id )
 }	 
 
 Bool 
-asgtk_image_dir_make_mini_names( ASGtkImageDir *id, ASImageListEntry *entry, char **name_return, char **fullname_return ) 
+asgtk_image_dir_make_mini_names( ASGtkImageDir *id, const char *name, char **name_return, char **fullname_return ) 
 {
-	if( id->mini_extension ) 
+	if( id->mini_extension && name ) 
 	{			   
 		int mini_ext_len = strlen(id->mini_extension);
-		char *mini_filename = safemalloc( strlen(entry->name)+mini_ext_len+1 );
+		char *mini_filename = safemalloc( strlen(name)+mini_ext_len+1 );
 
 		if( id->mini_extension[mini_ext_len-1] == '.' )
-			sprintf(mini_filename,"%s%s", id->mini_extension, entry->name );
+			sprintf(mini_filename,"%s%s", id->mini_extension, name );
 		else
-			sprintf(mini_filename,"%s%s", entry->name, id->mini_extension );
+			sprintf(mini_filename,"%s%s", name, id->mini_extension );
 
 		if( fullname_return ) 
 			*fullname_return = make_file_name( id->fulldirname, mini_filename );

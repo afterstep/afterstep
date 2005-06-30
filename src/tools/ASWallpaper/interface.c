@@ -46,7 +46,7 @@ on_list_del_clicked(GtkButton *button, gpointer user_data)
 			if( id->mini_extension ) 
 			{	
 				char *mini_filename, *mini_fullfilename ;
-				asgtk_image_dir_make_mini_names( id, entry, &mini_filename, &mini_fullfilename ); 
+				asgtk_image_dir_make_mini_names( id, entry->name, &mini_filename, &mini_fullfilename ); 
 				
 				if( CheckFile( mini_fullfilename ) == 0 ) 
 				{
@@ -89,24 +89,225 @@ typedef struct ASGtkMakeXMLDlg
 
 	GtkWidget *border_width ; 
 	GtkWidget *solid_check_box ; 
+	GtkWidget *single_color_check_box ; 
+	GtkWidget *outline_check_box ; 
 
+	GtkWidget *back_name ;
+	
+	char *fullfilename ;
+	char *mini_fullfilename ;
 
 }ASGtkMakeXMLDlg;
 
 void
-on_make_xml_dlg_destroy(GtkWidget *widget, gpointer user_data)
+make_xml_dlg_destroy(ASGtkMakeXMLDlg *mx)
 {
-	ASGtkMakeXMLDlg *mx = (ASGtkMakeXMLDlg*)user_data ;
 	if( mx )
 	{ 
+		gtk_widget_destroy( mx->dlg );
 		if( mx->entry ) 
 		{	
 			unref_asimage_list_entry( mx->entry );
 			mx->entry = NULL ; 
 		}
+		if( mx->fullfilename ) 
+			free( mx->fullfilename );
+		if( mx->mini_fullfilename ) 
+			free( mx->mini_fullfilename );
+		memset( mx, 0x00, sizeof(ASGtkMakeXMLDlg));
 		free( mx );
 	}
 }
+
+Bool 
+make_xml_from_image( ASGtkMakeXMLDlg* mx, ASGtkImageDir *id )
+{
+	FILE *fp ; 
+	const char *name = gtk_entry_get_text( GTK_ENTRY(mx->back_name) );
+	int border_width = 0;
+	Bool tint = False ;
+	Bool hsv = False ;
+	Bool scale = False ; 
+	int pad = 0, i ;
+	int size_offset = 0 ;
+	
+	if( name == NULL || strlen(name) == 0 )
+	{	
+		asgtk_warning2( WallpaperState.main_window, "Empty name specified for a new background.", NULL, NULL ); 	   				   		   			   
+		return False ;
+	}
+	
+	if( mx->fullfilename == NULL ) 
+	{
+		mx->fullfilename = make_file_name( id->fulldirname, name );
+	}
+	
+	if( CheckFile( mx->fullfilename ) == 0 ) 
+	{
+		if( !asgtk_yes_no_question1( WallpaperState.main_window, "It appears that you already have private background with name \"%s\". Would you like to overwrite it ?", name ) )
+			return False ; 
+		unlink( mx->fullfilename );
+	}	
+	fp = fopen( mx->fullfilename, "w" ); 
+	if( fp == NULL ) 
+	{
+		asgtk_warning2( WallpaperState.main_window, "Failed to open file \"%s\" : %s.", mx->fullfilename, g_strerror (errno) ); 	   				   		   			
+		return False;
+	}	 
+
+	scale = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(mx->scale_check_box));
+	if( gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(mx->color_check_box)) )
+	{
+		if( gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(mx->tint_radio)) )	
+			tint = True ; 
+		else
+			hsv = True ;
+	}	 
+	if( gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(mx->border_check_box)) )
+		border_width = gtk_spin_button_get_value_as_int( GTK_SPIN_BUTTON(mx->border_width) );
+	if( border_width > 0 ) 
+	{
+		int solid = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(mx->solid_check_box))?1:0 ; 	  
+		int outline = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(mx->outline_check_box))?1:0 ; 
+		Bool single_color = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(mx->single_color_check_box)) ;
+		
+		fprintf( fp, single_color?"<bevel colors=\"Base Base\"":"<bevel colors=\"BaseLight BaseDark\"");
+		fprintf( fp, " width=\"$xroot.width\" height=\"$xroot.height\"");
+		fprintf( fp, " border=\"%d %d %d %d\" solid=\"%d\" outline=\"%d\">\n", 
+		  	 	 border_width, border_width, border_width, border_width, solid, outline );
+		if( outline ) 
+			size_offset = border_width*2 ;
+		++pad ;
+	}
+	if( scale )
+	{
+		for( i = 0 ; i < pad ; ++i ) fprintf( fp, "    " );		
+		if( size_offset > 0 )
+			fprintf( fp, "<scale width=\"$xroot.width-%d\" height=\"$xroot.height-%d\">\n", size_offset, size_offset );
+		else
+			fprintf( fp, "<scale width=\"$xroot.width\" height=\"$xroot.height\">\n" );
+		++pad;
+	}	
+	if( tint || hsv ) 
+	{	
+		for( i = 0 ; i < pad ; ++i ) fprintf( fp, "    " );
+		if( tint )
+			fprintf( fp, "<tile tint=\"Base\"" );
+		else
+			fprintf( fp, "<hsv hue_offset=\"$ascs.Base.hue\" value_offset=\"1\"" );
+		
+		if( !scale && border_width > 0 )
+		{	
+			if( size_offset > 0 )  
+				fprintf( fp, " width=\"$xroot.width-%d\" height=\"$xroot.height-%d\"", size_offset, size_offset );
+			else
+				fprintf( fp, " width=\"$xroot.width\" height=\"$xroot.height\"" );
+		}		
+		fprintf( fp, ">\n" );
+		++pad;
+	}
+	for( i = 0 ; i < pad ; ++i ) fprintf( fp, "    " );		   
+	fprintf( fp, "<img src=\"%s\"/>\n", mx->entry->name );
+	--pad ;	 
+	if( tint || hsv ) 
+	{	
+		for( i = 0 ; i < pad ; ++i ) fprintf( fp, "    " );
+		fprintf( fp, tint?"</tile>\n":"</hsv>\n");
+		--pad;		
+	}
+	if( scale )
+	{
+		for( i = 0 ; i < pad ; ++i ) fprintf( fp, "    " );		
+		fprintf( fp, "</scale>\n");
+		--pad;
+	}	
+
+	if( border_width > 0 )
+		fprintf( fp, "</bevel>\n");
+	
+	fclose(fp);
+	return True;
+}	 
+
+Bool 
+make_minixml_from_image( ASGtkMakeXMLDlg* mx, ASGtkImageDir *id )
+{
+	FILE *fp ; 
+	const char *name = gtk_entry_get_text( GTK_ENTRY(mx->back_name) );
+	Bool tint = False ;
+	Bool hsv = False ;
+	Bool scale = False ; 
+	int pad = 0, i ;
+	
+	if( name == NULL || strlen(name) == 0 )
+	{	
+		asgtk_warning2( WallpaperState.main_window, "Empty name specified for a new background.", NULL, NULL ); 	   				   		   			   
+		return False ;
+	}
+	
+	if( mx->mini_fullfilename == NULL ) 
+	{
+		if ( !asgtk_image_dir_make_mini_names( id, name, NULL, &(mx->mini_fullfilename) ) ) 
+				return False;
+	}
+	
+	if( CheckFile( mx->mini_fullfilename ) == 0 ) 
+	{
+		unlink( mx->mini_fullfilename );
+	}	
+	fp = fopen( mx->mini_fullfilename, "w" ); 
+	if( fp == NULL ) 
+	{
+		asgtk_warning2( WallpaperState.main_window, "Failed to open minipixmap file \"%s\" : %s.", mx->mini_fullfilename, g_strerror (errno) ); 	   				   		   			
+		return False;
+	}	 
+
+	scale = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(mx->scale_check_box));
+	if( gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(mx->color_check_box)) )
+	{
+		if( gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(mx->tint_radio)) )	
+			tint = True ; 
+		else
+			hsv = True ;
+	}	 
+	if( tint || hsv ) 
+	{	
+		for( i = 0 ; i < pad ; ++i ) fprintf( fp, "    " );
+		if( tint )
+			fprintf( fp, "<tile tint=\"Base\"" );
+		else
+			fprintf( fp, "<hsv hue_offset=\"$ascs.Base.hue\" value_offset=\"1\"" );
+		
+		if( !scale ) 
+			fprintf( fp, " width=\"$minipixmap.width\" height=\"$minipixmap.height\"" );
+		fprintf( fp, ">\n" );
+		++pad;
+	}
+	if( scale )
+	{
+		for( i = 0 ; i < pad ; ++i ) fprintf( fp, "    " );		
+		fprintf( fp, "<scale width=\"$minipixmap.width\" height=\"$minipixmap.height\">\n" );
+		++pad;
+	}	
+	for( i = 0 ; i < pad ; ++i ) fprintf( fp, "    " );		   
+	fprintf( fp, "<img src=\"%s\"/>\n", mx->entry->name );
+	--pad ;	 
+	if( scale )
+	{
+		for( i = 0 ; i < pad ; ++i ) fprintf( fp, "    " );		
+		fprintf( fp, "</scale>\n");
+		--pad;
+	}	
+	if( tint || hsv ) 
+	{	
+		for( i = 0 ; i < pad ; ++i ) fprintf( fp, "    " );
+		fprintf( fp, tint?"</tile>\n":"</hsv>\n");
+		--pad;		
+	}
+
+	fclose(fp);
+	return True;
+}	 
 
 void
 on_make_xml_clicked(GtkButton *clicked_button, gpointer user_data)
@@ -114,6 +315,8 @@ on_make_xml_clicked(GtkButton *clicked_button, gpointer user_data)
 	ASGtkImageDir *id = ASGTK_IMAGE_DIR(user_data);
 	ASGtkMakeXMLDlg *mx = safecalloc( 1, sizeof( ASGtkMakeXMLDlg ) );
 	GtkWidget *frame, *box, *box2 ;
+	Bool files_added = False; 
+	int response ;
 		
 	mx->entry = asgtk_image_dir_get_selection( id );
 	if( mx->entry == NULL ) 
@@ -128,8 +331,8 @@ on_make_xml_clicked(GtkButton *clicked_button, gpointer user_data)
 											GTK_STOCK_OK, GTK_RESPONSE_ACCEPT,
 											NULL
 										  );
-	g_signal_connect_swapped (  GTK_OBJECT (mx->dlg), "response",              
-								G_CALLBACK (gtk_widget_destroy), GTK_OBJECT (mx->dlg));
+//	g_signal_connect_swapped (  GTK_OBJECT (mx->dlg), "response",              
+//								G_CALLBACK (gtk_widget_destroy), GTK_OBJECT (mx->dlg));
     gtk_container_set_border_width (GTK_CONTAINER (mx->dlg), 5);
     //gtk_widget_set_size_request (mx->dlg, 400, 300);
 
@@ -173,9 +376,18 @@ on_make_xml_clicked(GtkButton *clicked_button, gpointer user_data)
 
 	mx->solid_check_box = gtk_check_button_new_with_label( "Draw solid bevel" );
 	gtk_box_pack_start (GTK_BOX (box), mx->solid_check_box, FALSE, FALSE, 0);
+
+	box2 = gtk_hbox_new( FALSE, 5 );
+	gtk_box_pack_start (GTK_BOX (box), box2, TRUE, TRUE, 0);
+
+	mx->single_color_check_box = gtk_check_button_new_with_label( "Use single color" );
+	gtk_box_pack_start (GTK_BOX (box2), mx->single_color_check_box, FALSE, FALSE, 0); 
+	mx->outline_check_box  = gtk_check_button_new_with_label( "Outline image" );
+	gtk_box_pack_start (GTK_BOX (box2), mx->outline_check_box, FALSE, FALSE, 0); ; 
+	
+	gtk_widget_show_all (box2);
 	
 	box2 = gtk_hbox_new( FALSE, 5 );
-	//gtk_container_set_border_width (GTK_CONTAINER (box2), 5);
 	gtk_box_pack_start (GTK_BOX (box), box2, TRUE, TRUE, 0);
 
 	gtk_box_pack_start (GTK_BOX (box2), gtk_label_new("Border width : "), FALSE, FALSE, 0);
@@ -186,17 +398,29 @@ on_make_xml_clicked(GtkButton *clicked_button, gpointer user_data)
 	colorize_gtk_widget( frame, get_colorschemed_style_normal() );
 	gtk_widget_show_all (box);
 	gtk_widget_show (box);
+	
+	box2 = gtk_hbox_new( FALSE, 5 );
+	gtk_container_set_border_width (GTK_CONTAINER (box2), 5);
+	gtk_box_pack_start (GTK_BOX (GTK_DIALOG(mx->dlg)->vbox), box2, FALSE, FALSE, 0);
+	gtk_box_pack_start (GTK_BOX (box2), gtk_label_new("New Background name : "), FALSE, FALSE, 0);
+	mx->back_name = gtk_entry_new(); 
+	gtk_box_pack_start (GTK_BOX (box2), mx->back_name, TRUE, TRUE, 0);
+	gtk_widget_show_all (box2);
 
 	gtk_widget_show_all (mx->dlg);
 
-	if( gtk_dialog_run( GTK_DIALOG(mx->dlg) ) == GTK_RESPONSE_OK ) 
+	response = gtk_dialog_run( GTK_DIALOG(mx->dlg) );
+	if( response == GTK_RESPONSE_ACCEPT ) 
 	{
-		
-		
+		if( make_xml_from_image( mx, id ) ) 
+		{
+			files_added = True ;	  
+			make_minixml_from_image( mx, id ); 
+		}
 	}	 
-
-	unref_asimage_list_entry( mx->entry );
-	free( mx );
+	make_xml_dlg_destroy( mx );
+	if( files_added ) 
+		asgtk_image_dir_refresh( id );
 }
 
 void gtk_xml_editor_destroy( GtkWidget *widget, gpointer user_data ) 
@@ -262,7 +486,7 @@ on_list_add_clicked(GtkButton *button, gpointer user_data)
 		{
 			char *mini_filename, *mini_fullfilename ;
 			Bool do_mini = True ;
-			asgtk_image_dir_make_mini_names( backs_list, entry, &mini_filename, &mini_fullfilename );
+			asgtk_image_dir_make_mini_names( backs_list, entry->name, &mini_filename, &mini_fullfilename );
 			if( CheckFile( mini_fullfilename ) == 0 ) 
 			{
 				if( !asgtk_yes_no_question1( WallpaperState.main_window, "Overwrite minipixmap \"%s\" with the new one ?", mini_filename ) )

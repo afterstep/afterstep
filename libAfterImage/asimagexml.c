@@ -1539,7 +1539,7 @@ handle_asxml_tag_blur( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm
  * SYNOPSIS
  * <bevel id="new_id" colors="color1 color2" 
  * 		  width="pixels" height="pixels" refid="refid"
- *        border="left top right bottom" solid=0|1>
+ *        border="left top right bottom" solid=0|1 outline=0|1>
  * ATTRIBUTES
  * id       Optional.  Image will be given this name for future reference.
  * colors   Optional.  Whitespace-separated list of colors.  Exactly two
@@ -1552,6 +1552,8 @@ handle_asxml_tag_blur( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm
  *          right, bottom.
  * solid    Optional - default is 1. If set to 0 will draw bevel gradually
  *          fading into the image.
+ * outline  Optional - default is 0. If set to 1 will draw bevel around the 
+ * 			image vs. inside the image.
  * width    Optional. The result will have this width.
  * height   Optional. The result will have this height.
  * refid    Optional.  An image ID defined with the "id" parameter for
@@ -1569,29 +1571,27 @@ handle_asxml_tag_bevel( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* par
 	xml_elem_t* ptr ;
 	char* color_str = NULL;
 	char* border_str = NULL;
-	int solid = 1 ;
+	int solid = 1, outline = 0 ;
 	LOCAL_DEBUG_OUT("doc = %p, parm = %p, imtmp = %p, width = %d, height = %d", doc, parm, imtmp, width, height ); 
 	for (ptr = parm ; ptr ; ptr = ptr->next) {
 		if (!strcmp(ptr->tag, "colors")) color_str = ptr->parm;
 		else if (!strcmp(ptr->tag, "border")) border_str = ptr->parm;
 		else if (!strcmp(ptr->tag, "solid")) solid = atoi(ptr->parm);
+		else if (!strcmp(ptr->tag, "outline")) outline = atoi(ptr->parm);
 	}
 	if (imtmp) 
 	{
 		ASImageBevel bevel;
 		ASImageLayer layer;
+		memset( &bevel, 0x00, sizeof(ASImageBevel) );
 		if( solid )
 			bevel.type = BEVEL_SOLID_INLINE;
 		bevel.hi_color = 0xffdddddd;
 		bevel.lo_color = 0xff555555;
-		bevel.top_outline = 0;
-		bevel.left_outline = 0;
-		bevel.right_outline = 0;
-		bevel.bottom_outline = 0;
-		bevel.top_inline = 10;
-		bevel.left_inline = 10;
-		bevel.right_inline = 10;
-		bevel.bottom_inline = 10;
+		if( outline ) 
+			bevel.top_outline = bevel.left_outline = bevel.right_outline = bevel.bottom_outline = 10;
+		else
+			bevel.top_inline = bevel.left_inline = bevel.right_inline = bevel.bottom_inline = 10;
 		if (color_str) {
 			char* p = color_str;
 			while (isspace((int)*p)) p++;
@@ -1601,10 +1601,19 @@ handle_asxml_tag_bevel( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* par
 		}
 		if (border_str) {
 			char* p = (char*)border_str;
-			bevel.left_inline = (unsigned short)parse_math(p, &p, width);
-			bevel.top_inline = (unsigned short)parse_math(p, &p, height);
-			bevel.right_inline = (unsigned short)parse_math(p, &p, width);
-			bevel.bottom_inline = (unsigned short)parse_math(p, &p, height);
+			if( outline )
+			{
+				bevel.left_outline = (unsigned short)parse_math(p, &p, width);
+				bevel.top_outline = (unsigned short)parse_math(p, &p, height);
+				bevel.right_outline = (unsigned short)parse_math(p, &p, width);
+				bevel.bottom_outline = (unsigned short)parse_math(p, &p, height);
+			}else
+			{			  
+				bevel.left_inline = (unsigned short)parse_math(p, &p, width);
+				bevel.top_inline = (unsigned short)parse_math(p, &p, height);
+				bevel.right_inline = (unsigned short)parse_math(p, &p, width);
+				bevel.bottom_inline = (unsigned short)parse_math(p, &p, height);
+			}
 		}
 		bevel.hihi_color = bevel.hi_color;
 		bevel.hilo_color = bevel.hi_color;
@@ -1612,10 +1621,17 @@ handle_asxml_tag_bevel( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* par
 		show_progress("Generating bevel with offsets [%d %d %d %d] and colors [#%08x #%08x].", bevel.left_inline, bevel.top_inline, bevel.right_inline, bevel.bottom_inline, (unsigned int)bevel.hi_color, (unsigned int)bevel.lo_color);
 		init_image_layers( &layer, 1 );
 		layer.im = imtmp;
-		layer.clip_width = width;
-		layer.clip_height = height;
+		if( width <= bevel.left_outline+bevel.right_outline )
+			layer.clip_width = 1;
+		else
+			layer.clip_width = width-(bevel.left_outline+bevel.right_outline);
+		if( height <= bevel.top_outline+bevel.bottom_outline )
+			layer.clip_height = 1;
+		else
+			layer.clip_height = height-(bevel.top_outline+bevel.bottom_outline);
 		layer.bevel = &bevel;
-		result = merge_layers(state->asv, &layer, 1, width, height, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
+		result = merge_layers(state->asv, &layer, 1, 
+							  width, height, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
 	}
 	return result;
 }

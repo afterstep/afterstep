@@ -152,18 +152,6 @@ get_xml_editor_text( ASGtkXMLEditor *xe, Bool selection_only )
 	return gtk_text_buffer_get_text( buffer, &start, &end, TRUE );
 }
 
-static void 
-xml_editor_warning( GtkWidget *main_window, const char *format, const char *detail1, const char *detail2 ) 	
-{
-	GtkWidget *dialog = gtk_message_dialog_new (GTK_WINDOW(main_window),
-               				                    GTK_DIALOG_DESTROY_WITH_PARENT,
-                                  				GTK_MESSAGE_WARNING,
-                                  				GTK_BUTTONS_OK,
-												format, detail1, detail2 );
- 	gtk_dialog_run (GTK_DIALOG (dialog));
- 	gtk_widget_destroy (dialog);	
-}
-
 static char* 
 get_validated_text( ASGtkXMLEditor *xe, Bool selection, Bool report_success )
 {
@@ -210,14 +198,14 @@ get_validated_text( ASGtkXMLEditor *xe, Bool selection, Bool report_success )
 		{
 			switch( xb.state ) 
 			{
-				case ASXML_BadStart : 	xml_editor_warning( GTK_WIDGET(xe), "Text encountered before opening tag bracket - not XML format", NULL, NULL ); break;
-				case ASXML_BadTagName : xml_editor_warning( GTK_WIDGET(xe), "Invalid characters in tag name", NULL, NULL  );break;
-				case ASXML_UnexpectedSlash : xml_editor_warning( GTK_WIDGET(xe), "Unexpected '/' encountered", NULL, NULL );break;
-				case ASXML_UnmatchedClose :  xml_editor_warning( GTK_WIDGET(xe), "Closing tag encountered without opening tag", NULL, NULL  );break;
-				case ASXML_BadAttrName :   xml_editor_warning( GTK_WIDGET(xe), "Invalid characters in attribute name", NULL, NULL  );break;
-				case ASXML_MissingAttrEq : xml_editor_warning( GTK_WIDGET(xe), "Attribute name not followed by '=' character", NULL, NULL  );break;
+				case ASXML_BadStart : 	asgtk_warning2( GTK_WIDGET(xe), "Text encountered before opening tag bracket - not XML format", NULL, NULL ); break;
+				case ASXML_BadTagName : asgtk_warning2( GTK_WIDGET(xe), "Invalid characters in tag name", NULL, NULL  );break;
+				case ASXML_UnexpectedSlash : asgtk_warning2( GTK_WIDGET(xe), "Unexpected '/' encountered", NULL, NULL );break;
+				case ASXML_UnmatchedClose :  asgtk_warning2( GTK_WIDGET(xe), "Closing tag encountered without opening tag", NULL, NULL  );break;
+				case ASXML_BadAttrName :   asgtk_warning2( GTK_WIDGET(xe), "Invalid characters in attribute name", NULL, NULL  );break;
+				case ASXML_MissingAttrEq : asgtk_warning2( GTK_WIDGET(xe), "Attribute name not followed by '=' character", NULL, NULL  );break;
 				default:
-					xml_editor_warning( GTK_WIDGET(xe), "Premature end of the input", NULL, NULL );break;
+					asgtk_warning2( GTK_WIDGET(xe), "Premature end of the input", NULL, NULL );break;
 			}
 			if( gtk_text_buffer_get_selection_bounds( buffer, &start, &end ) ) 
 			{	
@@ -240,21 +228,21 @@ get_validated_text( ASGtkXMLEditor *xe, Bool selection, Bool report_success )
 		{	
 			if( xb.state == ASXML_Start && tags_count == 0 ) 
 			{
-				xml_editor_warning( GTK_WIDGET(xe), "Script contains no valid XML tags", NULL, NULL );
+				asgtk_warning2( GTK_WIDGET(xe), "Script contains no valid XML tags", NULL, NULL );
 			}else if( xb.state >= 0 && xb.state != ASXML_Start ) 
 			{
-				xml_editor_warning( GTK_WIDGET(xe), "XML Script is not properly terminated", NULL, NULL );
+				asgtk_warning2( GTK_WIDGET(xe), "XML Script is not properly terminated", NULL, NULL );
 			}else if( xb.state == ASXML_Start && xb.level > 0 ) 
 			{
-				xml_editor_warning( GTK_WIDGET(xe), "XML Script contains unterminated XML tags", NULL, NULL );
+				asgtk_warning2( GTK_WIDGET(xe), "XML Script contains unterminated XML tags", NULL, NULL );
 			}else
 			{	
 				if( report_success ) 
 				{	
 					if( gtk_text_buffer_get_selection_bounds( buffer, &start, &end ) ) 
-						xml_editor_warning( GTK_WIDGET(xe), "Selected XML seems to be syntactically valid", NULL, NULL );
+						asgtk_warning2( GTK_WIDGET(xe), "Selected XML seems to be syntactically valid", NULL, NULL );
 					else
-						xml_editor_warning( GTK_WIDGET(xe), "XML Script seems to be syntactically valid", NULL, NULL );
+						asgtk_warning2( GTK_WIDGET(xe), "XML Script seems to be syntactically valid", NULL, NULL );
 				}
 				success = True ;
 			}
@@ -293,7 +281,7 @@ on_refresh_clicked(GtkButton *button, gpointer user_data)
 			asgtk_image_view_refresh( xe->image_view, False );
 		}else
 		{
-			xml_editor_warning( GTK_WIDGET(xe), "Failed to render image from changed xml.", NULL, NULL ); 	   				
+			asgtk_warning2( GTK_WIDGET(xe), "Failed to render image from changed xml.", NULL, NULL ); 	   				
 		}		 
 	}
 	gtk_widget_set_sensitive( xe->refresh_btn, ( button == GTK_BUTTON(xe->render_selection_btn) ) );
@@ -321,12 +309,12 @@ save_text_buffer_to_file( ASGtkXMLEditor *xe, const char *filename )
 		if( fwrite( text, 1, len, fp ) == len ) 
 			result = True;
 		else
-			xml_editor_warning( GTK_WIDGET(xe), "Failed to write to file \"%s\" : %s.", filename, g_strerror (errno) ); 	   				   		   
+			asgtk_warning2( GTK_WIDGET(xe), "Failed to write to file \"%s\" : %s.", filename, g_strerror (errno) ); 	   				   		   
 		fclose( fp ) ;
 		result = True ; 
 	}else
 	{
-		xml_editor_warning( GTK_WIDGET(xe), "Failed to open file \"%s\" : %s.", filename, g_strerror (errno) ); 	   				   		
+		asgtk_warning2( GTK_WIDGET(xe), "Failed to open file \"%s\" : %s.", filename, g_strerror (errno) ); 	   				   		
 	}	 
 	free( text );
 	return result ;
@@ -527,7 +515,7 @@ static char *ASXMLScriptTags[MAX_ASXML_SCRIPT_TAG][2] =
 {	"background", "\n<background id=\"new_id\" color=\"color\">\n</background>\n"},
 {	"blur", "\n<blur id=\"new_id\" horz=\"radius\" vert=\"radius\" channels=\"argb\">\n</blur>\n"},
 {	"bevel", "\n<bevel id=\"new_id\" colors=\"color1 color2\" width=\"pixels\""
-			 " height=\"pixels\" refid=\"refid\" border=\"left top right bottom\" solid=0|1>\n</bevel>\n"},
+			 " height=\"pixels\" refid=\"refid\" border=\"left top right bottom\" solid=0|1 outline=0|1>\n</bevel>\n"},
 {	"mirror","\n<mirror id=\"new_id\" dir=\"vertical|horizontal\" width=\"pixels\" height=\"pixels\" refid=\"refid\">\n</mirror>\n" },
 {	"rotate","\n<rotate id=\"new_id\" angle=\"90|180|270\" width=\"pixels\" height=\"pixels\" refid=\"refid\">\n</rotate>\n"},
 {	"scale", "\n<scale id=\"new_id\" ref_id=\"other_imag\" width=\"pixels\" height=\"pixels\">\n</scale>\n"},

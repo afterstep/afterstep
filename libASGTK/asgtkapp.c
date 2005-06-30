@@ -316,4 +316,17 @@ asgtk_yes_no_question1( GtkWidget *main_window, const char *format, const char *
 	return result;
 }
 
+void 
+asgtk_warning2( GtkWidget *main_window, const char *format, const char *detail1, const char *detail2 ) 	
+{
+	GtkWidget *dialog = gtk_message_dialog_new (GTK_WINDOW(main_window),
+               				                    GTK_DIALOG_DESTROY_WITH_PARENT,
+                                  				GTK_MESSAGE_WARNING,
+                                  				GTK_BUTTONS_OK,
+												format, detail1, detail2 );
+ 	gtk_dialog_run (GTK_DIALOG (dialog));
+ 	gtk_widget_destroy (dialog);	
+}
+
+
 
