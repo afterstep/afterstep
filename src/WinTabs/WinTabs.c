@@ -429,7 +429,7 @@ CheckConfigSanity(const char *pattern_override, const char *exclude_pattern_over
 			     Config->pattern, REG_EXTENDED | REG_ICASE) != 0)
 		{
 			LOCAL_DEBUG_OUT("Error compiling regexp.");
-			return;
+			WinTabsState.pattern_rexp = NULL;
 		}
 			
 		
@@ -441,7 +441,7 @@ CheckConfigSanity(const char *pattern_override, const char *exclude_pattern_over
 				     Config->exclude_pattern, REG_EXTENDED | REG_ICASE) != 0)
 			{
 				LOCAL_DEBUG_OUT("Error compiling regexp.");
-				return;
+				WinTabsState.exclude_pattern_rexp = NULL;
 			}
 		}
 	}else
