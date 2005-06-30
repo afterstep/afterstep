@@ -28,7 +28,6 @@
 
 #include <signal.h>
 #include <unistd.h>
-#include <regex.h>
 
 /* #include <X11/keysym.h> */
 #include "../../libAfterImage/afterimage.h"
@@ -92,8 +91,8 @@ typedef struct {
 	ASCanvas *main_canvas ;
 	ASCanvas *tabs_canvas ;
 
-	regex_t *pattern_rexp ;
-	regex_t *exclude_pattern_rexp ;
+	wild_reg_exp *pattern_wrexp ;
+	wild_reg_exp *exclude_pattern_wrexp ;
 
 	ASVector *tabs ;
 
@@ -296,7 +295,7 @@ main( int argc, char **argv )
     set_root_clip_area(WinTabsState.main_canvas );
 
 	/* delay mapping main canvas untill we actually swallowed something ! */
-	if( WinTabsState.pattern_rexp == NULL || !get_flags(Config->flags, ASWT_HideWhenEmpty )) 
+	if( WinTabsState.pattern_wrexp == NULL || !get_flags(Config->flags, ASWT_HideWhenEmpty )) 
 	{	
 		map_canvas_window( WinTabsState.main_canvas, True );
 		set_flags( WinTabsState.flags, ASWT_StateMapped );
@@ -363,13 +362,6 @@ LOCAL_DEBUG_OUT( "DeadPipe%s", "" );
     if( Config )
         DestroyWinTabsConfig(Config);
 
-    if( WinTabsState.pattern_rexp )
-	    free(WinTabsState.pattern_rexp);
-    
-    if( WinTabsState.exclude_pattern_rexp )
-	    free(WinTabsState.exclude_pattern_rexp);
-    
-
 #ifdef DEBUG_ALLOCS
     print_unfreed_mem ();
 #endif /* DEBUG_ALLOCS */
@@ -424,25 +416,11 @@ CheckConfigSanity(const char *pattern_override, const char *exclude_pattern_over
 
 	if( Config->pattern != NULL )
 	{
-		WinTabsState.pattern_rexp = safemalloc(sizeof(regex_t));
-		if( regcomp( WinTabsState.pattern_rexp,
-			     Config->pattern, REG_EXTENDED | REG_ICASE) != 0)
-		{
-			LOCAL_DEBUG_OUT("Error compiling regexp.");
-			WinTabsState.pattern_rexp = NULL;
-		}
-			
-		
+		WinTabsState.pattern_wrexp = compile_wild_reg_exp( Config->pattern ) ;
 		if( Config->exclude_pattern )
 		{
-			LOCAL_DEBUG_OUT( "exclude_pattern = \"%s\"", Config->exclude_pattern );
-			WinTabsState.exclude_pattern_rexp = safemalloc(sizeof(regex_t));
-			if( regcomp( WinTabsState.exclude_pattern_rexp,
-				     Config->exclude_pattern, REG_EXTENDED | REG_ICASE) != 0)
-			{
-				LOCAL_DEBUG_OUT("Error compiling regexp.");
-				WinTabsState.exclude_pattern_rexp = NULL;
-			}
+LOCAL_DEBUG_OUT( "exclude_pattern = \"%s\"", Config->exclude_pattern );
+			WinTabsState.exclude_pattern_wrexp = compile_wild_reg_exp( Config->exclude_pattern ) ;
 		}
 	}else
 	{
@@ -631,7 +609,7 @@ process_message (unsigned long type, unsigned long *body)
         LOCAL_DEBUG_OUT( "message %lX window %lX data %p", type, body[0], wd );
         res = handle_window_packet( type, body, &wd );
         LOCAL_DEBUG_OUT( "\t res = %d, data %p", res, wd );
-        if( (res == WP_DataCreated || res == WP_DataChanged) && WinTabsState.pattern_rexp != NULL )
+        if( (res == WP_DataCreated || res == WP_DataChanged) && WinTabsState.pattern_wrexp != NULL )
         {
 			if( wd->window_name != NULL )  /* must wait for all the names transferred */ 
             	check_swallow_window( wd );
@@ -927,7 +905,7 @@ DispatchEvent (ASEvent * event)
 						if( WinTabsState.my_desktop != new_desk )
 						{	
 							WinTabsState.my_desktop = new_desk ;
-							if( WinTabsState.pattern_rexp != NULL ) 
+							if( WinTabsState.pattern_wrexp != NULL ) 
 								iterate_window_data( recheck_swallow_windows, NULL);
 						}
 					}else
@@ -1339,7 +1317,7 @@ rearrange_tabs( Bool dont_resize_window )
 
 	if( tabs_num == 0 ) 
 	{
-		if(	WinTabsState.pattern_rexp != NULL || !get_flags(Config->flags, ASWT_HideWhenEmpty ) )
+		if(	WinTabsState.pattern_wrexp != NULL || !get_flags(Config->flags, ASWT_HideWhenEmpty ) )
 		{                      /* displaying banner with pattern or something else */
 		}else if( get_flags( WinTabsState.flags, ASWT_StateMapped ) )  /* hiding ourselves: */ 
 		{
@@ -1649,7 +1627,7 @@ Bool check_swallow_name( char *name )
 {	
 	if( name ) 
 	{		   	
-		if( regexec( WinTabsState.pattern_rexp, name, 0, NULL, 0) == 0 )
+		if( match_wild_reg_exp( name, WinTabsState.pattern_wrexp) == 0 )
 			return True;
 	}
 	return False ;
@@ -1657,10 +1635,10 @@ Bool check_swallow_name( char *name )
 
 Bool check_no_swallow_name( char *name ) 
 {	
-	LOCAL_DEBUG_OUT( "name = \"%s\", excl_wrexp = %p", name, WinTabsState.exclude_pattern_rexp );
-	if( name && WinTabsState.exclude_pattern_rexp) 
+	LOCAL_DEBUG_OUT( "name = \"%s\", excl_wrexp = %p", name, WinTabsState.exclude_pattern_wrexp );
+	if( name && WinTabsState.exclude_pattern_wrexp) 
 	{		   	
-		if( regexec( WinTabsState.exclude_pattern_rexp, name, 0, NULL, 0) == 0 )
+		if( match_wild_reg_exp( name, WinTabsState.exclude_pattern_wrexp) == 0 )
 			return True;
 	}
 	return False ;
