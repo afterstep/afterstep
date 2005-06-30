@@ -124,6 +124,39 @@ action_t Actions[] =
         { NULL, 0, NULL, NULL}
 };
 
+static gboolean
+match_func (GtkEntryCompletion *completion,
+	    const gchar        *key,
+	    GtkTreeIter        *iter,
+	    gpointer            user_data)
+{
+	gchar *item = NULL;
+	GtkTreeModel *model;
+	regex_t my_reg;
+
+	gboolean ret = FALSE;
+	
+	if( regcomp( &my_reg, key, REG_EXTENDED | REG_ICASE) != 0)
+		return FALSE;
+
+	model = gtk_entry_completion_get_model (completion);
+	
+	gtk_tree_model_get (model, iter, 0, &item, -1);
+	
+	if (item != NULL)
+	{
+		g_print ("compare %s %s\n", key, item);
+		if( regexec( &my_reg, (char *) item, 0, NULL, 0) == 0)
+			ret = TRUE;
+		
+		g_free (item);
+	}
+	
+	regfree( &my_reg );
+	
+	return ret;
+}
+
 /* Creates a tree model containing the completions */
 GtkTreeModel *
 create_simple_completion_model (void)
@@ -217,6 +250,7 @@ create_window (void)
 
 	completion = gtk_entry_completion_new();
 	gtk_entry_set_completion (GTK_ENTRY (pattern_entry), completion);
+	gtk_entry_completion_set_match_func (completion, match_func, NULL, NULL);
 	g_object_unref (completion);
 	
 	/* Create a tree model and use it as the completion model */
