@@ -14,7 +14,7 @@ Function "InitFunction"
 	Module  "I"     Wharf
 	Wait    "I"     Wharf
 	Module  "I"     Pager 0 @with_desktops_1@
-	Module  "I:WinTabs:TermTabs"  WinTabs --myname TermTabs --pattern "*term*" --exclude-pattern "mc*" --geometry +5+100 --title "term tabs"
+	Module  "I:WinTabs:TermTabs"  WinTabs --myname TermTabs --pattern "term" --exclude-pattern "^mc" --geometry +5+100 --title "term tabs"
 	Wait    "I:WinTabs:TermTabs"  TermTabs
 	Module  "I"	Banner
 	Function "I"    WorkspaceState
@@ -36,6 +36,6 @@ Function "RestartFunction"
 	Wait    "I"     Wharf
 	Module  "I"     Pager 0 @with_desktops_1@
 #WinTabs should survive through the restart - no need to bring it up again :
-#	Module  "I"     WinTabs --geometry +5+100 --pattern "aterm*"
+#	Module  "I"     WinTabs --geometry +5+100 --pattern "^aterm"
 EndFunction
 
