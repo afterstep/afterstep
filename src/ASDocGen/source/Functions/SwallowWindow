@@ -1,6 +1,8 @@
 <varlistentry id="options.SwallowWindow">
-	<term>SwallowWindow</term>
+	<term>SwallowWindow <emphasis remap='I'>"pattern" shell_command</emphasis></term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>will cause already opened window to be swallowed, while
+          just Swallow will run application, if there are no windows matching
+          pattern</para>
 	</listitem>
 </varlistentry>
