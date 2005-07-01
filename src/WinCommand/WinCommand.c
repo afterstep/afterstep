@@ -66,6 +66,7 @@ void move_wrapper(const char *action);
 void send_to_desk_wrapper(const char *action);
 void jump_wrapper(const char *action);
 void resize_wrapper(const char *action);
+void group_wrapper(const char *action);
 
 void default_defaults(void);
 void jump_defaults(void);
@@ -75,6 +76,7 @@ action_t Actions[] =
 {
 	{"center", no_args_wrapper, default_defaults },
 	{"center jump", jump_wrapper, jump_defaults },
+	{"group", group_wrapper, jump_defaults},
 	{"iconify", no_args_wrapper, default_defaults },
 	{"jump", jump_wrapper, jump_defaults},
 	{"kill", no_args_wrapper, default_defaults},
@@ -140,8 +142,7 @@ void
 no_args_wrapper(const char *action)
 {
 	LOCAL_DEBUG_OUT("no_args_wrapper called: %s", action);
-	select_windows_by_pattern
-		(WinCommandState.pattern, False, False);
+	
 	ascom_do(action, NULL);
 }
 
@@ -154,8 +155,7 @@ move_wrapper(const char *action)
 	
 	p.x = WinCommandState.x_dest;
 	p.y = WinCommandState.y_dest;
-	select_windows_by_pattern
-		(WinCommandState.pattern, False, False);
+	
 	ascom_do(action, &p);
 }
 
@@ -168,8 +168,6 @@ send_to_desk_wrapper(const char *action)
 	LOCAL_DEBUG_OUT("send_to_desk_wrapper called: %s, desk = %d",
 			action, p.desk);
 	
-	select_windows_by_pattern
-		(WinCommandState.pattern, False, False);
 	ascom_do(action, &p);
 }
 
@@ -177,10 +175,6 @@ void
 jump_wrapper(const char *action)
 {
 	LOCAL_DEBUG_OUT("jump_wrapper called: %s", action);
-
-	select_windows_by_pattern
-		(WinCommandState.pattern, True, False);
-
 	ascom_do(action, NULL);
 }
 
@@ -193,6 +187,17 @@ resize_wrapper(const char *action)
 	p.height = WinCommandState.new_height;
 
 	ascom_do("resize", &p);
+}
+
+/* DO NOT RUN WITH SUID-PRIVILIDGES */
+void
+group_wrapper(const char *action)
+{
+	char com[1024];
+	/* Launch WinTabs */
+	snprintf(com, 1024 - 1 , "WinTabs --pattern \"posix:%s\" &", WinCommandState.pattern);
+
+	system( com );
 }
 
 int
@@ -211,6 +216,7 @@ main( int argc, char **argv )
 	memset( &WinCommandState, 0x00, sizeof(WinCommandState));
 	WinCommandState.operations = create_asbidirlist( NULL );
 	
+
 	/* Traverse arguments */
 	for( i = 1 ; i< argc ; ++i)
 	{

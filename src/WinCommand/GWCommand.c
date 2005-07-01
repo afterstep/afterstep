@@ -105,6 +105,7 @@ void move_wrapper(void);
 void send_to_desk_wrapper(void);
 void jump_wrapper(void);
 void resize_wrapper(void);
+void group_wrapper(void);
 
 void default_defaults(void);
 void jump_defaults(void);
@@ -115,6 +116,7 @@ action_t Actions[] =
 {
 	{"center", 0, no_args_wrapper, default_defaults },
 	{"center jump", 0, jump_wrapper, jump_defaults },
+	{"group", 0, group_wrapper, jump_defaults},
 	{"iconify", 0, no_args_wrapper, default_defaults },
 	{"jump", 0, jump_wrapper, jump_defaults},
 	{"kill", 0, no_args_wrapper, default_defaults},
@@ -145,7 +147,6 @@ match_func (GtkEntryCompletion *completion,
 	
 	if (item != NULL)
 	{
-		g_print ("compare %s %s\n", key, item);
 		if( regexec( &my_reg, (char *) item, 0, NULL, 0) == 0)
 			ret = TRUE;
 		
@@ -535,6 +536,16 @@ void jump_wrapper(void)
 	select_windows_by_pattern
 		(gtk_entry_get_text(GTK_ENTRY(pattern_entry)), True, False);
 	ascom_do(GWCommandState.action, NULL);
+}
+
+void group_wrapper(void)
+{
+	char com[1024];
+	/* Launch WinTabs */
+	snprintf(com, 1024 - 1 , "WinTabs --pattern \"posix:%s\" &",
+		 gtk_entry_get_text(GTK_ENTRY(pattern_entry)));
+	
+	system( com );
 }
 
 /* init_defaults */
