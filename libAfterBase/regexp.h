@@ -9,6 +9,10 @@ extern "C" {
 /*		regexp compiler and datastructures interface		*/
 /************************************************************************/
 
+#include <regex.h>
+
+#define POSIX_HEADER "posix:"
+
 struct reg_exp;
 
 typedef struct wild_reg_exp
@@ -17,6 +21,8 @@ typedef struct wild_reg_exp
 
   struct reg_exp *head, *tail, *longest;
   unsigned char max_size, hard_total, soft_total, wildcards_num;
+  
+  regex_t *p_reg;
 
 }
 wild_reg_exp;
@@ -44,6 +50,7 @@ int compare_wild_reg_exp (wild_reg_exp * wrexp1, wild_reg_exp * wrexp2);
 
 /************************************************************************/
 /* from wild.c - verry depreciated : */
+/* not used anywhere in AS anymore. Remove it? */
 int matchWildcards (const char *, const char *);
 
 #ifdef __cplusplus

@@ -452,7 +452,7 @@ flatten_wild_reg_exp (wild_reg_exp * wrexp)
 	unsigned char *ptr;
 	char         *trg_start, *trg;
 
-	/* dry run to find out just how much space we need to allocate for our string */
+	/* try run to find out just how much space we need to allocate for our string */
 	for (curr = wrexp->head; curr; curr = curr->next)
 	{
 		size += (curr->lead_len < 0) ? 1 : curr->lead_len;
@@ -599,7 +599,37 @@ compile_wild_reg_exp_sized (const char *pattern, int size)
 
 	if (ptr == NULL)
 		return NULL;
+	
+	/* if pattern starts with POSIX_HEADER */
+	if( strstr (pattern, POSIX_HEADER) == pattern)
+	{
+		trg = safecalloc( 1, sizeof( wild_reg_exp ) );
+		trg->p_reg = safecalloc(1, sizeof( regex_t ));
+		
+                /* needed for compare_wild_reg_exp. posix-regexp don't have
+		 * the desired attributes but we have to set them to something
+		 * sane anyway to allow comparision with wild_reg_exp.
+		 */
+		
+		trg->raw = (unsigned char *) pattern;
+		trg->hard_total =
+			trg->soft_total = (unsigned char) strlen( pattern );
+		trg->wildcards_num = 0; /* posix doesn't define wildcards. */
+		
+		if( regcomp( trg->p_reg, (ptr + strlen(POSIX_HEADER)), REG_EXTENDED | REG_ICASE ) != 0)
+		{
+			/* Couldn't compile reg-exp.
+			   Free memory and return NULL. */
 
+			free( trg->p_reg );
+			free( trg );
+			return NULL;
+		}
+		
+		return trg;
+		
+	}
+	
 	if (i > 254)
 		i = 254;
 	buffer = safemalloc (i + 1);
@@ -656,6 +686,9 @@ print_wild_reg_exp (wild_reg_exp * wrexp)
 
 	if (wrexp == NULL)
 		return;
+
+	if(wrexp->p_reg) 
+		return; /* no debug-info for posix-regexp */
 
 	fprintf (stderr, "wild_reg_exp :{%s}\n", wrexp->raw);
 	fprintf (stderr, "    max_size : %d\n", wrexp->max_size);
@@ -802,6 +835,14 @@ match_wild_reg_exp (char *string, wild_reg_exp * wrexp)
 
 	if (wrexp == NULL || string == NULL)
 		return 1;
+	
+	if( wrexp->p_reg )
+	{
+		if( regexec ( wrexp->p_reg, string, 0, NULL, 0) == 0)
+			return 0;
+		else return -1;
+	}
+	
 	if (wrexp->longest == NULL)
 		return -1;							   /* empty regexp matches nothing */
 	len = strlen (string);
@@ -818,8 +859,20 @@ match_string_list (char **list, int max_elem, wild_reg_exp * wrexp)
 
     if (wrexp == NULL || list == NULL)
         return 1;
+    
+    /* if this is a posix-regexp */
+    if(wrexp->p_reg)
+    {
+	    for ( i = 0; i < max_elem; i++)
+	    {
+		    if( list[i] == NULL) break;
+		    if( regexec( wrexp->p_reg, list[i], 0, NULL, 0) == 0 )
+			    return 0;
+	    }
+    }
+
     if (wrexp->longest == NULL)  /* empty regexp matches nothing */
-        return -1;
+	    return -1;
 
     for( i = 0 ; i < max_elem ; i++ )
     {
@@ -874,6 +927,13 @@ destroy_wild_reg_exp (wild_reg_exp * wrexp)
 
 	if (wrexp == NULL)
 		return;
+
+	if( wrexp->p_reg )
+	{
+		regfree(wrexp->p_reg);
+		free(wrexp);
+		return;
+	}
 
 	for (curr = wrexp->head; curr; curr = next)
 	{
