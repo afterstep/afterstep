@@ -161,7 +161,9 @@ asgtk_image_dir_new ()
 	id->tree_view = GTK_TREE_VIEW(gtk_tree_view_new());
 	id->tree_model = GTK_TREE_MODEL(gtk_list_store_new (2, G_TYPE_STRING, G_TYPE_POINTER));
 
-    gtk_container_add (GTK_CONTAINER(id), GTK_WIDGET(id->tree_view));
+	gtk_scrolled_window_set_shadow_type (GTK_SCROLLED_WINDOW (id), GTK_SHADOW_IN);      
+	
+	gtk_container_add (GTK_CONTAINER(id), GTK_WIDGET(id->tree_view));
     gtk_tree_view_set_model (id->tree_view, id->tree_model);
     gtk_widget_show (GTK_WIDGET(id->tree_view));
     id->cell = gtk_cell_renderer_text_new ();

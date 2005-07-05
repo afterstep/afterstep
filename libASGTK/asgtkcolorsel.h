@@ -17,12 +17,10 @@ struct _ASGtkImageDir;
 	
 typedef struct _ASGtkColorSelection
 {
-	GtkWindow       parent_instance;
+	GtkDialog       parent_instance;
 	
 	GtkWidget 		*cs_list;
 	GtkWidget 		*color_sel;
-	GtkWidget 		*separator;
-	GtkWidget 		*button_box;
 
 	char *curr_color_name ;
 
@@ -30,7 +28,7 @@ typedef struct _ASGtkColorSelection
 
 typedef struct _ASGtkColorSelectionClass
 {
-  	GtkWindowClass  parent_class;
+  	GtkDialogClass  parent_class;
 	
 }ASGtkColorSelectionClass;
 

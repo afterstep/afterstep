@@ -42,7 +42,7 @@ static void asgtk_color_selection_finalize (GObject *object);
 static void asgtk_color_selection_style_set (GtkWidget *widget, GtkStyle  *prev_style);
 
 /*  private variables  */
-static GtkWindowClass *parent_class = NULL;
+static GtkDialogClass *parent_class = NULL;
 
 GType
 asgtk_color_selection_get_type (void)
@@ -64,7 +64,7 @@ asgtk_color_selection_get_type (void)
         	(GInstanceInitFunc) asgtk_color_selection_init,
       	};
 
-      	ib_type = g_type_register_static (	GTK_TYPE_WINDOW,
+      	ib_type = g_type_register_static (	GTK_TYPE_DIALOG,
         	                                "ASGtkColorSelection",
             	                            &ib_info, 0);
     }
@@ -95,7 +95,13 @@ asgtk_color_selection_init (ASGtkColorSelection *id)
 static void
 asgtk_color_selection_dispose (GObject *object)
 {
-  	/*ASGtkColorSelection *ib = ASGTK_IMAGE_BROWSER (object); */
+  	ASGtkColorSelection *cs = ASGTK_COLOR_SELECTION (object);
+	if( cs->curr_color_name ) 
+	{	
+		free( cs->curr_color_name );
+		cs->curr_color_name = NULL ; 
+	}
+	
   	G_OBJECT_CLASS (parent_class)->dispose (object);
 }
 
@@ -204,9 +210,7 @@ asgtk_color_selection_new ()
 	colorize_gtk_window( GTK_WIDGET(cs) );	
 	gtk_container_set_border_width( GTK_CONTAINER (cs), 5 );
 	
-	main_vbox = gtk_vbox_new (FALSE, 0);
-  	gtk_widget_show (main_vbox);
-	gtk_container_add (GTK_CONTAINER (cs), main_vbox);
+	main_vbox = GTK_DIALOG(cs)->vbox ; 
 
 	main_hbox = gtk_hbox_new (FALSE, 0);
   	gtk_widget_show (main_hbox);
@@ -222,15 +226,6 @@ asgtk_color_selection_new ()
 	gtk_widget_show( cs->color_sel );
 	gtk_box_pack_end (GTK_BOX (main_hbox), cs->color_sel, TRUE, TRUE, 0);
 
-	cs->button_box = gtk_hbutton_box_new ();
-  	gtk_hbutton_box_set_layout_default(GTK_BUTTONBOX_SPREAD);
-  	gtk_widget_show (cs->button_box);
-  	gtk_box_pack_end (GTK_BOX (main_vbox), cs->button_box, FALSE, FALSE, 3);
-	   
-	cs->separator = gtk_hseparator_new();
-	gtk_box_pack_end (GTK_BOX (main_vbox), cs->separator, FALSE, FALSE, 3);
-	colorize_gtk_widget( GTK_WIDGET(cs->separator), get_colorschemed_style_button() );  
-
 	LOCAL_DEBUG_OUT( "created image ASGtkColorSelection object %p", cs );	
 	return GTK_WIDGET (cs);
 }
@@ -241,8 +236,8 @@ asgtk_color_selection_add_main_button( ASGtkColorSelection *cs, const char *stoc
 	if(!ASGTK_IS_COLOR_SELECTION (cs))
 		return NULL;
 	
-	gtk_widget_show (cs->separator);
-	return asgtk_add_button_to_box( GTK_BOX (cs->button_box), stock, NULL, func, user_data );   
+	//gtk_widget_show (cs->separator);
+	return asgtk_add_button_to_box( GTK_BOX (GTK_DIALOG(cs)->action_area), stock, NULL, func, user_data );   
 }	   
 
 void

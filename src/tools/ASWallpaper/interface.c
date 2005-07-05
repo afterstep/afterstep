@@ -573,6 +573,18 @@ on_browse_clicked(GtkButton *button, gpointer user_data)
 	gtk_widget_set_sensitive( GTK_WIDGET(WallpaperState.list_browse_button), FALSE );
 }
 
+void
+on_solid_clicked(GtkButton *button, gpointer user_data)
+{
+}
+
+void
+on_gradient_clicked(GtkButton *button, gpointer user_data)
+{
+	
+}
+
+
 static void
 backs_list_sel_handler(ASGtkImageDir *id, gpointer user_data)
 {
@@ -611,8 +623,6 @@ create_main_window (void)
 {
     GtkWidget *main_vbox;
 
-	GtkWidget *buttons_hbox;
-
   	WallpaperState.main_window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   	gtk_window_set_title (GTK_WINDOW (WallpaperState.main_window), _("AfterStep Wallpaper Manager"));
 
@@ -625,12 +635,6 @@ create_main_window (void)
   	WallpaperState.list_hbox = gtk_hbox_new (FALSE, 0);
   	gtk_widget_show (WallpaperState.list_hbox);
   	gtk_box_pack_start (GTK_BOX (main_vbox), WallpaperState.list_hbox, TRUE, TRUE, 5);
-
-  	buttons_hbox = gtk_hbutton_box_new ();
-  	gtk_hbutton_box_set_layout_default(GTK_BUTTONBOX_SPREAD);
-  	gtk_widget_show (buttons_hbox);
-  	gtk_box_pack_end (GTK_BOX (main_vbox), buttons_hbox, FALSE, FALSE, 5);
-    /* separator really goes above the buttons box, so it is added second from the end ! */
 
   	/* Store pointers to all widgets, for use by lookup_widget(). */
   	GLADE_HOOKUP_OBJECT_NO_REF (WallpaperState.main_window, WallpaperState.main_window, "main_window");
@@ -650,9 +654,9 @@ create_list_button( GtkWidget *buttons_hbox, const char *stock, GCallback func )
 void
 create_backs_list()
 {
-	GtkWidget *vbox ;
+	GtkWidget *vbox, *hbox ;
   	
-	vbox = gtk_vbox_new (FALSE, 0);
+	vbox = gtk_vbox_new (FALSE, 3);
   	gtk_widget_show (vbox);
   	gtk_box_pack_start (GTK_BOX (WallpaperState.list_hbox), vbox, FALSE, FALSE, 5);
 
@@ -673,8 +677,14 @@ create_backs_list()
 	WallpaperState.list_update_as_button = asgtk_add_button_to_box( NULL, GTK_STOCK_REFRESH, "Update AfterStep Menu", G_CALLBACK(on_update_as_menu_clicked), NULL );
   	gtk_box_pack_end (GTK_BOX (vbox), WallpaperState.list_update_as_button, FALSE, FALSE, 0);
 	WallpaperState.list_browse_button = asgtk_add_button_to_box( NULL, GTK_STOCK_ADD, "Browse for more", G_CALLBACK(on_browse_clicked), NULL );
-  	gtk_box_pack_end (GTK_BOX (vbox), WallpaperState.list_browse_button, FALSE, FALSE, 5);
+  	gtk_box_pack_end (GTK_BOX (vbox), WallpaperState.list_browse_button, FALSE, FALSE, 0);
 
+	hbox = gtk_hbutton_box_new( );
+	gtk_widget_show (hbox);
+	gtk_box_pack_end (GTK_BOX (vbox), hbox, FALSE, FALSE, 0);
+
+	WallpaperState.new_solid_button = asgtk_add_button_to_box( GTK_BOX (hbox), GTK_STOCK_ADD, "New solid color", G_CALLBACK(on_solid_clicked), NULL );
+	WallpaperState.new_gradient_button = asgtk_add_button_to_box( GTK_BOX (hbox), GTK_STOCK_ADD, "New gradient", G_CALLBACK(on_gradient_clicked), NULL );
 }
 
 void 

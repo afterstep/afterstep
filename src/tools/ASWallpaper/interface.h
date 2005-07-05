@@ -29,6 +29,9 @@ typedef struct ASWallpaperState
 	GtkWidget    *filechooser ;
 	GtkWidget    *xml_editor ;
 
+	GtkWidget    *new_solid_button ; 
+	GtkWidget    *new_gradient_button ; 
+
 #define INITIAL_PREVIEW_HEIGHT	300
 
 	int preview_width, preview_height ;
