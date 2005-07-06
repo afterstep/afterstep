@@ -600,25 +600,32 @@ on_browse_clicked(GtkButton *button, gpointer user_data)
 	gtk_widget_set_sensitive( GTK_WIDGET(WallpaperState.list_browse_button), FALSE );
 }
 
-void
-on_solid_clicked(GtkButton *button, gpointer user_data)
+GtkWidget*	
+make_back_name_hbox(GtkBox *owner, int owner_spacing)
 {
-	ASGtkImageDir *id = ASGTK_IMAGE_DIR(user_data);
-	GtkDialog *cs = GTK_DIALOG(asgtk_color_selection_new());
 	GtkWidget *hbox;
 	GtkWidget *name_edit;
-	int response ;
-	const char *name ;
-	Bool files_added = False ;
-
+	
 	hbox = gtk_hbox_new( FALSE, 5 );
-	gtk_box_pack_end (GTK_BOX (cs->vbox), hbox, TRUE, TRUE, 10);
+	gtk_box_pack_end (owner, hbox, TRUE, TRUE, owner_spacing);
 
 	gtk_box_pack_start (GTK_BOX (hbox), gtk_label_new("New background name: "), FALSE, FALSE, 0);
 	name_edit = gtk_entry_new();
 	gtk_box_pack_end (GTK_BOX (hbox), name_edit, TRUE, TRUE, 0);
 	gtk_widget_show_all(hbox);
 	gtk_widget_show(hbox);
+	return name_edit;
+}
+
+void
+on_solid_clicked(GtkButton *button, gpointer user_data)
+{
+	ASGtkImageDir *id = ASGTK_IMAGE_DIR(user_data);
+	GtkDialog *cs = GTK_DIALOG(asgtk_color_selection_new());
+	GtkWidget *name_edit = make_back_name_hbox(GTK_BOX (cs->vbox), 10);
+	int response  = 0;
+	const char *name ;
+	Bool files_added = False ;
 
 	gtk_dialog_add_buttons( cs, GTK_STOCK_CANCEL, GTK_RESPONSE_REJECT,
 							  	GTK_STOCK_OK, GTK_RESPONSE_ACCEPT, 
@@ -660,7 +667,39 @@ on_solid_clicked(GtkButton *button, gpointer user_data)
 void
 on_gradient_clicked(GtkButton *button, gpointer user_data)
 {
+	ASGtkImageDir *id = ASGTK_IMAGE_DIR(user_data);
+	GtkDialog *ge = GTK_DIALOG(asgtk_gradient_new());
+	GtkWidget *name_edit = make_back_name_hbox(GTK_BOX (ge->vbox), 10);
+	int response  = 0;
+	const char *name ;
+	Bool files_added = False ;
+
+	gtk_dialog_add_buttons( ge, GTK_STOCK_CANCEL, GTK_RESPONSE_REJECT,
+							  	GTK_STOCK_OK, GTK_RESPONSE_ACCEPT, 
+								NULL );
+
+	gtk_window_set_title(GTK_WINDOW(ge), "Creating new gradient background ...   ");
+	gtk_window_set_modal(GTK_WINDOW(ge), TRUE);
+	do
+	{	
+		response = gtk_dialog_run( ge );
+		if( response == GTK_RESPONSE_ACCEPT ) 
+		{	
+			name = gtk_entry_get_text( GTK_ENTRY(name_edit) );
+			if( name == NULL || strlen(name) == 0 ) 
+				asgtk_warning2( WallpaperState.main_window, "Empty name specified for a new background.", NULL, NULL ); 	   				   		   			   			
+			else
+				break;
+		}
+	}while( response == GTK_RESPONSE_ACCEPT ); 
 	
+	if( response == GTK_RESPONSE_ACCEPT && name != NULL ) 
+	{
+		/* TODO : file writing */
+	}
+	gtk_widget_destroy( GTK_WIDGET(ge) );
+	if( files_added ) 
+		asgtk_image_dir_refresh( id );
 }
 
 
