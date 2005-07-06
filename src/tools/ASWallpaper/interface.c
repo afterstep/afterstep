@@ -119,6 +119,38 @@ make_xml_dlg_destroy(ASGtkMakeXMLDlg *mx)
 	}
 }
 
+static FILE *
+open_xml_file_in_dir( ASGtkImageDir *id, const char *name, Bool mini )	
+{
+	FILE *fp = NULL ; 
+	char* fullfilename = NULL ; 
+	
+	if( mini ) 
+	{		
+		if ( !asgtk_image_dir_make_mini_names( id, name, NULL, &fullfilename ) ) 
+			return NULL;
+	}else
+		fullfilename = make_file_name( id->fulldirname, name );
+	
+	if( CheckFile( fullfilename ) == 0 ) 
+	{
+		if( !mini ) 
+			if( !asgtk_yes_no_question1( WallpaperState.main_window, "It appears that you already have private background with name \"%s\". Would you like to overwrite it ?", name ) )
+			{
+				free( fullfilename );
+				return NULL ; 
+			}
+		unlink( fullfilename );
+	}	
+	fp = fopen( fullfilename, "w" ); 
+	if( fp == NULL ) 
+		asgtk_warning2( WallpaperState.main_window, "Failed to open file \"%s\" : %s.", fullfilename, g_strerror (errno) ); 	   				   		   			
+
+	free( fullfilename );   
+	return fp;
+	
+}
+
 Bool 
 make_xml_from_image( ASGtkMakeXMLDlg* mx, ASGtkImageDir *id )
 {
@@ -130,30 +162,9 @@ make_xml_from_image( ASGtkMakeXMLDlg* mx, ASGtkImageDir *id )
 	Bool scale = False ; 
 	int pad = 0, i ;
 	int size_offset = 0 ;
-	
-	if( name == NULL || strlen(name) == 0 )
-	{	
-		asgtk_warning2( WallpaperState.main_window, "Empty name specified for a new background.", NULL, NULL ); 	   				   		   			   
-		return False ;
-	}
-	
-	if( mx->fullfilename == NULL ) 
-	{
-		mx->fullfilename = make_file_name( id->fulldirname, name );
-	}
-	
-	if( CheckFile( mx->fullfilename ) == 0 ) 
-	{
-		if( !asgtk_yes_no_question1( WallpaperState.main_window, "It appears that you already have private background with name \"%s\". Would you like to overwrite it ?", name ) )
-			return False ; 
-		unlink( mx->fullfilename );
-	}	
-	fp = fopen( mx->fullfilename, "w" ); 
-	if( fp == NULL ) 
-	{
-		asgtk_warning2( WallpaperState.main_window, "Failed to open file \"%s\" : %s.", mx->fullfilename, g_strerror (errno) ); 	   				   		   			
+
+	if( (fp = open_xml_file_in_dir( id, name, False )) == NULL ) 
 		return False;
-	}	 
 
 	scale = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(mx->scale_check_box));
 	if( gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(mx->color_check_box)) )
@@ -239,28 +250,8 @@ make_minixml_from_image( ASGtkMakeXMLDlg* mx, ASGtkImageDir *id )
 	Bool scale = False ; 
 	int pad = 0, i ;
 	
-	if( name == NULL || strlen(name) == 0 )
-	{	
-		asgtk_warning2( WallpaperState.main_window, "Empty name specified for a new background.", NULL, NULL ); 	   				   		   			   
-		return False ;
-	}
-	
-	if( mx->mini_fullfilename == NULL ) 
-	{
-		if ( !asgtk_image_dir_make_mini_names( id, name, NULL, &(mx->mini_fullfilename) ) ) 
-				return False;
-	}
-	
-	if( CheckFile( mx->mini_fullfilename ) == 0 ) 
-	{
-		unlink( mx->mini_fullfilename );
-	}	
-	fp = fopen( mx->mini_fullfilename, "w" ); 
-	if( fp == NULL ) 
-	{
-		asgtk_warning2( WallpaperState.main_window, "Failed to open minipixmap file \"%s\" : %s.", mx->mini_fullfilename, g_strerror (errno) ); 	   				   		   			
+	if( (fp = open_xml_file_in_dir( id, name, True )) == NULL ) 
 		return False;
-	}	 
 
 	scale = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(mx->scale_check_box));
 	if( gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(mx->color_check_box)) )
@@ -308,6 +299,42 @@ make_minixml_from_image( ASGtkMakeXMLDlg* mx, ASGtkImageDir *id )
 	fclose(fp);
 	return True;
 }	 
+
+Bool 
+make_xml_from_color( const char*name, ASGtkImageDir *id, const char *color )
+{
+	FILE *fp ; 
+
+	if( name == NULL || color == NULL ) 
+		return False;
+	
+	if( (fp = open_xml_file_in_dir( id, name, False )) == NULL ) 
+		return False;
+
+	fprintf( fp, "<solid color=\"%s\" width=\"$xroot.width\" height=\"$xroot.height\"/>\n", color);
+	fclose(fp);
+	
+	return True;
+}	 
+
+Bool 
+make_minixml_from_color( const char*name, ASGtkImageDir *id, const char *color )
+{
+	FILE *fp ; 
+
+	if( name == NULL || color == NULL ) 
+		return False;
+	
+	if( (fp = open_xml_file_in_dir( id, name, True )) == NULL ) 
+		return False;
+
+	fprintf( fp, "<solid color=\"%s\" width=\"$minipixmap.width\" height=\"$minipixmap.height\"/>\n", color);
+	fclose(fp);
+	
+	return True;
+}	 
+
+
 
 void 
 set_make_xml_widgets_sensitive( GtkWidget *button, gpointer user_data ) 
@@ -576,6 +603,58 @@ on_browse_clicked(GtkButton *button, gpointer user_data)
 void
 on_solid_clicked(GtkButton *button, gpointer user_data)
 {
+	ASGtkImageDir *id = ASGTK_IMAGE_DIR(user_data);
+	GtkDialog *cs = GTK_DIALOG(asgtk_color_selection_new());
+	GtkWidget *hbox;
+	GtkWidget *name_edit;
+	int response ;
+	const char *name ;
+	Bool files_added = False ;
+
+	hbox = gtk_hbox_new( FALSE, 5 );
+	gtk_box_pack_end (GTK_BOX (cs->vbox), hbox, TRUE, TRUE, 10);
+
+	gtk_box_pack_start (GTK_BOX (hbox), gtk_label_new("New background name: "), FALSE, FALSE, 0);
+	name_edit = gtk_entry_new();
+	gtk_box_pack_end (GTK_BOX (hbox), name_edit, TRUE, TRUE, 0);
+	gtk_widget_show_all(hbox);
+	gtk_widget_show(hbox);
+
+	gtk_dialog_add_buttons( cs, GTK_STOCK_CANCEL, GTK_RESPONSE_REJECT,
+							  	GTK_STOCK_OK, GTK_RESPONSE_ACCEPT, 
+								NULL );
+
+	gtk_window_set_title(GTK_WINDOW(cs), "Creating new solid color background ...   ");
+	gtk_window_set_modal(GTK_WINDOW(cs), TRUE);
+	do
+	{	
+		response = gtk_dialog_run( cs );
+		if( response == GTK_RESPONSE_ACCEPT ) 
+		{	
+			name = gtk_entry_get_text( GTK_ENTRY(name_edit) );
+			if( name == NULL || strlen(name) == 0 ) 
+				asgtk_warning2( WallpaperState.main_window, "Empty name specified for a new background.", NULL, NULL ); 	   				   		   			   			
+			else
+				break;
+		}
+	}while( response == GTK_RESPONSE_ACCEPT ); 
+	
+	if( response == GTK_RESPONSE_ACCEPT && name != NULL ) 
+	{
+		char *color = asgtk_color_selection_get_color_str(ASGTK_COLOR_SELECTION(cs));
+		if( color ) 
+		{	
+			if( make_xml_from_color( name, id, color ) )
+			{
+				files_added = True ;	  
+				make_minixml_from_color( name, id, color );
+			}
+			free( color );
+		}		
+	}
+	gtk_widget_destroy( GTK_WIDGET(cs) );
+	if( files_added ) 
+		asgtk_image_dir_refresh( id );
 }
 
 void
@@ -683,8 +762,8 @@ create_backs_list()
 	gtk_widget_show (hbox);
 	gtk_box_pack_end (GTK_BOX (vbox), hbox, FALSE, FALSE, 0);
 
-	WallpaperState.new_solid_button = asgtk_add_button_to_box( GTK_BOX (hbox), GTK_STOCK_ADD, "New solid color", G_CALLBACK(on_solid_clicked), NULL );
-	WallpaperState.new_gradient_button = asgtk_add_button_to_box( GTK_BOX (hbox), GTK_STOCK_ADD, "New gradient", G_CALLBACK(on_gradient_clicked), NULL );
+	WallpaperState.new_solid_button = asgtk_add_button_to_box( GTK_BOX (hbox), GTK_STOCK_ADD, "New solid color", G_CALLBACK(on_solid_clicked), WallpaperState.backs_list );
+	WallpaperState.new_gradient_button = asgtk_add_button_to_box( GTK_BOX (hbox), GTK_STOCK_ADD, "New gradient", G_CALLBACK(on_gradient_clicked), WallpaperState.backs_list );
 }
 
 void 
