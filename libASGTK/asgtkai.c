@@ -77,4 +77,28 @@ ASImage2GdkPixbuf( ASImage *im )
 	return pb;
 }	 
 
+GdkPixbuf *
+solid_color2GdkPixbuf( ARGB32 argb, int width, int height ) 
+{
+	GdkPixbuf *pb = NULL ; 
+	if( width > 0 && height > 0 ) 
+	{
+		int size = width*height ;
+		guchar *data = safemalloc( size*4 );
+		int i, k = 0 ;
+	
+		for (i = 0; i < size; i++)
+		{	
+			data[k] = ARGB32_RED8(argb);
+			data[++k] = ARGB32_GREEN8(argb);
+			data[++k] = ARGB32_BLUE8(argb);
+			data[++k] = ARGB32_ALPHA8(argb);
+			++k;
+		}
+		pb = gdk_pixbuf_new_from_data( data, GDK_COLORSPACE_RGB, True, 8, width, height, width*4, free_buffer, NULL );
+		if( pb == NULL ) 
+			free( data );
+	}		 
+	return pb;
+}	 
 

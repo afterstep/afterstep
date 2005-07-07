@@ -28,6 +28,8 @@ typedef struct _ASGtkGradient
 	GtkWidget		*screen_size_check ;   
 	GtkWidget 		*width_entry, *height_entry ;
 	GtkWidget		*color_entry, *offset_entry ; 
+	GtkWidget		*color_preview ;
+	GtkWidget       *size_frame ; 
 
 
 }ASGtkGradient;
