@@ -375,11 +375,11 @@ CheckConfigSanity()
     
 	mystyle_get_property (Scr.wmprops);
 
-    sprintf( buf, "*%sTile", get_application_name() );
+    snprintf( buf, sizeof(buf), "*%sTile", get_application_name() );
     LOCAL_DEBUG_OUT("Attempting to use style \"%s\"", buf);
     Scr.Look.MSWindow[BACK_UNFOCUSED] = mystyle_find_or_default( buf );
     LOCAL_DEBUG_OUT("Will use style \"%s\"", Scr.Look.MSWindow[BACK_UNFOCUSED]->name);
-    sprintf( buf, "*%sFocusedTile", get_application_name() );
+    snprintf( buf, sizeof(buf), "*%sFocusedTile", get_application_name() );
     LOCAL_DEBUG_OUT("Attempting to use style \"%s\" for focused tile", buf);
     Scr.Look.MSWindow[BACK_FOCUSED] = mystyle_find( buf );
 
