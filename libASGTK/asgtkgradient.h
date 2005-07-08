@@ -15,21 +15,31 @@ struct ASImage;
 struct _ASGtkImageView;
 struct _ASGtkImageDir;
 struct ASImageListEntry;
-	
+struct ASGradient;
+struct ASGradientPoint;
+
 typedef struct _ASGtkGradient
 {
 	GtkDialog       parent_instance;
-	
-	struct ASImageListEntry *entry ; 
-	
+
+	int type ;    
+	ASBiDirList 			*points ; 
+	struct ASGradientPoint  *current_point ; 
+
 	struct _ASGtkImageView  *image_view ;
 	GtkWidget 		*point_list;
-	GtkWidget 		*color_sel;
-	GtkWidget		*screen_size_check ;   
+	GtkListStore    *point_list_model;
+	GtkWidget		*screen_width_check, *screen_height_check ;   
 	GtkWidget 		*width_entry, *height_entry ;
 	GtkWidget		*color_entry, *offset_entry ; 
 	GtkWidget		*color_preview ;
 	GtkWidget       *size_frame ; 
+
+	GtkWidget 		*l2r_radio ;
+	GtkWidget 		*tl2br_radio ;
+	GtkWidget 		*t2b_radio ;
+	GtkWidget 		*bl2tr_radio ;
+
 
 
 }ASGtkGradient;
