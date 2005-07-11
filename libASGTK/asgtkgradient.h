@@ -40,6 +40,8 @@ typedef struct _ASGtkGradient
 	GtkWidget 		*t2b_radio ;
 	GtkWidget 		*bl2tr_radio ;
 
+	GtkWidget 		*apply_btn, *delete_btn ;
+
 	int color_preview_width, color_preview_height ;
 
 }ASGtkGradient;

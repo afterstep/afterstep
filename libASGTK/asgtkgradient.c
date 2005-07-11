@@ -329,8 +329,8 @@ add_point_to_gradient(void *data, void *aux_data)
 static void
 refresh_gradient_preview(ASGtkGradient *ge)
 {
-	int width = PREVIEW_WIDTH;
-	int height = PREVIEW_HEIGHT; 
+	int width = get_screen_width(NULL);
+	int height = get_screen_height(NULL); 
 	struct ASGradient       gradient ; 
 	struct ASImageListEntry *entry; 
 	ARGB32 *color ;
@@ -340,12 +340,12 @@ refresh_gradient_preview(ASGtkGradient *ge)
 		return ;
 
 	if( GTK_WIDGET_STATE( ge->width_entry) != GTK_STATE_INSENSITIVE ) 
-		if( (width = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(ge->screen_width_check))) == 0 )
-			width = PREVIEW_WIDTH ; 
+		if( (width = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(ge->width_entry))) == 0 )
+			width = get_screen_width(NULL) ; 
 		
 	if( GTK_WIDGET_STATE( ge->height_entry) != GTK_STATE_INSENSITIVE ) 
-		if( (height = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(ge->screen_height_check))) == 0 )
-			height = PREVIEW_HEIGHT ; 
+		if( (height = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(ge->height_entry))) == 0 )
+			height = get_screen_height(NULL) ; 
 		
 	entry = create_asimage_list_entry();
 	/* rendering gradient preview : */
@@ -469,6 +469,9 @@ on_add_point_clicked(GtkWidget *widget, gpointer data )
 	ge->current_point = point ;
 	asgtk_gradient_update_color_list(ge);
 	refresh_gradient_preview(ge);
+
+	gtk_widget_set_sensitive( ge->delete_btn, TRUE );
+	gtk_widget_set_sensitive( ge->apply_btn, TRUE );
 }		  
 
 static void 
@@ -482,6 +485,13 @@ on_apply_point_clicked(GtkWidget *widget, gpointer data )
 		asgtk_gradient_update_color_list(ge);
 		refresh_gradient_preview(ge);
 	}
+}		  
+
+static void 
+on_refresh_clicked(GtkWidget *widget, gpointer data )
+{
+	ASGtkGradient *ge = ASGTK_GRADIENT (data);	
+	refresh_gradient_preview(ge);
 }		  
 
 static void 
@@ -528,7 +538,7 @@ asgtk_gradient_new ()
 	gtk_box_pack_start (GTK_BOX (main_vbox), main_hbox, TRUE, TRUE, 0);
 	
 	list_vbox = gtk_vbox_new (FALSE, 0);
-	gtk_box_pack_start (GTK_BOX (main_hbox), list_vbox, TRUE, TRUE, 0);
+	gtk_box_pack_start (GTK_BOX (main_hbox), list_vbox, FALSE, FALSE, 0);
 
 	frame = gtk_frame_new("Gradient direction : ");
 	gtk_box_pack_start (GTK_BOX (list_vbox), frame, FALSE, FALSE, 5);
@@ -556,9 +566,13 @@ asgtk_gradient_new ()
 
 
 	ge->screen_width_check = gtk_check_button_new_with_label("Use screen width");
+	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(ge->screen_width_check), TRUE );
 	ge->width_entry = gtk_spin_button_new_with_range( 1, 10000, 1 );
+	gtk_widget_set_sensitive( ge->width_entry, FALSE );
 	ge->screen_height_check = gtk_check_button_new_with_label("Use screen height");
+	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(ge->screen_height_check), TRUE );
 	ge->height_entry = gtk_spin_button_new_with_range( 1, 10000, 1 );
+	gtk_widget_set_sensitive( ge->height_entry, FALSE );
 
    	g_signal_connect ((gpointer) ge->screen_width_check, "clicked", G_CALLBACK (on_size_clicked), ge);
 	g_signal_connect ((gpointer) ge->screen_height_check, "clicked", G_CALLBACK (on_size_clicked), ge);
@@ -648,7 +662,8 @@ asgtk_gradient_new ()
 	gtk_container_set_border_width( GTK_CONTAINER (hbox), 3 );
 	gtk_box_pack_start (GTK_BOX (vbox), hbox, FALSE, FALSE, 0);
 	
-	btn = gtk_button_new_from_stock(GTK_STOCK_DELETE);
+	ge->delete_btn = btn = gtk_button_new_from_stock(GTK_STOCK_DELETE);
+	gtk_widget_set_sensitive( ge->delete_btn, FALSE );
 	colorize_gtk_widget( GTK_WIDGET(btn), get_colorschemed_style_button());
 	gtk_box_pack_end (GTK_BOX (hbox), btn, FALSE, FALSE, 0);
 	g_signal_connect ((gpointer) btn, "clicked", G_CALLBACK (on_delete_point_clicked), ge);	   
@@ -658,7 +673,8 @@ asgtk_gradient_new ()
 	gtk_box_pack_end (GTK_BOX (hbox), btn, FALSE, FALSE, 0);
 	g_signal_connect ((gpointer) btn, "clicked", G_CALLBACK (on_add_point_clicked), ge);	   
 	
-	btn = gtk_button_new_from_stock(GTK_STOCK_APPLY);
+	ge->apply_btn = btn = gtk_button_new_from_stock(GTK_STOCK_APPLY);
+	gtk_widget_set_sensitive( ge->apply_btn, FALSE );
 	colorize_gtk_widget( GTK_WIDGET(btn), get_colorschemed_style_button());
 	gtk_box_pack_end (GTK_BOX (hbox), btn, FALSE, FALSE, 0);
 	g_signal_connect ((gpointer) btn, "clicked", G_CALLBACK (on_apply_point_clicked), ge);	   
@@ -670,6 +686,13 @@ asgtk_gradient_new ()
 	ge->image_view = ASGTK_IMAGE_VIEW(asgtk_image_view_new());
 	gtk_widget_set_size_request (GTK_WIDGET(ge->image_view), PREVIEW_WIDTH, PREVIEW_HEIGHT);
 	gtk_box_pack_end (GTK_BOX (main_hbox), GTK_WIDGET(ge->image_view), TRUE, TRUE, 0);
+	asgtk_image_view_set_aspect ( ge->image_view,
+							   	  get_screen_width(NULL), get_screen_height(NULL) );
+	asgtk_image_view_set_resize ( ge->image_view, 
+								  ASGTK_IMAGE_VIEW_SCALE_TO_VIEW|
+							 	  ASGTK_IMAGE_VIEW_TILE_TO_ASPECT, 
+								  ASGTK_IMAGE_VIEW_RESIZE_ALL );
+
 
 
   	gtk_widget_show_all (list_vbox);
@@ -694,9 +717,71 @@ asgtk_gradient_new ()
 	gtk_button_set_alignment( GTK_BUTTON(btn), 1.0, 0.5);
 	asgtk_image_view_add_detail( ge->image_view, btn, 0 );
 
+	btn = asgtk_add_button_to_box( NULL, GTK_STOCK_REFRESH, NULL, G_CALLBACK(on_refresh_clicked), ge );
+	asgtk_image_view_add_tool( ge->image_view, btn, 3 );
 
 
 	LOCAL_DEBUG_OUT( "created image ASGtkGradient object %p", ge );	
 	return GTK_WIDGET (ge);
+}
+
+
+static Bool 
+collect_gradient_offsets_str(void *data, void *aux_data)
+{
+	ASGradientPoint *point = (ASGradientPoint*)data; 
+ 	char **pstr =  (char**) aux_data ;
+	if( *pstr )
+	{
+		*pstr = realloc( *pstr, strlen(*pstr)+6 );
+		sprintf( *pstr, "%s %2.2f", *pstr, point->offset ); 
+	}else
+	{	
+		*pstr = safemalloc(6);
+		sprintf( *pstr, "%2.2f", point->offset ); 
+	}
+	return True;	
+}	 
+
+static Bool 
+collect_gradient_colors_str(void *data, void *aux_data)
+{
+	ASGradientPoint *point = (ASGradientPoint*)data; 
+ 	char **pstr =  (char**) aux_data ;
+	int clen = strlen(point->color_str) ;
+	if( *pstr )
+	{
+		*pstr = realloc( *pstr, strlen(*pstr)+1+clen+1 );
+		sprintf( *pstr, "%s %s", *pstr, point->color_str ); 
+	}else
+	{	
+		*pstr = mystrdup( point->color_str ); 
+	}
+	return True;	
+}	 
+
+
+char *
+asgtk_gradient_get_xml( ASGtkGradient *ge )
+{
+	char *xml = NULL ; 
+	if( ge->points->count > 0 ) 
+	{
+		char *offsets = NULL ; 
+		char *colors = NULL ; 
+		ASGradientPoint *first, *last ; 
+		Bool add_first = False, add_last = False ; 
+	
+		first = LIST_START(ge->points)->data ; 
+		last  = LIST_END(ge->points)->data ; 
+		
+		add_first = ( first->offset > 0. );
+		add_last  = ( last->offset < 1. ); 
+
+		iterate_asbidirlist( ge->points, collect_gradient_offsets_str, &offsets, NULL, False );	  
+		iterate_asbidirlist( ge->points, collect_gradient_colors_str, &colors, NULL, False );	  
+	
+	}		   
+	return xml;
 }
 
