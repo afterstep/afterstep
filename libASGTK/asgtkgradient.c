@@ -34,10 +34,12 @@
 
 #define COLOR_LIST_WIDTH  150
 #define COLOR_LIST_HEIGHT 210
-#define COLOR_PREVIEW_WIDTH 	48
-#define COLOR_PREVIEW_HEIGHT 	24
+#define COLOR_PREVIEW_WIDTH 	100
+#define COLOR_PREVIEW_HEIGHT 	16
 #define PREVIEW_WIDTH  320
 #define PREVIEW_HEIGHT 240
+#define DEFAULT_COLOR	0xFF000000
+#define DEFAULT_COLOR_STR  "#FF000000"
 
 /*  local function prototypes  */
 static void asgtk_gradient_class_init (ASGtkGradientClass *klass);
@@ -145,6 +147,8 @@ static void
 asgtk_gradient_init (ASGtkGradient *ge)
 {
 	ge->points = create_asbidirlist( destroy_asgrad_point );
+	ge->color_preview_width = COLOR_PREVIEW_WIDTH;
+	ge->color_preview_height = COLOR_PREVIEW_HEIGHT;
 }
 
 static void
@@ -205,7 +209,12 @@ asgtk_gradient_create_color_list( ASGtkGradient *ge )
   	ge->point_list = gtk_tree_view_new_with_model (GTK_TREE_MODEL(ge->point_list_model));
 		
 	column = gtk_tree_view_column_new_with_attributes (
-				"point color", gtk_cell_renderer_text_new (), "text", 0, 
+				"Point Offset : ", gtk_cell_renderer_text_new (), "text", 1, 
+				NULL);
+	gtk_tree_view_column_set_sizing (column, GTK_TREE_VIEW_COLUMN_AUTOSIZE);
+  	gtk_tree_view_append_column (GTK_TREE_VIEW (ge->point_list), column);
+	column = gtk_tree_view_column_new_with_attributes (
+				"Point Color : ", gtk_cell_renderer_text_new (), "text", 0, 
 				NULL);
 	gtk_tree_view_column_set_sizing (column, GTK_TREE_VIEW_COLUMN_AUTOSIZE);
   	gtk_tree_view_append_column (GTK_TREE_VIEW (ge->point_list), column);
@@ -255,17 +264,18 @@ asgtk_gradient_update_color_list( ASGtkGradient *ge )
 static void
 update_color_preview( ASGtkGradient *ge, const char *color ) 
 {
-	ARGB32 argb ; 
+	ARGB32 argb = DEFAULT_COLOR; 
+	GdkPixbuf *pb ;
 
-	if( parse_argb_color( color, &argb ) != color ) 
-	{
-		GdkPixbuf *pb = solid_color2GdkPixbuf( argb, COLOR_PREVIEW_WIDTH-4, COLOR_PREVIEW_HEIGHT-4 );
-		if( pb ) 
-		{	
-			gtk_image_set_from_pixbuf( GTK_IMAGE(ge->color_preview), pb );
-			gdk_pixbuf_unref( pb ); 		   
-		}
- 	}
+	if( color && color[0] != '\0')
+		parse_argb_color( color, &argb );
+	
+	pb = solid_color2GdkPixbuf( argb, ge->color_preview_width, ge->color_preview_height );
+	if( pb ) 
+	{	
+		gtk_image_set_from_pixbuf( GTK_IMAGE(ge->color_preview), pb );
+		gdk_pixbuf_unref( pb ); 		   
+	}
 }
 
 
@@ -275,11 +285,16 @@ on_color_clicked( GtkWidget *btn, gpointer data )
 	ASGtkGradient *ge = ASGTK_GRADIENT (data);	 
 	GtkDialog *cs = GTK_DIALOG(asgtk_color_selection_new());
 	int response  = 0;
+	const char *orig_color = gtk_entry_get_text(GTK_ENTRY(ge->color_entry));
 
 	gtk_dialog_add_buttons( cs, GTK_STOCK_CANCEL, GTK_RESPONSE_REJECT,
 							  	GTK_STOCK_OK, GTK_RESPONSE_ACCEPT, 
 								NULL );
-
+	
+	if( orig_color && orig_color[0] != '\0' )
+		asgtk_color_selection_set_color_by_name( ASGTK_COLOR_SELECTION(cs), orig_color );
+	else
+		asgtk_color_selection_set_color_by_name( ASGTK_COLOR_SELECTION(cs), DEFAULT_COLOR_STR );
 	gtk_window_set_title(GTK_WINDOW(cs), "Pick a color ...   ");
 	gtk_window_set_modal(GTK_WINDOW(cs), TRUE);
 	response = gtk_dialog_run( cs );
@@ -318,6 +333,8 @@ refresh_gradient_preview(ASGtkGradient *ge)
 	int height = PREVIEW_HEIGHT; 
 	struct ASGradient       gradient ; 
 	struct ASImageListEntry *entry; 
+	ARGB32 *color ;
+	double *offset ;
 	
 	if( ge->points->count <= 0 ) 
 		return ;
@@ -336,15 +353,33 @@ refresh_gradient_preview(ASGtkGradient *ge)
 	gradient.npoints = 0 ;
 	gradient.type = ge->type ; 
 
-	gradient.offset = safemalloc(ge->points->count * sizeof(double) );
-	gradient.color  = safemalloc(ge->points->count * sizeof(ARGB32) );
+	gradient.offset = offset = safemalloc((ge->points->count+2) * sizeof(double) );
+	gradient.color  = color = safemalloc((ge->points->count+2) * sizeof(ARGB32) );
 
+	++gradient.offset ;
+	++gradient.color ;
 	iterate_asbidirlist( ge->points, add_point_to_gradient, &gradient, NULL, False );	
+
+	if( gradient.offset[0] > 0. ) 
+	{
+		--gradient.offset ;
+		--gradient.color ;
+		gradient.offset[0] = 0. ; 
+		gradient.color[0] = DEFAULT_COLOR ;  /* black */ 
+		++gradient.npoints;
+	}	 
+	if( gradient.offset[gradient.npoints-1] < 1. ) 
+	{
+		gradient.offset[gradient.npoints] = 1. ; 
+		gradient.color[gradient.npoints] = DEFAULT_COLOR ;  /* black */ 
+		++gradient.npoints;
+	}	 
+		
 
 	entry->preview = make_gradient(get_screen_visual(NULL), &gradient, width, height, SCL_DO_ALL, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
 
-	free( gradient.offset );
-	free( gradient.color );
+	free( offset );
+	free( color );
 			   
 	/* applying gradient preview : */
 	if( entry->preview ) 
@@ -409,10 +444,11 @@ query_point_values( ASGtkGradient *ge, ASGradientPoint* point )
 	color = gtk_entry_get_text( GTK_ENTRY(ge->color_entry ) );
 	if( point->color_str ) 
 		free( point->color_str );
-	if( color == NULL )
+	if( color == NULL || color[0] == '\0')
 	{	
 		asgtk_warning2( GTK_WIDGET(ge), "Color value is not specifyed. Default color of black will be used.", NULL, NULL );			   
-		point->color_str = mystrdup("#00000000");
+		point->color_str = mystrdup(DEFAULT_COLOR_STR);
+		point->color_argb = DEFAULT_COLOR;
 	}else 
 	{	
 		if( parse_argb_color( color, &(point->color_argb) ) == color ) 
@@ -446,9 +482,29 @@ on_apply_point_clicked(GtkWidget *widget, gpointer data )
 		asgtk_gradient_update_color_list(ge);
 		refresh_gradient_preview(ge);
 	}
-	
-	refresh_gradient_preview(ge);
 }		  
+
+static void 
+color_preview_size_alloc( GtkWidget *widget,
+						  GtkAllocation *allocation,
+						  gpointer user_data )
+{
+	ASGtkGradient *ge = ASGTK_GRADIENT (user_data);
+	int w = allocation->width - 4 ;		   
+	int h = allocation->height - 4 ;
+	
+#if 1 	                       /* if size changed - refresh */
+	if( ge->color_preview_width != w || ge->color_preview_height != h ) 
+	{
+		const char *color ;
+		ge->color_preview_width = w ;
+		ge->color_preview_height = h ;
+		color = gtk_entry_get_text(GTK_ENTRY(ge->color_entry) );
+		update_color_preview(ge, color );
+	}	 
+#endif
+}								 
+
 
 /*  public functions  */
 GtkWidget * 
@@ -458,7 +514,8 @@ asgtk_gradient_new ()
     GtkWidget *main_vbox, *main_hbox;
 	GtkWidget *scrolled_window ;
 	GtkWidget *list_vbox ;
-	GtkWidget *frame, *hbox, *vbox, *btn, *table ; 
+	GtkWidget *frame, *hbox, *vbox, *btn, *table;
+	GtkWidget *label ; 
 
     ge = g_object_new (ASGTK_TYPE_GRADIENT, NULL);
 	colorize_gtk_window( GTK_WIDGET(ge) );	
@@ -476,17 +533,17 @@ asgtk_gradient_new ()
 	frame = gtk_frame_new("Gradient direction : ");
 	gtk_box_pack_start (GTK_BOX (list_vbox), frame, FALSE, FALSE, 5);
 	
-	table = gtk_table_new( 2, 2, TRUE );
+	table = gtk_table_new( 2, 2, FALSE );
 	gtk_container_add (GTK_CONTAINER (frame), table);
 	gtk_container_set_border_width (GTK_CONTAINER (table), 3);
 
 	ge->l2r_radio = gtk_radio_button_new_with_label( NULL, "Left to Right" );
 	gtk_table_attach_defaults (GTK_TABLE (table), ge->l2r_radio, 0, 1, 0, 1);
-	ge->tl2br_radio = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(ge->l2r_radio), "Top-Left to Bottom-Right" );
-	gtk_table_attach_defaults (GTK_TABLE (table), ge->tl2br_radio, 0, 1, 1, 2);
-	ge->t2b_radio = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(ge->tl2br_radio), "Top to Bottom" );
-	gtk_table_attach_defaults (GTK_TABLE (table), ge->t2b_radio, 1, 2, 0, 1);
-	ge->bl2tr_radio = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(ge->t2b_radio), "Bottom-Left to Top-Right" );
+	ge->t2b_radio = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(ge->l2r_radio), "Top to Bottom" );
+	gtk_table_attach_defaults (GTK_TABLE (table), ge->t2b_radio, 0, 1, 1, 2);
+	ge->tl2br_radio = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(ge->t2b_radio), "Top-Left to Bottom-Right" );
+	gtk_table_attach_defaults (GTK_TABLE (table), ge->tl2br_radio, 1, 2, 0, 1);
+	ge->bl2tr_radio = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(ge->tl2br_radio), "Bottom-Left to Top-Right" );
 	gtk_table_attach_defaults (GTK_TABLE (table), ge->bl2tr_radio, 1, 2, 1, 2);
 	gtk_widget_show_all (table);
 	gtk_widget_show (table);
@@ -536,10 +593,10 @@ asgtk_gradient_new ()
 	g_signal_connect ((gpointer) ge->color_preview, "clicked", G_CALLBACK (on_color_preview_clicked), ge);
 #else
 	ge->color_preview = gtk_image_new();
-	update_color_preview( ge, "#FFFF0000" );
+	update_color_preview( ge, DEFAULT_COLOR_STR );
 #endif
 
-	ge->offset_entry = gtk_spin_button_new_with_range( 0., 1., 0.01 );
+	ge->offset_entry = gtk_spin_button_new_with_range( 0., 1., 0.05 );
 
 
 	frame = gtk_frame_new("Change point attributes : ");
@@ -548,34 +605,49 @@ asgtk_gradient_new ()
 
 	vbox = gtk_vbox_new( FALSE, 5 );			   
 	gtk_container_add( GTK_CONTAINER(frame), vbox );
-	hbox = gtk_hbox_new( FALSE, 5 );			   
-	gtk_container_set_border_width( GTK_CONTAINER (hbox), 3 );
-	gtk_box_pack_start (GTK_BOX (vbox), hbox, FALSE, FALSE, 0);
 	
-	gtk_box_pack_start (GTK_BOX (hbox), gtk_label_new("Color : "), FALSE, FALSE, 0);
-	gtk_box_pack_start (GTK_BOX (hbox), ge->color_entry, FALSE, FALSE, 0);
+	table = gtk_table_new( 4, 2, FALSE );
+	gtk_container_set_border_width( GTK_CONTAINER (table), 3 );
+
+
+//	hbox = gtk_hbox_new( FALSE, 5 );			   
+//	gtk_container_set_border_width( GTK_CONTAINER (hbox), 3 );
+	gtk_box_pack_start (GTK_BOX (vbox), table, FALSE, FALSE, 0);
+	label = gtk_label_new("Color : ");
+	gtk_label_set_justify(GTK_LABEL(label), GTK_JUSTIFY_LEFT);
+    gtk_table_attach_defaults (GTK_TABLE (table), label, 0, 1, 0, 1);   	
+	label = gtk_label_new("Offset : ");
+	gtk_label_set_justify(GTK_LABEL(label), GTK_JUSTIFY_LEFT);
+	gtk_table_attach_defaults (GTK_TABLE (table), label, 2, 3, 0, 1);   	   
+	gtk_table_attach (GTK_TABLE (table), ge->color_entry, 1, 2, 0, 1, GTK_SHRINK, GTK_SHRINK, 2, 2);   	   
+	gtk_table_attach (GTK_TABLE (table), ge->offset_entry, 3, 4, 0, 1, GTK_SHRINK, GTK_SHRINK, 2, 2);
 
 	frame = gtk_frame_new(NULL);
 	colorize_gtk_tree_view_window( GTK_WIDGET(frame) );
 	gtk_widget_set_size_request( frame, COLOR_PREVIEW_WIDTH, COLOR_PREVIEW_HEIGHT );
+	gtk_container_set_border_width( GTK_CONTAINER (table), 0 );
 	gtk_container_add( GTK_CONTAINER(frame), ge->color_preview );
 	gtk_widget_show( ge->color_preview );
-	gtk_box_pack_start (GTK_BOX (hbox), frame, FALSE, FALSE, 0);
 	
-	gtk_box_pack_end (GTK_BOX (hbox), ge->offset_entry, FALSE, FALSE, 0);
-	gtk_box_pack_end (GTK_BOX (hbox), gtk_label_new("Offset : "), FALSE, FALSE, 0);
-	gtk_widget_show_all (hbox);
-	gtk_widget_show (hbox);
+	btn = gtk_button_new();
+	gtk_container_set_border_width( GTK_CONTAINER (btn), 0 );
+	//btn = gtk_button_new_with_label(" Color selector ");
+	colorize_gtk_widget( GTK_WIDGET(btn), get_colorschemed_style_button());
+	gtk_container_add (GTK_CONTAINER (btn), frame);
+	gtk_widget_show (frame);
+	g_signal_connect ((gpointer) frame, "size-allocate",
+                       G_CALLBACK (color_preview_size_alloc), ge);
+
+	gtk_table_attach (GTK_TABLE (table), btn, 0, 2, 1, 2, GTK_FILL, GTK_SHRINK, 2, 2);
+	g_signal_connect ((gpointer) btn, "clicked", G_CALLBACK (on_color_clicked), ge);	
+	
+	gtk_widget_show_all (table);
+	gtk_widget_show (table);
 
 	hbox = gtk_hbox_new( FALSE, 5 );			   
 	gtk_container_set_border_width( GTK_CONTAINER (hbox), 3 );
 	gtk_box_pack_start (GTK_BOX (vbox), hbox, FALSE, FALSE, 0);
 	
-	btn = gtk_button_new_with_label(" Color selector ");
-	colorize_gtk_widget( GTK_WIDGET(btn), get_colorschemed_style_button());
-	gtk_box_pack_start (GTK_BOX (hbox), btn, FALSE, FALSE, 0);
-	g_signal_connect ((gpointer) btn, "clicked", G_CALLBACK (on_color_clicked), ge);	
-
 	btn = gtk_button_new_from_stock(GTK_STOCK_DELETE);
 	colorize_gtk_widget( GTK_WIDGET(btn), get_colorschemed_style_button());
 	gtk_box_pack_end (GTK_BOX (hbox), btn, FALSE, FALSE, 0);
@@ -602,27 +674,28 @@ asgtk_gradient_new ()
 
   	gtk_widget_show_all (list_vbox);
   	gtk_widget_show_all (main_hbox);
-	gtk_widget_hide(ge->image_view->details_frame);
+	gtk_widget_hide(ge->image_view->details_label);
+	
+	btn = gtk_check_button_new_with_label( "Use screen aspect ratio" );
+	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(btn), TRUE );
+	gtk_widget_show (btn);
+	colorize_gtk_widget( btn, get_colorschemed_style_normal() );  
+	g_signal_connect (G_OBJECT (btn), "toggled",
+	              	  G_CALLBACK (asgtk_image_view_screen_aspect_toggle), (gpointer) ge->image_view);
+	gtk_button_set_alignment( GTK_BUTTON(btn), 1.0, 0.5);
+	asgtk_image_view_add_detail( ge->image_view, btn, 0 );
 
-	/* TODO add the rest of controls : */
-#if 0
-	{
-		GdkColor gc ; 
-		gc.red = 0xFFFF ; 
-		gc.green = 0 ; 
-		gc.blue = 0 ; 
-		gtk_widget_modify_bg( ge->color_preview, GTK_STATE_NORMAL, &gc );
-		gtk_widget_modify_bg( ge->color_preview, GTK_STATE_ACTIVE, &gc );
-		gtk_widget_modify_bg( ge->color_preview, GTK_STATE_PRELIGHT, &gc );
-		gtk_widget_modify_bg( ge->color_preview, GTK_STATE_SELECTED, &gc );
-		gtk_widget_modify_bg( ge->color_preview, GTK_STATE_INSENSITIVE, &gc );
-		gtk_widget_modify_fg( ge->color_preview, GTK_STATE_NORMAL, &gc );
-		gtk_widget_modify_fg( ge->color_preview, GTK_STATE_ACTIVE, &gc );
-		gtk_widget_modify_fg( ge->color_preview, GTK_STATE_PRELIGHT, &gc );
-		gtk_widget_modify_fg( ge->color_preview, GTK_STATE_SELECTED, &gc );
-		gtk_widget_modify_fg( ge->color_preview, GTK_STATE_INSENSITIVE, &gc );
-	}
-#endif
+	btn = gtk_check_button_new_with_label( "Scale to fit this view" );
+	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(btn), TRUE );
+	gtk_widget_show (btn);
+	colorize_gtk_widget( btn, get_colorschemed_style_normal() );  
+	g_signal_connect (G_OBJECT (btn), "toggled",
+	              	  G_CALLBACK (asgtk_image_view_scale_to_view_toggle), (gpointer) ge->image_view);
+	gtk_button_set_alignment( GTK_BUTTON(btn), 1.0, 0.5);
+	asgtk_image_view_add_detail( ge->image_view, btn, 0 );
+
+
+
 	LOCAL_DEBUG_OUT( "created image ASGtkGradient object %p", ge );	
 	return GTK_WIDGET (ge);
 }

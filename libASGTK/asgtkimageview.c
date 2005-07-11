@@ -571,3 +571,34 @@ asgtk_image_view_refresh( ASGtkImageView *iv, Bool reload_file )
 	}
 }	 
 
+
+void 
+asgtk_image_view_screen_aspect_toggle( GtkWidget *checkbutton, gpointer data )
+{
+  	ASGtkImageView *iv = ASGTK_IMAGE_VIEW (data);
+	if( GTK_TOGGLE_BUTTON (checkbutton)->active ) 
+	{	
+		asgtk_image_view_set_aspect ( iv, get_screen_width(NULL), get_screen_height(NULL) );
+		asgtk_image_view_set_resize ( iv, 
+									  ASGTK_IMAGE_VIEW_TILE_TO_ASPECT, 
+									  ASGTK_IMAGE_VIEW_TILE_TO_ASPECT );
+	}else
+	{
+		asgtk_image_view_set_aspect ( iv, -1, -1 );
+		asgtk_image_view_set_resize ( iv, 0, ASGTK_IMAGE_VIEW_TILE_TO_ASPECT );
+	}	 
+}
+
+void 
+asgtk_image_view_scale_to_view_toggle( GtkWidget *checkbutton, gpointer data )
+{
+  	ASGtkImageView *iv = ASGTK_IMAGE_VIEW (data);
+	if( GTK_TOGGLE_BUTTON (checkbutton)->active ) 
+		asgtk_image_view_set_resize ( iv, ASGTK_IMAGE_VIEW_SCALE_TO_VIEW, 
+									  	  ASGTK_IMAGE_VIEW_SCALE_TO_VIEW );
+	else
+		asgtk_image_view_set_resize ( iv, 0, ASGTK_IMAGE_VIEW_SCALE_TO_VIEW);
+}
+
+
+

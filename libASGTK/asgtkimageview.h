@@ -69,4 +69,9 @@ void 		asgtk_image_view_add_detail( ASGtkImageView *iv, GtkWidget *detail, int s
 void 		asgtk_image_view_add_tool( ASGtkImageView *iv, GtkWidget *tool, int spacing );
 void 		asgtk_image_view_refresh( ASGtkImageView *iv, Bool reload_file );
 
+void asgtk_image_view_screen_aspect_toggle( GtkWidget *checkbutton, gpointer data );
+void asgtk_image_view_scale_to_view_toggle( GtkWidget *checkbutton, gpointer data );
+
+
+
 #endif  /*  ASGTKIMAGEVIEW_H_HEADER_INCLUDED  */

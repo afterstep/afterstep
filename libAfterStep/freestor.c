@@ -45,6 +45,7 @@
 #include "screen.h"
 #include "freestor.h"
 #include "functions.h"
+#include "../libAfterImage/asimagexml.h"
 
 extern char  *_disabled_keyword;
 #if 0
@@ -1012,12 +1013,15 @@ ReadConfigItem (ConfigItem * item, FreeStorageElem * stored)
 		 case TT_UINTEGER:
 			 if (!check_avail_args (stored, pos, 1))
 				 return 0;
+#if 0
 			 if( !isdigit(stored->argv[pos][0]) && stored->argv[pos][0] != '-' )
 			 {
 
 
 			 }else
 			 	item->data.integer = atol (stored->argv[pos]);
+#endif
+			 item->data.integer = parse_math(stored->argv[pos], NULL, 0);
 			 ++pos ;
 			 if (stored->term->type == TT_UINTEGER && item->data.integer < 0)
 			 {
