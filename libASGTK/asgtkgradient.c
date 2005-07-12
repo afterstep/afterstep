@@ -762,7 +762,7 @@ collect_gradient_colors_str(void *data, void *aux_data)
 
 
 char *
-asgtk_gradient_get_xml( ASGtkGradient *ge )
+asgtk_gradient_get_xml( ASGtkGradient *ge, char **mini )
 {
 	char *xml = NULL ; 
 	if( ge->points->count > 0 ) 
@@ -771,6 +771,8 @@ asgtk_gradient_get_xml( ASGtkGradient *ge )
 		char *colors = NULL ; 
 		ASGradientPoint *first, *last ; 
 		Bool add_first = False, add_last = False ; 
+		int width = 0, height = 0 ;
+		int pos = 0, colors_len, offsets_len; 
 	
 		first = LIST_START(ge->points)->data ; 
 		last  = LIST_END(ge->points)->data ; 
@@ -780,7 +782,74 @@ asgtk_gradient_get_xml( ASGtkGradient *ge )
 
 		iterate_asbidirlist( ge->points, collect_gradient_offsets_str, &offsets, NULL, False );	  
 		iterate_asbidirlist( ge->points, collect_gradient_colors_str, &colors, NULL, False );	  
+
+		colors_len = strlen(colors);
+		offsets_len = strlen(offsets );
+			
+		if( GTK_WIDGET_STATE( ge->width_entry) != GTK_STATE_INSENSITIVE ) 
+			width = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(ge->width_entry));
 	
+		if( GTK_WIDGET_STATE( ge->height_entry) != GTK_STATE_INSENSITIVE ) 
+			height = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(ge->height_entry));
+
+		xml = safemalloc( 64 + 10+10+strlen(colors) + 4 + 4 + strlen(offsets) + 32 + 32 + 2 +1 );
+		strcpy( xml, "<gradient colors=\"" );
+		pos = 18 ; 
+		if( add_first ) 
+		{	
+			strcpy( &xml[pos], "#FF000000 " );
+			pos +=10 ;
+		}
+		strcpy( &xml[pos], colors );
+		pos+=colors_len; 
+		if( add_last ) 
+		{	
+			strcpy( &xml[pos], " #FF000000" );
+			pos +=10 ;
+		}
+		strcpy( &xml[pos], "\" offsets=\"" );				
+		pos += 11 ;
+
+		if( add_first ) 
+		{	
+			strcpy( &xml[pos], "0.0 " );
+			pos +=4 ;
+		}
+		strcpy( &xml[pos], offsets );
+		pos+=offsets_len; 
+		if( add_last ) 
+		{	
+			strcpy( &xml[pos], " 1.0" );
+			pos +=4 ;
+		}
+		
+		if( mini ) 
+		{
+			*mini = safemalloc(pos+64);
+			sprintf( *mini, "%s\" width=\"$minipixmap.width\" height=\"$minipixmap.height\"/>", xml ); 	
+		}	 
+
+		strcpy( &xml[pos], "\" width=\"" );				   
+		pos += 9 ; 
+		
+		if( width > 0 ) 
+			sprintf( &xml[pos], "%d", width );
+		else
+			strcpy( &xml[pos], "$xroot.width" );
+	    while( xml[pos] != '\0' ) ++pos; 
+		
+		strcpy( &xml[pos], "\" height=\"" );				   
+		pos += 10 ; 
+		
+		/* no more then 32 bytes : */
+		if( height > 0 ) 
+			sprintf( &xml[pos], "%d", height );
+		else
+			strcpy( &xml[pos], "$xroot.height" );
+	    while( xml[pos] != '\0' ) ++pos; 
+		
+		/* no more then 2 bytes : */
+		sprintf( &xml[pos], "\"/>" );
 	}		   
 	return xml;
 }

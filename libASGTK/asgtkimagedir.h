@@ -58,6 +58,10 @@ Bool asgtk_image_dir_make_mini_names( ASGtkImageDir *id, const char *name, char 
 
 /* standard selection handler linking dir to ASGTKImageView window : */
 void asgtk_image_dir2view_sel_handler(ASGtkImageDir *id, gpointer user_data);
+FILE *open_xml_file_in_dir( ASGtkImageDir *id, const char *name, Bool mini );
+Bool make_xml_from_string( ASGtkImageDir *id, const char*name, const char *str, Bool mini );
+Bool make_mini_for_image_entry(ASGtkImageDir *id, struct ASImageListEntry *entry, const char *mini_fullfilename);
+
 
 
 

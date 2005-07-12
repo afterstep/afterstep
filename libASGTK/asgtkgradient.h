@@ -56,5 +56,7 @@ typedef struct _ASGtkGradientClass
 GType       asgtk_gradient_get_type  (void) G_GNUC_CONST;
 
 GtkWidget *asgtk_gradient_new       ();
+char *asgtk_gradient_get_xml( ASGtkGradient *ge, char **mini );
+
 
 #endif  /*  ASGTKCOLORSEL_H_HEADER_INCLUDED  */

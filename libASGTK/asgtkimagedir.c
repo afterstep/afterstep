@@ -25,6 +25,7 @@
 #include "../libAfterStep/asapp.h"
 #include "../libAfterStep/screen.h"
 
+#include <unistd.h>		   
 
 #include "asgtk.h"
 #include "asgtkai.h"
@@ -333,4 +334,77 @@ asgtk_image_dir_make_mini_names( ASGtkImageDir *id, const char *name, char **nam
 	return False;
 
 }	   
+
+FILE *
+open_xml_file_in_dir( ASGtkImageDir *id, const char *name, Bool mini )	
+{
+	FILE *fp = NULL ; 
+	char* fullfilename = NULL ; 
+	
+	if( mini ) 
+	{		
+		if ( !asgtk_image_dir_make_mini_names( id, name, NULL, &fullfilename ) ) 
+			return NULL;
+	}else
+		fullfilename = make_file_name( id->fulldirname, name );
+	
+	if( CheckFile( fullfilename ) == 0 ) 
+	{
+		if( !mini ) 
+			if( !asgtk_yes_no_question1( NULL, "It appears that you already have private background with name \"%s\". Would you like to overwrite it ?", name ) )
+			{
+				free( fullfilename );
+				return NULL ; 
+			}
+		unlink( fullfilename );
+	}	
+	fp = fopen( fullfilename, "w" ); 
+	if( fp == NULL ) 
+		asgtk_warning2( NULL, "Failed to open file \"%s\" : %s.", fullfilename, g_strerror (errno) ); 	   				   		   			
+
+	free( fullfilename );   
+	return fp;
+	
+}
+
+Bool 
+make_xml_from_string( ASGtkImageDir *id, const char*name, const char *str, Bool mini )
+{
+	FILE *fp ; 
+
+	if( name == NULL || str == NULL ) 
+		return False;
+	
+	if( (fp = open_xml_file_in_dir( id, name, mini )) == NULL ) 
+		return False;
+
+	fprintf( fp, "%s\n", str);
+	fclose(fp);
+	
+	return True;
+}	 
+
+Bool
+make_mini_for_image_entry(ASGtkImageDir *id, ASImageListEntry *entry, const char *mini_fullfilename)
+{
+	Bool res = False ;
+	if( entry->type == ASIT_XMLScript ) 
+	{
+		char *xml = safemalloc( 128 + strlen(entry->name) );
+		sprintf( xml, "<scale width=\"$minipixmap.width\" height=\"$minipixmap.height\"><img src=\"%s\"/></scale>", entry->name );
+ 		res = make_xml_from_string( id, entry->name, xml, True );		
+		free( xml );
+	}else if( entry->preview )
+	{		 
+		ASImage *thumbnail = scale_asimage( get_screen_visual(NULL), entry->preview, 24, 24, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT );
+		if( thumbnail ) 
+		{	
+			res = save_asimage_to_file(mini_fullfilename, thumbnail, "png", "9", NULL, 0, True);
+			destroy_asimage( &thumbnail );					
+		}
+	}	 
+	return res;
+}		
+
+
 

@@ -29,6 +29,7 @@ const char *asgtk_combo_box_get_active_text( GtkComboBox *combobox );
 
 Bool asgtk_yes_no_question1( GtkWidget *main_window, const char *format, const char *detail1 );
 void asgtk_warning2( GtkWidget *main_window, const char *format, const char *detail1, const char *detail2 );
+void asgtk_info2( GtkWidget *main_window, const char *format, const char *detail1, const char *detail2 );
 
 #ifdef __cplusplus
 }

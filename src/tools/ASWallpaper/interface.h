@@ -23,6 +23,8 @@ typedef struct ASWallpaperState
 	GtkWidget    *sel_apply_button ;
 	GtkWidget    *make_xml_button ;
 	GtkWidget    *edit_xml_button ;
+	GtkWidget    *make_mini_button ;
+	GtkWidget    *update_mini_button ;
 
 	
 
