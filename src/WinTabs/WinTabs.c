@@ -147,6 +147,10 @@ ASWinTabsState WinTabsState = { 0 };
 WinTabsConfig *Config = NULL ;
 /**********************************************************************/
 
+char *pattern_override = NULL ;
+char *exclude_pattern_override = NULL ;
+char *title_override = NULL, *icon_title_override = NULL ;
+
 void CheckConfigSanity(const char *pattern_override, const char *exclude_pattern_override, 
 					   const char *title_override, const char *icon_title_override);
 void GetBaseOptions (const char *filename);
@@ -189,15 +193,30 @@ Bool check_unswallowed_client( Window client );
 
 void DeadPipe(int);
 
-CommandLineOpts WinTabs_cmdl_options[7] =
+CommandLineOpts WinTabs_cmdl_options[8] =
 {
-	{NULL, "pattern","Overrides module's inclusion pattern", NULL, handler_set_string, NULL, 0, CMO_HasArgs },
-	{NULL, "exclude-pattern","Overrides module's exclusion pattern", NULL, handler_set_string, NULL, 0, CMO_HasArgs },
-	{NULL, "all-desks","Swallow windows from any desktop", NULL, handler_set_flag, NULL, 0, 0 },
-	{NULL, "title","Overrides module's main window title", NULL, handler_set_string, NULL, 0, CMO_HasArgs },
-	{NULL, "icon-title","Overrides module's title in iconic state", NULL, handler_set_string, NULL, 0, CMO_HasArgs },
-	{NULL, "skip-transients","Disregard any transient window(dialog)", NULL, handler_set_flag, NULL, 0, 0 },
-    {NULL, NULL, NULL, NULL, NULL, NULL, 0 }
+	{NULL, "pattern","Overrides module's inclusion pattern", NULL,
+	 handler_set_string, &pattern_override, 0, CMO_HasArgs },
+	
+	{NULL, "exclude-pattern","Overrides module's exclusion pattern", NULL,
+	 handler_set_string, &exclude_pattern_override, 0, CMO_HasArgs },
+	
+	{NULL, "all-desks","Swallow windows from any desktop", NULL, handler_set_flag, &(WinTabsState.flags),
+	 ASWT_AllDesks, 0 },
+	
+	{NULL, "title","Overrides module's main window title", NULL, handler_set_string,
+	 &title_override, 0, CMO_HasArgs },
+	
+	{NULL, "icon-title","Overrides module's title in iconic state", NULL, handler_set_string,
+	 &icon_title_override, 0, CMO_HasArgs },
+	
+	{NULL, "skip-transients","Disregard any transient window(dialog)", NULL, handler_set_flag,
+	 &(WinTabsState.flags), ASWT_SkipTransients, 0 },
+    
+	{"tr", "transparent","keep window-background transparent", NULL, handler_set_flag,
+	 &(WinTabsState.flags), ASWT_Transparent, 0 },
+
+	{NULL, NULL, NULL, NULL, NULL, NULL, 0, 0 }
 };
 
 
@@ -233,9 +252,7 @@ int
 main( int argc, char **argv )
 {
     int i ;
-	char *pattern_override = NULL ;
-	char *exclude_pattern_override = NULL ;
-	char *title_override = NULL, *icon_title_override = NULL ;
+    register int opt;
 	/* Save our program name - for error messages */
 	set_DeadPipe_handler(DeadPipe);
     InitMyApp (CLASS_GADGET, argc, argv, WinTabs_usage, NULL, ASS_Restarting );
@@ -243,28 +260,28 @@ main( int argc, char **argv )
 
     set_signal_handler( SIGSEGV );
 	set_flags( WinTabsState.flags, ASWT_Transparent );  /* default */
-    for( i = 1 ; i< argc ; ++i)
-	{
-		LOCAL_DEBUG_OUT( "argv[%d] = \"%s\", original argv[%d] = \"%s\"", i, argv[i], i, MyArgs.saved_argv[i]);	  
-		if( argv[i] != NULL )
-		{ 	
-	    	if( strcmp( argv[i] , "--pattern" ) == 0 && i+1 < argc &&  argv[i+1] != NULL )
-				pattern_override = argv[i+1];
-	    	else if( strcmp( argv[i] , "--exclude-pattern" ) == 0 && i+1 < argc &&  argv[i+1] != NULL )
-				exclude_pattern_override = argv[i+1];
-			else if( strcmp( argv[i] , "--all-desks" ) == 0 || strcmp( argv[i] , "-alldesks" ) == 0 )
-				set_flags( WinTabsState.flags, ASWT_AllDesks );
-			else if( strcmp( argv[i] , "--transparent" ) == 0 || strcmp( argv[i] , "-tr" ) == 0 )
-				set_flags( WinTabsState.flags, ASWT_Transparent );
-	    	else if( strcmp( argv[i] , "--title" ) == 0 && i+1 < argc &&  argv[i+1] != NULL )
-				title_override = argv[i+1];
-	    	else if( strcmp( argv[i] , "--icon-title" ) == 0 && i+1 < argc &&  argv[i+1] != NULL )
-				icon_title_override = argv[i+1];
-			else if( strcmp( argv[i] , "--skip-transients" ) == 0 )
-				set_flags( WinTabsState.flags, ASWT_SkipTransients );
-		}
-	}
+    
 
+	
+for( i = 1 ; i< argc ; ++i)
+ {
+	 LOCAL_DEBUG_OUT( "argv[%d] = \"%s\", original argv[%d] = \"%s\"", i, argv[i], i, MyArgs.saved_argv[i]);	  
+	 if( argv[i] != NULL )
+	 { 	
+		 if( ( opt = match_command_line_opt( &(argv[i][0]), WinTabs_cmdl_options ) ) < 0)
+			 continue;
+		 
+		 /* command-line-option 'opt' has been matched */
+		 
+		 if( get_flags ( WinTabs_cmdl_options[opt].flags, CMO_HasArgs) )
+			 if( ++i >= argc)
+				 continue;
+		 
+		 WinTabs_cmdl_options[opt].handler( argv[i], WinTabs_cmdl_options[opt].trg,
+						    WinTabs_cmdl_options[opt].param);
+		 
+	 }
+ }
 
     ConnectX( ASDefaultScr, EnterWindowMask );
     ConnectAfterStep ( WINTABS_MESSAGE_MASK, 0 );               /* no AfterStep */
