@@ -71,6 +71,20 @@ SyntaxDef     ArrangeSyntax = {
 };
 
 
+SyntaxDef     WinCommandSyntax = {
+	'\n',
+	'\0',
+	DummyTerms,
+	0,										   /* use default hash size */
+    ' ',
+	"",
+	"\t",
+	"Module:WinCommand",
+	"WinCommand",
+	"AfterStep module for choosing and manipulating windows based on patterns",
+	NULL,
+	0
+};
 
 
 TermDef       SupportedHintsTerms[] =

@@ -1,0 +1,25 @@
+<section label="examples" id="examples">
+<title>Examples</title>
+<para>    
+WinCommand -pattern term iconify
+</para>
+
+<para>
+This command will iconify all terminals. Since the specified pattern
+is a regular expression, something like this also works:
+</para>
+<para>
+WinCommand -pattern "(term)|(moz)" iconify
+</para>
+<para>
+This will iconify all terminals and mozilla-browser windows.
+</para>
+<para>
+WinCommand -pattern xmm jump
+</para>
+<para>
+will jump to your xmms. In this situation, it's far more advisable to
+use GWCommand though.
+</para>
+</section>
+

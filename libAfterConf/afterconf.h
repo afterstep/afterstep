@@ -82,6 +82,7 @@ extern struct SyntaxDef		 WharfLookSyntax;
 extern struct SyntaxDef		 WharfPrivateSyntax;
 extern struct SyntaxDef 	 WharfFolderSyntax;
 extern struct SyntaxDef 	 WharfSyntax;
+extern struct SyntaxDef      WinCommandSyntax; 
 extern struct SyntaxDef      WinListSyntax;
 extern struct SyntaxDef      WinListPrivateSyntax;
 extern struct SyntaxDef      WinListLookSyntax;

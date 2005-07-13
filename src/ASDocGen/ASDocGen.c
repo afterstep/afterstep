@@ -52,6 +52,7 @@ SyntaxDef* TopLevelSyntaxes[] =
     &AnimateSyntax,
     &AudioSyntax,
 	&ArrangeSyntax,
+    &WinCommandSyntax,
 	NULL
 };	 
 

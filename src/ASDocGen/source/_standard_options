@@ -36,8 +36,8 @@
 	<varlistentry>
 	<term>-r | --restart</term>
 	<listitem>
-   <para>Run as if it was restarted.  same as regular startup, only runs RestartFunction
-instead of InitFunction.   </para>
+   <para>Run as if it was restarted.  same as regular startup, only 
+runs RestartFunctioninstead of InitFunction.   </para>
    </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -111,19 +111,20 @@ instead of what was selected from the menu.   </para>
 	<varlistentry>
 	<term>-l | --log <replaceable>val</replaceable></term>
 	<listitem>
-   <para>Save all output into the file instead of printing it to console.    </para>
+   <para>Save all output into the file.  (instead of printing it to console).   </para>
    </listitem>
 	</varlistentry>
 	<varlistentry>
 	<term>-L | --locale <replaceable>val</replaceable></term>
 	<listitem>
-   <para>Set language locale to be used while displaying text.    </para>
+   <para>Set language locale.  to be used while displaying text.   </para>
    </listitem>
 	</varlistentry>
 	<varlistentry>
 	<term>     --myname <replaceable>val</replaceable></term>
 	<listitem>
-   <para>Overrides module name to be used while parsing config files and reporting to AfterStep.    </para>
+   <para>Overrides module name.  will be used while parsing config files
+and reporting to AfterStep.   </para>
    </listitem>
 	</varlistentry>
 	<varlistentry>

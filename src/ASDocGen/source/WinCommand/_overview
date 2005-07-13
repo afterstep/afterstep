@@ -1,0 +1,165 @@
+<section label="overview" id="overview">
+<refsect1 id='invocation'><title>DESCRIPTION</title>
+<para>    
+WinCommand is a command line tool which allows you to select windows
+based on their name and to then manipulate them in various ways.
+Actions currently supported are: "center", "center jump", "iconify",
+"jump", "kill", "move", "resize" and "sendtodesk".
+</para>
+</refsect1>
+
+<refsect1 id='defaults'><title>DEFAULTS</title>
+<para>
+The default pattern is "", meaning all windows will be selected.
+</para><para>
+All other default-values depend on the action you would like
+WinCommand to take. If more than one action is specified,
+default-values are set depending on the last action specified.
+</para>
+</refsect1>
+
+<refsect1 id='actions'><title>ACTIONS</title>
+
+<para><varlistentry><term>
+center
+</term>
+<listitem><para>
+
+Place matching windows into the center of the screen.
+
+</para></listitem></varlistentry>
+</para>
+
+<para><varlistentry><term>
+center jump:
+</term>
+<listitem><para>
+
+Places first window that matches into the center of the screen and
+jumps to it.
+
+</para></listitem></varlistentry>
+</para>
+
+<para><varlistentry><term>
+iconify:
+</term>
+<listitem><para>
+
+Iconifies matching windows.
+
+</para></listitem></varlistentry>
+</para>
+
+<para><varlistentry><term>
+jump:
+</term>
+<listitem><para>
+
+Jumps to the first window which matches.
+
+</para></listitem></varlistentry>
+</para>
+
+<para><varlistentry><term>
+kill:
+</term>
+<listitem><para>
+
+Kills all matching windows.
+
+</para></listitem></varlistentry>
+</para>
+
+<para><varlistentry><term>
+move:
+</term>
+<listitem><para>
+
+Moves all matching windows to x/y. x and y are specified using the
+-x and -y flags.
+
+</para></listitem></varlistentry>
+</para>
+
+<para><varlistentry><term>
+resize:
+</term>
+<listitem><para>
+
+Resize all matching windows. The two paramters width and height are
+specified using the -width and -height flags.
+
+</para></listitem></varlistentry>
+</para>
+
+<para><varlistentry><term>
+send_to_desk:
+</term>
+<listitem><para>
+
+Send all matching windows to desk specified with the -new_desk flag.
+
+</para></listitem></varlistentry>
+</para>
+
+</refsect1>
+
+
+<refsect1 id='options'><title>OPTIONS</title>
+
+<para><varlistentry><term>
+-all
+</term>
+<listitem><para>
+
+Operate on all windows which match the given pattern. This is set by
+default unless the action is either "jump" or "center jump".
+
+</para></listitem></varlistentry>
+</para>
+
+ <para><varlistentry><term>
+-alldesks
+</term>
+<listitem><para>
+
+Windows on all desks will be taken into account. This is set by
+default if action is either "jump" or "center jump".
+
+</para></listitem></varlistentry>
+</para>
+
+ <para><varlistentry><term>
+-desk
+</term>
+<listitem><para>
+
+Windows on the whole desk will be taken into account.
+
+</para></listitem></varlistentry>
+</para>
+
+<para><varlistentry><term>
+-x/-y
+</term>
+<listitem><para>
+
+These are required when issuing the move-command.
+
+</para></listitem></varlistentry>
+
+</para>
+<para><varlistentry><term>
+-width/-height
+</term>
+<listitem><para>
+
+These are required whenever you want to resize windows.
+
+</para></listitem></varlistentry>
+</para>
+
+</refsect1>
+
+</section>
