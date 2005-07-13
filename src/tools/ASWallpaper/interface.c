@@ -4,27 +4,17 @@
 
 #define LOCAL_DEBUG
 
-#include "../../../../configure.h"
-#include "../../../../libAfterStep/asapp.h"
-#include "../../../../libAfterImage/afterimage.h"
-#include "../../../../libAfterStep/screen.h"
-#include "../../../../libAfterStep/colorscheme.h"
-#include "../../../../libAfterStep/module.h"
-#include "../../../../libASGTK/asgtk.h"
+#include "../../../configure.h"
+#include "../../../libAfterStep/asapp.h"
+#include "../../../libAfterImage/afterimage.h"
+#include "../../../libAfterStep/screen.h"
+#include "../../../libAfterStep/colorscheme.h"
+#include "../../../libAfterStep/module.h"
+#include "../../../libASGTK/asgtk.h"
 
 #include <unistd.h>		   
 
-#include "callbacks.h"
 #include "interface.h"
-#include "support.h"
-
-#define GLADE_HOOKUP_OBJECT(component,widget,name) \
-  g_object_set_data_full (G_OBJECT (component), name, \
-    gtk_widget_ref (widget), (GDestroyNotify) gtk_widget_unref)
-
-#define GLADE_HOOKUP_OBJECT_NO_REF(component,widget,name) \
-  g_object_set_data (G_OBJECT (component), name, widget)
-
 
 void
 gtk_image_browser_destroy(GtkWidget *widget, gpointer user_data)
@@ -736,7 +726,7 @@ create_main_window (void)
     GtkWidget *main_vbox;
 
   	WallpaperState.main_window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-  	gtk_window_set_title (GTK_WINDOW (WallpaperState.main_window), _("AfterStep Wallpaper Manager"));
+  	gtk_window_set_title (GTK_WINDOW (WallpaperState.main_window), "AfterStep Wallpaper Manager");
 
  	colorize_gtk_window( WallpaperState.main_window ); 	
 		
@@ -748,8 +738,6 @@ create_main_window (void)
   	gtk_widget_show (WallpaperState.list_hbox);
   	gtk_box_pack_start (GTK_BOX (main_vbox), WallpaperState.list_hbox, TRUE, TRUE, 5);
 
-  	/* Store pointers to all widgets, for use by lookup_widget(). */
-  	GLADE_HOOKUP_OBJECT_NO_REF (WallpaperState.main_window, WallpaperState.main_window, "main_window");
 }
 
 GtkWidget*

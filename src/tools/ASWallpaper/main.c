@@ -3,14 +3,13 @@
  * Glade will not overwrite this file.
  */
 
-#include "../../../../configure.h"
-#include "../../../../libAfterStep/asapp.h"
-#include "../../../../libAfterStep/module.h"
-#include "../../../../libAfterConf/afterconf.h"
-#include "../../../../libASGTK/asgtk.h"
+#include "../../../configure.h"
+#include "../../../libAfterStep/asapp.h"
+#include "../../../libAfterStep/module.h"
+#include "../../../libAfterConf/afterconf.h"
+#include "../../../libASGTK/asgtk.h"
 
 #include "interface.h"
-#include "support.h"
 
 
 ASWallpaperState WallpaperState ;
