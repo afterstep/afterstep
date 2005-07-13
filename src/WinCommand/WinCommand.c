@@ -292,8 +292,9 @@ main( int argc, char **argv )
 	else if( ! get_flags( WinCommandState.flags, WINCOMMAND_AllDesks))
 		select_windows_on_screen(False);
 
-	select_windows_by_pattern(WinCommandState.pattern,
-				  !get_flags(WinCommandState.flags, WINCOMMAND_ActOnAll), False);
+	if ( ! select_windows_by_pattern(WinCommandState.pattern,
+					 !get_flags(WinCommandState.flags, WINCOMMAND_ActOnAll), False) )
+		LOCAL_DEBUG_OUT("warning: invalid pattern. Reverting to default.");
 	
 	/* apply operations */
 	for( curr = WinCommandState.operations->head;

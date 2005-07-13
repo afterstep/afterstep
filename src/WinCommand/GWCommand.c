@@ -23,6 +23,7 @@
 #include "../../libAfterStep/operations.h"
 #include "../../libAfterConf/afterconf.h"
 #include "../../libASGTK/asgtk.h"
+#include "../../libASGTK/asgtkapp.h"
 
 
 #include <gdk/gdkx.h>
@@ -78,7 +79,7 @@ typedef struct
 {
 	char *name;
 	int param_page;
-	void (*exec_wrapper)(void);
+	Bool (*exec_wrapper)(void);
 	void (*init_defaults)(void);
 } action_t ;
 
@@ -100,12 +101,12 @@ struct ASGWCommandState
 GtkWidget* create_window (void);
 static void destroy( GtkWidget *widget,
                      gpointer   data );
-void no_args_wrapper(void);
-void move_wrapper(void);
-void send_to_desk_wrapper(void);
-void jump_wrapper(void);
-void resize_wrapper(void);
-void group_wrapper(void);
+Bool no_args_wrapper(void);
+Bool move_wrapper(void);
+Bool send_to_desk_wrapper(void);
+Bool jump_wrapper(void);
+Bool resize_wrapper(void);
+Bool group_wrapper(void);
 
 void default_defaults(void);
 void jump_defaults(void);
@@ -452,9 +453,10 @@ on_pattern_activate ( GtkEntry *entry,
 		select_windows_on_desk( False );
 	
 	/* call the wrapper */
-	act->exec_wrapper();
-
-	gtk_main_quit();
+	if( act->exec_wrapper() )
+		gtk_main_quit();
+	else
+	  asgtk_warning2( NULL, "Invalid pattern.", NULL, NULL);
 }
 
 void
@@ -491,54 +493,75 @@ void fill_action_combo( void )
 
 /* exec_wrappers */
 
-void
+Bool
 no_args_wrapper(void)
 {
-	select_windows_by_pattern
-		(gtk_entry_get_text(GTK_ENTRY(pattern_entry)), False, False);
+	if ( ! select_windows_by_pattern
+	     (gtk_entry_get_text(GTK_ENTRY(pattern_entry)), False, False) )
+		return False;
+	
 	ascom_do(GWCommandState.action, NULL);
+	return True;
 }
 
-void move_wrapper(void)
+Bool
+move_wrapper(void)
 {
 	move_params p;
 	p.x = atoi (gtk_entry_get_text(GTK_ENTRY(entry1)));
 	p.y = atoi (gtk_entry_get_text(GTK_ENTRY(entry2)));
-	select_windows_by_pattern
-		(gtk_entry_get_text(GTK_ENTRY(pattern_entry)), False, False);
+	
+	if ( ! select_windows_by_pattern
+	     (gtk_entry_get_text(GTK_ENTRY(pattern_entry)), False, False) )
+		return False;
 	
 	ascom_do(GWCommandState.action, &p);
+	return True;
 }
 
-void resize_wrapper(void)
+Bool
+resize_wrapper(void)
 {
 	resize_params p;
 	p.width = atoi (gtk_entry_get_text(GTK_ENTRY(entry4)));
 	p.height = atoi (gtk_entry_get_text(GTK_ENTRY(entry5)));
-	select_windows_by_pattern
-		(gtk_entry_get_text(GTK_ENTRY(pattern_entry)), False, False);
+	
+	if ( ! select_windows_by_pattern
+	     (gtk_entry_get_text(GTK_ENTRY(pattern_entry)), False, False) )
+		return False;
 	
 	ascom_do(GWCommandState.action, &p);
+	return True;
 }
 
-void send_to_desk_wrapper(void)
+Bool
+send_to_desk_wrapper(void)
 {
 	send_to_desk_params p;
 	p.desk = atoi (gtk_entry_get_text(GTK_ENTRY(entry3)));
-	select_windows_by_pattern
-		(gtk_entry_get_text(GTK_ENTRY(pattern_entry)), False, False);
-
+	
+	if ( ! select_windows_by_pattern
+	     (gtk_entry_get_text(GTK_ENTRY(pattern_entry)), False, False) )
+		return False;
+		
 	ascom_do(GWCommandState.action, &p);
+
+	return True;
 }
 
-void jump_wrapper(void)
+Bool
+jump_wrapper(void)
 {
-	select_windows_by_pattern
-		(gtk_entry_get_text(GTK_ENTRY(pattern_entry)), True, False);
+	if ( ! select_windows_by_pattern
+	     (gtk_entry_get_text(GTK_ENTRY(pattern_entry)), True, False) )
+		return False;
+	
 	ascom_do(GWCommandState.action, NULL);
+	return True;
 }
 
-void group_wrapper(void)
+Bool
+group_wrapper(void)
 {
 	char com[1024];
 	/* Launch WinTabs */
@@ -546,6 +569,7 @@ void group_wrapper(void)
 		 gtk_entry_get_text(GTK_ENTRY(pattern_entry)));
 	
 	system( com );
+	return True;
 }
 
 /* init_defaults */

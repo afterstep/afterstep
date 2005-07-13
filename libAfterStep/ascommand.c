@@ -375,7 +375,7 @@ select_all( Bool unselect )
 	selection_in_progress = True;
 }
 
-void
+Bool
 select_windows_by_pattern( const char *pattern, Bool just_one, Bool unselect)
 {
 	ASBiDirElem *curr;
@@ -388,7 +388,7 @@ select_windows_by_pattern( const char *pattern, Bool just_one, Bool unselect)
 	if(regcomp( &my_reg, pattern, REG_EXTENDED | REG_ICASE ) != 0)
 	{
 		LOCAL_DEBUG_OUT("Error compiling regex");
-		return;
+		return False;
 	}
 	
 	if( selection_in_progress)
@@ -419,6 +419,7 @@ select_windows_by_pattern( const char *pattern, Bool just_one, Bool unselect)
 	ASCommandState.selected_wins = new_selection;
 	regfree(&my_reg);
 	selection_in_progress = True;
+	return True;
 }
 
 void

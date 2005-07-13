@@ -59,7 +59,7 @@ void ascom_wait( void ); /* wait until all operations have been executed */
 
 /* selection */
 void select_all( Bool unselect );
-void select_windows_by_pattern(const char *pattern, Bool just_one, Bool unselect);
+Bool select_windows_by_pattern(const char *pattern, Bool just_one, Bool unselect);
 void select_windows_on_screen( Bool unselect );
 void select_windows_on_desk ( Bool unselect );
 
