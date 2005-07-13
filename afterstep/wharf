@@ -199,6 +199,12 @@
 *MonitorWharf afterstepdoc large/AfterStep3 Exec  "l" afterstepdoc &
 *MonitorWharf afterstepdoc -                PopUp "r" 0
 
+*MonitorWharf ToolsFolder normal/Desktop,normal/HammerBrown,normal/HammerRed,dots/3_dots Folder
+*MonitorWharf 	ASWallpaper normal/Desktop 		Exec "" ASWallpaper &
+*MonitorWharf 	GWCommand   normal/RemoteControl 	Exec "" GWCommand &
+*MonitorWharf ~Folder
+
+
 
 *MonitorWharf xeyes - Swallow "xeyes" xeyes -geometry -100-100 &
 *MonitorWharf xeyes - PopUp   "r" Window
