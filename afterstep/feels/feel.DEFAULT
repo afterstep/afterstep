@@ -385,6 +385,12 @@ Key F10         A       SC      PutOnBack
 Key F11         A       SC      WindowList
 Key F12         A       SC      PopUp "StartMenu"  0
 
+# GWCommand
+Key 	j 	A	CM	Exec "-" GWCommand jump
+Key 	i 	A	CM	Exec "-" GWCommand iconify
+Key 	c 	A	CM	Exec "-" GWCommand center
+Key 	s 	A	CM	Exec "-" GWCommand sendtodesk
+
 ################################################################################
 # Menu popups keybindings
 ################################################################################

@@ -34,6 +34,8 @@ Style   "*Pager"        NoTitle, Sticky, Layer 4, WindowListSkip, NoHandles, Avo
 Style   "ASMenu"        NoButton 1, NoButton 3
 Style   "WinTabs"       Layer 0, Slippery
 
+Style	"GWCommand"	FocusOnMap
+
 # Wharf apps and AfterStep close apps and terms
 Style   "*clock"        StaysOnTop, WindowListSkip, NoHandles
 Style   "asload"        NoTitle, Sticky, StaysOnTop, WindowListSkip, NoHandles
