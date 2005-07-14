@@ -1007,7 +1007,12 @@ HandleMapNotify ( ASEvent *event )
     }
 
 	if( asw->wm_state_transition == ASWT_Withdrawn2Normal )
-		no_focus = (ASWIN_HFLAGS(asw, AS_FocusOnMap) == 0) ;
+	{
+		if( ASWIN_HFLAGS(asw, AS_FocusOnMap) )
+			force_activation = True;
+		else
+			no_focus = True ;
+	}
     if( asw->wm_state_transition == ASWT_StableState )
     {
         if( ASWIN_GET_FLAGS( asw, AS_Iconic ) )
