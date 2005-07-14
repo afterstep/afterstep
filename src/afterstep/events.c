@@ -1027,7 +1027,7 @@ HandleMapNotify ( ASEvent *event )
     ASWIN_CLEAR_FLAGS(asw, AS_IconMapped);
     ASWIN_CLEAR_FLAGS(asw, AS_Iconic);
     complete_wm_state_transition( asw, NormalState );
-	if( !no_focus )
+	if( !no_focus && ASWIN_HFLAGS(asw,AS_AcceptsFocus) )
     	activate_aswindow (asw, force_activation, False);
     broadcast_config( M_MAP, asw );
     /* finally reaches Normal state */
