@@ -84,6 +84,8 @@
 #define COLORSCHEME_FILE AFTER_NONCF "/%d_colorscheme" /* desk */
 #define AFTER_SAVE      AFTER_NONCF "/workspace_state"
 #define MENU_FILE	AFTER_NONCF "/startmenu"
+#define GTKRC_TEMPLATE_FILE   "gtkrc_template"                   /* gtkrc prototype */
+#define GTKRC_FILE      AFTER_NONCF "/gtkrc"		         /* compiled and ready to use gtkrc */
 #define AUTOEXEC_FILE   "autoexec"
 #define DATABASE_FILE   "database"
 #define DEFAULT_CAPTURE_WINDOW_FILE		"~/capture_window"

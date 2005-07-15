@@ -1534,7 +1534,8 @@ LoadASConfig (int thisdesktop, ASFlagType what)
                 display_progress( True, "LOOK configuration file cannot be found!");
                 clear_flags(what, PARSE_LOOK_CONFIG);
             }
-        }
+        	UpdateGtkRC();
+		}
         if (get_flags(what, PARSE_FEEL_CONFIG))
 		{
             if( (const_configfile = get_session_file (Session, thisdesktop, F_CHANGE_FEEL, False) ) != NULL )
@@ -1630,6 +1631,7 @@ LoadASConfig (int thisdesktop, ASFlagType what)
         show_progress("AfterStep configuration loaded from \"%s\" ...", Session->overriding_file);
         display_progress( True, "AfterStep configuration loaded from \"%s\".", Session->overriding_file);
         what = PARSE_EVERYTHING ;
+		UpdateGtkRC();
     }
 
 	/* let's free the memory used for parsing */

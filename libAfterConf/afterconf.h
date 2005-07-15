@@ -1843,6 +1843,9 @@ ColorConfig *ASColorScheme2ColorConfig( ASColorScheme *cs );
 ASColorScheme *ColorConfig2ASColorScheme( ColorConfig *config );
 
 void LoadColorScheme();                        /* high level easy to use function */
+void translate_gtkrc_template_file( const char *template_fname, const char *output_fname );
+void UpdateGtkRC();
+
 
 
 /***************************************************************************/

@@ -27,6 +27,8 @@
 #include "../libAfterStep/session.h"
 #include "../libAfterStep/screen.h"
 
+#include <unistd.h>
+
 #include "afterconf.h"
 
 
@@ -301,4 +303,80 @@ LoadColorScheme()
 	populate_ascs_colors_xml( cs );
 	free( cs );
 }
+
+void 
+translate_gtkrc_template_file( 	const char *template_fname, const char *output_fname )
+{
+	static char buffer[MAXLINELENGTH] ; 
+	FILE *src_fp = NULL, *dst_fp = NULL; 		  
+
+	if( template_fname == NULL || output_fname == NULL ) 
+		return;
+
+	src_fp = fopen( template_fname, "r");
+	dst_fp = fopen( output_fname, "w");
+	if( src_fp != NULL && dst_fp != NULL ) 
+	{
+		while( fgets( &buffer[0], MAXLINELENGTH, src_fp ) )
+		{
+			int i = 0; 
+			while( isspace(buffer[i]) )++i ; 
+			if( buffer[i] != '\n' && buffer[i] != '#' && buffer[i] != '\0' && buffer[i] != '\r' )
+			{	
+				if( strncmp( &buffer[i], "fg[", 3 ) == 0 ||
+					strncmp( &buffer[i], "bg[", 3 ) == 0 ||
+					strncmp( &buffer[i], "text[", 5 ) == 0 ||
+					strncmp( &buffer[i], "base[", 3 ) == 0 ||
+					strncmp( &buffer[i], "light[", 3 ) == 0 ||
+					strncmp( &buffer[i], "dark[", 3 ) == 0 ||
+					strncmp( &buffer[i], "mid[", 3 ) == 0 )
+				{
+					while( buffer[i] != '\0' && buffer[i] != '\"' && buffer[i] != '\{' )++i ; 
+					if(buffer[i] == '\"' )
+					{
+					 	char *token = &buffer[i+1] ;
+						if( isalpha(token[0]) ) 
+						{	
+							int len = 0 ; 
+							while( token[len] != '\0' && token[len] != '\"' ) ++len ; 
+							if( token[len] == '\"' && len > 0 )
+							{
+								ARGB32 argb;
+								if( parse_argb_color( token, &argb ) != token ) 
+								{	
+						 			fwrite( &(buffer[0]), 1, i+1, dst_fp );
+									fprintf( dst_fp, "#%2.2lX%2.2lX%2.2lX", ARGB32_RED8(argb), ARGB32_GREEN8(argb), ARGB32_BLUE8(argb) );
+									fwrite( &(token[len]), 1, strlen(&(token[len])), dst_fp );
+									continue;
+								}
+							}
+						}
+					}
+				}
+			}			
+			fwrite( &buffer[0], 1, strlen(&buffer[0]), dst_fp );
+		}	 
+		
+	}
+	if( src_fp ) 
+		fclose(src_fp);	 
+	if( dst_fp ) 
+		fclose(dst_fp);	 
+}
+
+void
+UpdateGtkRC()
+{
+	char *src = make_session_file   (Session, GTKRC_TEMPLATE_FILE, False );
+	char *dst = make_session_data_file  (Session, False, W_OK, GTKRC_FILE, NULL );
+	/* first we need to load the colorscheme */
+    if( src && dst ) 
+		translate_gtkrc_template_file( 	src, dst );
+
+	if( src ) 
+		free( src );
+	if( dst ) 
+		free( dst );
+}
+
 
