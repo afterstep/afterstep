@@ -1523,7 +1523,7 @@ complete_wm_state_transition( ASWindow *asw, int state )
 }
 
 Bool
-set_window_wm_state( ASWindow *asw, Bool iconify )
+set_window_wm_state( ASWindow *asw, Bool iconify, Bool force_unmapped )
 {
     XWindowAttributes attr;
 
@@ -1609,14 +1609,16 @@ LOCAL_DEBUG_OUT( "updating status to iconic for client %p(\"%s\")", asw, ASWIN_N
 
         asw->status->icon_window = None ;
 
-        if( !ASWIN_GET_FLAGS(asw, AS_Dead) )
+        if( !ASWIN_GET_FLAGS(asw, AS_Dead) && !force_unmapped )
         {
             if ( !XGetWindowAttributes (dpy, asw->w, &attr) )
                 ASWIN_SET_FLAGS(asw, AS_Dead);
-            else
+		}
+        if( !ASWIN_GET_FLAGS(asw, AS_Dead) )
+        {
             {
                 /* TODO: make sure that the window is on this screen */
-                if( attr.map_state == IsUnmapped )
+                if( attr.map_state == IsUnmapped || force_unmapped)
                     XMapRaised (dpy, asw->w);
                 else
                 {
@@ -1705,7 +1707,7 @@ make_aswindow_visible( ASWindow *asw, Bool deiconify )
     {
         if( deiconify )
         {
-			set_window_wm_state( asw, False );
+			set_window_wm_state( asw, False, False );
 		}
     }
 
@@ -1771,8 +1773,8 @@ make_aswindow_visible( ASWindow *asw, Bool deiconify )
         }else
         {
             on_window_moveresize( asw, asw->frame );
-            x = asw->frame_canvas->root_x;
-            y = asw->frame_canvas->root_y;
+            x = asw->client_canvas->root_x;
+            y = asw->client_canvas->root_y;
         }
 		LOCAL_DEBUG_OUT( "Warping pointer to : %+d%+d", x + Scr.Feel.Xzap, y + Scr.Feel.Yzap);
         XWarpPointer (dpy, None, Scr.Root, 0, 0, 0, 0, x + Scr.Feel.Xzap, y + Scr.Feel.Yzap);
@@ -1929,7 +1931,7 @@ LOCAL_DEBUG_OUT("current focused is %p, active is %p", Scr.Windows->focused, Scr
         {
 LOCAL_DEBUG_OUT( "Window is iconic - pending implementation%s","");
             if( deiconify )
-				set_window_wm_state( asw, False );
+				set_window_wm_state( asw, False, False );
             else
                 return False;
         }

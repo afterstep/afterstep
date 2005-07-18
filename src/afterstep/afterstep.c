@@ -566,7 +566,7 @@ CaptureAllWindows (ScreenInfo *scr)
             if( (wm_state == IconicState) || (attr.map_state != IsUnmapped))
 			{
 				LOCAL_DEBUG_OUT( "adding window %lX", children[i] );	  
-                AddWindow( children[i] );
+                AddWindow( children[i], False );
 			}
 		}
 

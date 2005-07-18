@@ -854,9 +854,9 @@ LOCAL_DEBUG_CALLER_OUT( "function %ld (val0 = %ld), event %d, window 0x%lX, wind
 	if (ASWIN_GET_FLAGS(event->client, AS_Iconic) )
 	{
 		if (data->func_val[0] <= 0)
-		set_window_wm_state( event->client, False );
+		set_window_wm_state( event->client, False, False );
 	}else if (data->func_val[0] >= 0)
-		set_window_wm_state( event->client, True );
+		set_window_wm_state( event->client, True, False );
 	}
 }
 

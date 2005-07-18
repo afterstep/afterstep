@@ -904,7 +904,7 @@ HandleClientMessage (ASEvent *event)
         (event->x.xclient.data.l[0] == IconicState) &&
         !ASWIN_GET_FLAGS(event->client, AS_Iconic))
 	{
-        set_window_wm_state( event->client, True );
+        set_window_wm_state( event->client, True, False );
 #ifdef ENABLE_DND
 		/* Pass the event to the client window */
         if (event->x.xclient.window != event->client->w)
@@ -975,10 +975,10 @@ HandleMapRequest (ASEvent *event )
     /* If the window has never been mapped before ... */
     if (event->client == NULL)
     {
-        if( (event->client = AddWindow (event->w)) == NULL )
+        if( (event->client = AddWindow (event->w, True)) == NULL )
             return;
     }else /* If no hints, or currently an icon, just "deiconify" */
-        set_window_wm_state( event->client, False );
+        set_window_wm_state( event->client, False, True );
 }
 
 /***********************************************************************
@@ -997,6 +997,7 @@ HandleMapNotify ( ASEvent *event )
     if ( asw == NULL || event->w == Scr.Root )
         return;
 
+    LOCAL_DEBUG_OUT( "asw->w = %lX, event->w = %lX", asw->w, event->w );
     if( event->w != asw->w )
     {
         if( asw->wm_state_transition == ASWT_Withdrawn2Iconic && event->w == asw->status->icon_window )
@@ -1013,10 +1014,12 @@ HandleMapNotify ( ASEvent *event )
 		else
 			no_focus = True ;
 	}
-    if( asw->wm_state_transition == ASWT_StableState )
+    LOCAL_DEBUG_OUT( "asw->wm_state_transition = %d", asw->wm_state_transition );
+
+	if( asw->wm_state_transition == ASWT_StableState )
     {
         if( ASWIN_GET_FLAGS( asw, AS_Iconic ) )
-            set_window_wm_state( asw, False );  /* client has requested deiconification */
+            set_window_wm_state( asw, False, False );  /* client has requested deiconification */
         return ;                                /* otherwise it is redundand event */
     }
     if( get_flags(asw->wm_state_transition, ASWT_FROM_ICONIC ) )
@@ -1027,6 +1030,7 @@ HandleMapNotify ( ASEvent *event )
     ASWIN_CLEAR_FLAGS(asw, AS_IconMapped);
     ASWIN_CLEAR_FLAGS(asw, AS_Iconic);
     complete_wm_state_transition( asw, NormalState );
+	LOCAL_DEBUG_OUT( "no_focus = %d, force_activation = %d, AcceptsFocus = %ld", no_focus, force_activation, ASWIN_HFLAGS(asw,AS_AcceptsFocus) );
 	if( !no_focus && ASWIN_HFLAGS(asw,AS_AcceptsFocus) )
     	activate_aswindow (asw, force_activation, False);
     broadcast_config( M_MAP, asw );

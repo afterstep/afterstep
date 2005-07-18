@@ -458,7 +458,7 @@ void on_window_pressure_changed( ASWindow *asw, int pressed_context );
 
 void SelectDecor (ASWindow *);
 void check_aswindow_shaped( ASWindow *asw );
-ASWindow *AddWindow (Window w);
+ASWindow *AddWindow (Window w, Bool from_map_request);
 ASWindow *AddInternalWindow (Window w,
                              ASInternalWindow **pinternal,
                              struct ASHints **phints, struct ASStatusHints *status);
@@ -691,7 +691,7 @@ Bool install_theme_file( const char *src );
 /******************************* winstatus.c *******************************/
 void complete_wm_state_transition( ASWindow *asw, int state );
 Bool apply_window_status_size(register ASWindow *asw, ASOrientation *od);
-Bool set_window_wm_state( ASWindow *asw, Bool iconify );
+Bool set_window_wm_state( ASWindow *asw, Bool iconify, Bool force_unmapped );
 Bool make_aswindow_visible( ASWindow *asw, Bool deiconify );
 void change_aswindow_layer( ASWindow *asw, int layer );
 void quietly_reparent_aswindow( ASWindow *asw, Window dst, Bool user_root_pos );

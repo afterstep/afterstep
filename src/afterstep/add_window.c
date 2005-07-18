@@ -158,7 +158,7 @@ SelectDecor (ASWindow * t)
  *
  ***********************************************************************/
 ASWindow     *
-AddWindow (Window w)
+AddWindow (Window w, Bool from_map_request)
 {
 	ASWindow     *tmp_win;					   /* new afterstep window structure */
 	ASRawHints    raw_hints ;
@@ -277,7 +277,7 @@ AddWindow (Window w)
     }
 
 
-    set_window_wm_state( tmp_win, get_flags(status.flags, AS_Iconic) );
+    set_window_wm_state( tmp_win, get_flags(status.flags, AS_Iconic), from_map_request );
  
 	if( ASWIN_HFLAGS( tmp_win, AS_AvoidCover )  )
 		enforce_avoid_cover( tmp_win );
@@ -350,7 +350,7 @@ AddInternalWindow (Window w, ASInternalWindow **pinternal, ASHints **phints, ASS
 
     redecorate_window       ( tmp_win, False );
     on_window_title_changed ( tmp_win, False );
-    set_window_wm_state( tmp_win, get_flags(status->flags, AS_Iconic) );
+    set_window_wm_state( tmp_win, get_flags(status->flags, AS_Iconic), False );
 	RaiseWindow( tmp_win );
 /*    activate_aswindow( tmp_win, False, False ); */
 
