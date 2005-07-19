@@ -1,4 +1,28 @@
 
+2005-07-19  vae
+
+	* AfterStep Release v 2.1.2
+
+2005-07-01  fabs
+
+	* added posix-regular-expression support.
+
+2005-06-15  sasha
+
+	* debugged directory listing in image browser; added new file types
+	  for HTML and XML to stop treating them as image scripts; Added
+	  keycombo to switch windows in WinTabs - Alt +(key to the left
+	  from 1)
+	* segfault under high load where first XGetProperty succeeds but
+	  the second one fails in get 32bit proplist - double freeing of a
+	  buffer
+
+2005-06-08  sasha
+
+	* Applyed many fixes based on output of automated analysys tool,
+	  provided by sdague
+	* continued debugging of ASWallpaper - still segfaults
+
 2005-06-06  vae
 
 	* ChangeLog update for 2.1.1
@@ -8,7 +32,7 @@
 	* AfterStep release v 2.1.0 - changelogs - vae
 	* AfterStep release v 2.1.0 - vae
 
-2005-05-16  sasha
+2005-05-17  sasha
 
 	* Added prototype of the GTK based tool for selecting AfterStep
 	  backgrounds
@@ -234,13 +258,16 @@
 	* fixed segfault in ASDocGen index generation and possibly fixed
 	  bug in flush_ashash
 
-2004-06-10  sasha
+2004-06-11  sasha
 
 	* added new totals to audit memory printing
+
+2004-06-10  sasha
+
 	* added xml tag <release> so that temporary images could be unload
 	  to free up some memory
 
-2004-06-08  sasha
+2004-06-09  sasha
 
 	* Fixed race condition with modules using LOCKONSEND and display
 	  being grabbed
@@ -389,9 +416,12 @@
 
 	* corrected Makefiles and fixed compile bugs in WinTabs prototype
 
-2003-09-25  sasha
+2003-09-26  sasha
 
 	* AfterStep 2.00.beta2 Release
+
+2003-09-25  sasha
+
 	* Implemented automagic generation of the ChangeLog
 
 2003-09-23  sasha
@@ -416,7 +446,7 @@
 
 	* mostly implemented new workspace state saving and restoring
 
-2003-08-27  sasha
+2003-08-28  sasha
 
 	* 64-bit compilation fixes
 
@@ -449,10 +479,10 @@
 2003-08-16  sasha
 
 	* fixed compile bug when dirent.h is in sys/dirent.h
+	* applied 5 patches from Stasinos Konstantopoulos
 
 2003-08-15  sasha
 
-	* applied 5 patches from Stasinos Konstantopoulos
 	* configure
 	* updated configure scripts to autoconf 2.57
 	*  more messing aruound with system headers and compilation
@@ -468,9 +498,6 @@
 	* updated configure
 	* hopefully fixed all the strict aliasing breakage errors with
 	  newer gcc
-
-2003-08-13  sasha
-
 	* bugfixes in Pager and Wharf, and fixed handling of malloc.h
 
 2003-08-11  sasha
@@ -495,7 +522,7 @@
 	  being lost); Added ability to adjust hsv of the color; fixed bug
 	  in window decorations handling - background images
 
-2003-07-13  sasha
+2003-07-14  sasha
 
 	* fixed configure script to properly compile libAfterImage apps
 
@@ -981,7 +1008,7 @@
 	* disabled memory allocation limitation with DEBUG_ALLOC in
 	  safemalloc.c
 
-2001-08-18  sasha
+2001-08-19  sasha
 
 	* Implemented layer allowing libAfterBase and libAfterImage to work
 	  even without X
@@ -1542,9 +1569,12 @@
 	  into libasimage ( for ASCP ) myscandir incorporated into the
 	  dirtree.c: myscandir.c and myscandir.h removed.
 
-2000-10-30  sasha
+2000-10-31  sasha
 
 	* ASFeel_debugging
+
+2000-10-30  sasha
+
 	* added functions for libAsConfig to read menu from directory,
 	  standard menu, fixed menu.  Imlemented menu loading for ASFeel
 	  added asfeel.c file to libafterstep Definied data structures to
