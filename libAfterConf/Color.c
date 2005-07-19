@@ -369,7 +369,7 @@ UpdateGtkRC()
 {
 	
 	char *src = make_session_file   (Session, GTKRC_TEMPLATE_FILE, False );
-	char *dst = make_session_data_file  (Session, False, W_OK, GTKRC_FILE, NULL );
+	char *dst = make_session_data_file   (Session, False, 0, GTKRC_FILE, NULL );
 	/* first we need to load the colorscheme */
     if( src && dst ) 
 		translate_gtkrc_template_file( 	src, dst );

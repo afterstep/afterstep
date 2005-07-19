@@ -1,0 +1,50 @@
+# Edit these colors and fonts however you like.
+style "default"
+{
+	fg[NORMAL]         =    "InactiveText1"   	
+	fg[ACTIVE]         =    "InactiveText2"   	
+	fg[PRELIGHT]       =    "HighInactiveText"	
+	fg[SELECTED]       =    "ActiveText"      	
+	fg[INSENSITIVE]	   =    "DisabledText"    	
+	bg[NORMAL]         =   	"Inactive1"       	
+	bg[ACTIVE]         =   	"Inactive2"   		
+	bg[PRELIGHT]       =  	"HighInactive"		
+	bg[SELECTED]       =  	"Active"	  	
+	bg[INSENSITIVE]    = 	"Inactive1"   		
+	light[NORMAL]      = 	"Inactive1Light"   	
+	light[ACTIVE]      = 	"Inactive2Light"   	
+	light[PRELIGHT]    = 	"HighInactiveLight"	
+	light[SELECTED]    = 	"ActiveLight"       	
+	light[INSENSITIVE] = 	"Inactive1Light"   	
+	dark[NORMAL]       = 	"Inactive1Dark"   	
+	dark[ACTIVE]       = 	"Inactive2Dark"   	
+	dark[PRELIGHT]     = 	"HighInactiveDark"	
+	dark[SELECTED]     = 	"ActiveDark"		
+	dark[INSENSITIVE]  = 	"Inactive1Dark"   	
+	mid[NORMAL]        = 	"Inactive1"   		
+	mid[ACTIVE]        = 	"Inactive2"   		
+	mid[PRELIGHT]      = 	"HighInactive"		
+	mid[SELECTED]      = 	"Active"	  	
+	mid[INSENSITIVE]   = 	"Inactive1"   		
+	text[NORMAL]       = 	"InactiveText1"   	
+	text[ACTIVE]       = 	"InactiveText2"   	
+	text[PRELIGHT]     = 	"HighInactiveText"	
+	text[SELECTED]     = 	"ActiveText"		
+	text[INSENSITIVE]  = 	"InactiveText1"   	
+
+	base[NORMAL]       = 	"Inactive1"   		
+	base[ACTIVE]       = 	"Inactive2"   		
+	base[PRELIGHT]     = 	"HighInactive"		
+	base[SELECTED]     = 	"Active"	  	
+	base[INSENSITIVE]  = 	"Inactive1"   		
+
+
+        GtkRange::slider_width = 12
+        GtkRange::stepper_size = 12
+        GtkScrollbar::min_slider_length = 14
+        GtkCheckButton::indicator_size = 12
+
+}
+
+class "GtkWidget" style "default"
+
