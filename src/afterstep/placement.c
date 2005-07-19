@@ -1273,6 +1273,8 @@ void obey_avoid_cover(ASWindow *asw, ASStatusHints *tmp_status, XRectangle *tmp_
 	    ASWindowBox aswbox ;
         int selected_x = 0 ;
         int selected_y = 0 ;
+		int left = Scr.Vx, right = Scr.Vx+Scr.MyDisplayWidth ;
+		int top = Scr.Vy, bottom = Scr.Vy+Scr.MyDisplayHeight ;
 
         /* we need to move all the res of the window out of the area occupied by us */
 		LOCAL_DEBUG_OUT( "status = %dx%d%+d%+d, layer = %d", asw->status->width, asw->status->height, asw->status->x, asw->status->y, ASWIN_LAYER(asw) );
@@ -1282,10 +1284,28 @@ void obey_avoid_cover(ASWindow *asw, ASStatusHints *tmp_status, XRectangle *tmp_
      *   if all fails we apply backup strategy of the default windowbox
      */
         aswbox.name = mystrdup("default");
+		if( !ASWIN_GET_FLAGS(asw, AS_Sticky))
+		{
+			if( asw->status->x < 0 )
+				left = 0 ; 
+			if( asw->status->x+(int)asw->status->width >= Scr.MyDisplayWidth )		   
+				right = Scr.VxMax + Scr.MyDisplayWidth ; 
+			if( asw->status->y < 0 )
+				top = 0 ; 
+			if( asw->status->y+(int)asw->status->height >= Scr.MyDisplayHeight )		   
+				bottom = Scr.VyMax + Scr.MyDisplayHeight ; 
+		}	 
+#if 0
 		aswbox.area.x = Scr.Vx;
 		aswbox.area.y = Scr.Vy ;
         aswbox.area.width = Scr.MyDisplayWidth ;
         aswbox.area.height = Scr.MyDisplayHeight ;
+#else
+		aswbox.area.x = left;
+		aswbox.area.y = top;
+        aswbox.area.width = right - left ;
+        aswbox.area.height = bottom - top ;
+#endif
         aswbox.main_strategy = ASP_Manual ;
         aswbox.backup_strategy = ASP_Manual ;
         /* we should enforce this one : */
