@@ -14,17 +14,18 @@ Make sure version numbers for libraries are changed as well if library has chang
 8) cvs -d:pserver:anonymous@cvs.aftercode.net:/home/cvsroot export -r release_2_0_5 -d AfterStep-2.0.5 afterstep-stable
 #obsolete by #8 --- 9) mv -R afterstep-stable AfterStep-2.00.05
 10) tar zcpvf AfterStep-2.00.05.tar.gz AfterStep-2.00.05
-11) tar cpvf AfterStep-2.00.05.tar AfterStep-2.00.05
-12) bzip2 AfterStep-2.00.05.tar
-13) Prepare noimages tarballs like so : 
-14) cp -R AfterStep-2.00.05 AfterStep-2.00.05-noimages
+11) tar jcpvf AfterStep-2.00.05.tar.bz2 AfterStep-2.00.05
+#fixed #11 ---12) bzip2 AfterStep-2.00.05.tar
+#not really an instruction. 13) Prepare noimages tarballs like so : 
+14) mv AfterStep-2.00.05 AfterStep-2.00.05-noimages
 15) cd AfterStep-2.00.05-noimages/afterstep && rm -rf desktop backgrounds
 16) tar zcpvf AfterStep-2.00.05-noimages.tar.gz AfterStep-2.00.05-noimages
-17) tar cpvf AfterStep-2.00.05-noimages.tar AfterStep-2.00.05-noimages
-18) bzip2 AfterStep-2.00.05-noimages.tar
+17) tar jcpvf AfterStep-2.00.05-noimages.tar.bz2 AfterStep-2.00.05-noimages
+#fixed #17 --- 18) bzip2 AfterStep-2.00.05-noimages.tar
 19) upload tarballs, ChangeLog and NEW files on ftp.afterstep.org
 20) upload tarballs on upload.sf.net/incoming/
 21) Add file release on Sourceforge.
+---   don't dump whole changelog!  (it gets emailed to people.)
 22) Annonce release on freshmeat.net
 23) Annonce release on AS-ML
 24) Update wao pages : index.php, download.php and news
