@@ -38,6 +38,14 @@
 #endif
 #include "moveresize.h"
 
+#define KEY_ENTER   36
+#define KEY_LEFT    100
+#define KEY_UP      98
+#define KEY_RIGHT   102
+#define KEY_DOWN    104
+
+#define MOVE_NPIX_AT_ONCE 10
+
 void
 update_ashint_geometry( ASHintWindow *hw, Bool force_redraw )
 {
@@ -511,6 +519,36 @@ SHOW_CHECKPOINT;
 		case ConfigureNotify :
 			return (data->pointer_func==move_func)?ASE_Consumed:0 ;
 		case KeyPress:
+		{
+			XKeyEvent *xk = &(event->x.xkey);
+			
+			if( !ASQueryPointerRootXY( &new_x, &new_y ) )
+			{
+				new_x = event->x.xmotion.x_root ;
+				new_y = event->x.xmotion.y_root ;
+			}
+			
+			if ( xk->keycode == KEY_ENTER )
+				finished = True;
+			else if (xk->keycode == KEY_LEFT)
+				new_x -=  MOVE_NPIX_AT_ONCE;
+			else if (xk->keycode == KEY_RIGHT)
+				new_x += MOVE_NPIX_AT_ONCE;
+			else if (xk->keycode == KEY_UP)
+				new_y -= MOVE_NPIX_AT_ONCE;
+			else if (xk->keycode == KEY_DOWN)
+				new_y += MOVE_NPIX_AT_ONCE;
+			else
+				break;
+			
+			
+			XWarpPointer( dpy, Scr.Root, Scr.Root, 0, 0,
+				      Scr.MyDisplayWidth, Scr.MyDisplayHeight,
+				      new_x, new_y );
+			
+			if( !finished )
+				return ASE_Consumed;
+		}
 		/* Keyboard_shortcuts (&Event, ButtonRelease, 20); */
 			break;
         case ButtonPress:
