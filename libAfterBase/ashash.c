@@ -255,6 +255,26 @@ print_ashash (ASHashTable * hash, void (*item_print_func) (ASHashableValue value
 	}
 }
 
+void
+print_ashash2 (ASHashTable * hash, void (*item_print_func) (ASHashableValue value, void *data))
+{
+	register int  i;
+	ASHashItem   *item;
+
+	for (i = 0; i < hash->size; i++)
+	{
+		if (hash->buckets[i] == NULL)
+			continue;
+		fprintf (stderr, "Bucket # %d:", i);
+		for (item = hash->buckets[i]; item != NULL; item = item->next)
+			if (item_print_func)
+				item_print_func (item->value, item->data);
+			else
+				fprintf (stderr, "[0x%lX(%ld):%p]", item->value, item->value, item->data);
+		fprintf (stderr, "\n");
+	}
+}
+
 
 static ASHashItem **
 find_item_in_bucket (ASHashBucket * bucket,

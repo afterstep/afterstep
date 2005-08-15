@@ -91,7 +91,10 @@ ASHashTable *create_ashash (ASHashKey size,
                 long (*compare_func) (ASHashableValue,  ASHashableValue),
                 void (*item_destroy_func) (ASHashableValue,void *));
 void print_ashash (ASHashTable * hash,
-		   void (*item_print_func) (ASHashableValue value));
+		   	void (*item_print_func) (ASHashableValue value));
+void print_ashash2 (ASHashTable * hash, 
+			void (*item_print_func) (ASHashableValue value, void *data));
+
 void destroy_ashash (ASHashTable ** hash);
 
 typedef enum

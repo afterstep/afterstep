@@ -47,7 +47,9 @@ typedef enum
 
 typedef struct ASDesktopEntry
 {
-#define ASDE_NoDisplay			(0x01<<0)	
+	int ref_count ;
+
+#define ASDE_NoDisplay			(0x01<<0)	  
 #define ASDE_Hidden				(0x01<<1)	  
 #define ASDE_Terminal			(0x01<<2)	  
 #define ASDE_StartupNotify		(0x01<<3)	  
@@ -114,6 +116,9 @@ typedef struct ASDesktopEntry
 	char *fulliconname ;
 	char *clean_exec ; 
 
+	char *origin ;
+
+
 }ASDesktopEntry;
 
 typedef struct ASDesktopCategory
@@ -121,6 +126,20 @@ typedef struct ASDesktopCategory
 	char *name ;
 	ASVector *entries ;
 }ASDesktopCategory;
+
+typedef struct ASCategoryTree
+{
+	ASFlagType flags ;
+
+	char *name ;
+	char *origin ; 
+	char *icon_path;
+	int max_depth ; 
+
+	/*ASBiDirList *entry_list ;*/
+	ASHashTable *categories ;		  
+	ASHashTable *entries ;		  
+}ASCategoryTree;
 
 ASHashTable *_as_application_registry = NULL ;
 ASHashTable *_as_categories_registry = NULL ;
@@ -164,10 +183,67 @@ destroy_desktop_category( ASDesktopCategory **pdc )
 	}
 }	 
 
+void
+desktop_category_destroy(ASHashableValue value, void *data)
+{
+	ASDesktopCategory *dc = (ASDesktopCategory*)data;
+	destroy_desktop_category( &dc );	
+}
+
+void 
+add_desktop_category_entry( ASDesktopCategory *dc, const char *entry_name )
+{
+	char **existing = PVECTOR_HEAD(char*,dc->entries);
+	int num = PVECTOR_USED(dc->entries);
+	char *entry_name_copy;
+	while ( --num >= 0 )
+	{
+		if( strcmp( existing[num], entry_name ) == 0 ) 
+			return;
+	}
+	entry_name_copy = mystrdup(entry_name);
+	append_vector( dc->entries, &entry_name_copy, 1 );
+}
+
+void 
+print_desktop_category( ASDesktopCategory *dc )	
+{
+	if( dc ) 
+	{
+		char **entries = PVECTOR_HEAD(char*,dc->entries);
+		int num = PVECTOR_USED(dc->entries);
+		fprintf( stderr, "category(%p).name=\"%s\";\n", dc, dc->name );
+		fprintf( stderr, "category(%p).entries_num=%d;\n", dc, num );
+		if( num > 0 ) 
+		{	
+			int i;
+			fprintf( stderr, "category(%p).entries=", dc );
+			for( i = 0 ; i < num ; ++i )
+				fprintf( stderr, "%c\"%s\"", (i==0)?'{':';', entries[i] );
+			fputs( "};\n", stderr );
+		}	 
+	}		  
+}
+
+void 
+desktop_category_print( ASHashableValue value, void *data )
+{
+	print_desktop_category( (ASDesktopCategory*)data );	
+}
+
 /*************************************************************************/
 /* Desktop Entry functionality                                           */
 /*************************************************************************/
-void 
+
+ASDesktopEntry *create_desktop_entry( ASDesktopEntryTypes default_type)
+{	
+ 	ASDesktopEntry *de = safecalloc(1, sizeof(ASDesktopEntry));
+	de->ref_count = 1 ; 
+	de->type = default_type ;
+	return de;
+}
+
+static void 
 destroy_desktop_entry( ASDesktopEntry** pde )
 {
 	if( pde ) 
@@ -203,11 +279,33 @@ destroy_desktop_entry( ASDesktopEntry** pde )
 			FREE_ASDE_VAL(show_in_shortcuts) ; 
 			FREE_ASDE_VAL(not_show_in_shortcuts);
 			FREE_ASDE_VAL(fulliconname);
+			FREE_ASDE_VAL(origin);
 			free( de );
 			*pde = NULL ;
 		}
 	}
 }	 
+
+int ref_desktop_entry( ASDesktopEntry *de ) 
+{
+	if( de ) 
+		return ++de->ref_count	;
+	return 0;
+}	 
+
+int unref_desktop_entry( ASDesktopEntry *de ) 
+{
+	if( de ) 
+	{
+		if( (--de->ref_count) > 0 ) 
+			return de->ref_count;
+
+		destroy_desktop_entry( &de );
+	}
+	return 0;
+}	 
+
+
 
 void 
 print_desktop_entry( ASDesktopEntry* de )
@@ -252,23 +350,29 @@ print_desktop_entry( ASDesktopEntry* de )
 //		PRINT_ASDE_VAL(not_show_in_shortcuts);
 		PRINT_ASDE_VAL(fulliconname);
 		PRINT_ASDE_VAL(clean_exec) ;
+
+		PRINT_ASDE_VAL(origin) ;
 		fprintf( stderr, "\n" );
 	}
 }	 
 
 
 void
-desktop_entry_destroy(void *data)
+desktop_entry_destroy(ASHashableValue value, void *data)
 {
-	ASDesktopEntry *de = (ASDesktopEntry*)data;
-	destroy_desktop_entry( &de );	
+	unref_desktop_entry( (ASDesktopEntry*)data );	
 }
 
-Bool
-desktop_entry_print(void *data, void *aux_data)
+void
+desktop_entry_destroy_list_item(void *data)
+{
+	unref_desktop_entry( (ASDesktopEntry*)data );	  
+}
+
+void
+desktop_entry_print(ASHashableValue value, void *data)
 {
 	print_desktop_entry( (ASDesktopEntry*)data );	
-	return True;
 }
 
 
@@ -366,8 +470,7 @@ parse_desktop_entry( const char *path, const char *fname, const char *default_ca
 	if( fp ) 
 	{
 		static char rb[MAXLINELENGTH+1] ; 
-		de = safecalloc(1, sizeof(ASDesktopEntry));
-		de->type = default_type ;
+		de = create_desktop_entry(default_type);
 		while( fgets (&(rb[0]), MAXLINELENGTH, fp) != NULL)
 		{
 			char *ptr = &(rb[0]);
@@ -417,7 +520,9 @@ parse_desktop_entry( const char *path, const char *fname, const char *default_ca
 		}	 
 		if( default_category && de->Categories == NULL )
 			de->Categories = mystrdup(default_category);
-		
+
+		if( de->Categories != NULL ) 
+
 		if( de->Categories != NULL ) 
 		{
 			de->categories_len = strlen(de->Categories);
@@ -452,7 +557,10 @@ parse_desktop_entry( const char *path, const char *fname, const char *default_ca
 
 	 	fclose(fp);	
 	}	 
-	free( fullfilename );
+	if( de ) 
+		de->origin = fullfilename ;
+	else
+		free( fullfilename );
 	return de;	
 }
 
@@ -519,6 +627,150 @@ parse_desktop_entry_tree(const char *path, const char *dirname, ASBiDirList *ent
 	free( fullpath );
 }
 
+ASDesktopCategory *
+obtain_category( ASHashTable *list, const char *cname )
+{
+	void *tmp = NULL;
+	
+	if( cname == NULL ) 
+		return NULL;
+	
+	if( get_hash_item( list, AS_HASHABLE(cname), &tmp ) == ASH_Success )
+		return (ASDesktopCategory*)tmp ;
+	else
+	{
+		ASDesktopCategory *dc = create_desktop_category( cname );
+		if( add_hash_item( list, AS_HASHABLE(cname), dc) != ASH_Success ) 
+			destroy_desktop_category( &dc );
+		return dc;
+	}	 
+}	 
+
+Bool register_desktop_entry(void *data, void *aux_data)
+{
+	ASCategoryTree *ct = (ASCategoryTree*)aux_data ;
+	ASDesktopEntry *de = (ASDesktopEntry*)data;
+	int i ; 
+	if( de->Name ) 
+	{	
+		if( add_hash_item( ct->entries, AS_HASHABLE(de->Name), de) == ASH_Success ) 
+			ref_desktop_entry( de );  
+	
+		for( i = 0 ; i < de->categories_num ; ++i ) 
+		{
+			ASDesktopCategory *dc = obtain_category( ct->categories, de->categories_shortcuts[i] ); 
+
+			if( dc ) 
+				add_desktop_category_entry( dc, de->Name );
+		}	
+	}
+	return True;
+}	 
+
+ASCategoryTree*
+build_category_tree( const char *name, const char *path, const char *dirname, const char *icon_path, ASFlagType flags, int max_depth )	
+{
+	ASCategoryTree *ct = safecalloc( 1, sizeof(ASCategoryTree));
+	ct->max_depth = max_depth ; 
+	ct->flags = flags ; 
+	ct->origin = make_file_name( path, dirname );
+	ct->name = mystrdup(name);
+	ct->icon_path = mystrdup(icon_path);
+	ct->entries = create_ashash( 0, string_hash_value, string_compare, desktop_entry_destroy );
+	ct->categories = create_ashash( 0, casestring_hash_value, casestring_compare, desktop_category_destroy );
+	
+	if ( CheckDir (ct->origin) == 0 )
+	{
+		ASBiDirList *entry_list = create_asbidirlist( desktop_entry_destroy_list_item );
+		
+		parse_desktop_entry_tree(path, dirname, entry_list, NULL, ct->icon_path );	
+	
+
+		iterate_asbidirlist( entry_list, register_desktop_entry, ct, NULL, False);
+		destroy_asbidirlist( &entry_list );
+	}	  
+
+	return ct ;
+}
+
+void
+destroy_category_tree( ASCategoryTree **pct )
+{
+	if( pct ) 
+	{
+		ASCategoryTree *ct = *pct ;
+		if( ct ) 
+		{
+			destroy_string( &(ct->origin) );
+			destroy_string( &(ct->name));
+			destroy_string( &(ct->icon_path)); 
+			
+			destroy_ashash( &(ct->entries));
+			destroy_ashash( &(ct->categories));
+	
+			memset( ct, 0x00, sizeof(ASCategoryTree));
+			free(ct);
+			*pct = NULL ; 			   
+		}	 
+		
+	}			   
+}	  
+
+void
+add_category_tree_subtree( ASCategoryTree* ct, ASCategoryTree* subtree )
+{
+	ASHashIterator i;
+
+	if( ct == NULL || subtree == NULL ) 
+		return ;
+
+	if( start_hash_iteration ( subtree->entries, &i) )
+	{
+		do
+		{
+		 	ASDesktopEntry *de = curr_hash_data( &i );
+			if( add_hash_item( ct->entries, AS_HASHABLE(de->Name), de) == ASH_Success ) 
+				ref_desktop_entry( de );  
+				 
+		}while( next_hash_item( &i ) );
+	}	 
+	if( start_hash_iteration ( subtree->categories, &i) )
+	{
+		do
+		{
+		 	ASDesktopCategory *subtree_dc = curr_hash_data( &i );
+			ASDesktopCategory *dc = obtain_category( ct->categories, subtree_dc->name );
+			if( dc ) 
+			{	
+				char **subtree_entries = PVECTOR_HEAD(char*,subtree_dc->entries);
+				int num = PVECTOR_USED(subtree_dc->entries);
+				while ( --num >= 0 )
+				{
+					add_desktop_category_entry( dc, subtree_entries[num] );
+				}
+			}				 
+		}while( next_hash_item( &i ) );
+	}	 
+}	 
+
+void 
+print_category_tree( ASCategoryTree* ct )
+{
+	fprintf(stderr, "Printing category_tree %p :\n", ct );
+	if( ct ) 
+	{
+	 	fprintf(stderr, "category_tree.flags=0x%lX;\n", ct->flags );		
+		fprintf(stderr, "category_tree.origin=\"%s\";\n", ct->origin );
+		fprintf(stderr, "category_tree.name=\"%s\";\n", ct->name );
+		fprintf(stderr, "category_tree.icon_path=\"%s\";\n", ct->icon_path );
+		fprintf(stderr, "category_tree.entries_num=%ld;\n", ct->entries->items_num );
+		print_ashash2(ct->entries, desktop_entry_print );
+		fprintf(stderr, "category_tree.categories_num=%ld;\n", ct->categories->items_num );
+		print_ashash2(ct->categories, desktop_category_print );
+	}		  
+	
+}	 
+
 #ifdef TEST_AS_DESKTOP_ENTRY
 
 int 
@@ -528,7 +780,12 @@ main( int argc, char ** argv )
 	const char * default_path_kde = getenv("KDEDIR");
 	const char *gnome_path = default_path_gnome;
 	const char *kde_path = default_path_kde;
-	ASBiDirList *entry_list = create_asbidirlist( desktop_entry_destroy );
+	ASCategoryTree *gnome_tree = NULL ; 
+	ASCategoryTree *kde_tree = NULL ; 
+	ASCategoryTree *combined_tree = NULL ; 
+
+
+//	ASBiDirList *entry_list = create_asbidirlist( desktop_entry_destroy_list_item );
 	
 
 	InitMyApp ("TestASDesktopEntry", argc, argv, NULL, NULL, ASS_Restarting );
@@ -537,9 +794,11 @@ main( int argc, char ** argv )
 	{	
 		char *gnome_icon_path = make_file_name( gnome_path, "share/pixmaps" );
 		show_progress( "reading GNOME entries from \"%s\"",  gnome_path );
-		parse_desktop_entry_tree(gnome_path, "share/applications", entry_list, NULL, gnome_icon_path );	
-		show_progress( "entries loaded: %d",  entry_list->count );
+		gnome_tree = build_category_tree( "GNOME", gnome_path, "share/applications", gnome_icon_path, 0, -1 );	
+		//parse_desktop_entry_tree(gnome_path, "share/applications", entry_list, NULL, gnome_icon_path );	
+		//show_progress( "entries loaded: %d",  entry_list->count ); 
 		free( gnome_icon_path );
+		print_category_tree( gnome_tree );
 	}
 	if( kde_path != NULL ) 
 	{	   
@@ -547,12 +806,16 @@ main( int argc, char ** argv )
 		show_progress( "reading KDE entries from \"%s\"",  kde_path );
 		sprintf( kde_icon_path, "%s/share/icons/default.kde/48x48/apps:%s/share/icons/hicolor/48x48/apps:%s/share/icons/locolor/48x48/apps", kde_path, kde_path, kde_path );
 		show_progress( "KDE icon_path is \"%s\"",  kde_icon_path );
-		parse_desktop_entry_tree(kde_path, "share/applnk", entry_list, NULL, kde_icon_path );	 
-		show_progress( "entries loaded: %d",  entry_list->count );
+		kde_tree = build_category_tree( "KDE", kde_path, "share/applnk", kde_icon_path, 0, -1 );	 
+	 	//parse_desktop_entry_tree(kde_path, "share/applnk", entry_list, NULL, kde_icon_path );	 
+		//show_progress( "entries loaded: %d",  entry_list->count ); 
 		free( kde_icon_path );
+		print_category_tree( kde_tree );
 	}
-	iterate_asbidirlist( entry_list, desktop_entry_print, NULL, NULL, False);
+	//iterate_asbidirlist( entry_list, desktop_entry_print, NULL, NULL, False);
 
+	destroy_category_tree( &gnome_tree );
+	destroy_category_tree( &kde_tree );
 	FreeMyAppResources();
 #ifdef DEBUG_ALLOCS
 	print_unfreed_mem ();
