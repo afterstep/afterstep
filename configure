@@ -1696,7 +1696,7 @@ if test "${enable_glx+set}" = set; then
   enableval="$enable_glx"
   enable_glx=$enableval
 else
-  enable_glx="yes"
+  enable_glx="no"
 fi;
 # Check whether --enable-staticlibs or --disable-staticlibs was given.
 if test "${enable_staticlibs+set}" = set; then
