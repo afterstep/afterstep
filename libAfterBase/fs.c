@@ -178,6 +178,13 @@ make_file_name (const char *path, const char *file)
 	char         *filename;
 	int 		  len;
 
+	if( file == NULL ) 
+	{
+		if( path == NULL ) 
+			return NULL;	
+		return mystrdup(path);
+	}else if( path == NULL ) 
+		return mystrdup(file);			 
 	/* getting length */
 	for (ptr = (char *)path; ptr[i]; i++);
 	len = i+1;
