@@ -96,6 +96,8 @@ typedef struct ASDesktopEntry
 
 typedef struct ASDesktopCategory
 {
+#define DEFAULT_DESKTOP_CATEGORY_NAME	"Default"
+
 	char *name ;
 	struct ASVector *entries ;
 }ASDesktopCategory;
@@ -110,6 +112,7 @@ typedef struct ASCategoryTree
 	int max_depth ; 
 
 	/*ASBiDirList *entry_list ;*/
+	ASDesktopCategory  *default_category ;
 	struct ASHashTable *categories ;		  
 	struct ASHashTable *entries ;		  
 }ASCategoryTree;
@@ -137,5 +140,6 @@ void destroy_category_tree( ASCategoryTree **pct );
 Bool register_desktop_entry(ASCategoryTree *ct, ASDesktopEntry *de);
 void add_category_tree_subtree( ASCategoryTree* ct, ASCategoryTree* subtree );
 void print_category_tree( ASCategoryTree* ct );
+void print_category_tree2( ASCategoryTree* ct );
 
 #endif

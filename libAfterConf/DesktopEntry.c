@@ -373,6 +373,8 @@ main( int argc, char ** argv )
 	print_category_tree( gnome_tree );
 	print_category_tree( combined_tree );
 
+	print_category_tree2( combined_tree );
+
 	destroy_category_tree( &gnome_tree );
 	destroy_category_tree( &kde_tree );
 	FreeMyAppResources();

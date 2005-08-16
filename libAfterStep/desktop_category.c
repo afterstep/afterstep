@@ -75,16 +75,38 @@ desktop_category_destroy(ASHashableValue value, void *data)
 void 
 add_desktop_category_entry( ASDesktopCategory *dc, const char *entry_name )
 {
+	if( dc && entry_name ) 
+	{
+		if( mystrcasecmp(dc->name, entry_name) != 0 )
+		{		               /* to prevent cyclic hierarchy !!! */
+			char **existing = PVECTOR_HEAD(char*,dc->entries);
+			int num = PVECTOR_USED(dc->entries);
+			char *entry_name_copy;
+			while ( --num >= 0 )
+			{
+				if( strcmp( existing[num], entry_name ) == 0 ) 
+					return;
+			}
+			entry_name_copy = mystrdup(entry_name);
+			append_vector( dc->entries, &entry_name_copy, 1 );
+		}
+	}
+}
+
+void 
+remove_desktop_category_entry( ASDesktopCategory *dc, const char *entry_name )
+{
 	char **existing = PVECTOR_HEAD(char*,dc->entries);
 	int num = PVECTOR_USED(dc->entries);
-	char *entry_name_copy;
 	while ( --num >= 0 )
 	{
 		if( strcmp( existing[num], entry_name ) == 0 ) 
+		{
+			free( existing[num] );
+			vector_remove_index( dc->entries, num);
 			return;
+		}		  
 	}
-	entry_name_copy = mystrdup(entry_name);
-	append_vector( dc->entries, &entry_name_copy, 1 );
 }
 
 void 
@@ -257,22 +279,33 @@ desktop_entry_print(ASHashableValue value, void *data)
  *************************************************************************/
 
 ASDesktopCategory *
-obtain_category( ASHashTable *list, const char *cname )
+fetch_category( ASCategoryTree *ct, const char *cname )
 {
 	void *tmp = NULL;
 	
 	if( cname == NULL ) 
-		return NULL;
+		return ct->default_category;
 	
-	if( get_hash_item( list, AS_HASHABLE(cname), &tmp ) == ASH_Success )
+	if( get_hash_item( ct->categories, AS_HASHABLE(cname), &tmp ) == ASH_Success )
 		return (ASDesktopCategory*)tmp ;
-	else
+	
+	return NULL;	   
+}
+
+
+ASDesktopCategory *
+obtain_category( ASCategoryTree *ct, const char *cname )
+{
+	ASDesktopCategory *dc = fetch_category( ct, cname );
+	if( dc == NULL ) 		
 	{
-		ASDesktopCategory *dc = create_desktop_category( cname );
-		if( add_hash_item( list, AS_HASHABLE(cname), dc) != ASH_Success ) 
+		dc = create_desktop_category( cname );
+		if( add_hash_item( ct->categories, AS_HASHABLE(cname), dc) != ASH_Success ) 
 			destroy_desktop_category( &dc );
-		return dc;
+		else if( mystrcasecmp(cname, DEFAULT_DESKTOP_CATEGORY_NAME) != 0 ) 
+			add_desktop_category_entry( ct->default_category, cname );
 	}	 
+	return dc;
 }	 
 
 Bool register_desktop_entry(ASCategoryTree *ct, ASDesktopEntry *de)
@@ -282,10 +315,22 @@ Bool register_desktop_entry(ASCategoryTree *ct, ASDesktopEntry *de)
 	{	
 		if( add_hash_item( ct->entries, AS_HASHABLE(de->Name), de) == ASH_Success ) 
 			ref_desktop_entry( de );  
-	
+		if( de->type == ASDE_TypeDirectory ) 
+		{
+			void *tmp = NULL;
+			if( de->categories_num == 0 || 
+				mystrcasecmp(de->categories_shortcuts[0], DEFAULT_DESKTOP_CATEGORY_NAME ) == 0 )
+			{
+				add_desktop_category_entry( ct->default_category, de->Name );
+			}else if( get_hash_item( ct->categories, AS_HASHABLE(de->Name), &tmp ) == ASH_Success )
+			{
+				remove_desktop_category_entry( ct->default_category, de->Name );
+			}	 
+		}	 
+
 		for( i = 0 ; i < de->categories_num ; ++i ) 
 		{
-			ASDesktopCategory *dc = obtain_category( ct->categories, de->categories_shortcuts[i] ); 
+			ASDesktopCategory *dc = obtain_category( ct, de->categories_shortcuts[i] ); 
 
 			if( dc ) 
 				add_desktop_category_entry( dc, de->Name );
@@ -307,6 +352,7 @@ create_category_tree( const char *name, const char *path, const char *dirname, c
 	ct->icon_path = mystrdup(icon_path);
 	ct->entries = create_ashash( 0, string_hash_value, string_compare, desktop_entry_destroy );
 	ct->categories = create_ashash( 0, casestring_hash_value, casestring_compare, desktop_category_destroy );
+	ct->default_category = obtain_category( ct, DEFAULT_DESKTOP_CATEGORY_NAME );	
 	return ct;
 }
 
@@ -356,7 +402,7 @@ add_category_tree_subtree( ASCategoryTree* ct, ASCategoryTree* subtree )
 		do
 		{
 		 	ASDesktopCategory *subtree_dc = curr_hash_data( &i );
-			ASDesktopCategory *dc = obtain_category( ct->categories, subtree_dc->name );
+			ASDesktopCategory *dc = obtain_category( ct, subtree_dc->name );
 			if( dc ) 
 			{	
 				char **subtree_entries = PVECTOR_HEAD(char*,subtree_dc->entries);
@@ -388,6 +434,43 @@ print_category_tree( ASCategoryTree* ct )
 	
 }	 
 
+void 
+print_category_subtree( ASCategoryTree* ct, const char *entry_name, int level )
+{
+	ASDesktopCategory *dc = fetch_category( ct, entry_name );
+	if( dc && level < 40 ) 
+	{	
+		char **entries = PVECTOR_HEAD(char*,dc->entries);
+		int num = PVECTOR_USED(dc->entries);
+		int i, k ; 
+		++level ; 
+		for( i = 0 ; i < num ; ++i ) 
+		{
+			fprintf( stderr, "%5.5d:", level );
+			for( k = 0 ; k < level ; ++k ) 
+				fputc('\t', stderr );
+			fprintf( stderr, "%s\n", entries[i] );
+			print_category_subtree( ct, entries[i], level );
+		}	 
+	}
+}
+
+void 
+print_category_tree2( ASCategoryTree* ct )
+{
+	fprintf(stderr, "Printing category_tree %p :\n", ct );
+	if( ct ) 
+	{
+	 	fprintf(stderr, "category_tree.flags=0x%lX;\n", ct->flags );		
+		fprintf(stderr, "category_tree.origin=\"%s\";\n", ct->origin?ct->origin:"(null)" );
+		fprintf(stderr, "category_tree.name=\"%s\";\n", ct->name?ct->name:"(null)" );
+		fprintf(stderr, "category_tree.icon_path=\"%s\";\n", ct->icon_path?ct->icon_path:"(null)" );
+		fprintf(stderr, "category_tree.entries_num=%ld;\n", ct->entries->items_num );
+		fprintf(stderr, "category_tree.categories_num=%ld;\n", ct->categories->items_num );
+		print_category_subtree( ct, DEFAULT_DESKTOP_CATEGORY_NAME, 0 );
+	}		  
+	
+}	 
 
 /****************** /public **********************/
 
