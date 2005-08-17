@@ -73,6 +73,12 @@ typedef struct ASDesktopEntry
 	char *StartupWMClass ;
 #define ASDE_KEYWORD_StartupWMClass_LEN	14
 
+	/* AfterStep extentions : */
+	char *IndexName ;
+#define ASDE_KEYWORD_IndexName_LEN	11
+	char *Alias ;
+#define ASDE_KEYWORD_Alias_LEN			5
+
 	/* calculated stuff : */
 	int categories_len ; 
 	char **categories_shortcuts ; 
@@ -96,8 +102,11 @@ typedef struct ASDesktopEntry
 
 typedef struct ASDesktopCategory
 {
+	int ref_count ;
+
 #define DEFAULT_DESKTOP_CATEGORY_NAME	"Default"
 
+	char *index_name ;
 	char *name ;
 	struct ASVector *entries ;
 }ASDesktopCategory;
@@ -118,7 +127,9 @@ typedef struct ASCategoryTree
 }ASCategoryTree;
 
 ASDesktopCategory *create_desktop_category( const char *name );
-void destroy_desktop_category( ASDesktopCategory **pdc );
+int ref_desktop_category( ASDesktopCategory *dc ); 
+int unref_desktop_category( ASDesktopCategory *dc ); 
+
 void add_desktop_category_entry( ASDesktopCategory *dc, const char *entry_name );
 void print_desktop_category( ASDesktopCategory *dc );
 

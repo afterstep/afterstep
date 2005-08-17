@@ -31,6 +31,12 @@ test_asdesktop_entry.o: DesktopEntry.c
 test_asdesktop_entry:	test_asdesktop_entry.o
 		$(CC) test_asdesktop_entry.o $(USER_LD_FLAGS) $(LIBS_ALL) $(LIBS_AFTERIMAGE) -o test_asdesktop_entry
 
+make_standard_categories.o:	DesktopEntry.c
+		$(CC) $(CCFLAGS) $(EXTRA_DEFINES) -DMAKE_STANDARD_CATEGORIES $(INCLUDES) $(EXTRA_INCLUDES) -c DesktopEntry.c -o make_standard_categories.o
+
+make_standard_categories:	make_standard_categories.o
+		$(CC) make_standard_categories.o $(USER_LD_FLAGS) $(LIBS_ALL) $(LIBS_AFTERIMAGE) -o make_standard_categories
+
 
 install.inc:
 

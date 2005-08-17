@@ -30,6 +30,17 @@
 
 #include "afterconf.h"
 
+const char *default_aliases[][2] = 
+{
+	{"ArcadeGame", "Arcade"},
+	{"Application", "Applications"},
+	{"Game", "Games"},
+	{"Utility", "Utilities"},
+	{NULL, NULL}	  
+
+};	 
+	
+
 /*************************************************************************/
 /* private stuff : 													 */
 /*************************************************************************/
@@ -45,7 +56,7 @@ parse_category_list( char *list, int *pnum_return )
 		for( i = 0 ; list[i] ; ++i ) 
 			if( list[i] == ';' ) 
 				++num ;
-		if( i > 0 ) 
+		if( i > 0 && list[i-1] != ';' ) 
 			++num ;
 		if( num > 0 ) 
 		{
@@ -126,6 +137,10 @@ parse_desktop_entry( const char *path, const char *fname, const char *default_ca
 	if( fullfilename  )
 		fp = fopen( fullfilename, "r" );
 
+#define PARSE_ASDE_TYPE_VAL(val)	if(mystrncasecmp(ptr, #val, ASDE_KEYWORD_##val##_LEN) == 0){de->type = ASDE_Type##val; continue;}					   			   				   
+#define PARSE_ASDE_STRING_VAL(val)	if(mystrncasecmp(ptr, #val "=", ASDE_KEYWORD_##val##_LEN+1) == 0){de->val = stripcpy(ptr+ASDE_KEYWORD_##val##_LEN+1); continue;}					   
+#define PARSE_ASDE_FLAG_VAL(val)	if(mystrncasecmp(ptr, #val "=", ASDE_KEYWORD_##val##_LEN+1) == 0){set_flags(de->flags, ASDE_##val); continue;}					   			   
+
 	if( fp ) 
 	{
 		static char rb[MAXLINELENGTH+1] ; 
@@ -133,14 +148,22 @@ parse_desktop_entry( const char *path, const char *fname, const char *default_ca
 		while( fgets (&(rb[0]), MAXLINELENGTH, fp) != NULL)
 		{
 			char *ptr = &(rb[0]);
-			if( mystrncasecmp( ptr, "Name[", 5 ) == 0 ) 
+			if( ptr[0] == 'X' && ptr[1] == '-') 
+			{
+				ptr +=2 ; 
+				if( mystrncasecmp( ptr, "AfterStep-", 10 ) == 0 ) 
+				{
+					ptr += 10 ;
+					PARSE_ASDE_STRING_VAL(IndexName)
+					PARSE_ASDE_STRING_VAL(Alias)
+				}	 
+			}else if( mystrncasecmp( ptr, "Name[", 5 ) == 0 ) 
 			{
 				/* TODO */
 			}else if( mystrncasecmp( ptr, "Type=", 5 ) == 0 ) 
 			{
 				ptr += 5 ;
 
-#define PARSE_ASDE_TYPE_VAL(val)	if(mystrncasecmp(ptr, #val, ASDE_KEYWORD_##val##_LEN) == 0){de->type = ASDE_Type##val; continue;}					   			   				   
 				PARSE_ASDE_TYPE_VAL(Application)
 				PARSE_ASDE_TYPE_VAL(Link)
 				PARSE_ASDE_TYPE_VAL(FSDevice)
@@ -153,7 +176,6 @@ parse_desktop_entry( const char *path, const char *fname, const char *default_ca
 				set_flags( de->flags, ASDE_EncodingUTF8 );
 			}else
 			{
-#define PARSE_ASDE_STRING_VAL(val)	if(mystrncasecmp(ptr, #val "=", ASDE_KEYWORD_##val##_LEN+1) == 0){de->val = stripcpy(ptr+ASDE_KEYWORD_##val##_LEN+1); continue;}					
 				PARSE_ASDE_STRING_VAL(Name)
 				PARSE_ASDE_STRING_VAL(GenericName)
 				PARSE_ASDE_STRING_VAL(Comment)
@@ -169,7 +191,6 @@ parse_desktop_entry( const char *path, const char *fname, const char *default_ca
 				PARSE_ASDE_STRING_VAL(NotShowIn)
 				PARSE_ASDE_STRING_VAL(StartupWMClass)
 
-#define PARSE_ASDE_FLAG_VAL(val)	if(mystrncasecmp(ptr, #val "=", ASDE_KEYWORD_##val##_LEN+1) == 0){set_flags(de->flags, ASDE_##val); continue;}					   			   
 				PARSE_ASDE_FLAG_VAL(NoDisplay)
 				PARSE_ASDE_FLAG_VAL(Hidden)
 				PARSE_ASDE_FLAG_VAL(Terminal)
@@ -324,13 +345,32 @@ load_category_tree( ASCategoryTree*	ct )
 
 #ifdef TEST_AS_DESKTOP_ENTRY
 
+#define REDHAT_APPLNK	"/etc/X11/applnk"
+#define DEBIAN_APPLNK	"/usr/share/applications"
+
+/* 
+ * From e-mail : 
+ * The paths to the directories should be given by the DESKTOP_FILE_PATH
+ * enviromental variable if other directories then /usr/share/applications/ are
+ * needed.  This environment variable has the same format as the PATH
+ * evironment variable, ':'separating entries.  If DESKTOP_FILE_PATH is present,
+ * /usr/share/applications is not checked by default, and thus shoul dbe included
+ * in the path.
+ * 
+ * see: https://listman.redhat.com/archives/xdg-list/2002-July/msg00049.html
+ * 		http://standards.freedesktop.org/menu-spec/menu-spec-0.9.html#paths
+ * 		http://www.freedesktop.org/Standards/desktop-entry-spec
+*/
+
 int 
 main( int argc, char ** argv ) 
 {
+	
 	const char * default_path_gnome = getenv("GNOMEDIR");
 	const char * default_path_kde = getenv("KDEDIR");
 	const char *gnome_path = default_path_gnome;
 	const char *kde_path = default_path_kde;
+	ASCategoryTree *standard_tree = NULL ; 
 	ASCategoryTree *gnome_tree = NULL ; 
 	ASCategoryTree *kde_tree = NULL ; 
 	ASCategoryTree *combined_tree = NULL ; 
@@ -340,6 +380,8 @@ main( int argc, char ** argv )
 
 	InitMyApp ("TestASDesktopEntry", argc, argv, NULL, NULL, ASS_Restarting );
 	
+	standard_tree = create_category_tree( "", "./", "categories", NULL, 0, -1 );	 
+
 	if( gnome_path != NULL ) 
 	{	
 		char *gnome_icon_path = make_file_name( gnome_path, "share/pixmaps" );
@@ -363,17 +405,27 @@ main( int argc, char ** argv )
 	//iterate_asbidirlist( entry_list, desktop_entry_print, NULL, NULL, False);
 
 	combined_tree = create_category_tree( "", NULL, NULL, NULL, 0, -1 );	 
-			   
+	
+	load_category_tree( standard_tree );		   			   
+
+	add_category_tree_subtree( gnome_tree, standard_tree );
 	load_category_tree( gnome_tree );		   
+	add_category_tree_subtree( kde_tree, standard_tree );
 	load_category_tree( kde_tree );
+	add_category_tree_subtree( combined_tree, standard_tree );
 	add_category_tree_subtree( combined_tree, gnome_tree );
 	add_category_tree_subtree( combined_tree, kde_tree );
-	
+
+	   
 	print_category_tree( kde_tree );
 	print_category_tree( gnome_tree );
 	print_category_tree( combined_tree );
 
+	fprintf( stderr, "#####################################################\n" );
+	print_category_tree2( standard_tree );
+	fprintf( stderr, "#####################################################\n" );
 	print_category_tree2( combined_tree );
+	fprintf( stderr, "#####################################################\n" );
 
 	destroy_category_tree( &gnome_tree );
 	destroy_category_tree( &kde_tree );
@@ -383,5 +435,79 @@ main( int argc, char ** argv )
 #endif /* DEBUG_ALLOCS */
 	return 1;
 }
+#else
+#ifdef MAKE_STANDARD_CATEGORIES
+/* helper app to generate set of .desktop files for the list */
+int 
+main( int argc, char ** argv ) 
+{
+ 	char *doc_str;
+	xml_elem_t* doc;
+	xml_elem_t *tr, *td;
 
+
+	
+	if( argc < 2 ) 
+	{
+		show_error("Usage: make_standard_categories <source_file_name>\n");
+		exit(1);
+	}
+		
+	doc_str = load_file(argv[1]);   
+	if (!doc_str) 
+	{
+		show_error("Unable to load file [%s]: %s.\n", argv[1], strerror(errno));
+		exit(1);
+	}
+	
+	doc = xml_parse_doc(doc_str, NULL);
+	if (!doc) 
+	{
+		show_error("Unable to parse data: %s.\n", strerror(errno));
+		exit(1);
+	}
+
+	for (tr = doc->child ; tr ; tr = tr->next) 
+	{
+		if( strcmp( tr->tag, "tr" ) == 0 ) 
+		{
+	 		char *name = NULL , *parent = NULL, *comment = NULL ;
+			td = tr->child ;
+			if( td && td->child && strcmp(td->child->tag, XML_CDATA_STR ) == 0 ) 
+			{
+				name = td->child->parm ; 
+				td = td->next ; 	
+				if( td ) 
+				{
+					if( td->child && strcmp(td->child->tag, XML_CDATA_STR ) == 0 ) 
+						comment = td->child->parm ; 
+					td = td->next ; 	
+					if( td && td->child && strcmp(td->child->tag, XML_CDATA_STR ) == 0 ) 
+						parent = td->child->parm ; 
+				}	 
+			}	 
+			if( name && strlen(name) < 200) 
+			{
+				char filename[1024] ;
+				FILE *fp ;
+				sprintf( filename, "categories/%s.desktop", name ) ;
+				fp = fopen( filename, "wt" );
+				if( fp ) 
+				{
+					fprintf( fp, "[DesktopEntry]\nName=%s\n", name );
+					fprintf( fp, "X-AfterStep-IndexName=%s\n", name );
+					fprintf( fp, "Categories=%s\n", parent?parent:"" );
+					fprintf( fp, "Comment=%s\n", comment?comment:"" );
+					fclose( fp );	
+				}	 
+			}	 
+			
+		}	  
+	}
+	
+	return 1;
+}
 #endif
+#endif
+
+
