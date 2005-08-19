@@ -104,7 +104,7 @@ add_desktop_category_entry( ASDesktopCategory *dc, const char *entry_name )
 {
 	if( dc && entry_name ) 
 	{
-		LOCAL_DEBUG_OUT( "adding \"%s\" to category \"%s\"", entry_name, dc->name );
+		LOCAL_DEBUG_OUT( "adding \"%s\" to category \"%s\"", entry_name, dc->index_name );
 		if( mystrcasecmp(dc->name, entry_name) != 0 )
 		{		               /* to prevent cyclic hierarchy !!! */
 			char **existing = PVECTOR_HEAD(char*,dc->entries);
@@ -145,7 +145,8 @@ print_desktop_category( ASDesktopCategory *dc )
 	{
 		char **entries = PVECTOR_HEAD(char*,dc->entries);
 		int num = PVECTOR_USED(dc->entries);
-		fprintf( stderr, "category(%p).name=\"%s\";\n", dc, dc->name );
+		fprintf( stderr, "category(%p).index_name=\"%s\";\n", dc, dc->index_name );
+		fprintf( stderr, "category(%p).name=\"%s\";\n", dc, dc->name?dc->name:"(null)" );
 		fprintf( stderr, "category(%p).entries_num=%d;\n", dc, num );
 		if( num > 0 ) 
 		{	
@@ -344,6 +345,7 @@ obtain_category( ASCategoryTree *ct, const char *cname, Bool dont_add_to_default
 	if( dc == NULL ) 		
 	{
 		dc = create_desktop_category( cname );
+		LOCAL_DEBUG_OUT( "creating category using index_name \"%s\"", cname );
 		if( add_hash_item( ct->categories, AS_HASHABLE(dc->index_name), dc) != ASH_Success ) 
 		{	
 			unref_desktop_category( dc );
@@ -397,11 +399,13 @@ Bool register_desktop_entry(ASCategoryTree *ct, ASDesktopEntry *de)
 			
 			if( dc != NULL ) 
 			{
+				LOCAL_DEBUG_OUT( "category already exists with index_name \"%s\" and name \"%s\"", dc->index_name, dc->name?dc->name:"(null)" );
 				if( !top_level ) 
 					remove_desktop_category_entry( ct->default_category, dc->index_name );
 			}else	 
 			{	
 		 		dc = create_desktop_category( index_name );
+				LOCAL_DEBUG_OUT( "creating category using index_name \"%s\"", index_name );
 				if( add_hash_item( ct->categories, AS_HASHABLE(dc->index_name), dc) != ASH_Success ) 
 				{	
 					unref_desktop_category( dc );
@@ -409,7 +413,10 @@ Bool register_desktop_entry(ASCategoryTree *ct, ASDesktopEntry *de)
 				}
 			}
 			if( dc->name == NULL ) 
-				dc->name = mystrdup( de->Name );
+			{
+				LOCAL_DEBUG_OUT( "setting category name to \"%s\"", de->Name );
+	  			dc->name = mystrdup( de->Name );
+			}
 
 			if( de->Alias ) 	
 			{
@@ -417,14 +424,20 @@ Bool register_desktop_entry(ASCategoryTree *ct, ASDesktopEntry *de)
 				if( add_hash_item( ct->categories, AS_HASHABLE(tmp), dc) != ASH_Success ) 		
 					free( tmp );
 				else
+				{
+					LOCAL_DEBUG_OUT( "adding category alias to \"%s\"", de->Alias );	  
 					ref_desktop_category( dc );  
+				}
 			}	 
 			{
 				char *tmp = mystrdup(de->Name);	
 				if( add_hash_item( ct->categories, AS_HASHABLE(tmp), dc) != ASH_Success ) 		
 					free( tmp );
 				else
+				{
+					LOCAL_DEBUG_OUT( "adding category reference using common name \"%s\"", de->Name );	  	  
 					ref_desktop_category( dc );  
+				}
 			}	 
 		}	 
 
@@ -505,15 +518,42 @@ add_category_tree_subtree( ASCategoryTree* ct, ASCategoryTree* subtree )
 	{
 		do
 		{
+			char *alias = (char*)curr_hash_value( &i );
 		 	ASDesktopCategory *subtree_dc = curr_hash_data( &i );
-			ASDesktopCategory *dc = obtain_category( ct, subtree_dc->name, True );
+			ASDesktopCategory *dc = fetch_category( ct, subtree_dc->name );
+			if( dc == NULL ) 
+			{	
+		 		dc = create_desktop_category( subtree_dc->index_name );
+				if( subtree_dc->name != NULL ) 
+					dc->name = mystrdup(subtree_dc->name);
+				LOCAL_DEBUG_OUT( "creating category using index_name \"%s\" and name \"%s\"", dc->index_name, dc->name?dc->name:"(null)" );
+				if( add_hash_item( ct->categories, AS_HASHABLE(dc->index_name), dc) != ASH_Success ) 
+				{	
+					unref_desktop_category( dc );
+					dc = NULL ; 
+				}else if( dc->name )
+					add_hash_item( ct->categories, AS_HASHABLE(dc->name), dc);
+			}
+			if( dc ) 
+			{
+				if( mystrcasecmp( alias, dc->index_name ) != 0 ) 
+				{
+					if( dc->name && mystrcasecmp( alias, dc->name ) != 0 ) 
+					{
+						char *tmp = mystrdup(alias);	  
+						if( add_hash_item( ct->categories, AS_HASHABLE(tmp), dc) != ASH_Success ) 
+							free( tmp );
+					}
+				}	 					   
+			}	 
 			if( dc ) 
 			{	
 				char **subtree_entries = PVECTOR_HEAD(char*,subtree_dc->entries);
 				int num = PVECTOR_USED(subtree_dc->entries);
-				while ( --num >= 0 )
+				int i ; 
+				for( i = 0 ; i < num ; ++i )
 				{
-					add_desktop_category_entry( dc, subtree_entries[num] );
+					add_desktop_category_entry( dc, subtree_entries[i] );
 				}
 			}				 
 		}while( next_hash_item( &i ) );
@@ -550,11 +590,21 @@ print_category_subtree( ASCategoryTree* ct, const char *entry_name, int level )
 		++level ; 
 		for( i = 0 ; i < num ; ++i ) 
 		{
+			ASDesktopCategory *sub_dc = fetch_category( ct, entries[i] );
+			if( sub_dc == dc ) 
+			{	
+				fprintf( stderr, "%5.5d:reccurent refference to self \"%s\"!!! ", level, entries[i] );
+				continue;
+			}
 			fprintf( stderr, "%5.5d:", level );
 			for( k = 0 ; k < level ; ++k ) 
 				fputc('\t', stderr );
-			fprintf( stderr, "%s\n", entries[i] );
-			print_category_subtree( ct, entries[i], level );
+			if( sub_dc ) 
+				fprintf( stderr, "C: %s\n", sub_dc->name?sub_dc->name:sub_dc->index_name );
+			else
+				fprintf( stderr, "E: %s\n", entries[i] );
+			if( sub_dc ) 
+				print_category_subtree( ct, entries[i], level );
 		}	 
 	}
 }

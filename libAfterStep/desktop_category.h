@@ -75,7 +75,7 @@ typedef struct ASDesktopEntry
 
 	/* AfterStep extentions : */
 	char *IndexName ;
-#define ASDE_KEYWORD_IndexName_LEN	11
+#define ASDE_KEYWORD_IndexName_LEN	    9
 	char *Alias ;
 #define ASDE_KEYWORD_Alias_LEN			5
 

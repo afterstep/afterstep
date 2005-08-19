@@ -421,9 +421,13 @@ main( int argc, char ** argv )
 	print_category_tree( gnome_tree );
 	print_category_tree( combined_tree );
 
-	fprintf( stderr, "#####################################################\n" );
+	fprintf( stderr, "#Standard: ####################################################\n" );
 	print_category_tree2( standard_tree );
-	fprintf( stderr, "#####################################################\n" );
+	fprintf( stderr, "#KDE: ####################################################\n" );
+	print_category_tree2( kde_tree );
+	fprintf( stderr, "#GNOME: ####################################################\n" );
+	print_category_tree2( gnome_tree );
+	fprintf( stderr, "#Combined: ####################################################\n" );
 	print_category_tree2( combined_tree );
 	fprintf( stderr, "#####################################################\n" );
 
