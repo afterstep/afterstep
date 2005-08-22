@@ -741,6 +741,9 @@ do_maximized_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry *area)
     int selected = -1 ;
     unsigned int w = asw->status->width;
     unsigned int h = asw->status->height;
+    unsigned int x = asw->status->x;
+    unsigned int y = asw->status->y;
+    
     ASVector *free_space_list = NULL;
     XRectangle *rects = NULL;
     int i ;
@@ -755,19 +758,26 @@ do_maximized_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry *area)
     while( --i >= 0 )
         if( rects[i].width >= w && rects[i].height >=  h )
         {
-            if( selected > 0 )
+          /* if a rect has been selected */  
+	  if( selected > 0 )
             {
-                if( rects[i].width * rects[i].height < rects[selected].width * rects[selected].height )
+              /* if this rect is smaller than the selected one */  
+	      if( rects[i].width * rects[i].height < rects[selected].width * rects[selected].height )
                     continue;
             }
-            selected = i ;
+          /* select this rectangle because it's bigger */  
+	  selected = i ;
         }
-	if( selected  < 0 ) 
+    
+    /***** I think the next block is redundant - fabs ***/
+
+        /* if a rect has NOT been selected*/
+        if( selected  < 0 ) 
 	{	                       /* we simply select the biggest area available : */
 	    i = PVECTOR_USED(free_space_list);
 	    while( --i >= 0 )
-       	{
-           	if( selected > 0 )
+	    {
+		if( selected > 0 )
            	{
                	if( rects[i].width * rects[i].height < rects[selected].width * rects[selected].height )
                    	continue;
@@ -775,13 +785,85 @@ do_maximized_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry *area)
             selected = i ;
         }
 	}
+
+     /***************************************************/
 		 
     if( selected >= 0 )
     {
-        ASFlagType flags = 0 ;
-		int max_width = rects[selected].width ;
-		int max_height = rects[selected].height ;
-        save_aswindow_anchor( asw, ASWIN_GET_FLAGS( asw, AS_MaximizedX), ASWIN_GET_FLAGS( asw, AS_MaximizedY) );
+	    ASFlagType flags = 0 ;
+	    int max_width = rects[selected].width ;
+	    int max_height = rects[selected].height ;
+
+#ifdef HAVE_XINERAMA
+	
+	    int i;
+	    XRectangle *s = Scr.xinerama_screens;
+	    int dest_size = -1;
+	    int dest_rect = -1;
+	    int inter_width;
+	    int inter_height;
+
+	    /* select the xinerama-screen holding most of the
+	      window as it is before maximizing it */
+	    for(i = 0; i< Scr.xinerama_screens_num; ++i)
+	    {
+		    /* if window is not on this xin-rect at all. */
+		    if( ( x < s[i].x && x > s[i].x + s[i].width )||
+			( y < s[i].y && y > s[i].y + s[i].height) )
+			    continue;
+	    
+		    /* window starts left of screen */
+		    if(s[i].x  > x)
+			    /* and ends on the screen */
+			    if( s[i].x + s[i].width > x + w)
+				    inter_width = x + w - s[i].x;
+			    else
+				    inter_width = s[i].width;
+		    else
+			    if( s[i].x + s[i].width > x + w )
+				    inter_width = s[i].width ;
+			    else
+				    inter_width = s[i].x + s[i].width - x;
+		    
+		    
+		    /* window starts above of screen */
+		    if(s[i].y  > y)
+			    /* and ends on the screen */
+			    if( s[i].y + s[i].height > y + h)
+				    inter_height = y + h - s[i].y;
+			    else
+				    inter_height = s[i].height;
+		    else
+			    if( s[i].y + s[i].height > y + h )
+				    inter_height = s[i].height ;
+			    else
+				    inter_height = s[i].y + s[i].height - y;
+		    
+		    if(inter_width * inter_height > dest_size )
+		    {
+			    /* I like this rect better than the last. */
+			    dest_rect = i;
+			    dest_size = inter_width * inter_height;
+		    }
+			    
+		    
+	    }
+    
+	    
+	    if(rects[selected].x < s[dest_rect].x )
+		    rects[selected].x = s[dest_rect].x;
+	    if(rects[selected].y < s[dest_rect].y )
+		    rects[selected].y = s[dest_rect].y;
+	    if( max_width > s[dest_rect].width)
+		    max_width = s[dest_rect].width;
+	    if( max_height > s[dest_rect].height)
+		    max_height = s[dest_rect].height;
+	    
+
+#endif /* XINERAMA */
+
+	    
+	    save_aswindow_anchor( asw, ASWIN_GET_FLAGS( asw, AS_MaximizedX), ASWIN_GET_FLAGS( asw, AS_MaximizedY) );
 
         if( ASWIN_GET_FLAGS( asw, AS_MaximizedX)  )
             set_flags( flags, XValue|WidthValue );
@@ -1437,6 +1519,7 @@ PlaceWindow (ASWindow * tmp_win, unsigned long tflag, int Desk)
 
 		for (i = 0; i < Scr.xinerama_screens_num; ++i)
 		{
+			/* if window is completely in this xinerama-screen */
 			if (s[i].x < x + width && s[i].x + s[i].width > x &&
 				s[i].y < y + height && s[i].y + s[i].height > y)
 			{
