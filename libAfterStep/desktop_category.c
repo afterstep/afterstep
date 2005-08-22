@@ -446,7 +446,10 @@ Bool register_desktop_entry(ASCategoryTree *ct, ASDesktopEntry *de)
 
 		for( i = top_level?1:0 ; i < de->categories_num ; ++i ) 
 		{
-			ASDesktopCategory *dc = obtain_category( ct, de->categories_shortcuts[i], False ); 
+			ASDesktopCategory *dc = NULL ; 
+			if( de->categories_num == 1 || 
+				mystrcasecmp( ct->name, de->categories_shortcuts[i] ) != 0 ) 
+				dc = obtain_category( ct, de->categories_shortcuts[i], False ); 
 
 			if( dc ) 
 				add_desktop_category_entry( dc, index_name );
@@ -553,7 +556,11 @@ add_category_tree_subtree( ASCategoryTree* ct, ASCategoryTree* subtree )
 				int i ; 
 				for( i = 0 ; i < num ; ++i )
 				{
-					add_desktop_category_entry( dc, subtree_entries[i] );
+					ASDesktopCategory *sub_dc = fetch_category( ct, subtree_entries[i] );
+					if( sub_dc ) 
+						add_desktop_category_entry( dc, sub_dc->index_name );
+					else
+						add_desktop_category_entry( dc, subtree_entries[i] );
 				}
 			}				 
 		}while( next_hash_item( &i ) );
@@ -600,8 +607,12 @@ print_category_subtree( ASCategoryTree* ct, const char *entry_name, int level )
 			for( k = 0 ; k < level ; ++k ) 
 				fputc('\t', stderr );
 			if( sub_dc ) 
-				fprintf( stderr, "C: %s\n", sub_dc->name?sub_dc->name:sub_dc->index_name );
-			else
+			{
+				if( sub_dc->name == NULL ) 
+					fprintf( stderr, "C: %s\n", sub_dc->index_name );
+				else 
+					fprintf( stderr, "C: %s(%s)\n", sub_dc->name, sub_dc->index_name );
+			}else
 				fprintf( stderr, "E: %s\n", entries[i] );
 			if( sub_dc ) 
 				print_category_subtree( ct, entries[i], level );
