@@ -88,6 +88,16 @@
 #define GTKRC_FILE      AFTER_NONCF "/gtkrc"		         /* compiled and ready to use gtkrc */
 #define AUTOEXEC_FILE   "autoexec"
 #define DATABASE_FILE   "database"
+
+#define STANDARD_CATEGORIES_FILE 	"standard_categories" 
+#define GNOME_APPS_PATH		"~/.gnome2/vfolders/applications/ :$GNOMEDIR/share/applications"
+#define GNOME_ICONS_PATH	"~/.icons/gnome/48x48/apps/:$XDG_DATA_DIRS/icons/gnome/48x48/apps/:$GNOMEDIR/share/pixmaps"
+#define KDE_APPS_PATH		"$KDEDIR/share/applnk:$KDEDIR/share/applications:/usr/share/applnk"
+#define KDE_ICONS_PATH		"~/.icons/kde/48x48/apps/:$XDG_DATA_DIRS/icons/kde/48x48/apps/:$KDEDIR/share/icons/default.kde/48x48/apps:$KDEDIR/share/icons/hicolor/48x48/apps:$KDEDIR/share/icons/locolor/48x48/apps"
+#define SYSTEM_APPS_PATH     	"/etc/X11/applnk:/usr/share/applications:/usr/local/share/applications"
+#define SYSTEM_ICONS_PATH    	"/usr/share/pixmaps:/usr/local/share/pixmaps"
+
+
 #define DEFAULT_CAPTURE_WINDOW_FILE		"~/capture_window"
 #define DEFAULT_CAPTURE_FRAMEDWINDOW_FILE	"~/capture_framedwindow"
 #define DEFAULT_CAPTURE_SCREEN_FILE		"~/capture_screen"

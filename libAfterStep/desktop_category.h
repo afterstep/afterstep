@@ -116,9 +116,11 @@ typedef struct ASCategoryTree
 	ASFlagType flags ;
 
 	char *name ;
-	char *origin ; 
 	char *icon_path;
 	int max_depth ; 
+
+	char  **dir_list ; 
+	int 	dir_num ; 
 
 	/*ASBiDirList *entry_list ;*/
 	ASDesktopCategory  *default_category ;
@@ -146,7 +148,7 @@ void print_desktop_entry( ASDesktopEntry* de );
  * Desktop Category Tree functionality : 
  *************************************************************************/
 
-ASCategoryTree*create_category_tree( const char *name, const char *path, const char *dirname, const char *icon_path, ASFlagType flags, int max_depth );	
+ASCategoryTree*create_category_tree( const char *name, const char *path, const char *icon_path, ASFlagType flags, int max_depth );	
 void destroy_category_tree( ASCategoryTree **pct );
 Bool register_desktop_entry(ASCategoryTree *ct, ASDesktopEntry *de);
 void add_category_tree_subtree( ASCategoryTree* ct, ASCategoryTree* subtree );

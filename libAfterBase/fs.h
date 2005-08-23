@@ -41,7 +41,7 @@ char*   load_file (const char *realfilename);
 
 char   *find_envvar (char *var_start, int *end_pos);
 void	replace_envvar (char **path);
-char   *copy_replace_envvar (char *path);
+char   *copy_replace_envvar (const char *path);
 
 void	parse_file_name(const char *filename, char **path, char **file);
 char   *make_file_name (const char *path, const char *file);

@@ -337,39 +337,38 @@ LOCAL_DEBUG_OUT( " found at: \"%s\"", res );
 char         *
 find_envvar (char *var_start, int *end_pos)
 {
-	char          backup, *name_start = var_start;
 	register int  i;
-	char         *var = NULL;
+	static char tmp[256];
 
 	if (var_start[0] == '{')
 	{
-		name_start++;
-		for (i = 1; var_start[i] && var_start[i] != '}'; i++);
+		for (i = 1; var_start[i] && var_start[i] != '}' && i < 255; i++)
+			tmp[i-1] = var_start[i] ;
+		tmp[i-1] = '\0' ;
 	} else
-		for (i = 0; isalnum ((int)var_start[i]) || var_start[i] == '_'; i++);
-
-	backup = var_start[i];
-	var_start[i] = '\0';
-	var = getenv (name_start);
-	var_start[i] = backup;
-
+	{	
+		for (i = 0; (isalnum ((int)var_start[i]) || var_start[i] == '_') && i < 255; i++)
+			tmp[i] = var_start[i] ;
+		tmp[i] = '\0';
+	}		
 	*end_pos = i;
-	if (backup == '}')
+	if (var_start[i] == '}')
 		(*end_pos)++;
-	return var;
+	
+	return getenv (tmp);
 }
 
 static char *
-do_replace_envvar (char *path)
+do_replace_envvar (const char *path)
 {
-	char         *data = path, *tmp;
+	char         *data = (char*)path, *tmp;
 	char         *home = getenv ("HOME");
 	int           pos = 0, len, home_len = 0;
 
 	if (path == NULL)
 		return NULL;
 	if (*path == '\0')
-		return path;
+		return (char*)path;
 	len = strlen (path);
 	if (home)
 		home_len = strlen (home);
@@ -439,7 +438,7 @@ replace_envvar (char **path)
 }
 
 char*
-copy_replace_envvar (char *path)
+copy_replace_envvar (const char *path)
 {
 	char         *res = do_replace_envvar( path );
 	return ( res == path )?mystrdup( res ):res;

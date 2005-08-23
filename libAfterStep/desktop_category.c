@@ -461,15 +461,44 @@ Bool register_desktop_entry(ASCategoryTree *ct, ASDesktopEntry *de)
 }	 
 
 ASCategoryTree*
-create_category_tree( const char *name, const char *path, const char *dirname, const char *icon_path, ASFlagType flags, int max_depth )	
+create_category_tree( const char *name, const char *path, const char *icon_path, ASFlagType flags, int max_depth )	
 {
 	ASCategoryTree *ct = safecalloc( 1, sizeof(ASCategoryTree));
 	ct->max_depth = max_depth ; 
 	ct->flags = flags ; 
-	if( path || dirname )
-		ct->origin = make_file_name( path, dirname );
+	if( path )
+	{
+		int i = 0 ;
+		char *clean_path = copy_replace_envvar( path );
+		while( clean_path[i] ) 
+		{
+			if( clean_path[i] == ':' && i > 0 && clean_path[i-1] != ':' )
+				++(ct->dir_num);
+			++i ;
+		}	 
+		if( i > 1 && clean_path[i] != ':' )
+			++(ct->dir_num);
+		if( ct->dir_num > 0 ) 
+		{	
+			int dir = 0 ; 
+			ct->dir_list = safecalloc( ct->dir_num, sizeof( char*) );
+			i = 0 ; 
+			do 
+			{	
+				while( clean_path[i] == ':' ) ++i ; 
+				if( clean_path[i] ) 
+				{
+					int start = i; 
+					while( clean_path[i] != ':' && clean_path[i] ) ++i ; 
+					if( i - start > 1 ) 
+						ct->dir_list[dir++] = mystrndup( &clean_path[start], i-start-1);
+				}	 
+			}while( clean_path[i] );
+		}
+		free( clean_path ) ;
+	}
 	ct->name = mystrdup(name);
-	ct->icon_path = mystrdup(icon_path);
+	ct->icon_path = copy_replace_envvar(icon_path);
 	ct->entries = create_ashash( 0, string_hash_value, string_compare, desktop_entry_destroy );
 	ct->categories = create_ashash( 0, casestring_hash_value, casestring_compare, desktop_category_destroy );
 	ct->default_category = obtain_category( ct, DEFAULT_DESKTOP_CATEGORY_NAME, True );	
@@ -484,7 +513,13 @@ destroy_category_tree( ASCategoryTree **pct )
 		ASCategoryTree *ct = *pct ;
 		if( ct ) 
 		{
-			destroy_string( &(ct->origin) );
+			int i ; 
+			if( ct->dir_list ) 
+			{	
+				for( i = 0 ; i < ct->dir_num ; ++i ) 
+					destroy_string( &(ct->dir_list[i]) );
+				free( ct->dir_list );
+			}					 
 			destroy_string( &(ct->name));
 			destroy_string( &(ct->icon_path)); 
 			
@@ -574,7 +609,6 @@ print_category_tree( ASCategoryTree* ct )
 	if( ct ) 
 	{
 	 	fprintf(stderr, "category_tree.flags=0x%lX;\n", ct->flags );		
-		fprintf(stderr, "category_tree.origin=\"%s\";\n", ct->origin?ct->origin:"(null)" );
 		fprintf(stderr, "category_tree.name=\"%s\";\n", ct->name?ct->name:"(null)" );
 		fprintf(stderr, "category_tree.icon_path=\"%s\";\n", ct->icon_path?ct->icon_path:"(null)" );
 		fprintf(stderr, "category_tree.entries_num=%ld;\n", ct->entries->items_num );
@@ -627,7 +661,6 @@ print_category_tree2( ASCategoryTree* ct )
 	if( ct ) 
 	{
 	 	fprintf(stderr, "category_tree.flags=0x%lX;\n", ct->flags );		
-		fprintf(stderr, "category_tree.origin=\"%s\";\n", ct->origin?ct->origin:"(null)" );
 		fprintf(stderr, "category_tree.name=\"%s\";\n", ct->name?ct->name:"(null)" );
 		fprintf(stderr, "category_tree.icon_path=\"%s\";\n", ct->icon_path?ct->icon_path:"(null)" );
 		fprintf(stderr, "category_tree.entries_num=%ld;\n", ct->entries->items_num );

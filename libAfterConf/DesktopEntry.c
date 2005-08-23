@@ -371,41 +371,23 @@ static Bool register_desktop_entry_list_item(void *data, void *aux_data)
 Bool
 load_category_tree( ASCategoryTree*	ct )
 {
-	if( ct && ct->origin ) 
+	if( ct && ct->dir_list ) 
 	{	
-		if ( CheckDir (ct->origin) == 0 )
-		{
-			ASBiDirList *entry_list = create_asbidirlist( desktop_entry_destroy_list_item );
-		
-			parse_desktop_entry_tree(ct->origin, NULL, entry_list, NULL, ct->icon_path, ct->name );	
-			
-			iterate_asbidirlist( entry_list, register_desktop_entry_list_item, ct, NULL, False);
-			destroy_asbidirlist( &entry_list );
-			return True;
-		}	  
+		int i ; 
+		ASBiDirList *entry_list = create_asbidirlist( desktop_entry_destroy_list_item );
+		for( i = 0 ; i < ct->dir_num ; ++i ) 
+		{	
+			if ( CheckDir (ct->dir_list[i]) == 0 )
+				parse_desktop_entry_tree(ct->dir_list[i], NULL, entry_list, NULL, ct->icon_path, ct->name );	
+			else if ( CheckFile (ct->dir_list[i]) == 0 )
+				parse_desktop_entry_list( ct->dir_list[i], NULL, entry_list, ct->name, ASDE_TypeDirectory, ct->icon_path);
+		}
+		iterate_asbidirlist( entry_list, register_desktop_entry_list_item, ct, NULL, False);
+		destroy_asbidirlist( &entry_list );
+		return True;
 	}
 	return False ;
 }
-
-Bool
-load_category_tree_from_file( ASCategoryTree* ct )
-{
-	if( ct && ct->origin ) 
-	{	
-		if ( CheckFile (ct->origin) == 0 )
-		{
-			ASBiDirList *entry_list = create_asbidirlist( desktop_entry_destroy_list_item );
-		
-			parse_desktop_entry_list( ct->origin, NULL, entry_list, ct->name, ASDE_TypeDirectory, ct->icon_path);
-			
-			iterate_asbidirlist( entry_list, register_desktop_entry_list_item, ct, NULL, False);
-			destroy_asbidirlist( &entry_list );
-			return True;
-		}	  
-	}
-	return False ;
-}
-
 
 #ifdef TEST_AS_DESKTOP_ENTRY
 
@@ -430,13 +412,10 @@ int
 main( int argc, char ** argv ) 
 {
 	
-	const char * default_path_gnome = getenv("GNOMEDIR");
-	const char * default_path_kde = getenv("KDEDIR");
-	const char *gnome_path = default_path_gnome;
-	const char *kde_path = default_path_kde;
 	ASCategoryTree *standard_tree = NULL ; 
 	ASCategoryTree *gnome_tree = NULL ; 
 	ASCategoryTree *kde_tree = NULL ; 
+	ASCategoryTree *system_tree = NULL ; 
 	ASCategoryTree *combined_tree = NULL ; 
 
 
@@ -444,49 +423,35 @@ main( int argc, char ** argv )
 
 	InitMyApp ("TestASDesktopEntry", argc, argv, NULL, NULL, ASS_Restarting );
 	
-	standard_tree = create_category_tree( "Default", "../afterstep", "standard_categories", NULL, 0, -1 );	 
+	standard_tree = create_category_tree( "Default", "../afterstep/" STANDARD_CATEGORIES_FILE, NULL, 0, -1 );	 
+	gnome_tree = create_category_tree( "GNOME", GNOME_APPS_PATH, GNOME_ICONS_PATH, 0, -1 );	
+	kde_tree = create_category_tree( "KDE", KDE_APPS_PATH, KDE_ICONS_PATH, 0, -1 );	
+	system_tree = create_category_tree( "SYSTEM", SYSTEM_APPS_PATH, SYSTEM_ICONS_PATH, 0, -1 );	
 
-	if( gnome_path != NULL ) 
-	{	
-		char *gnome_icon_path = make_file_name( gnome_path, "share/pixmaps" );
-		show_progress( "reading GNOME entries from \"%s\"",  gnome_path );
-		gnome_tree = create_category_tree( "GNOME", gnome_path, "share/applications", gnome_icon_path, 0, -1 );	
-		//parse_desktop_entry_tree(gnome_path, "share/applications", entry_list, NULL, gnome_icon_path );	
-		//show_progress( "entries loaded: %d",  entry_list->count ); 
-		free( gnome_icon_path );
-	}
-	if( kde_path != NULL ) 
-	{	   
-		char *kde_icon_path = safemalloc(strlen(kde_path)+256 );
-		show_progress( "reading KDE entries from \"%s\"",  kde_path );
-		sprintf( kde_icon_path, "%s/share/icons/default.kde/48x48/apps:%s/share/icons/hicolor/48x48/apps:%s/share/icons/locolor/48x48/apps", kde_path, kde_path, kde_path );
-		show_progress( "KDE icon_path is \"%s\"",  kde_icon_path );
-		kde_tree = create_category_tree( "KDE", kde_path, "share/applnk", kde_icon_path, 0, -1 );	 
-	 	//parse_desktop_entry_tree(kde_path, "share/applnk", entry_list, NULL, kde_icon_path );	 
-		//show_progress( "entries loaded: %d",  entry_list->count ); 
-		free( kde_icon_path );
-	}
-	//iterate_asbidirlist( entry_list, desktop_entry_print, NULL, NULL, False);
-
-	combined_tree = create_category_tree( "", NULL, NULL, NULL, 0, -1 );	 
+	combined_tree = create_category_tree( "", NULL, NULL, 0, -1 );	 
 	
-	load_category_tree_from_file( standard_tree );		   			   
+	load_category_tree( standard_tree );		   			   
 
 	add_category_tree_subtree( gnome_tree, standard_tree );
 	load_category_tree( gnome_tree );		   
 	add_category_tree_subtree( kde_tree, standard_tree );
 	load_category_tree( kde_tree );
+	add_category_tree_subtree( system_tree, standard_tree );
+	load_category_tree( system_tree );
 	fprintf( stderr, "#Mixing - standart: $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n" );
 	add_category_tree_subtree( combined_tree, standard_tree );
 	fprintf( stderr, "#Mixing - Gnome: $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n" );
 	add_category_tree_subtree( combined_tree, gnome_tree );
 	fprintf( stderr, "#Mixing - Kde: $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n" );
 	add_category_tree_subtree( combined_tree, kde_tree );
+	fprintf( stderr, "#Mixing - System: $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n" );
+	add_category_tree_subtree( combined_tree, system_tree );
 	fprintf( stderr, "#Mixing - Done: $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n" );
 
 	   
 	print_category_tree( kde_tree );
 	print_category_tree( gnome_tree );
+	print_category_tree( system_tree );
 	print_category_tree( combined_tree );
 
 	fprintf( stderr, "#Standard: ####################################################\n" );
@@ -495,12 +460,17 @@ main( int argc, char ** argv )
 	print_category_tree2( kde_tree );
 	fprintf( stderr, "#GNOME: ####################################################\n" );
 	print_category_tree2( gnome_tree );
+	fprintf( stderr, "#SYSTEM: ####################################################\n" );
+	print_category_tree2( system_tree );
 	fprintf( stderr, "#Combined: ####################################################\n" );
 	print_category_tree2( combined_tree );
 	fprintf( stderr, "#####################################################\n" );
 
+	destroy_category_tree( &standard_tree );
 	destroy_category_tree( &gnome_tree );
 	destroy_category_tree( &kde_tree );
+	destroy_category_tree( &system_tree );
+	destroy_category_tree( &combined_tree );
 	FreeMyAppResources();
 #ifdef DEBUG_ALLOCS
 	print_unfreed_mem ();
