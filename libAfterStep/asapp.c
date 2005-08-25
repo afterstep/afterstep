@@ -90,6 +90,14 @@ void (*CloseOnExec)() = NULL ;
 struct ASSession *Session = NULL;          /* filenames of look, feel and background */
 struct ASEnvironment *Environment = NULL;
 
+struct ASCategoryTree *StandardCategories = NULL ;
+struct ASCategoryTree *KDECategories = NULL ;
+struct ASCategoryTree *GNOMECategories = NULL ;
+struct ASCategoryTree *SystemCategories = NULL ;
+struct ASCategoryTree *CombinedCategories = NULL ;
+
+
+
 /* names of AS functions - used all over the place  :*/
 
 #define FUNC_TERM(txt,len,func)         {TF_NO_MYNAME_PREPENDING,txt,len,TT_FUNCTION,func,NULL}

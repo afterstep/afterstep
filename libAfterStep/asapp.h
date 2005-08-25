@@ -55,6 +55,8 @@ extern "C" {
 struct SyntaxDef;
 struct TermDef;
 struct ASSession;
+struct ASCategoryTree;
+
 
 /* compatibility macros : */
 #define GetFdWidth          get_fd_width
@@ -301,6 +303,12 @@ struct TermDef  *func2fterm (enum FunctionCode func, int quiet);
 
 extern struct ASSession *Session;          /* filenames of look, feel and background */
 extern struct ASEnvironment *Environment;
+
+extern struct ASCategoryTree *StandardCategories ;
+extern struct ASCategoryTree *KDECategories ;
+extern struct ASCategoryTree *GNOMECategories ;
+extern struct ASCategoryTree *SystemCategories ;
+extern struct ASCategoryTree *CombinedCategories ;
 
 /* this two are unused in as-stable yet : */
 struct ASFeel;

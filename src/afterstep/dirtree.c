@@ -29,6 +29,7 @@
 
 #include "../../configure.h"
 #include "../../libAfterStep/asapp.h"
+#include "../../libAfterStep/desktop_category.h"
 #include "dirtree.h"
 void          init_func_data (FunctionData * data);
 int           txt2func (const char *text, FunctionData * fdata, int quiet);
@@ -104,6 +105,8 @@ dirtree_delete (dirtree_t * tree)
 	if (tree->minipixmap_extension != NULL)
 		free (tree->minipixmap_extension);
 	free_func_data (&tree->command);
+	if (tree->de != NULL)
+		unref_desktop_entry(tree->de);
 
 	free (tree);
 }
@@ -254,11 +257,95 @@ dirtree_set_command (dirtree_t * tree, struct FunctionData *command, int recurse
 	}
 }
 
+void 
+dirtree_add_category (dirtree_t *tree, ASCategoryTree *ct, ASDesktopCategory *dc, Bool include_children, ASHashTable *exclusions)
+{
+	dirtree_t    *t = NULL ; 
+	int i, entries_num ;
+	char **entries ; 
+
+	ASSERT_TREE(tree);
+	ASSERT_TREE(dc);
+	ASSERT_TREE(ct);
+
+	entries_num = PVECTOR_USED(dc->entries);
+	if( entries_num == 0 ) 
+		return;
+	entries = PVECTOR_HEAD(char*, dc->entries );
+
+	for( i = 0 ; i < entries_num ; ++i ) 
+	{
+		ASDesktopEntry *de = NULL ; 
+		ASDesktopCategory *sub_dc = NULL ; 
+
+		if( exclusions ) 
+			if( get_hash_item( exclusions, AS_HASHABLE(entries[i]), NULL ) == ASH_Success ) 
+				continue;
+				 
+		if( (de = fetch_desktop_entry( ct, entries[i] ))== NULL ) 
+			continue;
+		if( de->type == ASDE_TypeDirectory ) 
+		{	
+			if( !include_children ) 
+				continue;
+			sub_dc = fetch_desktop_category( ct, entries[i] );
+			if( sub_dc == NULL || PVECTOR_USED(sub_dc->entries ) == 0 ) 
+				continue;
+		}
+		t = dirtree_new ();
+		t->name = mystrdup (de->Name);
+		
+		ref_desktop_entry( de );
+		t->de = de ; 
+		
+		t->parent = tree;
+		t->next = tree->child;
+		tree->child = t;			
+		
+		if( sub_dc ) 
+		{				   
+			t->flags |= DIRTREE_DIR;
+			dirtree_add_category (t, ct, sub_dc, include_children, exclusions);
+		}	 
+	}	
+}
+
+
+void 
+dirtree_add_category_by_name (dirtree_t *tree, const char *cat_name, Bool include_children, ASHashTable *exclusions)
+{
+	ASCategoryTree *ct = CombinedCategories ; 
+	int offset = 0 ;
+	
+	ASSERT_TREE(tree);
+
+	if( !mystrncasecmp (cat_name, "KDE:", 4) )
+	{	
+		ct = KDECategories ; 
+		offset = 4 ; 
+	}else if( !mystrncasecmp (cat_name, "GNOME:", 6) )
+	{	
+		ct = GNOMECategories ; 
+		offset = 6 ; 
+	}else if( !mystrncasecmp (cat_name, "SYSTEM:", 7) )
+	{	
+		ct = SystemCategories ;
+		offset = 7 ; 
+	}else if( !mystrncasecmp (cat_name, "COMBINED:", 9) )
+	{	
+		ct = CombinedCategories; 
+		offset = 9 ;
+	}
+
+	dirtree_add_category (tree, ct, fetch_desktop_category( ct, cat_name+offset ), include_children, exclusions);
+}
+
 int
 dirtree_parse (dirtree_t * tree, const char *file)
 {
 	FILE         *fp;
 	char         *str;
+	ASHashTable  *exclusions = NULL; 
 
 	ASSERT_TREE_INT(tree,1);
 	
@@ -280,6 +367,35 @@ dirtree_parse (dirtree_t * tree, const char *file)
 		/* ignore comments and blank lines */
 		if (*ptr == '#' || *ptr == '\0')
 			continue;
+		if( !mystrncasecmp (ptr, "exclude", 7) )
+		{
+			char *excl_name ; 
+			if( exclusions == NULL ) 
+				exclusions = create_ashash( 0, casestring_hash_value, casestring_compare, string_destroy );
+			if( exclusions ) 
+			{	
+				excl_name = stripcpy2 (ptr +7, 0);
+				add_hash_item( exclusions, AS_HASHABLE(excl_name), NULL );
+			}
+			continue;
+		}		
+		
+		if( !mystrncasecmp (ptr, "category", 8) )
+		{
+			char *cat_name;
+			Bool include_children = False;
+			ptr+= 8 ;
+			if( !mystrncasecmp (ptr, "_tree", 5) )
+			{
+				include_children = True ;
+				ptr += 5 ;	  
+			}
+			cat_name = stripcpy2 (ptr, 0);
+			dirtree_add_category_by_name (tree, cat_name, include_children, exclusions);
+			free( cat_name );
+			continue;
+		}
+		   
 		if( !mystrncasecmp (ptr, "include", 7) )
 		{
 			do_include = True ;

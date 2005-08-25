@@ -21,6 +21,9 @@ typedef struct dirtree_t
   char* minipixmap_extension;
   int order, base_order;
   int recent_items;
+
+  struct ASDesktopEntry *de ; 
+
 } dirtree_t;
 
 /* flags for dirtree_t.flags */

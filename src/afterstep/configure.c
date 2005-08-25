@@ -49,6 +49,7 @@
 #include "../../libAfterStep/session.h"
 #include "../../libAfterStep/mystyle_property.h"
 #include "../../libAfterStep/wmprops.h"
+#include "../../libAfterStep/desktop_category.h"
 
 #include "../../libAfterConf/afterconf.h"
 
@@ -1546,6 +1547,8 @@ LoadASConfig (int thisdesktop, ASFlagType what)
                 InitFeel (&Scr.Feel, True);
                 if (tline == NULL)
                     tline = safemalloc (MAXLINELENGTH + 1);
+				display_progress( True, "Reloading and merging desktop categories ...");
+				ReloadCategories();
                 display_progress( True, "Parsing menu entries and checking availability ...");
                 MeltStartMenu (tline);
                 display_progress( False, "Done..");

@@ -26,6 +26,7 @@
 
 #include "../libAfterStep/asapp.h"
 #include "../libAfterStep/afterstep.h"
+#include "../libAfterStep/session.h"
 #include "../libAfterStep/desktop_category.h"
 
 #include "afterconf.h"
@@ -389,6 +390,51 @@ load_category_tree( ASCategoryTree*	ct )
 	return False ;
 }
 
+void 
+DestroyCategories()
+{
+	if( StandardCategories ) destroy_category_tree( &StandardCategories ); 
+	if( KDECategories      ) destroy_category_tree( &KDECategories      ); 	
+	if( GNOMECategories    ) destroy_category_tree( &GNOMECategories    ); 	
+	if( SystemCategories   ) destroy_category_tree( &SystemCategories   ); 	
+	if( CombinedCategories ) destroy_category_tree( &CombinedCategories ); 	
+}
+
+void 
+ReloadCategories()
+{
+	char *configfile ;
+	DestroyCategories();
+	
+    if( (configfile = make_session_file(Session, STANDARD_CATEGORIES_FILE, False )) != NULL )
+	{
+		StandardCategories = create_category_tree( "Default", configfile , NULL, 0, -1 );	 
+		free( configfile );
+	}
+
+	GNOMECategories = create_category_tree( "GNOME", GNOME_APPS_PATH, GNOME_ICONS_PATH, 0, -1 );	
+	KDECategories = create_category_tree( "KDE", KDE_APPS_PATH, KDE_ICONS_PATH, 0, -1 );	
+	SystemCategories = create_category_tree( "SYSTEM", SYSTEM_APPS_PATH, SYSTEM_ICONS_PATH, 0, -1 );	
+
+	CombinedCategories = create_category_tree( "", NULL, NULL, 0, -1 );	 
+	
+	load_category_tree( StandardCategories );		   			   
+
+	add_category_tree_subtree( KDECategories   , StandardCategories );
+	add_category_tree_subtree( GNOMECategories , StandardCategories );
+	add_category_tree_subtree( SystemCategories, StandardCategories );
+	
+	load_category_tree( KDECategories    );
+	load_category_tree( GNOMECategories  );
+	load_category_tree( SystemCategories );
+	
+	add_category_tree_subtree( CombinedCategories, StandardCategories );
+	add_category_tree_subtree( CombinedCategories, KDECategories      );
+	add_category_tree_subtree( CombinedCategories, GNOMECategories    );
+	add_category_tree_subtree( CombinedCategories, SystemCategories   );
+	   
+}	 
+
 #ifdef TEST_AS_DESKTOP_ENTRY
 
 #define REDHAT_APPLNK	"/etc/X11/applnk"
@@ -430,13 +476,17 @@ main( int argc, char ** argv )
 
 	combined_tree = create_category_tree( "", NULL, NULL, 0, -1 );	 
 	
+	fprintf( stderr, "#Loading - STANDARD: $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n" );	
 	load_category_tree( standard_tree );		   			   
 
 	add_category_tree_subtree( gnome_tree, standard_tree );
+	fprintf( stderr, "#Loading - GNOME: $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n" );
 	load_category_tree( gnome_tree );		   
 	add_category_tree_subtree( kde_tree, standard_tree );
+	fprintf( stderr, "#Loading - KDE: $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n" );
 	load_category_tree( kde_tree );
 	add_category_tree_subtree( system_tree, standard_tree );
+	fprintf( stderr, "#Loading - System: $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n" );
 	load_category_tree( system_tree );
 	fprintf( stderr, "#Mixing - standart: $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n" );
 	add_category_tree_subtree( combined_tree, standard_tree );
@@ -449,20 +499,19 @@ main( int argc, char ** argv )
 	fprintf( stderr, "#Mixing - Done: $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n" );
 
 	   
-	print_category_tree( kde_tree );
-	print_category_tree( gnome_tree );
-	print_category_tree( system_tree );
-	print_category_tree( combined_tree );
-
 	fprintf( stderr, "#Standard: ####################################################\n" );
 	print_category_tree2( standard_tree );
 	fprintf( stderr, "#KDE: ####################################################\n" );
+	print_category_tree( kde_tree );
 	print_category_tree2( kde_tree );
 	fprintf( stderr, "#GNOME: ####################################################\n" );
+	print_category_tree( gnome_tree );
 	print_category_tree2( gnome_tree );
 	fprintf( stderr, "#SYSTEM: ####################################################\n" );
+	print_category_tree( system_tree );
 	print_category_tree2( system_tree );
 	fprintf( stderr, "#Combined: ####################################################\n" );
+	print_category_tree( combined_tree );
 	print_category_tree2( combined_tree );
 	fprintf( stderr, "#####################################################\n" );
 

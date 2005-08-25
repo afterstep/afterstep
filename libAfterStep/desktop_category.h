@@ -135,6 +135,11 @@ int unref_desktop_category( ASDesktopCategory *dc );
 void add_desktop_category_entry( ASDesktopCategory *dc, const char *entry_name );
 void print_desktop_category( ASDesktopCategory *dc );
 
+ASDesktopEntry *fetch_desktop_entry( ASCategoryTree *ct, const char *name );
+ASDesktopCategory *fetch_desktop_category( ASCategoryTree *ct, const char *cname );
+
+
+
 /*************************************************************************/
 /* Desktop Entry functionality                                           */
 /*************************************************************************/

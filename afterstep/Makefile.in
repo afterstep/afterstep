@@ -131,7 +131,7 @@ install:
 	 $(FIND) $(AFTER_SHAREDIR) -name '*.orig' -print | $(XARGS) $(RMF) -r
 	 $(FIND) $(AFTER_SHAREDIR) -name CVS -print | $(XARGS) $(RMF) -r
 	 $(FIND) $(AFTER_SHAREDIR) -name .cvsignore -print | $(XARGS) $(RMF)
-	@for f in CREDITS animate autoexec banner base database pager wharf winlist ; do \
+	@for f in CREDITS animate autoexec banner base database pager wharf winlist standard_categories gtkrc_template; do \
 		echo "$(INSTALL_DATA) $$f $(AFTER_SHAREDIR)/$$f"; \
 		$(INSTALL_DATA) $$f $(AFTER_SHAREDIR)/$$f; \
 	done 

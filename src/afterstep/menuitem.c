@@ -43,6 +43,7 @@
 #include "../../configure.h"
 
 #include "asinternals.h"
+#include "../../libAfterStep/desktop_category.h"
 
 #include <signal.h>
 #include <stdarg.h>
@@ -328,6 +329,22 @@ ParseKeyEntry (char *tline, FILE * fd, char **junk, int *junk2)
 
  /* we assume buf is at least MAXLINELENGTH bytes */
 
+void 
+add_minipixmap_fro_dirtree_item( dirtree_t * tree, MenuData *menu )
+{
+	FunctionData *fdata;
+	if( tree->de != NULL && tree->de->fulliconname != NULL ) 
+	{	
+        fdata = create_named_function( F_MINIPIXMAP, tree->de->fulliconname);
+        MenuDataItemFromFunc (menu, fdata);
+    }else if (tree->icon != NULL)
+    {/* should default to: "mini-menu.xpm" */
+        fdata = create_named_function( F_MINIPIXMAP, tree->icon);
+        MenuDataItemFromFunc (menu, fdata);
+	}
+	
+}	 
+
 MenuData     *
 dirtree_make_menu2 (dirtree_t * tree, char *buf, Bool reload_submenus)
 {
@@ -352,11 +369,8 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf, Bool reload_submenus)
 	/* We exploit that scan_for_hotkey removes & (marking hotkey) from name */
 	scan_for_hotkey (fdata->name);
     MenuDataItemFromFunc (menu, fdata);
-    if (tree->icon != NULL)
-    {/* should default to: "mini-menu.xpm" */
-        fdata = create_named_function( F_MINIPIXMAP, tree->icon);
-        MenuDataItemFromFunc (menu, fdata);
-	}
+
+	add_minipixmap_fro_dirtree_item( tree, menu );
 
 	for (t = tree->child; t != NULL; t = t->next)
 	{
@@ -380,14 +394,19 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf, Bool reload_submenus)
 				fdata->text = string_from_int (t->flags & DIRTREE_ID);
 
             MenuDataItemFromFunc (menu, fdata);
-            if (t->icon)
-			{
-                /* should default to "mini-folder.xpm" */
-                fdata = create_named_function( F_MINIPIXMAP, t->icon);
-                MenuDataItemFromFunc (menu, fdata);
-			}
+
+ 			add_minipixmap_fro_dirtree_item( t, menu );
 /************* Done creating Popup Title entry : ************************/
-		} else if (t->command.func != F_NOP)
+		} else if( t->de ) 
+		{
+			if( t->de->type == ASDE_TypeApplication ) 
+			{	
+		 		fdata = create_named_function(F_EXEC, t->stripped_name);	
+            	fdata->text = mystrdup( t->de->clean_exec );
+            	MenuDataItemFromFunc (menu, fdata);
+ 				add_minipixmap_fro_dirtree_item( t, menu );
+			}
+		}else if (t->command.func != F_NOP)
 		{
 			fdata = create_named_function(t->command.func, t->stripped_name);
 			if (t->command.text)
@@ -403,11 +422,7 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf, Bool reload_submenus)
 				fdata->text = mystrdup (t->path);
             MenuDataItemFromFunc (menu, fdata);
 
-            if (t->icon != NULL)
-            {  /* no defaults !!! */
-				fdata = create_named_function(F_MINIPIXMAP, t->icon);
-                MenuDataItemFromFunc (menu, fdata);
-			}
+ 			add_minipixmap_fro_dirtree_item( t, menu );
         } else
 		{
 			FILE *fp2 = fopen (t->path, "r");

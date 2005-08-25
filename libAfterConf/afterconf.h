@@ -35,6 +35,7 @@ struct ConfigItem;
 struct ASColorScheme;
 struct ConfigDef;
 struct FreeStorageElem;
+struct ASCategoryTree;
 
 extern struct SyntaxDef      BevelSyntax;
 extern struct SyntaxDef      AlignSyntax;
@@ -2224,6 +2225,17 @@ void DestroyIdentConfig (IdentConfig * config);
 extern struct SyntaxDef ASConfigSyntax;   /* THIS SYNTAX INCLUDES ALL OTHER SYNTAXES */
 
 /***************************************************************************/
+/***************************************************************************/
+/* Desktop Category loading from file or directory tree : 				   */
+/***************************************************************************/
+
+Bool load_category_tree( struct ASCategoryTree*	ct );
+
+void DestroyCategories();
+void ReloadCategories();
+
+/***************************************************************************/
+
 
 #ifdef __cplusplus
 }
