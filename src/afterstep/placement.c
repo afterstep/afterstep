@@ -799,9 +799,12 @@ do_maximized_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry *area)
 	    int i;
 	    XRectangle *s = Scr.xinerama_screens;
 	    int dest_size = -1;
-	    int dest_rect = -1;
+	    int dest_rect =  0;
 	    int inter_width;
 	    int inter_height;
+	    
+	    if( s != NULL)
+	    {
 
 	    /* select the xinerama-screen holding most of the
 	      window as it is before maximizing it */
@@ -858,7 +861,7 @@ do_maximized_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry *area)
 		    max_width = s[dest_rect].width;
 	    if( max_height > s[dest_rect].height)
 		    max_height = s[dest_rect].height;
-	    
+	    }
 
 #endif /* XINERAMA */
 
