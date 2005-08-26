@@ -131,7 +131,7 @@ static void
 parse_desktop_entry_line( ASDesktopEntry* de, char *ptr ) 
 {
 #define PARSE_ASDE_TYPE_VAL(val)	if(mystrncasecmp(ptr, #val, ASDE_KEYWORD_##val##_LEN) == 0){de->type = ASDE_Type##val; return;}					   			   				   
-#define PARSE_ASDE_STRING_VAL(val)	if(mystrncasecmp(ptr, #val "=", ASDE_KEYWORD_##val##_LEN+1) == 0){de->val = stripcpy(ptr+ASDE_KEYWORD_##val##_LEN+1); return;}					   
+#define PARSE_ASDE_STRING_VAL(val)	if(mystrncasecmp(ptr, #val "=", ASDE_KEYWORD_##val##_LEN+1) == 0){if( de->val ) free( de->val ) ; de->val = stripcpy(ptr+ASDE_KEYWORD_##val##_LEN+1); return;}					   
 #define PARSE_ASDE_FLAG_VAL(val)	if(mystrncasecmp(ptr, #val "=", ASDE_KEYWORD_##val##_LEN+1) == 0){set_flags(de->flags, ASDE_##val); return;}					   			   
 
 	if( ptr[0] == 'X' && ptr[1] == '-') 
@@ -273,7 +273,12 @@ parse_desktop_entry_list( const char *path, const char *fname, ASBiDirList *entr
 				}	 
 				de = create_desktop_entry(default_type);
 				++count ;
-			}else if( de )		  
+			}else if( rb[0] == '[' && de ) 
+			{	
+				fix_desktop_entry( de, default_category, icon_path, fullfilename );
+				append_bidirelem( entry_list, de);
+				de = NULL ;
+			}else if( de )
 				parse_desktop_entry_line( de, &(rb[0]) ); 
 		}
 		if( de ) 
@@ -339,9 +344,7 @@ parse_desktop_entry_tree(const char *path, const char *dirname, ASBiDirList *ent
 				parse_desktop_entry_tree( fullpath, list[i]->d_name, entry_list, curr_dir, icon_path, default_app_category );
 			}else if( i != curr_dir_index ) 
 			{	
-				tmp = parse_desktop_entry( fullpath, list[i]->d_name, dir_category?dir_category:default_app_category, ASDE_TypeApplication, icon_path );		   
-				if( tmp ) 
-					append_bidirelem( entry_list, tmp);
+				parse_desktop_entry_list( fullpath, list[i]->d_name, entry_list, dir_category?dir_category:default_app_category, ASDE_TypeApplication, icon_path);
 			}
 		}
 		free(list[i]);
@@ -349,6 +352,9 @@ parse_desktop_entry_tree(const char *path, const char *dirname, ASBiDirList *ent
 	
 	if( list ) 
 		free( list );   
+
+	if( dir_category ) 
+		free( dir_category );
 
 	free( fullpath );
 }
@@ -385,6 +391,8 @@ load_category_tree( ASCategoryTree*	ct )
 		}
 		iterate_asbidirlist( entry_list, register_desktop_entry_list_item, ct, NULL, False);
 		destroy_asbidirlist( &entry_list );
+/*		flush_asbidirlist_memory_pool(); */
+		print_unfreed_mem ();
 		return True;
 	}
 	return False ;
@@ -398,6 +406,9 @@ DestroyCategories()
 	if( GNOMECategories    ) destroy_category_tree( &GNOMECategories    ); 	
 	if( SystemCategories   ) destroy_category_tree( &SystemCategories   ); 	
 	if( CombinedCategories ) destroy_category_tree( &CombinedCategories ); 	
+#ifdef DEBUG_ALLOCS
+/*	print_unfreed_mem (); */
+#endif /* DEBUG_ALLOCS */
 }
 
 void 
@@ -412,26 +423,26 @@ ReloadCategories()
 		free( configfile );
 	}
 
-	GNOMECategories = create_category_tree( "GNOME", GNOME_APPS_PATH, GNOME_ICONS_PATH, 0, -1 );	
-	KDECategories = create_category_tree( "KDE", KDE_APPS_PATH, KDE_ICONS_PATH, 0, -1 );	
-	SystemCategories = create_category_tree( "SYSTEM", SYSTEM_APPS_PATH, SYSTEM_ICONS_PATH, 0, -1 );	
+	KDECategories = create_category_tree( "KDE", KDE_APPS_PATH, KDE_ICONS_PATH, 0, -1 );	   
+ 	GNOMECategories = create_category_tree( "GNOME", GNOME_APPS_PATH, GNOME_ICONS_PATH, 0, -1 );	
+ 	SystemCategories = create_category_tree( "SYSTEM", SYSTEM_APPS_PATH, SYSTEM_ICONS_PATH, 0, -1 );	
 
 	CombinedCategories = create_category_tree( "", NULL, NULL, 0, -1 );	 
 	
-	load_category_tree( StandardCategories );		   			   
+ 	load_category_tree( StandardCategories );		   			   
 
-	add_category_tree_subtree( KDECategories   , StandardCategories );
-	add_category_tree_subtree( GNOMECategories , StandardCategories );
-	add_category_tree_subtree( SystemCategories, StandardCategories );
+ 	add_category_tree_subtree( KDECategories   , StandardCategories );
+ 	add_category_tree_subtree( GNOMECategories , StandardCategories );
+ 	add_category_tree_subtree( SystemCategories, StandardCategories );
 	
-	load_category_tree( KDECategories    );
+ 	load_category_tree( KDECategories    );
 	load_category_tree( GNOMECategories  );
-	load_category_tree( SystemCategories );
+ 	load_category_tree( SystemCategories );
 	
-	add_category_tree_subtree( CombinedCategories, StandardCategories );
+ 	add_category_tree_subtree( CombinedCategories, StandardCategories );
 	add_category_tree_subtree( CombinedCategories, KDECategories      );
-	add_category_tree_subtree( CombinedCategories, GNOMECategories    );
-	add_category_tree_subtree( CombinedCategories, SystemCategories   );
+ 	add_category_tree_subtree( CombinedCategories, GNOMECategories    );
+ 	add_category_tree_subtree( CombinedCategories, SystemCategories   );
 	   
 }	 
 
@@ -467,8 +478,9 @@ main( int argc, char ** argv )
 
 //	ASBiDirList *entry_list = create_asbidirlist( desktop_entry_destroy_list_item );
 
-	InitMyApp ("TestASDesktopEntry", argc, argv, NULL, NULL, ASS_Restarting );
-	
+	InitMyApp ("TestASDesktopEntry", argc, argv, NULL, NULL, 0 );
+	InitSession();
+#if 0	
 	standard_tree = create_category_tree( "Default", "../afterstep/" STANDARD_CATEGORIES_FILE, NULL, 0, -1 );	 
 	gnome_tree = create_category_tree( "GNOME", GNOME_APPS_PATH, GNOME_ICONS_PATH, 0, -1 );	
 	kde_tree = create_category_tree( "KDE", KDE_APPS_PATH, KDE_ICONS_PATH, 0, -1 );	
@@ -520,6 +532,12 @@ main( int argc, char ** argv )
 	destroy_category_tree( &kde_tree );
 	destroy_category_tree( &system_tree );
 	destroy_category_tree( &combined_tree );
+#else
+	ReloadCategories();
+	ReloadCategories();
+	ReloadCategories();
+	DestroyCategories();
+#endif
 	FreeMyAppResources();
 #ifdef DEBUG_ALLOCS
 	print_unfreed_mem ();

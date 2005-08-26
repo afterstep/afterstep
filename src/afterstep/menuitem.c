@@ -138,7 +138,7 @@ FunctionItemParse (void *data, const char *buf)
         return False;
     if (fdata.func != F_ENDPOPUP && fdata.func != F_ENDFUNC)
 	{
-        if (fdata.func != F_MINIPIXMAP)
+        if (!IsMinipixmapFunc(fdata.func))
         {
             func->items = realloc(func->items, sizeof(FunctionData)*(func->items_num+1));
             func->items[func->items_num] = fdata ;
@@ -335,7 +335,7 @@ add_minipixmap_fro_dirtree_item( dirtree_t * tree, MenuData *menu )
 	FunctionData *fdata;
 	if( tree->de != NULL && tree->de->fulliconname != NULL ) 
 	{	
-        fdata = create_named_function( F_MINIPIXMAP, tree->de->fulliconname);
+        fdata = create_named_function( F_SMALL_MINIPIXMAP, tree->de->fulliconname);
         MenuDataItemFromFunc (menu, fdata);
     }else if (tree->icon != NULL)
     {/* should default to: "mini-menu.xpm" */
@@ -455,7 +455,7 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf, Bool reload_submenus)
 							fdata->func = F_NOP;
 					}
 #endif					
-					if( fdata->func == F_MINIPIXMAP )
+					if( IsMinipixmapFunc(fdata->func) )
 					{
 						if( minipixmap == NULL ) 
 						{

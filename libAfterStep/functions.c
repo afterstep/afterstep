@@ -699,7 +699,7 @@ add_menu_fdata_item( MenuData *menu, FunctionData *fdata, char *minipixmap, stru
 }
 
 ASImage *
-check_scale_menu_pmap( ASImage *im ) 
+check_scale_menu_pmap( ASImage *im, ASFlagType flags ) 
 {	
     if( im )
     {
@@ -721,6 +721,26 @@ check_scale_menu_pmap( ASImage *im )
             if( w == 0 )
                 w = 1 ;
         }
+		if( get_flags( flags, MD_ScaleMinipixmapDown ) )
+		{
+			int tmp_h = asxml_var_get("menu.font.size")+8;				
+			int tmp_w = (w*tmp_h)/h ; 
+			if( w  > tmp_w || h > tmp_h ) 
+			{
+				w = tmp_w ; 
+				h = tmp_h ; 	   
+			}	 
+		}else if( get_flags( flags, MD_ScaleMinipixmapUp ) )
+		{
+			int tmp_w = asxml_var_get("minipixmap.width");				   
+			int tmp_h = asxml_var_get("minipixmap.height") ; 
+			if( w  > tmp_w || h > tmp_h ) 
+			{
+				w = tmp_w ; 
+				h = tmp_h ; 	   
+			}	 
+		}
+
         if( w != im->width || h != im->height )
         {
 			return scale_asimage( ASDefaultVisual, im, w, h, ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT );
@@ -745,7 +765,7 @@ reload_menu_pmaps( MenuData *menu )
             	if( curr->minipixmap_image )
                 	safe_asimage_destroy(curr->minipixmap_image);
             	tmp = get_asimage( ASDefaultScr->image_manager, curr->minipixmap, ASFLAGS_EVERYTHING, 100 );
-				curr->minipixmap_image = check_scale_menu_pmap( tmp ); 
+				curr->minipixmap_image = check_scale_menu_pmap( tmp, curr->flags ); 
 				if( tmp != curr->minipixmap_image )
 				{	
 					char *n ;
@@ -804,7 +824,7 @@ menu_data_item_from_func (MenuData * menu, FunctionData * fdata)
 
     if( fdata == NULL )
         return ;
-    if (fdata->func == F_MINIPIXMAP)
+    if (IsMinipixmapFunc(fdata->func) )
 	{
 		if (menu->last)
 			item = menu->last;
@@ -813,6 +833,11 @@ menu_data_item_from_func (MenuData * menu, FunctionData * fdata)
             item = new_menu_data_item (menu);
 			item->fdata = fdata;
 		}
+		if( fdata->func == F_SMALL_MINIPIXMAP ) 
+			set_flags( item->flags, MD_ScaleMinipixmapDown );
+		else if( fdata->func == F_LARGE_MINIPIXMAP ) 
+			set_flags( item->flags, MD_ScaleMinipixmapUp );
+		   
         item->minipixmap = mystrdup(fdata->name);
     } else
     {

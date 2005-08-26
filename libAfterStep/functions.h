@@ -40,6 +40,8 @@ typedef enum FunctionCode{
   F_POPUP,
   F_FUNCTION,
   F_MINIPIXMAP,
+  F_SMALL_MINIPIXMAP,
+  F_LARGE_MINIPIXMAP,
   F_EXEC,
   F_MODULE,
   F_ExecInTerm,
@@ -142,6 +144,7 @@ F_FUNCTIONS_NUM
 #define IsValidFunc(f)   ((f)>=0&&(f)<F_FUNCTIONS_NUM)
 #define IsSwallowFunc(f) ((f)>=F_SWALLOW_FUNC_START&&(f)<F_SWALLOW_FUNC_END)
 #define IsExecFunc(f)    ((f)>= F_EXEC && (f)<=F_KILLMODULEBYNAME)
+#define IsMinipixmapFunc(f) ((f) >= F_MINIPIXMAP && (f) <= F_LARGE_MINIPIXMAP )
 
 
 void ChangeWarpIndex(const long, FunctionCode);
@@ -184,7 +187,9 @@ typedef struct MenuDataItem
     struct MenuDataItem  *next;  /* next menu item */
     struct MenuDataItem  *prev;  /* prev menu item */
 
-#define MD_Disabled        (0x01<<0)
+#define MD_Disabled        		(0x01<<0)
+#define MD_ScaleMinipixmapDown 	(0x01<<1)
+#define MD_ScaleMinipixmapUp  	(0x01<<2)
 /* can't think of anything else atm - maybe add something later ? */
     ASFlagType            flags ;
     struct FunctionData  *fdata ;
@@ -272,7 +277,7 @@ int parse_menu_item_name (MenuDataItem * item, char **name);
 
 void add_menu_fdata_item( MenuData *menu, FunctionData *fdata, char *minipixmap, struct ASImage *img );
 void menu_data_item_from_func (MenuData * menu, FunctionData * fdata);
-struct ASImage *check_scale_menu_pmap( struct ASImage *im ); 
+struct ASImage *check_scale_menu_pmap( struct ASImage *im, ASFlagType flags ); 
 void reload_menu_pmaps( MenuData *menu );
 
 void print_func_data(const char *file, const char *func, int line, FunctionData *data);

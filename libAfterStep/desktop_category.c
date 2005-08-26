@@ -16,7 +16,7 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#define LOCAL_DEBUG
+/*#define LOCAL_DEBUG */
 #define EVENT_TRACE
 
 #include "../configure.h"
@@ -61,6 +61,7 @@ destroy_desktop_category( ASDesktopCategory **pdc )
 						free( pe[i] );
 				destroy_asvector( &(dc->entries) );
 			}
+			LOCAL_DEBUG_OUT( "dc = %p, ref_count = %d", dc, dc->ref_count ) ;
 			free( dc );
 			*pdc = NULL ;
 		}	 
@@ -78,9 +79,10 @@ int unref_desktop_category( ASDesktopCategory *dc )
 {
 	if( dc ) 
 	{
+		LOCAL_DEBUG_OUT( "dc = %p, ref_count = %d", dc, dc->ref_count ) ;
 		if( (--dc->ref_count) > 0 ) 
 			return dc->ref_count;
-
+		LOCAL_DEBUG_OUT( "dc = %p, ref_count = %d", dc, dc->ref_count ) ;
 		destroy_desktop_category( &dc );
 	}
 	return 0;
@@ -92,7 +94,7 @@ desktop_category_destroy(ASHashableValue value, void *data)
 	char *alias = (char*)value ; 
 	ASDesktopCategory *dc = (ASDesktopCategory *)data ;
 
-	if( alias != dc->name ) 
+	if( alias != dc->name && alias != dc->index_name ) 
 		free( alias );
 
 	unref_desktop_category( dc ); 
@@ -216,6 +218,7 @@ destroy_desktop_entry( ASDesktopEntry** pde )
 			FREE_ASDE_VAL(show_in_shortcuts) ; 
 			FREE_ASDE_VAL(not_show_in_shortcuts);
 			FREE_ASDE_VAL(fulliconname);
+			FREE_ASDE_VAL(clean_exec);
 			FREE_ASDE_VAL(origin);
 			free( de );
 			*pde = NULL ;
@@ -559,7 +562,10 @@ add_category_tree_subtree( ASCategoryTree* ct, ASCategoryTree* subtree )
 		do
 		{
 		 	ASDesktopEntry *de = curr_hash_data( &i );
-			if( add_hash_item( ct->entries, AS_HASHABLE(de->Name), de) == ASH_Success ) 
+			ASHashResult res  = add_hash_item( ct->entries, AS_HASHABLE(de->Name), de); 
+
+			LOCAL_DEBUG_OUT( "adding desktop entry %p with result %d", de, res );
+			if( res == ASH_Success ) 
 				ref_desktop_entry( de );  
 				 
 		}while( next_hash_item( &i ) );
@@ -582,8 +588,10 @@ add_category_tree_subtree( ASCategoryTree* ct, ASCategoryTree* subtree )
 					unref_desktop_category( dc );
 					dc = NULL ; 
 				}else if( dc->name )
-					add_hash_item( ct->categories, AS_HASHABLE(dc->name), dc);
+					if( add_hash_item( ct->categories, AS_HASHABLE(dc->name), dc) == ASH_Success ) 
+						ref_desktop_category( dc );
 			}
+				
 			if( dc ) 
 			{
 				if( mystrcasecmp( alias, dc->index_name ) != 0 ) 
@@ -593,6 +601,8 @@ add_category_tree_subtree( ASCategoryTree* ct, ASCategoryTree* subtree )
 						char *tmp = mystrdup(alias);	  
 						if( add_hash_item( ct->categories, AS_HASHABLE(tmp), dc) != ASH_Success ) 
 							free( tmp );
+						else
+							ref_desktop_category( dc );
 					}
 				}	 					   
 			}	 

@@ -36,7 +36,7 @@
 #include "safemalloc.h"
 
 #define DETECT_BUFFER_UNDERRUN
-#define NOGUARD
+#define NOGUARD 
 /*#define DEBUG_ALLOCS */
 
 #ifdef DEBUG_ALLOCS
@@ -106,10 +106,10 @@ alloc_guarded_memory( size_t length	)
 		{ 
 #ifndef DETECT_BUFFER_UNDERRUN			
 			size_t *size_ptr = (size_t*)commit;
-			void *ptr = commit + (cbSize - length);	 
+			unsigned char *ptr = (unsigned char*)commit + (cbSize - length);	 
 #else
 			size_t *size_ptr = (size_t*)commit_size;
-			void *ptr = commit;	 
+			unsigned char *ptr = (unsigned char*)commit;	 
 #endif			   
 			size_ptr[0] = length ;
 			size_ptr[1] = AS_WIN32_PAGE_MAGIC ;
