@@ -134,6 +134,8 @@ parse_desktop_entry_line( ASDesktopEntry* de, char *ptr )
 #define PARSE_ASDE_STRING_VAL(val)	if(mystrncasecmp(ptr, #val "=", ASDE_KEYWORD_##val##_LEN+1) == 0){if( de->val ) free( de->val ) ; de->val = stripcpy(ptr+ASDE_KEYWORD_##val##_LEN+1); return;}					   
 #define PARSE_ASDE_FLAG_VAL(val)	if(mystrncasecmp(ptr, #val "=", ASDE_KEYWORD_##val##_LEN+1) == 0){set_flags(de->flags, ASDE_##val); return;}					   			   
 
+/*	LOCAL_DEBUG_OUT( "PARSING \"%s\"", ptr );	*/
+
 	if( ptr[0] == 'X' && ptr[1] == '-') 
 	{
 		ptr +=2 ; 
@@ -255,7 +257,8 @@ parse_desktop_entry_list( const char *path, const char *fname, ASBiDirList *entr
 	int count = 0 ; 
 	char *fullfilename = make_file_name( path, fname );
 	FILE *fp = NULL;
-	
+
+	LOCAL_DEBUG_OUT( "PARSING \"%s\"", fullfilename );	
 	if( fullfilename  )
 		fp = fopen( fullfilename, "r" );
 
@@ -264,20 +267,26 @@ parse_desktop_entry_list( const char *path, const char *fname, ASBiDirList *entr
 		static char rb[MAXLINELENGTH+1] ; 
 		while( fgets (&(rb[0]), MAXLINELENGTH, fp) != NULL	) 
 		{
-			if( mystrncasecmp( &(rb[0]), "[DesktopEntry]", 14 ) == 0 ) 
+/*			LOCAL_DEBUG_OUT( "rb = \"%s\", de = %p", &(rb[0]), de ); */
+			if( rb[0] == '[' )
 			{
-				if( de ) 
+				if( mystrncasecmp( &(rb[0]), "[Desktop Entry]", 15 ) == 0 ||
+					mystrncasecmp( &(rb[0]), "[KDE Desktop Entry]", 19 ) == 0 ||	
+					mystrncasecmp( &(rb[0]), "[DesktopEntry]", 14 ) == 0 ) 
 				{
+					if( de ) 
+					{
+						fix_desktop_entry( de, default_category, icon_path, fullfilename );
+						append_bidirelem( entry_list, de);
+					}	 
+					de = create_desktop_entry(default_type);
+					++count ;
+				}else if( de ) 
+				{	
 					fix_desktop_entry( de, default_category, icon_path, fullfilename );
 					append_bidirelem( entry_list, de);
-				}	 
-				de = create_desktop_entry(default_type);
-				++count ;
-			}else if( rb[0] == '[' && de ) 
-			{	
-				fix_desktop_entry( de, default_category, icon_path, fullfilename );
-				append_bidirelem( entry_list, de);
-				de = NULL ;
+					de = NULL ;
+				}
 			}else if( de )
 				parse_desktop_entry_line( de, &(rb[0]) ); 
 		}
@@ -469,12 +478,13 @@ int
 main( int argc, char ** argv ) 
 {
 	
+#if 0	
 	ASCategoryTree *standard_tree = NULL ; 
 	ASCategoryTree *gnome_tree = NULL ; 
 	ASCategoryTree *kde_tree = NULL ; 
 	ASCategoryTree *system_tree = NULL ; 
 	ASCategoryTree *combined_tree = NULL ; 
-
+#endif
 
 //	ASBiDirList *entry_list = create_asbidirlist( desktop_entry_destroy_list_item );
 
@@ -536,6 +546,19 @@ main( int argc, char ** argv )
 	ReloadCategories();
 	ReloadCategories();
 	ReloadCategories();
+
+	fprintf( stderr, "#Standard: ####################################################\n" );
+	print_category_tree2( StandardCategories );
+	fprintf( stderr, "#KDE: ####################################################\n" );
+	print_category_tree2( KDECategories );
+	fprintf( stderr, "#GNOME: ####################################################\n" );
+	print_category_tree2( GNOMECategories );
+	fprintf( stderr, "#SYSTEM: ####################################################\n" );
+	print_category_tree2( SystemCategories );
+	fprintf( stderr, "#Combined: ####################################################\n" );
+	print_category_tree2( CombinedCategories );
+	fprintf( stderr, "#####################################################\n" );
+
 	DestroyCategories();
 #endif
 	FreeMyAppResources();
