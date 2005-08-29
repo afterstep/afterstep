@@ -1107,6 +1107,9 @@ WinListConfig *ParseWinListOptions (const char *filename, char *myname);
 #define DATABASE_ShortLiving_ID            (DATABASE_ID_START+60)
 #define DATABASE_IgnoreConfig_ID           (DATABASE_ID_START+61)
 #define DATABASE_HonorConfig_ID            (DATABASE_ID_START+62)
+#define DATABASE_UseCurrentViewport_ID     (DATABASE_ID_START+63)
+#define DATABASE_UseAnyViewport_ID		   (DATABASE_ID_START+64)
+
 
 #define DATABASE_ID_END             (DATABASE_ID_START+64)
 

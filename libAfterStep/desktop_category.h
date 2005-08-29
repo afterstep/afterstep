@@ -114,8 +114,11 @@ typedef struct ASDesktopCategory
 typedef struct ASCategoryTree
 {
 	ASFlagType flags ;
+/* all entries must belong to category bearing the name of this tree :*/
 #define ASCT_ConstrainCategory			(0x01<<0)	  
-/* all entries must belong to category bearing the name of this tree */
+/* self-explanatory : */
+#define ASCT_ExcludeGNOME				(0x01<<1)	  
+#define ASCT_ExcludeKDE					(0x01<<2)	  
 
 	char *name ;
 	char *icon_path;

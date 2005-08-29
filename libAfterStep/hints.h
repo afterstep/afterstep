@@ -93,10 +93,11 @@ struct ScreenInfo;
 										  * window is 1x1 (just don't ask why)
 										  * usually that means that icon 
 										  * window should be animated */ 
-
+#define AS_UseCurrentViewport  	(1<<29)
 
 #define NOLOOK_HINT_FLAGS	(AS_IgnoreConfigRequest|AS_Module|AS_ShortLived| \
-							 AS_AvoidCover|AS_AcceptsFocus|AS_ClickToFocus)
+							 AS_AvoidCover|AS_AcceptsFocus|AS_ClickToFocus| \
+							 AS_UseCurrentViewport)
 
 
 /***********************************************************/

@@ -131,6 +131,8 @@ TermDef       StyleTerms[] = {
 	{TF_NO_MYNAME_PREPENDING, "ShortLiving", 12, TT_FLAG, DATABASE_ShortLiving_ID, NULL},
 	{TF_NO_MYNAME_PREPENDING, "IgnoreConfig", 13, TT_FLAG, DATABASE_IgnoreConfig_ID, NULL},
 	{TF_NO_MYNAME_PREPENDING, "HonorConfig", 12, TT_FLAG, DATABASE_HonorConfig_ID, NULL},
+	{TF_NO_MYNAME_PREPENDING, "UseCurrentViewport", 18, TT_FLAG, DATABASE_UseCurrentViewport_ID, NULL},
+	{TF_NO_MYNAME_PREPENDING, "UseAnyViewport", 14, TT_FLAG, DATABASE_UseAnyViewport_ID, NULL},
 	
 	{0, NULL, 0, 0, 0}
 };
@@ -171,6 +173,7 @@ flag_options_xref StyleFlags[] = {
 	{STYLE_FOCUS_ON_MAP, 		DATABASE_FocusOnMap_ID, 		DATABASE_NoFocusOnMap_ID},
 	{STYLE_LONG_LIVING,			DATABASE_LongLiving_ID,			DATABASE_ShortLiving_ID},
 	{STYLE_IGNORE_CONFIG, 	    DATABASE_IgnoreConfig_ID, 	    DATABASE_HonorConfig_ID},
+	{STYLE_CURRENT_VIEWPORT,    DATABASE_UseCurrentViewport, 	DATABASE_UseAnyViewport},
 	{STYLE_ICON, 				0 /* special case */ , 			DATABASE_NoIcon_ID},
 	{STYLE_STARTUP_DESK, 		0 /*special case */ , 			DATABASE_StartsAnywhere_ID},
 	{STYLE_FRAME, 				0 /*special case */ , 			DATABASE_NoFrame_ID},
@@ -181,6 +184,8 @@ flag_options_xref StyleDataFlags[] = {
 	{STYLE_ICON, 				0 /* special case */ , 			DATABASE_NoIcon_ID},
 	{STYLE_STARTUP_DESK, 		0 /*special case */ , 			DATABASE_StartsAnywhere_ID},
 	{STYLE_FRAME, 				0 /*special case */ , 			DATABASE_NoFrame_ID},
+	{STYLE_VIEWPORTY,			0 /*special case */ , 			DATABASE_UseAnyViewport},
+	{STYLE_VIEWPORTX,			0 /*special case */ , 			DATABASE_UseAnyViewport},
 	{0, 0, 0}
 };
 
@@ -399,11 +404,16 @@ ParseSingleStyle (FreeStorageElem * storage, name_list * style)
 		return;
 	for (; storage; storage = storage->next)
 	{
+		Bool is_flag = False ; 
 		if (storage->term == NULL)
 			continue;
+		
 		if (ReadFlagItem (&(style->set_flags), &(style->flags), storage, StyleFlags))
-			continue;
+			is_flag = True;
 		if (ReadFlagItem (&(style->set_data_flags), NULL, storage, StyleDataFlags))
+			is_flag = True;
+		
+		if( is_flag )
 			continue;
 		if (!ReadConfigItem (&item, storage))
 			continue;

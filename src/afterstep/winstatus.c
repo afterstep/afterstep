@@ -1360,7 +1360,8 @@ init_aswindow_status( ASWindow *t, ASStatusHints *status )
 		t->status->viewport_x = Scr.Vx ;
 		t->status->viewport_y = Scr.Vy ;
 	}
-	if (!get_flags (t->status->flags, AS_Sticky))
+	if (!get_flags (t->status->flags, AS_Sticky) && 
+		!ASWIN_HFLAGS(t, AS_UseCurrentViewport))
 	{
 		t->status->x -= t->status->viewport_x;
 		t->status->y -= t->status->viewport_y;
@@ -1479,6 +1480,7 @@ init_aswindow_status( ASWindow *t, ASStatusHints *status )
 			LOCAL_DEBUG_OUT( "status->pos = %+d%+d, Scr.Vpos = %+d%+d", t->status->x, t->status->y, Scr.Vx, Scr.Vy );
         }
     }
+		
 
     if( is_output_level_under_threshold(OUTPUT_LEVEL_HINTS) )
         print_status_hints( NULL, NULL, t->status );

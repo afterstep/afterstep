@@ -270,9 +270,10 @@ parse_desktop_entry_list( const char *path, const char *fname, ASBiDirList *entr
 /*			LOCAL_DEBUG_OUT( "rb = \"%s\", de = %p", &(rb[0]), de ); */
 			if( rb[0] == '[' )
 			{
-				if( mystrncasecmp( &(rb[0]), "[Desktop Entry]", 15 ) == 0 ||
-					mystrncasecmp( &(rb[0]), "[KDE Desktop Entry]", 19 ) == 0 ||	
-					mystrncasecmp( &(rb[0]), "[DesktopEntry]", 14 ) == 0 ) 
+				if( ( rb[1] =='D' && (mystrncasecmp( &(rb[2]), "esktop Entry]", 13 ) == 0 ||
+									  mystrncasecmp( &(rb[2]), "esktopEntry]", 12 ) == 0 ) ||
+					( rb[1] == 'K' && mystrncasecmp( &(rb[2]), "DE Desktop Entry]", 17 ) == 0)	
+				  ) 
 				{
 					if( de ) 
 					{
@@ -434,7 +435,7 @@ ReloadCategories()
 
 	KDECategories = create_category_tree( "KDE", KDE_APPS_PATH, KDE_ICONS_PATH, ASCT_ConstrainCategory, -1 );	   
  	GNOMECategories = create_category_tree( "GNOME", GNOME_APPS_PATH, GNOME_ICONS_PATH, ASCT_ConstrainCategory, -1 );	
- 	SystemCategories = create_category_tree( "SYSTEM", SYSTEM_APPS_PATH, SYSTEM_ICONS_PATH, 0, -1 );	
+ 	SystemCategories = create_category_tree( "SYSTEM", SYSTEM_APPS_PATH, SYSTEM_ICONS_PATH, ASCT_ExcludeGNOME|ASCT_ExcludeKDE, -1 );	
 
 	CombinedCategories = create_category_tree( "", NULL, NULL, 0, -1 );	 
 	

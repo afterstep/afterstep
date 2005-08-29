@@ -373,106 +373,131 @@ obtain_category( ASCategoryTree *ct, const char *cname, Bool dont_add_to_default
 Bool register_desktop_entry(ASCategoryTree *ct, ASDesktopEntry *de)
 {
 	int i ; 
-	if( de && de->Name ) 
+	Bool top_level = False ; 
+	char *index_name ;
+	Bool exclude = False;
+
+	if( de == NULL || de->Name == NULL ) 
+		return False;
+
+	if( get_flags( ct->flags, ASCT_ConstrainCategory ) )
 	{	
-		Bool top_level = False ; 
-		char *index_name = de->IndexName?de->IndexName:de->Name ;
-		if( add_hash_item( ct->entries, AS_HASHABLE(index_name), de) == ASH_Success ) 
-			ref_desktop_entry( de );  
-		if( de->Name != index_name ) 
-			if( add_hash_item( ct->entries, AS_HASHABLE(de->Name), de) == ASH_Success ) 
-				ref_desktop_entry( de );  
-		
-		if( de->categories_num == 0 || 
-			mystrcasecmp(de->categories_shortcuts[0], DEFAULT_DESKTOP_CATEGORY_NAME ) == 0 )
+		exclude = True;
+		for( i = 0 ; i < de->categories_num ; ++i ) 
+			if( mystrcasecmp( ct->name, de->categories_shortcuts[i] ) == 0 ) 
+			{
+				exclude = False ;
+				break;
+			}
+	}else if( get_flags( ct->flags, ASCT_ExcludeGNOME|ASCT_ExcludeKDE ) )
+	{
+		for( i = 0 ; !exclude && i < de->categories_num ; ++i ) 
 		{
-			top_level = True ; 
+	 		if( (get_flags( ct->flags, ASCT_ExcludeGNOME ) && mystrcasecmp( "GNOME", de->categories_shortcuts[i] ) == 0 ) ||
+				(get_flags( ct->flags, ASCT_ExcludeKDE ) && mystrcasecmp( "KDE", de->categories_shortcuts[i] ) == 0 ) )
+				exclude = True ;
 		}
-		
-		if( de->type == ASDE_TypeDirectory ) 
-		{
-			ASDesktopCategory *dc = NULL ;
-			void *tmp = NULL;
-			LOCAL_DEBUG_OUT( "desktop entry is a directory \"%s\"", de->Name );
-			print_desktop_entry( de );
-			
-			if( get_hash_item( ct->categories, AS_HASHABLE(de->Name), &tmp ) == ASH_Success )
-				dc = (ASDesktopCategory *)tmp;
-			
-			if( dc == NULL && de->IndexName ) 
-			{	
-				if( get_hash_item( ct->categories, AS_HASHABLE(de->IndexName), &tmp ) == ASH_Success )
-					dc = (ASDesktopCategory *)tmp;
-			}
-			
-			if( dc == NULL && de->Alias ) 
-			{	
-				if( get_hash_item( ct->categories, AS_HASHABLE(de->Alias), &tmp ) == ASH_Success )
-					dc = (ASDesktopCategory *)tmp;
-			}
-			
-			if( dc != NULL ) 
-			{
-				LOCAL_DEBUG_OUT( "category already exists with index_name \"%s\" and name \"%s\"", dc->index_name, dc->name?dc->name:"(null)" );
-				if( !top_level ) 
-					remove_desktop_category_entry( ct->default_category, dc->index_name );
-				index_name = dc->index_name ; 
-			}else	 
-			{	
-		 		dc = create_desktop_category( index_name );
-				LOCAL_DEBUG_OUT( "creating category using index_name \"%s\"", index_name );
-				if( add_hash_item( ct->categories, AS_HASHABLE(dc->index_name), dc) != ASH_Success ) 
-				{	
-					unref_desktop_category( dc );
-					dc = NULL ; 
-				}
-			}
-			if( dc->name == NULL ) 
-			{
-				LOCAL_DEBUG_OUT( "setting category name to \"%s\"", de->Name );
-	  			dc->name = mystrdup( de->Name );
-			}
-
-			if( de->Alias ) 	
-			{
-				char *tmp = mystrdup(de->Alias);	
-				if( add_hash_item( ct->categories, AS_HASHABLE(tmp), dc) != ASH_Success ) 		
-					free( tmp );
-				else
-				{
-					LOCAL_DEBUG_OUT( "adding category alias to \"%s\"", de->Alias );	  
-					ref_desktop_category( dc );  
-				}
-			}	 
-			{
-				char *tmp = mystrdup(de->Name);	
-				if( add_hash_item( ct->categories, AS_HASHABLE(tmp), dc) != ASH_Success ) 		
-					free( tmp );
-				else
-				{
-					LOCAL_DEBUG_OUT( "adding category reference using common name \"%s\"", de->Name );	  	  
-					ref_desktop_category( dc );  
-				}
-			}	 
-		}	 
-
-		if( top_level ) 
-			add_desktop_category_entry( ct->default_category, index_name );
-
-		for( i = top_level?1:0 ; i < de->categories_num ; ++i ) 
-		{
-			ASDesktopCategory *dc = NULL ; 
-			if( de->categories_num == 1 || 
-				mystrcasecmp( ct->name, de->categories_shortcuts[i] ) != 0 ) 
-				dc = obtain_category( ct, de->categories_shortcuts[i], False ); 
-
-			if( dc ) 
-				add_desktop_category_entry( dc, index_name );
-		}	
-		LOCAL_DEBUG_OUT( "belongs to %d categories", i );
-		return True;
 	}
-	return False;
+
+	if( exclude ) 
+   		return False;
+
+	index_name = de->IndexName?de->IndexName:de->Name ;		   
+
+	if( add_hash_item( ct->entries, AS_HASHABLE(index_name), de) == ASH_Success ) 
+		ref_desktop_entry( de );  
+	if( de->Name != index_name ) 
+		if( add_hash_item( ct->entries, AS_HASHABLE(de->Name), de) == ASH_Success ) 
+			ref_desktop_entry( de );  
+		
+	if( de->categories_num == 0 || 
+		mystrcasecmp(de->categories_shortcuts[0], DEFAULT_DESKTOP_CATEGORY_NAME ) == 0 )
+	{
+		top_level = True ; 
+	}
+		
+	if( de->type == ASDE_TypeDirectory ) 
+	{
+		ASDesktopCategory *dc = NULL ;
+		void *tmp = NULL;
+		LOCAL_DEBUG_OUT( "desktop entry is a directory \"%s\"", de->Name );
+		print_desktop_entry( de );
+			
+		if( get_hash_item( ct->categories, AS_HASHABLE(de->Name), &tmp ) == ASH_Success )
+			dc = (ASDesktopCategory *)tmp;
+			
+		if( dc == NULL && de->IndexName ) 
+		{	
+			if( get_hash_item( ct->categories, AS_HASHABLE(de->IndexName), &tmp ) == ASH_Success )
+				dc = (ASDesktopCategory *)tmp;
+		}
+			
+		if( dc == NULL && de->Alias ) 
+		{	
+			if( get_hash_item( ct->categories, AS_HASHABLE(de->Alias), &tmp ) == ASH_Success )
+				dc = (ASDesktopCategory *)tmp;
+		}
+			
+		if( dc != NULL ) 
+		{
+			LOCAL_DEBUG_OUT( "category already exists with index_name \"%s\" and name \"%s\"", dc->index_name, dc->name?dc->name:"(null)" );
+			if( !top_level ) 
+				remove_desktop_category_entry( ct->default_category, dc->index_name );
+			index_name = dc->index_name ; 
+		}else	 
+		{	
+		 	dc = create_desktop_category( index_name );
+			LOCAL_DEBUG_OUT( "creating category using index_name \"%s\"", index_name );
+			if( add_hash_item( ct->categories, AS_HASHABLE(dc->index_name), dc) != ASH_Success ) 
+			{	
+				unref_desktop_category( dc );
+				dc = NULL ; 
+			}
+		}
+		if( dc->name == NULL ) 
+		{
+			LOCAL_DEBUG_OUT( "setting category name to \"%s\"", de->Name );
+	  		dc->name = mystrdup( de->Name );
+		}
+
+		if( de->Alias ) 	
+		{
+			char *tmp = mystrdup(de->Alias);	
+			if( add_hash_item( ct->categories, AS_HASHABLE(tmp), dc) != ASH_Success ) 		
+				free( tmp );
+			else
+			{
+				LOCAL_DEBUG_OUT( "adding category alias to \"%s\"", de->Alias );	  
+				ref_desktop_category( dc );  
+			}
+		}	 
+		{
+			char *tmp = mystrdup(de->Name);	
+			if( add_hash_item( ct->categories, AS_HASHABLE(tmp), dc) != ASH_Success ) 		
+				free( tmp );
+			else
+			{
+				LOCAL_DEBUG_OUT( "adding category reference using common name \"%s\"", de->Name );	  	  
+				ref_desktop_category( dc );  
+			}
+		}	 
+	}	 
+
+	if( top_level ) 
+		add_desktop_category_entry( ct->default_category, index_name );
+
+	for( i = top_level?1:0 ; i < de->categories_num ; ++i ) 
+	{
+		ASDesktopCategory *dc = NULL ; 
+		if( de->categories_num == 1 || 
+			mystrcasecmp( ct->name, de->categories_shortcuts[i] ) != 0 ) 
+			dc = obtain_category( ct, de->categories_shortcuts[i], False ); 
+
+		if( dc ) 
+			add_desktop_category_entry( dc, index_name );
+	}	
+	LOCAL_DEBUG_OUT( "belongs to %d categories", i );
+	return True;
 }	 
 
 ASCategoryTree*
