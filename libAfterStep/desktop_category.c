@@ -576,7 +576,9 @@ add_category_tree_subtree( ASCategoryTree* ct, ASCategoryTree* subtree )
 		{
 			char *alias = (char*)curr_hash_value( &i );
 		 	ASDesktopCategory *subtree_dc = curr_hash_data( &i );
-			ASDesktopCategory *dc = fetch_desktop_category( ct, subtree_dc->name );
+			ASDesktopCategory *dc = fetch_desktop_category( ct, subtree_dc->index_name );
+			LOCAL_DEBUG_OUT( "category with index_name \"%s\" and name \"%s\" exists as %p", subtree_dc->index_name, subtree_dc->name?subtree_dc->name:"(null)", dc );
+
 			if( dc == NULL ) 
 			{	
 		 		dc = create_desktop_category( subtree_dc->index_name );

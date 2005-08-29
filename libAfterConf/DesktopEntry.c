@@ -432,8 +432,8 @@ ReloadCategories()
 		free( configfile );
 	}
 
-	KDECategories = create_category_tree( "KDE", KDE_APPS_PATH, KDE_ICONS_PATH, 0, -1 );	   
- 	GNOMECategories = create_category_tree( "GNOME", GNOME_APPS_PATH, GNOME_ICONS_PATH, 0, -1 );	
+	KDECategories = create_category_tree( "KDE", KDE_APPS_PATH, KDE_ICONS_PATH, ASCT_ConstrainCategory, -1 );	   
+ 	GNOMECategories = create_category_tree( "GNOME", GNOME_APPS_PATH, GNOME_ICONS_PATH, ASCT_ConstrainCategory, -1 );	
  	SystemCategories = create_category_tree( "SYSTEM", SYSTEM_APPS_PATH, SYSTEM_ICONS_PATH, 0, -1 );	
 
 	CombinedCategories = create_category_tree( "", NULL, NULL, 0, -1 );	 
@@ -447,6 +447,8 @@ ReloadCategories()
  	load_category_tree( KDECategories    );
 	load_category_tree( GNOMECategories  );
  	load_category_tree( SystemCategories );
+
+	fprintf( stderr, "@ Building up Combined: @@@@@@@@@@@@@@@@@@@@@@@@@@@@\n" );
 	
  	add_category_tree_subtree( CombinedCategories, StandardCategories );
 	add_category_tree_subtree( CombinedCategories, KDECategories      );
@@ -544,8 +546,8 @@ main( int argc, char ** argv )
 	destroy_category_tree( &combined_tree );
 #else
 	ReloadCategories();
-	ReloadCategories();
-	ReloadCategories();
+//	ReloadCategories();
+//	ReloadCategories();
 
 	fprintf( stderr, "#Standard: ####################################################\n" );
 	print_category_tree2( StandardCategories );
