@@ -27,6 +27,8 @@ typedef struct ASDesktopEntry
 #define ASDE_Terminal			(0x01<<2)	  
 #define ASDE_StartupNotify		(0x01<<3)	  
 #define ASDE_EncodingUTF8		(0x01<<4)	  
+#define ASDE_KDE				(0x01<<5)	  
+#define ASDE_GNOME				(0x01<<6)	  
 	ASFlagType flags ; 
 
 #define ASDE_KEYWORD_NoDisplay_LEN			9	
@@ -119,6 +121,8 @@ typedef struct ASCategoryTree
 /* self-explanatory : */
 #define ASCT_ExcludeGNOME				(0x01<<1)	  
 #define ASCT_ExcludeKDE					(0x01<<2)	  
+#define ASCT_OnlyGNOME					(0x01<<2)	  
+#define ASCT_OnlyKDE					(0x01<<3)	  
 
 	char *name ;
 	char *icon_path;

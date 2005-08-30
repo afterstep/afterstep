@@ -391,15 +391,14 @@ Bool register_desktop_entry(ASCategoryTree *ct, ASDesktopEntry *de)
 				exclude = False ;
 				break;
 			}
-	}else if( get_flags( ct->flags, ASCT_ExcludeGNOME|ASCT_ExcludeKDE ) )
-	{
-		for( i = 0 ; !exclude && i < de->categories_num ; ++i ) 
-		{
-	 		if( (get_flags( ct->flags, ASCT_ExcludeGNOME ) && mystrcasecmp( "GNOME", de->categories_shortcuts[i] ) == 0 ) ||
-				(get_flags( ct->flags, ASCT_ExcludeKDE ) && mystrcasecmp( "KDE", de->categories_shortcuts[i] ) == 0 ) )
-				exclude = True ;
-		}
-	}
+	}else if( get_flags( ct->flags, ASCT_ExcludeGNOME ) && get_flags( de->flags, ASDE_GNOME) )
+		exclude = True ;
+	else if( get_flags( ct->flags, ASCT_ExcludeKDE ) && get_flags( de->flags, ASDE_KDE) )
+		exclude = True ;
+	else if( get_flags( ct->flags, ASCT_OnlyGNOME ) && !get_flags( de->flags, ASDE_GNOME) )
+		exclude = True ;
+	else if( get_flags( ct->flags, ASCT_OnlyKDE ) && !get_flags( de->flags, ASDE_KDE) )
+		exclude = True ;
 
 	if( exclude ) 
    		return False;

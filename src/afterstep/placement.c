@@ -1,4 +1,5 @@
 /*
+ * Copyright (C) 2004-2005 Sasha Vasko
  * Copyright (C) 1996 Frank Fejes
  * Copyright (C) 1995 Bo Yang
  * Copyright (C) 1993 Robert Nation

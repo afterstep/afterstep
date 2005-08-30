@@ -144,7 +144,10 @@ parse_desktop_entry_line( ASDesktopEntry* de, char *ptr )
 			ptr += 10 ;
 			PARSE_ASDE_STRING_VAL(IndexName)
 			PARSE_ASDE_STRING_VAL(Alias)
-		}	 
+		}else if( mystrncasecmp( ptr, "KDE-", 4 ) == 0 ) 
+			set_flags( de->flags, ASDE_KDE );
+		else if( mystrncasecmp( ptr, "GNOME-", 6 ) == 0 ) 
+			set_flags( de->flags, ASDE_GNOME );
 	}else if( mystrncasecmp( ptr, "Name[", 5 ) == 0 ) 
 	{
 		/* TODO */
@@ -187,15 +190,40 @@ parse_desktop_entry_line( ASDesktopEntry* de, char *ptr )
 }
 
 static void
-fix_desktop_entry( ASDesktopEntry *de, const char *default_category, const char *icon_path, const char *origin )
+fix_desktop_entry( ASDesktopEntry *de, const char *default_category, const char *icon_path, const char *origin, Bool applnk )
 {			   
 	if( de->Categories == NULL && default_category )
+	{	
 		de->Categories = mystrdup(default_category);
+	}
+	if( applnk ) 
+		set_flags( de->flags, ASDE_KDE );
 
 	if( de->Categories != NULL ) 
 	{
 		de->categories_len = strlen(de->Categories);
 		de->categories_shortcuts = parse_category_list( de->Categories, &(de->categories_num) ); 
+		if( get_flags( de->flags, ASDE_KDE|ASDE_GNOME ) == 0 )
+		{
+			int i = de->categories_num;
+			while ( --i >= 0 )
+				if( mystrcasecmp( de->categories_shortcuts[i], "KDE" ) == 0 ) 
+				{
+					set_flags( de->flags, ASDE_KDE );
+					break;
+				}else if( mystrcasecmp( de->categories_shortcuts[i], "GNOME" ) == 0 ) 
+				{
+					set_flags( de->flags, ASDE_GNOME );
+					break;
+				}
+		}	 
+	}
+	if( get_flags( de->flags, ASDE_KDE|ASDE_GNOME ) == 0 && de->Name) 
+	{	
+		if( de->Name[0] == 'G' )
+			set_flags( de->flags, ASDE_GNOME );
+		else if( de->Name[0] == 'K' )
+			set_flags( de->flags, ASDE_KDE );
 	}
 	if( de->OnlyShowIn != NULL ) 
 	{
@@ -228,10 +256,9 @@ fix_desktop_entry( ASDesktopEntry *de, const char *default_category, const char 
 }
 
 static ASDesktopEntry*
-parse_desktop_entry( const char *path, const char *fname, const char *default_category, ASDesktopEntryTypes default_type, const char *icon_path)
+parse_desktop_entry( const char *fullfilename, const char *default_category, ASDesktopEntryTypes default_type, const char *icon_path, Bool applnk)
 {
 	ASDesktopEntry* de = NULL ;
-	char *fullfilename = make_file_name( path, fname );
 	FILE *fp = NULL;
 	
 	if( fullfilename  )
@@ -243,19 +270,17 @@ parse_desktop_entry( const char *path, const char *fname, const char *default_ca
 		de = create_desktop_entry(default_type);
 		while( fgets (&(rb[0]), MAXLINELENGTH, fp) != NULL)
 			parse_desktop_entry_line( de, &(rb[0]) ); 
-		fix_desktop_entry( de, default_category, icon_path, fullfilename );
+		fix_desktop_entry( de, default_category, icon_path, fullfilename, applnk );
 	 	fclose(fp);	
 	}	 
-	free( fullfilename );
 	return de;	
 }
 
 int
-parse_desktop_entry_list( const char *path, const char *fname, ASBiDirList *entry_list, const char *default_category, ASDesktopEntryTypes default_type, const char *icon_path)
+parse_desktop_entry_list( const char *fullfilename, ASBiDirList *entry_list, const char *default_category, ASDesktopEntryTypes default_type, const char *icon_path, Bool applnk)
 {
 	ASDesktopEntry* de = NULL ;
 	int count = 0 ; 
-	char *fullfilename = make_file_name( path, fname );
 	FILE *fp = NULL;
 
 	LOCAL_DEBUG_OUT( "PARSING \"%s\"", fullfilename );	
@@ -277,14 +302,14 @@ parse_desktop_entry_list( const char *path, const char *fname, ASBiDirList *entr
 				{
 					if( de ) 
 					{
-						fix_desktop_entry( de, default_category, icon_path, fullfilename );
+						fix_desktop_entry( de, default_category, icon_path, fullfilename, applnk );
 						append_bidirelem( entry_list, de);
 					}	 
 					de = create_desktop_entry(default_type);
 					++count ;
 				}else if( de ) 
 				{	
-					fix_desktop_entry( de, default_category, icon_path, fullfilename );
+					fix_desktop_entry( de, default_category, icon_path, fullfilename, applnk );
 					append_bidirelem( entry_list, de);
 					de = NULL ;
 				}
@@ -293,21 +318,19 @@ parse_desktop_entry_list( const char *path, const char *fname, ASBiDirList *entr
 		}
 		if( de ) 
 		{
-			fix_desktop_entry( de, default_category, icon_path, fullfilename );
+			fix_desktop_entry( de, default_category, icon_path, fullfilename, applnk );
 			append_bidirelem( entry_list, de);
 		}	 
 	 	fclose(fp);	
 	}	 
-	free( fullfilename );
 	return count;	
 }
 
 
 
 static void 
-parse_desktop_entry_tree(const char *path, const char *dirname, ASBiDirList *entry_list, ASDesktopEntry *parent, const char *icon_path, const char *default_app_category )
+parse_desktop_entry_tree( char *fullpath, const char *dirname, ASBiDirList *entry_list, ASDesktopEntry *parent, const char *icon_path, const char *default_app_category, Bool applnk )
 {
-	char *fullpath = make_file_name( path, dirname );
 	struct direntry  **list = NULL;
 	int list_len, i, curr_dir_index = -1 ;
 	char *dir_category = NULL ; 
@@ -322,11 +345,11 @@ parse_desktop_entry_tree(const char *path, const char *dirname, ASBiDirList *ent
 		 	if( strcasecmp(list[i]->d_name, ".directory") == 0 )
 			{
 				curr_dir_index = i ;
-				tmp = parse_desktop_entry( fullpath, list[i]->d_name, parent?parent->Name:NULL, ASDE_TypeDirectory, icon_path );		
+				tmp = parse_desktop_entry( fullpath, parent?parent->Name:NULL, ASDE_TypeDirectory, icon_path, applnk );		
 				if( tmp ) 
 				{
 					if( tmp->Name == NULL ) 
-						tmp->Name = mystrdup( list[i]->d_name );
+						tmp->Name = mystrdup( dirname );
 					if( mystrcasecmp(tmp->Name, DEFAULT_DESKTOP_CATEGORY_NAME) != 0 ) 
 						dir_category = mystrdup( tmp->Name );	
 					curr_dir = tmp ;
@@ -338,24 +361,30 @@ parse_desktop_entry_tree(const char *path, const char *dirname, ASBiDirList *ent
 	}
 	if( curr_dir == NULL ) 
 	{
-		curr_dir = parse_desktop_entry( path, dirname, parent?parent->Name:NULL, ASDE_TypeDirectory, icon_path );		   
+		curr_dir = parse_desktop_entry( fullpath, parent?parent->Name:NULL, ASDE_TypeDirectory, icon_path, applnk );		   
 		if( curr_dir ) 
 		{	
-			curr_dir->Name = mystrdup(dirname);
-			append_bidirelem( entry_list, curr_dir);
+			if( curr_dir->Name == NULL ) 
+			{	
+				curr_dir->Name = mystrdup(dirname);
+				append_bidirelem( entry_list, curr_dir);
+			}
 		}
 	}	 
 	for (i = 0; i < list_len; i++)
 	{	
 		if( list[i]->d_name[0] != '.' )
 		{	
+			char *entry_fullpath = make_file_name( fullpath, list[i]->d_name );
+
 			if (S_ISDIR (list[i]->d_mode) )
 			{
-				parse_desktop_entry_tree( fullpath, list[i]->d_name, entry_list, curr_dir, icon_path, default_app_category );
+				parse_desktop_entry_tree( entry_fullpath, list[i]->d_name, entry_list, curr_dir, icon_path, default_app_category, applnk );
 			}else if( i != curr_dir_index ) 
 			{	
-				parse_desktop_entry_list( fullpath, list[i]->d_name, entry_list, dir_category?dir_category:default_app_category, ASDE_TypeApplication, icon_path);
+				parse_desktop_entry_list( entry_fullpath, entry_list, dir_category?dir_category:default_app_category, ASDE_TypeApplication, icon_path, applnk);
 			}
+			free( entry_fullpath );
 		}
 		free(list[i]);
 	}
@@ -365,8 +394,6 @@ parse_desktop_entry_tree(const char *path, const char *dirname, ASBiDirList *ent
 
 	if( dir_category ) 
 		free( dir_category );
-
-	free( fullpath );
 }
 
 static void
@@ -394,10 +421,13 @@ load_category_tree( ASCategoryTree*	ct )
 		ASBiDirList *entry_list = create_asbidirlist( desktop_entry_destroy_list_item );
 		for( i = 0 ; i < ct->dir_num ; ++i ) 
 		{	
+			Bool applnk = (strstr(ct->dir_list[i], "/applnk")!= NULL) ; 
 			if ( CheckDir (ct->dir_list[i]) == 0 )
-				parse_desktop_entry_tree(ct->dir_list[i], NULL, entry_list, NULL, ct->icon_path, ct->name );	
-			else if ( CheckFile (ct->dir_list[i]) == 0 )
-				parse_desktop_entry_list( ct->dir_list[i], NULL, entry_list, ct->name, ASDE_TypeDirectory, ct->icon_path);
+			{
+				/*fprintf( stderr, "location : \"%s\", applnk == %d", ct->dir_list[i], applnk ); */
+	  			parse_desktop_entry_tree(ct->dir_list[i], NULL, entry_list, NULL, ct->icon_path, ct->name, applnk );	
+			}else if ( CheckFile (ct->dir_list[i]) == 0 )
+				parse_desktop_entry_list( ct->dir_list[i], entry_list, ct->name, ASDE_TypeDirectory, ct->icon_path, applnk);
 		}
 		iterate_asbidirlist( entry_list, register_desktop_entry_list_item, ct, NULL, False);
 		destroy_asbidirlist( &entry_list );
@@ -433,8 +463,8 @@ ReloadCategories()
 		free( configfile );
 	}
 
-	KDECategories = create_category_tree( "KDE", KDE_APPS_PATH, KDE_ICONS_PATH, ASCT_ConstrainCategory, -1 );	   
- 	GNOMECategories = create_category_tree( "GNOME", GNOME_APPS_PATH, GNOME_ICONS_PATH, ASCT_ConstrainCategory, -1 );	
+	KDECategories = create_category_tree( "KDE", KDE_APPS_PATH, KDE_ICONS_PATH, ASCT_OnlyKDE, -1 );	   
+ 	GNOMECategories = create_category_tree( "GNOME", GNOME_APPS_PATH, GNOME_ICONS_PATH, ASCT_OnlyGNOME, -1 );	
  	SystemCategories = create_category_tree( "SYSTEM", SYSTEM_APPS_PATH, SYSTEM_ICONS_PATH, ASCT_ExcludeGNOME|ASCT_ExcludeKDE, -1 );	
 
 	CombinedCategories = create_category_tree( "", NULL, NULL, 0, -1 );	 
