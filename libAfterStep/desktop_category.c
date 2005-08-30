@@ -377,6 +377,8 @@ Bool register_desktop_entry(ASCategoryTree *ct, ASDesktopEntry *de)
 	char *index_name ;
 	Bool exclude = False;
 
+ /*	print_desktop_entry( de ); */
+
 	if( de == NULL || de->Name == NULL ) 
 		return False;
 

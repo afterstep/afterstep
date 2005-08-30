@@ -12,6 +12,28 @@
 		../libAfterImage/xpm.h \
 		../libAfterImage/char2uni.h
 
+./ascommand.o : \
+		../configure.h \
+		asapp.h \
+		../libAfterImage/afterimage.h \
+		afterstep.h \
+		screen.h \
+		module.h \
+		mystyle.h \
+		mystyle_property.h \
+		parser.h \
+		clientprops.h \
+		wmprops.h \
+		decor.h \
+		aswindata.h \
+		balloon.h \
+		event.h \
+		shape.h \
+		../libAfterBase/aslist.h \
+		../libAfterBase/ashash.h \
+		ascommand.h \
+		operations.h
+
 ./asdatabase.o : \
 		../configure.h \
 		asapp.h \
@@ -82,6 +104,12 @@
 		balloon.h \
 		shape.h
 
+./desktop_category.o : \
+		../configure.h \
+		asapp.h \
+		afterstep.h \
+		desktop_category.h
+
 ./event.o : \
 		../configure.h \
 		asapp.h \
@@ -97,7 +125,8 @@
 		parser.h \
 		screen.h \
 		freestor.h \
-		functions.h
+		functions.h \
+		../libAfterImage/asimagexml.h
 
 ./functions.o : \
 		../configure.h \
@@ -194,6 +223,28 @@
 		screen.h \
 		decor.h \
 		moveresize.h
+
+./operations.o : \
+		operations.h \
+		../configure.h \
+		asapp.h \
+		../libAfterImage/afterimage.h \
+		afterstep.h \
+		screen.h \
+		module.h \
+		mystyle.h \
+		mystyle_property.h \
+		parser.h \
+		clientprops.h \
+		wmprops.h \
+		decor.h \
+		aswindata.h \
+		balloon.h \
+		event.h \
+		shape.h \
+		../libAfterBase/aslist.h \
+		../libAfterBase/ashash.h \
+		ascommand.h
 
 ./parser.o : \
 		../configure.h \

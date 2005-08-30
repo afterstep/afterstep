@@ -2,14 +2,6 @@
 
 ./fltk/ascpui.h:
 
-./gtk/ASWallpaper/asthumbbox.h:
-
-./gtk/ASWallpaper/callbacks.h:
-
-./gtk/ASWallpaper/interface.h:
-
-./gtk/ASWallpaper/support.h:
-
 ./ascolor.o: \
 		../../configure.h \
 		../../libAfterStep/asapp.h \
@@ -32,37 +24,3 @@
 		../../libAfterStep/event.h \
 		../../libAfterStep/wmprops.h \
 		../../libAfterStep/session.h
-
-./gtk/ASWallpaper/asthumbbox.o: \
-		../../../../configure.h \
-		../../../../libAfterImage/afterimage.h \
-		../../../../libAfterStep/asapp.h \
-		../../../../libAfterStep/screen.h \
-		asthumbbox.h
-
-./gtk/ASWallpaper/callbacks.o: \
-		callbacks.h \
-		support.h
-
-./gtk/ASWallpaper/interface.o: \
-		../../../../configure.h \
-		../../../../libAfterStep/asapp.h \
-		../../../../libAfterImage/afterimage.h \
-		../../../../libAfterStep/screen.h \
-		../../../../libAfterStep/colorscheme.h \
-		../../../../libASGTK/asgtk.h \
-		callbacks.h \
-		interface.h \
-		support.h
-
-./gtk/ASWallpaper/main.o: \
-		../../../../configure.h \
-		../../../../libAfterStep/asapp.h \
-		../../../../libAfterStep/module.h \
-		../../../../libAfterConf/afterconf.h \
-		../../../../libASGTK/asgtk.h \
-		interface.h \
-		support.h
-
-./gtk/ASWallpaper/support.o: \
-		support.h

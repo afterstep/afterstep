@@ -271,7 +271,7 @@ parse_desktop_entry_list( const char *path, const char *fname, ASBiDirList *entr
 			if( rb[0] == '[' )
 			{
 				if( ( rb[1] =='D' && (mystrncasecmp( &(rb[2]), "esktop Entry]", 13 ) == 0 ||
-									  mystrncasecmp( &(rb[2]), "esktopEntry]", 12 ) == 0 ) ||
+									  mystrncasecmp( &(rb[2]), "esktopEntry]", 12 ) == 0 )) ||
 					( rb[1] == 'K' && mystrncasecmp( &(rb[2]), "DE Desktop Entry]", 17 ) == 0)	
 				  ) 
 				{

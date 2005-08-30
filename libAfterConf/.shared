@@ -9,6 +9,7 @@ LIBAFTERCONF_OBJS = \
 		$(LIBAFTERCONF_PATH)/Clean.c \
 		$(LIBAFTERCONF_PATH)/Color.c \
 		$(LIBAFTERCONF_PATH)/Database.c \
+		$(LIBAFTERCONF_PATH)/DesktopEntry.c \
 		$(LIBAFTERCONF_PATH)/Feel.c \
 		$(LIBAFTERCONF_PATH)/function.c \
 		$(LIBAFTERCONF_PATH)/Ident.c \

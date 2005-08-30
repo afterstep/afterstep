@@ -93,6 +93,14 @@
 		../libAfterStep/hints.h \
 		afterconf.h
 
+./DesktopEntry.o : \
+		../configure.h \
+		../libAfterStep/asapp.h \
+		../libAfterStep/afterstep.h \
+		../libAfterStep/session.h \
+		../libAfterStep/desktop_category.h \
+		afterconf.h
+
 ./Feel.o : \
 		../configure.h \
 		../libAfterStep/asapp.h \

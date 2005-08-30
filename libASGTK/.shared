@@ -1,8 +1,20 @@
 LIBASGTK_OBJS = \
 		$(LIBASGTK_PATH)/asgtkapp.c \
-		$(LIBASGTK_PATH)/asgtkimageview.c
+		$(LIBASGTK_PATH)/asgtkai.c \
+		$(LIBASGTK_PATH)/asgtkcolorsel.c \
+		$(LIBASGTK_PATH)/asgtkgradient.c \
+		$(LIBASGTK_PATH)/asgtkimagebrowser.c \
+		$(LIBASGTK_PATH)/asgtkimagedir.c \
+		$(LIBASGTK_PATH)/asgtkimageview.c \
+		$(LIBASGTK_PATH)/asgtkxmleditor.c
 
 LIBASGTK_INCS = \
 		$(LIBASGTK_PATH)/asgtk.h \
 		$(LIBASGTK_PATH)/asgtkapp.h \
-		$(LIBASGTK_PATH)/asgtkimageview.h
+		$(LIBASGTK_PATH)/asgtkai.h \
+		$(LIBASGTK_PATH)/asgtkcolorsel.h \
+		$(LIBASGTK_PATH)/asgtkgradient.h \
+		$(LIBASGTK_PATH)/asgtkimagebrowser.h \
+		$(LIBASGTK_PATH)/asgtkimagedir.h \
+		$(LIBASGTK_PATH)/asgtkimageview.h \
+		$(LIBASGTK_PATH)/asgtkxmleditor.h

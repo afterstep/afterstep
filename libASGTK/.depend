@@ -6,6 +6,61 @@
 		../libAfterStep/module.h \
 		../libAfterConf/afterconf.h
 
+./asgtkai.o : \
+		../configure.h \
+		../include/afterbase.h \
+		../libAfterImage/afterimage.h \
+		../libAfterStep/asapp.h \
+		../libAfterStep/screen.h \
+		asgtk.h \
+		asgtkai.h
+
+./asgtkcolorsel.o : \
+		../configure.h \
+		../include/afterbase.h \
+		../libAfterImage/afterimage.h \
+		../libAfterStep/asapp.h \
+		../libAfterStep/screen.h \
+		../libAfterStep/colorscheme.h \
+		asgtk.h \
+		asgtkai.h \
+		asgtkcolorsel.h
+
+./asgtkgradient.o : \
+		../configure.h \
+		../include/afterbase.h \
+		../libAfterImage/afterimage.h \
+		../libAfterStep/asapp.h \
+		../libAfterStep/screen.h \
+		../libAfterStep/colorscheme.h \
+		asgtk.h \
+		asgtkai.h \
+		asgtkcolorsel.h \
+		asgtkgradient.h
+
+./asgtkimagebrowser.o : \
+		../configure.h \
+		../include/afterbase.h \
+		../libAfterImage/afterimage.h \
+		../libAfterStep/asapp.h \
+		../libAfterStep/screen.h \
+		asgtk.h \
+		asgtkai.h \
+		asgtkimagedir.h \
+		asgtkimageview.h \
+		asgtkimagebrowser.h
+
+./asgtkimagedir.o : \
+		../configure.h \
+		../include/afterbase.h \
+		../libAfterImage/afterimage.h \
+		../libAfterStep/asapp.h \
+		../libAfterStep/screen.h \
+		asgtk.h \
+		asgtkai.h \
+		asgtkimagedir.h \
+		asgtkimageview.h
+
 ./asgtkimageview.o : \
 		../configure.h \
 		../include/afterbase.h \
@@ -13,4 +68,15 @@
 		../libAfterStep/asapp.h \
 		../libAfterStep/screen.h \
 		asgtk.h \
+		asgtkai.h \
 		asgtkimageview.h
+
+./asgtkxmleditor.o : \
+		../configure.h \
+		../include/afterbase.h \
+		../libAfterImage/afterimage.h \
+		../libAfterStep/asapp.h \
+		../libAfterStep/screen.h \
+		asgtk.h \
+		asgtkai.h \
+		asgtkxmleditor.h

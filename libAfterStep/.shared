@@ -1,5 +1,6 @@
 LIBAFTERSTEP_OBJS = \
 		$(LIBAFTERSTEP_PATH)/asapp.c \
+		$(LIBAFTERSTEP_PATH)/ascommand.c \
 		$(LIBAFTERSTEP_PATH)/asdatabase.c \
 		$(LIBAFTERSTEP_PATH)/asfeel.c \
 		$(LIBAFTERSTEP_PATH)/aswindata.c \
@@ -8,6 +9,7 @@ LIBAFTERSTEP_OBJS = \
 		$(LIBAFTERSTEP_PATH)/clientprops.c \
 		$(LIBAFTERSTEP_PATH)/colorscheme.c \
 		$(LIBAFTERSTEP_PATH)/decor.c \
+		$(LIBAFTERSTEP_PATH)/desktop_category.c \
 		$(LIBAFTERSTEP_PATH)/event.c \
 		$(LIBAFTERSTEP_PATH)/freestor.c \
 		$(LIBAFTERSTEP_PATH)/functions.c \
@@ -20,6 +22,7 @@ LIBAFTERSTEP_OBJS = \
 		$(LIBAFTERSTEP_PATH)/mystyle.c \
 		$(LIBAFTERSTEP_PATH)/mystyle_property.c \
 		$(LIBAFTERSTEP_PATH)/outline.c \
+		$(LIBAFTERSTEP_PATH)/operations.c \
 		$(LIBAFTERSTEP_PATH)/parser.c \
 		$(LIBAFTERSTEP_PATH)/screen.c \
 		$(LIBAFTERSTEP_PATH)/session.c \
@@ -29,6 +32,7 @@ LIBAFTERSTEP_OBJS = \
 LIBAFTERSTEP_INCS = \
 		$(LIBAFTERSTEP_PATH)/afterstep.h \
 		$(LIBAFTERSTEP_PATH)/asapp.h \
+		$(LIBAFTERSTEP_PATH)/ascommand.h \
 		$(LIBAFTERSTEP_PATH)/asdatabase.h \
 		$(LIBAFTERSTEP_PATH)/asfeel.h \
 		$(LIBAFTERSTEP_PATH)/aswindata.h \
@@ -37,6 +41,7 @@ LIBAFTERSTEP_INCS = \
 		$(LIBAFTERSTEP_PATH)/clientprops.h \
 		$(LIBAFTERSTEP_PATH)/colorscheme.h \
 		$(LIBAFTERSTEP_PATH)/decor.h \
+		$(LIBAFTERSTEP_PATH)/desktop_category.h \
 		$(LIBAFTERSTEP_PATH)/event.h \
 		$(LIBAFTERSTEP_PATH)/freestor.h \
 		$(LIBAFTERSTEP_PATH)/functions.h \

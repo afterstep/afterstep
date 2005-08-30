@@ -51,6 +51,7 @@
 		../../libAfterStep/session.h \
 		../../libAfterStep/mystyle_property.h \
 		../../libAfterStep/wmprops.h \
+		../../libAfterStep/desktop_category.h \
 		../../libAfterConf/afterconf.h
 
 ./cover.o: \
@@ -65,6 +66,7 @@
 ./dirtree.o: \
 		../../configure.h \
 		../../libAfterStep/asapp.h \
+		../../libAfterStep/desktop_category.h \
 		dirtree.h
 
 ./events.o: \
@@ -91,6 +93,7 @@
 ./menuitem.o: \
 		../../configure.h \
 		asinternals.h \
+		../../libAfterStep/desktop_category.h \
 		dirtree.h
 
 ./menus.o: \
