@@ -1261,11 +1261,15 @@ Bool place_aswindow( ASWindow *asw )
 
 		    if( ASWIN_GET_FLAGS(asw, AS_MaximizedX|AS_MaximizedY ) )
 			{
-	            if( aswbox_sorted[i]->area.x > asw->status->x+(int)(asw->status->width) || 
-					aswbox_sorted[i]->area.y > asw->status->y+(int)(asw->status->height)||
-					aswbox_sorted[i]->area.x+(int)aswbox[i].area.width < asw->status->x ||
-					aswbox_sorted[i]->area.y+(int)aswbox[i].area.height < asw->status->y )
-    	            continue;
+			  int win_x = get_flags(aswbox_sorted[i]->flags, ASA_Virtual) ? asw->status->viewport_x: asw->status->x;
+			  int win_y = get_flags(aswbox_sorted[i]->flags, ASA_Virtual) ? asw->status->viewport_y: asw->status->y;
+			  
+			  
+			  if( aswbox_sorted[i]->area.x > win_x +(int)(asw->status->width) || 
+					aswbox_sorted[i]->area.y > win_y +(int)(asw->status->height)||
+					aswbox_sorted[i]->area.x+(int)aswbox[i].area.width < win_x ||
+					aswbox_sorted[i]->area.y+(int)aswbox[i].area.height < win_y )
+					continue;
 			}	 
 
 		    if( ASWIN_GET_FLAGS(asw, AS_MaximizedX|AS_MaximizedY ) )
