@@ -12,6 +12,8 @@ LIB_OBJS        = AfterStep.o AlignBevel.o Animate.o ASetRoot.o Audio.o \
 		Feel.o function.o Ident.o Look.o MyFrame.o MyStyle.o \
 		Pager.o Wharf.o WinList.o WinTabs.o
 
+LIB_APPS	= PrintDesktopEntries
+
 LIB_DIR_NAME    = libAfterConf
 LIB_NAME        = LIBAFTERCONF
 LIB_STATIC      = libAfterConf.a
@@ -38,6 +40,11 @@ make_standard_categories.o:	DesktopEntry.c
 make_standard_categories:	make_standard_categories.o
 		$(CC) make_standard_categories.o $(USER_LD_FLAGS) $(LIBS_ALL) $(LIBS_AFTERIMAGE) -o make_standard_categories
 
+PrintDesktopEntries.o:	DesktopEntry.c
+		$(CC) $(CCFLAGS) $(EXTRA_DEFINES) -DPRINT_DESKTOP_ENTRIES $(INCLUDES) $(EXTRA_INCLUDES) -c DesktopEntry.c -o PrintDesktopEntries.o
+
+PrintDesktopEntries:	PrintDesktopEntries.o
+		$(CC) PrintDesktopEntries.o $(USER_LD_FLAGS) $(LIBS_ALL) $(LIBS_AFTERIMAGE) -o PrintDesktopEntries
 
 install.inc:
 

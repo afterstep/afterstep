@@ -7,9 +7,13 @@
 # We want to build both static and dynamic libs, as some service apps may need
 # static library as they gets run at compile time (ASDocGen for example)
 # but we only install whats selected
-all:            $(LIB_STATIC) @LIBPROG@ $(INSTALLONBUILD)
+all:            $(LIB_STATIC) @LIBPROG@ $(INSTALLONBUILD) $(LIB_APPS)
 
-install.bin:
+install.bin:	$(LIB_APPS)
+		@for p in $(LIB_APPS); do \
+		  echo $(INSTALL_PROGRAM) $$p $(AFTER_BIN_DIR); \
+		  $(INSTALL_PROGRAM) $$p $(AFTER_BIN_DIR); \
+		done
 
 install.lib:	@LIBPROG@ @LIBINSTALL@ install.inc
 
@@ -116,10 +120,10 @@ uninstall.man:
 uninstall.script:
 
 clean:
-		$(RMF) $(LIB_SHARED) $(LIB_SHARED_CYG) $(LIB_SHARED_CYG_AR) $(LIB_STATIC) *.so.* *.so *.o *~ *% *.bak \#* core
+		$(RMF) $(LIB_SHARED) $(LIB_SHARED_CYG) $(LIB_SHARED_CYG_AR) $(LIB_STATIC) $(LIB_APPS) *.so.* *.so *.o *~ *% *.bak \#* core
 
 distclean:
-		$(RMF) $(LIB_SHARED) $(LIB_SHARED_CYG) $(LIB_SHARED_CYG_AR) $(LIB_STATIC)  *.o *.so.* *~ *% *.bak \#* *.orig core Makefile
+		$(RMF) $(LIB_SHARED) $(LIB_SHARED_CYG) $(LIB_SHARED_CYG_AR) $(LIB_STATIC) $(LIB_APPS) *.o *.so.* *~ *% *.bak \#* *.orig core Makefile
 
 indent:
 		@SRCS=`echo "$(LIB_OBJS) " | sed "s/.o /.c /g"`; \
@@ -201,7 +205,7 @@ $(LIB_SHARED).$(LIBVER): $(LIB_OBJS) $(LIB_INCS)
 	$(CC) -shared -Wl,-soname,$(LIB_SHARED).$(LIBVERMAJOR) -o $(LIB_SHARED).$(LIBVER) \
 	 $(LIB_OBJS)
 
-install:	install.lib
+install:	install.lib install.bin
 
 
 uninstall:	uninstall.lib

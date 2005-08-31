@@ -500,10 +500,36 @@ ReloadCategories()
 	   
 }	 
 
-#ifdef TEST_AS_DESKTOP_ENTRY
+#ifdef PRINT_DESKTOP_ENTRIES
+int 
+main( int argc, char ** argv ) 
+{
+	InitMyApp ("PrintDesktopEntries", argc, argv, NULL, NULL, 0 );
+	InitSession();
+	ReloadCategories();
 
-#define REDHAT_APPLNK	"/etc/X11/applnk"
-#define DEBIAN_APPLNK	"/usr/share/applications"
+	fprintf( stderr, "#Standard: ####################################################\n" );
+	print_category_tree2( StandardCategories );
+	fprintf( stderr, "#KDE:      ####################################################\n" );
+	print_category_tree2( KDECategories );
+	fprintf( stderr, "#GNOME:    ####################################################\n" );
+	print_category_tree2( GNOMECategories );
+	fprintf( stderr, "#SYSTEM:   ####################################################\n" );
+	print_category_tree2( SystemCategories );
+	fprintf( stderr, "#Combined: ####################################################\n" );
+	print_category_tree2( CombinedCategories );
+	fprintf( stderr, "#####################################################\n" );
+
+	DestroyCategories();
+	FreeMyAppResources();
+	return 1;
+}
+
+#else
+# ifdef TEST_AS_DESKTOP_ENTRY
+
+# define REDHAT_APPLNK	"/etc/X11/applnk"
+# define DEBIAN_APPLNK	"/usr/share/applications"
 
 /* 
  * From e-mail : 
@@ -523,71 +549,11 @@ int
 main( int argc, char ** argv ) 
 {
 	
-#if 0	
-	ASCategoryTree *standard_tree = NULL ; 
-	ASCategoryTree *gnome_tree = NULL ; 
-	ASCategoryTree *kde_tree = NULL ; 
-	ASCategoryTree *system_tree = NULL ; 
-	ASCategoryTree *combined_tree = NULL ; 
-#endif
 
 //	ASBiDirList *entry_list = create_asbidirlist( desktop_entry_destroy_list_item );
 
 	InitMyApp ("TestASDesktopEntry", argc, argv, NULL, NULL, 0 );
 	InitSession();
-#if 0	
-	standard_tree = create_category_tree( "Default", "../afterstep/" STANDARD_CATEGORIES_FILE, NULL, 0, -1 );	 
-	gnome_tree = create_category_tree( "GNOME", GNOME_APPS_PATH, GNOME_ICONS_PATH, 0, -1 );	
-	kde_tree = create_category_tree( "KDE", KDE_APPS_PATH, KDE_ICONS_PATH, 0, -1 );	
-	system_tree = create_category_tree( "SYSTEM", SYSTEM_APPS_PATH, SYSTEM_ICONS_PATH, 0, -1 );	
-
-	combined_tree = create_category_tree( "", NULL, NULL, 0, -1 );	 
-	
-	fprintf( stderr, "#Loading - STANDARD: $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n" );	
-	load_category_tree( standard_tree );		   			   
-
-	add_category_tree_subtree( gnome_tree, standard_tree );
-	fprintf( stderr, "#Loading - GNOME: $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n" );
-	load_category_tree( gnome_tree );		   
-	add_category_tree_subtree( kde_tree, standard_tree );
-	fprintf( stderr, "#Loading - KDE: $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n" );
-	load_category_tree( kde_tree );
-	add_category_tree_subtree( system_tree, standard_tree );
-	fprintf( stderr, "#Loading - System: $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n" );
-	load_category_tree( system_tree );
-	fprintf( stderr, "#Mixing - standart: $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n" );
-	add_category_tree_subtree( combined_tree, standard_tree );
-	fprintf( stderr, "#Mixing - Gnome: $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n" );
-	add_category_tree_subtree( combined_tree, gnome_tree );
-	fprintf( stderr, "#Mixing - Kde: $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n" );
-	add_category_tree_subtree( combined_tree, kde_tree );
-	fprintf( stderr, "#Mixing - System: $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n" );
-	add_category_tree_subtree( combined_tree, system_tree );
-	fprintf( stderr, "#Mixing - Done: $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n" );
-
-	   
-	fprintf( stderr, "#Standard: ####################################################\n" );
-	print_category_tree2( standard_tree );
-	fprintf( stderr, "#KDE: ####################################################\n" );
-	print_category_tree( kde_tree );
-	print_category_tree2( kde_tree );
-	fprintf( stderr, "#GNOME: ####################################################\n" );
-	print_category_tree( gnome_tree );
-	print_category_tree2( gnome_tree );
-	fprintf( stderr, "#SYSTEM: ####################################################\n" );
-	print_category_tree( system_tree );
-	print_category_tree2( system_tree );
-	fprintf( stderr, "#Combined: ####################################################\n" );
-	print_category_tree( combined_tree );
-	print_category_tree2( combined_tree );
-	fprintf( stderr, "#####################################################\n" );
-
-	destroy_category_tree( &standard_tree );
-	destroy_category_tree( &gnome_tree );
-	destroy_category_tree( &kde_tree );
-	destroy_category_tree( &system_tree );
-	destroy_category_tree( &combined_tree );
-#else
 	ReloadCategories();
 //	ReloadCategories();
 //	ReloadCategories();
@@ -605,15 +571,14 @@ main( int argc, char ** argv )
 	fprintf( stderr, "#####################################################\n" );
 
 	DestroyCategories();
-#endif
 	FreeMyAppResources();
-#ifdef DEBUG_ALLOCS
+#   ifdef DEBUG_ALLOCS
 	print_unfreed_mem ();
-#endif /* DEBUG_ALLOCS */
+#   endif /* DEBUG_ALLOCS */
 	return 1;
 }
-#else
-#ifdef MAKE_STANDARD_CATEGORIES
+# else
+#  ifdef MAKE_STANDARD_CATEGORIES
 /* helper app to generate set of .desktop files for the list */
 int 
 main( int argc, char ** argv ) 
@@ -684,7 +649,8 @@ main( int argc, char ** argv )
 	
 	return 1;
 }
-#endif
+#  endif
+# endif
 #endif
 
 
