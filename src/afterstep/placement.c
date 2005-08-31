@@ -769,8 +769,7 @@ do_maximized_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry *area)
           /* select this rectangle because it's bigger */  
 	  selected = i ;
         }
-    
-    /***** I think the next block is redundant - fabs ***/
+        
 
         /* if a rect has NOT been selected*/
         if( selected  < 0 ) 
@@ -787,7 +786,6 @@ do_maximized_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry *area)
         }
 	}
 
-     /***************************************************/
 		 
     if( selected >= 0 )
     {
@@ -796,6 +794,8 @@ do_maximized_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry *area)
 	    int max_height = rects[selected].height ;
 
 #ifdef HAVE_XINERAMA
+	    /* the following block makes sure windows
+	      are not maximized over multiply heads.*/
 	
 	    int i;
 	    XRectangle *s = Scr.xinerama_screens;
