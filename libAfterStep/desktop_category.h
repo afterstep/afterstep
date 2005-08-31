@@ -78,8 +78,8 @@ typedef struct ASDesktopEntry
 	/* AfterStep extentions : */
 	char *IndexName ;
 #define ASDE_KEYWORD_IndexName_LEN	    9
-	char *Alias ;
-#define ASDE_KEYWORD_Alias_LEN			5
+	char *Aliases ;
+#define ASDE_KEYWORD_Aliases_LEN		7
 
 	/* calculated stuff : */
 	int categories_len ; 
@@ -99,6 +99,9 @@ typedef struct ASDesktopEntry
 
 	char *origin ;
 
+	int aliases_len ; 
+	char **aliases_shortcuts ; 
+	int aliases_num ; 
 
 }ASDesktopEntry;
 

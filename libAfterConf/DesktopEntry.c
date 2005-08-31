@@ -143,7 +143,7 @@ parse_desktop_entry_line( ASDesktopEntry* de, char *ptr )
 		{
 			ptr += 10 ;
 			PARSE_ASDE_STRING_VAL(IndexName)
-			PARSE_ASDE_STRING_VAL(Alias)
+			PARSE_ASDE_STRING_VAL(Aliases)
 		}else if( mystrncasecmp( ptr, "KDE-", 4 ) == 0 ) 
 			set_flags( de->flags, ASDE_KDE );
 		else if( mystrncasecmp( ptr, "GNOME-", 6 ) == 0 ) 
@@ -206,16 +206,22 @@ fix_desktop_entry( ASDesktopEntry *de, const char *default_category, const char 
 		if( get_flags( de->flags, ASDE_KDE|ASDE_GNOME ) == 0 )
 		{
 			int i = de->categories_num;
-			while ( --i >= 0 )
-				if( mystrcasecmp( de->categories_shortcuts[i], "KDE" ) == 0 ) 
+			ASFlagType kind = 0 ; 
+			while ( --i >= 0 && kind == 0 )
+			{
+				char *ptr = de->categories_shortcuts[i] ;
+				if( ptr[0] == 'X' ) 
 				{
-					set_flags( de->flags, ASDE_KDE );
-					break;
-				}else if( mystrcasecmp( de->categories_shortcuts[i], "GNOME" ) == 0 ) 
-				{
-					set_flags( de->flags, ASDE_GNOME );
-					break;
+					if( ptr[1] != '-' ) 
+						continue;
+					ptr += 2 ; 
 				}
+				if( mystrncasecmp( ptr, "KDE", 3 ) == 0 ) 
+					set_flags( kind, ASDE_KDE );
+				else if( mystrncasecmp( ptr, "GNOME", 5 ) == 0 ) 
+					set_flags( kind, ASDE_GNOME );
+			}
+			set_flags( de->flags, kind );
 		}	 
 	}
 	if( get_flags( de->flags, ASDE_KDE|ASDE_GNOME ) == 0 && de->Name) 
@@ -225,6 +231,12 @@ fix_desktop_entry( ASDesktopEntry *de, const char *default_category, const char 
 		else if( de->Name[0] == 'K' )
 			set_flags( de->flags, ASDE_KDE );
 	}
+	if( de->Aliases != NULL ) 
+	{
+		de->aliases_len = strlen(de->Aliases);	  	  
+		de->aliases_shortcuts = parse_category_list( de->Aliases, &(de->aliases_num) ); 
+	}
+	
 	if( de->OnlyShowIn != NULL ) 
 	{
 		de->show_in_len = strlen(de->OnlyShowIn);	  

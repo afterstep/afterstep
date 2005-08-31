@@ -212,7 +212,7 @@ destroy_desktop_entry( ASDesktopEntry** pde )
 			FREE_ASDE_VAL(StartupWMClass) ;
 
 			FREE_ASDE_VAL(IndexName) ;
-			FREE_ASDE_VAL(Alias) ;
+			FREE_ASDE_VAL(Aliases) ;
 			
 			FREE_ASDE_VAL(categories_shortcuts) ; 
 			FREE_ASDE_VAL(show_in_shortcuts) ; 
@@ -291,7 +291,9 @@ print_desktop_entry( ASDesktopEntry* de )
 		PRINT_ASDE_VAL(StartupWMClass) ;
 
 		PRINT_ASDE_VAL(IndexName) ;
-		PRINT_ASDE_VAL(Alias) ;
+		fprintf(stderr, "de(%p).aliases_num=%d;\n", de, de->aliases_num );
+		for( i = 0 ; i < de->aliases_num ; ++i ) 
+			fprintf(stderr, "de(%p).alias[%d]=\"%s\";\n", de, i, de->aliases_shortcuts[i] );
 
 //		PRINT_ASDE_VAL(categories_shortcuts) ; 
 //		PRINT_ASDE_VAL(show_in_shortcuts) ; 
@@ -433,10 +435,11 @@ Bool register_desktop_entry(ASCategoryTree *ct, ASDesktopEntry *de)
 				dc = (ASDesktopCategory *)tmp;
 		}
 			
-		if( dc == NULL && de->Alias ) 
+		if( dc == NULL && de->aliases_num ) 
 		{	
-			if( get_hash_item( ct->categories, AS_HASHABLE(de->Alias), &tmp ) == ASH_Success )
-				dc = (ASDesktopCategory *)tmp;
+			for( i = 0 ; i < de->aliases_num ; ++i ) 
+				if( get_hash_item( ct->categories, AS_HASHABLE(de->aliases_shortcuts[i]), &tmp ) == ASH_Success )
+					dc = (ASDesktopCategory *)tmp;
 		}
 			
 		if( dc != NULL ) 
@@ -461,15 +464,18 @@ Bool register_desktop_entry(ASCategoryTree *ct, ASDesktopEntry *de)
 	  		dc->name = mystrdup( de->Name );
 		}
 
-		if( de->Alias ) 	
+		if( de->aliases_num ) 	
 		{
-			char *tmp = mystrdup(de->Alias);	
-			if( add_hash_item( ct->categories, AS_HASHABLE(tmp), dc) != ASH_Success ) 		
-				free( tmp );
-			else
-			{
-				LOCAL_DEBUG_OUT( "adding category alias to \"%s\"", de->Alias );	  
-				ref_desktop_category( dc );  
+			for( i = 0 ; i < de->aliases_num ; ++i ) 
+			{	
+				char *tmp = mystrdup(de->aliases_shortcuts[i]);
+				if( add_hash_item( ct->categories, AS_HASHABLE(tmp), dc) != ASH_Success ) 		
+					free( tmp );
+				else
+				{
+					LOCAL_DEBUG_OUT( "adding category alias to \"%s\"", tmp );	  
+					ref_desktop_category( dc );  
+				}
 			}
 		}	 
 		{

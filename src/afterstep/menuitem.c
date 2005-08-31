@@ -401,7 +401,10 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf, Bool reload_submenus)
 		{
 			if( t->de->type == ASDE_TypeApplication ) 
 			{	
-		 		fdata = create_named_function(F_EXEC, t->stripped_name);	
+				if( get_flags( t->de->flags, ASDE_Terminal ) )
+					fdata = create_named_function(F_ExecInTerm, t->stripped_name);	   
+				else
+		 			fdata = create_named_function(F_EXEC, t->stripped_name);	
             	fdata->text = mystrdup( t->de->clean_exec );
             	MenuDataItemFromFunc (menu, fdata);
  				add_minipixmap_fro_dirtree_item( t, menu );

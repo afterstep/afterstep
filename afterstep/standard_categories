@@ -15,6 +15,7 @@ Type=Directory
 [DesktopEntry]
 Name=Accessibility
 X-AfterStep-IndexName=Accessibility
+X-AfterStep-Aliases=X-KDE-Accessibility;X-KDE-settings-accessibility
 Categories=Settings;Utility
 Comment=Accessibility
 Type=Directory
@@ -36,7 +37,7 @@ Type=Directory
 [DesktopEntry]
 Name=Amusements
 X-AfterStep-IndexName=Amusement
-X-AfterStep-Alias=Toys
+X-AfterStep-Aliases=Toys
 Categories= 
 Comment=A simple amusement
 Type=Directory
@@ -51,7 +52,7 @@ Type=Directory
 [DesktopEntry]
 Name=Applications
 X-AfterStep-IndexName=Application
-X-AfterStep-Alias=Applications
+X-AfterStep-Aliases=Applications
 Categories=
 Comment=Accessibility
 Type=Directory
@@ -59,7 +60,7 @@ Type=Directory
 [DesktopEntry]
 Name=Arcade Games
 X-AfterStep-IndexName=ArcadeGame
-X-AfterStep-Alias=Arcade
+X-AfterStep-Aliases=Arcade
 Categories=Game
 Comment=Arcade style game
 Type=Directory
@@ -95,7 +96,7 @@ Type=Directory
 [DesktopEntry]
 Name=Audio and Video
 X-AfterStep-IndexName=AudioVideo
-X-AfterStep-Alias=Multimedia
+X-AfterStep-Aliases=Multimedia
 Categories= 
 Comment=A multimedia (audio/video) application
 Type=Directory
@@ -124,7 +125,7 @@ Type=Directory
 [DesktopEntry]
 Name=Board Games
 X-AfterStep-IndexName=BoardGame
-X-AfterStep-Alias=Boardgames
+X-AfterStep-Aliases=Boardgames
 Categories=Game
 Comment=A board game
 Type=Directory
@@ -153,7 +154,7 @@ Type=Directory
 [DesktopEntry]
 Name=Card Games
 X-AfterStep-IndexName=CardGame
-X-AfterStep-Alias=Cardgames
+X-AfterStep-Aliases=Cardgames
 Categories=Game
 Comment=A card game
 Type=Directory
@@ -224,7 +225,7 @@ Type=Directory
 [DesktopEntry]
 Name=Desktop Settings
 X-AfterStep-IndexName=DesktopSettings
-X-AfterStep-Alias=Desktop
+X-AfterStep-Aliases=Desktop;X-KDE-Desktop;X-KDE-settings-desktop
 Categories=Settings
 Comment=Configuration tool for the GUI
 Type=Directory
@@ -260,7 +261,7 @@ Type=Directory
 [DesktopEntry]
 Name=Education
 X-AfterStep-IndexName=Education
-X-AfterStep-Alias=Edutainment
+X-AfterStep-Aliases=Edutainment
 Categories= 
 Comment=Educational software
 Type=Directory
@@ -352,7 +353,7 @@ Type=Directory
 [DesktopEntry]
 Name=Games
 X-AfterStep-IndexName=Game
-X-AfterStep-Alias=Games
+X-AfterStep-Aliases=Games
 Categories= 
 Comment=A game
 Type=Directory
@@ -381,9 +382,17 @@ Type=Directory
 [DesktopEntry]
 Name=Hardware Settings
 X-AfterStep-IndexName=HardwareSettings
-X-AfterStep-Alias=Peripherals
+X-AfterStep-Aliases=Peripherals;Information;X-KDE-Information;X-KDE-Peripherals;X-KDE-information
 Categories=Settings
 Comment=A tool to manage hardware components, like sound cards, video cards or printers
+Type=Directory
+
+[DesktopEntry]
+Name=KDE Components
+X-AfterStep-IndexName=KDEComponents
+X-AfterStep-Aliases=X-KDE-settings-components
+Categories=Settings
+Comment=
 Type=Directory
 
 [DesktopEntry]
@@ -424,7 +433,7 @@ Type=Directory
 [DesktopEntry]
 Name=Kids Games
 X-AfterStep-IndexName=KidsGame
-X-AfterStep-Alias=Games for Kids
+X-AfterStep-Aliases=Games for Kids;X-KDE-KidsGame
 Categories=Game
 Comment=A game for kids
 Type=Directory
@@ -437,6 +446,14 @@ Comment=Software to learn foreign languages
 Type=Directory
 
 [DesktopEntry]
+Name=Look And Feel
+X-AfterStep-IndexName=LookNFeel
+X-AfterStep-Aliases=Appearance & Themes;X-KDE-LookNFeel;X-KDE-settings-looknfeel
+Categories=Settings
+Comment=Look and feel settings
+Type=Directory
+
+[DesktopEntry]
 Name=Logic Games
 X-AfterStep-IndexName=LogicGame
 Categories=Game
@@ -446,7 +463,7 @@ Type=Directory
 [DesktopEntry]
 Name=Math
 X-AfterStep-IndexName=Math
-X-AfterStep-Alias=Mathematics
+X-AfterStep-Aliases=Mathematics
 Categories=Science
 Comment=Math software
 Type=Directory
@@ -496,7 +513,7 @@ Type=Directory
 [DesktopEntry]
 Name=Network
 X-AfterStep-IndexName=Network
-X-AfterStep-Alias=Internet
+X-AfterStep-Aliases=Internet;X-KDE-Network;X-KDE-settings-network
 Categories=
 Comment=Network application such as a web browser
 Type=Directory
@@ -565,6 +582,14 @@ Comment=Application to play audio/video files
 Type=Directory
 
 [DesktopEntry]
+Name=Power Control
+X-AfterStep-IndexName=PowerControl
+X-AfterStep-Aliases=X-KDE-PowerControl;X-KDE-settings-power
+Categories=Settings
+Comment=Presentation software
+Type=Directory
+
+[DesktopEntry]
 Name=Presentation
 X-AfterStep-IndexName=Presentation
 Categories=Office
@@ -588,7 +613,7 @@ Type=Directory
 [DesktopEntry]
 Name=Puzzle Games
 X-AfterStep-IndexName=PuzzleGame
-X-AfterStep-Alias=Puzzle
+X-AfterStep-Aliases=Puzzle
 Categories=Game
 Comment=Puzzle game
 Type=Directory
@@ -631,9 +656,23 @@ Type=Directory
 [DesktopEntry]
 Name=Role Playing
 X-AfterStep-IndexName=RolePlaying
-X-AfterStep-Alias=Rogue-like Games
+X-AfterStep-Aliases=Rogue-like Games
 Categories=Game
 Comment=A role playing game
+Type=Directory
+
+[DesktopEntry]
+Name=RedHat Extras
+X-AfterStep-IndexName=X-Red-Hat-Extra
+Categories=Application
+Comment=
+Type=Directory
+
+[DesktopEntry]
+Name=RedHat Base
+X-AfterStep-IndexName=X-Red-Hat-Base
+Categories=Application
+Comment=
 Type=Directory
 
 [DesktopEntry]
@@ -653,7 +692,7 @@ Type=Directory
 [DesktopEntry]
 Name=Screensaver
 X-AfterStep-IndexName=Screensaver
-X-AfterStep-Alias=Screensavers
+X-AfterStep-Aliases=Screensavers
 Categories=System 
 Comment=A screen saver (launching this desktop entry should activate the screen saver)
 Type=Directory
@@ -661,6 +700,7 @@ Type=Directory
 [DesktopEntry]
 Name=Security
 X-AfterStep-IndexName=Security
+X-AfterStep-Aliases=Security & Privacy;X-KDE-settings-security
 Categories=Settings;System
 Comment=A security tool
 Type=Directory
@@ -675,7 +715,7 @@ Type=Directory
 [DesktopEntry]
 Name=Settings
 X-AfterStep-IndexName=Settings
-X-AfterStep-Alias=Settings-Modules
+X-AfterStep-Aliases=Settings-Modules
 Categories= 
 Comment=Settings applications
 Type=Directory
@@ -695,6 +735,14 @@ Comment=A simulation game
 Type=Directory
 
 [DesktopEntry]
+Name=Multimedia settings
+X-AfterStep-IndexName=MultimediaSettings
+X-AfterStep-Aliases=Sound & Multimedia;X-KDE-Sound;X-KDE-settings-sound;Sound
+Categories=HardwareSettings
+Comment=
+Type=Directory
+
+[DesktopEntry]
 Name=Sports Games
 X-AfterStep-IndexName=SportsGame
 Categories=Game
@@ -711,7 +759,7 @@ Type=Directory
 [DesktopEntry]
 Name=Strategy Games
 X-AfterStep-IndexName=StrategyGame
-X-AfterStep-Alias=Tactics & Strategy
+X-AfterStep-Aliases=Tactics & Strategy
 Categories=Game
 Comment=A strategy game
 Type=Directory
@@ -721,6 +769,13 @@ Name=System
 X-AfterStep-IndexName=System
 Categories=
 Comment=System application, "System Tools" such as say a log viewer or network monitor
+Type=Directory
+
+[DesktopEntry]
+Name=System Settings
+X-AfterStep-IndexName=X-KDE-settings-system
+Categories=
+Comment=
 Type=Directory
 
 [DesktopEntry]
@@ -747,7 +802,7 @@ Type=Directory
 [DesktopEntry]
 Name=Terminal Emulators
 X-AfterStep-IndexName=TerminalEmulator
-X-AfterStep-Alias=Terminal Applications
+X-AfterStep-Aliases=Terminal Applications
 Categories= 
 Comment=A terminal emulator application
 Type=Directory
@@ -755,7 +810,7 @@ Type=Directory
 [DesktopEntry]
 Name=Text Editors
 X-AfterStep-IndexName=TextEditor
-X-AfterStep-Alias=Editors
+X-AfterStep-Aliases=Editors
 Categories=Utility
 Comment=A text editor
 Type=Directory
@@ -784,7 +839,7 @@ Type=Directory
 [DesktopEntry]
 Name=Utilities
 X-AfterStep-IndexName=Utility
-X-AfterStep-Alias=Utilities
+X-AfterStep-Aliases=Utilities
 Categories= 
 Comment=Small utility application, "Accessories"
 Type=Directory
@@ -813,6 +868,7 @@ Type=Directory
 [DesktopEntry]
 Name=Web Browsers
 X-AfterStep-IndexName=WebBrowser
+X-AfterStep-Aliases=X-KDE-WebBrowsing;X-KDE-settings-webbrowsing
 Categories=Network
 Comment=A web browser
 Type=Directory
@@ -830,4 +886,12 @@ X-AfterStep-IndexName=WordProcessor
 Categories=Office
 Comment=A word processor
 Type=Directory
+
+[DesktopEntry]
+Name=More KDE Applications
+X-AfterStep-IndexName=X-KDE-More
+Categories=Application
+Comment=
+Type=Directory
+
 
