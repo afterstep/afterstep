@@ -67,7 +67,7 @@ Style   "Licq*"         Sticky, NoButton 1, NoButton 4, NoButton 6
 
 # Graphic aps
 Style	"GQview"        Icon gqview.png		#, StartsOnDesk 0
-Style   "gimp"          Icon logos/gimp,
+Style   "gimp"          Icon logos/gimp, UseCurrentViewport
 Style	"GIMP Startup"	Icon logos/gimp, NoButton 1, NoButton 2, NoButton 3, NoButton 4
 Style   "Blender"       NoTitle, NoHandles
 Style   "ghostview"     Icon text.xpm

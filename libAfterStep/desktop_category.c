@@ -262,7 +262,7 @@ print_desktop_entry( ASDesktopEntry* de )
 			case ASDE_TypeDirectory : fprintf(stderr, "de(%p).type=Directory;\n", de );break;	  
 			default: break;
 		}
-
+		fprintf( stderr, "de(%p).flags = 0x%lX;\n", de, de->flags );			
 #define PRINT_ASDE_VAL(val)	do{if(de->val) fprintf(stderr, "de(%p)." #val "=\"%s\";\n", de, de->val );}while(0)			
 		PRINT_ASDE_VAL(Name_localized) ;
 		PRINT_ASDE_VAL(Comment_localized) ;

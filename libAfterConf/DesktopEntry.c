@@ -292,7 +292,7 @@ parse_desktop_entry_list( const char *fullfilename, ASBiDirList *entry_list, con
 		static char rb[MAXLINELENGTH+1] ; 
 		while( fgets (&(rb[0]), MAXLINELENGTH, fp) != NULL	) 
 		{
-/*			LOCAL_DEBUG_OUT( "rb = \"%s\", de = %p", &(rb[0]), de ); */
+			LOCAL_DEBUG_OUT( "rb = \"%s\", de = %p", &(rb[0]), de ); 
 			if( rb[0] == '[' )
 			{
 				if( ( rb[1] =='D' && (mystrncasecmp( &(rb[2]), "esktop Entry]", 13 ) == 0 ||
@@ -432,7 +432,7 @@ load_category_tree( ASCategoryTree*	ct )
 		iterate_asbidirlist( entry_list, register_desktop_entry_list_item, ct, NULL, False);
 		destroy_asbidirlist( &entry_list );
 /*		flush_asbidirlist_memory_pool(); */
-		print_unfreed_mem ();
+/*		print_unfreed_mem (); */
 		return True;
 	}
 	return False ;
