@@ -1,4 +1,5 @@
 /*
+ * Copyright (C) 2005 Fabian Yamaguchi
  * Copyright (C) 2004-2005 Sasha Vasko
  * Copyright (C) 1996 Frank Fejes
  * Copyright (C) 1995 Bo Yang
@@ -1217,36 +1218,59 @@ Bool place_aswindow( ASWindow *asw )
         }
     }
 
+    /* search for a window-box if none was specified.*/
     if( aswbox == NULL )
     {
-        int i;
-        aswbox = &(Scr.Feel.window_boxes[0]);
+        int i, t;
+	ASWindowBox **aswbox_sorted = safemalloc(sizeof(ASWindowBox *) * Scr.Feel.window_boxes_num);
+	aswbox = &(Scr.Feel.window_boxes[0]);
+	
+	/* the following code will make sure window-boxes which have the
+	   virtual-flag set and are not on the current viewport will
+	   be considered for placement after all others. */
+	t = Scr.Feel.window_boxes_num;
+	for( i = 0; i < Scr.Feel.window_boxes_num; ++i)
+	{
+		if( get_flags(aswbox[i].flags, ASA_Virtual)
+		    && (( asw->status->viewport_x / Scr.MyDisplayWidth
+			  != aswbox[i].area.x / Scr.MyDisplayWidth ) ||
+			( asw->status->viewport_y / Scr.MyDisplayHeight
+			  != aswbox[i].area.y / Scr.MyDisplayHeight) )
+		  )
+			/* place window-box at the end */
+			aswbox_sorted[--t] = &aswbox[i];
+		else
+			/* place window-box at the front */
+			aswbox_sorted[i - Scr.Feel.window_boxes_num + t ] = &aswbox[i];
+	}
+	
         for( i = 0 ; i < Scr.Feel.window_boxes_num ; ++i )
         {
 			LOCAL_DEBUG_OUT("window_box \"%s\": main_strategy = %d, backup_strategy = %d", 
-		   					aswbox[i].name, aswbox[i].main_strategy, aswbox[i].backup_strategy);
+		   					aswbox_sorted[i]->name, aswbox_sorted[i]->main_strategy, aswbox_sorted[i]->backup_strategy);
 			
-            if( IsValidDesk(aswbox[i].desk) && aswbox[i].desk != asw->status->desktop )
+            if( IsValidDesk(aswbox_sorted[i]->desk) && aswbox_sorted[i]->desk != asw->status->desktop )
                 continue;
-            if( aswbox[i].min_layer > asw->status->layer || aswbox[i].max_layer < asw->status->layer )
+            if( aswbox_sorted[i]->min_layer > asw->status->layer || aswbox_sorted[i]->max_layer < asw->status->layer )
                 continue;
-            if( aswbox[i].min_width > asw->status->width || (aswbox[i].max_width > 0 && aswbox[i].max_width < asw->status->width) )
+            if( aswbox_sorted[i]->min_width > asw->status->width || (aswbox_sorted[i]->max_width > 0 && aswbox_sorted[i]->max_width < asw->status->width) )
                 continue;
-            if( aswbox[i].min_height > asw->status->height || (aswbox[i].max_height > 0 && aswbox[i].max_height < asw->status->height) )
-                continue;
+            if( aswbox_sorted[i]->min_height > asw->status->height || (aswbox_sorted[i]->max_height > 0 && aswbox_sorted[i]->max_height < asw->status->height) )
+	        continue;
+
 
 		    if( ASWIN_GET_FLAGS(asw, AS_MaximizedX|AS_MaximizedY ) )
 			{
-	            if( aswbox[i].area.x > asw->status->x+(int)(asw->status->width) || 
-					aswbox[i].area.y > asw->status->y+(int)(asw->status->height)||
-					aswbox[i].area.x+(int)aswbox[i].area.width < asw->status->x ||
-					aswbox[i].area.y+(int)aswbox[i].area.height < asw->status->y )
+	            if( aswbox_sorted[i]->area.x > asw->status->x+(int)(asw->status->width) || 
+					aswbox_sorted[i]->area.y > asw->status->y+(int)(asw->status->height)||
+					aswbox_sorted[i]->area.x+(int)aswbox[i].area.width < asw->status->x ||
+					aswbox_sorted[i]->area.y+(int)aswbox[i].area.height < asw->status->y )
     	            continue;
 			}	 
 
 		    if( ASWIN_GET_FLAGS(asw, AS_MaximizedX|AS_MaximizedY ) )
-        		return place_aswindow_in_windowbox( asw, &(aswbox[i]), ASP_UseBackupStrategy, True );
-			else if( place_aswindow_in_windowbox( asw, &(aswbox[i]), ASP_UseMainStrategy , False ))
+        		return place_aswindow_in_windowbox( asw, aswbox_sorted[i], ASP_UseBackupStrategy, True );
+			else if( place_aswindow_in_windowbox( asw, aswbox_sorted[i], ASP_UseMainStrategy , False ))
                 return True;
         }
     }
