@@ -1269,10 +1269,17 @@ Bool place_aswindow( ASWindow *asw )
 			}	 
 
 		    if( ASWIN_GET_FLAGS(asw, AS_MaximizedX|AS_MaximizedY ) )
-        		return place_aswindow_in_windowbox( asw, aswbox_sorted[i], ASP_UseBackupStrategy, True );
-			else if( place_aswindow_in_windowbox( asw, aswbox_sorted[i], ASP_UseMainStrategy , False ))
-                return True;
-        }
+		    {
+			    Bool retval = place_aswindow_in_windowbox( asw, aswbox_sorted[i], ASP_UseBackupStrategy, True );
+			    free( aswbox_sorted );
+			    return retval;
+		    }			
+		    else if( place_aswindow_in_windowbox( asw, aswbox_sorted[i], ASP_UseMainStrategy , False )){
+			    free( aswbox_sorted );
+			    return True;
+		    }        
+	}
+	free( aswbox_sorted );
     }
     return place_aswindow_in_windowbox( asw, Scr.Feel.default_window_box, ASP_UseBackupStrategy, True );
 }
