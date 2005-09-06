@@ -138,6 +138,8 @@ TermDef       WindowBoxTerms[] = {
 	{TF_NO_MYNAME_PREPENDING, "ReverseOrder", 12,     TT_FLAG,    WINDOWBOX_ReverseOrder_ID    , NULL},
 	{TF_NO_MYNAME_PREPENDING, "ReverseOrderHorizontal", 22,     TT_FLAG,    WINDOWBOX_ReverseOrderHorizontal_ID    , NULL},
 	{TF_NO_MYNAME_PREPENDING, "ReverseOrderVertical", 20,       TT_FLAG,    WINDOWBOX_ReverseOrderVertical_ID    , NULL},
+	{TF_NO_MYNAME_PREPENDING, "XSpacing", 8,       	  TT_INTEGER, WINDOWBOX_XSpacing_ID		, NULL},
+	{TF_NO_MYNAME_PREPENDING, "YSpacing", 8,       	  TT_INTEGER, WINDOWBOX_YSpacing_ID    	, NULL},
     {TF_NO_MYNAME_PREPENDING |
 	 TF_SYNTAX_TERMINATOR,    "~WindowBox", 10, TT_FLAG, WINDOWBOX_DONE_ID, NULL},
 	{0, NULL, 0, 0, 0}

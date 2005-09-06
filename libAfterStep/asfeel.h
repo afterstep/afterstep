@@ -143,6 +143,8 @@ typedef struct ASWindowBox
 #define ASA_DesktopSet          (0x01<<11)
 #define ASA_MinLayerSet         (0x01<<12)
 #define ASA_MaxLayerSet         (0x01<<13)
+#define ASA_XSpacingSet         (0x01<<14)
+#define ASA_YSpacingSet         (0x01<<15)
 
 	ASFlagType 	set_flags;
 	ASFlagType 	flags;
@@ -159,6 +161,7 @@ typedef struct ASWindowBox
 
     int desk ;
 
+	int x_spacing, y_spacing ;
     /* this store status : */
     unsigned int cascade_pos ;                 /* gets incremented every time window is cascaded */
 

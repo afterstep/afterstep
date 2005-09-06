@@ -180,6 +180,14 @@ ProcessWindowBoxOptions (FreeStorageElem * options)
                     aswbox->max_layer = item.data.integer ;
                     set_flags( aswbox->set_flags, ASA_MaxLayerSet);
                     break ;
+                case WINDOWBOX_XSpacing_ID        :
+                    aswbox->x_spacing = item.data.integer ;
+                    set_flags( aswbox->set_flags, ASA_XSpacingSet);
+                    break ;
+                case WINDOWBOX_YSpacing_ID        :
+                    aswbox->y_spacing = item.data.integer ;
+                    set_flags( aswbox->set_flags, ASA_YSpacingSet);
+                    break ;
                 default:
 					item.ok_to_free = 1;
                     show_warning( "Unexpected WindowBox definition keyword \"%s\" . Ignoring.", options->term->keyword );

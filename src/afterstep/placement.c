@@ -743,9 +743,10 @@ do_maximized_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry *area)
     int selected = -1 ;
     unsigned int w = asw->status->width;
     unsigned int h = asw->status->height;
+#ifdef HAVE_XINERAMA
     unsigned int x = asw->status->x;
     unsigned int y = asw->status->y;
-    
+#endif    
     ASVector *free_space_list = NULL;
     XRectangle *rects = NULL;
     int i ;
@@ -946,8 +947,12 @@ static Bool do_tile_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry *a
 
     if( selected >= 0 )
     {
-        int spacer_x = (rects[selected].width > w)? 1: 0;
-        int spacer_y = (rects[selected].height > h)? 1: 0;
+        int spacer_x = aswbox->x_spacing ;
+        int spacer_y = aswbox->y_spacing ;
+		if(rects[selected].width < w+spacer_x)
+			spacer_x = rects[selected].width - w ;
+		if(rects[selected].height < h+spacer_y)
+			spacer_y = rects[selected].height - h ;
         apply_placement_result_asw( asw, XValue|YValue, rects[selected].x+spacer_x, rects[selected].y+spacer_y, 0, 0 );
         LOCAL_DEBUG_OUT( "success: status(%+d%+d), anchor(%+d,%+d)", asw->status->x, asw->status->y, asw->anchor.x, asw->anchor.y );
     }else
