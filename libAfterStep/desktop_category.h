@@ -170,6 +170,6 @@ void destroy_category_tree( ASCategoryTree **pct );
 Bool register_desktop_entry(ASCategoryTree *ct, ASDesktopEntry *de);
 void add_category_tree_subtree( ASCategoryTree* ct, ASCategoryTree* subtree );
 void print_category_tree( ASCategoryTree* ct );
-void print_category_tree2( ASCategoryTree* ct );
+void print_category_tree2( ASCategoryTree* ct, ASDesktopCategory *dc );
 
 #endif

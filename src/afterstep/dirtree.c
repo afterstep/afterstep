@@ -30,6 +30,7 @@
 #include "../../configure.h"
 #include "../../libAfterStep/asapp.h"
 #include "../../libAfterStep/desktop_category.h"
+#include "../../libAfterConf/afterconf.h"
 #include "dirtree.h"
 void          init_func_data (FunctionData * data);
 int           txt2func (const char *text, FunctionData * fdata, int quiet);
@@ -315,29 +316,12 @@ void
 dirtree_add_category_by_name (dirtree_t *tree, const char *cat_name, Bool include_children, ASHashTable *exclusions)
 {
 	ASCategoryTree *ct = CombinedCategories ; 
-	int offset = 0 ;
+	ASDesktopCategory *dc = NULL ;
 	
 	ASSERT_TREE(tree);
 
-	if( !mystrncasecmp (cat_name, "KDE:", 4) )
-	{	
-		ct = KDECategories ; 
-		offset = 4 ; 
-	}else if( !mystrncasecmp (cat_name, "GNOME:", 6) )
-	{	
-		ct = GNOMECategories ; 
-		offset = 6 ; 
-	}else if( !mystrncasecmp (cat_name, "SYSTEM:", 7) )
-	{	
-		ct = SystemCategories ;
-		offset = 7 ; 
-	}else if( !mystrncasecmp (cat_name, "COMBINED:", 9) )
-	{	
-		ct = CombinedCategories; 
-		offset = 9 ;
-	}
-
-	dirtree_add_category (tree, ct, fetch_desktop_category( ct, cat_name+offset ), include_children, exclusions);
+	dc = name2desktop_category( cat_name, &ct ); 
+	dirtree_add_category (tree, ct, dc, include_children, exclusions);
 }
 
 int

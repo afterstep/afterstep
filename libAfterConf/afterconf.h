@@ -2238,6 +2238,9 @@ Bool load_category_tree( struct ASCategoryTree*	ct );
 
 void DestroyCategories();
 void ReloadCategories();
+struct ASDesktopCategory;
+struct ASDesktopCategory *name2desktop_category( const char *name, struct ASCategoryTree **tree_return );
+
 
 /***************************************************************************/
 

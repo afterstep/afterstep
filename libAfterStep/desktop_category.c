@@ -711,7 +711,7 @@ print_category_subtree( ASCategoryTree* ct, const char *entry_name, int level )
 }
 
 void 
-print_category_tree2( ASCategoryTree* ct )
+print_category_tree2( ASCategoryTree* ct, ASDesktopCategory *dc )
 {
 	fprintf(stderr, "Printing category_tree %p :\n", ct );
 	if( ct ) 
@@ -721,7 +721,7 @@ print_category_tree2( ASCategoryTree* ct )
 		fprintf(stderr, "category_tree.icon_path=\"%s\";\n", ct->icon_path?ct->icon_path:"(null)" );
 		fprintf(stderr, "category_tree.entries_num=%ld;\n", ct->entries->items_num );
 		fprintf(stderr, "category_tree.categories_num=%ld;\n", ct->categories->items_num );
-		print_category_subtree( ct, DEFAULT_DESKTOP_CATEGORY_NAME, 0 );
+		print_category_subtree( ct, dc?dc->index_name:DEFAULT_DESKTOP_CATEGORY_NAME, 0 );
 	}		  
 	
 }	 

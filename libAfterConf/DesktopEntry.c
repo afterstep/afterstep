@@ -295,7 +295,7 @@ parse_desktop_entry_list( const char *fullfilename, ASBiDirList *entry_list, con
 	int count = 0 ; 
 	FILE *fp = NULL;
 
-	LOCAL_DEBUG_OUT( "PARSING \"%s\"", fullfilename );	
+	/*LOCAL_DEBUG_OUT( "PARSING \"%s\"", fullfilename );	*/
 	if( fullfilename  )
 		fp = fopen( fullfilename, "r" );
 
@@ -304,7 +304,7 @@ parse_desktop_entry_list( const char *fullfilename, ASBiDirList *entry_list, con
 		static char rb[MAXLINELENGTH+1] ; 
 		while( fgets (&(rb[0]), MAXLINELENGTH, fp) != NULL	) 
 		{
-			LOCAL_DEBUG_OUT( "rb = \"%s\", de = %p", &(rb[0]), de ); 
+			/*LOCAL_DEBUG_OUT( "rb = \"%s\", de = %p", &(rb[0]), de ); */
 			if( rb[0] == '[' )
 			{
 				if( ( rb[1] =='D' && (mystrncasecmp( &(rb[2]), "esktop Entry]", 13 ) == 0 ||
@@ -500,26 +500,76 @@ ReloadCategories()
 	   
 }	 
 
+ASDesktopCategory *
+name2desktop_category( const char *name, ASCategoryTree **tree_return ) 
+{
+	ASCategoryTree *ct = CombinedCategories ; 
+	int offset = 0 ;
+	
+	if( !mystrncasecmp (name, "KDE:", 4) )
+	{	
+		ct = KDECategories ; 
+		offset = 4 ; 
+	}else if( !mystrncasecmp (name, "GNOME:", 6) )
+	{	
+		ct = GNOMECategories ; 
+		offset = 6 ; 
+	}else if( !mystrncasecmp (name, "SYSTEM:", 7) )
+	{	
+		ct = SystemCategories ;
+		offset = 7 ; 
+	}else if( !mystrncasecmp (name, "COMBINED:", 9) )
+	{	
+		ct = CombinedCategories; 
+		offset = 9 ;
+	}
+	if( tree_return ) 
+		*tree_return = ct ;
+	return fetch_desktop_category( ct, name+offset );
+}
+
+
 #ifdef PRINT_DESKTOP_ENTRIES
 int 
 main( int argc, char ** argv ) 
 {
+	int i ; 
+	ASDesktopCategory *dc = NULL ;
+	ASCategoryTree *ct = NULL ;  
+
 	InitMyApp ("PrintDesktopEntries", argc, argv, NULL, NULL, 0 );
 	InitSession();
 	ReloadCategories();
 
-	fprintf( stderr, "#Standard: ####################################################\n" );
-	print_category_tree2( StandardCategories );
-	fprintf( stderr, "#KDE:      ####################################################\n" );
-	print_category_tree2( KDECategories );
-	fprintf( stderr, "#GNOME:    ####################################################\n" );
-	print_category_tree2( GNOMECategories );
-	fprintf( stderr, "#SYSTEM:   ####################################################\n" );
-	print_category_tree2( SystemCategories );
-	fprintf( stderr, "#Combined: ####################################################\n" );
-	print_category_tree2( CombinedCategories );
-	fprintf( stderr, "#####################################################\n" );
-
+	for( i = 1 ; i < argc ; ++i ) 
+		if( argv[i] ) 
+		{
+			dc = name2desktop_category( argv[i], &ct );
+			if( dc == NULL ) 
+			{
+				fprintf( stderr, "Invalid category name \"%s\"", argv[i] );
+				return 0;	
+			}	 
+			break;
+		}
+	if( dc && ct ) 
+	{
+		print_category_tree2( ct, dc );
+		
+	}else
+	{		 
+		fprintf( stderr, "#Standard: ####################################################\n" );
+		print_category_tree2( StandardCategories, NULL );
+		fprintf( stderr, "#KDE:      ####################################################\n" );
+		print_category_tree2( KDECategories, NULL );
+		fprintf( stderr, "#GNOME:    ####################################################\n" );
+		print_category_tree2( GNOMECategories, NULL );
+		fprintf( stderr, "#SYSTEM:   ####################################################\n" );
+		print_category_tree2( SystemCategories, NULL );
+		fprintf( stderr, "#Combined: ####################################################\n" );
+		print_category_tree2( CombinedCategories, NULL );
+		fprintf( stderr, "#####################################################\n" );
+	}
 	DestroyCategories();
 	FreeMyAppResources();
 	return 1;
@@ -559,15 +609,15 @@ main( int argc, char ** argv )
 //	ReloadCategories();
 
 	fprintf( stderr, "#Standard: ####################################################\n" );
-	print_category_tree2( StandardCategories );
+	print_category_tree2( StandardCategories, NULL );
 	fprintf( stderr, "#KDE: ####################################################\n" );
-	print_category_tree2( KDECategories );
+	print_category_tree2( KDECategories, NULL );
 	fprintf( stderr, "#GNOME: ####################################################\n" );
-	print_category_tree2( GNOMECategories );
+	print_category_tree2( GNOMECategories, NULL );
 	fprintf( stderr, "#SYSTEM: ####################################################\n" );
-	print_category_tree2( SystemCategories );
+	print_category_tree2( SystemCategories, NULL );
 	fprintf( stderr, "#Combined: ####################################################\n" );
-	print_category_tree2( CombinedCategories );
+	print_category_tree2( CombinedCategories, NULL );
 	fprintf( stderr, "#####################################################\n" );
 
 	DestroyCategories();
