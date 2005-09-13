@@ -18,11 +18,12 @@ typedef struct ASMenuItem
 #define AS_MenuItemFirst        (0x01<<1)
 #define AS_MenuItemLast         (0x01<<2)
 #define AS_MenuItemSubitem      (0x01<<3)
+#define AS_MenuItemHasSubmenu   (0x01<<4)
     ASFlagType flags;
     struct ASTBarData *bar;
-    struct MenuData   *submenu;
     struct ASImage    *icon;
-    struct FunctionData *fdata;
+    struct FunctionData fdata;
+	char first_sym ;
     /* we don't really use this one except to set up last use time when item is selected :*/
     struct MenuDataItem *source ;
 }ASMenuItem;

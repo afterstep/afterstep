@@ -554,24 +554,32 @@ purge_menu_data_items(MenuData *md)
 }
 
 void
-menu_data_destroy(ASHashableValue value, void *data)
+destroy_menu_data( MenuData **pmd ) 
 {
-    MenuData *md = data ;
-LOCAL_DEBUG_CALLER_OUT( "menu_data_destroy(\"%s\", %p)", (char*)value, data );
-    if( (char*)value )
-        free( (char*)value );
-    if( md )
-    {
-        if( md->magic == MAGIC_MENU_DATA )
-        {
-            if( md->name != (char*)value )
+	if( pmd && *pmd) 
+	{
+	    MenuData *md = *pmd ;
+		if( md->magic == MAGIC_MENU_DATA )
+		{	
+LOCAL_DEBUG_CALLER_OUT( "menu_data_destroy(\"%s\", %p)", md->name?md->name:"(null)", md );
+       		if( md->name )
                 free( md->name );
 
             purge_menu_data_items(md);
             md->magic = 0 ;
-        }
-        free(data);
-    }
+        	free(md);
+			*pmd = NULL ; 
+		}
+	}				 
+}
+
+MenuData *
+create_menu_data( char *name ) 
+{	
+    MenuData *md = (MenuData*) safecalloc (1, sizeof(MenuData));
+    md->name = mystrdup(name);
+    md->magic = MAGIC_MENU_DATA ;
+	return md;
 }
 
 MenuData    *
@@ -587,16 +595,10 @@ new_menu_data( ASHashTable *list, char *name )
     if( get_hash_item( list, AS_HASHABLE(name), &hdata.vptr) == ASH_Success )
         return (MenuData*)hdata.vptr;
 
-    md = (MenuData*) safecalloc (1, sizeof(MenuData));
-    md->name = mystrdup(name);
-    md->magic = MAGIC_MENU_DATA ;
-	md->recent_items = ASDefaultScr->Feel.recent_submenu_items ;
+    md = create_menu_data( name ); 
 
     if( add_hash_item( list, AS_HASHABLE(md->name), md) != ASH_Success )
-    {
-        menu_data_destroy( AS_HASHABLE(md->name), md );
-        md = NULL ;
-    }
+        destroy_menu_data( &md );
     return md;
 }
 
@@ -851,6 +853,17 @@ menu_data_item_from_func (MenuData * menu, FunctionData * fdata)
 		free( fdata );
 	}
 }
+
+int
+compare_func_data_name(const void *a, const void *b) 
+{
+	FunctionData *fda = *(FunctionData **)a;
+	FunctionData *fdb = *(FunctionData **)b;
+
+	return strcmp(fda->name ? fda->name : "", fdb->name ? fdb->name : "");
+}
+
+
 
 void
 print_func_data(const char *file, const char *func, int line, FunctionData *data)

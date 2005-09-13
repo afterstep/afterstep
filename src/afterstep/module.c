@@ -1063,3 +1063,69 @@ broadcast_config (send_data_type event_type, ASWindow * t)
     SendConfig( -1, event_type, t );
 }
 
+/********************************************************************************/
+/* module list menus regeneration :                                             */
+/********************************************************************************/
+
+static inline void
+module_t2func_data( FunctionCode func, module_t *module, FunctionData *fdata, char *scut ) 
+{
+	fdata->func = F_KILLMODULEBYNAME;
+    fdata->name = mystrdup(module->name);
+    fdata->text = mystrdup(module->name);
+	if (++(*scut) == ('9' + 1))
+		(*scut) = 'A';		/* Next shortcut key */
+    fdata->hotkey = (*scut);
+}	   
+
+MenuData *
+make_stop_module_menu(  int sort_order )
+{
+    MenuData *md ;
+    FunctionData  fdata ;
+    char          scut = '0';                  /* Current short cut key */
+	module_t *modules ;
+	int i, max_i ;
+
+	if ( Modules == NULL ) 
+        return NULL;
+    
+	if( (md = create_menu_data ("Stop Module")) == NULL )
+        return NULL;
+
+	modules = MODULES_LIST ;
+	max_i = MODULES_NUM ;
+
+    memset(&fdata, 0x00, sizeof(FunctionData));
+    fdata.func = F_TITLE ;
+    fdata.name = mystrdup("Stop Running Module");
+    add_menu_fdata_item( md, &fdata, NULL, NULL );
+
+	if( sort_order == ASO_Alpha ) 
+	{
+		FunctionData **menuitems = safecalloc(sizeof(FunctionData *), max_i);
+        
+		for( i = 0 ; i < max_i ; ++i) 
+		{
+			menuitems[i] = safecalloc(1, sizeof(FunctionData));
+			module_t2func_data( F_KILLMODULEBYNAME, &(modules[i]), menuitems[i], &scut ); 
+        }
+		qsort(menuitems, i, sizeof(FunctionData *), compare_func_data_name);
+		for( i = 0 ; i < max_i ; ++i) 
+		{
+			add_menu_fdata_item( md, menuitems[i], NULL, NULL);
+			safefree( menuitems[i] ); /* scrubba-dub-dub */
+		}
+		safefree(menuitems);
+    }else /* if( sort_order == ASO_Circulation || sort_order == ASO_Stacking ) */
+	{
+		for( i = 0 ; i < max_i ; ++i) 
+        {
+            module_t2func_data( F_KILLMODULEBYNAME, &(modules[i]), &fdata, &scut ); 
+            add_menu_fdata_item( md, &fdata, NULL, NULL /*icon ??? */);
+        }
+    }
+    return md;
+}
+
+

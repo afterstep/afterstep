@@ -1543,12 +1543,18 @@ LOCAL_DEBUG_OUT("checking i(%d)->end_i(%d)->dir(%d)->AutoReverse(%d)", i, end_i,
 /********************************************************************************/
 /* window list menus regeneration :                                             */
 /********************************************************************************/
-static int
-make_desk_winlist_menu_strcmp(const void *a, const void *b) {
-	FunctionData *fda = *(FunctionData **)a;
-	FunctionData *fdb = *(FunctionData **)b;
-
-	return strcmp(fda->name ? fda->name : "", fdb->name ? fdb->name : "");
+static inline void
+ASWindow2func_data( FunctionCode func, ASWindow *asw, FunctionData *fdata, char *scut, Bool icon_name ) 
+{
+    fdata->func = F_RAISE_IT;
+    fdata->name = mystrdup(icon_name ? ASWIN_ICON_NAME(asw) : ASWIN_NAME(asw));
+	if( !icon_name )
+	 	fdata->name_encoding = ASWIN_NAME_ENCODING(asw) ;
+    fdata->func_val[0] = (long) asw;
+    fdata->func_val[1] = (long) asw->w;
+	if (++(*scut) == ('9' + 1))
+		(*scut) = 'A';		/* Next shortcut key */
+    fdata->hotkey = (*scut);
 }
 
 MenuData *
@@ -1558,77 +1564,59 @@ make_desk_winlist_menu(  ASWindowList *list, int desk, int sort_order, Bool icon
     MenuData *md ;
     FunctionData  fdata ;
     char          scut = '0';                  /* Current short cut key */
+    ASWindow **clients;
+    int i, max_i;
 
     if( list == NULL )
         return NULL;;
+    
+	clients = PVECTOR_HEAD(ASWindow*,list->circulate_list);
+    max_i = PVECTOR_USED(list->circulate_list);
 
     if( IsValidDesk( desk ) )
         sprintf( menu_name, "Windows on Desktop #%d", desk );
     else
         sprintf( menu_name, "Windows on All Desktops" );
 
-    if( (md = CreateMenuData (menu_name)) == NULL )
+    if( (md = create_menu_data (menu_name)) == NULL )
         return NULL;
-
-    purge_menu_data_items( md );
 
     memset(&fdata, 0x00, sizeof(FunctionData));
     fdata.func = F_TITLE ;
     fdata.name = mystrdup(menu_name);
     add_menu_fdata_item( md, &fdata, NULL, NULL );
 
-    if( sort_order == ASO_Circulation )
-    {
-        ASWindow **clients = PVECTOR_HEAD(ASWindow*,list->circulate_list);
-        int i = -1, max_i = PVECTOR_USED(list->circulate_list);
-        while( ++i < max_i )
+	if( sort_order == ASO_Alpha ) 
+	{
+		FunctionData **menuitems = safecalloc(sizeof(FunctionData *), max_i);
+		int numitems = 0;
+        
+		for( i = 0 ; i < max_i ; ++i ) 
+		{
+            if ((ASWIN_DESK(clients[i]) == desk || !IsValidDesk(desk)) && !ASWIN_HFLAGS(clients[i], AS_SkipWinList)) 
+			{
+				menuitems[numitems] = safecalloc(1, sizeof(FunctionData));
+				ASWindow2func_data( F_RAISE_IT, clients[i], menuitems[numitems], &scut, icon_name ); 
+				++numitems;
+            }
+        }
+		qsort(menuitems, numitems, sizeof(FunctionData *), compare_func_data_name);
+		for( i = 0 ; i < numitems ; ++i ) 
+		{
+			add_menu_fdata_item( md, menuitems[i], NULL, get_flags( Scr.Feel.flags, WinListHideIcons) ? NULL : get_window_icon_image(clients[i]));
+			safefree(menuitems[i]); /* scrubba-dub-dub */
+		}
+		safefree(menuitems);
+    } else /* if( sort_order == ASO_Circulation || sort_order == ASO_Stacking ) */
+	{
+        for( i = 0 ; i < max_i ; ++i ) 
         {
             if ((ASWIN_DESK(clients[i]) == desk || !IsValidDesk(desk)) && !ASWIN_HFLAGS(clients[i], AS_SkipWinList))
 			{
-                fdata.func = F_RAISE_IT ;
-                fdata.name = mystrdup(icon_name? ASWIN_ICON_NAME(clients[i]) : ASWIN_NAME(clients[i]));
-				if( !icon_name )
-	 				fdata.name_encoding = ASWIN_NAME_ENCODING(clients[i]) ;
-				LOCAL_DEBUG_OUT( "item's encoding = %d, name = \"%s\"", fdata.name_encoding,
-				fdata.name );
-                fdata.func_val[0] = (long) clients[i];
-                fdata.func_val[1] = (long) clients[i]->w;
-		if (++scut == ('9' + 1))
-			scut = 'A';		   /* Next shortcut key */
-                fdata.hotkey = scut;
+				ASWindow2func_data( F_RAISE_IT, clients[i], &fdata, &scut, icon_name ); 
                 add_menu_fdata_item( md, &fdata, NULL, get_flags( Scr.Feel.flags, WinListHideIcons)? NULL : get_window_icon_image(clients[i]));
             }
         }
-    } else if( sort_order == ASO_Alpha ) {
-        ASWindow **clients = PVECTOR_HEAD(ASWindow*,list->circulate_list);
-        int i = -1, max_i = PVECTOR_USED(list->circulate_list);
-	FunctionData **menuitems = safecalloc(sizeof(FunctionData *), max_i);
-    	FunctionData *sfdata;
-	int numitems = 0;
-        while( ++i < max_i ) {
-            if ((ASWIN_DESK(clients[i]) == desk || !IsValidDesk(desk)) && !ASWIN_HFLAGS(clients[i], AS_SkipWinList)) {
-		sfdata = safecalloc(1, sizeof(FunctionData));
-                sfdata->func = F_RAISE_IT;
-                sfdata->name = mystrdup(icon_name ? ASWIN_ICON_NAME(clients[i]) : ASWIN_NAME(clients[i]));
-				if( !icon_name )
-	 				sfdata->name_encoding = ASWIN_NAME_ENCODING(clients[i]) ;
-                sfdata->func_val[0] = (long) clients[i];
-                sfdata->func_val[1] = (long) clients[i]->w;
-		if (++scut == ('9' + 1))
-			scut = 'A';		/* Next shortcut key */
-                sfdata->hotkey = scut;
-		menuitems[numitems++] = sfdata;
-            }
-        }
-	qsort(menuitems, numitems, sizeof(FunctionData *), make_desk_winlist_menu_strcmp);
-	i = 0;
-	while (i < numitems) {
-		add_menu_fdata_item( md, menuitems[i], NULL, get_flags( Scr.Feel.flags, WinListHideIcons) ? NULL : get_window_icon_image(clients[i]));
-		safefree(menuitems[i++]); /* scrubba-dub-dub */
-	}
-	safefree(menuitems);
-    } else if( sort_order == ASO_Stacking ) {
-    } else {
     }
     return md;
 }

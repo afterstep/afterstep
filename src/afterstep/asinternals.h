@@ -652,6 +652,7 @@ void ShutdownModules(Bool dont_free_memory);
 void RunCommand (FunctionData * fdata, unsigned int channel, Window w);
 
 void FlushAllQueues();
+MenuData *make_stop_module_menu(  int sort_order );
 
 /******************************* outline.c ********************************/
 void MoveOutline( struct MoveResizeData * pdata );

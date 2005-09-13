@@ -400,6 +400,24 @@ find_window_box( ASFeel *feel, const char *name )
  * Menus :
  *************************************************************************/
 void
+menu_data_destroy(ASHashableValue value, void *data)
+{
+    MenuData *md = data ;
+LOCAL_DEBUG_CALLER_OUT( "menu_data_destroy(\"%s\", %p)", (char*)value, data );
+    if( (char*)value )
+        free( (char*)value );
+    if( md )
+    {
+        if( md->magic == MAGIC_MENU_DATA )
+        {
+            if( md->name == (char*)value )
+                md->name = NULL ;
+			destroy_menu_data( &md ); 
+        }
+    }
+}
+
+void
 init_list_of_menus(ASHashTable **list, Bool force)
 {
     if( list == NULL ) return ;

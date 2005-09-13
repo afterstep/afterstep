@@ -124,6 +124,7 @@ TermDef       FuncTerms[F_FUNCTIONS_NUM + 1] = {
 #ifndef NO_WINDOWLIST
 	FUNC_TERM2 (USES_NUMVALS, "WindowList", 10, F_WINDOWLIST),	/* WindowList [arg1 arg2] */
 #endif
+	FUNC_TERM ("StopModuleList", 14, F_STOPMODULELIST),	/* StopModuleList "name" */
 	FUNC_TERM2 (NEED_NAME, "PopUp", 5, F_POPUP),	/* PopUp    "popup_name" [popup_name] */
 	FUNC_TERM2 (NEED_NAME, "Function", 8, F_FUNCTION),	/* Function "function_name" [function_name] */
 	FUNC_TERM ("MiniPixmap", 10, F_MINIPIXMAP),	/* MiniPixmap "name" */

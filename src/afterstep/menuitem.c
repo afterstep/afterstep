@@ -85,9 +85,12 @@ FindPopup (const char *name, int quiet)
 MenuData     *
 CreateMenuData (char *name)
 {
+	MenuData *md;
     if( Scr.Feel.Popups == NULL )
         init_list_of_menus(&(Scr.Feel.Popups), True);
-    return new_menu_data( Scr.Feel.Popups, name );
+    md = new_menu_data( Scr.Feel.Popups, name );
+	md->recent_items = Scr.Feel.recent_submenu_items ;
+	return md;
 }
 
 void print_func_data(const char *file, const char *func, int line, FunctionData *data);

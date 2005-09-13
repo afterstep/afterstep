@@ -43,6 +43,7 @@
 #define STOP_LONG_DRAW_OPERATION    ungrab_server()
 
 
+
 static ASMenu *ASTopmostMenu = NULL;
 
 ASHints *make_menu_hints( ASMenu *menu );
@@ -86,7 +87,7 @@ free_asmenu_item( ASMenuItem *item )
 {
     if( item->bar )
         destroy_astbar(&(item->bar) );
-    item->submenu = NULL ;
+	free_func_data (&(item->fdata));
 }
 
 void destroy_asmenu(ASMenu **pmenu);
@@ -192,6 +193,8 @@ LOCAL_DEBUG_CALLER_OUT( "top(%p)->supermenu(%p)->menu(%p)->submenu(%p)", ASTopmo
     }
 }
 
+#define FDataPopupName(fdata)   ((fdata).text)
+
 static void
 set_asmenu_item_data( ASMenuItem *item, MenuDataItem *mdi )
 {
@@ -239,21 +242,34 @@ LOCAL_DEBUG_OUT( "item(\"%s\")->minipixmap(\"%s\")->icon(%p)", mdi->item?mdi->it
     /* optional menu items : */
     /* add label */
     if( mdi->item )
+	{	
         add_astbar_label( item->bar, 3, 0, 0, ALIGN_LEFT|ALIGN_VCENTER, 0, 0, mdi->item,
 		mdi->fdata->name_encoding );
+		item->first_sym = mdi->item[0] ;
+	}
     /* add hotkey */
     if( mdi->item2 )
         add_astbar_label( item->bar, 4, 0, 0, ALIGN_RIGHT|ALIGN_VCENTER, 0, 0, mdi->item2, mdi->fdata->name_encoding );
 
     item->flags = 0 ;
-    if( mdi->fdata->func == F_POPUP )
+
+	if( 
+#ifndef NO_WINDOWLIST
+		mdi->fdata->func == F_WINDOWLIST ||
+#endif		   
+		mdi->fdata->func == F_STOPMODULELIST)
+	{	
+		set_flags( item->flags, AS_MenuItemHasSubmenu );
+	}else if( mdi->fdata->func == F_POPUP )
     {
-        if( (item->submenu = FindPopup (mdi->fdata->text, True)) == NULL )
+		MenuData *submenu = FindPopup (FDataPopupName(*(mdi->fdata)), True);
+        if( submenu == NULL )
             set_flags( item->flags, AS_MenuItemDisabled );
 		else
 		{
-			MenuDataItem *smdi = item->submenu->first ;
+			MenuDataItem *smdi = submenu->first ;
 
+			set_flags( item->flags, AS_MenuItemHasSubmenu );
 			while( smdi ) 
 			{
 				if( smdi->fdata->func != F_TITLE )
@@ -266,7 +282,7 @@ LOCAL_DEBUG_OUT( "item(\"%s\")->minipixmap(\"%s\")->icon(%p)", mdi->item?mdi->it
     }else if( get_flags( mdi->flags, MD_Disabled ) || mdi->fdata->func == F_NOP )
         set_flags( item->flags, AS_MenuItemDisabled );
 
-    item->fdata = mdi->fdata ;
+	dup_func_data (&(item->fdata), mdi->fdata);
 }
 
 static Bool
@@ -315,7 +331,7 @@ LOCAL_DEBUG_OUT( "item.bar(%p)->look(%p)", item->bar, look );
     /* delete tile from Popup arrow cell : */
     delete_astbar_tile( item->bar, MI_POPUP_IDX );
     /* now readd it as proper type : */
-    if( look->MenuArrow && item->fdata->func == F_POPUP )
+    if( look->MenuArrow && get_flags( item->flags, AS_MenuItemHasSubmenu ) )
         add_astbar_icon( item->bar, 7, 0, 0, ALIGN_VCENTER, look->MenuArrow->image );
     else
         add_astbar_spacer( item->bar, 7, 0, 0, NO_ALIGN, arrow_space, 1 );
@@ -425,9 +441,10 @@ render_asmenu_bars( ASMenu *menu, Bool force )
 /* midium level ASMenu functionality :                                      */
 /*************************************************************************/
 static unsigned int
-extract_recent_subitems( MenuData *md, MenuDataItem **subitems, unsigned int max_subitems )
+extract_recent_subitems( char *submenu_name, MenuDataItem **subitems, unsigned int max_subitems )
 {
-    int used = 0 ;
+	MenuData *md = FindPopup (submenu_name, True);
+	int used = 0 ;
     MenuDataItem *smdi = md->first ;
     while( smdi != NULL )
     {
@@ -492,9 +509,9 @@ set_asmenu_data( ASMenu *menu, MenuData *md, Bool first_time )
                 set_asmenu_item_data( item, mdi );
 
                 ++real_items_num;
-                if( mdi->fdata->func == F_POPUP && item->submenu != NULL && subitems != NULL )
+                if( item->fdata.func == F_POPUP && !get_flags( item->flags, AS_MenuItemDisabled ) && subitems != NULL )
                 {
-                    int used = extract_recent_subitems( item->submenu, subitems, md->recent_items );
+                    int used = extract_recent_subitems( FDataPopupName(item->fdata), subitems, md->recent_items );
                     if( used > 0 )
                     {
                         items_num += used ;
@@ -774,31 +791,51 @@ LOCAL_DEBUG_OUT("adj_pos(%d)->curr_y(%d)->items_num(%d)->vis_items_num(%d)->sel_
 }
 
 static inline void
-run_item_submenu( ASMenu *menu, int item )
+run_item_submenu( ASMenu *menu, int item_no )
 {
-LOCAL_DEBUG_CALLER_OUT( "%p, %d, submenu(%p)", menu, item, menu->items[item].submenu );
-    if( menu->items[item].submenu && !get_flags( menu->items[item].flags, AS_MenuItemDisabled ) )
-    {
-        int x = menu->main_canvas->root_x+(int)menu->main_canvas->bw ;
-        int y ;
-        ASQueryPointerRootXY( &x, &y );
-        x -= 5 ;
+	ASMenuItem *item = &(menu->items[item_no]);
+LOCAL_DEBUG_CALLER_OUT( "%p, %d", menu, item_no );
+    if( !get_flags( item->flags, AS_MenuItemDisabled ) )
+	{
+		MenuData *submenu = NULL ;
+		if( item->fdata.func == F_POPUP )
+			submenu = FindPopup( FDataPopupName(item->fdata), True );
+		else if( item->fdata.func == F_STOPMODULELIST ) 
+			submenu = make_stop_module_menu(  Scr.Feel.winlist_sort_order );
+#ifndef NO_WINDOWLIST
+		else if( item->fdata.func == F_WINDOWLIST ) 
+		{	
+			submenu = make_desk_winlist_menu( Scr.Windows, 
+											  (item->fdata.text == NULL) ? 
+											  Scr.CurrentDesk: item->fdata.func_val[0], 
+											  Scr.Feel.winlist_sort_order, False );
+		}
+#endif		
+		if( submenu )
+    	{
+        	int x = menu->main_canvas->root_x+(int)menu->main_canvas->bw ;
+        	int y ;
+        	ASQueryPointerRootXY( &x, &y );
+        	x -= 5 ;
 #if 0
-        if( x  < menu->main_canvas->root_x + (int)(menu->item_width/3) )
-        {
-            int max_dx = Scr.MyDisplayWidth / 40 ;
-            if( menu->main_canvas->root_x + (int)(menu->item_width/3) - x  < max_dx )
-                x = menu->main_canvas->root_x + (int)(menu->item_width/3) ;
-            else
-                x += max_dx ;
-        }
+        	if( x  < menu->main_canvas->root_x + (int)(menu->item_width/3) )
+        	{
+            	int max_dx = Scr.MyDisplayWidth / 40 ;
+            	if( menu->main_canvas->root_x + (int)(menu->item_width/3) - x  < max_dx )
+                	x = menu->main_canvas->root_x + (int)(menu->item_width/3) ;
+            	else
+                	x += max_dx ;
+        	}
 #endif
-        y = menu->main_canvas->root_y+(menu->item_height*(item+1-(int)menu->top_item)) - 10 ;
-/*	if( x > menu->main_canvas->root_x+menu->item_width-5 )
-	    x = menu->main_canvas->root_x+menu->item_width-5 ;
-*/      close_asmenu_submenu( menu );
-        menu->submenu = run_submenu( menu, menu->items[item].submenu, x, y);
-    }
+        	y = menu->main_canvas->root_y+(menu->item_height*(item_no+1-(int)menu->top_item)) - 10 ;
+	/*	if( x > menu->main_canvas->root_x+menu->item_width-5 )
+	    	x = menu->main_canvas->root_x+menu->item_width-5 ;
+	*/      close_asmenu_submenu( menu );
+        	menu->submenu = run_submenu( menu, submenu, x, y);
+			if( item->fdata.func != F_POPUP )
+    			destroy_menu_data( &submenu );
+		}
+	}
 }
 
 void
@@ -834,7 +871,7 @@ LOCAL_DEBUG_CALLER_OUT( "%p,%d", menu, pressed );
                 set_astbar_pressed( menu->items[pressed].bar, menu->main_canvas, True );
             set_menu_item_used( menu, menu->items[pressed].source );
 			
-			if( menu->items[pressed].submenu != NULL ) 
+			if( get_flags( menu->items[pressed].flags, AS_MenuItemHasSubmenu) ) 
 			{
 				if( keyboard_event ) 
 				{
@@ -857,11 +894,10 @@ LOCAL_DEBUG_OUT( "pressed(%d)->old_pressed(%d)->focused(%d)", pressed, menu->pre
 		if( item_no >= 0 && (pressed < 0 || keyboard_event))   
     	{
         	ASMenuItem *item = &(menu->items[item_no]);
-        	if( !get_flags(item->flags, AS_MenuItemDisabled) &&
-            	 item->fdata->func != F_POPUP )
+        	if( get_flags(item->flags, AS_MenuItemDisabled|AS_MenuItemHasSubmenu) == 0 )
         	{
             	set_menu_item_used( menu, item->source );
-            	ExecuteFunctionForClient( item->fdata, menu->client_window );
+            	ExecuteFunctionForClient( &(item->fdata), menu->client_window );
             	if( !menu->pinned )
                 	close_asmenu( &ASTopmostMenu );
         	}
@@ -1102,17 +1138,14 @@ on_menu_keyboard_event( ASInternalWindow *asiw, ASEvent *event )
 			LOCAL_DEBUG_OUT( "processing keysym [%c]", (char)keysym );
 			/* Search menu for matching hotkey */
 			for( i = 0 ; i < menu->items_num ; i++ )
-				if( menu->items[i].fdata->hotkey == keysym )
+				if( menu->items[i].fdata.hotkey == keysym )
 				{
 					press_menu_item( menu, i, True );
 					return ;
 				}
 			for( i = 0 ; i < menu->items_num ; i++ )
 			{
-				char *n = menu->items[i].source->item ;
-		
-				LOCAL_DEBUG_OUT( "name = %s", n?n:"(null)" );	  
-				if( n != NULL && n[0] == keysym )
+				if( menu->items[i].first_sym == keysym )
 				{
 					press_menu_item( menu, i, True );
 					return ;
@@ -1144,8 +1177,8 @@ on_menu_keyboard_event( ASInternalWindow *asiw, ASEvent *event )
 				case XK_space :
 					if( menu->selected_item	>= 0 ) 
 					{	
-						if( menu->items[menu->selected_item].submenu || keysym != XK_Right ) 
-		 				press_menu_item( menu, menu->selected_item, True );		
+						if( get_flags( menu->items[menu->selected_item].flags, AS_MenuItemHasSubmenu) || keysym != XK_Right ) 
+		 					press_menu_item( menu, menu->selected_item, True );		
 					}
 			}	 
 		}	
@@ -1425,9 +1458,9 @@ run_submenu( ASMenu *supermenu, MenuData *md, int x, int y )
     ASMenu *menu = NULL ;
     if( md )
     {
-        menu = create_asmenu(md->name);
-		menu->rendered = False ;
-        set_asmenu_data( menu, md, True );
+		menu = create_asmenu(md->name);
+        menu->rendered = False ;
+		set_asmenu_data( menu, md, True );
         set_asmenu_look( menu, &Scr.Look );
         /* will set scroll position when ConfigureNotify arrives */
         menu->supermenu = supermenu;

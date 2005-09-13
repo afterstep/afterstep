@@ -37,6 +37,7 @@ typedef enum FunctionCode{
 #ifndef NO_WINDOWLIST
   F_WINDOWLIST,
 #endif
+  F_STOPMODULELIST,
   F_POPUP,
   F_FUNCTION,
   F_MINIPIXMAP,
@@ -143,7 +144,7 @@ F_FUNCTIONS_NUM
 #define IsInternFunc(f)  ((f)>F_INTERNAL_FUNC_START&&(f)<F_FUNCTIONS_NUM)
 #define IsValidFunc(f)   ((f)>=0&&(f)<F_FUNCTIONS_NUM)
 #define IsSwallowFunc(f) ((f)>=F_SWALLOW_FUNC_START&&(f)<F_SWALLOW_FUNC_END)
-#define IsExecFunc(f)    ((f)>= F_EXEC && (f)<=F_KILLMODULEBYNAME)
+#define IsExecFunc(f)    ((f)>= F_EXEC && (f)< F_KILLMODULEBYNAME)
 #define IsMinipixmapFunc(f) ((f) >= F_MINIPIXMAP && (f) <= F_LARGE_MINIPIXMAP )
 
 
@@ -268,8 +269,9 @@ ComplexFunction *new_complex_func( struct ASHashTable *list, char *name );
 ComplexFunction *find_complex_func( struct ASHashTable *list, char *name );
 void menu_data_item_destroy(MenuDataItem *mdi);
 void purge_menu_data_items(MenuData *md);
-void menu_data_destroy(ASHashableValue value, void *data);
+void destroy_menu_data( MenuData **pmd );
 void init_list_of_menus ( ASHashTable **list, Bool force);
+MenuData *create_menu_data( char *name );
 MenuData *new_menu_data ( ASHashTable *list, char *name );
 MenuData *find_menu_data( ASHashTable *list, char *name );
 MenuDataItem *new_menu_data_item( MenuData *menu );
@@ -279,6 +281,10 @@ void add_menu_fdata_item( MenuData *menu, FunctionData *fdata, char *minipixmap,
 void menu_data_item_from_func (MenuData * menu, FunctionData * fdata);
 struct ASImage *check_scale_menu_pmap( struct ASImage *im, ASFlagType flags ); 
 void reload_menu_pmaps( MenuData *menu );
+
+/* usefull to qsort array of FunctionData pointers : */
+int compare_func_data_name(const void *a, const void *b);
+
 
 void print_func_data(const char *file, const char *func, int line, FunctionData *data);
 

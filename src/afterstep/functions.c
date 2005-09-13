@@ -88,6 +88,7 @@ void save_workspace_func_handler( FunctionData *data, ASEvent *event, int module
 void test_func_handler( FunctionData *data, ASEvent *event, int module );
 void screenshot_func_handler( FunctionData *data, ASEvent *event, int module );
 void swallow_window_func_handler( FunctionData *data, ASEvent *event, int module );
+void stopmodulelist_func_handler( FunctionData *data, ASEvent *event, int module );
 
 
 /* handlers initialization function : */
@@ -185,6 +186,8 @@ void SetupFunctionHandlers()
 #ifndef NO_WINDOWLIST
     function_handlers[F_WINDOWLIST]         = windowlist_func_handler ;
 #endif /* ! NO_WINDOWLIST */
+	function_handlers[F_STOPMODULELIST]     = stopmodulelist_func_handler ;
+
     function_handlers[F_QUICKRESTART]       = quickrestart_func_handler ;
     function_handlers[F_SEND_WINDOW_LIST]   = send_window_list_func_handler ;
     function_handlers[F_Test]               = test_func_handler ;
@@ -1498,9 +1501,24 @@ void windowlist_func_handler( FunctionData *data, ASEvent *event, int module )
 #ifndef NO_WINDOWLIST
     MenuData *md =  make_desk_winlist_menu( Scr.Windows, data->text == NULL ? event->scr->CurrentDesk: data->func_val[0], Scr.Feel.winlist_sort_order, False );
     if( md != NULL )
-	run_menu_data( md );
+	{	
+		run_menu_data( md );
+		destroy_menu_data( &md );
+	}	
 #endif /* ! NO_WINDOWLIST */
 }
+
+void stopmodulelist_func_handler( FunctionData *data, ASEvent *event, int module )
+{
+    MenuData *md =  make_stop_module_menu(  Scr.Feel.winlist_sort_order );
+    if( md != NULL )
+	{	
+		run_menu_data( md );
+		destroy_menu_data( &md );
+	}	 
+
+}
+
 
 void quickrestart_func_handler( FunctionData *data, ASEvent *event, int module )
 {
