@@ -761,7 +761,8 @@ end_imagedata_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *sta
 	close_link(state);
 	if( state->doc_type == DocType_HTML || state->doc_type == DocType_PHP	)
 		fwrite( "</IMG>", 1, 6, state->dest_fp );
-		fprintf( state->dest_fp, "\n", NULL );
+//		fprintf( state->dest_fp, "\n", NULL );
+		fputc( '\n', state->dest_fp );
 }
 
 
