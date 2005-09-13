@@ -115,7 +115,7 @@ write_doc_header( ASXMLInterpreterState *state )
 				"<td width=50%%><FONT face=\"Tahoma, Arial, Verdana, Helvetica\" size=\"-1\">%s</FONT></td>"
 				"</tr></table><br><hr>\n", state->display_name, state->display_purpose );
 			else
-				fprintf( state->dest_fp, "<br><b>%s</b><br><br><hr>\n", state->display_name);
+				fprintf( state->dest_fp, "<br><b>%s</b><br><br>\n", state->display_name);
 			for( i = 0 ; i < DocClass_TopicIndex ; ++i ) 
 			{
 				if( get_flags( state->doc_class_mask, (0x01<<i)	) )

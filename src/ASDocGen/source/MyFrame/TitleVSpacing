@@ -1,6 +1,6 @@
 <varlistentry id="options.TitleVSpacing">
-	<term>TitleVSpacing</term>
+	<term>TitleVSpacing <emphasis remap='I'>value</emphasis></term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Defines the space in pixel to insert below and on top of the window title, buttons and spacers.
 	</listitem>
 </varlistentry>

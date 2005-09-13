@@ -1,6 +1,7 @@
 <varlistentry id="options.TitleSStyle">
-	<term>TitleSStyle</term>
+	<term>TitleSStyle <emphasis remap='I'>MyStyle</emphasis></term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Alias for TitleStickyStyle.</para>
 	</listitem>
 </varlistentry>
+

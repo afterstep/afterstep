@@ -1,6 +1,6 @@
 <varlistentry id="options.RightBtnBackground">
 	<term>RightBtnBackground</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Defines the background to be used for the right buttons.</para>
 	</listitem>
 </varlistentry>

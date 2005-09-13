@@ -1,6 +1,6 @@
 <varlistentry id="options.FrameStickyStyle">
-	<term>FrameStickyStyle</term>
+	<term>FrameStickyStyle <emphasis remap='I'>MyStyle</emphasis></term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Defines the MyStyle to apply to the window frame if window is in sticky state.</para>
 	</listitem>
 </varlistentry>

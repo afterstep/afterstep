@@ -1,7 +1,7 @@
 <varlistentry id="options.RightTitleSpacerBackAlign">
 	<term>RightTitleSpacerBackAlign</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Defines the alignment of the background of the (by default) inner spacer, right of the window title.</para>
 		<para>See Also: <ulink url="Align#synopsis">Alignment flags</ulink> for further details.</para>
 	</listitem>
 </varlistentry>

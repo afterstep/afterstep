@@ -1,7 +1,7 @@
 <varlistentry id="options.SideUBevel">
 	<term>SideUBevel</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Alias for SideUnfocsedBevel.</para>
 		<para>See Also: <ulink url="Bevel#synopsis">Bevel flags</ulink> for further details.</para>
 	</listitem>
 </varlistentry>

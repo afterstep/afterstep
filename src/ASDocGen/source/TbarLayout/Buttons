@@ -1,6 +1,6 @@
 <varlistentry id="options.Buttons">
 	<term>Buttons</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Specifies the group of buttons on the left and right side of the titlebar.</para>
 	</listitem>
 </varlistentry>

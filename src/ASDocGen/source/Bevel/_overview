@@ -1,2 +1,6 @@
 <section label="overview" id="overview">
+<para>By default all bevels are on and default to Extra. Bevels are a simple
+way to produce a 3d effect for buttons and widgets in general. Defending on the
+options discribed below, this effect can be configured to your liking. Please note
+that multiple choices are possible, just separate the option with a comma.</para>
 </section>

@@ -1,6 +1,7 @@
 <varlistentry id="options.TitleHSpacing">
-	<term>TitleHSpacing</term>
+	<term>TitleHSpacing <emphasis remap='I'>value</emphasis></term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Defines the space in pixel to insert between window title and the buttons/spacers.
+		Please note that CondenseTitlebar is influencing the behaviour of this option.</para>
 	</listitem>
 </varlistentry>

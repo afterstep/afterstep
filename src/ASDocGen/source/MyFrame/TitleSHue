@@ -1,6 +1,6 @@
 <varlistentry id="options.TitleSHue">
 	<term>TitleSHue</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Alias for TitleStickyHue.</para>
 	</listitem>
 </varlistentry>

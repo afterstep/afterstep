@@ -1,6 +1,6 @@
 <varlistentry id="options.VerticalLabel">
 	<term>VerticalLabel</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Displays the label of the Pager vertically (on the left side of the Pager).</para>
 	</listitem>
 </varlistentry>

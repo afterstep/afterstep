@@ -1,5 +1,5 @@
 <varlistentry id="options.DeskAnimationType">
-	<term>DeskAnimationType</term>
+	<term>DeskAnimationType <emphasis remap='I'>value</emphasis></term>
 	<listitem>
 		<para>This requests particular type of animation to be rendered while switching desktops. Available values are in range of 0 to 12.</para>
 	</listitem>

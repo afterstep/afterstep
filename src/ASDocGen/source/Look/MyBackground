@@ -1,7 +1,8 @@
 <varlistentry id="options.MyBackground">
 	<term>MyBackground <emphasis remap='I'>"background_name"</emphasis></term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Specifies a background definition. Please note that only desktops can have different backgrounds
+		- the viewports inside of a desktop are limited to the same background.</para>
 		<para>See Also: <ulink url="MyBackground#synopsis">MyBackground definition</ulink> for further details.</para>
 	</listitem>
 </varlistentry>

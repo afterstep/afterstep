@@ -1,5 +1,5 @@
 <varlistentry id="options.DeskAnimationSteps">
-	<term>DeskAnimationSteps</term>
+	<term>DeskAnimationSteps <emphasis remap='I'>steps</emphasis></term>
 	<listitem>
 		<para>Specifies how many animation steps should be rendered while switching desktops/removing blue cover.
 Reduce that number to speedup animation.</para>

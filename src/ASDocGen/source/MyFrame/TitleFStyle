@@ -1,6 +1,6 @@
 <varlistentry id="options.TitleFStyle">
-	<term>TitleFStyle</term>
+	<term>TitleFStyle <emphasis remap='I'>MyStyle</emphasis></term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Alias for TitleFocusedStyle.</para>
 	</listitem>
 </varlistentry>

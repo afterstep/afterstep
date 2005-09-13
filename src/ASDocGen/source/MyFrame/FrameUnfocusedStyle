@@ -1,6 +1,6 @@
 <varlistentry id="options.FrameUnfocusedStyle">
-	<term>FrameUnfocusedStyle</term>
+	<term>FrameUnfocusedStyle <emphasis remap='I'>MyStyle</emphasis></term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Defines the MyStyle to apply to the window frame if window is in unfocused state.</para>
 	</listitem>
 </varlistentry>

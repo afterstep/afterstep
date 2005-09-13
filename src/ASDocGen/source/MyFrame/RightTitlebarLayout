@@ -1,7 +1,8 @@
 <varlistentry id="options.RightTitlebarLayout">
-	<term>RightTitlebarLayout</term>
+	<term>RightTitlebarLayout <emphasis remap='I'>[Buttons] | [Spacer] | [TitleSpacer]</emphasis></term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Defines the order of the elements in the titlebar left of the window title, where default is TitleSpacer, Buttons, Spacer.</para>
 		<para>See Also: <ulink url="TbarLayout#synopsis">Titlebar Layout Flags</ulink> for further details.</para>
 	</listitem>
 </varlistentry>
+

@@ -1,7 +1,8 @@
 <varlistentry id="options.MyFrame">
 	<term>MyFrame <emphasis remap='I'>"frame_name"</emphasis></term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Specifies a frame definition (window decor in general)  and is covered in the MyFrame section of the documentation.
+		Please also note that window decor can be defined on a per window basis if needed in the database.</para>
 		<para>See Also: <ulink url="MyFrame#synopsis">MyFrame definition</ulink> for further details.</para>
 	</listitem>
 </varlistentry>

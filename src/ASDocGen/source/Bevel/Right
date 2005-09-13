@@ -1,6 +1,6 @@
 <varlistentry id="options.Right">
 	<term>Right</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Draw extra line on the right of the widget.</para>
 	</listitem>
 </varlistentry>

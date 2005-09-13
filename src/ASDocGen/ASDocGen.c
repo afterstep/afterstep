@@ -52,7 +52,6 @@ SyntaxDef* TopLevelSyntaxes[] =
     &AnimateSyntax,
     &AudioSyntax,
 	&ArrangeSyntax,
-    &WinCommandSyntax,
 	NULL
 };	 
 
@@ -927,7 +926,7 @@ gen_index( const char *dest_dir, const char *file, ASDocType doc_type, Bool user
 			if( doc_type == DocType_PHP )
 			{	
 				fprintf( state.dest_fp, PHPXrefFormat, "visualdoc","Developer documentation index","API/index", "" );
-				fprintf( state.dest_fp, PHPXrefFormat, "visualdoc","Installed data files catalogue","data/index", "" );
+				fprintf( state.dest_fp, PHPXrefFormat, "graphics","Installed data files catalogue","index", "" );
 			}else if( doc_type == DocType_HTML )
 			{	
  				fprintf( state.dest_fp,  "<A href=\"API/index.html\">Developer documentation index</A>&nbsp;&nbsp;\n" );
@@ -938,7 +937,7 @@ gen_index( const char *dest_dir, const char *file, ASDocType doc_type, Bool user
 			if( doc_type == DocType_PHP )
 			{
 				fprintf( state.dest_fp, PHPXrefFormat, "visualdoc","User documentation index","index", "" );
-				fprintf( state.dest_fp, PHPXrefFormat, "visualdoc","Installed data files catalogue","data/index", "" );
+				fprintf( state.dest_fp, PHPXrefFormat, "graphics","Installed data files catalogue","index", "" );
 			}
 			else if( doc_type == DocType_HTML )
 			{

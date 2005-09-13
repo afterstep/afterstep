@@ -1,6 +1,6 @@
 <varlistentry id="options.TitleSpacer">
 	<term>TitleSpacer</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Specifies the second spacer available (by default the one next to the window title).</para>
 	</listitem>
 </varlistentry>

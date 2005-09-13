@@ -380,7 +380,14 @@ close_link( ASXMLInterpreterState *state )
 			fwrite( "</A>", 1, 4, state->dest_fp );	   
 		}else if( state->doc_type == DocType_PHP )
 		{
-			fprintf( state->dest_fp, "\",\"%s\",$srcunset,$subunset) ?>", state->curr_url_page);	   
+			if ( TopicIndexName == NULL )
+			{
+			    fprintf( state->dest_fp, "\",\"%s\",\"%s\",$subunset) ?>", state->curr_url_page, state->display_name);
+			}
+			else
+			{
+			    fprintf( state->dest_fp, "\",\"%s\",$srcunset,$subunset) ?>", state->curr_url_page);
+			}
 			 							
 		}	 
 		clear_flags( state->flags, ASXMLI_InsideLink|ASXMLI_LinkIsLocal|ASXMLI_LinkIsURL );
@@ -459,6 +466,11 @@ add_local_link( xml_elem_t *attr, ASXMLInterpreterState *state )
 				fwrite( "\">", 1, 2, state->dest_fp );
 			}else if( state->doc_type == DocType_PHP ) 
 			{
+			    if (TopicIndexName == NULL) /* added for php part of data catalogue */
+			    {
+				fprintf( state->dest_fp, "<? local_doc_url(\"graphics.php\",\"" );
+			    }
+			    else
 				fprintf( state->dest_fp, "<? local_doc_url(\"visualdoc.php\",\"" );
 			}
 			set_flags( state->flags, ASXMLI_InsideLink|ASXMLI_LinkIsURL  );
@@ -682,7 +694,7 @@ void
 end_term_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state )
 {
 	if( state->doc_type == DocType_HTML || state->doc_type == DocType_PHP	 )
-		fwrite( "</B></DT>", 1, 9, state->dest_fp );	
+		fwrite( "</B></DT>", 1, 9, state->dest_fp );
 	else if( state->doc_type == DocType_NROFF )
 	{	
 		fprintf( state->dest_fp, "\"\n");
@@ -727,8 +739,10 @@ start_imagedata_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *s
 			}	 
 			parm = parm->next ;
 		}		
-
-		fprintf( state->dest_fp, "<IMG src=\"%s\"", url );	
+		if (  state->doc_type == DocType_PHP ) 
+		    fprintf( state->dest_fp, "<IMG SRC=data/php/%s/%s", state->display_name, url );
+		else
+		    fprintf( state->dest_fp, "<IMG src=\"%s\"", url );
 		if( align != NULL ) 
 			fprintf( state->dest_fp, " align=\"%s\"", align );	 
 		if( valign != NULL ) 
@@ -745,8 +759,9 @@ void
 end_imagedata_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state )
 {
 	close_link(state);
-	if( state->doc_type == DocType_HTML || state->doc_type == DocType_PHP	  	)
-		fwrite( "</IMG>", 1, 6, state->dest_fp );	
+	if( state->doc_type == DocType_HTML || state->doc_type == DocType_PHP	)
+		fwrite( "</IMG>", 1, 6, state->dest_fp );
+		fprintf( state->dest_fp, "\n", NULL );
 }
 
 

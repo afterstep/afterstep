@@ -1,6 +1,6 @@
 <varlistentry id="options.None">
 	<term>None</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Do not draw anything around the widget.</para>
 	</listitem>
 </varlistentry>

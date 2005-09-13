@@ -1,7 +1,7 @@
 <varlistentry id="options.Function">
 	<term>Function</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Specifies a complex function definition and is covered in the built-in command/function.</para>
 		<para>See Also: <ulink url="Functions#synopsis">AS Function</ulink> for further details.</para>
 	</listitem>
 </varlistentry>

@@ -1,6 +1,11 @@
 <varlistentry id="options.AllowBorder">
 	<term>AllowBorder</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Denotes that beveled borders should be drawn around
+		the window frame and titlebar. This is on by default, so this
+		option is only usefull in combination with inheriting previously defined
+		window frames.
+		</para>
+		<para>See Also: Inherit MyFrame for details.</para>
 	</listitem>
 </varlistentry>

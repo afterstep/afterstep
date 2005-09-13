@@ -1,7 +1,8 @@
 <varlistentry id="options.MyStyle">
 	<term>MyStyle <emphasis remap='I'>"style_name"</emphasis></term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Specifies a MyStyle definition (which covers text and/or gradients and/or background pixmaps),
+		which can later be reused and is covered in the MyStyle section of the documentation.</para>
 		<para>See Also: <ulink url="MyStyle#synopsis">MyStyle definition</ulink> for further details.</para>
 	</listitem>
 </varlistentry>

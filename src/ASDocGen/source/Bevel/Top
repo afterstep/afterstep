@@ -1,6 +1,6 @@
 <varlistentry id="options.Top">
 	<term>Top</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Draw extra line on top of the widget.</para>
 	</listitem>
 </varlistentry>

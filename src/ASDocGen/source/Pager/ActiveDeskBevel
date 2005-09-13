@@ -1,7 +1,7 @@
 <varlistentry id="options.ActiveDeskBevel">
 	<term>ActiveDeskBevel</term>
 	<listitem>
-		<para>Defines how border around Pager desk representation of the current desk should be draw.</para>
+		<para>Defines how border around Pager desk representation of the current desk should be drawn.</para>
 		<para>See Also: <ulink url="Bevel#synopsis">Bevel flags</ulink> for further details.</para>
 		<example>
 		<literallayout>

@@ -1,6 +1,7 @@
 <varlistentry id="options.DisableSharedMemory">
 	<term>DisableSharedMemory</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Disables shared memory support in afterstep. Use this
+		if you run X remotely, or have issues with shared memory in general.</para>
 	</listitem>
 </varlistentry>

@@ -1,6 +1,6 @@
 <varlistentry id="options.Spacer">
 	<term>Spacer</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Specifies the first spacer available (by default the one next to the border of the titlebar).</para>
 	</listitem>
 </varlistentry>

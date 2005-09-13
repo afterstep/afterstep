@@ -1,6 +1,6 @@
 <varlistentry id="options.TitleUSaturation">
 	<term>TitleUSaturation</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Alias for TitleUnfocusedSaturation.</para>
 	</listitem>
 </varlistentry>

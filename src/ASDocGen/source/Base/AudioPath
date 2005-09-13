@@ -2,6 +2,6 @@
 	<term>AudioPath <emphasis remap='I'>path[:path]</emphasis></term>
 	<listitem>
 		<para>Specifies the paths to locate the audio files in.</para>
-		<para>FIXME: add proper description off suported formats.</para>
+		<para>FIXME: add proper description of suported formats.</para>
 	</listitem>
 </varlistentry>

@@ -1,6 +1,7 @@
 <varlistentry id="options.LeftSpacerBackground">
 	<term>LeftSpacerBackground</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Defines the background to be used for the (by default) leftmost spacer of the titlebar.</para>
+		<para>See Also: <ulink url="TbarLayout">Titlebar Layout</ulink> for further details.</para>
 	</listitem>
 </varlistentry>

@@ -5,8 +5,8 @@
 		See <ulink url="Align#synopsis">Align options</ulink> for further details.</para>
 		<example>
 		<literallayout>
-*PagerAlign  Center    # places title in the center both 
-                       # vertically and horizontally </literallayout>		
+*PagerAlign  Center    # places title in the center both
+                       # vertically and horizontally </literallayout>
 		</example>
 	</listitem>
 </varlistentry>

@@ -1,6 +1,6 @@
 <varlistentry id="options.TitleSCompositionMethod">
 	<term>TitleSCompositionMethod</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Alias for TitleStickyCompositionMethod.</para>
 	</listitem>
 </varlistentry>

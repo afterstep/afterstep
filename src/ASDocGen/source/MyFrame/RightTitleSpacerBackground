@@ -1,6 +1,6 @@
 <varlistentry id="options.RightTitleSpacerBackground">
 	<term>RightTitleSpacerBackground</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Defines the background of the (by default) inner spacer, right of the window title.</para>
 	</listitem>
 </varlistentry>

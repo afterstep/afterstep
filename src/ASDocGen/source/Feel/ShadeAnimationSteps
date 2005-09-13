@@ -1,5 +1,5 @@
 <varlistentry id="options.ShadeAnimationSteps">
-	<term>ShadeAnimationSteps</term>
+	<term>ShadeAnimationSteps <emphasis remap='I'>steps</emphasis></term>
 	<listitem>
 		<para>Defines how many steps to use to render animation when window gets shaded/unshaded.</para>
 	</listitem>

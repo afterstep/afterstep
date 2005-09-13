@@ -1,6 +1,8 @@
 <varlistentry id="options.TermCommand">
-	<term>TermCommand</term>
-	<listitem>
-		<para>FIXME: add proper description here.</para>
-	</listitem>
+    <term>TermCommand <emphasis remap='I'>number command</emphasis></term>
+     <listitem>
+	<para>Selects terminal emulator to be used by AfterStep when using the
+	ExecInTerm command, where the first matching one will be used.</para>
+	<para>The default number/command combination is: 0-aterm, 1-rxvt, 2-xterm</para>
+     </listitem>
 </varlistentry>

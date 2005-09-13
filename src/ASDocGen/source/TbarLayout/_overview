@@ -1,2 +1,7 @@
 <section label="overview" id="overview">
+<para>
+The TitlebarLayout is a comma separated list of elements to be placed
+in the left or right part of the titlebar of windows. Since TitlebarLayout is
+a MyFrame option, different layouts for different windows are possible.
+</para>
 </section>

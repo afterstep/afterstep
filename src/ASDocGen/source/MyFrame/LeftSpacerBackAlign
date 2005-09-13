@@ -1,7 +1,7 @@
 <varlistentry id="options.LeftSpacerBackAlign">
 	<term>LeftSpacerBackAlign</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Defines the alignment of the background of the (by default) leftmost spacer of the titlebar.</para>
 		<para>See Also: <ulink url="Align#synopsis">Alignment flags</ulink> for further details.</para>
 	</listitem>
 </varlistentry>

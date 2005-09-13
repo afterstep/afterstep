@@ -1,5 +1,5 @@
 <varlistentry id="options.Inherit">
-	<term>Inherit</term>
+	<term>Inherit <emphasis remap='I'>frame_name</emphasis></term>
 	<listitem>
 		<para>Specifies a MyFrame to inherit options from. Options from
 		frame_name will override previously specified options for

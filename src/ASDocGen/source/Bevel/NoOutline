@@ -1,6 +1,7 @@
 <varlistentry id="options.NoOutline">
 	<term>NoOutline</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Do not display the frame around the widget - if used without
+		any other option it will have the same effect as none.</para>
 	</listitem>
 </varlistentry>

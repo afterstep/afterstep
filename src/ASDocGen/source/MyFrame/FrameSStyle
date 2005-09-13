@@ -1,6 +1,6 @@
 <varlistentry id="options.FrameSStyle">
-	<term>FrameSStyle</term>
+	<term>FrameSStyle <emphasis remap='I'>MyStyle</emphasis></term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Alias for FrameStickyStyle.</para>
 	</listitem>
 </varlistentry>
