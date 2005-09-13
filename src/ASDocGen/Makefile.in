@@ -27,6 +27,16 @@ doc_xml:	do_compile
 doc_text:    	do_compile
 		@echo -n "Generating Plain Text docs ..." ; ./ASDocGen -l log.text -t plain ; echo "Done" ; touch doc_text
 
+data_php:  	do_compile
+		@echo "Generating PHP catalogue of installed data files ..." ; \
+		old_IMAGE_PATH=$(IMAGE_PATH); old_FONT_PATH=$(FONT_PATH); \
+		FONT_PATH="$HOME/.afterstep/desktop/fonts/:/usr/local/share/afterstep/desktop/fonts/:/usr/share/fonts/default/TrueType/:/usr/X11R6/lib/X11/fonts/TTF"; \
+		IMAGE_PATH="$HOME/.afterstep/desktop/icons/:/usr/local/share/afterstep/desktop/icons/:$HOME/.afterstep/desktop/:/usr/local/share/afterstep/desktop/:$HOME/.afterstep/desktop/buttons/:/usr/local/share/afterstep/desktop/buttons/:$HOME/.afterstep/backgrounds/:/usr/local/share/afterstep/backgrounds/:/usr/X11R6/include/X11/pixmaps/"; \
+		export IMAGE_PATH; export FONT_PATH; \
+		./ASDocGen -t php --data --css data_html_styles.css -S $(AFTER_SHAREDIR) -D data/php -l /log.data.php.log  ; \
+		IMAGE_PATH=$(old_IMAGE_PATH); FONT_PATH=$(old_FONT_PATH); \
+		export IMAGE_PATH; export FONT_PATH; \
+		echo "Done"
 
 ASDocGen:	do_compile doc_man doc_html
 		

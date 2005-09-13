@@ -740,7 +740,7 @@ start_imagedata_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *s
 			parm = parm->next ;
 		}		
 		if (  state->doc_type == DocType_PHP ) 
-		    fprintf( state->dest_fp, "<IMG SRC=data/php/%s/%s", state->display_name, url );
+		    fprintf( state->dest_fp, "<IMG SRC=%s/%s", state->dest_dir, url );
 		else
 		    fprintf( state->dest_fp, "<IMG src=\"%s\"", url );
 		if( align != NULL ) 
