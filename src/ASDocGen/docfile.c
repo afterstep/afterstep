@@ -86,7 +86,19 @@ write_doc_header( ASXMLInterpreterState *state )
 				fprintf( state->dest_fp, "<h1>%s</h1>\n", state->display_name );
 
 			break;
- 		case DocType_PHP :	
+ 		case DocType_PHP :
+		    if (TopicIndexName == NULL )
+		     {
+			fprintf( state->dest_fp, PHPXrefFormat, "graphics","bars","/desktop/bars/index","");
+			fprintf( state->dest_fp, PHPXrefFormat, "graphics","cursors","/desktop/cursors/index","");
+			fprintf( state->dest_fp, PHPXrefFormat, "graphics","fonts","/desktop/fonts/index","");
+			fprintf( state->dest_fp, PHPXrefFormat, "graphics","icons","/desktop/icons/index","");
+			fprintf( state->dest_fp, PHPXrefFormat, "graphics","tiles","/desktop/tiles/index","");
+			fprintf( state->dest_fp, PHPXrefFormat, "graphics","sounds","/desktop/sounds/index","");
+			fprintf( state->dest_fp, PHPXrefFormat, "graphics","buttons","/desktop/buttons/index","");
+		     }
+		    else
+		     {
 			fprintf( state->dest_fp, PHPXrefFormat, "documentation","Preface","", "" );
 			fprintf( state->dest_fp, PHPXrefFormat, "visualdoc","Introduction","visualselect", "" );
 
@@ -108,6 +120,7 @@ write_doc_header( ASXMLInterpreterState *state )
 
 			fprintf( state->dest_fp, PHPXrefFormat, "visualdoc","F.A.Q.","faq", "" );
 			fprintf( state->dest_fp, PHPXrefFormat, "visualdoc","Copyright","copyright", "" );
+		     }
 			fprintf( state->dest_fp, "<hr>\n" );
 			if( state->display_purpose[0] != '\0' )
 				fprintf( state->dest_fp, "<br><table width=100%%><tr>"
