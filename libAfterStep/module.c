@@ -425,10 +425,36 @@ ConnectAfterStep (send_data_type message_mask, send_data_type lock_on_send_mask)
         show_error("unable to establish connection to AfterStep");
 	}else
 	{	
+		int arg_len = 0 ; 
+		int i ; 
+		char *ptr ;
+		char *exec_name = strrchr (MyArgs.saved_argv[0], '/');
+		if( exec_name == NULL ) 
+			exec_name = MyArgs.saved_argv[0] ;
+		else
+			++exec_name ;
+
+		arg_len = strlen(exec_name);
+		for( i = 1 ; i < MyArgs.saved_argc ; ++i )
+			arg_len = 1+1+strlen( MyArgs.saved_argv[i] )+1 ;	
+
 
 		/* assuming that unsigned long will be limited to 32 chars : */
-		temp = safemalloc (9 + 1 +max(strlen (MyName),32) + 1 + 1);
-    	sprintf (temp, "SET_NAME \"%s\"", MyName);
+		temp = safemalloc (9 + 1 +max(strlen (MyName),32) + 1 + 1+arg_len+1);
+    	sprintf (temp, "SET_NAME \"%s\" %s", MyName, exec_name);
+		ptr = temp + strlen( temp ) ; 
+		for( i = 1 ; i < MyArgs.saved_argc ; ++i )
+		{
+			Bool quote = False ; 
+			if( MyArgs.saved_argv[i][0] != '-' ) 
+			{
+				int k = 0;
+				while(isdigit(MyArgs.saved_argv[i][k])) ++k ;
+				quote = ( MyArgs.saved_argv[i][k] != '\0' ) ;
+			}	 
+			sprintf( ptr, quote?" \"%s\"":" %s", MyArgs.saved_argv[i] );	
+			while( *ptr ) ++ptr;
+		}
     	SendInfo ( temp, None);
 		free (temp);
 

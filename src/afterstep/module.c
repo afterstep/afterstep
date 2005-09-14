@@ -919,10 +919,13 @@ RunCommand (FunctionData * fdata, unsigned int channel, Window w)
 		 module->lock_on_send_mask = fdata->func_val[1];
 		 break;
 	 case F_SET_NAME:
-        if (module->name != NULL)
-            free (module->name);
-        module->name = fdata->name;
+        set_string_value( &(module->name), fdata->name, NULL, 0 );
         fdata->name = NULL;
+		if( fdata->text ) 
+		{	
+	        set_string_value( &(module->cmd_line), fdata->text, NULL, 0 );
+    	    fdata->name = NULL;
+		}
         break;
      case F_UNLOCK:
 		 toret = 66;
