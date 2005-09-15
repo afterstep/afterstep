@@ -117,6 +117,9 @@ filter_desktop_entry_exec( const char *exec )
 			char *end = find_doublequotes (&clean_exec[ts]);
 			if( end != NULL ) 
 				start = end - &clean_exec[0] ;
+			else 
+				start = ts ;	
+			++start;
 		}else
 			for( start = ts ; !isspace(clean_exec[start]) && clean_exec[start] != '\0'	; ++start );
 	}
