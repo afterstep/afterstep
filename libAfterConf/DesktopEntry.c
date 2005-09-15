@@ -69,8 +69,9 @@ parse_category_list( char *list, int *pnum_return )
 				if( list[i] == ';' ) 
 				{
 					list[i++] = '\0' ; 
-					if( list[i] && sc_i < num ) 
-						shortcuts[sc_i++] = &list[i] ;							
+					if( list[i] == '\0' || sc_i >= num ) 
+						break;
+					shortcuts[sc_i++] = &list[i] ;							
 				}
 		}	 
 	}	 
