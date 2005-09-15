@@ -436,7 +436,7 @@ ConnectAfterStep (send_data_type message_mask, send_data_type lock_on_send_mask)
 
 		arg_len = strlen(exec_name);
 		for( i = 1 ; i < MyArgs.saved_argc ; ++i )
-			arg_len = 1+1+strlen( MyArgs.saved_argv[i] )+1 ;	
+			arg_len += 1+1+strlen( MyArgs.saved_argv[i] )+1 ;	
 
 
 		/* assuming that unsigned long will be limited to 32 chars : */

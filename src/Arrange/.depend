@@ -1,0 +1,19 @@
+./Arrange.o: \
+		../../configure.h \
+		../../libAfterStep/asapp.h \
+		../../libAfterImage/afterimage.h \
+		../../libAfterStep/afterstep.h \
+		../../libAfterStep/screen.h \
+		../../libAfterStep/module.h \
+		../../libAfterStep/mystyle.h \
+		../../libAfterStep/mystyle_property.h \
+		../../libAfterStep/parser.h \
+		../../libAfterStep/clientprops.h \
+		../../libAfterStep/wmprops.h \
+		../../libAfterStep/decor.h \
+		../../libAfterStep/aswindata.h \
+		../../libAfterStep/balloon.h \
+		../../libAfterStep/event.h \
+		../../libAfterStep/shape.h \
+		../../libAfterBase/aslist.h \
+		../../libAfterConf/afterconf.h

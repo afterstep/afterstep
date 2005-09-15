@@ -1,0 +1,18 @@
+./GWCommand.o: \
+		../../configure.h \
+		../../libAfterStep/asapp.h \
+		../../libAfterStep/module.h \
+		../../libAfterStep/ascommand.h \
+		../../libAfterStep/operations.h \
+		../../libAfterConf/afterconf.h \
+		../../libASGTK/asgtk.h \
+		../../libASGTK/asgtkapp.h
+
+./WinCommand.o: \
+		../../configure.h \
+		../../libAfterStep/asapp.h \
+		../../libAfterStep/ascommand.h \
+		../../libAfterStep/operations.h \
+		../../libAfterStep/screen.h \
+		../../libAfterBase/aslist.h \
+		../../libAfterConf/afterconf.h
