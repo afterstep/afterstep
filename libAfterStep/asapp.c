@@ -125,6 +125,7 @@ TermDef       FuncTerms[F_FUNCTIONS_NUM + 1] = {
 	FUNC_TERM2 (USES_NUMVALS, "WindowList", 10, F_WINDOWLIST),	/* WindowList [arg1 arg2] */
 #endif
 	FUNC_TERM ("StopModuleList", 14, F_STOPMODULELIST),	/* StopModuleList "name" */
+	FUNC_TERM ("RestartModuleList", 17, F_RESTARTMODULELIST),	/* RestartModuleList "name" */
 	FUNC_TERM2 (NEED_NAME, "PopUp", 5, F_POPUP),	/* PopUp    "popup_name" [popup_name] */
 	FUNC_TERM2 (NEED_NAME, "Function", 8, F_FUNCTION),	/* Function "function_name" [function_name] */
 	FUNC_TERM ("MiniPixmap", 10, F_MINIPIXMAP),	/* MiniPixmap "name" */
@@ -134,6 +135,7 @@ TermDef       FuncTerms[F_FUNCTIONS_NUM + 1] = {
 	FUNC_TERM2 (NEED_NAME | NEED_CMD, "Module", 6, F_MODULE),	/* Module "name" command */
     FUNC_TERM2 (NEED_NAME | NEED_CMD, "ExecInTerm", 10, F_ExecInTerm),   /* ExecInTerm   "name" command */
 	FUNC_TERM2 (NEED_NAME | NEED_CMD, "KillModuleByName", 16, F_KILLMODULEBYNAME),	/* KillModuleByName "name" module */
+	FUNC_TERM2 (NEED_NAME | NEED_CMD, "RestartModuleByName", 19, F_RESTARTMODULEBYNAME),	/* RestartModuleByName "name" module */
 	FUNC_TERM2 (NEED_NAME | NEED_CMD, "QuickRestart", 12, F_QUICKRESTART),	/* QuickRestart "name" what */
 	FUNC_TERM2 (NEED_NAME | NEED_CMD, "Background", 10, F_CHANGE_BACKGROUND),	/* Background "name" file_name */
 	FUNC_TERM2 (NEED_NAME | NEED_CMD, "ChangeLook", 10, F_CHANGE_LOOK),	/* ChangeLook "name" file_name */

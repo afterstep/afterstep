@@ -79,6 +79,7 @@ void desk_func_handler( FunctionData *data, ASEvent *event, int module );
 void deskviewport_func_handler( FunctionData *data, ASEvent *event, int module );
 void module_func_handler( FunctionData *data, ASEvent *event, int module );
 void killmodule_func_handler( FunctionData *data, ASEvent *event, int module );
+void restartmodule_func_handler( FunctionData *data, ASEvent *event, int module );
 void popup_func_handler( FunctionData *data, ASEvent *event, int module );
 void quit_func_handler( FunctionData *data, ASEvent *event, int module );
 void windowlist_func_handler( FunctionData *data, ASEvent *event, int module );
@@ -88,7 +89,7 @@ void save_workspace_func_handler( FunctionData *data, ASEvent *event, int module
 void test_func_handler( FunctionData *data, ASEvent *event, int module );
 void screenshot_func_handler( FunctionData *data, ASEvent *event, int module );
 void swallow_window_func_handler( FunctionData *data, ASEvent *event, int module );
-void stopmodulelist_func_handler( FunctionData *data, ASEvent *event, int module );
+void modulelist_func_handler( FunctionData *data, ASEvent *event, int module );
 
 
 /* handlers initialization function : */
@@ -181,12 +182,14 @@ void SetupFunctionHandlers()
 	function_handlers[F_MaxSwallowModule]= module_func_handler ;
 
     function_handlers[F_KILLMODULEBYNAME]   = killmodule_func_handler ;
+	function_handlers[F_RESTARTMODULEBYNAME]= restartmodule_func_handler ;
     function_handlers[F_POPUP]              = popup_func_handler ;
     function_handlers[F_QUIT]               = quit_func_handler ;
 #ifndef NO_WINDOWLIST
     function_handlers[F_WINDOWLIST]         = windowlist_func_handler ;
 #endif /* ! NO_WINDOWLIST */
-	function_handlers[F_STOPMODULELIST]     = stopmodulelist_func_handler ;
+	function_handlers[F_STOPMODULELIST]     = 
+	function_handlers[F_RESTARTMODULELIST]  = modulelist_func_handler ;
 
     function_handlers[F_QUICKRESTART]       = quickrestart_func_handler ;
     function_handlers[F_SEND_WINDOW_LIST]   = send_window_list_func_handler ;
@@ -1486,6 +1489,18 @@ void killmodule_func_handler( FunctionData *data, ASEvent *event, int module )
     KillModuleByName (data->text);
 }
 
+void restartmodule_func_handler( FunctionData *data, ASEvent *event, int module )
+{
+	char *cmd_line = GetModuleCmdLineByName(data->text);
+	KillModuleByName (data->text);	
+	if( cmd_line ) 
+	{
+	    UngrabEm ();
+    	ExecModule (cmd_line, event->client ? event->client->w : None, event->context);
+		free( cmd_line );
+	}	 
+}
+
 void popup_func_handler( FunctionData *data, ASEvent *event, int module )
 {
     run_menu( data->text?data->text:data->name, event->client?event->client->w:None );
@@ -1508,9 +1523,11 @@ void windowlist_func_handler( FunctionData *data, ASEvent *event, int module )
 #endif /* ! NO_WINDOWLIST */
 }
 
-void stopmodulelist_func_handler( FunctionData *data, ASEvent *event, int module )
+void modulelist_func_handler( FunctionData *data, ASEvent *event, int module )
 {
-    MenuData *md =  make_stop_module_menu(  Scr.Feel.winlist_sort_order );
+    MenuData *md =  (data->func == F_STOPMODULELIST)?
+						make_stop_module_menu(Scr.Feel.winlist_sort_order ):
+						make_restart_module_menu(Scr.Feel.winlist_sort_order );
     if( md != NULL )
 	{	
 		run_menu_data( md );
@@ -1518,7 +1535,6 @@ void stopmodulelist_func_handler( FunctionData *data, ASEvent *event, int module
 	}	 
 
 }
-
 
 void quickrestart_func_handler( FunctionData *data, ASEvent *event, int module )
 {

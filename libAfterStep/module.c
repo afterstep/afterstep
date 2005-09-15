@@ -449,8 +449,10 @@ ConnectAfterStep (send_data_type message_mask, send_data_type lock_on_send_mask)
 			if( MyArgs.saved_argv[i][0] != '-' ) 
 			{
 				int k = 0;
-				while(isdigit(MyArgs.saved_argv[i][k])) ++k ;
-				quote = ( MyArgs.saved_argv[i][k] != '\0' ) ;
+				int c = MyArgs.saved_argv[i][k] ; 
+				while( isalnum(c) || c == '-' || c == '+' || c == '.' || c == '_' ) 
+					c = MyArgs.saved_argv[i][++k] ; 
+				quote = ( c != '\0' ) ;
 			}	 
 			sprintf( ptr, quote?" \"%s\"":" %s", MyArgs.saved_argv[i] );	
 			while( *ptr ) ++ptr;

@@ -647,13 +647,17 @@ void HandleModuleInOut(unsigned int channel, Bool has_input, Bool has_output);
 
 void KillModuleByName (char *name);
 int FindModuleByName (char *name);
+char *GetModuleCmdLineByName(char *name);
 void DeadPipe (int nonsense);
 void ShutdownModules(Bool dont_free_memory);
 
 void RunCommand (FunctionData * fdata, unsigned int channel, Window w);
 
 void FlushAllQueues();
-MenuData *make_stop_module_menu(  int sort_order );
+MenuData *make_module_menu( FunctionCode func, const char *title, int sort_order );
+#define make_stop_module_menu(sort_order)  make_module_menu(  F_KILLMODULEBYNAME, "Stop Running Module", sort_order )
+#define make_restart_module_menu(sort_order)  make_module_menu(  F_RESTARTMODULEBYNAME, "Restart Running Module", sort_order )
+
 
 /******************************* outline.c ********************************/
 void MoveOutline( struct MoveResizeData * pdata );

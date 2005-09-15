@@ -707,28 +707,6 @@ DeadPipe (int nonsense)
 }
 
 
-void
-KillModuleByName (char *name)
-{
-    wild_reg_exp  *wrexp = compile_wild_reg_exp( name );
-
-    if ( wrexp != NULL && Modules)
-    {
-        register int i = MODULES_NUM;
-        register module_t *list = MODULES_LIST ;
-
-        while( --i >= 0 )
-            if (list[i].fd > 0)
-            {
-                LOCAL_DEBUG_OUT( "checking to kill module %d \"%s\", regexp \"%s\"", i, list[i].name, name);
-                if (match_wild_reg_exp( list[i].name, wrexp ) == 0 )
-                    KillModule (&(list[i]), False);
-            }
-        destroy_wild_reg_exp( wrexp );
-    }
-	return;
-}
-
 int FindModuleByName (char *name)
 {
     wild_reg_exp  *wrexp = compile_wild_reg_exp( name );
@@ -754,6 +732,31 @@ int FindModuleByName (char *name)
 	return module;
 }
 
+char *
+GetModuleCmdLineByName(char *name)
+{
+	int module = FindModuleByName (name);
+	if( module >= 0 ) 
+	{	
+		register module_t *list = MODULES_LIST ;	
+		if( list[module].cmd_line ) 
+			return mystrdup( list[module].cmd_line ) ;
+		else
+			return mystrdup( list[module].name );
+	}
+	return NULL ;
+}
+
+void
+KillModuleByName (char *name)
+{
+	int module = FindModuleByName (name);
+	if( module >= 0 ) 
+	{	
+		register module_t *list = MODULES_LIST ;	
+        KillModule (&(list[module]), False);
+	}
+}
 
 void
 SendPacket ( int channel, send_data_type msg_type, send_data_type num_datum, ...)
@@ -1073,7 +1076,7 @@ broadcast_config (send_data_type event_type, ASWindow * t)
 static inline void
 module_t2func_data( FunctionCode func, module_t *module, FunctionData *fdata, char *scut ) 
 {
-	fdata->func = F_KILLMODULEBYNAME;
+	fdata->func = func;
     fdata->name = mystrdup(module->name);
     fdata->text = mystrdup(module->name);
 	if (++(*scut) == ('9' + 1))
@@ -1082,7 +1085,7 @@ module_t2func_data( FunctionCode func, module_t *module, FunctionData *fdata, ch
 }	   
 
 MenuData *
-make_stop_module_menu(  int sort_order )
+make_module_menu( FunctionCode func, const char *title, int sort_order )
 {
     MenuData *md ;
     FunctionData  fdata ;
@@ -1093,7 +1096,7 @@ make_stop_module_menu(  int sort_order )
 	if ( Modules == NULL ) 
         return NULL;
     
-	if( (md = create_menu_data ("Stop Module")) == NULL )
+	if( (md = create_menu_data ("@#%module_menu%#@")) == NULL )
         return NULL;
 
 	modules = MODULES_LIST ;
@@ -1101,7 +1104,7 @@ make_stop_module_menu(  int sort_order )
 
     memset(&fdata, 0x00, sizeof(FunctionData));
     fdata.func = F_TITLE ;
-    fdata.name = mystrdup("Stop Running Module");
+    fdata.name = mystrdup(title);
     add_menu_fdata_item( md, &fdata, NULL, NULL );
 
 	if( sort_order == ASO_Alpha ) 
@@ -1111,7 +1114,7 @@ make_stop_module_menu(  int sort_order )
 		for( i = 0 ; i < max_i ; ++i) 
 		{
 			menuitems[i] = safecalloc(1, sizeof(FunctionData));
-			module_t2func_data( F_KILLMODULEBYNAME, &(modules[i]), menuitems[i], &scut ); 
+			module_t2func_data( func, &(modules[i]), menuitems[i], &scut ); 
         }
 		qsort(menuitems, i, sizeof(FunctionData *), compare_func_data_name);
 		for( i = 0 ; i < max_i ; ++i) 
@@ -1124,7 +1127,7 @@ make_stop_module_menu(  int sort_order )
 	{
 		for( i = 0 ; i < max_i ; ++i) 
         {
-            module_t2func_data( F_KILLMODULEBYNAME, &(modules[i]), &fdata, &scut ); 
+            module_t2func_data( func, &(modules[i]), &fdata, &scut ); 
             add_menu_fdata_item( md, &fdata, NULL, NULL /*icon ??? */);
         }
     }

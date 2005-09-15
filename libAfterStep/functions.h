@@ -38,6 +38,7 @@ typedef enum FunctionCode{
   F_WINDOWLIST,
 #endif
   F_STOPMODULELIST,
+  F_RESTARTMODULELIST,
   F_POPUP,
   F_FUNCTION,
   F_MINIPIXMAP,
@@ -47,6 +48,7 @@ typedef enum FunctionCode{
   F_MODULE,
   F_ExecInTerm,
   F_KILLMODULEBYNAME,
+  F_RESTARTMODULEBYNAME,
   F_QUICKRESTART,
   F_CHANGE_BACKGROUND,
   F_CHANGE_LOOK,
@@ -147,6 +149,11 @@ F_FUNCTIONS_NUM
 #define IsExecFunc(f)    ((f)>= F_EXEC && (f)< F_KILLMODULEBYNAME)
 #define IsMinipixmapFunc(f) ((f) >= F_MINIPIXMAP && (f) <= F_LARGE_MINIPIXMAP )
 
+#ifndef NO_WINDOWLIST
+#define IsDynamicPopup(f)	((f) >= F_WINDOWLIST     && (f) <= F_RESTARTMODULELIST)
+#else
+#define IsDynamicPopup(f)	((f) >= F_STOPMODULELIST && (f) <= F_RESTARTMODULELIST)
+#endif
 
 void ChangeWarpIndex(const long, FunctionCode);
 

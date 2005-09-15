@@ -253,11 +253,7 @@ LOCAL_DEBUG_OUT( "item(\"%s\")->minipixmap(\"%s\")->icon(%p)", mdi->item?mdi->it
 
     item->flags = 0 ;
 
-	if( 
-#ifndef NO_WINDOWLIST
-		mdi->fdata->func == F_WINDOWLIST ||
-#endif		   
-		mdi->fdata->func == F_STOPMODULELIST)
+	if( IsDynamicPopup(mdi->fdata->func) )
 	{	
 		set_flags( item->flags, AS_MenuItemHasSubmenu );
 	}else if( mdi->fdata->func == F_POPUP )
@@ -802,6 +798,8 @@ LOCAL_DEBUG_CALLER_OUT( "%p, %d", menu, item_no );
 			submenu = FindPopup( FDataPopupName(item->fdata), True );
 		else if( item->fdata.func == F_STOPMODULELIST ) 
 			submenu = make_stop_module_menu(  Scr.Feel.winlist_sort_order );
+		else if( item->fdata.func == F_RESTARTMODULELIST ) 
+			submenu = make_restart_module_menu(  Scr.Feel.winlist_sort_order );
 #ifndef NO_WINDOWLIST
 		else if( item->fdata.func == F_WINDOWLIST ) 
 		{	
