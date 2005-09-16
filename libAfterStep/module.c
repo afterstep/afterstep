@@ -409,7 +409,6 @@ int
 ConnectAfterStep (send_data_type message_mask, send_data_type lock_on_send_mask)
 {
     char *temp;
-    char  mask_mesg[32];
     int   fd;
 
 	/* connect to AfterStep */
@@ -429,20 +428,27 @@ ConnectAfterStep (send_data_type message_mask, send_data_type lock_on_send_mask)
 		int i ; 
 		char *ptr ;
 		char *exec_name = strrchr (MyArgs.saved_argv[0], '/');
+		int exec_name_len ; 
+		send_signed_data_type masks[2] ; 
+
+		masks[0] = message_mask ;
+		masks[1] = lock_on_send_mask ;
+
 		if( exec_name == NULL ) 
 			exec_name = MyArgs.saved_argv[0] ;
 		else
 			++exec_name ;
 
-		arg_len = strlen(exec_name);
+		exec_name_len = strlen(exec_name);
+		arg_len = exec_name_len ;
 		for( i = 1 ; i < MyArgs.saved_argc ; ++i )
 			arg_len += 1+1+strlen( MyArgs.saved_argv[i] )+1 ;	
 
 
 		/* assuming that unsigned long will be limited to 32 chars : */
-		temp = safemalloc (9 + 1 +max(strlen (MyName),32) + 1 + 1+arg_len+1);
-    	sprintf (temp, "SET_NAME \"%s\" %s", MyName, exec_name);
-		ptr = temp + strlen( temp ) ; 
+		temp = safemalloc (arg_len+1);
+    	strcpy(temp, exec_name);
+		ptr = temp + exec_name_len; 
 		for( i = 1 ; i < MyArgs.saved_argc ; ++i )
 		{
 			Bool quote = False ; 
@@ -457,11 +463,12 @@ ConnectAfterStep (send_data_type message_mask, send_data_type lock_on_send_mask)
 			sprintf( ptr, quote?" \"%s\"":" %s", MyArgs.saved_argv[i] );	
 			while( *ptr ) ++ptr;
 		}
-    	SendInfo ( temp, None);
+		SendTextCommand ( F_SET_NAME, MyName, temp, None);
 		free (temp);
 
-		sprintf (mask_mesg, "SET_MASK %lu %lu\n", (unsigned long)message_mask, (unsigned long) lock_on_send_mask);
-    	SendInfo ( mask_mesg, None);
+		SendNumCommand ( F_SET_MASK, NULL, &masks[0], NULL, None);
+		//sprintf (mask_mesg, "SET_MASK %lu %lu\n", (unsigned long)message_mask, (unsigned long) lock_on_send_mask);
+    	//SendInfo ( mask_mesg, None);
 	}
     /* don't really have to do this here, but anyway : */
     InitSession();

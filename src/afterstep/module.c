@@ -927,7 +927,7 @@ RunCommand (FunctionData * fdata, unsigned int channel, Window w)
 		if( fdata->text ) 
 		{	
 	        set_string_value( &(module->cmd_line), fdata->text, NULL, 0 );
-    	    fdata->name = NULL;
+    	    fdata->text = NULL;
 		}
         break;
      case F_UNLOCK:
