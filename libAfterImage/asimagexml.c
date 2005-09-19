@@ -1799,19 +1799,19 @@ handle_asxml_tag_slice( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* par
 {
 	ASImage *result = NULL ;
 	xml_elem_t* ptr;
-	int start_x = 0, end_x = 0 ;
-	int start_y = 0, end_y = 0 ;
+	int x_start = 0, x_end = 0 ;
+	int y_start = 0, y_end = 0 ;
 	LOCAL_DEBUG_OUT("doc = %p, parm = %p, imtmp = %p, width = %d, height = %d", doc, parm, imtmp, width, height ); 
 	for (ptr = parm ; ptr ; ptr = ptr->next) 
 	{
-		if (!strcmp(ptr->tag, "start_x")) 		start_x = parse_math(ptr->parm, NULL, width);
-		else if (!strcmp(ptr->tag, "end_x")) 	end_x = parse_math(ptr->parm, NULL, width);
-		else if (!strcmp(ptr->tag, "start_y")) 	start_y = parse_math(ptr->parm, NULL, height);
-		else if (!strcmp(ptr->tag, "end_y")) 	end_y = parse_math(ptr->parm, NULL, height);
+		if (!strcmp(ptr->tag, "x_start")) 		x_start = parse_math(ptr->parm, NULL, width);
+		else if (!strcmp(ptr->tag, "x_end")) 	x_end = parse_math(ptr->parm, NULL, width);
+		else if (!strcmp(ptr->tag, "y_start")) 	y_start = parse_math(ptr->parm, NULL, height);
+		else if (!strcmp(ptr->tag, "y_end")) 	y_end = parse_math(ptr->parm, NULL, height);
 	}
 
 	show_progress("Slicing image to [%dx%d].", width, height);
-	result = slice_asimage( state->asv, imtmp, start_x, end_x, start_y, end_y, width, height, 
+	result = slice_asimage( state->asv, imtmp, x_start, x_end, y_start, y_end, width, height, 
 							ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT);
 	return result;
 }
