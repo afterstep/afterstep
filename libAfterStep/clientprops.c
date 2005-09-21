@@ -99,6 +99,7 @@ Atom          _XA_NET_WM_STATE_ABOVE;
 Atom          _XA_NET_WM_STATE_BELOW;
 
 Atom          _XA_NET_WM_PID;
+Atom          _XA_NET_WM_ICON;
 Atom          _XA_NET_WM_PING;
 
 
@@ -122,6 +123,7 @@ AtomXref      MainHints[] = {
 	{"_NET_WM_WINDOW_TYPE", &_XA_NET_WM_WINDOW_TYPE},
 	{"_NET_WM_STATE", &_XA_NET_WM_STATE},
 	{"_NET_WM_PID", &_XA_NET_WM_PID},
+	{"_NET_WM_ICON", &_XA_NET_WM_ICON},
 	{NULL, NULL, 0, None}
 };
 
@@ -631,6 +633,16 @@ read_extwm_pid (ASRawHints * hints, Window w)
 	}
 }
 
+void
+read_extwm_icon (ASRawHints * hints, Window w)
+{
+	if (hints && w != None)
+	{
+		if (read_32bit_proplist (w, _XA_NET_WM_ICON, 2+48*48, &(hints->extwm_hints.icon), &(hints->extwm_hints.icon_length)) )
+			set_flags (hints->extwm_hints.flags, EXTWM_ICON);
+	}
+}
+
 Bool
 default_parent_hints_func (Window parent, ASParentHints * dst)
 {
@@ -717,7 +729,8 @@ HintsDescriptions[] =
 	{&_XA_NET_WM_DESKTOP, read_extwm_desktop, HINT_STARTUP | HINT_PROTOCOL, HINTS_ExtendedWM},
 	{&_XA_NET_WM_WINDOW_TYPE, read_extwm_window_type, HINT_STARTUP | HINT_GENERAL, HINTS_ExtendedWM},
 	{&_XA_NET_WM_STATE, read_extwm_state, HINT_STARTUP | HINT_GENERAL, HINTS_ExtendedWM},
-	{&_XA_NET_WM_PID, read_extwm_pid, HINT_STARTUP, HINTS_ExtendedWM},
+	{&_XA_NET_WM_PID, read_extwm_pid, HINT_GENERAL, HINTS_ExtendedWM},
+	{&_XA_NET_WM_ICON, read_extwm_icon, HINT_GENERAL, HINTS_ExtendedWM},
 	{
 	NULL, NULL, 0, HINTS_Supported}
 };
@@ -1000,6 +1013,8 @@ print_extwm_hints (stream_func func, void *stream, ExtendedWMHints * hints)
 		func (stream, "EXTWM._NET_WM_DESKTOP = %ld;\n", hints->desktop);
 	if (get_flags (hints->flags, EXTWM_PID))
 		func (stream, "EXTWM._NET_WM_PID = %ld;\n", hints->pid);
+	if (get_flags (hints->flags, EXTWM_ICON))
+		func (stream, "EXTWM._NET_WM_ICON.length = %ld;\n", hints->icon_length);
 
 	print_list_hints (func, stream, hints->flags, EXTWM_WindowType, "EXTWM._NET_WM_WINDOW_TYPE");
 	print_list_hints (func, stream, hints->flags, EXTWM_State, "EXTWM._NET_WM_STATE");
@@ -1337,7 +1352,9 @@ set_extwm_hints (Window w, ExtendedWMHints * extwm_hints)
 		if (get_flags (extwm_hints->flags, EXTWM_DESKTOP))
 			set_32bit_property (w, _XA_NET_WM_DESKTOP, XA_CARDINAL, extwm_hints->desktop);
 		if (get_flags (extwm_hints->flags, EXTWM_PID))
-			set_32bit_property (w, _XA_NET_WM_PID, XA_CARDINAL, extwm_hints->pid);
+			set_32bit_property (w, _XA_NET_WM_PID, XA_CARDINAL, extwm_hints->pid); 
+		if (get_flags (extwm_hints->flags, EXTWM_ICON))
+			set_32bit_proplist (w, _XA_NET_WM_ICON, XA_CARDINAL, extwm_hints->icon, extwm_hints->icon_length);
 	}
 }
 

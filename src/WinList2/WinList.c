@@ -491,42 +491,48 @@ DispatchEvent (ASEvent * event)
 	        break;
 	    case PropertyNotify:
 			LOCAL_DEBUG_OUT( "property %s(%lX), _XROOTPMAP_ID = %lX, event->w = %lX, root = %lX", XGetAtomName(dpy, event->x.xproperty.atom), event->x.xproperty.atom, _XROOTPMAP_ID, event->w, Scr.Root );
-			handle_wmprop_event (Scr.wmprops, &(event->x));
-            if( event->x.xproperty.atom == _AS_BACKGROUND )
-            {
-                int i ;
-                LOCAL_DEBUG_OUT( "root background updated!%s","");
-                safe_asimage_destroy( Scr.RootImage );
-                Scr.RootImage = NULL ;
-                for( i = 0 ; i < WinListState.windows_num ; ++i )
-                    if( update_astbar_transparency( WinListState.window_order[i]->bar, WinListState.main_canvas, True ) )
-						render_astbar( WinListState.window_order[i]->bar, WinListState.main_canvas );
-		        if( is_canvas_dirty( WinListState.main_canvas ) )
+			if( event->w == Scr.Root || event->w == Scr.wmprops->selection_window ) 
+			{
+				handle_wmprop_event (Scr.wmprops, &(event->x));
+            	if( event->x.xproperty.atom == _AS_BACKGROUND )
+            	{
+                	int i ;
+                	LOCAL_DEBUG_OUT( "root background updated!%s","");
+                	safe_asimage_destroy( Scr.RootImage );
+                	Scr.RootImage = NULL ;
+                	for( i = 0 ; i < WinListState.windows_num ; ++i )
+                    	if( update_astbar_transparency( WinListState.window_order[i]->bar, WinListState.main_canvas, True ) )
+							render_astbar( WinListState.window_order[i]->bar, WinListState.main_canvas );
+		        	if( is_canvas_dirty( WinListState.main_canvas ) )
+					{
+						LOCAL_DEBUG_OUT( "update main canvas%s","");
+            			update_canvas_display( WinListState.main_canvas );
+					}
+            	}else if( event->x.xproperty.atom == _AS_STYLE )
 				{
-					LOCAL_DEBUG_OUT( "update main canvas%s","");
-            		update_canvas_display( WinListState.main_canvas );
-				}
-            }else if( event->x.xproperty.atom == _AS_STYLE )
-			{
-                int i ;
-				LOCAL_DEBUG_OUT( "AS Styles updated!%s","");
-				mystyle_list_destroy_all(&(Scr.Look.styles_list));
-				LoadColorScheme();
-				CheckConfigSanity();
-				/* now we need to update everything */
-				update_winlist_styles();
-				rearrange_winlist_window( False );
-                for( i = 0 ; i < WinListState.windows_num ; ++i )
-					refresh_winlist_button( WinListState.window_order[i]->bar, WinListState.window_order[i], False );
-			}else if( event->x.xproperty.atom == _AS_TBAR_PROPS )
-			{
-				int i ;
-		 		retrieve_winlist_astbar_props();		
-				update_winlist_styles();
-				rearrange_winlist_window( False );
-                for( i = 0 ; i < WinListState.windows_num ; ++i )
-					refresh_winlist_button( WinListState.window_order[i]->bar, WinListState.window_order[i], False );
-            }
+                	int i ;
+					LOCAL_DEBUG_OUT( "AS Styles updated!%s","");
+					mystyle_list_destroy_all(&(Scr.Look.styles_list));
+					LoadColorScheme();
+					CheckConfigSanity();
+					/* now we need to update everything */
+					update_winlist_styles();
+					rearrange_winlist_window( False );
+                	for( i = 0 ; i < WinListState.windows_num ; ++i )
+						refresh_winlist_button( WinListState.window_order[i]->bar, WinListState.window_order[i], False );
+				}else if( event->x.xproperty.atom == _AS_TBAR_PROPS )
+				{
+					int i ;
+		 			retrieve_winlist_astbar_props();		
+					update_winlist_styles();
+					rearrange_winlist_window( False );
+                	for( i = 0 ; i < WinListState.windows_num ; ++i )
+						refresh_winlist_button( WinListState.window_order[i]->bar, WinListState.window_order[i], False );
+            	}
+			}else if( event->x.xproperty.atom ==  )
+			{                  /* Maybe name change on the client !!! */
+				handle_tab_name_change( event->w );				 		
+			}
 			break;
 		default:
 #ifdef XSHMIMAGE

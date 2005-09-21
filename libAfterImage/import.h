@@ -123,6 +123,8 @@ ASImage *gif2ASImage ( const char * path, ASImageImportParams *params );
 ASImage *tiff2ASImage( const char * path, ASImageImportParams *params );
 ASImage *xml2ASImage ( const char * path, ASImageImportParams *params );
 ASImage *tga2ASImage ( const char * path, ASImageImportParams *params );
+ASImage *convert_argb2ASImage( ASVisual *asv, int width, int height, ARGB32 *argb, CARD8 *gamma_table );
+ASImage *argb2ASImage( const char *path, ASImageImportParams *params );
 
 
 /****f* libAfterImage/import/file2ASImage()

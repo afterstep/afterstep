@@ -27,6 +27,7 @@
 #include "functions.h"
 #include "clientprops.h"
 #include "hints.h"
+#include "../libAfterImage/afterimage.h"
 
 
 /*********************************************************************************
@@ -1013,6 +1014,74 @@ extwm_state2as_state_flags( ASFlagType extwm_flags )
 	return as_flags;
 }	   
 
+static CARD32 *
+select_client_icon_argb( CARD32 *icon,  int icon_length )
+{
+	int offset = 0 ; 
+	CARD32 *res = NULL ; 
+	if( icon == NULL || icon_length <= 2 ) 
+		return NULL;
+	while( res == NULL && offset+2 < icon_length  ) 
+	{
+		int width = icon[offset] ; 
+		int height = icon[offset+1] ; 
+		if( width*height  <= (icon_length - offset - 2 ) ) 
+			if( width == 48 && height == 48 ) 
+			{
+	   			res = safemalloc( (2+width*height)*sizeof(CARD32));
+				memcpy( res, &(icon[offset]), (2+width*height)*sizeof(CARD32));
+			}			 
+		offset += 2 + width * height ;
+	}	 
+	offset = 0 ; 
+	while( res == NULL && offset+2 < icon_length  ) 
+	{
+		int width = icon[offset] ; 
+		int height = icon[offset+1] ; 
+		if( width*height  <= (icon_length - offset - 2 ) ) 
+			if( width >= 32 && height >= 32 ) 
+			{
+	   			res = safemalloc( (2+width*height)*sizeof(CARD32));
+				memcpy( res, &(icon[offset]), (2+width*height)*sizeof(CARD32));
+			}			 
+		offset += 2 + width * height ;
+	}	 
+	offset = 0 ; 
+	while( res == NULL && offset+2 < icon_length  ) 
+	{
+		int width = icon[offset] ; 
+		int height = icon[offset+1] ; 
+		if( width*height  <= (icon_length - offset - 2 ) ) 
+			if( width >= 32 && height >= 32 ) 
+			{
+	   			res = safemalloc( (2+width*height)*sizeof(CARD32));
+				memcpy( res, &(icon[offset]), (2+width*height)*sizeof(CARD32));
+			}			 
+		offset += 2 + width * height ;
+	}	 
+	if( res == NULL ) 
+	{
+		unsigned int width = icon[offset] ; 
+		unsigned int height = icon[offset+1] ; 
+		int size = width*height ;
+		icon_length -= 2 ;
+		if( size+2 > icon_length ) 
+		{
+			for( width = 128 ; width > 0 ; width -= 8 ) 
+				if( icon_length  > width*width ) 
+				{	  
+					height = width  ; 
+					break ;
+				}
+		}	 
+		res = safecalloc( size+2, sizeof(CARD32));
+		memcpy( res+2, &(icon[2]), size*sizeof(CARD32));
+		res[0] = width ; 
+		res[1] = height ;
+	}	 
+	return res;
+}	 
+
 static void
 merge_extwm_hints (ASHints * clean, ASRawHints * raw,
 				   ASDatabaseRecord * db_rec, ASStatusHints * status, ASFlagType what)
@@ -1081,6 +1150,11 @@ merge_extwm_hints (ASHints * clean, ASRawHints * raw,
 		{
 			clean->pid = eh->pid;
 			set_flags (clean->flags, AS_PID);
+		}
+		if (get_flags (eh->flags, EXTWM_ICON))
+		{
+			clean->icon_argb = select_client_icon_argb( eh->icon, eh->icon_length );
+			set_flags (clean->flags, AS_ClientIcon|AS_ClientIconARGB);
 		}
         if (get_flags (eh->flags, EXTWM_StateSkipTaskbar))
             set_flags (clean->flags, AS_SkipWinList);
@@ -2408,6 +2482,13 @@ client_hints2extwm_hints (ExtendedWMHints * extwm_hints, ASHints * hints, ASStat
 		set_flags (extwm_hints->flags, EXTWM_PID);
 		extwm_hints->pid = hints->pid;
 	}
+	if (hints->icon_argb != NULL && get_flags (hints->flags, AS_ClientIcon))
+	{
+		set_flags (extwm_hints->flags, EXTWM_ICON);
+		extwm_hints->icon_length = hints->icon_argb[0]*hints->icon_argb[1] + 2 ;
+		extwm_hints->icon = safemalloc( extwm_hints->icon_length * sizeof(CARD32));
+		memcpy( extwm_hints->icon, hints->icon_argb, extwm_hints->icon_length * sizeof(CARD32) );
+	}
 	if (get_flags (hints->protocols, AS_DoesWmPing))
 		set_flags (extwm_hints->flags, EXTWM_DoesWMPing);
 
@@ -2470,6 +2551,52 @@ set_all_client_hints (Window w, ASHints * hints, ASStatusHints * status, Bool se
 }
 
 
+ASImage*
+get_client_icon_image( ScreenInfo * scr, ASFeel *feel, ASHints *hints )
+{
+	ASImage *im = NULL ;
+    if( hints )
+    {
+        if( feel == NULL || get_flags( feel->flags, KeepIconWindows ) ) 
+			if( get_flags(hints->flags, AS_ClientIcon ) ) 
+			{	
+        		/* first try ARGB icon If provided by the application : */
+				if( get_flags( hints->flags, AS_ClientIconARGB ) && hints->icon_argb != NULL )
+				{
+	    	    	/* TODO: we also need to check for newfashioned ARGB icon from
+    	    		 * extended WM specs here
+        			 */
+					int width = hints->icon_argb[0] ; 						
+					int height = hints->icon_argb[1] ; 
+					im = convert_argb2ASImage( scr->asv, width, height, hints->icon_argb+2, NULL );
+				
+				}	 
+				if( im == NULL && get_flags( hints->flags, AS_ClientIconPixmap ) &&	hints->icon.pixmap != None )
+        		{/* convert client's icon into ASImage */
+            		unsigned int width, height ;
+            		get_drawable_size( hints->icon.pixmap, &width, &height );
+            		im = picture2asimage( Scr.asv, hints->icon.pixmap, hints->icon_mask,
+                                      	0, 0, width, height, 0xFFFFFFFF, False, 100 );
+
+            		LOCAL_DEBUG_OUT( "converted client's pixmap into an icon %dx%d %p", width, height, im );
+        		}
+			}
+        if( im == NULL )
+        {
+            if( hints->icon_file )
+            {
+                im = get_asimage( Scr.image_manager, hints->icon_file, 0xFFFFFFFF, 100 );
+                LOCAL_DEBUG_OUT( "loaded icon from \"%s\" into %dx%d %p", hints->icon_file, im?im->width:0, im?im->height:0, im );
+            }else
+            {
+                LOCAL_DEBUG_OUT( "no icon to use %s", "" );
+            }
+        }
+    }
+	return im;
+}
+
+
 /***********************************************************************************
  * Hints printing functions :
  ***********************************************************************************/
@@ -2509,7 +2636,11 @@ print_clean_hints (stream_func func, void *stream, ASHints * clean)
 	{
 		if (get_flags (clean->flags, AS_ClientIcon))
 		{
-			if (get_flags (clean->flags, AS_ClientIconPixmap))
+			if (get_flags (clean->flags, AS_ClientIconARGB) && clean->icon_argb )
+			{	  
+				func (stream, "CLEAN.icon.argb.width = 0x%lX;\n", clean->icon_argb[0]);
+				func (stream, "CLEAN.icon.argb.height = 0x%lX;\n", clean->icon_argb[1]);
+			}else if (get_flags (clean->flags, AS_ClientIconPixmap))
 				func (stream, "CLEAN.icon.pixmap = 0x%lX;\n", clean->icon.pixmap);
 			else
 				func (stream, "CLEAN.icon.window = 0x%lX;\n", clean->icon.window);

@@ -478,42 +478,6 @@ LOCAL_DEBUG_OUT( "++CREAT Client(%lx(%s))->ICONT->canvas(%p)->window(%lx)", asw-
     return canvas;
 }
 
-ASImage*
-get_window_icon_image( ASWindow *asw )
-{
-	ASImage *im = NULL ;
-    if( asw )
-    {
-        if( ASWIN_HFLAGS( asw, AS_ClientIcon|AS_ClientIconPixmap ) == (AS_ClientIcon|AS_ClientIconPixmap) &&
-            get_flags( Scr.Feel.flags, KeepIconWindows )&&
-            asw->hints->icon.pixmap != None )
-        {/* convert client's icon into ASImage */
-            unsigned int width, height ;
-            get_drawable_size( asw->hints->icon.pixmap, &width, &height );
-            im = picture2asimage( Scr.asv, asw->hints->icon.pixmap,
-                                        asw->hints->icon_mask,
-                                        0, 0, width, height,
-                                        0xFFFFFFFF, False, 100 );
-            LOCAL_DEBUG_OUT( "converted client's pixmap into an icon %dx%d %p", width, height, im );
-        }
-        /* TODO: we also need to check for newfashioned ARGB icon from
-        * extended WM specs here
-        */
-        if( im == NULL )
-        {
-            if( asw->hints->icon_file )
-            {
-                im = get_asimage( Scr.image_manager, asw->hints->icon_file, 0xFFFFFFFF, 100 );
-                LOCAL_DEBUG_OUT( "loaded icon from \"%s\" into %dx%d %p", asw->hints->icon_file, im?im->width:0, im?im->height:0, im );
-            }else
-            {
-                LOCAL_DEBUG_OUT( "no icon to use %s", "" );
-            }
-        }
-    }
-	return im;
-}
-
 static ASTBarData*
 check_tbar( ASTBarData **tbar, Bool required, const char *mystyle_name,
             ASImage *img, unsigned short back_w, unsigned short back_h,
@@ -974,7 +938,7 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
 
 		if( icon_image_changed )
 		{
-			ASImage *icon_image = get_window_icon_image( asw );
+			ASImage *icon_image = get_client_icon_image( ASDefaultScr, &(ASDefaultScr->Feel), asw->hints ); 
     		check_tbar( &(asw->icon_button), (asw->icon_canvas != NULL), AS_ICON_MYSTYLE,
             		    icon_image, Scr.Look.ButtonWidth, Scr.Look.ButtonHeight,/* scaling icon image */
                 		0, Scr.Look.ButtonAlign,

@@ -2139,5 +2139,72 @@ tga2ASImage( const char * path, ASImageImportParams *params )
 	SHOW_TIME("image loading",started);
 	return im ;
 }
+/*************************************************************************/
+/* ARGB 																 */
+/*************************************************************************/
+ASImage *
+convert_argb2ASImage( ASVisual *asv, int width, int height, ARGB32 *argb, CARD8 *gamma_table )
+{
+	ASImage *im = NULL ;
+	ASImageOutput  *imout ;
+	im = create_asimage( width, height, 100 );
+	if((imout = start_image_output( NULL, im, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT)) == NULL )
+	{
+   		destroy_asimage( &im );
+		return NULL;
+	}else
+	{	
+		ASScanline    buf;
+		int y ;
+		prepare_scanline( im->width, 0, &buf, True );
+		for( y = 0 ; y < height ; ++y ) 
+		{	  
+			int x ;
+			for( x = 0 ; x < width ; ++x ) 
+			{
+				ARGB32 c = argb[x];
+				buf.alpha[x] 	= ARGB32_ALPHA8(c);	
+				buf.red[x] 	= ARGB32_RED8(c);	  
+				buf.green[x] 	= ARGB32_GREEN8(c);	  
+				buf.blue[x] 	= ARGB32_BLUE8(c);	  
+			}	 
+			argb += width ;			
+			imout->output_image_scanline( imout, &buf, 1);
+		}
+		stop_image_output( &imout );
+		free_scanline( &buf, True );
+	}   
+						
+	return im ;	
+}
 
+
+ASImage *
+argb2ASImage( const char *path, ASImageImportParams *params )
+{
+	ASVisual fake_asv ;
+	long argb_data_len = -1; 
+	char *argb_data = NULL ;
+	ASImage *im = NULL ;
+
+	memset( &fake_asv, 0x00, sizeof(ASVisual) );
+
+	argb_data = load_binary_file(path, &argb_data_len);
+	if(argb_data == NULL || argb_data_len < 8 )
+		show_error( "unable to load file \"%s\" file is either too big or is not readable.\n", path );
+	else
+	{
+		int width = ((CARD32*)argb_data)[0] ;
+		int height = ((CARD32*)argb_data)[1] ;
+		if( 2 + width*height > argb_data_len/sizeof(CARD32))
+		{
+			show_error( "file \"%s\" is too small for specified image size of %dx%d.\n", path, width, height );
+		}else
+			im = convert_argb2ASImage( &fake_asv, width, height, (ARGB32*)argb_data+2, params->gamma_table );
+	}
+	if( argb_data ) 
+		free( argb_data );
+	
+	return im ;
+}
 

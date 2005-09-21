@@ -13,6 +13,8 @@ struct MwmHints;
 struct ASDatabaseRecord;
 struct ASVector;
 struct ScreenInfo;
+struct ASFeel;
+struct ASImage;
 /***********************************************************************/
 /*       AfterStep structure to hold summary of all the hints :        */
 /***********************************************************************/
@@ -84,16 +86,17 @@ struct ScreenInfo;
 #define AS_ClientIcon           (1<<20)
 #define AS_ClientIconPixmap     (1<<21)
 #define AS_ClientIconPosition   (1<<22)
-#define AS_Windowbox            (1<<23)
-#define AS_FocusOnMap           (1<<24)
-#define AS_ShortLived           (1<<25)
-#define AS_Module				(1<<26)
-#define AS_IgnoreConfigRequest  (1<<27)
-#define AS_WMDockApp			(1<<28)  /* res_class == "DockApp" and main 
+#define AS_ClientIconARGB		(1<<23)
+#define AS_Windowbox            (1<<24)
+#define AS_FocusOnMap           (1<<25)
+#define AS_ShortLived           (1<<26)
+#define AS_Module				(1<<27)
+#define AS_IgnoreConfigRequest  (1<<28)
+#define AS_WMDockApp			(1<<29)  /* res_class == "DockApp" and main 
 										  * window is 1x1 (just don't ask why)
 										  * usually that means that icon 
 										  * window should be animated */ 
-#define AS_UseCurrentViewport  	(1<<29)
+#define AS_UseCurrentViewport  	(1<<30)
 
 #define NOLOOK_HINT_FLAGS	(AS_IgnoreConfigRequest|AS_Module|AS_ShortLived| \
 							 AS_AvoidCover|AS_AcceptsFocus|AS_ClickToFocus| \
@@ -155,6 +158,7 @@ typedef struct ASHints
 
   union { Window window; Pixmap pixmap; } icon ;
   Pixmap icon_mask ;
+  CARD32 *icon_argb ; 
   int icon_x, icon_y ;
   char *icon_file ;
 
@@ -296,6 +300,8 @@ char *make_client_geometry_string (struct ScreenInfo * scr, ASHints *hints, ASSt
 char *make_client_command( struct ScreenInfo *scr, ASHints *hints, ASStatusHints *status, XRectangle *anchor, int vx, int vy);
 
 Bool set_all_client_hints( Window w, ASHints *hints, ASStatusHints *status, Bool set_command );
+struct ASImage* get_client_icon_image( struct ScreenInfo * scr, struct ASFeel *feel, ASHints *hints );
+
 
 /* printing functions :
  * if func and stream are not specified - fprintf(stderr) is used ! */

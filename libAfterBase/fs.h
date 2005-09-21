@@ -37,6 +37,7 @@ int		check_file_mode (const char *file, int mode);
 #define CheckDir(d) 	check_file_mode(d,S_IFDIR)
 
 int     copy_file (const char *realfilename1, const char *realfilename2);
+char*	load_binary_file(const char* realfilename, long *file_size_return);
 char*   load_file (const char *realfilename);
 
 char   *find_envvar (char *var_start, int *end_pos);

@@ -177,6 +177,7 @@ extern Atom _XA_NET_WM_STATE_BELOW;
 
 extern Atom _XA_NET_WM_PID;
 extern Atom _XA_NET_WM_PING;
+extern Atom _XA_NET_WM_ICON;
 
 extern Atom _XA_AS_MOVERESIZE;
 
@@ -452,6 +453,7 @@ GnomeHints;
 
  Protocols :
     _NET_WM_PING
+ 	_NET_WM_ICON
 
 */
 
@@ -493,6 +495,7 @@ typedef struct ExtendedWMHints
 								 EXTWM_StateHidden|EXTWM_StateFullscreen| \
 								 EXTWM_StateAbove|EXTWM_StateBelow)
 
+#define EXTWM_ICON              (0x01<<28)
 #define EXTWM_PID               (0x01<<29)
 #define EXTWM_DoesWMPing        (0x01<<30)
 
@@ -509,6 +512,8 @@ typedef struct ExtendedWMHints
   XTextProperty *visible_icon_name;
   CARD32 desktop;
   CARD32 pid;
+  CARD32 *icon;
+  CARD32 icon_length;
 }
 ExtendedWMHints;
 

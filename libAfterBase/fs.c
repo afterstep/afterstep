@@ -129,26 +129,38 @@ copy_file (const char *realfilename1, const char *realfilename2)
 }
 
 char*
-load_file(const char* realfilename)
+load_binary_file(const char* realfilename, long *file_size_return)
 {
 	struct stat st;
 	FILE* fp;
-	char* str;
-	int len;
+	char* data = NULL ;
 
 	/* Get the file size. */
 	if (stat(realfilename, &st)) return NULL;
-
 	/* Open the file. */
 	fp = fopen(realfilename, "rb");
-	if ( fp == NULL ) return NULL;
+	if ( fp != NULL ) 
+	{
+		long len ; 
+		/* Read in the file. */
+		data = safemalloc(st.st_size + 1);
+		len = fread(data, 1, st.st_size, fp);
+		if( file_size_return ) 
+			*file_size_return = len ; 
+		fclose(fp);
+	}
+	return data;
+}
 
-	/* Read in the file. */
-	str = NEW_ARRAY(char, st.st_size + 1);
-	len = fread(str, 1, st.st_size, fp);
-	if (len >= 0) str[len] = '\0';
+char*
+load_file(const char* realfilename)
+{
+	long len;
+	char* str = load_binary_file( realfilename, &len );
 
-	fclose(fp);
+	if (str != NULL && len >= 0) 
+		str[len] = '\0';
+
 	return str;
 }
 
