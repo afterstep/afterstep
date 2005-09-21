@@ -1,1 +1,1 @@
-<scale width=16 height=16><img src=large/AfterStep3></scale>
+<scale width="$minipixmap.width" height="$minipixmap.width"><img src=large/AfterStep3></scale>
