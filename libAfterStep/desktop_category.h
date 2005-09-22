@@ -146,6 +146,8 @@ int unref_desktop_category( ASDesktopCategory *dc );
 
 void add_desktop_category_entry( ASDesktopCategory *dc, const char *entry_name );
 void print_desktop_category( ASDesktopCategory *dc );
+void save_desktop_entry( ASDesktopEntry* de, FILE *fp );
+
 
 ASDesktopEntry *fetch_desktop_entry( ASCategoryTree *ct, const char *name );
 ASDesktopCategory *fetch_desktop_category( ASCategoryTree *ct, const char *cname );
@@ -171,5 +173,6 @@ Bool register_desktop_entry(ASCategoryTree *ct, ASDesktopEntry *de);
 void add_category_tree_subtree( ASCategoryTree* ct, ASCategoryTree* subtree );
 void print_category_tree( ASCategoryTree* ct );
 void print_category_tree2( ASCategoryTree* ct, ASDesktopCategory *dc );
+void save_category_tree( ASCategoryTree* ct, FILE *fp );
 
 #endif

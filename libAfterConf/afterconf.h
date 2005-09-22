@@ -2238,7 +2238,8 @@ extern struct SyntaxDef ASConfigSyntax;   /* THIS SYNTAX INCLUDES ALL OTHER SYNT
 Bool load_category_tree( struct ASCategoryTree*	ct );
 
 void DestroyCategories();
-void ReloadCategories();
+void ReloadCategories(Bool cached);
+void UpdateCategoriesCache();
 struct ASDesktopCategory;
 struct ASDesktopCategory *name2desktop_category( const char *name, struct ASCategoryTree **tree_return );
 

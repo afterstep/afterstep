@@ -306,6 +306,77 @@ print_desktop_entry( ASDesktopEntry* de )
 	}
 }	 
 
+void 
+save_desktop_entry( ASDesktopEntry* de, FILE *fp )
+{
+	if( de != NULL ) 
+	{
+		int i ;
+
+		fputs("[Desktop Entry]\n", fp );
+		switch( de->type ) 
+		{
+			case ASDE_TypeApplication : fputs("Type=Application\n", fp );break;
+			case ASDE_TypeLink :  		fputs("Type=Link\n", fp );break;
+			case ASDE_TypeFSDevice : 	fputs("Type=FSDevice\n", fp );break;	  
+			case ASDE_TypeDirectory : 	fputs("Type=Directory\n", fp );break;	  
+			default: break;
+		}
+		/* fprintf( stderr, "de(%p).flags = 0x%lX;\n", de, de->flags );			*/
+#undef PRINT_ASDE_VAL
+#define PRINT_ASDE_VAL(val)	do{if(de->val) fprintf(fp, #val "=%s\n", de->val );}while(0)			   
+
+		PRINT_ASDE_VAL(Name) ; 
+		PRINT_ASDE_VAL(GenericName) ;
+		PRINT_ASDE_VAL(Comment) ; 
+
+		PRINT_ASDE_VAL(TryExec) ;
+		PRINT_ASDE_VAL(Exec) ;
+		PRINT_ASDE_VAL(Path) ;               /* work dir */
+		
+		PRINT_ASDE_VAL(SwallowTitle) ;
+		PRINT_ASDE_VAL(SwallowExec) ;
+		PRINT_ASDE_VAL(SortOrder) ;
+
+		if( de->categories_num ) 
+		{	
+			fputs( "Categories=", fp );
+			for( i = 0 ; i < de->categories_num ; ++i ) 
+			{	
+				fputs( de->categories_shortcuts[i], fp );
+				fputc( ';', fp );
+			}
+			fputc( '\n', fp );
+		}
+		PRINT_ASDE_VAL(OnlyShowIn) ;
+		PRINT_ASDE_VAL(NotShowIn) ;
+		PRINT_ASDE_VAL(StartupWMClass) ;
+		
+		if( de->IndexName ) 
+			fprintf(fp, "X-AfterStep-IndexName=%s\n", de->IndexName );
+		if( de->aliases_num > 0 ) 
+		{	
+			fputs( "X-AfterStep-Aliases=", fp );
+			for( i = 0 ; i < de->aliases_num ; ++i ) 
+			{	
+				fputs( de->aliases_shortcuts[i], fp );
+				fputc( ';', fp );
+			}
+			fputc( '\n', fp );
+		}
+
+		if( de->fulliconname ) 
+			fprintf(fp, "Icon=%s\n", de->fulliconname );
+
+#define PRINT_ASDE_FLAG(val)	do{if(get_flags(de->flags,ASDE_##val)) fputs(#val "=1\n", fp  );}while(0)			   
+		PRINT_ASDE_FLAG(NoDisplay);
+		PRINT_ASDE_FLAG(Hidden);
+		PRINT_ASDE_FLAG(Terminal);
+		PRINT_ASDE_FLAG(StartupNotify);
+		
+		fputc( '\n', fp );
+	}
+}	 
 
 void
 desktop_entry_destroy(ASHashableValue value, void *data)
@@ -424,7 +495,9 @@ Bool register_desktop_entry(ASCategoryTree *ct, ASDesktopEntry *de)
 		ASDesktopCategory *dc = NULL ;
 		void *tmp = NULL;
 		LOCAL_DEBUG_OUT( "desktop entry is a directory \"%s\"", de->Name );
+#if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
 		print_desktop_entry( de );
+#endif
 			
 		if( get_hash_item( ct->categories, AS_HASHABLE(de->Name), &tmp ) == ASH_Success )
 			dc = (ASDesktopCategory *)tmp;
@@ -725,6 +798,25 @@ print_category_tree2( ASCategoryTree* ct, ASDesktopCategory *dc )
 	}		  
 	
 }	 
+
+void
+save_category_tree( ASCategoryTree* ct, FILE *fp )
+{
+	ASHashIterator i;
+
+	if( ct == NULL || fp == NULL ) 
+		return ;
+
+	if( start_hash_iteration ( ct->entries, &i) )
+	{
+		do
+		{
+		 	ASDesktopEntry *de = curr_hash_data( &i );
+			save_desktop_entry(de, fp );
+		}while( next_hash_item( &i ) );
+	}	 
+}	 
+
 
 /****************** /public **********************/
 

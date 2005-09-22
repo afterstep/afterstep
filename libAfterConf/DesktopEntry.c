@@ -18,7 +18,8 @@
  */
 
 
-#define LOCAL_DEBUG
+/*#define LOCAL_DEBUG */
+#define DO_CLOCKING
 
 #include "../configure.h"
 
@@ -468,9 +469,38 @@ DestroyCategories()
 }
 
 void 
-ReloadCategories()
+save_category_tree_cache( ASCategoryTree *ct, const char *fname )  
 {
 	char *configfile ;
+	FILE *fp ;
+	
+	configfile = make_session_data_file(Session, False, 0, fname, NULL );
+	if( configfile ) 
+	{	
+   		fp = fopen( configfile, "wb" );
+		if( fp ) 
+		{	
+			save_category_tree( ct, fp );
+			fclose( fp );
+		}
+		free( configfile );
+	}
+}	 
+
+void 
+UpdateCategoriesCache()
+{
+	save_category_tree_cache( KDECategories, 		KDE_CACHE_FILE );  
+	save_category_tree_cache( GNOMECategories, 		GNOME_CACHE_FILE );  
+	save_category_tree_cache( SystemCategories, 	SYSTEM_CACHE_FILE );  
+}	 
+
+void 
+ReloadCategories(Bool cached)
+{
+	char *configfile ;
+	START_TIME(started);
+
 	DestroyCategories();
 	
     if( (configfile = make_session_file(Session, STANDARD_CATEGORIES_FILE, False )) != NULL )
@@ -479,29 +509,47 @@ ReloadCategories()
 		free( configfile );
 	}
 
-	KDECategories = create_category_tree( "KDE", KDE_APPS_PATH, KDE_ICONS_PATH, ASCT_OnlyKDE, -1 );	   
- 	GNOMECategories = create_category_tree( "GNOME", GNOME_APPS_PATH, GNOME_ICONS_PATH, ASCT_OnlyGNOME, -1 );	
- 	SystemCategories = create_category_tree( "SYSTEM", SYSTEM_APPS_PATH, SYSTEM_ICONS_PATH, ASCT_ExcludeGNOME|ASCT_ExcludeKDE, -1 );	
+	if( cached ) 
+	{	
+		char *configfile = make_session_data_file(Session, False, 0, KDE_CACHE_FILE, NULL );
+		KDECategories = create_category_tree( "KDE", configfile, KDE_ICONS_PATH, 0, -1 );	   
+		free( configfile );
+		configfile = make_session_data_file(Session, False, 0, GNOME_CACHE_FILE, NULL );
+ 		GNOMECategories = create_category_tree( "GNOME", configfile, GNOME_ICONS_PATH, 0, -1 );	
+		free( configfile );
+		configfile = make_session_data_file(Session, False, 0, SYSTEM_CACHE_FILE, NULL );
+ 		SystemCategories = create_category_tree( "SYSTEM", configfile, SYSTEM_ICONS_PATH, 0, -1 );	
+		free( configfile );
+	}else
+	{
+		KDECategories = create_category_tree( "KDE", KDE_APPS_PATH, KDE_ICONS_PATH, ASCT_OnlyKDE, -1 );	   
+ 		GNOMECategories = create_category_tree( "GNOME", GNOME_APPS_PATH, GNOME_ICONS_PATH, ASCT_OnlyGNOME, -1 );	
+ 		SystemCategories = create_category_tree( "SYSTEM", SYSTEM_APPS_PATH, SYSTEM_ICONS_PATH, ASCT_ExcludeGNOME|ASCT_ExcludeKDE, -1 );	
+	}	 
 
 	CombinedCategories = create_category_tree( "", NULL, NULL, 0, -1 );	 
 	
  	load_category_tree( StandardCategories );		   			   
-
+	SHOW_TIME("Standard categories",started);
  	add_category_tree_subtree( KDECategories   , StandardCategories );
  	add_category_tree_subtree( GNOMECategories , StandardCategories );
  	add_category_tree_subtree( SystemCategories, StandardCategories );
 	
  	load_category_tree( KDECategories    );
+	SHOW_TIME("KDE categories",started);
 	load_category_tree( GNOMECategories  );
+	SHOW_TIME("GNOME categories",started);
  	load_category_tree( SystemCategories );
+	SHOW_TIME("System categories",started);
 
-	fprintf( stderr, "@ Building up Combined: @@@@@@@@@@@@@@@@@@@@@@@@@@@@\n" );
+	LOCAL_DEBUG_OUT( "@ Building up Combined: @@@@@@@@@@@@@@@@@@@@@@@@@@@@%s","" );
 	
  	add_category_tree_subtree( CombinedCategories, StandardCategories );
 	add_category_tree_subtree( CombinedCategories, KDECategories      );
  	add_category_tree_subtree( CombinedCategories, GNOMECategories    );
  	add_category_tree_subtree( CombinedCategories, SystemCategories   );
-	   
+	
+	SHOW_TIME(__FUNCTION__,started);
 }	 
 
 ASDesktopCategory *
@@ -540,13 +588,18 @@ main( int argc, char ** argv )
 	int i ; 
 	ASDesktopCategory *dc = NULL ;
 	ASCategoryTree *ct = NULL ;  
+	Bool cached = False ;
 
 	InitMyApp ("PrintDesktopEntries", argc, argv, NULL, NULL, 0 );
 	InitSession();
-	ReloadCategories();
+	for( i = 1 ; i < argc ; ++i ) 
+		if( argv[i] && strcmp(argv[i], "--cached") == 0 ) 
+			cached = True ;
+
+	ReloadCategories(cached);
 
 	for( i = 1 ; i < argc ; ++i ) 
-		if( argv[i] ) 
+		if( argv[i] && strcmp(argv[i], "--cached") != 0) 
 		{
 			dc = name2desktop_category( argv[i], &ct );
 			if( dc == NULL ) 
@@ -608,7 +661,7 @@ main( int argc, char ** argv )
 
 	InitMyApp ("TestASDesktopEntry", argc, argv, NULL, NULL, 0 );
 	InitSession();
-	ReloadCategories();
+	ReloadCategories(False);
 //	ReloadCategories();
 //	ReloadCategories();
 

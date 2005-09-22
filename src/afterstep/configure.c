@@ -1523,9 +1523,12 @@ LoadASConfig (int thisdesktop, ASFlagType what)
                 InitFeel (&Scr.Feel, True);
                 if (tline == NULL)
                     tline = safemalloc (MAXLINELENGTH + 1);
+				
 				display_progress( True, "Reloading and merging desktop categories ...");
-				ReloadCategories();
-                display_progress( True, "Parsing menu entries and checking availability ...");
+				ReloadCategories(False);
+				UpdateCategoriesCache();
+                
+				display_progress( True, "Parsing menu entries and checking availability ...");
                 MeltStartMenu (tline);
                 display_progress( False, "Done..");
                 ParseConfigFile (const_configfile, &tline);

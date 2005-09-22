@@ -101,7 +101,7 @@ TermDef       WinListTerms[] = {
 	WINLIST_FEEL_TERMS,
 	/* Look */
 	WINLIST_LOOK_TERMS,
-    {TF_DEPRECIATED, "Orientation", 11, TT_TEXT, WINLIST_Orientation_ID, NULL},
+    {TF_OBSOLETE, "Orientation", 11, TT_TEXT, WINLIST_Orientation_ID, NULL},
 /* including MyStyles definitions processing */
 	INCLUDE_MYSTYLE,
 /* now special cases that should be processed by it's own handlers */
