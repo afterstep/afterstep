@@ -2027,24 +2027,11 @@ switch_deskviewport( int new_desk, int new_vx, int new_vy )
 }
 
 static char as_comm_buf[256];
-void
-move_client_wm( ASWindowData* wd, int x, int y )
-{
-    sprintf( as_comm_buf, "Move %dp %dp", x-Scr.Vx, y-Scr.Vy );
-    SendInfo( as_comm_buf, wd->client );
-}
 
 void
 move_client_to_desk( ASWindowData* wd, int desk )
 {
     sprintf( as_comm_buf, "WindowsDesk %d", desk );
-    SendInfo( as_comm_buf, wd->client );
-}
-
-void
-resize_client_wm( ASWindowData* wd, unsigned int width, unsigned int height )
-{
-    sprintf( as_comm_buf, "Resize %dp %dp", width, height );
     SendInfo( as_comm_buf, wd->client );
 }
 
@@ -2120,6 +2107,46 @@ translate_client_size( unsigned int width,  unsigned int height, unsigned int *r
     }
 }
 
+typedef struct ASPagerMoveResizeReq
+{
+	FunctionCode func;
+	send_signed_data_type func_val[2] ;	
+	Window client ;
+	Bool pending ;
+}ASPagerMoveResizeReq;
+
+ASPagerMoveResizeReq PagerMoveResizeReq = { 0, {0, 0}, None, False};
+
+void exec_moveresize_req( void *data )
+{
+	ASPagerMoveResizeReq *req = (ASPagerMoveResizeReq *)data ;
+	if( req && req->pending ) 
+	{
+		send_signed_data_type unit_val[2] = {1, 1};
+	    SendNumCommand ( req->func, NULL, &(req->func_val[0]), &(unit_val[0]), req->client);
+		req->pending = False ;	
+	}		 
+}	 
+
+void 
+schedule_moveresize_req( FunctionCode func, send_signed_data_type val1, send_signed_data_type val2, Window client, Bool immidiate )
+{
+	if( PagerMoveResizeReq.pending ) 
+	{
+		timer_remove_by_data( &PagerMoveResizeReq );
+		if( PagerMoveResizeReq.client != client || PagerMoveResizeReq.func != func )
+			exec_moveresize_req( &PagerMoveResizeReq );
+	}	
+	PagerMoveResizeReq.func 	= func ; 
+	PagerMoveResizeReq.func_val[0]	= val1 ; 
+	PagerMoveResizeReq.func_val[1]	= val2 ; 
+	PagerMoveResizeReq.client 	= client ; 
+	PagerMoveResizeReq.pending	= True;
+	if( immidiate ) 
+		exec_moveresize_req( &PagerMoveResizeReq );
+	else
+		timer_new( 50, exec_moveresize_req, &PagerMoveResizeReq ); 
+}	 
 
 void
 apply_client_move(struct ASMoveResizeData *data)
@@ -2138,7 +2165,7 @@ apply_client_move(struct ASMoveResizeData *data)
                                      d->background->root_x, d->background->root_y );
     }
     LOCAL_DEBUG_OUT( "d(%p)->curr(%+d%+d)->real(%+d%+d)", d, data->curr.x, data->curr.y, real_x, real_y);
-    move_client_wm( wd, real_x, real_y);
+    schedule_moveresize_req( F_MOVE, real_x, real_y, wd->client, False );
 }
 
 void complete_client_move(struct ASMoveResizeData *data, Bool cancelled)
@@ -2165,7 +2192,7 @@ void complete_client_move(struct ASMoveResizeData *data, Bool cancelled)
                                      d->background->root_x, d->background->root_y );
     }
     LOCAL_DEBUG_OUT( "d(%p)->start(%+d%+d)->curr(%+d%+d)->real(%+d%+d)", d, data->start.x, data->start.y, data->curr.x, data->curr.y, real_x, real_y);
-    move_client_wm( wd, real_x, real_y);
+    schedule_moveresize_req( F_MOVE, real_x, real_y, wd->client, True );
     Scr.moveresize_in_progress = NULL ;
 }
 
@@ -2175,7 +2202,7 @@ void apply_client_resize(struct ASMoveResizeData *data)
     unsigned int real_width=1, real_height = 1;
 LOCAL_DEBUG_OUT( "desk(%p)->size(%dx%d)", PagerState.resize_desk, data->curr.width, data->curr.height);
     translate_client_size( data->curr.width, data->curr.height, &real_width, &real_height );
-    resize_client_wm( wd, real_width, real_height);
+	schedule_moveresize_req( F_RESIZE, real_width, real_height, wd->client, False );
 }
 
 void complete_client_resize(struct ASMoveResizeData *data, Bool cancelled)
@@ -2192,7 +2219,7 @@ void complete_client_resize(struct ASMoveResizeData *data, Bool cancelled)
         LOCAL_DEBUG_OUT( "%dx%d%+d%+d", data->curr.x, data->curr.y, data->curr.width, data->curr.height);
         translate_client_size( data->curr.width, data->curr.height, &real_width, &real_height );
     }
-    resize_client_wm( wd, real_width, real_height);
+	schedule_moveresize_req( F_RESIZE, real_width, real_height, wd->client, True );
     PagerState.resize_desk = NULL ;
     Scr.moveresize_in_progress = NULL ;
 }
