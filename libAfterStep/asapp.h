@@ -56,7 +56,7 @@ struct SyntaxDef;
 struct TermDef;
 struct ASSession;
 struct ASCategoryTree;
-
+struct ASDatabase;
 
 /* compatibility macros : */
 #define GetFdWidth          get_fd_width
@@ -233,6 +233,7 @@ void InitMyApp (  const char *app_class, int agrc, char **argv, void (*version_f
 void SetMyName (char *argv0);
 /* overrides envvars supplied on startup : */
 void override_environ( char **envp );
+void destroy_asdatabase();
 
 
 void FreeMyAppResources();
@@ -303,6 +304,7 @@ struct TermDef  *func2fterm (enum FunctionCode func, int quiet);
 
 extern struct ASSession *Session;          /* filenames of look, feel and background */
 extern struct ASEnvironment *Environment;
+extern struct ASDatabase    *Database;
 
 extern struct ASCategoryTree *StandardCategories ;
 extern struct ASCategoryTree *KDECategories ;

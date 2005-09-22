@@ -28,6 +28,7 @@
 #include "../libAfterStep/asdatabase.h"
 #include "../libAfterStep/parser.h"
 #include "../libAfterStep/hints.h"
+#include "../libAfterStep/session.h"
 
 #include "afterconf.h"
 
@@ -562,6 +563,38 @@ ParseDatabaseOptions (const char *filename, char *myname)
 	DestroyFreeStorage (&Storage);
 	return config;
 }
+
+Bool ReloadASDatabase()
+{
+	char *configfile  = make_session_file(Session, DATABASE_FILE, False ); 
+	destroy_asdatabase();
+    if( configfile != NULL )
+    {
+	    struct name_list *list = NULL ;
+	
+		/* memory management for parsing buffer */
+	    list = ParseDatabaseOptions (configfile, "afterstep");
+    	if( list )
+	    {
+    	    Database = build_asdb( list );
+        	if( is_output_level_under_threshold( OUTPUT_LEVEL_DATABASE ) )
+	            print_asdb( NULL, NULL, Database );
+    	    while (list != NULL)
+        	    delete_name_list (&(list));
+	        show_progress("DATABASE configuration loaded from \"%s\" ...", configfile);
+	    }else
+    	    show_progress( "no database records loaded." );
+	    /* XResources : */
+    	load_user_database();
+        free( configfile );
+    }else
+    {
+        show_warning("DATABASE configuration file cannot be found!");
+        return False ;
+    }
+	return True ;
+}
+
 
 /*****************************************************************************/
 /*                      Writer stuff                                         */

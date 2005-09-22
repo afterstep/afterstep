@@ -2169,6 +2169,7 @@ convert_argb2ASImage( ASVisual *asv, int width, int height, ARGB32 *argb, CARD8 
 				buf.blue[x] 	= ARGB32_BLUE8(c);	  
 			}	 
 			argb += width ;			
+			set_flags( buf.flags, SCL_DO_RED|SCL_DO_GREEN|SCL_DO_BLUE|SCL_DO_ALPHA );
 			imout->output_image_scanline( imout, &buf, 1);
 		}
 		stop_image_output( &imout );

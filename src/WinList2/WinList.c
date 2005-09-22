@@ -529,9 +529,9 @@ DispatchEvent (ASEvent * event)
                 	for( i = 0 ; i < WinListState.windows_num ; ++i )
 						refresh_winlist_button( WinListState.window_order[i]->bar, WinListState.window_order[i], False );
             	}
-			}else if( event->x.xproperty.atom ==  )
+			}else if( event->x.xproperty.atom == _XA_NET_WM_ICON )
 			{                  /* Maybe name change on the client !!! */
-				handle_tab_name_change( event->w );				 		
+				/*handle_tab_name_change( event->w ); */
 			}
 			break;
 		default:

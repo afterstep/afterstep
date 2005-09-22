@@ -42,8 +42,6 @@
 ASFlagType AfterStepState = 0; /* default status */
 
 /* Config : */
-struct ASDatabase    *Database = NULL;
-
 ASVector     *Modules       = NULL;
 int           Module_fd     = 0;
 int           Module_npipes = 8;
@@ -257,7 +255,6 @@ SHOW_CHECKPOINT;
 
     /* Load config ... */
     /* read config file, set up menus, colors, fonts */
-    InitDatabase (False);
     LoadASConfig (0, PARSE_EVERYTHING);
 
     /* Reparent all the windows and setup pan frames : */
@@ -711,7 +708,6 @@ LOCAL_DEBUG_CALLER_OUT( "%s restart, cmd=\"%s\"", restart?"Do":"Don't", command?
 		/* freeing up memory */
     	destroy_assession( Session );
 		destroy_asenvironment( &Environment );
-    	InitDatabase(True);
     	free_func_hash ();
     	/* pixmap references */
     	build_xpm_colormap (NULL);

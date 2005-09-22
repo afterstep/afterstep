@@ -1386,30 +1386,6 @@ advertise_tbar_props()
 /*************************************************************************/
 /* reading confiug files now :                                           */
 /*************************************************************************/
-void
-ParseDatabase (const char *file)
-{
-    struct name_list *list = NULL ;
-
-	/* memory management for parsing buffer */
-	if (file == NULL)
-        return ;
-
-    list = ParseDatabaseOptions (file, "afterstep");
-    if( list )
-    {
-        Database = build_asdb( list );
-        if( is_output_level_under_threshold( OUTPUT_LEVEL_DATABASE ) )
-            print_asdb( NULL, NULL, Database );
-        while (list != NULL)
-            delete_name_list (&(list));
-    }else
-        show_progress( "no database records loaded." );
-    /* XResources : */
-    load_user_database();
-}
-
-
 int
 ParseConfigFile (const char *file, char **tline)
 {
@@ -1602,21 +1578,18 @@ LoadASConfig (int thisdesktop, ASFlagType what)
         }
 
         if (get_flags(what, PARSE_DATABASE_CONFIG))
-        {
-            if( (configfile = make_session_file(Session, DATABASE_FILE, False )) != NULL )
-            {
-                InitDatabase (True);
-                ParseDatabase (configfile);
-                show_progress("DATABASE configuration loaded from \"%s\" ...", configfile);
-                display_progress( True, "DATABASE configuration loaded from \"%s\" .", configfile);
-                free( configfile );
-            }else
-            {
-                show_warning("DATABASE configuration file cannot be found!");
-                display_progress( True, "DATABASE configuration file cannot be found!");
+		{
+			if( !ReloadASDatabase() )
+			{
+		        display_progress( True, "DATABASE configuration file cannot be found!");
                 clear_flags(what, PARSE_DATABASE_CONFIG);
-            }
-        }
+			}else
+			{
+				configfile  = make_session_file(Session, DATABASE_FILE, False );
+	    	    display_progress( True, "DATABASE configuration loaded from \"%s\" .", configfile);
+				free( configfile );
+			}
+		}
 	} else
 	{
 		ReloadASEnvironment( &old_image_manager, &old_font_manager, NULL, True, True );
@@ -1627,8 +1600,8 @@ LoadASConfig (int thisdesktop, ASFlagType what)
 		memset( &TmpFeel, 0x00, sizeof(TmpFeel));
 		InitFeel (&TmpFeel, False );
         InitFeel (&Scr.Feel, True);
-        InitDatabase (True);
         ParseConfigFile (Session->overriding_file, &tline);
+        ReloadASDatabase();
 		merge_look( &Scr.Look, &TmpLook );
 		merge_feel( &Scr.Feel, &TmpFeel );
         show_progress("AfterStep configuration loaded from \"%s\" ...", Session->overriding_file);

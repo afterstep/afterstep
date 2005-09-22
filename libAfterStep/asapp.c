@@ -90,6 +90,8 @@ void (*CloseOnExec)() = NULL ;
 struct ASSession *Session = NULL;          /* filenames of look, feel and background */
 struct ASEnvironment *Environment = NULL;
 
+struct ASDatabase    *Database = NULL;
+
 struct ASCategoryTree *StandardCategories = NULL ;
 struct ASCategoryTree *KDECategories = NULL ;
 struct ASCategoryTree *GNOMECategories = NULL ;
@@ -723,6 +725,21 @@ destroy_asenvironment( ASEnvironment **penv )
 	}
 }
 
+/*
+ * Initialize database variables
+ */
+
+void
+destroy_asdatabase()
+{
+	if( Database ) 
+	    destroy_asdb( &Database );
+    /* XResources : */
+    destroy_user_database();
+}
+
+
+
 void
 InitSession()
 {
@@ -740,11 +757,13 @@ InitSession()
 }
 
 
+
 void
 FreeMyAppResources()
 {
 	
     balloon_init (True);
+	destroy_asdatabase();
     mystyle_destroy_all();
     destroy_image_manager( ASDefaultScr->image_manager, False );
     destroy_font_manager( ASDefaultScr->font_manager, False );

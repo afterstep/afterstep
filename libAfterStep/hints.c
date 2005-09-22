@@ -2557,7 +2557,16 @@ get_client_icon_image( ScreenInfo * scr, ASFeel *feel, ASHints *hints )
 	ASImage *im = NULL ;
     if( hints )
     {
-        if( feel == NULL || get_flags( feel->flags, KeepIconWindows ) ) 
+
+		Bool override_client_icon = ( feel != NULL && !get_flags( feel->flags, KeepIconWindows )) ; 
+		if( override_client_icon ) 
+		{
+			if( hints->icon_file == NULL || Database->style_default.icon_file == NULL )
+				override_client_icon = False ;
+			else if( strcmp( hints->icon_file, Database->style_default.icon_file ) != 0 )
+				override_client_icon = False ;
+		}
+        if( !override_client_icon ) 
 			if( get_flags(hints->flags, AS_ClientIcon ) ) 
 			{	
         		/* first try ARGB icon If provided by the application : */

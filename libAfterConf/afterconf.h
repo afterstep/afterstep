@@ -1123,6 +1123,7 @@ unsigned int translate_title_button_back (unsigned int title_button);
 struct name_list *ParseDatabaseOptions (const char *filename, char *myname);
 int WriteDatabaseOptions (const char *filename, char *myname,
 			  struct name_list *config, unsigned long flags);
+Bool ReloadASDatabase();
 
 /**************************************************************************/
 /*                        Wharf pasring definitions                       */
