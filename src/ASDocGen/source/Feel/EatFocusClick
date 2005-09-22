@@ -1,9 +1,0 @@
-<varlistentry id="options.EatFocusClick">
-	<term>EatFocusClick</term>
-	<listitem>
-	<para>When this flag is specified in feel file - AfterStep will "eat" mouse
-        click, that was used to focus window in ClickToFocus mode. That means that
-        if you have any function assigned to mouse clicks on the titlebars -
-        those functions will only be executed if the window is already focused.</para>
-	</listitem>
-</varlistentry>

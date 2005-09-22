@@ -1,0 +1,7 @@
+<varlistentry id="options.SliceYStart">
+	<term>SliceYStart <emphasis>val</emphasis></term>
+	<listitem>
+		<para>When used with scalable BackPixmap it will make image sliced instead scaled.
+Which means that its borders will remain unchanged, but center part will get tiled to fill empty space. SliceYStart is the height of the top border.</para>
+	</listitem>
+</varlistentry>

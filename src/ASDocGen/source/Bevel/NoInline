@@ -1,0 +1,7 @@
+<varlistentry id="options.NoInline">
+	<term>NoInline</term>
+	<listitem>
+		<para>Do not display the frame inside the widget - if used without
+		any other option it will have the same effect as none.</para>
+	</listitem>
+</varlistentry>

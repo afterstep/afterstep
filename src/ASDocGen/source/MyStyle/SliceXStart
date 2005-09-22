@@ -1,0 +1,7 @@
+<varlistentry id="options.SliceXStart">
+	<term>SliceXStart <emphasis>val</emphasis></term>
+	<listitem>
+		<para>When used with scalable BackPixmap it will make image sliced instead scaled.
+Which means that its borders will remain unchanged, but center part will get tiled to fill empty space. SliceXStart is the width of the left border.</para>
+	</listitem>
+</varlistentry>
