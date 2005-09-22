@@ -1605,7 +1605,7 @@ make_desk_winlist_menu(  ASWindowList *list, int desk, int sort_order, Bool icon
 		{
 			add_menu_fdata_item( md, menuitems[i], NULL, 
 get_flags( Scr.Feel.flags, WinListHideIcons) ? NULL : 
-get_client_icon_image(ASDefaultScr, &(Scr.Feel), clients[i]->hints));
+get_client_icon_image(ASDefaultScr, clients[i]->hints));
 			safefree(menuitems[i]); /* scrubba-dub-dub */
 		}
 		safefree(menuitems);
@@ -1617,7 +1617,7 @@ get_client_icon_image(ASDefaultScr, &(Scr.Feel), clients[i]->hints));
 			{
 				ASWindow2func_data( F_RAISE_IT, clients[i], &fdata, &scut, icon_name ); 
                 add_menu_fdata_item( md, &fdata, NULL, get_flags( Scr.Feel.flags, WinListHideIcons)? NULL : 
-					get_client_icon_image( ASDefaultScr, &(Scr.Feel), clients[i]->hints));
+					get_client_icon_image( ASDefaultScr, clients[i]->hints));
             }
         }
     }

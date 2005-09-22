@@ -938,7 +938,7 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
 
 		if( icon_image_changed )
 		{
-			ASImage *icon_image = get_client_icon_image( ASDefaultScr, &(ASDefaultScr->Feel), asw->hints ); 
+			ASImage *icon_image = get_client_icon_image( ASDefaultScr, asw->hints ); 
     		check_tbar( &(asw->icon_button), (asw->icon_canvas != NULL), AS_ICON_MYSTYLE,
             		    icon_image, Scr.Look.ButtonWidth, Scr.Look.ButtonHeight,/* scaling icon image */
                 		0, Scr.Look.ButtonAlign,

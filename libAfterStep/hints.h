@@ -300,7 +300,7 @@ char *make_client_geometry_string (struct ScreenInfo * scr, ASHints *hints, ASSt
 char *make_client_command( struct ScreenInfo *scr, ASHints *hints, ASStatusHints *status, XRectangle *anchor, int vx, int vy);
 
 Bool set_all_client_hints( Window w, ASHints *hints, ASStatusHints *status, Bool set_command );
-struct ASImage* get_client_icon_image( struct ScreenInfo * scr, struct ASFeel *feel, ASHints *hints );
+struct ASImage* get_client_icon_image( struct ScreenInfo * scr, ASHints *hints );
 
 
 /* printing functions :

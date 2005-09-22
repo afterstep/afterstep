@@ -2552,22 +2552,23 @@ set_all_client_hints (Window w, ASHints * hints, ASStatusHints * status, Bool se
 
 
 ASImage*
-get_client_icon_image( ScreenInfo * scr, ASFeel *feel, ASHints *hints )
+get_client_icon_image( ScreenInfo * scr, ASHints *hints )
 {
 	ASImage *im = NULL ;
     if( hints )
     {
 
-		Bool override_client_icon = ( feel != NULL && !get_flags( feel->flags, KeepIconWindows )) ; 
-		if( override_client_icon ) 
-		{
-			if( hints->icon_file == NULL || Database->style_default.icon_file == NULL )
-				override_client_icon = False ;
-			else if( strcmp( hints->icon_file, Database->style_default.icon_file ) != 0 )
-				override_client_icon = False ;
-		}
-        if( !override_client_icon ) 
-			if( get_flags(hints->flags, AS_ClientIcon ) ) 
+		if( get_flags(hints->flags, AS_ClientIcon ) ) 
+		{	
+			Bool use_client_icon = ( hints->icon_file == NULL );
+
+			if( !use_client_icon ) 
+			{
+				if( Database->style_default.icon_file == NULL || 
+					strcmp( hints->icon_file, Database->style_default.icon_file ) == 0 )
+					use_client_icon = True ;
+			}
+        	if( use_client_icon ) 
 			{	
         		/* first try ARGB icon If provided by the application : */
 				if( get_flags( hints->flags, AS_ClientIconARGB ) && hints->icon_argb != NULL )
@@ -2590,6 +2591,7 @@ get_client_icon_image( ScreenInfo * scr, ASFeel *feel, ASHints *hints )
             		LOCAL_DEBUG_OUT( "converted client's pixmap into an icon %dx%d %p", width, height, im );
         		}
 			}
+		}
         if( im == NULL )
         {
             if( hints->icon_file )
