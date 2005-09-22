@@ -214,7 +214,7 @@ set_asmenu_item_data( ASMenuItem *item, MenuDataItem *mdi )
         item->icon = NULL ;
     }
 	/* we can only use images that are reference counted */
-    if( mdi->minipixmap_image && mdi->minipixmap_image->imageman != NULL )
+    if( mdi->minipixmap_image )
         icon_im = mdi->minipixmap_image ;
     else if( mdi->minipixmap )
         icon_im = GetASImageFromFile( mdi->minipixmap );
@@ -224,7 +224,12 @@ set_asmenu_item_data( ASMenuItem *item, MenuDataItem *mdi )
 		if( item->icon != icon_im && icon_im != mdi->minipixmap_image )
 			safe_asimage_destroy( icon_im );
 		if( item->icon == mdi->minipixmap_image )
-            item->icon = dup_asimage( item->icon );
+		{	
+			if( mdi->minipixmap_image->imageman != NULL )
+            	item->icon = dup_asimage( item->icon );
+			else
+		    	item->icon = clone_asimage( item->icon, 0xFFFFFFFF );
+		}
     }
 LOCAL_DEBUG_OUT( "item(\"%s\")->minipixmap(\"%s\")->icon(%p)", mdi->item?mdi->item:"NULL", mdi->minipixmap?mdi->minipixmap:"NULL", item->icon );
 

@@ -27,6 +27,7 @@
 #include "functions.h"
 #include "clientprops.h"
 #include "hints.h"
+#include "desktop_category.h"
 #include "../libAfterImage/afterimage.h"
 
 
@@ -2564,7 +2565,7 @@ get_client_icon_image( ScreenInfo * scr, ASHints *hints )
 
 			if( !use_client_icon ) 
 			{
-				if( Database->style_default.icon_file == NULL || 
+				if( Database->style_default.icon_file != NULL && 
 					strcmp( hints->icon_file, Database->style_default.icon_file ) == 0 )
 					use_client_icon = True ;
 			}
@@ -2596,7 +2597,24 @@ get_client_icon_image( ScreenInfo * scr, ASHints *hints )
         {
             if( hints->icon_file )
             {
-                im = get_asimage( Scr.image_manager, hints->icon_file, 0xFFFFFFFF, 100 );
+				char *icon_file = hints->icon_file ; 
+				if( Database->style_default.icon_file != NULL && 
+					strcmp( icon_file, Database->style_default.icon_file ) == 0 )
+				{
+					if( CombinedCategories != NULL ) 
+					{
+						ASHashData	hd = {0} ;
+						if( get_hash_item( CombinedCategories->entries, AS_HASHABLE(hints->res_name), &(hd.vptr)) == ASH_Success ||
+							get_hash_item( CombinedCategories->entries, AS_HASHABLE(hints->res_class), &(hd.vptr)) == ASH_Success )
+						{
+							ASDesktopEntry *de = hd.vptr	;
+							if( de && de->ref_count > 0 && de->fulliconname ) 
+								icon_file = de->fulliconname ;
+						}							   
+					}	 
+				}
+                
+				im = get_asimage( Scr.image_manager, icon_file, 0xFFFFFFFF, 100 );
                 LOCAL_DEBUG_OUT( "loaded icon from \"%s\" into %dx%d %p", hints->icon_file, im?im->width:0, im?im->height:0, im );
             }else
             {
