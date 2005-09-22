@@ -2133,20 +2133,28 @@ schedule_moveresize_req( FunctionCode func, send_signed_data_type val1, send_sig
 {
 	if( PagerMoveResizeReq.pending ) 
 	{
-		timer_remove_by_data( &PagerMoveResizeReq );
 		if( PagerMoveResizeReq.client != client || PagerMoveResizeReq.func != func )
+		{	
+			timer_remove_by_data( &PagerMoveResizeReq );
 			exec_moveresize_req( &PagerMoveResizeReq );
+		}else if( immidiate ) 
+		{
+	  		timer_remove_by_data( &PagerMoveResizeReq );
+			PagerMoveResizeReq.pending	= False;
+		}
 	}	
 	PagerMoveResizeReq.func 	= func ; 
 	PagerMoveResizeReq.func_val[0]	= val1 ; 
 	PagerMoveResizeReq.func_val[1]	= val2 ; 
 	PagerMoveResizeReq.client 	= client ; 
-	PagerMoveResizeReq.pending	= True;
 	if( immidiate ) 
 		exec_moveresize_req( &PagerMoveResizeReq );
-	else
-		timer_new( 50, exec_moveresize_req, &PagerMoveResizeReq ); 
-}	 
+	else if( !PagerMoveResizeReq.pending	) 
+	{
+		PagerMoveResizeReq.pending	= True;
+		timer_new( 40, exec_moveresize_req, &PagerMoveResizeReq ); 
+	}	 
+}
 
 void
 apply_client_move(struct ASMoveResizeData *data)
