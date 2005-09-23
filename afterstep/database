@@ -54,10 +54,10 @@ Style   "*rxvt"         Icon rxvt
 Style   "aterm"         Icon aterm
 
 # Web browsers
-Style	"Mozilla-bin"		Icon mozilla-star.png, IgnoreConfig	# , StartsOnDesk 1
-Style	"Firefox-bin"		Icon mozilla-star.png, IgnoreConfig	# , StartsOnDesk 1
-Style	"Galeon"		Icon galeon.png, IgnoreConfig		# , StartsOnDesk 1
-Style	"Netscape"		Icon netscape.png, IgnoreConfig	# , StartsOnDesk 1
+Style	"Mozilla-bin"		Icon logos/mozilla, IgnoreConfig	# , StartsOnDesk 1
+Style	"Firefox-bin"		Icon logos/Firefox, IgnoreConfig	# , StartsOnDesk 1
+Style	"Galeon"		IgnoreConfig		# , StartsOnDesk 1
+Style	"Netscape"		Icon netscape.xpm, IgnoreConfig	# , StartsOnDesk 1
 
 # IRC and instant messagers
 Style 	"Bitch*"		NoHandles, Sticky
@@ -66,11 +66,11 @@ Style   "psidock"       WindowListSkip, CirculateSkip, Sticky #, StartsOnDesk 1
 Style   "Licq*"         Sticky, NoButton 1, NoButton 4, NoButton 6
 
 # Graphic aps
-Style	"GQview"        Icon gqview.png		#, StartsOnDesk 0
+#Style	"GQview"        StartsOnDesk 0
 Style   "gimp"          Icon logos/gimp, UseCurrentViewport
 Style	"GIMP Startup"	Icon logos/gimp, NoButton 1, NoButton 2, NoButton 3, NoButton 4
 Style   "Blender"       NoTitle, NoHandles
-Style   "ghostview"     Icon text.xpm
+Style   "ghostview"     Icon normal/Ghost
 
 # Audio apps
 Style   "xmms*"   		 Icon logos/Xmms
@@ -80,8 +80,8 @@ Style   "XMMS_Playlist*" NoTitle, NoHandles
 # Multimedia apps
 Style  "MPlayer*"       Icon normal/MovieProjector, NoTitle, NoHandles
 Style  "MPlayer-Video*" Title, Handles
-Style	"RealPlayer"    	Icon real.xpm
-Style	"VCLApplication" 	Icon staroffice.xpm, Layer 0	#, StartsOnDesk 0
+Style	"RealPlayer"    	Icon logos/real
+Style	"VCLApplication" 	Layer 0	#, StartsOnDesk 0
 
 # contributed by Dhaval Patel <dhaval at patel dot sh>
 Style   "toolbox"       NoButton 1, NoButton 2, NoButton 3, NoButton 4
@@ -96,45 +96,21 @@ Style   "Question*"     Sticky, StaysOnTop
 # contributed by David William Thornton <dwt at softhome dot net>
 # KDE apps
 Style	"kicker"		AvoidCover, NoTitle, NoHandles, WindowListSkip, CirculateSkip, Layer 0, Sticky
-Style	"KChart"		Icon kchart.png
-Style	"KIllustrator"		Icon killustrator.png
-Style	"KPresenter"		Icon kpresenter.png
-Style	"KOshell"		Icon koshell.png
-Style	"KSpread"		Icon kspread.xpm
-Style	"KWord"			Icon kword.xpm
-Style	"kab"			Icon kab.png		#, StartsOnDesk 1
-Style	"kate"			Icon kwrite.png
-Style	"kcalc"			Icon kcalc.png
-Style	"kedit"			Icon kedit.png
-Style	"kfm"			Icon FileFolders.xpm
-Style	"kmail"			Icon kmail.png		#, StartsOnDesk 2
-Style	"knode"			Icon knode.png		#, StartsOnDesk 1
-Style	"konsole"		Icon konsole.png
-Style	"korganizer"		Icon karm.png
-Style	"konqueror"		Icon konqueror.xpm, IgnoreConfig
-Style	"kppp"	        	Icon kppp.png		#, StartsOnDesk 2
-Style	"ksysguard"		Icon ksysguard.pn
+Style	"konqueror"		Icon konqueror, IgnoreConfig
 Style	"kvt"			Icon Computer.xpm
-Style	"kwrite"		Icon kwrite.png
 
 # gnome panel ( contributed by Greg Norris <haphazard at kc dot rr dot com> ):
 Style   "gnome-panel"   NoTitle, Sticky, StaysOnTop, WindowListSkip, AvoidCover, NoHandles
 
 # Some other apps
-Style	"writer"		Icon ooo_writer.xpm				#, StartsOnDesk 0
-Style	"calc"			Icon ooo_calc.xpm	#, StartsOnDesk 0
-Style	"impress"		Icon ooo_impress.xpm				#, StartsOnDesk 0
 Style   "xcalc"         Icon xcalc.xpm
-Style	"alarmd"		Icon korganizer.xpm, AvoidCover, NoTitle, NoHandles, WindowListSkip, CirculateSkip, Layer 0, Sticky
-Style	"evolution"		Icon ximian.png, IgnoreConfig		#, StartsOnDesk 0
-Style   "gdiskfree"     	Icon hdd_unmount.png, AvoidCover, Layer 0
-Style	"gnorpm"		Icon /usr/share/pixmaps/redhat/rpmlogo-64.xpm	#, StartsOnDesk 0
-Style	"math"			Icon ooo_math.xpm				#, StartsOnDesk 0
-Style	"nt"			Icon nt.xpm					#, StartsOnDesk 1
+Style	"alarmd"		AvoidCover, NoTitle, NoHandles, WindowListSkip, CirculateSkip, Layer 0, Sticky
+Style	"evolution"		IgnoreConfig		#, StartsOnDesk 0
+Style   "gdiskfree"     AvoidCover, Layer 0
 Style	"vmware-ui"		Icon Network.xpm, NoButton 2			#, StartsOnDesk 0
-Style	"xdos"		        Icon file-dot-bat.xpm, NoButton 2		#, StartsOnDesk 0
+Style	"xdos"		    NoButton 2		#, StartsOnDesk 0
 Style   "xli"           Icon monalisa.xpm
-Style   "*man"          Icon xman.xpm
+Style   "*man"          Icon Info.xpm
 Style   "XMcd"          Icon CDrom.xpm
 Style   "XFce*"         NoTitle, Sticky, BorderWidth 4, WindowListSkip, NoHandles
 Style   "XFBD*"         Sticky
