@@ -18,7 +18,7 @@
  */
 
 
-/*#define LOCAL_DEBUG */
+#undef LOCAL_DEBUG 
 #define DO_CLOCKING
 
 #include "../configure.h"
@@ -139,8 +139,6 @@ parse_desktop_entry_line( ASDesktopEntry* de, char *ptr )
 #define PARSE_ASDE_STRING_VAL(val)	if(mystrncasecmp(ptr, #val "=", ASDE_KEYWORD_##val##_LEN+1) == 0){if( de->val ) free( de->val ) ; de->val = stripcpy(ptr+ASDE_KEYWORD_##val##_LEN+1); return;}					   
 #define PARSE_ASDE_FLAG_VAL(val)	if(mystrncasecmp(ptr, #val "=", ASDE_KEYWORD_##val##_LEN+1) == 0){set_flags(de->flags, ASDE_##val); return;}					   			   
 
-/*	LOCAL_DEBUG_OUT( "PARSING \"%s\"", ptr );	*/
-
 	if( ptr[0] == 'X' && ptr[1] == '-') 
 	{
 		ptr +=2 ; 
@@ -199,7 +197,15 @@ fix_desktop_entry( ASDesktopEntry *de, const char *default_category, const char 
 {			   
 	if( de->Categories == NULL && default_category )
 	{	
-		de->Categories = mystrdup(default_category);
+		if( get_flags( de->flags, ASDE_KDE|ASDE_GNOME ) == 0 )
+		{
+			if( mystrncasecmp( default_category, "KDE", 3 ) == 0 ) 
+				set_flags( de->flags, ASDE_KDE );
+			else if( mystrncasecmp( default_category, "GNOME", 5 ) == 0 ) 
+				set_flags( de->flags, ASDE_GNOME );
+		}	 
+		if( de->type != ASDE_TypeDirectory ) 
+			de->Categories = mystrdup(default_category);
 	}
 	if( applnk ) 
 		set_flags( de->flags, ASDE_KDE );
@@ -446,6 +452,7 @@ load_category_tree( ASCategoryTree*	ct )
 			}else if ( CheckFile (ct->dir_list[i]) == 0 )
 				parse_desktop_entry_list( ct->dir_list[i], entry_list, ct->name, ASDE_TypeDirectory, ct->icon_path, applnk);
 		}
+		LOCAL_DEBUG_OUT( "Done parsing for tree %s", ct->name );
 		iterate_asbidirlist( entry_list, register_desktop_entry_list_item, ct, NULL, False);
 		destroy_asbidirlist( &entry_list );
 /*		flush_asbidirlist_memory_pool(); */
@@ -531,10 +538,12 @@ ReloadCategories(Bool cached)
 	
  	load_category_tree( StandardCategories );		   			   
 	SHOW_TIME("Standard categories",started);
- 	add_category_tree_subtree( KDECategories   , StandardCategories );
- 	add_category_tree_subtree( GNOMECategories , StandardCategories );
- 	add_category_tree_subtree( SystemCategories, StandardCategories );
-	
+	if( !cached ) 
+	{	
+		add_category_tree_subtree( KDECategories   , StandardCategories );
+ 		add_category_tree_subtree( GNOMECategories , StandardCategories );
+ 		add_category_tree_subtree( SystemCategories, StandardCategories );
+	}
  	load_category_tree( KDECategories    );
 	SHOW_TIME("KDE categories",started);
 	load_category_tree( GNOMECategories  );

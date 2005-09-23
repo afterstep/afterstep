@@ -146,6 +146,7 @@ int unref_desktop_category( ASDesktopCategory *dc );
 
 void add_desktop_category_entry( ASDesktopCategory *dc, const char *entry_name );
 void print_desktop_category( ASDesktopCategory *dc );
+char *make_desktop_entry_categories( ASDesktopEntry *de );
 void save_desktop_entry( ASDesktopEntry* de, FILE *fp );
 
 

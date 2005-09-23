@@ -2612,11 +2612,11 @@ get_client_icon_image( ScreenInfo * scr, ASHints *hints )
 			{
 				if( CombinedCategories != NULL ) 
 				{
-					ASHashData	hd = {0} ;
-					if( get_hash_item( CombinedCategories->entries, AS_HASHABLE(hints->res_name), &(hd.vptr)) == ASH_Success ||
-						get_hash_item( CombinedCategories->entries, AS_HASHABLE(hints->res_class), &(hd.vptr)) == ASH_Success )
+					ASDesktopEntry *de = fetch_desktop_entry( CombinedCategories, hints->res_name );
+					if( de == NULL ) 
+						de = fetch_desktop_entry( CombinedCategories, hints->res_class );
+					if( de )
 					{
-						ASDesktopEntry *de = hd.vptr	;
 						if( de && de->ref_count > 0 && de->fulliconname ) 
 						{
 							safe_asimage_destroy( icon_file_im );

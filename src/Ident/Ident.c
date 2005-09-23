@@ -47,6 +47,7 @@
 #include "../../libAfterStep/balloon.h"
 #include "../../libAfterStep/event.h"
 #include "../../libAfterStep/session.h"
+#include "../../libAfterStep/desktop_category.h"
 
 #include "../../libAfterConf/afterconf.h"
 
@@ -78,13 +79,11 @@ typedef struct {
 ASIdentState IdentState = {};
 
 IdentConfig *Config = NULL ;
-struct ASDatabase    *Database = NULL;
 /**********************************************************************/
 Window get_target_window();
 void GetBaseOptions (const char *filename);
 void GetOptions (const char *filename);
 void CheckConfigSanity();
-void ParseDatabase ();
 
 void HandleEvents();
 void DispatchEvent (ASEvent * event);
@@ -119,7 +118,8 @@ main( int argc, char **argv )
 	LoadColorScheme();
 	LoadConfig ("ident", GetOptions);
     CheckConfigSanity();
-	ParseDatabase ();
+	ReloadASDatabase();
+	ReloadCategories(True);
 
 	if (MyArgs.src_window == 0)
 		MyArgs.src_window = get_target_window();
@@ -214,30 +214,6 @@ GetOptions (const char *filename)
     if (config->style_defs)
         ProcessMyStyleDefinitions (&(config->style_defs));
     SHOW_TIME("Config parsing",option_time);
-}
-
-void
-ParseDatabase ()
-{
-    struct name_list *list = NULL ;
-	char *file = make_session_file(Session, DATABASE_FILE, False );
-	
-	/* memory management for parsing buffer */
-	if (file == NULL)
-        return ;
-
-    list = ParseDatabaseOptions (file, "afterstep");
-    if( list )
-    {
-        Database = build_asdb( list );
-        if( is_output_level_under_threshold( OUTPUT_LEVEL_DATABASE ) )
-            print_asdb( NULL, NULL, Database );
-        while (list != NULL)
-            delete_name_list (&(list));
-    }else
-        show_progress( "no database records loaded." );
-    /* XResources : */
-    load_user_database();
 }
 
 /****************************************************************************/
@@ -798,6 +774,20 @@ fill_window_data()
 			add_property("Style:", buf, AS_Text_ASCII, True);
 		}	 
 	}	 
+	{
+		ASDesktopEntry *de = fetch_desktop_entry( CombinedCategories, names[2]);
+		if( de == NULL ) 
+			de = fetch_desktop_entry( CombinedCategories, names[3]);				  
+		if( de ) 
+		{	
+			char *categories = make_desktop_entry_categories( de );
+			add_property("Categories:", categories?categories:"<none>", AS_Text_ASCII, False);
+			destroy_string( &categories ) ;
+			add_property(".desktop Entry Name:", de->Name, AS_Text_ASCII, False);
+			add_property(".desktop Entry Comment:", de->Comment, AS_Text_ASCII, True);
+			add_property(".desktop Entry Icon:", de->fulliconname, AS_Text_ASCII, True);
+		}
+	}
 }
 
 void 

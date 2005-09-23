@@ -16,7 +16,7 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-/*#define LOCAL_DEBUG */
+#undef LOCAL_DEBUG
 #define EVENT_TRACE
 
 #include "../configure.h"
@@ -306,6 +306,26 @@ print_desktop_entry( ASDesktopEntry* de )
 	}
 }	 
 
+char *
+make_desktop_entry_categories( ASDesktopEntry *de )
+{			   
+	char *categories = NULL ;
+
+	if( de && de->categories_num) 
+	{	
+		int len = 0, i ; 
+		char *ptr ;
+		for( i = 0 ; i < de->categories_num ; ++i ) 
+			len += 1+strlen( de->categories_shortcuts[i]);
+		ptr = categories = safemalloc( len+1);
+		for( i = 0 ; i < de->categories_num ; ++i ) 
+		{
+			sprintf( ptr, "%s;", de->categories_shortcuts[i] );
+			while( *ptr ) ++ptr ;
+		}
+	}
+	return categories;
+}
 void 
 save_desktop_entry( ASDesktopEntry* de, FILE *fp )
 {
@@ -348,6 +368,7 @@ save_desktop_entry( ASDesktopEntry* de, FILE *fp )
 			}
 			fputc( '\n', fp );
 		}
+
 		PRINT_ASDE_VAL(OnlyShowIn) ;
 		PRINT_ASDE_VAL(NotShowIn) ;
 		PRINT_ASDE_VAL(StartupWMClass) ;
@@ -450,7 +471,9 @@ Bool register_desktop_entry(ASCategoryTree *ct, ASDesktopEntry *de)
 	char *index_name ;
 	Bool exclude = False;
 
- /*	print_desktop_entry( de ); */
+#if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT) 	
+	print_desktop_entry( de );
+#endif
 
 	if( de == NULL || de->Name == NULL ) 
 		return False;
@@ -619,7 +642,7 @@ create_category_tree( const char *name, const char *path, const char *icon_path,
 	}
 	ct->name = mystrdup(name);
 	ct->icon_path = copy_replace_envvar(icon_path);
-	ct->entries = create_ashash( 0, string_hash_value, string_compare, desktop_entry_destroy );
+	ct->entries = create_ashash( 0, casestring_hash_value, casestring_compare, desktop_entry_destroy );
 	ct->categories = create_ashash( 0, casestring_hash_value, casestring_compare, desktop_category_destroy );
 	ct->default_category = obtain_category( ct, DEFAULT_DESKTOP_CATEGORY_NAME, True );	
 	return ct;
@@ -793,6 +816,7 @@ print_category_tree2( ASCategoryTree* ct, ASDesktopCategory *dc )
 		fprintf(stderr, "category_tree.name=\"%s\";\n", ct->name?ct->name:"(null)" );
 		fprintf(stderr, "category_tree.icon_path=\"%s\";\n", ct->icon_path?ct->icon_path:"(null)" );
 		fprintf(stderr, "category_tree.entries_num=%ld;\n", ct->entries->items_num );
+		fprintf(stderr, "category_tree.default_category_name=\"%s\";\n", ct->default_category->name );
 		fprintf(stderr, "category_tree.categories_num=%ld;\n", ct->categories->items_num );
 		print_category_subtree( ct, dc?dc->index_name:DEFAULT_DESKTOP_CATEGORY_NAME, 0 );
 	}		  
@@ -812,7 +836,17 @@ save_category_tree( ASCategoryTree* ct, FILE *fp )
 		do
 		{
 		 	ASDesktopEntry *de = curr_hash_data( &i );
-			save_desktop_entry(de, fp );
+			if( de->type == ASDE_TypeDirectory )
+				save_desktop_entry(de, fp );
+		}while( next_hash_item( &i ) );
+	}	 
+	if( start_hash_iteration ( ct->entries, &i) )
+	{
+		do
+		{
+		 	ASDesktopEntry *de = curr_hash_data( &i );
+			if( de->type != ASDE_TypeDirectory )
+				save_desktop_entry(de, fp );
 		}while( next_hash_item( &i ) );
 	}	 
 }	 
