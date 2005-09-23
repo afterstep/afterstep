@@ -1062,8 +1062,8 @@ select_client_icon_argb( CARD32 *icon,  int icon_length )
 	}	 
 	if( res == NULL ) 
 	{
-		unsigned int width = icon[offset] ; 
-		unsigned int height = icon[offset+1] ; 
+		unsigned int width = icon[0] ; 
+		unsigned int height = icon[1] ; 
 		int size = width*height ;
 		icon_length -= 2 ;
 		if( size+2 > icon_length ) 
@@ -1154,6 +1154,8 @@ merge_extwm_hints (ASHints * clean, ASRawHints * raw,
 		}
 		if (get_flags (eh->flags, EXTWM_ICON))
 		{
+			if( clean->icon_argb ) 
+				free( clean->icon_argb );
 			clean->icon_argb = select_client_icon_argb( eh->icon, eh->icon_length );
 			set_flags (clean->flags, AS_ClientIcon|AS_ClientIconARGB);
 		}
