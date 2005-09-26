@@ -794,7 +794,7 @@ make_desktop_image( int desk, MyBackground *new_back )
 
 	if( new_im != NULL ) 
 	{
-		set_string_value( &(new_back->loaded_im_name), mystrdup(new_im->name), NULL, 0 );
+		set_string( &(new_back->loaded_im_name), mystrdup(new_im->name) );
 		LOCAL_DEBUG_OUT( "produced image %p", new_im );
 	}
 	

@@ -952,7 +952,13 @@ void DestroyMyBackgroundConfig (MyBackgroundConfig ** head);
 #define WINLIST_UseIconNames_ID         (WINLIST_ID_START+32)
 #define WINLIST_AutoHide_ID             (WINLIST_ID_START+33)
 
-#define WINLIST_ID_END                  (WINLIST_ID_START+34)
+#define WINLIST_ShowIcon_ID		  		(WINLIST_ID_START+34)
+#define WINLIST_IconLocation_ID         (WINLIST_ID_START+35)
+#define WINLIST_IconAlign_ID	        (WINLIST_ID_START+36)
+#define WINLIST_IconSize_ID				(WINLIST_ID_START+37)
+#define WINLIST_ScaleIconToTextHeight_ID (WINLIST_ID_START+38)
+
+#define WINLIST_ID_END                  (WINLIST_ID_START+39)
 
 /* config data structure */
 
@@ -983,8 +989,18 @@ typedef struct WinListConfig
 #define WINLIST_H_SPACING       (0x01<<18)
 #define WINLIST_V_SPACING       (0x01<<19)
 
-#define 	ASWL_RowsFirst 		WINLIST_FillRowsFirst
-#define 	ASWL_UseSkipList	WINLIST_UseSkipList
+#define WINLIST_ShowIcon        (0x01<<20)
+#define WINLIST_IconLocation    (0x01<<21)
+#define WINLIST_IconAlign	    (0x01<<22)
+#define WINLIST_IconSize		(0x01<<23)
+#define WINLIST_ScaleIconToTextHeight (0x01<<24)
+	   
+
+#define 	ASWL_RowsFirst 				WINLIST_FillRowsFirst
+#define 	ASWL_UseSkipList			WINLIST_UseSkipList
+#define 	ASWL_ShowIcon				WINLIST_ShowIcon
+#define 	ASWL_ScaleIconToTextHeight	WINLIST_ScaleIconToTextHeight
+
 	ASFlagType	flags ;
 	ASFlagType	set_flags ;
     ASGeometry geometry ;
@@ -1003,6 +1019,9 @@ typedef struct WinListConfig
     ASFlagType      fbevel, ubevel, sbevel ;
     int             ucm, fcm, scm;             /* composition methods */
     unsigned int    h_spacing, v_spacing ;
+    ASFlagType      icon_align ;
+	int 			icon_location ;
+	unsigned int 	icon_width, icon_height ;
 
     char **mouse_actions[MAX_MOUSE_BUTTONS];
 

@@ -417,13 +417,13 @@ CheckConfigSanity(const char *pattern_override, const char *exclude_pattern_over
 	if( MyArgs.geometry.flags != 0 ) 
 		Config->geometry = MyArgs.geometry ;
 	if( pattern_override ) 
-		set_string_value(&(Config->pattern), mystrdup(pattern_override), NULL, 0);
+		set_string(&(Config->pattern), mystrdup(pattern_override));
 	if( exclude_pattern_override ) 
-		set_string_value(&(Config->exclude_pattern), mystrdup(exclude_pattern_override), NULL, 0);
+		set_string(&(Config->exclude_pattern), mystrdup(exclude_pattern_override) );
    	if( title_override ) 
-		set_string_value(&(Config->title), mystrdup(title_override), NULL, 0 );
+		set_string(&(Config->title), mystrdup(title_override) );
    	if( icon_title_override ) 
-		set_string_value(&(Config->icon_title), mystrdup(icon_title_override), NULL, 0 );
+		set_string(&(Config->icon_title), mystrdup(icon_title_override) );
 
 	if( Config->icon_title == NULL && Config->title != NULL ) 
 	{
@@ -547,7 +547,7 @@ GetOptions (const char *filename)
 
     if( config->pattern )
     {    
-        set_string_value( &(Config->pattern), mystrdup(config->pattern), NULL, 0 );
+        set_string( &(Config->pattern), mystrdup(config->pattern) );
         Config->pattern_type = config->pattern_type ; 
     }
     if( get_flags(config->set_flags, WINTABS_MaxRows) )
@@ -560,11 +560,11 @@ GetOptions (const char *filename)
         Config->max_tab_width = config->max_tab_width;
 
     if( config->unfocused_style )
-        set_string_value( &(Config->unfocused_style), mystrdup(config->unfocused_style), NULL, 0 );
+        set_string( &(Config->unfocused_style), mystrdup(config->unfocused_style) );
     if( config->focused_style )
-        set_string_value( &(Config->focused_style), mystrdup(config->focused_style), NULL, 0 );
+        set_string( &(Config->focused_style), mystrdup(config->focused_style) );
     if( config->sticky_style )
-        set_string_value( &(Config->sticky_style), mystrdup(config->sticky_style), NULL, 0 );
+        set_string( &(Config->sticky_style), mystrdup(config->sticky_style) );
 
     if( get_flags(config->set_flags, WINTABS_Align) )
         Config->name_aligment = config->name_aligment;

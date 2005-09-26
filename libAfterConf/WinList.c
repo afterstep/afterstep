@@ -61,7 +61,12 @@ extern SyntaxDef AlignSyntax;
     {0, "UnfocusedStyle", 14, TT_TEXT, WINLIST_UnfocusedStyle_ID, NULL}, \
     {0, "FocusedStyle", 12, TT_TEXT, WINLIST_FocusedStyle_ID, NULL}, \
     {0, "StickyStyle", 11, TT_TEXT, WINLIST_StickyStyle_ID, NULL}, \
-    {0, "ShapeToContents", 15, TT_FLAG, WINLIST_ShapeToContents_ID, NULL}
+    {0, "ShapeToContents", 15, TT_FLAG, WINLIST_ShapeToContents_ID, NULL}, \
+    {0, "ShowIcon", 8, TT_FLAG, 		WINLIST_ShowIcon_ID		, NULL}, \
+    {0, "IconLocation", 12, TT_UINTEGER,WINLIST_IconLocation_ID	, NULL}, \
+    {0, "IconAlign", 9, TT_FLAG, 		WINLIST_IconAlign_ID	, &AlignSyntax}, \
+    {0, "IconSize", 8, TT_GEOMETRY,		WINLIST_IconSize_ID		, NULL}, \
+    {0, "ScaleIconToTextHeight", 21, TT_FLAG, WINLIST_ScaleIconToTextHeight_ID, NULL}
 	
 #define WINLIST_PRIVATE_TERMS \
     {0, "Geometry", 8, TT_GEOMETRY, WINLIST_Geometry_ID, NULL}, \
@@ -221,6 +226,16 @@ PrintWinListConfig (WinListConfig * config)
 	}
 }
 
+flag_options_xref WinListFlags[] = {
+	{WINLIST_FillRowsFirst, 	WINLIST_FillRowsFirst_ID, 0 },
+	{WINLIST_UseSkipList_ID, 	WINLIST_UseSkipList, 0 },
+    {WINLIST_ShapeToContents, 	WINLIST_ShapeToContents_ID, 0},
+    {WINLIST_ShowIcon, 			WINLIST_ShowIcon_ID, 0},
+    {WINLIST_ScaleIconToTextHeight, WINLIST_ScaleIconToTextHeight_ID, 0},
+    {0, 0, 0}
+};
+
+
 WinListConfig *
 ParseWinListOptions (const char *filename, char *myname)
 {
@@ -254,44 +269,41 @@ ParseWinListOptions (const char *filename, char *myname)
 
 		if (pCurr->term->type == TT_FLAG)
         {
+	        if (ReadFlagItem (&(config->set_flags), &(config->flags), pCurr, WinListFlags))
+        	    continue;
+
             switch (pCurr->term->id)
             {
-                case WINLIST_FillRowsFirst_ID:
-                    SET_CONFIG_FLAG (config->flags, config->set_flags, WINLIST_FillRowsFirst);
-                    break;
-                case WINLIST_UseSkipList_ID:
-                    SET_CONFIG_FLAG (config->flags, config->set_flags, WINLIST_UseSkipList);
-                    break;
                 case WINLIST_UseIconNames_ID:
                     if (!get_flags (config->set_flags, WINLIST_UseName))
-                    {
-                        set_flags (config->set_flags, WINLIST_UseName);
-                        config->show_name_type = ASN_IconName;
-                    }
+                        set_scalar_value(&(config->show_name_type),ASN_IconName, 
+									 &(config->set_flags), WINLIST_UseName);
                     break;
                 case WINLIST_Align_ID :
-                    set_flags( config->set_flags, WINLIST_Align );
-                    config->name_aligment = ParseAlignOptions( pCurr->sub );
+					set_scalar_value(&(config->name_aligment),ParseAlignOptions( pCurr->sub ), 
+									 &(config->set_flags), WINLIST_Align);
                     break ;
                 case WINLIST_Bevel_ID :
-                    set_flags( config->set_flags, WINLIST_Bevel );
-                    config->ubevel = config->sbevel = config->fbevel = ParseBevelOptions( pCurr->sub );
+					set_scalar_value(&(config->fbevel),ParseBevelOptions( pCurr->sub ), 
+									 &(config->set_flags), WINLIST_Bevel);
+                    config->ubevel = config->sbevel = config->fbevel;
                     break ;
                 case WINLIST_FBevel_ID :
-                    set_flags( config->set_flags, WINLIST_FBevel );
-                    config->fbevel = ParseBevelOptions( pCurr->sub );
+					set_scalar_value(&(config->fbevel),ParseBevelOptions( pCurr->sub ), 
+									 &(config->set_flags), WINLIST_FBevel);
                     break ;
                 case WINLIST_UBevel_ID :
-                    set_flags( config->set_flags, WINLIST_UBevel );
-                    config->ubevel = ParseBevelOptions( pCurr->sub );
+					set_scalar_value(&(config->ubevel),ParseBevelOptions( pCurr->sub ), 
+									 &(config->set_flags), WINLIST_UBevel);
                     break ;
                 case WINLIST_SBevel_ID :
-                    set_flags( config->set_flags, WINLIST_SBevel );
-                    config->sbevel = ParseBevelOptions( pCurr->sub );
+					set_scalar_value(&(config->sbevel),ParseBevelOptions( pCurr->sub ), 
+									 &(config->set_flags), WINLIST_SBevel);
                     break ;
-                case WINLIST_ShapeToContents_ID:
-                    SET_CONFIG_FLAG (config->flags, config->set_flags, WINLIST_ShapeToContents);
-                    break;
+                case WINLIST_IconAlign_ID :
+					set_scalar_value(&(config->icon_align),ParseAlignOptions( pCurr->sub ), 
+									 &(config->set_flags), WINLIST_IconAlign);
+                    break ;
             }
         }else
 		{
@@ -305,30 +317,14 @@ ParseWinListOptions (const char *filename, char *myname)
                     config->geometry = item.data.geometry ;
                     break;
                 case WINLIST_MinSize_ID:
-                    set_flags (config->set_flags, WINLIST_MinSize);
-                    if (get_flags (item.data.geometry.flags, WidthValue))
-                        config->min_width = item.data.geometry.width;
-                    else
-                        config->min_width = 0;
-                    if (get_flags (item.data.geometry.flags, HeightValue))
-                        config->min_height = item.data.geometry.height;
-                    else
-                        config->min_height = 0;
+					set_size_geometry(&(config->min_width),&(config->min_height),&item,&(config->set_flags),WINLIST_MinSize);
                     break;
                 case WINLIST_MaxWidth_ID:
                     set_flags (config->set_flags, WINLIST_MinSize|WINLIST_MaxSize);
                     config->max_width = config->min_width = item.data.integer;
                     break;
                 case WINLIST_MaxSize_ID:
-                    set_flags (config->set_flags, WINLIST_MaxSize);
-                    if (get_flags (item.data.geometry.flags, WidthValue))
-                        config->max_width = item.data.geometry.width;
-                    else
-                        config->max_width = 0;
-                    if (get_flags (item.data.geometry.flags, HeightValue))
-                        config->max_height = item.data.geometry.height;
-                    else
-                        config->max_height = 0;
+                    set_size_geometry(&(config->max_width),&(config->max_height),&item,&(config->set_flags),WINLIST_MaxSize);
                     break;
                 case WINLIST_MaxRows_ID:
                     set_flags (config->set_flags, WINLIST_MaxRows);
@@ -425,6 +421,13 @@ ParseWinListOptions (const char *filename, char *myname)
                     set_flags( config->set_flags, WINLIST_V_SPACING );
                     config->v_spacing = item.data.integer;
                     break ;
+                case WINLIST_IconLocation_ID :
+                    set_flags( config->set_flags, WINLIST_IconLocation );
+                    config->icon_location = item.data.integer;
+                    break ;
+                case WINLIST_IconSize_ID:
+                    set_size_geometry(&(config->icon_width),&(config->icon_height),&item,&(config->set_flags),WINLIST_IconSize);
+                    break;
 
                 default:
                     item.ok_to_free = 1;

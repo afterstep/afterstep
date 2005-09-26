@@ -489,7 +489,7 @@ GetOptions (const char *filename)
     Config->set_flags |= config->set_flags;
 
   	if( config->color != NULL ) 
-		set_string_value( &(Config->color), config->color, NULL, 0 );
+		set_string( &(Config->color), config->color );
     if( get_flags(config->set_flags, ANIMATE_SET_DELAY) )
         Config->delay = config->delay;
     if( get_flags(config->set_flags, ANIMATE_SET_ITERATIONS) )

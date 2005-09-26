@@ -137,6 +137,18 @@ int ReadConfigItem (ConfigItem * item, FreeStorageElem * stored);
 int ReadFlagItem (unsigned long *set_flags, unsigned long *flags,
 		  FreeStorageElem * stored, flag_options_xref * xref);
 
+/* really defined in libAfterBase/mystring.h (unsigned long*)*/
+void set_string (char **target, char *string);
+#define set_string_value(ptarget,string,pset_flags,flag) \
+	do {set_string(ptarget,string); if(pset_flags)set_flags(*(pset_flags),(flag));}while(0)
+#define set_scalar_value(ptarget,val,pset_flags,flag) \
+	do {*(ptarget)=(val); if(pset_flags)set_flags(*(pset_flags),(flag));}while(0)
+#define set_size_geometry(pw,ph,pitem,pset_flags,flag) \
+	do { *(pw) = get_flags ((pitem)->data.geometry.flags, WidthValue)?(pitem)->data.geometry.width:0; \
+		 *(ph) = get_flags ((pitem)->data.geometry.flags, HeightValue)?(pitem)->data.geometry.height:0; \
+		 if(pset_flags)set_flags(*(pset_flags),(flag));}while(0)
+
+
 /* string array manipulation functions */
 /* StringArray is an array of pointers to continuous block of memory,
  * holding several zero terminated strings.

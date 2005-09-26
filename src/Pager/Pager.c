@@ -609,7 +609,7 @@ GetOptions (const char *filename)
             Config->labels = safecalloc( PagerState.desks_num, sizeof(char*));
         for( i = 0 ; i < PagerState.desks_num ; ++i )
             if( config->labels[i] )
-                set_string_value( &(Config->labels[i]), mystrdup(config->labels[i]), NULL, 0 );
+                set_string( &(Config->labels[i]), mystrdup(config->labels[i]) );
     }
     if( config->styles )
     {
@@ -617,32 +617,32 @@ GetOptions (const char *filename)
             Config->styles = safecalloc( PagerState.desks_num, sizeof(char*));
         for( i = 0 ; i < PagerState.desks_num ; ++i )
             if( config->styles[i] )
-                set_string_value( &(Config->styles[i]), mystrdup(config->styles[i]), NULL, 0 );
+                set_string( &(Config->styles[i]), mystrdup(config->styles[i]) );
     }
     if( get_flags( config->set_flags, PAGER_SET_ALIGN ) )
         Config->align = config->align ;
 
     if( get_flags( config->set_flags, PAGER_SET_SMALL_FONT ) )
-        set_string_value( &(Config->small_font_name), mystrdup(config->small_font_name), NULL, 0 );
+        set_string( &(Config->small_font_name), mystrdup(config->small_font_name) );
 
     if( get_flags( config->set_flags, PAGER_SET_BORDER_WIDTH ) )
         Config->border_width = config->border_width;
 
     if( get_flags( config->set_flags, PAGER_SET_SELECTION_COLOR ) )
-		set_string_value( &(Config->selection_color), mystrdup(config->selection_color), NULL, 0 );
+		set_string( &(Config->selection_color), mystrdup(config->selection_color) );
 
     if( get_flags( config->set_flags, PAGER_SET_GRID_COLOR ) )
-		set_string_value( &(Config->grid_color), mystrdup(config->grid_color), NULL, 0 );
+		set_string( &(Config->grid_color), mystrdup(config->grid_color) );
 
 
     if( get_flags( config->set_flags, PAGER_SET_BORDER_COLOR ) )
-		set_string_value( &(Config->border_color), mystrdup(config->border_color), NULL, 0 );
+		set_string( &(Config->border_color), mystrdup(config->border_color) );
 
     if( config->shade_button[0] )
-        set_string_value( &(Config->shade_button[0]), mystrdup(config->shade_button[0]), NULL, 0 );
+        set_string( &(Config->shade_button[0]), mystrdup(config->shade_button[0]) );
 
     if( config->shade_button[1] )
-        set_string_value( &(Config->shade_button[1]), mystrdup(config->shade_button[1]), NULL, 0 );
+        set_string( &(Config->shade_button[1]), mystrdup(config->shade_button[1]) );
 
     if( get_flags( config->set_flags, PAGER_SET_ACTIVE_BEVEL ) )
     {    

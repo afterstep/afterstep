@@ -339,11 +339,11 @@ GetOptions (const char *filename)
         Config->min_col_width = config->min_col_width;
 
     if( config->unfocused_style )
-        set_string_value( &(Config->unfocused_style), stripcpy2(config->unfocused_style,False), NULL, 0 );
+        set_string( &(Config->unfocused_style), stripcpy2(config->unfocused_style,False) );
     if( config->focused_style )
-        set_string_value( &(Config->focused_style), stripcpy2(config->focused_style,False), NULL, 0 );
+        set_string( &(Config->focused_style), stripcpy2(config->focused_style,False) );
     if( config->sticky_style )
-        set_string_value( &(Config->sticky_style), stripcpy2(config->sticky_style,False), NULL, 0 );
+        set_string( &(Config->sticky_style), stripcpy2(config->sticky_style,False) );
 
     if( get_flags(config->set_flags, WINLIST_UseName) )
         Config->show_name_type = config->show_name_type;
@@ -367,6 +367,16 @@ GetOptions (const char *filename)
         Config->h_spacing = config->h_spacing;
     if( get_flags(config->set_flags, WINLIST_V_SPACING) )
         Config->v_spacing = config->v_spacing;
+
+    if( get_flags(config->set_flags, WINLIST_IconAlign) )
+        Config->icon_align = config->icon_align;
+    if( get_flags(config->set_flags, WINLIST_IconLocation) )
+        Config->icon_location = config->icon_location;
+	if( get_flags(config->set_flags, WINLIST_IconSize) )
+	{	
+		Config->icon_width  = config->icon_width;
+		Config->icon_height = config->icon_height;
+	}		
 
     for( i = 0 ; i < MAX_MOUSE_BUTTONS ; ++i )
         if( config->mouse_actions[i] )

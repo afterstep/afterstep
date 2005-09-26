@@ -133,7 +133,7 @@ mystrndup (const char *str, size_t n)
 
 /* very usefull utility function to update the value of any string property */
 void
-set_string_value (char **target, char *string, unsigned long *set_flags, unsigned long flag)
+set_string (char **target, char *string)
 {
     if (target != NULL)
 	{
@@ -142,8 +142,6 @@ set_string_value (char **target, char *string, unsigned long *set_flags, unsigne
 			if (*target)
 				free (*target);
 			*target = string;
-			if (set_flags)
-				set_flags (*set_flags, flag);
 		}
 	}
 }

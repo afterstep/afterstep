@@ -28,6 +28,7 @@
 #include "clientprops.h"
 #include "hints.h"
 #include "desktop_category.h"
+#include "freestor.h"
 #include "../libAfterImage/afterimage.h"
 
 
@@ -1325,7 +1326,7 @@ merge_asdb_hints (ASHints * clean, ASRawHints * raw, ASDatabaseRecord * db_rec, 
 
 			for (i = 0; i < BACK_STYLES; i++)
 				if (db_rec->window_styles[i])
-					set_string_value (&(clean->mystyle_names[i]), mystrdup (db_rec->window_styles[i]), NULL, 0);
+					set_string (&(clean->mystyle_names[i]), mystrdup (db_rec->window_styles[i]));
 		}
 		/* taking care of flags : */
 		decode_flags (&(clean->flags), asdb_hints_xref, db_rec->set_flags, db_rec->flags);

@@ -824,7 +824,7 @@ MyFrame *add_myframe_from_def( ASHashTable *list, MyFrameDefinition *fd, ASFlagT
     for( i = 0 ; i < FRAME_PARTS ; ++i )
     {
         if( fd->parts[i] )
-            set_string_value(&(frame->part_filenames[i]), mystrdup(fd->parts[i]), NULL, 0);
+            set_string(&(frame->part_filenames[i]), mystrdup(fd->parts[i]));
         if( get_flags( fd->set_part_size, 0x01<<i ) )
         {
             frame->part_width[i] = max(fd->part_width[i],1);
@@ -854,9 +854,9 @@ MyFrame *add_myframe_from_def( ASHashTable *list, MyFrameDefinition *fd, ASFlagT
     for( i = 0 ; i < BACK_STYLES ; ++i )
     {
         if( fd->title_styles[i] )
-            set_string_value(&(frame->title_style_names[i]), mystrdup(fd->title_styles[i]), NULL, 0 );
+            set_string(&(frame->title_style_names[i]), mystrdup(fd->title_styles[i]) );
         if( fd->frame_styles[i] )
-            set_string_value(&(frame->frame_style_names[i]), mystrdup(fd->frame_styles[i]), NULL, 0 );
+            set_string(&(frame->frame_style_names[i]), mystrdup(fd->frame_styles[i]) );
     }
     if( get_flags( fd->set_title_attr, MYFRAME_TitleFBevelSet ) )
         frame->title_fbevel = fd->title_fbevel;
@@ -914,7 +914,7 @@ MyFrame *add_myframe_from_def( ASHashTable *list, MyFrameDefinition *fd, ASFlagT
 
     	if( fd->title_backs[i] )
     	{
-        	set_string_value(&(frame->title_back_filenames[i]), mystrdup(fd->title_backs[i]), NULL, 0 );
+        	set_string(&(frame->title_back_filenames[i]), mystrdup(fd->title_backs[i]) );
         	if( !get_flags( fd->set_title_attr, MYFRAME_TitleBackAlignSet_Start<<i ) )
         	{
             	frame->title_backs_align[i] = FIT_LABEL_WIDTH ;

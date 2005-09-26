@@ -181,11 +181,11 @@ ParseAudioOptions (const char *filename, char *myname)
                  {
                     if( pCurr->sub->term && pCurr->sub->argv )
                         if( pCurr->sub->term->id >= EVENT_ID_START && pCurr->sub->term->id < EVENT_ID_END )
-                            set_string_value( &(config->sounds[pCurr->sub->term->id-EVENT_ID_START]), mystrdup( pCurr->sub->argv[0] ), NULL, 0 );
+                            set_string( &(config->sounds[pCurr->sub->term->id-EVENT_ID_START]), mystrdup( pCurr->sub->argv[0] ));
                  }
 				 break;
 			 case AUDIO_PLAYCMD_ID:
-                 set_string_value( &(config->playcmd), item.data.string, NULL, 0 );
+                 set_string( &(config->playcmd), item.data.string );
 				 break;
 			 case AUDIO_DELAY_ID:
 			 	 set_flags( config->set_flags, AUDIO_SET_DELAY );

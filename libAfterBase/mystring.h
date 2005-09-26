@@ -20,8 +20,7 @@ char *mystrndup (const char *str, size_t n);
 
 /* use it to set string as well as flags and deallocate memory
    referred to by the pointer */
-void set_string_value (char **target, char *string,
-		       unsigned long *set_flags, unsigned long flag);
+void set_string (char **target, char *string);
 
 #ifdef __cplusplus
 }

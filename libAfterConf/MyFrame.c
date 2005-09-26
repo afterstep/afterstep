@@ -515,7 +515,7 @@ ProcessMyFrameOptions (FreeStorageElem * options, MyFrameDefinition ** tail)
 					DestroyMyFrameDefinitions (tail);
                 	fd = AddMyFrameDefinition (tail);
 				}
-            	set_string_value (&(fd->name), item.data.string, NULL, 0);
+            	set_string (&(fd->name), item.data.string);
         	} else if( rel_id <= FRAME_PARTS )
 			{
             	--rel_id ;
@@ -535,22 +535,22 @@ ProcessMyFrameOptions (FreeStorageElem * options, MyFrameDefinition ** tail)
                     	set_flags( fd->parts_mask, (0x01<<rel_id));
                     	break;
                 	case MYFRAME_TitleUnfocusedStyle_ID :
-                    	set_string_value (&(fd->title_styles[BACK_UNFOCUSED]), item.data.string, NULL, 0);
+                    	set_string (&(fd->title_styles[BACK_UNFOCUSED]), item.data.string);
                     	break;
                 	case MYFRAME_TitleFocusedStyle_ID :
-                    	set_string_value (&(fd->title_styles[BACK_FOCUSED]), item.data.string, NULL, 0);
+                    	set_string (&(fd->title_styles[BACK_FOCUSED]), item.data.string);
                     	break;
                 	case MYFRAME_TitleStickyStyle_ID :
-                    	set_string_value (&(fd->title_styles[BACK_STICKY]), item.data.string, NULL, 0);
+                    	set_string (&(fd->title_styles[BACK_STICKY]), item.data.string);
                     	break;
                 	case MYFRAME_FrameUnfocusedStyle_ID :
-                    	set_string_value (&(fd->frame_styles[BACK_UNFOCUSED]), item.data.string, NULL, 0);
+                    	set_string (&(fd->frame_styles[BACK_UNFOCUSED]), item.data.string);
                     	break;
                 	case MYFRAME_FrameFocusedStyle_ID :
-                    	set_string_value (&(fd->frame_styles[BACK_FOCUSED]), item.data.string, NULL, 0);
+                    	set_string (&(fd->frame_styles[BACK_FOCUSED]), item.data.string);
                     	break;
                 	case MYFRAME_FrameStickyStyle_ID :
-                    	set_string_value (&(fd->frame_styles[BACK_STICKY]), item.data.string, NULL, 0);
+                    	set_string (&(fd->frame_styles[BACK_STICKY]), item.data.string);
                     	break;
                 	case MYFRAME_SideSize_ID :
                 	case MYFRAME_CornerSize_ID :
@@ -624,7 +624,7 @@ ProcessMyFrameOptions (FreeStorageElem * options, MyFrameDefinition ** tail)
 							int index = options->term->id - MYFRAME_TitleBackground_ID_START ;
 							if( index >= 0 && index < MYFRAME_TITLE_BACKS )
 							{
-		                    	set_string_value (&(fd->title_backs[index]), item.data.string, NULL, 0);
+		                    	set_string (&(fd->title_backs[index]), item.data.string);
 							}else
 							{
 								item.ok_to_free = 1;

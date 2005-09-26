@@ -108,10 +108,10 @@ ParseDesktopOptions (DesktopConfig **plist, ConfigItem * item, int id )
 	switch( id )
 	{
 		case DESK_CONFIG_BACK :
-			set_string_value (&(config->back_name), item->data.string, NULL, 0);
+			set_string (&(config->back_name), item->data.string);
 			break;
 		case DESK_CONFIG_LAYOUT :
-			set_string_value (&(config->layout_name), item->data.string, NULL, 0);
+			set_string (&(config->layout_name), item->data.string);
 			break;
 		default:
 			item->ok_to_free = 1;
@@ -595,11 +595,11 @@ ParseLookOptions (const char *filename, char *myname)
 		if (id >= LOOK_WindowStyle_ID_START && id < LOOK_WindowStyle_ID_END)
 		{
 			id -= LOOK_WindowStyle_ID_START;
-			set_string_value (&(config->window_styles[id]), item.data.string, NULL, 0);
+			set_string (&(config->window_styles[id]), item.data.string);
 		} else if (id >= LOOK_MenuStyle_ID_START && id < LOOK_MenuStyle_ID_END)
 		{
 			id -= LOOK_MenuStyle_ID_START;
-			set_string_value (&(config->menu_styles[id]), item.data.string, NULL, 0);
+			set_string (&(config->menu_styles[id]), item.data.string);
 		} else
 		{
 			switch (pCurr->term->id)
@@ -614,10 +614,10 @@ ParseLookOptions (const char *filename, char *myname)
 				 break;
 #define SET_ONOFF_FLAG(i,f,sf,v) if(i)set_flags((f),(v));else clear_flags((f),(v)); set_flags((sf),(v))
 			 case LOOK_MArrowPixmap_ID:	   /* menu arrow */
-				 set_string_value (&(config->menu_arrow), item.data.string, NULL, 0);
+				 set_string (&(config->menu_arrow), item.data.string);
 				 break;
 			 case LOOK_MenuPinOn_ID:		   /* menu pin */
-				 set_string_value (&(config->menu_pin_on), item.data.string, NULL, 0);
+				 set_string (&(config->menu_pin_on), item.data.string);
 				 break;
 
 			 case LOOK_TitleTextAlign_ID:

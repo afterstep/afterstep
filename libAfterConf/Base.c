@@ -141,25 +141,25 @@ ParseBaseOptions (const char *filename, char *myname)
 		switch (pCurr->term->id)
 		{
 		 case BASE_MODULE_PATH_ID:
-			 set_string_value( &(config->module_path), item.data.string, NULL, 0 );
+			 set_string( &(config->module_path), item.data.string );
 			 break;
 		 case BASE_AUDIO_PATH_ID:
-			 set_string_value( &(config->audio_path), item.data.string, NULL, 0 );
+			 set_string( &(config->audio_path), item.data.string );
 			 break;
 		 case BASE_ICON_PATH_ID:
-			 set_string_value( &(config->icon_path), item.data.string, NULL, 0 );
+			 set_string( &(config->icon_path), item.data.string );
 			 break;
 		 case BASE_PIXMAP_PATH_ID:
-			 set_string_value( &(config->pixmap_path), item.data.string, NULL, 0 );
+			 set_string( &(config->pixmap_path), item.data.string );
 			 break;
 		 case BASE_FONT_PATH_ID:
-			 set_string_value( &(config->font_path), item.data.string, NULL, 0 );
+			 set_string( &(config->font_path), item.data.string );
 			 break;
 		 case BASE_CURSOR_PATH_ID:
-			 set_string_value( &(config->cursor_path), item.data.string, NULL, 0 );
+			 set_string( &(config->cursor_path), item.data.string );
 			 break;
 		 case BASE_MYNAME_PATH_ID:
-			 set_string_value( &(config->myname_path), item.data.string, NULL, 0 );
+			 set_string( &(config->myname_path), item.data.string );
 			 break;
 		 case BASE_DESKTOP_SIZE_ID:
 		 	 set_flags( config->set_flags, BASE_DESKTOP_SIZE_SET );
@@ -181,7 +181,7 @@ ParseBaseOptions (const char *filename, char *myname)
 		 case BASE_TermCommand_ID :
 		 	 if( item.index  < MAX_TERM_COMMANDS || item.index >= 0 ) 
 			 {	
-			 	set_string_value(&(config->term_command[item.index]), item.data.string, NULL, 0 );		 	
+			 	set_string(&(config->term_command[item.index]), item.data.string );		 	
 			 	break;
 			 }
 		 default:
@@ -274,37 +274,37 @@ ExtractPath (BaseConfig * config,
 		if (module_path)
 		{
 			tmp = copy_replace_envvar (config->module_path);
-			set_string_value(module_path, tmp, NULL, 0 );
+			set_string(module_path, tmp );
 		}
 		if (audio_path)
 		{
 			tmp = copy_replace_envvar (config->audio_path);
-			set_string_value(audio_path, tmp, NULL, 0 );
+			set_string(audio_path, tmp );
 		}
 		if (icon_path)
 		{
 			tmp = copy_replace_envvar (config->icon_path);
-			set_string_value(icon_path, tmp, NULL, 0 );
+			set_string(icon_path, tmp );
 		}
 		if (pixmap_path)
 		{
 			tmp = copy_replace_envvar (config->pixmap_path);
-			set_string_value(pixmap_path, tmp, NULL, 0 );
+			set_string(pixmap_path, tmp );
 		}
 		if (font_path)
 		{
 			tmp = copy_replace_envvar (config->font_path);
-			set_string_value(font_path, tmp, NULL, 0 );
+			set_string(font_path, tmp );
 		}
 		if (cursor_path)
 		{
 			tmp = copy_replace_envvar (config->cursor_path);
-			set_string_value(cursor_path, tmp, NULL, 0 );
+			set_string(cursor_path, tmp );
 		}
 		if (myname_path)
 		{
 			tmp = copy_replace_envvar (config->myname_path);
-			set_string_value(myname_path, tmp, NULL, 0 );
+			set_string(myname_path, tmp );
 		}
 	}
 }

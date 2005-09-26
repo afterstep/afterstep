@@ -320,10 +320,10 @@ ParseWinTabsOptions (const char *filename, char *myname)
                     config->v_spacing = item.data.integer;
                     break ;
                 case WINTABS_Title_ID:
-					set_string_value( &(config->title), item.data.string, NULL, 0 );
+					set_string( &(config->title), item.data.string );
                     break;
                 case WINTABS_IconTitle_ID:
-					set_string_value( &(config->icon_title), item.data.string, NULL, 0 );
+					set_string( &(config->icon_title), item.data.string );
                     break;
 
                 default:

@@ -423,7 +423,7 @@ inherit_myframe( MyFrame *frame, MyFrame *ancestor )
         for( i = 0 ; i < FRAME_PARTS ; ++i )
         {
             if( ancestor->part_filenames[i] )
-                set_string_value( &(frame->part_filenames[i]), mystrdup(ancestor->part_filenames[i]), NULL, 0 );
+                set_string( &(frame->part_filenames[i]), mystrdup(ancestor->part_filenames[i]) );
             if( get_flags(ancestor->set_part_size, 0x01<<i ) )
             {
                 frame->part_width[i] = ancestor->part_width[i] ;
@@ -444,14 +444,14 @@ inherit_myframe( MyFrame *frame, MyFrame *ancestor )
         for( i = 0 ; i < BACK_STYLES ; ++i )
         {
             if( ancestor->title_style_names )
-                set_string_value( &(frame->title_style_names[i]), mystrdup(ancestor->title_style_names[i]), NULL, 0 );
+                set_string( &(frame->title_style_names[i]), mystrdup(ancestor->title_style_names[i]) );
             if( ancestor->frame_style_names )
-                set_string_value( &(frame->frame_style_names[i]), mystrdup(ancestor->frame_style_names[i]), NULL, 0 );
+                set_string( &(frame->frame_style_names[i]), mystrdup(ancestor->frame_style_names[i]) );
         }
 		for( i = 0 ; i < MYFRAME_TITLE_BACKS ; ++i )
 		{
         	if( ancestor->title_back_filenames[i] )
-            	set_string_value( &(frame->title_back_filenames[i]), mystrdup(ancestor->title_back_filenames[i]), NULL, 0 );
+            	set_string( &(frame->title_back_filenames[i]), mystrdup(ancestor->title_back_filenames[i]) );
 	        if( get_flags( ancestor->set_title_attr, MYFRAME_TitleBackAlignSet_Start<<i ) )
     	        frame->title_backs_align[i] = ancestor->title_backs_align[i];
 		}

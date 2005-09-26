@@ -245,13 +245,13 @@ ProcessMyStyleOptions (FreeStorageElem * options, MyStyleDefinition ** tail)
 			}
 			break;
 		 case MYSTYLE_FONT_ID:
-			set_string_value( &((*tail)->font), item.data.string, NULL, 0);
+			set_string( &((*tail)->font), item.data.string);
 			break;
 		 case MYSTYLE_FORECOLOR_ID:
-			set_string_value( &((*tail)->fore_color), item.data.string, NULL, 0);
+			set_string( &((*tail)->fore_color), item.data.string);
 			break;
 		 case MYSTYLE_BACKCOLOR_ID:
-			set_string_value( &((*tail)->back_color), item.data.string, NULL, 0);
+			set_string( &((*tail)->back_color), item.data.string);
 			break;
 		 case MYSTYLE_TEXTSTYLE_ID:
 			(*tail)->text_style = item.data.integer;
@@ -319,7 +319,7 @@ ProcessMyStyleOptions (FreeStorageElem * options, MyStyleDefinition ** tail)
 		 	{
 				MyStyleDefinition *msd = *tail ;
 				if (options->argc > 1)
-					set_string_value( &(msd->back_pixmap), mystrdup (options->argv[1]), NULL, 0 );
+					set_string( &(msd->back_pixmap), mystrdup (options->argv[1]) );
 				else
 				{
 					free(msd->back_pixmap);
@@ -615,11 +615,11 @@ MergeMyStyleText (MyStyleDefinition ** list, const char *name,
 	if ((style = GetMyStyleDefinition (list, name, True)) != NULL)
 	{
 		if (new_font)
-			set_string_value( &(style->font), mystrdup (new_font), NULL, 0 );
+			set_string( &(style->font), mystrdup (new_font) );
 		if (new_fcolor)
-			set_string_value( &(style->fore_color), mystrdup (new_fcolor), NULL, 0 );
+			set_string( &(style->fore_color), mystrdup (new_fcolor) );
 		if (new_bcolor)
-			set_string_value( &(style->back_color), mystrdup (new_bcolor), NULL, 0 );
+			set_string( &(style->back_color), mystrdup (new_bcolor) );
 		if (new_style >= 0)
 		{
 			style->text_style = new_style;
