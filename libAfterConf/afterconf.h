@@ -91,6 +91,108 @@ extern struct SyntaxDef      WinListFeelSyntax;
 extern struct SyntaxDef      WinTabsSyntax;
 extern struct SyntaxDef      PopupFuncSyntax;
 
+
+#define ASCF_DEFINE_KEYWORD(module,flags,keyword,type,subsyntax) \
+	{(flags),#keyword,sizeof(#keyword),type,module##_##keyword##_##ID,subsyntax}	
+
+#define ASCF_PRINT_FLAG_KEYWORD(stream,module,__config,keyword) \
+	do{ if(get_flags((__config)->set_flags,module##_##keyword) ) \
+			fprintf (stream, #module "." #keyword " = %s;\n",get_flags((__config)->flags,module##_##keyword)? "On" : "Off");}while(0)
+
+#define ASCF_PRINT_FLAGS_KEYWORD(stream,module,__config,keyword) \
+	do{ if(get_flags((__config)->set_flags,module##_##keyword) ) fprintf (stream, #module "." #keyword " = 0x%lX;\n",(__config)->keyword); }while(0)
+
+#define ASCF_PRINT_GEOMETRY_KEYWORD(stream,module,__config,keyword) \
+	do{ if(get_flags((__config)->set_flags,module##_##keyword) )	\
+		{ 	if(get_flags((__config)->keyword.flags,WidthValue))	fprintf (stream, "%u",(__config)->keyword.width); \
+			fputc( 'x', stream ); \
+			if(get_flags((__config)->keyword.flags,HeightValue))	fprintf (stream, "%u",(__config)->keyword.height); \
+			if(get_flags((__config)->keyword.flags,XValue))	fprintf (stream, "%+d",(__config)->keyword.x); \
+			else if(get_flags((__config)->keyword.flags,YValue)) fputc ('+',stream);	\
+			if(get_flags((__config)->keyword.flags,XValue))	fprintf (stream, "%+d",(__config)->keyword.y); \
+			fputc( ';', stream ); fputc( '\n', stream ); \
+		}}while(0)
+
+#define ASCF_PRINT_SIZE_KEYWORD(stream,module,__config,keyword) \
+	do{ if(get_flags((__config)->set_flags,module##_##keyword) )	\
+			fprintf (stream, #module "." #keyword " = %ux%u;\n",(__config)->keyword.width,(__config)->keyword.height); }while(0)
+
+#define ASCF_PRINT_INT_KEYWORD(stream,module,__config,keyword) \
+	do{ if(get_flags((__config)->set_flags,module##_##keyword) ) fprintf (stream, #module "." #keyword " = %d;\n",(__config)->keyword); }while(0)
+
+#define ASCF_PRINT_STRING_KEYWORD(stream,module,__config,keyword) \
+	do{ if( (__config)->keyword != NULL  ) fprintf (stream, #module "." #keyword " = \"%s\";\n",(__config)->keyword); }while(0)
+
+#define ASCF_PRINT_IDX_STRING_KEYWORD(stream,module,__config,keyword,idx) \
+	do{ if( (__config)->keyword[idx] != NULL  ) fprintf (stream, #module "." #keyword "[%d] = \"%s\";\n",idx,(__config)->keyword[idx]); }while(0)
+
+#define ASCF_PRINT_COMPOUND_STRING_KEYWORD(stream,module,__config,keyword,separator) \
+	do{ if( (__config)->keyword != NULL  ) \
+		{int __i__; \
+			fprintf (stream, #module "." #keyword " = \""); \
+			for( __i__=0; (__config)->keyword[__i__]!=NULL ; ++__i__ ) \
+				fprintf (stream, "%s%c",(__config)->keyword[__i__],separator); \
+			fputc( ';', stream ); fputc( '\n', stream ); \
+		}}while(0)
+
+#define ASCF_PRINT_IDX_COMPOUND_STRING_KEYWORD(stream,module,__config,keyword,separator,idx) \
+	do{ if( (__config)->keyword[idx] != NULL  ) \
+		{int __i__; \
+			fprintf (stream, #module "." #keyword "[%d] = \"",idx); \
+			for( __i__=0; (__config)->keyword[idx][__i__]!=NULL ; ++__i__ ) \
+				fprintf (stream, "%s%c",(__config)->keyword[idx][__i__],separator); \
+			fputc( '\"', stream ); fputc( ';', stream ); fputc( '\n', stream ); \
+		}}while(0)
+
+#define ASCF_HANDLE_SUBSYNTAX_KEYWORD_CASE(module,__config,__curr,keyword,type) \
+		case module##_##keyword##_##ID : \
+			if( __curr->sub ){ \
+				set_flags(__config->set_flags,module##_##keyword); \
+		   		__config->keyword = Parse##type##Options( __curr->sub ); }break
+
+#define ASCF_HANDLE_ALIGN_KEYWORD_CASE(module,__config,__curr,keyword) \
+		ASCF_HANDLE_SUBSYNTAX_KEYWORD_CASE(module,__config,__curr,keyword,Align)
+
+#define ASCF_HANDLE_BEVEL_KEYWORD_CASE(module,__config,__curr,keyword) \
+		ASCF_HANDLE_SUBSYNTAX_KEYWORD_CASE(module,__config,__curr,keyword,Bevel)
+			
+
+#define ASCF_HANDLE_GEOMETRY_KEYWORD_CASE(module,__config,__item,keyword) \
+		case module##_##keyword##_##ID : set_flags(__config->set_flags,module##_##keyword); \
+			__config->keyword = __item.data.geometry; break
+
+#define ASCF_HANDLE_SIZE_KEYWORD_CASE(module,__config,__item,keyword) \
+		case module##_##keyword##_##ID : set_flags(__config->set_flags,module##_##keyword); \
+			__config->keyword.width = get_flags( __item.data.geometry.flags, WidthValue )?__item.data.geometry.width:0; \
+			__config->keyword.height = get_flags( __item.data.geometry.flags, HeightValue )?__item.data.geometry.height:0; \
+			break
+			
+#define ASCF_HANDLE_INTEGER_KEYWORD_CASE(module,__config,__item,keyword) \
+		case module##_##keyword##_##ID : set_flags(__config->set_flags,module##_##keyword); \
+			__config->keyword = __item.data.integer; break
+
+#define ASCF_HANDLE_STRING_KEYWORD_CASE(module,__config,__item,keyword) \
+		case module##_##keyword##_##ID : \
+			if( __config->keyword ) free( __config->keyword ); \
+			__config->keyword = __item.data.string; break
+
+
+#define ASCF_MERGE_FLAGS(__to,__from) \
+    do{	(__to)->flags = ((__from)->flags&(__from)->set_flags)|((__to)->flags & (~(__from)->set_flags)); \
+    	(__to)->set_flags |= (__from)->set_flags;}while(0)
+
+#define ASCF_MERGE_GEOMETRY_KEYWORD(module,__to,__from,keyword) \
+	do{ if( get_flags((__from)->set_flags, module##_##keyword) )	\
+        	merge_geometry(&((__from)->keyword), &((__to)->keyword) ); }while(0)
+
+#define ASCF_MERGE_SCALAR_KEYWORD(module,__to,__from,keyword) \
+	do{ if( get_flags((__from)->set_flags, module##_##keyword) )	\
+        	(__to)->keyword = (__from)->keyword ; }while(0)
+
+#define ASCF_MERGE_STRING_KEYWORD(module,__to,__from,keyword) \
+	do{ if( (__from)->keyword )	\
+        {	set_string(	&((__to)->keyword), stripcpy2((__from)->keyword, False));}}while(0)
+
 /* misc function stuff : */
 #define FUNC_ID_START           F_NOP   /* 0 */
 #define FUNC_ID_END           	F_FUNCTIONS_NUM
@@ -927,17 +1029,20 @@ void DestroyMyBackgroundConfig (MyBackgroundConfig ** head);
 #define WINLIST_Align_ID                (WINLIST_ID_START+10)
 #define WINLIST_Bevel_ID                (WINLIST_ID_START+11)
 #define WINLIST_FBevel_ID               (WINLIST_ID_START+12)
+#define WINLIST_FocusedBevel_ID         WINLIST_FBevel_ID
 #define WINLIST_UBevel_ID               (WINLIST_ID_START+13)
+#define WINLIST_UnfocusedBevel_ID       WINLIST_UBevel_ID
 #define WINLIST_SBevel_ID               (WINLIST_ID_START+14)
+#define WINLIST_StickyBevel_ID          WINLIST_SBevel_ID
 #define WINLIST_Action_ID               (WINLIST_ID_START+15)
 #define WINLIST_UnfocusedStyle_ID       (WINLIST_ID_START+16)
 #define WINLIST_FocusedStyle_ID         (WINLIST_ID_START+17)
 #define WINLIST_StickyStyle_ID          (WINLIST_ID_START+18)
 #define WINLIST_ShapeToContents_ID      (WINLIST_ID_START+19)
-#define WINLIST_CM_ID                   (WINLIST_ID_START+20)
-#define WINLIST_FCM_ID                  (WINLIST_ID_START+21)
-#define WINLIST_UCM_ID                  (WINLIST_ID_START+22)
-#define WINLIST_SCM_ID                  (WINLIST_ID_START+23)
+#define WINLIST_CompositionMethod_ID    (WINLIST_ID_START+20)
+#define WINLIST_FCompositionMethod_ID   (WINLIST_ID_START+21)
+#define WINLIST_UCompositionMethod_ID   (WINLIST_ID_START+22)
+#define WINLIST_SCompositionMethod_ID   (WINLIST_ID_START+23)
 #define WINLIST_Spacing_ID              (WINLIST_ID_START+24)
 #define WINLIST_HSpacing_ID             (WINLIST_ID_START+25)
 #define WINLIST_VSpacing_ID             (WINLIST_ID_START+26)
@@ -981,13 +1086,14 @@ typedef struct WinListConfig
 #define WINLIST_SBevel          (0x01<<13)
 #define WINLIST_Bevel           (WINLIST_FBevel|WINLIST_UBevel|WINLIST_SBevel)
 #define WINLIST_ShapeToContents (0x01<<14)
-#define WINLIST_FCM             (0x01<<15)
-#define WINLIST_UCM             (0x01<<16)
-#define WINLIST_SCM             (0x01<<17)
-#define WINLIST_CM              (WINLIST_FCM|WINLIST_UCM|WINLIST_SCM)
+#define WINLIST_FCompositionMethod             (0x01<<15)
+#define WINLIST_UCompositionMethod             (0x01<<16)
+#define WINLIST_SCompositionMethod             (0x01<<17)
+#define WINLIST_CompositionMethod              (WINLIST_FCompositionMethod|WINLIST_UCompositionMethod|WINLIST_SCompositionMethod)
 
-#define WINLIST_H_SPACING       (0x01<<18)
-#define WINLIST_V_SPACING       (0x01<<19)
+#define WINLIST_HSpacing       	(0x01<<18)
+#define WINLIST_VSpacing       	(0x01<<19)
+#define WINLIST_Spacing       	(WINLIST_HSpacing|WINLIST_VSpacing)
 
 #define WINLIST_ShowIcon        (0x01<<20)
 #define WINLIST_IconLocation    (0x01<<21)
@@ -1003,29 +1109,30 @@ typedef struct WinListConfig
 
 	ASFlagType	flags ;
 	ASFlagType	set_flags ;
-    ASGeometry geometry ;
-    unsigned int min_width, min_height ;
-	unsigned int max_width, max_height ;
+
+    ASGeometry 	Geometry ;
+    ASSize	   	MinSize ;
+	ASSize		MaxSize ;
 #define MAX_WINLIST_WINDOW_COUNT    512        /* 512 x 4 == 2048 == 1 page in memory */
-	unsigned int max_rows, max_columns ;
-	unsigned int min_col_width, max_col_width ;
+	unsigned int MaxRows, MaxColumns ;
+	unsigned int MaxColWidth, MinColWidth ;
 
-	char *unfocused_style ;
-	char *focused_style ;
-	char *sticky_style ;
+	char *UnfocusedStyle ;
+	char *FocusedStyle ;
+	char *StickyStyle ;
 
-	ASNameTypes     show_name_type ; /* 0, 1, 2, 3 */
-    ASFlagType      name_aligment ;
-    ASFlagType      fbevel, ubevel, sbevel ;
-    int             ucm, fcm, scm;             /* composition methods */
-    unsigned int    h_spacing, v_spacing ;
-    ASFlagType      icon_align ;
-	int 			icon_location ;
-	unsigned int 	icon_width, icon_height ;
+	ASNameTypes     UseName ; /* 0, 1, 2, 3 */
+    ASFlagType      Align ;
+    ASFlagType      FBevel, UBevel, SBevel ;
+    int             UCompositionMethod, FCompositionMethod, SCompositionMethod;
+    unsigned int    HSpacing, VSpacing;
+    ASFlagType      IconAlign ;
+	int 			IconLocation ;
+	ASSize		 	IconSize ;
 
-    char **mouse_actions[MAX_MOUSE_BUTTONS];
+    char **Action[MAX_MOUSE_BUTTONS];
 
-    balloonConfig *balloon_conf;
+    balloonConfig	 *balloon_conf;
     MyStyleDefinition *style_defs;
 
     struct FreeStorageElem *more_stuff;
@@ -1042,6 +1149,10 @@ void DestroyWinListConfig (WinListConfig * config);
 void PrintWinListConfig (WinListConfig * config);
 int WriteWinListOptions (const char *filename, char *myname, WinListConfig * config, unsigned long flags);
 WinListConfig *ParseWinListOptions (const char *filename, char *myname);
+void MergeWinListOptions ( WinListConfig *to, WinListConfig *from);
+void CheckWinListConfigSanity(WinListConfig *Config, ASGeometry *default_geometry, int default_gravity);
+
+
 
 /**************************************************************************/
 /*                        database pasring definitions                    */

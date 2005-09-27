@@ -46,7 +46,7 @@ const char *default_aliases[][2] =
 /*************************************************************************/
 /* private stuff : 													 */
 /*************************************************************************/
-
+#if 0
 static char **
 parse_category_list( char *list, int *pnum_return ) 
 {
@@ -63,7 +63,7 @@ parse_category_list( char *list, int *pnum_return )
 		if( num > 0 ) 
 		{
 			int sc_i = 0 ;
-			shortcuts = safecalloc( num, sizeof(char*));	
+			shortcuts = safecalloc( num+1, sizeof(char*));	
 
 			shortcuts[sc_i++] = &list[0] ; 
 			for( i = 0 ; list[i] ; ++i ) 
@@ -80,6 +80,7 @@ parse_category_list( char *list, int *pnum_return )
 		*pnum_return = num ;
 	return shortcuts;			   
 }	 
+#endif
 
 static char *
 filter_desktop_entry_exec( const char *exec )
@@ -213,7 +214,7 @@ fix_desktop_entry( ASDesktopEntry *de, const char *default_category, const char 
 	if( de->Categories != NULL ) 
 	{
 		de->categories_len = strlen(de->Categories);
-		de->categories_shortcuts = parse_category_list( de->Categories, &(de->categories_num) ); 
+		de->categories_shortcuts = compound_string2string_list( de->Categories, ';', False, &(de->categories_num) ); 
 		if( get_flags( de->flags, ASDE_KDE|ASDE_GNOME ) == 0 )
 		{
 			int i = de->categories_num;
@@ -245,18 +246,18 @@ fix_desktop_entry( ASDesktopEntry *de, const char *default_category, const char 
 	if( de->Aliases != NULL ) 
 	{
 		de->aliases_len = strlen(de->Aliases);	  	  
-		de->aliases_shortcuts = parse_category_list( de->Aliases, &(de->aliases_num) ); 
+		de->aliases_shortcuts = compound_string2string_list( de->Aliases, ';', False, &(de->aliases_num) ); 
 	}
 	
 	if( de->OnlyShowIn != NULL ) 
 	{
 		de->show_in_len = strlen(de->OnlyShowIn);	  
-		de->show_in_shortcuts = parse_category_list( de->OnlyShowIn, &(de->show_in_num) ); 
+		de->show_in_shortcuts = compound_string2string_list( de->OnlyShowIn, ';', False, &(de->show_in_num) ); 
 	}
 	if( de->NotShowIn != NULL ) 
 	{
 		de->not_show_in_len = strlen(de->NotShowIn);	  	  
-		de->not_show_in_shortcuts = parse_category_list( de->NotShowIn, &(de->not_show_in_num) ); 
+		de->not_show_in_shortcuts = compound_string2string_list( de->NotShowIn, ';', False, &(de->not_show_in_num) ); 
 	}
 	if( de->Icon && icon_path ) 
 	{

@@ -281,6 +281,11 @@ typedef struct
 }
 ASGeometry;
 
+typedef struct
+{
+  unsigned int width, height;
+}ASSize;
+
 typedef struct ASRectangle
 {/* 64 bit safe : */
   long x, y;

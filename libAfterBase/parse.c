@@ -1001,14 +1001,13 @@ scan_for_hotkey (char *txt)
 }
 
 
-/* Conversion of the coma separated values into a list of strings */
 char         *
-get_comma_item (char *ptr, char **item_start, char **item_end)
+get_string_list_item (char *ptr, char **item_start, char **item_end, char separator)
 {
 
 	if (ptr == NULL)
 		return NULL;
-	while (*ptr && (isspace ((int)*ptr) || *ptr == ','))
+	while (*ptr && (isspace ((int)*ptr) || *ptr == separator))
 		ptr++;
 	if (*ptr == '\0')
 		return NULL;
@@ -1019,11 +1018,11 @@ get_comma_item (char *ptr, char **item_start, char **item_end)
 		if ((*item_end = find_doublequotes (ptr)) == NULL)
 			return NULL;
 		ptr = *item_end;
-		while (*ptr && !(isspace ((int)*ptr) || *ptr == ','))
+		while (*ptr && !(isspace ((int)*ptr) || *ptr == separator))
 			ptr++;
 	} else
 	{
-		while (*ptr && *ptr != ',')
+		while (*ptr && *ptr != separator)
 			ptr++;
 		*item_end = ptr;
 	}
@@ -1031,23 +1030,27 @@ get_comma_item (char *ptr, char **item_start, char **item_end)
 }
 
 char        **
-comma_string2list (char *string)
+compound_string2string_list (char *string, char separator, Bool duplicate, int *nitems_return)
 {
 	register char *ptr;
 	int           items;
 	char        **list = NULL, *item_start = NULL, *item_end = NULL;
 
-	if (string == NULL)
+	if (string == NULL )
 		return NULL;
 
 	ptr = string;
 	items = 0;
 	while (*ptr)
 	{
-		if ((ptr = get_comma_item (ptr, &item_start, &item_end)) == NULL)
+		if ((ptr = get_string_list_item (ptr, &item_start, &item_end, separator)) == NULL)
 			break;
 		items++;
 	}
+	
+	if( nitems_return ) 
+		*nitems_return = items ;
+
 	if (items > 0)
 	{
 		register int  i;
@@ -1057,16 +1060,24 @@ comma_string2list (char *string)
 		ptr = string;
 		for (i = 0; i < items; i++)
 		{
-			if ((ptr = get_comma_item (ptr, &item_start, &item_end)) == NULL)
+			if ((ptr = get_string_list_item (ptr, &item_start, &item_end, separator)) == NULL)
 				break;
-			list[i] = mystrndup (item_start, (item_end - item_start));
+			if( duplicate ) 
+				list[i] = mystrndup (item_start, (item_end - item_start));
+			else
+			{	
+				list[i] = item_start ; 
+				if( ptr == item_end && *ptr != '\0' )
+					++ptr ; 
+				*item_end = '\0';
+			}
 		}
 	}
 	return list;
 }
 
 char         *
-list2comma_string (char **list)
+string_list2compound_string (char **list, char separator)
 {
 	char         *string = NULL;
 
@@ -1093,13 +1104,35 @@ list2comma_string (char **list)
 					{
 						*(dst++) = *(src++);
 					}
-					*(dst++) = ',';
+					*(dst++) = separator;
 				}
 			}
 			*(dst - 1) = '\0';
 		}
 	}
 	return string;
+}
+
+
+
+
+/* Conversion of the coma separated values into a list of strings */
+char         *
+get_comma_item (char *ptr, char **item_start, char **item_end)
+{
+	return get_string_list_item (ptr, item_start, item_end, ',');
+}
+
+char        **
+comma_string2list (char *string)
+{
+	return compound_string2string_list (string, ',', True, NULL);
+}
+
+char         *
+list2comma_string (char **list)
+{
+	return string_list2compound_string (list, ',');
 }
 
 void

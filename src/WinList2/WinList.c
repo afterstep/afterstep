@@ -104,7 +104,7 @@ WinListConfig *Config = NULL ;
 
 /**********************************************************************/
 
-void CheckConfigSanity();
+void SetWinListLook();
 void GetBaseOptions (const char *filename);
 void GetOptions (const char *filename);
 void HandleEvents();
@@ -147,7 +147,8 @@ main( int argc, char **argv )
     LoadBaseConfig ( GetBaseOptions);
 	LoadColorScheme();
 	LoadConfig ("winlist", GetOptions);
-    CheckConfigSanity();
+	CheckWinListConfigSanity(Config, &(MyArgs.geometry), MyArgs.gravity);
+    SetWinListLook();
 
     WinListState.main_window = make_winlist_window();
     WinListState.main_canvas = create_ascanvas( WinListState.main_window );
@@ -221,53 +222,24 @@ retrieve_winlist_astbar_props()
 
 
 void
-CheckConfigSanity()
+SetWinListLook()
 {
     int i ;
     char *default_winlist_style = safemalloc( 1+strlen(MyName)+1);
 	default_winlist_style[0] = '*' ;
 	strcpy( &(default_winlist_style[1]), MyName );
 
-    if( Config == NULL )
-        Config = CreateWinListConfig ();
-
-    if( Config->max_rows > MAX_WINLIST_WINDOW_COUNT || Config->max_rows == 0  )
-        Config->max_rows = MAX_WINLIST_WINDOW_COUNT;
-
-    if( Config->max_columns > MAX_WINLIST_WINDOW_COUNT || Config->max_columns == 0  )
-        Config->max_columns = MAX_WINLIST_WINDOW_COUNT;
-
-	if( MyArgs.geometry.flags != 0 ) 
-		Config->geometry = MyArgs.geometry ;
-	
-    Config->gravity = NorthWestGravity ;
-    if( get_flags(Config->geometry.flags, XNegative) )
-        Config->gravity = get_flags(Config->geometry.flags, YNegative)? SouthEastGravity:NorthEastGravity;
-    else if( get_flags(Config->geometry.flags, YNegative) )
-        Config->gravity = SouthWestGravity;
-
-	if(MyArgs.gravity != ForgetGravity)
-    	Config->gravity = MyArgs.gravity ;
-
-    Config->anchor_x = get_flags( Config->geometry.flags, XValue )?Config->geometry.x:0;
-    if( get_flags(Config->geometry.flags, XNegative) )
-        Config->anchor_x += Scr.MyDisplayWidth ;
-
-    Config->anchor_y = get_flags( Config->geometry.flags, YValue )?Config->geometry.y:0;
-    if( get_flags(Config->geometry.flags, YNegative) )
-        Config->anchor_y += Scr.MyDisplayHeight ;
-
 	retrieve_winlist_astbar_props();
     mystyle_get_property (Scr.wmprops);
     for( i = 0 ; i < BACK_STYLES ; ++i )
 		Scr.Look.MSWindow[i] = NULL ;
 
-    Scr.Look.MSWindow[BACK_UNFOCUSED] = mystyle_find( Config->unfocused_style );
-	LOCAL_DEBUG_OUT( "Configured MyStyle %d \"%s\" is %p", BACK_UNFOCUSED, Config->unfocused_style?Config->unfocused_style:"(null)", Scr.Look.MSWindow[BACK_UNFOCUSED] );
-    Scr.Look.MSWindow[BACK_FOCUSED] = mystyle_find( Config->focused_style );
-	LOCAL_DEBUG_OUT( "Configured MyStyle %d \"%s\" is %p", BACK_FOCUSED, Config->focused_style?Config->focused_style:"(null)", Scr.Look.MSWindow[BACK_FOCUSED] );
-    Scr.Look.MSWindow[BACK_STICKY] = mystyle_find( Config->sticky_style );
-	LOCAL_DEBUG_OUT( "Configured MyStyle %d \"%s\" is %p", BACK_STICKY, Config->sticky_style?Config->sticky_style:"(null)", Scr.Look.MSWindow[BACK_STICKY] );
+    Scr.Look.MSWindow[BACK_UNFOCUSED] = mystyle_find( Config->UnfocusedStyle );
+	LOCAL_DEBUG_OUT( "Configured MyStyle %d \"%s\" is %p", BACK_UNFOCUSED, Config->UnfocusedStyle?Config->UnfocusedStyle:"(null)", Scr.Look.MSWindow[BACK_UNFOCUSED] );
+    Scr.Look.MSWindow[BACK_FOCUSED] = mystyle_find( Config->FocusedStyle );
+	LOCAL_DEBUG_OUT( "Configured MyStyle %d \"%s\" is %p", BACK_FOCUSED, Config->FocusedStyle?Config->FocusedStyle:"(null)", Scr.Look.MSWindow[BACK_FOCUSED] );
+    Scr.Look.MSWindow[BACK_STICKY] = mystyle_find( Config->StickyStyle );
+	LOCAL_DEBUG_OUT( "Configured MyStyle %d \"%s\" is %p", BACK_STICKY, Config->StickyStyle?Config->StickyStyle:"(null)", Scr.Look.MSWindow[BACK_STICKY] );
 
     for( i = 0 ; i < BACK_STYLES ; ++i )
     {
@@ -301,7 +273,6 @@ GetBaseOptions (const char *filename)
 void
 GetOptions (const char *filename)
 {
-    int i ;
     START_TIME(option_time);
     WinListConfig *config = ParseWinListOptions( filename, MyName );
 
@@ -309,86 +280,7 @@ GetOptions (const char *filename)
     PrintWinListConfig (config);
 #endif
     /* Need to merge new config with what we have already :*/
-    /* now lets check the config sanity : */
-    /* mixing set and default flags : */
-    Config->flags = (config->flags&config->set_flags)|(Config->flags & (~config->set_flags));
-    Config->set_flags |= config->set_flags;
-
-    Config->gravity = NorthWestGravity ;
-    if( get_flags(config->set_flags, WINLIST_Geometry) )
-        merge_geometry(&(config->geometry), &(Config->geometry) );
-
-    if( get_flags(config->set_flags, WINLIST_MinSize) )
-    {
-        Config->min_width = config->min_width;
-        Config->min_height = config->min_height;
-    }
-
-    if( get_flags(config->set_flags, WINLIST_MaxSize) )
-    {
-        Config->max_width = config->max_width;
-        Config->max_height = config->max_height;
-    }
-    if( get_flags(config->set_flags, WINLIST_MaxRows) )
-        Config->max_rows = config->max_rows;
-    if( get_flags(config->set_flags, WINLIST_MaxColumns) )
-        Config->max_columns = config->max_columns;
-    if( get_flags(config->set_flags, WINLIST_MaxColWidth) )
-        Config->max_col_width = config->max_col_width;
-    if( get_flags(config->set_flags, WINLIST_MinColWidth) )
-        Config->min_col_width = config->min_col_width;
-
-    if( config->unfocused_style )
-        set_string( &(Config->unfocused_style), stripcpy2(config->unfocused_style,False) );
-    if( config->focused_style )
-        set_string( &(Config->focused_style), stripcpy2(config->focused_style,False) );
-    if( config->sticky_style )
-        set_string( &(Config->sticky_style), stripcpy2(config->sticky_style,False) );
-
-    if( get_flags(config->set_flags, WINLIST_UseName) )
-        Config->show_name_type = config->show_name_type;
-    if( get_flags(config->set_flags, WINLIST_Align) )
-        Config->name_aligment = config->name_aligment;
-    if( get_flags(config->set_flags, WINLIST_FBevel) )
-        Config->fbevel = config->fbevel;
-    if( get_flags(config->set_flags, WINLIST_UBevel) )
-        Config->ubevel = config->ubevel;
-    if( get_flags(config->set_flags, WINLIST_SBevel) )
-        Config->sbevel = config->sbevel;
-
-    if( get_flags(config->set_flags, WINLIST_FCM) )
-        Config->fcm = config->fcm;
-    if( get_flags(config->set_flags, WINLIST_UCM) )
-        Config->ucm = config->ucm;
-    if( get_flags(config->set_flags, WINLIST_SCM) )
-        Config->scm = config->scm;
-
-    if( get_flags(config->set_flags, WINLIST_H_SPACING) )
-        Config->h_spacing = config->h_spacing;
-    if( get_flags(config->set_flags, WINLIST_V_SPACING) )
-        Config->v_spacing = config->v_spacing;
-
-    if( get_flags(config->set_flags, WINLIST_IconAlign) )
-        Config->icon_align = config->icon_align;
-    if( get_flags(config->set_flags, WINLIST_IconLocation) )
-        Config->icon_location = config->icon_location;
-	if( get_flags(config->set_flags, WINLIST_IconSize) )
-	{	
-		Config->icon_width  = config->icon_width;
-		Config->icon_height = config->icon_height;
-	}		
-
-    for( i = 0 ; i < MAX_MOUSE_BUTTONS ; ++i )
-        if( config->mouse_actions[i] )
-        {
-            destroy_string_list( Config->mouse_actions[i] );
-            Config->mouse_actions[i] = config->mouse_actions[i];
-        }
-
-    if( Config->balloon_conf )
-        Destroy_balloonConfig( Config->balloon_conf );
-    Config->balloon_conf = config->balloon_conf ;
-    config->balloon_conf = NULL ;
+	MergeWinListOptions( Config, config );
 
     if (config->style_defs)
         ProcessMyStyleDefinitions (&(config->style_defs));
@@ -421,7 +313,7 @@ process_message (send_data_type type, send_data_type *body)
 		if( res == WP_DataCreated )
         {
             if( WinListState.windows_num < MAX_WINLIST_WINDOW_COUNT &&
-                WinListState.windows_num < Config->max_rows*Config->max_columns )
+                WinListState.windows_num < Config->MaxRows*Config->MaxColumns )
             {
                 if( !get_flags( Config->flags, ASWL_UseSkipList ) ||
                     !get_flags( wd->flags, AS_SkipWinList ) )
@@ -524,7 +416,7 @@ DispatchEvent (ASEvent * event)
 					LOCAL_DEBUG_OUT( "AS Styles updated!%s","");
 					mystyle_list_destroy_all(&(Scr.Look.styles_list));
 					LoadColorScheme();
-					CheckConfigSanity();
+					SetWinListLook();
 					/* now we need to update everything */
 					update_winlist_styles();
 					rearrange_winlist_window( False );
@@ -564,8 +456,8 @@ make_winlist_window()
 	XSizeHints    shints;
 	ExtendedWMHints extwm_hints ;
 	int x, y ;
-    unsigned int width = max(Config->min_width,1);
-    unsigned int height = max(Config->min_height,1);
+    unsigned int width = max(Config->MinSize.width,1);
+    unsigned int height = max(Config->MinSize.height,1);
 
 	switch( Config->gravity )
 	{
@@ -593,8 +485,8 @@ make_winlist_window()
 
 	shints.flags = USPosition|USSize|PMinSize|PMaxSize|PBaseSize|PWinGravity;
 	shints.min_width = shints.min_height = 4;
-	shints.max_width = (Config->max_width>0)?Config->max_width:Scr.MyDisplayWidth;
-	shints.max_height = (Config->max_height>0)?Config->max_height:Scr.MyDisplayHeight;
+	shints.max_width = (Config->MaxSize.width>0)?Config->MaxSize.width:Scr.MyDisplayWidth;
+	shints.max_height = (Config->MaxSize.height>0)?Config->MaxSize.height:Scr.MyDisplayHeight;
 	shints.base_width = shints.base_height = 4;
 	shints.win_gravity = Config->gravity ;
 
@@ -651,11 +543,11 @@ Bool
 rearrange_winlist_window( Bool dont_resize_main_canvas )
 {
     int i ;
-    unsigned int allowed_max_width = (Config->max_width==0)?Scr.MyDisplayWidth:Config->max_width ;
-	unsigned int allowed_max_height = (Config->max_height==0)?Scr.MyDisplayHeight:Config->max_height ;
-    unsigned int allowed_min_width = Config->min_width ;
-    unsigned int allowed_min_height = Config->min_height;
-    unsigned int max_col_width = (Config->max_col_width==0)?Scr.MyDisplayWidth:Config->max_col_width ;
+    unsigned int allowed_max_width = (Config->MaxSize.width==0)?Scr.MyDisplayWidth:Config->MaxSize.width ;
+	unsigned int allowed_max_height = (Config->MaxSize.height==0)?Scr.MyDisplayHeight:Config->MaxSize.height ;
+    unsigned int allowed_min_width = Config->MinSize.width ;
+    unsigned int allowed_min_height = Config->MinSize.height;
+    unsigned int max_col_width = (Config->MaxColWidth==0)?Scr.MyDisplayWidth:Config->MaxColWidth ;
     unsigned int max_item_height = 0;
     unsigned int max_rows = 0 ;
     int row = 0, col = 0;
@@ -748,8 +640,8 @@ rearrange_winlist_window( Bool dont_resize_main_canvas )
 	LOCAL_DEBUG_OUT( "calculated max_item_height = %d", max_item_height );
 
     max_rows = (allowed_max_height + max_item_height - 1 ) / max_item_height ;
-    if( max_rows > Config->max_rows )
-        max_rows = Config->max_rows ;
+    if( max_rows > Config->MaxRows )
+        max_rows = Config->MaxRows ;
 
     /* Pass 2: we have to decide on number of rows/columns : */
     WinListState.columns_num = WinListState.rows_num = 0 ;
@@ -758,7 +650,7 @@ rearrange_winlist_window( Bool dont_resize_main_canvas )
        * To resolve that race condition - lets try and find maximum number of columns that can fit into
        * allowed_max_width  - we start with min(windows_num,max_columns) columns and then decrease this number untill
        * we get a fit*/
-        int columns_num = min(WinListState.windows_num,Config->max_columns);
+        int columns_num = min(WinListState.windows_num,Config->MaxColumns);
         int max_row_width = 0;
         int min_columns = (WinListState.windows_num + max_rows - 1)/ max_rows ;
         if( min_columns <= 0 )
@@ -995,16 +887,16 @@ static void
 configure_tbar_props( ASTBarData *tbar, ASWindowData *wd, Bool focus_only )
 {
 	INT32 encoding = AS_Text_ASCII ;
-	char *name = get_window_name(wd, Config->show_name_type, &encoding );
+	char *name = get_window_name(wd, Config->UseName, &encoding );
 
 	if( !focus_only ) 
 	{
 	    ASFlagType align = ALIGN_TOP|ALIGN_BOTTOM ;
-		int h_spacing = Config->h_spacing ;
-		int v_spacing = Config->v_spacing ;
-		int fbevel = Config->fbevel ;
-		int sbevel = Config->sbevel ;
-		int ubevel = Config->ubevel ;
+		int h_spacing = Config->HSpacing ;
+		int v_spacing = Config->VSpacing ;
+		int fbevel = Config->FBevel ;
+		int sbevel = Config->SBevel ;
+		int ubevel = Config->UBevel ;
 
 				   
     	delete_astbar_tile( tbar, -1 );
@@ -1015,10 +907,10 @@ configure_tbar_props( ASTBarData *tbar, ASWindowData *wd, Bool focus_only )
 			if( !get_flags( Config->set_flags, WINLIST_Align ) )
 				align = WinListState.tbar_props->align ;
 			else
-				align = Config->name_aligment ;
-		    if( !get_flags( Config->set_flags, WINLIST_H_SPACING) )
+				align = Config->Align ;
+		    if( !get_flags( Config->set_flags, WINLIST_HSpacing) )
 				h_spacing = WinListState.tbar_props->title_h_spacing ;
-    		if( !get_flags( Config->set_flags, WINLIST_V_SPACING) )
+    		if( !get_flags( Config->set_flags, WINLIST_VSpacing) )
     			v_spacing = WinListState.tbar_props->title_v_spacing ;
 			if( !get_flags( Config->set_flags, WINLIST_FBevel ) )
 			{	
@@ -1046,17 +938,17 @@ configure_tbar_props( ASTBarData *tbar, ASWindowData *wd, Bool focus_only )
 			sbevel = DEFAULT_TBAR_HILITE ;
 
     	set_astbar_hilite( tbar, BACK_FOCUSED, fbevel );
-    	set_astbar_composition_method( tbar, BACK_FOCUSED, Config->fcm );
+    	set_astbar_composition_method( tbar, BACK_FOCUSED, Config->FCompositionMethod );
     	if( get_flags(wd->state_flags, AS_Sticky) )
     	{
         	set_astbar_style_ptr( tbar, BAR_STATE_UNFOCUSED, Scr.Look.MSWindow[BACK_STICKY] );
         	set_astbar_hilite( tbar, BACK_UNFOCUSED, sbevel );
-        	set_astbar_composition_method( tbar, BACK_FOCUSED, Config->scm );
+        	set_astbar_composition_method( tbar, BACK_FOCUSED, Config->SCompositionMethod );
     	}else
     	{
         	set_astbar_style_ptr( tbar, BAR_STATE_UNFOCUSED, Scr.Look.MSWindow[BACK_UNFOCUSED] );
         	set_astbar_hilite( tbar, BACK_UNFOCUSED, ubevel );
-        	set_astbar_composition_method( tbar, BACK_FOCUSED, Config->ucm );
+        	set_astbar_composition_method( tbar, BACK_FOCUSED, Config->UCompositionMethod );
     	}
 
     	if( get_flags( wd->state_flags, AS_Iconic ) && name != NULL && name[0] != '\0')
@@ -1189,7 +1081,7 @@ release_winlist_button( ASWindowData *wd, int button )
             update_canvas_display( WinListState.main_canvas );
 		}
 
-        action_list = Config->mouse_actions[button - Button1] ;
+        action_list = Config->Action[button - Button1] ;
         if( action_list )
         {
             int i = -1;

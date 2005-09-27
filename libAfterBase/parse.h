@@ -74,6 +74,13 @@ char *hex_to_buffer(void *data, size_t bytes, char* buffer);
 
 char scan_for_hotkey (char *txt);
 
+/* generic functions for parsing a list of items separated with single character into a list of strings : */
+char *get_string_list_item (char *ptr, char **item_start, char **item_end, char separator);
+char **compound_string2string_list (char *string, char separator, Bool duplicate, int *nitems_return);
+char *string_list2compound_string (char **list, char separator);
+
+/* below is the subcase of above where items are coma-separated
+   (for compatibility with older versions) : */
 /* this allows for parsing of the comma separated items from single string
    in to the string list */
 /* string list is terminated with NULL element and does not constitute

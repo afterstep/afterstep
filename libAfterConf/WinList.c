@@ -37,46 +37,46 @@ extern SyntaxDef AlignSyntax;
 
 
 #define WINLIST_FEEL_TERMS \
-    {TF_DONT_SPLIT, "Action", 6, TT_TEXT, WINLIST_Action_ID, NULL}, \
-    {0, "FillRowsFirst", 13, TT_FLAG, WINLIST_FillRowsFirst_ID, NULL}, \
-    {0, "UseSkipList", 11, TT_FLAG, WINLIST_UseSkipList_ID, NULL}
+    ASCF_DEFINE_KEYWORD(WINLIST, TF_DONT_SPLIT	, Action		, TT_TEXT, NULL), \
+    ASCF_DEFINE_KEYWORD(WINLIST, 0				, FillRowsFirst	, TT_FLAG, NULL), \
+    ASCF_DEFINE_KEYWORD(WINLIST, 0				, UseSkipList	, TT_FLAG, NULL)
 
 #define WINLIST_LOOK_TERMS \
-    {0, "UseName", 7, TT_INTEGER, WINLIST_UseName_ID, NULL}, \
-    {0, "Align", 5, TT_FLAG, WINLIST_Align_ID, &AlignSyntax}, \
-    {0, "Bevel", 5, TT_FLAG, WINLIST_Bevel_ID, &BevelSyntax}, \
-    {0, "FBevel", 6, TT_FLAG, WINLIST_FBevel_ID, &BevelSyntax}, \
-    {0, "UBevel", 6, TT_FLAG, WINLIST_UBevel_ID, &BevelSyntax}, \
-    {0, "SBevel", 6, TT_FLAG, WINLIST_SBevel_ID, &BevelSyntax}, \
-    {0, "FocusedBevel", 12, TT_FLAG, WINLIST_FBevel_ID, &BevelSyntax}, \
-    {0, "StickyBevel", 10, TT_FLAG, WINLIST_SBevel_ID, &BevelSyntax}, \
-    {0, "UnfocusedBevel", 14, TT_FLAG, WINLIST_UBevel_ID, &BevelSyntax}, \
-    {0, "CompositionMethod", 17, TT_UINTEGER, WINLIST_CM_ID, NULL}, \
-    {0, "FCompositionMethod", 18, TT_UINTEGER, WINLIST_FCM_ID, NULL}, \
-    {0, "UCompositionMethod", 18, TT_UINTEGER, WINLIST_UCM_ID, NULL}, \
-    {0, "SCompositionMethod", 18, TT_UINTEGER, WINLIST_SCM_ID, NULL}, \
-    {0, "Spacing", 7, TT_UINTEGER, WINLIST_Spacing_ID, NULL}, \
-    {0, "HSpacing", 8, TT_UINTEGER, WINLIST_HSpacing_ID, NULL}, \
-    {0, "VSpacing", 8, TT_UINTEGER, WINLIST_VSpacing_ID, NULL}, \
-    {0, "UnfocusedStyle", 14, TT_TEXT, WINLIST_UnfocusedStyle_ID, NULL}, \
-    {0, "FocusedStyle", 12, TT_TEXT, WINLIST_FocusedStyle_ID, NULL}, \
-    {0, "StickyStyle", 11, TT_TEXT, WINLIST_StickyStyle_ID, NULL}, \
-    {0, "ShapeToContents", 15, TT_FLAG, WINLIST_ShapeToContents_ID, NULL}, \
-    {0, "ShowIcon", 8, TT_FLAG, 		WINLIST_ShowIcon_ID		, NULL}, \
-    {0, "IconLocation", 12, TT_UINTEGER,WINLIST_IconLocation_ID	, NULL}, \
-    {0, "IconAlign", 9, TT_FLAG, 		WINLIST_IconAlign_ID	, &AlignSyntax}, \
-    {0, "IconSize", 8, TT_GEOMETRY,		WINLIST_IconSize_ID		, NULL}, \
-    {0, "ScaleIconToTextHeight", 21, TT_FLAG, WINLIST_ScaleIconToTextHeight_ID, NULL}
+    ASCF_DEFINE_KEYWORD(WINLIST, 0				, UseName			, TT_INTEGER, NULL), \
+    ASCF_DEFINE_KEYWORD(WINLIST, 0			    , Align				, TT_FLAG	, &AlignSyntax), \
+    ASCF_DEFINE_KEYWORD(WINLIST, 0			    , Bevel				, TT_FLAG	, &BevelSyntax), \
+    ASCF_DEFINE_KEYWORD(WINLIST, 0			    , FBevel			, TT_FLAG	, &BevelSyntax), \
+    ASCF_DEFINE_KEYWORD(WINLIST, 0			    , UBevel			, TT_FLAG	, &BevelSyntax), \
+    ASCF_DEFINE_KEYWORD(WINLIST, 0			    , SBevel			, TT_FLAG	, &BevelSyntax), \
+    ASCF_DEFINE_KEYWORD(WINLIST, 0			    , FocusedBevel		, TT_FLAG	, &BevelSyntax), \
+    ASCF_DEFINE_KEYWORD(WINLIST, 0			    , StickyBevel		, TT_FLAG	, &BevelSyntax), \
+    ASCF_DEFINE_KEYWORD(WINLIST, 0			    , UnfocusedBevel	, TT_FLAG	, &BevelSyntax), \
+    ASCF_DEFINE_KEYWORD(WINLIST, 0			    , CompositionMethod	, TT_UINTEGER, NULL), \
+    ASCF_DEFINE_KEYWORD(WINLIST, 0			    , FCompositionMethod, TT_UINTEGER, NULL), \
+    ASCF_DEFINE_KEYWORD(WINLIST, 0			    , UCompositionMethod, TT_UINTEGER, NULL), \
+    ASCF_DEFINE_KEYWORD(WINLIST, 0			    , SCompositionMethod, TT_UINTEGER, NULL), \
+    ASCF_DEFINE_KEYWORD(WINLIST, 0			    , Spacing			, TT_UINTEGER, NULL), \
+    ASCF_DEFINE_KEYWORD(WINLIST, 0			    , HSpacing			, TT_UINTEGER, NULL), \
+    ASCF_DEFINE_KEYWORD(WINLIST, 0			    , VSpacing			, TT_UINTEGER, NULL), \
+    ASCF_DEFINE_KEYWORD(WINLIST, 0			    , UnfocusedStyle	, TT_TEXT	,  NULL), \
+    ASCF_DEFINE_KEYWORD(WINLIST, 0			    , FocusedStyle		, TT_TEXT	,  NULL), \
+    ASCF_DEFINE_KEYWORD(WINLIST, 0			    , StickyStyle		, TT_TEXT	,  NULL), \
+    ASCF_DEFINE_KEYWORD(WINLIST, 0			    , ShapeToContents	, TT_FLAG	,  NULL), \
+    ASCF_DEFINE_KEYWORD(WINLIST, 0			    , ShowIcon			, TT_FLAG	,  NULL), \
+    ASCF_DEFINE_KEYWORD(WINLIST, 0			    , IconLocation		, TT_UINTEGER, NULL), \
+    ASCF_DEFINE_KEYWORD(WINLIST, 0			    , IconAlign			, TT_FLAG	, &AlignSyntax), \
+    ASCF_DEFINE_KEYWORD(WINLIST, 0			    , IconSize			, TT_GEOMETRY, NULL), \
+    ASCF_DEFINE_KEYWORD(WINLIST, 0			    , ScaleIconToTextHeight, TT_FLAG,  NULL)
 	
 #define WINLIST_PRIVATE_TERMS \
-    {0, "Geometry", 8, TT_GEOMETRY, WINLIST_Geometry_ID, NULL}, \
-    {0, "MinSize", 7, TT_GEOMETRY, WINLIST_MinSize_ID, NULL}, \
-    {0, "MaxSize", 7, TT_GEOMETRY, WINLIST_MaxSize_ID, NULL}, \
-    {0, "MaxRows", 7, TT_INTEGER, WINLIST_MaxRows_ID, NULL}, \
-    {0, "MaxColumns", 10, TT_INTEGER, WINLIST_MaxColumns_ID, NULL}, \
-    {0, "MaxColWidth", 11, TT_INTEGER, WINLIST_MaxColWidth_ID, NULL}, \
-    {0, "MinColWidth", 11, TT_INTEGER, WINLIST_MinColWidth_ID, NULL}, \
-    {TF_DEPRECIATED, "MaxWidth", 8, TT_UINTEGER, WINLIST_MaxWidth_ID, NULL}
+    ASCF_DEFINE_KEYWORD(WINLIST, 0			    , Geometry			, TT_GEOMETRY	, NULL), \
+    ASCF_DEFINE_KEYWORD(WINLIST, 0			    , MinSize			, TT_GEOMETRY	, NULL), \
+    ASCF_DEFINE_KEYWORD(WINLIST, 0			    , MaxSize			, TT_GEOMETRY	, NULL), \
+    ASCF_DEFINE_KEYWORD(WINLIST, 0			    , MaxRows			, TT_INTEGER	, NULL), \
+    ASCF_DEFINE_KEYWORD(WINLIST, 0			    , MaxColumns		, TT_INTEGER	, NULL), \
+    ASCF_DEFINE_KEYWORD(WINLIST, 0			    , MaxColWidth		, TT_INTEGER	, NULL), \
+    ASCF_DEFINE_KEYWORD(WINLIST, 0			    , MinColWidth		, TT_INTEGER	, NULL), \
+    ASCF_DEFINE_KEYWORD(WINLIST, TF_OBSOLETE		, MaxWidth			, TT_UINTEGER	, NULL)
 
 
 TermDef       WinListFeelTerms[] = {
@@ -125,15 +125,15 @@ CreateWinListConfig ()
 {
 	WinListConfig *config = (WinListConfig *) safecalloc (1, sizeof (WinListConfig));
 
-    init_asgeometry (&(config->geometry));
+    init_asgeometry (&(config->Geometry));
     config->gravity = NorthWestGravity;
-	config->max_rows = 1;
-	config->show_name_type = ASN_Name;
-    config->name_aligment = ALIGN_CENTER;
+	config->MaxRows = 1;
+	config->UseName = ASN_Name;
+    config->Align = ALIGN_CENTER;
     config->balloon_conf = NULL;
-    config->h_spacing = DEFAULT_TBAR_HSPACING;
-	config->v_spacing = DEFAULT_TBAR_VSPACING;
-    config->fbevel = config->ubevel = config->sbevel = DEFAULT_TBAR_HILITE ;
+    config->HSpacing = DEFAULT_TBAR_HSPACING;
+	config->VSpacing = DEFAULT_TBAR_VSPACING;
+    config->FBevel = config->UBevel = config->SBevel = DEFAULT_TBAR_HILITE ;
 
 	return config;
 }
@@ -143,16 +143,13 @@ DestroyWinListConfig (WinListConfig * config)
 {
 	int           i;
 
-	if (config->unfocused_style)
-		free (config->unfocused_style);
-	if (config->focused_style)
-		free (config->focused_style);
-	if (config->sticky_style)
-		free (config->sticky_style);
+	destroy_string(&(config->UnfocusedStyle));
+	destroy_string(&(config->FocusedStyle));
+	destroy_string(&(config->StickyStyle));
 
 	for (i = 0; i < MAX_MOUSE_BUTTONS; ++i)
-		if (config->mouse_actions[i])
-            destroy_string_list(config->mouse_actions[i]);
+		if (config->Action[i])
+            destroy_string_list(config->Action[i]);
 
     Destroy_balloonConfig (config->balloon_conf);
 	DestroyFreeStorage (&(config->more_stuff));
@@ -170,67 +167,46 @@ PrintWinListConfig (WinListConfig * config)
 	if (config == NULL)
 		return;
 
-	fprintf (stderr, "WinListConfig.RowsFirst = %s;\n",
-			 get_flags (config->flags, WINLIST_FillRowsFirst) ? "True" : "False");
-	fprintf (stderr, "WinListConfig.UseSkipList = %s;\n",
-			 get_flags (config->flags, WINLIST_UseSkipList) ? "True" : "False");
-	fprintf (stderr, "WinListConfig.set_flags = 0x%lX;\n", config->set_flags);
-    fprintf (stderr, "WinListConfig.geometry.flags = 0x%X;\n", config->geometry.flags);
-    fprintf (stderr, "WinListConfig.geometry = %+d%+d;\n", config->geometry.x, config->geometry.y);
+	ASCF_PRINT_FLAG_KEYWORD(stderr,WINLIST,config,FillRowsFirst);
+	ASCF_PRINT_FLAG_KEYWORD(stderr,WINLIST,config,UseSkipList);
+	ASCF_PRINT_GEOMETRY_KEYWORD(stderr,WINLIST,config,Geometry);
+	ASCF_PRINT_SIZE_KEYWORD(stderr,WINLIST,config,MinSize);
+	ASCF_PRINT_SIZE_KEYWORD(stderr,WINLIST,config,MaxSize);
+	ASCF_PRINT_INT_KEYWORD(stderr,WINLIST,config,MaxRows);
+	ASCF_PRINT_INT_KEYWORD(stderr,WINLIST,config,MaxColumns);
+	ASCF_PRINT_INT_KEYWORD(stderr,WINLIST,config,MinColWidth);
+	ASCF_PRINT_INT_KEYWORD(stderr,WINLIST,config,MaxColWidth);
+
+	ASCF_PRINT_INT_KEYWORD(stderr,WINLIST,config,UseName);
+	ASCF_PRINT_FLAGS_KEYWORD(stderr,WINLIST,config,Align );
+	ASCF_PRINT_FLAGS_KEYWORD(stderr,WINLIST,config,FBevel);
+	ASCF_PRINT_FLAGS_KEYWORD(stderr,WINLIST,config,UBevel);
+	ASCF_PRINT_FLAGS_KEYWORD(stderr,WINLIST,config,SBevel);
+	ASCF_PRINT_INT_KEYWORD(stderr,WINLIST,config,FCompositionMethod);
+	ASCF_PRINT_INT_KEYWORD(stderr,WINLIST,config,UCompositionMethod);
+	ASCF_PRINT_INT_KEYWORD(stderr,WINLIST,config,SCompositionMethod);
+	ASCF_PRINT_INT_KEYWORD(stderr,WINLIST,config,HSpacing);
+	ASCF_PRINT_INT_KEYWORD(stderr,WINLIST,config,VSpacing);
+
+	ASCF_PRINT_STRING_KEYWORD(stderr,WINLIST,config,UnfocusedStyle);
+	ASCF_PRINT_STRING_KEYWORD(stderr,WINLIST,config,FocusedStyle);
+	ASCF_PRINT_STRING_KEYWORD(stderr,WINLIST,config,StickyStyle);
+	
+	ASCF_PRINT_INT_KEYWORD(stderr,WINLIST,config,IconLocation);	
+	ASCF_PRINT_FLAGS_KEYWORD(stderr,WINLIST,config,IconAlign );
+	ASCF_PRINT_SIZE_KEYWORD(stderr,WINLIST,config,IconSize);	
+	
 	fprintf (stderr, "WinListConfig.gravity = %d;\n", config->gravity);
-	fprintf (stderr, "WinListConfig.MinSize = %dx%d;\n", config->min_width, config->min_height);
-	fprintf (stderr, "WinListConfig.MaxSize = %dx%d;\n", config->max_width, config->max_height);
-	fprintf (stderr, "WinListConfig.MaxRows = %d;\n", config->max_rows);
-	fprintf (stderr, "WinListConfig.MaxColumns = %d;\n", config->max_columns);
-	fprintf (stderr, "WinListConfig.min_col_width = %d;\n", config->min_col_width);
-	fprintf (stderr, "WinListConfig.max_col_width = %d;\n", config->max_col_width);
-
-	fprintf (stderr, "WinListConfig.show_name_type = %d;\n", config->show_name_type);	/* 0, 1, 2, 3 */
-    fprintf (stderr, "WinListConfig.name_aligment = %lX;\n", config->name_aligment);
-    fprintf (stderr, "WinListConfig.fbevel = %lX;\n", config->fbevel);
-    fprintf (stderr, "WinListConfig.ubevel = %lX;\n", config->ubevel);
-    fprintf (stderr, "WinListConfig.sbevel = %lX;\n", config->sbevel);
-    fprintf (stderr, "WinListConfig.fcm = %d;\n", config->fcm);
-    fprintf (stderr, "WinListConfig.ucm = %d;\n", config->ucm);
-    fprintf (stderr, "WinListConfig.scm = %d;\n", config->scm);
-    fprintf (stderr, "WinListConfig.h_spacing = %d;\n", config->h_spacing);
-    fprintf (stderr, "WinListConfig.v_spacing = %d;\n", config->v_spacing);
-
-	fprintf (stderr, "WinListConfig.unfocused_style = %p;\n", config->unfocused_style);
-	if (config->unfocused_style)
-		fprintf (stderr, "WinListConfig.unfocused_style = \"%s\";\n", config->unfocused_style);
-	fprintf (stderr, "WinListConfig.focused_style = %p;\n", config->focused_style);
-	if (config->focused_style)
-		fprintf (stderr, "WinListConfig.focused_style = \"%s\";\n", config->focused_style);
-	fprintf (stderr, "WinListConfig.sticky_style = %p;\n", config->sticky_style);
-	if (config->sticky_style)
-		fprintf (stderr, "WinListConfig.sticky_style = \"%s\";\n", config->sticky_style);
 
 	for (i = 0; i < MAX_MOUSE_BUTTONS; ++i)
-	{
-        fprintf (stderr, "WinListConfig.mouse_action[%d].list = %p;\n", i, config->mouse_actions[i]);
-        if( config->mouse_actions[i] )
-        {
-            int k = 0 ;
-            do
-            {
-                fprintf (stderr, "WinListConfig.mouse_action[%d].list[%d] = %p;\n", i, k, config->mouse_actions[i][k]);
-                if (config->mouse_actions[i][k])
-                    fprintf (stderr, "WinListConfig.mouse_action[%d].list[%d] = \"%s\";\n", i, k, config->mouse_actions[i][k]);
-                else
-                    break;
-                ++k ;
-            }while(1);
-
-        }
-	}
+        ASCF_PRINT_IDX_COMPOUND_STRING_KEYWORD(stderr,WINLIST,config,Action,',',i);
 }
 
 flag_options_xref WinListFlags[] = {
-	{WINLIST_FillRowsFirst, 	WINLIST_FillRowsFirst_ID, 0 },
-	{WINLIST_UseSkipList_ID, 	WINLIST_UseSkipList, 0 },
-    {WINLIST_ShapeToContents, 	WINLIST_ShapeToContents_ID, 0},
-    {WINLIST_ShowIcon, 			WINLIST_ShowIcon_ID, 0},
+	{WINLIST_FillRowsFirst, 		WINLIST_FillRowsFirst_ID, 0 },
+	{WINLIST_UseSkipList, 			WINLIST_UseSkipList_ID, 0 },
+    {WINLIST_ShapeToContents, 		WINLIST_ShapeToContents_ID, 0},
+    {WINLIST_ShowIcon, 				WINLIST_ShowIcon_ID, 0},
     {WINLIST_ScaleIconToTextHeight, WINLIST_ScaleIconToTextHeight_ID, 0},
     {0, 0, 0}
 };
@@ -274,36 +250,23 @@ ParseWinListOptions (const char *filename, char *myname)
 
             switch (pCurr->term->id)
             {
-                case WINLIST_UseIconNames_ID:
-                    if (!get_flags (config->set_flags, WINLIST_UseName))
-                        set_scalar_value(&(config->show_name_type),ASN_IconName, 
-									 &(config->set_flags), WINLIST_UseName);
-                    break;
-                case WINLIST_Align_ID :
-					set_scalar_value(&(config->name_aligment),ParseAlignOptions( pCurr->sub ), 
-									 &(config->set_flags), WINLIST_Align);
-                    break ;
-                case WINLIST_Bevel_ID :
-					set_scalar_value(&(config->fbevel),ParseBevelOptions( pCurr->sub ), 
-									 &(config->set_flags), WINLIST_Bevel);
-                    config->ubevel = config->sbevel = config->fbevel;
-                    break ;
-                case WINLIST_FBevel_ID :
-					set_scalar_value(&(config->fbevel),ParseBevelOptions( pCurr->sub ), 
-									 &(config->set_flags), WINLIST_FBevel);
-                    break ;
-                case WINLIST_UBevel_ID :
-					set_scalar_value(&(config->ubevel),ParseBevelOptions( pCurr->sub ), 
-									 &(config->set_flags), WINLIST_UBevel);
-                    break ;
-                case WINLIST_SBevel_ID :
-					set_scalar_value(&(config->sbevel),ParseBevelOptions( pCurr->sub ), 
-									 &(config->set_flags), WINLIST_SBevel);
-                    break ;
-                case WINLIST_IconAlign_ID :
-					set_scalar_value(&(config->icon_align),ParseAlignOptions( pCurr->sub ), 
-									 &(config->set_flags), WINLIST_IconAlign);
-                    break ;
+				ASCF_HANDLE_ALIGN_KEYWORD_CASE(WINLIST,config,pCurr,Align ); 
+                ASCF_HANDLE_BEVEL_KEYWORD_CASE(WINLIST,config,pCurr,FBevel); 
+                ASCF_HANDLE_BEVEL_KEYWORD_CASE(WINLIST,config,pCurr,UBevel); 
+                ASCF_HANDLE_BEVEL_KEYWORD_CASE(WINLIST,config,pCurr,SBevel); 
+				ASCF_HANDLE_ALIGN_KEYWORD_CASE(WINLIST,config,pCurr,IconAlign);
+				default:
+					if( pCurr->term->id == WINLIST_UseIconNames_ID ) 
+					{
+	                    if (!get_flags (config->set_flags, WINLIST_UseName))
+    	                    set_scalar_value(&(config->UseName),ASN_IconName, 
+										 	 &(config->set_flags), WINLIST_UseName);
+					}else if( pCurr->term->id ==  WINLIST_Bevel_ID )
+					{	
+						set_scalar_value(&(config->FBevel),ParseBevelOptions( pCurr->sub ), 
+										 &(config->set_flags), WINLIST_Bevel);
+                    	config->UBevel = config->SBevel = config->FBevel;
+					}	
             }
         }else
 		{
@@ -312,128 +275,86 @@ ParseWinListOptions (const char *filename, char *myname)
 
 			switch (pCurr->term->id)
 			{
-                case WINLIST_Geometry_ID:
-                    set_flags (config->set_flags, WINLIST_Geometry);
-                    config->geometry = item.data.geometry ;
-                    break;
-                case WINLIST_MinSize_ID:
-					set_size_geometry(&(config->min_width),&(config->min_height),&item,&(config->set_flags),WINLIST_MinSize);
-                    break;
-                case WINLIST_MaxWidth_ID:
-                    set_flags (config->set_flags, WINLIST_MinSize|WINLIST_MaxSize);
-                    config->max_width = config->min_width = item.data.integer;
-                    break;
-                case WINLIST_MaxSize_ID:
-                    set_size_geometry(&(config->max_width),&(config->max_height),&item,&(config->set_flags),WINLIST_MaxSize);
-                    break;
-                case WINLIST_MaxRows_ID:
-                    set_flags (config->set_flags, WINLIST_MaxRows);
-                    config->max_rows = item.data.integer;
-                    break;
-                case WINLIST_MaxColumns_ID:
-                    set_flags (config->set_flags, WINLIST_MaxColumns);
-                    config->max_columns = item.data.integer;
-                    break;
-                case WINLIST_MinColWidth_ID:
-                    set_flags (config->set_flags, WINLIST_MinColWidth);
-                    config->min_col_width = item.data.integer;
-                    break;
-                case WINLIST_MaxColWidth_ID:
-                    set_flags (config->set_flags, WINLIST_MaxColWidth);
-                    config->max_col_width = item.data.integer;
-                    break;
-                case WINLIST_UseName_ID:
-                    set_flags (config->set_flags, WINLIST_UseName);
-                    config->show_name_type = item.data.integer % ASN_NameTypes;
-                    break;
-                case WINLIST_Action_ID:
-                    {
-                        char         *ptr = item.data.string;
-                        int           action_no = 0, i;
+                ASCF_HANDLE_GEOMETRY_KEYWORD_CASE(WINLIST,config,item,Geometry); 
+                ASCF_HANDLE_SIZE_KEYWORD_CASE(WINLIST,config,item,MinSize); 
+                ASCF_HANDLE_SIZE_KEYWORD_CASE(WINLIST,config,item,MaxSize); 
+                ASCF_HANDLE_INTEGER_KEYWORD_CASE(WINLIST,config,item,MaxRows); 
+                ASCF_HANDLE_INTEGER_KEYWORD_CASE(WINLIST,config,item,MaxColumns); 
+				ASCF_HANDLE_INTEGER_KEYWORD_CASE(WINLIST,config,item,MinColWidth); 
+				ASCF_HANDLE_INTEGER_KEYWORD_CASE(WINLIST,config,item,MaxColWidth); 
+				ASCF_HANDLE_INTEGER_KEYWORD_CASE(WINLIST,config,item,UseName); 
+                
+				ASCF_HANDLE_STRING_KEYWORD_CASE(WINLIST,config,item,UnfocusedStyle); 
+                ASCF_HANDLE_STRING_KEYWORD_CASE(WINLIST,config,item,FocusedStyle); 
+                ASCF_HANDLE_STRING_KEYWORD_CASE(WINLIST,config,item,StickyStyle); 
+    			
+				ASCF_HANDLE_INTEGER_KEYWORD_CASE(WINLIST,config,item,FCompositionMethod); 
+				ASCF_HANDLE_INTEGER_KEYWORD_CASE(WINLIST,config,item,UCompositionMethod); 
+				ASCF_HANDLE_INTEGER_KEYWORD_CASE(WINLIST,config,item,SCompositionMethod); 
+                
+				ASCF_HANDLE_INTEGER_KEYWORD_CASE(WINLIST,config,item,HSpacing); 
+				ASCF_HANDLE_INTEGER_KEYWORD_CASE(WINLIST,config,item,VSpacing); 
+				ASCF_HANDLE_INTEGER_KEYWORD_CASE(WINLIST,config,item,IconLocation); 
+                ASCF_HANDLE_SIZE_KEYWORD_CASE(WINLIST,config,item,IconSize); 
+				default:
+					switch (pCurr->term->id)
+					{						                
+						case WINLIST_Spacing_ID :
+                    		set_flags( config->set_flags, WINLIST_Spacing );
+                    		config->HSpacing = config->VSpacing = item.data.integer;
+                    		break ;
+		                case WINLIST_CompositionMethod_ID :
+        		            set_flags( config->set_flags, WINLIST_CompositionMethod );
+                		    config->FCompositionMethod = 
+								config->UCompositionMethod =
+								config->SCompositionMethod = item.data.integer;
+                    		break ;
+						case MYSTYLE_START_ID:
+                    		styles_tail = ProcessMyStyleOptions (pCurr->sub, styles_tail);
+                    		item.ok_to_free = 1;
+                    		break;
+	    	            case WINLIST_MaxWidth_ID:
+    	    	            set_flags (config->set_flags, WINLIST_MinSize|WINLIST_MaxSize);
+                	    	config->MaxSize.width = config->MinSize.width = item.data.integer;
+                    		break;
 
-                        if (mystrncasecmp (ptr, "Click", 5) == 0)
-                            ptr += 5;
-                        if (isdigit (ptr[0]))
-                        {
-                            action_no = atoi (ptr);
-                            if (action_no <= 0)
-                                action_no = 1;
-                            --action_no;
-                            action_no %= MAX_MOUSE_BUTTONS;
-                            i = 0;
-                            while (!isspace (ptr[i]) && ptr[i])
-                                ++i;
-                            while (isspace (ptr[i]) && ptr[i])
-                                ++i;
-                            ptr += i;
-                        }
-                        if (*ptr)
-                        {
-                            destroy_string_list( config->mouse_actions[action_no] );
-                            config->mouse_actions[action_no] = comma_string2list( ptr );
-                        }
-                        item.ok_to_free = 1;
-                    }
-                    break;
-                case WINLIST_UnfocusedStyle_ID:
-                    REPLACE_STRING (config->unfocused_style, item.data.string);
-                    break;
-                case WINLIST_FocusedStyle_ID:
-                    REPLACE_STRING (config->focused_style, item.data.string);
-                    break;
-                case WINLIST_StickyStyle_ID:
-                    REPLACE_STRING (config->sticky_style, item.data.string);
-                    break;
-                case MYSTYLE_START_ID:
-                    styles_tail = ProcessMyStyleOptions (pCurr->sub, styles_tail);
-                    item.ok_to_free = 1;
-                    break;
-                case WINLIST_Orientation_ID:
-                    if (mystrncasecmp (item.data.string, "across", 6) == 0)
-                        SET_CONFIG_FLAG (config->flags, config->set_flags, WINLIST_FillRowsFirst);
-                    item.ok_to_free = 1;
-                    break;
-                case WINLIST_CM_ID :
-                    set_flags( config->set_flags, WINLIST_CM );
-                    config->ucm = config->scm = config->fcm = item.data.integer;
-                    break ;
-                case WINLIST_FCM_ID :
-                    set_flags( config->set_flags, WINLIST_FCM );
-                    config->fcm = item.data.integer;
-                    break ;
-                case WINLIST_UCM_ID :
-                    set_flags( config->set_flags, WINLIST_UCM );
-                    config->ucm = item.data.integer;
-                    break ;
-                case WINLIST_SCM_ID :
-                    set_flags( config->set_flags, WINLIST_SCM );
-                    config->scm = item.data.integer;
-                    break ;
-                case WINLIST_Spacing_ID :
-                    set_flags( config->set_flags, WINLIST_H_SPACING|WINLIST_V_SPACING );
-                    config->h_spacing = config->v_spacing = item.data.integer;
-                    break ;
-                case WINLIST_HSpacing_ID :
-                    set_flags( config->set_flags, WINLIST_H_SPACING );
-                    config->h_spacing = item.data.integer;
-                    break ;
-                case WINLIST_VSpacing_ID :
-                    set_flags( config->set_flags, WINLIST_V_SPACING );
-                    config->v_spacing = item.data.integer;
-                    break ;
-                case WINLIST_IconLocation_ID :
-                    set_flags( config->set_flags, WINLIST_IconLocation );
-                    config->icon_location = item.data.integer;
-                    break ;
-                case WINLIST_IconSize_ID:
-                    set_size_geometry(&(config->icon_width),&(config->icon_height),&item,&(config->set_flags),WINLIST_IconSize);
-                    break;
+                		case WINLIST_Action_ID:
+                    		{
+                        		char         *ptr = item.data.string;
+                        		int           action_no = 0, i;
 
-                default:
-                    item.ok_to_free = 1;
+                        		if (mystrncasecmp (ptr, "Click", 5) == 0)
+                            		ptr += 5;
+                        		if (isdigit (ptr[0]))
+                        		{
+                            		action_no = atoi (ptr);
+                            		if (action_no <= 0)
+                                		action_no = 1;
+                            		--action_no;
+                            		action_no %= MAX_MOUSE_BUTTONS;
+                            		i = 0;
+                            		while (!isspace (ptr[i]) && ptr[i])
+                                		++i;
+                            		while (isspace (ptr[i]) && ptr[i])
+                                		++i;
+                            		ptr += i;
+                        		}
+                        		if (*ptr)
+                        		{
+                            		destroy_string_list( config->Action[action_no] );
+                            		config->Action[action_no] = comma_string2list( ptr );
+                        		}
+                        		item.ok_to_free = 1;
+                    		}
+                    		break;
+		                default:
+        		            item.ok_to_free = 1;
+					}
 			}
+
 		}
 	}
+	
 	ReadConfigItem (&item, NULL);
 	DestroyConfig (ConfigReader);
 	DestroyFreeStorage (&Storage);
@@ -442,24 +363,115 @@ ParseWinListOptions (const char *filename, char *myname)
 
 }
 
+void
+MergeWinListOptions ( WinListConfig *to, WinListConfig *from)
+{
+    int i ;
+    START_TIME(option_time);
+
+    /* Need to merge new config with what we have already :*/
+    /* now lets check the config sanity : */
+    /* mixing set and default flags : */
+    ASCF_MERGE_FLAGS(to,from);
+    
+	ASCF_MERGE_GEOMETRY_KEYWORD(WINLIST, to, from, Geometry);
+	ASCF_MERGE_SCALAR_KEYWORD(WINLIST, to, from, MinSize);
+	ASCF_MERGE_SCALAR_KEYWORD(WINLIST, to, from, MaxSize);
+    
+	ASCF_MERGE_SCALAR_KEYWORD(WINLIST, to, from, MaxRows);
+	ASCF_MERGE_SCALAR_KEYWORD(WINLIST, to, from, MaxColumns);
+	ASCF_MERGE_SCALAR_KEYWORD(WINLIST, to, from, MaxColWidth);
+	ASCF_MERGE_SCALAR_KEYWORD(WINLIST, to, from, MinColWidth);
+
+	ASCF_MERGE_STRING_KEYWORD(WINLIST, to, from, FocusedStyle);
+	ASCF_MERGE_STRING_KEYWORD(WINLIST, to, from, UnfocusedStyle);
+	ASCF_MERGE_STRING_KEYWORD(WINLIST, to, from, StickyStyle);
+
+	ASCF_MERGE_SCALAR_KEYWORD(WINLIST, to, from, UseName);
+	ASCF_MERGE_SCALAR_KEYWORD(WINLIST, to, from, Align);
+	ASCF_MERGE_SCALAR_KEYWORD(WINLIST, to, from, FBevel);
+	ASCF_MERGE_SCALAR_KEYWORD(WINLIST, to, from, UBevel);
+	ASCF_MERGE_SCALAR_KEYWORD(WINLIST, to, from, SBevel);
+
+	ASCF_MERGE_SCALAR_KEYWORD(WINLIST, to, from, FCompositionMethod);
+	ASCF_MERGE_SCALAR_KEYWORD(WINLIST, to, from, UCompositionMethod);
+	ASCF_MERGE_SCALAR_KEYWORD(WINLIST, to, from, SCompositionMethod);
+
+	ASCF_MERGE_SCALAR_KEYWORD(WINLIST, to, from, HSpacing);
+	ASCF_MERGE_SCALAR_KEYWORD(WINLIST, to, from, VSpacing);
+
+	ASCF_MERGE_SCALAR_KEYWORD(WINLIST, to, from, IconAlign);
+	ASCF_MERGE_SCALAR_KEYWORD(WINLIST, to, from, IconLocation);
+	ASCF_MERGE_SCALAR_KEYWORD(WINLIST, to, from, IconSize);
+
+    for( i = 0 ; i < MAX_MOUSE_BUTTONS ; ++i )
+        if( from->Action[i] )
+        {
+            destroy_string_list( to->Action[i] );
+            to->Action[i] = from->Action[i];
+        }
+
+    if( to->balloon_conf )
+        Destroy_balloonConfig( to->balloon_conf );
+    to->balloon_conf = from->balloon_conf ;
+    from->balloon_conf = NULL ;
+
+    SHOW_TIME("to parsing",option_time);
+}
+
+void
+CheckWinListConfigSanity(WinListConfig *Config, ASGeometry *default_geometry, int default_gravity)
+{
+    if( Config == NULL )
+        Config = CreateWinListConfig ();
+
+    if( Config->MaxRows > MAX_WINLIST_WINDOW_COUNT || Config->MaxRows == 0  )
+        Config->MaxRows = MAX_WINLIST_WINDOW_COUNT;
+
+    if( Config->MaxColumns > MAX_WINLIST_WINDOW_COUNT || Config->MaxColumns == 0  )
+        Config->MaxColumns = MAX_WINLIST_WINDOW_COUNT;
+
+	if( default_geometry && default_geometry->flags != 0 ) 
+		Config->Geometry = *default_geometry ;
+	
+    Config->gravity = NorthWestGravity ;
+    if( get_flags(Config->Geometry.flags, XNegative) )
+        Config->gravity = get_flags(Config->Geometry.flags, YNegative)? SouthEastGravity:NorthEastGravity;
+    else if( get_flags(Config->Geometry.flags, YNegative) )
+        Config->gravity = SouthWestGravity;
+
+	if(default_gravity != ForgetGravity)
+    	Config->gravity = default_gravity ;
+
+    Config->anchor_x = get_flags( Config->Geometry.flags, XValue )?Config->Geometry.x:0;
+    if( get_flags(Config->Geometry.flags, XNegative) )
+        Config->anchor_x += Scr.MyDisplayWidth ;
+
+    Config->anchor_y = get_flags( Config->Geometry.flags, YValue )?Config->Geometry.y:0;
+    if( get_flags(Config->Geometry.flags, YNegative) )
+        Config->anchor_y += Scr.MyDisplayHeight ;
+
+	Config->UseName %= ASN_NameTypes;
+}
+
 
 #if 0
 /* returns:
  *            0 on success
  *              1 if data is empty
- *              2 if ConfigWriter cannot be initialized
+ *              2 if toWriter cannot be initialized
  *
  */
 int
-WriteWinListOptions (const char *filename, char *myname, WinListConfig * config, unsigned long flags)
+WriteWinListOptions (const char *filename, char *myname, WinListto * config, unsigned long flags)
 {
-	ConfigDef    *PagerConfigWriter = NULL;
+	toDef    *PagertoWriter = NULL;
 	FreeStorageElem *Storage = NULL, **tail = &Storage;
 	char         *Decorations = NULL;
 
 	if (config == NULL)
 		return 1;
-	if ((PagerConfigWriter = InitConfigWriter (myname, &PagerSyntax, CDT_Filename, (void *)filename)) == NULL)
+	if ((PagertoWriter = InittoWriter (myname, &PagerSyntax, CDT_Filename, (void *)filename)) == NULL)
 		return 2;
 
 	CopyFreeStorage (&Storage, config->more_stuff);
@@ -499,7 +511,7 @@ WriteWinListOptions (const char *filename, char *myname, WinListConfig * config,
 
 	/* now storing PagerDecorations */
 	{
-		ConfigDef    *DecorConfig = InitConfigWriter (myname, &PagerDecorationSyntax, CDT_Data, NULL);
+		toDef    *Decorto = InittoWriter (myname, &PagerDecorationSyntax, CDT_Data, NULL);
 		FreeStorageElem *DecorStorage = NULL, **d_tail = &DecorStorage;
 
 		/* flags */
@@ -524,8 +536,8 @@ WriteWinListOptions (const char *filename, char *myname, WinListConfig * config,
 		/* border_color */
 		d_tail = String2FreeStorage (&PagerDecorationSyntax, d_tail, config->border_color, PAGER_DECOR_BORDER_COLOR_ID);
 
-		WriteConfig (DecorConfig, &DecorStorage, CDT_Data, (void **)&Decorations, 0);
-		DestroyConfig (DecorConfig);
+		Writeto (Decorto, &DecorStorage, CDT_Data, (void **)&Decorations, 0);
+		Destroyto (Decorto);
 		if (DecorStorage)
 			DestroyFreeStorage (&DecorStorage);
 
@@ -538,12 +550,12 @@ WriteWinListOptions (const char *filename, char *myname, WinListConfig * config,
 	}
 
 	/* writing config into the file */
-	WriteConfig (PagerConfigWriter, &Storage, CDT_Filename, (void **)&filename, flags);
-	DestroyConfig (PagerConfigWriter);
+	Writeto (PagertoWriter, &Storage, CDT_Filename, (void **)&filename, flags);
+	Destroyto (PagertoWriter);
 
 	if (Storage)
 	{
-		fprintf (stderr, "\n%s:Config Writing warning: Not all Free Storage discarded! Trying again...", myname);
+		fprintf (stderr, "\n%s:to Writing warning: Not all Free Storage discarded! Trying again...", myname);
 		DestroyFreeStorage (&Storage);
 		fprintf (stderr, (Storage != NULL) ? " failed." : " success.");
 	}
