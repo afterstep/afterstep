@@ -3,7 +3,7 @@
 	<solid width=400 height=270 color=#00000000/>
 	<tile y=30  tint=#7fbf9f7f><img src="tiles/AfterStepBeauty"/></tile>
 	<tile y=0 x=25 tint=#7f7F7F7F><img y=40 src=tiles/AfterStep/></tile>
-	<text y=250 x=165 fgcolor=#222222 font=DefaultBoldOblique.ttf size=15>v.2.0: the freedom has arrived</text>
+	<text y=250 x=165 fgcolor=#222222 font=DefaultBoldOblique.ttf size=15>v.$Revision: 1.4 $: the freedom has arrived</text>
    </composite>
 </tile>
 
