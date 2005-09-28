@@ -1018,7 +1018,7 @@ configure_tbar_props( ASTBarData *tbar, ASWindowData *wd, Bool focus_only )
         	set_astbar_composition_method( tbar, BACK_FOCUSED, Config->UCompositionMethod );
     	}
 		
-		if( get_flags( Config->flags, ASWL_ShowIcon ) )
+		if( get_flags( Config->flags, ASWL_ShowIcon ) && (Config->IconLocation%10 == 5 ))
 		{	
         	fake_label_id = add_astbar_label( tbar, 3, 3, 0, align, h_spacing, v_spacing, "Aq#,`", 0);
 			configure_tbar_icon( tbar, wd );
@@ -1031,8 +1031,12 @@ configure_tbar_props( ASTBarData *tbar, ASWindowData *wd, Bool focus_only )
         	free( iconic_name );
     	}else
         	add_astbar_label( tbar, 1, 1, 0, align, h_spacing, v_spacing, name, encoding);
-    	if( fake_label_id > -1 ) 
+    	
+		if( fake_label_id > -1 ) 
 			delete_astbar_tile( tbar, fake_label_id );
+		else if( get_flags( Config->flags, ASWL_ShowIcon ) )
+			configure_tbar_icon( tbar, wd );
+
 		set_astbar_balloon( tbar, 0, name, encoding );
 	}
     set_astbar_focused( tbar, WinListState.main_canvas, wd->focused );
