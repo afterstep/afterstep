@@ -2563,19 +2563,24 @@ get_client_icon_image( ScreenInfo * scr, ASHints *hints )
     {
 		char *icon_file = hints->icon_file ; 
 		ASImage *icon_file_im = NULL ;
-
+		Bool icon_file_isDefault = False ;
+		if( icon_file && Database ) 
+		{	
+			if( Database->style_default.icon_file != NULL && 
+				strcmp( icon_file, Database->style_default.icon_file ) == 0 )
+				icon_file_isDefault = True ;
+		}
 		if( get_flags(hints->flags, AS_ClientIcon ) ) 
 		{	
-			Bool use_client_icon = ( hints->icon_file == NULL );
+			Bool use_client_icon = ( hints->icon_file == NULL || Database == NULL );
 
 			if( !use_client_icon ) 
 			{
-				if( Database->style_default.icon_file != NULL && 
-					strcmp( icon_file, Database->style_default.icon_file ) == 0 )
+				if( icon_file_isDefault )
 					use_client_icon = True ;
 				else 
 				{
-					icon_file_im = get_asimage( Scr.image_manager, icon_file, 0xFFFFFFFF, 100 );
+					icon_file_im = get_asimage( scr->image_manager, icon_file, 0xFFFFFFFF, 100 );
 					if( icon_file_im == NULL ) 
 						use_client_icon = True ;
 				}
@@ -2598,7 +2603,7 @@ get_client_icon_image( ScreenInfo * scr, ASHints *hints )
         		{/* convert client's icon into ASImage */
             		unsigned int width, height ;
             		get_drawable_size( hints->icon.pixmap, &width, &height );
-            		im = picture2asimage( Scr.asv, hints->icon.pixmap, hints->icon_mask,
+            		im = picture2asimage( scr->asv, hints->icon.pixmap, hints->icon_mask,
                                       	0, 0, width, height, 0xFFFFFFFF, False, 100 );
 
             		LOCAL_DEBUG_OUT( "converted client's pixmap into an icon %dx%d %p", width, height, im );
@@ -2607,9 +2612,7 @@ get_client_icon_image( ScreenInfo * scr, ASHints *hints )
 		}
         if( im == NULL )
         {
-			if( icon_file == NULL || 
-				( Database->style_default.icon_file != NULL && 
-				  strcmp( icon_file, Database->style_default.icon_file ) == 0) )
+			if( icon_file == NULL || icon_file_isDefault )
 			{
 				if( CombinedCategories != NULL ) 
 				{
@@ -2632,7 +2635,7 @@ get_client_icon_image( ScreenInfo * scr, ASHints *hints )
 				if( icon_file_im ) 
 					im = icon_file_im;
 				else
-					im = get_asimage( Scr.image_manager, icon_file, 0xFFFFFFFF, 100 );
+					im = get_asimage( scr->image_manager, icon_file, 0xFFFFFFFF, 100 );
                 LOCAL_DEBUG_OUT( "loaded icon from \"%s\" into %dx%d %p", hints->icon_file, im?im->width:0, im?im->height:0, im );
             }else
             {

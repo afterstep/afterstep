@@ -76,7 +76,7 @@ extern SyntaxDef AlignSyntax;
     ASCF_DEFINE_KEYWORD(WINLIST, 0			    , MaxColumns		, TT_INTEGER	, NULL), \
     ASCF_DEFINE_KEYWORD(WINLIST, 0			    , MaxColWidth		, TT_INTEGER	, NULL), \
     ASCF_DEFINE_KEYWORD(WINLIST, 0			    , MinColWidth		, TT_INTEGER	, NULL), \
-    ASCF_DEFINE_KEYWORD(WINLIST, TF_OBSOLETE		, MaxWidth			, TT_UINTEGER	, NULL)
+    ASCF_DEFINE_KEYWORD(WINLIST, TF_OBSOLETE	, MaxWidth			, TT_UINTEGER	, NULL)
 
 
 TermDef       WinListFeelTerms[] = {
@@ -125,6 +125,7 @@ CreateWinListConfig ()
 {
 	WinListConfig *config = (WinListConfig *) safecalloc (1, sizeof (WinListConfig));
 
+	config->flags = WINLIST_ShowIcon|WINLIST_ScaleIconToTextHeight ;
     init_asgeometry (&(config->Geometry));
     config->gravity = NorthWestGravity;
 	config->MaxRows = 1;
@@ -134,7 +135,8 @@ CreateWinListConfig ()
     config->HSpacing = DEFAULT_TBAR_HSPACING;
 	config->VSpacing = DEFAULT_TBAR_VSPACING;
     config->FBevel = config->UBevel = config->SBevel = DEFAULT_TBAR_HILITE ;
-
+	config->IconAlign = ALIGN_VCENTER ;
+	config->IconLocation = 0 ;
 	return config;
 }
 
@@ -452,6 +454,18 @@ CheckWinListConfigSanity(WinListConfig *Config, ASGeometry *default_geometry, in
         Config->anchor_y += Scr.MyDisplayHeight ;
 
 	Config->UseName %= ASN_NameTypes;
+
+	if( !get_flags( Config->set_flags, WINLIST_IconLocation ) )
+	{
+		if( get_flags(Config->Align, PAD_H_MASK) == ALIGN_RIGHT ) 
+			Config->IconLocation = 2 ; 
+	}		
+	if( !get_flags( Config->set_flags, WINLIST_IconAlign ) )
+	{
+	   	if( get_flags(Config->Align, PAD_H_MASK) == PAD_H_MASK ) 
+			if( Config->IconLocation == 0 || Config->IconLocation == 4 || Config->IconLocation == 7) 	  
+				Config->IconAlign = ALIGN_RIGHT ; 
+	}	 
 }
 
 

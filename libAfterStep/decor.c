@@ -864,7 +864,7 @@ set_astbar_style (ASTBarData * tbar, unsigned int state, const char *style_name)
     return changed;
 }
 
-static ASTile *
+static int
 add_astbar_tile( ASTBarData *tbar, int type, unsigned char col, unsigned char row, int flip, int align )
 {
     int new_idx = -1;
@@ -947,7 +947,7 @@ add_astbar_tile( ASTBarData *tbar, int type, unsigned char col, unsigned char ro
                                  ((flip<<AS_TileFlipOffset)&AS_TileFlipMask)|
                                  ((align_flags<<AS_TileFloatingOffset));
     set_flags( tbar->state, BAR_FLAGS_REND_PENDING );
-    return &(tbar->tiles[new_idx]);
+    return new_idx;
 }
 
 Bool
@@ -981,10 +981,11 @@ add_astbar_spacer( ASTBarData *tbar, unsigned char col, unsigned char row, int f
 {
     if( tbar )
     {
-        ASTile *tile = add_astbar_tile( tbar, AS_TileSpacer, col, row, flip, align );
+		int idx = add_astbar_tile( tbar, AS_TileSpacer, col, row, flip, align );
+        ASTile *tile = &(tbar->tiles[idx]) ;
         tile->width = width ;
         tile->height = height ;
-        return tbar->tiles_num-1;
+        return idx;
     }
     return -1;
 }
@@ -996,7 +997,9 @@ add_astbar_btnblock( ASTBarData * tbar, unsigned char col, unsigned char row, in
 {
     if( tbar )
     {
-        ASTile *tile = add_astbar_tile( tbar, AS_TileBtnBlock, col, row, flip, align );
+        int idx = add_astbar_tile( tbar, AS_TileBtnBlock, col, row, flip, align );
+        ASTile *tile = &(tbar->tiles[idx]) ;
+
 /*      if( get_flags( flip, FLIP_VERTICAL ) )
         {
             int tmp = top_margin ; 
@@ -1006,7 +1009,7 @@ add_astbar_btnblock( ASTBarData * tbar, unsigned char col, unsigned char row, in
  */ 
         build_btn_block( tile, from_list, context_mask, count, left_margin, top_margin,
                          spacing, order );
-        return tbar->tiles_num-1;
+        return idx;
     }
     return -1;
 }
@@ -1016,7 +1019,9 @@ add_astbar_icon( ASTBarData * tbar, unsigned char col, unsigned char row, int fl
 {
     if( tbar && icon )
     {
-        ASTile *tile = add_astbar_tile( tbar, AS_TileIcon, col, row, flip, align );
+        int idx = add_astbar_tile( tbar, AS_TileIcon, col, row, flip, align );
+		ASTile *tile = &(tbar->tiles[idx]) ;
+
         if( flip == 0 )
         {
             if( (tile->data.icon = dup_asimage( icon )) == NULL )
@@ -1034,7 +1039,7 @@ add_astbar_icon( ASTBarData * tbar, unsigned char col, unsigned char row, int fl
         tile->width = tile->data.icon->width;
         tile->height = tile->data.icon->height;
         ASSetTileSublayers(*tile,1);
-        return tbar->tiles_num-1;
+        return idx;
     }
     return -1;
 }
@@ -1045,7 +1050,10 @@ add_astbar_label( ASTBarData * tbar, unsigned char col, unsigned char row, int f
 LOCAL_DEBUG_CALLER_OUT( "encoding = %ld, label \"%s\"", encoding, text?text:"null" );
     if( tbar )
     {
-        ASTile *tile = add_astbar_tile( tbar, AS_TileLabel, col, row, flip, align );
+		
+        int idx = add_astbar_tile( tbar, AS_TileLabel, col, row, flip, align );
+		ASTile *tile = &(tbar->tiles[idx]) ;
+
         ASLabel *lbl = &(tile->data.label);
         lbl->text = mystrdup(text);
 		lbl->encoding = encoding ;
@@ -1054,7 +1062,7 @@ LOCAL_DEBUG_CALLER_OUT( "encoding = %ld, label \"%s\"", encoding, text?text:"nul
         set_astile_styles( tbar, tile, -1 );
 
         ASSetTileSublayers(*tile,1);
-        return tbar->tiles_num-1;
+        return idx;
     }
     return -1;
 }

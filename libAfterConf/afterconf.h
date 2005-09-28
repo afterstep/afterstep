@@ -93,7 +93,7 @@ extern struct SyntaxDef      PopupFuncSyntax;
 
 
 #define ASCF_DEFINE_KEYWORD(module,flags,keyword,type,subsyntax) \
-	{(flags),#keyword,sizeof(#keyword),type,module##_##keyword##_##ID,subsyntax}	
+	{(flags),#keyword,sizeof(#keyword)-1,type,module##_##keyword##_##ID,subsyntax}	
 
 #define ASCF_PRINT_FLAG_KEYWORD(stream,module,__config,keyword) \
 	do{ if(get_flags((__config)->set_flags,module##_##keyword) ) \

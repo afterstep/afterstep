@@ -148,7 +148,10 @@ main( int argc, char **argv )
 	LoadColorScheme();
 	LoadConfig ("winlist", GetOptions);
 	CheckWinListConfigSanity(Config, &(MyArgs.geometry), MyArgs.gravity);
-    SetWinListLook();
+	ReloadASDatabase();
+	ReloadCategories(True);
+    
+	SetWinListLook();
 
     WinListState.main_window = make_winlist_window();
     WinListState.main_canvas = create_ascanvas( WinListState.main_window );
@@ -883,6 +886,70 @@ find_button_by_position( int x, int y )
 }
 
 /* Public stuff : ***************************************************/
+void 
+configure_tbar_icon( ASTBarData *tbar, ASWindowData *wd )
+{
+	ASRawHints    raw;
+	ASHints       clean;
+	ASSupportedHints *list = create_hints_list ();
+	ASImage *icon_im = NULL ;
+		
+	enable_hints_support (list, HINTS_ICCCM);
+	enable_hints_support (list, HINTS_ExtendedWM);
+	enable_hints_support (list, HINTS_ASDatabase);
+		
+	memset( &raw, 0x00, sizeof(ASRawHints));
+	memset( &clean, 0x00, sizeof(ASHints));
+		
+	if( collect_hints (ASDefaultScr, wd->client, HINT_NAME|HINT_GENERAL, &raw) )
+	{
+		if( merge_hints (&raw, Database, NULL, list, HINT_NAME|HINT_GENERAL, &clean, wd->client) )
+		{
+			icon_im = get_client_icon_image( ASDefaultScr, &clean );
+			destroy_hints( &clean, True );
+		}
+		destroy_raw_hints ( &raw, True);
+	}
+	destroy_hints_list( &list );		
+
+	if( icon_im ) 
+	{
+		int pos[10][2] = {{0,1},
+						  {0,2},{1,2},{2,2},
+						  {0,1},{1,1},{2,1},
+						  {0,0},{1,0},{2,0}};
+		int width = icon_im->width ; 
+	    int height = icon_im->height ; 
+
+		if( get_flags( Config->flags, WINLIST_ScaleIconToTextHeight ) )
+		{
+			 height = width = calculate_astbar_height( tbar );
+		}	 
+		if( get_flags(Config->set_flags, WINLIST_IconSize) )
+		{
+			if( Config->IconSize.width > 0 ) 
+				width = Config->IconSize.width;
+			if( Config->IconSize.height > 0 ) 
+				height = Config->IconSize.height;
+		}
+		if( width != icon_im->width || height != icon_im->height ) 
+		{
+			ASImage *scaled_im = scale_asimage( Scr.asv, icon_im, width, height, ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT );
+			if( scaled_im != NULL ) 
+			{
+			   	safe_asimage_destroy( icon_im );
+				icon_im = scaled_im ;
+			}					   
+		}	 
+		add_astbar_icon( tbar, 
+						 pos[Config->IconLocation%10][0], 
+						 pos[Config->IconLocation%10][1], 
+						 0, Config->IconAlign, icon_im );
+   	   	safe_asimage_destroy( icon_im );
+	}	 
+}
+
+
 static void
 configure_tbar_props( ASTBarData *tbar, ASWindowData *wd, Bool focus_only )
 {
@@ -897,7 +964,7 @@ configure_tbar_props( ASTBarData *tbar, ASWindowData *wd, Bool focus_only )
 		int fbevel = Config->FBevel ;
 		int sbevel = Config->SBevel ;
 		int ubevel = Config->UBevel ;
-
+		int fake_label_id = -1 ;
 				   
     	delete_astbar_tile( tbar, -1 );
 		LOCAL_DEBUG_OUT( "setting bar border to %+d, %+d", tbar->h_border, tbar->v_border );
@@ -950,16 +1017,23 @@ configure_tbar_props( ASTBarData *tbar, ASWindowData *wd, Bool focus_only )
         	set_astbar_hilite( tbar, BACK_UNFOCUSED, ubevel );
         	set_astbar_composition_method( tbar, BACK_FOCUSED, Config->UCompositionMethod );
     	}
-
+		
+		if( get_flags( Config->flags, ASWL_ShowIcon ) )
+		{	
+        	fake_label_id = add_astbar_label( tbar, 3, 3, 0, align, h_spacing, v_spacing, "Aq#,`", 0);
+			configure_tbar_icon( tbar, wd );
+		}
     	if( get_flags( wd->state_flags, AS_Iconic ) && name != NULL && name[0] != '\0')
     	{
         	char *iconic_name = safemalloc(1+strlen(name)+1+1);
         	sprintf(iconic_name, "(%s)", name );
-        	add_astbar_label( tbar, 0, 0, 0, align, h_spacing, v_spacing, iconic_name, encoding);
+        	add_astbar_label( tbar, 1, 1, 0, align, h_spacing, v_spacing, iconic_name, encoding);
         	free( iconic_name );
     	}else
-        	add_astbar_label( tbar, 0, 0, 0, align, h_spacing, v_spacing, name, encoding);
-    	set_astbar_balloon( tbar, 0, name, encoding );
+        	add_astbar_label( tbar, 1, 1, 0, align, h_spacing, v_spacing, name, encoding);
+    	if( fake_label_id > -1 ) 
+			delete_astbar_tile( tbar, fake_label_id );
+		set_astbar_balloon( tbar, 0, name, encoding );
 	}
     set_astbar_focused( tbar, WinListState.main_canvas, wd->focused );
     if( wd->focused )

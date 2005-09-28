@@ -1117,8 +1117,8 @@ ReadFlagItem (unsigned long *set_flags, unsigned long *flags, FreeStorageElem * 
 			stored->sub != NULL )
 			return 0;
 
-		if (stored->argc > 1)
-			value = (atol (stored->argv[1]) > 0);
+		if (stored->argc >= 1)
+			value = (atol (stored->argv[0]) > 0);
 
 		while (xref->flag != 0)
 		{

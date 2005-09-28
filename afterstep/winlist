@@ -1,3 +1,14 @@
+# use this to disable icons in winlist :
+#*WinListShowIcon 0
+# icon location could be anything from 0 to 9, representing icon's 
+# location in relation to the label. If label is a key '5' on keypad
+# then keys 1 to 9 will represent icon's position, while 0 is the default.
+#*WinListIconLocation 
+#*WinListIconSize   32x32
+# This is another flag for convinience - it is always overriden by IconSize
+# note that its On by default.
+#*WinListScaleIconToTextHeight 
+
 *WinListGeometry        +0+0
 *WinListMinSize         10000    #will be truncated to thescreen size
 #*WinListMaxSize         400
