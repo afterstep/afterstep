@@ -1212,20 +1212,31 @@ update_wharf_folder_shape( ASWharfFolder *aswf )
 		while ( --i >= 0 )
         {
             register ASWharfButton *aswb = &(aswf->buttons[i]);
+			Bool do_combine = False ; 
 			LOCAL_DEBUG_OUT( "Adding shape of the button %d (%p) with geometry %dx%d%+d%+d, and geometry inside folder %dx%d%+d%+d", 
 							 i, aswb, aswb->canvas->width, aswb->canvas->height, aswb->canvas->root_x, aswb->canvas->root_y,
 							 aswb->folder_width, aswb->folder_height, aswb->folder_x, aswb->folder_y );
             if( aswb->canvas->width == aswb->folder_width && aswb->canvas->height == aswb->folder_height )
-                if( combine_canvas_shape_at (aswf->canvas, aswb->canvas, aswb->folder_x, aswb->folder_y ) )
-                    ++set;
+				do_combine = True;
             if( aswb->swallowed )
             {
 				refresh_container_shape( aswb->swallowed->current );
-				combine_canvas_shape_at (aswb->canvas, aswb->swallowed->current, 0, 0 );
+				LOCAL_DEBUG_OUT( "$$$$$$ name = \"%s\" current pos = %+d%+d, button = %+d%+d", aswb->name, aswb->swallowed->current->root_x, aswb->swallowed->current->root_y, 
+								aswb->canvas->root_x, aswb->canvas->root_y );
+				combine_canvas_shape_at (aswb->canvas, aswb->swallowed->current, 
+										 aswb->swallowed->current->root_x - aswb->canvas->root_x, 
+										 aswb->swallowed->current->root_y - aswb->canvas->root_y );
 				update_canvas_display_mask (aswb->canvas, True);
-                if( combine_canvas_shape_at (aswf->canvas, aswb->swallowed->current, aswb->folder_x, aswb->folder_y ) )
-                    ++set;
+/*
+ * We already combined swallowed shape with button's shape - now we need to combine 
+ * this was causing wierd artifacts :  if( combine_canvas_shape_at (aswf->canvas, aswb->swallowed->current, aswb->folder_x, aswb->folder_y ) )
+ */
+				do_combine = True;
             }
+    		if( do_combine ) 
+		        if( combine_canvas_shape_at (aswf->canvas, aswb->canvas, aswb->folder_x, aswb->folder_y ) )
+		            ++set;
+
         }
 		if( get_flags( aswf->flags, ASW_UseBoundary) )
 		{
