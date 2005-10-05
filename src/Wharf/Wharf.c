@@ -1392,6 +1392,7 @@ map_wharf_folder( ASWharfFolder *aswf,
         protocols = AS_DoesWmDeleteWindow ;
 
     set_client_hints( aswf->canvas->w, NULL, &shints, AS_DoesWmDeleteWindow, &extwm_hints );
+	set_client_cmd (aswf->canvas->w);
 
 //	ASSync(False);
 //	sleep_a_millisec (10);

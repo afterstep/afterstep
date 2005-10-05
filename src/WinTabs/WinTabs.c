@@ -1081,6 +1081,7 @@ make_wintabs_window()
     extwm_hints.flags = EXTWM_PID|EXTWM_TypeASModule|EXTWM_TypeNormal ;
 
 	set_client_hints( w, NULL, &shints, AS_DoesWmDeleteWindow, &extwm_hints );
+	set_client_cmd (w);
 
     /* we will need to wait for PropertyNotify event indicating transition
 	   into Withdrawn state, so selecting event mask: */

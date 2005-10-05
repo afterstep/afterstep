@@ -633,6 +633,7 @@ void set_gnome_hints( Window w, GnomeHints *gnome_hints );
 
 void set_client_hints( Window w, XWMHints *hints, XSizeHints *size_hints, ASFlagType protocols,
 				  	   ExtendedWMHints *extwm_hints );
+void set_client_cmd (Window w);
 
 
 void send_wm_protocol_request (Window w, Atom request, Time timestamp);

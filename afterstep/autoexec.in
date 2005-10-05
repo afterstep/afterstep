@@ -5,8 +5,24 @@
 # Execute on startup :
 #
 
-Function "InitFunction"
-#	Module  "I"     Animate
+# Workspace saving : 
+#
+# When AfterStep shuts down - it writes out the list of
+# all running apps into function "WorkspaceState" and list of all running modules into 
+# the function "WorkspaceModules" in special file, 
+# normally ~/.afterstep/non-configurable/workspace_state.
+# This will override the function below. The function below is only needed the first 
+# time AfterStep starts, when workspace_state file does not exist.
+# If you wish to hard-code which modules should be run and disregard this whole 
+# workspace saving feature - then just comment out lines :
+#	Function "I"    WorkspaceModules
+#	Function "I"    WorkspaceState
+# in Init and Restart Functions, and insert specific lines to start modules instead.
+#
+
+# this are modules that are being run by default if WorkspaceModules function is not 
+# available in workspace_state:
+Function "WorkspaceModules"
 	Module  "I"     WinList
 	Wait    "I"     WinList
 	Module  "I"     MonitorWharf
@@ -16,7 +32,12 @@ Function "InitFunction"
 	Module  "I"     Pager 0 @with_desktops_1@
 	Module  "I:WinTabs:TermTabs"  WinTabs --myname TermTabs --pattern "*term*" --exclude-pattern "mc*" --geometry +5+100 --title "term tabs"
 	Wait    "I:WinTabs:TermTabs"  TermTabs
+EndFunction
+
+Function "InitFunction"
+#	Module  "I"     Animate
 	Module  "I"	Banner
+	Function "I"    WorkspaceModules
 	Function "I"    WorkspaceState
 	Exec	"I"	exec "@with_afterdir@/non-configurable/send_postcard.sh"
 EndFunction
@@ -28,14 +49,6 @@ EndFunction
 Function "RestartFunction"
 # remove the following line if minimizing memory usage (see above):
 #	Module  "I"     Animate
-	Module  "I"     WinList
-	Wait    "I"     WinList
-	Module  "I"     MonitorWharf
-	Wait    "I"     MonitorWharf
-	Module  "I"     Wharf
-	Wait    "I"     Wharf
-	Module  "I"     Pager 0 @with_desktops_1@
-#WinTabs should survive through the restart - no need to bring it up again :
-#	Module  "I"     WinTabs --geometry +5+100 --pattern "aterm"
+	Function "I"    WorkspaceModules
 EndFunction
 

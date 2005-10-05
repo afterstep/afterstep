@@ -75,6 +75,7 @@ struct SaveWindowAuxData
     char  this_host[MAXHOSTNAME];
     FILE *f;
 	ASHashTable *res_name_counts;
+	Bool only_modules ;
 };
 
 int
@@ -135,6 +136,47 @@ char *pid2cmd ( int pid )
 	return cmd;
 }
 
+static 
+char *filter_out_geometry( char *cmd_args, char **geom_keyword )
+{
+	char *clean = mystrdup(cmd_args); 
+	char *token_start ; 
+	char *token_end = clean;
+	
+	do
+	{
+		token_start = token_end ;
+  
+		if( token_start[0] == '-' ) 
+		{	
+			if( strncmp( token_start, "-g ", 3 ) == 0 ||
+				strncmp( token_start, "-geometry ", 10 ) == 0 ||
+				strncmp( token_start, "--geometry ", 11 ) == 0 )
+			{
+				char *geom_start = token_start ; 
+				if( geom_keyword ) 
+					*geom_keyword = tokencpy (geom_start);
+		 		token_end = tokenskip( token_start, 1 );
+				if( token_end > token_start ) 
+				{	
+					token_start = token_end ;
+					token_end = parse_geometry(token_start, NULL, NULL, NULL, NULL, NULL ); 
+					if( token_end > token_start ) 
+					{
+						int i = 0; 
+						for( i = 0 ; token_end[i] != '\0' ; ++i)
+							geom_start[i] = token_end[i] ;
+						geom_start[i]	= '\0' ;
+					}
+				}
+				break;
+			}
+		}
+		token_end = tokenskip( token_start, 1 );
+	}while( token_end > token_start );
+	return clean;
+}	 
+
 Bool
 make_aswindow_cmd_iter_func(void *data, void *aux_data)
 {
@@ -148,6 +190,10 @@ make_aswindow_cmd_iter_func(void *data, void *aux_data)
 
 		/* don't want to save modules - those are started from autoexec anyways */
 		if( ASWIN_HFLAGS(asw,AS_Module) ) 
+		{	
+			if( !swad->only_modules	)
+				return True;
+		}else if( swad->only_modules	)
 			return True;
 
 		if( asw->hints->client_cmd == NULL && same_host )
@@ -171,6 +217,7 @@ make_aswindow_cmd_iter_func(void *data, void *aux_data)
 			int i = 0;
 			char *app_name = "*" ;
 			char *cmd_app = NULL, *cmd_args ;
+			Bool supports_geometry = False ;
 			/* need to check if we can use window name in the pattern. It has to be :
 				* 1) Not changed since window initial mapping
 				* 2) all ASCII
@@ -214,39 +261,75 @@ make_aswindow_cmd_iter_func(void *data, void *aux_data)
 			cmd_args = parse_token(asw->hints->client_cmd, &cmd_app );
 			if( cmd_app ) 
 			{   /* we want -geometry to be the first arg, so that terms could correctly launch app with -e arg */
-				fprintf( swad->f, 	"\tExec \"I:%s\" %s -geometry %s %s &\n", app_name, cmd_app, geom, cmd_args );
+				char *geometry_keyword = NULL ; 
+				char *clean_cmd_args = filter_out_geometry( cmd_args, &geometry_keyword ) ;
+				if( geometry_keyword == NULL ) 
+					geometry_keyword = mystrdup(ASWIN_HFLAGS(asw,AS_Module)?"--geometry":"-geometry"); 
+				else
+					supports_geometry = True ;
+
+				fprintf( swad->f, 	"\tExec \"I:%s\" %s %s %s %s &\n", app_name, cmd_app, geometry_keyword, geom, clean_cmd_args );
+				free( clean_cmd_args );
+				free( geometry_keyword );
 				free( cmd_app );	
 			}else
-	            fprintf( swad->f, 	"\tExec \"I:%s\" %s -geometry %s &\n", app_name, asw->hints->client_cmd, geom );
-			if( ASWIN_GET_FLAGS(asw,AS_Sticky) )
-			{	
-				fprintf( swad->f, 	"\tWait \"I:%s\" DefaultGeometry %s"
-							        ", Layer %d"
-									", Sticky"
-									", StartsOnDesk %d"
-									", %s"
-									"\n",
-						     		app_name, pure_geometry,
-							 		ASWIN_LAYER(asw),
-									ASWIN_DESK(asw),
-									ASWIN_GET_FLAGS(asw,AS_Iconic)?"StartIconic":"StartNormal");
+	            fprintf( swad->f, 	"\tExec \"I:%s\" %s %s %s &\n", 
+									app_name, asw->hints->client_cmd, ASWIN_HFLAGS(asw,AS_Module)?"--geometry":"-geometry", geom );
+			if( ASWIN_HFLAGS(asw,AS_Module) ) 
+			{
+				fprintf( swad->f, "\tWait \"I:%s\" Layer %d\n", app_name, ASWIN_LAYER(asw));
+			}else if( ASWIN_GET_FLAGS(asw,AS_Sticky) )
+			{
+				if( supports_geometry ) 	  
+					fprintf( swad->f, 	"\tWait \"I:%s\" Layer %d"
+										", Sticky"
+										", StartsOnDesk %d"
+										", %s"
+										"\n",
+						     			app_name, ASWIN_LAYER(asw),
+										ASWIN_DESK(asw),
+										ASWIN_GET_FLAGS(asw,AS_Iconic)?"StartIconic":"StartNormal");
+				else
+					fprintf( swad->f, 	"\tWait \"I:%s\" DefaultGeometry %s"
+							        	", Layer %d"
+										", Sticky"
+										", StartsOnDesk %d"
+										", %s"
+										"\n",
+						     			app_name, pure_geometry,
+							 			ASWIN_LAYER(asw),
+										ASWIN_DESK(asw),
+										ASWIN_GET_FLAGS(asw,AS_Iconic)?"StartIconic":"StartNormal");
 			}else
 			{
-				
-				fprintf( swad->f, 	"\tWait \"I:%s\" DefaultGeometry %s"
-							        ", Layer %d"
-									", Slippery"
-									", StartsOnDesk %d"
-									", ViewportX %d"
-									", ViewportY %d"
-									", %s"
-									"\n",
-						     		app_name, pure_geometry,
-							 		ASWIN_LAYER(asw),
-									ASWIN_DESK(asw),
-									((asw->status->x + asw->status->viewport_x) / Scr.MyDisplayWidth)*Scr.MyDisplayWidth,
-									((asw->status->y + asw->status->viewport_y) / Scr.MyDisplayHeight)*Scr.MyDisplayHeight,
-									ASWIN_GET_FLAGS(asw,AS_Iconic)?"StartIconic":"StartNormal");
+				if( supports_geometry ) 
+					fprintf( swad->f, 	"\tWait \"I:%s\" Layer %d"
+										", Slippery"
+										", StartsOnDesk %d"
+										", ViewportX %d"
+										", ViewportY %d"
+										", %s"
+										"\n",
+						     			app_name, ASWIN_LAYER(asw),
+										ASWIN_DESK(asw),
+										((asw->status->x + asw->status->viewport_x) / Scr.MyDisplayWidth)*Scr.MyDisplayWidth,
+										((asw->status->y + asw->status->viewport_y) / Scr.MyDisplayHeight)*Scr.MyDisplayHeight,
+										ASWIN_GET_FLAGS(asw,AS_Iconic)?"StartIconic":"StartNormal");
+				else										   
+					fprintf( swad->f, 	"\tWait \"I:%s\" DefaultGeometry %s"
+							        	", Layer %d"
+										", Slippery"
+										", StartsOnDesk %d"
+										", ViewportX %d"
+										", ViewportY %d"
+										", %s"
+										"\n",
+						     			app_name, pure_geometry,
+							 			ASWIN_LAYER(asw),
+										ASWIN_DESK(asw),
+										((asw->status->x + asw->status->viewport_x) / Scr.MyDisplayWidth)*Scr.MyDisplayWidth,
+										((asw->status->y + asw->status->viewport_y) / Scr.MyDisplayHeight)*Scr.MyDisplayHeight,
+										ASWIN_GET_FLAGS(asw,AS_Iconic)?"StartIconic":"StartNormal");
 			}	 
 			if( pure_geometry ) 
 				free( pure_geometry );
@@ -293,6 +376,13 @@ save_aswindow_list( ASWindowList *list, char *file )
 	if( swad.f )
     {
 		fprintf( swad.f, "Function \"WorkspaceState\"\n" );
+		swad.only_modules = False ;
+		swad.res_name_counts = create_ashash(0, string_hash_value, string_compare, string_destroy);
+        iterate_asbidirlist( list->clients, make_aswindow_cmd_iter_func, &swad, NULL, False );
+		destroy_ashash( &(swad.res_name_counts) );
+		fprintf( swad.f, "EndFunction\n\n" );
+		fprintf( swad.f, "Function \"WorkspaceModules\"\n" );
+		swad.only_modules = True ;
 		swad.res_name_counts = create_ashash(0, string_hash_value, string_compare, string_destroy);
         iterate_asbidirlist( list->clients, make_aswindow_cmd_iter_func, &swad, NULL, False );
 		destroy_ashash( &(swad.res_name_counts) );

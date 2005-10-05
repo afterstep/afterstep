@@ -1382,6 +1382,15 @@ set_client_hints (Window w, XWMHints * hints, XSizeHints * size_hints, ASFlagTyp
 	}
 }
 
+void
+set_client_cmd (Window w)
+{
+	if ( w != None && MyArgsPtr->saved_argv && MyArgsPtr->saved_argc > 0 )
+	{
+		XSetCommand(dpy, w, MyArgsPtr->saved_argv, MyArgsPtr->saved_argc);	
+	}
+}
+
 /***************************************************************************
  * ICCCM Client Messages - Section 4.2.8 of the ICCCM dictates that all
  * client messages will have the following form:
