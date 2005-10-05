@@ -1247,11 +1247,11 @@ handle_asxml_tag_gradient( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* 
 				for ( ; isspace((int)*p) ; p++);
 			}
 		}
+		gradient.npoints = max( npoints1, npoints2 );
 		if (npoints1 > 1) {
 			int i;
-			if (offset_str && npoints1 > npoints2) npoints1 = npoints2;
-			gradient.color = safecalloc(npoints1, sizeof(ARGB32));
-			gradient.offset = NEW_ARRAY(double, npoints1);
+			gradient.color = safecalloc(gradient.npoints, sizeof(ARGB32));
+			gradient.offset = NEW_ARRAY(double, gradient.npoints);
 			for (p = color_str ; isspace((int)*p) ; p++);
 			for (npoints1 = 0 ; *p ; ) {
 				char* pb = p, ch;
@@ -1277,12 +1277,9 @@ handle_asxml_tag_gradient( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* 
 					for ( ; isspace((int)*p) ; p++);
 				}
 			} else {
-				for (npoints2 = 0 ; npoints2 < npoints1 ; npoints2++)
-					gradient.offset[npoints2] = (double)npoints2 / (npoints1 - 1);
+				for (npoints2 = 0 ; npoints2 < gradient.npoints ; npoints2++)
+					gradient.offset[npoints2] = (double)npoints2 / (gradient.npoints - 1);
 			}
-			gradient.npoints = npoints1;
-			if (npoints2 && gradient.npoints > npoints2)
-				gradient.npoints = npoints2;
 			if (reverse) {
 				for (i = 0 ; i < gradient.npoints / 2 ; i++) {
 					int i2 = gradient.npoints - 1 - i;
