@@ -29,9 +29,13 @@
 #include "docfile.h"
 
 const char *HTMLHeaderFormat = "<A name=\"page_top\"></A>\n"
+							   "<A href=\"preface.html\">Preface</A>&nbsp;&nbsp;"
+							   "<A href=\"visualselect.html\">Introduction</A>&nbsp;&nbsp;"
 							   "<A href=\"index.html\">%s</A>&nbsp;&nbsp;<A href=\"Glossary.html\">%s</A><p>\n" ;
 
 const char *HTMLHeaderFormatAPI = "<A name=\"page_top\"></A>\n"
+							   "<A href=\"../preface.html\">Preface</A>&nbsp;&nbsp;"
+							   "<A href=\"../visualselect.html\">Introduction</A>&nbsp;&nbsp;"
 							   "<A href=\"../index.html\">Main index</A>&nbsp;&nbsp;"
 							   "<A href=\"index.html\">%s</A>&nbsp;&nbsp;<A href=\"Glossary.html\">%s</A><p>\n" ;
 
@@ -191,7 +195,7 @@ write_options_header( ASXMLInterpreterState *state )
 			break;
 		case DocType_HTML :
 			if( state->pre_options_size > 1024 )
-				fprintf( state->dest_fp,"<p><A href=\"index.html\">%s</A>&nbsp;&nbsp;<A href=\"Glossary.html\">%s</A>&nbsp;&nbsp;<A href=\"#page_top\">Back to Top</A><hr>\n", 
+				fprintf( state->dest_fp,"<p><A href=\"preface\">Preface</A>&nbsp;&nbsp;<A href=\"viusalselect.html\">Introduction</A>&nbsp;&nbsp;<A href=\"index.html\">%s</A>&nbsp;&nbsp;<A href=\"Glossary.html\">%s</A>&nbsp;&nbsp;<A href=\"#page_top\">Back to Top</A><hr>\n", 
 						 TopicIndexName, GlossaryName );
 			fprintf( state->dest_fp,"\n<UL><LI><A NAME=\"options\"></A><h3>CONFIGURATION OPTIONS :</h3>\n"
 							  		"<DL>\n");   
@@ -247,7 +251,7 @@ write_doc_footer( ASXMLInterpreterState *state )
 			break;
 		case DocType_HTML :
 			if( TopicIndexName != NULL )
-				fprintf( state->dest_fp,"<p><A href=\"index.html\">Topic index</A>&nbsp;&nbsp;<A href=\"Glossary.html\">Glossary</A>&nbsp;&nbsp;<A href=\"#page_top\">Back to Top</A>\n"); 
+				fprintf( state->dest_fp,"<p><A href=\"preface.html\">Preface</A>&nbsp;&nbsp;<A href=\"visualselect.html\">Introduction</A>&nbsp;&nbsp;<A href=\"index.html\">Topic index</A>&nbsp;&nbsp;<A href=\"Glossary.html\">Glossary</A>&nbsp;&nbsp;<A href=\"#page_top\">Back to Top</A>\n"); 
 			fprintf( state->dest_fp, 
 					"<hr>\n<p><FONT face=\"Verdana, Arial, Helvetica, sans-serif\" size=\"-2\">AfterStep version %s</a></FONT>\n"
 					"</body>\n</html>\n", VERSION );			   
