@@ -94,7 +94,7 @@ install.doc_html:	install.data_html  $(PROG)
 		done; echo "Done"; \
 		$(MKDIR) -p $(AFTER_DOC_DIR)/html/images; \
 		cd ../images; echo "Installing application images ..." ; \
-		for f in `ls *.jpg`; do \
+		for f in `ls *.jpg *.png`; do \
 	  		echo $(INSTALL_DATA) $$f $(AFTER_DOC_DIR)/html/images/$$f; \
 	  		$(INSTALL_DATA) $$f $(AFTER_DOC_DIR)/html/images/$$f; \
 		done; echo "Done"; \
