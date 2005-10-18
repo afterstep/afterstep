@@ -213,6 +213,12 @@ LOCAL_DEBUG_OUT( "face found : %p", face );
 					font->type = ASF_Freetype ;
 					font->flags = flags ;
 					font->ft_face = face ;
+					if( FT_HAS_KERNING( face ) )
+					{	
+						set_flags( font->flags, ASF_HasKerning );
+						/* fprintf( stderr, "@@@@@@@font %s has kerning!!!\n", realfilename );*/
+					}/*else
+						fprintf( stderr, "@@@@@@@font %s don't have kerning!!!\n", realfilename ); */
 					/* lets confine the font to square cell */
 					FT_Set_Pixel_Sizes( font->ft_face, size, size );
 					/* but let make our own cell width smaller then height */
@@ -1032,6 +1038,7 @@ load_glyph_freetype( ASFont *font, ASGlyph *asg, int glyph, UNICODE_CHAR uc )
 		int src_step ;
 /* 		int hpad = (face->glyph->bitmap_left<0)? -face->glyph->bitmap_left: face->glyph->bitmap_left ;
 */
+		asg->font_gid = glyph ; 
 		asg->width   = bmap->width ;
 		asg->height  = bmap->rows ;
 		/* Combining Diacritical Marks : */
@@ -1372,6 +1379,7 @@ typedef struct ASGlyphMap
 #define GLYPH_EOT	((ASGlyph*)0x00000000)
 	ASGlyph 	**glyphs;
 	int 		  glyphs_num;
+	short 		 *x_kerning ;
 }ASGlyphMap;
 
 
@@ -1425,6 +1433,17 @@ goto_tab_stop( ASTextAttributes *attr, unsigned int space_size, unsigned int lin
 	return tab_stop;		
 }
 
+#ifdef HAVE_FREETYPE
+#define GET_KERNING(var,prev_gid,this_gid)   \
+	do{ if( (prev_gid) != 0 && font->type == ASF_Freetype && get_flags(font->flags, ASF_Monospaced|ASF_HasKerning) == ASF_HasKerning ) { \
+		FT_Vector delta; \
+		FT_Get_Kerning( font->ft_face, (prev_gid), (this_gid), FT_KERNING_DEFAULT, &delta );\
+		(var) = delta.x >> 6; \
+	}}while(0)
+#else
+#define GET_KERNING(var,prev_gid,this_gid)	do{(var)=0;}while(0)	  
+#endif
+/*		fprintf( stderr, "####### pair %d ,%d 	has kerning = %d\n", prev_gid,this_gid, var ); */
 
 
 #define FILL_TEXT_GLYPH_MAP(name,type,getglyph,incr) \
@@ -1433,7 +1452,7 @@ name( const type *text, ASFont *font, ASGlyphMap *map, ASTextAttributes *attr, i
 { \
 	unsigned int w = 0, line_count = 0, line_width = 0; \
 	int i = -1, g = 0 ; \
-	ASGlyph *last_asg = NULL ; \
+	ASGlyph *last_asg = NULL ; unsigned int last_gid = 0 ; \
 	do \
 	{ \
 		++i ; \
@@ -1442,7 +1461,7 @@ name( const type *text, ASFont *font, ASGlyphMap *map, ASTextAttributes *attr, i
 		{ \
 			if( last_asg && last_asg->width+last_asg->lead > last_asg->step ) \
 				line_width += last_asg->width+last_asg->lead - last_asg->step ; \
-			last_asg = NULL; \
+			last_asg = NULL; last_gid = 0 ; \
 			if( line_width > w ) \
 				w = line_width ; \
 			line_width = 0 ; \
@@ -1453,19 +1472,21 @@ name( const type *text, ASFont *font, ASGlyphMap *map, ASTextAttributes *attr, i
 		{ \
 			last_asg = NULL ; \
 			if( text[i] == ' ' ) \
-			{ \
+			{   last_gid = 0 ; \
 				line_width += space_size ; \
 				map->glyphs[g++] = GLYPH_SPACE; \
 			}else if( text[i] == '\t' ) \
-			{ \
+			{   last_gid = 0 ; \
 				if( !get_flags(attr->rendition_flags, ASTA_UseTabStops) ) line_width += space_size*attr->tab_size ; \
 				else line_width = goto_tab_stop( attr, space_size, line_width ); \
 				map->glyphs[g++] = GLYPH_TAB; \
 			}else \
 			{ \
 				last_asg = getglyph; \
-				map->glyphs[g++] = last_asg; \
-				line_width += last_asg->step+offset_3d_x ; \
+				map->glyphs[g] = last_asg; \
+				GET_KERNING(map->x_kerning[g],last_gid,last_asg->font_gid); \
+				line_width += last_asg->step+offset_3d_x+map->x_kerning[g]; \
+				++g; last_gid = last_asg->font_gid ; \
 				LOCAL_DEBUG_OUT("pre_i=%d",i); \
 				incr; /* i+=CHAR_SIZE(text[i])-1; */ \
 				LOCAL_DEBUG_OUT("post_i=%d",i); \
@@ -1492,6 +1513,8 @@ free_glyph_map( ASGlyphMap *map, Bool reusable )
     {
 		if( map->glyphs )
 	        free( map->glyphs );
+		if( map->x_kerning )
+	        free( map->x_kerning );
         if( !reusable )
             free( map );
     }
@@ -1545,6 +1568,7 @@ get_text_glyph_map( const char *text, ASFont *font, ASGlyphMap *map, ASTextAttri
 	if( map->glyphs_num == 0 )
 		return False;
 	map->glyphs = safecalloc( map->glyphs_num, sizeof(ASGlyph*));
+	map->x_kerning = safecalloc( map->glyphs_num, sizeof(short));
 
 	if( attr->char_type == ASCT_Char )
 		line_count = fill_text_glyph_map_Char( text, font, map, attr, space_size, offset_3d_x );
@@ -1570,7 +1594,7 @@ get_text_glyph_map( const char *text, ASFont *font, ASGlyphMap *map, ASTextAttri
 		if( terminated ) { \
 			if( last_asg && last_asg->width+last_asg->lead > last_asg->step ) \
 				line_width += last_asg->width+last_asg->lead - last_asg->step ; \
-			last_asg = NULL; \
+			last_asg = NULL; last_gid = 0 ; \
 			if( line_width > w ) \
 				w = line_width ; \
 			line_width = 0 ; \
@@ -1578,13 +1602,15 @@ get_text_glyph_map( const char *text, ASFont *font, ASGlyphMap *map, ASTextAttri
 		}else { \
 			last_asg = NULL ; \
 			if( text[i] == ' ' ){ \
-				line_width += space_size ; \
-			}else if( text[i] == '\t' ){ \
+				line_width += space_size ; last_gid = 0 ;\
+			}else if( text[i] == '\t' ){ last_gid = 0 ; \
 				if( !get_flags(attr->rendition_flags, ASTA_UseTabStops) ) line_width += space_size*attr->tab_size ; \
 				else line_width = goto_tab_stop( attr, space_size, line_width ); \
-			}else{ \
+			}else{ int kerning = 0 ;\
 				last_asg = getglyph; \
-				line_width += last_asg->step+offset_3d_x ;  \
+				GET_KERNING(kerning,last_gid,last_asg->font_gid); \
+				line_width += last_asg->step+offset_3d_x +kerning ;  \
+				last_gid = last_asg->font_gid ; \
 				incr ; \
 			} \
 		} \
@@ -1599,6 +1625,8 @@ get_text_size_internal( const char *src_text, ASFont *font, ASTextAttributes *at
 	ASGlyph *last_asg = NULL ;
 	int space_size = 0;
 	unsigned int offset_3d_x = 0, offset_3d_y = 0 ;
+	unsigned int last_gid = 0 ;
+
 
 	apply_text_3D_type( attr->type, &offset_3d_x, &offset_3d_y );
 	if( src_text == NULL || font == NULL )
@@ -1905,7 +1933,9 @@ LOCAL_DEBUG_OUT( "line_height is %d, space_size is %d, base_line is %d", line_he
 				int start_x = 0;
 
 				if( get_flags(font->flags, ASF_RightToLeft) )
-					pen_x  -= asg->step+offset_3d_x ;
+					pen_x  -= asg->step+offset_3d_x +map.x_kerning[i];
+				else
+					pen_x += map.x_kerning[i] ;
 				if( asg->lead > 0 )
 					start_x = pen_x + asg->lead ;
 				else if( pen_x  > -asg->lead )

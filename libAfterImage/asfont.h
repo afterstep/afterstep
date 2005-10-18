@@ -87,7 +87,8 @@ typedef enum
 
 	/* flags below should be combined with one of the above values */
 	ASF_Monospaced 	= (0x01<<2),
-	ASF_RightToLeft = (0x01<<3)  /* direction of the text flow */
+	ASF_RightToLeft = (0x01<<3),  /* direction of the text flow */
+	ASF_HasKerning 	= (0x01<<4)
 }ASFontType;
 /*************/
 
@@ -117,7 +118,8 @@ typedef struct ASGlyph
 									/* in XRender it should be used as so:
 									 * y = -ascend, yOff = 0
 									 */
-	long 	xrender_gid ;	   /* Used only with XRender  - gid of the glyph in GlyphSet */	    
+	unsigned int font_gid ;		    /* index of the glyph inside the font( TTF only ) */
+	long 		 xrender_gid ;	    /* Used only with XRender  - gid of the glyph in GlyphSet */	    
 }ASGlyph;
 /*************/
 
