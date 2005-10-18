@@ -1045,7 +1045,12 @@ load_glyph_freetype( ASFont *font, ASGlyph *asg, int glyph, UNICODE_CHAR uc )
 		if( uc >= 0x0300 && uc <= 0x0362 ) 
 			asg->step = 0 ; 
 		else
+#if 0			
 			asg->step = bmap->width+face->glyph->bitmap_left ;
+#else
+			asg->step = face->glyph->advance.x>>6 ;
+#endif
+				
 		/* we only want to keep lead if it was negative */
 		if( uc >= 0x0300 && uc <= 0x0362 && face->glyph->bitmap_left >= 0 ) 
 			asg->lead    = -((int)font->space_size - (int)face->glyph->bitmap_left) ;
