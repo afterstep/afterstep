@@ -20,7 +20,7 @@ doc_man:	do_compile
 		       
 doc_html:    	do_compile
 		@echo -n "Generating HTML docs ..." ; ./ASDocGen -l log.html -t html ; echo "Done" ; \
-		echo -n "Extracting Visualselect HTML ..." ; tar xzf visualselect4html.tar.gz -C html ; echo "Done" ; \
+		echo -n "Extracting Visualselect HTML ..." ; tar xf visualselect4html.tar -C html ; echo "Done" ; \
 		touch doc_html
 
 doc_xml:	do_compile
