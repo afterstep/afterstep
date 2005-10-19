@@ -30,6 +30,8 @@
 
 #include "interface.h"
 
+extern ASFileBrowserState AppState ;
+
 void
 gtk_image_browser_destroy(GtkWidget *widget, gpointer user_data)
 {
@@ -740,7 +742,7 @@ create_main_window (void)
     GtkWidget *main_vbox;
 
   	AppState.main_window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-  	gtk_window_set_title (GTK_WINDOW (AppState.main_window), "AfterStep Wallpaper Manager");
+  	gtk_window_set_title (GTK_WINDOW (AppState.main_window), "AfterStep File Browser");
 
  	colorize_gtk_window( AppState.main_window ); 	
 		
@@ -838,9 +840,10 @@ on_destroy(GtkWidget *widget, gpointer user_data)
 void 
 init_ASFileBrowser()
 {
-	memset( &AppState, 0x00, sizeof(ASAppState));
+	memset( &AppState, 0x00, sizeof(AppState));
 	
 	create_main_window(); 
+#if 0	
 	create_backs_list();
 	create_list_preview();
 	
@@ -863,6 +866,7 @@ init_ASFileBrowser()
 
 	reload_private_backs_list();
 
+#endif	
 	g_signal_connect (G_OBJECT (AppState.main_window), "destroy", G_CALLBACK (on_destroy), NULL);
   	gtk_widget_show (AppState.main_window);
 }	 
