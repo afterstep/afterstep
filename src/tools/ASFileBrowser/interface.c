@@ -32,6 +32,8 @@
 
 extern ASFileBrowserState AppState ;
 
+/* ###################################################################### */
+#if 0                          /* old stuff  */
 void
 gtk_image_browser_destroy(GtkWidget *widget, gpointer user_data)
 {
@@ -736,26 +738,6 @@ backs_list_sel_handler(ASGtkImageDir *id, gpointer user_data)
 }
 
 
-void
-create_main_window (void)
-{
-    GtkWidget *main_vbox;
-
-  	AppState.main_window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-  	gtk_window_set_title (GTK_WINDOW (AppState.main_window), "AfterStep File Browser");
-
- 	colorize_gtk_window( AppState.main_window ); 	
-		
-	main_vbox = gtk_vbox_new (FALSE, 0);
-  	gtk_widget_show (main_vbox);
-	gtk_container_add (GTK_CONTAINER (AppState.main_window), main_vbox);
-
-  	AppState.list_hbox = gtk_hbox_new (FALSE, 0);
-  	gtk_widget_show (AppState.list_hbox);
-  	gtk_box_pack_start (GTK_BOX (main_vbox), AppState.list_hbox, TRUE, TRUE, 5);
-
-}
-
 GtkWidget*
 create_list_button( GtkWidget *buttons_hbox, const char *stock, GCallback func )
 {
@@ -826,6 +808,47 @@ reload_private_backs_list()
 	char *private_back_dir = PutHome("~/.afterstep/backgrounds");
 	asgtk_image_dir_set_path(ASGTK_IMAGE_DIR(AppState.backs_list), private_back_dir);
 	free( private_back_dir );
+}
+
+#endif                         /* old stuff  */
+/* ###################################################################### */
+
+
+void
+create_main_window (void)
+{
+    GtkWidget *main_vbox;
+	GtkFrame *root_sel_frame ; 
+	GtkToggleButton *root_btn_dot_afterstep ;
+	GtkToggleButton *root_btn_shared_afterstep ;
+	GtkToggleButton *root_btn_home ;
+	GtkToggleButton *root_btn_usr_share ;
+	GtkToggleButton *root_btn_usr_local_share ;
+	GtkToggleButton *root_btn_other ;
+
+
+
+
+  	AppState.main_window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  	gtk_window_set_title (GTK_WINDOW (AppState.main_window), "AfterStep File Browser");
+
+ 	colorize_gtk_window( AppState.main_window ); 	
+		
+	main_vbox = gtk_vbox_new (FALSE, 0);
+  	gtk_widget_show (main_vbox);
+	gtk_container_add (GTK_CONTAINER (AppState.main_window), main_vbox);
+
+	root_sel_frame = GTK_FRAME(gtk_frame_new( "Select directory tree to browse : " ));
+	gtk_box_pack_start (GTK_BOX (main_vbox), GTK_WIDGET(root_sel_frame), TRUE, TRUE, 5);
+	gtk_widget_show (GTK_WIDGET(root_sel_frame));
+
+	root_btn_dot_afterstep = GTK_TOGGLE_BUTTON(gtk_toggle_button_new_with_label( ".afterstep" ));
+	
+
+  	AppState.list_hbox = gtk_hbox_new (FALSE, 0);
+  	gtk_widget_show (AppState.list_hbox);
+  	gtk_box_pack_start (GTK_BOX (main_vbox), AppState.list_hbox, TRUE, TRUE, 5);
+
 }
 
 void
