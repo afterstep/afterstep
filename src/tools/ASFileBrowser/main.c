@@ -16,7 +16,6 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
-
 #include "../../../configure.h"
 #include "../../../libAfterStep/asapp.h"
 #include "../../../libAfterStep/module.h"
@@ -26,7 +25,7 @@
 #include "interface.h"
 
 
-ASWallpaperState WallpaperState ;
+ASFileBrowserState AppState ;
 
 int
 main (int argc, char *argv[])
@@ -41,7 +40,7 @@ main (int argc, char *argv[])
    * (except popup menus), just so that you see something after building
    * the project. Delete any components that you don't want shown initially.
    */
-  init_ASWallpaper();
+  init_ASFileBrowser();
 
   gtk_main ();
   return 0;

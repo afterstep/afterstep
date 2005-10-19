@@ -1,0 +1,23 @@
+OBJS_ASFILEBROWSER       = interface.o main.o
+
+OBJS		= $(OBJS_ASFILEBROWSER)
+
+PROG		= ASFileBrowser 
+
+INCS_PRIVATE	= @GTK_INCLUDES@
+
+LIBS_PRIVATE      = ../$(LIB_ASGTK) ../$(LIB_AFTERCONF) ../$(LIB_AFTERSTEP) \
+		    ../$(LIB_AFTERIMAGE) ../$(LIB_AFTERBASE) @GTK_LIBS@ $(LIBS_AFTERIMAGE)
+LIBS_DEPEND     = ../$(LIB_AFTERBASE) ../$(LIB_AFTERIMAGE) ../$(LIB_AFTERSTEP) ../$(LIB_AFTERCONF) ../$(LIB_ASGTK) 
+
+@MAKEFILECOMMON@
+
+module.clean:
+
+
+ASFileBrowser:	        $(OBJS_ASFILEBROWSER) $(LIBS_DEPEND)
+		$(CC) $(OBJS_ASFILEBROWSER) $(LIBS_ALL) -o $(@)
+
+install:	install.bin
+
+uninstall:	uninstall.bin

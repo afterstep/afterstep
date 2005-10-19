@@ -7,7 +7,7 @@ confsdirs= autoconf libAfterBase libAfterImage
 
 libdirs		= libAfterBase libAfterImage libAfterStep libAfterConf @LIBASGTKDIR@
 
-gtk_app_dirs	= src/tools/ASWallpaper
+gtk_app_dirs	= src/tools/ASFileBrowser src/tools/ASWallpaper
 no_gtk_app_dirs	= 
 
 subdirs		= libAfterBase libAfterImage libAfterStep libAfterConf @LIBASGTKDIR@ \

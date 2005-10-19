@@ -734,7 +734,7 @@ dnl# These should be created before everything else, as it gets included by othe
 AC_CONFIG_FILES([autoconf/Makefile.defines autoconf/Makefile.common autoconf/Makefile.common.lib])
 
 if test -d src/ascp ; then AC_CONFIG_FILES([src/ascp/Makefile src/ascp/fltk/Makefile src/ascp/gtk/Makefile ]) fi
-if test -d src/tools ; then AC_CONFIG_FILES([src/tools/ASWallpaper/Makefile]) fi
+if test -d src/tools ; then AC_CONFIG_FILES([src/tools/ASFileBrowser/Makefile src/tools/ASWallpaper/Makefile]) fi
 
 if test -d src/asetroot ; 	then AC_CONFIG_FILES([src/asetroot/Makefile]) fi
 if test -d src/Animate ; 	then AC_CONFIG_FILES([src/Animate/Makefile]) fi

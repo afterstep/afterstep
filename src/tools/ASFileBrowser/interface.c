@@ -1,4 +1,4 @@
-/*
+/* 
  * Copyright (c) 2005 Sasha Vasko <sasha at aftercode.net>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -16,7 +16,6 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
-
 #define LOCAL_DEBUG
 
 #include "../../../configure.h"
@@ -34,9 +33,9 @@
 void
 gtk_image_browser_destroy(GtkWidget *widget, gpointer user_data)
 {
-	if(WallpaperState.filechooser != NULL)
-		WallpaperState.filechooser = NULL ; 
-	gtk_widget_set_sensitive( GTK_WIDGET(WallpaperState.list_browse_button), TRUE );
+	if(AppState.filechooser != NULL)
+		AppState.filechooser = NULL ; 
+	gtk_widget_set_sensitive( GTK_WIDGET(AppState.list_browse_button), TRUE );
 }
 
 void
@@ -46,7 +45,7 @@ on_list_del_clicked(GtkButton *button, gpointer user_data)
 	ASImageListEntry *entry = asgtk_image_dir_get_selection( id );
 	if( entry ) 
 	{	
-		if( asgtk_yes_no_question1( WallpaperState.main_window, "Do you really want to delete private background file \"%s\" ???", entry->name ) )
+		if( asgtk_yes_no_question1( AppState.main_window, "Do you really want to delete private background file \"%s\" ???", entry->name ) )
 		{
 			if( id->mini_extension ) 
 			{	
@@ -55,7 +54,7 @@ on_list_del_clicked(GtkButton *button, gpointer user_data)
 				
 				if( CheckFile( mini_fullfilename ) == 0 ) 
 				{
-					if( asgtk_yes_no_question1( WallpaperState.main_window, "It appears that there is a minipixmap for deleted background with the name \"%s\". Would you like to delete it as well ?", mini_filename ) )
+					if( asgtk_yes_no_question1( AppState.main_window, "It appears that there is a minipixmap for deleted background with the name \"%s\". Would you like to delete it as well ?", mini_filename ) )
 					{
 						unlink( mini_fullfilename );
 					}	 				   
@@ -64,7 +63,7 @@ on_list_del_clicked(GtkButton *button, gpointer user_data)
 				free( mini_filename );
 			}			
 			unlink( entry->fullfilename );
-			asgtk_info2( WallpaperState.main_window, "Background image \"%s\" deleted.", entry->name, NULL );	  
+			asgtk_info2( AppState.main_window, "Background image \"%s\" deleted.", entry->name, NULL );	  
 			asgtk_image_dir_refresh( id );	 
 		}	 
 		unref_asimage_list_entry( entry );
@@ -315,7 +314,7 @@ on_make_xml_clicked(GtkButton *clicked_button, gpointer user_data)
 		return;
 	}
 	mx->dlg = gtk_dialog_new_with_buttons( "Making new XML based on selected image", 
-											GTK_WINDOW(WallpaperState.main_window),
+											GTK_WINDOW(AppState.main_window),
 										   	GTK_DIALOG_MODAL|GTK_DIALOG_DESTROY_WITH_PARENT, 
 											GTK_STOCK_CANCEL, GTK_RESPONSE_REJECT,
 											GTK_STOCK_OK, GTK_RESPONSE_ACCEPT,
@@ -411,7 +410,7 @@ on_make_xml_clicked(GtkButton *clicked_button, gpointer user_data)
 		{	
 			name = gtk_entry_get_text( GTK_ENTRY(mx->back_name) );
 			if( name == NULL || strlen(name) == 0 ) 
-				asgtk_warning2( WallpaperState.main_window, "Empty name specified for a new background.", NULL, NULL ); 	   				   		   			   			
+				asgtk_warning2( AppState.main_window, "Empty name specified for a new background.", NULL, NULL ); 	   				   		   			   			
 			else
 				break;
 		}
@@ -425,7 +424,7 @@ on_make_xml_clicked(GtkButton *clicked_button, gpointer user_data)
 		}
 	}	 
 	if( files_added ) 
-		asgtk_info2( WallpaperState.main_window, "New background \"%s\" file created.", name, NULL );	  
+		asgtk_info2( AppState.main_window, "New background \"%s\" file created.", name, NULL );	  
 	
 	make_xml_dlg_destroy( mx );
 	if( files_added ) 
@@ -434,8 +433,8 @@ on_make_xml_clicked(GtkButton *clicked_button, gpointer user_data)
 
 void gtk_xml_editor_destroy( GtkWidget *widget, gpointer user_data ) 
 {
-	WallpaperState.xml_editor = NULL ;
-	gtk_widget_set_sensitive( GTK_WIDGET(WallpaperState.edit_xml_button), TRUE );
+	AppState.xml_editor = NULL ;
+	gtk_widget_set_sensitive( GTK_WIDGET(AppState.edit_xml_button), TRUE );
 }	 
 
 void on_backgrounds_dir_changed( ASGtkXMLEditor *xe, gpointer user_data, Bool new_file)
@@ -446,7 +445,7 @@ void on_backgrounds_dir_changed( ASGtkXMLEditor *xe, gpointer user_data, Bool ne
 	else
 	{
 		ASImageListEntry *le = asgtk_image_dir_get_selection( id );
-		asgtk_image_view_set_entry ( ASGTK_IMAGE_VIEW(WallpaperState.list_preview), le);
+		asgtk_image_view_set_entry ( ASGTK_IMAGE_VIEW(AppState.list_preview), le);
 		unref_asimage_list_entry( le );
 	}	 
 }	 
@@ -456,20 +455,20 @@ on_edit_xml_clicked(GtkButton *button, gpointer user_data)
 {
 	ASGtkImageDir *id = ASGTK_IMAGE_DIR(user_data);
 	ASImageListEntry *entry = asgtk_image_dir_get_selection( id );
-	if( WallpaperState.xml_editor == NULL ) 
+	if( AppState.xml_editor == NULL ) 
 	{	
-		WallpaperState.xml_editor = asgtk_xml_editor_new();
-		g_signal_connect (G_OBJECT (WallpaperState.xml_editor), "destroy", G_CALLBACK (gtk_xml_editor_destroy), NULL);
-		asgtk_xml_editor_file_change_handler( ASGTK_XML_EDITOR(WallpaperState.xml_editor), 
+		AppState.xml_editor = asgtk_xml_editor_new();
+		g_signal_connect (G_OBJECT (AppState.xml_editor), "destroy", G_CALLBACK (gtk_xml_editor_destroy), NULL);
+		asgtk_xml_editor_file_change_handler( ASGTK_XML_EDITOR(AppState.xml_editor), 
 											  on_backgrounds_dir_changed, 
-											  WallpaperState.backs_list );
+											  AppState.backs_list );
 	}
 
-	gtk_widget_show( WallpaperState.xml_editor );
-	asgtk_xml_editor_set_entry( ASGTK_XML_EDITOR(WallpaperState.xml_editor), entry );
+	gtk_widget_show( AppState.xml_editor );
+	asgtk_xml_editor_set_entry( ASGTK_XML_EDITOR(AppState.xml_editor), entry );
 	unref_asimage_list_entry( entry );
 
-	gtk_widget_set_sensitive( GTK_WIDGET(WallpaperState.edit_xml_button), FALSE );
+	gtk_widget_set_sensitive( GTK_WIDGET(AppState.edit_xml_button), FALSE );
 }
 
 void
@@ -483,10 +482,10 @@ on_make_mini_clicked(GtkButton *clicked_button, gpointer user_data)
 	{	
 		if( make_mini_for_image_entry(id, entry, mini_fullfilename) )
 		{	
-			gtk_button_set_label(GTK_BUTTON(WallpaperState.make_mini_button), "Update mini");
-			asgtk_info2( WallpaperState.main_window, "Minipixmap successfully updated for background \"%s\".", entry->name, NULL );	  
+			gtk_button_set_label(GTK_BUTTON(AppState.make_mini_button), "Update mini");
+			asgtk_info2( AppState.main_window, "Minipixmap successfully updated for background \"%s\".", entry->name, NULL );	  
 		}else
-			asgtk_warning2( WallpaperState.main_window, "Failed to updated minipixmap for background \"%s\".", entry->name, NULL );	  
+			asgtk_warning2( AppState.main_window, "Failed to updated minipixmap for background \"%s\".", entry->name, NULL );	  
 
 
 		free( mini_fullfilename );
@@ -501,11 +500,11 @@ on_list_add_clicked(GtkButton *button, gpointer user_data)
 	ASImageListEntry *entry = asgtk_image_dir_get_selection( id );
 	if( entry ) 
 	{	
-		ASGtkImageDir *backs_list = ASGTK_IMAGE_DIR(WallpaperState.backs_list);
+		ASGtkImageDir *backs_list = ASGTK_IMAGE_DIR(AppState.backs_list);
 		char *new_filename = make_file_name( backs_list->fulldirname, entry->name );
 		if( CheckFile( new_filename ) == 0 ) 
 		{
-			if( !asgtk_yes_no_question1( WallpaperState.main_window, "Private background with the name \"%s\" already exists. Would you like to replace it ???", entry->name ) )
+			if( !asgtk_yes_no_question1( AppState.main_window, "Private background with the name \"%s\" already exists. Would you like to replace it ???", entry->name ) )
 			{
 				free( new_filename );
 				return;
@@ -520,7 +519,7 @@ on_list_add_clicked(GtkButton *button, gpointer user_data)
 			asgtk_image_dir_make_mini_names( backs_list, entry->name, &mini_filename, &mini_fullfilename );
 			if( CheckFile( mini_fullfilename ) == 0 ) 
 			{
-				if( !asgtk_yes_no_question1( WallpaperState.main_window, "Overwrite minipixmap \"%s\" with the new one ?", mini_filename ) )
+				if( !asgtk_yes_no_question1( AppState.main_window, "Overwrite minipixmap \"%s\" with the new one ?", mini_filename ) )
 					do_mini = False ;
 			}	
 
@@ -530,7 +529,7 @@ on_list_add_clicked(GtkButton *button, gpointer user_data)
 			free( mini_fullfilename );
 			free( mini_filename );
 		}	 
-		asgtk_info2( WallpaperState.main_window, "New background \"%s\" added.", entry->name, NULL );	  
+		asgtk_info2( AppState.main_window, "New background \"%s\" added.", entry->name, NULL );	  
 
 		unref_asimage_list_entry( entry );
 		asgtk_image_dir_refresh( backs_list );	 
@@ -546,21 +545,21 @@ on_update_as_menu_clicked(GtkButton *button, gpointer user_data)
 void
 on_browse_clicked(GtkButton *button, gpointer user_data)
 {
-	if( WallpaperState.filechooser == NULL ) 
+	if( AppState.filechooser == NULL ) 
 	{	
 		GtkWidget *add_button, *apply_button ; 
-		WallpaperState.filechooser = asgtk_image_browser_new();
+		AppState.filechooser = asgtk_image_browser_new();
 	
-		/* close_button = asgtk_image_browser_add_main_button (ASGTK_IMAGE_BROWSER(WallpaperState.filechooser), "gtk-close", G_CALLBACK(on_filechooser_close_clicked), NULL); */
-		add_button = asgtk_image_browser_add_selection_button (ASGTK_IMAGE_BROWSER(WallpaperState.filechooser), GTK_STOCK_ADD, G_CALLBACK(on_list_add_clicked)); 
-		apply_button = asgtk_image_browser_add_selection_button (ASGTK_IMAGE_BROWSER(WallpaperState.filechooser), GTK_STOCK_APPLY, G_CALLBACK(on_list_apply_clicked));
+		/* close_button = asgtk_image_browser_add_main_button (ASGTK_IMAGE_BROWSER(AppState.filechooser), "gtk-close", G_CALLBACK(on_filechooser_close_clicked), NULL); */
+		add_button = asgtk_image_browser_add_selection_button (ASGTK_IMAGE_BROWSER(AppState.filechooser), GTK_STOCK_ADD, G_CALLBACK(on_list_add_clicked)); 
+		apply_button = asgtk_image_browser_add_selection_button (ASGTK_IMAGE_BROWSER(AppState.filechooser), GTK_STOCK_APPLY, G_CALLBACK(on_list_apply_clicked));
 
-		g_signal_connect (G_OBJECT (WallpaperState.filechooser), "destroy", G_CALLBACK (gtk_image_browser_destroy), NULL);  		   
+		g_signal_connect (G_OBJECT (AppState.filechooser), "destroy", G_CALLBACK (gtk_image_browser_destroy), NULL);  		   
 		/*gtk_widget_set_size_request (GTK_WIDGET(close_button), 150, -1);*/
 	}
 	
-	gtk_widget_show (GTK_WIDGET(WallpaperState.filechooser));
-	gtk_widget_set_sensitive( GTK_WIDGET(WallpaperState.list_browse_button), FALSE );
+	gtk_widget_show (GTK_WIDGET(AppState.filechooser));
+	gtk_widget_set_sensitive( GTK_WIDGET(AppState.list_browse_button), FALSE );
 }
 
 GtkWidget*	
@@ -603,7 +602,7 @@ on_solid_clicked(GtkButton *button, gpointer user_data)
 		{	
 			name = gtk_entry_get_text( GTK_ENTRY(name_edit) );
 			if( name == NULL || strlen(name) == 0 ) 
-				asgtk_warning2( WallpaperState.main_window, "Empty name specified for a new background.", NULL, NULL ); 	   				   		   			   			
+				asgtk_warning2( AppState.main_window, "Empty name specified for a new background.", NULL, NULL ); 	   				   		   			   			
 			else
 				break;
 		}
@@ -629,7 +628,7 @@ on_solid_clicked(GtkButton *button, gpointer user_data)
 	gtk_widget_destroy( GTK_WIDGET(cs) );
 	if( files_added ) 
 	{
-		asgtk_info2( WallpaperState.main_window, "New solid color background \"%s\" created.", name, NULL );	  
+		asgtk_info2( AppState.main_window, "New solid color background \"%s\" created.", name, NULL );	  
 		asgtk_image_dir_refresh( id );
 	}	
 }
@@ -657,7 +656,7 @@ on_gradient_clicked(GtkButton *button, gpointer user_data)
 		{	
 			name = gtk_entry_get_text( GTK_ENTRY(name_edit) );
 			if( name == NULL || strlen(name) == 0 ) 
-				asgtk_warning2( WallpaperState.main_window, "Empty name specified for a new background.", NULL, NULL ); 	   				   		   			   			
+				asgtk_warning2( AppState.main_window, "Empty name specified for a new background.", NULL, NULL ); 	   				   		   			   			
 			else
 				break;
 		}
@@ -683,7 +682,7 @@ on_gradient_clicked(GtkButton *button, gpointer user_data)
 	gtk_widget_destroy( GTK_WIDGET(ge) );
 	if( files_added ) 
 	{
-		asgtk_info2( WallpaperState.main_window, "New gradient background \"%s\" created.", name, NULL );	  
+		asgtk_info2( AppState.main_window, "New gradient background \"%s\" created.", name, NULL );	  
 		asgtk_image_dir_refresh( id );
 	}
 }
@@ -701,8 +700,8 @@ backs_list_sel_handler(ASGtkImageDir *id, gpointer user_data)
 
 	if( le != NULL ) 
 	{	
-		if( WallpaperState.xml_editor && le->type == ASIT_XMLScript )
-			asgtk_xml_editor_set_entry( ASGTK_XML_EDITOR( WallpaperState.xml_editor), le );
+		if( AppState.xml_editor && le->type == ASIT_XMLScript )
+			asgtk_xml_editor_set_entry( ASGTK_XML_EDITOR( AppState.xml_editor), le );
 	
 		if( iv ) 
 		{	
@@ -710,12 +709,12 @@ backs_list_sel_handler(ASGtkImageDir *id, gpointer user_data)
 			Bool has_mini = False ; 
 			if( le->type == ASIT_XMLScript ) 
 			{	
-				gtk_widget_show(WallpaperState.edit_xml_button);
-				gtk_widget_hide(WallpaperState.make_xml_button);
+				gtk_widget_show(AppState.edit_xml_button);
+				gtk_widget_hide(AppState.make_xml_button);
 			}else
 			{
-				gtk_widget_hide(WallpaperState.edit_xml_button);
-				gtk_widget_show(WallpaperState.make_xml_button);
+				gtk_widget_hide(AppState.edit_xml_button);
+				gtk_widget_show(AppState.make_xml_button);
 			}		   
 			if( asgtk_image_dir_make_mini_names( id, le->name, NULL, &mini_fullname ) )
 			{
@@ -724,10 +723,10 @@ backs_list_sel_handler(ASGtkImageDir *id, gpointer user_data)
 			}	 
 			if( has_mini ) 
 			{	
-				gtk_button_set_label(GTK_BUTTON(WallpaperState.make_mini_button), "Update mini");
+				gtk_button_set_label(GTK_BUTTON(AppState.make_mini_button), "Update mini");
 			}else
 			{
-				gtk_button_set_label(GTK_BUTTON(WallpaperState.make_mini_button), "Make mini");
+				gtk_button_set_label(GTK_BUTTON(AppState.make_mini_button), "Make mini");
 			}		   
 		}
 		unref_asimage_list_entry( le );
@@ -740,18 +739,18 @@ create_main_window (void)
 {
     GtkWidget *main_vbox;
 
-  	WallpaperState.main_window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-  	gtk_window_set_title (GTK_WINDOW (WallpaperState.main_window), "AfterStep Wallpaper Manager");
+  	AppState.main_window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  	gtk_window_set_title (GTK_WINDOW (AppState.main_window), "AfterStep Wallpaper Manager");
 
- 	colorize_gtk_window( WallpaperState.main_window ); 	
+ 	colorize_gtk_window( AppState.main_window ); 	
 		
 	main_vbox = gtk_vbox_new (FALSE, 0);
   	gtk_widget_show (main_vbox);
-	gtk_container_add (GTK_CONTAINER (WallpaperState.main_window), main_vbox);
+	gtk_container_add (GTK_CONTAINER (AppState.main_window), main_vbox);
 
-  	WallpaperState.list_hbox = gtk_hbox_new (FALSE, 0);
-  	gtk_widget_show (WallpaperState.list_hbox);
-  	gtk_box_pack_start (GTK_BOX (main_vbox), WallpaperState.list_hbox, TRUE, TRUE, 5);
+  	AppState.list_hbox = gtk_hbox_new (FALSE, 0);
+  	gtk_widget_show (AppState.list_hbox);
+  	gtk_box_pack_start (GTK_BOX (main_vbox), AppState.list_hbox, TRUE, TRUE, 5);
 
 }
 
@@ -773,33 +772,33 @@ create_backs_list()
   	
 	vbox = gtk_vbox_new (FALSE, 3);
   	gtk_widget_show (vbox);
-  	gtk_box_pack_start (GTK_BOX (WallpaperState.list_hbox), vbox, FALSE, FALSE, 5);
+  	gtk_box_pack_start (GTK_BOX (AppState.list_hbox), vbox, FALSE, FALSE, 5);
 
-  	WallpaperState.backs_list = asgtk_image_dir_new();
-	gtk_box_pack_start (GTK_BOX (vbox), WallpaperState.backs_list, TRUE, TRUE, 0);
-	gtk_widget_set_size_request (WallpaperState.backs_list, 200, INITIAL_PREVIEW_HEIGHT);
-	gtk_widget_show (WallpaperState.backs_list);
+  	AppState.backs_list = asgtk_image_dir_new();
+	gtk_box_pack_start (GTK_BOX (vbox), AppState.backs_list, TRUE, TRUE, 0);
+	gtk_widget_set_size_request (AppState.backs_list, 200, INITIAL_PREVIEW_HEIGHT);
+	gtk_widget_show (AppState.backs_list);
 
 	/* creating the list widget itself */
-	asgtk_image_dir_set_title(ASGTK_IMAGE_DIR(WallpaperState.backs_list),"Images in your private backgrounds folder:");
-	asgtk_image_dir_set_mini (ASGTK_IMAGE_DIR(WallpaperState.backs_list), ".mini" );
+	asgtk_image_dir_set_title(ASGTK_IMAGE_DIR(AppState.backs_list),"Images in your private backgrounds folder:");
+	asgtk_image_dir_set_mini (ASGTK_IMAGE_DIR(AppState.backs_list), ".mini" );
 		
-	colorize_gtk_widget( WallpaperState.backs_list, get_colorschemed_style_button());
-	gtk_widget_set_style( WallpaperState.backs_list, get_colorschemed_style_normal());
+	colorize_gtk_widget( AppState.backs_list, get_colorschemed_style_button());
+	gtk_widget_set_style( AppState.backs_list, get_colorschemed_style_normal());
 	
 	/* adding list manipulation buttons : */
 
-	WallpaperState.list_update_as_button = asgtk_add_button_to_box( NULL, GTK_STOCK_REFRESH, "Update AfterStep Menu", G_CALLBACK(on_update_as_menu_clicked), NULL );
-  	gtk_box_pack_end (GTK_BOX (vbox), WallpaperState.list_update_as_button, FALSE, FALSE, 0);
-	WallpaperState.list_browse_button = asgtk_add_button_to_box( NULL, GTK_STOCK_ADD, "Browse for more", G_CALLBACK(on_browse_clicked), NULL );
-  	gtk_box_pack_end (GTK_BOX (vbox), WallpaperState.list_browse_button, FALSE, FALSE, 0);
+	AppState.list_update_as_button = asgtk_add_button_to_box( NULL, GTK_STOCK_REFRESH, "Update AfterStep Menu", G_CALLBACK(on_update_as_menu_clicked), NULL );
+  	gtk_box_pack_end (GTK_BOX (vbox), AppState.list_update_as_button, FALSE, FALSE, 0);
+	AppState.list_browse_button = asgtk_add_button_to_box( NULL, GTK_STOCK_ADD, "Browse for more", G_CALLBACK(on_browse_clicked), NULL );
+  	gtk_box_pack_end (GTK_BOX (vbox), AppState.list_browse_button, FALSE, FALSE, 0);
 
 	hbox = gtk_hbutton_box_new( );
 	gtk_widget_show (hbox);
 	gtk_box_pack_end (GTK_BOX (vbox), hbox, FALSE, FALSE, 0);
 
-	WallpaperState.new_solid_button = asgtk_add_button_to_box( GTK_BOX (hbox), GTK_STOCK_ADD, "New solid color", G_CALLBACK(on_solid_clicked), WallpaperState.backs_list );
-	WallpaperState.new_gradient_button = asgtk_add_button_to_box( GTK_BOX (hbox), GTK_STOCK_ADD, "New gradient", G_CALLBACK(on_gradient_clicked), WallpaperState.backs_list );
+	AppState.new_solid_button = asgtk_add_button_to_box( GTK_BOX (hbox), GTK_STOCK_ADD, "New solid color", G_CALLBACK(on_solid_clicked), AppState.backs_list );
+	AppState.new_gradient_button = asgtk_add_button_to_box( GTK_BOX (hbox), GTK_STOCK_ADD, "New gradient", G_CALLBACK(on_gradient_clicked), AppState.backs_list );
 }
 
 void 
@@ -807,15 +806,15 @@ create_list_preview()
 {
 	int preview_width ; 
 
-	WallpaperState.list_preview = asgtk_image_view_new();
+	AppState.list_preview = asgtk_image_view_new();
 	preview_width = (INITIAL_PREVIEW_HEIGHT *Scr.MyDisplayWidth)/Scr.MyDisplayHeight ;
-	gtk_widget_set_size_request (WallpaperState.list_preview, preview_width, INITIAL_PREVIEW_HEIGHT);
-	asgtk_image_view_set_aspect (ASGTK_IMAGE_VIEW(WallpaperState.list_preview), Scr.MyDisplayWidth, Scr.MyDisplayHeight );
-	asgtk_image_view_set_resize (ASGTK_IMAGE_VIEW(WallpaperState.list_preview), 
+	gtk_widget_set_size_request (AppState.list_preview, preview_width, INITIAL_PREVIEW_HEIGHT);
+	asgtk_image_view_set_aspect (ASGTK_IMAGE_VIEW(AppState.list_preview), Scr.MyDisplayWidth, Scr.MyDisplayHeight );
+	asgtk_image_view_set_resize (ASGTK_IMAGE_VIEW(AppState.list_preview), 
 								 ASGTK_IMAGE_VIEW_SCALE_TO_VIEW|
 								 ASGTK_IMAGE_VIEW_TILE_TO_ASPECT, ASGTK_IMAGE_VIEW_RESIZE_ALL );
-  	gtk_box_pack_end (GTK_BOX (WallpaperState.list_hbox), WallpaperState.list_preview, TRUE, TRUE, 0);
-	gtk_widget_show (WallpaperState.list_preview);
+  	gtk_box_pack_end (GTK_BOX (AppState.list_hbox), AppState.list_preview, TRUE, TRUE, 0);
+	gtk_widget_show (AppState.list_preview);
 
 }
 
@@ -823,48 +822,48 @@ void
 reload_private_backs_list()
 {	
 	char *private_back_dir = PutHome("~/.afterstep/backgrounds");
-	asgtk_image_dir_set_path(ASGTK_IMAGE_DIR(WallpaperState.backs_list), private_back_dir);
+	asgtk_image_dir_set_path(ASGTK_IMAGE_DIR(AppState.backs_list), private_back_dir);
 	free( private_back_dir );
 }
 
 void
 on_destroy(GtkWidget *widget, gpointer user_data)
 {
-	if( WallpaperState.xml_editor ) 
-		gtk_widget_destroy( GTK_WIDGET(WallpaperState.xml_editor) );
+	if( AppState.xml_editor ) 
+		gtk_widget_destroy( GTK_WIDGET(AppState.xml_editor) );
 		
 	gtk_main_quit();
 }
 
 void 
-init_ASWallpaper()
+init_ASFileBrowser()
 {
-	memset( &WallpaperState, 0x00, sizeof(ASWallpaperState));
+	memset( &AppState, 0x00, sizeof(ASAppState));
 	
 	create_main_window(); 
 	create_backs_list();
 	create_list_preview();
 	
-	WallpaperState.sel_apply_button = asgtk_add_button_to_box( NULL, GTK_STOCK_APPLY, NULL, G_CALLBACK(on_list_apply_clicked), WallpaperState.backs_list );
-	WallpaperState.make_xml_button = asgtk_add_button_to_box( NULL, GTK_STOCK_PROPERTIES, "Make XML", G_CALLBACK(on_make_xml_clicked), WallpaperState.backs_list );
-	WallpaperState.edit_xml_button = asgtk_add_button_to_box( NULL, GTK_STOCK_PROPERTIES, "Edit XML", G_CALLBACK(on_edit_xml_clicked), WallpaperState.backs_list );
-	WallpaperState.make_mini_button = asgtk_add_button_to_box( NULL, GTK_STOCK_PROPERTIES, "Make mini", G_CALLBACK(on_make_mini_clicked), WallpaperState.backs_list );
+	AppState.sel_apply_button = asgtk_add_button_to_box( NULL, GTK_STOCK_APPLY, NULL, G_CALLBACK(on_list_apply_clicked), AppState.backs_list );
+	AppState.make_xml_button = asgtk_add_button_to_box( NULL, GTK_STOCK_PROPERTIES, "Make XML", G_CALLBACK(on_make_xml_clicked), AppState.backs_list );
+	AppState.edit_xml_button = asgtk_add_button_to_box( NULL, GTK_STOCK_PROPERTIES, "Edit XML", G_CALLBACK(on_edit_xml_clicked), AppState.backs_list );
+	AppState.make_mini_button = asgtk_add_button_to_box( NULL, GTK_STOCK_PROPERTIES, "Make mini", G_CALLBACK(on_make_mini_clicked), AppState.backs_list );
 	
-	WallpaperState.sel_del_button = asgtk_add_button_to_box( NULL, GTK_STOCK_DELETE, NULL, G_CALLBACK(on_list_del_clicked), WallpaperState.backs_list );
+	AppState.sel_del_button = asgtk_add_button_to_box( NULL, GTK_STOCK_DELETE, NULL, G_CALLBACK(on_list_del_clicked), AppState.backs_list );
 
-	gtk_widget_hide(WallpaperState.edit_xml_button);
+	gtk_widget_hide(AppState.edit_xml_button);
 
-	asgtk_image_view_add_tool( ASGTK_IMAGE_VIEW(WallpaperState.list_preview), WallpaperState.sel_apply_button, 0 );
-	asgtk_image_view_add_tool( ASGTK_IMAGE_VIEW(WallpaperState.list_preview), WallpaperState.make_mini_button, 5 );
-	asgtk_image_view_add_tool( ASGTK_IMAGE_VIEW(WallpaperState.list_preview), WallpaperState.make_xml_button, 5 );
-	asgtk_image_view_add_tool( ASGTK_IMAGE_VIEW(WallpaperState.list_preview), WallpaperState.edit_xml_button, 5 );
-	asgtk_image_view_add_tool( ASGTK_IMAGE_VIEW(WallpaperState.list_preview), WallpaperState.sel_del_button, 5 );
+	asgtk_image_view_add_tool( ASGTK_IMAGE_VIEW(AppState.list_preview), AppState.sel_apply_button, 0 );
+	asgtk_image_view_add_tool( ASGTK_IMAGE_VIEW(AppState.list_preview), AppState.make_mini_button, 5 );
+	asgtk_image_view_add_tool( ASGTK_IMAGE_VIEW(AppState.list_preview), AppState.make_xml_button, 5 );
+	asgtk_image_view_add_tool( ASGTK_IMAGE_VIEW(AppState.list_preview), AppState.edit_xml_button, 5 );
+	asgtk_image_view_add_tool( ASGTK_IMAGE_VIEW(AppState.list_preview), AppState.sel_del_button, 5 );
 	
-	asgtk_image_dir_set_sel_handler( ASGTK_IMAGE_DIR(WallpaperState.backs_list), backs_list_sel_handler, WallpaperState.list_preview);
+	asgtk_image_dir_set_sel_handler( ASGTK_IMAGE_DIR(AppState.backs_list), backs_list_sel_handler, AppState.list_preview);
 
 	reload_private_backs_list();
 
-	g_signal_connect (G_OBJECT (WallpaperState.main_window), "destroy", G_CALLBACK (on_destroy), NULL);
-  	gtk_widget_show (WallpaperState.main_window);
+	g_signal_connect (G_OBJECT (AppState.main_window), "destroy", G_CALLBACK (on_destroy), NULL);
+  	gtk_widget_show (AppState.main_window);
 }	 
 
