@@ -2463,6 +2463,12 @@ DispatchEvent (ASEvent * event)
             return;
     }
 
+	if( (event->eclass & ASE_POINTER_EVENTS) != 0 && is_balloon_click( &(event->x) ) )
+	{
+		withdraw_balloon(NULL);
+		return;
+	}
+
     event->client = NULL ;
     event->widget = PagerState.main_canvas ;
 

@@ -336,11 +336,16 @@ DispatchEvent (ASEvent * event)
     ASWindowData *pointer_wd = NULL ;
 	static Bool root_pointer_moved = True ;
     SHOW_EVENT_TRACE(event);
-
+	
     if( (event->eclass & ASE_POINTER_EVENTS) != 0 )
     {
         int i  = find_button_by_position( event->x.xmotion.x_root - (WinListState.main_canvas->root_x+(int)WinListState.main_canvas->bw),
                                           event->x.xmotion.y_root - (WinListState.main_canvas->root_y+(int)WinListState.main_canvas->bw) );
+		if( is_balloon_click( &(event->x) ) )
+		{
+			withdraw_balloon(NULL);
+			return;
+		}
         if( i < WinListState.windows_num )
             pointer_wd = WinListState.window_order[i] ;
     }

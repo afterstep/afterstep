@@ -813,18 +813,50 @@ reload_private_backs_list()
 #endif                         /* old stuff  */
 /* ###################################################################### */
 
+GtkWidget *
+build_root_selection_frame()
+{
+	GtkTable *table;
+	GtkWidget *btn ;
+	GtkWidget *frame = gtk_frame_new( "Select directory tree to browse : " );
+	
+	table = GTK_TABLE(gtk_table_new( 5, 2, TRUE ));
+	gtk_container_add (GTK_CONTAINER (frame), GTK_WIDGET(table));
+	gtk_container_set_border_width( GTK_CONTAINER (frame), 5 );
+	gtk_container_set_border_width( GTK_CONTAINER (table), 5 );
+	gtk_table_set_row_spacings( table, 5 );
+	gtk_table_set_col_spacings( table, 5 );
+
+	btn = gtk_toggle_button_new_with_label( "Private AfterStep" );
+	gtk_table_attach_defaults (table, btn, 0, 1, 0, 1);	
+
+	btn = gtk_toggle_button_new_with_label( "Shared AfterStep" );
+	gtk_table_attach_defaults (table, btn, 1, 2, 0, 1);	
+
+	btn = gtk_toggle_button_new_with_label( "Home" );
+	gtk_table_attach_defaults (table, btn, 2, 3, 0, 1);	
+	
+	btn = gtk_toggle_button_new_with_label( "/usr/share" );
+	gtk_table_attach_defaults (table, btn, 3, 4, 0, 1);	
+	
+	btn = gtk_toggle_button_new_with_label( "/usr/local/share" );
+	gtk_table_attach_defaults (table, btn, 4, 5, 0, 1);	
+	
+	btn = gtk_toggle_button_new_with_label( "Other : " );
+	gtk_table_attach_defaults (table, btn, 0, 1, 1, 2);	
+
+	gtk_widget_show_all (GTK_WIDGET(table));
+	gtk_widget_show (GTK_WIDGET(table));
+	colorize_gtk_widget( frame, get_colorschemed_style_normal() );
+	
+	return frame;
+}	   
 
 void
 create_main_window (void)
 {
     GtkWidget *main_vbox;
-	GtkFrame *root_sel_frame ; 
-	GtkToggleButton *root_btn_dot_afterstep ;
-	GtkToggleButton *root_btn_shared_afterstep ;
-	GtkToggleButton *root_btn_home ;
-	GtkToggleButton *root_btn_usr_share ;
-	GtkToggleButton *root_btn_usr_local_share ;
-	GtkToggleButton *root_btn_other ;
+	GtkWidget *root_sel_frame ; 
 
 
 
@@ -838,12 +870,11 @@ create_main_window (void)
   	gtk_widget_show (main_vbox);
 	gtk_container_add (GTK_CONTAINER (AppState.main_window), main_vbox);
 
-	root_sel_frame = GTK_FRAME(gtk_frame_new( "Select directory tree to browse : " ));
-	gtk_box_pack_start (GTK_BOX (main_vbox), GTK_WIDGET(root_sel_frame), TRUE, TRUE, 5);
-	gtk_widget_show (GTK_WIDGET(root_sel_frame));
-
-	root_btn_dot_afterstep = GTK_TOGGLE_BUTTON(gtk_toggle_button_new_with_label( ".afterstep" ));
-	
+	if( (root_sel_frame = build_root_selection_frame()) != NULL )
+	{	
+		gtk_box_pack_start (GTK_BOX (main_vbox), GTK_WIDGET(root_sel_frame), TRUE, TRUE, 5);
+		gtk_widget_show (root_sel_frame);
+	}
 
   	AppState.list_hbox = gtk_hbox_new (FALSE, 0);
   	gtk_widget_show (AppState.list_hbox);

@@ -44,6 +44,7 @@ typedef struct ASBalloonState
     Window         active_window ;
 }ASBalloonState;
 
+Bool is_balloon_click( XEvent *xe );
 void balloon_init (int free_resources);
 void withdraw_balloon( ASBalloon *balloon );
 void withdraw_active_balloon();

@@ -698,7 +698,13 @@ DispatchEvent (ASEvent * event)
 		int pointer_root_x = event->x.xkey.x_root;
 		int pointer_root_y = event->x.xkey.y_root;
 		static int last_pointer_root_x = -1, last_pointer_root_y = -1; 
-        
+	
+		if( (event->eclass & ASE_POINTER_EVENTS) != 0 && is_balloon_click( &(event->x) ) )
+		{
+			withdraw_balloon(NULL);
+			return;
+		}
+
 		pointer_tab  = find_tab_by_position( pointer_root_x, pointer_root_y );
         LOCAL_DEBUG_OUT( "pointer at %d,%d - pointer_tab = %d", event->x.xmotion.x_root, event->x.xmotion.y_root, pointer_tab );
 		if( pointer_tab == BANNER_TAB_INDEX ) 

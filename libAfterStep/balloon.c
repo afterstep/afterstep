@@ -252,11 +252,18 @@ set_balloon_look( ASBalloonLook *blook )
     {
         XSetWindowAttributes attr ;
         attr.override_redirect = True;
-        BalloonState.active_window = create_visual_window( ASDefaultVisual, ASDefaultRoot, -10, -10, 1, 1, 0, InputOutput, CWOverrideRedirect, &attr );
+		attr.event_mask = ButtonPressMask ;
+        BalloonState.active_window = create_visual_window( ASDefaultVisual, ASDefaultRoot, -10, -10, 1, 1, 0, InputOutput, CWOverrideRedirect|CWEventMask, &attr );
         LOCAL_DEBUG_OUT( "Balloon window is %lX", BalloonState.active_window );
     }
     set_active_balloon_look();
 }
+
+Bool is_balloon_click( XEvent *xe ) 
+{
+	return ( xe->xbutton.window == BalloonState.active_window || xe->xbutton.subwindow == BalloonState.active_window );
+	
+}	 
 
 ASBalloon *
 create_asballoon (ASTBarData *owner)
