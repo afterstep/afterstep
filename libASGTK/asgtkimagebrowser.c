@@ -331,8 +331,10 @@ asgtk_image_browser_new ()
 	gtk_widget_show (ib->path_combo);
 	colorize_gtk_edit(ib->path_combo);
 	ib->path_entry = NULL ; 
+	/* path_entry is actually found trough the following discovery process :  */
 	if( GTK_IS_CONTAINER(ib->path_combo) )
 		gtk_container_forall( GTK_CONTAINER(ib->path_combo), find_combobox_entry, ib );
+	/* if above succeeded then path_entry should be not NULL here : */
 	if( ib->path_entry ) 
 		g_signal_connect ( G_OBJECT (ib->path_entry), "activate",
 		      			   G_CALLBACK (asgtk_image_browser_path_entry), (gpointer) ib);

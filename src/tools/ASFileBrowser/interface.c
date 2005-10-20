@@ -812,13 +812,58 @@ reload_private_backs_list()
 
 #endif                         /* old stuff  */
 /* ###################################################################### */
+typedef enum 
+{
+	root_PrivateAfterStep = 0, 
+	root_SharedAfterStep, 
+	root_Home, 
+	root_UsrShare, 
+	root_UsrLocalShare,
+	root_Other 
+}ASFileBrowserRoot;
+
+void 
+root_selection_changed( GtkAction *action, GtkRadioAction *current )
+{
+	ASFileBrowserRoot root = gtk_radio_action_get_current_value(current);
+	if( root != root_Other )
+	{
+		/* disable other text controls */			
+		
+	}		   
+}
 
 GtkWidget *
 build_root_selection_frame()
 {
 	GtkTable *table;
 	GtkWidget *btn ;
+	GtkActionGroup *action_group ;
 	GtkWidget *frame = gtk_frame_new( "Select directory tree to browse : " );
+		
+
+#define ROOT_SELECTION_ENTRIES_NUM	6
+	static GtkRadioActionEntry root_sel_entries[ROOT_SELECTION_ENTRIES_NUM] = {
+		{"root_PrivateAfterStep", NULL, "Private AfterStep", NULL, 
+			"Private directory conmtaining AfterStep files. Typically ~/.afterstep", 
+			root_PrivateAfterStep},	  
+		{"root_SharedAfterStep", NULL, "Shared AfterStep" , NULL, 
+			"System-wide shared directory conmtaining AfterStep files. Typically /usr/local/share/afterstep", 
+			root_SharedAfterStep},	
+		{"root_Home", NULL, "Home"             , NULL, 
+			"Private Home directory", 
+			root_Home},	
+		{"root_UsrShare", NULL, "/usr/share"       , NULL, 
+			"System-wide shared files directory /usr/share", 
+			root_UsrShare},	 
+		{"root_UsrLocalShare", NULL, "/usr/local/share" , NULL, 
+			"System-wide shared files directory /usr/local/share", 	
+			root_UsrLocalShare},	  
+		{"root_Other", NULL, "Other : "         , NULL, 
+			"Custom location in the filesystem tree", 				
+			root_Other},	  
+	} ;
+
 	
 	table = GTK_TABLE(gtk_table_new( 5, 2, TRUE ));
 	gtk_container_add (GTK_CONTAINER (frame), GTK_WIDGET(table));
@@ -827,23 +872,33 @@ build_root_selection_frame()
 	gtk_table_set_row_spacings( table, 5 );
 	gtk_table_set_col_spacings( table, 5 );
 
-	btn = gtk_toggle_button_new_with_label( "Private AfterStep" );
+	action_group = gtk_action_group_new( "RootSelection" );
+	gtk_action_group_add_radio_actions( action_group, root_sel_entries, ROOT_SELECTION_ENTRIES_NUM, 
+										root_PrivateAfterStep, G_CALLBACK(root_selection_changed), NULL );
+
+	btn = gtk_toggle_button_new();
 	gtk_table_attach_defaults (table, btn, 0, 1, 0, 1);	
+	gtk_action_connect_proxy(gtk_action_group_get_action(action_group,"root_PrivateAfterStep"), btn );
 
-	btn = gtk_toggle_button_new_with_label( "Shared AfterStep" );
+	btn = gtk_toggle_button_new();
 	gtk_table_attach_defaults (table, btn, 1, 2, 0, 1);	
+	gtk_action_connect_proxy(gtk_action_group_get_action(action_group,"root_SharedAfterStep"), btn );
 
-	btn = gtk_toggle_button_new_with_label( "Home" );
+	btn = gtk_toggle_button_new();
 	gtk_table_attach_defaults (table, btn, 2, 3, 0, 1);	
+	gtk_action_connect_proxy(gtk_action_group_get_action(action_group,"root_Home"), btn );
 	
-	btn = gtk_toggle_button_new_with_label( "/usr/share" );
+	btn = gtk_toggle_button_new();
 	gtk_table_attach_defaults (table, btn, 3, 4, 0, 1);	
+	gtk_action_connect_proxy(gtk_action_group_get_action(action_group,"root_UsrShare"), btn );
 	
-	btn = gtk_toggle_button_new_with_label( "/usr/local/share" );
+	btn = gtk_toggle_button_new();
 	gtk_table_attach_defaults (table, btn, 4, 5, 0, 1);	
+	gtk_action_connect_proxy(gtk_action_group_get_action(action_group,"root_UsrLocalShare"), btn );
 	
-	btn = gtk_toggle_button_new_with_label( "Other : " );
+	btn = gtk_toggle_button_new();
 	gtk_table_attach_defaults (table, btn, 0, 1, 1, 2);	
+	gtk_action_connect_proxy(gtk_action_group_get_action(action_group,"root_Other"), btn );
 
 	gtk_widget_show_all (GTK_WIDGET(table));
 	gtk_widget_show (GTK_WIDGET(table));
