@@ -833,14 +833,23 @@ root_selection_changed( GtkAction *action, GtkRadioAction *current )
 	}		   
 }
 
+void on_hide_contents_toggle(GtkToggleButton *hide_button, GtkWidget *contents)
+{
+	if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(hide_button) ) ) 		
+		gtk_widget_hide (contents);
+	else
+		gtk_widget_show (contents);
+}	 
+
+
 GtkWidget *
 build_root_selection_frame()
 {
 	GtkTable *table;
 	GtkWidget *btn ;
 	GtkActionGroup *action_group ;
-	GtkWidget *frame = gtk_frame_new( "Select directory tree to browse : " );
-		
+	GtkWidget *path_combo ;
+	GtkWidget *path_entry = NULL;
 
 #define ROOT_SELECTION_ENTRIES_NUM	6
 	static GtkRadioActionEntry root_sel_entries[ROOT_SELECTION_ENTRIES_NUM] = {
@@ -863,9 +872,30 @@ build_root_selection_frame()
 			"Custom location in the filesystem tree", 				
 			root_Other},	  
 	} ;
+	int root_sel_cells[ROOT_SELECTION_ENTRIES_NUM][4] = 
+	{	{0, 1, 0, 1},	
+	 	{1, 2, 0, 1},
+	 	{2, 3, 0, 1},
+	 	{3, 4, 0, 1},
+	 	{4, 5, 0, 1},
+	 	{0, 1, 1, 2}
+	};	 
+	int i ;
+	GtkWidget *frame = gtk_frame_new( NULL );
+	GtkWidget *hbox = gtk_hbox_new( FALSE, 0 );
+	GtkWidget *label = gtk_label_new( "Select directory tree to browse : ");
+	GtkWidget *checkbox = gtk_check_button_new_with_label( "( hide and show entire filesystem )" );
 
+
+	gtk_box_pack_start (GTK_BOX (hbox), label, TRUE, TRUE, 5);
+	gtk_box_pack_end (GTK_BOX (hbox), checkbox, TRUE, TRUE, 5);
+	gtk_widget_show_all (hbox);
+	gtk_widget_show (hbox);
+	gtk_frame_set_label_widget( GTK_FRAME(frame), hbox );
+
+	table = GTK_TABLE(gtk_table_new( 5, 2, FALSE ));
+	g_signal_connect ((gpointer) checkbox, "clicked", G_CALLBACK (on_hide_contents_toggle), table);
 	
-	table = GTK_TABLE(gtk_table_new( 5, 2, TRUE ));
 	gtk_container_add (GTK_CONTAINER (frame), GTK_WIDGET(table));
 	gtk_container_set_border_width( GTK_CONTAINER (frame), 5 );
 	gtk_container_set_border_width( GTK_CONTAINER (table), 5 );
@@ -876,65 +906,75 @@ build_root_selection_frame()
 	gtk_action_group_add_radio_actions( action_group, root_sel_entries, ROOT_SELECTION_ENTRIES_NUM, 
 										root_PrivateAfterStep, G_CALLBACK(root_selection_changed), NULL );
 
-	btn = gtk_toggle_button_new();
-	gtk_table_attach_defaults (table, btn, 0, 1, 0, 1);	
-	gtk_action_connect_proxy(gtk_action_group_get_action(action_group,"root_PrivateAfterStep"), btn );
+	for( i = 0 ; i  < ROOT_SELECTION_ENTRIES_NUM ; ++i ) 
+	{	
+		btn = gtk_toggle_button_new();
+		gtk_table_attach_defaults (table, btn,  root_sel_cells[i][0], root_sel_cells[i][1], 
+												root_sel_cells[i][2], root_sel_cells[i][3]);	
+		gtk_action_connect_proxy(gtk_action_group_get_action(action_group,root_sel_entries[i].name), btn );
+	}
 
-	btn = gtk_toggle_button_new();
-	gtk_table_attach_defaults (table, btn, 1, 2, 0, 1);	
-	gtk_action_connect_proxy(gtk_action_group_get_action(action_group,"root_SharedAfterStep"), btn );
+	path_combo = gtk_combo_box_entry_new_text();
+	gtk_table_attach_defaults (table, path_combo,  1, 5, 1, 2 );
+	colorize_gtk_edit(path_combo);
+	
+	if( GTK_IS_CONTAINER(path_combo) )
+		gtk_container_forall( GTK_CONTAINER(path_combo), find_combobox_entry, &path_entry );
+	/* if above succeeded then path_entry should be not NULL here : */
+	/* TODO : insert proper change handlers and data pointers here : */
+	if( path_entry ) 
+		g_signal_connect ( G_OBJECT (path_entry), "activate",
+		      			   G_CALLBACK (NULL), (gpointer) NULL);
+	g_signal_connect (G_OBJECT(path_combo), "changed",
+			  			G_CALLBACK (NULL), (gpointer) NULL);
 
-	btn = gtk_toggle_button_new();
-	gtk_table_attach_defaults (table, btn, 2, 3, 0, 1);	
-	gtk_action_connect_proxy(gtk_action_group_get_action(action_group,"root_Home"), btn );
 	
-	btn = gtk_toggle_button_new();
-	gtk_table_attach_defaults (table, btn, 3, 4, 0, 1);	
-	gtk_action_connect_proxy(gtk_action_group_get_action(action_group,"root_UsrShare"), btn );
-	
-	btn = gtk_toggle_button_new();
-	gtk_table_attach_defaults (table, btn, 4, 5, 0, 1);	
-	gtk_action_connect_proxy(gtk_action_group_get_action(action_group,"root_UsrLocalShare"), btn );
-	
-	btn = gtk_toggle_button_new();
-	gtk_table_attach_defaults (table, btn, 0, 1, 1, 2);	
-	gtk_action_connect_proxy(gtk_action_group_get_action(action_group,"root_Other"), btn );
-
 	gtk_widget_show_all (GTK_WIDGET(table));
 	gtk_widget_show (GTK_WIDGET(table));
+	gtk_widget_set_size_request ( frame, -1, -1);
 	colorize_gtk_widget( frame, get_colorschemed_style_normal() );
 	
 	return frame;
 }	   
+	
+GtkWidget *
+build_main_frame()
+{
+	GtkWidget *frame = gtk_frame_new( NULL );
+	
+	
+	colorize_gtk_widget( frame, get_colorschemed_style_normal() );
+	return frame;
+}
 
 void
 create_main_window (void)
 {
     GtkWidget *main_vbox;
 	GtkWidget *root_sel_frame ; 
-
-
-
+	GtkWidget *main_frame ; 
 
   	AppState.main_window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   	gtk_window_set_title (GTK_WINDOW (AppState.main_window), "AfterStep File Browser");
 
- 	colorize_gtk_window( AppState.main_window ); 	
-		
+	colorize_gtk_window( AppState.main_window ); 	  
+
 	main_vbox = gtk_vbox_new (FALSE, 0);
   	gtk_widget_show (main_vbox);
 	gtk_container_add (GTK_CONTAINER (AppState.main_window), main_vbox);
 
 	if( (root_sel_frame = build_root_selection_frame()) != NULL )
 	{	
-		gtk_box_pack_start (GTK_BOX (main_vbox), GTK_WIDGET(root_sel_frame), TRUE, TRUE, 5);
+		gtk_box_pack_start (GTK_BOX (main_vbox), GTK_WIDGET(root_sel_frame), FALSE, FALSE, 5);
 		gtk_widget_show (root_sel_frame);
 	}
 
-  	AppState.list_hbox = gtk_hbox_new (FALSE, 0);
-  	gtk_widget_show (AppState.list_hbox);
-  	gtk_box_pack_start (GTK_BOX (main_vbox), AppState.list_hbox, TRUE, TRUE, 5);
-
+	if( (main_frame = build_main_frame()) != NULL )
+	{	
+	  	gtk_box_pack_end (GTK_BOX (main_vbox), main_frame, TRUE, TRUE, 5);
+		gtk_widget_show (main_frame);
+	}
+ 	
 }
 
 void

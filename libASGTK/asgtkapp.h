@@ -31,6 +31,9 @@ Bool asgtk_yes_no_question1( GtkWidget *main_window, const char *format, const c
 void asgtk_warning2( GtkWidget *main_window, const char *format, const char *detail1, const char *detail2 );
 void asgtk_info2( GtkWidget *main_window, const char *format, const char *detail1, const char *detail2 );
 
+
+void find_combobox_entry(GtkWidget *widget, gpointer data/* == GtkWidget **pentry */);
+
 #ifdef __cplusplus
 }
 #endif

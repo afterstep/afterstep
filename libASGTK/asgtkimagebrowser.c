@@ -204,12 +204,6 @@ on_home_clicked(GtkButton *button, gpointer user_data)
 	asgtk_image_browser_change_dir( ib, "~/" ); 
 }
 
-static void find_combobox_entry(GtkWidget *widget, gpointer data)
-{
-  	ASGtkImageBrowser *ib = ASGTK_IMAGE_BROWSER (data);
-	if( GTK_IS_ENTRY(widget) )
-		ib->path_entry = widget ;
-}	 
 
 static void asgtk_image_browser_path_entry( GtkWidget *widget, gpointer data )
 {
@@ -333,7 +327,7 @@ asgtk_image_browser_new ()
 	ib->path_entry = NULL ; 
 	/* path_entry is actually found trough the following discovery process :  */
 	if( GTK_IS_CONTAINER(ib->path_combo) )
-		gtk_container_forall( GTK_CONTAINER(ib->path_combo), find_combobox_entry, ib );
+		gtk_container_forall( GTK_CONTAINER(ib->path_combo), find_combobox_entry, &(ib->path_entry) );
 	/* if above succeeded then path_entry should be not NULL here : */
 	if( ib->path_entry ) 
 		g_signal_connect ( G_OBJECT (ib->path_entry), "activate",

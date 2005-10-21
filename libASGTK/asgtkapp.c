@@ -341,3 +341,10 @@ asgtk_info2( GtkWidget *main_window, const char *format, const char *detail1, co
 }
 
 
+void find_combobox_entry(GtkWidget *widget, gpointer data)
+{
+  	GtkWidget **pentry = data;
+	if( GTK_IS_ENTRY(widget) )
+		*pentry = widget ;
+}	 
+
