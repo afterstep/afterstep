@@ -261,6 +261,9 @@ set_balloon_look( ASBalloonLook *blook )
 
 Bool is_balloon_click( XEvent *xe ) 
 {
+    if( BalloonState.active_window == None ) 
+		return False;
+	LOCAL_DEBUG_OUT( "Balloon window is %lX, xbutton.window = %lX, subwindow = %lX", BalloonState.active_window, xe->xbutton.window, xe->xbutton.subwindow );
 	return ( xe->xbutton.window == BalloonState.active_window || xe->xbutton.subwindow == BalloonState.active_window );
 	
 }	 
