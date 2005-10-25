@@ -78,7 +78,8 @@ Style   "XMMS_Player*"   NoTitle, NoHandles
 Style   "XMMS_Playlist*" NoTitle, NoHandles
 
 # Multimedia apps
-Style  "MPlayer*"       Icon normal/MovieProjector, NoTitle, NoHandles
+# add Layer 4 to all apps you want to see above the wharf
+Style  "MPlayer*"       Icon normal/MovieProjector, NoTitle, NoHandles, Layer 4
 Style  "MPlayer-Video*" Title, Handles
 Style	"RealPlayer"    	Icon logos/real
 Style	"VCLApplication" 	Layer 0	#, StartsOnDesk 0
