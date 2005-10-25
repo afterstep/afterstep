@@ -12,6 +12,6 @@
 #include "asgtkxmleditor.h"
 #include "asgtkcolorsel.h"
 #include "asgtkgradient.h"
-
+#include "asgtkdirtree.h"
 
 #endif /* #ifndef ASGTK_H_HEADER_INCLUDED */

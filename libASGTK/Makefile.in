@@ -2,11 +2,11 @@
 # Copyright (c) 2005, Sasha Vasko <sasha at aftercode.net>
 #
 
-LIB_INCS= asgtk.h asgtkapp.h asgtkai.h asgtkcolorsel.h asgtkgradient.h \
+LIB_INCS= asgtk.h asgtkapp.h asgtkai.h asgtkcolorsel.h asgtkdirtree.h asgtkgradient.h \
 		asgtkimagebrowser.h asgtkimagedir.h asgtkimageview.h \
 		asgtkxmleditor.h
 
-LIB_OBJS= asgtkapp.o asgtkai.o asgtkcolorsel.o asgtkgradient.o \
+LIB_OBJS= asgtkapp.o asgtkai.o asgtkcolorsel.o asgtkdirtree.o asgtkgradient.o \
 		asgtkimagebrowser.o asgtkimagedir.o asgtkimageview.o \
 		asgtkxmleditor.o
 

@@ -24,6 +24,7 @@
 #include "../../../libAfterStep/screen.h"
 #include "../../../libAfterStep/colorscheme.h"
 #include "../../../libAfterStep/module.h"
+#include "../../../libAfterStep/session.h"
 #include "../../../libASGTK/asgtk.h"
 
 #include <unistd.h>		   
@@ -823,14 +824,35 @@ typedef enum
 }ASFileBrowserRoot;
 
 void 
-root_selection_changed( GtkAction *action, GtkRadioAction *current )
+root_selection_changed( GtkAction *action, GtkRadioAction *current, ASGtkDirTree *dirlist )
 {
 	ASFileBrowserRoot root = gtk_radio_action_get_current_value(current);
+	char *new_root = NULL ;
 	if( root != root_Other )
 	{
 		/* disable other text controls */			
-		
 	}		   
+	switch( root ) 
+	{
+		case root_PrivateAfterStep : 
+			new_root = mystrdup(Session->ashome );
+		    break ;					   
+		case root_SharedAfterStep  :
+			new_root = mystrdup(Session->asshare );
+		    break ;					   
+		case root_Home :
+			new_root = mystrdup(getenv("$HOME"));
+		    break ;					   
+		case root_UsrShare :
+			new_root = mystrdup("/usr/share");
+		    break ;					   
+		case root_UsrLocalShare :
+			new_root = mystrdup("/usr/local/share");
+		    break ;					   
+		case root_Other :
+		    break ;					   
+	}	 
+	asgtk_dir_tree_set_root( dirlist, new_root );
 }
 
 void on_hide_contents_toggle(GtkToggleButton *hide_button, GtkWidget *contents)
@@ -843,13 +865,14 @@ void on_hide_contents_toggle(GtkToggleButton *hide_button, GtkWidget *contents)
 
 
 GtkWidget *
-build_root_selection_frame()
+build_root_selection_frame(GtkWidget *dirlist)
 {
 	GtkTable *table;
 	GtkWidget *btn ;
 	GtkActionGroup *action_group ;
 	GtkWidget *path_combo ;
 	GtkWidget *path_entry = NULL;
+	GtkWidget* file_chooser_btn ;
 
 #define ROOT_SELECTION_ENTRIES_NUM	6
 	static GtkRadioActionEntry root_sel_entries[ROOT_SELECTION_ENTRIES_NUM] = {
@@ -904,7 +927,7 @@ build_root_selection_frame()
 
 	action_group = gtk_action_group_new( "RootSelection" );
 	gtk_action_group_add_radio_actions( action_group, root_sel_entries, ROOT_SELECTION_ENTRIES_NUM, 
-										root_PrivateAfterStep, G_CALLBACK(root_selection_changed), NULL );
+										root_PrivateAfterStep, G_CALLBACK(root_selection_changed), dirlist );
 
 	for( i = 0 ; i  < ROOT_SELECTION_ENTRIES_NUM ; ++i ) 
 	{	
@@ -915,8 +938,16 @@ build_root_selection_frame()
 	}
 
 	path_combo = gtk_combo_box_entry_new_text();
-	gtk_table_attach_defaults (table, path_combo,  1, 5, 1, 2 );
 	colorize_gtk_edit(path_combo);
+
+	file_chooser_btn = gtk_button_new_with_label( "Browse" );
+	colorize_gtk_edit(path_combo);
+	hbox = gtk_hbox_new( FALSE, 0 );
+	gtk_box_pack_start (GTK_BOX (hbox), path_combo, TRUE, TRUE, 0);
+	gtk_box_pack_end (GTK_BOX (hbox), file_chooser_btn, FALSE, FALSE, 0);
+	gtk_widget_show_all (hbox);
+
+	gtk_table_attach_defaults (table, hbox,  1, 5, 1, 2 );
 	
 	if( GTK_IS_CONTAINER(path_combo) )
 		gtk_container_forall( GTK_CONTAINER(path_combo), find_combobox_entry, &path_entry );
@@ -936,14 +967,111 @@ build_root_selection_frame()
 	
 	return frame;
 }	   
-	
+
 GtkWidget *
-build_main_frame()
+asgtk_text_view_new()
 {
+	
+	return gtk_text_view_new();	
+}
+
+GtkWidget *
+asgtk_hex_view_new()
+{
+  	return gtk_text_view_new();		
+}
+
+#if 0
+GtkWidget *
+asgtk_dir_tree_new()
+{
+	GtkWidget *dir_tree = NULL ;
+	
+	GtkWidget *scrolled_win, *model ;
+	GtkTreeViewColumn *column ;
+		
+	model = GTK_WIDGET(gtk_tree_store_new (1, G_TYPE_STRING));
+  	dir_tree = gtk_tree_view_new_with_model (GTK_TREE_MODEL (model));
+  	g_object_unref (model);
+  
+	column = gtk_tree_view_column_new_with_attributes (
+				"Folders", gtk_cell_renderer_text_new (), "text", 0, 
+				NULL);
+	gtk_tree_view_column_set_sizing (column, GTK_TREE_VIEW_COLUMN_AUTOSIZE);
+  	gtk_tree_view_append_column (GTK_TREE_VIEW (dir_tree), column);
+		 
+	scrolled_win = gtk_scrolled_window_new (NULL, NULL);
+  	gtk_scrolled_window_set_shadow_type (GTK_SCROLLED_WINDOW (scrolled_win), GTK_SHADOW_IN);  
+  	gtk_container_add (GTK_CONTAINER (scrolled_win), dir_tree);
+  	gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolled_win),
+									GTK_POLICY_AUTOMATIC, GTK_POLICY_ALWAYS);
+  	gtk_container_set_border_width (GTK_CONTAINER (scrolled_win), 0);
+
+	return scrolled_win;	
+}
+#endif
+typedef struct ASFileBrowserMainFrame
+{
+	GtkWidget *view_tabs ;
+	GtkWidget *view_image ;
+	GtkWidget *view_text ;
+	GtkWidget *view_hex ;
+	GtkWidget *dirlist ;
+	GtkWidget *filelist ;
+}ASFileBrowserMainFrame;
+	   
+GtkWidget *
+build_main_frame(ASFileBrowserMainFrame *data)
+{
+	GtkWidget *h_paned ; 
+	GtkWidget *v_paned ; 
+	GtkWidget *view_tabs ;
+	GtkWidget *view_image ;
+	GtkWidget *view_text ;
+	GtkWidget *view_hex ;
+	GtkWidget *dirlist ;
+	GtkWidget *filelist ;
 	GtkWidget *frame = gtk_frame_new( NULL );
 	
+	h_paned = gtk_hpaned_new();
+	gtk_container_add (GTK_CONTAINER (frame), h_paned);
+	
+	v_paned = gtk_vpaned_new();
+	gtk_paned_add1 (GTK_PANED (h_paned), v_paned);
+
+	view_tabs = gtk_notebook_new();
+	gtk_paned_add2 (GTK_PANED (h_paned), view_tabs);
+	
+	view_image = asgtk_image_view_new();
+	gtk_notebook_append_page (GTK_NOTEBOOK (view_tabs), view_image, gtk_label_new("AS image"));
+	
+	view_text = asgtk_text_view_new();
+	gtk_notebook_append_page (GTK_NOTEBOOK (view_tabs), view_text, gtk_label_new("AS text"));
+
+	view_hex = asgtk_hex_view_new();
+	gtk_notebook_append_page (GTK_NOTEBOOK (view_tabs), view_hex, gtk_label_new("AS hex"));
+
+	gtk_widget_show_all (view_tabs);
+
+	dirlist = asgtk_dir_tree_new();
+	gtk_paned_add1 (GTK_PANED (v_paned), dirlist);
+
+	filelist = asgtk_image_dir_new();
+	gtk_paned_add2 (GTK_PANED (v_paned), filelist);
+
+	gtk_widget_show_all (v_paned);
+	gtk_widget_show_all (h_paned);
+	gtk_widget_show (h_paned);
 	
 	colorize_gtk_widget( frame, get_colorschemed_style_normal() );
+	
+	data->view_tabs = view_tabs ;
+	data->view_image= view_image ;
+	data->view_text = view_text ;
+	data->view_hex  = view_hex ;
+	data->dirlist   = dirlist ;
+	data->filelist  = filelist ;
+	
 	return frame;
 }
 
@@ -953,6 +1081,7 @@ create_main_window (void)
     GtkWidget *main_vbox;
 	GtkWidget *root_sel_frame ; 
 	GtkWidget *main_frame ; 
+	ASFileBrowserMainFrame *main_frame_data = safecalloc( 1, sizeof(ASFileBrowserMainFrame));
 
   	AppState.main_window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   	gtk_window_set_title (GTK_WINDOW (AppState.main_window), "AfterStep File Browser");
@@ -960,20 +1089,15 @@ create_main_window (void)
 	colorize_gtk_window( AppState.main_window ); 	  
 
 	main_vbox = gtk_vbox_new (FALSE, 0);
-  	gtk_widget_show (main_vbox);
 	gtk_container_add (GTK_CONTAINER (AppState.main_window), main_vbox);
 
-	if( (root_sel_frame = build_root_selection_frame()) != NULL )
-	{	
-		gtk_box_pack_start (GTK_BOX (main_vbox), GTK_WIDGET(root_sel_frame), FALSE, FALSE, 5);
-		gtk_widget_show (root_sel_frame);
-	}
-
-	if( (main_frame = build_main_frame()) != NULL )
-	{	
-	  	gtk_box_pack_end (GTK_BOX (main_vbox), main_frame, TRUE, TRUE, 5);
-		gtk_widget_show (main_frame);
-	}
+	main_frame = build_main_frame(main_frame_data);
+	root_sel_frame = build_root_selection_frame(main_frame_data->dirlist);
+	  	
+	gtk_box_pack_start (GTK_BOX (main_vbox), GTK_WIDGET(root_sel_frame), FALSE, FALSE, 0);
+	gtk_box_pack_end (GTK_BOX (main_vbox), main_frame, TRUE, TRUE, 0);
+  	gtk_widget_show_all (main_vbox);
+  	gtk_widget_show (main_vbox);
  	
 }
 
