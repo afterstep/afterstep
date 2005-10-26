@@ -33,6 +33,11 @@
 
 extern ASFileBrowserState AppState ;
 
+#define DIR_TREE_WIDTH		300
+#define DIR_TREE_HEIGHT		300
+#define FILE_LIST_WIDTH		300
+#define FILE_LIST_HEIGHT	200
+
 /* ###################################################################### */
 #if 0                          /* old stuff  */
 void
@@ -813,6 +818,8 @@ reload_private_backs_list()
 
 #endif                         /* old stuff  */
 /* ###################################################################### */
+
+
 typedef enum 
 {
 	root_PrivateAfterStep = 0, 
@@ -820,14 +827,41 @@ typedef enum
 	root_Home, 
 	root_UsrShare, 
 	root_UsrLocalShare,
-	root_Other 
+	root_Root,
+	root_StandardRoots,
+	root_Other = root_StandardRoots
 }ASFileBrowserRoot;
 
-void 
-root_selection_changed( GtkAction *action, GtkRadioAction *current, ASGtkDirTree *dirlist )
+typedef struct ASFileBrowserMainFrame
 {
-	ASFileBrowserRoot root = gtk_radio_action_get_current_value(current);
+	GtkWidget *view_tabs ;
+	GtkWidget *view_image ;
+	GtkWidget *view_text ;
+	GtkWidget *view_hex ;
+	GtkWidget *dirlist ;
+	GtkWidget *filelist ;
+}ASFileBrowserMainFrame;
+	   
+typedef struct ASFileBrowserRootSelFrame
+{
+	GtkWidget *table;
+	GtkActionGroup *action_group ;
+	GtkWidget *path_combo ;
+	GtkWidget *path_entry ;
+	GtkWidget *file_chooser_btn ;
+	GtkWidget *target_dirlist ;
+	GtkTreeModel *root_models[root_StandardRoots];
+	GtkTreePath *root_paths[root_StandardRoots];
+	ASFileBrowserRoot last_nonroot_root;
+}ASFileBrowserRootSelFrame;
+
+static void
+change_root_to( ASFileBrowserRootSelFrame *data, ASFileBrowserRoot root )	
+{
 	char *new_root = NULL ;
+	int i ;
+	GtkTreeModel *old_model ;
+
 	if( root != root_Other )
 	{
 		/* disable other text controls */			
@@ -841,7 +875,7 @@ root_selection_changed( GtkAction *action, GtkRadioAction *current, ASGtkDirTree
 			new_root = mystrdup(Session->asshare );
 		    break ;					   
 		case root_Home :
-			new_root = mystrdup(getenv("$HOME"));
+			new_root = mystrdup(getenv("HOME"));
 		    break ;					   
 		case root_UsrShare :
 			new_root = mystrdup("/usr/share");
@@ -849,23 +883,76 @@ root_selection_changed( GtkAction *action, GtkRadioAction *current, ASGtkDirTree
 		case root_UsrLocalShare :
 			new_root = mystrdup("/usr/local/share");
 		    break ;					   
-		case root_Other :
+		case root_Root :
+#ifdef __CYGWIN__
+			new_root = mystrdup("/cygdrive");
+#else
+			new_root = mystrdup("/");
+#endif
 		    break ;					   
+		case root_Other :
+		    break ;			
 	}	 
-	asgtk_dir_tree_set_root( dirlist, new_root );
+	
+	if( root != root_Root ) 
+		data->last_nonroot_root = root ; 
+
+
+	old_model = asgtk_dir_tree_get_model( ASGTK_DIR_TREE(data->target_dirlist) );
+	for( i = 0 ; i < root_StandardRoots ; ++i ) 
+		if( data->root_models[i] == old_model ) 
+		{
+			if( data->root_paths[i] )
+				gtk_tree_path_free( data->root_paths[i] );
+			data->root_paths[i]	= asgtk_dir_tree_get_curr_path( ASGTK_DIR_TREE(data->target_dirlist) );				   
+			break;
+		}	 
+	g_object_unref( old_model );
+	if( root < root_StandardRoots )
+	{	
+		GtkTreeModel *new_model ;
+		asgtk_dir_tree_set_root( ASGTK_DIR_TREE(data->target_dirlist), new_root, data->root_models[root] );
+		new_model = asgtk_dir_tree_get_model( ASGTK_DIR_TREE(data->target_dirlist) );
+		if( data->root_models[root] != new_model )
+		{
+			if( data->root_models[root]	)
+				g_object_unref( data->root_models[root] );
+			data->root_models[root] = new_model ; 
+		}else
+	  		 g_object_unref( new_model );	 
+		if( data->root_paths[root] == NULL ) 
+			data->root_paths[root] = gtk_tree_path_new_first ();
+		asgtk_dir_tree_restore_curr_path( ASGTK_DIR_TREE(data->target_dirlist), data->root_paths[root] );				   
+	}else
+		asgtk_dir_tree_set_root( ASGTK_DIR_TREE(data->target_dirlist), new_root, NULL );
+
+	if( new_root ) 
+		free( new_root ); 
 }
 
-void on_hide_contents_toggle(GtkToggleButton *hide_button, GtkWidget *contents)
+void 
+root_selection_changed( GtkAction *action, GtkRadioAction *current, ASFileBrowserRootSelFrame *data )
+{
+	ASFileBrowserRoot root = gtk_radio_action_get_current_value(current);
+	change_root_to( data, root );
+}
+
+void on_hide_contents_toggle(GtkToggleButton *hide_button, ASFileBrowserRootSelFrame *data)
 {
 	if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(hide_button) ) ) 		
-		gtk_widget_hide (contents);
-	else
-		gtk_widget_show (contents);
+	{	
+		gtk_widget_hide (data->table);
+		change_root_to( data, root_Root );
+	}else
+	{	
+		gtk_widget_show (data->table);
+		change_root_to( data, data->last_nonroot_root );
+	}
 }	 
 
 
 GtkWidget *
-build_root_selection_frame(GtkWidget *dirlist)
+build_root_selection_frame(ASFileBrowserRootSelFrame *data, GtkWidget *dirlist)
 {
 	GtkTable *table;
 	GtkWidget *btn ;
@@ -917,7 +1004,7 @@ build_root_selection_frame(GtkWidget *dirlist)
 	gtk_frame_set_label_widget( GTK_FRAME(frame), hbox );
 
 	table = GTK_TABLE(gtk_table_new( 5, 2, FALSE ));
-	g_signal_connect ((gpointer) checkbox, "clicked", G_CALLBACK (on_hide_contents_toggle), table);
+	g_signal_connect ((gpointer) checkbox, "clicked", G_CALLBACK (on_hide_contents_toggle), data);
 	
 	gtk_container_add (GTK_CONTAINER (frame), GTK_WIDGET(table));
 	gtk_container_set_border_width( GTK_CONTAINER (frame), 5 );
@@ -927,7 +1014,7 @@ build_root_selection_frame(GtkWidget *dirlist)
 
 	action_group = gtk_action_group_new( "RootSelection" );
 	gtk_action_group_add_radio_actions( action_group, root_sel_entries, ROOT_SELECTION_ENTRIES_NUM, 
-										root_PrivateAfterStep, G_CALLBACK(root_selection_changed), dirlist );
+										root_PrivateAfterStep, G_CALLBACK(root_selection_changed), data );
 
 	for( i = 0 ; i  < ROOT_SELECTION_ENTRIES_NUM ; ++i ) 
 	{	
@@ -959,12 +1046,20 @@ build_root_selection_frame(GtkWidget *dirlist)
 	g_signal_connect (G_OBJECT(path_combo), "changed",
 			  			G_CALLBACK (NULL), (gpointer) NULL);
 
-	
 	gtk_widget_show_all (GTK_WIDGET(table));
 	gtk_widget_show (GTK_WIDGET(table));
 	gtk_widget_set_size_request ( frame, -1, -1);
 	colorize_gtk_widget( frame, get_colorschemed_style_normal() );
-	
+
+	data->table 		   = GTK_WIDGET(table) ;
+	data->action_group 	   = action_group ;
+	data->path_combo       = path_combo ;
+	data->path_entry       = path_entry ;
+	data->file_chooser_btn = file_chooser_btn ;
+	data->target_dirlist   = dirlist ;
+
+	change_root_to( data, root_PrivateAfterStep );
+	   
 	return frame;
 }	   
 
@@ -981,45 +1076,32 @@ asgtk_hex_view_new()
   	return gtk_text_view_new();		
 }
 
-#if 0
-GtkWidget *
-asgtk_dir_tree_new()
+static void 
+dir_tree_sel_handler( ASGtkDirTree *dt, gpointer user_data)
 {
-	GtkWidget *dir_tree = NULL ;
-	
-	GtkWidget *scrolled_win, *model ;
-	GtkTreeViewColumn *column ;
-		
-	model = GTK_WIDGET(gtk_tree_store_new (1, G_TYPE_STRING));
-  	dir_tree = gtk_tree_view_new_with_model (GTK_TREE_MODEL (model));
-  	g_object_unref (model);
-  
-	column = gtk_tree_view_column_new_with_attributes (
-				"Folders", gtk_cell_renderer_text_new (), "text", 0, 
-				NULL);
-	gtk_tree_view_column_set_sizing (column, GTK_TREE_VIEW_COLUMN_AUTOSIZE);
-  	gtk_tree_view_append_column (GTK_TREE_VIEW (dir_tree), column);
-		 
-	scrolled_win = gtk_scrolled_window_new (NULL, NULL);
-  	gtk_scrolled_window_set_shadow_type (GTK_SCROLLED_WINDOW (scrolled_win), GTK_SHADOW_IN);  
-  	gtk_container_add (GTK_CONTAINER (scrolled_win), dir_tree);
-  	gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolled_win),
-									GTK_POLICY_AUTOMATIC, GTK_POLICY_ALWAYS);
-  	gtk_container_set_border_width (GTK_CONTAINER (scrolled_win), 0);
-
-	return scrolled_win;	
+	ASFileBrowserMainFrame *data = (ASFileBrowserMainFrame *)user_data;
+	char *curr_path = asgtk_dir_tree_get_selection( dt );
+	if( curr_path ) 
+	{
+		asgtk_image_dir_set_path(ASGTK_IMAGE_DIR(data->filelist), curr_path );
+		free( curr_path );		
+	}	 
 }
-#endif
-typedef struct ASFileBrowserMainFrame
+
+static void
+asgtk_filelist_sel_handler(ASGtkImageDir *id, gpointer user_data)
 {
-	GtkWidget *view_tabs ;
-	GtkWidget *view_image ;
-	GtkWidget *view_text ;
-	GtkWidget *view_hex ;
-	GtkWidget *dirlist ;
-	GtkWidget *filelist ;
-}ASFileBrowserMainFrame;
-	   
+	ASFileBrowserMainFrame *data = (ASFileBrowserMainFrame *)user_data;
+	if( data ) 
+	{	
+		ASImageListEntry *le = asgtk_image_dir_get_selection( id ); 
+		asgtk_image_view_set_entry ( ASGTK_IMAGE_VIEW(data->view_image), le);
+		if( le )
+			unref_asimage_list_entry( le );
+	}
+}
+
+
 GtkWidget *
 build_main_frame(ASFileBrowserMainFrame *data)
 {
@@ -1043,6 +1125,7 @@ build_main_frame(ASFileBrowserMainFrame *data)
 	gtk_paned_add2 (GTK_PANED (h_paned), view_tabs);
 	
 	view_image = asgtk_image_view_new();
+	asgtk_image_view_set_resize ( ASGTK_IMAGE_VIEW(view_image), ASGTK_IMAGE_VIEW_SCALE_TO_VIEW, ASGTK_IMAGE_VIEW_RESIZE_ALL );
 	gtk_notebook_append_page (GTK_NOTEBOOK (view_tabs), view_image, gtk_label_new("AS image"));
 	
 	view_text = asgtk_text_view_new();
@@ -1054,9 +1137,11 @@ build_main_frame(ASFileBrowserMainFrame *data)
 	gtk_widget_show_all (view_tabs);
 
 	dirlist = asgtk_dir_tree_new();
+	gtk_widget_set_size_request (dirlist, DIR_TREE_WIDTH, DIR_TREE_HEIGHT);
 	gtk_paned_add1 (GTK_PANED (v_paned), dirlist);
 
 	filelist = asgtk_image_dir_new();
+	gtk_widget_set_size_request (filelist, FILE_LIST_WIDTH, FILE_LIST_HEIGHT);
 	gtk_paned_add2 (GTK_PANED (v_paned), filelist);
 
 	gtk_widget_show_all (v_paned);
@@ -1072,6 +1157,9 @@ build_main_frame(ASFileBrowserMainFrame *data)
 	data->dirlist   = dirlist ;
 	data->filelist  = filelist ;
 	
+	asgtk_dir_tree_set_sel_handler(ASGTK_DIR_TREE(dirlist), dir_tree_sel_handler, data);
+	asgtk_image_dir_set_sel_handler( ASGTK_IMAGE_DIR(filelist), asgtk_filelist_sel_handler, data);
+
 	return frame;
 }
 
@@ -1082,6 +1170,7 @@ create_main_window (void)
 	GtkWidget *root_sel_frame ; 
 	GtkWidget *main_frame ; 
 	ASFileBrowserMainFrame *main_frame_data = safecalloc( 1, sizeof(ASFileBrowserMainFrame));
+	ASFileBrowserRootSelFrame *root_sel_frame_data = safecalloc( 1, sizeof(ASFileBrowserRootSelFrame));
 
   	AppState.main_window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   	gtk_window_set_title (GTK_WINDOW (AppState.main_window), "AfterStep File Browser");
@@ -1092,7 +1181,7 @@ create_main_window (void)
 	gtk_container_add (GTK_CONTAINER (AppState.main_window), main_vbox);
 
 	main_frame = build_main_frame(main_frame_data);
-	root_sel_frame = build_root_selection_frame(main_frame_data->dirlist);
+	root_sel_frame = build_root_selection_frame(root_sel_frame_data, main_frame_data->dirlist);
 	  	
 	gtk_box_pack_start (GTK_BOX (main_vbox), GTK_WIDGET(root_sel_frame), FALSE, FALSE, 0);
 	gtk_box_pack_end (GTK_BOX (main_vbox), main_frame, TRUE, TRUE, 0);

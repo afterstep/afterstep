@@ -28,6 +28,8 @@ typedef struct _ASGtkDirTree
 	GtkCellRenderer 	*cell;
     GtkTreeViewColumn 	*column;
 
+
+	char *curr_selection ;
 	/* screw GTK signals - hate its guts */
 	_ASGtkDirTree_sel_handler sel_change_handler;
 	gpointer sel_change_user_data;
@@ -45,11 +47,14 @@ GType       asgtk_dir_tree_get_type  (void) G_GNUC_CONST;
 
 GtkWidget * asgtk_dir_tree_new       ();
 
-void  asgtk_dir_tree_set_root( ASGtkDirTree *dt, char *fulldirname );
+void  asgtk_dir_tree_set_root( ASGtkDirTree *dt, char *root, GtkTreeModel *saved_model );
 void  asgtk_dir_tree_set_title( ASGtkDirTree *dt, const gchar *title );
 void  asgtk_dir_tree_set_sel_handler( ASGtkDirTree *dt, _ASGtkDirTree_sel_handler sel_change_handler, gpointer user_data );
 char *asgtk_dir_tree_get_selection( ASGtkDirTree *dt );
 void  asgtk_dir_tree_refresh( ASGtkDirTree *dt );
+GtkTreeModel *asgtk_dir_tree_get_model( ASGtkDirTree *dt );
+GtkTreePath *asgtk_dir_tree_get_curr_path( ASGtkDirTree *dt );				  
+void asgtk_dir_tree_restore_curr_path( ASGtkDirTree *dt, GtkTreePath *path );				  
 
 
 

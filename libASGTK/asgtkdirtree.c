@@ -31,12 +31,19 @@
 #include "asgtkai.h"
 #include "asgtkdirtree.h"
 
+#define TREE_NAME		0
+#define TREE_FULLPATH   1
+#define TREE_SCANNED	2
+#define TREE_COLUMNS	3
+
+
 /*  local function prototypes  */
 static void asgtk_dir_tree_class_init (ASGtkDirTreeClass *klass);
 static void asgtk_dir_tree_init (ASGtkDirTree *iv);
 static void asgtk_dir_tree_dispose (GObject *object);
 static void asgtk_dir_tree_finalize (GObject *object);
 static void asgtk_dir_tree_style_set (GtkWidget *widget, GtkStyle  *prev_style);
+static void asgtk_dir_tree_refresh_child( GtkTreeStore *dir_store, GtkTreeIter *parent, char *fullchildname, int level );
 
 
 /*  private variables  */
@@ -127,16 +134,41 @@ asgtk_dir_tree_sel_handler(GtkTreeSelection *selection, gpointer user_data)
 
   	if (gtk_tree_selection_get_selected (selection, &model, &iter)) 
 	{
-		gpointer p = NULL ;
-    	gtk_tree_model_get (model, &iter, 1, &p, -1);
-		/* = (ASImageListEntry*)p; */
+    	gtk_tree_model_get (model, &iter, TREE_FULLPATH, &(dt->curr_selection), -1);
   	}else
 	{	
-		/* dt->curr_selection = NULL ; */
+		dt->curr_selection = NULL ;
 	}
 		
 	if( dt->sel_change_handler )
 		dt->sel_change_handler( dt, dt->sel_change_user_data ); 
+}
+static void
+asgtk_dir_tree_expand_handler(GtkTreeView *treeview,
+                              GtkTreeIter *iter,
+                              GtkTreePath *path,
+                              gpointer user_data)
+{
+  	ASGtkDirTree *dt = ASGTK_DIR_TREE(user_data); 
+	GtkTreeModel *model = dt->tree_model;
+	GtkTreeIter child_iter ;
+
+	gtk_tree_path_down( path );
+	gtk_tree_model_get_iter( model, &child_iter, path );
+
+	do
+	{
+		char *fullpath ;
+		int scanned = 0 ;
+		gtk_tree_model_get(	model, &child_iter,
+			     			TREE_FULLPATH, &fullpath, 
+		     				TREE_SCANNED, &scanned,  -1);
+		if( scanned == 1 ) 
+			break;
+
+		asgtk_dir_tree_refresh_child( GTK_TREE_STORE(model), &child_iter, fullpath, 1 );
+		gtk_tree_store_set (GTK_TREE_STORE (model), &child_iter, TREE_SCANNED, 1, -1);
+	}while(gtk_tree_model_iter_next (model, &child_iter));	 
 }
 
 /*  public functions  */
@@ -149,7 +181,7 @@ asgtk_dir_tree_new ()
     dt = g_object_new (ASGTK_TYPE_DIR_TREE, NULL);
 
 	dt->tree_view = GTK_TREE_VIEW(gtk_tree_view_new());
-	dt->tree_model = GTK_TREE_MODEL(gtk_tree_store_new (1, G_TYPE_STRING));
+	dt->tree_model = GTK_TREE_MODEL(gtk_tree_store_new (TREE_COLUMNS, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_UINT));
 
 	gtk_container_add (GTK_CONTAINER(dt), GTK_WIDGET(dt->tree_view));
     gtk_tree_view_set_model (dt->tree_view, dt->tree_model);
@@ -162,16 +194,17 @@ asgtk_dir_tree_new ()
 	selection = gtk_tree_view_get_selection(dt->tree_view);
 	gtk_tree_selection_set_mode(selection, GTK_SELECTION_SINGLE);
    	g_signal_connect (selection, "changed",  G_CALLBACK (asgtk_dir_tree_sel_handler), dt);
+   	g_signal_connect (dt->tree_view, "row-expanded",  G_CALLBACK (asgtk_dir_tree_expand_handler), dt);
 	
 	colorize_gtk_tree_view_window( GTK_WIDGET(dt) );
-
 	LOCAL_DEBUG_OUT( "created image ASGtkDirTree object %p", dt );	
 	return GTK_WIDGET (dt);
 }
 
 void  
-asgtk_dir_tree_set_root( ASGtkDirTree *dt, char *root )
+asgtk_dir_tree_set_root( ASGtkDirTree *dt, char *root, GtkTreeModel *saved_model )
 {
+	GtkTreeModel *old_model ; 
 	g_return_if_fail (ASGTK_IS_DIR_TREE (dt));
 	
 	if( dt->root == NULL && root == NULL ) 
@@ -187,7 +220,24 @@ asgtk_dir_tree_set_root( ASGtkDirTree *dt, char *root )
 	if( root ) 
 		dt->root = mystrdup(root);
 	
+	dt->curr_selection = NULL ;
+	old_model = GTK_TREE_MODEL(dt->tree_model); 
+
+	if( saved_model != NULL ) 
+		dt->tree_model = g_object_ref( saved_model );
+    else
+		dt->tree_model = GTK_TREE_MODEL(gtk_tree_store_new (TREE_COLUMNS, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_UINT));
+    gtk_tree_view_set_model (dt->tree_view, dt->tree_model);
+	
 	asgtk_dir_tree_refresh( dt );		 
+	g_object_unref( old_model );
+
+}	 
+
+GtkTreeModel *
+asgtk_dir_tree_get_model( ASGtkDirTree *dt )
+{
+	return g_object_ref( dt->tree_model );
 }	 
 
 void  
@@ -213,19 +263,68 @@ asgtk_dir_tree_get_selection(ASGtkDirTree *dt )
 	char *result = NULL ; 
 
 	if( ASGTK_IS_DIR_TREE (dt) )
-	{	
-//		result = ref_asimage_list_entry(id->curr_selection);
-	}
+		result = mystrdup(dt->curr_selection);
 	
 	return result;	 
 }
 
+static void  
+asgtk_dir_tree_refresh_child( GtkTreeStore *dir_store, GtkTreeIter *parent, char *fullchildname, int level )
+{
+	if( --level >= 0 )
+	{	
+		GtkTreeIter iter;
+		struct direntry  **list = NULL;
+		int n = my_scandir (fullchildname, &list, NULL, NULL);
+		
+		if( n > 0 )
+		{
+			int i ;
+			for (i = 0; i < n; i++)
+			{
+				if (S_ISDIR (list[i]->d_mode) )
+				{
+					Bool skip = False ;
+					if( list[i]->d_name[0] == '.' )
+					{
+						skip = ( list[i]->d_name[1] == '\0' ||
+						    	( list[i]->d_name[1] == '.' && list[i]->d_name[2] == '\0' ) );
+					}
+					if( !skip ) 
+					{	
+						char * fulldirname = make_file_name( fullchildname, list[i]->d_name );
+						gtk_tree_store_append (dir_store, &iter, parent);
+						gtk_tree_store_set (dir_store, &iter, TREE_NAME, list[i]->d_name, TREE_FULLPATH, fulldirname, TREE_SCANNED, 0, -1);
+						if( level > 0 )
+							asgtk_dir_tree_refresh_child( dir_store, &iter, fulldirname, level-1 );
+						free( fulldirname );
+					}
+				}	 
+				free( list[i] );
+			}
+			free (list);
+		}
+	}
+} 
+
+
 void  asgtk_dir_tree_refresh( ASGtkDirTree *dt )
 {
-	int items = 0 ;
-	char *curr_sel ;
+	GtkTreeStore *dir_store ;
+	GtkTreeIter iter;
+
 	g_return_if_fail (ASGTK_IS_DIR_TREE (dt));
+
+	dir_store = GTK_TREE_STORE (dt->tree_model);
+
+	gtk_tree_store_clear( dir_store );
 	
+	if( dt->root != NULL ) 
+	{	
+		gtk_tree_store_append (dir_store, &iter, NULL);
+		gtk_tree_store_set (dir_store, &iter, TREE_NAME, dt->root, TREE_FULLPATH, dt->root, TREE_SCANNED, 1, -1);
+		asgtk_dir_tree_refresh_child( dir_store, &iter, dt->root, 2 );
+	} 
 #if 0	
 	curr_sel = mystrdup(dt->curr_selection?dt->curr_selection->name:"");
 
@@ -280,4 +379,22 @@ void  asgtk_dir_tree_refresh( ASGtkDirTree *dt )
 #endif
 }	 
 
+GtkTreePath *
+asgtk_dir_tree_get_curr_path( ASGtkDirTree *dt )
+{
+	GtkTreePath *path = NULL ; 
+	GtkTreeViewColumn *focus_column = NULL ;
+	gtk_tree_view_get_cursor( dt->tree_view, &path, &focus_column);	
+	return path;
+}	 
+
+void 
+asgtk_dir_tree_restore_curr_path( ASGtkDirTree *dt, GtkTreePath *path )
+{
+	if( path ) 
+	{	
+		gtk_tree_view_expand_to_path(dt->tree_view, path);	
+		gtk_tree_view_set_cursor(dt->tree_view, path, dt->column, FALSE);	 
+	}	
+}
 

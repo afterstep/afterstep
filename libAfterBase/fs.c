@@ -593,8 +593,11 @@ my_scandir (char *dirname, struct direntry *(*namelist[]),
 	}
 	strcpy (filename, dirname);
 	p = filename + strlen (filename);
-	*p++ = '/';
-	*p = 0;									   /* Just in case... */
+	if( *p != '/' )
+	{	
+		*p++ = '/';
+		*p = 0;									   /* Just in case... */
+	}
 
 	nl = NULL;
 	n = 0;
