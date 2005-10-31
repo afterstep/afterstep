@@ -20,7 +20,23 @@ typedef void (*_ASGtkImageDir_sel_handler)(struct _ASGtkImageDir *id, gpointer u
 typedef struct _ASGtkImageDir
 {
 	GtkScrolledWindow       parent_instance;
-	
+/* flags : */
+/* mask of what columns to show : */
+#define ASGTK_ImageDir_Col_Name		(0x01<<0)
+#define ASGTK_ImageDir_Col_Type		(0x01<<1)
+#define ASGTK_ImageDir_Col_Size		(0x01<<2)
+#define ASGTK_ImageDir_Col_Date		(0x01<<3)
+#define ASGTK_ImageDir_Col_Perms	(0x01<<4)
+#define ASGTK_ImageDir_Cols			5  /* count of the above items */ 
+#define ASGTK_ImageDir_Cols_All		(ASGTK_ImageDir_Col_Name|ASGTK_ImageDir_Col_Type| \
+									 ASGTK_ImageDir_Col_Size|ASGTK_ImageDir_Col_Date| \
+									 ASGTK_ImageDir_Col_Perms)
+/* other flags : */
+#define ASGTK_ImageDir_ListAll		(0x01<<16)  /* otherwise only the known types of files */ 
+/* defaults : */
+#define ASGTK_ImageDir_DefaultFlags (ASGTK_ImageDir_Col_Name)
+
+	ASFlagType    flags ;
 	char *fulldirname ;
 	char *mini_extension ;
 	struct ASImageListEntry *entries;
@@ -28,8 +44,7 @@ typedef struct _ASGtkImageDir
 	
 	GtkTreeView     	*tree_view;
 	GtkTreeModel    	*tree_model;
-	GtkCellRenderer 	*cell;
-    GtkTreeViewColumn 	*column;
+    GtkTreeViewColumn 	*columns[ASGTK_ImageDir_Cols];
 
 	/* screw GTK signals - hate its guts */
 	_ASGtkImageDir_sel_handler sel_change_handler;
@@ -55,6 +70,9 @@ void  asgtk_image_dir_set_sel_handler( ASGtkImageDir *id, _ASGtkImageDir_sel_han
 struct ASImageListEntry *asgtk_image_dir_get_selection( ASGtkImageDir *id );
 void  asgtk_image_dir_refresh( ASGtkImageDir *id );
 Bool asgtk_image_dir_make_mini_names( ASGtkImageDir *id, const char *name, char **name_return, char **fullname_return );
+
+void  asgtk_image_dir_set_columns( ASGtkImageDir *id, ASFlagType columns );
+void  asgtk_image_dir_set_list_all( ASGtkImageDir *id, Bool enable );
 
 /* standard selection handler linking dir to ASGTKImageView window : */
 void asgtk_image_dir2view_sel_handler(ASGtkImageDir *id, gpointer user_data);

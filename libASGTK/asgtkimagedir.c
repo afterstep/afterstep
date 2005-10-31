@@ -91,6 +91,7 @@ asgtk_image_dir_init (ASGtkImageDir *id)
 {
     gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (id),
 				    				GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
+	id->flags = ASGTK_ImageDir_DefaultFlags ; 
 	id->fulldirname = NULL ; 
 	id->entries = NULL ;
 }
@@ -130,7 +131,7 @@ asgtk_image_dir_sel_handler(GtkTreeSelection *selection, gpointer user_data)
   	if (gtk_tree_selection_get_selected (selection, &model, &iter)) 
 	{
 		gpointer p = NULL ;
-    	gtk_tree_model_get (model, &iter, 1, &p, -1);
+    	gtk_tree_model_get (model, &iter, ASGTK_ImageDir_Cols, &p, -1);
 		id->curr_selection = (ASImageListEntry*)p;
   	}else
 		id->curr_selection = NULL ;
@@ -156,21 +157,32 @@ asgtk_image_dir_new ()
 {
 	ASGtkImageDir *id;
 	GtkTreeSelection *selection;
+	const char *column_names[ASGTK_ImageDir_Cols] = {"Name", "Type", "Size", "Date","Parmissions"};
+	int i ;
+	int default_columns = ASGTK_ImageDir_DefaultFlags&ASGTK_ImageDir_Cols_All ; 
   	
     id = g_object_new (ASGTK_TYPE_IMAGE_DIR, NULL);
 
 	id->tree_view = GTK_TREE_VIEW(gtk_tree_view_new());
-	id->tree_model = GTK_TREE_MODEL(gtk_list_store_new (2, G_TYPE_STRING, G_TYPE_POINTER));
+	id->tree_model = GTK_TREE_MODEL(gtk_list_store_new (ASGTK_ImageDir_Cols+1, G_TYPE_STRING, 
+																			   G_TYPE_STRING, 
+																			   G_TYPE_STRING, 
+																			   G_TYPE_STRING, 
+																			   G_TYPE_STRING, 
+																			   G_TYPE_POINTER));
 
 	gtk_scrolled_window_set_shadow_type (GTK_SCROLLED_WINDOW (id), GTK_SHADOW_IN);      
 	
 	gtk_container_add (GTK_CONTAINER(id), GTK_WIDGET(id->tree_view));
     gtk_tree_view_set_model (id->tree_view, id->tree_model);
     gtk_widget_show (GTK_WIDGET(id->tree_view));
-    id->cell = gtk_cell_renderer_text_new ();
-
-    id->column = gtk_tree_view_column_new_with_attributes ("", id->cell, "text", 0, NULL);
-    gtk_tree_view_append_column (id->tree_view, GTK_TREE_VIEW_COLUMN (id->column));
+	for( i = 0 ; i < ASGTK_ImageDir_Cols ; ++i ) 
+	{
+		GtkCellRenderer *renderer = gtk_cell_renderer_text_new ();
+	    id->columns[i] = gtk_tree_view_column_new_with_attributes (column_names[i], renderer, "text", 0, NULL);
+    }
+	clear_flags( id->flags, ASGTK_ImageDir_Cols_All );
+	asgtk_image_dir_set_columns( id, default_columns );
 	
 	selection = gtk_tree_view_get_selection(id->tree_view);
 	gtk_tree_selection_set_mode(selection, GTK_SELECTION_SINGLE);
@@ -181,6 +193,41 @@ asgtk_image_dir_new ()
 	LOCAL_DEBUG_OUT( "created image ASGtkImageDir object %p", id );	
 	return GTK_WIDGET (id);
 }
+
+void  
+asgtk_image_dir_set_columns( ASGtkImageDir *id, ASFlagType columns )
+{
+	int i; 	
+	for( i = 0 ; i < ASGTK_ImageDir_Cols ; ++i ) 
+	{	
+		ASFlagType flag = 0x01<<i ;
+		if( get_flags(columns, flag) )
+		{	
+			gtk_tree_view_insert_column (id->tree_view, GTK_TREE_VIEW_COLUMN (id->columns[i]), i);
+			set_flags( id->flags, flag );	
+		}else if( get_flags( id->flags, flag ) ) 
+		{
+			gtk_tree_view_remove_column (id->tree_view, GTK_TREE_VIEW_COLUMN (id->columns[i]));
+			clear_flags( id->flags, flag );	
+		}	 
+	}
+}
+
+void  
+asgtk_image_dir_set_list_all( ASGtkImageDir *id, Bool enable )
+{
+	if( enable && get_flags(id->flags, ASGTK_ImageDir_ListAll ) )
+		return ;
+	if( !enable && !get_flags(id->flags, ASGTK_ImageDir_ListAll ) )
+		return ;
+	if( enable ) 
+		set_flags(id->flags, ASGTK_ImageDir_ListAll );
+	else
+		clear_flags(id->flags, ASGTK_ImageDir_ListAll );
+
+	asgtk_image_dir_refresh( id );		 		
+}
+
 
 void  
 asgtk_image_dir_set_path( ASGtkImageDir *id, char *fulldirname )
@@ -228,7 +275,7 @@ void
 asgtk_image_dir_set_title( ASGtkImageDir *id, const gchar *title )
 {
 	g_return_if_fail (ASGTK_IS_IMAGE_DIR (id));
-	gtk_tree_view_column_set_title( id->column, title );	
+	gtk_tree_view_column_set_title( id->columns[0], title );	
 }
 
 void  
@@ -293,7 +340,7 @@ void  asgtk_image_dir_refresh( ASGtkImageDir *id )
 			if( !mini && curr->type <= ASIT_Supported ) 
 			{	
         		gtk_list_store_append (GTK_LIST_STORE (id->tree_model), &iter);
-				gtk_list_store_set (GTK_LIST_STORE (id->tree_model), &iter, 0, curr->name, 1, curr, -1);
+				gtk_list_store_set (GTK_LIST_STORE (id->tree_model), &iter, 0, curr->name, ASGTK_ImageDir_Cols, curr, -1);
 				if( ++items == 1 ) 
 					gtk_tree_selection_select_iter(gtk_tree_view_get_selection(id->tree_view),&iter);
 				else if( strcmp(curr->name, curr_sel) == 0 ) 
