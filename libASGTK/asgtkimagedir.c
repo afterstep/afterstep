@@ -157,7 +157,7 @@ asgtk_image_dir_new ()
 {
 	ASGtkImageDir *id;
 	GtkTreeSelection *selection;
-	const char *column_names[ASGTK_ImageDir_Cols] = {"Name", "Type", "Size", "Date","Parmissions"};
+	const char *column_names[ASGTK_ImageDir_Cols] = {"Name", "Type", "Size(KB)", "MTime","Permission"};
 	int i ;
 	int default_columns = ASGTK_ImageDir_DefaultFlags&ASGTK_ImageDir_Cols_All ; 
   	
@@ -179,7 +179,7 @@ asgtk_image_dir_new ()
 	for( i = 0 ; i < ASGTK_ImageDir_Cols ; ++i ) 
 	{
 		GtkCellRenderer *renderer = gtk_cell_renderer_text_new ();
-	    id->columns[i] = gtk_tree_view_column_new_with_attributes (column_names[i], renderer, "text", 0, NULL);
+	    id->columns[i] = gtk_tree_view_column_new_with_attributes (column_names[i], renderer, "text", i, NULL);
     }
 	clear_flags( id->flags, ASGTK_ImageDir_Cols_All );
 	asgtk_image_dir_set_columns( id, default_columns );
@@ -299,6 +299,31 @@ asgtk_image_dir_get_selection(ASGtkImageDir *id )
 	return result;	 
 }
 
+const char *as_image_file_type_names_short[ASIT_Unknown+1] =
+{
+	"XPM" ,
+	"ZXPM" ,
+	"GZXPM" ,
+	"PNG" ,
+	"JPEG",
+	"GIMP" ,
+	"PPM" ,
+	"PNM" ,
+	"BMP" ,
+	"ICO" ,
+	"MS CUR" ,
+	"GIF" ,
+	"TIFF",
+	"AS XML" ,
+	"XBM",
+	"Targa",
+	"PCX",
+	"HTML",
+	"XML",
+	""
+};
+
+
 void  asgtk_image_dir_refresh( ASGtkImageDir *id )
 {
 	int items = 0 ;
@@ -337,10 +362,26 @@ void  asgtk_image_dir_refresh( ASGtkImageDir *id )
 						mini = (strncmp (&(curr->name[name_len-mini_ext_len]), id->mini_extension, mini_ext_len ) == 0);
 				}
 			}	 
-			if( !mini && curr->type <= ASIT_Supported ) 
+			if( (!mini && curr->type <= ASIT_Supported) || get_flags(id->flags, ASGTK_ImageDir_ListAll ) ) 
 			{	
-        		gtk_list_store_append (GTK_LIST_STORE (id->tree_model), &iter);
-				gtk_list_store_set (GTK_LIST_STORE (id->tree_model), &iter, 0, curr->name, ASGTK_ImageDir_Cols, curr, -1);
+				char size_str[64] ; 
+				char date_str[32] ; 
+				struct tm *mt = gmtime(&(curr->d_mtime));
+				sprintf(date_str, "%02d-%02d-%02d %02d:%02d",
+						(mt->tm_year + 1900)%100,
+						mt->tm_mon + 1,
+						mt->tm_mday, 
+						mt->tm_hour,
+						mt->tm_min);
+				sprintf( size_str, "%lu", (unsigned long)((curr->d_size+1023)/1024) );
+        		
+				gtk_list_store_append (GTK_LIST_STORE (id->tree_model), &iter);
+				gtk_list_store_set (GTK_LIST_STORE (id->tree_model), &iter, 
+									ASGTK_ImageDir_Col_Name_No, curr->name, 
+									ASGTK_ImageDir_Col_Type_No, as_image_file_type_names_short[curr->type], 
+									ASGTK_ImageDir_Col_Size_No, size_str, 
+									ASGTK_ImageDir_Col_Date_No, date_str, 
+									ASGTK_ImageDir_Cols, curr, -1);
 				if( ++items == 1 ) 
 					gtk_tree_selection_select_iter(gtk_tree_view_get_selection(id->tree_view),&iter);
 				else if( strcmp(curr->name, curr_sel) == 0 ) 

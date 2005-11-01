@@ -431,6 +431,97 @@ destroy_asimage_list( ASImageListEntry **plist )
 	}
 }
 
+struct ASImageListAuxData
+{
+	ASImageListEntry **pcurr;
+	ASImageListEntry *last ;
+	ASFlagType preview_type ;
+	unsigned int preview_width ;
+	unsigned int preview_height ;
+	unsigned int preview_compression ;
+	ASVisual *asv;
+};
+
+Bool 
+direntry2ASImageListEntry( const char *fname, const char *fullname, 
+						   struct stat *stat_info, void *aux_data)
+{
+	struct ASImageListAuxData *data = (struct ASImageListAuxData*)aux_data;
+	ASImageFileTypes file_type ;
+	ASImageListEntry *curr ;
+	   	
+	if (S_ISDIR (stat_info->st_mode))
+		return False;
+	
+	file_type = check_image_type( fullname );
+	if( file_type != ASIT_Unknown && as_image_file_loaders[file_type] == NULL )
+		file_type = ASIT_Unknown ;
+
+	curr = create_asimage_list_entry();
+	*(data->pcurr) = curr ; 
+	if( data->last )
+		data->last->next = curr ;
+	curr->prev = data->last ;
+	data->last = curr ;
+	data->pcurr = &(data->last->next);
+
+	curr->name = mystrdup( fname );
+	curr->fullfilename = mystrdup(fullname);
+	curr->type = file_type ;
+   	curr->d_mode = stat_info->st_mode;
+	curr->d_mtime = stat_info->st_mtime;
+	curr->d_size  = stat_info->st_size;
+
+	if( curr->type != ASIT_Unknown && data->preview_type != 0 )
+	{
+		ASImageImportParams iparams = {0} ;
+		ASImage *im = as_image_file_loaders[file_type](fullname, &iparams);
+		if( im )
+		{
+			int scale_width = im->width ;
+			int scale_height = im->height ;
+			int tile_width = im->width ;
+			int tile_height = im->height ;
+
+			if( data->preview_width > 0 )
+			{
+				if( get_flags( data->preview_type, SCALE_PREVIEW_H ) )
+					scale_width = data->preview_width ;
+				else
+					tile_width = data->preview_width ;
+			}
+			if( data->preview_height > 0 )
+			{
+				if( get_flags( data->preview_type, SCALE_PREVIEW_V ) )
+					scale_height = data->preview_height ;
+				else
+					tile_height = data->preview_height ;
+			}
+			if( scale_width != im->width || scale_height != im->height )
+			{
+				ASImage *tmp = scale_asimage( data->asv, im, scale_width, scale_height, ASA_ASImage, data->preview_compression, ASIMAGE_QUALITY_DEFAULT );
+				if( tmp != NULL )
+				{
+					destroy_asimage( &im );
+					im = tmp ;
+				}
+			}
+			if( tile_width != im->width || tile_height != im->height )
+			{
+				ASImage *tmp = tile_asimage( data->asv, im, 0, 0, tile_width, tile_height, TINT_NONE, ASA_ASImage, data->preview_compression, ASIMAGE_QUALITY_DEFAULT );
+				if( tmp != NULL )
+				{
+					destroy_asimage( &im );
+					im = tmp ;
+				}
+			}
+		}
+
+		curr->preview = im ;
+	}
+	return True;
+}
+
 
 ASImageListEntry *
 get_asimage_list( ASVisual *asv, const char *dir,
@@ -442,96 +533,22 @@ get_asimage_list( ASVisual *asv, const char *dir,
 {
 	ASImageListEntry *im_list = NULL ;
 #ifndef _WIN32
-	ASImageListEntry **curr = &im_list, *last = NULL ;
-	struct direntry  **list;
-	int n, i, count = 0;
-	int dir_name_len ;
-
-
+	struct ASImageListAuxData aux_data ; 
+	int count ; 
+	
+	aux_data.pcurr = &im_list;
+	aux_data.last = NULL;
+	aux_data.preview_type = preview_type;
+	aux_data.preview_width = preview_width;
+	aux_data.preview_height = preview_height;
+	aux_data.preview_compression  = preview_compression;
+	aux_data.asv = asv ; 
+	
+	
 	if( asv == NULL || dir == NULL )
 		return NULL ;
 
-	dir_name_len = strlen(dir);
-	n = my_scandir ((char*)dir, &list, select, NULL);
-	if( n > 0 )
-	{
-		for (i = 0; i < n; i++)
-		{
-			if (!S_ISDIR (list[i]->d_mode))
-			{
-				ASImageFileTypes file_type ;
-				char *realfilename ;
-
-				realfilename = safemalloc( dir_name_len + 1 + strlen(list[i]->d_name)+1);
-				sprintf( realfilename, "%s/%s", dir, list[i]->d_name );
-				file_type = check_image_type( realfilename );
-				if( file_type != ASIT_Unknown && as_image_file_loaders[file_type] == NULL )
-					file_type = ASIT_Unknown ;
-
-				++count ;
-				*curr = create_asimage_list_entry();
-				if( last )
-					last->next = *curr ;
-				(*curr)->prev = last ;
-				last = *curr ;
-				curr = &(last->next);
-
-				last->name = mystrdup( list[i]->d_name );
-				last->fullfilename = realfilename ;
-				last->type = file_type ;
-
-				if( last->type != ASIT_Unknown && preview_type != 0 )
-				{
-					ASImageImportParams iparams = {0} ;
-					ASImage *im = as_image_file_loaders[file_type](realfilename, &iparams);
-					if( im )
-					{
-						int scale_width = im->width ;
-						int scale_height = im->height ;
-						int tile_width = im->width ;
-						int tile_height = im->height ;
-
-						if( preview_width > 0 )
-						{
-							if( get_flags( preview_type, SCALE_PREVIEW_H ) )
-								scale_width = preview_width ;
-							else
-								tile_width = preview_width ;
-						}
-						if( preview_height > 0 )
-						{
-							if( get_flags( preview_type, SCALE_PREVIEW_V ) )
-								scale_height = preview_height ;
-							else
-								tile_height = preview_height ;
-						}
-						if( scale_width != im->width || scale_height != im->height )
-						{
-							ASImage *tmp = scale_asimage( asv, im, scale_width, scale_height, ASA_ASImage, preview_compression, ASIMAGE_QUALITY_DEFAULT );
-							if( tmp != NULL )
-							{
-								destroy_asimage( &im );
-								im = tmp ;
-							}
-						}
-						if( tile_width != im->width || tile_height != im->height )
-						{
-							ASImage *tmp = tile_asimage( asv, im, 0, 0, tile_width, tile_height, TINT_NONE, ASA_ASImage, preview_compression, ASIMAGE_QUALITY_DEFAULT );
-							if( tmp != NULL )
-							{
-								destroy_asimage( &im );
-								im = tmp ;
-							}
-						}
-					}
-
-			  		last->preview = im ;
-				}
-			}
-			free( list[i] );
-		}
-		free (list);
-	}
+	count = my_scandir_ext ((char*)dir, select, direntry2ASImageListEntry, &aux_data);
 
 	if( count_ret )
 		*count_ret = count ;
@@ -556,6 +573,28 @@ char *format_asimage_list_entry_details( ASImageListEntry *entry, Bool vertical 
 	return details_text;
 }	 
 
+Bool 
+load_asimage_list_entry_data( ASImageListEntry *entry, size_t max_bytes )
+{
+	char * new_buffer ; 
+	size_t new_buffer_size ;
+	if( entry == NULL ) 
+		return False;
+	if( entry->buffer_size == entry->d_size || entry->buffer_size >= max_bytes )
+		return True;
+	new_buffer_size = min( max_bytes, entry->d_size ); 
+	new_buffer = malloc( new_buffer_size );
+	if( new_buffer == NULL ) 
+		return False ;
+	if( entry->buffer_size > 0 ) 
+	{	
+		memcpy( new_buffer, entry->buffer, entry->buffer_size ) ;
+		free( entry->buffer );
+	}
+	entry->buffer = new_buffer ; 
+	/* TODO read new_buffer_size - entry->buffer_size bytes into the end of the buffer */
+	return True;
+}
 
 /***********************************************************************************/
 /* Some helper functions :                                                         */

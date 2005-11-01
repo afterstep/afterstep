@@ -556,6 +556,60 @@ is_executable_in_path (const char *name)
 	return cache_result;
 }
 
+
+int
+my_scandir_ext ( const char *dirname, int (*filter_func) (const char *),
+				 Bool (*handle_direntry_func)( const char *fname, const char *fullname, struct stat *stat_info, void *aux_data), 
+				 void *aux_data)
+{
+	DIR          *d;
+	struct dirent *e;						   /* Pointer to static struct inside readdir() */
+	int           n = 0;					   /* Count of nl used so far */
+	char         *filename;					   /* For building filename to pass to stat */
+	char         *p;						   /* Place where filename starts */
+	struct stat   stat_info;
+
+	d = opendir (dirname);
+
+	if (d == NULL)
+		return -1;
+
+	filename = (char *)safemalloc (strlen (dirname) + PATH_MAX + 2);
+	if (filename == NULL)
+	{
+		closedir (d);
+		return -1;
+	}
+	strcpy (filename, dirname);
+	p = filename + strlen (filename);
+	if( *p != '/' )
+	{	
+		*p++ = '/';
+		*p = 0;									   /* Just in case... */
+	}
+	
+	while ((e = readdir (d)) != NULL)
+	{
+		if ((filter_func == NULL) || filter_func (&(e->d_name[0])))
+		{
+			/* Fill in the fields using stat() */
+			strcpy (p, e->d_name);
+			if (stat (filename, &stat_info) != -1)
+			{	
+				if( handle_direntry_func( e->d_name, filename, &stat_info, aux_data) )
+					n++;
+			}
+		}
+	}
+	free (filename);
+
+	if (closedir (d) == -1)
+		return -1;
+	/* Return the count of the entries */
+	return n;
+}
+
+
 /*
  * Non-NULL select and dcomp pointers are *NOT* tested, but should be OK.
  * They are not used by afterstep however, so this implementation should
@@ -563,9 +617,12 @@ is_executable_in_path (const char *name)
  *
  * c.ridd@isode.com
  */
+/* essentially duplicates whats above, 
+ * but for performance sake we don't want to merge them together :*/
+
 int
 my_scandir (char *dirname, struct direntry *(*namelist[]),
-			int (*select) (const char *), int (*dcomp) (struct direntry **, struct direntry **))
+			int (*filter_func) (const char *), int (*dcomp) (struct direntry **, struct direntry **))
 {
 	DIR          *d;
 	struct dirent *e;						   /* Pointer to static struct inside readdir() */
@@ -605,7 +662,7 @@ my_scandir (char *dirname, struct direntry *(*namelist[]),
 
 	while ((e = readdir (d)) != NULL)
 	{
-		if ((select == NULL) || select (&(e->d_name[0])))
+		if ((filter_func == NULL) || filter_func (&(e->d_name[0])))
 		{
 			/* add */
 			if (sizenl == n)
@@ -633,6 +690,7 @@ my_scandir (char *dirname, struct direntry *(*namelist[]),
 				nl[n] = (struct direntry *)safemalloc (realsize);
 				nl[n]->d_mode = buf.st_mode;
 				nl[n]->d_mtime = buf.st_mtime;
+				nl[n]->d_size  = buf.st_size;
 				strcpy (nl[n]->d_name, e->d_name);
 				n++;
 			}
@@ -670,7 +728,7 @@ my_scandir (char *dirname, struct direntry *(*namelist[]),
 }
 
 /*
- * Use this function as the select argument to my_scandir to make it ignore
+ * Use this function as the filter_func argument to my_scandir to make it ignore
  * all files and directories starting with "."
  */
 int

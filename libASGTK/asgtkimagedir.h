@@ -22,11 +22,16 @@ typedef struct _ASGtkImageDir
 	GtkScrolledWindow       parent_instance;
 /* flags : */
 /* mask of what columns to show : */
+#define ASGTK_ImageDir_Col_Name_No	0
 #define ASGTK_ImageDir_Col_Name		(0x01<<0)
-#define ASGTK_ImageDir_Col_Type		(0x01<<1)
-#define ASGTK_ImageDir_Col_Size		(0x01<<2)
-#define ASGTK_ImageDir_Col_Date		(0x01<<3)
-#define ASGTK_ImageDir_Col_Perms	(0x01<<4)
+#define ASGTK_ImageDir_Col_Type_No	1
+#define ASGTK_ImageDir_Col_Type		(0x01<<ASGTK_ImageDir_Col_Type_No)
+#define ASGTK_ImageDir_Col_Size_No	2
+#define ASGTK_ImageDir_Col_Size		(0x01<<ASGTK_ImageDir_Col_Size_No)
+#define ASGTK_ImageDir_Col_Date_No	3
+#define ASGTK_ImageDir_Col_Date		(0x01<<ASGTK_ImageDir_Col_Date_No)
+#define ASGTK_ImageDir_Col_Perms_No	4
+#define ASGTK_ImageDir_Col_Perms	(0x01<<ASGTK_ImageDir_Col_Perms_No)
 #define ASGTK_ImageDir_Cols			5  /* count of the above items */ 
 #define ASGTK_ImageDir_Cols_All		(ASGTK_ImageDir_Col_Name|ASGTK_ImageDir_Col_Type| \
 									 ASGTK_ImageDir_Col_Size|ASGTK_ImageDir_Col_Date| \

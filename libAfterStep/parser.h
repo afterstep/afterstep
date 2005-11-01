@@ -93,6 +93,8 @@ typedef struct TermDef
 					   MyStyle,
 					   NULL if term has simple structure
 					 */
+	ptrdiff_t	struct_field_offset ; 
+	ASFlagType  flags_on, flags_off ;
 }
 TermDef;
 

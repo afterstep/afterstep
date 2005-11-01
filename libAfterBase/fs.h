@@ -14,17 +14,24 @@ extern "C" {
 #endif
 
 struct dirent;
+struct stat;
 struct direntry
   {
     mode_t d_mode;		/* S_IFDIR if a directory */
     time_t d_mtime;
+	off_t  d_size;		/* total size, in bytes */
     char d_name[1];
   };
 
 typedef int (*my_sort_f) (struct direntry ** d1, struct direntry ** d2);
 
+int
+my_scandir_ext ( const char *dirname, int (*filter_func) (const char *),
+				 Bool (*handle_direntry_func)( const char *fname, const char *fullname, struct stat *stat_info, void *aux_data), 
+				 void *aux_data);
 int my_scandir (char *, struct direntry *(*[]), int (*select) (const char *),
 		my_sort_f dcomp);
+
 int ignore_dots (const char *dname);
 int no_dots_except_include (const char *d_name);
 int no_dots_except_directory (const char *d_name);

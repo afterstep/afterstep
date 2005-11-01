@@ -83,6 +83,13 @@ typedef struct ASImageListEntry
 
 	ASImageFileTypes 	type;
 	ASImage 		   *preview;
+    
+	mode_t d_mode;
+    time_t d_mtime;
+	off_t  d_size;		/* total size, in bytes */
+
+	char *buffer ; 
+	size_t buffer_size ;
 
 	int ref_count;
 }ASImageListEntry;
@@ -208,6 +215,7 @@ ASImageListEntry *unref_asimage_list_entry( ASImageListEntry *entry );
 ASImageListEntry *create_asimage_list_entry();
 void destroy_asimage_list( ASImageListEntry **plist );
 char *format_asimage_list_entry_details( ASImageListEntry *entry, Bool vertical );
+Bool load_asimage_list_entry_data( ASImageListEntry *entry, size_t max_bytes );
 
 
 /****f* libAfterImage/import/file2pixmap()

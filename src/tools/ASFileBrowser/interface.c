@@ -361,7 +361,11 @@ build_main_frame(ASFileBrowserMainFrame *data)
 	gtk_paned_add1 (GTK_PANED (v_paned), dirlist);
 
 	filelist = asgtk_image_dir_new();
-	asgtk_image_dir_set_columns( ASGTK_IMAGE_DIR(filelist), ASGTK_ImageDir_Cols_All );
+	asgtk_image_dir_set_columns( ASGTK_IMAGE_DIR(filelist), 
+									ASGTK_ImageDir_Col_Name|
+									ASGTK_ImageDir_Col_Type|
+									ASGTK_ImageDir_Col_Size|
+									ASGTK_ImageDir_Col_Date );
 	asgtk_image_dir_set_list_all( ASGTK_IMAGE_DIR(filelist), True );
 	gtk_widget_set_size_request (filelist, FILE_LIST_WIDTH, FILE_LIST_HEIGHT);
 	gtk_paned_add2 (GTK_PANED (v_paned), filelist);
