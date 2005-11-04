@@ -342,8 +342,16 @@ asgtk_image_view_make_parts( ASGtkImageView *iv, Bool horizontal )
   	gtk_widget_show (iv->scrolled_window);
 	gtk_container_add (GTK_CONTAINER (iv->frame), iv->scrolled_window);
 	gtk_scrolled_window_set_shadow_type (GTK_SCROLLED_WINDOW (iv->scrolled_window), GTK_SHADOW_NONE );
-	gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (iv->scrolled_window),
+	
+	if( get_flags( iv->flags, ASGTK_IMAGE_VIEW_SCALE_TO_VIEW|ASGTK_IMAGE_VIEW_TILE_TO_VIEW) ) 
+	{	
+		gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (iv->scrolled_window),
 				    					GTK_POLICY_NEVER, GTK_POLICY_NEVER);
+	}else
+	{
+		gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (iv->scrolled_window),
+					    				GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
+	}	
 	colorize_gtk_widget( GTK_WIDGET(iv->scrolled_window), get_colorschemed_style_normal() );
 	
 	iv->view = gtk_image_new_from_pixbuf(NULL);

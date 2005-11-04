@@ -33,10 +33,13 @@
 
 extern ASFileBrowserState AppState ;
 
-#define DIR_TREE_WIDTH		300
-#define DIR_TREE_HEIGHT		300
-#define FILE_LIST_WIDTH		300
-#define FILE_LIST_HEIGHT	200
+#define DIR_TREE_WIDTH			300
+#define DIR_TREE_HEIGHT			300
+#define FILE_LIST_WIDTH			300
+#define FILE_LIST_HEIGHT		200
+#define PREVIEW_WIDTH  			480
+#define PREVIEW_HEIGHT 			360
+#define DEFAULT_MAX_TEXT_SIZE 	8192
 
 /* ###################################################################### */
 
@@ -60,6 +63,7 @@ typedef struct ASFileBrowserMainFrame
 	GtkWidget *view_hex ;
 	GtkWidget *dirlist ;
 	GtkWidget *filelist ;
+	GtkTextBuffer * text_buffer ;
 }ASFileBrowserMainFrame;
 	   
 typedef struct ASFileBrowserRootSelFrame
@@ -309,7 +313,7 @@ dir_tree_sel_handler( ASGtkDirTree *dt, gpointer user_data)
 }
 
 static void
-asgtk_filelist_sel_handler(ASGtkImageDir *id, gpointer user_data)
+filelist_sel_handler(ASGtkImageDir *id, gpointer user_data)
 {
 	ASFileBrowserMainFrame *data = (ASFileBrowserMainFrame *)user_data;
 	if( data ) 
@@ -317,7 +321,38 @@ asgtk_filelist_sel_handler(ASGtkImageDir *id, gpointer user_data)
 		ASImageListEntry *le = asgtk_image_dir_get_selection( id ); 
 		asgtk_image_view_set_entry ( ASGTK_IMAGE_VIEW(data->view_image), le);
 		if( le )
+		{
+			Bool bin = (le->type == ASIT_Xpm       || le->type == ASIT_XMLScript ||
+						le->type == ASIT_HTML || le->type == ASIT_XML ); 
+
+			if( le->type == ASIT_Unknown ) 
+				gtk_widget_hide( data->view_image );
+			else
+				gtk_widget_show( data->view_image );
+			
+			load_asimage_list_entry_data( le, DEFAULT_MAX_TEXT_SIZE ); 
+			if( le->type == ASIT_Unknown ) 
+			{
+				int i = le->buffer_size ; 
+				register char *ptr = le->buffer ;
+				while ( --i >= 0 )	if( ptr[i] == '\0' || iscntrl(ptr[i]) )	break;
+				bin = (i >= 0);				
+			}	 
+			if( !bin )
+			{                  /* use text view */
+				gtk_widget_show( data->view_text );
+				gtk_widget_hide( data->view_hex );
+				gtk_text_buffer_set_text( data->text_buffer, le->buffer, le->buffer_size );
+				gtk_text_view_set_buffer( GTK_TEXT_VIEW(data->view_text), data->text_buffer );
+			}else
+			{				   /* use hex view */	
+				gtk_widget_show( data->view_hex );
+				gtk_widget_hide( data->view_text );
+				gtk_text_view_set_buffer( GTK_TEXT_VIEW(data->view_hex), data->text_buffer );
+			}	 
+			
 			unref_asimage_list_entry( le );
+		}
 	}
 }
 
@@ -345,7 +380,8 @@ build_main_frame(ASFileBrowserMainFrame *data)
 	gtk_paned_add2 (GTK_PANED (h_paned), view_tabs);
 	
 	view_image = asgtk_image_view_new();
-	asgtk_image_view_set_resize ( ASGTK_IMAGE_VIEW(view_image), ASGTK_IMAGE_VIEW_SCALE_TO_VIEW, ASGTK_IMAGE_VIEW_RESIZE_ALL );
+	gtk_widget_set_size_request (view_image, PREVIEW_WIDTH, PREVIEW_HEIGHT);
+	asgtk_image_view_set_resize ( ASGTK_IMAGE_VIEW(view_image), 0/*ASGTK_IMAGE_VIEW_SCALE_TO_VIEW*/, ASGTK_IMAGE_VIEW_RESIZE_ALL );
 	gtk_notebook_append_page (GTK_NOTEBOOK (view_tabs), view_image, gtk_label_new("AS image"));
 	
 	view_text = asgtk_text_view_new();
@@ -384,7 +420,9 @@ build_main_frame(ASFileBrowserMainFrame *data)
 	data->filelist  = filelist ;
 	
 	asgtk_dir_tree_set_sel_handler(ASGTK_DIR_TREE(dirlist), dir_tree_sel_handler, data);
-	asgtk_image_dir_set_sel_handler( ASGTK_IMAGE_DIR(filelist), asgtk_filelist_sel_handler, data);
+	asgtk_image_dir_set_sel_handler( ASGTK_IMAGE_DIR(filelist), filelist_sel_handler, data);
+
+	data->text_buffer = gtk_text_buffer_new(NULL); 
 
 	return frame;
 }

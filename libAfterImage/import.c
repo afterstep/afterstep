@@ -578,6 +578,7 @@ load_asimage_list_entry_data( ASImageListEntry *entry, size_t max_bytes )
 {
 	char * new_buffer ; 
 	size_t new_buffer_size ;
+	FILE *fp;
 	if( entry == NULL ) 
 		return False;
 	if( entry->buffer_size == entry->d_size || entry->buffer_size >= max_bytes )
@@ -593,6 +594,18 @@ load_asimage_list_entry_data( ASImageListEntry *entry, size_t max_bytes )
 	}
 	entry->buffer = new_buffer ; 
 	/* TODO read new_buffer_size - entry->buffer_size bytes into the end of the buffer */
+	fp = fopen(entry->fullfilename, "rb");
+	if ( fp != NULL ) 
+	{
+		int len = new_buffer_size - entry->buffer_size ;
+		if( entry->buffer_size > 0 ) 
+			fseek( fp, entry->buffer_size, SEEK_SET );
+		len = fread(entry->buffer, 1, len, fp);
+		if( len > 0 ) 
+			entry->buffer_size += len ;
+		fclose(fp);
+	}
+
 	return True;
 }
 
