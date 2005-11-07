@@ -73,13 +73,15 @@ SyntaxDef     WhevSyntax = {
 
 #define WHARF_LOOK_TERMS \
 	{0, "ShowLabel", 9,         TT_FLAG, WHARF_ShowLabel_ID, NULL}, \
-    {0, "LabelLocation", 13,    TT_UINTEGER, WHARF_LabelLocation_ID, NULL}, \
-    {0, "FlipLabel", 9,         TT_FLAG, WHARF_FlipLabel_ID, NULL}, \
-    {0, "FitContents", 11,      TT_FLAG, WHARF_FitContents_ID, NULL}, \
-    {0, "ShapeToContents", 15,  TT_FLAG, WHARF_ShapeToContents_ID, NULL}, \
-    {0, "AlignContents", 13,    TT_FLAG, WHARF_AlignContents_ID, &AlignSyntax}, \
-    {0, "Bevel", 5, 			TT_FLAG, WHARF_Bevel_ID, &BevelSyntax}, \
-    {0, "CompositionMethod", 17,TT_INTEGER, WHARF_CompositionMethod_ID, NULL}
+    ASCF_DEFINE_KEYWORD(WHARF, 0, LabelLocation		, TT_UINTEGER	, NULL), \
+    ASCF_DEFINE_KEYWORD(WHARF, 0, FlipLabel			, TT_FLAG		, NULL), \
+    ASCF_DEFINE_KEYWORD(WHARF, 0, FitContents		, TT_FLAG		, NULL), \
+    ASCF_DEFINE_KEYWORD(WHARF, 0, ShapeToContents	, TT_FLAG		, NULL), \
+    ASCF_DEFINE_KEYWORD(WHARF, 0, AlignContents		, TT_FLAG		, &AlignSyntax), \
+    ASCF_DEFINE_KEYWORD(WHARF, 0, Bevel				, TT_FLAG		, &BevelSyntax), \
+	ASCF_DEFINE_KEYWORD(WHARF, 0, CompositionMethod	, TT_INTEGER	, NULL), \
+	ASCF_DEFINE_KEYWORD(WHARF, 0, FolderOffset		, TT_INTEGER	, NULL)
+
 
 #define WHARF_PRIVATE_TERMS \
     {0, "Sound", 5,             TT_FILENAME, WHARF_Sound_ID, &WhevSyntax}, \
@@ -164,9 +166,9 @@ flag_options_xref WharfFlags[] = {
 	{WHARF_ANIMATE_MAIN, WHARF_AnimateMain_ID, 0},
 	{WHARF_ANIMATE, WHARF_Animate_ID, 0},
     {WHARF_SHOW_LABEL, WHARF_ShowLabel_ID, 0},
-    {WHARF_FLIP_LABEL, WHARF_FlipLabel_ID, 0},
-    {WHARF_FIT_CONTENTS, WHARF_FitContents_ID, 0},
-    {WHARF_SHAPE_TO_CONTENTS, WHARF_ShapeToContents_ID, 0 },
+    {WHARF_FlipLabel, WHARF_FlipLabel_ID, 0},
+    {WHARF_FitContents, WHARF_FitContents_ID, 0},
+    {WHARF_ShapeToContents, WHARF_ShapeToContents_ID, 0 },
     {0, 0, 0}
 };
 
@@ -231,12 +233,14 @@ CreateWharfConfig ()
 	/* let's initialize Base config with some nice values: */
 	config->geometry.flags = WidthValue | HeightValue;
 	config->geometry.width = config->geometry.height = 64;
-        config->withdraw_style = WITHDRAW_ON_EDGE_BUTTON_AND_SHOW ;
-        config->align_contents = ALIGN_CENTER ;
+    config->withdraw_style = WITHDRAW_ON_EDGE_BUTTON_AND_SHOW ;
+    
+	config->AlignContents = WHARF_DEFAULT_AlignContents ;
 
 	config->more_stuff = NULL;
 
-    config->composition_method = TEXTURE_TRANSPIXMAP_ALPHA ;
+    config->CompositionMethod = WHARF_DEFAULT_CompositionMethod ;
+	config->FolderOffset = WHARF_DEFAULT_FolderOffset ;
 
 	return config;
 }
@@ -339,17 +343,17 @@ PrintWharfConfig(WharfConfig *config )
         for( i = 0 ; i < WHEV_MAX_EVENTS ; ++i )
             show_progress( "WHARF.sounds[%d]=\"%s\";", i, config->sounds[i] );
     }
-
-    if( get_flags( config->set_flags, WHARF_LABEL_LOCATION ) )
-        show_progress( "WHARF.label_location = 0x%lX", config->label_location );
-    if( get_flags( config->set_flags, WHARF_ALIGN_CONTENTS ) )
-        show_progress( "WHARF.align_context = 0x%lX;", config->align_contents );
-    if( get_flags( config->set_flags, WHARF_BEVEL ) )
-        show_progress( "WHARF.bevel = 0x%lX;", config->bevel);
-    if( get_flags( config->set_flags, WHARF_COMPOSITION_METHOD ) )
-        show_progress( "WHARF.composition_method = %d;", config->composition_method );
-
-    print_wharf_folder( config->root_folder, 1 );
+	
+	ASCF_PRINT_INT_KEYWORD(stderr,WHARF,config,LabelLocation);
+	ASCF_PRINT_FLAG_KEYWORD(stderr,WHARF,config,FlipLabel);
+	ASCF_PRINT_FLAG_KEYWORD(stderr,WHARF,config,FitContents);
+	ASCF_PRINT_FLAG_KEYWORD(stderr,WHARF,config,ShapeToContents );
+	ASCF_PRINT_FLAGS_KEYWORD(stderr,WHARF,config,AlignContents );
+	ASCF_PRINT_FLAGS_KEYWORD(stderr,WHARF,config,Bevel );
+	ASCF_PRINT_INT_KEYWORD(stderr,WHARF,config,CompositionMethod);
+	ASCF_PRINT_INT_KEYWORD(stderr,WHARF,config,FolderOffset);
+    
+	print_wharf_folder( config->root_folder, 1 );
 
 }
 
@@ -722,23 +726,11 @@ SHOW_CHECKPOINT;
 			 }
 			 item.ok_to_free = 1;
 			 break;
-         case WHARF_LabelLocation_ID :
-             set_flags (config->set_flags, WHARF_LABEL_LOCATION);
-             config->label_location = item.data.integer;
-             break ;
-         case WHARF_AlignContents_ID :
-             set_flags (config->set_flags, WHARF_ALIGN_CONTENTS);
-             config->align_contents = ParseAlignOptions( pCurr->sub );
-             break ;
-		 case WHARF_Bevel_ID :
-             set_flags (config->set_flags, WHARF_BEVEL);
-			 clear_flags( config->flags, WHARF_NO_BORDER );
-             config->bevel = ParseBevelOptions( pCurr->sub );
-             break ;
-         case WHARF_CompositionMethod_ID :
-             set_flags (config->set_flags, WHARF_COMPOSITION_METHOD);
-             config->composition_method = item.data.integer;
-             break ;
+		ASCF_HANDLE_INTEGER_KEYWORD_CASE(WHARF,config,item,LabelLocation ); 
+		ASCF_HANDLE_ALIGN_KEYWORD_CASE(WHARF,config,pCurr,AlignContents ); 
+		ASCF_HANDLE_BEVEL_KEYWORD_CASE(WHARF,config,pCurr,Bevel); 
+		ASCF_HANDLE_INTEGER_KEYWORD_CASE(WHARF,config,item,CompositionMethod ); 
+		ASCF_HANDLE_INTEGER_KEYWORD_CASE(WHARF,config,item,FolderOffset ); 
          case MYSTYLE_START_ID:
 			 styles_tail = ProcessMyStyleOptions (pCurr->sub, styles_tail);
 			 item.ok_to_free = 1;
@@ -749,6 +741,10 @@ SHOW_CHECKPOINT;
 				 item.ok_to_free = 1;
 		}
 	}
+	if( get_flags( config->set_flags, WHARF_Bevel ) )
+		clear_flags( config->flags, WHARF_NO_BORDER );
+		
+
 	ReadConfigItem (&item, NULL);
 SHOW_CHECKPOINT;
     DestroyConfig (ConfigReader);

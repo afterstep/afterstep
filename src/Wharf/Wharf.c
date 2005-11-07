@@ -389,7 +389,7 @@ CheckConfigSanity()
             Config->force_size.width = 64 ;
         if( Config->force_size.height == 0 )
             Config->force_size.height = 64 ;
-    }else if( !get_flags(Config->flags, WHARF_FIT_CONTENTS) )
+    }else if( !get_flags(Config->flags, WHARF_FitContents) )
     {
         if( Scr.Look.MSWindow[BACK_UNFOCUSED]->back_icon.image != NULL )
         {
@@ -406,8 +406,8 @@ CheckConfigSanity()
         Config->force_size.height = 0 ;
 	}
 
-    if( Config->composition_method == 0 )
-        Config->composition_method = TEXTURE_TRANSPIXMAP_ALPHA;
+    if( Config->CompositionMethod == 0 )
+        Config->CompositionMethod = WHARF_DEFAULT_CompositionMethod;
 
     WharfState.shaped_style = False ;
     if( Scr.Look.MSWindow[BACK_UNFOCUSED]->texture_type >= TEXTURE_TEXTURED_START &&
@@ -457,10 +457,11 @@ void
 GetOptions (const char *filename)
 {
     WharfConfig *config;
+    WharfConfig *to = Config, *from;
     START_TIME(option_time);
 SHOW_CHECKPOINT;
     LOCAL_DEBUG_OUT( "loading wharf config from \"%s\": ", filename);
-    config = ParseWharfOptions (filename, MyName);
+    from = config = ParseWharfOptions (filename, MyName);
     SHOW_TIME("Config parsing",option_time);
 
     /* Need to merge new config with what we have already :*/
@@ -490,19 +491,11 @@ SHOW_CHECKPOINT;
         Config->animate_steps_main = config->animate_steps_main ;
     if( get_flags( config->set_flags, WHARF_ANIMATE_DELAY ) )
         Config->animate_delay = config->animate_delay;
-    if( get_flags( config->set_flags, WHARF_LABEL_LOCATION ) )
-        Config->label_location = config->label_location;
-    if( get_flags( config->set_flags, WHARF_ALIGN_CONTENTS ) )
-        Config->align_contents = config->align_contents;
-    if( get_flags( config->set_flags, WHARF_BEVEL ) )
-	{
-        Config->bevel = config->bevel;
-		if( !get_flags( config->set_flags, WHARF_NO_BORDER ) )
-			clear_flags( Config->set_flags, WHARF_NO_BORDER );
-	}
-
-    if( get_flags( config->set_flags, WHARF_COMPOSITION_METHOD ) )
-        Config->composition_method = config->composition_method;
+	ASCF_MERGE_SCALAR_KEYWORD(WHARF, to, from, LabelLocation);
+	ASCF_MERGE_SCALAR_KEYWORD(WHARF, to, from, AlignContents);
+	ASCF_MERGE_SCALAR_KEYWORD(WHARF, to, from, Bevel);
+	ASCF_MERGE_SCALAR_KEYWORD(WHARF, to, from, CompositionMethod);
+	ASCF_MERGE_SCALAR_KEYWORD(WHARF, to, from, FolderOffset);
 
 /*LOCAL_DEBUG_OUT( "align_contents = %d", Config->align_contents ); */
     if( get_flags( config->set_flags, WHARF_SOUND ) )
@@ -848,7 +841,7 @@ build_wharf_button_tbar(WharfButton *wb)
     ASTBarData *bar = create_astbar();
     int icon_row = 0, icon_col = 0;
     int label_row = 0, label_col = 0;
-    int label_flip = get_flags( Config->flags, WHARF_FLIP_LABEL )?FLIP_UPSIDEDOWN:0;
+    int label_flip = get_flags( Config->flags, WHARF_FlipLabel )?FLIP_UPSIDEDOWN:0;
     int label_align = NO_ALIGN ;
 #define WLL_Vertical    (0x01<<0)
 #define WLL_Opposite    (0x01<<1)
@@ -858,24 +851,24 @@ build_wharf_button_tbar(WharfButton *wb)
 
     if( get_flags( Config->flags, WHARF_SHOW_LABEL ) && wb->title )
     {
-        if( get_flags(Config->label_location, WLL_Vertical ))
+        if( get_flags(Config->LabelLocation, WLL_Vertical ))
             label_flip |= FLIP_VERTICAL ;
-        if( !get_flags(Config->label_location, WLL_OverIcon ))
+        if( !get_flags(Config->LabelLocation, WLL_OverIcon ))
         {
-            if( get_flags(Config->label_location, WLL_Vertical ))
+            if( get_flags(Config->LabelLocation, WLL_Vertical ))
             {
-                if( get_flags(Config->label_location, WLL_Opposite ))
+                if( get_flags(Config->LabelLocation, WLL_Opposite ))
                     label_col = 1;
                 else
                     icon_col = 1;
-            }else if( get_flags(Config->label_location, WLL_Opposite ))
+            }else if( get_flags(Config->LabelLocation, WLL_Opposite ))
                 label_row = 1;
             else
                 icon_row = 1;
         }
-        if( get_flags(Config->label_location, WLL_AlignCenter ))
+        if( get_flags(Config->LabelLocation, WLL_AlignCenter ))
             label_align = ALIGN_CENTER ;
-        else if( get_flags(Config->label_location, WLL_AlignRight ))
+        else if( get_flags(Config->LabelLocation, WLL_AlignRight ))
             label_align = ALIGN_RIGHT|ALIGN_TOP ;
         else
             label_align = ALIGN_LEFT|ALIGN_BOTTOM ;
@@ -905,12 +898,12 @@ build_wharf_button_tbar(WharfButton *wb)
             	/* load image here */
             	im = get_asimage( Scr.image_manager, icon[i], ASFLAGS_EVERYTHING, 100 );
             	if( im )
-                	add_astbar_icon( bar, icon_col, icon_row, 0, Config->align_contents, im );
+                	add_astbar_icon( bar, icon_col, icon_row, 0, Config->AlignContents, im );
         	}
     	}
 	}
 
-    set_astbar_composition_method( bar, BAR_STATE_UNFOCUSED, Config->composition_method );
+    set_astbar_composition_method( bar, BAR_STATE_UNFOCUSED, Config->CompositionMethod );
 
 	if( !get_flags( wb->set_flags, WHARF_BUTTON_TRANSIENT ) )
 	{	
@@ -924,17 +917,17 @@ build_wharf_button_tbar(WharfButton *wb)
 	set_astbar_style_ptr( bar, BAR_STATE_FOCUSED, Scr.Look.MSWindow[Scr.Look.MSWindow[BACK_FOCUSED]?BACK_FOCUSED:BACK_UNFOCUSED] );
 
     LOCAL_DEBUG_OUT( "wharf bevel is %s, value 0x%lX, wharf_no_border is %s",
-                        get_flags( Config->set_flags, WHARF_BEVEL )? "set":"unset",
-                        Config->bevel,
+                        get_flags( Config->set_flags, WHARF_Bevel )? "set":"unset",
+                        Config->Bevel,
                         get_flags( Config->flags, WHARF_NO_BORDER )?"set":"unset" );
     if( get_flags( Config->flags, WHARF_NO_BORDER ) )
 	{	
         set_astbar_hilite( bar, BAR_STATE_UNFOCUSED, 0 );
         set_astbar_hilite( bar, BAR_STATE_FOCUSED, 0 );
-    }else if( get_flags( Config->set_flags, WHARF_BEVEL ) )
+    }else if( get_flags( Config->set_flags, WHARF_Bevel ) )
     {
-        set_astbar_hilite( bar, BAR_STATE_UNFOCUSED, Config->bevel );
-        set_astbar_hilite( bar, BAR_STATE_FOCUSED, Config->bevel );
+        set_astbar_hilite( bar, BAR_STATE_UNFOCUSED, Config->Bevel );
+        set_astbar_hilite( bar, BAR_STATE_FOCUSED, Config->Bevel );
     }else
 	{	
        	set_astbar_hilite( bar, BAR_STATE_UNFOCUSED, RIGHT_HILITE|BOTTOM_HILITE );
@@ -1207,7 +1200,7 @@ update_wharf_folder_shape( ASWharfFolder *aswf )
 
     clear_flags( aswf->flags, ASW_Shaped);
 
-    if( (get_flags( Config->flags, WHARF_SHAPE_TO_CONTENTS ) && get_flags( aswf->flags, ASW_NeedsShaping))||
+    if( (get_flags( Config->flags, WHARF_ShapeToContents ) && get_flags( aswf->flags, ASW_NeedsShaping))||
          WharfState.shaped_style || get_flags( aswf->flags, ASW_UseBoundary) )
     {
 		if( aswf->canvas->shape )
@@ -1425,7 +1418,7 @@ place_wharf_buttons( ASWharfFolder *aswf, int *total_width_return, int *total_he
     int max_width = 0, max_height = 0 ;
     int x = 0, y = 0 ;
     int i;
-    Bool fit_contents = get_flags(Config->flags, WHARF_FIT_CONTENTS);
+    Bool fit_contents = get_flags(Config->flags, WHARF_FitContents);
     Bool needs_shaping = False ;
 	Bool reverse_order = get_flags( aswf->flags, ASW_ReverseOrder )?aswf->buttons_num-1:-1;
 
@@ -1461,17 +1454,17 @@ place_wharf_buttons( ASWharfFolder *aswf, int *total_width_return, int *total_he
                 LOCAL_DEBUG_OUT( "max_size(%dx%d)", max_width, max_height );
             }
             height = (get_flags( aswb->flags, ASW_MaxSwallow ) || fit_contents )?aswb->desired_height:max_height ;
-            if( get_flags(Config->flags, WHARF_SHAPE_TO_CONTENTS) )
+            if( get_flags(Config->flags, WHARF_ShapeToContents) )
             {
                 int dx = max_width - aswb->desired_width ;
                 int dy = height - aswb->desired_height ;
-                if( get_flags( Config->align_contents, ALIGN_RIGHT ) == 0 )
+                if( get_flags( Config->AlignContents, ALIGN_RIGHT ) == 0 )
                     dx = 0 ;
-                else if( get_flags( Config->align_contents, ALIGN_LEFT ))
+                else if( get_flags( Config->AlignContents, ALIGN_LEFT ))
                     dx = dx>>1 ;
-                if( get_flags( Config->align_contents, ALIGN_BOTTOM ) == 0 )
+                if( get_flags( Config->AlignContents, ALIGN_BOTTOM ) == 0 )
                     dy = 0 ;
-                else if( get_flags( Config->align_contents, ALIGN_TOP ))
+                else if( get_flags( Config->AlignContents, ALIGN_TOP ))
                     dy = dy>>1 ;
                 aswb->folder_x = x+dx ;
                 aswb->folder_y = y+dy;
@@ -1534,17 +1527,17 @@ place_wharf_buttons( ASWharfFolder *aswf, int *total_width_return, int *total_he
             }
 
             width = (get_flags( aswb->flags, ASW_MaxSwallow )|| fit_contents )?aswb->desired_width:max_width ;
-            if( get_flags(Config->flags, WHARF_SHAPE_TO_CONTENTS) )
+            if( get_flags(Config->flags, WHARF_ShapeToContents) )
             {
                 int dx = width - aswb->desired_width ;
                 int dy = max_height - aswb->desired_height ;
-                if( get_flags( Config->align_contents, ALIGN_RIGHT ) == 0 )
+                if( get_flags( Config->AlignContents, ALIGN_RIGHT ) == 0 )
                     dx = 0 ;
-                else if( get_flags( Config->align_contents, ALIGN_LEFT ))
+                else if( get_flags( Config->AlignContents, ALIGN_LEFT ))
                     dx = dx>>1 ;
-                if( get_flags( Config->align_contents, ALIGN_BOTTOM ) == 0 )
+                if( get_flags( Config->AlignContents, ALIGN_BOTTOM ) == 0 )
                     dy = 0 ;
-                else if( get_flags( Config->align_contents, ALIGN_TOP ))
+                else if( get_flags( Config->AlignContents, ALIGN_TOP ))
                     dy = dy>>1 ;
                 aswb->folder_x = x+dx ;
                 aswb->folder_y = y+dy;
@@ -1803,13 +1796,13 @@ display_wharf_folder( ASWharfFolder *aswf, int left, int top, int right, int bot
         x = east? right - width: left ;
         y = south? top - height : bottom ;
         if( top != bottom )
-            y += south?5:-5 ;
+            y += south?-Config->FolderOffset:Config->FolderOffset ;
     }else
     {
         x = east? left - width : right ;
         y = south? bottom - height: top ;
         if( left != right)
-            x += east?5:-5 ;
+            x += east?-Config->FolderOffset:Config->FolderOffset ;
     }
 	LOCAL_DEBUG_OUT("calculated pos(%+d%+d), east(%d), south(%d), total_size(%dx%d)", x, y, east, south, total_width, total_height );
 	if( east )
@@ -2252,11 +2245,11 @@ check_swallow_window( ASWindowData *wd )
 		sheight = aswb->desired_height ;
 
     moveresize_canvas( aswb->swallowed->current,
-                       make_tile_pad( get_flags(Config->align_contents,PAD_LEFT),
-                                      get_flags(Config->align_contents,PAD_RIGHT),
+                       make_tile_pad( get_flags(Config->AlignContents,PAD_LEFT),
+                                      get_flags(Config->AlignContents,PAD_RIGHT),
                                       aswb->canvas->width, swidth      ),
-                       make_tile_pad( get_flags(Config->align_contents,PAD_TOP),
-                                      get_flags(Config->align_contents,PAD_BOTTOM),
+                       make_tile_pad( get_flags(Config->AlignContents,PAD_TOP),
+                                      get_flags(Config->AlignContents,PAD_BOTTOM),
                                       aswb->canvas->height, sheight    ),
                        swidth, sheight );
 	if( !get_flags( wd->flags, AS_ClientIcon ) ) 
@@ -2319,11 +2312,11 @@ on_wharf_button_confreq( ASWharfButton *aswb, ASEvent *event )
 		xwc.width = min( aswb->desired_width, re_width );
    		xwc.height = min( aswb->desired_height, re_height );
 
-		xwc.x = make_tile_pad( get_flags(Config->align_contents,PAD_LEFT),
-                               get_flags(Config->align_contents,PAD_RIGHT),
+		xwc.x = make_tile_pad( get_flags(Config->AlignContents,PAD_LEFT),
+                               get_flags(Config->AlignContents,PAD_RIGHT),
                                aswb->canvas->width, xwc.width );
-		xwc.y = make_tile_pad( get_flags(Config->align_contents,PAD_TOP),
-                               get_flags(Config->align_contents,PAD_BOTTOM),
+		xwc.y = make_tile_pad( get_flags(Config->AlignContents,PAD_TOP),
+                               get_flags(Config->AlignContents,PAD_BOTTOM),
                                aswb->canvas->height, xwc.height );
 
 		xwc.border_width = cre->border_width;
@@ -2354,11 +2347,11 @@ on_wharf_button_moveresize( ASWharfButton *aswb, ASEvent *event )
     		int sheight = min( aswb->desired_height, aswb->swallowed->current->height );
 
 			moveresize_canvas( aswb->swallowed->current,
-                       make_tile_pad( get_flags(Config->align_contents,PAD_LEFT),
-                                      get_flags(Config->align_contents,PAD_RIGHT),
+                       make_tile_pad( get_flags(Config->AlignContents,PAD_LEFT),
+                                      get_flags(Config->AlignContents,PAD_RIGHT),
                                       aswb->canvas->width, swidth      ),
-                       make_tile_pad( get_flags(Config->align_contents,PAD_TOP),
-                                      get_flags(Config->align_contents,PAD_BOTTOM),
+                       make_tile_pad( get_flags(Config->AlignContents,PAD_TOP),
+                                      get_flags(Config->AlignContents,PAD_BOTTOM),
                                       aswb->canvas->height, sheight    ),
                        swidth, sheight );
         }

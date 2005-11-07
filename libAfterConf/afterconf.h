@@ -1301,6 +1301,7 @@ Bool ReloadASDatabase();
 #define WHARF_AlignContents_ID  (WHARF_ID_START+28)
 #define WHARF_Bevel_ID  (WHARF_ID_START+29)
 #define WHARF_CompositionMethod_ID  (WHARF_ID_START+30)
+#define WHARF_FolderOffset_ID   (WHARF_ID_START+31)
 
 #define WHARF_ID_END            (WHARF_ID_START+32)
 #define WFUNC_START_ID			(WHARF_ID_END)
@@ -1386,13 +1387,14 @@ WharfButton;
 #define  WHARF_ANIMATE			(0x01<<18)
 #define  WHARF_SOUND			(0x01<<19)
 #define  WHARF_SHOW_LABEL       (0x01<<20)
-#define  WHARF_LABEL_LOCATION   (0x01<<21)
-#define  WHARF_FLIP_LABEL       (0x01<<22)
-#define  WHARF_FIT_CONTENTS     (0x01<<23)
-#define  WHARF_SHAPE_TO_CONTENTS (0x01<<24)
-#define  WHARF_ALIGN_CONTENTS   (0x01<<25)
-#define  WHARF_BEVEL            (0x01<<26)
-#define  WHARF_COMPOSITION_METHOD (0x01<<27)
+#define  WHARF_LabelLocation 	 (0x01<<21)
+#define  WHARF_FlipLabel         (0x01<<22)
+#define  WHARF_FitContents  	 (0x01<<23)
+#define  WHARF_ShapeToContents   (0x01<<24)
+#define  WHARF_AlignContents	 (0x01<<25)
+#define  WHARF_Bevel             (0x01<<26)
+#define  WHARF_CompositionMethod (0x01<<27)
+#define  WHARF_FolderOffset	 	 (0x01<<28)
 
 
 typedef struct
@@ -1418,16 +1420,22 @@ typedef struct
     char *sounds[WHEV_MAX_EVENTS];
     WharfButton *root_folder;
 
-    unsigned int label_location;
-    ASFlagType   align_contents;
-	ASFlagType   bevel;
+    unsigned int LabelLocation;
+
+#define WHARF_DEFAULT_AlignContents 	ALIGN_CENTER
+    ASFlagType   AlignContents;
+	ASFlagType   Bevel;
 
     balloonConfig *balloon_conf;
     MyStyleDefinition *style_defs;
 
     struct FreeStorageElem *more_stuff;
 
-    int composition_method ;
+#define WHARF_DEFAULT_CompositionMethod 	TEXTURE_TRANSPIXMAP_ALPHA
+    int CompositionMethod ;
+
+#define WHARF_DEFAULT_FolderOffset			-5
+	int FolderOffset ;
 }
 WharfConfig;
 
