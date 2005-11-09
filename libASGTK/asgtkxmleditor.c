@@ -33,21 +33,114 @@
 #include "asgtkxmleditor.h"
 
 /*  local function prototypes  */
+static void asgtk_xml_view_class_init (ASGtkXMLViewClass *klass);
+static void asgtk_xml_view_init (ASGtkXMLView *iv);
+static void asgtk_xml_view_dispose (GObject *object);
+static void asgtk_xml_view_finalize (GObject *object);
+static void asgtk_xml_view_style_set (GtkWidget *widget, GtkStyle  *prev_style);
+static void check_save_changes( ASGtkXMLView *xe );
+static void asgtk_xml_view_tag_activate ( GtkTreeView       *tree_view,
+	   									    GtkTreePath       *path,
+				 							GtkTreeViewColumn *column,
+				 							gpointer           user_data);
+static void asgtk_xml_view_tag_selected ( GtkTreeSelection *selection, 
+											gpointer user_data);
+
+
 static void asgtk_xml_editor_class_init (ASGtkXMLEditorClass *klass);
 static void asgtk_xml_editor_init (ASGtkXMLEditor *iv);
 static void asgtk_xml_editor_dispose (GObject *object);
 static void asgtk_xml_editor_finalize (GObject *object);
 static void asgtk_xml_editor_style_set (GtkWidget *widget, GtkStyle  *prev_style);
-static void check_save_changes( ASGtkXMLEditor *xe );
-static void asgtk_xml_editor_tag_activate ( GtkTreeView       *tree_view,
-	   									    GtkTreePath       *path,
-				 							GtkTreeViewColumn *column,
-				 							gpointer           user_data);
-static void asgtk_xml_editor_tag_selected ( GtkTreeSelection *selection, 
-											gpointer user_data);
 
 /*  private variables  */
-static GtkWindowClass *parent_class = NULL;
+static GtkVBoxClass *view_parent_class = NULL;
+static GtkWindowClass 	 *editor_parent_class = NULL;
+
+GType
+asgtk_xml_view_get_type (void)
+{
+  	static GType id_type = 0;
+
+  	if (! id_type)
+    {
+    	static const GTypeInfo id_info =
+      	{
+        	sizeof (ASGtkXMLViewClass),
+        	(GBaseInitFunc)     NULL,
+        	(GBaseFinalizeFunc) NULL,
+			(GClassInitFunc)    asgtk_xml_view_class_init,
+        	NULL,           /* class_finalize */
+        	NULL,           /* class_data     */
+        	sizeof (ASGtkXMLView),
+        	0,              /* n_preallocs    */
+        	(GInstanceInitFunc) asgtk_xml_view_init,
+      	};
+
+      	id_type = g_type_register_static (	GTK_TYPE_VBOX,
+        	                                "ASGtkXMLView",
+            	                            &id_info, 0);
+    }
+
+  	return id_type;
+}
+
+static void
+asgtk_xml_view_class_init (ASGtkXMLViewClass *klass)
+{
+  	GObjectClass   *object_class = G_OBJECT_CLASS (klass);
+  	GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
+
+  	view_parent_class = g_type_class_peek_parent (klass);
+
+  	object_class->dispose   = asgtk_xml_view_dispose;
+  	object_class->finalize  = asgtk_xml_view_finalize;
+
+  	widget_class->style_set = asgtk_xml_view_style_set;
+}
+
+static void
+asgtk_xml_view_init (ASGtkXMLView *xv)
+{
+	xv->entry = NULL ;
+	xv->color_sel = NULL ;
+}
+
+static void
+asgtk_xml_view_dispose (GObject *object)
+{
+  	ASGtkXMLView *xv = ASGTK_XML_VIEW (object);
+	if( xv->entry ) 
+	{
+		check_save_changes( xv ); 
+
+		LOCAL_DEBUG_OUT( " entry ref_count = %d", xv->entry->ref_count );
+		if( unref_asimage_list_entry(xv->entry) ) 
+			LOCAL_DEBUG_OUT( " entry ref_count = %d", xv->entry->ref_count );
+		xv->entry = NULL ;
+		if( xv->color_sel ) 
+		{	
+			gtk_widget_destroy( GTK_WIDGET(xv->color_sel) );
+			xv->color_sel = NULL ;
+		}
+	}
+  	G_OBJECT_CLASS (view_parent_class)->dispose (object);
+}
+
+static void
+asgtk_xml_view_finalize (GObject *object)
+{
+  	G_OBJECT_CLASS (view_parent_class)->finalize (object);
+}
+
+static void
+asgtk_xml_view_style_set (GtkWidget *widget,
+                          GtkStyle  *prev_style)
+{
+  /* ASGtkXMLEditor *id = ASGTK_XML_EDITOR (widget); */
+
+  GTK_WIDGET_CLASS (view_parent_class)->style_set (widget, prev_style);
+}
 
 GType
 asgtk_xml_editor_get_type (void)
@@ -83,7 +176,7 @@ asgtk_xml_editor_class_init (ASGtkXMLEditorClass *klass)
   	GObjectClass   *object_class = G_OBJECT_CLASS (klass);
   	GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
 
-  	parent_class = g_type_class_peek_parent (klass);
+  	editor_parent_class = g_type_class_peek_parent (klass);
 
   	object_class->dispose   = asgtk_xml_editor_dispose;
   	object_class->finalize  = asgtk_xml_editor_finalize;
@@ -93,37 +186,27 @@ asgtk_xml_editor_class_init (ASGtkXMLEditorClass *klass)
 }
 
 static void
-asgtk_xml_editor_init (ASGtkXMLEditor *id)
+asgtk_xml_editor_init (ASGtkXMLEditor *xe)
 {
-	id->entry = NULL ;
-	id->color_sel = NULL ;
+	xe->xml_view = NULL ;
 }
 
 static void
 asgtk_xml_editor_dispose (GObject *object)
 {
   	ASGtkXMLEditor *xe = ASGTK_XML_EDITOR (object);
-	if( xe->entry ) 
+	if( xe->xml_view ) 
 	{
-		check_save_changes( xe ); 
-
-		LOCAL_DEBUG_OUT( " entry ref_count = %d", xe->entry->ref_count );
-		if( unref_asimage_list_entry(xe->entry) ) 
-			LOCAL_DEBUG_OUT( " entry ref_count = %d", xe->entry->ref_count );
-		xe->entry = NULL ;
-		if( xe->color_sel ) 
-		{	
-			gtk_widget_destroy( GTK_WIDGET(xe->color_sel) );
-			xe->color_sel = NULL ;
-		}
+		gtk_widget_destroy( GTK_WIDGET(xe->xml_view) );
+		xe->xml_view = NULL ;
 	}
-  	G_OBJECT_CLASS (parent_class)->dispose (object);
+  	G_OBJECT_CLASS (editor_parent_class)->dispose (object);
 }
 
 static void
 asgtk_xml_editor_finalize (GObject *object)
 {
-  	G_OBJECT_CLASS (parent_class)->finalize (object);
+  	G_OBJECT_CLASS (editor_parent_class)->finalize (object);
 }
 
 static void
@@ -132,11 +215,13 @@ asgtk_xml_editor_style_set (GtkWidget *widget,
 {
   /* ASGtkXMLEditor *id = ASGTK_XML_EDITOR (widget); */
 
-  GTK_WIDGET_CLASS (parent_class)->style_set (widget, prev_style);
+  GTK_WIDGET_CLASS (editor_parent_class)->style_set (widget, prev_style);
 }
 
+
+/* actuall implementation : */
 static char *
-get_xml_editor_text( ASGtkXMLEditor *xe, Bool selection_only )
+get_xml_view_text( ASGtkXMLView *xe, Bool selection_only )
 {
 	GtkTextBuffer *buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (xe->text_view));
 	GtkTextIter start, end ;
@@ -153,11 +238,11 @@ get_xml_editor_text( ASGtkXMLEditor *xe, Bool selection_only )
 }
 
 static char* 
-get_validated_text( ASGtkXMLEditor *xe, Bool selection, Bool report_success )
+get_validated_text( ASGtkXMLView *xe, Bool selection, Bool report_success )
 {
 	ASXmlBuffer xb ; 
 	int char_count = 0, tags_count = 0, last_separator = 0 ;
-	char *text = get_xml_editor_text(xe, selection);
+	char *text = get_xml_view_text(xe, selection);
 	Bool success = False ;
 	GtkTextBuffer *buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (xe->text_view));
 	GtkTextIter start, end ;
@@ -261,7 +346,7 @@ get_validated_text( ASGtkXMLEditor *xe, Bool selection, Bool report_success )
 static void
 on_refresh_clicked(GtkButton *button, gpointer user_data)
 {
-	ASGtkXMLEditor *xe = ASGTK_XML_EDITOR(user_data);
+	ASGtkXMLView *xe = ASGTK_XML_VIEW(user_data);
 	ASVisual *asv = get_screen_visual(NULL);
 
 	if( xe->entry ) 
@@ -290,7 +375,7 @@ on_refresh_clicked(GtkButton *button, gpointer user_data)
 static void
 on_validate_clicked(GtkButton *button, gpointer user_data)
 {
-	ASGtkXMLEditor *xe = ASGTK_XML_EDITOR(user_data);
+	ASGtkXMLView *xe = ASGTK_XML_VIEW(user_data);
 	char *text = get_validated_text( xe, True, True );
 	if( text ) 
 		g_free( text );
@@ -298,9 +383,9 @@ on_validate_clicked(GtkButton *button, gpointer user_data)
 
 
 static Bool
-save_text_buffer_to_file( ASGtkXMLEditor *xe, const char *filename ) 
+save_text_buffer_to_file( ASGtkXMLView *xe, const char *filename ) 
 {
-	char *text = get_xml_editor_text(xe, FALSE);
+	char *text = get_xml_view_text(xe, FALSE);
 	FILE *fp = fopen( filename, "wb" );
 	Bool result = False ; 
 	if( fp ) 
@@ -324,7 +409,7 @@ save_text_buffer_to_file( ASGtkXMLEditor *xe, const char *filename )
 static void
 on_save_clicked(GtkButton *button, gpointer user_data)
 {
-	ASGtkXMLEditor *xe = ASGTK_XML_EDITOR(user_data);
+	ASGtkXMLView *xe = ASGTK_XML_VIEW(user_data);
 	char *filename = xe->entry->fullfilename ; 
 	Bool signal_file_change = False ;
 	Bool new_file = False;
@@ -376,7 +461,7 @@ on_save_clicked(GtkButton *button, gpointer user_data)
 static void        
 on_text_changed  (GtkTextBuffer *textbuffer, gpointer user_data)
 {
-	ASGtkXMLEditor *xe = ASGTK_XML_EDITOR(user_data);
+	ASGtkXMLView *xe = ASGTK_XML_VIEW(user_data);
 	
 	xe->dirty = True ; 
 	gtk_widget_set_sensitive( xe->refresh_btn, TRUE );
@@ -384,7 +469,7 @@ on_text_changed  (GtkTextBuffer *textbuffer, gpointer user_data)
 }
 
 static void 
-check_save_changes( ASGtkXMLEditor *xe ) 
+check_save_changes( ASGtkXMLView *xe ) 
 {
 	if( xe->dirty )
 	{
@@ -508,7 +593,7 @@ static char *ASXMLScriptTags[MAX_ASXML_SCRIPT_TAG][2] =
 };	 
 
 static GtkWidget*
-make_xml_tags_list( ASGtkXMLEditor *xe )
+make_xml_tags_list( ASGtkXMLView *xe )
 {
  	GtkWidget *scrolled_window ; 		
 	GtkTreeSelection *selection;
@@ -540,10 +625,10 @@ make_xml_tags_list( ASGtkXMLEditor *xe )
 	gtk_tree_selection_set_mode(selection, GTK_SELECTION_SINGLE);
    	//g_signal_connect (selection, "changed",  G_CALLBACK (asgtk_image_dir_sel_handler), id);
 	g_signal_connect ( xe->tags_list, "row_activated",
-						G_CALLBACK (asgtk_xml_editor_tag_activate), xe);
+						G_CALLBACK (asgtk_xml_view_tag_activate), xe);
 	
 	g_signal_connect (gtk_tree_view_get_selection (GTK_TREE_VIEW (xe->tags_list)), "changed",
-		    		  G_CALLBACK (asgtk_xml_editor_tag_selected), xe);
+		    		  G_CALLBACK (asgtk_xml_view_tag_selected), xe);
 
 	colorize_gtk_tree_view_window( scrolled_window );
 	
@@ -562,7 +647,7 @@ make_xml_tags_list( ASGtkXMLEditor *xe )
 }
 
 static void
-insert_tag_template_at_cursor( ASGtkXMLEditor *xe, const char *text )
+insert_tag_template_at_cursor( ASGtkXMLView *xe, const char *text )
 {
 	GtkTextBuffer *buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (xe->text_view));
 	GtkTextMark *mark ; 
@@ -624,12 +709,12 @@ insert_tag_template_at_cursor( ASGtkXMLEditor *xe, const char *text )
 	
 
 static void
-asgtk_xml_editor_tag_activate ( GtkTreeView       *tree_view,
+asgtk_xml_view_tag_activate ( GtkTreeView       *tree_view,
 	   						    GtkTreePath       *path,
 				 				GtkTreeViewColumn *column,
 				 				gpointer           user_data)
 {
-	ASGtkXMLEditor *xe = ASGTK_XML_EDITOR (user_data);
+	ASGtkXMLView *xe = ASGTK_XML_VIEW (user_data);
   	GtkTreeModel *model = gtk_tree_view_get_model (tree_view);
   	GtkTreeIter iter;
   	char *tag_template = NULL ;
@@ -641,9 +726,9 @@ asgtk_xml_editor_tag_activate ( GtkTreeView       *tree_view,
 }
 
 static void
-asgtk_xml_editor_tag_selected ( GtkTreeSelection *selection, gpointer user_data)
+asgtk_xml_view_tag_selected ( GtkTreeSelection *selection, gpointer user_data)
 {
-	ASGtkXMLEditor *xe = ASGTK_XML_EDITOR (user_data);
+	ASGtkXMLView *xe = ASGTK_XML_VIEW (user_data);
   	GtkTreeModel *model;
   	GtkTreeIter iter;
 	char *tag_template = NULL ;
@@ -679,7 +764,7 @@ asgtk_xml_editor_tag_selected ( GtkTreeSelection *selection, gpointer user_data)
 static void 
 on_insert_tag_clicked( GtkWidget *button, gpointer data )
 {
-  	ASGtkXMLEditor *xe = ASGTK_XML_EDITOR (data);
+  	ASGtkXMLView *xe = ASGTK_XML_VIEW (data);
 	GtkTreeSelection *selection;
 	GtkTreeIter iter;
 	GtkTreeModel *model;
@@ -699,7 +784,7 @@ on_insert_tag_clicked( GtkWidget *button, gpointer data )
 static void 
 on_color_sel_destroy( GtkWidget *widget, gpointer data ) 
 {
-	ASGtkXMLEditor *xe = ASGTK_XML_EDITOR (data);
+	ASGtkXMLView *xe = ASGTK_XML_VIEW (data);
 	xe->color_sel = NULL ;
 	gtk_widget_set_sensitive( GTK_WIDGET(xe->color_browser_btn), TRUE );
 }	 
@@ -707,7 +792,7 @@ on_color_sel_destroy( GtkWidget *widget, gpointer data )
 static void 
 on_insert_color_clicked( GtkWidget *button, gpointer data )
 {
-  	ASGtkXMLEditor *xe = ASGTK_XML_EDITOR (data);
+  	ASGtkXMLView *xe = ASGTK_XML_VIEW (data);
 	if( xe->color_sel != NULL ) 
 	{	
 		char *col_str = asgtk_color_selection_get_color_str(xe->color_sel);
@@ -749,7 +834,7 @@ on_insert_color_clicked( GtkWidget *button, gpointer data )
 static void 
 on_color_browser_clicked( GtkWidget *button, gpointer data )
 {
-  	ASGtkXMLEditor *xe = ASGTK_XML_EDITOR (data);
+  	ASGtkXMLView *xe = ASGTK_XML_VIEW (data);
 	if( xe->color_sel == NULL ) 
 	{	
 		GtkWidget *select_btn ; 
@@ -765,27 +850,25 @@ on_color_browser_clicked( GtkWidget *button, gpointer data )
 
 /*  public functions  */
 GtkWidget *
-asgtk_xml_editor_new ()
+asgtk_xml_view_new ()
 {
-	ASGtkXMLEditor *xe;
-	GtkWidget *main_vbox; 
+	ASGtkXMLView *xe;
 	GtkWidget *scrolled_window; 
 	GtkWidget *panes ; 
 	GtkWidget *scale_check_box ;
 	GtkWidget *edit_hbox, *tags_vbox, *edit_vpanes, *save_hbox; 
 	GtkWidget *insert_tag_btn ;
   	
-    xe = g_object_new (ASGTK_TYPE_XML_EDITOR, NULL);
+    xe = g_object_new (ASGTK_TYPE_XML_VIEW, NULL);
 
 	gtk_container_set_border_width( GTK_CONTAINER (xe), 3 );
-	main_vbox = gtk_vbox_new (FALSE, 0);
-  	gtk_widget_show (main_vbox);
-	gtk_container_add (GTK_CONTAINER (xe), main_vbox);
-	gtk_box_set_spacing( GTK_BOX(main_vbox), 3 );
+//  	gtk_widget_show (main_vbox);
+//	gtk_container_add (GTK_CONTAINER (xe), main_vbox);
+	gtk_box_set_spacing( GTK_BOX(xe), 3 );
 
 	panes = gtk_vpaned_new();
 	gtk_widget_show( panes );
-	gtk_box_pack_start (GTK_BOX (main_vbox), panes, TRUE, TRUE, 0);
+	gtk_box_pack_start (GTK_BOX (xe), panes, TRUE, TRUE, 0);
 
 	xe->image_view = ASGTK_IMAGE_VIEW(asgtk_image_view_new_horizontal());
 	gtk_widget_set_size_request (GTK_WIDGET(xe->image_view), 320, 240);
@@ -811,7 +894,7 @@ asgtk_xml_editor_new ()
 	gtk_box_pack_start (GTK_BOX (edit_hbox), tags_vbox, FALSE, FALSE, 0);
 	gtk_box_pack_start (GTK_BOX (edit_hbox), edit_vpanes, TRUE, TRUE, 0);
 
-	scrolled_window = make_xml_tags_list( ASGTK_XML_EDITOR(xe) );
+	scrolled_window = make_xml_tags_list( ASGTK_XML_VIEW(xe) );
 	gtk_box_pack_start (GTK_BOX (tags_vbox), scrolled_window, TRUE, TRUE, 0);
 	gtk_scrolled_window_set_shadow_type( GTK_SCROLLED_WINDOW(scrolled_window), GTK_SHADOW_IN );
 	
@@ -897,17 +980,17 @@ asgtk_xml_editor_new ()
 	              	  G_CALLBACK (asgtk_image_view_scale_to_view_toggle), (gpointer) xe->image_view);
 	gtk_button_set_alignment( GTK_BUTTON(scale_check_box), 1.0, 0.5);
 	asgtk_image_view_add_detail( xe->image_view, scale_check_box, 0 );
-	LOCAL_DEBUG_OUT( "created image ASGtkXMLEditor object %p", xe );	
+	LOCAL_DEBUG_OUT( "created image ASGtkXMLView object %p", xe );	
 	return GTK_WIDGET (xe);
 }
 
 void   
-asgtk_xml_editor_set_entry ( ASGtkXMLEditor *xe,
+asgtk_xml_view_set_entry ( ASGtkXMLView *xe,
                              struct ASImageListEntry *entry)
 {
 	GtkTextBuffer *buffer;
 
-	g_return_if_fail (ASGTK_IS_XML_EDITOR (xe));
+	g_return_if_fail (ASGTK_IS_XML_VIEW (xe));
 
 	LOCAL_DEBUG_OUT( " ASGtk XML Editor object's %p entry to %p", xe, entry );
 	check_save_changes( xe ); 
@@ -942,13 +1025,49 @@ asgtk_xml_editor_set_entry ( ASGtkXMLEditor *xe,
 }
 
 void  		
-asgtk_xml_editor_file_change_handler( ASGtkXMLEditor *xe, 
+asgtk_xml_view_file_change_handler( ASGtkXMLView *xe, 
 									  _ASGtkXMLEditor_handler change_handler, gpointer user_data )
 {
-	g_return_if_fail (ASGTK_IS_XML_EDITOR (xe));
+	g_return_if_fail (ASGTK_IS_XML_VIEW (xe));
 
 	xe->file_change_handler = change_handler ; 
 	xe->file_change_user_data = user_data ;
+}
+
+GtkWidget * 
+asgtk_xml_editor_new       ()
+{
+	ASGtkXMLEditor *xe;
+ 	
+    xe = g_object_new (ASGTK_TYPE_XML_EDITOR, NULL);
+
+	xe->xml_view = ASGTK_XML_VIEW(asgtk_xml_view_new());
+	gtk_container_add (GTK_CONTAINER (xe), GTK_WIDGET(xe->xml_view));
+	gtk_widget_show( GTK_WIDGET(xe->xml_view) );
+	
+	LOCAL_DEBUG_OUT( "created image ASGtkXMLEditor object %p", xe );	   
+	return GTK_WIDGET (xe);
+}
+	
+void        
+asgtk_xml_editor_set_entry ( ASGtkXMLEditor *xe,
+                             struct ASImageListEntry *entry)
+{
+	g_return_if_fail (ASGTK_IS_XML_EDITOR (xe));
+	if( xe->xml_view ) 
+		asgtk_xml_view_set_entry ( xe->xml_view, entry);
+}
+
+void  		
+asgtk_xml_editor_file_change_handler( ASGtkXMLEditor *xe, 
+									  _ASGtkXMLEditor_handler change_handler, 
+									  gpointer user_data )
+{
+	g_return_if_fail (ASGTK_IS_XML_EDITOR (xe));
+	
+	if( xe->xml_view ) 
+		asgtk_xml_view_file_change_handler ( xe->xml_view, change_handler, user_data);
+	
 }
 
 
