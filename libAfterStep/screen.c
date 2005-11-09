@@ -250,7 +250,11 @@ ASErrorHandler (Display * dpy, XErrorEvent * event)
 int
 ConnectXDisplay (Display *display, ScreenInfo * scr, Bool as_manager)
 {
-    if( display == NULL ) 
+    int width_mm, height_mm ;
+	int display_dpcmx = 0, display_dpcmy = 0;
+	int button_w, button_h, mini_w, mini_h ;
+	
+	if( display == NULL ) 
 		return -1;
 
 	dpy = display ;
@@ -296,6 +300,28 @@ ConnectXDisplay (Display *display, ScreenInfo * scr, Bool as_manager)
 
 	asxml_var_insert("xroot.width", scr->MyDisplayWidth);
     asxml_var_insert("xroot.height", scr->MyDisplayHeight);
+
+	width_mm = DisplayWidthMM(dpy, scr->screen);
+	height_mm = DisplayHeightMM(dpy, scr->screen);
+	asxml_var_insert("xroot.widthmm", width_mm);
+    asxml_var_insert("xroot.heightmm", height_mm);
+	
+	display_dpcmx = (scr->MyDisplayWidth * 10 )/ width_mm;
+	display_dpcmy = (scr->MyDisplayHeight * 10 )/ height_mm;
+
+	button_w = (display_dpcmx < 50)?48:64;
+	button_h = (display_dpcmy < 50)?48:64;
+	mini_w = (display_dpcmx <= 44)?max(display_dpcmx/2,12):display_dpcmx-20;
+	mini_h = (display_dpcmy <= 44)?max(display_dpcmy/2,12):display_dpcmy-20;
+	asxml_var_insert("icon.button.width", button_w);
+	asxml_var_insert("icon.button.height", button_h);
+	asxml_var_insert("icon.width", (button_w*3)/4);
+	asxml_var_insert("icon.height", (button_h*3)/4);
+	asxml_var_insert("minipixmap.width", mini_w);
+	asxml_var_insert("minipixmap.height", mini_h);
+	asxml_var_insert("title.font.size", (mini_h*7)/12);
+	asxml_var_insert("menu.font.size", (mini_h*7)/12+1);
+	asxml_var_insert("font.size", ((mini_h*7)/12));
 
 	scr->CurrentDesk = -1;
 

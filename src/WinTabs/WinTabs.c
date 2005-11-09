@@ -501,20 +501,7 @@ LOCAL_DEBUG_OUT( "exclude_pattern = \"%s\"", Config->exclude_pattern );
     Print_balloonConfig ( Config->balloon_conf );
 #endif
 	
-	balloon_config2look( &(Scr.Look), Config->balloon_conf );
-	if( Config->balloon_conf == NULL ) 
-	{
-/*		
-		Scr.Look.balloon_look->show = True ;
-        Scr.Look.balloon_look->xoffset = 5 ;
-        Scr.Look.balloon_look->yoffset = 5 ;
-		Scr.Look.balloon_look->style = mystyle_list_find_or_default (NULL, NULL);
-		Scr.Look.balloon_look->close_delay = 2000 ;
- */
-	}	 
-		
-    LOCAL_DEBUG_OUT( "balloon mystyle = %p (\"%s\")", Scr.Look.balloon_look->style,
-                    Scr.Look.balloon_look->style?Scr.Look.balloon_look->style->name:"none" );
+	balloon_config2look( &(Scr.Look), Config->balloon_conf, "*WinTabsBalloon" );
     set_balloon_look( Scr.Look.balloon_look );
 
 }

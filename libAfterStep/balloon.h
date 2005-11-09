@@ -15,11 +15,12 @@ struct ASCanvas;
 typedef struct ASBalloonLook
 {
   Bool show;
-  int border_hilite;
-  int yoffset, xoffset;
-  int delay;
-  int close_delay;
-  struct MyStyle *style;
+  int BorderHilite;
+  int YOffset, XOffset;
+  int Delay;
+  int CloseDelay;
+  struct MyStyle *Style;
+  int TextPaddingX, TextPaddingY;
 
 }ASBalloonLook;
 

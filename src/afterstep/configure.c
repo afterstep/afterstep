@@ -302,12 +302,14 @@ struct config main_config[] = {
     {"MenuHiliteCompositionMethod"		, SetInts, (char **)&TmpLook.menu_hcm, &dummy},
     {"MenuStippleCompositionMethod"		, SetInts, (char **)&TmpLook.menu_scm, &dummy},
     {"ShadeAnimationSteps"				, SetInts, (char **)&TmpFeel.ShadeAnimationSteps, (int *)&dummy},
-    {"TitleButtonBalloonBorderHilite"	, bevel_parse, (char**)"afterstep", (int*)&(BalloonConfig.border_hilite)},
-    {"TitleButtonBalloonXOffset"		, SetInts, (char**)&(BalloonConfig.x_offset), NULL},
-    {"TitleButtonBalloonYOffset"		, SetInts, (char**)&(BalloonConfig.y_offset), NULL},
-    {"TitleButtonBalloonDelay"			, SetInts, (char**)&(BalloonConfig.delay), NULL},
-    {"TitleButtonBalloonCloseDelay"		, SetInts, (char**)&(BalloonConfig.close_delay), NULL},
-    {"TitleButtonBalloonStyle"			, assign_string, &(BalloonConfig.style), NULL},
+    {"TitleButtonBalloonBorderHilite"	, bevel_parse, (char**)"afterstep", (int*)&(BalloonConfig.BorderHilite)},
+    {"TitleButtonBalloonXOffset"		, SetInts, (char**)&(BalloonConfig.XOffset), NULL},
+    {"TitleButtonBalloonYOffset"		, SetInts, (char**)&(BalloonConfig.YOffset), NULL},
+    {"TitleButtonBalloonDelay"			, SetInts, (char**)&(BalloonConfig.Delay), NULL},
+    {"TitleButtonBalloonCloseDelay"		, SetInts, (char**)&(BalloonConfig.CloseDelay), NULL},
+    {"TitleButtonBalloonStyle"			, assign_string, &(BalloonConfig.Style), NULL},
+    {"TitleButtonBalloonTextPaddingX"	, SetInts, (char**)&(BalloonConfig.TextPaddingX), NULL},
+    {"TitleButtonBalloonTextPaddingY"	, SetInts, (char**)&(BalloonConfig.TextPaddingY), NULL},
     {"TitleButtonBalloons"				, SetFlag2, (char**)BALLOON_USED, (int*)&(BalloonConfig.set_flags)},
     {"TitleButton"						, SetTitleButton, (char **)1, (int *)0},
     {"KillBackgroundThreshold"			, SetInts, (char**)&(TmpLook.KillBackgroundThreshold), NULL },
@@ -686,8 +688,8 @@ InitLook (MyLook *look, Bool free_resources)
         DestroyMyFrameDefinitions (&MyFrameList);
 		if( LegacyFrameDef )
 			DestroyMyFrameDefinitions( &LegacyFrameDef );
-        if( BalloonConfig.style )
-            free( BalloonConfig.style );
+        if( BalloonConfig.Style )
+            free( BalloonConfig.Style );
 		for( i = 0  ; i < BACK_STYLES ; ++i )
 			if( MSWindowName[i] )
 				free( MSWindowName[i] );
@@ -1169,14 +1171,11 @@ FixLook( MyLook *look )
     LOCAL_DEBUG_OUT( "syncing %s","");
     ASSync(False);
 #endif
-    /* updating balloons look */
-    if( BalloonConfig.style == NULL )
-        BalloonConfig.style = mystrdup( "TitleButtonBalloon" );
 
 #if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
     Print_balloonConfig ( &BalloonConfig );
 #endif
-    balloon_config2look( look, &BalloonConfig );
+    balloon_config2look( look, &BalloonConfig, "TitleButtonBalloon" );
     set_balloon_look( look->balloon_look );
 
     /* checking sanity of the move-resize window geometry :*/

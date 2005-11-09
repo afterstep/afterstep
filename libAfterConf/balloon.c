@@ -21,6 +21,7 @@
 
 #include "../configure.h"
 #define NEED_BALLOON
+#define LOCAL_DEBUG
 #include "../libAfterStep/asapp.h"
 #include "../libAfterStep/afterstep.h"
 #include "../libAfterStep/mystyle.h"
@@ -50,8 +51,8 @@ Destroy_balloonConfig (balloonConfig * config)
 {
   if (!config)
 	return;
-  if (config->style)
-    free (config->style);
+  if (config->Style)
+    free (config->Style);
   free (config);
   config = NULL;
 }
@@ -64,17 +65,19 @@ Print_balloonConfig (balloonConfig *config )
     else
     {
         fprintf( stderr,"set_flags = 0x%lX\n",config->set_flags);
-        fprintf( stderr,"BalloonBorderHilite 0x%lX\n",config->border_hilite);
-        fprintf( stderr,"BalloonXOffset %d\n",config->x_offset);
-        fprintf( stderr,"BalloonYOffset %d\n",config->y_offset);
-        fprintf( stderr,"BalloonDelay %d\n",config->delay);
-        fprintf( stderr,"BalloonCloseDelay %d\n",config->close_delay);
-        fprintf( stderr,"BalloonStyle \"%s\"\n",config->style);
-    }
+		ASCF_PRINT_FLAGS_KEYWORD(stderr,BALLOON,config,BorderHilite);
+		ASCF_PRINT_INT_KEYWORD(stderr,BALLOON,config,XOffset);
+		ASCF_PRINT_INT_KEYWORD(stderr,BALLOON,config,YOffset);
+		ASCF_PRINT_INT_KEYWORD(stderr,BALLOON,config,Delay);
+		ASCF_PRINT_INT_KEYWORD(stderr,BALLOON,config,CloseDelay);
+		ASCF_PRINT_STRING_KEYWORD(stderr,BALLOON,config,Style);
+		ASCF_PRINT_INT_KEYWORD(stderr,BALLOON,config,TextPaddingX);
+		ASCF_PRINT_INT_KEYWORD(stderr,BALLOON,config,TextPaddingY);
+	}
 }
 
 void
-balloon_config2look( MyLook *look, balloonConfig *config )
+balloon_config2look( MyLook *look, balloonConfig *config, const char *default_style )
 {
     if( look )
     {
@@ -85,23 +88,41 @@ balloon_config2look( MyLook *look, balloonConfig *config )
 		{	
             memset( look->balloon_look, 0x00, sizeof(ASBalloonLook) );
 			look->balloon_look->show = True ;
-        	look->balloon_look->xoffset = 5 ;
-        	look->balloon_look->yoffset = 5 ;
-			look->balloon_look->style = mystyle_list_find_or_default (NULL, NULL);
-			look->balloon_look->delay = 200 ;
-			look->balloon_look->close_delay = 2000 ;
+        	look->balloon_look->XOffset = 5 ;
+        	look->balloon_look->YOffset = 5 ;
+			look->balloon_look->Style = mystyle_list_find_or_default (look->styles_list, default_style);
+			look->balloon_look->Delay = 200 ;
+			look->balloon_look->CloseDelay = 2000 ;
 		}else
         {
+#define MERGE_BALLOON_SCALAR_VAL(val)  look->balloon_look->val = config->val 			
+
             look->balloon_look->show = get_flags( config->set_flags, BALLOON_USED );
-            look->balloon_look->border_hilite = config->border_hilite ;
-            look->balloon_look->xoffset = config->x_offset ;
-            look->balloon_look->yoffset = config->y_offset ;
-            look->balloon_look->delay = config->delay ;
-            look->balloon_look->close_delay = config->close_delay ;
-            look->balloon_look->style = mystyle_list_find_or_default (look->styles_list, config->style);
-        }
+			MERGE_BALLOON_SCALAR_VAL(BorderHilite);
+			MERGE_BALLOON_SCALAR_VAL(XOffset);
+			MERGE_BALLOON_SCALAR_VAL(YOffset);
+			MERGE_BALLOON_SCALAR_VAL(Delay);
+			MERGE_BALLOON_SCALAR_VAL(CloseDelay);
+            look->balloon_look->Style = mystyle_list_find_or_default (look->styles_list, config->Style?config->Style:default_style);
+			MERGE_BALLOON_SCALAR_VAL(TextPaddingX);
+			MERGE_BALLOON_SCALAR_VAL(TextPaddingY);
+		}
+	    LOCAL_DEBUG_OUT( "balloon mystyle = %p (\"%s\")", look->balloon_look->Style,
+                    	 look->balloon_look->Style?look->balloon_look->Style->name:"none" );
+
     }
 }
+
+void
+set_default_balloon_style( balloonConfig *config, const char *style )
+{	 
+    if( !get_flags( config->set_flags, BALLOON_Style ) )
+    {
+        config->Style = mystrdup(style);
+        set_flags( config->set_flags, BALLOON_Style );
+    }
+}
+
 
 balloonConfig*
 Process_balloonOptions (FreeStorageElem * options, balloonConfig *config)
@@ -121,12 +142,10 @@ Process_balloonOptions (FreeStorageElem * options, balloonConfig *config)
             continue;
         if (options->term->type == TT_FLAG)
         {
-            if(options->term->id == BALLOON_USED_ID )
-                config->set_flags |= BALLOON_USED ;
-            else if( options->term->id ==  BALLOON_BorderHilite_ID )
-            {
-                set_flags( config->set_flags, BALLOON_HILITE );
-                config->border_hilite = ParseBevelOptions( options->sub );
+            switch(options->term->id)
+			{
+				case BALLOON_USED_ID :  config->set_flags |= BALLOON_USED ; break;
+	            ASCF_HANDLE_BEVEL_KEYWORD_CASE(BALLOON,config,options,BorderHilite); 
             }
             continue;
         }
@@ -136,25 +155,13 @@ Process_balloonOptions (FreeStorageElem * options, balloonConfig *config)
 
         switch (options->term->id)
         {
-            case BALLOON_XOffset_ID :
-                set_flags(config->set_flags, BALLOON_XOFFSET );
-                config->x_offset = item.data.integer;
-                break;
-            case BALLOON_YOffset_ID :
-                set_flags(config->set_flags, BALLOON_YOFFSET );
-                config->y_offset = item.data.integer;
-                break;
-            case BALLOON_Delay_ID :
-                set_flags(config->set_flags, BALLOON_DELAY );
-                config->delay = item.data.integer;
-                break;
-            case BALLOON_CloseDelay_ID :
-                set_flags(config->set_flags, BALLOON_CLOSE_DELAY );
-                config->close_delay = item.data.integer;
-                break;
-            case BALLOON_Style_ID :
-                set_string_value( &(config->style), item.data.string, &(config->set_flags), BALLOON_STYLE );
-                break;
+			ASCF_HANDLE_INTEGER_KEYWORD_CASE(BALLOON,config,item,XOffset); 
+			ASCF_HANDLE_INTEGER_KEYWORD_CASE(BALLOON,config,item,YOffset); 
+			ASCF_HANDLE_INTEGER_KEYWORD_CASE(BALLOON,config,item,Delay); 
+			ASCF_HANDLE_INTEGER_KEYWORD_CASE(BALLOON,config,item,CloseDelay); 
+			ASCF_HANDLE_STRING_KEYWORD_CASE(BALLOON,config,item,Style); 
+			ASCF_HANDLE_INTEGER_KEYWORD_CASE(BALLOON,config,item,TextPaddingX); 
+			ASCF_HANDLE_INTEGER_KEYWORD_CASE(BALLOON,config,item,TextPaddingY); 
             default:
                 item.ok_to_free = 1;
         }

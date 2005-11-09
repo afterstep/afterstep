@@ -367,6 +367,8 @@ typedef struct MyLook
 
 	ARGB32	desktop_animation_tint ;
 
+	struct ScreenInfo *scr ;          /* same as ASDefaultScr if NULL */
+
 }MyLook;
 
 MyFrame *create_myframe();

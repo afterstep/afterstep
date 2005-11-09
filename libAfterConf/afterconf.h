@@ -751,6 +751,8 @@ void myframe_parse (char *tline, FILE * fd, char **myname, int *myframe_list);
 #define BALLOON_Delay_ID            (BALLOON_ID_START+4)
 #define BALLOON_CloseDelay_ID       (BALLOON_ID_START+5)
 #define BALLOON_Style_ID            (BALLOON_ID_START+6)
+#define BALLOON_TextPaddingX_ID        (BALLOON_ID_START+7)
+#define BALLOON_TextPaddingY_ID        (BALLOON_ID_START+8)
 
 #define	BALLOON_ID_END				(BALLOON_ID_START+10)
 
@@ -765,7 +767,9 @@ void myframe_parse (char *tline, FILE * fd, char **myname, int *myframe_list);
 
 #define BALLOON_LOOK_TERMS \
  {0, "BalloonBorderHilite",19, TT_FLAG, BALLOON_BorderHilite_ID, &BevelSyntax}, \
- {0, "BalloonStyle", 12, TT_QUOTED_TEXT, BALLOON_Style_ID , NULL}
+ {0, "BalloonStyle", 12, TT_QUOTED_TEXT, BALLOON_Style_ID , NULL}, \
+ {0, "BalloonTextPaddingX",19, TT_INTEGER, BALLOON_TextPaddingX_ID , NULL}, \
+ {0, "BalloonTextPaddingY",19, TT_INTEGER, BALLOON_TextPaddingY_ID , NULL}
 
 #define BALLOON_TERMS BALLOON_FLAG_TERM,BALLOON_FEEL_TERMS,BALLOON_LOOK_TERMS
 
@@ -773,16 +777,19 @@ typedef struct balloonConfig
 {
   unsigned long set_flags;	/* identifyes what option is set */
 #define BALLOON_USED				(0x01<<0)
-#define BALLOON_HILITE              (0x01<<1)
-#define BALLOON_XOFFSET             (0x01<<2)
-#define BALLOON_YOFFSET             (0x01<<3)
-#define BALLOON_DELAY               (0x01<<4)
-#define BALLOON_CLOSE_DELAY			(0x01<<5)
-#define BALLOON_STYLE               (0x01<<6)
-  ASFlagType border_hilite;
-  int x_offset, y_offset;
-  unsigned int delay, close_delay;
-  char *style ;
+#define BALLOON_BorderHilite        (0x01<<1)
+#define BALLOON_XOffset             (0x01<<2)
+#define BALLOON_YOffset             (0x01<<3)
+#define BALLOON_Delay               (0x01<<4)
+#define BALLOON_CloseDelay			(0x01<<5)
+#define BALLOON_Style               (0x01<<6)
+#define BALLOON_TextPaddingX		(0x01<<7)
+#define BALLOON_TextPaddingY		(0x01<<8)
+  ASFlagType BorderHilite;
+  int XOffset, YOffset;
+  unsigned int Delay, CloseDelay;
+  char *Style ;
+  int TextPaddingX, TextPaddingY;
 }balloonConfig;
 
 struct BalloonLook;
@@ -796,7 +803,7 @@ struct FreeStorageElem **balloon2FreeStorage (struct SyntaxDef * syntax,
 				       struct FreeStorageElem ** tail,
 				       balloonConfig * config);
 
-void balloon_config2look( struct MyLook *look, balloonConfig *config );
+void balloon_config2look( struct MyLook *look, balloonConfig *config, const char *default_style );
 
 /***************************************************************************/
 

@@ -19,8 +19,12 @@ Bool
 load_font (const char *name, MyFont * font)
 #endif
 {
-	int           font_size = 14;
 	char 		 *clean_name = (char*)name ;
+	
+	int font_size = asxml_var_get("font.size");				   
+	
+	if( font_size <= 0 ) 
+		font_size = 14;
 
 #if defined(LOG_FONT_CALLS) && defined(DEBUG_ALLOCS)
 	log_call (file, line, "load_font", name);

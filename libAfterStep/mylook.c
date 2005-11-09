@@ -132,13 +132,24 @@ void
 mylook_init (MyLook * look, Bool free_resources, unsigned long what_flags /*see LookLoadFlags in mylook.h */ )
 {
 	register int  i;
+	ScreenInfo *scr = ASDefaultScr;
+	int display_dpcmx = 0, display_dpcmy = 0;
 
 	if (look == NULL)
 		return;
     if( look->magic != MAGIC_MYLOOK )
         return;
 
-    if (get_flags (what_flags, LL_Balloons))
+	if( look->scr ) 
+		scr = look->scr ;
+
+	if( scr && dpy ) 
+	{ /* dots per cm ) */
+		display_dpcmx = (scr->MyDisplayWidth * 10 )/ DisplayWidthMM(dpy, scr->screen );
+		display_dpcmy = (scr->MyDisplayHeight * 10 )/ DisplayHeightMM(dpy, scr->screen );
+	}	 
+    
+	if (get_flags (what_flags, LL_Balloons))
         balloon_init (free_resources);
 
     if (free_resources)
@@ -222,8 +233,16 @@ mylook_init (MyLook * look, Bool free_resources, unsigned long what_flags /*see 
 	if (get_flags (what_flags, LL_MenuIcons))
 	{
 		look->MenuArrow = NULL;
-		look->minipixmap_width = 48 ;
+		look->minipixmap_width = 48;
 		look->minipixmap_height = 48 ;
+		if( display_dpcmx >= 44 ) 
+			look->minipixmap_width = display_dpcmx-20 ;
+		else if( display_dpcmx > 0 ) 
+			look->minipixmap_width = max(display_dpcmx/2,12);
+		if( display_dpcmy >= 44 ) 
+			look->minipixmap_height = display_dpcmy-20 ;
+		else if( display_dpcmy > 0 ) 
+			look->minipixmap_height = max(display_dpcmy/2,12);
     }
 
 	if (get_flags (what_flags, LL_Buttons))
@@ -269,8 +288,8 @@ mylook_init (MyLook * look, Bool free_resources, unsigned long what_flags /*see 
 	{
         look->configured_icon_areas = NULL ;
         look->configured_icon_areas_num = 0;
-		look->ButtonWidth = 64;
-		look->ButtonHeight = 64;
+		look->ButtonWidth = (display_dpcmx>0 && display_dpcmx < 50)?48:64;
+		look->ButtonHeight = (display_dpcmy>0 && display_dpcmy < 50)?48:64;
 		look->ButtonIconSpacing = 2;
 		look->ButtonAlign  = ALIGN_CENTER|RESIZE_H_SCALE|RESIZE_V_SCALE;
 		look->ButtonBevel  = DEFAULT_TBAR_HILITE;

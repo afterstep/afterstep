@@ -426,20 +426,12 @@ CheckConfigSanity()
         }
     }
 
-    if( !get_flags( Config->balloon_conf->set_flags, BALLOON_STYLE ) )
-    {
-        Config->balloon_conf->style = mystrdup("*WharfBalloon");
-        set_flags( Config->balloon_conf->set_flags, BALLOON_STYLE );
-    }
-
 #if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
     show_progress( "printing wharf config : ");
     PrintWharfConfig(Config);
     Print_balloonConfig ( Config->balloon_conf );
 #endif
-    balloon_config2look( &(Scr.Look), Config->balloon_conf );
-    LOCAL_DEBUG_OUT( "balloon mystyle = %p (\"%s\")", Scr.Look.balloon_look->style,
-                    Scr.Look.balloon_look->style?Scr.Look.balloon_look->style->name:"none" );
+    balloon_config2look( &(Scr.Look), Config->balloon_conf, "*WharfBalloon" );
     set_balloon_look( Scr.Look.balloon_look );
 
 }

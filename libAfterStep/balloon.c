@@ -43,8 +43,10 @@ set_active_balloon_look()
     {
         int pointer_x, pointer_y ;
         int dl, dr, du, dd ;
-        set_astbar_style_ptr( BalloonState.active_bar, BAR_STATE_UNFOCUSED, BalloonState.look.style );
-        set_astbar_hilite( BalloonState.active_bar, BAR_STATE_UNFOCUSED, BalloonState.look.border_hilite );
+		BalloonState.active_bar->h_border = BalloonState.look.TextPaddingX ;
+		BalloonState.active_bar->v_border = BalloonState.look.TextPaddingY ;
+        set_astbar_style_ptr( BalloonState.active_bar, BAR_STATE_UNFOCUSED, BalloonState.look.Style );
+        set_astbar_hilite( BalloonState.active_bar, BAR_STATE_UNFOCUSED, BalloonState.look.BorderHilite );
         width = calculate_astbar_width( BalloonState.active_bar );
         if( width > ASDefaultScrWidth )
             width = ASDefaultScrWidth ;
@@ -55,13 +57,13 @@ set_active_balloon_look()
         ASQueryPointerRootXY(&pointer_x, &pointer_y);
         x = pointer_x;
         y = pointer_y;
-        x += BalloonState.look.xoffset ;
+        x += BalloonState.look.XOffset ;
         if( x < 0 )
             x = 0 ;
         else if( x + width > ASDefaultScrWidth )
             x = ASDefaultScrWidth - width ;
 
-        y += BalloonState.look.yoffset ;
+        y += BalloonState.look.YOffset ;
         if( y < 0 )
             y = 0 ;
         else if( y + height > ASDefaultScrHeight )
@@ -143,8 +145,8 @@ display_active_balloon()
         map_canvas_window( BalloonState.active_canvas, True );
 
         BalloonState.active->timer_action = BALLOON_TIMER_CLOSE;
-        if( BalloonState.look.close_delay > 0 )
-            timer_new (BalloonState.look.close_delay, &balloon_timer_handler, (void *)BalloonState.active);
+        if( BalloonState.look.CloseDelay > 0 )
+            timer_new (BalloonState.look.CloseDelay, &balloon_timer_handler, (void *)BalloonState.active);
     }
 }
 
@@ -199,9 +201,9 @@ balloon_init (int free_resources)
         }
     }
     memset(&(BalloonState.look), 0x00, sizeof(ASBalloonLook));
-    BalloonState.look.close_delay = 10000;
-    BalloonState.look.xoffset = 5 ;
-    BalloonState.look.yoffset = 5 ;
+    BalloonState.look.CloseDelay = 10000;
+    BalloonState.look.XOffset = 5 ;
+    BalloonState.look.YOffset = 5 ;
     BalloonState.active = NULL ;
     BalloonState.active_bar = NULL ;
     BalloonState.active_canvas = NULL ;
@@ -223,13 +225,13 @@ display_balloon( ASBalloon *balloon )
         withdraw_active_balloon();
 
     BalloonState.active = balloon ;
-    if( BalloonState.look.delay <= 0 )
+    if( BalloonState.look.Delay <= 0 )
         display_active_balloon();
     else
     {
         while (timer_remove_by_data (balloon));
         balloon->timer_action = BALLOON_TIMER_OPEN;
-        timer_new (BalloonState.look.delay, &balloon_timer_handler, (void *)balloon);
+        timer_new (BalloonState.look.Delay, &balloon_timer_handler, (void *)balloon);
     }
 }
 

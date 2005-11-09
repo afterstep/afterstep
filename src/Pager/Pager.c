@@ -561,13 +561,11 @@ LOCAL_DEBUG_OUT( "desk_style %d: \"%s\" ->%p(\"%s\")->colors(%lX,%lX)", i, buf, 
     Scr.Feel.OpaqueMove = 100;
     Scr.Feel.OpaqueResize = 100;
     Scr.Feel.no_snaping_mod = ShiftMask ;
-
+	
 #if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
     Print_balloonConfig ( Config->balloon_conf );
 #endif
-    balloon_config2look( &(Scr.Look), Config->balloon_conf );
-    LOCAL_DEBUG_OUT( "balloon mystyle = %p (\"%s\")", Scr.Look.balloon_look->style,
-                    Scr.Look.balloon_look->style?Scr.Look.balloon_look->style->name:"none" );
+    balloon_config2look( &(Scr.Look), Config->balloon_conf, "*PagerBalloon" );
     set_balloon_look( Scr.Look.balloon_look );
 
 	LOCAL_DEBUG_OUT( "geometry = %dx%d%+d%+d", Config->geometry.width, Config->geometry.height, Config->geometry.x, Config->geometry.y );
