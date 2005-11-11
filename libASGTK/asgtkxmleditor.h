@@ -20,7 +20,7 @@ typedef void (*_ASGtkXMLEditor_handler)(struct _ASGtkXMLView *xe, gpointer user_
 
 typedef struct _ASGtkXMLView
 {
-	GtkContainer       parent_instance ;
+	GtkVBox       parent_instance ;
 	
 	struct ASImageListEntry *entry ;
 

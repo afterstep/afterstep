@@ -195,11 +195,11 @@ static void
 asgtk_xml_editor_dispose (GObject *object)
 {
   	ASGtkXMLEditor *xe = ASGTK_XML_EDITOR (object);
-	if( xe->xml_view ) 
-	{
-		gtk_widget_destroy( GTK_WIDGET(xe->xml_view) );
-		xe->xml_view = NULL ;
-	}
+	//if( xe->xml_view ) 
+	//{
+	//	gtk_widget_destroy( GTK_WIDGET(xe->xml_view) );
+	//	xe->xml_view = NULL ;
+	//}
   	G_OBJECT_CLASS (editor_parent_class)->dispose (object);
 }
 
@@ -1041,7 +1041,7 @@ asgtk_xml_editor_new       ()
  	
     xe = g_object_new (ASGTK_TYPE_XML_EDITOR, NULL);
 
-	xe->xml_view = ASGTK_XML_VIEW(asgtk_xml_view_new());
+   	xe->xml_view = ASGTK_XML_VIEW(asgtk_xml_view_new());
 	gtk_container_add (GTK_CONTAINER (xe), GTK_WIDGET(xe->xml_view));
 	gtk_widget_show( GTK_WIDGET(xe->xml_view) );
 	
