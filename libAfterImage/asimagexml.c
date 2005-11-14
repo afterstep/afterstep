@@ -1732,7 +1732,9 @@ handle_asxml_tag_rotate( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* pa
  * NAME
  * scale - scale image to arbitrary size
  * SYNOPSIS
- * <scale id="new_id" ref_id="other_imag" width="pixels" height="pixels">
+ * <scale id="new_id" ref_id="other_imag" clip_x="pixels"  clip_y="pixels" 
+ *        clip_width="pixels" clip_height="pixels" 
+ *        width="pixels" height="pixels">
  * ATTRIBUTES
  * id       Optional. Image will be given this name for future reference.
  * refid    Optional.  An image ID defined with the "id" parameter for
@@ -1741,7 +1743,19 @@ handle_asxml_tag_rotate( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* pa
  *          refid image.
  * width    Required.  The image will be scaled to this width.
  * height   Required.  The image will be scaled to this height.
- * NOTES
+ * clip_x   Optional. Default is 0. X Offset on infinite surface tiled
+ *          with this image, from which to cut portion of an image to be
+ *          used in scaling.
+ * clip_y   Optional. Default is 0. Y Offset on infinite surface tiled
+ *          with this image, from which to cut portion of an image to be
+ *          used in scaling.
+ * clip_width
+ *          Optional. Default is image width. Tile image to this width
+ *          prior to scaling.
+ * clip_height
+ *          Optional. Default is image height. Tile image to this height
+ *          prior to scaling.
+  * NOTES
  * This tag applies to the first image contained within the tag.  Any
  * further images will be discarded.
  * If you want to keep image proportions while scaling - use "proportional"
@@ -1751,9 +1765,21 @@ static ASImage *
 handle_asxml_tag_scale( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm, ASImage *imtmp, int width, int height)
 {
 	ASImage *result = NULL ;
+	xml_elem_t* ptr;
+	int clip_x = 0, clip_y = 0 ;
+	int clip_width = 0, clip_height = 0 ;
 	LOCAL_DEBUG_OUT("doc = %p, parm = %p, imtmp = %p, width = %d, height = %d", doc, parm, imtmp, width, height ); 
+	for (ptr = parm ; ptr ; ptr = ptr->next) 
+	{
+		if (!strcmp(ptr->tag, "clip_x")) 		clip_x = parse_math(ptr->parm, NULL, width);
+		else if (!strcmp(ptr->tag, "clip_y")) 	clip_y = parse_math(ptr->parm, NULL, width);
+		else if (!strcmp(ptr->tag, "clip_width")) 	clip_width = parse_math(ptr->parm, NULL, width);
+		else if (!strcmp(ptr->tag, "clip_height")) 	clip_height = parse_math(ptr->parm, NULL, width);
+	}	
 	show_progress("Scaling image to [%dx%d].", width, height);
-	result = scale_asimage( state->asv, imtmp, width, height, 
+	result = scale_asimage2( state->asv, imtmp, 
+							clip_x, clip_y, clip_width, clip_height,
+							width, height, 
 							ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT);
 	return result;
 }
