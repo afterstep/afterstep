@@ -1763,7 +1763,8 @@ handle_asxml_tag_scale( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* par
  * SYNOPSIS
  * <slice id="new_id" ref_id="other_imag" width="pixels" height="pixels"
  *        x_start="slice_x_start" x_end="slice_x_end"
- * 		  y_start="slice_y_start" y_end="slice_y_end">
+ * 		  y_start="slice_y_start" y_end="slice_y_end"
+ * 		  scale="0|1">
  * ATTRIBUTES
  * id       Optional. Image will be given this name for future reference.
  * refid    Optional.  An image ID defined with the "id" parameter for
@@ -1780,6 +1781,8 @@ handle_asxml_tag_scale( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* par
  *          Corresponds to the bottom side of the top corners.
  * y_end    Optional. Position at which horisontal image slicing end.
  * 			Corresponds to the top side of the bottom corners.
+ * scale    Optional. If set to 1 will cause middle portion of the 
+ * 			image to be scaled instead of tiled.
  * NOTES
  * This tag applies to the first image contained within the tag.  Any
  * further images will be discarded.
@@ -1798,6 +1801,7 @@ handle_asxml_tag_slice( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* par
 	xml_elem_t* ptr;
 	int x_start = 0, x_end = 0 ;
 	int y_start = 0, y_end = 0 ;
+	Bool scale = False ;
 	LOCAL_DEBUG_OUT("doc = %p, parm = %p, imtmp = %p, width = %d, height = %d", doc, parm, imtmp, width, height ); 
 	for (ptr = parm ; ptr ; ptr = ptr->next) 
 	{
@@ -1805,11 +1809,12 @@ handle_asxml_tag_slice( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* par
 		else if (!strcmp(ptr->tag, "x_end")) 	x_end = parse_math(ptr->parm, NULL, width);
 		else if (!strcmp(ptr->tag, "y_start")) 	y_start = parse_math(ptr->parm, NULL, height);
 		else if (!strcmp(ptr->tag, "y_end")) 	y_end = parse_math(ptr->parm, NULL, height);
+		else if (!strcmp(ptr->tag, "scale")) 	scale = (ptr->parm[0] == '1');
 	}
 
 	show_progress("Slicing image to [%dx%d].", width, height);
-	result = slice_asimage( state->asv, imtmp, x_start, x_end, y_start, y_end, width, height, 
-							ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT);
+	result = slice_asimage2( state->asv, imtmp, x_start, x_end, y_start, y_end, width, height, 
+							 scale, ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT);
 	return result;
 }
 

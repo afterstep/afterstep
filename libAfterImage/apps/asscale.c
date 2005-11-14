@@ -42,7 +42,9 @@ int main(int argc, char* argv[])
 	int dummy, geom_flags = 0;
 	unsigned int to_width, to_height ;
 	ASImage *im ;
+	int clip_x = 0, clip_y = 0, clip_width = 0, clip_height = 0 ;
 	int slice_x_start = 0, slice_x_end = 0, slice_y_start = 0, slice_y_end = 0 ;
+	Bool slice_scale = False ;
 
 	/* see ASView.1 : */
 	set_application_name( argv[0] );
@@ -70,6 +72,16 @@ int main(int argc, char* argv[])
 				slice_y_start = atoi(argv[++i]) ;
 			else if( strncmp( argv[i], "-sy2", 4 ) == 0 && i+1 < argc )
 				slice_y_end = atoi(argv[++i]) ;
+			else if( strncmp( argv[i], "-cx", 4 ) == 0 && i+1 < argc )
+				clip_x = atoi(argv[++i]) ;
+			else if( strncmp( argv[i], "-cy", 4 ) == 0 && i+1 < argc )
+				clip_y = atoi(argv[++i]) ;
+			else if( strncmp( argv[i], "-cwidth", 4 ) == 0 && i+1 < argc )
+				clip_width = atoi(argv[++i]) ;
+			else if( strncmp( argv[i], "-cheight", 4 ) == 0 && i+1 < argc )
+				clip_height = atoi(argv[++i]) ;
+			else if( strncmp( argv[i], "-ss", 3 ) == 0 )
+				slice_scale = True ;
 		}
 			   
 	
@@ -124,14 +136,16 @@ int main(int argc, char* argv[])
 				if( slice_x_start == 0 && slice_x_end == 0 && 
 					slice_y_start == 0 && slice_y_end == 0 )
 				{
-					scaled_im = scale_asimage( asv, im, to_width, to_height,
+					scaled_im = scale_asimage2( asv, im,
+												clip_x, clip_y, clip_width, clip_height, 
+												to_width, to_height,
 					                       	ASA_XImage, 0, 
 										   	ASIMAGE_QUALITY_DEFAULT );
 				}else
 				{
-					scaled_im = slice_asimage( asv, im, slice_x_start, slice_x_end, 
+					scaled_im = slice_asimage2( asv, im, slice_x_start, slice_x_end, 
 											   slice_y_start, slice_y_end,
-											to_width, to_height,
+											to_width, to_height, slice_scale,
 					                       	ASA_ASImage, 0, 
 										   	ASIMAGE_QUALITY_DEFAULT );
 				}					   

@@ -624,17 +624,17 @@ make_gradient_scanline( ASScanline *scl, ASGradient *grad, ASFlagType filter, AR
 /* Scaling code ; 																			   */
 /* **********************************************************************************************/
 Bool
-check_scale_parameters( ASImage *src, unsigned int *to_width, unsigned int *to_height )
+check_scale_parameters( ASImage *src, unsigned int src_width, unsigned int src_height, unsigned int *to_width, unsigned int *to_height )
 {
 	if( src == NULL )
 		return False;
 
 	if( *to_width == 0 )
-		*to_width = src->width ;
+		*to_width = src_width ;
 	else if( *to_width < 2 )
 		*to_width = 2 ;
 	if( *to_height == 0 )
-		*to_height = src->height ;
+		*to_height = src_height ;
 	else if( *to_height < 2 )
 		*to_height = 2 ;
 	return True;
@@ -845,7 +845,7 @@ scale_asimage( ASVisual *asv, ASImage *src, unsigned int to_width, unsigned int 
 	int *scales_h = NULL, *scales_v = NULL;
 	START_TIME(started);
 
-	if( !check_scale_parameters(src,&to_width,&to_height) )
+	if( !check_scale_parameters(src,src->width, src->height,&to_width,&to_height) )
 		return NULL;
 	if( (imdec = start_image_decoding(asv, src, SCL_DO_ALL, 0, 0, 0, 0, NULL)) == NULL )
 		return NULL;
@@ -893,6 +893,83 @@ scale_asimage( ASVisual *asv, ASImage *src, unsigned int to_width, unsigned int 
 		if( to_height <= src->height ) 					   /* scaling down */
 			scale_image_down( imdec, imout, h_ratio, scales_h, scales_v );
 		else if( quality == ASIMAGE_QUALITY_POOR || src->height <= 3 ) 
+			scale_image_up_dumb( imdec, imout, h_ratio, scales_h, scales_v );
+		else
+			scale_image_up( imdec, imout, h_ratio, scales_h, scales_v );
+		stop_image_output( &imout );
+	}
+#ifdef HAVE_MMX
+	mmx_off();
+#endif
+	free( scales_h );
+	free( scales_v );
+	stop_image_decoding( &imdec );
+	SHOW_TIME("", started);
+	return dst;
+}
+
+ASImage *
+scale_asimage2( ASVisual *asv, ASImage *src, 
+					unsigned int clip_x, unsigned int clip_y, 
+					unsigned int clip_width, unsigned int clip_height, 
+					unsigned int to_width, unsigned int to_height,
+			   		ASAltImFormats out_format, unsigned int compression_out, int quality )
+{
+	ASImage *dst = NULL ;
+	ASImageOutput  *imout ;
+	ASImageDecoder *imdec;
+	int h_ratio ;
+	int *scales_h = NULL, *scales_v = NULL;
+	START_TIME(started);
+
+	if( !check_scale_parameters(src, clip_width, clip_height, &to_width, &to_height) )
+		return NULL;
+	if( (imdec = start_image_decoding(asv, src, SCL_DO_ALL, clip_x, clip_y, clip_width, clip_height, NULL)) == NULL )
+		return NULL;
+
+	dst = create_destination_image( to_width, to_height, out_format, compression_out, src->back_color );
+
+	if( to_width == clip_width )
+		h_ratio = 0;
+	else if( to_width < clip_width )
+		h_ratio = 1;
+	else
+	{
+		if ( quality == ASIMAGE_QUALITY_POOR )
+			h_ratio = 1 ;
+		else if( clip_width > 1 )
+		{
+			h_ratio = (to_width/(clip_width-1))+1;
+			if( h_ratio*(clip_width-1) < to_width )
+				++h_ratio ;
+		}else
+			h_ratio = to_width ;
+		++h_ratio ;
+	}
+	scales_h = make_scales( clip_width, to_width, ( quality == ASIMAGE_QUALITY_POOR )?0:1 );
+	scales_v = make_scales( clip_height, to_height, ( quality == ASIMAGE_QUALITY_POOR )?0:1 );
+#ifdef LOCAL_DEBUG
+	{
+	  register int i ;
+	  for( i = 0 ; i < MIN(clip_width, to_width) ; i++ )
+		fprintf( stderr, " %d", scales_h[i] );
+	  fprintf( stderr, "\n" );
+	  for( i = 0 ; i < MIN(clip_height, to_height) ; i++ )
+		fprintf( stderr, " %d", scales_v[i] );
+	  fprintf( stderr, "\n" );
+	}
+#endif
+#ifdef HAVE_MMX
+	mmx_init();
+#endif
+	if((imout = start_image_output( asv, dst, out_format, QUANT_ERR_BITS, quality )) == NULL )
+	{
+        destroy_asimage( &dst );
+	}else
+	{
+		if( to_height <= clip_height ) 					   /* scaling down */
+			scale_image_down( imdec, imout, h_ratio, scales_h, scales_v );
+		else if( quality == ASIMAGE_QUALITY_POOR || clip_height <= 3 ) 
 			scale_image_up_dumb( imdec, imout, h_ratio, scales_h, scales_v );
 		else
 			scale_image_up( imdec, imout, h_ratio, scales_h, scales_v );
@@ -2204,7 +2281,7 @@ LOCAL_DEBUG_OUT("adjusting actually...%s", "");
 }
 
 static void 
-slice_scanline( ASScanline *dst, ASScanline *src, int start_x, int end_x )
+slice_scanline( ASScanline *dst, ASScanline *src, int start_x, int end_x, ASScanline *middle )
 {
 	CARD32 *sa = src->alpha, *da = dst->alpha ;
 	CARD32 *sr = src->red, *dr = dst->red ;
@@ -2224,19 +2301,37 @@ slice_scanline( ASScanline *dst, ASScanline *src, int start_x, int end_x )
 	}
 	if( x1 >= dst->width )
 		return;
+	/* middle portion */
 	max_x2 = (int) dst->width - tail ; 
 	max_x = min(end_x, max_x2);		
-	for( ; x1 < max_x ; ++x1 )
-	{
-  		x2 = x1 ;
-		for( x2 = x1 ; x2 < max_x2 ; x2 += tiling_step )
+	if( middle ) 
+	{	  
+		CARD32 *ma = middle->alpha-x1 ;
+		CARD32 *mr = middle->red-x1 ;
+		CARD32 *mg = middle->green-x1 ;
+		CARD32 *mb = middle->blue-x1 ;
+		for( ; x1 < max_x2 ; ++x1 )
 		{
-			da[x2] = sa[x1] ; 
-			dr[x2] = sr[x1] ; 
-			dg[x2] = sg[x1] ; 
-			db[x2] = sb[x1] ;	  
-		}				  
-	}	 
+			da[x1] = ma[x1] ; 
+			dr[x1] = mr[x1] ; 
+			dg[x1] = mg[x1] ; 
+			db[x1] = mb[x1] ;	  
+		}	 
+	}else
+	{	
+		for( ; x1 < max_x ; ++x1 )
+		{
+  			x2 = x1 ;
+			for( x2 = x1 ; x2 < max_x2 ; x2 += tiling_step )
+			{
+				da[x2] = sa[x1] ; 
+				dr[x2] = sr[x1] ; 
+				dg[x2] = sg[x1] ; 
+				db[x2] = sb[x1] ;	  
+			}				  
+		}	 
+	}
+	/* tail portion */
 	x1 = src->width - tail ;
 	x2 = max(max_x2,start_x) ; 
 	max_x = src->width ;
@@ -2253,11 +2348,12 @@ slice_scanline( ASScanline *dst, ASScanline *src, int start_x, int end_x )
 
 
 ASImage*
-slice_asimage( ASVisual *asv, ASImage *src,
+slice_asimage2( ASVisual *asv, ASImage *src,
 			   unsigned int slice_x_start, unsigned int slice_x_end,
 			   unsigned int slice_y_start, unsigned int slice_y_end,
 			   unsigned int to_width,
 			   unsigned int to_height,
+			   Bool scale,
 			   ASAltImFormats out_format,
 			   unsigned int compression_out, int quality )
 {
@@ -2291,45 +2387,162 @@ LOCAL_DEBUG_CALLER_OUT( "sx1 = %d, sx2 = %d, sy1 = %d, sy2 = %d, to_width = %d, 
 	if((imout = start_image_output( asv, dst, out_format, 0, quality)) == NULL )
 	{
         destroy_asimage( &dst );
-    }else
-	{
-		ASScanline *out_buf = prepare_scanline( to_width, 0, NULL, asv->BGR_mode );
+    }else 
+	{	
+		int y1, y2 ;
 		int max_y = min( slice_y_start, dst->height);
 		int tail = (int)src->height - slice_y_end ; 
-		int y1, y2, max_y2 ;
+		int max_y2 = (int) dst->height - tail ; 		
+		ASScanline *out_buf = prepare_scanline( to_width, 0, NULL, asv->BGR_mode );
 
 		out_buf->flags = 0xFFFFFFFF ;
-		imout->tiling_step = 0;
-		LOCAL_DEBUG_OUT( "max_y = %d", max_y );
-		for( y1 = 0 ; y1 < max_y ; ++y1 ) 
-		{
-			imdec->decode_image_scanline( imdec );
-			slice_scanline( out_buf, &(imdec->buffer), slice_x_start, slice_x_end );
-			imout->output_image_scanline( imout, out_buf, 1);
-		}	 
-		imout->tiling_step = (int)slice_y_end - (int)slice_y_start;
-		max_y2 = (int) dst->height - tail ; 
-		max_y = min((int)slice_y_end, max_y2);
-		LOCAL_DEBUG_OUT( "y1 = %d, max_y = %d", y1, max_y );		   
-		for( ; y1 < max_y ; ++y1 )
-		{
-			imdec->decode_image_scanline( imdec );
-			slice_scanline( out_buf, &(imdec->buffer), slice_x_start, slice_x_end );
-			imout->output_image_scanline( imout, out_buf, 1);
-		}
 
-		imout->tiling_step = 0;
-		imout->next_line = y2 =  max(max_y2,(int)slice_y_start) ; 
-		imdec->next_line = y1 = src->height - tail ;
-		max_y = src->height ;
-		if( y2 + max_y - y1 > dst->height ) 
-			max_y = dst->height + y1 - y2 ;
-		LOCAL_DEBUG_OUT( "y1 = %d, max_y = %d", y1, max_y );		   
-		for( ; y1 < max_y ; ++y1 )
+		if( scale ) 
 		{
-			imdec->decode_image_scanline( imdec );
-			slice_scanline( out_buf, &(imdec->buffer), slice_x_start, slice_x_end );
-			imout->output_image_scanline( imout, out_buf, 1);
+			ASImageDecoder *imdec_scaled ;
+			int x_middle = to_width - slice_x_start ; 
+			int y_middle = to_height - slice_y_start ;
+			ASImage *tmp ;
+
+			if( x_middle <= src->width - slice_x_end )
+				x_middle = 0 ; 
+			else
+				x_middle -= src->width - slice_x_end ;
+			if( y_middle <= src->height - slice_y_end )
+				y_middle = 0 ; 
+			else
+				y_middle -= src->height - slice_y_end ;
+			
+			if( x_middle > 0 )
+			{	
+				tmp = scale_asimage2( asv, src, slice_x_start, 0, 
+									   slice_x_end-slice_x_start, max_y, 
+									   x_middle, max_y, ASA_ASImage, 0, quality );
+				imdec_scaled = start_image_decoding(asv, tmp, SCL_DO_ALL, 0, 0, 0, 0, NULL) ;
+				for( y1 = 0 ; y1 < max_y ; ++y1 ) 
+				{
+					imdec->decode_image_scanline( imdec );
+					imdec_scaled->decode_image_scanline( imdec_scaled );
+					slice_scanline( out_buf, &(imdec->buffer), slice_x_start, slice_x_end, &(imdec_scaled->buffer) );
+					imout->output_image_scanline( imout, out_buf, 1);
+				}	 
+				stop_image_decoding( &imdec_scaled );
+				destroy_asimage( &tmp );
+			}else
+			{	
+				for( y1 = 0 ; y1 < max_y ; ++y1 ) 
+				{
+					imdec->decode_image_scanline( imdec );
+					imout->output_image_scanline( imout, &(imdec->buffer), 1);
+				}	 
+			}
+			/*************************************************************/
+			/* middle portion */
+			if( y_middle > 0 ) 
+			{	
+				ASImage *sides ;
+				ASImageDecoder *imdec_sides ;
+				sides = scale_asimage2( asv, src, 0, slice_y_start, 
+								   		src->width, slice_y_end-slice_y_start,
+								   		src->width, y_middle, ASA_ASImage, 0, quality );
+				imdec_sides = start_image_decoding(asv, sides, SCL_DO_ALL, 0, 0, 0, 0, NULL) ;
+				if( x_middle > 0 ) 
+				{
+					tmp = scale_asimage2( asv, src, slice_x_start, slice_y_start, 
+									   	slice_x_end-slice_x_start, slice_y_end-slice_y_start, 
+									   	x_middle, y_middle, ASA_ASImage, 0, quality );
+					imdec_scaled = start_image_decoding(asv, tmp, SCL_DO_ALL, 0, 0, 0, 0, NULL) ;
+					for( y1 = 0 ; y1 < y_middle ; ++y1 ) 
+					{
+						imdec_sides->decode_image_scanline( imdec_sides );
+						imdec_scaled->decode_image_scanline( imdec_scaled );
+						slice_scanline( out_buf, &(imdec_sides->buffer), slice_x_start, slice_x_end, &(imdec_scaled->buffer) );
+						imout->output_image_scanline( imout, out_buf, 1);
+					}	 
+					stop_image_decoding( &imdec_scaled );
+					destroy_asimage( &tmp );
+				
+				}else
+				{
+					for( y1 = 0 ; y1 < y_middle ; ++y1 ) 
+					{
+						imdec_sides->decode_image_scanline( imdec_sides );
+						imout->output_image_scanline( imout, &(imdec->buffer), 1);
+					}	 
+				}		 
+				stop_image_decoding( &imdec_sides );
+				destroy_asimage( &sides );
+			}			
+			/*************************************************************/
+			/* bottom portion */
+
+			y2 =  max(max_y2,(int)slice_y_start) ; 
+			y1 = src->height - tail ;
+			imout->next_line = y2 ; 
+			imdec->next_line = y1 ;
+			max_y = src->height ;
+			if( y2 + max_y - y1 > dst->height ) 
+				max_y = dst->height + y1 - y2 ;
+			LOCAL_DEBUG_OUT( "y1 = %d, max_y = %d", y1, max_y );		   
+			if( x_middle > 0 )
+			{	
+				tmp = scale_asimage2( asv, src, slice_x_start, y1, 
+									   slice_x_end-slice_x_start, src->height-y1, 
+									   x_middle, src->height-y1, ASA_ASImage, 0, quality );
+				imdec_scaled = start_image_decoding(asv, tmp, SCL_DO_ALL, 0, 0, 0, 0, NULL) ;
+				for( ; y1 < max_y ; ++y1 )
+				{
+					imdec->decode_image_scanline( imdec );
+					imdec_scaled->decode_image_scanline( imdec_scaled );
+					slice_scanline( out_buf, &(imdec->buffer), slice_x_start, slice_x_end, &(imdec_scaled->buffer) );
+					imout->output_image_scanline( imout, out_buf, 1);
+				}	 
+				stop_image_decoding( &imdec_scaled );
+				destroy_asimage( &tmp );
+			}else
+			{	
+				for( ; y1 < max_y ; ++y1 )
+				{
+					imdec->decode_image_scanline( imdec );
+					imout->output_image_scanline( imout, &(imdec->buffer), 1);
+				}	 
+			}
+			
+		}else	 /* tile middle portion */
+		{                      
+			imout->tiling_step = 0;
+			LOCAL_DEBUG_OUT( "max_y = %d", max_y );
+			for( y1 = 0 ; y1 < max_y ; ++y1 ) 
+			{
+				imdec->decode_image_scanline( imdec );
+				slice_scanline( out_buf, &(imdec->buffer), slice_x_start, slice_x_end, NULL );
+				imout->output_image_scanline( imout, out_buf, 1);
+			}	 
+			/* middle portion */
+			imout->tiling_step = (int)slice_y_end - (int)slice_y_start;
+			max_y = min((int)slice_y_end, max_y2);
+			LOCAL_DEBUG_OUT( "y1 = %d, max_y = %d", y1, max_y );		   
+			for( ; y1 < max_y ; ++y1 )
+			{
+				imdec->decode_image_scanline( imdec );
+				slice_scanline( out_buf, &(imdec->buffer), slice_x_start, slice_x_end, NULL );
+				imout->output_image_scanline( imout, out_buf, 1);
+			}
+
+			/* bottom portion */
+			imout->tiling_step = 0;
+			imout->next_line = y2 =  max(max_y2,(int)slice_y_start) ; 
+			imdec->next_line = y1 = src->height - tail ;
+			max_y = src->height ;
+			if( y2 + max_y - y1 > dst->height ) 
+				max_y = dst->height + y1 - y2 ;
+			LOCAL_DEBUG_OUT( "y1 = %d, max_y = %d", y1, max_y );		   
+			for( ; y1 < max_y ; ++y1 )
+			{
+				imdec->decode_image_scanline( imdec );
+				slice_scanline( out_buf, &(imdec->buffer), slice_x_start, slice_x_end, NULL );
+				imout->output_image_scanline( imout, out_buf, 1);
+			}
 		}
 		stop_image_output( &imout );
 	}
@@ -2340,6 +2553,21 @@ LOCAL_DEBUG_CALLER_OUT( "sx1 = %d, sx2 = %d, sy1 = %d, sy2 = %d, to_width = %d, 
 
 	SHOW_TIME("", started);
 	return dst;
+}
+
+ASImage*
+slice_asimage( ASVisual *asv, ASImage *src,
+			   unsigned int slice_x_start, unsigned int slice_x_end,
+			   unsigned int slice_y_start, unsigned int slice_y_end,
+			   unsigned int to_width,
+			   unsigned int to_height,
+			   ASAltImFormats out_format,
+			   unsigned int compression_out, int quality )
+{
+	
+	return slice_asimage2( asv, src, slice_x_start, slice_x_end,
+			   			   slice_y_start, slice_y_end, to_width,  to_height,
+			   				False, out_format, compression_out, quality );
 }
 /* ********************************************************************************/
 /* The end !!!! 																 */

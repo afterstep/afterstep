@@ -369,6 +369,12 @@ ASImage *scale_asimage( struct ASVisual *asv, ASImage *src,
 						unsigned int to_width, unsigned int to_height,
 						ASAltImFormats out_format,
 						unsigned int compression_out, int quality );
+ASImage *scale_asimage2( ASVisual *asv, ASImage *src, 
+		 				unsigned int clip_x, unsigned int clip_y, 
+						unsigned int clip_width, unsigned int clip_height, 
+						unsigned int to_width, unsigned int to_height,
+			   			ASAltImFormats out_format, unsigned int compression_out, int quality );
+
 ASImage *tile_asimage ( struct ASVisual *asv, ASImage *src,
 						int offset_x, int offset_y,
   					    unsigned int to_width,  unsigned int to_height, ARGB32 tint,
@@ -484,6 +490,17 @@ create_asimage_from_vector( ASVisual *asv, double *vector,
 							ASVectorPalette *palette,
 							ASAltImFormats out_format,
 							unsigned int compression, int quality );
+ASImage*
+slice_asimage2( ASVisual *asv, ASImage *src,
+			   unsigned int slice_x_start, unsigned int slice_x_end,
+			   unsigned int slice_y_start, unsigned int slice_y_end,
+			   unsigned int to_width,
+			   unsigned int to_height,
+			   Bool scaled,    /* middle portion */
+			   ASAltImFormats out_format,
+			   unsigned int compression_out, int quality );
+
+/* same as above with scale = 0 */
 ASImage*
 slice_asimage( ASVisual *asv, ASImage *src,
 			   unsigned int slice_x_start, unsigned int slice_x_end,
