@@ -922,6 +922,12 @@ scale_asimage2( ASVisual *asv, ASImage *src,
 	int *scales_h = NULL, *scales_v = NULL;
 	START_TIME(started);
 
+	if( src == NULL ) 
+		return NULL;
+	if( clip_width == 0 )
+		clip_width = src->width ;
+	if( clip_height == 0 )
+		clip_height = src->height ;
 	if( !check_scale_parameters(src, clip_width, clip_height, &to_width, &to_height) )
 		return NULL;
 	if( (imdec = start_image_decoding(asv, src, SCL_DO_ALL, clip_x, clip_y, clip_width, clip_height, NULL)) == NULL )
