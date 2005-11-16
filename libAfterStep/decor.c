@@ -315,21 +315,27 @@ set_asbtn_block_layer( ASTile* tile, ASImageLayer *layer, unsigned int state, AS
 /* ASIcon :                                                         */
 /********************************************************************/
 static void
-free_asicon( ASTile* tile )
+free_asimage_tile( ASTile* tile )
 {
-    if (tile->data.icon)
+    if (tile->data.image.im)
     {
-        safe_asimage_destroy (tile->data.icon);
-        tile->data.icon = NULL ;
+        safe_asimage_destroy (tile->data.image.im);
+        tile->data.image.im = NULL ;
     }
     ASSetTileType(tile,AS_TileFreed);
 }
 
 static int
-set_asicon_layer( ASTile* tile, ASImageLayer *layer, unsigned int state, ASImage **scrap_images, int max_width, int max_height )
+set_asimage_layer( ASTile* tile, ASImageLayer *layer, unsigned int state, ASImage **scrap_images, int max_width, int max_height )
 {
     int dst_width, dst_height ;
-    ASImage *im = tile->data.icon ;
+    ASImage *im = tile->data.image.im ;
+	unsigned int slice_x_start = tile->data.image.slice_x_start;
+	unsigned int slice_x_end = tile->data.image.slice_x_end;
+	unsigned int slice_y_start = tile->data.image.slice_y_start;
+	unsigned int slice_y_end = tile->data.image.slice_y_end;
+	Bool do_slice_x = ((slice_x_start != 0 || slice_x_end != 0 )&&get_flags( tile->flags, AS_TileHResize ));
+	Bool do_slice_y = ((slice_y_start != 0 || slice_y_end != 0 )&&get_flags( tile->flags, AS_TileVResize ));
 
     if( im == NULL )
         return 0;
@@ -339,7 +345,7 @@ set_asicon_layer( ASTile* tile, ASImageLayer *layer, unsigned int state, ASImage
 
     /* if( ASTileResizeable( *tile ) ) */
     {
-        if( get_flags( tile->flags, AS_TileHScale ) )
+        if( get_flags( tile->flags, AS_TileHScale ) || do_slice_x )
             dst_width = max_width ;
 		else if( get_flags( tile->flags, AS_TileHResize ) && max_width < im->width )
 		{
@@ -351,7 +357,7 @@ set_asicon_layer( ASTile* tile, ASImageLayer *layer, unsigned int state, ASImage
 					layer->clip_x = ((int)im->width - max_width) ;
 			}
 		}
-        if( get_flags( tile->flags, AS_TileVScale ) )
+        if( get_flags( tile->flags, AS_TileVScale ) || do_slice_y )
             dst_height = max_height ;
         else if( get_flags( tile->flags, AS_TileVResize ) && max_height < im->height )
 		{
@@ -367,9 +373,14 @@ set_asicon_layer( ASTile* tile, ASImageLayer *layer, unsigned int state, ASImage
 	LOCAL_DEBUG_OUT( "flags = %lX, dst_size = %dx%d, im_size = %dx%d, max_size = %dx%d, clip = %+d%+d", tile->flags, dst_width, dst_height, im->width, im->height, max_width, max_height, layer->clip_x, layer->clip_y );
     if( im->width != dst_width || im->height != dst_height )
     {
-        im = scale_asimage( ASDefaultVisual, im, dst_width, dst_height, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT );
+        if( do_slice_x || do_slice_y ) 
+			im = slice_asimage2( ASDefaultVisual, im, slice_x_start, slice_x_end, slice_y_start, slice_y_end, dst_width, dst_height, 
+								 get_flags( tile->flags, AS_TileHScale|AS_TileVScale ), ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT );
+		else
+			im = scale_asimage( ASDefaultVisual, im, dst_width, dst_height, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT );
+
         if( im == NULL )
-            im = tile->data.icon ;
+            im = tile->data.image.im ;
         else
             *scrap_images = im ;
     }
@@ -532,7 +543,7 @@ struct
 {
 {"Spacer",  NULL, NULL, NULL},
 {"Buttons", free_asbtn_block, check_btn_point, NULL,                  set_asbtn_block_layer},
-{"Icon",    free_asicon,      NULL,            NULL,                  set_asicon_layer},
+{"Image",    free_asimage_tile, NULL,            NULL,                set_asimage_layer},
 {"Label",   free_aslabel,     NULL,            aslabel_style_changed, set_aslabel_layer},
 {"none",    NULL, NULL, NULL},
 {"none",    NULL, NULL, NULL},
@@ -1024,8 +1035,8 @@ add_astbar_icon( ASTBarData * tbar, unsigned char col, unsigned char row, int fl
 
         if( flip == 0 )
         {
-            if( (tile->data.icon = dup_asimage( icon )) == NULL )
-                    tile->data.icon = clone_asimage( icon, 0xFFFFFFFF );
+            if( (tile->data.image.im = dup_asimage( icon )) == NULL )
+                    tile->data.image.im = clone_asimage( icon, 0xFFFFFFFF );
         }else
 		{
 			int dst_width = icon->width, dst_height = icon->height ;
@@ -1034,15 +1045,35 @@ add_astbar_icon( ASTBarData * tbar, unsigned char col, unsigned char row, int fl
 				dst_width = icon->height ;
 				dst_height = icon->width ;
 			}
-            tile->data.icon = flip_asimage( ASDefaultVisual, icon, 0, 0, dst_width, dst_height, flip, ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT );
+            tile->data.image.im = flip_asimage( ASDefaultVisual, icon, 0, 0, dst_width, dst_height, flip, ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT );
 		}
-        tile->width = tile->data.icon->width;
-        tile->height = tile->data.icon->height;
+        tile->width = tile->data.image.im->width;
+        tile->height = tile->data.image.im->height;
         ASSetTileSublayers(*tile,1);
         return idx;
     }
     return -1;
 }
+
+int
+add_astbar_image( ASTBarData * tbar, unsigned char col, unsigned char row, int flip, int align, ASImage *im, 
+				  unsigned short slice_x_start, unsigned short slice_x_end,
+				  unsigned short slice_y_start, unsigned short slice_y_end)
+{
+    int idx = add_astbar_icon( tbar, col, row, flip, align, im);
+	if( idx >= 0 ) 
+	{	
+		ASImageTile *imtile = &(tbar->tiles[idx].data.image) ;
+		imtile->slice_x_start = slice_x_start;
+		imtile->slice_x_end = slice_x_end;
+		imtile->slice_y_start = slice_y_start;
+		imtile->slice_y_end = slice_y_end;
+        
+		return idx;
+	}
+    return -1;
+}
+
 
 int
 add_astbar_label( ASTBarData * tbar, unsigned char col, unsigned char row, int flip, int align, short h_padding, short v_padding, const char *text, unsigned long encoding)

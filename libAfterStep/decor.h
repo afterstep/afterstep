@@ -47,6 +47,14 @@ typedef struct ASLabel {
 	/* 20 bytes */
 }ASLabel;
 
+typedef struct ASImageTile {
+    ASImage *im ;
+	unsigned short slice_x_start, slice_x_end ;
+	unsigned short slice_y_start, slice_y_end ;
+	/* 12 bytes */
+}ASImageTile;
+
+
 typedef struct ASTile {
 #define AS_TileSpacer	 	0
 #define AS_TileBtnBlock 	1
@@ -125,7 +133,7 @@ typedef struct ASTile {
     short width, height;
 	union {
 		ASBtnBlock	 bblock;
-        struct ASImage     *icon ;
+        ASImageTile  image ;
 		ASLabel      label ;
         unsigned long raw[4];
 	}data;
@@ -205,6 +213,10 @@ int add_astbar_btnblock( ASTBarData * tbar, unsigned char col, unsigned char row
                          struct button_t **from_list, ASFlagType context_mask, unsigned int count,
                          int left_margin, int top_margin, int spacing, int order);
 int add_astbar_icon( ASTBarData * tbar, unsigned char col, unsigned char row, int flip, int align, struct ASImage *icon);
+int add_astbar_image( ASTBarData * tbar, unsigned char col, unsigned char row, int flip, int align, ASImage *im, 
+				  unsigned short slice_x_start, unsigned short slice_x_end,
+				  unsigned short slice_y_start, unsigned short slice_y_end);
+
 int add_astbar_label( ASTBarData * tbar, unsigned char col, unsigned char row, int flip, int align, short h_padding, short v_padding, const char *text, unsigned long encoding);
 Bool delete_astbar_tile( ASTBarData *tbar, int idx );
 

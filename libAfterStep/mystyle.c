@@ -514,19 +514,34 @@ mystyle_make_image (MyStyle * style, int root_x, int root_y, int width, int heig
 	 case TEXTURE_SCALED_PIXMAP:
 	 	if( get_flags( style->set_flags, F_SLICE ) )
 		{
-			im = slice_asimage (ASDefaultVisual, style->back_icon.image, 
+			im = slice_asimage2(ASDefaultVisual, style->back_icon.image, 
 								style->slice_x_start, style->slice_x_end,
 								style->slice_y_start, style->slice_y_end,
-								preflip_width, preflip_height, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);			   
+								preflip_width, preflip_height, True, 
+								ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);			   
 		}else	 
-			im = scale_asimage (ASDefaultVisual, style->back_icon.image, preflip_width, preflip_height, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
+			im = scale_asimage (ASDefaultVisual, style->back_icon.image, 
+								preflip_width, preflip_height, 
+								ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
 		if( flip != 0 )
 			im = mystyle_flip_image( im, width, height, flip );
 		break;
 	 case TEXTURE_SHAPED_PIXMAP:
 	 case TEXTURE_PIXMAP:
-		 im = tile_asimage (ASDefaultVisual, style->back_icon.image,
-							0, 0, preflip_width, preflip_height, TINT_LEAVE_SAME, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
+	 	 if( get_flags( style->set_flags, F_SLICE ) )
+		 {
+		 	im = slice_asimage2(ASDefaultVisual, style->back_icon.image, 
+								style->slice_x_start, style->slice_x_end,
+								style->slice_y_start, style->slice_y_end,
+								preflip_width, preflip_height, False, 
+								ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);			   
+		 }else
+		 {	
+		 	im = tile_asimage ( ASDefaultVisual, style->back_icon.image,
+								0, 0, 
+								preflip_width, preflip_height, TINT_LEAVE_SAME, 
+								ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
+		 }
 		 LOCAL_DEBUG_OUT( "back_icon.image = %p,im = %p, preflip_size=%dx%d", style->back_icon.image, im, preflip_width, preflip_height );
 		 if( flip != 0 )
 		 	im = mystyle_flip_image( im, width, height, flip );
@@ -539,12 +554,15 @@ mystyle_make_image (MyStyle * style, int root_x, int root_y, int width, int heig
 		{
 			if (style->texture_type == TEXTURE_TRANSPARENT || style->texture_type == TEXTURE_TRANSPARENT_TWOWAY)
 			{
-                im = tile_asimage (ASDefaultVisual, ASDefaultScr->RootImage, root_x-ASDefaultScr->RootClipArea.x, root_y-ASDefaultScr->RootClipArea.y,
-									width, height, style->tint, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
+                im = tile_asimage ( ASDefaultVisual, ASDefaultScr->RootImage, 
+									root_x-ASDefaultScr->RootClipArea.x, root_y-ASDefaultScr->RootClipArea.y,
+									width, height, style->tint, 
+									ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
 			} else
 			{
 				 ASImageLayer  layers[2];
 				 ASImage      *scaled_im = NULL;
+				 Bool do_scale = False ;
 				 int           index = 1;      /* default is alphablending !!! */
 
 				 init_image_layers (&layers[0], 2);
@@ -570,27 +588,35 @@ mystyle_make_image (MyStyle * style, int root_x, int root_y, int width, int heig
 				 layers[0].clip_height = height;
 
 				 layers[1].im = im?im:style->back_icon.image;
-				 if (style->texture_type >= TEXTURE_SCALED_TRANSPIXMAP &&
-					 style->texture_type < TEXTURE_SCALED_TRANSPIXMAP_END)
-				 {
-				 	if( get_flags( style->set_flags, F_SLICE ) )
-					{
-						scaled_im = slice_asimage (ASDefaultVisual, layers[1].im, 
+				 	
+				 do_scale = (style->texture_type >= TEXTURE_SCALED_TRANSPIXMAP &&
+					 		 style->texture_type < TEXTURE_SCALED_TRANSPIXMAP_END);
+
+				if( get_flags( style->set_flags, F_SLICE ) )
+				{
+					scaled_im = slice_asimage2 (ASDefaultVisual, layers[1].im, 
 												style->slice_x_start, style->slice_x_end,
 												style->slice_y_start, style->slice_y_end,
-												preflip_width, preflip_height, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);			   
-					}else	 
-						 scaled_im = scale_asimage (ASDefaultVisual, layers[1].im, preflip_width, preflip_height,
-													ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
+												preflip_width, preflip_height, do_scale, 
+												ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);			   
+				}else if( do_scale )  
+				{
+					scaled_im = scale_asimage ( ASDefaultVisual, layers[1].im, 
+												preflip_width, preflip_height,
+											    ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
+ 				}
+				 if (scaled_im)	 
+				 {	
 					 /* here layers[1].im is always style->back_icon.image, so we should not destroy it ! */
-					 if (scaled_im)
-						 layers[1].im = mystyle_flip_image( scaled_im, width, height, flip );
-						 /* scaled_im got destroyed in mystyle_flip_image if it had to be */
-				 }
-				 if( flip != 0 && layers[1].im == style->back_icon.image )
+					 layers[1].im = mystyle_flip_image( scaled_im, width, height, flip );
+					 /* scaled_im got destroyed in mystyle_flip_image if it had to be */
+				 }else if( flip != 0 && layers[1].im == style->back_icon.image )
 				 {
 					/* safely assuming that im is NULL at this point,( see logic above ) */
-					 layers[1].im = im = flip_asimage( ASDefaultVisual, layers[1].im, 0, 0, width, height, flip, ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT );
+					 layers[1].im = im = flip_asimage( ASDefaultVisual, layers[1].im, 
+					 								   0, 0, 
+													   width, height, flip, 
+													   ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT );
 				 }
 				 layers[1].merge_scanlines = layers[0].merge_scanlines;
 				 layers[1].dst_x = 0;
@@ -601,7 +627,9 @@ mystyle_make_image (MyStyle * style, int root_x, int root_y, int width, int heig
 				 layers[1].clip_height = height;
 
 				{
-					ASImage *tmp = merge_layers (ASDefaultVisual, &layers[0], 2, width, height, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
+					ASImage *tmp = merge_layers(ASDefaultVisual, &layers[0], 2, 
+												width, height, 
+												ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
 					if( tmp )
 					{
 						if( im )
