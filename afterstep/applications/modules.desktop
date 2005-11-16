@@ -1,0 +1,108 @@
+[Desktop Entry]
+Name=Pager
+GenericName=Pager
+Comment=Module to provide for visual feedback and navigation of virtual desktops.
+Exec=Pager 0 3
+Icon=normal/pager
+Terminal=false
+MultipleArgs=false
+Type=Application
+Encoding=UTF-8
+Categories=Modules
+
+[Desktop Entry]
+Name=WinList
+GenericName=WinList
+Comment=Module to display buttons for all open windows.
+Exec=WinList
+Icon=normal/winlist
+Terminal=false
+MultipleArgs=false
+Type=Application
+Encoding=UTF-8
+Categories=Modules
+
+[Desktop Entry]
+Name=Wharf
+GenericName=Wharf
+Comment=Launchbar type module able to swallow open windows and organize stuff in folders.
+Exec=Wharf
+Icon=normal/wharf
+Terminal=false
+MultipleArgs=false
+Type=Application
+Encoding=UTF-8
+Categories=Modules
+
+[Desktop Entry]
+Name=MonitorWharf
+GenericName=Wharf
+Comment=Bar with bunch of monitoring apps.
+Exec=Wharf --myname MonitorWharf
+Icon=normal/wharf
+Terminal=false
+MultipleArgs=false
+Type=Application
+Encoding=UTF-8
+Categories=Modules
+
+[Desktop Entry]
+Name=Term tabs
+GenericName=WinTabs
+Comment=Organizer for open term windows into a single tabbed window.
+Exec=Module WinTabs --myname TermTabs --pattern "*term*" --exclude-pattern "mc*" --geometry +5+100 --title "term tabs"
+Icon=normal/wintabs
+Terminal=false
+MultipleArgs=false
+Type=Application
+Encoding=UTF-8
+Categories=Modules
+
+[Desktop Entry]
+Name=Ident
+GenericName=Ident
+Comment=Module that displays different gory details about open window aiding in configuring it in database.
+Exec=Ident
+Icon=normal/ident
+Terminal=false
+MultipleArgs=false
+Type=Application
+Encoding=UTF-8
+Categories=Modules
+
+[Desktop Entry]
+Name=Animate
+GenericName=Animate
+Comment=Module that shows funky animations when windows are being minimized/maximized etc.
+Exec=Animate
+Icon=normal/animate
+Terminal=false
+MultipleArgs=false
+Type=Application
+Encoding=UTF-8
+Categories=Modules
+
+[Desktop Entry]
+Name=WinCommand
+GenericName=WinCommand
+Comment=Module that provides for running commands on the set of window.
+Exec=WinCommand
+Icon=normal/wincommand
+Terminal=true
+MultipleArgs=false
+Type=Application
+Encoding=UTF-8
+Categories=Modules
+
+[Desktop Entry]
+Name=GWCommand
+GenericName=WinCommand
+Comment=GTK interface for module that provides for running commands on the set of window.
+Exec=GWCommand
+Icon=normal/wincommand
+Terminal=false
+MultipleArgs=false
+Type=Application
+Encoding=UTF-8
+Categories=Modules
+
