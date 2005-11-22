@@ -90,6 +90,8 @@
 #define DATABASE_FILE   "database"
 
 #define STANDARD_CATEGORIES_FILE 	"standard_categories" 
+#define AFTERSTEP_APPS_DIR		"applications" 
+#define AFTERSTEP_CACHE_FILE	AFTER_NONCF "/AfterStepCategories"
 #define GNOME_APPS_PATH		"~/.gnome2/vfolders/applications/:$GNOMEDIR/share/applications:/usr/share/applications"
 #define GNOME_ICONS_PATH	"~/.icons/gnome/48x48/apps/:$XDG_DATA_DIRS/icons/gnome/48x48/apps/:$GNOMEDIR/share/pixmaps:/usr/share/pixmaps"
 #define GNOME_CACHE_FILE	AFTER_NONCF "/GNOMECategories"

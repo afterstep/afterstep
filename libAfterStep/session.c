@@ -898,6 +898,45 @@ get_session_ws_file ( ASSession * session, Bool only_if_available )/* workspace_
 	return session->workspace_state ;
 }
 
+char   *
+make_session_apps_path ( ASSession * session )
+{
+	char *apps_path = NULL ; 
+	int len = 0 ;
+	char *priv_apps, *shared_apps ; 
+	if( session == NULL )
+		return NULL;
+
+   	priv_apps = (char *)make_file_name (session->ashome, AFTERSTEP_APPS_DIR);
+	if (check_file_mode(priv_apps, S_IFDIR) != 0)
+    	destroy_string(&priv_apps);
+	else
+		len += strlen(priv_apps);
+	shared_apps = (char *)make_file_name (session->asshare, AFTERSTEP_APPS_DIR);            
+	if (check_file_mode(shared_apps, S_IFDIR) != 0)
+    	destroy_string(&shared_apps);
+	else
+	{
+		if( len > 0 ) ++len ; 	  
+		len += strlen(shared_apps);
+	}
+		
+	if( len > 0 ) 
+	{	
+		apps_path = safemalloc( len + 1 );
+		if( priv_apps && shared_apps ) 
+			sprintf( apps_path, "%s:%s", priv_apps, shared_apps );
+		else if( priv_apps ) 
+			strcpy( apps_path, priv_apps );
+		else if( shared_apps ) 
+			strcpy( apps_path, shared_apps );
+    	
+		destroy_string(&priv_apps);
+    	destroy_string(&shared_apps);
+	}	  
+
+	return apps_path ;
+}
 
 static inline char *
 make_session_filedir   (ASSession * session, const char *source, Bool use_depth, int mode )

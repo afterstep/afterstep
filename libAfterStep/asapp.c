@@ -93,6 +93,7 @@ struct ASEnvironment *Environment = NULL;
 struct ASDatabase    *Database = NULL;
 
 struct ASCategoryTree *StandardCategories = NULL ;
+struct ASCategoryTree *AfterStepCategories = NULL ;
 struct ASCategoryTree *KDECategories = NULL ;
 struct ASCategoryTree *GNOMECategories = NULL ;
 struct ASCategoryTree *SystemCategories = NULL ;

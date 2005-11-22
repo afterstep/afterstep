@@ -61,6 +61,7 @@ const char   *get_session_file (ASSession * session, int desk, int function, Boo
 char **get_session_file_list (ASSession *session, int desk1, int desk2, int function);
 
 const char   *get_session_ws_file ( ASSession * session, Bool only_if_available );/* workspace_state filename */
+char   *make_session_apps_path ( ASSession * session );
 
 char *make_session_file   (ASSession * session, const char *source, Bool use_depth );
 char *make_session_dir    (ASSession * session, const char *source, Bool use_depth );

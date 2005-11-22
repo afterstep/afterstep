@@ -467,6 +467,7 @@ void
 DestroyCategories()
 {
 	if( StandardCategories ) destroy_category_tree( &StandardCategories ); 
+	if( AfterStepCategories) destroy_category_tree( &AfterStepCategories); 	
 	if( KDECategories      ) destroy_category_tree( &KDECategories      ); 	
 	if( GNOMECategories    ) destroy_category_tree( &GNOMECategories    ); 	
 	if( SystemCategories   ) destroy_category_tree( &SystemCategories   ); 	
@@ -498,6 +499,7 @@ save_category_tree_cache( ASCategoryTree *ct, const char *fname )
 void 
 UpdateCategoriesCache()
 {
+	save_category_tree_cache( AfterStepCategories,	AFTERSTEP_CACHE_FILE );  
 	save_category_tree_cache( KDECategories, 		KDE_CACHE_FILE );  
 	save_category_tree_cache( GNOMECategories, 		GNOME_CACHE_FILE );  
 	save_category_tree_cache( SystemCategories, 	SYSTEM_CACHE_FILE );  
@@ -519,10 +521,12 @@ ReloadCategories(Bool cached)
 
 	if( cached ) 
 	{	
-		char *configfile = make_session_data_file(Session, False, 0, KDE_CACHE_FILE, NULL );
-		KDECategories = create_category_tree( "KDE", configfile, KDE_ICONS_PATH, 0, -1 );	   
+		char *configfile = make_session_data_file(Session, False, 0, AFTERSTEP_CACHE_FILE, NULL );
+		AfterStepCategories = create_category_tree( "AfterStep", configfile, Environment?Environment->icon_path:NULL, 0, -1 );	   
 		free( configfile );
-		configfile = make_session_data_file(Session, False, 0, GNOME_CACHE_FILE, NULL );
+		configfile = make_session_data_file(Session, False, 0, KDE_CACHE_FILE, NULL );
+		KDECategories = create_category_tree( "KDE", configfile, KDE_ICONS_PATH, 0, -1 );	   
+		free( configfile );configfile = make_session_data_file(Session, False, 0, GNOME_CACHE_FILE, NULL );
  		GNOMECategories = create_category_tree( "GNOME", configfile, GNOME_ICONS_PATH, 0, -1 );	
 		free( configfile );
 		configfile = make_session_data_file(Session, False, 0, SYSTEM_CACHE_FILE, NULL );
@@ -530,6 +534,13 @@ ReloadCategories(Bool cached)
 		free( configfile );
 	}else
 	{
+		char *path = make_session_apps_path( Session );
+		if( path ) 
+		{	
+			AfterStepCategories = create_category_tree( "AfterStep", path, Environment?Environment->icon_path:NULL, 0, -1 );	   
+			free( path );
+		}
+		
 		KDECategories = create_category_tree( "KDE", KDE_APPS_PATH, KDE_ICONS_PATH, ASCT_OnlyKDE, -1 );	   
  		GNOMECategories = create_category_tree( "GNOME", GNOME_APPS_PATH, GNOME_ICONS_PATH, ASCT_OnlyGNOME, -1 );	
  		SystemCategories = create_category_tree( "SYSTEM", SYSTEM_APPS_PATH, SYSTEM_ICONS_PATH, ASCT_ExcludeGNOME|ASCT_ExcludeKDE, -1 );	
@@ -541,10 +552,13 @@ ReloadCategories(Bool cached)
 	SHOW_TIME("Standard categories",started);
 	if( !cached ) 
 	{	
+		add_category_tree_subtree( AfterStepCategories   , StandardCategories );
 		add_category_tree_subtree( KDECategories   , StandardCategories );
  		add_category_tree_subtree( GNOMECategories , StandardCategories );
  		add_category_tree_subtree( SystemCategories, StandardCategories );
 	}
+ 	load_category_tree( AfterStepCategories    );
+	SHOW_TIME("AfterStep categories",started);
  	load_category_tree( KDECategories    );
 	SHOW_TIME("KDE categories",started);
 	load_category_tree( GNOMECategories  );
@@ -555,6 +569,7 @@ ReloadCategories(Bool cached)
 	LOCAL_DEBUG_OUT( "@ Building up Combined: @@@@@@@@@@@@@@@@@@@@@@@@@@@@%s","" );
 	
  	add_category_tree_subtree( CombinedCategories, StandardCategories );
+	add_category_tree_subtree( CombinedCategories, AfterStepCategories      );
 	add_category_tree_subtree( CombinedCategories, KDECategories      );
  	add_category_tree_subtree( CombinedCategories, GNOMECategories    );
  	add_category_tree_subtree( CombinedCategories, SystemCategories   );
@@ -568,7 +583,11 @@ name2desktop_category( const char *name, ASCategoryTree **tree_return )
 	ASCategoryTree *ct = CombinedCategories ; 
 	int offset = 0 ;
 	
-	if( !mystrncasecmp (name, "KDE:", 4) )
+	if( !mystrncasecmp (name, "AfterStep:", 10) )
+	{	
+		ct = AfterStepCategories ; 
+		offset = 10 ; 
+	}else if( !mystrncasecmp (name, "KDE:", 4) )
 	{	
 		ct = KDECategories ; 
 		offset = 4 ; 
@@ -627,6 +646,8 @@ main( int argc, char ** argv )
 	{		 
 		fprintf( stderr, "#Standard: ####################################################\n" );
 		print_category_tree2( StandardCategories, NULL );
+		fprintf( stderr, "#AfterStep:####################################################\n" );
+		print_category_tree2( AfterStepCategories, NULL );
 		fprintf( stderr, "#KDE:      ####################################################\n" );
 		print_category_tree2( KDECategories, NULL );
 		fprintf( stderr, "#GNOME:    ####################################################\n" );
@@ -677,6 +698,8 @@ main( int argc, char ** argv )
 
 	fprintf( stderr, "#Standard: ####################################################\n" );
 	print_category_tree2( StandardCategories, NULL );
+	fprintf( stderr, "#AfterStep: ####################################################\n" );
+	print_category_tree2( AfterStepCategories, NULL );
 	fprintf( stderr, "#KDE: ####################################################\n" );
 	print_category_tree2( KDECategories, NULL );
 	fprintf( stderr, "#GNOME: ####################################################\n" );

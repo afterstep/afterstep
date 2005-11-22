@@ -307,6 +307,7 @@ extern struct ASEnvironment *Environment;
 extern struct ASDatabase    *Database;
 
 extern struct ASCategoryTree *StandardCategories ;
+extern struct ASCategoryTree *AfterStepCategories ;
 extern struct ASCategoryTree *KDECategories ;
 extern struct ASCategoryTree *GNOMECategories ;
 extern struct ASCategoryTree *SystemCategories ;
