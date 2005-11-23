@@ -2,7 +2,7 @@
 Name=Pager
 GenericName=Pager 
 Comment=Module to provide for visual feedback and navigation of virtual desktops.
-Exec=Pager 0 @with_desktops_1@
+Exec=Pager 0  @with_desktops_1@
 Icon=normal/pager
 Terminal=false
 MultipleArgs=false

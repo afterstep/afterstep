@@ -773,7 +773,7 @@ tools/installastheme.pl \
 tools/makeastheme.pl \
 tools/postcard.sh \
 \
-afterstep/applications/modules.desktop.in \
+afterstep/applications/modules.desktop \
 afterstep/base \
 afterstep/audio \
 afterstep/autoexec \
