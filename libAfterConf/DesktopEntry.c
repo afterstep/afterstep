@@ -448,7 +448,7 @@ load_category_tree( ASCategoryTree*	ct )
 			Bool applnk = (strstr(ct->dir_list[i], "/applnk")!= NULL) ; 
 			if ( CheckDir (ct->dir_list[i]) == 0 )
 			{
-				/*fprintf( stderr, "location : \"%s\", applnk == %d", ct->dir_list[i], applnk ); */
+/*				fprintf( stderr, "location : \"%s\", applnk == %d\n", ct->dir_list[i], applnk ); */
 	  			parse_desktop_entry_tree(ct->dir_list[i], NULL, entry_list, NULL, ct->icon_path, ct->name, applnk );	
 			}else if ( CheckFile (ct->dir_list[i]) == 0 )
 				parse_desktop_entry_list( ct->dir_list[i], entry_list, ct->name, ASDE_TypeDirectory, ct->icon_path, applnk);
@@ -582,6 +582,7 @@ name2desktop_category( const char *name, ASCategoryTree **tree_return )
 {
 	ASCategoryTree *ct = CombinedCategories ; 
 	int offset = 0 ;
+/*	fprintf( stderr, __FUNCTION__ ": checking \"%s\" (AfterSTep categories = %p)\n", name, AfterStepCategories );*/
 	
 	if( !mystrncasecmp (name, "AfterStep:", 10) )
 	{	
@@ -630,12 +631,27 @@ main( int argc, char ** argv )
 	for( i = 1 ; i < argc ; ++i ) 
 		if( argv[i] && strcmp(argv[i], "--cached") != 0) 
 		{
-			dc = name2desktop_category( argv[i], &ct );
+			char *name = NULL ; 
+			char *colon = strchr( argv[i], ':' );
+			int len = strlen(argv[i]);
+			if( colon == NULL )
+			{
+				name = safemalloc( len+1+7+1);
+				sprintf( name, "%s:Default", argv[i] );	   
+			}else if( colon[1] == '\0' )
+			{	
+				name = safemalloc( len+7+1);
+				sprintf( name, "%sDefault", argv[i] );	   
+			}else				
+				name = mystrdup(argv[i]);	 
+
+			dc = name2desktop_category( name, &ct );
 			if( dc == NULL ) 
 			{
 				fprintf( stderr, "Invalid category name \"%s\"", argv[i] );
 				return 0;	
 			}	 
+			free( name );
 			break;
 		}
 	if( dc && ct ) 

@@ -10,7 +10,7 @@ IMAGE_DIR_LIST= backgrounds backgrounds/Gradient_Textures backgrounds/Plain_Text
 
 MISC_FILES_DIR_LIST= desktop/cursors desktop/fonts desktop/sounds
 
-CONFIG_DIR_LIST= feels colorschemes looks scripts themes
+CONFIG_DIR_LIST= applications colorschemes feels looks scripts themes
 
 
 install:
