@@ -773,6 +773,7 @@ tools/installastheme.pl \
 tools/makeastheme.pl \
 tools/postcard.sh \
 \
+afterstep/applications/modules.desktop.in \
 afterstep/base \
 afterstep/audio \
 afterstep/autoexec \
@@ -783,7 +784,6 @@ afterstep/start/1_Desktop/Color_Scheme/.include \
 afterstep/start/1_Desktop/Look/.include \
 afterstep/start/1_Desktop/Theme/.include \
 afterstep/start/1_Desktop/Pictures/.include \
-afterstep/start/2_Modules/Pager \
 )
 
 

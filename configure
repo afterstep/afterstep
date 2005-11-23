@@ -8643,7 +8643,7 @@ if test -d src/test ; 		then           ac_config_files="$ac_config_files src/tes
 if test "x$have_gtk" = "xyes"; then                     ac_config_files="$ac_config_files libASGTK/asgtk-config libASGTK/Makefile"
  fi
 
-                                                                                                                                                                                                                                                                    ac_config_files="$ac_config_files configure.h Makefile AfterStep.spec AfterStep.desktop afterstep/Makefile doc/Makefile doc/afterstepdoc libAfterStep/afterstep-config libAfterStep/Makefile libAfterConf/Makefile src/afterstep/Makefile tools/Makefile tools/installastheme.pl tools/makeastheme.pl tools/postcard.sh afterstep/base afterstep/audio afterstep/autoexec afterstep/pager afterstep/start/.include afterstep/start/1_Desktop/Feel/.include afterstep/start/1_Desktop/Color_Scheme/.include afterstep/start/1_Desktop/Look/.include afterstep/start/1_Desktop/Theme/.include afterstep/start/1_Desktop/Pictures/.include afterstep/start/2_Modules/Pager"
+                                                                                                                                                                                                                                                                    ac_config_files="$ac_config_files configure.h Makefile AfterStep.spec AfterStep.desktop afterstep/Makefile doc/Makefile doc/afterstepdoc libAfterStep/afterstep-config libAfterStep/Makefile libAfterConf/Makefile src/afterstep/Makefile tools/Makefile tools/installastheme.pl tools/makeastheme.pl tools/postcard.sh afterstep/applications/modules.desktop.in afterstep/base afterstep/audio afterstep/autoexec afterstep/pager afterstep/start/.include afterstep/start/1_Desktop/Feel/.include afterstep/start/1_Desktop/Color_Scheme/.include afterstep/start/1_Desktop/Look/.include afterstep/start/1_Desktop/Theme/.include afterstep/start/1_Desktop/Pictures/.include"
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
 # tests run on this system so they can be shared between configure
@@ -9217,6 +9217,7 @@ do
   "tools/installastheme.pl" ) CONFIG_FILES="$CONFIG_FILES tools/installastheme.pl" ;;
   "tools/makeastheme.pl" ) CONFIG_FILES="$CONFIG_FILES tools/makeastheme.pl" ;;
   "tools/postcard.sh" ) CONFIG_FILES="$CONFIG_FILES tools/postcard.sh" ;;
+  "afterstep/applications/modules.desktop.in" ) CONFIG_FILES="$CONFIG_FILES afterstep/applications/modules.desktop.in" ;;
   "afterstep/base" ) CONFIG_FILES="$CONFIG_FILES afterstep/base" ;;
   "afterstep/audio" ) CONFIG_FILES="$CONFIG_FILES afterstep/audio" ;;
   "afterstep/autoexec" ) CONFIG_FILES="$CONFIG_FILES afterstep/autoexec" ;;
@@ -9227,7 +9228,6 @@ do
   "afterstep/start/1_Desktop/Look/.include" ) CONFIG_FILES="$CONFIG_FILES afterstep/start/1_Desktop/Look/.include" ;;
   "afterstep/start/1_Desktop/Theme/.include" ) CONFIG_FILES="$CONFIG_FILES afterstep/start/1_Desktop/Theme/.include" ;;
   "afterstep/start/1_Desktop/Pictures/.include" ) CONFIG_FILES="$CONFIG_FILES afterstep/start/1_Desktop/Pictures/.include" ;;
-  "afterstep/start/2_Modules/Pager" ) CONFIG_FILES="$CONFIG_FILES afterstep/start/2_Modules/Pager" ;;
   "config.h" ) CONFIG_HEADERS="$CONFIG_HEADERS config.h:autoconf/config.h.in" ;;
   *) { { echo "$as_me:$LINENO: error: invalid argument: $ac_config_target" >&5
 echo "$as_me: error: invalid argument: $ac_config_target" >&2;}
