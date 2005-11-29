@@ -621,7 +621,7 @@ handle_asxml_tag_text( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm
 		else if (!strcmp(ptr->tag, "fgimage")) fgimage_str = ptr->parm;
 		else if (!strcmp(ptr->tag, "bgimage")) bgimage_str = ptr->parm;
 		else if (!strcmp(ptr->tag, "fgcolor")) fgcolor_str = ptr->parm;
-		else if (!strcmp(ptr->tag, "bgcolor")) bgcolor_str = ptr->parm;
+	   	else if (!strcmp(ptr->tag, "bgcolor")) bgcolor_str = ptr->parm;
 		else if (!strcmp(ptr->tag, "type")) type = strtol(ptr->parm, NULL, 0);
 	}
 	for (ptr = doc->child ; ptr && text == NULL ; ptr = ptr->next)
@@ -632,9 +632,29 @@ handle_asxml_tag_text( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm
 		struct ASFont *font = NULL;
 		show_progress("Rendering text [%s] with font [%s] size [%d].", text, font_name, point);
 		if (state->fontman) font = get_asfont(state->fontman, font_name, 0, point, ASF_GuessWho);
-		if (font != NULL) {
+		if (font != NULL) 
+		{
+			ASTextAttributes attr = {ASTA_VERSION_INTERNAL, 0, 0, ASCT_Char, 8, 0, NULL, 0, ARGB32_White }; 
+			attr.type = type ;
+			if( IsUTF8Locale() ) 
+				attr.char_type = ASCT_UTF8 ;
 			set_asfont_glyph_spacing(font, spacing, 0);
-			result = draw_text(text, font, type, 0);
+			if( fgcolor_str ) 
+				parse_argb_color(fgcolor_str, &(attr.fore_color) );
+			
+			result = draw_fancy_text( text, font, &attr, 0, 0/*autodetect length*/ );
+			if (result && fgcolor_str) {
+#if 0			   
+				result->back_color = attr.fore_color ;
+#else
+				ASImage* fgimage = create_asimage(result->width, result->height, ASIMAGE_QUALITY_TOP);
+				parse_argb_color(fgcolor_str, &fgcolor);
+				fill_asimage(state->asv, fgimage, 0, 0, result->width, result->height, fgcolor);
+				move_asimage_channel(fgimage, IC_ALPHA, result, IC_ALPHA);
+				safe_asimage_destroy(result);
+				result = fgimage ;
+#endif
+			}
 			if (result && fgimage_str) {
 				ASImage* fgimage = NULL;
 				fgimage = get_asimage(state->imman, fgimage_str, 0xFFFFFFFF, 100 );
@@ -650,14 +670,6 @@ handle_asxml_tag_text( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm
 					safe_asimage_destroy(result);
 					result = fgimage;
 				}
-			}
-			if (result && fgcolor_str) {
-				ASImage* fgimage = create_asimage(result->width, result->height, ASIMAGE_QUALITY_TOP);
-				parse_argb_color(fgcolor_str, &fgcolor);
-				fill_asimage(state->asv, fgimage, 0, 0, result->width, result->height, fgcolor);
-				move_asimage_channel(fgimage, IC_ALPHA, result, IC_ALPHA);
-				safe_asimage_destroy(result);
-				result = fgimage;
 			}
 			if (result && (bgcolor_str || bgimage_str)) {
 				ASImageLayer layers[2];
