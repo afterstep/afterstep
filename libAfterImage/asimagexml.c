@@ -227,7 +227,7 @@ ASImageManager *create_generic_imageman(const char *path)
 {
 	ASImageManager *my_imman = NULL ;
 	char *path2 = copy_replace_envvar( getenv( ASIMAGE_PATH_ENVVAR ) );
-	show_progress("image path is \"%s\".", path2 );
+	show_progress("image path is \"%s\".", path2?path2:"(null)" );
 	if( path != NULL )
 		my_imman = create_image_manager( NULL, SCREEN_GAMMA, path, path2, NULL );
 	else

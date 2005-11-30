@@ -31,6 +31,9 @@
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
 #endif
+#ifdef HAVE_STDDEF_H
+#include <stddef.h>
+#endif
 #ifdef HAVE_STDARG_H
 #include <stdarg.h>
 #endif
@@ -236,26 +239,38 @@ asim_put_file_home (const char *path_with_home)
 }
 
 char*
-asim_load_file(const char* realfilename)
+asim_load_binary_file(const char* realfilename, long *file_size_return)
 {
 	struct stat st;
 	FILE* fp;
-	char* str;
-	int len;
+	char* data = NULL ;
 
 	/* Get the file size. */
 	if (stat(realfilename, &st)) return NULL;
-
 	/* Open the file. */
 	fp = fopen(realfilename, "rb");
-	if (!(fp = fopen(realfilename, "rb"))) return NULL;
+	if ( fp != NULL ) 
+	{
+		long len ; 
+		/* Read in the file. */
+		data = safemalloc(st.st_size + 1);
+		len = fread(data, 1, st.st_size, fp);
+		if( file_size_return ) 
+			*file_size_return = len ; 
+		fclose(fp);
+	}
+	return data;
+}
 
-	/* Read in the file. */
-	str = NEW_ARRAY(char, st.st_size + 1);
-	len = fread(str, 1, st.st_size, fp);
-	if (len >= 0) str[len] = '\0';
+char*
+asim_load_file(const char* realfilename)
+{
+	long len;
+	char* str = load_binary_file( realfilename, &len );
 
-	fclose(fp);
+	if (str != NULL && len >= 0) 
+		str[len] = '\0';
+
 	return str;
 }
 
@@ -1070,21 +1085,16 @@ asim_wait_tick ()
  * c.ridd@isode.com
  */
 int
-asim_my_scandir (char *dirname, struct direntry *(*namelist[]),
-			int (*select) (const char *), int (*dcomp) (struct direntry **, struct direntry **))
+asim_my_scandir_ext ( const char *dirname, int (*filter_func) (const char *),
+				 Bool (*handle_direntry_func)( const char *fname, const char *fullname, struct stat *stat_info, void *aux_data), 
+				 void *aux_data)
 {
 	DIR          *d;
 	struct dirent *e;						   /* Pointer to static struct inside readdir() */
-	struct direntry **nl;					   /* Array of pointers to dirents */
-	struct direntry **nnl;
-	int           n;						   /* Count of nl used so far */
-	int           sizenl;					   /* Number of entries in nl array */
-	int           j;
-	size_t        realsize;
+	int           n = 0;					   /* Count of nl used so far */
 	char         *filename;					   /* For building filename to pass to stat */
 	char         *p;						   /* Place where filename starts */
-	struct stat   buf;
-
+	struct stat   stat_info;
 
 	d = opendir (dirname);
 
@@ -1099,91 +1109,31 @@ asim_my_scandir (char *dirname, struct direntry *(*namelist[]),
 	}
 	strcpy (filename, dirname);
 	p = filename + strlen (filename);
-	*p++ = '/';
-	*p = 0;									   /* Just in case... */
-
-	nl = NULL;
-	n = 0;
-	sizenl = 0;
-
+	if( *p != '/' )
+	{	
+		*p++ = '/';
+		*p = 0;									   /* Just in case... */
+	}
+	
 	while ((e = readdir (d)) != NULL)
 	{
-		if ((select == NULL) || select (&(e->d_name[0])))
+		if ((filter_func == NULL) || filter_func (&(e->d_name[0])))
 		{
-			/* add */
-			if (sizenl == n)
-			{
-				/* Grow array */
-				sizenl += 32;				   /* arbitrary delta */
-				nnl = realloc (nl, sizenl * sizeof (struct direntry *));
-				if (nnl == NULL)
-				{
-					/* Free the old array */
-					for (j = 0; j < n; j++)
-						free (nl[j]);
-					free (nl);
-					free (filename);
-					closedir (d);
-					return -1;
-				}
-				nl = nnl;
-			}
-			realsize = offsetof (struct direntry, d_name)+strlen (e->d_name) + 1;
-			nl[n] = (struct direntry *)safemalloc (realsize);
-			if (nl[n] == NULL)
-			{
-				for (j = 0; j < n; j++)
-					free (nl[j]);
-				free (nl);
-				free (filename);
-				closedir (d);
-				return -1;
-			}
 			/* Fill in the fields using stat() */
 			strcpy (p, e->d_name);
-			if (stat (filename, &buf) == -1)
-			{
-				for (j = 0; j <= n; j++)
-					free (nl[j]);
-				free (nl);
-				free (filename);
-				closedir (d);
-				return -1;
+			if (stat (filename, &stat_info) != -1)
+			{	
+				if( handle_direntry_func( e->d_name, filename, &stat_info, aux_data) )
+					n++;
 			}
-			nl[n]->d_mode = buf.st_mode;
-			nl[n]->d_mtime = buf.st_mtime;
-			strcpy (nl[n]->d_name, e->d_name);
-			n++;
 		}
 	}
 	free (filename);
 
 	if (closedir (d) == -1)
-	{
-		free (nl);
 		return -1;
-	}
-	if (n == 0)
-	{
-		if (nl)
-			free (nl);
-/* OK, but not point sorting or freeing anything */
-		return 0;
-	}
-	*namelist = realloc (nl, n * sizeof (struct direntry *));
-
-	if (*namelist == NULL)
-	{
-		for (j = 0; j < n; j++)
-			free (nl[j]);
-		free (nl);
-		return -1;
-	}
-	/* Optionally sort the list */
-	if (dcomp)
-		qsort (*namelist, n, sizeof (struct direntry *), (int (*)())dcomp);
-
 	/* Return the count of the entries */
 	return n;
 }
+
 #endif

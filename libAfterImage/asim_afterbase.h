@@ -8,6 +8,16 @@
 #include <stdlib.h>
 #endif
 #endif
+#if TIME_WITH_SYS_TIME
+# include <sys/time.h>
+# include <time.h>
+#else
+# if HAVE_SYS_TIME_H
+#  include <sys/time.h>
+# else
+#  include <time.h>
+# endif
+#endif
    
 
 /* our own version of X Wrapper : */
@@ -242,10 +252,13 @@ char   *asim_put_file_home (const char *path_with_home);
 #define put_file_home(p) asim_put_file_home(p)
 char   *asim_load_file     (const char *realfilename);
 #define load_file(r)     asim_load_file(r)
+char   *asim_load_binary_file(const char* realfilename, long *file_size_return);
+#define load_binary_file(r,s)     asim_load_binary_file(r,s)
 #ifndef _WIN32
-int     asim_my_scandir (char *dirname, struct direntry *(*namelist[]),
-			int (*select) (const char *), int (*dcomp) (struct direntry **, struct direntry **));
-#define my_scandir(d,n,s,dc) asim_my_scandir((d),(n),(s),(dc))   
+int asim_my_scandir_ext ( const char *dirname, int (*filter_func) (const char *),
+				 Bool (*handle_direntry_func)( const char *fname, const char *fullname, struct stat *stat_info, void *aux_data), 
+				 void *aux_data);
+#define my_scandir_ext(d,f,h,a) asim_my_scandir_ext((d),(f),(h),(a))   
 #endif
 
 void unix_path2dos_path( char *path );

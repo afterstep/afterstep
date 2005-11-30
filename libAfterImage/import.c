@@ -583,7 +583,7 @@ load_asimage_list_entry_data( ASImageListEntry *entry, size_t max_bytes )
 		return False;
 	if( entry->buffer_size == entry->d_size || entry->buffer_size >= max_bytes )
 		return True;
-	new_buffer_size = min( max_bytes, entry->d_size ); 
+	new_buffer_size = min( max_bytes, (size_t)entry->d_size ); 
 	new_buffer = malloc( new_buffer_size );
 	if( new_buffer == NULL ) 
 		return False ;
