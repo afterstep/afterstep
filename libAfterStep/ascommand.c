@@ -234,7 +234,6 @@ ascom_deinit(void)
 	destroy_asbidirlist( &(ASCommandState.operations) );
 	destroy_asbidirlist( &(ASCommandState.selected_wins) );
 	destroy_asbidirlist( &(ASCommandState.clients_order) );
-	DeadPipe (0);
 }
 
 

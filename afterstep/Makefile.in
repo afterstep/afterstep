@@ -116,6 +116,7 @@ install.config:
 			fi; \
 		done; \
 		echo ""; \
+		$(RMF) $(AFTER_SHAREDIR)/$$D/*.in ; \
 	done
 	@echo "$(MKDIR) -p $(AFTER_SHAREDIR)/non-configurable"; \
 	 $(MKDIR) -p $(AFTER_SHAREDIR)/non-configurable; \
