@@ -131,6 +131,7 @@ TermDef       FuncTerms[F_FUNCTIONS_NUM + 1] = {
 	FUNC_TERM ("RestartModuleList", 17, F_RESTARTMODULELIST),	/* RestartModuleList "name" */
 	FUNC_TERM2 (NEED_NAME, "PopUp", 5, F_POPUP),	/* PopUp    "popup_name" [popup_name] */
 	FUNC_TERM2 (NEED_NAME, "Function", 8, F_FUNCTION),	/* Function "function_name" [function_name] */
+	FUNC_TERM2 (NEED_NAME | NEED_CMD, "Category", 8, F_CATEGORY),	/* Category "function_name" category_name */
 	FUNC_TERM ("MiniPixmap", 10, F_MINIPIXMAP),	/* MiniPixmap "name" */
 	FUNC_TERM ("SmallMiniPixmap", 15, F_SMALL_MINIPIXMAP),	/* SmallMiniPixmap "name" */
 	FUNC_TERM ("LargeMiniPixmap", 15, F_SMALL_MINIPIXMAP),	/* LargeMiniPixmap "name" */

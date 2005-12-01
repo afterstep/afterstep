@@ -8,7 +8,8 @@ Terminal=false
 MultipleArgs=false
 Type=Application
 Encoding=UTF-8
-Categories=Modules
+Categories=Modules,Autoexec
+X-AfterStep-ASModule=true
 
 [Desktop Entry]
 Name=WinList
@@ -20,7 +21,8 @@ Terminal=false
 MultipleArgs=false
 Type=Application
 Encoding=UTF-8
-Categories=Modules
+Categories=Modules,Autoexec
+X-AfterStep-ASModule=true
 
 [Desktop Entry]
 Name=Wharf
@@ -32,7 +34,8 @@ Terminal=false
 MultipleArgs=false
 Type=Application
 Encoding=UTF-8
-Categories=Modules
+Categories=Modules,Autoexec
+X-AfterStep-ASModule=true
 
 [Desktop Entry]
 Name=MonitorWharf
@@ -44,7 +47,8 @@ Terminal=false
 MultipleArgs=false
 Type=Application
 Encoding=UTF-8
-Categories=Modules
+Categories=Modules,Autoexec
+X-AfterStep-ASModule=true
 
 [Desktop Entry]
 Name=Term tabs
@@ -56,7 +60,8 @@ Terminal=false
 MultipleArgs=false
 Type=Application
 Encoding=UTF-8
-Categories=Modules
+Categories=Modules,Autoexec
+X-AfterStep-ASModule=true
 
 [Desktop Entry]
 Name=Ident
@@ -69,6 +74,7 @@ MultipleArgs=false
 Type=Application
 Encoding=UTF-8
 Categories=Modules
+X-AfterStep-ASModule=true
 
 [Desktop Entry]
 Name=Animate
@@ -80,7 +86,8 @@ Terminal=false
 MultipleArgs=false
 Type=Application
 Encoding=UTF-8
-Categories=Modules
+Categories=Modules,Autoexec
+X-AfterStep-ASModule=true
 
 [Desktop Entry]
 Name=WinCommand
@@ -93,6 +100,7 @@ MultipleArgs=false
 Type=Application
 Encoding=UTF-8
 Categories=Modules
+X-AfterStep-ASModule=true
 
 [Desktop Entry]
 Name=GWCommand
@@ -105,4 +113,5 @@ MultipleArgs=false
 Type=Application
 Encoding=UTF-8
 Categories=Modules
+X-AfterStep-ASModule=true
 

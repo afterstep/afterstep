@@ -40,10 +40,13 @@
 #include "../../libAfterStep/session.h"
 #include "../../libAfterStep/moveresize.h"
 #include "../../libAfterStep/mylook.h"
+#include "../../libAfterStep/desktop_category.h"
+#include "../../libAfterConf/afterconf.h"
 
 static as_function_handler function_handlers[F_FUNCTIONS_NUM] ;
 
 void ExecuteComplexFunction ( ASEvent *event, char *name );
+Bool desktop_category2complex_function( const char *name, const char *category_name );
 
 /* list of available handlers : */
 void beep_func_handler( FunctionData *data, ASEvent *event, int module );
@@ -441,6 +444,19 @@ DoExecuteFunction ( ASScheduledFunction *sf )
 	    	function_handlers[func] != warp_func_handler )
 	    	EndWarping();
 
+		if( func == F_CATEGORY )
+		{
+			if( get_complex_function( data->name ) != NULL ) 
+				func = F_FUNCTION ;
+			else
+			{	
+				if( desktop_category2complex_function( data->name, data->text ) )
+					func = F_FUNCTION ; 
+				else
+					func = F_BEEP ;
+			}
+		}
+			 
 		if( func == F_FUNCTION )
 		    ExecuteComplexFunction (event, COMPLEX_FUNCTION_NAME(data));
 		else
@@ -657,6 +673,52 @@ ExecuteBatch ( ComplexFunction *batch )
 	}
 }
 
+
+Bool desktop_category2complex_function( const char *name, const char *category_name )
+{
+	ASCategoryTree *ct = NULL ;  
+	ASDesktopCategory *dc = NULL ;
+    ComplexFunction *func ;
+	char **entries ; 
+	int i, entries_num ; 
+
+	if( (dc = name2desktop_category( category_name, &ct )) == NULL ) 
+		return False; 
+
+	entries_num = PVECTOR_USED(dc->entries);
+	if( entries_num == 0 ) 
+		return False;
+	entries = PVECTOR_HEAD(char*, dc->entries );
+    
+	if( (func = new_complex_func( Scr.Feel.ComplexFunctions, (char*)name)) == NULL ) 
+		return False;
+	
+	func->items_num = 0 ;
+	func->items = safecalloc(entries_num, sizeof(FunctionData));
+	for( i = 0 ; i < entries_num ; ++i ) 
+	{	
+		ASDesktopEntry *de ;
+		FunctionData *fdata = &(func->items[func->items_num]);
+		if( (de = fetch_desktop_entry( ct, entries[i] ))== NULL ) 
+			continue;
+		if( de->type != ASDE_TypeApplication )
+			continue;
+		
+		++(func->items_num);
+		init_func_data( fdata );
+		fdata->name = mystrdup(de->Name);
+		
+		if( get_flags( de->flags, ASDE_Terminal ) )
+			fdata->func = F_ExecInTerm;	   
+		else if( get_flags( de->flags, ASDE_ASModule ) )
+			fdata->func = F_MODULE;	   
+		else
+		 	fdata->func = F_EXEC;	
+        fdata->text = mystrdup( de->clean_exec );
+	}	
+
+	return True;	   
+}	 
 
 /***************************************************************************************
  *

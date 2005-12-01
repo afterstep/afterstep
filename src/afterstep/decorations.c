@@ -740,19 +740,26 @@ check_allowed_function (FunctionData *fdata, ASHints *hints)
     int i ;
     ComplexFunction *cfunc ;
 
-    if (func != F_FUNCTION)
+    if ( func != F_FUNCTION && func != F_CATEGORY )
         return check_allowed_function2 (func, hints);
 
-    if( (cfunc = get_complex_function( fdata->name ) ) == NULL )
-        return 0;
+	if( func == F_FUNCTION )
+	{	
+    	if( (cfunc = get_complex_function( fdata->name ) ) == NULL )
+        	return 0;
 
-    for( i = 0 ; i < cfunc->items_num ; ++i )
-        if( cfunc->items[i].func == F_FUNCTION )
-        {
-            if( check_allowed_function (&(cfunc->items[i]), hints) == 0 )
-                return 0;
-        }else if( check_allowed_function2 (cfunc->items[i].func, hints) == 0 )
-            return 0;
+    	for( i = 0 ; i < cfunc->items_num ; ++i )
+        	if( cfunc->items[i].func == F_FUNCTION || cfunc->items[i].func == F_CATEGORY )
+        	{
+            	if( check_allowed_function (&(cfunc->items[i]), hints) == 0 )
+                	return 0;
+        	}else if( check_allowed_function2 (cfunc->items[i].func, hints) == 0 )
+            	return 0;
+	}else if( func == F_CATEGORY ) 
+	{
+		if( name2desktop_category( fdata->text?fdata->text:fdata->name, NULL ) == NULL ) 
+			return 0;
+	}	 
     return 1;
 }
 

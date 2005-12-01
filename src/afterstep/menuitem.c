@@ -406,6 +406,8 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf, Bool reload_submenus)
 			{	
 				if( get_flags( t->de->flags, ASDE_Terminal ) )
 					fdata = create_named_function(F_ExecInTerm, t->stripped_name);	   
+				else if( get_flags( t->de->flags, ASDE_ASModule ) )
+					fdata = create_named_function(F_MODULE, t->stripped_name);	   
 				else
 		 			fdata = create_named_function(F_EXEC, t->stripped_name);	
             	fdata->text = mystrdup( t->de->clean_exec );

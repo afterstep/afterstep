@@ -29,12 +29,14 @@ typedef struct ASDesktopEntry
 #define ASDE_EncodingUTF8		(0x01<<4)	  
 #define ASDE_KDE				(0x01<<5)	  
 #define ASDE_GNOME				(0x01<<6)	  
+#define ASDE_ASModule			(0x01<<7)	  
 	ASFlagType flags ; 
 
 #define ASDE_KEYWORD_NoDisplay_LEN			9	
 #define ASDE_KEYWORD_Hidden_LEN				6
 #define ASDE_KEYWORD_Terminal_LEN			8
 #define ASDE_KEYWORD_StartupNotify_LEN		13
+#define ASDE_KEYWORD_ASModule_LEN			8
 	
 	ASDesktopEntryTypes type ;	 
 	
