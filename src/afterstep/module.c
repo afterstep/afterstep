@@ -709,25 +709,28 @@ DeadPipe (int nonsense)
 
 int FindModuleByName (char *name)
 {
-    wild_reg_exp  *wrexp = compile_wild_reg_exp( name );
 	int module = -1;
+	if( Modules ) 
+	{	
+    	wild_reg_exp  *wrexp = compile_wild_reg_exp( name );
 
-    if ( wrexp != NULL && Modules)
-    {
-        register int i = MODULES_NUM;
-        register module_t *list = MODULES_LIST ;
+    	if ( wrexp != NULL )
+    	{
+        	register int i = MODULES_NUM;
+        	register module_t *list = MODULES_LIST ;
 
-        while( --i >= 0 )
-            if (list[i].fd > 0)
-            {
-                LOCAL_DEBUG_OUT( "checking if module %d \"%s\" matches regexp \"%s\"", i, list[i].name, name);
-                if (match_wild_reg_exp( list[i].name, wrexp ) == 0 )
-				{	
-                    module = i ; 
-					break;
-				}
-            }
-        destroy_wild_reg_exp( wrexp );
+        	while( --i >= 0 )
+            	if (list[i].fd > 0)
+            	{
+                	LOCAL_DEBUG_OUT( "checking if module %d \"%s\" matches regexp \"%s\"", i, list[i].name, name);
+                	if (match_wild_reg_exp( list[i].name, wrexp ) == 0 )
+					{	
+                    	module = i ; 
+						break;
+					}
+            	}
+        	destroy_wild_reg_exp( wrexp );
+		}
     }
 	return module;
 }
@@ -752,6 +755,17 @@ KillModuleByName (char *name)
 {
 	int module = FindModuleByName (name);
 	if( module >= 0 ) 
+	{	
+		register module_t *list = MODULES_LIST ;	
+        KillModule (&(list[module]), False);
+	}
+}
+
+void
+KillAllModulesByName (char *name)
+{
+	int module ;
+	while( (module = FindModuleByName (name)) >= 0 )
 	{	
 		register module_t *list = MODULES_LIST ;	
         KillModule (&(list[module]), False);

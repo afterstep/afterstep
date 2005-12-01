@@ -8,7 +8,7 @@ Terminal=false
 MultipleArgs=false
 Type=Application
 Encoding=UTF-8
-Categories=Modules,Autoexec
+Categories=Modules;Autoexec
 X-AfterStep-ASModule=true
 
 [Desktop Entry]
@@ -21,7 +21,7 @@ Terminal=false
 MultipleArgs=false
 Type=Application
 Encoding=UTF-8
-Categories=Modules,Autoexec
+Categories=Modules;Autoexec
 X-AfterStep-ASModule=true
 
 [Desktop Entry]
@@ -34,7 +34,7 @@ Terminal=false
 MultipleArgs=false
 Type=Application
 Encoding=UTF-8
-Categories=Modules,Autoexec
+Categories=Modules;Autoexec
 X-AfterStep-ASModule=true
 
 [Desktop Entry]
@@ -47,7 +47,7 @@ Terminal=false
 MultipleArgs=false
 Type=Application
 Encoding=UTF-8
-Categories=Modules,Autoexec
+Categories=Modules;Autoexec
 X-AfterStep-ASModule=true
 
 [Desktop Entry]
@@ -60,7 +60,7 @@ Terminal=false
 MultipleArgs=false
 Type=Application
 Encoding=UTF-8
-Categories=Modules,Autoexec
+Categories=Modules;Autoexec
 X-AfterStep-ASModule=true
 
 [Desktop Entry]
@@ -86,7 +86,7 @@ Terminal=false
 MultipleArgs=false
 Type=Application
 Encoding=UTF-8
-Categories=Modules,Autoexec
+Categories=Modules;Autoexec
 X-AfterStep-ASModule=true
 
 [Desktop Entry]

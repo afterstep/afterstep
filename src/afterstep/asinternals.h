@@ -646,6 +646,8 @@ void broadcast_config (send_data_type event_type, ASWindow * t);
 void HandleModuleInOut(unsigned int channel, Bool has_input, Bool has_output);
 
 void KillModuleByName (char *name);
+void KillAllModulesByName (char *name);
+
 int FindModuleByName (char *name);
 char *GetModuleCmdLineByName(char *name);
 void DeadPipe (int nonsense);

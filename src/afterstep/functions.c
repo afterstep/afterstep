@@ -82,6 +82,7 @@ void desk_func_handler( FunctionData *data, ASEvent *event, int module );
 void deskviewport_func_handler( FunctionData *data, ASEvent *event, int module );
 void module_func_handler( FunctionData *data, ASEvent *event, int module );
 void killmodule_func_handler( FunctionData *data, ASEvent *event, int module );
+void killallmodules_func_handler( FunctionData *data, ASEvent *event, int module );
 void restartmodule_func_handler( FunctionData *data, ASEvent *event, int module );
 void popup_func_handler( FunctionData *data, ASEvent *event, int module );
 void quit_func_handler( FunctionData *data, ASEvent *event, int module );
@@ -186,6 +187,7 @@ void SetupFunctionHandlers()
 
     function_handlers[F_KILLMODULEBYNAME]   = killmodule_func_handler ;
 	function_handlers[F_RESTARTMODULEBYNAME]= restartmodule_func_handler ;
+	function_handlers[F_KILLALLMODULESBYNAME] = killallmodules_func_handler ;
     function_handlers[F_POPUP]              = popup_func_handler ;
     function_handlers[F_QUIT]               = quit_func_handler ;
 #ifndef NO_WINDOWLIST
@@ -430,8 +432,10 @@ DoExecuteFunction ( ASScheduledFunction *sf )
 
 	}
 
-    if( function_handlers[func] || func == F_FUNCTION )
+    if( function_handlers[func] || func == F_FUNCTION || func == F_CATEGORY)
     {
+		char *complex_func_name = COMPLEX_FUNCTION_NAME(data);
+
 		data->func = func ;
 		if( event->client )
 	    	if( !check_allowed_function2( data->func, event->client->hints) )
@@ -446,21 +450,32 @@ DoExecuteFunction ( ASScheduledFunction *sf )
 
 		if( func == F_CATEGORY )
 		{
-			if( get_complex_function( data->name ) != NULL ) 
-				func = F_FUNCTION ;
+			char *cat_name = data->text?data->text:data->name ; 
+			if( cat_name == NULL ) 
+				func = F_BEEP ;
 			else
 			{	
-				if( desktop_category2complex_function( data->name, data->text ) )
-					func = F_FUNCTION ; 
-				else
-					func = F_BEEP ;
+				complex_func_name = safemalloc( sizeof("CATEGORY()")+strlen(cat_name)+1);
+				sprintf( complex_func_name, "CATEGORY(%s)", cat_name );
+				if( get_complex_function( complex_func_name ) != NULL ) 
+				{	
+					func = F_FUNCTION ;
+				}else
+				{	
+					if( desktop_category2complex_function( complex_func_name, cat_name ) )
+						func = F_FUNCTION ; 
+					else
+						func = F_BEEP ;
+				}
 			}
 		}
 			 
 		if( func == F_FUNCTION )
-		    ExecuteComplexFunction (event, COMPLEX_FUNCTION_NAME(data));
+		    ExecuteComplexFunction (event, complex_func_name);
 		else
 		    function_handlers[func]( data, event, sf->module );
+		if( complex_func_name && complex_func_name != data->name && complex_func_name != data->text )
+			free( complex_func_name );
     }
     destroy_scheduled_function(sf);
 }
@@ -706,7 +721,7 @@ Bool desktop_category2complex_function( const char *name, const char *category_n
 		
 		++(func->items_num);
 		init_func_data( fdata );
-		fdata->name = mystrdup(de->Name);
+		fdata->name = mystrdup("I");  /* for immidiate execution */ 
 		
 		if( get_flags( de->flags, ASDE_Terminal ) )
 			fdata->func = F_ExecInTerm;	   
@@ -1551,6 +1566,11 @@ void killmodule_func_handler( FunctionData *data, ASEvent *event, int module )
     KillModuleByName (data->text);
 }
 
+void killallmodules_func_handler( FunctionData *data, ASEvent *event, int module )
+{
+    KillAllModulesByName (data->text);
+}
+
 void restartmodule_func_handler( FunctionData *data, ASEvent *event, int module )
 {
 	char *cmd_line = GetModuleCmdLineByName(data->text);
@@ -1692,9 +1712,6 @@ void swallow_window_func_handler( FunctionData *data, ASEvent *event, int module
 	if( event->client ) 
 	{	
 		if( data->text ) 
-			
-			
-			
 			module = FindModuleByName( data->text );
 		SendPacket( module, M_SWALLOW_WINDOW, 2, event->client->w, event->client->frame);
  	}	
