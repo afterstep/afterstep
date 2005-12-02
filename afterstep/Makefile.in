@@ -16,8 +16,8 @@ install.data_reinstall:
 	@$(RMF) no_data_reinstall ; \
 	if [ -d $(AFTER_SHAREDIR) ] ; then \
 	   echo $(RMF) -r $(AFTER_SHAREDIR)_old; \
-	   echo $(MV) $(AFTER_SHAREDIR) $(AFTER_SHAREDIR)_old; \
 	   $(RMF) -r $(AFTER_SHAREDIR)_old; \
+	   echo $(MV) $(AFTER_SHAREDIR) $(AFTER_SHAREDIR)_old; \
 	   $(MV) $(AFTER_SHAREDIR) $(AFTER_SHAREDIR)_old; \
 	   if [ -d $(AFTER_SHAREDIR)_old/desktop -a -d $(AFTER_SHAREDIR)_old/desktop/tiles  ] ; then \
      	   	no_data_reinstall=$(NO_DATA_REINSTALL); \
@@ -97,7 +97,7 @@ install.data:  share_dirs
 			$(CP) -r $(AFTER_SHAREDIR)_old/desktop $(AFTER_SHAREDIR)/; \
 		fi; \
 		if [ -d $(AFTER_SHAREDIR)_old/doc/html ]; then \
-			$(MKDIR) -p $(MKDIR) -p $(AFTER_DOC_DIR); \
+			$(MKDIR) -p $(AFTER_DOC_DIR); \
 			echo "$(CP) -r $(AFTER_SHAREDIR)_old/doc/html $(AFTER_DOC_DIR)/"; \
 			$(CP) -r $(AFTER_SHAREDIR)_old/doc/html $(AFTER_DOC_DIR)/; \
 		fi; \
