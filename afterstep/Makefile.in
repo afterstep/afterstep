@@ -34,7 +34,6 @@ share_dirs:
 	 $(MKDIR) -p $(AFTER_DOC_DIR)
 
 install.data:  share_dirs
-	$(MKDIR) -p $(AFTER_SHAREDIR)/desktop
 	@if [ -f no_data_reinstall ]; then \
 		no_data_reinstall="yes"; \
 		$(RMF) no_data_reinstall ; \
@@ -42,6 +41,7 @@ install.data:  share_dirs
 		no_data_reinstall="" ; \
 	 fi ;\
 	 if [ -d desktop -a -d backgrounds -a -z "$$no_data_reinstall" ]; then \
+	    $(MKDIR) -p $(AFTER_SHAREDIR)/desktop; \
 	    for D in ${IMAGE_DIR_LIST}; do \
 		$(MKDIR) -p $(AFTER_SHAREDIR)/$$D; \
 		echo "Installing images from $$D to $(AFTER_SHAREDIR)/$$D "; \
