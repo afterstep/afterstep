@@ -21,6 +21,7 @@
 #define EVENT_TRACE
 
 #include "../../configure.h"
+
 #include "../../libAfterStep/asapp.h"
 #include "../../libAfterStep/ascommand.h"
 #include "../../libAfterStep/operations.h"
@@ -31,8 +32,12 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include <readline/readline.h>
-#include <readline/history.h>
+/* #undef HAVE_READLINE     */
+
+#ifdef HAVE_READLINE
+# include <readline/readline.h>
+# include <readline/history.h>
+#endif
 
 #include "../../libAfterConf/afterconf.h"
 
@@ -276,6 +281,23 @@ set_WinCommandParam( ASWinCommandState *state, const char *param, const char *va
 	return ( val_used > 0 )?ASWC_Ok_ValUsed:ASWC_Ok_ValUnused;	  
 }
 
+char *
+my_readline()
+{
+	char *line = NULL ;
+#ifdef HAVE_READLINE
+	line = readline (">");
+#else
+	{
+		char buffer[MAXLINELENGTH+1] ;	
+		printf( "\n>" );
+		if( fgets( &buffer[0], MAXLINELENGTH, stdin ) != NULL )
+			line = mystrdup( &buffer[0] );
+	}	 
+#endif
+	return line;
+}
+
 int
 main( int argc, char **argv )
 {
@@ -358,7 +380,7 @@ main( int argc, char **argv )
 	}else/* interactive mode */
 	{
 		char *line_read = NULL ;
-		while( (line_read = readline(">")) != NULL )
+		while( (line_read = my_readline()) != NULL )
 		{
 			char *ptr = line_read; 
 			char *cmd = NULL ; 
@@ -381,7 +403,9 @@ main( int argc, char **argv )
 							break; 		   
 						case ASWC_Ok_ValUsed :
 						case ASWC_Ok_ValUnused :
+#ifdef HAVE_READLINE							
 							add_history (line_read);
+#endif
 							printf( "ok\n");
 							break ;
 					}	 
@@ -404,7 +428,9 @@ main( int argc, char **argv )
 
 					ascom_wait();
 					ascom_deinit();
+#ifdef HAVE_READLINE							   
 					add_history (line_read);
+#endif					
 					printf( "ok\n");
 	 			}else
 				{

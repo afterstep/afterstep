@@ -36,6 +36,7 @@ INCS_X		   = @X_CFLAGS@
 INCLUDES	   = $(INCS_X) $(INCS_PRIVATE)
 
 USER_LD_FLAGS	= @user_ldflags@
+LIBS_READLINE	= @readline_libs@
 LIBS_X		= @x_libs@
 LIBS_AUDIO	= @AUDIO_LIBS@
 LIBS_XEXTS	=

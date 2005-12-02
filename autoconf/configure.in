@@ -407,8 +407,11 @@ if test "x$enable_sigsegv" = "xyes"; then
 fi
 
 if test "$with_readline" != no; then
-	AC_CHECK_LIB(ncurses, initscr, [], [AC_MSG_ERROR(libncurses (required by readline) can't be found)])
-	AC_CHECK_LIB(readline, readline, [], [AC_MSG_ERROR(libreadline can't be found)])
+	AC_CHECK_LIB(ncurses, initscr, 
+			[AC_CHECK_LIB(	readline, readline, 
+					[readline_libs="-lreadline -lncurses";AC_DEFINE(HAVE_READLINE,1,Support for readline library for console input)], 
+					[AC_MSG_ERROR(libreadline can't be found)])], 
+			[AC_MSG_ERROR(libncurses (required by readline) can't be found)])
 fi
 
 if test "x$enable_staticlibs" = "xyes"; then
@@ -655,6 +658,7 @@ AC_SUBST(user_ldflags)
 AC_SUBST(x_libs)
 AC_SUBST(xine_libs)
 AC_SUBST(xext_lib)
+AC_SUBST(readline_libs)
 AC_SUBST(x_includes)
 AC_SUBST(XEXT_LIB)
 AC_SUBST(AFTERBASE_LIB)
