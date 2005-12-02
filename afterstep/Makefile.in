@@ -19,7 +19,9 @@ install.data_reinstall:
 	   echo $(MV) $(AFTER_SHAREDIR) $(AFTER_SHAREDIR)_old; \
 	   $(RMF) -r $(AFTER_SHAREDIR)_old; \
 	   $(MV) $(AFTER_SHAREDIR) $(AFTER_SHAREDIR)_old; \
-     	   no_data_reinstall=$(NO_DATA_REINSTALL); \
+	   if [ -d $(AFTER_SHAREDIR)/desktop -a -d $(AFTER_SHAREDIR)/desktop/tiles  ] ; then \
+     	   	no_data_reinstall=$(NO_DATA_REINSTALL); \
+	   fi; \
 	   if [ -z "$$no_data_reinstall" ]; then \
 		touch no_data_reinstall; \
 	   fi; \
