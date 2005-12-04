@@ -1,3 +1,4 @@
+minipixmap mini/theme
 keepname
 include "@datadir@/afterstep/themes" ChangeTheme
 include "@with_afterdir@/themes" ChangeTheme
