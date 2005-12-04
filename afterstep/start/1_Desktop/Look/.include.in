@@ -1,3 +1,4 @@
+minipixmap mini/look
 keepname
 include "@datadir@/afterstep/looks" ChangeLook
 include "@with_afterdir@/looks" ChangeLook

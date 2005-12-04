@@ -1,3 +1,4 @@
+minipixmap mini/Mona
 keepname
 miniextension  .mini
 include "@datadir@/afterstep/backgrounds" Background
