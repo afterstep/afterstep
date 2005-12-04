@@ -1,3 +1,4 @@
+minipixmap mini/ColorScheme
 keepname
 include "@datadir@/afterstep/colorschemes" ChangeColorscheme
 include "@with_afterdir@/colorschemes" ChangeColorscheme
