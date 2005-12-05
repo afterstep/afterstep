@@ -409,9 +409,7 @@ fi
 if test "$with_readline" != no; then
 	AC_CHECK_LIB(ncurses, initscr, 
 			[AC_CHECK_LIB(	readline, readline, 
-					[readline_libs="-lreadline -lncurses";AC_DEFINE(HAVE_READLINE,1,Support for readline library for console input)], 
-					[AC_MSG_ERROR(libreadline can't be found)])], 
-			[AC_MSG_ERROR(libncurses (required by readline) can't be found)])
+					[readline_libs="-lreadline -lncurses";AC_DEFINE(HAVE_READLINE,1,Support for readline library for console input)])])
 fi
 
 if test "x$enable_staticlibs" = "xyes"; then

@@ -26,6 +26,7 @@
 #include "../../configure.h"
 
 #include "asinternals.h"
+#include "../../libAfterConf/afterconf.h"
 
 /********************************************************************/
 /* ASWindow frame decorations :                                     */

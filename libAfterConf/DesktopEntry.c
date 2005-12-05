@@ -523,7 +523,7 @@ ReloadCategories(Bool cached)
 	if( cached ) 
 	{	
 		char *configfile = make_session_data_file(Session, False, 0, AFTERSTEP_CACHE_FILE, NULL );
-		AfterStepCategories = create_category_tree( "AfterStep", configfile, Environment?Environment->icon_path:NULL, 0, -1 );	   
+		AfterStepCategories = create_category_tree( "AfterStep", configfile, Environment?Environment->pixmap_path:NULL, 0, -1 );	   
 		free( configfile );
 		configfile = make_session_data_file(Session, False, 0, KDE_CACHE_FILE, NULL );
 		KDECategories = create_category_tree( "KDE", configfile, KDE_ICONS_PATH, 0, -1 );	   
@@ -538,7 +538,7 @@ ReloadCategories(Bool cached)
 		char *path = make_session_apps_path( Session );
 		if( path ) 
 		{	
-			AfterStepCategories = create_category_tree( "AfterStep", path, Environment?Environment->icon_path:NULL, 0, -1 );	   
+			AfterStepCategories = create_category_tree( "AfterStep", path, Environment?Environment->pixmap_path:NULL, 0, -1 );	   
 			free( path );
 		}
 		
