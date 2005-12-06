@@ -166,7 +166,17 @@ merge_command_line (ASHints * clean, ASStatusHints * status, ASRawHints * raw)
 						register int k ;
 						Bool add_quotes = False ;
 						for (k = 0; src[k]; k++)
-							if( isspace(src[k]) ) 
+							if( isspace(src[k]) || 
+								src[k] == '#' ||
+								src[k] == '*' ||
+								src[k] == '$' ||
+								src[k] == ';' ||
+								src[k] == '&' ||
+								src[k] == '<' ||
+								src[k] == '>' ||
+								src[k] == '|' ||
+								iscntrl(src[k])
+								) 
 							{
 								add_quotes = True ;
 								break ;

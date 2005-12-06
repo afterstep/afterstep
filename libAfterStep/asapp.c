@@ -563,7 +563,7 @@ InitMyApp (  const char *app_class, int argc, char **argv, void (*version_func) 
 		as_app_args.saved_argc = argc ;
 		as_app_args.saved_argv = safecalloc( argc, sizeof(char*));
 		for( i = 0 ; i < argc ; ++i )
-			as_app_args.saved_argv[i] = argv[i] ;
+			as_app_args.saved_argv[i] = mystrdup(argv[i]) ;
 
         SetMyName( argv[0] );
 
@@ -796,7 +796,7 @@ InitSession()
 void
 FreeMyAppResources()
 {
-	
+	int i;
     balloon_init (True);
 	destroy_asdatabase();
     mystyle_destroy_all();
@@ -819,7 +819,11 @@ FreeMyAppResources()
 	}
 	destroy_asvisual( ASDefaultScr->asv, False );
     flush_asbidirlist_memory_pool();
+	for( i = 0 ; i < as_app_args.saved_argc ; ++i ) 
+		if( as_app_args.saved_argv[i] )
+			free( as_app_args.saved_argv[i] );
     free( as_app_args.saved_argv );
+	
     destroy_assession( Session );
 	Session = NULL ;
 	destroy_asenvironment( &Environment );
