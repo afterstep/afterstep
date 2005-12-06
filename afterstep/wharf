@@ -1,8 +1,44 @@
-##########################################################################
+################################################################################
+#                                                                              #
+# This is the configuration file for the Wharf, our application and applet     #
+# launcher. The Wharf is not bound to any shape or layout, only the users      #
+# fantasy is the limit of this module.                                         #
+#                                                                              #
+# Copy this file to ~/.afterstep/, or the .afterstep/ directory created in     #
+# your home folder by AfterStep when it started. You can edit the file once    #
+# it's placed in that directory.  Edit the new script in ~/.afterstep/ to your #
+# heart's content.                                                             #
+#                                                                              #
+# You can have as many "Wharfs" as you like (subject to display limitations)   #
+# in this script. One Wharf must be named *Wharf. Each Wharf must have its own #
+# name (*MonitorWharf, *ApplicationsWharf, etc) and is comprised of two parts: #
+# a View/Behaviors area and an Applets/Icons area.                             #
+#                                                                              #
+# View/Behaviors - The visual look and behavior of the Wharf as it sits on the #
+#        desktop.                                                              #
+#                                                                              #
+# Applications/Icons - The applications displaying information and/or allowing #
+#        control while sitting in the Wharf; buttons displaying icons that     #
+#        launch applications when pressed with a mouse pointer, or applets     #
+#        instead.                                                              #
+#                                                                              #
+# To have the indiviual Wharfs (*Wharf, *MonitorWharf, etc.) launch when       #
+# starting AfterStep, edit the autoexec file copied to the ~/.afterstep/ and   #
+# ensure that each Wharf is added.                                             #
+#                                                                              #
+# Please consult the documentation for the meaning and behaviour of the        #
+# individual options. documentation should be installed on your system as man  #
+# pages and html or xml pages (started through afterstepdoc). You can also     #
+# consult our online manual at www.afterstep.org/visualdoc.php                 #
+#                                                                              #
+################################################################################
+#
 # Wharf - primary application launcher :
 #
-#------------------------------------------------------------------------
-
+#-------------------------------------------------------------------------------
+# View/Behaviors :
+#-------------------------------------------------------------------------------
+#
 *WharfAnimate
 *WharfAnimateMain
 *WharfAnimateDelay	100
@@ -17,7 +53,7 @@
 *WharfBalloonStyle		"*WharfBalloon"
 *WharfBalloonBorderHilite	Right,Bottom
 
-#------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 # Buttons
 #
 *WharfFullPush
@@ -28,7 +64,7 @@
 #*WharfFitContents
 
 
-#------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 # Geometry
 #
 #*WharfForceSize
@@ -38,8 +74,9 @@
 *WharfBevel		Bottom,Right,NoOutline,Extra
 
 
-#-----------------------------------------------------------------------
-# Applications :
+#-------------------------------------------------------------------------------
+# Applications/Icons :
+#-------------------------------------------------------------------------------
 #
 # X TErms. Note that only one of this will be displayed on Wharf, as they all
 # have same button name. Change button name ( first column after *Wharf) to make them a separate buttons :
@@ -150,11 +187,12 @@
 
 #
 #  End of the Wharf configuration
-##########################################################################
-##########################################################################
+################################################################################
+
+################################################################################
 # MonitorWharf - monitorng applications, system configuration, clocks and docs:
 #
-#------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 *MonitorWharfAnimate
 *MonitorWharfAnimateMain
@@ -170,7 +208,7 @@
 *MonitorWharfBalloonStyle		"*WharfBalloon"
 *MonitorWharfBalloonBorderHilite	Right,Bottom
 
-#------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 # Buttons
 #
 *MonitorWharfFullPush
@@ -182,7 +220,7 @@
 #*MonitorWharfFitContents
 
 
-#------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 # Geometry
 #
 #*MonitorWharfForceSize
@@ -190,7 +228,7 @@
 *MonitorWharfColumns		1
 *MonitorWharfGeometry		-5-5
 
-#-----------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 # Monitoring Applications :
 #
 # separate action could be bound to different Buttons "l" - left "m" - middle "r" - right 
@@ -236,12 +274,12 @@
 
 #
 #  End of the MonitorWharf configuration
-##########################################################################
+################################################################################
 
-##########################################################################
+################################################################################
 # AskWharf - graphical frontend for postcard.sh:
 #
-#------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 
 
