@@ -286,8 +286,8 @@ MenuData *find_menu_data( ASHashTable *list, char *name );
 MenuDataItem *new_menu_data_item( MenuData *menu );
 int parse_menu_item_name (MenuDataItem * item, char **name);
 
-void add_menu_fdata_item( MenuData *menu, FunctionData *fdata, char *minipixmap, struct ASImage *img );
-void menu_data_item_from_func (MenuData * menu, FunctionData * fdata);
+MenuDataItem * add_menu_fdata_item( MenuData *menu, FunctionData *fdata, char *minipixmap, struct ASImage *img );
+MenuDataItem * menu_data_item_from_func (MenuData * menu, FunctionData * fdata);
 struct ASImage *check_scale_menu_pmap( struct ASImage *im, ASFlagType flags ); 
 void reload_menu_pmaps( MenuData *menu );
 

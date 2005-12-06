@@ -54,6 +54,7 @@
 
 #include <X11/keysym.h>
 
+#include "../../libAfterStep/desktop_category.h"
 #include "../../libAfterStep/module.h"
 #include "../../libAfterStep/wmprops.h"
 
@@ -1102,6 +1103,7 @@ MenuData *
 make_module_menu( FunctionCode func, const char *title, int sort_order )
 {
     MenuData *md ;
+    MenuDataItem *mdi ;
     FunctionData  fdata ;
     char          scut = '0';                  /* Current short cut key */
 	module_t *modules ;
@@ -1133,7 +1135,14 @@ make_module_menu( FunctionCode func, const char *title, int sort_order )
 		qsort(menuitems, i, sizeof(FunctionData *), compare_func_data_name);
 		for( i = 0 ; i < max_i ; ++i) 
 		{
-			add_menu_fdata_item( md, menuitems[i], NULL, NULL);
+			ASDesktopEntry *de ;
+			char *minipixmap = NULL ; 
+			de = fetch_desktop_entry( AfterStepCategories, menuitems[i]->name );
+			if( de && de->fulliconname ) 
+				minipixmap = de->fulliconname ;
+
+			if( (mdi = add_menu_fdata_item( md, menuitems[i], minipixmap, NULL)) != NULL ) 
+				set_flags( mdi->flags, MD_ScaleMinipixmapDown );
 			safefree( menuitems[i] ); /* scrubba-dub-dub */
 		}
 		safefree(menuitems);
@@ -1141,8 +1150,14 @@ make_module_menu( FunctionCode func, const char *title, int sort_order )
 	{
 		for( i = 0 ; i < max_i ; ++i) 
         {
+			ASDesktopEntry *de ;
+			char *minipixmap = NULL ; 
             module_t2func_data( func, &(modules[i]), &fdata, &scut ); 
-            add_menu_fdata_item( md, &fdata, NULL, NULL /*icon ??? */);
+			de = fetch_desktop_entry( AfterStepCategories, fdata.name );
+			if( de && de->fulliconname ) 
+				minipixmap = de->fulliconname ;
+            if( (mdi = add_menu_fdata_item( md, &fdata, minipixmap, NULL )) != NULL ) 
+				set_flags( mdi->flags, MD_ScaleMinipixmapDown );
         }
     }
     return md;

@@ -36,6 +36,7 @@
 #include "balloon.h"
 #include "mystyle.h"
 #include "wmprops.h"
+#include "desktop_category.h"
 #include "../libAfterImage/xpm.h"
 #include "../libAfterImage/char2uni.h"
 
@@ -741,7 +742,38 @@ destroy_asdatabase()
     destroy_user_database();
 }
 
-
+ASDesktopCategory *
+name2desktop_category( const char *name, ASCategoryTree **tree_return ) 
+{
+	ASCategoryTree *ct = CombinedCategories ; 
+	int offset = 0 ;
+/*	fprintf( stderr, __FUNCTION__ ": checking \"%s\" (AfterSTep categories = %p)\n", name, AfterStepCategories );*/
+	
+	if( !mystrncasecmp (name, "AfterStep:", 10) )
+	{	
+		ct = AfterStepCategories ; 
+		offset = 10 ; 
+	}else if( !mystrncasecmp (name, "KDE:", 4) )
+	{	
+		ct = KDECategories ; 
+		offset = 4 ; 
+	}else if( !mystrncasecmp (name, "GNOME:", 6) )
+	{	
+		ct = GNOMECategories ; 
+		offset = 6 ; 
+	}else if( !mystrncasecmp (name, "SYSTEM:", 7) )
+	{	
+		ct = SystemCategories ;
+		offset = 7 ; 
+	}else if( !mystrncasecmp (name, "COMBINED:", 9) )
+	{	
+		ct = CombinedCategories; 
+		offset = 9 ;
+	}
+	if( tree_return ) 
+		*tree_return = ct ;
+	return fetch_desktop_category( ct, name+offset );
+}
 
 void
 InitSession()

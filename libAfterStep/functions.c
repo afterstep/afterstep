@@ -663,7 +663,7 @@ LOCAL_DEBUG_OUT( "unavailable :  \"%s\"", mdi->fdata->name?mdi->fdata->name:"nam
 #endif /* NO_AVAILABILITYCHECK */
 }
 
-void
+MenuDataItem *
 add_menu_data_item( MenuData *menu, int func, char *name, char *minipixmap )
 {
     MenuDataItem *mdi = new_menu_data_item(menu);
@@ -675,12 +675,13 @@ add_menu_data_item( MenuData *menu, int func, char *name, char *minipixmap )
         check_availability( mdi );
         assign_minipixmap( mdi, minipixmap );
     }
+	return mdi;
 }
 
-void
+MenuDataItem *
 add_menu_fdata_item( MenuData *menu, FunctionData *fdata, char *minipixmap, struct ASImage *img )
 {
-    MenuDataItem *mdi ;
+    MenuDataItem *mdi = NULL;
 
     if( fdata )
         if( (mdi = new_menu_data_item(menu)) != NULL )
@@ -698,6 +699,7 @@ add_menu_fdata_item( MenuData *menu, FunctionData *fdata, char *minipixmap, stru
 			LOCAL_DEBUG_OUT( "mdi_fdata_encoding = %d, fdata_encoding = %d",
 			mdi->fdata->name_encoding, fdata->name_encoding );
         }
+	return mdi;
 }
 
 ASImage *
@@ -819,39 +821,41 @@ parse_menu_item_name (MenuDataItem * item, char **name)
 	return 0;
 }
 
-void
+MenuDataItem     *
 menu_data_item_from_func (MenuData * menu, FunctionData * fdata)
 {
     MenuDataItem     *item = NULL;
 
-    if( fdata == NULL )
-        return ;
-    if (IsMinipixmapFunc(fdata->func) )
-	{
-		if (menu->last)
-			item = menu->last;
-		else
+    if( fdata != NULL )
+	{	
+    	if (IsMinipixmapFunc(fdata->func) )
 		{
-            item = new_menu_data_item (menu);
-			item->fdata = fdata;
-		}
-		if( fdata->func == F_SMALL_MINIPIXMAP ) 
-			set_flags( item->flags, MD_ScaleMinipixmapDown );
-		else if( fdata->func == F_LARGE_MINIPIXMAP ) 
-			set_flags( item->flags, MD_ScaleMinipixmapUp );
+			if (menu->last)
+				item = menu->last;
+			else
+			{
+            	item = new_menu_data_item (menu);
+				item->fdata = fdata;
+			}
+			if( fdata->func == F_SMALL_MINIPIXMAP ) 
+				set_flags( item->flags, MD_ScaleMinipixmapDown );
+			else if( fdata->func == F_LARGE_MINIPIXMAP ) 
+				set_flags( item->flags, MD_ScaleMinipixmapUp );
 		   
-        item->minipixmap = mystrdup(fdata->name);
-    } else
-    {
-        item = new_menu_data_item(menu);
-		if (parse_menu_item_name (item, &(fdata->name)) >= 0)
-			item->fdata = fdata;
+        	item->minipixmap = mystrdup(fdata->name);
+    	} else
+    	{
+        	item = new_menu_data_item(menu);
+			if (parse_menu_item_name (item, &(fdata->name)) >= 0)
+				item->fdata = fdata;
+		}
+		if( item == NULL || item->fdata != fdata )
+		{
+			free_func_data (fdata);					   /* insurance measure */
+			free( fdata );
+		}
 	}
-	if( item == NULL || item->fdata != fdata )
-	{
-		free_func_data (fdata);					   /* insurance measure */
-		free( fdata );
-	}
+	return item ;
 }
 
 int

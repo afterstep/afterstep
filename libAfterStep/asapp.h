@@ -55,6 +55,7 @@ extern "C" {
 struct SyntaxDef;
 struct TermDef;
 struct ASSession;
+struct ASDesktopCategory;
 struct ASCategoryTree;
 struct ASDatabase;
 
@@ -235,6 +236,8 @@ void SetMyName (char *argv0);
 void override_environ( char **envp );
 void destroy_asdatabase();
 
+struct ASDesktopCategory *name2desktop_category( const char *name, 
+									struct ASCategoryTree **tree_return );
 
 void FreeMyAppResources();
 

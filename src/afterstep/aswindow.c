@@ -1652,6 +1652,7 @@ make_desk_winlist_menu(  ASWindowList *list, int desk, int sort_order, Bool icon
 {
     char menu_name[256];
     MenuData *md ;
+    MenuDataItem *mdi ;
     FunctionData  fdata ;
     char          scut = '0';                  /* Current short cut key */
     ASWindow **clients;
@@ -1693,9 +1694,10 @@ make_desk_winlist_menu(  ASWindowList *list, int desk, int sort_order, Bool icon
 		qsort(menuitems, numitems, sizeof(FunctionData *), compare_func_data_name);
 		for( i = 0 ; i < numitems ; ++i ) 
 		{
-			add_menu_fdata_item( md, menuitems[i], NULL, 
+			if( (mdi = add_menu_fdata_item( md, menuitems[i], NULL, 
 								 get_flags( Scr.Feel.flags, WinListHideIcons) ? NULL : 
-								 get_client_icon_image(ASDefaultScr, clients[i]->hints));
+								 get_client_icon_image(ASDefaultScr, clients[i]->hints))) != NULL )
+				set_flags( mdi->flags, MD_ScaleMinipixmapDown );
 			safefree(menuitems[i]); /* scrubba-dub-dub */
 		}
 		safefree(menuitems);
@@ -1706,8 +1708,9 @@ make_desk_winlist_menu(  ASWindowList *list, int desk, int sort_order, Bool icon
             if ((ASWIN_DESK(clients[i]) == desk || !IsValidDesk(desk)) && !ASWIN_HFLAGS(clients[i], AS_SkipWinList))
 			{
 				ASWindow2func_data( F_RAISE_IT, clients[i], &fdata, &scut, icon_name ); 
-                add_menu_fdata_item( md, &fdata, NULL, get_flags( Scr.Feel.flags, WinListHideIcons)? NULL : 
-									 get_client_icon_image( ASDefaultScr, clients[i]->hints));
+                if( (mdi = add_menu_fdata_item( md, &fdata, NULL, get_flags( Scr.Feel.flags, WinListHideIcons)? NULL : 
+									 get_client_icon_image( ASDefaultScr, clients[i]->hints))) != NULL ) 
+					set_flags( mdi->flags, MD_ScaleMinipixmapDown );									 	
             }
         }
     }
