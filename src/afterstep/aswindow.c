@@ -213,7 +213,7 @@ make_aswindow_cmd_iter_func(void *data, void *aux_data)
 			int app_no = get_res_name_count( swad->res_name_counts, asw->hints->res_name );
 			char *rname = asw->hints->res_name?asw->hints->res_name:"*" ;
 			char *rclass = asw->hints->res_class?asw->hints->res_class:"*" ;
-			char *name = get_flags( asw->internal_flags, ASWF_NameChanged )?NULL:ASWIN_NAME(asw);
+			char *name = ASWIN_NAME(asw);
 			int i = 0;
 			char *app_name = "*" ;
 			char *cmd_app = NULL, *cmd_args ;
@@ -227,6 +227,14 @@ make_aswindow_cmd_iter_func(void *data, void *aux_data)
 				*/
 			if( name == rname || name == rclass ) 
 				name = NULL ;
+			else if( name != NULL && get_flags( asw->internal_flags, ASWF_NameChanged ) ) 
+			{/* allow changed names only for terms, as those could launch sub app inside */
+				int rclass_len = rclass?strlen(rclass):0;
+				if( rclass_len != 5 )
+					name = NULL ;
+				else if( mystrcasecmp( rclass+1, "term" ) != 0 ) 	  
+					name = NULL ;
+			}
 			if(	name )
 			{
 				while( name[i] != '\0' )
