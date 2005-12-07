@@ -245,7 +245,7 @@ build_root_selection_frame(ASFileBrowserRootSelFrame *data, GtkWidget *dirlist)
 
 	for( i = 0 ; i  < ROOT_SELECTION_ENTRIES_NUM ; ++i ) 
 	{	
-		btn = gtk_toggle_button_new();
+		btn = gtk_toggle_button_new_with_label(root_sel_entries[i].name);
 		gtk_table_attach_defaults (table, btn,  root_sel_cells[i][0], root_sel_cells[i][1], 
 												root_sel_cells[i][2], root_sel_cells[i][3]);	
 		gtk_action_connect_proxy(gtk_action_group_get_action(action_group,root_sel_entries[i].name), btn );
