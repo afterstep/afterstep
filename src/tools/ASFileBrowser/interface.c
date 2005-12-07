@@ -59,6 +59,7 @@ typedef struct ASFileBrowserMainFrame
 {
 	GtkWidget *view_tabs ;
 	GtkWidget *view_image ;
+	GtkWidget *view_xml ;
 	GtkWidget *view_text ;
 	GtkWidget *view_text_win ;
 	GtkWidget *view_hex ;
@@ -284,8 +285,6 @@ build_root_selection_frame(ASFileBrowserRootSelFrame *data, GtkWidget *dirlist)
 	data->file_chooser_btn = file_chooser_btn ;
 	data->target_dirlist   = dirlist ;
 
-	change_root_to( data, root_PrivateAfterStep );
-	   
 	return frame;
 }	   
 
@@ -293,16 +292,12 @@ GtkWidget *
 asgtk_text_view_new(ASFileBrowserMainFrame *data)
 {
 	GtkWidget *scrolled_window = gtk_scrolled_window_new(NULL, NULL);
-	PangoFontDescription *font_desc;
 
 	gtk_widget_set_size_request (scrolled_window, PREVIEW_WIDTH, PREVIEW_HEIGHT);
 	gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolled_window),
 				    				GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
 
 	data->view_text = gtk_text_view_new();
-//	font_desc = pango_font_description_from_string ("Serif 25");
-//  	gtk_widget_modify_font (data->view_text, font_desc);
-//  	pango_font_description_free (font_desc);
 			 
     gtk_container_add (GTK_CONTAINER(scrolled_window), GTK_WIDGET(data->view_text));
 	gtk_widget_show( scrolled_window );
@@ -314,8 +309,23 @@ asgtk_text_view_new(ASFileBrowserMainFrame *data)
 }
 
 GtkWidget *
-asgtk_hex_view_new()
+asgtk_hex_view_new(ASFileBrowserMainFrame *data)
 {
+	GtkWidget *scrolled_window = gtk_scrolled_window_new(NULL, NULL);
+
+	gtk_widget_set_size_request (scrolled_window, PREVIEW_WIDTH, PREVIEW_HEIGHT);
+	gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolled_window),
+				    				GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
+
+	data->view_hex = gtk_text_view_new();
+			 
+    gtk_container_add (GTK_CONTAINER(scrolled_window), GTK_WIDGET(data->view_hex));
+	gtk_widget_show( scrolled_window );
+	gtk_widget_show( data->view_hex );
+	gtk_scrolled_window_set_shadow_type( GTK_SCROLLED_WINDOW(scrolled_window), GTK_SHADOW_IN );
+	data->view_hex_win = scrolled_window ;
+
+	return scrolled_window;
   	return gtk_text_view_new();		
 }
 
@@ -338,37 +348,54 @@ filelist_sel_handler(ASGtkImageDir *id, gpointer user_data)
 	if( data ) 
 	{	
 		ASImageListEntry *le = asgtk_image_dir_get_selection( id ); 
-		asgtk_image_view_set_entry ( ASGTK_IMAGE_VIEW(data->view_image), le);
 		if( le )
 		{
 			Bool bin = (le->type != ASIT_Xpm  && le->type != ASIT_XMLScript &&
 						le->type != ASIT_HTML && le->type != ASIT_XML ); 
 
+			if( le->type != ASIT_XMLScript ) 
+			{	
+				gtk_widget_hide( data->view_xml );
+				asgtk_xml_view_set_entry ( ASGTK_XML_VIEW(data->view_xml), NULL );
+			}else
+			{	
+				gtk_widget_show( data->view_xml );
+				asgtk_xml_view_set_entry ( ASGTK_XML_VIEW(data->view_xml), le );
+			}
+
 			if( le->type == ASIT_Unknown ) 
+			{	
 				gtk_widget_hide( data->view_image );
-			else
+				asgtk_image_view_set_entry ( ASGTK_IMAGE_VIEW(data->view_image), NULL);
+			}else
+			{	
 				gtk_widget_show( data->view_image );
-			
+				asgtk_image_view_set_entry ( ASGTK_IMAGE_VIEW(data->view_image), le);
+			}
 			load_asimage_list_entry_data( le, DEFAULT_MAX_TEXT_SIZE ); 
-			if( le->type == ASIT_Unknown ) 
-			{
-				int i = le->buffer_size ; 
-				register char *ptr = le->buffer ;
-				while ( --i >= 0 )	
-					if( !isprint(ptr[i]) && ptr[i] != '\n'&& ptr[i] != '\r'&& ptr[i] != '\t' )	
-						break;
-				bin = (i >= 0);				
-			}	 
+			if( le->buffer_size > 0 )
+			{	
+				if( le->type == ASIT_Unknown ) 
+				{
+					int i = le->buffer_size ; 
+					register char *ptr = le->buffer ;
+					while ( --i >= 0 )	
+						if( !isprint(ptr[i]) && ptr[i] != '\n'&& ptr[i] != '\r'&& ptr[i] != '\t' )	
+							break;
+					bin = (i >= 0);				
+				}	 
+			}else
+				bin = False ;
 			if( !bin )
 			{                  /* use text view */
-				gtk_widget_show( data->view_text );
-				gtk_widget_hide( data->view_hex );
+				gtk_widget_show( data->view_text_win );
+				gtk_widget_hide( data->view_hex_win );
 				gtk_text_buffer_set_text( data->text_buffer, le->buffer, le->buffer_size );
 				gtk_text_view_set_buffer( GTK_TEXT_VIEW(data->view_text), data->text_buffer );
 			}else
 			{				   /* use hex view */	
-				gtk_widget_show( data->view_hex );
-				gtk_widget_hide( data->view_text );
+				gtk_widget_show( data->view_hex_win );
+				gtk_widget_hide( data->view_text_win );
 				gtk_text_view_set_buffer( GTK_TEXT_VIEW(data->view_hex), data->text_buffer );
 			}	 
 			
@@ -384,7 +411,7 @@ build_main_frame(ASFileBrowserMainFrame *data)
 	GtkWidget *h_paned ; 
 	GtkWidget *v_paned ; 
 	GtkWidget *view_tabs ;
-	GtkWidget *view_image ;
+	GtkWidget *view_image, *view_xml ;
 	GtkWidget *view_text ;
 	GtkWidget *view_hex ;
 	GtkWidget *dirlist ;
@@ -406,11 +433,14 @@ build_main_frame(ASFileBrowserMainFrame *data)
 	gtk_notebook_append_page (GTK_NOTEBOOK (view_tabs), view_image, gtk_label_new("AS image"));
 	
 
+	view_xml = asgtk_xml_view_new();
+	gtk_widget_set_size_request (view_xml, PREVIEW_WIDTH, PREVIEW_HEIGHT);
+	gtk_notebook_append_page (GTK_NOTEBOOK (view_tabs), view_xml, gtk_label_new("AS XML"));
 
 	view_text = asgtk_text_view_new(data);
 	gtk_notebook_append_page (GTK_NOTEBOOK (view_tabs), view_text, gtk_label_new("AS text"));
 
-	view_hex = asgtk_hex_view_new();
+	view_hex = asgtk_hex_view_new(data );
 	gtk_notebook_append_page (GTK_NOTEBOOK (view_tabs), view_hex, gtk_label_new("AS hex"));
 
 	gtk_widget_show_all (view_tabs);
@@ -437,6 +467,7 @@ build_main_frame(ASFileBrowserMainFrame *data)
 	
 	data->view_tabs = view_tabs ;
 	data->view_image= view_image ;
+	data->view_xml  = view_xml ;
 	data->view_hex  = view_hex ;
 	data->dirlist   = dirlist ;
 	data->filelist  = filelist ;
@@ -445,6 +476,7 @@ build_main_frame(ASFileBrowserMainFrame *data)
 	asgtk_image_dir_set_sel_handler( ASGTK_IMAGE_DIR(filelist), filelist_sel_handler, data);
 
 	data->text_buffer = gtk_text_buffer_new(NULL); 
+ 
 
 	return frame;
 }
@@ -473,7 +505,9 @@ create_main_window (void)
 	gtk_box_pack_end (GTK_BOX (main_vbox), main_frame, TRUE, TRUE, 0);
   	gtk_widget_show_all (main_vbox);
   	gtk_widget_show (main_vbox);
- 	
+
+ 	change_root_to( root_sel_frame_data, root_PrivateAfterStep );
+  
 }
 
 void

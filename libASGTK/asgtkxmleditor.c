@@ -194,12 +194,12 @@ asgtk_xml_editor_init (ASGtkXMLEditor *xe)
 static void
 asgtk_xml_editor_dispose (GObject *object)
 {
-  	ASGtkXMLEditor *xe = ASGTK_XML_EDITOR (object);
-	//if( xe->xml_view ) 
-	//{
-	//	gtk_widget_destroy( GTK_WIDGET(xe->xml_view) );
-	//	xe->xml_view = NULL ;
-	//}
+  	/* ASGtkXMLEditor *xe = ASGTK_XML_EDITOR (object);
+	if( xe->xml_view ) 
+	{
+		gtk_widget_destroy( GTK_WIDGET(xe->xml_view) );
+		xe->xml_view = NULL ;
+	} */
   	G_OBJECT_CLASS (editor_parent_class)->dispose (object);
 }
 
@@ -471,7 +471,7 @@ on_text_changed  (GtkTextBuffer *textbuffer, gpointer user_data)
 static void 
 check_save_changes( ASGtkXMLView *xe ) 
 {
-	if( xe->dirty )
+	if( xe->dirty && xe->entry )
 	{
 		xe->dirty = False ;
 		if( asgtk_yes_no_question1( GTK_WIDGET(xe), "Contents of the xml script \"%s\" changed. Save changes ?", xe->entry->name ) )
@@ -995,17 +995,22 @@ asgtk_xml_view_set_entry ( ASGtkXMLView *xe,
 	LOCAL_DEBUG_OUT( " ASGtk XML Editor object's %p entry to %p", xe, entry );
 	check_save_changes( xe ); 
 	
-	unref_asimage_list_entry(xe->entry);
-
+	if( xe->entry )
+	{	
+		unref_asimage_list_entry(xe->entry);
+		xe->entry = NULL ;
+	}
 	if( entry && entry->type != ASIT_XMLScript )
 		entry = NULL ; 
 	
-	LOCAL_DEBUG_OUT( " entry ref_count = %d", entry->ref_count );
-	xe->entry = ref_asimage_list_entry(entry) ;
-	LOCAL_DEBUG_OUT( " entry ref_count = %d", entry->ref_count );
-	asgtk_image_view_set_entry ( xe->image_view, entry );
-	LOCAL_DEBUG_OUT( " entry ref_count = %d", entry->ref_count );
-
+	if( entry )
+	{	
+		LOCAL_DEBUG_OUT( " entry ref_count = %d", entry->ref_count );
+		xe->entry = ref_asimage_list_entry(entry) ;
+		LOCAL_DEBUG_OUT( " entry ref_count = %d", entry->ref_count );
+		asgtk_image_view_set_entry ( xe->image_view, entry );
+		LOCAL_DEBUG_OUT( " entry ref_count = %d", entry->ref_count );
+	}
 	buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (xe->text_view));
 	if (xe->entry)
     {

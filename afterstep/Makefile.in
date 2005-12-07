@@ -22,7 +22,7 @@ install.data_reinstall:
 	   if [ -d $(AFTER_SHAREDIR)_old/desktop -a -d $(AFTER_SHAREDIR)_old/desktop/tiles  ] ; then \
 		no_data_reinstall=$(NO_DATA_REINSTALL); \
 	   fi; \
-	   if [ ! -z "$$no_data_reinstall" ]; then \
+	   if [ -n "$$no_data_reinstall" ]; then \
 		touch no_data_reinstall; \
 	   fi; \
 	 else \
