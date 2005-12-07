@@ -20,9 +20,9 @@ install.data_reinstall:
 	   echo $(MV) $(AFTER_SHAREDIR) $(AFTER_SHAREDIR)_old; \
 	   $(MV) $(AFTER_SHAREDIR) $(AFTER_SHAREDIR)_old; \
 	   if [ -d $(AFTER_SHAREDIR)_old/desktop -a -d $(AFTER_SHAREDIR)_old/desktop/tiles  ] ; then \
-     	   	no_data_reinstall=$(NO_DATA_REINSTALL); \
+		no_data_reinstall=$(NO_DATA_REINSTALL); \
 	   fi; \
-	   if [ -z "$$no_data_reinstall" ]; then \
+	   if [ ! -z "$$no_data_reinstall" ]; then \
 		touch no_data_reinstall; \
 	   fi; \
 	 else \
