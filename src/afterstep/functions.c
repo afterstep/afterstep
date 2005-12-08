@@ -1465,6 +1465,7 @@ void signal_reload_GTKRC_file_handler( FunctionData *data, ASEvent *event, int m
 	
 	memset( &ev, 0x00, sizeof(ev));
 	ev.type = ClientMessage;
+	ev.display = dpy ;
 	ev.message_type = _GTK_READ_RCFILES;
 	ev.format = 8;
 	
