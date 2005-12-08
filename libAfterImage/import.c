@@ -396,6 +396,8 @@ unref_asimage_list_entry( ASImageListEntry *entry )
 					free( entry->name );
 				if( entry->fullfilename )
 					free( entry->fullfilename );
+				if( entry->buffer ) 
+					destroy_asimage_list_entry_buffer( &(entry->buffer) );
 				memset( entry, 0x00, sizeof(ASImageListEntry));
 				free( entry );
 				entry = NULL ; 
@@ -430,6 +432,17 @@ destroy_asimage_list( ASImageListEntry **plist )
 		*plist = NULL ;
 	}
 }
+
+void destroy_asimage_list_entry_buffer( ASImageListEntryBuffer **pbuffer )
+{
+	if( pbuffer && *pbuffer ) 
+	{		 
+		if( (*pbuffer)->data ) 
+			free( (*pbuffer)->data ) ;
+		free( *pbuffer );
+		*pbuffer = NULL ;
+	}
+}	 
 
 struct ASImageListAuxData
 {
@@ -579,32 +592,53 @@ load_asimage_list_entry_data( ASImageListEntry *entry, size_t max_bytes )
 	char * new_buffer ; 
 	size_t new_buffer_size ;
 	FILE *fp;
+	Bool binary = False ; 
 	if( entry == NULL ) 
 		return False;
-	if( entry->buffer_size == entry->d_size || entry->buffer_size >= max_bytes )
+	if( entry->buffer == NULL ) 
+		entry->buffer = safecalloc( 1, sizeof(ASImageListEntryBuffer) );
+	if( entry->buffer->size == entry->d_size || entry->buffer->size >= max_bytes )
 		return True;
 	new_buffer_size = min( max_bytes, (size_t)entry->d_size ); 
 	new_buffer = malloc( new_buffer_size );
 	if( new_buffer == NULL ) 
 		return False ;
-	if( entry->buffer_size > 0 ) 
+	if( entry->buffer->size > 0 ) 
 	{	
-		memcpy( new_buffer, entry->buffer, entry->buffer_size ) ;
-		free( entry->buffer );
+		memcpy( new_buffer, entry->buffer->data, entry->buffer->size ) ;
+		free( entry->buffer->data );
 	}
-	entry->buffer = new_buffer ; 
+	entry->buffer->data = new_buffer ; 
 	/* TODO read new_buffer_size - entry->buffer_size bytes into the end of the buffer */
 	fp = fopen(entry->fullfilename, "rb");
 	if ( fp != NULL ) 
 	{
-		int len = new_buffer_size - entry->buffer_size ;
-		if( entry->buffer_size > 0 ) 
-			fseek( fp, entry->buffer_size, SEEK_SET );
-		len = fread(entry->buffer, 1, len, fp);
+		int len = new_buffer_size - entry->buffer->size ;
+		if( entry->buffer->size > 0 ) 
+			fseek( fp, entry->buffer->size, SEEK_SET );
+		len = fread(entry->buffer->data, 1, len, fp);
 		if( len > 0 ) 
-			entry->buffer_size += len ;
+			entry->buffer->size += len ;
 		fclose(fp);
 	}
+
+	if( entry->type == ASIT_Unknown ) 
+	{
+		int i = entry->buffer->size ; 
+		register char *ptr = entry->buffer->data ;
+		while ( --i >= 0 )	
+			if( !isprint(ptr[i]) && ptr[i] != '\n'&& ptr[i] != '\r'&& ptr[i] != '\t' )	
+				break;
+		binary = (i >= 0);				
+	}else
+		binary = (entry->type != ASIT_Xpm  && entry->type != ASIT_XMLScript &&
+			  	  entry->type != ASIT_HTML && entry->type != ASIT_XML ); 
+	if( binary ) 
+		set_flags( entry->buffer->flags, ASILEB_Binary );
+   	else
+		clear_flags( entry->buffer->flags, ASILEB_Binary );
+	 
+
 
 	return True;
 }

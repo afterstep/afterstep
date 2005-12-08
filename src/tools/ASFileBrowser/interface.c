@@ -251,7 +251,7 @@ build_root_selection_frame(ASFileBrowserRootSelFrame *data, GtkWidget *dirlist)
 		gtk_action_connect_proxy(gtk_action_group_get_action(action_group,root_sel_entries[i].name), btn );
 	}
 
-	path_combo = gtk_combo_box_entry_new_text();
+	path_combo = gtk_combo_box_entry_new_text(); 
 	colorize_gtk_edit(path_combo);
 
 	file_chooser_btn = gtk_button_new_with_label( "Browse" );
@@ -350,9 +350,6 @@ filelist_sel_handler(ASGtkImageDir *id, gpointer user_data)
 		ASImageListEntry *le = asgtk_image_dir_get_selection( id ); 
 		if( le )
 		{
-			Bool bin = (le->type != ASIT_Xpm  && le->type != ASIT_XMLScript &&
-						le->type != ASIT_HTML && le->type != ASIT_XML ); 
-
 			if( le->type != ASIT_XMLScript ) 
 			{	
 				gtk_widget_hide( data->view_xml );
@@ -373,24 +370,11 @@ filelist_sel_handler(ASGtkImageDir *id, gpointer user_data)
 				asgtk_image_view_set_entry ( ASGTK_IMAGE_VIEW(data->view_image), le);
 			}
 			load_asimage_list_entry_data( le, DEFAULT_MAX_TEXT_SIZE ); 
-			if( le->buffer_size > 0 )
-			{	
-				if( le->type == ASIT_Unknown ) 
-				{
-					int i = le->buffer_size ; 
-					register char *ptr = le->buffer ;
-					while ( --i >= 0 )	
-						if( !isprint(ptr[i]) && ptr[i] != '\n'&& ptr[i] != '\r'&& ptr[i] != '\t' )	
-							break;
-					bin = (i >= 0);				
-				}	 
-			}else
-				bin = False ;
-			if( !bin )
+			if( !get_flags( le->buffer->flags, ASILEB_Binary)  )
 			{                  /* use text view */
 				gtk_widget_show( data->view_text_win );
 				gtk_widget_hide( data->view_hex_win );
-				gtk_text_buffer_set_text( data->text_buffer, le->buffer, le->buffer_size );
+				gtk_text_buffer_set_text( data->text_buffer, le->buffer->data, le->buffer->size );
 				gtk_text_view_set_buffer( GTK_TEXT_VIEW(data->view_text), data->text_buffer );
 			}else
 			{				   /* use hex view */	

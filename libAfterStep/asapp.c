@@ -104,106 +104,107 @@ struct ASCategoryTree *CombinedCategories = NULL ;
 
 /* names of AS functions - used all over the place  :*/
 
-#define FUNC_TERM(txt,len,func)         {TF_NO_MYNAME_PREPENDING,txt,len,TT_FUNCTION,func,NULL}
-#define FUNC_TERM2(flags,txt,len,func)  {TF_NO_MYNAME_PREPENDING|(flags),txt,len,TT_FUNCTION,func,NULL}
+#define FUNC_TERM(keyword,func)         {TF_NO_MYNAME_PREPENDING,keyword,sizeof(keyword)-1,TT_FUNCTION,func,NULL}
+#define FUNC_TERM2(flags,keyword,func)  {TF_NO_MYNAME_PREPENDING|(flags),keyword,sizeof(keyword)-1,TT_FUNCTION,func,NULL}
 
 TermDef       FuncTerms[F_FUNCTIONS_NUM + 1] = {
-	FUNC_TERM2 (NEED_NAME, "Nop", 3, F_NOP),   /* Nop      "name"|"" */
-	FUNC_TERM2 (NEED_NAME, "Title", 5, F_TITLE),	/* Title    "name"    */
-	FUNC_TERM ("Beep", 4, F_BEEP),			   /* Beep               */
-	FUNC_TERM ("Quit", 4, F_QUIT),			   /* Quit     ["name"] */
-	FUNC_TERM2 (NEED_NAME | NEED_CMD, "Restart", 7, F_RESTART),	/* Restart "name" WindowManagerName */
-	FUNC_TERM ("Refresh", 7, F_REFRESH),	   /* Refresh  ["name"] */
+	FUNC_TERM2 (NEED_NAME, "Nop", F_NOP),   /* Nop      "name"|"" */
+	FUNC_TERM2 (NEED_NAME, "Title", F_TITLE),	/* Title    "name"    */
+	FUNC_TERM ("Beep", F_BEEP),			   /* Beep               */
+	FUNC_TERM ("Quit", F_QUIT),			   /* Quit     ["name"] */
+	FUNC_TERM2 (NEED_NAME | NEED_CMD, "Restart", F_RESTART),	/* Restart "name" WindowManagerName */
+	FUNC_TERM ("Refresh", F_REFRESH),	   /* Refresh  ["name"] */
 #ifndef NO_VIRTUAL
-	FUNC_TERM2 (USES_NUMVALS, "Scroll", 6, F_SCROLL),	/* Scroll     horiz vert */
-	FUNC_TERM2 (USES_NUMVALS, "GotoPage", 8, F_GOTO_PAGE),	/* GotoPage   x     y    */
-	FUNC_TERM ("TogglePage", 10, F_TOGGLE_PAGE),	/* TogglePage ["name"]   */
+	FUNC_TERM2 (USES_NUMVALS, "Scroll", F_SCROLL),	/* Scroll     horiz vert */
+	FUNC_TERM2 (USES_NUMVALS, "GotoPage", F_GOTO_PAGE),	/* GotoPage   x     y    */
+	FUNC_TERM ("TogglePage", F_TOGGLE_PAGE),	/* TogglePage ["name"]   */
 #endif
-	FUNC_TERM2 (USES_NUMVALS, "CursorMove", 10, F_MOVECURSOR),	/* CursorMove horiz vert */
-	FUNC_TERM2 (NEED_WINIFNAME, "WarpFore", 8, F_WARP_F),	/* WarpFore ["name" window_name] */
-	FUNC_TERM2 (NEED_WINIFNAME, "WarpBack", 8, F_WARP_B),	/* WarpBack ["name" window_name] */
-	FUNC_TERM2 (NEED_NAME | NEED_WINDOW, "Wait", 4, F_WAIT),	/* Wait      "name" window_name  */
-	FUNC_TERM2 (USES_NUMVALS, "Desk", 4, F_DESK),	/* Desk arg1 [arg2] */
-	FUNC_TERM2 (USES_NUMVALS, "GotoDeskViewport", 16, F_GOTO_DESKVIEWPORT),	/* GotoDeskViewport DESK+VX+VY */
+	FUNC_TERM2 (USES_NUMVALS, "CursorMove", F_MOVECURSOR),	/* CursorMove horiz vert */
+	FUNC_TERM2 (NEED_WINIFNAME, "WarpFore", F_WARP_F),	/* WarpFore ["name" window_name] */
+	FUNC_TERM2 (NEED_WINIFNAME, "WarpBack", F_WARP_B),	/* WarpBack ["name" window_name] */
+	FUNC_TERM2 (NEED_NAME | NEED_WINDOW, "Wait", F_WAIT),	/* Wait      "name" window_name  */
+	FUNC_TERM2 (USES_NUMVALS, "Desk", F_DESK),	/* Desk arg1 [arg2] */
+	FUNC_TERM2 (USES_NUMVALS, "GotoDeskViewport", F_GOTO_DESKVIEWPORT),	/* GotoDeskViewport DESK+VX+VY */
 #ifndef NO_WINDOWLIST
-	FUNC_TERM2 (USES_NUMVALS, "WindowList", 10, F_WINDOWLIST),	/* WindowList [arg1 arg2] */
+	FUNC_TERM2 (USES_NUMVALS, "WindowList", F_WINDOWLIST),	/* WindowList [arg1 arg2] */
 #endif
-	FUNC_TERM ("StopModuleList", 14, F_STOPMODULELIST),	/* StopModuleList "name" */
-	FUNC_TERM ("RestartModuleList", 17, F_RESTARTMODULELIST),	/* RestartModuleList "name" */
-	FUNC_TERM2 (NEED_NAME, "PopUp", 5, F_POPUP),	/* PopUp    "popup_name" [popup_name] */
-	FUNC_TERM2 (NEED_NAME, "Function", 8, F_FUNCTION),	/* Function "function_name" [function_name] */
-	FUNC_TERM2 (NEED_NAME | NEED_CMD, "Category", 8, F_CATEGORY),	/* Category "function_name" category_name */
-	FUNC_TERM ("MiniPixmap", 10, F_MINIPIXMAP),	/* MiniPixmap "name" */
-	FUNC_TERM ("SmallMiniPixmap", 15, F_SMALL_MINIPIXMAP),	/* SmallMiniPixmap "name" */
-	FUNC_TERM ("LargeMiniPixmap", 15, F_SMALL_MINIPIXMAP),	/* LargeMiniPixmap "name" */
-	FUNC_TERM2 (NEED_NAME | NEED_CMD, "Exec", 4, F_EXEC),	/* Exec   "name" command */
-	FUNC_TERM2 (NEED_NAME | NEED_CMD, "Module", 6, F_MODULE),	/* Module "name" command */
-    FUNC_TERM2 (NEED_NAME | NEED_CMD, "ExecInTerm", 10, F_ExecInTerm),   /* ExecInTerm   "name" command */
-	FUNC_TERM2 (NEED_NAME | NEED_CMD, "KillModuleByName", 16, F_KILLMODULEBYNAME),	/* KillModuleByName "name" module */
-	FUNC_TERM2 (NEED_NAME | NEED_CMD, "RestartModuleByName", 19, F_RESTARTMODULEBYNAME),	/* RestartModuleByName "name" module */
-	FUNC_TERM2 (NEED_NAME | NEED_CMD, "KillAllModulesByName", 20, F_KILLALLMODULESBYNAME),	/* KillAllModulesByName "name" module */
-	FUNC_TERM2 (NEED_NAME | NEED_CMD, "QuickRestart", 12, F_QUICKRESTART),	/* QuickRestart "name" what */
-	FUNC_TERM2 (NEED_NAME | NEED_CMD, "Background", 10, F_CHANGE_BACKGROUND),	/* Background "name" file_name */
-	FUNC_TERM2 (NEED_NAME | NEED_CMD, "ChangeLook", 10, F_CHANGE_LOOK),	/* ChangeLook "name" file_name */
-	FUNC_TERM2 (NEED_NAME | NEED_CMD, "ChangeFeel", 10, F_CHANGE_FEEL),	/* ChangeFeel "name" file_name */
-    FUNC_TERM2 (NEED_NAME | NEED_CMD, "ChangeTheme", 11, F_CHANGE_THEME), /* ChangeTheme "name" file_name */
-    FUNC_TERM2 (NEED_NAME | NEED_CMD, "ChangeThemeFile", 15, F_CHANGE_THEME_FILE), /* "name" file_name */
-    FUNC_TERM2 (NEED_NAME | NEED_CMD, "ChangeColorscheme", 17, F_CHANGE_COLORSCHEME), /* ChangeColorscheme "name" file_name */
-    FUNC_TERM2 (NEED_NAME | NEED_CMD, "InstallLook", 11, F_INSTALL_LOOK), /*  "name" file_name */
-    FUNC_TERM2 (NEED_NAME | NEED_CMD, "InstallFeel", 11, F_INSTALL_FEEL), /*  "name" file_name */
-    FUNC_TERM2 (NEED_NAME | NEED_CMD, "InstallBackground", 17, F_INSTALL_BACKGROUND), /* "name" file_name */
-    FUNC_TERM2 (NEED_NAME | NEED_CMD, "InstallFont", 11, F_INSTALL_FONT), /* "name" file_name */
-    FUNC_TERM2 (NEED_NAME | NEED_CMD, "InstallIcon", 11, F_INSTALL_ICON), /*  "name" file_name */
-    FUNC_TERM2 (NEED_NAME | NEED_CMD, "InstallTile", 11, F_INSTALL_TILE), /*  "name" file_name */
-    FUNC_TERM2 (NEED_NAME | NEED_CMD, "InstallThemeFile", 12, F_INSTALL_THEME_FILE), /*  "name" file_name */
-    FUNC_TERM2 (NEED_NAME | NEED_CMD, "InstallColorscheme", 14, F_INSTALL_COLORSCHEME), /*  "name" file_name */
-	FUNC_TERM2 (NEED_NAME | NEED_CMD, "SaveWorkspace", 13, F_SAVE_WORKSPACE), /* SaveWorkspace "name" file_name */
-	FUNC_TERM2 (TF_SYNTAX_TERMINATOR, "EndFunction", 11, F_ENDFUNC),
-	FUNC_TERM2 (TF_SYNTAX_TERMINATOR, "EndPopup", 8, F_ENDPOPUP),
-	FUNC_TERM ("TakeScreenShot", 14, F_TAKE_SCREENSHOT),
-	FUNC_TERM2 (NEED_NAME | NEED_CMD, "Test", 4, F_Test),
+	FUNC_TERM ("StopModuleList", F_STOPMODULELIST),	/* StopModuleList "name" */
+	FUNC_TERM ("RestartModuleList", F_RESTARTMODULELIST),	/* RestartModuleList "name" */
+	FUNC_TERM2 (NEED_NAME, "PopUp", F_POPUP),	/* PopUp    "popup_name" [popup_name] */
+	FUNC_TERM2 (NEED_NAME, "Function", F_FUNCTION),	/* Function "function_name" [function_name] */
+	FUNC_TERM2 (NEED_NAME | NEED_CMD, "Category", F_CATEGORY),	/* Category "function_name" category_name */
+	FUNC_TERM ("MiniPixmap", F_MINIPIXMAP),	/* MiniPixmap "name" */
+	FUNC_TERM ("SmallMiniPixmap", F_SMALL_MINIPIXMAP),	/* SmallMiniPixmap "name" */
+	FUNC_TERM ("LargeMiniPixmap", F_SMALL_MINIPIXMAP),	/* LargeMiniPixmap "name" */
+	FUNC_TERM2 (NEED_NAME | NEED_CMD, "Exec", F_EXEC),	/* Exec   "name" command */
+	FUNC_TERM2 (NEED_NAME | NEED_CMD, "Module", F_MODULE),	/* Module "name" command */
+    FUNC_TERM2 (NEED_NAME | NEED_CMD, "ExecInTerm", F_ExecInTerm),   /* ExecInTerm   "name" command */
+	FUNC_TERM2 (NEED_NAME | NEED_CMD, "KillModuleByName", F_KILLMODULEBYNAME),	/* KillModuleByName "name" module */
+	FUNC_TERM2 (NEED_NAME | NEED_CMD, "RestartModuleByName", F_RESTARTMODULEBYNAME),	/* RestartModuleByName "name" module */
+	FUNC_TERM2 (NEED_NAME | NEED_CMD, "KillAllModulesByName", F_KILLALLMODULESBYNAME),	/* KillAllModulesByName "name" module */
+	FUNC_TERM2 (NEED_NAME | NEED_CMD, "QuickRestart", F_QUICKRESTART),	/* QuickRestart "name" what */
+	FUNC_TERM2 (NEED_NAME | NEED_CMD, "Background", F_CHANGE_BACKGROUND),	/* Background "name" file_name */
+	FUNC_TERM2 (NEED_NAME | NEED_CMD, "ChangeLook", F_CHANGE_LOOK),	/* ChangeLook "name" file_name */
+	FUNC_TERM2 (NEED_NAME | NEED_CMD, "ChangeFeel", F_CHANGE_FEEL),	/* ChangeFeel "name" file_name */
+    FUNC_TERM2 (NEED_NAME | NEED_CMD, "ChangeTheme", F_CHANGE_THEME), /* ChangeTheme "name" file_name */
+    FUNC_TERM2 (NEED_NAME | NEED_CMD, "ChangeThemeFile", F_CHANGE_THEME_FILE), /* "name" file_name */
+    FUNC_TERM2 (NEED_NAME | NEED_CMD, "ChangeColorscheme", F_CHANGE_COLORSCHEME), /* ChangeColorscheme "name" file_name */
+    FUNC_TERM2 (NEED_NAME | NEED_CMD, "InstallLook", F_INSTALL_LOOK), /*  "name" file_name */
+    FUNC_TERM2 (NEED_NAME | NEED_CMD, "InstallFeel", F_INSTALL_FEEL), /*  "name" file_name */
+    FUNC_TERM2 (NEED_NAME | NEED_CMD, "InstallBackground", F_INSTALL_BACKGROUND), /* "name" file_name */
+    FUNC_TERM2 (NEED_NAME | NEED_CMD, "InstallFont", F_INSTALL_FONT), /* "name" file_name */
+    FUNC_TERM2 (NEED_NAME | NEED_CMD, "InstallIcon", F_INSTALL_ICON), /*  "name" file_name */
+    FUNC_TERM2 (NEED_NAME | NEED_CMD, "InstallTile", F_INSTALL_TILE), /*  "name" file_name */
+    FUNC_TERM2 (NEED_NAME | NEED_CMD, "InstallThemeFile", F_INSTALL_THEME_FILE), /*  "name" file_name */
+    FUNC_TERM2 (NEED_NAME | NEED_CMD, "InstallColorscheme", F_INSTALL_COLORSCHEME), /*  "name" file_name */
+	FUNC_TERM2 (NEED_NAME | NEED_CMD, "SaveWorkspace", F_SAVE_WORKSPACE), /* SaveWorkspace "name" file_name */
+	FUNC_TERM  ("SignalReloadGTKRCFile", F_SIGNAL_RELOAD_GTK_RCFILE),
+	FUNC_TERM2 (TF_SYNTAX_TERMINATOR, "EndFunction", F_ENDFUNC),
+	FUNC_TERM2 (TF_SYNTAX_TERMINATOR, "EndPopup", F_ENDPOPUP),
+	FUNC_TERM ("TakeScreenShot", F_TAKE_SCREENSHOT),
+	FUNC_TERM2 (NEED_NAME | NEED_CMD, "Test", F_Test),
 
 	/* this functions require window as aparameter */
-	FUNC_TERM ("&nonsense&", 10, F_WINDOW_FUNC_START),	/* not really a command */
-	FUNC_TERM2 (USES_NUMVALS, "Move", 4, F_MOVE),	/* Move     ["name"] [whereX whereY] */
-	FUNC_TERM2 (USES_NUMVALS, "Resize", 6, F_RESIZE),	/* Resize   ["name"] [toWidth toHeight] */
-	FUNC_TERM ("Raise", 5, F_RAISE),		   /* Raise    ["name"] */
-	FUNC_TERM ("Lower", 5, F_LOWER),		   /* Lower    ["name"] */
-	FUNC_TERM ("RaiseLower", 10, F_RAISELOWER),	/* RaiseLower ["name"] */
-	FUNC_TERM ("PutOnTop", 8, F_PUTONTOP),	   /* PutOnTop  */
-	FUNC_TERM ("PutOnBack", 9, F_PUTONBACK),   /* PutOnBack */
-	FUNC_TERM2 (USES_NUMVALS, "SetLayer", 8, F_SETLAYER),	/* SetLayer    layer */
-	FUNC_TERM2 (USES_NUMVALS, "ToggleLayer", 11, F_TOGGLELAYER),	/* ToggleLayer layer1 layer2 */
-	FUNC_TERM ("Shade", 5, F_SHADE),		   /* Shade    ["name"] */
-	FUNC_TERM ("Delete", 6, F_DELETE),		   /* Delete   ["name"] */
-	FUNC_TERM ("Destroy", 7, F_DESTROY),	   /* Destroy  ["name"] */
-	FUNC_TERM ("Close", 5, F_CLOSE),		   /* Close    ["name"] */
-	FUNC_TERM ("Iconify", 7, F_ICONIFY),	   /* Iconify  ["name"] value */
-	FUNC_TERM2 (USES_NUMVALS, "Maximize", 8, F_MAXIMIZE),	/* Maximize ["name"] [hori vert] */
-	FUNC_TERM ("Stick", 5, F_STICK),		   /* Stick    ["name"] */
-	FUNC_TERM ("Focus", 5, F_FOCUS),		   /* Focus */
-	FUNC_TERM2 (NEED_WINIFNAME, "ChangeWindowUp", 14, F_CHANGEWINDOW_UP),	/* ChangeWindowUp   ["name" window_name ] */
-	FUNC_TERM2 (NEED_WINIFNAME, "ChangeWindowDown", 16, F_CHANGEWINDOW_DOWN),	/* ChangeWindowDown ["name" window_name ] */
-    FUNC_TERM2 (NEED_WINIFNAME, "GoToBookmark", 12, F_GOTO_BOOKMARK),   /* GoToBookmark ["name" window_bookmark ] */
-	FUNC_TERM ("GetHelp", 7, F_GETHELP),	   /* */
-	FUNC_TERM ("PasteSelection", 14, F_PASTE_SELECTION),	/* */
-	FUNC_TERM2 (USES_NUMVALS, "WindowsDesk", 11, F_CHANGE_WINDOWS_DESK),	/* WindowDesk "name" new_desk */
-    FUNC_TERM ("BookmarkWindow", 14, F_BOOKMARK_WINDOW),    /* BookmarkWindow "name" new_bookmark */
-    FUNC_TERM ("PinMenu", 7, F_PIN_MENU),    /* PinMenu ["name"] */
-	FUNC_TERM ("TakeWindowShot", 14, F_TAKE_WINDOWSHOT),
-	FUNC_TERM ("TakeFrameShot", 13, F_TAKE_FRAMESHOT),
-	FUNC_TERM ("SwallowWindow", 13, F_SWALLOW_WINDOW),  /* SwallowWindow "name" module_name */ 
+	FUNC_TERM ("&nonsense&", F_WINDOW_FUNC_START),	/* not really a command */
+	FUNC_TERM2 (USES_NUMVALS, "Move", F_MOVE),	/* Move     ["name"] [whereX whereY] */
+	FUNC_TERM2 (USES_NUMVALS, "Resize", F_RESIZE),	/* Resize   ["name"] [toWidth toHeight] */
+	FUNC_TERM ("Raise", F_RAISE),		   /* Raise    ["name"] */
+	FUNC_TERM ("Lower", F_LOWER),		   /* Lower    ["name"] */
+	FUNC_TERM ("RaiseLower", F_RAISELOWER),	/* RaiseLower ["name"] */
+	FUNC_TERM ("PutOnTop", F_PUTONTOP),	   /* PutOnTop  */
+	FUNC_TERM ("PutOnBack", F_PUTONBACK),   /* PutOnBack */
+	FUNC_TERM2 (USES_NUMVALS, "SetLayer", F_SETLAYER),	/* SetLayer    layer */
+	FUNC_TERM2 (USES_NUMVALS, "ToggleLayer", F_TOGGLELAYER),	/* ToggleLayer layer1 layer2 */
+	FUNC_TERM ("Shade", F_SHADE),		   /* Shade    ["name"] */
+	FUNC_TERM ("Delete", F_DELETE),		   /* Delete   ["name"] */
+	FUNC_TERM ("Destroy", F_DESTROY),	   /* Destroy  ["name"] */
+	FUNC_TERM ("Close", F_CLOSE),		   /* Close    ["name"] */
+	FUNC_TERM ("Iconify", F_ICONIFY),	   /* Iconify  ["name"] value */
+	FUNC_TERM2 (USES_NUMVALS, "Maximize", F_MAXIMIZE),	/* Maximize ["name"] [hori vert] */
+	FUNC_TERM ("Stick", F_STICK),		   /* Stick    ["name"] */
+	FUNC_TERM ("Focus", F_FOCUS),		   /* Focus */
+	FUNC_TERM2 (NEED_WINIFNAME, "ChangeWindowUp", F_CHANGEWINDOW_UP),	/* ChangeWindowUp   ["name" window_name ] */
+	FUNC_TERM2 (NEED_WINIFNAME, "ChangeWindowDown", F_CHANGEWINDOW_DOWN),	/* ChangeWindowDown ["name" window_name ] */
+    FUNC_TERM2 (NEED_WINIFNAME, "GoToBookmark", F_GOTO_BOOKMARK),   /* GoToBookmark ["name" window_bookmark ] */
+	FUNC_TERM ("GetHelp", F_GETHELP),	   /* */
+	FUNC_TERM ("PasteSelection", F_PASTE_SELECTION),	/* */
+	FUNC_TERM2 (USES_NUMVALS, "WindowsDesk", F_CHANGE_WINDOWS_DESK),	/* WindowDesk "name" new_desk */
+    FUNC_TERM ("BookmarkWindow", F_BOOKMARK_WINDOW),    /* BookmarkWindow "name" new_bookmark */
+    FUNC_TERM ("PinMenu", F_PIN_MENU),    /* PinMenu ["name"] */
+	FUNC_TERM ("TakeWindowShot", F_TAKE_WINDOWSHOT),
+	FUNC_TERM ("TakeFrameShot", F_TAKE_FRAMESHOT),
+	FUNC_TERM ("SwallowWindow", F_SWALLOW_WINDOW),  /* SwallowWindow "name" module_name */ 
 	/* end of window functions */
 	/* these are commands  to be used only by modules */
-	FUNC_TERM ("&nonsense&", 10, F_MODULE_FUNC_START),	/* not really a command */
-	FUNC_TERM ("Send_WindowList", 15, F_SEND_WINDOW_LIST),	/* */
-	FUNC_TERM ("SET_MASK", 8, F_SET_MASK),	   /* SET_MASK  mask lock_mask */
-    FUNC_TERM2 (NEED_NAME, "SET_NAME", 8, F_SET_NAME),   /* SET_NAME  name */
-	FUNC_TERM ("UNLOCK", 6, F_UNLOCK),		   /* UNLOCK    1  */
-	FUNC_TERM ("SET_FLAGS", 9, F_SET_FLAGS),   /* SET_FLAGS flags */
+	FUNC_TERM ("&nonsense&", F_MODULE_FUNC_START),	/* not really a command */
+	FUNC_TERM ("Send_WindowList", F_SEND_WINDOW_LIST),	/* */
+	FUNC_TERM ("SET_MASK", F_SET_MASK),	   /* SET_MASK  mask lock_mask */
+    FUNC_TERM2 (NEED_NAME, "SET_NAME", F_SET_NAME),   /* SET_NAME  name */
+	FUNC_TERM ("UNLOCK", F_UNLOCK),		   /* UNLOCK    1  */
+	FUNC_TERM ("SET_FLAGS", F_SET_FLAGS),   /* SET_FLAGS flags */
 	/* these are internal commands */
-	FUNC_TERM ("&nonsense&", 10, F_INTERNAL_FUNC_START),	/* not really a command */
-	FUNC_TERM ("&raise_it&", 10, F_RAISE_IT),  /* should not be used by user */
+	FUNC_TERM ("&nonsense&", F_INTERNAL_FUNC_START),	/* not really a command */
+	FUNC_TERM ("&raise_it&", F_RAISE_IT),  /* should not be used by user */
     /* wharf functions : */
     {TF_NO_MYNAME_PREPENDING, "Folder", 6, TT_FUNCTION, F_Folder, NULL},
     {TF_NO_MYNAME_PREPENDING | NEED_NAME | NEED_CMD, "Swallow", 7, TT_FUNCTION, F_Swallow, NULL},

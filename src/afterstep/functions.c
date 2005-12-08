@@ -41,6 +41,7 @@
 #include "../../libAfterStep/moveresize.h"
 #include "../../libAfterStep/mylook.h"
 #include "../../libAfterStep/desktop_category.h"
+#include "../../libAfterStep/wmprops.h"
 #include "../../libAfterConf/afterconf.h"
 
 static as_function_handler function_handlers[F_FUNCTIONS_NUM] ;
@@ -90,6 +91,7 @@ void windowlist_func_handler( FunctionData *data, ASEvent *event, int module );
 void quickrestart_func_handler( FunctionData *data, ASEvent *event, int module );
 void send_window_list_func_handler( FunctionData *data, ASEvent *event, int module );
 void save_workspace_func_handler( FunctionData *data, ASEvent *event, int module );
+void signal_reload_GTKRC_file_handler( FunctionData *data, ASEvent *event, int module );
 void test_func_handler( FunctionData *data, ASEvent *event, int module );
 void screenshot_func_handler( FunctionData *data, ASEvent *event, int module );
 void swallow_window_func_handler( FunctionData *data, ASEvent *event, int module );
@@ -169,6 +171,7 @@ void SetupFunctionHandlers()
 
 
 	function_handlers[F_SAVE_WORKSPACE]     = save_workspace_func_handler;
+	function_handlers[F_SIGNAL_RELOAD_GTK_RCFILE] = signal_reload_GTKRC_file_handler;
 
     function_handlers[F_REFRESH]            = refresh_func_handler ;
 #ifndef NO_VIRTUAL
@@ -1441,6 +1444,31 @@ void install_theme_file_func_handler( FunctionData *data, ASEvent *event, int mo
 void save_workspace_func_handler( FunctionData *data, ASEvent *event, int module )
 {
     save_aswindow_list( Scr.Windows, data->text?data->text:NULL );
+}
+
+Bool
+send_client_message_iter_func(void *data, void *aux_data)
+{
+    XClientMessageEvent *ev = (XClientMessageEvent *)aux_data;
+    ASWindow *asw = (ASWindow *)data ;
+	
+	ev->window = asw->w;
+    XSendEvent (dpy, asw->w, False, 0, (XEvent *) ev);
+
+    return True;
+}
+
+
+void signal_reload_GTKRC_file_handler( FunctionData *data, ASEvent *event, int module )
+{
+	XClientMessageEvent ev;
+	
+	memset( &ev, 0x00, sizeof(ev));
+	ev.type = ClientMessage;
+	ev.message_type = _GTK_READ_RCFILES;
+	ev.format = 8;
+	
+	iterate_asbidirlist( Scr.Windows->clients, send_client_message_iter_func, &ev, NULL, False );
 }
 
 void refresh_func_handler( FunctionData *data, ASEvent *event, int module )

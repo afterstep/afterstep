@@ -71,6 +71,18 @@ typedef enum
  * directory.
  * SOURCE
  */
+typedef struct ASImageListEntryBuffer
+{
+#define ASILEB_Dirty		(0x01<<0)		   
+#define ASILEB_Binary		(0x01<<1)		   
+
+	ASFlagType flags ; 
+
+	size_t size ; 
+	char  *data ; 
+	
+}ASImageListEntryBuffer;
+
 typedef struct ASImageListEntry
 {
 #define MAGIC_ASIMAGE_LIST_ENTRY            0xA3A311E4
@@ -88,8 +100,7 @@ typedef struct ASImageListEntry
     time_t d_mtime;
 	off_t  d_size;		/* total size, in bytes */
 
-	char *buffer ; 
-	size_t buffer_size ;
+	ASImageListEntryBuffer *buffer ; 
 
 	int ref_count;
 }ASImageListEntry;
@@ -213,6 +224,7 @@ ASImageListEntry *get_asimage_list( struct ASVisual *asv, const char *dir,
 ASImageListEntry *ref_asimage_list_entry( ASImageListEntry *entry );
 ASImageListEntry *unref_asimage_list_entry( ASImageListEntry *entry );
 ASImageListEntry *create_asimage_list_entry();
+void destroy_asimage_list_entry_buffer( ASImageListEntryBuffer **pbuffer );
 void destroy_asimage_list( ASImageListEntry **plist );
 char *format_asimage_list_entry_details( ASImageListEntry *entry, Bool vertical );
 Bool load_asimage_list_entry_data( ASImageListEntry *entry, size_t max_bytes );
