@@ -482,6 +482,7 @@ send_refresh_signal(void)
 	gdk_event_send_clientmessage_toall((GdkEvent *)&event);
 }
 
+
 void
 create_main_window (void)
 {

@@ -364,20 +364,34 @@ translate_gtkrc_template_file( 	const char *template_fname, const char *output_f
 		fclose(dst_fp);	 
 }
 
+static char *make_gtkrc_filename( const char *tmpl )
+{
+	if( tmpl[0] == '/' || tmpl[0] == '$' || tmpl[0] == '~' )
+		return copy_replace_envvar (tmpl);
+	else
+		return make_session_data_file(Session, False, 0, tmpl, NULL );
+}	 
+
 void
 UpdateGtkRC()
 {
 	
 	char *src = make_session_file   (Session, GTKRC_TEMPLATE_FILE, False );
-	char *dst = make_session_data_file   (Session, False, 0, GTKRC_FILE, NULL );
+	char *dst = make_gtkrc_filename( GTKRC_FILE );
 	/* first we need to load the colorscheme */
     if( src && dst ) 
 		translate_gtkrc_template_file( 	src, dst );
 
-	if( src ) 
-		free( src );
-	if( dst ) 
-		free( dst );
+	destroy_string(&src); 
+	destroy_string(&dst);
+
+	src = make_session_file   (Session, GTKRC20_TEMPLATE_FILE, False );
+	dst = make_gtkrc_filename( GTKRC20_FILE );
+	/* first we need to load the colorscheme */
+    if( src && dst ) 
+		translate_gtkrc_template_file( 	src, dst );
+	destroy_string(&src); 
+	destroy_string(&dst);
 }
 
 

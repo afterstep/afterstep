@@ -131,7 +131,7 @@ install.config:
 	 $(CP) $(AFTER_SHAREDIR)/backgrounds/Default $(AFTER_SHAREDIR)/non-configurable/0_background; \
 	 echo "Color Scheme: $(AFTER_SHAREDIR)/colorschemes/colorscheme.Stormy_Skies"; \
 	 $(CP) $(AFTER_SHAREDIR)/colorschemes/colorscheme.Stormy_Skies $(AFTER_SHAREDIR)/non-configurable/0_colorscheme
-	@for f in CREDITS animate autoexec banner base database pager wharf winlist standard_categories gtkrc_template; do \
+	@for f in CREDITS animate autoexec banner base database pager wharf winlist standard_categories gtkrc-2.0_template gtkrc_template; do \
 		echo "$(INSTALL_DATA) $$f $(AFTER_SHAREDIR)/$$f"; \
 		$(INSTALL_DATA) $$f $(AFTER_SHAREDIR)/$$f; \
 	done 

@@ -32,6 +32,24 @@
 #include "../libAfterStep/module.h"
 #include "../libAfterConf/afterconf.h"
 
+static void 
+print_default_gtkrc_files()	
+{
+	char ** rcfiles = gtk_rc_get_default_files ();
+	if( rcfiles && rcfiles[0]) 
+	{	
+		int i = 0; 
+
+		while( rcfiles[i] )
+		{
+			show_progress("GTK rcfile[%d] = \"%s\";", i, rcfiles[i] );
+			++i ;
+		}	 
+	}else
+		show_progress("no GTK rcfile defined;");
+}	 
+
+
 void 
 init_asgtkapp( int argc, char *argv[], const char *module_name, void (*custom_usage_func) (void), ASFlagType opt_mask)
 {
@@ -54,6 +72,10 @@ init_asgtkapp( int argc, char *argv[], const char *module_name, void (*custom_us
 
   	gtk_set_locale ();
   	gtk_init (&argc, &argv);
+
+#if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
+ 	print_default_gtkrc_files();
+#endif
 
 	gdk_display = gdk_display_get_default();
 	
