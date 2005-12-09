@@ -465,6 +465,23 @@ build_main_frame(ASFileBrowserMainFrame *data)
 	return frame;
 }
 
+static void
+send_refresh_signal(void)
+{
+	GdkEventClient event;
+    	event.type = GDK_CLIENT_EVENT;
+	event.send_event = TRUE;
+	event.window = NULL;
+	event.message_type = gdk_atom_intern("_GTK_READ_RCFILES", FALSE);
+	event.data_format = 8;
+	event.data.l[0] = 0 ;
+	event.data.l[1] = 0 ;
+	event.data.l[2] = 0 ;
+	event.data.l[3] = 0 ;
+	event.data.l[4] = 0 ;
+	gdk_event_send_clientmessage_toall((GdkEvent *)&event);
+}
+
 void
 create_main_window (void)
 {
@@ -473,7 +490,10 @@ create_main_window (void)
 	GtkWidget *main_frame ; 
 	ASFileBrowserMainFrame *main_frame_data = safecalloc( 1, sizeof(ASFileBrowserMainFrame));
 	ASFileBrowserRootSelFrame *root_sel_frame_data = safecalloc( 1, sizeof(ASFileBrowserRootSelFrame));
-
+#if 0
+	send_refresh_signal();
+	exit(0);
+#endif
   	AppState.main_window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   	gtk_window_set_title (GTK_WINDOW (AppState.main_window), "AfterStep File Browser");
 

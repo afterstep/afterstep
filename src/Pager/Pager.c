@@ -2551,7 +2551,7 @@ LOCAL_DEBUG_OUT( "state(0x%X)->state&ButtonAnyMask(0x%X)", event->x.xbutton.stat
 			}
 			return ;
 	    case ClientMessage:
-            LOCAL_DEBUG_OUT("ClientMessage(\"%s\",data=(%lX,%lX,%lX,%lX,%lX)", XGetAtomName( dpy, event->x.xclient.message_type ), event->x.xclient.data.l[0], event->x.xclient.data.l[1], event->x.xclient.data.l[2], event->x.xclient.data.l[3], event->x.xclient.data.l[4]);
+            LOCAL_DEBUG_OUT("ClientMessage(\"%s\",format = %d, data=(%8.8lX,%8.8lX,%8.8lX,%8.8lX,%8.8lX)", XGetAtomName( dpy, event->x.xclient.message_type ), event->x.xclient.format, event->x.xclient.data.l[0], event->x.xclient.data.l[1], event->x.xclient.data.l[2], event->x.xclient.data.l[3], event->x.xclient.data.l[4]);
             if ( event->x.xclient.format == 32 &&
                  event->x.xclient.data.l[0] == _XA_WM_DELETE_WINDOW )
 			{
