@@ -344,11 +344,14 @@ LOCAL_DEBUG_OUT( " found at: \"%s\"", res );
 	return NULL;
 }
 
-char         *
+static char *default_kdegnome_dir = "/usr" ;
+
+static char         *
 find_envvar (char *var_start, int *end_pos)
 {
 	register int  i;
 	static char tmp[256];
+	char *result ;
 
 	if (var_start[0] == '{')
 	{
@@ -365,7 +368,13 @@ find_envvar (char *var_start, int *end_pos)
 	if (var_start[i] == '}')
 		(*end_pos)++;
 	
-	return getenv (tmp);
+	result = getenv (tmp);
+	if( result == NULL ) 
+	{
+		if( strcmp( tmp, "KDEDIR" ) == 0 || strcmp( tmp, "GNOMEDIR" ) == 0 ) 
+			result = default_kdegnome_dir ;
+	}
+	return result;
 }
 
 static char *

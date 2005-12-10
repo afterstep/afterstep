@@ -1,4 +1,6 @@
-<composite >
-	<scale width="$minipixmap.width" height="$minipixmap.width"><img src=normal/Mona></scale>
-	<scale width="$minipixmap.width" height="$minipixmap.width"><img src=logos/KDE></scale>
+<scale width="$minipixmap.width" height="$minipixmap.width">
+<composite op="alphablend">
+	<img src="normal/Mona" />
+	<scale x=16  width=32 height=32><img src="logos/KDE" /></scale>
 </composite>
+</scale>
