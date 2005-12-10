@@ -491,7 +491,7 @@ create_main_window (void)
 	GtkWidget *main_frame ; 
 	ASFileBrowserMainFrame *main_frame_data = safecalloc( 1, sizeof(ASFileBrowserMainFrame));
 	ASFileBrowserRootSelFrame *root_sel_frame_data = safecalloc( 1, sizeof(ASFileBrowserRootSelFrame));
-#if 1
+#if 0
 	send_refresh_signal();
 	exit(0);
 #endif
