@@ -1,0 +1,4 @@
+<composite >
+	<scale width="$minipixmap.width" height="$minipixmap.width"><img src=normal/Mona></scale>
+	<scale width="$minipixmap.width" height="$minipixmap.width"><img src=logos/KDE></scale>
+</composite>

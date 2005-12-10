@@ -233,9 +233,7 @@ put_file_home (const char *path_with_home)
 	else if (path_with_home[0] == '~' && path_with_home[1] == '/')
 		path_with_home += 1 ;
 	else
-	{
-		return mystrdup (path_with_home);
-	}
+		return mystrdup(path_with_home);
 
 	if (home == NULL)
 	{

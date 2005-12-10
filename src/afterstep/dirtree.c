@@ -120,7 +120,7 @@ make_absolute (const char *path1, const char *path2)
 	if( path1 == NULL || path2 == NULL )
 		return mystrdup("./") ;
 	if (*path2 == '/' || *path2 == '~' || *path2 == '$')
-		path = PutHome (path2);
+		path = copy_replace_envvar(path2);
 	else
 		/* relative path */
 	{
