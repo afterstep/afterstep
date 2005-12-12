@@ -1,0 +1,10 @@
+minipixmap mini/Mona
+keepname
+extension  .jpg
+include "/usr/share/xplanet/images" Background
+include "/usr/local/share/xplanet/images" Background
+include "$GNOMEDIR/share/nautilus/patterns" Background
+include "/usr/share/images/desktop-base" Background
+
+command Background
+order 1000

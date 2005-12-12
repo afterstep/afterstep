@@ -4,3 +4,4 @@ extension  .jpg
 include "$KDEDIR/share/wallpapers" Background
 
 command Background
+order 1000
