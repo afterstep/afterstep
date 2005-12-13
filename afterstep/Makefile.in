@@ -1,3 +1,5 @@
+PROG=nothing
+
 @MAKEFILECOMMON@
 
 #CREATE_SHAREDIR_LIST= desktop backgrounds
@@ -11,6 +13,10 @@ IMAGE_DIR_LIST= backgrounds backgrounds/Gradient_Textures backgrounds/Plain_Text
 MISC_FILES_DIR_LIST= desktop/cursors desktop/fonts desktop/sounds
 
 CONFIG_DIR_LIST= applications colorschemes feels looks scripts themes
+
+#this is to suppress unneeded messages
+nothing:
+		@echo ""
 
 install.data_reinstall:
 	@$(RMF) no_data_reinstall ; \
@@ -161,6 +167,9 @@ install.menu:   share_dirs
 	 $(RMF) $(AFTER_SHAREDIR)/start/2_Modules/Pager.in
 	 $(FIND) $(AFTER_SHAREDIR)/start -name CVS -print | $(XARGS) $(RMF) -r
 	 $(FIND) $(AFTER_SHAREDIR)/start -name .cvsignore -print | $(XARGS) $(RMF)
+
+install.man:
+
 
 install: install.data_reinstall install.data install.config install.menu install.clean_trash
 

@@ -48,9 +48,13 @@ LIB_SHARED      = $(LIBAFTERIMAGE_PATH)/libAfterImage.so
 all:    $(PROGS)
 
 install.bin:	$(PROGS)
-		@for p in $(PROGS); do \
-	  		$(INSTALL_PROGRAM) $$p $(BIN_DIR) ; \
-		done
+		@echo "installing libAfterImage apps using command - "; \
+		 echo "    \"$(INSTALL_PROGRAM) <app> $(BIN_DIR)\" :"; \
+		for p in $(PROGS); do \
+			echo -n "$$p "; \
+	  		$(INSTALL_PROGRAM) $$p $(BIN_DIR); \
+		done; \
+		echo ""; echo "Done."; \
 
 install.man:
 		@for f in *.man; do \
@@ -81,7 +85,7 @@ indent:
 		done
 
 deps:
-		echo -n > .depend ; \
+		@echo -n > .depend ; \
 		buf="" ; \
 		for f in `find . -name "*.h"` ; do \
 		  if test "x$$buf" != "x"; then \

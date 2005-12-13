@@ -23,6 +23,7 @@ subdirs		= libAfterBase libAfterImage libAfterStep libAfterConf @LIBASGTKDIR@ \
 		  src/WinTabs \
 		  src/ascp  \
 	    	  $(@GTK_APP_DIRS@) \
+		  afterstep \
 		  src/ASDocGen \
 		  doc tools 
 
@@ -68,8 +69,8 @@ mkdir.share:
 
 module.clean:
  
-install: install.desktop install.data mkdir
-	@for I in ${subdirs}; do if [ -d $$I ]; then (cd $$I; ${MAKE} install || exit 1); fi; done
+install:  install.desktop install.wmprops mkdir
+	@for I in ${subdirs} ; do if [ -d $$I ]; then (cd $$I; ${MAKE} install || exit 1); fi; done
 
 install.bin: mkdir.bin
 	@for I in ${subdirs}; do if [ -d $$I ]; then (cd $$I; ${MAKE} install.bin || exit 1); fi; done
@@ -97,7 +98,7 @@ install.desktop: AfterStep.desktop.final mkdir.share
 		$(INSTALL_DATA)  AfterStep.desktop.final $(SHAREDIR)/xsessions/AfterStep.desktop ; \
 	fi; fi; fi
 
-install.data:
+install.wmprops:
 	@if [ -d $(SHAREDIR)/gnome/wm-properties ] ; then \
 	if [ -w $(SHAREDIR)/gnome/wm-properties ] ; then \
 	echo $(CP) AfterStep.desktop $(SHAREDIR)/gnome/wm-properties/; \
@@ -117,7 +118,21 @@ install.data:
 	echo "If you want AfterStep to appear in your Gnome menu, please install as root."; \
 	fi \
 	fi
-	cd afterstep; ${MAKE} install || exit 1; cd ..
+
+install.share:
+	@(cd afterstep; ${MAKE} install || exit 1)
+
+install.data:
+	@(cd afterstep; ${MAKE} install.data || exit 1)
+
+install.data_html:
+	@(cd src/ASDocGen; ${MAKE} install.data_html || exit 1)
+
+install.menu:
+	@(cd afterstep; ${MAKE} install.menu || exit 1)
+
+install.config:
+	@(cd afterstep; ${MAKE} install.config || exit 1)
 
 uninstall:
 	@for I in ${subdirs}; do if [ -d $$I ]; then (cd $$I; ${MAKE} uninstall || exit 1); fi; done
@@ -142,12 +157,12 @@ indent:
 	done
 
 deps:
-	for I in ${subdirs}; do if [ -d $$I ]; then (cd $$I; touch .depend || exit 1); fi; done; \
+	@for I in ${subdirs}; do if [ -d $$I ]; then (cd $$I; touch .depend || exit 1); fi; done; \
 	for I in ${subdirs}; do if [ -d $$I ]; then (cd $$I; ${MAKE} deps || exit 1); fi; done
 
 config:
-	for I in ${confsdirs}; do \
-	  cd $$I ;  autoconf configure.in > configure ; chmod 755 configure ; cd .. ; \
+	@for I in ${confsdirs}; do \
+	  (cd $$I ;  autoconf configure.in > configure ; chmod 755 configure); \
 	done; \
 	cd autoconf ; \
 	autoconf configure.libs.in > configure.libs; chmod 755 configure.libs ; \
@@ -162,7 +177,7 @@ configclean:
 	done; \
 
 ChangeLog:
-	tools/cvs2cl.as.pl --hide-filenames --no-times;
-	cd libAfterBase ; ../tools/cvs2cl.as.pl --hide-filenames --no-times; cd .. ;
-	cd libAfterImage ; ../tools/cvs2cl.as.pl --hide-filenames --no-times; cd .. ;
+	tools/cvs2cl.as.pl --hide-filenames --no-times
+	@(cd libAfterBase ; ../tools/cvs2cl.as.pl --hide-filenames --no-times); \
+	(cd libAfterImage ; ../tools/cvs2cl.as.pl --hide-filenames --no-times)
 

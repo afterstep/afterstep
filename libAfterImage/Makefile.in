@@ -213,15 +213,18 @@ install.inc:
 		    fi; \
 		 fi; \
 		 if [ -d $(AFTER_INC_DIR) ]; then \
+		    echo "installing libAfterImage headers using command - "; \
+		    echo "    \"$(INSTALL_HEADER) <header> $(AFTER_INC_DIR)\" :"; \
 		    for file in $(LIB_INCS) ; do  \
-			echo "$(INSTALL_HEADER) $$file $(AFTER_INC_DIR)"; \
+			echo -n "$$file "; \
 			$(INSTALL_HEADER) $$file $(AFTER_INC_DIR); \
 		    done; \
+		    echo ""; echo "Done."; \
 		 fi \
 		)
 
 install.apps: install.lib
-		cd apps; make install; cd ..
+		@(cd apps; make install || exit 1)
 
 uninstall.bin:
 
@@ -233,12 +236,12 @@ uninstall.script:
 
 clean:
 		$(RMF) $(LIB_SHARED) $(LIB_SHARED_CYG) $(LIB_SHARED_CYG_AR) $(LIB_STATIC) *.so.* *.so *.o *~ *% *.bak \#* core ; \
-		for I in ${subdirs}; do $(RMF) $$I/*.o $$I/*.obj $$I/*.bak; done; \
-		cd apps; make clean; cd ..
+		for I in ${subdirs}; do $(RMF) $$I/*.o $$I/*.obj $$I/*.bak; done
+		@(cd apps; make clean || exit 1)
 
 distclean: clean
-		$(RMF) $(LIB_SHARED) $(LIB_SHARED_CYG) $(LIB_SHARED_CYG_AR) $(LIB_STATIC)  *.o *.so.* *~ *% *.bak \#* *.orig core Makefile ; \
-		cd apps; make distclean; cd ..
+		$(RMF) $(LIB_SHARED) $(LIB_SHARED_CYG) $(LIB_SHARED_CYG_AR) $(LIB_STATIC)  *.o *.so.* *~ *% *.bak \#* *.orig core Makefile 
+		@(cd apps; make distclean || exit 1)
 
 indent:
 		@SRCS=`echo "$(AFTERIMAGE_OBJS) " | sed "s/.o /.c /g"`; \
@@ -249,10 +252,10 @@ indent:
 		    mv /tmp/$$i $$i; \
 		  fi; \
 		done ; \
-		cd apps; make indent; cd ..
+		(cd apps; make indent || exit 1)
 
 deps:
-		echo -n > .depend ; \
+		@echo -n > .depend ; \
 		buf="" ; \
 		SRCS=`echo "$(AFTERIMAGE_OBJS) " | sed "s/.o /.c /g"`; \
 		echo -n $(LIB_NAME)_OBJS = > .shared ; \
@@ -283,10 +286,10 @@ deps:
 		  echo -n '		$$('$(LIB_NAME)_PATH')'/$$f >> .shared ; \
 		done; \
 		echo "" >> .shared ; \
-		cd apps; make deps; cd ..
+		(cd apps; make deps || exit 1)
 
 apps: 	@LIBPROG@ $(LIB_OBJS) $(LIB_INCS) $(APPS_SRCS) $(APPS_INCS)
-		cd apps; make ; cd ..
+		@(cd apps; make )
 
 
 $(LIB_STATIC):	$(LIB_OBJS) $(LIB_INCS) config.h

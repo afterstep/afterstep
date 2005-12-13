@@ -104,10 +104,13 @@ install.inc:
 		    fi; \
 		 fi; \
 		 if [ -d $(AFTER_INC_DIR) ]; then \
+		    echo "installing $(LIB_NAME) headers using command - "; \
+		    echo "    \"$(INSTALL_HEADER) <header> $(AFTER_INC_DIR)\" :"; \
 		    for file in $(LIB_INCS) ; do  \
-			echo "$(INSTALL_HEADER) $$file $(AFTER_INC_DIR)"; \
+			echo -n "$$file "; \
 			$(INSTALL_HEADER) $$file $(AFTER_INC_DIR); \
 		    done; \
+		    echo ""; echo "Done."; \
 		 fi \
 		)
 

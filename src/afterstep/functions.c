@@ -152,7 +152,7 @@ void SetupFunctionHandlers()
 	function_handlers[F_ExecInTerm]       	= exec_in_term_func_handler ;
 
     function_handlers[F_CHANGE_BACKGROUND]  = change_background_func_handler;
-	function_handlers[F_CHANGE_BACKGROUND]  = change_back_foreign_func_handler;
+	function_handlers[F_CHANGE_BACKGROUND_FOREIGN]  = change_back_foreign_func_handler;
 
     function_handlers[F_CHANGE_LOOK] =
 	function_handlers[F_CHANGE_FEEL]    =
@@ -1280,8 +1280,6 @@ static void change_background_internal( FunctionData *data, Bool autoscale )
 
     realfilename = make_session_data_file(Session, False, 0, tmpfile, NULL );
     cover_desktop();
-    display_progress( True, "Copying selected background \"%s\" into \"%s\" ...", data->text, realfilename);
-    LOCAL_DEBUG_OUT( "Copying selected background \"%s\" into \"%s\" ...", data->text, realfilename);
 	if( autoscale ) 
 	{
 		ASImage *src_im = get_asimage( Scr.image_manager, data->text, 0xFFFFFFFF, 0 );
@@ -1293,32 +1291,55 @@ static void change_background_internal( FunctionData *data, Bool autoscale )
 				int clip_height = src_im->height ; 
 				ASImage *tiled = src_im ;
 
-				if( clip_width*Scr.MyDisplayHeight > ((clip_height*5)/4)*Scr.MyDisplayWidth ) 
-				   clip_width = (clip_height*Scr.MyDisplayWidth)/Scr.MyDisplayHeight ;	
-				else if( ((clip_width*5)/4)*Scr.MyDisplayHeight < clip_height*Scr.MyDisplayWidth ) 
-				 	clip_height = (clip_width*Scr.MyDisplayHeight)/Scr.MyDisplayWidth ;
+				if( clip_width*Scr.MyDisplayHeight > ((clip_height*3)/2)*Scr.MyDisplayWidth ) 
+					clip_width = (((clip_height*5)/4)*Scr.MyDisplayWidth)/Scr.MyDisplayHeight ;	
+				else if( ((clip_width*3)/2)*Scr.MyDisplayHeight < clip_height*Scr.MyDisplayWidth ) 
+				 	clip_height = (((clip_width*5)/4)*Scr.MyDisplayHeight)/Scr.MyDisplayWidth ;
 				if( clip_width != src_im->width || clip_height != src_im->height ) 
-					tiled = tile_asimage( Scr.asv, src_im, 0, 0, clip_width, clip_height, TINT_LEAVE_SAME, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT );
+				{
+					display_progress( True, "Croping background to %dx%d ...", clip_width, clip_height);
+   					LOCAL_DEBUG_OUT( "Croping background to %dx%d ...", clip_width, clip_height);
+					tiled = tile_asimage( Scr.asv, src_im, 
+											(src_im->width-clip_width)/2, 
+											(src_im->height-clip_height)/2, 
+											clip_width, clip_height, TINT_LEAVE_SAME, 
+											ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT );
+				}
 				if( tiled ) 
 				{
 					ASImage *scaled = tiled ; 
 					if( tiled->width != Scr.MyDisplayWidth || tiled->height != Scr.MyDisplayHeight ) 
-						scaled = scale_asimage( Scr.asv, tiled, Scr.MyDisplayWidth, Scr.MyDisplayHeight, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT );
+					{
+						display_progress( True, "Scaling background to %dx%d ...", Scr.MyDisplayWidth, Scr.MyDisplayHeight);
+    					LOCAL_DEBUG_OUT( "Scaling background to %dx%d ...", Scr.MyDisplayWidth, Scr.MyDisplayHeight);
+						scaled = scale_asimage( Scr.asv, tiled, 
+												Scr.MyDisplayWidth, 
+												Scr.MyDisplayHeight, 
+												ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT );
+					}
 					if( scaled && scaled != src_im )
-						success = save_asimage_to_file(realfilename, scaled, "png", "9", NULL, 0, True);			
+					{
+						display_progress( True, "Saving transformed background into \"%s\" ...", realfilename);
+    					LOCAL_DEBUG_OUT( "Saving transformed background into \"%s\" ...", realfilename);
+						success = save_asimage_to_file(	realfilename, scaled, 
+														"png", "9", NULL, 0, True);			   
+					}
 					if( scaled != tiled ) 
 						destroy_asimage( &scaled );
 					if( tiled != src_im ) 
 						destroy_asimage( &tiled );
 				}					   
 			}
-			if( !success )	           /* just tile as usuall */
-		 		success = (CopyFile (data->text, realfilename) == 0);	
 			safe_asimage_destroy( src_im );
 		}	 
-		  
-	}else
+	}
+
+	if( !success )	           /* just tile as usuall */
+	{
+		display_progress( True, "Copying selected background \"%s\" into \"%s\" ...", data->text, realfilename);
+    	LOCAL_DEBUG_OUT( "Copying selected background \"%s\" into \"%s\" ...", data->text, realfilename);
 		success = (CopyFile (data->text, realfilename) == 0);
+	}
 
     if ( success )
     {

@@ -49,16 +49,18 @@ module.clean:
 		$(RMF) log.*
 
 install.man:	$(PROG)
-		@cd man; echo "Installing application man pages ..." ; \
+		@cd man; echo "Installing application man pages using command - " ; \
+		echo "    \"$(INSTALL_DATA) <name>.man $(AFTER_MAN_DIR)/html/<name>.1x\""; \
 		for f in `ls *.man`; do \
 			page_name=`echo $$f| awk -F . '{print $$1}'`; \
-	  		echo $(INSTALL_DATA) $$page_name.man $(AFTER_MAN_DIR)/$$page_name.1x; \
+	  		echo -n "$$f "; \
 	  		$(INSTALL_DATA) $$page_name.man $(AFTER_MAN_DIR)/$$page_name.1x; \
 		done; echo "Done"; \
-		cd API; echo "Installing API man pages ..." ; \
+		cd API; echo "Installing API man pages using command - " ; \
+		echo "    \"$(INSTALL_DATA) <name>.man $(AFTER_MAN_API_DIR)/html/<name>.3x\""; \
 		for f in `ls *.man`; do \
 			page_name=`echo $$f| awk -F . '{print $$1}'`; \
-	  		echo $(INSTALL_DATA) $$page_name.man $(AFTER_MAN_API_DIR)/$$page_name.3x; \
+	  		echo -n "$$f "; \
 	  		$(INSTALL_DATA) $$page_name.man $(AFTER_MAN_API_DIR)/$$page_name.3x; \
 		done; echo "Done"; \
 		cd ../..
@@ -73,7 +75,7 @@ install.data_html:  do_compile
 		else \
 	  		no_data_reinstall=""; \
 	  		echo "no previous installation detected"; \
-		fi; \
+		fi;
 		if [ -z "$$no_data_reinstall" ]; then \
 			$(MKDIR) -p $(AFTER_DOC_DIR)/html/data; \
 			echo "Generating catalogue of installed data files ..." ; \
@@ -88,24 +90,29 @@ install.data_html:  do_compile
 		fi
 
 		
-install.doc_html:	install.data_html  $(PROG)
-		@cd html; echo "Installing application HTML pages ..." ; \
+install.doc_html:	$(PROG)
+		@$(MKDIR) -p $(AFTER_DOC_DIR); \
+		$(MKDIR) -p $(AFTER_DOC_DIR)/html; \
+		cd html; echo "Installing application HTML pages using command - " ; \
+		echo "    \"$(INSTALL_DATA) <file> $(AFTER_DOC_DIR)/html/<file>\""; \
 		for f in `ls *.html`; do \
-	  		echo $(INSTALL_DATA) $$f $(AFTER_DOC_DIR)/html/$$f; \
+			echo -n "$$f "; \
 	  		$(INSTALL_DATA) $$f $(AFTER_DOC_DIR)/html/$$f; \
-		done; echo "Done"; \
+		done; echo ""; echo "Done"; \
 		$(MKDIR) -p $(AFTER_DOC_DIR)/html/images; \
-		cd ../images; echo "Installing application images ..." ; \
+		cd ../images; echo "Installing application images using command - " ; \
+		echo "    \"$(INSTALL_DATA) <file> $(AFTER_DOC_DIR)/html/images/<file>\""; \
 		for f in `ls *.jpg *.png`; do \
-	  		echo $(INSTALL_DATA) $$f $(AFTER_DOC_DIR)/html/images/$$f; \
+	  		echo -n "$$f "; \
 	  		$(INSTALL_DATA) $$f $(AFTER_DOC_DIR)/html/images/$$f; \
-		done; echo "Done"; \
+		done; echo ""; echo "Done"; \
 		$(MKDIR) -p $(AFTER_DOC_DIR)/html/API; \
-		cd ../html/API; echo "Installing API HTML docs ..." ; \
+		cd ../html/API; echo "Installing API HTML docs using command - " ; \
+		echo "    \"$(INSTALL_DATA) <file> $(AFTER_DOC_DIR)/html/images/<file>\""; \
 		for f in `ls *.html`; do \
-	  		echo $(INSTALL_DATA) $$f $(AFTER_DOC_DIR)/html/API/$$f; \
+	  		echo -n "$$f "; \
 	  		$(INSTALL_DATA) $$f $(AFTER_DOC_DIR)/html/API/$$f; \
-		done; echo "Done"; \
+		done; echo ""; echo "Done"; \
 		cd ../..
 
 install.doc_xml:	doc_xml
