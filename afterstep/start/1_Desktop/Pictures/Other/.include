@@ -1,10 +1,10 @@
 minipixmap mini/Mona
 keepname
 extension  .jpg
-include "/usr/share/xplanet/images" Background
-include "/usr/local/share/xplanet/images" Background
-include "$GNOMEDIR/share/nautilus/patterns" Background
-include "/usr/share/images/desktop-base" Background
+include "/usr/share/xplanet/images" BackgroundForeign
+include "/usr/local/share/xplanet/images" BackgroundForeign
+include "$GNOMEDIR/share/nautilus/patterns" BackgroundForeign
+include "/usr/share/images/desktop-base" BackgroundForeign
 
-command Background
-order 1000
+command BackgroundForeign
+

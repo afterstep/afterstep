@@ -1,7 +1,7 @@
 minipixmap mini/KDEWallpapers
 keepname
 extension  .jpg
-include "$KDEDIR/share/wallpapers" Background
+include "$KDEDIR/share/wallpapers" BackgroundForeign
 
-command Background
-order 1000
+command BackgroundForeign
+

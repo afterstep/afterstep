@@ -763,24 +763,33 @@ reload_menu_pmaps( MenuData *menu )
 	if( menu && ASDefaultScr->image_manager ) 
 		for( curr = menu->first ; curr != NULL ; curr = curr->next )
 		{	
-    		if( curr->minipixmap )
+			ASImage *tmp = NULL ;
+			char *minipixmap = curr->minipixmap ;
+            if( curr->minipixmap_image )
+                safe_asimage_destroy(curr->minipixmap_image);
+			
+			if( minipixmap == NULL && curr->fdata->func == F_CHANGE_BACKGROUND_FOREIGN ) 
+				minipixmap = curr->fdata->text;
+    		
+			if( minipixmap )
+            	tmp = get_asimage( ASDefaultScr->image_manager, minipixmap, ASFLAGS_EVERYTHING, 100 );
+			
+			if( tmp )				   
         	{
-				ASImage *tmp ;
-            	if( curr->minipixmap_image )
-                	safe_asimage_destroy(curr->minipixmap_image);
-            	tmp = get_asimage( ASDefaultScr->image_manager, curr->minipixmap, ASFLAGS_EVERYTHING, 100 );
 				curr->minipixmap_image = check_scale_menu_pmap( tmp, curr->flags ); 
 				if( tmp != curr->minipixmap_image )
 				{	
 					char *n ;
 					safe_asimage_destroy(tmp);
 					/* we also need to add our icon into the image_manager ! : */
-					n = safemalloc( strlen( curr->minipixmap ) + 64 );
-					sprintf( n, "%s_scaled_to_%dx%d",curr->minipixmap, curr->minipixmap_image->width, curr->minipixmap_image->height );
+					n = safemalloc( strlen( minipixmap ) + 64 );
+					sprintf( n, "%s_scaled_to_%dx%d", minipixmap, curr->minipixmap_image->width, curr->minipixmap_image->height );
 					store_asimage( ASDefaultScr->image_manager, curr->minipixmap_image, n );					 
 				}
-        	}
-			LOCAL_DEBUG_OUT( "minipixmap = \"%s\", minipixmap_image = %p",  curr->minipixmap, curr->minipixmap_image );
+        	}else
+			{	
+				LOCAL_DEBUG_OUT( "minipixmap = \"%s\", minipixmap_image = %p",  curr->minipixmap, curr->minipixmap_image );
+			}
 		}
 }
 

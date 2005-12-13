@@ -144,6 +144,7 @@ TermDef       FuncTerms[F_FUNCTIONS_NUM + 1] = {
 	FUNC_TERM2 (NEED_NAME | NEED_CMD, "KillAllModulesByName", F_KILLALLMODULESBYNAME),	/* KillAllModulesByName "name" module */
 	FUNC_TERM2 (NEED_NAME | NEED_CMD, "QuickRestart", F_QUICKRESTART),	/* QuickRestart "name" what */
 	FUNC_TERM2 (NEED_NAME | NEED_CMD, "Background", F_CHANGE_BACKGROUND),	/* Background "name" file_name */
+	FUNC_TERM2 (NEED_NAME | NEED_CMD, "BackgroundForeign", F_CHANGE_BACKGROUND_FOREIGN),	/* BackgroundForeign "name" file_name */
 	FUNC_TERM2 (NEED_NAME | NEED_CMD, "ChangeLook", F_CHANGE_LOOK),	/* ChangeLook "name" file_name */
 	FUNC_TERM2 (NEED_NAME | NEED_CMD, "ChangeFeel", F_CHANGE_FEEL),	/* ChangeFeel "name" file_name */
     FUNC_TERM2 (NEED_NAME | NEED_CMD, "ChangeTheme", F_CHANGE_THEME), /* ChangeTheme "name" file_name */

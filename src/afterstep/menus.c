@@ -218,6 +218,9 @@ set_asmenu_item_data( ASMenuItem *item, MenuDataItem *mdi )
         icon_im = mdi->minipixmap_image ;
     else if( mdi->minipixmap )
         icon_im = GetASImageFromFile( mdi->minipixmap );
+	else if( mdi->fdata->func == F_CHANGE_BACKGROUND_FOREIGN ) 
+		icon_im = GetASImageFromFile( mdi->fdata->text );
+
     if( icon_im )
 	{
 		item->icon = check_scale_menu_pmap( icon_im, mdi->flags );
