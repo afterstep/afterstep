@@ -304,14 +304,14 @@ LoadColorScheme()
 	free( cs );
 }
 
-void 
+Bool 
 translate_gtkrc_template_file( 	const char *template_fname, const char *output_fname )
 {
 	static char buffer[MAXLINELENGTH] ; 
 	FILE *src_fp = NULL, *dst_fp = NULL; 		  
 
 	if( template_fname == NULL || output_fname == NULL ) 
-		return;
+		return False;;
 
 	src_fp = fopen( template_fname, "r");
 	dst_fp = fopen( output_fname, "w");
@@ -362,6 +362,7 @@ translate_gtkrc_template_file( 	const char *template_fname, const char *output_f
 		fclose(src_fp);	 
 	if( dst_fp ) 
 		fclose(dst_fp);	 
+	return True;
 }
 
 static char *make_gtkrc_filename( const char *tmpl )
@@ -372,15 +373,15 @@ static char *make_gtkrc_filename( const char *tmpl )
 		return make_session_data_file(Session, False, 0, tmpl, NULL );
 }	 
 
-void
+Bool
 UpdateGtkRC()
 {
-	
+	Bool result = False ; 	
 	char *src = make_session_file   (Session, GTKRC_TEMPLATE_FILE, False );
 	char *dst = make_gtkrc_filename( GTKRC_FILE );
 	/* first we need to load the colorscheme */
     if( src && dst ) 
-		translate_gtkrc_template_file( 	src, dst );
+		result = translate_gtkrc_template_file( src, dst );
 
 	destroy_string(&src); 
 	destroy_string(&dst);
@@ -389,9 +390,11 @@ UpdateGtkRC()
 	dst = make_gtkrc_filename( GTKRC20_FILE );
 	/* first we need to load the colorscheme */
     if( src && dst ) 
-		translate_gtkrc_template_file( 	src, dst );
+		if( translate_gtkrc_template_file( 	src, dst ) ) 
+			result = True;
 	destroy_string(&src); 
 	destroy_string(&dst);
+	return result;
 }
 
 

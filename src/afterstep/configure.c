@@ -1437,6 +1437,11 @@ LoadASConfig (int thisdesktop, ASFlagType what)
     char            *tline = NULL;
     ASImageManager  *old_image_manager = NULL ;
     ASFontManager   *old_font_manager  = NULL ;
+	FunctionData gtkrc_signal_func ;
+	ASEvent dummy_event = {0};
+	
+	init_func_data( &gtkrc_signal_func );
+    gtkrc_signal_func.func = F_SIGNAL_RELOAD_GTK_RCFILE ;
     
     cover_desktop();
 
@@ -1472,7 +1477,6 @@ LoadASConfig (int thisdesktop, ASFlagType what)
 
         if (get_flags(what, PARSE_LOOK_CONFIG))
 		{
-
 			stop_all_background_xfer();
 			LoadColorScheme();
 
@@ -1510,7 +1514,8 @@ LoadASConfig (int thisdesktop, ASFlagType what)
                 display_progress( True, "LOOK configuration file cannot be found!");
                 clear_flags(what, PARSE_LOOK_CONFIG);
             }
-        	UpdateGtkRC();
+        	if( UpdateGtkRC() ) 
+				ExecuteFunction (&gtkrc_signal_func, &dummy_event, -1);
 		}
         if (get_flags(what, PARSE_FEEL_CONFIG))
 		{
@@ -1609,7 +1614,8 @@ LoadASConfig (int thisdesktop, ASFlagType what)
         show_progress("AfterStep configuration loaded from \"%s\" ...", Session->overriding_file);
         display_progress( True, "AfterStep configuration loaded from \"%s\".", Session->overriding_file);
         what = PARSE_EVERYTHING ;
-		UpdateGtkRC();
+		if( UpdateGtkRC() ) 
+			ExecuteFunction (&gtkrc_signal_func, &dummy_event, -1);
     }
 
 	/* let's free the memory used for parsing */
