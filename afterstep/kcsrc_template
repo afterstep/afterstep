@@ -1,0 +1,29 @@
+#Must set [KDE]:colorScheme=~/.afterstep/non_configurable/kcsrc
+# in ~/.kde/share/config/kdeglobals file ( or $KDEHOME/share/config/kdeglobals for that matter
+
+[Color Scheme]
+Name=sasha
+activeBackground=62,145,235
+activeBlend=62,145,235
+activeForeground=255,255,255
+activeTitleBtnBg=238,238,230
+alternateBackground=238,246,255
+background=238,238,230
+buttonBackground=238,234,222
+buttonForeground=0,0,0
+contrast=7
+foreground=0,0,0
+frame=238,238,230
+handle=238,238,230
+inactiveBackground=143,159,180
+inactiveBlend=143,159,180
+inactiveForeground=255,255,255
+inactiveFrame=238,238,230
+inactiveHandle=238,238,230
+inactiveTitleBtnBg=238,238,230
+linkColor=0,0,192
+selectBackground=255,221,118
+selectForeground=0,0,0
+visitedLinkColor=128,0,128
+windowBackground=255,255,255
+windowForeground=0,0,0
