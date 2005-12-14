@@ -1291,9 +1291,9 @@ static void change_background_internal( FunctionData *data, Bool autoscale )
 				int clip_height = src_im->height ; 
 				ASImage *tiled = src_im ;
 
-				if( clip_width*Scr.MyDisplayHeight > ((clip_height*3)/2)*Scr.MyDisplayWidth ) 
+				if( clip_width*Scr.MyDisplayHeight > ((clip_height*5)/4)*Scr.MyDisplayWidth ) 
 					clip_width = (((clip_height*5)/4)*Scr.MyDisplayWidth)/Scr.MyDisplayHeight ;	
-				else if( ((clip_width*3)/2)*Scr.MyDisplayHeight < clip_height*Scr.MyDisplayWidth ) 
+				else if( ((clip_width*5)/4)*Scr.MyDisplayHeight < clip_height*Scr.MyDisplayWidth ) 
 				 	clip_height = (((clip_width*5)/4)*Scr.MyDisplayHeight)/Scr.MyDisplayWidth ;
 				if( clip_width != src_im->width || clip_height != src_im->height ) 
 				{
