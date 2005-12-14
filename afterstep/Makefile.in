@@ -14,6 +14,10 @@ MISC_FILES_DIR_LIST= desktop/cursors desktop/fonts desktop/sounds
 
 CONFIG_DIR_LIST= applications colorschemes feels looks scripts themes
 
+CONFIG_FILE_LIST= CREDITS animate autoexec banner base database pager \
+		  wharf winlist standard_categories \
+		  kcsrc_template gtkrc-2.0_template gtkrc_template
+
 #this is to suppress unneeded messages
 nothing:
 		@echo ""
@@ -137,10 +141,13 @@ install.config:
 	 $(CP) $(AFTER_SHAREDIR)/backgrounds/Default $(AFTER_SHAREDIR)/non-configurable/0_background; \
 	 echo "Color Scheme: $(AFTER_SHAREDIR)/colorschemes/colorscheme.Stormy_Skies"; \
 	 $(CP) $(AFTER_SHAREDIR)/colorschemes/colorscheme.Stormy_Skies $(AFTER_SHAREDIR)/non-configurable/0_colorscheme
-	@for f in CREDITS animate autoexec banner base database pager wharf winlist standard_categories gtkrc-2.0_template gtkrc_template; do \
-		echo "$(INSTALL_DATA) $$f $(AFTER_SHAREDIR)/$$f"; \
+	@echo "Installing config files into $(AFTER_SHAREDIR)/ using command - "; \
+	echo "    \"$(INSTALL_DATA) <file> $(AFTER_SHAREDIR)\" :"; \
+	for f in ${CONFIG_FILE_LIST}; do \
+		echo -n "$$f "; \
 		$(INSTALL_DATA) $$f $(AFTER_SHAREDIR)/$$f; \
-	done 
+	done; \
+	echo ""; echo "Done."
 	 $(FIND) $(AFTER_SHAREDIR) -name CVS -print | $(XARGS) $(RMF) -r
 	 $(FIND) $(AFTER_SHAREDIR) -name .cvsignore -print | $(XARGS) $(RMF)
 

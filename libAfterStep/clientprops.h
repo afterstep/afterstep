@@ -474,9 +474,11 @@ typedef struct ExtendedWMHints
 #define EXTWM_TypeUtility       (0x01<<11)
 #define EXTWM_TypeSplash        (0x01<<12)
 #define EXTWM_TypeASModule      (0x01<<13)
+#define EXTWM_TypeKDESysTrayWindow (0x01<<14)
 #define EXTWM_TypeEverything    (EXTWM_TypeDesktop|EXTWM_TypeDock|EXTWM_TypeToolbar| \
                                  EXTWM_TypeMenu|EXTWM_TypeDialog|EXTWM_TypeNormal| \
-								 EXTWM_TypeUtility|EXTWM_TypeSplash|EXTWM_TypeASModule)
+								 EXTWM_TypeUtility|EXTWM_TypeSplash|EXTWM_TypeASModule| \
+								 EXTWM_TypeKDESysTrayWindow)
 
 #define EXTWM_StateModal        (0x01<<16)
 #define EXTWM_StateSticky       (0x01<<17)

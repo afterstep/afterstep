@@ -345,6 +345,7 @@ LOCAL_DEBUG_OUT( " found at: \"%s\"", res );
 }
 
 static char *default_kdegnome_dir = "/usr" ;
+static char *default_kdehome_dir = "~/.kde" ;
 
 static char         *
 find_envvar (char *var_start, int *end_pos)
@@ -373,6 +374,8 @@ find_envvar (char *var_start, int *end_pos)
 	{
 		if( strcmp( tmp, "KDEDIR" ) == 0 || strcmp( tmp, "GNOMEDIR" ) == 0 ) 
 			result = default_kdegnome_dir ;
+		else if( strcmp( tmp, "KDEHOME" ) == 0 ) 
+			result = default_kdehome_dir ;
 	}
 	return result;
 }

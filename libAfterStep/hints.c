@@ -999,6 +999,7 @@ static ASFlagType extwm_types_start_properties[][3] = {
 	{EXTWM_TypeUtility, AS_LayerTop, 0}, 	
 	{EXTWM_TypeSplash, AS_LayerTop, AS_ShortLived },
 	{EXTWM_TypeASModule, AS_LayerNormal, AS_StartsSticky },
+	{EXTWM_TypeKDESysTrayWindow, AS_LayerNormal, AS_StartsSticky },
 	{0, 0, 0}
 };
 static ASFlagsXref extwm_type_xref[] = {	   /*Flag              Set if Set,      Clear if Set,     Set if Clear,    Clear if Clear  */
@@ -1008,6 +1009,7 @@ static ASFlagsXref extwm_type_xref[] = {	   /*Flag              Set if Set,     
 	{EXTWM_TypeMenu, AS_SkipWinList | AS_DontCirculate, AS_Handles | AS_Frame, 0, 0},
 	{EXTWM_TypeDialog, AS_ShortLived, 0 /*may need to remove handles */ , 0, 0},
 	{EXTWM_TypeASModule, AS_Module, 0, 0, AS_Module },
+	{EXTWM_TypeKDESysTrayWindow, AS_SkipWinList|AS_DontCirculate, AS_Handles|AS_Frame, 0, 0 },
 	{0, 0, 0, 0, 0}
 };
 static ASFlagsXref extwm_type_func_mask[] = {  /*Flag             Set if Set,  Clear if Set,     Set if Clear  , Clear if Clear  */

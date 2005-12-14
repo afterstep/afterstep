@@ -2003,6 +2003,7 @@ ASColorScheme *ColorConfig2ASColorScheme( ColorConfig *config );
 void LoadColorScheme();                        /* high level easy to use function */
 Bool translate_gtkrc_template_file( const char *template_fname, const char *output_fname );
 Bool UpdateGtkRC();
+Bool UpdateKCSRC();
 
 
 

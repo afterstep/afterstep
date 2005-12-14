@@ -1516,6 +1516,7 @@ LoadASConfig (int thisdesktop, ASFlagType what)
             }
         	if( UpdateGtkRC() ) 
 				ExecuteFunction (&gtkrc_signal_func, &dummy_event, -1);
+			UpdateKCSRC();
 		}
         if (get_flags(what, PARSE_FEEL_CONFIG))
 		{
@@ -1616,6 +1617,7 @@ LoadASConfig (int thisdesktop, ASFlagType what)
         what = PARSE_EVERYTHING ;
 		if( UpdateGtkRC() ) 
 			ExecuteFunction (&gtkrc_signal_func, &dummy_event, -1);
+		UpdateKCSRC();
     }
 
 	/* let's free the memory used for parsing */

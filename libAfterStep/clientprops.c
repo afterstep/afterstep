@@ -102,6 +102,14 @@ Atom          _XA_NET_WM_PID;
 Atom          _XA_NET_WM_ICON;
 Atom          _XA_NET_WM_PING;
 
+/* Implements KDE System tray specs:
+ * http://developer.kde.org/documentation/library/kdeqt/kde3arch/protocols-docking.html
+ * https://listman.redhat.com/archives/xdg-list/2002-March/msg00014.html
+ * http://standards.freedesktop.org/systemtray-spec/systemtray-spec-0.2.html#ftn.id2494129
+ * 
+ */
+Atom 		  _XA_KDE_NET_SYSTEM_TRAY_WINDOW_FOR = None;
+
 
 /* Crossreferences of atoms into flag value for
    different atom list type of properties :*/
@@ -143,6 +151,7 @@ AtomXref      EXTWM_WindowType[] = {
 	{"_NET_WM_WINDOW_TYPE_UTILITY", &_XA_NET_WM_WINDOW_TYPE_UTILITY, EXTWM_TypeUtility},
 	{"_NET_WM_WINDOW_TYPE_SPLASH", &_XA_NET_WM_WINDOW_TYPE_SPLASH, EXTWM_TypeSplash},
 	{"_AS_WM_WINDOW_TYPE_MODULE", &_XA_AS_WM_WINDOW_TYPE_MODULE, EXTWM_TypeASModule},
+	{"_KDE_NET_SYSTEM_TRAY_WINDOW_FOR", &_XA_KDE_NET_SYSTEM_TRAY_WINDOW_FOR, EXTWM_TypeKDESysTrayWindow },
 	
 	{NULL, NULL, 0, None}
 };

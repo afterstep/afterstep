@@ -309,12 +309,15 @@ translate_gtkrc_template_file( 	const char *template_fname, const char *output_f
 {
 	static char buffer[MAXLINELENGTH] ; 
 	FILE *src_fp = NULL, *dst_fp = NULL; 		  
+	int good_strings = 0 ; 
 
 	if( template_fname == NULL || output_fname == NULL ) 
 		return False;;
 
 	src_fp = fopen( template_fname, "r");
 	dst_fp = fopen( output_fname, "w");
+	if( dst_fp == NULL ) 
+		show_warning( "Failed to open file \"%s\" for writing", output_fname );
 	if( src_fp != NULL && dst_fp != NULL ) 
 	{
 		while( fgets( &buffer[0], MAXLINELENGTH, src_fp ) )
@@ -323,6 +326,7 @@ translate_gtkrc_template_file( 	const char *template_fname, const char *output_f
 			while( isspace(buffer[i]) )++i ; 
 			if( buffer[i] != '\n' && buffer[i] != '#' && buffer[i] != '\0' && buffer[i] != '\r' )
 			{	
+				++good_strings;
 				if( strncmp( &buffer[i], "fg[", 3 ) == 0 ||
 					strncmp( &buffer[i], "bg[", 3 ) == 0 ||
 					strncmp( &buffer[i], "text[", 5 ) == 0 ||
@@ -362,10 +366,81 @@ translate_gtkrc_template_file( 	const char *template_fname, const char *output_f
 		fclose(src_fp);	 
 	if( dst_fp ) 
 		fclose(dst_fp);	 
-	return True;
+	return (good_strings > 0);
 }
 
-static char *make_gtkrc_filename( const char *tmpl )
+Bool 
+translate_kcsrc_template_file( 	const char *template_fname, const char *output_fname )
+{
+	static char buffer[MAXLINELENGTH] ; 
+	FILE *src_fp = NULL, *dst_fp = NULL; 		  
+	int good_strings = 0 ; 
+	Bool inside_ColorScheme_section = False ; 
+
+	if( template_fname == NULL || output_fname == NULL ) 
+		return False;;
+
+	src_fp = fopen( template_fname, "r");
+	dst_fp = fopen( output_fname, "w");
+	if( dst_fp == NULL ) 
+		show_warning( "Failed to open file \"%s\" for writing", output_fname );
+
+	if( src_fp != NULL && dst_fp != NULL ) 
+	{
+		while( fgets( &buffer[0], MAXLINELENGTH, src_fp ) )
+		{
+			int i = 0; 
+			while( isspace(buffer[i]) )++i ; 
+			if( buffer[i] != '\n' && buffer[i] != '#' && buffer[i] != '\0' && buffer[i] != '\r' )
+			{	
+				++good_strings;
+				if( !inside_ColorScheme_section ) 
+				{	
+					if( mystrncasecmp( &buffer[i], "[Color Scheme]", 14 ) == 0 )
+						inside_ColorScheme_section = True ; 
+				}else
+				{	
+					if( buffer[0] == '[' )
+						inside_ColorScheme_section = False ; 
+					else
+					{
+						while( buffer[i] != '\"' && buffer[i] != '\n' && buffer[i] != '\0' && !isdigit(buffer[i]) ) ++i ; 		
+						if( buffer[i] == '\"')
+						{
+					 		char *token = &buffer[i+1] ;
+							if( isalpha(token[0]) ) 
+							{	
+								int len = 0 ; 
+								while( token[len] != '\0' && token[len] != '\"' ) ++len ; 
+								if( token[len] == '\"' && len > 0 )
+								{
+									ARGB32 argb;
+									if( parse_argb_color( token, &argb ) != token ) 
+									{	
+						 				fwrite( &(buffer[0]), 1, i, dst_fp );
+										fprintf( dst_fp, "%ld,%ld,%ld", ARGB32_RED8(argb), ARGB32_GREEN8(argb), ARGB32_BLUE8(argb) );
+										fwrite( &(token[len+1]), 1, strlen(&(token[len+1])), dst_fp );
+										continue;
+									}
+								}
+							}
+						}	 
+					}	 
+				}
+			}			
+			fwrite( &buffer[0], 1, strlen(&buffer[0]), dst_fp );
+		}	 
+		
+	}
+	if( src_fp ) 
+		fclose(src_fp);	 
+	if( dst_fp ) 
+		fclose(dst_fp);	 
+	return (good_strings > 0);
+}
+
+
+static char *make_rc_filename( const char *tmpl )
 {
 	if( tmpl[0] == '/' || tmpl[0] == '$' || tmpl[0] == '~' )
 		return copy_replace_envvar (tmpl);
@@ -378,7 +453,7 @@ UpdateGtkRC()
 {
 	Bool result = False ; 	
 	char *src = make_session_file   (Session, GTKRC_TEMPLATE_FILE, False );
-	char *dst = make_gtkrc_filename( GTKRC_FILE );
+	char *dst = make_rc_filename( GTKRC_FILE );
 	/* first we need to load the colorscheme */
     if( src && dst ) 
 		result = translate_gtkrc_template_file( src, dst );
@@ -387,7 +462,7 @@ UpdateGtkRC()
 	destroy_string(&dst);
 
 	src = make_session_file   (Session, GTKRC20_TEMPLATE_FILE, False );
-	dst = make_gtkrc_filename( GTKRC20_FILE );
+	dst = make_rc_filename( GTKRC20_FILE );
 	/* first we need to load the colorscheme */
     if( src && dst ) 
 		if( translate_gtkrc_template_file( 	src, dst ) ) 
@@ -397,4 +472,160 @@ UpdateGtkRC()
 	return result;
 }
 
+static char *seek_next_line( char *ptr ) 
+{
+	int i = 0 ;
+
+	if( ptr == NULL ) 
+		return NULL;
+   
+	while( ptr[i] != '\n' && ptr[i] != '\r' && ptr[i] != '\0' ) 	++i;
+
+	if( ptr[i] != '\0' ) 
+		while( (ptr[i] == '\n' || ptr[i] == '\r') && ptr[i] != '\0' ) 	++i;
+
+	if( ptr[i] == '\0' ) 
+		return NULL;
+	return &(ptr[i]);
+}	 
+
+static Bool 
+SetKDEGlobalsColorScheme( const char *new_cs_file )	
+{
+	FILE *fp ;
+	char *kdeglobals_fname = copy_replace_envvar ( KDEGLOBALS_FILE );
+	char *kdeglobals = load_file(kdeglobals_fname);
+	
+	if( kdeglobals ) 
+	{
+		int kdeglobals_len = strlen(kdeglobals);
+		char *KDE_sect_start = NULL ; 
+		char *KDE_sect_end = NULL ;
+		char *color_scheme_line = NULL ; 
+		char *color_scheme_line_end = NULL ;
+		char *ptr = kdeglobals; 
+		
+		fp = fopen( kdeglobals_fname, "w");
+		free( kdeglobals_fname);
+
+		if( fp == NULL ) 
+		{
+			show_warning( "Failed to open file \"%s\" for writing", kdeglobals_fname );
+			free( kdeglobals );
+			return False;
+		}	 
+		
+		do
+		{
+			while( isspace(*ptr) ) ++ptr ;
+			if( strncmp( ptr, "[KDE]", 5 ) == 0 ) 
+			{
+				KDE_sect_start = ptr ;		
+				while( (ptr = seek_next_line( ptr )) != NULL )
+				{
+					char *tmp = ptr ; 
+					while( isspace(*ptr) ) ++ptr ;
+					if( *ptr == '[' ) 
+					{	
+						KDE_sect_end = tmp ; 
+						break;
+					}
+				}	 
+			}			  
+		}while( (ptr = seek_next_line( ptr )) != NULL );
+		if( KDE_sect_start != NULL ) 
+		{
+			char *end = KDE_sect_end ; 
+			if( end == NULL ) 
+				end = kdeglobals+kdeglobals_len ;
+			ptr = KDE_sect_start ;
+			while( (ptr = seek_next_line( ptr )) < end )
+			{
+				while( isspace(*ptr) ) ++ptr ;
+				if( strncmp( ptr, "colorScheme", 11 ) == 0 )
+				{
+					color_scheme_line = ptr ; 						
+					color_scheme_line_end = seek_next_line( ptr );
+					break;
+				}	 
+			}
+		}	 
+		if( KDE_sect_start == NULL )
+		{
+			fwrite( kdeglobals, 1, kdeglobals_len, fp );
+			fprintf( fp, "\n[KDE]\ncolorScheme=%s\n", new_cs_file );
+		}else
+		{
+			long lead_bytes = kdeglobals_len ; 
+			char *tail_start = NULL ; 
+			long tail_bytes = 0 ; 
+
+			if( color_scheme_line == NULL ) 
+			{
+			   if( KDE_sect_end == NULL )		
+			   {	           /* defaults are fine - no tail*/
+			   }else
+			   {	
+			   		lead_bytes = KDE_sect_end - kdeglobals ;
+					tail_start = KDE_sect_end ; 
+					tail_bytes = kdeglobals_len-lead_bytes;
+			   }	
+			}else
+			{
+		   		lead_bytes = color_scheme_line - kdeglobals ;
+				if( color_scheme_line_end == NULL )  /* last line in the file */ 
+				{
+					/* no tail */					
+				}else
+				{		  
+					tail_start = color_scheme_line_end ; 
+					tail_bytes = kdeglobals_len - (tail_start - kdeglobals );
+				}	 
+			}		  
+
+	   		fwrite( kdeglobals, 1, lead_bytes, fp );
+			fprintf( fp, "\ncolorScheme=%s\n", new_cs_file );
+			if( tail_start && tail_bytes > 0 ) 
+				fwrite( tail_start, 1, tail_bytes, fp );
+		}		 
+		fclose( fp );
+		free( kdeglobals );
+		return True;
+	}else if( kdeglobals_fname != NULL )
+	{
+		fp = fopen( kdeglobals_fname, "w");
+		if( fp == NULL ) 
+			show_warning( "Failed to open file \"%s\" for writing", kdeglobals_fname );
+		free( kdeglobals_fname);
+
+		if( fp != NULL ) 
+		{
+			fprintf( fp, "[KDE]\ncolorScheme=%s\n", new_cs_file );
+			fclose( fp );
+			return True;
+		}		 
+	}	 
+	return False;
+}
+
+Bool
+UpdateKCSRC()
+{
+	Bool result = False ; 	
+	char *src = make_session_file   (Session, KSCRC_TEMPLATE_FILE, False );
+	char *dst = make_rc_filename( KCSRC_FILE );
+	/* first we need to load the colorscheme */
+    if( src && dst ) 
+		result = translate_kcsrc_template_file( src, dst );
+
+	if( result ) 
+	{
+		if( !SetKDEGlobalsColorScheme( dst ) ) 
+			result = False ;
+	}	 
+	destroy_string(&src); 
+	destroy_string(&dst);
+	
+	return result;
+}
 

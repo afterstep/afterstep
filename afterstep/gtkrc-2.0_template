@@ -57,29 +57,31 @@ class "*" style "default"
 
 #style "default"
 #{
-#  bg[NORMAL] = { 0.933, 0.933, 0.902 }
-#  bg[SELECTED] = { 1.000, 0.867, 0.463 }
-#  bg[INSENSITIVE] = { 0.933, 0.933, 0.902 }
-#  bg[ACTIVE] = { 0.776, 0.776, 0.749 }
-#  bg[PRELIGHT] = { 0.933, 0.933, 0.902 }
+#  fg[NORMAL] 		= { 0.000, 0.000, 0.000 }
+#  bg[NORMAL] 		= { 0.933, 0.933, 0.902 }
+#  text[NORMAL] 	= { 0.000, 0.000, 0.000 }
+#  base[NORMAL] 	= { 1.000, 1.000, 1.000 }
 #
-#  base[NORMAL] = { 1.000, 1.000, 1.000 }
-#  base[SELECTED] = { 1.000, 0.867, 0.463 }
-#  base[INSENSITIVE] = { 0.933, 0.933, 0.902 }
-#  base[ACTIVE] = { 1.000, 1.000, 1.000 }
-#  base[PRELIGHT] = { 1.000, 1.000, 1.000 }
+#  fg[ACTIVE] 		= { 0.000, 0.000, 0.000 }
+#  bg[ACTIVE] 		= { 0.776, 0.776, 0.749 }
+#  text[ACTIVE] 	= { 0.000, 0.000, 0.000 }
+#  base[ACTIVE] 	= { 1.000, 1.000, 1.000 }
 #
-#  text[NORMAL] = { 0.000, 0.000, 0.000 }
-#  text[SELECTED] = { 0.000, 0.000, 0.000 }
-#  text[INSENSITIVE] = { 0.776, 0.776, 0.749 }
-#  text[ACTIVE] = { 0.000, 0.000, 0.000 }
-#  text[PRELIGHT] = { 0.000, 0.000, 0.000 }
+#  fg[PRELIGHT] 	= { 0.000, 0.000, 0.000 }
+#  bg[PRELIGHT] 	= { 0.933, 0.933, 0.902 }
+#  text[PRELIGHT] 	= { 0.000, 0.000, 0.000 }
+#  base[PRELIGHT] 	= { 1.000, 1.000, 1.000 }
 
-#  fg[NORMAL] = { 0.000, 0.000, 0.000 }
-#  fg[SELECTED] = { 0.000, 0.000, 0.000 }
-#  fg[INSENSITIVE] = { 0.776, 0.776, 0.749 }
-#  fg[ACTIVE] = { 0.000, 0.000, 0.000 }
-#  fg[PRELIGHT] = { 0.000, 0.000, 0.000 }
+#  fg[SELECTED] 	= { 0.000, 0.000, 0.000 }
+#  bg[SELECTED] 	= { 1.000, 0.867, 0.463 }
+#  text[SELECTED] 	= { 0.000, 0.000, 0.000 }
+#  base[SELECTED] 	= { 1.000, 0.867, 0.463 }
+
+#  fg[INSENSITIVE] 	= { 0.776, 0.776, 0.749 }
+#  bg[INSENSITIVE] 	= { 0.933, 0.933, 0.902 }
+#  text[INSENSITIVE] 	= { 0.776, 0.776, 0.749 }
+#  base[INSENSITIVE] 	= { 0.933, 0.933, 0.902 }
+
 #}
 
 style "ToolTip"

@@ -1,29 +1,78 @@
 #Must set [KDE]:colorScheme=~/.afterstep/non_configurable/kcsrc
 # in ~/.kde/share/config/kdeglobals file ( or $KDEHOME/share/config/kdeglobals for that matter
+#	light[NORMAL]      = 	"Inactive1Light"   	    
+#	dark[NORMAL]       = 	"Inactive1Dark"   	     
+#	mid[NORMAL]        = 	"Inactive1"   		       
+#	light[ACTIVE]      = 	"Inactive2Light"   	    
+#	dark[ACTIVE]       = 	"Inactive2Dark"   	
+#	mid[ACTIVE]        = 	"Inactive2"   		
+#	light[PRELIGHT]    = 	"HighInactiveLight"	    
+#	dark[PRELIGHT]     = 	"HighInactiveDark"	
+#	mid[PRELIGHT]      = 	"HighInactive"		
+#	light[SELECTED]    = 	"ActiveLight"       	   
+#	dark[SELECTED]     = 	"ActiveDark"		
+#	mid[SELECTED]      = 	"Active"	  	
+#	light[INSENSITIVE] = 	"Inactive1Light"   	    
+#	dark[INSENSITIVE]  = 	"Inactive1Dark"   	
+#	mid[INSENSITIVE]   = 	"Inactive1"   		
+
+#	fg[NORMAL]         =    "InactiveText1"   	= { 0.000, 0.000, 0.000 }     
+#	bg[NORMAL]         =   	"Inactive1"       	= { 0.933, 0.933, 0.902 }     
+#	text[NORMAL]       = 	"InactiveText1"   	= { 0.000, 0.000, 0.000 }     
+#	base[NORMAL]       = 	"Inactive1"   		= { 1.000, 1.000, 1.000 }       
+#
+#	fg[ACTIVE]         =    "InactiveText2"   	= { 0.000, 0.000, 0.000 }
+#	bg[ACTIVE]         =   	"Inactive2"   		= { 0.776, 0.776, 0.749 }       
+#	text[ACTIVE]       = 	"InactiveText2"   	= { 0.000, 0.000, 0.000 }
+#	base[ACTIVE]       = 	"Inactive2"   		= { 1.000, 1.000, 1.000 }
+#
+#	fg[PRELIGHT]       =    "HighInactiveText"	= { 0.000, 0.000, 0.000 }     
+#	bg[PRELIGHT]       =  	"HighInactive"		= { 0.933, 0.933, 0.902 }
+#	text[PRELIGHT]     = 	"HighInactiveText"	= { 0.000, 0.000, 0.000 }
+#	base[PRELIGHT]     = 	"HighInactive"		= { 1.000, 1.000, 1.000 }
+#
+#	fg[SELECTED]       =    "ActiveText"      	= { 0.000, 0.000, 0.000 }
+#	bg[SELECTED]       =  	"Active"	  	= { 1.000, 0.867, 0.463 }
+#	text[SELECTED]     = 	"ActiveText"		= { 0.000, 0.000, 0.000 }
+#	base[SELECTED]     = 	"Active"	  	= { 1.000, 0.867, 0.463 }
+#
+#	fg[INSENSITIVE]	   =    "DisabledText"    	= { 0.776, 0.776, 0.749 }     
+#	bg[INSENSITIVE]    = 	"Inactive1"   		= { 0.933, 0.933, 0.902 }
+#	text[INSENSITIVE]  = 	"InactiveText1"   	= { 0.776, 0.776, 0.749 }
+#	base[INSENSITIVE]  = 	"Inactive1"   		= { 0.933, 0.933, 0.902 }
+
+
 
 [Color Scheme]
-Name=sasha
-activeBackground=62,145,235
-activeBlend=62,145,235
-activeForeground=255,255,255
-activeTitleBtnBg=238,238,230
-alternateBackground=238,246,255
-background=238,238,230
-buttonBackground=238,234,222
-buttonForeground=0,0,0
+Name=AfterStep
+activeBackground="Active"  	
+activeBlend="ActiveDark" 	
+activeForeground="ActiveText"
+activeTitleBtnBg="Active"
+
+alternateBackground="BaseLight"
+background="Inactive1"
+buttonBackground="Inactive1"
+buttonForeground="InactiveText1"
+
 contrast=7
-foreground=0,0,0
-frame=238,238,230
-handle=238,238,230
-inactiveBackground=143,159,180
-inactiveBlend=143,159,180
-inactiveForeground=255,255,255
-inactiveFrame=238,238,230
-inactiveHandle=238,238,230
-inactiveTitleBtnBg=238,238,230
-linkColor=0,0,192
-selectBackground=255,221,118
-selectForeground=0,0,0
-visitedLinkColor=128,0,128
-windowBackground=255,255,255
-windowForeground=0,0,0
+
+foreground="InactiveText1"
+frame="ActiveDark"
+handle="ActiveLight"
+
+inactiveBackground="Inactive2"
+inactiveBlend="Inactive2Light"
+inactiveForeground="InactiveText2"
+inactiveFrame="Inactive2Dark"
+inactiveHandle="Inactive2Light"
+inactiveTitleBtnBg="Inactive2"
+
+linkColor="HighInactiveText"
+visitedLinkColor="InactiveText2"
+
+selectBackground="HighActiveBack"
+selectForeground="HighActiveText"
+
+windowBackground="HighInactive"
+windowForeground="HighInactiveText"
