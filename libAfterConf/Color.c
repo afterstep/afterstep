@@ -629,3 +629,83 @@ UpdateKCSRC()
 	return result;
 }
 
+
+#if 0
+/* relevant KDE code for reference : */
+
+void KColorScheme::load()
+{
+    KConfig *config = KGlobal::config();
+    config->setGroup("KDE");
+    QString currentScheme = config->readEntry("colorScheme");
+
+    QString currentSchemeSearch = currentScheme.left(currentScheme.length()-QString(".kcsrc").length() );
+    if (SchemeListItem *item = findSchemeListItem(currentSchemeSearch) ) {
+        item->setSelected(true);
+        m_ui->schemeList->setCurrentItem(item);
+        m_ui->schemeList->ensureItemVisible(item);
+    }
+    m_currentScheme->setInheritedScheme(currentSchemeSearch);
+    currentSchemeChanged();
+
+    KConfig cfg("kcmdisplayrc", true, false);
+    cfg.setGroup("X11");
+    bool exportColors = cfg.readBoolEntry("exportKDEColors", true);
+    m_ui->exportColorsCB->setChecked(exportColors);
+
+    emit changed(false);
+}
+
+
+void KColorScheme::save()
+{
+    // apply the current scheme data
+    if (m_selectedScheme && m_currentScheme) {
+        KConfig *c = KGlobal::config();
+        writeSchemeConfig(c, "General", "WM", "KDE", *m_currentScheme);
+        c->writeEntry("colorScheme", QString("%1.kcsrc").arg(m_selectedScheme->visibleName() ), true, true);
+        c->sync();
+
+        // KDE-1.x support
+        KSimpleConfig *c2 =
+                new KSimpleConfig( QDir::homeDirPath() + "/.kderc" );
+        c2->setGroup( "General" );
+        write(c2, CS_StandardBackground, *m_currentScheme);
+        write(c2, CS_SelecedBackground, *m_currentScheme);
+        write(c2, CS_Text, *m_currentScheme);
+        write(c2, CS_StandardText, *m_currentScheme);
+        write(c2, CS_Background, *m_currentScheme);
+        write(c2, CS_SelectedText, *m_currentScheme);
+        c2->sync();
+        delete c2;
+    }
+
+    KConfig cfg2("kcmdisplayrc", false, false);
+    cfg2.setGroup("X11");
+    bool exportColors = m_ui->exportColorsCB->isChecked();
+    cfg2.writeEntry("exportKDEColors", exportColors);
+    cfg2.sync();
+    QApplication::syncX();
+
+    // Notify all qt-only apps of the KDE palette changes
+    uint flags = KRdbExportQtColors;
+    if ( exportColors )
+        flags |= KRdbExportColors;
+    else
+    {
+#if defined Q_WS_X11 && !defined K_WS_QTONLY
+        // Undo the property xrdb has placed on the root window (if any),
+        // i.e. remove all entries, including ours
+        XDeleteProperty( qt_xdisplay(), qt_xrootwin(), XA_RESOURCE_MANAGER );
+#endif
+    }
+    runRdb( flags );	// Save the palette to qtrc for KStyles
+
+    // Notify all KDE applications
+    KIPC::sendMessageAll(KIPC::PaletteChanged);
+
+    emit changed(false);
+}
+
+
+
