@@ -26,12 +26,12 @@
 LIB_INCS=	afterbase_config.h ashash.h aslist.h asvector.h astypes.h audit.h \
 		fs.h layout.h mystring.h os.h output.h parse.h \
 		regexp.h safemalloc.h selfdiag.h \
-		sleep.h socket.h timer.h trace.h xprop.h xwrap.h
+		sleep.h socket.h timer.h trace.h xml.h xprop.h xwrap.h
 
 LIB_OBJS=	ashash.o aslist.o asvector.o audit.o \
 		fs.o layout.o mystring.o os.o output.o parse.o \
 		regexp.o safemalloc.o selfdiag.o \
-		sleep.o socket.o timer.o trace.o xprop.o xwrap.o
+		sleep.o socket.o timer.o trace.o xml.o xprop.o xwrap.o
 
 # end specifics
 ################################################################

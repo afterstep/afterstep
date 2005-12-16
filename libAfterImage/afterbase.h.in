@@ -16,6 +16,7 @@
 #include <libAfterBase/sleep.h>
 #include <libAfterBase/socket.h>
 #include <libAfterBase/trace.h>
+#include <libAfterBase/xml.h>
 # else
 #include "@AFTERBASE_INCS_PATH@libAfterBase/astypes.h"
 #include "@AFTERBASE_INCS_PATH@libAfterBase/audit.h"
@@ -28,6 +29,7 @@
 #include "@AFTERBASE_INCS_PATH@libAfterBase/sleep.h"
 #include "@AFTERBASE_INCS_PATH@libAfterBase/socket.h"
 #include "@AFTERBASE_INCS_PATH@libAfterBase/trace.h"
+#include "@AFTERBASE_INCS_PATH@libAfterBase/xml.h"
 # endif
 #else
 

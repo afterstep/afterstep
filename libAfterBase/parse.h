@@ -62,6 +62,8 @@ parse_geometry (register char *tline,
   				unsigned int *height_return,
 				int* flags_return );
 
+double parse_math(const char* str, char** endptr, double size);
+
 char *string_from_int (int param);
 char *hex_to_buffer_reverse(void *data, size_t bytes, char* buffer);
 char *hex_to_buffer(void *data, size_t bytes, char* buffer);

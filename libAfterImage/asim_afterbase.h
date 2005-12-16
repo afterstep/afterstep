@@ -396,5 +396,7 @@ void asim_wait_tick ();
 #define start_ticker 	asim_start_ticker
 #define wait_tick 		asim_wait_tick
 
+/* TODO : add xml stuff */
+
 #endif /* ASIM_AFTERBASE_H_HEADER_INCLUDED */
 

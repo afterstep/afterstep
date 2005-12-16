@@ -45,6 +45,7 @@
 #include "parse.h"
 #include "audit.h"
 #include "output.h"
+#include "xml.h"
 
 /****************************************************************************
  * parse_argb_color - should be used for all your color parsing needs
@@ -467,7 +468,7 @@ const char *parse_argb_color( const char *color, CARD32 *pargb )
 		}else if( color[0] == 's' || color[0] == 'S' )
 		{
 			if( mystrncasecmp( &color[1], "aturation(", 10) == 0 )
-				return parse_hsv_part( &color[11], 2, pargb );
+				return parse_hsv_part( &color[11], 2, pargb ); 
 			else if( mystrncasecmp( &color[1], "at(", 3) == 0 )
 				return parse_hsv_part( &color[4], 2, pargb );
 		}else if( color[0] == 'v' || color[0] == 'V' )
@@ -848,6 +849,50 @@ parse_func_args (char *tline, char *unit, int *func_val)
 		*unit = '\0' ;
 	return tline[0]?tline+1:tline;
 }
+
+/* Math expression parsing algorithm. */
+double parse_math(const char* str, char** endptr, double size) {
+	double total = 0;
+	char op = '+';
+	char minus = 0;
+	const char* startptr = str;
+	if( str == NULL ) 
+		return 0 ;
+	while (*str) {
+		while (isspace((int)*str)) str++;
+		if (!op) {
+			if (*str == '+' || *str == '-' || *str == '*' || *str == '/') op = *str++;
+			else if (*str == '-') { minus = 1; str++; }
+			else if (*str == ')') { str++; break; }
+			else break;
+		} else {
+			char* ptr;
+			double num;
+			if (*str == '(') num = parse_math(str + 1, &ptr, size);
+                      else if (*str == '$') {
+                              for (ptr = (char*)str + 1 ; *ptr && !isspace(*ptr) && *ptr != '+' && *ptr != '-' && *ptr != '*' && *ptr != '/' && *ptr != ')' ; ptr++);
+                              num = asxml_var_nget((char*)str + 1, ptr - (str + 1));
+                      }
+			else num = strtod(str, &ptr);
+			if (str != ptr) {
+				if (*ptr == '%') num *= size / 100.0, ptr++;
+				if (minus) num = -num;
+				if (op == '+') total += num;
+				else if (op == '-') total -= num;
+				else if (op == '*') total *= num;
+				else if (op == '/' && num) total /= num;
+			} else break;
+			str = ptr;
+			op = '\0';
+			minus = 0;
+		}
+	}
+	if (endptr) *endptr = (char*)str;
+	show_debug(__FILE__,"parse_math",__LINE__,"Parsed math [%s] with reference [%.2f] into number [%.2f].", startptr, size, total);
+	return total;
+}
+
+
 
 char         *
 parse_geometry (register char *tline,

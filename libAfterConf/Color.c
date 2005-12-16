@@ -26,6 +26,8 @@
 #include "../libAfterStep/colorscheme.h"
 #include "../libAfterStep/session.h"
 #include "../libAfterStep/screen.h"
+#include "../libAfterStep/kde.h"
+#include "../libAfterBase/xml.h"
 
 #include <unistd.h>
 
@@ -493,12 +495,26 @@ static Bool
 SetKDEGlobalsColorScheme( const char *new_cs_file )	
 {
 	char *kdeglobals_fname = copy_replace_envvar ( KDEGLOBALS_FILE );
-	char *kdeglobals = load_file(kdeglobals_fname);
-	FILE *fp ;
 
 #if 0
+	xml_elem_t *KDE_cs = load_KDE_config( new_cs_file );
+	xml_elem_t *KDE_globals = load_KDE_config( kdeglobals_fname );
+	xml_elem_t *KDE_group = get_KDE_config_group( KDE_globals, "KDE", True );
+	xml_elem_t *WM_group = get_KDE_config_group( KDE_globals, "WM", True );
+	xml_elem_t *General_group = get_KDE_config_group( KDE_globals, "General", True );
 
+	merge_KDE_config_groups( KDE_cs, WM_group );
+	merge_KDE_config_groups( KDE_cs, General_group );
+	KDE_config_group_set_item( KDE_group, "colorScheme", new_cs_file );
+
+	save_KDE_config( kdeglobals_fname, KDE_globals );
+	xml_elem_delete( NULL, KDE_globals );
+	xml_elem_delete( NULL, KDE_cs );
+
+	free( kdeglobals_fname);
 #else
+	char *kdeglobals = load_file(kdeglobals_fname);
+	FILE *fp ;
 	
 	if( kdeglobals ) 
 	{
