@@ -27,6 +27,7 @@ struct wild_reg_exp;
 
 
 /* this are pure flags */
+#define STYLE_KDE_HINTS         (1 << 7)    /* if set - then we should honor KDE Hints */
 #define STYLE_CURRENT_VIEWPORT  (1 << 8)   /* Ignore ConfigRequests for the client */   
 #define STYLE_IGNORE_CONFIG     (1 << 9)   /* Ignore ConfigRequests for the client */   
 #define STYLE_LONG_LIVING       (1 << 10)
@@ -58,7 +59,7 @@ struct wild_reg_exp;
 #define STYLE_DEFAULTS		(STYLE_TITLE|STYLE_CIRCULATE|STYLE_WINLIST| \
                              STYLE_FOCUS|STYLE_FOCUS_ON_MAP|STYLE_HANDLES| \
 							 STYLE_ICON_TITLE|STYLE_PPOSITION|STYLE_GROUP_HINTS| \
-							 STYLE_TRANSIENT_HINTS|STYLE_MOTIF_HINTS| \
+							 STYLE_TRANSIENT_HINTS|STYLE_MOTIF_HINTS|STYLE_KDE_HINTS| \
 							 STYLE_GNOME_HINTS|STYLE_EXTWM_HINTS|STYLE_LONG_LIVING)
 
 /************************************************************************************

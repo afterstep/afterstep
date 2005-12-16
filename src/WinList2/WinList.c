@@ -899,6 +899,7 @@ configure_tbar_icon( ASTBarData *tbar, ASWindowData *wd )
 	ASImage *icon_im = NULL ;
 		
 	enable_hints_support (list, HINTS_ICCCM);
+	enable_hints_support (list, HINTS_KDE);
 	enable_hints_support (list, HINTS_ExtendedWM);
 	enable_hints_support (list, HINTS_ASDatabase);
 		

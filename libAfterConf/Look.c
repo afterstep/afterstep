@@ -1089,6 +1089,7 @@ LookConfig2MyLook ( struct LookConfig * config, MyLook * look,
             enable_hints_support( look->supported_hints, HINTS_ICCCM );
             enable_hints_support( look->supported_hints, HINTS_Motif );
             enable_hints_support( look->supported_hints, HINTS_Gnome );
+            enable_hints_support( look->supported_hints, HINTS_KDE );
             enable_hints_support( look->supported_hints, HINTS_ExtendedWM );
             enable_hints_support( look->supported_hints, HINTS_ASDatabase );
             enable_hints_support( look->supported_hints, HINTS_GroupLead );

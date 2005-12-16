@@ -1198,6 +1198,7 @@ FixLook( MyLook *look )
         enable_hints_support( look->supported_hints, HINTS_ICCCM );
         enable_hints_support( look->supported_hints, HINTS_Motif );
         enable_hints_support( look->supported_hints, HINTS_Gnome );
+        enable_hints_support( look->supported_hints, HINTS_KDE );
         enable_hints_support( look->supported_hints, HINTS_ExtendedWM );
         enable_hints_support( look->supported_hints, HINTS_ASDatabase );
         enable_hints_support( look->supported_hints, HINTS_GroupLead );
@@ -1438,11 +1439,14 @@ LoadASConfig (int thisdesktop, ASFlagType what)
     ASImageManager  *old_image_manager = NULL ;
     ASFontManager   *old_font_manager  = NULL ;
 	FunctionData gtkrc_signal_func ;
+	FunctionData kde_signal_func ;
 	ASEvent dummy_event = {0};
 	
 	init_func_data( &gtkrc_signal_func );
     gtkrc_signal_func.func = F_SIGNAL_RELOAD_GTK_RCFILE ;
-    
+	init_func_data( &kde_signal_func );
+    kde_signal_func.func = F_KIPC_SEND_MESSAGE_ALL ;
+
     cover_desktop();
 
 #ifndef DIFFERENTLOOKNFEELFOREACHDESKTOP

@@ -67,6 +67,7 @@ extern Atom  _AS_BUTTON_MENU_PRESSED     ;
 
 
 extern Atom  _GTK_READ_RCFILES;
+extern Atom  _KIPC_COMM_ATOM;
 
 
 extern struct AtomXref *WMPropAtoms;    /*all top level atoms for purpose of easy interning */

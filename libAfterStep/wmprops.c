@@ -89,6 +89,7 @@ Atom  		_AS_BUTTON_MENU 			= None;
 Atom  		_AS_BUTTON_MENU_PRESSED 	= None;
 
 Atom  		_GTK_READ_RCFILES = None;
+Atom  		_KIPC_COMM_ATOM = None;
 
 /* Crossreferences of atoms into flag value for
    different atom list type of properties :*/
@@ -154,6 +155,7 @@ AtomXref  _WMPropAtoms[] = {
     WMPROPS_ATOM_DESC(_AS_BUTTON_MENU_PRESSED),
 	
 	WMPROPS_ATOM_DESC(_GTK_READ_RCFILES),
+	WMPROPS_ATOM_DESC(_KIPC_COMM_ATOM),
 	
 	{NULL, NULL, 0, None}
 };

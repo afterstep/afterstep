@@ -492,9 +492,13 @@ static char *seek_next_line( char *ptr )
 static Bool 
 SetKDEGlobalsColorScheme( const char *new_cs_file )	
 {
-	FILE *fp ;
 	char *kdeglobals_fname = copy_replace_envvar ( KDEGLOBALS_FILE );
 	char *kdeglobals = load_file(kdeglobals_fname);
+	FILE *fp ;
+
+#if 0
+
+#else
 	
 	if( kdeglobals ) 
 	{
@@ -605,6 +609,7 @@ SetKDEGlobalsColorScheme( const char *new_cs_file )
 			return True;
 		}		 
 	}	 
+#endif
 	return False;
 }
 
@@ -657,12 +662,50 @@ void KColorScheme::load()
 }
 
 
+
+
 void KColorScheme::save()
 {
     // apply the current scheme data
     if (m_selectedScheme && m_currentScheme) {
         KConfig *c = KGlobal::config();
         writeSchemeConfig(c, "General", "WM", "KDE", *m_currentScheme);
+// this also translates into :
+    KConfig *cfg = KGlobal::config();
+	cfg->setGroup( "General" );
+    cfg->writeEntry("background", cs->back, true, true);
+    cfg->writeEntry("selectBackground", cs->select, true, true);
+    cfg->writeEntry("foreground", cs->txt, true, true);
+    cfg->writeEntry("windowForeground", cs->windowTxt, true, true);
+    cfg->writeEntry("windowBackground", cs->window, true, true);
+    cfg->writeEntry("selectForeground", cs->selectTxt, true, true);
+    cfg->writeEntry("buttonBackground", cs->button, true, true);
+    cfg->writeEntry("buttonForeground", cs->buttonTxt, true, true);
+
+    cfg->setGroup( "WM" );
+    cfg->writeEntry("activeForeground", cs->aTxt, true, true);
+    cfg->writeEntry("inactiveBackground", cs->iaTitle, true, true);
+    cfg->writeEntry("inactiveBlend", cs->iaBlend, true, true);
+    cfg->writeEntry("activeBackground", cs->aTitle, true, true);
+    cfg->writeEntry("activeBlend", cs->aBlend, true, true);
+    cfg->writeEntry("inactiveForeground", cs->iaTxt, true, true);
+    cfg->writeEntry("activeTitleBtnFg", cs->aTitleBtn, true, true);
+    cfg->writeEntry("inactiveTitleBtnFg", cs->iTitleBtn, true, true);
+    cfg->writeEntry("activeTitleBtnBg", cs->aTitleBtnBack, true, true);
+    cfg->writeEntry("inactiveTitleBtnBg", cs->iTitleBtnBack, true, true);
+    if(cs->aTitleBtnBlend != cs->aTitleBtnBack)
+        cfg->writeEntry("activeTitleBtnBlend", cs->aTitleBtnBlend, true, true);
+    else
+        cfg->writeEntry("activeTitleBtnBlend", "", true, true);
+    if(cs->iTitleBtnBlend != cs->iTitleBtnBack)
+        cfg->writeEntry("inactiveTitleBtnBlend", cs->iTitleBtnBlend, true, true);
+    else
+        cfg->writeEntry("inactiveTitleBtnBlend", "", true, true);
+
+    cfg->setGroup( "KDE" );
+    cfg->writeEntry("contrast", cs->contrast, true, true);
+    cfg->sync();
+
         c->writeEntry("colorScheme", QString("%1.kcsrc").arg(m_selectedScheme->visibleName() ), true, true);
         c->sync();
 
@@ -707,5 +750,242 @@ void KColorScheme::save()
     emit changed(false);
 }
 
+void runRdb( uint flags )
+{
+  // Obtain the application palette that is about to be set.
+  QPalette newPal = KApplication::createApplicationPalette();
+  bool exportColors      = flags & KRdbExportColors;
+  bool exportQtColors    = flags & KRdbExportQtColors;
+  bool exportQtSettings  = flags & KRdbExportQtSettings;
+  bool exportXftSettings = flags & KRdbExportXftSettings;
+
+  KConfig kglobals("kdeglobals", true, false);
+  kglobals.setGroup("KDE");
+
+  KTempFile tmpFile;
+
+  if (tmpFile.status() != 0)
+  {
+    kdDebug() << "Couldn't open temp file" << endl;
+    exit(0);
+  }
+
+  QFile &tmp = *(tmpFile.file());
+
+  // Export colors to non-(KDE/Qt) apps (e.g. Motif, GTK+ apps)
+  if (exportColors)
+  {
+    KGlobal::dirs()->addResourceType("appdefaults", KStandardDirs::kde_default("data") + "kdisplay/app-defaults/");
+    QColorGroup cg = newPal.active();
+    KGlobal::locale()->insertCatalogue("krdb");
+    createGtkrc( true, cg, 1 );
+    createGtkrc( true, cg, 2 );
+
+    QString preproc;
+    QColor backCol = cg.background();
+    addColorDef(preproc, "FOREGROUND"         , cg.foreground());
+    addColorDef(preproc, "BACKGROUND"         , backCol);
+    addColorDef(preproc, "HIGHLIGHT"          , backCol.light(100+(2*KGlobalSettings::contrast()+4)*16/1));
+    addColorDef(preproc, "LOWLIGHT"           , backCol.dark(100+(2*KGlobalSettings::contrast()+4)*10));
+    addColorDef(preproc, "SELECT_BACKGROUND"  , cg.highlight());
+    addColorDef(preproc, "SELECT_FOREGROUND"  , cg.highlightedText());
+    addColorDef(preproc, "WINDOW_BACKGROUND"  , cg.base());
+    addColorDef(preproc, "WINDOW_FOREGROUND"  , cg.foreground());
+    addColorDef(preproc, "INACTIVE_BACKGROUND", KGlobalSettings::inactiveTitleColor());
+    addColorDef(preproc, "INACTIVE_FOREGROUND", KGlobalSettings::inactiveTitleColor());
+    addColorDef(preproc, "ACTIVE_BACKGROUND"  , KGlobalSettings::activeTitleColor());
+    addColorDef(preproc, "ACTIVE_FOREGROUND"  , KGlobalSettings::activeTitleColor());
+    //---------------------------------------------------------------
+
+    tmp.writeBlock( preproc.latin1(), preproc.length() );
+
+    QStringList list;
+
+    QStringList adPaths = KGlobal::dirs()->findDirs("appdefaults", "");
+    for (QStringList::ConstIterator it = adPaths.begin(); it != adPaths.end(); ++it) {
+      QDir dSys( *it );
+
+      if ( dSys.exists() ) {
+        dSys.setFilter( QDir::Files );
+        dSys.setSorting( QDir::Name );
+        dSys.setNameFilter("*.ad");
+        list += dSys.entryList();
+      }
+    }
+
+    for (QStringList::ConstIterator it = list.begin(); it != list.end(); it++)
+      copyFile(tmp, locate("appdefaults", *it ), true);
+  }
+
+  // Merge ~/.Xresources or fallback to ~/.Xdefaults
+  QString homeDir = QDir::homeDirPath();
+  QString xResources = homeDir + "/.Xresources";
+
+  // very primitive support for ~/.Xresources by appending it
+  if ( QFile::exists( xResources ) )
+    copyFile(tmp, xResources, true);
+  else
+    copyFile(tmp, homeDir + "/.Xdefaults", true);
+
+  // Export the Xcursor theme & size settings
+  QString theme = kglobals.readEntry("cursorTheme", QString());
+  QString size  = kglobals.readEntry("cursorSize", QString());
+  QString contents;
+
+  if (!theme.isNull())
+    contents = "Xcursor.theme: " + theme + '\n';
+
+  if (!size.isNull())
+    contents += "Xcursor.size: " + size + '\n';
+
+  if (exportXftSettings)
+  {
+    kglobals.setGroup("General");
+
+    QString hintStyle(kglobals.readEntry("XftHintStyle", "hintmedium")),
+            subPixel(kglobals.readEntry("XftSubPixel"));
+
+    contents += "Xft.antialias: ";
+    if(QSettings().readBoolEntry("/qt/useXft"))
+      contents += "1";
+    else
+      contents += "0";
+
+    contents += "\nXft.hinting: ";
+    if(hintStyle.isEmpty())
+      contents += "-1";
+    else
+    {
+      if(hintStyle!="hintnone")
+        contents += "1";
+      else
+        contents += "0";
+      contents += "\nXft.hintstyle: " + hintStyle + '\n';
+    }
+    if(!subPixel.isEmpty())
+      contents += "Xft.rgba: " + subPixel + '\n';
+  }
+
+  if (contents.length() > 0)
+    tmp.writeBlock( contents.latin1(), contents.length() );
+
+  tmpFile.close();
+
+  KProcess proc;
+#ifndef NDEBUG
+  proc << "xrdb" << "-merge" << tmpFile.name();
+#else
+  proc << "xrdb" << "-quiet" << "-merge" << tmpFile.name();
+#endif
+  proc.start( KProcess::Block, KProcess::Stdin );
+
+  tmpFile.unlink();
+
+  applyGtkStyles(exportColors, 1);
+  applyGtkStyles(exportColors, 2);
+
+  /* Qt exports */
+  if ( exportQtColors || exportQtSettings )
+  {
+    QSettings* settings = new QSettings;
+
+    if ( exportQtColors )
+      applyQtColors( kglobals, *settings, newPal );    // For kcmcolors
+
+    if ( exportQtSettings )
+      applyQtSettings( kglobals, *settings );          // For kcmstyle
+
+    delete settings;
+    QApplication::flushX();
+
+    // We let KIPC take care of ourselves, as we are in a KDE app with
+    // QApp::setDesktopSettingsAware(false);
+    // Instead of calling QApp::x11_apply_settings() directly, we instead
+    // modify the timestamp which propagates the settings changes onto
+    // Qt-only apps without adversely affecting ourselves.
+
+    // Cheat and use the current timestamp, since we just saved to qtrc.
+    QDateTime settingsstamp = QDateTime::currentDateTime();
+
+    static Atom qt_settings_timestamp = 0;
+    if (!qt_settings_timestamp) {
+	 QString atomname("_QT_SETTINGS_TIMESTAMP_");
+	 atomname += XDisplayName( 0 ); // Use the $DISPLAY envvar.
+	 qt_settings_timestamp = XInternAtom( qt_xdisplay(), atomname.latin1(), False);
+    }
+
+    QBuffer stamp;
+    QDataStream s(stamp.buffer(), IO_WriteOnly);
+    s << settingsstamp;
+    XChangeProperty( qt_xdisplay(), qt_xrootwin(), qt_settings_timestamp,
+		     qt_settings_timestamp, 8, PropModeReplace,
+		     (unsigned char*) stamp.buffer().data(),
+		     stamp.buffer().size() );
+    QApplication::flushX();
+  }
+}
+
+static void applyQtColors( KConfig& kglobals, QSettings& settings, QPalette& newPal )
+{
+  QStringList actcg, inactcg, discg;
+
+  /* export kde color settings */
+  int i;
+  for (i = 0; i < QColorGroup::NColorRoles; i++)
+     actcg   << newPal.color(QPalette::Active,
+                (QColorGroup::ColorRole) i).name();
+  for (i = 0; i < QColorGroup::NColorRoles; i++)
+     inactcg << newPal.color(QPalette::Inactive,
+                (QColorGroup::ColorRole) i).name();
+  for (i = 0; i < QColorGroup::NColorRoles; i++)
+     discg   << newPal.color(QPalette::Disabled,
+                (QColorGroup::ColorRole) i).name();
+
+  while (!settings.writeEntry("/qt/Palette/active", actcg)) ;
+  settings.writeEntry("/qt/Palette/inactive", inactcg);
+  settings.writeEntry("/qt/Palette/disabled", discg);
+
+  // export kwin's colors to qtrc for kstyle to use
+  kglobals.setGroup("WM");
+
+  // active colors
+  QColor clr = newPal.active().background();
+  clr = kglobals.readColorEntry("activeBackground", &clr);
+  settings.writeEntry("/qt/KWinPalette/activeBackground", clr.name());
+  if (QPixmap::defaultDepth() > 8)
+    clr = clr.dark(110);
+  clr = kglobals.readColorEntry("activeBlend", &clr);
+  settings.writeEntry("/qt/KWinPalette/activeBlend", clr.name());
+  clr = newPal.active().highlightedText();
+  clr = kglobals.readColorEntry("activeForeground", &clr);
+  settings.writeEntry("/qt/KWinPalette/activeForeground", clr.name());
+  clr = newPal.active().background();
+  clr = kglobals.readColorEntry("frame", &clr);
+  settings.writeEntry("/qt/KWinPalette/frame", clr.name());
+  clr = kglobals.readColorEntry("activeTitleBtnBg", &clr);
+  settings.writeEntry("/qt/KWinPalette/activeTitleBtnBg", clr.name());
+
+  // inactive colors
+  clr = newPal.inactive().background();
+  clr = kglobals.readColorEntry("inactiveBackground", &clr);
+  settings.writeEntry("/qt/KWinPalette/inactiveBackground", clr.name());
+  if (QPixmap::defaultDepth() > 8)
+    clr = clr.dark(110);
+  clr = kglobals.readColorEntry("inactiveBlend", &clr);
+  settings.writeEntry("/qt/KWinPalette/inactiveBlend", clr.name());
+  clr = newPal.inactive().background().dark();
+  clr = kglobals.readColorEntry("inactiveForeground", &clr);
+  settings.writeEntry("/qt/KWinPalette/inactiveForeground", clr.name());
+  clr = newPal.inactive().background();
+  clr = kglobals.readColorEntry("inactiveFrame", &clr);
+  settings.writeEntry("/qt/KWinPalette/inactiveFrame", clr.name());
+  clr = kglobals.readColorEntry("inactiveTitleBtnBg", &clr);
+  settings.writeEntry("/qt/KWinPalette/inactiveTitleBtnBg", clr.name());
+
+  kglobals.setGroup("KDE");
+  settings.writeEntry("/qt/KDE/contrast", kglobals.readNumEntry("contrast", 7));
+}
+
+#endif
 
 

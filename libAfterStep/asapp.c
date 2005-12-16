@@ -160,6 +160,7 @@ TermDef       FuncTerms[F_FUNCTIONS_NUM + 1] = {
     FUNC_TERM2 (NEED_NAME | NEED_CMD, "InstallColorscheme", F_INSTALL_COLORSCHEME), /*  "name" file_name */
 	FUNC_TERM2 (NEED_NAME | NEED_CMD, "SaveWorkspace", F_SAVE_WORKSPACE), /* SaveWorkspace "name" file_name */
 	FUNC_TERM  ("SignalReloadGTKRCFile", F_SIGNAL_RELOAD_GTK_RCFILE),
+	FUNC_TERM  ("KIPCsendMessageAll", F_KIPC_SEND_MESSAGE_ALL),
 	FUNC_TERM2 (TF_SYNTAX_TERMINATOR, "EndFunction", F_ENDFUNC),
 	FUNC_TERM2 (TF_SYNTAX_TERMINATOR, "EndPopup", F_ENDPOPUP),
 	FUNC_TERM ("TakeScreenShot", F_TAKE_SCREENSHOT),

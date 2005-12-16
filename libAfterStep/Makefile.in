@@ -7,7 +7,7 @@ LIB_INCS= 	afterstep.h asapp.h ascommand.h asdatabase.h asfeel.h aswindata.h \
 		  balloon.h canvas.h clientprops.h colorscheme.h \
 		  decor.h desktop_category.h event.h freestor.h \
 		  functions.h font.h hints.h \
-                  moveresize.h myicon.h \
+                  kde.h moveresize.h myicon.h \
 		  mylook.h mystyle.h mystyle_property.h \
 		  parser.h screen.h shape.h \
 		  session.h wmprops.h
@@ -21,7 +21,7 @@ LIB_INCS= 	afterstep.h asapp.h ascommand.h asdatabase.h asfeel.h aswindata.h \
 LIB_OBJS= asapp.o ascommand.o asdatabase.o asfeel.o aswindata.o \
                   balloon.o canvas.o clientprops.o colorscheme.o \
 		  decor.o desktop_category.o event.o \
-                  freestor.o functions.o font.o hints.o module.o \
+                  freestor.o functions.o font.o hints.o kde.o module.o \
 		  moveresize.o myicon.o mylook.o mystyle.o mystyle_property.o \
 		  outline.o operations.o parser.o screen.o session.o shape.o wmprops.o
 

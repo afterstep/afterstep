@@ -109,6 +109,7 @@ struct ASImage;
 #define AS_DoesWmDeleteWindow 	(1<<1)
 #define AS_DoesWmPing           (1<<2)
 #define AS_NeedsVisibleName		(1<<3)  /* only if window has _NET_WM_NAME hint */
+#define AS_DoesKIPC				(1<<4)
 
 /***********************************************************/
 /* AS function masks :                                     */

@@ -65,6 +65,8 @@ get_asdb_hint_mask (ASDatabaseRecord * db_rec)
 			clear_flags (hint_mask, (0x01 << HINTS_Gnome));
 		if (get_flags (db_rec->set_flags, STYLE_EXTWM_HINTS) && !get_flags (db_rec->flags, STYLE_EXTWM_HINTS))
 			clear_flags (hint_mask, (0x01 << HINTS_ExtendedWM));
+		if (get_flags (db_rec->set_flags, STYLE_KDE_HINTS) && !get_flags (db_rec->flags, STYLE_KDE_HINTS))
+			clear_flags (hint_mask, (0x01 << HINTS_KDE));
 		if (get_flags (db_rec->set_flags, STYLE_XRESOURCES_HINTS) && !get_flags (db_rec->flags, STYLE_XRESOURCES_HINTS))
 			clear_flags (hint_mask, (0x01 << HINTS_XResources));
 	}
@@ -978,6 +980,36 @@ merge_gnome_hints (ASHints * clean, ASRawHints * raw,
 	}
 }
 
+static void
+merge_kde_hints (ASHints * clean, ASRawHints * raw,
+				   ASDatabaseRecord * db_rec, ASStatusHints * status, ASFlagType what)
+{
+	register KDEHints *kh;
+
+	if (raw == NULL)
+		return;
+	kh = &(raw->kde_hints);
+	if (kh->flags == 0)
+		return;
+
+	if (get_flags (what, HINT_STARTUP) && status != NULL)
+	{
+		if (get_flags (kh->flags, KDE_SysTrayWindowFor ))
+			set_flags (status->flags, AS_StartsSticky);
+	}
+
+	if (get_flags (what, HINT_GENERAL))
+	{
+		if (get_flags (kh->flags, KDE_DesktopWindow ))
+			set_flags( clean->protocols, AS_DoesKIPC ); 
+		if (get_flags (kh->flags, KDE_SysTrayWindowFor ))
+		{
+			set_flags( clean->flags, AS_SkipWinList|AS_DontCirculate );
+			clear_flags( clean->flags, AS_Handles|AS_Frame );
+		}		   
+	}
+}
+
 static ASFlagsXref extwm_state_xref[] = {	   /*Flag                    Set if Set,  Clear if Set, Set if Clear, Clear if Clear  */
 	{EXTWM_StateSticky, AS_StartsSticky, 0, 0, 0},
 	{EXTWM_StateMaximizedV, AS_StartsMaximizedY, 0, 0, 0},
@@ -999,7 +1031,6 @@ static ASFlagType extwm_types_start_properties[][3] = {
 	{EXTWM_TypeUtility, AS_LayerTop, 0}, 	
 	{EXTWM_TypeSplash, AS_LayerTop, AS_ShortLived },
 	{EXTWM_TypeASModule, AS_LayerNormal, AS_StartsSticky },
-	{EXTWM_TypeKDESysTrayWindow, AS_LayerNormal, AS_StartsSticky },
 	{0, 0, 0}
 };
 static ASFlagsXref extwm_type_xref[] = {	   /*Flag              Set if Set,      Clear if Set,     Set if Clear,    Clear if Clear  */
@@ -1009,7 +1040,6 @@ static ASFlagsXref extwm_type_xref[] = {	   /*Flag              Set if Set,     
 	{EXTWM_TypeMenu, AS_SkipWinList | AS_DontCirculate, AS_Handles | AS_Frame, 0, 0},
 	{EXTWM_TypeDialog, AS_ShortLived, 0 /*may need to remove handles */ , 0, 0},
 	{EXTWM_TypeASModule, AS_Module, 0, 0, AS_Module },
-	{EXTWM_TypeKDESysTrayWindow, AS_SkipWinList|AS_DontCirculate, AS_Handles|AS_Frame, 0, 0 },
 	{0, 0, 0, 0, 0}
 };
 static ASFlagsXref extwm_type_func_mask[] = {  /*Flag             Set if Set,  Clear if Set,     Set if Clear  , Clear if Clear  */
@@ -3225,6 +3255,8 @@ HintsTypes2Func (HintsTypes type)
 		 return merge_motif_hints;
 	 case HINTS_Gnome:
 		 return merge_gnome_hints;
+	 case HINTS_KDE:
+		 return merge_kde_hints;
 	 case HINTS_ExtendedWM:
 		 return merge_extwm_hints;
 	 case HINTS_XResources:
@@ -3250,6 +3282,8 @@ Func2HintsTypes (hints_merge_func func)
 		return HINTS_Gnome;
 	else if (func == merge_extwm_hints)
 		return HINTS_ExtendedWM;
+	else if (func == merge_kde_hints)
+		return HINTS_KDE;
 	else if (func == merge_xresources_hints)
 		return HINTS_XResources;
 	else if (func == merge_asdb_hints)

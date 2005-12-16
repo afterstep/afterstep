@@ -94,6 +94,7 @@ TermDef       SupportedHintsTerms[] =
     {TF_NO_MYNAME_PREPENDING, "Transient", 9, TT_FLAG, HINTS_Transient_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "Motif", 5, TT_FLAG, HINTS_Motif_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "Gnome", 5, TT_FLAG, HINTS_Gnome_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "KDE", 10, TT_FLAG, HINTS_KDE_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "ExtendedWM", 10, TT_FLAG, HINTS_ExtendedWM_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "Xresources", 10, TT_FLAG, HINTS_XResources_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "AfterStepDB",11, TT_FLAG, HINTS_ASDatabase_ID, NULL},

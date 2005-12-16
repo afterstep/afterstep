@@ -43,6 +43,7 @@
 #include "../../libAfterStep/desktop_category.h"
 #include "../../libAfterStep/wmprops.h"
 #include "../../libAfterConf/afterconf.h"
+#include "../../libAfterStep/kde.h"
 
 static as_function_handler function_handlers[F_FUNCTIONS_NUM] ;
 
@@ -93,6 +94,7 @@ void quickrestart_func_handler( FunctionData *data, ASEvent *event, int module )
 void send_window_list_func_handler( FunctionData *data, ASEvent *event, int module );
 void save_workspace_func_handler( FunctionData *data, ASEvent *event, int module );
 void signal_reload_GTKRC_file_handler( FunctionData *data, ASEvent *event, int module );
+void KIPC_send_message_all_handler( FunctionData *data, ASEvent *event, int module );
 void test_func_handler( FunctionData *data, ASEvent *event, int module );
 void screenshot_func_handler( FunctionData *data, ASEvent *event, int module );
 void swallow_window_func_handler( FunctionData *data, ASEvent *event, int module );
@@ -174,6 +176,7 @@ void SetupFunctionHandlers()
 
 	function_handlers[F_SAVE_WORKSPACE]     = save_workspace_func_handler;
 	function_handlers[F_SIGNAL_RELOAD_GTK_RCFILE] = signal_reload_GTKRC_file_handler;
+	function_handlers[F_KIPC_SEND_MESSAGE_ALL] = KIPC_send_message_all_handler;
 
     function_handlers[F_REFRESH]            = refresh_func_handler ;
 #ifndef NO_VIRTUAL
@@ -1545,6 +1548,44 @@ void signal_reload_GTKRC_file_handler( FunctionData *data, ASEvent *event, int m
 	
 	iterate_asbidirlist( Scr.Windows->clients, send_client_message_iter_func, &ev, NULL, False );
 }
+
+Bool
+send_kipc_client_message_iter_func(void *data, void *aux_data)
+{
+    XClientMessageEvent *ev = (XClientMessageEvent *)aux_data;
+    ASWindow *asw = (ASWindow *)data ;
+	
+	if( get_flags(asw->hints->protocols, AS_DoesKIPC ) )
+	{	
+		ev->window = asw->w; 
+    	XSendEvent (dpy, asw->w, False, 0, (XEvent *) ev);
+	}
+
+    return True;
+}
+
+void KIPC_sendMessageAll(KIPC_Message msg, int data)
+{
+	XClientMessageEvent ev;
+	
+	memset( &ev, 0x00, sizeof(ev));
+    ev.type = ClientMessage;
+    ev.display = dpy;
+    ev.message_type = _KIPC_COMM_ATOM;
+    ev.format = 32;
+    ev.data.l[0] = msg;
+    ev.data.l[1] = data;
+	
+	iterate_asbidirlist( Scr.Windows->clients, send_kipc_client_message_iter_func, &ev, NULL, False );
+}
+
+
+
+void KIPC_send_message_all_handler( FunctionData *data, ASEvent *event, int module )
+{
+	KIPC_sendMessageAll((KIPC_Message)data->func_val[0], data->func_val[1]);
+	
+}	 
 
 void refresh_func_handler( FunctionData *data, ASEvent *event, int module )
 {

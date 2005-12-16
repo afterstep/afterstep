@@ -22,6 +22,7 @@ typedef enum
 	HINTS_Transient,
 	HINTS_Motif,
     HINTS_Gnome,
+	HINTS_KDE,
     HINTS_ExtendedWM,
     HINTS_XResources,
     HINTS_ASDatabase,
@@ -474,11 +475,9 @@ typedef struct ExtendedWMHints
 #define EXTWM_TypeUtility       (0x01<<11)
 #define EXTWM_TypeSplash        (0x01<<12)
 #define EXTWM_TypeASModule      (0x01<<13)
-#define EXTWM_TypeKDESysTrayWindow (0x01<<14)
 #define EXTWM_TypeEverything    (EXTWM_TypeDesktop|EXTWM_TypeDock|EXTWM_TypeToolbar| \
                                  EXTWM_TypeMenu|EXTWM_TypeDialog|EXTWM_TypeNormal| \
-								 EXTWM_TypeUtility|EXTWM_TypeSplash|EXTWM_TypeASModule| \
-								 EXTWM_TypeKDESysTrayWindow)
+								 EXTWM_TypeUtility|EXTWM_TypeSplash|EXTWM_TypeASModule)
 
 #define EXTWM_StateModal        (0x01<<16)
 #define EXTWM_StateSticky       (0x01<<17)
@@ -518,6 +517,15 @@ typedef struct ExtendedWMHints
   CARD32 icon_length;
 }
 ExtendedWMHints;
+
+typedef struct KDEHints
+{
+#define KDE_DesktopWindow              (0x01<<0)
+#define KDE_SysTrayWindowFor           (0x01<<1)
+	
+	ASFlagType flags ;
+	Window systray_window_for;
+}KDEHints;
 
 /***********************************************************************/
 /*    AfterStep structure to collect all the hints set on window :     */
@@ -579,6 +587,7 @@ typedef struct ASRawHints
 
   /* WM-specs (new Gnome) Hints : */
   ExtendedWMHints extwm_hints;
+  KDEHints	kde_hints;
 
   ASFlagType  hints_types ;
 

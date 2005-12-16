@@ -108,6 +108,7 @@ Atom          _XA_NET_WM_PING;
  * http://standards.freedesktop.org/systemtray-spec/systemtray-spec-0.2.html#ftn.id2494129
  * 
  */
+Atom          _XA_KDE_DESKTOP_WINDOW = None ;
 Atom 		  _XA_KDE_NET_SYSTEM_TRAY_WINDOW_FOR = None;
 
 
@@ -132,6 +133,8 @@ AtomXref      MainHints[] = {
 	{"_NET_WM_STATE", &_XA_NET_WM_STATE},
 	{"_NET_WM_PID", &_XA_NET_WM_PID},
 	{"_NET_WM_ICON", &_XA_NET_WM_ICON},
+	{"_KDE_DESKTOP_WINDOW", &_XA_KDE_DESKTOP_WINDOW},
+	{"_KDE_NET_SYSTEM_TRAY_WINDOW_FOR", &_XA_KDE_NET_SYSTEM_TRAY_WINDOW_FOR},
 	{NULL, NULL, 0, None}
 };
 
@@ -151,7 +154,6 @@ AtomXref      EXTWM_WindowType[] = {
 	{"_NET_WM_WINDOW_TYPE_UTILITY", &_XA_NET_WM_WINDOW_TYPE_UTILITY, EXTWM_TypeUtility},
 	{"_NET_WM_WINDOW_TYPE_SPLASH", &_XA_NET_WM_WINDOW_TYPE_SPLASH, EXTWM_TypeSplash},
 	{"_AS_WM_WINDOW_TYPE_MODULE", &_XA_AS_WM_WINDOW_TYPE_MODULE, EXTWM_TypeASModule},
-	{"_KDE_NET_SYSTEM_TRAY_WINDOW_FOR", &_XA_KDE_NET_SYSTEM_TRAY_WINDOW_FOR, EXTWM_TypeKDESysTrayWindow },
 	
 	{NULL, NULL, 0, None}
 };
@@ -652,6 +654,27 @@ read_extwm_icon (ASRawHints * hints, Window w)
 	}
 }
 
+void
+read_kde_desktop_window (ASRawHints * hints, Window w)
+{
+	if (hints && w != None)
+	{
+		CARD32 dummy ;
+		if (read_32bit_property (w, _XA_KDE_DESKTOP_WINDOW, &dummy))
+			set_flags( hints->kde_hints.flags, KDE_DesktopWindow);
+	}
+}
+	
+void
+read_kde_systray_window_for (ASRawHints * hints, Window w)
+{
+	if (hints && w != None)
+	{
+		if (read_32bit_property (w, _XA_KDE_NET_SYSTEM_TRAY_WINDOW_FOR, &hints->kde_hints.systray_window_for))
+			set_flags( hints->kde_hints.flags, KDE_SysTrayWindowFor);
+	}
+}
+
 Bool
 default_parent_hints_func (Window parent, ASParentHints * dst)
 {
@@ -740,6 +763,9 @@ HintsDescriptions[] =
 	{&_XA_NET_WM_STATE, read_extwm_state, HINT_STARTUP | HINT_GENERAL, HINTS_ExtendedWM},
 	{&_XA_NET_WM_PID, read_extwm_pid, HINT_GENERAL, HINTS_ExtendedWM},
 	{&_XA_NET_WM_ICON, read_extwm_icon, HINT_GENERAL, HINTS_ExtendedWM},
+	{&_XA_KDE_DESKTOP_WINDOW, read_kde_desktop_window, HINT_GENERAL, HINTS_KDE},
+	{&_XA_KDE_NET_SYSTEM_TRAY_WINDOW_FOR, read_kde_systray_window_for, HINT_GENERAL, HINTS_KDE},
+
 	{
 	NULL, NULL, 0, HINTS_Supported}
 };

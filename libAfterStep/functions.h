@@ -69,6 +69,7 @@ typedef enum FunctionCode{
   F_INSTALL_COLORSCHEME,
   F_SAVE_WORKSPACE,
   F_SIGNAL_RELOAD_GTK_RCFILE,
+  F_KIPC_SEND_MESSAGE_ALL,     /* sends KIPC message to all KDE windows */
   F_ENDFUNC,
   F_ENDPOPUP,
   F_TAKE_SCREENSHOT,

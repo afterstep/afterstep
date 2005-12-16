@@ -1869,6 +1869,7 @@ Bool handle_tab_name_change( Window client)
 		ASSupportedHints *list = create_hints_list ();
 		
 		enable_hints_support (list, HINTS_ICCCM);
+		enable_hints_support (list, HINTS_KDE);
 		enable_hints_support (list, HINTS_ExtendedWM);
 		
 		memset( &raw, 0x00, sizeof(ASRawHints));
