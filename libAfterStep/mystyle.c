@@ -254,8 +254,9 @@ grab_root_asimage( ScreenInfo *scr, Window target, Bool screenshot )
 	{
 		Window wdumm ;
     	unsigned int udumm ;
-		int bw = 0 ;
-		int tx, ty, tw, th ;
+		unsigned int bw = 0 ;
+		int tx, ty ;
+		unsigned int tw, th ;
 
 	    if( XGetGeometry(dpy, target, &wdumm, &tx, &ty, &tw, &th, &bw, &udumm )!= 0 )
 		{

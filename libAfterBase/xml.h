@@ -105,7 +105,6 @@ xml_elem_t *create_CONTAINER_tag();
 xml_elem_t* xml_parse_parm(const char* parm, struct ASHashTable *vocabulary);
 void xml_print(xml_elem_t* root);
 
-xml_elem_t* xml_elem_remove(xml_elem_t** list, xml_elem_t* elem);
 void xml_elem_delete(xml_elem_t** list, xml_elem_t* elem);
 xml_elem_t* xml_parse_doc(const char* str, struct ASHashTable *vocabulary);
 int xml_parse(const char* str, xml_elem_t* current, struct ASHashTable *vocabulary);
@@ -118,6 +117,7 @@ int spool_xml_tag( ASXmlBuffer *xb, char *tmp, int len );
 char translate_special_sequence( const char *ptr, int len,  int *seq_len );
 void append_cdata( xml_elem_t *cdata_tag, const char *line, int len );
 void append_CDATA_line( xml_elem_t *tag, const char *line, int len );
+char *interpret_ctrl_codes( char *text );
 
 
 

@@ -206,7 +206,7 @@ windowbox_parse (char *tline, FILE * fd, char **unused1, int *unused2)
     ConfigDef    *ConfigReader ;
     FreeStorageElem *Storage = NULL, *more_stuff = NULL;
     ASWindowBox **aswbox_list = &(ASDefaultScr->Feel.window_boxes);
-	int *count = &(ASDefaultScr->Feel.window_boxes_num);
+	unsigned int *count = &(ASDefaultScr->Feel.window_boxes_num);
     ASWindowBox *new_box ;
 	ConfigData cd ;
 

@@ -514,7 +514,7 @@ typedef struct ExtendedWMHints
   CARD32 desktop;
   CARD32 pid;
   CARD32 *icon;
-  CARD32 icon_length;
+  long icon_length;
 }
 ExtendedWMHints;
 

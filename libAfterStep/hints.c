@@ -2836,7 +2836,7 @@ serialize_string (char *string, ASVector * buf)
 	if (buf)
 	{
         register CARD32 *ptr;
-		register CARD8 *src = string;
+		register char *src = string;
 		register int  i = string ? strlen (string) >> 2 : 0;	/* assume CARD32 == 4*CARD8 :)) */
 
 		append_vector (buf, NULL, 1 + i + 1);

@@ -485,7 +485,7 @@ build_asdb (name_list * nl)
 		if ((regexp = compile_wild_reg_exp (nl->name)) != NULL)
 		{
 			/* First check if that is the default style */
-			if (strcmp (regexp->raw, "*") == 0)
+			if (strcmp ((char*)regexp->raw, "*") == 0)
 			{
 				destroy_wild_reg_exp (regexp);
 				replace_record (&(db->style_default), nl, NULL);

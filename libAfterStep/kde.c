@@ -61,7 +61,7 @@ make_kde_config_group_tag( const char *name )
 	if( name_len > 0 ) 
 	{	
 		group->parm = safemalloc( 4+1+1+name_len+1+1 );
-		sprintf( group->parm, "name=\"%*s\"", name_len, name );
+		sprintf( group->parm, "name=\"%*.*s\"", name_len, name_len, name );
 	} 		                   /* WE ALLOW SECTIONS WITH NO NAMES */
 	return group;
 }	   
@@ -86,7 +86,7 @@ make_kde_config_item_tag( const char *name, int *name_len_return )
 		{	
 			KDE_CONFIG_MAKE_TAG(item);
 			item->parm = safemalloc( 4+1+1+name_len+1+1 );
-			sprintf( item->parm, "name=\"%*s\"", name_len, name );
+			sprintf( item->parm, "name=\"%*.*s\"", name_len, name_len, name );
 		}
 		if( name_len_return ) 
 			*name_len_return = name_len ;
@@ -133,6 +133,8 @@ xml_elem_t* load_KDE_config(const char* realfilename)
 				{	
 					if( group ) 
 						group->next = tag ; 
+					else
+						config->child = tag ;						
 					group = tag ;
 				}
 			}else if( buffer[i] != '\0' )

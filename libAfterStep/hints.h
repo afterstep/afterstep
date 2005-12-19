@@ -214,7 +214,7 @@ typedef struct ASStatusHints
     unsigned int    width, height;
     unsigned int    border_width ; /* this border width is needed only to calculate
 								    * reference point when we are starting up */
-    unsigned int    viewport_x, viewport_y;
+    int    			viewport_x, viewport_y;
     int             desktop ;
 	int 			layer ;
 

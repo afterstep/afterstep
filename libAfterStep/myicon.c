@@ -76,11 +76,18 @@ icon_from_pixmaps( MyIcon *icon, Pixmap pix, Pixmap mask, Pixmap alpha )
 		{
 			Window        junk_w;
 			int           junk;
+			unsigned int  ujunk, width, height;
+			
 
-			if (!XGetGeometry( dpy, pix, &junk_w, &junk, &junk, &icon->width, &icon->height, &junk, &junk))
-				icon->pix = None;
-			else
+			if (!XGetGeometry( dpy, pix, &junk_w, &junk, &junk, &width, &height, &ujunk, &ujunk))
 			{
+				icon->pix = None;
+				icon->width = 0;
+				icon->height = 0;
+			}else
+			{
+				icon->width = width;
+				icon->height = height;
 				if (mask)
 					icon->image = picture2asimage ( ASDefaultVisual, pix, mask, 0, 0, icon->width, icon->height,
 													AllPlanes, False, 0);

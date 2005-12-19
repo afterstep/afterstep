@@ -54,6 +54,14 @@ static ASHashTable *asxml_var = NULL;
 
 void asxml_var_insert(const char* name, int value);
 
+static char* lcstring(char* str) 
+{
+	char* ptr = str;
+	for ( ; *ptr ; ptr++) if (isupper((int)*ptr)) *ptr = tolower((int)*ptr);
+	return str;
+}
+
+
 void
 asxml_var_init(void)
 {
@@ -449,13 +457,6 @@ find_tag_by_id( xml_elem_t *chain, int id )
 		chain = chain->next ;
 	}
 	return NULL ;
-}
-
-static char* lcstring(char* str) 
-{
-	char* ptr = str;
-	for ( ; *ptr ; ptr++) if (isupper((int)*ptr)) *ptr = tolower((int)*ptr);
-	return str;
 }
 
 char *interpret_ctrl_codes( char *text )

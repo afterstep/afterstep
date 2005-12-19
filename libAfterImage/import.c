@@ -696,7 +696,7 @@ check_image_type( const char *realfilename )
 {
 	int filename_len = strlen( realfilename );
 #define FILE_HEADER_SIZE	512
-	CARD8 head[FILE_HEADER_SIZE+1] ;
+	char head[FILE_HEADER_SIZE+1] ;
 	int bytes_in = 0 ;
 	FILE *fp ;
 	ASImageFileTypes type = ASIT_Unknown ;
@@ -718,7 +718,7 @@ check_image_type( const char *realfilename )
  */
 		if( bytes_in > 3 )
 		{
-			if( head[0] == 0xff && head[1] == 0xd8 && head[2] == 0xff)
+			if( (CARD8)head[0] == 0xff && (CARD8)head[1] == 0xd8 && (CARD8)head[2] == 0xff)
 				type = ASIT_Jpeg;
 			else if (strstr ((char *)&(head[0]), "XPM") != NULL)
 				type =  ASIT_Xpm;
@@ -748,12 +748,12 @@ check_image_type( const char *realfilename )
 		}	 
 		if( type == ASIT_Unknown && bytes_in  > 8 )
 		{
-			if( strncmp((char *)&(head[0]), XCF_SIGNATURE, (size_t) XCF_SIGNATURE_LEN) == 0)
+			if( strncmp(&(head[0]), XCF_SIGNATURE, (size_t) XCF_SIGNATURE_LEN) == 0)
 				type = ASIT_Xcf;
 	   		else if (head[0] == 0 && head[1] == 0 &&
 			    	 head[2] == 2 && head[3] == 0 && head[4] == 0 && head[5] == 0 && head[6] == 0 && head[7] == 0)
 				type = ASIT_Targa;
-			else if (strncmp ((char *)&(head[0]), "#define", (size_t) 7) == 0)
+			else if (strncmp (&(head[0]), "#define", (size_t) 7) == 0)
 				type = ASIT_Xbm;
 			else
 			{/* the nastiest check - for XML files : */
