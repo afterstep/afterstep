@@ -1285,6 +1285,7 @@ redecorate_aswindow_iter_func(void *data, void *aux_data)
     ASWindow *asw = (ASWindow*)data;
     if(asw )
 	{
+/* need to invalidate all MyStyles at this point ??? */
 		redecorate_window( asw, False );
         if( asw->internal && asw->internal->on_look_feel_changed )
             asw->internal->on_look_feel_changed( asw->internal, &Scr.Feel, &Scr.Look, ASFLAGS_EVERYTHING );
