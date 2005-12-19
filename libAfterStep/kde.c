@@ -124,7 +124,10 @@ xml_elem_t* load_KDE_config(const char* realfilename)
 						tag->child->parm = mystrndup( &buffer[i], len );
 					}
 					if( group == NULL ) 
+					{
 						group = make_kde_config_group_tag(NULL);		   
+						config->child = group;
+					}
 					xml_insert( group, tag );
 				}
 			}else if( buffer[i] == '[' ) 
@@ -145,7 +148,11 @@ xml_elem_t* load_KDE_config(const char* realfilename)
 				{              /* now we need to parse value and then possibly a comment : */
 					char *val = stripcpy(&buffer[i+name_len+1] );
 					if( group == NULL ) 
+					{
 						group = make_kde_config_group_tag(NULL);		   
+						config->child = group;
+					}
+
 					xml_insert( group, tag );
 					
 					if( val ) 
@@ -174,7 +181,7 @@ strip_name_value( char *parm )
 		int parm_len = strlen(parm);	  
 		if( parm_len > 7 && strncmp( parm, "name=\"", 6) == 0 )  
 		{
-			return mystrndup(parm, parm_len - 7);
+			return mystrndup(parm+6, parm_len - 7);
 		}
 	}
 	return NULL;
@@ -220,7 +227,7 @@ Bool save_KDE_config(const char* realfilename, xml_elem_t *elem )
 						fprintf( fp, "#\n" );
 				}else if( child->tag_id == KDEConfig_item ) 
 				{
-			  		name = strip_name_value( elem->parm );
+			  		name = strip_name_value( child->parm );
 					if( name != NULL ) 
 					{
 						fprintf( fp, "%s=", name );	  
@@ -251,7 +258,7 @@ find_KDE_config_item_by_key( xml_elem_t *group, const char *key, Bool create_if_
 		item = item->next ; 	 		
 	}	 
 
-	if( item->tag_id != KDEConfig_item ) 
+	if( item != NULL && item->tag_id != KDEConfig_item ) 
 		item = NULL ; 
 	if( item == NULL && create_if_missing ) 
 	{
@@ -319,7 +326,7 @@ get_KDE_config_group( xml_elem_t *config, const char *name, Bool create_if_missi
 	if( config == NULL ) 
 		return False; 
 
-	if( config->tag_id != XML_CONTAINER_ID ) 
+	if( config->tag_id == XML_CONTAINER_ID ) 
 		if( (group = config->child) == NULL ) 
 			return False;
 
@@ -337,7 +344,7 @@ get_KDE_config_group( xml_elem_t *config, const char *name, Bool create_if_missi
 		}
 	}while( (group = group->next) != NULL ); 
 
-	if( group->tag_id != KDEConfig_group) 
+	if( group != NULL && group->tag_id != KDEConfig_group) 
 		group = NULL ; 
 	
 	if( group == NULL && create_if_missing ) 
@@ -345,7 +352,7 @@ get_KDE_config_group( xml_elem_t *config, const char *name, Bool create_if_missi
 		KDE_CONFIG_MAKE_TAG(group);
 		group->parm = key;
 		key = NULL ; 
-		if( config->tag_id != XML_CONTAINER_ID ) 
+		if( config->tag_id == XML_CONTAINER_ID ) 
 			xml_insert( config, group );
 		else
 			group->next = config ; 
