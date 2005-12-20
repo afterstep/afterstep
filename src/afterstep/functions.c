@@ -1555,7 +1555,8 @@ send_kipc_client_message_iter_func(void *data, void *aux_data)
     XClientMessageEvent *ev = (XClientMessageEvent *)aux_data;
     ASWindow *asw = (ASWindow *)data ;
 	
-	if( get_flags(asw->hints->protocols, AS_DoesKIPC ) )
+	/* KDE not always sets this flag ??? */
+	if(  get_flags(asw->hints->protocols, AS_DoesKIPC ) )
 	{	
 		ev->window = asw->w; 
     	XSendEvent (dpy, asw->w, False, 0, (XEvent *) ev);
@@ -1576,7 +1577,8 @@ void KIPC_sendMessageAll(KIPC_Message msg, int data)
     ev.data.l[0] = msg;
     ev.data.l[1] = data;
 	
-	iterate_asbidirlist( Scr.Windows->clients, send_kipc_client_message_iter_func, &ev, NULL, False );
+	iterate_asbidirlist( Scr.Windows->clients, send_client_message_iter_func, &ev, NULL, False );
+	/*	iterate_asbidirlist( Scr.Windows->clients, send_kipc_client_message_iter_func, &ev, NULL, False ); */
 }
 
 

@@ -522,6 +522,7 @@ ASFlagType compile_titlebuttons_mask (ASHints *hints);
 void estimate_titlebar_size( ASHints *hints, unsigned int *width_ret, unsigned int *height_ret );
 void disable_titlebuttons_with_function (ASWindow * t, int function);
 Bool hints2decorations( ASWindow *asw, ASHints *old_hints );
+void invalidate_window_mystyles( ASWindow *asw );
 
 /*************************** events.c ********************************/
 const char *context2text(int ctx);

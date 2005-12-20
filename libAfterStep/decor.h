@@ -204,6 +204,7 @@ Bool set_astbar_huesat( ASTBarData *tbar, unsigned int state, int hue, int sat )
 Bool set_astbar_style_ptr (ASTBarData * tbar, unsigned int state, struct MyStyle *style);
 Bool set_astbar_style( ASTBarData *tbar, unsigned int state, const char *style_name );
 Bool set_astbar_flip( ASTBarData * tbar, int flip );
+Bool invalidate_astbar_style (ASTBarData * tbar, int state);
 
 
 int make_tile_pad( Bool pad_before, Bool pad_after, int cell_size, int tile_size );

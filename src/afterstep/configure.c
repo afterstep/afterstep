@@ -1182,8 +1182,8 @@ FixLook( MyLook *look )
     /* checking sanity of the move-resize window geometry :*/
     if( (look->resize_move_geometry.flags&(HeightValue|WidthValue)) != (HeightValue|WidthValue))
 	{
-		int width = 0;
-		int height = 0 ;
+		unsigned int width = 0;
+		unsigned int height = 0 ;
 		get_text_size( " +88888 x +88888 ", look->MSWindow[BACK_FOCUSED]->font.as_font, look->MSWindow[BACK_FOCUSED]->text_style, &width, &height );
     	if( !get_flags(look->resize_move_geometry.flags, WidthValue ) )
 	        look->resize_move_geometry.width = width + SIZE_VINDENT * 2;
@@ -1286,7 +1286,10 @@ redecorate_aswindow_iter_func(void *data, void *aux_data)
     ASWindow *asw = (ASWindow*)data;
     if(asw )
 	{
-/* need to invalidate all MyStyles at this point ??? */
+		/* need to invalidate all MyStyles at this point ??? */
+		
+		invalidate_window_mystyles( asw );
+		
 		redecorate_window( asw, False );
         if( asw->internal && asw->internal->on_look_feel_changed )
             asw->internal->on_look_feel_changed( asw->internal, &Scr.Feel, &Scr.Look, ASFLAGS_EVERYTHING );
@@ -1887,7 +1890,8 @@ SetCustomCursor (char *text, FILE * fd, char **arg, int *junk)
 	int           num, cursor_num;
 	char          f_cursor[1024], f_mask[1024];
 	Pixmap        cursor = None, mask = None;
-	int           width, height, x, y;
+	unsigned int  width, height;
+	int x, y;
 	XColor        fore, back;
 	char         *path;
     Cursor new_c ;

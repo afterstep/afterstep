@@ -875,6 +875,35 @@ set_astbar_style (ASTBarData * tbar, unsigned int state, const char *style_name)
     return changed;
 }
 
+Bool
+invalidate_astbar_style (ASTBarData * tbar, int state)
+{
+	Bool          changed = False;
+
+	if( tbar && state < BAR_STATE_NUM )
+	{
+		if( state < 0 ) 
+		{
+			int i ;
+			for( i = 0 ; i < BAR_STATE_NUM ; ++i ) 
+				if( tbar->back[i] )
+					changed = invalidate_astbar_style (tbar, i);
+		}else if( tbar->style[state] != NULL )
+		{
+			changed = True;
+			tbar->style[state] = NULL;
+			if( tbar->back[state] )
+			{
+				destroy_asimage (&(tbar->back[state]));
+				tbar->back[state] = NULL;
+			}
+			set_flags( tbar->state, BAR_FLAGS_REND_PENDING );
+		}
+	}
+    return changed;
+}
+
+
 static int
 add_astbar_tile( ASTBarData *tbar, int type, unsigned char col, unsigned char row, int flip, int align )
 {

@@ -533,6 +533,22 @@ invalidate_window_icon( ASWindow *asw )
         check_icon_canvas( asw, False );
 }
 
+void 
+invalidate_window_mystyles( ASWindow *asw )
+{
+	int i ; 
+	
+	for( i = 0 ; i < FRAME_PARTS ; ++i ) 
+		if( asw->frame_bars[i] ) 
+			invalidate_astbar_style (asw->frame_bars[i], -1);
+    if( asw->tbar )
+		invalidate_astbar_style (asw->tbar, -1);
+    if( asw->icon_button )
+		invalidate_astbar_style (asw->icon_button, -1);
+	if( asw->icon_title )
+		invalidate_astbar_style (asw->icon_title, -1);
+}
+
 /***********************************************************************
  *  grab_aswindow_buttons - grab needed buttons for all of the windows
  *  for specified client
@@ -870,7 +886,7 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
     ASOrientation *od = get_orientation_data(asw);
     char *mystyle_name = Scr.Look.MSWindow[BACK_FOCUSED]->name;
     char *frame_mystyle_name = NULL ;
-    int *frame_contexts  = &(od->frame_contexts[0]);
+    unsigned int *frame_contexts  = &(od->frame_contexts[0]);
 	Bool tbar_created = False;
 	Bool status_changed = False ;
 
