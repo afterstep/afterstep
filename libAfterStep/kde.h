@@ -57,7 +57,10 @@ struct xml_elem_t* load_KDE_config(const char* realfilename);
 Bool save_KDE_config(const char* realfilename, struct xml_elem_t *elem );
 void merge_KDE_config_groups( struct xml_elem_t *from, struct xml_elem_t *to );
 struct xml_elem_t *get_KDE_config_group( struct xml_elem_t *config, const char *name, Bool create_if_missing );
-void KDE_config_group_set_item( struct xml_elem_t *group, const char *item_name, const char *value );
+void set_KDE_config_group_item( struct xml_elem_t *group, const char *item_name, const char *value );
+
+Bool add_KDE_colorscheme( const char *new_cs_file );
+
 
 #ifdef __cplusplus
 }

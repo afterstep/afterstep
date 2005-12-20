@@ -50,6 +50,7 @@
 #include "../../libAfterStep/mystyle_property.h"
 #include "../../libAfterStep/wmprops.h"
 #include "../../libAfterStep/desktop_category.h"
+#include "../../libAfterStep/kde.h"
 
 #include "../../libAfterConf/afterconf.h"
 
@@ -1447,6 +1448,8 @@ LoadASConfig (int thisdesktop, ASFlagType what)
     gtkrc_signal_func.func = F_SIGNAL_RELOAD_GTK_RCFILE ;
 	init_func_data( &kde_signal_func );
     kde_signal_func.func = F_KIPC_SEND_MESSAGE_ALL ;
+	kde_signal_func.func_val[0] = KIPC_PaletteChanged ; 
+	kde_signal_func.func_val[1] = 0 ; 
 
     cover_desktop();
 
@@ -1521,7 +1524,8 @@ LoadASConfig (int thisdesktop, ASFlagType what)
             }
         	if( UpdateGtkRC() ) 
 				ExecuteFunction (&gtkrc_signal_func, &dummy_event, -1);
-			UpdateKCSRC();
+			if( UpdateKCSRC() ) 
+				ExecuteFunction (&kde_signal_func, &dummy_event, -1);
 		}
         if (get_flags(what, PARSE_FEEL_CONFIG))
 		{

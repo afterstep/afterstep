@@ -91,6 +91,8 @@ typedef struct
 	int tags_count ;
 }ASXmlBuffer;
 
+#define IsTagCDATA(_tag)     ((_tag)!= NULL && (_tag)->tag_id == XML_CDATA_ID && (_tag)->parm != NULL)
+
 
 void asxml_var_insert(const char* name, int value);
 int asxml_var_get(const char* name);

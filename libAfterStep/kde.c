@@ -221,7 +221,7 @@ Bool save_KDE_config(const char* realfilename, xml_elem_t *elem )
 			{
 				if( child->tag_id == KDEConfig_comment ) 
 				{
-			  		if( child->child && child->child->tag_id == XML_CDATA_ID && child->child->parm )
+			  		if( IsTagCDATA(child->child) )
 						fprintf( fp, "#%s\n", child->child->parm );
 					else
 						fprintf( fp, "#\n" );
@@ -231,7 +231,7 @@ Bool save_KDE_config(const char* realfilename, xml_elem_t *elem )
 					if( name != NULL ) 
 					{
 						fprintf( fp, "%s=", name );	  
-						if( child->child && child->child->tag_id == XML_CDATA_ID && child->child->parm )
+						if( IsTagCDATA(child->child) )
 							fprintf( fp, "%s\n", child->child->parm );
 						else
 							fprintf( fp, "\n" );
@@ -363,7 +363,7 @@ get_KDE_config_group( xml_elem_t *config, const char *name, Bool create_if_missi
 }
 
 void 
-KDE_config_group_set_item( xml_elem_t *group, const char *item_name, const char *value )
+set_KDE_config_group_item( xml_elem_t *group, const char *item_name, const char *value )
 {
 	if( group != NULL &&  group->tag_id == KDEConfig_group ) 
 	{	
@@ -375,5 +375,46 @@ KDE_config_group_set_item( xml_elem_t *group, const char *item_name, const char 
 			free( key );
 		}
 	}
+}
+
+Bool
+add_KDE_colorscheme( const char *new_cs_file ) 
+{
+	Bool success = False; 
+#define KDE_CSRC_PATH  		"$KDEHOME/share/apps/kdisplay/color-schemes/"
+	
+	if( new_cs_file ) 
+	{	
+		int i = 1;
+		char *dst_path ;
+		char *dst_full_fname ; 
+		char *fname  = NULL ; 
+
+		parse_file_name(new_cs_file, NULL, &fname );
+		dst_path = copy_replace_envvar( KDE_CSRC_PATH );
+		
+		while( dst_path[i] != '\0' ) 
+		{	
+			if( dst_path[i] == '/' ) 
+			{
+				char t = dst_path[i];
+				dst_path[i] = '\0' ; 
+				if (CheckDir (dst_path) != 0)
+					mkdir (dst_path, 0755);
+				dst_path[i] = t ;
+			}
+			++i;
+		}			   
+
+		dst_full_fname = safemalloc( i+strlen(fname)+1 );
+		sprintf( dst_full_fname, "%s%s", dst_path, fname );
+		success = (CopyFile( new_cs_file, dst_full_fname )==0);
+
+		free( dst_full_fname );
+		free( dst_path );
+		free( fname );
+	}
+
+	return success;
 }
 

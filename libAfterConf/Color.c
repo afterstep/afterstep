@@ -374,70 +374,39 @@ translate_gtkrc_template_file( 	const char *template_fname, const char *output_f
 Bool 
 translate_kcsrc_template_file( 	const char *template_fname, const char *output_fname )
 {
-	static char buffer[MAXLINELENGTH] ; 
-	FILE *src_fp = NULL, *dst_fp = NULL; 		  
+/* this prolly needs to be rewritten using libAfterBase/kde.c code	: */
 	int good_strings = 0 ; 
-	Bool inside_ColorScheme_section = False ; 
+	xml_elem_t *KDE_cs, *group;
 
 	if( template_fname == NULL || output_fname == NULL ) 
 		return False;;
 
-	src_fp = fopen( template_fname, "r");
-	dst_fp = fopen( output_fname, "w");
-	if( dst_fp == NULL ) 
-		show_warning( "Failed to open file \"%s\" for writing", output_fname );
-
-	if( src_fp != NULL && dst_fp != NULL ) 
+	KDE_cs = load_KDE_config( template_fname );
+	for( group = KDE_cs->child ; group != NULL ; group = group->next )
 	{
-		while( fgets( &buffer[0], MAXLINELENGTH, src_fp ) )
-		{
-			int i = 0; 
-			while( isspace(buffer[i]) )++i ; 
-			if( buffer[i] != '\n' && buffer[i] != '#' && buffer[i] != '\0' && buffer[i] != '\r' )
-			{	
+		xml_elem_t *item ;
+		for( item = group->child ; item != NULL ; item = item->next )
+			if( item->tag_id == KDEConfig_item && IsTagCDATA(item->child) )
+			{
+				char *parm = item->child->parm ;
 				++good_strings;
-				if( !inside_ColorScheme_section ) 
-				{	
-					if( mystrncasecmp( &buffer[i], "[Color Scheme]", 14 ) == 0 )
-						inside_ColorScheme_section = True ; 
-				}else
-				{	
-					if( buffer[0] == '[' )
-						inside_ColorScheme_section = False ; 
-					else
-					{
-						while( buffer[i] != '\"' && buffer[i] != '\n' && buffer[i] != '\0' && !isdigit(buffer[i]) ) ++i ; 		
-						if( buffer[i] == '\"')
-						{
-					 		char *token = &buffer[i+1] ;
-							if( isalpha(token[0]) ) 
-							{	
-								int len = 0 ; 
-								while( token[len] != '\0' && token[len] != '\"' ) ++len ; 
-								if( token[len] == '\"' && len > 0 )
-								{
-									ARGB32 argb;
-									if( parse_argb_color( token, &argb ) != token ) 
-									{	
-						 				fwrite( &(buffer[0]), 1, i, dst_fp );
-										fprintf( dst_fp, "%ld,%ld,%ld", ARGB32_RED8(argb), ARGB32_GREEN8(argb), ARGB32_BLUE8(argb) );
-										fwrite( &(token[len+1]), 1, strlen(&(token[len+1])), dst_fp );
-										continue;
-									}
-								}
-							}
-						}	 
-					}	 
-				}
-			}			
-			fwrite( &buffer[0], 1, strlen(&buffer[0]), dst_fp );
-		}	 
-		
-	}
-	if( src_fp ) 
-		fclose(src_fp);	 
-	if( dst_fp ) 
-		fclose(dst_fp);	 
+				if( *parm == '\"')
+				{
+					ARGB32 argb;
+					++parm;
+					if( parse_argb_color( parm, &argb ) != parm ) 
+					{	
+						char *tmp = safemalloc( 32 );
+						sprintf( tmp, "%ld,%ld,%ld", ARGB32_RED8(argb), ARGB32_GREEN8(argb), ARGB32_BLUE8(argb) );						 				   
+						free( item->child->parm );
+						item->child->parm = tmp;
+					}							
+				}	 	   
+			}
+	}	 
+	save_KDE_config( output_fname, KDE_cs );
+	xml_elem_delete( NULL, KDE_cs );
+	
 	return (good_strings > 0);
 }
 
@@ -474,163 +443,34 @@ UpdateGtkRC()
 	return result;
 }
 
-static char *seek_next_line( char *ptr ) 
-{
-	int i = 0 ;
-
-	if( ptr == NULL ) 
-		return NULL;
-   
-	while( ptr[i] != '\n' && ptr[i] != '\r' && ptr[i] != '\0' ) 	++i;
-
-	if( ptr[i] != '\0' ) 
-		while( (ptr[i] == '\n' || ptr[i] == '\r') && ptr[i] != '\0' ) 	++i;
-
-	if( ptr[i] == '\0' ) 
-		return NULL;
-	return &(ptr[i]);
-}	 
-
 static Bool 
 SetKDEGlobalsColorScheme( const char *new_cs_file )	
 {
 	char *kdeglobals_fname = copy_replace_envvar ( KDEGLOBALS_FILE );
-
-#if 1
 	xml_elem_t *KDE_cs = load_KDE_config( new_cs_file );
 	xml_elem_t *KDE_globals = load_KDE_config( kdeglobals_fname );
 	xml_elem_t *KDE_group = get_KDE_config_group( KDE_globals, "KDE", True );
-	xml_elem_t *WM_group = get_KDE_config_group( KDE_globals, "WM", True );
-	xml_elem_t *General_group = get_KDE_config_group( KDE_globals, "General", True );
-	xml_elem_t *CS_group = get_KDE_config_group( KDE_cs, "Color Scheme", True );
+	xml_elem_t *CS_group = get_KDE_config_group( KDE_cs, "Color Scheme", False );
 
 	if( CS_group )
 	{
+		xml_elem_t *WM_group = get_KDE_config_group( KDE_globals, "WM", True );
+		xml_elem_t *General_group = get_KDE_config_group( KDE_globals, "General", True );
+
 		merge_KDE_config_groups( CS_group, WM_group );
 		merge_KDE_config_groups( CS_group, General_group );
 	}
-	KDE_config_group_set_item( KDE_group, "colorScheme", new_cs_file );
+
+	set_KDE_config_group_item( KDE_group, "colorScheme", new_cs_file );
 
 	save_KDE_config( kdeglobals_fname, KDE_globals );
 	xml_elem_delete( NULL, KDE_globals );
 	xml_elem_delete( NULL, KDE_cs );
 
 	free( kdeglobals_fname);
-#else
-	char *kdeglobals = load_file(kdeglobals_fname);
-	FILE *fp ;
-	
-	if( kdeglobals ) 
-	{
-		int kdeglobals_len = strlen(kdeglobals);
-		char *KDE_sect_start = NULL ; 
-		char *KDE_sect_end = NULL ;
-		char *color_scheme_line = NULL ; 
-		char *color_scheme_line_end = NULL ;
-		char *ptr = kdeglobals; 
-		
-		fp = fopen( kdeglobals_fname, "w");
-		free( kdeglobals_fname);
 
-		if( fp == NULL ) 
-		{
-			show_warning( "Failed to open file \"%s\" for writing", kdeglobals_fname );
-			free( kdeglobals );
-			return False;
-		}	 
-		
-		do
-		{
-			while( isspace(*ptr) ) ++ptr ;
-			if( strncmp( ptr, "[KDE]", 5 ) == 0 ) 
-			{
-				KDE_sect_start = ptr ;		
-				while( (ptr = seek_next_line( ptr )) != NULL )
-				{
-					char *tmp = ptr ; 
-					while( isspace(*ptr) ) ++ptr ;
-					if( *ptr == '[' ) 
-					{	
-						KDE_sect_end = tmp ; 
-						break;
-					}
-				}	 
-			}			  
-		}while( (ptr = seek_next_line( ptr )) != NULL );
-		if( KDE_sect_start != NULL ) 
-		{
-			char *end = KDE_sect_end ; 
-			if( end == NULL ) 
-				end = kdeglobals+kdeglobals_len ;
-			ptr = KDE_sect_start ;
-			while( (ptr = seek_next_line( ptr )) < end )
-			{
-				while( isspace(*ptr) ) ++ptr ;
-				if( strncmp( ptr, "colorScheme", 11 ) == 0 )
-				{
-					color_scheme_line = ptr ; 						
-					color_scheme_line_end = seek_next_line( ptr );
-					break;
-				}	 
-			}
-		}	 
-		if( KDE_sect_start == NULL )
-		{
-			fwrite( kdeglobals, 1, kdeglobals_len, fp );
-			fprintf( fp, "\n[KDE]\ncolorScheme=%s\n", new_cs_file );
-		}else
-		{
-			long lead_bytes = kdeglobals_len ; 
-			char *tail_start = NULL ; 
-			long tail_bytes = 0 ; 
-
-			if( color_scheme_line == NULL ) 
-			{
-			   if( KDE_sect_end == NULL )		
-			   {	           /* defaults are fine - no tail*/
-			   }else
-			   {	
-			   		lead_bytes = KDE_sect_end - kdeglobals ;
-					tail_start = KDE_sect_end ; 
-					tail_bytes = kdeglobals_len-lead_bytes;
-			   }	
-			}else
-			{
-		   		lead_bytes = color_scheme_line - kdeglobals ;
-				if( color_scheme_line_end == NULL )  /* last line in the file */ 
-				{
-					/* no tail */					
-				}else
-				{		  
-					tail_start = color_scheme_line_end ; 
-					tail_bytes = kdeglobals_len - (tail_start - kdeglobals );
-				}	 
-			}		  
-
-	   		fwrite( kdeglobals, 1, lead_bytes, fp );
-			fprintf( fp, "\ncolorScheme=%s\n", new_cs_file );
-			if( tail_start && tail_bytes > 0 ) 
-				fwrite( tail_start, 1, tail_bytes, fp );
-		}		 
-		fclose( fp );
-		free( kdeglobals );
-		return True;
-	}else if( kdeglobals_fname != NULL )
-	{
-		fp = fopen( kdeglobals_fname, "w");
-		if( fp == NULL ) 
-			show_warning( "Failed to open file \"%s\" for writing", kdeglobals_fname );
-		free( kdeglobals_fname);
-
-		if( fp != NULL ) 
-		{
-			fprintf( fp, "[KDE]\ncolorScheme=%s\n", new_cs_file );
-			fclose( fp );
-			return True;
-		}		 
-	}	 
-#endif
-	return False;
+	add_KDE_colorscheme( new_cs_file );
+	return (CS_group != NULL);
 }
 
 Bool
