@@ -1,1 +1,0 @@
-Exec "XEmacs" exec sh -c "exec xemacs || exec emacs" &
