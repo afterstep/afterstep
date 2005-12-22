@@ -386,8 +386,8 @@ set_asimage_layer( ASTile* tile, ASImageLayer *layer, unsigned int state, ASImag
     }
 
     layer->im = im;
-    layer->dst_x = tile->x;
-    layer->dst_y = tile->y ;
+    layer->dst_x = tile->x - layer->clip_x;
+    layer->dst_y = tile->y - layer->clip_y;
     if( ASTileHResizeable(*tile) )
         layer->clip_width  = max_width ;
     else
@@ -1385,7 +1385,7 @@ render_astbar (ASTBarData * tbar, ASCanvas * pc)
 	ASImage      *merged_im;
 	int           state;
 	ASAltImFormats fmt = ASA_ScratchXImageAndAlpha;
-    int l ;
+    int l, changed ;
     short col_width[AS_TileColumns] = {0};
     short row_height[AS_TileRows] = {0};
     short col_x[AS_TileColumns] = {0};
@@ -1463,8 +1463,11 @@ LOCAL_DEBUG_OUT("back-try2(%p)", back );
             good_layers += ASTileSublayers(tbar->tiles[l]);
 			if( !ASTileIgnoreWidth(tbar->tiles[l]) )
 			{
-            	if( col_width[pos] < tbar->tiles[l].width )
-                	col_width[pos] = tbar->tiles[l].width;
+				int w = tbar->tiles[l].width  ;
+				if( w > tbar->width ) 
+					w = tbar->width ;
+            	if( col_width[pos] < w )
+                	col_width[pos] = w;
                 /* floating column has at least one element padded/resizable in horizontal dir,
                  * and no fixed elements */
                 if( !ASTileHFloating(tbar->tiles[l]) )
@@ -1476,8 +1479,11 @@ LOCAL_DEBUG_OUT("back-try2(%p)", back );
             pos = ASTileRow(tbar->tiles[l]);
 			if( !ASTileIgnoreHeight(tbar->tiles[l]) )
 			{
-            	if( row_height[pos] < tbar->tiles[l].height )
-                	row_height[pos] = tbar->tiles[l].height;
+				int h = tbar->tiles[l].height  ;
+				if( h > tbar->height ) 
+					h = tbar->height ;
+            	if( row_height[pos] < h )
+                	row_height[pos] = h;
                 /* floating row has at least one element padded/resizable in vertical dir,
                  * and no fixed elements */
                 if( !ASTileVFloating(tbar->tiles[l]) )
@@ -1533,6 +1539,26 @@ LOCAL_DEBUG_OUT("back-try2(%p)", back );
                     break;
             }
         }
+	l = 0 ; changed = 0 ;
+	while( space_left_x < -1 )     /* ohh, no, we need to trim columns to fit */
+	{
+		if( col_width[l] > 0 ) 		
+		{
+			int to_trim = (-space_left_x*col_width[l])/tbar->width ; 
+			if( to_trim == 0 ) 
+				to_trim = 1 ;
+			col_width[l] -= to_trim;
+			space_left_x  += to_trim;
+			++changed ;
+		}	 
+		if( ++l >= AS_TileColumns )
+		{
+			if( changed == 0 ) 
+				break;	  
+			l = 0 ;
+			changed = 0;
+		}
+	}	 
     /* pass 4: now we determine spread padding among affected rows : */
     if( floating_rows_count > 0 && space_left_y != 0)
         for( l = 0 ; l < AS_TileRows ; ++l )
@@ -1554,6 +1580,26 @@ LOCAL_DEBUG_OUT("back-try2(%p)", back );
                     break;
             }
         }
+	l = 0 ; changed = 0 ;
+	while( space_left_y < -1 )     /* ohh, no, we need to trim rows to fit */
+	{
+		if( row_height[l] > 0 ) 		
+		{
+			int to_trim = (-space_left_y*row_height[l])/tbar->height ; 
+			if( to_trim == 0 ) 
+				to_trim = 1 ;
+			row_height[l] -= to_trim;
+			space_left_y  += to_trim;
+			++changed ;
+		}	 
+		if( ++l >= AS_TileRows )
+		{	
+			if( changed == 0 ) 
+				break;	  
+			l = 0 ;
+			changed = 0;
+		}
+	}	 
 
     /* pass 5: now we determine offset of each row/column : */
     x = bevel.left_outline+bevel.left_inline+tbar->h_border ;

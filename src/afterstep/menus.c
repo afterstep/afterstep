@@ -632,7 +632,10 @@ set_asmenu_look( ASMenu *menu, MyLook *look )
         if( (bar= menu->items[i].bar) != NULL )
         {
             width = calculate_astbar_width( bar );
-            height = calculate_astbar_height( bar );
+			if( get_flags( menu->items[i].flags, AS_MenuItemSubitem ) )
+				height = max_height;
+			else
+            	height = calculate_astbar_height( bar );
 LOCAL_DEBUG_OUT( "i(%d)->bar(%p)->size(%ux%u)", i, bar, width, height );
             if( width > max_width )
                 max_width = width ;

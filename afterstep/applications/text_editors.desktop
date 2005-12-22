@@ -1,11 +1,22 @@
 [Desktop Entry]
 Name=XEmacs
-GenericName=
-Comment=
-Exec=
-Icon=normal/
-Terminal=
-MultipleArgs=
+GenericName=XEmacs
+Comment=Native X GUI version of Emacs text editor
+Exec=xemacs
+Icon=emacs
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=TextEditor
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=Emacs
+GenericName=Emacs
+Comment=Console version of Emacs text editor
+Exec=emacs
+Icon=emacs
+Terminal=true
 Type=Application
 Encoding=UTF-8
 Categories=TextEditor
@@ -13,12 +24,11 @@ X-AfterStep-CheckAvailability=true
 
 [Desktop Entry]
 Name=VI
-GenericName=
-Comment=
-Exec=
-Icon=normal/
-Terminal=
-MultipleArgs=
+GenericName=VI
+Comment=VI text editor
+Exec=vi
+Icon=logos/VIM
+Terminal=true
 Type=Application
 Encoding=UTF-8
 Categories=TextEditor
@@ -26,25 +36,36 @@ X-AfterStep-CheckAvailability=true
 
 [Desktop Entry]
 Name=NEdit
-GenericName=
-Comment=
-Exec=
-Icon=normal/
-Terminal=
-MultipleArgs=
+GenericName=NEdit
+Comment=NEdit GUI text editor for X using Motif
+Exec=NEdit
+Icon=logos/NEdit
+Terminal=false
 Type=Application
 Encoding=UTF-8
 Categories=TextEditor
 X-AfterStep-CheckAvailability=true
 
 [Desktop Entry]
+Name=nano
+GenericName=Nano
+Comment=Simple text editor
+Exec=nano
+Icon=large/Document
+Terminal=true
+Type=Application
+Encoding=UTF-8
+Categories=TextEditor
+X-AfterStep-CheckAvailability=true
+
+
+[Desktop Entry]
 Name=XJed
-GenericName=
-Comment=
-Exec=
-Icon=normal/
-Terminal=
-MultipleArgs=
+GenericName=XJed
+Comment=another text editor
+Exec=xjed
+Icon=large/Document
+Terminal=false
 Type=Application
 Encoding=UTF-8
 Categories=TextEditor

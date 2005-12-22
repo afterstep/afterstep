@@ -1,7 +1,7 @@
 
 name 		Text Editors
 
-MiniPixmap 	large/Document
+SmallMiniPixmap 	large/Document
 
 # look in afterstep/applications/text_editors.desktop for default entries
 Category 	"TextEditor"

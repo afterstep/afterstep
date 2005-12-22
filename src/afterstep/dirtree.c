@@ -449,8 +449,13 @@ dirtree_parse (dirtree_t * tree, const char *file)
 			for (tmp = ptr + strlen (ptr); tmp > ptr && isspace (*(tmp - 1)); tmp--);
 			if (tmp != ptr)
 				tree->minipixmap_extension = mystrndup (ptr, tmp - ptr);
-		} else if (!mystrncasecmp (ptr, "minipixmap", 10))
+		} else if (!mystrncasecmp (ptr, "minipixmap", 10) || !mystrncasecmp (ptr, "smallminipixmap", 15))
 		{
+			if( ptr[0] == 's' || ptr[0] == 'S' )
+			{	
+				set_flags(tree->flags, DIRTREE_ICON_IS_SMALL);
+				ptr += 5 ;
+			}
 			for (ptr += 10; isspace (*ptr); ptr++);
 			if (tree->icon != NULL)
 				free (tree->icon);

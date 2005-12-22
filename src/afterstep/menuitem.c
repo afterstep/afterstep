@@ -335,17 +335,14 @@ ParseKeyEntry (char *tline, FILE * fd, char **junk, int *junk2)
 void 
 add_minipixmap_fro_dirtree_item( dirtree_t * tree, MenuData *menu )
 {
-	FunctionData *fdata;
+	FunctionData *fdata = NULL ;
 	if( tree->de != NULL && tree->de->fulliconname != NULL ) 
-	{	
         fdata = create_named_function( F_SMALL_MINIPIXMAP, tree->de->fulliconname);
-        MenuDataItemFromFunc (menu, fdata);
-    }else if (tree->icon != NULL)
-    {/* should default to: "mini-menu.xpm" */
-        fdata = create_named_function( F_MINIPIXMAP, tree->icon);
-        MenuDataItemFromFunc (menu, fdata);
-	}
-	
+    else if (tree->icon != NULL) /* should default to: "mini-menu.xpm" */
+        fdata = create_named_function(  get_flags(tree->flags, DIRTREE_ICON_IS_SMALL)?F_SMALL_MINIPIXMAP:F_MINIPIXMAP, 
+										tree->icon);
+	if( fdata ) 
+		MenuDataItemFromFunc (menu, fdata);
 }	 
 
 MenuData     *
