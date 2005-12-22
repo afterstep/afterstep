@@ -1,0 +1,7 @@
+<composite>
+	<solid color="#00000000" width=48 height=48/>
+	<scale width=32 height=32><img src="logos/GNU"/></scale>
+	<text x=2 y=30 font="DefaultBoldOblique.ttf" point="16" fgcolor="Active">Emacs</text>
+</composite>
+
+
