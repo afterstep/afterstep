@@ -1,0 +1,16 @@
+<hsv id="stalah" hue_offset="$ascs.Base.hue" value_offset="1">
+        <img src=".stala"/>
+</hsv>
+
+<scale width="$xroot.width" height="$xroot.height">
+<composite id="stala" width="$xroot.width" height="$xroot.height">
+	<recall srcid="stalah"/>
+        <mirror dir="vertical" x="450">
+           <mirror dir="horizontal">
+		<recall srcid="stalah"/>
+	  </mirror>
+	</mirror>
+</composite>
+</scale>
+
+<release srcid="stala"/>

@@ -1,0 +1,53 @@
+[Desktop Entry]
+Name=XEmacs
+GenericName=
+Comment=
+Exec=
+Icon=normal/
+Terminal=
+MultipleArgs=
+Type=Application
+Encoding=UTF-8
+Categories=TextEditor
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=VI
+GenericName=
+Comment=
+Exec=
+Icon=normal/
+Terminal=
+MultipleArgs=
+Type=Application
+Encoding=UTF-8
+Categories=TextEditor
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=NEdit
+GenericName=
+Comment=
+Exec=
+Icon=normal/
+Terminal=
+MultipleArgs=
+Type=Application
+Encoding=UTF-8
+Categories=TextEditor
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=XJed
+GenericName=
+Comment=
+Exec=
+Icon=normal/
+Terminal=
+MultipleArgs=
+Type=Application
+Encoding=UTF-8
+Categories=TextEditor
+X-AfterStep-CheckAvailability=true
+
+

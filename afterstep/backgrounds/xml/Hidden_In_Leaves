@@ -1,0 +1,5 @@
+<scale width="$xroot.width" height="$xroot.height">
+    <tile tint="Base">
+        <img src=".hiddeninleaves2"/>
+    </tile>
+</scale>

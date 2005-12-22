@@ -1,0 +1,19 @@
+<tile id="bricko" tint="Base" x_origin="160" height="100%" width="$xroot.width">
+   <pad top="1" left="1" color="#FF000000">
+	<img src=".icebrick"/>
+   </pad>
+</tile>
+<tile id="bricks" x_origin="160" height="100%" width="$xroot.width">                
+   <pad top="0" left="1" color="#FF000000">                               
+	<recall srcid="bricko"/>
+   </pad>
+</tile>
+
+<composite id="brickcomp" width="$xroot.width" height="$xroot.height">
+   <recall srcid="bricko"/>
+ <mirror x=0 y="101" dir="horizontal">
+   <recall srcid="bricks"/>
+ </mirror>
+</composite>
+
+<release srcid="brickcomp"/>
