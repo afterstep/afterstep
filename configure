@@ -310,7 +310,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT CXX CXXFLAGS ac_ct_CXX LN_S build build_cpu build_vendor build_os host host_cpu host_vendor host_os INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA RANLIB ac_ct_RANLIB RM MV CP MKDIR PERL FIND XARGS LDCONFIG LEX LEXLIB LEX_OUTPUT_ROOT YACC CPP X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS EGREP x_libraries AUDIO_LIBS AUDIO_PLAY_CMD PKG_CONFIG GTK_CFLAGS GTK_LIBS target target_cpu target_vendor target_os STRIP_BINARIES version app_version libafterstep_version libafterstep_version_major libafterstep_name libafterstep_file_name libafterwidget_version libafterwidget_version_major libafterwidget_name libafterwidget_file_name libafterconf_version libafterconf_version_major libafterconf_name libafterconf_file_name libasgtk_version libasgtk_version_major libasgtk_name libasgtk_file_name with_locale image_format ASCP_FLTK ASCP_FLTK_LIBS ASCP_FLTK_INCLUDES ASCP_GTK GTK_INCLUDES user_ldflags x_libs xine_libs xext_lib readline_libs x_includes XEXT_LIB AFTERBASE_LIB AFTERIMAGE_LIB AFTERIMAGE_LIBS AFTERSTEP_LIB AFTERCONF_LIB ASGTK_LIB WIDGETS_LIB AFTERBASE_STATIC_LIB AFTERIMAGE_STATIC_LIB AFTERSTEP_STATIC_LIB AFTERCONF_STATIC_LIB ASGTK_STATIC_LIB WIDGETS_STATIC_LIB LIBPROG LIBINSTALL with_afterdir with_imageloader with_soundplayer with_helpcommand with_startsort with_desktops with_desktops_1 with_deskgeometry no_data_reinstall enable_different_looknfeels enable_pagerbackground enable_i18n enable_menuwarp enable_savewindows enable_texture enable_shade enable_virtual enable_saveunders enable_windowlist enable_availability enable_fixeditems SCRIPT_DIR LIBASGTKDIR GTK_APP_DIRS GTK_WIN_COMMAND LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT CXX CXXFLAGS ac_ct_CXX LN_S build build_cpu build_vendor build_os host host_cpu host_vendor host_os INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA RANLIB ac_ct_RANLIB RM MV CP MKDIR PERL FIND XARGS LDCONFIG LEX LEXLIB LEX_OUTPUT_ROOT YACC CPP X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS EGREP x_libraries AUDIO_LIBS AUDIO_PLAY_CMD PKG_CONFIG GTK_CFLAGS GTK_LIBS target target_cpu target_vendor target_os STRIP_BINARIES version app_version libafterstep_version libafterstep_version_major libafterstep_name libafterstep_file_name libafterwidget_version libafterwidget_version_major libafterwidget_name libafterwidget_file_name libafterconf_version libafterconf_version_major libafterconf_name libafterconf_file_name libasgtk_version libasgtk_version_major libasgtk_name libasgtk_file_name with_locale image_format ASCP_FLTK ASCP_FLTK_LIBS ASCP_FLTK_INCLUDES ASCP_GTK GTK_INCLUDES user_ldflags x_libs xine_libs xext_lib readline_libs x_includes XEXT_LIB AFTERBASE_LIB AFTERIMAGE_LIB AFTERIMAGE_LIBS AFTERSTEP_LIB AFTERCONF_LIB ASGTK_LIB WIDGETS_LIB AFTERBASE_STATIC_LIB AFTERIMAGE_STATIC_LIB AFTERSTEP_STATIC_LIB AFTERCONF_STATIC_LIB ASGTK_STATIC_LIB WIDGETS_STATIC_LIB LIBPROG LIBINSTALL with_afterdir with_imageloader with_soundplayer with_helpcommand with_startsort with_desktops with_desktops_1 with_deskgeometry no_data_reinstall enable_different_looknfeels enable_pagerbackground enable_i18n enable_menuwarp enable_savewindows enable_texture enable_shade enable_virtual enable_saveunders enable_windowlist enable_availability enable_fixeditems SCRIPT_DIR LIBASGTKDIR GTK_APP_DIRS GTK_WIN_COMMAND RUN_COMMAND LIBOBJS LTLIBOBJS'
 ac_subst_files='LIBAFTERBASEFILES LIBAFTERIMAGEFILES LIBAFTERSTEPFILES LIBAFTERCONFFILES LIBASGTKFILES MAKEFILEDEFINES MAKEFILECOMMON MAKEFILECOMMONLIB'
 
 # Initialize some variables set by options.
@@ -8721,11 +8721,14 @@ if test "x$have_gtk" = "xyes"; then
 	LIBASGTKDIR=libASGTK
 	GTK_APP_DIRS=gtk_app_dirs
 	GTK_WIN_COMMAND=GWCommand
+	RUN_COMMAND="Exec \"Run ...\" ASRun --myname \"Run command using AfterStep\" &"
 else
 	LIBASGTKDIR=
 	GTK_APP_DIRS=no_gtk_app_dirs
 	GTK_WIN_COMMAND=
+	RUN_COMMAND="ExecInTerm \"Run ...\" -n \"Run Command\" &"
 fi
+
 
 
 
@@ -8795,7 +8798,7 @@ if test -d src/test ; 		then           ac_config_files="$ac_config_files src/tes
 if test "x$have_gtk" = "xyes"; then                     ac_config_files="$ac_config_files libASGTK/asgtk-config libASGTK/Makefile"
  fi
 
-                                                                                                                                                                                                                                                                    ac_config_files="$ac_config_files configure.h Makefile AfterStep.spec AfterStep.desktop afterstep/Makefile doc/Makefile doc/afterstepdoc libAfterStep/afterstep-config libAfterStep/Makefile libAfterConf/Makefile src/afterstep/Makefile tools/Makefile tools/installastheme.pl tools/makeastheme.pl tools/postcard.sh afterstep/applications/modules.desktop afterstep/base afterstep/audio afterstep/autoexec afterstep/pager afterstep/start/.include afterstep/start/1_Desktop/Feel/.include afterstep/start/1_Desktop/Color_Scheme/.include afterstep/start/1_Desktop/Look/.include afterstep/start/1_Desktop/Theme/.include afterstep/start/1_Desktop/Pictures/.include"
+                                                                                                                                                                                                                                                                              ac_config_files="$ac_config_files configure.h Makefile AfterStep.spec AfterStep.desktop afterstep/Makefile doc/Makefile doc/afterstepdoc libAfterStep/afterstep-config libAfterStep/Makefile libAfterConf/Makefile src/afterstep/Makefile tools/Makefile tools/installastheme.pl tools/makeastheme.pl tools/postcard.sh afterstep/applications/modules.desktop afterstep/base afterstep/audio afterstep/autoexec afterstep/pager afterstep/start/.include afterstep/start/0_run afterstep/start/1_Desktop/Feel/.include afterstep/start/1_Desktop/Color_Scheme/.include afterstep/start/1_Desktop/Look/.include afterstep/start/1_Desktop/Theme/.include afterstep/start/1_Desktop/Pictures/.include"
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
 # tests run on this system so they can be shared between configure
@@ -9376,6 +9379,7 @@ do
   "afterstep/autoexec" ) CONFIG_FILES="$CONFIG_FILES afterstep/autoexec" ;;
   "afterstep/pager" ) CONFIG_FILES="$CONFIG_FILES afterstep/pager" ;;
   "afterstep/start/.include" ) CONFIG_FILES="$CONFIG_FILES afterstep/start/.include" ;;
+  "afterstep/start/0_run" ) CONFIG_FILES="$CONFIG_FILES afterstep/start/0_run" ;;
   "afterstep/start/1_Desktop/Feel/.include" ) CONFIG_FILES="$CONFIG_FILES afterstep/start/1_Desktop/Feel/.include" ;;
   "afterstep/start/1_Desktop/Color_Scheme/.include" ) CONFIG_FILES="$CONFIG_FILES afterstep/start/1_Desktop/Color_Scheme/.include" ;;
   "afterstep/start/1_Desktop/Look/.include" ) CONFIG_FILES="$CONFIG_FILES afterstep/start/1_Desktop/Look/.include" ;;
@@ -9591,6 +9595,7 @@ s,@SCRIPT_DIR@,$SCRIPT_DIR,;t t
 s,@LIBASGTKDIR@,$LIBASGTKDIR,;t t
 s,@GTK_APP_DIRS@,$GTK_APP_DIRS,;t t
 s,@GTK_WIN_COMMAND@,$GTK_WIN_COMMAND,;t t
+s,@RUN_COMMAND@,$RUN_COMMAND,;t t
 s,@LIBOBJS@,$LIBOBJS,;t t
 s,@LTLIBOBJS@,$LTLIBOBJS,;t t
 /@LIBAFTERBASEFILES@/r $LIBAFTERBASEFILES

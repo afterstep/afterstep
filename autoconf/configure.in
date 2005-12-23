@@ -718,10 +718,12 @@ if test "x$have_gtk" = "xyes"; then
 	LIBASGTKDIR=libASGTK
 	GTK_APP_DIRS=gtk_app_dirs
 	GTK_WIN_COMMAND=GWCommand
+	RUN_COMMAND="Exec \"Run ...\" ASRun --myname \"Run command using AfterStep\" &"
 else 
 	LIBASGTKDIR=
 	GTK_APP_DIRS=no_gtk_app_dirs
 	GTK_WIN_COMMAND=
+	RUN_COMMAND="ExecInTerm \"Run ...\" -n \"Run Command\" &"
 fi
 
 AC_SUBST_FILE(LIBAFTERBASEFILES)
@@ -733,6 +735,7 @@ AC_SUBST_FILE(LIBASGTKFILES)
 AC_SUBST(LIBASGTKDIR)
 AC_SUBST(GTK_APP_DIRS)
 AC_SUBST(GTK_WIN_COMMAND)
+AC_SUBST(RUN_COMMAND)
 
 AC_SUBST_FILE(MAKEFILEDEFINES)
 AC_SUBST_FILE(MAKEFILECOMMON)
@@ -789,6 +792,7 @@ afterstep/audio \
 afterstep/autoexec \
 afterstep/pager \
 afterstep/start/.include \
+afterstep/start/0_run \
 afterstep/start/1_Desktop/Feel/.include \
 afterstep/start/1_Desktop/Color_Scheme/.include \
 afterstep/start/1_Desktop/Look/.include \
