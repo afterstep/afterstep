@@ -8746,7 +8746,7 @@ fi
 
 if test -d src/ascp ; then                               ac_config_files="$ac_config_files src/ascp/Makefile src/ascp/fltk/Makefile src/ascp/gtk/Makefile"
  fi
-if test -d src/tools ; then                     ac_config_files="$ac_config_files src/tools/ASFileBrowser/Makefile src/tools/ASWallpaper/Makefile"
+if test -d src/tools ; then                               ac_config_files="$ac_config_files src/tools/ASFileBrowser/Makefile src/tools/ASRun/Makefile src/tools/ASWallpaper/Makefile"
  fi
 
 if test -d src/asetroot ; 	then           ac_config_files="$ac_config_files src/asetroot/Makefile"
@@ -9328,6 +9328,7 @@ do
   "src/ascp/fltk/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/ascp/fltk/Makefile" ;;
   "src/ascp/gtk/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/ascp/gtk/Makefile" ;;
   "src/tools/ASFileBrowser/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/tools/ASFileBrowser/Makefile" ;;
+  "src/tools/ASRun/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/tools/ASRun/Makefile" ;;
   "src/tools/ASWallpaper/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/tools/ASWallpaper/Makefile" ;;
   "src/asetroot/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/asetroot/Makefile" ;;
   "src/Animate/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/Animate/Makefile" ;;

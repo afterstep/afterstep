@@ -482,7 +482,6 @@ send_refresh_signal(void)
 	gdk_event_send_clientmessage_toall((GdkEvent *)&event);
 }
 
-
 void
 create_main_window (void)
 {
@@ -496,8 +495,7 @@ create_main_window (void)
 	exit(0);
 #endif
   	AppState.main_window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-  	gtk_window_set_title (GTK_WINDOW (AppState.main_window), "AfterStep File Browser");
-
+	gtk_window_set_title (GTK_WINDOW (AppState.main_window), "AfterStep File Browser");
 	colorize_gtk_window( AppState.main_window ); 	  
 
 	main_vbox = gtk_vbox_new (FALSE, 0);

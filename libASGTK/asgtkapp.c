@@ -324,6 +324,31 @@ asgtk_combo_box_get_active_text( GtkComboBox *combobox )
 	return text;
 }
 
+void
+asgtk_combo_box_add_to_history( GtkComboBox *cb, const char *str ) 
+{
+	GtkTreeModel* model = gtk_combo_box_get_model( cb );	
+	GtkTreeIter  iter;
+
+	if( gtk_tree_model_get_iter_first( model, &iter ) )
+	{
+		do
+		{
+			gchar *val = NULL ;
+			gtk_tree_model_get (model, &iter, 0, &val, -1);
+			if( val && strcmp( str, val ) == 0 ) 
+			{
+				gtk_list_store_remove( GTK_LIST_STORE(model), &iter );
+				break;	
+			}	 
+		}while(gtk_tree_model_iter_next(model, &iter));			 
+	}	 
+	gtk_combo_box_prepend_text (cb, str );
+	gtk_combo_box_set_active (cb, 0);
+}
+
+
+
 Bool 
 asgtk_yes_no_question1( GtkWidget *main_window, const char *format, const char *detail1 ) 	
 {

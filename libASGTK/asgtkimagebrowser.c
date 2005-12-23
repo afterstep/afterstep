@@ -518,26 +518,10 @@ asgtk_image_browser_refresh( ASGtkImageBrowser *ib )
 static void
 add_dir_to_history( ASGtkImageBrowser *ib, const char *dir ) 
 {
-	GtkTreeModel* model = gtk_combo_box_get_model( GTK_COMBO_BOX(ib->path_combo) );	
-	GtkTreeIter  iter;
-
 	g_signal_handlers_block_by_func(G_OBJECT(ib->path_combo), 
 								    G_CALLBACK (asgtk_image_browser_path_changed), (gpointer) ib);
-	if( gtk_tree_model_get_iter_first( model, &iter ) )
-	{
-		do
-		{
-			gchar *val = NULL ;
-			gtk_tree_model_get (model, &iter, 0, &val, -1);
-			if( val && strcmp( dir, val ) == 0 ) 
-			{
-				gtk_list_store_remove( GTK_LIST_STORE(model), &iter );
-				break;	
-			}	 
-		}while(gtk_tree_model_iter_next(model, &iter));			 
-	}	 
-	gtk_combo_box_prepend_text (GTK_COMBO_BOX(ib->path_combo), dir );
-	gtk_combo_box_set_active (GTK_COMBO_BOX(ib->path_combo), 0);
+	
+	asgtk_combo_box_add_to_history( GTK_COMBO_BOX(ib->path_combo), dir );
 	g_signal_handlers_unblock_by_func(G_OBJECT(ib->path_combo), 
 								    G_CALLBACK (asgtk_image_browser_path_changed), (gpointer) ib);
 

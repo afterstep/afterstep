@@ -1997,6 +1997,7 @@ exec_pending_swallow( ASWharfFolder *aswf )
     if( aswf )
     {
         int i = aswf->buttons_num ;
+		int sent = 0 ;
         while( --i >= 0 )
         {
             if( get_flags(aswf->buttons[i].flags, ASW_SwallowTarget ) &&
@@ -2007,12 +2008,15 @@ exec_pending_swallow( ASWharfFolder *aswf )
                 	if( aswf->buttons[i].fdata[k] && IsSwallowFunc(aswf->buttons[i].fdata[k]->func)) 
 					{
                 		SendCommand( aswf->buttons[i].fdata[k], 0);
+						++sent ;
 						break;
 					}
             }
             if( aswf->buttons[i].folder )
                 exec_pending_swallow( aswf->buttons[i].folder );
         }
+		if( sent ) 
+			sleep_a_millisec(200);/* give AS a chance to handle requests */
     }
 }
 
@@ -2721,6 +2725,7 @@ LOCAL_DEBUG_OUT( "pressed button has folder %p (%s)", pressed->folder, get_flags
 				ASWharfFolder *parentf = pressed->parent ;
 				ASWharfButton *parentb = NULL ;
                 SendCommand( pressed->fdata[button], 0);
+				sleep_a_millisec(200);/* give AS a chance to handle requests */
 				while( parentf != WharfState.root_folder )
 				{
 					parentb = parentf->parent ;
