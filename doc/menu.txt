@@ -49,4 +49,36 @@ Actions
 	Logout
 
 
+Same thing from KDE perspective : 
+
+Debian
+	(see above)
+	
+Development
+	
+Editors
+Edutainment
+	Languages
+	Math
+	Misc
+	Science
+	Teaching
+Games
+	
+Graphics
+Internet
+Multimedia
+Office
+OpenOIffice.org
+Settings
+System
+Toys
+Utilities
+ControlCenter
+Find
+Home
+Run
+Lock Session
+Logout
+
 
