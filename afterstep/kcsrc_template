@@ -32,5 +32,5 @@ visitedLinkColor="InactiveText2"
 selectBackground="HighActiveBack"
 selectForeground="HighActiveText"
 
-windowBackground="sat(10,BaseLight)"
-windowForeground="InactiveText1"
+windowBackground="HighInactive"
+windowForeground="HighInactiveText"

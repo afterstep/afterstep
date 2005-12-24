@@ -37,7 +37,7 @@ typedef struct ASRunState
 	GtkWidget *target_entry ;
 	GtkWidget *run_in_term_check ;
 
-
+	char *browser ;
 }ASRunState;
 
 ASRunState AppState ;
@@ -54,26 +54,63 @@ on_exec_clicked(GtkWidget *widget, gpointer user_data)
 {
 	if( AppState.target_entry )
 	{	
+		Bool in_term = gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(AppState.run_in_term_check) );
 		char *text = stripcpy(gtk_entry_get_text(GTK_ENTRY(AppState.target_entry)));
+		if( text[0] == '\0' ) 
+		{
+			free( text ); 
+			text = NULL ;	  
+		}	 
 		if( text != NULL )
 		{
-			if( text[0] != '\0' ) 
-			{	
-				if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(AppState.run_in_term_check) ) )
-					SendTextCommand ( F_ExecInTerm, NULL, text, 0);
-				else
-					SendTextCommand ( F_EXEC, NULL, text, 0);
-				sleep_a_millisec(500);
-				if( !get_flags( AppState.flags, ASRUN_Persist ) )
-					gtk_main_quit();
-				else
-					asgtk_combo_box_add_to_history( GTK_COMBO_BOX(AppState.target_combo), text );
+			if( mystrncasecmp(text, "http://", 7) == 0 ||
+				mystrncasecmp(text, "https://", 8) == 0 ||
+				mystrncasecmp(text, "ftp://", 6) == 0 )
+			{
+				if( AppState.browser == NULL ) 
+				{
+					free( text );
+					text = NULL ;
+				}else	 
+				{	
+					char *tmp = text ; 
+					text = 	safemalloc( strlen(AppState.browser) + 1 + strlen(tmp)+1 );
+					sprintf( text, "%s %s", AppState.browser, tmp );
+					in_term = ( strcmp(AppState.browser,"lynx") == 0 ); 
+					free( tmp );
+				}
 			}
+		}
+		if( text )
+		{	
+			if( in_term )
+				SendTextCommand ( F_ExecInTerm, NULL, text, 0);
+			else
+				SendTextCommand ( F_EXEC, NULL, text, 0);
+			sleep_a_millisec(500);
+			if( !get_flags( AppState.flags, ASRUN_Persist ) )
+				gtk_main_quit();
+			else
+				asgtk_combo_box_add_to_history( GTK_COMBO_BOX(AppState.target_combo), text );
+			
 			free( text );
 		}
 	}
 }
-
+char *get_default_web_browser()
+{
+	static char *known_browsers[] = { "x-www-browser",
+									"firefox",
+									"mozilla-firefox",
+									"mozilla",
+									"opera", 
+									NULL };
+	int i ;							
+	for( i = 0 ; known_browsers[i] ; ++i ) 
+		if( is_executable_in_path (known_browsers[i]) )
+			return mystrdup(known_browsers[i]);
+	return NULL;
+}
 
 void init_ASRun(ASFlagType flags )
 {
@@ -84,8 +121,9 @@ void init_ASRun(ASFlagType flags )
 	GtkWidget *exec_btn, *cancel_btn ;
 
 	memset( &AppState, 0x00, sizeof(AppState));
-	
 	AppState.flags = flags ;
+	AppState.browser = get_default_web_browser();
+
 	AppState.main_window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
 
   	gtk_window_set_title (GTK_WINDOW (AppState.main_window), MyName);
