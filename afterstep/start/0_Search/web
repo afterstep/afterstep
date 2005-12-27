@@ -1,0 +1,2 @@
+Exec "Google" ASRun --immidiate --cmd http://www.google.com &
+SmallMiniPixmap "normal/WWW"

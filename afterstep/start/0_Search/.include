@@ -1,0 +1,8 @@
+# use a special mini pixmap for this menu
+SmallMiniPixmap normal/MagnifyingGlass
+
+# change the name of the menu
+name Find ...
+
+# change the order in which this menu will appear its parent menu
+order 0

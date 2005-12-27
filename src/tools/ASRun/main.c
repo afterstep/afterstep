@@ -29,6 +29,7 @@ typedef struct ASRunState
 {
 #define ASRUN_ExecInTerm  		(0x01<<0)
 #define ASRUN_Persist 			(0x01<<1)
+#define ASRUN_Immidiate			(0x01<<2)
 	
 	ASFlagType flags ;
 	GtkWidget *main_window ;	
@@ -49,6 +50,52 @@ on_destroy(GtkWidget *widget, gpointer user_data)
 }
 
 
+Bool
+exec_command(char **ptext, Bool in_term)
+{
+	char *text = *ptext ;
+	if( text[0] == '\0' ) 
+	{
+		free( *ptext ); 
+		*ptext = NULL ;
+		text = NULL ;	  
+	}	 
+	if( text != NULL )
+	{
+		if( mystrncasecmp(text, "http://", 7) == 0 ||
+			mystrncasecmp(text, "https://", 8) == 0 ||
+			mystrncasecmp(text, "ftp://", 6) == 0 )
+		{
+			if( AppState.browser == NULL ) 
+			{
+				free( ptext );
+				*ptext = NULL ;
+				text = NULL ;
+			}else	 
+			{	
+				char *tmp = text ; 
+				text = 	safemalloc( strlen(AppState.browser) + 1 + strlen(tmp)+1 );
+				sprintf( text, "%s %s", AppState.browser, tmp );
+				in_term = ( strcmp(AppState.browser,"lynx") == 0 ); 
+				free( tmp );
+				*ptext = text ;
+			}
+		}
+	}
+	if( text )
+	{	
+		if( in_term )
+			SendTextCommand ( F_ExecInTerm, NULL, text, 0);
+		else
+			SendTextCommand ( F_EXEC, NULL, text, 0);
+		sleep_a_millisec(500);
+		return True;
+	}
+	return False ;
+}
+
+
+
 void
 on_exec_clicked(GtkWidget *widget, gpointer user_data)
 {
@@ -56,38 +103,9 @@ on_exec_clicked(GtkWidget *widget, gpointer user_data)
 	{	
 		Bool in_term = gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(AppState.run_in_term_check) );
 		char *text = stripcpy(gtk_entry_get_text(GTK_ENTRY(AppState.target_entry)));
-		if( text[0] == '\0' ) 
+
+		if( exec_command(&text, in_term) )
 		{
-			free( text ); 
-			text = NULL ;	  
-		}	 
-		if( text != NULL )
-		{
-			if( mystrncasecmp(text, "http://", 7) == 0 ||
-				mystrncasecmp(text, "https://", 8) == 0 ||
-				mystrncasecmp(text, "ftp://", 6) == 0 )
-			{
-				if( AppState.browser == NULL ) 
-				{
-					free( text );
-					text = NULL ;
-				}else	 
-				{	
-					char *tmp = text ; 
-					text = 	safemalloc( strlen(AppState.browser) + 1 + strlen(tmp)+1 );
-					sprintf( text, "%s %s", AppState.browser, tmp );
-					in_term = ( strcmp(AppState.browser,"lynx") == 0 ); 
-					free( tmp );
-				}
-			}
-		}
-		if( text )
-		{	
-			if( in_term )
-				SendTextCommand ( F_ExecInTerm, NULL, text, 0);
-			else
-				SendTextCommand ( F_EXEC, NULL, text, 0);
-			sleep_a_millisec(500);
 			if( !get_flags( AppState.flags, ASRUN_Persist ) )
 				gtk_main_quit();
 			else
@@ -112,7 +130,7 @@ char *get_default_web_browser()
 	return NULL;
 }
 
-void init_ASRun(ASFlagType flags )
+void init_ASRun(ASFlagType flags, const char *cmd )
 {
 	
 	GtkWidget *main_vbox ;
@@ -184,6 +202,8 @@ void init_ASRun(ASFlagType flags )
 		gtk_entry_set_has_frame(  GTK_ENTRY(AppState.target_entry), FALSE );
 		g_signal_connect ( G_OBJECT (AppState.target_entry), "activate",
 		      			   G_CALLBACK (on_exec_clicked), (gpointer) NULL);
+		if( cmd )
+			gtk_entry_set_text( GTK_ENTRY(AppState.target_entry), cmd );
 	}
 
 	g_signal_connect (G_OBJECT(AppState.target_combo), "changed",
@@ -204,6 +224,7 @@ main (int argc, char *argv[])
 {
 	ASFlagType flags = 0 ; 
 	int i;
+	char * initial_command = NULL ;
 	init_asgtkapp( argc, argv, CLASS_ASCP, NULL, 0);
 	for( i = 1 ; i < argc ; ++i ) 
 	{	
@@ -213,10 +234,26 @@ main (int argc, char *argv[])
 			set_flags( flags, ASRUN_ExecInTerm );
 		else if( mystrcasecmp( argv[i], "--persist" ) == 0 )
 			set_flags( flags, ASRUN_Persist );
+		else if( mystrcasecmp( argv[i], "--immidiate" ) == 0 )
+			set_flags( flags, ASRUN_Immidiate );
+		else if( mystrcasecmp( argv[i], "--cmd" ) == 0 && argv[i+1] != NULL )
+		{
+			++i ;
+			initial_command = mystrdup(argv[i]);
+		}
 	}
 	ConnectAfterStep(0,0);
-	init_ASRun( flags );
-  	gtk_main ();
+	if( get_flags( flags, ASRUN_Immidiate ) && initial_command != NULL )
+	{
+		memset( &AppState, 0x00, sizeof(AppState));
+		AppState.flags = flags ;
+		AppState.browser = get_default_web_browser();
+		exec_command(&initial_command, get_flags( flags, ASRUN_ExecInTerm ));
+	}else
+	{
+		init_ASRun( flags, initial_command );
+  		gtk_main ();
+	}
   	return 0;
 }
 
