@@ -401,12 +401,15 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf, Bool reload_submenus)
 		{
 			if( t->de->type == ASDE_TypeApplication ) 
 			{	
+				FunctionCode func = F_EXEC ;
+				if( get_flags( t->de->flags, ASDE_Unavailable ) )
+					func = F_NOP ;
 				if( get_flags( t->de->flags, ASDE_Terminal ) )
-					fdata = create_named_function(F_ExecInTerm, t->stripped_name);	   
+					func = F_ExecInTerm;	   
 				else if( get_flags( t->de->flags, ASDE_ASModule ) )
-					fdata = create_named_function(F_MODULE, t->stripped_name);	   
-				else
-		 			fdata = create_named_function(F_EXEC, t->stripped_name);	
+					func = F_MODULE;	   
+		 			
+				fdata = create_named_function(func, t->stripped_name);	   
             	fdata->text = mystrdup( t->de->clean_exec );
             	MenuDataItemFromFunc (menu, fdata);
  				add_minipixmap_fro_dirtree_item( t, menu );

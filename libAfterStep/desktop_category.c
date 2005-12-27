@@ -388,6 +388,9 @@ save_desktop_entry( ASDesktopEntry* de, FILE *fp )
 		if( get_flags( de->flags, ASDE_ASModule ) )
 			fputs( "X-AfterStep-ASModule=true", fp );
 
+		if( get_flags( de->flags, ASDE_CheckAvailability ) )
+			fputs( "X-AfterStep-CheckAvailability=true", fp );
+
 		if( de->fulliconname ) 
 			fprintf(fp, "Icon=%s\n", de->fulliconname );
 

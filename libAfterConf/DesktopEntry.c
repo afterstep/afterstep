@@ -278,6 +278,10 @@ fix_desktop_entry( ASDesktopEntry *de, const char *default_category, const char 
 		de->clean_exec = filter_desktop_entry_exec( de->Exec );
 	
 	de->origin = mystrdup( origin );
+
+	if( get_flags( de->flags, ASDE_CheckAvailability ) )
+		if( !is_executable_in_path ( de->clean_exec ) ) 
+			set_flags( de->flags, ASDE_Unavailable );
 }
 
 static ASDesktopEntry*

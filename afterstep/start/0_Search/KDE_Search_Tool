@@ -1,2 +1,2 @@
 Exec "KDE File/Folder Finder" kfind &
-SmallMiniPixmap "$KDEDIR/share/pixmaps/kfind.xpm"
+MiniPixmap "mini/KDESearchTool"

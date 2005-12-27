@@ -20,9 +20,14 @@
 #include "../../../libAfterStep/asapp.h"
 #include "../../../libAfterStep/module.h"
 #include "../../../libAfterConf/afterconf.h"
+#ifdef HAVE_GTK
 #include "../../../libASGTK/asgtk.h"
+#else
+typedef void* GtkWidget;
+#endif
 
 #define ENTRY_WIDTH		300
+
 
 
 typedef struct ASRunState
@@ -43,12 +48,21 @@ typedef struct ASRunState
 
 ASRunState AppState ;
 
-void
-on_destroy(GtkWidget *widget, gpointer user_data)
+char *get_default_web_browser()
 {
-	gtk_main_quit();
+	static char *known_browsers[] = { "x-www-browser",
+									"firefox",
+									"mozilla-firefox",
+									"mozilla",
+									"opera", 
+									"lynx",
+									NULL };
+	int i ;							
+	for( i = 0 ; known_browsers[i] ; ++i ) 
+		if( is_executable_in_path (known_browsers[i]) )
+			return mystrdup(known_browsers[i]);
+	return NULL;
 }
-
 
 Bool
 exec_command(char **ptext, Bool in_term)
@@ -94,6 +108,13 @@ exec_command(char **ptext, Bool in_term)
 	return False ;
 }
 
+#ifdef HAVE_GTK
+void
+on_destroy(GtkWidget *widget, gpointer user_data)
+{
+	gtk_main_quit();
+}
+
 
 
 void
@@ -115,21 +136,6 @@ on_exec_clicked(GtkWidget *widget, gpointer user_data)
 		}
 	}
 }
-char *get_default_web_browser()
-{
-	static char *known_browsers[] = { "x-www-browser",
-									"firefox",
-									"mozilla-firefox",
-									"mozilla",
-									"opera", 
-									NULL };
-	int i ;							
-	for( i = 0 ; known_browsers[i] ; ++i ) 
-		if( is_executable_in_path (known_browsers[i]) )
-			return mystrdup(known_browsers[i]);
-	return NULL;
-}
-
 void init_ASRun(ASFlagType flags, const char *cmd )
 {
 	
@@ -218,6 +224,7 @@ void init_ASRun(ASFlagType flags, const char *cmd )
 
 	gtk_widget_show(AppState.main_window);
 }	 
+#endif                         /* HAVE_GTK  */
 
 int
 main (int argc, char *argv[])
@@ -225,7 +232,19 @@ main (int argc, char *argv[])
 	ASFlagType flags = 0 ; 
 	int i;
 	char * initial_command = NULL ;
-	init_asgtkapp( argc, argv, CLASS_ASCP, NULL, 0);
+
+#ifdef HAVE_GTK		   
+	init_asgtkapp( argc, argv, CLASS_ASRUN, NULL, 0);
+#else
+	InitMyApp (CLASS_ASRUN, argc, argv, NULL, NULL, 0 );
+  	LinkAfterStepConfig();
+  	InitSession();
+    ConnectX( ASDefaultScr, 0 );
+	LoadColorScheme();
+	ReloadASEnvironment( NULL, NULL, NULL, False, True );
+	set_flags( flags, ASRUN_Immidiate );
+#endif	
+	
 	for( i = 1 ; i < argc ; ++i ) 
 	{	
 		if( argv[i] == NULL ) 
@@ -242,7 +261,9 @@ main (int argc, char *argv[])
 			initial_command = mystrdup(argv[i]);
 		}
 	}
+	
 	ConnectAfterStep(0,0);
+	
 	if( get_flags( flags, ASRUN_Immidiate ) && initial_command != NULL )
 	{
 		memset( &AppState, 0x00, sizeof(AppState));
@@ -251,8 +272,10 @@ main (int argc, char *argv[])
 		exec_command(&initial_command, get_flags( flags, ASRUN_ExecInTerm ));
 	}else
 	{
+#ifdef HAVE_GTK		
 		init_ASRun( flags, initial_command );
   		gtk_main ();
+#endif
 	}
   	return 0;
 }

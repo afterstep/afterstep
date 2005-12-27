@@ -32,7 +32,7 @@ int
 main (int argc, char *argv[])
 {
 	
-	init_asgtkapp( argc, argv, CLASS_ASCP, NULL, 0);
+	init_asgtkapp( argc, argv, CLASS_ASWALLPAPER, NULL, 0);
 	ConnectAfterStep(0,0);
 //  add_pixmap_directory (DEFAULT_PIXMAP_DIR);
 

@@ -30,6 +30,8 @@ typedef struct ASDesktopEntry
 #define ASDE_KDE				(0x01<<5)	  
 #define ASDE_GNOME				(0x01<<6)	  
 #define ASDE_ASModule			(0x01<<7)	  
+#define ASDE_CheckAvailability	(0x01<<8)	  
+#define ASDE_Unavailable		(0x01<<9)  /* calculated if CheckAvailability is set */ 	  
 	ASFlagType flags ; 
 
 #define ASDE_KEYWORD_NoDisplay_LEN			9	
@@ -37,6 +39,7 @@ typedef struct ASDesktopEntry
 #define ASDE_KEYWORD_Terminal_LEN			8
 #define ASDE_KEYWORD_StartupNotify_LEN		13
 #define ASDE_KEYWORD_ASModule_LEN			8
+#define ASDE_KEYWORD_CheckAvailability_LEN	17
 	
 	ASDesktopEntryTypes type ;	 
 	

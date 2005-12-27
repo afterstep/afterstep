@@ -24,6 +24,7 @@ struct button_t;
 #define CLASS_ASCP          "ASCP"
 #define CLASS_ASCOLOR       "ASColor"
 #define CLASS_ASIMBROWSER   "ASIMBrowser"
+#define CLASS_ASWALLPAPER   "ASWallpaper"
 #define CLASS_ASETROOT		"asetroot"
 #define CLASS_AUDIO			"Audio"
 #define CLASS_BANNER		"Banner"
@@ -40,6 +41,7 @@ struct button_t;
 #define CLASS_GADGET		"Gadget"
 
 #define CLASS_CUSTOM		"ASCustom"
+#define CLASS_ASRUN			"ASRun"
 
 #define BASE_CONFIG     	(0x01<<0)
 #define LOOK_CONFIG     	(0x01<<1)

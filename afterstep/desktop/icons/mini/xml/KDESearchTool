@@ -1,0 +1,6 @@
+<scale width="$minipixmap.width" height="$minipixmap.width">
+<composite op="alphablend">
+	<img src="normal/MagnifyingGlass" />
+	<scale x="3" y="3" width="28" height="28"><img src="logos/KDE" /></scale>
+</composite>
+</scale>
