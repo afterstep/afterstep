@@ -1,2 +1,2 @@
 Exec "The gimp" exec gimp &
-SmallMiniPixmap "normal/GIMP"
+SmallMiniPixmap "logos/gimp"
