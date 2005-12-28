@@ -690,9 +690,9 @@ Comment=Scientific software
 Type=Directory
 
 [DesktopEntry]
-Name=Screensaver
+Name=Screen Saver
 X-AfterStep-IndexName=Screensaver
-X-AfterStep-Aliases=Screensavers
+X-AfterStep-Aliases=ScreenSavers
 Categories=System 
 Comment=A screen saver (launching this desktop entry should activate the screen saver)
 Type=Directory
