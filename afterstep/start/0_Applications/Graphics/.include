@@ -1,0 +1,8 @@
+name 		Graphics
+
+SmallMiniPixmap 	normal/Brushes
+
+# look in afterstep/applications/text_editors.desktop for default entries
+Category 		"Graphics"
+
+

@@ -1,0 +1,9 @@
+
+name 		Educational
+
+SmallMiniPixmap 	normal/Library
+
+# look in afterstep/applications/text_editors.desktop for default entries
+Category 		"Education"
+
+
