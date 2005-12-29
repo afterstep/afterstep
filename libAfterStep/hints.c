@@ -1711,7 +1711,7 @@ constrain_size (ASHints * hints, ASStatusHints * status, int max_width, int max_
 		baseHeight = minHeight ;
 	}
 
-	if (get_flags (hints->flags, AS_MaxSize))
+	if (get_flags (hints->flags, AS_MaxSize) && !get_flags( status->flags, AS_Fullscreen))
 	{
 		if (max_width == 0 || max_width > hints->max_width)
 			max_width = hints->max_width;

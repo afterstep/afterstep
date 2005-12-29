@@ -431,7 +431,8 @@ struct
 	char *name_set ;	  
 	char *name_unset ;	  
 } DatabaseFlagsList[] = 
-{	{STYLE_STICKY, 				"Sticky", 				"Slippery"},
+{	{STYLE_FULLSCREEN,			"Fullscreen",			"NoFullscreen"},
+	{STYLE_STICKY, 				"Sticky", 				"Slippery"},
 	{STYLE_TITLE, 				"Title", 				"NoTitle"},
 	{STYLE_CIRCULATE, 			"CirculateHit", 		"CirculateSkip"},
 	{STYLE_WINLIST, 			"WindowListHit", 		"WindowListSkip"},
@@ -510,9 +511,16 @@ fill_window_data()
 	do{ if( get_flags( flags, WIN_##type##_##flg)){ if( buf[0] != '\0' ) strcat( buf, ", "); strcat( buf, #flg );}}while(0)
 
 	buf[0] = '\0' ;
+	if( (wd->state_flags & (AS_MaximizedX|AS_MaximizedY)) == (AS_MaximizedX|AS_MaximizedY) )
+	{
+		strcpy( buf, "Maximized"); 
+	}else
+	{
+		SHOW_FLAG(wd->state_flags,MaximizedX);
+		SHOW_FLAG(wd->state_flags,MaximizedY);    
+	}
 	SHOW_FLAG(wd->state_flags,Iconic);
-	SHOW_FLAG(wd->state_flags,MaximizedX);
-	SHOW_FLAG(wd->state_flags,MaximizedY);    
+	SHOW_FLAG(wd->state_flags,Fullscreen);    
 	SHOW_FLAG(wd->state_flags,Sticky);    
 	SHOW_FLAG(wd->state_flags,Shaded);        
 	SHOW_FLAG(wd->state_flags,Withdrawn);

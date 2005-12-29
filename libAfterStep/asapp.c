@@ -183,7 +183,7 @@ TermDef       FuncTerms[F_FUNCTIONS_NUM + 1] = {
 	FUNC_TERM ("Close", F_CLOSE),		   /* Close    ["name"] */
 	FUNC_TERM ("Iconify", F_ICONIFY),	   /* Iconify  ["name"] value */
 	FUNC_TERM2 (USES_NUMVALS, "Maximize", F_MAXIMIZE),	/* Maximize ["name"] [hori vert] */
-	FUNC_TERM ("Fullscreen", F_MAXIMIZE),	/* Maximize ["name"] [hori vert] */
+	FUNC_TERM ("Fullscreen", F_FULLSCREEN),	/* Maximize ["name"] [hori vert] */
 	FUNC_TERM ("Stick", F_STICK),		   /* Stick    ["name"] */
 	FUNC_TERM ("Focus", F_FOCUS),		   /* Focus */
 	FUNC_TERM2 (NEED_WINIFNAME, "ChangeWindowUp", F_CHANGEWINDOW_UP),	/* ChangeWindowUp   ["name" window_name ] */
