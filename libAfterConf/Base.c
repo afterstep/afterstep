@@ -43,13 +43,18 @@ TermDef       BaseTerms[] = {
     {TF_NO_MYNAME_PREPENDING, "AudioPath", 9,       TT_PATHNAME, BASE_AUDIO_PATH_ID , NULL},
     {TF_NO_MYNAME_PREPENDING, "IconPath", 8,        TT_PATHNAME, BASE_ICON_PATH_ID  , NULL},
     {TF_NO_MYNAME_PREPENDING, "PixmapPath", 10,     TT_PATHNAME, BASE_PIXMAP_PATH_ID, NULL},
-    {TF_NO_MYNAME_PREPENDING, "FontPath", 8,        TT_PATHNAME, BASE_FONT_PATH_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "FontPath", 8,        TT_PATHNAME, BASE_FONT_PATH_ID,   NULL},
     {TF_NO_MYNAME_PREPENDING, "CursorPath", 10,     TT_PATHNAME, BASE_CURSOR_PATH_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "Path", 4,            TT_PATHNAME, BASE_MYNAME_PATH_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "gtkrcPath", 9,       TT_PATHNAME, BASE_GTKRC_PATH_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "gtkrc20Path", 11,    TT_PATHNAME, BASE_GTKRC20_PATH_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "DeskTopSize", 11,    TT_GEOMETRY, BASE_DESKTOP_SIZE_ID   , NULL},
     {TF_NO_MYNAME_PREPENDING, "DeskTopScale", 12,   TT_INTEGER,  BASE_DESKTOP_SCALE_ID  , NULL},
     {TF_NO_MYNAME_PREPENDING|TF_INDEXED, "TermCommand", 11,    TT_TEXT,     BASE_TermCommand_ID  , NULL},
+    {TF_NO_MYNAME_PREPENDING|TF_INDEXED, "BrowserCommand", 14,    TT_TEXT,     BASE_BrowserCommand_ID  , NULL},
+    {TF_NO_MYNAME_PREPENDING|TF_INDEXED, "EditorCommand", 13,    TT_TEXT,     BASE_EditorCommand_ID  , NULL},
     {TF_NO_MYNAME_PREPENDING, "DisableSharedMemory", 19,   TT_FLAG,  BASE_NoSharedMemory_ID  , NULL},
+    {TF_NO_MYNAME_PREPENDING, "DisableKDEGlobalsTheming", 24,   TT_FLAG,  BASE_NoKDEGlobalsTheming_ID  , NULL},
 	{0, NULL, 0, 0, 0}
 };
 
@@ -70,6 +75,7 @@ SyntaxDef     BaseSyntax = {
 
 flag_options_xref BaseFlags[] = {
 	{BASE_NO_SHARED_MEMORY, BASE_NoSharedMemory_ID, 0},
+	{BASE_NO_KDEGLOBALS_THEMING, BASE_NoKDEGlobalsTheming_ID, 0},
     {0, 0, 0}
 };
 
@@ -91,6 +97,7 @@ CreateBaseConfig ()
 void
 DestroyBaseConfig (BaseConfig * config)
 {
+	int i = MAX_TOOL_COMMANDS;
 	if (config->module_path)
 		free (config->module_path);
 	if (config->audio_path)
@@ -105,14 +112,16 @@ DestroyBaseConfig (BaseConfig * config)
 		free (config->cursor_path);
 	if (config->myname_path)
 		free (config->myname_path);
-	if( config->term_command )
-	{
-		int i = MAX_TERM_COMMANDS;
-		while( --i >= 0 ) 
-			if( config->term_command[i] )
-				free( config->term_command[i] );
-	}	 
-
+	while( --i >= 0 ) 
+	{	
+		if( config->term_command[i] )
+			free( config->term_command[i] );
+		if( config->browser_command[i] )
+			free( config->browser_command[i] );
+		if( config->editor_command[i] )
+			free( config->editor_command[i] );
+	}
+	
 	DestroyFreeStorage (&(config->more_stuff));
 	free (config);
 }
@@ -179,9 +188,21 @@ ParseBaseOptions (const char *filename, char *myname)
 				 config->desktop_scale = 1;
 			 break;
 		 case BASE_TermCommand_ID :
-		 	 if( item.index  < MAX_TERM_COMMANDS || item.index >= 0 ) 
+		 	 if( item.index  < MAX_TOOL_COMMANDS || item.index >= 0 ) 
 			 {	
 			 	set_string(&(config->term_command[item.index]), item.data.string );		 	
+			 	break;
+			 }
+    	 case BASE_BrowserCommand_ID :
+		 	 if( item.index  < MAX_TOOL_COMMANDS || item.index >= 0 ) 
+			 {	
+			 	set_string(&(config->browser_command[item.index]), item.data.string );		 	
+			 	break;
+			 }
+	   	 case BASE_EditorCommand_ID :	
+		 	 if( item.index  < MAX_TOOL_COMMANDS || item.index >= 0 ) 
+			 {	
+			 	set_string(&(config->editor_command[item.index]), item.data.string );		 	
 			 	break;
 			 }
 		 default:
@@ -266,7 +287,9 @@ ExtractPath (BaseConfig * config,
 			 char **pixmap_path,
 			 char **font_path,
 			 char **cursor_path,
-			 char **myname_path)
+			 char **myname_path,
+			 char **gtkrc_path,
+			 char **gtkrc20_path)
 {
 	register char *tmp ;
 	if (config)
@@ -306,6 +329,16 @@ ExtractPath (BaseConfig * config,
 			tmp = copy_replace_envvar (config->myname_path);
 			set_string(myname_path, tmp );
 		}
+		if (gtkrc_path)
+		{
+			tmp = make_session_rc_file (Session, config->gtkrc_path);
+			set_string(gtkrc_path, tmp );
+		}
+		if (gtkrc20_path)
+		{
+			tmp = make_session_rc_file (Session, config->gtkrc20_path);
+			set_string(gtkrc20_path, tmp );
+		}
 	}
 }
 
@@ -313,7 +346,6 @@ void
 BaseConfig2ASEnvironment( register BaseConfig *config, ASEnvironment **penv )
 {
 	register ASEnvironment *env = *penv;
-	int i;
 	if( env == NULL )
 		env = safecalloc( 1, sizeof( ASEnvironment ) );
 	ExtractPath (config, &(env->module_path),
@@ -322,7 +354,9 @@ BaseConfig2ASEnvironment( register BaseConfig *config, ASEnvironment **penv )
 						&(env->pixmap_path),
 						&(env->font_path),
 						&(env->cursor_path),
-						NULL);
+						NULL,
+						&(env->gtkrc_path),
+						&(env->gtkrc20_path));
 	if (config->desktop_size.flags & WidthValue)
 		env->desk_pages_h = config->desktop_size.width ;
 	else
@@ -333,35 +367,24 @@ BaseConfig2ASEnvironment( register BaseConfig *config, ASEnvironment **penv )
 	else
 		env->desk_pages_v = 0 ;
 	env->desk_scale = config->desktop_scale ;
-	env->term_command = NULL ; 
-	for( i = 0 ; i < MAX_TERM_COMMANDS ; ++i ) 
-		if( config->term_command[i] )
-		{
-			if( is_executable_in_path( config->term_command[i] ) ) 
-			{	
-				env->term_command = mystrdup( config->term_command[i] );
-				break;
-			}else
-				show_warning( "TermCommand %s is not in the path", config->term_command[i] );
-		}	 
-	if( env->term_command == NULL ) 
-	{
-		if( is_executable_in_path( "aterm" ) ) 
-			env->term_command = mystrdup( "aterm" );
-		else if( is_executable_in_path( "rxvt" ) ) 
-			env->term_command = mystrdup( "rxvt  -tr -fg yellow -bg black" );
-		else if( is_executable_in_path( "eterm" ) ) 
-			env->term_command = mystrdup( "eterm -tr -tint blue -fg yellow -bg black" );
-		else 
-			env->term_command = mystrdup( "xterm -fg yellow -bg blue" );
-	}
-	show_progress( "ExecInTerm will use: \"%s\"", env->term_command );
+	
+	set_environment_tool_from_list( env, ASTool_Term, config->term_command, MAX_TOOL_COMMANDS );
+	set_environment_tool_from_list( env, ASTool_Browser, config->browser_command, MAX_TOOL_COMMANDS );
+	set_environment_tool_from_list( env, ASTool_Editor, config->editor_command, MAX_TOOL_COMMANDS );
+
 	if( get_flags(config->set_flags, BASE_NO_SHARED_MEMORY ) )
 	{	
 		if( get_flags(config->flags, BASE_NO_SHARED_MEMORY ) )
 			set_flags( env->flags, ASE_NoSharedMemory );
 		else
 			clear_flags( env->flags, ASE_NoSharedMemory );
+	}
+	if( get_flags(config->set_flags, BASE_NO_KDEGLOBALS_THEMING ) )
+	{	
+		if( get_flags(config->flags, BASE_NO_KDEGLOBALS_THEMING ) )
+			set_flags( env->flags, ASE_NoKDEGlobalsTheming );
+		else
+			clear_flags( env->flags, ASE_NoKDEGlobalsTheming );
 	}
 	*penv = env ;
 }

@@ -1525,7 +1525,7 @@ LoadASConfig (int thisdesktop, ASFlagType what)
                 display_progress( True, "LOOK configuration file cannot be found!");
                 clear_flags(what, PARSE_LOOK_CONFIG);
             }
-        	if( UpdateGtkRC() ) 
+        	if( UpdateGtkRC(Environment) ) 
 				ExecuteFunction (&gtkrc_signal_func, &dummy_event, -1);
 			if( UpdateKCSRC() ) 
 				ExecuteFunction (&kde_signal_func, &dummy_event, -1);
@@ -1627,7 +1627,7 @@ LoadASConfig (int thisdesktop, ASFlagType what)
         show_progress("AfterStep configuration loaded from \"%s\" ...", Session->overriding_file);
         display_progress( True, "AfterStep configuration loaded from \"%s\".", Session->overriding_file);
         what = PARSE_EVERYTHING ;
-		if( UpdateGtkRC() ) 
+		if( UpdateGtkRC(Environment) ) 
 			ExecuteFunction (&gtkrc_signal_func, &dummy_event, -1);
 		UpdateKCSRC();
     }

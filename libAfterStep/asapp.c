@@ -139,6 +139,8 @@ TermDef       FuncTerms[F_FUNCTIONS_NUM + 1] = {
 	FUNC_TERM2 (NEED_NAME | NEED_CMD, "Exec", F_EXEC),	/* Exec   "name" command */
 	FUNC_TERM2 (NEED_NAME | NEED_CMD, "Module", F_MODULE),	/* Module "name" command */
     FUNC_TERM2 (NEED_NAME | NEED_CMD, "ExecInTerm", F_ExecInTerm),   /* ExecInTerm   "name" command */
+    FUNC_TERM2 (NEED_NAME | NEED_CMD, "ExecBrowser", F_ExecBrowser),   /* ExecBrowser   "name" url */
+    FUNC_TERM2 (NEED_NAME | NEED_CMD, "ExecEditor",  F_ExecEditor),    /* ExecEditor   "name" filename */
 	FUNC_TERM2 (NEED_NAME | NEED_CMD, "KillModuleByName", F_KILLMODULEBYNAME),	/* KillModuleByName "name" module */
 	FUNC_TERM2 (NEED_NAME | NEED_CMD, "RestartModuleByName", F_RESTARTMODULEBYNAME),	/* RestartModuleByName "name" module */
 	FUNC_TERM2 (NEED_NAME | NEED_CMD, "KillAllModulesByName", F_KILLALLMODULESBYNAME),	/* KillAllModulesByName "name" module */
@@ -642,10 +644,99 @@ free_func_hash ()
 }
 
 /*********** end command line parsing **************************/
+static char *_as_known_terms[]	= 
+{	
+	"aterm",
+	"rxvt  -tr -fg yellow -bg black",
+	"eterm -tr -tint blue -fg yellow -bg black",
+	"xterm -fg yellow -bg blue",
+	NULL 
+};
+static char *_as_known_browsers[]	= 
+{
+	"$BROWSER",
+	"firefox",
+	"x-www-browser",           /* don't like default debian selection of konqueror */
+	"mozilla-firefox",
+	"mozilla",
+	"opera",
+	NULL				 
+};
+static char *_as_known_editors[]	= 
+{
+	"$EDITOR",
+	"nedit",
+	"xemacs",
+	"gedit",
+	"kedit",		 
+	"kate",
+	NULL
+};
+
+static char **_as_known_tools[ASTool_Count] = 
+{
+	_as_known_terms,
+	_as_known_browsers,
+	_as_known_editors
+};
+
+static char *_as_tools_name[ASTool_Count] = 
+{
+	"Terminal",
+	"Browser",
+	"Editor"	  
+};	 
+
+	 
+char *as_get_default_tool(ASToolType type)
+{
+	int i ;							
+	for( i = 0 ; _as_known_tools[type][i] ; ++i ) 
+	{
+		char *tmp = _as_known_tools[type][i] ;
+		if( tmp[0] == '$' ) 
+			tmp = copy_replace_envvar( tmp );
+	 	else
+			tmp = mystrdup(tmp);				   
+		if( is_executable_in_path (tmp) )
+			return tmp;
+		free( tmp );
+	}
+	return NULL;
+}
+
+void
+set_environment_tool_from_list( ASEnvironment *e, ASToolType type, char ** list, int list_len )
+{
+	int i ;
+	destroy_string( &(e->tool_command[type]) );
+	for( i = 0 ; i < list_len ; ++i ) 
+		if( list[i] )
+		{
+			char *tmp = list[i] ;
+			if( tmp[0] == '$' ) 
+				tmp = copy_replace_envvar( tmp );
+	 		else
+				tmp = mystrdup(tmp);				   
+			if( is_executable_in_path( tmp ) ) 
+			{	
+				e->tool_command[type] = tmp;
+				break;
+			}else
+			{
+				show_warning( "%s command %s is not in the path", _as_tools_name[type], tmp );
+				free(tmp);	  
+			}
+		}	 
+	if( e->tool_command[type] == NULL ) 
+		e->tool_command[type] = as_get_default_tool(type);
+	show_progress( "%s is set to: \"%s\"", _as_tools_name[type], e->tool_command[type]?e->tool_command[type]:"none" );
+}
 
 ASEnvironment *
 make_default_environment()
 {
+	int i;
 	ASEnvironment *e = safecalloc( 1, sizeof(ASEnvironment) );
 	static const char *default_pixmap_path_format =
 		"%s/desktop/icons/:"
@@ -703,6 +794,13 @@ make_default_environment()
 	sprintf( e->cursor_path, default_cursor_path_format,
 	                         AFTER_DIR,
 							 AFTER_SHAREDIR );
+
+	for( i = 0 ; i < ASTool_Count ; ++i )
+		e->tool_command[i] = as_get_default_tool(i);	 
+
+	e->gtkrc_path = make_session_rc_file(Session, GTKRC_FILE);
+  	e->gtkrc20_path = make_session_rc_file(Session, GTKRC20_FILE) ;
+
 	return e;
 }
 
@@ -714,6 +812,7 @@ destroy_asenvironment( ASEnvironment **penv )
 		ASEnvironment *e = *penv ;
 		if( e )
 		{
+			int i ;
 			if( e->module_path )
 				free( e->module_path );
 			if( e->audio_path )
@@ -726,6 +825,11 @@ destroy_asenvironment( ASEnvironment **penv )
 				free( e->font_path );
 			if( e->cursor_path )
 				free( e->cursor_path );
+			for ( i = 0 ; i < ASTool_Count ; ++i )
+				destroy_string( &(e->tool_command[i])) ;
+			
+			destroy_string( &(e->gtkrc_path)) ;
+			destroy_string( &(e->gtkrc20_path)) ;
 
 			free( e ) ;
 			*penv = NULL ;

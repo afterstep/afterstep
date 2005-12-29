@@ -411,40 +411,37 @@ translate_kcsrc_template_file( 	const char *template_fname, const char *output_f
 }
 
 
-static char *make_rc_filename( const char *tmpl )
-{
-	if( tmpl[0] == '/' || tmpl[0] == '$' || tmpl[0] == '~' )
-		return copy_replace_envvar (tmpl);
-	else
-		return make_session_data_file(Session, False, 0, tmpl, NULL );
-}	 
-
 Bool
-UpdateGtkRC()
+UpdateGtkRC(ASEnvironment *e)
 {
 	Bool result = False ; 	
-	char *src = make_session_file   (Session, GTKRC_TEMPLATE_FILE, False );
-	char *dst = make_rc_filename( GTKRC_FILE );
+	char *src ;
 	/* first we need to load the colorscheme */
-    if( src && dst ) 
-		result = translate_gtkrc_template_file( src, dst );
+	if( e == NULL )
+		return False;
+	if( e->gtkrc_path != NULL && strcmp(e->gtkrc_path, "/dev/null") != 0 ) 
+	{	
+		src = make_session_file   (Session, GTKRC_TEMPLATE_FILE, False );
+	    if( src ) 
+			result = translate_gtkrc_template_file( src, e->gtkrc_path );
 
-	destroy_string(&src); 
-	destroy_string(&dst);
+		destroy_string(&src); 
+	}
 
-	src = make_session_file   (Session, GTKRC20_TEMPLATE_FILE, False );
-	dst = make_rc_filename( GTKRC20_FILE );
-	/* first we need to load the colorscheme */
-    if( src && dst ) 
-		if( translate_gtkrc_template_file( 	src, dst ) ) 
-			result = True;
-	destroy_string(&src); 
-	destroy_string(&dst);
+	if( e->gtkrc20_path != NULL && strcmp(e->gtkrc20_path, "/dev/null") != 0 ) 
+	{	
+		src = make_session_file   (Session, GTKRC20_TEMPLATE_FILE, False );
+		/* first we need to load the colorscheme */
+    	if( src  ) 
+			if( translate_gtkrc_template_file( 	src, e->gtkrc20_path ) ) 
+				result = True;
+		destroy_string(&src); 
+	}
 	return result;
 }
 
 static Bool 
-SetKDEGlobalsColorScheme( const char *new_cs_file )	
+SetKDEGlobalsColorScheme( const char *new_cs_file, const char *cs_name )	
 {
 	char *kdeglobals_fname = copy_replace_envvar ( KDEGLOBALS_FILE );
 	xml_elem_t *KDE_cs = load_KDE_config( new_cs_file );
@@ -461,7 +458,7 @@ SetKDEGlobalsColorScheme( const char *new_cs_file )
 		merge_KDE_config_groups( CS_group, General_group );
 	}
 
-	set_KDE_config_group_item( KDE_group, "colorScheme", new_cs_file );
+	set_KDE_config_group_item( KDE_group, "colorScheme", cs_name?cs_name:new_cs_file );
 
 	save_KDE_config( kdeglobals_fname, KDE_globals );
 	xml_elem_delete( NULL, KDE_globals );
@@ -478,15 +475,30 @@ UpdateKCSRC()
 {
 	Bool result = False ; 	
 	char *src = make_session_file   (Session, KSCRC_TEMPLATE_FILE, False );
-	char *dst = make_rc_filename( KCSRC_FILE );
+	char *dst = make_session_rc_file(Session, KCSRC_FILE );
 	/* first we need to load the colorscheme */
     if( src && dst ) 
 		result = translate_kcsrc_template_file( src, dst );
 
 	if( result ) 
 	{
-		if( !SetKDEGlobalsColorScheme( dst ) ) 
+		char *cs_filename = dst ;
+		char *kcs_path = copy_replace_envvar ( KDECS_DIR );
+
+		if( CheckDir(kcs_path) == 0)
+		{
+			char *fullcs_filename ;
+			cs_filename = mystrdup( AS_KCSRC_FILE );
+			fullcs_filename = make_file_name( kcs_path, cs_filename );
+			CopyFile (dst, fullcs_filename);	
+			free( fullcs_filename );
+		}	 
+		free( kcs_path );
+
+		if( !SetKDEGlobalsColorScheme( dst, cs_filename ) ) 
 			result = False ;
+		if( cs_filename != dst ) 
+			free( cs_filename );
 	}	 
 	destroy_string(&src); 
 	destroy_string(&dst);

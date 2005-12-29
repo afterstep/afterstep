@@ -1056,6 +1056,19 @@ make_session_data_file  (ASSession * session, Bool shared, int if_mode_only, ...
     return realfilename ;
 }
 
+char *make_session_rc_file( ASSession *session, const char *tmpl )
+{
+	
+	if( tmpl == NULL ) 
+		return NULL;
+	
+	if( tmpl[0] == '/' || tmpl[0] == '$' || tmpl[0] == '~' )
+		return copy_replace_envvar (tmpl);
+	
+	return make_session_data_file(session, False, 0, tmpl, NULL );
+}	 
+
+
 void
 set_session_override(ASSession * session, const char *overriding_file, int function )
 {

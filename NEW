@@ -1,3 +1,25 @@
+version 2.2.0 release
+	*Added functions : 
+		ExecBrowser
+		ExecEditor
+		SignalReloadGTKRCFile
+		KIPCSendMessageAll
+		Fullscreen
+		SmallMiniPixmap
+		LargeMiniPixmap
+  	* Added Base config settings : 
+		BrowserCommand
+		EditorCommand
+		gtkrcPath
+		gtkrc20Path
+		NoKDEGlobalsTheming  (flags to disable updated to kdeglobals)
+	* Changed behaviour of ToggleLayer to simply increase or descrease layer 
+	  of the window
+	* Added Category setting to .include files in startmenu to be able to 
+	  iunclude desktop category from systemwide .desktop list.
+	* new tool ASRun to run arbitrary command using AfterStep.
+	
+
 version 2.0.5 release
 	* Added ReverseOrderHorizontal and REverseOrderVertical to 
 	  windowbox flags

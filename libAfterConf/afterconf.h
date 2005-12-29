@@ -337,15 +337,21 @@ void LinkAfterStepConfig();
 #define BASE_FONT_PATH_ID       BASE_ID_START+4
 #define BASE_CURSOR_PATH_ID     BASE_ID_START+5
 #define BASE_MYNAME_PATH_ID     BASE_ID_START+6
-#define BASE_DESKTOP_SIZE_ID	BASE_ID_START+7
-#define BASE_DESKTOP_SCALE_ID	BASE_ID_START+8
-#define BASE_TermCommand_ID		BASE_ID_START+9
-#define BASE_NoSharedMemory_ID	BASE_ID_START+10
-#define BASE_ID_END             BASE_ID_START+11
+#define BASE_GTKRC_PATH_ID      BASE_ID_START+7
+#define BASE_GTKRC20_PATH_ID    BASE_ID_START+8
+#define BASE_DESKTOP_SIZE_ID	BASE_ID_START+9
+#define BASE_DESKTOP_SCALE_ID	BASE_ID_START+10
+#define BASE_TermCommand_ID		BASE_ID_START+11
+#define BASE_BrowserCommand_ID	BASE_ID_START+12
+#define BASE_EditorCommand_ID	BASE_ID_START+13
+#define BASE_NoSharedMemory_ID	BASE_ID_START+14
+#define BASE_NoKDEGlobalsTheming_ID	BASE_ID_START+15
+#define BASE_ID_END             BASE_ID_START+16
 
 typedef struct
 {
 #define BASE_NO_SHARED_MEMORY	(0x01<<0)	
+#define BASE_NO_KDEGLOBALS_THEMING	(0x01<<1)	  
 #define BASE_DESKTOP_SIZE_SET	(0x01<<16)	  
 #define BASE_DESKTOP_SCALE_SET	(0x01<<17)	  
 	ASFlagType flags, set_flags ; 
@@ -356,11 +362,15 @@ typedef struct
     char *font_path;
     char *cursor_path;
     char *myname_path;
+    char *gtkrc_path;
+    char *gtkrc20_path;
     ASGeometry desktop_size;
     int desktop_scale;
 
-#define MAX_TERM_COMMANDS	16
-	char *term_command[MAX_TERM_COMMANDS] ; 
+#define MAX_TOOL_COMMANDS	8
+	char *term_command[MAX_TOOL_COMMANDS] ; 
+	char *browser_command[MAX_TOOL_COMMANDS] ; 
+	char *editor_command[MAX_TOOL_COMMANDS] ; 
 
     struct FreeStorageElem *more_stuff;
 }BaseConfig;
@@ -373,7 +383,9 @@ void ExtractPath (BaseConfig * config,
 			 char **pixmap_path,
 			 char **font_path,
 			 char **cursor_path,
-			 char **myname_path);
+			 char **myname_path,
+			 char **gtkrc_path,
+			 char **gtkrc20_path);
 
 void BaseConfig2ASEnvironment( register BaseConfig *config, ASEnvironment **penv );
 void ReloadASImageManager( ASImageManager **old_imageman );
@@ -2007,7 +2019,7 @@ ASColorScheme *ColorConfig2ASColorScheme( ColorConfig *config );
 
 void LoadColorScheme();                        /* high level easy to use function */
 Bool translate_gtkrc_template_file( const char *template_fname, const char *output_fname );
-Bool UpdateGtkRC();
+Bool UpdateGtkRC(ASEnvironment *e);
 Bool UpdateKCSRC();
 
 

@@ -70,6 +70,7 @@ void close_func_handler( FunctionData *data, ASEvent *event, int module );
 void restart_func_handler( FunctionData *data, ASEvent *event, int module );
 void exec_func_handler( FunctionData *data, ASEvent *event, int module );
 void exec_in_term_func_handler( FunctionData *data, ASEvent *event, int module );
+void exec_tool_func_handler( FunctionData *data, ASEvent *event, int module );
 void change_background_func_handler( FunctionData *data, ASEvent *event, int module );
 void change_back_foreign_func_handler( FunctionData *data, ASEvent *event, int module );
 void change_config_func_handler( FunctionData *data, ASEvent *event, int module );
@@ -145,14 +146,17 @@ void SetupFunctionHandlers()
     function_handlers[F_PIN_MENU]           = pin_menu_func_handler ;
     function_handlers[F_DESTROY] =
 	function_handlers[F_DELETE] =
-	function_handlers[F_CLOSE]          = close_func_handler ;
+	function_handlers[F_CLOSE]          	= close_func_handler ;
     function_handlers[F_RESTART]            = restart_func_handler ;
 
-    function_handlers[F_EXEC] =
-		function_handlers[F_Swallow] =
+    function_handlers[F_EXEC] 				=
+		function_handlers[F_Swallow] 		=
 		function_handlers[F_MaxSwallow] 	= exec_func_handler ;
 
 	function_handlers[F_ExecInTerm]       	= exec_in_term_func_handler ;
+	
+	function_handlers[F_ExecBrowser]       	= 
+		function_handlers[F_ExecEditor]     = exec_tool_func_handler ;
 
     function_handlers[F_CHANGE_BACKGROUND]  = change_background_func_handler;
 	function_handlers[F_CHANGE_BACKGROUND_FOREIGN]  = change_back_foreign_func_handler;
@@ -1230,12 +1234,12 @@ char *parse_term_cmdl( const char *term_name, const char *term_command, const ch
 
 void exec_in_term_func_handler( FunctionData *data, ASEvent *event, int module )
 {
-	if( Environment->term_command != NULL && data->text != NULL ) 
+	if( Environment->tool_command[ASTool_Term] != NULL && data->text != NULL ) 
 	{
 		char *full_cmdl = NULL;
-		char *term_name = strrchr( Environment->term_command, '/' );
-		term_name = (term_name == NULL )? Environment->term_command: term_name+1 ;
-		full_cmdl = parse_term_cmdl( term_name, Environment->term_command, data->text );
+		char *term_name = strrchr( Environment->tool_command[ASTool_Term], '/' );
+		term_name = (term_name == NULL )? Environment->tool_command[ASTool_Term]: term_name+1 ;
+		full_cmdl = parse_term_cmdl( term_name, Environment->tool_command[ASTool_Term], data->text );
 		if( full_cmdl ) 
 		{	
 			LOCAL_DEBUG_OUT( "full_cmdl = [%s]", full_cmdl );
@@ -1251,6 +1255,24 @@ void exec_in_term_func_handler( FunctionData *data, ASEvent *event, int module )
 	}
 }
 
+void exec_tool_func_handler( FunctionData *data, ASEvent *event, int module )
+{
+	ASToolType tool = (data->func == F_ExecBrowser)?ASTool_Browser:ASTool_Editor ;
+	if( Environment->tool_command[tool] != NULL && data->text != NULL ) 
+	{
+		char *full_cmdl = safemalloc( strlen(Environment->tool_command[tool]) +1+strlen(data->text)+1 );
+		sprintf( full_cmdl, "%s %s", Environment->tool_command[tool], data->text );
+		LOCAL_DEBUG_OUT( "full_cmdl = [%s]", full_cmdl );
+   		XGrabPointer(  dpy, Scr.Root, True,
+			      		ButtonPressMask | ButtonReleaseMask,
+				  		GrabModeAsync, GrabModeAsync, Scr.Root, Scr.Feel.cursors[ASCUR_Wait], CurrentTime);
+    	XSync (dpy, 0);
+    	spawn_child( full_cmdl, -1, -1, None, C_NO_CONTEXT, True, False, NULL );
+    	XUngrabPointer (dpy, CurrentTime);
+		free( full_cmdl );
+    	XSync (dpy, 0);
+	}
+}
 
 static int _as_config_change_recursion = 0 ;
 static int _as_config_change_count = 0 ;

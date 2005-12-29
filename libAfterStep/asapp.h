@@ -172,9 +172,18 @@ typedef struct ASProgArgs
 
 }ASProgArgs;
 
+typedef enum ASToolType
+{
+	ASTool_Term = 0,
+	ASTool_Browser,
+	ASTool_Editor,	
+	ASTool_Count	  
+}ASToolType;
+
 typedef struct ASEnvironment
 {
-#define ASE_NoSharedMemory		(0x01<<0)
+#define ASE_NoSharedMemory			(0x01<<0)
+#define ASE_NoKDEGlobalsTheming		(0x01<<1)
   ASFlagType flags ; 
 
   char *module_path;
@@ -186,7 +195,10 @@ typedef struct ASEnvironment
   unsigned short desk_pages_h, desk_pages_v ;
   unsigned short desk_scale ;
 
-  char *term_command ;
+  char *tool_command[ASTool_Count] ;
+  
+  char *gtkrc_path ;
+  char *gtkrc20_path ;
 }ASEnvironment;
 
 /*
@@ -200,6 +212,7 @@ typedef struct ASEnvironment
 
 
 ASEnvironment *make_default_environment();
+void set_environment_tool_from_list( ASEnvironment *e, ASToolType type, char ** list, int list_len );
 void destroy_asenvironment( ASEnvironment **penv );
 
 /***********************************************************************************/

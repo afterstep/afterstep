@@ -66,6 +66,7 @@ char   *make_session_apps_path ( ASSession * session );
 char *make_session_file   (ASSession * session, const char *source, Bool use_depth );
 char *make_session_dir    (ASSession * session, const char *source, Bool use_depth );
 char *make_session_data_file  (ASSession * session, Bool shared, int if_mode_only, ... );
+char *make_session_rc_file( ASSession *session, const char *tmpl );
 
 int CheckOrCreate (const char *what);
 void check_AfterStep_dirtree ( char * ashome, Bool create_non_conf);
