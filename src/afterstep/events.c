@@ -1346,7 +1346,8 @@ HandleConfigureRequest ( ASEvent *event )
 		return;
 	}
 
-	if( ASWIN_HFLAGS(asw, AS_IgnoreConfigRequest ) )
+	if( ASWIN_HFLAGS(asw, AS_IgnoreConfigRequest ) ||
+		ASWIN_GET_FLAGS( asw, AS_Fullscreen ) )
 	{	
 		LOCAL_DEBUG_OUT( "Ignoring ConfigureRequest for client %p as required by hints", asw );
 		send_canvas_configure_notify(asw->frame_canvas, asw->client_canvas);

@@ -92,6 +92,7 @@ typedef enum FunctionCode{
   F_CLOSE,
   F_ICONIFY,
   F_MAXIMIZE,
+  F_FULLSCREEN,
   F_STICK,
   F_FOCUS,
   F_CHANGEWINDOW_UP,

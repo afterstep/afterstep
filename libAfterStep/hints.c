@@ -1031,6 +1031,9 @@ static ASFlagType extwm_types_start_properties[][3] = {
 	{EXTWM_TypeUtility, AS_LayerTop, 0}, 	
 	{EXTWM_TypeSplash, AS_LayerTop, AS_ShortLived },
 	{EXTWM_TypeASModule, AS_LayerNormal, AS_StartsSticky },
+	{EXTWM_StateFullscreen, AS_LayerUrgent, AS_Fullscreen },
+	{EXTWM_StateAbove, AS_LayerTop, 0 },
+	{EXTWM_StateBelow, AS_LayerBack, 0 },
 	{0, 0, 0}
 };
 static ASFlagsXref extwm_type_xref[] = {	   /*Flag              Set if Set,      Clear if Set,     Set if Clear,    Clear if Clear  */
@@ -1173,7 +1176,7 @@ merge_extwm_hints (ASHints * clean, ASRawHints * raw,
 			decode_simple_flags (&(status->flags), extwm_state_xref, eh->flags);
 		}
 		/* window type hints : */
-		if (get_flags (eh->flags, (EXTWM_TypeEverything & (~EXTWM_TypeNormal))))
+		if (get_flags (eh->flags, (EXTWM_TypeEverything & (~EXTWM_TypeNormal))|EXTWM_StateFullscreen|EXTWM_StateAbove|EXTWM_StateBelow ))
 		{
 			register int  i;
 
@@ -1257,6 +1260,7 @@ merge_asdb_hints (ASHints * clean, ASRawHints * raw, ASDatabaseRecord * db_rec, 
 		{STYLE_STICKY, AS_StartsSticky, 0, 0, AS_StartsSticky},
 		{STYLE_START_ICONIC, AS_StartsIconic, 0, 0, AS_StartsIconic},
 		{STYLE_PPOSITION, AS_StartPositionUser, 0, 0, AS_StartPosition},
+		{STYLE_FULLSCREEN, AS_Fullscreen, 0, 0, AS_Fullscreen},
 		{0, 0, 0, 0, 0}
 	};
 	static ASFlagsXref asdb_hints_xref[] = {   /*Flag                  Set if Set      ,Clear if Set    ,Set if Clear       ,Clear if Clear  */
@@ -1682,7 +1686,7 @@ constrain_size (ASHints * hints, ASStatusHints * status, int max_width, int max_
     int baseWidth = 0, baseHeight = 0;
     int clean_width  = status->width -(status->frame_size[FR_W]+status->frame_size[FR_E]);
     int clean_height = status->height -(status->frame_size[FR_N]+status->frame_size[FR_S]);
-
+	
 	if (get_flags (hints->flags, AS_MinSize))
 	{
 		if (minWidth < hints->min_width)

@@ -27,6 +27,7 @@ struct wild_reg_exp;
 
 
 /* this are pure flags */
+#define STYLE_FULLSCREEN		(1 << 6)
 #define STYLE_KDE_HINTS         (1 << 7)    /* if set - then we should honor KDE Hints */
 #define STYLE_CURRENT_VIEWPORT  (1 << 8)   /* Ignore ConfigRequests for the client */   
 #define STYLE_IGNORE_CONFIG     (1 << 9)   /* Ignore ConfigRequests for the client */   

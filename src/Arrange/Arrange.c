@@ -376,6 +376,9 @@ window_is_suitable(ASWindowData *wd)
 {
 	regex_t my_reg;
         
+	if( get_flags( wd->state_flags, AS_Fullscreen ) )
+		return False;
+		
         /* we do not want to arrange AfterSTep's modules */
 	if( get_flags( wd->flags, AS_Module))
 		return False;
@@ -404,9 +407,9 @@ window_is_suitable(ASWindowData *wd)
 		return False;
 	/* return if window is maximized and we don't want
 	   to arrange maximized windows. */
-	if( !get_flags( ArrangeState.flags, ARRANGE_Maximized ) && get_flags( wd->state_flags, AS_MaximizedX|AS_MaximizedY ) )
+	if( !get_flags( ArrangeState.flags, ARRANGE_Maximized ) && get_flags( wd->state_flags, AS_MaximizedX|AS_MaximizedY|AS_Fullscreen ) )
 		return False;
-		
+	
 	/* return if window is not on current desk and we don't want
 	   to arrange windows of all desks. */
 	if( !get_flags( ArrangeState.flags, ARRANGE_AllDesks) && (wd->desk != Scr.CurrentDesk) )

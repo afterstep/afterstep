@@ -1267,6 +1267,7 @@ set_client_state (Window w, struct ASStatusHints *status)
 				extwm_states[used++] = _XA_NET_WM_STATE_MAXIMIZED_VERT;
 				gnome_state |= WIN_STATE_MAXIMIZED_VERT;
 			}
+			
 			if (read_32bit_proplist (w, _XA_NET_WM_WINDOW_TYPE, MAX_NET_WM_STATES, &old_extwm_state, &old_extwm_used))
 			{
 				translate_atom_list (&old_state, EXTWM_State, old_extwm_state, old_extwm_used);

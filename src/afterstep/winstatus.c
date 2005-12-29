@@ -1259,12 +1259,12 @@ LOCAL_DEBUG_CALLER_OUT( "(%p,%s)", asw, context2text(pressed_context));
 void
 save_aswindow_anchor( ASWindow *asw, Bool hor, Bool vert )
 {
-    if( hor && asw->saved_anchor.width == 0 )
+    if( hor && asw->saved_anchor.width == 0 && asw->status->width < Scr.MyDisplayWidth )
     {
         asw->saved_anchor.x = asw->anchor.x ;
         asw->saved_anchor.width = asw->anchor.width ;
     }
-    if( vert && asw->saved_anchor.height == 0 )
+    if( vert && asw->saved_anchor.height == 0 && asw->status->height < Scr.MyDisplayHeight  )
     {
         asw->saved_anchor.y = asw->anchor.y ;
         asw->saved_anchor.height = asw->anchor.height ;
@@ -1367,78 +1367,7 @@ init_aswindow_status( ASWindow *t, ASStatusHints *status )
 		t->status->y -= t->status->viewport_y;
 	}
 	LOCAL_DEBUG_OUT( "status->pos = %+d%+d, Scr.Vpos = %+d%+d", t->status->x, t->status->y, Scr.Vx, Scr.Vy );
-
-	if( get_flags (t->hints->flags, AS_MinSize) ) 
-	{	
-		int width = t->status->width ;
-		int height = t->status->height ;
-		if( (!get_flags (t->status->flags, AS_StartSizeUser) && width < t->hints->min_width) || width == 1 )
-			width = min( t->hints->min_width, Scr.MyDisplayWidth );
-		if( (!get_flags (t->status->flags, AS_StartSizeUser) && height < t->hints->min_height) || height == 1 )
-			width = min( t->hints->min_height, Scr.MyDisplayHeight );
-		if( width != t->status->width || height != t->status->height ) 
-		{
-			int dx = 0, dy = 0 ;
-			if( t->hints->gravity == EastGravity || 
-				t->hints->gravity == SouthEastGravity || 
-				t->hints->gravity == NorthEastGravity ||
-				t->hints->gravity == CenterGravity )
-				dx = (int)(t->status->width) - width ; 
-			if( t->hints->gravity == SouthGravity || 
-				t->hints->gravity == SouthEastGravity || 
-				t->hints->gravity == SouthWestGravity ||
-				t->hints->gravity == CenterGravity)
-				dy = (int)(t->status->height) - height ; 
-			if( t->hints->gravity == EastGravity || t->hints->gravity == CenterGravity ) 
-				dx = dx/2 ;
-			if( t->hints->gravity == SouthGravity || t->hints->gravity == CenterGravity ) 
-				dy = dy/2 ;
-			t->status->x += dx ;			
-			t->status->y += dy ;			   
-			t->status->width = width ;			   
-			t->status->height = height ;			   
-			XResizeWindow( dpy, t->w, width, height );
-		}	 
-	}
-    if( !get_flags(AfterStepState, ASS_NormalOperation) )
-    {
-        int min_x, min_y, max_x, max_y ;
-        int margin = Scr.MyDisplayWidth>>5 ;
-        if (!ASWIN_GET_FLAGS( t, AS_Sticky ))
-        {
-            min_x = -Scr.Vx ;
-            max_x = Scr.VxMax+Scr.MyDisplayWidth ;
-            min_y = -Scr.Vy ;
-            max_y = Scr.VyMax+Scr.MyDisplayHeight ;
-        }else
-        {
-            min_x = 0 ;
-            max_x = Scr.MyDisplayWidth ;
-            min_y = 0 ;
-            max_y = Scr.MyDisplayHeight ;
-        }
-        /* we have to make sure that window is visible !!!! */
-		LOCAL_DEBUG_OUT( "x_range(%d,%d), y_range(%d,%d), margin = %d", min_x, max_x, min_y, max_y, margin );
-        if( (int)t->status->x + (int)t->status->width < min_x + margin )
-            t->status->x = min_x + margin - (int)t->status->width ;
-        else if( (int)t->status->x > max_x-margin )
-            t->status->x = max_x - margin ;
-        if( (int)t->status->y + (int)t->status->height < min_y + margin )
-            t->status->y = min_y + margin - (int)t->status->height ;
-        else if( (int)t->status->y > max_y-margin )
-            t->status->y = max_y - margin ;
-
-		LOCAL_DEBUG_OUT( "status->pos = %+d%+d, Scr.Vpos = %+d%+d", t->status->x, t->status->y, Scr.Vx, Scr.Vy );
-
-        set_flags( t->status->flags, AS_Position );
-
-    }else if( get_flags(Scr.Feel.flags, NoPPosition))
-	{ 
-      	if( !get_flags( t->hints->flags, AS_Transient ) && 
-		    !get_flags( status->flags, AS_StartPositionUser ) )
-	        clear_flags( t->status->flags, AS_Position );
-	}
-    
+	
 	/* TODO: AS_Iconic */
 	if( !ASWIN_GET_FLAGS(t, AS_StartLayer ) )
         ASWIN_LAYER(t) = AS_LayerNormal ;
@@ -1447,40 +1376,118 @@ init_aswindow_status( ASWindow *t, ASStatusHints *status )
     else if( ASWIN_LAYER(t) > AS_LayerHighest )
         ASWIN_LAYER(t) = AS_LayerHighest ;
 
-    if( get_flags( status->flags, AS_MaximizedX|AS_MaximizedY ))
-        pending_placement = True ;
-    else if( !get_flags( t->status->flags, AS_Position ))
-    {
-        if( ! get_flags( t->status->flags, AS_StartsIconic ) )
-        {
-            int x = -1, y = -1;
-			pending_placement = True ;
-            ASQueryPointerRootXY( &x, &y );
-	        if( get_flags( t->hints->flags, AS_Transient|AS_ShortLived ) )
+	if( get_flags( t->status->flags, AS_Fullscreen ))
+	{
+        t->status->width = Scr.MyDisplayWidth ;
+        t->status->height = Scr.MyDisplayHeight ;
+        t->status->x = 0 ;
+        t->status->y = 0 ;
+	}else
+	{	
+		if( get_flags (t->hints->flags, AS_MinSize) ) 
+		{	
+			int width = t->status->width ;
+			int height = t->status->height ;
+			if( (!get_flags (t->status->flags, AS_StartSizeUser) && width < t->hints->min_width) || width == 1 )
+				width = min( t->hints->min_width, Scr.MyDisplayWidth );
+			if( (!get_flags (t->status->flags, AS_StartSizeUser) && height < t->hints->min_height) || height == 1 )
+				width = min( t->hints->min_height, Scr.MyDisplayHeight );
+			if( width != t->status->width || height != t->status->height ) 
 			{
-				x -= (int)t->status->width / 2 ;
-				y -= (int)t->status->height / 2 ;
-				set_flags( t->status->flags, AS_Position );
-				pending_placement = False ;
-			}
-
-			if( x + (int)t->status->width > (int)Scr.MyDisplayWidth )
-				x = (int)Scr.MyDisplayWidth - (int)t->status->width ;
-			if( x < 0 )
-				x = 0 ;
-
-			if( y + (int)t->status->height > (int) Scr.MyDisplayHeight )
-				y = Scr.MyDisplayHeight - (int)t->status->height ;
-			if( y < 0 ) 
-				y = 0 ;
-
-            t->status->x = x ;
-            t->status->y = y ;
+				int dx = 0, dy = 0 ;
+				if( t->hints->gravity == EastGravity || 
+					t->hints->gravity == SouthEastGravity || 
+					t->hints->gravity == NorthEastGravity ||
+					t->hints->gravity == CenterGravity )
+					dx = (int)(t->status->width) - width ; 
+				if( t->hints->gravity == SouthGravity || 
+					t->hints->gravity == SouthEastGravity || 
+					t->hints->gravity == SouthWestGravity ||
+					t->hints->gravity == CenterGravity)
+					dy = (int)(t->status->height) - height ; 
+				if( t->hints->gravity == EastGravity || t->hints->gravity == CenterGravity ) 
+					dx = dx/2 ;
+				if( t->hints->gravity == SouthGravity || t->hints->gravity == CenterGravity ) 
+					dy = dy/2 ;
+				t->status->x += dx ;			
+				t->status->y += dy ;			   
+				t->status->width = width ;			   
+				t->status->height = height ;			   
+				XResizeWindow( dpy, t->w, width, height );
+			}	 
+		}
+    	if( !get_flags(AfterStepState, ASS_NormalOperation) )
+    	{
+        	int min_x, min_y, max_x, max_y ;
+        	int margin = Scr.MyDisplayWidth>>5 ;
+        	if (!ASWIN_GET_FLAGS( t, AS_Sticky ))
+        	{
+            	min_x = -Scr.Vx ;
+            	max_x = Scr.VxMax+Scr.MyDisplayWidth ;
+            	min_y = -Scr.Vy ;
+            	max_y = Scr.VyMax+Scr.MyDisplayHeight ;
+        	}else
+        	{
+            	min_x = 0 ;
+            	max_x = Scr.MyDisplayWidth ;
+            	min_y = 0 ;
+            	max_y = Scr.MyDisplayHeight ;
+        	}
+        	/* we have to make sure that window is visible !!!! */
+			LOCAL_DEBUG_OUT( "x_range(%d,%d), y_range(%d,%d), margin = %d", min_x, max_x, min_y, max_y, margin );
+        	if( (int)t->status->x + (int)t->status->width < min_x + margin )
+            	t->status->x = min_x + margin - (int)t->status->width ;
+        	else if( (int)t->status->x > max_x-margin )
+            	t->status->x = max_x - margin ;
+        	if( (int)t->status->y + (int)t->status->height < min_y + margin )
+            	t->status->y = min_y + margin - (int)t->status->height ;
+        	else if( (int)t->status->y > max_y-margin )
+            	t->status->y = max_y - margin ;
 
 			LOCAL_DEBUG_OUT( "status->pos = %+d%+d, Scr.Vpos = %+d%+d", t->status->x, t->status->y, Scr.Vx, Scr.Vy );
-        }
-    }
-		
+
+        	set_flags( t->status->flags, AS_Position );
+
+    	}else if( get_flags(Scr.Feel.flags, NoPPosition))
+		{ 
+      		if( !get_flags( t->hints->flags, AS_Transient ) && 
+		    	!get_flags( status->flags, AS_StartPositionUser ) )
+	        	clear_flags( t->status->flags, AS_Position );
+		}
+		 if( get_flags( status->flags, AS_MaximizedX|AS_MaximizedY ))
+        	pending_placement = True ;
+		else  if( !get_flags( t->status->flags, AS_Position ))
+    	{
+        	if( ! get_flags( t->status->flags, AS_StartsIconic ) )
+        	{
+            	int x = -1, y = -1;
+				pending_placement = True ;
+            	ASQueryPointerRootXY( &x, &y );
+	        	if( get_flags( t->hints->flags, AS_Transient|AS_ShortLived ) )
+				{
+					x -= (int)t->status->width / 2 ;
+					y -= (int)t->status->height / 2 ;
+					set_flags( t->status->flags, AS_Position );
+					pending_placement = False ;
+				}
+
+				if( x + (int)t->status->width > (int)Scr.MyDisplayWidth )
+					x = (int)Scr.MyDisplayWidth - (int)t->status->width ;
+				if( x < 0 )
+					x = 0 ;
+
+				if( y + (int)t->status->height > (int) Scr.MyDisplayHeight )
+					y = Scr.MyDisplayHeight - (int)t->status->height ;
+				if( y < 0 ) 
+					y = 0 ;
+
+            	t->status->x = x ;
+            	t->status->y = y ;
+
+				LOCAL_DEBUG_OUT( "status->pos = %+d%+d, Scr.Vpos = %+d%+d", t->status->x, t->status->y, Scr.Vx, Scr.Vy );
+        	}
+    	}
+	}		
 
     if( is_output_level_under_threshold(OUTPUT_LEVEL_HINTS) )
         print_status_hints( NULL, NULL, t->status );
@@ -1828,6 +1835,31 @@ void change_aswindow_desktop( ASWindow *asw, int new_desk, Bool force )
     }
 }
 
+static Bool
+restore_anchor_x( ASWindow *asw )
+{
+	if( asw->saved_anchor.width > 0)
+    {
+    	asw->anchor.x = asw->saved_anchor.x ;
+        asw->anchor.width = asw->saved_anchor.width ;
+        asw->saved_anchor.width = 0 ;  /* invalidating saved anchor */
+		return True;
+	}
+	return False;
+}
+static Bool
+restore_anchor_y( ASWindow *asw )
+{
+    if( asw->saved_anchor.height > 0)
+    {
+        asw->anchor.y = asw->saved_anchor.y ;
+        asw->anchor.height = asw->saved_anchor.height ;
+        asw->saved_anchor.height = 0 ; /* invalidating saved anchor */
+        return True ;
+	}
+	return False;	  
+}	  
+
 void toggle_aswindow_status( ASWindow *asw, ASFlagType flags )
 {
     ASFlagType on_flags, off_flags ;
@@ -1836,8 +1868,12 @@ void toggle_aswindow_status( ASWindow *asw, ASFlagType flags )
 
     if( AS_ASSERT(asw) )
         return ;
+
     if( flags == 0 )
         return ;
+
+	if( get_flags( flags, AS_Fullscreen ) )
+		clear_flags( flags, AS_MaximizedX|AS_MaximizedY);
 
     on_flags = (~(asw->status->flags))&flags ;
     off_flags = (asw->status->flags)&(~flags) ;
@@ -1873,32 +1909,46 @@ LOCAL_DEBUG_OUT( "flags = %lx, on_flags = %lx, off_flags = %lx", flags, on_flags
 		}
 	}
 
+	if( get_flags( flags, AS_Fullscreen) )
+	{
+		if( !ASWIN_GET_FLAGS( asw, AS_Fullscreen ) )			   
+		{	                   /* fullscreen->normal */
+			if( !ASWIN_GET_FLAGS( asw, AS_MaximizedX ) )			
+	            reconfigured = restore_anchor_x( asw );
+	        if( !ASWIN_GET_FLAGS( asw, AS_MaximizedY ) )
+	            if(restore_anchor_y( asw ))
+					reconfigured = True;
+			if( ASWIN_GET_FLAGS( asw, AS_MaximizedY|AS_MaximizedX ) )
+				need_placement = True ;	
+		}else
+		{ 	                   /* normal->fullscreen */
+			ASStatusHints scratch_status = *(asw->status) ;
+			scratch_status.x = 0 ;
+			scratch_status.y = 0 ;
+			scratch_status.width = Scr.MyDisplayWidth ;
+			scratch_status.height = Scr.MyDisplayHeight ;
+	 		
+			save_aswindow_anchor( asw, True, True );		   
+			status2anchor(&(asw->anchor), asw->hints, &scratch_status, Scr.VxMax, Scr.VyMax);
+			reconfigured = True ;
+		}
+	}
     if( get_flags( flags, AS_MaximizedX) )
     {
         if( !ASWIN_GET_FLAGS( asw, AS_MaximizedX ) )
-        {
-            if( asw->saved_anchor.width > 0)
-            {
-                asw->anchor.x = asw->saved_anchor.x ;
-                asw->anchor.width = asw->saved_anchor.width ;
-                asw->saved_anchor.width = 0 ;  /* invalidating saved anchor */
-                reconfigured = True ;
-            }
-        }else
+		{	
+            if( restore_anchor_x( asw ) ) 
+				reconfigured = True ;
+        }else if( !ASWIN_GET_FLAGS( asw, AS_Fullscreen ) )
             need_placement = True ;
     }
     if( get_flags( flags, AS_MaximizedY) )
     {
         if( !ASWIN_GET_FLAGS( asw, AS_MaximizedY ) )
         {
-            if( asw->saved_anchor.height > 0)
-            {
-                asw->anchor.y = asw->saved_anchor.y ;
-                asw->anchor.height = asw->saved_anchor.height ;
-                asw->saved_anchor.height = 0 ; /* invalidating saved anchor */
-                reconfigured = True ;
-            }
-        }else
+            if(restore_anchor_y( asw ))
+				reconfigured = True;
+        }else if( !ASWIN_GET_FLAGS( asw, AS_Fullscreen ) )
             need_placement = True ;
     }
 

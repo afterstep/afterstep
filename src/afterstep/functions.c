@@ -126,7 +126,8 @@ void SetupFunctionHandlers()
 
     function_handlers[F_CHANGE_WINDOWS_DESK]= change_desk_func_handler;
 
-    function_handlers[F_MAXIMIZE]           =
+    function_handlers[F_MAXIMIZE]       =
+    function_handlers[F_FULLSCREEN]     =
 	function_handlers[F_SHADE]          =
 	function_handlers[F_STICK]          = toggle_status_func_handler;
 
@@ -446,11 +447,18 @@ DoExecuteFunction ( ASScheduledFunction *sf )
 
 		data->func = func ;
 		if( event->client )
-	    	if( !check_allowed_function2( data->func, event->client->hints) )
+		{
+			if( get_flags( event->client->status->flags, AS_Fullscreen ) &&
+				(data->func == F_MOVE ||	data->func == F_RESIZE) )
+			{
+				LOCAL_DEBUG_OUT( "function \"%s\" is not allowed for the Fullscreen window",COMPLEX_FUNCTION_NAME(data));
+				func = data->func = F_BEEP ;				                     
+			}else if( !check_allowed_function2( data->func, event->client->hints) )
 	    	{
 				LOCAL_DEBUG_OUT( "function \"%s\" is not allowed for the specifyed window (mask 0x%lX)", COMPLEX_FUNCTION_NAME(data), ASWIN_FUNC_MASK(event->client));
 				func = data->func = F_BEEP ;
 	    	}
+		}
 
 		if( get_flags( AfterStepState, ASS_WarpingMode ) &&
 	    	function_handlers[func] != warp_func_handler )
@@ -995,7 +1003,7 @@ void toggle_status_func_handler( FunctionData *data, ASEvent *event, int module 
 {
     ASFlagType toggle_flags = 0;
     if( data->func == F_STICK )
-	toggle_flags = AS_Sticky ;
+		toggle_flags = AS_Sticky ;
     else if( data->func == F_MAXIMIZE )
 	{
 		if( data->func_val[0] > 0 || data->func_val[1] == 0  )
@@ -1008,9 +1016,11 @@ void toggle_status_func_handler( FunctionData *data, ASEvent *event, int module 
 			event->client->maximize_ratio_y = (data->unit_val[1] == 0 )? data->func_val[1]: (data->func_val[1]*data->unit_val[1]*100)/Scr.MyDisplayHeight ;
 		}
     }else if( data->func == F_SHADE )
-	toggle_flags = AS_Shaded ;
-    else
-	return ;
+		toggle_flags = AS_Shaded ;
+    else if( data->func == F_FULLSCREEN )
+		toggle_flags = AS_Fullscreen ;
+	else
+		return ;
     toggle_aswindow_status( event->client, toggle_flags );
 }
 

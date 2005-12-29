@@ -59,6 +59,7 @@ struct ASImage;
 #define AS_ShapedIcon           (1<<21)        /* icon decorations use shaped MyStyle */
 #define AS_UnMapPending         (1<<22)
 #define AS_MoveresizeInProgress (1<<23)
+#define AS_Fullscreen			(1<<24)
 
 
 /***********************************************************/

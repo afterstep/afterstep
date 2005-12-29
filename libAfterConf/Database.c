@@ -136,7 +136,8 @@ TermDef       StyleTerms[] = {
 	{TF_NO_MYNAME_PREPENDING, "HonorConfig", 12, TT_FLAG, DATABASE_HonorConfig_ID, NULL},
 	{TF_NO_MYNAME_PREPENDING, "UseCurrentViewport", 18, TT_FLAG, DATABASE_UseCurrentViewport_ID, NULL},
 	{TF_NO_MYNAME_PREPENDING, "UseAnyViewport", 14, TT_FLAG, DATABASE_UseAnyViewport_ID, NULL},
-	
+	ASCF_DEFINE_KEYWORD(DATABASE,TF_NO_MYNAME_PREPENDING,Fullscreen,TT_FLAG,NULL),
+	ASCF_DEFINE_KEYWORD(DATABASE,TF_NO_MYNAME_PREPENDING,NoFullscreen,TT_FLAG,NULL),
 	{0, NULL, 0, 0, 0}
 };
 
@@ -156,6 +157,7 @@ SyntaxDef     StyleSyntax = {
 };
 
 flag_options_xref StyleFlags[] = {
+	{STYLE_FULLSCREEN,			DATABASE_Fullscreen_ID, 		DATABASE_NoFullscreen_ID},
 	{STYLE_STICKY, 				DATABASE_Sticky_ID, 			DATABASE_Slippery_ID},
 	{STYLE_TITLE, 				DATABASE_Title_ID, 				DATABASE_NoTitle_ID},
 	{STYLE_CIRCULATE, 			DATABASE_CirculateHit_ID, 		DATABASE_CirculateSkip_ID},

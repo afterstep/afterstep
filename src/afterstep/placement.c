@@ -74,7 +74,10 @@ get_free_rectangles_iter_func(void *data, void *aux_data)
     {
         int x, y;
         unsigned int width, height, bw;
-        if( !ASWIN_HFLAGS(asw, AS_AvoidCover) && fr_data->min_layer > ASWIN_LAYER(asw))
+        if( ASWIN_GET_FLAGS(asw, AS_Fullscreen ) )
+			return True;
+
+		if( !ASWIN_HFLAGS(asw, AS_AvoidCover) && fr_data->min_layer > ASWIN_LAYER(asw))
             return True;
 
         if( ASWIN_GET_FLAGS(asw, AS_Iconic ) )
