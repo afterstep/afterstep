@@ -981,16 +981,26 @@ void raise_it_func_handler( FunctionData *data, ASEvent *event, int module )
 
 void setlayer_func_handler( FunctionData *data, ASEvent *event, int module )
 {
-    register int func = data->func ;
-    int layer = 0 ;
+    if( event->client )
+	{
+    	register int func = data->func ;
+	    int layer = 0 ;
 
-    if( func == F_PUTONTOP )
-	layer = AS_LayerTop ;
-    else if( func == F_PUTONBACK )
-	layer = AS_LayerBack ;
-    else
-	layer = (func == F_TOGGLELAYER && ASWIN_LAYER(event->client) == data->func_val[1])?data->func_val[1]: data->func_val[0] ;
-    change_aswindow_layer( event->client, layer );
+    	if( func == F_PUTONTOP )
+			layer = AS_LayerTop ;
+    	else if( func == F_PUTONBACK )
+			layer = AS_LayerBack ;
+    	else if( func == F_TOGGLELAYER )
+		{
+			layer = ASWIN_LAYER(event->client) ;
+			if( data->func_val[0] == 0 ) 
+				layer += data->func_val[1];
+			else
+				layer += data->func_val[0];
+		}else
+			layer = data->func_val[0] ;
+    	change_aswindow_layer( event->client, layer );
+	}
 }
 
 void change_desk_func_handler( FunctionData *data, ASEvent *event, int module )

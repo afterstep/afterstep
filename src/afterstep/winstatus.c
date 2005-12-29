@@ -1914,10 +1914,20 @@ LOCAL_DEBUG_OUT( "flags = %lx, on_flags = %lx, off_flags = %lx", flags, on_flags
 		if( !ASWIN_GET_FLAGS( asw, AS_Fullscreen ) )			   
 		{	                   /* fullscreen->normal */
 			if( !ASWIN_GET_FLAGS( asw, AS_MaximizedX ) )			
-	            reconfigured = restore_anchor_x( asw );
+	            if( !restore_anchor_x( asw ) )
+				{
+					asw->anchor.width = Scr.MyDisplayWidth/3;
+					asw->anchor.x = (Scr.MyDisplayWidth - asw->anchor.width) / 2;
+				}
+
 	        if( !ASWIN_GET_FLAGS( asw, AS_MaximizedY ) )
-	            if(restore_anchor_y( asw ))
-					reconfigured = True;
+	            if(!restore_anchor_y( asw ))
+				{
+					asw->anchor.height = Scr.MyDisplayHeight/3;
+					asw->anchor.y = (Scr.MyDisplayHeight - asw->anchor.height) / 2;
+				}
+
+			reconfigured = True;
 			if( ASWIN_GET_FLAGS( asw, AS_MaximizedY|AS_MaximizedX ) )
 				need_placement = True ;	
 		}else

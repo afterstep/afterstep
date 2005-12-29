@@ -1,2 +1,2 @@
-Raise "To foreground"
+ToggleLayer "Promote to Next Layer"  1
 MiniPixmap "mini-as.xpm"

@@ -1,2 +1,2 @@
-Lower "To background"
+ToggleLayer "Demote to Lower Layer"  -1
 MiniPixmap "mini-as.xpm"

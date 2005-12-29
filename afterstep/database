@@ -99,7 +99,7 @@ Style   "Question*"     Sticky, StaysOnTop
 Style	"kicker"		AvoidCover, NoTitle, NoHandles, WindowListSkip, CirculateSkip, Layer 0, Sticky
 Style	"konqueror"		Icon konqueror, IgnoreConfig
 Style	"kvt"			Icon Computer.xpm
-Style	"*.kss"			NoTitle, NoHandles, Layer 10, Sticky, FullScreen
+Style	"*.kss"			NoTitle, NoHandles, Layer 10, FullScreen
 
 
 # gnome panel ( contributed by Greg Norris <haphazard at kc dot rr dot com> ):

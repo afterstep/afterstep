@@ -173,7 +173,7 @@ Cursor 16 14
 Function "Move-or-Top"
         Move            "Motion"
         RaiseLower      "Click"
-        ToggleLayer     "DoubleClick" 0 1
+        ToggleLayer     "DoubleClick" 1
 EndFunction
 
 # Used to move windows on desktop
@@ -187,39 +187,40 @@ EndFunction
 
 Popup "Window"
         Title           "This window :"
- MiniPixmap "mini-menu.xpm"
-	TakeScreenShot  "Take a shot of entire screen"
- MiniPixmap "mini-app.xpm"
-	TakeWindowShot  "Take a shot of the window"
- MiniPixmap "mini-app.xpm"
-	TakeFrameShot   "Take a shot of the entire window frame"
- MiniPixmap "mini-app.xpm"
+        ToggleLayer     "Promote to Next Layer"  1
+ MiniPixmap "mini-as.xpm"
+        ToggleLayer     "Denote to Lower Layer"  -1
+ MiniPixmap "mini-as.xpm"
         Move            "Move"
  MiniPixmap "mini-as.xpm"
         WindowsDesk     " - to desk #0" 0
- MiniPixmap "mini-folder.xpm"
+ SmallMiniPixmap "normal/Pager"
         WindowsDesk     " - to desk #1" 1
- MiniPixmap "mini-folder.xpm"
+ SmallMiniPixmap "normal/Pager"
         WindowsDesk     " - to desk #2" 2
- MiniPixmap "mini-folder.xpm"
+ SmallMiniPixmap "normal/Pager"
         WindowsDesk     " - to desk #3" 3
- MiniPixmap "mini-folder.xpm"
+ SmallMiniPixmap "normal/Pager"
         Resize          "Resize"
  MiniPixmap "mini-as.xpm"
-        Raise           "To foreground"
- MiniPixmap "mini-as.xpm"
-        Lower           "To background"
+        Maximize "Maximize 80%" 80 80
  MiniPixmap "mini-as.xpm"
         Maximize "Maximize 100%" 100 100
  MiniPixmap "mini-as.xpm"
-        Maximize "Maximize 80%" 80 80
+        Fullscreen "Make Fullscreen" 
  MiniPixmap "mini-as.xpm"
         Destroy         "Kill"
  MiniPixmap "mini-exit.xpm"
         Delete          "Quit"
- MiniPixmap "mini-exit.xpm"
+ SmallMiniPixmap "normal/Bomb"
         Refresh         "Redraw"
  MiniPixmap "mini-recycler.xpm"
+	TakeWindowShot  "Capture window image"
+ SmallMiniPixmap "normal/Camera"
+	TakeFrameShot   "Capture framed window image"
+ SmallMiniPixmap "normal/Camera2"
+	TakeScreenShot  "Capture screen image"
+ SmallMiniPixmap "normal/Camera3"
 EndPopup
 #
 ##########################################################################
