@@ -1,2 +1,2 @@
 Exec "Window Properties" exec xprop | xmessage -center -title 'xprop' -file - &
-MiniPixmap "mini-as.xpm"
+SmallMiniPixmap "normal/WindowsProperties"
