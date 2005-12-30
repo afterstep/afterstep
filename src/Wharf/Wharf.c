@@ -67,6 +67,17 @@
 
 #include "../../libAfterConf/afterconf.h"
 
+#define UNFOCUSED_TILE_STYLE 		0
+#define FOCUSED_TILE_STYLE 			1
+#define UNFOCUSED_ODD_TILE_STYLE 	2
+#define FOCUSED_ODD_TILE_STYLE 		3
+#define WHARF_TILE_STYLES			4
+
+#if (WHARF_TILE_STYLES>BACK_STYLES)
+# warning "WHARF_TILE_STYLES exceed the size of MSWindow pointers array"
+#endif  
+
+
 
 #ifdef ENABLE_SOUND
 #define WHEV_PUSH		0
@@ -97,6 +108,7 @@ typedef struct ASWharfButton
 #define ASW_FixedWidth		(0x01<<2)
 #define ASW_FixedHeight		(0x01<<3)
 #define ASW_Transient		(0x01<<4)
+#define ASW_Focusable		(0x01<<5)
     ASFlagType flags;
     char        *name ;
     ASCanvas    *canvas;
@@ -209,6 +221,7 @@ Bool check_pending_swallow( ASWharfFolder *aswf );
 void exec_pending_swallow( ASWharfFolder *aswf );
 void check_swallow_window( ASWindowData *wd );
 void update_wharf_folder_transprency( ASWharfFolder *aswf, Bool force );
+Bool update_wharf_button_styles( ASWharfButton *aswb, Bool odd );
 void update_wharf_folder_styles( ASWharfFolder *aswf, Bool force );
 void on_wharf_button_confreq( ASWharfButton *aswb, ASEvent *event );
 void do_wharf_animate_iter( void *vdata );
@@ -354,10 +367,32 @@ DeadPipe (int nonsense)
  * This routine is responsible for reading and parsing the config file
  *
  ****************************************************************************/
+Bool check_style_shaped(MyStyle *style)
+{
+	if( style == NULL ) 
+		return False;
+    if( style->texture_type >= TEXTURE_TEXTURED_START &&
+        style->texture_type <= TEXTURE_SHAPED_PIXMAP  )
+    {
+        LOCAL_DEBUG_OUT( "shaped pixmap detected%s","");
+        return True;
+    }else if( 	style->texture_type >= TEXTURE_SCALED_PIXMAP &&
+        		style->texture_type <= TEXTURE_PIXMAP  )
+    {
+        if( style->back_icon.image && check_asimage_alpha( Scr.asv, style->back_icon.image ) )
+        {
+            LOCAL_DEBUG_OUT( "transparent pixmap detected%s","");
+            return True ;
+        }
+    }
+	return False;
+}	 
+
 void
 CheckConfigSanity()
 {
-    char buf[256];
+    char *buf;
+	int i ;
 
     if( Config == NULL )
         Config = CreateWharfConfig ();
@@ -375,13 +410,21 @@ CheckConfigSanity()
     
 	mystyle_get_property (Scr.wmprops);
 
-    snprintf( buf, sizeof(buf), "*%sTile", get_application_name() );
-    LOCAL_DEBUG_OUT("Attempting to use style \"%s\"", buf);
-    Scr.Look.MSWindow[BACK_UNFOCUSED] = mystyle_find_or_default( buf );
+	buf = safemalloc(strlen(get_application_name())+256 );
+    sprintf( buf, "*%sTile", get_application_name() );
+    Scr.Look.MSWindow[UNFOCUSED_TILE_STYLE] = mystyle_find_or_default( buf );
     LOCAL_DEBUG_OUT("Will use style \"%s\"", Scr.Look.MSWindow[BACK_UNFOCUSED]->name);
-    snprintf( buf, sizeof(buf), "*%sFocusedTile", get_application_name() );
-    LOCAL_DEBUG_OUT("Attempting to use style \"%s\" for focused tile", buf);
-    Scr.Look.MSWindow[BACK_FOCUSED] = mystyle_find( buf );
+    
+	sprintf( buf, "*%sFocusedTile", get_application_name() );
+    Scr.Look.MSWindow[FOCUSED_TILE_STYLE] = mystyle_find( buf );
+	
+	/* its actually a hack to use MSMenu, but should be fine */
+	sprintf( buf, "*%sOddTile", get_application_name() );
+    Scr.Look.MSWindow[UNFOCUSED_ODD_TILE_STYLE] = mystyle_find( buf );
+	
+	sprintf( buf, "*%sFocusedOddTile", get_application_name() );
+    Scr.Look.MSWindow[FOCUSED_ODD_TILE_STYLE] = mystyle_find( buf );
+	free( buf );
 
 	if( get_flags( Config->set_flags, WHARF_FORCE_SIZE ) )
     {
@@ -410,21 +453,12 @@ CheckConfigSanity()
         Config->CompositionMethod = WHARF_DEFAULT_CompositionMethod;
 
     WharfState.shaped_style = False ;
-    if( Scr.Look.MSWindow[BACK_UNFOCUSED]->texture_type >= TEXTURE_TEXTURED_START &&
-        Scr.Look.MSWindow[BACK_UNFOCUSED]->texture_type <= TEXTURE_SHAPED_PIXMAP  )
-    {
-        WharfState.shaped_style = True;
-        LOCAL_DEBUG_OUT( "shaped pixmap detected%s","");
-    }else if( Scr.Look.MSWindow[BACK_UNFOCUSED]->texture_type >= TEXTURE_SCALED_PIXMAP &&
-        Scr.Look.MSWindow[BACK_UNFOCUSED]->texture_type <= TEXTURE_PIXMAP  )
-    {
-        ASImage *im = Scr.Look.MSWindow[BACK_UNFOCUSED]->back_icon.image ;
-        if( im && check_asimage_alpha( Scr.asv, im ) )
-        {
-            WharfState.shaped_style = True ;
-            LOCAL_DEBUG_OUT( "transparent pixmap detected%s","");
-        }
-    }
+	for( i = 0 ; i < WHARF_TILE_STYLES ; ++i ) 
+		if( check_style_shaped(Scr.Look.MSWindow[i]) )
+		{
+			WharfState.shaped_style = True ;
+			break;
+		}
 
 #if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
     show_progress( "printing wharf config : ");
@@ -905,9 +939,6 @@ build_wharf_button_tbar(WharfButton *wb)
 		set_astbar_balloon( bar, 0, wb->title, AS_Text_ASCII );
 	}
 
-    set_astbar_style_ptr( bar, BAR_STATE_UNFOCUSED, Scr.Look.MSWindow[BACK_UNFOCUSED] );
-	set_astbar_style_ptr( bar, BAR_STATE_FOCUSED, Scr.Look.MSWindow[Scr.Look.MSWindow[BACK_FOCUSED]?BACK_FOCUSED:BACK_UNFOCUSED] );
-
     LOCAL_DEBUG_OUT( "wharf bevel is %s, value 0x%lX, wharf_no_border is %s",
                         get_flags( Config->set_flags, WHARF_Bevel )? "set":"unset",
                         Config->Bevel,
@@ -1011,7 +1042,7 @@ LOCAL_DEBUG_OUT( "contents %d has function %p with func = %ld", i, function, fun
 
     if( (aswf = create_wharf_folder(count, parent)) != NULL  )
     {
-        ASWharfButton *aswb = aswf->buttons;
+		int button_no = 0 ; 
         aswf->canvas = create_wharf_folder_canvas(aswf);
         if( vertical )
             set_flags( aswf->flags, ASW_Vertical );
@@ -1021,6 +1052,7 @@ LOCAL_DEBUG_OUT( "contents %d has function %p with func = %ld", i, function, fun
         wb = list;
         while( wb )
         {
+	        ASWharfButton *aswb = &(aswf->buttons[button_no]);
 			if( get_flags( wb->set_flags, WHARF_BUTTON_DISABLED ) )
 			{
 				wb = wb->next ;
@@ -1089,6 +1121,8 @@ LOCAL_DEBUG_OUT( "contents %d has function %p with func = %ld", i, function, fun
             aswb->canvas = create_wharf_button_canvas(aswb, aswf->canvas);
             aswb->bar = build_wharf_button_tbar(wb);
 
+			update_wharf_button_styles( aswb, ((button_no&0x01)==0));
+
             if( !get_flags( aswb->flags, ASW_SwallowTarget ) )
             {
 				if( aswb->desired_width == 0 )
@@ -1112,7 +1146,7 @@ LOCAL_DEBUG_OUT( "contents %d has function %p with func = %ld", i, function, fun
             if( wb->folder )
                 aswb->folder = build_wharf_folder( wb->folder, aswb, vertical?False:True );
 
-            ++aswb;
+            ++button_no;
             wb = wb->next ;
         }
         XMapSubwindows( dpy, aswf->canvas->w );
@@ -1313,7 +1347,9 @@ void
 change_button_focus(ASWharfButton *aswb, Bool focused )
 {
 	
-	if( aswb == NULL || (focused && Scr.Look.MSWindow[BACK_FOCUSED] == NULL) ) 
+	if( aswb == NULL )
+		return ;
+	if( focused && !get_flags( aswb->flags, ASW_Focusable) ) 
 		return ;
 
 	if( set_astbar_focused( aswb->bar, NULL, focused ) )
@@ -1331,6 +1367,23 @@ change_button_focus(ASWharfButton *aswb, Bool focused )
 		WharfState.focused_button = NULL ;
 }	 
 
+Bool
+update_wharf_button_styles( ASWharfButton *aswb, Bool odd )
+{
+ 	MyStyle *focused_style = Scr.Look.MSWindow[odd?FOCUSED_ODD_TILE_STYLE:FOCUSED_TILE_STYLE];
+  	MyStyle *unfocused_style = Scr.Look.MSWindow[odd?UNFOCUSED_ODD_TILE_STYLE:UNFOCUSED_TILE_STYLE];
+	if( unfocused_style == NULL ) 
+		unfocused_style = Scr.Look.MSWindow[UNFOCUSED_TILE_STYLE];
+	if( focused_style == NULL ) 
+	{	
+		focused_style = unfocused_style ;
+		clear_flags( aswb->flags, ASW_Focusable);
+	}else
+		set_flags( aswb->flags, ASW_Focusable);
+	set_astbar_style_ptr( aswb->bar, BAR_STATE_FOCUSED, focused_style );
+	return set_astbar_style_ptr( aswb->bar, BAR_STATE_UNFOCUSED, unfocused_style );
+}
+
 void
 update_wharf_folder_styles( ASWharfFolder *aswf, Bool force )
 {
@@ -1340,8 +1393,8 @@ update_wharf_folder_styles( ASWharfFolder *aswf, Bool force )
 		while( --i >= 0 )
 		{
 			ASWharfButton *aswb= &(aswf->buttons[i]);
-			set_astbar_style_ptr( aswb->bar, BAR_STATE_FOCUSED, Scr.Look.MSWindow[Scr.Look.MSWindow[BACK_FOCUSED]?BACK_FOCUSED:BACK_UNFOCUSED] );
-			if( set_astbar_style_ptr( aswb->bar, BAR_STATE_UNFOCUSED, Scr.Look.MSWindow[BACK_UNFOCUSED] ))
+
+			if( update_wharf_button_styles( aswb, ((i&0x01)==0) ) )
 			{
 				invalidate_canvas_save( aswb->canvas );
 				render_wharf_button( aswb );
@@ -1414,6 +1467,8 @@ place_wharf_buttons( ASWharfFolder *aswf, int *total_width_return, int *total_he
     Bool fit_contents = get_flags(Config->flags, WHARF_FitContents);
     Bool needs_shaping = False ;
 	Bool reverse_order = get_flags( aswf->flags, ASW_ReverseOrder )?aswf->buttons_num-1:-1;
+	int button_offset_x = 0 ;
+	int button_offset_y = 0 ;
 
     *total_width_return  = 0 ;
 	*total_height_return = 0 ;
@@ -1445,6 +1500,8 @@ place_wharf_buttons( ASWharfFolder *aswf, int *total_width_return, int *total_he
                         max_height = aswb->desired_height ;
                 }
                 LOCAL_DEBUG_OUT( "max_size(%dx%d)", max_width, max_height );
+				if( max_width+button_offset_x  < 0) 
+					button_offset_x = 0 ;
             }
             height = (get_flags( aswb->flags, ASW_MaxSwallow ) || fit_contents )?aswb->desired_height:max_height ;
             if( get_flags(Config->flags, WHARF_ShapeToContents) )
@@ -1459,24 +1516,24 @@ place_wharf_buttons( ASWharfFolder *aswf, int *total_width_return, int *total_he
                     dy = 0 ;
                 else if( get_flags( Config->AlignContents, ALIGN_TOP ))
                     dy = dy>>1 ;
-                aswb->folder_x = x+dx ;
-                aswb->folder_y = y+dy;
+                aswb->folder_x = x+dx+button_offset_x ;
+                aswb->folder_y = y+dy+button_offset_y;
                 aswb->folder_width = aswb->desired_width ;
                 aswb->folder_height = aswb->desired_height;
                 if( aswb->desired_width != max_width )
                     needs_shaping = True;
             }else
             {
-                aswb->folder_x = x;
-                aswb->folder_y = y;
+                aswb->folder_x = x+button_offset_x;
+                aswb->folder_y = y+button_offset_y;
                 aswb->folder_width = max_width ;
                 aswb->folder_height = height;
             }
             moveresize_canvas( aswb->canvas, aswb->folder_x, aswb->folder_y, aswb->folder_width, aswb->folder_height );
-            y += height ;
+            y += height+button_offset_y ;
             if( ++bc >= buttons_per_column )
             {
-                *total_width_return += max_width ;
+                *total_width_return += max_width+button_offset_x ;
                 if( *total_height_return < y )
                     *total_height_return = y ;
                 x += max_width ;
@@ -1486,7 +1543,7 @@ place_wharf_buttons( ASWharfFolder *aswf, int *total_width_return, int *total_he
         }
         if( columns * buttons_per_column > aswf->buttons_num )
         {
-            *total_width_return += max_width ;
+            *total_width_return += max_width+button_offset_x ;
             if( *total_height_return < y )
                 *total_height_return = y ;
         }

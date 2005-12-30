@@ -1,4 +1,7 @@
 version 2.2.0 release
+	* Added Wharf MyStyles
+		*WharfOddTile
+		*WharfFocusedOddTile
 	*Added functions : 
 		ExecBrowser
 		ExecEditor
