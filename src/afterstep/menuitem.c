@@ -456,7 +456,7 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf, Bool reload_submenus)
 					if( fdata->name == NULL )
 		                fdata->name = mystrdup( t->stripped_name );
 #ifndef NO_AVAILABILITYCHECK
-					if ( fdata->func < F_ExecToolStart && fdata->func > F_ExecToolEnd &&
+					if ( (fdata->func < F_ExecToolStart || fdata->func > F_ExecToolEnd ) &&
 						 (IsSwallowFunc(fdata->func) || IsExecFunc(fdata->func)))
 					{	
 						available = is_executable_in_path (fdata->text);

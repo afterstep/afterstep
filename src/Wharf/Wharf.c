@@ -973,7 +973,7 @@ LOCAL_DEBUG_OUT( "contents %d has function %p with func = %ld", i, function, fun
 	        	if( function )
 				{
 					int func = function->func ;
-					if( func < F_ExecToolStart && func > F_ExecToolEnd &&
+					if( (func < F_ExecToolStart || func > F_ExecToolEnd) &&
 						(IsSwallowFunc(func) || IsExecFunc(func)) )
 					{
 			   			disabled = (!is_executable_in_path (function->text));
