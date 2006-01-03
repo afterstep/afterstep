@@ -1143,13 +1143,13 @@ merge_extwm_hints (ASHints * clean, ASRawHints * raw,
 	if (get_flags (what, HINT_NAME))
 	{
 		if (eh->visible_name)
-			add_name_to_list (clean->names, text_property2string (eh->visible_name), clean->names_encoding, AS_Text_UTF8);
+			add_name_to_list (clean->names, stripcpy((const char*)(eh->visible_name->value)), clean->names_encoding, AS_Text_UTF8);
 		if (eh->name)
-			add_name_to_list (clean->names, text_property2string (eh->name), clean->names_encoding, AS_Text_UTF8);
+			add_name_to_list (clean->names, stripcpy((const char*)(eh->name)), clean->names_encoding, AS_Text_UTF8);
 		if (eh->icon_name)
-			clean->icon_name_idx = add_name_to_list (clean->names, text_property2string (eh->icon_name), clean->names_encoding, AS_Text_UTF8);
+			clean->icon_name_idx = add_name_to_list (clean->names, stripcpy((const char*)(eh->icon_name)), clean->names_encoding, AS_Text_UTF8);
 		if (eh->visible_icon_name)
-			clean->icon_name_idx = add_name_to_list (clean->names, text_property2string (eh->visible_icon_name), clean->names_encoding, AS_Text_UTF8);
+			clean->icon_name_idx = add_name_to_list (clean->names, stripcpy((const char*)(eh->visible_icon_name)), clean->names_encoding, AS_Text_UTF8);
 		clean->icon_name = (clean->icon_name_idx <0 )?NULL: clean->names[clean->icon_name_idx] ;
 	}
 

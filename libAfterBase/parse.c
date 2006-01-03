@@ -582,8 +582,10 @@ find_doublequotes (char *ptr)
 char         *
 stripcpy (const char *source)
 {
-	const char   *ptr;
+	const char   *ptr = NULL;
 
+	if( source == NULL ) 
+		return NULL;
 	for (; isspace ((int)*source); source++);
 	for (ptr = source + strlen (source); ptr > source && isspace ((int)*(ptr - 1)); ptr--);
 	return mystrndup (source, ptr - source);
