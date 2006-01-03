@@ -15,7 +15,7 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-#undef LOCAL_DEBUG
+#define LOCAL_DEBUG
 #undef DO_CLOCKING
 
 #ifdef _WIN32
@@ -1166,12 +1166,12 @@ load_freetype_locale_glyph( ASFont *font, UNICODE_CHAR uc )
 		load_glyph_freetype( font, asg, FT_Get_Char_Index( font->ft_face, uc), uc);
 		if( add_hash_item( font->locale_glyphs, AS_HASHABLE(uc), asg ) != ASH_Success )
 		{
-			LOCAL_DEBUG_OUT( "Failed to add glyph %p for char %d to hash", asg, uc );
+			LOCAL_DEBUG_OUT( "Failed to add glyph %p for char %ld to hash", asg, uc );
 			asglyph_destroy( 0, asg);
 			asg = NULL ;
 		}else
 		{
-			LOCAL_DEBUG_OUT( "added glyph %p for char %d to hash font attr(%d,%d,%d) glyph attr (%d,%d)", asg, uc, font->max_ascend, font->max_descend, font->max_height, asg->ascend, asg->descend );
+			LOCAL_DEBUG_OUT( "added glyph %p for char %ld to hash font attr(%d,%d,%d) glyph attr (%d,%d)", asg, uc, font->max_ascend, font->max_descend, font->max_height, asg->ascend, asg->descend );
 
 			if( asg->ascend > font->max_ascend )
 				font->max_ascend = asg->ascend ;
@@ -1272,7 +1272,7 @@ inline ASGlyph *get_unicode_glyph( const UNICODE_CHAR uc, ASFont *font )
 	ASHashData hdata = {0} ;
 	for( r = font->codemap ; r != NULL ; r = r->above )
 	{
-LOCAL_DEBUG_OUT( "looking for glyph for char %lu (%p) if range (%d,%d)", uc, asg, r->min_char, r->max_char);
+LOCAL_DEBUG_OUT( "looking for glyph for char %lu (%p) if range (%ld,%ld)", uc, asg, r->min_char, r->max_char);
 
 		if( r->max_char >= uc )
 			if( r->min_char <= uc )
@@ -1288,6 +1288,7 @@ LOCAL_DEBUG_OUT( "Found glyph for char %lu (%p)", uc, asg );
 	{
 #ifdef HAVE_FREETYPE
 		asg = load_freetype_locale_glyph( font, uc );
+LOCAL_DEBUG_OUT( "glyph for char %lu  loaded as %p", uc, asg );
 #endif
 	}else
 		asg = hdata.vptr ;
@@ -1367,6 +1368,7 @@ utf8_to_unicode ( const unsigned char *s )
 inline ASGlyph *get_utf8_glyph( const char *utf8, ASFont *font )
 {
 	UNICODE_CHAR uc = utf8_to_unicode ( (const unsigned char*)utf8 );
+	LOCAL_DEBUG_OUT( "translated to Unicode 0x%lX(%ld), UTF8 size = %d", uc, uc, UTF8_CHAR_SIZE(utf8[0]) );
 	return get_unicode_glyph( uc, font );
 }
 
@@ -1644,7 +1646,8 @@ get_text_size_internal( const char *src_text, ASFont *font, ASTextAttributes *at
 	if( !get_flags( font->flags, ASF_Monospaced) )
 		space_size  = (space_size>>1)+1 ;
 	space_size += offset_3d_x ;
-		
+
+	LOCAL_DEBUG_OUT( "char_type = %d", attr->char_type );
 	if( attr->char_type == ASCT_Char )
 	{
 		char *text = (char*)&src_text[0] ;
@@ -1656,7 +1659,18 @@ get_text_size_internal( const char *src_text, ASFont *font, ASTextAttributes *at
 	}else if( attr->char_type == ASCT_UTF8 )
 	{
 		char *text = (char*)&src_text[0] ;
-		GET_TEXT_SIZE_LOOP(get_utf8_glyph(&text[i],font),i+=UTF8_CHAR_SIZE(text[i])-1,length);
+		int byte_length = 0 ;
+		if( length > 0 )
+		{
+			int k ; 
+			for( k = 0 ; k < length ; ++k )
+			{
+				if( text[byte_length] == '\0' ) 
+					break;
+				byte_length += UTF8_CHAR_SIZE(text[byte_length]);		   
+			}	 
+		}	 
+		GET_TEXT_SIZE_LOOP(get_utf8_glyph(&text[i],font),i+=UTF8_CHAR_SIZE(text[i])-1,byte_length);
 	}else if( attr->char_type == ASCT_Unicode )
 	{
 		UNICODE_CHAR *text = (UNICODE_CHAR*)&src_text[0] ;

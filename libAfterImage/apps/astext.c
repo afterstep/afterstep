@@ -82,8 +82,12 @@ int main(int argc, char* argv[])
 	int screen = 0, depth = 0;
 	char *font_name = "test.ttf";
 	int size = 32 ;
+#if 0
+	char *text = "　　还没有";  /* chinese */ 
+#else
  	char *text = "Smart Brown Dog jumps\nOver The Lazy Fox,\n"
 				 "and falls into the ditch.";
+#endif
 	ARGB32 text_color = ARGB32_White, back_color = ARGB32_Black;
 	char *text_color_name = "#FFFFFFFF", *back_color_name = "#FF000000";
 	char *fore_image_file = "fore.xpm" ;
@@ -99,7 +103,7 @@ int main(int argc, char* argv[])
 	Bool monospaced = False ;
 	char * font_path = NULL;
 	ASTextAttributes attr = {ASTA_VERSION_1, ASTA_UseTabStops, 
-							 AST_ShadeBelow, ASCT_Char, 8, 0, 
+							 AST_ShadeBelow, ASCT_UTF8, 8, 0, 
 							 NULL, 0, ARGB32_White };
 	
 	/* see ASView.1 : */
@@ -204,6 +208,8 @@ int main(int argc, char* argv[])
     /*Simple way:get_text_size( text, font, attr.type, &width, &height ); */
 	/*Fancy way : */
 	get_fancy_text_size( text, font, &attr, &width, &height, 0, NULL );
+/* show_progress( "extimated text size = %dx%d", width, height ); */
+	
 	if( fore_image_file )
 	{
 		ASImage *tmp = file2ASImage( fore_image_file, 0xFFFFFFFF,
@@ -251,7 +257,6 @@ int main(int argc, char* argv[])
 	/* see ASText.3 : */
     /* simple way : text_im = draw_text( text, font, attr.type, 0 ); */
 	text_im = draw_fancy_text( text, font, &attr, 0, 0 );
-
 	if( fore_im )
 	{
 		move_asimage_channel( fore_im, IC_ALPHA, text_im, IC_ALPHA );
