@@ -413,7 +413,7 @@ CheckConfigSanity()
 	buf = safemalloc(strlen(get_application_name())+256 );
     sprintf( buf, "*%sTile", get_application_name() );
     Scr.Look.MSWindow[UNFOCUSED_TILE_STYLE] = mystyle_find_or_default( buf );
-    LOCAL_DEBUG_OUT("Will use style \"%s\"", Scr.Look.MSWindow[BACK_UNFOCUSED]->name);
+    LOCAL_DEBUG_OUT("Will use style \"%s\"", Scr.Look.MSWindow[UNFOCUSED_TILE_STYLE]->name);
     
 	sprintf( buf, "*%sFocusedTile", get_application_name() );
     Scr.Look.MSWindow[FOCUSED_TILE_STYLE] = mystyle_find( buf );
@@ -434,10 +434,10 @@ CheckConfigSanity()
             Config->force_size.height = 64 ;
     }else if( !get_flags(Config->flags, WHARF_FitContents) )
     {
-        if( Scr.Look.MSWindow[BACK_UNFOCUSED]->back_icon.image != NULL )
+        if( Scr.Look.MSWindow[UNFOCUSED_TILE_STYLE]->back_icon.image != NULL )
         {
-            Config->force_size.width  = Scr.Look.MSWindow[BACK_UNFOCUSED]->back_icon.width ;
-            Config->force_size.height = Scr.Look.MSWindow[BACK_UNFOCUSED]->back_icon.height ;
+            Config->force_size.width  = Scr.Look.MSWindow[UNFOCUSED_TILE_STYLE]->back_icon.width ;
+            Config->force_size.height = Scr.Look.MSWindow[UNFOCUSED_TILE_STYLE]->back_icon.height ;
         }else
         {
             Config->force_size.width  = 64;
