@@ -294,47 +294,47 @@ ExtractPath (BaseConfig * config,
 	register char *tmp ;
 	if (config)
 	{
-		if (module_path)
+		if (module_path && config->module_path )
 		{
 			tmp = copy_replace_envvar (config->module_path);
 			set_string(module_path, tmp );
 		}
-		if (audio_path)
+		if (audio_path && config->audio_path)
 		{
 			tmp = copy_replace_envvar (config->audio_path);
 			set_string(audio_path, tmp );
 		}
-		if (icon_path)
+		if (icon_path && config->icon_path)
 		{
 			tmp = copy_replace_envvar (config->icon_path);
 			set_string(icon_path, tmp );
 		}
-		if (pixmap_path)
+		if (pixmap_path && config->pixmap_path)
 		{
 			tmp = copy_replace_envvar (config->pixmap_path);
 			set_string(pixmap_path, tmp );
 		}
-		if (font_path)
+		if (font_path && config->font_path)
 		{
 			tmp = copy_replace_envvar (config->font_path);
 			set_string(font_path, tmp );
 		}
-		if (cursor_path)
+		if (cursor_path && config->cursor_path)
 		{
 			tmp = copy_replace_envvar (config->cursor_path);
 			set_string(cursor_path, tmp );
 		}
-		if (myname_path)
+		if (myname_path && config->myname_path)
 		{
 			tmp = copy_replace_envvar (config->myname_path);
 			set_string(myname_path, tmp );
 		}
-		if (gtkrc_path)
+		if (gtkrc_path && config->gtkrc_path)
 		{
 			tmp = make_session_rc_file (Session, config->gtkrc_path);
 			set_string(gtkrc_path, tmp );
 		}
-		if (gtkrc20_path)
+		if (gtkrc20_path && config->gtkrc20_path)
 		{
 			tmp = make_session_rc_file (Session, config->gtkrc20_path);
 			set_string(gtkrc20_path, tmp );
@@ -347,7 +347,7 @@ BaseConfig2ASEnvironment( register BaseConfig *config, ASEnvironment **penv )
 {
 	register ASEnvironment *env = *penv;
 	if( env == NULL )
-		env = safecalloc( 1, sizeof( ASEnvironment ) );
+		env = make_default_environment();
 	ExtractPath (config, &(env->module_path),
 		            	&(env->audio_path),
 						&(env->icon_path),
