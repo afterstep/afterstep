@@ -453,7 +453,9 @@ DoExecuteFunction ( ASScheduledFunction *sf )
 		if( event->client )
 		{
 			if( get_flags( event->client->status->flags, AS_Fullscreen ) &&
-				(data->func == F_MOVE ||	data->func == F_RESIZE) )
+				(data->func == F_MOVE || 
+				 data->func == F_RESIZE ||
+				 data->func == F_MAXIMIZE ) )
 			{
 				LOCAL_DEBUG_OUT( "function \"%s\" is not allowed for the Fullscreen window",COMPLEX_FUNCTION_NAME(data));
 				func = data->func = F_BEEP ;				                     
