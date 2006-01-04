@@ -170,6 +170,23 @@ apply_operations(void *data, void *aux_data)
 	return True;
 }
 
+Bool
+fix_area(void *data, void *list)
+{
+	ASWindowData *wd = fetch_window_by_id( ((client_item *) data)->cl );
+	
+	if(wd == NULL)
+		return True;
+	
+	if( get_flags( wd->flags, AS_AvoidCover ) && ! get_flags( wd->state_flags, AS_Iconic) ) 
+	{	
+		subtract_rectangle_from_list( (ASVector *) list, wd->frame_rect.x, wd->frame_rect.y, 
+					      wd->frame_rect.x+(int)wd->frame_rect.width,
+					      wd->frame_rect.y+(int)wd->frame_rect.height );	  
+	}
+	return True;
+}
+
 void
 destroy_client_item(void *data)
 {
@@ -209,10 +226,11 @@ ascom_init ( void )
 	add_hash_item(ASCommandState.handlers, AS_HASHABLE(strdup("kill")), kill_handler);
 	add_hash_item(ASCommandState.handlers, AS_HASHABLE(strdup("jump")), jump_handler);
 	add_hash_item(ASCommandState.handlers, AS_HASHABLE(strdup("ls")), ls_handler);
+	add_hash_item(ASCommandState.handlers, AS_HASHABLE(strdup("deiconify")), deiconify_handler);
 	add_hash_item(ASCommandState.handlers, AS_HASHABLE(strdup("iconify")), iconify_handler);
 	add_hash_item(ASCommandState.handlers, AS_HASHABLE(strdup("sendtodesk")), send_to_desk_handler);
 	add_hash_item(ASCommandState.handlers, AS_HASHABLE(strdup("center")), center_handler);
-
+	add_hash_item(ASCommandState.handlers, AS_HASHABLE(strdup("raise")), raise_handler);
 	
 	ConnectAfterStep (WINDOW_CONFIG_MASK |
 			  WINDOW_NAME_MASK |
@@ -288,18 +306,48 @@ ascom_get_win_names( void )
 	return ret;
 }
 
-/*
-  op can contain an unlimited amount of
-  commands separated by whitespace. These
-  commands are then executed in order.
-*/
+XRectangle *
+ascom_get_available_area( void )
+{
+	ASVector *list = create_asvector( sizeof(XRectangle) );
+	XRectangle seed_rect, *result_rect = NULL;
+	int i, largest = 0 ;
+	XRectangle *rects ;
+
+	/* must seed the list with the single rectangle representing the area : */
+	seed_rect.x = 0 ;
+	seed_rect.y = 0 ;
+	seed_rect.width = Scr.MyDisplayWidth ;
+	seed_rect.height = Scr.MyDisplayHeight ;
+	
+	append_vector( list, &seed_rect, 1 );
+	
+	iterate_asbidirlist( ASCommandState.clients_order, fix_area, list, NULL, False);
+
+	print_rectangles_list(list);
+
+	i = PVECTOR_USED(list);
+	rects = PVECTOR_HEAD(XRectangle,list);
+	while( --i > 0 ) 
+	{	
+    	if( rects[largest].width*rects[largest].height < rects[i].width*rects[i].height ) 
+			largest = i ; 
+	}
+	
+	result_rect = safemalloc(sizeof(XRectangle));
+	*result_rect = rects[largest];
+	
+	destroy_asvector(&list);
+       
+	return result_rect;
+
+}
+
 void
-ascom_do( const char *op, void *data )
+parse_op_string( const char *op)
 {
 	char *iter, *haystack, *copy;
-
-	LOCAL_DEBUG_OUT("ascom_do called: op = %s", op);
-
+	
 	destroy_asbidirlist( &ASCommandState.operations );
 	ASCommandState.operations = create_asbidirlist(NULL);
 
@@ -312,7 +360,21 @@ ascom_do( const char *op, void *data )
 	}
 
 	free( copy );
+}
 
+/*
+  op can contain an unlimited amount of
+  commands separated by whitespace. These
+  commands are then executed in order.
+*/
+void
+ascom_do( const char *op, void *data)
+{
+	
+
+	LOCAL_DEBUG_OUT("ascom_do called: op = %s", op);
+
+	parse_op_string ( op );
 	
 	if(ASCommandState.selected_wins->head == NULL)
 	{
@@ -320,10 +382,70 @@ ascom_do( const char *op, void *data )
 		return;
 	}
 	
-	
 	iterate_asbidirlist( ASCommandState.selected_wins, apply_operations, data,
 			     NULL, False);
 	
+}
+
+
+/* peform operation on only the first/last window */
+void
+ascom_do_one(const char *op, void *data, Bool last)
+{
+	client_item *elem;
+	
+	if( ! ASCommandState.selected_wins->head )
+	{
+		LOCAL_DEBUG_OUT("No windows selected");
+		return;
+	}
+
+	if( last )
+		elem = ASCommandState.selected_wins->tail->data ;
+	else
+		elem = ASCommandState.selected_wins->head->data ;
+	
+	if(!elem) return;
+	
+	parse_op_string( op );
+	apply_operations(elem, data);
+	
+}
+
+/* Remove the first/last element from the list
+ * of selected windows. */
+void
+ascom_pop_winlist(Bool last)
+{
+	client_item *elem;
+
+	if( last )
+		elem = extract_last_bidirelem(ASCommandState.selected_wins);
+	else
+		elem = extract_first_bidirelem(ASCommandState.selected_wins);
+	
+	if( elem )
+		free(elem);
+}
+
+
+const ASWindowData *
+ascom_get_next_window(Bool last)
+{
+	if(last)
+		return fetch_window_by_id(
+			((client_item *)
+			 (ASCommandState.selected_wins->tail->data))->cl);
+	else
+		return fetch_window_by_id(
+			((client_item *)
+			 (ASCommandState.selected_wins->head->data))->cl);
+}
+
+Bool
+winlist_is_empty(void)
+{
+	return (ASCommandState.selected_wins->head == NULL);
 }
 
 void
@@ -407,7 +529,7 @@ select_windows_by_pattern( const char *pattern, Bool just_one, Bool unselect)
 			append_bidirelem( new_selection, curr->data );
 		
 			if( new_selection->head && just_one )
-			break;
+				break;
 			
 		}
 		
@@ -505,6 +627,110 @@ select_windows_on_desk( Bool unselect )
 	destroy_asbidirlist(&ASCommandState.selected_wins);
 	ASCommandState.selected_wins = new_selection;
 	selection_in_progress = True;
+}
+
+void
+select_windows_by_flag( ASFlagType flag, Bool unselect)
+{
+	ASBiDirElem *curr;
+	ASWindowData *wd;
+	Bool ret;
+
+	ASBiDirList *new_selection = create_asbidirlist(NULL);
+	
+	if( selection_in_progress)
+		curr = ASCommandState.selected_wins->head;
+	else
+		curr = ASCommandState.clients_order->head;
+	
+	for( ; curr != NULL; curr = curr->next)
+	{
+		wd = fetch_window_by_id( ((client_item *)curr->data)->cl );
+		
+		
+		ret = get_flags( wd->flags, flag);
+		
+		if( (ret && !unselect) || ( !ret && unselect) )
+		{
+			
+			append_bidirelem( new_selection, curr->data );
+		}
+		
+	}
+	
+	
+	destroy_asbidirlist(&ASCommandState.selected_wins);
+	ASCommandState.selected_wins = new_selection;
+	selection_in_progress = True;
+}
+
+
+void
+select_windows_by_state_flag( ASFlagType flag, Bool unselect)
+{
+	ASBiDirElem *curr;
+	ASWindowData *wd;
+	Bool ret;
+
+	ASBiDirList *new_selection = create_asbidirlist(NULL);
+	
+	if( selection_in_progress)
+		curr = ASCommandState.selected_wins->head;
+	else
+		curr = ASCommandState.clients_order->head;
+	
+	for( ; curr != NULL; curr = curr->next)
+	{
+		wd = fetch_window_by_id( ((client_item *)curr->data)->cl );
+		
+		
+		ret = get_flags( wd->state_flags, flag);
+		
+		if( (ret && !unselect) || ( !ret && unselect) )
+		{
+			
+			append_bidirelem( new_selection, curr->data );
+		}
+		
+	}
+	
+	
+	destroy_asbidirlist(&ASCommandState.selected_wins);
+	ASCommandState.selected_wins = new_selection;
+	selection_in_progress = True;
+}
+
+void
+select_untitled_windows( Bool unselect)
+{
+	ASBiDirElem *curr;
+	ASWindowData *wd;
+	ASBiDirList *new_selection = create_asbidirlist(NULL);
+
+	if(selection_in_progress)
+		curr = ASCommandState.selected_wins->head;
+	else
+		curr = ASCommandState.clients_order->head;
+
+	for( ;curr != NULL; curr = curr->next)
+	{
+		
+		wd = fetch_window_by_id( ((client_item *)curr->data)->cl );
+		
+		if( (unselect && wd->window_name )  || (!unselect && !(wd->window_name)))
+			append_bidirelem( new_selection, curr->data );
+		
+	}
+	
+	destroy_asbidirlist(&ASCommandState.selected_wins);
+	ASCommandState.selected_wins = new_selection;
+	selection_in_progress = True;
+}
+
+int
+num_selected_windows( void )
+{
+	return (int) ASCommandState.selected_wins->count;
 }
 
 /* not working right now */

@@ -53,7 +53,16 @@ void ascom_deinit( void );
 
 void ascom_update_winlist( void );
 char **ascom_get_win_names( void );
-void ascom_do( const char *operation, void *data );
+XRectangle *ascom_get_available_area( void );
+
+void ascom_do( const char *operation, void *data);
+void ascom_do_one(const char *operation, void *data, Bool last);
+
+/* use with care and don't go casting 'round the constness. */
+const ASWindowData *ascom_get_next_window(Bool last);
+
+void ascom_pop_winlist(Bool last);
+Bool winlist_is_empty(void);
 
 void ascom_wait( void ); /* wait until all operations have been executed */
 
@@ -62,8 +71,12 @@ void select_all( Bool unselect );
 Bool select_windows_by_pattern(const char *pattern, Bool just_one, Bool unselect);
 void select_windows_on_screen( Bool unselect );
 void select_windows_on_desk ( Bool unselect );
-
+void select_windows_by_flag( ASFlagType flag, Bool unselect );
+void select_windows_by_state_flag( ASFlagType flag, Bool unselect);
+void select_untitled_windows( Bool unselect);
 void select_focused_window( Bool unselect );
+
+int num_selected_windows( void );
 
 void clear_selection( void );
 

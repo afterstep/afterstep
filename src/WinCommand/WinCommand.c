@@ -87,11 +87,13 @@ action_t Actions[] =
 	{"center jump", jump_wrapper, jump_defaults },
 	{"group", group_wrapper, jump_defaults},
 	{"iconify", no_args_wrapper, default_defaults },
+	{"deiconify", no_args_wrapper, default_defaults},
 	{"jump", jump_wrapper, jump_defaults},
 	{"kill", no_args_wrapper, default_defaults},
 	{"move", move_wrapper, default_defaults},
 	{"resize", resize_wrapper, default_defaults},
 	{"sendtodesk", send_to_desk_wrapper, default_defaults},
+	{"raise", no_args_wrapper, default_defaults},
 	{ NULL, NULL, NULL}
 };
 

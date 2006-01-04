@@ -46,6 +46,8 @@
 #include "../../libAfterStep/balloon.h"
 #include "../../libAfterStep/event.h"
 #include "../../libAfterStep/shape.h"
+#include "../../libAfterStep/ascommand.h"
+#include "../../libAfterStep/operations.h"
 
 #include "../../libAfterBase/aslist.h"
 
@@ -118,14 +120,7 @@ void HandleEvents();
 void process_message (send_data_type type, send_data_type *body);
 void tile_windows();
 void cascade_windows();
-void DeadPipe(int);
-void fix_available_area();
-
-void
-destroy_client_item(void *data)
-{
-	free((client_item *) data);
-}
+void Arrange_DeadPipe(int);
 
 int
 atopixel (char *s, int size)
@@ -144,20 +139,99 @@ atopixel (char *s, int size)
 	return (atoi (s) * size) / 100;
 }
 
+void
+select_suitable_windows(void)
+{
+
+	/* Select all windows, then get
+	 * rid of those we don't want. */
+	select_all( False );
+	
+	LOCAL_DEBUG_OUT("# Number of selected windows: %d\n", num_selected_windows());
+
+	/* we don't want to arrange fullscreen-windows */
+        select_windows_by_flag( AS_Fullscreen, True);
+	/* we do not want to arrange AfterSTep's modules */
+
+	select_windows_by_flag( AS_Module, True);
+	LOCAL_DEBUG_OUT("# Number of selected windows: %d\n", num_selected_windows());
+
+	/* also we do not want to arrange AvoidCover windows : */
+	select_windows_by_flag(AS_AvoidCover, True);
+
+        /* Remove winlist-skip-windows if user doesn't want to
+	   arrange them */
+	if( !get_flags( ArrangeState.flags, ARRANGE_WinlistSkip))
+		select_windows_by_flag(AS_SkipWinList, True);
+	
+	LOCAL_DEBUG_OUT("# Number of selected windows: %d\n", num_selected_windows());
+
+	/* return if window is untitled and we don't want
+	   to arrange untitled windows  */
+	if( !get_flags( ArrangeState.flags, ARRANGE_Untitled ))
+		select_untitled_windows(True);
+	
+	LOCAL_DEBUG_OUT("# Number of selected windows: %d\n", num_selected_windows());
+
+	/* return if window is transient and we don't want
+	   to arrange transient windows. */
+	if( !get_flags( ArrangeState.flags, ARRANGE_Transient ))
+		select_windows_by_flag(AS_Transient, True);
+	
+	LOCAL_DEBUG_OUT("# Number of selected windows: %d\n", num_selected_windows());
+
+	/* return if window is sticky and we don't want
+	   to arrange sticky windows. */
+	if( !get_flags( ArrangeState.flags, ARRANGE_Sticky ))
+		select_windows_by_state_flag(AS_Sticky, True);
+	LOCAL_DEBUG_OUT("# Number of selected windows: %d\n", num_selected_windows());
+	
+
+	/*return if window is maximized and we don't want
+	  to arrange maximized windows. */
+	
+	if( !get_flags( ArrangeState.flags, ARRANGE_Maximized ))
+		select_windows_by_state_flag(AS_MaximizedX|AS_MaximizedY|AS_Fullscreen, True);
+
+	LOCAL_DEBUG_OUT("# Number of selected windows: %d\n", num_selected_windows());
+
+	/* return if window is not on current desk and we don't want
+	   to arrange windows of all desks. */
+	if( !get_flags( ArrangeState.flags, ARRANGE_AllDesks))
+	{
+		select_windows_on_desk(False);
+		
+		/* if user passed ARRANGE_AllDesks, it's safe to assume 
+		 * he wants to arrange on all screens as well, so we
+		 * only check for ARRANGE_Desk if AllDesks was not set */
+		
+	/* return if window is not on current screen and we don't want
+	   to arrange windows on the whole desk. */
+		if( !get_flags( ArrangeState.flags, ARRANGE_Desk))
+			select_windows_on_screen(False);	
+	}
+	
+	LOCAL_DEBUG_OUT("# Number of selected windows: %d\n", num_selected_windows());
+
+	/* If a pattern was specified, only select windows matching the pattern*/
+	if( ArrangeState.pattern )
+		select_windows_by_pattern(ArrangeState.pattern, False, False);
+	
+}
+
 
 int
 main( int argc, char **argv )
 {
 	int i ;
 	int nargc = 0 ;
+	XRectangle *area;
 	Bool resize_touched = False;
 	/* Save our program name - for error messages */
-	set_DeadPipe_handler(DeadPipe);
-    InitMyApp (CLASS_ARRANGE, argc, argv, NULL, NULL, OPTION_SINGLE|OPTION_RESTART );
-
-    set_signal_handler( SIGSEGV );
-
-    ConnectX( ASDefaultScr, 0 );
+	set_DeadPipe_handler(Arrange_DeadPipe);
+	InitMyApp (CLASS_ARRANGE, argc, argv, NULL, NULL, OPTION_SINGLE|OPTION_RESTART );
+	set_signal_handler( SIGSEGV );
+	ConnectX( ASDefaultScr, 0 );
 
 	memset( &ArrangeState, 0x00, sizeof(ArrangeState));
 	
@@ -169,7 +243,6 @@ main( int argc, char **argv )
 	ArrangeState.incx = 20 ; 
 	ArrangeState.incy = 20 ;
 	
-	ArrangeState.clients_order = create_asbidirlist( destroy_client_item );
 
     /* Check the Name of the Program to see wether to tile or cascade*/
 	if( mystrcasecmp( MyName , "Tile" ) == 0 )
@@ -321,31 +394,51 @@ main( int argc, char **argv )
 		}							   
 	}
 
-    ConnectAfterStep (WINDOW_CONFIG_MASK |
-                      WINDOW_NAME_MASK |
-                      M_END_WINDOWLIST|
-		      M_NEW_DESKVIEWPORT, 0);
+	ascom_init();
+	/* Request a list of all windows, while we load our config */
+	ascom_update_winlist();
 
-    /* Request a list of all windows, while we load our config */
-    SendInfo ("Send_WindowList", 0);
-
-    LoadBaseConfig ( GetBaseOptions);
+	LoadBaseConfig ( GetBaseOptions);
     
-	/* And at long last our main loop : */
-    HandleEvents();
+	/* fix area */
+	area = ascom_get_available_area();
+	
+	if( !get_flags( ArrangeState.flags, ARRANGE_OffsetX_Set ) )
+		ArrangeState.offset_x = area->x;
+		
+	if( !get_flags( ArrangeState.flags, ARRANGE_OffsetY_Set ) )
+		ArrangeState.offset_y = area->y;
+				
+	if( !get_flags( ArrangeState.flags, ARRANGE_MaxWidth_Set ) )
+		ArrangeState.max_width = area->width;
+	
+	if( !get_flags( ArrangeState.flags, ARRANGE_MaxHeight_Set ) )
+		ArrangeState.max_height = area->height;
+	
+	free(area);
+
+	/************/
+
+	select_suitable_windows();
+	
+	/* rearrange windows */		   
+
+	if( get_flags( ArrangeState.flags, ARRANGE_Tile	) ) 
+		tile_windows();
+	else
+		cascade_windows();
+
+	ascom_wait();
+
+	/* exit */
+	Arrange_DeadPipe (0);
+			
 	return 0 ;
 }
 
-void HandleEvents()
-{
-    while (True)
-    {
-        module_wait_pipes_input ( process_message );
-    }
-}
 
 void
-DeadPipe (int nonsense)
+Arrange_DeadPipe (int nonsense)
 {
 	static int already_dead = False ; 
 	if( already_dead ) 
@@ -371,229 +464,18 @@ GetBaseOptions (const char *filename)
 	ReloadASEnvironment( NULL, NULL, NULL, False, False );
 }
 
-Bool
-window_is_suitable(ASWindowData *wd)
-{
-	regex_t my_reg;
-        
-	if( get_flags( wd->state_flags, AS_Fullscreen ) )
-		return False;
-		
-        /* we do not want to arrange AfterSTep's modules */
-	if( get_flags( wd->flags, AS_Module))
-		return False;
-	
-	/* also we do not want to arrange AvoidCover windows : */
-	if( get_flags( wd->flags, AS_AvoidCover ) )
-		return False;
-	
-	/* return if window has WinlistSkip set and we don't we
-	   don't want to arrange such windows. */
-	if( !get_flags( ArrangeState.flags, ARRANGE_WinlistSkip) &&
-	    get_flags( wd->flags, AS_SkipWinList))
-		return False;
-	
-        /* return if window is untitled and we don't want
-	   to arrange untitled windows  */
-	if( !get_flags( ArrangeState.flags, ARRANGE_Untitled ) && wd->window_name == NULL)
-		return False;
-	/* return if window is transient and we don't want
-	   to arrange transient windows. */
-	if( !get_flags( ArrangeState.flags, ARRANGE_Transient ) && get_flags( wd->flags, AS_Transient ) )
-		return False;
-	/* return if window is sticky and we don't want
-	   to arrange sticky windows. */
-	if( !get_flags( ArrangeState.flags, ARRANGE_Sticky ) && get_flags( wd->state_flags, AS_Sticky ) )
-		return False;
-	/* return if window is maximized and we don't want
-	   to arrange maximized windows. */
-	if( !get_flags( ArrangeState.flags, ARRANGE_Maximized ) && get_flags( wd->state_flags, AS_MaximizedX|AS_MaximizedY|AS_Fullscreen ) )
-		return False;
-	
-	/* return if window is not on current desk and we don't want
-	   to arrange windows of all desks. */
-	if( !get_flags( ArrangeState.flags, ARRANGE_AllDesks) && (wd->desk != Scr.CurrentDesk) )
-		return False;
-
-	/* return if window is not on current screen and we don't want
-	   to arrange windows on the whole desk. */
-	if( !get_flags( ArrangeState.flags, ARRANGE_Desk) &&
-	     (  ( wd->frame_rect.x < Scr.Vx )
-	     || ( wd->frame_rect.y < Scr.Vy )
-	     || ( wd->frame_rect.x > (Scr.MyDisplayWidth + Scr.Vx) )
-	     || ( wd->frame_rect.y > (Scr.MyDisplayHeight + Scr.Vy) ))
-	  )
-		return False;
-
-	/* If a pattern was specified, check if window matches*/
-	if( ArrangeState.pattern )
-	{		
-		if(regcomp( &my_reg, ArrangeState.pattern, REG_EXTENDED | REG_ICASE ) != 0)
-			return False;
-		
-		
-                /* If pattern doesn't match */
-		if( regexec( &my_reg, wd->window_name, 0, NULL, 0) )
-		{
-			regfree( &my_reg );
-			return False;
-		}
-		regfree( &my_reg );
-	}
-	
-	
-	/* Passed all tests. You're in. */
-	return True;
-}
-
-
-/****************************************************************************/
-/* PROCESSING OF AFTERSTEP MESSAGES :                                       */
-/****************************************************************************/
-void
-process_message (send_data_type type, send_data_type *body)
-{
-	static Bool done = False;
-	client_item *new_item;
-	
-  LOCAL_DEBUG_OUT( "received message %lX", type );
-
-	if( type == M_END_WINDOWLIST )
-	{
-		if( done )
-		{
-			/* exit */
-			destroy_asbidirlist( &(ArrangeState.clients_order) );
-			DeadPipe (0);
-		}else
-		{
-			/* rearrange windows */		   
-			fix_available_area();
-			if( get_flags( ArrangeState.flags, ARRANGE_Tile	) ) 
-				tile_windows();
-			else
-				cascade_windows();
-			
-			done = True;
-			/* Hack: Request another window-list. Next time we
-			 * receive M_END_WINDOWLIST we can be sure all of our
-			 * move/resize/whatever commands have been executed and it's
-			 * safe to die. */
-			SendInfo ("Send_WindowList", 0);
-		}
-	    
-	}else if( (type&WINDOW_PACKET_MASK) != 0 )
-	{
-		struct ASWindowData *wd = fetch_window_by_id( body[0] );
-		
-		show_progress( "message %X window %X ", type, body[0] );
-		if( handle_window_packet( type, body, &wd ) == WP_DataCreated )
-		{
-			new_item = safemalloc( sizeof(client_item) );
-			new_item->cl = wd->client;
-			append_bidirelem( ArrangeState.clients_order, new_item);
-		}
-	}else if( type == M_NEW_DESKVIEWPORT )
-	{
-		LOCAL_DEBUG_OUT("M_NEW_DESKVIEWPORT(desk = %ld,Vx=%ld,Vy=%ld)", body[2], body[0], body[1]);
-		Scr.CurrentDesk = body[2];
-		Scr.Vx = body[0];
-		Scr.Vy = body[1];
-	}
-}
-
 
 /********************************************************************/
 /* showing our main window :                                        */
 /********************************************************************/
-Bool
-count_managed_windows(void *data, void *aux_data)
-{
-	ASWindowData *wd = fetch_window_by_id( ((client_item *) data)->cl );
-	int *c = (int *) aux_data;
-	if(window_is_suitable(wd))
-		(*c)++;
-	return True;
-}
-
-
-Bool
-tile_window(void *data, void *aux_data)
-{
-	int buf_size = 256;
-	char buf[buf_size];
-	
-	/* used by SendNumCommand */
-	send_signed_data_type vals[2] ;	
-	send_signed_data_type units[2] ;
-
-	ASWindowData *wd = fetch_window_by_id( ((client_item *) data)->cl );
-	if(!wd)
-		return True;
-
-	if(! window_is_suitable( wd ))
-	  return True; /* Next window please */
-
-       /* If group is full */
-	if(*(ArrangeState.elem) ==
-	   (ArrangeState.start_elem +
-	    ArrangeState.count * *(ArrangeState.elem_size)))
-	{
-		/* Make new group */
-		*(ArrangeState.group)+= *(ArrangeState.group_size);
-		/* Make this the first item of the new group */
-		*(ArrangeState.elem) = ArrangeState.start_elem;
-	}
-	
-	/* Raise the client if allowed */
-	if( !get_flags( ArrangeState.flags, ARRANGE_NoRaise ) )
-		SendNumCommand ( F_RAISE, NULL, NULL, NULL, wd->client );
-	
-	/* If the client is iconified, deiconify it. */
-	vals[0] = -1; units[0] = 1;
-	if( get_flags( wd->state_flags, AS_Iconic) )
-		SendNumCommand( F_ICONIFY, NULL, &(vals[0]), &(units[0]), wd->client );
-
-       /* Indicate that we're talking pixels. */
-	units[0] = units[1] = 1;
-	vals[0] = ArrangeState.curr_x; vals[1] = ArrangeState.curr_y;
-	/* Move window */
-	SendNumCommand ( F_MOVE, NULL, &(vals[0]), &(units[0]), wd->client );
-
-	
-	/* Make sure we don't stretch if ARRANGE_NoStretch was set */
-	if ( !( get_flags( ArrangeState.flags, ARRANGE_NoStretch) &&
-		(    (wd->frame_rect.width < ArrangeState.tile_width)
-		  || (wd->frame_rect.height < ArrangeState.tile_height)
-		 )))
-	{
-		/* Resize window if allowed*/
-		vals[0] = ArrangeState.tile_width ; 
-		vals[1] = ArrangeState.tile_height ;
-		if( get_flags(ArrangeState.flags, ARRANGE_Resize ))
-			SendNumCommand ( F_RESIZE, NULL, &(vals[0]), &(units[0]), wd->client );
-	}
-	
-	/* Transfer window onto CurrentDesk */
-	if( wd->desk != Scr.CurrentDesk )
-	{
-		snprintf(buf, buf_size - 1, "WindowsDesk  \"-\" %d", Scr.CurrentDesk);
-		buf[ buf_size - 1] = '\0';
-		SendInfo(buf, wd->client);
-	}
-	
-	(*(ArrangeState.elem))+= *ArrangeState.elem_size;
-	return True;
-}
 
 void 
 tile_windows()
 {
-	int n_windows = 0;
 	int n_groups;
-	iterate_asbidirlist( ArrangeState.clients_order,
-			     count_managed_windows, &n_windows, NULL, False);
-	
+	int n_windows = num_selected_windows();
+	Bool reverse = get_flags(ArrangeState.flags, ARRANGE_Reversed);
+
 	LOCAL_DEBUG_OUT("Number of windows to be arranged: %d\n", n_windows);
 	LOCAL_DEBUG_OUT("max_width/max_height: %d/%d\n", ArrangeState.max_width, ArrangeState.max_height);
 		
@@ -647,144 +529,132 @@ tile_windows()
 		ArrangeState.group_size = &ArrangeState.tile_width ;
 	}
 	
+	while(! winlist_is_empty() )
+	{
+		move_params p;
+		const ASWindowData *wd;
+		
+		/* If group is full */
+		if(*(ArrangeState.elem) ==
+		   (ArrangeState.start_elem +
+		    ArrangeState.count * *(ArrangeState.elem_size)))
+		{
+			/* Make new group */
+			*(ArrangeState.group)+= *(ArrangeState.group_size);
+			/* Make this the first item of the new group */
+			*(ArrangeState.elem) = ArrangeState.start_elem;
+		}
+		
 
-	iterate_asbidirlist( ArrangeState.clients_order, tile_window,
-			     NULL, NULL, get_flags( ArrangeState.flags, ARRANGE_Reversed));
+		/* Raise the client if allowed */
+		if( !get_flags( ArrangeState.flags, ARRANGE_NoRaise ) )
+			ascom_do_one("raise", NULL, reverse);
+		
+		
+		/* If the client is iconified, deiconify it. */
+		ascom_do_one("deiconify", NULL, reverse);
+		
+		p.x = ArrangeState.curr_x;
+		p.y = ArrangeState.curr_y;
+	
+		/* Move window */
+		ascom_do_one("move", &p, reverse);
+		
+		wd = ascom_get_next_window( reverse );
+
+		/* Make sure we don't stretch if ARRANGE_NoStretch was set */
+		if ( !( get_flags( ArrangeState.flags, ARRANGE_NoStretch) &&
+			(    (wd->frame_rect.width < ArrangeState.tile_width)
+			     || (wd->frame_rect.height < ArrangeState.tile_height)
+				)))
+		{
+			resize_params rparams;
+			rparams.width = ArrangeState.tile_width ; 
+			rparams.height = ArrangeState.tile_height ;
+                        /* Resize window if allowed*/
+			if( get_flags(ArrangeState.flags, ARRANGE_Resize ))
+				ascom_do_one("resize", &rparams, reverse);
+		}
+
+		
+		/* Transfer window onto CurrentDesk */
+		if( wd->desk != Scr.CurrentDesk )
+		{
+			send_to_desk_params p;
+			p.desk = Scr.CurrentDesk;
+			LOCAL_DEBUG_OUT("#CurrentDesk: %d", Scr.CurrentDesk);
+
+			ascom_do_one("sendtodesk", &p, reverse);
+		}
+		
+		(*(ArrangeState.elem))+= *ArrangeState.elem_size;
+		
+		ascom_pop_winlist(reverse);		
+	}
+
 }	 
 
-
-Bool 
-cascade_window(void *data, void *aux_data)
-{
-	int buf_size = 256;
-	char buf[buf_size];
-	send_signed_data_type vals[2] ;	
-	send_signed_data_type units[2] ;	
-
-	ASWindowData *wd = fetch_window_by_id( ((client_item *) data)->cl );
-	if(!wd)
-		return True;
-
-
-	if(! window_is_suitable( wd ))
-	  return True; /* Next window please */
-
-	/* Raise the client if allowed */
-	if( !get_flags( ArrangeState.flags, ARRANGE_NoRaise ) )
-		SendNumCommand ( F_RAISE, NULL, NULL, NULL, wd->client );
-
-	/* If the client is iconified, deiconify it. */
-	vals[0] = -1; units[0] = 1;
-	if( get_flags( wd->state_flags, AS_Iconic) )
-		SendNumCommand( F_ICONIFY, NULL, &(vals[0]), &(units[0]), wd->client );
-
-	/* This is to indicate that values are in pixels : */
-	units[0] = 1 ; 
-	units[1] = 1 ;
-	 
-	vals[0] = ArrangeState.curr_x ; 
-	vals[1] = ArrangeState.curr_y ;
-	LOCAL_DEBUG_OUT( "moving client %lX \"%s\" to %+d%+d", wd->client, wd->window_name, ArrangeState.curr_x, ArrangeState.curr_y );
-	ArrangeState.curr_x += ArrangeState.incx ;
-	ArrangeState.curr_y += ArrangeState.incy ;
-	
-	SendNumCommand ( F_MOVE, NULL, &(vals[0]), &(units[0]), wd->client );
-
-	if( get_flags( ArrangeState.flags, ARRANGE_Resize ) )
-	{
-		/* Make sure we don't stretch of ARRANGE_NoStretch was set */
-		if ( !( get_flags( ArrangeState.flags, ARRANGE_NoStretch) &&
-		       (    (wd->frame_rect.width < ArrangeState.max_width)
-		         || (wd->frame_rect.height < ArrangeState.max_height)
-		       )))
-		{
-			vals[0] = ArrangeState.max_width ; 
-			vals[1] = ArrangeState.max_height ;
-			if( get_flags( ArrangeState.flags, ARRANGE_Resize) )
-				SendNumCommand ( F_RESIZE, NULL, &(vals[0]), &(units[0]), wd->client );
-		}
-	}
-
-
-	/* Transfer window onto CurrentDesk */
-	if( wd->desk != Scr.CurrentDesk )
-	{
-		snprintf(buf, buf_size - 1, "WindowsDesk  \"-\" %d", Scr.CurrentDesk);
-		buf[ buf_size - 1] = '\0';
-		SendInfo(buf, wd->client);
-	}
-	
-	return True;   
-}
-	
+/* Cascade */
 
 void 
 cascade_windows()
 {
+	
 	ArrangeState.curr_x = ArrangeState.offset_x ;
 	ArrangeState.curr_y = ArrangeState.offset_y ;
 	
 	
-	iterate_asbidirlist( ArrangeState.clients_order, cascade_window,
-			     NULL, NULL, get_flags( ArrangeState.flags, ARRANGE_Reversed));
-}
+	while( !winlist_is_empty() )
+	{
+		move_params p;
+		const ASWindowData *wd;
+		Bool reverse = get_flags(ArrangeState.flags, ARRANGE_Reversed);
 
-Bool
-fix_area(void *data, void *list)
-{
-	ASWindowData *wd = fetch_window_by_id( ((client_item *) data)->cl );
-	
-	if(wd == NULL)
-		return True;
-	
-	if( get_flags( wd->flags, AS_AvoidCover ) && ! get_flags( wd->state_flags, AS_Iconic) ) 
-	{	
-		subtract_rectangle_from_list( (ASVector *) list, wd->frame_rect.x, wd->frame_rect.y, 
-					      wd->frame_rect.x+(int)wd->frame_rect.width,
-					      wd->frame_rect.y+(int)wd->frame_rect.height );	  
-	}
-	return True;
-}
-
-void 
-fix_available_area()
-{
-	ASVector *list = create_asvector( sizeof(XRectangle) );
-    XRectangle seed_rect;
-	int i, largest = 0 ;
-	XRectangle *rects ;
-
-    /* must seed the list with the single rectangle representing the area : */
-    seed_rect.x = 0 ;
-    seed_rect.y = 0 ;
-    seed_rect.width = Scr.MyDisplayWidth ;
-    seed_rect.height = Scr.MyDisplayHeight ;
-
-    append_vector( list, &seed_rect, 1 );
-	
-
-    iterate_asbidirlist( ArrangeState.clients_order, fix_area, list, NULL, False);
-    
-	print_rectangles_list(list);
-
-	i = PVECTOR_USED(list);
-	rects = PVECTOR_HEAD(XRectangle,list);
-	while( --i > 0 ) 
-	{	
-    	if( rects[largest].width*rects[largest].height < rects[i].width*rects[i].height ) 
-			largest = i ; 
-	}
-
-	if( !get_flags( ArrangeState.flags, ARRANGE_OffsetX_Set ) )
-		ArrangeState.offset_x = rects[largest].x;
+		/* Raise the client if allowed */
+		if( !get_flags( ArrangeState.flags, ARRANGE_NoRaise ) )
+			ascom_do_one("raise", NULL, reverse);
 		
-	if( !get_flags( ArrangeState.flags, ARRANGE_OffsetY_Set ) )
-		ArrangeState.offset_y = rects[largest].y;
-				
-	if( !get_flags( ArrangeState.flags, ARRANGE_MaxWidth_Set ) )
-		ArrangeState.max_width = rects[largest].width;
+		
+		/* If the client is iconified, deiconify it. */
+		ascom_do_one("deiconify", NULL, reverse);
 	
-	if( !get_flags( ArrangeState.flags, ARRANGE_MaxHeight_Set ) )
-		ArrangeState.max_height = rects[largest].height;
-}
+		/* move window */
+		p.x = ArrangeState.curr_x;
+		p.y = ArrangeState.curr_y;
+		ascom_do_one("move", &p, reverse);
+		
+		ArrangeState.curr_x += ArrangeState.incx ;
+		ArrangeState.curr_y += ArrangeState.incy ;
 
+		wd = ascom_get_next_window(reverse);
+
+		if( get_flags( ArrangeState.flags, ARRANGE_Resize ) )
+		{
+			/* Make sure we don't stretch of ARRANGE_NoStretch was set */
+			if ( !( get_flags( ArrangeState.flags, ARRANGE_NoStretch) &&
+				(    (wd->frame_rect.width < ArrangeState.max_width)
+				     || (wd->frame_rect.height < ArrangeState.max_height)
+					)))
+			{
+				resize_params rp;
+				rp.width = ArrangeState.max_width ; 
+				rp.height = ArrangeState.max_height ;
+				if( get_flags( ArrangeState.flags, ARRANGE_Resize) )
+					ascom_do_one("resize", &rp, reverse);
+			}
+		}
+		
+		/* Transfer window onto CurrentDesk */
+		if( wd->desk != Scr.CurrentDesk )
+		{
+			send_to_desk_params p;
+			p.desk = Scr.CurrentDesk;
+	
+			ascom_do_one("sendtodesk", &p, reverse);
+		}
+		
+		
+		ascom_pop_winlist(reverse);
+	}
+
+}

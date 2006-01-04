@@ -55,6 +55,7 @@ void  destroy_bidirelem( ASBiDirList *l, ASBiDirElem *elem );
 Bool  discard_bidirelem( ASBiDirList *l, void *data );
 /* returns data of the first element in list, and removes this element from the list */
 void *extract_first_bidirelem( ASBiDirList *l );
+void *extract_last_bidirelem( ASBiDirList *l);
 
 void  flush_asbidirlist_memory_pool();
 

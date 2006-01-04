@@ -30,8 +30,11 @@ void kill_handler(ASWindowData *wd, void *data);
 void jump_handler(ASWindowData *wd, void *data);
 void ls_handler(ASWindowData *wd, void *data);
 void iconify_handler(ASWindowData *wd, void *data);
+void deiconify_handler(ASWindowData *wd, void *data);
 void send_to_desk_handler(ASWindowData *wd, void *data);
 void center_handler(ASWindowData *wd, void *data);
+void raise_handler(ASWindowData *wd, void *data);
+
 
 typedef struct
 {

@@ -274,7 +274,8 @@ discard_bidirelem( ASBiDirList *l, void *data )
 	return False;
 }
 
-void *extract_first_bidirelem( ASBiDirList *l )
+void *
+extract_first_bidirelem( ASBiDirList *l )
 {
     void *data = NULL ;
     if( l != NULL && l->head != NULL )
@@ -286,6 +287,18 @@ void *extract_first_bidirelem( ASBiDirList *l )
     return data;
 }
 
+void *
+extract_last_bidirelem( ASBiDirList *l)
+{
+	void *data = NULL ;
+	if( l != NULL && l->tail != NULL )
+	{
+		data = l->tail->data ;
+		l->tail->data = NULL;
+		destroy_bidirelem( l, l->tail);
+	}
+	return data;
+}
 
 void 
 bubblesort_asbidirlist( ASBiDirList *l, compare_data_handler compare_func )

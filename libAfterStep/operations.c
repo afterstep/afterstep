@@ -142,6 +142,26 @@ void iconify_handler(ASWindowData *wd, void *data)
 	
 }
 
+void deiconify_handler(ASWindowData *wd, void *data)
+{
+	/* used by SendNumCommand */
+	send_signed_data_type vals[1] ;	
+	send_signed_data_type units[1] ;
+	
+	LOCAL_DEBUG_OUT("Deiconify handler called");
+
+	/* Indicate that we're talking pixels. */
+	units[0] = 1;
+	vals[0] = -1;
+	
+	/* Deiconify window if iconified */
+	if( get_flags( wd->state_flags, AS_Iconic))
+		SendNumCommand(F_ICONIFY, NULL, &(vals[0]), &(units[0]), wd->client);
+	
+}
+
+
+
 void send_to_desk_handler(ASWindowData *wd, void *data)
 {
 	int dest = (int) ((send_to_desk_params *) data)->desk;
@@ -178,4 +198,9 @@ void center_handler(ASWindowData *wd, void *data)
 
         /* Move window */
 	SendNumCommand ( F_MOVE, NULL, &(vals[0]), &(units[0]), wd->client );
+}
+
+void raise_handler(ASWindowData *wd, void *data)
+{
+	SendNumCommand(F_RAISE, NULL, NULL, NULL, wd->client);
 }
