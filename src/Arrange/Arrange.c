@@ -429,6 +429,7 @@ main( int argc, char **argv )
 		cascade_windows();
 
 	ascom_wait();
+	ascom_deinit();
 
 	/* exit */
 	Arrange_DeadPipe (0);

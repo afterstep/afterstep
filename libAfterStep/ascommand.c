@@ -215,7 +215,7 @@ ascom_init ( void )
 	
 	ASCommandState.selected_wins = create_asbidirlist( NULL );
 	ASCommandState.clients_order = create_asbidirlist( destroy_client_item );
-	ASCommandState.operations = create_asbidirlist( NULL );
+	ASCommandState.operations = create_asbidirlist( free );
 	
 	ASCommandState.handlers = create_ashash(7, string_hash_value, string_compare,
 						 string_destroy_without_data);
@@ -349,7 +349,7 @@ parse_op_string( const char *op)
 	char *iter, *haystack, *copy;
 	
 	destroy_asbidirlist( &ASCommandState.operations );
-	ASCommandState.operations = create_asbidirlist(NULL);
+	ASCommandState.operations = create_asbidirlist(free);
 
 	copy = haystack = strdup( op );
 	while ( (iter = strtok( haystack , " ") ) )
@@ -423,9 +423,6 @@ ascom_pop_winlist(Bool last)
 		elem = extract_last_bidirelem(ASCommandState.selected_wins);
 	else
 		elem = extract_first_bidirelem(ASCommandState.selected_wins);
-	
-	if( elem )
-		free(elem);
 }
 
 

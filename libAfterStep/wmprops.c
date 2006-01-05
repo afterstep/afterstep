@@ -941,6 +941,8 @@ destroy_wmprops (ASWMProps * wmprops, Bool reusable)
 			free (wmprops->as_socket_filename);
 		if (wmprops->as_desk_numbers)
 			free (wmprops->as_desk_numbers);
+		if (wmprops->as_tbar_props_data)
+			free (wmprops->as_tbar_props_data);
 
         /* we are being paranoid : */
         memset (wmprops, 0x00, sizeof (ASWMProps));
