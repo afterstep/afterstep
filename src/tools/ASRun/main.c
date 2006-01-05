@@ -25,29 +25,45 @@
 #else
 typedef void* GtkWidget;
 #endif
+#include <signal.h>
+#include <unistd.h>
+#include <fcntl.h>
 
 #define ENTRY_WIDTH		300
 
 
+typedef enum ASRunTool
+{
+	ASRTool_Normal = 0,
+	ASRTool_Term,
+	ASRTool_Browser,
+	ASRTool_Editor,
+	ASRTool_KDEScreenSaver,
+	ASRTool_ASConfigFile,
+	ASRTool_Tools
+}ASRunTool;
 
 typedef struct ASRunState
 {
-#define ASRUN_ExecInTerm  		(0x01<<0)
 #define ASRUN_Persist 			(0x01<<1)
 #define ASRUN_Immidiate			(0x01<<2)
 	
 	ASFlagType flags ;
-	GtkWidget *main_window ;	
+	
+	ASRunTool  tool ;
+
+	GtkWidget *main_window ;	   
 	
 	GtkWidget *target_combo ;
 	GtkWidget *target_entry ;
 	GtkWidget *run_in_term_check ;
 
-	char *browser ;
+	Window kde_screensaver_window ;
 }ASRunState;
 
 ASRunState AppState ;
 
+#if 0
 char *get_default_web_browser()
 {
 	static char *known_browsers[] = { "x-www-browser",
@@ -63,9 +79,45 @@ char *get_default_web_browser()
 			return mystrdup(known_browsers[i]);
 	return NULL;
 }
+#endif
+Bool create_KDEScreenSaver_window()			   
+{
+	Window        w;
+	XSizeHints    shints;
+	ExtendedWMHints extwm_hints ;
+    XSetWindowAttributes attr;
+
+	if( AppState.kde_screensaver_window != None ) 
+		return True;
+
+    attr.background_pixmap = None ;
+	attr.event_mask = ButtonPressMask|PointerMotionMask|KeyPressMask ;
+    w = create_visual_window( Scr.asv, Scr.Root, 0, 0, Scr.MyDisplayWidth, Scr.MyDisplayHeight, 0, InputOutput, CWEventMask|CWBackPixmap, &attr);
+	if( w == None ) 
+		return False;
+    set_client_names( w, "KDEscreensaver.kss", "KDEscreensaver.kss", "KDEscreensaver", "KDEscreensaver" );
+
+	memset( &shints, 0x00, sizeof(shints));    
+    shints.flags = PSize|PPosition ;
+	
+	extwm_hints.pid = getpid();
+    extwm_hints.flags = EXTWM_PID|EXTWM_StateSkipTaskbar|EXTWM_StateSkipPager|EXTWM_StateFullscreen ;
+
+	set_client_hints( w, NULL, &shints, AS_DoesWmDeleteWindow, &extwm_hints );
+
+	/* showing window to let user see that we are doing something */
+	XMapRaised (dpy, w);
+    /* final cleanup */
+	XFlush (dpy);
+	sleep (1);								   /* we have to give AS a chance to spot us */
+
+	AppState.kde_screensaver_window = w ;
+
+	return (w!= None) ;
+}	 
 
 Bool
-exec_command(char **ptext, Bool in_term)
+exec_command(char **ptext, ASRunTool tool)
 {
 	char *text = *ptext ;
 	if( text[0] == '\0' ) 
@@ -74,35 +126,56 @@ exec_command(char **ptext, Bool in_term)
 		*ptext = NULL ;
 		text = NULL ;	  
 	}	 
-	if( text != NULL )
+	if( text != NULL && tool == ASRTool_Normal )
 	{
 		if( mystrncasecmp(text, "http://", 7) == 0 ||
 			mystrncasecmp(text, "https://", 8) == 0 ||
 			mystrncasecmp(text, "ftp://", 6) == 0 )
 		{
-			if( AppState.browser == NULL ) 
-			{
-				free( ptext );
-				*ptext = NULL ;
-				text = NULL ;
-			}else	 
-			{	
-				char *tmp = text ; 
-				text = 	safemalloc( strlen(AppState.browser) + 1 + strlen(tmp)+1 );
-				sprintf( text, "%s %s", AppState.browser, tmp );
-				in_term = ( strcmp(AppState.browser,"lynx") == 0 ); 
-				free( tmp );
-				*ptext = text ;
-			}
-		}
+			tool = ASRTool_Browser ;
+		}else
+		{
+			if( !is_executable_in_path( text ) ) 	
+		 		if( CheckFile( text ) == 0 )
+					tool = ASRTool_Editor ;		
+		}	 
+	}
+	if( text && tool == ASRTool_KDEScreenSaver ) 
+	{
+		if( !is_executable_in_path( text ) ) 	  
+			return False;
+		else
+		{
+			char *tmp ; 
+			if( !create_KDEScreenSaver_window()	)
+				return False;
+			tmp = safemalloc( strlen(text)+1+256 );
+			sprintf( tmp, "%s -window-id %ld", text, AppState.kde_screensaver_window );
+			free( text ) ;
+			text = *ptext = tmp ;
+		}		  
+	}	 
+	if( text && tool == ASRTool_ASConfigFile ) 		
+	{
 	}
 	if( text )
 	{	
-		if( in_term )
-			SendTextCommand ( F_ExecInTerm, NULL, text, 0);
-		else
-			SendTextCommand ( F_EXEC, NULL, text, 0);
-		sleep_a_millisec(500);
+		FunctionCode func = F_NOP ;
+		switch(tool)
+		{
+			case ASRTool_Normal : 	func = F_EXEC ; break;
+			case ASRTool_Term : 	func = F_ExecInTerm ; break;
+			case ASRTool_Browser : 	func = F_ExecBrowser ; break;
+			case ASRTool_Editor : 	func = F_ExecEditor ; break;
+			case ASRTool_KDEScreenSaver : 	func = F_EXEC ; break;
+			case ASRTool_ASConfigFile : 	func = F_ExecEditor ; break;
+			default: break;
+		}	 
+		if( func != F_NOP )
+		{	
+			SendTextCommand ( func, NULL, text, 0);
+			sleep_a_millisec(500);
+		}
 		return True;
 	}
 	return False ;
@@ -125,7 +198,7 @@ on_exec_clicked(GtkWidget *widget, gpointer user_data)
 		Bool in_term = gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(AppState.run_in_term_check) );
 		char *text = stripcpy(gtk_entry_get_text(GTK_ENTRY(AppState.target_entry)));
 
-		if( exec_command(&text, in_term) )
+		if( exec_command(&text, in_term?ASRTool_Term:ASRTool_Normal) )
 		{
 			if( !get_flags( AppState.flags, ASRUN_Persist ) )
 				gtk_main_quit();
@@ -136,7 +209,8 @@ on_exec_clicked(GtkWidget *widget, gpointer user_data)
 		}
 	}
 }
-void init_ASRun(ASFlagType flags, const char *cmd )
+
+void init_ASRun(ASFlagType flags, ASRunTool tool, const char *cmd )
 {
 	
 	GtkWidget *main_vbox ;
@@ -146,7 +220,7 @@ void init_ASRun(ASFlagType flags, const char *cmd )
 
 	memset( &AppState, 0x00, sizeof(AppState));
 	AppState.flags = flags ;
-	AppState.browser = get_default_web_browser();
+	AppState.tool = tool ;
 
 	AppState.main_window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
 
@@ -166,7 +240,7 @@ void init_ASRun(ASFlagType flags, const char *cmd )
 	
 	/********   Line 1 *******/
 	AppState.run_in_term_check = gtk_check_button_new_with_label("Exec in terminal");
-	if( get_flags( AppState.flags, ASRUN_ExecInTerm ) )
+	if( AppState.tool == ASRTool_Term )
 		gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(AppState.run_in_term_check), TRUE );
 
 	hbox = gtk_hbox_new( FALSE, 5 );
@@ -230,6 +304,7 @@ int
 main (int argc, char *argv[])
 {
 	ASFlagType flags = 0 ; 
+	ASRunTool tool = ASRTool_Normal ;
 	int i;
 	char * initial_command = NULL ;
 
@@ -250,7 +325,15 @@ main (int argc, char *argv[])
 		if( argv[i] == NULL ) 
 			continue;
 		if( mystrcasecmp( argv[i], "--exec-in-term" ) == 0 )
-			set_flags( flags, ASRUN_ExecInTerm );
+			tool = ASRTool_Term;
+		else if( mystrcasecmp( argv[i], "--open-in-browser" ) == 0 )
+			tool = ASRTool_Browser;
+		else if( mystrcasecmp( argv[i], "--open-in-editor" ) == 0 )
+			tool = ASRTool_Editor;
+		else if( mystrcasecmp( argv[i], "--KDE-screensaver" ) == 0 )
+			tool = ASRTool_KDEScreenSaver;
+		else if( mystrcasecmp( argv[i], "--afterstep-config" ) == 0 )
+			tool = ASRTool_ASConfigFile;
 		else if( mystrcasecmp( argv[i], "--persist" ) == 0 )
 			set_flags( flags, ASRUN_Persist );
 		else if( mystrcasecmp( argv[i], "--immidiate" ) == 0 )
@@ -268,12 +351,18 @@ main (int argc, char *argv[])
 	{
 		memset( &AppState, 0x00, sizeof(AppState));
 		AppState.flags = flags ;
-		AppState.browser = get_default_web_browser();
-		exec_command(&initial_command, get_flags( flags, ASRUN_ExecInTerm ));
+		AppState.tool = tool ;
+		exec_command(&initial_command, tool);
+		if( tool == ASRTool_KDEScreenSaver && AppState.kde_screensaver_window != None ) 
+		{
+			XEvent dum;	
+			XNextEvent( dpy, &dum );
+			XDestroyWindow( dpy, AppState.kde_screensaver_window );
+		}	 
 	}else
 	{
 #ifdef HAVE_GTK		
-		init_ASRun( flags, initial_command );
+		init_ASRun( flags, tool, initial_command );
   		gtk_main ();
 #endif
 	}
