@@ -66,8 +66,8 @@ X-AfterStep-ASModule=true
 
 [Desktop Entry]
 Name=Base
-GenericName=Base
-Comment=Module that shows funky animations when windows are being minimized/maximized etc.
+GenericName=Base config
+Comment=
 Exec=ASRun --afterstep-config base
 Icon=normal/DNA
 Terminal=false
@@ -78,9 +78,9 @@ Categories=AfterStepConfig
 X-AfterStep-ASModule=true
 
 [Desktop Entry]
-Name=Database
-GenericName=Database
-Comment=Module that shows funky animations when windows are being minimized/maximized etc.
+Name=AfterStep Database
+GenericName=Database config
+Comment=
 Exec=ASRun --afterstep-config database
 Icon=normal/Table
 Terminal=false
@@ -93,7 +93,7 @@ X-AfterStep-ASModule=true
 [Desktop Entry]
 Name=AutoExec
 GenericName=AutoExec
-Comment=Module that shows funky animations when windows are being minimized/maximized etc.
+Comment=
 Exec=ASRun --afterstep-config autoexec
 Icon=normal/Bomb
 Terminal=false
@@ -106,7 +106,7 @@ X-AfterStep-ASModule=true
 [Desktop Entry]
 Name=Banner
 GenericName=Banner
-Comment=Module that shows funky animations when windows are being minimized/maximized etc.
+Comment=
 Exec=ASRun --afterstep-config banner
 Icon=normal/Mona
 Terminal=false
@@ -117,9 +117,48 @@ Categories=AfterStepConfig
 X-AfterStep-ASModule=true
 
 [Desktop Entry]
+Name=Gtk 1 gtkrc template
+GenericName=gtkrc10_template
+Comment=
+Exec=ASRun --afterstep-config gtkrc_template
+Icon=
+Terminal=false
+MultipleArgs=false
+Type=Application
+Encoding=UTF-8
+Categories=AfterStepConfig
+X-AfterStep-ASModule=true
+
+[Desktop Entry]
+Name=Gtk 2 gtkrc template
+GenericName=gtkrc20_template
+Comment=
+Exec=ASRun --afterstep-config gtkrc-2.0_template
+Icon=
+Terminal=false
+MultipleArgs=false
+Type=Application
+Encoding=UTF-8
+Categories=AfterStepConfig
+X-AfterStep-ASModule=true
+
+[Desktop Entry]
+Name=KDE Color Scheme template
+GenericName=kcsrc_template
+Comment=
+Exec=ASRun --afterstep-config kcsrc_template
+Icon=
+Terminal=false
+MultipleArgs=false
+Type=Application
+Encoding=UTF-8
+Categories=AfterStepConfig
+X-AfterStep-ASModule=true
+
+[Desktop Entry]
 Name=Look
 GenericName=Look
-Comment=Module that shows funky animations when windows are being minimized/maximized etc.
+Comment=
 #Exec=ASRun --afterstep-config look.YourName
 Exec=ASRun --afterstep-config look
 Icon=normal/EyeInMonitor2
@@ -134,7 +173,7 @@ X-AfterStep-ASModule=true
 [Desktop Entry]
 Name=Feel
 GenericName=Feel
-Comment=Module that shows funky animations when windows are being minimized/maximized etc.
+Comment=
 #Exec=ASRun --afterstep-config feel.YourName
 Exec=ASRun --afterstep-config feel
 Icon=normal/Glove
