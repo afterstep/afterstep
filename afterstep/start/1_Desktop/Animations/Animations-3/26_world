@@ -1,1 +1,0 @@
-Exec "World" exec sh -c "killall xlock ; xlock -nolock -mode world -inroot &"

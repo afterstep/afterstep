@@ -1,1 +1,0 @@
-Exec "Random" exec sh -c "killall xlock ; xlock -nolock -mode random -inroot &"

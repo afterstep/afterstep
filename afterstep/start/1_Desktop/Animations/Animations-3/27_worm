@@ -1,1 +1,0 @@
-Exec "Worm" exec sh -c "killall xlock ; xlock -nolock -mode worm -inroot &"

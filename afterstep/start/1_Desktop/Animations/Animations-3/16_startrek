@@ -1,1 +1,0 @@
-Exec "StarTrek" exec sh -c "killall xlock ; xlock -nolock -mode star -inroot &"

@@ -1,1 +1,0 @@
-Exec "Slip" exec sh -c "killall xlock ; xlock -nolock -mode slip -inroot &"

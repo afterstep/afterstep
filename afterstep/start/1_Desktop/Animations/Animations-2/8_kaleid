@@ -1,1 +1,0 @@
-Exec "Kaleid" exec sh -c "killall xlock ; xlock -nolock -mode kaleid -inroot &"

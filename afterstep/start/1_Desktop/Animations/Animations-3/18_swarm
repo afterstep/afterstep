@@ -1,1 +1,0 @@
-Exec "Swarm" exec sh -c "killall xlock ; xlock -nolock -mode swarm -inroot &"

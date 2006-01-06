@@ -1,1 +1,0 @@
-Exec "Julia" exec sh -c "killall xlock ; xlock -nolock -mode julia -inroot &"

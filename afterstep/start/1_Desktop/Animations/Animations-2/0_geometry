@@ -1,1 +1,0 @@
-Exec "Geometry" exec sh -c "killall xlock ; xlock -nolock -mode geometry -inroot &"

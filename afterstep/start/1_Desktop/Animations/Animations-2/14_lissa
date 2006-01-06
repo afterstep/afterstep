@@ -1,1 +1,0 @@
-Exec "Lisa" exec sh -c "killall xlock ; xlock -nolock -mode lisa -inroot &"

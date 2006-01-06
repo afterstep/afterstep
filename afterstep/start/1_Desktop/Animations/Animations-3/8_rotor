@@ -1,1 +1,0 @@
-Exec "Rotor" exec sh -c "killall xlock ; xlock -nolock -mode rotor -inroot &"

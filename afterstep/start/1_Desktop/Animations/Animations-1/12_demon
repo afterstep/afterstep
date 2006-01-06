@@ -1,1 +1,0 @@
-Exec "Demon" exec sh -c "killall xlock ; xlock -nolock -mode demon -inroot &"

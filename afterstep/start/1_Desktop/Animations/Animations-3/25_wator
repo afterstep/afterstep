@@ -1,1 +1,0 @@
-Exec "Wator" exec sh -c "killall xlock ; xlock -nolock -mode wator -inroot &"

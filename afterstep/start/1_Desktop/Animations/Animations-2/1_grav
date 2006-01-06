@@ -1,1 +1,0 @@
-Exec "Grav" exec sh -c "killall xlock ; xlock -nolock -mode grav -inroot &"

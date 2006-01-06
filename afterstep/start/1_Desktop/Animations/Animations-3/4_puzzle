@@ -1,1 +1,0 @@
-Exec "Puzzle" exec sh -c "killall xlock ; xlock -nolock -mode puzzle -inroot &"

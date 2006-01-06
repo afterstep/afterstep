@@ -1,1 +1,0 @@
-Exec "Life3d" exec sh -c "killall xlock ; xlock -nolock -mode life3d -inroot &"

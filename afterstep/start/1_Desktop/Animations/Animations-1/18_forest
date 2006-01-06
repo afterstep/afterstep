@@ -1,1 +1,0 @@
-Exec "Forest" exec sh -c "killall xlock ; xlock -nolock -mode forest -inroot &"

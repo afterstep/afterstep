@@ -1,1 +1,0 @@
-Exec "Ant" exec sh -c "killall xlock ; xlock -nolock -mode ant -inroot &"

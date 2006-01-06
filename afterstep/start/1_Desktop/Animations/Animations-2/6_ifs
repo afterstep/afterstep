@@ -1,1 +1,0 @@
-Exec "Ifs" exec sh -c "killall xlock ; xlock -nolock -mode ifs -inroot &"

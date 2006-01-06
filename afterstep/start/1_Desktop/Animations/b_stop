@@ -1,1 +1,0 @@
-Exec "Stop animation" exec sh -c "killall xlock ; killall xearth ; killall xfish ; killall xsnow"

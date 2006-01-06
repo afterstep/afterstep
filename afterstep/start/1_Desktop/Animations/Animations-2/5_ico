@@ -1,1 +1,0 @@
-Exec "Ico" exec sh -c "killall xlock ; xlock -nolock -mode ico -inroot &"

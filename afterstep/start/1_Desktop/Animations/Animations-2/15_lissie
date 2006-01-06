@@ -1,1 +1,0 @@
-Exec "Lissie" exec sh -c "killall xlock ; xlock -nolock -mode lissie -inroot &"

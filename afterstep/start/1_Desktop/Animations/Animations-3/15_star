@@ -1,1 +1,0 @@
-Exec "Star" exec sh -c "killall xlock ; xlock -nolock -mode star -trek 0 -inroot &"
