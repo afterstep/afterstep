@@ -1,1 +1,0 @@
-Exec "Forest" exec xlock -nolock -mode forest &

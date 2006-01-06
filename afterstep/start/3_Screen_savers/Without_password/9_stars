@@ -1,1 +1,0 @@
-Exec "Stars" exec xlock -nolock -mode star -trek 0 &

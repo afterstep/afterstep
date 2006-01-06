@@ -104,3 +104,43 @@
 # 
 # 
 # 
+
+[Desktop Entry]
+Name=XScreensaver Demo & Prefs
+GenericName=Screensaver
+Comment=configure xscreensaver preferences
+Exec=xscreensaver-demo
+Icon=Configure
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=Screensaver
+X-AfterStep-CheckAvailability=true
+
+
+[Desktop Entry]
+Name=Activate XScreensaver
+GenericName=screensaver-activate
+Comment=
+Exec=xscreensaver-command -activate
+Icon=normal/MoonInMonitor
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=Screensaver
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=Lock screen
+GenericName=screensaver-lock
+Comment=Lock screen using xscreensaver
+Exec=xscreensaver-command -lock
+Icon=normal/LockClosed
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=Screensaver
+X-AfterStep-CheckAvailability=true
+
+# Sasha thinks that this should be enough - we don't really want to be messing up with 
+# xscreensaver config since they already have a GUI tool for that - not polite it is

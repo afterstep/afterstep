@@ -110,7 +110,8 @@ Bool create_KDEScreenSaver_window()
 	XMapRaised (dpy, w);
     /* final cleanup */
 	XFlush (dpy);
-	sleep (1);								   /* we have to give AS a chance to spot us */
+	sleep_a_millisec(500);
+	/* we have to give AS a chance to spot us */
 
 	AppState.kde_screensaver_window = w ;
 
@@ -384,7 +385,7 @@ main (int argc, char *argv[])
 			if( argv[i] != NULL  ) 
 			{
 				initial_command = mystrdup(argv[i]);
-				tool = ASRTool_ASConfigFile;
+				tool = ASRTool_KDEScreenSaver;
 				set_flags( flags, ASRUN_Immidiate );
 			}
 		}else if( mystrcasecmp( argv[i], "--afterstep-config" ) == 0 )
@@ -418,7 +419,11 @@ main (int argc, char *argv[])
 		if( tool == ASRTool_KDEScreenSaver && AppState.kde_screensaver_window != None ) 
 		{
 			XEvent dum;	
-			XNextEvent( dpy, &dum );
+			do
+			{
+			 	XNextEvent( dpy, &dum );
+			 	fprintf( stderr, "event %d\n", dum.type );
+			}while(dum.type != KeyPress && dum.type != ButtonPress && dum.type != MotionNotify);
 			XDestroyWindow( dpy, AppState.kde_screensaver_window );
 		}	 
 	}else
