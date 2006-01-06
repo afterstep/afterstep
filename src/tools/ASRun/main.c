@@ -167,9 +167,17 @@ exec_command(char **ptext, ASRunTool tool)
 			{
 				fullfilename = make_session_data_file(Session, False, 0, LOOK_DIR, DEFAULT_USER_LOOK, NULL );
 				const_src = get_session_file (Session, 0, F_CHANGE_LOOK, False);
+			}else if( mystrncasecmp( text, "look.", 5 ) == 0 ) 
+			{
+				fullfilename = make_session_data_file(Session, False, 0, LOOK_DIR, text, NULL );
+				const_src = get_session_file (Session, 0, F_CHANGE_LOOK, False);
 			}else if( mystrcasecmp( text, "feel" ) == 0 ) 
 			{
 				fullfilename = make_session_data_file(Session, False, 0, FEEL_DIR, DEFAULT_USER_FEEL, NULL );
+				const_src = get_session_file (Session, 0, F_CHANGE_FEEL, False);
+			}else if( mystrncasecmp( text, "feel.", 5 ) == 0 ) 
+			{
+				fullfilename = make_session_data_file(Session, False, 0, FEEL_DIR, text, NULL );
 				const_src = get_session_file (Session, 0, F_CHANGE_FEEL, False);
 			}else
 			{
@@ -186,6 +194,10 @@ exec_command(char **ptext, ASRunTool tool)
 						free( fullfilename );
 						return False;
 					}		   
+					if( const_src ) 
+					{
+						SendTextCommand ( F_QUICKRESTART, NULL, "startmenu", 0);
+					}
 				}	 
 			if( src ) 
 				free( src );
@@ -366,10 +378,25 @@ main (int argc, char *argv[])
 		else if( mystrcasecmp( argv[i], "--open-in-editor" ) == 0 )
 			tool = ASRTool_Editor;
 		else if( mystrcasecmp( argv[i], "--KDE-screensaver" ) == 0 )
+		{
 			tool = ASRTool_KDEScreenSaver;
-		else if( mystrcasecmp( argv[i], "--afterstep-config" ) == 0 )
-			tool = ASRTool_ASConfigFile;
-		else if( mystrcasecmp( argv[i], "--persist" ) == 0 )
+			++i ;
+			if( argv[i] != NULL  ) 
+			{
+				initial_command = mystrdup(argv[i]);
+				tool = ASRTool_ASConfigFile;
+				set_flags( flags, ASRUN_Immidiate );
+			}
+		}else if( mystrcasecmp( argv[i], "--afterstep-config" ) == 0 )
+		{
+			++i ;
+			if( argv[i] != NULL  ) 
+			{
+				initial_command = mystrdup(argv[i]);
+				tool = ASRTool_ASConfigFile;
+				set_flags( flags, ASRUN_Immidiate );
+			}
+		}else if( mystrcasecmp( argv[i], "--persist" ) == 0 )
 			set_flags( flags, ASRUN_Persist );
 		else if( mystrcasecmp( argv[i], "--immidiate" ) == 0 )
 			set_flags( flags, ASRUN_Immidiate );
