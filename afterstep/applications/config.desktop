@@ -1,6 +1,6 @@
 [Desktop Entry]
-Name=Pager
-GenericName=Pager 
+Name=Pager config
+GenericName=Pager config 
 Comment=Module to provide for visual feedback and navigation of virtual desktops.
 Exec=ASRun --afterstep-config pager
 Icon=normal/Pager
@@ -12,8 +12,8 @@ Categories=AfterStepConfig
 X-AfterStep-ASModule=true
 
 [Desktop Entry]
-Name=WinList
-GenericName=WinList
+Name=WinList config
+GenericName=WinList config
 Comment=Module to display buttons for all open windows.
 Exec=ASRun --afterstep-config winlist
 Icon=normal/WinList
@@ -25,8 +25,8 @@ Categories=AfterStepConfig
 X-AfterStep-ASModule=true
 
 [Desktop Entry]
-Name=Wharf
-GenericName=Wharf
+Name=Wharf config
+GenericName=Wharf config
 Comment=Launchbar type module able to swallow open windows and organize stuff in folders.
 Exec=ASRun --afterstep-config wharf
 Icon=normal/Wharf
@@ -38,8 +38,8 @@ Categories=AfterStepConfig
 X-AfterStep-ASModule=true
 
 [Desktop Entry]
-Name=Term tabs
-GenericName=WinTabs
+Name=Term tabs config
+GenericName=WinTabs config
 Comment=Organizer for open term windows into a single tabbed window.
 Exec=ASRun --afterstep-config wintabs
 Icon=normal/wintabs
@@ -51,11 +51,11 @@ Categories=AfterStepConfig
 X-AfterStep-ASModule=true
 
 [Desktop Entry]
-Name=Animate
-GenericName=Animate
+Name=Animate config
+GenericName=Animate config
 Comment=Module that shows funky animations when windows are being minimized/maximized etc.
 Exec=ASRun --afterstep-config animate
-Icon=normal/animate
+Icon=normal/Butterfly
 Terminal=false
 MultipleArgs=false
 Type=Application
