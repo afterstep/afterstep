@@ -1639,7 +1639,7 @@ compare_hints (ASHints * old, ASHints * hints)
 ASFlagType
 function2mask (int function)
 {
-	static ASFlagType as_function_masks[F_MODULE_FUNC_START - F_WINDOW_FUNC_START] = {
+	static ASFlagType as_function_masks[F_PIN_MENU+1 - F_WINDOW_FUNC_START] = {
 		AS_FuncMove,						   /* F_MOVE,               30 */
 		AS_FuncResize,						   /* F_RESIZE,             */
 		0,									   /* F_RAISE,              */
@@ -1655,6 +1655,7 @@ function2mask (int function)
 		AS_FuncClose,						   /* F_CLOSE,              */
 		AS_FuncMinimize,					   /* F_ICONIFY,            */
 		AS_FuncMaximize,					   /* F_MAXIMIZE,           */
+		AS_FuncMaximize,					   /* F_FULLSCREEN,         */
 		0,									   /* F_STICK,              */
 		0,									   /* F_FOCUS,              */
         0,                                     /* F_CHANGEWINDOW_UP     */
@@ -1669,7 +1670,7 @@ function2mask (int function)
 
 	if (function == F_POPUP)
 		return AS_FuncPopup;
-	if (function <= F_WINDOW_FUNC_START || (function) >= F_MODULE_FUNC_START)
+	if (function <= F_WINDOW_FUNC_START || function > F_PIN_MENU)
 		return 0;
 	return as_function_masks[function - (F_WINDOW_FUNC_START + 1)];
 }
