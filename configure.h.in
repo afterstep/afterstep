@@ -95,6 +95,8 @@
 #define KDEGLOBALS_FILE "$KDEHOME/share/config/kdeglobals"	 /* main kde config file referencing compiled kcsrc  */
 #define AUTOEXEC_FILE   "autoexec"
 #define DATABASE_FILE   "database"
+#define DEFAULT_USER_LOOK  "look.Mine"
+#define DEFAULT_USER_FEEL  "feel.Mine"
 
 #define STANDARD_CATEGORIES_FILE 	"standard_categories" 
 #define AFTERSTEP_APPS_DIR		"applications" 

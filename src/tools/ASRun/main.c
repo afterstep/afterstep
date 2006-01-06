@@ -19,6 +19,7 @@
 #include "../../../configure.h"
 #include "../../../libAfterStep/asapp.h"
 #include "../../../libAfterStep/module.h"
+#include "../../../libAfterStep/session.h"
 #include "../../../libAfterConf/afterconf.h"
 #ifdef HAVE_GTK
 #include "../../../libASGTK/asgtk.h"
@@ -157,6 +158,40 @@ exec_command(char **ptext, ASRunTool tool)
 	}	 
 	if( text && tool == ASRTool_ASConfigFile ) 		
 	{
+		if( isalpha(text[0]) ) 
+		{
+			char *fullfilename = NULL ; 
+			char *src = NULL ;
+			const char *const_src = NULL ;
+			if( mystrcasecmp( text, "look" ) == 0 ) 
+			{
+				fullfilename = make_session_data_file(Session, False, 0, LOOK_DIR, DEFAULT_USER_LOOK, NULL );
+				const_src = get_session_file (Session, 0, F_CHANGE_LOOK, False);
+			}else if( mystrcasecmp( text, "feel" ) == 0 ) 
+			{
+				fullfilename = make_session_data_file(Session, False, 0, FEEL_DIR, DEFAULT_USER_FEEL, NULL );
+				const_src = get_session_file (Session, 0, F_CHANGE_FEEL, False);
+			}else
+			{
+				fullfilename = make_session_data_file(Session, False, 0, text, NULL );
+				src = make_session_data_file(Session, True, 0, text, NULL );
+			}	 
+			if( CheckFile(fullfilename) != 0 ) 
+				if( src || const_src ) 
+				{
+					if( CopyFile (src?src:const_src, fullfilename) != 0 )
+					{
+						if( src ) 
+							free( src );
+						free( fullfilename );
+						return False;
+					}		   
+				}	 
+			if( src ) 
+				free( src );
+			free( text ) ;
+			*ptext = text = fullfilename ;
+		}	 
 	}
 	if( text )
 	{	
