@@ -1,0 +1,6 @@
+<varlistentry id="options.BalloonTextPaddingY">
+	<term>BalloonTextPaddingY size</term>
+	<listitem>
+		<para>height of the border around the text in balloons.</para>
+	</listitem>
+</varlistentry>
