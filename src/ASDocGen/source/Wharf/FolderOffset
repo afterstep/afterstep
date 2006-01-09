@@ -1,0 +1,6 @@
+<varlistentry id="options.FolderOffset">
+	<term>FolderOffset size</term>
+	<listitem>
+		<para>sets the distance between opened folder and its parent.</para>
+	</listitem>
+</varlistentry>
