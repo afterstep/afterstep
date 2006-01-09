@@ -1,0 +1,7 @@
+<varlistentry id="options.Fullscreen">
+	<term>Fullscreen</term>
+	<listitem>
+		<para>Toggle window Fullscreen state. Will disregard any AvoidCover windows and will try to make window 
+		as big as the screen unless it's hints set certain limitation on size. Window in Fullscreen mode cannot be Maximized.</para>
+	</listitem>
+</varlistentry>

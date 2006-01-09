@@ -1,0 +1,7 @@
+<varlistentry id="options.Category">
+	<term>Category"<emphasis remap='I'>category-name</emphasis>"</term>
+	<listitem>
+		<para>Generate a menu from all the members belonging to specified desktop category. For example Category "Modules",
+		generate a menu of all AfterStep modules in afterstep/applications/modules.desktop</para>
+	</listitem>
+</varlistentry>

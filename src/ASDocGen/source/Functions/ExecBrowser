@@ -1,0 +1,6 @@
+<varlistentry id="options.ExecBrowser">
+	<term>ExecBrowser <emphasis remap='I'>"name" URL</emphasis> </term>
+	<listitem>
+		<para>Open URL in web browser.</para>
+	</listitem>
+</varlistentry>

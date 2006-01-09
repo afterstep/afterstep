@@ -1,0 +1,9 @@
+<varlistentry id="options.BackgroundForeign">
+	<term>BackgroundForeign <emphasis remap='I'>"name" filename</emphasis></term>
+	<listitem>
+		<para>Change Background image to specified file</para>
+		<para>Works same as Background but generates minipixmap from the image automagically. 
+		Also tries to determine if background should be fullscreen and crops/scales it to the proper size.
+</para>
+	</listitem>
+</varlistentry>

@@ -1,0 +1,6 @@
+<varlistentry id="options.ExecEditor">
+	<term>ExecEditor <emphasis remap='I'>"name" filename</emphasis> </term>
+	<listitem>
+		<para>Open file in text editor.</para>
+	</listitem>
+</varlistentry>
