@@ -1,0 +1,6 @@
+<varlistentry id="options.KDE">
+	<term>KDE</term>
+	<listitem>
+		<para>KDE specific hints.</para>
+	</listitem>
+</varlistentry>
