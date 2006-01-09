@@ -1,4 +1,23 @@
 version 2.2.0 release
+	* added xscreensaver to menu as a screensaver.
+	* added menu for automated editing of AS config files. ASRun checks
+	  if file exists in private directory, and copies it over from shared 
+	  if its not.
+	*Added support for fullscreen windows.
+	*Made possible application of the colorscheme to KDE and GTK apps.
+	*Added pretty icons to menu 
+	*Updated menu to use systemwide desktop categories.
+	*Added WinList option to enable icons shown next to window name : 
+		ShowIcon
+		ScaleIconToTextHeight
+		IconSize
+		IconAlign
+		IconLocation
+	*Added balloon options for text distance from the border 
+		BalloonTextPaddingX
+		BalloonTextPaddingY
+	*Added Wharf option 
+		*WharfFiolderOffset
 	* Added Wharf MyStyles
 		*WharfOddTile
 		*WharfFocusedOddTile
