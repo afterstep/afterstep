@@ -1,0 +1,6 @@
+<varlistentry id="options.NoFullscreen">
+	<term>NoFullscreen</term>
+	<listitem>
+		<para>Prevents windows from starting up as Fullscreen.</para>
+	</listitem>
+</varlistentry>

@@ -1,0 +1,6 @@
+<varlistentry id="options.Fullscreen">
+	<term>Fullscreen</term>
+	<listitem>
+		<para>Makes window Fullscreen on startup.</para>
+	</listitem>
+</varlistentry>
