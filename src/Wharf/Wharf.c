@@ -1374,12 +1374,18 @@ update_wharf_button_styles( ASWharfButton *aswb, Bool odd )
   	MyStyle *unfocused_style = Scr.Look.MSWindow[odd?UNFOCUSED_ODD_TILE_STYLE:UNFOCUSED_TILE_STYLE];
 	if( unfocused_style == NULL ) 
 		unfocused_style = Scr.Look.MSWindow[UNFOCUSED_TILE_STYLE];
+	set_flags( aswb->flags, ASW_Focusable);
 	if( focused_style == NULL ) 
 	{	
-		focused_style = unfocused_style ;
-		clear_flags( aswb->flags, ASW_Focusable);
-	}else
-		set_flags( aswb->flags, ASW_Focusable);
+		if( odd && unfocused_style == Scr.Look.MSWindow[UNFOCUSED_TILE_STYLE] ) 
+			focused_style = Scr.Look.MSWindow[FOCUSED_TILE_STYLE] ;
+		if( focused_style == NULL ) 
+		{	
+			focused_style = unfocused_style ;
+			clear_flags( aswb->flags, ASW_Focusable);
+		}
+	}
+		
 	set_astbar_style_ptr( aswb->bar, BAR_STATE_FOCUSED, focused_style );
 	return set_astbar_style_ptr( aswb->bar, BAR_STATE_UNFOCUSED, unfocused_style );
 }
