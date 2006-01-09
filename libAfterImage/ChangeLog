@@ -1,27 +1,116 @@
 
-2005-07-19  vae
+2006-01-03   -0500
 
+	* fixed bug in handling of length of UTF8 text while determining
+	  the text size - should translate length in chars into byte length
+
+2005-12-18   -0500
+
+	*  fixed compile bugs
+
+2005-12-16   -0500
+
+	* implemented KDE config files manipulation using xml structures;
+	  moved xml parsing into libAfterBase
+
+2005-12-13   -0500
+
+	* rewrote Makefiles abit to make output more readable. Upgraded
+	  version to 2.2.0
+
+2005-12-08   -0500
+
+	* added built-in function SignalReloadGTKRCFile to send signal to
+	  gtk apps to refresh rc
+
+2005-12-04   -0500
+
+	* fixed icons loading for AfterStep categories. Fixed configure to
+	  work without readline available ; some warning fixed too
+
+2005-11-30   -0500
+
+	* Fixed several deps in libAfterImage which were failing to compile
+	  without libAfterBase
+
+2005-11-29   -0500
+
+	* implemented better handling of the <text> tag  - with honoring of
+	  the alpha component of the fgcolor
+
+2005-11-16   -0500
+
+	* changed clipping attr in scale tag to src_ to avod collision with
+	  <composite> tag attributes
+
+2005-11-15   -0500
+
+	* fixed SIGFPE in scale_asimage2 on clip_width and clip_height
+	  being 0
+
+2005-11-14   -0500
+
+	* added clip_x, clip_y, clip_width and clip_height to scale tag
+	* added ability to scale the middle of the sliced image - use
+	  scale=1 in the slice tag - still need to add this to MyStyles
+
+2005-11-04   -0500
+
+	* more file browser stuff
+
+2005-11-01   -0500
+
+	* implemented faster dir scanning for image list; added time and
+	  size to be displayed on file list; added 3 new members to TermDef
+	  data struicture for future simplier config parsing
+
+2005-10-18   -0400
+
+	* changed TTF font renderer to use advance.x attribute of the glyph
+	  as the step instead of old way of width + bitmap_left
+	* implemented horizontal font kerning support for TTF fonts. Most
+	  font's don't have that info in them though
+
+2005-10-05   -0400
+
+	* fixed potential segfault in gradient parsing where number of
+	  offsets is greater the colors
+
+2005-09-21   -0400
+
+	* debugging NET_WM_ICON support - mostly works
+	* implemented support for 32bit ARGB icons supplied by an app in
+	  _NET_WM_ICON property
+
+2005-09-19   -0400
+
+	* changed parsing of <slice> xml to match docs and use x_start
+	  instead of start_x etc.
+
+2005-07-19   -0400
+
+	* AfterStep Release v 2.1.2 Changelog
 	* AfterStep Release v 2.1.2
 
-2005-06-30  sasha
+2005-06-30   -0400
 
 	*  completed implementing Make XML wizard with both minipixmaps and
 	  main wallpaper xml generation
 
-2005-06-26  fabs
+2005-06-26   -0400
 
 	* removed redundant ";" to allow compilation on FreeBSD 4x
 
-2005-06-21  sasha
+2005-06-21   -0400
 
 	* improved layout of XML editor
 
-2005-06-20  sasha
+2005-06-20   -0400
 
 	* began implementing xml editor widget for ASWallpaper - don't
 	  really save anythging yet
 
-2005-06-15  sasha
+2005-06-15   -0400
 
 	* Implemented safer detection of AfterStep XML image type to
 	  differentiate from XML and HTML docs; Added more controls to
@@ -31,16 +120,16 @@
 	  keycombo to switch windows in WinTabs - Alt +(key to the left
 	  from 1)
 
-2005-06-13  sasha
+2005-06-13   -0400
 
 	* added widget for image directory list and image browser dialog
 
-2005-06-10  sasha
+2005-06-10   -0400
 
 	* implemented GTK widget for image viewing , usefull for image
 	  browsers
 
-2005-06-08  sasha
+2005-06-08   -0400
 
 	* Applyed many fixes based on output of automated analysys tool,
 	  provided by sdague
@@ -48,12 +137,12 @@
 	* libAfterImage release v.1.07
 	* fixed segfault on closing of asview
 
-2005-06-06  vae
+2005-06-06   -0400
 
 	* AfterStep release v 2.1.1
 	* ChangeLog update for 2.1.1
 
-2005-06-03  sasha
+2005-06-03   -0400
 
 	* implemented rudimentary Targa files reading
 	* fixes in libAfterImage for compilation and installation without
@@ -62,55 +151,55 @@
 	  scale_pixmap to scale even in one direction only; Fixed configure
 	  to set path to libAfterBase to more sensible values
 
-2005-06-02  sasha
+2005-06-02   -0400
 
 	* implementing import of TGA files
 
-2005-05-25  sasha
+2005-05-25   -0400
 
 	* fixed gc creation code to not create a new window each time gc
 	  needs to be created
 	* fixed merge function selection code in composite tag handler
 
-2005-05-24  sasha
+2005-05-24   -0400
 
 	* rewrote xml handling code and broke some stuff
 
-2005-05-23  sasha
+2005-05-23   -0400
 
 	* implemented slice_asimage function as yet another method of
 	  enlarging images where corners remain unchanged, but middle part
 	  gets tiled
 
-2005-05-20  sasha
+2005-05-20   -0400
 
 	* Fixed bug in tiling of ARGB32 data in libAI and implemented
 	  dynamic resizing of preview in ASWallpaper
 
-2005-05-19  sasha
+2005-05-19   -0400
 
 	* Improvements to enable gtk apps to interoperate with libAS
 
-2005-05-17  vae
+2005-05-17   -0400
 
 	* AfterStep release v 2.1.0 - changelogs - vae
 	* AfterStep release v 2.1.0 - vae
 
-2005-05-17  sasha
+2005-05-16   -0400
 
 	* Added prototype of the GTK based tool for selecting AfterStep
 	  backgrounds
 
-2005-05-04  sasha
+2005-05-04   -0400
 
 	* Updated ChangeLogs for 2.00.05 release
 
-2005-05-03  sasha
+2005-05-02   -0400
 
 	* Fixed segfault in shared memory cleanup code; Still segfaulting
 	  on restart in FramesList cleanup code
 
-2005-04-29  sasha
+2005-04-29   -0400
 
 	* added image path to ASImageManager's search path, so that
 	  referensed images could be found from local dir.
@@ -119,30 +208,30 @@
 	* added image path to ASImageManager's search path, so that
 	  referensed images could be found from local dir.
 
-2005-04-26  sasha
+2005-04-26   -0400
 
 	* fixed handling of ButtonSize setting - it was ignored
 
-2005-04-22  sasha
+2005-04-22   -0400
 
 	* Fixed off-by-one bug in ASStorage causing wierd artefact and
 	  possibly segfaults, due to occupied slots being reused improperly
 
-2005-04-21  sasha
+2005-04-21   -0400
 
 	* hopefully fixed Segfault when window changes name at the time of
 	  destruction
 
-2005-04-11  sasha
+2005-04-11   -0400
 
 	* fixed segfault when wrong op= to composite tag is used
 
-2005-04-04  sasha
+2005-04-04   -0400
 
 	* removed inline's froom functions all exported functions in
 	  libAfterImage
 
-2005-03-22  sasha
+2005-03-22   -0500
 
 	* Updated ChangeLogs for 2.0.4 release
 	* made desktop cover tint to be similar to Base color from selected
@@ -150,11 +239,11 @@
 	* cleaned up stale help files; got rid of sgmltools deps; updated
 	  .spec file; changed version number to 2.0.4
 
-2005-03-21  sasha
+2005-03-21   -0500
 
 	* fixed segfault with glx enabled
 
-2005-03-17  sasha
+2005-03-17   -0500
 
 	* fixed libraries listed by libAfterImage config script to include
 	  X libs to avoid linkage problems
@@ -162,49 +251,52 @@
 	  libAfterStep to prevent compilation and linkage errors
 	* hopefully cleaned up shared memory usage
 
-2005-03-16  sasha
+2005-03-16   -0500
 
 	* optimization of shared memory
 	* some debugging of asstorage code, possibly fixing segfault
 
-2005-03-14  sasha
+2005-03-14   -0500
 
 	* fixed handling of special sequences in xml source of ASDocGen+
 	  fixed handling of several term tags within single varlist entry
 
-2005-03-11  sasha
+2005-03-11   -0500
 
 	* copied DefaultFancy.ttf to libAfterImage/apps/test.ttf to avoid
 	  possible licensing issues. Those are the same anyways, only
 	  DefaultFancy includes Public Domain notice
 
-2005-03-09  sasha
+2005-03-09   -0500
 
 	* some memory hole plugging and leaks debugging - nothing major so
 	  far
 
-2005-03-08  sasha
+2005-03-08   -0500
 
 	* debugging memory utilization
 	* fixed compile warnings for Alpha's cc
 	* fixed few compile warnings
 
-2005-03-07  sasha
+2005-03-07   -0500
 
 	* fixed problem with wharf swallowing apps that were mapped on
 	  different desktop
 
-2005-03-02  sasha
+2005-03-02   -0500
 
 	* updated ChangeLog file to 2.00.03 release
 	* AfterStep 2.00.03 release
 
-2005-03-01  sasha
+2005-03-01   -0500
 
 	* added support for IMAGE_PATH env var to all apps in libAfterImage
 	  enabling them to view images installed in different afterstep
 	  directories
 	* some docs additions
+
+2005-02-28   -0500
+
 	* fixed bugs: segfault and mem corruption in ASStorage when
 	  compressed size exceeds buffer size; Proper encoding usage in
 	  winlist menus - for UTF8 encoded window names; Proper encoding
@@ -212,42 +304,39 @@
 	  Pager with support for international chars instead of 5x8;
 	  Handling of $HOME at the beginning of include statements of
 	  .include files
-
-2005-02-28  sasha
-
 	* added experimental image transfer code using OpenGL API
 	* more performance testing with OpenGL
 	* gl timing
 
-2005-02-25  sasha
+2005-02-25   -0500
 
 	* added prototype of image transfer to X using GLX - to see if its
 	  any faster
 	* fixed compile warning
 	* updated configure to exclude Save
 
-2005-02-23  sasha
+2005-02-23   -0500
 
 	* implemented scratch canvas functionality in draw.c to facilitate
 	  fill operation on some countours; Added draw.h header
 
-2005-02-22  sasha
+2005-02-22   -0500
 
 	* changed ~ to //home/sasha
 	* added FONT_PATH and IMAGE_PATH to set of envvars put out by
 	  AfterStep
 	* compilation warnings and bugs submitted by Valeriy Onuchin
 
-2005-01-21  sasha
+2005-01-21   -0500
 
 	* added recovery code for malformed gifs not having zero length
 	  block at the end of compressed data
 
-2005-01-20  sasha
+2005-01-20   -0500
 
 	* updated ChangeLog for 2.00.02 release
 
-2005-01-18  sasha
+2005-01-18   -0500
 
 	* fixed configure for CYGWIN to build proper lib type. Implemented
 	  Image writing into memory buffer in PNG format - see
@@ -255,133 +344,133 @@
 	* added ability to bundle included sumenu's items under private
 	  user items
 
-2005-01-17  sasha
+2005-01-17   -0500
 
 	*  configure fix
 
-2005-01-14  sasha
+2005-01-14   -0500
 
 	* changed everything to make possible libAfter* as a DLLs - Scr
 	  substituted to a pointer and same for MyArgs
 
-2005-01-13  sasha
+2005-01-13   -0500
 
 	* bunch of fixes to enable shared libs under CYGWIN - but there is
 	  still a problem of linking apps becouse of the Scr variable
 
-2005-01-12  sasha
+2005-01-12   -0500
 
 	* fixed long standing bug with AS not restarting itself properly.
 	  Upped version to 2.00.02 in preparation to release
 	* fixed Makefiles and -config scripts
 
-2005-01-10  sasha
+2005-01-10   -0500
 
 	* ellipses, damn it
 
-2005-01-07  sasha
+2005-01-07   -0500
 
 	* ellipses
 
-2005-01-06  sasha
+2005-01-06   -0500
 
 	* more bloody ellips
 
-2005-01-05  sasha
+2005-01-05   -0500
 
 	* bloody ellips
 
-2005-01-04  sasha
+2005-01-04   -0500
 
 	* mostly done with ellips implementation using doubles - runs
 	  faster the approximation through beziers
 
-2005-01-03  sasha
+2005-01-03   -0500
 
 	* mocking about with ellips drawing algorithm - probably should
 	  switch to doubles instead of long longs
 
-2004-12-29  sasha
+2004-12-29   -0500
 
 	* some funky stuff to try to get alternative ellips algorithm going
 	  - doesn't work yet
 
-2004-12-27  sasha
+2004-12-27   -0500
 
 	* flood fill and more circle/ellipse code
 
-2004-12-25  sasha
+2004-12-25   -0500
 
 	* implemented solid fill for circles
 
-2004-12-23  sasha
+2004-12-23   -0500
 
 	* completed implementation of ellips and circle primitives
 
-2004-12-22  sasha
+2004-12-22   -0500
 
 	* improved cubic splines to not use recursion and implemented
 	  circle drawing
 	* Implemented antialiased cubical Bezier curves  drawing
 	* implemented anialiased line rendering
 
-2004-12-21  sasha
+2004-12-21   -0500
 
 	* implemented anialiased line rendering
 
-2004-12-20  sasha
+2004-12-20   -0500
 
 	* fixed afterstep-config to include extra X libs; implemented
 	  prototype anialiased drawing code
 
-2004-12-17  sasha
+2004-12-17   -0500
 
 	* added test code for drawing
 	* added drawing functionality
 	* fixed performance hog introduced by data[1] changed to data[0] in
 	  asstorage during round of warnmings fixes
 
-2004-12-10  sasha
+2004-12-10   -0500
 
 	* More compilation warnings fixed
 	* ttf always on under win32 and typo fix in mmx initialization code
 
-2004-12-09  sasha
+2004-12-09   -0500
 
 	* added list of standard X colornames
 	* numerous fixes from FonsRademaker and Valeriy Onuchin - to make
 	  it compile under win32
 
-2004-12-08  sasha
+2004-12-08   -0500
 
 	* fixed bunch of warnings for different compilers
 
-2004-11-30  sasha
+2004-11-30   -0500
 
 	* AfterStep 2.00.01 release
 	* added a configure option --disable-data-reinstall just for MG_Tak
 	  - it prevents image, font files from being copied over existing
 	  ones, and prevents HTML catalogue from being generated;
 
-2004-11-29  sasha
+2004-11-29   -0500
 
 	* Fixed bug in afterstep not sending proper notifications about
 	  which window is currently focused
 
-2004-11-26  sasha
+2004-11-26   -0500
 
 	* fixed memory leak at add_line_mono
 
-2004-11-23  sasha
+2004-11-23   -0500
 
 	* updated version to 2.00.01
 	* added comments to vectorize_asimage
 
-2004-11-22  sasha
+2004-11-22   -0500
 
 	* implemented vectorize_asimage and some minor fixes to Wharf
 
-2004-11-19  sasha
+2004-11-19   -0500
 
 	* Fixed tiling with negative offset - unsigned/signed conversion
 	  problem
@@ -389,44 +478,44 @@
 	  etc. using ASImageDecoder - see example in asview.c
 	* Implemented ASImageDecoder support for alt.argb32 format
 
-2004-11-16  sasha
+2004-11-16   -0500
 
 	* changes to accomodate new aterm code
 	*  Fixed ascmap to not segfault under MSWin and fixed fill_asimage
 	  to use proper width when x > 0  - reported by Valeriy Onuchin;
 
-2004-11-15  sasha
+2004-11-15   -0500
 
 	* fixed shading translation into tint
 	* fixed some code in pixmap handling used in aterm
 	* changed Pager invocation in start menu to use desktop number
 	  specifyed to configure script
 
-2004-11-14  born2late
+2004-11-14   -0500
 
 	* typo corrections
 
-2004-11-10  sasha
+2004-11-10   -0500
 
 	* fixes to afterimage include files to properly install and enable
 	  other apps to use it
 
-2004-10-27  sasha
+2004-10-27   -0400
 
 	* began implementing XML-RPC interface to ASConfig
 
-2004-10-15  sasha
+2004-10-15   -0400
 
 	* fixed libAfterImage makefile for win32 to include asstorage.c;
 	  fixed compilation problem and excessive debug output under
 	  windows
 
-2004-10-14  sasha
+2004-10-14   -0400
 
 	* possibly resolved problem with ASDocGen not being run when
 	  compiled with shared libraries
 
-2004-10-08  sasha
+2004-10-08   -0400
 
 	* Fixed problem in base loading where there were no sanity checks
 	  for DesktopScale value; Fixed a bug in ASStorage where small
@@ -435,32 +524,32 @@
 	  functionality to be able to query original size of the stored
 	  data
 
-2004-09-27  sasha
+2004-09-27   -0400
 
 	* changed versions to 2.00 and 1.00 for libraries
 	* fixed recently intoduced bug in asstorage causing major slowness;
 	  added some logic to prevent costly maintenance operations from
 	  happening too often
 
-2004-09-24  sasha
+2004-09-24   -0400
 
 	* fixed segfault in asstorage when diff buffer does not gets
 	  reallocated
 	* fixed button ungrabbing on windows withdrawing that was causing
 	  wierd BadAccess errors in Wharf
 
-2004-09-23  sasha
+2004-09-23   -0400
 
 	* implemented preloading of menu pixmaps - speeding things up
 	  considerable; fixed segfault in asstorage - still unclear how
 	  that could happen - may see some image corruption instead
 
-2004-09-22  sasha
+2004-09-22   -0400
 
 	* some performance optimization based on gprof stats, as well as
 	  memory leak cleanups
 
-2004-09-21  sasha
+2004-09-21   -0400
 
 	* added mandatory -O3 in libAfterImage and libAfterBase improving
 	  performance significantly;
@@ -468,57 +557,57 @@
 	  same place; Implemented shaped image rendering directly into
 	  XImage, added menu shortcuts for Left and Right keys
 
-2004-09-19  sasha
+2004-09-19   -0400
 
 	* fixed possible data loss in asstorage for the very first block
 
-2004-09-16  sasha
+2004-09-16   -0400
 
 	* lots of optimizations of focus change handling in WinList and
 	  AfterStep, shape handling optimizations in Pager and other tweaks
 
-2004-09-15  sasha
+2004-09-15   -0400
 
 	* added NoBorder flag to MyFrames, improved performance and
 	  feedback in data doc generation
 
-2004-09-14  sasha
+2004-09-14   -0400
 
 	* added code to background handling, to not interrupt the animation
 	  when desktop is switched before it completes
 
-2004-09-08  sasha
+2004-09-08   -0400
 
 	* changes to feel file for better shortcuts for desktop switching;
 	  Fixes to ASStorage to properly handle reference counting without
 	  leaving leftovers
 
-2004-09-02  sasha
+2004-09-02   -0400
 
 	* Lots of tweaks to desktop switching, initial placement handling
 	  and move-resizing
 
-2004-08-30  sasha
+2004-08-30   -0400
 
 	* updated configure scripts
 
-2004-08-26  sasha
+2004-08-26   -0400
 
 	* fix to Makefile to install man pages and HTML help pages
 
-2004-08-25  sasha
+2004-08-25   -0400
 
 	* more xft development
 	* Some changes to DeadPipe to prtevent it from reentering self
 
-2004-08-24  sasha
+2004-08-24   -0400
 
 	* Implemented memory debugging for buffer underruns with
 	  --enable-audit under win32; Found memory corruption caused by
 	  merging image of size 0, which fixes segmentation Fault in
 	  WinList
 
-2004-08-23  sasha
+2004-08-23   -0400
 
 	* Fixed make install in libAfterImage; Added missing files to
 	  libAfterImage's project files; Fixed segfault in afterstep when
@@ -526,68 +615,68 @@
 	  function is executed
 	* applied patch for interlaced GIF support from Maxim Nikulin
 
-2004-08-20  sasha
+2004-08-20   -0400
 
 	* new development to add interface with XRender extention for text
 	  rendering
 
-2004-08-19  sasha
+2004-08-19   -0400
 
 	* fixed potential segmentation fault in asfont.c at the time of
 	  text rendering
 
-2004-08-17  sasha
+2004-08-17   -0400
 
 	* fixed compile bug in asstorage.c
 	* disabled clocking of transformations and text drawing
 
-2004-08-16  sasha
+2004-08-16   -0400
 
 	* Changed version number to beta5, Changed AfterStep.spec to be
 	  updated automagically with proper version number; Updated
 	  afterstepdoc script to select web browser from mozilla, firefox,
 	  konq, opera, netscape
 
-2004-08-13  sasha
+2004-08-13   -0400
 
 	* fixed bug in asstorage causing segfaults if block is used
 	  completely; Improved Wharf's handling of animation - should now
 	  be much smoother
 
-2004-08-12  sasha
+2004-08-12   -0400
 
 	* fixes to docs to format properly into PHP. Fixes to AsDocGen to
 	  have nice indexes and proper references from devel docs to user
 	  and back
 
-2004-08-11  sasha
+2004-08-11   -0400
 
 	* Implemented new generated doc installation in Makefiles, added
 	  more libAfterImage docs, fixed formatting in asimage.h and
 	  asfont.h
 
-2004-08-10  sasha
+2004-08-10   -0400
 
 	* Fixed bug in ASStorage causing negative sizes in slots and as the
 	  result garbadge in images
 
-2004-08-09  sasha
+2004-08-09   -0400
 
 	*  fixed segfault bug in transform.c if image creatrion fails
 	* fixed some docs generation
 
-2004-08-06  sasha
+2004-08-06   -0400
 
 	* added xml source for documentation into CVS and updated Look in
 	  libAfterConf to be same as in src/afterstep/configure.c
 
-2004-08-03  sasha
+2004-08-03   -0400
 
 	* Implemented 3 new types of text: OutlineAbove, OutlineBelow,
 	  OutlineFull that does outlining of text, also enabled alpha
 	  tinting of the text at the time of rendering
 
-2004-08-02  sasha
+2004-08-02   -0400
 
 	* added memory cleanup code to ascompose, and added missing free
 	  calls to storage destruction code
@@ -596,46 +685,46 @@
 	* Improved reference counting in ASStorage to accomodate to wierd
 	  storage states where some blocks have no space left for reference
 
-2004-07-30  sasha
+2004-07-30   -0400
 
 	* reimplemented image reading using new functionality of ASStorage
 	  using bitmap stuff and grayscale images using reference counters
 
-2004-07-29  sasha
+2004-07-29   -0400
 
 	* debugging the size of AS menus; added storage printing function
 
-2004-07-28  sasha
+2004-07-28   -0400
 
 	* disabled debug output
 	* rewrote ASImage contents storing code to utilize generic
 	  ASStorage
 	* added 32bit store function
 
-2004-07-23  sasha
+2004-07-23   -0400
 
 	* completed implementation of ASStorage, including compression
 	  scheme for bitmapped data
 
-2004-07-21  sasha
+2004-07-21   -0400
 
 	* Completed implementing RLEDIFF compression and ; Completed
 	  debugging of asstorage with RLE DIFF compression
 
-2004-07-20  sasha
+2004-07-20   -0400
 
 	* implemented decompression
 	* Implemented RLE diff compression code in ASStorage
 
-2004-07-16  sasha
+2004-07-16   -0400
 
 	* started implementing compression using zlib
 
-2004-07-14  sasha
+2004-07-14   -0400
 
 	* completed debugging and implementing asstorage
 
-2004-07-13  sasha
+2004-07-13   -0400
 
 	* Implemented and debugged storage defragmentation; Moved xml
 	  parser enums back to .h and added missing typedefs
@@ -646,112 +735,109 @@
 	* accepted patch from Bertrand Bellenot (Root) for libAfterImage
 	  under Win32; Updated MSVC project files with new files
 
-2004-07-12  sasha
+2004-07-12   -0400
 
 	* debugged storage storing, started implementing fetching
 	* added better testing code
 
-2004-07-09  sasha
+2004-07-09   -0400
 
 	* partially debugged ASStorage implementation
 
-2004-07-07  sasha
+2004-07-07   -0400
 
 	* storage splitting
 
-2004-07-06  sasha
+2004-07-06   -0400
 
 	* ASAStorage slot selection code added
 	* Continued implementation of ASStorage
+
+2004-07-05   -0400
+
 	* implemented test container for asstorage ala XP
-
-2004-07-05  sasha
-
 	* started implemnting proper storage for ASImage data
 
-2004-07-03  sasha
+2004-07-03   -0400
 
 	* Updated configure scripts; spilt image decoder/encoder from
 	  asimage - need to rearrange to get it to order
 	* done most of the coding required for proper handling od static
 	  ASImages
 
-2004-07-02  sasha
+2004-07-02   -0400
 
 	* implemented crosslinking docs
 
-2004-07-01  sasha
+2004-07-01   -0400
 
 	* implementing urls for keywords, intellifgent handling of the NAME
 	  section, etc.
 
-2004-06-30  sasha
+2004-06-30   -0400
 
 	* Added nested subsections, partly debugged quotations, other doc
 	  gen tweaks
 
-2004-06-29  sasha
+2004-06-29   -0400
 
 	* progress in implementing static ASImages
 
-2004-06-25  sasha
+2004-06-25   -0400
 
 	* prototyped doc generation for robodoc comments
 
-2004-06-24  sasha
+2004-06-24   -0400
 
 	* Disabled stripping of binaries when enable-gdb is requested
 
-2004-06-22  sasha
+2004-06-22   -0400
 
 	* Implemented support for static ASImages where memory is allocated
 	  more efficiently
 
-2004-06-21  sasha
+2004-06-21   -0400
 
 	* added support for UTF-8 when its requested in LC_LANG setting
 
-2004-06-13  sasha
+2004-06-13   -0400
 
 	* Introduced new type of image	- static to add flexibility in
 	  regards to memory allocation
 
-2004-06-10  sasha
+2004-06-10   -0400
 
 	* added xml tag <release> so that temporary images could be unload
 	  to free up some memory
 
-2004-06-09  sasha
+2004-06-08   -0400
 
 	* Fixed race condition with modules using LOCKONSEND and display
 	  being grabbed
-
-2004-06-08  sasha
-
 	* added ability to XML parser to recognize known tags; Added
 	  framework code for converting source xml into html docs to
 	  ASDocGen
 
-2004-05-24  sasha
+2004-05-24   -0400
 
 	* fixed scaling algorithm to properly scale images with height <= 3
 
-2004-05-18  sasha
+2004-05-18   -0400
 
 	* updated dependancies, and completed reimplementing Animate module
 	  - still needs some debugging though
 	* fixed erroneous uncommented line in shared memory XImages
 
-2004-05-17  sasha
+2004-05-17   -0400
 
 	* cleaned up C++ comments
 
-2004-05-13  sasha
+2004-05-13   -0400
 
 	* debugging background changing
 	* hopefully fixed detection of freetype library on debian sarge
 
-2004-05-12  sasha
+2004-05-12   -0400
 
 	* updated configure scripts and partly fixed freetype autodetection
 	  for debian - still need ft2build adding to freetype.h detection
@@ -759,77 +845,77 @@
 	* implemented fast(er) desktop switching by caching background
 	  pixmaps - there are some quirks that needs to be ironed out still
 
-2004-05-11  sasha
+2004-05-11   -0400
 
 	* fishing out segfault in get_text_size
 	* Implemented memory debugging under cygwin and fixed discovered
 	  bug in MyStyle parsing
 
-2004-05-10  sasha
+2004-05-10   -0400
 
 	* Implemented Transient button functionality in Wharf, missing from
 	  1.8
 
-2004-05-07  sasha
+2004-05-07   -0400
 
 	* minor TODO changes
 
-2004-04-29  sasha
+2004-04-29   -0400
 
 	* Implemented ability to use tab stops while drawing text, and
 	  cleaned up new api calls; Fixed Wharf Bevel setting
 
-2004-04-19  sasha
+2004-04-19   -0400
 
 	* Implemented ability to load any font as monospaced using scaling
 	  of glyphs and other techniques, making it possible to use
 	  libAfterImage for text output in applications such as text
 	  editors and terminal emulators
 
-2004-04-15  sasha
+2004-04-15   -0400
 
 	* Fixed bug in handling of Viewport setting in database when only
 	  one of the x or y is set.It was using X set flag for y value and
 	  wise versa
 
-2004-03-31  sasha
+2004-03-31   -0500
 
 	* Fixed potential segfault in asfont.c when font is NULL; Fixed
 	  including of afterbase.h in asapp.h to be done only when compiled
 	  as part of AfterStep
 
-2004-03-19  sasha
+2004-03-19   -0500
 
 	* added includes for xmd.h prior to jpeglib, to prevent multiple
 	  definitions of INT32
 	* added missing include for system's zlib.h in png.h
 	* removed unneeded io.h from libungif
 
-2004-03-18  sasha
+2004-03-18   -0500
 
 	* Found and fixed very wierd heap corruption bug, causing segfault
 	  whenever bevelled rectang is drawn
 	* Added builtin libungif to libAfterImage, and enabled support for
 	  it by default in configure
 
-2004-03-17  sasha
+2004-03-17   -0500
 
 	* added MSVC nmake  makefiles
 	* fixed libAfterImage to properly handle path in win32
 
-2004-03-16  sasha
+2004-03-16   -0500
 
 	* Incorporated libpng, libjpeg and zlib into libAfterImage, in case
 	  it is not available on the target system, or we are compiling
 	  under win32
 
-2004-03-11  sasha
+2004-03-11   -0500
 
 	* Completed implementing conversion from ASImage into DIB and
 	  implemented sample win32 image viewer application as an example
 	  and testbed.
 
-2004-03-10  sasha
+2004-03-10   -0500
 
 	* started implementing ASImage2DIB converter
 	* moved some of the bmp functionality into bmp.c/h
@@ -837,7 +923,7 @@
 	* changes to make libAfterImage compile under MSVC in win32
 	* began porting libAfterImage into win32
 
-2004-03-05  sasha
+2004-03-05   -0500
 
 	* Fixed compilation in Feel.c with --enable-gdb; Fixed local
 	  selection if only the country is specified such as en_US - RedHat
@@ -845,7 +931,7 @@
 	  specified it was attempting to check if pointer is isspace()
 	  triggering bug in glibc
 
-2004-03-04  sasha
+2004-03-04   -0500
 
 	* Fixed annoying type-punning warnings; Fixed annoying -rdynamic
 	  warnings on CYGWIN; Changed default compression ratio for
@@ -857,20 +943,20 @@
 	  requested; Fixed Banner to set its title ; Upgraded version to
 	  beta4
 
-2004-03-01  sasha
+2004-03-01   -0500
 
 	* better Banner
 	* removed redundand ifdefs for I18N
 	* debugged and optimized Banner and ascompose
 
-2004-02-27  sasha
+2004-02-27   -0500
 
 	* added missing usage text to ascompose and fixed Makefile to
 	  install Banner
 	* improved ascompose
 	* debugged mask to rectangles list functionality in asimage.c
 
-2004-02-26  sasha
+2004-02-26   -0500
 
 	* added support for shaped windows to ascompose; Debugged
 	  channel->rectangle set conversion in libAfterImage - still have
@@ -878,26 +964,26 @@
 	* Fixed <rotate> tag in asxml to properly swap width and height in
 	  case of 90 or 270 degree rotation
 
-2004-02-21  sasha
+2004-02-21   -0500
 
 	* added code to AfterStep to publish Image and Font path in env
 	  vars; Added feel.ICCCM that has no keyboard bindings; Added
 	  window centering code to ascompose; Added missing cursor
 	  definitions to look.QNX;
 
-2004-02-20  sasha
+2004-02-20   -0500
 
 	* Added ability to wait for data placed in X clipboard and then
 	  displaying it if its in XML format
+
+2004-02-19   -0500
+
 	* added ability to use same window for different images
-
-2004-02-19  sasha
-
 	* fixed display closing when running in loop
 	* added interactive error reporting functionality
 	* added interactivity functionality to ascompose
 
-2004-01-27  sasha
+2004-01-26   -0500
 
 	* now hopefully workplace state restoration should work fine -
 	  fixed complex function name parsing, for cases when its nested
@@ -905,56 +991,53 @@
 	  remove -g even if --enable-gdb is not specified ( due to requests
 	  from debian folks)
 
-2004-01-21  sasha
+2004-01-21   -0500
 
 	* fixed bug where empty locale would be specified while starting a
 	  module causing Pager to have 255 desktops and other wierdness
 
-2004-01-14  sasha
+2004-01-13   -0500
 
 	* fixed bug in shared image variant of background xfer
-
-2004-01-13  sasha
-
 	* disabled animating for tiled pixmaps as it seems to cause
 	  slowness
 
-2004-01-12  sasha
+2004-01-12   -0500
 
 	* hopefully optimized ximage transfer by using reusable memory and
 	  added ability to postpone background switching task to be done
 	  later
 
-2004-01-08  sasha
+2004-01-08   -0500
 
 	* fixed libAfterStep installation procedure and some of the headers
 	  to make it useable in external apps
 
-2004-01-06  sasha
+2004-01-06   -0500
 
 	* fixed get_font to not crash when X is missing; Fixed ascolor to
 	  not open any connections to AS when -n option is used
 
-2004-01-02  sasha
+2004-01-02   -0500
 
 	* Fixed keyboard presses handling to not require window selection
 	  when there is a focused window; Updated .spec file to better
 	  handle libraries and stuff ( thanks to Andre Costa )
 
-2003-12-23  sasha
+2003-12-23   -0500
 
 	* Fixed README.SOLARIS and libAfterImage's Makefile if's
 
-2003-12-17  sasha
+2003-12-17   -0500
 
 	* added width/height value "proportional" to <scale> tag to keep
 	  image ratio while scaling
 
-2003-12-09  sasha
+2003-12-09   -0500
 
 	* got rid of Wait3 testing in configure - should speed it up a bit
 
-2003-12-08  sasha
+2003-12-08   -0500
 
 	* fixed handling of trailing whitespace at the end of the tag in
 	  XML processor
@@ -964,7 +1047,7 @@
 	* fixed support for input from stdin and output onto stdout in
 	  ascompose
 
-2003-12-05  sasha
+2003-12-05   -0500
 
 	* Cleaned up configure to not have ugly -I.. -I../.. and not do any
 	  detection of libAfterImage/Base - we should always use what we
@@ -975,108 +1058,99 @@
 	* added <print> tag to asimage xml to enable output of internal
 	  variables such as image size
 
-2003-11-28  sasha
+2003-11-28   -0500
 
 	* added afterimage-config
 
-2003-11-14  sasha
+2003-11-14   -0500
 
 	* Added cover window to meaningfully show user that AfterStep is
 	  reloading config or starting up or doing anything else that takes
 	  time
 
-2003-11-07  sasha
+2003-11-07   -0500
 
 	* Added ActiveDeskBevel and InActiveDeskBevel to Pager's options;
 	  Debugged bevel drawing when tbar has different bevels for focus
 	  and unfocus states( should get rid of wierd black frame when one
 	  of the states is None)
 
-2003-09-26  sasha
+2003-09-25   -0400
 
 	* AfterStep 2.00.beta2 Release
 	* Some minor tweaks to cursor coloring and HSV manipuylation for
 	  grayscale
-
-2003-09-25  sasha
-
 	* Implemented automagic generation of the ChangeLog
 
-2003-09-22  sasha
+2003-09-22   -0400
 
 	* Fixed locale parsing from LANG variable; Fixed module startup to
 	  pass on current locae specified on command line
 
-2003-09-09  sasha
+2003-09-08   -0400
 
 	* More fixing Pager's geometry; Added -i cmd line parameter to
 	  ascompose to allow for 'include' files (such as colorschemes,
 	  etc.); Updated configure scripts to properly detect headers when
 	  its run from libAfterBase; Updated version to beta2; Updated TEAM
 	  file
-
-2003-09-08  sasha
-
 	* Fixed Pager to properly account for label size while sizing
 	  min-desktop windows
 
-2003-09-03  sasha
+2003-09-03   -0400
 
 	* added new AfterStep log icon; fixed wharf config file
 
-2003-09-02  sasha
+2003-09-02   -0400
 
 	* added new xml tag : <color> to define symbolic color names
 
-2003-08-30  sasha
+2003-08-29   -0400
 
 	* debugged workspace state handling code, and improved Wait loop
 
-2003-08-28  sasha
+2003-08-28   -0400
 
 	* added caching of pixmaps for unfocused bas in window decorations
 	  to speed up fast focus switching
 	* 64-bit fixes: properties and strlen warnings
 
-2003-08-27  sasha
+2003-08-27   -0400
 
 	* fixed handling of non-default MyBackgrounds, and proper adding of
 	  DeskConfigs while switching desks
 	* synching
 
-2003-08-26  sasha
+2003-08-26   -0400
 
 	*  added parameters to import funcions, to allow for sized
 	  image/preview stuff; Removed compression buffer from ASImage
 	  structure to save up some memory; Hopefully fixed hints handling
 	  on 64 bit hw
 
-2003-08-23  sasha
+2003-08-22   -0400
 
 	* added new 3 icons to complete the set of default icons: switched
 	  AfterStep to use ~/.afterstep instead of ridiculous ~/GNUstel/L/A
 	  stuff
-
-2003-08-22  sasha
-
 	* fixed autodetection of zipped xpms and added 6 more icons to
 	  default iconset
 
-2003-08-21  sasha
+2003-08-21   -0400
 
 	* more improvements to asimbrowser
 
-2003-08-20  sasha
+2003-08-20   -0400
 
 	* implemented html generator for icons list (asimbrowser); TODO:
 	  replace all asimage_decode_line with Image Output thingy, or
 	  implement support for back_color
 
-2003-08-19  sasha
+2003-08-19   -0400
 
 	* implemented image list loading from dir listing
 
-2003-08-18  sasha
+2003-08-18   -0400
 
 	* configure regenerated
 	* changes to configure to properly handle user set LDFLAGS
@@ -1087,55 +1161,55 @@
 	* configure regenerated
 	* changes to configure to properly handle user set LDFLAGS
 
-2003-08-16  sasha
+2003-08-15   -0400
 
 	* applied 5 patches from Stasinos Konstantopoulos
-
-2003-08-15  sasha
-
 	* updated configure scripts to autoconf 2.57
 	*  more messing aruound with system headers and compilation
 	* updated configure scripts
 	*  more messing aruound with system headers and compilation
 	* updated configure scripts
 	*  more messing aruound with system headers and compilation
+
+2003-08-14   -0400
+
 	* more work on compilation issues, notably fixed errors on old
 	  debian 2.2
-
-2003-08-14  sasha
-
 	* disabled gif/ungif by default
 	* disabled gif/ungif by default - needs to be reenabled manually
 	* compilation warnings fixed
 	* updated configure
 	* hopefully fixed all the strict aliasing breakage errors with
 	  newer gcc
+
+2003-08-13   -0400
+
 	* bugfixes in Pager and Wharf, and fixed handling of malloc.h
 
-2003-08-12  sasha
+2003-08-12   -0400
 
 	* removed offending varargs include that was not needed anyways,
 	  but was breaking compile with gcc 3.3.1
 
-2003-08-11  allanon
+2003-08-11   -0400
 
 	* fail gracefully if merge is requested and no images can be loaded
 
-2003-08-11  sasha
+2003-08-10   -0400
 
 	*  cleanup in preparation to beta1 release
 
-2003-08-09  sasha
+2003-08-08   -0400
 
 	* added cleanup code for shared memory
-
-2003-08-08  sasha
-
 	* added safety check for shared memory utilization
+
+2003-08-07   -0400
+
 	* fixed bug in ASImage to shape conversion causing disappearing
 	  titlebars in glass look
 
-2003-08-01  sasha
+2003-08-01   -0400
 
 	* rewrote shaped windows handling to use rectangles everywhere, and
 	  intelligently merge them together, thus greately reducing memory
@@ -1143,48 +1217,48 @@
 	  That's it, last commit before beta1 release :) - I'm off for
 	  vactaion, coincedentally :)
 
-2003-07-23  sasha
+2003-07-23   -0400
 
 	* added feature allowing for the menu minipixmaps to come from
 	  files with specified extension, such as .mini
 
-2003-07-22  sasha
+2003-07-22   -0400
 
 	* fixed error message while trying to load X11 font with part of
 	  the name truncated as the result of size parsing
 
-2003-07-18  sasha
+2003-07-18   -0400
 
 	* completed implementation and debugging of shared memory
 	  extensions use in afterstep proper; Fixed compression of xml
 	  images - save a bundle or root pixmaps
 
-2003-07-17  sasha
+2003-07-17   -0400
 
 	* Fixed bug in asimage2ximage where asv->dpy was used instead of
 	  asv; Fixed bug in Pager's handling of folders while checking
 	  availability
+
+2003-07-16   -0400
+
 	* completed implementation of support for shared memory XImages
-
-2003-07-16  sasha
-
 	* added look.Glass (look-alike of 23 Oz Glass E theme); Fixed
 	  shaped windows bug in mystyle image rendering (alpha channel was
 	  being lost); Added ability to adjust hsv of the color; fixed bug
 	  in window decorations handling - background images
 
-2003-07-15  sasha
+2003-07-14   -0400
 
 	* mostly completed wharf config
-
-2003-07-14  sasha
-
 	* added icons for terms and added better availability check to
 	  Wharf and AfterStep - Wharf now allows to choose from one of the
 	  icons
+
+2003-07-13   -0400
+
 	* fixed configure script to properly compile libAfterImage apps
 
-2003-07-11  sasha
+2003-07-11   -0400
 
 	* Implemented 3 more functions: TakeScreenShot, TakeWindowShot and
 	  TakeFrameShot, as the side effect of debugging root background
@@ -1194,29 +1268,26 @@
 	  when same style is inherited twice; Added code to
 	  mystyle_make_image to ensure that we always produce valid ASImage
 
-2003-07-01  sasha
+2003-07-01   -0400
 
 	* fixed uninitialized ximage pointer usage in create_visual_ximage
+
+2003-06-30   -0400
+
 	* continued development of the xshmimages
-
-2003-06-30  sasha
-
 	* fixed shmem autodetection
 	* added support X Shared Memory Image extensions ( mostly ) ;
 
-2003-06-27  sasha
+2003-06-26   -0400
 
 	* Fixed handling of xv's crazy WM_HINTS changing and overal;l hints
 	  changing; Fixed out of bounds memory access in make_file_name and
 	  picture_ximage2asimage; completed support in configure for X
 	  Shared Memory images
-
-2003-06-26  sasha
-
 	* Fixed bug in libAfterImage causing garbadge in gradients 1 pixel
 	  wide
 
-2003-06-25  sasha
+2003-06-25   -0400
 
 	* Fixed transparent gradient drawing to do alphablending instead of
 	  allanon; Fixed menu to not show underscores; Fixed menu look
@@ -1224,51 +1295,48 @@
 	  commands are actually available in PATH; Fixed balloons drawing
 	  to withdraw them as pointer leaves the window
 
-2003-06-23  sasha
+2003-06-23   -0400
 
 	* made afterstep UTF-8 aware.
 
-2003-06-21  sasha
+2003-06-20   -0400
 
 	* debugged UTF8 rendering with libAfterImage and Default.ttf font
-
-2003-06-20  sasha
-
 	* fixed UTF8 char size calculation
+
+2003-06-19   -0400
+
 	* Fixed bug in unicode character drawing causing segfaults
 
-2003-06-09  sasha
+2003-06-09   -0400
 
 	* Fixed compilation of libAfterImage without libAfterBase
 
-2003-06-06  sasha
+2003-06-05   -0400
 
 	* Fixed gradient type handling; Fixed PinMenu in feel for button 5;
 	  Added check for what side should be dragged when window is
 	  resized without pressing on the frame
-
-2003-06-05  sasha
-
 	* gradient rotation code implemented for vertical titlebars
+
+2003-06-04   -0400
+
 	*  fixed manual placement so that window's corner is at the mouse
 	  position
-
-2003-06-04  sasha
-
 	* created pressed buttons for the default look; Fixed bug in
 	  load_file where file would get opened twice
 
-2003-06-03  sasha
+2003-06-03   -0400
 
 	* redesigning default titlebar buttons
 	* Implemented NoFocusOnMap database hint; Added opacity setting to
 	  solid tag in xml:
 
-2003-06-02  sasha
+2003-06-02   -0400
 
 	* minor fixes to xml parser
 
-2003-05-30  sasha
+2003-05-30   -0400
 
 	* Added several new attributes to composite and text tags for: text
 	  3d type, align, vailgn ( in asxml handler ); Fixed text
@@ -1276,26 +1344,26 @@
 	  background as composite of gradient and old texture with text on
 	  top of it.
 
-2003-05-28  sasha
+2003-05-28   -0400
 
 	* completed debugging colorscheme tools - need to check into way of
 	  calculating saturation and value
 
-2003-05-22  sasha
+2003-05-22   -0400
 
 	* Makefile fixes to make libAfterImage and libAfterBase packageable
 	  for RedHat
 
-2003-05-20  sasha
+2003-05-20   -0400
 
 	* Implemented colorscheme parsing/writing (mostly)
 
-2003-05-19  sasha
+2003-05-19   -0400
 
 	* added handling of button pressing to ascolor; Fixed bug in man
 	  page installation for libAfterImage reported by MG_Tak
 
-2003-05-09  sasha
+2003-05-09   -0400
 
 	* Fixed image storing in xml scripts using id= attribute; Added
 	  check for minimum text color brightness when whitening it; Added
@@ -1304,15 +1372,15 @@
 	* fixed compile bugs in parse.c and completed hsv/rgb custom color
 	  parsing
 
-2003-05-07  sasha
+2003-05-07   -0400
 
 	* prototyped FLTK based ascp; Made all the libraries C++ safe
 
-2003-05-06  sasha
+2003-05-06   -0400
 
 	* added csome code to produce nice colorschemes automagically
 
-2003-04-25  sasha
+2003-04-25   -0400
 
 	* fixed loading of images inside xml scripts to use same PixmapPath
 	  as everything else
@@ -1320,26 +1388,26 @@
 	* Got rid of old MyFont cruft; Got rid of global GCs in MyStyles;
 	  Fixed handling of FontPath and loading of TTF fonts
 
-2003-04-22  sasha
+2003-04-22   -0400
 
 	* added bunch of xml icons for titlebar buttons; removed fprintf
 	  from transform.c
 
-2003-04-21  sasha
+2003-04-21   -0400
 
 	* generated bunch of dots icons from buttons
 
-2003-04-18  sasha
+2003-04-18   -0400
 
 	* improvements and fixes to asimagexml adding new flags to bevel
 	  tag and fixing handling of IMAGE_PATH env var
 
-2003-04-16  sasha
+2003-04-16   -0400
 
 	* updated configure script
 	* Fixin Makefiles for new icons etc
 
-2003-04-08  sasha
+2003-04-08   -0400
 
 	* missing braces in ico import code; Fixed large icons broken by
 	  broken libAfterImage; Added Bookshelf and Package icons
@@ -1348,100 +1416,100 @@
 	  reading to allow for arbitrary size of images ( it was affecting
 	  AndMask not being read correctly;
 
-2003-04-03  sasha
+2003-04-03   -0500
 
 	* added xpm2png conversion script
 
-2003-03-28  sasha
+2003-03-28   -0500
 
 	* Fixed bug where while writing bitmap mask we would forget to
 	  unset flag indicating that it is 8 bit mask
 
-2003-03-26  sasha
+2003-03-26   -0500
 
 	* Fixed segfaulting with 64bit compile due to 32bit values used
 	  instead of pointers in calls to get_hash_item
 
-2003-03-25  sasha
+2003-03-25   -0500
 
 	*  some changes to make code 64-bit safe
 
-2003-03-21  sasha
+2003-03-21   -0500
 
 	* fixed nasty segfault in image tracing code; addede more
 	  descriptions to NEW; continued work on saving desk/viewport:
 
-2003-03-19  sasha
+2003-03-19   -0500
 
 	* Fixed text size miscalculation due to starting counting from
 	  second character instead of first
 	* implemented gaussian blurr for selected channels in ascompose:)
 	  WE can now easily convert icons into png
 
-2003-03-10  sasha
+2003-03-10   -0500
 
 	* debugged root background handling so that aterms should not crash
 	  now; Scaled/tiled/clipped backgrounds should reload now; There
 	  will be no multiple copies of the image kept in AS memory
 	  anymore;
 
-2003-03-04  sasha
+2003-03-03   -0500
 
 	* upgraded version, rearranged and renamed libraries to match
 	  as-devel; updated includes in libAfterConf and libAfterStep
 
-2003-02-24  sasha
+2003-02-24   -0500
 
 	* Hopefully fixed gamma correction issue in PNG images
 
-2003-01-07  sasha
+2003-01-07   -0500
 
 	* IMplemented shaped windows support in as-proper; Implemented
 	  shaped Wharf; Debugged labels in Wharf; Fixed bug in image
 	  flipping code where color could get lost when original uses
 	  back_color;
 
-2002-12-19  sasha
+2002-12-19   -0500
 
 	* cleaned up and debugged background image handling; fixed clients
 	  stacking order in Pager; ICCCM ConfigureNotify on frame moves
 	  reenabled; proper config broadcasting at the time of the actuall
 	  ConfigureNotify; stacking order gets sent on WindowList request;
 
-2002-12-05  sasha
+2002-12-05   -0500
 
 	* Fixed bug in image flipping where back_color would get lost;
 	  Implemented menu style in database as Style ASMenu; began working
 	  on Pager and WinList2 to get them to compile and run with new
 	  as-proper
 
-2002-12-04  sasha
+2002-12-04   -0500
 
 	*  sugnificantly improved speed of menu rendering as well as
 	  loading time;
 	  mostly implemented Pinning of the menus - need to debug
 	  redecoration of the frame window;
 
-2002-12-03  sasha
+2002-12-02   -0500
 
 	* Fixed root pixmap grabbing using ParentRelative; Fixed label
 	  layout moving label off alittle bit; Began implementing support
 	  for DrawMenuBorders setting
 
-2002-11-15  sasha
+2002-11-15   -0500
 
 	* Fixed memory leaks in asfont.c,list.c,decor.c and InitLook();
 	  Implemented proper cleanup to produce clean memory leak output;
 	  Implemented smooth shading animation in both directions
 
-2002-11-14  sasha
+2002-11-14   -0500
 
 	* Fixed titlebar button contexts;Fixed decoration
 	  focusing/unfocusing; fixed pressing/depressing; Fixed segfaults
 	  in LookInit (pixmaps); Fixed numerous memory leaks in menu
 	  parsing and in font loading;
 
-2002-11-06  sasha
+2002-11-06   -0500
 
 	* Moved MyStyles to use Hash table, Fixed mystyle_property code to
 	  use wmprops; updated libConfig to use asapp and fixed MyStyle
@@ -1449,21 +1517,21 @@
 	  AfterStep proper to compile cleanly cd as-stable! Now its time
 	  for some debugging
 
-2002-10-30  sasha
+2002-10-30   -0500
 
 	* making progress to get as to compile - link time errors now
 
-2002-10-18  sasha
+2002-10-18   -0400
 
 	* started fixing functions.c; fixed bug in event.c reported by
 	  tildouf
 
-2002-07-24  sasha
+2002-07-23   -0400
 
 	* implemented shaped decoration drawing - see winlist2 with
 	  BackPixmap set to 125 or 126 for any of the styles
 
-2002-07-23  sasha
+2002-07-22   -0400
 
 	* Fixed afterstep proper to use same functions as mystyles for icon
 	  loading( with shapes and alpha-channel) Fixed bugs in mystyle
@@ -1472,7 +1540,7 @@
 	  Changed Frames to use MyIcon with shapes and everything; Fixed
 	  menu to properly load and unload icons
 
-2002-07-22  sasha
+2002-07-21   -0400
 
 	* completed implementation of 8-bit alpha channel pixmaps in
 	  libAfterImage; added function to hopefully determine the most
@@ -1480,27 +1548,27 @@
 	  support to icon_t and mystyles; fixed bugs in MyStyles cloning of
 	  mask; added twm rubberband; fixed Audio (see AS ML)
 
-2002-07-20  sasha
+2002-07-19   -0400
 
 	* added some functions for export of alpha channel into 8 bit
 	  pixmap and back
 
-2002-07-16  sasha
+2002-07-15   -0400
 
 	* Parameter check bugfix in marge_layers in libAfterImage; Rewrote
 	  WinList layout, to do it two steps
 
-2002-06-24  allanon
+2002-06-24   -0400
 
 	*  o re-ordered a bit of code so that the width and height
 	  attributes of
 	     <scale> could use variables defined by children of the tag
 
-2002-05-24  sasha
+2002-05-23   -0400
 
 	* compilation warning
 
-2002-05-22  allanon
+2002-05-22   -0400
 
 	*  o added support for multi-bit-depth displays like those found on
 	  Solaris
@@ -1512,147 +1580,147 @@
 	   o moved around audit.h includes to allow AS to be compiled with
 	     --enable-audit again
 
-2002-05-18  sasha
+2002-05-17   -0400
 
 	* added configure option to enable reusing loaded font by modules
 	  (old way)
 
-2002-04-25  sasha
+2002-04-24   -0400
 
 	*  cleaned up headers and fixed Makefiles
 
-2002-04-23  sasha
+2002-04-22   -0400
 
 	* Fixed Pager to use correct color parsing; Added ARGB2PIXEL
 	  converters for pseudo-color modes; Removed GCs from Wharf
 
-2002-04-21  sasha
+2002-04-20   -0400
 
 	* fixed Wharf to (hopefully) work with libAfterImage. Fixed several
 	  minor bugs in libAfterImage
 
-2002-04-19  sasha
+2002-04-18   -0400
 
 	* more wharf work. Added xpm_data2ASImage()
 
-2002-04-17  sasha
+2002-04-17   -0400
 
 	* fixed bug in ASImage->XImage conversion where back_color was not
 	  properly padding scanlines
 
-2002-04-16  sasha
+2002-04-15   -0400
 
 	* slightly improved logic of gradient drawing to account for
 	  completely messed up offsets
 
-2002-04-15  sasha
+2002-04-14   -0400
 
 	* synced with as-devel/libAfterImage
 
-2002-04-13  sasha
+2002-04-12   -0400
 
 	* Reimplemented MyStyles using libAfterImage - include ssome
 	  changes to MyStyle data structure. Tinting now works both ways -
 	  darkens and lightens. all 15 blending methods should work now.
 	  half of the modules needs fixing to compile
 
-2002-04-09  sasha
+2002-04-08   -0400
 
 	* Syncronized with devel tree - xml vars, stdout image export
 
-2002-04-03  allanon
+2002-04-03   -0500
 
 	* Added variables to the XML image parsing.
 
-2002-04-03  sasha
+2002-04-02   -0500
 
 	* Added self diag code. Fixed bug in libAfterImage where Mask was
 	  incorrectly exported into ximage
 
-2002-03-28  sasha
+2002-03-27   -0500
 
 	* fixed libAfterWidegt to get asclook to compile again
 	* Completed pixmap manipulation functions port from old
 	  libafterimage
 	* compile warnings
 
-2002-03-27  sasha
+2002-03-26   -0500
 
 	* Alpha portability fixes
 	* portability fixes
 
-2002-03-26  sasha
+2002-03-25   -0500
 
 	*  fixed lousy bug in tiling code where data was coming out
 	  randomly
 
-2002-03-23  sasha
+2002-03-22   -0500
 
 	* almost done with pixmap.c
 
-2002-03-19  sasha
+2002-03-18   -0500
 
 	* implemented draw_unicode_text and draw_utf8_text and
 	  get_text_size for those as well
 	* minor tweaks to asvector.c
 
-2002-03-17  sasha
+2002-03-16   -0500
 
 	* Locale support for TTF fonts mostly completed - need to add
 	  draw_text_unicode and draw_text_utf8
 
-2002-03-15  sasha
+2002-03-14   -0500
 
 	* right smack in the middle of unicode debugging, loosing bloody
 	  glyphs somewhere :(
 
-2002-03-12  sasha
+2002-03-11   -0500
 
 	* hopefully completed locale string parsing
 
-2002-03-11  sasha
+2002-03-10   -0500
 
 	* adding decoder for locale names
 
-2002-03-10  sasha
+2002-03-09   -0500
 
 	* Implemented large portion of locale/unicode support in text
 	  drawing
 
-2002-03-09  sasha
+2002-03-08   -0500
 
 	*  completed implementing char to unicode conversion
 
-2002-03-08  sasha
+2002-03-07   -0500
 
 	* added test container for vector draving
 
-2002-03-02  allanon
+2002-03-02   -0500
 
 	*  o fixed segfault when no valid image is generated at all
 	   o xml_print() now indents xml so it's more readable
 
-2002-03-02  sasha
+2002-03-01   -0500
 
 	* fixed missing argument in query_screen_visual macro
 
-2002-03-01  sasha
+2002-02-28   -0500
 
 	* implemented 8-bit mask output into XImage and reverse mask
 	  decoding into alpha channel from attached mask XImage
 
-2002-02-26  sasha
+2002-02-25   -0500
 
 	*  done with ximage tiling code, now we can use XImages instead of
 	  encoded ARGB data
 
-2002-02-22  sasha
+2002-02-21   -0500
 
 	* made possible to use XImage data directly for other
 	  transformations - need to complete scanline tiling code and add
 	  trigger disabling DATA_UNUSABLE flag
 
-2002-02-21  sasha
+2002-02-20   -0500
 
 	* started adding decoding capabilities for ASImages that only has
 	  XImage/ARGB data
@@ -1660,42 +1728,42 @@
 	  custom created colormap could be passed for libAfterImage to use
 	  from calling app.
 
-2002-02-20  sasha
+2002-02-19   -0500
 
 	* minor portability fixes
 
-2002-02-19  sasha
+2002-02-18   -0500
 
 	* Added xml2ASImage input filter. Changed gradient drawing code to
 	  not assume ascending order of offsets.
 
-2002-02-18  sasha
+2002-02-17   -0500
 
 	* converted ascompose to use xml code from asimagexml.c and did
 	  some cursory debuggin
 
-2002-02-16  sasha
+2002-02-15   -0500
 
 	* completed asimagexml - now to convert ascompose to use it and do
 	  some funky debuggin for meory corruption/leaks and other features
 	  :)
 
-2002-02-12  sasha
+2002-02-11   -0500
 
 	* mostly done with asimagexml refactoring
 
-2002-02-11  sasha
+2002-02-10   -0500
 
 	* added asimagexml - input filter that allows to perform complex
 	  transformation on image transparently for the app and based on
 	  supplied XML file.
 
-2002-02-06  sasha
+2002-02-05   -0500
 
 	* fixed vector->RGB generation to treat vector data as if it was
 	  from bottom to top, instead
 
-2002-01-17  sasha
+2002-01-17   -0500
 
 	* Fixed bug in ascompose where command line argument could be
 	  freed.  Fixed bug where wrong destruction function has been used
@@ -1704,17 +1772,17 @@
 	  Hopefully satisfied stupid gcc 3.0.3 when it stumbles upon
 	  printf() with ifdefs inside.
 
-2002-01-15  sasha
+2002-01-15   -0500
 
 	* Updated ChangeLogs
 	* updated docs
 	* updated deps and configure scripts
 	* Upped version number for libAfterImage and libAfterBase
+
+2002-01-14   -0500
+
 	* added missing AS_HASHABLE and show_progress
 	* added missing show_debug into afterbase.c/.h
-
-2002-01-14  sasha
-
 	* Completed portability fixing of the day
 	* Removed unneeded debug code
 	* Fixed embarrasing bug in MAX macro - it really worked the same as
@@ -1728,12 +1796,18 @@
 	* datatype portability issues
 	* __FUNCTION__ macro portability issues
 	* Hopefully bomb-proof freetype detection
+
+2002-01-13   -0500
+
 	* prototyped ASCommManager - for the generic even/input loop
 	  handling
 
-2002-01-10  sasha
+2002-01-10   -0500
 
 	* Updated ChnageLogs for libAfterImage and libAfterBase
+
+2002-01-09   -0500
+
 	*  Fixed bug in bevel drawing where right solid line would not be
 	  drawn
 	* added XGCValues to xwrap code
@@ -1742,56 +1816,53 @@
 	* Fixed makefile to install ascompose man page into correct
 	  location, since it is an app it should go into man1
 	* updated man pages
-
-2002-01-09  sasha
-
 	* Completed documenting libAfterImage's latest additions.
 
-2002-01-08  sasha
+2002-01-08   -0500
 
 	* Completed documenting ascompose.c Regenerated .HTML docs
 
-2002-01-07  sasha
+2002-01-07   -0500
 
 	* done with about 50% of ascompose documentation.
 
-2001-12-31  sasha
+2001-12-31   -0500
 
 	* Fixed HSV and HLS colorspaces to correctly assign meaningfull HUE
 	  values with straight mapping onto 360 degree colorcircle with red
 	  being 0, green 120 and blue 240 degrees.  Fixed
 	  adjust_asimage_hsv to correctly translate degrees.  debugged
 	  <hsv> tag in ascompose.  Added ARGB32_RED16 macro and the likes.
+
+2001-12-30   -0500
+
 	* added HSV transformation
 
-2001-12-28  sasha
+2001-12-28   -0500
 
 	* Fixed alpha handling in allanon and add methods of blender.c
 	  Fixed minor bugs in ascompose related to clip_height handling in
 	  composite tag.
 
-2001-12-27  sasha
+2001-12-27   -0500
 
 	* greateluy improved ascompose fixed bug when colormap had 128
 	  entries in gif transparency
 
-2001-12-26  sasha
+2001-12-26   -0500
 
 	* Added compress, replace and delay attributes to save tag in
 	  ascompose.
 
-2001-12-25  sasha
+2001-12-24   -0500
 
 	* debugged GIF and XPM transparency
-
-2001-12-24  sasha
-
 	* Fixed bug in PNG with alpha writing, where alpha channel could
 	  get lost.  Fixed bug in Gif reading where extensions where lost.
 	  Updated ascompose to use show_progress/error instead of plain
 	  printf fixed libAfterBase to compile
 
-2001-12-14  sasha
+2001-12-14   -0500
 
 	* Lots of fixes for session handling, look/feel loading and
 	  non-default-visual handling
@@ -1800,12 +1871,12 @@
 	* Fixed Visual Autodetection code to correctly create windows for
 	  visuals other then default visual.
 
-2001-12-12  sasha
+2001-12-12   -0500
 
 	* Added ability to specify preferred Visual ID via env. variable
 	  AFTERIMAGE_VISUAL_ID
 
-2001-12-07  sasha
+2001-12-07   -0500
 
 	* When scale_asimage is called with quality set to POOR it will not
 	  interpolate pixels, but merely duplicate existing ones. When
@@ -1815,52 +1886,52 @@
 	  Fixed bug in enlarging algorithm causing corruption of the image
 	  near the right edge.
 
-2001-12-06  sasha
+2001-12-06   -0500
 
 	* Fixed minor compilation problems reported by Reiner Rohlfs.
+
+2001-12-05   -0500
+
 	*  added ARGB2pixel conversion for 16/15bpp; Fixed bug where root
 	  position of window was not updated on move
-
-2001-12-05  sasha
-
 	* Fixed bugs in merge_asimage and bevel drawing causing segfaults
 	  and wrong images when negative destination is used.
+
+2001-12-04   -0500
+
 	* fixed bug in merge_aslayers that was not traversing layers list
 	  correctly
-
-2001-12-04  sasha
-
 	* continued debugging of image rendering with varying dest position
 	  in layers
 
-2001-12-03  sasha
+2001-12-03   -0500
 
 	* Removed unneeded ASVisual arg from clone_asimage.
 	* Completed rewriting bevel rendering. It should now correctly trim
 	  bevel when requested to do so.
 
-2001-11-30  sasha
+2001-11-30   -0500
 
 	* More rendering/look debugging. Fixed Titlebuttons handling.
 	  Started rewriting bevel drawing to enable drawing of bevel on
 	  clipped images when some parts of the bevel maybe outside of the
 	  clip rectangle.
 
-2001-11-29  sasha
+2001-11-29   -0500
 
 	* Extensive debugging of new rendering code.
 
-2001-11-28  sasha
+2001-11-28   -0500
 
 	* Implemented actiuall dubblebuffered drawing.	Fixed all the
 	  compile time bug - need to get asclook to actually draw
 	  something.
 
-2001-11-25  sasha
+2001-11-24   -0500
 
 	* Added check for correct libPNG
 
-2001-11-20  sasha
+2001-11-20   -0500
 
 	* Added desktop layout to ornaments - incomplete
 	* ByteOrder debugging - fixed misaligned green channel in ASImage->
@@ -1868,87 +1939,85 @@
 	* ByteOrder debugging
 	* portability and compilation fixes
 
-2001-11-15  sasha
+2001-11-15   -0500
 
 	* Debugged Vector data drawing code and added optimizations for
 	  repetitive data.
 
-2001-11-14  sasha
+2001-11-14   -0500
 
 	* Added new fixes from Fons Rademaker Implemented ASImage support
 	  for data in vector of doubles with additional pallette to
 	  translate into real ARGB.
-	* updated libAfterImage docs
+
+2001-11-13   -0500
+
 	* added automated check for MMX support to libAfterImage
 
-2001-11-02  sasha
+2001-11-01   -0500
 
 	*  Applied next batch of diffs from Fons Rademakers. Fixed several
 	  cuel bugs in libAfterWidget, causing memory corruption. Changed
 	  ASHashableValue to be simply unsigned long - for portability.
 
-2001-10-26  sasha
+2001-10-26   -0400
 
 	* moved widget event handling into widgetevent.c/.h
 	* Added patches for compilation into C++ proggrams ( contributed by
 	  Fons Rademakers) Implemented export filter into TIFF.  Hopefully
 	  fixed library order when compiling apps from libAfterImage
 
-2001-10-22  sasha
+2001-10-22   -0400
 
 	* Added viewport changing functionality
 
-2001-10-12  sasha
+2001-10-12   -0400
 
 	* Moved per-desktop look/feel management into session.c.  Made
 	  asclook compile and debugged libAfterImage's use of AS_ASSERT.
 
-2001-10-10  sasha
+2001-10-10   -0400
 
 	* Added missing string_destroy into afterbase.c
 	* Added missing remove_hash_item into afterbase.c
 	* Fixed Makefile to work without libAfterBase
-	* Updated man and HTML documentation
 	* Updated ChangeLogs
 	* completed update of the documentation for libAfterImage
+
+2001-10-09   -0400
+
 	* updated documentation and deps
 	* Fixed configure script to be able to compile libAfterImage and
 	  libAfterBase at once
-
-2001-10-09  sasha
-
 	* Updated most of the libAfterImage inline documentation. ascmap.h
 	  is left to do.
 
-2001-10-01  sasha
+2001-09-30   -0400
 
 	* completed updating libAfterImage to work with no X display;
 	  cleaned up in preparation for release
 
-2001-09-28  sasha
+2001-09-28   -0400
 
 	* Updated e-mail address
 
-2001-09-26  sasha
+2001-09-25   -0400
 
 	* synchin
 
-2001-09-14  sasha
+2001-09-13   -0400
 
 	* debugged ascp to the degree that all the panels are shown
 	  correctly
-
-2001-09-13  sasha
-
 	* Added visibility to newly created basic widgets.  Upgraded to
 	  typesafe MIN/MAX using prototype from the LInux kernel.  Fixed
 	  libAfterImage to do type-safe MIN/MAX.
 
-2001-09-06  allanon
+2001-09-05   -0400
 
 	*  o (ascompose) fixed segfault when free()'ing xml tree
 
-2001-09-04  allanon
+2001-09-04   -0400
 
 	*  o (libAfterImage) added blur_asimage_gauss() to do a gaussian
 	  blur; this
@@ -1956,34 +2025,31 @@
 	   o (ascompose) added <blur> as an undocumented feature, for
 	  testing only
 
-2001-09-01  sasha
+2001-08-31   -0400
 
 	* moved ascp into libAfterConf and begun work on getting it fixed
 	  for recent changes to libAfterSTep/Image. Fixed main.c and lib.c
 
-2001-08-30  sasha
+2001-08-30   -0400
 
 	* Fixed Transparency in asrender - several bugs in mytexture.c that
 	  was.	Added MyBackground and DeskBack to look configuration.
 	  added release_asimage_by_name to asimage.c
 	* added cvsignore to libAfterImage/apps
+
+2001-08-29   -0400
+
 	* Implemented AS customized geometry parsing function; Added stub
 	  for XParseGeometry; Fixe astile and asscale to compile without X
-
-2001-08-29  sasha
-
 	* Rewrote window hierarchy handling in asrender, and started
 	  implementing transparency handling
+
+2001-08-28   -0400
+
 	* further configure, Makefile and code cleanup to get it to compile
 	  without X
-
-2001-08-28  sasha
-
 	* Fixed numerous bugs in libAfterImage of various severity.  Got
 	  asclook to render default look correctly.
-
-2001-08-28  allanon
-
 	*  o (ascompose) finalized and documented inherited attributes of
 	  <composite>:
 	     crefid, x, y, and tint
@@ -1993,23 +2059,23 @@
 	     final result image of ascompose will be drawn to the root
 	  window
 	     instead of a new window
+
+2001-08-27   -0400
+
 	*  o (ascompose) started adding support for --without-x
 	   o (ascompose) changed the default text spacing to 3; this needs
 	  to be
 	     an option instead
-
-2001-08-28  sasha
-
 	* fixed freetype detection
-
-2001-08-27  sasha
-
 	* freetype compilation fixes
 	* fixed magic number usage in ASImage
+
+2001-08-26   -0400
+
 	* improved configure scripts for libAfterImage to automagically
 	  mkae/install apps
 
-2001-08-25  sasha
+2001-08-24   -0400
 
 	* fixed asrender and asclook to actually render default look
 	  properly and not segfault in pad_asimage
@@ -2017,43 +2083,34 @@
 	  point size
 	* added vert and horizontal spacing for fonts; Added ability to
 	  load several TRuyeType fonts with different point size
-
-2001-08-25  allanon
-
 	*  o (ascompose) fixed x,y handling for <composite>; yes, i know i
 	  still
 	     haven't documented them - they're obviously not ready yet :)
 
-2001-08-22  sasha
+2001-08-21   -0400
 
 	* completed library configure cleanup - adding aslook subdir
 
-2001-08-21  sasha
+2001-08-20   -0400
 
 	* fixed nasty bug where if dst_x = 0 - and top image is smaller
 	  then bottom one - merge_layer generates garbadge
-
-2001-08-21  allanon
-
 	*  o (ascompose) added documentation for <crop> to README
 	   o (ascompose) added "srcx" and "srcy" to <crop>
-
-2001-08-20  sasha
-
 	* Added image cloning/padding functionality to libAfterImage
 
-2001-08-19  sasha
+2001-08-18   -0400
 
 	* Implemented layer allowing libAfterBase and libAfterImage to work
 	  even without X
 
-2001-08-17  sasha
+2001-08-17   -0400
 
 	* Added code for Buttons, Icons and empty items to asrennderer.
 	  Fixed bugs in image referencing using ImageManager.  Added
 	  render_pad_align_image.
 
-2001-08-16  sasha
+2001-08-16   -0400
 
 	* Fixed utterly ugly bug in image decompression code where first
 	  position in channel  data get corrupted with the data from
@@ -2064,16 +2121,16 @@
 	  to solid_color in ASImageLayer, to use it only when image is
 	  NULL.  Updated everything accordingly.  Changed asimage2ximage to
 	  restore missing scanlines based on image's back_color.
+
+2001-08-15   -0400
+
 	* updated ascompose to use init_image_layer for layer
 	  initialization - it was missing back_color to be set to default.
 	  Updated init_image_layer accordingly
 
-2001-08-15  sasha
+2001-08-14   -0400
 
 	* [no log message]
-
-2001-08-15  allanon
-
 	*  o (ascompose) made <composite> attrib "op" optional
 	   o (ascompose) added "merge" to <composite>
 	   o (ascompose) added "keep-transparency" to <composite>
@@ -2086,50 +2143,38 @@
 	   o (ascompose) added new tag <solid> and documentation to README
 	   o (ascompose) now uses refcounts to deallocate images when
 	  possible
-
-2001-08-14  sasha
-
 	* Fixed corners drawing while drawing the inline of the bevel.
 	  Fixed ImageDecoder to allow for im meber to be NULL, but
 	  back_color - not 0 Improved merge_layers to only merge portions
 	  of scanlines that overlap - without padding top scanline. Updated
 	  all blenders accordingly.
+
+2001-08-13   -0400
+
 	* added bevel with solid inlines; Fixed gradiented bevel drawing on
 	  very large distances; updated deps
-
-2001-08-13  sasha
-
 	* Implemented create/init_image_layers Implemented AddLabel in
 	  asrenderer Fixed mystyle_draw_text
 
-2001-08-10  sasha
+2001-08-10   -0400
 
 	* added sanity checks to bevel parameter.  Need to fix bevel
 	  increment calculations for inline.
-
-2001-08-10  allanon
-
 	*  o sync commit so sasha can see a problem with <bevel>
-
-2001-08-10  sasha
-
 	* Split asimage.c into 3 files - asimage.c, transform.c and
 	  ximage.c, with asimage.h being split up accordingly.	Fixed bug
 	  in create_asimage code to check for validity of compression
 	  parameter.  Fixed introduced bug in merge_layers where we forgot
 	  to skip first layer in the main loop.
 
-2001-08-09  sasha
+2001-08-09   -0400
 
 	* Mostly implemented window background rendering and layers merging
 	  in asrender code.
 
-2001-08-08  sasha
+2001-08-07   -0400
 
 	* Changed license of libAfterBase and libAfterImage to LGPL
-
-2001-08-08  allanon
-
 	*  o (ascompose) reordered usage message to be alphabetical
 	   o (ascompose) upped version to 1.2
 	   o (ascompose) added automagical output format detection based on
@@ -2137,9 +2182,6 @@
 	   o (ascompose) added id parameters to all xml tags
 	   o (ascompose) added <recall> and <save> xml tags, and docs to
 	  README
-
-2001-08-07  sasha
-
 	* Updated ascompose with ability to save images into any supported
 	  file format(kowalski) Also added ability to write out image
 	  without displaying it first.
@@ -2151,60 +2193,59 @@
 	  provide for preview of arbitrary looks.  Fixed several bugs in
 	  Image loading code.
 
-2001-07-26  sasha
+2001-07-26   -0400
 
 	* Finally brought giflib to its knees by implementing lots of
 	  cludges to work around its bugs.  Thank god gif's colormap is
 	  stored uncompressed! Now libAfterImage can both read and write
 	  multiimage gif files.  HipHip Hooray!
 
-2001-07-25  sasha
+2001-07-25   -0400
 
 	* playing cat and mouse with giflib bugs - and there are plenty of
 	  those.  We'll need to move portions of it into libAfterImage to
 	  ease the pain.
+
+2001-07-24   -0400
+
 	* Minor cleanup in gif writer
-
-2001-07-24  sasha
-
 	* no message
 	* fixed several bugs in colormap generation, and implemented gif
 	  output filter ( sort of )
 
-2001-07-23  sasha
+2001-07-23   -0400
 
 	* completed colormapping code allowing for different degrees of
 	  dithering
 
-2001-07-22  sasha
+2001-07-21   -0400
 
 	* polished colormap calculation quite a bit and made it to allocate
 	  just the right amount of colors by adding more passes
 
-2001-07-20  sasha
+2001-07-20   -0400
 
 	* completed implementation of quantization and colormapping of
 	  images.  Debugged, but still can be optimized for speed.
 
-2001-07-19  sasha
+2001-07-19   -0400
 
 	* Implemented some experimetal code to create colormapped images
 	  and allow for dithering and optimum color selection.
 
-2001-07-17  sasha
+2001-07-17   -0400
 
 	* Rewrote MyLook from config generation .  Updated MyStyles to use
 	  ASImages and ASFonts
 
-2001-07-16  sasha
+2001-07-16   -0400
 
 	* Added image reference to libAfterImage Fixed font dereferencing (
 	  see release_font() ).  Started implementation of libAfterImage
 	  interface in libAfterStep.
 
-2001-07-13  sasha
+2001-07-13   -0400
 
-	* removed dos end-of-lines - just neatpicking :)
 	* Added get_drawable_size to afterbase.c (damn allanon :) Added
 	  define for mystrcmp Added check for libAfterBase presence before
 	  setting output threshold in asmerge
@@ -2215,65 +2256,49 @@
 	* Fixed libAfterImage to compile nicely when libAfterBase is not
 	  available
 
-2001-07-13  allanon
+2001-07-12   -0400
 
 	*  o added <mirror> xml tag to ascompose, and documentation in
 	  README
-
-2001-07-13  sasha
-
 	* added mirroring capability to asflip
 	* Implemented mirror_asimage() for image mirroring (as you could
 	  have guessed :)
-
-2001-07-13  allanon
-
 	*  o added <gradient> xml tag to ascompose, and documentation to
 	  README
 	   o added <rotate> xml tag to ascompose, and documentation to
 	  README
 	   o added test.xml, which contains the xml used during testing
-
-2001-07-12  sasha
-
 	* fixed compile bug in ASImage2gif
 	* Added templaites for image export filters.  Implemented RGB and
 	  greyscale JPEG image writing.  Implemented  RGB and greyscale PNG
 	  image writing with or without alpha channel.	Added usefull
 	  SHOW_TIME and START_TIME macros to libAfterBase
 
-2001-07-11  sasha
+2001-07-11   -0400
 
 	* disabled doc.html generation on make install - that was stupid to
 	  try and do that.
 	* Added final astext tutorial comments.  Reupdated documentation.
 	* final fix to installation and Makefiles
-
-2001-07-11  allanon
-
 	* added ascompose, an XML-based image composition tool
-
-2001-07-11  sasha
-
 	* added afterimag.h to incs
+
+2001-07-10   -0400
+
 	* fixed headers locating in /usr/local/include
 	* fixed installation of afterimage-libs script
 	* fixed standalon configure run
 	* fixed doc installation in Makefile
-	* updated documentation
 	* updated Makefile to install include files as well
 	* fixed configure in libAfterImage to have separate enablers for
 	  static and shared libs
-
-2001-07-10  sasha
-
 	* Updated documentation abit to refelect recent code changes and
 	  make it easier to link from main index page.
+
+2001-07-09   -0400
+
 	* fixed bug in xpm parser where spaces would get treated
 	  incorrectlt in colormap; added READMEs;
-
-2001-07-09  sasha
-
 	* Added functionality to move_asimage_channel to be able to move to
 	  arbitrary channels from arbitrary channels.  Added documenting
 	  comments to astext.c and fixed text layout abit.
@@ -2287,11 +2312,14 @@
 	  inbetween lines of text.  Added sample image	rose512.jpg, and
 	  TTF font: test.ttf.  Added nice defaults to all the sample apps,
 	  so that ppl can see libAfterImage in its full beauty.
+
+2001-07-08   -0400
+
 	* Adde Usage to all the examples. Fixed segfault in asscale. Added
 	  error message on image file not found. Added texturized text
 	  sample images.
 
-2001-07-08  sasha
+2001-07-07   -0400
 
 	* fixed parse_argb_color to check for dpy not being NULL - to avoid
 	  segfaults, babe
@@ -2301,21 +2329,18 @@
 	* added clocking to draw_text; added usage and more sophisticated
 	  usage to astext
 
-2001-07-07  sasha
+2001-07-06   -0400
 
 	* fixed 3D drawing and implemented all 6 modes
-
-2001-07-06  sasha
-
 	* fixed glyph compression again; Started implementing 3D text.
 	* Fixed bug in asimage.c where fake_im was not initialized;
 	  Corrected glyph compression code
 	* asfont fixin
+
+2001-07-05   -0400
+
 	* fixed layers merging to correctly draw the background layer when
 	  image is missing; Fixed spacing calculations, while drawing text
-
-2001-07-05  sasha
-
 	* Temporarily plugged bug in layer merging descovered by allanon,
 	  when bottommost layer does not have any image in it.
 	* Reimplemented image output to allow for flexible support for many
@@ -2323,105 +2348,98 @@
 	  mask XImage and  ARGB32.  Surprisingly that simplified code quite
 	  abit.  Fixed ugly bug in create_asimage.  Completed and debugged
 	  astext tutorial.
+
+2001-07-04   -0400
+
 	* fixed text size calculations; fixed (almost) bevel drawing  -
 	  need to think about what to do with clip_width/height in Layer
 	  specs
 
-2001-07-04  sasha
+2001-07-03   -0400
 
 	* fixed lots of bugs in glyph compressing and rendering, still
 	  something is wrong with size calculation func. Added
 	  move_asimage_channel to swap channels on images
-
-2001-07-03  sasha
-
 	* implemented astext properly
 	* implemented asgrad, asflip and astext. Althou astext still needs
 	  some work.
+
+2001-07-02   -0400
+
 	* added prototypes for asflip, asgrad and astext
 	  examples/tutorials/testapps to the libAfterIMage suit
-
-2001-07-02  sasha
-
 	* Completed ASMerge implementation. Used it to debug all the
 	  merging routines.  Everything works perfect now.  Added
 	  doc/html/asmerge.html - another tutorial.  Added
 	  list_scanline_merging function to blender.c so that we can show
 	  descriptions on different merging methods.
+
+2001-07-01   -0400
+
 	* Added ASMerge example, and added translator from function name to
 	  function for scanline merging/blending.
 
-2001-06-29  sasha
+2001-06-29   -0400
 
 	* Added ASScale and ASTile examples with documentation and stuff.
 	  Fixed bug in asimage.c causing artifacts when image is tiled with
 	  TOP quality.	cleabed up cvsignore in include/
+
+2001-06-28   -0400
+
 	* fixed and simplified configure script for examples to
 	  libAfterImage. Have a good day :)
-
-2001-06-28  sasha
-
 	* Added documenting comments to asview.c so it generates nice
 	  little Tutorial as the result.  Added lots of X functions to xref
 	  files, so now all the source code is very nicely crossreferenced.
 	  Added references to asview to other headers etc.
 
-2001-06-27  sasha
+2001-06-27   -0400
 
 	* Completed documenting asfont.h Added afterimage.h with library
 	  overview got rid of old doc files added freetype and X11 xrefs so
 	  that docs are nicely crosslinked with X docs
 
-2001-06-26  sasha
+2001-06-26   -0400
 
 	* asfont.h documentation  50% done
+
+2001-06-25   -0400
+
 	* added Makefile targets fopr autogeneration of documentation in
 	  man and HTML formats. Added installation procedure for those.
-
-2001-06-25  sasha
-
 	* Documented blender.h and import.h - asfont.h to go.  Also it
 	  sound like a good idea to add afterimage.h with overview notes
 	  about libAfterImage and references to components.
 
-2001-06-24  sasha
+2001-06-23   -0400
 
 	* completed fixing libraries includes
 	* rewrote libraries includes generation; fixed freetype checking to
 	  skip old garbadge left over in X11R6 dir
 
-2001-06-22  sasha
+2001-06-22   -0400
 
 	* Completed documenting asimage.h and asvisual.h.  asfont.h and
 	  import.h to go
+
+2001-06-21   -0400
+
 	* fixed libAfterImage include to always use -I gcc flag
-
-2001-06-21  sasha
-
 	* MOre documentation writing - ASImage.h is almost done.
-
-2001-06-21  owsla
-
 	* added stop_image_output() to asimage2mask_ximage()
 
-2001-06-21  sasha
+2001-06-20   -0400
 
 	*  got asview to compile cleanly and find all the relevant
 	  libraries - need to think about simplifying configure scripts and
 	  headers there
-
-2001-06-20  owsla
-
 	* plugged a mem leak, asimage2ximage() wasn't doing
 	  stop_image_output() on it's ASImageOutput struct
-
-2001-06-20  sasha
-
 	* asimage.html and asimage.man updates
-	* autogenerate man page for asimage.h
 	* Implemented proper generation of mask XImage (1bpp)
 
-2001-06-19  sasha
+2001-06-19   -0400
 
 	* more doc
 	* Implemented ARGB->pixel conversion for 32 and 24 bit True color
@@ -2432,50 +2450,44 @@
 	  causing it to use wrong gc variable.	Added more documentation to
 	  asimage.h and respectively to asimage.html
 
-2001-06-18  sasha
+2001-06-18   -0400
 
 	* Added lots of self documenting comments to
 	  libAfterImage/asimage.h to allow for automagic documentation
 	  generation using robodoc package. Seems to be the only package
 	  that works decently.
-	* man pages writing
-	* libAfterImage manpages update
 
-2001-06-17  owsla
-
-	* fixed some typos for you Sasha :)
-
-2001-06-17  sasha
+2001-06-16   -0400
 
 	* started implementing sample repository of example libAfterImage
 	  apps
 
-2001-06-15  sasha
+2001-06-15   -0400
 
 	* Added prototypes of the man pages for libAfterImage
+
+2001-06-14   -0400
+
 	* added MMX enabling switch to libAfterImage configure
-
-2001-06-14  sasha
-
 	* Completed Pseudo-color support with colormap allocation and
 	  ximage handling.  Added create_asimage and destroy_asimage for
 	  convinience.	Added missing stuff to libAfterImage/afterbase.h to
 	  make it completely independant.  libAfterImage thus should be
 	  ready for release - only to write up some docs :)
 
-2001-06-13  sasha
+2001-06-13   -0400
 
 	* completed flip-flopping code.  Added show_debug to show_* series
 	  in libAfterBase/output.c started working on collor allocation on
 	  PseudoColor visuals
 
-2001-06-12  sasha
+2001-06-12   -0400
 
 	* completed implementation of image alpha beveling.  completed
 	  implementation of image flipping - need some cleanup thou to
 	  allow for tiling.
 
-2001-06-11  sasha
+2001-06-11   -0400
 
 	* fixed configure to produce correct dependencies
 	* no message
@@ -2483,28 +2495,25 @@
 	* Added ASImageBevel to allow for transparent bevelling of images
 	  while merging layers.  Hopefully fixed X libs in configure script
 	  - need to rerun autoconf
+
+2001-06-10   -0400
+
 	*  added configclean target to the top level makefile; fixed
 	  libraries makefiles to correctly generate .depend files
 	*  fixed configure scripts to not do extra checks when invoked from
 	  one another
-
-2001-06-10  owsla
-
 	* updated .cvsignore files
 
-2001-06-10  sasha
+2001-06-09   -0400
 
 	* got rid of old image loading stuff. LoadImageWithMask moved into
 	  resources.h and is now simple shortcut to libAfterImage loader
-
-2001-06-09  sasha
-
 	* made test to compile; Fixed several bugs in libAfterImage;
 	  optimized 2bpp handling in xpm code; builtin xpm handler is about
 	  2 times as fast as libXpm on small images and 5 times on larger
 	  ones
 
-2001-06-08  sasha
+2001-06-08   -0400
 
 	* configure fixes
 	* updated configure scripts
@@ -2515,61 +2524,60 @@
 	* updated configure scripts to reflect addition of the xpm parsing
 	  code
 	* Completed custom xpm implementation. Needs to be debugged thou.
+
+2001-06-07   -0400
+
 	* hopefully fixed main configure script to gracefully handle
 	  libraries configuration as well. MOved configure.h and some other
 	  headers into include dir, so it could be used by modules
-
-2001-06-07  sasha
-
 	* Fixed MyName requests in selfdiag.c; Added xpm.c to implement
 	  custom xpm handling code - appears to be rather simple and
 	  effective.  Most of the things are implemented, except for top
 	  level routine.
+
+2001-06-06   -0400
+
 	* cleaned configure script for libafterimage. added afterimage-libs
 	  script to print list of LD_FLAGS for linking with libafterimage
 
-2001-06-06  sasha
+2001-06-05   -0400
 
 	* fixed bug found by allanon when asimage2ximage would produce
 	  black ximage due to unset flags in scanline
 
-2001-06-04  sasha
-
-	* started documenting libAfterImage
-
-2001-06-04  owsla
+2001-06-04   -0400
 
 	* updated configure
 	* updated the .cvsignore files
-
-2001-06-04  sasha
-
 	* fixed bug in configure --with-jpeg
 	* added missing .depend
+
+2001-06-03   -0400
+
 	* sorted out compilation problems, and test now builds with new
 	  libAfterImage
 
-2001-06-03  sasha
+2001-06-02   -0400
 
 	* got libAfterImage to compile
 
-2001-06-02  sasha
+2001-06-01   -0400
 
 	* hopefully resolved libAfterImage dependancy on libAfterBase
-
-2001-06-01  sasha
-
 	* separated libAfterImage files from the rest of the crowd
+
+2001-05-31   -0400
+
 	* started up libAfterImage
 
-2001-05-30  sasha
+2001-05-30   -0400
 
 	* Prototyped ASRenderer interface
 	* completed fixing old lib files to compensate for file relocation.
 	  There needs to be something done to Mkaefiles and configure to
 	  correctly set up include paths and libraries.
 
-2001-05-28  sasha
+2001-05-28   -0400
 
 	* Split ASVisual from ScreenInfo and rearranged ARGB32.  Added
 	  ASGradient to asimage.h and made gradient_t to be a synonym to
@@ -2578,37 +2586,37 @@
 	  libAfterStep , or, possibly will split up even more.	Goal is to
 	  make libAfterImage completely independant from everything else.
 
-2001-05-23  allanon
+2001-05-23   -0400
 
 	* Updated FSF snail mail address.
 
-2001-05-12  sasha
+2001-05-11   -0400
 
 	* added code to check for valid channels while flipping
 
-2001-05-10  sasha
+2001-05-10   -0400
 
 	* Completed gradients drawing code. Started  on flipping code.
 	  Added direction reverse to output method.
 
-2001-05-09  sasha
+2001-05-09   -0400
 
 	* Implemented vertical gradient drawing.  sorted out relationship
 	  between channel numbering and ARGB32 component order - its the
 	  same now.
+
+2001-05-08   -0400
+
 	* fixed mono line encoding to add zero terminator at the end; fixed
 	  scanline back_color initialization to have alpha at 0xFF; fixed
 	  decoration layouting to not use stack memory in linked list;
 	  fixed property event handler to initialize variable to NULL;
 	  Afterstep now starts , althou does not do anything usefull
-
-2001-05-08  sasha
-
 	* coded gradients drawing using ASImages with smoothing and
 	  dithering - works very blasted fast.	Fixed numerous include's
 	  issues
 
-2001-05-07  sasha
+2001-05-07   -0400
 
 	* fixed create_screen_window for InputOnly windows fixed bug in
 	  screen initialization where Colormap ID would get lost fixed bug
@@ -2617,7 +2625,7 @@
 	  show_warning/error Rearranged thresholds for output verbosity
 	  Added stdargs.h  to import.c - suggested by Sean Dague
 
-2001-05-04  sasha
+2001-05-04   -0400
 
 	* completed ASFont implementation as needed at the moment - there
 	  will need to be some work done in order to adapt it to locale
@@ -2627,13 +2635,13 @@
 	  memory since we don't use 2 bytes anymore.  3 step antialiasing
 	  works now.  Off to image rotation and gradient drawing.
 
-2001-05-03  sasha
+2001-05-03   -0400
 
 	* Improved glyph compression algorithm so now it actually reduces
 	  size, even on ery small fonts.  Tryed to implement additional
 	  glyph smoothing, but something is wrong - disabled for now.
 
-2001-05-02  sasha
+2001-05-02   -0400
 
 	* fixed font drawing to group glyphs as close together as possible
 	  - make for much nicer effect.
@@ -2641,112 +2649,112 @@
 	  something about negative left bearings - ought to really offset a
 	  pen to overlap charcters
 
-2001-05-01  sasha
+2001-05-01   -0400
 
 	* Implemented antialiasing for native X  fonts - still needs some
 	  debuggin.
 
-2001-04-30  sasha
+2001-04-30   -0400
 
 	* added RLE compression to the font glyph cache.  added character
 	  range specification for the font.  added right-to-left writing
 	  order on per font basis.
 
-2001-04-27  sasha
+2001-04-27   -0400
 
 	* implemented text drawing using precached TTF fonts -- needs
 	  addition of locale support in future.  Fixed image merging to do
 	  clipping correctly.  Added image background color
+
+2001-04-26   -0400
+
 	* fixed freetype headers problems and a bug in font hashing
-
-2001-04-26  sasha
-
 	* started implementing font manager and freetype support
+
+2001-04-25   -0400
+
 	* moved scanline merging functions into separate file
 	* fixed most blending function so not to tresspass alpha channel
 	  boundaries. Added tint_scanlines and implemented dissipation
-
-2001-04-25  sasha
-
 	* fixed bug in image loading where piexls would get shifted by one
 	  to the right.  added 14 image blending functions - almost
 	  matching that of the GIMP's capabilities, except for multiply and
 	  divide modes, which I don't see much sense in.  Added
 	  RGB->HSV->RGB and RGB->HLS->RGB conversion functions.
 
-2001-04-24  sasha
+2001-04-24   -0400
 
 	* cleaned up output/encoding functionality.  Added quality
 	  parameters to dynamically adjust quality on per image basis.
 	  Implemented alpha blending and generic layer merging framework.
 
-2001-04-23  sasha
+2001-04-23   -0400
 
 	* debugged tiling functionality and optimized it so not to do
 	  repeated compression on the same data. Added compression ratio
 	  specification on per image basis.  OPtimized buffer copy to use
 	  32bit data transfer. Implemented tinting( as a part of tiling
 	  process ).
+
+2001-04-22   -0400
+
 	* debugging tiler
-
-2001-04-22  sasha
-
 	* added tile_image() - needs debugging
 	* ASImageDecoder
 
-2001-04-20  sasha
+2001-04-20   -0400
 
 	* added TIFF import and implemented generic image loading function
 	  with search capabilities and subimage loading.  Fixed two more
 	  bugs in image scaling.
+
+2001-04-19   -0400
+
 	* added GIF import filter; added configure code to detect gif and
 	  tiff libraries
-
-2001-04-19  sasha
-
 	* .CUR is the same as .ICO only type = 2
 	* Added support for .PNM, .PPM, .ICO, .BMP image file formats -
 	  TIFF and GIF to go
 
-2001-04-18  sasha
+2001-04-18   -0400
 
 	* xcf image loading now works, but only gets you first layer with
 	  the same size as whole image. Need to implement layers merging
 	  for ASImages to get complete support for GIMP's xcf files
+
+2001-04-17   -0400
+
 	* fixed bug in xcf channel loading - theer are no such thing as
 	  channel type
-
-2001-04-17  sasha
-
 	* most of the preparation work for xcf reading is done - now off to
 	  actually create ASImage from it.  added code to poupulate
 	  ASScanline with 0's where data is not available;
+
+2001-04-16   -0400
+
 	*  minor quality tweaks in rations 1-2 scaling up. Started
 	  implementing ASImageDecoder for automatic tinting/tiling
-
-2001-04-16  sasha
-
 	* IMplemented JPEG input filter for ASImage.  Fixed long standing
 	  bug in image scaling causing wierdness in scaling UP with small
 	  ratios.  Started implemntation of XCF file reader.
 
-2001-04-15  sasha
+2001-04-14   -0400
 
 	* implemented png file reader and fixed blatant bug in scale image
 	  up where first line got garbadge in it
 
-2001-04-14  sasha
+2001-04-13   -0400
 
 	* compilation fixes
-
-2001-04-13  sasha
-
 	* Implemented xpm loading into asimage. Updated asimage to
 	  correctly use ScreenInfo.  implemented create_screen_pixmap and
 	  create_screen_ximage
+
+2001-04-12   -0400
+
 	* fixed test abit to not spit lots of warnings
 
-2001-04-08  sasha
+2001-04-07   -0400
 
 	* fixed bugs in scaling down code with ratio > 2; It appears that
 	  you can create windows with different visual only if you create
@@ -2754,17 +2762,17 @@
 	  screen.c accordingly. We keep black and white pixels and colormap
 	  in ScreenInfo now - should use it instead of X macros
 
-2001-04-06  sasha
+2001-04-06   -0400
 
 	* implemented workaround for some stupid X servers that denys you
 	  your constitutional right to use whatever Visual you like.
 	* couple bugfixes for new visual handling code.  moved
 	  ximage->scanline->ximage code from asimage.c to screen.c still
 	  need to implement PseudoClor handling
+
+2001-04-05   -0400
+
 	* hopefully fixed bug in 2x scaling up code
-
-2001-04-05  sasha
-
 	* no message
 	* reworked ScreenInfo abit to include visual info.  Added screen.c
 	  to libafterstep to collect together all the Screen/display
@@ -2777,105 +2785,108 @@
 	  AfterStep to use. Need to move ximage->as->ximage conversion
 	  stuff into screen.c. ConnectX now takes only one parameter -
 	  pointer to ScreenInfo is discontinued
+
+2001-04-04   -0400
+
 	* same old Ximage cleanup
-
-2001-04-04  sasha
-
 	* asimage->ximage debugging again - this time about 50% performance
 	  increase.
+
+2001-04-03   -0400
+
 	* more optimization to ximage output algorithm - that was the last
 	  of it I'm sick and tired from this stuff
-
-2001-04-03  sasha
-
 	* Some tweaks to XImage writing code to speed things up - we were
 	  spending upto 30% of time writing XImages - unacceptable.
+
+2001-04-02   -0400
+
 	* fixed bug in line interpolation causing stripy artifacts in
 	  scaling up
 	* mmx debugged
-
-2001-04-02  sasha
-
 	* Added some MMX inline assembly to image scaling code to hopefully
 	  make it faster -  need to verify if that indeed is the case.
+
+2001-04-01   -0400
+
 	* aaa
 
-2001-04-01  sasha
+2001-03-31   -0400
 
 	* scaling speed optimizations
 
-2001-03-31  sasha
+2001-03-30   -0500
 
 	* debugged new scaling code - scale up is rather nice even with
 	  huge ratio - check out src/test
-
-2001-03-30  sasha
-
 	* Implemented complete scaling Up procedure for arbitrary ratio -
 	  if it'll work then similar stuff will go for 1-2 and 2-3 ratios.
 	  Added reshape_winlist to WinList to actually generate layout of
 	  titlebars based on WinList data and store pointers to them in
 	  appropriate place in WMDecor structures. It now needs to be
 	  debugged as a prototype for other modules.
+
+2001-03-29   -0500
+
 	* debugged scaling down algorithm  - it now works and scale things
 	  down rather nicely. Thus we have a proof of concept and can
 	  proceed on to scaling up - which is mopstly implemented already
-
-2001-03-29  sasha
-
 	* completed implementation of scaling down of ASImages.  Added
 	  dithering capabilities to ASImage->XImage conversion to hopefully
 	  produce better results on 16bpp and 15bpp Fixed bug in ASWinLIst
 	  message processing to create WinList if it did not exist.  Fixed
 	  Bug in afterstep to initialize handlers in main window list to
 	  correct functions.
+
+2001-03-28   -0500
+
 	* defined structure of high level scaling API
-
-2001-03-28  sasha
-
 	* Added AS message reading/partiall handling to new WinList.  Moved
 	  get_window_* functions into aswinlist.c Changed the way
 	  process_message is called - it now takes ASMessage * as a param.
 	  Made everything compiling.
+
+2001-03-27   -0500
+
 	* some theory investigation into up scaling algorithms with
 	  smoothing
 
-2001-03-27  sasha
+2001-03-26   -0500
 
 	* the best variant of compression algorithm - average compression
 	  ratio is about 75for highly random images(nature) and 30for
 	  regular images (naked body, etc.); no off to more exciting things
-
-2001-03-26  sasha
-
 	* no message
+
+2001-03-25   -0500
+
 	* fixed compression code
 
-2001-03-24  owsla
+2001-03-24   -0500
 
 	* removed static keyword from libasimage_decode_line, this was
 	  preventing it from being exported in the lib, which made the test
 	  program fail
 
-2001-03-23  sasha
+2001-03-23   -0500
 
 	* optimized asimage decompression algorithm scaling down algorithm
 	  implemented/.
+
+2001-03-22   -0500
+
 	* extensive asimage debugging - compression now seems to work fine
-
-2001-03-22  sasha
-
 	* Completed implementation of Pixmap->ASImage->Pixmap cycle Now off
 	  to debugging and implementing of scaling/alpha-blending/etc.
 
-2000-12-12  sasha
+2000-12-11   -0500
 
 	* libasimage has been renamed to libasGUI
 
-2000-09-17  sasha
+2000-09-17   -0400
 
 	* make_indent
 
-2000-05-15  sasha
+2000-05-14   -0400
 
 	* asImageFromXImageTest
