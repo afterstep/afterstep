@@ -1,0 +1,8 @@
+<varlistentry id="options.IconLocation">
+	<term>IconLocation location</term>
+	<listitem>
+		<para>Determines where icon is placed in relation to text label. Numbers from 1 to 9. 
+		On keypad 5 represent the text label, so other numbers represent location of the icon 
+		to be the same as location of the key in relation to 5. Say location 6 is to the right of the text label.</para>
+	</listitem>
+</varlistentry>

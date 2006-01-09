@@ -1,0 +1,7 @@
+<varlistentry id="options.IconAlign">
+	<term>IconAlign align[,align[,...]]</term>
+	<listitem>
+		<para>Alignment of the icon</para>
+		<para>See Also: <ulink url="Align#synopsis">Look Alignment flags</ulink> for further details.</para>
+	</listitem>
+</varlistentry>

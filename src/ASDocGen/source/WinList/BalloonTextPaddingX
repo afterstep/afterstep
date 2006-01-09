@@ -1,0 +1,6 @@
+<varlistentry id="options.BalloonTextPaddingX">
+	<term>BalloonTextPaddingX size</term>
+	<listitem>
+		<para>width of the border around the text in balloons.</para>
+	</listitem>
+</varlistentry>

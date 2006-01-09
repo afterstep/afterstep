@@ -1,0 +1,6 @@
+<varlistentry id="options.IconSize">
+	<term>IconSize WxH</term>
+	<listitem>
+		<para>Setxs the size icon should be scaled to.</para>
+	</listitem>
+</varlistentry>

@@ -1,0 +1,6 @@
+<varlistentry id="options.ShowIcon">
+	<term>ShowIcon</term>
+	<listitem>
+		<para>Will make WinList show an icon next to the window name.</para>
+	</listitem>
+</varlistentry>

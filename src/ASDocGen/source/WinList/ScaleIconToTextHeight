@@ -1,0 +1,6 @@
+<varlistentry id="options.ScaleIconToTextHeight">
+	<term>ScaleIconToTextHeight</term>
+	<listitem>
+		<para>If set will cause icon to be scaled to the height of the text label.</para>
+	</listitem>
+</varlistentry>
