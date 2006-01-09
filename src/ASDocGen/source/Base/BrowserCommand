@@ -1,0 +1,8 @@
+<varlistentry id="options.BrowserCommand">
+	<term>BrowserCommand<emphasis remap='I'>number command</emphasis></term>
+     <listitem>
+	<para>Selects web browser to be used by AfterStep when using the
+	ExecBrowser command. Out of supplied list - all possibilities are checked to be present on the system,
+	and first available one will be used.</para>
+	<para>The default number/command combination is: 0 - $BROWSER, 1 - firefox,2 - x-www-browser, 3 - mozilla-firefox, 4 - mozilla, 5 - opera</para>
+</varlistentry>

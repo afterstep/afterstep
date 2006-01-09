@@ -1,0 +1,9 @@
+<varlistentry id="options.EditorCommand">
+    <term>EditorCommand <emphasis remap='I'>number command</emphasis></term>
+     <listitem>
+	<para>Selects editor to be used by AfterStep when using the
+	ExecEditor command. Out of supplied list - all possibilities are checked to be present on the system,
+	and first available one will be used.</para>
+	<para>The default number/command combination is: 0- $EDITOR, 1-nedit, 2-xemacs, 3-gedit, 4-kedit, 5-kate</para>
+	</listitem>
+</varlistentry>

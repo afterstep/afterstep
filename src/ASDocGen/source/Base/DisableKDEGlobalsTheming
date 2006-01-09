@@ -1,0 +1,7 @@
+<varlistentry id="options.DisableKDEGlobalsTheming">
+	<term>DisableKDEGlobalsTheming</term>
+	<listitem>
+		<para>If set will prevent AfterStep from updating private kdeglobals file when colorscheme is changed.
+		kdeglobals needs to be updated in order to set colors for KDE apps to match that of the selected colorscheme.</para>
+	</listitem>
+</varlistentry>
