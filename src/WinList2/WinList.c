@@ -1000,14 +1000,11 @@ configure_tbar_props( ASTBarData *tbar, ASWindowData *wd, Bool focus_only )
 			if( !get_flags( Config->set_flags, WINLIST_UBevel ) )
 			{	
 				ubevel = WinListState.tbar_props->bevel ;
-				if( fbevel == 0  ) 
-					fbevel = DEFAULT_TBAR_HILITE ;
+				if( ubevel == 0  ) 
+					ubevel = DEFAULT_TBAR_HILITE ;
 			}
 
 		}	 
-
-		if( sbevel == 0  ) 
-			sbevel = DEFAULT_TBAR_HILITE ;
 
     	set_astbar_hilite( tbar, BACK_FOCUSED, fbevel );
     	set_astbar_composition_method( tbar, BACK_FOCUSED, Config->FCompositionMethod );

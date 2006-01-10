@@ -1215,7 +1215,8 @@ mystyle_inherit_font (MyStyle * style, MyFont * font)
 ASImageBevel *
 mystyle_make_bevel (MyStyle * style, ASImageBevel * bevel, int hilite, Bool reverse)
 {
-	if (style && hilite != 0)
+	if (style && (hilite&HILITE_MASK) != 0 && 
+		(hilite&(NO_HILITE_INLINE|NO_HILITE_OUTLINE)) != (NO_HILITE_INLINE|NO_HILITE_OUTLINE))
 	{
         int extra_hilite = get_flags (hilite, EXTRA_HILITE)?2:0;
 		if (bevel == NULL)
@@ -1250,8 +1251,7 @@ mystyle_make_bevel (MyStyle * style, ASImageBevel * bevel, int hilite, Bool reve
                 bevel->left_inline = bevel->top_inline = bevel->right_inline = bevel->bottom_inline = extra_hilite;
 #endif
             }
-        }else if( get_flags( hilite, NO_HILITE_INLINE ) )
-			clear_flags( hilite, NO_HILITE_INLINE );
+        }
 
 #endif
         if (get_flags (hilite, LEFT_HILITE))

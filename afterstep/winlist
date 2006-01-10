@@ -19,7 +19,7 @@
 
 # Titlebar parameters from the look will be used, or you can override it :
 #*WinListSpacing	 1
-#*WinListBevel           Right,Bottom
+*WinListBevel           None
 #*WinListAlign           Left,Right,Bottom,Top
 
 # MyStyles to be used - feel free to override :

@@ -1320,9 +1320,23 @@ advertise_tbar_props()
 		{ &_AS_BUTTON_SHADE, 	&_AS_BUTTON_SHADE_PRESSED, 		F_SHADE, 	NULL },
 		{ &_AS_BUTTON_MENU, 	&_AS_BUTTON_MENU_PRESSED, 		F_POPUP, 	NULL }};
 
-	
-	props.align = frame->title_align ;
-	props.bevel = frame->title_fbevel|frame->title_ubevel ;
+	memset( &props, 0x00, sizeof(props));
+	if( get_flags( frame->set_title_attr, MYFRAME_TitleAlignSet ) )
+	{
+		props.align = frame->title_align ;
+#if (NO_ALIGN==0)		
+		if( props.align == 0 )  		   
+			props.align = ~ALIGN_MASK ;
+#endif
+	}
+	if( get_flags( frame->set_title_attr, MYFRAME_TitleFBevelSet|MYFRAME_TitleUBevelSet ) )
+	{	
+		props.bevel = frame->title_fbevel|frame->title_ubevel ;
+#if (NO_HILITE==0)
+		if( props.bevel == 0 )
+			props.bevel = ~HILITE_MASK;
+#endif			
+	}
 	props.title_h_spacing = frame->title_h_spacing ;
 	props.title_v_spacing = frame->title_v_spacing ;
 	props.buttons_h_border = max(Scr.Look.TitleButtonXOffset[0],Scr.Look.TitleButtonXOffset[1]);
