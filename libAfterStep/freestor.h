@@ -52,14 +52,6 @@ typedef unsigned long (*SpecialFunc) (struct ConfigDef * conf_def,
 #define SPECIAL_SKIP			(0x01<<1)
 #define SPECIAL_STORAGE_ADDED		(0x01<<2)
 
-typedef struct StorageStack
-{
-  FreeStorageElem **tail;
-  struct StorageStack *next;	/* to enable stackable treatment in case of sub_syntax */
-}
-StorageStack;
-
-
 void init_asgeometry (ASGeometry * geometry);
 
 int parse_modifier( char *tline );

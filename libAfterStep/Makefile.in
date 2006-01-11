@@ -23,7 +23,9 @@ LIB_OBJS= asapp.o ascommand.o asdatabase.o asfeel.o aswindata.o \
 		  decor.o desktop_category.o event.o \
                   freestor.o functions.o font.o hints.o kde.o module.o \
 		  moveresize.o myicon.o mylook.o mystyle.o mystyle_property.o \
-		  outline.o operations.o parser.o screen.o session.o shape.o wmprops.o
+		  outline.o operations.o \
+		  parser.o parser_fs.o parser_xml.o \
+		  screen.o session.o shape.o wmprops.o
 
 CONFIG_SCRIPT= afterstep-config
 

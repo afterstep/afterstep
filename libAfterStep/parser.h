@@ -132,6 +132,12 @@ typedef struct SyntaxStack
   unsigned long current_flags;
 }SyntaxStack;
 
+typedef struct StorageStack
+{
+  void *storage;
+  struct StorageStack *next;	/* to enable stackable treatment in case of sub_syntax */
+}StorageStack;
+
 
 /* that is not supposed to be used outside of this code */
 /* making it available just in case */
@@ -141,7 +147,6 @@ typedef struct SyntaxStack
 #define MAX_CONFIG_LINE 	MAXLINELENGTH
 #define NORMAL_CONFIG_LINE 	128
 
-struct StorageStack;
 
 typedef struct FilePtrAndData
 {
@@ -272,6 +277,31 @@ void PrintFreeStorage (FreeStorageElem * storage);
 
 #define COMMENTS_CHAR '#'
 #define MYNAME_CHAR   '*'
+
+/* utility funcs : */
+void print_trimmed_str( char *prompt, char * str );
+void ProcessSubSyntax (ConfigDef * config, void *storage, SyntaxDef * syntax);
+void PushStorage (ConfigDef * config, void *storage);
+int PopStorage (ConfigDef * config);
+void PushSyntax (ConfigDef * config, SyntaxDef * syntax);
+
+void config_error (ConfigDef * config, char *err_text);
+char         *parser_add_terminator (char *ptr, char terminator);
+
+struct WriteBuffer
+{
+	char         *buffer;
+	size_t        allocated, used;
+};
+
+void WriteBlock (struct WriteBuffer *t_buffer, char *block_start, char *block_end);
+extern char         *_disabled_keyword;
+extern char         *_unknown_keyword;
+
+
+
+
+
 
 #ifdef __cplusplus
 }
