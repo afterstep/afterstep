@@ -132,9 +132,15 @@ typedef struct SyntaxStack
   unsigned long current_flags;
 }SyntaxStack;
 
+typedef struct ASTreeStorageModel
+{
+ 	struct ASTreeStorageModel  *next;
+	struct ASTreeStorageModel  *child;
+}ASTreeStorageModel;
+
 typedef struct StorageStack
 {
-  void *storage;
+  void  *storage;
   struct StorageStack *next;	/* to enable stackable treatment in case of sub_syntax */
 }StorageStack;
 
@@ -153,6 +159,9 @@ typedef struct FilePtrAndData
     FILE *fp ;
     char *data ;                               /* prefetched line from the above file ! */
 }FilePtrAndData;
+
+struct ConfigDef;
+typedef unsigned long (*SpecialFunc) (struct ConfigDef * conf_def);
 
 typedef struct ConfigDef
 {
@@ -204,8 +213,10 @@ typedef struct ConfigDef
   char *cursor;
   int line_count;
 
+	void (*statement_handler) (struct ConfigDef * config);
 }
 ConfigDef;
+
 
 typedef enum
 {
@@ -244,9 +255,10 @@ char *GetNextStatement (ConfigDef * config, int my_only);
 ConfigDef *InitConfigReader (char *myname, SyntaxDef * syntax,
 			     ConfigDataType type, ConfigData source,
 			     SpecialFunc special);
+int config2tree_storage (ConfigDef * config, ASTreeStorageModel **tail);
 int ParseConfig (ConfigDef * config, FreeStorageElem ** tail);
 FreeStorageElem *file2free_storage(const char *filename, char *myname, SyntaxDef *syntax, SpecialFunc special, FreeStorageElem **foreign_options );
-
+void ProcessStatement(ConfigDef *config);
 
 ConfigDef *InitConfigWriter (char *myname, SyntaxDef * syntax,
 			     ConfigDataType type, ConfigData  source);
@@ -269,7 +281,6 @@ void DestroyConfig (ConfigDef * config);
 /* debugging stuff */
 #ifdef DEBUG_PARSER
 void PrintConfigReader (ConfigDef * config);
-void PrintFreeStorage (FreeStorageElem * storage);
 #else
 #define PrintConfigReader(a)
 #define PrintFreeStorage(b)

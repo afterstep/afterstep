@@ -13,16 +13,9 @@ struct ASCursor ;
 
 typedef struct FreeStorageElem
 {
-  struct TermDef *term;
-  unsigned long flags;		/* see current_flags for possible values */
-
-  char **argv;			/* space separated words from the source data will
-				   be placed here unless DONT_SPLIT_WORDS defined
-				   for the term */
-  int argc;			/* number of words */
-  struct FreeStorageElem *next;
-  struct FreeStorageElem *sub;
-  /* points to the chain of sub-elements, for representation of the complex
+	struct FreeStorageElem *next;
+  	struct FreeStorageElem *sub;
+  	/* points to the chain of sub-elements, for representation of the complex
      config constructs.
      for example if following is encountered :
      MyStyle "some_style"
@@ -42,11 +35,15 @@ typedef struct FreeStorageElem
      V
      { ForeColor_term,"blue", sub=NULL, next=NULL }
    */
+  struct TermDef *term;
+  unsigned long flags;		/* see current_flags for possible values */
+
+  char **argv;			/* space separated words from the source data will
+				   be placed here unless DONT_SPLIT_WORDS defined
+				   for the term */
+  int argc;			/* number of words */
 }
 FreeStorageElem;
-
-typedef unsigned long (*SpecialFunc) (struct ConfigDef * conf_def,
-				      FreeStorageElem ** storage);
 
 #define SPECIAL_BREAK			(0x01<<0)
 #define SPECIAL_SKIP			(0x01<<1)
@@ -72,6 +69,7 @@ void CopyFreeStorage (FreeStorageElem ** to, FreeStorageElem * from);
 void DestroyFreeStorage (FreeStorageElem ** storage);
 void StorageCleanUp (FreeStorageElem ** storage,
 		     FreeStorageElem ** garbadge_bin, unsigned long mask);
+void PrintFreeStorage (FreeStorageElem * storage);
 
 struct FunctionData;
 

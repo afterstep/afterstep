@@ -735,6 +735,88 @@ ProcessSubSyntax (ConfigDef * config, void *storage, SyntaxDef * syntax)
 	PushSyntax (config, syntax);
 }
 
+void ProcessStatement(ConfigDef *config)
+{
+	if( config && config->statement_handler ) 
+		config->statement_handler(config);
+}
+
+/* main parsing procedure */
+int
+config2tree_storage (ConfigDef * config, ASTreeStorageModel **tail)
+{
+	int           TopLevel = 0;
+	unsigned long flags;
+
+	PushStorage (config, tail);
+	/* get line */
+	while (!TopLevel)
+	{
+		while (GetNextStatement (config, 1))
+		{									   /* untill not end of text */
+			flags = 0x00;
+#ifdef DEBUG_PARSER
+			fprintf (stderr, "\nSentence Found:[%.50s ...]\n,\tData=\t[%s]", config->tline, config->current_data);
+			fprintf (stderr, "\nLooking for the Term...");
+#endif
+			/* find term */
+			if ((config->current_term = FindStatementTerm (config->tline, config->syntax)))
+			{
+#ifdef DEBUG_PARSER
+				fprintf (stderr, "\nTerm Found:[%s]", config->current_term->keyword);
+#endif
+				if (get_flags( config->current_term->flags, TF_OBSOLETE))
+					config_error (config, "Heh, It seems that I've encountered obsolete config option. I'll ignore it for now, Ok ?!");
+				if (get_flags( config->current_term->flags, TF_PHONY))
+					set_flags( config->flags, CF_PHONY_OPTION );
+  				if (get_flags( config->current_term->flags, TF_SPECIAL_PROCESSING))
+				{
+					if (config->special)
+					{
+						flags = (*(config->special)) (config);
+						if (get_flags (flags, SPECIAL_BREAK))
+							break;
+						if (get_flags (flags, SPECIAL_STORAGE_ADDED))
+						{
+							ASTreeStorageModel **ctail = config->current_tail->storage;
+							while(*ctail) ctail = &((*ctail)->next);
+							tail = config->current_tail->storage = ctail;
+						}
+					}
+				}
+				if (!get_flags (flags, SPECIAL_SKIP))
+					ProcessStatement (config);
+
+				if ((config->current_term->flags & TF_SYNTAX_TERMINATOR) || IsLastOption (config))
+					break;
+			} else
+			{
+#ifdef UNKNOWN_KEYWORD_WARNING
+				config_error (config, " unknown keyword encountered");
+#endif
+                if (IsLastOption (config))
+					break;
+			}
+		}									   /* end while( GetNextStatement() ) */
+		/* trying to see if we can get to higher level syntax */
+		if (!PopSyntax (config))
+			TopLevel = 1;
+		if (!PopStorage (config))
+			TopLevel = 1;
+		while ((TopLevel != 1) &&
+			   ((config->current_term &&
+				 (config->current_term->flags & TF_SYNTAX_TERMINATOR)) || IsLastOption (config)))
+		{
+			if (!PopSyntax (config))
+				TopLevel = 1;
+			if (!PopStorage (config))
+				TopLevel = 1;
+		}
+	}										   /* end while( !TopLevel ) */
+
+	return 1;
+}
+
 
 
 /****************************************************************************************/
