@@ -43,4 +43,10 @@ LIBS_PRIVATE      = ../src/afterstep/$(LIB_AFTERIMAGE) ../src/afterstep/$(LIB_AF
 @MAKEFILECOMMONLIB@
 
 
+test_parser_xml.o: parser_xml.c
+		$(CC) $(CCFLAGS) $(EXTRA_DEFINES) -DTEST_PARSER_XML $(INCLUDES) $(EXTRA_INCLUDES) -c parser_xml.c -o test_parser_xml.o
+
+test_parser_xml:	test_parser_xml.o
+		$(CC) test_asdesktop_entry.o $(USER_LD_FLAGS) $(LIBS_ALL) $(LIBS_AFTERIMAGE) ../libAfterConf/libAfterConf.a -o test_parser_xml
+
 

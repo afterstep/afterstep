@@ -280,13 +280,13 @@ DestroyFeelConfig (FeelConfig * config)
  *  Feel Parsing code :
  **********************************************************************/
 unsigned long
-BindingSpecialFunc (ConfigDef * config, FreeStorageElem ** storage)
+BindingSpecialFunc (ConfigDef * config)
 {
     /* since we have have subconfig of Functions that has \n as line terminator
      * we are going to get entire line again at config->cursor
      * so lets skip 3 tokens of <key/mouse button> <context> <modifyers> ,
      * since those are not parts of following function */
-	return TrailingFuncSpecial( config, storage, 3 );
+	return TrailingFuncSpecial( config, 3 );
 }
 
 void

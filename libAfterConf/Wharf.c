@@ -28,7 +28,6 @@
 #include "afterconf.h"
 
 
-void          ProcessStatement (ConfigDef * config);
 /*****************************************************************************
  *
  * This routine is responsible for reading and parsing the base.<bpp> config
@@ -91,7 +90,7 @@ SyntaxDef     WhevSyntax = {
     {0, "ForceSize", 9,         TT_GEOMETRY, WHARF_ForceSize_ID, NULL}
 
 #define WHARF_FOLDER_TERMS \
-	{TF_SPECIAL_PROCESSING, "", 0, TT_SPECIAL, WHARF_Wharf_ID, &DummyFuncSyntax}, \
+	{TF_SPECIAL_PROCESSING|TF_NAMED|TF_USE_TOKENS(1), "", 0, TT_SPECIAL, WHARF_Wharf_ID, &DummyFuncSyntax}, \
 	{TF_NO_MYNAME_PREPENDING|TF_SYNTAX_TERMINATOR, WHARF_FOLDER_END, 7, TT_FLAG, WHARF_FolderEnd_ID, NULL}
 
 
@@ -360,13 +359,13 @@ PrintWharfConfig(WharfConfig *config )
 void print_trimmed_str( char *prompt, char * str );
 
 unsigned long
-WharfSpecialFunc (ConfigDef * config, FreeStorageElem ** storage)
+WharfSpecialFunc (ConfigDef * config)
 {
 	TermDef      *pterm;
 	register char *cur;
 
-    LOCAL_DEBUG_CALLER_OUT("%p,%p", config, storage);
-	if (config == NULL || storage == NULL)
+    LOCAL_DEBUG_CALLER_OUT("%p", config);
+	if (config == NULL )
 		return SPECIAL_BREAK;
 
 	/* checking if we have ~Folders in here */

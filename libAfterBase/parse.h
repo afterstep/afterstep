@@ -42,6 +42,7 @@ int quotestr (char *dest, const char *src, int maxlen);
 
 /* here we'll strip comments and whitespaces */
 char *stripcomments (char *source);
+char *stripcomments2 (char *source, char **comments );
 char *strip_whitespace (char *str);
 
 /* will read space separated string and allocate space for it */

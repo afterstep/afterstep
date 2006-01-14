@@ -1,8 +1,7 @@
 #ifndef PARSER_HEADER_FILE_INCLUDED
 #define PARSER_HEADER_FILE_INCLUDED
 
-/*#define DEBUG_PARSER
-*/
+#define DEBUG_PARSER
 
 /* put it in here for now - later should probably be moved
    into configure stuff */
@@ -21,21 +20,22 @@ struct ASHashTable;
 typedef struct TermDef
 {
   /* the following needs to be defined by module */
-#define TF_DONT_REMOVE_COMMENTS (1<<26)	/* indicates that comments sould not be */
-  /* removed from the end of this term */
-#define TF_SPECIAL_PROCESSING 	(1<<27)	/* supplied special processing procedure */
-  /* needs to be called for this one */
-#define TF_NO_MYNAME_PREPENDING	(1<<28)	/* has effect only when writing this back to */
-  /* config file */
-#define TF_DONT_SPLIT           (1<<29)	/* if it is desired to preserv data intact */
-  /* vs. splitting it into space separated words */
-#define TF_INDEXED              (1<<30)	/* if we have array of indexed items of the same */
-  /* type and ID */
 #define TF_SYNTAX_TERMINATOR    (1<<31)	/* will tell parser that reading of config */
   /* in context of current syntax completed */
   /* for example ~MyStyle ends MyStyle syntax */
   /* reading */
-#define TF_NAMED_SUBCONFIG	(1<<25)	/* first token is used as the name */
+#define TF_INDEXED              (1<<30)	/* if we have array of indexed items of the same */
+  /* type and ID */
+#define TF_PHONY	  		 (1<<28)	/* to enable error notification */
+#define TF_DONT_SPLIT           (1<<29)	/* if it is desired to preserv data intact */
+  /* vs. splitting it into space separated words */
+#define TF_NO_MYNAME_PREPENDING	(1<<28)	/* has effect only when writing this back to */
+  /* config file */
+#define TF_SPECIAL_PROCESSING 	(1<<27)	/* supplied special processing procedure */
+  /* needs to be called for this one */
+#define TF_DONT_REMOVE_COMMENTS (1<<26)	/* indicates that comments sould not be */
+  /* removed from the end of this term */
+#define TF_NAMED	(1<<25)	/* first token is used as the name */
   /* rest of the line gets parsed using subsyntax */
   /* usefull in things like database where you have: Style "name" <blah,blah,blah> */
   /* <blah,blah,blah> in that case in this case will be parsed using the subsyntax */
@@ -51,7 +51,9 @@ typedef struct TermDef
 #define TF_NONUNIQUE 		 (1<<21) /* Ther could be several options of this type in config */
 #define TF_QUOTES_OPTIONAL 	 (1<<20) /* Ther could be several options of this type in config */
 #define TF_SYNTAX_START		 (1<<19)
-#define TF_PHONY	  		 (1<<28)	/* to enable error notification */
+#define TF_USE_TOKENS_MASK	 (0x07<<16)
+#define TF_USE_TOKENS(count)  	(((count)<<16)&TF_USE_TOKENS_MASK)
+#define GetTermUseTokensCount(pterm)  	(((pterm)->flags&TF_USE_TOKENS_MASK)>>16)
 
   unsigned long flags;		/* combination of any of above values */
   char *keyword;

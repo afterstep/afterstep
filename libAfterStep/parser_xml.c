@@ -17,7 +17,7 @@
  *
  */
 
-#undef LOCAL_DEBUG
+#define LOCAL_DEBUG
 #undef DO_CLOCKING
 #undef UNKNOWN_KEYWORD_WARNING
 
@@ -47,83 +47,133 @@
 
 /* AfterStep config into xml tree code : */
 
-static xml_elem_t*
-parse_config2xml_tree(ConfigDef *config_reader)
+void 
+append_comments_tag( xml_elem_t  *parent, const char *comments )
 {
-	xml_elem_t* tree = NULL ; 
-#if 0  	                       /* old code  */
-	int           TopLevel = 0;
-	unsigned long flags;
+	xml_elem_t *c_tag = xml_elem_new(); 
+	c_tag->tag = mystrdup("comments"); 
+	//c_tag->tag_id = pterm->id ;
+	xml_insert( parent, c_tag );
 
-	PushStorage (config, tail);
-	/* get line */
-	while (!TopLevel)
-	{
-		while (GetNextStatement (config, 1))
-		{									   /* untill not end of text */
-			flags = 0x00;
-#ifdef DEBUG_PARSER
-			fprintf (stderr, "\nSentence Found:[%.50s ...]\n,\tData=\t[%s]", config->tline, config->current_data);
-			fprintf (stderr, "\nLooking for the Term...");
-#endif
-			/* find term */
-			if ((config->current_term = FindStatementTerm (config->tline, config->syntax)))
-			{
-#ifdef DEBUG_PARSER
-				fprintf (stderr, "\nTerm Found:[%s]", config->current_term->keyword);
-#endif
-				if (get_flags( config->current_term->flags, TF_OBSOLETE))
-					config_error (config, "Heh, It seems that I've encountered obsolete config option. I'll ignore it for now, Ok ?!");
-				if (get_flags( config->current_term->flags, TF_PHONY))
-					set_flags( config->flags, CF_PHONY_OPTION );
-  				if (get_flags( config->current_term->flags, TF_SPECIAL_PROCESSING))
-				{
-					if (config->special)
-					{
-						FreeStorageElem **ctail = config->current_tail->tail;
+	c_tag->child = create_CDATA_tag();	  
+	c_tag->child->parm = mystrdup( comments );
+}	 
 
-						flags = (*(config->special)) (config, ctail);
-						if (get_flags (flags, SPECIAL_BREAK))
-							break;
-						if (get_flags (flags, SPECIAL_STORAGE_ADDED))
-						{
-							for (ctail = config->current_tail->tail; (*ctail); ctail = &((*ctail)->next));
-							tail = config->current_tail->tail = ctail;
-						}
-					}
-				}
-				if (!get_flags (flags, SPECIAL_SKIP))
-					ProcessStatement (config);
+void
+statement2xml_elem (ConfigDef * config)
+{
+	xml_elem_t  *item, **tail = config->current_tail->storage;
+	TermDef      *pterm = config->current_term;
+	char *ptr = config->current_data;
+	char *name  = NULL ; 
+	char *side  = NULL ; 
+	char *index = NULL ; 
+	int parm_len = 0 ; 
+	char *comments = NULL ;
 
-				if ((config->current_term->flags & TF_SYNTAX_TERMINATOR) || IsLastOption (config))
-					break;
-			} else
-			{
-#ifdef UNKNOWN_KEYWORD_WARNING
-				config_error (config, " unknown keyword encountered");
-#endif
-                if (IsLastOption (config))
-					break;
-			}
-		}									   /* end while( GetNextStatement() ) */
-		/* trying to see if we can get to higher level syntax */
-		if (!PopSyntax (config))
-			TopLevel = 1;
-		if (!PopStorage (config))
-			TopLevel = 1;
-		while ((TopLevel != 1) &&
-			   ((config->current_term &&
-				 (config->current_term->flags & TF_SYNTAX_TERMINATOR)) || IsLastOption (config)))
+LOCAL_DEBUG_OUT( "checking for foreign option ...%s", "" );
+	if (IsForeignOption (config))
+		return;
+
+	item = xml_elem_new(); 
+	item->tag = pterm->keyword[0]?mystrdup(pterm->keyword):mystrdup("item");
+	LOCAL_DEBUG_OUT( "adding storage ... pterm is \"%s\" (%s)", item->tag, get_flags(pterm->flags, TF_NAMED)?"named":"");
+	item->tag_id = pterm->id ;
+	*tail = item ; 
+    
+	print_trimmed_str( "ptr", ptr );
+
+	if( ptr )
+	{	
+		if ( get_flags(pterm->flags, TF_NAMED) )
 		{
-			if (!PopSyntax (config))
-				TopLevel = 1;
-			if (!PopStorage (config))
-				TopLevel = 1;
+			ptr = parse_filename (ptr, &name);
+		}else if (get_flags(pterm->flags, TF_DIRECTION_INDEXED))
+		{
+			ptr = parse_filename (ptr, &side);
+		}else if (get_flags(pterm->flags, TF_INDEXED))
+		{
+			int i = 0 ; 
+			while( isdigit(ptr[i]) ) ++i;
+			if( i > 0 ) 
+			{	
+        		index = mystrndup(ptr, i);
+				ptr = tokenskip( ptr, 1 );
+			}
+		}	 
+
+		if( name )
+			parm_len = sizeof(" name=") + 1+strlen(name)+1+1;
+		if( side )
+			parm_len += sizeof(" side=") + 1+strlen(side)+1+1;
+		if( index )
+			parm_len += sizeof(" index=") +1+strlen(index)+1+1;
+
+		if( parm_len > 0 ) 
+		{
+			char *parm_ptr = safemalloc( parm_len );
+			item->parm = parm_ptr ; 
+			if( name ) 
+			{	
+				sprintf( parm_ptr,"name=\"%s\"", name );	   
+				while( *parm_ptr ) ++parm_ptr ;
+				destroy_string( &name );
+			}
+			if( side ) 
+			{	  
+				sprintf( parm_ptr,"side=\"%s\"", side );	   
+				while( *parm_ptr ) ++parm_ptr ;
+				destroy_string( &side ); 
+			}
+			if( index ) 
+			{	
+				sprintf( parm_ptr,"index=\"%s\"", index );	   
+				destroy_string( &index );
+			}	 
+			LOCAL_DEBUG_OUT( "parm = \"%s\"", item->parm );
+		}	 
+
+	}
+//	if ((pNext = AddFreeStorageElem (config->syntax, config->current_tail->storage, pterm, ID_ANY)) == NULL)
+//		return;
+//LOCAL_DEBUG_OUT( "parsing stuff ...%s", "" );
+//	pNext->flags = config->current_flags;
+
+	if (config->current_data_len > 0)
+	{
+		if(!get_flags(pterm->flags, TF_DONT_REMOVE_COMMENTS) )
+		{
+			ptr = stripcomments2 (ptr, &comments);
+		    /* stripcomments2 modifies original string by 0-terminating 
+		     * it at comments point - kinda nasty */
+			config->current_data_len = strlen (config->current_data);
 		}
-	}										   /* end while( !TopLevel ) */
-#endif
-	return tree;
+	}
+	if( pterm->sub_syntax == NULL && ptr && ptr[0] ) 
+	{                          /* add value as CDATA */
+		item->child = create_CDATA_tag();	  
+		item->child->parm = mystrdup( ptr );
+	}
+	/* otherwise value will be present in child tags */
+    print_trimmed_str( "config->current_data", config->current_data );
+    //LOCAL_DEBUG_OUT( "curr_data_len = %d", config->current_data_len);
+
+	if( comments ) 
+	{
+		append_comments_tag( item, comments );		
+		destroy_string( &comments );
+	}	 
+//	args2FreeStorage (pNext, config->current_data, config->current_data_len);
+	config->current_tail->storage = &(item->next);
+	if (pterm->sub_syntax)
+	{	
+		tail = &(item->child);
+		while( *tail ) tail = &((*tail)->next);
+		ProcessSubSyntax (config, tail, pterm->sub_syntax);
+	}
+	return;
 }
+
 
 xml_elem_t*
 file2xml_tree(const char *filename, char *myname, SyntaxDef *syntax, SpecialFunc special )
@@ -136,12 +186,48 @@ file2xml_tree(const char *filename, char *myname, SyntaxDef *syntax, SpecialFunc
 	config_reader = InitConfigReader (myname, syntax, CDT_Filename, cd, special);
 	if ( config_reader != NULL )
 	{
-		tree = parse_config2xml_tree(config_reader);
+		config_reader->statement_handler = statement2xml_elem;
+		tree = create_CONTAINER_tag();
+		tree->child = xml_elem_new(); 
+		tree->child->tag = mystrdup(syntax->display_name);
+		//c_tag->tag_id = pterm->id ;
+		config2tree_storage(config_reader, (ASTreeStorageModel **)&(tree->child->child));	   
 		DestroyConfig (config_reader);   
 	}
 	return tree;
 }	 
 
 
+#ifdef TEST_PARSER_XML
 
+#include "../libAfterConf/afterconf.h"
+
+# define CONFIG_FILE	"~/.afterstep/wharf"
+# define CONFIG_SYNTAX	&WharfSyntax
+# define CONFIG_SPECIAL	WharfSpecialFunc
+# define CONFIG_MYNAME  "Wharf"
+
+int 
+main( int argc, char ** argv ) 
+{
+	char *fullfilename;
+	xml_elem_t* tree ;
+	InitMyApp ("TestParserXML", argc, argv, NULL, NULL, 0 );
+	LinkAfterStepConfig();
+	InitSession();
+	
+	fullfilename = PutHome( CONFIG_FILE );
+
+	tree = file2xml_tree(fullfilename, CONFIG_MYNAME, CONFIG_SYNTAX, CONFIG_SPECIAL );
+	
+	xml_print(tree);	   
+	xml_elem_delete(NULL, tree);
+
+	FreeMyAppResources();
+#   ifdef DEBUG_ALLOCS
+	print_unfreed_mem ();
+#   endif /* DEBUG_ALLOCS */
+	return 1;
+}
+#endif
 

@@ -196,7 +196,7 @@ flag_options_xref StyleDataFlags[] = {
 };
 
 TermDef       DatabaseTerms[] = {
-	{TF_NAMED_SUBCONFIG | TF_NO_MYNAME_PREPENDING, "Style", 5, TT_QUOTED_TEXT, DATABASE_STYLE_ID, &StyleSyntax}
+	{TF_NAMED | TF_NO_MYNAME_PREPENDING, "Style", 5, TT_QUOTED_TEXT, DATABASE_STYLE_ID, &StyleSyntax}
 	,
 	{0, NULL, 0, 0, 0}
 };

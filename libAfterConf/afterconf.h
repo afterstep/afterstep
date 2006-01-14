@@ -207,7 +207,7 @@ extern struct SyntaxDef *pFuncSyntax;
 extern struct SyntaxDef DummyFuncSyntax;
 
 /* used in some "special" function to correctly process trailing function definition */
-unsigned long TrailingFuncSpecial (struct ConfigDef * config, struct FreeStorageElem ** storage, int skip_tokens);
+unsigned long TrailingFuncSpecial (struct ConfigDef * config, int skip_tokens);
 
 struct FreeStorageElem **Func2FreeStorage (struct SyntaxDef * syntax,
 				    struct FreeStorageElem ** tail,
@@ -1463,7 +1463,7 @@ typedef struct
 WharfConfig;
 
 
-unsigned long WharfSpecialFunc (struct ConfigDef * config, struct FreeStorageElem ** storage);
+unsigned long WharfSpecialFunc (struct ConfigDef * config);
 WharfButton *CreateWharfButton ();
 WharfConfig *CreateWharfConfig ();
 

@@ -618,42 +618,53 @@ stripcpy2 (const char *source, int tab_sensitive)
 
 /* here we'll strip comments and skip whitespaces */
 char         *
-stripcomments (char *source)
+stripcomments2 (char *source, char **comments )
 {
-	register char *ptr;
+	int start = 0, curr = 0 ;
 
 	/* remove comments from the line */
-	while (isspace ((int)*source))
-		source++;
-	for (ptr = (char *)source; *ptr; ptr++)
+	while (isspace ((int)source[start])) ++start;
+	
+	for (curr = start; source[curr]; curr++)
 	{
-		if (*ptr == '"')
+		if (source[curr] == '"')
 		{
-			if ((ptr = find_doublequotes (ptr)) == NULL)
+			char *ptr = find_doublequotes (&source[curr]) ;
+			if ( ptr == NULL )
 			{
-				ptr = source + strlen (source);
+				while(source[++curr]); 
+				break;
+			}else
+				curr = (int)(ptr - source) ;
+		}
+		if (source[curr] == '#')
+		{									   /* checking if it is not a hex color code */
+			int           i = curr;
+
+			while(isxdigit ((int)source[++i]));
+
+			if (i-curr < 4 || i-curr > 13 || (source[i] && !isspace ((int)source[i])))
+			{
+				if( comments ) 
+					*comments = mystrdup( &source[curr+1] );
 				break;
 			}
-		}
-		if (*ptr == '#')
-		{									   /* checking if it is not a hex color code */
-			int           i;
-
-			for (i = 1; isxdigit ((int)*(ptr + i)); i++);
-
-			if (i < 4 || i > 13 || (*(ptr + i) && !isspace ((int)*(ptr + i))))
-			{
-				for (ptr--; ptr > source && isspace ((int)*ptr); ptr--);
-				*(ptr + 1) = '\0';
-				/* we'll exit the loop automagically */
-			} else
-				ptr += i - 1;
+			
+			curr = i - 1;
 		}
 	}
-	for (ptr--; isspace ((int)*ptr) && ptr > source; ptr--);
-	*(ptr + 1) = '\0';
-	return source;
+	do{ --curr ; }while( isspace ((int)source[curr]) && curr > start);
+	source[curr+1] = '\0';
+	return &source[start];
 }
+
+char         *
+stripcomments (char *source)
+{
+	return stripcomments2 (source, NULL );
+}
+
+
 
 char         *
 strip_whitespace (char *str)

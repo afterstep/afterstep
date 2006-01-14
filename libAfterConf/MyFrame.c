@@ -59,8 +59,8 @@ struct SyntaxDef     *TbarLayoutSyntaxPtr = &TbarLayoutSyntax;
 TermDef       MyFrameTerms[] = {
     {TF_NO_MYNAME_PREPENDING|TF_SYNTAX_START, "MyFrame", 7,     TT_QUOTED_TEXT, MYFRAME_START_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "North", 5,       TT_OPTIONAL_PATHNAME,    MYFRAME_North_ID, NULL},
-    {TF_NO_MYNAME_PREPENDING, "South", 5,       TT_OPTIONAL_PATHNAME,    MYFRAME_South_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "East", 4,        TT_OPTIONAL_PATHNAME,    MYFRAME_East_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "South", 5,       TT_OPTIONAL_PATHNAME,    MYFRAME_South_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "West", 4,        TT_OPTIONAL_PATHNAME,    MYFRAME_West_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "NorthWest", 9,   TT_OPTIONAL_PATHNAME,    MYFRAME_NorthWest_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "NorthEast", 9,   TT_OPTIONAL_PATHNAME,    MYFRAME_NorthEast_ID, NULL},
@@ -83,23 +83,23 @@ TermDef       MyFrameTerms[] = {
     {TF_NO_MYNAME_PREPENDING, "FrameStickyStyle", 16,   TT_QUOTED_TEXT,  MYFRAME_FrameStickyStyle_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "FrameSStyle", 11,        TT_QUOTED_TEXT,  MYFRAME_FrameStickyStyle_ID, NULL},
     {TF_NO_MYNAME_PREPENDING|TF_DIRECTION_INDEXED, "SideSize", 8,        TT_GEOMETRY,MYFRAME_SideSize_ID, NULL},
-    {TF_NO_MYNAME_PREPENDING|TF_DIRECTION_INDEXED|TF_NAMED_SUBCONFIG, "SideAlign", 9,       TT_FLAG,    MYFRAME_SideAlign_ID, &AlignSyntax},
-    {TF_NO_MYNAME_PREPENDING|TF_DIRECTION_INDEXED|TF_NAMED_SUBCONFIG, "SideBevel", 9,       TT_FLAG,    MYFRAME_SideBevel_ID, &BevelSyntax},
-    {TF_NO_MYNAME_PREPENDING|TF_DIRECTION_INDEXED|TF_NAMED_SUBCONFIG, "SideFBevel", 10,       TT_FLAG,    MYFRAME_SideFBevel_ID, &BevelSyntax},
-    {TF_NO_MYNAME_PREPENDING|TF_DIRECTION_INDEXED|TF_NAMED_SUBCONFIG, "SideUBevel", 10,       TT_FLAG,    MYFRAME_SideUBevel_ID, &BevelSyntax},
-    {TF_NO_MYNAME_PREPENDING|TF_DIRECTION_INDEXED|TF_NAMED_SUBCONFIG, "SideSBevel", 10,       TT_FLAG,    MYFRAME_SideSBevel_ID, &BevelSyntax},
-    {TF_NO_MYNAME_PREPENDING|TF_DIRECTION_INDEXED|TF_NAMED_SUBCONFIG, "SideFocusedBevel", 16,      TT_FLAG,    MYFRAME_SideFBevel_ID, &BevelSyntax},
-    {TF_NO_MYNAME_PREPENDING|TF_DIRECTION_INDEXED|TF_NAMED_SUBCONFIG, "SideUnfocusedBevel", 18,    TT_FLAG,    MYFRAME_SideUBevel_ID, &BevelSyntax},
-    {TF_NO_MYNAME_PREPENDING|TF_DIRECTION_INDEXED|TF_NAMED_SUBCONFIG, "SideStickyBevel", 15,       TT_FLAG,    MYFRAME_SideSBevel_ID, &BevelSyntax},
+    {TF_NO_MYNAME_PREPENDING|TF_DIRECTION_INDEXED|TF_NAMED, "SideAlign", 9,       TT_FLAG,    MYFRAME_SideAlign_ID, &AlignSyntax},
+    {TF_NO_MYNAME_PREPENDING|TF_DIRECTION_INDEXED|TF_NAMED, "SideBevel", 9,       TT_FLAG,    MYFRAME_SideBevel_ID, &BevelSyntax},
+    {TF_NO_MYNAME_PREPENDING|TF_DIRECTION_INDEXED|TF_NAMED, "SideFBevel", 10,       TT_FLAG,    MYFRAME_SideFBevel_ID, &BevelSyntax},
+    {TF_NO_MYNAME_PREPENDING|TF_DIRECTION_INDEXED|TF_NAMED, "SideUBevel", 10,       TT_FLAG,    MYFRAME_SideUBevel_ID, &BevelSyntax},
+    {TF_NO_MYNAME_PREPENDING|TF_DIRECTION_INDEXED|TF_NAMED, "SideSBevel", 10,       TT_FLAG,    MYFRAME_SideSBevel_ID, &BevelSyntax},
+    {TF_NO_MYNAME_PREPENDING|TF_DIRECTION_INDEXED|TF_NAMED, "SideFocusedBevel", 16,      TT_FLAG,    MYFRAME_SideFBevel_ID, &BevelSyntax},
+    {TF_NO_MYNAME_PREPENDING|TF_DIRECTION_INDEXED|TF_NAMED, "SideUnfocusedBevel", 18,    TT_FLAG,    MYFRAME_SideUBevel_ID, &BevelSyntax},
+    {TF_NO_MYNAME_PREPENDING|TF_DIRECTION_INDEXED|TF_NAMED, "SideStickyBevel", 15,       TT_FLAG,    MYFRAME_SideSBevel_ID, &BevelSyntax},
     {TF_NO_MYNAME_PREPENDING|TF_DIRECTION_INDEXED, "CornerSize", 10,     TT_GEOMETRY,MYFRAME_CornerSize_ID, NULL},
-    {TF_NO_MYNAME_PREPENDING|TF_DIRECTION_INDEXED|TF_NAMED_SUBCONFIG, "CornerAlign", 11,    TT_FLAG,    MYFRAME_CornerAlign_ID, &AlignSyntax},
-    {TF_NO_MYNAME_PREPENDING|TF_DIRECTION_INDEXED|TF_NAMED_SUBCONFIG, "CornerBevel", 11,    TT_FLAG,    MYFRAME_CornerBevel_ID, &BevelSyntax},
-    {TF_NO_MYNAME_PREPENDING|TF_DIRECTION_INDEXED|TF_NAMED_SUBCONFIG, "CornerFBevel", 12,    TT_FLAG,    MYFRAME_CornerFBevel_ID, &BevelSyntax},
-    {TF_NO_MYNAME_PREPENDING|TF_DIRECTION_INDEXED|TF_NAMED_SUBCONFIG, "CornerUBevel", 12,    TT_FLAG,    MYFRAME_CornerUBevel_ID, &BevelSyntax},
-    {TF_NO_MYNAME_PREPENDING|TF_DIRECTION_INDEXED|TF_NAMED_SUBCONFIG, "CornerSBevel", 12,    TT_FLAG,    MYFRAME_CornerSBevel_ID, &BevelSyntax},
-    {TF_NO_MYNAME_PREPENDING|TF_DIRECTION_INDEXED|TF_NAMED_SUBCONFIG, "CornerFocusedBevel", 18,   TT_FLAG,    MYFRAME_CornerFBevel_ID, &BevelSyntax},
-    {TF_NO_MYNAME_PREPENDING|TF_DIRECTION_INDEXED|TF_NAMED_SUBCONFIG, "CornerUnfocusedBevel", 20, TT_FLAG,    MYFRAME_CornerUBevel_ID, &BevelSyntax},
-    {TF_NO_MYNAME_PREPENDING|TF_DIRECTION_INDEXED|TF_NAMED_SUBCONFIG, "CornerStickyBevel", 17,    TT_FLAG,    MYFRAME_CornerSBevel_ID, &BevelSyntax},
+    {TF_NO_MYNAME_PREPENDING|TF_DIRECTION_INDEXED|TF_NAMED, "CornerAlign", 11,    TT_FLAG,    MYFRAME_CornerAlign_ID, &AlignSyntax},
+    {TF_NO_MYNAME_PREPENDING|TF_DIRECTION_INDEXED|TF_NAMED, "CornerBevel", 11,    TT_FLAG,    MYFRAME_CornerBevel_ID, &BevelSyntax},
+    {TF_NO_MYNAME_PREPENDING|TF_DIRECTION_INDEXED|TF_NAMED, "CornerFBevel", 12,    TT_FLAG,    MYFRAME_CornerFBevel_ID, &BevelSyntax},
+    {TF_NO_MYNAME_PREPENDING|TF_DIRECTION_INDEXED|TF_NAMED, "CornerUBevel", 12,    TT_FLAG,    MYFRAME_CornerUBevel_ID, &BevelSyntax},
+    {TF_NO_MYNAME_PREPENDING|TF_DIRECTION_INDEXED|TF_NAMED, "CornerSBevel", 12,    TT_FLAG,    MYFRAME_CornerSBevel_ID, &BevelSyntax},
+    {TF_NO_MYNAME_PREPENDING|TF_DIRECTION_INDEXED|TF_NAMED, "CornerFocusedBevel", 18,   TT_FLAG,    MYFRAME_CornerFBevel_ID, &BevelSyntax},
+    {TF_NO_MYNAME_PREPENDING|TF_DIRECTION_INDEXED|TF_NAMED, "CornerUnfocusedBevel", 20, TT_FLAG,    MYFRAME_CornerUBevel_ID, &BevelSyntax},
+    {TF_NO_MYNAME_PREPENDING|TF_DIRECTION_INDEXED|TF_NAMED, "CornerStickyBevel", 17,    TT_FLAG,    MYFRAME_CornerSBevel_ID, &BevelSyntax},
     {TF_NO_MYNAME_PREPENDING, "TitleBevel", 10,         TT_FLAG,         MYFRAME_TitleBevel_ID, &BevelSyntax},
     {TF_NO_MYNAME_PREPENDING, "TitleFBevel", 11,         TT_FLAG,         MYFRAME_TitleFBevel_ID, &BevelSyntax},
     {TF_NO_MYNAME_PREPENDING, "TitleUBevel", 11,         TT_FLAG,         MYFRAME_TitleUBevel_ID, &BevelSyntax},
@@ -171,6 +171,13 @@ SyntaxDef     MyFrameSyntax = {
 	NULL,
 	0
 };
+
+const char *frame_side_idx2name( int idx )
+{
+	if( idx >= 0 && idx < FRAME_PARTS )
+		return	MyFrameTerms[1+idx].keyword ;
+	return NULL;
+}	 
 
 /********************************************************************/
 /* First MyFrame processing code				    */

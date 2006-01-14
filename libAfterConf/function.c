@@ -34,14 +34,12 @@
  ****************************************************************************/
 extern SyntaxDef WharfSyntax;
 
-void ProcessStatement (ConfigDef * config);
-
 unsigned long
-TrailingFuncSpecial (ConfigDef * config, FreeStorageElem ** storage, int skip_tokens)
+TrailingFuncSpecial (ConfigDef * config, int skip_tokens)
 {
 	register char *cur;
 
-	if (config == NULL || storage == NULL)
+	if (config == NULL )
 		return SPECIAL_BREAK;
 
     /* processing binding item key, context and modifyers : */

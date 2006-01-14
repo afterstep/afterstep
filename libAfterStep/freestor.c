@@ -929,6 +929,54 @@ check_avail_args (FreeStorageElem * stored, int pos, int need)
 	return True;
 }
 
+int 
+direction2index(const char *ptr)	
+{
+	int index = 0;             
+    /* custom code to parse frame sides very fast :*/
+
+	if( ptr[0] == 'W' || ptr[0] == 'w' )
+        index = FR_W ;
+    else if( ptr[0] == 'E' || ptr[0] == 'e' )
+        index = FR_E ;
+    else if( ptr[0] == 'N' || ptr[0] == 'n' )
+    {
+        if( ptr[1] == 'W' || ptr[1] == 'w' )
+            index = FR_NW ;
+        else if( ptr[1] == 'E' || ptr[1] == 'e' )
+            index = FR_NE ;
+        else 
+        {
+            register int i = 0;
+            while( i < 5 && ptr[i] != '\0' ) ++i;
+            if( ptr[i] == 'W' || ptr[i] == 'w' )
+                index = FR_NW ;
+            else if( ptr[i] == 'E' || ptr[i] == 'e' )
+                index = FR_NE ;
+            else
+                index = FR_N ;
+        }
+    }else if( ptr[0] == 'S' || ptr[0] == 's' )
+    {
+        if( ptr[1] == 'W' || ptr[1] == 'w' )
+            index = FR_SW ;
+        else if( ptr[1] == 'E' || ptr[1] == 'e' )
+            index = FR_SE ;
+        else
+        {
+            register int i = 0;
+            while( i < 5 && ptr[i] != '\0' ) ++i;
+            if( ptr[i] == 'W' || ptr[i] == 'w' )
+                index = FR_SW ;
+            else if( ptr[i] == 'E' || ptr[i] == 'e' )
+                index = FR_SE ;
+            else
+                index = FR_S ;
+        }
+    }
+	return index;
+}
+
 int
 ReadConfigItem (ConfigItem * item, FreeStorageElem * stored)
 {
@@ -956,51 +1004,9 @@ ReadConfigItem (ConfigItem * item, FreeStorageElem * stored)
 			item->index = atoi (stored->argv[pos++]);
         }else if (get_flags(stored->term->flags, TF_DIRECTION_INDEXED))
         {
-            register char *ptr ;
 			if (!check_avail_args (stored, pos, 1))
 				return ret_code;
-            ptr = stored->argv[pos];
-            /* custom code to parse frame sides very fast :*/
-            if( ptr[0] == 'W' || ptr[0] == 'w' )
-                item->index = FR_W ;
-            else if( ptr[0] == 'E' || ptr[0] == 'e' )
-                item->index = FR_E ;
-            else if( ptr[0] == 'N' || ptr[0] == 'n' )
-            {
-                if( ptr[1] == 'W' || ptr[1] == 'w' )
-                    item->index = FR_NW ;
-                else if( ptr[1] == 'E' || ptr[1] == 'e' )
-                    item->index = FR_NE ;
-                else
-                {
-                    register int i = 0;
-                    while( i < 5 && ptr[i] != '\0' ) ++i;
-                    if( ptr[i] == 'W' || ptr[i] == 'w' )
-                        item->index = FR_NW ;
-                    else if( ptr[i] == 'E' || ptr[i] == 'e' )
-                        item->index = FR_NE ;
-                    else
-                        item->index = FR_N ;
-                }
-            }else if( ptr[0] == 'S' || ptr[0] == 's' )
-            {
-                if( ptr[1] == 'W' || ptr[1] == 'w' )
-                    item->index = FR_SW ;
-                else if( ptr[1] == 'E' || ptr[1] == 'e' )
-                    item->index = FR_SE ;
-                else
-                {
-                    register int i = 0;
-                    while( i < 5 && ptr[i] != '\0' ) ++i;
-                    if( ptr[i] == 'W' || ptr[i] == 'w' )
-                        item->index = FR_SW ;
-                    else if( ptr[i] == 'E' || ptr[i] == 'e' )
-                        item->index = FR_SE ;
-                    else
-                        item->index = FR_S ;
-                }
-            }
-            ++pos;
+            item->index = direction2index(stored->argv[pos++]);
         }
 		switch (item->type)
 		{

@@ -104,8 +104,8 @@ struct ASCategoryTree *CombinedCategories = NULL ;
 
 /* names of AS functions - used all over the place  :*/
 
-#define FUNC_TERM(keyword,func)         {TF_NO_MYNAME_PREPENDING,keyword,sizeof(keyword)-1,TT_FUNCTION,func,NULL}
-#define FUNC_TERM2(flags,keyword,func)  {TF_NO_MYNAME_PREPENDING|(flags),keyword,sizeof(keyword)-1,TT_FUNCTION,func,NULL}
+#define FUNC_TERM(keyword,func)         {TF_NO_MYNAME_PREPENDING|TF_NAMED,keyword,sizeof(keyword)-1,TT_FUNCTION,func,NULL}
+#define FUNC_TERM2(flags,keyword,func)  {TF_NO_MYNAME_PREPENDING|TF_NAMED|(flags),keyword,sizeof(keyword)-1,TT_FUNCTION,func,NULL}
 
 TermDef       FuncTerms[F_FUNCTIONS_NUM + 1] = {
 	FUNC_TERM2 (NEED_NAME, "Nop", F_NOP),   /* Nop      "name"|"" */
@@ -212,10 +212,10 @@ TermDef       FuncTerms[F_FUNCTIONS_NUM + 1] = {
 	FUNC_TERM ("&raise_it&", F_RAISE_IT),  /* should not be used by user */
     /* wharf functions : */
     {TF_NO_MYNAME_PREPENDING, "Folder", 6, TT_FUNCTION, F_Folder, NULL},
-    {TF_NO_MYNAME_PREPENDING | NEED_NAME | NEED_CMD, "Swallow", 7, TT_FUNCTION, F_Swallow, NULL},
-    {TF_NO_MYNAME_PREPENDING | NEED_NAME | NEED_CMD, "MaxSwallow", 10, TT_FUNCTION, F_MaxSwallow, NULL},
-    {TF_NO_MYNAME_PREPENDING | NEED_NAME | NEED_CMD, "SwallowModule", 13, TT_FUNCTION, F_SwallowModule, NULL},
-    {TF_NO_MYNAME_PREPENDING | NEED_NAME | NEED_CMD, "MaxSwallowModule", 16, TT_FUNCTION, F_MaxSwallowModule, NULL},
+    {TF_NO_MYNAME_PREPENDING | NEED_NAME | NEED_CMD| TF_NAMED, "Swallow", 7, TT_FUNCTION, F_Swallow, NULL},
+    {TF_NO_MYNAME_PREPENDING | NEED_NAME | NEED_CMD| TF_NAMED, "MaxSwallow", 10, TT_FUNCTION, F_MaxSwallow, NULL},
+    {TF_NO_MYNAME_PREPENDING | NEED_NAME | NEED_CMD| TF_NAMED, "SwallowModule", 13, TT_FUNCTION, F_SwallowModule, NULL},
+    {TF_NO_MYNAME_PREPENDING | NEED_NAME | NEED_CMD| TF_NAMED, "MaxSwallowModule", 16, TT_FUNCTION, F_MaxSwallowModule, NULL},
     {TF_NO_MYNAME_PREPENDING, "Size", 4, TT_FUNCTION, F_Size, NULL},
     {TF_NO_MYNAME_PREPENDING, "Transient", 9, TT_FUNCTION, F_Transient, NULL},
 

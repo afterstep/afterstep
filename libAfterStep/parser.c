@@ -18,7 +18,7 @@
  *
  */
 
-#undef LOCAL_DEBUG
+#define LOCAL_DEBUG
 #undef DO_CLOCKING
 #undef UNKNOWN_KEYWORD_WARNING
 
@@ -709,7 +709,7 @@ ProcessSubSyntax (ConfigDef * config, void *storage, SyntaxDef * syntax)
 	if (config->syntax->terminator == syntax->file_terminator)
 	{										   /* need to push back term's data into config buffer */
 		config->cursor = config->tdata;
-		if (config->current_term->flags & TF_NAMED_SUBCONFIG)
+		if (config->current_term->flags & TF_NAMED)
 			/* we are supposed to skip single quoted text in here, or unquoted token */
 		{
 			if (*(ptr = config->cursor) == '"')
