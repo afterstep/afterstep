@@ -54,6 +54,7 @@ typedef struct TermDef
 #define TF_USE_TOKENS_MASK	 (0x07<<16)
 #define TF_USE_TOKENS(count)  	(((count)<<16)&TF_USE_TOKENS_MASK)
 #define GetTermUseTokensCount(pterm)  	(((pterm)->flags&TF_USE_TOKENS_MASK)>>16)
+#define TF_POP_SYNTAX		 (0x01<<15)
 
   unsigned long flags;		/* combination of any of above values */
   char *keyword;
@@ -79,6 +80,7 @@ typedef struct TermDef
 #define TT_CURSOR      18   /* ASCursor - pair of filenames */
 #define TT_OPTIONAL_PATHNAME 19   /* optional quoted text - could be empty */
 #define TT_DIRECTION   20   /* North,South, East,West, NorthWest, NorthEast, SouthWest, SouthEast */
+#define TT_ICON_LIST   21
 
 #define TT_CUSTOM      64	/* modules can define custom types starting */
   /* with this one */

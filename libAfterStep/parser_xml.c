@@ -169,6 +169,12 @@ LOCAL_DEBUG_OUT( "checking for foreign option ...%s", "" );
 	{	
 		tail = &(item->child);
 		while( *tail ) tail = &((*tail)->next);
+		if( get_flags( pterm->flags, TF_POP_SYNTAX )  )
+		{
+			PopSyntax (config);
+			PopStorage (config);
+			tail = config->current_tail->storage ;
+		}	 
 		ProcessSubSyntax (config, tail, pterm->sub_syntax);
 	}
 	return;

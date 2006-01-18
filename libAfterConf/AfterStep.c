@@ -547,5 +547,7 @@ void LinkAfterStepConfig()
 		}	 
 		++i ;	
 	}	 
+
+	pFuncSyntax.terms[F_Folder].sub_syntax = WharfFolderSyntax ;
 }	 
 
