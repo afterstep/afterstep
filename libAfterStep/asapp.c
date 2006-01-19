@@ -211,7 +211,7 @@ TermDef       FuncTerms[F_FUNCTIONS_NUM + 1] = {
 	FUNC_TERM ("&nonsense&", F_INTERNAL_FUNC_START),	/* not really a command */
 	FUNC_TERM ("&raise_it&", F_RAISE_IT),  /* should not be used by user */
     /* wharf functions : */
-    {TF_NO_MYNAME_PREPENDING | TF_POP_SYNTAX, "Folder", 6, TT_FUNCTION, F_Folder, NULL},
+    {TF_NO_MYNAME_PREPENDING, "Folder", 6, TT_FUNCTION, F_Folder, NULL},
     {TF_NO_MYNAME_PREPENDING | NEED_NAME | NEED_CMD| TF_NAMED, "Swallow", 7, TT_FUNCTION, F_Swallow, NULL},
     {TF_NO_MYNAME_PREPENDING | NEED_NAME | NEED_CMD| TF_NAMED, "MaxSwallow", 10, TT_FUNCTION, F_MaxSwallow, NULL},
     {TF_NO_MYNAME_PREPENDING | NEED_NAME | NEED_CMD| TF_NAMED, "SwallowModule", 13, TT_FUNCTION, F_SwallowModule, NULL},

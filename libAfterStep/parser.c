@@ -703,28 +703,16 @@ GetNextStatement (ConfigDef * config, int my_only)
 void
 ProcessSubSyntax (ConfigDef * config, void *storage, SyntaxDef * syntax)
 {
-	register char *ptr;
-
 	PushStorage (config, storage);
 	if (config->syntax->terminator == syntax->file_terminator)
 	{										   /* need to push back term's data into config buffer */
+		int skip_tokens = 0 ; 
 		config->cursor = config->tdata;
-		if (config->current_term->flags & TF_NAMED)
-			/* we are supposed to skip single quoted text in here, or unquoted token */
-		{
-			if (*(ptr = config->cursor) == '"')
-			{
-				ptr = find_doublequotes (ptr);
-				if (!ptr)
-				{
-					config_error (config, "Unmatched doublequotes detected\n");
-					ptr = config->cursor;
-				} else
-					ptr++;					   /* skipping current doubleqoute */
-			} else							   /*simply skipping to the next space */
-				for (; *ptr && !isspace ((int)*ptr); ptr++);
-			config->cursor = ptr;
-		}
+		skip_tokens = GetTermUseTokensCount(config->current_term);
+		if ( get_flags(config->current_term->flags, TF_NAMED|TF_INDEXED|TF_DIRECTION_INDEXED) )
+			++skip_tokens ; 
+		if( skip_tokens > 0 )
+			config->cursor = tokenskip( config->cursor, skip_tokens );
 	} else if (config->syntax->terminator == syntax->terminator)
 	{										   /* need to push back entire term's line into config buffer */
 		config->cursor = config->tline_start;

@@ -548,6 +548,6 @@ void LinkAfterStepConfig()
 		++i ;	
 	}	 
 
-	pFuncSyntax.terms[F_Folder].sub_syntax = WharfFolderSyntax ;
+	pFuncSyntax->terms[F_Folder].sub_syntax = &WharfFolderSyntax ;
 }	 
 

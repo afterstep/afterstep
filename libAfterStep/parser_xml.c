@@ -210,7 +210,7 @@ file2xml_tree(const char *filename, char *myname, SyntaxDef *syntax, SpecialFunc
 
 # define CONFIG_FILE	"~/.afterstep/wharf"
 # define CONFIG_SYNTAX	&WharfSyntax
-# define CONFIG_SPECIAL	WharfSpecialFunc
+# define CONFIG_SPECIAL	NULL   /*WharfSpecialFunc*/
 # define CONFIG_MYNAME  "Wharf"
 
 int 

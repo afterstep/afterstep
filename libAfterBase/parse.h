@@ -31,12 +31,12 @@ void custom_color_cleanup();
 const char *parse_argb_color( const char *color, CARD32 *pargb );
 const char *parse_hue( const char *color, int *hue );
 
-char *find_doublequotes (char *ptr);
+char *find_doublequotes (const char *ptr);
 char *stripcpy (const char *source);
 char *stripcpy2 (const char *source, int tab_sensitive);
 char *stripcpy3 (const char *, Bool);
 char *tokencpy (const char *source);
-char *tokenskip( char *start, unsigned int n_tokens );
+char *tokenskip( const char *ptr, unsigned int n_tokens );
 struct config *find_config (struct config *, const char *);
 int quotestr (char *dest, const char *src, int maxlen);
 

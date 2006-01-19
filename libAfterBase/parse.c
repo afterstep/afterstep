@@ -554,24 +554,24 @@ const char *parse_hue( const char *color, int *hue )
 /****************************************************************************
  * Some usefull parsing functions
  ****************************************************************************/
-char         *
-find_doublequotes (char *ptr)
+char*
+find_doublequotes ( const char *ptr)
 {
-	if (ptr)
-	{
-		if (*ptr == '"')
-			ptr++;
+	register int i = 0 ;
+	if (ptr == NULL)
+		return NULL;
 
-		if (*ptr != '"')
-		{
-			while ((ptr = strchr (ptr, '"')))
-				if (*(ptr - 1) == '\\')
-					ptr++;
-				else
-					break;
-		}
+	if (ptr[i] == '"')
+		++i;
+
+	while(ptr[i] != '"')
+	{
+		if( ptr[i] == '\\' ) 
+			++i ;
+		if( ptr[++i] == '\0' )
+			break;
 	}
-	return ptr;
+	return (char*)&ptr[i];
 }
 
 /****************************************************************************
@@ -602,7 +602,7 @@ stripcpy (const char *source)
 char         *
 stripcpy2 (const char *source, int tab_sensitive)
 {
-	char         *ptr = (char *)source, *tail;
+	const char *ptr = source, *tail;
 
 	if (*ptr != '"')
 		ptr = find_doublequotes (ptr);
@@ -629,7 +629,7 @@ stripcomments2 (char *source, char **comments )
 	{
 		if (source[curr] == '"')
 		{
-			char *ptr = find_doublequotes (&source[curr]) ;
+			const char *ptr = find_doublequotes (&source[curr]) ;
 			if ( ptr == NULL )
 			{
 				while(source[++curr]); 
@@ -686,45 +686,89 @@ strip_whitespace (char *str)
  * Strips leading and trailing whitespace
  *
  ****************************************************************************/
+char *
+tokenskip( const char *ptr, unsigned int n_tokens )
+{
+    int    tok_no = 0 ;  ;
+    register int  curr = 0 ;
+
+    if( ptr == NULL ) return NULL ;
+    while( ++tok_no <= n_tokens && ptr[curr] != '\0' )
+	{
+		while (!isspace ((int)ptr[curr]) && ptr[curr])
+        {   /* we have to match doublequotes if we encounter any, to allow for spaces in filenames */
+			if (ptr[curr] == '"')
+			{
+				register const char *closing_quote = find_doublequotes (&ptr[curr]);
+				if (closing_quote)
+					curr = (int)(closing_quote-ptr);
+			}
+			++curr;
+		}
+
+		while (isspace ((int)ptr[curr])) ++curr;
+	}
+    return (char*)&ptr[curr];
+}
+
+/****************************************************************************
+ * Copies a whitespace separated token into a new, malloc'ed string
+ * Strips leading and trailing whitespace
+ * returns pointer to the end of token in source string
+ ****************************************************************************/
+char         *
+parse_token (const char *source, char **trg)
+{
+	int tok_start = 0, tok_end;
+	char *next_tok_ptr ; 
+	while( isspace(source[tok_start]) ) ++tok_start;
+	next_tok_ptr = tokenskip( &source[tok_start], 1 );
+	tok_end = (int)(next_tok_ptr-source) ; 
+	if( tok_end > tok_start )
+		if( source[tok_end] != '\0' )  /* then it points to beginning of the next token */ 	
+			do{	--tok_end;}while( tok_end > tok_start && isspace(source[tok_end-1]));
+	
+	if( trg ) 
+		*trg = mystrndup (&source[tok_start], tok_end - tok_start );
+	
+	return next_tok_ptr;
+}
+
 
 char         *
 tokencpy (const char *source)
 {
-	const char   *ptr;
-
-	for (; isspace ((int)*source); source++);
-	for (ptr = source; !isspace ((int)*ptr) && *ptr; ptr++);
-	return mystrndup (source, ptr - source);
+	char *token = NULL ; 
+	parse_token (source, &token);	
+	return token;
 }
 
-char *
-tokenskip( char *start, unsigned int n_tokens )
+char         *
+parse_tab_token (const char *source, char **trg)
 {
-    register int    i ;
-    register char   *cur = start ;
+	char         *ptr;
 
-    if( cur == NULL ) return cur ;
-    for (i = 0; i < n_tokens; i++)
-	{
-		while (!isspace ((int)*cur) && *cur)
-        {   /* we have to match doublequotes if we encounter any, to allow for spaces in filenames */
-			if (*cur == '"')
-			{
-				register char *ptr = find_doublequotes (cur);
+	for (; isspace ((int)*source); source++);
+	for (ptr = (char *)source; *ptr != '\t' && *ptr; ptr++);
+	*trg = mystrndup (source, ptr - source);
+	return ptr;
+}
 
-				if (ptr)
-					while (cur != ptr)
-						cur++;
-			}
-			cur++;
-		}
-
-		while (isspace ((int)*cur) && *cur)
-			cur++;
-		if (*cur == '\0')
-			break;
+char         *
+parse_filename (const char *source, char **trg)
+{
+	char *token = NULL ; 
+	char *next_token = parse_token (source, trg?&token:NULL);	
+	if( trg ) 
+	{	
+		if( token && token[0] == '\"' )
+		{	
+			*trg = stripcpy2 (token, 0);
+			free( token );
+		}else
+			*trg = token ;
 	}
-    return cur;
+	return next_token;
 }
 
 /****************************************************************************
@@ -768,49 +812,6 @@ quotestr (char *dest, const char *src, int maxlen)
 	}
 	*dest = '\0';
 	return maxlen - n;
-}
-
-/****************************************************************************
- *
- * Copies a whitespace separated token into a new, malloc'ed string
- * Strips leading and trailing whitespace
- * returns pointer to the end of token in source string
- ****************************************************************************/
-
-char         *
-parse_token (const char *source, char **trg)
-{
-	char         *ptr;
-
-	for (; isspace ((int)*source); source++);
-	for (ptr = (char *)source; !isspace ((int)*ptr) && *ptr; ptr++);
-	*trg = mystrndup (source, ptr - source);
-	return ptr;
-}
-
-char         *
-parse_tab_token (const char *source, char **trg)
-{
-	char         *ptr;
-
-	for (; isspace ((int)*source); source++);
-	for (ptr = (char *)source; *ptr != '\t' && *ptr; ptr++);
-	*trg = mystrndup (source, ptr - source);
-	return ptr;
-}
-
-char         *
-parse_filename (const char *source, char **trg)
-{
-	for (; isspace ((int)*source); source++);
-
-	if (*source == '"')
-	{
-		if ((*trg = stripcpy2 (source, 0)) != NULL)
-			source += strlen (*trg) + 2;
-	} else
-		source = parse_token (source, trg);
-	return (char *)source;
 }
 
 /* used in ParseMouse and in communication with modules */
