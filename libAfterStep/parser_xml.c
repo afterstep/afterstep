@@ -109,14 +109,11 @@ statement2xml_elem (ConfigDef * config)
 	TermDef      *pterm = config->current_term;
 	char *ptr = config->current_data;
 	char *name  = NULL ; 
+	char *module  = NULL; 
 	char *side  = NULL ; 
 	char *index = NULL ; 
 	int parm_len = 0 ; 
 	char *comments = NULL ;
-
-LOCAL_DEBUG_OUT( "checking for foreign option ...%s", "" );
-	if (IsForeignOption (config))
-		return;
 
 	if( get_flags(pterm->flags, TF_SYNTAX_TERMINATOR) ) 
 		return;                /* no need to terminate XML structure */
@@ -125,26 +122,51 @@ LOCAL_DEBUG_OUT( "checking for foreign option ...%s", "" );
 	*tail = item ; 
 	config->current_tail->storage = &(item->next);
 	
-	if (pterm->type == TT_COMMENT )
+	if ( pterm->type == TT_COMMENT || pterm->type == TT_ANY )
 	{	
-		item->tag = mystrdup(_as_config_tags[TT_COMMENT]); 
-		item->tag_id = TT_COMMENT ;
+		item->tag = mystrdup(_as_config_tags[pterm->type]); 
+		item->tag_id = pterm->type ;
 		if (config->current_data_len > 0)
 		{	
+			char *cdata = NULL ;
+			if( pterm->type == TT_COMMENT ) 
+				cdata = mystrdup(config->current_data);
+			else
+			{
+				char *token = NULL ; 
+				parse_token( config->tline, &token );
+				cdata = safemalloc( 1+strlen( token )+1+config->current_data_len +1);
+				sprintf( cdata, get_flags( config->current_flags, CF_PUBLIC_OPTION)?"*%s %s":"%s %s", token, config->current_data );
+				free( token );
+			}	 
 			item->child = create_CDATA_tag();	  
-			item->child->parm = mystrdup(config->current_data);
+			item->child->parm = cdata;
 		}
-
 		return;
 	}
-
 
 	item->tag = pterm->keyword[0]?mystrdup(pterm->keyword):mystrdup("item");
 	LOCAL_DEBUG_OUT( "adding storage ... pterm is \"%s\" (%s)", item->tag, get_flags(pterm->flags, TF_NAMED)?"named":"");
 	item->tag_id = pterm->id ;
     
-	print_trimmed_str( "ptr", ptr );
-
+	if( get_flags( config->current_flags, CF_FOREIGN_OPTION ) ) 
+	{
+		int token_len ;
+		parse_token( config->tline, &module );
+		LOCAL_DEBUG_OUT( "foreign option beginning with token \"%s\"", module);
+		token_len = strlen(module); 
+		if( token_len > 0 ) 
+		{	
+			if( token_len > pterm->keyword_len && pterm->keyword_len > 0 ) 
+				if( mystrncasecmp( &module[token_len-pterm->keyword_len], pterm->keyword, pterm->keyword_len ) == 0 )
+					module[token_len-pterm->keyword_len] = '\0';
+		}else
+			destroy_string(&module);
+	}else if( !get_flags( config->current_flags, CF_PUBLIC_OPTION ) && 
+			  !get_flags(pterm->flags, TF_NO_MYNAME_PREPENDING) ) 
+	{
+		module = config->myname;
+	}
 	if( ptr )
 	{	
 		if ( get_flags(pterm->flags, TF_NAMED) )
@@ -163,39 +185,44 @@ LOCAL_DEBUG_OUT( "checking for foreign option ...%s", "" );
 				ptr = tokenskip( ptr, 1 );
 			}
 		}	 
+	}		
+	if( name )
+		parm_len = sizeof(" name=") + 1+strlen(name)+1+1;
+	if( side )
+		parm_len += sizeof(" side=") + 1+strlen(side)+1+1;
+	if( index )
+		parm_len += sizeof(" index=") +1+strlen(index)+1+1;
+	if( module )
+		parm_len += sizeof(" module=") +1+strlen(module)+1+1;
 
-		if( name )
-			parm_len = sizeof(" name=") + 1+strlen(name)+1+1;
-		if( side )
-			parm_len += sizeof(" side=") + 1+strlen(side)+1+1;
-		if( index )
-			parm_len += sizeof(" index=") +1+strlen(index)+1+1;
-
-		if( parm_len > 0 ) 
-		{
-			char *parm_ptr = safemalloc( parm_len );
-			item->parm = parm_ptr ; 
-			if( name ) 
-			{	
-				sprintf( parm_ptr,"name=\"%s\"", name );	   
-				while( *parm_ptr ) ++parm_ptr ;
-				destroy_string( &name );
-			}
-			if( side ) 
-			{	  
-				sprintf( parm_ptr,"side=\"%s\"", side );	   
-				while( *parm_ptr ) ++parm_ptr ;
-				destroy_string( &side ); 
-			}
-			if( index ) 
-			{	
-				sprintf( parm_ptr,"index=\"%s\"", index );	   
-				destroy_string( &index );
-			}	 
-			LOCAL_DEBUG_OUT( "parm = \"%s\"", item->parm );
+	if( parm_len > 0 ) 
+	{
+		char *parm_ptr = safemalloc( parm_len );
+		item->parm = parm_ptr ; 
+		if( name ) 
+		{	
+			sprintf( parm_ptr,"name=\"%s\"", name );	   
+			while( *parm_ptr ) ++parm_ptr ;
+			destroy_string( &name );
+		}else if( side ) 
+		{	  
+			sprintf( parm_ptr,"side=\"%s\"", side );	   
+			while( *parm_ptr ) ++parm_ptr ;
+			destroy_string( &side ); 
+		}else if( index ) 
+		{	
+			sprintf( parm_ptr,"index=\"%s\"", index );	   
+			while( *parm_ptr ) ++parm_ptr ;
+			destroy_string( &index );
 		}	 
-
-	}
+		if( module ) 
+		{	
+			sprintf( parm_ptr, (parm_ptr>item->parm)?" module=\"%s\"":"module=\"%s\"", module );	   
+			if( module != config->myname )
+				destroy_string( &module );
+		}	 
+		LOCAL_DEBUG_OUT( "parm = \"%s\"", item->parm );
+	}	 
 //	if ((pNext = AddFreeStorageElem (config->syntax, config->current_tail->storage, pterm, ID_ANY)) == NULL)
 //		return;
 //LOCAL_DEBUG_OUT( "parsing stuff ...%s", "" );
@@ -263,7 +290,7 @@ file2xml_tree(const char *filename, char *myname, SyntaxDef *syntax, SpecialFunc
 		tree->child = xml_elem_new(); 
 		tree->child->tag = mystrdup(syntax->display_name);
 		//c_tag->tag_id = pterm->id ;
-		config2tree_storage(config_reader, (ASTreeStorageModel **)&(tree->child->child));	   
+		config2tree_storage(config_reader, (ASTreeStorageModel **)&(tree->child->child), False);	   
 		DestroyConfig (config_reader);   
 	}
 	return tree;

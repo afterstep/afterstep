@@ -94,31 +94,6 @@ BuildHash (SyntaxDef * syntax)
 	}
 }
 
-TermDef _as_comments_term =	{TF_NO_MYNAME_PREPENDING, "#", 1, TT_COMMENT, TT_COMMENT, NULL};
-
-
-TermDef      *
-FindStatementTerm (char *tline, SyntaxDef * syntax)
-{
-    ASHashData hdata = {0};
-    LOCAL_DEBUG_OUT( "looking for pterm in hash table  %p of the syntax %s ", syntax->term_hash, syntax->display_name );
-	if( tline[0] == COMMENTS_CHAR )
-		return &_as_comments_term;
-
-	if( isspace(tline[0]) )
-	{
-		int i = 0; 
-		while( isspace(tline[i]) ) 	   ++i;
-		if( tline[i] ) 
-			if( get_hash_item (syntax->term_hash, AS_HASHABLE(&tline[i]), &hdata.vptr)==ASH_Success  )
-				return hdata.vptr;
-	}	 
-    if( get_hash_item (syntax->term_hash, AS_HASHABLE(tline), &hdata.vptr)!=ASH_Success  )
-		hdata.vptr = NULL;
-    LOCAL_DEBUG_OUT( "FOUND pterm %p", hdata.vptr );
-    return hdata.vptr;
-}
-
 void
 PrepareSyntax (SyntaxDef * syntax)
 {
@@ -126,7 +101,7 @@ PrepareSyntax (SyntaxDef * syntax)
 	{
 		register int  i;
 
-/* 		LOCAL_DEBUG_OUT( "syntax = \"%s\", recursion = %d", syntax->display_name, syntax->recursion ); 		*/
+ 		LOCAL_DEBUG_OUT( "syntax = \"%s\", recursion = %d", syntax->display_name, syntax->recursion ); 		
 		if (syntax->recursion > 0)
 			return;
 		syntax->recursion++;
@@ -488,6 +463,36 @@ void print_trimmed_str( char *prompt, char * str )
 #endif
 }
 
+void
+ProcessSubSyntax (ConfigDef * config, void *storage, SyntaxDef * syntax)
+{
+	PushStorage (config, storage);
+	LOCAL_DEBUG_OUT("Old_syntax = \"%s\", new_syntax = \"%s\"", config->syntax->display_name, syntax->display_name );
+	if (config->syntax->terminator == syntax->file_terminator)
+	{										   /* need to push back term's data into config buffer */
+		int skip_tokens = 0 ; 
+		config->cursor = config->tdata;
+		skip_tokens = GetTermUseTokensCount(config->current_term);
+		if ( get_flags(config->current_term->flags, TF_NAMED|TF_INDEXED|TF_DIRECTION_INDEXED) )
+			++skip_tokens ; 
+		if( skip_tokens > 0 )
+			config->cursor = tokenskip( config->cursor, skip_tokens );
+	} else if (config->syntax->terminator == syntax->terminator)
+	{										   /* need to push back entire term's line into config buffer */
+		config->cursor = config->tline_start;
+	}
+
+/*  fprintf( stderr, "\nprocessing as subsyntax: [%s]", config->cursor );
+*/
+	PushSyntax (config, syntax);
+}
+
+void ProcessStatement(ConfigDef *config)
+{
+	if( config && config->statement_handler ) 
+		config->statement_handler(config);
+}
+
 char         *
 GetToNextLine (ConfigDef * config)
 {
@@ -608,32 +613,32 @@ GetNextStatement (ConfigDef * config, int my_only)
 						if (cur[i] == '\0' || cur[i] == terminator)
 							break;				   /* not a valid option */
 						cur = &cur[i];
-					}
+					}else
+						set_flags( config->current_flags, CF_PUBLIC_OPTION);/* comments are always public */
 				}
 
 				if (*cur == MYNAME_CHAR)
 				{							   /* check if we have MyName here */
 					register char *mname = config->myname;
-
+				
                     print_trimmed_str(  "private option at", cur );
-					while (*cur != '\0' && *mname != '\0')
-					{
-						if (tolower (*(mname++)) != tolower (*(++cur)))
+					++cur;
+					for( i = 0 ; mname[i] != '\0' && cur[i] != '\0' ; ++i ) 
+						if (tolower (mname[i]) != tolower (cur[i]) )
 							break;
-					}
-					if (*mname != '\0')
+					if (mname[i] != '\0')
 					{						   /* that was a foreign optiion - belongs to the other executable */
 						if (my_only)
 							break;
-						config->current_flags |= CF_FOREIGN_OPTION;
-					}
-					cur++;
+						set_flags( config->current_flags, CF_FOREIGN_OPTION );
+						/* keeping *MyName part of the token  without leading * for foreign options */
+					}else
+						cur+=i;  /* skipping *MyName part of the token */ 
 				} else
                 {
-
                     if( *cur == terminator || *cur == file_terminator )   /* public option keyword may not be empty ! */
                         break;
-                    config->current_flags |= CF_PUBLIC_OPTION;
+                    set_flags( config->current_flags, CF_PUBLIC_OPTION);
                     print_trimmed_str( "public option at", cur );
                 }
 				config->tline = cur;		   /*that will be the begginnig of the term */
@@ -708,40 +713,37 @@ GetNextStatement (ConfigDef * config, int my_only)
 }
 
 
+TermDef _as_comments_term =	{TF_NO_MYNAME_PREPENDING, "#", 1, TT_COMMENT, TT_COMMENT, NULL};
+TermDef _as_unknown_term_public  =	{TF_NO_MYNAME_PREPENDING, "unknown", 7, TT_ANY, TT_ANY, NULL};
+TermDef _as_unknown_term_private =	{0, "unknown", 7, TT_ANY, TT_ANY, NULL};
 
-void
-ProcessSubSyntax (ConfigDef * config, void *storage, SyntaxDef * syntax)
+TermDef      *
+FindStatementTerm (char *tline, SyntaxDef * syntax)
 {
-	PushStorage (config, storage);
-	LOCAL_DEBUG_OUT("Old_syntax = \"%s\", new_syntax = \"%s\"", config->syntax->display_name, syntax->display_name );
-	if (config->syntax->terminator == syntax->file_terminator)
-	{										   /* need to push back term's data into config buffer */
-		int skip_tokens = 0 ; 
-		config->cursor = config->tdata;
-		skip_tokens = GetTermUseTokensCount(config->current_term);
-		if ( get_flags(config->current_term->flags, TF_NAMED|TF_INDEXED|TF_DIRECTION_INDEXED) )
-			++skip_tokens ; 
-		if( skip_tokens > 0 )
-			config->cursor = tokenskip( config->cursor, skip_tokens );
-	} else if (config->syntax->terminator == syntax->terminator)
-	{										   /* need to push back entire term's line into config buffer */
-		config->cursor = config->tline_start;
-	}
+    ASHashData hdata = {0};
+    LOCAL_DEBUG_OUT( "looking for pterm for [%c%c%c...]in hash table  %p of the syntax %s ", tline[0], tline[1], tline[2], syntax->term_hash, syntax->display_name );
+	if( tline[0] == COMMENTS_CHAR )
+		return &_as_comments_term;
 
-/*  fprintf( stderr, "\nprocessing as subsyntax: [%s]", config->cursor );
-*/
-	PushSyntax (config, syntax);
+	if( isspace(tline[0]) )
+	{
+		int i = 0; 
+		while( isspace(tline[i]) ) 	   ++i;
+		if( tline[i] ) 
+			if( get_hash_item (syntax->term_hash, AS_HASHABLE(&tline[i]), &hdata.vptr)==ASH_Success  )
+				return hdata.vptr;
+	}	 
+    if( get_hash_item (syntax->term_hash, AS_HASHABLE(tline), &hdata.vptr)!=ASH_Success  )
+		hdata.vptr = NULL;
+    LOCAL_DEBUG_OUT( "FOUND pterm %p", hdata.vptr );
+    return hdata.vptr;
 }
 
-void ProcessStatement(ConfigDef *config)
-{
-	if( config && config->statement_handler ) 
-		config->statement_handler(config);
-}
+
 
 /* main parsing procedure */
 int
-config2tree_storage (ConfigDef * config, ASTreeStorageModel **tail)
+config2tree_storage (ConfigDef * config, ASTreeStorageModel **tail, Bool ignore_foreign)
 {
 	int           TopLevel = 0;
 	unsigned long flags;
@@ -750,60 +752,73 @@ config2tree_storage (ConfigDef * config, ASTreeStorageModel **tail)
 	/* get line */
 	while (!TopLevel)
 	{
-		while (GetNextStatement (config, 1))
+		while (GetNextStatement (config, ignore_foreign))
 		{									   /* untill not end of text */
 			flags = 0x00;
+			TermDef *pterm = NULL ; 
+
 #ifdef DEBUG_PARSER
 			fprintf (stderr, "\nSentence Found:[%.50s ...]\n,\tData=\t[%s]", config->tline, config->current_data);
 			fprintf (stderr, "\nLooking for the Term...");
 #endif
 			/* find term */
-			if ((config->current_term = FindStatementTerm (config->tline, config->syntax)))
+			if( get_flags( config->current_flags, CF_FOREIGN_OPTION ) ) 
 			{
-				LOCAL_DEBUG_OUT("Term Found:[%s]", config->current_term->keyword);
-				if( isspace(config->tline[0]) &&  config->current_term->keyword_len > 0 &&
-					mystrncasecmp(config->current_term->keyword, config->current_data, config->current_term->keyword_len) == 0 ) 
-				{              /* we need to skip one token in current_data :  */
-					char *src = tokenskip( config->current_data, 1 ) ;
-					char *dst = config->current_data ;
-					if( src != dst ) 
-					{
-						int i = 0 ; 
-						do{ dst[i] = src[i]; }while( src[++i] );
-						dst[i] = '\0';
-					}		
-				}	 
-				if (get_flags( config->current_term->flags, TF_OBSOLETE))
-					config_error (config, "Heh, It seems that I've encountered obsolete config option. I'll ignore it for now, Ok ?!");
-				if (get_flags( config->current_term->flags, TF_PHONY))
-					set_flags( config->flags, CF_PHONY_OPTION );
-  				if (get_flags( config->current_term->flags, TF_SPECIAL_PROCESSING))
+				int i = 0 ; 
+				do
+				{	
+					++i;       /* it's ok - we can start with 1, since myname should have at least 1 char */
+					pterm = FindStatementTerm (&(config->tline[i]), config->syntax);
+				}while( pterm == NULL && !isspace(config->tline[i]) && config->tline[i] != '\0' );
+			}else
+				pterm = FindStatementTerm (config->tline, config->syntax);
+
+			if ( pterm == NULL )
+				pterm = get_flags( config->current_flags, CF_PUBLIC_OPTION)?
+				 			&_as_unknown_term_public : &_as_unknown_term_private ;
+			
+			config->current_term = pterm;
+			
+			LOCAL_DEBUG_OUT("Term:[%s]", config->current_term->keyword);
+			if( isspace(config->tline[0]) &&  pterm->keyword_len > 0 &&
+				mystrncasecmp(pterm->keyword, config->current_data, pterm->keyword_len) == 0 ) 
+			{              /* we need to skip one token in current_data :  */
+				char *src = tokenskip( config->current_data, 1 ) ;
+				char *dst = config->current_data ;
+				if( src != dst ) 
 				{
-					if (config->special)
+					int i = 0 ; 
+					do{ dst[i] = src[i]; }while( src[++i] );
+					dst[i] = '\0';
+				}		
+			}	 
+			if (get_flags( pterm->flags, TF_OBSOLETE))
+				config_error (config, "Heh, It seems that I've encountered obsolete config option. I'll ignore it for now, Ok ?!");
+			if (get_flags( pterm->flags, TF_PHONY))
+				set_flags( config->flags, CF_PHONY_OPTION );
+  			if (get_flags( pterm->flags, TF_SPECIAL_PROCESSING))
+			{
+				if (config->special)
+				{
+					flags = (*(config->special)) (config);
+					if (get_flags (flags, SPECIAL_BREAK))
+						break;
+					if (get_flags (flags, SPECIAL_STORAGE_ADDED))
 					{
-						flags = (*(config->special)) (config);
-						if (get_flags (flags, SPECIAL_BREAK))
-							break;
-						if (get_flags (flags, SPECIAL_STORAGE_ADDED))
-						{
-							ASTreeStorageModel **ctail = config->current_tail->storage;
-							while(*ctail) ctail = &((*ctail)->next);
-							tail = config->current_tail->storage = ctail;
-						}
+						ASTreeStorageModel **ctail = config->current_tail->storage;
+						while(*ctail) ctail = &((*ctail)->next);
+						tail = config->current_tail->storage = ctail;
 					}
 				}
-				if (!get_flags (flags, SPECIAL_SKIP))
-					ProcessStatement (config);
-				if( config->current_term ) 
-					if ( get_flags(config->current_term->flags, TF_SYNTAX_TERMINATOR) || 
-						 IsLastOption (config) )
-						break;
-			} else
-			{
-#ifdef UNKNOWN_KEYWORD_WARNING
-				config_error (config, " unknown keyword encountered");
-#endif
-                if (IsLastOption (config))
+			}
+			if (!get_flags (flags, SPECIAL_SKIP))
+				ProcessStatement (config);
+			/* Process Statement may alter config's state as it may dive into subconfig - 
+			 * must make sure that did not happen : */
+			if( config->current_term ) 
+			{	
+				if ( get_flags(config->current_term->flags, TF_SYNTAX_TERMINATOR) || 
+						IsLastOption (config) )
 					break;
 			}
 		}									   /* end while( GetNextStatement() ) */

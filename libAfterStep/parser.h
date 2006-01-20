@@ -131,9 +131,6 @@ typedef struct SyntaxDef
   char *doc_path;
   char *display_purpose;    /* purpose of what is identifyed by display_name */
   	  
-  char *terminator_token;      /* if this token encountered in any of the values - 
-								* syntax teminates. Really is used only in Wharf Folders */
-
   /* generated members */
   struct ASHashTable *term_hash;	/* hash table for fast term search */
   int recursion;		/* prevents endless recursion in nested constructs */
@@ -270,7 +267,7 @@ char *GetNextStatement (ConfigDef * config, int my_only);
 ConfigDef *InitConfigReader (char *myname, SyntaxDef * syntax,
 			     ConfigDataType type, ConfigData source,
 			     SpecialFunc special);
-int config2tree_storage (ConfigDef * config, ASTreeStorageModel **tail);
+int config2tree_storage (ConfigDef * config, ASTreeStorageModel **tail, Bool ignore_foreign);
 int ParseConfig (ConfigDef * config, FreeStorageElem ** tail);
 FreeStorageElem *file2free_storage(const char *filename, char *myname, SyntaxDef *syntax, SpecialFunc special, FreeStorageElem **foreign_options );
 void ProcessStatement(ConfigDef *config);

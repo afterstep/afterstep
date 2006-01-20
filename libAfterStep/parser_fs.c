@@ -57,6 +57,13 @@ LOCAL_DEBUG_OUT( "checking for foreign option ...%s", "" );
 	
 	if (pterm->type == TT_COMMENT || pterm->type == TT_INLINE_COMMENT )
 		return;
+	if (pterm->type == TT_ANY )
+	{	
+#ifdef UNKNOWN_KEYWORD_WARNING
+	  	config_error (config, " unknown keyword encountered");
+#endif
+		return;
+	}
 
 LOCAL_DEBUG_OUT( "adding storage ...%s", "" );
 	if ((pNext = AddFreeStorageElem (config->syntax, config->current_tail->storage, pterm, ID_ANY)) == NULL)
@@ -85,7 +92,7 @@ LOCAL_DEBUG_OUT( "parsing stuff ...%s", "" );
 int ParseConfig (ConfigDef * config, FreeStorageElem ** tail)
 {
 	config->statement_handler = statement2free_storage;
-	return config2tree_storage(config, (ASTreeStorageModel **)tail);	   
+	return config2tree_storage(config, (ASTreeStorageModel **)tail, True);	   
 }	 
 
 
