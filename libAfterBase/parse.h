@@ -47,10 +47,13 @@ char *strip_whitespace (char *str);
 
 /* will read space separated string and allocate space for it */
 char *parse_token (const char *source, char **trg);
+char *parse_token_strip_quotes (const char *source, char **trg);
+/* parses filename, optionally enclosed in doublequotes -
+ * same as parse_token_strip_quotes :*/
+#define parse_filename(s,t)  parse_token_strip_quotes((s),(t))
+
 /* same for tab separated tokens */
 char *parse_tab_token (const char *source, char **trg);
-/* parses filename, optionally enclosed in doublequotes */
-char *parse_filename (const char *source, char **trg);
 /* will parse function values with unit - usefull in AS command parsing */
 char *parse_func_args (char *tline, char *unit, int *func_val);
 

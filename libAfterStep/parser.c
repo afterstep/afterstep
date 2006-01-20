@@ -94,12 +94,26 @@ BuildHash (SyntaxDef * syntax)
 	}
 }
 
+TermDef _as_comments_term =	{TF_NO_MYNAME_PREPENDING, "#", 1, TT_COMMENT, TT_COMMENT, NULL};
+
+
 TermDef      *
 FindStatementTerm (char *tline, SyntaxDef * syntax)
 {
     ASHashData hdata = {0};
     LOCAL_DEBUG_OUT( "looking for pterm in hash table  %p of the syntax %s ", syntax->term_hash, syntax->display_name );
-    if (get_hash_item (syntax->term_hash, AS_HASHABLE(tline), &hdata.vptr)!=ASH_Success  )
+	if( tline[0] == COMMENTS_CHAR )
+		return &_as_comments_term;
+
+	if( isspace(tline[0]) )
+	{
+		int i = 0; 
+		while( isspace(tline[i]) ) 	   ++i;
+		if( tline[i] ) 
+			if( get_hash_item (syntax->term_hash, AS_HASHABLE(&tline[i]), &hdata.vptr)==ASH_Success  )
+				return hdata.vptr;
+	}	 
+    if( get_hash_item (syntax->term_hash, AS_HASHABLE(tline), &hdata.vptr)!=ASH_Success  )
 		hdata.vptr = NULL;
     LOCAL_DEBUG_OUT( "FOUND pterm %p", hdata.vptr );
     return hdata.vptr;
@@ -112,16 +126,17 @@ PrepareSyntax (SyntaxDef * syntax)
 	{
 		register int  i;
 
+/* 		LOCAL_DEBUG_OUT( "syntax = \"%s\", recursion = %d", syntax->display_name, syntax->recursion ); 		*/
 		if (syntax->recursion > 0)
 			return;
 		syntax->recursion++;
 
-		BuildHash (syntax);
+		if (syntax->term_hash == NULL)
+			BuildHash (syntax);
+		
 		for (i = 0; syntax->terms[i].keyword; i++)
 			if (syntax->terms[i].sub_syntax)
-				/* this should prevent us from endless recursion */
-				if (syntax->terms[i].sub_syntax->term_hash == NULL)
-					PrepareSyntax (syntax->terms[i].sub_syntax);
+				PrepareSyntax (syntax->terms[i].sub_syntax);
 
 		syntax->recursion--;
 	}
@@ -164,6 +179,8 @@ PushSyntax (ConfigDef * config, SyntaxDef * syntax)
 		config->current_syntax->current_term = config->current_term;
 		config->current_syntax->current_flags = config->current_flags;
 	}
+	config->current_flags = CF_NONE ;
+	config->current_term = NULL ;
 	pnew->next = config->current_syntax;
 	pnew->syntax = syntax;
 	if (config->syntax && syntax->terminator == '\n')
@@ -192,10 +209,8 @@ PushSyntax (ConfigDef * config, SyntaxDef * syntax)
 		config->current_prepend_size += len;
 
 	}
-#ifdef DEBUG_PARSER
-	fprintf (stderr, "PushSyntax(%s, old is 0x%lX) current_prepend = [%s]\n",
-			 syntax->display_name, (unsigned long)config->syntax, config->current_prepend);
-#endif
+	LOCAL_DEBUG_OUT("%p: \"%s\", old is %p:  current_prepend = [%s]\n",
+			 syntax, syntax->display_name, config->syntax, config->current_prepend);
 	config->current_syntax = pnew;
 	config->syntax = syntax;
 }
@@ -213,18 +228,12 @@ PopSyntax (ConfigDef * config)
 		/* restoring our status */
 		config->current_term = config->current_syntax->current_term;
 		config->current_flags = config->current_syntax->current_flags;
-#ifdef DEBUG_PARSER
-		if (config->current_term)
-			fprintf (stderr,
-				 "PopSyntax(%s, flags = 0x%lX, term = [%s] ; old is 0x%lX)\n",
-				 config->syntax->display_name, config->current_flags,
-				 config->current_term->keyword, (unsigned long)(pold->syntax));
-		else
-			fprintf (stderr,
-				 "PopSyntax(%s, flags = 0x%lX, term = [%s] ; old is 0x%lX)\n",
- 				 config->syntax->display_name, config->current_flags,
- 				 "", (unsigned long)(pold->syntax));
-#endif
+		
+		LOCAL_DEBUG_OUT("%p: \"%s\", old is %p: term = \"%s\"\n",
+						 config->syntax, config->syntax->display_name, 
+						 pold->syntax,
+						 config->current_term?config->current_term->keyword:"");
+		
 		if (pold->syntax->terminator == '\n')
 		{
 			if ((config->current_prepend_size -= strlen (config->syntax->prepend_sub)) >= 0)
@@ -589,22 +598,17 @@ GetNextStatement (ConfigDef * config, int my_only)
 				{							   /* let's check for DISABLE keyword */
                     print_trimmed_str( "comments at", cur );
 					for (i = 1; i < DISABLED_KEYWORD_SIZE; i++)
-						if (*(cur + i) == '\0' || *(cur + i) != _disabled_keyword[i])
+						if (cur[i] == '\0' || cur[i] != _disabled_keyword[i])
 							break;
-					if (i < DISABLED_KEYWORD_SIZE)
+					if (i == DISABLED_KEYWORD_SIZE)
 					{						   /* comments - skip entire line */
-						while (*cur != '\n' && *cur != '\0')
-							cur++;
-						config->cursor = cur;
-						break;
+						config->current_flags |= CF_DISABLED_OPTION;
+						/* let's skip few spaces here */
+						while (isspace ((int)cur[i]) && cur[i] != terminator) ++i;
+						if (cur[i] == '\0' || cur[i] == terminator)
+							break;				   /* not a valid option */
+						cur = &cur[i];
 					}
-					config->current_flags |= CF_DISABLED_OPTION;
-					/* let's skip few spaces here */
-					cur = cur + i;
-					while (isspace ((int)*cur) && *cur != terminator)
-						cur++;
-					if (*cur == '\0' || *cur == terminator)
-						break;				   /* not a valid option */
 				}
 
 				if (*cur == MYNAME_CHAR)
@@ -635,12 +639,17 @@ GetNextStatement (ConfigDef * config, int my_only)
 				config->tline = cur;		   /*that will be the begginnig of the term */
 
 				/* now we should copy everything from after the first space to
-				   config->current_data and set current_data_len ; */
-                i = 0 ;
-                while (cur[i] && !isspace ((int)cur[i]) && cur[i] != terminator && cur[i] != file_terminator)
-                    ++i;
-                while ((*cur) && isspace ((int)cur[i]) && cur[i] != terminator && cur[i] != file_terminator)
-                    ++i;
+				   config->current_data and set current_data_len ; (unless its a comment) */
+				if( *cur != COMMENTS_CHAR )
+				{	
+                	i = 0 ;
+                	while (cur[i] && !isspace ((int)cur[i]) && cur[i] != terminator && cur[i] != file_terminator)
+                    	++i;
+                	while (isspace ((int)cur[i]) && cur[i] != terminator && cur[i] != file_terminator)
+                    	++i;
+				}else
+					i = 1;
+
                 cur = &(cur[i]);           /* that will be the beginning of our data */
                 config->tdata = cur;
                 print_trimmed_str( "data start at :", cur );
@@ -655,7 +664,7 @@ GetNextStatement (ConfigDef * config, int my_only)
 						if (config->current_data == NULL)
 						{
 							config_error (config, "Not enough memory to hold option's arguments");
-							exit (0);
+							return NULL;
 						}
                         data = config->current_data;
 					}
@@ -665,13 +674,13 @@ GetNextStatement (ConfigDef * config, int my_only)
                 cur = &(cur[i]);
 				/* now let's go back and remove trailing spaces */
 				if (config->tdata[0] == file_terminator)
-					config->current_flags |= CF_LAST_OPTION;
+					set_flags(config->current_flags, CF_LAST_OPTION);
 				else
 				{
-                    for (i--; i >= 0; i--)
+                    while( --i >= 0 )
 					{
 						if (config->tdata[i] == file_terminator)
-							config->current_flags |= CF_LAST_OPTION;
+							set_flags(config->current_flags, CF_LAST_OPTION);
 						if (!isspace ((int)data[i]))
 							break;
 					}
@@ -680,7 +689,7 @@ GetNextStatement (ConfigDef * config, int my_only)
 				/* since \0 is our normal data terminator we really should trigger
 				   end of the configuration when the file ends : */
 				if (file_terminator == '\0')
-					config->current_flags &= ~CF_LAST_OPTION;
+					clear_flags(config->current_flags, CF_LAST_OPTION);
                 LOCAL_DEBUG_OUT( "%d bytes of clean data stored", i );
 				config->current_data_len = i;
 				config->current_data[i] = '\0';
@@ -704,6 +713,7 @@ void
 ProcessSubSyntax (ConfigDef * config, void *storage, SyntaxDef * syntax)
 {
 	PushStorage (config, storage);
+	LOCAL_DEBUG_OUT("Old_syntax = \"%s\", new_syntax = \"%s\"", config->syntax->display_name, syntax->display_name );
 	if (config->syntax->terminator == syntax->file_terminator)
 	{										   /* need to push back term's data into config buffer */
 		int skip_tokens = 0 ; 
@@ -750,9 +760,19 @@ config2tree_storage (ConfigDef * config, ASTreeStorageModel **tail)
 			/* find term */
 			if ((config->current_term = FindStatementTerm (config->tline, config->syntax)))
 			{
-#ifdef DEBUG_PARSER
-				fprintf (stderr, "\nTerm Found:[%s]", config->current_term->keyword);
-#endif
+				LOCAL_DEBUG_OUT("Term Found:[%s]", config->current_term->keyword);
+				if( isspace(config->tline[0]) &&  config->current_term->keyword_len > 0 &&
+					mystrncasecmp(config->current_term->keyword, config->current_data, config->current_term->keyword_len) == 0 ) 
+				{              /* we need to skip one token in current_data :  */
+					char *src = tokenskip( config->current_data, 1 ) ;
+					char *dst = config->current_data ;
+					if( src != dst ) 
+					{
+						int i = 0 ; 
+						do{ dst[i] = src[i]; }while( src[++i] );
+						dst[i] = '\0';
+					}		
+				}	 
 				if (get_flags( config->current_term->flags, TF_OBSOLETE))
 					config_error (config, "Heh, It seems that I've encountered obsolete config option. I'll ignore it for now, Ok ?!");
 				if (get_flags( config->current_term->flags, TF_PHONY))
@@ -774,9 +794,10 @@ config2tree_storage (ConfigDef * config, ASTreeStorageModel **tail)
 				}
 				if (!get_flags (flags, SPECIAL_SKIP))
 					ProcessStatement (config);
-
-				if ((config->current_term->flags & TF_SYNTAX_TERMINATOR) || IsLastOption (config))
-					break;
+				if( config->current_term ) 
+					if ( get_flags(config->current_term->flags, TF_SYNTAX_TERMINATOR) || 
+						 IsLastOption (config) )
+						break;
 			} else
 			{
 #ifdef UNKNOWN_KEYWORD_WARNING

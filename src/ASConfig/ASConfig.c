@@ -327,17 +327,6 @@ special_free_storage2property( FreeStorageElem **pcurr )
 				if( get_flags(item.data.geometry.flags, HeightValue ) )
 					add_integer_property( CONFIG_height_ID, item.data.geometry.height, prop );
 		    	break ;
-	 		case TT_SPECIAL : 	/* should be handled based on its type : */ 
-				if( curr->term->id == WHARF_Wharf_ID && curr->argv != NULL )			
-				{
-					LOCAL_DEBUG_OUT( "Wharf item with storage : argc = %d, argv[0] = \"%s\", argv[1] = \"%s\", argv[2] = \"%s\", sub = %p", curr->argc, curr->argv[0], curr->argv[1], curr->argv[2], curr->sub );
-					prop = create_property( curr->term->id, ASProp_Phony, curr->argv[0], True );
-					if( curr->argc >= 2 ) 
-						add_string_property( CONFIG_pixmap_ID, curr->argv[1], prop );				   
-					/* TODO */				
-				
-				}	 
-				break ;
 	 		case TT_FUNCTION :
 				{	
 					FunctionData *pfunc = (item.data.function);

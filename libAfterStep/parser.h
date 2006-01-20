@@ -17,7 +17,38 @@ extern "C" {
 struct SyntaxDef;
 struct ASHashTable;
 
-typedef struct TermDef
+typedef enum ASValueType
+{	
+ TT_ANY					=0,
+ TT_FLAG				,
+ TT_INTEGER  			,
+ TT_UINTEGER  			,
+ TT_COLOR    			,	
+ TT_FONT    			,
+ TT_FILENAME 			,
+ TT_PATHNAME 			,
+ TT_GEOMETRY 			,
+ TT_TEXT     			,
+
+ TT_QUOTED_TEXT 		,
+ TT_OPTIONAL_PATHNAME   ,   /* optional quoted text - could be empty */
+ TT_ICON_LIST   		,
+ TT_DIRECTION   		,   /* North,South, East,West, NorthWest, NorthEast, SouthWest, SouthEast */
+ TT_ComplexTypeStart,
+ TT_FUNCTION    		=TT_ComplexTypeStart,
+ TT_BOX	       			,	/* like for IconBox : left top right bottom */
+ TT_BUTTON      		,	/* BUTTON DEFINITION */
+ TT_BINDING     		,	/* key or mouse binding */
+ TT_BITLIST     		,	/* comma or space separated list of bit numbers to set */
+ TT_INTARRAY    		,	/* array of the integer numbers */
+ 
+ TT_CURSOR      		,   /* ASCursor - pair of filenames */
+ TT_COMMENT				,
+ TT_INLINE_COMMENT 		,
+ TT_VALUE_TYPES
+}ASValueType;     
+						
+typedef struct TermDef  
 {
   /* the following needs to be defined by module */
 #define TF_SYNTAX_TERMINATOR    (1<<31)	/* will tell parser that reading of config */
@@ -59,30 +90,7 @@ typedef struct TermDef
   unsigned long flags;		/* combination of any of above values */
   char *keyword;
   unsigned int keyword_len;
-#define TT_ANY		0
-#define TT_FLAG		1
-#define TT_INTEGER  	2
-#define TT_UINTEGER  	3
-#define TT_COLOR    	4
-#define TT_FONT    	5
-#define TT_FILENAME 	6
-#define TT_PATHNAME 	7
-#define TT_GEOMETRY 	8
-#define TT_TEXT     	9
-#define TT_SPECIAL     10
-#define TT_QUOTED_TEXT 11
-#define TT_FUNCTION    12
-#define TT_BOX	       13	/* like for IconBox : left top right bottom */
-#define TT_BUTTON      14	/* BUTTON DEFINITION */
-#define TT_BINDING     15	/* key or mouse binding */
-#define TT_BITLIST     16	/* comma or space separated list of bit numbers to set */
-#define TT_INTARRAY    17	/* array of the integer numbers */
-#define TT_CURSOR      18   /* ASCursor - pair of filenames */
-#define TT_OPTIONAL_PATHNAME 19   /* optional quoted text - could be empty */
-#define TT_DIRECTION   20   /* North,South, East,West, NorthWest, NorthEast, SouthWest, SouthEast */
-#define TT_ICON_LIST   21
 
-#define TT_CUSTOM      64	/* modules can define custom types starting */
   /* with this one */
   int type;			/* term's type */
 
@@ -123,6 +131,9 @@ typedef struct SyntaxDef
   char *doc_path;
   char *display_purpose;    /* purpose of what is identifyed by display_name */
   	  
+  char *terminator_token;      /* if this token encountered in any of the values - 
+								* syntax teminates. Really is used only in Wharf Folders */
+
   /* generated members */
   struct ASHashTable *term_hash;	/* hash table for fast term search */
   int recursion;		/* prevents endless recursion in nested constructs */
@@ -205,13 +216,13 @@ typedef struct ConfigDef
 #define CF_COMMENTED_OPTION	(1<<4)	/* option is last in the config file */
 #define CF_PHONY_OPTION	(1<<5)	/* option is last in the config file */
 
-#define IsOptionEnabled(config)	(!(config->current_flags&CF_DISABLED_OPTION))
-#define IsOptionDisabled(config)	(config->current_flags&CF_DISABLED_OPTION)
-#define IsPublicOption(config)	(config->current_flags&CF_PUBLIC_OPTION)
-#define IsPrivateOption(config)	(!(config->current_flags&CF_PUBLIC_OPTION))
-#define IsMyOption(config)	(!(config->current_flags&CF_FOREIGN_OPTION))
-#define IsForeignOption(config)	(config->current_flags&CF_FOREIGN_OPTION)
-#define IsLastOption(config)	(config->current_flags&CF_LAST_OPTION)
+#define IsOptionEnabled(config)		(!get_flags(config->current_flags,CF_DISABLED_OPTION))
+#define IsOptionDisabled(config)	  get_flags(config->current_flags,CF_DISABLED_OPTION)
+#define IsPublicOption(config)		  get_flags(config->current_flags,CF_PUBLIC_OPTION)
+#define IsPrivateOption(config)		(!get_flags(config->current_flags,CF_PUBLIC_OPTION))
+#define IsMyOption(config)			(!get_flags(config->current_flags,CF_FOREIGN_OPTION))
+#define IsForeignOption(config)		  get_flags(config->current_flags,CF_FOREIGN_OPTION)
+#define IsLastOption(config)		  get_flags(config->current_flags,CF_LAST_OPTION)
   unsigned long current_flags;
 
   char *cursor;

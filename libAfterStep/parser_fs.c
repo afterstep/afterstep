@@ -54,6 +54,9 @@ statement2free_storage (ConfigDef * config)
 LOCAL_DEBUG_OUT( "checking for foreign option ...%s", "" );
 	if (IsForeignOption (config))
 		return;
+	
+	if (pterm->type == TT_COMMENT || pterm->type == TT_INLINE_COMMENT )
+		return;
 
 LOCAL_DEBUG_OUT( "adding storage ...%s", "" );
 	if ((pNext = AddFreeStorageElem (config->syntax, config->current_tail->storage, pterm, ID_ANY)) == NULL)

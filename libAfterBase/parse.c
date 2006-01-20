@@ -755,7 +755,7 @@ parse_tab_token (const char *source, char **trg)
 }
 
 char         *
-parse_filename (const char *source, char **trg)
+parse_token_strip_quotes (const char *source, char **trg)
 {
 	char *token = NULL ; 
 	char *next_token = parse_token (source, trg?&token:NULL);	

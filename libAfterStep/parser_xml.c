@@ -46,17 +46,60 @@
 
 
 /* AfterStep config into xml tree code : */
+char *_as_config_tags[TT_VALUE_TYPES] = 
+{
+	"unknown",
+ 	"flag",
+ 	"int",
+ 	"uint",
+ 	"color",	
+ 	"font",
+ 	"filename",
+ 	"pathname",
+ 	"geometry",
+ 	"text",
+
+	"quoted_text",
+ 	"optional_pathname",
+ 	"icon_list",
+ 	"direction",
+ 	"function",
+ 	"box",	
+ 	"button",
+ 	"binding",
+ 	"bitlist",
+ 	"intarray",
+ 	
+	"cursor",
+ 	"comment",
+ 	"inline_comment"
+};	 
 
 void 
-append_comments_tag( xml_elem_t  *parent, const char *comments )
+append_asconfig_value_tag( xml_elem_t  *parent, int type, char **val )
 {
-	xml_elem_t *c_tag = xml_elem_new(); 
-	c_tag->tag = mystrdup("comments"); 
-	//c_tag->tag_id = pterm->id ;
-	xml_insert( parent, c_tag );
-
-	c_tag->child = create_CDATA_tag();	  
-	c_tag->child->parm = mystrdup( comments );
+	xml_elem_t *v_tag = NULL;
+	if( type >= 0 && type < TT_VALUE_TYPES ) 
+	{	
+		v_tag = xml_elem_new(); 
+		v_tag->tag = mystrdup(_as_config_tags[type]); 
+		v_tag->tag_id = type ;
+		if( val && *val ) 
+		{	
+			v_tag->child = create_CDATA_tag();	  
+			v_tag->child->parm = *val ;
+			*val = NULL ;
+		}
+	}else
+	{		
+		v_tag = create_CDATA_tag();
+		if( val && *val ) 
+		{	
+			v_tag->parm = *val ;
+			*val = NULL ;
+		}
+	}
+	xml_insert( parent, v_tag );
 }	 
 
 void
@@ -75,11 +118,30 @@ LOCAL_DEBUG_OUT( "checking for foreign option ...%s", "" );
 	if (IsForeignOption (config))
 		return;
 
+	if( get_flags(pterm->flags, TF_SYNTAX_TERMINATOR) ) 
+		return;                /* no need to terminate XML structure */
+		
 	item = xml_elem_new(); 
+	*tail = item ; 
+	config->current_tail->storage = &(item->next);
+	
+	if (pterm->type == TT_COMMENT )
+	{	
+		item->tag = mystrdup(_as_config_tags[TT_COMMENT]); 
+		item->tag_id = TT_COMMENT ;
+		if (config->current_data_len > 0)
+		{	
+			item->child = create_CDATA_tag();	  
+			item->child->parm = mystrdup(config->current_data);
+		}
+
+		return;
+	}
+
+
 	item->tag = pterm->keyword[0]?mystrdup(pterm->keyword):mystrdup("item");
 	LOCAL_DEBUG_OUT( "adding storage ... pterm is \"%s\" (%s)", item->tag, get_flags(pterm->flags, TF_NAMED)?"named":"");
 	item->tag_id = pterm->id ;
-	*tail = item ; 
     
 	print_trimmed_str( "ptr", ptr );
 
@@ -87,10 +149,10 @@ LOCAL_DEBUG_OUT( "checking for foreign option ...%s", "" );
 	{	
 		if ( get_flags(pterm->flags, TF_NAMED) )
 		{
-			ptr = parse_filename (ptr, &name);
+			ptr = parse_token_strip_quotes(ptr, &name);
 		}else if (get_flags(pterm->flags, TF_DIRECTION_INDEXED))
 		{
-			ptr = parse_filename (ptr, &side);
+			ptr = parse_token_strip_quotes (ptr, &side);
 		}else if (get_flags(pterm->flags, TF_INDEXED))
 		{
 			int i = 0 ; 
@@ -149,32 +211,36 @@ LOCAL_DEBUG_OUT( "checking for foreign option ...%s", "" );
 			config->current_data_len = strlen (config->current_data);
 		}
 	}
-	if( pterm->sub_syntax == NULL && ptr && ptr[0] ) 
+	if( ptr && ptr[0] ) 
 	{                          /* add value as CDATA */
-		item->child = create_CDATA_tag();	  
-		item->child->parm = mystrdup( ptr );
+		if( pterm->sub_syntax == NULL )
+		{	
+			char *val = mystrdup(ptr);
+			append_asconfig_value_tag( item, -1, &val );
+		}else		
+		{	
+			int max_tokens = GetTermUseTokensCount(pterm);
+			while( max_tokens > 0 && ptr[0] ) 
+			{
+				char *token = NULL;
+				ptr = parse_token( ptr, &token );
+		 			  
+				append_asconfig_value_tag( item, pterm->type, &token );		   
+				--max_tokens;
+			}
+		}
 	}
 	/* otherwise value will be present in child tags */
     print_trimmed_str( "config->current_data", config->current_data );
     //LOCAL_DEBUG_OUT( "curr_data_len = %d", config->current_data_len);
 
 	if( comments ) 
-	{
-		append_comments_tag( item, comments );		
-		destroy_string( &comments );
-	}	 
+		append_asconfig_value_tag( item, TT_INLINE_COMMENT, &comments );		
 //	args2FreeStorage (pNext, config->current_data, config->current_data_len);
-	config->current_tail->storage = &(item->next);
 	if (pterm->sub_syntax)
 	{	
 		tail = &(item->child);
 		while( *tail ) tail = &((*tail)->next);
-		if( get_flags( pterm->flags, TF_POP_SYNTAX )  )
-		{
-			PopSyntax (config);
-			PopStorage (config);
-			tail = config->current_tail->storage ;
-		}	 
 		ProcessSubSyntax (config, tail, pterm->sub_syntax);
 	}
 	return;
