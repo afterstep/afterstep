@@ -110,7 +110,6 @@ file2free_storage(const char *filename, char *myname, SyntaxDef *syntax, Special
 
 	PrintConfigReader (config_reader);
 	ParseConfig(config_reader, &storage);
-	PrintFreeStorage (storage);
 
 	/* getting rid of all the crap first */
 	if( foreign_options )
@@ -119,6 +118,49 @@ file2free_storage(const char *filename, char *myname, SyntaxDef *syntax, Special
 	DestroyConfig (config_reader);   
 	return storage;
 }	 
+
+
+#ifdef TEST_PARSER_FS
+
+#include "../libAfterConf/afterconf.h"
+
+# define CONFIG_FILE	"~/.afterstep/wharf"
+# define CONFIG_SYNTAX	&WharfSyntax
+# define CONFIG_SPECIAL	NULL   /*WharfSpecialFunc*/
+# define CONFIG_MYNAME  "Wharf"
+
+int 
+main( int argc, char ** argv ) 
+{
+	char *fullfilename;
+	FreeStorageElem * tree ;
+	InitMyApp ("TestParserFS", argc, argv, NULL, NULL, 0 );
+	LinkAfterStepConfig();
+	InitSession();
+	
+	fullfilename = PutHome( CONFIG_FILE );
+
+	
+	tree = file2free_storage(fullfilename, CONFIG_MYNAME, CONFIG_SYNTAX, CONFIG_SPECIAL, NULL );
+
+	freestorage_print(CONFIG_MYNAME, CONFIG_SYNTAX,tree, 0);	   
+	DestroyFreeStorage (&tree);
+
+	FreeMyAppResources();
+#   ifdef DEBUG_ALLOCS
+	print_unfreed_mem ();
+#   endif /* DEBUG_ALLOCS */
+	return 1;
+}
+#endif
+
+
+
+
+
+
+
+
 
 
 

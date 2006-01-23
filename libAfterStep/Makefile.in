@@ -49,4 +49,10 @@ test_parser_xml.o: parser_xml.c
 test_parser_xml:	test_parser_xml.o ../libAfterConf/libAfterConf.a ../libAfterStep/libAfterStep.a ../libAfterBase/libAfterBase.a
 		$(CC) test_parser_xml.o ../libAfterConf/libAfterConf.a ../libAfterStep/libAfterStep.a $(USER_LD_FLAGS) $(LIBS_ALL) $(LIBS_AFTERIMAGE) -o test_parser_xml
 
+test_parser_fs.o: parser_fs.c
+		$(CC) $(CCFLAGS) $(EXTRA_DEFINES) -DTEST_PARSER_FS $(INCLUDES) $(EXTRA_INCLUDES) -c parser_fs.c -o test_parser_fs.o
+
+test_parser_fs:	test_parser_fs.o ../libAfterConf/libAfterConf.a ../libAfterStep/libAfterStep.a ../libAfterBase/libAfterBase.a
+		$(CC) test_parser_fs.o ../libAfterConf/libAfterConf.a ../libAfterStep/libAfterStep.a $(USER_LD_FLAGS) $(LIBS_ALL) $(LIBS_AFTERIMAGE) -o test_parser_fs
+
 

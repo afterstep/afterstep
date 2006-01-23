@@ -160,7 +160,6 @@ ParseAudioOptions (const char *filename, char *myname)
 	item.memory = NULL;
 	PrintConfigReader (AudioConfigReader);
 	ParseConfig (AudioConfigReader, &Storage);
-	PrintFreeStorage (Storage);
 
 	/* getting rid of all the crap first */
 	StorageCleanUp (&Storage, &(config->more_stuff), CF_DISABLED_OPTION);

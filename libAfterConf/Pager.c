@@ -333,7 +333,6 @@ ParsePagerOptions (const char *filename, char *myname, int desk1, int desk2)
 	item.memory = NULL;
 	PrintConfigReader (PagerConfigReader);
 	ParseConfig (PagerConfigReader, &Storage);
-	PrintFreeStorage (Storage);
 
 	/* getting rid of all the crap first */
 	StorageCleanUp (&Storage, &(config->more_stuff), CF_DISABLED_OPTION);

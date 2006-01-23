@@ -79,30 +79,58 @@ FindTerm (SyntaxDef * syntax, int type, int id)
 
 
 /* debugging stuff */
-#ifdef DEBUG_PARSER
 void
-PrintFreeStorage (FreeStorageElem * storage)
+freestorage_print(char *myname, SyntaxDef *syntax, FreeStorageElem * storage, int level)
 {
-	static int    level = 0;
-
+	++level;
+	if( myname == NULL ) 
+		myname = MyName;
 	while (storage)
 	{
-		level++;
-		fprintf (stderr, "\n%d>Term's keyword: [%s]", level, storage->term->keyword);
-		fprintf (stderr, "\n%d>Data:", level);
+		char sub_terminator = ' ' ;
+		if( syntax->terminator == '\n' || syntax->terminator == '\0' ) 
+			fprintf (stderr, "%*s", level*4, " ");
+
+		if( !get_flags( storage->term->flags, TF_NO_MYNAME_PREPENDING )  )
+		{	
+			fprintf (stderr, "*%s", myname);
+			if( storage->term->keyword[0] == '~' )
+				fputc( ' ', stderr );
+		}
+		fprintf (stderr, "%s", storage->term->keyword);
 		{
 			register int  i;
+			int token_count = storage->argc ; 
+			if( storage->term->sub_syntax ) 
+			{
+				token_count = GetTermUseTokensCount(storage->term);
+				if( get_flags( storage->term->flags, TF_NAMED|TF_INDEXED|TF_DIRECTION_INDEXED) )
+					++token_count;
+			}	 
 
-			for (i = 0; i < storage->argc; i++)
-				fprintf (stderr, "\n%d>  %d:\t[%s]", level, i, storage->argv[i]);
+			for (i = 0; i < token_count; i++)
+				fprintf (stderr, " %s", storage->argv[i]);
+			if( token_count == 0 && storage->sub && storage->term->sub_syntax )
+				fputc( ' ', stderr );
 		}
-		fprintf (stderr, "\n%d>Subterm: 0x%X", level, (int)(storage->sub));
-		PrintFreeStorage (storage->sub);
+		if( storage->sub && storage->term->sub_syntax ) 
+		{	
+			if( storage->term->sub_syntax->terminator == '\n' ) 
+				fputc( '\n', stderr );		
+ 			freestorage_print(myname, storage->term->sub_syntax, storage->sub, level);	
+			sub_terminator = storage->term->sub_syntax->file_terminator ;
+			if( sub_terminator == '\0' ) 
+				sub_terminator = '\n' ;
+		}
+		if( storage->next &&  syntax->terminator != '\0' && (sub_terminator == ' ' || sub_terminator != syntax->terminator ) ) 
+			fputc( syntax->terminator, stderr );
 		storage = storage->next;
-		level--;
 	}
+	if( syntax->file_terminator != '\0' ) 
+		fputc( syntax->file_terminator, stderr );
+	else
+		fputc( '\n', stderr );
 }
-#endif
 
 /* StringArray functionality */
 char        **

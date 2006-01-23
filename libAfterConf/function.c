@@ -336,7 +336,6 @@ complex_function_parse (char *tline, FILE * fd, char *list, int *count)
 
 	PrintConfigReader (ConfigReader);
 	ParseConfig (ConfigReader, &Storage);
-	PrintFreeStorage (Storage);
 
 	/* getting rid of all the crap first */
     StorageCleanUp (&Storage, &more_stuff, CF_DISABLED_OPTION);

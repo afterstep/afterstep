@@ -573,8 +573,7 @@ mystyle_parse (char *tline, FILE * fd, char **myname, int *mystyle_list)
 
 	PrintConfigReader (ConfigReader);
 	ParseConfig (ConfigReader, &Storage);
-	PrintFreeStorage (Storage);
-
+	
 	/* getting rid of all the crap first */
     StorageCleanUp (&Storage, &more_stuff, CF_DISABLED_OPTION);
     DestroyFreeStorage (&more_stuff);

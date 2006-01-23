@@ -69,7 +69,6 @@ void CopyFreeStorage (FreeStorageElem ** to, FreeStorageElem * from);
 void DestroyFreeStorage (FreeStorageElem ** storage);
 void StorageCleanUp (FreeStorageElem ** storage,
 		     FreeStorageElem ** garbadge_bin, unsigned long mask);
-void PrintFreeStorage (FreeStorageElem * storage);
 
 struct FunctionData;
 

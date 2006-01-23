@@ -617,7 +617,7 @@ ParseWharfOptions (const char *filename, char *myname)
 	TermDef      *folder_term = func2fterm (F_Folder, False);
 
 	cd.filename = filename ;
-	ConfigReader = InitConfigReader (myname, &WharfSyntax, CDT_Filename, cd, WharfSpecialFunc);
+	ConfigReader = InitConfigReader (myname, &WharfSyntax, CDT_Filename, cd, NULL /*WharfSpecialFunc*/);
 	if (!ConfigReader)
 		return config;
 
@@ -625,14 +625,10 @@ ParseWharfOptions (const char *filename, char *myname)
 
     item.memory = NULL;
 	PrintConfigReader (ConfigReader);
-SHOW_CHECKPOINT;
 	ParseConfig (ConfigReader, &Storage);
-SHOW_CHECKPOINT;
-	PrintFreeStorage (Storage);
 
 	/* getting rid of all the crap first */
 	StorageCleanUp (&Storage, &(config->more_stuff), CF_DISABLED_OPTION);
-SHOW_CHECKPOINT;
 	config->balloon_conf = Process_balloonOptions (Storage, NULL);
 
 	for (pCurr = Storage; pCurr; pCurr = pCurr->next)

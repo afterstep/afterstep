@@ -223,7 +223,6 @@ windowbox_parse (char *tline, FILE * fd, char **unused1, int *unused2)
 
 	PrintConfigReader (ConfigReader);
 	ParseConfig (ConfigReader, &Storage);
-	PrintFreeStorage (Storage);
 
 	/* getting rid of all the crap first */
     StorageCleanUp (&Storage, &more_stuff, CF_DISABLED_OPTION);
@@ -408,7 +407,6 @@ ParseFeelOptions (const char *filename, char *myname)
     item.memory = NULL;
 	PrintConfigReader (ConfigReader);
 	ParseConfig (ConfigReader, &Storage);
-    PrintFreeStorage (Storage);
 
 	/* getting rid of all the crap first */
     StorageCleanUp (&Storage, &(config->more_stuff), CF_DISABLED_OPTION);
@@ -791,7 +789,6 @@ ParseAutoExecOptions (const char *filename, char *myname)
     item.memory = NULL;
 	PrintConfigReader (ConfigReader);
 	ParseConfig (ConfigReader, &Storage);
-    PrintFreeStorage (Storage);
 
 	/* getting rid of all the crap first */
     StorageCleanUp (&Storage, &(config->more_stuff), CF_DISABLED_OPTION);
@@ -900,7 +897,6 @@ ParseThemeFile (const char *filename, char *myname)
 
 	PrintConfigReader (ConfigReader);
 	ParseConfig (ConfigReader, &Storage);
-	PrintFreeStorage (Storage);
 
 	/* getting rid of all the crap first */
     StorageCleanUp (&Storage, &(config->more_stuff), CF_DISABLED_OPTION);

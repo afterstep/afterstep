@@ -125,7 +125,6 @@ ParseAnimateOptions (const char *filename, char *myname)
 	item.memory = NULL;
 	PrintConfigReader (AnimateConfigReader);
 	ParseConfig (AnimateConfigReader, &Storage);
-	PrintFreeStorage (Storage);
 
 	/* getting rid of all the crap first */
 	StorageCleanUp (&Storage, &(config->more_stuff), CF_DISABLED_OPTION);

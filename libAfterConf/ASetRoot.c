@@ -203,7 +203,6 @@ ParseMyBackgroundOptions (FreeStorageElem * Storage, char *myname)
 	ConfigItem    item;
 
 	item.memory = NULL;
-	PrintFreeStorage (Storage);
 	for (pCurr = Storage; pCurr; pCurr = pCurr->next)
 	{
 		if (pCurr->term == NULL)
@@ -360,7 +359,6 @@ ParseASetRootOptions (const char *filename, char *myname)
 	item.memory = NULL;
 	PrintConfigReader (ConfigReader);
 	ParseConfig (ConfigReader, &Storage);
-	PrintFreeStorage (Storage);
 
 	/* getting rid of all the crap first */
 	StorageCleanUp (&Storage, &(config->more_stuff), CF_DISABLED_OPTION);
@@ -428,7 +426,6 @@ LOCAL_DEBUG_OUT( "fd(%p)->tline(\"%s\")->fpd.data(\"%s\")", fd, tline, fpd.data 
 
 	PrintConfigReader (ConfigReader);
 	ParseConfig (ConfigReader, &Storage);
-	PrintFreeStorage (Storage);
 
 	/* getting rid of all the crap first */
     StorageCleanUp (&Storage, &more_stuff, CF_DISABLED_OPTION);
