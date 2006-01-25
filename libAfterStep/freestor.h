@@ -70,6 +70,8 @@ void DestroyFreeStorage (FreeStorageElem ** storage);
 void StorageCleanUp (FreeStorageElem ** storage,
 		     FreeStorageElem ** garbadge_bin, unsigned long mask);
 
+void freestorage_print(char *myname, struct SyntaxDef *syntax, FreeStorageElem * storage, int level);
+
 struct FunctionData;
 
 /* freestorage post processing stuff */

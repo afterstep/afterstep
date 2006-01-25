@@ -82,14 +82,14 @@ FindTerm (SyntaxDef * syntax, int type, int id)
 void
 freestorage_print(char *myname, SyntaxDef *syntax, FreeStorageElem * storage, int level)
 {
-	++level;
 	if( myname == NULL ) 
 		myname = MyName;
 	while (storage)
 	{
 		char sub_terminator = ' ' ;
-		if( syntax->terminator == '\n' || syntax->terminator == '\0' ) 
-			fprintf (stderr, "%*s", level*4, " ");
+		if( level > 0 ) 
+			if( syntax->terminator == '\n' || syntax->terminator == '\0' ) 
+				fprintf (stderr, "%*s", level*4, " ");
 
 		if( !get_flags( storage->term->flags, TF_NO_MYNAME_PREPENDING )  )
 		{	
@@ -117,7 +117,7 @@ freestorage_print(char *myname, SyntaxDef *syntax, FreeStorageElem * storage, in
 		{	
 			if( storage->term->sub_syntax->terminator == '\n' ) 
 				fputc( '\n', stderr );		
- 			freestorage_print(myname, storage->term->sub_syntax, storage->sub, level);	
+ 			freestorage_print(myname, storage->term->sub_syntax, storage->sub, level+1);	
 			sub_terminator = storage->term->sub_syntax->file_terminator ;
 			if( sub_terminator == '\0' ) 
 				sub_terminator = '\n' ;

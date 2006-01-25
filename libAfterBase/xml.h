@@ -15,6 +15,9 @@ struct ASHashTable;
 #define XML_CONTAINER_ID	-1
 #define XML_UNKNOWN_ID		 0
 
+#define IsCDATA(pe)    		((pe) && (pe)->tag_id == XML_CDATA_ID)
+#define IsCONTAINER(pe)    	((pe) && (pe)->tag_id == XML_CONTAINER_ID)
+
 typedef struct xml_elem_t {
 	struct xml_elem_t* next;
 	struct xml_elem_t* child;

@@ -18,7 +18,7 @@
  */
 
 #define LOCAL_DEBUG
-#undef DO_CLOCKING
+#define DO_CLOCKING
 #undef UNKNOWN_KEYWORD_WARNING
 
 #include "../configure.h"
@@ -273,16 +273,201 @@ statement2xml_elem (ConfigDef * config)
 	return;
 }
 
+Bool 
+xml_tree2file(FILE *fp , char *myname, SyntaxDef *syntax, xml_elem_t* tree, int level )
+{
+	Bool do_cleanup_syntax = False ; 
+	Bool last_unterminated = False ;
+
+	if( fp == NULL || syntax == NULL || tree == NULL ) 
+		return False;		   
+
+	if( myname == NULL )
+		myname = MyName ;
+
+	if( level == 0 ) 
+	{	   
+		if( tree->tag_id == XML_CONTAINER_ID ) 
+			if( (tree = tree->child) == NULL ) 
+				return False;
+	
+		if( mystrcmp(tree->tag, syntax->display_name) != 0 ) 
+		{	
+			if( tree->tag_id == 0 )
+				return False;
+		}else
+		{
+			if( (tree = tree->child) == NULL ) 
+				return False;	  
+		}
+	}
+
+	for( ; ; tree = tree->next )
+	{
+		char sub_terminator = ' ' ;
+		ASHashData hdata = {0};
+		TermDef *pterm = NULL ;
+		int i;
+		
+		if( tree == NULL )     /* need to check for syntax terminator */
+		{
+			if( syntax->terminator == '\n' && level > 0 )
+			{	
+				for( i = 0 ; syntax->terms[i].keyword != NULL ; ++i ) 
+					if( get_flags( syntax->terms[i].flags, TF_SYNTAX_TERMINATOR ) )
+					{
+						pterm = &(syntax->terms[i]) ;
+						break;
+					}		
+				if( pterm && last_unterminated ) 
+					fputc( '\n', fp );
+			}
+		}else if( tree->tag_id == TT_ANY ) 
+		{
+			
+		}else if( tree->tag_id == TT_COMMENT ) 
+		{
+			if( IsCDATA(tree->child) ) 
+				fprintf( fp, "#%s\n", tree->child->parm );
+			else
+				fputs( "#\n", fp );
+			continue;
+		}else if( tree->tag_id == TT_INLINE_COMMENT ) 
+		{
+			if( IsCDATA(tree->child) ) 
+				fprintf( fp, "#%s", tree->child->parm );
+		}else
+		{		 
+			if( tree->tag_id )
+			{	
+				for( i = 0 ; syntax->terms[i].keyword != NULL ; ++i ) 
+					if( syntax->terms[i].id == tree->tag_id ) 
+					{
+						pterm = &(syntax->terms[i]) ;
+						break;
+					}
+			}
+			if( pterm == NULL )
+			{
+				if( syntax->term_hash == NULL ) 
+				{	
+					PrepareSyntax (syntax);
+					do_cleanup_syntax = True ;
+				}
+				if( get_hash_item (syntax->term_hash, AS_HASHABLE(tree->tag), &hdata.vptr)==ASH_Success  )
+					pterm = hdata.vptr;
+			}
+			if( pterm == NULL ) 
+				continue;
+		}
+		if( pterm ) 
+		{		 
+			xml_elem_t *child = tree?tree->child:NULL; 
+			char *tag_myname = NULL ; 
+			char *prefix = NULL ; 
+			xml_elem_t *parm_tree = NULL ; 
+			
+			if( syntax->terminator == '\n' || syntax->terminator == '\0' ) 
+				fprintf (fp, "%*s", level*4, " ");
+
+			if( tree && tree->parm ) 
+			{
+				xml_elem_t *c; 
+				parm_tree = xml_parse_parm(tree->parm, NULL);
+				for( c = parm_tree ; c ; c = c->next )
+				{	
+					if( strcmp( c->tag, "module" ) == 0 )
+						tag_myname = c->parm ; 	
+					else if( strcmp( c->tag, "index" ) == 0 || 
+							 strcmp( c->tag, "side" ) == 0  ||
+							 strcmp( c->tag, "name" ) == 0 )
+						prefix = c->parm ; 	
+				}
+			}	 
+			if( tag_myname == NULL ) 
+				tag_myname = myname ;
+
+
+			if( !get_flags( pterm->flags, TF_NO_MYNAME_PREPENDING )  )
+			{	
+				fprintf (fp, "*%s", tag_myname);
+				if( pterm->keyword[0] == '~' )
+					fputc( ' ', fp );
+			}
+			fprintf (fp, "%s", pterm->keyword);
+
+			if( prefix ) 
+			{
+				if( get_flags( pterm->flags, TF_NAMED))
+					fprintf( fp, " \"%s\"", prefix );
+				else if( get_flags( pterm->flags, TF_INDEXED|TF_DIRECTION_INDEXED) )				
+					fprintf( fp, " %s", prefix );
+			}	 
+			
+			if( pterm->sub_syntax ) 
+			{
+				int token_count = GetTermUseTokensCount(pterm);
+				
+				for (i = 0; i < token_count && child ; i++, child = child->next )
+				{	
+					if( IsCDATA(child) ) 
+						fprintf( fp, " %s", child->parm );
+					else if( IsCDATA(child->child) ) 
+						fprintf( fp, " %s", child->child->parm );
+				}	 
+				if( token_count == 0 && child )
+					fputc( ' ', fp );
+				if( child ) 
+				{	
+					if( pterm->sub_syntax->terminator == '\n' ) 
+						fputc( '\n', fp );		
+					xml_tree2file(fp , tag_myname, pterm->sub_syntax, child, level+1 );
+					sub_terminator = pterm->sub_syntax->file_terminator ;
+					if( sub_terminator == '\0' ) 
+						sub_terminator = '\n' ;
+				}
+			}else if( IsCDATA(child) ) 
+			{
+				fprintf( fp, " %s", child->parm );
+			}		 
+		}
+		if( tree ) 
+		{	
+			if( syntax->terminator != '\0' &&
+				(sub_terminator == ' ' || sub_terminator != syntax->terminator ) ) 
+			{
+				last_unterminated = (tree->next == NULL );
+				if( !last_unterminated )
+					fputc( syntax->terminator, fp );
+			}
+		}else
+		{
+			if( pterm && syntax->terminator != '\0' ) 
+				fputc( syntax->terminator, fp );
+			break;
+		}
+	}
+
+	if( syntax->file_terminator != '\0' ) 
+		fputc( syntax->file_terminator, fp );
+	else
+		fputc( '\n', fp );
+
+	if( do_cleanup_syntax ) 
+		FreeSyntaxHash (syntax);
+
+	return True;
+}
 
 xml_elem_t*
-file2xml_tree(const char *filename, char *myname, SyntaxDef *syntax, SpecialFunc special )
+file2xml_tree(const char *filename, char *myname, SyntaxDef *syntax )
 {
 	ConfigData cd ;
 	ConfigDef    *config_reader ;
 	xml_elem_t *tree = NULL ;
 	
 	cd.filename = filename ;
-	config_reader = InitConfigReader (myname, syntax, CDT_Filename, cd, special);
+	config_reader = InitConfigReader (myname, syntax, CDT_Filename, cd, NULL);
 	if ( config_reader != NULL )
 	{
 		config_reader->statement_handler = statement2xml_elem;
@@ -312,15 +497,25 @@ main( int argc, char ** argv )
 	char *fullfilename;
 	xml_elem_t* tree ;
 	InitMyApp ("TestParserXML", argc, argv, NULL, NULL, 0 );
+	START_TIME(started);
+	
 	LinkAfterStepConfig();
 	InitSession();
 	
 	fullfilename = PutHome( CONFIG_FILE );
 
-	tree = file2xml_tree(fullfilename, CONFIG_MYNAME, CONFIG_SYNTAX, CONFIG_SPECIAL );
+	tree = file2xml_tree(fullfilename, CONFIG_MYNAME, CONFIG_SYNTAX );
 	
 	xml_print(tree);	   
+
+	SHOW_TIME("before xml_tree2file result ",started);
+	show_progress( "xml_tree2file result: \n#############################");
+	xml_tree2file(stderr, CONFIG_MYNAME, CONFIG_SYNTAX, tree, 0 );
+	show_progress( "END xml_tree2file result: \n#############################");
+	SHOW_TIME("after xml_tree2file result " ,started);
+
 	xml_elem_delete(NULL, tree);
+	SHOW_TIME(__FUNCTION__,started);
 
 	FreeMyAppResources();
 #   ifdef DEBUG_ALLOCS

@@ -16,6 +16,7 @@ extern "C" {
 
 struct SyntaxDef;
 struct ASHashTable;
+struct xml_elem_t;
 
 typedef enum ASValueType
 {	
@@ -322,6 +323,9 @@ extern char         *_disabled_keyword;
 extern char         *_unknown_keyword;
 
 
+
+
+struct xml_elem_t* file2xml_tree(const char *filename, char *myname, SyntaxDef *syntax );
 
 
 
