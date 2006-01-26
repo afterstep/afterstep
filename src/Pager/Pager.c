@@ -442,6 +442,8 @@ CheckConfigSanity()
     PagerState.desk_height = Config->geometry.height/Config->rows ;
     Config->geometry.height = PagerState.desk_height*Config->rows ;
 
+	PagerState.wasted_width = PagerState.wasted_height = 0 ;
+
     if( !get_flags(Config->geometry.flags, XValue))
     {
         Config->geometry.x = 0;
@@ -1404,17 +1406,17 @@ redecorate_pager_desks()
         if( delta != 0 )
 		{
 			PagerState.desk_width += delta ;
-			PagerState.wasted_width = delta * Config->columns  ;
+			PagerState.wasted_width += delta * Config->columns  ;
 		}
 	}
 	if( !get_flags( Config->geometry.flags, HeightValue ) )
 	{
         int delta = (wasted_y - PagerState.wasted_height)/Config->rows ;
-		LOCAL_DEBUG_OUT( "wasted_y = %d, (old was = %d) - adjusting desk_height by %d", wasted_y, PagerState.wasted_height, delta );
+		LOCAL_DEBUG_OUT( " :RESIZING: wasted_y = %d, (old was = %d) - adjusting desk_height(%d) by %d", wasted_y, PagerState.wasted_height, PagerState.desk_height, delta );
 		if( delta != 0 )
 		{
 			PagerState.desk_height += delta ;
-			PagerState.wasted_height = delta * Config->rows ;
+			PagerState.wasted_height += delta * Config->rows ;
 		}
 	}
 
@@ -1465,7 +1467,7 @@ rearrange_pager_desks(Bool dont_resize_main )
             if( height > row_height )
                 row_height = height;
             
-            LOCAL_DEBUG_OUT( "desk = %d, size = %dx%d, pos = %+d%+d", i, width, height, all_width, all_height );
+            LOCAL_DEBUG_OUT( " :RESIZING: desk = %d, size = %dx%d, all_size = %+d%+d", i, width, height, all_width, all_height );
 
             if( ++col >= Config->columns )
             {
@@ -1485,7 +1487,7 @@ rearrange_pager_desks(Bool dont_resize_main )
             all_height = y+row_height;
         all_width += Config->border_width ;
         all_height += Config->border_width ;
-        LOCAL_DEBUG_OUT( "resizing_main : all_size = %dx%d current size = %dx%d", 
+        LOCAL_DEBUG_OUT( " :RESIZING: resizing_main : all_size = %dx%d current size = %dx%d", 
                          all_width, all_height, PagerState.main_canvas->width, PagerState.main_canvas->height );
         if( PagerState.main_canvas->width != all_width || PagerState.main_canvas->height != all_height )
         {
@@ -2697,7 +2699,7 @@ void on_pager_window_moveresize( void *client, Window w, int x, int y, unsigned 
                     new_desk_width = 1;
                 if( new_desk_height <= 0 )
                     new_desk_height = 1;
-                LOCAL_DEBUG_OUT( "old_desk_size(%dx%d) new_desk_size(%dx%d)", PagerState.desk_width, PagerState.desk_height, new_desk_width, new_desk_height );
+                LOCAL_DEBUG_OUT( " :RESIZING:  old_desk_size(%dx%d) new_desk_size(%dx%d)", PagerState.desk_width, PagerState.desk_height, new_desk_width, new_desk_height );
                 if( new_desk_width != PagerState.desk_width ||
                     new_desk_height != PagerState.desk_height )
                 {
