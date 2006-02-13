@@ -1340,7 +1340,7 @@ set_client_protocols (Window w, ASFlagType protocols, ASFlagType extwm_protocols
 LOCAL_DEBUG_OUT( "protocols=0x%lX", protocols );
     if (w && protocols)
 	{
-		CARD32         *list, *extwm_list;
+		CARD32         *list = NULL, *extwm_list = NULL;
 		long          nitems, extwm_nitems;
 
 		encode_atom_list (&(WM_Protocols[0]), &list, &nitems, protocols);

@@ -106,6 +106,7 @@ typedef struct ASWindow
 #define ASWIN_CLASS(t)      ((t)->hints->res_class)
 #define ASWIN_RES_NAME(t)   ((t)->hints->res_name)
 #define ASWIN_ICON_NAME(t)  ((t)->hints->icon_name)
+#define ASWIN_ICON_NAME_ENC(t)  (get_hint_name_encoding((t)->hints, (t)->hints->icon_name_idx))
 #define ASWIN_DESK(t)       ((t)->status->desktop)
 #define ASWIN_LAYER(t)      ((t)->status->layer)
 #define ASWIN_HFLAGS(t,f) 	get_flags((t)->hints->flags,(f))

@@ -1038,7 +1038,7 @@ broadcast_window_name( ASWindow *asw )
     if( asw )
 	{	
         SendString( -1, M_WINDOW_NAME, asw->w, asw->frame,
-                    asw, ASWIN_NAME(asw), asw->hints->names_encoding[0]);
+                    asw, ASWIN_NAME(asw), get_hint_name_encoding(asw->hints, 0));
         SendString( -1, M_WINDOW_NAME_MATCHED, asw->w, asw->frame,
                     asw, asw->hints->matched_name0, asw->hints->matched_name0_encoding );
 	}
@@ -1048,8 +1048,10 @@ void
 broadcast_icon_name( ASWindow *asw )
 {
     if( asw )
+	{
         SendString( -1, M_ICON_NAME, asw->w, asw->frame,
-                    asw, ASWIN_ICON_NAME(asw), asw->hints->names_encoding[asw->hints->icon_name_idx]);
+                    asw, ASWIN_ICON_NAME(asw), get_hint_name_encoding(asw->hints, asw->hints->icon_name_idx));
+	}
 }
 
 void
@@ -1058,9 +1060,9 @@ broadcast_res_names( ASWindow *asw )
     if( asw )
     {
         SendString( -1, M_RES_CLASS, asw->w, asw->frame,
-                    asw, asw->hints->res_class, asw->hints->names_encoding[asw->hints->res_class_idx]);
+                    asw, asw->hints->res_class, get_hint_name_encoding(asw->hints, asw->hints->res_class_idx));
         SendString( -1, M_RES_NAME, asw->w, asw->frame,
-                    asw, asw->hints->res_name, asw->hints->names_encoding[asw->hints->res_name_idx]);
+                    asw, asw->hints->res_name, get_hint_name_encoding(asw->hints, asw->hints->res_name_idx));
     }
 }
 

@@ -995,8 +995,7 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
 	    add_astbar_label( asw->icon_title, 0, 0, 0, frame->title_align,
 							DEFAULT_TBAR_HSPACING, DEFAULT_TBAR_VSPACING,
 						    ASWIN_ICON_NAME(asw),
-							(asw->hints->icon_name_idx < 0)?AS_Text_ASCII :
-							asw->hints->names_encoding[asw->hints->icon_name_idx]);
+							ASWIN_ICON_NAME_ENC(asw));
 	    set_astbar_style( asw->icon_title, BAR_STATE_FOCUSED, AS_ICON_TITLE_MYSTYLE );
   	    set_astbar_style( asw->icon_title, BAR_STATE_UNFOCUSED, AS_ICON_TITLE_UNFOCUS_MYSTYLE );
     }

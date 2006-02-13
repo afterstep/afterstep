@@ -287,6 +287,14 @@ check_status_sanity (ScreenInfo * scr, ASStatusHints * status)
 	}
 }
 
+unsigned char
+get_hint_name_encoding( ASHints *hints, int name_idx )
+{
+	if( hints && name_idx >= 0 && name_idx <= MAX_WINDOW_NAMES )
+		return hints->names_encoding[name_idx];
+	return AS_Text_ASCII;
+}	 
+
 /* Hints merging functions : */
 ASHints      *
 merge_hints (ASRawHints * raw, ASDatabase * db, ASStatusHints * status,
@@ -2184,16 +2192,17 @@ change_placement (ScreenInfo * scr, ASHints * hints, ASStatusHints * status, XPo
 }
 
 int
-calculate_viewport (int *pos, int size, int scr_vpos, int scr_size, int max_viewport)
+calculate_viewport (int *ppos, int size, int scr_vpos, int scr_size, int max_viewport)
 {
 	int           viewport = -1;
+	int pos = ppos?*ppos:0 ;
 
-	if (*pos >= scr_size)
-		viewport = *pos / scr_size;
-	else if (*pos + size < 0)
+	if (pos >= scr_size)
+		viewport = pos / scr_size;
+	else if (pos + size < 0)
 	{
-		if (*pos + scr_vpos > 0)
-			viewport = (scr_vpos + *pos) / scr_size;
+		if (pos + scr_vpos > 0)
+			viewport = (scr_vpos + pos) / scr_size;
 		else
 			viewport = 0;
 	} else
@@ -2201,7 +2210,8 @@ calculate_viewport (int *pos, int size, int scr_vpos, int scr_size, int max_view
 
 	viewport *= scr_size;
 	viewport = MIN (viewport, max_viewport);
-	*pos += scr_vpos - viewport;
+	if( ppos ) 
+		*ppos = pos + (scr_vpos - viewport);
 	return viewport;
 }
 

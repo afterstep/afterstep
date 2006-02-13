@@ -257,6 +257,7 @@ typedef struct ASSupportedHints
  default :                                 break ; /* North/West */    \
 }}
 
+unsigned char get_hint_name_encoding( ASHints *hints, int name_idx );
 ASHints *merge_hints( struct ASRawHints *raw, struct ASDatabase *db, ASStatusHints *status,
                       ASSupportedHints *list, ASFlagType what, ASHints* reusable_memory, Window client );
 void merge_asdb_hints (ASHints * clean, struct ASRawHints * raw, struct ASDatabaseRecord * db_rec, ASStatusHints * status, ASFlagType what);

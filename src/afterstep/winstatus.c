@@ -867,7 +867,7 @@ on_window_title_changed( ASWindow *asw, Bool update_display )
     LOCAL_DEBUG_OUT( "icon_title = %p, icon_name = \"%s\"", asw->icon_title, ASWIN_ICON_NAME(asw)?ASWIN_ICON_NAME(asw):"(null)" );
 	if( asw->icon_title )
     {
-        if( change_astbar_first_label( asw->icon_title, ASWIN_ICON_NAME(asw), (asw->hints->icon_name_idx<0)?AS_Text_ASCII:asw->hints->names_encoding[asw->hints->icon_name_idx] ) )
+        if( change_astbar_first_label( asw->icon_title, ASWIN_ICON_NAME(asw), get_hint_name_encoding(asw->hints, asw->hints->icon_name_idx) ) )
             on_icon_changed( asw );
     }
 }
