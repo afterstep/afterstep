@@ -1128,7 +1128,7 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
 			{
 				ASCanvas *canvas = ASWIN_HFLAGS(asw, AS_VerticalTitle)?asw->frame_sides[FR_W]:asw->frame_sides[FR_N];
 	        	/* label ( goes on top of above pixmap ) */
-	        	if( change_astbar_first_label( asw->tbar, asw->hints->names[0], asw->hints->names_encoding[0] ) )
+	        	if( change_astbar_first_label( asw->tbar, ASWIN_NAME(asw), ASWIN_NAME_ENCODING(asw) ) )
   		        	if( canvas )
       		    	{
 	                	render_astbar( asw->tbar, canvas );
@@ -1201,7 +1201,7 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
                           tbar_layout_row[ASO_TBAR_ELEM_LBL],
                           od->flip,
                           title_align, frame->title_h_spacing, frame->title_v_spacing,
-                          asw->hints->names[0], asw->hints->names_encoding[0]);
+                          ASWIN_NAME(asw), ASWIN_NAME_ENCODING(asw));
 		
 			/* all the buttons go after the label to be rendered over it */
 			/* left buttons : */

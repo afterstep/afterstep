@@ -843,7 +843,7 @@ on_window_title_changed( ASWindow *asw, Bool update_display )
     if( asw->tbar )
     {
         ASCanvas *canvas = ASWIN_HFLAGS(asw, AS_VerticalTitle)?asw->frame_sides[FR_W]:asw->frame_sides[FR_N];
-        if( change_astbar_first_label( asw->tbar, asw->hints->names[0], asw->hints->names_encoding[0] ) )
+        if( change_astbar_first_label( asw->tbar, ASWIN_NAME(asw), ASWIN_NAME_ENCODING(asw) ) )
             if( canvas && update_display )
             {
 				invalidate_canvas_save( canvas );
@@ -867,7 +867,7 @@ on_window_title_changed( ASWindow *asw, Bool update_display )
     LOCAL_DEBUG_OUT( "icon_title = %p, icon_name = \"%s\"", asw->icon_title, ASWIN_ICON_NAME(asw)?ASWIN_ICON_NAME(asw):"(null)" );
 	if( asw->icon_title )
     {
-        if( change_astbar_first_label( asw->icon_title, ASWIN_ICON_NAME(asw), get_hint_name_encoding(asw->hints, asw->hints->icon_name_idx) ) )
+        if( change_astbar_first_label( asw->icon_title, ASWIN_ICON_NAME(asw), ASWIN_ICON_NAME_ENC(asw) ) )
             on_icon_changed( asw );
     }
 }

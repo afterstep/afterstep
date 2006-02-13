@@ -322,19 +322,19 @@ merge_hints (ASRawHints * raw, ASDatabase * db, ASStatusHints * status,
 		for (i = 0; i < list->hints_num; i++)
 			(list->merge_funcs[i]) (clean, raw, NULL, status, HINT_NAME);
 		
-		if( clean->names_encoding[0] == AS_Text_ASCII )
-		{/* TODO: we may want to recode the name into UTF8 string to 
-		    simplify later drawing */
-			
-		
-		}
-		/* we want to make sure that we have Icon Name at all times, if at all possible */
-		if (clean->icon_name == NULL)
-			clean->icon_name = clean->names[0];
 		what &= ~HINT_NAME;
 	}
 	if( clean->names[0] == NULL ) 
+	{	
 		clean->names[0] = mystrdup("");        /* must have at least one valid name string - even if empty */
+		clean->names_encoding[0] = AS_Text_ASCII ;
+	}
+	/* we want to make sure that we have Icon Name at all times, if at all possible */
+	if (clean->icon_name == NULL)
+	{	
+		clean->icon_name = clean->names[0];
+		clean->icon_name_idx = 0;
+	}
 	/* we don't want to do anything else if all that was requested are names */
 	if (what == 0)
 		return clean;
