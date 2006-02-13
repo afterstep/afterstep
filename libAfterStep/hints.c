@@ -457,7 +457,7 @@ update_colormaps (ScreenInfo * scr, Window w, ASSupportedHints * list, CARD32 **
  * The following functions actually implement hints merging :
  ****************************************************************************/
 static int
-add_name_to_list (char **list, char *name, unsigned char *encoding_list, unsigned char encoding )
+add_name_to_list (char **list, char *name, unsigned char *encoding_list, unsigned char encoding, Bool to_front )
 {
 	register int  i;
 
@@ -480,13 +480,12 @@ add_name_to_list (char **list, char *name, unsigned char *encoding_list, unsigne
 		return -1;
 	}
 
-#if 0	
-	for (; i > 0; i--)
-	{
-		list[i] = list[i - 1];
-		encoding_list[i] = encoding_list[i-1] ;
-	}
-#endif
+	if( to_front )
+		for (; i > 0; i--)
+		{
+			list[i] = list[i - 1];
+			encoding_list[i] = encoding_list[i-1] ;
+		}
 	list[i] = name;
 	encoding_list[i] = encoding ;
 	return i;
@@ -518,22 +517,22 @@ merge_icccm_hints (ASHints * clean, ASRawHints * raw,
 	if (get_flags (what, HINT_NAME))
 	{										   /* adding all the possible window names in order of increasing importance */
 		if (raw->wm_name)
-			add_name_to_list (clean->names, text_property2string (raw->wm_name), clean->names_encoding, AS_Text_ASCII);
+			add_name_to_list (clean->names, text_property2string (raw->wm_name), clean->names_encoding, AS_Text_ASCII, True);
 		if (raw->wm_icon_name)
 		{
-			clean->icon_name_idx = add_name_to_list (clean->names, text_property2string (raw->wm_icon_name), clean->names_encoding, AS_Text_ASCII);
+			clean->icon_name_idx = add_name_to_list (clean->names, text_property2string (raw->wm_icon_name), clean->names_encoding, AS_Text_ASCII, False);
 			clean->icon_name     = (clean->icon_name_idx < 0 )?NULL:clean->names[clean->icon_name_idx];
 		}
 		if (raw->wm_class)
 		{
 			if (raw->wm_class->res_class)
 			{
-				clean->res_class_idx = add_name_to_list (clean->names, stripcpy (raw->wm_class->res_class), clean->names_encoding, AS_Text_ASCII );
+				clean->res_class_idx = add_name_to_list (clean->names, stripcpy (raw->wm_class->res_class), clean->names_encoding, AS_Text_ASCII, False );
 				clean->res_class = (clean->res_class_idx < 0 )?NULL:clean->names[clean->res_class_idx];
 			}
 			if (raw->wm_class->res_name)
 			{
-				clean->res_name_idx = add_name_to_list (clean->names, stripcpy (raw->wm_class->res_name), clean->names_encoding, AS_Text_ASCII);
+				clean->res_name_idx = add_name_to_list (clean->names, stripcpy (raw->wm_class->res_name), clean->names_encoding, AS_Text_ASCII, False);
 				clean->res_name = (clean->res_name_idx < 0 )?NULL:clean->names[clean->res_name_idx];
 			}
 		}
@@ -1150,14 +1149,14 @@ merge_extwm_hints (ASHints * clean, ASRawHints * raw,
 
 	if (get_flags (what, HINT_NAME))
 	{
-		if (eh->visible_name)
-			add_name_to_list (clean->names, stripcpy((const char*)(eh->visible_name->value)), clean->names_encoding, AS_Text_UTF8);
 		if (eh->name)
-			add_name_to_list (clean->names, stripcpy((const char*)(eh->name->value)), clean->names_encoding, AS_Text_UTF8);
+			add_name_to_list (clean->names, stripcpy((const char*)(eh->name->value)), clean->names_encoding, AS_Text_UTF8, True);
+		if (eh->visible_name)
+			add_name_to_list (clean->names, stripcpy((const char*)(eh->visible_name->value)), clean->names_encoding, AS_Text_UTF8, True);
 		if (eh->icon_name)
-			clean->icon_name_idx = add_name_to_list (clean->names, stripcpy((const char*)(eh->icon_name->value)), clean->names_encoding, AS_Text_UTF8);
+			clean->icon_name_idx = add_name_to_list (clean->names, stripcpy((const char*)(eh->icon_name->value)), clean->names_encoding, AS_Text_UTF8, False);
 		if (eh->visible_icon_name)
-			clean->icon_name_idx = add_name_to_list (clean->names, stripcpy((const char*)(eh->visible_icon_name->value)), clean->names_encoding, AS_Text_UTF8);
+			clean->icon_name_idx = add_name_to_list (clean->names, stripcpy((const char*)(eh->visible_icon_name->value)), clean->names_encoding, AS_Text_UTF8, False);
 		clean->icon_name = (clean->icon_name_idx <0 )?NULL: clean->names[clean->icon_name_idx] ;
 	}
 
