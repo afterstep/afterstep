@@ -2872,22 +2872,22 @@ serialize_string (char *string, ASVector * buf)
 		}
 		src = &(string[i << 2]);
 		/* unrolling loop here : */
-		ptr[i] = src[0];
+		ptr[i] = src[0]&0x0FF;
         if( src[0] )
         {
             if (src[1])
             {   /* we don't really want to use bitwise operations */
                 /* so we get "true" number and later can do ENDIANNES transformations */
-                ptr[i] |=  ((CARD32)src[1]) <<8 ;
+                ptr[i] |=  (((CARD32)src[1]) <<8)&0x0FF00 ;
                 if (src[2])
-                    ptr[i] |= ((CARD32) src[2])<<16;
+                    ptr[i] |= (((CARD32) src[2])<<16)&0x0FF0000;
             }
         }
 		while (--i >= 0)
 		{
 			src -= 4;
 			ptr[i] =
-                ((CARD32) src[0]) | ((CARD32) src[1]<<8) |((CARD32) src[2]<<16)|((CARD32) src[3]<<24);
+                (((CARD32) src[0])&0x0FF) | (((CARD32) src[1]<<8)&0x0FF00) |(((CARD32) src[2]<<16)&0x0FF0000)|(((CARD32) src[3]<<24)&0xFF000000);
 		}
 	}
 }
