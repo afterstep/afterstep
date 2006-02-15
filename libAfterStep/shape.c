@@ -274,12 +274,16 @@ subtract_rectangle( int new_x, int new_y, int new_width, int new_height, ASVecto
 			segments[seg_count].height = bottom - s_bottom ;
 			++seg_count ;
 		}
-		shape_rects[i] = segments[--seg_count] ;
-		if( seg_count > 0 )
-		{
-			append_vector( shape, &segments[0], seg_count );
-			shape_rects = PVECTOR_HEAD(XRectangle, shape);
-			shape_rect_count = PVECTOR_USED( shape );
+		if( seg_count > 0 ) 
+		{	
+			--seg_count ;
+			shape_rects[i] = segments[seg_count];
+			if( seg_count > 0 )
+			{
+				append_vector( shape, &segments[0], seg_count );
+				shape_rects = PVECTOR_HEAD(XRectangle, shape);
+				shape_rect_count = PVECTOR_USED( shape );
+			}
 		}
 	}
 

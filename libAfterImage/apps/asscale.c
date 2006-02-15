@@ -76,9 +76,9 @@ int main(int argc, char* argv[])
 				clip_x = atoi(argv[++i]) ;
 			else if( strncmp( argv[i], "-cy", 4 ) == 0 && i+1 < argc )
 				clip_y = atoi(argv[++i]) ;
-			else if( strncmp( argv[i], "-cwidth", 4 ) == 0 && i+1 < argc )
+			else if( strncmp( argv[i], "-cwidth", 7 ) == 0 && i+1 < argc )
 				clip_width = atoi(argv[++i]) ;
-			else if( strncmp( argv[i], "-cheight", 4 ) == 0 && i+1 < argc )
+			else if( strncmp( argv[i], "-cheight", 8 ) == 0 && i+1 < argc )
 				clip_height = atoi(argv[++i]) ;
 			else if( strncmp( argv[i], "-ss", 3 ) == 0 )
 				slice_scale = True ;

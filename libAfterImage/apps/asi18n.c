@@ -221,7 +221,8 @@ int main(int argc, char* argv[])
 
 		/* see ASText.4 : */
 		init_image_layers( &(layers[0]), 2 );
-		back_im->back_color = back_color ;
+		if( back_im )
+			back_im->back_color = back_color ;
 		fore_im->back_color = text_color ;
 		layers[0].im = back_im ;
 		layers[0].dst_x = 0 ;

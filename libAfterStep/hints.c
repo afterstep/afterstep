@@ -3317,8 +3317,8 @@ enable_hints_support (ASSupportedHints * list, HintsTypes type)
 {
 	if (list)
 	{
-		if (list->hints_num > HINTS_Supported)
-			list->hints_num = HINTS_Supported; /* we are being paranoid */
+		if (list->hints_num >= HINTS_Supported)
+			list->hints_num = HINTS_Supported-1; /* we are being paranoid */
 
 		if (get_flags (list->hints_flags, (0x01 << type)))	/* checking for duplicates */
 			return False;

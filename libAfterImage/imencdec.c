@@ -185,7 +185,7 @@ asimage_erase_line( ASImage * im, ColorPart color, unsigned int y )
 			int c ;
 			for( c = 0 ; c < IC_NUM_CHANNELS ; c++ )
 			{
-				part = im->channels[color];
+				part = im->channels[c];
 				if( part[y] )
 					forget_data( NULL, part[y] );
 				part[y] = 0;

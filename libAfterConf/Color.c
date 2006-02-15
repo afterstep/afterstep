@@ -332,10 +332,10 @@ translate_gtkrc_template_file( 	const char *template_fname, const char *output_f
 				if( strncmp( &buffer[i], "fg[", 3 ) == 0 ||
 					strncmp( &buffer[i], "bg[", 3 ) == 0 ||
 					strncmp( &buffer[i], "text[", 5 ) == 0 ||
-					strncmp( &buffer[i], "base[", 3 ) == 0 ||
-					strncmp( &buffer[i], "light[", 3 ) == 0 ||
-					strncmp( &buffer[i], "dark[", 3 ) == 0 ||
-					strncmp( &buffer[i], "mid[", 3 ) == 0 )
+					strncmp( &buffer[i], "base[", 5 ) == 0 ||
+					strncmp( &buffer[i], "light[", 6 ) == 0 ||
+					strncmp( &buffer[i], "dark[", 5 ) == 0 ||
+					strncmp( &buffer[i], "mid[", 4 ) == 0 )
 				{
 					while( buffer[i] != '\0' && buffer[i] != '\"' && buffer[i] != '\{' )++i ; 
 					if(buffer[i] == '\"' )

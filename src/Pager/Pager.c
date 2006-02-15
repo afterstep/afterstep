@@ -399,10 +399,10 @@ CheckConfigSanity()
 	if( Columns_override > 0 ) 
 		Config->columns = Columns_override ;
     LOCAL_DEBUG_OUT( "columns = %d, rows = %d, desks = %ld, start_desk = %ld", Config->columns, Config->rows, PagerState.desks_num, PagerState.start_desk );
+	if( Config->rows > PagerState.desks_num )
+		Config->rows = PagerState.desks_num ;
 	if( Config->rows == 0 )
         Config->rows = 1;
-	else if( Config->rows > PagerState.desks_num )
-		Config->rows = PagerState.desks_num ;
 
     if( Config->columns == 0 ||
         Config->rows*Config->columns != PagerState.desks_num )
@@ -2842,8 +2842,7 @@ LOCAL_DEBUG_OUT( "pointer root pos(%+d%+d)", px, py );
                     px -= d->background->win_x;
                     py -= d->background->win_y;
                     if( px >= 0 && py >= 0 &&
-                        px < d->background->width > 0 &&
-						py < d->background->height > 0 )
+                        px < d->background->width && py < d->background->height )
                     {
                         if( PagerState.pressed_button == Button3 )
                         {

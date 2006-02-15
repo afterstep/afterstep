@@ -188,19 +188,19 @@ ParseBaseOptions (const char *filename, char *myname)
 				 config->desktop_scale = 1;
 			 break;
 		 case BASE_TermCommand_ID :
-		 	 if( item.index  < MAX_TOOL_COMMANDS || item.index >= 0 ) 
+		 	 if( item.index  < MAX_TOOL_COMMANDS && item.index >= 0 ) 
 			 {	
 			 	set_string(&(config->term_command[item.index]), item.data.string );		 	
 			 	break;
 			 }
     	 case BASE_BrowserCommand_ID :
-		 	 if( item.index  < MAX_TOOL_COMMANDS || item.index >= 0 ) 
+		 	 if( item.index  < MAX_TOOL_COMMANDS && item.index >= 0 ) 
 			 {	
 			 	set_string(&(config->browser_command[item.index]), item.data.string );		 	
 			 	break;
 			 }
 	   	 case BASE_EditorCommand_ID :	
-		 	 if( item.index  < MAX_TOOL_COMMANDS || item.index >= 0 ) 
+		 	 if( item.index  < MAX_TOOL_COMMANDS && item.index >= 0 ) 
 			 {	
 			 	set_string(&(config->editor_command[item.index]), item.data.string );		 	
 			 	break;

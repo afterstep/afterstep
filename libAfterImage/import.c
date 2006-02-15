@@ -325,7 +325,7 @@ file2pixmap(ASVisual *asv, Window root, const char *realfilename, Pixmap *mask_o
 	}
 	if( mask_out )
 	{
-		if( *mask_out )
+		if( *mask_out && asv )
 			XFreePixmap( asv->dpy, *mask_out );
 		*mask_out = mask ;
 	}

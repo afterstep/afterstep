@@ -645,7 +645,8 @@ rearrange_winlist_window( Bool dont_resize_main_canvas )
             max_item_height = height ;
     }
 	LOCAL_DEBUG_OUT( "calculated max_item_height = %d", max_item_height );
-
+	if( max_item_height <= 0 ) 
+		max_item_height = 1 ;
     max_rows = (allowed_max_height + max_item_height - 1 ) / max_item_height ;
     if( max_rows > Config->MaxRows )
         max_rows = Config->MaxRows ;

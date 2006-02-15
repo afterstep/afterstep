@@ -739,19 +739,22 @@ start_imagedata_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *s
 			}	 
 			parm = parm->next ;
 		}		
-		if (  state->doc_type == DocType_PHP ) 
-		    fprintf( state->dest_fp, "<IMG SRC=%s/%s", state->dest_dir, url );
-		else
-		    fprintf( state->dest_fp, "<IMG src=\"%s\"", url );
-		if( align != NULL ) 
-			fprintf( state->dest_fp, " align=\"%s\"", align );	 
-		if( valign != NULL ) 
-			fprintf( state->dest_fp, " valign=\"%s\"", valign );	 
-		if( width != NULL ) 
-			fprintf( state->dest_fp, " width=\"%s\"", width );	 
-		if( height != NULL ) 
-			fprintf( state->dest_fp, " height=\"%s\"", height );	 
-		fwrite( ">", 1, 1, state->dest_fp );	  
+		if( url ) 
+		{	
+			if (  state->doc_type == DocType_PHP ) 
+		    	fprintf( state->dest_fp, "<IMG SRC=%s/%s", state->dest_dir, url );
+			else
+		    	fprintf( state->dest_fp, "<IMG src=\"%s\"", url );
+			if( align != NULL ) 
+				fprintf( state->dest_fp, " align=\"%s\"", align );	 
+			if( valign != NULL ) 
+				fprintf( state->dest_fp, " valign=\"%s\"", valign );	 
+			if( width != NULL ) 
+				fprintf( state->dest_fp, " width=\"%s\"", width );	 
+			if( height != NULL ) 
+				fprintf( state->dest_fp, " height=\"%s\"", height );	 
+			fwrite( ">", 1, 1, state->dest_fp );	  
+		}
 	}
 }
 

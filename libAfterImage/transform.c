@@ -1527,9 +1527,10 @@ flip_asimage( ASVisual *asv, ASImage *src,
 	START_TIME(started);
 
 LOCAL_DEBUG_CALLER_OUT( "offset_x = %d, offset_y = %d, to_width = %d, to_height = %d", offset_x, offset_y, to_width, to_height );
-	if( src )
-		filter = get_asimage_chanmask(src);
-
+	if( src == NULL )
+		return NULL ;
+	
+	filter = get_asimage_chanmask(src);
 	dst = create_destination_image( to_width, to_height, out_format, compression_out, src->back_color);
 
 #ifdef HAVE_MMX
@@ -1768,7 +1769,7 @@ LOCAL_DEBUG_OUT( "filling %d lines with %8.8lX", start_y, color );
 			result.back_color = imdec->buffer.back_color ;
 		if( (int)to_width == clip_width )
 		{
-			if( (int)clip_width == (int)src->width )
+			if( imdec == NULL )
 			{
 LOCAL_DEBUG_OUT( "copiing %d lines", clip_height );
 				copy_asimage_lines( dst, start_y, src, (dst_y < 0 )? -dst_y: 0, clip_height, SCL_DO_ALL );
@@ -1779,7 +1780,7 @@ LOCAL_DEBUG_OUT( "copiing %d lines", clip_height );
 					imdec->decode_image_scanline( imdec );
 					imout->output_image_scanline( imout, &(imdec->buffer), 1);
 				}
-		}else
+		}else if( imdec )
 		{
 			for( y = 0 ; y < clip_height ; y++  )
 			{
@@ -1812,7 +1813,7 @@ LOCAL_DEBUG_OUT( "filling %d lines with %8.8lX at the end", to_height-(start_y+c
 		for( y = start_y+clip_height ; y < (int)to_height ; y++  )
 			imout->output_image_scanline( imout, &result, 1);
 
-		if( (int)to_width != clip_width || clip_width != (int)src->width )
+		if( imdec )
 		{
 			stop_image_decoding( &imdec );
 			free_scanline( &result, True );
@@ -2184,7 +2185,9 @@ adjust_asimage_hsv( ASVisual *asv, ASImage *src,
 	START_TIME(started);
 
 LOCAL_DEBUG_CALLER_OUT( "offset_x = %d, offset_y = %d, to_width = %d, to_height = %d, hue = %u", offset_x, offset_y, to_width, to_height, affected_hue );
-	if( src && (imdec = start_image_decoding(asv, src, SCL_DO_ALL, offset_x, offset_y, to_width, 0, NULL)) == NULL )
+	if( src == NULL ) 
+		return NULL;
+	if( (imdec = start_image_decoding(asv, src, SCL_DO_ALL, offset_x, offset_y, to_width, 0, NULL)) == NULL )
 		return NULL;
 
 	dst = create_destination_image( to_width, to_height, out_format, compression_out, src->back_color);

@@ -112,7 +112,8 @@ int main(int argc, char* argv[])
 			if((layers[layers_num].merge_scanlines =
 				 blend_scanlines_name2func( argv[i] )) == NULL )
 				continue ;
-			++i ;
+			if( ++i >= argc )
+				break;
 		}
 		if( (separator = strchr( argv[i], ':' )) != NULL )
 		{   /* see ASTile.1 : */

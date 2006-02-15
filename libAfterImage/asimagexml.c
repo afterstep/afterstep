@@ -962,11 +962,12 @@ handle_asxml_tag_color( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* par
 	const char* var_domain = NULL;
 	LOCAL_DEBUG_OUT("doc = %p, parm = %p", doc, parm ); 
 	for (ptr = parm ; ptr ; ptr = ptr->next) {
-		if (!strcmp(ptr->tag, "name")) name = strdup(ptr->parm);
+		if (!strcmp(ptr->tag, "name")) name = ptr->parm;
 		else if (!strcmp(ptr->tag, "argb")) argb_text = ptr->parm;
 		else if (!strcmp(ptr->tag, "domain")) var_domain = ptr->parm;
 	}
-	if (name && argb_text) {
+	if (name && argb_text) 
+	{
 		ARGB32 argb = ARGB32_Black;
 		if( parse_argb_color( argb_text, &argb ) != argb_text )
 		{
@@ -1009,8 +1010,7 @@ handle_asxml_tag_color( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* par
 			sprintf( tmp+vd_len, "%s.value", name );
 			asxml_var_insert( tmp, val162percent( val16 ) );
 			free( tmp );
-		}else
-			free( name );
+		}
 	}
 	return NULL;
 }
@@ -1042,18 +1042,19 @@ handle_asxml_tag_printf( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* pa
 		else if (!strcmp(ptr->tag, "val")) { val = (int)parse_math(ptr->parm, NULL, 0); use_val = True; }
 	}
    		
-	for( i = 0 ; format[i] != '\0' ; ++i )
-		if( format[i] == '%' )
-		{
-			if( format[i+1] != '%' ) 
-			 	++arg_count ; 
-			else 
-				++i ;
-		}
-		
 	if( format != NULL ) 
 	{	
 		char *interpreted_format = interpret_ctrl_codes( mystrdup(format) );
+		
+		for( i = 0 ; format[i] != '\0' ; ++i )
+			if( format[i] == '%' )
+			{
+				if( format[i+1] != '%' ) 
+			 		++arg_count ; 
+				else 
+					++i ;
+			}
+		
 		if( use_val && arg_count == 1) 
 			printf( interpreted_format, val );
 		else if( var != NULL && arg_count == 1 ) 

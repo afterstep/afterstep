@@ -1382,7 +1382,7 @@ render_astbar (ASTBarData * tbar, ASCanvas * pc)
 	ASImageBevel  bevel;
     ASImageLayer *layers;
     ASImage     **scrap_images = NULL;
-	ASImage      *merged_im;
+	ASImage      *merged_im = NULL ;
 	int           state;
 	ASAltImFormats fmt = ASA_ScratchXImageAndAlpha;
     int l, changed ;

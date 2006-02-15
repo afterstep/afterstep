@@ -1347,7 +1347,7 @@ asim_ellips2( ASDrawContext *ctx, int x, int y, int rx, int ry, int angle, Bool 
 					{ 
 						int v ; 
 						v = ( dd >= med_dd )? dd-med_dd: med_dd-dd ;  
-						v = v*255/-med_dd ; 
+						v = (med_dd == 0)?250: (v*255/-med_dd) ; 
 						if( v < 0 || v > 255) 
 							v = 250 ;
 #ifdef DEBUG_ELLIPS					 						   

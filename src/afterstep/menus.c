@@ -226,9 +226,9 @@ set_asmenu_item_data( ASMenuItem *item, MenuDataItem *mdi )
 		item->icon = check_scale_menu_pmap( icon_im, mdi->flags );
 		if( item->icon != icon_im && icon_im != mdi->minipixmap_image )
 			safe_asimage_destroy( icon_im );
-		if( item->icon == mdi->minipixmap_image )
+		if( item->icon && item->icon == mdi->minipixmap_image )
 		{	
-			if( mdi->minipixmap_image->imageman != NULL )
+			if( item->icon->imageman != NULL )
             	item->icon = dup_asimage( item->icon );
 			else
 		    	item->icon = clone_asimage( item->icon, 0xFFFFFFFF );
