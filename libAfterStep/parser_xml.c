@@ -75,6 +75,23 @@ char *_as_config_tags[TT_VALUE_TYPES] =
  	"inline_comment"
 };	 
 
+typedef enum ASXmlOptIDType
+{
+	ASXmlIDT_Index = 0,
+	ASXmlIDT_Side,
+	ASXmlIDT_Name,	 
+	ASXmlIDT_Types,
+	ASXmlIDT_None = ASXmlIDT_Types
+}ASXmlOptIDType;
+					
+
+#define ASXMLOpt_moduleAttrName "module"
+					
+#define ASXMLOpt_indexAttrName  "index"
+#define ASXMLOpt_sideAttrName  "side" 
+#define ASXMLOpt_nameAttrName  "name" 
+
+
 void 
 append_asconfig_value_tag( xml_elem_t  *parent, int type, char **val )
 {
@@ -187,13 +204,13 @@ statement2xml_elem (ConfigDef * config)
 		}	 
 	}		
 	if( name )
-		parm_len = sizeof(" name=") + 1+strlen(name)+1+1;
+		parm_len  = sizeof(" " ASXMLOpt_nameAttrName  "=") + 1+strlen(name)+1+1;
 	if( side )
-		parm_len += sizeof(" side=") + 1+strlen(side)+1+1;
+		parm_len += sizeof(" " ASXMLOpt_sideAttrName  "=") + 1+strlen(side)+1+1;
 	if( index )
-		parm_len += sizeof(" index=") +1+strlen(index)+1+1;
+		parm_len += sizeof(" " ASXMLOpt_indexAttrName "=") +1+strlen(index)+1+1;
 	if( module )
-		parm_len += sizeof(" module=") +1+strlen(module)+1+1;
+		parm_len += sizeof(" " ASXMLOpt_moduleAttrName "=") +1+strlen(module)+1+1;
 
 	if( parm_len > 0 ) 
 	{
@@ -201,23 +218,23 @@ statement2xml_elem (ConfigDef * config)
 		item->parm = parm_ptr ; 
 		if( name ) 
 		{	
-			sprintf( parm_ptr,"name=\"%s\"", name );	   
+			sprintf( parm_ptr, ASXMLOpt_nameAttrName "=\"%s\"", name );	   
 			while( *parm_ptr ) ++parm_ptr ;
 			destroy_string( &name );
 		}else if( side ) 
 		{	  
-			sprintf( parm_ptr,"side=\"%s\"", side );	   
+			sprintf( parm_ptr,ASXMLOpt_sideAttrName "=\"%s\"", side );	   
 			while( *parm_ptr ) ++parm_ptr ;
 			destroy_string( &side ); 
 		}else if( index ) 
 		{	
-			sprintf( parm_ptr,"index=\"%s\"", index );	   
+			sprintf( parm_ptr, ASXMLOpt_indexAttrName "=\"%s\"", index );	   
 			while( *parm_ptr ) ++parm_ptr ;
 			destroy_string( &index );
 		}	 
 		if( module ) 
 		{	
-			sprintf( parm_ptr, (parm_ptr>item->parm)?" module=\"%s\"":"module=\"%s\"", module );	   
+			sprintf( parm_ptr, (parm_ptr>item->parm)?" %s=\"%s\"":"%s=\"%s\"", ASXMLOpt_moduleAttrName, module );	   
 			if( module != config->myname )
 				destroy_string( &module );
 		}	 
@@ -376,11 +393,11 @@ xml_tree2file(FILE *fp , char *myname, SyntaxDef *syntax, xml_elem_t* tree, int 
 				parm_tree = xml_parse_parm(tree->parm, NULL);
 				for( c = parm_tree ; c ; c = c->next )
 				{	
-					if( strcmp( c->tag, "module" ) == 0 )
+					if( strcmp( c->tag, ASXMLOpt_moduleAttrName ) == 0 )
 						tag_myname = c->parm ; 	
-					else if( strcmp( c->tag, "index" ) == 0 || 
-							 strcmp( c->tag, "side" ) == 0  ||
-							 strcmp( c->tag, "name" ) == 0 )
+					else if( strcmp( c->tag, ASXMLOpt_indexAttrName ) == 0 || 
+							 strcmp( c->tag, ASXMLOpt_sideAttrName ) == 0  ||
+							 strcmp( c->tag, ASXMLOpt_nameAttrName ) == 0 )
 						prefix = c->parm ; 	
 				}
 			}	 
@@ -480,6 +497,167 @@ file2xml_tree(const char *filename, char *myname, SyntaxDef *syntax )
 	}
 	return tree;
 }	 
+
+/**************************************************************************
+ * This stuff below is for manipulating xml_elem_t tree of options : 
+ *************************************************************************/
+
+typedef struct ASXmlOptionTreeContext
+{
+#define ASXmlOptTree_ExcludeForeign			(0x01<<0)
+#define ASXmlOptTree_ExcludePublic			(0x01<<1)
+	ASFlagType flags;
+
+	SyntaxDef  *syntax ;
+	xml_elem_t *root ;
+	char *module;
+
+	xml_elem_t *current ;
+#define MAX_XMLATRR_LENGTH		256
+	char  current_name[MAX_XMLATRR_LENGTH+1];
+	char  current_side[MAX_XMLATRR_LENGTH+1];
+	char  current_index[MAX_XMLATRR_LENGTH+1];
+
+#define ASXmlOptTree_Foreign			ASXmlOptTree_ExcludeForeign
+#define ASXmlOptTree_Public		   		ASXmlOptTree_ExcludePublic
+	ASFlagType current_flags;
+			  
+}ASXmlOptionTreeContext;
+
+
+static void 
+parse_curr_opt_attributes( ASXmlOptionTreeContext *context )
+{
+	xml_elem_t *parms = xml_parse_parm( context->current->parm, NULL );
+	xml_elem_t *c;
+	context->current_name[0] = 	context->current_side[0] = context->current_index[0] = '\0' ;
+	context->current_flags = ASXmlOptTree_Public ;
+	for( c = parms ; c != NULL ; c = c->next )
+	{
+		if( mystrcasecmp( c->tag, ASXMLOpt_moduleAttrName ) == 0 )
+		{	
+			clear_flags(context->current_flags, ASXmlOptTree_Public ) ;	  
+			if( context->module[0] == '\0' || strcmp(c->parm, context->module ) == 0 ) 
+				clear_flags(context->current_flags, ASXmlOptTree_Foreign ) ;
+			else
+				set_flags(context->current_flags, ASXmlOptTree_Foreign ) ;
+		}else if( mystrcasecmp( c->tag, ASXMLOpt_indexAttrName ) == 0 )
+		{	
+			strncpy( context->current_index, c->parm, MAX_XMLATRR_LENGTH ); 
+			context->current_index[MAX_XMLATRR_LENGTH] = '\0' ;
+		}else if( mystrcasecmp( c->tag, ASXMLOpt_sideAttrName ) == 0 )
+		{	
+			strncpy( context->current_side, c->parm, MAX_XMLATRR_LENGTH ); 
+			context->current_side[MAX_XMLATRR_LENGTH] = '\0' ;
+		}else if( mystrcasecmp( c->tag, ASXMLOpt_nameAttrName ) == 0 )
+		{	
+			strncpy( context->current_name, c->parm, MAX_XMLATRR_LENGTH ); 
+			context->current_name[MAX_XMLATRR_LENGTH] = '\0' ;
+		}
+	}	 
+}	 
+
+static void
+find_next_valid_opt( ASXmlOptionTreeContext *context )
+{
+	while( context->current != NULL )
+	{
+		parse_curr_opt_attributes( context );
+		if( ( get_flags( context->flags, ASXmlOptTree_ExcludeForeign ) && 
+			  get_flags( context->current_flags, ASXmlOptTree_Foreign )) ||
+			( get_flags( context->flags, ASXmlOptTree_ExcludePublic ) && 
+			  get_flags( context->current_flags, ASXmlOptTree_Public )))
+		{
+			context->current = context->current->next ;
+		}else
+			break;	 
+	}
+}
+
+
+ASXmlOptionTreeContext *
+xml_opt_tree_start_traversing( SyntaxDef  *syntax, xml_elem_t *root, const char *module )
+{
+	ASXmlOptionTreeContext *context = NULL ; 
+
+	if( root && root->tag_id == XML_CONTAINER_ID )
+		root = root->child ;
+
+	if( root == NULL || syntax == NULL ) 
+		return NULL;
+
+	context = safecalloc( 1, sizeof(ASXmlOptionTreeContext));
+	context->syntax = syntax ; 
+	context->root = root ; 
+	context->module = mystrdup(module);
+	context->current = context->root ; 	
+	
+	find_next_valid_opt( context );
+	return context;
+}	  
+
+Bool
+xml_opt_tree_go_next( ASXmlOptionTreeContext *context )
+{
+	if( context == NULL || context->current == NULL ) 
+		return False;
+	
+	context->current = context->current->next ; 	   
+	find_next_valid_opt( context );
+
+	return (context->current != NULL);   
+}	  
+
+ASXmlOptionTreeContext *
+xml_opt_tree_traverse_subtree( ASXmlOptionTreeContext *context )
+{
+	ASXmlOptionTreeContext *subtree_context = NULL ; 
+
+	if( context ) 
+	{
+		
+		
+	}	 
+	
+	return subtree_context;
+}	  
+
+Bool
+xml_opt_tree_delete_current( ASXmlOptionTreeContext *context )
+{
+	if( context == NULL || context->current == NULL ) 
+		return False;
+	
+	return True;
+}	  
+
+Bool
+xml_opt_tree_delete_subtree( ASXmlOptionTreeContext *context )
+{
+	if( context == NULL || context->current == NULL ) 
+		return False;
+	
+	return True;
+}	  
+
+Bool
+xml_opt_tree_insert( ASXmlOptionTreeContext *context, int term_id, Bool module_specific, ASXmlOptIDType id_type, const char *id, const char *value)
+{
+	if( context == NULL ) 
+		return False;
+	
+	return True;
+}	  
+
+
+Bool
+xml_opt_tree_copy( ASXmlOptionTreeContext *context, Bool module_specific, ASXmlOptIDType id_type, const char *id, const char *value )
+{
+	if( context == NULL || context->current == NULL ) 
+		return False;
+	
+	return True;
+}	  
 
 
 #ifdef TEST_PARSER_XML
