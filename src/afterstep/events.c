@@ -60,7 +60,7 @@
  *  DispatchEvent - calls appropriate handler for the event
  ************************************************************************/
 void DigestEvent    ( ASEvent *event );
-void afterstep_wait_pipes_input ();
+void afterstep_wait_pipes_input (int timeout_sec);
 
 void
 HandleEvents ()
@@ -88,7 +88,7 @@ HandleEvents ()
             }
             ExecutePendingFunctions();
         }
-        afterstep_wait_pipes_input ();
+        afterstep_wait_pipes_input (0);
         ExecutePendingFunctions();
     }
 }
@@ -121,7 +121,7 @@ LOCAL_DEBUG_OUT( "checking masked events ...%s", "" );
             if( Scr.moveresize_in_progress == NULL )
                 return;
         }
-        afterstep_wait_pipes_input ();
+        afterstep_wait_pipes_input (0);
     }
 }
 
@@ -293,7 +293,7 @@ WaitWindowLoop( char *pattern, long timeout )
 
 		if( time(NULL) > end_time )
 			break;
-		afterstep_wait_pipes_input ();
+		afterstep_wait_pipes_input (1);
 	}
 	destroy_ashint_window( &hint );
     return NULL;
@@ -1472,7 +1472,7 @@ void HandleShmCompletion(ASEvent *event)
  *
  ****************************************************************************/
 void
-afterstep_wait_pipes_input()
+afterstep_wait_pipes_input(int timeout_sec)
 {
 	fd_set        in_fdset, out_fdset;
 	int           retval;
@@ -1515,6 +1515,12 @@ afterstep_wait_pipes_input()
 	/* watch for timeouts */
 	if (timer_delay_till_next_alarm ((time_t *) & tv.tv_sec, (time_t *) & tv.tv_usec))
 		t = &tv;
+	else if( timeout_sec > 0 )
+	{
+		t = &tv ; 
+		tv.tv_sec = timeout_sec ; 
+		tv.tv_usec = 0 ;
+	}
     retval = PORTABLE_SELECT(min (max_fd + 1, fd_width),&in_fdset,&out_fdset,NULL,t);
 
 	if (retval > 0)
