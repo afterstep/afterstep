@@ -509,7 +509,7 @@ typedef struct ASXmlOptionTreeContext
 	ASFlagType flags;
 
 	SyntaxDef  *syntax ;
-	xml_elem_t *root ;
+	xml_elem_t *container, *root ;
 	char *module;
 
 	xml_elem_t *current ;
@@ -576,25 +576,67 @@ find_next_valid_opt( ASXmlOptionTreeContext *context )
 
 
 ASXmlOptionTreeContext *
-xml_opt_tree_start_traversing( SyntaxDef  *syntax, xml_elem_t *root, const char *module )
+xml_opt_tree_start_traversing( SyntaxDef  *syntax, xml_elem_t **pcontainer, xml_elem_t *subtree, const char *module )
 {
+/* if pcontainer is not NULL, then context takes over management of the memory of *pcontainer, 
+ * and will deallocate it upon its destruction */
+	
 	ASXmlOptionTreeContext *context = NULL ; 
+	xml_elem_t *root ;
+	
+	if( pcontainer == NULL && subtree == NULL ) 
+		return NULL;
 
-	if( root && root->tag_id == XML_CONTAINER_ID )
-		root = root->child ;
+	root = subtree ;
+	if( root == NULL )
+	{	
+		root = *pcontainer ;
+		if( root && root->tag_id == XML_CONTAINER_ID )
+			root = root->child ;
+	}
 
 	if( root == NULL || syntax == NULL ) 
 		return NULL;
 
 	context = safecalloc( 1, sizeof(ASXmlOptionTreeContext));
 	context->syntax = syntax ; 
+	context->container = *pcontainer ; 
 	context->root = root ; 
+	*pcontainer = NULL ;
+
 	context->module = mystrdup(module);
 	context->current = context->root ; 	
 	
 	find_next_valid_opt( context );
 	return context;
 }	  
+
+ASXmlOptionTreeContext *
+file2xml_tree_context( const char *filename, char *myname, SyntaxDef *syntax )
+{
+	xml_elem_t *root = file2xml_tree(filename, myname, syntax );
+	return xml_opt_tree_start_traversing( syntax, &root, NULL, myname );
+}
+
+
+
+void
+destroy_xml_opt_tree_context( ASXmlOptionTreeContext **pcontext )
+{
+	if( pcontext ) 
+	{
+		ASXmlOptionTreeContext *context	= *pcontext ;
+		if( context ) 
+		{
+			if( context->module ) 
+				destroy_string( &(context->module) );
+			context->syntax = NULL ; 
+			context->root = NULL ; 
+			if( context->container ) 
+				xml_elem_delete(NULL, context->container);
+		}	 
+	}	 
+}
 
 Bool
 xml_opt_tree_go_next( ASXmlOptionTreeContext *context )
