@@ -1558,13 +1558,15 @@ update_property_hints_manager (Window w, Atom property, ASSupportedHints * list,
 				else if( mystrcmp(hints->icon_name, clean.icon_name) != 0 )
 				    changed = True ;
 
-				for (i = 0; i < MAX_WINDOW_NAMES; ++i)
-					if (hints->names[i] == NULL)
-						break;
-					else
+				for (i = 0; i <= MAX_WINDOW_NAMES; ++i)
+					if (hints->names[i] != NULL)
+					{
 						free (hints->names[i]);
-
-				for (i = 0; i < MAX_WINDOW_NAMES; ++i)
+						hints->names[i] = NULL ;
+					}else
+						break;
+						
+				for (i = 0; i <= MAX_WINDOW_NAMES; ++i)
 				{
 					hints->names_encoding[i] = clean.names_encoding[i] ;
 					hints->names[i] = clean.names[i];
