@@ -1159,9 +1159,7 @@ handle_manager_property_update (Window w, Atom property, ASRawHints * raw)
 	if (w && property && raw)
 	{
 		/* Here we are only interested in properties updtaed by the Window Manager : */
-		if (property == _XA_WM_NAME || property == _XA_WM_ICON_NAME ||
-			property == _XA_NET_WM_NAME || property == _XA_NET_WM_ICON_NAME ||
-			property == _XA_NET_WM_VISIBLE_NAME || property == _XA_NET_WM_VISIBLE_ICON_NAME)
+		if (IsNameProp(property))
 		{
 			read_wm_state (raw, w);
 			read_wm_icon_name (raw, w);

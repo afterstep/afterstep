@@ -702,8 +702,10 @@ DispatchEvent ( ASEvent *event, Bool deffered )
 void
 HandleFocusIn ( ASEvent *event )
 {
-    while (ASCheckTypedEvent (FocusIn, &event->x));
-    DigestEvent( event );
+    int events_count = 0 ;
+	while (ASCheckTypedEvent (FocusIn, &event->x)) events_count++;
+	if( events_count > 0 ) 
+    	DigestEvent( event );
 
     if( get_flags( AfterStepState, ASS_WarpingMode ) )
         ChangeWarpingFocus( event->client );
@@ -854,12 +856,27 @@ HandlePropertyNotify (ASEvent *event)
     if( IsNameProp(atom))
     {
 		char *old_name = get_flags( asw->internal_flags, ASWF_NameChanged )?NULL:mystrdup( ASWIN_NAME(asw) );
+		
+		/* we want to check if there were some more events generated 
+		 * as window names tend to change multiple properties : */
+		{
+			XEvent prop_xev ; 
+			while (XCheckTypedWindowEvent (dpy, asw->w, PropertyNotify, &event->x))
+				if( !IsNameProp(prop_xev.xproperty.atom) ) 
+				{	
+					XPutBackEvent( dpy, &prop_xev );
+					break;
+				}
+		}		
+		
 		/*ASFlagType old_hflags = asw->hints->flags ; */
 		show_debug( __FILE__, __FUNCTION__, __LINE__, "name prop changed..." );
-        if( update_property_hints_manager( asw->w, xprop->atom,
-                                        Scr.Look.supported_hints,
-										Database,
-                                        asw->hints, asw->status ) )
+        if( get_flags( Scr.Feel.flags, FollowTitleChanges) )
+    	    on_window_hints_changed( asw );
+    	else if( update_property_hints_manager( asw->w, xprop->atom,
+             	                           		Scr.Look.supported_hints,
+												Database,
+                                        		asw->hints, asw->status ) )
         {
             if( ASWIN_GET_FLAGS( asw, AS_Dead ) )
 				return;
@@ -869,15 +886,11 @@ HandlePropertyNotify (ASEvent *event)
 			if( old_name && strcmp( old_name, ASWIN_NAME(asw) ) != 0 )
 				set_flags( asw->internal_flags, ASWF_NameChanged );
             /* fix the name in the title bar */
-            if( get_flags( Scr.Feel.flags, FollowTitleChanges) )
-	    	    on_window_hints_changed( asw );
-	    	else
-	    	{
-				if (!ASWIN_GET_FLAGS(asw, AS_Iconic))
-           	    	on_window_title_changed( asw, True );
-	        	broadcast_window_name( asw );
-        		broadcast_icon_name( asw );
-		    }
+			if (!ASWIN_GET_FLAGS(asw, AS_Iconic))
+       	    	on_window_title_changed( asw, True );
+			broadcast_res_names( asw );
+        	broadcast_window_name( asw );
+       		broadcast_icon_name( asw );
         }
 		if( old_name )
 			free( old_name );

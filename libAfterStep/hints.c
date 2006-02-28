@@ -1543,14 +1543,10 @@ update_property_hints_manager (Window w, Atom property, ASSupportedHints * list,
 		}
 		if (hints && merge_hints (&raw, db, NULL, list, HINT_ANY, &clean, w) != NULL)
 		{
-
 			show_debug (__FILE__, __FUNCTION__, __LINE__, "hints merged");
-			if (property == XA_WM_NAME || property == XA_WM_ICON_NAME ||
-				property == _XA_NET_WM_NAME || property == _XA_NET_WM_ICON_NAME ||
-				property == _XA_NET_WM_VISIBLE_NAME || property == _XA_NET_WM_VISIBLE_ICON_NAME)
+			if (IsNameProp(property))
 			{
 				int           i;
-
 				if( hints->names_encoding[0] == clean.names_encoding[0] && mystrcmp(hints->names[0], clean.names[0]) != 0 )
 				    changed = True ;
 				else if(  mystrcmp(hints->res_name, clean.res_name) != 0 )

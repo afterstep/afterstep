@@ -881,7 +881,8 @@ on_window_hints_changed( ASWindow *asw )
 
     if( AS_ASSERT(asw) )
         return ;
-
+    if( ASWIN_GET_FLAGS( asw, AS_Dead ) )
+		return;
     if( !collect_hints( ASDefaultScr, asw->w, HINT_ANY, &raw_hints ) )
         return ;
     if( is_output_level_under_threshold(OUTPUT_LEVEL_HINTS) )
@@ -924,7 +925,10 @@ on_window_hints_changed( ASWindow *asw )
 		mystrcmp( old_hints->res_class, hints->res_class ) != 0)
   		broadcast_res_names( asw );
 	if( mystrcmp( old_hints->names[0], hints->names[0] ) != 0 )
+	{	
 	    broadcast_window_name( asw );
+		set_flags( asw->internal_flags, ASWF_NameChanged );
+	}
 	if( mystrcmp( old_hints->icon_name, hints->icon_name ) != 0 )
 	    broadcast_icon_name( asw );
 
