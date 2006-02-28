@@ -1523,6 +1523,8 @@ update_property_hints_manager (Window w, Atom property, ASSupportedHints * list,
 	{
 		ASHints       clean;
 		memset( &clean, 0x00, sizeof(ASHints));
+		clean.res_name_idx = clean.res_class_idx = clean.icon_name_idx = -1;
+
 		show_debug (__FILE__, __FUNCTION__, __LINE__, "property update handled");
 		if (property == _XA_WM_STATE)
 		{

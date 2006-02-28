@@ -79,9 +79,38 @@ void DoTest_locale()
 
 }
 
+void DoTest_Title()
+{
+	int i ;
+	char charset[] = "`1234567890-=~!@#$%^&*()_+qwertyuiop[]sdfghjkl;'/.,mnbvcxzQWERTYUIOP{}|:LKJHGFDSAZXCVBNM<>?";
+	char name[32];
+	char res_name[256];
+	char res_class[256];
+	char icon_name[256];
+	static int num = 12345;
+
+
+	while(1)
+	{
+		int seed = time(NULL)+num;
+		for( i = 0 ; i < sizeof(name) ; ++i ) 
+			name[i] = charset[(seed+i)%(sizeof(charset)-1)];
+		name[i-1] = '\0' ;
+		sprintf( &res_name[0], "res_name :%s", &name[0] );
+		sprintf( &res_class[0], "res_class :%s", &name[0] );
+		sprintf( &icon_name[0], "icon_name :%s", &name[0] );				
+		set_client_names (TestState.main_window, &name[0], &icon_name[0], &res_class[0], &res_name[0]);
+		ASSync(False);
+	}
+
+}
+
+
+#define uint16_t CARD16
+
 void DoTest_colorscheme()
 {
-    uint16_t red = 0, green = 0, blue = 0 ;
+    CARD16 red = 0, green = 0, blue = 0 ;
     FILE *stream = fopen ("ascs.html", "w" );
 
 
@@ -102,7 +131,7 @@ void DoTest_colorscheme()
                 if( blue == 256 ) 
                     --blue ;
                 ASColorScheme *acs = make_ascolor_scheme( MAKE_ARGB32(0xFF, red, green, blue), 15 );
-#define COLOR_RGB(c)   (uint16_t)ARGB32_RED8(acs->main_colors[c]), (uint16_t)ARGB32_GREEN8(acs->main_colors[c]), (uint16_t)ARGB32_BLUE8(acs->main_colors[c]) 
+#define COLOR_RGB(c)   (CARD16)ARGB32_RED8(acs->main_colors[c]), (CARD16)ARGB32_GREEN8(acs->main_colors[c]), (CARD16)ARGB32_BLUE8(acs->main_colors[c]) 
 
                 fprintf( stream, "<TABLE BGCOLOR=\"#%2.2X%2.2X%2.2X\" CELLPADDING=5 CELLSPACING=10>", COLOR_RGB(ASMC_Base ) );
                 if( ASCS_BLACK_O_WHITE_CRITERIA16(ARGB32_RED16(acs->main_colors[ASMC_Base]), ARGB32_GREEN16(acs->main_colors[ASMC_Base]), (uint16_t)ARGB32_BLUE16(acs->main_colors[ASMC_Base])) ) 
@@ -159,7 +188,7 @@ main( int argc, char **argv )
     set_signal_handler( SIGSEGV );
 
     ConnectX( ASDefaultScr, 0 );
-    ConnectAfterStep (0);
+    ConnectAfterStep (0, 0);
     balloon_init (False);
 
     LoadBaseConfig ( GetBaseOptions);
@@ -169,7 +198,7 @@ main( int argc, char **argv )
     TestState.main_canvas = create_ascanvas( TestState.main_window );
     set_root_clip_area(TestState.main_canvas );
 
-    DoTest_locale();
+    DoTest_Title();
 
     //DoTest_colorscheme();
 
@@ -337,11 +366,12 @@ make_test_window()
 	sleep (1);								   /* we have to give AS a chance to spot us */
 	/* we will need to wait for PropertyNotify event indicating transition
 	   into Withdrawn state, so selecting event mask: */
-    XSelectInput (dpy, w, PropertyChangeMask|StructureNotifyMask|
+/*    XSelectInput (dpy, w, PropertyChangeMask|StructureNotifyMask|
                           ButtonPressMask|ButtonReleaseMask|PointerMotionMask|
                           KeyPressMask|KeyReleaseMask|
                           EnterWindowMask|LeaveWindowMask);
 
+	*/
 	return w ;
 }
 

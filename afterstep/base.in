@@ -35,3 +35,11 @@ DeskTopSize @with_deskgeometry@
 DeskTopScale 32
 #
 ##########################################################################
+
+# comment this to enable KDE apps having same color scheme as AfterStep :
+DisableKDEGlobalsTheming
+
+# comment these to enable GTK apps using same color scheme as afterstep : 
+gtkrcPath	~/.gtkrc_afterstep
+gtkrc20Path	~/.gtkrc-2.0_afterstep
+  
