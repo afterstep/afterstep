@@ -809,6 +809,7 @@ HandlePropertyNotify (ASEvent *event)
     ASWindow       *asw;
     XPropertyEvent *xprop = &(event->x.xproperty);
     Atom atom = xprop->atom ;
+	XEvent prop_xev ; 
 
 	/* force updates for "transparent" windows */
     if (atom == _XROOTPMAP_ID && event->w == Scr.Root)
@@ -842,10 +843,15 @@ HandlePropertyNotify (ASEvent *event)
 					move_menu (menu, (*menu).x, (*menu).y);
         }
 #endif
+		return;
     }
 
-    if( (asw = event->client) == NULL )
+    if( (asw = event->client) == NULL || ASWIN_GET_FLAGS( asw, AS_Dead ))
+	{
+		if( event->w != Scr.Root )
+			while (XCheckTypedWindowEvent (dpy, event->w, PropertyNotify, &prop_xev));
         return ;
+	}
     else
     {
 		char *prop_name = NULL;
@@ -859,15 +865,12 @@ HandlePropertyNotify (ASEvent *event)
 		
 		/* we want to check if there were some more events generated 
 		 * as window names tend to change multiple properties : */
-		{
-			XEvent prop_xev ; 
-			while (XCheckTypedWindowEvent (dpy, asw->w, PropertyNotify, &event->x))
-				if( !IsNameProp(prop_xev.xproperty.atom) ) 
-				{	
-					XPutBackEvent( dpy, &prop_xev );
-					break;
-				}
-		}		
+		while (XCheckTypedWindowEvent (dpy, asw->w, PropertyNotify, &prop_xev))
+			if( !IsNameProp(prop_xev.xproperty.atom) ) 
+			{	
+				XPutBackEvent( dpy, &prop_xev );
+				break;
+			}
 		
 		/*ASFlagType old_hflags = asw->hints->flags ; */
 		show_debug( __FILE__, __FUNCTION__, __LINE__, "name prop changed..." );
