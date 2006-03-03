@@ -120,7 +120,9 @@ get_proc_tables (proc_tables * ptabs)
 			 break;
 			 /* debug info */
 		 case DT_DEBUG:
+#ifdef HAVE_LINK_H
 			 ptabs->debug = (struct r_debug *)dyn->d_un.d_ptr;
+#endif			 
 			 break;
 			 /* GOT/PLT */
 		 case DT_PLTGOT:
@@ -303,7 +305,7 @@ find_func_symbol (void *addr, long *offset)
 void
 print_lib_list ()
 {
-#ifdef HAVE_ELF_H
+#if defined(HAVE_LINK_H)
 	if (_ptabs.debug != NULL)
 	{
 		struct link_map *plm = _ptabs.debug->r_map;
