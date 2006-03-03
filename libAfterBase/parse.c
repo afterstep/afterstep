@@ -568,8 +568,9 @@ find_doublequotes ( const char *ptr)
 	{
 		if( ptr[i] == '\\' ) 
 			++i ;
-		if( ptr[++i] == '\0' )
-			break;
+		++i ;
+		if( ptr[i] == '\0' )
+		   	return NULL;
 	}
 	return (char*)&ptr[i];
 }
