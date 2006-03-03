@@ -204,7 +204,8 @@ destroy_ascanvas (ASCanvas ** pcanvas)
 		{
 			destroy_visual_pixmap(ASDefaultVisual, &(pc->saved_canvas));
 			destroy_visual_pixmap(ASDefaultVisual, &(pc->canvas));
-            if (pc->saved_shape)
+			LOCAL_DEBUG_OUT( "saved_shape = %p, shape = %p", pc->saved_shape, pc->shape ); 
+            if (pc->saved_shape && pc->saved_shape != pc->shape)
 				destroy_shape( &(pc->saved_shape));
             if (pc->shape)
 				destroy_shape( &(pc->shape));

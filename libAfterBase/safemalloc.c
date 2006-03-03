@@ -36,7 +36,7 @@
 #include "safemalloc.h"
 
 #define DETECT_BUFFER_UNDERRUN
-#define NOGUARD 
+#undef NOGUARD 
 /*#define DEBUG_ALLOCS */
 
 #ifdef DEBUG_ALLOCS

@@ -897,6 +897,7 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
     check_icon_canvas( asw, (ASWIN_HFLAGS( asw, AS_Icon) && !get_flags(Scr.Feel.flags, SuppressIcons)) );
 
 	/* 4) we need to prepare icon title window : */
+	LOCAL_DEBUG_CALLER_OUT( "checking icon title canvas(%p)", asw->icon_title_canvas );
 	check_icon_title_canvas( asw, (ASWIN_HFLAGS( asw, AS_IconTitle) &&
                                    get_flags(Scr.Feel.flags, IconTitle) &&
 								  !get_flags(Scr.Feel.flags, SuppressIcons)),
