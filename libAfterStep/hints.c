@@ -1217,7 +1217,7 @@ merge_extwm_hints (ASHints * clean, ASRawHints * raw,
 			if( clean->icon_argb ) 
 				free( clean->icon_argb );
 			clean->icon_argb = select_client_icon_argb( eh->icon, eh->icon_length );
-			set_flags (clean->flags, AS_ClientIcon|AS_ClientIconARGB);
+			set_flags (clean->flags, AS_Icon|AS_ClientIcon|AS_ClientIconARGB);
 		}
         if (get_flags (eh->flags, EXTWM_StateSkipTaskbar))
             set_flags (clean->flags, AS_SkipWinList);
