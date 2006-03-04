@@ -82,6 +82,7 @@ void DoTest_locale()
 void DoTest_Title()
 {
 	int i ;
+#if 0	
 	char charset[] = "`1234567890-=~!@#$%^&*()_+qwertyuiop[]sdfghjkl;'/.,mnbvcxzQWERTYUIOP{}|:LKJHGFDSAZXCVBNM<>?";
 	char name[32];
 	char res_name[256];
@@ -102,6 +103,15 @@ void DoTest_Title()
 		set_client_names (TestState.main_window, &name[0], &icon_name[0], &res_class[0], &res_name[0]);
 		ASSync(False);
 	}
+#endif
+	set_client_names (TestState.main_window, "test_no_icon", "test_no_icon", "test_no_icon", "test_no_icon");
+	ASSync(False);
+	sleep_a_millisec( 100 );
+	set_client_names (TestState.main_window, "test_has_icon", "test_has_icon", "test_has_icon", "test_has_icon");
+	ASSync(False);
+	sleep_a_millisec( 100 );
+	set_client_names (TestState.main_window, "test_no_icon", "test_no_icon", "test_no_icon", "test_no_icon");
+	ASSync(False);
 
 }
 
