@@ -424,6 +424,8 @@ LOCAL_DEBUG_OUT( "++CREAT Client(%lx(%s))->ICON->canvas(%p)->window(%lx)", asw->
     {                                          /* destroy canvas here */
         w = canvas->w ;
 LOCAL_DEBUG_OUT( "--DESTR Client(%lx(%s))->ICON->canvas(%p)->window(%lx)", asw->w, ASWIN_NAME(asw)?ASWIN_NAME(asw):"noname", canvas, canvas->w );
+		if( asw->icon_title_canvas == canvas ) 
+			asw->icon_title_canvas = NULL ;
         destroy_ascanvas( &canvas );
         if( asw->hints && asw->hints->icon.window == w )
             unregister_aswindow( w );

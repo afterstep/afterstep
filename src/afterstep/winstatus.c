@@ -65,47 +65,51 @@ update_window_transparency( ASWindow *asw, Bool force )
 	int i ;
 	ASCanvas *changed_canvases[6] = {NULL, NULL, NULL, NULL, NULL, NULL };
 
-	for( i = 0 ; i < FRAME_PARTS ; ++i )
-		if( asw->frame_bars[i] )
-		{
-			update_astbar_transparency (asw->frame_bars[i], asw->frame_sides[od->tbar2canvas_xref[i]], force);
-			if( DoesBarNeedsRendering(asw->frame_bars[i]) )
+    if( !ASWIN_GET_FLAGS( asw, AS_Iconic ) )
+	{
+		for( i = 0 ; i < FRAME_PARTS ; ++i )
+			if( asw->frame_bars[i] )
 			{
-				ASCanvas *c = asw->frame_sides[od->tbar2canvas_xref[i]];
-				changed_canvases[od->tbar2canvas_xref[i]] = c ;
-				render_astbar( asw->frame_bars[i], c );
+				update_astbar_transparency (asw->frame_bars[i], asw->frame_sides[od->tbar2canvas_xref[i]], force);
+				if( DoesBarNeedsRendering(asw->frame_bars[i]) )
+				{
+					ASCanvas *c = asw->frame_sides[od->tbar2canvas_xref[i]];
+					changed_canvases[od->tbar2canvas_xref[i]] = c ;
+					render_astbar( asw->frame_bars[i], c );
+				}
+			}
+
+		if( asw->tbar )
+		{
+			update_astbar_transparency (asw->tbar, asw->frame_sides[od->tbar_side], force);
+			if( DoesBarNeedsRendering(asw->tbar) )
+			{
+				changed_canvases[od->tbar_side] = asw->frame_sides[od->tbar_side] ;
+				render_astbar( asw->tbar, asw->frame_sides[od->tbar_side] );
 			}
 		}
-
-	if( asw->tbar )
+	}else
 	{
-		update_astbar_transparency (asw->tbar, asw->frame_sides[od->tbar_side], force);
-		if( DoesBarNeedsRendering(asw->tbar) )
+		if( asw->icon_button )
 		{
-			changed_canvases[od->tbar_side] = asw->frame_sides[od->tbar_side] ;
-			render_astbar( asw->tbar, asw->frame_sides[od->tbar_side] );
-		}
-	}
-
-	if( asw->icon_button )
-	{
-		update_astbar_transparency (asw->icon_button, asw->icon_canvas, force);
-		if( DoesBarNeedsRendering(asw->icon_button) )
-		{
-			changed_canvases[4] = asw->icon_canvas ;
-			render_astbar(asw->icon_button, asw->icon_canvas);
-		}
-	}
-	if( asw->icon_title )
-	{
-		update_astbar_transparency (asw->icon_title, asw->icon_title_canvas?asw->icon_title_canvas:asw->icon_canvas, force);
-		if( DoesBarNeedsRendering( asw->icon_title ) )
-		{
-			if( asw->icon_title_canvas != NULL && asw->icon_title_canvas != asw->icon_canvas )
-				changed_canvases[5] = asw->icon_title_canvas ;
-			else
+			update_astbar_transparency (asw->icon_button, asw->icon_canvas, force);
+			if( DoesBarNeedsRendering(asw->icon_button) )
+			{
 				changed_canvases[4] = asw->icon_canvas ;
-			render_astbar (asw->icon_title, asw->icon_title_canvas?asw->icon_title_canvas:asw->icon_canvas );
+				render_astbar(asw->icon_button, asw->icon_canvas);
+			}
+		}
+		if( asw->icon_title )
+		{
+			update_astbar_transparency (asw->icon_title, asw->icon_title_canvas?asw->icon_title_canvas:asw->icon_canvas, force);
+			if( DoesBarNeedsRendering( asw->icon_title ) )
+			{
+				if( asw->icon_title_canvas != NULL && asw->icon_title_canvas != asw->icon_canvas )
+					changed_canvases[5] = asw->icon_title_canvas ;
+				else
+					changed_canvases[4] = asw->icon_canvas ;
+				render_astbar (asw->icon_title, asw->icon_title_canvas?asw->icon_title_canvas:asw->icon_canvas );
+			}
 		}
 	}
 	for( i = 0 ; i < 6 ; ++i )
