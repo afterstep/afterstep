@@ -1,3 +1,5 @@
+gtk-icon-theme-name = "gargantuan"
+
 # Edit these colors and fonts however you like.
 style "default"
 {
@@ -6,11 +8,11 @@ style "default"
 	fg[PRELIGHT]       =    "HighInactiveText"	
 	fg[SELECTED]       =    "ActiveText"      	
 	fg[INSENSITIVE]	   =    "DisabledText"    	
-	bg[NORMAL]         =   	"Inactive1"       	
+	bg[NORMAL]         =   	"Inactive1Dark"       	
 	bg[ACTIVE]         =   	"Inactive2"   		
-	bg[PRELIGHT]       =  	"HighInactive"		
+	bg[PRELIGHT]       =  	"HighInactiveDark"		
 	bg[SELECTED]       =  	"Active"	  	
-	bg[INSENSITIVE]    = 	"Inactive1"   		
+	bg[INSENSITIVE]    = 	"Inactive1Dark"   		
 #	light[NORMAL]      = 	"Inactive1Light"   	
 #	light[ACTIVE]      = 	"Inactive2Light"   	
 #	light[PRELIGHT]    = 	"HighInactiveLight"	
@@ -32,11 +34,11 @@ style "default"
 	text[SELECTED]     = 	"ActiveText"		
 	text[INSENSITIVE]  = 	"InactiveText1"   	
 
-	base[NORMAL]       = 	"Inactive1"   		
+	base[NORMAL]       = 	"Inactive1Dark"   		
 	base[ACTIVE]       = 	"Inactive2"   		
-	base[PRELIGHT]     = 	"HighInactive"		
+	base[PRELIGHT]     = 	"HighInactiveDark"		
 	base[SELECTED]     = 	"Active"	  	
-	base[INSENSITIVE]  = 	"Inactive1"   		
+	base[INSENSITIVE]  = 	"Inactive1Dark"   		
 
 
         GtkRange::slider_width = 12
@@ -86,10 +88,10 @@ class "*" style "default"
 
 style "ToolTip"
 {
-  bg[NORMAL] = { 1.000, 1.000, 0.863 }
-  base[NORMAL] = { 1.000, 1.000, 0.863 }
-  text[NORMAL] = { 0.000, 0.000, 0.000 }
-  fg[NORMAL] = { 0.000, 0.000, 0.000 }
+  bg[NORMAL] = "Inactive1Dark"
+  base[NORMAL] = "Inactive1Dark"
+  text[NORMAL] = "InactiveText1"
+  fg[NORMAL] = "InactiveText1"
 }
 
 widget "gtk-tooltips" style "ToolTip"
