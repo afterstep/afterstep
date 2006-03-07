@@ -1,4 +1,22 @@
 
+2006-02-28   -0500
+
+	* added check for validity of the text (no negative size)
+
+2006-02-15   -0500
+
+	* fixed all the errors reported by propriatery source analyser
+
+2006-01-10   -0500
+
+	* changed titlebar props setting to use different values for
+	  NoBevel and NoAlign being set and for when those values are unset
+	  altogether
+
+2006-01-09   -0500
+
+	* ChangeLog
+
 2006-01-03   -0500
 
 	* fixed bug in handling of length of UTF8 text while determining

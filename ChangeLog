@@ -1,6 +1,132 @@
 
+2006-03-07   -0500
+
+	* upped version number to 2.2.1
+
+2006-03-06   -0500
+
+	* hopefully fixed inconsistency where *MyName Keyword would match
+	  wrong keyword on named items
+	* improved colorization of gtk-2.0
+
+2006-03-03   -0500
+
+	* fixed segfault when icon title uses same canvas as icon and it
+	  gets destroed
+	* developed test tool for debugging icon_canvas destruction while
+	  window remains. Happen On PropertyNotify with FollowTitleChanges
+	  allowed
+	* fixed icon not being set when app requests an icon in ext WM
+	  hints
+	* debugging sigsegv in icon canvas
+	* fixed doublequotes finding function to return NULL properly
+	* fixed usage of .debug member of ptabs to be used only when link.h
+	  is available
+
+2006-03-02   -0500
+
+	* noted dontdrawgb/pager as deprecated...
+
+2006-02-28   -0500
+
+	* fixed performance problems related to dead windows
+	  PropertyNotifiyes and Title changes for regular windows
+	* added check for validity of the text (no negative size)
+	* hopefully improved performance on titlebar changes
+
+2006-02-27   -0500
+
+	*  minor fixes to hints manager handling of windiow names +
+	  disabled colorscheming of KDE and GNOMe apps
+	* maybe fixed names refresh
+
+2006-02-22   -0500
+
+	* some development in ascp related functionality
+
+2006-02-21   -0500
+
+	* fixes indefinate Wait - should be limited to 10 seconds
+
+2006-02-20   -0500
+
+	* began implementing interface for config options as xml_tree
+	  convinient for config panel
+
+2006-02-15   -0500
+
+	* fixed all the errors reported by propriatery source analyser
+	* fixed handling of some feel flags
+
+2006-02-14   -0500
+
+	* fixed handling of UTF8 strings in serialization code - it was
+	  messing up with signs
+
+2006-02-13   -0500
+
+	* minor cleanups
+	* made ExtWM names take precedence over ICCCM names
+	* minor fixes to hopefully get AS not to segfault on name changes
+	  in gaim
+
+2006-01-26   -0500
+
+	* fixed Pager changing its geometry on colorscheme changes
+
+2006-01-24   -0500
+
+	* implemented config writer from xml
+
+2006-01-23   -0500
+
+	* Implemented proper printing of free storage - it looks like the
+	  config that was parsed. Everything should work now
+
+2006-01-20   -0500
+
+	* implemented handling of foreign options while parsing into xml
+
+2006-01-19   -0500
+
+	* added ability to load comments from config files into xml parser.
+	  wharf config now gets parsed properly - need to implement writer
+
+2006-01-18   -0500
+
+	* rewrote parsing and token functions to use consistent approach to
+	  quotes handling - may break some stuff
+	* fixed dos format for parser_xml
+
+2006-01-17   -0500
+
+	* checking in
+
+2006-01-13   -0500
+
+	* redoing parser to get it to parse into xml and use saner approach
+	  - without them (special) funcs
+
+2006-01-12   -0500
+
+	* added missing parser driver files
+
+2006-01-11   -0500
+
+	* split storage dependant portion of the parser
+
+2006-01-10   -0500
+
+	* started writing code for reading AS config as tree of xml elems
+	* changed titlebar props setting to use different values for
+	  NoBevel and NoAlign being set and for when those values are unset
+	  altogether
+	* added myself and sasha to credits of icons
+
 2006-01-09   -0500
 
+	* addind docs
+	* ChangeLog
 	* fixed focus wharf tile not getting focused when button is odd
 
 2006-01-08   -0500
