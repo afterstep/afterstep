@@ -729,7 +729,7 @@ FindStatementTerm (char *tline, SyntaxDef * syntax)
 	{
 		int i = 0; 
 		while( isspace(tline[i]) ) 	   ++i;
-		if( tline[i] ) 
+		if( tline[i] == '~') 
 			if( get_hash_item (syntax->term_hash, AS_HASHABLE(&tline[i]), &hdata.vptr)==ASH_Success  )
 				return hdata.vptr;
 	}	 

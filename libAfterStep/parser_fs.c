@@ -124,10 +124,10 @@ file2free_storage(const char *filename, char *myname, SyntaxDef *syntax, Special
 
 #include "../libAfterConf/afterconf.h"
 
-# define CONFIG_FILE	"~/.afterstep/wharf"
+# define CONFIG_FILE	"~/triangular_wharf"
 # define CONFIG_SYNTAX	&WharfSyntax
 # define CONFIG_SPECIAL	NULL   /*WharfSpecialFunc*/
-# define CONFIG_MYNAME  "Wharf"
+# define CONFIG_MYNAME  "MyWharf"
 
 int 
 main( int argc, char ** argv ) 
