@@ -28,6 +28,14 @@ DeskTopSize @with_deskgeometry@
 #TermCommand 0  aterm
 #TermCommand 1  rxvt
 #TermCommand 2  xterm
+#
+# Selects web browser to be used by AfterStep with ExecBrowser command:
+#BrowserCommand 0  firefox
+#BrowserCommand 1  mozilla
+#
+# Selects text editor will be used by AfterStep with ExecEditor command:
+#EditorCommand 0  nedit
+#EditorCommand 1  xemacs
 
 ##########################################################################
 # Pager

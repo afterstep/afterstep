@@ -1,3 +1,7 @@
+version 2.2.1 release
+	* Disabled GTK and KDE applications colorization by default - edit 
+	  base config to re-enable it
+
 version 2.2.0 release
 	* added xscreensaver to menu as a screensaver.
 	* added menu for automated editing of AS config files. ASRun checks
