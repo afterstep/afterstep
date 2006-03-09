@@ -36,9 +36,9 @@ EndFunction
 
 Function "InitFunction"
 #	Module  "I"     Animate
-	Module  "I"	Banner
-	Function "I"    WorkspaceModules
 	Function "I"    WorkspaceState
+	Function "I"    WorkspaceModules
+	Module  "I"	Banner
 	Exec	"I"	exec "@with_afterdir@/non-configurable/send_postcard.sh"
 EndFunction
 

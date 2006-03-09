@@ -499,6 +499,7 @@ ParseSingleStyle (FreeStorageElem * storage, name_list * style)
 		 case DATABASE_ViewportY_ID:
 			 set_flags (style->set_data_flags, STYLE_VIEWPORTY);
 			 style->ViewportY = item.data.integer;
+			 LOCAL_DEBUG_OUT( "style->ViewportY = %d", style->ViewportY );
 			 break;
 		 case DATABASE_Frame_ID:
 			 set_string_value (&(style->frame_name), item.data.string, &(style->set_data_flags), STYLE_FRAME);
@@ -580,7 +581,9 @@ string2DatabaseStyle (char *style_txt)
 	ConfigReader = InitConfigReader ("afterstep", &StyleSyntax, CDT_Data, cd, NULL);
 	if (!ConfigReader)
 		return NULL;
-
+	
+	PrintConfigReader (ConfigReader);
+	
 	ParseConfig (ConfigReader, &Storage);
 
 	if ((style = style_new (NULL)) != NULL )

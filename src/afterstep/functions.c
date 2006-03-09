@@ -1702,11 +1702,12 @@ void wait_func_handler( FunctionData *data, ASEvent *event, int module )
 		complex_pattern = &(data->name[2]);
 
 	asw = WaitWindowLoop( complex_pattern, -1 );
-	LOCAL_DEBUG_OUT( "Wait completed for \"%s\"", complex_pattern );
+	LOCAL_DEBUG_OUT( "Wait completed for \"%s\", asw = %p, data->text = \"%s\"", complex_pattern, asw, data->text?data->text:"(null)" );
 	if( asw && data->text ) 
 	{
 		/* 1. parse text into a name_list struct */	
 		name_list *style = string2DatabaseStyle (data->text);
+		LOCAL_DEBUG_OUT( "style = %p, set_data_flags = 0x%lX, set_flags = 0x%lX", style, style?style->set_data_flags:0, style?style->set_flags:0 );
 		if( style ) 
 		{	/* 2. apply set data from name_list to asw */	
 			int new_vx = Scr.Vx ;
@@ -1715,45 +1716,60 @@ void wait_func_handler( FunctionData *data, ASEvent *event, int module )
 			int width, height ;
 			ASFlagType geom_flags = get_flags (style->set_data_flags, STYLE_DEFAULT_GEOMETRY)?style->default_geometry.flags:0;
 
-			if( !get_flags (style->set_flags, STYLE_STICKY) && get_flags (style->flags, STYLE_STICKY))
-			{	
-				if( get_flags (style->set_data_flags, STYLE_VIEWPORTX) )
-					new_vx = style->ViewportX ;
-				else
-					new_vx = asw->status->viewport_x ;
-				if( get_flags (style->set_data_flags, STYLE_VIEWPORTY) )
-					new_vy = style->ViewportY ;
-				else
-					new_vy = asw->status->viewport_y ;
-			}
+			if( get_flags (style->set_data_flags, STYLE_VIEWPORTX) )
+				new_vx = style->ViewportX ;
+			else
+				new_vx = asw->status->viewport_x ;
+			if( get_flags (style->set_data_flags, STYLE_VIEWPORTY) )
+				new_vy = style->ViewportY ;
+			else
+				new_vy = asw->status->viewport_y ;
+			
 			x = get_flags( geom_flags, XValue )?style->default_geometry.x:asw->status->x ; 
 			y = get_flags( geom_flags, YValue )?style->default_geometry.y:asw->status->y ; 
-			width = get_flags( geom_flags, WidthValue )?style->default_geometry.width:asw->status->width ; 
-			height = get_flags( geom_flags, HeightValue )?style->default_geometry.height:asw->status->height ; 
-	   	   		
-			if( get_flags (style->set_flags, STYLE_STICKY) && get_flags (style->flags, STYLE_STICKY))
+			width = get_flags( geom_flags, WidthValue )?
+						(style->default_geometry.width+asw->status->frame_size[FR_W]+asw->status->frame_size[FR_E]):
+						asw->status->width ; 
+			height = get_flags( geom_flags, HeightValue )?
+						(style->default_geometry.height+asw->status->frame_size[FR_N]+asw->status->frame_size[FR_S]):
+						asw->status->height ; 
+			
+			if( get_flags (style->set_flags, STYLE_STICKY))
 			{
-				if( !ASWIN_GET_FLAGS(asw,AS_Sticky) )
+				if( (get_flags (style->flags, STYLE_STICKY) && !ASWIN_GET_FLAGS(asw,AS_Sticky)) ||
+					(!get_flags (style->flags, STYLE_STICKY) && ASWIN_GET_FLAGS(asw,AS_Sticky)) )
 					toggle_aswindow_status( asw, AS_Sticky );
-			}else if( get_flags (style->set_data_flags, STYLE_VIEWPORTX|STYLE_VIEWPORTY|STYLE_STARTUP_DESK) )
+			}
+
+			if( !ASWIN_GET_FLAGS(asw,AS_Sticky) )
+			{	
+			 	if(	get_flags (style->set_data_flags, STYLE_STARTUP_DESK) )
+						change_aswindow_desktop( asw, style->Desk, False );
+			}else
 			{
-				if( ASWIN_GET_FLAGS(asw,AS_Sticky) )
-					toggle_aswindow_status( asw, AS_Sticky );
-				if( get_flags (style->set_data_flags, STYLE_STARTUP_DESK) )
-					change_aswindow_desktop( asw, style->Desk, False );
+				new_vx = Scr.Vx ;	
+				new_vy = Scr.Vy ;
 			}	 
 			
+			LOCAL_DEBUG_OUT( "%s -> viewport : new(%+d%+d)old(%+d%+d) ; geom : new(%dx%d%+d%+d)old(%dx%d%+d%+d)", 
+							 ASWIN_GET_FLAGS(asw,AS_Sticky)?"sticky":"slippery", 
+							 new_vx, new_vy, asw->status->viewport_x, asw->status->viewport_y,
+							 width, height, x, y, asw->status->width, asw->status->height, asw->status->x, asw->status->y );
+			
+							   
 			if( get_flags (style->set_data_flags, STYLE_DEFAULT_GEOMETRY|STYLE_VIEWPORTX|STYLE_VIEWPORTY) )
 			{
-				asw->status->viewport_y = new_vy ;
-				asw->status->viewport_x = new_vx ;
+				x += Scr.Vx - asw->status->viewport_x + new_vx ;
+				y += Scr.Vy - asw->status->viewport_y + new_vy ;
 				moveresize_aswindow_wm( asw, x, y, width, height, False );
 			}	 
 			
-			if( get_flags (style->set_data_flags, STYLE_LAYER) )
+			if( get_flags (style->set_data_flags, STYLE_LAYER) && ASWIN_LAYER(asw) != style->layer )
+			{
+				LOCAL_DEBUG_OUT( "new_layer = %d", 	  style->layer );
 				change_aswindow_layer( asw, style->layer );
-			
-				 
+			}
+							 
 			if( get_flags (style->set_flags, STYLE_START_ICONIC ) )
 			{
 				  /* TODO: */	  

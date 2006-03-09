@@ -122,7 +122,7 @@ TermDef       FuncTerms[F_FUNCTIONS_NUM + 1] = {
 	FUNC_TERM2 (USES_NUMVALS, "CursorMove", F_MOVECURSOR),	/* CursorMove horiz vert */
 	FUNC_TERM2 (NEED_WINIFNAME, "WarpFore", F_WARP_F),	/* WarpFore ["name" window_name] */
 	FUNC_TERM2 (NEED_WINIFNAME, "WarpBack", F_WARP_B),	/* WarpBack ["name" window_name] */
-	FUNC_TERM2 (NEED_NAME | NEED_WINDOW, "Wait", F_WAIT),	/* Wait      "name" window_name  */
+	FUNC_TERM2 (NEED_NAME | NEED_CMD, "Wait", F_WAIT),	/* Wait      "name" attributes  */
 	FUNC_TERM2 (USES_NUMVALS, "Desk", F_DESK),	/* Desk arg1 [arg2] */
 	FUNC_TERM2 (USES_NUMVALS, "GotoDeskViewport", F_GOTO_DESKVIEWPORT),	/* GotoDeskViewport DESK+VX+VY */
 #ifndef NO_WINDOWLIST
