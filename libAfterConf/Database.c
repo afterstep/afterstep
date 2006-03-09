@@ -568,6 +568,30 @@ ParseDatabaseOptions (const char *filename, char *myname)
 	return config;
 }
 
+name_list    *
+string2DatabaseStyle (char *style_txt)
+{
+	ConfigData    cd ;
+	ConfigDef    *ConfigReader;
+	name_list    *style = NULL;
+	FreeStorageElem *Storage = NULL;
+
+	cd.data = style_txt ;
+	ConfigReader = InitConfigReader ("afterstep", &StyleSyntax, CDT_Data, cd, NULL);
+	if (!ConfigReader)
+		return NULL;
+
+	ParseConfig (ConfigReader, &Storage);
+
+	if ((style = style_new (NULL)) != NULL )
+		ParseSingleStyle (Storage, style);
+
+	DestroyFreeStorage (&Storage);
+	DestroyConfig (ConfigReader);
+	return style;
+}
+
+
 Bool ReloadASDatabase()
 {
 	char *configfile  = make_session_file(Session, DATABASE_FILE, False ); 

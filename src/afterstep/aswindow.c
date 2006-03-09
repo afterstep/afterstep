@@ -137,7 +137,7 @@ char *pid2cmd ( int pid )
 }
 
 static 
-char *filter_out_geometry( char *cmd_args, char **geom_keyword )
+char *filter_out_geometry( char *cmd_args, char **geom_keyword, char **original_size )
 {
 	char *clean = mystrdup(cmd_args); 
 	char *token_start ; 
@@ -153,6 +153,9 @@ char *filter_out_geometry( char *cmd_args, char **geom_keyword )
 				strncmp( token_start, "-geometry ", 10 ) == 0 ||
 				strncmp( token_start, "--geometry ", 11 ) == 0 )
 			{
+				unsigned int width = 0 ;
+  				unsigned int height = 0 ;
+				int flags = 0 ;
 				char *geom_start = token_start ; 
 				if( geom_keyword ) 
 					*geom_keyword = tokencpy (geom_start);
@@ -160,7 +163,7 @@ char *filter_out_geometry( char *cmd_args, char **geom_keyword )
 				if( token_end > token_start ) 
 				{	
 					token_start = token_end ;
-					token_end = parse_geometry(token_start, NULL, NULL, NULL, NULL, NULL ); 
+					token_end = parse_geometry(token_start, NULL, NULL, &width, &height, &flags ); 
 					if( token_end > token_start ) 
 					{
 						int i = 0; 
@@ -169,6 +172,17 @@ char *filter_out_geometry( char *cmd_args, char **geom_keyword )
 						geom_start[i]	= '\0' ;
 					}
 				}
+				if( original_size && get_flags(flags, WidthValue|HeightValue) )
+				{
+					char *tmp = *original_size = safemalloc(64);
+					if( get_flags(flags, WidthValue) && width > 0 )
+					{	
+						sprintf( tmp, "%d", width );
+						while( *tmp ) ++tmp;
+					}
+					if( get_flags(flags, HeightValue) && height > 0 )
+						sprintf( tmp, "x%d", height );
+				}	 
 				break;
 			}
 		}
@@ -176,6 +190,77 @@ char *filter_out_geometry( char *cmd_args, char **geom_keyword )
 	}while( token_end > token_start );
 	return clean;
 }	 
+
+static void 
+stripreplace_geometry_size( char **pgeom, char *original_size )
+{
+	char *geom = *pgeom ;
+	if( geom ) 
+	{
+		
+		int i = 0 ; 
+		if( isdigit(geom[0]) )
+			while( geom[++i] ) if( geom[i] == '+' || geom[i] == '-' ) break;
+		if( original_size != NULL || i > 0 )
+		{
+			int size = strlen( &geom[i] );
+			if( original_size ) 
+				size += strlen(original_size);
+			*pgeom = safemalloc( size + 1 );
+			if( original_size ) 
+				sprintf( *pgeom, "%s%s", original_size, &geom[i] );
+			else
+				strcpy( *pgeom, &geom[i] );
+			free( geom );		 	  
+		}	 
+	}		  
+}
+
+static char *
+make_application_name( ASWindow *asw, char *rclass, char *rname )
+{
+	char *name = ASWIN_NAME(asw);
+	/* need to check if we can use window name in the pattern. It has to be :
+		* 1) Not changed since window initial mapping
+		* 2) all ASCII
+		* 3) shorter then 80 chars
+		* 4) must not match class or res_name
+		* 5) Unique
+		*/
+	if( name == rname || name == rclass ) 
+		name = NULL ;
+	else if( name != NULL && get_flags( asw->internal_flags, ASWF_NameChanged ) ) 
+	{/* allow changed names only for terms, as those could launch sub app inside */
+		int rclass_len = rclass?strlen(rclass):0;
+		if( rclass_len != 5 )
+			name = NULL ;
+		else if( strstr( rclass+1, "term" ) != 0 ) 	  
+			name = NULL ;
+	}
+	if(	name )
+	{
+		int i  = 0;
+		while( name[i] != '\0' )
+		{   /* we do not want to have path in names as well */
+			if( !isalnum(name[i]) && !isspace(name[i]))
+				break;
+			if( ++i >= 80 )
+				break;
+		}
+		if( name[i] != '\0' )
+			name = NULL ;
+		else
+		{
+			if( strcmp( rclass, name ) == 0 ||
+				strcmp( rname, name ) == 0 	)
+				name = NULL ;
+			else                   /* check that its unique */
+				if( !check_aswindow_name_unique( name, asw ) )
+					name = NULL ;
+		}
+	}
+	return name;
+}	  
 
 Bool
 make_aswindow_cmd_iter_func(void *data, void *aux_data)
@@ -214,48 +299,15 @@ make_aswindow_cmd_iter_func(void *data, void *aux_data)
 			char *rname = asw->hints->res_name?asw->hints->res_name:"*" ;
 			char *rclass = asw->hints->res_class?asw->hints->res_class:"*" ;
 			char *name = ASWIN_NAME(asw);
-			int i = 0;
 			char *app_name = "*" ;
 			char *cmd_app = NULL, *cmd_args ;
 			Bool supports_geometry = False ;
-			/* need to check if we can use window name in the pattern. It has to be :
-				* 1) Not changed since window initial mapping
-				* 2) all ASCII
-				* 3) shorter then 80 chars
-				* 4) must not match class or res_name
-				* 5) Unique
-				*/
-			if( name == rname || name == rclass ) 
-				name = NULL ;
-			else if( name != NULL && get_flags( asw->internal_flags, ASWF_NameChanged ) ) 
-			{/* allow changed names only for terms, as those could launch sub app inside */
-				int rclass_len = rclass?strlen(rclass):0;
-				if( rclass_len != 5 )
-					name = NULL ;
-				else if( mystrcasecmp( rclass+1, "term" ) != 0 ) 	  
-					name = NULL ;
-			}
-			if(	name )
-			{
-				while( name[i] != '\0' )
-				{
-					if( !isascii(name[i]) )
-						break;
-					if( ++i >= 80 )
-						break;
-				}
-				if( name[i] != '\0' )
-					name = NULL ;
-				else
-				{
-					if( strcmp( rclass, name ) == 0 ||
-						strcmp( rname, name ) == 0 	)
-						name = NULL ;
-					else                   /* check that its unique */
-						if( !check_aswindow_name_unique( name, asw ) )
-							name = NULL ;
-				}
-			}
+			char *geometry_keyword = NULL ; 
+			char *clean_cmd_args = NULL ;
+			char *original_size = NULL ;
+
+			name = make_application_name( asw, rclass, rname );
+			
 			if( name == NULL )
 			{
 				app_name = safemalloc( strlen(rclass)+1+strlen(rname)+1+1+15+1 );
@@ -267,22 +319,31 @@ make_aswindow_cmd_iter_func(void *data, void *aux_data)
 			}
 				
 			cmd_args = parse_token(asw->hints->client_cmd, &cmd_app );
+			if( cmd_app )  /* we want -geometry to be the first arg, so that terms could correctly launch app with -e arg */
+				clean_cmd_args = filter_out_geometry( cmd_args, &geometry_keyword, &original_size ) ;
+			
+			if( geometry_keyword == NULL ) 
+				geometry_keyword = mystrdup(ASWIN_HFLAGS(asw,AS_Module)?"--geometry":"-geometry"); 
+			else
+				supports_geometry = True ;
+			
+			if( !ASWIN_HFLAGS(asw,AS_Handles) )
+			{   /* we want to remove size from geometry here, 
+				 * unless it was requested in original cmd-line geometry */
+				stripreplace_geometry_size( &geom, original_size );
+			}	 
+			
 			if( cmd_app ) 
-			{   /* we want -geometry to be the first arg, so that terms could correctly launch app with -e arg */
-				char *geometry_keyword = NULL ; 
-				char *clean_cmd_args = filter_out_geometry( cmd_args, &geometry_keyword ) ;
-				if( geometry_keyword == NULL ) 
-					geometry_keyword = mystrdup(ASWIN_HFLAGS(asw,AS_Module)?"--geometry":"-geometry"); 
-				else
-					supports_geometry = True ;
-
+			{   
 				fprintf( swad->f, 	"\tExec \"I:%s\" %s %s %s %s &\n", app_name, cmd_app, geometry_keyword, geom, clean_cmd_args );
-				free( clean_cmd_args );
-				free( geometry_keyword );
-				free( cmd_app );	
+				destroy_string(&cmd_app);	
 			}else
-	            fprintf( swad->f, 	"\tExec \"I:%s\" %s %s %s &\n", 
-									app_name, asw->hints->client_cmd, ASWIN_HFLAGS(asw,AS_Module)?"--geometry":"-geometry", geom );
+	            fprintf( swad->f, 	"\tExec \"I:%s\" %s %s %s &\n", app_name, asw->hints->client_cmd, geometry_keyword, geom );
+			
+			destroy_string(&clean_cmd_args);
+			destroy_string(&geometry_keyword);
+			destroy_string(&original_size);
+
 			if( ASWIN_HFLAGS(asw,AS_Module) ) 
 			{
 				fprintf( swad->f, "\tWait \"I:%s\" Layer %d\n", app_name, ASWIN_LAYER(asw));
@@ -339,11 +400,9 @@ make_aswindow_cmd_iter_func(void *data, void *aux_data)
 										((asw->status->y + asw->status->viewport_y) / Scr.MyDisplayHeight)*Scr.MyDisplayHeight,
 										ASWIN_GET_FLAGS(asw,AS_Iconic)?"StartIconic":"StartNormal");
 			}	 
-			if( pure_geometry ) 
-				free( pure_geometry );
-			if( geom )
-				free( geom );
-			free( app_name );
+			destroy_string(&pure_geometry);
+			destroy_string(&geom);
+			destroy_string(&app_name);
         }
         return True;
     }

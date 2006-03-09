@@ -1280,6 +1280,8 @@ struct name_list;
 unsigned int translate_title_button (unsigned int user_button);
 unsigned int translate_title_button_back (unsigned int title_button);
 struct name_list *ParseDatabaseOptions (const char *filename, char *myname);
+struct name_list *string2DatabaseStyle (char *style_txt);
+
 int WriteDatabaseOptions (const char *filename, char *myname,
 			  struct name_list *config, unsigned long flags);
 Bool ReloadASDatabase();
