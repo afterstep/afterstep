@@ -101,6 +101,7 @@ Atom          _XA_NET_WM_STATE_BELOW;
 Atom          _XA_NET_WM_PID;
 Atom          _XA_NET_WM_ICON;
 Atom          _XA_NET_WM_PING;
+Atom 		  _XA_NET_WM_WINDOW_OPACITY;
 
 /* Implements KDE System tray specs:
  * http://developer.kde.org/documentation/library/kdeqt/kde3arch/protocols-docking.html
@@ -133,6 +134,7 @@ AtomXref      MainHints[] = {
 	{"_NET_WM_STATE", &_XA_NET_WM_STATE},
 	{"_NET_WM_PID", &_XA_NET_WM_PID},
 	{"_NET_WM_ICON", &_XA_NET_WM_ICON},
+	{"_NET_WM_WINDOW_OPACITY", &_XA_NET_WM_WINDOW_OPACITY},
 	{"_KDE_DESKTOP_WINDOW", &_XA_KDE_DESKTOP_WINDOW},
 	{"_KDE_NET_SYSTEM_TRAY_WINDOW_FOR", &_XA_KDE_NET_SYSTEM_TRAY_WINDOW_FOR},
 	{NULL, NULL, 0, None}
@@ -611,7 +613,8 @@ read_extwm_window_type (ASRawHints * hints, Window w)
 
 		if (read_32bit_proplist (w, _XA_NET_WM_WINDOW_TYPE, 6, &protocols, &nprotos))
 		{
-			translate_atom_list (&(hints->extwm_hints.flags), EXTWM_WindowType, protocols, nprotos);
+			translate_atom_list (&(hints->extwm_hints.type_flags), EXTWM_WindowType, protocols, nprotos);
+			set_flags( hints->extwm_hints.flags, EXTWM_TypeSet );
 			free (protocols);
 		}
 	}
@@ -627,7 +630,8 @@ read_extwm_state (ASRawHints * hints, Window w)
 
         if (read_32bit_proplist (w, _XA_NET_WM_STATE, 6, &protocols, &nprotos))
 		{
-			translate_atom_list (&(hints->extwm_hints.flags), EXTWM_State, protocols, nprotos);
+			translate_atom_list (&(hints->extwm_hints.state_flags), EXTWM_State, protocols, nprotos);
+			set_flags( hints->extwm_hints.flags, EXTWM_StateSet );
 			free (protocols);
 		}
 	}
@@ -651,6 +655,16 @@ read_extwm_icon (ASRawHints * hints, Window w)
 	{
 		if (read_32bit_proplist (w, _XA_NET_WM_ICON, 2+48*48, &(hints->extwm_hints.icon), &(hints->extwm_hints.icon_length)) )
 			set_flags (hints->extwm_hints.flags, EXTWM_ICON);
+	}
+}
+
+void
+read_extwm_window_opacity (ASRawHints * hints, Window w)
+{
+	if (hints && w != None)
+	{
+		if (read_32bit_property (w, _XA_NET_WM_WINDOW_OPACITY, &(hints->extwm_hints.window_opacity)))
+			set_flags (hints->extwm_hints.flags, EXTWM_WINDOW_OPACITY);
 	}
 }
 
@@ -763,6 +777,7 @@ HintsDescriptions[] =
 	{&_XA_NET_WM_STATE, read_extwm_state, HINT_STARTUP | HINT_GENERAL, HINTS_ExtendedWM},
 	{&_XA_NET_WM_PID, read_extwm_pid, HINT_GENERAL, HINTS_ExtendedWM},
 	{&_XA_NET_WM_ICON, read_extwm_icon, HINT_GENERAL, HINTS_ExtendedWM},
+	{&_XA_NET_WM_WINDOW_OPACITY, read_extwm_window_opacity, HINT_GENERAL, HINTS_ExtendedWM},
 	{&_XA_KDE_DESKTOP_WINDOW, read_kde_desktop_window, HINT_GENERAL, HINTS_KDE},
 	{&_XA_KDE_NET_SYSTEM_TRAY_WINDOW_FOR, read_kde_systray_window_for, HINT_GENERAL, HINTS_KDE},
 
@@ -1050,9 +1065,13 @@ print_extwm_hints (stream_func func, void *stream, ExtendedWMHints * hints)
 		func (stream, "EXTWM._NET_WM_PID = %ld;\n", hints->pid);
 	if (get_flags (hints->flags, EXTWM_ICON))
 		func (stream, "EXTWM._NET_WM_ICON.length = %ld;\n", hints->icon_length);
+	if (get_flags (hints->flags, EXTWM_WINDOW_OPACITY))
+		func (stream, "EXTWM._NET_WM_WINDOW_OPACITY = %ld;\n", hints->window_opacity);
 
-	print_list_hints (func, stream, hints->flags, EXTWM_WindowType, "EXTWM._NET_WM_WINDOW_TYPE");
-	print_list_hints (func, stream, hints->flags, EXTWM_State, "EXTWM._NET_WM_STATE");
+	if (get_flags (hints->flags, EXTWM_TypeSet))
+		print_list_hints (func, stream, hints->type_flags, EXTWM_WindowType, "EXTWM._NET_WM_WINDOW_TYPE");
+	if (get_flags (hints->flags, EXTWM_StateSet))
+		print_list_hints (func, stream, hints->state_flags, EXTWM_State, "EXTWM._NET_WM_STATE");
 	print_list_hints (func, stream, hints->flags, EXTWM_Protocols, "EXTWM._NET_WM_PROTOCOLS");
 }
 
@@ -1370,13 +1389,13 @@ set_extwm_hints (Window w, ExtendedWMHints * extwm_hints)
 		CARD32         *list;
 		long          nitems;
 
-		encode_atom_list (&(EXTWM_WindowType[0]), &list, &nitems, extwm_hints->flags);
+		encode_atom_list (&(EXTWM_WindowType[0]), &list, &nitems, extwm_hints->type_flags);
 		if (nitems > 0)
 		{
 			set_32bit_proplist (w, _XA_NET_WM_WINDOW_TYPE, XA_ATOM, list, nitems);
 			free (list);
 		}
-		encode_atom_list (&(EXTWM_State[0]), &list, &nitems, extwm_hints->flags);
+		encode_atom_list (&(EXTWM_State[0]), &list, &nitems, extwm_hints->state_flags);
 		if (nitems > 0)
 		{
 			set_32bit_proplist (w, _XA_NET_WM_STATE, XA_CARDINAL, list, nitems);
@@ -1387,6 +1406,8 @@ set_extwm_hints (Window w, ExtendedWMHints * extwm_hints)
 			set_32bit_property (w, _XA_NET_WM_DESKTOP, XA_CARDINAL, extwm_hints->desktop);
 		if (get_flags (extwm_hints->flags, EXTWM_PID))
 			set_32bit_property (w, _XA_NET_WM_PID, XA_CARDINAL, extwm_hints->pid); 
+		if (get_flags (extwm_hints->flags, EXTWM_WINDOW_OPACITY))
+			set_32bit_property (w, _XA_NET_WM_WINDOW_OPACITY, XA_CARDINAL, extwm_hints->window_opacity); 
 		if (get_flags (extwm_hints->flags, EXTWM_ICON))
 			set_32bit_proplist (w, _XA_NET_WM_ICON, XA_CARDINAL, extwm_hints->icon, extwm_hints->icon_length);
 	}

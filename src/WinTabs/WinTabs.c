@@ -1602,7 +1602,7 @@ do_swallow_window( ASWindowData *wd )
 	set_client_desktop (wd->client, WinTabsState.my_desktop );	 
 
 #if 0   /* TODO : implement support for icons : */
-    if( get_flags( wd->flags, AS_ClientIcon ) && !get_flags( wd->flags, AS_ClientIconPixmap) &&
+    if( get_flags( wd->client_icon_flags, AS_ClientIcon ) && !get_flags( wd->client_icon_flags, AS_ClientIconPixmap) &&
 		wd->icon != None )
     {
         ASCanvas *ic = create_ascanvas_container( wd->icon );

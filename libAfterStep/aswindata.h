@@ -34,7 +34,7 @@ typedef struct ASWindowData
     ASRectangle     icon_rect ;
 
     long            desk ;
-    CARD32          state_flags, flags ;
+    CARD32          state_flags, flags, client_icon_flags ;
 
     XSizeHints      hints ;       /* not sure why we need it here */
 

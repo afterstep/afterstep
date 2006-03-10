@@ -180,6 +180,9 @@ extern Atom _XA_NET_WM_PID;
 extern Atom _XA_NET_WM_PING;
 extern Atom _XA_NET_WM_ICON;
 
+extern Atom _XA_NET_WM_WINDOW_OPACITY;
+#define NET_WM_WINDOW_OPACITY_OPAQUE		0xffffffff
+
 extern Atom _XA_AS_MOVERESIZE;
 
 extern struct AtomXref      *EXTWM_State;
@@ -466,39 +469,12 @@ typedef struct ExtendedWMHints
 #define EXTWM_VISIBLE_ICON_NAME (0x01<<3)
 #define EXTWM_DESKTOP           (0x01<<4)
 
-#define EXTWM_TypeDesktop       (0x01<<5)
-#define EXTWM_TypeDock          (0x01<<6)
-#define EXTWM_TypeToolbar       (0x01<<7)
-#define EXTWM_TypeMenu          (0x01<<8)
-#define EXTWM_TypeDialog        (0x01<<9)
-#define EXTWM_TypeNormal        (0x01<<10)
-#define EXTWM_TypeUtility       (0x01<<11)
-#define EXTWM_TypeSplash        (0x01<<12)
-#define EXTWM_TypeASModule      (0x01<<13)
-#define EXTWM_TypeEverything    (EXTWM_TypeDesktop|EXTWM_TypeDock|EXTWM_TypeToolbar| \
-                                 EXTWM_TypeMenu|EXTWM_TypeDialog|EXTWM_TypeNormal| \
-								 EXTWM_TypeUtility|EXTWM_TypeSplash|EXTWM_TypeASModule)
-
-#define EXTWM_StateModal        (0x01<<16)
-#define EXTWM_StateSticky       (0x01<<17)
-#define EXTWM_StateMaximizedV   (0x01<<18)
-#define EXTWM_StateMaximizedH   (0x01<<19)
-#define EXTWM_StateShaded       (0x01<<21)
-#define EXTWM_StateSkipTaskbar  (0x01<<22)
-#define EXTWM_StateSkipPager    (0x01<<23)
-#define EXTWM_StateHidden    	(0x01<<24)
-#define EXTWM_StateFullscreen	(0x01<<25)
-#define EXTWM_StateAbove	 	(0x01<<26)
-#define EXTWM_StateBelow	 	(0x01<<27)
-#define EXTWM_StateEverything   (EXTWM_StateModal|EXTWM_StateSticky|EXTWM_StateMaximizedV| \
-                                 EXTWM_StateMaximizedH|EXTWM_StateShaded| \
-                                 EXTWM_StateSkipTaskbar|EXTWM_StateSkipPager | \
-								 EXTWM_StateHidden|EXTWM_StateFullscreen| \
-								 EXTWM_StateAbove|EXTWM_StateBelow)
-
-#define EXTWM_ICON              (0x01<<28)
-#define EXTWM_PID               (0x01<<29)
-#define EXTWM_DoesWMPing        (0x01<<30)
+#define EXTWM_TypeSet	        (0x01<<5)
+#define EXTWM_StateSet	        (0x01<<6)
+#define EXTWM_ICON              (0x01<<7)
+#define EXTWM_PID               (0x01<<8)
+#define EXTWM_DoesWMPing        (0x01<<9)
+#define EXTWM_WINDOW_OPACITY    (0x01<<10)
 
 /* actions to be performed on window state upon client request :*/
 #define EXTWM_StateRemove   0    /* remove/unset property */
@@ -506,7 +482,41 @@ typedef struct ExtendedWMHints
 #define EXTWM_StateToggle   2    /* toggle property  */
 
   ASFlagType flags;
+  
+#define EXTWM_TypeDesktop       (0x01<<0)
+#define EXTWM_TypeDock          (0x01<<1)
+#define EXTWM_TypeToolbar       (0x01<<2)
+#define EXTWM_TypeMenu          (0x01<<3)
+#define EXTWM_TypeDialog        (0x01<<4)
+#define EXTWM_TypeNormal        (0x01<<5)
+#define EXTWM_TypeUtility       (0x01<<6)
+#define EXTWM_TypeSplash        (0x01<<7)
+#define EXTWM_TypeASModule      (0x01<<8)
+#define EXTWM_TypeEverything    (EXTWM_TypeDesktop|EXTWM_TypeDock|EXTWM_TypeToolbar| \
+                                 EXTWM_TypeMenu|EXTWM_TypeDialog|EXTWM_TypeNormal| \
+								 EXTWM_TypeUtility|EXTWM_TypeSplash|EXTWM_TypeASModule)
 
+  ASFlagType type_flags;
+
+#define EXTWM_StateModal        (0x01<<16)
+#define EXTWM_StateSticky       (0x01<<17)
+#define EXTWM_StateMaximizedV   (0x01<<18)
+#define EXTWM_StateMaximizedH   (0x01<<19)
+#define EXTWM_StateShaded       (0x01<<20)
+#define EXTWM_StateSkipTaskbar  (0x01<<21)
+#define EXTWM_StateSkipPager    (0x01<<22)
+#define EXTWM_StateHidden    	(0x01<<23)
+#define EXTWM_StateFullscreen	(0x01<<24)
+#define EXTWM_StateAbove	 	(0x01<<25)
+#define EXTWM_StateBelow	 	(0x01<<26)
+#define EXTWM_StateEverything   (EXTWM_StateModal|EXTWM_StateSticky|EXTWM_StateMaximizedV| \
+                                 EXTWM_StateMaximizedH|EXTWM_StateShaded| \
+                                 EXTWM_StateSkipTaskbar|EXTWM_StateSkipPager | \
+								 EXTWM_StateHidden|EXTWM_StateFullscreen| \
+								 EXTWM_StateAbove|EXTWM_StateBelow)
+
+  ASFlagType state_flags;
+  
   XTextProperty *name;
   XTextProperty *icon_name;
   XTextProperty *visible_name;
@@ -515,6 +525,7 @@ typedef struct ExtendedWMHints
   CARD32 pid;
   CARD32 *icon;
   long icon_length;
+  CARD32 window_opacity ;
 }
 ExtendedWMHints;
 

@@ -401,7 +401,7 @@ check_icon_canvas( ASWindow *asw, Bool required )
             attributes.border_pixel = Scr.asv->black_pixel;
             attributes.cursor = Scr.Feel.cursors[ASCUR_Default];
 
-            if ((ASWIN_HFLAGS(asw, AS_ClientIcon|AS_ClientIconPixmap) != AS_ClientIcon) ||
+            if ((get_flags(asw->hints->client_icon_flags, AS_ClientIcon|AS_ClientIconPixmap) != AS_ClientIcon) ||
                  asw->hints == NULL || asw->hints->icon.window == None ||
                  !get_flags(Scr.Feel.flags, KeepIconWindows))
             { /* create windows */
@@ -957,7 +957,7 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
 	{
 		if( old_hints )
 		{
-			icon_image_changed = (ASWIN_HFLAGS( asw, AS_ClientIcon|AS_ClientIconPixmap ) != get_flags(old_hints->flags, AS_ClientIcon|AS_ClientIconPixmap));
+			icon_image_changed = (get_flags(asw->hints->client_icon_flags, AS_ClientIcon|AS_ClientIconPixmap ) != get_flags(old_hints->client_icon_flags, AS_ClientIcon|AS_ClientIconPixmap));
 			if( !icon_image_changed )
         		icon_image_changed = (asw->hints->icon.pixmap != old_hints->icon.pixmap );
 			if( !icon_image_changed )
@@ -1241,6 +1241,12 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
       		}
 		}
 	}
+	
+	if( ASWIN_HFLAGS( asw, AS_WindowOpacity ) )
+	{
+		set_32bit_property (asw->frame, _XA_NET_WM_WINDOW_OPACITY, XA_CARDINAL, asw->hints->window_opacity );
+	}	 
+
 
     /* we also need to setup label, unfocused/sticky style and tbar sizes -
      * it all is done when we change windows state, or move/resize it */
@@ -1259,6 +1265,7 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
 			map_canvas_window( asw->icon_title_canvas, False );
 		}
 	}
+
 	return	status_changed ;
 }
 

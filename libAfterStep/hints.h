@@ -84,20 +84,17 @@ struct ASImage;
 #define AS_AvoidCover           (1<<17)
 #define AS_IconTitle            (1<<18)
 #define AS_Icon                 (1<<19)
-#define AS_ClientIcon           (1<<20)
-#define AS_ClientIconPixmap     (1<<21)
-#define AS_ClientIconPosition   (1<<22)
-#define AS_ClientIconARGB		(1<<23)
-#define AS_Windowbox            (1<<24)
-#define AS_FocusOnMap           (1<<25)
-#define AS_ShortLived           (1<<26)
-#define AS_Module				(1<<27)
-#define AS_IgnoreConfigRequest  (1<<28)
-#define AS_WMDockApp			(1<<29)  /* res_class == "DockApp" and main 
+#define AS_Windowbox            (1<<20)
+#define AS_FocusOnMap           (1<<21)
+#define AS_ShortLived           (1<<22)
+#define AS_Module				(1<<23)
+#define AS_IgnoreConfigRequest  (1<<24)
+#define AS_WMDockApp			(1<<25)  /* res_class == "DockApp" and main 
 										  * window is 1x1 (just don't ask why)
 										  * usually that means that icon 
 										  * window should be animated */ 
-#define AS_UseCurrentViewport  	(1<<30)
+#define AS_UseCurrentViewport  	(1<<26)
+#define AS_WindowOpacity	   	(1<<27)
 
 #define NOLOOK_HINT_FLAGS	(AS_IgnoreConfigRequest|AS_Module|AS_ShortLived| \
 							 AS_AvoidCover|AS_AcceptsFocus|AS_ClickToFocus| \
@@ -158,6 +155,12 @@ typedef struct ASHints
   ASFlagType protocols ;
   ASFlagType function_mask ;
 
+#define AS_ClientIcon           (1<<0)
+#define AS_ClientIconPixmap     (1<<1)
+#define AS_ClientIconPosition   (1<<2)
+#define AS_ClientIconARGB		(1<<3)
+
+  ASFlagType client_icon_flags ;
   union { Window window; Pixmap pixmap; } icon ;
   Pixmap icon_mask ;
   CARD32 *icon_argb ; 
@@ -192,6 +195,7 @@ typedef struct ASHints
 
   char *client_host ;    /* hostname of the computer on which client was executed */
   char *client_cmd  ;    /* preparsed command line of the client */
+  CARD32 window_opacity ;
 }
 ASHints;
 
@@ -304,6 +308,7 @@ char *make_client_command( struct ScreenInfo *scr, ASHints *hints, ASStatusHints
 
 Bool set_all_client_hints( Window w, ASHints *hints, ASStatusHints *status, Bool set_command );
 struct ASImage* get_client_icon_image( struct ScreenInfo * scr, ASHints *hints );
+CARD32 set_hints_window_opacity_percent( ASHints *clean, int opaque_percent );
 
 
 /* printing functions :

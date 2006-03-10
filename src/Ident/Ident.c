@@ -549,9 +549,9 @@ fill_window_data()
 	SHOW_FLAG(wd->flags,AvoidCover);          
 	SHOW_FLAG(wd->flags,IconTitle);
 	SHOW_FLAG(wd->flags,Icon);          
-	SHOW_FLAG(wd->flags,ClientIcon);
-	SHOW_FLAG(wd->flags,ClientIconPixmap);    
-	SHOW_FLAG(wd->flags,ClientIconPosition);
+	SHOW_FLAG(wd->client_icon_flags,ClientIcon);
+	SHOW_FLAG(wd->client_icon_flags,ClientIconPixmap);    
+	SHOW_FLAG(wd->client_icon_flags,ClientIconPosition);
 	SHOW_FLAG(wd->flags,FocusOnMap);          
 	SHOW_FLAG(wd->flags,ShortLived);
 	

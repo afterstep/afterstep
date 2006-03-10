@@ -939,6 +939,40 @@ on_window_hints_changed( ASWindow *asw )
 	destroy_hints (old_hints, True);
 }
 
+void 
+on_window_opacity_changed( ASWindow *asw )
+{
+    CARD32 new_opacity = NET_WM_WINDOW_OPACITY_OPAQUE ;
+	Bool set = False ;
+	ASDatabaseRecord db_rec ; 
+	
+	if( AS_ASSERT(asw) )
+        return ;
+    if( ASWIN_GET_FLAGS( asw, AS_Dead ) )
+		return;
+	set = read_32bit_property (asw->w, _XA_NET_WM_WINDOW_OPACITY, &new_opacity);
+	if ( set && new_opacity == asw->hints->window_opacity && ASWIN_HFLAGS(asw, AS_WindowOpacity) )
+		return;
+	
+	if( fill_asdb_record (Database, asw->hints->names, &db_rec, False ) )
+	{
+		if( get_flags( db_rec.set_data_flags, STYLE_WINDOW_OPACITY ) )
+		{	
+			new_opacity = set_hints_window_opacity_percent( NULL, db_rec.window_opacity);		   
+			set = True ;
+		}
+	}	 
+
+	if( !set )
+		XDeleteProperty( dpy, asw->frame, _XA_NET_WM_WINDOW_OPACITY	);
+	else if( new_opacity != asw->hints->window_opacity || !ASWIN_HFLAGS(asw, AS_WindowOpacity) )
+	{
+		set_flags( asw->hints->flags, AS_WindowOpacity);
+		asw->hints->window_opacity = new_opacity ;
+		set_32bit_property (asw->frame, _XA_NET_WM_WINDOW_OPACITY, XA_CARDINAL, asw->hints->window_opacity );
+	}	 
+}
+
 int
 update_window_tbar_size(	ASWindow *asw )
 {

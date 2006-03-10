@@ -1715,6 +1715,7 @@ void wait_func_handler( FunctionData *data, ASEvent *event, int module )
 			int x, y ; 
 			int width, height ;
 			ASFlagType geom_flags = get_flags (style->set_data_flags, STYLE_DEFAULT_GEOMETRY)?style->default_geometry.flags:0;
+			ASFlagType state_flags = 0 ;
 
 			if( get_flags (style->set_data_flags, STYLE_VIEWPORTX) )
 				new_vx = style->ViewportX ;
@@ -1738,8 +1739,17 @@ void wait_func_handler( FunctionData *data, ASEvent *event, int module )
 			{
 				if( (get_flags (style->flags, STYLE_STICKY) && !ASWIN_GET_FLAGS(asw,AS_Sticky)) ||
 					(!get_flags (style->flags, STYLE_STICKY) && ASWIN_GET_FLAGS(asw,AS_Sticky)) )
-					toggle_aswindow_status( asw, AS_Sticky );
+					set_flags( state_flags, AS_Sticky );
 			}
+			if( get_flags (style->set_flags, STYLE_FULLSCREEN))
+			{
+				if( (get_flags (style->flags, STYLE_FULLSCREEN) && !ASWIN_GET_FLAGS(asw,AS_Fullscreen)) ||
+					(!get_flags (style->flags, STYLE_FULLSCREEN) && ASWIN_GET_FLAGS(asw,AS_Fullscreen)) )
+					set_flags( state_flags, AS_Fullscreen );
+			}
+
+			if( state_flags != 0 ) 
+				toggle_aswindow_status( asw, state_flags );
 
 			if( !ASWIN_GET_FLAGS(asw,AS_Sticky) )
 			{	
@@ -1772,7 +1782,9 @@ void wait_func_handler( FunctionData *data, ASEvent *event, int module )
 							 
 			if( get_flags (style->set_flags, STYLE_START_ICONIC ) )
 			{
-				  /* TODO: */	  
+				if ( (get_flags (style->flags, STYLE_START_ICONIC ) && !ASWIN_GET_FLAGS(asw, AS_Iconic))||  
+					 (!get_flags (style->flags, STYLE_START_ICONIC ) && ASWIN_GET_FLAGS(asw, AS_Iconic)))
+					set_window_wm_state( event->client, get_flags (style->flags, STYLE_START_ICONIC ), False );
 			}	 
 			
 			style_delete (style, NULL);

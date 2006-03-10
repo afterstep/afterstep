@@ -902,8 +902,13 @@ HandlePropertyNotify (ASEvent *event)
     }else if( atom == XA_WM_COMMAND || atom == XA_WM_CLIENT_MACHINE )
 	{
 		update_cmd_line_hints (asw->w, atom, asw->hints, asw->status );
+	}else if( atom == _XA_NET_WM_WINDOW_OPACITY )
+	{	
+	 	if( event->context == C_WINDOW && event->w != asw->frame ) 
+			on_window_opacity_changed( asw );
 	}else if( NeedToTrackPropChanges(atom) )
         on_window_hints_changed( asw );
+
     /* we have to do the complete refresh of hints, since we have to override WH_HINTS with database, etc. */
 }
 

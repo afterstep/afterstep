@@ -138,6 +138,7 @@ TermDef       StyleTerms[] = {
 	{TF_NO_MYNAME_PREPENDING, "UseAnyViewport", 14, TT_FLAG, DATABASE_UseAnyViewport_ID, NULL},
 	ASCF_DEFINE_KEYWORD(DATABASE,TF_NO_MYNAME_PREPENDING,Fullscreen,TT_FLAG,NULL),
 	ASCF_DEFINE_KEYWORD(DATABASE,TF_NO_MYNAME_PREPENDING,NoFullscreen,TT_FLAG,NULL),
+	ASCF_DEFINE_KEYWORD(DATABASE,TF_NO_MYNAME_PREPENDING,WindowOpacity,TT_INTEGER,NULL),
 	{0, NULL, 0, 0, 0}
 };
 
@@ -239,6 +240,7 @@ style_init (name_list * nl)
 	nl->ViewportX = -1;
 	nl->ViewportY = -1;
 	nl->gravity = NorthWestGravity;
+	nl->window_opacity = 100 ;
 
 	nl->off_buttons = 0;
 	nl->on_buttons = 0;
@@ -300,6 +302,8 @@ style_copy (name_list * to, name_list * from)
 			to->layer = from->layer;
 		if (get_flags (from->set_data_flags, STYLE_GRAVITY))
 			to->gravity = from->gravity;
+		if (get_flags (from->set_data_flags, STYLE_WINDOW_OPACITY))
+			to->window_opacity = from->window_opacity;
 
 		to->set_flags |= from->set_flags;
 		to->flags |= (from->set_flags & from->flags);
@@ -500,6 +504,11 @@ ParseSingleStyle (FreeStorageElem * storage, name_list * style)
 			 set_flags (style->set_data_flags, STYLE_VIEWPORTY);
 			 style->ViewportY = item.data.integer;
 			 LOCAL_DEBUG_OUT( "style->ViewportY = %d", style->ViewportY );
+			 break;
+		 case DATABASE_WindowOpacity_ID:
+			 set_flags (style->set_data_flags, STYLE_WINDOW_OPACITY);
+			 style->window_opacity = item.data.integer;
+			 LOCAL_DEBUG_OUT( "style->window_opacity = %d", style->window_opacity );
 			 break;
 		 case DATABASE_Frame_ID:
 			 set_string_value (&(style->frame_name), item.data.string, &(style->set_data_flags), STYLE_FRAME);

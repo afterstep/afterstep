@@ -2243,7 +2243,7 @@ check_swallow_window( ASWindowData *wd )
     sleep_a_millisec(100);
 	grab_swallowed_canvas_btns( nc, aswb, withdraw_btn );
 
-    if( get_flags( wd->flags, AS_ClientIcon ) && !get_flags( wd->flags, AS_ClientIconPixmap) )
+    if( get_flags( wd->client_icon_flags, AS_ClientIcon ) && !get_flags( wd->client_icon_flags, AS_ClientIconPixmap) )
 		icon_w = wd->icon ;
 	else if( get_flags( wd->flags, AS_WMDockApp ) ) 
 	{
@@ -2312,7 +2312,7 @@ check_swallow_window( ASWindowData *wd )
                                       get_flags(Config->AlignContents,PAD_BOTTOM),
                                       aswb->canvas->height, sheight    ),
                        swidth, sheight );
-	if( !get_flags( wd->flags, AS_ClientIcon ) ) 
+	if( !get_flags( wd->client_icon_flags, AS_ClientIcon ) ) 
 	{  /* workaround for broken wmdock apps that draw into icon, that is a child of a client, 
 		* and at the same time not properly sized ( Just don't ask - some ppl are wierd ) */
 		XWMHints *wm_hints = XGetWMHints (dpy, wd->client);

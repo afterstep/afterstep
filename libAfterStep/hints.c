@@ -245,7 +245,7 @@ check_hints_sanity (ScreenInfo * scr, ASHints * clean, ASStatusHints * status, W
 		{
 			clean->icon.window = None ; 
 			clear_flags( clean->function_mask, AS_FuncMinimize );
-			clear_flags( clean->flags, AS_ClientIcon );
+			clear_flags( clean->client_icon_flags, AS_ClientIcon );
 		}	 
 
 
@@ -603,8 +603,8 @@ merge_icccm_hints (ASHints * clean, ASRawHints * raw,
 			if (get_flags (wmh->flags, IconWindowHint) && wmh->icon_window != None)
 			{
 				clean->icon.window = wmh->icon_window;
-				set_flags (clean->flags, AS_ClientIcon);
-				clear_flags (clean->flags, AS_ClientIconPixmap);
+				set_flags (clean->client_icon_flags, AS_ClientIcon);
+				clear_flags (clean->client_icon_flags, AS_ClientIconPixmap);
 				if( get_flags (wmh->flags, IconWindowIsChildHint) )
 					set_flags (clean->flags, AS_WMDockApp);
 			} else if (get_flags (wmh->flags, IconPixmapHint) && wmh->icon_pixmap != None)
@@ -612,15 +612,15 @@ merge_icccm_hints (ASHints * clean, ASRawHints * raw,
 				clean->icon.pixmap = wmh->icon_pixmap;
 				if (get_flags (wmh->flags, IconMaskHint) && wmh->icon_mask != None)
 					clean->icon_mask = wmh->icon_mask;
-				set_flags (clean->flags, AS_ClientIcon);
-				set_flags (clean->flags, AS_ClientIconPixmap);
+				set_flags (clean->client_icon_flags, AS_ClientIcon);
+				set_flags (clean->client_icon_flags, AS_ClientIconPixmap);
 			}
 
 			if (get_flags (wmh->flags, IconPositionHint))
 			{
 				clean->icon_x = wmh->icon_x;
 				clean->icon_y = wmh->icon_y;
-				set_flags (clean->flags, AS_ClientIconPosition);
+				set_flags (clean->client_icon_flags, AS_ClientIconPosition);
 			}
 		}
 
@@ -1045,6 +1045,10 @@ static ASFlagType extwm_types_start_properties[][3] = {
 	{EXTWM_TypeUtility, AS_LayerTop, 0}, 	
 	{EXTWM_TypeSplash, AS_LayerTop, AS_ShortLived },
 	{EXTWM_TypeASModule, AS_LayerNormal, AS_StartsSticky },
+	{0, 0, 0}
+};
+
+static ASFlagType extwm_states_start_properties[][3] = {
 	{EXTWM_StateFullscreen, AS_LayerUrgent, AS_Fullscreen },
 	{EXTWM_StateAbove, AS_LayerTop, 0 },
 	{EXTWM_StateBelow, AS_LayerBack, 0 },
@@ -1180,28 +1184,42 @@ merge_extwm_hints (ASHints * clean, ASRawHints * raw,
 			}
 		}
 		/* window state hints : */
-		if (get_flags (eh->flags, EXTWM_StateEverything))
+		if (get_flags (eh->flags, EXTWM_StateSet))
 		{
-			if (get_flags (eh->flags, EXTWM_StateModal))
+			if (get_flags (eh->state_flags, EXTWM_StateModal))
 			{
 				status->layer = AS_LayerTop;
 				set_flags (status->flags, AS_StartLayer);
 			}
-			decode_simple_flags (&(status->flags), extwm_state_xref, eh->flags);
+			decode_simple_flags (&(status->flags), extwm_state_xref, eh->state_flags);
 		}
 		/* window type hints : */
-		if (get_flags (eh->flags, (EXTWM_TypeEverything & (~EXTWM_TypeNormal))|EXTWM_StateFullscreen|EXTWM_StateAbove|EXTWM_StateBelow ))
+		if (get_flags (eh->type_flags, (EXTWM_TypeEverything & (~EXTWM_TypeNormal))))
 		{
 			register int  i;
 
 			for (i = 0; extwm_types_start_properties[i][0] != 0; i++)
-				if (get_flags (eh->flags, extwm_types_start_properties[i][0]))
+				if (get_flags (eh->type_flags, extwm_types_start_properties[i][0]))
 				{
 					if( !get_flags (status->flags, AS_StartLayer) ||
 						status->layer < extwm_types_start_properties[i][1] ) 
 						status->layer = extwm_types_start_properties[i][1];
 					set_flags (status->flags, AS_StartLayer);
 					set_flags (status->flags, extwm_types_start_properties[i][2]);
+				}
+		}
+		if (get_flags (eh->state_flags, EXTWM_StateFullscreen|EXTWM_StateAbove|EXTWM_StateBelow ))
+		{
+			register int  i;
+
+			for (i = 0; extwm_states_start_properties[i][0] != 0; i++)
+				if (get_flags (eh->state_flags, extwm_states_start_properties[i][0]))
+				{
+					if( !get_flags (status->flags, AS_StartLayer) ||
+						status->layer < extwm_states_start_properties[i][1] ) 
+						status->layer = extwm_states_start_properties[i][1];
+					set_flags (status->flags, AS_StartLayer);
+					set_flags (status->flags, extwm_states_start_properties[i][2]);
 				}
 		}
 	}
@@ -1212,19 +1230,25 @@ merge_extwm_hints (ASHints * clean, ASRawHints * raw,
 			clean->pid = eh->pid;
 			set_flags (clean->flags, AS_PID);
 		}
+		if (get_flags (eh->flags, EXTWM_WINDOW_OPACITY))
+		{
+			clean->window_opacity = eh->window_opacity;
+			set_flags (clean->flags, AS_WindowOpacity);
+		}
 		if (get_flags (eh->flags, EXTWM_ICON))
 		{
 			if( clean->icon_argb ) 
 				free( clean->icon_argb );
 			clean->icon_argb = select_client_icon_argb( eh->icon, eh->icon_length );
-			set_flags (clean->flags, AS_Icon|AS_ClientIcon|AS_ClientIconARGB);
+			set_flags (clean->flags, AS_Icon);
+			set_flags (clean->client_icon_flags, AS_ClientIcon|AS_ClientIconARGB);
 		}
-        if (get_flags (eh->flags, EXTWM_StateSkipTaskbar))
+        if (get_flags (eh->state_flags, EXTWM_StateSkipTaskbar))
             set_flags (clean->flags, AS_SkipWinList);
 
-		if (get_flags (eh->flags, EXTWM_TypeEverything))
+		if (get_flags (eh->flags, EXTWM_TypeSet))
 		{
-			decode_simple_flags (&(clean->flags), extwm_type_xref, eh->flags);
+			decode_simple_flags (&(clean->flags), extwm_type_xref, eh->type_flags);
 		}
 	}
 	if (get_flags (what, HINT_PROTOCOL))
@@ -1235,8 +1259,8 @@ merge_extwm_hints (ASHints * clean, ASRawHints * raw,
 			set_flags (clean->protocols, AS_NeedsVisibleName);
 		if (get_flags (eh->flags, EXTWM_VISIBLE_NAME) && eh->visible_name != NULL)
 			set_flags (clean->protocols, AS_NeedsVisibleName);
-		if (get_flags (eh->flags, EXTWM_TypeEverything))
-			decode_simple_flags (&(clean->function_mask), extwm_type_func_mask, eh->flags);
+		if (get_flags (eh->flags, EXTWM_TypeSet))
+			decode_simple_flags (&(clean->function_mask), extwm_type_func_mask, eh->type_flags);
 	}
 }
 
@@ -1266,6 +1290,23 @@ merge_xresources_hints (ASHints * clean, ASRawHints * raw,
 			XrmDestroyDatabase (db);
 	}
 }
+
+CARD32
+set_hints_window_opacity_percent( ASHints *clean, int opaque_percent ) 
+{		   
+	CARD32 res = NET_WM_WINDOW_OPACITY_OPAQUE ;
+	if( opaque_percent <= 0 ) 
+		res = 0 ; 
+	else if( opaque_percent < 100 ) 
+ 		res = (NET_WM_WINDOW_OPACITY_OPAQUE/100)*opaque_percent;
+	if( clean ) 
+	{	
+		clean->window_opacity = res ;
+		set_flags (clean->flags, AS_WindowOpacity);
+	}
+	return res;
+}
+
 
 void
 merge_asdb_hints (ASHints * clean, ASRawHints * raw, ASDatabaseRecord * db_rec, ASStatusHints * status, ASFlagType what)
@@ -1376,6 +1417,9 @@ merge_asdb_hints (ASHints * clean, ASRawHints * raw, ASDatabaseRecord * db_rec, 
 			clean->gravity = db_rec->gravity;
 			set_flags (clean->flags, AS_Gravity);
 		}
+		if (get_flags (db_rec->set_data_flags, STYLE_WINDOW_OPACITY))
+			set_hints_window_opacity_percent( clean, db_rec->window_opacity ); 
+
 		if (get_flags (db_rec->set_data_flags, STYLE_FRAME))
 			set_string_value (&(clean->frame_name), mystrdup (db_rec->frame_name), &(clean->flags), AS_Frame);
         if (get_flags (db_rec->set_data_flags, STYLE_WINDOWBOX))
@@ -1479,7 +1523,7 @@ update_property_hints (Window w, Atom property, ASHints * hints, ASStatusHints *
 		{
 			ASFlagType    new_state = 0;
 
-			decode_simple_flags (&new_state, extwm_state_xref, raw.extwm_hints.flags);
+			decode_simple_flags (&new_state, extwm_state_xref, raw.extwm_hints.state_flags);
 			if ((changed = (((status->flags & EXTWM_AFFECTED_STATE) ^ new_state) != 0)))
 				status->flags = new_state | (status->flags & EXTWM_AFFECTED_STATE);
 		}
@@ -2317,9 +2361,9 @@ client_hints2wm_hints (XWMHints * wm_hints, ASHints * hints, ASStatusHints * sta
 	}
 
 	/* window to be used as icon */
-	if (get_flags (hints->flags, AS_ClientIcon))
+	if (get_flags (hints->client_icon_flags, AS_ClientIcon))
 	{
-		if (!get_flags (hints->flags, AS_ClientIconPixmap))
+		if (!get_flags (hints->client_icon_flags, AS_ClientIconPixmap))
 		{
 			wm_hints->icon_window = hints->icon.window;
 			set_flags (wm_hints->flags, IconWindowHint);
@@ -2337,7 +2381,7 @@ client_hints2wm_hints (XWMHints * wm_hints, ASHints * hints, ASStatusHints * sta
 	}
 
 	/* initial position of icon */
-	if (get_flags (hints->flags, AS_ClientIconPosition))
+	if (get_flags (hints->client_icon_flags, AS_ClientIconPosition))
 	{
 		set_flags (wm_hints->flags, IconPositionHint);
 		wm_hints->icon_x = hints->icon_x;
@@ -2520,11 +2564,15 @@ client_hints2extwm_hints (ExtendedWMHints * extwm_hints, ASHints * hints, ASStat
 		/* window state hints : */
 		if (get_flags (status->flags, AS_StartLayer) && status->layer >= AS_LayerTop)
 		{
-			set_flags (extwm_hints->flags, EXTWM_StateModal);
-			encode_simple_flags (&(extwm_hints->flags), extwm_state_xref, status->flags);
+			set_flags (extwm_hints->state_flags, EXTWM_StateModal);
+			set_flags (extwm_hints->flags, EXTWM_StateSet);
+			encode_simple_flags (&(extwm_hints->state_flags), extwm_state_xref, status->flags);
 		}
 		if (get_flags (status->flags, AS_SkipWinList))
-			set_flags (extwm_hints->flags, EXTWM_StateSkipTaskbar);
+		{	
+			set_flags (extwm_hints->state_flags, EXTWM_StateSkipTaskbar);
+			set_flags (extwm_hints->flags, EXTWM_StateSet);
+		}
 		
 		/* window type hints : */
 		if (get_flags (status->flags, AS_StartLayer) && status->layer != AS_LayerNormal)
@@ -2536,20 +2584,22 @@ client_hints2extwm_hints (ExtendedWMHints * extwm_hints, ASHints * hints, ASStat
 					(get_flags (status->flags, extwm_types_start_properties[i][2]) ||
 					 extwm_types_start_properties[i][2] == 0))
 				{
-					set_flags (extwm_hints->flags, extwm_types_start_properties[i][0]);
+					set_flags (extwm_hints->type_flags, extwm_types_start_properties[i][0]);
 				}
 		}
 	}
 
-	encode_simple_flags (&(extwm_hints->flags), extwm_type_xref, hints->flags);
-	encode_simple_flags (&(extwm_hints->flags), extwm_type_func_mask, hints->function_mask);
+	encode_simple_flags (&(extwm_hints->type_flags), extwm_type_xref, hints->flags);
+	encode_simple_flags (&(extwm_hints->type_flags), extwm_type_func_mask, hints->function_mask);
+	if( extwm_hints->type_flags != 0 )
+		set_flags (extwm_hints->flags, EXTWM_TypeSet);
 
 	if (hints->pid >= 0 && get_flags (hints->flags, AS_PID))
 	{
 		set_flags (extwm_hints->flags, EXTWM_PID);
 		extwm_hints->pid = hints->pid;
 	}
-	if (hints->icon_argb != NULL && get_flags (hints->flags, AS_ClientIcon))
+	if (hints->icon_argb != NULL && get_flags (hints->client_icon_flags, AS_ClientIcon))
 	{
 		set_flags (extwm_hints->flags, EXTWM_ICON);
 		extwm_hints->icon_length = hints->icon_argb[0]*hints->icon_argb[1] + 2 ;
@@ -2633,7 +2683,7 @@ get_client_icon_image( ScreenInfo * scr, ASHints *hints )
 				strcmp( icon_file, Database->style_default.icon_file ) == 0 )
 				icon_file_isDefault = True ;
 		}
-		if( get_flags(hints->flags, AS_ClientIcon ) ) 
+		if( get_flags(hints->client_icon_flags, AS_ClientIcon ) ) 
 		{	
 			Bool use_client_icon = ( hints->icon_file == NULL || Database == NULL );
 
@@ -2652,7 +2702,7 @@ get_client_icon_image( ScreenInfo * scr, ASHints *hints )
         	if( use_client_icon ) 
 			{	
         		/* first try ARGB icon If provided by the application : */
-				if( get_flags( hints->flags, AS_ClientIconARGB ) && hints->icon_argb != NULL )
+				if( get_flags( hints->client_icon_flags, AS_ClientIconARGB ) && hints->icon_argb != NULL )
 				{
 	    	    	/* TODO: we also need to check for newfashioned ARGB icon from
     	    		 * extended WM specs here
@@ -2662,7 +2712,7 @@ get_client_icon_image( ScreenInfo * scr, ASHints *hints )
 					im = convert_argb2ASImage( scr->asv, width, height, hints->icon_argb+2, NULL );
 				
 				}	 
-				if( im == NULL && get_flags( hints->flags, AS_ClientIconPixmap ) &&	hints->icon.pixmap != None )
+				if( im == NULL && get_flags( hints->client_icon_flags, AS_ClientIconPixmap ) &&	hints->icon.pixmap != None )
         		{/* convert client's icon into ASImage */
             		unsigned int width, height ;
             		get_drawable_size( hints->icon.pixmap, &width, &height );
@@ -2747,18 +2797,18 @@ print_clean_hints (stream_func func, void *stream, ASHints * clean)
 
 	if (get_flags (clean->flags, AS_Icon))
 	{
-		if (get_flags (clean->flags, AS_ClientIcon))
+		if (get_flags (clean->client_icon_flags, AS_ClientIcon))
 		{
-			if (get_flags (clean->flags, AS_ClientIconARGB) && clean->icon_argb )
+			if (get_flags (clean->client_icon_flags, AS_ClientIconARGB) && clean->icon_argb )
 			{	  
 				func (stream, "CLEAN.icon.argb.width = 0x%lX;\n", clean->icon_argb[0]);
 				func (stream, "CLEAN.icon.argb.height = 0x%lX;\n", clean->icon_argb[1]);
-			}else if (get_flags (clean->flags, AS_ClientIconPixmap))
+			}else if (get_flags (clean->client_icon_flags, AS_ClientIconPixmap))
 				func (stream, "CLEAN.icon.pixmap = 0x%lX;\n", clean->icon.pixmap);
 			else
 				func (stream, "CLEAN.icon.window = 0x%lX;\n", clean->icon.window);
 			func (stream, "CLEAN.icon_mask = 0x%lX;\n", clean->icon_mask);
-			if (get_flags (clean->flags, AS_ClientIconPosition))
+			if (get_flags (clean->client_icon_flags, AS_ClientIconPosition))
 				func (stream, "CLEAN.icon_x = %d;\nCLEAN.icon_y = %d;\n", clean->icon_x, clean->icon_y);
 		} else if (clean->icon_file)
 			func (stream, "CLEAN.icon_file = \"%s\";\n", clean->icon_file);

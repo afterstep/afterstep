@@ -839,10 +839,10 @@ SendConfig (int module, send_data_type event_type, ASWindow * t)
     }
 
 	asw_id.asw = t ;
-    SendPacket (module, event_type, 25,
+    SendPacket (module, event_type, 26,
                 t->w,                 t->frame,              asw_id.id,
                 frame_x,              frame_y,               frame_width,         frame_height,
-                ASWIN_DESK(t),        t->status->flags,      t->hints->flags,
+                ASWIN_DESK(t),        t->status->flags,      t->hints->flags,     t->hints->client_icon_flags,
                 t->hints->base_width, t->hints->base_height, t->hints->width_inc, t->hints->height_inc,
                 t->hints->min_width,  t->hints->min_height,  t->hints->max_width,  t->hints->max_height,
                 t->hints->gravity,    icon_title_w,          icon_pixmap_w,

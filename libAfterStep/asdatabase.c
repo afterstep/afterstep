@@ -67,6 +67,7 @@ make_asdb_record (name_list * nl, struct wild_reg_exp *regexp, ASDatabaseRecord 
 		db_rec->border_width = nl->border_width;
 		db_rec->resize_width = nl->resize_width;
 		db_rec->gravity = nl->gravity;
+        db_rec->window_opacity = nl->window_opacity;
 
 		if (nl->icon_file)
 		{
@@ -134,6 +135,7 @@ typedef enum
 	MATCH_border_width = STYLE_BORDER_WIDTH,
 	MATCH_resize_width = STYLE_HANDLE_WIDTH,
 	MATCH_gravity = STYLE_GRAVITY,
+	MATCH_window_opacity = STYLE_WINDOW_OPACITY,
 	MATCH_DefaultGeometry = STYLE_DEFAULT_GEOMETRY,
 
 	MATCH_Icon = STYLE_ICON,
@@ -221,6 +223,8 @@ match_int (ASDatabase * db, DBMatchType type)
 					 return db_rec->resize_width;
 				 case MATCH_gravity:
 					 return db_rec->gravity;
+				 case MATCH_window_opacity:
+					 return db_rec->window_opacity;
 				 default:
 					 break;
 				}
@@ -348,6 +352,8 @@ fill_asdb_record (ASDatabase * db, char **names, ASDatabaseRecord * reusable_mem
 				db_rec->resize_width = match_int (db, MATCH_resize_width);
 			if (get_flags (db_rec->set_data_flags, STYLE_GRAVITY))
 				db_rec->gravity = match_int (db, MATCH_gravity);
+			if (get_flags (db_rec->set_data_flags, STYLE_WINDOW_OPACITY))
+				db_rec->window_opacity = match_int (db, MATCH_window_opacity);
 
 			if (get_flags (db_rec->set_data_flags, STYLE_DEFAULT_GEOMETRY))
 				db_rec->default_geometry = *((ASGeometry *) match_struct (db, MATCH_DefaultGeometry));
@@ -598,6 +604,8 @@ print_asdb_record (stream_func func, void *stream, ASDatabaseRecord * db_rec, co
 		func (stream, "%s.resize_width = %u;\n", prompt, db_rec->resize_width);
 	if (get_flags (db_rec->set_data_flags, STYLE_GRAVITY))
 		func (stream, "%s.gravity = %u;\n", prompt, db_rec->gravity);
+	if (get_flags (db_rec->set_data_flags, STYLE_WINDOW_OPACITY))
+		func (stream, "%s.window_opacity = %u;\n", prompt, db_rec->window_opacity);
 
 	if (db_rec->icon_file)
 		func (stream, "%s.icon_file = \"%s\";\n", prompt, db_rec->icon_file);

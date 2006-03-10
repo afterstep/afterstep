@@ -24,6 +24,7 @@ struct wild_reg_exp;
 #define STYLE_LAYER             (1 << 8)   /* style->layer - layer is defined */
 #define STYLE_FRAME             (1 << 9)   /* style->frame - frame is defined */
 #define STYLE_WINDOWBOX         (1 << 10)  /* style->windowbox - windowbox is defined */
+#define STYLE_WINDOW_OPACITY    (1 << 11)  /* style->window_opacity - opacity of the window is defined */
 
 
 /* this are pure flags */
@@ -102,6 +103,8 @@ typedef struct name_list
   char *frame_name;
   char *windowbox_name;
 
+  int   window_opacity;
+
   unsigned long on_buttons;
   unsigned long off_buttons;
 }
@@ -132,8 +135,9 @@ typedef struct ASDatabaseRecord
   char *icon_file;
   char *frame_name;
   char *windowbox_name;
-  char *window_styles[BACK_STYLES];
+  int   window_opacity;
 
+  char *window_styles[BACK_STYLES];
   Bool  own_strings ;
 
 }ASDatabaseRecord;
