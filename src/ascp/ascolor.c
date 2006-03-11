@@ -497,7 +497,8 @@ create_main_window()
 	shints.win_gravity = ASColorState.gravity ;
 
 	extwm_hints.pid = getpid();
-    extwm_hints.flags = EXTWM_PID|EXTWM_TypeMenu ;
+    extwm_hints.flags = EXTWM_PID|EXTWM_TypeSet ;
+    extwm_hints.type_flags = EXTWM_TypeMenu ;
 
 	set_client_hints( w, NULL, &shints, AS_DoesWmDeleteWindow, &extwm_hints );
 	set_client_cmd (w);

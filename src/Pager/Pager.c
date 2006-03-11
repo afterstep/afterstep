@@ -751,7 +751,9 @@ make_pager_window()
 	shints.win_gravity = Config->gravity ;
 
 	extwm_hints.pid = getpid();
-    extwm_hints.flags = EXTWM_PID|EXTWM_StateSkipTaskbar|EXTWM_StateSkipPager|EXTWM_TypeMenu|EXTWM_TypeASModule ;
+    extwm_hints.flags = EXTWM_PID|EXTWM_StateSet|EXTWM_TypeSet ;
+	extwm_hints.type_flags = EXTWM_TypeMenu|EXTWM_TypeASModule ;
+	extwm_hints.state_flags = EXTWM_StateSkipTaskbar|EXTWM_StateSkipPager ;
 
 	set_client_hints( w, NULL, &shints, AS_DoesWmDeleteWindow, &extwm_hints );
 	set_client_cmd (w);

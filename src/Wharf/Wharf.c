@@ -1433,12 +1433,13 @@ map_wharf_folder( ASWharfFolder *aswf,
 	aswf->gravity = gravity ;
 
 	extwm_hints.pid = getpid();
-    extwm_hints.flags = EXTWM_PID|EXTWM_StateSkipTaskbar|EXTWM_TypeDock|EXTWM_TypeASModule ;
-
+    extwm_hints.flags = EXTWM_PID|EXTWM_TypeSet|EXTWM_StateSet ;
+	extwm_hints.type_flags = EXTWM_TypeDock|EXTWM_TypeASModule ;
+	extwm_hints.state_flags = EXTWM_StateSkipTaskbar ;
     if( aswf != WharfState.root_folder )
 	{
         XSetTransientForHint(dpy, aswf->canvas->w, WharfState.root_folder->canvas->w);
-		extwm_hints.flags |=  EXTWM_TypeDialog ;
+		set_flags(extwm_hints.type_flags,  EXTWM_TypeDialog ) ;
     }else
         protocols = AS_DoesWmDeleteWindow ;
 
@@ -2144,7 +2145,7 @@ grab_swallowed_canvas_btns( ASCanvas *canvas, ASWharfButton *aswb, Bool withdraw
 void
 update_wharf_folder_size( ASWharfFolder *aswf)
 {
-    unsigned int total_width = 1, total_height = 1;
+    int total_width = 1, total_height = 1;
     if( !get_flags( aswf->flags, ASW_Mapped) )
 		return;		
 	place_wharf_buttons( aswf, &total_width, &total_height );

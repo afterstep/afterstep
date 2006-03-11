@@ -369,7 +369,8 @@ make_ident_window( int width, int height)
 	shints.win_gravity = Config->gravity ;
 
 	extwm_hints.pid = getpid();
-    extwm_hints.flags = EXTWM_PID|EXTWM_TypeASModule ;
+    extwm_hints.flags = EXTWM_PID|EXTWM_TypeSet ;
+    extwm_hints.type_flags = EXTWM_TypeASModule ;
 
 	set_client_hints( w, NULL, &shints, AS_DoesWmDeleteWindow, &extwm_hints );
 	set_client_cmd (w);
@@ -617,29 +618,29 @@ fill_window_data()
 			}
 		}	 
 		/* window state hints : */
-		if (get_flags (eh->flags, EXTWM_StateEverything))
+		if (get_flags (eh->state_flags, EXTWM_StateEverything))
 		{
 			buf[0] = '\0' ;
-			SHOW_EXTWM_FLAG(eh->flags,State,Modal );
-			SHOW_EXTWM_FLAG(eh->flags,State,Sticky );
-			SHOW_EXTWM_FLAG(eh->flags,State,MaximizedV );
-			SHOW_EXTWM_FLAG(eh->flags,State,MaximizedH );
-			SHOW_EXTWM_FLAG(eh->flags,State,Shaded );
-			SHOW_EXTWM_FLAG(eh->flags,State,SkipTaskbar );
+			SHOW_EXTWM_FLAG(eh->state_flags,State,Modal );
+			SHOW_EXTWM_FLAG(eh->state_flags,State,Sticky );
+			SHOW_EXTWM_FLAG(eh->state_flags,State,MaximizedV );
+			SHOW_EXTWM_FLAG(eh->state_flags,State,MaximizedH );
+			SHOW_EXTWM_FLAG(eh->state_flags,State,Shaded );
+			SHOW_EXTWM_FLAG(eh->state_flags,State,SkipTaskbar );
 			add_property("Extended WM status flags:", buf, AS_Text_ASCII, True);
 		}
 		/* window type hints : */
-		if (get_flags (eh->flags, EXTWM_TypeEverything))
+		if (get_flags (eh->type_flags, EXTWM_TypeEverything))
 		{
 			buf[0] = '\0' ;
-			SHOW_EXTWM_FLAG(eh->flags,Type,Desktop);
-			SHOW_EXTWM_FLAG(eh->flags,Type,Dock);
-			SHOW_EXTWM_FLAG(eh->flags,Type,Toolbar);
-			SHOW_EXTWM_FLAG(eh->flags,Type,Menu);
-			SHOW_EXTWM_FLAG(eh->flags,Type,Dialog);
-			SHOW_EXTWM_FLAG(eh->flags,Type,Normal);
-			SHOW_EXTWM_FLAG(eh->flags,Type,Utility);
-			SHOW_EXTWM_FLAG(eh->flags,Type,Splash);
+			SHOW_EXTWM_FLAG(eh->type_flags,Type,Desktop);
+			SHOW_EXTWM_FLAG(eh->type_flags,Type,Dock);
+			SHOW_EXTWM_FLAG(eh->type_flags,Type,Toolbar);
+			SHOW_EXTWM_FLAG(eh->type_flags,Type,Menu);
+			SHOW_EXTWM_FLAG(eh->type_flags,Type,Dialog);
+			SHOW_EXTWM_FLAG(eh->type_flags,Type,Normal);
+			SHOW_EXTWM_FLAG(eh->type_flags,Type,Utility);
+			SHOW_EXTWM_FLAG(eh->type_flags,Type,Splash);
 			add_property("Extended WM type flags:", buf, AS_Text_ASCII, True);
 		}
 		
@@ -651,6 +652,12 @@ fill_window_data()
 
 		if (get_flags (eh->flags, EXTWM_DoesWMPing))
 			add_property("Extended WM protocols:", "DoesWMPing", AS_Text_ASCII, False);
+		
+		if (get_flags (eh->flags, EXTWM_WINDOW_OPACITY))
+		{
+			sprintf( buf, "%ld", eh->window_opacity );
+			add_property("ExtWM Window Opacity :",  buf, AS_Text_ASCII, False);
+		}
 		
 		if (get_flags (eh->flags, EXTWM_DESKTOP))
 		{

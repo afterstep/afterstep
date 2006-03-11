@@ -1300,7 +1300,7 @@ HandleBackgroundRequest( ASEvent *event )
     Bool res = False;
     Bool do_tint = True ;
 
-    if( xcli->data.s[6] == xcli->data.s[7] == xcli->data.s[8] )
+    if( xcli->data.s[6] == xcli->data.s[7] && xcli->data.s[6] == xcli->data.s[8] )
         do_tint = !(xcli->data.s[6] == 0 || xcli->data.s[6] == 0x7F );
 
     LOCAL_DEBUG_OUT("pmap(%lX/%lu)->clip_pos(%+d%+d)->clip_size(%dx%d)->scale(%d)->tint(%lX)->window(%lX)", p, p, clip_x, clip_y, clip_width, clip_height, flags, tint, event->x.xclient.window );

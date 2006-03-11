@@ -430,7 +430,8 @@ DigestEvent( ASEvent *event )
 	        if (ASWIN_GET_FLAGS(asw, AS_Shaded) && canvas != asw->frame_sides[tbar_side] )
 			{
 				event->context = C_NO_CONTEXT ;				
-				XRaiseWindow( dpy, asw->frame_sides[tbar_side]->w );
+				if( asw->frame_sides[tbar_side] )
+					XRaiseWindow( dpy, asw->frame_sides[tbar_side]->w );
 			}else if( w != asw->frame )
             {
                 if( event->w == asw->frame )
