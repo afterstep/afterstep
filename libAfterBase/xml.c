@@ -69,11 +69,13 @@ asxml_var_init(void)
 	{
     	asxml_var = create_ashash(0, string_hash_value, string_compare, string_destroy_without_data);
     	if (!asxml_var) return;
+#ifndef X_DISPLAY_MISSING
     	if ( dpy != NULL )
 		{
         	asxml_var_insert("xroot.width",  XDisplayWidth (dpy, DefaultScreen(dpy)));
         	asxml_var_insert("xroot.height", XDisplayHeight(dpy, DefaultScreen(dpy)));
       	}
+#endif
 	}
 }
 

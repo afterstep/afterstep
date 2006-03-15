@@ -40,7 +40,7 @@ quiet_xerror_handler (Display * dpy, XErrorEvent * error)
 int 
 grab_server()
 {
-#ifndef X_DISPLAY_MISSIN
+#ifndef X_DISPLAY_MISSING
 	if( dpy )
 	{
 		XGrabServer( dpy );
@@ -53,7 +53,7 @@ grab_server()
 int 
 ungrab_server()
 {
-#ifndef X_DISPLAY_MISSIN
+#ifndef X_DISPLAY_MISSING
 	if( dpy )
 	{
 		XUngrabServer( dpy );
