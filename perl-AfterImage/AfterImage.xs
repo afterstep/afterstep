@@ -72,13 +72,11 @@ image_gradient(width, height, colors, offsets, angle)
 		I32 numcolors = 0;
 		I32 numoffsets = 0;
 		if (!SvROK(colors) || SvTYPE(SvRV(colors)) != SVt_PVAV
-		    || (numcolors = av_len((AV *)SvRV(colors))) < 1)
-		{
+		    || (numcolors = av_len((AV *)SvRV(colors))) < 1) {
 			XSRETURN_UNDEF;
 		}
 		if (!SvROK(offsets) || SvTYPE(SvRV(offsets)) != SVt_PVAV
-		    || (numoffsets = av_len((AV *)SvRV(offsets))) < 1)
-		{
+		    || (numoffsets = av_len((AV *)SvRV(offsets))) < 1) {
 			XSRETURN_UNDEF;
 		}
 		numcolors++;
@@ -146,6 +144,87 @@ image_solid(width, height, color)
 			parse_argb_color(color, &argb);
 			if (result) fill_asimage(asv, result, 0, 0, width, height, argb);
 			RETVAL = result;
+		}
+	OUTPUT:
+		RETVAL
+
+ASImage*
+image_composite(images, width, height, op, options)
+		SV*   images
+		int   width
+		int   height
+		char* op
+		SV*   options
+	INIT:
+		int numimages;
+		int numoptions = 0;
+		if (!SvROK(images) || SvTYPE(SvRV(images)) != SVt_PVAV
+		    || (numimages = av_len((AV *)SvRV(images))) < 0) {
+			XSRETURN_UNDEF;
+		}
+		if (SvROK(options) && SvTYPE(SvRV(options)) == SVt_PVAV) {
+			numoptions = av_len((AV *)SvRV(options)) + 1;
+		}
+		numimages++;
+	CODE:
+		{
+			ASVisual* asv = create_asvisual(NULL, 0, 0, NULL);
+			ASImage* result;
+			ASImageLayer *layers = create_image_layers(numimages);
+			int i;
+			merge_scanlines_func op_func = blend_scanlines_name2func(op);
+			if (!asv || !result || !layers || !op_func) XSRETURN_UNDEF;
+
+			for (i = 0 ; i < numimages ; i++) {
+				SV* imref = *av_fetch((AV *)SvRV(images), numimages - 1 - i, 0);
+				if (sv_derived_from(imref, "ASImagePtr")) {
+					IV tmp = SvIV(SvRV(imref));
+					layers[i].im = INT2PTR(ASImage *, tmp);
+				} else {
+					Perl_croak(aTHX_ "image layer is not of type ASImagePtr");
+				}
+				layers[i].clip_width = layers[i].im->width;
+				layers[i].clip_height = layers[i].im->height;
+				layers[i].merge_scanlines = op_func;
+				if (numoptions > numimages - 1 - i) {
+					SV* opt_hashref = *av_fetch((AV *)SvRV(options), numimages - 1 - i, 0);
+					HV* opt_hash;
+					SV** tmp;
+					if (!SvROK(opt_hashref) || SvTYPE(SvRV(opt_hashref)) != SVt_PVHV)
+						Perl_croak(aTHX_ "image option is not of type HashRef");
+					opt_hash = (HV*)SvRV(opt_hashref);
+					tmp = hv_fetch(opt_hash, "x", 1, 0);
+					if (tmp) layers[i].dst_x = SvIV(*tmp);
+					tmp = hv_fetch(opt_hash, "y", 1, 0);
+					if (tmp) layers[i].dst_y = SvIV(*tmp);
+					tmp = hv_fetch(opt_hash, "clip_x", 6, 0);
+					if (tmp) layers[i].clip_x = SvIV(*tmp);
+					tmp = hv_fetch(opt_hash, "clip_y", 6, 0);
+					if (tmp) layers[i].clip_y = SvIV(*tmp);
+					tmp = hv_fetch(opt_hash, "clip_width", 10, 0);
+					if (tmp) layers[i].clip_width = SvIV(*tmp);
+					tmp = hv_fetch(opt_hash, "clip_height", 11, 0);
+					if (tmp) layers[i].clip_height = SvIV(*tmp);
+					tmp = hv_fetch(opt_hash, "tint", 4, 0);
+					if (tmp) {
+						ARGB32 argb;
+						if (parse_argb_color(SvPV_nolen(*tmp), &argb))
+							layers[i].tint = argb;
+					}
+					tmp = hv_fetch(opt_hash, "op", 2, 0);
+					if (tmp) {
+						merge_scanlines_func layer_op_func = blend_scanlines_name2func(SvPV_nolen(*tmp));
+						if (layer_op_func) layers[i].merge_scanlines = layer_op_func;
+					}
+				}
+			}
+			if (!width) width = layers[numimages-1].clip_width;
+			if (!height) height = layers[numimages-1].clip_height;
+
+			RETVAL = merge_layers(
+				asv, layers, numimages, width, height, ASA_ASImage, 0, 
+				ASIMAGE_QUALITY_DEFAULT
+			);
 		}
 	OUTPUT:
 		RETVAL
