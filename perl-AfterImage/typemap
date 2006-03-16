@@ -1,2 +1,3 @@
 TYPEMAP
 ASImage*  T_PTROBJ
+ASImageManager*  T_PTROBJ
