@@ -197,12 +197,15 @@ fi
 
 dnl# Check for X :
 dnl# check for X, if top level configure script did not do that yet :
+afterimage_x_support=yes
 if test "x$PATH_XTRA_CHECKED" != "xyes"; then
 	AC_PATH_XTRA
 else
   if test "x$have_x" != "xyes"; then
 	  AC_DEFINE(X_DISPLAY_MISSING)
+	  afterimage_x_support=no
   fi
+
 fi
 
 user_ldflags=$LDFLAGS
@@ -603,6 +606,7 @@ AC_SUBST(have_afterbase)
 AC_SUBST(AFTERIMAGE_APPS_LIBS)
 AC_SUBST(AFTERIMAGE_TEST_LIBS)
 AC_SUBST(AFTERIMAGE_LIB_LIBS)
+AC_SUBST(afterimage_x_support)
 
 dnl# finalizing libs listing :
 

@@ -6,6 +6,7 @@ AFTERIMAGE_LIBS="@AFTERIMAGE_LIBS@"
 AFTERIMAGE_LIBS_EXTERNAL="@AFTERIMAGE_LIBS_EXTERNAL@"
 HAVE_AFTERBASE="@have_afterbase@"
 AFTERIMAGE_PREF_FORMAT="@image_format@"
+AFTERIMAGE_X_SUPPORT="@afterimage_x_support@"
 
 
 usage()
@@ -21,6 +22,7 @@ Options:
  [--cflags]
  [--have-afterbase]
  [--preferred-image-format]
+ [--have-x-support]
 EOF
   exit $1
 }
@@ -66,6 +68,9 @@ while test $# -gt 0 ; do
     ;;
   --have-afterbase)
     echo_have_afterbase=yes
+    ;;
+  --have-x-support)
+    echo_have_x_support=yes
     ;;
   --preferred-image-format)
     echo_preferred_image_format=yes
@@ -127,6 +132,10 @@ fi
 
 if test "$echo_have_afterbase" = "yes" ; then
  echo "@have_afterbase@"
+fi
+
+if test "$echo_have_x_support" = "yes" ; then
+ echo "@afterimage_x_support@"
 fi
 
 if test "$echo_preferred_image_format" = "yes" ; then
