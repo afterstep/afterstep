@@ -75,15 +75,6 @@ char *_as_config_tags[TT_VALUE_TYPES] =
  	"inline_comment"
 };	 
 
-typedef enum ASXmlOptIDType
-{
-	ASXmlIDT_Index = 0,
-	ASXmlIDT_Side,
-	ASXmlIDT_Name,	 
-	ASXmlIDT_Types,
-	ASXmlIDT_None = ASXmlIDT_Types
-}ASXmlOptIDType;
-					
 
 #define ASXMLOpt_moduleAttrName "module"
 					
@@ -502,35 +493,12 @@ file2xml_tree(const char *filename, char *myname, SyntaxDef *syntax )
  * This stuff below is for manipulating xml_elem_t tree of options : 
  *************************************************************************/
 
-typedef struct ASXmlOptionTreeContext
-{
-#define ASXmlOptTree_ExcludeForeign			(0x01<<0)
-#define ASXmlOptTree_ExcludePublic			(0x01<<1)
-	ASFlagType flags;
-
-	SyntaxDef  *syntax ;
-	xml_elem_t *container, *root ;
-	char *module;
-
-	xml_elem_t *current ;
-#define MAX_XMLATRR_LENGTH		256
-	char  current_name[MAX_XMLATRR_LENGTH+1];
-	char  current_side[MAX_XMLATRR_LENGTH+1];
-	char  current_index[MAX_XMLATRR_LENGTH+1];
-
-#define ASXmlOptTree_Foreign			ASXmlOptTree_ExcludeForeign
-#define ASXmlOptTree_Public		   		ASXmlOptTree_ExcludePublic
-	ASFlagType current_flags;
-			  
-}ASXmlOptionTreeContext;
-
-
 static void 
 parse_curr_opt_attributes( ASXmlOptionTreeContext *context )
 {
 	xml_elem_t *parms = xml_parse_parm( context->current->parm, NULL );
 	xml_elem_t *c;
-	context->current_name[0] = 	context->current_side[0] = context->current_index[0] = '\0' ;
+	context->current_id[0] = '\0' ;
 	context->current_flags = ASXmlOptTree_Public ;
 	for( c = parms ; c != NULL ; c = c->next )
 	{
@@ -543,16 +511,19 @@ parse_curr_opt_attributes( ASXmlOptionTreeContext *context )
 				set_flags(context->current_flags, ASXmlOptTree_Foreign ) ;
 		}else if( mystrcasecmp( c->tag, ASXMLOpt_indexAttrName ) == 0 )
 		{	
-			strncpy( context->current_index, c->parm, MAX_XMLATRR_LENGTH ); 
-			context->current_index[MAX_XMLATRR_LENGTH] = '\0' ;
+			strncpy( context->current_id, c->parm, MAX_XMLATRR_LENGTH ); 
+			context->current_id_type = ASXmlIDT_Index ;
+			context->current_id[MAX_XMLATRR_LENGTH] = '\0' ;
 		}else if( mystrcasecmp( c->tag, ASXMLOpt_sideAttrName ) == 0 )
 		{	
-			strncpy( context->current_side, c->parm, MAX_XMLATRR_LENGTH ); 
-			context->current_side[MAX_XMLATRR_LENGTH] = '\0' ;
+			strncpy( context->current_id, c->parm, MAX_XMLATRR_LENGTH ); 
+			context->current_id_type = ASXmlIDT_Side ;
+			context->current_id[MAX_XMLATRR_LENGTH] = '\0' ;
 		}else if( mystrcasecmp( c->tag, ASXMLOpt_nameAttrName ) == 0 )
 		{	
-			strncpy( context->current_name, c->parm, MAX_XMLATRR_LENGTH ); 
-			context->current_name[MAX_XMLATRR_LENGTH] = '\0' ;
+			strncpy( context->current_id, c->parm, MAX_XMLATRR_LENGTH ); 
+			context->current_id_type = ASXmlIDT_Name ;
+			context->current_id[MAX_XMLATRR_LENGTH] = '\0' ;
 		}
 	}	 
 }	 
@@ -637,6 +608,18 @@ destroy_xml_opt_tree_context( ASXmlOptionTreeContext **pcontext )
 		}	 
 	}	 
 }
+
+Bool
+xml_opt_tree_go_first( ASXmlOptionTreeContext *context )
+{
+	if( context == NULL  ) 
+		return False;
+	
+	context->current = context->root ; 	   
+	find_next_valid_opt( context );
+
+	return (context->current != NULL);   
+}	  
 
 Bool
 xml_opt_tree_go_next( ASXmlOptionTreeContext *context )

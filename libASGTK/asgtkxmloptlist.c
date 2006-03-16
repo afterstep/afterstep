@@ -24,6 +24,7 @@
 #include "../libAfterImage/afterimage.h"
 #include "../libAfterStep/asapp.h"
 #include "../libAfterStep/screen.h"
+#include "../libAfterStep/parser.h"
 
 #include <unistd.h>		   
 
@@ -33,7 +34,7 @@
 
 /*  local function prototypes  */
 static void asgtk_xml_opt_list_class_init (ASGtkXmlOptListClass *klass);
-static void asgtk_xml_opt_list_init (ASGtkXmlOptListDir *iv);
+static void asgtk_xml_opt_list_init (ASGtkXmlOptList *iv);
 static void asgtk_xml_opt_list_dispose (GObject *object);
 static void asgtk_xml_opt_list_finalize (GObject *object);
 static void asgtk_xml_opt_list_style_set (GtkWidget *widget, GtkStyle  *prev_style);
@@ -91,8 +92,6 @@ asgtk_xml_opt_list_init (ASGtkXmlOptList *self)
     gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (self),
 				    				GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
 	self->flags = ASGTK_XmlOptList_DefaultFlags ; 
-	self->fulldirname = NULL ; 
-	self->entries = NULL ;
 
 	self->configfilename = NULL ;
 	self->opt_list_context = NULL ;
@@ -102,10 +101,10 @@ asgtk_xml_opt_list_init (ASGtkXmlOptList *self)
 static void
 asgtk_xml_opt_list_dispose (GObject *object)
 {
-  	ASGtkXmlOptList *self = ASGTK_IMAGE_DIR (object);
+  	ASGtkXmlOptList *self = ASGTK_XML_OPT_LIST (object);
 	if( self->configfilename ) 
 		free( self->configfilename );
-	destroy_asimage_list( &(self->entries) );
+	destroy_xml_opt_tree_context( &(self->opt_list_context) );
   	G_OBJECT_CLASS (parent_class)->dispose (object);
 }
 
@@ -127,20 +126,23 @@ asgtk_xml_opt_list_style_set (GtkWidget *widget,
 static void
 asgtk_xml_opt_list_sel_handler(GtkTreeSelection *selection, gpointer user_data)
 {
-  	ASGtkXmlOptList *self = ASGTK_IMAGE_DIR(user_data); 
+  	ASGtkXmlOptList *self = ASGTK_XML_OPT_LIST(user_data); 
 	GtkTreeIter iter;
 	GtkTreeModel *model;
 
-  	if (gtk_tree_selection_get_selected (selection, &model, &iter)) 
-	{
-		gpointer p = NULL ;
-    	gtk_tree_model_get (model, &iter, ASGTK_XmlOptList_Cols, &p, -1);
-		self->curr_selection = (ASImageListEntry*)p;
-  	}else
-		self->curr_selection = NULL ;
+	if( self->opt_list_context ) 
+	{	
+  		if (gtk_tree_selection_get_selected (selection, &model, &iter)) 
+		{
+			gpointer p = NULL ;
+    		gtk_tree_model_get (model, &iter, ASGTK_XmlOptList_Cols, &p, -1);
+			self->opt_list_context->current = (xml_elem_t*)p;
+  		}else
+			self->opt_list_context->current = NULL ;
 		
-	if( self->sel_change_handler )
-		self->sel_change_handler( self, self->sel_change_user_data ); 
+		if( self->sel_change_handler )
+			self->sel_change_handler( self, self->sel_change_user_data ); 
+	}
 }
 
 /*  public functions  */
@@ -182,7 +184,7 @@ asgtk_xml_opt_list_new ()
 	colorize_gtk_tree_view_window( GTK_WIDGET(self) );
 
 	LOCAL_DEBUG_OUT( "created image ASGtkXmlOptList object %p", self );	
-	return GTK_WIDGET (id);
+	return GTK_WIDGET (self);
 }
 
 void  
@@ -204,6 +206,43 @@ asgtk_xml_opt_list_set_columns( ASGtkXmlOptList *self, ASFlagType columns )
 	}
 }
 
+void 
+asgtk_xml_opt_list_refresh( ASGtkXmlOptList *self )
+{
+	int items = 0 ;
+	g_return_if_fail (ASGTK_IS_XML_OPT_LIST (self));
+	
+	gtk_list_store_clear( GTK_LIST_STORE (self->tree_model) );
+	if( self->opt_list_context ) 
+	{
+		GtkTreeIter iter;
+		xml_elem_t *last_sel = self->opt_list_context->current; 
+
+		if( xml_opt_tree_go_first( self->opt_list_context ) ) 
+		{	
+			do
+			{
+				xml_elem_t *curr = self->opt_list_context->current;
+
+				LOCAL_DEBUG_OUT( "adding item \"%s\"", curr->tag );			   
+				gtk_list_store_append (GTK_LIST_STORE (self->tree_model), &iter);
+				gtk_list_store_set (GTK_LIST_STORE (self->tree_model), &iter, 
+									ASGTK_XmlOptList_Col_Module_No, self->opt_list_context->current_module, 
+									ASGTK_XmlOptList_Col_Keyword_No, self->opt_list_context->current_keyword, 
+									ASGTK_XmlOptList_Col_Id_No, self->opt_list_context->current_id, 
+									ASGTK_XmlOptList_Col_Value_No, self->opt_list_context->current_cdata, 
+									ASGTK_ImageDir_Cols, self->opt_list_context->current, -1);
+				if( ++items == 1 || self->opt_list_context->current == last_sel ) 
+					gtk_tree_selection_select_iter(gtk_tree_view_get_selection(self->tree_view),&iter);
+			}while( xml_opt_tree_go_next( self->opt_list_context ) );
+		}
+	}		   
+	if( items == 0 ) 
+	{	
+		asgtk_xml_opt_list_sel_handler(gtk_tree_view_get_selection(self->tree_view), self);
+	}
+}
+
 void  
 asgtk_xml_opt_list_set_list_all( ASGtkXmlOptList *self, Bool enable )
 {
@@ -221,24 +260,20 @@ asgtk_xml_opt_list_set_list_all( ASGtkXmlOptList *self, Bool enable )
 
 
 void  
-asgtk_xml_opt_list_set_path( ASXmlOptList *self, char *fulldirname )
+asgtk_xml_opt_list_set_configfile( ASGtkXmlOptList *self, char *fulldirname )
 {
 	g_return_if_fail (ASGTK_IS_XML_OPT_LIST (self));
 	
-	if( self->fulldirname == NULL && fulldirname == NULL ) 
+	if( self->configfilename == NULL && fulldirname == NULL ) 
 		return;
-	if( self->fulldirname && fulldirname && strcmp(self->fulldirname, fulldirname)== 0  ) 
+	if( self->configfilename && fulldirname && strcmp(self->configfilename, fulldirname)== 0  ) 
 		return;
-	if( self->fulldirname  ) 
-	{	
-		free( self->fulldirname );
-		self->fulldirname = NULL ; 
-	}
-
-	if( fulldirname ) 
-		self->fulldirname = mystrdup(fulldirname);
+	if( self->configfilename  ) 
+		free( self->configfilename );
 	
-	asgtk_xml_opt_list_refresh( self );		 
+	self->configfilename = fulldirname?mystrdup(fulldirname):NULL;
+	
+	/* asgtk_xml_opt_list_refresh( self );		 */
 }	 
 
 void  
@@ -258,13 +293,13 @@ asgtk_xml_opt_list_set_sel_handler( ASGtkXmlOptList *self, _ASGtkXmlOptList_sel_
 	
 }
 
-struct ASImageListEntry *
+struct ASXmlOptionTreeContext *
 asgtk_xml_opt_list_get_selection(ASGtkXmlOptList *self )
 {
-	ASImageListEntry *result = NULL ; 
+	ASXmlOptionTreeContext *result = NULL ; 
 
 	if( ASGTK_IS_XML_OPT_LIST (self) )
-		result = ref_asimage_list_entry(self->curr_selection);
+		result = self->opt_list_context;
 	
 	return result;	 
 }

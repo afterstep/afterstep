@@ -3,11 +3,11 @@
 
 
 #define ASGTK_TYPE_XML_OPT_LIST         (asgtk_xml_opt_list_get_type ())
-#define ASGTK_XML_OPT_LIST(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), ASGTK_XML_OPT_LIST_DIR, ASGtkXmlOptList))
-#define ASGTK_XML_OPT_LIST_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), ASGTK_XML_OPT_LIST_DIR, ASGtkXmlOptListClass))
-#define ASGTK_IS_XML_OPT_LIST(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), ASGTK_XML_OPT_LIST_DIR))
-#define ASGTK_IS_XML_OPT_LIST_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), ASGTK_XML_OPT_LIST_DIR))
-#define ASGTK_XML_OPT_LIST_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), ASGTK_XML_OPT_LIST_DIR, ASGtkXmlOptList))
+#define ASGTK_XML_OPT_LIST(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), ASGTK_TYPE_XML_OPT_LIST, ASGtkXmlOptList))
+#define ASGTK_XML_OPT_LIST_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), ASGTK_TYPE_XML_OPT_LIST, ASGtkXmlOptListClass))
+#define ASGTK_IS_XML_OPT_LIST(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), ASGTK_TYPE_XML_OPT_LIST))
+#define ASGTK_IS_XML_OPT_LIST_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), ASGTK_TYPE_XML_OPT_LIST))
+#define ASGTK_XML_OPT_LIST_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), ASGTK_TYPE_XML_OPT_LIST, ASGtkXmlOptList))
 
 
 struct xml_elem_t;
@@ -35,9 +35,9 @@ typedef struct _ASGtkXmlOptList
 #define ASGTK_XmlOptList_Cols_All		(ASGTK_XmlOptList_Col_Module|ASGTK_XmlOptList_Col_Keyword| \
 									 	 ASGTK_XmlOptList_Col_Id|ASGTK_XmlOptList_Col_Value)
 /* other flags : */
-#define ASGTK_ImageDir_ListForeign		(0x01<<16)  /* otherwise only the known types of files */ 
+#define ASGTK_XmlOptList_ListForeign		(0x01<<16)  /* otherwise only the known types of files */ 
 /* defaults : */
-#define ASGTK_ImageDir_DefaultFlags 	(ASGTK_XmlOptList_Cols_All)
+#define ASGTK_XmlOptList_DefaultFlags 	(ASGTK_XmlOptList_Cols_All)
 
 	ASFlagType    flags ;
 	char *configfilename ;

@@ -324,8 +324,47 @@ extern char         *_unknown_keyword;
 
 
 
-
 struct xml_elem_t* file2xml_tree(const char *filename, char *myname, SyntaxDef *syntax );
+
+typedef enum ASXmlOptIDType
+{
+	ASXmlIDT_Index = 0,
+	ASXmlIDT_Side,
+	ASXmlIDT_Name,	 
+	ASXmlIDT_Types,
+	ASXmlIDT_None = ASXmlIDT_Types
+}ASXmlOptIDType;
+					
+
+typedef struct ASXmlOptionTreeContext
+{
+#define ASXmlOptTree_ExcludeForeign			(0x01<<0)
+#define ASXmlOptTree_ExcludePublic			(0x01<<1)
+	ASFlagType flags;
+
+	SyntaxDef  *syntax ;
+	struct xml_elem_t *container, *root ;
+	char *module;
+
+	struct xml_elem_t *current ;
+#define MAX_XMLATRR_LENGTH		256
+	ASXmlOptIDType current_id_type;
+	char  current_id[MAX_XMLATRR_LENGTH+1];
+	char  current_module[MAX_XMLATRR_LENGTH+1];
+	char  current_keyword[MAX_XMLATRR_LENGTH+1];
+	char  current_cdata[MAXLINELENGTH];
+
+#define ASXmlOptTree_Foreign			ASXmlOptTree_ExcludeForeign
+#define ASXmlOptTree_Public		   		ASXmlOptTree_ExcludePublic
+	ASFlagType current_flags;
+			  
+}ASXmlOptionTreeContext;
+
+ASXmlOptionTreeContext *xml_opt_tree_start_traversing( SyntaxDef  *syntax, struct xml_elem_t **pcontainer, struct xml_elem_t *subtree, const char *module );
+ASXmlOptionTreeContext *file2xml_tree_context( const char *filename, char *myname, SyntaxDef *syntax );
+void destroy_xml_opt_tree_context( ASXmlOptionTreeContext **pcontext );
+Bool xml_opt_tree_go_first( ASXmlOptionTreeContext *context );
+Bool xml_opt_tree_go_next( ASXmlOptionTreeContext *context );
 
 
 
