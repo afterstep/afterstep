@@ -1,0 +1,2 @@
+TYPEMAP
+ASImage*  T_PTROBJ

@@ -1,0 +1,8 @@
+AfterImage.xs
+Changes
+Makefile.PL
+MANIFEST
+ppport.h
+README
+t/AfterImage.t
+lib/AfterImage.pm

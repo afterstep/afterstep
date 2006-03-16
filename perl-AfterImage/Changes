@@ -1,0 +1,6 @@
+Revision history for Perl extension AfterImage.
+
+0.01  Mon Mar 13 16:18:59 2006
+	- original version; created by h2xs 1.23 with options
+		-b 5.5.0 -A -n AfterImage reference/asimage.h
+
