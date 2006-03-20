@@ -522,6 +522,7 @@ SHOW_CHECKPOINT;
 	ASCF_MERGE_SCALAR_KEYWORD(WHARF, to, from, Bevel);
 	ASCF_MERGE_SCALAR_KEYWORD(WHARF, to, from, CompositionMethod);
 	ASCF_MERGE_SCALAR_KEYWORD(WHARF, to, from, FolderOffset);
+	ASCF_MERGE_SCALAR_KEYWORD(WHARF, to, from, OrthogonalFolderOffset);
 
 /*LOCAL_DEBUG_OUT( "align_contents = %d", Config->align_contents ); */
     if( get_flags( config->set_flags, WHARF_SOUND ) )
@@ -1854,12 +1855,16 @@ display_wharf_folder( ASWharfFolder *aswf, int left, int top, int right, int bot
         y = south? top - height : bottom ;
         if( top != bottom )
             y += south?-Config->FolderOffset:Config->FolderOffset ;
+        if( left != right)
+            x += east?-Config->OrthogonalFolderOffset:Config->OrthogonalFolderOffset ;
     }else
     {
         x = east? left - width : right ;
         y = south? bottom - height: top ;
         if( left != right)
             x += east?-Config->FolderOffset:Config->FolderOffset ;
+        if( top != bottom )
+            y += south?-Config->OrthogonalFolderOffset:Config->OrthogonalFolderOffset ;
     }
 	LOCAL_DEBUG_OUT("calculated pos(%+d%+d), east(%d), south(%d), total_size(%dx%d)", x, y, east, south, total_width, total_height );
 	if( east )

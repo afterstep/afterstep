@@ -79,7 +79,8 @@ SyntaxDef     WhevSyntax = {
     ASCF_DEFINE_KEYWORD(WHARF, 0, AlignContents		, TT_FLAG		, &AlignSyntax), \
     ASCF_DEFINE_KEYWORD(WHARF, 0, Bevel				, TT_FLAG		, &BevelSyntax), \
 	ASCF_DEFINE_KEYWORD(WHARF, 0, CompositionMethod	, TT_INTEGER	, NULL), \
-	ASCF_DEFINE_KEYWORD(WHARF, 0, FolderOffset		, TT_INTEGER	, NULL)
+	ASCF_DEFINE_KEYWORD(WHARF, 0, FolderOffset		, TT_INTEGER	, NULL), \
+	ASCF_DEFINE_KEYWORD(WHARF, 0, OrthogonalFolderOffset, TT_INTEGER	, NULL)
 
 
 #define WHARF_PRIVATE_TERMS \
@@ -240,6 +241,7 @@ CreateWharfConfig ()
 
     config->CompositionMethod = WHARF_DEFAULT_CompositionMethod ;
 	config->FolderOffset = WHARF_DEFAULT_FolderOffset ;
+	config->OrthogonalFolderOffset = WHARF_DEFAULT_OrthogonalFolderOffset ;
 
 	return config;
 }
@@ -351,6 +353,7 @@ PrintWharfConfig(WharfConfig *config )
 	ASCF_PRINT_FLAGS_KEYWORD(stderr,WHARF,config,Bevel );
 	ASCF_PRINT_INT_KEYWORD(stderr,WHARF,config,CompositionMethod);
 	ASCF_PRINT_INT_KEYWORD(stderr,WHARF,config,FolderOffset);
+	ASCF_PRINT_INT_KEYWORD(stderr,WHARF,config,OrthogonalFolderOffset);
     
 	print_wharf_folder( config->root_folder, 1 );
 
@@ -726,6 +729,7 @@ ParseWharfOptions (const char *filename, char *myname)
 		ASCF_HANDLE_BEVEL_KEYWORD_CASE(WHARF,config,pCurr,Bevel); 
 		ASCF_HANDLE_INTEGER_KEYWORD_CASE(WHARF,config,item,CompositionMethod ); 
 		ASCF_HANDLE_INTEGER_KEYWORD_CASE(WHARF,config,item,FolderOffset ); 
+		ASCF_HANDLE_INTEGER_KEYWORD_CASE(WHARF,config,item,OrthogonalFolderOffset ); 
          case MYSTYLE_START_ID:
 			 styles_tail = ProcessMyStyleOptions (pCurr->sub, styles_tail);
 			 item.ok_to_free = 1;

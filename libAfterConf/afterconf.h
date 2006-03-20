@@ -1328,8 +1328,9 @@ Bool ReloadASDatabase();
 #define WHARF_Bevel_ID  (WHARF_ID_START+29)
 #define WHARF_CompositionMethod_ID  (WHARF_ID_START+30)
 #define WHARF_FolderOffset_ID   (WHARF_ID_START+31)
+#define WHARF_OrthogonalFolderOffset_ID   (WHARF_ID_START+32)
 
-#define WHARF_ID_END            (WHARF_ID_START+32)
+#define WHARF_ID_END            (WHARF_ID_START+33)
 #define WFUNC_START_ID			(WHARF_ID_END)
 
 #define WFUNC_Folders_ID		(WFUNC_START_ID)
@@ -1421,6 +1422,7 @@ WharfButton;
 #define  WHARF_Bevel             (0x01<<26)
 #define  WHARF_CompositionMethod (0x01<<27)
 #define  WHARF_FolderOffset	 	 (0x01<<28)
+#define  WHARF_OrthogonalFolderOffset  (0x01<<29)
 
 
 typedef struct
@@ -1461,7 +1463,8 @@ typedef struct
     int CompositionMethod ;
 
 #define WHARF_DEFAULT_FolderOffset			-5
-	int FolderOffset ;
+#define WHARF_DEFAULT_OrthogonalFolderOffset		0
+	int FolderOffset, OrthogonalFolderOffset ;
 }
 WharfConfig;
 
