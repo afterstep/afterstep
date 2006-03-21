@@ -131,7 +131,7 @@ image_c_gradient(visual, width, height, colors, offsets, angle)
 					gradient.offset[i2] = 1.0 - o;
 				}
 			}
-			RETVAL = make_gradient(visual, &gradient, width, height, SCL_DO_ALL, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
+			RETVAL = make_gradient(visual, &gradient, width, height, SCL_DO_ALL, ASA_ASImage, 0, ASIMAGE_QUALITY_TOP);
 			free(gradient.color);
 			free(gradient.offset);
 		}
@@ -249,9 +249,20 @@ image_c_composite(visual, images, width, height, op, options)
 
 			RETVAL = merge_layers(
 				visual, layers, numimages, width, height, ASA_ASImage, 0, 
-				ASIMAGE_QUALITY_DEFAULT
+				ASIMAGE_QUALITY_TOP
 			);
 		}
+	OUTPUT:
+		RETVAL
+
+ASImage*
+image_c_scale(visual, im, width, height)
+		ASVisual* visual
+		ASImage*  im
+		int       width
+		int       height
+	CODE:
+		RETVAL = scale_asimage(visual, im, width, height, ASA_ASImage, 0, ASIMAGE_QUALITY_TOP);
 	OUTPUT:
 		RETVAL
 

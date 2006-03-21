@@ -9,6 +9,7 @@ my $image = new AfterImage { width => 100, height => 100 };
 $image->draw_simple_gradient(90, [ "#ffff0000", "#ff00ff00", "#ff0000ff" ]);
 $image->draw_solid_rectangle("#7fffff00", 10, 10, 80, 80);
 $image->draw_solid_rectangle("#7f7f7f7f", 25, 25, 50, 50);
+$image->scale(200, 200);
 $image->save("output.png");
 
 __END__

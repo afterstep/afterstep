@@ -113,6 +113,34 @@ sub draw_gradient {
 	return $self;
 }
 
+sub draw_image {
+	my $self = shift;
+	my ($image, $x, $y, $width, $height) = @_;
+	($x, $y, $width, $height) = $image->autofill_position($x, $y, $width, $height);
+
+	$self->composite_and_replace_current_image($image, $x, $y);
+
+	return $self;
+}
+
+sub scale {
+	my $self = shift;
+	my ($width, $height) = @_;
+	my ($x, $y);
+	($x, $y, $width, $height) = $self->autofill_position($x, $y, $width, $height);
+
+	if ($width != $self->width || $height != $self->height) {
+		my $scaled_image = AfterImage::c_scale(
+			$AfterImage::visual, $self->{image}, $width, $height
+		);
+		$self->{width} = $width;
+		$self->{height} = $height;
+		$self->replace_current_image($scaled_image);
+	}
+
+	return $self;
+}
+
 sub save {
 	my $self = shift;
 	my ($filename, $quality, $file_type) = @_;
@@ -131,6 +159,11 @@ sub save {
 }
 
 # PRIVATE functions.
+
+sub DESTROY {
+	my $self = shift;
+	AfterImage::c_release($self->{image});
+}
 
 sub composite_and_replace_current_image {
 	my $self = shift;
