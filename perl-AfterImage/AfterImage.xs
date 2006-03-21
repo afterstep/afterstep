@@ -25,7 +25,6 @@ image_c_manager_create(path)
 			} else {
 				RETVAL = create_image_manager(NULL, SCREEN_GAMMA, path2, NULL);
 			}
-			RETVAL = create_image_manager(NULL, SCREEN_GAMMA, path, NULL);
 		}
 	OUTPUT:
 		RETVAL
@@ -43,6 +42,22 @@ image_c_load(manager, filename)
 		ASImageManager* manager
 	CODE:
 		RETVAL = get_asimage(manager, filename, ASFLAGS_EVERYTHING, 100);
+	OUTPUT:
+		RETVAL
+
+int
+image_c_width(image)
+		ASImage* image
+	CODE:
+		RETVAL = image->width;
+	OUTPUT:
+		RETVAL
+
+int
+image_c_height(image)
+		ASImage* image
+	CODE:
+		RETVAL = image->height;
 	OUTPUT:
 		RETVAL
 
@@ -266,6 +281,164 @@ image_c_scale(visual, im, width, height)
 	OUTPUT:
 		RETVAL
 
+ASImage*
+image_c_pad(visual, im, x, y, width, height)
+		ASVisual* visual
+		ASImage*  im
+		int       x
+		int       y
+		int       width
+		int       height
+	CODE:
+		RETVAL = pad_asimage(visual, im, x, y, width, height, 0, ASA_ASImage, 0, ASIMAGE_QUALITY_TOP);
+	OUTPUT:
+		RETVAL
+
+ASImage*
+image_c_tile(visual, im, x, y, width, height)
+		ASVisual* visual
+		ASImage*  im
+		int       x
+		int       y
+		int       width
+		int       height
+	CODE:
+		RETVAL = tile_asimage(visual, im, x, y, width, height, 0, ASA_ASImage, 0, ASIMAGE_QUALITY_TOP);
+	OUTPUT:
+		RETVAL
+
+ASImage*
+image_c_tint(visual, image, color)
+		ASVisual* visual
+		ASImage*  image
+		char*     color
+	CODE:
+		{
+			ARGB32 argb;
+			parse_argb_color(color, &argb);
+			RETVAL = tile_asimage(visual, image, 0, 0, image->width, image->height, argb, ASA_ASImage, 0, ASIMAGE_QUALITY_TOP);
+		}
+	OUTPUT:
+		RETVAL
+
+ASImage*
+image_c_draw_text(visual, font, text, color, type_3d)
+		ASVisual* visual
+		ASFont*   font
+		char*     text
+		char*     color
+		int       type_3d
+	CODE:
+		{
+			ASTextAttributes attr = { ASTA_VERSION_INTERNAL, 0, 0, ASCT_Char, 8, 0, NULL, 0, ARGB32_White }; 
+			ARGB32 argb;
+			ASImage* text_color_image;
+			ASImage* text_image;
+			parse_argb_color(color, &argb);
+			attr.char_type = ASCT_UTF8;
+			attr.type = type_3d;
+			text_image = draw_fancy_text(text, font, &attr, 0, 0);
+			text_color_image = create_asimage(text_image->width, text_image->height, ASIMAGE_QUALITY_TOP);
+			fill_asimage(visual, text_color_image, 0, 0, text_image->width, text_image->height, argb);
+			move_asimage_channel(text_color_image, IC_ALPHA, text_image, IC_ALPHA);
+			safe_asimage_destroy(text_image);
+			RETVAL = text_color_image;
+		}
+	OUTPUT:
+		RETVAL
+
+ASImage*
+image_c_gaussian_blur(visual, image, x_radius, y_radius)
+		ASVisual* visual
+		ASImage*  image
+		double    x_radius
+		double    y_radius
+	CODE:
+		RETVAL = blur_asimage_gauss(visual, image, x_radius, y_radius, SCL_DO_ALL, ASA_ASImage, 0, ASIMAGE_QUALITY_TOP);
+	OUTPUT:
+		RETVAL
+
+=item image_c_rotate(visual, image, angle)
+visual:  (ASVisualPtr) Visual used for compositing.
+image:   (ASImagePtr) Image to rotate.
+angle:   (double, degrees) Angle to rotate image by. Rotates clockwise.
+         Currently supports angles of 90, 180, 270 only.
+If angle is -45 <= angle < 45, then the returned image will be the same 
+as the input image with an incremented refcount. In this case, the 
+original image MUST be released and not re-used.
+=cut
+ASImage*
+image_c_rotate(visual, image, angle)
+		ASVisual* visual
+		ASImage*  image
+		double    angle
+	CODE:
+		{
+			int int_angle = ((int)angle % 360 + 360 + 45) % 360 / 90 * 90;
+			int width = image->width;
+			int height = image->height;
+			int flip_flags = 0;
+			if (int_angle == 90 || int_angle == 270) {
+				width = image->height;
+				height = image->width;
+			}
+			switch (int_angle) {
+				case  90: flip_flags = FLIP_VERTICAL; break;
+				case 180: flip_flags = FLIP_UPSIDEDOWN; break;
+				case 270: flip_flags = FLIP_VERTICAL | FLIP_UPSIDEDOWN; break;
+				default:  flip_flags = 0;
+			}
+			if (flip_flags) {
+				RETVAL = flip_asimage(visual, image, 0, 0, width, height, flip_flags, ASA_ASImage, 0, ASIMAGE_QUALITY_TOP);
+			} else {
+				image->ref_count++;
+				RETVAL = image;
+			}
+		}
+	OUTPUT:
+		RETVAL
+
+=item image_c_mirror(visual, image, vertical)
+visual:   (ASVisualPtr) Visual used for compositing.
+image:    (ASImagePtr) Image to rotate.
+vertical: (int, bool) If true, mirror vertically. Else horizontally.
+=cut
+ASImage*
+image_c_mirror(visual, image, vertical)
+		ASVisual* visual
+		ASImage*  image
+		int       vertical
+	CODE:
+		RETVAL = mirror_asimage(visual, image, 0, 0, image->width, image->height, vertical, ASA_ASImage, 0, ASIMAGE_QUALITY_TOP);
+	OUTPUT:
+		RETVAL
+
+int
+image_c_draw_filled_rectangle(visual, im, x, y, width, height, color)
+		ASVisual* visual
+		ASImage*  im
+		int       x
+		int       y
+		int       width
+		int       height
+		char*     color
+	CODE:
+		{
+			ARGB32 argb;
+			parse_argb_color(color, &argb);
+			RETVAL = fill_asimage(visual, im, x, y, width, height, argb);
+		}
+	OUTPUT:
+		RETVAL
+
+int
+image_c_clone(im)
+		ASImage* im
+	CODE:
+		RETVAL = asimage_clone(im, 0x7fffffff);
+	OUTPUT:
+		RETVAL
+
 int
 image_c_release(im)
 		ASImage* im
@@ -286,3 +459,24 @@ image_c_save(im, filename, type, compression, opacity)
 	OUTPUT:
 		RETVAL
 
+MODULE = AfterImage	PACKAGE = AfterImage::Font	PREFIX = font_
+
+PROTOTYPES: DISABLE
+
+ASFontManager*
+font_c_manager_create(path)
+		char* path
+	CODE:
+		RETVAL = create_font_manager(NULL, path, NULL);
+	OUTPUT:
+		RETVAL
+
+ASFont*
+font_c_open(manager, font_name, points)
+		ASFontManager* manager
+		char*          font_name
+		int            points
+	CODE:
+		RETVAL = get_asfont(manager, font_name, 0, points, ASF_GuessWho);
+	OUTPUT:
+		RETVAL

@@ -1,4 +1,6 @@
 TYPEMAP
+ASFontManager*   T_PTROBJ
+ASFont*          T_PTROBJ
 ASImage*         T_PTROBJ
 ASVisual*        T_PTROBJ
 ASImageManager*  T_PTROBJ

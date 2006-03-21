@@ -14,6 +14,7 @@ my $libs = backticks($afterimage_config, '--libs');
 WriteMakefile(
     NAME              => 'AfterImage',
     VERSION_FROM      => 'lib/AfterImage.pm',
+		PMLIBDIRS         => [ qw(lib lib/AfterImage) ],
     PREREQ_PM         => {},
     ($] >= 5.005 ?
       (ABSTRACT_FROM  => 'lib/AfterImage.pm',

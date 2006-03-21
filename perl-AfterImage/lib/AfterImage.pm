@@ -31,11 +31,13 @@ use vars qw($manager $visual);
 my $defaults = {
 	width      => 1,
 	height     => 1,
+	color      => '#00000000',
 	drawing_op => 'alphablend',
+	filename   => '',
 };
 
 AfterImage->mk_accessors(keys %$defaults);
-AfterImage->mk_ro_accessors(qw(width height));
+AfterImage->mk_ro_accessors(qw(width height color filename));
 
 sub new {
 	my $class = shift;
@@ -43,7 +45,7 @@ sub new {
 	my $options = defined($_[0]) && ref($_[0]) eq 'HASH' ? $_[0] : { @_ };
 	$AfterImage::manager ||= AfterImage::c_manager_create('');
 	$AfterImage::visual ||= AfterImage::c_visual_create();
-	foreach (qw(width height drawing_op)) {
+	foreach (keys %$defaults) {
 		if (exists $$options{$_}) {
 			$self->{$_} = $$options{$_};
 		} else {
@@ -51,17 +53,31 @@ sub new {
 		}
 	}
 	bless($self, $class);
-	$self->{image} = AfterImage::c_solid($visual, $self->width, $self->height, '#00000000');
+	if ($self->filename) {
+		my $loaded_image = AfterImage::c_load($AfterImage::manager, $self->filename);
+		$self->{width} = AfterImage::c_width($loaded_image);
+		$self->{height} = AfterImage::c_height($loaded_image);
+		$self->{image} = $loaded_image;
+	} else {
+		$self->{image} = AfterImage::c_solid($visual, $self->width, $self->height, $self->{color});
+	}
 	return $self;
 }
 
-sub draw_solid_rectangle {
+sub clone {
+	my $self = shift;
+	my $new_image = { %$self };
+	$self->{image} = AfterImage::c_clone($self->{image});
+	bless($new_image, ref($self));
+	return $self;
+}
+
+sub draw_filled_rectangle {
 	my $self = shift;
 	my ($color, $x, $y, $width, $height) = @_;
 	my $visual = $AfterImage::visual;
 	($x, $y, $width, $height) = $self->autofill_position($x, $y, $width, $height);
-	my $rectangle = AfterImage::c_solid($visual, $width, $height, $color);
-	$self->composite_and_replace_current_image($rectangle, $x, $y);
+	AfterImage::c_draw_filled_rectangle($visual, $self->{image}, $x, $y, $width, $height, $color);
 	return $self;
 }
 
@@ -118,7 +134,20 @@ sub draw_image {
 	my ($image, $x, $y, $width, $height) = @_;
 	($x, $y, $width, $height) = $image->autofill_position($x, $y, $width, $height);
 
-	$self->composite_and_replace_current_image($image, $x, $y);
+	$self->composite_and_replace_current_image($image->{image}, $x, $y);
+
+	return $self;
+}
+
+sub draw_text {
+	my $self = shift;
+	my ($font, $text, $color, $x, $y) = @_;
+	($x, $y) = $self->autofill_position($x, $y, 0, 0);
+
+	my $text_image = AfterImage::c_draw_text(
+		$AfterImage::visual, $font->{font}, $text, $color, 0
+	);
+	$self->composite_and_replace_current_image($text_image, $x, $y);
 
 	return $self;
 }
@@ -139,6 +168,114 @@ sub scale {
 	}
 
 	return $self;
+}
+
+sub resize {
+	my $self = shift;
+	my ($x, $y, $width, $height) = @_;
+	($x, $y, $width, $height) = $self->autofill_position($x, $y, $width, $height);
+
+	if ($x || $y || $width != $self->width || $height != $self->height) {
+		my $resized_image = AfterImage::c_pad(
+			$AfterImage::visual, $self->{image}, $x, $y, $width, $height
+		);
+		$self->{width} = $width;
+		$self->{height} = $height;
+		$self->replace_current_image($resized_image);
+	}
+
+	return $self;
+}
+
+sub tile {
+	my $self = shift;
+	my ($x, $y, $width, $height) = @_;
+	($x, $y, $width, $height) = $self->autofill_position($x, $y, $width, $height);
+
+	if ($width != $self->width || $height != $self->height) {
+		my $tiled_image = AfterImage::c_tile(
+			$AfterImage::visual, $self->{image}, $x, $y, $width, $height
+		);
+		$self->{width} = $width;
+		$self->{height} = $height;
+		$self->replace_current_image($tiled_image);
+	}
+
+	return $self;
+}
+
+sub gaussian_blur {
+	my $self = shift;
+	my ($x_radius, $y_radius) = @_;
+
+	if (0) {
+	my $blurred_image = AfterImage::c_gaussian_blur(
+		$AfterImage::visual, $self->{image}, $x_radius, $y_radius
+	);
+	$self->replace_current_image($blurred_image);
+	} else {
+	print "gaussian_blur() is currently broken in libAfterImage.\n";
+	}
+
+	return $self;
+}
+
+sub tint {
+	my $self = shift;
+	my ($color) = @_;
+
+	if ($color ne '#7f7f7f7f') {
+		my $tinted_image = AfterImage::c_tint(
+			$AfterImage::visual, $self->{image}, $color
+		);
+		$self->replace_current_image($tinted_image);
+	}
+
+	return $self;
+}
+
+sub rotate {
+	my $self = shift;
+	my ($angle) = @_;
+
+	my $rotated_image = AfterImage::c_rotate(
+		$AfterImage::visual, $self->{image}, $angle
+	);
+	$self->replace_current_image($rotated_image);
+
+	return $self;
+}
+
+sub mirror_horizontal {
+	my $self = shift;
+
+	my $mirrored_image = AfterImage::c_mirror(
+		$AfterImage::visual, $self->{image}, 0
+	);
+	$self->replace_current_image($mirrored_image);
+
+	return $self;
+}
+
+sub mirror_vertical {
+	my $self = shift;
+
+	my $mirrored_image = AfterImage::c_mirror(
+		$AfterImage::visual, $self->{image}, 1
+	);
+	$self->replace_current_image($mirrored_image);
+
+	return $self;
+}
+
+sub load {
+	my $self = shift;
+	my ($filename) = @_;
+	my $loaded_image = AfterImage::c_load($AfterImage::manager, $filename);
+	$self->{filename} = $filename;
+	$self->{width} = AfterImage::c_width($loaded_image);
+	$self->{height} = AfterImage::c_height($loaded_image);
+	$self->replace_current_image($loaded_image);
 }
 
 sub save {
