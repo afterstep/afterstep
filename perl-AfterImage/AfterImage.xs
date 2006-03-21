@@ -10,12 +10,12 @@
 
 /* set_output_threshold(0xffff); */
 
-MODULE = AfterImage		PACKAGE = AfterImage		
+MODULE = AfterImage	PACKAGE = AfterImage	PREFIX = image_
 
 PROTOTYPES: DISABLE
 
 ASImageManager*
-imagemanager_create(path)
+image_c_manager_create(path)
 		char* path
 	CODE:
 		{
@@ -30,8 +30,15 @@ imagemanager_create(path)
 	OUTPUT:
 		RETVAL
 
+ASVisual*
+image_c_visual_create()
+	CODE:
+		RETVAL = create_asvisual(NULL, 0, 0, NULL);
+	OUTPUT:
+		RETVAL
+
 ASImage*
-image_load(filename, manager)
+image_c_load(manager, filename)
 		char*	          filename
 		ASImageManager* manager
 	CODE:
@@ -40,20 +47,20 @@ image_load(filename, manager)
 		RETVAL
 
 ASImage*
-image_parse_xml(xml_str, manager)
-		char*	          xml_str
+image_c_parse_xml(manager, visual, xml_str)
 		ASImageManager* manager
+		ASVisual*       visual
+		char*	          xml_str
 	INIT:
 	CODE:
 		{
-			ASVisual* asv = create_asvisual(NULL, 0, 0, NULL);
-			RETVAL = compose_asimage_xml(asv, manager, NULL, xml_str, ASFLAGS_EVERYTHING, 20, 0, NULL);
+			RETVAL = compose_asimage_xml(visual, manager, NULL, xml_str, ASFLAGS_EVERYTHING, 20, 0, NULL);
 		}
 	OUTPUT:
 		RETVAL
 
 ASImage*
-image_create(width, height)
+image_c_create(width, height)
 		int width
 		int height
 	CODE:
@@ -62,12 +69,13 @@ image_create(width, height)
 		RETVAL
 
 ASImage*
-image_gradient(width, height, colors, offsets, angle)
-		int   width
-		int   height
-		SV*   colors
-		SV*   offsets
-		int   angle
+image_c_gradient(visual, width, height, colors, offsets, angle)
+		ASVisual* visual
+		int       width
+		int       height
+		SV*       colors
+		SV*       offsets
+		int       angle
 	INIT:
 		I32 numcolors = 0;
 		I32 numoffsets = 0;
@@ -85,7 +93,6 @@ image_gradient(width, height, colors, offsets, angle)
 	CODE:
 		{
 			int n, reverse = 0;
-			ASVisual* asv = create_asvisual(NULL, 0, 0, NULL);
 			ASGradient gradient;
 			angle = (angle % 360 + 360) % 360;
 			if (angle > 360 * 15 / 16 || angle < 360 * 1 / 16) {
@@ -124,7 +131,7 @@ image_gradient(width, height, colors, offsets, angle)
 					gradient.offset[i2] = 1.0 - o;
 				}
 			}
-			RETVAL = make_gradient(asv, &gradient, width, height, SCL_DO_ALL, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
+			RETVAL = make_gradient(visual, &gradient, width, height, SCL_DO_ALL, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
 			free(gradient.color);
 			free(gradient.offset);
 		}
@@ -132,29 +139,49 @@ image_gradient(width, height, colors, offsets, angle)
 		RETVAL
 
 ASImage*
-image_solid(width, height, color)
-		int   width
-		int   height
-		char* color
+image_c_solid(visual, width, height, color)
+		ASVisual* visual
+		int       width
+		int       height
+		char*     color
 	CODE:
 		{
-			ASVisual* asv = create_asvisual(NULL, 0, 0, NULL);
 			ASImage* result = create_asimage(width, height, ASIMAGE_QUALITY_TOP);
 			ARGB32 argb;
 			parse_argb_color(color, &argb);
-			if (result) fill_asimage(asv, result, 0, 0, width, height, argb);
+			if (result) fill_asimage(visual, result, 0, 0, width, height, argb);
 			RETVAL = result;
 		}
 	OUTPUT:
 		RETVAL
 
+=item image_composite(visual, images, width, height, op, options)
+visual:  (ASVisualPtr) Visual used for compositing.
+images:  (arrayref of ASImagePtr) List of images to composite. 
+         First image will be on top.
+width:   (int) Width of resulting image.
+height:  (int) Height of resulting image.
+op:      (string) Image compositing operation.
+options: (arrayref of hashref). Image options:
+  x:           (int) Sub-image X coordinate on result image.
+  y:           (int) Sub-image Y coordinate on result image.
+  clip_x:      (int) Sub-image clipping rectangle X.
+  clip_y:      (int) Sub-image clipping rectangle Y.
+  clip_width:  (int) Sub-image clipping rectangle width.
+  clip_height: (int) Sub-image clipping rectangle height.
+  tint:        (string) Sub-image tint.
+  op:          (string) Sub-image compositing operation.
+Please see the libAfterImage documentation for more details.
+=cut
+
 ASImage*
-image_composite(images, width, height, op, options)
-		SV*   images
-		int   width
-		int   height
-		char* op
-		SV*   options
+image_c_composite(visual, images, width, height, op, options)
+		ASVisual* visual
+		SV*       images
+		int       width
+		int       height
+		char*     op
+		SV*       options
 	INIT:
 		int numimages;
 		int numoptions = 0;
@@ -168,12 +195,11 @@ image_composite(images, width, height, op, options)
 		numimages++;
 	CODE:
 		{
-			ASVisual* asv = create_asvisual(NULL, 0, 0, NULL);
 			ASImage* result;
 			ASImageLayer *layers = create_image_layers(numimages);
 			int i;
 			merge_scanlines_func op_func = blend_scanlines_name2func(op);
-			if (!asv || !result || !layers || !op_func) XSRETURN_UNDEF;
+			if (!visual || !result || !layers || !op_func) XSRETURN_UNDEF;
 
 			for (i = 0 ; i < numimages ; i++) {
 				SV* imref = *av_fetch((AV *)SvRV(images), numimages - 1 - i, 0);
@@ -222,7 +248,7 @@ image_composite(images, width, height, op, options)
 			if (!height) height = layers[numimages-1].clip_height;
 
 			RETVAL = merge_layers(
-				asv, layers, numimages, width, height, ASA_ASImage, 0, 
+				visual, layers, numimages, width, height, ASA_ASImage, 0, 
 				ASIMAGE_QUALITY_DEFAULT
 			);
 		}
@@ -230,7 +256,7 @@ image_composite(images, width, height, op, options)
 		RETVAL
 
 int
-image_destroy(im)
+image_c_release(im)
 		ASImage* im
 	CODE:
 		RETVAL = release_asimage(im);
@@ -238,7 +264,7 @@ image_destroy(im)
 		RETVAL
 
 int
-image_save(im, filename, type, compression, opacity)
+image_c_save(im, filename, type, compression, opacity)
 		ASImage* im
 		char*    filename
 		char*    type
