@@ -297,9 +297,9 @@ Bool save_asimage_to_file(const char *file2bsaved, ASImage *im,
 		params.type = ASIT_Bmp;
 	} else if (!mystrcasecmp(strtype, "png")) {
 		params.type = ASIT_Png;
-		params.png.compression = (compress==NULL)?-1:atoi(compress)/10;
-		if( params.png.compression > 9 )
-			params.png.compression = 9;
+		params.png.compression = (compress==NULL)?-1:atoi(compress);
+		if( params.png.compression > 99 )
+			params.png.compression = 99;
 	} else if (!mystrcasecmp(strtype, "xcf")) {
 		params.type = ASIT_Xcf;
 	} else if (!mystrcasecmp(strtype, "ppm")) {
