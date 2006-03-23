@@ -294,8 +294,10 @@ MenuData *find_menu_data( ASHashTable *list, char *name );
 MenuDataItem *new_menu_data_item( MenuData *menu );
 int parse_menu_item_name (MenuDataItem * item, char **name);
 
+Bool check_fdata_availability( FunctionData *fdata );
+
 MenuDataItem * add_menu_fdata_item( MenuData *menu, FunctionData *fdata, char *minipixmap, struct ASImage *img );
-MenuDataItem * menu_data_item_from_func (MenuData * menu, FunctionData * fdata);
+MenuDataItem * menu_data_item_from_func (MenuData * menu, FunctionData * fdata, Bool do_check_availability);
 struct ASImage *check_scale_menu_pmap( struct ASImage *im, ASFlagType flags ); 
 void reload_menu_pmaps( MenuData *menu );
 
@@ -305,12 +307,7 @@ int compare_func_data_name(const void *a, const void *b);
 
 void print_func_data(const char *file, const char *func, int line, FunctionData *data);
 
-#if defined(LOCAL_DEBUG) || defined(DEBUG)
-#define MenuDataItemFromFunc(m,f) \
-do{fprintf(stderr,"MenuDataItemFromFunc called:");print_func_data(__FILE__, __FUNCTION__, __LINE__,f);menu_data_item_from_func((m),(f));}while(0)
-#else
-#define MenuDataItemFromFunc(m,f) menu_data_item_from_func((m),(f))
-#endif
+#define MenuDataItemFromFunc(m,f) menu_data_item_from_func((m),(f), False)
 
 
 

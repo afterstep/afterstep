@@ -5,6 +5,6 @@ keepname
 miniextension  .mini
 include "@datadir@/afterstep/backgrounds" Background
 include "@with_afterdir@/backgrounds" Background
-include "/usr/share/pixmaps/backgrounds" Background
-include "/usr/local/share/pixmaps/backgrounds" Background
+include "/usr/share/pixmaps/backgrounds" BackgroundForeign
+include "/usr/local/share/pixmaps/backgrounds" BackgroundForeign
 command Background

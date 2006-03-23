@@ -38,7 +38,7 @@
  *
  ***************************************************************************/
 
-#undef LOCAL_DEBUG
+#define LOCAL_DEBUG
 
 #include "../../configure.h"
 
@@ -333,7 +333,7 @@ ParseKeyEntry (char *tline, FILE * fd, char **junk, int *junk2)
  /* we assume buf is at least MAXLINELENGTH bytes */
 
 void 
-add_minipixmap_fro_dirtree_item( dirtree_t * tree, MenuData *menu )
+add_minipixmap_from_dirtree_item( dirtree_t * tree, MenuData *menu )
 {
 	FunctionData *fdata = NULL ;
 	if( tree->de != NULL && tree->de->fulliconname != NULL ) 
@@ -342,7 +342,7 @@ add_minipixmap_fro_dirtree_item( dirtree_t * tree, MenuData *menu )
         fdata = create_named_function(  get_flags(tree->flags, DIRTREE_ICON_IS_SMALL)?F_SMALL_MINIPIXMAP:F_MINIPIXMAP, 
 										tree->icon);
 	if( fdata ) 
-		MenuDataItemFromFunc (menu, fdata);
+		menu_data_item_from_func (menu, fdata, False);
 }	 
 
 MenuData     *
@@ -368,9 +368,9 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf, Bool reload_submenus)
 	fdata = create_named_function( F_TITLE, tree->name);
 	/* We exploit that scan_for_hotkey removes & (marking hotkey) from name */
 	scan_for_hotkey (fdata->name);
-    MenuDataItemFromFunc (menu, fdata);
+    menu_data_item_from_func (menu, fdata, False);
 
-	add_minipixmap_fro_dirtree_item( tree, menu );
+	add_minipixmap_from_dirtree_item( tree, menu );
 
 	for (t = tree->child; t != NULL; t = t->next)
 	{
@@ -393,9 +393,9 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf, Bool reload_submenus)
 			else
 				fdata->text = string_from_int (t->flags & DIRTREE_ID);
 
-            MenuDataItemFromFunc (menu, fdata);
+            menu_data_item_from_func (menu, fdata, False);
 
- 			add_minipixmap_fro_dirtree_item( t, menu );
+ 			add_minipixmap_from_dirtree_item( t, menu );
 /************* Done creating Popup Title entry : ************************/
 		} else if( t->de ) 
 		{
@@ -411,8 +411,8 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf, Bool reload_submenus)
 		 			
 				fdata = create_named_function(func, t->stripped_name);	   
             	fdata->text = mystrdup( t->de->clean_exec );
-            	MenuDataItemFromFunc (menu, fdata);
- 				add_minipixmap_fro_dirtree_item( t, menu );
+            	menu_data_item_from_func (menu, fdata, False);
+ 				add_minipixmap_from_dirtree_item( t, menu );
 			}
 		}else if (t->command.func != F_NOP)
 		{
@@ -428,9 +428,20 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf, Bool reload_submenus)
                     quotestr (fdata->text + cmd_len + 1, t->path, 2 * path_len + 1);
 			} else
 				fdata->text = mystrdup (t->path);
-            MenuDataItemFromFunc (menu, fdata);
-
- 			add_minipixmap_fro_dirtree_item( t, menu );
+						
+#ifndef NO_AVAILABILITYCHECK
+			if( !check_fdata_availability( fdata ) ) 
+				fdata->func = F_NOP ; 
+#endif		
+			LOCAL_DEBUG_OUT( "fdata->text = \"%s\", func = %ld", fdata->text, fdata->func );			
+			if( fdata->func == F_NOP && !get_flags(tree->flags, DIRTREE_SHOW_UNAVAILABLE) )
+			{	
+				destroy_func_data( &fdata );
+			}else
+			{
+	            menu_data_item_from_func (menu, fdata, False);
+	 			add_minipixmap_from_dirtree_item( t, menu );
+			}
         } else
 		{
 			FILE *fp2 = fopen (t->path, "r");
@@ -456,13 +467,9 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf, Bool reload_submenus)
 					if( fdata->name == NULL )
 		                fdata->name = mystrdup( t->stripped_name );
 #ifndef NO_AVAILABILITYCHECK
-					if ( (fdata->func < F_ExecToolStart || fdata->func > F_ExecToolEnd ) &&
-						 (IsSwallowFunc(fdata->func) || IsExecFunc(fdata->func)))
-					{	
-						available = is_executable_in_path (fdata->text);
-						if( !available )
-							fdata->func = F_NOP;
-					}
+					available = check_fdata_availability( fdata );
+					if( !available )
+						fdata->func = F_NOP;
 #endif					
 					if( IsMinipixmapFunc(fdata->func) )
 					{
@@ -493,19 +500,19 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf, Bool reload_submenus)
 				if( available || get_flags(tree->flags, DIRTREE_SHOW_UNAVAILABLE))
 				{	
 					if( valid_func  ) 
-						MenuDataItemFromFunc (menu, valid_func);
+						menu_data_item_from_func (menu, valid_func, False);
 					else
 					{
 						fdata = create_named_function(F_NOP, name?name:t->stripped_name);
 	  					fdata->text = mystrdup (t->name);
-	          			MenuDataItemFromFunc (menu, fdata);
+	          			menu_data_item_from_func (menu, fdata, False);
 					}
 					if( minipixmap ) 
-						MenuDataItemFromFunc (menu, minipixmap);
+						menu_data_item_from_func (menu, minipixmap, False);
 					else if( t->icon != NULL )
 					{
 						fdata = create_named_function(F_MINIPIXMAP, t->icon);
-	          			MenuDataItemFromFunc (menu, fdata);
+	          			menu_data_item_from_func (menu, fdata, False);
 					}
 				}else
 				{
@@ -524,13 +531,13 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf, Bool reload_submenus)
 				fdata = create_named_function(F_EXEC, t->stripped_name);
 				fdata->text = mystrdup (t->name);
 #ifndef NO_AVAILABILITYCHECK
-				available = is_executable_in_path (fdata->text);
+				available = check_fdata_availability( fdata );
 				if( !available )		   
 					fdata->func = F_NOP;
 #endif			
 				if( available || get_flags(tree->flags, DIRTREE_SHOW_UNAVAILABLE))
 				{	
-					MenuDataItemFromFunc (menu, fdata);
+					menu_data_item_from_func (menu, fdata, False);
 					if( t->icon != NULL )
 					{
 						fdata = create_named_function(F_MINIPIXMAP, t->icon);

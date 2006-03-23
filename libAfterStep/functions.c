@@ -645,26 +645,47 @@ assign_minipixmap( MenuDataItem *mdi, char *minipixmap )
     }
 }
 
+Bool 
+check_fdata_availability( FunctionData *fdata )
+{
+	if( fdata == NULL ) 
+		return False ;
+    if ( fdata->func < F_ExecToolStart || fdata->func > F_ExecToolEnd )
+	{	
+	 	if(IsSwallowFunc(fdata->func) || IsExecFunc(fdata->func) )
+    	{
+			LOCAL_DEBUG_OUT( "now really checking availability for \"%s\"", fdata->name?fdata->name:"nameless" );
+        	if (!is_executable_in_path (fdata->text))
+        	{
+				LOCAL_DEBUG_OUT( "unavailable :  \"%s\"", fdata->name?fdata->name:"nameless" );
+				return False ;
+        	}
+    	}else if( fdata->func == F_CHANGE_BACKGROUND_FOREIGN )
+		{
+			ASImageFileTypes type = check_asimage_file_type( fdata->text );
+			LOCAL_DEBUG_OUT( "foreign back image \"%s\" has type %d", fdata->text, type );
+			if( type > ASIT_Supported ) 
+        	{
+				LOCAL_DEBUG_OUT( "foreign back image of unknown type :  \"%s\"", fdata->text );
+				return False;
+        	}
+		}
+	}
+	return True;
+}
+
+
+
 static void
 check_availability( MenuDataItem *mdi )
 {
     clear_flags( mdi->flags, MD_Disabled );
 #ifndef NO_AVAILABILITYCHECK
-LOCAL_DEBUG_OUT( "checking availability for \"%s\"", mdi->fdata->name?mdi->fdata->name:"nameless" );
-    if ( mdi->fdata->func < F_ExecToolStart || mdi->fdata->func > F_ExecToolEnd )
-	{	
-	 	if(IsSwallowFunc(mdi->fdata->func) || IsExecFunc(mdi->fdata->func) )
-    	{
-			LOCAL_DEBUG_OUT( "now really checking availability for \"%s\"", mdi->fdata->name?mdi->fdata->name:"nameless" );
-        	if (!is_executable_in_path (mdi->fdata->text))
-        	{
-				LOCAL_DEBUG_OUT( "unavailable :  \"%s\"", mdi->fdata->name?mdi->fdata->name:"nameless" );
-				set_flags( mdi->flags, MD_Disabled );
-        	}
-    	}
-	}
+	LOCAL_DEBUG_OUT( "checking availability for \"%s\"", mdi->fdata->name?mdi->fdata->name:"nameless" );
+	check_fdata_availability( mdi->fdata );
 #endif /* NO_AVAILABILITYCHECK */
 }
+
 
 MenuDataItem *
 add_menu_data_item( MenuData *menu, int func, char *name, char *minipixmap )
@@ -834,7 +855,7 @@ parse_menu_item_name (MenuDataItem * item, char **name)
 }
 
 MenuDataItem     *
-menu_data_item_from_func (MenuData * menu, FunctionData * fdata)
+menu_data_item_from_func (MenuData * menu, FunctionData * fdata, Bool do_check_availability)
 {
     MenuDataItem     *item = NULL;
 
@@ -860,6 +881,8 @@ menu_data_item_from_func (MenuData * menu, FunctionData * fdata)
         	item = new_menu_data_item(menu);
 			if (parse_menu_item_name (item, &(fdata->name)) >= 0)
 				item->fdata = fdata;
+			if( do_check_availability )
+				check_availability(item);
 		}
 		if( item == NULL || item->fdata != fdata )
 		{

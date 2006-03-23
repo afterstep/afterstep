@@ -815,6 +815,14 @@ check_image_type( const char *realfilename )
 }
 
 
+ASImageFileTypes
+check_asimage_file_type( const char *realfilename )
+{
+	if( realfilename == NULL ) 
+		return ASIT_Unknown;
+	return check_image_type( realfilename );
+}
+
 /***********************************************************************************/
 #ifdef HAVE_XPM      /* XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM */
 
