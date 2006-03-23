@@ -607,7 +607,13 @@ DispatchEvent ( ASEvent *event, Bool deffered )
             * indicates that the warp is done */
             if( get_flags( AfterStepState, ASS_WarpingMode ) )
                 EndWarping();
-            HandleButtonPress (event, deffered);
+			if( event->x.xbutton.button > Button3 )
+			{/* buttons 4 and 5 are for scrollwheel */
+				ASInternalWindow *internal = event->client?event->client->internal:NULL ;
+				if( internal && internal->on_scroll_event )
+					internal->on_scroll_event( internal, event );
+			}else
+		        HandleButtonPress (event, deffered);
             break;
         case ButtonRelease:
             /* if warping, a button press, non-warp keypress, or pointer motion

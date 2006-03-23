@@ -50,6 +50,8 @@ typedef struct ASInternalWindow
     void (*on_hilite_changed)( struct ASInternalWindow *asiw, ASMagic *data, Bool focused );
     /* ButtonPress/Release event on one of the contexts : */
     void (*on_pressure_changed)( struct ASInternalWindow *asiw, int pressed_context );
+    /* Mouse wheel scrolling event : */
+    void (*on_scroll_event)( struct ASInternalWindow *asiw, struct ASEvent *event );
     /* Motion notify : */
     void (*on_pointer_event)( struct ASInternalWindow *asiw, struct ASEvent *event );
     /* KeyPress/Release : */

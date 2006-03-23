@@ -1251,7 +1251,10 @@ set_astbar_focused (ASTBarData * tbar, ASCanvas * pc, Bool focused)
 			set_flags (tbar->state, BAR_STATE_FOCUSED);
 		else
 			clear_flags (tbar->state, BAR_STATE_FOCUSED);
-        if( old_focused != new_focused && pc != NULL )
+
+        if( old_focused != new_focused )
+            set_flags(tbar->state, BAR_FLAGS_REND_PENDING);
+        if( get_flags(tbar->state, BAR_FLAGS_REND_PENDING) && pc != NULL )
             render_astbar( tbar, pc );
         return (new_focused != old_focused);
 	}

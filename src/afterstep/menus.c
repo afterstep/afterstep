@@ -714,9 +714,11 @@ set_menu_item_used( ASMenu *menu, MenuDataItem *mdi )
 void set_asmenu_scroll_position( ASMenu *menu, int pos );
 
 void
-select_menu_item( ASMenu *menu, int selection )
+select_menu_item( ASMenu *menu, int selection, Bool render )
 {
+	Bool needs_scrolling ;
 LOCAL_DEBUG_CALLER_OUT( "%p,%d", menu, selection );
+	
     if( AS_ASSERT(menu) || menu->items_num == 0 )
         return;
     if( selection < 0 )
@@ -724,20 +726,22 @@ LOCAL_DEBUG_CALLER_OUT( "%p,%d", menu, selection );
     else if( selection >= (int)menu->items_num )
         selection = menu->items_num - 1 ;
 
+	needs_scrolling = ( selection < menu->top_item || selection >= menu->top_item + menu->visible_items_num ) ;
     if( selection != menu->selected_item )
     {
         close_asmenu_submenu( menu );
 		if( menu->selected_item >= 0 )
-        	set_astbar_focused( menu->items[menu->selected_item].bar, menu->main_canvas, False );
+        	set_astbar_focused( menu->items[menu->selected_item].bar, NULL/*needs_scrolling?NULL:menu->main_canvas*/, False );
     }
-    set_astbar_focused( menu->items[selection].bar, menu->main_canvas, True );
+    set_astbar_focused( menu->items[selection].bar, NULL/*needs_scrolling?NULL:menu->main_canvas*/, True );
     menu->selected_item = selection ;
 
     if( selection < menu->top_item )
-        set_asmenu_scroll_position( menu, MAX(selection-1, 0) );
+        set_asmenu_scroll_position( menu, MAX(selection, 0) );
     else if( selection >= menu->top_item + menu->visible_items_num )
         set_asmenu_scroll_position( menu, (selection-menu->visible_items_num)+1);
-    render_asmenu_bars(menu, False);
+	else if( render )
+	    render_asmenu_bars(menu, False);
 }
 
 void
@@ -788,11 +792,11 @@ LOCAL_DEBUG_OUT("adj_pos(%d)->curr_y(%d)->items_num(%d)->vis_items_num(%d)->sel_
 	menu->top_item = first_item ;
 
 	if( menu->selected_item < menu->top_item )
-        select_menu_item( menu, menu->top_item );
+        select_menu_item( menu, menu->top_item, False );
     else if( menu->selected_item >= 0 )
 	{
 		if( menu->visible_items_num > 0 && menu->selected_item >= (int)menu->top_item + (int)menu->visible_items_num )
-        select_menu_item( menu, menu->top_item + menu->visible_items_num - 1 );
+        select_menu_item( menu, menu->top_item + menu->visible_items_num - 1, False );
 	}
     render_asmenu_bars(menu, False);
 }
@@ -870,12 +874,12 @@ LOCAL_DEBUG_CALLER_OUT( "%p,%d", menu, pressed );
 			if( keyboard_event ) 
 			{   /* don't press if keyboard selection */
 				if( pressed != menu->selected_item )
-					select_menu_item( menu, pressed );
+					select_menu_item( menu, pressed, False );
 
 			}else if( pressed != menu->selected_item )
             {
                 set_astbar_pressed( menu->items[pressed].bar, NULL, True );/* don't redraw yet */
-                select_menu_item( menu, pressed );  /* this one updates display already */
+                select_menu_item( menu, pressed, False );  /* this one updates display already */
             }else
                 set_astbar_pressed( menu->items[pressed].bar, menu->main_canvas, True );
             set_menu_item_used( menu, menu->items[pressed].source );
@@ -1028,6 +1032,70 @@ LOCAL_DEBUG_OUT( "pointer(%d,%d)", px, py );
     }
 }
 
+static void 
+handle_menu_selection( ASMenu *menu, int button_state, int px, int selection, Bool render)
+{
+    if( selection != menu->selected_item )
+    {
+        if( button_state & (Button1Mask|Button2Mask|Button3Mask) )
+            press_menu_item( menu, selection, False );
+        else
+            select_menu_item( menu, selection, render );
+    }
+    if( px > menu->main_canvas->width - ( menu->arrow_space + DEFAULT_MENU_SPACING ) &&
+        menu->submenu == NULL )
+        run_item_submenu( menu, selection );
+
+}
+
+void
+on_menu_scroll_event( ASInternalWindow *asiw, ASEvent *event )
+{
+    ASMenu   *menu = (ASMenu*)(asiw->data) ;
+    if( menu != NULL && menu->magic == MAGIC_ASMENU && event)
+    {
+		if(  menu->items_num >= menu->visible_items_num )
+		{
+			XButtonEvent *xbtn = &(event->x.xbutton);
+			int selection = menu->selected_item ; 
+			int top = menu->top_item ;
+			int px_offset = menu->main_canvas->root_x+(int)menu->main_canvas->bw ;
+			int px, py ;
+			Bool needs_scrolling ;
+			
+			ASQueryPointerRootXY( &px, &py );
+			if( xbtn->button == Button4 )		
+			{
+				if( selection > 0 ) 
+				{
+					--selection ;
+					py -= menu->item_height ;
+				}
+				if( selection < menu->top_item )
+					--top ;
+			}else
+			{
+				if( selection+1 < menu->items_num ) 
+				{
+					++selection ;
+					py += menu->item_height ;
+				}
+				if( selection > menu->top_item + menu->visible_items_num - 1 )
+					++top ;
+			}
+			needs_scrolling = (top != menu->top_item);
+			if( selection != menu->selected_item )
+			{
+				handle_menu_selection( menu, xbtn->state, px-px_offset, selection, !needs_scrolling);
+				if( !needs_scrolling ) 
+					XWarpPointer (dpy, None, Scr.Root, 0, 0, 0, 0, px, py);
+			}
+//			if( needs_scrolling ) 
+//				set_asmenu_scroll_position( menu, top );
+		}
+	}
+}
+
 /* Motion notify : */
 void
 on_menu_pointer_event( ASInternalWindow *asiw, ASEvent *event )
@@ -1091,16 +1159,7 @@ on_menu_pointer_event( ASInternalWindow *asiw, ASEvent *event )
 				selection = py/menu->item_height ;
 			selection += menu->top_item ;
 
-            if( selection != menu->selected_item )
-            {
-                if( xmev->state & ButtonAnyMask )
-                    press_menu_item( menu, selection, False );
-                else
-                    select_menu_item( menu, selection );
-            }
-            if( px > canvas->width - ( menu->arrow_space + DEFAULT_MENU_SPACING ) &&
-                menu->submenu == NULL )
-                run_item_submenu( menu, selection );
+			handle_menu_selection( menu, xmev->state, px, selection, True);
         }
     }
 }
@@ -1172,14 +1231,14 @@ on_menu_keyboard_event( ASInternalWindow *asiw, ASEvent *event )
 				case XK_k:
 				case XK_p:
 					if( menu->selected_item > 0 )
-	                	select_menu_item( menu, menu->selected_item-1 );
+	                	select_menu_item( menu, menu->selected_item-1, True );
                     break;
 				case XK_Tab :
 				case XK_Down:
 				case XK_n:
 				case XK_j:
 					if( menu->selected_item < menu->items_num )
-	                	select_menu_item( menu, menu->selected_item+1 );
+	                	select_menu_item( menu, menu->selected_item+1, True );
                     break;
 				case XK_Right:
 				case XK_Return :
@@ -1349,6 +1408,7 @@ show_asmenu( ASMenu *menu, int x, int y )
     asiw->on_hilite_changed = on_menu_hilite_changed ;
     asiw->on_pressure_changed = on_menu_pressure_changed;
     asiw->on_pointer_event = on_menu_pointer_event;
+	asiw->on_scroll_event = on_menu_scroll_event;
     asiw->on_keyboard_event = on_menu_keyboard_event;
     asiw->on_look_feel_changed = on_menu_look_feel_changed;
 	asiw->on_root_background_changed = on_menu_root_background_changed ;
