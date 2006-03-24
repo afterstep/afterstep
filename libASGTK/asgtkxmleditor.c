@@ -1031,7 +1031,7 @@ asgtk_xml_view_set_entry ( ASGtkXMLView *xe,
 
 void  		
 asgtk_xml_view_file_change_handler( ASGtkXMLView *xe, 
-									  _ASGtkXMLEditor_handler change_handler, gpointer user_data )
+									  _ASGtkXMLView_handler change_handler, gpointer user_data )
 {
 	g_return_if_fail (ASGTK_IS_XML_VIEW (xe));
 
@@ -1065,7 +1065,7 @@ asgtk_xml_editor_set_entry ( ASGtkXMLEditor *xe,
 
 void  		
 asgtk_xml_editor_file_change_handler( ASGtkXMLEditor *xe, 
-									  _ASGtkXMLEditor_handler change_handler, 
+									  _ASGtkXMLView_handler change_handler, 
 									  gpointer user_data )
 {
 	g_return_if_fail (ASGTK_IS_XML_EDITOR (xe));

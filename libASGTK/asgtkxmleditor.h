@@ -16,7 +16,7 @@ struct _ASGtkXMLView;
 struct _ASGtkXMLEditor;
 struct _ASGtkColorSelection;
 	
-typedef void (*_ASGtkXMLEditor_handler)(struct _ASGtkXMLView *xe, gpointer user_data, Bool new_file);
+typedef void (*_ASGtkXMLView_handler)(struct _ASGtkXMLView *xv, gpointer user_data, Bool new_file);
 
 typedef struct _ASGtkXMLView
 {
@@ -44,7 +44,7 @@ typedef struct _ASGtkXMLView
 	Bool 			 dirty ;
 
 	/* screw GTK signals - hate its guts */
-	_ASGtkXMLEditor_handler file_change_handler;
+	_ASGtkXMLView_handler file_change_handler;
 	gpointer file_change_user_data;
 		
 
@@ -65,7 +65,7 @@ void        asgtk_xml_view_set_entry ( ASGtkXMLView *xe,
                                          struct ASImageListEntry *entry);
 
 void  		asgtk_xml_view_file_change_handler( ASGtkXMLView *xe, 
-												_ASGtkXMLEditor_handler change_handler, 
+												_ASGtkXMLView_handler change_handler, 
 												gpointer user_data );
 
 #define ASGTK_TYPE_XML_EDITOR            (asgtk_xml_editor_get_type ())
@@ -75,6 +75,7 @@ void  		asgtk_xml_view_file_change_handler( ASGtkXMLView *xe,
 #define ASGTK_IS_XML_EDITOR_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), ASGTK_TYPE_XML_EDITOR))
 #define ASGTK_XML_EDITOR_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), ASGTK_TYPE_XML_EDITOR, ASGtkXMLEditor))
 
+
 /* nice encapsulation of the above to be used as a top level window */
 typedef struct _ASGtkXMLEditor
 {
@@ -82,6 +83,8 @@ typedef struct _ASGtkXMLEditor
 	
 	ASGtkXMLView   *xml_view;
 }ASGtkXMLEditor;
+
+
 
 typedef struct _ASGtkXMLEditorClass
 {
@@ -97,7 +100,7 @@ void        asgtk_xml_editor_set_entry ( ASGtkXMLEditor *xe,
                                          struct ASImageListEntry *entry);
 
 void  		asgtk_xml_editor_file_change_handler( ASGtkXMLEditor *xe, 
-												  _ASGtkXMLEditor_handler change_handler, 
+												  _ASGtkXMLView_handler change_handler, 
 												  gpointer user_data );
 
 #endif  /*  ASGTKIMAGEDIR_H_HEADER_INCLUDED  */

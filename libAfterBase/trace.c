@@ -550,6 +550,8 @@ trace_enable_function (const char *name)
 	int           i;
 	int           val = -1;
 
+	if( name == NULL ) 
+		return val ;
 	if (!strcmp (name, "all"))
 	{
 		val = trace_enabled_funcs;
@@ -576,6 +578,8 @@ trace_disable_function (const char *name)
 	int           i;
 	int           val = -1;
 
+	if( name == NULL ) 
+		return val ;
 	if (!strcmp (name, "all"))
 	{
 		val = trace_enabled_funcs;

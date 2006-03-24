@@ -72,6 +72,18 @@ LOCAL_DEBUG_OUT( "pid(%d),closing x_fd...", getpid() );
 LOCAL_DEBUG_OUT( "pid(%d),complete...", getpid() );
 }
 #endif
+#ifdef DEBUG_TRACE_X
+const char *window_id2name (Display * dpy, Window w, int *how_to_free)
+{
+	ASWindow *asw = window2ASWindow( w );
+	if( asw ) 
+	{
+		*how_to_free = 1 ;
+		return mystrdup(ASWIN_NAME(asw));
+	}
+	return NULL;
+}
+#endif
 
 
 /**************************************************************************/

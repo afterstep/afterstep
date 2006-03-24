@@ -438,9 +438,9 @@ void gtk_xml_editor_destroy( GtkWidget *widget, gpointer user_data )
 	gtk_widget_set_sensitive( GTK_WIDGET(WallpaperState.edit_xml_button), TRUE );
 }	 
 
-void on_backgrounds_dir_changed( ASGtkXMLEditor *xe, gpointer user_data, Bool new_file)
+void on_backgrounds_dir_changed( ASGtkXMLView *xv, gpointer user_data, Bool new_file)
 {
-	ASGtkImageDir *id = ASGTK_IMAGE_DIR(id);
+	ASGtkImageDir *id = ASGTK_IMAGE_DIR(user_data);
 	if( new_file ) 
 		asgtk_image_dir_refresh( id );
 	else
@@ -462,7 +462,7 @@ on_edit_xml_clicked(GtkButton *button, gpointer user_data)
 		g_signal_connect (G_OBJECT (WallpaperState.xml_editor), "destroy", G_CALLBACK (gtk_xml_editor_destroy), NULL);
 		asgtk_xml_editor_file_change_handler( ASGTK_XML_EDITOR(WallpaperState.xml_editor), 
 											  on_backgrounds_dir_changed, 
-											  WallpaperState.backs_list );
+											  (gpointer)WallpaperState.backs_list );
 	}
 
 	gtk_widget_show( WallpaperState.xml_editor );
