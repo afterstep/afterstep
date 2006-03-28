@@ -194,6 +194,15 @@ show_debug( const char *file, const char *func, int line, const char *msg_format
     return False;
 }
 
+void debugout_print_linestamp(const char *file, const char *func, int line )
+{	
+ 	static time_t last_timestamp = 0 ; 
+	static time_t last_line = 0 ; 
+	time_t curr = time(NULL);
+ 	fprintf( stderr, "%s:%s:%s:%d:>", ApplicationName, file, func, line );
+}
+
+
 
 inline void
 nonGNUC_debugout_stub( const char *format, ...)
