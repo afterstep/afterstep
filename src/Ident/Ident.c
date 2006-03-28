@@ -329,6 +329,7 @@ make_ident_window( int width, int height)
 	int x, y ;
     XSetWindowAttributes attr;
     LOCAL_DEBUG_OUT("configured geometry is %dx%d%+d%+d", width, height, Config->geometry.x, Config->geometry.y );
+	memset( &extwm_hints, 0x00, sizeof(extwm_hints));
 	switch( Config->gravity )
 	{
 		case NorthEastGravity :
@@ -358,14 +359,14 @@ make_ident_window( int width, int height)
     Scr.RootClipArea.width = width;
     Scr.RootClipArea.height = height;
 
-    shints.flags = USSize|PResizeInc|PWinGravity;
+    shints.flags = USSize|PMaxSize|PWinGravity;
     if( get_flags( Config->set_flags, IDENT_SET_GEOMETRY ) )
         shints.flags |= USPosition ;
     else
         shints.flags |= PPosition ;
 
-    shints.width_inc = 1;
-    shints.height_inc = 1;
+    shints.max_width = width;
+    shints.max_height = height;
 	shints.win_gravity = Config->gravity ;
 
 	extwm_hints.pid = getpid();

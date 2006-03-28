@@ -1040,6 +1040,7 @@ make_wintabs_window()
     unsigned int height = max(Config->geometry.height,1);
     XSetWindowAttributes attributes;
 
+	memset( &extwm_hints, 0x00, sizeof(extwm_hints));
     attributes.background_pixmap = ParentRelative;
     switch( Config->gravity )
 	{

@@ -1389,18 +1389,24 @@ set_extwm_hints (Window w, ExtendedWMHints * extwm_hints)
 		CARD32         *list;
 		long          nitems;
 
-		encode_atom_list (&(EXTWM_WindowType[0]), &list, &nitems, extwm_hints->type_flags);
-		if (nitems > 0)
+		if (get_flags (extwm_hints->flags, EXTWM_TypeSet))
 		{
-			set_32bit_proplist (w, _XA_NET_WM_WINDOW_TYPE, XA_ATOM, list, nitems);
-			free (list);
+			encode_atom_list (&(EXTWM_WindowType[0]), &list, &nitems, extwm_hints->type_flags);
+			if (nitems > 0)
+			{
+				set_32bit_proplist (w, _XA_NET_WM_WINDOW_TYPE, XA_ATOM, list, nitems);
+				free (list);
+			}
 		}
-		encode_atom_list (&(EXTWM_State[0]), &list, &nitems, extwm_hints->state_flags);
-		if (nitems > 0)
+		if (get_flags (extwm_hints->flags, EXTWM_StateSet))
 		{
-			set_32bit_proplist (w, _XA_NET_WM_STATE, XA_CARDINAL, list, nitems);
-			free (list);
-            list = NULL ;
+			encode_atom_list (&(EXTWM_State[0]), &list, &nitems, extwm_hints->state_flags);
+			if (nitems > 0)
+			{
+				set_32bit_proplist (w, _XA_NET_WM_STATE, XA_CARDINAL, list, nitems);
+				free (list);
+	            list = NULL ;
+			}
 		}
 		if (get_flags (extwm_hints->flags, EXTWM_DESKTOP))
 			set_32bit_property (w, _XA_NET_WM_DESKTOP, XA_CARDINAL, extwm_hints->desktop);
