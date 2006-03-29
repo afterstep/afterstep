@@ -61,6 +61,8 @@ inline void nonGNUC_debugout_stub( const char *format, ...);
  * Please submit a bug report if usage of any of the following generates errors on
  * your compiler . Thanks!!! */
 
+void debugout_print_linestamp(const char *file, const char *func, int line );
+
 /* Some usefull debugging macros : */
 #ifdef __GNUC__
 
@@ -73,9 +75,11 @@ inline void nonGNUC_debugout_stub( const char *format, ...);
 
 #if (!defined(NO_DEBUG_OUTPUT))&&(defined(LOCAL_DEBUG)||defined(DEBUG_ALL))
 #define LOCAL_DEBUG_OUT(format,args...) \
-    do{ fprintf( stderr, "%s:%ld:%s:%s:%d:>" format "\n", ApplicationName, time(NULL),__FILE__, __FUNCTION__, __LINE__, ## args );}while(0)
+    do{ debugout_print_linestamp(__FILE__,__FUNCTION__,__LINE__); \
+		fprintf( stderr, format "\n", ## args );}while(0)
 #define LOCAL_DEBUG_CALLER_OUT(format,args...) \
-    do{ fprintf( stderr, "%s:%ld:%s:%s:> called from [%s] with args(" format ")\n", ApplicationName, time(NULL),__FILE__, __FUNCTION__, get_caller_func(), ## args );}while(0)
+    do{ debugout_print_linestamp(__FILE__,__FUNCTION__,__LINE__); \
+		fprintf( stderr, "called from [%s] with args(" format ")\n", get_caller_func(), ## args );}while(0)
 #else
 #define LOCAL_DEBUG_OUT(format,args...)
 #define LOCAL_DEBUG_CALLER_OUT(format,args...)

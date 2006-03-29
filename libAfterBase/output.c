@@ -25,6 +25,16 @@
 #include <stdlib.h>
 #include <fcntl.h>
 #include <unistd.h>
+#if TIME_WITH_SYS_TIME
+# include <sys/time.h>
+# include <time.h>
+#else
+# if HAVE_SYS_TIME_H
+#  include <sys/time.h>
+# else
+#  include <time.h>
+# endif
+#endif
 
 #include "astypes.h"
 #include "output.h"
@@ -196,10 +206,23 @@ show_debug( const char *file, const char *func, int line, const char *msg_format
 
 void debugout_print_linestamp(const char *file, const char *func, int line )
 {	
+ 	static time_t startup_time = 0 ; 
  	static time_t last_timestamp = 0 ; 
-	static time_t last_line = 0 ; 
-	time_t curr = time(NULL);
- 	fprintf( stderr, "%s:%s:%s:%d:>", ApplicationName, file, func, line );
+	struct timeval tv;
+	
+	gettimeofday(&tv,NULL);
+	if( startup_time == 0 )
+		startup_time = tv.tv_sec;
+	if( tv.tv_sec-last_timestamp > 60 ) 
+	{
+		fprintf( stderr, "%s:TS> %s", ApplicationName, ctime(&tv.tv_sec) );
+		last_timestamp = tv.tv_sec ;
+	}
+	if( line > 0 )
+	 	fprintf( stderr, "%s:%2.2li.%5.5li:%s:%s:%d>", ApplicationName, tv.tv_sec-startup_time, tv.tv_usec/10, file, func, line );
+	else
+	 	fprintf( stderr, "%s:%2.2li.%5.5li:%s:%s>", ApplicationName, tv.tv_sec-startup_time, tv.tv_usec/10, file, func );
+	
 }
 
 
