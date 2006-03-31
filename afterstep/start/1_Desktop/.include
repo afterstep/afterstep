@@ -1,6 +1,7 @@
 MiniPixmap mini/Desktop
 RecentSubmenuItems 0
 
-Category "DesktopSettings"
+Category "SYSTEM:DesktopSettings"
+Category "AfterStep:DesktopSettings"
 
 
