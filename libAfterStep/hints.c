@@ -2618,7 +2618,7 @@ set_all_client_hints (Window w, ASHints * hints, ASStatusHints * status, Bool se
 {
 	XWMHints      wm_hints;
 	XSizeHints    size_hints;
-	ASFlagType    protocols;
+	ASFlagType    protocols = 0;
 	MwmHints      mwm_hints;
 	GnomeHints    gnome_hints;
 	ExtendedWMHints extwm_hints;

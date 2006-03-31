@@ -478,12 +478,14 @@ file2xml_tree(const char *filename, char *myname, SyntaxDef *syntax )
 	config_reader = InitConfigReader (myname, syntax, CDT_Filename, cd, NULL);
 	if ( config_reader != NULL )
 	{
+		ASTreeStorageModel *model = NULL ;
 		config_reader->statement_handler = statement2xml_elem;
 		tree = create_CONTAINER_tag();
 		tree->child = xml_elem_new(); 
 		tree->child->tag = mystrdup(syntax->display_name);
 		//c_tag->tag_id = pterm->id ;
-		config2tree_storage(config_reader, (ASTreeStorageModel **)&(tree->child->child), False);	   
+		config2tree_storage(config_reader, &model, False);	   
+		tree->child->child = (xml_elem_t*)model ;
 		DestroyConfig (config_reader);   
 	}
 	return tree;

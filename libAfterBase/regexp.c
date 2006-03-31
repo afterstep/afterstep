@@ -616,7 +616,7 @@ compile_wild_reg_exp_sized (const char *pattern, int size)
 			trg->soft_total = (unsigned char) strlen( pattern );
 		trg->wildcards_num = 0; /* posix doesn't define wildcards. */
 		
-		if( regcomp( trg->p_reg, (ptr + strlen(POSIX_HEADER)), REG_EXTENDED | REG_ICASE ) != 0)
+		if( regcomp( trg->p_reg, ((char*)ptr + strlen(POSIX_HEADER)), REG_EXTENDED | REG_ICASE ) != 0)
 		{
 			/* Couldn't compile reg-exp.
 			   Free memory and return NULL. */

@@ -1035,6 +1035,7 @@ LOCAL_DEBUG_CALLER_OUT( "%p,%p", parent, canvas );
 	if( canvas )
 	{
    		XEvent client_event ;
+		unsigned int uwidth, uheight, ubw ;
 
         client_event.type = ConfigureNotify;
         client_event.xconfigure.display = dpy;
@@ -1043,9 +1044,11 @@ LOCAL_DEBUG_CALLER_OUT( "%p,%p", parent, canvas );
 
         get_current_canvas_geometry( canvas, &(client_event.xconfigure.x),
                                          &(client_event.xconfigure.y),
-                                         &(client_event.xconfigure.width),
-                                         &(client_event.xconfigure.height),
-                                         &(client_event.xconfigure.border_width));
+                                         &uwidth, &uheight, &ubw );
+		client_event.xconfigure.width = uwidth ;
+		client_event.xconfigure.height = uheight;
+		client_event.xconfigure.border_width = ubw;
+
 		if( parent )
 		{
         	client_event.xconfigure.x += parent->root_x+(int)parent->bw;

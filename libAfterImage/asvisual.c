@@ -1398,9 +1398,10 @@ int destroy_xshm_image( XImage *ximage )
 unsigned long 
 ximage2shmseg( XImage *xim )
 {
-	ASXShmImage *data = NULL ;
-	if( get_hash_item( xshmimage_images, AS_HASHABLE(xim), (void**)&data ) == ASH_Success )		
+	void *vptr = NULL ;
+	if( get_hash_item( xshmimage_images, AS_HASHABLE(xim), &vptr ) == ASH_Success )		
 	{
+		ASXShmImage *data = (ASXShmImage *)vptr ;
 		if( data->segment ) 
 			return data->segment->shmseg;	
 	}	

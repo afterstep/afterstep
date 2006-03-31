@@ -476,7 +476,7 @@ read_as_current_desk (ASWMProps * wmprops, Bool deleted)
 {
 	if (wmprops)
 	{
-        INT32        desk_no = None;
+        CARD32        desk_no = 0;
 
 		if (deleted)
 			return False;
@@ -1129,7 +1129,7 @@ set_desktop_num_prop (ASWMProps * wmprops, INT32 new_desk, Window vroot, Bool ad
 		/* need to update crossreference table here : */
 		set_32bit_property (wmprops->scr->Root, _XA_NET_NUMBER_OF_DESKTOPS, XA_CARDINAL, wmprops->desktop_num);
 		set_32bit_property (wmprops->scr->Root, _XA_WIN_WORKSPACE_COUNT, XA_CARDINAL, wmprops->desktop_num);
-		set_32bit_proplist (wmprops->scr->Root, _AS_DESK_NUMBERS, XA_CARDINAL, &(wmprops->as_desk_numbers[0]),
+		set_32bit_proplist (wmprops->scr->Root, _AS_DESK_NUMBERS, XA_CARDINAL, (CARD32*)&(wmprops->as_desk_numbers[0]),
 							wmprops->as_desk_num);
 		set_32bit_proplist (wmprops->scr->Root, _XA_NET_VIRTUAL_ROOTS, XA_WINDOW, &(wmprops->virtual_roots[0]),
 							wmprops->desktop_num);
