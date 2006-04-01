@@ -174,7 +174,7 @@ extern Atom _XA_NET_WM_STATE_FULLSCREEN;
 extern Atom _XA_NET_WM_STATE_ABOVE;
 extern Atom _XA_NET_WM_STATE_BELOW;
 
-#define MAX_NET_WM_STATES   7
+#define MAX_NET_WM_STATES   11
 
 extern Atom _XA_NET_WM_PID;
 extern Atom _XA_NET_WM_PING;

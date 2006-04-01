@@ -1223,8 +1223,10 @@ get_extwm_state_flags (Window w, ASFlagType *flags)
 		CARD32         *protocols;
 		long          nprotos = 0;
 
-        if (read_32bit_proplist (w, _XA_NET_WM_STATE, 6, &protocols, &nprotos))
+        if (read_32bit_proplist (w, _XA_NET_WM_STATE, MAX_NET_WM_STATES, &protocols, &nprotos))
 		{
+			LOCAL_DEBUG_OUT( "natoms =  %ld", nprotos );
+
 			translate_atom_list (flags, EXTWM_State, protocols, nprotos);
 			free (protocols);
 			return True;
@@ -1255,8 +1257,6 @@ set_client_state (Window w, struct ASStatusHints *status)
             CARD32        extwm_states[MAX_NET_WM_STATES];
 			long          used = 0;
 			CARD32        gnome_state = 0;
-			CARD32       *old_extwm_state = NULL;
-			long          old_extwm_used = 0;
 			ASFlagType    old_state = 0;
 
 			if (get_flags (status->flags, AS_Sticky))
@@ -1284,20 +1284,23 @@ set_client_state (Window w, struct ASStatusHints *status)
 				extwm_states[used++] = _XA_NET_WM_STATE_MAXIMIZED_VERT;
 				gnome_state |= WIN_STATE_MAXIMIZED_VERT;
 			}
-			
-			if (read_32bit_proplist (w, _XA_NET_WM_WINDOW_TYPE, MAX_NET_WM_STATES, &old_extwm_state, &old_extwm_used))
+
+			LOCAL_DEBUG_OUT( "window %X used =  %ld", w, used );
+			if( get_extwm_state_flags (w, &old_state) )
 			{
-				translate_atom_list (&old_state, EXTWM_State, old_extwm_state, old_extwm_used);
-				free (old_extwm_state);
+				if (get_flags (old_state, EXTWM_StateModal))
+					extwm_states[used++] = _XA_NET_WM_STATE_MODAL;
+				if (get_flags (old_state, EXTWM_StateSkipTaskbar))
+					extwm_states[used++] = _XA_NET_WM_STATE_SKIP_TASKBAR;
+				if (get_flags (old_state, EXTWM_StateSkipPager))
+					extwm_states[used++] = _XA_NET_WM_STATE_SKIP_PAGER;
 			}
-			if (get_flags (old_state, EXTWM_StateModal))
-				extwm_states[used++] = _XA_NET_WM_STATE_MODAL;
-			if (get_flags (old_state, EXTWM_StateSkipTaskbar))
-				extwm_states[used++] = _XA_NET_WM_STATE_SKIP_TASKBAR;
-			if (get_flags (old_state, EXTWM_StateSkipPager))
-				extwm_states[used++] = _XA_NET_WM_STATE_SKIP_PAGER;
+			LOCAL_DEBUG_OUT( "window %X old_extwm_state = 0x%lX, used =  %ld", w, old_state, used );
 
 			set_32bit_proplist (w, _XA_NET_WM_STATE, XA_ATOM, &(extwm_states[0]), used);
+			get_extwm_state_flags (w, &old_state);
+			LOCAL_DEBUG_OUT( "window %X new_extwm_state = 0x%lX", w, old_state );
+
 			set_32bit_property (w, _XA_WIN_STATE, XA_CARDINAL, gnome_state);
 
 			if (get_flags (status->flags, AS_Layer))

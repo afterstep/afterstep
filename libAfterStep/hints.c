@@ -1029,11 +1029,12 @@ static ASFlagsXref extwm_state_xref[] = {	   /*Flag                    Set if Se
 	{EXTWM_StateMaximizedV, AS_StartsMaximizedY, 0, 0, 0},
 	{EXTWM_StateMaximizedH, AS_StartsMaximizedX, 0, 0, 0},
 	{EXTWM_StateShaded, AS_StartsShaded, 0, 0, 0},
+	{EXTWM_StateFullscreen, AS_Fullscreen, 0, 0, 0},
 	{0, 0, 0, 0, 0}
 };
 
 #define EXTWM_AFFECTED_STATE  (AS_StartsSticky|AS_StartsMaximizedY| \
-                               AS_StartsMaximizedX|AS_StartsShaded)
+                               AS_StartsMaximizedX|AS_StartsShaded|AS_Fullscreen)
 
 static ASFlagType extwm_types_start_properties[][3] = {
 	{EXTWM_TypeDesktop, AS_LayerOtherDesktop, AS_StartsSticky},

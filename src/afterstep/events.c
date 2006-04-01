@@ -966,6 +966,7 @@ HandleClientMessage (ASEvent *event)
 			as_flags = ASWIN_GET_FLAGS(event->client,as_flags);
 		else if( xcli->data.l[0] == EXTWM_StateAdd ) 
 			as_flags = as_flags&(~ASWIN_GET_FLAGS(event->client,as_flags));
+		
 		if( as_flags != 0 ) 
 			toggle_aswindow_status(event->client, as_flags );
 	}	 
