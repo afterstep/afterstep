@@ -2568,6 +2568,11 @@ LOCAL_DEBUG_OUT( "state(0x%X)->state&ButtonAnyMask(0x%X)", event->x.xbutton.stat
 
 			return ;
 	    case PropertyNotify:
+            if( event->x.xproperty.atom == _XA_NET_WM_STATE )
+            {
+				LOCAL_DEBUG_OUT( "_XA_NET_WM_STATE updated!%s","");
+				return;
+			}
 			handle_wmprop_event (Scr.wmprops, &(event->x));
             if( event->x.xproperty.atom == _AS_BACKGROUND )
             {

@@ -264,6 +264,8 @@ AddWindow (Window w, Bool from_map_request)
 	ungrab_server();
 
 	/* doing that for any window seems to resolve java sizing bugs */
+	/* this will get called from set_window_wm_state() again just few lines below
+	   which is a bit of a excess, but we don't seem to have much choice */
     on_window_status_changed( tmp_win, False, True );
     if( pending_placement )
     {

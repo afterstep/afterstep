@@ -1050,6 +1050,8 @@ on_window_status_changed( ASWindow *asw, Bool update_display, Bool reconfigured 
     if( AS_ASSERT(asw) )
         return ;
 
+/*	get_extwm_state_flags (asw->w, &i); */
+	
 LOCAL_DEBUG_CALLER_OUT( "(%p,%s Update display,%s Reconfigured)", asw, update_display?"":"Don't", reconfigured?"":"Not" );
 LOCAL_DEBUG_OUT( "status geometry = %dx%d%+d%+d", asw->status->width, asw->status->height, asw->status->x, asw->status->y );
     if( ASWIN_GET_FLAGS(asw, AS_Iconic ) )
@@ -1680,9 +1682,9 @@ LOCAL_DEBUG_OUT( "updating status to iconic for client %p(\"%s\")", asw, ASWIN_N
                 }
             }
         }
+	    on_window_status_changed( asw, True, False );
     }
 
-    on_window_status_changed( asw, True, False );
     if( !get_flags(asw->wm_state_transition, ASWT_FROM_WITHDRAWN ) )
         broadcast_config(M_CONFIGURE_WINDOW, asw );
 

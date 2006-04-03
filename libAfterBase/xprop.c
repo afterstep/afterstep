@@ -90,13 +90,16 @@ translate_atom_list (ASFlagType *trg, AtomXref * xref, CARD32* list, long nitems
 		register int  i;
 		register AtomXref *curr;
 
-		for (i = 0; i < nitems && list[i] != None; i++)
-			for (curr = xref; curr->atom != None; curr++)
-				if (curr->atom == list[i])
-				{
-					set_flags (*trg, curr->flag);
-					break;
-				}
+		for (i = 0; i < nitems ; i++)
+		{
+			if( list[i] != None ) 
+				for (curr = xref; curr->atom != None; curr++)
+					if (curr->atom == list[i])
+					{
+						set_flags (*trg, curr->flag);
+						break;
+					}
+		}
 	}
 }
 

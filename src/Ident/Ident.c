@@ -628,6 +628,13 @@ fill_window_data()
 			SHOW_EXTWM_FLAG(eh->state_flags,State,MaximizedH );
 			SHOW_EXTWM_FLAG(eh->state_flags,State,Shaded );
 			SHOW_EXTWM_FLAG(eh->state_flags,State,SkipTaskbar );
+			SHOW_EXTWM_FLAG(eh->state_flags,State,SkipPager );
+			SHOW_EXTWM_FLAG(eh->state_flags,State,Fullscreen );
+			SHOW_EXTWM_FLAG(eh->state_flags,State,Above );
+			SHOW_EXTWM_FLAG(eh->state_flags,State,Below );
+			SHOW_EXTWM_FLAG(eh->state_flags,State,Hidden );
+
+			
 			add_property("Extended WM status flags:", buf, AS_Text_ASCII, True);
 		}
 		/* window type hints : */

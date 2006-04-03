@@ -167,7 +167,7 @@ AtomXref      _EXTWM_State[] = {
 	{"_NET_WM_STATE_MAXIMIZED_HORZ", &_XA_NET_WM_STATE_MAXIMIZED_HORZ, EXTWM_StateMaximizedH},
 	{"_NET_WM_STATE_SHADED", &_XA_NET_WM_STATE_SHADED, EXTWM_StateShaded},
     {"_NET_WM_STATE_SKIP_TASKBAR", &_XA_NET_WM_STATE_SKIP_TASKBAR, EXTWM_StateSkipTaskbar},
-	{"_NET_WM_STATE_SKIP_PAGER", &_XA_NET_WM_STATE_SKIP_TASKBAR, EXTWM_StateSkipPager},
+	{"_NET_WM_STATE_SKIP_PAGER", &_XA_NET_WM_STATE_SKIP_PAGER, EXTWM_StateSkipPager},
 	{"_NET_WM_STATE_HIDDEN", &_XA_NET_WM_STATE_HIDDEN,			EXTWM_StateHidden    },
 	{"_NET_WM_STATE_FULLSCREEN", &_XA_NET_WM_STATE_FULLSCREEN, 	EXTWM_StateFullscreen},
 	{"_NET_WM_STATE_ABOVE", &_XA_NET_WM_STATE_ABOVE, 			EXTWM_StateAbove	 },
@@ -1225,8 +1225,7 @@ get_extwm_state_flags (Window w, ASFlagType *flags)
 
         if (read_32bit_proplist (w, _XA_NET_WM_STATE, MAX_NET_WM_STATES, &protocols, &nprotos))
 		{
-			LOCAL_DEBUG_OUT( "natoms =  %ld", nprotos );
-
+/*			LOCAL_DEBUG_OUT( "natoms =  %ld", nprotos ); */
 			translate_atom_list (flags, EXTWM_State, protocols, nprotos);
 			free (protocols);
 			return True;
@@ -1250,6 +1249,7 @@ get_extwm_state_flags (Window w, ASFlagType *flags)
 void
 set_client_state (Window w, struct ASStatusHints *status)
 {
+	LOCAL_DEBUG_CALLER_OUT( "w = %lX, status->flags = 0x%lX", w, status?status->flags:0);
 	if (w != None)
 	{
         if (status != NULL)
@@ -1285,7 +1285,7 @@ set_client_state (Window w, struct ASStatusHints *status)
 				gnome_state |= WIN_STATE_MAXIMIZED_VERT;
 			}
 
-			LOCAL_DEBUG_OUT( "window %X used =  %ld", w, used );
+/*			LOCAL_DEBUG_OUT( "window %lX used =  %ld", w, used ); */
 			if( get_extwm_state_flags (w, &old_state) )
 			{
 				if (get_flags (old_state, EXTWM_StateModal))
@@ -1295,12 +1295,9 @@ set_client_state (Window w, struct ASStatusHints *status)
 				if (get_flags (old_state, EXTWM_StateSkipPager))
 					extwm_states[used++] = _XA_NET_WM_STATE_SKIP_PAGER;
 			}
-			LOCAL_DEBUG_OUT( "window %X old_extwm_state = 0x%lX, used =  %ld", w, old_state, used );
+			LOCAL_DEBUG_OUT( "window %lX old_extwm_state = 0x%lX, used =  %ld", w, old_state, used );
 
 			set_32bit_proplist (w, _XA_NET_WM_STATE, XA_ATOM, &(extwm_states[0]), used);
-			get_extwm_state_flags (w, &old_state);
-			LOCAL_DEBUG_OUT( "window %X new_extwm_state = 0x%lX", w, old_state );
-
 			set_32bit_property (w, _XA_WIN_STATE, XA_CARDINAL, gnome_state);
 
 			if (get_flags (status->flags, AS_Layer))
