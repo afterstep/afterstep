@@ -13,7 +13,7 @@
   </composite>
 
   <text align="center" valign="middle" font="DefaultFancy.ttf"
-  point="60" fgimage="text_fgimage" type="3">AfterStep 2.0</text>
+  point="60" fgimage="text_fgimage" type="3">AfterStep 2.2</text>
 </composite>
 
 <release srcid="text_fgimage"/>
