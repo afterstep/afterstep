@@ -508,9 +508,10 @@ void
 merge_old_look_variables (MyLook *look)
 {
     char         *button_style_names[BACK_STYLES] = 
-{AS_ICON_TITLE_MYSTYLE, 
+													{AS_ICON_TITLE_MYSTYLE, 
 													 AS_ICON_TITLE_UNFOCUS_MYSTYLE, 
 													 AS_ICON_TITLE_STICKY_MYSTYLE, 
+													 NULL,
 													 "ButtonTitleDefault" };
     MyStyle      *button_styles[BACK_STYLES];
     int i ;
@@ -558,8 +559,8 @@ merge_old_look_variables (MyLook *look)
 	/* for color - accept user choices */
 	if (Scr.d_depth > 1)
 	{
-        int wtype[BACK_STYLES];
-        int mtype[MENU_BACK_STYLES];
+        int wtype[BACK_STYLES] = {0};
+        int mtype[MENU_BACK_STYLES] = {0};
 
         for( i = 0 ; i < BACK_STYLES ; ++i )
             wtype[i] = -1 ;
@@ -769,7 +770,7 @@ void
 make_styles (MyLook *look)
 {
 /* make sure the globals are defined */
-    char *style_names[BACK_STYLES] = { "default", "FWindow", "UWindow", "SWindow" };
+    char *style_names[BACK_STYLES] = { "FWindow", "UWindow", "SWindow", NULL, "default"  };
     char *menu_style_names[MENU_BACK_STYLES] = { "MenuTitle", "MenuItem", "MenuHilite", "MenuStipple", "MenuSubItem", "MenuHiTitle" };
     int i ;
 
@@ -779,7 +780,7 @@ make_styles (MyLook *look)
     if (look->MSWindow[BACK_DEFAULT] == NULL)
         look->MSWindow[BACK_DEFAULT] = mystyle_list_find_or_default (look->styles_list, "default");
     for( i = 0 ; i < BACK_STYLES ; ++i )
-        if (look->MSWindow[i] == NULL)
+        if (look->MSWindow[i] == NULL && style_names[i] )
             look->MSWindow[i] = mystyle_list_new (look->styles_list, style_names[i]);
 
     for( i = 0 ; i < MENU_BACK_STYLES ; ++i )

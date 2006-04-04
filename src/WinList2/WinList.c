@@ -90,6 +90,9 @@ typedef struct {
 
 ASWinListState WinListState = { 0, NULL, None, NULL, NULL };
 
+
+#define WINLIST_BACK_URGENT		BACK_DEFAULT
+
 /**********************************************************************/
 /**********************************************************************/
 /* Our configuration options :                                        */
@@ -243,6 +246,8 @@ SetWinListLook()
 	LOCAL_DEBUG_OUT( "Configured MyStyle %d \"%s\" is %p", BACK_FOCUSED, Config->FocusedStyle?Config->FocusedStyle:"(null)", Scr.Look.MSWindow[BACK_FOCUSED] );
     Scr.Look.MSWindow[BACK_STICKY] = mystyle_find( Config->StickyStyle );
 	LOCAL_DEBUG_OUT( "Configured MyStyle %d \"%s\" is %p", BACK_STICKY, Config->StickyStyle?Config->StickyStyle:"(null)", Scr.Look.MSWindow[BACK_STICKY] );
+	Scr.Look.MSWindow[BACK_URGENT] = mystyle_find( Config->UrgentStyle );
+	LOCAL_DEBUG_OUT( "Configured MyStyle %d \"%s\" is %p", BACK_URGENT, Config->UrgentStyle?Config->UrgentStyle:"(null)", Scr.Look.MSWindow[BACK_URGENT] );
 
     for( i = 0 ; i < BACK_STYLES ; ++i )
     {

@@ -158,8 +158,9 @@ extern "C" {
 #define BACK_FOCUSED		0
 #define BACK_UNFOCUSED		1
 #define BACK_STICKY         2
-#define BACK_DEFAULT		3
-#define BACK_STYLES         4
+#define BACK_URGENT			3
+#define BACK_DEFAULT		4
+#define BACK_STYLES         5
 
 #define MENU_BACK_TITLE     0
 #define MENU_BACK_ITEM      1

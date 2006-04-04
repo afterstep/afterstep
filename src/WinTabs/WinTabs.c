@@ -488,10 +488,10 @@ LOCAL_DEBUG_OUT( "exclude_pattern = \"%s\"", Config->exclude_pattern );
 
     for( i = 0 ; i < BACK_STYLES ; ++i )
     {
-        static char *default_window_style_name[BACK_STYLES] ={"focused_window_style","unfocused_window_style","sticky_window_style", NULL};
+        static char *default_window_style_name[BACK_STYLES] ={"focused_window_style","unfocused_window_style","sticky_window_style", NULL, NULL};
         if( Scr.Look.MSWindow[i] == NULL )
             Scr.Look.MSWindow[i] = mystyle_find( default_window_style_name[i] );
-        if( Scr.Look.MSWindow[i] == NULL )
+        if( Scr.Look.MSWindow[i] == NULL && i != BACK_URGENT )
             Scr.Look.MSWindow[i] = mystyle_find_or_default( default_style );
     }
     free( default_style );

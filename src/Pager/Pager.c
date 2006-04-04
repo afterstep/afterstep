@@ -516,7 +516,7 @@ CheckConfigSanity()
 		if( window_style_names[i] )
 		{
       		sprintf( &(buf[0]), window_style_names[i], MyName );
-	        if( (Scr.Look.MSWindow[i] = mystyle_find( buf )) == NULL )
+	        if( (Scr.Look.MSWindow[i] = mystyle_find( buf )) == NULL  && i != BACK_URGENT)
   		        Scr.Look.MSWindow[i] = mystyle_find_or_default( default_window_style_name[i] );
 		}
     }

@@ -61,6 +61,7 @@ extern SyntaxDef AlignSyntax;
     ASCF_DEFINE_KEYWORD(WINLIST, 0			    , UnfocusedStyle	, TT_TEXT	,  NULL), \
     ASCF_DEFINE_KEYWORD(WINLIST, 0			    , FocusedStyle		, TT_TEXT	,  NULL), \
     ASCF_DEFINE_KEYWORD(WINLIST, 0			    , StickyStyle		, TT_TEXT	,  NULL), \
+    ASCF_DEFINE_KEYWORD(WINLIST, 0			    , UrgentStyle		, TT_TEXT	,  NULL), \
     ASCF_DEFINE_KEYWORD(WINLIST, 0			    , ShapeToContents	, TT_FLAG	,  NULL), \
     ASCF_DEFINE_KEYWORD(WINLIST, 0			    , ShowIcon			, TT_FLAG	,  NULL), \
     ASCF_DEFINE_KEYWORD(WINLIST, 0			    , IconLocation		, TT_UINTEGER, NULL), \
@@ -148,6 +149,7 @@ DestroyWinListConfig (WinListConfig * config)
 	destroy_string(&(config->UnfocusedStyle));
 	destroy_string(&(config->FocusedStyle));
 	destroy_string(&(config->StickyStyle));
+	destroy_string(&(config->UrgentStyle));
 
 	for (i = 0; i < MAX_MOUSE_BUTTONS; ++i)
 		if (config->Action[i])
@@ -193,6 +195,7 @@ PrintWinListConfig (WinListConfig * config)
 	ASCF_PRINT_STRING_KEYWORD(stderr,WINLIST,config,UnfocusedStyle);
 	ASCF_PRINT_STRING_KEYWORD(stderr,WINLIST,config,FocusedStyle);
 	ASCF_PRINT_STRING_KEYWORD(stderr,WINLIST,config,StickyStyle);
+	ASCF_PRINT_STRING_KEYWORD(stderr,WINLIST,config,UrgentStyle);
 	
 	ASCF_PRINT_INT_KEYWORD(stderr,WINLIST,config,IconLocation);	
 	ASCF_PRINT_FLAGS_KEYWORD(stderr,WINLIST,config,IconAlign );
@@ -288,6 +291,7 @@ ParseWinListOptions (const char *filename, char *myname)
 				ASCF_HANDLE_STRING_KEYWORD_CASE(WINLIST,config,item,UnfocusedStyle); 
                 ASCF_HANDLE_STRING_KEYWORD_CASE(WINLIST,config,item,FocusedStyle); 
                 ASCF_HANDLE_STRING_KEYWORD_CASE(WINLIST,config,item,StickyStyle); 
+                ASCF_HANDLE_STRING_KEYWORD_CASE(WINLIST,config,item,UrgentStyle); 
     			
 				ASCF_HANDLE_INTEGER_KEYWORD_CASE(WINLIST,config,item,FCompositionMethod); 
 				ASCF_HANDLE_INTEGER_KEYWORD_CASE(WINLIST,config,item,UCompositionMethod); 
@@ -387,6 +391,7 @@ MergeWinListOptions ( WinListConfig *to, WinListConfig *from)
 	ASCF_MERGE_STRING_KEYWORD(WINLIST, to, from, FocusedStyle);
 	ASCF_MERGE_STRING_KEYWORD(WINLIST, to, from, UnfocusedStyle);
 	ASCF_MERGE_STRING_KEYWORD(WINLIST, to, from, StickyStyle);
+	ASCF_MERGE_STRING_KEYWORD(WINLIST, to, from, UrgentStyle);
 
 	ASCF_MERGE_SCALAR_KEYWORD(WINLIST, to, from, UseName);
 	ASCF_MERGE_SCALAR_KEYWORD(WINLIST, to, from, Align);

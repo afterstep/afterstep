@@ -1063,32 +1063,33 @@ void DestroyMyBackgroundConfig (MyBackgroundConfig ** head);
 #define WINLIST_UnfocusedStyle_ID       (WINLIST_ID_START+16)
 #define WINLIST_FocusedStyle_ID         (WINLIST_ID_START+17)
 #define WINLIST_StickyStyle_ID          (WINLIST_ID_START+18)
-#define WINLIST_ShapeToContents_ID      (WINLIST_ID_START+19)
-#define WINLIST_CompositionMethod_ID    (WINLIST_ID_START+20)
-#define WINLIST_FCompositionMethod_ID   (WINLIST_ID_START+21)
-#define WINLIST_UCompositionMethod_ID   (WINLIST_ID_START+22)
-#define WINLIST_SCompositionMethod_ID   (WINLIST_ID_START+23)
-#define WINLIST_Spacing_ID              (WINLIST_ID_START+24)
-#define WINLIST_HSpacing_ID             (WINLIST_ID_START+25)
-#define WINLIST_VSpacing_ID             (WINLIST_ID_START+26)
+#define WINLIST_UrgentStyle_ID          (WINLIST_ID_START+19)
+#define WINLIST_ShapeToContents_ID      (WINLIST_ID_START+20)
+#define WINLIST_CompositionMethod_ID    (WINLIST_ID_START+21)
+#define WINLIST_FCompositionMethod_ID   (WINLIST_ID_START+22)
+#define WINLIST_UCompositionMethod_ID   (WINLIST_ID_START+23)
+#define WINLIST_SCompositionMethod_ID   (WINLIST_ID_START+24)
+#define WINLIST_Spacing_ID              (WINLIST_ID_START+25)
+#define WINLIST_HSpacing_ID             (WINLIST_ID_START+26)
+#define WINLIST_VSpacing_ID             (WINLIST_ID_START+27)
 
 
-#define WINLIST_BALLOONS_ID             (WINLIST_ID_START+27)
+#define WINLIST_BALLOONS_ID             (WINLIST_ID_START+28)
 
-#define WINLIST_HideGeometry_ID         (WINLIST_ID_START+28)
-#define WINLIST_MaxWidth_ID             (WINLIST_ID_START+29)
-#define WINLIST_Orientation_ID          (WINLIST_ID_START+30)
-#define WINLIST_NoAnchor_ID             (WINLIST_ID_START+31)
-#define WINLIST_UseIconNames_ID         (WINLIST_ID_START+32)
-#define WINLIST_AutoHide_ID             (WINLIST_ID_START+33)
+#define WINLIST_HideGeometry_ID         (WINLIST_ID_START+29)
+#define WINLIST_MaxWidth_ID             (WINLIST_ID_START+30)
+#define WINLIST_Orientation_ID          (WINLIST_ID_START+31)
+#define WINLIST_NoAnchor_ID             (WINLIST_ID_START+32)
+#define WINLIST_UseIconNames_ID         (WINLIST_ID_START+33)
+#define WINLIST_AutoHide_ID             (WINLIST_ID_START+34)
 
-#define WINLIST_ShowIcon_ID		  		(WINLIST_ID_START+34)
-#define WINLIST_IconLocation_ID         (WINLIST_ID_START+35)
-#define WINLIST_IconAlign_ID	        (WINLIST_ID_START+36)
-#define WINLIST_IconSize_ID				(WINLIST_ID_START+37)
-#define WINLIST_ScaleIconToTextHeight_ID (WINLIST_ID_START+38)
+#define WINLIST_ShowIcon_ID		  		(WINLIST_ID_START+35)
+#define WINLIST_IconLocation_ID         (WINLIST_ID_START+36)
+#define WINLIST_IconAlign_ID	        (WINLIST_ID_START+37)
+#define WINLIST_IconSize_ID				(WINLIST_ID_START+38)
+#define WINLIST_ScaleIconToTextHeight_ID (WINLIST_ID_START+39)
 
-#define WINLIST_ID_END                  (WINLIST_ID_START+39)
+#define WINLIST_ID_END                  (WINLIST_ID_START+40)
 
 /* config data structure */
 
@@ -1145,6 +1146,7 @@ typedef struct WinListConfig
 	char *UnfocusedStyle ;
 	char *FocusedStyle ;
 	char *StickyStyle ;
+	char *UrgentStyle ;
 
 	ASNameTypes     UseName ; /* 0, 1, 2, 3 */
     ASFlagType      Align ;
