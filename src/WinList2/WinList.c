@@ -254,7 +254,7 @@ SetWinListLook()
         static char *default_window_style_name[BACK_STYLES] ={"focused_window_style","unfocused_window_style","sticky_window_style", NULL};
         if( Scr.Look.MSWindow[i] == NULL )
             Scr.Look.MSWindow[i] = mystyle_find( default_window_style_name[i] );
-        if( Scr.Look.MSWindow[i] == NULL )
+        if( Scr.Look.MSWindow[i] == NULL && i != BACK_URGENT )
             Scr.Look.MSWindow[i] = mystyle_find_or_default( default_winlist_style );
 		LOCAL_DEBUG_OUT( "MyStyle %d is \"%s\"", i, Scr.Look.MSWindow[i]?Scr.Look.MSWindow[i]->name:"none" );
     }

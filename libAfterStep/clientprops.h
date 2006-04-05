@@ -173,8 +173,9 @@ extern Atom _XA_NET_WM_STATE_HIDDEN;
 extern Atom _XA_NET_WM_STATE_FULLSCREEN;
 extern Atom _XA_NET_WM_STATE_ABOVE;
 extern Atom _XA_NET_WM_STATE_BELOW;
+extern Atom _XA_NET_WM_STATE_DEMANDS_ATTENTION;
 
-#define MAX_NET_WM_STATES   11
+#define MAX_NET_WM_STATES   12
 
 extern Atom _XA_NET_WM_PID;
 extern Atom _XA_NET_WM_PING;
@@ -311,6 +312,15 @@ This are placed By Window Manager :
     width_inc            CARD32
     height_inc           CARD32
 */
+
+#ifndef 	UrgencyHint
+# ifndef 	XUrgencyHint
+#  define 	UrgencyHint		256
+# else
+#  define 	UrgencyHint		XUrgencyHint
+# endif
+#endif
+
 
 /************************************************************************/
 /* 		Motif WM window hints					*/
@@ -509,11 +519,12 @@ typedef struct ExtendedWMHints
 #define EXTWM_StateFullscreen	(0x01<<24)
 #define EXTWM_StateAbove	 	(0x01<<25)
 #define EXTWM_StateBelow	 	(0x01<<26)
+#define EXTWM_StateDemandsAttention	(0x01<<27)
 #define EXTWM_StateEverything   (EXTWM_StateModal|EXTWM_StateSticky|EXTWM_StateMaximizedV| \
                                  EXTWM_StateMaximizedH|EXTWM_StateShaded| \
                                  EXTWM_StateSkipTaskbar|EXTWM_StateSkipPager | \
 								 EXTWM_StateHidden|EXTWM_StateFullscreen| \
-								 EXTWM_StateAbove|EXTWM_StateBelow)
+								 EXTWM_StateAbove|EXTWM_StateBelow|StateDemandsAttention)
 
   ASFlagType state_flags;
   

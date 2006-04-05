@@ -97,6 +97,7 @@ Atom          _XA_NET_WM_STATE_HIDDEN;
 Atom          _XA_NET_WM_STATE_FULLSCREEN;
 Atom          _XA_NET_WM_STATE_ABOVE;
 Atom          _XA_NET_WM_STATE_BELOW;
+Atom          _XA_NET_WM_STATE_DEMANDS_ATTENTION;
 
 Atom          _XA_NET_WM_PID;
 Atom          _XA_NET_WM_ICON;
@@ -172,6 +173,8 @@ AtomXref      _EXTWM_State[] = {
 	{"_NET_WM_STATE_FULLSCREEN", &_XA_NET_WM_STATE_FULLSCREEN, 	EXTWM_StateFullscreen},
 	{"_NET_WM_STATE_ABOVE", &_XA_NET_WM_STATE_ABOVE, 			EXTWM_StateAbove	 },
 	{"_NET_WM_STATE_BELOW", &_XA_NET_WM_STATE_BELOW, 			EXTWM_StateBelow	 },
+	{"_NET_WM_STATE_DEMANDS_ATTENTION", 
+							&_XA_NET_WM_STATE_DEMANDS_ATTENTION,EXTWM_StateDemandsAttention	 },
 	{NULL, NULL, 0, None}
 };
 
@@ -1283,6 +1286,10 @@ set_client_state (Window w, struct ASStatusHints *status)
 			{
 				extwm_states[used++] = _XA_NET_WM_STATE_MAXIMIZED_VERT;
 				gnome_state |= WIN_STATE_MAXIMIZED_VERT;
+			}
+			if (get_flags (status->flags, AS_Urgent))
+			{
+				extwm_states[used++] = _XA_NET_WM_STATE_DEMANDS_ATTENTION;
 			}
 
 /*			LOCAL_DEBUG_OUT( "window %lX used =  %ld", w, used ); */

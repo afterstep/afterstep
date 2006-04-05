@@ -60,6 +60,7 @@ struct ASImage;
 #define AS_UnMapPending         (1<<22)
 #define AS_MoveresizeInProgress (1<<23)
 #define AS_Fullscreen			(1<<24)
+#define AS_Urgent				(1<<25)
 
 
 /***********************************************************/

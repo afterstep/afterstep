@@ -550,6 +550,7 @@ merge_icccm_hints (ASHints * clean, ASRawHints * raw,
 		Bool          position_user = False;
 
 		if (raw->wm_hints)
+		{
 			if (get_flags (raw->wm_hints->flags, StateHint))
 			{
 				if (raw->wm_hints->input == IconicState)
@@ -557,6 +558,13 @@ merge_icccm_hints (ASHints * clean, ASRawHints * raw,
 				else
 					clear_flags (status->flags, AS_StartsIconic);
 			}
+			if (get_flags (raw->wm_hints->flags, UrgencyHint))
+			{
+				status->layer = AS_LayerUrgent;
+				set_flags (status->flags, AS_StartLayer);
+				set_flags (status->flags, AS_Urgent);
+			}
+		}
 
 		if (raw->wm_normal_hints)
 			position_user = (get_flags (raw->wm_normal_hints->flags, USPosition));
@@ -1030,6 +1038,7 @@ static ASFlagsXref extwm_state_xref[] = {	   /*Flag                    Set if Se
 	{EXTWM_StateMaximizedH, AS_StartsMaximizedX, 0, 0, 0},
 	{EXTWM_StateShaded, AS_StartsShaded, 0, 0, 0},
 	{EXTWM_StateFullscreen, AS_Fullscreen, 0, 0, 0},
+	{EXTWM_StateDemandsAttention, AS_Urgent, 0, 0, 0},
 	{0, 0, 0, 0, 0}
 };
 
@@ -1053,6 +1062,7 @@ static ASFlagType extwm_states_start_properties[][3] = {
 	{EXTWM_StateFullscreen, AS_LayerUrgent, AS_Fullscreen },
 	{EXTWM_StateAbove, AS_LayerTop, 0 },
 	{EXTWM_StateBelow, AS_LayerBack, 0 },
+	{EXTWM_StateDemandsAttention, AS_LayerUrgent, 0 },
 	{0, 0, 0}
 };
 static ASFlagsXref extwm_type_xref[] = {	   /*Flag              Set if Set,      Clear if Set,     Set if Clear,    Clear if Clear  */
