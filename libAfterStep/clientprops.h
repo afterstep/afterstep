@@ -658,6 +658,7 @@ Bool get_extwm_state_flags (Window w, ASFlagType *flags);
 /****************** Setting properties - updating hints : ****************/
 /*************************************************************************/
 void set_client_state( Window w, struct ASStatusHints *status );
+void set_extwm_urgency_state (Window w, Bool set );
 void set_client_desktop( Window w, int ext_desk );
 void set_client_names( Window w, char *name, char *icon_name, char *res_class, char *res_name );
 void set_client_protocols (Window w, ASFlagType protocols, ASFlagType extwm_protocols);

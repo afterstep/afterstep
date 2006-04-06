@@ -888,6 +888,8 @@ mystyle_merge_font( MyStyle *style, MyFont *font, Bool override, Bool copy)
 void
 mystyle_merge_styles (MyStyle * parent, MyStyle * child, Bool override, Bool copy)
 {
+	if( parent == NULL || child == NULL ) 
+		return;
 	if (parent->set_flags & F_FONT)
         mystyle_merge_font( child, &(parent->font), override, copy);
 
@@ -1119,6 +1121,8 @@ void
 mystyle_merge_colors (MyStyle * style, int type, char *fore, char *back,
 					   char *gradient, char *pixmap)
 {
+	if( style == NULL ) 
+		return ;
 	if ((fore != NULL) && !((*style).user_flags & F_FORECOLOR))
 	{
 		if (parse_argb_color (fore, &((*style).colors.fore)) != fore)

@@ -1304,14 +1304,61 @@ set_client_state (Window w, struct ASStatusHints *status)
 			}
 			LOCAL_DEBUG_OUT( "window %lX old_extwm_state = 0x%lX, used =  %ld", w, old_state, used );
 
-			set_32bit_proplist (w, _XA_NET_WM_STATE, XA_ATOM, &(extwm_states[0]), used);
-			set_32bit_property (w, _XA_WIN_STATE, XA_CARDINAL, gnome_state);
+			if( used == 0 )
+			{
+				XDeleteProperty( dpy, w, _XA_NET_WM_STATE );
+				XDeleteProperty( dpy, w, _XA_WIN_STATE );
+			}else
+			{
+				set_32bit_proplist (w, _XA_NET_WM_STATE, XA_ATOM, &(extwm_states[0]), used);
+				set_32bit_property (w, _XA_WIN_STATE, XA_CARDINAL, gnome_state);
+			}
 
 			if (get_flags (status->flags, AS_Layer))
 				set_32bit_property (w, _XA_WIN_LAYER, XA_CARDINAL, status->layer);
 		}
     }
 }
+
+void
+set_extwm_urgency_state (Window w, Bool set )
+{
+	LOCAL_DEBUG_CALLER_OUT( "w = %lX, set = %d", w, set);
+	if (w != None)
+	{
+		CARD32         *states = NULL;
+		long          nstates = 0;
+		int i ; 
+		Bool changed = False ;
+
+		read_32bit_proplist (w, _XA_NET_WM_STATE, MAX_NET_WM_STATES, &states, &nstates);
+		
+		for( i = 0 ; i < nstates ; ++i ) 
+			if( states[i] == _XA_NET_WM_STATE_DEMANDS_ATTENTION ) 
+				break ;
+		if( set && i >= nstates ) 
+		{
+			++nstates ; 
+			states = realloc( states, sizeof(CARD32)*nstates );
+			states[nstates-1] = _XA_NET_WM_STATE_DEMANDS_ATTENTION ;
+			changed = True ;
+		}else if( !set && i < nstates ) 
+		{
+			while( ++i < nstates )	states[i-1] = states[i];
+			--nstates ; 
+			changed = True ;
+		}
+		if( changed ) 
+		{
+			if( nstates == 0 )
+				XDeleteProperty( dpy, w, _XA_NET_WM_STATE );
+			else
+				set_32bit_proplist (w, _XA_NET_WM_STATE, XA_ATOM, &states[0], nstates);
+		}
+    }
+}
+
+
 
 void
 set_client_desktop (Window w, int ext_desk)

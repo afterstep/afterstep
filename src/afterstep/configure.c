@@ -547,12 +547,13 @@ merge_old_look_variables (MyLook *look)
     if (TitleTextType != 0)
 	{
         for( i = 0 ; i < BACK_STYLES ; ++i )
-            if (!get_flags(look->MSWindow[i]->set_flags, F_TEXTSTYLE))
-            {
-                set_flags(look->MSWindow[i]->text_style, TitleTextType);
-                set_flags(look->MSWindow[i]->user_flags, F_TEXTSTYLE);
-                set_flags(look->MSWindow[i]->set_flags, F_TEXTSTYLE);
-            }
+			if( look->MSWindow[i] )
+				if (!get_flags(look->MSWindow[i]->set_flags, F_TEXTSTYLE))
+            	{
+                	set_flags(look->MSWindow[i]->text_style, TitleTextType);
+                	set_flags(look->MSWindow[i]->user_flags, F_TEXTSTYLE);
+                	set_flags(look->MSWindow[i]->set_flags, F_TEXTSTYLE);
+            	}
     }
 	/* the colors */
 	/* for black and white - ignore user choices */

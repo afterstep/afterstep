@@ -956,16 +956,28 @@ HandleClientMessage (ASEvent *event)
 		ASFlagType extwm_flags = 0, as_flags = 0;
 		CARD32 props[2] ;
 		XClientMessageEvent *xcli = &(event->x.xclient) ;
+		
 		props[0] = xcli->data.l[1] ;
 		props[1] = xcli->data.l[2] ;
-
+		
 		translate_atom_list (&extwm_flags, EXTWM_State, &props[0], 2);
 		/* now we need to translate EXTWM flags into AS flags : */
 		as_flags = extwm_state2as_state_flags( extwm_flags );
 		if( xcli->data.l[0] == EXTWM_StateRemove ) 
+		{
 			as_flags = ASWIN_GET_FLAGS(event->client,as_flags);
-		else if( xcli->data.l[0] == EXTWM_StateAdd ) 
+		}else if( xcli->data.l[0] == EXTWM_StateAdd ) 
 			as_flags = as_flags&(~ASWIN_GET_FLAGS(event->client,as_flags));
+
+		if( props[0] == _XA_NET_WM_STATE_DEMANDS_ATTENTION ||
+			props[1] == _XA_NET_WM_STATE_DEMANDS_ATTENTION  ) 
+		{/* requires special treatment as it competes with ICCCM HintUrgency in WM_HINTS */
+			Bool set = True ; 
+			if( xcli->data.l[0] == EXTWM_StateRemove || 
+				(xcli->data.l[0] == EXTWM_StateToggle && ASWIN_GET_FLAGS(event->client,AS_Urgent)))  
+				set = False ; 
+			set_extwm_urgency_state( event->client->w, set );
+		}		
 		
 		if( as_flags != 0 ) 
 			toggle_aswindow_status(event->client, as_flags );
