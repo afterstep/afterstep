@@ -500,6 +500,7 @@ handle_asxml_tag_text( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm
 	const char* bgcolor_str = NULL;
 	ARGB32 fgcolor = ARGB32_White, bgcolor = ARGB32_Black;
 	int point = 12, spacing = 0, type = AST_Plain;
+	unsigned int width = 0;
 	LOCAL_DEBUG_OUT("doc = %p, parm = %p", doc, parm ); 
 	for (ptr = parm ; ptr ; ptr = ptr->next) {
 		if (!strcmp(ptr->tag, "font")) font_name = ptr->parm;
@@ -510,6 +511,7 @@ handle_asxml_tag_text( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm
 		else if (!strcmp(ptr->tag, "fgcolor")) fgcolor_str = ptr->parm;
 	   	else if (!strcmp(ptr->tag, "bgcolor")) bgcolor_str = ptr->parm;
 		else if (!strcmp(ptr->tag, "type")) type = strtol(ptr->parm, NULL, 0);
+		else if (!strcmp(ptr->tag, "width")) width = strtol(ptr->parm, NULL, 0);
 	}
 	for (ptr = doc->child ; ptr && text == NULL ; ptr = ptr->next)
 		if (!strcmp(ptr->tag, cdata_str)) text = ptr->parm;
@@ -521,7 +523,7 @@ handle_asxml_tag_text( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm
 		if (state->fontman) font = get_asfont(state->fontman, font_name, 0, point, ASF_GuessWho);
 		if (font != NULL) 
 		{
-			ASTextAttributes attr = {ASTA_VERSION_INTERNAL, 0, 0, ASCT_Char, 8, 0, NULL, 0, ARGB32_White }; 
+		  ASTextAttributes attr = {ASTA_VERSION_INTERNAL, 0, 0, ASCT_Char, 8, 0, NULL, 0, ARGB32_White, width};
 			attr.type = type ;
 			if( IsUTF8Locale() ) 
 				attr.char_type = ASCT_UTF8 ;

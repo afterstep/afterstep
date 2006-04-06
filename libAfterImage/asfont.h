@@ -283,7 +283,7 @@ typedef struct ASTextAttributes
 	unsigned int tab_stops_num ;
 
 	ARGB32		fore_color ;   /* used with 3D type of Outlined */
-
+  unsigned int width;
 #define ASTA_VERSION_1	1
 
 #define ASTA_VERSION_INTERNAL	ASTA_VERSION_1

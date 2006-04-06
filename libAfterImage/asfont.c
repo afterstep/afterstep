@@ -1834,6 +1834,32 @@ draw_text_internal( const char *text, ASFont *font, ASTextAttributes *attr, int 
 	CARD32 alpha_7 = 0x007F, alpha_9 = 0x009F, alpha_A = 0x00AF, alpha_C = 0x00CF, alpha_F = 0x00FF, alpha_E = 0x00EF;
 	START_TIME(started);	   
 
+	// Perform line breaks if a fixed width is specified
+	// TODO: this is a quick and dirty fix and should work for now, but we really should fix it 
+	// so we don't have to calculate text size so many times as well as make it UNICODE friendly
+	// and remove mangling of the source text (Sasha): 
+	if (attr->width)
+	{
+        unsigned int width, height; // SMA
+        get_text_size(  text , font, attr->type, &width, &height ); 
+        if ( (width > attr->width)  &&  (strchr(text, ' ')) )
+        {
+          char *tryPtr = strchr(text,' ');
+          char *oldTryPtr = tryPtr;
+          while (tryPtr)
+            {        
+               *tryPtr = 0;
+               get_text_size(  text , font, attr->type, &width, &height ); 
+               if (width > attr->width)
+                   *oldTryPtr = '\n';
+               
+               *tryPtr = ' ';
+               oldTryPtr = tryPtr;
+               tryPtr = strchr(tryPtr + 1,' ');
+            }
+        }
+	}	    
+
 LOCAL_DEBUG_CALLER_OUT( "text = \"%s\", font = %p, compression = %d", text, font, compression );
 	if( !get_text_glyph_map( text, font, &map, attr, length) )
 		return NULL;
