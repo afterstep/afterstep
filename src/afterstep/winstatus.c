@@ -1404,11 +1404,23 @@ init_aswindow_status( ASWindow *t, ASStatusHints *status )
 		t->status->viewport_x = Scr.Vx ;
 		t->status->viewport_y = Scr.Vy ;
 	}
-	if (!get_flags (t->status->flags, AS_Sticky) && 
-		!ASWIN_HFLAGS(t, AS_UseCurrentViewport))
+	if (!get_flags (t->status->flags, AS_Sticky) )
 	{
-		t->status->x -= t->status->viewport_x;
-		t->status->y -= t->status->viewport_y;
+		Bool absolute_origin = (!ASWIN_HFLAGS(t, AS_UseCurrentViewport));
+		
+		if( absolute_origin && 
+			get_flags( t->hints->flags, AS_Transient ) &&
+			get_flags( t->status->flags, AS_StartPositionUser ))
+		{/* most likely stupid KDE or GNOME app that is abusing USPosition 
+			for no good reason - place it on current viewport */
+			absolute_origin = ( t->status->x >= Scr.MyDisplayWidth || 
+								t->status->y >= Scr.MyDisplayHeight ) ;
+		}
+		if( absolute_origin )
+		{	
+			t->status->x -= t->status->viewport_x;
+			t->status->y -= t->status->viewport_y;
+		}
 	}
 	LOCAL_DEBUG_OUT( "status->pos = %+d%+d, Scr.Vpos = %+d%+d", t->status->x, t->status->y, Scr.Vx, Scr.Vy );
 	
@@ -1494,11 +1506,12 @@ init_aswindow_status( ASWindow *t, ASStatusHints *status )
 
     	}else if( get_flags(Scr.Feel.flags, NoPPosition))
 		{ 
-      		if( !get_flags( t->hints->flags, AS_Transient ) && 
-		    	!get_flags( status->flags, AS_StartPositionUser ) )
+		
+      		if( !get_flags( t->hints->flags, AS_Transient ) &&
+				!get_flags( t->status->flags, AS_StartPositionUser ))
 	        	clear_flags( t->status->flags, AS_Position );
 		}
-		 if( get_flags( status->flags, AS_MaximizedX|AS_MaximizedY ))
+		if( get_flags( status->flags, AS_MaximizedX|AS_MaximizedY ))
         	pending_placement = True ;
 		else  if( !get_flags( t->status->flags, AS_Position ))
     	{

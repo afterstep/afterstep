@@ -1301,6 +1301,10 @@ set_client_state (Window w, struct ASStatusHints *status)
 					extwm_states[used++] = _XA_NET_WM_STATE_SKIP_TASKBAR;
 				if (get_flags (old_state, EXTWM_StateSkipPager))
 					extwm_states[used++] = _XA_NET_WM_STATE_SKIP_PAGER;
+				if (get_flags (old_state, EXTWM_StateDemandsAttention))
+					extwm_states[used++] = _XA_NET_WM_STATE_DEMANDS_ATTENTION;
+				if (get_flags (old_state, EXTWM_StateHidden))
+					extwm_states[used++] = _XA_NET_WM_STATE_HIDDEN;
 			}
 			LOCAL_DEBUG_OUT( "window %lX old_extwm_state = 0x%lX, used =  %ld", w, old_state, used );
 

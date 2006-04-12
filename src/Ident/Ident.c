@@ -496,15 +496,17 @@ fill_window_data()
 	name = get_window_name(wd, ASN_ResName, &encoding );
 	add_property( "Resource name:", name, encoding, False );
 
-	sprintf( buf, "%ld ( 0x%lX )", wd->client, wd->client );
+	sprintf( buf, "0x%lX ( %ld )", wd->client, wd->client );
 	add_property("Client Window ID:", buf, AS_Text_ASCII, False);
-	sprintf( buf, "%ld ( 0x%lX )", wd->frame, wd->frame );
+	sprintf( buf, "0x%lX ( %ld )", wd->frame, wd->frame );
 	add_property("Frame Window ID:", buf, AS_Text_ASCII, False);
 	sprintf( buf, "%ldx%ld%+ld%+ld", wd->frame_rect.width, wd->frame_rect.height, wd->frame_rect.x, wd->frame_rect.y );
 	add_property("Frame Geometry:", buf, AS_Text_ASCII, False);
 
 #define SHOW_FLAG(flags,flg)   \
 	do{ if( get_flags( flags, AS_##flg)){ if( buf[0] != '\0' ) strcat( buf, ", "); strcat( buf, #flg );}}while(0)
+#define SHOW_WM_FLAG(flags,flg)   \
+	do{ if( get_flags( flags, flg)){ if( buf[0] != '\0' ) strcat( buf, ", "); strcat( buf, #flg );}}while(0)
 #define SHOW_MWM_FLAG(flags,type,flg)   \
 	do{ if( get_flags( flags, MWM_##type##_##flg)){ if( buf[0] != '\0' ) strcat( buf, ", "); strcat( buf, #flg );}}while(0)
 #define SHOW_EXTWM_FLAG(flags,type,flg)   \
@@ -579,6 +581,57 @@ fill_window_data()
 		ExtendedWMHints *eh = &(raw.extwm_hints);
 		GnomeHints *gh = &(raw.gnome_hints);
 		
+		if (raw.wm_hints)
+		{
+			if( raw.wm_hints->flags != 0 ) 
+			{
+				buf[0] = '\0' ;
+				SHOW_WM_FLAG(raw.wm_hints->flags,UrgencyHint );
+				SHOW_WM_FLAG(raw.wm_hints->flags,InputHint);
+				SHOW_WM_FLAG(raw.wm_hints->flags,StateHint);
+				SHOW_WM_FLAG(raw.wm_hints->flags,IconPixmapHint);
+				SHOW_WM_FLAG(raw.wm_hints->flags,IconWindowHint);
+				SHOW_WM_FLAG(raw.wm_hints->flags,IconPositionHint);
+				SHOW_WM_FLAG(raw.wm_hints->flags,IconMaskHint);
+				SHOW_WM_FLAG(raw.wm_hints->flags,WindowGroupHint);
+				add_property("WM Hints flags:", buf, AS_Text_ASCII, True);
+				if( get_flags (raw.wm_hints->flags, WindowGroupHint) )
+				{
+					sprintf( buf, "0x%lX ( %ld )", raw.wm_hints->window_group, raw.wm_hints->window_group );
+					add_property("WM Group leader:", buf, AS_Text_ASCII, True);
+				}
+			}
+		}
+		if (raw.wm_normal_hints)
+		{
+			if( raw.wm_normal_hints->flags != 0 ) 
+			{
+				buf[0] = '\0' ;
+				SHOW_WM_FLAG(raw.wm_normal_hints->flags,UrgencyHint );
+				SHOW_WM_FLAG(raw.wm_normal_hints->flags,USPosition );
+				SHOW_WM_FLAG(raw.wm_normal_hints->flags,USSize );
+				SHOW_WM_FLAG(raw.wm_normal_hints->flags,PPosition );
+				SHOW_WM_FLAG(raw.wm_normal_hints->flags,PSize );
+				SHOW_WM_FLAG(raw.wm_normal_hints->flags,PMinSize );
+				SHOW_WM_FLAG(raw.wm_normal_hints->flags,PMaxSize );
+				SHOW_WM_FLAG(raw.wm_normal_hints->flags,PResizeInc );
+				SHOW_WM_FLAG(raw.wm_normal_hints->flags,PAspect );
+				SHOW_WM_FLAG(raw.wm_normal_hints->flags,PBaseSize );
+				SHOW_WM_FLAG(raw.wm_normal_hints->flags,PWinGravity );
+				add_property("WM Size Hints flags:", buf, AS_Text_ASCII, True);
+			}
+		}
+		if( raw.transient_for)
+		{
+			sprintf( buf, "0x%lX", raw.transient_for->flags );
+			add_property("flags:", buf, AS_Text_ASCII, False);
+			sprintf( buf, "0x%lX ( %ld )", raw.transient_for->parent, raw.transient_for->parent );
+			add_property("Transient For:", buf, AS_Text_ASCII, False);
+			sprintf( buf, "%+d%+d", raw.transient_for->viewport_x, raw.transient_for->viewport_y);
+			add_property("Transient viewport:", buf, AS_Text_ASCII, False);
+			sprintf( buf, "%ld", raw.transient_for->desktop );
+			add_property("Transient desktop:", buf, AS_Text_ASCII, False);
+		}
 		if (raw.motif_hints)
 		{
 			buf[0] = '\0' ;
@@ -633,7 +686,7 @@ fill_window_data()
 			SHOW_EXTWM_FLAG(eh->state_flags,State,Above );
 			SHOW_EXTWM_FLAG(eh->state_flags,State,Below );
 			SHOW_EXTWM_FLAG(eh->state_flags,State,Hidden );
-
+			SHOW_EXTWM_FLAG(eh->state_flags,State,DemandsAttention );
 			
 			add_property("Extended WM status flags:", buf, AS_Text_ASCII, True);
 		}

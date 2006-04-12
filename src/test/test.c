@@ -208,7 +208,7 @@ main( int argc, char **argv )
     TestState.main_canvas = create_ascanvas( TestState.main_window );
     set_root_clip_area(TestState.main_canvas );
 
-    DoTest_Title();
+    //DoTest_Title();
 
     //DoTest_colorscheme();
 
@@ -342,6 +342,7 @@ Window
 make_test_window()
 {
 	Window        w;
+	XWMHints 	  hints;
 	XSizeHints    shints;
 	ExtendedWMHints extwm_hints ;
 	int x, y ;
@@ -358,15 +359,18 @@ make_test_window()
 
 	set_client_names( w, "Test", "TEST", CLASS_TEST, MyName );
 
-	shints.flags = USPosition|USSize|PMinSize|PMaxSize|PBaseSize|PWinGravity;
-	shints.min_width = shints.min_height = 4;
-	shints.base_width = shints.base_height = 4;
+	hints.flags = UrgencyHint ;
+
+	shints.flags = USPosition|USSize|PMinSize|PBaseSize|PWinGravity;
+	shints.min_width = shints.min_height = 64;
+	shints.base_width = shints.base_height = 64;
 	shints.win_gravity = NorthEastGravity ;
 
 	extwm_hints.pid = getpid();
-	extwm_hints.flags = EXTWM_PID ;
+	extwm_hints.flags = EXTWM_PID|EXTWM_StateSet ;
+	extwm_hints.state_flags = EXTWM_StateDemandsAttention ;
 
-	set_client_hints( w, NULL, &shints, AS_DoesWmDeleteWindow, &extwm_hints );
+	set_client_hints( w, &hints, &shints, AS_DoesWmDeleteWindow, &extwm_hints );
 	set_client_cmd (w);
 
 	/* showing window to let user see that we are doing something */

@@ -524,7 +524,7 @@ typedef struct ExtendedWMHints
                                  EXTWM_StateMaximizedH|EXTWM_StateShaded| \
                                  EXTWM_StateSkipTaskbar|EXTWM_StateSkipPager | \
 								 EXTWM_StateHidden|EXTWM_StateFullscreen| \
-								 EXTWM_StateAbove|EXTWM_StateBelow|StateDemandsAttention)
+								 EXTWM_StateAbove|EXTWM_StateBelow|EXTWM_StateDemandsAttention)
 
   ASFlagType state_flags;
   
