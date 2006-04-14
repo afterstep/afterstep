@@ -962,6 +962,31 @@ configure_tbar_icon( ASTBarData *tbar, ASWindowData *wd )
 	}	 
 }
 
+static void 
+focus_winlist_button( ASWindowData *wd )
+{
+	if( wd->focused ) 
+	{
+		set_astbar_style_ptr( wd->bar, BAR_STATE_FOCUSED, Scr.Look.MSWindow[BACK_FOCUSED] );
+		set_astbar_focused( wd->bar, NULL, True );
+        if( WinListState.focused && WinListState.focused != wd )
+		{
+			WinListState.focused->focused = False ; 
+			focus_winlist_button( WinListState.focused );
+		}
+		WinListState.focused = wd ;
+	}else
+	{
+		if( get_flags(wd->state_flags, AS_Urgent) && Scr.Look.MSWindow[BACK_URGENT] != NULL )
+		{
+	    	set_astbar_style_ptr( wd->bar, BAR_STATE_FOCUSED, Scr.Look.MSWindow[BACK_URGENT] );
+			set_astbar_focused( wd->bar, NULL, True );
+		}else
+			set_astbar_focused( wd->bar, NULL, False );
+	}
+	if( DoesBarNeedsRendering(wd->bar) )
+		render_astbar( wd->bar, WinListState.main_canvas );		
+}
 
 static void
 configure_tbar_props( ASTBarData *tbar, ASWindowData *wd, Bool focus_only )
@@ -981,6 +1006,7 @@ configure_tbar_props( ASTBarData *tbar, ASWindowData *wd, Bool focus_only )
 				   
     	delete_astbar_tile( tbar, -1 );
 		LOCAL_DEBUG_OUT( "setting bar border to %+d, %+d", tbar->h_border, tbar->v_border );
+
     	set_astbar_style_ptr( tbar, BAR_STATE_FOCUSED, Scr.Look.MSWindow[BACK_FOCUSED] );
 		if( WinListState.tbar_props )
 		{
@@ -1020,12 +1046,12 @@ configure_tbar_props( ASTBarData *tbar, ASWindowData *wd, Bool focus_only )
     	{
         	set_astbar_style_ptr( tbar, BAR_STATE_UNFOCUSED, Scr.Look.MSWindow[BACK_STICKY] );
         	set_astbar_hilite( tbar, BACK_UNFOCUSED, sbevel );
-        	set_astbar_composition_method( tbar, BACK_FOCUSED, Config->SCompositionMethod );
+        	set_astbar_composition_method( tbar, BACK_UNFOCUSED, Config->SCompositionMethod );
     	}else
     	{
         	set_astbar_style_ptr( tbar, BAR_STATE_UNFOCUSED, Scr.Look.MSWindow[BACK_UNFOCUSED] );
         	set_astbar_hilite( tbar, BACK_UNFOCUSED, ubevel );
-        	set_astbar_composition_method( tbar, BACK_FOCUSED, Config->UCompositionMethod );
+        	set_astbar_composition_method( tbar, BACK_UNFOCUSED, Config->UCompositionMethod );
     	}
 		
 		if( get_flags( Config->flags, ASWL_ShowIcon ) && (Config->IconLocation%10 == 5 ))
@@ -1049,18 +1075,7 @@ configure_tbar_props( ASTBarData *tbar, ASWindowData *wd, Bool focus_only )
 
 		set_astbar_balloon( tbar, 0, name, encoding );
 	}
-    set_astbar_focused( tbar, WinListState.main_canvas, wd->focused );
-    if( wd->focused )
-	{
-        if( WinListState.focused && WinListState.focused != wd )
-		{
-			WinListState.focused->focused = False ;
-			set_astbar_focused( WinListState.focused->bar, WinListState.main_canvas, False );
-			if( focus_only ) 
-				render_astbar( WinListState.focused->bar, WinListState.main_canvas );
-		}
-		WinListState.focused = wd ;
-    }
+	focus_winlist_button( wd );
 }
 
 void

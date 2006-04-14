@@ -535,6 +535,7 @@ fill_window_data()
 	SHOW_FLAG(wd->state_flags,Shaped);
 	SHOW_FLAG(wd->state_flags,ShapedDecor);
 	SHOW_FLAG(wd->state_flags,ShapedIcon);
+	SHOW_FLAG(wd->state_flags,Urgent);
 		   
 	add_property("Current state flags:", buf, AS_Text_ASCII, True);
 	
@@ -607,7 +608,6 @@ fill_window_data()
 			if( raw.wm_normal_hints->flags != 0 ) 
 			{
 				buf[0] = '\0' ;
-				SHOW_WM_FLAG(raw.wm_normal_hints->flags,UrgencyHint );
 				SHOW_WM_FLAG(raw.wm_normal_hints->flags,USPosition );
 				SHOW_WM_FLAG(raw.wm_normal_hints->flags,USSize );
 				SHOW_WM_FLAG(raw.wm_normal_hints->flags,PPosition );
@@ -620,6 +620,16 @@ fill_window_data()
 				SHOW_WM_FLAG(raw.wm_normal_hints->flags,PWinGravity );
 				add_property("WM Size Hints flags:", buf, AS_Text_ASCII, True);
 			}
+			if( get_flags(raw.wm_normal_hints->flags, PWinGravity ) && 
+				raw.wm_normal_hints->win_gravity >= 0 && raw.wm_normal_hints->win_gravity <= StaticGravity ) 
+			{
+				static char *gravity_types[] = 
+					{"Forget","NorthWest","North","NorthEast","West",
+					 "Center","East","SouthWest","South","SouthEast",
+					 "Static" };
+
+					add_property("Gravity:", gravity_types[raw.wm_normal_hints->win_gravity], AS_Text_ASCII, True);
+			}
 		}
 		if( raw.transient_for)
 		{
@@ -629,7 +639,7 @@ fill_window_data()
 			add_property("Transient For:", buf, AS_Text_ASCII, False);
 			sprintf( buf, "%+d%+d", raw.transient_for->viewport_x, raw.transient_for->viewport_y);
 			add_property("Transient viewport:", buf, AS_Text_ASCII, False);
-			sprintf( buf, "%ld", raw.transient_for->desktop );
+			sprintf( buf, "%d", raw.transient_for->desktop );
 			add_property("Transient desktop:", buf, AS_Text_ASCII, False);
 		}
 		if (raw.motif_hints)
