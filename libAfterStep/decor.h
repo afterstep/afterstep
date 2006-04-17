@@ -143,6 +143,8 @@ typedef struct ASTile {
 typedef struct ASTBarData {
 #define BAR_STATE_UNFOCUSED		0
 #define BAR_STATE_FOCUSED		(0x01<<0)
+#define IsASTBarFocused(pb) 	get_flags((pb)->state, BAR_STATE_FOCUSED )
+
 #define BAR_STATE_NUM			2
 #define BAR_STATE_FOCUS_MASK	(0x01<<0)
 #define BAR_STATE_PRESSED		(0x01<<1)

@@ -962,9 +962,19 @@ configure_tbar_icon( ASTBarData *tbar, ASWindowData *wd )
 	}	 
 }
 
+void
+do_blink_urgent_bar( void *vdata )
+{
+	ASTBarData *tbar = (ASTBarData *)vdata ;
+	set_astbar_focused( tbar, WinListState.main_canvas, !IsASTBarFocused(tbar) );
+	timer_new (500, do_blink_urgent_bar, tbar);	
+}
+
 static void 
 focus_winlist_button( ASWindowData *wd )
 {
+	timer_remove_by_data( wd->bar );  /* just in case */ 
+
 	if( wd->focused ) 
 	{
 		set_astbar_style_ptr( wd->bar, BAR_STATE_FOCUSED, Scr.Look.MSWindow[BACK_FOCUSED] );
@@ -981,6 +991,7 @@ focus_winlist_button( ASWindowData *wd )
 		{
 	    	set_astbar_style_ptr( wd->bar, BAR_STATE_FOCUSED, Scr.Look.MSWindow[BACK_URGENT] );
 			set_astbar_focused( wd->bar, NULL, True );
+			timer_new (500, do_blink_urgent_bar, wd->bar);	
 		}else
 			set_astbar_focused( wd->bar, NULL, False );
 	}
@@ -1132,6 +1143,9 @@ LOCAL_DEBUG_OUT("tbar = %p, wd = %p", tbar, wd );
 
     if( WinListState.focused == wd )
 		WinListState.focused = NULL ;
+
+	if( tbar )
+		timer_remove_by_data( tbar );  /* just in case */ 
 
     if( i < WinListState.windows_num  )
     {
