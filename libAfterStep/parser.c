@@ -18,7 +18,7 @@
  *
  */
 
-#undef LOCAL_DEBUG
+#define LOCAL_DEBUG
 #undef DO_CLOCKING
 #undef UNKNOWN_KEYWORD_WARNING
 
@@ -78,20 +78,35 @@ keyword_id2keyword( int id )
 	return _unknown_keyword;
 }
 
+
+void 
+flush_keyword_ids() 
+{
+	if( Keyword2IDHash != NULL )
+		destroy_ashash( &Keyword2IDHash );
+}
+
 void
 BuildHash (SyntaxDef * syntax)
 {
 	register int  i;
 
+	LOCAL_DEBUG_CALLER_OUT( "syntax = \"%s\"", syntax->display_name ); 		
+
 	if (syntax->term_hash_size <= 0)
 		syntax->term_hash_size = TERM_HASH_SIZE;
 	if (syntax->term_hash == NULL)
+	{
 		syntax->term_hash = create_ashash (syntax->term_hash_size, option_hash_value, option_compare, NULL);
+		LOCAL_DEBUG_OUT( "created hash %p", syntax->term_hash ); 		
+	}
+	LOCAL_DEBUG_OUT( "adding hash entries ... %s", "" ); 		
 	for (i = 0; syntax->terms[i].keyword; i++)
 	{	
 		add_hash_item (syntax->term_hash, AS_HASHABLE(syntax->terms[i].keyword), (void *)&(syntax->terms[i]));
 		register_keyword_id( syntax->terms[i].keyword, syntax->terms[i].id );
 	}
+	LOCAL_DEBUG_OUT( "%d hash entries added.", i ); 		
 }
 
 void
@@ -123,6 +138,8 @@ FreeSyntaxHash (SyntaxDef * syntax)
 	if (syntax)
 	{
 		register int  i;
+
+ 		LOCAL_DEBUG_CALLER_OUT( "syntax = \"%s\", recursion = %d", syntax->display_name, syntax->recursion ); 		
 
 		if (syntax->recursion > 0)
 			return;

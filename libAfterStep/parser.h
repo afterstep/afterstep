@@ -253,6 +253,8 @@ typedef union
 
 void register_keyword_id( const char *keyword, int id );
 const char* keyword_id2keyword( int id );	
+void flush_keyword_ids();
+
 
 void BuildHash (SyntaxDef * syntax);
 void PrepareSyntax (SyntaxDef * syntax);

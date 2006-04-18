@@ -35,6 +35,7 @@
 #include "session.h"
 #include "balloon.h"
 #include "mystyle.h"
+#include "mylook.h"
 #include "wmprops.h"
 #include "desktop_category.h"
 #include "../libAfterImage/xpm.h"
@@ -328,7 +329,7 @@ CommandLineOpts as_standard_cmdl_options[STANDARD_CMDL_OPTS_NUM] =
 /*17*/{"l", "log","Save all output into the file", "(instead of printing it to console)",
                                                            handler_set_string, &(as_app_args.log_file), 0, CMO_HasArgs },
 /*18*/{"L", "locale","Set language locale", "to be used while displaying text",
-                                                           handler_set_string, &(as_app_args.locale), 0, CMO_HasArgs },
+                                                           handler_set_dup_string, &(as_app_args.locale), 0, CMO_HasArgs },
 /*19*/{NULL, "myname","Overrides module name", "will be used while parsing config files\nand reporting to AfterStep",
                                                            handler_set_string, &(MyName), 0, CMO_HasArgs },
 /*20*/{NULL, "geometry","Overrides module's geometry", NULL,
@@ -439,6 +440,18 @@ void  handler_set_string( char *argv, void *trg, long param )
     if( argv )
         *s = argv;
 }
+
+void  handler_set_dup_string( char *argv, void *trg, long param )
+{
+    register char **s = trg;
+    if( argv )
+	{
+    	if( *s ) 
+			free( *s );
+	    *s = mystrdup(argv);
+	}
+}
+
 void  handler_set_int( char *argv, void *trg, long param )
 {
     register int *i = trg ;
@@ -593,14 +606,16 @@ InitMyApp (  const char *app_class, int argc, char **argv, void (*version_func) 
         }
     }
 
-    fd_width = get_fd_width ();
-
-    if (FuncSyntax.term_hash == NULL)
-		PrepareSyntax (&FuncSyntax);
     set_output_threshold( as_app_args.verbosity_level );
     if(as_app_args.log_file)
 		if( freopen( as_app_args.log_file, get_flags( as_app_args.flags, ASS_Restarting)?"a":"w", stderr ) == NULL )
 	    	show_system_error( "failed to redirect output into file \"%s\"", as_app_args.log_file );
+
+
+    fd_width = get_fd_width ();
+
+    if (FuncSyntax.term_hash == NULL)
+		PrepareSyntax (&FuncSyntax);
 
 	if( as_app_args.locale && strlen(as_app_args.locale) > 0)
 	{
@@ -908,17 +923,18 @@ FreeMyAppResources()
     balloon_init (True);
 	destroy_asdatabase();
     mystyle_destroy_all();
+    mylook_init( &(ASDefaultScr->Look), True, ASFLAGS_EVERYTHING );
     destroy_image_manager( ASDefaultScr->image_manager, False );
     destroy_font_manager( ASDefaultScr->font_manager, False );
     clientprops_cleanup ();
     destroy_wmprops (ASDefaultScr->wmprops, False);
     wmprops_cleanup ();
     free_func_hash();
+	flush_keyword_ids();
     purge_asimage_registry();
 	asxml_var_cleanup();
 	custom_color_cleanup();
     build_xpm_colormap( NULL );
-    flush_ashash_memory_pool();
     destroy_screen_gcs(ASDefaultScr);
 	if( ASDefaultScr->RootImage ) 
 	{	
@@ -935,13 +951,15 @@ FreeMyAppResources()
     destroy_assession( Session );
 	Session = NULL ;
 	destroy_asenvironment( &Environment );
+	if( as_app_args.locale ) 
 	is_executable_in_path ( NULL );
 #ifdef XSHMIMAGE
 	flush_shm_cache();
 #endif
 	free( ASDefaultScr );
 	flush_default_asstorage();
-
+	free( as_app_args.locale );
+    flush_ashash_memory_pool();
 }
 
 

@@ -207,16 +207,22 @@ destroy_desktop_entry( ASDesktopEntry** pde )
 			FREE_ASDE_VAL(SortOrder) ;
 
 			FREE_ASDE_VAL(Categories) ;
+			FREE_ASDE_VAL(Aliases) ;
 			FREE_ASDE_VAL(OnlyShowIn) ;
 			FREE_ASDE_VAL(NotShowIn) ;
 			FREE_ASDE_VAL(StartupWMClass) ;
 
 			FREE_ASDE_VAL(IndexName) ;
-			FREE_ASDE_VAL(Aliases) ;
-			
-			FREE_ASDE_VAL(categories_shortcuts) ; 
-			FREE_ASDE_VAL(show_in_shortcuts) ; 
+
+#define FREE_ASDE_VAL_LIST(val,num)	\
+			if( de->val ){	/*for( i = 0 ; i < de->num ; ++i ) destroy_string(&(de->val[i])) ;*/ \
+							free( de->val ); }
+
+			FREE_ASDE_VAL(aliases_shortcuts);
+			FREE_ASDE_VAL(categories_shortcuts);
+			FREE_ASDE_VAL(show_in_shortcuts); 
 			FREE_ASDE_VAL(not_show_in_shortcuts);
+			
 			FREE_ASDE_VAL(fulliconname);
 			FREE_ASDE_VAL(clean_exec);
 			FREE_ASDE_VAL(origin);

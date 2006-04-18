@@ -156,12 +156,20 @@ void handle_ShmCompletion(ASEvent *event);
     do{ if( get_output_threshold() >= OUTPUT_LEVEL_DEBUG ){ \
         	show_progress("****************************************************************"); \
         	show_progress("%s:%s:%d><<EVENT type(%d(%s))->x.window(%lx)->event.w(%lx)->client(%p)->context(%s)->send_event(%d)", __FILE__, __FUNCTION__, __LINE__, event->x.type, event_type2name((event)->x.type), (event)->x.xany.window, (event)->w, (event)->client, context2text((event)->context), (event)->x.xany.send_event); \
-    	}}while(0)
+			if( event->x.type == PropertyNotify ) { \
+				char *atom_name = XGetAtomName(dpy, event->x.xproperty.atom); \
+				LOCAL_DEBUG_OUT( "\tproperty %s(%lX), _XROOTPMAP_ID = %lX, event->w = %lX, root = %lX", atom_name, event->x.xproperty.atom, _XROOTPMAP_ID, event->w, Scr.Root ); \
+				XFree( atom_name ); \
+	}}}while(0)
 #else
 #define SHOW_EVENT_TRACE(event) \
 	do{ 	show_progress("****************************************************************"); \
         	show_progress("%s:%s:%d><<EVENT type(%d(%s))->x.window(%lx)->event.w(%lx)->client(%p)->context(%s)->send_event(%d)", __FILE__, __FUNCTION__, __LINE__, event->x.type, event_type2name((event)->x.type), (event)->x.xany.window, (event)->w, (event)->client, context2text((event)->context), (event)->x.xany.send_event); \
-    }while(0)
+			if( event->x.type == PropertyNotify ) { \
+				char *atom_name = XGetAtomName(dpy, event->x.xproperty.atom); \
+				LOCAL_DEBUG_OUT( "\tproperty %s(%lX), _XROOTPMAP_ID = %lX, event->w = %lX, root = %lX", atom_name, event->x.xproperty.atom, _XROOTPMAP_ID, event->w, Scr.Root ); \
+				XFree( atom_name ); \
+	}}while(0)
 #endif
 
 

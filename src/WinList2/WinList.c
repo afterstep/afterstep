@@ -203,11 +203,15 @@ DeadPipe (int nonsense)
         destroy_ascanvas( &WinListState.main_canvas );
     if( WinListState.main_window )
         XDestroyWindow( dpy, WinListState.main_window );
-    
-	FreeMyAppResources();
+
+	destroy_astbar_props( &(WinListState.tbar_props) );
+	    
+	DestroyCategories();
     
 	if( Config )
         DestroyWinListConfig(Config);
+
+	FreeMyAppResources();
 
 #ifdef DEBUG_ALLOCS
     print_unfreed_mem ();
@@ -290,6 +294,7 @@ GetOptions (const char *filename)
 
     if (config->style_defs)
         ProcessMyStyleDefinitions (&(config->style_defs));
+	DestroyWinListConfig( config );
     SHOW_TIME("Config parsing",option_time);
 }
 
@@ -403,7 +408,6 @@ DispatchEvent (ASEvent * event)
 			}
 	        break;
 	    case PropertyNotify:
-			LOCAL_DEBUG_OUT( "property %s(%lX), _XROOTPMAP_ID = %lX, event->w = %lX, root = %lX", XGetAtomName(dpy, event->x.xproperty.atom), event->x.xproperty.atom, _XROOTPMAP_ID, event->w, Scr.Root );
 			if( event->w == Scr.Root || event->w == Scr.wmprops->selection_window ) 
 			{
 				handle_wmprop_event (Scr.wmprops, &(event->x));

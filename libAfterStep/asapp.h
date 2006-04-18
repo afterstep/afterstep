@@ -124,6 +124,7 @@ int   match_command_line_opt( char *argvi, CommandLineOpts *options );
 void  handler_show_info( char *argv, void *trg, long param );
 void  handler_set_flag( char *argv, void *trg, long param );
 void  handler_set_string( char *argv, void *trg, long param );
+void  handler_set_dup_string( char *argv, void *trg, long param );
 void  handler_set_int( char *argv, void *trg, long param );
 void  handler_set_geometry( char *argv, void *trg, long param );
 void  handler_set_gravity( char *argv, void *trg, long param );

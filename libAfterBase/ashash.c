@@ -27,7 +27,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-/*#define LOCAL_DEBUG*/
+#define LOCAL_DEBUG
 
 #include "astypes.h"
 #include "ashash.h"
@@ -42,10 +42,13 @@ static unsigned int deallocated_used = 0 ;
 static inline void 
 free_ashash_item( ASHashItem *item ) 
 {
+
+#ifndef DEBUG_ALLOCS
 	if( deallocated_used < DEALLOC_CACHE_SIZE )
     {
     	deallocated_mem[deallocated_used++] = item ;
     }else
+#endif
         free( item );
 }
 
@@ -71,7 +74,7 @@ desc_long_compare_func (ASHashableValue value1, ASHashableValue value2)
 void
 init_ashash (ASHashTable * hash, Bool freeresources)
 {
-LOCAL_DEBUG_CALLER_OUT( " has = %p, free ? %d", hash, freeresources );
+	LOCAL_DEBUG_CALLER_OUT( " hash = %p, free ? %d", hash, freeresources );
 	if (hash)
 	{
 		if (freeresources)
@@ -89,10 +92,13 @@ create_ashash (ASHashKey size,
 {
 	ASHashTable  *hash;
 
+	LOCAL_DEBUG_CALLER_OUT( " size = %d", size );
+
 	if (size <= 0)
 		size = DEFAULT_HASH_SIZE;
 
 	hash = safemalloc (sizeof (ASHashTable));
+
 	init_ashash (hash, False);
 
 	hash->buckets = safecalloc (size, sizeof (ASHashBucket));
@@ -131,7 +137,7 @@ destroy_ashash_bucket (ASHashBucket * bucket, void (*item_destroy_func) (ASHasha
 void
 flush_ashash (ASHashTable * hash)
 {
-LOCAL_DEBUG_CALLER_OUT( " hash = %p, *hash = %p", hash, *hash  );
+LOCAL_DEBUG_CALLER_OUT( " hash = %p", hash  );
 	if (hash)
 	{
 		register int  i = hash->size;
@@ -194,7 +200,6 @@ check_hash_item_reused (ASHashItem *item)
 	return (deallocated_mem[deallocated_used] == item );
 }
 
-
 ASHashResult
 add_hash_item (ASHashTable * hash, ASHashableValue value, void *data)
 {
@@ -204,15 +209,18 @@ add_hash_item (ASHashTable * hash, ASHashableValue value, void *data)
 
 	if (hash == NULL)
         return ASH_BadParameter;
-
 	key = hash->hash_func (value, hash->size);
 	if (key >= hash->size)
         return ASH_BadParameter;
 
+#ifndef DEBUG_ALLOCS
     if( deallocated_used > 0 )
         item = deallocated_mem[--deallocated_used];
     else
+#endif	
         item = safecalloc (1, sizeof (ASHashItem));
+
+	LOCAL_DEBUG_OUT( "hash %p, value 0x%lX, data = %p, item = %p ", hash, value, data, item );
 
 	item->next = NULL;
 	item->value = value;

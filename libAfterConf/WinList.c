@@ -415,6 +415,7 @@ MergeWinListOptions ( WinListConfig *to, WinListConfig *from)
         {
             destroy_string_list( to->Action[i] );
             to->Action[i] = from->Action[i];
+			from->Action[i] = NULL ;
         }
 
     if( to->balloon_conf )
