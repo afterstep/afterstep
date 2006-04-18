@@ -27,7 +27,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define LOCAL_DEBUG
+#undef LOCAL_DEBUG
 
 #include "astypes.h"
 #include "ashash.h"

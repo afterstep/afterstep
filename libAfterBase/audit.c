@@ -180,7 +180,7 @@ void mem_destroy (ASHashableValue value,void *data)
         {
             if( total_service < sizeof(mem) )
 			{
-                show_error( "it seems that we have too little auditing memory (%lu) while deallocating pointer %p.\n   Called from %s:%d", total_service, ((mem*)data)->ptr, ((mem*)data)->fname, ((mem*)data)->line );
+                show_error( "MEMORY AUDIT: it seems that we have too little auditing memory (%lu) while deallocating pointer %p.\n   Called from %s:%d", total_service, ((mem*)data)->ptr, ((mem*)data)->fname, ((mem*)data)->line );
 #ifdef DEBUG_ALLOC_STRICT
 {	char *segv = NULL ;	*segv = 0 ;  }
 #endif
@@ -205,8 +205,10 @@ count_alloc (const char *fname, int line, void *ptr, size_t length, int type)
 	{
 		service_mode++ ;
 		allocs_hash = create_ashash( 256, pointer_hash_value, NULL, mem_destroy );
+		fprintf( stderr, "MEMORY AUDIT: count_alloc() called from %s:%d: allocs hash table created with pointer %p\n", fname, line, allocs_hash );
 		service_mode-- ;
-	}
+	}else if( ptr == allocs_hash ) 
+		return;		
 
 	if( get_hash_item( allocs_hash, (ASHashableValue)ptr, &hdata.vptr ) == ASH_Success )
 	{
@@ -311,8 +313,8 @@ count_find_and_extract (const char *fname, int line, void *ptr, int type)
 		if( remove_hash_item (allocs_hash, AS_HASHABLE(ptr), &hd.vptr, False) == ASH_Success )
 		{
 			m = hd.vptr ;
-			if( allocs_hash->items_num <= 0 )
-				destroy_ashash(&allocs_hash);
+//			if( allocs_hash->items_num <= 0 )
+//				destroy_ashash(&allocs_hash);
 			if( (m->type & 0xff) != (type & 0xff) && (m->type & 0xff) != C_IMAGE )
 			{
             	show_error( "while deallocating pointer %p discovered that it was allocated with different type\n   Called from %s:%d", ptr, fname, line );
@@ -509,14 +511,18 @@ countadd_hash_item (const char *fname, int line, struct ASHashTable *hash, ASHas
 {
 	ASHashResult   res = add_hash_item(hash, value, data );
 
-	if( res == ASH_Success )
-	{	
-		if( check_hash_item_reused (hash->most_recent) )
+	show_debug(  __FILE__, __FUNCTION__, __LINE__, "add_hash_item called from %s:%d with args %p, %lX, %p", fname, line, hash, value, data );
+	if( hash != allocs_hash ) 
+	{
+		if( res == ASH_Success )
 		{	
-			show_debug( __FILE__, fname, line, "reused hash item %p", hash->most_recent );
-			count_alloc (fname, line, hash->most_recent, sizeof(ASHashItem), C_MEM | C_ADD_HASH_OPTIONAL_ITEM );
-    	}else 
-			count_alloc (fname, line, hash->most_recent, sizeof(ASHashItem), C_MEM | C_ADD_HASH_ITEM);
+			if( check_hash_item_reused (hash->most_recent) )
+			{	
+				show_debug( __FILE__, fname, line, "reused hash item %p", hash->most_recent );
+				count_alloc (fname, line, hash->most_recent, sizeof(ASHashItem), C_MEM | C_ADD_HASH_OPTIONAL_ITEM );
+    		}else 
+				count_alloc (fname, line, hash->most_recent, sizeof(ASHashItem), C_MEM | C_ADD_HASH_ITEM);
+		}
 	}
 	return res;
 }
@@ -579,6 +585,7 @@ output_unfreed_mem (FILE *stream)
 			continue;
 		}else if (m->freed == 0)
 		{
+			
 			if( strcmp( m->fname, "asimage_apply_buffer" ) == 0 ) 
 				asimage_apply_buffer_sum += (long)m->length ;
 			else if( strcmp( m->fname, "load_freetype_locale_glyph" ) == 0 ) 
@@ -606,7 +613,7 @@ output_unfreed_mem (FILE *stream)
                       fprintf (stream, " (add_hash_item)");
 					  break;
 				  case C_ADD_HASH_OPTIONAL_ITEM :
-                      fprintf (stream, " (add_hash_item)");
+                      fprintf (stream, " (add_hash_item - reused)");
 					  break;
 				  case C_MYSTRDUP:
                       fprintf (stream, " (mystrdup)");
