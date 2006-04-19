@@ -368,7 +368,8 @@ make_test_window()
 
 	extwm_hints.pid = getpid();
 	extwm_hints.flags = EXTWM_PID|EXTWM_StateSet ;
-	extwm_hints.state_flags = EXTWM_StateDemandsAttention ;
+
+//	extwm_hints.state_flags = EXTWM_StateDemandsAttention ;
 
 	set_client_hints( w, &hints, &shints, AS_DoesWmDeleteWindow, &extwm_hints );
 	set_client_cmd (w);

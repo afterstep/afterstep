@@ -1471,6 +1471,8 @@ destroy_hints (ASHints * clean, Bool reusable)
 			free (clean->cmap_windows);
 		if (clean->icon_file)
 			free (clean->icon_file);
+		if( clean->icon_argb )
+			free( clean->icon_argb );
 		if (clean->frame_name)
 			free (clean->frame_name);
         if (clean->windowbox_name)

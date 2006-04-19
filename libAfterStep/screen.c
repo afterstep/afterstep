@@ -262,7 +262,11 @@ ConnectXDisplay (Display *display, ScreenInfo * scr, Bool as_manager)
 	if( scr == NULL ) 
 	{
 		if( ASDefaultScr == NULL ) 
+		{
 			ASDefaultScr = safecalloc( 1, sizeof(ScreenInfo));
+			ASDefaultScr->Look.magic = MAGIC_MYLOOK ;
+
+		}
 		scr = ASDefaultScr ;
 	}
 

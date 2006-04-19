@@ -1287,10 +1287,11 @@ set_client_state (Window w, struct ASStatusHints *status)
 				extwm_states[used++] = _XA_NET_WM_STATE_MAXIMIZED_VERT;
 				gnome_state |= WIN_STATE_MAXIMIZED_VERT;
 			}
-			if (get_flags (status->flags, AS_Urgent))
+/*			if (get_flags (status->flags, AS_Urgent))
 			{
 				extwm_states[used++] = _XA_NET_WM_STATE_DEMANDS_ATTENTION;
 			}
+ */			
 
 /*			LOCAL_DEBUG_OUT( "window %lX used =  %ld", w, used ); */
 			if( get_extwm_state_flags (w, &old_state) )

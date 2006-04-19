@@ -882,6 +882,9 @@ on_window_hints_changed( ASWindow *asw )
     static ASRawHints raw_hints ;
     ASHints *hints = NULL, *old_hints = NULL;
 	Bool tie_changed = False;
+	ASStatusHints scratch_status ; /* all we need from it is AS_Urgent state change */
+	Bool status_changed = False;
+	
 
     if( AS_ASSERT(asw) )
         return ;
@@ -891,8 +894,12 @@ on_window_hints_changed( ASWindow *asw )
         return ;
     if( is_output_level_under_threshold(OUTPUT_LEVEL_HINTS) )
         print_hints( NULL, NULL, &raw_hints );
-    hints = merge_hints( &raw_hints, Database, NULL, Scr.Look.supported_hints, HINT_ANY, NULL, asw->w );
-    destroy_raw_hints( &raw_hints, True );
+
+	memset( &scratch_status, 0x00, sizeof( scratch_status ) );
+			
+    hints = merge_hints( &raw_hints, Database, &scratch_status, Scr.Look.supported_hints, HINT_ANY, NULL, asw->w );
+    
+	destroy_raw_hints( &raw_hints, True );
     if( hints )
     {
         show_debug( __FILE__, __FUNCTION__, __LINE__,  "Window management hints collected and merged for window %X", asw->w );
@@ -922,7 +929,28 @@ on_window_hints_changed( ASWindow *asw )
     /* we do not want to do a complete refresh of decorations -
 	 * we want to do only what is neccessary: */
 
+	if( get_flags( scratch_status.flags, AS_Urgent ) )
+	{
+		if( !get_flags( asw->status->flags, AS_Urgent ) )
+		{
+			set_flags( asw->status->flags, AS_Urgent );
+			status_changed = True ;				
+		}
+	}else if( get_flags( asw->status->flags, AS_Urgent ) )
+	{
+		ASFlagType extwm_state = 0 ;
+		
+		if( get_extwm_state_flags (asw->w, &extwm_state) )
+			if ( !get_flags (extwm_state, EXTWM_StateDemandsAttention))
+			{
+				clear_flags( asw->status->flags, AS_Urgent );
+				status_changed = True ;				
+			}
+	}
 	if( hints2decorations( asw, old_hints ) )
+		status_changed = True ;
+	
+	if( status_changed) 
 	    on_window_status_changed( asw, False, True );
 
 	if( mystrcmp( old_hints->res_name, hints->res_name ) != 0 || 
