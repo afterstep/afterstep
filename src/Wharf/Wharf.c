@@ -350,7 +350,6 @@ DeadPipe (int nonsense)
     destroy_ashash( &(WharfState.win2obj_xref) );
     destroy_ashash( &(WharfState.swallow_targets) );
     window_data_cleanup();
-
     FreeMyAppResources();
 #ifdef DEBUG_ALLOCS
 /* normally, we let the system clean up, but when auditing time comes
@@ -549,6 +548,7 @@ SHOW_CHECKPOINT;
         ProcessMyStyleDefinitions (&(config->style_defs));
 
     DestroyWharfConfig (config);
+	FreeSyntaxHash( &WharfFolderSyntax );
     SHOW_TIME("Config parsing",option_time);
 }
 /*****************************************************************************
