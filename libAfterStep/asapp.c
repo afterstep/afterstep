@@ -574,6 +574,7 @@ InitMyApp (  const char *app_class, int argc, char **argv, void (*version_func) 
 
 
     ASDefaultScr = safecalloc(1, sizeof(ScreenInfo));
+	init_ScreenInfo(ASDefaultScr);
 
     if( argc > 0 && argv )
     {

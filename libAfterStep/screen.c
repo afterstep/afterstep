@@ -247,6 +247,16 @@ ASErrorHandler (Display * dpy, XErrorEvent * event)
 }
 
 
+void 
+init_ScreenInfo(ScreenInfo *scr) 
+{
+	if( scr )
+	{
+		memset (scr, 0x00, sizeof (ScreenInfo));
+		scr->Look.magic = MAGIC_MYLOOK ;
+	}
+}
+
 int
 ConnectXDisplay (Display *display, ScreenInfo * scr, Bool as_manager)
 {
@@ -262,13 +272,11 @@ ConnectXDisplay (Display *display, ScreenInfo * scr, Bool as_manager)
 	if( scr == NULL ) 
 	{
 		if( ASDefaultScr == NULL ) 
-		{
 			ASDefaultScr = safecalloc( 1, sizeof(ScreenInfo));
-			ASDefaultScr->Look.magic = MAGIC_MYLOOK ;
-
-		}
 		scr = ASDefaultScr ;
 	}
+
+	init_ScreenInfo(scr);	
 
 	x_fd = XConnectionNumber (dpy);
 
@@ -287,8 +295,6 @@ ConnectXDisplay (Display *display, ScreenInfo * scr, Bool as_manager)
 
     intern_hint_atoms ();
     intern_wmprop_atoms ();
-
-	memset (scr, 0x00, sizeof (ScreenInfo));
 
 	scr->screen = DefaultScreen (dpy);
 	scr->Root = RootWindow (dpy, scr->screen);

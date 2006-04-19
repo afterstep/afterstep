@@ -159,6 +159,7 @@ typedef struct ScreenInfo
 
 }ScreenInfo;
 
+void init_ScreenInfo(ScreenInfo *scr);
 void init_screen_gcs(ScreenInfo *scr);
 void destroy_screen_gcs(ScreenInfo *scr);
 
