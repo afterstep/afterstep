@@ -352,6 +352,12 @@ DeadPipe (int nonsense)
 
     if( Config )
         DestroyPagerConfig (Config);
+	destroy_astbar_props( &(PagerState.tbar_props) );
+    free_button_resources( &PagerState.shade_button );
+
+    if( Config->MSDeskBack  )
+        free( Config->MSDeskBack );
+	free( PagerState.desks );
 
     FreeMyAppResources();
 #ifdef DEBUG_ALLOCS

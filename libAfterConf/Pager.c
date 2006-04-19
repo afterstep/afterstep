@@ -222,10 +222,25 @@ CreatePagerConfig (int ndesks)
 void
 DestroyPagerConfig (PagerConfig * config)
 {
+	int i ;
 	if (config->labels)
+	{
+		for( i = 0 ; i < config->ndesks ; ++i )
+			if( config->labels[i] ) 
+				free( config->labels[i] );
 		free (config->labels);
+	}
 	if (config->styles)
+	{
+		for( i = 0 ; i < config->ndesks ; ++i )
+			if( config->styles[i] ) 
+				free( config->styles[i] );
 		free (config->styles);
+	}
+    destroy_string( &(config->selection_color) );
+    destroy_string( &(config->grid_color));
+    destroy_string( &(config->border_color));
+
 /*
     if( config->shade_button[0] )
         free (config->shade_button[0]);
