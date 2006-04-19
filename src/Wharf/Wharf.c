@@ -348,6 +348,7 @@ DeadPipe (int nonsense)
 	destroy_wharf_folder( &(WharfState.root_folder) );
     DestroyWharfConfig( Config );
     destroy_ashash( &(WharfState.win2obj_xref) );
+    destroy_ashash( &(WharfState.swallow_targets) );
     window_data_cleanup();
 
     FreeMyAppResources();
