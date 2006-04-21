@@ -270,6 +270,20 @@ process_message (unsigned long type, unsigned long *body)
     LOCAL_DEBUG_OUT( "received message %lX", type );
 }
 
+void toggle_urgency_hint()
+{
+	static Bool urgency_is_on = True ;
+	XWMHints 	  hints;
+	
+	hints.flags = urgency_is_on?UrgencyHint:0 ;
+	XSetWindowBackground( dpy, TestState.main_window, urgency_is_on?0xFFFF0000:0xFFFFFFFF);
+	XClearWindow( dpy, TestState.main_window );
+
+	urgency_is_on = !urgency_is_on ;
+
+	XSetWMHints (dpy, TestState.main_window, &hints);
+}
+
 void
 DispatchEvent (ASEvent * event)
 {
@@ -296,7 +310,7 @@ DispatchEvent (ASEvent * event)
 				}
             }
 	        break;
-        case ButtonPress:
+        case ButtonPress: toggle_urgency_hint(); 
             break;
         case ButtonRelease:
 			break;
@@ -367,11 +381,11 @@ make_test_window()
 	shints.win_gravity = NorthEastGravity ;
 
 	extwm_hints.pid = getpid();
-	extwm_hints.flags = EXTWM_PID|EXTWM_StateSet ;
+	extwm_hints.flags = EXTWM_PID;//|EXTWM_StateSet ;
 
-//	extwm_hints.state_flags = EXTWM_StateDemandsAttention ;
+	extwm_hints.state_flags = 0; //EXTWM_StateDemandsAttention ;
 
-	set_client_hints( w, &hints, &shints, AS_DoesWmDeleteWindow, &extwm_hints );
+	set_client_hints( w, NULL, &shints, AS_DoesWmDeleteWindow, &extwm_hints );
 	set_client_cmd (w);
 
 	/* showing window to let user see that we are doing something */
@@ -381,6 +395,8 @@ make_test_window()
 	sleep (1);								   /* we have to give AS a chance to spot us */
 	/* we will need to wait for PropertyNotify event indicating transition
 	   into Withdrawn state, so selecting event mask: */
+	  XSelectInput (dpy, w, ButtonPressMask|ButtonReleaseMask);
+      
 /*    XSelectInput (dpy, w, PropertyChangeMask|StructureNotifyMask|
                           ButtonPressMask|ButtonReleaseMask|PointerMotionMask|
                           KeyPressMask|KeyReleaseMask|

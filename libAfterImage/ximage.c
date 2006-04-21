@@ -99,9 +99,11 @@ picture_ximage2asimage (ASVisual *asv, XImage *xim, XImage *alpha_xim, unsigned 
 			if( xim->depth == (int)asv->true_depth )
 			{
 			    GET_SCANLINE(asv,xim,&xim_buf,i,xim_line);
-	    		    asimage_add_line (im, IC_RED,   xim_buf.red, i);
+    		    asimage_add_line (im, IC_RED,   xim_buf.red, i);
 			    asimage_add_line (im, IC_GREEN, xim_buf.green, i);
 			    asimage_add_line (im, IC_BLUE,  xim_buf.blue, i);
+				if( xim->depth == 32 && alpha_xim == NULL ) 
+				    asimage_add_line (im, IC_ALPHA,  xim_buf.alpha, i);
 #ifdef LOCAL_DEBUG
 			    if( !asimage_compare_line( im, IC_RED,  xim_buf.red, tmp, i, True ) )
 				exit(0);
@@ -236,7 +238,10 @@ LOCAL_DEBUG_OUT( "Failed to start ASImageOutput for ASImage %p and ASVisual %p",
 			xim_set_component( xim_buf.green, ARGB32_GREEN8(im->back_color), count, xim_buf.width );
 		if( (count = asimage_decode_line (im, IC_BLUE,  xim_buf.blue, i, x, xim_buf.width)) < (int)xim_buf.width )
 			xim_set_component( xim_buf.blue, ARGB32_BLUE8(im->back_color), count, xim_buf.width );
-
+		if( xim->depth == 32 ) 
+			if( (count = asimage_decode_line (im, IC_ALPHA,  xim_buf.alpha, i, x, xim_buf.width)) < (int)xim_buf.width )
+				xim_set_component( xim_buf.alpha, ARGB32_ALPHA8(im->back_color), count, xim_buf.width );
+			
 		imout->output_image_scanline( imout, &xim_buf, 1 );
 /*		LOCAL_DEBUG_OUT( "line %d, count = %d", i, count ); */
 	}
@@ -281,7 +286,8 @@ LOCAL_DEBUG_OUT( "Failed to start ASImageOutput for ASImage %p and ASVisual %p",
 	started = clock ();
 #endif
 #if	1
-	if ((imdec = start_image_decoding(asv, im, SCL_DO_COLOR, 0, 0, im->width, im->height, NULL)) != NULL )
+	if ((imdec = start_image_decoding(  asv, im, (xim->depth == 32)?SCL_DO_ALL:SCL_DO_COLOR, 
+										0, 0, im->width, im->height, NULL)) != NULL )
 	{	 
 		for (i = 0; i < (int)im->height; i++)
 		{	
@@ -304,6 +310,9 @@ LOCAL_DEBUG_OUT( "Failed to start ASImageOutput for ASImage %p and ASVisual %p",
 				xim_set_component( xim_buf.green, ARGB32_GREEN8(im->back_color), count, xim_buf.width );
 			if( (count = asimage_decode_line (im, IC_BLUE,  xim_buf.blue, i, 0, xim_buf.width)) < (int)xim_buf.width )
 				xim_set_component( xim_buf.blue, ARGB32_BLUE8(im->back_color), count, xim_buf.width );
+			if( xim->depth == 32 ) 
+				if( (count = asimage_decode_line (im, IC_ALPHA,  xim_buf.alpha, i, 0, xim_buf.width)) < (int)xim_buf.width )
+					xim_set_component( xim_buf.alpha, ARGB32_ALPHA8(im->back_color), count, xim_buf.width );
 			imout->output_image_scanline( imout, &xim_buf, 1 );
 		}
 		free_scanline(&xim_buf, True);

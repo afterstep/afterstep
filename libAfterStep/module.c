@@ -575,9 +575,15 @@ button_from_astbar_props( struct ASTBarProps *tbar_props, struct button_t *butto
 			else if( tbar_props->buttons[i].kind == kind_pressed ) 	
 				icon = &(button->pressed);	 
 			if( icon != NULL ) 
+			{
 				icon_from_pixmaps( icon, tbar_props->buttons[i].pmap, 
 										 tbar_props->buttons[i].mask, 
 										 tbar_props->buttons[i].alpha );
+				/* these does not belong to us !!!*/
+				icon->pix = None ;
+				icon->mask = None ;
+				icon->alpha = None ;
+			}
 		}	 
 		button->width = max( button->unpressed.width, button->width );
 		button->height = max( button->unpressed.height, button->height );

@@ -185,6 +185,7 @@ void update_tabs_desktop();
 void update_tabs_state();
 void register_unswallowed_client( Window client );
 Bool check_unswallowed_client( Window client ); 
+void delete_tab( int index );
 
 /* above function may also return : */
 #define BANNER_TAB_INDEX -1		   
@@ -366,8 +367,24 @@ LOCAL_DEBUG_OUT( "DeadPipe%s", "" );
     
 		ASSync(False );
     }	  
-	if( WinTabsState.main_canvas )
-    	destroy_ascanvas( &WinTabsState.main_canvas );
+	
+	while( PVECTOR_USED( WinTabsState.tabs ) ) 
+		delete_tab(0);		
+	destroy_string( &(WinTabsState.banner.name) );
+   	destroy_astbar( &(WinTabsState.banner.bar) );
+   	destroy_ascanvas( &(WinTabsState.banner.client_canvas) );
+   	destroy_ascanvas( &(WinTabsState.banner.frame_canvas) );
+
+	destroy_asvector( &WinTabsState.tabs );
+   	destroy_ascanvas( &WinTabsState.tabs_canvas );
+   	destroy_ascanvas( &WinTabsState.main_canvas );
+
+	destroy_astbar_props( &(WinTabsState.tbar_props) );
+	free_button_resources( &WinTabsState.close_button );
+	free_button_resources( &WinTabsState.unswallow_button );
+	free_button_resources( &WinTabsState.menu_button );
+
+
     if( WinTabsState.main_window )
         XDestroyWindow( dpy, WinTabsState.main_window );
 	ASSync(False );
@@ -493,6 +510,14 @@ LOCAL_DEBUG_OUT( "exclude_pattern = \"%s\"", Config->exclude_pattern );
             Scr.Look.MSWindow[i] = mystyle_find( default_window_style_name[i] );
         if( Scr.Look.MSWindow[i] == NULL && i != BACK_URGENT )
             Scr.Look.MSWindow[i] = mystyle_find_or_default( default_style );
+		if( Scr.Look.MSWindow[i] )
+		{
+			if( Scr.Look.MSWindow[i]->texture_type == TEXTURE_SHAPED_PIXMAP )
+				Scr.Look.MSWindow[i]->texture_type = TEXTURE_PIXMAP ;
+			else if( Scr.Look.MSWindow[i]->texture_type == TEXTURE_SHAPED_SCALED_PIXMAP )
+				Scr.Look.MSWindow[i]->texture_type = TEXTURE_SCALED_PIXMAP ;
+			
+		}
     }
     free( default_style );
 
@@ -845,7 +870,6 @@ DispatchEvent (ASEvent * event)
 			}
 	        break;
 	    case PropertyNotify:
-			LOCAL_DEBUG_OUT( "property %s(%lX), _XROOTPMAP_ID = %lX, event->w = %lX, root = %lX", XGetAtomName(dpy, event->x.xproperty.atom), event->x.xproperty.atom, _XROOTPMAP_ID, event->w, Scr.Root );
 			if( event->w == Scr.Root || event->w == Scr.wmprops->selection_window ) 
 			{
 				if( event->w == Scr.Root && event->x.xproperty.atom == _XA_WIN_SUPPORTING_WM_CHECK )

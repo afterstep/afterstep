@@ -1811,6 +1811,7 @@ void pixel2color15bgr(ASVisual *asv, unsigned long pixel, CARD32 *red, CARD32 *g
 void ximage2scanline32(ASVisual *asv, XImage *xim, ASScanline *sl, int y,  register unsigned char *xim_data )
 {
 	register CARD32 *r = sl->xc1+sl->offset_x, *g = sl->xc2+sl->offset_x, *b = sl->xc3+sl->offset_x;
+	register CARD32 *a = sl->alpha+sl->offset_x;
 	register int i = MIN((unsigned int)(xim->width),sl->width-sl->offset_x);
 	register CARD8 *src = (CARD8*)(xim_data+(i-1)*4) ;
 	if( asv->msb_first )
@@ -1818,6 +1819,7 @@ void ximage2scanline32(ASVisual *asv, XImage *xim, ASScanline *sl, int y,  regis
 		{
 			--i ;
 			{
+				a[i] = src[0];
 				r[i] = src[1];
 				g[i] = src[2];
 				b[i] = src[3];
@@ -1829,6 +1831,7 @@ void ximage2scanline32(ASVisual *asv, XImage *xim, ASScanline *sl, int y,  regis
 		{
 			--i ;
 			{
+				a[i] = src[3];
 				r[i] = src[2];
 				g[i] = src[1];
 				b[i] = src[0];
@@ -1997,6 +2000,7 @@ ximage2scanline_pseudo12bpp( ASVisual *asv, XImage *xim, ASScanline *sl, int y, 
 void scanline2ximage32( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  register unsigned char *xim_data )
 {
 	register CARD32 *r = sl->xc1+sl->offset_x, *g = sl->xc2+sl->offset_x, *b = sl->xc3+sl->offset_x;
+	register CARD32 *a = sl->alpha+sl->offset_x;
 	register int i = MIN((unsigned int)(xim->width),sl->width-sl->offset_x);
 	register CARD8 *src = (CARD8*)(xim_data+(i-1)*4) ;
 	if( asv->msb_first )
@@ -2004,6 +2008,7 @@ void scanline2ximage32( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  regi
 		{
 			--i ;
 			{
+				src[0] = a[i];
 				src[1] = r[i];
  				src[2] = g[i];
 				src[3] = b[i];
@@ -2015,6 +2020,7 @@ void scanline2ximage32( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  regi
 		{
 			--i ;
 			{
+				src[3] = a[i];
 				src[2] = r[i];
 				src[1] = g[i];
 				src[0] = b[i];

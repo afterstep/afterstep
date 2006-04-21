@@ -940,12 +940,13 @@ on_window_hints_changed( ASWindow *asw )
 	{
 		ASFlagType extwm_state = 0 ;
 		
-		if( get_extwm_state_flags (asw->w, &extwm_state) )
-			if ( !get_flags (extwm_state, EXTWM_StateDemandsAttention))
-			{
-				clear_flags( asw->status->flags, AS_Urgent );
-				status_changed = True ;				
-			}
+		if( !get_extwm_state_flags (asw->w, &extwm_state) )
+			extwm_state = 0 ;/* just in case */
+		if ( !get_flags (extwm_state, EXTWM_StateDemandsAttention))
+		{
+			clear_flags( asw->status->flags, AS_Urgent );
+			status_changed = True ;				
+		}
 	}
 	if( hints2decorations( asw, old_hints ) )
 		status_changed = True ;
