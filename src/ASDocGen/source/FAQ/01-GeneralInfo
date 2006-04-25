@@ -126,6 +126,9 @@ with native applications. See <ulink url="http://www.afterstep.org/screenshots/A
 <varlistentry><term>Niklas Lunger &lt;niklas at fet dot at&gt;</term>
 <listitem>documentation and user testing.
 </listitem></varlistentry>
+<varlistentry><term>Nathan Mahon &lt;as_ml at vaevictus net&gt;</term>
+<listitem>realease manager
+</listitem></varlistentry>
 </variablelist>
 
 </section>
