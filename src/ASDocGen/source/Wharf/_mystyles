@@ -15,6 +15,16 @@ for details.</para>
   </listitem>
   </varlistentry>
 
+<varlistentry>
+  <term>MyStyle "*WharfOddTile"</term>
+  <listitem>
+<para>Specifies the style of every odd wharf button tile.
+See <emphasis remap='I'>MyStyle</emphasis> format
+for details.</para>
+
+  </listitem>
+  </varlistentry>
+
 
 <varlistentry>
   <term>MyStyle "*WharfFocusedTile"</term>
@@ -27,6 +37,15 @@ for details.</para>
   </listitem>
   </varlistentry>
 
+<varlistentry>
+  <term>MyStyle "*WharfOddFocusedTile"</term>
+  <listitem>
+<para>Specifies the style of every odd wharf button tile under the mouse pointer.
+See <emphasis remap='I'>MyStyle</emphasis> format
+for details.</para>
+
+  </listitem>
+  </varlistentry>
 
 
 </variablelist>
