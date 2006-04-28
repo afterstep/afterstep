@@ -1,4 +1,5 @@
-gtk-icon-theme-name = "gargantuan"
+# Uncomment and Edit the next line to enable your prefered gtk icon theme.
+gtk-icon-theme-name = "Tango"
 
 # Edit these colors and fonts however you like.
 style "default"
@@ -7,100 +8,118 @@ style "default"
 	fg[ACTIVE]         =    "InactiveText2"   	
 	fg[PRELIGHT]       =    "HighInactiveText"	
 	fg[SELECTED]       =    "ActiveText"      	
-	fg[INSENSITIVE]	   =    "DisabledText"    	
-	bg[NORMAL]         =   	"Inactive1Dark"       	
-	bg[ACTIVE]         =   	"Inactive2"   		
-	bg[PRELIGHT]       =  	"HighInactiveDark"		
-	bg[SELECTED]       =  	"Active"	  	
-	bg[INSENSITIVE]    = 	"Inactive1Dark"   		
-#	light[NORMAL]      = 	"Inactive1Light"   	
-#	light[ACTIVE]      = 	"Inactive2Light"   	
-#	light[PRELIGHT]    = 	"HighInactiveLight"	
-#	light[SELECTED]    = 	"ActiveLight"       	
-#	light[INSENSITIVE] = 	"Inactive1Light"   	
-#	dark[NORMAL]       = 	"Inactive1Dark"   	
-#	dark[ACTIVE]       = 	"Inactive2Dark"   	
-#	dark[PRELIGHT]     = 	"HighInactiveDark"	
-#	dark[SELECTED]     = 	"ActiveDark"		
-#	dark[INSENSITIVE]  = 	"Inactive1Dark"   	
-#	mid[NORMAL]        = 	"Inactive1"   		
-#	mid[ACTIVE]        = 	"Inactive2"   		
-#	mid[PRELIGHT]      = 	"HighInactive"		
-#	mid[SELECTED]      = 	"Active"	  	
-#	mid[INSENSITIVE]   = 	"Inactive1"   		
-	text[NORMAL]       = 	"InactiveText1"   	
+	fg[INSENSITIVE]	   =    "DisabledText"    	   	
+	bg[NORMAL]	   =	"BaseLight" #*** buttons, menu, tabs and apps background
+	bg[ACTIVE]         =   	"Inactive2" # tabs not selected, buttons pressed but not prelight 
+	bg[PRELIGHT]       =  	"Inactive1Light" # button mouseover, just like wharf		
+	bg[SELECTED]       =  	"Active" # ???	  	
+	bg[INSENSITIVE]    = 	"Inactive1" # ???   		
+
+	text[NORMAL]       =    "#000000" # text color while typing, non negociable
+#	text[NORMAL]       =    "InactiveText1" #*** text color while typing
 	text[ACTIVE]       = 	"InactiveText2"   	
 	text[PRELIGHT]     = 	"HighInactiveText"	
 	text[SELECTED]     = 	"ActiveText"		
 	text[INSENSITIVE]  = 	"InactiveText1"   	
 
-	base[NORMAL]       = 	"Inactive1Dark"   		
-	base[ACTIVE]       = 	"Inactive2"   		
-	base[PRELIGHT]     = 	"HighInactiveDark"		
-	base[SELECTED]     = 	"Active"	  	
-	base[INSENSITIVE]  = 	"Inactive1Dark"   		
+	base[NORMAL]       = 	"#ffffff" # text background while typing, non negociable
+#	base[NORMAL]       = 	"Inactive1" #*** text background while typing
+	base[ACTIVE]       = 	"Inactive2" # selected text not focused  		
+	base[PRELIGHT]     = 	"HighInactiveDark" #???		
+	base[SELECTED]     = 	"Active" # selected text in text area	  	
+	base[INSENSITIVE]  = 	"Inactive1" # ???  		
 
 
-        GtkRange::slider_width = 12
-        GtkRange::stepper_size = 12
-        GtkScrollbar::min_slider_length = 14
+	GtkButton::default_border = { 0, 0, 0, 0 }
+  	GtkButton::default_outside_border = { 0, 0, 0, 0 }
+  	GtkRange::trough_border = 0
+
+	GtkWidget::focus_padding = 1
+	
+        GtkRange::slider_width = 15
+        GtkRange::stepper_size = 15
+        GtkScrollbar::min_slider_length = 30
         GtkCheckButton::indicator_size = 12
+	GtkMenuBar::internal-padding = 0
 
 	engine "clearlooks"  {
-	       menubarstyle      = 2       # 0 = flat, 1 = sunken, 2 = flat gradient
+	       menubarstyle      = 1       # 0 = flat, 1 = sunken, 2 = flat gradient
                menuitemstyle     = 1       # 0 = flat, 1 = 3d-ish (gradient), 2 = 3d-ish (button)
                listviewitemstyle = 1       # 0 = flat, 1 = 3d-ish (gradient)
-               progressbarstyle  = 0       # 0 = candy bar, 1 = flat
+               progressbarstyle  = 0      # 0 = candy bar, 1 = flat
 	}
 }
 
 class "*" style "default"
 
 
-#style "default"
-#{
-#  fg[NORMAL] 		= { 0.000, 0.000, 0.000 }
-#  bg[NORMAL] 		= { 0.933, 0.933, 0.902 }
-#  text[NORMAL] 	= { 0.000, 0.000, 0.000 }
-#  base[NORMAL] 	= { 1.000, 1.000, 1.000 }
-#
-#  fg[ACTIVE] 		= { 0.000, 0.000, 0.000 }
-#  bg[ACTIVE] 		= { 0.776, 0.776, 0.749 }
-#  text[ACTIVE] 	= { 0.000, 0.000, 0.000 }
-#  base[ACTIVE] 	= { 1.000, 1.000, 1.000 }
-#
-#  fg[PRELIGHT] 	= { 0.000, 0.000, 0.000 }
-#  bg[PRELIGHT] 	= { 0.933, 0.933, 0.902 }
-#  text[PRELIGHT] 	= { 0.000, 0.000, 0.000 }
-#  base[PRELIGHT] 	= { 1.000, 1.000, 1.000 }
-
-#  fg[SELECTED] 	= { 0.000, 0.000, 0.000 }
-#  bg[SELECTED] 	= { 1.000, 0.867, 0.463 }
-#  text[SELECTED] 	= { 0.000, 0.000, 0.000 }
-#  base[SELECTED] 	= { 1.000, 0.867, 0.463 }
-
-#  fg[INSENSITIVE] 	= { 0.776, 0.776, 0.749 }
-#  bg[INSENSITIVE] 	= { 0.933, 0.933, 0.902 }
-#  text[INSENSITIVE] 	= { 0.776, 0.776, 0.749 }
-#  base[INSENSITIVE] 	= { 0.933, 0.933, 0.902 }
-
-#}
-
 style "ToolTip"
 {
-  bg[NORMAL] = "Inactive1Dark"
-  base[NORMAL] = "Inactive1Dark"
+  bg[NORMAL] = "HighInactiveBack"
+  base[NORMAL] = "HighInactiveBack"
   text[NORMAL] = "InactiveText1"
   fg[NORMAL] = "InactiveText1"
 }
 
 widget "gtk-tooltips" style "ToolTip"
 
-style "MenuItem"
+
+style "scrollbar" = "default"
 {
-  bg[PRELIGHT] = { 1.000, 0.867, 0.463 }
+#  bg[PRELIGHT]     =  "Inactive1Light"
+  bg[PRELIGHT]	    =  "Active"
+  bg[NORMAL]        = "HighInactiveBack" #***
+  bg[ACTIVE]        = "HighInactiveDark"
 }
 
-class "*MenuItem" style "MenuItem"
+widget_class "*GtkVScrollbar*"     style "scrollbar"
+class "*GtkVScrollbar*"            style "scrollbar"
+widget_class "*GtkHScrollbar*"     style "scrollbar"
+class "*GtkHScrollbar*"            style "scrollbar"
+
+
+style "button" = "default"
+{
+    xthickness = 1
+    ythickness = 1
+
+#    bg[PRELIGHT]      = "Inactive1Light" # button mouseover, just like wharf
+    bg[PRELIGHT]      =	"Active"
+    bg[NORMAL]        = "HighInactiveBack" #*** buttons, menu, tabs and apps background
+    bg[ACTIVE]        = "Inactive2" # tabs not selected, buttons pressed but not prelight
+}
+
+widget_class "*Button*"            style "button"
+class "*Button*"                   style "button"
+widget_class "*button*"            style "button"
+class "*button*"                   style "button"
+widget_class "*OptionMenu*"        style "button"
+class "*OptionMenu*"               style "button"
+
+# Modify this for reverse text in menu according to colorscheme
+style "clearlooks-menu-item" = "default"
+{
+  xthickness = 2
+  ythickness = 3
+  fg[PRELIGHT] = "ActiveText"
+  text[PRELIGHT] = "ActiveText"
+}
+
+widget_class "*MenuItem.*" style "clearlooks-menu-item"
+class "GtkMenuItem"    style "clearlooks-menu-item"
+
+
+style "menubar" = "default"
+{
+  xthickness = 2
+  ythickness = 3
+  bg[PRELIGHT]      = "Inactive1Light" # button mouseover, just like wharf
+  bg[NORMAL]        = "HighInactiveBack" #*** buttons, menu, tabs and apps background
+  bg[ACTIVE]        = "Inactive2" # tabs not selected, buttons pressed but not prelight
+}
+
+widget_class "*MenuBar.*" style "menubar"
+class "GtkMenuBar"    style "menubar"
+
 
 
