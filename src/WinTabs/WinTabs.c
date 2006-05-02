@@ -907,9 +907,6 @@ DispatchEvent (ASEvent * event)
                 	while( --i >= 0 ) 
                     	set_tab_look( &(tabs[i]), False);
 					set_tab_look( &(WinTabsState.banner), True);
-#if 0
-					//show_banner_buttons();// MUST BE after the set_look !!!!
-#endif					
                 	rearrange_tabs(False );
             	}else if( event->x.xproperty.atom == _AS_TBAR_PROPS )
 				{

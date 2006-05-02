@@ -3,6 +3,7 @@
 #define AFTERSTEP_INTERNALS
 
 #ifdef __FreeBSD__
+#include <sys/cdefs.h>
 #include <sys/syslimits.h>
 #else
 #include <limits.h>

@@ -587,7 +587,8 @@ button_from_astbar_props( struct ASTBarProps *tbar_props, struct button_t *butto
 		}	 
 		button->width = max( button->unpressed.width, button->width );
 		button->height = max( button->unpressed.height, button->height );
-		button->context = context ; 
+		if( button->height > 0 && button->width > 0 )
+			button->context = context ; 
 	}
 }
 

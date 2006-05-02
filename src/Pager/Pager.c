@@ -510,7 +510,8 @@ CheckConfigSanity()
     if( !get_flags( Config->set_flags, PAGER_SET_INACTIVE_BEVEL ) )
         Config->inactive_desk_bevel = DEFAULT_TBAR_HILITE;
 
-	retrieve_pager_astbar_props();
+	if ( PagerState.tbar_props == NULL ) 
+		retrieve_pager_astbar_props();
 
     LOCAL_DEBUG_OUT("active_bevel = %lX, inactive_bevel = %lX", Config->active_desk_bevel, Config->inactive_desk_bevel );
 	mystyle_get_property (Scr.wmprops);

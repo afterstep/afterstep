@@ -107,6 +107,7 @@ WinListConfig *Config = NULL ;
 
 /**********************************************************************/
 
+void retrieve_winlist_astbar_props();
 void SetWinListLook();
 void GetBaseOptions (const char *filename);
 void GetOptions (const char *filename);
@@ -154,6 +155,8 @@ main( int argc, char **argv )
 	ReloadASDatabase();
 	ReloadCategories(True);
     
+	retrieve_winlist_astbar_props();
+		
 	SetWinListLook();
 
     WinListState.main_window = make_winlist_window();
@@ -239,7 +242,6 @@ SetWinListLook()
 	default_winlist_style[0] = '*' ;
 	strcpy( &(default_winlist_style[1]), MyName );
 
-	retrieve_winlist_astbar_props();
     mystyle_get_property (Scr.wmprops);
     for( i = 0 ; i < BACK_STYLES ; ++i )
 		Scr.Look.MSWindow[i] = NULL ;
