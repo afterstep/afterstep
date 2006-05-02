@@ -410,6 +410,13 @@ void
 retrieve_wintabs_astbar_props()
 {
 	destroy_astbar_props( &(WinTabsState.tbar_props) );
+
+	free_button_resources( &WinTabsState.close_button );
+	free_button_resources( &WinTabsState.unswallow_button );
+	free_button_resources( &WinTabsState.menu_button );
+	memset(&WinTabsState.close_button, 0x00, sizeof(MyButton));
+	memset(&WinTabsState.unswallow_button, 0x00, sizeof(MyButton));
+	memset(&WinTabsState.menu_button, 0x00, sizeof(MyButton));
 	
 	WinTabsState.tbar_props = get_astbar_props(Scr.wmprops );
 	button_from_astbar_props( WinTabsState.tbar_props, &WinTabsState.close_button, 		C_CloseButton, 		_AS_BUTTON_CLOSE, _AS_BUTTON_CLOSE_PRESSED );
@@ -496,7 +503,8 @@ LOCAL_DEBUG_OUT( "exclude_pattern = \"%s\"", Config->exclude_pattern );
     if( get_flags(Config->geometry.flags, YNegative) )
         Config->anchor_y += Scr.MyDisplayHeight ;
 
-    retrieve_wintabs_astbar_props();
+	if( WinTabsState.tbar_props == NULL ) 
+	    retrieve_wintabs_astbar_props();
 	mystyle_get_property (Scr.wmprops);
 
     Scr.Look.MSWindow[BACK_UNFOCUSED] = mystyle_find( Config->unfocused_style );
@@ -899,6 +907,9 @@ DispatchEvent (ASEvent * event)
                 	while( --i >= 0 ) 
                     	set_tab_look( &(tabs[i]), False);
 					set_tab_look( &(WinTabsState.banner), True);
+#if 0
+					//show_banner_buttons();// MUST BE after the set_look !!!!
+#endif					
                 	rearrange_tabs(False );
             	}else if( event->x.xproperty.atom == _AS_TBAR_PROPS )
 				{
