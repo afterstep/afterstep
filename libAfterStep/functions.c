@@ -781,6 +781,8 @@ void
 reload_menu_pmaps( MenuData *menu )
 {
     MenuDataItem *curr ;
+	char *scaled_name = NULL ;
+	int scaled_name_len = 0 ; 
 	
 	LOCAL_DEBUG_OUT( "menu = %p, image_manager = %p", menu, ASDefaultScr->image_manager );
 
@@ -803,18 +805,24 @@ reload_menu_pmaps( MenuData *menu )
 				curr->minipixmap_image = check_scale_menu_pmap( tmp, curr->flags ); 
 				if( tmp != curr->minipixmap_image )
 				{	
-					char *n ;
+					int len = strlen( minipixmap ) + 64 ;
 					safe_asimage_destroy(tmp);
 					/* we also need to add our icon into the image_manager ! : */
-					n = safemalloc( strlen( minipixmap ) + 64 );
-					sprintf( n, "%s_scaled_to_%dx%d", minipixmap, curr->minipixmap_image->width, curr->minipixmap_image->height );
-					store_asimage( ASDefaultScr->image_manager, curr->minipixmap_image, n );					 
+					if( len > scaled_name_len ) 
+					{
+						scaled_name = saferealloc( scaled_name, len );
+						scaled_name_len = len ;
+					}
+					sprintf( scaled_name, "%s_scaled_to_%dx%d", minipixmap, curr->minipixmap_image->width, curr->minipixmap_image->height );
+					store_asimage( ASDefaultScr->image_manager, curr->minipixmap_image, scaled_name );					 
 				}
         	}else
 			{	
 				LOCAL_DEBUG_OUT( "minipixmap = \"%s\", minipixmap_image = %p",  curr->minipixmap, curr->minipixmap_image );
 			}
 		}
+	if( scaled_name ) 
+		free( scaled_name );
 }
 
 

@@ -165,7 +165,13 @@ typedef struct ASImage
 									 * referenced by some other code */
   int                    ref_count ;/* this will tell us what us how many
 									 * times */
-  char                  *name ;     /* readonly copy of image name */
+
+	
+  char                  *name ;     /* readonly copy of image name 
+  									 * this name is a hash value used to 
+									 * store image in the image-man's hash,
+									 * and gets freed automagically on image 
+									 * removal from hash */
 
 #define ASIM_DATA_NOT_USEFUL	(0x01<<0)
 #define ASIM_VECTOR_TOP2BOTTOM	(0x01<<1)
@@ -176,6 +182,7 @@ typedef struct ASImage
 #define ASIM_ALPHA_IS_BITMAP	(0x01<<4) 
 #define ASIM_RGB_IS_BITMAP		(0x01<<5) 
 #define ASIM_XIMAGE_NOT_USEFUL	(0x01<<6)
+#define ASIM_NAME_IS_FILENAME	(0x01<<7)
 
   ASFlagType			 flags ;    /* combination of the above flags */
   

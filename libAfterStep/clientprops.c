@@ -408,7 +408,11 @@ read_wm_protocols (ASRawHints * hints, Window w)
 		hints->wm_protocols = 0;
 		if (read_32bit_proplist (w, _XA_WM_PROTOCOLS, 3, &protocols, &nprotos))
 		{
-            LOCAL_DEBUG_OUT( "nprotos=%ld, protocols[0] = 0x%lX(\"%s\")", nprotos, protocols[0], XGetAtomName(dpy, protocols[0]));
+#if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)		
+			char *aname = XGetAtomName(dpy, protocols[0]);
+            LOCAL_DEBUG_OUT( "nprotos=%ld, protocols[0] = 0x%lX(\"%s\")", nprotos, protocols[0], aname);
+			XFree( aname );
+#endif			
 			translate_atom_list (&(hints->wm_protocols), WM_Protocols, protocols, nprotos);
             LOCAL_DEBUG_OUT( "translated protocols =0x%lX", hints->wm_protocols );
 			translate_atom_list (&(hints->extwm_hints.flags), EXTWM_Protocols, protocols, nprotos);

@@ -543,7 +543,7 @@ CaptureAllWindows (ScreenInfo *scr)
     for (i = 0; i < nchildren; i++)
         if (children[i] )
         {
-            unsigned long nitems = 0;
+            long nitems = 0;
             CARD32 *state_prop = NULL ;
             int wm_state = DontCareState ;
             int k ;
@@ -718,6 +718,10 @@ LOCAL_DEBUG_CALLER_OUT( "%s restart, cmd=\"%s\"", restart?"Do":"Don't", command?
 		dpy = NULL ;
 
 		/* freeing up memory */
+		DestroyCategories();
+
+	    balloon_init (True);
+		destroy_asdatabase();
     	destroy_assession( Session );
 		destroy_asenvironment( &Environment );
     	free_func_hash ();
@@ -725,16 +729,23 @@ LOCAL_DEBUG_CALLER_OUT( "%s restart, cmd=\"%s\"", restart?"Do":"Don't", command?
     	build_xpm_colormap (NULL);
 
         restack_window_list(INVALID_DESK, True);
+
         clientprops_cleanup ();
         wmprops_cleanup ();
+
         free_func_hash();
         purge_asimage_registry();
+
 		asxml_var_cleanup();
 		custom_color_cleanup(); 
-		flush_default_asstorage();
-        flush_ashash_memory_pool();
-        flush_asbidirlist_memory_pool();
+
+		if( MyArgs.locale ) 
+			free( MyArgs.locale );
         free( MyArgs.saved_argv );
+
+		flush_default_asstorage();
+        flush_asbidirlist_memory_pool();
+        flush_ashash_memory_pool();
 #ifdef DEBUG_ALLOCS
         print_unfreed_mem ();
 #endif /*DEBUG_ALLOCS */

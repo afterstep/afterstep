@@ -255,6 +255,7 @@ xml_elem_t* xml_elem_new(void) {
 	elem->next = elem->child = NULL;
 	elem->parm = elem->tag = NULL;
 	elem->tag_id = XML_UNKNOWN_ID ;
+	LOCAL_DEBUG_OUT("elem = %p", elem);
 	return elem;
 }
 
@@ -278,6 +279,8 @@ static xml_elem_t* xml_elem_remove(xml_elem_t** list, xml_elem_t* elem) {
 }
 
 void xml_elem_delete(xml_elem_t** list, xml_elem_t* elem) {
+	LOCAL_DEBUG_OUT("elem = %p", elem);
+
 	if (list) xml_elem_remove(list, elem);
 	while (elem) {
 		xml_elem_t* ptr = elem;

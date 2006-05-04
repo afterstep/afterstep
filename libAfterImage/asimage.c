@@ -172,6 +172,8 @@ asimage_init (ASImage * im, Bool free_resources)
 				free( im->alt.argb32 );
 			if( im->alt.vector )
 				free( im->alt.vector );
+			if( im->name ) 
+				free( im->name );
 		}
 		memset (im, 0x00, sizeof (ASImage));
 		im->magic = MAGIC_ASIMAGE ;
@@ -232,6 +234,36 @@ asimage_start (ASImage * im, unsigned int width, unsigned int height, unsigned i
 			set_flags( im->flags, ASIM_NO_COMPRESSION );
 	}
 }
+
+Bool
+asimage_replace (ASImage *im, ASImage **pfrom)
+{
+	if( pfrom ) 
+	{
+		ASImage *from = *pfrom ; 
+		if ( im && from && im != from )
+			if( im->magic == MAGIC_ASIMAGE && from->magic == MAGIC_ASIMAGE && from->imageman == NULL )
+			{
+				int ref_count = im->ref_count ;
+				ASImageManager *imageman = im->imageman ;
+				char *name = im->name ; 
+				
+				im->name = NULL ; 
+				asimage_init (im, True);
+
+				memcpy( im, from, sizeof(ASImage) );
+				memset( from, 0x00, sizeof(ASImage) );		
+				
+				im->ref_count = ref_count ; 
+				im->imageman = imageman ;
+				im->name = name ;
+
+				return True ;
+			}
+	}
+	return False;
+}
+
 
 static ASImage* 
 check_created_asimage( ASImage *im, unsigned int width, unsigned int height )
@@ -387,7 +419,8 @@ asimage_destroy (ASHashableValue value, void *data)
 			else
 				im->imageman = NULL ;
 		}
-		free( (char*)value );
+		if( (char*)value != im->name ) 
+			free( (char*)value );/* name */
 		destroy_asimage( &im );
 	}
 }

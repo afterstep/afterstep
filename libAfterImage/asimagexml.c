@@ -2018,9 +2018,10 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 	xml_elem_t* ptr;
 	char* id = NULL;
 	ASImage* result = NULL;
-	Bool handled = False ;
-
 	ASImageXMLState state ; 
+
+	if( doc->tag_id == XML_CDATA_ID ) 
+		return NULL ;
 
 	memset( &state, 0x00, sizeof(state));
 	state.flags = flags ;
@@ -2039,10 +2040,12 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 		char* height_str = NULL;
 		ASImage *refimg = NULL ; 
 		int width = 0, height = 0 ;
+		LOCAL_DEBUG_OUT("parm = %p", parm);
+
 		for (ptr = parm ; ptr ; ptr = ptr->next)
 		{	
 			if (ptr->tag[0] == 'i' && ptr->tag[1] == 'd' && ptr->tag[2] == '\0')
-				id = strdup(ptr->parm);
+				id = mystrdup(ptr->parm);
 			else if (strcmp(ptr->tag, "refid") == 0 ) 	refid = ptr->parm ;
 			else if (strcmp(ptr->tag, "width") == 0 ) 	width_str = ptr->parm ;
 			else if (strcmp(ptr->tag, "height") == 0 ) 	height_str = ptr->parm ;
@@ -2050,7 +2053,6 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 
 		if( refid ) 
 			refimg = fetch_asimage( imman, refid);
-		handled = True ;
 		if (!strcmp(doc->tag, "composite")) 
 			result = handle_asxml_tag_composite( &state, doc, parm );  	
 		else if (!strcmp(doc->tag, "text")) 
@@ -2144,14 +2146,21 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 			{
 				if (tparm) xml_elem_delete(NULL, tparm);
 				tparm = sparm; 
-			}
+			}else 
+				if (sparm) xml_elem_delete(NULL, sparm);
+
 		}
-		if (rparm) *rparm = tparm; 
-		else xml_elem_delete(NULL, tparm);
+		if (rparm) 
+		{ 
+			if( *rparm ) xml_elem_delete(NULL, *rparm); *rparm = tparm; 
+		}else 
+			xml_elem_delete(NULL, tparm);
 	}
 
 	LOCAL_DEBUG_OUT("result = %p", result );
 	result = commit_xml_image_built( &state, id, result );
+	if( id ) 
+		free( id );
 	LOCAL_DEBUG_OUT("result = %p", result );
 	if( result )
 	{

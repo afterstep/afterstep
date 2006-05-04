@@ -254,6 +254,7 @@ WaitWindowLoop( char *pattern, long timeout )
 	text = safemalloc(64+strlen(pattern)+1);
 	sprintf( text, "Waiting for window matching \"%s\" ... Press button to cancel.", pattern );
 	hint = create_ashint_window( ASDefaultScr, &(Scr.Look), text);
+	free( text );
 	while (!done)
 	{
 		do

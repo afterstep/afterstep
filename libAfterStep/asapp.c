@@ -943,7 +943,6 @@ FreeMyAppResources()
 		ASDefaultScr->RootImage = NULL ;
 	}
 	destroy_asvisual( ASDefaultScr->asv, False );
-    flush_asbidirlist_memory_pool();
 	for( i = 0 ; i < as_app_args.saved_argc ; ++i ) 
 		if( as_app_args.saved_argv[i] )
 			free( as_app_args.saved_argv[i] );
@@ -953,14 +952,16 @@ FreeMyAppResources()
 	Session = NULL ;
 	destroy_asenvironment( &Environment );
 	if( as_app_args.locale ) 
+		free( as_app_args.locale );
 	is_executable_in_path ( NULL );
 #ifdef XSHMIMAGE
 	flush_shm_cache();
 #endif
 	free( ASDefaultScr );
 	flush_default_asstorage();
-	free( as_app_args.locale );
-    flush_ashash_memory_pool();
+    flush_asbidirlist_memory_pool();
+	flush_ashash_memory_pool();
+	
 }
 
 
