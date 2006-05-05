@@ -718,13 +718,13 @@ LOCAL_DEBUG_CALLER_OUT( "%s restart, cmd=\"%s\"", restart?"Do":"Don't", command?
 		dpy = NULL ;
 
 		/* freeing up memory */
+		DestroyPendingFunctionsQueue();
 		DestroyCategories();
 
 	    balloon_init (True);
 		destroy_asdatabase();
     	destroy_assession( Session );
 		destroy_asenvironment( &Environment );
-    	free_func_hash ();
     	/* pixmap references */
     	build_xpm_colormap (NULL);
 
@@ -734,14 +734,14 @@ LOCAL_DEBUG_CALLER_OUT( "%s restart, cmd=\"%s\"", restart?"Do":"Don't", command?
         wmprops_cleanup ();
 
         free_func_hash();
+		flush_keyword_ids();
         purge_asimage_registry();
-
+	
 		asxml_var_cleanup();
 		custom_color_cleanup(); 
 
-		if( MyArgs.locale ) 
-			free( MyArgs.locale );
-        free( MyArgs.saved_argv );
+        free_as_app_args();
+		free( ASDefaultScr );
 
 		flush_default_asstorage();
         flush_asbidirlist_memory_pool();

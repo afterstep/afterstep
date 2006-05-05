@@ -915,12 +915,23 @@ InitSession()
 	}
 }
 
+void
+free_as_app_args()
+{
+	int i;
+	for( i = 0 ; i < as_app_args.saved_argc ; ++i ) 
+		if( as_app_args.saved_argv[i] )
+			free( as_app_args.saved_argv[i] );
+    free( as_app_args.saved_argv );
+	as_app_args.saved_argv = NULL ;
 
+	destroy_string( &(as_app_args.locale) );
+
+}
 
 void
 FreeMyAppResources()
 {
-	int i;
     balloon_init (True);
 	destroy_asdatabase();
     mystyle_destroy_all();
@@ -943,16 +954,10 @@ FreeMyAppResources()
 		ASDefaultScr->RootImage = NULL ;
 	}
 	destroy_asvisual( ASDefaultScr->asv, False );
-	for( i = 0 ; i < as_app_args.saved_argc ; ++i ) 
-		if( as_app_args.saved_argv[i] )
-			free( as_app_args.saved_argv[i] );
-    free( as_app_args.saved_argv );
-	
+	free_as_app_args();
     destroy_assession( Session );
 	Session = NULL ;
 	destroy_asenvironment( &Environment );
-	if( as_app_args.locale ) 
-		free( as_app_args.locale );
 	is_executable_in_path ( NULL );
 #ifdef XSHMIMAGE
 	flush_shm_cache();

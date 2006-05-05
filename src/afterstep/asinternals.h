@@ -576,6 +576,7 @@ void ExecuteFunctionForClient(struct FunctionData *data, Window client);
 void ExecuteFunctionExt (struct FunctionData *data, struct ASEvent *event, int module, Bool defered);
 /* execute all the scheduled functions from the queue */
 void ExecutePendingFunctions();
+void DestroyPendingFunctionsQueue();
 /* non-window specific, non-defferrable functions are run : */
 void ExecuteBatch ( ComplexFunction *batch );
 

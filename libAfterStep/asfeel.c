@@ -138,6 +138,7 @@ destroy_asfeel( ASFeel *feel, Bool reusable )
                     destroy_aswindow_box( &(feel->window_boxes[i]), True );
                 free( feel->window_boxes );
             }
+			destroy_string( &(feel->default_window_box_name ) );
         }
 		if( !reusable )
 			free(feel);

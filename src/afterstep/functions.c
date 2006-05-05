@@ -510,6 +510,12 @@ void ExecutePendingFunctions()
 	    DoExecuteFunction( sf );
 }
 
+void DestroyPendingFunctionsQueue()
+{
+    if( FunctionQueue )
+		destroy_asbidirlist( &FunctionQueue );
+}
+
 /***********************************************************************
  *  Procedure:
  *	DeferExecution - defer the execution of a function to the

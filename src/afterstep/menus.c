@@ -87,6 +87,8 @@ free_asmenu_item( ASMenuItem *item )
 {
     if( item->bar )
         destroy_astbar(&(item->bar) );
+	if( item->icon )
+	    safe_asimage_destroy( item->icon );
 	free_func_data (&(item->fdata));
 }
 

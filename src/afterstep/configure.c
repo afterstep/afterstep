@@ -1401,6 +1401,7 @@ advertise_tbar_props()
 		}	 
 
 	set_astbar_props( Scr.wmprops, &props ); 
+	free( props.buttons );
 }
 
 

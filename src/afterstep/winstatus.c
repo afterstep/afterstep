@@ -965,7 +965,7 @@ on_window_hints_changed( ASWindow *asw )
 	if( mystrcmp( old_hints->icon_name, hints->icon_name ) != 0 )
 	    broadcast_icon_name( asw );
 
-	destroy_hints (old_hints, True);
+	destroy_hints (old_hints, False);
 }
 
 void 

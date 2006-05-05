@@ -933,6 +933,8 @@ destroy_raw_hints (ASRawHints * hints, Bool reusable)
 			free_text_property (&(hints->extwm_hints.name));
 		if (hints->extwm_hints.icon_name)
 			free_text_property (&(hints->extwm_hints.icon_name));
+		if (hints->extwm_hints.icon)
+			free (hints->extwm_hints.icon);
 
 		if (reusable)						   /* we are being paranoid */
 			memset (hints, 0x00, sizeof (ASRawHints));
@@ -1364,6 +1366,7 @@ set_extwm_urgency_state (Window w, Bool set )
 			else
 				set_32bit_proplist (w, _XA_NET_WM_STATE, XA_ATOM, &states[0], nstates);
 		}
+		free( states );
     }
 }
 

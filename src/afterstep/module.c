@@ -121,15 +121,16 @@ LOCAL_DEBUG_OUT( "module name \"%s\"", module->name );
     	while (module->output_queue != NULL)
         	DeleteQueueBuff (module);
     	if (module->name != NULL)
-        	free (module->name);
-    	if (module->ibuf.text != NULL)
-        	free (module->ibuf.text);
+        destroy_string( &(module->name));
+        destroy_string( &(module->cmd_line));
+    	destroy_string( &(module->ibuf.text));
 
     	if (module->ibuf.func != NULL)
 		{
         	free_func_data (module->ibuf.func);
         	free (module->ibuf.func);
 		}
+		
 
     	memset( module, 0x00, sizeof(module_t) );
 	}else

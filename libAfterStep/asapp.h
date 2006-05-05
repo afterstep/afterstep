@@ -253,6 +253,7 @@ void destroy_asdatabase();
 struct ASDesktopCategory *name2desktop_category( const char *name, 
 									struct ASCategoryTree **tree_return );
 
+void free_as_app_args();
 void FreeMyAppResources();
 
 void InitSession();
