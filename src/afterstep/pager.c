@@ -640,11 +640,19 @@ release_old_background( int desk, Bool forget )
         return ;
 	
 	imname = make_myback_image_name( &(Scr.Look), back->name );
+#if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
+	print_ashash( Scr.image_manager->image_hash, string_print );
+#endif
 
     if( back->loaded_im_name )
     {
+#if 0
         im = query_asimage( Scr.image_manager, back->data );
         LOCAL_DEBUG_OUT( "query_asimage \"%s\" - returned %p", back->data?back->data:"NULL", im );
+#else		
+        im = query_asimage( Scr.image_manager, back->loaded_im_name );
+        LOCAL_DEBUG_OUT( "query_asimage \"%s\" - returned %p", back->loaded_im_name, im );
+#endif		
     }
 	
 	if( im == NULL ) 
@@ -671,15 +679,19 @@ release_old_background( int desk, Bool forget )
 #endif
     if( im != NULL )
     {
+        LOCAL_DEBUG_OUT( "im = %p, ref_count = %d", im, im->ref_count );
+
         if( Scr.RootImage == im )
         {                                      /* always do that ! */
             Scr.RootImage = NULL ;
             if( safe_asimage_destroy( im ) <= 0 )
 				im = NULL ;
         } 
+        
+		LOCAL_DEBUG_OUT( "im = %p, ref_count = %d", im, im?im->ref_count:0 );
+		
 		if( im != NULL && (forget || im->width*im->height >= Scr.Look.KillBackgroundThreshold) )
         {
-            LOCAL_DEBUG_OUT( "im = %p, ref_count = %d", im, im->ref_count );
             if( safe_asimage_destroy( im ) <= 0 )
 				im = NULL ;
         }else if( im != NULL && strcmp( im->name, imname) != 0 )	 /* we need to store it for future use ! */
@@ -700,7 +712,7 @@ release_old_background( int desk, Bool forget )
 		if( im )
 		{	
 			back->loaded_im_name = mystrdup(im->name); 
-			LOCAL_DEBUG_OUT( "loaded_im_name = \"%s\"", back->loaded_im_name );
+            LOCAL_DEBUG_OUT( "im = %p, ref_count = %d, loaded_im_name = \"%s\"", im, im->ref_count, back->loaded_im_name );
 		}
     }
 	free( imname );
@@ -717,6 +729,18 @@ release_old_background( int desk, Bool forget )
 		LOCAL_DEBUG_OUT( "destroying pixmap %lX", back->loaded_pixmap );
 		destroy_visual_pixmap( Scr.asv, &(back->loaded_pixmap));			
 	}	 
+}
+
+void
+release_all_old_background( Bool forget )
+{
+	LOCAL_DEBUG_OUT( "as_desk_numbers = %p, as_desk_num = %ld", Scr.wmprops->as_desk_numbers, Scr.wmprops->as_desk_num );
+	if( Scr.wmprops->as_desk_numbers != NULL )
+	{
+		int i = Scr.wmprops->as_desk_num ;
+		while( --i >= 0 ) 
+			release_old_background( Scr.wmprops->as_desk_numbers[i], forget );		 
+	}
 }
 
 ASImage*

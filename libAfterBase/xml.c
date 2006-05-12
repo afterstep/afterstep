@@ -19,7 +19,7 @@
  *
  */
 
-#define LOCAL_DEBUG
+#undef LOCAL_DEBUG
 #include "config.h"
 
 #include <stdlib.h>
@@ -255,7 +255,7 @@ xml_elem_t* xml_elem_new(void) {
 	elem->next = elem->child = NULL;
 	elem->parm = elem->tag = NULL;
 	elem->tag_id = XML_UNKNOWN_ID ;
-	LOCAL_DEBUG_OUT("elem = %p", elem);
+/*	LOCAL_DEBUG_OUT("elem = %p", elem); */
 	return elem;
 }
 
@@ -279,7 +279,7 @@ static xml_elem_t* xml_elem_remove(xml_elem_t** list, xml_elem_t* elem) {
 }
 
 void xml_elem_delete(xml_elem_t** list, xml_elem_t* elem) {
-	LOCAL_DEBUG_OUT("elem = %p", elem);
+/*	LOCAL_DEBUG_OUT("elem = %p", elem); */
 
 	if (list) xml_elem_remove(list, elem);
 	while (elem) {
@@ -867,7 +867,7 @@ void
 append_CDATA_line( xml_elem_t *tag, const char *line, int len )
 {
 	xml_elem_t *cdata_tag = find_tag_by_id(tag->child, XML_CDATA_ID );
-	LOCAL_DEBUG_CALLER_OUT("tag->tag = \"%s\", line_len = %d", tag->tag, len );
+	LOCAL_DEBUG_CALLER_OUT("tag->tag = \"%s\", line_len = %d", tag->tag, len ); 
 
 	if( cdata_tag == NULL ) 
 	{

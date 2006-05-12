@@ -86,7 +86,7 @@ find_super_section( xml_elem_t* owner, const char *id )
 			if( attr_curr->tag_id == DOCBOOK_id_ID ) 
 				break;
 		match_found = ( attr_curr!= NULL && strncmp( attr_curr->parm, id, strlen(attr_curr->parm)) == 0 ) ;
-		LOCAL_DEBUG_OUT( "xml_elem_delete for attr %p", attr );
+/*		LOCAL_DEBUG_OUT( "xml_elem_delete for attr %p", attr ); */
 		xml_elem_delete(NULL, attr);					
 		
 		if( match_found ) 

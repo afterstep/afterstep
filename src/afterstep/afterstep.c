@@ -415,6 +415,9 @@ CleanupScreen()
         destroy_aswindow_list( &(Scr.Windows), True );
         ungrab_server();
     }
+
+	release_all_old_background( True );
+
     DestroyManagementWindows();
     CleanupColormaps();
 
@@ -714,6 +717,7 @@ LOCAL_DEBUG_CALLER_OUT( "%s restart, cmd=\"%s\"", restart?"Do":"Don't", command?
                      None, C_NO_CONTEXT, False, restart_self, NULL );
     } else
 	{
+
 	    XCloseDisplay (dpy);
 		dpy = NULL ;
 

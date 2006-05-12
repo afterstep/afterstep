@@ -483,6 +483,8 @@ store_asimage( ASImageManager* imageman, ASImage *im, const char *name )
 		if( im->imageman == NULL )
 		{
 			int hash_res ;
+			if( im->name ) 
+				free( im->name );
 			im->name = mystrdup( name );
 			hash_res = add_hash_item( imageman->image_hash, AS_HASHABLE(im->name), im);
 			res = ( hash_res == ASH_Success);
@@ -575,9 +577,8 @@ forget_asimage( ASImage *im )
 			ASImageManager *imman = im->imageman ;
 			if( !AS_ASSERT(imman) )
 				remove_hash_item(imman->image_hash, (ASHashableValue)(char*)im->name, NULL, False);
-/*            im->ref_count = 0;     release_asimage should still correctly work !!!!
- *            im->imageman = NULL;
- */
+            im->ref_count = 0;
+            im->imageman = NULL;
 		}
 	}
 }

@@ -684,6 +684,7 @@ void change_desktop_background( int desk );
 void HandleBackgroundRequest( struct ASEvent *event );
 Bool is_background_xfer_ximage( unsigned long id );
 void stop_all_background_xfer();
+void release_all_old_background( Bool forget );
 
 
 
