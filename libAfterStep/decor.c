@@ -1359,6 +1359,37 @@ is_astbar_shaped( ASTBarData *tbar, int state )
     return shaped;
 }
 
+
+static inline int 
+trim_astbar_grid_dim( short *dim, int size, int space_left )
+{
+	int l = 0 ; 
+	int changed = 0 ;
+	while( space_left < -1 )     /* ohh, no, we need to trim rows to fit */
+	{
+		if( dim[l] > 0 ) 		
+		{
+			int to_trim = (-space_left*dim[l])/size ; 
+			if( dim[l] < to_trim )
+				to_trim = dim[l] - 1 ;
+			if( to_trim == 0 ) 
+				to_trim = 1 ;
+			dim[l] -= to_trim;
+			space_left  += to_trim;
+			++changed ;
+		}	 
+		if( ++l >= AS_TileRows )
+		{	
+			if( changed == 0 ) 
+				break;	  
+			l = 0 ;
+			changed = 0;
+		}
+	}	 
+	return space_left ;
+}
+
+
 #ifdef TRACE_render_astbar
 #undef render_astbar
 Bool render_astbar (ASTBarData * tbar, ASCanvas * pc);
@@ -1388,7 +1419,7 @@ render_astbar (ASTBarData * tbar, ASCanvas * pc)
 	ASImage      *merged_im = NULL ;
 	int           state;
 	ASAltImFormats fmt = ASA_ScratchXImageAndAlpha;
-    int l, changed ;
+    int l ;
     short col_width[AS_TileColumns] = {0};
     short row_height[AS_TileRows] = {0};
     short col_x[AS_TileColumns] = {0};
@@ -1542,26 +1573,9 @@ LOCAL_DEBUG_OUT("back-try2(%p)", back );
                     break;
             }
         }
-	l = 0 ; changed = 0 ;
-	while( space_left_x < -1 )     /* ohh, no, we need to trim columns to fit */
-	{
-		if( col_width[l] > 0 ) 		
-		{
-			int to_trim = (-space_left_x*col_width[l])/tbar->width ; 
-			if( to_trim == 0 ) 
-				to_trim = 1 ;
-			col_width[l] -= to_trim;
-			space_left_x  += to_trim;
-			++changed ;
-		}	 
-		if( ++l >= AS_TileColumns )
-		{
-			if( changed == 0 ) 
-				break;	  
-			l = 0 ;
-			changed = 0;
-		}
-	}	 
+	if( space_left_x < -1 )
+		space_left_x = trim_astbar_grid_dim( &(col_width[0]), tbar->width, space_left_x );
+
     /* pass 4: now we determine spread padding among affected rows : */
     if( floating_rows_count > 0 && space_left_y != 0)
         for( l = 0 ; l < AS_TileRows ; ++l )
@@ -1583,26 +1597,9 @@ LOCAL_DEBUG_OUT("back-try2(%p)", back );
                     break;
             }
         }
-	l = 0 ; changed = 0 ;
-	while( space_left_y < -1 )     /* ohh, no, we need to trim rows to fit */
-	{
-		if( row_height[l] > 0 ) 		
-		{
-			int to_trim = (-space_left_y*row_height[l])/tbar->height ; 
-			if( to_trim == 0 ) 
-				to_trim = 1 ;
-			row_height[l] -= to_trim;
-			space_left_y  += to_trim;
-			++changed ;
-		}	 
-		if( ++l >= AS_TileRows )
-		{	
-			if( changed == 0 ) 
-				break;	  
-			l = 0 ;
-			changed = 0;
-		}
-	}	 
+	if( space_left_y < -1 )
+		space_left_y = trim_astbar_grid_dim( &(row_height[0]), tbar->height, space_left_y );
+
 
     /* pass 5: now we determine offset of each row/column : */
     x = bevel.left_outline+bevel.left_inline+tbar->h_border ;
