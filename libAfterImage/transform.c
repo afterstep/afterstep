@@ -624,7 +624,7 @@ make_gradient_scanline( ASScanline *scl, ASGradient *grad, ASFlagType filter, AR
 /* Scaling code ; 																			   */
 /* **********************************************************************************************/
 Bool
-check_scale_parameters( ASImage *src, unsigned int src_width, unsigned int src_height, unsigned int *to_width, unsigned int *to_height )
+check_scale_parameters( ASImage *src, int src_width, int src_height, int *to_width, int *to_height )
 {
 	if( src == NULL )
 		return False;
@@ -835,7 +835,7 @@ create_destination_image( unsigned int width, unsigned int height, ASAltImFormat
 /* ASImage transformations : 												  */
 /* *****************************************************************************/
 ASImage *
-scale_asimage( ASVisual *asv, ASImage *src, unsigned int to_width, unsigned int to_height,
+scale_asimage( ASVisual *asv, ASImage *src, int to_width, int to_height,
 			   ASAltImFormats out_format, unsigned int compression_out, int quality )
 {
 	ASImage *dst = NULL ;
@@ -910,9 +910,9 @@ scale_asimage( ASVisual *asv, ASImage *src, unsigned int to_width, unsigned int 
 
 ASImage *
 scale_asimage2( ASVisual *asv, ASImage *src, 
-					unsigned int clip_x, unsigned int clip_y, 
-					unsigned int clip_width, unsigned int clip_height, 
-					unsigned int to_width, unsigned int to_height,
+					int clip_x, int clip_y, 
+					int clip_width, int clip_height, 
+					int to_width, int to_height,
 			   		ASAltImFormats out_format, unsigned int compression_out, int quality )
 {
 	ASImage *dst = NULL ;
@@ -994,8 +994,8 @@ scale_asimage2( ASVisual *asv, ASImage *src,
 ASImage *
 tile_asimage( ASVisual *asv, ASImage *src,
 		      int offset_x, int offset_y,
-			  unsigned int to_width,
-			  unsigned int to_height,
+			  int to_width,
+			  int to_height,
 			  ARGB32 tint,
 			  ASAltImFormats out_format, unsigned int compression_out, int quality )
 {
@@ -1060,8 +1060,8 @@ LOCAL_DEBUG_OUT("tiling actually...%s", "");
 ASImage *
 merge_layers( ASVisual *asv,
 				ASImageLayer *layers, int count,
-			  	unsigned int dst_width,
-			  	unsigned int dst_height,
+			  	int dst_width,
+			  	int dst_height,
 			  	ASAltImFormats out_format, unsigned int compression_out, int quality )
 {
 	ASImage *fake_bg = NULL ;
@@ -1137,7 +1137,7 @@ LOCAL_DEBUG_OUT("blending actually...%s", "");
 		{
 			if( imdecs[i] )
 			{
-				unsigned int layer_bottom = pcurr->dst_y+pcurr->clip_height ;
+				int layer_bottom = pcurr->dst_y+pcurr->clip_height ;
 				if( pcurr->dst_y < min_y )
 					min_y = pcurr->dst_y;
 				layer_bottom += imdecs[i]->bevel_v_addon ;
@@ -1305,8 +1305,8 @@ make_gradient_diag_width( ASImageOutput *imout, ASScanline *dither_lines, int di
 {
 	int line = 0;
 	/* using bresengham algorithm again to trigger horizontal shift : */
-	unsigned short smaller = imout->im->height;
-	unsigned short bigger  = imout->im->width;
+	short smaller = imout->im->height;
+	short bigger  = imout->im->width;
 	register int i = 0;
 	int eps;
 LOCAL_DEBUG_CALLER_OUT( "width = %d, height = %d, filetr = 0x%lX, dither_count = %d, dither width = %d\n", bigger, smaller, filter, dither_lines_num, dither_lines[0].width );
@@ -1441,7 +1441,7 @@ get_best_grad_back_color( ASGradient *grad )
 
 ASImage*
 make_gradient( ASVisual *asv, ASGradient *grad,
-               unsigned int width, unsigned int height, ASFlagType filter,
+               int width, int height, ASFlagType filter,
   			   ASAltImFormats out_format, unsigned int compression_out, int quality  )
 {
 	ASImage *im = NULL ;
@@ -1516,8 +1516,8 @@ LOCAL_DEBUG_CALLER_OUT( "type = 0x%X, width=%d, height = %d, filter = 0x%lX", gr
 ASImage *
 flip_asimage( ASVisual *asv, ASImage *src,
 		      int offset_x, int offset_y,
-			  unsigned int to_width,
-			  unsigned int to_height,
+			  int to_width,
+			  int to_height,
 			  int flip,
 			  ASAltImFormats out_format, unsigned int compression_out, int quality )
 {
@@ -1636,8 +1636,8 @@ LOCAL_DEBUG_OUT("flip-flopping actually...%s", "");
 ASImage *
 mirror_asimage( ASVisual *asv, ASImage *src,
 		      int offset_x, int offset_y,
-			  unsigned int to_width,
-			  unsigned int to_height,
+			  int to_width,
+			  int to_height,
 			  Bool vertical, ASAltImFormats out_format,
 			  unsigned int compression_out, int quality )
 {
@@ -1700,8 +1700,8 @@ LOCAL_DEBUG_OUT("miroring actually...%s", "");
 ASImage *
 pad_asimage(  ASVisual *asv, ASImage *src,
 		      int dst_x, int dst_y,
-			  unsigned int to_width,
-			  unsigned int to_height,
+			  int to_width,
+			  int to_height,
 			  ARGB32 color,
 			  ASAltImFormats out_format,
 			  unsigned int compression_out, int quality )
@@ -2013,7 +2013,7 @@ colorize_asimage_vector( ASVisual *asv, ASImage *im,
 
 ASImage *
 create_asimage_from_vector( ASVisual *asv, double *vector,
-							unsigned int width, unsigned int height,
+							int width, int height,
 							ASVectorPalette *palette,
 							ASAltImFormats out_format,
 							unsigned int compression, int quality )
@@ -2173,8 +2173,8 @@ static void calc_gauss(double radius, double* gauss) {
 ASImage*
 adjust_asimage_hsv( ASVisual *asv, ASImage *src,
 				    int offset_x, int offset_y,
-	  			    unsigned int to_width, unsigned int to_height,
-					unsigned int affected_hue, unsigned int affected_radius,
+	  			    int to_width, int to_height,
+					int affected_hue, int affected_radius,
 					int hue_offset, int saturation_offset, int value_offset,
 					ASAltImFormats out_format,
 					unsigned int compression_out, int quality )
@@ -2358,10 +2358,10 @@ slice_scanline( ASScanline *dst, ASScanline *src, int start_x, int end_x, ASScan
 
 ASImage*
 slice_asimage2( ASVisual *asv, ASImage *src,
-			   unsigned int slice_x_start, unsigned int slice_x_end,
-			   unsigned int slice_y_start, unsigned int slice_y_end,
-			   unsigned int to_width,
-			   unsigned int to_height,
+			   int slice_x_start, int slice_x_end,
+			   int slice_y_start, int slice_y_end,
+			   int to_width,
+			   int to_height,
 			   Bool scale,
 			   ASAltImFormats out_format,
 			   unsigned int compression_out, int quality )
@@ -2566,10 +2566,9 @@ LOCAL_DEBUG_CALLER_OUT( "sx1 = %d, sx2 = %d, sy1 = %d, sy2 = %d, to_width = %d, 
 
 ASImage*
 slice_asimage( ASVisual *asv, ASImage *src,
-			   unsigned int slice_x_start, unsigned int slice_x_end,
-			   unsigned int slice_y_start, unsigned int slice_y_end,
-			   unsigned int to_width,
-			   unsigned int to_height,
+			   int slice_x_start, int slice_x_end,
+			   int slice_y_start, int slice_y_end,
+			   int to_width, int to_height,
 			   ASAltImFormats out_format,
 			   unsigned int compression_out, int quality )
 {

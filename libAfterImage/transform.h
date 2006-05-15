@@ -366,43 +366,43 @@ extern "C" {
  *********/
 
 ASImage *scale_asimage( struct ASVisual *asv, ASImage *src,
-						unsigned int to_width, unsigned int to_height,
+						int to_width, int to_height,
 						ASAltImFormats out_format,
 						unsigned int compression_out, int quality );
 ASImage *scale_asimage2( ASVisual *asv, ASImage *src, 
-		 				unsigned int clip_x, unsigned int clip_y, 
-						unsigned int clip_width, unsigned int clip_height, 
-						unsigned int to_width, unsigned int to_height,
+		 				int clip_x, int clip_y, 
+						int clip_width, int clip_height, 
+						int to_width, int to_height,
 			   			ASAltImFormats out_format, unsigned int compression_out, int quality );
 
 ASImage *tile_asimage ( struct ASVisual *asv, ASImage *src,
 						int offset_x, int offset_y,
-  					    unsigned int to_width,  unsigned int to_height, ARGB32 tint,
+  					    int to_width,  int to_height, ARGB32 tint,
 						ASAltImFormats out_format,
 						unsigned int compression_out, int quality );
 ASImage *merge_layers ( struct ASVisual *asv, ASImageLayer *layers, int count,
-			  		    unsigned int dst_width, unsigned int dst_height,
+			  		    int dst_width, int dst_height,
 			  		    ASAltImFormats out_format,
 						unsigned int compression_out, int quality );
 ASImage *make_gradient( struct ASVisual *asv, struct ASGradient *grad,
-               			unsigned int width, unsigned int height, ASFlagType filter,
+               			int width, int height, ASFlagType filter,
   			   			ASAltImFormats out_format,
 						unsigned int compression_out, int quality  );
 ASImage *flip_asimage( struct ASVisual *asv, ASImage *src,
 		 		       int offset_x, int offset_y,
-			  		   unsigned int to_width, unsigned int to_height,
+			  		   int to_width, int to_height,
 					   int flip, ASAltImFormats out_format,
 					   unsigned int compression_out, int quality );
 ASImage *mirror_asimage( ASVisual *asv, ASImage *src,
 				         int offset_x, int offset_y,
-						 unsigned int to_width,
-			             unsigned int to_height,
+						 int to_width,
+			             int to_height,
 			             Bool vertical, ASAltImFormats out_format,
 						 unsigned int compression_out, int quality );
 ASImage *pad_asimage(   ASVisual *asv, ASImage *src,
 		      			int dst_x, int dst_y,
-			  			unsigned int to_width,
-			  			unsigned int to_height,
+			  			int to_width,
+			  			int to_height,
 			  			ARGB32 color,
 			  			ASAltImFormats out_format,
 			  			unsigned int compression_out, int quality );
@@ -418,8 +418,8 @@ Bool fill_asimage( ASVisual *asv, ASImage *im,
 
 ASImage* adjust_asimage_hsv( ASVisual *asv, ASImage *src,
 				    int offset_x, int offset_y,
-	  			    unsigned int to_width, unsigned int to_height,
-					unsigned int affected_hue, unsigned int affected_radius,
+	  			    int to_width, int to_height,
+					int affected_hue, int affected_radius,
 					int hue_offset, int saturation_offset, int value_offset,
 					ASAltImFormats out_format,
 					unsigned int compression_out, int quality );
@@ -486,16 +486,16 @@ colorize_asimage_vector( ASVisual *asv, ASImage *im,
 						 int quality );
 ASImage *
 create_asimage_from_vector( ASVisual *asv, double *vector,
-							unsigned int width, unsigned int height,
+							int width, int height,
 							ASVectorPalette *palette,
 							ASAltImFormats out_format,
 							unsigned int compression, int quality );
 ASImage*
 slice_asimage2( ASVisual *asv, ASImage *src,
-			   unsigned int slice_x_start, unsigned int slice_x_end,
-			   unsigned int slice_y_start, unsigned int slice_y_end,
-			   unsigned int to_width,
-			   unsigned int to_height,
+			   int slice_x_start, int slice_x_end,
+			   int slice_y_start, int slice_y_end,
+			   int to_width,
+			   int to_height,
 			   Bool scaled,    /* middle portion */
 			   ASAltImFormats out_format,
 			   unsigned int compression_out, int quality );
@@ -503,10 +503,10 @@ slice_asimage2( ASVisual *asv, ASImage *src,
 /* same as above with scale = 0 */
 ASImage*
 slice_asimage( ASVisual *asv, ASImage *src,
-			   unsigned int slice_x_start, unsigned int slice_x_end,
-			   unsigned int slice_y_start, unsigned int slice_y_end,
-			   unsigned int to_width,
-			   unsigned int to_height,
+			   int slice_x_start, int slice_x_end,
+			   int slice_y_start, int slice_y_end,
+			   int to_width,
+			   int to_height,
 			   ASAltImFormats out_format,
 			   unsigned int compression_out, int quality );
 
