@@ -212,6 +212,8 @@ ASImage *get_asimage_extra( ASImageManager* imageman, const char *file, ASImageI
 ASImageFileTypes check_asimage_file_type( const char *realfilename );
 
 
+Bool reload_asimage_manager( ASImageManager *imman );
+
 #define NO_PREVIEW		 	0
 #define LOAD_PREVIEW   		AS_IMPORT_RESIZED
 #define SCALE_PREVIEW_H		AS_IMPORT_SCALED_H

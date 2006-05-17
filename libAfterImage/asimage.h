@@ -545,6 +545,7 @@ ASImage *create_asimage( unsigned int width, unsigned int height, unsigned int c
 ASImage *create_static_asimage( unsigned int width, unsigned int height, unsigned int compression);
 ASImage *clone_asimage( ASImage *src, ASFlagType filter );
 void destroy_asimage( ASImage **im );
+Bool asimage_replace (ASImage *im, ASImage *from);
 /****f* libAfterImage/asimage/set_asimage_vector()
  * NAME
  * set_asimage_vector() This function replaces contents of the vector 

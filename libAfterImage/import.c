@@ -333,6 +333,22 @@ file2pixmap(ASVisual *asv, Window root, const char *realfilename, Pixmap *mask_o
 	return trg ;
 }
 
+static ASImage *
+load_image_from_path( const char *file, char **path, double gamma)
+{
+	if( path[2] == NULL )
+		return file2ASImage( file, 0xFFFFFFFF, gamma, 100, path[0], path[1], NULL );
+#if (MAX_SEARCH_PATHS!=8)
+#error "Fixme: please update file2ASImage call to match max number of search paths in ImageManager"
+#else
+	else
+		return file2ASImage( file, 0xFFFFFFFF, gamma, 100, path[0], path[1], path[2],
+			    	       path[3], path[4], path[5], path[6], path[7], NULL );
+#endif
+
+	return NULL ;
+}
+
 ASImage *
 get_asimage( ASImageManager* imageman, const char *file, ASFlagType what, unsigned int compression )
 {
@@ -340,21 +356,51 @@ get_asimage( ASImageManager* imageman, const char *file, ASFlagType what, unsign
 	if( imageman && file )
 		if( (im = fetch_asimage(imageman, file )) == NULL )
 		{
-			char **path = &(imageman->search_path[0]);
-			if( path[2] == NULL )
-				im = file2ASImage( file, what, imageman->gamma, compression, path[0], path[1], NULL );
-#if (MAX_SEARCH_PATHS!=8)
-#error "Fixme: please update file2ASImage call to match max number of search paths in ImageManager"
-#else
-			else
-				im = file2ASImage( file, what, imageman->gamma, compression, path[0], path[1], path[2],
-			    	               path[3], path[4], path[5], path[6], path[7], NULL );
-#endif
+			im = load_image_from_path( file, &(imageman->search_path[0]), imageman->gamma);
 			if( im )
+			{
 				store_asimage( imageman, im, file );
+				set_flags( im->flags, ASIM_NAME_IS_FILENAME );
+			}
+				
 		}
 	return im;
 }
+
+Bool
+reload_asimage_manager( ASImageManager *imman )
+{
+#if (HAVE_AFTERBASE_FLAG==1)
+	if( imman != NULL ) 
+	{
+		ASHashIterator iter ;
+		if( start_hash_iteration (imman->image_hash, &iter) )
+		{
+			do
+			{
+				ASImage *im = curr_hash_data( &iter );
+/*fprintf( stderr, "im = %p. flags = 0x%lX\n", im, im->flags );		*/
+				if( get_flags( im->flags, ASIM_NAME_IS_FILENAME ) )
+				{
+/*fprintf( stderr, "reloading image \"%s\" ...", im->name );*/
+					ASImage *reloaded_im = load_image_from_path( im->name, &(imman->search_path[0]), imman->gamma);
+/*fprintf( stderr, "Done. reloaded_im = %p.\n", reloaded_im );*/					
+					if( reloaded_im ) 
+					{
+						if( asimage_replace (im, reloaded_im) ) 
+							free( reloaded_im );
+						else
+							destroy_asimage( &reloaded_im );
+					}				
+				}
+			}while( next_hash_item( &iter ) );
+			return True;		
+		}
+	}
+#endif
+	return False;
+}
+
 
 ASImageListEntry * 
 ref_asimage_list_entry( ASImageListEntry *entry )

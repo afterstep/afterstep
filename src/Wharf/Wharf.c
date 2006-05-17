@@ -792,6 +792,7 @@ DispatchEvent (ASEvent * event)
 				LOCAL_DEBUG_OUT( "AS Styles updated!%s","");
 				mystyle_list_destroy_all(&(Scr.Look.styles_list));
 				LoadColorScheme();
+				reload_asimage_manager( Scr.image_manager );
 				CheckConfigSanity();
 				/* now we need to update everything */
 				update_wharf_folder_styles( WharfState.root_folder, True );

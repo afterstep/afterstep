@@ -236,31 +236,27 @@ asimage_start (ASImage * im, unsigned int width, unsigned int height, unsigned i
 }
 
 Bool
-asimage_replace (ASImage *im, ASImage **pfrom)
+asimage_replace (ASImage *im, ASImage *from)
 {
-	if( pfrom ) 
-	{
-		ASImage *from = *pfrom ; 
-		if ( im && from && im != from )
-			if( im->magic == MAGIC_ASIMAGE && from->magic == MAGIC_ASIMAGE && from->imageman == NULL )
-			{
-				int ref_count = im->ref_count ;
-				ASImageManager *imageman = im->imageman ;
-				char *name = im->name ; 
-				
-				im->name = NULL ; 
-				asimage_init (im, True);
+	if ( im && from && im != from )
+		if( im->magic == MAGIC_ASIMAGE && from->magic == MAGIC_ASIMAGE && from->imageman == NULL )
+		{
+			int ref_count = im->ref_count ;
+			ASImageManager *imageman = im->imageman ;
+			char *name = im->name ; 
 
-				memcpy( im, from, sizeof(ASImage) );
-				memset( from, 0x00, sizeof(ASImage) );		
-				
-				im->ref_count = ref_count ; 
-				im->imageman = imageman ;
-				im->name = name ;
+			im->name = NULL ; 
+			asimage_init (im, True);
 
-				return True ;
-			}
-	}
+			memcpy( im, from, sizeof(ASImage) );
+			memset( from, 0x00, sizeof(ASImage) );		
+
+			im->ref_count = ref_count ; 
+			im->imageman = imageman ;
+			im->name = name ;
+
+			return True ;
+		}
 	return False;
 }
 
