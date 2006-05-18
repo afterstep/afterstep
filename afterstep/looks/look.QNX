@@ -255,7 +255,7 @@ MyFrame "QNX"
 	RightSpacerBackground	bars/title_rspacer_qnx
 	RightSpacerBackAlign	VScaled
 	RightBtnBackground	bars/title_rbtn_qnx
-	RightBtnBackAlign	VScaled,HTiled,LabelSize,Right
+	RightBtnBackAlign	VScaled,LabelSize,Right
 
 #default layout is : Buttons,Spacer,TitleSpacer   Title   TitleSpacer,Spacer,Buttons
 # The following lines will swap it around : 
