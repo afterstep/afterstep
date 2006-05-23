@@ -9,9 +9,9 @@ exec perl -w -x $0 ${1+"$@"} # -*- mode: perl; perl-indent-level: 2; -*-
 ###                                                        ###
 ##############################################################
 
-## $Revision: 1.2 $
-## $Date: 2006/01/09 18:12:45 $
-## $Author: vae $
+## $Revision: 1.3 $
+## $Date: 2006/05/23 18:46:49 $
+## $Author: sasha $
 ##
 ##   (C) 2001,2002,2003 Martyn J. Pearce <fluffy@cpan.org>, under the GNU GPL.
 ##   (C) 1999 Karl Fogel <kfogel@red-bean.com>, under the GNU GPL.
@@ -82,7 +82,7 @@ use constant MAILNAME => "/etc/mailname";
 my $Log_Source_Command = "cvs log";
 
 # In case we have to print it out:
-my $VERSION = '$Revision: 1.2 $';
+my $VERSION = '$Revision: 1.3 $';
 $VERSION =~ s/\S+\s+(\S+)\s+\S+/$1/;
 
 ## Vars set by options:
@@ -1272,9 +1272,9 @@ sub parse_date_author_and_state ()
 
   my $line = shift;
 
-  my ($year, $mon, $mday, $hours, $min, $secs, $author, $state, $rest) =
+  my ($year, $mon, $mday, $hours, $min, $secs, $timezone, $author, $state, $rest) =
     $line =~
-      m#(\d+)[/\-](\d+)[\-/](\d+)\s+(\d+):(\d+):(\d+)(\s+\-\d+)?;\s+author:\s+([^;]+);\s+state:\s+([^;]+);(.*)#
+      m#(\d+)[/\-](\d+)[\-/](\d+)\s+(\d+):(\d+):(\d+)\s+([\-\+]\d+)?;\s+author:\s+([^;]+);\s+state:\s+([^;]+);(.*)#
           or  die "Couldn't parse date ``$line''";
   die "Bad date or Y2K issues" unless ($year > 1969 and $year < 2258);
   # Kinda arbitrary, but useful as a sanity check
