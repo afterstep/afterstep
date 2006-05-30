@@ -170,6 +170,12 @@ ParseBaseOptions (const char *filename, char *myname)
 		 case BASE_MYNAME_PATH_ID:
 			 set_string( &(config->myname_path), item.data.string );
 			 break;
+		 case BASE_GTKRC_PATH_ID:
+			 set_string( &(config->gtkrc_path), item.data.string );
+			 break;
+		 case BASE_GTKRC20_PATH_ID:
+			 set_string( &(config->gtkrc20_path), item.data.string );
+			 break;
 		 case BASE_DESKTOP_SIZE_ID:
 		 	 set_flags( config->set_flags, BASE_DESKTOP_SIZE_SET );
 			 config->desktop_size = item.data.geometry;

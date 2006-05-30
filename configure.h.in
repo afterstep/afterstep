@@ -87,8 +87,8 @@
 #define MENU_FILE	AFTER_NONCF "/startmenu"
 #define GTKRC_TEMPLATE_FILE     "gtkrc_template"         /* gtkrc prototype */
 #define GTKRC20_TEMPLATE_FILE   "gtkrc-2.0_template"     /* gtkrc prototype */
-#define GTKRC_FILE      "~/.gtkrc"		         /* compiled and ready to use gtkrc */
-#define GTKRC20_FILE    "~/.gtkrc-2.0"		         /* compiled and ready to use gtkrc */
+/* #define GTKRC_FILE      "~/.gtkrc"		 */        /* compiled and ready to use gtkrc */
+/* #define GTKRC20_FILE    "~/.gtkrc-2.0"	 */	         /* compiled and ready to use gtkrc */
 #define KSCRC_TEMPLATE_FILE   "kcsrc_template"           /* KDE colourscheme prototype */
 #define AS_KCSRC_FILE	"AfterStep.kcsrc"
 #define KCSRC_FILE      AFTER_NONCF "/AfterStep.kcsrc"    /* compiled and ready to use kcsrc */

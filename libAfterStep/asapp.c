@@ -814,8 +814,9 @@ make_default_environment()
 	for( i = 0 ; i < ASTool_Count ; ++i )
 		e->tool_command[i] = as_get_default_tool(i);	 
 
-	e->gtkrc_path = make_session_rc_file(Session, GTKRC_FILE);
-  	e->gtkrc20_path = make_session_rc_file(Session, GTKRC20_FILE) ;
+	/* by default - don't do overwrite gtkrc files so to not aggrave people */
+	e->gtkrc_path = NULL ;  /* make_session_rc_file(Session, GTKRC_FILE); */
+  	e->gtkrc20_path = NULL ; /* make_session_rc_file(Session, GTKRC20_FILE) ; */
 
 	return e;
 }
