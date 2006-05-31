@@ -50,6 +50,6 @@ DisableKDEGlobalsTheming
 # comment these to disable GTK apps using same color scheme as afterstep : 
 # ( overwrites any existing file with the same name - backup those if you 
 #   need them )
-gtkrcPath	~/.gtkrc
-gtkrc20Path	~/.gtkrc-2.0
+gtkrcPath	~/.gtkrc_afterstep
+gtkrc20Path	~/.gtkrc-2.0_afterstep
   
