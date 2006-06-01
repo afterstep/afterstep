@@ -541,6 +541,7 @@ LOCAL_DEBUG_OUT( "**CONFG Client(%lx(%s))->status(%ux%u%+d%+d,%s,%s(%d>-%d))",
 
         moveresize_canvas(  asw->frame_canvas, asw->status->x, asw->status->y,
                             new_width, new_height );
+		send_canvas_configure_notify(asw->frame_canvas, asw->client_canvas);
     }
 	return moved;
 }
