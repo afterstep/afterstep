@@ -34,11 +34,11 @@ typedef struct MyStyle
 
     ASHashTable *owner ;
 
-    int set_flags;		/* == (user_flags | inherit_flags) */
-    int user_flags;		/* options the user set */
-    int inherit_flags;		/* inherited options */
+    ASFlagType set_flags;		/* == (user_flags | inherit_flags) */
+    ASFlagType user_flags;		/* options the user set */
+    ASFlagType inherit_flags;		/* inherited options */
 
-    int flags;			/* options that consist of flags only */
+    ASFlagType flags;			/* options that consist of flags only */
     char *name;
     int text_style;
     MyFont font;
@@ -49,6 +49,9 @@ typedef struct MyStyle
     ASGradient gradient;	/* background gradient */
     ARGB32 tint;
 	int slice_x_start, slice_x_end, slice_y_start, slice_y_end ;
+	
+	struct MyStyle *overlay ;
+    int overlay_type;
   }
 MyStyle;
 
@@ -73,9 +76,10 @@ enum				/* MyStyle options */
     F_BACKTRANSPIXMAP    = (1 << 13),   /* should never be set unless F_BACKPIXMAP is set!! */
     F_EXTERNAL_BACKPIX   = (1 << 14),   /* indicates that pixmap has been created by some other application and should not be freed */
     F_EXTERNAL_BACKMASK  = (1 << 15),
-	F_TRANSPARENT		 = (1 << 16)           /* if set MyStyle is transparent, and everything that is drawn with it,
-												* must be updated on background changes */
+	F_TRANSPARENT		 = (1 << 16),   /* if set MyStyle is transparent, and everything that is drawn with it,
+										 * must be updated on background changes */
   
+	F_OVERLAY		     = (1 << 17)           
   };
 
 #define TransparentMS(style)  (get_flags((style)->set_flags, F_TRANSPARENT))

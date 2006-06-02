@@ -195,7 +195,9 @@ CheckConfigSanity()
     sprintf( buf, "*%sTile", get_application_name() );
     LOCAL_DEBUG_OUT("Attempting to use style \"%s\"", buf);
     Scr.Look.MSWindow[BACK_UNFOCUSED] = mystyle_find_or_default( buf );
-    LOCAL_DEBUG_OUT("Will use style \"%s\"", Scr.Look.MSWindow[BACK_UNFOCUSED]->name);
+    LOCAL_DEBUG_OUT("Will use style \"%s\", overlay = %p.", 
+						Scr.Look.MSWindow[BACK_UNFOCUSED]->name,
+						Scr.Look.MSWindow[BACK_UNFOCUSED]->overlay );
 }
 
 

@@ -97,27 +97,21 @@ DestroyMyStyleDefinitions (MyStyleDefinition ** list)
 		{
 			MyStyleDefinition *pdef = pnext ;
 			pnext = pdef->next ;
-			if (pdef->name)
-				free (pdef->name);
+			destroy_string( &(pdef->name));
 			if (pdef->inherit)
 			{
 				int i = pdef->inherit_num ;
 				while( --i >= 0 )
-					if (pdef->inherit[i])
-						free (pdef->inherit[i]);
+					destroy_string( &(pdef->inherit[i]));
 				free (pdef->inherit);
 			}
-			if( pdef->font)
-				free (pdef->font);
-			if( pdef->fore_color)
-				free (pdef->fore_color);
-			if( pdef->back_color)
-				free (pdef->back_color);
-			if( pdef->back_pixmap)
-				free (pdef->back_pixmap);
+			destroy_string( &(pdef->font));
+			destroy_string( &(pdef->fore_color));
+			destroy_string( &(pdef->back_color));
+			destroy_string( &(pdef->back_pixmap));
+			destroy_string( &(pdef->overlay));
 			free_MSD_back_grad (pdef);
 			DestroyFreeStorage (&(pdef->more_stuff));
-
 			free (pdef);
 		}
 		*list = NULL ;
@@ -153,6 +147,9 @@ PrintMyStyleDefinitions (MyStyleDefinition * list)
 		fprintf (stderr, "\n\tSliceYEnd %d", list->slice_y_end);
 		if( get_flags( list->flags, MYSTYLE_DRAW_TEXT_BACKGROUND ) )
 			fprintf (stderr, "\n\tDrawTextBackground");
+		if( list->overlay && list->overlay_type > TEXTURE_GRADIENT_END )
+			fprintf (stderr, "\n\tOverlay %d \"%s\"", list->overlay_type, list->overlay);
+
 		if( list->texture_type > 0 )
 		{
 			if( list->texture_type > TEXTURE_GRADIENT_END )
@@ -334,6 +331,22 @@ ProcessMyStyleOptions (FreeStorageElem * options, MyStyleDefinition ** tail)
 				}
 			}
 			break;
+		 case MYSTYLE_Overlay_ID:
+		 	{
+				MyStyleDefinition *msd = *tail ;
+				if (options->argc > 1)
+				{
+					set_string( &(msd->overlay), stripcpy2 (options->argv[1], False) );
+					msd->overlay_type = item.data.integer;
+					if( msd->overlay_type < TEXTURE_TEXTURED_START || msd->texture_type > TEXTURE_TEXTURED_END )
+					{
+		            	show_error("Error in MyStyle \"%s\": unsupported overlay type [%d]. Assuming default of [131] instead.", msd->name, msd->overlay_type);
+						msd->overlay_type = TEXTURE_TRANSPIXMAP_ALPHA ;
+					}
+				}else
+		            show_error("Error in MyStyle \"%s\": Overlay option uses format :  \"Overlay <type> <mystyle name>\". Ignoring.", msd->name);
+			}
+			break;
 		 default:
 			 item.ok_to_free = 1;
 			 ReadConfigItem (&item, NULL);
@@ -444,6 +457,18 @@ mystyle_create_from_definition (MyStyleDefinition * def)
 		}else
     		show_error("unable to parse BackColor \"%s\"", def->back_color);
 	}
+	if( def->overlay != NULL )
+	{
+		MyStyle *o = mystyle_find (def->overlay );
+		if ( o != NULL)
+		{
+			style->overlay = o;
+			style->overlay_type = def->overlay_type ;
+		}else
+			show_error ("unknown style to be overlayed with: %s\n", def->overlay );
+		set_flags(style->user_flags, F_OVERLAY);
+	}
+	
 	if( def->texture_type > 0 && def->texture_type <= TEXTURE_GRADIENT_END )
 	{
 		int           type = def->back_grad_type;

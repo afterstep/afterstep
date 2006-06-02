@@ -38,7 +38,8 @@ mystyle_list_set_property (ASWMProps *wmprops, ASHashTable *list )
     if( !start_hash_iteration( list, &iterator ) ) return ;
 	do
 	{
-        nelements += 9 + 4 + 6 + ((MyStyle*)curr_hash_data(&iterator))->gradient.npoints * 4;
+#define MYSTYLE_STATIC_ELEM_NUM (9 + 4 + 7)
+        nelements += MYSTYLE_STATIC_ELEM_NUM + ((MyStyle*)curr_hash_data(&iterator))->gradient.npoints * 4;
     }while( next_hash_item(&iterator));
 
 	prop = safemalloc (sizeof (CARD32) * nelements);
@@ -69,7 +70,8 @@ mystyle_list_set_property (ASWMProps *wmprops, ASHashTable *list )
 		prop[i++] = style->back_icon.mask;
 		prop[i++] = style->tint;
 		prop[i++] = style->back_icon.alpha;
-		prop[i++] = 0;						   /* unused/reserved */
+		prop[i++] = style->overlay_type;				   
+		prop[i++] = (style->overlay)?XInternAtom (dpy, style->overlay->name, False): None;		
 		prop[i++] = style->gradient.npoints;
 		{
 			int           k;
@@ -86,7 +88,7 @@ mystyle_list_set_property (ASWMProps *wmprops, ASHashTable *list )
 		}
     }while( next_hash_item(&iterator));
 	/* set the property version to 1.2 */
-    set_as_style (wmprops, nelements *  sizeof (CARD32), (1 << 8) + 3, prop );
+    set_as_style (wmprops, nelements *  sizeof (CARD32), (1 << 8) + 4, prop );
     free (prop);
 }
 
@@ -109,7 +111,7 @@ mystyle_get_property (ASWMProps *wmprops)
 	/* do we know how to handle this version? */
     version = wmprops->as_styles_version ;
     /* do we know how to handle this version? */
-	if (version != (1 << 8) + 3)
+	if (version != (1 << 8) + 4)
 	{
         show_error("style property has unknown version %d.%d", (int)version >> 8, (int)version & 0xff);
 		return;
@@ -182,10 +184,17 @@ mystyle_get_property (ASWMProps *wmprops)
 		style->tint = prop[i + 15];
 		back_alpha = prop[i + 16];
         set_flags(style->user_flags, F_EXTERNAL_BACKPIX|F_EXTERNAL_BACKMASK);
-		/* unused/reserved : */
-/*    style->tint = prop[i + 17];
- */
-		style->gradient.npoints = prop[i + 18];
+        LOCAL_DEBUG_OUT( "overlay props = %d, 0x%X", prop[i + 17], prop[i + 18] );
+	    style->overlay_type = prop[i + 17];
+		if( prop[i + 18] != None ) 
+		{
+			name = XGetAtomName (dpy, prop[i + 18]);
+			style->overlay = mystyle_find (name);			
+			XFree (name);
+		}
+
+ 
+		style->gradient.npoints = prop[i + 19];
 /*	  show_warning( "checking if gradient data in style \"%s\": (set flags are : 0x%X)", style->name, style->inherit_flags);
  */
 		if (style->gradient.npoints > 0 )
@@ -198,12 +207,12 @@ mystyle_get_property (ASWMProps *wmprops)
 
 			for (k = 0; k < style->gradient.npoints; k++)
  			{
-				style->gradient.color[k] = prop[i + 9+4+6 + k * 4 + 0];
+				style->gradient.color[k] = prop[i + MYSTYLE_STATIC_ELEM_NUM + k * 4 + 0];
 				/*
 				   style->gradient.color[k].green = prop[i + 16 + k * 4 + 1];
 				   style->gradient.color[k].blue = prop[i + 16 + k * 4 + 2];
 				 */
-				style->gradient.offset[k] = (double)prop[i + 9+4+6+ k * 4 + 3] / 0x1000000;
+				style->gradient.offset[k] = (double)prop[i + MYSTYLE_STATIC_ELEM_NUM+ k * 4 + 3] / 0x1000000;
                 LOCAL_DEBUG_OUT ("gradient color at offset %f is %lX", style->gradient.offset[k],
 								 style->gradient.color[k]);
 			}
@@ -235,7 +244,7 @@ mystyle_get_property (ASWMProps *wmprops)
 			}
 		}
 
-		i += 9 + 4 + 6 + style->gradient.npoints * 4;
+		i += MYSTYLE_STATIC_ELEM_NUM + style->gradient.npoints * 4;
 		LOCAL_DEBUG_OUT( "user_flags = 0x%X, inherit_flags = 0x%X", style->user_flags, style->inherit_flags );
 		style->set_flags = style->user_flags | style->inherit_flags;
 	}

@@ -418,8 +418,9 @@ void DestroyBaseConfig (BaseConfig * config);
 #define MYSTYLE_SliceXEnd_ID			MYSTYLE_ID_START+11
 #define MYSTYLE_SliceYStart_ID			MYSTYLE_ID_START+12
 #define MYSTYLE_SliceYEnd_ID			MYSTYLE_ID_START+13
+#define MYSTYLE_Overlay_ID				MYSTYLE_ID_START+14
 
-#define MYSTYLE_DONE_ID					MYSTYLE_ID_START+14
+#define MYSTYLE_DONE_ID					MYSTYLE_ID_START+15
 
 #define MYSTYLE_ID_END					MYSTYLE_ID_START+20
 
@@ -438,6 +439,7 @@ void DestroyBaseConfig (BaseConfig * config);
 {TF_NO_MYNAME_PREPENDING,"SliceXEnd",	9, TT_INTEGER, MYSTYLE_SliceXEnd_ID	, NULL},\
 {TF_NO_MYNAME_PREPENDING,"SliceYStart",	11, TT_INTEGER, MYSTYLE_SliceYStart_ID	, NULL},\
 {TF_NO_MYNAME_PREPENDING,"SliceYEnd",	9, TT_INTEGER, MYSTYLE_SliceYEnd_ID	, NULL},\
+{TF_NO_MYNAME_PREPENDING,"Overlay",	    7,TT_INTEGER, MYSTYLE_Overlay_ID	, NULL},\
 {TF_NO_MYNAME_PREPENDING|TF_SYNTAX_TERMINATOR,"~MyStyle", 	8, TT_FLAG, MYSTYLE_DONE_ID		, NULL}
 
 extern struct SyntaxDef MyStyleSyntax;
@@ -470,6 +472,9 @@ typedef struct mystyle_definition
     char   *back_pixmap;
 
 	int slice_x_start, slice_x_end, slice_y_start, slice_y_end ;
+
+	int 	overlay_type ;
+    char   *overlay;
 
     struct  FreeStorageElem *more_stuff;
     struct  mystyle_definition *next;	/* as long as there could be several MyStyle definitions

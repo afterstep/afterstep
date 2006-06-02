@@ -442,14 +442,24 @@ clip_root_pixmap( Pixmap root_pixmap, int width, int height )
 	return result;
 }	 
 
-
-ASImage      *
-mystyle_make_image (MyStyle * style, int root_x, int root_y, int width, int height, int flip )
+static ASImage      *
+mystyle_make_image_int (MyStyle * style, int root_x, int root_y, int width, int height, int flip, ASImage *underlayment, int overlay_type )
 {
 	ASImage      *im = NULL;
 	Pixmap        root_pixmap;
-	Bool transparency = False ;
+	Bool transparency = TransparentMS(style) ;
 	int preflip_width, preflip_height ;
+	
+	if(underlayment ) 
+	{
+		if( overlay_type >= TEXTURE_SCALED_TRANSPIXMAP )
+			overlay_type = TEXTURE_TRANSPIXMAP + (overlay_type - TEXTURE_SCALED_TRANSPIXMAP);
+		if( overlay_type < TEXTURE_TRANSPIXMAP || overlay_type >= TEXTURE_TRANSPIXMAP_END ) 
+			overlay_type = TEXTURE_TRANSPIXMAP_ALPHA ;
+		
+		if( transparency )
+			transparency = (overlay_type != TEXTURE_TRANSPIXMAP_ALPHA);
+	} 
 
 	if (width < 1)
 		width = 1;
@@ -458,10 +468,9 @@ mystyle_make_image (MyStyle * style, int root_x, int root_y, int width, int heig
     LOCAL_DEBUG_OUT ("style \"%s\", texture_type = %d, im = %p, tint = 0x%lX, geom=(%dx%d%+d%+d), flip = %d", style->name, style->texture_type,
                      style->back_icon.image, style->tint, width, height, root_x, root_y, flip);
 
-	transparency = TransparentMS(style);
-
-	if(  transparency )
+	if( transparency )
 	{	/* in this case we need valid root image : */
+		
 		if (ASDefaultScr->RootImage == NULL)
 		{
 			unsigned int  root_w, root_h;
@@ -660,8 +669,80 @@ mystyle_make_image (MyStyle * style, int root_x, int root_y, int width, int heig
 		im->back_color = style->colors.back ;
 		show_warning( "MyStyle \"%s\" : failed to generate background image - using solid fill instead with color #0x%8.8X", style->name, style->colors.back );
 	}
+
+	if( underlayment )
+	{
+		 ASImageLayer  layers[2];
+		 int           index = 1;      /* default is alphablending !!! */
+
+		 init_image_layers (&layers[0], 2);
+
+		 layers[0].im = underlayment;
+		 index = overlay_type - TEXTURE_TRANSPIXMAP;
+
+		 LOCAL_DEBUG_OUT ("index = %d", index);
+		 layers[0].merge_scanlines = mystyle_merge_scanlines_func_xref[index];
+         layers[0].dst_x = 0;
+         layers[0].dst_y = 0;
+         layers[0].clip_x = 0;
+         layers[0].clip_y = 0;
+		 layers[0].clip_width = width;
+		 layers[0].clip_height = height;
+
+		 layers[1].im = im;
+		 layers[1].merge_scanlines = layers[0].merge_scanlines;
+		 layers[1].dst_x = 0;
+		 layers[1].dst_y = 0;
+		 layers[1].clip_x = 0;
+		 layers[1].clip_y = 0;
+		 layers[1].clip_width = width;
+		 layers[1].clip_height = height;
+
+		{
+			ASImage *tmp = merge_layers(ASDefaultVisual, &layers[0], 2, 
+										width, height, 
+										ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
+			if( tmp )
+			{
+				if( im )
+				{
+					if (style->texture_type == TEXTURE_SHAPED_SCALED_PIXMAP ||
+						style->texture_type == TEXTURE_SHAPED_PIXMAP)
+					{
+						/*we need to keep alpha channel intact */
+						LOCAL_DEBUG_OUT( "copying alpha channel from %p to %p", im, tmp );
+						copy_asimage_channel(tmp, IC_ALPHA, im, IC_ALPHA);
+					}
+					safe_asimage_destroy (im);
+				}
+				im = tmp ;
+			}
+		}
+	}
+
+	if( style->overlay ) 
+	{
+		ASImage *overlayed = mystyle_make_image_int (style->overlay, root_x, root_y, width, height, flip, im, style->overlay_type );
+/* 		fprintf( stderr, "overlay_style = %p\n", style->overlay ); */
+		if( overlayed ) 
+		{
+			if( im && overlayed != im ) 
+				safe_asimage_destroy (im);
+			im = overlayed ;
+		}			
+	}
 	return im;
 }
+
+ASImage      *
+mystyle_make_image(MyStyle * style, int root_x, int root_y, int width, int height, int flip )
+{
+	if( style != NULL ) 
+		return mystyle_make_image_int (style, root_x, root_y, width, height, flip, NULL, 0 );
+	return NULL ;
+}
+
+
 
 /*************************************************************************/
 /* Mystyle creation/deletion                                             */
@@ -1062,6 +1143,25 @@ mystyle_merge_styles (MyStyle * parent, MyStyle * child, Bool override, Bool cop
 			{
 				child->user_flags |= F_DRAWTEXTBACKGROUND;
 				child->inherit_flags &= ~F_DRAWTEXTBACKGROUND;
+			}
+		}
+	}
+	if (parent->set_flags & F_OVERLAY)
+	{
+		if ((override == True) || !(child->set_flags & F_OVERLAY))
+		{
+			child->flags &= ~F_OVERLAY;
+			child->flags |= parent->flags & F_OVERLAY;
+			child->overlay = parent->overlay ;
+			child->overlay_type = parent->overlay_type ;
+			if (copy == False)
+			{
+				child->user_flags &= ~F_OVERLAY;
+				child->inherit_flags |= F_OVERLAY;
+			} else
+			{
+				child->user_flags |= F_OVERLAY;
+				child->inherit_flags &= ~F_OVERLAY;
 			}
 		}
 	}
