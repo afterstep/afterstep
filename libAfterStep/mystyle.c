@@ -443,12 +443,13 @@ clip_root_pixmap( Pixmap root_pixmap, int width, int height )
 }	 
 
 static ASImage      *
-mystyle_make_image_int (MyStyle * style, int root_x, int root_y, int width, int height, int flip, ASImage *underlayment, int overlay_type )
+mystyle_make_image_int (MyStyle * style, int root_x, int root_y, int crop_x, int crop_y, int crop_width, int crop_height, int scale_width, int scale_height, int flip, ASImage *underlayment, int overlay_type )
 {
 	ASImage      *im = NULL;
 	Pixmap        root_pixmap;
 	Bool transparency = TransparentMS(style) ;
 	int preflip_width, preflip_height ;
+	int width, height ; 
 	
 	if(underlayment ) 
 	{
@@ -461,10 +462,40 @@ mystyle_make_image_int (MyStyle * style, int root_x, int root_y, int width, int 
 			transparency = (overlay_type != TEXTURE_TRANSPIXMAP_ALPHA);
 	} 
 
+	if( crop_x < 0 ) 
+	{
+		root_x += crop_x ; 
+		width = scale_width-crop_x ; 
+		crop_x = 0 ;
+		if( width < crop_width )
+			width = crop_width;
+	}else
+	{
+		width = crop_width + crop_x ; 
+		if( width < scale_width ) 
+			width = scale_width ;
+	}
+
+	if( crop_y < 0 ) 
+	{
+		root_y += crop_y ; 
+		height = scale_height-crop_y ; 
+		crop_y = 0 ;
+		if( height < crop_height )
+			height = crop_height;
+	}else
+	{
+		height = crop_height + crop_y ; 
+		if( height < scale_height ) 
+			height = scale_height ;
+	}
+	
 	if (width < 1)
 		width = 1;
 	if (height < 1)
 		height = 1;
+		
+		
     LOCAL_DEBUG_OUT ("style \"%s\", texture_type = %d, im = %p, tint = 0x%lX, geom=(%dx%d%+d%+d), flip = %d", style->name, style->texture_type,
                      style->back_icon.image, style->tint, width, height, root_x, root_y, flip);
 
@@ -722,13 +753,29 @@ mystyle_make_image_int (MyStyle * style, int root_x, int root_y, int width, int 
 
 	if( style->overlay ) 
 	{
-		ASImage *overlayed = mystyle_make_image_int (style->overlay, root_x, root_y, width, height, flip, im, style->overlay_type );
+		ASImage *overlayed = mystyle_make_image_int (style->overlay, root_x, root_y, crop_x, crop_y, crop_width, crop_height, scale_width, scale_height, flip, im, style->overlay_type );
 /* 		fprintf( stderr, "overlay_style = %p\n", style->overlay ); */
 		if( overlayed ) 
 		{
 			if( im && overlayed != im ) 
 				safe_asimage_destroy (im);
 			im = overlayed ;
+		}			
+	}
+	if( crop_x > 0 || crop_y > 0 || 
+		(crop_width > 0 && crop_width < im->width ) ||
+		(crop_height > 0 && crop_height < im->height ) ) 
+	{
+		ASImage *cropped_im = tile_asimage( ASDefaultVisual, im,
+											crop_x, crop_y,
+											crop_width, crop_height,
+											TINT_LEAVE_SAME,
+											ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT );
+		if( cropped_im ) 
+		{
+			if( im && cropped_im != im ) 
+				safe_asimage_destroy (im);
+			im = cropped_im ;
 		}			
 	}
 	return im;
@@ -738,10 +785,17 @@ ASImage      *
 mystyle_make_image(MyStyle * style, int root_x, int root_y, int width, int height, int flip )
 {
 	if( style != NULL ) 
-		return mystyle_make_image_int (style, root_x, root_y, width, height, flip, NULL, 0 );
+		return mystyle_make_image_int (style, root_x, root_y, 0, 0, width, height, width, height, flip, NULL, 0 );
 	return NULL ;
 }
 
+ASImage      *
+mystyle_crop_image(MyStyle * style, int root_x, int root_y, int crop_x, int crop_y, int width, int height, int scale_width, int scale_height, int flip )
+{
+	if( style != NULL ) 
+		return mystyle_make_image_int (style, root_x, root_y, crop_x, crop_y, width, height, scale_width, scale_height, flip, NULL, 0 );
+	return NULL ;
+}
 
 
 /*************************************************************************/

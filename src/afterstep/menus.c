@@ -205,8 +205,9 @@ set_asmenu_item_data( ASMenuItem *item, MenuDataItem *mdi )
     item->source = mdi ;
 
     if( item->bar == NULL )
+	{
         item->bar = create_astbar();
-	else
+	}else
 		delete_astbar_tile( item->bar, -1 );  /* delete all tiles */
 
 
@@ -300,6 +301,12 @@ LOCAL_DEBUG_OUT( "item.bar(%p)->look(%p)", item->bar, look );
 
     if( item->bar == NULL )
         return False;
+
+	if( get_flags( Scr.Look.flags, TxtrMenuItmInd ) )
+		clear_flags( item->bar->state, BAR_FLAGS_CROP_BACK );
+	else
+		set_flags( item->bar->state, BAR_FLAGS_CROP_BACK );
+
 
     item->bar->h_spacing = DEFAULT_MENU_SPACING ;
     item->bar->h_border = DEFAULT_MENU_ITEM_HBORDER ;

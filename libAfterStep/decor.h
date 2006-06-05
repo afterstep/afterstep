@@ -156,6 +156,7 @@ typedef struct ASTBarData {
 
 #define BAR_FLAGS_VERTICAL      (0x01<<17)     /* vertical label */
 #define BAR_FLAGS_IMAGE_BACK    (0x01<<18)     /* back represents an icon instead of  */
+#define BAR_FLAGS_CROP_BACK     (0x01<<19)     /* crop background image in relation to canvas origin  */
 
     ASFlagType  state ;
     unsigned long context ;

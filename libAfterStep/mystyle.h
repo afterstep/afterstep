@@ -174,6 +174,8 @@ void mystyle_fix_styles (void);
 
 
 ASImage *mystyle_make_image( MyStyle * style, int root_x, int root_y, int width, int height, int flip );
+ASImage *mystyle_crop_image(MyStyle * style, int root_x, int root_y, int crop_x, int crop_y, int width, int height, int scale_width, int scale_height, int flip );
+
 
 MyStyle *mystyle_list_new (struct ASHashTable *list, char *name);
 MyStyle *mystyle_new_with_name (char *name);

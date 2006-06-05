@@ -1470,11 +1470,22 @@ LOCAL_DEBUG_OUT("style(%p)->geom(%ux%u%+d%+d)->hilite(0x%X)", style, tbar->width
 LOCAL_DEBUG_OUT("back(%p), vertical?%s", back, get_flags( tbar->state, BAR_FLAGS_VERTICAL )?"Yes":"No" );
 	if (back == NULL)
 	{
-        back = mystyle_make_image (style, 
-                                   tbar->root_x+bevel.left_outline, 
-                                   tbar->root_y+bevel.top_outline , 
-                                   tbar->width, tbar->height, 
-                                   get_flags( tbar->state, BAR_FLAGS_VERTICAL )?FLIP_VERTICAL:0);
+		if( get_flags( tbar->state, BAR_FLAGS_CROP_BACK ) )
+        	back = mystyle_crop_image (style, 
+                                	   pc->root_x, 
+                                	   pc->root_y, 
+									   (int)pc->bw + tbar->win_x+bevel.top_outline, 
+									   (int)pc->bw + tbar->win_y+bevel.left_outline, 
+                                	   tbar->width, tbar->height, 
+									   pc->width+(int)pc->bw, 
+									   pc->height+(int)pc->bw, 
+                                	   get_flags( tbar->state, BAR_FLAGS_VERTICAL )?FLIP_VERTICAL:0);
+		else
+        	back = mystyle_make_image (style, 
+                                	   tbar->root_x+bevel.left_outline, 
+                                	   tbar->root_y+bevel.top_outline , 
+                                	   tbar->width, tbar->height, 
+                                	   get_flags( tbar->state, BAR_FLAGS_VERTICAL )?FLIP_VERTICAL:0);
 		tbar->back[state] = back ;
 LOCAL_DEBUG_OUT("back-try2(%p)", back );
 		if (back == NULL)
