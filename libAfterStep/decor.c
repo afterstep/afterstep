@@ -1390,25 +1390,8 @@ trim_astbar_grid_dim( short *dim, int size, int space_left )
 }
 
 
-#ifdef TRACE_render_astbar
-#undef render_astbar
-Bool render_astbar (ASTBarData * tbar, ASCanvas * pc);
-Bool
-trace_render_astbar (ASTBarData * tbar, ASCanvas * pc, const char *file, int line)
-{
-    Bool res;
-    fprintf (stderr, "D>%s(%d):render_astbar(%p,%p)\n", file, line, tbar, pc);
-    res = render_astbar (tbar, pc);
-	fprintf (stderr,
-             "D>%s(%d):render_astbar(%p,%p) returned %d\n", file, line, tbar, pc, res);
-    if( tbar && res <= 0 )
-        fprintf( stderr, "D>%s(%d):render_astbar tbar data: state %lX, %ux%u%+d%+d, root %+d%+d, styles %p,%p, tiles_num %d, tiles %p, canvas %X\n" ,
-                 file, line, tbar->state, tbar->width, tbar->height, tbar->win_x, tbar->win_y, tbar->root_x, tbar->root_y, tbar->style[0], tbar->style[1], tbar->tiles_num, tbar->tiles, pc->canvas );
-    return res;
-}
-#endif
-Bool
-render_astbar (ASTBarData * tbar, ASCanvas * pc)
+static inline Bool
+render_astbar_int (ASTBarData * tbar, ASCanvas * pc, ASImage **pcache)
 {
     START_TIME(started);
     ASImage      *back;
@@ -1470,17 +1453,39 @@ LOCAL_DEBUG_OUT("style(%p)->geom(%ux%u%+d%+d)->hilite(0x%X)", style, tbar->width
 LOCAL_DEBUG_OUT("back(%p), vertical?%s", back, get_flags( tbar->state, BAR_FLAGS_VERTICAL )?"Yes":"No" );
 	if (back == NULL)
 	{
-		if( get_flags( tbar->state, BAR_FLAGS_CROP_BACK ) )
-        	back = mystyle_crop_image (style, 
+		if( (get_flags( tbar->state, BAR_FLAGS_CROP_UNFOCUSED_BACK ) && !IsASTBarFocused(tbar)) ||
+			(get_flags( tbar->state, BAR_FLAGS_CROP_FOCUSED_BACK ) && IsASTBarFocused(tbar)))
+		{
+			if( pcache ) 
+			{
+				if( *pcache == NULL ) 
+				{
+					*pcache = mystyle_make_image (style, 
                                 	   pc->root_x, 
                                 	   pc->root_y, 
-									   (int)pc->bw + tbar->win_x+bevel.top_outline, 
-									   (int)pc->bw + tbar->win_y+bevel.left_outline, 
-                                	   tbar->width, tbar->height, 
-									   pc->width+(int)pc->bw, 
-									   pc->height+(int)pc->bw, 
+                                	   pc->width+pc->bw, pc->height+pc->bw, 
                                 	   get_flags( tbar->state, BAR_FLAGS_VERTICAL )?FLIP_VERTICAL:0);
-		else
+				}
+				if( *pcache ) 
+					back = tile_asimage( ASDefaultVisual, *pcache,
+										   (int)pc->bw + tbar->win_x+bevel.top_outline, 
+										   (int)pc->bw + tbar->win_y+bevel.left_outline, 
+                                		   tbar->width, tbar->height, 
+											TINT_LEAVE_SAME,
+											ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT );
+			}
+			
+			if( back == NULL ) 
+        		back = mystyle_crop_image (style, 
+                                		   pc->root_x, 
+                                		   pc->root_y, 
+										   (int)pc->bw + tbar->win_x+bevel.top_outline, 
+										   (int)pc->bw + tbar->win_y+bevel.left_outline, 
+                                		   tbar->width, tbar->height, 
+										   pc->width+(int)pc->bw, 
+										   pc->height+(int)pc->bw, 
+                                		   get_flags( tbar->state, BAR_FLAGS_VERTICAL )?FLIP_VERTICAL:0);
+		}else
         	back = mystyle_make_image (style, 
                                 	   tbar->root_x+bevel.left_outline, 
                                 	   tbar->root_y+bevel.top_outline , 
@@ -1738,6 +1743,36 @@ LOCAL_DEBUG_OUT("back-try2(%p)", back );
     SHOW_TIME("rendering",started);
     return res;
 }
+
+#ifdef TRACE_render_astbar
+#undef render_astbar
+Bool
+trace_render_astbar (ASTBarData * tbar, ASCanvas * pc, const char *file, int line)
+{
+    Bool res;
+    fprintf (stderr, "D>%s(%d):render_astbar(%p,%p)\n", file, line, tbar, pc);
+    res = render_astbar_int (tbar, pc, NULL);
+	fprintf (stderr,
+             "D>%s(%d):render_astbar(%p,%p) returned %d\n", file, line, tbar, pc, res);
+    if( tbar && res <= 0 )
+        fprintf( stderr, "D>%s(%d):render_astbar tbar data: state %lX, %ux%u%+d%+d, root %+d%+d, styles %p,%p, tiles_num %d, tiles %p, canvas %X\n" ,
+                 file, line, tbar->state, tbar->width, tbar->height, tbar->win_x, tbar->win_y, tbar->root_x, tbar->root_y, tbar->style[0], tbar->style[1], tbar->tiles_num, tbar->tiles, pc->canvas );
+    return res;
+}
+#else
+Bool
+render_astbar (ASTBarData * tbar, ASCanvas * pc)
+{
+	return render_astbar_int( tbar, pc, NULL );
+}
+#endif
+
+Bool
+render_astbar_cached_back (ASTBarData * tbar, ASCanvas * pc, ASImage **cache)
+{
+	return render_astbar_int( tbar, pc, cache );
+}
+
 
 int
 check_astbar_point( ASTBarData *tbar, int root_x, int root_y )

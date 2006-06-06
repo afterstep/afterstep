@@ -305,7 +305,7 @@ LOCAL_DEBUG_OUT( "item.bar(%p)->look(%p)", item->bar, look );
 	if( get_flags( Scr.Look.flags, TxtrMenuItmInd ) )
 		clear_flags( item->bar->state, BAR_FLAGS_CROP_BACK );
 	else
-		set_flags( item->bar->state, BAR_FLAGS_CROP_BACK );
+		set_flags( item->bar->state, BAR_FLAGS_CROP_UNFOCUSED_BACK );
 
 
     item->bar->h_spacing = DEFAULT_MENU_SPACING ;
@@ -407,6 +407,7 @@ render_asmenu_bars( ASMenu *menu, Bool force )
     Bool rendered = False;
     if( menu->main_canvas->height > 1 && menu->main_canvas->width > 1 )
     {
+		ASImage *cache = NULL ; 
         START_LONG_DRAW_OPERATION;
         for( i = 0 ; i < menu->items_num ; ++i )
         {
@@ -425,7 +426,7 @@ render_asmenu_bars( ASMenu *menu, Bool force )
                 bar->win_y + (int)(bar->height) > 0 &&
                 (int)(bar->win_y) > prev_y )
             {
-                if( render_astbar( bar, menu->main_canvas ) )
+                if( render_astbar_cached_back( bar, menu->main_canvas, &cache ) )
                     rendered = True ;
             }
             prev_y = bar->win_y ;
@@ -433,10 +434,10 @@ render_asmenu_bars( ASMenu *menu, Bool force )
 		if( menu->visible_items_num < menu->items_num )
 		{
 			if( force || DoesBarNeedsRendering(menu->scroll_up_bar))
-            	if( render_astbar( menu->scroll_up_bar, menu->main_canvas ) )
+            	if( render_astbar_cached_back( menu->scroll_up_bar, menu->main_canvas, &cache ) )
                 	rendered = True ;
 			if( force || DoesBarNeedsRendering(menu->scroll_down_bar))
-            	if( render_astbar( menu->scroll_down_bar, menu->main_canvas ) )
+            	if( render_astbar_cached_back( menu->scroll_down_bar, menu->main_canvas, &cache ) )
                 	rendered = True ;
 		}
         STOP_LONG_DRAW_OPERATION;
@@ -447,6 +448,8 @@ render_asmenu_bars( ASMenu *menu, Bool force )
             ASSync(False);
 			menu->rendered = True ;
         }
+		if( cache ) 
+			safe_asimage_destroy( cache );
     }
 }
 

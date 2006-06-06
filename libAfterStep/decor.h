@@ -156,7 +156,9 @@ typedef struct ASTBarData {
 
 #define BAR_FLAGS_VERTICAL      (0x01<<17)     /* vertical label */
 #define BAR_FLAGS_IMAGE_BACK    (0x01<<18)     /* back represents an icon instead of  */
-#define BAR_FLAGS_CROP_BACK     (0x01<<19)     /* crop background image in relation to canvas origin  */
+#define BAR_FLAGS_CROP_UNFOCUSED_BACK   (0x01<<19)     /* crop background image in relation to canvas origin  */
+#define BAR_FLAGS_CROP_FOCUSED_BACK     (0x01<<20)     /* crop background image in relation to canvas origin  */
+#define BAR_FLAGS_CROP_BACK  (BAR_FLAGS_CROP_FOCUSED_BACK|BAR_FLAGS_CROP_UNFOCUSED_BACK)
 
     ASFlagType  state ;
     unsigned long context ;
@@ -243,6 +245,7 @@ Bool  trace_render_astbar (ASTBarData * tbar, ASCanvas * pc, const char *file, i
 #else
 Bool render_astbar( ASTBarData *tbar, ASCanvas *pc );
 #endif
+Bool render_astbar_cached_back (ASTBarData * tbar, ASCanvas * pc, ASImage **cache);
 
 void on_astbar_pointer_action( ASTBarData *tbar, int context, Bool leave, Bool pointer_moved );
 void set_astbar_balloon( ASTBarData *tbar, int context, const char *text, unsigned long encoding );
