@@ -1378,17 +1378,24 @@ HandleConfigureRequest ( ASEvent *event )
 	{
         unsigned long xwcm;
         xwcm = cre->value_mask & (CWX | CWY | CWWidth | CWHeight | CWBorderWidth);
-		xwc.x = cre->x;
-		xwc.y = cre->y;
-		xwc.width = cre->width;
-		xwc.height = cre->height;
-		xwc.border_width = cre->border_width;
-		LOCAL_DEBUG_OUT( "Configuring untracked window %lX to %dx%d%+d%+d and bw = %d, (flags=%lX)", (unsigned long)event->w, cre->width, cre->height, cre->x, cre->y, cre->border_width, xwcm );
-        XConfigureWindow (dpy, event->w, xwcm, &xwc);
+		if( xwcm == 0 ) 
+		{
+			LOCAL_DEBUG_OUT( "Ignoring ConfigureRequest for untracked window %lX - no supported changes detected.", (unsigned long)event->w );
+		}else
+		{
+			xwc.x = cre->x;
+			xwc.y = cre->y;
+			xwc.width = cre->width;
+			xwc.height = cre->height;
+			xwc.border_width = cre->border_width;
+			LOCAL_DEBUG_OUT( "Configuring untracked window %lX to %dx%d%+d%+d and bw = %d, (flags=%lX)", (unsigned long)event->w, cre->width, cre->height, cre->x, cre->y, cre->border_width, xwcm );
+        	XConfigureWindow (dpy, event->w, xwcm, &xwc);
+			ASSync( False);
+		}
 		return;
 	}
 
-	if( ASWIN_HFLAGS(asw, AS_IgnoreConfigRequest ) ||
+	if( ( ASWIN_HFLAGS(asw, AS_IgnoreConfigRequest ) && !get_flags(cre->value_mask, CWWidth|CWHeight))||
 		ASWIN_GET_FLAGS( asw, AS_Fullscreen ) )
 	{	
 		LOCAL_DEBUG_OUT( "Ignoring ConfigureRequest for client %p as required by hints", asw );
@@ -1410,19 +1417,20 @@ HandleConfigureRequest ( ASEvent *event )
     if( cre->value_mask & (CWWidth|CWHeight|CWX|CWY) )
     {
         XRectangle new_anchor = asw->anchor;
-        int grav_x, grav_y ;
-        get_gravity_offsets (asw->hints, &grav_x, &grav_y);
-
 
         if( cre->value_mask&CWWidth )
             new_anchor.width = cre->width ;
         if( cre->value_mask&CWHeight )
             new_anchor.height = cre->height ;
-        if( cre->value_mask&CWX )
-            new_anchor.x = make_anchor_pos ( asw->status, cre->x, new_anchor.width, Scr.Vx, grav_x, Scr.VxMax+Scr.MyDisplayWidth );
-        if( cre->value_mask&CWY )
-            new_anchor.y = make_anchor_pos ( asw->status, cre->y, new_anchor.height, Scr.Vy, grav_y, Scr.VyMax+Scr.MyDisplayHeight );
-
+		if( !ASWIN_HFLAGS(asw, AS_IgnoreConfigRequest ) )
+		{
+    	    int grav_x, grav_y ;
+	        get_gravity_offsets (asw->hints, &grav_x, &grav_y);
+        	if( cre->value_mask&CWX )
+            	new_anchor.x = make_anchor_pos ( asw->status, cre->x, new_anchor.width, Scr.Vx, grav_x, Scr.VxMax+Scr.MyDisplayWidth );
+        	if( cre->value_mask&CWY )
+            	new_anchor.y = make_anchor_pos ( asw->status, cre->y, new_anchor.height, Scr.Vy, grav_y, Scr.VyMax+Scr.MyDisplayHeight );
+		}
 LOCAL_DEBUG_OUT( "old anchor(%dx%d%+d%+d), new_anchor(%dx%d%+d%+d)", asw->anchor.width, asw->anchor.height, asw->anchor.x, asw->anchor.y, new_anchor.width, new_anchor.height, new_anchor.x, new_anchor.y );
         validate_window_anchor( asw, &new_anchor );
 LOCAL_DEBUG_OUT( "validated_anchor(%dx%d%+d%+d)", new_anchor.width, new_anchor.height, new_anchor.x, new_anchor.y );
