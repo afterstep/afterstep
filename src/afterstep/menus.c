@@ -426,7 +426,7 @@ render_asmenu_bars( ASMenu *menu, Bool force )
                 bar->win_y + (int)(bar->height) > 0 &&
                 (int)(bar->win_y) > prev_y )
             {
-                if( render_astbar_cached_back( bar, menu->main_canvas, &cache ) )
+                if( render_astbar_cached_back( bar, menu->main_canvas, &cache, NULL ) )
                     rendered = True ;
             }
             prev_y = bar->win_y ;
@@ -434,10 +434,10 @@ render_asmenu_bars( ASMenu *menu, Bool force )
 		if( menu->visible_items_num < menu->items_num )
 		{
 			if( force || DoesBarNeedsRendering(menu->scroll_up_bar))
-            	if( render_astbar_cached_back( menu->scroll_up_bar, menu->main_canvas, &cache ) )
+            	if( render_astbar_cached_back( menu->scroll_up_bar, menu->main_canvas, &cache, NULL ) )
                 	rendered = True ;
 			if( force || DoesBarNeedsRendering(menu->scroll_down_bar))
-            	if( render_astbar_cached_back( menu->scroll_down_bar, menu->main_canvas, &cache ) )
+            	if( render_astbar_cached_back( menu->scroll_down_bar, menu->main_canvas, &cache, NULL ) )
                 	rendered = True ;
 		}
         STOP_LONG_DRAW_OPERATION;

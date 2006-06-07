@@ -1391,7 +1391,7 @@ trim_astbar_grid_dim( short *dim, int size, int space_left )
 
 
 static inline Bool
-render_astbar_int (ASTBarData * tbar, ASCanvas * pc, ASImage **pcache)
+render_astbar_int (ASTBarData * tbar, ASCanvas * pc, ASImage **pcache, ASCanvas *origin_canvas)
 {
     START_TIME(started);
     ASImage      *back;
@@ -1430,7 +1430,10 @@ LOCAL_DEBUG_OUT("style(%p)->geom(%ux%u%+d%+d)->hilite(0x%X)", style, tbar->width
 
     if (style == NULL)
         return -2;
-    
+
+	if( origin_canvas == NULL ) 
+		origin_canvas = pc ;
+		    
     mystyle_make_bevel (style, &bevel, tbar->hilite[state], get_flags (tbar->state, BAR_STATE_PRESSED_MASK));
     h_bevel_size = bevel.left_outline+bevel.right_outline ;
     v_bevel_size = bevel.top_outline+bevel.bottom_outline ;
@@ -1461,15 +1464,15 @@ LOCAL_DEBUG_OUT("back(%p), vertical?%s", back, get_flags( tbar->state, BAR_FLAGS
 				if( *pcache == NULL ) 
 				{
 					*pcache = mystyle_make_image (style, 
-                                	   pc->root_x, 
-                                	   pc->root_y, 
-                                	   pc->width+pc->bw, pc->height+pc->bw, 
+                                	   origin_canvas->root_x, 
+                                	   origin_canvas->root_y, 
+                                	   origin_canvas->width+origin_canvas->bw, origin_canvas->height+origin_canvas->bw, 
                                 	   get_flags( tbar->state, BAR_FLAGS_VERTICAL )?FLIP_VERTICAL:0);
 				}
 				if( *pcache ) 
 					back = tile_asimage( ASDefaultVisual, *pcache,
-										   (int)pc->bw + tbar->win_x+bevel.top_outline, 
-										   (int)pc->bw + tbar->win_y+bevel.left_outline, 
+										   tbar->root_x - origin_canvas->root_x + bevel.top_outline, 
+										   tbar->root_y - origin_canvas->root_y + bevel.left_outline, 
                                 		   tbar->width, tbar->height, 
 											TINT_LEAVE_SAME,
 											ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT );
@@ -1479,11 +1482,11 @@ LOCAL_DEBUG_OUT("back(%p), vertical?%s", back, get_flags( tbar->state, BAR_FLAGS
         		back = mystyle_crop_image (style, 
                                 		   pc->root_x, 
                                 		   pc->root_y, 
-										   (int)pc->bw + tbar->win_x+bevel.top_outline, 
-										   (int)pc->bw + tbar->win_y+bevel.left_outline, 
+										   tbar->root_x - origin_canvas->root_x + bevel.top_outline, 
+										   tbar->root_y - origin_canvas->root_y + bevel.left_outline, 
                                 		   tbar->width, tbar->height, 
-										   pc->width+(int)pc->bw, 
-										   pc->height+(int)pc->bw, 
+										   origin_canvas->width+(int)origin_canvas->bw, 
+										   origin_canvas->height+(int)origin_canvas->bw, 
                                 		   get_flags( tbar->state, BAR_FLAGS_VERTICAL )?FLIP_VERTICAL:0);
 		}else
         	back = mystyle_make_image (style, 
@@ -1751,7 +1754,7 @@ trace_render_astbar (ASTBarData * tbar, ASCanvas * pc, const char *file, int lin
 {
     Bool res;
     fprintf (stderr, "D>%s(%d):render_astbar(%p,%p)\n", file, line, tbar, pc);
-    res = render_astbar_int (tbar, pc, NULL);
+    res = render_astbar_int (tbar, pc, NULL, NULL);
 	fprintf (stderr,
              "D>%s(%d):render_astbar(%p,%p) returned %d\n", file, line, tbar, pc, res);
     if( tbar && res <= 0 )
@@ -1763,14 +1766,14 @@ trace_render_astbar (ASTBarData * tbar, ASCanvas * pc, const char *file, int lin
 Bool
 render_astbar (ASTBarData * tbar, ASCanvas * pc)
 {
-	return render_astbar_int( tbar, pc, NULL );
+	return render_astbar_int( tbar, pc, NULL, NULL );
 }
 #endif
 
 Bool
-render_astbar_cached_back (ASTBarData * tbar, ASCanvas * pc, ASImage **cache)
+render_astbar_cached_back (ASTBarData * tbar, ASCanvas * pc, ASImage **cache, ASCanvas *origin_canvas)
 {
-	return render_astbar_int( tbar, pc, cache );
+	return render_astbar_int( tbar, pc, cache, origin_canvas );
 }
 
 

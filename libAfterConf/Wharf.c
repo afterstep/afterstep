@@ -76,6 +76,7 @@ SyntaxDef     WhevSyntax = {
     ASCF_DEFINE_KEYWORD(WHARF, 0, FlipLabel			, TT_FLAG		, NULL), \
     ASCF_DEFINE_KEYWORD(WHARF, 0, FitContents		, TT_FLAG		, NULL), \
     ASCF_DEFINE_KEYWORD(WHARF, 0, ShapeToContents	, TT_FLAG		, NULL), \
+    ASCF_DEFINE_KEYWORD(WHARF, 0, StretchBackground	, TT_FLAG		, NULL), \
     ASCF_DEFINE_KEYWORD(WHARF, 0, AlignContents		, TT_FLAG		, &AlignSyntax), \
     ASCF_DEFINE_KEYWORD(WHARF, 0, Bevel				, TT_FLAG		, &BevelSyntax), \
 	ASCF_DEFINE_KEYWORD(WHARF, 0, CompositionMethod	, TT_INTEGER	, NULL), \
@@ -169,6 +170,7 @@ flag_options_xref WharfFlags[] = {
     {WHARF_FlipLabel, WHARF_FlipLabel_ID, 0},
     {WHARF_FitContents, WHARF_FitContents_ID, 0},
     {WHARF_ShapeToContents, WHARF_ShapeToContents_ID, 0 },
+    {WHARF_StretchBackground, WHARF_StretchBackground_ID, 0 },
     {0, 0, 0}
 };
 
@@ -349,6 +351,7 @@ PrintWharfConfig(WharfConfig *config )
 	ASCF_PRINT_FLAG_KEYWORD(stderr,WHARF,config,FlipLabel);
 	ASCF_PRINT_FLAG_KEYWORD(stderr,WHARF,config,FitContents);
 	ASCF_PRINT_FLAG_KEYWORD(stderr,WHARF,config,ShapeToContents );
+	ASCF_PRINT_FLAG_KEYWORD(stderr,WHARF,config,StretchBackground );
 	ASCF_PRINT_FLAGS_KEYWORD(stderr,WHARF,config,AlignContents );
 	ASCF_PRINT_FLAGS_KEYWORD(stderr,WHARF,config,Bevel );
 	ASCF_PRINT_INT_KEYWORD(stderr,WHARF,config,CompositionMethod);

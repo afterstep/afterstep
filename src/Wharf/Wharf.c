@@ -1378,6 +1378,12 @@ update_wharf_button_styles( ASWharfButton *aswb, Bool odd )
 	if( unfocused_style == NULL ) 
 		unfocused_style = Scr.Look.MSWindow[UNFOCUSED_TILE_STYLE];
 	set_flags( aswb->flags, ASW_Focusable);
+
+	if( get_flags( Config->flags, WHARF_StretchBackground ) )
+		set_flags( aswb->bar->state, BAR_FLAGS_CROP_BACK );
+	else
+		clear_flags( aswb->bar->state, BAR_FLAGS_CROP_BACK );
+
 	if( focused_style == NULL ) 
 	{	
 		if( odd && unfocused_style == Scr.Look.MSWindow[UNFOCUSED_TILE_STYLE] ) 
@@ -2565,7 +2571,10 @@ Bool render_wharf_button( ASWharfButton *aswb )
 		Scr.RootClipArea = aswf->root_clip_area ; 
 	}
 	LOCAL_DEBUG_OUT( "rendering button %p for folder %p. Root Image = %p", aswb, aswf, Scr.RootImage );
-	result = render_astbar( aswb->bar, aswb->canvas );
+	if( get_flags( aswb->bar->state, BAR_FLAGS_CROP_BACK ) )
+		result = render_astbar_cached_back( aswb->bar, aswb->canvas, NULL, aswf->canvas );
+	else
+		result = render_astbar( aswb->bar, aswb->canvas );
 	ASSync( False );
 	--WharfState.buttons_render_pending ;
 
