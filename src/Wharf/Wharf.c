@@ -1409,7 +1409,7 @@ update_wharf_folder_styles( ASWharfFolder *aswf, Bool force )
 				render_wharf_button( aswb );
 				update_canvas_display( aswb->canvas );
 			}
-			if( aswb->folder && get_flags( aswb->folder->flags, ASW_Mapped )  )
+			if( aswb->folder /*&& get_flags( aswb->folder->flags, ASW_Mapped )*/  )
 				update_wharf_folder_styles( aswb->folder, force );
 		}
 		update_wharf_folder_shape( aswf );
