@@ -998,6 +998,8 @@ merge_gnome_hints (ASHints * clean, ASRawHints * raw,
 		if (get_flags (gh->flags, GNOME_HINTS) && gh->hints != 0)
 		{
 			decode_simple_flags (&(clean->flags), gnome_hints_xref, gh->hints);
+			if( get_flags( gh->hints, WIN_HINTS_SKIP_FOCUS ) )
+				clear_flags( clean->protocols, AS_DoesWmTakeFocus );				
 		}
 	}
 }
@@ -1445,6 +1447,8 @@ merge_asdb_hints (ASHints * clean, ASRawHints * raw, ASDatabaseRecord * db_rec, 
 		}
 		/* taking care of flags : */
 		decode_flags (&(clean->flags), asdb_hints_xref, db_rec->set_flags, db_rec->flags);
+		if( get_flags( db_rec->set_flags, STYLE_FOCUS ) && !get_flags( db_rec->flags, STYLE_FOCUS ))
+			clear_flags( clean->protocols, AS_DoesWmTakeFocus );				
 
 		clean->disabled_buttons = (~(db_rec->buttons)) & (db_rec->set_buttons);
 	}

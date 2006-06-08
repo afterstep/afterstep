@@ -1458,7 +1458,7 @@ focus_window( ASWindow *asw, Window w )
 	 * focus using their time, as X aready used its own friggin current time.
 	 * Don't ask, its a mess.
 	 * */
-	if( w != None )
+	if( w != None && ASWIN_HFLAGS(asw, AS_AcceptsFocus))
 	{
 		Time t = /*(Scr.Windows->focused == NULL)?CurrentTime:*/Scr.last_Timestamp ;
 		LOCAL_DEBUG_OUT( "XSetInputFocus(window= %lX, time = %lu)", w, t);	  
@@ -1492,7 +1492,7 @@ focus_aswindow( ASWindow *asw )
                         (ASWIN_GET_FLAGS( asw, AS_Iconic ) &&
                             asw->icon_canvas == NULL && asw->icon_title_canvas == NULL );
 
-        if( !ASWIN_HFLAGS(asw, AS_AcceptsFocus) )
+        if( !ASWIN_FOCUSABLE(asw))
         {
             if( Scr.Windows->focused != NULL && ASWIN_DESK(Scr.Windows->focused) == Scr.CurrentDesk )
                 do_nothing = True ;

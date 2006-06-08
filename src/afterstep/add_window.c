@@ -555,6 +555,8 @@ LOCAL_DEBUG_CALLER_OUT("%p, %d", asw, restart );
 
             	if( map_too )
                 	XMapWindow (dpy, asw->w);
+/*				else 
+					XUnmapWindow (dpy, asw->w); */
             	XSync( dpy, False );
         	}
         	/* signaling client that we no longer handle it : */

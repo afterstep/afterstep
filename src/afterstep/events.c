@@ -1080,7 +1080,7 @@ HandleMapNotify ( ASEvent *event )
     ASWIN_CLEAR_FLAGS(asw, AS_Iconic);
     complete_wm_state_transition( asw, NormalState );
 	LOCAL_DEBUG_OUT( "no_focus = %d, force_activation = %d, AcceptsFocus = %ld", no_focus, force_activation, ASWIN_HFLAGS(asw,AS_AcceptsFocus) );
-	if( !no_focus && ASWIN_HFLAGS(asw,AS_AcceptsFocus) )
+	if( !no_focus && ASWIN_FOCUSABLE(asw) )
     	activate_aswindow (asw, force_activation, False);
     broadcast_config( M_MAP, asw );
     /* finally reaches Normal state */
@@ -1310,7 +1310,7 @@ HandleEnterNotify (ASEvent *event)
     if (asw == NULL )
 		return;
 
-    if (ASWIN_HFLAGS(asw,AS_AcceptsFocus))
+    if (ASWIN_FOCUSABLE(asw))
 	{
         if (!get_flags(Scr.Feel.flags, ClickToFocus) || asw->internal != NULL )
 		{

@@ -118,6 +118,8 @@ typedef struct ASWindow
 #define ASWIN_CLEAR_FLAGS(t,f) 	clear_flags((t)->status->flags,(f))
 #define ASWIN_FUNC_MASK(t)  ((t)->hints->function_mask)
 
+#define ASWIN_FOCUSABLE(asw)  (ASWIN_HFLAGS(asw, AS_AcceptsFocus) || get_flags((asw)->hints->protocols, AS_DoesWmTakeFocus))
+
 #define IsBtnDisabled(t,b)  get_flags((t)->hints->disabled_buttons,(0x01<<(b)))
 #define IsBtnEnabled(t,b)   (!get_flags((t)->hints->disabled_buttons,(0x01<<(b))))
 #define DisableBtn(t,b)  	clear_flags((t)->hints->disabled_buttons,(0x01<<(b)))
