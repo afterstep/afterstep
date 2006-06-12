@@ -121,4 +121,10 @@ Style   "XFce*"         NoTitle, Sticky, BorderWidth 4, WindowListSkip, NoHandle
 Style   "XFBD*"         Sticky
 Style	"XPostit*"	    Icon Text.xpm
 Style	"xkhfm@Programs" NoTitle, Sticky, WindowListSkip
+
+# Open Office makes some dialogs have type Dialog and others - type Normal, 
+# causing all kinds of wierdness. So let's use power of AS to fix it ourselves :
+Style "VCLSalFrame"  Layer 1
+Style "VCLSalFrame.DocumentWindow*" Layer 0
+
 ##########################################################################
