@@ -368,6 +368,7 @@ LOCAL_DEBUG_OUT( "--DESTR Client(%lx(%s))->CLIENT->canvas(%p)->window(%lx)", asw
         if( (asw->status == NULL || !get_flags(asw->status->flags, AS_Dead)) && 
 			get_parent_window( w ) == asw->frame )
         {
+			LOCAL_DEBUG_OUT( "reparenting client window %lX", w );
             if( get_flags( AfterStepState, ASS_Shutdown ) )
                 quietly_reparent_window( w, Scr.Root, xwc.x, xwc.y, AS_CLIENT_EVENT_MASK );
             else
@@ -1257,8 +1258,11 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
 		/* we need to map all the possibly created subwindows if window is not iconic */
 		if( !ASWIN_GET_FLAGS(asw, AS_Iconic ) )
 		{
-			LOCAL_DEBUG_OUT("mapping frame subwindows for client %lX, frame canvas = %p", asw->w, asw->frame_canvas );
-			XMapSubwindows(dpy, asw->frame);
+			for( i = 0 ; i < FRAME_SIDES ; ++i )
+				map_canvas_window( asw->frame_sides[i], False );
+
+/*			LOCAL_DEBUG_OUT("mapping frame subwindows for client %lX, frame canvas = %p", asw->w, asw->frame_canvas );
+			XMapSubwindows(dpy, asw->frame); */
 		}else
 		{
 			map_canvas_window( asw->icon_canvas, False );

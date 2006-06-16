@@ -537,6 +537,8 @@ LOCAL_DEBUG_CALLER_OUT("%p, %d", asw, restart );
      	* Prevent the receipt of an UnmapNotify, since that would
      	* cause a transition to the Withdrawn state.
      	*/
+LOCAL_DEBUG_OUT ("map_too = %d", map_too );
+
     	if( !ASWIN_GET_FLAGS(asw, AS_Dead) )
     	{
         	XSelectInput (dpy, asw->w, NoEventMask);
@@ -552,7 +554,7 @@ LOCAL_DEBUG_CALLER_OUT("%p, %d", asw, restart );
             	if( width > 0 && height > 0 )
                 	XResizeWindow( dpy, asw->w, width, height );
             	XSetWindowBorderWidth (dpy, asw->w, bw);
-
+LOCAL_DEBUG_OUT ("map_too = %d", map_too );
             	if( map_too )
                 	XMapWindow (dpy, asw->w);
 /*				else 

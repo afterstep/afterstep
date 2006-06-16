@@ -1026,6 +1026,7 @@ static Bool do_manual_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry 
  */
     if( asw->status->width*asw->status->height < (Scr.Feel.OpaqueMove*Scr.MyDisplayWidth*Scr.MyDisplayHeight) / 100 )
     {
+		LOCAL_DEBUG_OUT( "Mapping client window %lX", asw->client_canvas->w );
         map_canvas_window( asw->client_canvas, True );
         map_canvas_window( asw->frame_canvas, False );
 		if( get_desktop_cover_window() != None ) 
