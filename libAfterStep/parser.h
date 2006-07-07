@@ -273,6 +273,8 @@ ConfigDef *InitConfigReader (char *myname, SyntaxDef * syntax,
 int config2tree_storage (ConfigDef * config, ASTreeStorageModel **tail, Bool ignore_foreign);
 int ParseConfig (ConfigDef * config, FreeStorageElem ** tail);
 FreeStorageElem *file2free_storage(const char *filename, char *myname, SyntaxDef *syntax, SpecialFunc special, FreeStorageElem **foreign_options );
+FreeStorageElem *tline_subsyntax_parse(const char *keyword, char *tline, FILE * fd, char *myname, SyntaxDef *syntax, SpecialFunc special, FreeStorageElem **foreign_options);
+
 void ProcessStatement(ConfigDef *config);
 
 ConfigDef *InitConfigWriter (char *myname, SyntaxDef * syntax,

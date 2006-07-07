@@ -756,6 +756,7 @@ SHOW_CHECKPOINT;
     return config;
 }
 
+
 #if 0
 
 FreeStorageElem **WharfFolder2FreeStorage (SyntaxDef * syntax, FreeStorageElem ** tail, WharfButton * folder, int root);

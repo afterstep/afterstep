@@ -18,7 +18,7 @@
  *
  */
 
-#undef LOCAL_DEBUG
+#define LOCAL_DEBUG
 #undef DO_CLOCKING
 #undef UNKNOWN_KEYWORD_WARNING
 
@@ -95,6 +95,49 @@ int ParseConfig (ConfigDef * config, FreeStorageElem ** tail)
 	return config2tree_storage(config, (ASTreeStorageModel **)tail, True);	   
 }	 
 
+FreeStorageElem *
+tline_subsyntax_parse(const char *keyword, char *tline, FILE * fd, char *myname, SyntaxDef *syntax, SpecialFunc special, FreeStorageElem **foreign_options)
+{
+    FilePtrAndData fpd ;
+    ConfigDef    *ConfigReader ;
+    FreeStorageElem *storage = NULL, *more_stuff = NULL;
+	ConfigData cd ;
+    if( syntax == NULL )
+        return NULL;
+
+    fpd.fp = fd ;
+	if( keyword ) 
+	{
+	    fpd.data = safemalloc( strlen(keyword) + 1 + strlen(tline)+1+1 ) ;
+	    sprintf( fpd.data, "%s %s\n", keyword, tline );
+	}else
+	{
+	    fpd.data = safemalloc( strlen(tline)+1+1 ) ;
+		sprintf( fpd.data, "%s\n", tline );
+	}
+	LOCAL_DEBUG_OUT( "fd(%p)->tline(\"%s\")->fpd.data(\"%s\")", fd, tline, fpd.data );
+	cd.fileptranddata = &fpd ;
+    ConfigReader = InitConfigReader (myname, syntax, CDT_FilePtrAndData, cd, special);
+    free( fpd.data );
+
+    if (!ConfigReader)
+        return NULL;
+
+	PrintConfigReader (ConfigReader);
+	ParseConfig (ConfigReader, &storage);
+
+	/* getting rid of all the crap first */
+    StorageCleanUp (&storage, &more_stuff, CF_DISABLED_OPTION);
+    DestroyFreeStorage (&more_stuff);
+
+	if( foreign_options )
+		StorageCleanUp (&storage, foreign_options, CF_PHONY_OPTION|CF_FOREIGN_OPTION);
+
+
+	DestroyConfig (ConfigReader);
+
+	return storage;
+}
 
 FreeStorageElem *
 file2free_storage(const char *filename, char *myname, SyntaxDef *syntax, SpecialFunc special, FreeStorageElem **foreign_options )

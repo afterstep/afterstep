@@ -171,48 +171,29 @@ ParseAlignOptions( FreeStorageElem * options )
 
 
 void
-flags_parse(char *tline, FILE * fd, char **myname, int *pflags, SyntaxDef *syntax, ASFlagType (*parse_flags)( FreeStorageElem *) )
+flags_parse(char *tline, FILE * fd, char *myname, int *pflags, SyntaxDef *syntax, ASFlagType (*parse_flags)( FreeStorageElem *) )
 {
-    FilePtrAndData fpd ;
-    ConfigDef    *ConfigReader ;
-    FreeStorageElem *Storage = NULL, *more_stuff = NULL;
-	ConfigData cd ;
+    FreeStorageElem *Storage = NULL;
     if( pflags == NULL )
         return;
 
-    fpd.fp = fd ;
-    fpd.data = safemalloc( strlen(tline)+1+1 ) ;
-    sprintf( fpd.data, "%s\n", tline );
-LOCAL_DEBUG_OUT( "fd(%p)->tline(\"%s\")->fpd.data(\"%s\")", fd, tline, fpd.data );
-	cd.fileptranddata = &fpd ;
-    ConfigReader = InitConfigReader ((char*)myname, syntax, CDT_FilePtrAndData, cd, NULL);
-    free( fpd.data );
-
-    if (!ConfigReader)
-        return ;
-
-	PrintConfigReader (ConfigReader);
-	ParseConfig (ConfigReader, &Storage);
-
-	/* getting rid of all the crap first */
-    StorageCleanUp (&Storage, &more_stuff, CF_DISABLED_OPTION);
-    DestroyFreeStorage (&more_stuff);
-
-    *pflags = parse_flags(Storage);
-
-	DestroyConfig (ConfigReader);
-	DestroyFreeStorage (&Storage);
+    Storage = tline_subsyntax_parse(NULL, tline, fd, myname, syntax, NULL, NULL);
+	if( Storage )
+	{
+    	*pflags = parse_flags(Storage);
+		DestroyFreeStorage (&Storage);
+	}
 }
 
 void
 align_parse(char *tline, FILE * fd, char **myname, int *palign )
 {
-	flags_parse( tline, fd, myname, palign, &AlignSyntax, ParseAlignOptions );
+	flags_parse( tline, fd, (char*)myname, palign, &AlignSyntax, ParseAlignOptions );
 }		 
 
 void
 bevel_parse(char *tline, FILE * fd, char **myname, int *pbevel )
 {
-	flags_parse( tline, fd, myname, pbevel, &BevelSyntax, ParseBevelOptions );
+	flags_parse( tline, fd, (char*)myname, pbevel, &BevelSyntax, ParseBevelOptions );
 }		 
 

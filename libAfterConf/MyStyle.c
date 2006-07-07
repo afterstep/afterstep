@@ -575,38 +575,19 @@ mystyle_create_from_definition (MyStyleDefinition * def)
 void
 mystyle_parse (char *tline, FILE * fd, char **myname, int *mystyle_list)
 {
-    FilePtrAndData fpd ;
-    ConfigDef    *ConfigReader ;
-    FreeStorageElem *Storage = NULL, *more_stuff = NULL;
+    FreeStorageElem *Storage = NULL;
     MyStyleDefinition **list = (MyStyleDefinition**)mystyle_list, **tail ;
-	ConfigData cd ;
 
     if( list == NULL )
         return;
     for( tail = list ; *tail != NULL ; tail = &((*tail)->next) );
 
-    fpd.fp = fd ;
-    fpd.data = safemalloc( 12+1+strlen(tline)+1+1 ) ;
-    sprintf( fpd.data, "MyStyle %s\n", tline );
-	LOCAL_DEBUG_OUT( "fd(%p)->tline(\"%s\")->fpd.data(\"%s\")", fd, tline, fpd.data );
-	cd.fileptranddata = &fpd ;
-    ConfigReader = InitConfigReader ((char*)myname, &MyStyleSyntax, CDT_FilePtrAndData, cd, NULL);
-    free( fpd.data );
-
-    if (!ConfigReader)
-        return ;
-
-	PrintConfigReader (ConfigReader);
-	ParseConfig (ConfigReader, &Storage);
-	
-	/* getting rid of all the crap first */
-    StorageCleanUp (&Storage, &more_stuff, CF_DISABLED_OPTION);
-    DestroyFreeStorage (&more_stuff);
-
-    ProcessMyStyleOptions (Storage, tail);
-
-	DestroyConfig (ConfigReader);
-	DestroyFreeStorage (&Storage);
+    Storage = tline_subsyntax_parse("MyStyle", tline, fd, (char*)myname, &MyStyleSyntax, NULL, NULL);
+	if( Storage ) 
+	{
+    	ProcessMyStyleOptions (Storage, tail);
+		DestroyFreeStorage (&Storage);
+	}
 }
 
 

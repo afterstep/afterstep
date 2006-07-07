@@ -324,35 +324,12 @@ ParseTbarLayoutOptions( FreeStorageElem * options )
 void
 tbar_layout_parse(char *tline, FILE * fd, char **myname, int *playout)
 {
-    FilePtrAndData fpd ;
-    ConfigDef    *ConfigReader ;
-    FreeStorageElem *Storage = NULL, *more_stuff = NULL;
-	ConfigData cd ;
-    if( playout == NULL )
-        return;
-
-    fpd.fp = fd ;
-    fpd.data = safemalloc( strlen(tline)+1+1 ) ;
-    sprintf( fpd.data, "%s\n", tline );
-LOCAL_DEBUG_OUT( "fd(%p)->tline(\"%s\")->fpd.data(\"%s\")", fd, tline, fpd.data );
-	cd.fileptranddata = &fpd ;
-    ConfigReader = InitConfigReader ((char*)myname, &BevelSyntax, CDT_FilePtrAndData, cd, NULL);
-    free( fpd.data );
-
-    if (!ConfigReader)
-        return ;
-
-	PrintConfigReader (ConfigReader);
-	ParseConfig (ConfigReader, &Storage);
-
-	/* getting rid of all the crap first */
-    StorageCleanUp (&Storage, &more_stuff, CF_DISABLED_OPTION);
-    DestroyFreeStorage (&more_stuff);
-
-    *playout = ParseTbarLayoutOptions(Storage);
-
-	DestroyConfig (ConfigReader);
-	DestroyFreeStorage (&Storage);
+    FreeStorageElem *Storage = tline_subsyntax_parse(NULL, tline, fd, (char*)myname, &BevelSyntax, NULL, NULL);
+	if( Storage )
+	{
+    	*playout = ParseTbarLayoutOptions(Storage);
+		DestroyFreeStorage (&Storage);
+	}
 }
 
 
@@ -696,38 +673,19 @@ MyFrameDefs2FreeStorage (SyntaxDef * syntax, FreeStorageElem ** tail, MyFrameDef
 void
 myframe_parse (char *tline, FILE * fd, char **myname, int *myframe_list)
 {
-    FilePtrAndData fpd ;
-    ConfigData cd ;
-	ConfigDef    *ConfigReader ;
-    FreeStorageElem *Storage = NULL, *more_stuff = NULL;
+    FreeStorageElem *Storage = NULL;
     MyFrameDefinition **list = (MyFrameDefinition**)myframe_list, **tail ;
 
     if( list == NULL )
         return;
     for( tail = list ; *tail != NULL ; tail = &((*tail)->next) );
 
-    fpd.fp = fd ;
-    fpd.data = safemalloc( 12+1+strlen(tline)+1+1 ) ;
-    sprintf( fpd.data, "MyFrame %s\n", tline );
-LOCAL_DEBUG_OUT( "fd(%p)->tline(\"%s\")->fpd.data(\"%s\")", fd, tline, fpd.data );
-    cd.fileptranddata = &fpd ;
-	ConfigReader = InitConfigReader ((char*)myname, &MyFrameSyntax, CDT_FilePtrAndData, cd, NULL);
-    free( fpd.data );
-
-    if (!ConfigReader)
-        return ;
-
-	PrintConfigReader (ConfigReader);
-	ParseConfig (ConfigReader, &Storage);
-	
-	/* getting rid of all the crap first */
-    StorageCleanUp (&Storage, &more_stuff, CF_DISABLED_OPTION);
-    DestroyFreeStorage (&more_stuff);
-
-    ProcessMyFrameOptions (Storage, tail);
-
-	DestroyConfig (ConfigReader);
-	DestroyFreeStorage (&Storage);
+    Storage = tline_subsyntax_parse("MyFrame", tline, fd, (char*)myname, &MyFrameSyntax, NULL, NULL);
+	if( Storage )
+	{
+    	ProcessMyFrameOptions (Storage, tail);
+		DestroyFreeStorage (&Storage);
+	}
 }
 
 
