@@ -259,7 +259,8 @@
 *MonitorWharf loadmonitor - Swallow "wmcpuload" wmcpuload -bl -w &
 *MonitorWharf asmon  - Swallow "asmon" asmon &
 *MonitorWharf wmtop  - Swallow "wmtop" wmtop &
-*MonitorWharf wmnd   - Swallow "wmnd"  wmnd -i eth0 &
+*MonitorWharf netmonitor - Swallow "wmnet" wmnet --driver=devstats &
+*MonitorWharf netmonitor - Swallow "wmnd" wmnd -i eth0 &
 *MonitorWharf asmail - Swallow "asmail" asmail -geometry +0+0 &
 
 # one of the clocks - first available :
@@ -270,7 +271,7 @@
 *MonitorWharf clock - Exec "r" evolution &
 *MonitorWharf clock - Exec "r" korganizer &
 
-*MonitorWharf wmfire  - Swallow "wmfire" wmfire &
+*MonitorWharf wmfire  - Swallow "wmfire" wmfire -f 2 &
 
 #
 #  End of the MonitorWharf configuration
