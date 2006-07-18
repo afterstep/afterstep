@@ -189,6 +189,10 @@ typedef struct ConfigDef
 
 #define CP_NeedToCloseFile   (0x01<<0)
 #define CP_ReadLines         (0x01<<1)
+
+#define CP_IgnoreForeign	 (0x01<<8)
+#define CP_IgnorePublic		 (0x01<<9)
+#define CP_IgnoreUnknown	 (0x01<<10)
   ASFlagType flags ;
   /* allocated to store lines read from the file */
   char *buffer;
@@ -265,12 +269,12 @@ TermDef *FindStatementTerm (char *tline, SyntaxDef * syntax);
 
 int PopSyntax (ConfigDef * config);
 int PopStorage (ConfigDef * config);
-char *GetNextStatement (ConfigDef * config, int my_only);
+char *GetNextStatement (ConfigDef * config);
 
 ConfigDef *InitConfigReader (char *myname, SyntaxDef * syntax,
 			     ConfigDataType type, ConfigData source,
 			     SpecialFunc special);
-int config2tree_storage (ConfigDef * config, ASTreeStorageModel **tail, Bool ignore_foreign);
+int config2tree_storage (ConfigDef * config, ASTreeStorageModel **tail);
 int ParseConfig (ConfigDef * config, FreeStorageElem ** tail);
 FreeStorageElem *file2free_storage(const char *filename, char *myname, SyntaxDef *syntax, SpecialFunc special, FreeStorageElem **foreign_options );
 FreeStorageElem *tline_subsyntax_parse(const char *keyword, char *tline, FILE * fd, char *myname, SyntaxDef *syntax, SpecialFunc special, FreeStorageElem **foreign_options);

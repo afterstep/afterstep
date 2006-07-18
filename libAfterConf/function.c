@@ -57,7 +57,7 @@ TrailingFuncSpecial (ConfigDef * config, int skip_tokens)
 		config->cursor = cur;
         /* we are at the beginning of the function definition right now - lets process it :*/
         /* read in entire function definition */
-		GetNextStatement (config, 1);
+		GetNextStatement (config);
         /* lets find us the term for this definition */
         if ((pterm = FindStatementTerm (config->tline, config->syntax)) != NULL)
         {   /* we have a valid function definition : */

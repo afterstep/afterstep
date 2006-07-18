@@ -321,6 +321,13 @@ struct FunctionData     *String2Func ( const char *string, struct FunctionData *
 
 #define CONFIG_ID_END					(CONFIG_SUBOPTIONS_IDS+23)
 
+#define MODULE_Defaults_ID				(CONFIG_ID_END+1)
+#define MODULE_DefaultsEnd_ID				(CONFIG_ID_END+2)
+
+#define INCLUDE_MODULE_DEFAULTS    {0, "Defaults", 8, TT_FLAG, MODULE_Defaults_ID, NULL}, \
+								   {TF_SYNTAX_TERMINATOR, "~Defaults", 9, TT_FLAG, MODULE_DefaultsEnd_ID, NULL}
+
+
 
 /* must call this one to fix all the pointers referencing libAfterStep */
 void LinkAfterStepConfig();
@@ -329,7 +336,7 @@ void LinkAfterStepConfig();
 /***************************************************************************/
 /*                        Base file pasring definitions                    */
 /***************************************************************************/
-#define BASE_ID_START        	(CONFIG_ID_END+1)
+#define BASE_ID_START        	(MODULE_DefaultsEnd_ID+1)
 #define BASE_MODULE_PATH_ID     BASE_ID_START
 #define BASE_AUDIO_PATH_ID      BASE_ID_START+1
 #define BASE_ICON_PATH_ID     	BASE_ID_START+2
@@ -1176,6 +1183,7 @@ typedef struct WinListConfig
 
 }WinListConfig;
 
+void LinkWinListConfig();
 WinListConfig *CreateWinListConfig ();
 void DestroyWinListConfig (WinListConfig * config);
 void PrintWinListConfig (WinListConfig * config);

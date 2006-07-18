@@ -102,6 +102,8 @@ TermDef       WinListPrivateTerms[] = {
 };
 
 TermDef       WinListTerms[] = {
+	INCLUDE_MODULE_DEFAULTS,
+
 	WINLIST_PRIVATE_TERMS,
 	/* Feel */
 	WINLIST_FEEL_TERMS,
@@ -120,6 +122,12 @@ SyntaxDef WinListFeelSyntax 	= {'\n', '\0', WinListFeelTerms, 	0, '\t', "", "\t"
 SyntaxDef WinListLookSyntax 	= {'\n', '\0', WinListLookTerms, 	0, '\t', "", "\t", "WinListLook", 	"WinListLook", "AfterStep window list module look", NULL, 0};
 SyntaxDef WinListPrivateSyntax 	= {'\n', '\0', WinListPrivateTerms,	0, '\t', "", "\t", "WinList",     	"WinList",     "AfterStep window list module", NULL,0};
 SyntaxDef WinListSyntax 		= {'\n', '\0', WinListTerms, 		0, ' ',  "", "\t", "Module:WinList","WinList",     "AfterStep module displaying list of opened windows",NULL,0};
+
+void LinkWinListConfig()
+{
+	WinListTerms[0].sub_syntax = &WinListSyntax ;
+}
+
 
 WinListConfig *
 CreateWinListConfig ()
@@ -217,25 +225,14 @@ flag_options_xref WinListFlags[] = {
 };
 
 
-WinListConfig *
-ParseWinListOptions (const char *filename, char *myname)
+static void 
+WinList_fs2config( WinListConfig *config, FreeStorageElem *Storage )
 {
-	ConfigData    cd ;
-	ConfigDef    *ConfigReader;
-	WinListConfig *config = CreateWinListConfig ();
-
 	FreeStorageElem *Storage = NULL, *pCurr;
 	ConfigItem    item;
 	MyStyleDefinition **styles_tail = &(config->style_defs);
 
-	cd.filename = filename ;
-	ConfigReader = InitConfigReader (myname, &WinListSyntax, CDT_Filename, cd, NULL);
-	if (!ConfigReader)
-		return config;
-
 	item.memory = NULL;
-	PrintConfigReader (ConfigReader);
-	ParseConfig (ConfigReader, &Storage);
 
 	/* getting rid of all the crap first */
 	StorageCleanUp (&Storage, &(config->more_stuff), CF_DISABLED_OPTION);
@@ -361,12 +358,35 @@ ParseWinListOptions (const char *filename, char *myname)
 	}
 	
 	ReadConfigItem (&item, NULL);
-	DestroyConfig (ConfigReader);
+}
+
+WinListConfig *
+ParseWinListOptions (const char *filename, char *myname)
+{
+	ConfigData    cd ;
+	ConfigDef    *ConfigReader;
+	WinListConfig *config = CreateWinListConfig ();
+
+	FreeStorageElem *Storage = NULL;
+
+	cd.filename = filename ;
+	ConfigReader = InitConfigReader (myname, &WinListSyntax, CDT_Filename, cd, NULL);
+	if (!ConfigReader)
+		return config;
+
+	item.memory = NULL;
+	PrintConfigReader (ConfigReader);
+	ParseConfig (ConfigReader, &Storage);
+
+	WinList_fs2config( config, Storage );
+	 
 	DestroyFreeStorage (&Storage);
+	DestroyConfig (ConfigReader);
 /*    PrintMyStyleDefinitions( config->style_defs ); */
 	return config;
 
 }
+
 
 void
 MergeWinListOptions ( WinListConfig *to, WinListConfig *from)

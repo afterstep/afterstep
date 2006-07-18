@@ -60,7 +60,8 @@ LOCAL_DEBUG_OUT( "checking for foreign option ...%s", "" );
 	if (pterm->type == TT_ANY )
 	{	
 #ifdef UNKNOWN_KEYWORD_WARNING
-	  	config_error (config, " unknown keyword encountered");
+		if( !get_flags( config->flags, CP_IgnoreUnknown ) )
+		  	config_error (config, " unknown keyword encountered");
 #endif
 		return;
 	}
@@ -92,7 +93,8 @@ LOCAL_DEBUG_OUT( "parsing stuff ...%s", "" );
 int ParseConfig (ConfigDef * config, FreeStorageElem ** tail)
 {
 	config->statement_handler = statement2free_storage;
-	return config2tree_storage(config, (ASTreeStorageModel **)tail, True);	   
+	set_flags( config->flags, CP_IgnoreForeign );
+	return config2tree_storage(config, (ASTreeStorageModel **)tail);	   
 }	 
 
 FreeStorageElem *
@@ -454,7 +456,7 @@ ScanAndWriteExistant (ConfigDef * config, FreeStorageElem ** storage, struct Wri
 	char         *noise_start = config->cursor;
 	FreeStorageElem *pCurr;
 
-	while (GetNextStatement (config, 0))
+	while (GetNextStatement (config))
 	{										   /* until not end of text */
 		TermDef      *pterm;
 

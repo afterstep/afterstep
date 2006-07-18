@@ -523,6 +523,8 @@ const char *parse_argb_color( const char *color, CARD32 *pargb )
 						free( ptr );
 				}
 			}
+			if( !success && strlen(color) < 30 )
+				show_warning( "unable to parse color \"%s\"", color );
 			return success?&(color[i]):color;
 		}
 	}

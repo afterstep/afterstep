@@ -592,7 +592,7 @@ LOCAL_DEBUG_OUT( "Reading Buffer ...%s", "" );
    Return: NULL if end of config reached, otherwise same as tline.
  */
 char         *
-GetNextStatement (ConfigDef * config, int my_only)
+GetNextStatement (ConfigDef * config)
 {
 	char         *cur = config->cursor;		   /* don't forget to save it back ! */
 	register char *data;
@@ -645,7 +645,7 @@ GetNextStatement (ConfigDef * config, int my_only)
 							break;
 					if (mname[i] != '\0')
 					{						   /* that was a foreign optiion - belongs to the other executable */
-						if (my_only)
+						if (get_flags( config->flags, CP_IgnoreForeign ))
 							break;
 						set_flags( config->current_flags, CF_FOREIGN_OPTION );
 						/* keeping *MyName part of the token  without leading * for foreign options */
@@ -655,6 +655,8 @@ GetNextStatement (ConfigDef * config, int my_only)
                 {
                     if( *cur == terminator || *cur == file_terminator )   /* public option keyword may not be empty ! */
                         break;
+					if ( get_flags( config->flags, CP_IgnorePublic ) )
+						break;
                     set_flags( config->current_flags, CF_PUBLIC_OPTION);
                     print_trimmed_str( "public option at", cur );
                 }
@@ -760,7 +762,7 @@ FindStatementTerm (char *tline, SyntaxDef * syntax)
 
 /* main parsing procedure */
 int
-config2tree_storage (ConfigDef * config, ASTreeStorageModel **tail, Bool ignore_foreign)
+config2tree_storage (ConfigDef * config, ASTreeStorageModel **tail)
 {
 	int           TopLevel = 0;
 	unsigned long flags;
@@ -769,7 +771,7 @@ config2tree_storage (ConfigDef * config, ASTreeStorageModel **tail, Bool ignore_
 	/* get line */
 	while (!TopLevel)
 	{
-		while (GetNextStatement (config, ignore_foreign))
+		while (GetNextStatement (config))
 		{									   /* untill not end of text */
 			flags = 0x00;
 			TermDef *pterm = NULL ; 
