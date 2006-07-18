@@ -15,7 +15,7 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-#undef LOCAL_DEBUG
+#define LOCAL_DEBUG
 #undef DO_CLOCKING
 
 #ifdef _WIN32
@@ -1457,7 +1457,7 @@ goto_tab_stop( ASTextAttributes *attr, unsigned int space_size, unsigned int lin
 static unsigned int \
 name( const type *text, ASFont *font, ASGlyphMap *map, ASTextAttributes *attr, int space_size, unsigned int offset_3d_x ) \
 { \
-	unsigned int w = 0, line_count = 0, line_width = 0; \
+	int w = 0, line_count = 0, line_width = 0; \
 	int i = -1, g = 0 ; \
 	ASGlyph *last_asg = NULL ; unsigned int last_gid = 0 ; \
 	do \
@@ -1492,6 +1492,7 @@ name( const type *text, ASFont *font, ASGlyphMap *map, ASTextAttributes *attr, i
 				last_asg = getglyph; \
 				map->glyphs[g] = last_asg; \
 				GET_KERNING(map->x_kerning[g],last_gid,last_asg->font_gid); \
+				if( line_width < -last_asg->lead ) line_width -= (line_width+last_asg->lead);\
 				line_width += last_asg->step+offset_3d_x+map->x_kerning[g]; \
 				++g; last_gid = last_asg->font_gid ; \
 				LOCAL_DEBUG_OUT("pre_i=%d",i); \
@@ -1616,6 +1617,7 @@ get_text_glyph_map( const char *text, ASFont *font, ASGlyphMap *map, ASTextAttri
 			}else{ int kerning = 0 ;\
 				last_asg = getglyph; \
 				GET_KERNING(kerning,last_gid,last_asg->font_gid); \
+				if( line_width < -last_asg->lead ) line_width -= (line_width+last_asg->lead);\
 				line_width += last_asg->step+offset_3d_x +kerning ;  \
 				last_gid = last_asg->font_gid ; \
 				incr ; \
@@ -1626,13 +1628,13 @@ get_text_glyph_map( const char *text, ASFont *font, ASGlyphMap *map, ASTextAttri
 static Bool
 get_text_size_internal( const char *src_text, ASFont *font, ASTextAttributes *attr, unsigned int *width, unsigned int *height, int length, int *x_positions )
 {
-    unsigned int w = 0, h = 0, line_count = 0;
-	unsigned int line_width = 0;
+    int w = 0, h = 0, line_count = 0;
+	int line_width = 0;
     int i = -1;
 	ASGlyph *last_asg = NULL ;
 	int space_size = 0;
-	unsigned int offset_3d_x = 0, offset_3d_y = 0 ;
-	unsigned int last_gid = 0 ;
+	int offset_3d_x = 0, offset_3d_y = 0 ;
+	int last_gid = 0 ;
 
 
 	apply_text_3D_type( attr->type, &offset_3d_x, &offset_3d_y );
@@ -1975,18 +1977,24 @@ LOCAL_DEBUG_OUT( "line_height is %d, space_size is %d, base_line is %d", line_he
 				/* now comes the fun part : */
 				ASGlyph *asg = map.glyphs[i] ;
 				int y = base_line - asg->ascend;
-				int start_x = 0;
+				int start_x = 0, offset_x = 0;
 
 				if( get_flags(font->flags, ASF_RightToLeft) )
 					pen_x  -= asg->step+offset_3d_x +map.x_kerning[i];
 				else
+				{
+					LOCAL_DEBUG_OUT( "char # %d : pen_x = %d, kerning = %d, lead = %d, width = %d, step = %d", i, pen_x, map.x_kerning[i], asg->lead, asg->width, asg->step );
 					pen_x += map.x_kerning[i] ;
+				}
 				if( asg->lead > 0 )
 					start_x = pen_x + asg->lead ;
-				else if( pen_x  > -asg->lead )
+				else
 					start_x = pen_x + asg->lead ;
 				if( start_x < 0 )
+				{
+					offset_x = -start_x ; 
 					start_x = 0 ;
+				}
 				if( y < 0 )
 					y = 0 ;
 
@@ -2052,7 +2060,7 @@ LOCAL_DEBUG_OUT( "line_height is %d, space_size is %d, base_line is %d", line_he
 				}
 
 				if( !get_flags(font->flags, ASF_RightToLeft) )
-  					pen_x  += asg->step+offset_3d_x;
+  					pen_x  += offset_x + asg->step+offset_3d_x;
 			}
 		}
 	}while( map.glyphs[i] != GLYPH_EOT );
