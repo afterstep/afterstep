@@ -549,7 +549,5 @@ void LinkAfterStepConfig()
 	}	 
 
 	pFuncSyntax->terms[F_Folder].sub_syntax = &WharfFolderSyntax ;
-	
-	LinkWinListConfig();
 }	 
 

@@ -101,14 +101,29 @@ TermDef       WinListPrivateTerms[] = {
 	{0, NULL, 0, 0, 0}
 };
 
-TermDef       WinListTerms[] = {
-	INCLUDE_MODULE_DEFAULTS,
+#define WINLIST_ALL_TERMS	WINLIST_PRIVATE_TERMS,WINLIST_FEEL_TERMS, WINLIST_LOOK_TERMS
 
-	WINLIST_PRIVATE_TERMS,
-	/* Feel */
-	WINLIST_FEEL_TERMS,
-	/* Look */
-	WINLIST_LOOK_TERMS,
+
+TermDef       WinListDefaultsTerms[] = {
+
+	WINLIST_ALL_TERMS,
+    {TF_OBSOLETE, "Orientation", 11, TT_TEXT, WINLIST_Orientation_ID, NULL},
+/* including MyStyles definitions processing */
+	INCLUDE_MYSTYLE,
+/* now special cases that should be processed by it's own handlers */
+    BALLOON_TERMS,
+	INCLUDE_MODULE_DEFAULTS_END,
+    {0, NULL, 0, 0, 0}
+};
+
+SyntaxDef WinListDefaultsSyntax	= {'\n', '\0', WinListDefaultsTerms, 		0, ' ',  "", "\t", "Module:WinList_defaults","WinList",     "AfterStep module displaying list of opened windows",NULL,0};
+
+
+TermDef       WinListTerms[] = {
+	INCLUDE_MODULE_DEFAULTS(&WinListDefaultsSyntax),
+
+	WINLIST_ALL_TERMS,
+	
     {TF_OBSOLETE, "Orientation", 11, TT_TEXT, WINLIST_Orientation_ID, NULL},
 /* including MyStyles definitions processing */
 	INCLUDE_MYSTYLE,
@@ -122,12 +137,6 @@ SyntaxDef WinListFeelSyntax 	= {'\n', '\0', WinListFeelTerms, 	0, '\t', "", "\t"
 SyntaxDef WinListLookSyntax 	= {'\n', '\0', WinListLookTerms, 	0, '\t', "", "\t", "WinListLook", 	"WinListLook", "AfterStep window list module look", NULL, 0};
 SyntaxDef WinListPrivateSyntax 	= {'\n', '\0', WinListPrivateTerms,	0, '\t', "", "\t", "WinList",     	"WinList",     "AfterStep window list module", NULL,0};
 SyntaxDef WinListSyntax 		= {'\n', '\0', WinListTerms, 		0, ' ',  "", "\t", "Module:WinList","WinList",     "AfterStep module displaying list of opened windows",NULL,0};
-
-void LinkWinListConfig()
-{
-	WinListTerms[0].sub_syntax = &WinListSyntax ;
-}
-
 
 WinListConfig *
 CreateWinListConfig ()
@@ -228,7 +237,7 @@ flag_options_xref WinListFlags[] = {
 static void 
 WinList_fs2config( WinListConfig *config, FreeStorageElem *Storage )
 {
-	FreeStorageElem *Storage = NULL, *pCurr;
+	FreeStorageElem *pCurr;
 	ConfigItem    item;
 	MyStyleDefinition **styles_tail = &(config->style_defs);
 
@@ -374,7 +383,6 @@ ParseWinListOptions (const char *filename, char *myname)
 	if (!ConfigReader)
 		return config;
 
-	item.memory = NULL;
 	PrintConfigReader (ConfigReader);
 	ParseConfig (ConfigReader, &Storage);
 

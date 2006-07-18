@@ -324,8 +324,8 @@ struct FunctionData     *String2Func ( const char *string, struct FunctionData *
 #define MODULE_Defaults_ID				(CONFIG_ID_END+1)
 #define MODULE_DefaultsEnd_ID				(CONFIG_ID_END+2)
 
-#define INCLUDE_MODULE_DEFAULTS    {0, "Defaults", 8, TT_FLAG, MODULE_Defaults_ID, NULL}, \
-								   {TF_SYNTAX_TERMINATOR, "~Defaults", 9, TT_FLAG, MODULE_DefaultsEnd_ID, NULL}
+#define INCLUDE_MODULE_DEFAULTS(syntax)	{0, "Defaults", 8, TT_FLAG, MODULE_Defaults_ID, syntax}
+#define INCLUDE_MODULE_DEFAULTS_END	   	{TF_SYNTAX_TERMINATOR, "~Defaults", 9, TT_FLAG, MODULE_DefaultsEnd_ID, NULL}
 
 
 
@@ -1183,7 +1183,6 @@ typedef struct WinListConfig
 
 }WinListConfig;
 
-void LinkWinListConfig();
 WinListConfig *CreateWinListConfig ();
 void DestroyWinListConfig (WinListConfig * config);
 void PrintWinListConfig (WinListConfig * config);
