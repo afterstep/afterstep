@@ -59,13 +59,17 @@ Style	"Firefox-bin"		Icon logos/Firefox, IgnoreConfig	# , StartsOnDesk 1
 Style	"Galeon"		IgnoreConfig		# , StartsOnDesk 1
 Style	"Netscape"		Icon netscape.xpm, IgnoreConfig	# , StartsOnDesk 1
 
+# Email apps
+#Style	"Thunderbird-bin"	StartsOnDesk 2
+Style	"evolution"		IgnoreConfig		#, StartsOnDesk 2
+
 # IRC and instant messagers
 Style 	"Bitch*"		NoHandles, Sticky
 #Style   "Psi"           StartsOnDesk 1
 Style   "psidock"       WindowListSkip, CirculateSkip, Sticky #, StartsOnDesk 1
 Style   "Licq*"         Sticky, NoButton 1, NoButton 4, NoButton 6
 
-# Graphic aps
+# Graphic apps
 #Style	"GQview"        StartsOnDesk 0
 Style   "gimp"          Icon logos/gimp, UseCurrentViewport
 Style	"GIMP Startup"	Icon logos/gimp, NoButton 1, NoButton 2, NoButton 3, NoButton 4
@@ -101,7 +105,6 @@ Style	"konqueror"		Icon konqueror, IgnoreConfig
 Style	"kvt"			Icon Computer.xpm
 Style	"*.kss"			NoTitle, NoHandles, Layer 10, FullScreen
 
-
 # gnome panel ( contributed by Greg Norris <haphazard at kc dot rr dot com> ):
 Style   "gnome-panel"   NoTitle, Sticky, StaysOnTop, WindowListSkip, AvoidCover, NoHandles
 Style   "Top Panel"     DefaultGeometry +0+35
@@ -110,7 +113,6 @@ Style   "Bottom Panel"     DefaultGeometry -0-0
 # Some other apps
 Style   "xcalc"         Icon xcalc.xpm
 Style	"alarmd"		AvoidCover, NoTitle, NoHandles, WindowListSkip, CirculateSkip, Layer 0, Sticky
-Style	"evolution"		IgnoreConfig		#, StartsOnDesk 0
 Style   "gdiskfree"     AvoidCover, Layer 0
 Style	"vmware-ui"		Icon Network.xpm, NoButton 2			#, StartsOnDesk 0
 Style	"xdos"		    NoButton 2		#, StartsOnDesk 0
