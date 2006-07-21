@@ -123,8 +123,9 @@
 #
 # First available GUI e-mail client :
 #
+*Wharf Mail	logos/Thunderbird Exec "Thunderbird" thunderbird &
+*Wharf Mail	logos/Thunderbird Exec "Thunderbird2" mozilla-thunderbird &
 *Wharf Mail	normal/MailBox2 Exec "mozilla-mail" mozilla --mail &
-*Wharf Mail	normal/MailBox2 Exec "mozilla-thunderbird"  mozilla-thunderbird &
 *Wharf Mail	normal/MailBox2 Exec "kmail" kmail &
 *Wharf Mail	normal/MailBox2 Exec "balsa" balsa &
 *Wharf Mail	normal/MailBox2 ExecInTerm "Pine" -title "Pine e-mail and news reader" -e pine &
