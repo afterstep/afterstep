@@ -129,8 +129,8 @@ typedef struct ASCategoryTree
 /* self-explanatory : */
 #define ASCT_ExcludeGNOME				(0x01<<1)	  
 #define ASCT_ExcludeKDE					(0x01<<2)	  
-#define ASCT_OnlyGNOME					(0x01<<2)	  
-#define ASCT_OnlyKDE					(0x01<<3)	  
+#define ASCT_OnlyGNOME					(0x01<<3)	  
+#define ASCT_OnlyKDE					(0x01<<4)	  
 
 	char *name ;
 	char *icon_path;
