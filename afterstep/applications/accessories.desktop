@@ -1,0 +1,84 @@
+[Desktop Entry]
+Name=Xcalculator
+GenericName=calculator
+Comment=X calculator
+Exec=xcalc
+Icon=normal/Calculator2
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=Utility
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=Calcoo Calculator
+GenericName=scientific calculator
+Comment=GTK+ scientific calculator
+Exec=calcoo
+Icon=normal/Calculator2
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=Utility
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=Xclock
+GenericName=Normal/Clock
+Comment=analog & digital clock for X
+Exec=xclock
+Icon=normal/Clock
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=Utility
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=Color Selector
+GenericName=Color Selector
+Comment=display contents of rgb.txt files together with color probes
+Exec=xcolorsel
+Icon=normal/Pallette
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=Utility
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=Help
+GenericName=man page displayer
+Comment=Manual page display program for the X Window System
+Exec=xman
+Icon=normal/Bookshelf
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=Utility
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=Xclipboard
+GenericName=Xclipboard
+Comment=X clipboard client
+Exec=xclipboard
+Icon=normal/PaperClip
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=Utility
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=Screen Magnify
+GenericName=Screen Magnify
+Comment=magnify parts of the screen
+Exec=xmag
+Icon=normal/MagnifyingGlass
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=Utility
+X-AfterStep-CheckAvailability=true
+

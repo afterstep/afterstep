@@ -1,0 +1,119 @@
+[Desktop Entry]
+Name=FTP Shell
+GenericName=FTP Client
+Comment=Internet file transfer program
+Exec=ftp
+Icon=normal/FTPEarth
+Terminal=true
+Type=Application
+Encoding=UTF-8
+Categories=Network
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=NcFTP Shell
+GenericName=FTP Client
+Comment=Browser program for the File Transfer Protocol
+Exec=ncftp
+Icon=normal/FTPEarth
+Terminal=true
+Type=Application
+Encoding=UTF-8
+Categories=Network
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=Lynx Text-based Web Browser
+GenericName=Web Browser
+Comment=Browser for the World Wide Web
+Exec=lynx
+Icon=normal/WWW
+Terminal=true
+Type=Application
+Encoding=UTF-8
+Categories=Network
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=Mutt E-Mail Client
+GenericName=E-Mail Client
+Comment=The Mutt Mail User Agent
+Exec=mutt -y
+Icon=normal/MailBox2
+Terminal=true
+Type=Application
+Encoding=UTF-8
+Categories=Network
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=Pine E-Mail Client
+GenericName=E-Mail Client
+Comment=Program for Internet News and Email
+Exec=pine
+Icon=normal/MailBox2
+Terminal=true
+Type=Application
+Encoding=UTF-8
+Categories=Network
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=BitchX IRC Client
+GenericName=IRC Client
+Comment=Advanced Internet Relay Chat client
+Exec=BitchX
+Icon=logos/BitchX
+Terminal=true
+Type=Application
+Encoding=UTF-8
+Categories=Network
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=Tin News Reader
+GenericName=News Reader
+Comment=Full-screen easy to use Netnews reader
+Exec=tin
+Icon=normal/Newspaper
+Terminal=true
+Type=Application
+Encoding=UTF-8
+Categories=Network
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=nn News Reader
+GenericName=News Reader
+Comment=Efficient net news interface (No News is good news)
+Exec=nn
+Icon=normal/Newspaper
+Terminal=true
+Type=Application
+Encoding=UTF-8
+Categories=Network
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=slrn News Reader
+GenericName=News Reader
+Comment=slrn (s-lang read news) accesses Usenet messages
+Exec=slrn
+Icon=normal/Newspaper
+Terminal=true
+Type=Application
+Encoding=UTF-8
+Categories=Network
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=Telnet Shell
+GenericName=Telnet Shell
+Comment=User interface to the TELNET protocol
+Exec=telnet
+Icon=normal/Monitor1
+Terminal=true
+Type=Application
+Encoding=UTF-8
+Categories=Network
+X-AfterStep-CheckAvailability=true

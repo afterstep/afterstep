@@ -1,0 +1,179 @@
+[Desktop Entry]
+Name=DOSemu DOS Emulator
+GenericName=DOS Emulator
+Comment=Linux DOS emulator
+Exec=xdos
+Icon=logos/DOS
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=Emulators
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=DOSBox DOS Emulator
+GenericName=DOS Emulator
+Comment=x86 DOS emulator
+Exec=dosbox
+Icon=logos/DOS
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=Emulators
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=Stella Atari 2600 Emulator
+GenericName=Atarti 2600 Emulator
+Comment=Multi-platform Atari 2600 VCS emulator 
+Exec=stella
+Icon=logos/Atari
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=Emulators
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=Executor Mac 68k Emulator
+GenericName=Mac 68k Emulator
+Comment=Mac 68k Emulator
+Exec=executor -geometry 800x600+-1+-23 -nosplash
+Icon=logos/MacFace
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=Emulators
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=UAE Amiga Emulator
+GenericName=Amiga Emulator
+Comment=Software emulation of the Commodore Amiga 500/1000/2000.
+Exec=uae
+Icon=logos/AmigaBoing
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=Emulators
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=x48 - HP 48GX Emulator
+GenericName=HP 48GX Emulator
+Comment=HP 48GX Emulator
+Exec=x48
+Icon=logos/HP
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=Emulators
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=XGS AppleIIgs Emulator
+GenericName=Apple IIgs Emulator
+Comment=Apple IIgs Emulator
+Exec=xgs
+Icon=logos/AppleRainbow
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=Emulators
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=VisualBoyAdvance Emulator
+GenericName=Gameboy Advance Emulator
+Comment=Gameboy Advance Emulator
+Exec=gvba
+Icon=logos/Mario
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=Emulators
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=gnuboy Gameboy Emulator
+GenericName=Gameboy Emulator
+Comment=Nintendo Gameboy Color Emulator
+Exec=xgnuboy
+Icon=logos/Mario
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=Emulators
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=VICE PET Emulator
+GenericName=PET Emulator
+Comment=VICE is a set of emulators for early Commodore computers
+Exec=xpet
+Icon=logos/Commodore
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=Emulators
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=VICE C64 Emulator
+GenericName=C64 Emulator
+Comment=VICE is a set of emulators for early Commodore computers
+Exec=x64
+Icon=logos/Commodore
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=Emulators
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=VICE C128 Emulator
+GenericName=C128 Emulator
+Comment=VICE is a set of emulators for early Commodore computers
+Exec=x128
+Icon=logos/Commodore
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=Emulators
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=VICE VIC20 Emulator
+GenericName=VIC20 Emulator
+Comment=VICE is a set of emulators for early Commodore computers
+Exec=xvic
+Icon=logos/Commodore
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=Emulators
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=MAME Arcade Emulator
+GenericName=Arcade Emulator
+Comment=Arcade machine emulator 
+Exec=xmame
+Icon=normal/GameController
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=Emulators
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=MESS Game Console Emulator
+GenericName=Game Console Emulator
+Comment=console emulator - Atari, Apple, BBC, Commodore, MSX, ZX Spectrum. 
+Exec=xmess
+Icon=normal/GameController
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=Emulators
+X-AfterStep-CheckAvailability=true

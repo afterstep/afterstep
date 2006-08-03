@@ -1,0 +1,59 @@
+[Desktop Entry]
+Name=AfterStep Terminal
+GenericName=Terminal
+Comment=Color VT102 emulator for the X window system
+Exec=aterm -tr -sh 60 -bg black -fg white
+Icon=logos/aterm
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=Terminals
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=Xi Terminal
+GenericName=Terminal
+Comment=VT102 emulator for the X window system
+Exec=xiterm -bg black -fg grey70 -sl 500 -vb
+Icon=normal/Monitor1
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=Terminals
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=X Terminal
+GenericName=Terminal
+Comment=VT102 & VT220 Terminal emulator for X
+Exec=xterm -bg black -fg grey70 -sl 500 -vb
+Icon=normal/Monitor1
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=Terminals
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=rxvt Terminal
+GenericName=Terminal
+Comment=Color VT102 emulator for the X window system
+Exec=rxvt -bg black -fg grey70 -sl 500 -vb
+Icon=normal/Monitor1
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=Terminals
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=E Terminal
+GenericName=Terminal
+Comment=Color VT102 emulator for the X window system
+Exec=Eterm -P ~/.afterstep/non-configurable/0_background -f white
+Icon=logos/Eterm
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=Terminals
+X-AfterStep-CheckAvailability=true

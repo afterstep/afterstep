@@ -1,0 +1,47 @@
+[Desktop Entry]
+Name=XMMS Audio & Multi-Media Player
+GenericName=Media Player
+Comment=Display Linux kernel parameters in graphical form
+Exec=xmms -e %F
+Icon=normal/OldFashionedRadio
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=AudioVideo
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=GTKsubtitler
+GenericName=Subtitler
+Comment=Program for editing and converting DivX subtitles
+Exec=GTKsubtitler
+Icon=normal/MovieProjector
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=AudioVideo
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=X Volume & Mixer
+GenericName=Mixer
+Comment=X based volume and mixer control program
+Exec=xmixer
+Icon=normal/Player
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=AudioVideo
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=ALSA Mixer
+GenericName=Mixer
+Comment=Ncurses soundcard mixer for ALSA soundcard driver
+Exec=alsamixer
+Icon=normal/Player
+Terminal=true
+Type=Application
+Encoding=UTF-8
+Categories=AudioVideo
+X-AfterStep-CheckAvailability=true

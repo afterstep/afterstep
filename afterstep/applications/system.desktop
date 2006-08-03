@@ -1,0 +1,36 @@
+[Desktop Entry]
+Name=System Info
+GenericName=System Info
+Comment=Display Linux kernel parameters in graphical form
+Exec=xsysinfo
+Icon=normal/Wrench
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=System
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=System Load
+GenericName=System Load
+Comment=System load average display for X
+Exec=xload
+Icon=normal/Wrench
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=System
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=CPU Process List
+GenericName=Top CPU Processes
+Comment=Display top CPU processes
+Exec=top
+Icon=normal/Wrench
+Terminal=true
+Type=Application
+Encoding=UTF-8
+Categories=System
+X-AfterStep-CheckAvailability=true
+

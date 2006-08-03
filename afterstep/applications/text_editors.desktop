@@ -47,7 +47,7 @@ Categories=TextEditor
 X-AfterStep-CheckAvailability=true
 
 [Desktop Entry]
-Name=nano
+Name=Nano
 GenericName=Nano
 Comment=Simple text editor
 Exec=nano
@@ -57,7 +57,6 @@ Type=Application
 Encoding=UTF-8
 Categories=TextEditor
 X-AfterStep-CheckAvailability=true
-
 
 [Desktop Entry]
 Name=XJed
@@ -71,4 +70,27 @@ Encoding=UTF-8
 Categories=TextEditor
 X-AfterStep-CheckAvailability=true
 
+[Desktop Entry]
+Name=mined 2000 Unicode Editor
+GenericName=Multi-language unicode text editor
+Comment=Multi-language unicode text editor
+Exec=mined
+Icon=large/Document
+Terminal=true
+Type=Application
+Encoding=UTF-8
+Categories=TextEditor
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=Yudit Unicode Editor
+GenericName=Multi-language unicode text editor
+Comment=Multi-language unicode text editor
+Exec=yudit
+Icon=large/Document
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=TextEditor
+X-AfterStep-CheckAvailability=true
 

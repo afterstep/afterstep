@@ -1,0 +1,37 @@
+[Desktop Entry]
+Name=XV Image Viewer
+GenericName=Image Viewer
+Comment=Provides image manipulating and processing features
+Exec=xv
+Icon=normal/View
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=Graphics
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=ImageMagick Image Viewer
+GenericName=Image Viewer
+Comment=X application for displaying and manipulating images
+Exec=display
+Icon=normal/View
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=Graphics
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=XPaint Image Editor
+GenericName=Image Editor
+Comment=Xcolor image editing tool
+Exec=xpaint
+Icon=normal/Paint
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=Graphics
+X-AfterStep-CheckAvailability=true
+
+
