@@ -281,8 +281,15 @@ fix_desktop_entry( ASDesktopEntry *de, const char *default_category, const char 
 	de->origin = mystrdup( origin );
 
 	if( get_flags( de->flags, ASDE_CheckAvailability ) )
+	{
 		if( !is_executable_in_path ( de->clean_exec ) ) 
 			set_flags( de->flags, ASDE_Unavailable );
+	}else if( de->TryExec != NULL ) 
+	{
+		if( !is_executable_in_path ( de->TryExec ) ) 
+			set_flags( de->flags, ASDE_Unavailable );
+	}
+	
 }
 
 static ASDesktopEntry*

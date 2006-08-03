@@ -337,7 +337,7 @@ void  asgtk_image_dir_refresh( ASGtkImageDir *id )
 	id->curr_selection = NULL ;
 	if( id->fulldirname ) 
 	{
-		int count ;
+		unsigned int count ;
 		GtkTreeIter iter;
 		ASImageListEntry *curr ;
 		int mini_ext_len = id->mini_extension?strlen(id->mini_extension): 0;

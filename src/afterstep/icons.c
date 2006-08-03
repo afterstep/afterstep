@@ -273,7 +273,7 @@ LOCAL_DEBUG_OUT( "last: %dx%d%+d%+d", rd->last_width, rd->last_height, rd->last_
                 *last_s += *last_s_size ;
             
 	  /* reset primary coordinate */
-	    *last_p = get_flags( geom->flags, PNegative )? *geom_size_p - 1: 0 ;
+	    *last_p = get_flags( geom->flags, PNegative )? (int)*geom_size_p - 1: 0 ;
 
 	    /* adjust primary coordinate if PNegative */
             if( get_flags(geom->flags, PNegative) )
