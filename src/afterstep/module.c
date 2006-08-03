@@ -555,7 +555,7 @@ int
 AcceptModuleConnection (int socket_fd)
 {
 	int           fd;
-	int           len = sizeof (struct sockaddr_un);
+	unsigned int  len = sizeof (struct sockaddr_un);
 	struct sockaddr_un name;
 
 	fd = accept (socket_fd, (struct sockaddr *)&name, &len);

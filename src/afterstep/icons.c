@@ -146,7 +146,7 @@ Bool rearrange_icon_iter_func(void *data, void *aux_data)
     */
 
     int *new_p, *new_s;
-    int *geom_size_p, *geom_size_s;
+    unsigned int *geom_size_p, *geom_size_s;
     unsigned int PNegative, SNegative;
     int *last_p, *last_s;
     int *whole_p, *whole_s;
@@ -264,7 +264,7 @@ LOCAL_DEBUG_OUT( "last: %dx%d%+d%+d", rd->last_width, rd->last_height, rd->last_
 		  *new_p = *last_p + *last_p_size ;
 		
 		/* if primary-coordinate is now invalid */
-        if( *new_p < 0 || *new_p + *whole_p > *geom_size_p )
+        if( *new_p < 0 || *new_p + *whole_p > (int)*geom_size_p )
         {  /* lets try and go to the next row and see if that makes a difference */
           /* change secondary coordinate */  
 	  if( get_flags(geom->flags, SNegative) )

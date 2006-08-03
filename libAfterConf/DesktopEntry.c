@@ -149,6 +149,7 @@ parse_desktop_entry_line( ASDesktopEntry* de, char *ptr )
 			PARSE_ASDE_STRING_VAL(IndexName)
 			PARSE_ASDE_STRING_VAL(Aliases)
 			PARSE_ASDE_FLAG_VAL(ASModule)
+			PARSE_ASDE_FLAG_VAL(CheckAvailability)
 		}else if( mystrncasecmp( ptr, "KDE-", 4 ) == 0 ) 
 			set_flags( de->flags, ASDE_KDE );
 		else if( mystrncasecmp( ptr, "GNOME-", 6 ) == 0 ) 

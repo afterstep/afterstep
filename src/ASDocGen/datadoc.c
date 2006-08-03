@@ -236,7 +236,7 @@ data_fname_filter (const char *d_name)
 void 
 convert_data_file( const char *source_dir, const char *dst_dir, ASXMLInterpreterState *state, ASData2xmlState *xml_state)
 {
-	int count = 0;
+	unsigned int count = 0;
 	Bool files_sect_added = False ;
 	ASImageListEntry *curr ;
 	ASImageListEntry *im_list = get_asimage_list( Scr.asv, source_dir, LOAD_PREVIEW, 

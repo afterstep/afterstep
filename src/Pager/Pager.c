@@ -1936,7 +1936,7 @@ void
 set_desktop_pixmap( int desk, Pixmap pmap )
 {
     ASPagerDesk *d = get_pager_desk( desk );
-    int width, height;
+    unsigned int width, height;
 
     if( !get_drawable_size( pmap, &width, &height ) )
         pmap = None ;
