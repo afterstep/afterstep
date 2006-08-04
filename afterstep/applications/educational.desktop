@@ -1,0 +1,12 @@
+[Desktop Entry]
+Name=GNUplot 
+GenericName=Function Plotter
+Comment=Interactive plotting program
+Exec=gnuplot
+Icon=normal/PencilCup
+Terminal=true
+Type=Application
+Encoding=UTF-8
+Categories=Education
+TryExec=gnuplot
+

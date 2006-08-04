@@ -1,0 +1,12 @@
+[Desktop Entry]
+Name=gv PostScript & PDF Viewer 
+GenericName=PostScript and PDF Viewer
+Comment=PostScript and PDF previewer
+Exec=gv
+Icon=normal/Ghost
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=Office
+TryExec=gv
+
