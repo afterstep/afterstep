@@ -1,6 +1,27 @@
-SmallMiniPixmap 	normal/Player
+# Causes AfterStep to show menu items even if unavailable 
+#	on system, but greyed out.  Used with the "TryExec"
+#	DeskTop Entry Key or static menu items. 
 
-# look in afterstep/applications/text_editors.desktop for default entries
-Category 		"AudioVideo"
+ShowUnavailable
 
+
+# Name the menu folder.  If no name is given, default
+#	to the folder name.
+
+name            Multimedia
+
+
+# Scale the listed pixmap to fit in the menu.
+
+SmallMiniPixmap         normal/Player
+
+
+# Look in:
+#	/usr/share/afterstep/applications/
+#		- OR -
+#	~/.afterstep/applications/
+#
+#	for *.desktop files with the following Categories:
+
+Category        "AudioVideo"
 

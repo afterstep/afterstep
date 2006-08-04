@@ -1,5 +1,26 @@
-SmallMiniPixmap 	large/NetworkedGlobe
+# Causes AfterStep to show menu items even if unavailable 
+#	on system, but greyed out.  Used with the "TryExec"
+#	DeskTop Entry Key or static menu items. 
 
-Category 			"Network"
+ShowUnavailable
 
 
+# Name the menu folder.  If no name is given, default
+#	to the folder name.
+
+name            Network
+
+
+# Scale the listed pixmap to fit in the menu.
+
+SmallMiniPixmap         large/NetworkedGlobe
+
+
+# Look in:
+#	/usr/share/afterstep/applications/
+#		- OR -
+#	~/.afterstep/applications/
+#
+#	for *.desktop files with the following Categories:
+
+Category        "Network"
