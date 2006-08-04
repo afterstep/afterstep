@@ -24,3 +24,7 @@ SmallMiniPixmap         normal/Gear
 #	for *.desktop files with the following Categories:
 
 Category        "System"
+Category        "SystemSetup"
+Category        "Settings"
+Category        "Development"
+
