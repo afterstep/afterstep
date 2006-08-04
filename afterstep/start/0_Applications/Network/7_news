@@ -1,1 +1,0 @@
-ExecInTerm "Newsreader" -n tin -T News -e tin &

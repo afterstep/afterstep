@@ -1,1 +1,0 @@
-ExecInTerm "Mail" -n Pine -t Pine -e pine &

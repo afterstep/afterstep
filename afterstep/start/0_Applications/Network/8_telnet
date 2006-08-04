@@ -1,1 +1,0 @@
-ExecInTerm "Telnet" -n telnet -T telnet -e telnet &

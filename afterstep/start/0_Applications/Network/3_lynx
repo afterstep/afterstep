@@ -1,1 +1,0 @@
-ExecInTerm "Lynx" -n Lynx -T Lynx -e lynx &
