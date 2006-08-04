@@ -8,7 +8,7 @@ Terminal=false
 Type=Application
 Encoding=UTF-8
 Categories=TextEditor
-X-AfterStep-CheckAvailability=true
+TryExec=xemacs
 
 [Desktop Entry]
 Name=Emacs
@@ -20,7 +20,7 @@ Terminal=true
 Type=Application
 Encoding=UTF-8
 Categories=TextEditor
-X-AfterStep-CheckAvailability=true
+TryExec=emacs
 
 [Desktop Entry]
 Name=VI
@@ -32,7 +32,7 @@ Terminal=true
 Type=Application
 Encoding=UTF-8
 Categories=TextEditor
-X-AfterStep-CheckAvailability=true
+TryExec=vi
 
 [Desktop Entry]
 Name=NEdit
@@ -44,7 +44,7 @@ Terminal=false
 Type=Application
 Encoding=UTF-8
 Categories=TextEditor
-X-AfterStep-CheckAvailability=true
+TryExec=nedit
 
 [Desktop Entry]
 Name=Nano
@@ -56,7 +56,7 @@ Terminal=true
 Type=Application
 Encoding=UTF-8
 Categories=TextEditor
-X-AfterStep-CheckAvailability=true
+TryExec=nano
 
 [Desktop Entry]
 Name=XJed
@@ -68,7 +68,7 @@ Terminal=false
 Type=Application
 Encoding=UTF-8
 Categories=TextEditor
-X-AfterStep-CheckAvailability=true
+TryExec=xjed
 
 [Desktop Entry]
 Name=mined 2000 Unicode Editor
@@ -80,7 +80,7 @@ Terminal=true
 Type=Application
 Encoding=UTF-8
 Categories=TextEditor
-X-AfterStep-CheckAvailability=true
+TryExec=mined
 
 [Desktop Entry]
 Name=Yudit Unicode Editor
@@ -92,5 +92,5 @@ Terminal=false
 Type=Application
 Encoding=UTF-8
 Categories=TextEditor
-X-AfterStep-CheckAvailability=true
+TryExec=yudit
 

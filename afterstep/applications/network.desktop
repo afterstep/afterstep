@@ -8,7 +8,7 @@ Terminal=true
 Type=Application
 Encoding=UTF-8
 Categories=Network
-X-AfterStep-CheckAvailability=true
+TryExec=ftp
 
 [Desktop Entry]
 Name=NcFTP Shell
@@ -20,7 +20,7 @@ Terminal=true
 Type=Application
 Encoding=UTF-8
 Categories=Network
-X-AfterStep-CheckAvailability=true
+TryExec=ncftp
 
 [Desktop Entry]
 Name=Lynx Text-based Web Browser
@@ -32,7 +32,7 @@ Terminal=true
 Type=Application
 Encoding=UTF-8
 Categories=Network
-X-AfterStep-CheckAvailability=true
+TryExec=lynx
 
 [Desktop Entry]
 Name=Mutt E-Mail Client
@@ -44,7 +44,7 @@ Terminal=true
 Type=Application
 Encoding=UTF-8
 Categories=Network
-X-AfterStep-CheckAvailability=true
+TryExec=mutt
 
 [Desktop Entry]
 Name=Pine E-Mail Client
@@ -56,7 +56,7 @@ Terminal=true
 Type=Application
 Encoding=UTF-8
 Categories=Network
-X-AfterStep-CheckAvailability=true
+TryExec=pine
 
 [Desktop Entry]
 Name=BitchX IRC Client
@@ -68,7 +68,7 @@ Terminal=true
 Type=Application
 Encoding=UTF-8
 Categories=Network
-X-AfterStep-CheckAvailability=true
+TryExec=BitchX
 
 [Desktop Entry]
 Name=Tin News Reader
@@ -80,7 +80,7 @@ Terminal=true
 Type=Application
 Encoding=UTF-8
 Categories=Network
-X-AfterStep-CheckAvailability=true
+TryExec=tin
 
 [Desktop Entry]
 Name=nn News Reader
@@ -92,7 +92,7 @@ Terminal=true
 Type=Application
 Encoding=UTF-8
 Categories=Network
-X-AfterStep-CheckAvailability=true
+TryExec=nn
 
 [Desktop Entry]
 Name=slrn News Reader
@@ -104,7 +104,7 @@ Terminal=true
 Type=Application
 Encoding=UTF-8
 Categories=Network
-X-AfterStep-CheckAvailability=true
+TryExec=slrn
 
 [Desktop Entry]
 Name=Telnet Shell
@@ -116,4 +116,4 @@ Terminal=true
 Type=Application
 Encoding=UTF-8
 Categories=Network
-X-AfterStep-CheckAvailability=true
+TryExec=telnet

@@ -8,7 +8,7 @@ Terminal=false
 Type=Application
 Encoding=UTF-8
 Categories=System
-X-AfterStep-CheckAvailability=true
+TryExec=xsysinfo
 
 [Desktop Entry]
 Name=System Load
@@ -20,7 +20,7 @@ Terminal=false
 Type=Application
 Encoding=UTF-8
 Categories=System
-X-AfterStep-CheckAvailability=true
+TryExec=xload
 
 [Desktop Entry]
 Name=CPU Process List
@@ -32,5 +32,5 @@ Terminal=true
 Type=Application
 Encoding=UTF-8
 Categories=System
-X-AfterStep-CheckAvailability=true
+TryExec=top
 

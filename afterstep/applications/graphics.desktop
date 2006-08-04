@@ -8,7 +8,7 @@ Terminal=false
 Type=Application
 Encoding=UTF-8
 Categories=Graphics
-X-AfterStep-CheckAvailability=true
+TryExec=xv
 
 [Desktop Entry]
 Name=ImageMagick Image Viewer
@@ -20,7 +20,7 @@ Terminal=false
 Type=Application
 Encoding=UTF-8
 Categories=Graphics
-X-AfterStep-CheckAvailability=true
+TryExec=display
 
 [Desktop Entry]
 Name=XPaint Image Editor
@@ -32,6 +32,6 @@ Terminal=false
 Type=Application
 Encoding=UTF-8
 Categories=Graphics
-X-AfterStep-CheckAvailability=true
+TryExec=xpaint
 
 

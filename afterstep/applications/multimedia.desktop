@@ -8,7 +8,7 @@ Terminal=false
 Type=Application
 Encoding=UTF-8
 Categories=AudioVideo
-X-AfterStep-CheckAvailability=true
+TryExec=xmms
 
 [Desktop Entry]
 Name=GTKsubtitler
@@ -20,7 +20,7 @@ Terminal=false
 Type=Application
 Encoding=UTF-8
 Categories=AudioVideo
-X-AfterStep-CheckAvailability=true
+TryExec=GTKsubtitler
 
 [Desktop Entry]
 Name=X Volume & Mixer
@@ -32,7 +32,7 @@ Terminal=false
 Type=Application
 Encoding=UTF-8
 Categories=AudioVideo
-X-AfterStep-CheckAvailability=true
+TryExec=xmixer
 
 [Desktop Entry]
 Name=ALSA Mixer
@@ -44,4 +44,4 @@ Terminal=true
 Type=Application
 Encoding=UTF-8
 Categories=AudioVideo
-X-AfterStep-CheckAvailability=true
+TryExec=alsamixer
