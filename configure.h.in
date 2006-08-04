@@ -103,13 +103,13 @@
 #define AFTERSTEP_APPS_DIR		"applications" 
 #define AFTERSTEP_CACHE_FILE	AFTER_NONCF "/AfterStepCategories"
 #define GNOME_APPS_PATH		"~/.gnome2/vfolders/applications/:$GNOMEDIR/share/applications:/usr/share/applications"
-#define GNOME_ICONS_PATH	"~/.icons/gnome/48x48/apps/:$XDG_DATA_DIRS/icons/gnome/48x48/apps/:$GNOMEDIR/share/pixmaps:/usr/share/pixmaps"
+#define GNOME_ICONS_PATH	"~/.icons/gnome/48x48/apps/:$XDG_DATA_DIRS/icons/gnome/48x48/apps/:$GNOMEDIR/share/pixmaps:/usr/share/pixmaps:/usr/share/icons:/usr/share/icons/hicolor/48x48/apps"
 #define GNOME_CACHE_FILE	AFTER_NONCF "/GNOMECategories"
 #define KDE_APPS_PATH		"$KDEDIR/share/applnk:$KDEDIR/share/applications:/usr/share/applnk:/usr/share/applications"
 #define KDE_ICONS_PATH		"~/.icons/kde/48x48/apps/:$XDG_DATA_DIRS/icons/kde/48x48/apps/:$KDEDIR/share/icons/default.kde/48x48/apps:$KDEDIR/share/icons/hicolor/48x48/apps:$KDEDIR/share/icons/locolor/48x48/apps:/usr/share/pixmaps"
 #define KDE_CACHE_FILE		AFTER_NONCF "/KDECategories"
 #define SYSTEM_APPS_PATH     	"/etc/X11/applnk:/usr/share/applications:/usr/local/share/applications"
-#define SYSTEM_ICONS_PATH    	"/usr/share/pixmaps:/usr/local/share/pixmaps"
+#define SYSTEM_ICONS_PATH    	"/usr/share/pixmaps:/usr/local/share/pixmaps:/usr/share/icons:/usr/share/icons/hicolor/48x48/apps"
 #define SYSTEM_CACHE_FILE	AFTER_NONCF "/SystemCategories"
 
 
