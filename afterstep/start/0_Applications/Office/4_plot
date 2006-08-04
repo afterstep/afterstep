@@ -1,1 +1,0 @@
-ExecInTerm "GNUplot" -T "GNU Plot" -e gnuplot &
