@@ -1,2 +1,0 @@
-Exec "E terminal" exec Eterm -P ~/.afterstep/non-configurable/0_background -f white &
-MiniPixmap "mini-app.xpm"

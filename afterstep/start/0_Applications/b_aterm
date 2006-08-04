@@ -1,2 +1,0 @@
-Exec "AfterStep terminal" exec aterm -tr -sh 60 -bg black -fg white &
-SmallMiniPixmap "logos/aterm"
