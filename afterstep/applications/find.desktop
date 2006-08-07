@@ -1,0 +1,65 @@
+[Desktop Entry]
+Name=GNOME File Search Tool
+GenericName=System Search
+Comment=GNOME GUI to search the computer.
+Exec=gnome-search-tool
+Icon=normal/MagnifyingGlass2
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=SearchTool
+TryExec=gnome-search-tool
+OnlyShowIn=AFTERSTEP
+
+[Desktop Entry]
+Name=KDE File Search Tool
+GenericName=System Search
+Comment=KDE GUI to search the computer.
+Exec=kfind
+Icon=normal/MagnifyingGlass2
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=SearchTool
+TryExec=kfind
+OnlyShowIn=AFTERSTEP
+
+[Desktop Entry]
+Name=Console Find
+GenericName=System Search
+Comment=Search the computer.
+Exec=ASRun --exec-in-term --cmd find
+Icon=normal/MagnifyingGlass
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=SearchTool
+TryExec=find
+OnlyShowIn=AFTERSTEP
+
+[Desktop Entry]
+Name=Google Internet Search
+GenericName=Internet Search
+Comment=Search the World Wide Web using Google.
+Exec=ASRun --immidiate --cmd http://www.google.com
+Icon=normal/WWW
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=SearchTool
+TryExec=ASRun
+OnlyShowIn=AFTERSTEP
+
+[Desktop Entry]
+Name=Yahoo Internet Search
+GenericName=Internet Search
+Comment=Search the World Wide Web using Yahoo.
+Exec=ASRun --immidiate --cmd http://www.yahoo.com
+Icon=normal/WWW
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=SearchTool
+TryExec=ASRun
+OnlyShowIn=AFTERSTEP
+
