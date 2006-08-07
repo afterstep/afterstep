@@ -13,7 +13,7 @@ name            Games
 
 # Scale the listed pixmap to fit in the menu.
 
-SmallMiniPixmap         normal/Cardgames
+SmallMiniPixmap         AquaFolder-Cardgames.xpm
 
 
 # Look in:

@@ -13,7 +13,7 @@ name            Emulators
 
 # Scale the listed pixmap to fit in the menu.
 
-SmallMiniPixmap         normal/GameController
+SmallMiniPixmap         AquaFolder-GameController.xpm
 
 
 # Look in:

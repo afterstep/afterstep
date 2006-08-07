@@ -13,7 +13,7 @@ name            Graphics
 
 # Scale the listed pixmap to fit in the menu.
 
-SmallMiniPixmap         normal/Brushes
+SmallMiniPixmap         AquaFolder-Brushes.xpm
 
 
 # Look in:
