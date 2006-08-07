@@ -1,2 +1,0 @@
-Exec "Console find" ASRun --exec-in-term --cmd find &
-SmallMiniPixmap "normal/MagnifyingGlass"
