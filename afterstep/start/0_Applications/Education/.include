@@ -13,7 +13,7 @@ name            Educational
 
 # Scale the listed pixmap to fit in the menu.
 
-SmallMiniPixmap         AquaFolder-Library.xpm
+SmallMiniPixmap         FolderAqua-Library.xpm
 
 
 # Look in:
