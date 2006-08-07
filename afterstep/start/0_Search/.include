@@ -13,7 +13,7 @@ name            Find ...
 
 # Scale the listed pixmap to fit in the menu.
 
-SmallMiniPixmap AquaFolder-MagnifyingGlass.xpm
+SmallMiniPixmap FolderAqua-MagnifyingGlass.xpm
 
 
 # Look in:
