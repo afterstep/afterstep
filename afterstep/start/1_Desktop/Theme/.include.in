@@ -1,4 +1,4 @@
-minipixmap mini/theme
+SmallMiniPixmap FolderAqua-View.xpm
 keepname
 include "@datadir@/afterstep/themes" ChangeTheme
 include "@with_afterdir@/themes" ChangeTheme

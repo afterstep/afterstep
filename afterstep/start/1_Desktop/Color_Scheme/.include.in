@@ -1,4 +1,4 @@
-minipixmap mini/ColorScheme
+SmallMiniPixmap FolderAqua-ColorScheme.xpm
 keepname
 include "@datadir@/afterstep/colorschemes" ChangeColorscheme
 include "@with_afterdir@/colorschemes" ChangeColorscheme
