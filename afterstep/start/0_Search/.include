@@ -1,8 +1,30 @@
-# use a special mini pixmap for this menu
-SmallMiniPixmap normal/MagnifyingGlass
+# Causes AfterStep to show menu items even if unavailable 
+#	on system, but greyed out.  Used with the "TryExec"
+#	DeskTop Entry Key or static menu items. 
 
-# change the name of the menu
-name Find ...
+ShowUnavailable
+
+
+# Name the menu folder.  If no name is given, default
+#	to the folder name.
+
+name            Find ...
+
+
+# Scale the listed pixmap to fit in the menu.
+
+SmallMiniPixmap AquaFolder-MagnifyingGlass.xpm
+
+
+# Look in:
+#	/usr/share/afterstep/applications/
+#		- OR -
+#	~/.afterstep/applications/
+#
+#	for *.desktop files with the following Categories:
+
+Category        "SearchTools"
+
 
 # change the order in which this menu will appear its parent menu
 order 0
