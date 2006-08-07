@@ -23,7 +23,7 @@ SmallMiniPixmap AquaFolder-MagnifyingGlass.xpm
 #
 #	for *.desktop files with the following Categories:
 
-Category        "SearchTools"
+Category        "SearchTool"
 
 
 # change the order in which this menu will appear its parent menu
