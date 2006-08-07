@@ -1,4 +1,4 @@
-SmallMiniPixmap FolderAqua-EyeInMonitor2.xpm
+SmallMiniPixmap FolderAqua-View.xpm
 keepname
 include "@datadir@/afterstep/looks" ChangeLook
 include "@with_afterdir@/looks" ChangeLook
