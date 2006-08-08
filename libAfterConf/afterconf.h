@@ -91,15 +91,21 @@ extern struct SyntaxDef      WinListFeelSyntax;
 extern struct SyntaxDef      WinTabsSyntax;
 extern struct SyntaxDef      PopupFuncSyntax;
 
+#define ASCF_DEFINE_MODULE_FLAG_XREF(module,keyword,struct_type) \
+	{module##_##keyword,module##_##keyword##_ID,0,offsetof(struct_type,flags),offsetof(struct_type,set_flags)}	
+
 
 #define ASCF_DEFINE_KEYWORD(module,flags,keyword,type,subsyntax) \
-	{(flags),#keyword,sizeof(#keyword)-1,type,module##_##keyword##_##ID,subsyntax,0,0,0}	
+	{(flags),#keyword,sizeof(#keyword)-1,type,module##_##keyword##_ID,subsyntax,0,0,0}	
 
 #define ASCF_DEFINE_KEYWORD_S(module,flags,keyword,type,subsyntax,struct_type) \
-	{(flags),#keyword,sizeof(#keyword)-1,type,module##_##keyword##_##ID,subsyntax,offsetof(struct_type,keyword),module##_##keyword,0}	
+	{(flags),#keyword,sizeof(#keyword)-1,type,module##_##keyword##_ID,subsyntax,offsetof(struct_type,keyword),module##_##keyword,0}	
 
-#define ASCF_DEFINE_KEYWORD_SF(module,flags,keyword,type,subsyntax,struct_type,flags_on,flags_off) \
-	{(flags),#keyword,sizeof(#keyword)-1,type,module##_##keyword##_##ID,subsyntax,offsetof(struct_type,keyword),flags_on,flags_off}	
+#define ASCF_DEFINE_KEYWORD_SA(module,flags,keyword,type,subsyntax,struct_type,alias_for) \
+	{(flags),#keyword,sizeof(#keyword)-1,type,module##_##keyword##_ID,subsyntax,offsetof(struct_type,alias_for),module##_##alias_for,0}	
+
+#define ASCF_DEFINE_KEYWORD_SF(module,flags,keyword,type,subsyntax,struct_type) \
+	{(flags),#keyword,sizeof(#keyword)-1,type,module##_##keyword##_ID,subsyntax,offsetof(struct_type,keyword),flags_on,flags_off}	
 
 #define ASCF_PRINT_FLAG_KEYWORD(stream,module,__config,keyword) \
 	do{ if(get_flags((__config)->set_flags,module##_##keyword) ) \
@@ -110,7 +116,8 @@ extern struct SyntaxDef      PopupFuncSyntax;
 
 #define ASCF_PRINT_GEOMETRY_KEYWORD(stream,module,__config,keyword) \
 	do{ if(get_flags((__config)->set_flags,module##_##keyword) )	\
-		{ 	if(get_flags((__config)->keyword.flags,WidthValue))	fprintf (stream, "%u",(__config)->keyword.width); \
+		{ 	fprintf (stream, #module "." #keyword " = "); \
+			if(get_flags((__config)->keyword.flags,WidthValue))	fprintf (stream, "%u",(__config)->keyword.width); \
 			fputc( 'x', stream ); \
 			if(get_flags((__config)->keyword.flags,HeightValue))	fprintf (stream, "%u",(__config)->keyword.height); \
 			if(get_flags((__config)->keyword.flags,XValue))	fprintf (stream, "%+d",(__config)->keyword.x); \
@@ -331,6 +338,52 @@ struct FunctionData     *String2Func ( const char *string, struct FunctionData *
 
 /* must call this one to fix all the pointers referencing libAfterStep */
 void LinkAfterStepConfig();
+struct FreeStorageElem;
+struct MyStyleDefinition;
+struct balloonConfig;
+
+typedef struct ASModuleConfig
+{
+	int type ; /* any of the CONFIG_ values above */
+	
+	struct MyStyleDefinition *style_defs ;
+    struct balloonConfig	 *balloon_conf;
+
+    struct FreeStorageElem   *more_stuff;
+	
+}ASModuleConfig;
+
+#define AS_MODULE_CONFIG(p) ((ASModuleConfig*)(p))
+
+void init_asmodule_config( ASModuleConfig *config, Bool free_resources ); 
+struct flag_options_xref;
+
+typedef struct ASModuleConfigClass
+{
+	
+	int        type ; /* any of the CONFIG_ values */
+	ASFlagType flags ;
+	
+	char *private_config_file ;
+	
+	ASModuleConfig* (*create_config_func)();
+	void  (*free_storage2config_func)(ASModuleConfig *config, struct FreeStorageElem *storage);
+	void  (*merge_config_func)( ASModuleConfig *to, ASModuleConfig *from);
+	void  (*destroy_config_func)( ASModuleConfig *config);
+	
+	struct SyntaxDef *module_syntax ; 
+	struct SyntaxDef *look_syntax ; 
+	struct SyntaxDef *feel_syntax ; 
+
+	struct flag_options_xref *flags_xref ;
+	ptrdiff_t 		   set_flags_field_offset ;
+
+}ASModuleConfigClass;
+
+
+
+ASModuleConfig *parse_asmodule_config_all(ASModuleConfigClass *class );
+
 
 
 /***************************************************************************/
@@ -453,7 +506,7 @@ extern struct SyntaxDef MyStyleSyntax;
 /* use this in module term definition to add MyStyle parsing functionality */
 #define INCLUDE_MYSTYLE {TF_NO_MYNAME_PREPENDING,"MyStyle", 7, TT_QUOTED_TEXT, MYSTYLE_START_ID, &MyStyleSyntax}
 
-typedef struct mystyle_definition
+typedef struct MyStyleDefinition
 {
 #define MYSTYLE_DRAW_TEXT_BACKGROUND	(0x01<<0)
 #define MYSTYLE_FINISHED				(0x01<<1)
@@ -484,7 +537,7 @@ typedef struct mystyle_definition
     char   *overlay;
 
     struct  FreeStorageElem *more_stuff;
-    struct  mystyle_definition *next;	/* as long as there could be several MyStyle definitions
+    struct  MyStyleDefinition *next;	/* as long as there could be several MyStyle definitions
 					 * per config file, we arrange them all into the linked list
 					 */
 }MyStyleDefinition;
@@ -1145,16 +1198,23 @@ typedef struct WinListConfig
 #define 	ASWL_ShowIcon				WINLIST_ShowIcon
 #define 	ASWL_ScaleIconToTextHeight	WINLIST_ScaleIconToTextHeight
 
+	ASModuleConfig asmodule_config;
+
 	ASFlagType	flags ;
 	ASFlagType	set_flags ;
-
+	
     ASGeometry 	Geometry ;
-    ASSize	   	MinSize ;
-	ASSize		MaxSize ;
+    ASGeometry	   	MinSize ;
+	ASGeometry		MaxSize ;
 #define MAX_WINLIST_WINDOW_COUNT    512        /* 512 x 4 == 2048 == 1 page in memory */
 	unsigned int MaxRows, MaxColumns ;
 	unsigned int MaxColWidth, MinColWidth ;
 
+/* phony flags */
+#define WINLIST_UnfocusedStyle	0
+#define WINLIST_FocusedStyle 	0
+#define WINLIST_StickyStyle 	0
+#define WINLIST_UrgentStyle 	0
 	char *UnfocusedStyle ;
 	char *FocusedStyle ;
 	char *StickyStyle ;
@@ -1167,28 +1227,26 @@ typedef struct WinListConfig
     unsigned int    HSpacing, VSpacing;
     ASFlagType      IconAlign ;
 	int 			IconLocation ;
-	ASSize		 	IconSize ;
+	ASGeometry	 	IconSize ;
 
     char **Action[MAX_MOUSE_BUTTONS];
-
-    balloonConfig	 *balloon_conf;
-    MyStyleDefinition *style_defs;
-
-    struct FreeStorageElem *more_stuff;
 
     /* calculated based on geometry : */
     int anchor_x, anchor_y ;
 	int gravity ;
 
-
 }WinListConfig;
 
-WinListConfig *CreateWinListConfig ();
-void DestroyWinListConfig (WinListConfig * config);
-void PrintWinListConfig (WinListConfig * config);
+ASModuleConfigClass *WinListConfigClass ;
+
+#define AS_WINLIST_CONFIG(p) ((AS_MODULE_CONFIG(p)->type == CONFIG_WinList_ID)?(WinListConfig*)(p):NULL)
+
+ASModuleConfig *CreateWinListConfig ();
+void DestroyWinListConfig (ASModuleConfig *config);
+void PrintWinListConfig (WinListConfig *config);
 int WriteWinListOptions (const char *filename, char *myname, WinListConfig * config, unsigned long flags);
 WinListConfig *ParseWinListOptions (const char *filename, char *myname);
-void MergeWinListOptions ( WinListConfig *to, WinListConfig *from);
+void MergeWinListOptions ( ASModuleConfig *to, ASModuleConfig *from);
 void CheckWinListConfigSanity(WinListConfig *Config, ASGeometry *default_geometry, int default_gravity);
 
 

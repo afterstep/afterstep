@@ -18,7 +18,7 @@
  *
  */
 
-#define LOCAL_DEBUG
+#undef LOCAL_DEBUG
 #undef DO_CLOCKING
 #undef UNKNOWN_KEYWORD_WARNING
 

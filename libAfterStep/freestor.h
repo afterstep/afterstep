@@ -116,17 +116,24 @@ typedef struct ConfigItem
 
 typedef struct flag_options_xref
 {
-  unsigned long flag;
-  int id_on, id_off;
+  	unsigned long flag;
+  	int id_on, id_off;
+  
+  	ptrdiff_t	flag_field_offset ; 
+	ptrdiff_t	set_flag_field_offset ; 
 }
 flag_options_xref;
 
+
 /* this functions return 1 on success - 0 otherwise */
 int ReadConfigItem (ConfigItem * item, FreeStorageElem * stored);
+Bool ReadConfigItemToStruct( void *struct_ptr, ptrdiff_t set_flags_offset, FreeStorageElem * stored );
+
 /* indexed flags cannot be handled by ReadFlagItem - it will return 0
    for those - handle them manually using ReadConfigItem */
 int ReadFlagItem (unsigned long *set_flags, unsigned long *flags,
 		  FreeStorageElem * stored, flag_options_xref * xref);
+int ReadFlagItemAuto (void *config_struct, ptrdiff_t default_set_flags_offset, FreeStorageElem * stored, flag_options_xref * xref);
 
 /* really defined in libAfterBase/mystring.h (unsigned long*)*/
 void set_string (char **target, char *string);

@@ -28,6 +28,8 @@
 #include "../libAfterStep/mystyle.h"
 #include "../libAfterStep/screen.h"
 #include "../libAfterStep/mylook.h"
+#include "../libAfterStep/session.h"
+#include "../libAfterStep/freestor.h"
 
 #include "afterconf.h"
 
@@ -551,3 +553,202 @@ void LinkAfterStepConfig()
 	pFuncSyntax->terms[F_Folder].sub_syntax = &WharfFolderSyntax ;
 }	 
 
+void init_asmodule_config( ASModuleConfig *config, Bool free_resources )
+{
+	if( config ) 
+	{
+		if( free_resources ) 
+		{
+			if( config->style_defs )
+				DestroyMyStyleDefinitions (&(config->style_defs));
+    		if( config->balloon_conf )
+			    Destroy_balloonConfig (config->balloon_conf);
+	    	if( config->more_stuff )
+				DestroyFreeStorage (&config->more_stuff);
+		}
+		config->type = 0 ; /* make it invalid type */
+		config->style_defs = NULL;
+    	config->balloon_conf = NULL;
+    	config->more_stuff = NULL;
+	}
+}
+
+#define ASModuleConfig_HandleDisabled 	(0x01<<0)
+#define ASModuleConfig_DiscardDisabled 	(0x01<<1)
+#define ASModuleConfig_HandleMyStyles 	(0x01<<2)
+#define ASModuleConfig_HandleBalloons 	(0x01<<3)
+#define ASModuleConfig_HandleDefaults 	(0x01<<4)
+#define ASModuleConfig_HandleFlags	   	(0x01<<5)
+#define ASModuleConfig_HandleScalars   	(0x01<<6)
+
+#define ASModuleConfig_HandleEverything	(ASModuleConfig_HandleDisabled| \
+										 ASModuleConfig_DiscardDisabled| \
+										 ASModuleConfig_HandleMyStyles| \
+										 ASModuleConfig_HandleBalloons| \
+										 ASModuleConfig_HandleDefaults| \
+										 ASModuleConfig_HandleFlags| \
+										 ASModuleConfig_HandleScalars )
+
+
+ASModuleConfig* 
+free_storage2ASModule_config( ASModuleConfigClass *class, ASModuleConfig *config, FreeStorageElem *Storage, ASFlagType flags )
+{
+	if( Storage != NULL ) 
+	{
+		MyStyleDefinition **styles_tail = NULL;
+		FreeStorageElem **more_stuff_tail, *pCurr ;
+		
+		if( config == NULL ) 
+			config = class->create_config_func();
+		
+		if( get_flags( flags, ASModuleConfig_HandleDisabled ) )
+		{
+			more_stuff_tail = &(config->more_stuff);
+			while( *more_stuff_tail ) more_stuff_tail = &(*more_stuff_tail)->next ;
+			StorageCleanUp (&Storage, more_stuff_tail, CF_DISABLED_OPTION);
+		}else if( get_flags( flags, ASModuleConfig_DiscardDisabled ) )
+		{
+			FreeStorageElem *tmp = NULL ; 
+			StorageCleanUp (&Storage, &tmp, CF_DISABLED_OPTION);
+			if( tmp )
+				DestroyFreeStorage (&tmp);
+		}
+		
+		if( get_flags( flags, ASModuleConfig_HandleMyStyles ) )
+		{
+			styles_tail = &(config->style_defs);
+			while( *styles_tail ) styles_tail = &(*styles_tail)->next ;
+		}
+	
+		if( get_flags( flags, ASModuleConfig_HandleBalloons ) )
+	    	config->balloon_conf = Process_balloonOptions(Storage, config->balloon_conf);
+
+	    for (pCurr = Storage; pCurr; pCurr = pCurr->next)
+		{
+			TermDef *T = pCurr->term ;
+			if ( T != NULL)
+			{
+				if( T->id == MODULE_Defaults_ID ) 
+				{
+					if( pCurr->sub && get_flags( flags, ASModuleConfig_HandleDefaults )) 
+					{
+						ASModuleConfig *defaults = free_storage2ASModule_config( class, NULL, pCurr->sub, 
+																					ASModuleConfig_DiscardDisabled|
+																					ASModuleConfig_HandleFlags|
+																					ASModuleConfig_HandleScalars );
+						class->free_storage2config_func( defaults, pCurr->sub );
+						class->merge_config_func( defaults, config );				
+						/* our stuff does not get merged - handle manually : */
+						defaults->style_defs = config->style_defs ; 
+						defaults->balloon_conf = config->balloon_conf ; 
+						
+						class->destroy_config_func( config );
+						config = defaults ;
+					}				
+				}else if( T->id == MYSTYLE_START_ID && 
+				          get_flags( flags, ASModuleConfig_HandleMyStyles ) )
+				{
+             		styles_tail = ProcessMyStyleOptions (pCurr->sub, styles_tail);
+				}else if( T->struct_field_offset != 0  && 
+				         get_flags( flags, ASModuleConfig_HandleScalars )) 
+				{
+					ReadConfigItemToStruct( config, class->set_flags_field_offset, pCurr  );
+				}else if( T->type == TT_FLAG && class->flags_xref != NULL && 
+				         get_flags( flags, ASModuleConfig_HandleFlags ))
+				{
+					ReadFlagItemAuto (config, class->set_flags_field_offset, pCurr, class->flags_xref);	
+				}
+			}
+		}
+	}
+	return config;
+}
+
+void
+merge_ASModule_config( ASModuleConfigClass *class, ASModuleConfig *to, ASModuleConfig *from )
+{
+    if( to->balloon_conf )
+        Destroy_balloonConfig( to->balloon_conf );
+    to->balloon_conf = from->balloon_conf ;
+    from->balloon_conf = NULL ;
+	/* TODO: also need to merge MyStyle defs */
+
+	if( class->merge_config_func ) 
+		class->merge_config_func( to, from );
+
+	if( class->set_flags_field_offset > 0 ) 
+	{
+		ASFlagType *set_flags_ptr_to = (void*)to + class->set_flags_field_offset ;
+		ASFlagType *set_flags_ptr_from = (void*)from + class->set_flags_field_offset ;
+		
+		set_flags( *set_flags_ptr_to, *set_flags_ptr_from );
+	}
+}
+
+
+static ASModuleConfig *
+parse_asmodule_config_file( ASModuleConfigClass *class, ASModuleConfig *config, const char *filename, SyntaxDef *syntax, ASFlagType parser_flags )
+{
+	ConfigData    cd ;
+	ConfigDef    *ConfigReader;
+
+	cd.filename = filename ;
+	ConfigReader = InitConfigReader (MyName, syntax, CDT_Filename, cd, NULL);
+	if ( ConfigReader != NULL )
+	{
+		FreeStorageElem *Storage = NULL;
+		set_flags( ConfigReader->flags, parser_flags );
+		ParseConfig (ConfigReader, &Storage);
+		config = free_storage2ASModule_config( class, config, Storage, ASModuleConfig_HandleEverything );
+		class->free_storage2config_func( config, Storage );
+ 		DestroyFreeStorage (&Storage);
+		DestroyConfig (ConfigReader);
+        show_progress("configuration loaded from \"%s\" ...", filename);
+	}
+
+/*    PrintMyStyleDefinitions( config->style_defs ); */
+	return config;
+}
+
+ASModuleConfig *
+parse_asmodule_look(ASModuleConfigClass *class, ASModuleConfig *module_config )
+{
+	const char *const_configfile =  get_session_file (Session, 0, F_CHANGE_LOOK, False);
+    if( const_configfile != NULL && class->look_syntax != NULL )
+		return parse_asmodule_config_file( class, module_config, const_configfile, class->look_syntax, CP_IgnoreForeign|CP_IgnorePublic );
+	return module_config;
+}
+
+ASModuleConfig *
+parse_asmodule_feel(ASModuleConfigClass *class, ASModuleConfig *module_config )
+{
+	const char *const_configfile =  get_session_file (Session, 0, F_CHANGE_FEEL, False);
+    if( const_configfile != NULL && class->feel_syntax != NULL )
+		return parse_asmodule_config_file( class, module_config, const_configfile, class->feel_syntax, CP_IgnoreForeign|CP_IgnorePublic );
+	return module_config;
+}
+
+ASModuleConfig *
+parse_asmodule_private_config(ASModuleConfigClass *class, ASModuleConfig *module_config )
+{
+	if( class->private_config_file && class->module_syntax )
+	{
+    	char *configfile = make_session_file(Session, class->private_config_file, False );
+        if( configfile != NULL )
+			return parse_asmodule_config_file( class, module_config, configfile, class->module_syntax, CP_IgnoreForeign );
+	}
+	return module_config;
+}
+
+
+ASModuleConfig *
+parse_asmodule_config_all(ASModuleConfigClass *class )
+{
+	ASModuleConfig *config = NULL;
+	LOCAL_DEBUG_OUT( "class = %p, private_file = \"%s\"",class, class?class->private_config_file:"(none)" ); 
+	config = parse_asmodule_private_config(class, config );
+	config = parse_asmodule_look(class, config );
+	config = parse_asmodule_feel(class, config );
+
+	return config;
+}

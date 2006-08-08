@@ -480,7 +480,7 @@ Bool register_desktop_entry(ASCategoryTree *ct, ASDesktopEntry *de)
 	int i ; 
 	Bool top_level = False ; 
 	char *index_name ;
-	Bool exclude = False;
+	int exclude_reason = 0;
 
 #if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT) 	
 	print_desktop_entry( de );
@@ -491,23 +491,23 @@ Bool register_desktop_entry(ASCategoryTree *ct, ASDesktopEntry *de)
 
 	if( get_flags( ct->flags, ASCT_ConstrainCategory ) )
 	{	
-		exclude = True;
+		exclude_reason = __LINE__;
 		for( i = 0 ; i < de->categories_num ; ++i ) 
 			if( mystrcasecmp( ct->name, de->categories_shortcuts[i] ) == 0 ) 
 			{
-				exclude = False ;
+				exclude_reason = 0 ;
 				break;
 			}
 	}else if( get_flags( ct->flags, ASCT_ExcludeGNOME ) && get_flags( de->flags, ASDE_GNOME) )
-		exclude = True ;
+		exclude_reason = __LINE__ ;
 	else if( get_flags( ct->flags, ASCT_ExcludeKDE ) && get_flags( de->flags, ASDE_KDE) )
-		exclude = True ;
+		exclude_reason = __LINE__ ;
 	else if( get_flags( ct->flags, ASCT_OnlyGNOME ) && !get_flags( de->flags, ASDE_GNOME) )
-		exclude = True ;
+		exclude_reason = __LINE__ ;
 	else if( get_flags( ct->flags, ASCT_OnlyKDE ) && !get_flags( de->flags, ASDE_KDE) )
-		exclude = True ;
-
-	if( exclude ) 
+		exclude_reason = __LINE__ ;
+	LOCAL_DEBUG_OUT ("excl_reason = %d for de(%p) ", exclude_reason, de );
+	if( exclude_reason > 0 ) 
    		return False;
 
 	index_name = de->IndexName?de->IndexName:de->Name ;		   

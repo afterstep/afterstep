@@ -1139,6 +1139,63 @@ ReadConfigItem (ConfigItem * item, FreeStorageElem * stored)
 	return 0;
 }
 
+Bool
+ReadConfigItemToStruct( void *struct_ptr, ptrdiff_t set_flags_offset, FreeStorageElem * stored ) 
+{
+	void *data_ptr = struct_ptr ;
+	
+	if( data_ptr && stored && stored->term->struct_field_offset )	
+	{
+		int index = 0 ;
+		Bool handled = True;
+		ConfigItem item ;
+		ASFlagType *set_flags_ptr = (set_flags_offset > 0)? struct_ptr+set_flags_offset: NULL ;
+		data_ptr += stored->term->struct_field_offset ;
+		
+		item.memory = NULL ; 
+		if( !ReadConfigItem( &item, stored ) )
+			return False ;
+        if (get_flags(stored->term->flags, TF_INDEXED))
+			index =	item.index ;
+		
+		switch (item.type)
+		{
+		 case TT_FLAG: 		((Bool*) data_ptr)[index] = item.data.flag;		 break;
+		 case TT_INTEGER:	((int*)  data_ptr)[index] = item.data.integer;	 break;
+		 case TT_UINTEGER:	((unsigned int*)  data_ptr)[index] = item.data.integer;	 break;
+         case TT_BITLIST :	((int*)  data_ptr)[index] = item.data.integer;	 break;
+         case TT_OPTIONAL_PATHNAME:
+         case TT_COLOR:
+		 case TT_FONT:
+		 case TT_FILENAME:
+		 case TT_TEXT:
+		 case TT_PATHNAME:
+		 case TT_QUOTED_TEXT:
+						 	set_string(&(((char**)data_ptr)[index]), item.data.string);	 item.memory = NULL ; break;
+		 case TT_BOX:		((ASBox*)  data_ptr)[index] = item.data.box;	 break;
+		 case TT_GEOMETRY:	((ASGeometry*)  data_ptr)[index] = item.data.geometry;	 break;
+		 case TT_FUNCTION:  ((FunctionData**)data_ptr)[index] = item.data.function; item.memory = NULL ; break;
+		 case TT_BUTTON:	((ASButton**)data_ptr)[index] = item.data.button; item.memory = NULL; break;
+         case TT_CURSOR: 	((ASCursor**)data_ptr)[index] = item.data.cursor; item.memory = NULL ; break;
+
+		 case TT_INTARRAY:	
+         case TT_BINDING :	handled = False ; break;
+
+		 	default : handled = False ;
+        }
+		ReadConfigItem(&item, NULL);
+		
+		if( handled && set_flags_ptr ) 
+		{
+			set_flags( *set_flags_ptr, stored->term->flags_on );
+			clear_flags( *set_flags_ptr, stored->term->flags_off );
+		}
+
+		return handled ;		
+	}
+	return False ;
+}
+
 int
 ReadFlagItem (unsigned long *set_flags, unsigned long *flags, FreeStorageElem * stored, flag_options_xref * xref)
 {
@@ -1175,6 +1232,48 @@ ReadFlagItem (unsigned long *set_flags, unsigned long *flags, FreeStorageElem * 
 	}
 	return 0;
 }
+
+int
+ReadFlagItemAuto (void *config_struct, ptrdiff_t default_set_flags_offset, FreeStorageElem * stored, flag_options_xref * xref)
+{
+	if (stored && xref )
+	{
+		Bool          value = True;
+
+        if (stored->term->type != TT_FLAG || 
+			get_flags (stored->term->flags, (TF_INDEXED|TF_DIRECTION_INDEXED)) ||
+			stored->sub != NULL )
+			return 0;
+
+		if (stored->argc >= 1)
+			value = (atol (stored->argv[0]) > 0);
+
+		while (xref->flag != 0)
+		{
+            if (xref->id_on == stored->term->id || xref->id_off == stored->term->id )
+            {
+				unsigned long *flags = (xref->flag_field_offset>0)?config_struct+xref->flag_field_offset:NULL;
+				unsigned long *set_flags  = (xref->set_flag_field_offset>0)?config_struct+xref->set_flag_field_offset:
+											(default_set_flags_offset>0)?config_struct+default_set_flags_offset:NULL ;
+                
+				if (set_flags)
+                    set_flags (*set_flags, xref->flag);
+                if (flags)
+                {
+                    if ((value && xref->id_on == stored->term->id) ||
+                        (!value && xref->id_off == stored->term->id))
+                        set_flags (*flags, xref->flag);
+                    else
+                        clear_flags (*flags, xref->flag);
+                }
+            }
+			xref++;
+		}
+        return 1;
+	}
+	return 0;
+}
+
 
 /****************************************************************************/
 /* D2F:  Datatype to FreeStorage conversion routines :			    */

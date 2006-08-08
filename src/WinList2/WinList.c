@@ -148,9 +148,13 @@ main( int argc, char **argv )
     /* Request a list of all windows, while we load our config */
     SendInfo ("Send_WindowList", 0);
 
-    LoadBaseConfig ( GetBaseOptions);
+/*  LoadBaseConfig ( GetBaseOptions); */
+	ReloadASEnvironment( NULL, NULL, NULL, False, True );
+
 	LoadColorScheme();
-	LoadConfig ("winlist", GetOptions);
+	Config = AS_WINLIST_CONFIG(parse_asmodule_config_all( WinListConfigClass ));
+	
+/* 	LoadConfig ("winlist", GetOptions); */
 	CheckWinListConfigSanity(Config, &(MyArgs.geometry), MyArgs.gravity);
 	ReloadASDatabase();
 	ReloadCategories(True);
@@ -268,9 +272,9 @@ SetWinListLook()
 	
 #if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
     PrintWinListConfig (Config);
-    Print_balloonConfig ( Config->balloon_conf );
+    Print_balloonConfig ( Config->asmodule_config.balloon_conf );
 #endif
-    balloon_config2look( &(Scr.Look), Config->balloon_conf, "*WinListBalloon" );
+    balloon_config2look( &(Scr.Look), Config->asmodule_config.balloon_conf, "*WinListBalloon" );
     set_balloon_look( Scr.Look.balloon_look );
 
 }
@@ -285,6 +289,7 @@ GetBaseOptions (const char *filename)
 void
 GetOptions (const char *filename)
 {
+#if 0
     START_TIME(option_time);
     WinListConfig *config = ParseWinListOptions( filename, MyName );
 
@@ -294,10 +299,11 @@ GetOptions (const char *filename)
     /* Need to merge new config with what we have already :*/
 	MergeWinListOptions( Config, config );
 
-    if (config->style_defs)
-        ProcessMyStyleDefinitions (&(config->style_defs));
+    if (config->asmodule_config.style_defs)
+        ProcessMyStyleDefinitions (&(config->asmodule_config.style_defs));
 	DestroyWinListConfig( config );
     SHOW_TIME("Config parsing",option_time);
+#endif	
 }
 
 
