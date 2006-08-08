@@ -1,0 +1,52 @@
+[Desktop Entry]
+Name=X Fishtank
+GenericName=Desktop Background
+Comment=Animated aquarium background on your screen with tropical fish.
+Exec=xfisktank
+Icon=normal/Fish
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=AfterStepDesktop
+TryExec=xfishtank
+OnlyShowIn=AFTERSTEP
+
+[Desktop Entry]
+Name=X Snow
+GenericName=Desktop Background
+Comment=Application that snows on the root, in-between, and on windows.
+Exec=xsnow
+Icon=logos/TuxXmas
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=AfterStepDesktop
+TryExec=xsnow
+OnlyShowIn=AFTERSTEP
+
+[Desktop Entry]
+Name=Picture Manager
+GenericName=Picture Manager
+Comment=Manages and converts backgrounds for use with AfterStep.
+Exec=ASWallpaper
+Icon=normal/Rembrandt
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=AfterStepDesktop
+TryExec=ASWallpaper
+OnlyShowIn=AFTERSTEP
+
+[Desktop Entry]
+Name=Window Commands
+GenericName=AfterStep GUI Command Launcher
+Comment=Performs commands on windows
+Exec=GWCommand
+Icon=normal/RemoteControl
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=AfterStepDesktop
+TryExec=GWCommand
+OnlyShowIn=AFTERSTEP
+
