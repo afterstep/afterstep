@@ -1,2 +1,2 @@
 Exec "Keyboard LEDs" exec xkbvleds &
-SmallMiniPixmap "normal/Keyboard2"
+SmallMiniPixmap "large/Keyboard2"
