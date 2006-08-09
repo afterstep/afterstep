@@ -1,1 +1,2 @@
 Exec "X Font selector" exec xfontsel &
+SmallMiniPixmap "normal/Font"

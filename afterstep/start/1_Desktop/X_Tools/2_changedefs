@@ -1,1 +1,2 @@
 Exec "Change Xdefaults" exec editres &
+SmallMiniPixmap "logos/XWindow"

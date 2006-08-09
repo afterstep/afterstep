@@ -1,1 +1,2 @@
 Exec "Xconsole" exec xconsole &
+SmallMiniPixmap "logos/XWindow"
