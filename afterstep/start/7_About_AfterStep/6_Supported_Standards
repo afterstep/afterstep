@@ -1,4 +1,0 @@
-Exec "Supported standards" exec konqueror http://www.freedesktop.org/standards/wm-spec/ &
-Exec "Supported standards" exec mozilla http://www.freedesktop.org/standards/wm-spec/ &
-Exec "Supported standards" exec opera http://www.freedesktop.org/standards/wm-spec/ &
-Exec "Supported standards" exec xterm -e lynx http://www.freedesktop.org/standards/wm-spec/ &

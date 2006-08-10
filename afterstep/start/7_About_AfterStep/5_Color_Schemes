@@ -1,4 +1,0 @@
-Exec "Color Schemes" exec konqueror http://afterstep.sf.net/afterstep20beta/ &
-Exec "Color Schemes" exec mozilla http://afterstep.sf.net/afterstep20beta/ &
-Exec "Color Schemes" exec opera http://afterstep.sf.net/afterstep20beta/ &
-Exec "Color Schemes" exec xterm -e lynx http://afterstep.sf.net/afterstep20beta/ &

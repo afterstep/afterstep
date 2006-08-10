@@ -1,4 +1,0 @@
-Exec "libAfterImage" exec konqueror http://afterstep.sf.net/afterimage/ &
-Exec "libAfterImage" exec mozilla http://afterstep.sf.net/afterimage/ &
-Exec "libAfterImage" exec opera http://afterstep.sf.net/afterimage/ &
-Exec "libAfterImage" exec xterm -e lynx http://afterstep.sf.net/afterimage/ &

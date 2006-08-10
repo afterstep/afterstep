@@ -1,4 +1,0 @@
-Exec "Whats new in version 2.0?" exec konqueror http://afterstep.sf.net/index.php &
-Exec "Whats new in version 2.0?" exec mozilla http://afterstep.sf.net/index.php &
-Exec "Whats new in version 2.0?" exec opera http://afterstep.sf.net/index.php &
-Exec "Whats new in version 2.0?" exec xterm -e lynx http://afterstep.sf.net/index.php &

@@ -1,5 +1,0 @@
-Exec "XML images" exec mozilla http://afterstep.sf.net/asxmlimages.php &
-Exec "XML images" exec konqueror http://afterstep.sf.net/asxmlimages.php &
-Exec "XML images" exec mozilla http://afterstep.sf.net/asxmlimages.php &
-Exec "XML images" exec opera http://afterstep.sf.net/asxmlimages.php &
-Exec "XML images" exec xterm -e lynx http://afterstep.sf.net/asxmlimages.php &
