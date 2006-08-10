@@ -1,0 +1,8 @@
+SmallMiniPixmap "normal/WWW"
+
+Exec "Supported standards" exec opera http://standards.freedesktop.org/wm-spec/latest/ &
+Exec "Supported standards" exec konqueror http://standards.freedesktop.org/wm-spec/latest/ &
+Exec "Supported standards" exec firefox http://standards.freedesktop.org/wm-spec/latest/ &
+Exec "Supported standards" exec mozilla http://standards.freedesktop.org/wm-spec/latest/ &
+Exec "Supported standards" exec xterm -e lynx http://standards.freedesktop.org/wm-spec/latest/ &
+

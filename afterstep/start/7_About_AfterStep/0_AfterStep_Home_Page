@@ -1,0 +1,7 @@
+SmallMiniPixmap "logos/AfterStep"
+
+Exec "AfterStep Home Page" exec opera http://www.afterstep.org/index.php &
+Exec "AfterStep Home Page" exec konqueror http://www.afterstep.org/index.php &
+Exec "AfterStep Home Page" exec firefox http://www.afterstep.org/index.php &
+Exec "AfterStep Home Page" exec mozilla http://www.afterstep.org/index.php &
+Exec "AfterStep Home Page" exec xterm -e lynx http://www.afterstep.org/index.php &

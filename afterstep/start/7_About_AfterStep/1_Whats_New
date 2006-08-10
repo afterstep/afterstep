@@ -1,0 +1,7 @@
+SmallMiniPixmap "logos/AfterStep"
+
+Exec "New in this version" exec opera http://cvs.aftercode.net/cgi-bin/viewcvs.cgi/afterstep-stable/NEW?rev=HEAD&content-type=text/vnd.viewcvs-markup &
+Exec "New in this version" exec konqueror http://cvs.aftercode.net/cgi-bin/viewcvs.cgi/afterstep-stable/NEW?rev=HEAD&content-type=text/vnd.viewcvs-markup &
+Exec "New in this version" exec firefox http://cvs.aftercode.net/cgi-bin/viewcvs.cgi/afterstep-stable/NEW?rev=HEAD&content-type=text/vnd.viewcvs-markup &
+Exec "New in this version" exec mozilla http://cvs.aftercode.net/cgi-bin/viewcvs.cgi/afterstep-stable/NEW?rev=HEAD&content-type=text/vnd.viewcvs-markup &
+Exec "New in this version" exec xterm -e lynx http://cvs.aftercode.net/cgi-bin/viewcvs.cgi/afterstep-stable/NEW?rev=HEAD&content-type=text/vnd.viewcvs-markup &
