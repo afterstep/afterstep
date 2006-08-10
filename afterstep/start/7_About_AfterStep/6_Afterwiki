@@ -1,4 +1,4 @@
-SmallMiniPixmap "normal/WWW"
+SmallMiniPixmap "normal/Info"
 
 Exec "AfterWiki - User tips, info" exec opera http://www.assilem.org/afterwiki/index.php?title=Main_Page &
 Exec "AfterWiki - User tips, info" exec konqueror http://www.assilem.org/afterwiki/index.php?title=Main_Page &

@@ -1,4 +1,4 @@
-SmallMiniPixmap "normal/WWW"
+SmallMiniPixmap "normal/Info"
 
 Exec "Supported standards" exec opera http://standards.freedesktop.org/wm-spec/latest/ &
 Exec "Supported standards" exec konqueror http://standards.freedesktop.org/wm-spec/latest/ &

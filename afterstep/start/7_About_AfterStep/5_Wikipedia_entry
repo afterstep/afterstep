@@ -1,4 +1,4 @@
-SmallMiniPixmap "normal/WWW"
+SmallMiniPixmap "normal/Info"
 
 Exec "AfterStep Wikipedia entry" exec opera http://en.wikipedia.org/wiki/Afterstep &
 Exec "AfterStep Wikipedia entry" exec konqueror http://en.wikipedia.org/wiki/Afterstep &
