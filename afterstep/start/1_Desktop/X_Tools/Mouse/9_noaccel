@@ -1,1 +1,0 @@
-Exec "No acceleration" exec xset m 0 10000 &
