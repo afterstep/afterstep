@@ -1,8 +1,0 @@
-SmallMiniPixmap "normal/Info"
-
-Exec "AfterStep Wikipedia entry" exec opera http://en.wikipedia.org/wiki/Afterstep &
-Exec "AfterStep Wikipedia entry" exec konqueror http://en.wikipedia.org/wiki/Afterstep &
-Exec "AfterStep Wikipedia entry" exec firefox http://en.wikipedia.org/wiki/Afterstep &
-Exec "AfterStep Wikipedia entry" exec mozilla http://en.wikipedia.org/wiki/Afterstep &
-Exec "AfterStep Wikipedia entry" exec xterm -e lynx http://en.wikipedia.org/wiki/Afterstep &
-
