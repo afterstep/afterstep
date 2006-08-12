@@ -1,0 +1,88 @@
+[Desktop Entry]
+Name=AfterStep Home Page
+GenericName=URL Link
+Comment=http://www.afterstep.org/
+Exec=ASRun --immidiate --cmd http://www.afterstep.org/index.php
+Icon=logos/AfterStep
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=AfterStepInfo
+TryExec=ASRun
+
+[Desktop Entry]
+Name=New in this version
+GenericName=URL Link
+Comment=http://cvs.aftercode.net/cgi-bin/viewcvs.cgi/afterstep-stable/NEW?rev=HEAD
+Exec=ASRun --immidiate --cmd http://cvs.aftercode.net/cgi-bin/viewcvs.cgi/afterstep-stable/NEW?rev=HEAD
+Icon=logos/AfterStep
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=AfterStepInfo
+TryExec=ASRun
+
+[Desktop Entry]
+Name=Supported standards
+GenericName=URL Link
+Comment=http://standards.freedesktop.org/wm-spec/latest/
+Exec=ASRun --immidiate --cmd http://standards.freedesktop.org/wm-spec/latest/
+Icon=normal/Info
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=AfterStepInfo
+TryExec=ASRun
+OnlyShowIn=AFTERSTEP
+
+[Desktop Entry]
+Name=libAfterImage
+GenericName=URL Link
+Comment=http://www.afterstep.org/afterimage/
+Exec=ASRun --immidiate --cmd http://www.afterstep.org/afterimage/
+Icon=logos/AfterStep
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=AfterStepInfo
+TryExec=ASRun
+OnlyShowIn=AFTERSTEP
+
+[Desktop Entry]
+Name=AfterStep documentation
+GenericName=Local File Link
+Comment=file:///usr/share/afterstep/doc/html/index.html
+Exec=afterstepdoc
+Icon=normal/Library
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=AfterStepInfo
+TryExec=afterstepdoc
+OnlyShowIn=AFTERSTEP
+
+[Desktop Entry]
+Name=AfterStep Wikipedia entry
+GenericName=URL Link
+Comment=http://en.wikipedia.org/wiki/Afterstep
+Exec=ASRun --immidiate --cmd http://en.wikipedia.org/wiki/Afterstep
+Icon=normal/Info
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=AfterStepInfo
+TryExec=ASRun
+OnlyShowIn=AFTERSTEP
+
+[Desktop Entry]
+Name=AfterWiki - User tips, info
+GenericName=URL Link
+Comment=http://www.assilem.org/afterwiki/
+Exec=ASRun --immidiate --cmd http://www.assilem.org/afterwiki/
+Icon=normal/Info
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=AfterStepInfo
+TryExec=ASRun
+OnlyShowIn=AFTERSTEP

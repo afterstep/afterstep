@@ -1,0 +1,193 @@
+[Desktop Entry]
+Name=Reset color map
+GenericName=X Tool
+Comment=X standard colormap utility
+Exec=xstdcmap -default
+Icon=normal/Recycle
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=AfterStepXTools
+TryExec=xstdcmap
+
+[Desktop Entry]
+Name=Keyboard LEDs
+GenericName=X Tool
+Comment=XKB extension user utility
+Exec=xkbvleds
+Icon=large/Keyboard2
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=AfterStepXTools
+TryExec=xkbvleds
+
+[Desktop Entry]
+Name=X Font selector
+GenericName=X Tool
+Comment=Point and click selection of X11 font names
+Exec=xfontsel
+Icon=normal/Font
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=AfterStepXTools
+TryExec=xfontsel
+OnlyShowIn=AFTERSTEP
+
+[Desktop Entry]
+Name=X Console
+GenericName=X Tool
+Comment=Monitor system console messages with X
+Exec=xconsole
+Icon=logos/XWindow
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=AfterStepXTools
+TryExec=xconsole
+OnlyShowIn=AFTERSTEP
+
+[Desktop Entry]
+Name=Xvidtune
+GenericName=X Tool
+Comment=Video mode tuner for Xorg
+Exec=xvidtune
+Icon=normal/Monitor3DBlue
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=AfterStepXTools
+TryExec=xvidtune
+OnlyShowIn=AFTERSTEP
+
+[Desktop Entry]
+Name=Change Xdefaults
+GenericName=X Tool
+Comment=
+Exec=editres
+Icon=logos/XWindow
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=AfterStepXTools
+TryExec=editres
+OnlyShowIn=AFTERSTEP
+
+[Desktop Entry]
+Name=Speed - 0 (None)
+GenericName=X Tool
+Comment=User preference utility for X
+Exec=exec xset m 0 10000
+Icon=normal/Mouse
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=AfterStepXMouseTools
+TryExec=xset
+OnlyShowIn=AFTERSTEP
+
+[Desktop Entry]
+Name=Speed - 1 (Slower)
+GenericName=X Tool
+Comment=User preference utility for X
+Exec=xset m default
+Icon=normal/Mouse
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=AfterStepXMouseTools
+TryExec=xset
+OnlyShowIn=AFTERSTEP
+
+[Desktop Entry]
+Name=Speed - 2 (Normal)
+GenericName=X Tool
+Comment=User preference utility for X
+Exec=xset m 5 10
+Icon=normal/Mouse
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=AfterStepXMouseTools
+TryExec=xset
+OnlyShowIn=AFTERSTEP
+
+[Desktop Entry]
+Name=Speed - 3 (Fast)
+GenericName=X Tool
+Comment=User preference utility for X
+Exec=xset m 7 8
+Icon=normal/Mouse
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=AfterStepXMouseTools
+TryExec=xset
+OnlyShowIn=AFTERSTEP
+
+[Desktop Entry]
+Name=Speed - 4 (Faster)
+GenericName=X Tool
+Comment=User preference utility for X
+Exec=xset m 10 7
+Icon=normal/Mouse
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=AfterStepXMouseTools
+TryExec=xset
+OnlyShowIn=AFTERSTEP
+
+[Desktop Entry]
+Name=Speed - 5 (Even Faster)
+GenericName=X Tool
+Comment=User preference utility for X
+Exec=xset m 15 6
+Icon=normal/Mouse
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=AfterStepXMouseTools
+TryExec=xset
+OnlyShowIn=AFTERSTEP
+
+[Desktop Entry]
+Name=Speed - 6 (Ultra Fast)
+GenericName=X Tool
+Comment=User preference utility for X
+Exec=xset m 20 5
+Icon=normal/Mouse
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=AfterStepXMouseTools
+TryExec=xset
+OnlyShowIn=AFTERSTEP
+
+[Desktop Entry]
+Name=Left Handed (3 2 1)
+GenericName=X Tool
+Comment=Utility for modifying keymaps and pointer button mappings in X
+Exec=xmodmap -e "pointer = 3 2 1"
+Icon=TouchLeftHand.xpm
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=AfterStepXMouseTools
+TryExec=xmodmap
+OnlyShowIn=AFTERSTEP
+
+[Desktop Entry]
+Name=Right Handed (1 2 3)
+GenericName=X Tool
+Comment=Utility for modifying keymaps and pointer button mappings in X
+Exec=xmodmap -e "pointer = 1 2 3"
+Icon=normal/Touch
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=AfterStepXMouseTools
+TryExec=xmodmap
+OnlyShowIn=AFTERSTEP
+
