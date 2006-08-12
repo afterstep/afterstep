@@ -1,2 +1,0 @@
-Exec "Reset color map" exec xstdcmap -default &
-SmallMiniPixmap "normal/Recycle"
