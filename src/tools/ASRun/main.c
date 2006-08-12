@@ -68,10 +68,12 @@ ASRunState AppState ;
 char *get_default_web_browser()
 {
 	static char *known_browsers[] = { "x-www-browser",
+									"opera"
+									"konqueror"
 									"firefox",
 									"mozilla-firefox",
 									"mozilla",
-									"opera", 
+									"netscape", 
 									"lynx",
 									NULL };
 	int i ;							
