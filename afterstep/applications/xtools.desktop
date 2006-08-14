@@ -75,7 +75,7 @@ TryExec=editres
 OnlyShowIn=AFTERSTEP
 
 [Desktop Entry]
-Name=Speed - 0 (None)
+Name=Speed - 0 (No Accel.)
 GenericName=X Tool
 Comment=User preference utility for X
 Exec=exec xset m 0 10000
@@ -166,7 +166,7 @@ TryExec=xset
 OnlyShowIn=AFTERSTEP
 
 [Desktop Entry]
-Name=Left Handed (3 2 1)
+Name=Left-handed (3 2 1)
 GenericName=X Tool
 Comment=Utility for modifying keymaps and pointer button mappings in X
 Exec=xmodmap -e "pointer = 3 2 1"
@@ -179,7 +179,7 @@ TryExec=xmodmap
 OnlyShowIn=AFTERSTEP
 
 [Desktop Entry]
-Name=Right Handed (1 2 3)
+Name=Right-handed (1 2 3)
 GenericName=X Tool
 Comment=Utility for modifying keymaps and pointer button mappings in X
 Exec=xmodmap -e "pointer = 1 2 3"

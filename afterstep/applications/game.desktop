@@ -1,0 +1,24 @@
+[Desktop Entry]
+Name=XBill
+GenericName=Game
+Comment=Stop Bill from loading his OS into all the computers.
+Exec=xbill
+Icon=normal/GameController
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=Game
+TryExec=xbill
+
+[Desktop Entry]
+Name=Solitare (Muliple)
+GenericName=Game
+Comment=Solitaire game - supports 14 games including Klondike, Free Cell, Spider, Calculation, & Gypsy.
+Exec=xpat2
+Icon=normal/Cardgames
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=Game
+TryExec=xpat2
+
