@@ -142,7 +142,10 @@ void destroy_colorhash( ASSortedColorHash *index, Bool reusable )
 				free( to_free );
 			}
 		if( !reusable )
+		{
+			free( index->buckets );
 			free( index );
+		}
 	}
 }
 
