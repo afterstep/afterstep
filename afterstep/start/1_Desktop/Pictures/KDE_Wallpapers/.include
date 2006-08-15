@@ -1,4 +1,4 @@
-SmallMiniPixmap FolderAqua-KDE.xpm
+minipixmap mini/FolderAqua
 keepname
 extension  .jpg
 include "$KDEDIR/share/wallpapers" BackgroundForeign
