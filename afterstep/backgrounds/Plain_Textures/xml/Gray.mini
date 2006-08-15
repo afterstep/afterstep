@@ -1,4 +1,4 @@
-<scale width="$minipixmap.width">
+<scale width="$minipixmap.width" height="$minipixmap.height">
   <img src="tiles/Gray"/>
 </scale>
 
