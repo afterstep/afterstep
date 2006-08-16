@@ -609,6 +609,7 @@ static int DGifDecompressLine(GifFileType *GifFile, GifPixelType *Line,
 							LastCode, ClearCode);
 		    }
 		    else {
+			/*fprintf( stderr, "error at line %d, CrntCode = %d,  Private->RunningCode - 2 = %d\n", __LINE__, CrntCode, Private->RunningCode - 2 ); */
 			_GifError = D_GIF_ERR_IMAGE_DEFECT;
 			return GIF_ERROR;
 		    }
@@ -629,6 +630,7 @@ static int DGifDecompressLine(GifFileType *GifFile, GifPixelType *Line,
 		    CrntPrefix = Prefix[CrntPrefix];
 		}
 		if (j >= LZ_MAX_CODE || CrntPrefix > LZ_MAX_CODE) {
+			/* fprintf( stderr,  "error at line %d, j = %d, CrntPrefix = %d\n", __LINE__, j, CrntPrefix ); */
 		    _GifError = D_GIF_ERR_IMAGE_DEFECT;
 		    return GIF_ERROR;
 		}

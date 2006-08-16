@@ -2,6 +2,7 @@
 #define _GIF_LIB_PRIVATE_H
 
 #include "gif_lib.h"
+#include "gif_hash.h"
 
 #define PROGRAM_NAME	"GIFLIB"
 
@@ -43,6 +44,7 @@ typedef struct GifFilePrivateType {
     GifByteType Stack[LZ_MAX_CODE];	 /* Decoded pixels are stacked here. */
     GifByteType Suffix[LZ_MAX_CODE+1];	       /* So we can trace the codes. */
     unsigned int Prefix[LZ_MAX_CODE+1];
+    GifHashTableType *HashTable;
 } GifFilePrivateType;
 
 extern int _GifError;

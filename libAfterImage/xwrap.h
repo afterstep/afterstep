@@ -13,40 +13,53 @@
 
 #define Display  void
 #ifndef Bool
-#define Bool int
+# define Bool int
 #endif
 #ifndef True
-#define True 1
+# define True 1
 #endif
 #ifndef False
-#define False 0
+# define False 0
+#endif
+
+#ifdef HAVE_STDINT_H
+# include <stdint.h>
+# ifndef CARD32
+#  define CARD32 uint32_t
+# endif
+# ifndef CARD16
+#  define CARD16 uint16_t
+# endif
+# ifndef CARD8
+#  define CARD8  uint8_t
+# endif
 #endif
 
 #ifndef CARD32
-#define CARD32 unsigned int
+# define CARD32 unsigned int
 #endif
 #ifndef CARD16
-#define CARD16 unsigned short
+# define CARD16 unsigned short
 #endif
 #ifndef CARD8
-#define CARD8 unsigned char
+# define CARD8 unsigned char
 #endif
 
 #ifndef XID
-#define XID CARD32
+# define XID CARD32
 #endif
 
 #ifndef Drawable
-#define Drawable   XID
+# define Drawable   XID
 #endif
 #ifndef Atom
-#define Atom       XID
+# define Atom       XID
 #endif
 #ifndef Window
-#define Window     XID
+# define Window     XID
 #endif
 #ifndef Pixmap
-#define Pixmap     XID
+# define Pixmap     XID
 #endif
 #ifndef Font
 #define Font       XID
