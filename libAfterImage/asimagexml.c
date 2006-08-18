@@ -1020,7 +1020,7 @@ handle_asxml_tag_color( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* par
  * NAME
  * printf - prints variable value to standard output.
  * SYNOPSIS
- * <printf format="format_string" var="variable_name" val="value"/>
+ * <printf format="format_string" var="variable_name" val="expression"/>
  * ATTRIBUTES
  * format_string  Standard C format string with exactly 1 placeholder.
  * var            Name of the variable, which value will be printed.
@@ -1064,6 +1064,48 @@ handle_asxml_tag_printf( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* pa
 		else if( arg_count == 0 )
 			fputs( interpreted_format, stdout );				   
 		free( interpreted_format );
+	}
+		
+	return NULL;
+}
+/****** libAfterImage/asimagexml/set
+ * NAME
+ * set - declares variable, assigning it a numeric value of expression.
+ * SYNOPSIS
+ * <set var="variable_name" domain="var_domain" val="expression"/>
+ * ATTRIBUTES
+ * var            Name of the variable, which value will be set.
+ * val            math expression to be evaluated.
+ * domain         (optional) variable's domain to be prepended to its name
+ *                using format var_domain.variable_name
+ ******/
+static ASImage *
+handle_asxml_tag_set( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm)
+{
+	xml_elem_t* ptr ;
+	const char* var_domain = NULL ;
+	const char* var = NULL;
+	int val = 0 ;
+	LOCAL_DEBUG_OUT("doc = %p, parm = %p", doc, parm ); 
+	for (ptr = parm ; ptr ; ptr = ptr->next) 
+	{
+		if (!strcmp(ptr->tag, "var")) 			var = ptr->parm;
+		else if (!strcmp(ptr->tag, "domain")) 	var_domain = ptr->parm;
+		else if (!strcmp(ptr->tag, "val"))  	val = (int)parse_math(ptr->parm, NULL, 0);
+	}
+   		
+	if( var != NULL ) 
+	{	
+		char *tmp = (char*)var ; 
+		if( var_domain && var_domain[0] != '\0' )
+		{
+			int vd_len = var_domain?strlen(var_domain):0 ;
+			tmp = safemalloc( vd_len + 1 + strlen(var) + 1 );
+			sprintf( tmp, ( var_domain[vd_len-1] != '.' )?"%s.%s":"%s%s", var_domain, var );
+		}
+		asxml_var_insert( tmp, val );
+		if( tmp != var ) 
+			free( tmp );
 	}
 		
 	return NULL;
@@ -2067,6 +2109,8 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 			result = handle_asxml_tag_color( &state, doc, parm ); 
 		else if (!strcmp(doc->tag, "printf"))
 			result = handle_asxml_tag_printf( &state, doc, parm ); 
+		else if (!strcmp(doc->tag, "set"))
+			result = handle_asxml_tag_set( &state, doc, parm ); 
 		else if ( !strcmp(doc->tag, "gradient") )
 		{	
 			translate_tag_size(	width_str, height_str, NULL, refimg, &width, &height );  
