@@ -1110,6 +1110,56 @@ handle_asxml_tag_set( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm)
 		
 	return NULL;
 }
+/****** libAfterImage/asimagexml/if
+ * NAME
+ * if - evaluates logical expression and if result evaluates to not 0 handles tags within.
+  * SYNOPSIS
+ * <if val1="expression" [op="gt|lt|ge|le|eq|ne" val2="expression"]/>
+ * ATTRIBUTES
+ * val1            math expression to be evaluated.
+ * val2            math expression to be evaluated.
+ * op         	 (optional) comparison op to be applied to values
+ ******/
+static ASImage *
+handle_asxml_tag_if( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm)
+{
+	xml_elem_t* ptr ;
+	int val1 = 0, val2 = 0 ;
+	const char *op = NULL ;
+	int res = 0 ; 
+	ASImage *im = NULL ; 
+	LOCAL_DEBUG_OUT("doc = %p, parm = %p", doc, parm ); 
+	
+	for (ptr = parm ; ptr ; ptr = ptr->next) 
+	{
+		if (!strcmp(ptr->tag, "op")) 			op = ptr->parm;
+		else if (!strcmp(ptr->tag, "val1"))  	val1 = (int)parse_math(ptr->parm, NULL, 0);
+		else if (!strcmp(ptr->tag, "val2"))  	val2 = (int)parse_math(ptr->parm, NULL, 0);
+	}
+   		
+	if( op != NULL ) 
+	{	
+		if     ( strcmp(op, "gt") == 0 ) res = (val1 > val2);
+		else if( strcmp(op, "lt") == 0 ) res = (val1 < val2);
+		else if( strcmp(op, "ge") == 0 ) res = (val1 >= val2);
+		else if( strcmp(op, "le") == 0 ) res = (val1 <= val2);
+		else if( strcmp(op, "eq") == 0 ) res = (val1 == val2);
+		else if( strcmp(op, "ne") == 0 ) res = (val1 != val2);
+	}
+
+	if( res ) 		
+	{
+		ASImage *imtmp = NULL ; 
+		for (ptr = doc->child ; ptr ; ptr = ptr->next) 
+		{
+			imtmp = build_image_from_xml(state->asv, state->imman, state->fontman, ptr, NULL, state->flags, state->verbose, state->display_win);
+			if( im && imtmp ) safe_asimage_destroy( im ); 
+			if( imtmp ) im = imtmp ;
+		}
+	}
+	return im ;
+}
+
 /****** libAfterImage/asimagexml/gradient
  * NAME
  * gradient - render multipoint gradient.
@@ -2111,6 +2161,8 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 			result = handle_asxml_tag_printf( &state, doc, parm ); 
 		else if (!strcmp(doc->tag, "set"))
 			result = handle_asxml_tag_set( &state, doc, parm ); 
+		else if (!strcmp(doc->tag, "if"))
+			result = handle_asxml_tag_if( &state, doc, parm ); 
 		else if ( !strcmp(doc->tag, "gradient") )
 		{	
 			translate_tag_size(	width_str, height_str, NULL, refimg, &width, &height );  
@@ -2124,7 +2176,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 		}else
 		{	
 			ASImage *imtmp = NULL ; 
-	
+
 			for (ptr = doc->child ; ptr && !imtmp ; ptr = ptr->next) 
 				imtmp = build_image_from_xml(asv, imman, fontman, ptr, NULL, flags, verbose, display_win);
 
