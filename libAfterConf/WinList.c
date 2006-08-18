@@ -58,10 +58,10 @@ extern SyntaxDef AlignSyntax;
     ASCF_DEFINE_KEYWORD(WINLIST, 0			    , Spacing			, TT_UINTEGER, NULL), \
     ASCF_DEFINE_KEYWORD_S(WINLIST, 0			    , HSpacing			, TT_UINTEGER, NULL,WinListConfig), \
     ASCF_DEFINE_KEYWORD_S(WINLIST, 0			    , VSpacing			, TT_UINTEGER, NULL,WinListConfig), \
-    ASCF_DEFINE_KEYWORD_S(WINLIST, 0			    , UnfocusedStyle	, TT_TEXT	,  NULL,WinListConfig), \
-    ASCF_DEFINE_KEYWORD_S(WINLIST, 0			    , FocusedStyle		, TT_TEXT	,  NULL,WinListConfig), \
-    ASCF_DEFINE_KEYWORD_S(WINLIST, 0			    , StickyStyle		, TT_TEXT	,  NULL,WinListConfig), \
-    ASCF_DEFINE_KEYWORD_S(WINLIST, 0			    , UrgentStyle		, TT_TEXT	,  NULL,WinListConfig), \
+    ASCF_DEFINE_KEYWORD_S(WINLIST, TF_QUOTES_OPTIONAL, UnfocusedStyle	, TT_QUOTED_TEXT	,  NULL,WinListConfig), \
+    ASCF_DEFINE_KEYWORD_S(WINLIST, TF_QUOTES_OPTIONAL, FocusedStyle		, TT_QUOTED_TEXT	,  NULL,WinListConfig), \
+    ASCF_DEFINE_KEYWORD_S(WINLIST, TF_QUOTES_OPTIONAL, StickyStyle		, TT_QUOTED_TEXT	,  NULL,WinListConfig), \
+    ASCF_DEFINE_KEYWORD_S(WINLIST, TF_QUOTES_OPTIONAL, UrgentStyle		, TT_QUOTED_TEXT	,  NULL,WinListConfig), \
     ASCF_DEFINE_KEYWORD(WINLIST, 0			    , ShapeToContents	, TT_FLAG	,  NULL), \
     ASCF_DEFINE_KEYWORD(WINLIST, 0			    , ShowIcon			, TT_FLAG	,  NULL), \
     ASCF_DEFINE_KEYWORD_S(WINLIST, 0			    , IconLocation		, TT_UINTEGER, NULL,WinListConfig), \
@@ -164,20 +164,19 @@ flag_options_xref WinListFlags[] = {
     {0, 0, 0}
 };
 
-ASModuleConfig *CreateWinListConfig ();
+static void InitWinListConfig (ASModuleConfig *asm_config, Bool free_resources);
 void WinList_fs2config( ASModuleConfig *asmodule_config, FreeStorageElem *Storage );
-void DestroyWinListConfig (ASModuleConfig *config);
 void MergeWinListOptions ( ASModuleConfig *to, ASModuleConfig *from);
 
 
 static ASModuleConfigClass _winlist_config_class = 
 {	CONFIG_WinList_ID,
  	0,
+	sizeof(WinListConfig),
  	"winlist",
- 	CreateWinListConfig,
+ 	InitWinListConfig,
 	WinList_fs2config,
 	MergeWinListOptions,
-	DestroyWinListConfig,
 	&WinListSyntax,
 	&WinListLookSyntax,
 	&WinListFeelSyntax,
@@ -188,46 +187,35 @@ static ASModuleConfigClass _winlist_config_class =
 ASModuleConfigClass *WinListConfigClass = &_winlist_config_class;
 
 
-ASModuleConfig *
-CreateWinListConfig ()
+static void
+InitWinListConfig (ASModuleConfig *asm_config, Bool free_resources)
 {
-	WinListConfig *config = (WinListConfig *) safecalloc (1, sizeof (WinListConfig));
-
-	init_asmodule_config(AS_MODULE_CONFIG(config), False);
-	AS_MODULE_CONFIG(config)->type = CONFIG_WinList_ID ;
-	
-	config->flags = WINLIST_ShowIcon|WINLIST_ScaleIconToTextHeight ;
-    init_asgeometry (&(config->Geometry));
-    config->gravity = NorthWestGravity;
-	config->MaxRows = 1;
-	config->UseName = ASN_Name;
-    config->Align = ALIGN_CENTER;
-    config->HSpacing = DEFAULT_TBAR_HSPACING;
-	config->VSpacing = DEFAULT_TBAR_VSPACING;
-    config->FBevel = config->UBevel = config->SBevel = DEFAULT_TBAR_HILITE ;
-	config->IconAlign = ALIGN_VCENTER ;
-	config->IconLocation = 0 ;
-	return AS_MODULE_CONFIG(config);
-}
-
-void
-DestroyWinListConfig (ASModuleConfig *asm_config)
-{
-	int           i;
 	WinListConfig *config = AS_WINLIST_CONFIG(asm_config);
-	if( config )
+	if( config ) 
 	{
-		destroy_string(&(config->UnfocusedStyle));
-		destroy_string(&(config->FocusedStyle));
-		destroy_string(&(config->StickyStyle));
-		destroy_string(&(config->UrgentStyle));
+		if( free_resources ) 
+		{
+			int i ;
+			destroy_string(&(config->UnfocusedStyle));
+			destroy_string(&(config->FocusedStyle));
+			destroy_string(&(config->StickyStyle));
+			destroy_string(&(config->UrgentStyle));
 
-		for (i = 0; i < MAX_MOUSE_BUTTONS; ++i)
-			if (config->Action[i])
-            	destroy_string_list(config->Action[i]);
-
-		init_asmodule_config(AS_MODULE_CONFIG(config), True);
-		free (config);
+			for (i = 0; i < MAX_MOUSE_BUTTONS; ++i)
+				if (config->Action[i])
+            		destroy_string_list(config->Action[i]);
+		}
+		config->flags = WINLIST_ShowIcon|WINLIST_ScaleIconToTextHeight ;
+    	init_asgeometry (&(config->Geometry));
+	    config->gravity = NorthWestGravity;
+		config->MaxRows = 1;
+		config->UseName = ASN_Name;
+	    config->Align = ALIGN_CENTER;
+	    config->HSpacing = DEFAULT_TBAR_HSPACING;
+		config->VSpacing = DEFAULT_TBAR_VSPACING;
+	    config->FBevel = config->UBevel = config->SBevel = DEFAULT_TBAR_HILITE ;
+		config->IconAlign = ALIGN_VCENTER ;
+		config->IconLocation = 0 ;
 	}
 }
 
@@ -424,7 +412,7 @@ void
 CheckWinListConfigSanity(WinListConfig *Config, ASGeometry *default_geometry, int default_gravity)
 {
     if( Config == NULL )
-        Config = AS_WINLIST_CONFIG(CreateWinListConfig ());
+        Config = AS_WINLIST_CONFIG(create_ASModule_config(WinListConfigClass));
 
     if( Config->MaxRows > MAX_WINLIST_WINDOW_COUNT || Config->MaxRows == 0  )
         Config->MaxRows = MAX_WINLIST_WINDOW_COUNT;

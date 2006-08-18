@@ -1,3 +1,44 @@
+# Defaults could be overriden by anything in look or feel file, 
+# which in turn could get overriden by anything in this file outside Defaults section.
+# This is for beterr themability. Theme should consist of look and feel file, 
+# which, by overriding this defaults will theme the module, But if there is anything 
+# that you might not want to be ever changed by theme - you can pout it outside 
+# the defaults section, and it will override the theme.
+
+
+*WinListDefaults
+	Geometry        +0+0
+	MinSize         10000    #will be truncated to thescreen size
+	MaxRows         1
+	FillRowsFirst
+	UseSkipList
+	
+	# MyStyles to be used - feel free to override :
+	# if none of the above is available then defaults MyStyles are used instead : 
+	# Defaults are :   "unfocused_window_style" "focused_window_style" "sticky_window_style" 
+	#               or "*WinList" 
+	#      last choice "default"
+	#UnfocusedStyle  "WinListUnFocusedBar"
+	#FocusedStyle  	"WinListFocusedBar"
+	#StickyStyle  	"WinListStickyBar"
+
+	# 0 is normal Name, 1 - icon name, 2 - res_class, 3 - res_name
+	UseName 0
+
+	Action Click1 Iconify -1,Focus
+	Action Click2 Shade
+	Action Click3 Iconify
+
+	# Balloons
+	Balloons
+	BalloonDelay 500
+	BalloonCloseDelay 4000
+	BalloonYOffset 10
+	BalloonXOffset 10
+	BalloonStyle		"*WinListBalloon"
+	BalloonBorderHilite	Right,Bottom
+~Defaults
+
 # use this to disable icons in winlist :
 #*WinListShowIcon 0
 # icon location could be anything from 0 to 9, representing icon's 
@@ -9,43 +50,15 @@
 # note that its On by default.
 #*WinListScaleIconToTextHeight 
 
-*WinListGeometry        +0+0
-*WinListMinSize         10000    #will be truncated to thescreen size
 #*WinListMaxSize         400
-*WinListMaxRows         1
 #*WinListMaxColumns      3
-*WinListFillRowsFirst
-*WinListUseSkipList
 
 # Titlebar parameters from the look will be used, or you can override it :
 #*WinListSpacing	 1
 #*WinListBevel           Right,Bottom
 #*WinListAlign           Left,Right,Bottom,Top
 
-# MyStyles to be used - feel free to override :
-*WinListUnfocusedStyle  "WinListUnFocusedBar"
-*WinListFocusedStyle  	"WinListFocusedBar"
-*WinListStickyStyle  	"WinListStickyBar"
-# if none of the above is available then defaults MyStyles are used instead : 
-# Defaults are :   "unfocused_window_style" "focused_window_style" "sticky_window_style" 
-#               or "*WinList" 
-#      last choice "default"
 
-# 0 is normal Name, 1 - icon name, 2 - res_class, 3 - res_name
-*WinListUseName 0
-
-*WinListAction Click1 Iconify -1,Focus
-*WinListAction Click2 Shade
-*WinListAction Click3 Iconify
-
- # Balloons
-*WinListBalloons
-*WinListBalloonDelay 500
-*WinListBalloonCloseDelay 4000
-*WinListBalloonYOffset 10
-*WinListBalloonXOffset 10
-*WinListBalloonStyle		"*WinListBalloon"
-*WinListBalloonBorderHilite	Right,Bottom
 
 
 

@@ -65,6 +65,7 @@ Print_balloonConfig (balloonConfig *config )
     else
     {
         fprintf( stderr,"set_flags = 0x%lX\n",config->set_flags);
+        fprintf( stderr,"flags = 0x%lX\n",config->flags);
 		ASCF_PRINT_FLAGS_KEYWORD(stderr,BALLOON,config,BorderHilite);
 		ASCF_PRINT_INT_KEYWORD(stderr,BALLOON,config,XOffset);
 		ASCF_PRINT_INT_KEYWORD(stderr,BALLOON,config,YOffset);
@@ -97,7 +98,7 @@ balloon_config2look( MyLook *look, balloonConfig *config, const char *default_st
         {
 #define MERGE_BALLOON_SCALAR_VAL(val)  look->balloon_look->val = config->val 			
 
-            look->balloon_look->show = get_flags( config->set_flags, BALLOON_USED );
+            look->balloon_look->show = get_flags( config->flags, BALLOON_USED );
 			MERGE_BALLOON_SCALAR_VAL(BorderHilite);
 			MERGE_BALLOON_SCALAR_VAL(XOffset);
 			MERGE_BALLOON_SCALAR_VAL(YOffset);
@@ -123,6 +124,11 @@ set_default_balloon_style( balloonConfig *config, const char *style )
     }
 }
 
+flag_options_xref BalloonsFlags[] = {
+	ASCF_DEFINE_MODULE_ONOFF_FLAG_XREF(BALLOON,Balloons,balloonConfig),
+    {0, 0, 0}
+};
+
 
 balloonConfig*
 Process_balloonOptions (FreeStorageElem * options, balloonConfig *config)
@@ -142,11 +148,11 @@ Process_balloonOptions (FreeStorageElem * options, balloonConfig *config)
             continue;
         if (options->term->type == TT_FLAG)
         {
-            switch(options->term->id)
-			{
-				case BALLOON_USED_ID :  config->set_flags |= BALLOON_USED ; break;
-	            ASCF_HANDLE_BEVEL_KEYWORD_CASE(BALLOON,config,options,BorderHilite); 
-            }
+			if( !ReadFlagItemAuto (config, 0, options, &BalloonsFlags[0]) )
+	            switch(options->term->id )
+				{
+		            ASCF_HANDLE_BEVEL_KEYWORD_CASE(BALLOON,config,options,BorderHilite); 
+				}
             continue;
         }
 
@@ -168,6 +174,30 @@ Process_balloonOptions (FreeStorageElem * options, balloonConfig *config)
     }
     ReadConfigItem (&item, NULL);
     return config;
+}
+
+void
+MergeBalloonOptions ( ASModuleConfig *asm_to, ASModuleConfig *asm_from)
+{
+	if( asm_to && asm_from ) 
+	{
+		if( asm_from->balloon_conf != NULL ) 
+		{
+
+			if( asm_to->balloon_conf == NULL )
+		   		asm_to->balloon_conf = Create_balloonConfig ();
+
+		    ASCF_MERGE_FLAGS(asm_to->balloon_conf,asm_from->balloon_conf);
+			ASCF_MERGE_SCALAR_KEYWORD(BALLOON, asm_to->balloon_conf, asm_from->balloon_conf, BorderHilite);
+			ASCF_MERGE_SCALAR_KEYWORD(BALLOON, asm_to->balloon_conf, asm_from->balloon_conf, XOffset); 
+			ASCF_MERGE_SCALAR_KEYWORD(BALLOON, asm_to->balloon_conf, asm_from->balloon_conf, YOffset); 
+			ASCF_MERGE_SCALAR_KEYWORD(BALLOON, asm_to->balloon_conf, asm_from->balloon_conf, Delay); 
+			ASCF_MERGE_SCALAR_KEYWORD(BALLOON, asm_to->balloon_conf, asm_from->balloon_conf, CloseDelay); 
+			ASCF_MERGE_STRING_KEYWORD(BALLOON, asm_to->balloon_conf, asm_from->balloon_conf, Style);
+			ASCF_MERGE_SCALAR_KEYWORD(BALLOON, asm_to->balloon_conf, asm_from->balloon_conf, TextPaddingX); 
+			ASCF_MERGE_SCALAR_KEYWORD(BALLOON, asm_to->balloon_conf, asm_from->balloon_conf, TextPaddingY); 
+		}
+	}
 }
 
 #if 0

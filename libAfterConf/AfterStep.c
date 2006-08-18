@@ -567,6 +567,7 @@ void init_asmodule_config( ASModuleConfig *config, Bool free_resources )
 				DestroyFreeStorage (&config->more_stuff);
 		}
 		config->type = 0 ; /* make it invalid type */
+		config->class = NULL ; /* make it invalid type */
 		config->style_defs = NULL;
     	config->balloon_conf = NULL;
     	config->more_stuff = NULL;
@@ -589,6 +590,42 @@ void init_asmodule_config( ASModuleConfig *config, Bool free_resources )
 										 ASModuleConfig_HandleFlags| \
 										 ASModuleConfig_HandleScalars )
 
+#define ASModuleConfig_HandleAllButDefaults	(ASModuleConfig_DiscardDisabled| \
+										 ASModuleConfig_HandleMyStyles| \
+										 ASModuleConfig_HandleBalloons| \
+										 ASModuleConfig_HandleDefaults| \
+										 ASModuleConfig_HandleFlags| \
+										 ASModuleConfig_HandleScalars )
+
+ASModuleConfig* 
+create_ASModule_config( ASModuleConfigClass *class ) 
+{
+	ASModuleConfig* config = NULL ; 
+	
+	if( class && class->config_struct_size > 0 && class->type != 0 ) 
+	{
+		config = safecalloc( 1, class->config_struct_size );
+		init_asmodule_config( config, False );
+		config->type = class->type ;
+		config->class = class ; 
+		if( class->init_config_func )
+			class->init_config_func(config, False);
+	}
+	return config ;
+}
+
+void 
+destroy_ASModule_config( ASModuleConfig *config )
+{
+	if( config ) 
+	{
+		ASModuleConfigClass *class = config->class ;
+		if( class && class->init_config_func )
+			class->init_config_func( config, True );
+		init_asmodule_config( config, True );
+		free (config);
+	}
+}
 
 ASModuleConfig* 
 free_storage2ASModule_config( ASModuleConfigClass *class, ASModuleConfig *config, FreeStorageElem *Storage, ASFlagType flags )
@@ -599,7 +636,7 @@ free_storage2ASModule_config( ASModuleConfigClass *class, ASModuleConfig *config
 		FreeStorageElem **more_stuff_tail, *pCurr ;
 		
 		if( config == NULL ) 
-			config = class->create_config_func();
+			config = create_ASModule_config(class);
 		
 		if( get_flags( flags, ASModuleConfig_HandleDisabled ) )
 		{
@@ -636,14 +673,20 @@ free_storage2ASModule_config( ASModuleConfigClass *class, ASModuleConfig *config
 																					ASModuleConfig_DiscardDisabled|
 																					ASModuleConfig_HandleFlags|
 																					ASModuleConfig_HandleScalars );
-						class->free_storage2config_func( defaults, pCurr->sub );
-						class->merge_config_func( defaults, config );				
-						/* our stuff does not get merged - handle manually : */
-						defaults->style_defs = config->style_defs ; 
-						defaults->balloon_conf = config->balloon_conf ; 
+						if( defaults )
+						{								
+							class->free_storage2config_func( defaults, pCurr->sub );
+							class->merge_config_func( defaults, config );				
+							/* our stuff does not get merged - handle manually : */
+							if( defaults->style_defs ) 
+								DestroyMyStyleDefinitions ( &(defaults->style_defs) );
+							defaults->style_defs = config->style_defs ; 
 						
-						class->destroy_config_func( config );
-						config = defaults ;
+							MergeBalloonOptions ( defaults, config);
+					
+							destroy_ASModule_config( config );
+							config = defaults ;
+						}
 					}				
 				}else if( T->id == MYSTYLE_START_ID && 
 				          get_flags( flags, ASModuleConfig_HandleMyStyles ) )
@@ -687,7 +730,7 @@ merge_ASModule_config( ASModuleConfigClass *class, ASModuleConfig *to, ASModuleC
 
 
 static ASModuleConfig *
-parse_asmodule_config_file( ASModuleConfigClass *class, ASModuleConfig *config, const char *filename, SyntaxDef *syntax, ASFlagType parser_flags )
+parse_asmodule_config_file( ASModuleConfigClass *class, ASModuleConfig *config, const char *filename, SyntaxDef *syntax, ASFlagType parser_flags, ASFlagType handling_flags )
 {
 	ConfigData    cd ;
 	ConfigDef    *ConfigReader;
@@ -699,7 +742,7 @@ parse_asmodule_config_file( ASModuleConfigClass *class, ASModuleConfig *config, 
 		FreeStorageElem *Storage = NULL;
 		set_flags( ConfigReader->flags, parser_flags );
 		ParseConfig (ConfigReader, &Storage);
-		config = free_storage2ASModule_config( class, config, Storage, ASModuleConfig_HandleEverything );
+		config = free_storage2ASModule_config( class, config, Storage, handling_flags );
 		class->free_storage2config_func( config, Storage );
  		DestroyFreeStorage (&Storage);
 		DestroyConfig (ConfigReader);
@@ -715,7 +758,12 @@ parse_asmodule_look(ASModuleConfigClass *class, ASModuleConfig *module_config )
 {
 	const char *const_configfile =  get_session_file (Session, 0, F_CHANGE_LOOK, False);
     if( const_configfile != NULL && class->look_syntax != NULL )
-		return parse_asmodule_config_file( class, module_config, const_configfile, class->look_syntax, CP_IgnoreForeign|CP_IgnorePublic );
+		return parse_asmodule_config_file(  class, module_config, const_configfile, class->look_syntax, 
+											CP_IgnoreForeign|CP_IgnorePublic,  
+											ASModuleConfig_DiscardDisabled|
+											ASModuleConfig_HandleBalloons| 
+										 	ASModuleConfig_HandleFlags|
+											ASModuleConfig_HandleScalars);
 	return module_config;
 }
 
@@ -724,7 +772,12 @@ parse_asmodule_feel(ASModuleConfigClass *class, ASModuleConfig *module_config )
 {
 	const char *const_configfile =  get_session_file (Session, 0, F_CHANGE_FEEL, False);
     if( const_configfile != NULL && class->feel_syntax != NULL )
-		return parse_asmodule_config_file( class, module_config, const_configfile, class->feel_syntax, CP_IgnoreForeign|CP_IgnorePublic );
+		return parse_asmodule_config_file( class, module_config, const_configfile, class->feel_syntax, 
+											CP_IgnoreForeign|CP_IgnorePublic,
+											ASModuleConfig_DiscardDisabled|
+											ASModuleConfig_HandleBalloons| 
+										 	ASModuleConfig_HandleFlags|
+											ASModuleConfig_HandleScalars );
 	return module_config;
 }
 
@@ -735,7 +788,14 @@ parse_asmodule_private_config(ASModuleConfigClass *class, ASModuleConfig *module
 	{
     	char *configfile = make_session_file(Session, class->private_config_file, False );
         if( configfile != NULL )
-			return parse_asmodule_config_file( class, module_config, configfile, class->module_syntax, CP_IgnoreForeign );
+			return parse_asmodule_config_file( class, module_config, configfile, class->module_syntax, 
+											   CP_IgnoreForeign, 
+											    ASModuleConfig_DiscardDisabled|
+												ASModuleConfig_HandleMyStyles| 
+										 		ASModuleConfig_HandleBalloons| 
+										 		ASModuleConfig_HandleDefaults| 
+										 		ASModuleConfig_HandleFlags|
+										 		ASModuleConfig_HandleScalars);
 	}
 	return module_config;
 }
@@ -745,10 +805,10 @@ ASModuleConfig *
 parse_asmodule_config_all(ASModuleConfigClass *class )
 {
 	ASModuleConfig *config = NULL;
-	LOCAL_DEBUG_OUT( "class = %p, private_file = \"%s\"",class, class?class->private_config_file:"(none)" ); 
-	config = parse_asmodule_private_config(class, config );
+	LOCAL_DEBUG_CALLER_OUT( "class = %p, private_file = \"%s\"",class, class?class->private_config_file:"(none)" ); 
 	config = parse_asmodule_look(class, config );
 	config = parse_asmodule_feel(class, config );
+	config = parse_asmodule_private_config(class, config );
 
 	return config;
 }

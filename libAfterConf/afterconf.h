@@ -93,6 +93,8 @@ extern struct SyntaxDef      PopupFuncSyntax;
 
 #define ASCF_DEFINE_MODULE_FLAG_XREF(module,keyword,struct_type) \
 	{module##_##keyword,module##_##keyword##_ID,0,offsetof(struct_type,flags),offsetof(struct_type,set_flags)}	
+#define ASCF_DEFINE_MODULE_ONOFF_FLAG_XREF(module,keyword,struct_type) \
+	{module##_##keyword,module##_##keyword##_ID,module##_No##keyword##_ID,offsetof(struct_type,flags),offsetof(struct_type,set_flags)}	
 
 
 #define ASCF_DEFINE_KEYWORD(module,flags,keyword,type,subsyntax) \
@@ -342,9 +344,12 @@ struct FreeStorageElem;
 struct MyStyleDefinition;
 struct balloonConfig;
 
+struct ASModuleConfigClass;
+
 typedef struct ASModuleConfig
 {
 	int type ; /* any of the CONFIG_ values above */
+	struct ASModuleConfigClass *class ;
 	
 	struct MyStyleDefinition *style_defs ;
     struct balloonConfig	 *balloon_conf;
@@ -355,6 +360,11 @@ typedef struct ASModuleConfig
 
 #define AS_MODULE_CONFIG(p) ((ASModuleConfig*)(p))
 
+#define AS_MODULE_CONFIG_TYPED(__p,__type_id,__type) \
+	({const ASModuleConfig *__a = (const ASModuleConfig*)(__p); __a ? ( __a->type == __type_id ? (__type*)__a:NULL):NULL; })
+
+
+
 void init_asmodule_config( ASModuleConfig *config, Bool free_resources ); 
 struct flag_options_xref;
 
@@ -363,13 +373,13 @@ typedef struct ASModuleConfigClass
 	
 	int        type ; /* any of the CONFIG_ values */
 	ASFlagType flags ;
+	int 	   config_struct_size ; /* sizeof(ConfigType) */
 	
 	char *private_config_file ;
 	
-	ASModuleConfig* (*create_config_func)();
+	void  (*init_config_func)( ASModuleConfig *config, Bool free_resources);
 	void  (*free_storage2config_func)(ASModuleConfig *config, struct FreeStorageElem *storage);
 	void  (*merge_config_func)( ASModuleConfig *to, ASModuleConfig *from);
-	void  (*destroy_config_func)( ASModuleConfig *config);
 	
 	struct SyntaxDef *module_syntax ; 
 	struct SyntaxDef *look_syntax ; 
@@ -381,7 +391,8 @@ typedef struct ASModuleConfigClass
 }ASModuleConfigClass;
 
 
-
+void destroy_ASModule_config( ASModuleConfig *config );
+ASModuleConfig* create_ASModule_config( ASModuleConfigClass *class );
 ASModuleConfig *parse_asmodule_config_all(ASModuleConfigClass *class );
 
 
@@ -821,20 +832,23 @@ void myframe_parse (char *tline, FILE * fd, char **myname, int *myframe_list);
 
 #define BALLOON_ID_START            (TBAR_LAYOUT_ID_END+1)
 
-#define BALLOON_USED_ID	 			 BALLOON_ID_START
+#define BALLOON_Balloons_ID			 BALLOON_ID_START
+#define BALLOON_USED_ID	 			 BALLOON_Balloons_ID
 #define BALLOON_BorderHilite_ID     (BALLOON_ID_START+1)
 #define BALLOON_XOffset_ID          (BALLOON_ID_START+2)
 #define BALLOON_YOffset_ID          (BALLOON_ID_START+3)
 #define BALLOON_Delay_ID            (BALLOON_ID_START+4)
 #define BALLOON_CloseDelay_ID       (BALLOON_ID_START+5)
 #define BALLOON_Style_ID            (BALLOON_ID_START+6)
-#define BALLOON_TextPaddingX_ID        (BALLOON_ID_START+7)
-#define BALLOON_TextPaddingY_ID        (BALLOON_ID_START+8)
+#define BALLOON_TextPaddingX_ID     (BALLOON_ID_START+7)
+#define BALLOON_TextPaddingY_ID     (BALLOON_ID_START+8)
+#define BALLOON_NoBalloons_ID	 	(BALLOON_ID_START+9)
 
 #define	BALLOON_ID_END				(BALLOON_ID_START+10)
 
 #define BALLOON_FLAG_TERM \
- {0, "Balloons", 8, TT_FLAG , BALLOON_USED_ID   , NULL}
+ {0, "Balloons",    8, TT_FLAG , BALLOON_Balloons_ID   , NULL}, \
+ {0, "NoBalloons", 10, TT_FLAG , BALLOON_NoBalloons_ID   , NULL}
 
 #define BALLOON_FEEL_TERMS \
  {0, "BalloonXOffset", 14, TT_INTEGER, BALLOON_XOffset_ID        , NULL}, \
@@ -853,7 +867,9 @@ void myframe_parse (char *tline, FILE * fd, char **myname, int *myframe_list);
 typedef struct balloonConfig
 {
   unsigned long set_flags;	/* identifyes what option is set */
-#define BALLOON_USED				(0x01<<0)
+  unsigned long flags;	
+#define BALLOON_Balloons			(0x01<<0)
+#define BALLOON_USED 				BALLOON_Balloons
 #define BALLOON_BorderHilite        (0x01<<1)
 #define BALLOON_XOffset             (0x01<<2)
 #define BALLOON_YOffset             (0x01<<3)
@@ -880,6 +896,7 @@ struct FreeStorageElem **balloon2FreeStorage (struct SyntaxDef * syntax,
 				       struct FreeStorageElem ** tail,
 				       balloonConfig * config);
 
+void MergeBalloonOptions ( ASModuleConfig *asm_to, ASModuleConfig *asm_from);
 void balloon_config2look( struct MyLook *look, balloonConfig *config, const char *default_style );
 
 /***************************************************************************/
@@ -1239,7 +1256,7 @@ typedef struct WinListConfig
 
 ASModuleConfigClass *WinListConfigClass ;
 
-#define AS_WINLIST_CONFIG(p) ((AS_MODULE_CONFIG(p)->type == CONFIG_WinList_ID)?(WinListConfig*)(p):NULL)
+#define AS_WINLIST_CONFIG(p) AS_MODULE_CONFIG_TYPED(p,CONFIG_WinList_ID,WinListConfig)
 
 ASModuleConfig *CreateWinListConfig ();
 void DestroyWinListConfig (ASModuleConfig *config);

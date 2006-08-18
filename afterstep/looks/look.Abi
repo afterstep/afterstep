@@ -534,3 +534,8 @@ MArrowPixmap		arrow-dots.xpm
 
 KillBackgroundThreshold 10000000
 
+# modules specific look : 
+# setting up WinList look : 
+*WinListUnfocusedStyle  "WinListUnFocusedBar"
+*WinListFocusedStyle  	"WinListFocusedBar"
+*WinListStickyStyle  	"WinListStickyBar"

@@ -398,3 +398,8 @@ TitleButtonBalloonCloseDelay	2000
 TitleButtonBalloonStyle 	"TitleButtonBalloon"
 
 
+# modules specific look : 
+# setting up WinList look : 
+*WinListUnfocusedStyle  "WinListUnFocusedBar"
+*WinListFocusedStyle  	"WinListFocusedBar"
+*WinListStickyStyle  	"WinListStickyBar"

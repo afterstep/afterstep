@@ -26,6 +26,19 @@ extern "C" {
 #  define False 0
 # endif
 
+#ifdef HAVE_STDINT_H
+# include <stdint.h>
+# ifndef CARD32
+#  define CARD32 uint32_t
+# endif
+# ifndef CARD16
+#  define CARD16 uint16_t
+# endif
+# ifndef CARD8
+#  define CARD8  uint8_t
+# endif
+#endif
+
 # ifndef CARD32
 #  define CARD32 unsigned int
 # endif

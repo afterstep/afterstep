@@ -143,7 +143,6 @@ main( int argc, char **argv )
                       M_END_WINDOWLIST, 0) < 0 ) 
 		exit(1);               /* no AfterStep */
     balloon_init (False);
-    Config = CreateWinListConfig ();
 
     /* Request a list of all windows, while we load our config */
     SendInfo ("Send_WindowList", 0);
@@ -152,7 +151,8 @@ main( int argc, char **argv )
 	ReloadASEnvironment( NULL, NULL, NULL, False, True );
 
 	LoadColorScheme();
-	Config = AS_WINLIST_CONFIG(parse_asmodule_config_all( WinListConfigClass ));
+//	ASModuleConfig *asm_config = parse_asmodule_config_all( WinListConfigClass );
+	Config = AS_WINLIST_CONFIG(parse_asmodule_config_all( WinListConfigClass )/*asm_config*/);
 	
 /* 	LoadConfig ("winlist", GetOptions); */
 	CheckWinListConfigSanity(Config, &(MyArgs.geometry), MyArgs.gravity);
@@ -216,7 +216,7 @@ DeadPipe (int nonsense)
 	DestroyCategories();
     
 	if( Config )
-        DestroyWinListConfig(Config);
+        destroy_ASModule_config( AS_MODULE_CONFIG(Config));
 
 	FreeMyAppResources();
 

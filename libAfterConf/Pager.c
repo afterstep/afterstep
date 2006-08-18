@@ -70,7 +70,7 @@ SyntaxDef     PagerDecorationSyntax = {
     {0, "Align", 5, TT_FLAG, PAGER_ALIGN_ID, &AlignSyntax}, \
     {0, "SmallFont", 9, TT_FONT, PAGER_SMALL_FONT_ID, NULL}, \
     {TF_DONT_SPLIT, "ShadeButton", 11, TT_TEXT, PAGER_SHADE_BUTTON_ID, NULL}, \
-    {TF_INDEXED, "Style", 5, TT_TEXT, PAGER_STYLE_ID, NULL}, \
+    {TF_INDEXED|TF_QUOTES_OPTIONAL, "Style", 5, TT_QUOTED_TEXT, PAGER_STYLE_ID, NULL}, \
     {0, "ActiveDeskBevel", 15,   TT_FLAG, PAGER_ActiveBevel_ID   , &BevelSyntax}, \
     {0, "InActiveDeskBevel", 17, TT_FLAG, PAGER_InActiveBevel_ID , &BevelSyntax}, \
     {TF_DONT_REMOVE_COMMENTS, "Decoration", 10, TT_TEXT, PAGER_DECORATION_ID, &PagerDecorationSyntax}
