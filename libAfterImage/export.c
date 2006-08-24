@@ -913,11 +913,12 @@ Bool ASImage2gif( ASImage *im, const char *path,  ASImageExportParams *params )
 	Bool new_image = True ;
 	START_TIME(started);
 	int cmap_size = 1;
-	unsigned char gce_bytes[5] = {0x01, 0x0, 0x0, 0x0, 0x0 }; /* Graphic Control Extension bytes :
-	                                                           * first byte - flags (0x01 for transparency )
-															   * second and third bytes - animation delay
-															   * forth byte - transoparent pixel value.
-															   */
+#define GIF_GCE_BYTES 4	
+	unsigned char gce_bytes[GIF_GCE_BYTES] = {0x01, 0x0, 0x0, 0x0 }; /* Graphic Control Extension bytes :
+	                                                           		* first byte - flags (0x01 for transparency )
+															   		* second and third bytes - animation delay
+															   		* forth byte - transoparent pixel value.
+															   		*/
 	LOCAL_DEBUG_CALLER_OUT ("(\"%s\")", path);
 
 	if( params == NULL )
@@ -993,7 +994,7 @@ Bool ASImage2gif( ASImage *im, const char *path,  ASImageExportParams *params )
 			}
 			if( gif )
 			{
-				EGifPutExtension(gif, 0xf9, 5, &(gce_bytes[0]));
+				EGifPutExtension(gif, 0xf9, GIF_GCE_BYTES, &(gce_bytes[0]));
 				if( EGifPutImageDesc(gif, 0, 0, im->width, im->height, FALSE, (dont_save_cmap)?NULL:gif_cmap ) == GIF_ERROR )
 					ASIM_PrintGifError();
 			}
@@ -1012,7 +1013,7 @@ Bool ASImage2gif( ASImage *im, const char *path,  ASImageExportParams *params )
 	{
 		if( EGifPutScreenDesc(gif, im->width, im->height, cmap_size, 0, gif_cmap ) == GIF_ERROR )
 			ASIM_PrintGifError();
-		EGifPutExtension(gif, 0xf9, 5, &(gce_bytes[0]));
+		EGifPutExtension(gif, 0xf9, GIF_GCE_BYTES, &(gce_bytes[0]));
 		if( EGifPutImageDesc(gif, 0, 0, im->width, im->height, FALSE, NULL ) == GIF_ERROR )
 			ASIM_PrintGifError();
 	}
