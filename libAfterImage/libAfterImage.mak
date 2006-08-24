@@ -45,7 +45,7 @@ DISTCLEAN: CLEAN
 "$(OUTDIR)" :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
-CPP_PROJ=$(FREETYPEDIRI) /nologo /MD /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "NO_DEBUG_OUTPUT" /D "_MBCS" /D "_LIB" /Fp"$(INTDIR)\libAfterImage.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
+CPP_PROJ=$(FREETYPEDIRI) /nologo /W3 /O2 /D "WIN32" /D "NDEBUG" /D "NO_DEBUG_OUTPUT" /D "_MBCS" /D "_LIB" /Fp"$(INTDIR)\libAfterImage.pch" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c  $(NMAKECXXFLAGS)
 BSC32=bscmake.exe
 BSC32_FLAGS=/nologo /o"$(OUTDIR)\libAfterImage.bsc" 
 BSC32_SBRS= \
@@ -132,6 +132,7 @@ LIB32_OBJS= \
 	"$(INTDIR)\egif_lib.obj" \
 	"$(INTDIR)\gif_err.obj" \
 	"$(INTDIR)\gifalloc.obj" \
+	"$(INTDIR)\gif_hash.obj" \
 	"$(INTDIR)\afterbase.obj" \
 	"$(INTDIR)\ascmap.obj" \
 	"$(INTDIR)\asfont.obj" \
@@ -150,6 +151,7 @@ LIB32_OBJS= \
 	"$(INTDIR)\xcf.obj" \
 	"$(INTDIR)\ximage.obj" \
 	"$(INTDIR)\xpm.obj" \
+	"$(INTDIR)\draw.obj" \
 	"$(INTDIR)\imencdec.obj"
 
 ".\libAfterImage.lib" : "$(OUTDIR)" $(DEF_FILE) $(LIB32_OBJS)
@@ -177,7 +179,7 @@ DISTCLEAN: CLEAN
 "$(INTDIR)" :
     if not exist "$(INTDIR)/$(NULL)" mkdir "$(INTDIR)"
 
-CPP_PROJ=$(FREETYPEDIRI) /nologo /MDd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "NO_DEBUG_OUTPUT" /D "_MBCS" /D "_LIB" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /GZ /c 
+CPP_PROJ=$(FREETYPEDIRI) /nologo /W3 /Gm /ZI /Od /D "WIN32" /D "_DEBUG" /D "NO_DEBUG_OUTPUT" /D "_MBCS" /D "_LIB" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c $(NMAKECXXFLAGS)
 BSC32=bscmake.exe
 BSC32_FLAGS=/nologo /o"$(OUTDIR)\libAfterImage.bsc" 
 BSC32_SBRS= \
@@ -264,6 +266,7 @@ LIB32_OBJS= \
 	"$(INTDIR)\egif_lib.obj" \
 	"$(INTDIR)\gif_err.obj" \
 	"$(INTDIR)\gifalloc.obj" \
+	"$(INTDIR)\gif_hash.obj" \
 	"$(INTDIR)\afterbase.obj" \
 	"$(INTDIR)\ascmap.obj" \
 	"$(INTDIR)\asfont.obj" \
@@ -282,6 +285,7 @@ LIB32_OBJS= \
 	"$(INTDIR)\xcf.obj" \
 	"$(INTDIR)\ximage.obj" \
 	"$(INTDIR)\xpm.obj" \
+	"$(INTDIR)\draw.obj" \
 	"$(INTDIR)\imencdec.obj"
 
 "$(OUTDIR)\libAfterImage.lib" : "$(OUTDIR)" $(DEF_FILE) $(LIB32_OBJS)
@@ -806,6 +810,12 @@ SOURCE=.\libungif\gifalloc.c
 	$(CPP) $(CPP_PROJ) $(SOURCE)
 
 
+SOURCE=.\libungif\gif_hash.c
+
+"$(INTDIR)\gif_hash.obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
 SOURCE=.\afterbase.c
 
 "$(INTDIR)\afterbase.obj" : $(SOURCE) "$(INTDIR)"
@@ -898,6 +908,9 @@ SOURCE=.\xpm.c
 
 "$(INTDIR)\xpm.obj" : $(SOURCE) "$(INTDIR)"
 
+SOURCE=.\draw.c
+
+"$(INTDIR)\draw.obj" : $(SOURCE) "$(INTDIR)"
 
 
 !ENDIF 
