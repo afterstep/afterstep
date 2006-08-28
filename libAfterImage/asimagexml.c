@@ -112,6 +112,9 @@ static char* cdata_str = XML_CDATA_STR;
  *              color.
  * 	composite - superimpose arbitrary number of images using one of 15
  *              available methods.
+ *  if        - conditional processing based on value of the variables
+ *  set       - sets value of the variable
+ *  printf    - formated printing of the value of the variable
  *
  * Each tag generates new image as the result of the transformation -
  * existing images are never modified and could be reused as many times
@@ -1123,6 +1126,8 @@ handle_asxml_tag_set( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm)
  * val1            math expression to be evaluated.
  * val2            math expression to be evaluated.
  * op         	 (optional) comparison op to be applied to values
+ * EXAMPLE
+ * <if val1="$ascs.Base.value" val2="50" op="gt"><then>...</then><else>...</else></if>
  ******/
 static ASImage *
 handle_asxml_tag_if( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm)
