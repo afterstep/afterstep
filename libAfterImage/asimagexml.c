@@ -1112,9 +1112,13 @@ handle_asxml_tag_set( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm)
 }
 /****** libAfterImage/asimagexml/if
  * NAME
- * if - evaluates logical expression and if result evaluates to not 0 handles tags within.
-  * SYNOPSIS
+ * if - evaluates logical expression and if result evaluates to not true(or false 
+ * if <unless> tag is used ), handles tags within.
+ * SYNOPSIS
  * <if val1="expression" [op="gt|lt|ge|le|eq|ne" val2="expression"]/>
+ * 	[<then>...</then><else>...</else>]
+ * </if>
+ * <unless val1="expression" [op="gt|lt|ge|le|eq|ne" val2="expression"]/>
  * ATTRIBUTES
  * val1            math expression to be evaluated.
  * val2            math expression to be evaluated.
@@ -1127,7 +1131,7 @@ handle_asxml_tag_if( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm)
 	int val1 = 0, val2 = 0 ;
 	const char *op = NULL ;
 	int res = 0 ; 
-	ASImage *im = NULL ; 
+	ASImage *im = NULL, *imtmp = NULL  ; 
 	LOCAL_DEBUG_OUT("doc = %p, parm = %p", doc, parm ); 
 	
 	for (ptr = parm ; ptr ; ptr = ptr->next) 
@@ -1147,15 +1151,27 @@ handle_asxml_tag_if( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm)
 		else if( strcmp(op, "ne") == 0 ) res = (val1 != val2);
 	}
 
-	if( res ) 		
+	if( doc->tag[0] == 'u' ) /* <unless> */
+		res = !res ;
+
+	ptr = NULL ;
+	for (ptr = doc->child ; ptr ; ptr = ptr->next) 
 	{
-		ASImage *imtmp = NULL ; 
-		for (ptr = doc->child ; ptr ; ptr = ptr->next) 
+		if( strcmp(ptr->tag, res?"then":"else" ) )
 		{
-			imtmp = build_image_from_xml(state->asv, state->imman, state->fontman, ptr, NULL, state->flags, state->verbose, state->display_win);
-			if( im && imtmp ) safe_asimage_destroy( im ); 
-			if( imtmp ) im = imtmp ;
+			ptr = ptr->child ;
+			break;
 		}
+		if( res && ptr->next == NULL ) 
+			ptr = doc->child ;
+	}
+	
+	while( ptr ) 
+	{
+		imtmp = build_image_from_xml(state->asv, state->imman, state->fontman, ptr, NULL, state->flags, state->verbose, state->display_win);
+		if( im && imtmp ) safe_asimage_destroy( im ); 
+		if( imtmp ) im = imtmp ;
+		 ptr = ptr->next ;
 	}
 	return im ;
 }
@@ -2161,7 +2177,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 			result = handle_asxml_tag_printf( &state, doc, parm ); 
 		else if (!strcmp(doc->tag, "set"))
 			result = handle_asxml_tag_set( &state, doc, parm ); 
-		else if (!strcmp(doc->tag, "if"))
+		else if (!strcmp(doc->tag, "if") || !strcmp(doc->tag, "unless") )
 			result = handle_asxml_tag_if( &state, doc, parm ); 
 		else if ( !strcmp(doc->tag, "gradient") )
 		{	
