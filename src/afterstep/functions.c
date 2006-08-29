@@ -96,6 +96,7 @@ void send_window_list_func_handler( FunctionData *data, ASEvent *event, int modu
 void save_workspace_func_handler( FunctionData *data, ASEvent *event, int module );
 void signal_reload_GTKRC_file_handler( FunctionData *data, ASEvent *event, int module );
 void KIPC_send_message_all_handler( FunctionData *data, ASEvent *event, int module );
+void set_func_handler( FunctionData *data, ASEvent *event, int module );
 void test_func_handler( FunctionData *data, ASEvent *event, int module );
 void screenshot_func_handler( FunctionData *data, ASEvent *event, int module );
 void swallow_window_func_handler( FunctionData *data, ASEvent *event, int module );
@@ -211,6 +212,7 @@ void SetupFunctionHandlers()
 
     function_handlers[F_QUICKRESTART]       = quickrestart_func_handler ;
     function_handlers[F_SEND_WINDOW_LIST]   = send_window_list_func_handler ;
+    function_handlers[F_SET]                = set_func_handler ;
     function_handlers[F_Test]               = test_func_handler ;
 
 	function_handlers[F_TAKE_WINDOWSHOT]    =
@@ -2000,6 +2002,25 @@ void swallow_window_func_handler( FunctionData *data, ASEvent *event, int module
 		SendPacket( module, M_SWALLOW_WINDOW, 2, event->client->w, event->client->frame);
  	}	
 }	 
+
+void set_func_handler( FunctionData *data, ASEvent *event, int module )
+{
+	if( data->text != NULL ) 
+	{
+		char *eq_ptr = strchr( data->text,"=" ); 
+		if( eq_ptr ) 
+		{
+			int val  = 0 ;
+			char *tail = parse_signed_int (eq_ptr, &val, NULL); 
+			if( tail > eq_ptr ) 
+			{
+				*eq_ptr = '\0' ; 
+				asxml_var_insert(data->text, val);
+				*eq_ptr = '=' ; 
+			}
+		}
+	}
+}
 
 void test_func_handler( FunctionData *data, ASEvent *event, int module )
 {

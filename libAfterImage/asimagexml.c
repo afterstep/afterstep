@@ -893,7 +893,7 @@ handle_asxml_tag_img( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm)
  * NAME
  * recall - recall previously generated and named image by its id.
  * SYNOPSIS
- * <recall id="new_id" srcid="image_id">
+ * <recall id="new_id" srcid="image_id" default_src="filename"/>
  * ATTRIBUTES
  * id       Optional.  Image will be given this name for future reference.
  * srcid    Required.  An image ID defined with the "id" parameter for
@@ -903,17 +903,27 @@ static ASImage *
 handle_asxml_tag_recall( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm)
 {
 	ASImage *result = NULL ;
+	xml_elem_t* ptr = parm ; 
 	LOCAL_DEBUG_OUT("doc = %p, parm = %p", doc, parm ); 
-	while ( parm && !result ) 
+	while ( ptr && !result ) 
 	{	
-		if (!strcmp(parm->tag, "srcid"))
+		if (!strcmp(ptr->tag, "srcid"))
 		{ 
-			show_progress("Recalling image id [%s] from imman %p.", parm->parm, state->imman);
-			result = fetch_asimage(state->imman, parm->parm );
+			show_progress("Recalling image id [%s] from imman %p.", ptr->parm, state->imman);
+			result = fetch_asimage(state->imman, ptr->parm );
 			if (!result)
-				show_error("Image recall failed for id [%s].", parm->parm);
+				show_warning("Image recall failed for id [%s].", parm->parm);
 		}	
-		parm = parm->next ;
+		ptr = ptr->next ;
+	}
+	if( result == NULL ) 
+	{
+		for( ptr = parm ; ptr && !result ; ptr = ptr->next )
+			if (!strcmp(ptr->tag, "default_src"))
+			{ 
+				show_progress("loading default image [%s] from imman %p.", ptr->parm, state->imman);
+				result = get_asimage( state->imman, ptr->parm, 0xFFFFFFFF, 100 );
+			}
 	}
 	return result;
 }	

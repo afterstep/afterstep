@@ -167,8 +167,11 @@ TermDef       FuncTerms[F_FUNCTIONS_NUM + 1] = {
 	FUNC_TERM2 (TF_SYNTAX_TERMINATOR, "EndFunction", F_ENDFUNC),
 	FUNC_TERM2 (TF_SYNTAX_TERMINATOR, "EndPopup", F_ENDPOPUP),
 	FUNC_TERM ("TakeScreenShot", F_TAKE_SCREENSHOT),
-	FUNC_TERM2 (NEED_NAME | NEED_CMD, "Test", F_Test),
 
+	FUNC_TERM2 (NEED_CMD, "Set", F_SET),	/* Set "name" <variable>=<value> */
+
+	FUNC_TERM2 (NEED_NAME | NEED_CMD, "Test", F_Test),
+	
 	/* this functions require window as aparameter */
 	FUNC_TERM ("&nonsense&", F_WINDOW_FUNC_START),	/* not really a command */
 	FUNC_TERM2 (USES_NUMVALS, "Move", F_MOVE),	/* Move     ["name"] [whereX whereY] */
