@@ -2017,6 +2017,10 @@ void set_func_handler( FunctionData *data, ASEvent *event, int module )
 				*eq_ptr = '\0' ; 
 				asxml_var_insert(data->text, val);
 				*eq_ptr = '=' ; 
+				if( strncmp( data->text, "menu.", 5 ) == 0 )
+				{
+					/* need to referesh menus maybe? */
+				}
 			}
 		}
 	}
