@@ -130,6 +130,19 @@ void  handler_set_geometry( char *argv, void *trg, long param );
 void  handler_set_gravity( char *argv, void *trg, long param );
 
 
+#define ASXMLVAR_IconButtonWidth 		"icon.button.width"
+#define ASXMLVAR_IconButtonHeight		"icon.button.height"
+#define ASXMLVAR_IconWidth				"icon.width"
+#define ASXMLVAR_IconHeight				"icon.height"
+#define ASXMLVAR_MinipixmapWidth		"minipixmap.width"
+#define ASXMLVAR_MinipixmapHeight		"minipixmap.height"
+#define ASXMLVAR_TitleFontSize			"title.font.size"
+#define ASXMLVAR_MenuFontSize			"menu.font.size"
+#define ASXMLVAR_MenuShowMinipixmaps 	"menu.show_minipixmaps"
+#define ASXMLVAR_MenuShowUnavailable 	"menu.show_unavailable"
+
+
+
 typedef struct ASProgArgs
 {
 	/* backup of the cmdline : */

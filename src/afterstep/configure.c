@@ -749,11 +749,11 @@ merge_look( MyLook *to, MyLook *from )
     to->minipixmap_width  = (from->minipixmap_width == 0)? 24 : from->minipixmap_width ; 
 	to->minipixmap_height = (from->minipixmap_height == 0)?to->minipixmap_width:from->minipixmap_height; 
 	
-	asxml_var_insert("icon.button.width", to->ButtonWidth);
-	asxml_var_insert("icon.button.height", to->ButtonHeight);
+	asxml_var_insert(ASXMLVAR_IconButtonWidth, to->ButtonWidth);
+	asxml_var_insert(ASXMLVAR_IconButtonHeight, to->ButtonHeight);
 
-	asxml_var_insert("minipixmap.width", to->minipixmap_width);
-	asxml_var_insert("minipixmap.height", to->minipixmap_height);
+	asxml_var_insert(ASXMLVAR_MinipixmapWidth, to->minipixmap_width);
+	asxml_var_insert(ASXMLVAR_MinipixmapHeight, to->minipixmap_height);
 
 	to->DefaultFrameName = from->DefaultFrameName ; 
 
@@ -1075,14 +1075,14 @@ FixLook( MyLook *look )
 			if( look->MSWindow[i]->font.as_font )
 				if( look->MSWindow[i]->font.as_font->max_height > tbar_font_size ) 
 					tbar_font_size = look->MSWindow[i]->font.as_font->max_height ;
-	asxml_var_insert("title.font.size", tbar_font_size);
+	asxml_var_insert(ASXMLVAR_TitleFontSize, tbar_font_size);
 	
 	for( i = 0 ; i < MENU_BACK_STYLES ; ++i ) 
 		if( look->MSMenu[i] )
 			if( look->MSMenu[i]->font.as_font )
 				if( look->MSMenu[i]->font.as_font->max_height > menu_font_size ) 
 					menu_font_size = look->MSMenu[i]->font.as_font->max_height ;
-	asxml_var_insert("menu.font.size", menu_font_size);
+	asxml_var_insert(ASXMLVAR_MenuFontSize, menu_font_size);
 
 
     mystyle_list_set_property (Scr.wmprops, look->styles_list);

@@ -751,7 +751,7 @@ check_scale_menu_pmap( ASImage *im, ASFlagType flags )
         }
 		if( get_flags( flags, MD_ScaleMinipixmapDown ) )
 		{
-			int tmp_h = asxml_var_get("menu.font.size")+8;				
+			int tmp_h = asxml_var_get(ASXMLVAR_MenuFontSize)+8;				
 			int tmp_w = (w*tmp_h)/h ; 
 			if( w  > tmp_w || h > tmp_h ) 
 			{
@@ -760,8 +760,8 @@ check_scale_menu_pmap( ASImage *im, ASFlagType flags )
 			}	 
 		}else if( get_flags( flags, MD_ScaleMinipixmapUp ) )
 		{
-			int tmp_w = asxml_var_get("minipixmap.width");				   
-			int tmp_h = asxml_var_get("minipixmap.height") ; 
+			int tmp_w = asxml_var_get(ASXMLVAR_MinipixmapWidth);				   
+			int tmp_h = asxml_var_get(ASXMLVAR_MinipixmapHeight) ; 
 			if( w  > tmp_w || h > tmp_h ) 
 			{
 				w = tmp_w ; 

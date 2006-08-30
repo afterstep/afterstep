@@ -323,14 +323,14 @@ ConnectXDisplay (Display *display, ScreenInfo * scr, Bool as_manager)
 	button_h = (display_dpcmy < 50)?48:64;
 	mini_w = (display_dpcmx <= 44)?max(display_dpcmx/2,12):display_dpcmx-20;
 	mini_h = (display_dpcmy <= 44)?max(display_dpcmy/2,12):display_dpcmy-20;
-	asxml_var_insert("icon.button.width", button_w);
-	asxml_var_insert("icon.button.height", button_h);
-	asxml_var_insert("icon.width", (button_w*3)/4);
-	asxml_var_insert("icon.height", (button_h*3)/4);
-	asxml_var_insert("minipixmap.width", mini_w);
-	asxml_var_insert("minipixmap.height", mini_h);
-	asxml_var_insert("title.font.size", (mini_h*7)/12);
-	asxml_var_insert("menu.font.size", (mini_h*7)/12+1);
+	asxml_var_insert(ASXMLVAR_IconButtonWidth, button_w);
+	asxml_var_insert(ASXMLVAR_IconButtonHeight, button_h);
+	asxml_var_insert(ASXMLVAR_IconWidth, (button_w*3)/4);
+	asxml_var_insert(ASXMLVAR_IconHeight, (button_h*3)/4);
+	asxml_var_insert(ASXMLVAR_MinipixmapWidth, mini_w);
+	asxml_var_insert(ASXMLVAR_MinipixmapHeight, mini_h);
+	asxml_var_insert(ASXMLVAR_TitleFontSize, (mini_h*7)/12);
+	asxml_var_insert(ASXMLVAR_MenuFontSize, (mini_h*7)/12+1);
 	asxml_var_insert("font.size", ((mini_h*7)/12));
 
 	scr->CurrentDesk = -1;
