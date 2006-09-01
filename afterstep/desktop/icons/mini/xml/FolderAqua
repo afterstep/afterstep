@@ -1,1 +1,2 @@
-<scale width="$minipixmap.width" height="$minipixmap.width"><img src=large/FolderAqua></scale>
+<release srcid="menu.folder_pixmap"/>
+<scale id="menu.folder_pixmap" width="$minipixmap.width" height="$minipixmap.width"><img src=large/FolderAqua></scale>
