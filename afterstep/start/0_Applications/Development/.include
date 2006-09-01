@@ -13,7 +13,7 @@ name            Development
 
 # Scale the listed pixmap to fit in the menu.
 
-SmallMiniPixmap         FolderAqua-HammerBrown.xpm
+SmallMiniPixmap         Folder-HammerBrown
 
 
 # Look in:

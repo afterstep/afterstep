@@ -13,7 +13,7 @@ name            Games
 
 # Scale the listed pixmap to fit in the menu.
 
-SmallMiniPixmap         FolderAqua-Cardgames.xpm
+SmallMiniPixmap         Folder-Cardgames
 
 
 # Look in:

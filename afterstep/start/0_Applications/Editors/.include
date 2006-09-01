@@ -13,7 +13,7 @@ name            Text Editors
 
 # Scale the listed pixmap to fit in the menu.
 
-SmallMiniPixmap         FolderAqua-Pen1.xpm
+SmallMiniPixmap         Folder-Pen1
 
 
 # Look in:
