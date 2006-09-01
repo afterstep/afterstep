@@ -1,4 +1,4 @@
-SmallMiniPixmap FolderAqua-Pallette.xpm
+SmallMiniPixmap Folder-Pallette
 keepname
 include "@datadir@/afterstep/colorschemes" ChangeColorscheme
 include "@with_afterdir@/colorschemes" ChangeColorscheme

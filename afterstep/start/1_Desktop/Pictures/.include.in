@@ -1,6 +1,6 @@
 RecentSubmenuItems 0
 
-SmallMiniPixmap FolderAqua-Mona.xpm
+SmallMiniPixmap Folder-Mona
 keepname
 miniextension  .mini
 include "@datadir@/afterstep/backgrounds" Background
