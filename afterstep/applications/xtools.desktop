@@ -170,7 +170,7 @@ Name=Left-handed (3 2 1)
 GenericName=X Tool
 Comment=Utility for modifying keymaps and pointer button mappings in X
 Exec=xmodmap -e "pointer = 3 2 1"
-Icon=TouchLeftHand.xpm
+Icon=TouchLeftHand
 Terminal=false
 Type=Application
 Encoding=UTF-8
