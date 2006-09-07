@@ -1,2 +1,2 @@
 <release srcid="menu.folder_pixmap"/>
-<scale id="menu.folder_pixmap" width="$minipixmap.width" height="$minipixmap.width"><img src=normal/NeXTFolderOpen></scale>
+<img id="menu.folder_pixmap" src="normal/NeXTFolderOpen"/>

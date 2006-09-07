@@ -1,2 +1,3 @@
-<release srcid="menu.folder_pixmap"/>
-<scale id="menu.folder_pixmap" width="$minipixmap.width" height="$minipixmap.width"><recall refid="menu.folder_pixmap" default_src="large/FolderAquaBlue"/></scale>
+<scale width="$minipixmap.width" height="$minipixmap.width">
+	<recall srcid="menu.folder_pixmap" default_src="large/FolderAquaBlue"/>
+</scale>
