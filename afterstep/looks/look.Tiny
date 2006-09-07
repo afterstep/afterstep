@@ -340,7 +340,7 @@ TitleButton 4 tiny-shade
 TitleButton 6 tiny-maxmin
 
 # the following is used instead of MenuPinOn :
-TitleButton 5 tiny-window	
+TitleButton 5 tiny-window
 
 MArrowPixmap		arrow-dots.xpm
 
