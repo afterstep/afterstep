@@ -5830,7 +5830,7 @@ fi
 
 have_shmimage=no
 
-if test "x$CYGWIN" == "xyes"; then
+if test "x$CYGWIN" = "xyes"; then
 	enable_shmimage=no
 fi
 
