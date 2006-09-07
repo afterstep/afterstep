@@ -111,6 +111,18 @@ MenuStippleStyle "menu_stipple_style"
 MenuSubItemStyle  "menu_subitem_style"
 MenuHiTitleStyle  "focused_menu_title_style"
 
+#All this style does - is it defines an alias for folder image at 
+# the background of menu minipixmaps.
+# it can later be referenced in xml as : 
+# <recall srcid="menu.folder_minipixmap"/>
+
+MyStyle "menu_folder_pixmap"
+	BackPixmap   128   mini/FolderAqua
+#  standard NeXTish folder : 	
+#	BackPixmap   128   mini/FolderNeXT        	
+#  standard KDE folder : 	
+#	BackPixmap   128   mini/FolderKDE        	
+~MyStyle
 
 #----------Pager MyStyles---------#
 
