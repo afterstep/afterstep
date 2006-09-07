@@ -355,6 +355,22 @@ mylook_destroy (MyLook ** look)
 			*look = NULL;
 		}
 }
+
+void
+mylook_set_font_size_var (MyLook * look)
+{
+	if( look )
+	{
+		int i, tbar_font_size = 0 ;
+		for( i = 0 ; i < BACK_STYLES ; ++i ) 
+			if( look->MSWindow[i] )
+				if( look->MSWindow[i]->font.as_font )
+					if( look->MSWindow[i]->font.as_font->max_height > tbar_font_size ) 
+						tbar_font_size = look->MSWindow[i]->font.as_font->max_height ;
+		asxml_var_insert(ASXMLVAR_TitleFontSize, tbar_font_size);
+	}
+}
+
 /*************************************************************************/
 /* MyFrame management :                                                  */
 /*************************************************************************/

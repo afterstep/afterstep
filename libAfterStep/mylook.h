@@ -401,6 +401,8 @@ void mylook_init (MyLook * look, Bool free_resources, unsigned long what_flags /
 MyLook *mylook_create ();
 void mylook_destroy (MyLook ** look);
 
+void mylook_set_font_size_var (MyLook * look);
+
 
 struct MyStyle *mylook_get_style(MyLook *look, const char *name);
 inline MyBackground  *mylook_get_desk_back(MyLook *look, long desk);

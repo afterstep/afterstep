@@ -22,7 +22,9 @@
 	#FocusedStyle  	"WinListFocusedBar"
 	#StickyStyle  	"WinListStickyBar"
 
-	# 0 is normal Name, 1 - icon name, 2 - res_class, 3 - res_name
+	# 0 is normal Name, 1 - icon name, 2 - res_class, 3 - res_name, 
+	# 4 - name used for matching in AS database
+	# 5 - no name - text labels will be suppressed - must be used with ShowIcons !
 	UseName 0
 
 	Action Click1 Iconify -1,Focus

@@ -253,7 +253,7 @@ get_window_name( ASWindowData *wd, ASNameTypes type, INT32 *encoding )
 {
 	char *vname = NULL ;
 	
-	if( wd != NULL ) 
+	if( wd != NULL && type < ASN_NameTypes ) 
 	{	
 		switch( type )
 		{

@@ -440,7 +440,18 @@ CheckWinListConfigSanity(WinListConfig *Config, ASGeometry *default_geometry, in
     if( get_flags(Config->Geometry.flags, YNegative) )
         Config->anchor_y += Scr.MyDisplayHeight ;
 
-	Config->UseName %= ASN_NameTypes;
+	/* ASN_NameTypes - is a valid value now - meaning that there won't be any name - only an icon */
+	Config->UseName %= ASN_NameTypes+1; 
+	
+	if( Config->UseName == ASN_NameTypes ) 
+	{
+		if ( get_flags(Config->flags, WINLIST_ShowIcon) )
+		{
+			/* clear_flags(Config->flags, WINLIST_ScaleIconToTextHeight);  
+			   - can use xml vars to determine text instead or icons turn out too big */
+		}else
+			Config->UseName = 0; /* default - ASN_Name */
+	}
 
 	if( !get_flags( Config->set_flags, WINLIST_IconLocation ) )
 	{

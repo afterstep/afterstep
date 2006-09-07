@@ -270,6 +270,8 @@ SetWinListLook()
     }
     free( default_winlist_style );
 	
+	mylook_set_font_size_var (&(Scr.Look));
+	
 #if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
     PrintWinListConfig (Config);
     Print_balloonConfig ( Config->asmodule_config.balloon_conf );
@@ -948,7 +950,12 @@ configure_tbar_icon( ASTBarData *tbar, ASWindowData *wd )
 
 		if( get_flags( Config->flags, WINLIST_ScaleIconToTextHeight ) )
 		{
-			 height = width = calculate_astbar_height( tbar );
+			if( Config->UseName >= ASN_NameTypes ) /* no name! */
+				height = width = asxml_var_get( ASXMLVAR_TitleFontSize );
+			else
+				height = width = calculate_astbar_height( tbar );
+			if( height < 5 ) 
+				height = width = 16 ; 
 		}	 
 		if( get_flags(Config->set_flags, WINLIST_IconSize) )
 		{
