@@ -164,24 +164,29 @@ exec_command(char **ptext, ASRunTool tool)
 		if( isalpha(text[0]) ) 
 		{
 			char *fullfilename = NULL ; 
+			char *fulldirname = NULL ; 
 			char *src = NULL ;
 			const char *const_src = NULL ;
 			if( mystrcasecmp( text, "look" ) == 0 ) 
 			{
 				fullfilename = make_session_data_file(Session, False, 0, LOOK_DIR, DEFAULT_USER_LOOK, NULL );
 				const_src = get_session_file (Session, 0, F_CHANGE_LOOK, False);
+				fulldirname = make_file_name (ashome, LOOK_DIR);
 			}else if( mystrncasecmp( text, "look.", 5 ) == 0 ) 
 			{
 				fullfilename = make_session_data_file(Session, False, 0, LOOK_DIR, text, NULL );
 				const_src = get_session_file (Session, 0, F_CHANGE_LOOK, False);
+				fulldirname = make_file_name (ashome, LOOK_DIR);
 			}else if( mystrcasecmp( text, "feel" ) == 0 ) 
 			{
 				fullfilename = make_session_data_file(Session, False, 0, FEEL_DIR, DEFAULT_USER_FEEL, NULL );
 				const_src = get_session_file (Session, 0, F_CHANGE_FEEL, False);
+				fulldirname = make_file_name (ashome, FEEL_DIR);
 			}else if( mystrncasecmp( text, "feel.", 5 ) == 0 ) 
 			{
 				fullfilename = make_session_data_file(Session, False, 0, FEEL_DIR, text, NULL );
 				const_src = get_session_file (Session, 0, F_CHANGE_FEEL, False);
+				fulldirname = make_file_name (ashome, FEEL_DIR);
 			}else
 			{
 				fullfilename = make_session_data_file(Session, False, 0, text, NULL );
@@ -190,6 +195,8 @@ exec_command(char **ptext, ASRunTool tool)
 			if( CheckFile(fullfilename) != 0 ) 
 				if( src || const_src ) 
 				{
+					if( fulldirname ) 
+					    CheckOrCreate(fulldirname);
 					if( CopyFile (src?src:const_src, fullfilename) != 0 )
 					{
 						if( src ) 
@@ -204,6 +211,9 @@ exec_command(char **ptext, ASRunTool tool)
 				}	 
 			if( src ) 
 				free( src );
+			if( fulldirname ) 
+			    free( fulldirname );
+
 			free( text ) ;
 			*ptext = text = fullfilename ;
 		}	 
