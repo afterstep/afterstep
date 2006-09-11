@@ -935,8 +935,8 @@ Bool ASImage2gif( ASImage *im, const char *path,  ASImageExportParams *params )
 	fprintf( stderr, "***> cmap.count = %d, transp_byte = %X, flags = %d, chanmask = %d\n", cmap.count, gce_bytes[GIF_GCE_TRANSPARENCY_BYTE],
 		     get_flags( params->gif.flags, EXPORT_ALPHA), get_flags( get_asimage_chanmask(im), SCL_DO_ALPHA) );
 #endif
- 	gce_bytes[1] = (params->gif.animate_delay>>8)&0x00FF;
-	gce_bytes[2] =  params->gif.animate_delay&0x00FF;
+ 	gce_bytes[GIF_GCE_DELAY_BYTE_HIGH] = (params->gif.animate_delay>>8)&0x00FF;
+	gce_bytes[GIF_GCE_DELAY_BYTE_LOW] =  params->gif.animate_delay&0x00FF;
 
 	while( cmap_size < 256 && cmap_size < (int)cmap.count+(gce_bytes[0]&0x01) )
 		cmap_size = cmap_size<<1 ;

@@ -1792,6 +1792,8 @@ gif2ASImage( const char * path, ASImageImportParams *params )
 
 	START_TIME(started);
 
+	params->return_animation_delay = 0 ; 
+	
 	if ((fp = open_image_file(path)) == NULL)
 		return NULL;
 	if( (gif = open_gif_read(fp)) != NULL )
@@ -1810,13 +1812,17 @@ gif2ASImage( const char * path, ASImageImportParams *params )
 #ifdef DEBUG_TRANSP_GIF
 					fprintf( stderr, "%d: func = %X, bytes[0] = 0x%X\n", y, sp->ExtensionBlocks[y].Function, sp->ExtensionBlocks[y].Bytes[0]);
 #endif
-					if( sp->ExtensionBlocks[y].Function == 0xf9 &&
-			 			(sp->ExtensionBlocks[y].Bytes[0]&0x01))
+					if( sp->ExtensionBlocks[y].Function == 0xf9 ) 
 					{
-			   		 	transparent = ((unsigned int) sp->ExtensionBlocks[y].Bytes[GIF_GCE_TRANSPARENCY_BYTE])&0x00FF;
+						if( sp->ExtensionBlocks[y].Bytes[0]&0x01 )
+						{
+			   		 		transparent = ((unsigned int) sp->ExtensionBlocks[y].Bytes[GIF_GCE_TRANSPARENCY_BYTE])&0x00FF;
 #ifdef DEBUG_TRANSP_GIF
-						fprintf( stderr, "transp = %u\n", transparent );
+							fprintf( stderr, "transp = %u\n", transparent );
 #endif
+						}
+		   		 		params->return_animation_delay = (((unsigned int) sp->ExtensionBlocks[y].Bytes[GIF_GCE_DELAY_BYTE_LOW])&0x00FF) + 
+												   		((((unsigned int) sp->ExtensionBlocks[y].Bytes[GIF_GCE_DELAY_BYTE_HIGH])<<8)&0x00FF00);
 					}
 				}
 			cmap = gif->SColorMap ;

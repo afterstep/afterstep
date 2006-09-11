@@ -124,6 +124,8 @@ typedef struct ASImageImportParams
 	ASAltImFormats 	format ;
 	unsigned int 	compression ;
 	char 		  **search_path ;                 /* NULL terminated list  */
+	
+	int 			return_animation_delay ;
 }ASImageImportParams;
 
 typedef ASImage* (*as_image_loader_func)( const char * path, ASImageImportParams *params );

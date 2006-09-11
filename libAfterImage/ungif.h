@@ -13,6 +13,8 @@ extern "C" {
 #define ASIM_PrintGifError() do{ PrintGifError(); }while(0)
 #endif
 
+#define GIF_GCE_DELAY_BYTE_LOW	2
+#define GIF_GCE_DELAY_BYTE_HIGH	1
 #define GIF_GCE_TRANSPARENCY_BYTE	3
 
 void free_gif_saved_image( SavedImage *sp, Bool reusable );
