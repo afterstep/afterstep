@@ -1,0 +1,396 @@
+[Desktop Entry]
+Name=XScreensaver activate
+GenericName=screensaver-activate
+Comment=
+Exec=xscreensaver-command -activate
+Icon=normal/MoonInMonitor
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=Screensaver
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=XScreensaver lock
+GenericName=screensaver-lock
+Comment=Lock screen using xscreensaver
+Exec=xscreensaver-command -lock
+Icon=normal/LockClosed
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=Screensaver
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=XScreensaver Demo & Prefs
+GenericName=Screensaver
+Comment=configure xscreensaver preferences
+Exec=xscreensaver-demo
+Icon=ScreensaverPrefs
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=Screensaver
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=A blank screen (locked)
+GenericName=screensaver-activate
+Comment=Locked xlock screensaver
+Exec=xlock -mode blank
+Icon=ScreensaverLocked
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=ScreensaverXlockLocked
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=A random screen (locked)
+GenericName=screensaver-activate
+Comment=Locked xlock screensaver
+Exec=xlock -mode random
+Icon=ScreensaverLocked
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=ScreensaverXlockLocked
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=Bubble3D (locked)
+GenericName=screensaver-activate
+Comment=Locked xlock screensaver
+Exec=xlock -mode bubble3d
+Icon=ScreensaverLocked
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=ScreensaverXlockLocked
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=Gears (locked)
+GenericName=screensaver-activate
+Comment=Locked xlock screensaver
+Exec=xlock -mode gears
+Icon=ScreensaverLocked
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=ScreensaverXlockLocked
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=Laser (locked)
+GenericName=screensaver-activate
+Comment=Locked xlock screensaver
+Exec=xlock -mode laser
+Icon=ScreensaverLocked
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=ScreensaverXlockLocked
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=Matrix (locked)
+GenericName=screensaver-activate
+Comment=Locked xlock screensaver
+Exec=xlock -mode matrix
+Icon=ScreensaverLocked
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=ScreensaverXlockLocked
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=Maze (locked)
+GenericName=screensaver-activate
+Comment=Locked xlock screensaver
+Exec=xlock -mode maze
+Icon=ScreensaverLocked
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=ScreensaverXlockLocked
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=Moebius (locked)
+GenericName=screensaver-activate
+Comment=Locked xlock screensaver
+Exec=xlock -mode moebius
+Icon=ScreensaverLocked
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=ScreensaverXlockLocked
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=Pipes (locked)
+GenericName=screensaver-activate
+Comment=Locked xlock screensaver
+Exec=xlock -mode pipes
+Icon=ScreensaverLocked
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=ScreensaverXlockLocked
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=Pyro (locked)
+GenericName=screensaver-activate
+Comment=Locked xlock screensaver
+Exec=xlock -mode pyro
+Icon=ScreensaverLocked
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=ScreensaverXlockLocked
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=Rubik (locked)
+GenericName=screensaver-activate
+Comment=Locked xlock screensaver
+Exec=xlock -mode rubik
+Icon=ScreensaverLocked
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=ScreensaverXlockLocked
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=Solitare (locked)
+GenericName=screensaver-activate
+Comment=Locked xlock screensaver
+Exec=xlock -mode solitare
+Icon=ScreensaverLocked
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=ScreensaverXlockLocked
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=Space (locked)
+GenericName=screensaver-activate
+Comment=Locked xlock screensaver
+Exec=xlock -mode space
+Icon=ScreensaverLocked
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=ScreensaverXlockLocked
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=Tetris (locked)
+GenericName=screensaver-activate
+Comment=Locked xlock screensaver
+Exec=xlock -mode tetris
+Icon=ScreensaverLocked
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=ScreensaverXlockLocked
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=Thornbird (locked)
+GenericName=screensaver-activate
+Comment=Locked xlock screensaver
+Exec=xlock -mode thornbird
+Icon=ScreensaverLocked
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=ScreensaverXlockLocked
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=A blank screen (unlocked)
+GenericName=screensaver-activate
+Comment=Unlocked xlock screensaver
+Exec=xlock -nolock -mode blank
+Icon=ScreensaverUnlocked
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=ScreensaverXlockUnlocked
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=A random screen (unlocked)
+GenericName=screensaver-activate
+Comment=Unlocked xlock screensaver
+Exec=xlock -nolock -mode random
+Icon=ScreensaverUnlocked
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=ScreensaverXlockUnlocked
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=Bubble3D (unlocked)
+GenericName=screensaver-activate
+Comment=Unlocked xlock screensaver
+Exec=xlock -nolock -mode bubble3d
+Icon=ScreensaverUnlocked
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=ScreensaverXlockUnlocked
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=Gears (unlocked)
+GenericName=screensaver-activate
+Comment=Unlocked xlock screensaver
+Exec=xlock -nolock -mode gears
+Icon=ScreensaverUnlocked
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=ScreensaverXlockUnlocked
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=Laser (unlocked)
+GenericName=screensaver-activate
+Comment=Unlocked xlock screensaver
+Exec=xlock -nolock -mode laser
+Icon=ScreensaverUnlocked
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=ScreensaverXlockUnlocked
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=Matrix (unlocked)
+GenericName=screensaver-activate
+Comment=Unlocked xlock screensaver
+Exec=xlock -nolock -mode matrix
+Icon=ScreensaverUnlocked
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=ScreensaverXlockUnlocked
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=Maze (unlocked)
+GenericName=screensaver-activate
+Comment=Unlocked xlock screensaver
+Exec=xlock -nolock -mode maze
+Icon=ScreensaverUnlocked
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=ScreensaverXlockUnlocked
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=Moebius (unlocked)
+GenericName=screensaver-activate
+Comment=Unlocked xlock screensaver
+Exec=xlock -nolock -mode moebius
+Icon=ScreensaverUnlocked
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=ScreensaverXlockUnlocked
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=Pipes (unlocked)
+GenericName=screensaver-activate
+Comment=Unlocked xlock screensaver
+Exec=xlock -nolock -mode pipes
+Icon=ScreensaverUnlocked
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=ScreensaverXlockUnlocked
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=Pyro (unlocked)
+GenericName=screensaver-activate
+Comment=Unlocked xlock screensaver
+Exec=xlock -nolock -mode pyro
+Icon=ScreensaverUnlocked
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=ScreensaverXlockUnlocked
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=Rubik (unlocked)
+GenericName=screensaver-activate
+Comment=Unlocked xlock screensaver
+Exec=xlock -nolock -mode rubik
+Icon=ScreensaverUnlocked
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=ScreensaverXlockUnlocked
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=Solitare (unlocked)
+GenericName=screensaver-activate
+Comment=Unlocked xlock screensaver
+Exec=xlock -nolock -mode solitare
+Icon=ScreensaverUnlocked
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=ScreensaverXlockUnlocked
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=Space (unlocked)
+GenericName=screensaver-activate
+Comment=Unlocked xlock screensaver
+Exec=xlock -nolock -mode space
+Icon=ScreensaverUnlocked
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=ScreensaverXlockUnlocked
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=Tetris (unlocked)
+GenericName=screensaver-activate
+Comment=Unlocked xlock screensaver
+Exec=xlock -nolock -mode tetris
+Icon=ScreensaverUnlocked
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=ScreensaverXlockUnlocked
+X-AfterStep-CheckAvailability=true
+
+[Desktop Entry]
+Name=Thornbird (unlocked)
+GenericName=screensaver-activate
+Comment=Unlocked xlock screensaver
+Exec=xlock -nolock -mode thornbird
+Icon=ScreensaverUnlocked
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=ScreensaverXlockUnlocked
+X-AfterStep-CheckAvailability=true
+
