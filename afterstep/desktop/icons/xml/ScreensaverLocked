@@ -1,0 +1,5 @@
+<composite>
+  <solid width=60 height=60 color="#00000000"/>
+  <img src="large/Monitor3"/>
+  <img src="normal/PadlockClosed" x="12" y="12"/>
+</composite>

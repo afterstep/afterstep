@@ -1,0 +1,7 @@
+<composite>
+  <solid width=60 height=60 color="#00000000"/>
+  <img src="large/Monitor3"/>
+  <mirror dir="horizontal" x="12" y="12">
+    <img src="normal/PadlockOpen"/>
+  </mirror>
+</composite>
