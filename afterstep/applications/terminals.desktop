@@ -15,7 +15,7 @@ Name=Xi Terminal
 GenericName=Terminal
 Comment=VT102 emulator for the X window system
 Exec=xiterm -bg black -fg grey70 -sl 500 -vb
-Icon=normal/Monitor1
+Icon=logos/Unicode
 Terminal=false
 Type=Application
 Encoding=UTF-8
@@ -33,6 +33,19 @@ Type=Application
 Encoding=UTF-8
 Categories=TerminalEmulator
 TryExec=xterm
+
+[Desktop Entry]
+Name=mlterm Terminal
+GenericName=Terminal
+Comment=Mlterm is a multilingual terminal emulator on X11
+Exec=mlterm
+Icon=logos/Unicode
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=TerminalEmulator
+TryExec=mlterm
+
 
 [Desktop Entry]
 Name=rxvt Terminal
