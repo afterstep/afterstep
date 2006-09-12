@@ -2007,20 +2007,39 @@ void set_func_handler( FunctionData *data, ASEvent *event, int module )
 {
 	if( data->text != NULL ) 
 	{
-		char *eq_ptr = strchr( data->text,"=" ); 
+		char *eq_ptr = strchr( data->text,'=' ); 
 		if( eq_ptr ) 
 		{
 			int val  = 0 ;
-			char *tail = parse_signed_int (eq_ptr, &val, NULL); 
-			if( tail > eq_ptr ) 
+			char *tail = parse_signed_int (eq_ptr+1, &val, NULL); 
+			LOCAL_DEBUG_OUT( "tail = \"%s\", val = %d", tail, val );
+			if( tail > eq_ptr+1 ) 
 			{
 				*eq_ptr = '\0' ; 
 				asxml_var_insert(data->text, val);
-				*eq_ptr = '=' ; 
 				if( strncmp( data->text, "menu.", 5 ) == 0 )
 				{
-					/* need to referesh menus maybe? */
+					ASFlagType old_look_flags = Scr.Look.flags ; 
+					if( strcmp( data->text, "menu.show_minipixmaps" ) == 0 )
+					{
+						if( val == 0 ) 
+							clear_flags( Scr.Look.flags, MenuMiniPixmaps );
+						else 
+							set_flags( Scr.Look.flags, MenuMiniPixmaps );
+					}else if( strcmp( data->text, "menu.show_unavailable" ) == 0 )
+					{
+						if( val == 0 ) 
+							clear_flags( Scr.Look.flags, MenuShowUnavailable );
+						else 
+							set_flags( Scr.Look.flags, MenuShowUnavailable );
+					}
+					if( old_look_flags != Scr.Look.flags ) 
+					{
+						/* need to referesh menus maybe? */
+					}
+					LOCAL_DEBUG_OUT( "old_flags = %lX, flags = %lX", old_look_flags, Scr.Look.flags );
 				}
+				*eq_ptr = '=' ; 
 			}
 		}
 	}

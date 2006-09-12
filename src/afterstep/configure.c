@@ -270,6 +270,7 @@ struct config main_config[] = {
     {"TitlebarNoPush"					, SetLookFlag, (char **)TitlebarNoPush, NULL},
     {"TextureMenuItemsIndividually"		, SetLookFlag, (char **)TxtrMenuItmInd,NULL},
     {"MenuMiniPixmaps"					, SetLookFlag, (char **)MenuMiniPixmaps, NULL},
+	{"MenuShowUnavailable"				, SetLookFlag, (char **)MenuShowUnavailable, NULL },
 	{"TitleTextAlign"					, SetInts, (char **)&TmpLook.TitleTextAlign, &dummy},
     {"TitleButtonSpacingLeft"			, SetInts, (char **)&TmpLook.TitleButtonSpacing[0], &dummy},
     {"TitleButtonSpacingRight"			, SetInts, (char **)&TmpLook.TitleButtonSpacing[1], &dummy},

@@ -487,7 +487,7 @@ extract_recent_subitems( char *submenu_name, MenuDataItem **subitems, unsigned i
 }
 
 void
-set_asmenu_data( ASMenu *menu, MenuData *md, Bool first_time )
+set_asmenu_data( ASMenu *menu, MenuData *md, Bool first_time, Bool show_unavailable )
 {
     int items_num = md->items_num ;
     int i = 0 ;
@@ -515,6 +515,8 @@ set_asmenu_data( ASMenu *menu, MenuData *md, Bool first_time )
         if( md->recent_items > 0 )
             subitems = safecalloc( md->recent_items, sizeof(MenuDataItem*));
 
+		LOCAL_DEBUG_OUT( "show_unavailable = %d", show_unavailable );
+
         for(mdi = md->first; real_items_num < items_num && mdi != NULL ; mdi = mdi->next )
             if( mdi->fdata->func == F_TITLE && menu->title == NULL )
             {
@@ -522,9 +524,15 @@ set_asmenu_data( ASMenu *menu, MenuData *md, Bool first_time )
             }else
             {
                 ASMenuItem *item = &(menu->items[real_items_num]);
-                set_asmenu_item_data( item, mdi );
+				
+				if( !show_unavailable ) 
+					if( get_flags( mdi->flags, MD_Disabled ) || 
+						(mdi->fdata->func == F_NOP && mdi->fdata->name != NULL ) )
+						continue;
 
+                set_asmenu_item_data( item, mdi );
                 ++real_items_num;
+
                 if( item->fdata.func == F_POPUP && !get_flags( item->flags, AS_MenuItemDisabled ) && subitems != NULL )
                 {
                     int used = extract_recent_subitems( FDataPopupName(item->fdata), subitems, md->recent_items );
@@ -1275,7 +1283,9 @@ on_menu_look_feel_changed( ASInternalWindow *asiw, ASFeel *feel, MyLook *look, A
     {
 		ASHints *hints ;
 		unsigned int tbar_width ;
+		MenuData *md ;
 
+   /*      if( get_flags( what, FEEL_CONFIG ) )       */
         if( menu->items )
         {
             register int i = menu->items_num;
@@ -1286,16 +1296,13 @@ on_menu_look_feel_changed( ASInternalWindow *asiw, ASFeel *feel, MyLook *look, A
 			menu->items_num = 0 ;
         }
 
-        if( get_flags( what, FEEL_CONFIG ) )
+        md = FindPopup (menu->name, False);
+        if( md == NULL )
         {
-            MenuData *md = FindPopup (menu->name, False);
-            if( md == NULL )
-            {
-                menu_destroy( asiw );
-                return ;
-            }
-            set_asmenu_data( menu, md, False );
+        	menu_destroy( asiw );
+            return ;
         }
+        set_asmenu_data( menu, md, False, get_flags(look->flags, MenuShowUnavailable) );
         set_asmenu_look( menu, look );
 		hints = make_menu_hints( menu );
 	    estimate_titlebar_size( hints, &tbar_width, NULL );
@@ -1541,7 +1548,7 @@ run_submenu( ASMenu *supermenu, MenuData *md, int x, int y )
     {
 		menu = create_asmenu(md->name);
         menu->rendered = False ;
-		set_asmenu_data( menu, md, True );
+		set_asmenu_data( menu, md, True, get_flags(Scr.Look.flags, MenuShowUnavailable) );
         set_asmenu_look( menu, &Scr.Look );
         /* will set scroll position when ConfigureNotify arrives */
         menu->supermenu = supermenu;

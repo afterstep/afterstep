@@ -56,6 +56,7 @@ char *parse_token_strip_quotes (const char *source, char **trg);
 char *parse_tab_token (const char *source, char **trg);
 /* will parse function values with unit - usefull in AS command parsing */
 char *parse_func_args (char *tline, char *unit, int *func_val);
+char *parse_signed_int (register char *tline, int *val_return, int *sign_return);
 
 /* will parse geometry string in X format with AS extensions
 ( --10 as -0-10 for example )  */
