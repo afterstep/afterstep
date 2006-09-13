@@ -173,7 +173,7 @@ ASImage *
 file2ASImage_extra( const char *file, ASImageImportParams *iparams )
 {
 	int 		  filename_len ;
-	int 		  subimage = -1 ;
+//	int 		  subimage = -1 ;
 	char 		 *realfilename = NULL, *tmp = NULL ;
 	register int i;
 
@@ -222,7 +222,7 @@ file2ASImage_extra( const char *file, ASImageImportParams *iparams )
 			if( i < filename_len-1 && i > 0 )
 				if( tmp[i] == '.' )                 /* we have possible subimage number */
 				{
-					subimage = atoi( &tmp[i+1] );
+					iparams->subimage = atoi( &tmp[i+1] );
 					tmp[i] = '\0';
 					filename_len = i ;
 					realfilename = locate_image_file(tmp,iparams->search_path);
