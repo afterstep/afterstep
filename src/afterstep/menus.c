@@ -302,7 +302,7 @@ LOCAL_DEBUG_OUT( "item.bar(%p)->look(%p)", item->bar, look );
     if( item->bar == NULL )
         return False;
 
-	if( get_flags( Scr.Look.flags, TxtrMenuItmInd ) )
+	if( get_flags( look->flags, TxtrMenuItmInd ) )
 		clear_flags( item->bar->state, BAR_FLAGS_CROP_BACK );
 	else
 		set_flags( item->bar->state, BAR_FLAGS_CROP_UNFOCUSED_BACK );

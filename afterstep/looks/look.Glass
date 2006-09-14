@@ -361,7 +361,7 @@ MArrowPixmap		arrow-dots.xpm
 #  [0/1/2] Draw lines between menu options ?
 DrawMenuBorders 2
 #  [0/1] Texture menu options individually, or the whole menu ?
-TextureMenuItemsIndividually 0
+TextureMenuItemsIndividually 1
 # [0/1] Do you want minipixmaps in root menu ?
 MenuMiniPixmaps 1
 # [0/1] Sort Start menu entries by 1=alphabetical order, 0=date (default)

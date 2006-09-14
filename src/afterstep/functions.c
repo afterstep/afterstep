@@ -2019,20 +2019,22 @@ void set_func_handler( FunctionData *data, ASEvent *event, int module )
 				asxml_var_insert(data->text, val);
 				if( strncmp( data->text, "menu.", 5 ) == 0 )
 				{
+					ASFlagType change_flag = 0 ; 
 					ASFlagType old_look_flags = Scr.Look.flags ; 
 					if( strcmp( data->text, "menu.show_minipixmaps" ) == 0 )
+						change_flag = MenuMiniPixmaps ;
+					else if( strcmp( data->text, "menu.show_unavailable" ) == 0 )
+						change_flag = MenuShowUnavailable ;
+					else if( strcmp( data->text, "menu.texture_items_individualy" ) == 0 )
+						change_flag = TxtrMenuItmInd ;
+					if( change_flag != 0 ) 
 					{
 						if( val == 0 ) 
-							clear_flags( Scr.Look.flags, MenuMiniPixmaps );
+							clear_flags( Scr.Look.flags, change_flag );
 						else 
-							set_flags( Scr.Look.flags, MenuMiniPixmaps );
-					}else if( strcmp( data->text, "menu.show_unavailable" ) == 0 )
-					{
-						if( val == 0 ) 
-							clear_flags( Scr.Look.flags, MenuShowUnavailable );
-						else 
-							set_flags( Scr.Look.flags, MenuShowUnavailable );
+							set_flags( Scr.Look.flags, change_flag );
 					}
+					
 					if( old_look_flags != Scr.Look.flags ) 
 					{
 						/* need to referesh menus maybe? */
