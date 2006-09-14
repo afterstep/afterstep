@@ -526,9 +526,18 @@ set_asmenu_data( ASMenu *menu, MenuData *md, Bool first_time, Bool show_unavaila
                 ASMenuItem *item = &(menu->items[real_items_num]);
 				
 				if( !show_unavailable ) 
-					if( get_flags( mdi->flags, MD_Disabled ) || 
-						(mdi->fdata->func == F_NOP && mdi->fdata->name != NULL ) )
+				{
+					if( get_flags( mdi->flags, MD_Disabled ) )
 						continue;
+					if( mdi->fdata->func == F_NOP  )
+					{	
+						int len = mdi->item?strlen(mdi->item):0 ;
+						if(  mdi->item2 )
+							len += strlen(mdi->item2);
+						if( len > 0 )
+							continue;
+					}
+				}
 
                 set_asmenu_item_data( item, mdi );
                 ++real_items_num;
