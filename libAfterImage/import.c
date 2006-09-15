@@ -191,11 +191,8 @@ file2ASImage_extra( const char *file, ASImageImportParams *iparams )
 	{
 		filename_len = strlen(file);
 #ifdef _WIN32
-		{		
-			int i = 0 ; 
-			while( iparams->search_path[i] != NULL ) 
-				unix_path2dos_path( iparams->search_path[i] );
-		}
+		for( i = 0 ; iparams->search_path[i] != NULL ; ++i ) 
+			unix_path2dos_path( iparams->search_path[i] );
 #endif
 
 		/* first lets try to find file as it is */
