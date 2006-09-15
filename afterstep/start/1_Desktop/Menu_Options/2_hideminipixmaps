@@ -1,1 +1,2 @@
 Set "Toggle minipixmaps" menu.show_minipixmaps=!$menu.show_minipixmaps
+SmallMiniPixmap "normal/Lightswitch"
