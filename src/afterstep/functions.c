@@ -2034,6 +2034,9 @@ void set_func_handler( FunctionData *data, ASEvent *event, int module )
 							clear_flags( Scr.Look.flags, change_flag );
 						else 
 							set_flags( Scr.Look.flags, change_flag );
+					}else if( strcmp( data->text, ASXMLVAR_MenuRecentSubmenuItems) == 0 )
+					{
+						Scr.Feel.recent_submenu_items = (val <= 0)?0:val ;
 					}
 					
 					if( old_look_flags != Scr.Look.flags ) 

@@ -660,6 +660,7 @@ void
 ApplyFeel( ASFeel *feel )
 {
     check_screen_panframes(ASDefaultScr);
+	
 }
 
 /*
@@ -1653,6 +1654,7 @@ LoadASConfig (int thisdesktop, ASFlagType what)
 	{
 		check_feel_sanity( &Scr.Feel );
         ApplyFeel( &Scr.Feel );
+		asxml_var_insert(ASXMLVAR_MenuRecentSubmenuItems, Scr.Feel.recent_submenu_items );
 	}
 
     if (get_flags(what, PARSE_LOOK_CONFIG))
