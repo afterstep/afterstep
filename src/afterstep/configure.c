@@ -750,11 +750,6 @@ merge_look( MyLook *to, MyLook *from )
     to->minipixmap_width  = (from->minipixmap_width == 0)? 24 : from->minipixmap_width ; 
 	to->minipixmap_height = (from->minipixmap_height == 0)?to->minipixmap_width:from->minipixmap_height; 
 	
-	asxml_var_insert(ASXMLVAR_IconButtonWidth, to->ButtonWidth);
-	asxml_var_insert(ASXMLVAR_IconButtonHeight, to->ButtonHeight);
-
-	asxml_var_insert(ASXMLVAR_MinipixmapWidth, to->minipixmap_width);
-	asxml_var_insert(ASXMLVAR_MinipixmapHeight, to->minipixmap_height);
 
 	to->DefaultFrameName = from->DefaultFrameName ; 
 
@@ -1531,6 +1526,7 @@ LoadASConfig (int thisdesktop, ASFlagType what)
 				}
 #endif
 				merge_look( &Scr.Look, &TmpLook );
+			
             }else
             {
                 show_warning("LOOK configuration file cannot be found!");
@@ -1662,6 +1658,17 @@ LoadASConfig (int thisdesktop, ASFlagType what)
     if (get_flags(what, PARSE_LOOK_CONFIG))
     {
         FixLook( &Scr.Look );
+
+		asxml_var_insert(ASXMLVAR_IconButtonWidth, Scr.Look.ButtonWidth);
+		asxml_var_insert(ASXMLVAR_IconButtonHeight, Scr.Look.ButtonHeight);
+
+		asxml_var_insert(ASXMLVAR_MinipixmapWidth, Scr.Look.minipixmap_width);
+		asxml_var_insert(ASXMLVAR_MinipixmapHeight, Scr.Look.minipixmap_height);
+
+		asxml_var_insert(ASXMLVAR_MenuShowMinipixmaps, get_flags(Scr.Look.flags, MenuMiniPixmaps)?1:0);
+		asxml_var_insert(ASXMLVAR_MenuShowUnavailable, get_flags(Scr.Look.flags, MenuShowUnavailable)?1:0);
+		asxml_var_insert(ASXMLVAR_MenuTxtItemsInd,     get_flags(Scr.Look.flags, TxtrMenuItmInd)?1:0);
+
         if( thisdesktop == Scr.CurrentDesk )
 		{
 		    MyBackground *new_back = get_desk_back_or_default( Scr.CurrentDesk, False );

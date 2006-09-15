@@ -2011,7 +2011,8 @@ void set_func_handler( FunctionData *data, ASEvent *event, int module )
 		if( eq_ptr ) 
 		{
 			int val  = 0 ;
-			char *tail = parse_signed_int (eq_ptr+1, &val, NULL); 
+			char *tail = eq_ptr+1; 
+			val = (int)parse_math(tail, &tail, strlen(tail));
 			LOCAL_DEBUG_OUT( "tail = \"%s\", val = %d", tail, val );
 			if( tail > eq_ptr+1 ) 
 			{
@@ -2021,15 +2022,15 @@ void set_func_handler( FunctionData *data, ASEvent *event, int module )
 				{
 					ASFlagType change_flag = 0 ; 
 					ASFlagType old_look_flags = Scr.Look.flags ; 
-					if( strcmp( data->text, "menu.show_minipixmaps" ) == 0 )
+					if( strcmp( data->text, ASXMLVAR_MenuShowMinipixmaps ) == 0 )
 						change_flag = MenuMiniPixmaps ;
-					else if( strcmp( data->text, "menu.show_unavailable" ) == 0 )
+					else if( strcmp( data->text, ASXMLVAR_MenuShowUnavailable ) == 0 )
 						change_flag = MenuShowUnavailable ;
-					else if( strcmp( data->text, "menu.texture_items_individualy" ) == 0 )
+					else if( strcmp( data->text, ASXMLVAR_MenuTxtItemsInd ) == 0 )
 						change_flag = TxtrMenuItmInd ;
 					if( change_flag != 0 ) 
 					{
-						if( val == 0 ) 
+						if( !val ) 
 							clear_flags( Scr.Look.flags, change_flag );
 						else 
 							set_flags( Scr.Look.flags, change_flag );

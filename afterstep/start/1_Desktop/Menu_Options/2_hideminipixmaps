@@ -1,1 +1,1 @@
-Set "Hide mini-icons" menu.show_minipixmaps=0
+Set "Toggle minipixmaps" menu.show_minipixmaps=!$menu.show_minipixmaps

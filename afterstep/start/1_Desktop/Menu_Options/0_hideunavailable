@@ -1,1 +1,1 @@
-Set "Hide Unavailable Items" menu.show_unavailable=0
+Set "Toggle visibility of Unavailable Items" menu.show_unavailable=!$menu.show_unavailable
