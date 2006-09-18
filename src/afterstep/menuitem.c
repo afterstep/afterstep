@@ -345,6 +345,109 @@ add_minipixmap_from_dirtree_item( dirtree_t * tree, MenuData *menu )
 		menu_data_item_from_func (menu, fdata, False);
 }	 
 
+void add_menuitem_submenu_from_file( FILE *fp2, char *buf, char *name )
+{
+	MenuData *md = NULL ; 
+	long start ;
+	if( (md = FindPopup (name, True)) != NULL ) 
+		return;
+	md = CreateMenuData( name );
+	start = ftell( fp2 );
+	if( !ParseBody( md, fp2, MenuDataItemParse ) )
+	{
+		remove_hash_item( Scr.Feel.Popups, AS_HASHABLE(name), NULL, True );
+		/* delete menu and restore the file pointer */
+		fseek( fp2, start, SEEK_SET );
+	}
+}
+
+
+int
+add_menuitem_from_file( FILE *fp2, char *buf, dirtree_t *t, Bool show_unavailable, MenuData *menu ) 
+{
+	int lines_read = 0 ;
+	Bool available = True ;
+	char *name = NULL ;
+	FunctionData *fdata = NULL ;
+	FunctionData *valid_func = NULL ; 
+	FunctionData *minipixmap = NULL ;
+	/* try to load a command */
+	while( fgets (buf, MAXLINELENGTH, fp2) != NULL)
+	{
+		int parse_err ; 
+		++lines_read;
+		if( fdata == NULL ) 
+			fdata = create_named_function(F_EXEC, NULL);
+		parse_err = parse_func (buf, fdata, True);
+		if ( parse_err > FUNC_ERR_START && parse_err < 0 ) /* data is actuall shell command line */
+			fdata->text = stripcpy (buf);
+			
+		if( fdata->name == NULL )
+		    fdata->name = mystrdup( t->stripped_name );
+		
+		if( fdata->func == F_POPUP ) 
+			add_menuitem_submenu_from_file( fp2, buf, fdata->name );			
+
+#ifndef NO_AVAILABILITYCHECK
+		available = check_fdata_availability( fdata );
+		if( !available )
+			fdata->func = F_NOP;
+#endif					
+		if( IsMinipixmapFunc(fdata->func) )
+		{
+			if( minipixmap == NULL ) 
+			{
+				minipixmap = fdata ;
+				fdata = NULL ; 
+			}
+		}else if( fdata->func != F_NOP ) 
+		{
+			if( valid_func == NULL ) 
+			{
+				valid_func = fdata ; 
+				fdata = NULL ; 
+			}					
+		}
+
+		if( fdata ) 
+		{
+			if( name == NULL && fdata->name != NULL ) 
+			{
+				name = fdata->name ;
+				fdata->name = NULL ;
+			}
+			destroy_func_data( &fdata );
+		}
+	}
+	if( available || show_unavailable)
+	{	
+		if( valid_func  ) 
+			menu_data_item_from_func (menu, valid_func, False);
+		else
+		{
+			fdata = create_named_function(F_NOP, name?name:t->stripped_name);
+	  		fdata->text = mystrdup (t->name);
+	        menu_data_item_from_func (menu, fdata, False);
+		}
+		if( minipixmap ) 
+			menu_data_item_from_func (menu, minipixmap, False);
+		else if( t->icon != NULL )
+		{
+			fdata = create_named_function(F_MINIPIXMAP, t->icon);
+	        menu_data_item_from_func (menu, fdata, False);
+		}
+	}else
+	{
+		if( valid_func )
+			destroy_func_data(&valid_func);
+		if( minipixmap )
+			destroy_func_data(&minipixmap);
+	}
+	if( name ) 
+		free( name );
+	return lines_read ;
+}
+
 MenuData     *
 dirtree_make_menu2 (dirtree_t * tree, char *buf, Bool reload_submenus)
 {
@@ -448,6 +551,7 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf, Bool reload_submenus)
 			int lines_read = 0 ;
 
 			fdata = NULL ; 
+#if 0			
 			if( fp2 != NULL  )
 			{
 				Bool available = True ;
@@ -524,7 +628,9 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf, Bool reload_submenus)
 				if( name ) 
 					free( name );
 			}
-			
+#else
+			lines_read = add_menuitem_from_file( fp2, buf, t, get_flags(tree->flags, DIRTREE_SHOW_UNAVAILABLE), menu );
+#endif			
 			if( fp2 == NULL || lines_read == 0 )
 			{
 				Bool available = True ;
