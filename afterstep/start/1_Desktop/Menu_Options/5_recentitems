@@ -1,0 +1,10 @@
+Popup "Recent Submenu items"
+	Set "Show None"  menu.recent_submenu_items=0
+	Set "Show 1 ."  menu.recent_submenu_items=1
+	Set "Show 2 .."  menu.recent_submenu_items=2
+	Set "Show 3 ..."  menu.recent_submenu_items=3
+	Set "Show 4 ...."  menu.recent_submenu_items=4
+	Set "Show 5 ....."  menu.recent_submenu_items=5
+	Set "Show 6 ......"  menu.recent_submenu_items=6
+	Set "Show 7 ......."  menu.recent_submenu_items=7
+EndPopup

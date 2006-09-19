@@ -89,7 +89,7 @@ CreateMenuData (char *name)
     if( Scr.Feel.Popups == NULL )
         init_list_of_menus(&(Scr.Feel.Popups), True);
     md = new_menu_data( Scr.Feel.Popups, name );
-	md->recent_items = Scr.Feel.recent_submenu_items ;
+	md->recent_items = -1 ; /* use Scr.Feel.recent_submenu_items by default! */
 	return md;
 }
 
@@ -169,6 +169,7 @@ ParseBody (void *data, FILE * fd, Bool (*item_func)(void *, const char*))
 	buf = safemalloc (MAXLINELENGTH + 1);
 	while ((ptr = fgets (buf, MAXLINELENGTH, fd)) != NULL)
 	{
+		LOCAL_DEBUG_OUT( "parsing Popup line \"%s\"", buf );
 		while (isspace (*ptr))
 			ptr++;
         if (!item_func(data, ptr))
@@ -345,20 +346,29 @@ add_minipixmap_from_dirtree_item( dirtree_t * tree, MenuData *menu )
 		menu_data_item_from_func (menu, fdata, False);
 }	 
 
-void add_menuitem_submenu_from_file( FILE *fp2, char *buf, char *name )
+char *
+add_menuitem_submenu_from_file( FILE *fp2, char *buf )
 {
 	MenuData *md = NULL ; 
 	long start ;
-	if( (md = FindPopup (name, True)) != NULL ) 
-		return;
+	static int submenu_id = DIRTREE_ID ; 
+	char *name = string_from_int( ++submenu_id );
+
 	md = CreateMenuData( name );
 	start = ftell( fp2 );
+	LOCAL_DEBUG_OUT( "parsing Popup \"%s\"", name );
+
 	if( !ParseBody( md, fp2, MenuDataItemParse ) )
 	{
+		LOCAL_DEBUG_OUT( "parsing Popup body failed.. cleaning up%s", "" );
 		remove_hash_item( Scr.Feel.Popups, AS_HASHABLE(name), NULL, True );
 		/* delete menu and restore the file pointer */
 		fseek( fp2, start, SEEK_SET );
-	}
+		free( name );
+		name = NULL ; 
+	} 
+	
+	return name;
 }
 
 
@@ -385,8 +395,8 @@ add_menuitem_from_file( FILE *fp2, char *buf, dirtree_t *t, Bool show_unavailabl
 		if( fdata->name == NULL )
 		    fdata->name = mystrdup( t->stripped_name );
 		
-		if( fdata->func == F_POPUP ) 
-			add_menuitem_submenu_from_file( fp2, buf, fdata->name );			
+		if( fdata->func == F_POPUP && fdata->text == NULL ) 
+			fdata->text = add_menuitem_submenu_from_file( fp2, buf );
 
 #ifndef NO_AVAILABILITYCHECK
 		available = check_fdata_availability( fdata );

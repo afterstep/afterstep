@@ -230,7 +230,8 @@ typedef struct MenuData
     struct MenuDataItem *last;  /* last item in menu */
     short items_num;        /* number of items in the menu */
 
-	unsigned int    recent_items ;
+	int    recent_items ;   /*  negative value indicates that default, 
+								set in feel should be used */
 
 }MenuData;
 
