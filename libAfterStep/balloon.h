@@ -24,6 +24,8 @@ typedef struct ASBalloonLook
 
 }ASBalloonLook;
 
+struct ASBalloonState;
+
 typedef struct ASBalloon
 {
     char *text;                     /* text to display in balloon */
@@ -33,7 +35,8 @@ typedef struct ASBalloon
         BALLOON_TIMER_OPEN,
         BALLOON_TIMER_CLOSE
     } timer_action;               /* what to do when the timer expires */
-    struct ASTBarData *owner ;
+    struct ASTBarData 		*owner ;
+	struct ASBalloonState 	*state ;
 }ASBalloon;
 
 typedef struct ASBalloonState
@@ -43,6 +46,8 @@ typedef struct ASBalloonState
     struct ASCanvas      *active_canvas;
     struct ASTBarData    *active_bar ;
     Window         active_window ;
+	
+	struct ASBalloonState *next ; 
 }ASBalloonState;
 
 Bool is_balloon_click( XEvent *xe );

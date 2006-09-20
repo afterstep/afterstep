@@ -23,6 +23,8 @@ typedef struct dirtree_t
   int recent_items;
 
   struct ASDesktopEntry *de ; 
+  
+  char *comment ; /* will show up in a balloon */ 
 
 } dirtree_t;
 

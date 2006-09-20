@@ -478,6 +478,12 @@ dirtree_parse (dirtree_t * tree, const char *file)
 			if (tree->name != NULL)
 				free (tree->name);
 			tree->name = mystrdup (ptr);
+		}else if (!mystrncasecmp (ptr, "Comment", 7))
+		{
+			for (ptr += 7; isspace (*ptr); ptr++);
+			if (tree->comment != NULL)
+				free (tree->comment);
+			tree->comment = mystrdup (ptr);
 		}
 	}
 	free (str);

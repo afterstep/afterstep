@@ -233,6 +233,7 @@ typedef struct MenuData
 	int    recent_items ;   /*  negative value indicates that default, 
 								set in feel should be used */
 
+	char  *comment ;
 }MenuData;
 
 #define MAX_MENU_ITEM_HEIGHT    (ASDefaultScrHeight>>4)

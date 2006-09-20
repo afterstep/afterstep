@@ -474,6 +474,9 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf, Bool reload_submenus)
 		sprintf (buf, "%d", tree->flags & DIRTREE_ID);
         menu = CreateMenuData (buf);
 	}
+	if( menu && tree->comment ) 
+		menu->comment = mystrdup( tree->comment );
+		
 	if( get_flags( tree->flags, DIRTREE_RECENT_ITEMS_SET ) )
 		menu->recent_items = tree->recent_items ;
 
