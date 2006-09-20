@@ -347,7 +347,7 @@ add_minipixmap_from_dirtree_item( dirtree_t * tree, MenuData *menu )
 }	 
 
 char *
-add_menuitem_submenu_from_file( FILE *fp2, char *buf )
+add_menuitem_submenu_from_file( FILE *fp2, char *buf, char *title )
 {
 	MenuData *md = NULL ; 
 	long start ;
@@ -357,7 +357,7 @@ add_menuitem_submenu_from_file( FILE *fp2, char *buf )
 	md = CreateMenuData( name );
 	start = ftell( fp2 );
 	LOCAL_DEBUG_OUT( "parsing Popup \"%s\"", name );
-
+	
 	if( !ParseBody( md, fp2, MenuDataItemParse ) )
 	{
 		LOCAL_DEBUG_OUT( "parsing Popup body failed.. cleaning up%s", "" );
@@ -366,7 +366,17 @@ add_menuitem_submenu_from_file( FILE *fp2, char *buf )
 		fseek( fp2, start, SEEK_SET );
 		free( name );
 		name = NULL ; 
-	} 
+	} else if( title != NULL ) 
+	{
+		if( md->first == NULL || md->first->fdata->func != F_TITLE ) 
+		{
+			FunctionData *fdata = create_named_function( F_TITLE, title);
+			/* We exploit that scan_for_hotkey removes & (marking hotkey) from name */
+			scan_for_hotkey (fdata->name);
+		    menu_data_item_from_func (md, fdata, False);
+		}
+	
+	}
 	
 	return name;
 }
@@ -396,7 +406,7 @@ add_menuitem_from_file( FILE *fp2, char *buf, dirtree_t *t, Bool show_unavailabl
 		    fdata->name = mystrdup( t->stripped_name );
 		
 		if( fdata->func == F_POPUP && fdata->text == NULL ) 
-			fdata->text = add_menuitem_submenu_from_file( fp2, buf );
+			fdata->text = add_menuitem_submenu_from_file( fp2, buf, fdata->name );
 
 #ifndef NO_AVAILABILITYCHECK
 		available = check_fdata_availability( fdata );
