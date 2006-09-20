@@ -1,0 +1,5 @@
+<composite>
+  <solid width=64 height=64 color="#00000000"/>
+  <img src="normal/Ghost"/>
+  <img src="normal/Lightswitch" x="16" y="16"/>
+</composite>
