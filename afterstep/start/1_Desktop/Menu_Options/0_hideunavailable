@@ -1,2 +1,2 @@
-Set "Toggle visibility of Unavailable Items" menu.show_unavailable=!$menu.show_unavailable
-SmallMiniPixmap "normal/Lightswitch"
+Set "Toggle Unavailable Items ON/OFF" menu.show_unavailable=!$menu.show_unavailable
+SmallMiniPixmap "Toggle-Ghost"
