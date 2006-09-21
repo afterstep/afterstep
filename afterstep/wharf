@@ -244,7 +244,6 @@
 *MonitorWharf ~Folder
 
 
-
 *MonitorWharf xeyes - Swallow "xeyes" xeyes -geometry -100-100 &
 *MonitorWharf xeyes - PopUp   "r" Window
 
@@ -258,13 +257,15 @@
 *MonitorWharf loadmonitor - Swallow "asload" asload -shape -exe "aterm -e top" &
 *MonitorWharf loadmonitor - Swallow "wmavgload" wmavgload -shape -led red &
 *MonitorWharf loadmonitor - Swallow "wmcpuload" wmcpuload -bl -w &
+*MonitorWharf loadmonitor - Swallow "wmload" wmload -shape -led red &
+*MonitorWharf loadinstantmonitor - Swallow "wmfire" wmfire -f 2 &
 *MonitorWharf asmon  - Swallow "asmon" asmon &
 *MonitorWharf wmtop  - Swallow "wmtop" wmtop &
 *MonitorWharf netmonitor - Swallow "wmnet" wmnet --driver=devstats &
 *MonitorWharf netmonitor - Swallow "wmnd" wmnd -i eth0 &
 *MonitorWharf asmail - Swallow "asmail" asmail -geometry +0+0 &
 
-# one of the clocks - first available :
+# One of the clocks - first available :
 *MonitorWharf clock - Swallow "asclock" asclock -shape -24 -position +1+1 &
 *MonitorWharf clock - Swallow "wmclockmon" wmclockmon &
 *MonitorWharf clock - Swallow "wmitime" wmitime &
@@ -272,7 +273,6 @@
 *MonitorWharf clock - Exec "r" evolution &
 *MonitorWharf clock - Exec "r" korganizer &
 
-*MonitorWharf wmfire  - Swallow "wmfire" wmfire -f 2 &
 
 #
 #  End of the MonitorWharf configuration
