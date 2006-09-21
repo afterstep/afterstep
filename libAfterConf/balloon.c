@@ -78,38 +78,41 @@ Print_balloonConfig (balloonConfig *config )
 }
 
 void
-balloon_config2look( MyLook *look, balloonConfig *config, const char *default_style )
+balloon_config2look( MyLook *look, ASBalloonLook *balloon_look, balloonConfig *config, const char *default_style )
 {
     if( look )
     {
-        if( look->balloon_look == NULL )
-            look->balloon_look = safecalloc( 1, sizeof(ASBalloonLook) );
-
+		if( balloon_look == NULL ) 
+		{
+        	if( look->balloon_look == NULL )
+            	look->balloon_look = safecalloc( 1, sizeof(ASBalloonLook) );
+			balloon_look = look->balloon_look ;
+		}
         if( config == NULL )
 		{	
-            memset( look->balloon_look, 0x00, sizeof(ASBalloonLook) );
-			look->balloon_look->show = True ;
-        	look->balloon_look->XOffset = 5 ;
-        	look->balloon_look->YOffset = 5 ;
-			look->balloon_look->Style = mystyle_list_find_or_default (look->styles_list, default_style);
-			look->balloon_look->Delay = 200 ;
-			look->balloon_look->CloseDelay = 2000 ;
+            memset( balloon_look, 0x00, sizeof(ASBalloonLook) );
+			balloon_look->show = True ;
+        	balloon_look->XOffset = 5 ;
+        	balloon_look->YOffset = 5 ;
+			balloon_look->Style = mystyle_list_find_or_default (look->styles_list, default_style);
+			balloon_look->Delay = 200 ;
+			balloon_look->CloseDelay = 2000 ;
 		}else
         {
-#define MERGE_BALLOON_SCALAR_VAL(val)  look->balloon_look->val = config->val 			
+#define MERGE_BALLOON_SCALAR_VAL(val)  balloon_look->val = config->val 			
 
-            look->balloon_look->show = get_flags( config->flags, BALLOON_USED );
+            balloon_look->show = get_flags( config->flags, BALLOON_USED );
 			MERGE_BALLOON_SCALAR_VAL(BorderHilite);
 			MERGE_BALLOON_SCALAR_VAL(XOffset);
 			MERGE_BALLOON_SCALAR_VAL(YOffset);
 			MERGE_BALLOON_SCALAR_VAL(Delay);
 			MERGE_BALLOON_SCALAR_VAL(CloseDelay);
-            look->balloon_look->Style = mystyle_list_find_or_default (look->styles_list, config->Style?config->Style:default_style);
+            balloon_look->Style = mystyle_list_find_or_default (look->styles_list, config->Style?config->Style:default_style);
 			MERGE_BALLOON_SCALAR_VAL(TextPaddingX);
 			MERGE_BALLOON_SCALAR_VAL(TextPaddingY);
 		}
-	    LOCAL_DEBUG_OUT( "balloon mystyle = %p (\"%s\")", look->balloon_look->Style,
-                    	 look->balloon_look->Style?look->balloon_look->Style->name:"none" );
+	    LOCAL_DEBUG_OUT( "balloon mystyle = %p (\"%s\")", balloon_look->Style,
+                    	 balloon_look->Style?balloon_look->Style->name:"none" );
 
     }
 }

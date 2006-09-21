@@ -251,8 +251,6 @@ main (int argc, char **argv)
                         M_STACKING_ORDER, 0) < 0 ) 
 		exit(1);               /* no AfterStep */
 
-    balloon_init (False);
-
     Config = CreatePagerConfig (PagerState.desks_num);
 
     LOCAL_DEBUG_OUT("parsing Options for \"%s\"",MyName);
@@ -574,7 +572,7 @@ LOCAL_DEBUG_OUT( "desk_style %d: \"%s\" ->%p(\"%s\")->colors(%lX,%lX)", i, buf, 
 #if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
     Print_balloonConfig ( Config->balloon_conf );
 #endif
-    balloon_config2look( &(Scr.Look), Config->balloon_conf, "*PagerBalloon" );
+    balloon_config2look( &(Scr.Look), NULL, Config->balloon_conf, "*PagerBalloon" );
     set_balloon_look( Scr.Look.balloon_look );
 
 	LOCAL_DEBUG_OUT( "geometry = %dx%d%+d%+d", Config->geometry.width, Config->geometry.height, Config->geometry.x, Config->geometry.y );

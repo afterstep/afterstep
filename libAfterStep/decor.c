@@ -1868,7 +1868,7 @@ on_astbar_pointer_action( ASTBarData *tbar, int context, Bool leave, Bool pointe
 }
 
 void
-set_astbar_balloon( ASTBarData *tbar, int context, const char *text, unsigned long encoding )
+set_astbar_balloon2( ASTBarData *tbar, ASBalloonState *balloon_state, int context, const char *text, unsigned long encoding )
 {
     if( tbar != NULL )
     {
@@ -1894,7 +1894,7 @@ set_astbar_balloon( ASTBarData *tbar, int context, const char *text, unsigned lo
 												  );
                             }else
                             {
-                                bb->buttons[k].balloon = create_asballoon_with_text( tbar, text, encoding );
+                                bb->buttons[k].balloon = create_asballoon_with_text_for_state( balloon_state, tbar, text, encoding );
                                 LOCAL_DEBUG_OUT( "created balloon for tbar(%p)->ct(0x%X)->btn(%d)->enc(%ld)->text(%s)->balloon(%p)",
 								               tbar, context, k, encoding, text, bb->buttons[k].balloon );
                             }
@@ -1911,7 +1911,7 @@ set_astbar_balloon( ASTBarData *tbar, int context, const char *text, unsigned lo
                                                  tbar, context, text, tbar->balloon );
             }else
             {
-                tbar->balloon = create_asballoon_with_text( tbar, text, encoding );
+                tbar->balloon = create_asballoon_with_text_for_state( balloon_state, tbar, text, encoding );
                 LOCAL_DEBUG_OUT( "created tbar balloon for tbar(%p)->context(0x%X)->text(%s)->balloon(%p)",
                                  tbar, context, text, tbar->balloon );
             }
@@ -1920,4 +1920,10 @@ set_astbar_balloon( ASTBarData *tbar, int context, const char *text, unsigned lo
     }
 }
 
+void
+set_astbar_balloon( ASTBarData *tbar, int context, const char *text, unsigned long encoding )
+{
+    if( tbar != NULL )
+		set_astbar_balloon2( tbar, NULL, context, text, encoding );
+}
 

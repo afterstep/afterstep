@@ -149,8 +149,8 @@ mylook_init (MyLook * look, Bool free_resources, unsigned long what_flags /*see 
 		display_dpcmy = (scr->MyDisplayHeight * 10 )/ DisplayHeightMM(dpy, scr->screen );
 	}	 
     
-	if (get_flags (what_flags, LL_Balloons))
-        balloon_init (free_resources);
+	if (get_flags (what_flags, LL_Balloons) && free_resources )
+		cleanup_default_balloons();
 
     if (free_resources)
 	{

@@ -363,7 +363,7 @@ DigestEvent( ASEvent *event )
 			event->client = NULL ;
 		}else
 		{
-			if( (event->eclass & ASE_POINTER_EVENTS) != 0 && is_balloon_click( &(event->x) ) )
+			if( (event->eclass & ASE_POINTER_EVENTS) != 0 && is_balloon_click( &(event->x) ) != NULL  )
 			{	
 				event->client = NULL ;
 				event->widget = NULL ;	 

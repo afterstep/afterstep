@@ -265,8 +265,6 @@ main (int argc, char **argv)
                     M_END_WINDOWLIST |
                     WINDOW_CONFIG_MASK |
                     WINDOW_NAME_MASK, 0);
-    balloon_init (False);
-
     Config = CreateWharfConfig ();
 
     LOCAL_DEBUG_OUT("parsing Options ...%s","");
@@ -465,7 +463,7 @@ CheckConfigSanity()
     PrintWharfConfig(Config);
     Print_balloonConfig ( Config->balloon_conf );
 #endif
-    balloon_config2look( &(Scr.Look), Config->balloon_conf, "*WharfBalloon" );
+    balloon_config2look( &(Scr.Look), NULL, Config->balloon_conf, "*WharfBalloon" );
     set_balloon_look( Scr.Look.balloon_look );
 
 }

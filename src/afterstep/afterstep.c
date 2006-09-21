@@ -46,6 +46,9 @@ ASVector     *Modules       = NULL;
 int           Module_fd     = 0;
 int           Module_npipes = 8;
 
+ASBalloonState *MenuBalloons = NULL ; 
+ASBalloonState *TitlebarBalloons = NULL ; 
+
 /**************************************************************************/
 void          SetupScreen();
 void          CleanupScreen();
@@ -402,6 +405,9 @@ SetupScreen()
     Scr.Windows = init_aswindow_list();
 
 	XSelectInput (dpy, Scr.Root, AS_ROOT_EVENT_MASK);
+
+	MenuBalloons = create_balloon_state(); 
+	TitlebarBalloons = create_balloon_state(); 
 }
 
 void
@@ -415,6 +421,9 @@ CleanupScreen()
         destroy_aswindow_list( &(Scr.Windows), True );
         ungrab_server();
     }
+
+	destroy_balloon_state(&TitlebarBalloons); 
+	destroy_balloon_state(&MenuBalloons); 
 
 	release_all_old_background( True );
 
@@ -725,7 +734,7 @@ LOCAL_DEBUG_CALLER_OUT( "%s restart, cmd=\"%s\"", restart?"Do":"Don't", command?
 		DestroyPendingFunctionsQueue();
 		DestroyCategories();
 
-	    balloon_init (True);
+	    cleanup_default_balloons();
 		destroy_asdatabase();
     	destroy_assession( Session );
 		destroy_asenvironment( &Environment );

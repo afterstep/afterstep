@@ -90,7 +90,8 @@ static MyStyleDefinition *MyStyleList = NULL ;
 static MyFrameDefinition *MyFrameList = NULL ;
 static MyFrameDefinition *LegacyFrameDef = NULL ;
 
-static balloonConfig BalloonConfig = {0, 0, 0, 0, 0, 0, NULL };
+static balloonConfig BalloonConfig = {0, 0, 0, 0, 0, 0, 0, NULL, 0, 0 };
+static balloonConfig MenuBalloonConfig = {0, 0, 0, 0, 0, 0, 0, NULL, 0, 0 };
 
 static char         *MSWindowName[BACK_STYLES] = {NULL};
 static char         *MSMenuName[MENU_BACK_STYLES] = {NULL };
@@ -303,6 +304,15 @@ struct config main_config[] = {
     {"MenuItemCompositionMethod"		, SetInts, (char **)&TmpLook.menu_icm, &dummy},
     {"MenuHiliteCompositionMethod"		, SetInts, (char **)&TmpLook.menu_hcm, &dummy},
     {"MenuStippleCompositionMethod"		, SetInts, (char **)&TmpLook.menu_scm, &dummy},
+    {"MenuBalloonBorderHilite"			, bevel_parse, (char**)"afterstep", (int*)&(MenuBalloonConfig.BorderHilite)},
+    {"MenuBalloonXOffset"				, SetInts, (char**)&(MenuBalloonConfig.XOffset), NULL},
+    {"MenuBalloonYOffset"				, SetInts, (char**)&(MenuBalloonConfig.YOffset), NULL},
+    {"MenuBalloonDelay"					, SetInts, (char**)&(MenuBalloonConfig.Delay), NULL},
+    {"MenuBalloonCloseDelay"			, SetInts, (char**)&(MenuBalloonConfig.CloseDelay), NULL},
+    {"MenuBalloonStyle"					, assign_string,   &(MenuBalloonConfig.Style), NULL},
+    {"MenuBalloonTextPaddingX"			, SetInts, (char**)&(MenuBalloonConfig.TextPaddingX), NULL},
+    {"MenuBalloonTextPaddingY"			, SetInts, (char**)&(MenuBalloonConfig.TextPaddingY), NULL},
+    {"MenuBalloons"						, SetFlag2, (char**)BALLOON_USED, (int*)&(MenuBalloonConfig.set_flags)},
     {"ShadeAnimationSteps"				, SetInts, (char **)&TmpFeel.ShadeAnimationSteps, (int *)&dummy},
     {"TitleButtonBalloonBorderHilite"	, bevel_parse, (char**)"afterstep", (int*)&(BalloonConfig.BorderHilite)},
     {"TitleButtonBalloonXOffset"		, SetInts, (char**)&(BalloonConfig.XOffset), NULL},
@@ -1027,6 +1037,7 @@ FixLook( MyLook *look )
     ASFlagType default_title_align = ALIGN_LEFT ;
 	int menu_font_size = 0 ;
     int i ;
+	ASBalloonLook ballon_look ; 
 #ifdef LOCAL_DEBUG
     LOCAL_DEBUG_OUT( "syncing %s","");
     ASSync(False);
@@ -1169,8 +1180,10 @@ FixLook( MyLook *look )
 #if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
     Print_balloonConfig ( &BalloonConfig );
 #endif
-    balloon_config2look( look, &BalloonConfig, "TitleButtonBalloon" );
-    set_balloon_look( look->balloon_look );
+    balloon_config2look( look, &ballon_look, &BalloonConfig, "TitleButtonBalloon" );
+    set_balloon_state_look( TitlebarBalloons, &ballon_look );
+    balloon_config2look( look, &ballon_look, &MenuBalloonConfig, "MenuBalloon" );
+	set_balloon_state_look( MenuBalloons,  &ballon_look );
 
     /* checking sanity of the move-resize window geometry :*/
     if( (look->resize_move_geometry.flags&(HeightValue|WidthValue)) != (HeightValue|WidthValue))

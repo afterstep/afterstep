@@ -292,7 +292,6 @@ for( i = 1 ; i< argc ; ++i)
 	signal (SIGTERM, DeadPipe);
     signal (SIGKILL, DeadPipe);
     
-    balloon_init (False);
     Config = CreateWinTabsConfig ();
 
     LoadBaseConfig ( GetBaseOptions);
@@ -534,7 +533,7 @@ LOCAL_DEBUG_OUT( "exclude_pattern = \"%s\"", Config->exclude_pattern );
     Print_balloonConfig ( Config->balloon_conf );
 #endif
 	
-	balloon_config2look( &(Scr.Look), Config->balloon_conf, "*WinTabsBalloon" );
+	balloon_config2look( &(Scr.Look), NULL, Config->balloon_conf, "*WinTabsBalloon" );
     set_balloon_look( Scr.Look.balloon_look );
 
 }

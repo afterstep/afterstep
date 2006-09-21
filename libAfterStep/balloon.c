@@ -30,7 +30,8 @@
 #include "decor.h"
 #include "balloon.h"
 
-static ASBalloonState DefaultBalloonState = {{0},NULL, NULL, NULL, None, NULL};
+static ASBalloonState DefaultBalloonState = { {0, 5, 5, 0, 10000, 0, NULL, 5, 5 },
+											  NULL, NULL, NULL, None, NULL};
 
 static void balloon_timer_handler (void *data);
 
@@ -230,9 +231,9 @@ balloon_init_state (ASBalloonState *state, int free_resources)
 }
 
 void
-balloon_init ( int free_resources)
+cleanup_default_balloons()
 {
-	balloon_init_state (NULL, free_resources);
+	balloon_init_state (NULL, True);
 }
 
 ASBalloonState *
@@ -337,7 +338,8 @@ set_balloon_look( ASBalloonLook *blook )
 	set_balloon_state_look( NULL, blook );
 }
 
-Bool is_balloon_click( XEvent *xe ) 
+ASBalloonState * 
+is_balloon_click( XEvent *xe ) 
 {
 	register ASBalloonState *state  = &DefaultBalloonState;
 
@@ -347,13 +349,13 @@ Bool is_balloon_click( XEvent *xe )
 			LOCAL_DEBUG_OUT( "Balloon window is %lX, xbutton.window = %lX, subwindow = %lX", state->active_window, xe->xbutton.window, xe->xbutton.subwindow );
 			if( xe->xbutton.window == state->active_window || 
 				xe->xbutton.subwindow == state->active_window )
-				return True;
+				break;
 		}
-	return False ;
+	return state ;
 }	 
 
 ASBalloon *
-create_asballoon_from (ASBalloonState *state, ASTBarData *owner)
+create_asballoon_for_state (ASBalloonState *state, ASTBarData *owner)
 {
     ASBalloon *balloon = NULL ;
     if( owner )
@@ -367,9 +369,9 @@ create_asballoon_from (ASBalloonState *state, ASTBarData *owner)
 }
 
 ASBalloon *
-create_asballoon_with_text_from ( ASBalloonState *state, ASTBarData *owner, const char *text, unsigned long encoding)
+create_asballoon_with_text_for_state ( ASBalloonState *state, ASTBarData *owner, const char *text, unsigned long encoding)
 {
-    ASBalloon *balloon = create_asballoon_from(state, owner);
+    ASBalloon *balloon = create_asballoon_for_state(state, owner);
     if( balloon )
 	{
         balloon->text = mystrdup(text);
@@ -381,13 +383,13 @@ create_asballoon_with_text_from ( ASBalloonState *state, ASTBarData *owner, cons
 ASBalloon *
 create_asballoon (ASTBarData *owner)
 {
-	return  create_asballoon_from (NULL, owner);
+	return  create_asballoon_for_state (NULL, owner);
 }
 
 ASBalloon *
 create_asballoon_with_text ( ASTBarData *owner, const char *text, unsigned long encoding)
 {
-	return  create_asballoon_with_text_from (NULL, owner, text, encoding);
+	return  create_asballoon_with_text_for_state (NULL, owner, text, encoding);
 }
 
 void

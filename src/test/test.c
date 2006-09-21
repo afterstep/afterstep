@@ -199,7 +199,6 @@ main( int argc, char **argv )
 
     ConnectX( ASDefaultScr, 0 );
     ConnectAfterStep (0, 0);
-    balloon_init (False);
 
     LoadBaseConfig ( GetBaseOptions);
 	LoadColorScheme();

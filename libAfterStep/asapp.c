@@ -938,7 +938,7 @@ free_as_app_args()
 void
 FreeMyAppResources()
 {
-    balloon_init (True);
+	cleanup_default_balloons();
 	destroy_asdatabase();
     mystyle_destroy_all();
     mylook_init( &(ASDefaultScr->Look), True, ASFLAGS_EVERYTHING );

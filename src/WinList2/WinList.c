@@ -142,7 +142,6 @@ main( int argc, char **argv )
                       WINDOW_NAME_MASK |
                       M_END_WINDOWLIST, 0) < 0 ) 
 		exit(1);               /* no AfterStep */
-    balloon_init (False);
 
     /* Request a list of all windows, while we load our config */
     SendInfo ("Send_WindowList", 0);
@@ -276,7 +275,7 @@ SetWinListLook()
     PrintWinListConfig (Config);
     Print_balloonConfig ( Config->asmodule_config.balloon_conf );
 #endif
-    balloon_config2look( &(Scr.Look), Config->asmodule_config.balloon_conf, "*WinListBalloon" );
+    balloon_config2look( &(Scr.Look), NULL, Config->asmodule_config.balloon_conf, "*WinListBalloon" );
     set_balloon_look( Scr.Look.balloon_look );
 
 }

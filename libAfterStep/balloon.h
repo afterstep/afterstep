@@ -50,12 +50,21 @@ typedef struct ASBalloonState
 	struct ASBalloonState *next ; 
 }ASBalloonState;
 
-Bool is_balloon_click( XEvent *xe );
-void balloon_init (int free_resources);
+ASBalloonState *is_balloon_click( XEvent *xe );
+/* void balloon_init (int free_resources); */
+ASBalloonState *create_balloon_state();
+void destroy_balloon_state(ASBalloonState **pstate);
+void cleanup_default_balloons();
+
 void withdraw_balloon( ASBalloon *balloon );
+void withdraw_active_balloon_from( ASBalloonState *state );
 void withdraw_active_balloon();
 void display_balloon( ASBalloon *balloon );
 void set_balloon_look( ASBalloonLook *blook );
+void set_balloon_state_look( ASBalloonState *state, ASBalloonLook *blook );
+
+ASBalloon *create_asballoon_for_state (ASBalloonState *state, struct ASTBarData *owner);
+ASBalloon *create_asballoon_with_text_for_state ( ASBalloonState *state, struct ASTBarData *owner, const char *text, unsigned long encoding);
 ASBalloon *create_asballoon (struct ASTBarData *owner);
 ASBalloon *create_asballoon_with_text ( struct ASTBarData *owner, const char *text, unsigned long encoding);
 void destroy_asballoon(ASBalloon **pballoon );

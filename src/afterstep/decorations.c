@@ -1235,7 +1235,7 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
       		    {
           		    char *str = list_functions_by_context (C_TButton0<<i, asw->hints);
               		LOCAL_DEBUG_OUT( "balloon text will be \"%s\"", str?str:"none" );
-	                set_astbar_balloon( asw->tbar, C_TButton0<<i, str, AS_Text_ASCII );
+	                set_astbar_balloon2( asw->tbar, TitlebarBalloons, C_TButton0<<i, str, AS_Text_ASCII );
   		            if( str )
       		            free( str );
           		}

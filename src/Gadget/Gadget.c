@@ -132,7 +132,6 @@ main( int argc, char **argv )
 
     ConnectX( ASDefaultScr, PropertyChangeMask|EnterWindowMask );
     ConnectAfterStep ();
-    balloon_init (False);
     Config = CreateGadgetConfig ();
 
     LoadBaseConfig ( GetBaseOptions);
@@ -234,7 +233,7 @@ CheckConfigSanity()
     PrintGadgetConfig (Config);
     Print_balloonConfig ( Config->balloon_conf );
 #endif
-    balloon_config2look( &(Scr.Look), Config->balloon_conf );
+    balloon_config2look( &(Scr.Look), NULL, Config->balloon_conf, "default" );
     LOCAL_DEBUG_OUT( "balloon mystyle = %p (\"%s\")", Scr.Look.balloon_look->style,
                     Scr.Look.balloon_look->style?Scr.Look.balloon_look->style->name:"none" );
     set_balloon_look( Scr.Look.balloon_look );

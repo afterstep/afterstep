@@ -885,8 +885,6 @@ typedef struct balloonConfig
   int TextPaddingX, TextPaddingY;
 }balloonConfig;
 
-struct BalloonLook;
-
 balloonConfig *Create_balloonConfig ();
 void Destroy_balloonConfig (balloonConfig * config);
 balloonConfig *Process_balloonOptions (struct FreeStorageElem * options,
@@ -897,7 +895,9 @@ struct FreeStorageElem **balloon2FreeStorage (struct SyntaxDef * syntax,
 				       balloonConfig * config);
 
 void MergeBalloonOptions ( ASModuleConfig *asm_to, ASModuleConfig *asm_from);
-void balloon_config2look( struct MyLook *look, balloonConfig *config, const char *default_style );
+struct ASBalloonLook;
+void balloon_config2look( struct MyLook *look, struct ASBalloonLook *balloon_look, balloonConfig *config, const char *default_style );
+
 
 /***************************************************************************/
 

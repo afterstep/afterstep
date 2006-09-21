@@ -13,6 +13,7 @@ struct icon_t;
 struct button_t;
 struct ASImageManager;
 struct ASBalloon;
+struct ASBalloonState;
 
 typedef struct ASTBtnData{
     struct ASImage *unpressed ;
@@ -249,6 +250,7 @@ Bool render_astbar_cached_back (ASTBarData * tbar, ASCanvas * pc, ASImage **cach
 
 void on_astbar_pointer_action( ASTBarData *tbar, int context, Bool leave, Bool pointer_moved );
 void set_astbar_balloon( ASTBarData *tbar, int context, const char *text, unsigned long encoding );
+void set_astbar_balloon2( ASTBarData *tbar, struct ASBalloonState *balloon_state, int context, const char *text, unsigned long encoding );
 
 
 #ifdef __cplusplus

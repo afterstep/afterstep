@@ -351,6 +351,10 @@ extern ASFlagType    AfterStepState;              /* see ASS_ flags above */
 extern struct ASDatabase *Database;
 extern ASHashTable       *ComplexFunctions;
 
+extern ASBalloonState *MenuBalloons ; 
+extern ASBalloonState *TitlebarBalloons ; 
+
+
 /* global variables for Look values : */
 extern unsigned long XORvalue;
 extern int           RubberBand;
