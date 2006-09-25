@@ -320,7 +320,7 @@ set_balloon_state_look( ASBalloonState *state, ASBalloonLook *blook )
 	if( state == NULL ) 
 		state = &DefaultBalloonState ;
     state->look = *blook ;
-    LOCAL_DEBUG_CALLER_OUT( "%lX", state->active_window );
+    LOCAL_DEBUG_CALLER_OUT( "state = %p, active_window = %lX", state, state->active_window );
     if( state->look.show && state->active_window == None )
     {
         XSetWindowAttributes attr ;
@@ -362,8 +362,7 @@ create_asballoon_for_state (ASBalloonState *state, ASTBarData *owner)
     {
         balloon = safecalloc( 1, sizeof(ASBalloon) );
         balloon->owner = owner ;
-		balloon->state = 
-(state==NULL)?&DefaultBalloonState:state;
+		balloon->state = (state==NULL)?&DefaultBalloonState:state;
     }
     return balloon;
 }

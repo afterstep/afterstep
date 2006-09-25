@@ -31,6 +31,7 @@
 
 #include "afterconf.h"
 
+int ASDefaultBalloonTypes[]= { BALLOON_ID_START, 0 };
 
 /*****************************************************************************
  *
@@ -134,7 +135,7 @@ flag_options_xref BalloonsFlags[] = {
 
 
 balloonConfig*
-Process_balloonOptions (FreeStorageElem * options, balloonConfig *config)
+Process_balloonOptions (FreeStorageElem * options, balloonConfig *config, int id_base )
 {
     ConfigItem item;
     item.memory = NULL;
@@ -144,25 +145,29 @@ Process_balloonOptions (FreeStorageElem * options, balloonConfig *config)
 
     for (; options; options = options->next)
     {
-        if (options->term->id < BALLOON_ID_START || options->term->id > BALLOON_ID_END )
+		int orig_id = options->term->id ; 
+		int id = options->term->id + id_base - BALLOON_ID_START ; 
+        if (id < BALLOON_ID_START || id > BALLOON_ID_END )
             continue;
 
         if (options->term == NULL)
             continue;
         if (options->term->type == TT_FLAG)
         {
+			options->term->id = id ; 
 			if( !ReadFlagItemAuto (config, 0, options, &BalloonsFlags[0]) )
-	            switch(options->term->id )
+	            switch(id )
 				{
 		            ASCF_HANDLE_BEVEL_KEYWORD_CASE(BALLOON,config,options,BorderHilite); 
 				}
+			options->term->id = orig_id ;
             continue;
         }
 
         if (!ReadConfigItem (&item, options))
             continue;
 
-        switch (options->term->id)
+        switch (id)
         {
 			ASCF_HANDLE_INTEGER_KEYWORD_CASE(BALLOON,config,item,XOffset); 
 			ASCF_HANDLE_INTEGER_KEYWORD_CASE(BALLOON,config,item,YOffset); 
@@ -184,21 +189,27 @@ MergeBalloonOptions ( ASModuleConfig *asm_to, ASModuleConfig *asm_from)
 {
 	if( asm_to && asm_from ) 
 	{
-		if( asm_from->balloon_conf != NULL ) 
+		int i ;
+		for( i = 0 ; asm_to->class->balloon_types[i] > 0 && asm_from->class->balloon_types[i] > 0 ; ++i ) 
 		{
+			balloonConfig *from = asm_from->balloon_configs[i];
+			balloonConfig *to = asm_to->balloon_configs[i];		
+			if( to == NULL )
+	   			to = Create_balloonConfig ();
 
-			if( asm_to->balloon_conf == NULL )
-		   		asm_to->balloon_conf = Create_balloonConfig ();
-
-		    ASCF_MERGE_FLAGS(asm_to->balloon_conf,asm_from->balloon_conf);
-			ASCF_MERGE_SCALAR_KEYWORD(BALLOON, asm_to->balloon_conf, asm_from->balloon_conf, BorderHilite);
-			ASCF_MERGE_SCALAR_KEYWORD(BALLOON, asm_to->balloon_conf, asm_from->balloon_conf, XOffset); 
-			ASCF_MERGE_SCALAR_KEYWORD(BALLOON, asm_to->balloon_conf, asm_from->balloon_conf, YOffset); 
-			ASCF_MERGE_SCALAR_KEYWORD(BALLOON, asm_to->balloon_conf, asm_from->balloon_conf, Delay); 
-			ASCF_MERGE_SCALAR_KEYWORD(BALLOON, asm_to->balloon_conf, asm_from->balloon_conf, CloseDelay); 
-			ASCF_MERGE_STRING_KEYWORD(BALLOON, asm_to->balloon_conf, asm_from->balloon_conf, Style);
-			ASCF_MERGE_SCALAR_KEYWORD(BALLOON, asm_to->balloon_conf, asm_from->balloon_conf, TextPaddingX); 
-			ASCF_MERGE_SCALAR_KEYWORD(BALLOON, asm_to->balloon_conf, asm_from->balloon_conf, TextPaddingY); 
+			if( from != NULL ) 
+			{
+		    	ASCF_MERGE_FLAGS(to,from);
+				ASCF_MERGE_SCALAR_KEYWORD(BALLOON, to, from, BorderHilite);
+				ASCF_MERGE_SCALAR_KEYWORD(BALLOON, to, from, XOffset); 
+				ASCF_MERGE_SCALAR_KEYWORD(BALLOON, to, from, YOffset); 
+				ASCF_MERGE_SCALAR_KEYWORD(BALLOON, to, from, Delay); 
+				ASCF_MERGE_SCALAR_KEYWORD(BALLOON, to, from, CloseDelay); 
+				ASCF_MERGE_STRING_KEYWORD(BALLOON, to, from, Style);
+				ASCF_MERGE_SCALAR_KEYWORD(BALLOON, to, from, TextPaddingX); 
+				ASCF_MERGE_SCALAR_KEYWORD(BALLOON, to, from, TextPaddingY); 
+			}
+			asm_to->balloon_configs[i] = to ;
 		}
 	}
 }

@@ -273,9 +273,9 @@ SetWinListLook()
 	
 #if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
     PrintWinListConfig (Config);
-    Print_balloonConfig ( Config->asmodule_config.balloon_conf );
+    Print_balloonConfig ( Config->asmodule_config.balloon_configs[0]);
 #endif
-    balloon_config2look( &(Scr.Look), NULL, Config->asmodule_config.balloon_conf, "*WinListBalloon" );
+    balloon_config2look( &(Scr.Look), NULL, Config->asmodule_config.balloon_configs[0], "*WinListBalloon" );
     set_balloon_look( Scr.Look.balloon_look );
 
 }

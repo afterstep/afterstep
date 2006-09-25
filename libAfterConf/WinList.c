@@ -181,7 +181,9 @@ static ASModuleConfigClass _winlist_config_class =
 	&WinListLookSyntax,
 	&WinListFeelSyntax,
 	WinListFlags,
-	offsetof(WinListConfig,set_flags)	
+	offsetof(WinListConfig,set_flags),
+	
+	ASDefaultBalloonTypes
  };
  
 ASModuleConfigClass *WinListConfigClass = &_winlist_config_class;

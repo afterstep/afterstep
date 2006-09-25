@@ -635,7 +635,7 @@ ParseWharfOptions (const char *filename, char *myname)
 
 	/* getting rid of all the crap first */
 	StorageCleanUp (&Storage, &(config->more_stuff), CF_DISABLED_OPTION);
-	config->balloon_conf = Process_balloonOptions (Storage, NULL);
+	config->balloon_conf = Process_balloonOptions (Storage, NULL, BALLOON_ID_START);
 
 	for (pCurr = Storage; pCurr; pCurr = pCurr->next)
 	{

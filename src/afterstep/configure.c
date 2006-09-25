@@ -1037,7 +1037,6 @@ FixLook( MyLook *look )
     ASFlagType default_title_align = ALIGN_LEFT ;
 	int menu_font_size = 0 ;
     int i ;
-	ASBalloonLook ballon_look ; 
 #ifdef LOCAL_DEBUG
     LOCAL_DEBUG_OUT( "syncing %s","");
     ASSync(False);
@@ -1172,19 +1171,6 @@ FixLook( MyLook *look )
         }
     }
 
-#ifdef LOCAL_DEBUG
-    LOCAL_DEBUG_OUT( "syncing %s","");
-    ASSync(False);
-#endif
-
-#if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
-    Print_balloonConfig ( &BalloonConfig );
-#endif
-    balloon_config2look( look, &ballon_look, &BalloonConfig, "TitleButtonBalloon" );
-    set_balloon_state_look( TitlebarBalloons, &ballon_look );
-    balloon_config2look( look, &ballon_look, &MenuBalloonConfig, "MenuBalloon" );
-	set_balloon_state_look( MenuBalloons,  &ballon_look );
-
     /* checking sanity of the move-resize window geometry :*/
     if( (look->resize_move_geometry.flags&(HeightValue|WidthValue)) != (HeightValue|WidthValue))
 	{
@@ -1265,6 +1251,132 @@ FixLook( MyLook *look )
     LOCAL_DEBUG_OUT( "syncing %s","");
     ASSync(False);
 #endif
+}
+
+typedef struct AfterStepConfig
+{
+	ASModuleConfig asmodule_config;
+	ASFlagType	flags ;
+	ASFlagType	set_flags ;
+
+}AfterStepConfig;
+
+#define AS_AFTERSTEP_CONFIG(p) AS_MODULE_CONFIG_TYPED(p,CONFIG_AfterStep_ID,AfterStepConfig)
+
+
+static void
+InitAfterStepConfig (ASModuleConfig *asm_config, Bool free_resources)
+{
+	AfterStepConfig *config = AS_AFTERSTEP_CONFIG(asm_config);
+	if( config ) 
+	{
+		/* TODO */
+		if( free_resources ) 
+		{
+		}
+	}
+}
+
+void
+AfterStep_fs2config( ASModuleConfig *asmodule_config, FreeStorageElem *Storage )
+{
+	FreeStorageElem *pCurr;
+	ConfigItem    item;
+	AfterStepConfig *config = AS_AFTERSTEP_CONFIG(asmodule_config) ;
+	
+	if( config == NULL ) 
+		return ; 
+	
+	item.memory = NULL;
+    for (pCurr = Storage; pCurr; pCurr = pCurr->next)
+	{
+		if (pCurr->term == NULL)
+			continue;
+
+		if (pCurr->term->type == TT_FLAG)
+        {
+        }else
+		{
+			if (!ReadConfigItem (&item, pCurr))
+				continue;
+
+			switch (pCurr->term->id)
+			{
+		        default:
+        		    item.ok_to_free = 1;
+			}
+		}
+	}
+	
+	ReadConfigItem (&item, NULL);
+}
+
+void
+MergeAfterStepOptions ( ASModuleConfig *asm_to, ASModuleConfig *asm_from)
+{
+    int i ;
+    START_TIME(option_time);
+
+	AfterStepConfig *to = AS_AFTERSTEP_CONFIG(asm_to);
+	AfterStepConfig *from = AS_AFTERSTEP_CONFIG(asm_from);
+	if( to && from )
+	{
+
+    	/* Need to merge new config with what we have already :*/
+    	/* now lets check the config sanity : */
+    	/* mixing set and default flags : */
+    	ASCF_MERGE_FLAGS(to,from);
+
+	}
+    SHOW_TIME("to parsing",option_time);
+}
+
+
+flag_options_xref AfterStepConfigFlags[] = {
+/*	ASCF_DEFINE_MODULE_FLAG_XREF(WINLIST,FillRowsFirst,WinListConfig), */
+    {0, 0, 0}
+};
+
+
+int AfterStepBalloons[] = { TITLE_BALLOON_ID_START, MENU_BALLOON_ID_START, 0 };
+
+static ASModuleConfigClass _afterstep_config_class = 
+{	CONFIG_AfterStep_ID,
+ 	ASMC_HandlePublicLookOptions|
+	ASMC_HandlePublicFeelOptions
+	/* |ASMC_HandleLookMyStyles */,
+	sizeof(AfterStepConfig),
+ 	"afterstep",
+ 	InitAfterStepConfig,
+	AfterStep_fs2config,
+	MergeAfterStepOptions,
+	&AfterStepSyntax,
+	&LookSyntax,
+	&FeelSyntax,
+	AfterStepConfigFlags,
+	offsetof(AfterStepConfig,set_flags),
+	
+	AfterStepBalloons
+ };
+ 
+ASModuleConfigClass *AfterStepConfigClass = &_afterstep_config_class;
+
+
+void 
+ReloadConfig(ASFlagType what)
+{
+	ASBalloonLook ballon_look ; 
+
+	ASModuleConfig *config = parse_asmodule_config_all( AfterStepConfigClass );
+
+	/* apply it  */
+    balloon_config2look( &Scr.Look, &ballon_look, &BalloonConfig, "TitleButtonBalloon" );
+    set_balloon_state_look( TitlebarBalloons, &ballon_look );
+    balloon_config2look( &Scr.Look, &ballon_look, &MenuBalloonConfig, "MenuBalloon" );
+	set_balloon_state_look( MenuBalloons,  &ballon_look );
+	
+	
+	destroy_ASModule_config( config );
 }
 
 /*
@@ -1516,11 +1628,15 @@ LoadASConfig (int thisdesktop, ASFlagType what)
             if( (const_configfile = get_session_file (Session, thisdesktop, F_CHANGE_LOOK, False) ) != NULL )
             {
                 InitLook (&Scr.Look, True);
+
 				memset( &TmpLook, 0x00, sizeof(TmpLook));
 				TmpLook.magic = MAGIC_MYLOOK ;
 				InitLook (&TmpLook, False );
+
 				LOCAL_DEBUG_OUT( "desk_anime_tint = %lX", TmpLook.desktop_animation_tint );
                 ParseConfigFile (const_configfile, &tline);
+
+
 				LOCAL_DEBUG_OUT( "desk_anime_tint = %lX", TmpLook.desktop_animation_tint );
                 show_progress("LOOK configuration loaded from \"%s\" ...", const_configfile);
                 display_progress( True, "LOOK configuration loaded from \"%s\".", const_configfile);
@@ -1604,19 +1720,7 @@ LoadASConfig (int thisdesktop, ASFlagType what)
         }
         if (get_flags(what, PARSE_LOOK_CONFIG|PARSE_FEEL_CONFIG))
 		{
-            if( (const_configfile = get_session_file (Session, thisdesktop, F_CHANGE_THEME, False) ) != NULL )
-            {
-                ParseConfigFile (const_configfile, &tline);
-                show_progress("THEME configuration loaded from \"%s\" ...", const_configfile);
-                display_progress( True, "THEME configuration loaded from \"%s\" .", const_configfile);
-                if( (configfile = make_session_data_file  (Session, False, R_OK, THEME_OVERRIDE_FILE, NULL )) != NULL )
-                {
-                    ParseConfigFile (configfile, &tline);
-                    show_progress("THEME OVERRIDES configuration loaded from \"%s\" ...", configfile);
-                    display_progress( True, "THEME OVERRIDES configuration loaded from \"%s\" .", configfile);
-                    free( configfile );
-                }
-            }
+			ReloadConfig(what);
         }
 
         if (get_flags(what, PARSE_DATABASE_CONFIG))
@@ -1635,7 +1739,9 @@ LoadASConfig (int thisdesktop, ASFlagType what)
 	} else
 	{
 		ReloadASEnvironment( &old_image_manager, &old_font_manager, NULL, True, True );
+
 		LoadColorScheme();
+
 		memset( &TmpLook, 0x00, sizeof(TmpLook));
 		InitLook (&TmpLook, False );
 		InitLook (&Scr.Look, True);
@@ -1643,9 +1749,10 @@ LoadASConfig (int thisdesktop, ASFlagType what)
 		InitFeel (&TmpFeel, False );
         InitFeel (&Scr.Feel, True);
         ParseConfigFile (Session->overriding_file, &tline);
-        ReloadASDatabase();
 		merge_look( &Scr.Look, &TmpLook );
 		merge_feel( &Scr.Feel, &TmpFeel );
+
+        ReloadASDatabase();
         show_progress("AfterStep configuration loaded from \"%s\" ...", Session->overriding_file);
         display_progress( True, "AfterStep configuration loaded from \"%s\".", Session->overriding_file);
         what = PARSE_EVERYTHING ;

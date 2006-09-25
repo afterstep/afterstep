@@ -286,21 +286,9 @@ SyntaxDef includeSyntax =
 	{TF_NO_MYNAME_PREPENDING, "DontAnimateBackground", 21, TT_INTEGER, LOOK_DontAnimateBackground_ID, NULL}, \
     {TF_NO_MYNAME_PREPENDING, "DontDrawBackground", 18, TT_FLAG, LOOK_DontDrawBackground_ID, NULL}
 
+#define AFTERSTEP_BALLOON_TERMS 	TITLE_BALLOON_TERMS, MENU_BALLOON_TERMS
+
 #define AFTERSTEP_TITLEBUTTON_TERMS \
-    {TF_NO_MYNAME_PREPENDING, "Balloons", 8, TT_FLAG, BALLOON_USED_ID, NULL}, \
-    {TF_NO_MYNAME_PREPENDING, "TitleButtonBalloons", 19, TT_FLAG, BALLOON_USED_ID, NULL}, \
-    {TF_NO_MYNAME_PREPENDING, "BalloonBorderHilite", 18, TT_FLAG, BALLOON_BorderHilite_ID, &BevelSyntax}, \
-    {TF_NO_MYNAME_PREPENDING, "TitleButtonBalloonBorderHilite", 29, TT_FLAG, BALLOON_BorderHilite_ID, &BevelSyntax}, \
-    {TF_NO_MYNAME_PREPENDING, "BalloonXOffset", 14, TT_INTEGER, BALLOON_XOffset_ID, NULL}, \
-    {TF_NO_MYNAME_PREPENDING, "TitleButtonBalloonXOffset", 25, TT_INTEGER, BALLOON_XOffset_ID, NULL}, \
-    {TF_NO_MYNAME_PREPENDING, "BalloonYOffset", 14, TT_INTEGER, BALLOON_YOffset_ID, NULL}, \
-    {TF_NO_MYNAME_PREPENDING, "TitleButtonBalloonYOffset", 25, TT_INTEGER, BALLOON_YOffset_ID, NULL}, \
-    {TF_NO_MYNAME_PREPENDING, "BalloonDelay", 12, TT_UINTEGER, BALLOON_Delay_ID, NULL}, \
-    {TF_NO_MYNAME_PREPENDING, "TitleButtonBalloonDelay", 23, TT_UINTEGER, BALLOON_Delay_ID, NULL}, \
-    {TF_NO_MYNAME_PREPENDING, "BalloonCloseDelay", 17, TT_UINTEGER, BALLOON_CloseDelay_ID, NULL}, \
-    {TF_NO_MYNAME_PREPENDING, "TitleButtonBalloonCloseDelay", 28, TT_UINTEGER, BALLOON_CloseDelay_ID, NULL}, \
-    {TF_NO_MYNAME_PREPENDING, "BalloonStyle", 12, TT_QUOTED_TEXT, BALLOON_Style_ID, NULL}, \
-    {TF_NO_MYNAME_PREPENDING, "TitleButtonBalloonStyle", 23, TT_QUOTED_TEXT, BALLOON_Style_ID, NULL}, \
     {TF_NO_MYNAME_PREPENDING, "TitleButtonSpacingLeft", 22, TT_INTEGER, LOOK_TitleButtonSpacingLeft_ID, NULL}, \
     {TF_NO_MYNAME_PREPENDING, "TitleButtonSpacingRight", 23, TT_INTEGER, LOOK_TitleButtonSpacingRight_ID, NULL}, \
     {TF_NO_MYNAME_PREPENDING, "TitleButtonSpacing", 18, TT_INTEGER, LOOK_TitleButtonSpacing_ID, NULL}, \
@@ -419,6 +407,7 @@ TermDef       LookTerms[] = {
 	INCLUDE_MYSTYLE,
 	INCLUDE_MYFRAME,
     AFTERSTEP_MYBACK_TERMS,
+	AFTERSTEP_BALLOON_TERMS,
 	AFTERSTEP_TITLEBUTTON_TERMS,
     
 	{0, NULL, 0, 0, 0}
@@ -500,6 +489,24 @@ TermDef FunctionTerms[] =
 extern TermDef       WharfTerms[];
 extern TermDef       WharfFolderTerms[];
 
+TermDef AfterStepTerms[] = 
+{
+	POPUP_TERM,
+	FUNCTION_TERM,
+	AFTERSTEP_FEEL_TERMS,
+	AFTERSTEP_CURSOR_TERMS, 
+	AFTERSTEP_MOUSE_TERMS, 
+	AFTERSTEP_KEYBOARD_TERMS, 
+	AFTERSTEP_WINDOWBOX_TERMS,
+	AFTERSTEP_LOOK_TERMS,
+	/* including MyStyles definitions processing */
+	INCLUDE_MYSTYLE,
+	INCLUDE_MYFRAME,
+    AFTERSTEP_MYBACK_TERMS,
+	AFTERSTEP_BALLOON_TERMS,
+	AFTERSTEP_TITLEBUTTON_TERMS,
+  	{0, NULL, 0, 0, 0}
+};
 /**************************************************************************
  * Syntaxes : 
  *************************************************************************/
@@ -509,6 +516,8 @@ SyntaxDef FunctionSyntax 	={ '\n', '\0', FunctionTerms,	0, 	' ', "", "\t", "Afte
 SyntaxDef PopupSyntax 		={ '\n', '\0', PopupTerms,		0,	' ', "", "\t", "AfterStep Popups", "Popups", "Definitions for AfterStep Popups", NULL, 0 };
 SyntaxDef AutoExecSyntax 	={ '\n', '\0', FunctionTerms,	0, 	' ', "", "\t", "AfterStep Autoexec (startup/restart sequences)", "AutoExec", "functions to be executed by AfterStep on startup/shutdown", NULL, 0};
 SyntaxDef ThemeSyntax 		={ '\n', '\0', FunctionTerms,	0,	' ', "", "\t", "theme installation script", "Theme", "AfterStep theme file", NULL, 0};
+
+SyntaxDef AfterStepSyntax 		={ '\n', '\0', AfterStepTerms, 			0, '\t', "", "\t", "AfterStep proper", "Look/Feel", "AfterStep proper", NULL, 0};
 
 SyntaxDef AfterStepLookSyntax 		={ '\n', '\0', AfterStepLookTerms, 			0, '\t', "", "\t", "Look", "Look", "AfterStep look", NULL, 0};
 SyntaxDef ModuleMyStyleSyntax 		={ '\n', '\0', ModuleMyStyleTerms, 			0, '\t', "", "\t", "MyStyles", "MyStyles", "AfterStep MyStyle definitions", NULL, 0};
@@ -561,15 +570,20 @@ void init_asmodule_config( ASModuleConfig *config, Bool free_resources )
 		{
 			if( config->style_defs )
 				DestroyMyStyleDefinitions (&(config->style_defs));
-    		if( config->balloon_conf )
-			    Destroy_balloonConfig (config->balloon_conf);
+    		if( config->balloon_configs )
+			{
+				int i ;
+				for( i = 0 ; config->balloon_configs[i] != NULL ; ++i )
+				    Destroy_balloonConfig (config->balloon_configs[i]);
+			   free( config->balloon_configs );
+			}
 	    	if( config->more_stuff )
 				DestroyFreeStorage (&config->more_stuff);
 		}
 		config->type = 0 ; /* make it invalid type */
 		config->class = NULL ; /* make it invalid type */
 		config->style_defs = NULL;
-    	config->balloon_conf = NULL;
+    	config->balloon_configs = NULL;
     	config->more_stuff = NULL;
 	}
 }
@@ -608,6 +622,13 @@ create_ASModule_config( ASModuleConfigClass *class )
 		init_asmodule_config( config, False );
 		config->type = class->type ;
 		config->class = class ; 
+		if( class->balloon_types != NULL ) 
+		{
+			int count = 0; 
+			while( class->balloon_types[count] > 0 ) ++count;
+			if( count > 0 ) 
+				config->balloon_configs = safecalloc( count+1, sizeof(struct balloonConfig*) ); 
+		}
 		if( class->init_config_func )
 			class->init_config_func(config, False);
 	}
@@ -658,7 +679,14 @@ free_storage2ASModule_config( ASModuleConfigClass *class, ASModuleConfig *config
 		}
 	
 		if( get_flags( flags, ASModuleConfig_HandleBalloons ) )
-	    	config->balloon_conf = Process_balloonOptions(Storage, config->balloon_conf);
+		{
+			int i = 0; 
+			while( class->balloon_types[i] > 0 )
+			{			
+	    		config->balloon_configs[i] = Process_balloonOptions(Storage, config->balloon_configs[i], class->balloon_types[i]);
+				++i ;
+			}
+		}
 
 	    for (pCurr = Storage; pCurr; pCurr = pCurr->next)
 		{
@@ -710,10 +738,7 @@ free_storage2ASModule_config( ASModuleConfigClass *class, ASModuleConfig *config
 void
 merge_ASModule_config( ASModuleConfigClass *class, ASModuleConfig *to, ASModuleConfig *from )
 {
-    if( to->balloon_conf )
-        Destroy_balloonConfig( to->balloon_conf );
-    to->balloon_conf = from->balloon_conf ;
-    from->balloon_conf = NULL ;
+	MergeBalloonOptions ( to, from);
 	/* TODO: also need to merge MyStyle defs */
 
 	if( class->merge_config_func ) 
@@ -758,12 +783,19 @@ parse_asmodule_look(ASModuleConfigClass *class, ASModuleConfig *module_config )
 {
 	const char *const_configfile =  get_session_file (Session, 0, F_CHANGE_LOOK, False);
     if( const_configfile != NULL && class->look_syntax != NULL )
+	{
+		ASFlagType parser_flags 	= 	CP_IgnoreForeign ; 
+		ASFlagType handling_flags 	= 	ASModuleConfig_DiscardDisabled|	
+										ASModuleConfig_HandleBalloons| 
+										ASModuleConfig_HandleFlags|
+										ASModuleConfig_HandleScalars ;
+		if( !get_flags(class->flags, ASMC_HandlePublicLookOptions) )
+			set_flags( parser_flags, CP_IgnorePublic);
+		if( get_flags(class->flags,ASMC_HandleLookMyStyles) ) 
+			set_flags(handling_flags, ASModuleConfig_HandleMyStyles);	
 		return parse_asmodule_config_file(  class, module_config, const_configfile, class->look_syntax, 
-											CP_IgnoreForeign|CP_IgnorePublic,  
-											ASModuleConfig_DiscardDisabled|
-											ASModuleConfig_HandleBalloons| 
-										 	ASModuleConfig_HandleFlags|
-											ASModuleConfig_HandleScalars);
+											parser_flags, handling_flags );
+	}
 	return module_config;
 }
 
@@ -772,12 +804,17 @@ parse_asmodule_feel(ASModuleConfigClass *class, ASModuleConfig *module_config )
 {
 	const char *const_configfile =  get_session_file (Session, 0, F_CHANGE_FEEL, False);
     if( const_configfile != NULL && class->feel_syntax != NULL )
+	{
+		ASFlagType parser_flags 	= 	CP_IgnoreForeign ; 
+		ASFlagType handling_flags 	= 	ASModuleConfig_DiscardDisabled|	
+										ASModuleConfig_HandleBalloons| 
+										ASModuleConfig_HandleFlags|
+										ASModuleConfig_HandleScalars ;
+		if( !get_flags(class->flags, ASMC_HandlePublicFeelOptions) )
+			set_flags( parser_flags, CP_IgnorePublic);
 		return parse_asmodule_config_file( class, module_config, const_configfile, class->feel_syntax, 
-											CP_IgnoreForeign|CP_IgnorePublic,
-											ASModuleConfig_DiscardDisabled|
-											ASModuleConfig_HandleBalloons| 
-										 	ASModuleConfig_HandleFlags|
-											ASModuleConfig_HandleScalars );
+											parser_flags, handling_flags );
+	}
 	return module_config;
 }
 

@@ -171,7 +171,7 @@ mystyle_get_property (ASWMProps *wmprops)
 		}
 		style->colors.fore = prop[i + 4];
 		style->colors.back = prop[i + 5];
-        LOCAL_DEBUG_OUT( "style(%p:\"%s\")->colors(#%lX,#%lX)->flags(0x%lX)->inherit_flags(0x%X)", style, style->name, style->colors.fore, style->colors.back, flags, style->inherit_flags );
+        LOCAL_DEBUG_OUT( "style(%p:\"%s\")->colors(#%lX,#%lX)->flags(0x%lX)->inherit_flags(0x%lX)", style, style->name, style->colors.fore, style->colors.back, flags, style->inherit_flags );
 		style->relief.fore = prop[i + 6];
 		style->relief.back = prop[i + 7];
 		style->texture_type = prop[i + 8];
@@ -184,7 +184,7 @@ mystyle_get_property (ASWMProps *wmprops)
 		style->tint = prop[i + 15];
 		back_alpha = prop[i + 16];
         set_flags(style->user_flags, F_EXTERNAL_BACKPIX|F_EXTERNAL_BACKMASK);
-        LOCAL_DEBUG_OUT( "overlay props = %d, 0x%X", prop[i + 17], prop[i + 18] );
+        LOCAL_DEBUG_OUT( "overlay props = %lu, 0x%lX", prop[i + 17], prop[i + 18] );
 	    style->overlay_type = prop[i + 17];
 		if( prop[i + 18] != None ) 
 		{
@@ -245,7 +245,7 @@ mystyle_get_property (ASWMProps *wmprops)
 		}
 
 		i += MYSTYLE_STATIC_ELEM_NUM + style->gradient.npoints * 4;
-		LOCAL_DEBUG_OUT( "user_flags = 0x%X, inherit_flags = 0x%X", style->user_flags, style->inherit_flags );
+		LOCAL_DEBUG_OUT( "user_flags = 0x%lX, inherit_flags = 0x%lX", style->user_flags, style->inherit_flags );
 		style->set_flags = style->user_flags | style->inherit_flags;
 	}
 

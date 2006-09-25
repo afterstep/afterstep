@@ -210,7 +210,8 @@ DestroyLookConfig (LookConfig * config)
 		if (config->menu_styles[i] != NULL)
 			free (config->menu_styles[i]);
 
-	Destroy_balloonConfig (config->balloon_conf);
+	Destroy_balloonConfig (config->title_balloon_conf);
+	Destroy_balloonConfig (config->menu_balloon_conf);
 	DestroyMyStyleDefinitions (&(config->style_defs));
 	DestroyMyFrameDefinitions (&(config->frame_defs));
 	DestroyFreeStorage (&(config->more_stuff));
@@ -569,7 +570,8 @@ ParseLookOptions (const char *filename, char *myname)
 
 	/* getting rid of all the crap first */
 	StorageCleanUp (&Storage, &(config->more_stuff), CF_DISABLED_OPTION);
-	config->balloon_conf = Process_balloonOptions (Storage, NULL);
+	config->title_balloon_conf = Process_balloonOptions (Storage, NULL, TITLE_BALLOON_ID_START);
+	config->menu_balloon_conf = Process_balloonOptions (Storage, NULL, MENU_BALLOON_ID_START);
 
 	for (pCurr = Storage; pCurr; pCurr = pCurr->next)
 	{
@@ -1071,9 +1073,11 @@ LookConfig2MyLook ( struct LookConfig * config, MyLook * look,
 
 	if (get_flags (what_flags, LL_Balloons))
 	{
+/*	
 		look->balloon_look = balloon_look_new ();
-		if (config->balloon_conf)
-			BalloonConfig2BalloonLook (look->balloon_look, config->balloon_conf);
+		if (config->menu_balloon_conf)
+			BalloonConfig2BalloonLook (look->menu_balloon_look, config->balloon_conf);
+*/			
 	}
 
     if (get_flags (what_flags, LL_SupportedHints))

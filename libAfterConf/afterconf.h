@@ -72,7 +72,7 @@ extern struct SyntaxDef 	 AfterStepMouseSyntax;
 extern struct SyntaxDef 	 AfterStepKeySyntax;
 extern struct SyntaxDef 	 AfterStepWindowBoxSyntax;
 
-
+extern struct SyntaxDef 	 AfterStepSyntax;
 
 extern struct SyntaxDef      PagerSyntax;
 extern struct SyntaxDef      PagerPrivateSyntax;
@@ -352,7 +352,8 @@ typedef struct ASModuleConfig
 	struct ASModuleConfigClass *class ;
 	
 	struct MyStyleDefinition *style_defs ;
-    struct balloonConfig	 *balloon_conf;
+	
+    struct balloonConfig	**balloon_configs; /* in the same order as class->balloon_types */
 
     struct FreeStorageElem   *more_stuff;
 	
@@ -372,6 +373,9 @@ typedef struct ASModuleConfigClass
 {
 	
 	int        type ; /* any of the CONFIG_ values */
+#define ASMC_HandlePublicLookOptions 	(0x01<<0)	
+#define ASMC_HandlePublicFeelOptions 	(0x01<<1)	
+#define ASMC_HandleLookMyStyles			(0x01<<2)	
 	ASFlagType flags ;
 	int 	   config_struct_size ; /* sizeof(ConfigType) */
 	
@@ -387,6 +391,9 @@ typedef struct ASModuleConfigClass
 
 	struct flag_options_xref *flags_xref ;
 	ptrdiff_t 		   set_flags_field_offset ;
+
+	/* balloons */
+	int    *balloon_types ;	/* zero terminated list of base IDs of all supported types of balloons */
 
 }ASModuleConfigClass;
 
@@ -832,37 +839,66 @@ void myframe_parse (char *tline, FILE * fd, char **myname, int *myframe_list);
 
 #define BALLOON_ID_START            (TBAR_LAYOUT_ID_END+1)
 
-#define BALLOON_Balloons_ID			 BALLOON_ID_START
-#define BALLOON_USED_ID	 			 BALLOON_Balloons_ID
-#define BALLOON_BorderHilite_ID     (BALLOON_ID_START+1)
-#define BALLOON_XOffset_ID          (BALLOON_ID_START+2)
-#define BALLOON_YOffset_ID          (BALLOON_ID_START+3)
-#define BALLOON_Delay_ID            (BALLOON_ID_START+4)
-#define BALLOON_CloseDelay_ID       (BALLOON_ID_START+5)
-#define BALLOON_Style_ID            (BALLOON_ID_START+6)
-#define BALLOON_TextPaddingX_ID     (BALLOON_ID_START+7)
-#define BALLOON_TextPaddingY_ID     (BALLOON_ID_START+8)
-#define BALLOON_NoBalloons_ID	 	(BALLOON_ID_START+9)
+#define BALLOON_Balloons_ID_OFFSET			0
+#define BALLOON_USED_ID_OFFSET	 		   	0
+#define BALLOON_BorderHilite_ID_OFFSET     	1
+#define BALLOON_XOffset_ID_OFFSET          	2
+#define BALLOON_YOffset_ID_OFFSET          	3
+#define BALLOON_Delay_ID_OFFSET            	4
+#define BALLOON_CloseDelay_ID_OFFSET       	5
+#define BALLOON_Style_ID_OFFSET            	6
+#define BALLOON_TextPaddingX_ID_OFFSET     	7
+#define BALLOON_TextPaddingY_ID_OFFSET     	8
+#define BALLOON_NoBalloons_ID_OFFSET	   	9
+#define BALLOON_ID_END_OFFSET	   			10
+
+#define BALLOON_Balloons_ID			(BALLOON_ID_START+BALLOON_Balloons_ID_OFFSET)
+#define BALLOON_USED_ID	 			BALLOON_Balloons_ID
+#define BALLOON_BorderHilite_ID     (BALLOON_ID_START+BALLOON_BorderHilite_ID_OFFSET)
+#define BALLOON_XOffset_ID          (BALLOON_ID_START+BALLOON_XOffset_ID_OFFSET)
+#define BALLOON_YOffset_ID          (BALLOON_ID_START+BALLOON_YOffset_ID_OFFSET)
+#define BALLOON_Delay_ID            (BALLOON_ID_START+BALLOON_Delay_ID_OFFSET)
+#define BALLOON_CloseDelay_ID       (BALLOON_ID_START+BALLOON_CloseDelay_ID_OFFSET)
+#define BALLOON_Style_ID            (BALLOON_ID_START+BALLOON_Style_ID_OFFSET)
+#define BALLOON_TextPaddingX_ID     (BALLOON_ID_START+BALLOON_TextPaddingX_ID_OFFSET)
+#define BALLOON_TextPaddingY_ID     (BALLOON_ID_START+BALLOON_TextPaddingY_ID_OFFSET)
+#define BALLOON_NoBalloons_ID	 	(BALLOON_ID_START+BALLOON_NoBalloons_ID_OFFSET)
 
 #define	BALLOON_ID_END				(BALLOON_ID_START+10)
 
-#define BALLOON_FLAG_TERM \
- {0, "Balloons",    8, TT_FLAG , BALLOON_Balloons_ID   , NULL}, \
- {0, "NoBalloons", 10, TT_FLAG , BALLOON_NoBalloons_ID   , NULL}
+#define TITLE_BALLOON_ID_START  (BALLOON_ID_START+BALLOON_ID_END_OFFSET)
+#define MENU_BALLOON_ID_START   (TITLE_BALLOON_ID_START+BALLOON_ID_END_OFFSET)
 
-#define BALLOON_FEEL_TERMS \
- {0, "BalloonXOffset", 14, TT_INTEGER, BALLOON_XOffset_ID        , NULL}, \
- {0, "BalloonYOffset", 14, TT_INTEGER, BALLOON_YOffset_ID        , NULL}, \
- {0, "BalloonDelay", 12, TT_UINTEGER, BALLOON_Delay_ID      , NULL}, \
- {0, "BalloonCloseDelay", 17, TT_UINTEGER, BALLOON_CloseDelay_ID , NULL}
+#define AFTERSTEP_BALLOON_ID_END   (MENU_BALLOON_ID_START+BALLOON_ID_END_OFFSET)
 
-#define BALLOON_LOOK_TERMS \
- {0, "BalloonBorderHilite",19, TT_FLAG, BALLOON_BorderHilite_ID, &BevelSyntax}, \
- {0, "BalloonStyle", 12, TT_QUOTED_TEXT, BALLOON_Style_ID , NULL}, \
- {0, "BalloonTextPaddingX",19, TT_INTEGER, BALLOON_TextPaddingX_ID , NULL}, \
- {0, "BalloonTextPaddingY",19, TT_INTEGER, BALLOON_TextPaddingY_ID , NULL}
+#define BALLOON_FLAG_TERMS_O(o,prefix) \
+ {0, prefix "Balloons",    8+sizeof(prefix), TT_FLAG , 			(o)+BALLOON_Balloons_ID_OFFSET   , NULL}, \
+ {0, prefix "NoBalloons", 10+sizeof(prefix), TT_FLAG , 			(o)+BALLOON_NoBalloons_ID_OFFSET   , NULL}
+
+#define BALLOON_FEEL_TERMS_O(o,prefix) \
+ {0, prefix "BalloonXOffset", 14+sizeof(prefix), TT_INTEGER, 		(o)+BALLOON_XOffset_ID_OFFSET        , NULL}, \
+ {0, prefix "BalloonYOffset", 14+sizeof(prefix), TT_INTEGER, 		(o)+BALLOON_YOffset_ID_OFFSET        , NULL}, \
+ {0, prefix "BalloonDelay", 12+sizeof(prefix), TT_UINTEGER, 		(o)+BALLOON_Delay_ID_OFFSET      , NULL}, \
+ {0, prefix "BalloonCloseDelay", 17+sizeof(prefix), TT_UINTEGER, 	(o)+BALLOON_CloseDelay_ID_OFFSET , NULL}
+
+#define BALLOON_LOOK_TERMS_O(o,prefix) \
+ {0, prefix "BalloonBorderHilite",19+sizeof(prefix), TT_FLAG, 	(o)+BALLOON_BorderHilite_ID_OFFSET, &BevelSyntax}, \
+ {0, prefix "BalloonStyle", 12+sizeof(prefix), TT_QUOTED_TEXT, 	(o)+BALLOON_Style_ID_OFFSET , NULL}, \
+ {0, prefix "BalloonTextPaddingX",19+sizeof(prefix), TT_INTEGER, 	(o)+BALLOON_TextPaddingX_ID_OFFSET , NULL}, \
+ {0, prefix "BalloonTextPaddingY",19+sizeof(prefix), TT_INTEGER, 	(o)+BALLOON_TextPaddingY_ID_OFFSET , NULL}
+
+#define BALLOON_FLAG_TERM BALLOON_FLAG_TERMS_O(BALLOON_ID_START,"")
+#define BALLOON_FEEL_TERMS BALLOON_FEEL_TERMS_O(BALLOON_ID_START,"")
+#define BALLOON_LOOK_TERMS BALLOON_LOOK_TERMS_O(BALLOON_ID_START,"")
 
 #define BALLOON_TERMS BALLOON_FLAG_TERM,BALLOON_FEEL_TERMS,BALLOON_LOOK_TERMS
+#define BALLOON_TERMS_O(o,prefix) BALLOON_FLAG_TERMS_O(o,prefix),BALLOON_FEEL_TERMS_O(o,prefix),BALLOON_LOOK_TERMS_O(o,prefix)
+
+/* custom balloon kinds used by AfterStep proper : */
+#define TITLE_BALLOON_TERMS  	BALLOON_TERMS_O(TITLE_BALLOON_ID_START,"TitleButton")
+#define MENU_BALLOON_TERMS  	BALLOON_TERMS_O(MENU_BALLOON_ID_START,"Menu")
+
+extern int ASDefaultBalloonTypes[];
 
 typedef struct balloonConfig
 {
@@ -883,12 +919,15 @@ typedef struct balloonConfig
   unsigned int Delay, CloseDelay;
   char *Style ;
   int TextPaddingX, TextPaddingY;
+  
+  struct balloonConfig *next ; /* we may have different kinds of balloons */
 }balloonConfig;
 
 balloonConfig *Create_balloonConfig ();
 void Destroy_balloonConfig (balloonConfig * config);
-balloonConfig *Process_balloonOptions (struct FreeStorageElem * options,
-				       balloonConfig * config);
+balloonConfig *Process_balloonOptions (	struct FreeStorageElem * options, 
+										balloonConfig *config, int id_base );
+
 void Print_balloonConfig (balloonConfig * config);
 struct FreeStorageElem **balloon2FreeStorage (struct SyntaxDef * syntax,
 				       struct FreeStorageElem ** tail,
@@ -938,7 +977,7 @@ extern char *pixmapPath;
 
 
 /* ID's used in our config */
-#define PAGER_ID_START      (BALLOON_ID_END+1)
+#define PAGER_ID_START      (AFTERSTEP_BALLOON_ID_END+1)
 #define PAGER_GEOMETRY_ID 	(PAGER_ID_START)
 #define PAGER_ICON_GEOMETRY_ID  (PAGER_ID_START+1)
 #define PAGER_ALIGN_ID		(PAGER_ID_START+2)
@@ -1766,7 +1805,8 @@ typedef struct LookConfig
   char *window_styles[BACK_STYLES];
   char *menu_styles[MENU_BACK_STYLES];
 
-  balloonConfig *balloon_conf;
+  balloonConfig *title_balloon_conf;
+  balloonConfig *menu_balloon_conf;
   MyStyleDefinition *style_defs;
   MyFrameDefinition *frame_defs;
   MyBackgroundConfig *back_defs;
