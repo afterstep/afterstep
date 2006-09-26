@@ -146,7 +146,7 @@ Process_balloonOptions (FreeStorageElem * options, balloonConfig *config, int id
     for (; options; options = options->next)
     {
 		int orig_id = options->term->id ; 
-		int id = options->term->id + id_base - BALLOON_ID_START ; 
+		int id = (int)options->term->id - id_base + BALLOON_ID_START ; 
         if (id < BALLOON_ID_START || id > BALLOON_ID_END )
             continue;
 

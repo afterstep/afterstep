@@ -55,6 +55,163 @@
 #include "../../libAfterConf/afterconf.h"
 
 
+typedef struct AfterStepConfig
+{
+	ASModuleConfig asmodule_config;
+	ASFlagType	flags ;
+	ASFlagType	set_flags ;
+
+}AfterStepConfig;
+
+#define AS_AFTERSTEP_CONFIG(p) AS_MODULE_CONFIG_TYPED(p,CONFIG_AfterStep_ID,AfterStepConfig)
+
+
+static void
+InitAfterStepConfig (ASModuleConfig *asm_config, Bool free_resources)
+{
+	AfterStepConfig *config = AS_AFTERSTEP_CONFIG(asm_config);
+	if( config ) 
+	{
+		/* TODO */
+		if( free_resources ) 
+		{
+		}
+	}
+}
+
+void
+AfterStep_fs2config( ASModuleConfig *asmodule_config, FreeStorageElem *Storage )
+{
+	FreeStorageElem *pCurr;
+	ConfigItem    item;
+	AfterStepConfig *config = AS_AFTERSTEP_CONFIG(asmodule_config) ;
+	
+	if( config == NULL ) 
+		return ; 
+	
+	item.memory = NULL;
+    for (pCurr = Storage; pCurr; pCurr = pCurr->next)
+	{
+		if (pCurr->term == NULL)
+			continue;
+
+		if (pCurr->term->type == TT_FLAG)
+        {
+        }else
+		{
+			if (!ReadConfigItem (&item, pCurr))
+				continue;
+
+			switch (pCurr->term->id)
+			{
+		        default:
+        		    item.ok_to_free = 1;
+			}
+		}
+	}
+	
+	ReadConfigItem (&item, NULL);
+}
+
+void
+MergeAfterStepOptions ( ASModuleConfig *asm_to, ASModuleConfig *asm_from)
+{
+    int i ;
+    START_TIME(option_time);
+
+	AfterStepConfig *to = AS_AFTERSTEP_CONFIG(asm_to);
+	AfterStepConfig *from = AS_AFTERSTEP_CONFIG(asm_from);
+	if( to && from )
+	{
+
+    	/* Need to merge new config with what we have already :*/
+    	/* now lets check the config sanity : */
+    	/* mixing set and default flags : */
+    	ASCF_MERGE_FLAGS(to,from);
+
+	}
+    SHOW_TIME("to parsing",option_time);
+}
+
+
+flag_options_xref AfterStepConfigFlags[] = {
+/*	ASCF_DEFINE_MODULE_FLAG_XREF(WINLIST,FillRowsFirst,WinListConfig), */
+    {0, 0, 0}
+};
+
+
+int AfterStepBalloons[] = { TITLE_BALLOON_ID_START, MENU_BALLOON_ID_START, 0 };
+
+static ASModuleConfigClass _afterstep_config_class = 
+{	CONFIG_AfterStep_ID,
+ 	ASMC_HandlePublicLookOptions|
+	ASMC_HandlePublicFeelOptions
+	/* |ASMC_HandleLookMyStyles */,
+	sizeof(AfterStepConfig),
+ 	"afterstep",
+ 	InitAfterStepConfig,
+	AfterStep_fs2config,
+	MergeAfterStepOptions,
+	&AfterStepSyntax,
+	&LookSyntax,
+	&FeelSyntax,
+	AfterStepConfigFlags,
+	offsetof(AfterStepConfig,set_flags),
+	
+	AfterStepBalloons
+ };
+ 
+ASModuleConfigClass *AfterStepConfigClass = &_afterstep_config_class;
+
+
+void 
+ReloadConfig(ASFlagType what)
+{
+	ASBalloonLook ballon_look ; 
+
+	ASModuleConfig *config = parse_asmodule_config_all( AfterStepConfigClass );
+
+	/* apply it  */
+	Print_balloonConfig (config->balloon_configs[0] );
+    balloon_config2look( &Scr.Look, &ballon_look, config->balloon_configs[0], "TitleButtonBalloon" );
+    set_balloon_state_look( TitlebarBalloons, &ballon_look );
+	Print_balloonConfig (config->balloon_configs[1] );
+    balloon_config2look( &Scr.Look, &ballon_look, config->balloon_configs[1], "MenuBalloon" );
+	set_balloon_state_look( MenuBalloons,  &ballon_look );
+	
+	
+	destroy_ASModule_config( config );
+}
+
+#ifdef AFTERSTEP_CONFIG_TEST
+
+ASBalloonState *MenuBalloons = NULL ; 
+ASBalloonState *TitlebarBalloons = NULL ; 
+
+int main(int argc, char **argv )
+{
+
+    ASImageManager  *old_image_manager = NULL ;
+    ASFontManager   *old_font_manager  = NULL ;
+    InitMyApp( CLASS_AFTERSTEP, argc, argv, NULL, NULL, 0);
+	LinkAfterStepConfig();
+    if( ConnectX( ASDefaultScr, 0 ) < 0  )
+	{
+		show_error( "Hostile X server encountered - unable to proceed :-(");
+		return 1;/* failed to accure window management selection - other wm is running */
+	}
+	InitSession();
+	MenuBalloons = create_balloon_state(); 
+	TitlebarBalloons = create_balloon_state(); 
+	ReloadASEnvironment( &old_image_manager, &old_font_manager, NULL, True, True );
+	LoadColorScheme();
+	ReloadConfig(0xFFFFFFFF);
+
+}
+
+#else
+
+
 /* old look auxilary variables : */
 static MyFont StdFont    = {NULL};         /* font structure */
 static MyFont WindowFont = {NULL};      /* font structure for window titles */
@@ -1253,131 +1410,6 @@ FixLook( MyLook *look )
 #endif
 }
 
-typedef struct AfterStepConfig
-{
-	ASModuleConfig asmodule_config;
-	ASFlagType	flags ;
-	ASFlagType	set_flags ;
-
-}AfterStepConfig;
-
-#define AS_AFTERSTEP_CONFIG(p) AS_MODULE_CONFIG_TYPED(p,CONFIG_AfterStep_ID,AfterStepConfig)
-
-
-static void
-InitAfterStepConfig (ASModuleConfig *asm_config, Bool free_resources)
-{
-	AfterStepConfig *config = AS_AFTERSTEP_CONFIG(asm_config);
-	if( config ) 
-	{
-		/* TODO */
-		if( free_resources ) 
-		{
-		}
-	}
-}
-
-void
-AfterStep_fs2config( ASModuleConfig *asmodule_config, FreeStorageElem *Storage )
-{
-	FreeStorageElem *pCurr;
-	ConfigItem    item;
-	AfterStepConfig *config = AS_AFTERSTEP_CONFIG(asmodule_config) ;
-	
-	if( config == NULL ) 
-		return ; 
-	
-	item.memory = NULL;
-    for (pCurr = Storage; pCurr; pCurr = pCurr->next)
-	{
-		if (pCurr->term == NULL)
-			continue;
-
-		if (pCurr->term->type == TT_FLAG)
-        {
-        }else
-		{
-			if (!ReadConfigItem (&item, pCurr))
-				continue;
-
-			switch (pCurr->term->id)
-			{
-		        default:
-        		    item.ok_to_free = 1;
-			}
-		}
-	}
-	
-	ReadConfigItem (&item, NULL);
-}
-
-void
-MergeAfterStepOptions ( ASModuleConfig *asm_to, ASModuleConfig *asm_from)
-{
-    int i ;
-    START_TIME(option_time);
-
-	AfterStepConfig *to = AS_AFTERSTEP_CONFIG(asm_to);
-	AfterStepConfig *from = AS_AFTERSTEP_CONFIG(asm_from);
-	if( to && from )
-	{
-
-    	/* Need to merge new config with what we have already :*/
-    	/* now lets check the config sanity : */
-    	/* mixing set and default flags : */
-    	ASCF_MERGE_FLAGS(to,from);
-
-	}
-    SHOW_TIME("to parsing",option_time);
-}
-
-
-flag_options_xref AfterStepConfigFlags[] = {
-/*	ASCF_DEFINE_MODULE_FLAG_XREF(WINLIST,FillRowsFirst,WinListConfig), */
-    {0, 0, 0}
-};
-
-
-int AfterStepBalloons[] = { TITLE_BALLOON_ID_START, MENU_BALLOON_ID_START, 0 };
-
-static ASModuleConfigClass _afterstep_config_class = 
-{	CONFIG_AfterStep_ID,
- 	ASMC_HandlePublicLookOptions|
-	ASMC_HandlePublicFeelOptions
-	/* |ASMC_HandleLookMyStyles */,
-	sizeof(AfterStepConfig),
- 	"afterstep",
- 	InitAfterStepConfig,
-	AfterStep_fs2config,
-	MergeAfterStepOptions,
-	&AfterStepSyntax,
-	&LookSyntax,
-	&FeelSyntax,
-	AfterStepConfigFlags,
-	offsetof(AfterStepConfig,set_flags),
-	
-	AfterStepBalloons
- };
- 
-ASModuleConfigClass *AfterStepConfigClass = &_afterstep_config_class;
-
-
-void 
-ReloadConfig(ASFlagType what)
-{
-	ASBalloonLook ballon_look ; 
-
-	ASModuleConfig *config = parse_asmodule_config_all( AfterStepConfigClass );
-
-	/* apply it  */
-    balloon_config2look( &Scr.Look, &ballon_look, &BalloonConfig, "TitleButtonBalloon" );
-    set_balloon_state_look( TitlebarBalloons, &ballon_look );
-    balloon_config2look( &Scr.Look, &ballon_look, &MenuBalloonConfig, "MenuBalloon" );
-	set_balloon_state_look( MenuBalloons,  &ballon_look );
-	
-	
-	destroy_ASModule_config( config );
-}
 
 /*
  * Initialize database variables
@@ -1718,11 +1750,6 @@ LoadASConfig (int thisdesktop, ASFlagType what)
                 clear_flags(what, PARSE_FEEL_CONFIG);
             }
         }
-        if (get_flags(what, PARSE_LOOK_CONFIG|PARSE_FEEL_CONFIG))
-		{
-			ReloadConfig(what);
-        }
-
         if (get_flags(what, PARSE_DATABASE_CONFIG))
 		{
 			if( !ReloadASDatabase() )
@@ -1803,6 +1830,12 @@ LoadASConfig (int thisdesktop, ASFlagType what)
             change_desktop_background( Scr.CurrentDesk );
 		}
     }
+	
+	if (get_flags(what, PARSE_LOOK_CONFIG|PARSE_FEEL_CONFIG))
+	{
+		ReloadConfig(what);
+    }
+
 
     if( get_flags(what, PARSE_BASE_CONFIG|PARSE_LOOK_CONFIG|PARSE_FEEL_CONFIG))
 	{
@@ -2465,4 +2498,5 @@ match_string (struct config *table, char *text, char *error_msg, FILE * fd)
 		tline_error (error_msg);
 }
 
+#endif
 

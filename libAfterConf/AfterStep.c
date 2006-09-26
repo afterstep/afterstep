@@ -683,6 +683,7 @@ free_storage2ASModule_config( ASModuleConfigClass *class, ASModuleConfig *config
 			int i = 0; 
 			while( class->balloon_types[i] > 0 )
 			{			
+				LOCAL_DEBUG_OUT( "handling balloons type %d, base_ID = %d", i, class->balloon_types[i] );
 	    		config->balloon_configs[i] = Process_balloonOptions(Storage, config->balloon_configs[i], class->balloon_types[i]);
 				++i ;
 			}
