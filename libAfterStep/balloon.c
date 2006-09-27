@@ -131,20 +131,23 @@ display_active_balloon( ASBalloonState *state )
     if( state->active != NULL && state->active_window != None &&
         state->active_canvas == NULL )
     {
-		int prx, pry ;
 		ASTBarData *tbar = state->active->owner ;
         while (timer_remove_by_data (state->active));
 		/* we must check if active_window still has mouse pointer !!! */
-		if( ASQueryPointerRootXY( &prx, &pry ) )
-			if( prx < tbar->root_x && pry < tbar->root_y &&
-				prx >= tbar->root_x + tbar->width && pry >= tbar->root_y + tbar->height )
-			{
-				LOCAL_DEBUG_OUT( "active_geom = %dx%d%+d%+d, pointer at %+d%+d",
-								 tbar->width, tbar->height, tbar->root_x, tbar->root_y, prx, pry );
-				state->active = NULL ;
-				state->active_window = None ;
-				return ;
-			}
+		if( tbar != NULL ) 
+		{
+			int prx, pry ;
+			if( ASQueryPointerRootXY( &prx, &pry ) )
+				if( prx < tbar->root_x && pry < tbar->root_y &&
+					prx >= tbar->root_x + tbar->width && pry >= tbar->root_y + tbar->height )
+				{
+					LOCAL_DEBUG_OUT( "active_geom = %dx%d%+d%+d, pointer at %+d%+d",
+									 tbar->width, tbar->height, tbar->root_x, tbar->root_y, prx, pry );
+					state->active = NULL ;
+					state->active_window = None ;
+					return ;
+				}
+		}
         state->active_canvas = create_ascanvas(state->active_window);
         state->active_bar = create_astbar();
         add_astbar_label( state->active_bar, 0, 0, 0, ALIGN_CENTER, 1, 1, state->active->text, state->active->encoding );
@@ -358,12 +361,10 @@ ASBalloon *
 create_asballoon_for_state (ASBalloonState *state, ASTBarData *owner)
 {
     ASBalloon *balloon = NULL ;
-    if( owner )
-    {
-        balloon = safecalloc( 1, sizeof(ASBalloon) );
-        balloon->owner = owner ;
-		balloon->state = (state==NULL)?&DefaultBalloonState:state;
-    }
+ 	
+    balloon = safecalloc( 1, sizeof(ASBalloon) );
+    balloon->owner = owner ;
+	balloon->state = (state==NULL)?&DefaultBalloonState:state;
     return balloon;
 }
 

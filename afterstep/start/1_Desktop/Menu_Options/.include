@@ -2,4 +2,6 @@ name 		Menu Options
 
 SmallMiniPixmap Folder-MenuEdit
 
+Comment  All items in this menu set parameters for current session only. To persist changes - edit look/feel file!
+
 #Category 	"AfterStepConfig"

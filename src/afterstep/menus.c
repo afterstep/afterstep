@@ -160,6 +160,9 @@ LOCAL_DEBUG_CALLER_OUT( "top(%p)->supermenu(%p)->menu(%p)->submenu(%p)", ASTopmo
                 free( menu->name );
             if( menu->title )
                 free( menu->title );
+
+			destroy_asballoon( &(menu->comment_balloon) );
+
             menu->magic = 0 ;
             free( menu );
             *pmenu = NULL ;
@@ -598,6 +601,15 @@ set_asmenu_data( ASMenu *menu, MenuData *md, Bool first_time, Bool show_unavaila
 	}else
 		menu->selected_item = -1 ;
     menu->pressed_item = -1;
+	
+	if( md->comment != NULL ) 
+	{
+		if( menu->comment_balloon == NULL )
+			menu->comment_balloon = create_asballoon_with_text_for_state ( MenuBalloons, NULL, md->comment, 0);
+		else
+			balloon_set_text (menu->comment_balloon, md->comment, 0);
+	}else if( menu->comment_balloon )
+		destroy_asballoon( &(menu->comment_balloon) );
 }
 
 void
@@ -1141,9 +1153,12 @@ on_menu_pointer_event( ASInternalWindow *asiw, ASEvent *event )
 		XEvent tmp_e ;
 		if( ASCheckTypedWindowEvent(canvas->w,LeaveNotify,&tmp_e) )
 		{
+            withdraw_balloon( menu->comment_balloon );
 			XPutBackEvent( dpy, &tmp_e );
 			return ;    /* pointer has moved into other window - ignore this event! */
 		}
+		if( menu->comment_balloon ) 
+            display_balloon( menu->comment_balloon );
 		/* must get current pointer position as MotionNotify events
 		   tend to accumulate while we are drawing and we start getting
 		   late with menu selection, creating an illusion of slowness */

@@ -61,6 +61,7 @@ typedef struct ASMenu
 
     Window client_window;
 
+	ASBalloon *comment_balloon ;
 }ASMenu;
 
 
