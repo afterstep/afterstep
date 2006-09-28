@@ -501,6 +501,10 @@ DigestEvent( ASEvent *event )
 								  	(event->x.type == LeaveNotify),
 								  	(last_pointer_root_x != pointer_root_x || last_pointer_root_y != pointer_root_y) );
 		}		
+		if( event->x.type == LeaveNotify ) 
+		{
+			withdraw_active_balloon_from( TitlebarBalloons );
+		}
 		last_pointer_root_x = pointer_root_x ;
 		last_pointer_root_y = pointer_root_y ;
 

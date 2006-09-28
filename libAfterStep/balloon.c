@@ -165,6 +165,7 @@ withdraw_active_balloon_from( ASBalloonState *state )
 {
 	if( state == NULL )
 		state = &DefaultBalloonState ; 
+    LOCAL_DEBUG_CALLER_OUT( "state = %p, active = %p", state, state->active );
 
     if( state->active != NULL )
     {
