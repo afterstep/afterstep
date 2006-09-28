@@ -485,7 +485,7 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf, Bool reload_submenus)
         menu = CreateMenuData (buf);
 	}
 	if( menu && tree->comment ) 
-		menu->comment = mystrdup( tree->comment );
+		menu->comment = interpret_ascii_string( tree->comment );
 		
 	if( get_flags( tree->flags, DIRTREE_RECENT_ITEMS_SET ) )
 		menu->recent_items = tree->recent_items ;

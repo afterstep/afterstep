@@ -312,6 +312,7 @@ withdraw_balloon( ASBalloon *balloon )
     if( balloon != NULL )
 	{
 		ASBalloonState *state = balloon->state; 
+	    LOCAL_DEBUG_OUT( "state = %p, active = %p", state, state->active );
     	if( balloon == state->active )
         	withdraw_active_balloon_from(state);
 	}

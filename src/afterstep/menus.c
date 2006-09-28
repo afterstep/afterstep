@@ -449,7 +449,7 @@ render_asmenu_bars( ASMenu *menu, Bool force )
         {
             update_canvas_display( menu->main_canvas );
             ASSync(False);
-			menu->rendered = True ;
+			set_flags(	menu->state, AS_MenuRendered);
         }
 		if( cache ) 
 			safe_asimage_destroy( cache );
@@ -608,6 +608,7 @@ set_asmenu_data( ASMenu *menu, MenuData *md, Bool first_time, Bool show_unavaila
 			menu->comment_balloon = create_asballoon_with_text_for_state ( MenuBalloons, NULL, md->comment, 0);
 		else
 			balloon_set_text (menu->comment_balloon, md->comment, 0);
+		clear_flags( menu->state, AS_MenuBalloonShown);
 	}else if( menu->comment_balloon )
 		destroy_asballoon( &(menu->comment_balloon) );
 }
@@ -940,8 +941,8 @@ LOCAL_DEBUG_CALLER_OUT( "%p,%d", menu, pressed );
         }
     }
     render_asmenu_bars(menu, False);
-LOCAL_DEBUG_OUT( "pressed(%d)->old_pressed(%d)->focused(%d)", pressed, menu->pressed_item, menu->focused );
-    if( menu->focused )
+LOCAL_DEBUG_OUT( "pressed(%d)->old_pressed(%d)->focused(%d)", pressed, menu->pressed_item, get_flags(menu->state, AS_MenuFocused)?1:0 );
+    if( get_flags(menu->state, AS_MenuFocused) )
 	{	
 		int item_no = keyboard_event?pressed:menu->pressed_item ;
     	
@@ -953,7 +954,7 @@ LOCAL_DEBUG_OUT( "pressed(%d)->old_pressed(%d)->focused(%d)", pressed, menu->pre
         	{
             	set_menu_item_used( menu, item->source );
             	ExecuteFunctionForClient( &(item->fdata), menu->client_window );
-            	if( !menu->pinned )
+            	if( !get_flags(menu->state, AS_MenuPinned) )
                 	close_asmenu( &ASTopmostMenu );
         	}
     	}
@@ -1025,7 +1026,10 @@ LOCAL_DEBUG_CALLER_OUT( "%p, %p, %d", asiw, data, focused );
     {
         /* TODO : hilite/unhilite selected item, and
          * withdraw non-pinned menu if it has no submenus */
-        menu->focused = focused ;
+		if( focused ) 
+		 	set_flags(menu->state, AS_MenuFocused);
+		else
+			clear_flags(menu->state, AS_MenuFocused);
     }
 }
 
@@ -1157,8 +1161,11 @@ on_menu_pointer_event( ASInternalWindow *asiw, ASEvent *event )
 			XPutBackEvent( dpy, &tmp_e );
 			return ;    /* pointer has moved into other window - ignore this event! */
 		}
-		if( menu->comment_balloon ) 
-            display_balloon( menu->comment_balloon );
+		if( menu->comment_balloon && !get_flags( menu->state, AS_MenuBalloonShown)) 
+		{
+   			set_flags( menu->state, AS_MenuBalloonShown);
+		    display_balloon( menu->comment_balloon );
+		}
 		/* must get current pointer position as MotionNotify events
 		   tend to accumulate while we are drawing and we start getting
 		   late with menu selection, creating an illusion of slowness */
@@ -1572,7 +1579,7 @@ run_submenu( ASMenu *supermenu, MenuData *md, int x, int y )
     if( md )
     {
 		menu = create_asmenu(md->name);
-        menu->rendered = False ;
+		clear_flags( menu->state, AS_MenuRendered);
 		set_asmenu_data( menu, md, True, get_flags(Scr.Look.flags, MenuShowUnavailable), Scr.Feel.recent_submenu_items );
         set_asmenu_look( menu, &Scr.Look );
         /* will set scroll position when ConfigureNotify arrives */
@@ -1637,7 +1644,7 @@ ASMenu *
 find_topmost_transient_menu( ASMenu *menu )
 {
     if( menu && menu->supermenu && menu->supermenu->magic == MAGIC_ASMENU )
-        if( !menu->supermenu->pinned )
+        if( !get_flags(menu->supermenu->state, AS_MenuPinned) )
             return find_topmost_transient_menu( menu->supermenu );
     return menu;
 }
@@ -1659,7 +1666,7 @@ pin_asmenu( ASMenu *menu )
         if( menu_to_close != menu )
             close_asmenu( &menu_to_close );
 
-        menu->pinned = True ;
+		set_flags(menu->state, AS_MenuPinned);
         if( menu->owner )
         {
             clear_flags( menu->owner->hints->function_mask, AS_FuncPinMenu);
@@ -1676,7 +1683,7 @@ Bool
 is_menu_pinnable( ASMenu *menu )
 {
     if( menu && menu->magic == MAGIC_ASMENU )
-        return !(menu->pinned);
+        return !get_flags(menu->state, AS_MenuPinned);
     return False;
 }
 

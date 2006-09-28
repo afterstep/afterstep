@@ -98,6 +98,7 @@ char **comma_string2list (char *string);
 char *list2comma_string (char **list);
 void destroy_string_list( char **list );
 
+char *interpret_ascii_string( const char *str );
 
 char *make_tricky_text( char *src );
 

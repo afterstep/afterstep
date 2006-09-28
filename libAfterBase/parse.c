@@ -1281,3 +1281,31 @@ make_tricky_text( char *src )
     return trg;
 }
 
+char *interpret_ascii_string( const char *str )
+{
+	int src_i = 0, dst_i = 0; 
+	char *dst = safemalloc( (str?strlen(str):0)+1 );
+	
+	while( str[src_i] != '\0' ) 
+	{
+		if( str[src_i] == '\\' )
+		{
+			++src_i ; 
+			if( str[src_i] == 't' ) 
+				dst[dst_i++] = '\t' ;
+			else if( str[src_i] == 'n' ) 
+				dst[dst_i++] = '\n' ;
+			else if( str[src_i] == 'r' ) 
+				dst[dst_i++] = '\r' ;
+			else if( str[src_i] == '\\' ) 
+				dst[dst_i++] = '\\' ;
+			else if( str[src_i] == '\0' ) 
+				break;
+		}else
+			dst[dst_i++] = str[src_i] ;
+		
+		++src_i ;
+	}
+	dst[dst_i] = '\0' ;
+	return dst;
+}

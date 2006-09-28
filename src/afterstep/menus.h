@@ -30,6 +30,11 @@ typedef struct ASMenuItem
 
 typedef struct ASMenu
 {
+#define AS_MenuRendered		(0x01<<0)
+#define AS_MenuFocused		(0x01<<1)
+#define AS_MenuPinned		(0x01<<2)
+#define AS_MenuBalloonShown	(0x01<<3)
+	ASFlagType state ; 
     unsigned long magic ;
     char  *name ;                              /* the name of the popup */
     char  *title ;                             /* text of the first F_TITLE item */
@@ -50,10 +55,6 @@ typedef struct ASMenu
     unsigned int optimal_width, optimal_height;
     unsigned int icon_space, arrow_space ;
 	unsigned int scroll_bar_size ;
-
-    Bool rendered ;
-    Bool focused ;
-    Bool pinned ;
 
     struct ASWindow *owner;
 
