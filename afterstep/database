@@ -14,6 +14,9 @@
 #   * under Unix from the 'xprop' command line program
 #   * under Microsoft Windows from the "Window Properties" in the (start)menu
 
+# IMPORTANT : database supports only comments that start at the beginning of the line !!!
+#
+
 # Default icons and styles
 Style   "*"             Icon interface.xpm
 Style	"Unknown"	Icon Unknown.xpm
@@ -54,19 +57,25 @@ Style   "*rxvt"         Icon rxvt
 Style   "aterm"         Icon aterm
 
 # Web browsers
-Style	"Mozilla-bin"		Icon logos/mozilla, IgnoreConfig	# , StartsOnDesk 1
-Style	"Firefox-bin"		Icon logos/Firefox, IgnoreConfig	# , StartsOnDesk 1
-Style	"Galeon"		IgnoreConfig		# , StartsOnDesk 1
-Style	"Netscape"		Icon netscape.xpm, IgnoreConfig	# , StartsOnDesk 1
+Style	"Mozilla-bin"		Icon logos/mozilla, IgnoreConfig	
+# , StartsOnDesk 1
+Style	"Firefox-bin"		Icon logos/Firefox, IgnoreConfig	
+# , StartsOnDesk 1
+Style	"Galeon"		IgnoreConfig		
+# , StartsOnDesk 1
+Style	"Netscape"		Icon netscape.xpm, IgnoreConfig	
+# , StartsOnDesk 1
 
 # Email apps
 #Style	"Thunderbird-bin"	StartsOnDesk 2
-Style	"evolution"		IgnoreConfig		#, StartsOnDesk 2
+Style	"evolution"		IgnoreConfig		
+#, StartsOnDesk 2
 
 # IRC and instant messagers
 Style 	"Bitch*"		NoHandles, Sticky
 #Style   "Psi"           StartsOnDesk 1
-Style   "psidock"       WindowListSkip, CirculateSkip, Sticky #, StartsOnDesk 1
+Style   "psidock"       WindowListSkip, CirculateSkip, Sticky 
+#, StartsOnDesk 1
 Style   "Licq*"         Sticky, NoButton 1, NoButton 4, NoButton 6
 
 # Graphic apps
@@ -114,7 +123,8 @@ Style   "Bottom Panel"     DefaultGeometry -0-0
 Style   "xcalc"         Icon xcalc.xpm
 Style	"alarmd"		AvoidCover, NoTitle, NoHandles, WindowListSkip, CirculateSkip, Layer 0, Sticky
 Style   "gdiskfree"     AvoidCover, Layer 0
-Style	"vmware-ui"		Icon Network.xpm, NoButton 2			#, StartsOnDesk 0
+Style	"vmware-ui"		Icon Network.xpm, NoButton 2			
+#, StartsOnDesk 0
 Style	"xdos"		    NoButton 2		#, StartsOnDesk 0
 Style   "xli"           Icon monalisa.xpm
 Style   "*man"          Icon Info.xpm
