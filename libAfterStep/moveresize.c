@@ -343,7 +343,7 @@ prepare_move_resize_data( ASMoveResizeData *data, ASWidget *parent, ASWidget *mr
 
 	/* " %u x %u %+d %+d " */
 	data->geometry_string = safemalloc( 1+6+3+6+2+6+2+6+1+1 +30/*for the heck of it*/);
-	data->geometry_display = create_ashint_window( scr, look, "88888 x 88888 +88888 +88888" );
+	data->geometry_display = create_ashint_window( scr, look, "88888 x 88888 +88888 +88888 (-88888 -88888)" );
     
 	data->below_sibling = data->geometry_display->w ;
 	
@@ -360,6 +360,7 @@ update_geometry_display( ASMoveResizeData *data )
     int display_height = (int)data->curr.height-(int)data->frame_height ;
     int display_x = data->curr.x - data->geom_x_origin;
     int display_y = data->curr.y - data->geom_y_origin;
+	int east_x, south_y ; 
 	
 	if( display_height < 0 ) 
 		display_height = 0 ;
@@ -376,16 +377,18 @@ update_geometry_display( ASMoveResizeData *data )
         display_y = (display_y*data->geom_y_mult)/data->geom_y_div ;
         display_height = (display_height*data->geom_y_mult)/data->geom_y_div ;
     }
+	east_x  = display_x + display_width  - data->geometry_display->scr->MyDisplayWidth ;
+	south_y = display_y + display_height - data->geometry_display->scr->MyDisplayHeight;	
 	if( data->width_inc != 0 )
         display_width /= (int)data->width_inc ;
     if( data->height_inc != 0 )
         display_height /= (int)data->height_inc ;
     if( display_width == 0 && display_height != 0 ) 
-		sprintf (data->geometry_string, "x %d %+d %+d", display_height, display_x, display_y );
+		sprintf (data->geometry_string, "x %d %+d %+d", display_height, display_x, display_y  );
 	else if( display_width != 0 && display_height == 0 ) 
 		sprintf (data->geometry_string, "%d x  %+d %+d", display_width, display_x, display_y );
 	else if( display_width != 0 && display_height != 0 ) 
-		sprintf (data->geometry_string, "%d x %d %+d %+d", display_width, display_height, display_x, display_y );
+		sprintf (data->geometry_string, "%d x %d %+d %+d (%+d %+d)", display_width, display_height, display_x, display_y, east_x, south_y );
 	else
 		sprintf (data->geometry_string, "%+d %+d",display_x, display_y );
 
