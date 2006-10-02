@@ -1,6 +1,503 @@
 
+2006-10-02  sasha
+
+	* fixed unavailable items from desktop entries being shown as
+	  available in menus
+
+2006-09-29  sasha
+
+	* removed # StartsOnDesk comments from some lines - no inline
+	  comments for database
+	* fixed geometry string formatting for workstation state saving for
+	  windows with south and east gravities; added south/east values to
+	  geometry display while dragging
+
+2006-09-28  sasha
+
+	* fixed balloons not being withdrawn upon LeaveNotify events in AS
+	  proper
+	* completed debugging menu tips/comments. See
+	  start/Desktop/MenuOptions/.include for example
+
+2006-09-27  sasha
+
+	* implemented tips for menu - needs some work  for formating
+	  options and not reshowing it excessively
+
+2006-09-26  sasha
+
+	* debugged balloons config parsing by AS proper - added test
+	  container to AS makefile
+
+2006-09-25  sasha
+
+	* work in progress - adding libAfterConf support to afterstep
+	  proper
+
+2006-09-21  sasha
+
+	* pile of changes to infrastructure in preparation to menu tips
+	  implementation
+
+2006-09-21  madarche
+
+	* M.-A. DARCHE : - Added support for wmload, yet another
+	  loadmonitor, in the MonitorWharf.
+
+2006-09-20  sasha
+
+	* fixed titles of submenus generated from Popup spec in file
+
+2006-09-20  speedy
+
+	* updated Ghost icon to Ghost2.
+	* added new Ghost2 icon for clarity.
+	* changed ghost icon to display better.
+
+2006-09-20  sasha
+
+	* added the ability to have several kind of balloons per app
+
+2006-09-19  speedy
+
+	* added icons for the toggle items.
+	* added composite icons for toggle items.
+	* updated older icons.
+	* added new player function icons, updated older icons.
+
+2006-09-19  sasha
+
+	* finished debugging recent submenu items adjustability on the fly
+	  as well as debugging of Popup in a file
+
+2006-09-18  sasha
+
+	* added functionality to allow for specifying entire popups in menu
+	  entry files
+
+2006-09-15  speedy
+
+	* added Lightswitch icon to toggle menu items.
+	* added Lightswitch icon image.
+
+2006-09-15  sasha
+
+	* added ability to change number of recent submenu selections at
+	  runtime - need to add corresponding menu items
+	* changed Menu Options to be able to simply togle them on/off;
+	  Added ability to parse_math to use logical Not on variables and
+	  have - sign in front of the variable
+	* fixed infinite loop under win32 in import.c
+
+2006-09-14  sasha
+
+	* added aditional menu options to those selectable from the menu
+
+2006-09-13  speedy
+
+	* added folder xml icon for Menu Editing.
+	* added icon for folder.
+
+2006-09-13  sasha
+
+	* fixed reading and writing animation delay in gif images
+
+2006-09-12  sasha
+
+	* added submenu to Desktop to be able to toggle some menu options
+	  off/on
+
+2006-09-12  speedy
+
+	* changed unicode editor icon, unicode term icons, added mlterm.
+	* added Unicode icon, Unicode editor xml icon.
+
+2006-09-12  sasha
+
+	* fixed compile bug in ASRun
+
+2006-09-11  speedy
+
+	* updated icons, added categories for locked and unlocked xlock.
+	* renamed to screensaver.desktop, added xlock screensavers.
+	* added some xml icons for use with screensavers.
+
+2006-09-11  sasha
+
+	* added ability to obtain animation delay when reading gif images
+	* fixed ASRun to create dirs for config file if needed
+
+2006-09-07  sasha
+
+	* improved look.Tiny to use tbar buttons contrast with focused
+	  titlebar
+	* fixed extra = in check for shared images under cygwin
+	* implemented feature to be able to suppress text labels in WinList
+	* inserted minipixmap folder themability into all of the looks
+	* Fixed all folder icons to use proper srcid param instead of
+	  wrongfull refid
+
+2006-09-05  speedy
+
+	* changed menu item order, putting start and stop tools on top.
+
+2006-09-02  speedy
+
+	* smoothed icons.  Should look better visually.
+	* smoothed the icons a bit.  A bit better visually.
+	* eliminated .xpm extension for TouchLeftHand icon.
+	* renamed to leave-off the .xpm extension.
+	* changed Xterm icon to Xorg logo.
+	* changed Xorg logo.
+	* updated Xorg logo for a cleaner look.
+	* rounded corners on Eterm icon, added cleaner Xorg logo.
+
+2006-09-01  speedy
+
+	* xml script referenced "Brushes" instead of "Cardgames".
+	* added AquaBlue default, added script to scale... icons were
+	  full-size.
+
+2006-09-01  sasha
+
+	* implementing themability of the folder icons in menus
+
+2006-09-01  speedy
+
+	* added a variable mini folder to keep the same look as other menu
+	  folders.
+	* added variable folder to be in line with other menu icons.
+	* added a variable to be in line with other menu folders.
+	* added a generic xml icon folder to align with the rest.
+	* fixed a typo (reacll to recall).
+	* renamed xml icons for variable folders.
+	* renamed xml icons for variable names.
+	* renamed xml icons for variable folder naming.
+	* changed xml icon names for variable folders.
+
+2006-08-31  speedy
+
+	* changed xml script names, added variable to icon image.
+	* Renaming and modifying for variable folder styles.
+
+2006-08-30  sasha
+
+	* changed XML variables from strings to defines
+
+2006-08-29  sasha
+
+	* added function Set to AfterStep functions to be able to change
+	  value of xml vars; added default_src param to <recall> tag to be
+	  able to fall back on something if none of the sourceid's is
+	  available
+
+2006-08-28  sasha
+
+	* added example to if tag docs
+	* added <then><else> and <unless> tags handling
+
+2006-08-24  sasha
+
+	* fixed GIF graphics control extention's size to be 4 bytes - that
+	  was messing up dumb MS Photo Editor
+	* updated libAfterImage.mak to reflect changes in libungif
+	* removed includes for stdint.h
+
+2006-08-18  sasha
+
+	* added <if> asxml tag to conditionally execute stuff
+	* added <set> tag to asxml to be able to set variables to evaluated
+	  expressions in xml scripts
+	* implemented ability for WinList to use Defaults section in its
+	  config and read look/feel items from the look/feel files
+
+2006-08-16  sasha
+
+	* added LZ compression to builtin libungif, as patent is expired
+	  already
+
+2006-08-14  speedy
+
+	* added mini FolderAqua for Picture menus
+	* added height to be scaled.  Image was screwed in menu.
+	* added icons to folder menus.
+	* smallminipixmaps screws-up spacing. revert to "minis".
+	* Updated folder icons.
+	* Forms not currently used.  Removing from menus.
+
+2006-08-14  sasha
+
+	* fixed ascmap.c to not leak memory in SortedColorHash buckets
+
+2006-08-14  speedy
+
+	* added .desktop entry for games, updated xtools.desktop
+	  description.
+
+2006-08-12  speedy
+
+	* removed. Images weren't clear when scaled.
+	* added clearer locked and unlocked icons with folders.
+	* added clearer looking locks to folders.
+	* added more scalable lock icons for folders.
+	* updated .include. Copied wrong file.
+	* forgot a couple of commas.
+	* added additional browsers for compatibility.
+	* removed static entries for .desktop, added Category
+	  AfterStepXMouseTools.
+	* removed static entries for .desktop entries, added Category
+	  AfterStepXTools.
+	* added Category for AfterStepInfo.
+	* removing static entries, replacing with .desktop entries.
+	* added a left-hand mirror of normal/Touch.
+	* added xtools.desktop and aboutinfo.desktop menu entries.
+
+2006-08-11  speedy
+
+	* restarttwm and restartwm not needed.
+	* Exit form request not working.  Removed.
+
+2006-08-10  speedy
+
+	* changed WWW icon to Info.  Too many WWW icons look bad.
+	* added FolderAqua icon to WinList.
+	* About AfterStep menu items now point to links correctly.
+	* removing old About AfterSTep entries.
+	* removed .png extension.
+	* remove the .png extension.
+	* changed browser order, should be a bit more methodical.
+
+2006-08-09  speedy
+
+	* added new icons for desktop config files.
+	* updated icons for starting and stopping modules.
+	* added icons for Starting and Stopping modules.
+	* typo. wrong directory for icon (large, not normal).
+	* added icons for X utils.
+	* added icons for X Utils Menu.
+
+2006-08-08  speedy
+
+	* added icon for wintabs.
+	* added AquaFolder for Arrange, changed fullscreen icon to match
+	  re-size.
+
+2006-08-08  sasha
+
+	* implemented changes to automate config parsing for modules and
+	  also implementing support for parsing module options from look
+	  and feel - only WinList does that for now.
+
+2006-08-08  speedy
+
+	* added folder icons for locked and unlock screensavers.
+
+2006-08-07  speedy
+
+	* too many capital letters.  These really aren't titles.
+	* updated icons for Quit menu.
+	* cleaned-up and removed old order convention.
+	* added Category for "AfterStepDesktop".
+	* updating to .desktop menus.
+	* added .desktop entries for Desktop menu.
+	* added TuxXmas (for xsnow) and Camera4 icons.
+	* added open and closed lock folders.
+	* updated pulldown gadgets (move, resize, etc.)
+	* added new folder for pallette.
+	* ColorScheme Icon looks bad over folder.  Switch to Pallette.
+	* ColorScheme icon looks bad on top of folder icon.  Switch to
+	  Pallete.
+	* replacements for bad setup icons.
+	* icon setup doesn't work. removed.
+	* updated X logo with some transparency.
+	* XWindow icon covers too much area.  Adding updated X logo.
+	* MonaLisa icon covers too much.  Switching to Mona.
+	* EyeInMonitor2 too big.  Switching to View-based folder.
+	* typo. GNOME, not GNONE.
+	* removed unneeded file.
+	* removed .png extension from name.
+	* removed .png extension.
+	* updated Desktop folder menus.
+	* added new folder icons for Desktop.
+	* smaller GNOME icon and new Touch icon.
+	* get rid of plain Document icon and replace with snazzy Pen1.
+	* Let's use the XV icon included in AS.
+	* Typo in file. MoonInMonitor vs. MonitorInMoon.
+	* Typos in icon names.
+	* updated aterm icon to 48x48 to fit in menus better.
+	* Typo. Icon names should read FolderAqua rather than AquaFolder.
+	* Typo. icons should start with FolderAqua rather than AquaFolder.
+
+2006-08-06  speedy
+
+	* added find.desktop for Find folder.
+	* reved to update with find.desktop.
+	* typo fix. (SearchTools to SearchTool).
+	* another folder icon for menus.
+	* added folder icons to menu folders.
+	* added folders to folder menu items.
+	* added 48x48 aterm icon for menus (36x48 caused alignment issues).
+	* added some folder icons for menu clarity.
+
+2006-08-04  speedy
+
+	* added System Settings folder for Settings and SystemSetup
+	  Categories.
+	* removed Development, Settings, SystemSetup Categories.
+	* new folder for Development software.
+	* added paths for system and gnome icons.
+	* added additional categories Settings, Development, SystemSetup.
+	* odd behavior. Default to Folder name rather than assign name.
+	* removed static menu items for .desktop entries.
+	* added .desktop entries for office and Educational Categories.
+	* added TryExec for freedesktop compliance.
+	* removing static menu items for .desktop entries.
+	* removed static menu items for .desktop entries.
+	* removed static menus for .desktop entries.
+	* removed static menus, replacing with .desktop
+	* setting dirs for desktop files
+
+2006-08-03  sasha
+
+	* fixed handling of TryExec and CheckAvailability in .desktop files
+
+2006-08-02  sasha
+
+	* added new .desktop files from Jeff Kerbs (speedy0)
+	* Added nef icons froom speedy0 (Jeff Krebs)
+
+2006-07-27  sasha
+
+	* typo in definition of ExcludeGNOMe causing GNOMe entries to be
+	  dropped
+
+2006-07-21  madarche
+
+	* M.-A. DARCHE : * Added latest Thunderbird configuration in wharf
+	  * Specified specific Thunderbird logo in wharf * Made Thunderbird
+	  be used first before Mozilla (just like it is done for   Firefox
+	  and Mozilla)
+
+	   #
+	   # First available GUI e-mail client :
+	   #
+	  +*Wharf Mail	  logos/Thunderbird Exec "Thunderbird" thunderbird
+	  & +*Wharf Mail    logos/Thunderbird Exec "Thunderbird2"
+	  mozilla-thunderbird &  *Wharf Mail	normal/MailBox2 Exec
+	  "mozilla-mail" mozilla --mail & -*Wharf Mail	  normal/MailBox2
+	  Exec "mozilla-thunderbird"  mozilla-thunderbird &  *Wharf Mail
+	  normal/MailBox2 Exec "kmail" kmail &	*Wharf Mail
+	  normal/MailBox2 Exec "balsa" balsa &	*Wharf Mail
+	  normal/MailBox2 ExecInTerm "Pine" -title "Pine e-mail and news
+	  reader" -e pine &
+
+2006-07-20  madarche
+
+	* M.-A. DARCHE :
+
+	  * Added a "Email apps" section in the database file.
+
+	  +# Email apps +#Style "Thunderbird-bin"	StartsOnDesk 2
+	  +Style  "evolution"		  IgnoreConfig		  #,
+	  StartsOnDesk 2 +
+
+2006-07-18  sasha
+
+	* added defaults syntax to WinList config
+	* added warning for bad color names
+	* fixed handling of the text rendering where first character has a
+	  large negative lead, such as 'j'
+
+2006-07-16  madarche
+
+	* M.-A. DARCHE:
+
+	  * Added wmnet another net monitor along wmnd * Added the "-f 2"
+	  option to wmfire to have better looking flames
+
+	  Diff:
+
+	  -*MonitorWharf wmnd	- Swallow "wmnd"  wmnd -i eth0 &
+	  +*MonitorWharf netmonitor - Swallow "wmnet" wmnet
+	  --driver=devstats & +*MonitorWharf netmonitor - Swallow "wmnd"
+	  wmnd -i eth0 &
+
+	  -*MonitorWharf wmfire  - Swallow "wmfire" wmfire & +*MonitorWharf
+	  wmfire  - Swallow "wmfire" wmfire -f 2 &
+
+2006-07-07  sasha
+
+	* minor changes to config parsing code
+
+2006-06-26  sasha
+
+	* backrolled one of the incorrect fixes for firefox - sending
+	  syntetic configure notifies, as it was breaking override redirect
+	  window placement by the apps
+
+2006-06-16  sasha
+
+	* Fixed problem with Java windows getting remapped when they are
+	  being withdrawn. Java tends to change its hints just before
+	  unmapping window causing AS to do XMapSubwindows on entire frame
+	  - which would in turn remap client , while it was just unmapped
+	  by java. Bunch of idiots
+
+2006-06-12  sasha
+
+	* added Style to database to resolve issues with Open Office
+	  assigning Dialog type to its windows in random order
+
+2006-06-08  sasha
+
+	* fixed handling of the focus for globally active input model -
+	  java apps should work fine now
+
+2006-06-07  sasha
+
+	* implemented *WharfStretchBackground flag to wharf config - upon
+	  which wharf's background is rendered similarly to menu when
+	  TextureMenuItemsSeparately is not set
+	* Fixed handling of Configure Request to allow size change even if
+	  IgnoreConfigureREquests is sset in database, otherwise it was
+	  breaking GTK apps (firefox notably) due to the fact that they
+	  don't check if resize request had indeed been honored by WM
+	* hopefully fixed messed up wharf subfolders on look and
+	  colorscheme change (reported by born2late)
+
+2006-06-06  sasha
+
+	* Implemented support for TextureMenuItemsIndividualy 0 - which is
+	  same background for all menu items
+
+2006-06-05  sasha
+
+	* implemented rendering of menus without every item being done
+	  individually
+
+2006-06-02  sasha
+
+	* Implemented new option for MyStyle - Overlay <type>
+	  <"other_mystyle">
+
+2006-06-01  sasha
+
+	* added more syntetic configureNotifies sends to hopefully fix
+	  problems with window size/position
+
+2006-05-31  sasha
+
+	* disabled gtk color mangling by default
+
+2006-05-30  sasha
+
+	* manually applyed patch from CaT to disable gtkrc mangling by
+	  default
+
 2006-05-23  sasha
 
+	* fixed Changelog generation script and updated ChangeLogs for the
+	  release
 	* AfterStep release v 2.2.2
 
 2006-05-18  sasha

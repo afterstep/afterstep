@@ -1,3 +1,22 @@
+version 2.2.3 release
+	* added <then><else> and <unless> tags handling
+	* added <if> asxml tag to conditionally execute stuff
+	* added <set> tag to asxml to be able to set variables to evaluated
+  	  expressions in xml scripts
+	* Implemented new option for MyStyle - Overlay <type>  <"other_mystyle">
+	* Implemented support for TextureMenuItemsIndividualy 0 - which is
+	  same background for all menu items
+	* implemented feature to be able to suppress text labels in WinList
+	* implementing themability of the folder icons in menus
+	* implemented tips for menu.
+	* added functionality to allow for specifying entire popups in menu entry files
+	* added submenu to Desktop to be able to toggle some menu options off/on
+	* implemented *WharfStretchBackground flag to wharf config - upon
+	  which wharf's background is rendered similarly to menu when
+	  TextureMenuItemsSeparately is not set
+	* added defaults syntax to WinList config.
+	* WinList can now read its options from look/feel in addition to its own file.
+
 version 2.2.1 release
 	* Disabled GTK and KDE applications colorization by default - edit 
 	  base config to re-enable it

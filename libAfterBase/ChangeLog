@@ -1,6 +1,33 @@
 
+2006-09-28  sasha
+
+	* completed debugging menu tips/comments. See
+	  start/Desktop/MenuOptions/.include for example
+
+2006-09-15  sasha
+
+	* changed Menu Options to be able to simply togle them on/off;
+	  Added ability to parse_math to use logical Not on variables and
+	  have - sign in front of the variable
+
+2006-09-12  sasha
+
+	* added submenu to Desktop to be able to toggle some menu options
+	  off/on
+
+2006-08-18  sasha
+
+	* implemented ability for WinList to use Defaults section in its
+	  config and read look/feel items from the look/feel files
+
+2006-07-18  sasha
+
+	* added warning for bad color names
+
 2006-05-23  sasha
 
+	* fixed Changelog generation script and updated ChangeLogs for the
+	  release
 	* AfterStep release v 2.2.2
 
 2006-05-12  sasha

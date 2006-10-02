@@ -1,6 +1,65 @@
 
+2006-09-15  sasha
+
+	* fixed infinite loop under win32 in import.c
+
+2006-09-13  sasha
+
+	* fixed reading and writing animation delay in gif images
+
+2006-09-11  sasha
+
+	* added ability to obtain animation delay when reading gif images
+
+2006-08-29  sasha
+
+	* added function Set to AfterStep functions to be able to change
+	  value of xml vars; added default_src param to <recall> tag to be
+	  able to fall back on something if none of the sourceid's is
+	  available
+
+2006-08-28  sasha
+
+	* added example to if tag docs
+	* added <then><else> and <unless> tags handling
+
+2006-08-24  sasha
+
+	* fixed GIF graphics control extention's size to be 4 bytes - that
+	  was messing up dumb MS Photo Editor
+	* updated libAfterImage.mak to reflect changes in libungif
+	* removed includes for stdint.h
+
+2006-08-18  sasha
+
+	* added <if> asxml tag to conditionally execute stuff
+	* added <set> tag to asxml to be able to set variables to evaluated
+	  expressions in xml scripts
+
+2006-08-16  sasha
+
+	* added LZ compression to builtin libungif, as patent is expired
+	  already
+
+2006-08-14  sasha
+
+	* fixed ascmap.c to not leak memory in SortedColorHash buckets
+
+2006-08-08  sasha
+
+	* implemented changes to automate config parsing for modules and
+	  also implementing support for parsing module options from look
+	  and feel - only WinList does that for now.
+
+2006-07-18  sasha
+
+	* fixed handling of the text rendering where first character has a
+	  large negative lead, such as 'j'
+
 2006-05-23  sasha
 
+	* fixed Changelog generation script and updated ChangeLogs for the
+	  release
 	* AfterStep release v 2.2.2
 
 2006-05-17  sasha
