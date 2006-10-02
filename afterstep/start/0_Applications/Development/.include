@@ -1,10 +1,3 @@
-# Causes AfterStep to show menu items even if unavailable 
-#	on system, but greyed out.  Used with the "TryExec"
-#	DeskTop Entry Key or static menu items. 
-
-ShowUnavailable
-
-
 # Name the menu folder.  If no name is given, default
 #	to the folder name.
 
@@ -15,6 +8,7 @@ name            Development
 
 SmallMiniPixmap         Folder-HammerBrown
 
+Comment  "Tools for building other\nprograms and software."
 
 # Look in:
 #	/usr/share/afterstep/applications/
