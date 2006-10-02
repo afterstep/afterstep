@@ -284,10 +284,12 @@ fix_desktop_entry( ASDesktopEntry *de, const char *default_category, const char 
 	{
 		if( !is_executable_in_path ( de->clean_exec ) ) 
 			set_flags( de->flags, ASDE_Unavailable );
+		LOCAL_DEBUG_OUT( "checking availability(clean_exec) for \"%s\" - %s available", de->clean_exec,  (get_flags( de->flags, ASDE_Unavailable )?"not":""));
 	}else if( de->TryExec != NULL ) 
 	{
 		if( !is_executable_in_path ( de->TryExec ) ) 
 			set_flags( de->flags, ASDE_Unavailable );
+		LOCAL_DEBUG_OUT( "checking availability(TryExec) for \"%s\" - %s available", de->clean_exec,  (get_flags( de->flags, ASDE_Unavailable )?"not":""));
 	}
 	
 }

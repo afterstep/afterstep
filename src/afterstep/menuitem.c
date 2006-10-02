@@ -528,13 +528,15 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf, Bool reload_submenus)
 			if( t->de->type == ASDE_TypeApplication ) 
 			{	
 				FunctionCode func = F_EXEC ;
+				
 				if( get_flags( t->de->flags, ASDE_Unavailable ) )
 					func = F_NOP ;
-				if( get_flags( t->de->flags, ASDE_Terminal ) )
+				else if( get_flags( t->de->flags, ASDE_Terminal ) )
 					func = F_ExecInTerm;	   
 				else if( get_flags( t->de->flags, ASDE_ASModule ) )
 					func = F_MODULE;	   
-		 			
+
+				LOCAL_DEBUG_OUT( "adding \"%s\" with function %d", t->stripped_name, func );
 				fdata = create_named_function(func, t->stripped_name);	   
             	fdata->text = mystrdup( t->de->clean_exec );
             	menu_data_item_from_func (menu, fdata, False);

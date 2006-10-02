@@ -2,7 +2,7 @@
 #	on system, but greyed out.  Used with the "TryExec"
 #	DeskTop Entry Key or static menu items. 
 
-ShowUnavailable
+#ShowUnavailable
 
 
 # Name the menu folder.  If no name is given, default
