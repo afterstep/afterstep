@@ -1,4 +1,7 @@
 SmallMiniPixmap Folder-View
+
+Comment "Pre-defined AfterStep appearance\nconfigurations."
+
 keepname
 include "@datadir@/afterstep/looks" ChangeLook
 include "@with_afterdir@/looks" ChangeLook

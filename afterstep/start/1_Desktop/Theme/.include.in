@@ -1,4 +1,7 @@
 SmallMiniPixmap Folder-View
+
+Comment "Pre-defined AfterStep Look,\nFeel, and Pictures."
+
 keepname
 include "@datadir@/afterstep/themes" ChangeTheme
 include "@with_afterdir@/themes" ChangeTheme

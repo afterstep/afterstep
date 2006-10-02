@@ -1,6 +1,9 @@
 RecentSubmenuItems 0
 
 SmallMiniPixmap Folder-Mona
+
+Comment "AfterStep desktop backgrounds\nand pictures."
+
 keepname
 miniextension  .mini
 include "@datadir@/afterstep/backgrounds" Background

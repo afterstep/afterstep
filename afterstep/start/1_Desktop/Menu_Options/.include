@@ -2,6 +2,6 @@ name 		Menu Options
 
 SmallMiniPixmap Folder-MenuEdit
 
-Comment  "  All items in this menu set parameters\nfor current session only. \n\n  To persist changes - edit look/feel file!"
+Comment "AfterStep current-session menu\nbehaviors & visuals.\n(temporary unless changed in\nLook configurations)."
 
 #Category 	"AfterStepConfig"

@@ -1,3 +1,5 @@
 SmallMiniPixmap Folder-XWindow3
 
+Comment "X-System mouse, keyboard, and\nscreen controls."
+
 Category "AfterStepXTools"
