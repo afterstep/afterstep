@@ -350,13 +350,14 @@ MenuHiTitleStyle  "focused_menu_title_style"
 # <recall srcid="menu.folder_minipixmap"/>
 
 MyStyle "menu_folder_pixmap"
-	BackPixmap   128   mini/FolderAqua
+#	BackPixmap   128   mini/FolderAquaYellow
+	BackPixmap   128   mini/FolderOpenBlueAqua
+#	BackPixmap   128   mini/FolderOpenRedAqua
 #  standard NeXTish folder : 	
 #	BackPixmap   128   mini/FolderNeXT        	
 #  standard KDE folder : 	
 #	BackPixmap   128   mini/FolderKDE        	
 ~MyStyle
-
 
 MArrowPixmap		arrow-dots.xpm
 #  [0/1/2] Draw lines between menu options ?
