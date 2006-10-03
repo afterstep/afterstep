@@ -8,7 +8,7 @@ name            Find ...
 
 SmallMiniPixmap Folder-MagnifyingGlass
 
-Comment  "Search the computer or Internet\nfor files or info."
+Comment  "Search the computer or\nInternet for files or info."
 
 # Look in:
 #	/usr/share/afterstep/applications/
