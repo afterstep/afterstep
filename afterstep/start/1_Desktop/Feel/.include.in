@@ -1,6 +1,6 @@
 SmallMiniPixmap Folder-Touch
 
-Comment "Pre-defined AfterStep window and\nmouse behaviors."
+Comment "Pre-defined AfterStep\nwindow & mouse behaviors."
 
 keepname
 include "@datadir@/afterstep/feels" ChangeFeel

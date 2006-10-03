@@ -2,7 +2,7 @@ name 		Config Files
 
 SmallMiniPixmap Folder-Gear2
 
-Comment "Editable AfterStep configuration\nfiles and scripts."
+Comment "Editable AfterStep\nconfig files & scripts."
 
 # look in afterstep/applications/text_editors.desktop for default entries
 Category 	"AfterStepConfig"
