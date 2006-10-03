@@ -8,7 +8,7 @@ name            Graphics
 
 SmallMiniPixmap         Folder-Brushes
 
-Comment  "Drawing, imaging, viewing and\nart programs."
+Comment  "Drawing, imaging, viewing\nand art programs."
 
 # Look in:
 #	/usr/share/afterstep/applications/
