@@ -295,6 +295,7 @@ dirtree_add_category (dirtree_t *tree, ASCategoryTree *ct, ASDesktopCategory *dc
 		}
 		t = dirtree_new ();
 		t->name = mystrdup (de->Name);
+		t->comment = mystrdup (de->Comment);
 		
 		ref_desktop_entry( de );
 		t->de = de ; 

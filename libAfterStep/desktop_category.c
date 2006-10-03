@@ -512,11 +512,59 @@ Bool register_desktop_entry(ASCategoryTree *ct, ASDesktopEntry *de)
 
 	index_name = de->IndexName?de->IndexName:de->Name ;		   
 
+	i = 0 ;
 	if( add_hash_item( ct->entries, AS_HASHABLE(index_name), de) == ASH_Success ) 
+	{
 		ref_desktop_entry( de );  
+		++i ;
+	}
 	if( de->Name != index_name ) 
 		if( add_hash_item( ct->entries, AS_HASHABLE(de->Name), de) == ASH_Success ) 
+		{
 			ref_desktop_entry( de );  
+			++i ;
+		}
+	if( i == 0 	&& de->type == ASDE_TypeApplication ) 
+	{
+		ASDesktopEntry *existing_de = fetch_desktop_entry( ct, de->Name );		
+		if( existing_de != NULL && existing_de->type == ASDE_TypeDirectory )
+		{
+			index_name = de->IndexName ; 
+			if( de->GenericName ) 
+				if( add_hash_item( ct->entries, AS_HASHABLE(de->GenericName), de) == ASH_Success ) 
+				{
+					ref_desktop_entry( de );  
+					++i ;
+					index_name = mystrdup(de->GenericName);
+				}
+			if( i == 0 && de->Comment != NULL && strlen(de->Comment) < 32 ) 
+				if( add_hash_item( ct->entries, AS_HASHABLE(de->Comment), de) == ASH_Success ) 
+				{
+					ref_desktop_entry( de );  
+					++i ;
+					index_name = mystrdup(de->Comment);
+				}
+			if( i == 0 ) 
+			{
+				index_name = safemalloc( strlen( de->Name ) + sizeof(" application")+1);
+				sprintf( index_name, "%s application", de->Name );
+				if( add_hash_item( ct->entries, AS_HASHABLE(index_name), de) == ASH_Success ) 
+					ref_desktop_entry( de );  
+				else
+				{
+					free( index_name );
+					index_name = NULL ;
+				}
+			}
+			if( index_name )
+			{
+				if( de->IndexName ) 
+					free( de->IndexName );
+				de->IndexName = index_name ; 
+			}else
+				return False;
+		}
+	}			
 		
 	if( de->categories_num == 0 || 
 		mystrcasecmp(de->categories_shortcuts[0], DEFAULT_DESKTOP_CATEGORY_NAME ) == 0 )
