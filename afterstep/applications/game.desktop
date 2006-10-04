@@ -22,3 +22,15 @@ Encoding=UTF-8
 Categories=Game
 TryExec=xpat2
 
+[Desktop Entry]
+Name=Scavenger
+GenericName=Game
+Comment=Scavenger is a cool arcade-thinking game very much like Lode Runner.
+Exec=scavenger
+Icon=normal/GameController
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=Game
+TryExec=scavenger
+
