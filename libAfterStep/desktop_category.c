@@ -16,7 +16,7 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#undef LOCAL_DEBUG
+#define LOCAL_DEBUG
 #define EVENT_TRACE
 
 #include "../configure.h"
@@ -119,6 +119,7 @@ add_desktop_category_entry( ASDesktopCategory *dc, const char *entry_name )
 			}
 			entry_name_copy = mystrdup(entry_name);
 			append_vector( dc->entries, &entry_name_copy, 1 );
+			LOCAL_DEBUG_OUT( "\"%s\" added to category \"%s\"", entry_name, dc->index_name );
 		}
 	}
 }
@@ -529,28 +530,20 @@ Bool register_desktop_entry(ASCategoryTree *ct, ASDesktopEntry *de)
 		ASDesktopEntry *existing_de = fetch_desktop_entry( ct, de->Name );		
 		if( existing_de != NULL && existing_de->type == ASDE_TypeDirectory )
 		{
-			index_name = de->IndexName ; 
+			index_name = NULL ; 
 			if( de->GenericName ) 
 				if( add_hash_item( ct->entries, AS_HASHABLE(de->GenericName), de) == ASH_Success ) 
-				{
-					ref_desktop_entry( de );  
-					++i ;
 					index_name = mystrdup(de->GenericName);
-				}
-			if( i == 0 && de->Comment != NULL && strlen(de->Comment) < 32 ) 
+
+			if( index_name == NULL && de->Comment != NULL && strlen(de->Comment) < 32 ) 
 				if( add_hash_item( ct->entries, AS_HASHABLE(de->Comment), de) == ASH_Success ) 
-				{
-					ref_desktop_entry( de );  
-					++i ;
 					index_name = mystrdup(de->Comment);
-				}
-			if( i == 0 ) 
+
+			if( index_name == NULL ) 
 			{
 				index_name = safemalloc( strlen( de->Name ) + sizeof(" application")+1);
 				sprintf( index_name, "%s application", de->Name );
-				if( add_hash_item( ct->entries, AS_HASHABLE(index_name), de) == ASH_Success ) 
-					ref_desktop_entry( de );  
-				else
+				if( add_hash_item( ct->entries, AS_HASHABLE(index_name), de) != ASH_Success ) 
 				{
 					free( index_name );
 					index_name = NULL ;
@@ -558,6 +551,9 @@ Bool register_desktop_entry(ASCategoryTree *ct, ASDesktopEntry *de)
 			}
 			if( index_name )
 			{
+				ASDesktopEntry *ttt = fetch_desktop_entry( ct, index_name ); 
+				ref_desktop_entry( de );  
+				LOCAL_DEBUG_OUT( "entry %p added under non-standard index_name = \"%s\", fetch returned = %p", de, index_name, ttt ) ;
 				if( de->IndexName ) 
 					free( de->IndexName );
 				de->IndexName = index_name ; 
@@ -658,7 +654,7 @@ Bool register_desktop_entry(ASCategoryTree *ct, ASDesktopEntry *de)
 		if( dc ) 
 			add_desktop_category_entry( dc, index_name );
 	}	
-	LOCAL_DEBUG_OUT( "belongs to %d categories", i );
+	LOCAL_DEBUG_OUT( "%s belongs to %d categories", index_name, i );
 	return True;
 }	 
 
@@ -749,7 +745,8 @@ add_category_tree_subtree( ASCategoryTree* ct, ASCategoryTree* subtree )
 		do
 		{
 		 	ASDesktopEntry *de = curr_hash_data( &i );
-			ASHashResult res  = add_hash_item( ct->entries, AS_HASHABLE(de->Name), de); 
+			char *hashed_name = (char*)curr_hash_value (&i);
+			ASHashResult res  = add_hash_item( ct->entries, AS_HASHABLE(hashed_name), de); 
 
 			LOCAL_DEBUG_OUT( "adding desktop entry %p with result %d", de, res );
 			if( res == ASH_Success ) 
