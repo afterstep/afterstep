@@ -1093,11 +1093,13 @@ void pin_menu_func_handler( FunctionData *data, ASEvent *event, int module )
 {
     ASMenu *menu = NULL;
 	char * menu_name = data->text? data->text:data->name ;
-    if( menu_name )
+	LOCAL_DEBUG_OUT( "menu_name = \"%s\", client = %p, internal = %p", menu_name?"NULL":menu_name, event->client, event->client->internal );
+    if( menu_name && menu_name[0] != '\0' )
 		menu = find_asmenu( menu_name );
     else if( event->client && event->client->internal )
     {
 		ASMagic *data = event->client->internal->data ;
+		LOCAL_DEBUG_OUT( "data = %p, magic = %lX", data, data->magic );
 		if( data->magic == MAGIC_ASMENU )
 	    	menu = (ASMenu*)data;
     }

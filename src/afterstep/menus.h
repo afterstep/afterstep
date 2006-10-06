@@ -32,10 +32,11 @@ typedef struct ASMenu
 {
 #define AS_MenuRendered		(0x01<<0)
 #define AS_MenuFocused		(0x01<<1)
+    unsigned long magic ;
+
 #define AS_MenuPinned		(0x01<<2)
 #define AS_MenuBalloonShown	(0x01<<3)
 	ASFlagType state ; 
-    unsigned long magic ;
     char  *name ;                              /* the name of the popup */
     char  *title ;                             /* text of the first F_TITLE item */
     struct ASCanvas *main_canvas;

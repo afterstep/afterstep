@@ -273,7 +273,7 @@ dirtree_add_category (dirtree_t *tree, ASCategoryTree *ct, ASDesktopCategory *dc
 	if( entries_num == 0 ) 
 		return;
 	entries = PVECTOR_HEAD(char*, dc->entries );
-
+	LOCAL_DEBUG_OUT( "DesktopCategory \"%s\", has %d entries", dc->name, entries_num );
 	for( i = 0 ; i < entries_num ; ++i ) 
 	{
 		ASDesktopEntry *de = NULL ; 
@@ -282,8 +282,10 @@ dirtree_add_category (dirtree_t *tree, ASCategoryTree *ct, ASDesktopCategory *dc
 		if( exclusions ) 
 			if( get_hash_item( exclusions, AS_HASHABLE(entries[i]), NULL ) == ASH_Success ) 
 				continue;
-				 
-		if( (de = fetch_desktop_entry( ct, entries[i] ))== NULL ) 
+				
+		de = fetch_desktop_entry( ct, entries[i] ); 
+		LOCAL_DEBUG_OUT( "entry \"%s\", de = %p", entries[i], de );
+		if( de == NULL ) 
 			continue;
 		if( de->type == ASDE_TypeDirectory ) 
 		{	
