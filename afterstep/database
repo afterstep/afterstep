@@ -55,6 +55,9 @@ Style   "*term"         Icon linux-penguin.xpm
 Style   "*eterm"        Icon eterm
 Style   "*rxvt"         Icon rxvt
 Style   "aterm"         Icon aterm
+Style   "docker"        AvoidCover, StartIconic, NoTitle, Layer 4,NoHandles
+Style   "peksystray"    AvoidCover, StartIconic, NoTitle, Layer 4,NoHandles
+Style   "wmsystray"     AvoidCover, StartIconic, NoTitle, Layer 4,NoHandles
 
 # Web browsers
 Style	"Mozilla-bin"		Icon logos/mozilla, IgnoreConfig	
