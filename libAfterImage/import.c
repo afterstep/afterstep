@@ -248,7 +248,8 @@ file2ASImage_extra( const char *file, ASImageImportParams *iparams )
 		else
 			show_error( "Support for the format of image file \"%s\" has not been implemented yet.", realfilename );
 #ifndef NO_DEBUG_OUTPUT
-		show_progress( "image loaded from \"%s\"", realfilename );
+		if( im != NULL ) 
+			show_progress( "image loaded from \"%s\"", realfilename );
 #endif
 		if( realfilename != file )
 			free( realfilename );
@@ -1797,7 +1798,9 @@ gif2ASImage( const char * path, ASImageImportParams *params )
 	{
 		SavedImage	*sp = NULL ;
 		int count = 0 ;
-		if( (status = get_gif_saved_images(gif, params->subimage, &sp, &count )) == GIF_OK )
+		
+		status = get_gif_saved_images(gif, params->subimage, &sp, &count );
+		if( status == GIF_OK && sp != NULL && count > 0 )
 		{
 			GifPixelType *row_pointer ;
 #ifdef DEBUG_TRANSP_GIF
@@ -1889,8 +1892,13 @@ gif2ASImage( const char * path, ASImageImportParams *params )
 				free(r);
 			}
 			free_gif_saved_images( sp, count );
-		}else
+		}else if( status != GIF_OK ) 
 			ASIM_PrintGifError();
+		else if( params->subimage == -1 )
+			show_error( "Image file \"%s\" does not have any valid image information.", path );
+		else
+			show_error( "Image file \"%s\" does not have subimage %d.", path, params->subimage );
+
 		DGifCloseFile(gif);
 		fclose( fp );
 	}
@@ -1930,7 +1938,11 @@ tiff2ASImage( const char * path, ASImageImportParams *params )
 
 	if( params->subimage > 0 )
 		if( !TIFFSetDirectory(tif, params->subimage))
-			show_warning("failed to read subimage %d from image file \"%s\". Reading first available instead.", params->subimage, path);
+		{
+			TIFFClose(tif);
+			show_error("Image file \"%s\" does not contain subimage %d.", path, params->subimage);
+			return NULL ;		
+		}
 
 	TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &width);
 	TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &height);
@@ -1947,6 +1959,7 @@ tiff2ASImage( const char * path, ASImageImportParams *params )
 		TIFFGetField(tif, TIFFTAG_TILELENGTH, &tile_length) )
 	{
 		show_error( "Tiled TIFF image format is not supported yet." );
+		TIFFClose(tif);
 		return NULL;   
 	}		
 

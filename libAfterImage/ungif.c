@@ -215,10 +215,11 @@ get_gif_saved_images( GifFileType *gif, int subimage, SavedImage **ret, int *ret
 		}
     }while( status == GIF_OK && RecordType != TERMINATE_RECORD_TYPE);
 
-	if( status == GIF_OK && *ret == NULL )
+/*	if( status == GIF_OK && *ret == NULL )
 		append_gif_saved_image( &temp_save, ret, &(ret_count));
 	else
-		free_gif_saved_image( &temp_save, True );
+*/
+	free_gif_saved_image( &temp_save, True );
 
 	*ret_images = ret_count ;
     return status;
