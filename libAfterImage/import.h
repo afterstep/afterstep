@@ -113,6 +113,7 @@ typedef struct ASImageListEntry
 #define AS_IMPORT_SCALED_H		(0x01<<3)      /* if unset - then tile */
 #define AS_IMPORT_SCALED_V		(0x01<<4)      /* if unset - then tile */
 
+
 typedef struct ASImageImportParams
 {
 	ASFlagType 		flags ;                         /* see above */
@@ -126,6 +127,7 @@ typedef struct ASImageImportParams
 	char 		  **search_path ;                 /* NULL terminated list  */
 	
 	int 			return_animation_delay ;
+	int 			return_animation_repeats ;
 }ASImageImportParams;
 
 typedef ASImage* (*as_image_loader_func)( const char * path, ASImageImportParams *params );

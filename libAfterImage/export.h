@@ -42,6 +42,7 @@ extern "C" {
 #define EXPORT_GRAYSCALE			(0x01<<0)
 #define EXPORT_ALPHA				(0x01<<1)
 #define EXPORT_APPEND				(0x01<<3)  /* adds subimage  */
+#define EXPORT_ANIMATION_REPEATS	(0x01<<4)  /* number of loops to repeat GIF animation */
 /*****/
 
 /****s* libAfterImage/ASXpmExportParams
@@ -94,6 +95,7 @@ typedef struct
 	int dither ;
 	int opaque_threshold ;
 	unsigned short animate_delay ;
+	unsigned short animate_repeats ;
 }ASGifExportParams ;
 /*******/
 /****s* libAfterImage/ASTiffExportParams

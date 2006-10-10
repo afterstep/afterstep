@@ -913,6 +913,8 @@ Bool ASImage2gif( ASImage *im, const char *path,  ASImageExportParams *params )
 	Bool new_image = True ;
 	START_TIME(started);
 	int cmap_size = 1;
+#define GIF_NETSCAPE_EXT_BYTES 3
+	unsigned char netscape_ext_bytes[GIF_NETSCAPE_EXT_BYTES] = { 0x1, 0x0, 0x0};
 #define GIF_GCE_BYTES 4	
 	unsigned char gce_bytes[GIF_GCE_BYTES] = {0x01, 0x0, 0x0, 0x0 }; /* Graphic Control Extension bytes :
 	                                                           		* first byte - flags (0x01 for transparency )
@@ -937,6 +939,12 @@ Bool ASImage2gif( ASImage *im, const char *path,  ASImageExportParams *params )
 #endif
  	gce_bytes[GIF_GCE_DELAY_BYTE_HIGH] = (params->gif.animate_delay>>8)&0x00FF;
 	gce_bytes[GIF_GCE_DELAY_BYTE_LOW] =  params->gif.animate_delay&0x00FF;
+
+	if( get_flags( params->gif.flags, EXPORT_ANIMATION_REPEATS ) )
+	{
+		netscape_ext_bytes[GIF_NETSCAPE_REPEAT_BYTE_HIGH] = (params->gif.animate_repeats>>8)&0x00FF;
+		netscape_ext_bytes[GIF_NETSCAPE_REPEAT_BYTE_LOW] = params->gif.animate_repeats&0x00FF;
+	}		
 
 	while( cmap_size < 256 && cmap_size < (int)cmap.count+(gce_bytes[0]&0x01) )
 		cmap_size = cmap_size<<1 ;
@@ -994,7 +1002,13 @@ Bool ASImage2gif( ASImage *im, const char *path,  ASImageExportParams *params )
 			}
 			if( gif )
 			{
-				EGifPutExtension(gif, 0xf9, GIF_GCE_BYTES, &(gce_bytes[0]));
+				EGifPutExtension(gif, GRAPHICS_EXT_FUNC_CODE, GIF_GCE_BYTES, &(gce_bytes[0]));
+				if( get_flags( params->gif.flags, EXPORT_ANIMATION_REPEATS ) )
+				{
+					EGifPutExtensionFirst(gif, APPLICATION_EXT_FUNC_CODE, 11, "NETSCAPE2.0");
+					EGifPutExtensionLast(gif, 0, GIF_NETSCAPE_EXT_BYTES, &(netscape_ext_bytes[0]));
+				}
+				
 				if( EGifPutImageDesc(gif, 0, 0, im->width, im->height, FALSE, (dont_save_cmap)?NULL:gif_cmap ) == GIF_ERROR )
 					ASIM_PrintGifError();
 			}

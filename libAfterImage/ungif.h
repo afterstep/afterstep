@@ -16,6 +16,8 @@ extern "C" {
 #define GIF_GCE_DELAY_BYTE_LOW	1
 #define GIF_GCE_DELAY_BYTE_HIGH	2
 #define GIF_GCE_TRANSPARENCY_BYTE	3
+#define GIF_NETSCAPE_REPEAT_BYTE_LOW	1
+#define GIF_NETSCAPE_REPEAT_BYTE_HIGH	2
 
 void free_gif_saved_image( SavedImage *sp, Bool reusable );
 void free_gif_saved_images( SavedImage *images, int count );

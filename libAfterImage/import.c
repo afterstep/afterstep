@@ -1809,7 +1809,7 @@ gif2ASImage( const char * path, ASImageImportParams *params )
 #ifdef DEBUG_TRANSP_GIF
 					fprintf( stderr, "%d: func = %X, bytes[0] = 0x%X\n", y, sp->ExtensionBlocks[y].Function, sp->ExtensionBlocks[y].Bytes[0]);
 #endif
-					if( sp->ExtensionBlocks[y].Function == 0xf9 ) 
+					if( sp->ExtensionBlocks[y].Function == GRAPHICS_EXT_FUNC_CODE ) 
 					{
 						if( sp->ExtensionBlocks[y].Bytes[0]&0x01 )
 						{
@@ -1820,6 +1820,21 @@ gif2ASImage( const char * path, ASImageImportParams *params )
 						}
 		   		 		params->return_animation_delay = (((unsigned int) sp->ExtensionBlocks[y].Bytes[GIF_GCE_DELAY_BYTE_LOW])&0x00FF) + 
 												   		((((unsigned int) sp->ExtensionBlocks[y].Bytes[GIF_GCE_DELAY_BYTE_HIGH])<<8)&0x00FF00);
+					}else if(  sp->ExtensionBlocks[y].Function == APPLICATION_EXT_FUNC_CODE && sp->ExtensionBlocks[y].ByteCount == 11 ) /* application extension */
+					{
+						if( strncmp(&(sp->ExtensionBlocks[y].Bytes[0]), "NETSCAPE2.0", 11 ) == 0 ) 
+						{
+							++y ;
+							if( y < (unsigned int)sp->ExtensionBlockCount && sp->ExtensionBlocks[y].ByteCount == 3 )
+							{
+				   		 		params->return_animation_repeats = (((unsigned int) sp->ExtensionBlocks[y].Bytes[GIF_NETSCAPE_REPEAT_BYTE_LOW])&0x00FF) + 
+														   		((((unsigned int) sp->ExtensionBlocks[y].Bytes[GIF_NETSCAPE_REPEAT_BYTE_HIGH])<<8)&0x00FF00);
+
+#ifdef DEBUG_TRANSP_GIF
+								fprintf( stderr, "animation_repeats = %d\n", params->return_animation_repeats );
+#endif
+							}
+						}
 					}
 				}
 			cmap = gif->SColorMap ;
