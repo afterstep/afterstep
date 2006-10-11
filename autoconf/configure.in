@@ -7,7 +7,7 @@ dnl#Copyright (c) 1998 Juergen Sawinski <Juergen.Sawinski@urz.uni-heidelberg.de>
 dnl#Copyright (c) 1997 1998 Guylhem AZNAR <guylhem@oeil.qc.ca>
 
 dnl#AC_INIT(afterstep/autoexec.in)
-AC_INIT(AfterStep,2.2.2,as-bugs@afterstep.org,AfterStep.tar)
+AC_INIT(AfterStep,2.2.3,as-bugs@afterstep.org,AfterStep.tar)
 AC_CONFIG_AUX_DIR(autoconf)
 AC_CONFIG_HEADER(config.h:autoconf/config.h.in)
 
