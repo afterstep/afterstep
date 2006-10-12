@@ -23,7 +23,7 @@
 #endif
 
 #undef LOCAL_DEBUG
-/*#define DO_CLOCKING */
+#define DO_CLOCKING 
 
 #ifdef DO_CLOCKING
 #if TIME_WITH_SYS_TIME

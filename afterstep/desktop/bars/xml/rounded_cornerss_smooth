@@ -1,0 +1,4 @@
+<composite op="tint">
+	<img src="bars/rounded_corners_smooth"/>
+	<gradient angle="90" colors="Inactive2Dark Inactive2Light" width="18" height="26"/>
+</composite>

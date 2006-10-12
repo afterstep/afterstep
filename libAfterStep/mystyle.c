@@ -640,16 +640,21 @@ mystyle_make_image_int (MyStyle * style, int root_x, int root_y, int crop_x, int
 												style->slice_y_start, style->slice_y_end,
 												preflip_width, preflip_height, do_scale, 
 												ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);			   
+ 					LOCAL_DEBUG_OUT( "image scliced to %p", scaled_im ) ;
 				}else if( do_scale )  
 				{
 					scaled_im = scale_asimage ( ASDefaultVisual, layers[1].im, 
 												preflip_width, preflip_height,
 											    ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
- 				}
+ 					LOCAL_DEBUG_OUT( "image scaled to %p", scaled_im ) ;
+				}
+				
 				 if (scaled_im)	 
 				 {	
 					 /* here layers[1].im is always style->back_icon.image, so we should not destroy it ! */
-					 layers[1].im = mystyle_flip_image( scaled_im, width, height, flip );
+					 scaled_im = mystyle_flip_image( scaled_im, width, height, flip );
+					 layers[1].im = scaled_im ;
+					 LOCAL_DEBUG_OUT( "image flipped to %p", layers[1].im ) ;
 					 /* scaled_im got destroyed in mystyle_flip_image if it had to be */
 				 }else if( flip != 0 && layers[1].im == style->back_icon.image )
 				 {

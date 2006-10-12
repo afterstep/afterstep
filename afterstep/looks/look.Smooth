@@ -1,0 +1,595 @@
+# titlebar: 6px (space), 14px(button), 6px (space): 26px
+
+
+
+#########################################################################
+# Look by Carl Bolduc (based on look.DEFAULT updated October 2006)
+# Inspired by OS X UI
+#
+#------------------------------------------------------------------------
+# Styles :
+#
+# If there is a style named "default" and no default style is specified,
+# the "default" style will be used as the default
+# Inherited styles will override options.
+
+# default should never be used, so let's make it obvious when it *is* used
+MyStyle "default"
+  Font		DefaultSans.ttf-12
+  ForeColor	InactiveText1
+  BackColor	Inactive1
+  ~MyStyle
+
+MyStyle "TitleButtonBalloon"
+  ForeColor	HighActiveText
+  BackColor	HighActiveBack
+  Font		DefaultBold.ttf-14
+#  BackGradient 2 Inactive1Dark Inactive1Light
+  BackGradient 2 HighInactiveBackDark HighInactiveBackLight
+  ~MyStyle
+
+MyStyle "window_font"
+  Font		DefaultSans.ttf-12
+  TextStyle	0
+  ~MyStyle
+
+MyStyle "focused_window_style"
+  Font		DefaultSansBold.ttf-12
+  TextStyle	3
+  ForeColor     ActiveText
+  BackColor	Active
+  BackPixmap 125 bars/rounded_cornersf_smooth
+  SliceXStart 8
+  SliceXEnd 7
+  SliceYStart 7
+  SliceYEnd 12
+  ~MyStyle
+
+MyStyle "unfocused_window_style"
+  Inherit       "window_font"
+  ForeColor     InactiveText1
+  BackColor	Inactive1
+  BackPixmap 125 bars/rounded_cornersu_smooth
+  SliceXStart 8
+  SliceXEnd 9
+  SliceYStart 11
+  SliceYEnd 11	
+  ~MyStyle
+
+MyStyle "sticky_window_style"
+  Inherit       "window_font"
+  ForeColor     InactiveText2
+  BackColor	Inactive2
+  BackPixmap 125 bars/rounded_cornerss_smooth
+  SliceXStart 8
+  SliceXEnd 9
+  SliceYStart 11
+  SliceYEnd 11
+  ~MyStyle
+
+#----------Menu MyStyles---------#
+MyStyle "menu_title_font"
+  Font          DefaultSansBold.ttf-14
+  TextStyle     9
+  ~MyStyle
+
+MyStyle "menu_font"
+  Font          DefaultSans.ttf-12
+  TextStyle     0
+  ~MyStyle
+
+#MyStyle "unfocused_menu_title_style"
+#  Inherit       "menu_title_font"
+#  ForeColor     InactiveText1
+#  BackColor     HighInactive
+#  BackGradient	2	Inactive1Light	Inactive1Dark
+#  ~MyStyle
+
+MyStyle "unfocused_menu_title_style"
+	Inherit "unfocused_window_style"
+~MyStyle
+
+#MyStyle "focused_menu_title_style"
+#  Inherit       "menu_title_font"
+#  ForeColor	ActiveText
+#  BackColor     HighActive
+#  BackGradient	2	ActiveLight	ActiveDark
+#  ~MyStyle
+
+MyStyle "focused_menu_title_style"
+	Inherit "focused_window_style"
+~MyStyle
+
+
+MyStyle "menu_item_style"
+  Inherit       "menu_font"
+  ForeColor     HighInactiveText
+  BackColor     HighInactiveBack
+  BackGradient   5 alpha(80,HighInactiveBackDark)  alpha(80,HighInactiveBackDark)
+  ~MyStyle
+
+MyStyle "menu_hilite_style"
+  Font          DefaultSansBold.ttf-13
+  TextStyle     0
+  ForeColor     HighActiveText
+  BackColor     HighActiveBack
+#HighActiveDark
+  BackMultiGradient  8 alpha(80,HighInactiveBackDark) 0.0  BaseLight 0.3 BaseLight 0.7 alpha(80,HighInactiveBackDark) 
+  ~MyStyle
+
+
+# make the stipple background the same as the menu item, or
+# strange border drawing artifacts could occur
+MyStyle "menu_stipple_style"
+  Inherit       "menu_item_style"
+  ForeColor	DisabledText
+  ~MyStyle
+
+MyStyle "menu_subitem_style"
+  Inherit       "menu_item_style"
+  Font		DefaultSansBold.ttf-10
+  ~MyStyle
+
+DefaultStyle "default"
+FWindowStyle "focused_window_style"
+UWindowStyle "unfocused_window_style"
+SWindowStyle "sticky_window_style"
+MenuItemStyle "menu_item_style"
+MenuTitleStyle "unfocused_menu_title_style"
+MenuHiliteStyle "menu_hilite_style"
+MenuStippleStyle "menu_stipple_style"
+MenuSubItemStyle  "menu_subitem_style"
+MenuHiTitleStyle  "focused_menu_title_style"
+
+#All this style does - is it defines an alias for folder image at 
+# the background of menu minipixmaps.
+# it can later be referenced in xml as : 
+# <recall srcid="menu.folder_minipixmap"/>
+
+MyStyle "menu_folder_pixmap"
+#	BackPixmap   128   mini/FolderAquaYellow
+#	BackPixmap   128   mini/FolderOpenBlueAqua
+#	BackPixmap   128   mini/FolderOpenRedAqua
+#  standard NeXTish folder : 	
+	BackPixmap   128   mini/FolderNeXT        	
+#  standard KDE folder : 	
+#	BackPixmap   128   mini/FolderKDECyan
+~MyStyle
+
+
+
+#----------Pager MyStyles---------#
+
+MyStyle "*PagerBalloon"
+	Inherit "TitleButtonBalloon"
+~MyStyle
+
+MyStyle "DeskStyle"
+	BackGradient   5 alpha(80,HighInactiveBackDark)  alpha(80,HighInactiveBackDark)
+~MyStyle
+
+MyStyle "*PagerActiveDesk"
+   	Font 	       DefaultSansBold.ttf-10
+	TextStyle	0
+	ForeColor      ActiveText
+   	BackColor      Active
+	BackGradient 2 alpha(80,HighInactiveBackDark) alpha(80,BaseLight)   
+ ~MyStyle
+
+MyStyle "*PagerInActiveDesk"
+   	Font 	       DefaultSans.ttf-10
+	ForeColor      InactiveText1
+   	BackColor      HighInactiveBack
+   	BackGradient 2 HighInactiveBackDark BaseLight 
+ ~MyStyle
+
+MyStyle "Pager_font"
+  Font          DefaultBold.ttf-8
+  TextStyle     0
+  ~MyStyle
+
+
+MyStyle "*PagerFWindowStyle"
+    BackGradient 2 HighActiveDark HighActiveLight  
+	Inherit "Pager_font"
+# gradients, pixmap allowed, but no transparency
+~MyStyle
+
+MyStyle "*PagerUWindowStyle"
+    BackGradient 2 HighInactiveBackDark BaseLight 
+	Inherit "Pager_font"
+	# gradients, pixmap allowed, but no transparency
+~MyStyle
+
+MyStyle "*PagerSWindowStyle"
+    BackGradient 2 Inactive2Dark Inactive2Light
+	Inherit "Pager_font"
+# gradients, pixmap allowed, but no transparency
+~MyStyle
+
+#----------Wharf MyStyles---------#
+
+MyStyle "*WharfBalloon"
+	Inherit "TitleButtonBalloon"
+~MyStyle
+
+MyStyle "*WharfTile"
+	Font 	       DefaultSans.ttf-10
+	ForeColor      InactiveText2
+	BackColor      Inactive2
+	BackGradient 2 HighInactiveBackDark BaseLight
+~MyStyle
+
+MyStyle "*WharfFocusedTile"
+	Font 	       DefaultSansBold.ttf-10
+	ForeColor      ActiveText
+	BackColor      Active
+        BackGradient 2 HighActiveDark HighActiveLight     
+~MyStyle
+
+
+MyStyle "*MonitorWharfTile"
+	Font 	       DefaultSansOblique.ttf-12
+	ForeColor      InactiveText2
+	BackColor      Inactive2
+	BackGradient 2 alpha(50,HighInactiveBackDark)   alpha(50,HighInactiveBackDark)
+~MyStyle
+
+#----------WinList MyStyles---------#
+
+MyStyle "*WinListBalloon"
+	Inherit "TitleButtonBalloon"
+~MyStyle
+
+MyStyle "WinListUnFocusedBar"
+	Font          DefaultSans.ttf-12
+  	TextStyle     0
+	ForeColor     InactiveText1
+#	BackMultiGradient  8 BaseLight 0.0 BaseLight 0.7 HighInactiveBackDark
+	BackMultiGradient  8 HighInactiveBackDark 0.0 BaseLight 0.3 BaseLight 0.7 HighInactiveBackDark
+~MyStyle
+
+MyStyle "WinListFocusedBar"
+	Font          DefaultSansBold.ttf-12
+  	TextStyle     0
+	ForeColor     ActiveText
+#	BackGradient 2 HighInactiveBackDark HighInactiveBackDark	
+	#BackMultiGradient  8 HighInactiveBackDark 0.0 BaseLight 0.3 BaseLight 0.7 HighInactiveBackDark
+	BackMultiGradient  8 HighInactiveBackDark 0.0 alpha(80,BaseLight) 0.3 alpha(80,BaseLight) 0.7 HighInactiveBackDark
+~MyStyle
+
+MyStyle "WinListStickyBar"
+	Font          DefaultSans.ttf-12
+  	TextStyle     0
+	ForeColor     HighInactiveBackDark
+	BackMultiGradient  8 HighInactiveBackDark 0.0 BaseLight 0.3 BaseLight 0.7 HighInactiveBackDark
+~MyStyle
+
+MyStyle "WinListUrgentBar"
+  Font          DefaultSansBold.ttf-12
+  TextStyle     0
+  BackMultiGradient  8 HighInactiveBackDark 0.0 alpha(80,BaseLight) 0.3 alpha(80,BaseLight) 0.7 HighInactiveBackDark
+  ~MyStyle
+
+#----------aterm MyStyles---------#
+
+MyStyle "*aterm"
+	ForeColor      InactiveText2
+	BackColor      Inactive2
+	BackGradient   5 alpha(80,HighInactiveBackDark)  alpha(80,HighInactiveBackDark)
+~MyStyle
+
+#####################################################
+#----------Minimized window Button MyStyles---------#
+
+MyStyle "ButtonPixmap"
+  	BackColor     Black
+  	BackGradient  2	HighInactiveBackDark HighInactiveBackDark
+~MyStyle
+
+MyStyle "ButtonText"
+	TextStyle	0
+  	Font		DefaultSans.ttf-13
+	BackGradient  2 HighInactiveBackDark HighInactiveBackDark
+~MyStyle
+
+MyStyle "ButtonTitleFocus"
+  	Inherit		"focused_window_style"
+	Inherit		"ButtonText"
+	BackGradient  2 HighInactiveBackDark HighInactiveBackDark
+  ~MyStyle
+
+MyStyle "ButtonTitleSticky"
+	Inherit "sticky_window_style"
+	Inherit		"ButtonText"
+	BackGradient  2 HighInactiveBackDark HighInactiveBackDark
+ ~MyStyle
+
+MyStyle "ButtonTitleUnfocus"
+	Inherit "unfocused_window_style"
+	Inherit		"ButtonText"
+  ~MyStyle
+
+# [0|1] Show Title on Buttons how?
+SeparateButtonTitle 0
+#  Border around iconifyied windows ?
+#ButtonNoBorder
+ButtonBevel	None
+#ButtonAlign	Center
+# button border defines an area to be drawn around the icon in addition to bevel
+# 2(bevel)+2(spacing)+56(icon)+2(spacing)+2(bevel) == 64
+ButtonIconSpacing  2
+# [x y] Size of application icons ?
+ButtonSize 64 64
+
+# Finally the Icon box defines Left Top Right Bottom sides of an area where 
+# minimized windows should go. Give it enough size so that both button and 
+# title text will fit  in there ( 64+16 = 80 )
+IconBox                 1 -80 -1 -1
+
+
+###################################################################
+# Title balloons : 
+
+TitleButtonBalloons
+TitleButtonBalloonBorderHilite	None
+TitleButtonBalloonXOffset	10
+TitleButtonBalloonYOffset	10
+TitleButtonBalloonDelay		200
+TitleButtonBalloonCloseDelay	2000
+TitleButtonBalloonStyle 	"TitleButtonBalloon"
+
+
+###################################################################
+# Also lets define colors for the cursor ( from selected colorscheme ) :
+
+CursorFore "Cursor"
+CursorBack "ActiveText"
+
+###################################################################
+# 2-5) : misc options
+
+#  [0/1/2] Draw lines between menu options ?
+DrawMenuBorders 1
+#  [0/1] Texture menu options individually, or the whole menu ?
+TextureMenuItemsIndividually 0
+#  Corner where the resize box goes to: ++, +-, -+, -- (clockwise)
+#ResizeMoveGeometry ++
+# [0/1] Do you want minipixmaps in root menu ?
+MenuMiniPixmaps 1
+# [0/1] Sort Start menu entries by 1=alphabetical order, 0=date (default)
+StartMenuSortMode 1
+# [0/1] make a space, or don't make a space (WM) beside buttons ; 1
+#TitleButtonStyle	2 # hack for button colors
+TitleButtonStyle	1
+#TitleButtonXOffset 0
+#TitleButtonYOffset 0
+#  define the number of pixels between titlebar buttons ; 0
+TitleButtonSpacing	2 
+#  [0-10] Allows selection of move/resize rubberband look
+RubberBand 2
+
+# 3) TextStyle :
+#  Mode is either 0 (normal), 1 (big 3d), 2 (nice 3d)
+# 3-1) Text : fonts
+TitleTextAlign          2
+
+# 4) TileBar options :
+# TitleButtons : [1] [3] [5] [7] [9] (title) [0] [8] [6] [4] [2]
+
+# Flat buttons (shaped)
+#TitleButton 1 1.xpm 1p.xpm
+#TitleButton 2 2.xpm 2p.xpm
+#TitleButton 3 3.xpm 3p.xpm
+#TitleButton 4 4.xpm 4p.xpm
+#TitleButton 6 5.xpm 5p.xpm
+
+# Little buttons
+#TitleButton 2 os8-kill.xpm os8-kill-pressed.xpm
+#TitleButton 4 os8-shade.xpm os8-shade-pressed.xpm
+#TitleButton 3 os8-maximize.xpm os8-maximize-pressed.xpm
+#TitleButton 6 os8-iconize.xpm os8-iconize-pressed.xpm
+
+# Big buttons (shaped)
+#TitleButton 1 as1.5-menu.xpm as1.5-menu-p.xpm
+#TitleButton 3 as1.5-iconize.xpm as1.5-iconize-p.xpm
+#TitleButton 2 as1.5-kill.xpm as1.5-kill-p.xpm
+#TitleButton 4 as1.5-shade.xpm as1.5-shade-p.xpm
+
+# Normal buttons
+TitleButton 3 buttons/menu_smooth                     
+TitleButton 2 buttons/close_smooth                    
+TitleButton 4 buttons/shade_smooth                    
+TitleButton 6 buttons/minmax_smooth                   
+
+# the following is used instead of MenuPinOn :
+TitleButton 5 dots/abi-pin                        dots/abi-pin-push
+
+#----------Window MyStyles---------#
+
+MyFrame "Abi"
+
+
+	TitleBevel              None
+
+	LeftSpacerBackground	    bars/lspacer_smooth
+	LeftSpacerBackAlign	    Bottom,
+	LeftTitleSpacerBackground   bars/ltitle_spacer_smooth
+	LeftTitleSpacerBackAlign    Bottom,
+	LeftTitlebarLayout	    Spacer,Buttons,TitleSpacer
+	LeftBtnBackAlign	    Htiled,Bottom,
+	LeftBtnBackground	    bars/title_btn_smooth
+
+
+	RightSpacerBackground	    bars/rspacer_smooth
+	RightSpacerBackAlign	    Bottom,
+	RightTitleSpacerBackground  bars/rtitle_spacer_smooth
+
+	RightTitleSpacerBackAlign   Bottom,
+	RightTitlebarLayout	    Spacer,TitleSpacer,Buttons
+	RightBtnBackground	    bars/title_btn_smooth
+        RightBtnBackAlign	    Htiled,Bottom,
+
+	TitleAlign		    Right,Top,Bottom,Left
+	TitleBackgroundAlign	    HTiled,Bottom,
+	TitleBackground		    bars/title_smooth
+	
+	#       Side North      
+	#        SideSize  North  4x1
+	Side West    bars/frame_w_smooth
+	
+	Side East    bars/frame_e_smooth
+					
+	Side South   bars/frame_s_smooth
+
+        Corner SW    bars/frame_sw_smooth
+	
+	Corner SE    bars/frame_se_smooth
+
+				
+        NoBorder
+				
+#	 FrameFStyle     "focus_frame"
+#	 FrameUStyle     "unfocus_frame"
+#	 FrameSStyle     "sticky_frame"
+
+#	TitleFocusedSaturation 100
+~MyFrame
+							
+DefaultFrame "Abi"
+DecorateFrames 1
+							
+
+MArrowPixmap		arrow-dots.xpm
+
+
+################################################################################
+# Optional stuff :
+
+# Window decorations Frame can be defined as such :
+#
+# MyFrame "name"
+#     [Inherit     "some_other_name"]
+#traditional form :
+#     [North       <pixmap>]
+#     [East        <pixmap>]
+#     [South       <pixmap>]
+#     [West        <pixmap>]
+#     [NorthEast   <pixmap>]
+#     [NorthWest   <pixmap>]
+#     [SouthEast   <pixmap>]
+#     [SouthWest   <pixmap>]
+#alternative form :
+#     [Side        North|South|East|West|Any [<pixmap>]] - if pixmap is ommited -
+#                                                          empty bevel will be drawn
+#     [NoSide      North|South|East|West|Any]
+#     [Corner      NorthEast|SouthEast|NorthWest|SouthWest|Any <pixmap>] - if pixmap is ommited -
+#                                                                          empty bevel will be drawn
+#     [NoCorner    NorthEast|SouthEast|NorthWest|SouthWest|Any]
+#new settings :
+#  this MyStyles will override *WindowStyle "" setting above, allowing for example for frame
+#  decoration to be drawn with different style then titlebar :
+#     [TitleUnfocusedStyle   <style>
+#     [TitleFocusedStyle     <style>
+#     [TitleStickyStyle      <style>
+#     [FrameUnfocusedStyle   <style>
+#     [FrameFocusedStyle     <style>
+#     [FrameStickyStyle      <style>
+#     [TitleBackground       <pixmap>] - gets overlayed over background and under the text
+#additional attributes :
+#     [SideSize        North|South|East|West|Any <WIDTHxLENGTH>] - pixmap will be scaled to this size
+#     [SideAlign       North|South|East|West|Any Left,Top,Right,Bottom,HTiled,VTiled,HScaled,VScaled]
+#     [SideBevel       North|South|East|West|Any None|[Left,Top,Right,Bottom,Extra,NoOutline]]
+#     [SideFocusedBevel      North|South|East|West|Any None|[Left,Top,Right,Bottom,Extra,NoOutline]]
+#     [SideUnfocusedBevel    North|South|East|West|Any None|[Left,Top,Right,Bottom,Extra,NoOutline]]
+#     [SideStickyBevel       North|South|East|West|Any None|[Left,Top,Right,Bottom,Extra,NoOutline]]
+#     [CornerSize      NorthEast|SouthEast|NorthWest|SouthWest|Any <WIDTHxHEIGHT>]
+#     [CornerAlign     NorthEast|SouthEast|NorthWest|SouthWest|Any Left,Top,Right,Bottom,HTiled,VTiled,HScaled,VScaled]
+#     [CornerBevel     NorthEast|SouthEast|NorthWest|SouthWest|Any None|[Left,Top,Right,Bottom,Extra,NoOutline]]
+#     [CornerFocusedBevel    NorthEast|SouthEast|NorthWest|SouthWest|Any None|[Left,Top,Right,Bottom,Extra,NoOutline]]
+#     [CornerUnfocusedBevel  NorthEast|SouthEast|NorthWest|SouthWest|Any None|[Left,Top,Right,Bottom,Extra,NoOutline]]
+#     [CornerStickyBevel     NorthEast|SouthEast|NorthWest|SouthWest|Any None|[Left,Top,Right,Bottom,Extra,NoOutline]]
+#      TitleBevel      None
+#     [TitleFocusedBevel     None|[Left,Top,Right,Bottom,Extra,NoOutline]
+#     [TitleUnfocusedBevel   None|[Left,Top,Right,Bottom,Extra,NoOutline]
+#     [TitleStickyBevel      None|[Left,Top,Right,Bottom,Extra,NoOutline]
+#     [TitleAlign      None|[Left,Top,Right,Bottom]
+#     [TitleBackgroundAlign  None|[Left,Top,Right,Bottom,HTiled,VTiled,HScaled,VScaled,LabelSize]]
+#
+# texture_type is the same as in MyStyle definitions for BackPIxmap ( valid values are in 130-160 range ):
+#     [TitleCompositionMethod   testure_type]
+#     [TitleFocusedCompositionMethod     testure_type]
+#     [TitleUnfocusedCompositionMethod   testure_type]
+#     [TitleStickyCompositionMethod      testure_type]
+#
+#     More fine tuned control of what makes up a titlebar 
+#     ( note that these pixmap will be overlayed over Tbar MyStyle BackPixmap ): 
+#     [LeftBtnBackground	<pixmap>
+#     [LeftBtnBackAlign		None|[Left,Top,Right,Bottom,HTiled,VTiled,HScaled,VScaled,LabelSize]]
+#     [LeftSpacerBackground	<pixmap>
+#     [LeftSpacerBackAlign	None|[Left,Top,Right,Bottom,HTiled,VTiled,HScaled,VScaled,LabelSize]]
+#     [LeftTitleSpacerBackground	<pixmap>
+#     [LeftTitleSpacerBackAlign		None|[Left,Top,Right,Bottom,HTiled,VTiled,HScaled,VScaled,LabelSize]]
+#     [RightTitleSpacerBackground	<pixmap>
+#     [RightTitleSpacerBackAlign	None|[Left,Top,Right,Bottom,HTiled,VTiled,HScaled,VScaled,LabelSize]]
+#     [RightSpacerBackground	<pixmap>
+#     [RightSpacerBackAlign	None|[Left,Top,Right,Bottom,HTiled,VTiled,HScaled,VScaled,LabelSize]]
+#     [RightBtnBackground	<pixmap>
+#     [RightBtnBackAlign	None|[Left,Top,Right,Bottom,HTiled,VTiled,HScaled,VScaled,LabelSize]]
+
+#  These gives you more options for the order of above titlebar pixmaps :
+#     [LeftTitlebarLayout	Buttons,Spacer,TitleSpacer]
+#     [RightTitlebarLayout	Buttons,Spacer,TitleSpacer]
+#     [CondenseTitlebar		[Left[,Right]]]
+#
+#default layout is : Buttons,Spacer,TitleSpacer   Title   TitleSpacer,Spacer,Buttons
+# The following lines will swap it around : 
+#	LeftTitlebarLayout	Spacer,Buttons
+#	RightTitlebarLayout	Buttons,Spacer
+# This will make titlebar not to be sized same as the window :
+#	CondenseTitlebar	Left
+#
+#~MyFrame
+#
+#
+# Several MyFrame's could be defined. Whichever will be used is deternmined by MyFrame "name" setting in
+# database entry. Otherwise Default Frame is used, as determined by the following setting :
+
+# DefaultFrame "name"
+#####################################################################
+# Root background settings :
+#
+# To disable root background drawing by AfterStep uncomment this one :
+#DontDrawBackground
+#
+#AfterStep by default will tile image in ~/.afterstep/non-configurable/#_background.
+#To use different methods use config options previously used in asteroot module :
+
+#MyBackground "back2"
+#    Use 0 "~/GNUstep/Library/AfterStep/non-configurable/1_background"
+#    Tint red
+#    Cut  300x300
+#    Scale 500x500
+#    Pad 0 yellow
+#    Align 4
+#~MyBackground
+#
+#MyBackground "back3"
+#    Use 1 "*WharfTile"
+#    Tint green
+#~MyBackground
+#
+#MyBackground "back4"
+#    Use 2 "-onroot -quiet ~/GNUstep/Library/AfterStep/non-configurable/1_background"
+#    Tint green
+#~MyBackground
+#
+#DeskBack  0  "back2"
+
+KillBackgroundThreshold 10000000
+
+# modules specific look : 
+# setting up WinList look : 
+*WinListUnfocusedStyle  "WinListUnFocusedBar"
+*WinListFocusedStyle  	"WinListFocusedBar"
+*WinListStickyStyle  	"WinListStickyBar"

@@ -84,7 +84,7 @@ int main(int argc, char* argv[])
 	depth = DefaultDepth( dpy, screen );
 	/* see ASView.3 : */
 	asv = create_asvisual( dpy, screen, depth, NULL );
-	/*asv = create_asvisual_for_id( dpy, screen, depth, 0x25, None, NULL ); */
+	/* asv = create_asvisual_for_id( dpy, screen, depth, 0x28, None, NULL ); */
 #endif	
 	/* see ASView.2 : */
 	im = file2ASImage( image_file, 0xFFFFFFFF, SCREEN_GAMMA, 0, getenv("IMAGE_PATH"), NULL );

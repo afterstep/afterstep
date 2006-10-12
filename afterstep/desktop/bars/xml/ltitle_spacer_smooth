@@ -1,0 +1,4 @@
+<composite op="tint">
+	<img src="bars/ltitle_spacer_smooth_white"/>
+	<gradient angle="90" colors="HighInactiveBackDark BaseLight" width="12" height="26"/>
+</composite> 

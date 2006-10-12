@@ -1,0 +1,5 @@
+<composite op="tint">
+	<mirror dir="horizontal"><img src="bars/frame_se_smooth_white"/></mirror>
+	<gradient angle="270" colors="HighInactiveBackDark HighInactiveBackDark BaseLight BaseLight" offsets="0.00 0.25 0.90 1.00" width="26" height="26"/>
+
+</composite>

@@ -1,0 +1,4 @@
+<composite op="tint">
+	<img src="dots/menu_smooth_white"/>
+	<gradient angle="90" colors="HighActiveLight HighActiveDark" width="18" height="16"/>
+</composite> 

@@ -1,0 +1,4 @@
+<composite op="tint">
+	<img src="bars/rounded_corners_smooth_transp"/>
+	<gradient angle="90" colors="HighInactiveBackDark BaseLight" width="18" height="26"/>
+</composite>

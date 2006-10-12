@@ -1,0 +1,4 @@
+<composite op="tint">
+	<img src="bars/title_smooth_white"/>
+	<gradient angle="90" colors="HighInactiveBackDark BaseLight" width="1" height="26"/>
+</composite> 

@@ -1,0 +1,4 @@
+<composite op="tint">
+	<mirror dir="horizontal"><img src="bars/lspacer_smooth_white"/></mirror>
+	<gradient angle="90" colors="HighInactiveBackDark BaseLight" width="6" height="26"/>
+</composite> 
