@@ -128,25 +128,48 @@ void
 get_Xinerama_rectangles (ScreenInfo * scr)
 {
 #ifdef HAVE_XINERAMA
-	register int  i;
-	XineramaScreenInfo *s;
-
-	if ((s = XineramaQueryScreens (dpy, &(scr->xinerama_screens_num))) != NULL)
+	if (XineramaQueryExtension (dpy, &(scr->XineEventBase), &(scr->XineErrorBase)))
 	{
-		scr->xinerama_screens = safemalloc (sizeof (XRectangle) * scr->xinerama_screens_num);
-		for (i = 0; i < scr->xinerama_screens_num; ++i)
+		register int  i;
+		XineramaScreenInfo *s;
+
+		if ((s = XineramaQueryScreens (dpy, &(scr->xinerama_screens_num))) != NULL)
 		{
-			scr->xinerama_screens[i].x = s[i].x_org;
-			scr->xinerama_screens[i].y = s[i].y_org;
-			scr->xinerama_screens[i].width = s[i].width;
-			scr->xinerama_screens[i].height = s[i].height;
+			scr->xinerama_screens = safemalloc (sizeof (XRectangle) * scr->xinerama_screens_num);
+	    	asxml_var_insert("xroot.xinerama_screens_num", scr->xinerama_screens_num);
+			static char buf[256] ; 
+			for (i = 0; i < scr->xinerama_screens_num; ++i)
+			{
+				char *append_point = &buf[0]; 
+				sprintf( append_point, "xroot.xinerama_screens[%d].", i );
+				append_point += 23 ; 
+				while( *append_point ) ++append_point ; 
+
+				append_point[0] = 'x' ;append_point[1] = '\0' ;
+		    	asxml_var_insert(&buf[0], s[i].x_org);
+				scr->xinerama_screens[i].x = s[i].x_org;
+
+				append_point[0] = 'y' ;
+		    	asxml_var_insert(&buf[0], s[i].y_org);
+				scr->xinerama_screens[i].y = s[i].y_org;
+
+				strcpy( append_point, "width" );
+		    	asxml_var_insert(&buf[0], s[i].width);
+				scr->xinerama_screens[i].width = s[i].width;
+
+				strcpy( append_point, "height" );
+		    	asxml_var_insert(&buf[0], s[i].height);
+				scr->xinerama_screens[i].height = s[i].height;
+			}
+			XFree (s);
 		}
-		XFree (s);
-	}
-#else
-	scr->xinerama_screens = NULL;
-	scr->xinerama_screens_num = 0;
+	}else
 #endif
+	{
+		scr->xinerama_screens = NULL;
+		scr->xinerama_screens_num = 0;
+    	asxml_var_insert("xroot.xinerama_screens_num", 0);
+	}
 }
 
 Bool
@@ -355,10 +378,8 @@ ConnectXDisplay (Display *display, ScreenInfo * scr, Bool as_manager)
 
     setup_modifiers ();
 
-#ifdef HAVE_XINERAMA
-	if (XineramaQueryExtension (dpy, &(scr->XineEventBase), &(scr->XineErrorBase)))
-		get_Xinerama_rectangles (scr);
-#endif
+	get_Xinerama_rectangles (scr);
+
 #ifdef SHAPE
 	XShapeQueryExtension (dpy, &(scr->ShapeEventBase), &(scr->ShapeErrorBase));
 #endif /* SHAPE */

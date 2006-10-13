@@ -1095,6 +1095,7 @@ make_wintabs_window()
 	}
     LOCAL_DEBUG_OUT( "creating main window with geometry %dx%d%+d%+d", width, height, x, y );
     w = create_visual_window( Scr.asv, Scr.Root, x, y, 1, 1, 0, InputOutput, CWBackPixmap, &attributes);
+    LOCAL_DEBUG_OUT( "main window created with Id %lX", w);
     set_client_names( w, Config->title?Config->title:"WinTabs", 
 						 Config->icon_title?Config->icon_title:"WinTabs - iconic", 
 					  	 CLASS_WINTABS, MyName );
