@@ -98,7 +98,7 @@ struct ASCategoryTree *StandardCategories = NULL ;
 struct ASCategoryTree *AfterStepCategories = NULL ;
 struct ASCategoryTree *KDECategories = NULL ;
 struct ASCategoryTree *GNOMECategories = NULL ;
-struct ASCategoryTree *SystemCategories = NULL ;
+struct ASCategoryTree *OtherCategories = NULL ;
 struct ASCategoryTree *CombinedCategories = NULL ;
 
 
@@ -891,9 +891,9 @@ name2desktop_category( const char *name, ASCategoryTree **tree_return )
 	{	
 		ct = GNOMECategories ; 
 		offset = 6 ; 
-	}else if( !mystrncasecmp (name, "SYSTEM:", 7) )
+	}else if( !mystrncasecmp (name, "OTHER:", 7) )
 	{	
-		ct = SystemCategories ;
+		ct = OtherCategories ;
 		offset = 7 ; 
 	}else if( !mystrncasecmp (name, "COMBINED:", 9) )
 	{	

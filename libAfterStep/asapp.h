@@ -342,7 +342,7 @@ extern struct ASCategoryTree *StandardCategories ;
 extern struct ASCategoryTree *AfterStepCategories ;
 extern struct ASCategoryTree *KDECategories ;
 extern struct ASCategoryTree *GNOMECategories ;
-extern struct ASCategoryTree *SystemCategories ;
+extern struct ASCategoryTree *OtherCategories ;
 extern struct ASCategoryTree *CombinedCategories ;
 
 /* this two are unused in as-stable yet : */

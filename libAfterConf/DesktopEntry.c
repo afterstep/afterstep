@@ -485,7 +485,7 @@ DestroyCategories()
 	if( AfterStepCategories) destroy_category_tree( &AfterStepCategories); 	
 	if( KDECategories      ) destroy_category_tree( &KDECategories      ); 	
 	if( GNOMECategories    ) destroy_category_tree( &GNOMECategories    ); 	
-	if( SystemCategories   ) destroy_category_tree( &SystemCategories   ); 	
+	if( OtherCategories    ) destroy_category_tree( &OtherCategories   ); 	
 	if( CombinedCategories ) destroy_category_tree( &CombinedCategories ); 	
 #ifdef DEBUG_ALLOCS
 /*	print_unfreed_mem (); */
@@ -517,7 +517,7 @@ UpdateCategoriesCache()
 	save_category_tree_cache( AfterStepCategories,	AFTERSTEP_CACHE_FILE );  
 	save_category_tree_cache( KDECategories, 		KDE_CACHE_FILE );  
 	save_category_tree_cache( GNOMECategories, 		GNOME_CACHE_FILE );  
-	save_category_tree_cache( SystemCategories, 	SYSTEM_CACHE_FILE );  
+	save_category_tree_cache( OtherCategories, 		OTHER_CACHE_FILE );  
 }	 
 
 void 
@@ -544,8 +544,8 @@ ReloadCategories(Bool cached)
 		free( configfile );configfile = make_session_data_file(Session, False, 0, GNOME_CACHE_FILE, NULL );
  		GNOMECategories = create_category_tree( "GNOME", configfile, GNOME_ICONS_PATH, 0, -1 );	
 		free( configfile );
-		configfile = make_session_data_file(Session, False, 0, SYSTEM_CACHE_FILE, NULL );
- 		SystemCategories = create_category_tree( "SYSTEM", configfile, SYSTEM_ICONS_PATH, 0, -1 );	
+		configfile = make_session_data_file(Session, False, 0, OTHER_CACHE_FILE, NULL );
+ 		OtherCategories = create_category_tree( "OTHER", configfile, OTHER_ICONS_PATH, 0, -1 );	
 		free( configfile );
 	}else
 	{
@@ -558,7 +558,7 @@ ReloadCategories(Bool cached)
 		
 		KDECategories = create_category_tree( "KDE", KDE_APPS_PATH, KDE_ICONS_PATH, ASCT_OnlyKDE, -1 );	   
  		GNOMECategories = create_category_tree( "GNOME", GNOME_APPS_PATH, GNOME_ICONS_PATH, ASCT_OnlyGNOME, -1 );	
- 		SystemCategories = create_category_tree( "SYSTEM", SYSTEM_APPS_PATH, SYSTEM_ICONS_PATH, ASCT_ExcludeGNOME|ASCT_ExcludeKDE, -1 );	
+ 		OtherCategories = create_category_tree( "OTHER", OTHER_APPS_PATH, OTHER_ICONS_PATH, ASCT_ExcludeGNOME|ASCT_ExcludeKDE, -1 );	
 	}	 
 
 	CombinedCategories = create_category_tree( "", NULL, NULL, 0, -1 );	 
@@ -570,7 +570,7 @@ ReloadCategories(Bool cached)
 		add_category_tree_subtree( AfterStepCategories   , StandardCategories );
 		add_category_tree_subtree( KDECategories   , StandardCategories );
  		add_category_tree_subtree( GNOMECategories , StandardCategories );
- 		add_category_tree_subtree( SystemCategories, StandardCategories );
+ 		add_category_tree_subtree( OtherCategories , StandardCategories );
 	}
  	load_category_tree( AfterStepCategories    );
 	SHOW_TIME("AfterStep categories",started);
@@ -578,8 +578,8 @@ ReloadCategories(Bool cached)
 	SHOW_TIME("KDE categories",started);
 	load_category_tree( GNOMECategories  );
 	SHOW_TIME("GNOME categories",started);
- 	load_category_tree( SystemCategories );
-	SHOW_TIME("System categories",started);
+ 	load_category_tree( OtherCategories );
+	SHOW_TIME("Other categories",started);
 
 	LOCAL_DEBUG_OUT( "@ Building up Combined: @@@@@@@@@@@@@@@@@@@@@@@@@@@@%s","" );
 	
@@ -587,7 +587,7 @@ ReloadCategories(Bool cached)
 	add_category_tree_subtree( CombinedCategories, AfterStepCategories      );
 	add_category_tree_subtree( CombinedCategories, KDECategories      );
  	add_category_tree_subtree( CombinedCategories, GNOMECategories    );
- 	add_category_tree_subtree( CombinedCategories, SystemCategories   );
+ 	add_category_tree_subtree( CombinedCategories, OtherCategories   );
 	
 	SHOW_TIME(__FUNCTION__,started);
 }	 
@@ -650,8 +650,8 @@ main( int argc, char ** argv )
 		print_category_tree2( KDECategories, NULL );
 		fprintf( stderr, "#GNOME:    ####################################################\n" );
 		print_category_tree2( GNOMECategories, NULL );
-		fprintf( stderr, "#SYSTEM:   ####################################################\n" );
-		print_category_tree2( SystemCategories, NULL );
+		fprintf( stderr, "#OTHER:   ####################################################\n" );
+		print_category_tree2( OtherCategories, NULL );
 		fprintf( stderr, "#Combined: ####################################################\n" );
 		print_category_tree2( CombinedCategories, NULL );
 		fprintf( stderr, "#####################################################\n" );
@@ -702,8 +702,8 @@ main( int argc, char ** argv )
 	print_category_tree2( KDECategories, NULL );
 	fprintf( stderr, "#GNOME: ####################################################\n" );
 	print_category_tree2( GNOMECategories, NULL );
-	fprintf( stderr, "#SYSTEM: ####################################################\n" );
-	print_category_tree2( SystemCategories, NULL );
+	fprintf( stderr, "#OTHER: ####################################################\n" );
+	print_category_tree2( OtherCategories, NULL );
 	fprintf( stderr, "#Combined: ####################################################\n" );
 	print_category_tree2( CombinedCategories, NULL );
 	fprintf( stderr, "#####################################################\n" );
