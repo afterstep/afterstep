@@ -1662,6 +1662,8 @@ void refresh_func_handler( FunctionData *data, ASEvent *event, int module )
     XSync (dpy, False);
     XDestroyWindow (dpy, w);
     XFlush (dpy);
+	
+	spool_unfreed_mem( "afterstep.allocs.refresh", NULL );
 }
 
 void goto_page_func_handler( FunctionData *data, ASEvent *event, int module )

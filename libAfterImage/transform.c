@@ -1075,12 +1075,12 @@ merge_layers( ASVisual *asv,
 
 LOCAL_DEBUG_CALLER_OUT( "dst_width = %d, dst_height = %d", dst_width, dst_height );
 	
-	prepare_scanline( dst_width, QUANT_ERR_BITS, &dst_line, asv->BGR_mode );
-	dst_line.flags = SCL_DO_ALL ;
-
 	dst = create_destination_image( dst_width, dst_height, out_format, compression_out, ARGB32_DEFAULT_BACK_COLOR );
 	if( dst == NULL )
 		return NULL;
+
+	prepare_scanline( dst_width, QUANT_ERR_BITS, &dst_line, asv->BGR_mode );
+	dst_line.flags = SCL_DO_ALL ;
 
 	imdecs = safecalloc( count+20, sizeof(ASImageDecoder*));
 
@@ -1125,6 +1125,7 @@ LOCAL_DEBUG_CALLER_OUT( "dst_width = %d, dst_height = %d", dst_width, dst_height
 				stop_image_decoding( &(imdecs[i]) );
 
         destroy_asimage( &dst );
+		free_scanline( &dst_line, True );
     }else
 	{
 		int y, max_y = 0;
@@ -2553,6 +2554,7 @@ LOCAL_DEBUG_CALLER_OUT( "sx1 = %d, sx2 = %d, sy1 = %d, sy2 = %d, to_width = %d, 
 				imout->output_image_scanline( imout, out_buf, 1);
 			}
 		}
+		free_scanline( out_buf, False );
 		stop_image_output( &imout );
 	}
 #ifdef HAVE_MMX
