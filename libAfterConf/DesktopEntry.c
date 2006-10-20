@@ -138,7 +138,7 @@ parse_desktop_entry_line( ASDesktopEntry* de, char *ptr )
 {
 #define PARSE_ASDE_TYPE_VAL(val)	if(mystrncasecmp(ptr, #val, ASDE_KEYWORD_##val##_LEN) == 0){de->type = ASDE_Type##val; return;}					   			   				   
 #define PARSE_ASDE_STRING_VAL(val)	if(mystrncasecmp(ptr, #val "=", ASDE_KEYWORD_##val##_LEN+1) == 0){if( de->val ) free( de->val ) ; de->val = stripcpy(ptr+ASDE_KEYWORD_##val##_LEN+1); return;}					   
-#define PARSE_ASDE_FLAG_VAL(val)	if(mystrncasecmp(ptr, #val "=", ASDE_KEYWORD_##val##_LEN+1) == 0){char *tmp = stripcpy(ptr+ASDE_KEYWORD_##val##_LEN+1); if(mystrcasecmp(tmp, "true") == 0 ) set_flags(de->flags, ASDE_##val); free(tmp); return;}					   			   
+#define PARSE_ASDE_FLAG_VAL(val)	if(mystrncasecmp(ptr, #val "=", ASDE_KEYWORD_##val##_LEN+1) == 0){char *tmp = stripcpy(ptr+ASDE_KEYWORD_##val##_LEN+1); if( tmp[0] == '1' || mystrcasecmp(tmp, "true") == 0 ) set_flags(de->flags, ASDE_##val); free(tmp); return;}					   			   
 
 	if( ptr[0] == 'X' && ptr[1] == '-') 
 	{
