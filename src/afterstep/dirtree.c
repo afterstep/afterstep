@@ -287,6 +287,8 @@ dirtree_add_category (dirtree_t *tree, ASCategoryTree *ct, ASDesktopCategory *dc
 		LOCAL_DEBUG_OUT( "entry \"%s\", de = %p", entries[i], de );
 		if( de == NULL ) 
 			continue;
+		if( get_flags(de->flags, ASDE_Hidden|ASDE_NoDisplay) ) 
+			continue;
 		if( de->type == ASDE_TypeDirectory ) 
 		{	
 			if( !include_children ) 
