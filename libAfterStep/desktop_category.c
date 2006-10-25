@@ -423,6 +423,19 @@ desktop_entry_print(ASHashableValue value, void *data)
 	print_desktop_entry( (ASDesktopEntry*)data );	
 }
 
+#define DupDesktopEntryVal_func(val) \
+Bool dup_desktop_entry_##val( ASDesktopEntry* de, char **trg ) \
+{ if( de && trg ){ \
+	if( *trg ) 	free( *trg ); \
+	if( de->val##_localized ) \
+	{	*trg = mystrdup (de->val##_localized); \
+		if( get_flags( de->flags, ASDE_EncodingUTF8) ) 	return True; \
+	}else	*trg = mystrdup (de->val); \
+  }return False; \
+}
+
+DupDesktopEntryVal_func(Name)
+DupDesktopEntryVal_func(Comment)
 
 /*************************************************************************
  * Desktop Category Tree functionality : 

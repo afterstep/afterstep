@@ -207,16 +207,21 @@ typedef struct MenuDataItem
     struct MenuDataItem  *next;  /* next menu item */
     struct MenuDataItem  *prev;  /* prev menu item */
 
+/* same flags are used for both MenuDataItem and MenuData */
+
 #define MD_Disabled        		(0x01<<0)
 #define MD_ScaleMinipixmapDown 	(0x01<<1)
 #define MD_ScaleMinipixmapUp  	(0x01<<2)
+#define MD_NameIsUTF8		  	(0x01<<16)
+#define MD_CommentIsUTF8	  	(0x01<<17)
 /* can't think of anything else atm - maybe add something later ? */
     ASFlagType            flags ;
     struct FunctionData  *fdata ;
     char                 *minipixmap ;         /* we always read filename from config !! */
     struct ASImage       *minipixmap_image ;
-    char *item;         /* the character string displayed on left */
-    char *item2;		/* the character string displayed on right */
+    char  *item;         /* the character string displayed on left */
+    char  *item2;		 /* the character string displayed on right */
+	char  *comment ;
 
     time_t                last_used_time ;
 }MenuDataItem;
@@ -224,16 +229,16 @@ typedef struct MenuDataItem
 typedef struct MenuData
 {
     unsigned long    magic;
-    char *name;         /* name of root */
-
     struct MenuDataItem *first; /* first item in menu */
     struct MenuDataItem *last;  /* last item in menu */
     short items_num;        /* number of items in the menu */
 
+    ASFlagType            flags ; 
+    char  *name;         /* name of root */
+	char  *comment ;
 	int    recent_items ;   /*  negative value indicates that default, 
 								set in feel should be used */
 
-	char  *comment ;
 }MenuData;
 
 #define MAX_MENU_ITEM_HEIGHT    (ASDefaultScrHeight>>4)

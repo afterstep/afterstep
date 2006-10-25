@@ -158,7 +158,8 @@ void save_desktop_entry( ASDesktopEntry* de, FILE *fp );
 ASDesktopEntry *fetch_desktop_entry( ASCategoryTree *ct, const char *name );
 ASDesktopCategory *fetch_desktop_category( ASCategoryTree *ct, const char *cname );
 
-
+Bool dup_desktop_entry_Name( ASDesktopEntry* de, char **trg );
+Bool dup_desktop_entry_Comment( ASDesktopEntry* de, char **trg );
 
 /*************************************************************************/
 /* Desktop Entry functionality                                           */

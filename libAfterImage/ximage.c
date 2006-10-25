@@ -194,9 +194,9 @@ subimage2ximage (ASVisual *asv, ASImage *im, int x, int y, XImage* xim)
 	int            i, max_i;
 	ASScanline     xim_buf;
 	ASImageOutput *imout ;
-#ifdef DO_CLOCKING
+/*#ifdef DO_CLOCKING
 	clock_t       started = clock ();
-#endif
+#endif*/
 	int width, height ;
 	ASImage *scratch_im ;
 
@@ -224,9 +224,9 @@ LOCAL_DEBUG_OUT( "Failed to start ASImageOutput for ASImage %p and ASVisual %p",
 	}
 
 	prepare_scanline( width, 0, &xim_buf, asv->BGR_mode );
-#ifdef DO_CLOCKING
+/*#ifdef DO_CLOCKING
 	started = clock ();
-#endif
+#endif*/
 	set_flags( xim_buf.flags, SCL_DO_ALL );
 	max_i = y + height ;
 	for (i = y; i < max_i; i++)
@@ -245,9 +245,9 @@ LOCAL_DEBUG_OUT( "Failed to start ASImageOutput for ASImage %p and ASVisual %p",
 		imout->output_image_scanline( imout, &xim_buf, 1 );
 /*		LOCAL_DEBUG_OUT( "line %d, count = %d", i, count ); */
 	}
-#ifdef DO_CLOCKING
+/*#ifdef DO_CLOCKING
 	fprintf (stderr, "asimage->ximage time (clocks): %lu\n", clock () - started);
-#endif
+#endif*/
 	free_scanline(&xim_buf, True);
 	stop_image_output(&imout);
 
@@ -265,9 +265,9 @@ asimage2ximage_ext (ASVisual *asv, ASImage *im, Bool scratch)
 	int            i;
 	ASImageOutput *imout ;
 	ASImageDecoder *imdec;
-#ifdef DO_CLOCKING
+/*#ifdef DO_CLOCKING
 	clock_t       started = clock ();
-#endif
+#endif*/
 
 	if (im == NULL)
 	{
@@ -282,9 +282,9 @@ LOCAL_DEBUG_OUT( "Failed to start ASImageOutput for ASImage %p and ASVisual %p",
 	xim = im->alt.ximage ;
 	/* no data in ximage yet */
 	set_flags( im->flags, ASIM_XIMAGE_NOT_USEFUL);
-#ifdef DO_CLOCKING
+/*#ifdef DO_CLOCKING
 	started = clock ();
-#endif
+#endif*/
 #if	1
 	if ((imdec = start_image_decoding(  asv, im, (xim->depth == 32)?SCL_DO_ALL:SCL_DO_COLOR, 
 										0, 0, im->width, im->height, NULL)) != NULL )
@@ -319,9 +319,9 @@ LOCAL_DEBUG_OUT( "Failed to start ASImageOutput for ASImage %p and ASVisual %p",
 	}
 #endif
 
-#ifdef DO_CLOCKING
+/*#ifdef DO_CLOCKING
 	fprintf (stderr, "asimage->ximage time (clocks): %lu\n", clock () - started);
-#endif
+#endif*/
 
 	stop_image_output(&imout);
 	clear_flags( im->flags, ASIM_XIMAGE_NOT_USEFUL);
@@ -546,7 +546,8 @@ asimage2drawable_gl(	ASVisual *asv, Drawable d, ASImage *im,
 		
 		if( glGetError() != 0 ) 
 			return False;
-			
+
+#if 1
 		glDisable(GL_BLEND);		/* optimize pixel transfer rates */
 	  	glDisable (GL_DEPTH_TEST);
 	  	glDisable (GL_DITHER);
@@ -566,6 +567,43 @@ asimage2drawable_gl(	ASVisual *asv, Drawable d, ASImage *im,
 		glDrawPixels(   width, height, 
 						get_flags( asv->glx_support, ASGLX_RGBA )?GL_RGBA:GL_RGB, 
 						GL_UNSIGNED_BYTE, glbuf );
+#else
+		{
+			GLuint texture ;
+#ifndef GL_TEXTURE_RECTANGLE_NV
+#define GL_TEXTURE_RECTANGLE_NV 0x84f5
+#endif
+#define NATIVE_PIX_FORMAT GL_BGRA
+
+/* Big endian systems require the texture know the byte order is reversed */
+#ifdef WORDS_BIGENDIAN
+#define NATIVE_PIX_UNIT   GL_UNSIGNED_INT_8_8_8_8_REV
+#else
+/* fast on vidia */
+/*#define NATIVE_PIX_UNIT   GL_UNSIGNED_INT_8_8_8_8_REV*/
+/* fast on ati compared to GL_UNSIGNED_INT_8_8_8_8_REV */
+#define NATIVE_PIX_UNIT   GL_UNSIGNED_BYTE
+#endif			
+			glEnable(GL_TEXTURE_2D);
+			glEnable(GL_TEXTURE_RECTANGLE_NV);
+			glGenTextures(1, &texture);
+			glBindTexture(GL_TEXTURE_RECTANGLE_NV, texture);
+			/* if (smooth) {*/
+	    	glTexParameteri(GL_TEXTURE_RECTANGLE_NV, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	     	glTexParameteri(GL_TEXTURE_RECTANGLE_NV, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			/* }*/
+			
+			glTexImage2D(GL_TEXTURE_RECTANGLE_NV, 0, get_flags( asv->glx_support, ASGLX_RGBA )?GL_RGBA:GL_RGB, 
+					      width, height, 0, NATIVE_PIX_FORMAT, NATIVE_PIX_UNIT, glbuf);
+
+		 	glBegin(GL_QUADS);
+		   	glTexCoord2d(src_x, src_y); 			 glVertex2i(dest_x, dest_y );
+//		   	glTexCoord2d(src_x+width, src_y); 		 glVertex2i(dest_x + d_width, dest_y     );
+//		   	glTexCoord2d(src_x+width, src_y+height); glVertex2i(dest_x + d_width, dest_y + d_height);
+//		   	glTexCoord2d(src_x, src_y+height); 		 glVertex2i(dest_x     , dest_y + d_height); 
+		   	glEnd();
+		}							
+#endif		
 		free( glbuf );
 		glXMakeCurrent (dpy, None, NULL);	  
 		if( glxp ) 
@@ -573,6 +611,14 @@ asimage2drawable_gl(	ASVisual *asv, Drawable d, ASImage *im,
 		glFinish(); 				   
 		return True;
 #endif
+	}
+	{
+		static Bool warning_shown = False ; 
+		if( !warning_shown ) 
+		{
+			warning_shown = True ;
+			show_warning( "Support for GLX is unavailable.");
+		}
 	}
 	return False;
 }

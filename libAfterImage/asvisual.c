@@ -1448,14 +1448,14 @@ Bool ASPutXImage( ASVisual *asv, Drawable d, GC gc, XImage *xim,
 
 	if( ( img_data = check_XImage_shared( xim )) != NULL )
 	{
-		LOCAL_DEBUG_OUT( "XSHMIMAGE> PUT_XIM : using shared memory Put = %p", xim );
+/*		LOCAL_DEBUG_OUT( "XSHMIMAGE> PUT_XIM : using shared memory Put = %p", xim ); */
 		if( XShmPutImage( asv->dpy, d, gc, xim, src_x, src_y, dest_x, dest_y,width, height, True ) )
 		{
 			img_data->wait_completion_event = True ;
 			return True ;
 		}
 	}
-	LOCAL_DEBUG_OUT( "XSHMIMAGE> PUT_XIM : using normal Put = %p", xim );
+/*	LOCAL_DEBUG_OUT( "XSHMIMAGE> PUT_XIM : using normal Put = %p", xim ); */
 	return XPutImage( asv->dpy, d, gc, xim, src_x, src_y, dest_x, dest_y,width, height );
 }
 

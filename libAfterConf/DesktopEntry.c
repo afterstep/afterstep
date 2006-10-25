@@ -133,6 +133,21 @@ filter_desktop_entry_exec( const char *exec )
 	return clean_exec;
 }
 
+char *stripcpy_localized( char *ptr ) 
+{
+	int i = 0 ; 
+	char *locale = MyArgs.locale ; 
+	while( locale[i] != '.' && locale[i] != '\0'  && ptr[i] != ']') 
+	{
+		if( ptr[i] != locale[i] ) 
+			break;
+		++i ;
+	}
+	if((locale[i] == '.' || locale[i] == '\0') && ptr[i] == ']' )
+		return stripcpy(ptr+i+2) ;
+	return NULL ;
+}
+
 static void 
 parse_desktop_entry_line( ASDesktopEntry* de, char *ptr ) 
 {
@@ -154,9 +169,11 @@ parse_desktop_entry_line( ASDesktopEntry* de, char *ptr )
 			set_flags( de->flags, ASDE_KDE );
 		else if( mystrncasecmp( ptr, "GNOME-", 6 ) == 0 ) 
 			set_flags( de->flags, ASDE_GNOME );
-	}else if( mystrncasecmp( ptr, "Name[", 5 ) == 0 ) 
+	}else if( mystrncasecmp( ptr, "Name[", 5 ) == 0 && MyArgs.locale[0] == ptr[5] ) 
 	{
-		/* TODO */
+		char *val = stripcpy_localized(ptr+5); 
+		if( val ) 
+			set_string( &(de->Name_localized), val );
 	}else if( mystrncasecmp( ptr, "Type=", 5 ) == 0 ) 
 	{
 		ptr += 5 ;
@@ -165,9 +182,11 @@ parse_desktop_entry_line( ASDesktopEntry* de, char *ptr )
 		PARSE_ASDE_TYPE_VAL(Link)
 		PARSE_ASDE_TYPE_VAL(FSDevice)
 		PARSE_ASDE_TYPE_VAL(Directory)
-	}else if( mystrncasecmp( ptr, "Comment[", 8 ) == 0 ) 
+	}else if( mystrncasecmp( ptr, "Comment[", 8 ) == 0 && MyArgs.locale[0] == ptr[8] ) 
 	{
-		/* TODO */
+		char *val = stripcpy_localized(ptr+8); 
+		if( val ) 
+			set_string( &(de->Comment_localized), val );
 	}else if( mystrncasecmp( ptr, "Encoding=UTF-8", 14 ) == 0 ) 
 	{	
 		set_flags( de->flags, ASDE_EncodingUTF8 );

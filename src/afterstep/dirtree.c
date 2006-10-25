@@ -298,8 +298,12 @@ dirtree_add_category (dirtree_t *tree, ASCategoryTree *ct, ASDesktopCategory *dc
 				continue;
 		}
 		t = dirtree_new ();
-		t->name = mystrdup (de->Name);
-		t->comment = mystrdup (de->Comment);
+		
+		if( dup_desktop_entry_Name( de, &(t->name) ) )
+			set_flags( t->flags, DIRTREE_NAME_IS_UTF8 );
+
+		if( dup_desktop_entry_Comment( de, &(t->comment) ) )
+			set_flags( t->flags, DIRTREE_COMMENT_IS_UTF8 );
 		
 		ref_desktop_entry( de );
 		t->de = de ; 

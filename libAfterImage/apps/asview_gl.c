@@ -14,7 +14,7 @@
  * After that we would want to wait, until user closes our window.
  * SOURCE
  */
-
+#define LOCAL_DEBUG
 #define DO_CLOCKING
 
 #include "../afterbase.h"
@@ -207,20 +207,28 @@ int main(int argc, char* argv[])
 			//sleep_a_millisec(1000);
 			//XSync(dpy,False);
 			/* see ASView.5 : */
-			show_warning( "asimage2pmap Done");
+//			show_warning( "asimage2pmap Done");
 			p = create_visual_pixmap( asv, DefaultRootWindow(dpy), im->width, im->height, 0 );
 //			glctx = glXCreateContext (dpy, &(asv->visual_info), NULL, True);
 			{
 				START_TIME(started);
 				time_t t = time(NULL);
 				for( i = 0 ; i < 100 ; ++i ) 
-						asimage2drawable_gl( asv, p, im,
-                  							 0, 0, 0, 0,
-        		  							 im->width, im->height, 
-											 im->width, im->height, 
-											 False );
-						  
+				{
+#if 1
+# if 1
+					asimage2drawable_gl( asv, p, im, 0, 0, 0, 0, im->width, im->height,  
+										 im->width, im->height,  False );
+# else										
+					asimage2drawable_gl( asv, w, im, 0, 0, 0, 0, im->width, im->height,  
+										 im->width, im->height,  True );
+# endif
+#else
+					asimage2drawable( asv, p, im, NULL, 0, 0, 0, 0, im->width, im->height, False);
+#endif 						  
 //					glbuf2GLXPixmap(asv, p, glctx, im );	
+					LOCAL_DEBUG_OUT ("timestamp%s","");
+				}
 				SHOW_TIME("", started);
 				fprintf( stderr, "runtime = %ld sec\n", time(NULL)-t );
 			}
