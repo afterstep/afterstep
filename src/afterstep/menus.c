@@ -255,16 +255,17 @@ LOCAL_DEBUG_OUT( "item(\"%s\")->minipixmap(\"%s\")->icon(%p)", mdi->item?mdi->it
 
     /* optional menu items : */
     /* add label */
-    if( mdi->item )
-	{	
-        add_astbar_label( item->bar, 3, 0, 0, ALIGN_LEFT|ALIGN_VCENTER, 0, 0, mdi->item,
-		mdi->fdata->name_encoding );
-		item->first_sym = mdi->item[0] ;
+	{
+		int encoding = get_flags( mdi->flags, MD_NameIsUTF8)? AS_Text_UTF8: mdi->fdata->name_encoding ;
+    	if( mdi->item )
+		{	
+        	add_astbar_label( item->bar, 3, 0, 0, ALIGN_LEFT|ALIGN_VCENTER, 0, 0, mdi->item, encoding );
+			item->first_sym = mdi->item[0] ;
+		}
+    	/* add hotkey */
+    	if( mdi->item2 )
+        	add_astbar_label( item->bar, 4, 0, 0, ALIGN_RIGHT|ALIGN_VCENTER, 0, 0, mdi->item2, encoding );
 	}
-    /* add hotkey */
-    if( mdi->item2 )
-        add_astbar_label( item->bar, 4, 0, 0, ALIGN_RIGHT|ALIGN_VCENTER, 0, 0, mdi->item2, mdi->fdata->name_encoding );
-
     item->flags = 0 ;
 
 	if( IsDynamicPopup(mdi->fdata->func) )
@@ -604,10 +605,13 @@ set_asmenu_data( ASMenu *menu, MenuData *md, Bool first_time, Bool show_unavaila
 	
 	if( md->comment != NULL ) 
 	{
+		int encoding = get_flags( md->flags, MD_NameIsUTF8)? AS_Text_UTF8 : AS_Text_ASCII ;
 		if( menu->comment_balloon == NULL )
-			menu->comment_balloon = create_asballoon_with_text_for_state ( MenuBalloons, NULL, md->comment, 0);
+			menu->comment_balloon = create_asballoon_with_text_for_state ( MenuBalloons, NULL, md->comment, encoding);
 		else
-			balloon_set_text (menu->comment_balloon, md->comment, 0);
+		{
+			balloon_set_text (menu->comment_balloon, md->comment, encoding);
+		}
 		clear_flags( menu->state, AS_MenuBalloonShown);
 	}else if( menu->comment_balloon )
 		destroy_asballoon( &(menu->comment_balloon) );

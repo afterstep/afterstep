@@ -474,19 +474,26 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf, Bool reload_submenus)
 /*  extern struct config* func_config; */
 	dirtree_t    *t;
     MenuData     *menu;
+    MenuDataItem    *menu_item;
 	FunctionData *fdata;
 
 	/* make self */
 	if (tree->flags & DIRTREE_KEEPNAME)
+	{
         menu = CreateMenuData (tree->name);
-	else
+		if( get_flags( tree->flags, DIRTREE_NAME_IS_UTF8 ) )
+			set_flags( menu->flags, MD_NameIsUTF8 );
+	}else
 	{
 		sprintf (buf, "%d", tree->flags & DIRTREE_ID);
         menu = CreateMenuData (buf);
 	}
-	if( menu && tree->comment ) 
+	if( tree->comment ) 
+	{
 		menu->comment = interpret_ascii_string( tree->comment );
-		
+		if( get_flags( tree->flags, DIRTREE_COMMENT_IS_UTF8 ) )
+			set_flags( menu->flags, MD_CommentIsUTF8 );
+	}	
 	if( get_flags( tree->flags, DIRTREE_RECENT_ITEMS_SET ) )
 		menu->recent_items = tree->recent_items ;
 
@@ -494,7 +501,9 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf, Bool reload_submenus)
 	fdata = create_named_function( F_TITLE, tree->name);
 	/* We exploit that scan_for_hotkey removes & (marking hotkey) from name */
 	scan_for_hotkey (fdata->name);
-    menu_data_item_from_func (menu, fdata, False);
+    menu_item = menu_data_item_from_func (menu, fdata, False);
+	if( get_flags( tree->flags, DIRTREE_NAME_IS_UTF8 ) )
+		set_flags( menu_item->flags, MD_NameIsUTF8 );
 
 	add_minipixmap_from_dirtree_item( tree, menu );
 
@@ -539,7 +548,15 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf, Bool reload_submenus)
 				LOCAL_DEBUG_OUT( "adding \"%s\" with function %d", t->stripped_name, func );
 				fdata = create_named_function(func, t->stripped_name);	   
             	fdata->text = mystrdup( t->de->clean_exec );
-            	menu_data_item_from_func (menu, fdata, False);
+            	menu_item = menu_data_item_from_func (menu, fdata, False);
+				if( get_flags( t->flags, DIRTREE_NAME_IS_UTF8 ) )
+					set_flags( menu_item->flags, MD_NameIsUTF8 );
+				if( t->comment ) 
+				{
+					menu_item->comment = mystrdup( t->comment );
+					if( get_flags( t->flags, DIRTREE_COMMENT_IS_UTF8 ) )
+						set_flags( menu_item->flags, MD_CommentIsUTF8 );
+				}
  				add_minipixmap_from_dirtree_item( t, menu );
 			}
 		}else if (t->command.func != F_NOP)
@@ -567,95 +584,15 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf, Bool reload_submenus)
 				destroy_func_data( &fdata );
 			}else
 			{
-	            menu_data_item_from_func (menu, fdata, False);
+	            menu_item = menu_data_item_from_func (menu, fdata, False);
 	 			add_minipixmap_from_dirtree_item( t, menu );
 			}
         } else
 		{
 			FILE *fp2 = fopen (t->path, "r");
-			int lines_read = 0 ;
+			int lines_read = add_menuitem_from_file( fp2, buf, t, get_flags(tree->flags, DIRTREE_SHOW_UNAVAILABLE), menu );
 
 			fdata = NULL ; 
-#if 0			
-			if( fp2 != NULL  )
-			{
-				Bool available = True ;
-				char *name = NULL ;
-				FunctionData *valid_func = NULL ; 
-				FunctionData *minipixmap = NULL ;
-				/* try to load a command */
-				while( fgets (buf, MAXLINELENGTH, fp2) != NULL)
-				{
-					int parse_err ; 
-					++lines_read;
-					if( fdata == NULL ) 
-						fdata = create_named_function(F_EXEC, NULL);
-					parse_err = parse_func (buf, fdata, True);
-					if ( parse_err < 0 && parse_err > FUNC_ERR_START ) /* data is actuall shell command line */
-						fdata->text = stripcpy (buf);
-					if( fdata->name == NULL )
-		                fdata->name = mystrdup( t->stripped_name );
-#ifndef NO_AVAILABILITYCHECK
-					available = check_fdata_availability( fdata );
-					if( !available )
-						fdata->func = F_NOP;
-#endif					
-					if( IsMinipixmapFunc(fdata->func) )
-					{
-						if( minipixmap == NULL ) 
-						{
-							minipixmap = fdata ;
-							fdata = NULL ; 
-						}
-					}else if( fdata->func != F_NOP ) 
-					{
-						if( valid_func == NULL ) 
-						{
-							valid_func = fdata ; 
-							fdata = NULL ; 
-						}					
-					}
-					
-					if( fdata ) 
-					{
-						if( name == NULL && fdata->name != NULL ) 
-						{
-							name = fdata->name ;
-							fdata->name = NULL ;
-						}
-						destroy_func_data( &fdata );
-					}
-				}
-				if( available || get_flags(tree->flags, DIRTREE_SHOW_UNAVAILABLE))
-				{	
-					if( valid_func  ) 
-						menu_data_item_from_func (menu, valid_func, False);
-					else
-					{
-						fdata = create_named_function(F_NOP, name?name:t->stripped_name);
-	  					fdata->text = mystrdup (t->name);
-	          			menu_data_item_from_func (menu, fdata, False);
-					}
-					if( minipixmap ) 
-						menu_data_item_from_func (menu, minipixmap, False);
-					else if( t->icon != NULL )
-					{
-						fdata = create_named_function(F_MINIPIXMAP, t->icon);
-	          			menu_data_item_from_func (menu, fdata, False);
-					}
-				}else
-				{
-					if( valid_func )
-						destroy_func_data(&valid_func);
-					if( minipixmap )
-						destroy_func_data(&minipixmap);
-				}
-				if( name ) 
-					free( name );
-			}
-#else
-			lines_read = add_menuitem_from_file( fp2, buf, t, get_flags(tree->flags, DIRTREE_SHOW_UNAVAILABLE), menu );
-#endif			
 			if( fp2 == NULL || lines_read == 0 )
 			{
 				Bool available = True ;
