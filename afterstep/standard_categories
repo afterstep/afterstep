@@ -1,4 +1,5 @@
 [DesktopEntry]
+Encoding=UTF-8
 Name=2D Graphics
 X-AfterStep-IndexName=2DGraphics
 Categories=Graphics
@@ -6,6 +7,7 @@ Comment=2D based graphical application
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=3D Graphics
 X-AfterStep-IndexName=3DGraphics
 Categories=Graphics
@@ -13,6 +15,7 @@ Comment=3D based graphical application
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Accessibility
 X-AfterStep-IndexName=Accessibility
 X-AfterStep-Aliases=X-KDE-Accessibility;X-KDE-settings-accessibility
@@ -21,6 +24,7 @@ Comment=Accessibility
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Action Games
 X-AfterStep-IndexName=ActionGame
 Categories=Game
@@ -28,6 +32,7 @@ Comment=An action game
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Adventure Games
 X-AfterStep-IndexName=AdventureGame
 Categories=Game
@@ -35,6 +40,7 @@ Comment=Adventure style game
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Amusements
 X-AfterStep-IndexName=Amusement
 X-AfterStep-Aliases=Toys
@@ -43,6 +49,7 @@ Comment=A simple amusement
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Applet
 X-AfterStep-IndexName=Applet
 Categories= 
@@ -50,6 +57,7 @@ Comment=An applet that will run inside a panel or another such application, like
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Applications
 X-AfterStep-IndexName=Application
 X-AfterStep-Aliases=Applications
@@ -58,6 +66,7 @@ Comment=Accessibility
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Arcade Games
 X-AfterStep-IndexName=ArcadeGame
 X-AfterStep-Aliases=Arcade
@@ -66,6 +75,7 @@ Comment=Arcade style game
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Archiving
 X-AfterStep-IndexName=Archiving
 Categories= 
@@ -73,6 +83,7 @@ Comment=A tool to archive/backup data
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Art
 X-AfterStep-IndexName=Art
 Categories=Education
@@ -80,13 +91,16 @@ Comment=Software to teach arts
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Astronomy
 X-AfterStep-IndexName=Astronomy
 Categories=Science
 Comment=Astronomy software
 Type=Directory
 
+
 [DesktopEntry]
+Encoding=UTF-8
 Name=Audio
 X-AfterStep-IndexName=Audio
 Categories=AudioVideo
@@ -94,6 +108,7 @@ Comment=An audio application
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Audio and Video
 X-AfterStep-IndexName=AudioVideo
 X-AfterStep-Aliases=Multimedia
@@ -102,6 +117,7 @@ Comment=A multimedia (audio/video) application
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Audio and Video Editing
 X-AfterStep-IndexName=AudioVideoEditing
 Categories=AudioVideo
@@ -109,6 +125,7 @@ Comment=Application to edit audio/video files
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Biology
 X-AfterStep-IndexName=Biology
 Categories=Science
@@ -116,6 +133,7 @@ Comment=Biology software
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Blocks Games
 X-AfterStep-IndexName=BlocksGame
 Categories=Game
@@ -123,6 +141,7 @@ Comment=Falling blocks game
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Board Games
 X-AfterStep-IndexName=BoardGame
 X-AfterStep-Aliases=Boardgames
@@ -131,6 +150,7 @@ Comment=A board game
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Building
 X-AfterStep-IndexName=Building
 Categories=Development
@@ -138,6 +158,7 @@ Comment=A tool to build applications
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Calculator
 X-AfterStep-IndexName=Calculator
 Categories=Utility
@@ -145,6 +166,7 @@ Comment=A calculator
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Calendar
 X-AfterStep-IndexName=Calendar
 Categories=Office
@@ -152,6 +174,7 @@ Comment=Calendar application
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Card Games
 X-AfterStep-IndexName=CardGame
 X-AfterStep-Aliases=Cardgames
@@ -160,6 +183,7 @@ Comment=A card game
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Chart
 X-AfterStep-IndexName=Chart
 Categories=Office
@@ -167,6 +191,7 @@ Comment=Chart application
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Chemistry
 X-AfterStep-IndexName=Chemistry
 Categories=Science
@@ -174,6 +199,7 @@ Comment=Chemistry software
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Clock
 X-AfterStep-IndexName=Clock
 Categories=Utility
@@ -181,6 +207,7 @@ Comment=A clock application/applet
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Console Only
 X-AfterStep-IndexName=ConsoleOnly
 Categories=Application 
@@ -188,6 +215,7 @@ Comment=Application that only works inside a terminal (text-based or command lin
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Construction
 X-AfterStep-IndexName=Construction
 Categories=Education
@@ -195,6 +223,7 @@ Comment=
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Contact Management
 X-AfterStep-IndexName=ContactManagement
 Categories=Office
@@ -202,6 +231,7 @@ Comment=E.g. an address book
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Core
 X-AfterStep-IndexName=Core
 Categories= 
@@ -209,6 +239,7 @@ Comment=Important application, core to the desktop such as a file manager or a h
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Database
 X-AfterStep-IndexName=Database
 Categories=Office;Development;AudioVideo
@@ -216,6 +247,7 @@ Comment=Application to manage a database
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Debuggers
 X-AfterStep-IndexName=Debugger
 Categories=Development
@@ -223,6 +255,7 @@ Comment=A tool to debug applications
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Desktop Settings
 X-AfterStep-IndexName=DesktopSettings
 X-AfterStep-Aliases=Desktop;X-KDE-Desktop;X-KDE-settings-desktop
@@ -231,6 +264,7 @@ Comment=Configuration tool for the GUI
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Development
 X-AfterStep-IndexName=Development
 Categories= 
@@ -238,6 +272,7 @@ Comment=An application for development
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Dialup
 X-AfterStep-IndexName=Dialup
 Categories=Network
@@ -245,6 +280,7 @@ Comment=A dial-up program
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Dictionary
 X-AfterStep-IndexName=Dictionary
 Categories=Office
@@ -252,6 +288,7 @@ Comment=A dictionary
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Disc Burning
 X-AfterStep-IndexName=DiscBurning
 Categories=AudioVideo;Utility
@@ -259,6 +296,7 @@ Comment=Application to burn a disc
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Education
 X-AfterStep-IndexName=Education
 X-AfterStep-Aliases=Edutainment
@@ -267,6 +305,7 @@ Comment=Educational software
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Electronics
 X-AfterStep-IndexName=Electronics
 Categories= 
@@ -274,6 +313,7 @@ Comment=Electronics software, e.g. a circuit designer
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Email
 X-AfterStep-IndexName=Email
 Categories=Office;Network
@@ -281,6 +321,7 @@ Comment=Email application
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Emulator
 X-AfterStep-IndexName=Emulator
 Categories= 
@@ -288,6 +329,7 @@ Comment=Emulator of another platform, such as a DOS emulator
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Engineering
 X-AfterStep-IndexName=Engineering
 Categories= 
@@ -295,6 +337,7 @@ Comment=Engineering software, e.g. CAD programs
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=File Managers
 X-AfterStep-IndexName=FileManager
 Categories= 
@@ -302,6 +345,7 @@ Comment=A file manager
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=File Transfer
 X-AfterStep-IndexName=FileTransfer
 Categories=Network
@@ -309,6 +353,7 @@ Comment=Tools like FTP or P2P programs
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Filesystems
 X-AfterStep-IndexName=Filesystem
 Categories=System
@@ -316,6 +361,7 @@ Comment=A file system tool
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Finance
 X-AfterStep-IndexName=Finance
 Categories=Office
@@ -323,6 +369,7 @@ Comment=Application to manage your finance
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Flow Chart
 X-AfterStep-IndexName=FlowChart
 Categories=Office
@@ -330,6 +377,7 @@ Comment=A flowchart application
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=GNOME
 X-AfterStep-IndexName=GNOME
 Categories=
@@ -337,6 +385,7 @@ Comment=Application based on GNOME libraries
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=GTK
 X-AfterStep-IndexName=GTK
 Categories= 
@@ -344,6 +393,7 @@ Comment=Application based on GTK+ libraries
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=GUI Designer
 X-AfterStep-IndexName=GUIDesigner
 Categories=Development
@@ -351,6 +401,7 @@ Comment=A GUI designer application
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Games
 X-AfterStep-IndexName=Game
 X-AfterStep-Aliases=Games
@@ -359,6 +410,7 @@ Comment=A game
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Geology
 X-AfterStep-IndexName=Geology
 Categories=Science
@@ -366,6 +418,7 @@ Comment=Geology software
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Graphics
 X-AfterStep-IndexName=Graphics
 Categories= 
@@ -373,6 +426,7 @@ Comment=Graphical application
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Ham Radio
 X-AfterStep-IndexName=HamRadio
 Categories=Network;Audio
@@ -380,6 +434,7 @@ Comment=HAM radio software
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Hardware Settings
 X-AfterStep-IndexName=HardwareSettings
 X-AfterStep-Aliases=Peripherals;Information;X-KDE-Information;X-KDE-Peripherals;X-KDE-information
@@ -388,6 +443,7 @@ Comment=A tool to manage hardware components, like sound cards, video cards or p
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=KDE Components
 X-AfterStep-IndexName=KDEComponents
 X-AfterStep-Aliases=X-KDE-settings-components
@@ -396,6 +452,7 @@ Comment=
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=IDE
 X-AfterStep-IndexName=IDE
 Categories=Development
@@ -403,6 +460,7 @@ Comment=IDE application
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=IRC Clients
 X-AfterStep-IndexName=IRCClient
 Categories=Network
@@ -410,6 +468,7 @@ Comment=An IRC client
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Instant Messaging
 X-AfterStep-IndexName=InstantMessaging
 Categories=Network
@@ -417,6 +476,7 @@ Comment=An instant messaging client
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Java
 X-AfterStep-IndexName=Java
 Categories= 
@@ -424,6 +484,7 @@ Comment=Application based on Java GUI libraries, such as AWT or Swing
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=KDE
 X-AfterStep-IndexName=KDE
 Categories=
@@ -431,6 +492,7 @@ Comment=Application based on KDE libraries
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Kids Games
 X-AfterStep-IndexName=KidsGame
 X-AfterStep-Aliases=Games for Kids;X-KDE-KidsGame
@@ -439,6 +501,7 @@ Comment=A game for kids
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Languages
 X-AfterStep-IndexName=Languages
 Categories=Education
@@ -446,6 +509,7 @@ Comment=Software to learn foreign languages
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Look And Feel
 X-AfterStep-IndexName=LookNFeel
 X-AfterStep-Aliases=Appearance & Themes;X-KDE-LookNFeel;X-KDE-settings-looknfeel
@@ -454,6 +518,7 @@ Comment=Look and feel settings
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Logic Games
 X-AfterStep-IndexName=LogicGame
 Categories=Game
@@ -461,14 +526,75 @@ Comment=Logic games like puzzles, etc
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Math
 X-AfterStep-IndexName=Math
 X-AfterStep-Aliases=Mathematics
 Categories=Science
 Comment=Math software
 Type=Directory
+Name[af]=Wiskunde
+Name[ar]=رياضيات
+Name[bg]=Математика
+Name[bn]=গণিত
+Name[br]=Jedoniel
+Name[bs]=Matematika
+Name[ca]=Matemàtiques
+Name[cs]=Matematika
+Name[cy]=Mathemateg
+Name[da]=Matematik
+Name[de]=Mathematik
+Name[el]=Μαθηματικά
+Name[eo]=Matematiko
+Name[es]=Matemáticas
+Name[et]=Matemaatika
+Name[eu]=Matematikak
+Name[fi]=Matematiikka
+Name[fo]=Støddfrøði
+Name[fr]=Mathématiques
+Name[ga]=Matamaitic
+Name[gl]=Matemáticas
+Name[he]=מתמטיקה
+Name[hi]=गणित
+Name[hu]=Matematika
+Name[is]=Stærðfræði
+Name[it]=Matematica
+Name[ja]=数学
+Name[lt]=Matematika
+Name[lv]=Matemātika
+Name[mk]=Математика
+Name[mn]=Математикийн
+Name[ms]=Matematik
+Name[nb]=Matematikk
+Name[nds]=Reeknen
+Name[nl]=Wiskunde
+Name[nn]=Matematikk
+Name[nso]=Dipalontshetshere
+Name[pa]=ਗਣਿਤ
+Name[pl]=Matematyka
+Name[pt]=Matemática
+Name[pt_BR]=Matemática
+Name[ru]=Математика
+Name[se]=Matematihkka
+Name[sk]=Matematika
+Name[sl]=Matematika
+Name[sr]=Математика
+Name[sr@Latn]=Matematika
+Name[sv]=Matematik
+Name[ta]=கணிதம்
+Name[tg]=Математика
+Name[tr]=Matematik
+Name[uk]=Математика
+Name[uz]=Математика
+Name[ven]=Zwa dzimbalo
+Name[xh]=Imathematika
+Name[zh_CN]=数学
+Name[zh_TW]=數學
+Name[zu]=Ezezibalo
+
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Medical Software
 X-AfterStep-IndexName=MedicalSoftware
 Categories=Science
@@ -476,6 +602,7 @@ Comment=Medical software
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Midi
 X-AfterStep-IndexName=Midi
 Categories=Audio
@@ -483,6 +610,7 @@ Comment=An app related to MIDI
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Mixer
 X-AfterStep-IndexName=Mixer
 Categories=Audio
@@ -490,6 +618,7 @@ Comment=Just a mixer
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Monitor
 X-AfterStep-IndexName=Monitor
 Categories=System
@@ -497,6 +626,7 @@ Comment=Monitor application/applet that monitors some resource or activity
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Motif
 X-AfterStep-IndexName=Motif
 Categories= 
@@ -504,6 +634,7 @@ Comment=Application based on Motif libraries
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Music
 X-AfterStep-IndexName=Music
 Categories=AudioVideo;Education
@@ -511,6 +642,7 @@ Comment=Musical software
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Network
 X-AfterStep-IndexName=Network
 X-AfterStep-Aliases=Internet;X-KDE-Network;X-KDE-settings-network
@@ -519,6 +651,7 @@ Comment=Network application such as a web browser
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=News
 X-AfterStep-IndexName=News
 Categories= 
@@ -526,6 +659,7 @@ Comment=A news reader or a news ticker
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=OCR
 X-AfterStep-IndexName=OCR
 Categories=Scanning
@@ -533,6 +667,7 @@ Comment=Optical character recognition application
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Office
 X-AfterStep-IndexName=Office
 Categories= 
@@ -540,6 +675,7 @@ Comment=An office type application
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=P2P
 X-AfterStep-IndexName=P2P
 Categories=Network
@@ -547,6 +683,7 @@ Comment=A P2P program
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=PDA
 X-AfterStep-IndexName=PDA
 Categories=Office
@@ -554,6 +691,7 @@ Comment=Tool to manage your PDA
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Package Manager
 X-AfterStep-IndexName=PackageManager
 Categories=Settings
@@ -561,6 +699,7 @@ Comment=A package manager application
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Photography
 X-AfterStep-IndexName=Photography
 Categories=Graphics;Office
@@ -568,6 +707,7 @@ Comment=Camera tools, etc.
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Physics
 X-AfterStep-IndexName=Physics
 Categories=Science
@@ -575,6 +715,7 @@ Comment=Physics software
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Player
 X-AfterStep-IndexName=Player
 Categories=Audio;Video;AudioVideo
@@ -582,6 +723,7 @@ Comment=Application to play audio/video files
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Power Control
 X-AfterStep-IndexName=PowerControl
 X-AfterStep-Aliases=X-KDE-PowerControl;X-KDE-settings-power
@@ -590,6 +732,7 @@ Comment=Presentation software
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Presentation
 X-AfterStep-IndexName=Presentation
 Categories=Office
@@ -597,6 +740,7 @@ Comment=Presentation software
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Profiling
 X-AfterStep-IndexName=Profiling
 Categories=Development
@@ -604,6 +748,7 @@ Comment=A profiling tool
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Project Management
 X-AfterStep-IndexName=ProjectManagement
 Categories=Office;Development
@@ -611,6 +756,7 @@ Comment=Project management application
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Puzzle Games
 X-AfterStep-IndexName=PuzzleGame
 X-AfterStep-Aliases=Puzzle
@@ -619,6 +765,7 @@ Comment=Puzzle game
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Qt
 X-AfterStep-IndexName=Qt
 Categories= 
@@ -626,6 +773,7 @@ Comment=Application based on Qt libraries
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Raster Graphics
 X-AfterStep-IndexName=RasterGraphics
 Categories=2DGraphics
@@ -633,6 +781,7 @@ Comment=Raster based graphical application
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Recorder
 X-AfterStep-IndexName=Recorder
 Categories=Audio;Video;AudioVideo
@@ -640,6 +789,7 @@ Comment=Application to record audio/video files
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Remote Access
 X-AfterStep-IndexName=RemoteAccess
 Categories=Network
@@ -647,6 +797,7 @@ Comment=A tool to remotely manage your PC
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Revision Control
 X-AfterStep-IndexName=RevisionControl
 Categories=Development
@@ -654,6 +805,7 @@ Comment=Applications like cvs or subversion
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Role Playing
 X-AfterStep-IndexName=RolePlaying
 X-AfterStep-Aliases=Rogue-like Games
@@ -662,6 +814,7 @@ Comment=A role playing game
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=RedHat Extras
 X-AfterStep-IndexName=X-Red-Hat-Extra
 Categories=Application
@@ -669,6 +822,7 @@ Comment=
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=RedHat Base
 X-AfterStep-IndexName=X-Red-Hat-Base
 Categories=Application
@@ -676,6 +830,7 @@ Comment=
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Scanning
 X-AfterStep-IndexName=Scanning
 Categories=Graphics
@@ -683,13 +838,76 @@ Comment=Tool to scan a file/text
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Science
 X-AfterStep-IndexName=Science
 Categories=Education
 Comment=Scientific software
 Type=Directory
+Name[af]=Wetenskap
+Name[ar]=العلم
+Name[az]=Elm
+Name[bg]=Наука
+Name[bn]=বিজ্ঞান
+Name[br]=Skiantoù
+Name[bs]=Nauka
+Name[ca]=Ciència
+Name[cs]=Věda
+Name[cy]=Gwyddoniaeth
+Name[da]=Videnskab
+Name[de]=Wissenschaft
+Name[el]=Επιστήμη
+Name[eo]=Scienco
+Name[es]=Ciencia
+Name[et]=Loodusteadused
+Name[eu]=Zientzia
+Name[fi]=Luonnontieteet
+Name[fo]=Náttúruvísind
+Name[ga]=Eolaíocht
+Name[gl]=Ciencia
+Name[he]=מדע
+Name[hi]=विज्ञान
+Name[hr]=Znanost
+Name[hu]=Tudományok
+Name[is]=Vísindi
+Name[it]=Scienza
+Name[ja]=サイエンス
+Name[lt]=Mokslas
+Name[lv]=Zinātne
+Name[mk]=Наука
+Name[mn]=Шинжлэх Ухааны
+Name[ms]=Sains
+Name[nb]=Vitenskap
+Name[nds]=Wetenschop
+Name[nl]=Wetenschappelijk
+Name[nn]=Vitskap
+Name[nso]=Mahlale
+Name[pa]=ਵਿਗਿਆਨ
+Name[pl]=Nauka
+Name[pt]=Ciência
+Name[pt_BR]=Ciência
+Name[ro]=Ştiinţă
+Name[ru]=Другие науки
+Name[se]=Dieđa
+Name[sk]=Vedecký
+Name[sl]=Znanost
+Name[sr]=Наука
+Name[sr@Latn]=Nauka
+Name[sv]=Vetenskap
+Name[ta]=அறிவியல்
+Name[tg]=Фан
+Name[tr]=Bilim
+Name[uk]=Наука
+Name[uz]=Фан
+Name[ven]=Vhutsila
+Name[xh]=Inzulu lwazi
+Name[zh_CN]=科学
+Name[zh_TW]=科學
+Name[zu]=Ubuchwepheshe bezesayensi
+
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Screen Saver
 X-AfterStep-IndexName=Screensaver
 X-AfterStep-Aliases=ScreenSavers
@@ -698,6 +916,7 @@ Comment=A screen saver (launching this desktop entry should activate the screen 
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Security
 X-AfterStep-IndexName=Security
 X-AfterStep-Aliases=Security & Privacy;X-KDE-settings-security
@@ -706,6 +925,7 @@ Comment=A security tool
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Sequencer
 X-AfterStep-IndexName=Sequencer
 Categories=Audio
@@ -713,14 +933,83 @@ Comment=A sequencer
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Settings
 X-AfterStep-IndexName=Settings
 X-AfterStep-Aliases=Settings-Modules
 Categories= 
 Comment=Settings applications
 Type=Directory
+Name[af]=Instellings
+Name[ar]=الإعدادات
+Name[az]=Qurğular
+Name[be]=Настройкі
+Name[bg]=Настройки
+Name[bn]=সেটিংস
+Name[br]=Dibarzhoù
+Name[bs]=Postavke
+Name[ca]=Preferències
+Name[cs]=Nastavení
+Name[cy]=Gosodiadau
+Name[da]=Opsætning
+Name[de]=Einstellungen
+Name[el]=Ρυθμίσεις
+Name[eo]=Agordo
+Name[es]=Preferencias
+Name[et]=Seadistused
+Name[eu]=Ezarpenak
+Name[fi]=Asetukset
+Name[fr]=Configuration
+Name[fy]=Ynstellings
+Name[ga]=Socruithe
+Name[gl]=Opzóns
+Name[he]=הגדרות
+Name[hi]=विन्यास
+Name[hr]=Postavke
+Name[hsb]=Nastajenja
+Name[hu]=Beállítások
+Name[is]=Stillingar
+Name[it]=Impostazioni
+Name[ja]=設定
+Name[km]=ការ​កំណត់
+Name[ko]=설정
+Name[lt]=Parinktys
+Name[lv]=Parametri
+Name[mk]=Поставувања
+Name[mn]=Тохируулга
+Name[ms]=Tempatan
+Name[nb]=Innstillinger
+Name[nds]=Instellen
+Name[nl]=Instellingen
+Name[nn]=Innstillingar
+Name[pa]=ਸੈਟਿੰਗ
+Name[pl]=Ustawienia
+Name[pt]=Preferências
+Name[pt_BR]=Configurações
+Name[ro]=Setări
+Name[ru]=Настройка
+Name[rw]=Amagenamiterere
+Name[se]=Heivehusat
+Name[sk]=Nastavenia
+Name[sl]=Nastavitve
+Name[sr]=Поставке
+Name[sr@Latn]=Postavke
+Name[sv]=Inställningar
+Name[ta]=அமைப்புகள்
+Name[tg]=Танзимот
+Name[th]=ตั้งค่าต่างๆ
+Name[tr]=Ayarlar
+Name[tt]=Caylaw
+Name[uk]=Установки
+Name[uz]=Мосламалар
+Name[vi]=Thiết lập
+Name[wa]=Apontiaedjes
+Name[zh_CN]=设置
+Name[zh_TW]=設定
+
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Shell
 X-AfterStep-IndexName=Shell
 Categories= 
@@ -728,6 +1017,7 @@ Comment=A shell (an actual specific shell such as bash or tcsh, not a TerminalEm
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Simulation
 X-AfterStep-IndexName=Simulation
 Categories=Game
@@ -735,6 +1025,7 @@ Comment=A simulation game
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Multimedia settings
 X-AfterStep-IndexName=MultimediaSettings
 X-AfterStep-Aliases=Sound & Multimedia;X-KDE-Sound;X-KDE-settings-sound;Sound
@@ -743,6 +1034,7 @@ Comment=
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Sports Games
 X-AfterStep-IndexName=SportsGame
 Categories=Game
@@ -750,6 +1042,7 @@ Comment=A sports game
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Spreadsheet
 X-AfterStep-IndexName=Spreadsheet
 Categories=Office
@@ -757,6 +1050,7 @@ Comment=A spreadsheet
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Strategy Games
 X-AfterStep-IndexName=StrategyGame
 X-AfterStep-Aliases=Tactics & Strategy
@@ -765,13 +1059,86 @@ Comment=A strategy game
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=System
 X-AfterStep-IndexName=System
 Categories=
 Comment=System application, "System Tools" such as say a log viewer or network monitor
+Icon=Folder-Gear2
 Type=Directory
+Name[af]=Stelsel
+Name[ar]=النظام
+Name[az]=Sistem
+Name[be]=Сыстэма
+Name[bg]=Система
+Name[bn]=সিস্টেম
+Name[br]=Reizhiad
+Name[bs]=Sistem
+Name[ca]=Sistema
+Name[cs]=Systém
+Name[cy]=Cysawd
+Name[el]=Σύστημα
+Name[eo]=Sistemo
+Name[es]=Sistema
+Name[et]=Süsteem
+Name[eu]=Sistema
+Name[fa]=سیستم
+Name[fi]=Järjestelmä
+Name[fo]=Kervi
+Name[fr]=Système
+Name[fy]=Systeem
+Name[ga]=Córas
+Name[gl]=Sistema
+Name[he]=מערכת
+Name[hi]=तंत्र
+Name[hr]=Sustav
+Name[hu]=Rendszer
+Name[id]=Sistem
+Name[is]=Kerfi
+Name[it]=Sistema
+Name[ja]=システム
+Name[km]=ប្រព័ន្ធ
+Name[ko]=시스템
+Name[lo]=ຈັດການລະບົບ
+Name[lt]=Sistema
+Name[lv]=Sistēma
+Name[mk]=Систем
+Name[mn]=Систем
+Name[ms]=Sistem
+Name[mt]=Sistema
+Name[nds]=Systeem
+Name[nl]=Systeem
+Name[oc]=Sistemo
+Name[pa]=ਸਿਸਟਮ
+Name[pt]=Sistema
+Name[pt_BR]=Sistema
+Name[ro]=Sistem
+Name[ru]=Система
+Name[rw]=Sisitemu
+Name[se]=Vuogádat
+Name[sk]=Systém
+Name[sl]=Sistem
+Name[sr]=Систем
+Name[sr@Latn]=Sistem
+Name[ss]=Umshini
+Name[ta]=அமைப்பு
+Name[tg]=Система
+Name[th]=ระบบ
+Name[tr]=Sistem
+Name[tt]=Sistem
+Name[uk]=Система
+Name[uz]=Тизим
+Name[ven]=Maitele
+Name[vi]=Hệ Thống
+Name[wa]=Sistinme
+Name[xh]=Indlela esestyenziswayo
+Name[zh_CN]=系统
+Name[zh_TW]=系統
+Name[zu]=Isistimu
+
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=System Settings
 X-AfterStep-IndexName=X-KDE-settings-system
 Categories=
@@ -779,6 +1146,7 @@ Comment=
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=TV
 X-AfterStep-IndexName=TV
 Categories=Video
@@ -786,13 +1154,72 @@ Comment=A TV application
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Teaching
 X-AfterStep-IndexName=Teaching
 Categories=Education
 Comment=An education program for teachers
 Type=Directory
+Name[af]=Onderrrighulpmiddels
+Name[ar]=أدوات تعليمية
+Name[bg]=Обучение
+Name[bn]=শিক্ষা সহায়িকা
+Name[bs]=Alati za podučavanje
+Name[ca]=Eines d'ensenyança
+Name[cs]=Výukové nástroje
+Name[cy]=Offer Dysgu
+Name[da]=Undervisningsværktøj
+Name[de]=Lehrmittel
+Name[el]=Εργαλεία εκμάθησης
+Name[eo]=Instruiloj
+Name[es]=Herramientas de enseñanza
+Name[et]=Õppevahendid
+Name[eu]=Ikasketa tresnak
+Name[fi]=Opetusohjelmat
+Name[fo]=Undirvísingaramboð
+Name[fr]=Outils d'éducation
+Name[ga]=Uirlisí Múinteoireachta
+Name[gl]=Utilidades para os mestres
+Name[he]=כלי לימוד
+Name[hi]=शिक्षण औज़ार
+Name[hu]=Oktatási eszközök
+Name[is]=Kennslutól
+Name[it]=Strumenti per l'insegnamento
+Name[ja]=教育ツール
+Name[lt]=Mokymo įrankiai
+Name[lv]=Mācību Instrumenti
+Name[mk]=Алатки за учење
+Name[mn]=Сурганы Ухааны Хэрэглэгдэхүүн
+Name[ms]=Alatan Mengajar
+Name[nb]=Læremidler
+Name[nds]=Lehrprogrammen
+Name[nl]=Leshulpmiddelen
+Name[nn]=Læremiddel
+Name[nso]=Dibereka tsago Ruta
+Name[pa]=ਪੜਨ ਸੰਦ
+Name[pl]=Narzędzia do nauczania
+Name[pt]=Ferramentas de Ensino
+Name[pt_BR]=Ferramentas de Aprendizado
+Name[ru]=Обучающие программы
+Name[se]=Oahpporeaiddut
+Name[sk]=Výukové nástroje
+Name[sl]=Orodja za učenje
+Name[sr]=Учитељски алати
+Name[sr@Latn]=Učiteljski alati
+Name[sv]=Inlärningsverktyg
+Name[ta]=கற்பிக்கும் கருவிகள்
+Name[tg]=Асбобҳои Таълимӣ
+Name[tr]=Öğretim Araçları
+Name[uk]=Засоби для навчання
+Name[ven]=Zwishumiswa zwau funza
+Name[xh]=Izixhobo Zokufundisa
+Name[zh_CN]=教学工具
+Name[zh_TW]=教學工具
+Name[zu]=Amathuluzi Okufundisa
+
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Telephony
 X-AfterStep-IndexName=Telephony
 Categories=Network
@@ -800,6 +1227,7 @@ Comment=Telephony via PC
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Terminal Emulators
 X-AfterStep-IndexName=TerminalEmulator
 X-AfterStep-Aliases=Terminal Applications
@@ -808,6 +1236,7 @@ Comment=A terminal emulator application
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Text Editors
 X-AfterStep-IndexName=TextEditor
 X-AfterStep-Aliases=Editors
@@ -816,6 +1245,7 @@ Comment=A text editor
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Translation
 X-AfterStep-IndexName=Translation
 Categories=Development
@@ -823,6 +1253,7 @@ Comment=A translation tool
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Tray Icons
 X-AfterStep-IndexName=TrayIcon
 Categories= 
@@ -830,6 +1261,7 @@ Comment=An application that is primarily an icon for the "system tray" or "notif
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Tuners
 X-AfterStep-IndexName=Tuner
 Categories=Audio
@@ -837,6 +1269,7 @@ Comment=A tuner
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Utilities
 X-AfterStep-IndexName=Utility
 X-AfterStep-Aliases=Utilities
@@ -845,6 +1278,7 @@ Comment=Small utility application, "Accessories"
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Vector Graphics
 X-AfterStep-IndexName=VectorGraphics
 Categories=2D Graphics
@@ -852,6 +1286,7 @@ Comment=Vector based graphical application
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Video
 X-AfterStep-IndexName=Video
 Categories=AudioVideo
@@ -859,6 +1294,7 @@ Comment=A video application
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Viewers
 X-AfterStep-IndexName=Viewer
 Categories=Graphics;Office
@@ -866,6 +1302,7 @@ Comment=Tool to view e.g. a graphic or pdf file
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Web Browsers
 X-AfterStep-IndexName=WebBrowser
 X-AfterStep-Aliases=X-KDE-WebBrowsing;X-KDE-settings-webbrowsing
@@ -874,6 +1311,7 @@ Comment=A web browser
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Web Development
 X-AfterStep-IndexName=WebDevelopment
 Categories=Network;Development
@@ -881,6 +1319,7 @@ Comment=A tool for web developers
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=Word Processors
 X-AfterStep-IndexName=WordProcessor
 Categories=Office
@@ -888,6 +1327,7 @@ Comment=A word processor
 Type=Directory
 
 [DesktopEntry]
+Encoding=UTF-8
 Name=More KDE Applications
 X-AfterStep-IndexName=X-KDE-More
 Categories=Application

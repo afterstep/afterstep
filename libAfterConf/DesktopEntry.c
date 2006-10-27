@@ -18,7 +18,7 @@
  */
 
 
-#undef LOCAL_DEBUG 
+#define LOCAL_DEBUG 
 #define DO_CLOCKING
 
 #include "../configure.h"
@@ -293,6 +293,7 @@ fix_desktop_entry( ASDesktopEntry *de, const char *default_category, const char 
 		}	 
 		if( de->fulliconname == NULL ) 
 			de->fulliconname = find_file (de->Icon, icon_path, R_OK);
+		LOCAL_DEBUG_OUT( "icon %s has fullname %s", de->Icon, de->fulliconname?de->fulliconname:"(null)");
 	}	 
 	if( de->Exec ) 
 		de->clean_exec = filter_desktop_entry_exec( de->Exec );
@@ -549,7 +550,7 @@ ReloadCategories(Bool cached)
 	
     if( (configfile = make_session_file(Session, STANDARD_CATEGORIES_FILE, False )) != NULL )
 	{
-		StandardCategories = create_category_tree( "Default", configfile , NULL, 0, -1 );	 
+		StandardCategories = create_category_tree( "Default", configfile , Environment?Environment->pixmap_path:NULL, 0, -1 );	 
 		free( configfile );
 	}
 

@@ -468,6 +468,18 @@ add_menuitem_from_file( FILE *fp2, char *buf, dirtree_t *t, Bool show_unavailabl
 	return lines_read ;
 }
 
+static void update_menu_item_from_dirtree( MenuDataItem *menu_item, dirtree_t *t )
+{
+	if( get_flags( t->flags, DIRTREE_NAME_IS_UTF8 ) )
+		set_flags( menu_item->flags, MD_NameIsUTF8 );
+	if( t->Comment ) 
+	{
+		menu_item->comment = interpret_ascii_string( t->Comment );
+		if( get_flags( t->flags, DIRTREE_COMMENT_IS_UTF8 ) )
+			set_flags( menu_item->flags, MD_CommentIsUTF8 );
+	}
+}
+
 MenuData     *
 dirtree_make_menu2 (dirtree_t * tree, char *buf, Bool reload_submenus)
 {
@@ -488,12 +500,6 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf, Bool reload_submenus)
 		sprintf (buf, "%d", tree->flags & DIRTREE_ID);
         menu = CreateMenuData (buf);
 	}
-	if( tree->comment ) 
-	{
-		menu->comment = interpret_ascii_string( tree->comment );
-		if( get_flags( tree->flags, DIRTREE_COMMENT_IS_UTF8 ) )
-			set_flags( menu->flags, MD_CommentIsUTF8 );
-	}	
 	if( get_flags( tree->flags, DIRTREE_RECENT_ITEMS_SET ) )
 		menu->recent_items = tree->recent_items ;
 
@@ -502,9 +508,7 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf, Bool reload_submenus)
 	/* We exploit that scan_for_hotkey removes & (marking hotkey) from name */
 	scan_for_hotkey (fdata->name);
     menu_item = menu_data_item_from_func (menu, fdata, False);
-	if( get_flags( tree->flags, DIRTREE_NAME_IS_UTF8 ) )
-		set_flags( menu_item->flags, MD_NameIsUTF8 );
-
+	update_menu_item_from_dirtree( menu_item, tree ); 
 	add_minipixmap_from_dirtree_item( tree, menu );
 
 	for (t = tree->child; t != NULL; t = t->next)
@@ -528,8 +532,8 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf, Bool reload_submenus)
 			else
 				fdata->text = string_from_int (t->flags & DIRTREE_ID);
 
-            menu_data_item_from_func (menu, fdata, False);
-
+            menu_item = menu_data_item_from_func (menu, fdata, False);
+			update_menu_item_from_dirtree( menu_item, t); 
  			add_minipixmap_from_dirtree_item( t, menu );
 /************* Done creating Popup Title entry : ************************/
 		} else if( t->de ) 
@@ -549,15 +553,8 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf, Bool reload_submenus)
 				fdata = create_named_function(func, t->stripped_name);	   
             	fdata->text = mystrdup( t->de->clean_exec );
             	menu_item = menu_data_item_from_func (menu, fdata, False);
-				if( get_flags( t->flags, DIRTREE_NAME_IS_UTF8 ) )
-					set_flags( menu_item->flags, MD_NameIsUTF8 );
-				if( t->comment ) 
-				{
-					menu_item->comment = mystrdup( t->comment );
-					if( get_flags( t->flags, DIRTREE_COMMENT_IS_UTF8 ) )
-						set_flags( menu_item->flags, MD_CommentIsUTF8 );
-				}
- 				add_minipixmap_from_dirtree_item( t, menu );
+				update_menu_item_from_dirtree( menu_item, t ); 
+				add_minipixmap_from_dirtree_item( t, menu );
 			}
 		}else if (t->command.func != F_NOP)
 		{

@@ -24,7 +24,8 @@ typedef struct dirtree_t
 
   struct ASDesktopEntry *de ; 
   
-  char *comment ; /* will show up in a balloon */ 
+  char *Comment ; /* will show up in a balloon */ 
+  char *FolderReference ;
 
 } dirtree_t;
 

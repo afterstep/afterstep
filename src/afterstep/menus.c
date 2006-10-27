@@ -498,6 +498,7 @@ set_asmenu_data( ASMenu *menu, MenuData *md, Bool first_time, Bool show_unavaila
     int real_items_num = 0;
     int max_icon_size  = 0;
     MenuDataItem **subitems = NULL ;
+	MenuDataItem *title_mdi = NULL; 
 
 
     if( menu->items_num < items_num )
@@ -511,6 +512,10 @@ set_asmenu_data( ASMenu *menu, MenuData *md, Bool first_time, Bool show_unavaila
         free( menu->title );
         menu->title = NULL;
     }
+	clear_flags( menu->state, AS_MenuTitleIsUTF8|AS_MenuNameIsUTF8 );
+	
+	if( get_flags( md->flags, MD_NameIsUTF8 ) )
+		set_flags( menu->state, AS_MenuNameIsUTF8 );
 
     if( items_num > 0 )
     {
@@ -525,7 +530,10 @@ set_asmenu_data( ASMenu *menu, MenuData *md, Bool first_time, Bool show_unavaila
         for(mdi = md->first; real_items_num < items_num && mdi != NULL ; mdi = mdi->next )
             if( mdi->fdata->func == F_TITLE && menu->title == NULL )
             {
+				title_mdi = mdi ; 
                 menu->title = mystrdup( mdi->item );
+				if( get_flags( mdi->flags, MD_NameIsUTF8 ) )
+					set_flags( menu->state, AS_MenuTitleIsUTF8 );
             }else
             {
                 ASMenuItem *item = &(menu->items[real_items_num]);
@@ -603,18 +611,26 @@ set_asmenu_data( ASMenu *menu, MenuData *md, Bool first_time, Bool show_unavaila
 		menu->selected_item = -1 ;
     menu->pressed_item = -1;
 	
-	if( md->comment != NULL ) 
 	{
-		int encoding = get_flags( md->flags, MD_NameIsUTF8)? AS_Text_UTF8 : AS_Text_ASCII ;
-		if( menu->comment_balloon == NULL )
-			menu->comment_balloon = create_asballoon_with_text_for_state ( MenuBalloons, NULL, md->comment, encoding);
-		else
+		char *comment = md->comment ; 
+		int encoding = get_flags( md->flags, MD_CommentIsUTF8)? AS_Text_UTF8 : AS_Text_ASCII ;
+		if( title_mdi != NULL && title_mdi->comment != NULL ) 
 		{
-			balloon_set_text (menu->comment_balloon, md->comment, encoding);
+			encoding = get_flags( title_mdi->flags, MD_CommentIsUTF8)? AS_Text_UTF8 : AS_Text_ASCII ;
+			comment = title_mdi->comment ; 
 		}
-		clear_flags( menu->state, AS_MenuBalloonShown);
-	}else if( menu->comment_balloon )
-		destroy_asballoon( &(menu->comment_balloon) );
+		if( comment ) 
+		{
+			if( menu->comment_balloon == NULL )
+				menu->comment_balloon = create_asballoon_with_text_for_state ( MenuBalloons, NULL, comment, encoding);
+			else
+			{
+				balloon_set_text (menu->comment_balloon, comment, encoding);
+				clear_flags( menu->state, AS_MenuBalloonShown);
+			}
+		}else if( menu->comment_balloon )
+			destroy_asballoon( &(menu->comment_balloon) );
+	}
 }
 
 void
@@ -1398,7 +1414,15 @@ make_menu_hints( ASMenu *menu )
 	hints = safecalloc( 1, sizeof(ASHints) );
 
 	/* normal hints : */
-    hints->names[0] = mystrdup(menu->title?menu->title:menu->name);
+	if( menu->title ) 
+	{
+    	hints->names[0] = mystrdup(menu->title);
+	    hints->names_encoding[0] = get_flags( menu->state, AS_MenuTitleIsUTF8 )? AS_Text_UTF8:AS_Text_ASCII;
+	}else
+	{
+    	hints->names[0] = mystrdup(menu->name);
+	    hints->names_encoding[0] = get_flags( menu->state, AS_MenuNameIsUTF8 )? AS_Text_UTF8:AS_Text_ASCII;
+	}
     hints->names[1] = mystrdup(ASMENU_RES_CLASS);
     /* these are merely shortcuts to the above list DON'T FREE THEM !!! */
     hints->res_name  = hints->names[1];
@@ -1455,6 +1479,8 @@ show_asmenu( ASMenu *menu, int x, int y )
     ASRawHints raw ;
     static char *ASMenuStyleNames[2] = {"ASMenu",NULL} ;
     ASDatabaseRecord *db_rec;
+
+	LOCAL_DEBUG_OUT( "menu(%s) - encoding set in hints is %d", hints->names[0], hints->names_encoding[0] ); 
 
     asiw->data = (ASMagic*)menu;
 
@@ -1543,6 +1569,7 @@ show_asmenu( ASMenu *menu, int x, int y )
 		destroy_asdb_record( db_rec, False );
     }
     /* lets make sure we got everything right : */
+	LOCAL_DEBUG_OUT( "menu(%s) - encoding set in hints is %d", hints->names[0], hints->names_encoding[0] ); 
     check_hints_sanity (ASDefaultScr, hints, &status, menu->main_canvas->w );
     check_status_sanity (ASDefaultScr, &status);
 
@@ -1560,6 +1587,8 @@ show_asmenu( ASMenu *menu, int x, int y )
         }
     }
 #endif
+	LOCAL_DEBUG_OUT( "menu(%s) - encoding set in hints is %d", hints->names[0], hints->names_encoding[0] );
+
     menu->owner = AddInternalWindow( menu->main_canvas->w, &asiw, &hints, &status );
 
     /* need to cleanup if we failed : */

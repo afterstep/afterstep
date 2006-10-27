@@ -1,14 +1,6 @@
-# Name the menu folder.  If no name is given, default
-#	to the folder name.
+#SmallMiniPixmap         Folder-Gear2
+#Comment  "Computer diagnostic, update,\nand control programs."
 
-name            System
-
-
-# Scale the listed pixmap to fit in the menu.
-
-SmallMiniPixmap         Folder-Gear2
-
-Comment  "Computer diagnostic, update,\nand control programs."
 
 # Look in:
 #	/usr/share/afterstep/applications/
@@ -17,5 +9,6 @@ Comment  "Computer diagnostic, update,\nand control programs."
 #
 #	for *.desktop files with the following Categories:
 
+FolderReference "System"
 Category        "System"
 

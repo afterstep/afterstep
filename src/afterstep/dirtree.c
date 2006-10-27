@@ -108,6 +108,10 @@ dirtree_delete (dirtree_t * tree)
 	free_func_data (&tree->command);
 	if (tree->de != NULL)
 		unref_desktop_entry(tree->de);
+	if (tree->Comment != NULL)
+		free (tree->Comment);
+	if (tree->FolderReference != NULL)
+		free (tree->FolderReference);
 
 	free (tree);
 }
@@ -302,7 +306,7 @@ dirtree_add_category (dirtree_t *tree, ASCategoryTree *ct, ASDesktopCategory *dc
 		if( dup_desktop_entry_Name( de, &(t->name) ) )
 			set_flags( t->flags, DIRTREE_NAME_IS_UTF8 );
 
-		if( dup_desktop_entry_Comment( de, &(t->comment) ) )
+		if( dup_desktop_entry_Comment( de, &(t->Comment) ) )
 			set_flags( t->flags, DIRTREE_COMMENT_IS_UTF8 );
 		
 		ref_desktop_entry( de );
@@ -332,6 +336,31 @@ dirtree_add_category_by_name (dirtree_t *tree, const char *cat_name, Bool includ
 	dc = name2desktop_category( cat_name, &ct ); 
 	dirtree_add_category (tree, ct, dc, include_children, exclusions);
 }
+
+void dirtree_fill_from_reference( dirtree_t *tree, const char *reference )
+{
+	ASCategoryTree *ct = CombinedCategories ; 
+	ASDesktopCategory *dc = NULL ;
+	ASDesktopEntry *de = NULL ; 
+	
+	ASSERT_TREE(tree);
+
+	dc = name2desktop_category( reference, &ct ); 
+	de = fetch_desktop_entry( ct, dc->index_name?dc->index_name:dc->name ); 
+
+	if( dup_desktop_entry_Name( de, &(tree->name) ) )
+		set_flags( tree->flags, DIRTREE_NAME_IS_UTF8 );
+
+	if( dup_desktop_entry_Comment( de, &(tree->Comment) ) )
+		set_flags( tree->flags, DIRTREE_COMMENT_IS_UTF8 );
+
+	if( de->fulliconname )
+	{
+		set_string(&(tree->icon), mystrdup(de->fulliconname));
+		set_flags(tree->flags, DIRTREE_ICON_IS_SMALL);
+	}
+}
+
 
 int
 dirtree_parse (dirtree_t * tree, const char *file)
@@ -464,11 +493,10 @@ dirtree_parse (dirtree_t * tree, const char *file)
 			{	
 				set_flags(tree->flags, DIRTREE_ICON_IS_SMALL);
 				ptr += 5 ;
-			}
-			for (ptr += 10; isspace (*ptr); ptr++);
-			if (tree->icon != NULL)
-				free (tree->icon);
-			tree->icon = mystrdup (ptr);
+			}else
+				clear_flags(tree->flags, DIRTREE_ICON_IS_SMALL);
+			set_string(&(tree->icon), stripcpy2(ptr+10,False));
+
 		} else if (!mystrncasecmp (ptr, "command", 7))
 		{
 			for (ptr += 7; isspace (*ptr); ptr++);
@@ -483,15 +511,16 @@ dirtree_parse (dirtree_t * tree, const char *file)
 			tree->flags |= DIRTREE_RECENT_ITEMS_SET;
 		} else if (!mystrncasecmp (ptr, "name", 4))
 		{
-			for (ptr += 4; isspace (*ptr); ptr++);
-			if (tree->name != NULL)
-				free (tree->name);
-			tree->name = mystrdup (ptr);
+			set_string(&(tree->name), stripcpy2(ptr+4,False));
+			clear_flags( tree->flags, DIRTREE_NAME_IS_UTF8 );
 		}else if (!mystrncasecmp (ptr, "Comment", 7))
 		{
-			if (tree->comment != NULL)
-				free (tree->comment);
-			tree->comment = stripcpy2(ptr+7,False);
+			set_string(&(tree->Comment), stripcpy2(ptr+7,False));
+			clear_flags( tree->flags, DIRTREE_COMMENT_IS_UTF8 );
+		}else if (!mystrncasecmp (ptr, "FolderReference", 15))
+		{
+			set_string(&(tree->FolderReference), stripcpy2(ptr+15,False));
+			dirtree_fill_from_reference( tree, tree->FolderReference );
 		}
 	}
 	free (str);
