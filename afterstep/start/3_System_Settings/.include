@@ -17,5 +17,6 @@ Comment  "Distribution, system and\npersonal preferences."
 #
 #	for *.desktop files with the following Categories:
 
+FolderReference "System Settings"
 Category        "Settings"
 Category        "SystemSetup"
