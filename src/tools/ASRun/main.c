@@ -60,6 +60,12 @@ typedef struct ASRunState
 	GtkWidget *run_in_term_check ;
 
 	Window kde_screensaver_window ;
+	
+	char *current_dir ; 
+	char *completion_path ; 
+	GtkTreeModel *completion_model ; 
+	GtkEntryCompletion *completion ; 
+	
 }ASRunState;
 
 ASRunState AppState ;
@@ -346,8 +352,8 @@ void init_ASRun(ASFlagType flags, ASRunTool tool, const char *cmd )
 			gtk_entry_set_text( GTK_ENTRY(AppState.target_entry), cmd );
 	}
 
-	g_signal_connect (G_OBJECT(AppState.target_combo), "changed",
-			  			G_CALLBACK (NULL), (gpointer) NULL);
+/*	g_signal_connect (G_OBJECT(AppState.target_combo), "changed",
+			  			G_CALLBACK (NULL), (gpointer) NULL); */
 	
 	g_signal_connect (G_OBJECT (cancel_btn), "clicked", G_CALLBACK (on_destroy), NULL);
 	g_signal_connect (G_OBJECT (exec_btn), "clicked", G_CALLBACK (on_exec_clicked), NULL);
@@ -355,8 +361,11 @@ void init_ASRun(ASFlagType flags, ASRunTool tool, const char *cmd )
 	g_signal_connect (G_OBJECT (AppState.main_window), "destroy", G_CALLBACK (on_destroy), NULL);
 	/********   Show them all *******/
 	gtk_widget_show_all (main_vbox);
-
 	gtk_widget_show(AppState.main_window);
+	
+	gtk_window_set_focus( GTK_WINDOW(AppState.main_window), AppState.target_entry );
+	GTK_WIDGET_SET_FLAGS(exec_btn, GTK_CAN_DEFAULT );
+	gtk_window_set_default( GTK_WINDOW(AppState.main_window), exec_btn );
 }	 
 #endif                         /* HAVE_GTK  */
 

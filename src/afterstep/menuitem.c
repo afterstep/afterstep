@@ -518,14 +518,12 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf, Bool reload_submenus)
 		if (t->flags & DIRTREE_DIR)
 		{
 /************* Creating Popup Title entry : ************************/
-			fdata = create_named_function(F_POPUP, t->stripped_name);
+			fdata = create_named_function((t->child==NULL)?F_NOP:F_POPUP, t->stripped_name);
             if( reload_submenus )
                 fdata->popup = dirtree_make_menu2 (t, buf, reload_submenus);
             else
                 fdata->popup = FindPopup( t->stripped_name, True );
-/*            if( fdata->popup == NULL )
-                fdata->func = F_NOP;
-*/
+
 			fdata->hotkey = scan_for_hotkey (fdata->name);
 			if (t->flags & DIRTREE_KEEPNAME)
 				fdata->text = mystrdup (t->stripped_name);

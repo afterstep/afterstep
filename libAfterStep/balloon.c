@@ -276,15 +276,10 @@ destroy_balloon_state(ASBalloonState **pstate)
 }
 
 
-void
-display_balloon( ASBalloon *balloon )
+static void
+display_balloon_int( ASBalloon *balloon, Bool ignore_delay )
 {
-	ASBalloonState *state ; 
-
-    LOCAL_DEBUG_CALLER_OUT( "%p", balloon );
-    if( balloon == NULL )
-        return;
-	state = balloon->state ; 
+	ASBalloonState *state = balloon->state ; 
 	
     LOCAL_DEBUG_OUT( "show = %d, active = %p", state->look.show, state->active );
     if( !state->look.show || state->active == balloon )
@@ -294,7 +289,7 @@ display_balloon( ASBalloon *balloon )
         withdraw_active_balloon_from(state);
 
     state->active = balloon ;
-    if( state->look.Delay <= 0 )
+    if( ignore_delay || state->look.Delay <= 0 )
         display_active_balloon(state);
     else
     {
@@ -302,6 +297,22 @@ display_balloon( ASBalloon *balloon )
         balloon->timer_action = BALLOON_TIMER_OPEN;
         timer_new (state->look.Delay, &balloon_timer_handler, (void *)balloon);
     }
+}
+
+void
+display_balloon( ASBalloon *balloon )
+{
+    LOCAL_DEBUG_CALLER_OUT( "%p", balloon );
+    if( balloon )
+		display_balloon_int( balloon, False );
+}
+
+void
+display_balloon_nodelay( ASBalloon *balloon )
+{
+    LOCAL_DEBUG_CALLER_OUT( "%p", balloon );
+    if( balloon )
+		display_balloon_int( balloon, True );
 }
 
 void

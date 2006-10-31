@@ -60,6 +60,7 @@ void withdraw_balloon( ASBalloon *balloon );
 void withdraw_active_balloon_from( ASBalloonState *state );
 void withdraw_active_balloon();
 void display_balloon( ASBalloon *balloon );
+void display_balloon_nodelay( ASBalloon *balloon );
 void set_balloon_look( ASBalloonLook *blook );
 void set_balloon_state_look( ASBalloonState *state, ASBalloonLook *blook );
 

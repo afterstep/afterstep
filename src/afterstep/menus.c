@@ -125,6 +125,8 @@ destroy_asmenu(ASMenu **pmenu)
             Window w = menu->main_canvas->w ;
 LOCAL_DEBUG_CALLER_OUT( "top(%p)->supermenu(%p)->menu(%p)->submenu(%p)", ASTopmostMenu, menu->supermenu, menu, menu->submenu );
 
+	        while (timer_remove_by_data (menu));
+
             if( menu->supermenu && menu->supermenu->submenu == menu )
                 menu->supermenu->submenu = NULL ;
             else if( ASTopmostMenu == menu )
@@ -162,7 +164,8 @@ LOCAL_DEBUG_CALLER_OUT( "top(%p)->supermenu(%p)->menu(%p)->submenu(%p)", ASTopmo
                 free( menu->title );
 
 			destroy_asballoon( &(menu->comment_balloon) );
-
+			destroy_asballoon( &(menu->item_balloon) );
+			
             menu->magic = 0 ;
             free( menu );
             *pmenu = NULL ;
@@ -619,17 +622,13 @@ set_asmenu_data( ASMenu *menu, MenuData *md, Bool first_time, Bool show_unavaila
 			encoding = get_flags( title_mdi->flags, MD_CommentIsUTF8)? AS_Text_UTF8 : AS_Text_ASCII ;
 			comment = title_mdi->comment ; 
 		}
-		if( comment ) 
+		if( menu->comment_balloon == NULL )
+			menu->comment_balloon = create_asballoon_with_text_for_state ( MenuBalloons, NULL, comment, encoding);
+		else
 		{
-			if( menu->comment_balloon == NULL )
-				menu->comment_balloon = create_asballoon_with_text_for_state ( MenuBalloons, NULL, comment, encoding);
-			else
-			{
-				balloon_set_text (menu->comment_balloon, comment, encoding);
-				clear_flags( menu->state, AS_MenuBalloonShown);
-			}
-		}else if( menu->comment_balloon )
-			destroy_asballoon( &(menu->comment_balloon) );
+			balloon_set_text (menu->comment_balloon, comment, encoding);
+			clear_flags( menu->state, AS_MenuBalloonShown);
+		}
 	}
 }
 
@@ -775,6 +774,7 @@ set_menu_item_used( ASMenu *menu, MenuDataItem *mdi )
 
 
 void set_asmenu_scroll_position( ASMenu *menu, int pos );
+static void menu_item_balloon_timer_handler (void *data);
 
 void
 select_menu_item( ASMenu *menu, int selection, Bool render )
@@ -792,6 +792,8 @@ LOCAL_DEBUG_CALLER_OUT( "%p,%d", menu, selection );
 	needs_scrolling = ( selection < menu->top_item || selection >= menu->top_item + menu->visible_items_num ) ;
     if( selection != menu->selected_item )
     {
+		if( menu->item_balloon )
+			withdraw_balloon( menu->item_balloon );
         close_asmenu_submenu( menu );
 		if( menu->selected_item >= 0 )
         	set_astbar_focused( menu->items[menu->selected_item].bar, NULL/*needs_scrolling?NULL:menu->main_canvas*/, False );
@@ -805,7 +807,27 @@ LOCAL_DEBUG_CALLER_OUT( "%p,%d", menu, selection );
         set_asmenu_scroll_position( menu, (selection-menu->visible_items_num)+1);
 	else if( render )
 	    render_asmenu_bars(menu, False);
+
+	if( menu->items[selection].source && menu->items[selection].source->comment ) 
+	{
+		int	encoding = get_flags( menu->items[selection].source->flags, MD_CommentIsUTF8)? AS_Text_UTF8 : AS_Text_ASCII ;
+		if( menu->item_balloon == NULL )
+			menu->item_balloon = create_asballoon_with_text_for_state ( MenuBalloons, NULL, menu->items[selection].source->comment, encoding);
+		else
+			balloon_set_text (menu->item_balloon, menu->items[selection].source->comment, encoding);
+        timer_new (1000, &menu_item_balloon_timer_handler, (void *)menu);
+	}
 }
+
+static void
+menu_item_balloon_timer_handler (void *data)
+{
+    ASMenu      *menu = (ASMenu *) data;
+
+	if( menu && menu->item_balloon ) 
+		display_balloon_nodelay( menu->item_balloon );	
+}
+
 
 void
 set_asmenu_scroll_position( ASMenu *menu, int pos )
