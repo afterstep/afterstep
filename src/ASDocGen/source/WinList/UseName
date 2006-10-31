@@ -3,7 +3,7 @@
 	<listitem>
 		<para>Tells WinList what type of name to use for displaying in
 		WinList label.</para>
-		<para># 0 - Name, 1 - icon, 2 - res_name, 3 - res_class, 5 - display no icon in winlist
+		<para># 0 - Name, 1 - icon, 2 - res_name, 3 - res_class, 5 - display only icon but no text in winlist
 		</para>
 	</listitem>
 </varlistentry>
