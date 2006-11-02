@@ -53,7 +53,11 @@ init_asfeel( ASFeel *feel )
     feel->ClickTime = 150;
     feel->AutoRaiseDelay = 0;
     feel->RaiseButtons = 0;
+#ifdef __CYGWIN__		
     feel->flags = DoHandlePageing;
+#else
+    feel->flags = DoHandlePageing|DontAnimateBackground;
+#endif
     feel->XorValue = (((unsigned long)1) << ASDefaultScr->d_depth) - 1;
 
     feel->no_snaping_mod = ShiftMask|ControlMask ;
