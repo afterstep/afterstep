@@ -135,17 +135,24 @@ setup_active_balloon_tiles( ASBalloonState *state )
 			ASImage *im = get_asimage( ASDefaultScr->image_manager, state->active->data.image.filename, ASFLAGS_EVERYTHING, 100 );
 			if( im )
 			{
-				int target_height = Scr.MyDisplayHeight/5 ; 
-				int target_width = (target_height * im->width) / im->height ; 
-				if( target_width > Scr.MyDisplayHeight/3 )
-					target_width = Scr.MyDisplayHeight/3 ;
-				if( im->width > target_width || im->height > target_height ) 
+				int scale_height = Scr.MyDisplayHeight/5 ; 
+				int scale_width = (scale_height * im->width) / im->height ; 
+				int tile_width = scale_width; 
+				if( scale_width > Scr.MyDisplayWidth/3 )
+					tile_width = Scr.MyDisplayWidth/4 ;
+				if( im->width > tile_width || im->height > scale_height ) 
 				{
-					ASImage *tmp = scale_asimage( ASDefaultVisual, im, target_width, target_height, ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT );
+					ASImage *tmp = scale_asimage( ASDefaultVisual, im, scale_width, scale_height, ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT );
 					safe_asimage_destroy( im );
-					state->active->data.image.image = tmp;
-				}else
-					state->active->data.image.image = im ;
+					im = tmp ; 
+					if( tile_width < scale_width ) 
+					{
+						tmp = tile_asimage( ASDefaultVisual, im, 0, 0, tile_width, scale_height, TINT_NONE, ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT );
+						safe_asimage_destroy( im );
+						im = tmp ;
+					}
+				}
+				state->active->data.image.image = im ;
 			} 
 		}	
 		if( state->active->data.image.image != NULL ) 
