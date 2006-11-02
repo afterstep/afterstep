@@ -825,12 +825,13 @@ LOCAL_DEBUG_CALLER_OUT( "%p,%d", menu, selection );
 		}else if( menu->items[selection].fdata.func == F_CHANGE_BACKGROUND_FOREIGN || 
 				  menu->items[selection].fdata.func == F_CHANGE_BACKGROUND ) 
 		{
+			int delay = MenuBalloons->look.Delay ; 
 			LOCAL_DEBUG_OUT( "change background func = \"%s\"", menu->items[selection].fdata.text );
 
 			if( menu->item_balloon == NULL )
 				menu->item_balloon = create_asballoon_for_state ( MenuBalloons, NULL);
 			balloon_set_image_from_file (menu->item_balloon, menu->items[selection].fdata.text );
-        	timer_new (MenuBalloons->look.Delay, &menu_item_balloon_timer_handler, (void *)menu);
+        	timer_new (delay>1000?delay-1000:delay, &menu_item_balloon_timer_handler, (void *)menu);
 		}
 	}
 }

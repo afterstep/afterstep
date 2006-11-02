@@ -138,7 +138,7 @@ setup_active_balloon_tiles( ASBalloonState *state )
 				int target_height = Scr.MyDisplayHeight/5 ; 
 				int target_width = (target_height * im->width) / im->height ; 
 				if( target_width > Scr.MyDisplayHeight/3 )
-					target_width = Scr.MyDisplayHeight/3
+					target_width = Scr.MyDisplayHeight/3 ;
 				if( im->width > target_width || im->height > target_height ) 
 				{
 					ASImage *tmp = scale_asimage( ASDefaultVisual, im, target_width, target_height, ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT );
