@@ -793,7 +793,10 @@ LOCAL_DEBUG_CALLER_OUT( "%p,%d", menu, selection );
     if( selection != menu->selected_item )
     {
 		if( menu->item_balloon )
+		{
+	        while (timer_remove_by_data (menu));
 			withdraw_balloon( menu->item_balloon );
+		}
         close_asmenu_submenu( menu );
 		if( menu->selected_item >= 0 )
         	set_astbar_focused( menu->items[menu->selected_item].bar, NULL/*needs_scrolling?NULL:menu->main_canvas*/, False );
@@ -808,14 +811,27 @@ LOCAL_DEBUG_CALLER_OUT( "%p,%d", menu, selection );
 	else if( render )
 	    render_asmenu_bars(menu, False);
 
-	if( menu->items[selection].source && menu->items[selection].source->comment ) 
+	if( menu->items[selection].source )
 	{
-		int	encoding = get_flags( menu->items[selection].source->flags, MD_CommentIsUTF8)? AS_Text_UTF8 : AS_Text_ASCII ;
-		if( menu->item_balloon == NULL )
-			menu->item_balloon = create_asballoon_with_text_for_state ( MenuBalloons, NULL, menu->items[selection].source->comment, encoding);
-		else
+		LOCAL_DEBUG_OUT( "selection func = %d", menu->items[selection].fdata.func );
+		if( menu->items[selection].source->comment ) 
+		{
+			int	encoding = get_flags( menu->items[selection].source->flags, MD_CommentIsUTF8)? AS_Text_UTF8 : AS_Text_ASCII ;
+			if( menu->item_balloon == NULL )
+				menu->item_balloon = create_asballoon_for_state ( MenuBalloons, NULL);
+
 			balloon_set_text (menu->item_balloon, menu->items[selection].source->comment, encoding);
-        timer_new (1000, &menu_item_balloon_timer_handler, (void *)menu);
+        	timer_new (MenuBalloons->look.Delay, &menu_item_balloon_timer_handler, (void *)menu);
+		}else if( menu->items[selection].fdata.func == F_CHANGE_BACKGROUND_FOREIGN || 
+				  menu->items[selection].fdata.func == F_CHANGE_BACKGROUND ) 
+		{
+			LOCAL_DEBUG_OUT( "change background func = \"%s\"", menu->items[selection].fdata.text );
+
+			if( menu->item_balloon == NULL )
+				menu->item_balloon = create_asballoon_for_state ( MenuBalloons, NULL);
+			balloon_set_image_from_file (menu->item_balloon, menu->items[selection].fdata.text );
+        	timer_new (MenuBalloons->look.Delay, &menu_item_balloon_timer_handler, (void *)menu);
+		}
 	}
 }
 

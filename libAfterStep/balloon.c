@@ -122,6 +122,38 @@ set_active_balloon_look( ASBalloonState *state )
     }
 }
 
+static void 
+setup_active_balloon_tiles( ASBalloonState *state )
+{
+	if( state->active->type == ASBalloon_Text )
+	    add_astbar_label( state->active_bar, 0, 0, 0, ALIGN_CENTER, 1, 1, state->active->data.text.text, state->active->data.text.encoding );
+	else 
+	{
+		LOCAL_DEBUG_OUT( "balloon is image: filename = \"%s\", image = %p", state->active->data.image.filename, state->active->data.image.image );
+		if( state->active->data.image.image == NULL )
+		{
+			ASImage *im = get_asimage( ASDefaultScr->image_manager, state->active->data.image.filename, ASFLAGS_EVERYTHING, 100 );
+			if( im )
+			{
+				int target_height = Scr.MyDisplayHeight/5 ; 
+				int target_width = (target_height * im->width) / im->height ; 
+				if( target_width > Scr.MyDisplayHeight/3 )
+					target_width = Scr.MyDisplayHeight/3
+				if( im->width > target_width || im->height > target_height ) 
+				{
+					ASImage *tmp = scale_asimage( ASDefaultVisual, im, target_width, target_height, ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT );
+					safe_asimage_destroy( im );
+					state->active->data.image.image = tmp;
+				}else
+					state->active->data.image.image = im ;
+			} 
+		}	
+		if( state->active->data.image.image != NULL ) 
+		    add_astbar_icon( state->active_bar, 0, 0, 0, ALIGN_CENTER, state->active->data.image.image );
+	}
+}
+
+
 static void
 display_active_balloon( ASBalloonState *state )
 {
@@ -150,7 +182,7 @@ display_active_balloon( ASBalloonState *state )
 		}
         state->active_canvas = create_ascanvas(state->active_window);
         state->active_bar = create_astbar();
-        add_astbar_label( state->active_bar, 0, 0, 0, ALIGN_CENTER, 1, 1, state->active->text, state->active->encoding );
+		setup_active_balloon_tiles( state );
         set_active_balloon_look(state);
         map_canvas_window( state->active_canvas, True );
 
@@ -381,15 +413,34 @@ create_asballoon_for_state (ASBalloonState *state, ASTBarData *owner)
     return balloon;
 }
 
+static void destroy_asballoon_data( ASBalloon *balloon ) 
+{
+	if( balloon->type == ASBalloon_Text )
+	{ 	
+       	destroy_string( &(balloon->data.text.text) );
+	}else 
+	{
+       	destroy_string( &(balloon->data.image.filename) );
+		if( balloon->data.image.image )
+		{
+			safe_asimage_destroy( balloon->data.image.image );
+			balloon->data.image.image = NULL ;
+		}
+	}
+}
+inline static void set_asballoon_data_text( ASBalloon *balloon, const char *text, unsigned long encoding ) 
+{
+    balloon->data.text.text = mystrdup(text);
+	balloon->data.text.encoding = encoding ;
+	balloon->type = ASBalloon_Text ; 
+}
+
 ASBalloon *
 create_asballoon_with_text_for_state ( ASBalloonState *state, ASTBarData *owner, const char *text, unsigned long encoding)
 {
     ASBalloon *balloon = create_asballoon_for_state(state, owner);
     if( balloon )
-	{
-        balloon->text = mystrdup(text);
-		balloon->encoding = encoding ;
-	}
+		set_asballoon_data_text( balloon, text, encoding );
     return balloon;
 }
 
@@ -413,8 +464,7 @@ destroy_asballoon( ASBalloon **pballoon )
 		ASBalloonState *state = (*pballoon)->state ; 
         if( *pballoon == state->active )
             withdraw_active_balloon_from(state);
-        if( (*pballoon)->text )
-            free( (*pballoon)->text );
+		destroy_asballoon_data( *pballoon );
         free( *pballoon );
         *pballoon = NULL ;
     }
@@ -427,18 +477,43 @@ balloon_set_text (ASBalloon * balloon, const char *text, unsigned long encoding)
 	if( balloon ) 
 	{
 		ASBalloonState *state = balloon->state ; 
-    	if( balloon->text == text )
+		int old_type = balloon->type ;
+		
+    	if( balloon->data.text.text == text )
         	return ;
-    	if( balloon->text )
-        	free( balloon->text );
-    	balloon->text = mystrdup( text );
-		balloon->encoding = encoding ;
-    	if( balloon == state->active &&
-        	state->active_bar != NULL )
+		destroy_asballoon_data( balloon );
+		set_asballoon_data_text( balloon, text, encoding );
+
+    	if( balloon == state->active &&	state->active_bar != NULL )
     	{
-        	if( change_astbar_first_label (state->active_bar, balloon->text, encoding ) )
-            	set_active_balloon_look(balloon->state);
+			if( old_type != balloon->type ) 
+			{
+				delete_astbar_tile( state->active_bar, -1 );
+				setup_active_balloon_tiles( state );
+			}else
+        		change_astbar_first_label (state->active_bar, balloon->data.text.text, encoding );
+           	set_active_balloon_look(balloon->state);
     	}
 	}
 }
 
+void
+balloon_set_image_from_file (ASBalloon * balloon, const char *filename)
+{
+	if( balloon && filename ) 
+	{
+		ASBalloonState *state = balloon->state ; 
+		
+		destroy_asballoon_data( balloon );
+		balloon->data.image.filename = mystrdup( filename );
+		balloon->type = ASBalloon_Image ; 
+
+    	if( balloon == state->active &&
+        	state->active_bar != NULL )
+    	{
+			delete_astbar_tile( state->active_bar, -1 );
+			setup_active_balloon_tiles( state );
+           	set_active_balloon_look(balloon->state);
+    	}
+	}
+}

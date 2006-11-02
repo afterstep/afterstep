@@ -28,14 +28,31 @@ struct ASBalloonState;
 
 typedef struct ASBalloon
 {
-    char *text;                     /* text to display in balloon */
-	unsigned long encoding ;
+	enum
+	{
+		ASBalloon_Text =0,
+		ASBalloon_Image,
+	} type;
+	
+	union
+	{
+    	struct {
+			char *text;                     /* text to display in balloon */
+			unsigned long encoding ;
+		}text;
+		struct {
+			char *filename;
+			ASImage *image;
+		}image;
+	}data;
+	
 	enum
     {
         BALLOON_TIMER_OPEN,
         BALLOON_TIMER_CLOSE
     } timer_action;               /* what to do when the timer expires */
-    struct ASTBarData 		*owner ;
+    
+	struct ASTBarData 		*owner ;
 	struct ASBalloonState 	*state ;
 }ASBalloon;
 
@@ -70,6 +87,7 @@ ASBalloon *create_asballoon (struct ASTBarData *owner);
 ASBalloon *create_asballoon_with_text ( struct ASTBarData *owner, const char *text, unsigned long encoding);
 void destroy_asballoon(ASBalloon **pballoon );
 void balloon_set_text (ASBalloon * balloon, const char *text, unsigned long encoding);
+void balloon_set_image_from_file (ASBalloon * balloon, const char *filename);
 
 #ifdef __cplusplus
 }
