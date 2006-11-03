@@ -193,6 +193,7 @@ X-AfterStep-IndexName=Application
 X-AfterStep-Aliases=Applications
 Categories=
 Comment=Accessibility
+icon=Folder-Gear2
 Type=Directory
 Name[ar]=تطبيقات
 Name[bg]=Програми
@@ -333,6 +334,7 @@ X-AfterStep-IndexName=ArcadeGame
 X-AfterStep-Aliases=Arcade
 Categories=Game
 Comment=Arcade style game
+icon=Folder-GameController
 Type=Directory
 Name[af]=Arkade
 Name[ar]=ألعاب أركيد
@@ -438,6 +440,7 @@ X-AfterStep-IndexName=AudioVideo
 X-AfterStep-Aliases=Multimedia
 Categories= 
 Comment=A multimedia (audio/video) application
+icon=Folder-Headphones
 Type=Directory
 Name[ar]=صوت و فيديو
 Name[bg]=Звук и видео
@@ -600,6 +603,7 @@ X-AfterStep-IndexName=BoardGame
 X-AfterStep-Aliases=Boardgames
 Categories=Game
 Comment=A board game
+icon=Folder-Dice
 Type=Directory
 Name[af]=Bord Speletjies
 Name[ar]=ألعاب الألواح
@@ -700,6 +704,7 @@ X-AfterStep-IndexName=CardGame
 X-AfterStep-Aliases=Cardgames
 Categories=Game
 Comment=A card game
+icon=Folder-Cardgames
 Type=Directory
 Name[af]=Kaart Speletjies
 Name[ar]=ألعاب ورقية
@@ -915,6 +920,7 @@ Name=Development
 X-AfterStep-IndexName=Development
 Categories= 
 Comment=An application for development
+icon=Folder-HammerBrown
 Type=Directory
 Name[ar]=برمجة
 Name[bg]=Разработка
@@ -1077,6 +1083,7 @@ X-AfterStep-IndexName=Education
 X-AfterStep-Aliases=Edutainment
 Categories= 
 Comment=Educational software
+icon=Folder-Library
 Type=Directory
 Name[bg]=Обучение
 Name[bn]=শিক্ষা
@@ -1159,6 +1166,7 @@ Name=Emulator
 X-AfterStep-IndexName=Emulator
 Categories= 
 Comment=Emulator of another platform, such as a DOS emulator
+icon=Folder-GameController
 Type=Directory
 
 [DesktopEntry]
@@ -1385,6 +1393,7 @@ Name=Graphics
 X-AfterStep-IndexName=Graphics
 Categories= 
 Comment=Graphical application
+icon=Folder-Brushes
 Type=Directory
 Name[ar]=رسوم
 Name[bg]=Графика
@@ -1765,6 +1774,7 @@ Name=Logic Games
 X-AfterStep-IndexName=LogicGame
 Categories=Game
 Comment=Logic games like puzzles, etc
+icon=Folder-Puzzle
 Type=Directory
 
 [DesktopEntry]
@@ -1890,6 +1900,7 @@ X-AfterStep-IndexName=Network
 X-AfterStep-Aliases=Internet;X-KDE-Network;X-KDE-settings-network
 Categories=
 Comment=Network application such as a web browser
+icon=Folder-Globe
 Type=Directory
 Name[af]=Internet & Netwerk
 Name[ar]=الإنترنت و الشبكة
@@ -1989,6 +2000,7 @@ Name=Office
 X-AfterStep-IndexName=Office
 Categories= 
 Comment=An office type application
+icon=Folder-PencilCup
 Type=Directory
 Name[ar]=مكتب
 Name[bg]=Офис
@@ -2977,7 +2989,7 @@ Encoding=UTF-8
 Name=System Settings
 X-AfterStep-IndexName=X-KDE-settings-system
 Categories=
-Comment=
+icon=Folder-Gear2
 Type=Directory
 Name[ar]=إدارة
 Name[bg]=Администрация на системата
@@ -3274,14 +3286,13 @@ Name[zh_CN]=终端应用程序
 Name[zh_TW]=終端機程式
 Name[zu]=Abayaleli bangaphandle
 
-
 [DesktopEntry]
 Encoding=UTF-8
-Name=Text Editors
+Name=Editors
 X-AfterStep-IndexName=TextEditor
-X-AfterStep-Aliases=Editors
-Categories=Utility
+Categories= 
 Comment=A text editor
+icon=Folder-Pen1
 Type=Directory
 Name[af]=Redigeerders
 Name[ar]=محررات النصوص
@@ -3432,11 +3443,12 @@ Type=Directory
 
 [DesktopEntry]
 Encoding=UTF-8
-Name=Utilities
+Name=Accessories
 X-AfterStep-IndexName=Utility
 X-AfterStep-Aliases=Utilities
 Categories= 
 Comment=Small utility application, "Accessories"
+icon=Folder-Screwdriver
 Type=Directory
 
 [DesktopEntry]
@@ -3496,4 +3508,66 @@ Categories=Application
 Comment=
 Type=Directory
 
+[DesktopEntry]
+Encoding=UTF-8
+Name=Find...
+X-AfterStep-IndexName=Find
+Categories= 
+Comment=Search the computer or Internet for files or info.
+icon=Folder-MagnifyingGlass
+Type=Directory
+
+[DesktopEntry]
+Encoding=UTF-8
+Name=Desktop Setup
+X-AfterStep-IndexName=ASDesktop
+Categories= 
+Comment=AfterStep's visual and behavior environment.
+icon=Folder-Desktop2
+Type=Directory
+
+[DesktopEntry]
+Encoding=UTF-8
+Name=Modules
+X-AfterStep-IndexName=ASModules
+Categories= 
+Comment=Applications for use within AfterStep.
+icon=Folder-Puzzle
+Type=Directory
+
+[DesktopEntry]
+Encoding=UTF-8
+Name=Screen Savers
+X-AfterStep-IndexName=ASScreenSaver
+Categories= 
+Comment=Password-lock a desktop and prevent monitor burn-in.
+icon=Folder-MoonInMonitor
+Type=Directory
+
+[DesktopEntry]
+Encoding=UTF-8
+Name=Desktop Windows
+X-AfterStep-IndexName=ASScreenSaver
+Categories= 
+Comment=Tools for manipulating AfterStep windows.
+icon=Folder-Windows
+Type=Directory
+
+[DesktopEntry]
+Encoding=UTF-8
+Name=Quit
+X-AfterStep-IndexName=ASQuit
+Categories= 
+Comment=Leave or restart an AfterStep session.
+icon=Folder-Stopsign
+Type=Directory
+
+[DesktopEntry]
+Encoding=UTF-8
+Name=About AfterStep
+X-AfterStep-IndexName=AboutAfterStep
+Categories= 
+Comment=AfterStep Documentation and useful web links.
+icon=Folder-Info
+Type=Directory
 
