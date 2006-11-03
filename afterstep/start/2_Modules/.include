@@ -1,5 +1,4 @@
-SmallMiniPixmap Folder-Puzzle
+order 6
 
-Comment  "Applications for use\nwithin AfterStep."
-
+FolderReference "Modules"
 Category "AfterStep:Modules"

@@ -1,14 +1,4 @@
-# Name the menu folder.  If no name is given, default
-#	to the folder name.
-
-#name            System Settings
-
-
-# Scale the listed pixmap to fit in the menu.
-
-SmallMiniPixmap         Folder-Gear2
-
-Comment  "Distribution, system and\npersonal preferences."
+order 8
 
 # Look in:
 #	/usr/share/afterstep/applications/

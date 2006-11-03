@@ -1,7 +1,4 @@
-order 8
+order 12
 
-SmallMiniPixmap Folder-Info
-
-Comment "AfterStep Documentation\nand useful web links."
-
+FolderReference "About AfterStep"
 Category "AfterStepInfo"

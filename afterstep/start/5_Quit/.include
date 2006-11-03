@@ -1,4 +1,3 @@
-order 6
-SmallMiniPixmap Folder-Stopsign
+order 10
 
-Comment "Leave or restart an\nAfterStep session."
+FolderReference "Quit"

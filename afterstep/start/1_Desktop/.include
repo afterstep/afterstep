@@ -1,8 +1,7 @@
-SmallMiniPixmap Folder-Desktop2
+order 5
 RecentSubmenuItems 0
 
-Comment  "AfterStep's visual and\nbehavior environment."
-
+FolderReference "Desktop Setup"
 Category "OTHER:DesktopSettings"
 Category "AfterStep:DesktopSettings"
 Category "AfterStepDesktop"

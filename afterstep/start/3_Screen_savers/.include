@@ -1,6 +1,4 @@
-order 4
-SmallMiniPixmap Folder-MoonInMonitor
+order 7
 
-Comment  "Password-lock a desktop and\nprevent monitor burn-in."
-
+FolderReference "Screen Savers"
 Category Screensaver

@@ -1,15 +1,4 @@
-# Name the menu folder.  If no name is given, default
-#	to the folder name.
-
-name            Find ...
-
-
-# Scale the listed pixmap to fit in the menu.
-
-SmallMiniPixmap Folder-MagnifyingGlass
-
-Comment  "Search the computer or\nInternet for files or info."
-
+order 2
 # Look in:
 #	/usr/share/afterstep/applications/
 #		- OR -
@@ -17,8 +6,5 @@ Comment  "Search the computer or\nInternet for files or info."
 #
 #	for *.desktop files with the following Categories:
 
+FolderReference "Find..."
 Category        "SearchTool"
-
-
-# change the order in which this menu will appear its parent menu
-order 0

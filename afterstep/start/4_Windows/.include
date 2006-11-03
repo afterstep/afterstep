@@ -1,4 +1,4 @@
-order 5
-SmallMiniPixmap Folder-Windows
+order 9
 
-Comment "Tools for manipulating\nAfterStep windows."
+FolderReference "Desktop Windows"
+
