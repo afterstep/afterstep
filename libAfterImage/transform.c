@@ -2203,6 +2203,7 @@ LOCAL_DEBUG_CALLER_OUT( "offset_x = %d, offset_y = %d, to_width = %d, to_height 
 	{
 	    CARD32 from_hue1 = 0, from_hue2 = 0, to_hue1 = 0, to_hue2 = 0 ;
 		int y, max_y = to_height;
+		int greyscale_add = (value_offset*256)/100 ; 
 
 		affected_hue = normalize_degrees_val( affected_hue );
 		affected_radius = normalize_degrees_val( affected_radius );
@@ -2274,6 +2275,10 @@ LOCAL_DEBUG_OUT("adjusting actually...%s", "");
 						fprintf( stderr, "OUT %d: rgb = #%4.4lX.%4.4lX.%4.4lX hue = %ld(%ld)     sat = %ld val = %ld\n", __LINE__, r[x], g[x], b[x], h, ((h>>8)*360)>>8, s, v );
 #endif
 					}
+				}else if( value_offset != 0 ) 
+				{
+					int tmp = (int)r[x] + value_offset ; 
+					g[x] = b[x] = r[x] = (tmp < 0)?0:((tmp>0x00FFFF)?:tmp);
 				}
 			}
 			imdec->buffer.flags = 0xFFFFFFFF ;
