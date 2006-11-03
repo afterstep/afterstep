@@ -136,7 +136,8 @@ filter_desktop_entry_exec( const char *exec )
 char *stripcpy_localized( char *ptr ) 
 {
 	int i = 0 ; 
-	char *locale = MyArgs.locale?MyArgs.locale:"us" ; 
+	static char default_locale[] = "us" ;
+	char *locale = MyArgs.locale[0]?MyArgs.locale:&default_locale[0] ; 
 	while( locale[i] != '.' && locale[i] != '\0'  && ptr[i] != ']') 
 	{
 		if( ptr[i] != locale[i] ) 
