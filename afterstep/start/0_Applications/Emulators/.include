@@ -1,15 +1,3 @@
-# Name the menu folder.  If no name is given, default
-#	to the folder name.
-
-name            Emulators
-
-
-# Scale the listed pixmap to fit in the menu.
-
-SmallMiniPixmap         Folder-GameController
-
-Comment  "Emulate other computer\narchitectures."
-
 # Look in:
 #	/usr/share/afterstep/applications/
 #		- OR -
@@ -17,4 +5,5 @@ Comment  "Emulate other computer\narchitectures."
 #
 #	for *.desktop files with the following Categories:
 
+FolderReference "Emulator"
 Category        "Emulator"

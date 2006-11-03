@@ -1,15 +1,3 @@
-# Name the menu folder.  If no name is given, default
-#	to the folder name.
-
-name            Educational
-
-
-# Scale the listed pixmap to fit in the menu.
-
-SmallMiniPixmap         Folder-Library
-
-Comment  "Learning, scientific\nand teaching programs."
-
 # Look in:
 #	/usr/share/afterstep/applications/
 #		- OR -
@@ -17,6 +5,7 @@ Comment  "Learning, scientific\nand teaching programs."
 #
 #	for *.desktop files with the following Categories:
 
+FolderReference "Education"
 Category        "Education"
 Category        "Science"
 Category        "Engineering"
