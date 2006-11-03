@@ -17,4 +17,5 @@ Comment  "Fun games and amusements."
 #
 #	for *.desktop files with the following Categories:
 
-Category        "Game"
+FolderReference  "Game"
+CategoryTree     "Game"

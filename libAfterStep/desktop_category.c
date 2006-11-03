@@ -447,6 +447,9 @@ fetch_desktop_category( ASCategoryTree *ct, const char *cname )
 	void *tmp = NULL;
 	int res ; 
 /*	LOCAL_DEBUG_OUT( "fetching \"%s\"", cname?cname:"(null)" );	*/
+	if( ct == NULL ) 
+		return NULL ;
+
 	if( cname == NULL ) 
 		return ct->default_category;
 	
@@ -464,12 +467,29 @@ fetch_desktop_entry( ASCategoryTree *ct, const char *name )
 {
 	void *tmp = NULL;
 /*	LOCAL_DEBUG_OUT( "fetching \"%s\"", cname?cname:"(null)" );	*/
+	if( ct == NULL ) 
+		return NULL ;
+
 	if( name != NULL ) 
 		if( get_hash_item( ct->entries, AS_HASHABLE(name), &tmp ) == ASH_Success )
 			return (ASDesktopEntry*)tmp;
 	return NULL;	   
 }
 
+Bool desktop_entry_belongs_to( ASCategoryTree *ct, ASDesktopEntry *de, ASDesktopEntry *category_de )
+{
+	if( ct && de && category_de ) 
+		if( de->categories_num > 0 ) 
+		{	
+			int i ; 
+			for( i = 0 ; i < de->categories_num ; ++i ) 
+			{	
+				if( fetch_desktop_entry( ct, de->categories_shortcuts[i] ) == category_de ) 
+					return True; 
+			}
+		}
+	return False;
+}
 
 ASDesktopCategory *
 obtain_category( ASCategoryTree *ct, const char *cname, Bool dont_add_to_default )
