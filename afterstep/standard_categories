@@ -3547,7 +3547,7 @@ Type=Directory
 [DesktopEntry]
 Encoding=UTF-8
 Name=Desktop Windows
-X-AfterStep-IndexName=ASScreenSaver
+X-AfterStep-IndexName=ASWindows
 Categories= 
 Comment=Tools for manipulating AfterStep windows.
 icon=Folder-Windows
