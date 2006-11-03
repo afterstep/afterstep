@@ -8798,7 +8798,7 @@ if test -d src/test ; 		then           ac_config_files="$ac_config_files src/tes
 if test "x$have_gtk" = "xyes"; then                     ac_config_files="$ac_config_files libASGTK/asgtk-config libASGTK/Makefile"
  fi
 
-                                                                                                                                                                                                                                                                              ac_config_files="$ac_config_files configure.h Makefile AfterStep.spec AfterStep.desktop afterstep/Makefile doc/Makefile doc/afterstepdoc libAfterStep/afterstep-config libAfterStep/Makefile libAfterConf/Makefile src/afterstep/Makefile tools/Makefile tools/installastheme.pl tools/makeastheme.pl tools/postcard.sh afterstep/applications/modules.desktop afterstep/base afterstep/audio afterstep/autoexec afterstep/pager afterstep/start/.include afterstep/start/0_run afterstep/start/1_Desktop/Feel/.include afterstep/start/1_Desktop/Color_Scheme/.include afterstep/start/1_Desktop/Look/.include afterstep/start/1_Desktop/Theme/.include afterstep/start/1_Desktop/Pictures/.include"
+                                                                                                                                                                                                                                                                              ac_config_files="$ac_config_files configure.h Makefile AfterStep.spec AfterStep.desktop afterstep/Makefile doc/Makefile doc/afterstepdoc libAfterStep/afterstep-config libAfterStep/Makefile libAfterConf/Makefile src/afterstep/Makefile tools/Makefile tools/installastheme.pl tools/makeastheme.pl tools/postcard.sh afterstep/applications/modules.desktop afterstep/base afterstep/audio afterstep/autoexec afterstep/pager afterstep/start/.include afterstep/start/3_run afterstep/start/1_Desktop/Feel/.include afterstep/start/1_Desktop/Color_Scheme/.include afterstep/start/1_Desktop/Look/.include afterstep/start/1_Desktop/Theme/.include afterstep/start/1_Desktop/Pictures/.include"
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
 # tests run on this system so they can be shared between configure
@@ -9379,7 +9379,7 @@ do
   "afterstep/autoexec" ) CONFIG_FILES="$CONFIG_FILES afterstep/autoexec" ;;
   "afterstep/pager" ) CONFIG_FILES="$CONFIG_FILES afterstep/pager" ;;
   "afterstep/start/.include" ) CONFIG_FILES="$CONFIG_FILES afterstep/start/.include" ;;
-  "afterstep/start/0_run" ) CONFIG_FILES="$CONFIG_FILES afterstep/start/0_run" ;;
+  "afterstep/start/3_run" ) CONFIG_FILES="$CONFIG_FILES afterstep/start/3_run" ;;
   "afterstep/start/1_Desktop/Feel/.include" ) CONFIG_FILES="$CONFIG_FILES afterstep/start/1_Desktop/Feel/.include" ;;
   "afterstep/start/1_Desktop/Color_Scheme/.include" ) CONFIG_FILES="$CONFIG_FILES afterstep/start/1_Desktop/Color_Scheme/.include" ;;
   "afterstep/start/1_Desktop/Look/.include" ) CONFIG_FILES="$CONFIG_FILES afterstep/start/1_Desktop/Look/.include" ;;
