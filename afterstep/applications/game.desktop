@@ -7,7 +7,7 @@ Icon=normal/GameController
 Terminal=false
 Type=Application
 Encoding=UTF-8
-Categories=Game
+Categories=Game;ArcadeGame;
 TryExec=xbill
 
 [Desktop Entry]
@@ -19,7 +19,7 @@ Icon=normal/Cardgames
 Terminal=false
 Type=Application
 Encoding=UTF-8
-Categories=Game
+Categories=Game;CardGame;
 TryExec=xpat2
 
 [Desktop Entry]
@@ -31,6 +31,6 @@ Icon=normal/GameController
 Terminal=false
 Type=Application
 Encoding=UTF-8
-Categories=Game
+Categories=Game;ArcadeGame;
 TryExec=scavenger
 
