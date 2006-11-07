@@ -68,6 +68,7 @@ AC_ARG_WITH(gif,		[  --with-gif               compile support for gif image form
 AC_ARG_WITH(gif_includes,   	[  --with-gif-includes=DIR  use GIF includes in DIR], gif_includes="$withval", gif_includes=NO)
 AC_ARG_WITH(tiff,		[  --with-tiff              support TIFF image format [[yes]]])
 AC_ARG_WITH(tiff_includes,  	[  --with-tiff-includes=DIR use TIFF includes in DIR], tiff_includes="$withval", tiff_includes=NO)
+AC_ARG_WITH(svg,		[  --with-svg               support SVG image format via librsvg 2.0 [[yes]]])
 
 AC_ARG_WITH(tff,		[  --with-ttf               support True Type Fonts via FreeType library [[yes]]])
 AC_ARG_WITH(tff_includes,   	[  --with-ttf-includes=DIR  use FreeType includes in DIR], ttf_includes="$withval", ttf_includes=NO)
@@ -349,7 +350,7 @@ cd libAfterImage; \
    --with-jpeg=$with_jpeg --with-jpeg-includes=$jpeg_includes \
    --with-png=$with_png   --with-png-includes=$png_includes \
    --with-gif=$with_gif   --with-ungif=$with_ungif  --with-gif-includes=$gif_includes \
-   --with-tiff=$with_tiff --with-tiff-includes=$tiff_includes \
+   --with-tiff=$with_tiff --with-tiff-includes=$tiff_includes --with-svg=$with_svg \
    --with-ttf=$with_ttf   --with-ttf-includes=$ttf_includes \
    --enable-mmx-optimization=$enable_mmx_optimization \
    --with-ungif=$with_ungif --with-gif=$with_gif \
@@ -792,7 +793,7 @@ afterstep/audio \
 afterstep/autoexec \
 afterstep/pager \
 afterstep/start/.include \
-afterstep/start/0_run \
+afterstep/start/3_run \
 afterstep/start/1_Desktop/Feel/.include \
 afterstep/start/1_Desktop/Color_Scheme/.include \
 afterstep/start/1_Desktop/Look/.include \

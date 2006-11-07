@@ -89,6 +89,9 @@
 /* Define to 1 if you have the <string.h> header file. */
 #undef HAVE_STRING_H
 
+/* librsvg v.2.0 or higher is available */
+#undef HAVE_SVG
+
 /* Define to 1 if you have the <sys/dirent.h> header file. */
 #undef HAVE_SYS_DIRENT_H
 

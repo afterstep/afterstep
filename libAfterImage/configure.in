@@ -55,6 +55,7 @@ AC_ARG_WITH(gif_includes,   [  --with-gif-includes=DIR  use GIF includes in DIR]
 AC_ARG_WITH(builtin_ungif,  [  --with-builtin-ungif             support Uncompressed GIF image format using builtin libungif [yes]],with_builtin_ungif="$withval",with_builtin_ungif=yes)
 AC_ARG_WITH(tiff,		    [  --with-tiff              support TIFF image format [yes]])
 AC_ARG_WITH(tiff_includes,  [  --with-tiff-includes=DIR use TIFF includes in DIR], tiff_includes="$withval", tiff_includes=NO)
+AC_ARG_WITH(svg,		    [  --with-svg               support SVG image format via librsvg [yes]])
 
 AC_ARG_WITH(tff,		    [  --with-ttf               support True Type Fonts via FreeType library [yes]])
 AC_ARG_WITH(tff_includes,   [  --with-ttf-includes=DIR  use FreeType includes in DIR], ttf_includes="$withval", ttf_includes=NO)
@@ -449,6 +450,32 @@ if test "$have_tiff" = yes -o "$have_png" = yes ; then
   fi
 fi
 
+have_svg=
+if test "$with_svg" = no; then
+	have_svg=disabled
+else
+	if test -z "$PKG_CONFIG"; then
+    		AC_PATH_PROG(PKG_CONFIG, pkg-config,no)
+	fi
+	if test "$PKG_CONFIG" = "no" ; then
+		AC_MSG_CHECKING(if librsvg 2.0 is available)
+		AC_MSG_RESULT(pkg-config is not found. Cannot check for librsvg 2.0.)
+		have_svg=no
+	else
+		have_svg=yes
+		pkg_modules="librsvg-2.0 >= 2.0.0"
+		
+		PKG_CHECK_MODULES(SVG,[$pkg_modules],,[have_svg=no])
+		
+		if test "x$have_svg" = "xyes"; then
+			AC_DEFINE(HAVE_SVG,1,librsvg v.2.0 or higher is available )
+			AFTERIMAGE_LIBS="$SVG_LIBS $AFTERIMAGE_LIBS"
+		fi
+	fi
+fi
+
+AC_SUBST(SVG_CFLAGS)
+
 dnl# we always need libm since we now call exp() in gaussian blur
 AFTERIMAGE_LIBS="$AFTERIMAGE_LIBS -lm"
 
@@ -481,7 +508,7 @@ else
 	  saved_CPPFLAGS=$CPPFLAGS
 	  saved_CFLAGS=$CFLAGS
 	  CPPFLAGS="$TTF_INCLUDES $CPPFLAGS"
-	  CFLAGS="$CFLAGS $TTF_INCLUDES $XPM_CFLAGS $JPEG_CFLAGS $PNG_CFLAGS $GIF_CFLAGS $TIFF_CFLAGS $X_CFLAGS"
+	  CFLAGS="$CFLAGS $TTF_INCLUDES $XPM_CFLAGS $JPEG_CFLAGS $PNG_CFLAGS $GIF_CFLAGS $TIFF_CFLAGS $SVG_CFLAGS $X_CFLAGS"
 	  have_ft2build=no
 	  AC_CHECK_HEADERS(ft2build.h,[have_ft2build=yes])
 	  AC_MSG_CHECKING( freetype/freetype.h )
