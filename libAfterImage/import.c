@@ -92,6 +92,9 @@
 #include <tiff.h>
 #include <tiffio.h>
 #endif
+#ifdef HAVE_SVG
+#include <librsvg/rsvg.h>
+#endif
 #ifdef HAVE_LIBXPM
 #ifdef HAVE_LIBXPM_X11
 #include <X11/xpm.h>
@@ -137,6 +140,7 @@ as_image_loader_func as_image_file_loaders[ASIT_Unknown] =
 	gif2ASImage ,
 	tiff2ASImage,
 	xml2ASImage ,
+	svg2ASImage ,
 	NULL,
 	tga2ASImage,
 	NULL,
@@ -160,6 +164,7 @@ const char *as_image_file_type_names[ASIT_Unknown+1] =
 	"GIF" ,
 	"TIFF",
 	"AfterStep XML" ,
+	"Scalable Vector Graphics (SVG)" ,
 	"XBM",
 	"Targa",
 	"PCX",
@@ -799,6 +804,8 @@ check_image_type( const char *realfilename )
 				type = ASIT_Targa;
 			else if (strncmp (&(head[0]), "#define", (size_t) 7) == 0)
 				type = ASIT_Xbm;
+			else if( mystrncasecmp(realfilename+filename_len-4, ".SVG", 4)==0 )
+				type = ASIT_SVG ;
 			else
 			{/* the nastiest check - for XML files : */
 				int i ;
@@ -814,7 +821,10 @@ check_image_type( const char *realfilename )
 					}
 					else if( head[i] != '<' )
 						type = ASIT_Unknown ;
-					else if( mystrncasecmp( &(head[i]), "<!DOCTYPE ", 10 ) == 0 ) 
+					else if( mystrncasecmp( &(head[i]), "<svg", 4 ) == 0 ) 
+					{
+						type = ASIT_SVG ;
+					}else if( mystrncasecmp( &(head[i]), "<!DOCTYPE ", 10 ) == 0 ) 
 					{	
 						type = ASIT_XML ;
 						for( i += 9 ; i < bytes_in ; ++i ) if( !isspace(head[i]) ) break;
@@ -2093,6 +2103,86 @@ xml2ASImage( const char *path, ASImageImportParams *params )
 	SHOW_TIME("image loading",started);
 	return im ;
 }
+
+#ifdef HAVE_SVG/* SVG SVG SVG SVG SVG SVG SVG SVG SVG SVG SVG SVG SVG SVG SVG SVG */
+ASImage *
+svg2ASImage( const char * path, ASImageImportParams *params )
+{
+   	static int gType_inited = 0;
+   
+   	ASImage *im = NULL;
+   	ASScanline buf;
+ 
+   	GdkPixbuf *pixbuf;
+ 
+   	int width, height;
+ 
+	START_TIME(started);
+
+	/* Damn gtk mess... must init once atleast.. can we just init
+	   several times or do we bork then? */
+	if (gType_inited == 0) 
+	{
+	   g_type_init();
+	   gType_inited = 1;
+	}
+ 
+	pixbuf = rsvg_pixbuf_from_file_at_size(path, -1, -1, NULL);
+	if (pixbuf && gdk_pixbuf_get_n_channels(pixbuf) == 4 &&
+		gdk_pixbuf_get_has_alpha(pixbuf) &&
+		gdk_pixbuf_get_bits_per_sample(pixbuf) == 8) 
+	{
+		register CARD32 *row = gdk_pixbuf_get_pixels(pixbuf);
+		int y;
+
+		width = gdk_pixbuf_get_width(pixbuf);
+		height = gdk_pixbuf_get_height(pixbuf);
+
+		im = create_asimage(width, height, params->compression );
+		prepare_scanline( im->width, 0, &buf, False );
+		for (y = 0; y < height; ++y) 
+		{
+			int x ;
+			for( x = 0 ; x < width ; ++x )
+			{
+				CARD32 c = row[x] ;
+				buf.alpha[x] = (c>>24)&0x00FF;
+				buf.red[x]   = (c    )&0x00FF ;
+				buf.green[x] = (c>>8 )&0x00FF ;
+				buf.blue[x]  = (c>>16)&0x00FF ;
+			}
+			asimage_add_line (im, IC_RED,   buf.red, y);
+			asimage_add_line (im, IC_GREEN, buf.green, y);
+			asimage_add_line (im, IC_BLUE,  buf.blue, y);
+			for( x = 0 ; x < width ; ++x )
+				if( buf.alpha[x] != 0x00FF )
+				{
+					asimage_add_line (im, IC_ALPHA,  buf.alpha, y);
+					break;
+				}
+				row += width ;
+		}
+		free_scanline(&buf, True);
+	}
+	
+	if (pixbuf)
+		gdk_pixbuf_unref(pixbuf);
+	
+	SHOW_TIME("image loading",started);
+
+	return im ;
+}
+#else 			/* SVG SVG SVG SVG SVG SVG SVG SVG SVG SVG SVG SVG SVG SVG SVG SVG */
+
+ASImage *
+svg2ASImage( const char * path, ASImageImportParams *params )
+{
+	show_error( "unable to load file \"%s\" - missing SVG image format libraries.\n", path );
+	return NULL ;
+}
+#endif			/* SVG SVG SVG SVG SVG SVG SVG SVG SVG SVG SVG SVG SVG SVG SVG SVG */
+
+
 /*************************************************************************/
 /* Targa Image format - some stuff borrowed from the GIMP.
  *************************************************************************/

@@ -54,6 +54,7 @@ typedef enum
 	ASIT_Gif,
 	ASIT_Tiff,
 	ASIT_XMLScript,
+	ASIT_SVG,
 	/* reserved for future implementation : */
 	ASIT_Xbm,
 	ASIT_Targa,
@@ -145,6 +146,7 @@ ASImage *gif2ASImage ( const char * path, ASImageImportParams *params );
 ASImage *tiff2ASImage( const char * path, ASImageImportParams *params );
 ASImage *xml2ASImage ( const char * path, ASImageImportParams *params );
 ASImage *tga2ASImage ( const char * path, ASImageImportParams *params );
+ASImage *svg2ASImage ( const char * path, ASImageImportParams *params );
 ASImage *convert_argb2ASImage( ASVisual *asv, int width, int height, ARGB32 *argb, CARD8 *gamma_table );
 ASImage *argb2ASImage( const char *path, ASImageImportParams *params );
 
