@@ -2280,7 +2280,7 @@ LOCAL_DEBUG_OUT("adjusting actually...%s", "");
 				}else if( do_greyscale ) 
 				{
 					int tmp = (int)r[x] + value_offset ; 
-					g[x] = b[x] = r[x] = (tmp < 0)?0:((tmp>0x00FFFF)?:tmp);
+					g[x] = b[x] = r[x] = (tmp < 0)?0:((tmp>0x00FFFF)?0x00FFff:tmp);
 				}
 			}
 			imdec->buffer.flags = 0xFFFFFFFF ;
