@@ -820,6 +820,7 @@ LOCAL_DEBUG_CALLER_OUT( "%p,%d", menu, selection );
 			if( menu->item_balloon == NULL )
 				menu->item_balloon = create_asballoon_for_state ( MenuBalloons, NULL);
 
+	        while (timer_remove_by_data (menu));
 			balloon_set_text (menu->item_balloon, menu->items[selection].source->comment, encoding);
         	timer_new (MenuBalloons->look.Delay, &menu_item_balloon_timer_handler, (void *)menu);
 		}else if( menu->items[selection].fdata.func == F_CHANGE_BACKGROUND_FOREIGN || 
@@ -830,6 +831,7 @@ LOCAL_DEBUG_CALLER_OUT( "%p,%d", menu, selection );
 
 			if( menu->item_balloon == NULL )
 				menu->item_balloon = create_asballoon_for_state ( MenuBalloons, NULL);
+	        while (timer_remove_by_data (menu));
 			balloon_set_image_from_file (menu->item_balloon, menu->items[selection].fdata.text );
         	timer_new (delay>1000?delay-1000:delay, &menu_item_balloon_timer_handler, (void *)menu);
 		}
