@@ -2111,11 +2111,9 @@ svg2ASImage( const char * path, ASImageImportParams *params )
    	static int gType_inited = 0;
    
    	ASImage *im = NULL;
-   	ASScanline buf;
- 
    	GdkPixbuf *pixbuf;
- 
-   	int width, height;
+	int channels ;
+	Bool do_alpha ; 
  
 	START_TIME(started);
 
@@ -2127,42 +2125,59 @@ svg2ASImage( const char * path, ASImageImportParams *params )
 	   gType_inited = 1;
 	}
  
-	pixbuf = rsvg_pixbuf_from_file_at_size(path, -1, -1, NULL);
-	if (pixbuf && gdk_pixbuf_get_n_channels(pixbuf) == 4 &&
-		gdk_pixbuf_get_has_alpha(pixbuf) &&
-		gdk_pixbuf_get_bits_per_sample(pixbuf) == 8) 
+	if( (pixbuf = rsvg_pixbuf_from_file_at_size(path, -1, -1, NULL)) == NULL )
+		return NULL ;
+	
+	channels = gdk_pixbuf_get_n_channels(pixbuf) ;
+	do_alpha = gdk_pixbuf_get_has_alpha(pixbuf) ;
+	if ( ((channels == 4 && do_alpha) ||(channels == 3 && !do_alpha)) &&
+		gdk_pixbuf_get_bits_per_sample(pixbuf) == 8 ) 
 	{
-		register CARD32 *row = gdk_pixbuf_get_pixels(pixbuf);
+	   	int width, height;
+		register CARD8 *row = gdk_pixbuf_get_pixels(pixbuf);
 		int y;
+		CARD8 		 *r = NULL, *g = NULL, *b = NULL, *a = NULL ;
 
 		width = gdk_pixbuf_get_width(pixbuf);
 		height = gdk_pixbuf_get_height(pixbuf);
 
+		r = safemalloc( width );	   
+		g = safemalloc( width );	   
+		b = safemalloc( width );	   
+		if( do_alpha )
+			a = safemalloc( width );
+
+
 		im = create_asimage(width, height, params->compression );
-		prepare_scanline( im->width, 0, &buf, False );
 		for (y = 0; y < height; ++y) 
 		{
-			int x ;
+			int x, i = 0 ;
 			for( x = 0 ; x < width ; ++x )
 			{
-				CARD32 c = row[x] ;
-				buf.alpha[x] = (c>>24)&0x00FF;
-				buf.red[x]   = (c    )&0x00FF ;
-				buf.green[x] = (c>>8 )&0x00FF ;
-				buf.blue[x]  = (c>>16)&0x00FF ;
+				r[x] = row[i++];
+				g[x] = row[i++];
+				b[x] = row[i++];
+				if( do_alpha ) 
+					a[x] = row[i++];
 			}
-			asimage_add_line (im, IC_RED,   buf.red, y);
-			asimage_add_line (im, IC_GREEN, buf.green, y);
-			asimage_add_line (im, IC_BLUE,  buf.blue, y);
-			for( x = 0 ; x < width ; ++x )
-				if( buf.alpha[x] != 0x00FF )
-				{
-					asimage_add_line (im, IC_ALPHA,  buf.alpha, y);
-					break;
-				}
-				row += width ;
+			im->channels[IC_RED][y]  = store_data( NULL, r, width, ASStorage_RLEDiffCompress, 0);
+		 	im->channels[IC_GREEN][y] = store_data( NULL, g, width, ASStorage_RLEDiffCompress, 0);	
+			im->channels[IC_BLUE][y]  = store_data( NULL, b, width, ASStorage_RLEDiffCompress, 0);
+
+			if( do_alpha )
+				for( x = 0 ; x < width ; ++x )
+					if( a[x] != 0x00FF )
+					{
+						im->channels[IC_ALPHA][y]  = store_data( NULL, a, width, ASStorage_RLEDiffCompress, 0);
+						break;
+					}
+			row += channels*width ;
 		}
-		free_scanline(&buf, True);
+		free(r);
+		free(g);
+		free(b);
+		if( a )
+			free(a);
 	}
 	
 	if (pixbuf)
