@@ -1889,8 +1889,14 @@ void windowlist_func_handler( FunctionData *data, ASEvent *event, int module )
     MenuData *md =  make_desk_winlist_menu( Scr.Windows, data->text == NULL ? event->scr->CurrentDesk: data->func_val[0], Scr.Feel.winlist_sort_order, False );
     if( md != NULL )
 	{	
-		run_menu_data( md );
-		destroy_menu_data( &md );
+		ASMenu *menu = run_menu_data( md );
+			/* attaching menu data to menu, so that we can destroy it when menu closes.
+			   This is to accomodate those dynamically generated menus, 
+			   such as window list and module list */
+		   	/* Crude! should implement reference counting instead  */
+		
+		if( menu ) 
+			menu->volitile_menu_data = md ; 
 	}	
 #endif /* ! NO_WINDOWLIST */
 }
@@ -1902,8 +1908,9 @@ void modulelist_func_handler( FunctionData *data, ASEvent *event, int module )
 						make_restart_module_menu(Scr.Feel.winlist_sort_order );
     if( md != NULL )
 	{	
-		run_menu_data( md );
-		destroy_menu_data( &md );
+		ASMenu *menu = run_menu_data( md );
+		if( menu ) 
+			menu->volitile_menu_data = md ; 
 	}	 
 
 }

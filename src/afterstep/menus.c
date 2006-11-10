@@ -166,6 +166,10 @@ LOCAL_DEBUG_CALLER_OUT( "top(%p)->supermenu(%p)->menu(%p)->submenu(%p)", ASTopmo
 			destroy_asballoon( &(menu->comment_balloon) );
 			destroy_asballoon( &(menu->item_balloon) );
 			
+			if( menu->volitile_menu_data != NULL ) 
+				destroy_menu_data( &(menu->volitile_menu_data) );
+
+			
             menu->magic = 0 ;
             free( menu );
             *pmenu = NULL ;
@@ -813,7 +817,7 @@ LOCAL_DEBUG_CALLER_OUT( "%p,%d", menu, selection );
 
 	if( menu->items[selection].source )
 	{
-		LOCAL_DEBUG_OUT( "selection func = %d", menu->items[selection].fdata.func );
+		LOCAL_DEBUG_OUT( "selection func = %ld", menu->items[selection].fdata.func );
 		if( menu->items[selection].source->comment ) 
 		{
 			int	encoding = get_flags( menu->items[selection].source->flags, MD_CommentIsUTF8)? AS_Text_UTF8 : AS_Text_ASCII ;
@@ -1665,26 +1669,25 @@ run_submenu( ASMenu *supermenu, MenuData *md, int x, int y )
 }
 
 
-void
+ASMenu *
 run_menu_data( MenuData *md )
 {
+    ASMenu *menu = NULL ;
     int x = 0, y = 0;
 	Bool persistent = (get_flags( Scr.Feel.flags, PersistentMenus ) || ASTopmostMenu == NULL );
 
     close_asmenu(&ASTopmostMenu);
 
-	if( persistent )
+	if( persistent && md != NULL )
 	{
-        if( md == NULL )
-    	    return;
-
-    	if( !ASQueryPointerRootXY(&x,&y) )
+	    if( !ASQueryPointerRootXY(&x,&y) )
     	{
         	x = (Scr.MyDisplayWidth*2)/3;
         	y = (Scr.MyDisplayHeight*3)/ 4;
-    	}
+	    }
     	ASTopmostMenu = run_submenu(NULL, md, x, y );
 	}
+    return menu;
 }
 
 void

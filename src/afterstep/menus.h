@@ -67,6 +67,8 @@ typedef struct ASMenu
 
 	ASBalloon *comment_balloon ;
 	ASBalloon *item_balloon ;
+	
+	MenuData  *volitile_menu_data ; /* will be destroyed upon menu being closed */
 }ASMenu;
 
 
@@ -114,7 +116,7 @@ MenuData *update_windowList (void);
 /* menu execution code :                                                 */
 /*************************************************************************/
 void run_menu( const char *name, Window client_window  );
-void run_menu_data( MenuData *md );
+ASMenu *run_menu_data( MenuData *md );
 ASMenu *run_submenu( ASMenu *supermenu, MenuData *md, int x, int y );
 ASMenu *find_asmenu( const char *name );
 void pin_asmenu( ASMenu *menu );
