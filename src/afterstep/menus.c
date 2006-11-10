@@ -626,13 +626,17 @@ set_asmenu_data( ASMenu *menu, MenuData *md, Bool first_time, Bool show_unavaila
 			encoding = get_flags( title_mdi->flags, MD_CommentIsUTF8)? AS_Text_UTF8 : AS_Text_ASCII ;
 			comment = title_mdi->comment ; 
 		}
-		if( menu->comment_balloon == NULL )
-			menu->comment_balloon = create_asballoon_with_text_for_state ( MenuBalloons, NULL, comment, encoding);
-		else
+		if( comment ) 
 		{
-			balloon_set_text (menu->comment_balloon, comment, encoding);
-			clear_flags( menu->state, AS_MenuBalloonShown);
-		}
+			if( menu->comment_balloon == NULL )
+				menu->comment_balloon = create_asballoon_with_text_for_state ( MenuBalloons, NULL, comment, encoding);
+			else
+			{
+				balloon_set_text (menu->comment_balloon, comment, encoding);
+				clear_flags( menu->state, AS_MenuBalloonShown);
+			}
+		}else
+			destroy_asballoon( &(menu->comment_balloon) );
 	}
 }
 
@@ -1222,7 +1226,8 @@ on_menu_pointer_event( ASInternalWindow *asiw, ASEvent *event )
 		XEvent tmp_e ;
 		if( ASCheckTypedWindowEvent(canvas->w,LeaveNotify,&tmp_e) )
 		{
-            withdraw_balloon( menu->comment_balloon );
+        	if( menu->comment_balloon )
+			    withdraw_balloon( menu->comment_balloon );
 			XPutBackEvent( dpy, &tmp_e );
 			return ;    /* pointer has moved into other window - ignore this event! */
 		}
