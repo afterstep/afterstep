@@ -159,6 +159,7 @@ Name=Action Games
 X-AfterStep-IndexName=ActionGame
 Categories=Game
 Comment=An action game
+icon=Folder-Pistol
 Type=Directory
 
 [DesktopEntry]
@@ -167,6 +168,7 @@ Name=Adventure Games
 X-AfterStep-IndexName=AdventureGame
 Categories=Game
 Comment=Adventure style game
+icon=Folder-Knight
 Type=Directory
 
 [DesktopEntry]
@@ -594,6 +596,7 @@ Name=Blocks Games
 X-AfterStep-IndexName=BlocksGame
 Categories=Game
 Comment=Falling blocks game
+icon=Folder-TetrisBlocks
 Type=Directory
 
 [DesktopEntry]
@@ -1599,6 +1602,7 @@ X-AfterStep-IndexName=KidsGame
 X-AfterStep-Aliases=Games for Kids;X-KDE-KidsGame
 Categories=Game
 Comment=A game for kids
+icon=Folder-TeddyBear
 Type=Directory
 Name[af]=Kinder Speletjies
 Name[ar]= العاب للأطفال
@@ -2299,6 +2303,7 @@ X-AfterStep-IndexName=PuzzleGame
 X-AfterStep-Aliases=Puzzle
 Categories=Game
 Comment=Puzzle game
+icon=Folder-Puzzle
 Type=Directory
 
 [DesktopEntry]
@@ -2348,6 +2353,7 @@ X-AfterStep-IndexName=RolePlaying
 X-AfterStep-Aliases=Rogue-like Games
 Categories=Game
 Comment=A role playing game
+icon=Folder-Knight
 Type=Directory
 Name[af]=Rogue-tipe Speletjies
 Name[ar]=ألعاب شبه Rogue
@@ -2810,6 +2816,7 @@ Name=Sports Games
 X-AfterStep-IndexName=SportsGame
 Categories=Game
 Comment=A sports game
+icon=Folder-SoccerBall
 Type=Directory
 
 [DesktopEntry]
@@ -2827,6 +2834,7 @@ X-AfterStep-IndexName=StrategyGame
 X-AfterStep-Aliases=Tactics & Strategy
 Categories=Game
 Comment=A strategy game
+icon=Folder-ChessBishop
 Type=Directory
 Name[af]=Strategie & Taktiek
 Name[ar]=التخطيط و استراتيجية
