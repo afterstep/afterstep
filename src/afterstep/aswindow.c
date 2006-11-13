@@ -1714,6 +1714,23 @@ ASWindow2func_data( FunctionCode func, ASWindow *asw, FunctionData *fdata, char 
     fdata->hotkey = (*scut);
 }
 
+struct ASSortMenu_Aux
+{
+	FunctionData fdata ; 
+	void *ref_data ; 
+};
+
+int
+compare_menu_func_data_name(const void *a, const void *b) 
+{
+	struct ASSortMenu_Aux *aa = *(struct ASSortMenu_Aux **)a ;
+	struct ASSortMenu_Aux *ab = *(struct ASSortMenu_Aux **)b ;
+
+/*	LOCAL_DEBUG_OUT( "aa = %p, ab = %p", aa, ab ); */
+	return strcmp(aa->fdata.name ? aa->fdata.name : "", ab->fdata.name ? ab->fdata.name : "");
+}
+
+
 MenuData *
 make_desk_winlist_menu(  ASWindowList *list, int desk, int sort_order, Bool icon_name )
 {
@@ -1746,24 +1763,26 @@ make_desk_winlist_menu(  ASWindowList *list, int desk, int sort_order, Bool icon
 
 	if( sort_order == ASO_Alpha ) 
 	{
-		FunctionData **menuitems = safecalloc(sizeof(FunctionData *), max_i);
+		struct ASSortMenu_Aux **menuitems = safecalloc(max_i, sizeof(struct ASSortMenu_Aux *));
 		int numitems = 0;
         
 		for( i = 0 ; i < max_i ; ++i ) 
 		{
             if ((ASWIN_DESK(clients[i]) == desk || !IsValidDesk(desk)) && !ASWIN_HFLAGS(clients[i], AS_SkipWinList)) 
 			{
-				menuitems[numitems] = safecalloc(1, sizeof(FunctionData));
-				ASWindow2func_data( F_RAISE_IT, clients[i], menuitems[numitems], &scut, icon_name ); 
+				menuitems[numitems] = safecalloc(1, sizeof(struct ASSortMenu_Aux));
+/*				LOCAL_DEBUG_OUT( "menuitems[%d] = %p", numitems, menuitems[numitems] ); */
+				menuitems[numitems]->ref_data = clients[i];
+				ASWindow2func_data( F_RAISE_IT, clients[i], &(menuitems[numitems]->fdata), &scut, icon_name ); 
 				++numitems;
             }
         }
-		qsort(menuitems, numitems, sizeof(FunctionData *), compare_func_data_name);
+		qsort(menuitems, numitems, sizeof(struct ASSortMenu_Aux *), compare_menu_func_data_name);
 		for( i = 0 ; i < numitems ; ++i ) 
 		{
-			if( (mdi = add_menu_fdata_item( md, menuitems[i], NULL, 
+			if( (mdi = add_menu_fdata_item( md, &(menuitems[i]->fdata), NULL, 
 								 get_flags( Scr.Feel.flags, WinListHideIcons) ? NULL : 
-								 get_client_icon_image(ASDefaultScr, clients[i]->hints))) != NULL )
+								 get_client_icon_image(ASDefaultScr, ((ASWindow*)(menuitems[i]->ref_data))->hints))) != NULL )
 				set_flags( mdi->flags, MD_ScaleMinipixmapDown );
 			safefree(menuitems[i]); /* scrubba-dub-dub */
 		}

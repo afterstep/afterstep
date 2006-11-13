@@ -1145,7 +1145,20 @@ make_module_menu( FunctionCode func, const char *title, int sort_order )
 				minipixmap = de->fulliconname ;
 
 			if( (mdi = add_menu_fdata_item( md, menuitems[i], minipixmap, NULL)) != NULL ) 
+			{
 				set_flags( mdi->flags, MD_ScaleMinipixmapDown );
+				if( de )
+				{
+					char *comment = NULL; 
+					if( dup_desktop_entry_Comment( de, &comment ) )
+						set_flags( mdi->flags, MD_CommentIsUTF8 );
+					if( comment )
+					{
+						mdi->comment = interpret_ascii_string( comment );
+						free( comment );
+					}
+				}
+			}
 			safefree( menuitems[i] ); /* scrubba-dub-dub */
 		}
 		safefree(menuitems);

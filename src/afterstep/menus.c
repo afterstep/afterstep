@@ -958,7 +958,12 @@ LOCAL_DEBUG_CALLER_OUT( "%p, %d", menu, item_no );
 	*/      close_asmenu_submenu( menu );
         	menu->submenu = run_submenu( menu, submenu, x, y);
 			if( item->fdata.func != F_POPUP )
-    			destroy_menu_data( &submenu );
+			{
+				if( menu->submenu == NULL ) 
+	    			destroy_menu_data( &submenu );
+				else
+					menu->submenu->volitile_menu_data = submenu ;
+			}
 		}
 	}
 }
