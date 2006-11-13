@@ -51,10 +51,10 @@ Categories=Modules;Autoexec
 X-AfterStep-ASModule=true
 
 [Desktop Entry]
-Name=Term tabs
+Name=Term Tabs
 GenericName=WinTabs
 Comment=Organizer for open term windows into a single tabbed window.
-Exec=WinTabs --myname TermTabs --pattern "*term*" --exclude-pattern "mc*" --geometry 800x600+5+100 --title "term tabs"
+Exec=WinTabs --myname "Term Tabs" --pattern "*term*" --exclude-pattern "mc*" --geometry 800x600+5+100 --title "Term Tabs"
 Icon=logos/aterm2
 Terminal=false
 MultipleArgs=false

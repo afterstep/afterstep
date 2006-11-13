@@ -20,7 +20,7 @@
 # Default icons and styles
 Style   "*"             Icon interface.xpm
 Style	"Unknown"	Icon Unknown.xpm
-Style   "Untitled*"     Icon AfterStep3.xpm
+# Style   "Untitled*"     Icon AfterStep3.xpm
 # For all window to have the NEW and COOL Vertical Title bar on the side:
 # Style	"*"		VerticalTitle
 
@@ -55,6 +55,7 @@ Style   "*term"         Icon linux-penguin.xpm
 Style   "*eterm"        Icon eterm
 Style   "*rxvt"         Icon rxvt
 Style   "aterm"         Icon aterm
+Style   "mc - *" 		VerticalTitle, NoHandles, Icon normal/MCInMonitorShadow
 Style   "docker"        AvoidCover, StartIconic, NoTitle, Layer 4,NoHandles
 Style   "peksystray"    AvoidCover, StartIconic, NoTitle, Layer 4,NoHandles
 Style   "wmsystray"     AvoidCover, StartIconic, NoTitle, Layer 4,NoHandles
