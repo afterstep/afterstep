@@ -44,7 +44,7 @@ typedef struct _ASGtkImageView
 
 typedef struct _ASGtkImageViewClass
 {
-  GtkAspectFrameClass  parent_class;
+  GtkFrameClass  parent_class;
 }ASGtkImageViewClass;
 
 

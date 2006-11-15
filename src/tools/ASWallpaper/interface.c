@@ -551,7 +551,7 @@ on_browse_clicked(GtkButton *button, gpointer user_data)
 		GtkWidget *add_button, *apply_button ; 
 		WallpaperState.filechooser = asgtk_image_browser_new();
 	
-		/* close_button = asgtk_image_browser_add_main_button (ASGTK_IMAGE_BROWSER(WallpaperState.filechooser), "gtk-close", G_CALLBACK(on_filechooser_close_clicked), NULL); */
+/*		close_button = asgtk_image_browser_add_main_button (ASGTK_IMAGE_BROWSER(WallpaperState.filechooser), "gtk-close", G_CALLBACK(on_filechooser_close_clicked), NULL); */
 		add_button = asgtk_image_browser_add_selection_button (ASGTK_IMAGE_BROWSER(WallpaperState.filechooser), GTK_STOCK_ADD, G_CALLBACK(on_list_add_clicked)); 
 		apply_button = asgtk_image_browser_add_selection_button (ASGTK_IMAGE_BROWSER(WallpaperState.filechooser), GTK_STOCK_APPLY, G_CALLBACK(on_list_apply_clicked));
 

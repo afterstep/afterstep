@@ -105,8 +105,8 @@ static void
 asgtk_dir_tree_dispose (GObject *object)
 {
   	ASGtkDirTree *dt = ASGTK_DIR_TREE (object);
-	if( dt->root ) 
-		free( dt->root );
+	destroy_string( &(dt->root) );
+	
   	G_OBJECT_CLASS (parent_class)->dispose (object);
 }
 
@@ -211,11 +211,7 @@ asgtk_dir_tree_set_root( ASGtkDirTree *dt, char *root, GtkTreeModel *saved_model
 		return;
 	if( dt->root && root && strcmp(dt->root, root)== 0  ) 
 		return;
-	if( dt->root  ) 
-	{	
-		free( dt->root );
-		dt->root = NULL ; 
-	}
+	destroy_string( &(dt->root) ); 
 
 	if( root ) 
 		dt->root = mystrdup(root);

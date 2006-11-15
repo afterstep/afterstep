@@ -40,7 +40,6 @@ typedef struct _ASGtkImageDir
 #define ASGTK_ImageDir_ListAll		(0x01<<16)  /* otherwise only the known types of files */ 
 /* defaults : */
 #define ASGTK_ImageDir_DefaultFlags (ASGTK_ImageDir_Col_Name)
-
 	ASFlagType    flags ;
 	char *fulldirname ;
 	char *mini_extension ;

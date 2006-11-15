@@ -94,14 +94,14 @@ asgtk_image_browser_class_init (ASGtkImageBrowserClass *klass)
 }
 
 static void
-asgtk_image_browser_init (ASGtkImageBrowser *id)
+asgtk_image_browser_init (ASGtkImageBrowser *ib)
 {
 }
 
 static void
 asgtk_image_browser_dispose (GObject *object)
 {
-  	/*ASGtkImageBrowser *ib = ASGTK_IMAGE_BROWSER (object); */
+  	/* ASGtkImageBrowser *ib = ASGTK_IMAGE_BROWSER (object); */
   	G_OBJECT_CLASS (parent_class)->dispose (object);
 }
 
@@ -407,7 +407,6 @@ asgtk_image_browser_new ()
 	
 	gtk_button_set_alignment( GTK_BUTTON(ib->scale_check_box), 1.0, 0.5);
 	asgtk_image_view_add_detail( ib->preview, ib->scale_check_box, 0 );
-
 	/* changing to default dir : */
 	asgtk_image_dir_set_sel_handler( ASGTK_IMAGE_DIR(ib->image_dir), asgtk_image_browser_file_sel_handler, ib);
 	asgtk_image_browser_change_dir( ib, NULL );	
@@ -449,7 +448,6 @@ asgtk_image_browser_refresh( ASGtkImageBrowser *ib )
 	asgtk_image_dir_set_path(ASGTK_IMAGE_DIR(ib->image_dir), ib->current_dir);
 	dir_store = GTK_LIST_STORE (gtk_tree_view_get_model(GTK_TREE_VIEW(ib->dir_list)));	
 	gtk_list_store_clear(dir_store);
-   		
 	if( ib->current_dir != NULL ) 
 	{
 		/* Add current dir entry as the first item :*/

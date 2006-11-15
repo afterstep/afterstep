@@ -102,8 +102,7 @@ static void
 asgtk_xml_opt_list_dispose (GObject *object)
 {
   	ASGtkXmlOptList *self = ASGTK_XML_OPT_LIST (object);
-	if( self->configfilename ) 
-		free( self->configfilename );
+	destroy_string( &(self->configfilename) ); 
 	destroy_xml_opt_tree_context( &(self->opt_list_context) );
   	G_OBJECT_CLASS (parent_class)->dispose (object);
 }

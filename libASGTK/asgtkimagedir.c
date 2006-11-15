@@ -100,9 +100,7 @@ static void
 asgtk_image_dir_dispose (GObject *object)
 {
   	ASGtkImageDir *id = ASGTK_IMAGE_DIR (object);
-	if( id->fulldirname ) 
-		free( id->fulldirname );
-	destroy_asimage_list( &(id->entries) );
+	destroy_string( &(id->fulldirname) );
   	G_OBJECT_CLASS (parent_class)->dispose (object);
 }
 
@@ -233,16 +231,12 @@ void
 asgtk_image_dir_set_path( ASGtkImageDir *id, char *fulldirname )
 {
 	g_return_if_fail (ASGTK_IS_IMAGE_DIR (id));
-	
+	LOCAL_DEBUG_OUT( "id->fulldirname == \"%s\", fulldirname == \"%s\"", id->fulldirname, fulldirname ) ;
 	if( id->fulldirname == NULL && fulldirname == NULL ) 
 		return;
 	if( id->fulldirname && fulldirname && strcmp(id->fulldirname, fulldirname)== 0  ) 
 		return;
-	if( id->fulldirname  ) 
-	{	
-		free( id->fulldirname );
-		id->fulldirname = NULL ; 
-	}
+	destroy_string( &(id->fulldirname) ); 
 
 	if( fulldirname ) 
 		id->fulldirname = mystrdup(fulldirname);
@@ -259,11 +253,7 @@ asgtk_image_dir_set_mini( ASGtkImageDir *id, char *mini_extension )
 		return;
 	if( id->mini_extension && mini_extension && strcmp(id->mini_extension, mini_extension)== 0  ) 
 		return;
-	if( id->mini_extension  ) 
-	{	
-		free( id->mini_extension );
-		id->mini_extension = NULL ; 
-	}
+	destroy_string( &(id->mini_extension) );
 
 	if( mini_extension ) 
 		id->mini_extension = mystrdup(mini_extension);
@@ -315,6 +305,7 @@ const char *as_image_file_type_names_short[ASIT_Unknown+1] =
 	"GIF" ,
 	"TIFF",
 	"AS XML" ,
+	"SVG",
 	"XBM",
 	"Targa",
 	"PCX",
@@ -329,7 +320,7 @@ void  asgtk_image_dir_refresh( ASGtkImageDir *id )
 	int items = 0 ;
 	char *curr_sel ;
 	g_return_if_fail (ASGTK_IS_IMAGE_DIR (id));
-	
+
 	curr_sel = mystrdup(id->curr_selection?id->curr_selection->name:"");
 
 	gtk_list_store_clear( GTK_LIST_STORE (id->tree_model) );
@@ -413,6 +404,7 @@ asgtk_image_dir_make_mini_names( ASGtkImageDir *id, const char *name, char **nam
 
 		if( fullname_return ) 
 			*fullname_return = make_file_name( id->fulldirname, mini_filename );
+
 		if( name_return ) 
 			*name_return = mini_filename ;
 		else 
@@ -428,7 +420,7 @@ open_xml_file_in_dir( ASGtkImageDir *id, const char *name, Bool mini )
 {
 	FILE *fp = NULL ; 
 	char* fullfilename = NULL ; 
-	
+	return NULL;	
 	if( mini ) 
 	{		
 		if ( !asgtk_image_dir_make_mini_names( id, name, NULL, &fullfilename ) ) 

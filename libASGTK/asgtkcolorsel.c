@@ -96,11 +96,7 @@ static void
 asgtk_color_selection_dispose (GObject *object)
 {
   	ASGtkColorSelection *cs = ASGTK_COLOR_SELECTION (object);
-	if( cs->curr_color_name ) 
-	{	
-		free( cs->curr_color_name );
-		cs->curr_color_name = NULL ; 
-	}
+	destroy_string( &(cs->curr_color_name) );
 	
   	G_OBJECT_CLASS (parent_class)->dispose (object);
 }

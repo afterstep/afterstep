@@ -28,7 +28,6 @@ typedef struct _ASGtkImageBrowser
 	GtkWidget 				 *path_combo, *path_entry ; 
 	GtkWidget 				 *scale_check_box ;
 	GtkWidget 				 *separator ;
-
 }ASGtkImageBrowser;
 
 typedef struct _ASGtkImageBrowserClass
