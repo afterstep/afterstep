@@ -2,12 +2,12 @@
 # Copyright (c) 2005, Sasha Vasko <sasha at aftercode.net>
 #
 
-LIB_INCS= asgtk.h asgtkapp.h asgtkai.h asgtkcolorsel.h asgtkdirtree.h asgtkgradient.h \
-		asgtkimagebrowser.h asgtkimagedir.h asgtkimageview.h \
+LIB_INCS= asgtk.h asgtkapp.h asgtkai.h asgtkcframe.h asgtkcolorsel.h asgtkdirtree.h \
+		asgtkgradient.h asgtkimagebrowser.h asgtkimagedir.h asgtkimageview.h \
 		asgtkxmleditor.h asgtkxmloptlist.h
 
-LIB_OBJS= asgtkapp.o asgtkai.o asgtkcolorsel.o asgtkdirtree.o asgtkgradient.o \
-		asgtkimagebrowser.o asgtkimagedir.o asgtkimageview.o \
+LIB_OBJS= asgtkapp.o asgtkai.o asgtkcframe.o asgtkcolorsel.o asgtkdirtree.o \
+		asgtkgradient.o asgtkimagebrowser.o asgtkimagedir.o asgtkimageview.o \
 		asgtkxmleditor.o asgtkxmloptlist.o
 
 CONFIG_SCRIPT= asgtk-config
@@ -23,11 +23,17 @@ LIBVERMAJOR     = @libasgtk_version_major@
 
 INCS_PRIVATE	= @GTK_INCLUDES@
 
-LIBS_PRIVATE      = ../src/afterstep/$(LIB_AFTERCONF) ../src/afterstep/$(LIB_AFTERSTEP) \
+LIBS_PRIVATE      = ../src/afterstep/$(LIB_ASGTK) ../src/afterstep/$(LIB_AFTERCONF) ../src/afterstep/$(LIB_AFTERSTEP) \
 		    ../src/afterstep/$(LIB_AFTERIMAGE) ../src/afterstep/$(LIB_AFTERBASE) \
 		    @GTK_LIBS@ $(LIBS_AFTERIMAGE)
 
 @MAKEFILECOMMONLIB@
 
+
+ASLookEditor.o:	asgtklookedit.c
+		$(CC) $(CCFLAGS) $(EXTRA_DEFINES) -DLOOK_EDITOR_APP $(INCLUDES) $(EXTRA_INCLUDES) -c asgtklookedit.c -o ASLookEditor.o
+
+ASLookEditor:	ASLookEditor.o
+		$(CC) ASLookEditor.o $(USER_LD_FLAGS) $(LIBS_ALL) $(LIBS_AFTERIMAGE) -o ASLookEditor
 
 
