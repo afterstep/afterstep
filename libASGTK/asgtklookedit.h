@@ -11,7 +11,8 @@
 
 
 struct _ASGtkLookEdit;
-struct FreeStorage;
+struct FreeStorageElem;
+struct SyntaxDef;
 	
 typedef struct _ASGtkLookEdit
 {
@@ -19,7 +20,9 @@ typedef struct _ASGtkLookEdit
 
 	ASFlagType      flags ;
 	char *configfilename ;
-	struct FreeStorage  *free_store ;
+	char *myname ;
+	struct SyntaxDef *syntax ;
+	struct FreeStorageElem  *free_store ;
 	
 	
 	GtkWidget 	*mystyles_frame ;
@@ -37,11 +40,12 @@ typedef struct _ASGtkLookEditClass
 }ASGtkLookEditClass;
 
 
-GType       asgtk_look_edit_get_type  (void) G_GNUC_CONST;
+GType       asgtk_look_edit_get_type  ( ) G_GNUC_CONST;
 
-GtkWidget * asgtk_look_edit_new       ();
+GtkWidget * asgtk_look_edit_new       ( const char *myname, struct SyntaxDef *syntax );
 
 void  asgtk_look_edit_set_configfile( ASGtkLookEdit *self, char *fulldirname );
+void  asgtk_look_edit_reload( ASGtkLookEdit *self );
 
 
 

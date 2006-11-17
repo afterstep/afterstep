@@ -25,6 +25,8 @@
 #include "../libAfterStep/asapp.h"
 #include "../libAfterStep/screen.h"
 #include "../libAfterStep/parser.h"
+#include "../libAfterStep/freestor.h"
+#include "../libAfterConf/afterconf.h"
 
 #include <unistd.h>		   
 
@@ -119,9 +121,13 @@ asgtk_look_edit_style_set (GtkWidget *widget,
 
 /*  public functions  */
 GtkWidget *
-asgtk_look_edit_new ()
+asgtk_look_edit_new (const char *myname, struct SyntaxDef *syntax)
 {
 	ASGtkLookEdit *self = g_object_new( ASGTK_TYPE_LOOK_EDIT, NULL );
+	
+	
+	self->myname = mystrdup(myname? myname:MyName) ;
+	self->syntax = syntax? syntax:&LookSyntax ;
 	
 	self->mystyles_frame = GTK_WIDGET(asgtk_collapsing_frame_new("MyStyles - basic drawing styles",NULL));
 	self->myframes_frame = GTK_WIDGET(asgtk_collapsing_frame_new("MyFrames - window frame config",NULL)) ;
@@ -160,9 +166,33 @@ asgtk_look_edit_set_configfile( ASGtkLookEdit *self, char *fulldirname )
 	
 	self->configfilename = fulldirname?mystrdup(fulldirname):NULL;
 	
-	/* asgtk_look_edit_refresh( self );		 */
+	asgtk_look_edit_reload( self );		 
 }	 
 
+void 
+asgtk_look_edit_reload( ASGtkLookEdit *self )
+{
+	g_return_if_fail (ASGTK_IS_LOOK_EDIT (self));
+	
+	if( self->free_store != NULL ) 
+ 		DestroyFreeStorage (&(self->free_store));
+
+	if( self->configfilename != NULL ) 
+	{
+		ConfigData    cd ;
+		ConfigDef    *ConfigReader;
+
+		cd.filename = self->configfilename ;
+		ConfigReader = InitConfigReader (self->myname, self->syntax, CDT_Filename, cd, NULL);
+		if ( ConfigReader != NULL )
+		{
+			/* set_flags( ConfigReader->flags, parser_flags ); */
+			ParseConfig (ConfigReader, &(self->free_store));
+			DestroyConfig (ConfigReader);
+    	    show_progress("configuration loaded from \"%s\" ...", cd.filename);
+		}
+	}	
+}
 
 #ifdef LOOK_EDITOR_APP
 void
@@ -181,9 +211,12 @@ main (int argc, char *argv[])
 	ConnectAfterStep(0,0);
 
 	main_window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-	look_edit = asgtk_look_edit_new ();
+	look_edit = asgtk_look_edit_new (NULL, NULL);
 	gtk_container_add (GTK_CONTAINER (main_window), look_edit);
 
+	if( argc > 1 ) 
+		asgtk_look_edit_set_configfile( ASGTK_LOOK_EDIT(look_edit), PutHome(argv[1]) );
+	
 	g_signal_connect (G_OBJECT (main_window), "destroy", G_CALLBACK (on_destroy), NULL);
   	gtk_widget_show (main_window);
 

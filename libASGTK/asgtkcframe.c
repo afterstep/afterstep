@@ -154,8 +154,7 @@ asgtk_collapsing_frame_new (const char *label, const char *hide_text )
 	self->header = hbox ;
 	
 /*	colorize_gtk_tree_view_window( GTK_WIDGET(self) ); */
-
-	gtk_container_add (GTK_CONTAINER (self), GTK_WIDGET(gtk_label_new( "something or other" )));
+/*	gtk_container_add (GTK_CONTAINER (self), GTK_WIDGET(gtk_label_new( "something or other" ))); */
 
 
 	LOCAL_DEBUG_OUT( "created image ASGtkCollapsingFrame object %p", self );	

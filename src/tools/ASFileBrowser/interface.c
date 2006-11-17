@@ -326,7 +326,6 @@ asgtk_hex_view_new(ASFileBrowserMainFrame *data)
 	data->view_hex_win = scrolled_window ;
 
 	return scrolled_window;
-  	return gtk_text_view_new();		
 }
 
 static void 
