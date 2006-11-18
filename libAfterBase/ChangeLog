@@ -1,6 +1,12 @@
 
+2006-11-07  sasha
+
+	* added check for librsvg to configure in preparation for support
+	  for SVG image format
+
 2006-10-11  vae
 
+	* ChangeLog revisions for 2.2.3
 	* AfterStep release v 2.2.3
 
 2006-10-02  sasha
@@ -549,12 +555,12 @@
 
 	* Implemented new Banner using ascompose
 
-2004-01-27  sasha
+2004-01-28  sasha
 
 	* minor bug in detection of HAVE_DECL_ELFW - should check if its 0
 	  or 1
 
-2004-01-26  sasha
+2004-01-27  sasha
 
 	* now hopefully workplace state restoration should work fine -
 	  fixed complex function name parsing, for cases when its nested
@@ -632,7 +638,7 @@
 	  PointerBack; Repaired code to update window's decorations when
 	  stickiness flag is toggled;
 
-2003-09-08  sasha
+2003-09-09  sasha
 
 	* More fixing Pager's geometry; Added -i cmd line parameter to
 	  ascompose to allow for 'include' files (such as colorschemes,
@@ -659,7 +665,7 @@
 	  structure to save up some memory; Hopefully fixed hints handling
 	  on 64 bit hw
 
-2003-08-23  sasha
+2003-08-24  sasha
 
 	* fixed event handling when windows is getting mapped - no more
 	  lost events due to not selected mask ; Fixed initial status when
@@ -692,11 +698,11 @@
 	*  more messing aruound with system headers and compilation
 	* updated configure scripts
 	*  more messing aruound with system headers and compilation
+	* more work on compilation issues, notably fixed errors on old
+	  debian 2.2
 
 2003-08-14  sasha
 
-	* more work on compilation issues, notably fixed errors on old
-	  debian 2.2
 	* updated configure
 	* hopefully fixed all the strict aliasing breakage errors with
 	  newer gcc
@@ -705,7 +711,7 @@
 
 	* bugfixes in Pager and Wharf, and fixed handling of malloc.h
 
-2003-08-10  sasha
+2003-08-11  sasha
 
 	*  cleanup in preparation to beta1 release
 
@@ -731,7 +737,7 @@
 
 	* fixed configure script to properly compile libAfterImage apps
 
-2003-06-26  sasha
+2003-06-27  sasha
 
 	* Fixed handling of xv's crazy WM_HINTS changing and overal;l hints
 	  changing; Fixed out of bounds memory access in make_file_name and
@@ -834,7 +840,7 @@
 	  will be no multiple copies of the image kept in AS memory
 	  anymore;
 
-2003-03-03  sasha
+2003-03-04  sasha
 
 	* upgraded version, rearranged and renamed libraries to match
 	  as-devel; updated includes in libAfterConf and libAfterStep
@@ -844,11 +850,14 @@
 	* fixed off-by 3 bug in determination of the command length for
 	  spawning new module
 
-2003-02-25  sasha
+2003-02-26  sasha
 
 	* Fixed bugs in vector element adding delition; Fixed bugs in
 	  MyStyle definition parsing; Disable Title updates since its
 	  breaking things down for now; Fixed DISPLAY var pasing setting;
+
+2003-02-25  sasha
+
 	* lock_mods handling fix to alle=viate potential segfaults
 	  experienced by Vaevictus
 	* Fixed bug in ConnectAfterSTep where not enough memory was
@@ -932,7 +941,7 @@
 
 	* painfull work on implementing proper colormap handling
 
-2002-08-15  sasha
+2002-08-16  sasha
 
 	* updated dependancies
 
@@ -948,29 +957,29 @@
 	   o moved around audit.h includes to allow AS to be compiled with
 	     --enable-audit again
 
-2002-05-19  sasha
+2002-05-20  sasha
 
 	* fixed all of the color bugs I could find - let me know if you
 	  find any more
 
-2002-05-15  sasha
+2002-05-16  sasha
 
 	* fixed several bugs and got it practically ready for the general
 	  use
 
-2002-04-24  sasha
+2002-04-25  sasha
 
 	* more includes cleanup
 
-2002-04-14  sasha
+2002-04-15  sasha
 
 	* synced with as-devel/libAfterBase
 
-2002-03-26  sasha
+2002-03-27  sasha
 
 	* Alph portability fixes
 
-2002-02-18  sasha
+2002-02-19  sasha
 
 	* Added xml2ASImage input filter. Changed gradient drawing code to
 	  not assume ascending order of offsets.
@@ -999,9 +1008,6 @@
 2002-01-10  sasha
 
 	* Updated ChnageLogs for libAfterImage and libAfterBase
-
-2002-01-09  sasha
-
 	* added XGCValues to xwrap code
 	* updated libs configure script with new version and correct
 	  help/options
@@ -1029,11 +1035,11 @@
 2001-12-05  sasha
 
 	* Added destroy_asgrid function for grid cleanup.
+	* fixed bug in merge_aslayers that was not traversing layers list
+	  correctly
 
 2001-12-04  sasha
 
-	* fixed bug in merge_aslayers that was not traversing layers list
-	  correctly
 	* continued debugging of image rendering with varying dest position
 	  in layers
 
@@ -1049,7 +1055,7 @@
 	  compile time bug - need to get asclook to actually draw
 	  something.
 
-2001-11-26  sasha
+2001-11-27  sasha
 
 	* Updated deps files
 
@@ -1068,7 +1074,7 @@
 	* fixed lots of bugs in layouting, wmdecor border, hints handling
 	  etc. Boredom at the time of ALS,2001 has been quite productive :)
 
-2001-11-07  sasha
+2001-11-08  sasha
 
 	* Implemented Wharf, Pager and WinList prototypes in asclook; Fixed
 	  Layout handling of empty cells, Added AvoidCover handling to
@@ -1082,9 +1088,6 @@
 2001-11-02  sasha
 
 	* implemented buildup of ASGrid from Layout
-
-2001-11-01  sasha
-
 	*  Applied next batch of diffs from Fons Rademakers. Fixed several
 	  cuel bugs in libAfterWidget, causing memory corruption. Changed
 	  ASHashableValue to be simply unsigned long - for portability.
@@ -1144,9 +1147,6 @@
 	* Added reference to the widget owner to Basic Widget instead of
 	  useless event_mask.  Added attach/detach function to automate
 	  process of subwidget attachement
-
-2001-09-25  sasha
-
 	* nothing really
 
 2001-09-18  sasha
@@ -1163,11 +1163,11 @@
 	* Implemented  widget's layout re-layouting and started working on
 	  event handling.  Fixed several bugs in layout.c and added few
 	  calls to have control over element's sizes
+	* debugged ascp to the degree that all the panels are shown
+	  correctly
 
 2001-09-13  sasha
 
-	* debugged ascp to the degree that all the panels are shown
-	  correctly
 	* Completed rewriting Mystyles handling in ASCP - now needs to be
 	  debugged
 
@@ -1175,15 +1175,18 @@
 
 	* Fixed layout.c to include correct config.h
 
-2001-09-02  sasha
+2001-09-03  sasha
 
 	* rewritten RELoadScreenConfig a bit to make it more ASCP friendly.
 	  Added BaseConfig2MyEnvironment, Made ExtractPath non-destructive.
 
-2001-08-31  sasha
+2001-09-01  sasha
 
 	* moved ascp into libAfterConf and begun work on getting it fixed
 	  for recent changes to libAfterSTep/Image. Fixed main.c and lib.c
+
+2001-08-31  sasha
+
 	* Moved more size/layout management code into layout.c
 	* Moved most of the layout functionality into the  libAfterBase and
 	  untied it from the MyWidgets Supposedly we don't really need
@@ -1192,24 +1195,27 @@
 	  much get stripped down things to the level where its no longer
 	  usefull in its generic form.
 
-2001-08-29  sasha
+2001-08-30  sasha
 
 	* Implemented AS customized geometry parsing function; Added stub
 	  for XParseGeometry; Fixe astile and asscale to compile without X
+
+2001-08-29  sasha
+
 	* Rewrote window hierarchy handling in asrender, and started
 	  implementing transparency handling
+	* further configure, Makefile and code cleanup to get it to compile
+	  without X
 
 2001-08-28  sasha
 
-	* further configure, Makefile and code cleanup to get it to compile
-	  without X
 	* minor fix in sleep.c
 	* Fixed numerous bugs in libAfterImage of various severity.  Got
 	  asclook to render default look correctly.
+	* tweaks and debugging
 
 2001-08-27  sasha
 
-	* tweaks and debugging
 	* disabled memory allocation limitation with DEBUG_ALLOC in
 	  safemalloc.c
 
@@ -1218,14 +1224,17 @@
 	* Implemented layer allowing libAfterBase and libAfterImage to work
 	  even without X
 
-2001-08-13  sasha
+2001-08-14  sasha
 
 	* added bevel with solid inlines; Fixed gradiented bevel drawing on
 	  very large distances; updated deps
 
-2001-08-07  sasha
+2001-08-08  sasha
 
 	* Changed license of libAfterBase and libAfterImage to LGPL
+
+2001-08-07  sasha
+
 	* Started implementing ASRenderer code. Adding and deleting windows
 	  so far.
 	* Updated MyTexture, MyLook and MyStyle to use libAfterImage.
@@ -1237,9 +1246,6 @@
 2001-07-13  sasha
 
 	* Updated docs to reflect recent API changes
-
-2001-07-12  sasha
-
 	* cleanup commit
 
 2001-07-12  allanon
@@ -1254,7 +1260,7 @@
 	  image writing with or without alpha channel.	Added usefull
 	  SHOW_TIME and START_TIME macros to libAfterBase
 
-2001-07-10  sasha
+2001-07-11  sasha
 
 	* updated Makefile to install include files as well
 	* fixed configure in libAfterImage to have separate enablers for
@@ -1267,7 +1273,7 @@
 	  gradient is not specified.  Added few more points to asgrad
 	  sample gradient to create better illusion of the rainbow.
 
-2001-07-07  sasha
+2001-07-08  sasha
 
 	* fixed parse_argb_color to check for dpy not being NULL - to avoid
 	  segfaults, babe
@@ -1312,9 +1318,6 @@
 	*  fixed configure to correctly create dependacy info
 	* no message
 	* Hopefully fixed memory allocations audit on libAfterBase.
-
-2001-06-10  sasha
-
 	*  added configclean target to the top level makefile; fixed
 	  libraries makefiles to correctly generate .depend files
 	*  fixed configure scripts to not do extra checks when invoked from
@@ -1328,19 +1331,16 @@
 
 	* configure fixes
 	* rebuilt configure scripts
-
-2001-06-07  sasha
-
 	* hopefully fixed main configure script to gracefully handle
 	  libraries configuration as well. MOved configure.h and some other
 	  headers into include dir, so it could be used by modules
+
+2001-06-07  sasha
+
 	* Fixed MyName requests in selfdiag.c; Added xpm.c to implement
 	  custom xpm handling code - appears to be rather simple and
 	  effective.  Most of the things are implemented, except for top
 	  level routine.
-
-2001-06-06  sasha
-
 	* cleaned configure script for libafterimage. added afterimage-libs
 	  script to print list of LD_FLAGS for linking with libafterimage
 
@@ -1364,16 +1364,16 @@
 
 	* updated the .cvsignore files
 
-2001-06-03  sasha
+2001-06-04  sasha
 
 	* sorted out compilation problems, and test now builds with new
 	  libAfterImage
 
-2001-06-02  sasha
+2001-06-03  sasha
 
 	* got libAfterImage to compile
 
-2001-06-01  sasha
+2001-06-02  sasha
 
 	* hopefully resolved libAfterImage dependancy on libAfterBase
 
@@ -1384,10 +1384,10 @@
 	  communication stuff. It implements socket setup, buffered writes
 	  of int and string data, effective protocol implementation for
 	  non-blocking reading.
+	* fixed configure scripts to correctly compile everything
 
 2001-05-30  sasha
 
-	* fixed configure scripts to correctly compile everything
 	* Prototyped ASRenderer interface
 	* completed fixing old lib files to compensate for file relocation.
 	  There needs to be something done to Mkaefiles and configure to
@@ -1398,14 +1398,11 @@
 	* added output.c to libAfterImage to do all the show_* stuff. added
 	  astype.h to define all the basic types fixed most of the files to
 	  compile
-
-2001-05-28  sasha
-
 	* post relocation cleanup in process - several things merged
 	  together into fs.c and os.c
 	* updated to reflect location change
 
-2001-05-27  sasha
+2001-05-28  sasha
 
 	* Created prototype for the new library structure - libAfterBase.
 	  There will be two more libraries : libAfterImage and
@@ -1455,13 +1452,16 @@
 	  parse_argb_color is implemented and should be used instead of
 	  XParseColor.
 
-2001-03-21  sasha
+2001-03-22  sasha
 
 	* added timeouts to asetroot for displaying window; added
 	  flush_wmprops_data to remove specifyed properties - updated
 	  asetroot to use it. fixed rather nasty bug in asvector causing
 	  memory corruption in modules code; Fixed error handling in
 	  LoadImage
+
+2001-03-21  sasha
+
 	* Fixed module connection code to corrently use WMProps to get
 	  socket filename.  Fixed afterstep initialization to setup modules
 	  only after WMProps initialized.
@@ -1487,13 +1487,13 @@
 	  Added checks to several places in mystyles to check for non-zero
 	  pixmap size.	There still is wierd bug in menuwindow causing X
 	  errors on menu close.
-
-2001-03-19  sasha
-
 	* fixed several memory corruption bugs in myicon_create,
 	  mylook_init and ashash. Added flush_ashash_memory_pool to free up
 	  memory so that audit shows relevant data. added cleanup_mode to
 	  audit to disable invalid opointer reports (if needed)
+
+2001-03-19  sasha
+
 	* hmm, catching bugs in new layout code - making progress - AS now
 	  segfaults due to some obscure memory corruption. :)
 
@@ -1553,12 +1553,9 @@
 	  Multiple reparenting/ messaging/destruction bugs fixed. Placement
 	  fixed when window is decorated after AS startup and is using
 	  USPosition.  Menus needs some debugging.
-
-2001-01-31  sasha
-
 	* event debugging
 
-2001-01-29  sasha
+2001-01-30  sasha
 
 	* Added mystrdup/mystrndup to memory audit code, since they are so
 	  generic; Fixed memory leaks in asdatabase.c(match_list),
@@ -1569,35 +1566,38 @@
 	  code to correctly recognize and workaround geometry. AfterSTep
 	  has no visible memory leaks as of now.
 
-2001-01-28  sasha
+2001-01-29  sasha
 
 	* Changed memory audit to use hash tables instead of linked list -
 	  its blazing fast now. Added add_hash_item to memory audit
 	  recognizeable functions - makes it much more usefull. Need to do
 	  the same for strdup functions.
 
-2001-01-27  sasha
+2001-01-28  sasha
 
 	* Drawing in spaces between titlebar and client is fixed - new
 	  option BorderColor has to be added to MyStyles. Several memory
 	  leaks fixed - in menus, destruction of disabled elements in
 	  mywidgets, etc.
 
-2001-01-25  sasha
+2001-01-26  sasha
 
 	* nailed down this memory corruption bug - VECTOR_TAIL was not
 	  working very good - forgot to multiply by unit size. Now lets fnd
 	  out with this huge number of pipes in linux 2.4 - 1024 - event
 	  loop has to be rewritten to yield sufficient performance there
+
+2001-01-25  sasha
+
 	* Side/lowbar is now appearing. Manhunt is underway for some nasty
 	  memory leak bug causing memory allocations of some random (very
 	  large) sizes.  Added print_mem_stats_info to audit.c to enable
 	  output of short version of memory allocation status.
+	* Fixed initial placement of clients; Fixed initial layer. Fixed X
+	  errors on initial feel load;
 
 2001-01-24  sasha
 
-	* Fixed initial placement of clients; Fixed initial layer. Fixed X
-	  errors on initial feel load;
 	* finally got frame decoration to draw - topmost frame was never
 	  mapped.  improved abit decor initialization code to avoid
 	  redundand calculations.  Fixed bug in afterstep main to change
@@ -1608,7 +1608,7 @@
 	  XAllocSizeHints; added LOCAL_DEBUG_CALLER_OUT macro to enable
 	  runtime caller backtracing.
 
-2001-01-20  sasha
+2001-01-21  sasha
 
 	*  implemented ASHints serialization - need to implement
 	  decerealization next.
@@ -1645,12 +1645,12 @@
 	  consistent.  Updated hints and clientprops to latest ExtWM specs
 	  - ICON_NAME and SKIP_PAGER added.  Started cleaning up events.c
 
-2001-01-09  sasha
+2001-01-10  sasha
 
 	* fixed bug in hash table sorting, that was causing endless looping
 	  and out-of-bounds memory access
 
-2001-01-06  sasha
+2001-01-07  sasha
 
 	* implemented singleton launcher in lib/asapp. Switched background
 	  drawing and sound playing to use it.
@@ -1692,11 +1692,11 @@
 	* completed session saving into file code - Window Maker sucks!
 	  rearranged CaptureAllWindows.  add_window now allows to add
 	  window based on its WM_STATE.
+	* fixed print_simple_backtrace to work around buggy gcc. Got rid of
+	  wild.c - moved into regexp.c
 
 2000-12-26  sasha
 
-	* fixed print_simple_backtrace to work around buggy gcc. Got rid of
-	  wild.c - moved into regexp.c
 	* Implemented show_error/warning and DEBUG_OUT/LOCAL_DEBUG_OUT.
 	  Implemented stack backtracing from failed X calls without
 	  signals.  Converted old code in libasGUI to use new output
@@ -1718,12 +1718,12 @@
 	  general purpose and use in different places. Started work on
 	  ASWindowList
 
-2000-12-11  sasha
+2000-12-12  sasha
 
 	* completed transition to libasGUI. King is dead - Long Live The
 	  King
 
-2000-12-10  sasha
+2000-12-11  sasha
 
 	* Exposure and ConfigureNotify handling is correct now. Fixed bugs
 	  in MyLookInit and CheckPixmapCache.
@@ -1734,7 +1734,7 @@
 	  icons; Added option for each text letter to be rotated
 	  individually
 
-2000-12-05  sasha
+2000-12-06  sasha
 
 	* Assorted debugging
 
@@ -1917,7 +1917,7 @@
 
 	* LookOldOptsDone
 
-2000-06-10  sasha
+2000-06-11  sasha
 
 	* SignalHandler
 
@@ -1937,12 +1937,12 @@
 
 	* [no log message]
 
-2000-04-29  allanon
+2000-04-30  allanon
 
 	* o added runtime options for X call tracing o fixed outline
 	  (non-opaque) resizes
 
-2000-04-28  sasha
+2000-04-29  sasha
 
 	* Look_now_compiles
 
