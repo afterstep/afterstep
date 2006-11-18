@@ -620,7 +620,8 @@ InitMyApp (  const char *app_class, int argc, char **argv, void (*version_func) 
 
     if (FuncSyntax.term_hash == NULL)
 		PrepareSyntax (&FuncSyntax);
-
+	if( as_app_args.locale == NULL ) 
+		as_app_args.locale = mystrdup("");
 	if( as_app_args.locale && strlen(as_app_args.locale) > 0)
 	{
 		as_set_charset( parse_charset_name( as_app_args.locale ));
