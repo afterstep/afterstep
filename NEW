@@ -1,3 +1,14 @@
+version 2.2.4 release
+	* SVG image format support using librsvg
+	* implemented menu balloons. When it is enabled in look ballons will be shown for 
+	  items that have attached comments (in .desktop files ) and Background pixmap 
+	  previews will show when item is selected.
+	* allowed for localized text in menu entries, generated from .desktop files.
+	* added FolderReference setting in .include files to facilitate the above 
+	  localization.
+	* major cleanup and improvement of the main menu structure.
+	* new look.Smooth
+	
 version 2.2.3 release
 	* added <then><else> and <unless> tags handling
 	* added <if> asxml tag to conditionally execute stuff
