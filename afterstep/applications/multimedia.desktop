@@ -1,16 +1,4 @@
 [Desktop Entry]
-Name=XMMS Audio & Multi-Media Player
-GenericName=Media Player
-Comment=Display Linux kernel parameters in graphical form
-Exec=xmms -e %F
-Icon=normal/OldFashionedRadio
-Terminal=false
-Type=Application
-Encoding=UTF-8
-Categories=AudioVideo
-TryExec=xmms
-
-[Desktop Entry]
 Name=GTKsubtitler
 GenericName=Subtitler
 Comment=Program for editing and converting DivX subtitles
