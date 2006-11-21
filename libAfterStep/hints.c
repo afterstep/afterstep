@@ -2728,6 +2728,7 @@ get_client_icon_image( ScreenInfo * scr, ASHints *hints )
 					icon_file_im = get_asimage( scr->image_manager, icon_file, 0xFFFFFFFF, 100 );
 					if( icon_file_im == NULL ) 
 						use_client_icon = True ;
+					LOCAL_DEBUG_OUT( "loaded icon from file \"%s\" into %p", icon_file?icon_file:"(null)", im );
 				}
 				 
 			}
@@ -2742,6 +2743,7 @@ get_client_icon_image( ScreenInfo * scr, ASHints *hints )
 					int width = hints->icon_argb[0] ; 						
 					int height = hints->icon_argb[1] ; 
 					im = convert_argb2ASImage( scr->asv, width, height, hints->icon_argb+2, NULL );
+            		LOCAL_DEBUG_OUT( "converted client's ARGB into an icon %dx%d %p", width, height, im );
 				
 				}	 
 				if( im == NULL && get_flags( hints->client_icon_flags, AS_ClientIconPixmap ) &&	hints->icon.pixmap != None )
@@ -2755,25 +2757,49 @@ get_client_icon_image( ScreenInfo * scr, ASHints *hints )
         		}
 			}
 		}
+   		LOCAL_DEBUG_OUT( "im =  %p", im );
         if( im == NULL )
         {
-			if( icon_file == NULL || icon_file_isDefault )
+			if( CombinedCategories != NULL )
 			{
-				if( CombinedCategories != NULL ) 
+				ASDesktopEntry *de = NULL;
+				if( hints->names[0]) 
 				{
-					ASDesktopEntry *de = fetch_desktop_entry( CombinedCategories, hints->res_name );
+					char *name = hints->names[0] ; 
+					int i = 0;
+					char old ; 
+
+					while( name[i] && !isspace(name[i]) ) ++i ; 
+					if( i > 0 ) 
+					{
+						old = name[i];
+						name[i] = '\0' ;
+						de = fetch_desktop_entry( CombinedCategories, name );
+	        	    	LOCAL_DEBUG_OUT( "found desktop entry %p, for name[0] = \"%s\"", de, name );
+						name[i] = old ;
+					}
+				}
+				LOCAL_DEBUG_OUT( "icon file = %p, default = %d", icon_file == NULL, icon_file_isDefault );
+				if( de == NULL && (icon_file == NULL || icon_file_isDefault) )
+				{
+					LOCAL_DEBUG_OUT( "CombinedCategories = %p", CombinedCategories );
+	
+					de = fetch_desktop_entry( CombinedCategories, hints->res_name );
+           			LOCAL_DEBUG_OUT( "found desktop entry %p, for res_name = \"%s\"", de, hints->res_name );
 					if( de == NULL ) 
 						de = fetch_desktop_entry( CombinedCategories, hints->res_class );
-					if( de )
-					{
-						if( de && de->ref_count > 0 && de->fulliconname ) 
-						{
-							safe_asimage_destroy( icon_file_im );
-							icon_file_im = NULL ;
-							icon_file = de->fulliconname ;
-						}
-					}							   
+            		LOCAL_DEBUG_OUT( "found desktop entry %p, for res_class = \"%s\"", de, hints->res_class );
 				}	 
+				if( de )
+				{
+					if( de && de->ref_count > 0 && de->fulliconname ) 
+					{
+						safe_asimage_destroy( icon_file_im );
+						icon_file_im = NULL ;
+						icon_file = de->fulliconname ;
+					}
+				}							   
+				
 			}
 			if( icon_file )
 			{

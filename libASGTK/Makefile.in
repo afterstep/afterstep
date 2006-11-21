@@ -3,11 +3,11 @@
 #
 
 LIB_INCS= asgtk.h asgtkapp.h asgtkai.h asgtkcframe.h asgtkcolorsel.h asgtkdirtree.h \
-		asgtkgradient.h asgtkimagebrowser.h asgtkimagedir.h asgtkimageview.h \
+		asgtkgradient.h asgtkimagebrowser.h asgtklistviews.h asgtkimagedir.h asgtkimageview.h \
 		asgtkxmleditor.h asgtkxmloptlist.h
 
 LIB_OBJS= asgtkapp.o asgtkai.o asgtkcframe.o asgtkcolorsel.o asgtkdirtree.o \
-		asgtkgradient.o asgtkimagebrowser.o asgtkimagedir.o asgtkimageview.o \
+		asgtkgradient.o asgtkimagebrowser.o asgtklistviews.o asgtkimagedir.o asgtkimageview.o \
 		asgtkxmleditor.o asgtkxmloptlist.o
 
 CONFIG_SCRIPT= asgtk-config
