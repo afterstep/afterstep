@@ -36,7 +36,7 @@ Style   "WinList"       NoTitle, Sticky, Layer 3, WindowListSkip, NoHandles, Avo
 Style   "*Pager"        NoTitle, Sticky, Layer 4, WindowListSkip, NoHandles, AvoidCover, BorderWidth 0
 Style   "ASMenu"        NoButton 1, NoButton 3
 Style   "WinTabs"       Layer 0, Slippery
-
+Style   "ASRun		Icon logos/AfterStep
 Style	"GWCommand"	FocusOnMap
 
 # Wharf apps and AfterStep close apps and terms
@@ -51,14 +51,41 @@ Style   "wmifs"         Sticky, StaysOnTop, WindowListSkip, NoHandles
 Style   "wmmail"        NoTitle, Sticky, StaysOnTop, WindowListSkip, NoHandles
 Style   "wmmixer"       NoTitle, Sticky, StaysOnTop, WindowListSkip, NoHandles
 Style   "wmrack"        NoTitle, Sticky, StaysOnTop, WindowListSkip, NoHandles
-Style   "*term"         Icon linux-penguin.xpm
-Style   "*eterm"        Icon eterm
-Style   "*rxvt"         Icon rxvt
-Style   "aterm"         Icon aterm
-Style   "mc - *" 		VerticalTitle, NoHandles, Icon normal/MCInMonitorShadow
+Style   "mc - *" 	VerticalTitle, NoHandles, Icon normal/MCInMonitorShadow
 Style   "docker"        AvoidCover, StartIconic, NoTitle, Layer 4,NoHandles
 Style   "peksystray"    AvoidCover, StartIconic, NoTitle, Layer 4,NoHandles
 Style   "wmsystray"     AvoidCover, StartIconic, NoTitle, Layer 4,NoHandles
+
+# Terminal icons
+Style   "aterm"		Icon logos/aterm
+Style   "xiterm"	Icon logos/Unicode
+Style   "Eterm"		Icon logos/Eterm
+Style   "eterm"		Icon logos/Eterm
+Style   "xterm"		Icon logos/XWindow3
+Style   "mlterm"	Icon logos/Unicode
+Style   "rxvt"		Icon normal/Monitor1
+
+# Terminal-based app icons
+Style   "alsamixer" 	Icon normal/Player
+Style   "BitchX"	Icon normal/IRC_Transp
+Style   "emacs"		Icon emacs
+Style   "ftp"		Icon normal/FTPEarth
+Style   "lftp"		Icon normal/FTPEarth
+Style   "links"		Icon normal/WWW
+Style   "lynx"		Icon normal/WWW
+Style   "mined"		Icon EditorUnicode
+Style   "mutt"		Icon normal/MailBox2
+Style   "nano"		Icon normal/Pen1
+Style   "ncftp"		Icon normal/FTPEarth
+Style   "nn"		Icon normal/Newspaper
+Style   "pico"		Icon normal/Pen1
+Style   "pine"		Icon normal/MailBox2
+Style   "procinfo"	Icon normal/Wrench
+Style   "slrn"		Icon normal/Newspaper
+Style   "telnet"	Icon normal/Monitor1
+Style   "tin"		Icon normal/Newspaper
+Style   "top"		Icon normal/Pulse
+Style   "vi"		Icon logos/VIM
 
 # Web browsers
 Style	"Mozilla-bin"		Icon logos/mozilla, IgnoreConfig	
