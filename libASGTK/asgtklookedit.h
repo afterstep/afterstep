@@ -13,6 +13,23 @@
 struct _ASGtkLookEdit;
 struct FreeStorageElem;
 struct SyntaxDef;
+
+typedef struct ASGtkMyStylesPanel
+{
+	GtkWidget *frame ;
+	GtkWidget *hbox ; 	
+		GtkWidget *list_vbox ; 	
+			GtkWidget *list ; 	
+			GtkWidget *list_hbtn_box ; 	
+				GtkWidget *list_add_btn ; 	
+				GtkWidget *list_del_btn ; 	
+				GtkWidget *list_rename_btn ; 	
+		/* end list_vbox */
+		GtkWidget *mystyle_editor ; 	
+	/* end hbox */
+}ASGtkMyStylesPanel ; 
+
+
 	
 typedef struct _ASGtkLookEdit
 {
@@ -25,7 +42,8 @@ typedef struct _ASGtkLookEdit
 	struct FreeStorageElem  *free_store ;
 	
 	
-	GtkWidget 	*mystyles_frame ;
+	ASGtkMyStylesPanel 	*mystyles ;
+	
 	GtkWidget 	*myframes_frame ;
 	GtkWidget 	*balloons_frame ;		
 	GtkWidget 	*buttons_frame ;	

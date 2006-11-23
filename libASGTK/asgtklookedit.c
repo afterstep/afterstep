@@ -32,6 +32,7 @@
 
 #include "asgtk.h"
 #include "asgtkai.h"
+#include "asgtklistviews.h"
 #include "asgtklookedit.h"
 #include "asgtkcframe.h"
 
@@ -93,6 +94,7 @@ static void
 asgtk_look_edit_init (ASGtkLookEdit *self)
 {
 	self->configfilename = NULL ;
+	self->mystyles = safecalloc( 1, sizeof(ASGtkMyStylesPanel) );
 }
 
 static void
@@ -118,6 +120,11 @@ asgtk_look_edit_style_set (GtkWidget *widget,
   GTK_WIDGET_CLASS (parent_class)->style_set (widget, prev_style);
 }
 
+static void
+on_add_mystyle_btn_clicked(GtkButton *button, gpointer user_data)
+{
+	ASGtkLookEdit *self = ASGTK_LOOK_EDIT(user_data);
+}
 
 /*  public functions  */
 GtkWidget *
@@ -125,18 +132,43 @@ asgtk_look_edit_new (const char *myname, struct SyntaxDef *syntax)
 {
 	ASGtkLookEdit *self = g_object_new( ASGTK_TYPE_LOOK_EDIT, NULL );
 	
-	
 	self->myname = mystrdup(myname? myname:MyName) ;
 	self->syntax = syntax? syntax:&LookSyntax ;
 	
-	self->mystyles_frame = GTK_WIDGET(asgtk_collapsing_frame_new("MyStyles - basic drawing styles",NULL));
+	self->mystyles->frame = GTK_WIDGET(asgtk_collapsing_frame_new("MyStyles - basic drawing styles",NULL));
+
+	self->mystyles->hbox = GTK_WIDGET( gtk_hbox_new(FALSE, 5) );
+	gtk_container_add (GTK_CONTAINER(self->mystyles->frame), self->mystyles->hbox);
+
+	self->mystyles->list_vbox = GTK_WIDGET( gtk_vbox_new(FALSE, 5) );
+	gtk_box_pack_start (GTK_BOX (self->mystyles->hbox), self->mystyles->list_vbox, TRUE, TRUE, 5);
+	
+	self->mystyles->list = asgtk_simple_list_new( "Available MyStyles : " );
+	gtk_box_pack_start (GTK_BOX (self->mystyles->list_vbox), self->mystyles->list, TRUE, TRUE, 5);
+	
+	self->mystyles->list_hbtn_box = GTK_WIDGET( gtk_hbutton_box_new() ); 	
+	gtk_box_pack_end (GTK_BOX (self->mystyles->list_vbox), self->mystyles->list_hbtn_box, FALSE, FALSE, 5);
+
+	self->mystyles->list_add_btn = asgtk_add_button_to_box( GTK_BOX (self->mystyles->list_hbtn_box), GTK_STOCK_ADD, "Add", G_CALLBACK(on_add_mystyle_btn_clicked), self->mystyles->list_hbtn_box ); 	
+	self->mystyles->list_del_btn = asgtk_add_button_to_box( GTK_BOX (self->mystyles->list_hbtn_box), GTK_STOCK_DELETE, "Delete", G_CALLBACK(on_add_mystyle_btn_clicked), self->mystyles->list_hbtn_box ); 	
+	self->mystyles->list_rename_btn = asgtk_add_button_to_box( GTK_BOX (self->mystyles->list_hbtn_box), GTK_STOCK_PREFERENCES, "Rename", G_CALLBACK(on_add_mystyle_btn_clicked), self->mystyles->list_hbtn_box );
+
+	gtk_widget_show_all ( self->mystyles->list_hbtn_box);
+	gtk_widget_show_all ( self->mystyles->list_vbox);
+	gtk_widget_show_all ( self->mystyles->hbox);
+	gtk_widget_show( self->mystyles->hbox);
+
+
+	
+	
+
 	self->myframes_frame = GTK_WIDGET(asgtk_collapsing_frame_new("MyFrames - window frame config",NULL)) ;
 	self->balloons_frame = GTK_WIDGET(asgtk_collapsing_frame_new("Balloons",NULL)) ; 		
 	self->buttons_frame = GTK_WIDGET(asgtk_collapsing_frame_new("Titlebar Buttons",NULL)) ;	
 	self->backgrounds_frame = GTK_WIDGET(asgtk_collapsing_frame_new("Root backgrounds config",NULL));
 	self->look_frame = GTK_WIDGET(asgtk_collapsing_frame_new("Main Look config",NULL)) ;
 
-	gtk_box_pack_start (GTK_BOX (self), self->mystyles_frame, TRUE, TRUE, 5);
+	gtk_box_pack_start (GTK_BOX (self), self->mystyles->frame, TRUE, TRUE, 5);
 	gtk_box_pack_start (GTK_BOX (self), self->myframes_frame, TRUE, TRUE, 5);
 	gtk_box_pack_start (GTK_BOX (self), self->balloons_frame, TRUE, TRUE, 5);
 	gtk_box_pack_start (GTK_BOX (self), self->buttons_frame, TRUE, TRUE, 5);
