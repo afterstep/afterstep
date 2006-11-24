@@ -8,8 +8,8 @@ Terminal=false
 Type=Application
 Encoding=UTF-8
 Categories=AfterStepDesktop
+X-AfterStep-IndexName=xfishtank
 TryExec=xfishtank
-OnlyShowIn=AFTERSTEP
 
 [Desktop Entry]
 Name=X Snow
@@ -21,8 +21,8 @@ Terminal=false
 Type=Application
 Encoding=UTF-8
 Categories=AfterStepDesktop
+X-AfterStep-IndexName=xsnow
 TryExec=xsnow
-OnlyShowIn=AFTERSTEP
 
 [Desktop Entry]
 Name=Picture Manager
@@ -34,8 +34,8 @@ Terminal=false
 Type=Application
 Encoding=UTF-8
 Categories=AfterStepDesktop
+X-AfterStep-IndexName=ASWallpaper
 TryExec=ASWallpaper
-OnlyShowIn=AFTERSTEP
 
 [Desktop Entry]
 Name=Window Commands
@@ -48,5 +48,3 @@ Type=Application
 Encoding=UTF-8
 Categories=AfterStepDesktop
 TryExec=GWCommand
-OnlyShowIn=AFTERSTEP
-

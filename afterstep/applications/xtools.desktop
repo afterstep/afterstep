@@ -221,6 +221,7 @@ Terminal=false
 Type=Application
 Encoding=UTF-8
 Categories=AfterStepXTools
+X-AfterStep-IndexName=xkbvleds
 TryExec=xkbvleds
 
 [Desktop Entry]
@@ -233,6 +234,7 @@ Terminal=false
 Type=Application
 Encoding=UTF-8
 Categories=AfterStepXTools
+X-AfterStep-IndexName=xfontsel
 TryExec=xfontsel
 
 [Desktop Entry]
@@ -365,6 +367,7 @@ Terminal=false
 Type=Application
 Encoding=UTF-8
 Categories=AfterStepXTools
+X-AfterStep-IndexName=xconsole
 TryExec=xconsole
 
 [Desktop Entry]
@@ -389,6 +392,7 @@ Terminal=false
 Type=Application
 Encoding=UTF-8
 Categories=AfterStepXTools
+X-AfterStep-IndexName=editres
 TryExec=editres
 
 [Desktop Entry]

@@ -65,8 +65,8 @@ Terminal=false
 Type=Application
 Encoding=UTF-8
 Categories=SearchTool
+X-AfterStep-IndexName=gnome-search-tool
 TryExec=gnome-search-tool
-OnlyShowIn=AFTERSTEP
 
 [Desktop Entry]
 Name=KDE File Search Tool
@@ -135,8 +135,8 @@ Terminal=false
 Type=Application
 Encoding=UTF-8
 Categories=SearchTool
+X-AfterStep-IndexName=kfind
 TryExec=kfind
-OnlyShowIn=AFTERSTEP
 
 [Desktop Entry]
 Name=Console Find
@@ -206,7 +206,7 @@ Type=Application
 Encoding=UTF-8
 Categories=SearchTool
 TryExec=find
-OnlyShowIn=AFTERSTEP
+
 
 [Desktop Entry]
 Name=Google Internet Search
@@ -219,7 +219,6 @@ Type=Application
 Encoding=UTF-8
 Categories=SearchTool
 TryExec=ASRun
-OnlyShowIn=AFTERSTEP
 
 [Desktop Entry]
 Name=Yahoo Internet Search
@@ -232,5 +231,4 @@ Type=Application
 Encoding=UTF-8
 Categories=SearchTool
 TryExec=ASRun
-OnlyShowIn=AFTERSTEP
 

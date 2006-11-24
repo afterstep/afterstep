@@ -53,7 +53,6 @@ GenericName[xh]=Ulwazi Lwendlela Yoqhubekeko
 GenericName[zh_CN]=系统进程信息
 GenericName[zh_TW]=系統程序資訊
 GenericName[zu]=Ulwazi Lwesistimu Yokuprosesa
-
 Comment[af]=Stelsel Proses Informasie
 Comment[ar]=معلومات عمليات النظام
 Comment[bg]=Информация за системните процеси
@@ -97,11 +96,12 @@ Comment[zh_CN]=系统进程信息
 Comment[zh_TW]=系統程序資訊
 Comment[zu]=Ulwazi Lwesistimu Yokuprosesa
 Exec=procinfo -f
-Icon=normal/Wrench
+Icon=normal/Pulse
 Terminal=true
 Type=Application
 Encoding=UTF-8
 Categories=System
+X-AfterStep-IndexName=procinfo
 TryExec=procinfo
 
 [Desktop Entry]
@@ -171,11 +171,12 @@ Name[vi]=Thông tin Hệ thống
 Name[zh_CN]=系统信息
 Name[zh_TW]=系統資訊
 Exec=xsysinfo
-Icon=normal/Wrench
+Icon=normal/Pulse
 Terminal=false
 Type=Application
 Encoding=UTF-8
 Categories=System
+X-AfterStep-IndexName=xsysinfo
 TryExec=xsysinfo
 
 [Desktop Entry]
@@ -307,9 +308,10 @@ Name=CPU Process List
 GenericName=Top CPU Processes
 Comment=Display top CPU processes
 Exec=top
-Icon=normal/Wrench
+Icon=normal/Pulse
 Terminal=true
 Type=Application
 Encoding=UTF-8
 Categories=System
+X-AfterStep-IndexName=top
 TryExec=top

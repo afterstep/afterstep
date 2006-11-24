@@ -20,6 +20,7 @@ Terminal=false
 Type=Application
 Encoding=UTF-8
 Categories=AudioVideo
+X-AfterStep-IndexName=xmixer
 TryExec=xmixer
 
 [Desktop Entry]
@@ -32,4 +33,5 @@ Terminal=true
 Type=Application
 Encoding=UTF-8
 Categories=AudioVideo
+X-AfterStep-IndexName=alsamixer
 TryExec=alsamixer

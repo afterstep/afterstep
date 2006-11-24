@@ -97,6 +97,7 @@ Terminal=false
 Type=Application
 Encoding=UTF-8
 Categories=Network
+X-AfterStep-IndexName=xtraceroute
 TryExec=xtraceroute
 
 [Desktop Entry]
@@ -197,6 +198,7 @@ Terminal=true
 Type=Application
 Encoding=UTF-8
 Categories=Network
+X-AfterStep-IndexName=ftp
 TryExec=ftp
 
 [Desktop Entry]
@@ -301,6 +303,7 @@ Terminal=true
 Type=Application
 Encoding=UTF-8
 Categories=Network
+X-AfterStep-IndexName=ncftp
 TryExec=ncftp
 
 [Desktop Entry]
@@ -403,6 +406,7 @@ Terminal=true
 Type=Application
 Encoding=UTF-8
 Categories=Network
+X-AfterStep-IndexName=lftp
 TryExec=lftp
 
 [Desktop Entry]
@@ -500,6 +504,7 @@ Terminal=true
 Type=Application
 Encoding=UTF-8
 Categories=Network
+X-AfterStep-IndexName=lynx
 TryExec=lynx
 
 [Desktop Entry]
@@ -608,6 +613,7 @@ Terminal=true
 Type=Application
 Encoding=UTF-8
 Categories=Network
+X-AfterStep-IndexName=links
 TryExec=links
 
 [Desktop Entry]
@@ -731,6 +737,7 @@ Terminal=true
 Type=Application
 Encoding=UTF-8
 Categories=Network
+X-AfterStep-IndexName=mutt
 TryExec=mutt
 
 [Desktop Entry]
@@ -857,6 +864,7 @@ Terminal=true
 Type=Application
 Encoding=UTF-8
 Categories=Network
+X-AfterStep-IndexName=pine
 TryExec=pine
 
 [Desktop Entry]
@@ -864,11 +872,12 @@ Name=BitchX IRC Client
 GenericName=IRC Client
 Comment=Advanced Internet Relay Chat client
 Exec=BitchX
-Icon=logos/BitchX
+Icon=normal/IRC_Transp
 Terminal=true
 Type=Application
 Encoding=UTF-8
 Categories=Network
+X-AfterStep-IndexName=BitchX
 TryExec=BitchX
 
 [Desktop Entry]
@@ -881,6 +890,7 @@ Terminal=true
 Type=Application
 Encoding=UTF-8
 Categories=Network
+X-AfterStep-IndexName=tin
 TryExec=tin
 
 [Desktop Entry]
@@ -893,6 +903,7 @@ Terminal=true
 Type=Application
 Encoding=UTF-8
 Categories=Network
+X-AfterStep-IndexName=nn
 TryExec=nn
 
 [Desktop Entry]
@@ -905,6 +916,7 @@ Terminal=true
 Type=Application
 Encoding=UTF-8
 Categories=Network
+X-AfterStep-IndexName=slrn
 TryExec=slrn
 
 [Desktop Entry]
@@ -917,4 +929,5 @@ Terminal=true
 Type=Application
 Encoding=UTF-8
 Categories=Network
+X-AfterStep-IndexName=telnet
 TryExec=telnet

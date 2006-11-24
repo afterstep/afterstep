@@ -11,7 +11,7 @@ Categories=Game;ArcadeGame;
 TryExec=xbill
 
 [Desktop Entry]
-Name=XPat 2
+Name=XPat2 Solitare
 GenericName=Card Game
 Comment=Solitaire game - supports 14 games including Klondike, Free Cell, Spider, Calculation, & Gypsy.
 Name[af]=Xpat 2
@@ -106,6 +106,7 @@ Terminal=false
 Type=Application
 Encoding=UTF-8
 Categories=Game;CardGame;
+X-AfterStep-IndexName=xpat2
 TryExec=xpat2
 
 [Desktop Entry]

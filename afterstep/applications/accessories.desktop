@@ -67,6 +67,7 @@ Terminal=false
 Type=Application
 Encoding=UTF-8
 Categories=Utility
+X-AfterStep-IndexName=xcalc
 TryExec=xcalc
 
 [Desktop Entry]
@@ -226,6 +227,7 @@ Terminal=false
 Type=Application
 Encoding=UTF-8
 Categories=Utility
+X-AfterStep-IndexName=xcolorsel
 TryExec=xcolorsel
 
 [Desktop Entry]
@@ -238,6 +240,7 @@ Terminal=false
 Type=Application
 Encoding=UTF-8
 Categories=Utility
+X-AfterStep-IndexName=xman
 TryExec=xman
 
 [Desktop Entry]
@@ -369,6 +372,7 @@ Terminal=false
 Type=Application
 Encoding=UTF-8
 Categories=Utility
+X-AfterStep-IndexName=xclipboard
 TryExec=xclipboard
 
 [Desktop Entry]
@@ -504,5 +508,6 @@ Terminal=false
 Type=Application
 Encoding=UTF-8
 Categories=Utility
+X-AfterStep-IndexName=xmag
 TryExec=xmag
 

@@ -195,6 +195,7 @@ Terminal=false
 Type=Application
 Encoding=UTF-8
 Categories=Graphics
+X-AfterStep-IndexName=xv
 TryExec=xv
 
 [Desktop Entry]
@@ -320,4 +321,5 @@ Terminal=false
 Type=Application
 Encoding=UTF-8
 Categories=Graphics
+X-AfterStep-IndexName=xpaint
 TryExec=xpaint

@@ -8,6 +8,7 @@ Terminal=false
 Type=Application
 Encoding=UTF-8
 Categories=Emulator
+X-AfterStep-IndexName=xdos
 TryExec=xdos
 
 [Desktop Entry]
@@ -32,6 +33,7 @@ Terminal=false
 Type=Application
 Encoding=UTF-8
 Categories=Emulator
+X-AfterStep-IndexName=stella
 TryExec=stella
 
 [Desktop Entry]
@@ -44,6 +46,7 @@ Terminal=false
 Type=Application
 Encoding=UTF-8
 Categories=Emulator
+X-AfterStep-IndexName=executor
 TryExec=executor
 
 [Desktop Entry]
@@ -56,6 +59,7 @@ Terminal=false
 Type=Application
 Encoding=UTF-8
 Categories=Emulator
+X-AfterStep-IndexName=uae
 TryExec=uae
 
 [Desktop Entry]
@@ -68,6 +72,7 @@ Terminal=false
 Type=Application
 Encoding=UTF-8
 Categories=Emulator
+X-AfterStep-IndexName=x48
 TryExec=x48
 
 [Desktop Entry]
@@ -80,6 +85,7 @@ Terminal=false
 Type=Application
 Encoding=UTF-8
 Categories=Emulator
+X-AfterStep-IndexName=xgs
 TryExec=xgs
 
 [Desktop Entry]
@@ -104,6 +110,7 @@ Terminal=false
 Type=Application
 Encoding=UTF-8
 Categories=Emulator
+X-AfterStep-IndexName=xgnuboy
 TryExec=xgnuboy
 
 [Desktop Entry]
@@ -116,6 +123,7 @@ Terminal=false
 Type=Application
 Encoding=UTF-8
 Categories=Emulator
+X-AfterStep-IndexName=xpet
 TryExec=xpet
 
 [Desktop Entry]
@@ -128,6 +136,7 @@ Terminal=false
 Type=Application
 Encoding=UTF-8
 Categories=Emulator
+X-AfterStep-IndexName=x64
 TryExec=x64
 
 [Desktop Entry]
@@ -140,6 +149,7 @@ Terminal=false
 Type=Application
 Encoding=UTF-8
 Categories=Emulator
+X-AfterStep-IndexName=x128
 TryExec=x128
 
 [Desktop Entry]
@@ -152,6 +162,7 @@ Terminal=false
 Type=Application
 Encoding=UTF-8
 Categories=Emulator
+X-AfterStep-IndexName=xvic
 TryExec=xvic
 
 [Desktop Entry]
@@ -164,6 +175,7 @@ Terminal=false
 Type=Application
 Encoding=UTF-8
 Categories=Emulator
+X-AfterStep-IndexName=xmame
 TryExec=xmame
 
 [Desktop Entry]
@@ -176,4 +188,5 @@ Terminal=false
 Type=Application
 Encoding=UTF-8
 Categories=Emulator
+X-AfterStep-IndexName=xmess
 TryExec=xmess

@@ -123,6 +123,7 @@ Terminal=false
 Type=Application
 Encoding=UTF-8
 Categories=TerminalEmulator
+X-AfterStep-IndexName=aterm
 TryExec=aterm
 
 [Desktop Entry]
@@ -135,6 +136,7 @@ Terminal=false
 Type=Application
 Encoding=UTF-8
 Categories=TerminalEmulator
+X-AfterStep-IndexName=xiterm
 TryExec=xiterm
 
 [Desktop Entry]
@@ -345,6 +347,7 @@ Terminal=false
 Type=Application
 Encoding=UTF-8
 Categories=TerminalEmulator
+X-AfterStep-IndexName=xterm
 TryExec=xterm
 
 [Desktop Entry]
@@ -363,6 +366,7 @@ Terminal=false
 Type=Application
 Encoding=UTF-8
 Categories=TerminalEmulator
+X-AfterStep-IndexName=mlterm
 TryExec=mlterm
 
 [Desktop Entry]
@@ -501,6 +505,7 @@ Terminal=false
 Type=Application
 Encoding=UTF-8
 Categories=TerminalEmulator
+X-AfterStep-IndexName=rxvt
 TryExec=rxvt
 
 [Desktop Entry]
@@ -513,4 +518,5 @@ Terminal=false
 Type=Application
 Encoding=UTF-8
 Categories=TerminalEmulator
+X-AfterStep-IndexName=Eterm
 TryExec=Eterm
