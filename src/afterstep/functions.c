@@ -799,9 +799,17 @@ void moveresize_func_handler( FunctionData *data, ASEvent *event, int module )
 	if( data->func == F_MOVE )
 	{
 	    if( data->func_val[0] != INVALID_POSITION )
-		x = new_val1;
+		{
+			x = new_val1;
+			if( !ASWIN_GET_FLAGS(asw,AS_Sticky) )
+				x -= asw->status->viewport_x ;
+		}
 	    if( data->func_val[1] != INVALID_POSITION )
-		y = new_val2;
+		{
+			y = new_val2;
+			if( !ASWIN_GET_FLAGS(asw,AS_Sticky) )
+				y -= asw->status->viewport_y ;
+		}
 	}else
 	{
 	    if( data->func_val[0] != INVALID_POSITION )
