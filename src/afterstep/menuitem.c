@@ -538,18 +538,9 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf, Bool reload_submenus)
 		{
 			if( t->de->type == ASDE_TypeApplication ) 
 			{	
-				FunctionCode func = F_EXEC ;
-				
-				if( get_flags( t->de->flags, ASDE_Unavailable ) )
-					func = F_NOP ;
-				else if( get_flags( t->de->flags, ASDE_Terminal ) )
-					func = F_ExecInTerm;	   
-				else if( get_flags( t->de->flags, ASDE_ASModule ) )
-					func = F_MODULE;	   
+				fdata = desktop_entry2function( t->de, t->stripped_name);
+				LOCAL_DEBUG_OUT( "adding \"%s\" with function %d", t->stripped_name, fdata->func );
 
-				LOCAL_DEBUG_OUT( "adding \"%s\" with function %d", t->stripped_name, func );
-				fdata = create_named_function(func, t->stripped_name);	   
-            	fdata->text = mystrdup( t->de->clean_exec );
             	menu_item = menu_data_item_from_func (menu, fdata, False);
 				update_menu_item_from_dirtree( menu_item, t ); 
 				add_minipixmap_from_dirtree_item( t, menu );

@@ -134,6 +134,7 @@ TermDef       FuncTerms[F_FUNCTIONS_NUM + 1] = {
 	FUNC_TERM2 (NEED_NAME, "PopUp", F_POPUP),	/* PopUp    "popup_name" [popup_name] */
 	FUNC_TERM2 (NEED_NAME, "Function", F_FUNCTION),	/* Function "function_name" [function_name] */
 	FUNC_TERM2 (NEED_NAME | NEED_CMD, "Category", F_CATEGORY),	/* Category "function_name" category_name */
+	FUNC_TERM2 (NEED_NAME | NEED_CMD, "CategoryTree", F_CATEGORY_TREE),	/* CategoryTree "function_name" category_name */
 	FUNC_TERM ("MiniPixmap", F_MINIPIXMAP),	/* MiniPixmap "name" */
 	FUNC_TERM ("SmallMiniPixmap", F_SMALL_MINIPIXMAP),	/* SmallMiniPixmap "name" */
 	FUNC_TERM ("LargeMiniPixmap", F_SMALL_MINIPIXMAP),	/* LargeMiniPixmap "name" */

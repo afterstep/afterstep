@@ -161,6 +161,8 @@ Bool desktop_entry_belongs_to( ASCategoryTree *ct, ASDesktopEntry *de, ASDesktop
 
 Bool dup_desktop_entry_Name( ASDesktopEntry* de, char **trg );
 Bool dup_desktop_entry_Comment( ASDesktopEntry* de, char **trg );
+FunctionCode desktop_entry2function_code( ASDesktopEntry* de );
+FunctionData *desktop_entry2function( ASDesktopEntry* de, char *name /* defaults to de->Name */);
 
 /*************************************************************************/
 /* Desktop Entry functionality                                           */

@@ -437,6 +437,37 @@ Bool dup_desktop_entry_##val( ASDesktopEntry* de, char **trg ) \
 DupDesktopEntryVal_func(Name)
 DupDesktopEntryVal_func(Comment)
 
+
+
+FunctionCode 
+desktop_entry2function_code( ASDesktopEntry* de )
+{
+	if( de == NULL  || get_flags( de->flags, ASDE_Unavailable )  )
+		return F_NOP ;
+	if( de->type == ASDE_TypeDirectory ) 
+		return F_CATEGORY ;
+	if( de->type != ASDE_TypeApplication ) 
+		return F_NOP ;
+	if( get_flags( de->flags, ASDE_Terminal ) )
+		return F_ExecInTerm;	   
+	if( get_flags( de->flags, ASDE_ASModule ) )
+		return F_MODULE;	   
+	return F_EXEC ;
+}
+
+
+FunctionData *
+desktop_entry2function( ASDesktopEntry* de, char *name /* defaults to de->Name */)
+{
+	FunctionData *fdata = NULL ; 
+	if( de ) 
+	{
+		fdata = create_named_function(desktop_entry2function_code( de ), name ? name : de->Name);
+		if( fdata && de->clean_exec ) 
+		   	fdata->text = mystrdup( de->clean_exec );
+	}
+	return fdata;
+}
 /*************************************************************************
  * Desktop Category Tree functionality : 
  *************************************************************************/

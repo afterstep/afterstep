@@ -64,6 +64,7 @@
 #include "../../libAfterStep/wmprops.h"
 #include "../../libAfterStep/functions.h"
 #include "../../libAfterStep/shape.h"
+#include "../../libAfterStep/desktop_category.h"
 
 #include "../../libAfterConf/afterconf.h"
 
@@ -984,6 +985,66 @@ ASWharfFolder *create_wharf_folder( int button_count, ASWharfButton *parent )
     return aswf;
 }
 
+WharfButton *desktop_category2wharf_folder( const char *category_name, int max_depth )
+{
+	ASCategoryTree *ct = NULL ;  
+	ASDesktopCategory *dc = NULL ;
+    WharfButton *list = NULL ;
+    WharfButton **tail = &list ;
+    WharfButton *curr = NULL ;
+
+	char **entries ; 
+	int i, entries_num ; 
+	
+	if( --max_depth < 0 ) 
+		return NULL;
+
+	if( (dc = name2desktop_category( category_name, &ct )) != NULL ) 
+	{
+		entries_num = PVECTOR_USED(dc->entries);
+		if( entries_num > 0 ) 
+		{
+			entries = PVECTOR_HEAD(char*, dc->entries );
+
+			for( i = 0 ; i < entries_num ; ++i ) 
+			{	
+				ASDesktopEntry *de ;
+				if( (de = fetch_desktop_entry( ct, entries[i] ))== NULL ) 
+					continue;
+				if( de->type != ASDE_TypeApplication && de->type != ASDE_TypeDirectory )
+					continue;
+
+				curr = CreateWharfButton ();    
+				*tail = curr ; 
+				tail = &(curr->next) ; 
+
+				if( dup_desktop_entry_Name( de, &(curr->title) ) )
+					set_flags( curr->set_flags, WHARF_BUTTON_TITLE_IS_UTF8 );
+
+				if( de->type == ASDE_TypeDirectory ) 
+				{
+				
+				
+				}else
+				{
+					curr->contents = safecalloc( 1, sizeof(WharfButtonContent));
+					curr->contents_num = 1 ; 
+					if( de->fulliconname )
+					{
+						curr->contents[0].icon = safecalloc( 2, sizeof(char*) );
+						curr->contents[0].icon[0] = mystrdup(de->fulliconname);
+						/* curr->contents[0].icon[1] is NULL - terminator */
+					}
+					curr->contents[0].function = desktop_entry2function( de, NULL);
+				}
+			}
+		}			
+
+	}
+	return list ; 			
+}	 
+
+
 ASWharfFolder *
 build_wharf_folder( WharfButton *list, ASWharfButton *parent, Bool vertical )
 {
@@ -1005,8 +1066,15 @@ LOCAL_DEBUG_OUT( "contents %d has function %p with func = %ld", i, function, fun
 	        	if( function )
 				{
 					int func = function->func ;
-					if( (func < F_ExecToolStart || func > F_ExecToolEnd) &&
-						(IsSwallowFunc(func) || IsExecFunc(func)) )
+					if(func == F_CATEGORY || func == F_CATEGORY_TREE)
+					{
+						char *cat_name = function->text?function->text:function->name ;
+						if( wb->folder == NULL ) 
+							wb->folder = desktop_category2wharf_folder( cat_name, (func==F_CATEGORY)?1:5 );
+						else
+							show_warning( "Cannot assign Desktop Category \"%s\" to a button that already has a subfolder!", cat_name );
+					}else if( (func < F_ExecToolStart || func > F_ExecToolEnd) &&
+							  (IsSwallowFunc(func) || IsExecFunc(func)) )
 					{
 			   			disabled = (!is_executable_in_path (function->text));
 						if( disabled )

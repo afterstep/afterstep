@@ -752,14 +752,9 @@ Bool desktop_category2complex_function( const char *name, const char *category_n
 		++(func->items_num);
 		init_func_data( fdata );
 		fdata->name = mystrdup("I");  /* for immidiate execution */ 
-		
-		if( get_flags( de->flags, ASDE_Terminal ) )
-			fdata->func = F_ExecInTerm;	   
-		else if( get_flags( de->flags, ASDE_ASModule ) )
-			fdata->func = F_MODULE;	   
-		else
-		 	fdata->func = F_EXEC;	
-        fdata->text = mystrdup( de->clean_exec );
+	 	fdata->func = desktop_entry2function_code( de );	
+		if( de->clean_exec ) 
+	        fdata->text = mystrdup( de->clean_exec );
 	}	
 
 	return True;	   
