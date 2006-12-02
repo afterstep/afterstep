@@ -166,6 +166,11 @@
 *Wharf IRC	normal/IRCTransparent ExecInTerm "BitchX" -title "BitchX IRC" +sb if(aterm){-tr -sh 50 -fg white -bg black} if(Eterm){-O --shade 50 -f white -b black) if(rxvt){-tr -fg white -bg black} if(xterm){-fg white -bg black} -e BitchX irc.freenode.net &
 *Wharf IRC  	normal/IRCTransparent Exec "XCHAT" xchat &
 
+
+# subfolder full of games :
+*Wharf Games - Category "Games"
+
+
 #
 # First available Audio player :
 #

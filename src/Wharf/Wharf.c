@@ -274,6 +274,7 @@ main (int argc, char **argv)
     LoadConfig ("wharf", GetOptions);
 
     CheckConfigSanity();
+	ReloadCategories(True);
 
     WharfState.root_folder = build_wharf_folder( Config->root_folder, NULL, (Config->columns > 0 ) );
     if( !display_main_folder() )
@@ -935,10 +936,11 @@ build_wharf_button_tbar(WharfButton *wb)
 
 	if( !get_flags( wb->set_flags, WHARF_BUTTON_TRANSIENT ) )
 	{	
+		int encoding = get_flags( wb->set_flags, WHARF_BUTTON_TITLE_IS_UTF8 )?AS_Text_UTF8:AS_Text_ASCII;
     	if( get_flags( Config->flags, WHARF_SHOW_LABEL ) && wb->title )
-        	add_astbar_label( bar, label_col, label_row, label_flip, label_align, 2, 2, wb->title, AS_Text_ASCII );
+        	add_astbar_label( bar, label_col, label_row, label_flip, label_align, 2, 2, wb->title, encoding );
     	
-		set_astbar_balloon( bar, 0, wb->title, AS_Text_ASCII );
+		set_astbar_balloon( bar, 0, wb->title, encoding );
 	}
 
     LOCAL_DEBUG_OUT( "wharf bevel is %s, value 0x%lX, wharf_no_border is %s",
@@ -985,7 +987,23 @@ ASWharfFolder *create_wharf_folder( int button_count, ASWharfButton *parent )
     return aswf;
 }
 
-WharfButton *desktop_category2wharf_folder( const char *category_name, int max_depth )
+void update_wharf_button_content_from_de( WharfButtonContent *content, ASDesktopEntry *de ) 
+{
+
+	if( de->fulliconname )
+	{
+		content->icon = safecalloc( 2, sizeof(char*) );
+		content->icon[0] = mystrdup(de->fulliconname);
+		/* curr->contents[0].icon[1] is NULL - terminator */
+	}
+	if( content->function == NULL ) 
+		content->function = desktop_entry2function( de, NULL);
+	
+	if( de->type == ASDE_TypeDirectory && content->function ) 
+		content->function->func = F_Folder ; 
+}
+
+WharfButton *desktop_category2wharf_folder( WharfButton *owner, WharfButtonContent *content, const char *category_name, int max_depth )
 {
 	ASCategoryTree *ct = NULL ;  
 	ASDesktopCategory *dc = NULL ;
@@ -1001,6 +1019,22 @@ WharfButton *desktop_category2wharf_folder( const char *category_name, int max_d
 
 	if( (dc = name2desktop_category( category_name, &ct )) != NULL ) 
 	{
+		ASDesktopEntry *cat_de = fetch_desktop_entry( ct, dc->name );
+		if( owner != NULL && cat_de != NULL ) 
+		{
+			char * utf8_title = NULL ; 
+			if( content != NULL && content->icon == NULL ) 
+				update_wharf_button_content_from_de( content, cat_de ); 				
+			if( dup_desktop_entry_Name( cat_de, &utf8_title ) )
+			{
+				if( owner->title ) 
+					free( owner->title ) ;
+				owner->title = utf8_title ; 
+				set_flags( owner->set_flags, WHARF_BUTTON_TITLE_IS_UTF8 );
+			}else 
+				destroy_string( &utf8_title );
+		}
+		
 		entries_num = PVECTOR_USED(dc->entries);
 		if( entries_num > 0 ) 
 		{
@@ -1011,7 +1045,7 @@ WharfButton *desktop_category2wharf_folder( const char *category_name, int max_d
 				ASDesktopEntry *de ;
 				if( (de = fetch_desktop_entry( ct, entries[i] ))== NULL ) 
 					continue;
-				if( de->type != ASDE_TypeApplication && de->type != ASDE_TypeDirectory )
+				if( de->type != ASDE_TypeApplication && (de->type != ASDE_TypeDirectory || max_depth <= 0 ))
 					continue;
 
 				curr = CreateWharfButton ();    
@@ -1021,25 +1055,21 @@ WharfButton *desktop_category2wharf_folder( const char *category_name, int max_d
 				if( dup_desktop_entry_Name( de, &(curr->title) ) )
 					set_flags( curr->set_flags, WHARF_BUTTON_TITLE_IS_UTF8 );
 
+				curr->contents = safecalloc( 1, sizeof(WharfButtonContent));
+				curr->contents_num = 1 ; 
+				update_wharf_button_content_from_de( &(curr->contents[0]), de ); 
 				if( de->type == ASDE_TypeDirectory ) 
 				{
 				
 				
-				}else
-				{
-					curr->contents = safecalloc( 1, sizeof(WharfButtonContent));
-					curr->contents_num = 1 ; 
-					if( de->fulliconname )
-					{
-						curr->contents[0].icon = safecalloc( 2, sizeof(char*) );
-						curr->contents[0].icon[0] = mystrdup(de->fulliconname);
-						/* curr->contents[0].icon[1] is NULL - terminator */
-					}
-					curr->contents[0].function = desktop_entry2function( de, NULL);
 				}
 			}
 		}			
-
+	}
+	if( owner != NULL ) 
+	{
+		*tail = owner->folder ; 
+		owner->folder = list ; 
 	}
 	return list ; 			
 }	 
@@ -1069,10 +1099,9 @@ LOCAL_DEBUG_OUT( "contents %d has function %p with func = %ld", i, function, fun
 					if(func == F_CATEGORY || func == F_CATEGORY_TREE)
 					{
 						char *cat_name = function->text?function->text:function->name ;
-						if( wb->folder == NULL ) 
-							wb->folder = desktop_category2wharf_folder( cat_name, (func==F_CATEGORY)?1:5 );
-						else
-							show_warning( "Cannot assign Desktop Category \"%s\" to a button that already has a subfolder!", cat_name );
+						desktop_category2wharf_folder( wb, &(wb->contents[i]), cat_name, (func==F_CATEGORY)?1:5 );
+						function->func = F_Folder ;
+							
 					}else if( (func < F_ExecToolStart || func > F_ExecToolEnd) &&
 							  (IsSwallowFunc(func) || IsExecFunc(func)) )
 					{
@@ -1559,8 +1588,25 @@ place_wharf_buttons( ASWharfFolder *aswf, int *total_width_return, int *total_he
     if( get_flags( aswf->flags, ASW_Vertical ) )
     {
         int columns = (aswf == WharfState.root_folder)?Config->columns:1;
-        int buttons_per_column = (aswf->buttons_num + columns - 1) / columns, bc = 0 ;
+        int buttons_per_column = (aswf->buttons_num + columns - 1) / columns ;
+		int bc = 0 ;
 
+		if( buttons_per_column > Scr.MyDisplayHeight/64 ) 
+		{/* too many buttons - let's add some columns, shall we */
+            int avg_height = 0;
+			for( i = 0 ; i < aswf->buttons_num ; ++i )
+				avg_height += (!get_flags( aswf->buttons[0].flags, ASW_MaxSwallow ))?
+								aswf->buttons[0].desired_height:64 ;
+            avg_height = avg_height / aswf->buttons_num ;
+
+			if( buttons_per_column > Scr.MyDisplayHeight/avg_height ) 
+			{
+				buttons_per_column = Scr.MyDisplayHeight/avg_height - 1 ; 
+				if( buttons_per_column <= 4 ) 
+					buttons_per_column = min(4, aswf->buttons_num); 
+				columns = (aswf->buttons_num + buttons_per_column - 1) / buttons_per_column ;
+			}	
+		}
         for( i = 0 ; i < aswf->buttons_num ; ++i )
         {
             ASWharfButton *aswb = &(aswf->buttons[reverse_order>=0?reverse_order-i:i]);
@@ -1634,6 +1680,22 @@ place_wharf_buttons( ASWharfFolder *aswf, int *total_width_return, int *total_he
     {
         int rows = (aswf == WharfState.root_folder)?Config->rows:1;
         int buttons_per_row = (aswf->buttons_num + rows - 1) / rows, br = 0 ;
+
+		if( buttons_per_row > Scr.MyDisplayWidth/64 ) 
+		{/* too many buttons - let's add some columns, shall we */
+            int avg_width = 0;
+			for( i = 0 ; i < aswf->buttons_num ; ++i )
+				avg_width += aswf->buttons[0].desired_width ;
+            avg_width = avg_width / aswf->buttons_num ;
+
+			if( buttons_per_row > Scr.MyDisplayWidth/avg_width ) 
+			{
+				buttons_per_row = Scr.MyDisplayWidth/avg_width - 1 ; 
+				if( buttons_per_row <= 4 ) 
+					buttons_per_row = min( 4, aswf->buttons_num ); 
+				rows = (aswf->buttons_num + buttons_per_row - 1) / buttons_per_row ;
+			}	
+		}
 
         for( i = 0 ; i < aswf->buttons_num ; ++i )
         {
