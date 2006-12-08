@@ -168,6 +168,69 @@ desktop_category_print( ASHashableValue value, void *data )
 	print_desktop_category( (ASDesktopCategory*)data );	
 }
 
+ASDesktopEntryInfo *
+desktop_category_get_entries ( ASCategoryTree *ct, ASDesktopCategory *dc, int max_depth, ASHashTable *exclusions, int *nitems)
+{
+	int i, entries_num, valid_entries_num = 0  ;
+	char **entries_names ; 
+	ASDesktopEntryInfo *entries ; 
+
+	if( nitems ) *nitems = 0;
+		
+	if( ct == NULL || dc == NULL )
+		return NULL ; 
+		
+	entries_num = PVECTOR_USED(dc->entries);
+	LOCAL_DEBUG_OUT( "DesktopCategory \"%s\", has %d entries", dc->name, entries_num );
+	if( entries_num == 0 ) 
+		return NULL;
+	entries_names = PVECTOR_HEAD(char*, dc->entries );
+	entries = safecalloc( entries_num+1, sizeof( ASDesktopEntryInfo ) );
+
+	for( i = 0 ; i < entries_num ; ++i ) 
+	{
+		ASDesktopEntry *de;
+		if( exclusions ) 
+			if( get_hash_item( exclusions, AS_HASHABLE(entries_names[i]), NULL ) == ASH_Success ) 
+				continue;
+				
+		de = fetch_desktop_entry( ct, entries_names[i] ); 
+		LOCAL_DEBUG_OUT( "entry \"%s\", de = %p", entries_names[i], de );
+		if( de == NULL ) 
+			continue;
+		if( get_flags(de->flags, ASDE_Hidden|ASDE_NoDisplay) ) 
+			continue;
+		if( de->type == ASDE_TypeDirectory )
+		{
+			if( max_depth <= 0 ) 
+				continue;
+				
+			entries[valid_entries_num].dc = fetch_desktop_category( ct, de->IndexName?de->IndexName:de->Name );
+			if( entries[valid_entries_num].dc == NULL || PVECTOR_USED(entries[valid_entries_num].dc->entries ) == 0 ) 
+				continue;
+		}				
+		entries[valid_entries_num].de = de ; 
+		++valid_entries_num ;
+	}
+	
+	if( nitems ) 
+		*nitems = valid_entries_num ;
+	
+	return entries ; 
+}
+
+Bool 
+desktop_entry_in_subcategory( ASCategoryTree *ct, ASDesktopEntry *de, 
+							  ASDesktopEntryInfo *entries, int entries_num )
+{
+	int k ;
+	for( k = 0 ; k < entries_num ; ++k ) 
+		if( entries[k].de->type == ASDE_TypeDirectory )
+			if( desktop_entry_belongs_to( ct, de, entries[k].de ) ) 
+				return True;
+	return False;
+}
+
 /*************************************************************************/
 /* Desktop Entry functionality                                           */
 /*************************************************************************/

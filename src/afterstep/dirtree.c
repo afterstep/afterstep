@@ -266,85 +266,52 @@ void
 dirtree_add_category (dirtree_t *tree, ASCategoryTree *ct, ASDesktopCategory *dc, Bool include_children, ASHashTable *exclusions)
 {
 	dirtree_t    *t = NULL ; 
-	int i, entries_num, valid_entries_num = 0  ;
-	char **entries_names ; 
-	struct ASDesktopEntryInfo { ASDesktopEntry *de; ASDesktopCategory *dc ; } *entries ; 
-	
+	int i, valid_entries_num = 0  ;
+	ASDesktopEntryInfo *entries ; 
 
 	ASSERT_TREE(tree);
 	ASSERT_TREE(dc);
 	ASSERT_TREE(ct);
 
-	entries_num = PVECTOR_USED(dc->entries);
-	LOCAL_DEBUG_OUT( "DesktopCategory \"%s\", has %d entries", dc->name, entries_num );
-	if( entries_num == 0 ) 
-		return;
-	entries_names = PVECTOR_HEAD(char*, dc->entries );
-	entries = safecalloc( entries_num, sizeof( struct ASDesktopEntryInfo ) );
+	LOCAL_DEBUG_OUT( "DesktopCategory \"%s\", has %d entries", dc->name, PVECTOR_USED(dc->entries) );
+	entries = desktop_category_get_entries( ct, dc, include_children?1:0, exclusions, &valid_entries_num);
 
-	for( i = 0 ; i < entries_num ; ++i ) 
-	{
-		ASDesktopEntry *de;
-		if( exclusions ) 
-			if( get_hash_item( exclusions, AS_HASHABLE(entries_names[i]), NULL ) == ASH_Success ) 
-				continue;
-				
-		de = fetch_desktop_entry( ct, entries_names[i] ); 
-		LOCAL_DEBUG_OUT( "entry \"%s\", de = %p", entries_names[i], de );
-		if( de == NULL ) 
-			continue;
-		if( get_flags(de->flags, ASDE_Hidden|ASDE_NoDisplay) ) 
-			continue;
-		if( de->type == ASDE_TypeDirectory )
+	if( entries ) 
+	{		
+		for( i = 0 ; i < valid_entries_num ; ++i ) 
 		{
-			if( !include_children ) 
-				continue;
-			entries[valid_entries_num].dc = fetch_desktop_category( ct, de->IndexName?de->IndexName:de->Name );
-			if( entries[valid_entries_num].dc == NULL || PVECTOR_USED(entries[valid_entries_num].dc->entries ) == 0 ) 
-				continue;
-		}				
-		entries[valid_entries_num].de = de ; 
-		++valid_entries_num ;
+			ASDesktopEntry *de = entries[i].de;
+			ASDesktopCategory *sub_dc = entries[i].dc ; 
+
+			if( de->type != ASDE_TypeDirectory && include_children )
+			{
+				if( desktop_entry_in_subcategory( ct, de, entries, valid_entries_num ) )
+					continue ;
+			}
+
+			t = dirtree_new ();
+
+			if( dup_desktop_entry_Name( de, &(t->name) ) )
+				set_flags( t->flags, DIRTREE_NAME_IS_UTF8 );
+
+			if( dup_desktop_entry_Comment( de, &(t->Comment) ) )
+				set_flags( t->flags, DIRTREE_COMMENT_IS_UTF8 );
+
+			ref_desktop_entry( de );
+			t->de = de ; 
+
+			t->parent = tree;
+			t->next = tree->child;
+			tree->child = t;			
+
+			if( sub_dc ) 
+			{				   
+				t->flags |= DIRTREE_DIR;
+				dirtree_add_category (t, ct, sub_dc, include_children, exclusions);
+			}	 
+		}	
+		free( entries ) ;
 	}
-		
-	for( i = 0 ; i < valid_entries_num ; ++i ) 
-	{
-		ASDesktopEntry *de = entries[i].de;
-		ASDesktopCategory *sub_dc = entries[i].dc ; 
-
-		if( de->type != ASDE_TypeDirectory && include_children )
-		{
-			int k ;
-			for( k = 0 ; k < valid_entries_num ; ++k ) 
-				if( entries[k].de->type == ASDE_TypeDirectory )
-					if( desktop_entry_belongs_to( ct, de, entries[k].de ) ) 
-						break;
-			if( k < valid_entries_num ) 
-				continue; /* will be included in one of our children */ 	
-		}
-		
-		t = dirtree_new ();
-		
-		if( dup_desktop_entry_Name( de, &(t->name) ) )
-			set_flags( t->flags, DIRTREE_NAME_IS_UTF8 );
-
-		if( dup_desktop_entry_Comment( de, &(t->Comment) ) )
-			set_flags( t->flags, DIRTREE_COMMENT_IS_UTF8 );
-		
-		ref_desktop_entry( de );
-		t->de = de ; 
-		
-		t->parent = tree;
-		t->next = tree->child;
-		tree->child = t;			
-		
-		if( sub_dc ) 
-		{				   
-			t->flags |= DIRTREE_DIR;
-			dirtree_add_category (t, ct, sub_dc, include_children, exclusions);
-		}	 
-	}	
-	free( entries ) ;
 }
 
 

@@ -144,6 +144,11 @@ typedef struct ASCategoryTree
 	struct ASHashTable *categories ;		  
 	struct ASHashTable *entries ;		  
 }ASCategoryTree;
+typedef struct ASDesktopEntryInfo 
+{ 
+	ASDesktopEntry *de; 
+	ASDesktopCategory *dc ; 
+} ASDesktopEntryInfo; 
 
 ASDesktopCategory *create_desktop_category( const char *name );
 int ref_desktop_category( ASDesktopCategory *dc ); 
@@ -153,6 +158,14 @@ void add_desktop_category_entry( ASDesktopCategory *dc, const char *entry_name )
 void print_desktop_category( ASDesktopCategory *dc );
 char *make_desktop_entry_categories( ASDesktopEntry *de );
 void save_desktop_entry( ASDesktopEntry* de, FILE *fp );
+
+ASDesktopEntryInfo *
+desktop_category_get_entries ( ASCategoryTree *ct, ASDesktopCategory *dc, 
+							   int max_depth /* if > 0 - then include subdirectories */, 
+							   struct ASHashTable *exclusions/* optional */, int *nitems);
+/* this will check if de belongs to any directory entry from the list of entries */
+Bool desktop_entry_in_subcategory( ASCategoryTree *ct, ASDesktopEntry *de, 
+			  					   ASDesktopEntryInfo *entries, int entries_num );
 
 
 ASDesktopEntry *fetch_desktop_entry( ASCategoryTree *ct, const char *name );

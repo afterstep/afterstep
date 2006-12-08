@@ -1011,7 +1011,7 @@ WharfButton *desktop_category2wharf_folder( WharfButton *owner, WharfButtonConte
     WharfButton **tail = &list ;
     WharfButton *curr = NULL ;
 
-	char **entries ; 
+	ASDesktopEntryInfo *entries ; 
 	int i, entries_num ; 
 	
 	if( --max_depth < 0 ) 
@@ -1035,19 +1035,24 @@ WharfButton *desktop_category2wharf_folder( WharfButton *owner, WharfButtonConte
 				destroy_string( &utf8_title );
 		}
 		
-		entries_num = PVECTOR_USED(dc->entries);
-		if( entries_num > 0 ) 
+		entries = desktop_category_get_entries( ct, dc, max_depth, NULL, &entries_num);
+		if( entries ) 
 		{
-			entries = PVECTOR_HEAD(char*, dc->entries );
-
 			for( i = 0 ; i < entries_num ; ++i ) 
 			{	
-				ASDesktopEntry *de ;
-				if( (de = fetch_desktop_entry( ct, entries[i] ))== NULL ) 
-					continue;
-				if( de->type != ASDE_TypeApplication && (de->type != ASDE_TypeDirectory || max_depth <= 0 ))
+				ASDesktopEntry *de = entries[i].de;
+				if(  de->type != ASDE_TypeApplication && 
+					(de->type != ASDE_TypeDirectory || max_depth <= 0 ))
 					continue;
 
+				if( de->type == ASDE_TypeApplication ) 
+				{
+					if( max_depth > 0 )
+						if( desktop_entry_in_subcategory( ct, de, entries, entries_num ) )
+							continue ;
+				}else if( de->type == ASDE_TypeDirectory && max_depth <= 0 )
+					continue;
+					
 				curr = CreateWharfButton ();    
 				*tail = curr ; 
 				tail = &(curr->next) ; 
@@ -1060,10 +1065,10 @@ WharfButton *desktop_category2wharf_folder( WharfButton *owner, WharfButtonConte
 				update_wharf_button_content_from_de( &(curr->contents[0]), de ); 
 				if( de->type == ASDE_TypeDirectory ) 
 				{
-				
-				
+					curr->folder = desktop_category2wharf_folder( NULL, NULL, de->Name, max_depth );
 				}
 			}
+			free( entries );
 		}			
 	}
 	if( owner != NULL ) 
