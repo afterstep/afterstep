@@ -195,6 +195,8 @@ DestroyWharfButton (WharfButton **pbtn)
     /* delete members */
 	if (btn->title != NULL)
 		free (btn->title);
+	if (btn->comment != NULL)
+		free (btn->comment);
 
 	if( btn->contents )
 	{

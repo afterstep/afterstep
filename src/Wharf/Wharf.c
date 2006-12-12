@@ -110,8 +110,11 @@ typedef struct ASWharfButton
 #define ASW_FixedHeight		(0x01<<3)
 #define ASW_Transient		(0x01<<4)
 #define ASW_Focusable		(0x01<<5)
+#define ASW_NameIsUTF8		(0x01<<6)
+#define ASW_CommentIsUTF8	(0x01<<7)
     ASFlagType flags;
     char        *name ;
+    char        *comment ;
     ASCanvas    *canvas;
     ASSwallowed *swallowed;
     ASTBarData  *bar;
@@ -937,10 +940,17 @@ build_wharf_button_tbar(WharfButton *wb)
 	if( !get_flags( wb->set_flags, WHARF_BUTTON_TRANSIENT ) )
 	{	
 		int encoding = get_flags( wb->set_flags, WHARF_BUTTON_TITLE_IS_UTF8 )?AS_Text_UTF8:AS_Text_ASCII;
+		char *comment = wb->title ;
     	if( get_flags( Config->flags, WHARF_SHOW_LABEL ) && wb->title )
         	add_astbar_label( bar, label_col, label_row, label_flip, label_align, 2, 2, wb->title, encoding );
-    	
-		set_astbar_balloon( bar, 0, wb->title, encoding );
+
+		if( wb->comment && strlen(wb->comment) > 1) 
+		{
+			comment = wb->comment ;     	
+			encoding = get_flags( wb->set_flags, WHARF_BUTTON_COMMENT_IS_UTF8 )?AS_Text_UTF8:AS_Text_ASCII;
+		}
+		if( comment && strlen(comment) > 1) 
+			set_astbar_balloon( bar, 0, comment, encoding );
 	}
 
     LOCAL_DEBUG_OUT( "wharf bevel is %s, value 0x%lX, wharf_no_border is %s",
@@ -1033,6 +1043,10 @@ WharfButton *desktop_category2wharf_folder( WharfButton *owner, WharfButtonConte
 				set_flags( owner->set_flags, WHARF_BUTTON_TITLE_IS_UTF8 );
 			}else 
 				destroy_string( &utf8_title );
+			if( owner->comment ) 
+				free( owner->comment ) ;
+			if( dup_desktop_entry_Comment( cat_de, &(owner->comment) ) )
+				set_flags( owner->set_flags, WHARF_BUTTON_COMMENT_IS_UTF8 );
 		}
 		
 		entries = desktop_category_get_entries( ct, dc, max_depth, NULL, &entries_num);
@@ -1059,6 +1073,8 @@ WharfButton *desktop_category2wharf_folder( WharfButton *owner, WharfButtonConte
 
 				if( dup_desktop_entry_Name( de, &(curr->title) ) )
 					set_flags( curr->set_flags, WHARF_BUTTON_TITLE_IS_UTF8 );
+				if( dup_desktop_entry_Comment( de, &(curr->comment) ) )
+					set_flags( owner->set_flags, WHARF_BUTTON_COMMENT_IS_UTF8 );
 
 				curr->contents = safecalloc( 1, sizeof(WharfButtonContent));
 				curr->contents_num = 1 ; 
