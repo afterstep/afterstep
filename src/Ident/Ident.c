@@ -979,6 +979,11 @@ add_property( const char *name, const char *value, unsigned long value_encoding,
 	if( IdentState.used_props < MAX_PROPERTIES )
 	{
 		int tmp ;
+		
+		if( value && strlen(value) > 0 ) 
+			printf( (strlen(name)>15)?"%s\t%s;\n":"%s\t\t%s;\n", name, value );
+		else
+			printf( "%s\n", name );
 		IdentState.props[IdentState.used_props].property_name = mystrdup(name);
 		IdentState.props[IdentState.used_props].value = mystrdup(value);
 		IdentState.props[IdentState.used_props].label_bar = create_astbar();
