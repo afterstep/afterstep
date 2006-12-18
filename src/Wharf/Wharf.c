@@ -1074,7 +1074,7 @@ WharfButton *desktop_category2wharf_folder( WharfButton *owner, WharfButtonConte
 				if( dup_desktop_entry_Name( de, &(curr->title) ) )
 					set_flags( curr->set_flags, WHARF_BUTTON_TITLE_IS_UTF8 );
 				if( dup_desktop_entry_Comment( de, &(curr->comment) ) )
-					set_flags( owner->set_flags, WHARF_BUTTON_COMMENT_IS_UTF8 );
+					set_flags( curr->set_flags, WHARF_BUTTON_COMMENT_IS_UTF8 );
 
 				curr->contents = safecalloc( 1, sizeof(WharfButtonContent));
 				curr->contents_num = 1 ; 
@@ -1117,6 +1117,27 @@ LOCAL_DEBUG_OUT( "contents %d has function %p with func = %ld", i, function, fun
 	        	if( function )
 				{
 					int func = function->func ;
+					if(func == F_DesktopEntry )
+					{
+						char *de_name = function->text?function->text:function->name ;
+						ASDesktopEntry *de = name2desktop_entry( de_name, NULL );
+						if( de == NULL ) 
+						{
+							disabled = True ;
+							function->func = F_NOP ;
+						}else
+						{
+							if( dup_desktop_entry_Name( de, &(wb->title) ) )
+								set_flags( wb->set_flags, WHARF_BUTTON_TITLE_IS_UTF8 );
+							if( dup_desktop_entry_Comment( de, &(wb->comment) ) )
+								set_flags( wb->set_flags, WHARF_BUTTON_COMMENT_IS_UTF8 );
+
+							destroy_func_data( &(wb->contents[i].function) );
+							update_wharf_button_content_from_de( &(wb->contents[i]), de ); 
+
+							function = wb->contents[i].function ;
+						}
+					}
 					if(func == F_CATEGORY || func == F_CATEGORY_TREE)
 					{
 						char *cat_name = function->text?function->text:function->name ;

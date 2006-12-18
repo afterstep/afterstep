@@ -138,6 +138,7 @@ TermDef       FuncTerms[F_FUNCTIONS_NUM + 1] = {
 	FUNC_TERM ("MiniPixmap", F_MINIPIXMAP),	/* MiniPixmap "name" */
 	FUNC_TERM ("SmallMiniPixmap", F_SMALL_MINIPIXMAP),	/* SmallMiniPixmap "name" */
 	FUNC_TERM ("LargeMiniPixmap", F_SMALL_MINIPIXMAP),	/* LargeMiniPixmap "name" */
+	FUNC_TERM2 (NEED_NAME, "DesktopEntry", F_DesktopEntry),	/* DesktopEntry "name" */
 	FUNC_TERM2 (NEED_NAME | NEED_CMD, "Exec", F_EXEC),	/* Exec   "name" command */
 	FUNC_TERM2 (NEED_NAME | NEED_CMD, "Module", F_MODULE),	/* Module "name" command */
     FUNC_TERM2 (NEED_NAME | NEED_CMD, "ExecInTerm", F_ExecInTerm),   /* ExecInTerm   "name" command */
@@ -874,8 +875,8 @@ destroy_asdatabase()
     destroy_user_database();
 }
 
-ASDesktopCategory *
-name2desktop_category( const char *name, ASCategoryTree **tree_return ) 
+static ASCategoryTree*
+name2desktop_category_tree( const char *name, int *tree_name_len ) 
 {
 	ASCategoryTree *ct = CombinedCategories ; 
 	int offset = 0 ;
@@ -902,9 +903,33 @@ name2desktop_category( const char *name, ASCategoryTree **tree_return )
 		ct = CombinedCategories; 
 		offset = 9 ;
 	}
+	if( tree_name_len ) 
+		*tree_name_len = offset ;
+	return ct;
+}
+
+ASDesktopCategory *
+name2desktop_category( const char *name, ASCategoryTree **tree_return ) 
+{
+	int offset = 0 ;
+	ASCategoryTree *ct = name2desktop_category_tree( name, &offset );  
+
 	if( tree_return ) 
 		*tree_return = ct ;
+
 	return fetch_desktop_category( ct, name+offset );
+}
+
+ASDesktopEntry *
+name2desktop_entry( const char *name, ASCategoryTree **tree_return ) 
+{
+	int offset = 0 ;
+	ASCategoryTree *ct = name2desktop_category_tree( name, &offset );  
+
+	if( tree_return ) 
+		*tree_return = ct ;
+
+	return fetch_desktop_entry( ct, name+offset );
 }
 
 void

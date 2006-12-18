@@ -81,7 +81,7 @@
 # X TErms. Note that only one of this will be displayed on Wharf, as they all
 # have same button name. Change button name ( first column after *Wharf) to make them a separate buttons :
 
-*Wharf term aterm Exec "-" aterm &
+*Wharf term "-" DesktopEntry aterm
 
 # aterm 1.0 should pick MyStyle from look, if it does not the following is a nice alternative :
 #*Wharf term aterm Exec "-" aterm -tr -tint blue -fg yellow -bg black &

@@ -56,6 +56,7 @@ struct SyntaxDef;
 struct TermDef;
 struct ASSession;
 struct ASDesktopCategory;
+struct ASDesktopEntry;
 struct ASCategoryTree;
 struct ASDatabase;
 
@@ -264,8 +265,9 @@ void SetMyName (char *argv0);
 void override_environ( char **envp );
 void destroy_asdatabase();
 
-struct ASDesktopCategory *name2desktop_category( const char *name, 
-									struct ASCategoryTree **tree_return );
+struct ASDesktopCategory* name2desktop_category( const char *name, struct ASCategoryTree **tree_return );
+struct ASDesktopEntry* name2desktop_entry( const char *name, struct ASCategoryTree **tree_return );
+									
 
 void free_as_app_args();
 void FreeMyAppResources();

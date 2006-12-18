@@ -69,6 +69,7 @@ void pin_menu_func_handler( FunctionData *data, ASEvent *event, int module );
 void close_func_handler( FunctionData *data, ASEvent *event, int module );
 void restart_func_handler( FunctionData *data, ASEvent *event, int module );
 void exec_func_handler( FunctionData *data, ASEvent *event, int module );
+void desktop_entry_func_handler( FunctionData *data, ASEvent *event, int module );
 void exec_in_term_func_handler( FunctionData *data, ASEvent *event, int module );
 void exec_tool_func_handler( FunctionData *data, ASEvent *event, int module );
 void change_background_func_handler( FunctionData *data, ASEvent *event, int module );
@@ -149,6 +150,8 @@ void SetupFunctionHandlers()
 	function_handlers[F_DELETE] =
 	function_handlers[F_CLOSE]          	= close_func_handler ;
     function_handlers[F_RESTART]            = restart_func_handler ;
+
+    function_handlers[F_DesktopEntry]		= desktop_entry_func_handler;
 
     function_handlers[F_EXEC] 				=
 		function_handlers[F_Swallow] 		=
@@ -1288,6 +1291,23 @@ void exec_tool_func_handler( FunctionData *data, ASEvent *event, int module )
     	XSync (dpy, 0);
 	}
 }
+
+void desktop_entry_func_handler( FunctionData *data, ASEvent *event, int module )
+{
+	ASDesktopEntry *de = name2desktop_entry( data->text?data->text:data->name, NULL );
+	if( de == NULL ) 
+		XBell (dpy, event->scr->screen);
+	else
+	{
+		FunctionData *real_data = desktop_entry2function( de, NULL);
+		if( real_data ) 
+		{
+			ExecuteFunctionExt( real_data, event, -1, True );
+			destroy_func_data( &real_data );
+		}
+	}	
+}
+
 
 static int _as_config_change_recursion = 0 ;
 static int _as_config_change_count = 0 ;

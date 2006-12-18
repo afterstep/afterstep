@@ -46,6 +46,7 @@ typedef enum FunctionCode{
   F_MINIPIXMAP,
   F_SMALL_MINIPIXMAP,
   F_LARGE_MINIPIXMAP,
+  F_DesktopEntry,
   F_EXEC,
   F_MODULE,
   F_ExecToolStart,
