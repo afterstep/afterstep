@@ -94,7 +94,8 @@ asgtk_simple_list_init (ASGtkSimpleList *self)
 static void
 asgtk_simple_list_dispose (GObject *object)
 {
-/*  	ASGtkSimpleList *self = ASGTK_COLLAPSING_FRAME (object); */
+  	ASGtkSimpleList *self = ASGTK_SIMPLE_LIST (object);
+	destroy_string(&self->curr_selection);
   	G_OBJECT_CLASS (simple_list_parent_class)->dispose (object);
 }
 
@@ -117,16 +118,16 @@ asgtk_simple_list_sel_handler(GtkTreeSelection *selection, gpointer user_data)
   	ASGtkSimpleList *self = ASGTK_SIMPLE_LIST(user_data); 
 	GtkTreeIter iter;
 	GtkTreeModel *model;
-	gpointer *ptr = NULL ;
+	gpointer ptr = NULL ;
 
+	destroy_string(&self->curr_selection);
   	if (gtk_tree_selection_get_selected (selection, &model, &iter)) 
 	{
-    	gtk_tree_model_get (model, &iter, 0, &(self->curr_selection), -1);
+		char *tmp = NULL ; 
+    	gtk_tree_model_get (model, &iter, 0, &tmp, -1);
+		self->curr_selection = tmp?mystrdup(tmp):NULL ;
     	gtk_tree_model_get (model, &iter, 1, &ptr, -1);
-  	}else
-	{	
-		self->curr_selection = NULL ;
-	}
+  	}
 		
 	if( self->sel_change_handler )
 		self->sel_change_handler( self->selection_owner, ptr ); 
@@ -157,4 +158,25 @@ asgtk_simple_list_new (const char *header )
 	return GTK_WIDGET (self);
 }
 
+void  asgtk_simple_list_purge( ASGtkSimpleList *self )
+{
+	g_return_if_fail (ASGTK_IS_SIMPLE_LIST(self));
+	gtk_list_store_clear( GTK_LIST_STORE (self->tree_model) );
+	self->items_count = 0 ; 
+	asgtk_simple_list_sel_handler(gtk_tree_view_get_selection(GTK_TREE_VIEW(self)), self);	
+}
 
+void  asgtk_simple_list_append( ASGtkSimpleList *self, const char *name, gpointer data )
+{
+	GtkTreeIter iter;
+	gtk_list_store_append (GTK_LIST_STORE (self->tree_model), &iter);
+	gtk_list_store_set (GTK_LIST_STORE (self->tree_model), &iter, 
+						0, name, 
+						1, data, -1);
+	++(self->items_count);
+	if( self->items_count == 1 ) 
+		gtk_tree_selection_select_iter(gtk_tree_view_get_selection(GTK_TREE_VIEW(self)),&iter);
+	else if( self->curr_selection != NULL && strcmp(name, self->curr_selection) == 0 ) 
+		gtk_tree_selection_select_iter(gtk_tree_view_get_selection(GTK_TREE_VIEW(self)),&iter);
+
+}
