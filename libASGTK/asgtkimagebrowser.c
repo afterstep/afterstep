@@ -260,18 +260,15 @@ asgtk_image_browser_create_dir_list( ASGtkImageBrowser *ib, GtkWidget *list_vbox
 	g_signal_connect (gtk_tree_view_get_selection (GTK_TREE_VIEW (ib->dir_list)), "changed",
 		    		  G_CALLBACK (asgtk_image_browser_dir_select), ib);
 	
-  	scrolled_win = gtk_scrolled_window_new (NULL, NULL);
-  	gtk_scrolled_window_set_shadow_type (GTK_SCROLLED_WINDOW (scrolled_win), GTK_SHADOW_IN);  
-  	gtk_container_add (GTK_CONTAINER (scrolled_win), ib->dir_list);
-  	gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolled_win),
-									GTK_POLICY_AUTOMATIC, GTK_POLICY_ALWAYS);
-  	gtk_container_set_border_width (GTK_CONTAINER (scrolled_win), 0);
+  	scrolled_win = ASGTK_SCROLLED_WINDOW(GTK_POLICY_AUTOMATIC, GTK_POLICY_ALWAYS,GTK_SHADOW_IN);
+
+	ASGTK_CONTAINER_CONFIG(scrolled_win,DIR_LIST_WIDTH, DIR_LIST_HEIGHT,0);
+	ASGTK_CONTAINER_ADD(scrolled_win, ib->dir_list);
 	if (GTK_IS_PANED (list_vbox))
 		gtk_paned_pack1 (GTK_PANED (list_vbox), GTK_WIDGET(scrolled_win), TRUE, TRUE);
 	else
 		gtk_box_pack_end (GTK_BOX (list_vbox), GTK_WIDGET(scrolled_win), TRUE, TRUE, 0);
   		
-  	gtk_widget_show (ib->dir_list);
   	gtk_widget_show (scrolled_win);
 	colorize_gtk_tree_view_window( GTK_WIDGET(scrolled_win) );
 }

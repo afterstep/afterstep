@@ -607,20 +607,18 @@ make_xml_tags_list( ASGtkXMLView *xe )
 	
 	xe->tags_list = GTK_TREE_VIEW(gtk_tree_view_new());
 	tree_model = GTK_TREE_MODEL(gtk_list_store_new (3, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING));
-	
-	scrolled_window = gtk_scrolled_window_new(NULL, NULL);
-	gtk_widget_set_size_request (scrolled_window, 100, 200);
-	gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolled_window),
-				    				GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC );
-	gtk_widget_show(scrolled_window);
-    gtk_container_add (GTK_CONTAINER(scrolled_window), GTK_WIDGET(xe->tags_list));
     gtk_tree_view_set_model (xe->tags_list, tree_model);
-    gtk_widget_show (GTK_WIDGET(xe->tags_list));
+	
     cell = gtk_cell_renderer_text_new ();
 
     column = gtk_tree_view_column_new_with_attributes ("supported tags:", cell, "text", 0, NULL);
     gtk_tree_view_append_column (xe->tags_list, GTK_TREE_VIEW_COLUMN (column));
-	
+
+	scrolled_window = ASGTK_SCROLLED_WINDOW(GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC, GTK_SHADOW_IN);
+	gtk_widget_set_size_request (scrolled_window, 100, 200);
+    ASGTK_CONTAINER_ADD(scrolled_window, xe->tags_list);
+	gtk_widget_show(scrolled_window);
+
 	selection = gtk_tree_view_get_selection(xe->tags_list);
 	gtk_tree_selection_set_mode(selection, GTK_SELECTION_SINGLE);
    	//g_signal_connect (selection, "changed",  G_CALLBACK (asgtk_image_dir_sel_handler), id);
@@ -896,7 +894,6 @@ asgtk_xml_view_new ()
 
 	scrolled_window = make_xml_tags_list( ASGTK_XML_VIEW(xe) );
 	gtk_box_pack_start (GTK_BOX (tags_vbox), scrolled_window, TRUE, TRUE, 0);
-	gtk_scrolled_window_set_shadow_type( GTK_SCROLLED_WINDOW(scrolled_window), GTK_SHADOW_IN );
 	
 	xe->color_browser_btn = asgtk_add_button_to_box( NULL, GTK_STOCK_ADD, "Color Selector", G_CALLBACK(on_color_browser_clicked), xe );
 	gtk_box_pack_end (GTK_BOX (tags_vbox), xe->color_browser_btn, FALSE, FALSE, 0);
@@ -905,30 +902,22 @@ asgtk_xml_view_new ()
 	gtk_box_pack_end (GTK_BOX (tags_vbox), insert_tag_btn, FALSE, FALSE, 0);
 	
 	xe->text_view = gtk_text_view_new ();
-	scrolled_window = gtk_scrolled_window_new(NULL, NULL);
+	scrolled_window = ASGTK_SCROLLED_WINDOW(GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC, GTK_SHADOW_IN);
 	gtk_widget_set_size_request (scrolled_window, 400, 200);
-	gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolled_window),
-				    				GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
+    ASGTK_CONTAINER_ADD(scrolled_window, xe->text_view);
 
-    gtk_container_add (GTK_CONTAINER(scrolled_window), GTK_WIDGET(xe->text_view));
 	gtk_widget_show( scrolled_window );
-	gtk_widget_show( xe->text_view );
-	gtk_scrolled_window_set_shadow_type( GTK_SCROLLED_WINDOW(scrolled_window), GTK_SHADOW_IN );
-
 	gtk_paned_pack1 (GTK_PANED (edit_vpanes), scrolled_window, TRUE, TRUE);
 	
 	xe->help_view = gtk_text_view_new ();
 	gtk_text_view_set_wrap_mode( GTK_TEXT_VIEW(xe->help_view), GTK_WRAP_WORD );
 	gtk_text_view_set_editable( GTK_TEXT_VIEW(xe->help_view), FALSE );
-	scrolled_window = gtk_scrolled_window_new(NULL, NULL);
-	gtk_widget_set_size_request (scrolled_window, 600, 50);
-	gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolled_window),
-				    				GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
 
-    gtk_container_add (GTK_CONTAINER(scrolled_window), GTK_WIDGET(xe->help_view));
+	scrolled_window = ASGTK_SCROLLED_WINDOW(GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC, GTK_SHADOW_IN);
+	gtk_widget_set_size_request (scrolled_window, 600, 50);
+    ASGTK_CONTAINER_ADD(scrolled_window, xe->help_view);
+
 	gtk_widget_show( scrolled_window );
-	gtk_widget_show( xe->help_view );
-	gtk_scrolled_window_set_shadow_type( GTK_SCROLLED_WINDOW(scrolled_window), GTK_SHADOW_IN );
 	colorize_gtk_widget( scrolled_window, get_colorschemed_style_normal() );
 
 	gtk_paned_pack2 (GTK_PANED (edit_vpanes), scrolled_window, FALSE, FALSE);

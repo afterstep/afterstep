@@ -141,7 +141,7 @@ asgtk_simple_list_new (const char *header )
 	ASGtkSimpleList *self = g_object_new( ASGTK_TYPE_SIMPLE_LIST, NULL );
 	GtkTreeSelection *selection;
 
-	self->tree_model = GTK_TREE_MODEL(gtk_tree_store_new (2, G_TYPE_STRING, G_TYPE_POINTER));
+	self->tree_model = GTK_TREE_MODEL(gtk_list_store_new (2, G_TYPE_STRING, G_TYPE_POINTER));
 
     gtk_tree_view_set_model (GTK_TREE_VIEW(self), self->tree_model);
     self->cell = gtk_cell_renderer_text_new ();

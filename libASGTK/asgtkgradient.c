@@ -223,14 +223,9 @@ asgtk_gradient_create_color_list( ASGtkGradient *ge )
 	g_signal_connect (gtk_tree_view_get_selection (GTK_TREE_VIEW (ge->point_list)), "changed",
 		    		  G_CALLBACK (asgtk_gradient_color_select), ge);
 	
-  	scrolled_win = gtk_scrolled_window_new (NULL, NULL);
-  	gtk_scrolled_window_set_shadow_type (GTK_SCROLLED_WINDOW (scrolled_win), GTK_SHADOW_IN);  
-  	gtk_container_add (GTK_CONTAINER (scrolled_win), ge->point_list);
-  	gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolled_win),
-									GTK_POLICY_AUTOMATIC, GTK_POLICY_ALWAYS);
-  	gtk_container_set_border_width (GTK_CONTAINER (scrolled_win), 0);
-	
-  	gtk_widget_show (ge->point_list);
+  	scrolled_win = ASGTK_SCROLLED_WINDOW(GTK_POLICY_AUTOMATIC, GTK_POLICY_ALWAYS, GTK_SHADOW_IN);  
+  	ASGTK_CONTAINER_ADD(scrolled_win, ge->point_list);
+
 	colorize_gtk_tree_view_window( GTK_WIDGET(scrolled_win) );
 
 	return scrolled_win;

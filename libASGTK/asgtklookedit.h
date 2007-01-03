@@ -20,6 +20,7 @@ typedef struct ASGtkMyStylesPanel
 	GtkWidget *hbox ; 	
 		GtkWidget *list_vbox ; 	
 			GtkWidget *list ; 	
+			GtkWidget *list_window ; /* scroll window to be able to scroll in the list - Stupid GTK! */			
 			GtkWidget *list_hbtn_box ; 	
 				GtkWidget *list_add_btn ; 	
 				GtkWidget *list_del_btn ; 	

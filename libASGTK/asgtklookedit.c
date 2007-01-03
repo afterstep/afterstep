@@ -36,6 +36,13 @@
 #include "asgtklookedit.h"
 #include "asgtkcframe.h"
 
+#define MYSTYLE_LIST_WIDTH   100
+#define MYSTYLE_LIST_HEIGHT  200
+#define PREVIEW_WIDTH  240
+#define PREVIEW_HEIGHT 180
+
+
+
 /*  local function prototypes  */
 static void asgtk_look_edit_class_init (ASGtkLookEditClass *klass);
 static void asgtk_look_edit_init (ASGtkLookEdit *iv);
@@ -133,16 +140,15 @@ build_mystyles_panel( ASGtkMyStylesPanel *panel )
 	panel->hbox 		= gtk_hbox_new(FALSE, 5);
 	panel->list_vbox 	= gtk_vbox_new(FALSE, 5);
 	panel->list 		= asgtk_simple_list_new( "Available MyStyles : " );
+	panel->list_window  = ASGTK_SCROLLED_WINDOW(GTK_POLICY_NEVER, GTK_POLICY_ALWAYS,GTK_SHADOW_IN);
 	panel->list_hbtn_box= gtk_hbutton_box_new(); 	
-
-	gtk_container_add (GTK_CONTAINER(panel->frame), panel->hbox);
 
 	ASGTK_PACK_BEGIN(panel->hbox);
 		ASGTK_PACK_TO_START(panel->list_vbox, TRUE, TRUE, 5);
 	ASGTK_PACK_END;
 
 	ASGTK_PACK_BEGIN(panel->list_vbox);
-		ASGTK_PACK_TO_START(panel->list, TRUE, TRUE, 5);
+		ASGTK_PACK_TO_START(panel->list_window, TRUE, TRUE, 5);
 		ASGTK_PACK_TO_END(panel->list_hbtn_box, FALSE, FALSE, 5);
 	ASGTK_PACK_END;
 
@@ -152,7 +158,10 @@ build_mystyles_panel( ASGtkMyStylesPanel *panel )
 		panel->list_rename_btn 	= asgtk_add_button_to_box( ASGTK_PACK_BOX, GTK_STOCK_PREFERENCES, "Rename", G_CALLBACK(on_add_mystyle_btn_clicked), panel );
 	ASGTK_PACK_END;
 
-	gtk_widget_show( panel->hbox);
+	ASGTK_CONTAINER_CONFIG(panel->list_window,MYSTYLE_LIST_WIDTH, MYSTYLE_LIST_HEIGHT,0);
+
+	ASGTK_CONTAINER_ADD(panel->list_window, panel->list);
+	ASGTK_CONTAINER_ADD(panel->frame, panel->hbox);
 }
 
 
@@ -161,14 +170,24 @@ FreeStorage2MyStylesPanel( FreeStorageElem *storage, ASGtkMyStylesPanel *panel )
 {
 	FreeStorageElem *curr = storage ;
 	ASGtkSimpleList *list = ASGTK_SIMPLE_LIST(panel->list);
+	ConfigItem    item;
+
+	item.memory = NULL;
 	
 	asgtk_simple_list_purge( list );
 	while( curr != NULL ) 
 	{
 		if( curr->term->id == MYSTYLE_START_ID ) 
-			asgtk_simple_list_append( list, curr->argv[0], curr );
+		{
+			if (ReadConfigItem (&item, curr))
+			{
+				asgtk_simple_list_append( list, item.data.string, curr );
+				item.ok_to_free = True;
+			}
+		}
 		curr = curr->next ; 
 	}
+	ReadConfigItem (&item, NULL);
 
 }
 
@@ -270,8 +289,7 @@ main (int argc, char *argv[])
 	look_edit = asgtk_look_edit_new (NULL, NULL);
 	gtk_container_add (GTK_CONTAINER (main_window), look_edit);
 
-	if( argc > 1 ) 
-		asgtk_look_edit_set_configfile( ASGTK_LOOK_EDIT(look_edit), PutHome(argv[1]) );
+	asgtk_look_edit_set_configfile( ASGTK_LOOK_EDIT(look_edit), PutHome("~/.afterstep/looks/look.Mine") );
 	
 	g_signal_connect (G_OBJECT (main_window), "destroy", G_CALLBACK (on_destroy), NULL);
   	gtk_widget_show (main_window);
