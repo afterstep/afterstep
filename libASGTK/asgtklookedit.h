@@ -1,7 +1,56 @@
 #ifndef ASGTKLOOKEDIT_H_HEADER_INCLUDED
 #define ASGTKLOOKEDIT_H_HEADER_INCLUDED
 
+/*****************************************************************************/
+/*   MyStyle Editor                                                          */
+/*****************************************************************************/
 
+#define ASGTK_TYPE_MYSTYLE_EDIT         	(asgtk_mystyle_edit_get_type ())
+#define ASGTK_MYSTYLE_EDIT(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), ASGTK_TYPE_MYSTYLE_EDIT, ASGtkMyStyleEdit))
+#define ASGTK_MYSTYLE_EDIT_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), ASGTK_TYPE_MYSTYLE_EDIT, ASGtkMyStyleEditClass))
+#define ASGTK_IS_MYSTYLE_EDIT(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), ASGTK_TYPE_MYSTYLE_EDIT))
+#define ASGTK_IS_MYSTYLE_EDIT_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), ASGTK_TYPE_MYSTYLE_EDIT))
+#define ASGTK_MYSTYLE_EDIT_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), ASGTK_TYPE_MYSTYLE_EDIT, ASGtkMyStyleEdit))
+
+typedef struct _ASGtkMyStyleEdit
+{
+	GtkFrame       parent_instance;
+
+	ASFlagType      flags ;
+
+	struct SyntaxDef *syntax ;
+	struct FreeStorageElem  *free_store ;
+	
+	GtkWidget 	*inherit_frame ;
+	GtkWidget 	*inherit_vbox ;
+	GtkWidget 	*inherit_list ;
+	GtkWidget 	*inherit_list_window ;
+	GtkWidget 	*inherit_list_hbtn_box ;
+	
+	GtkWidget 	*inherit_list_add_btn ; 	
+	GtkWidget 	*inherit_list_del_btn ; 	
+	
+	GtkWidget   *font;
+	GtkWidget   *text_style;
+	GtkWidget   *fore_color;
+	GtkWidget   *back_color;
+	
+}ASGtkMyStyleEdit;
+
+typedef struct _ASGtkMyStyleEditClass
+{
+  GtkFrameClass  parent_class;
+
+}ASGtkMyStyleEditClass;
+
+
+GType       asgtk_mystyle_edit_get_type  ( ) G_GNUC_CONST;
+
+GtkWidget * asgtk_mystyle_edit_new       ();
+
+/*****************************************************************************/
+/*   Look Editor                                                             */
+/*****************************************************************************/
 #define ASGTK_TYPE_LOOK_EDIT         (asgtk_look_edit_get_type ())
 #define ASGTK_LOOK_EDIT(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), ASGTK_TYPE_LOOK_EDIT, ASGtkLookEdit))
 #define ASGTK_LOOK_EDIT_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), ASGTK_TYPE_LOOK_EDIT, ASGtkLookEditClass))

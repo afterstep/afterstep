@@ -27,7 +27,7 @@ typedef struct _ASGtkSimpleList
 	
 	/* screw GTK signals - hate its guts */
 	_ASGtkList_sel_handler sel_change_handler;
-	GObject *selection_owner;
+	GObject *sel_change_owner;
 	
 	int items_count ; 
 	
@@ -45,6 +45,8 @@ GType       asgtk_simple_list_get_type  (void) G_GNUC_CONST;
 GtkWidget * asgtk_simple_list_new(const char *header );
 void  asgtk_simple_list_purge( ASGtkSimpleList *self );
 void  asgtk_simple_list_append( ASGtkSimpleList *self, const char *name, gpointer data );
+void  asgtk_simple_list_set_sel_handling( ASGtkSimpleList *self, 
+										  GObject *owner, _ASGtkList_sel_handler handler );
 
 
 

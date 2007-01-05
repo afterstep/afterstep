@@ -130,7 +130,15 @@ asgtk_simple_list_sel_handler(GtkTreeSelection *selection, gpointer user_data)
   	}
 		
 	if( self->sel_change_handler )
-		self->sel_change_handler( self->selection_owner, ptr ); 
+		self->sel_change_handler( self->sel_change_owner, ptr ); 
+}
+
+void  asgtk_simple_list_set_sel_handling( ASGtkSimpleList *self, 
+										  GObject *owner, _ASGtkList_sel_handler handler )
+{
+	g_return_if_fail (ASGTK_IS_SIMPLE_LIST(self));
+	self->sel_change_owner = owner ; 
+	self->sel_change_handler = handler ; 
 }
 
 
