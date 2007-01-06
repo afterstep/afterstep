@@ -21,6 +21,8 @@ typedef struct _ASGtkMyStyleEdit
 	struct SyntaxDef *syntax ;
 	struct FreeStorageElem  *free_store ;
 	
+	GtkTreeModel *mystyles_list ; 
+	
 	GtkWidget 	*inherit_frame ;
 	GtkWidget 	*inherit_vbox ;
 	GtkWidget 	*inherit_list ;
@@ -34,6 +36,10 @@ typedef struct _ASGtkMyStyleEdit
 	GtkWidget   *text_style;
 	GtkWidget   *fore_color;
 	GtkWidget   *back_color;
+	
+	GtkWidget   *overlay ; 
+	GtkWidget   *overlay_mystyle ; 
+
 	
 }ASGtkMyStyleEdit;
 

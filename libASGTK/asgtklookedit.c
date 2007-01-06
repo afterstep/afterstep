@@ -165,6 +165,7 @@ FreeStorage2MyStyleEdit( FreeStorageElem *storage, ASGtkMyStyleEdit *self )
 	ConfigItem    item;
 	ASGtkSimpleList *list = ASGTK_SIMPLE_LIST(self->inherit_list);
 
+	self->free_store = storage ; 
 
 	item.memory = NULL;
 	asgtk_simple_list_purge( list );
@@ -172,6 +173,9 @@ FreeStorage2MyStyleEdit( FreeStorageElem *storage, ASGtkMyStyleEdit *self )
 	gtk_entry_set_text( GTK_ENTRY(self->font), NULL );
 	gtk_entry_set_text( GTK_ENTRY(self->fore_color), NULL );
 	gtk_entry_set_text( GTK_ENTRY(self->back_color), NULL );
+	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(self->overlay), FALSE );
+	gtk_combo_box_set_active( GTK_COMBO_BOX(self->overlay_mystyle), -1 );
+	gtk_widget_set_sensitive( self->overlay_mystyle, FALSE ); 				
 
 	if( curr && curr->term->id == MYSTYLE_START_ID ) 
 		curr = curr->sub ;
@@ -195,6 +199,24 @@ FreeStorage2MyStyleEdit( FreeStorageElem *storage, ASGtkMyStyleEdit *self )
 					if( item.data.integer > AST_3DTypes ) 
 						item.data.integer = AST_3DTypes ;
 					gtk_combo_box_set_active( GTK_COMBO_BOX(self->text_style), item.data.integer );
+				}else if( curr->term->id == MYSTYLE_Overlay_ID ) 
+				{
+					GtkTreeIter iter ; 
+					gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(self->overlay), TRUE );
+					if( gtk_tree_model_get_iter_first( self->mystyles_list, &iter ) )
+					{
+						char *tmp = NULL ; 
+						do
+						{
+					    	gtk_tree_model_get (self->mystyles_list, &iter, 0, &tmp, -1);
+							if( mystrcasecmp( tmp, item.data.string ) == 0 ) 
+							{
+								gtk_combo_box_set_active_iter( GTK_COMBO_BOX(self->overlay_mystyle), &iter );
+								break ;
+							}
+						}while( gtk_tree_model_iter_next( self->mystyles_list, &iter ) );
+					}
+					gtk_widget_set_sensitive( self->overlay_mystyle, TRUE ); 				
 				}
 				item.ok_to_free = True;
 			}
@@ -206,6 +228,30 @@ FreeStorage2MyStyleEdit( FreeStorageElem *storage, ASGtkMyStyleEdit *self )
 
 }
 
+void 
+asgtk_mystyle_edit_set_mystyles_list( ASGtkMyStyleEdit *self, GtkTreeModel *list ) 
+{
+	if( self )
+	{
+		if( self->mystyles_list ) 
+			g_object_unref( self->mystyles_list ); 
+		self->mystyles_list = list ; 
+		if( self->mystyles_list ) 
+			g_object_ref( self->mystyles_list ); 
+		gtk_combo_box_set_model( GTK_COMBO_BOX(self->overlay_mystyle), self->mystyles_list );
+	}
+}
+
+static void 
+on_mystyle_overlay_clicked(GtkWidget *widget, gpointer data )
+{
+  	ASGtkMyStyleEdit *self = ASGTK_MYSTYLE_EDIT (data);
+	Bool active = gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(widget));
+	gtk_widget_set_sensitive( self->overlay_mystyle, active ); 				
+
+}
+
+
 /*  public functions  */
 GtkWidget *
 asgtk_mystyle_edit_new ()
@@ -213,11 +259,12 @@ asgtk_mystyle_edit_new ()
 	ASGtkMyStyleEdit *self = g_object_new( ASGTK_TYPE_MYSTYLE_EDIT, NULL );
 	GtkWidget *wself = GTK_WIDGET(self); /* so we don't have to do typecasting a hundred of times */
 	GtkWidget *table ; 
+	GtkWidget *background_frame ; 
 
 	colorize_gtk_widget( wself, get_colorschemed_style_normal() );
 
 	self->syntax = &MyStyleSyntax ;
-	table = gtk_table_new( 3, 10, FALSE );
+	table = gtk_table_new( 4, 10, FALSE );
 	self->inherit_frame = gtk_frame_new( NULL );
 	self->inherit_vbox = gtk_vbox_new(FALSE, 5);
 	self->inherit_list = asgtk_simple_list_new( "Inherited MyStyles : " );
@@ -229,6 +276,13 @@ asgtk_mystyle_edit_new ()
 	self->back_color = gtk_entry_new();
 	self->text_style = gtk_combo_box_new_text();
 	fill_text_style_combo_box( self->text_style ); 
+	
+	self->overlay = gtk_check_button_new_with_label("Overlay with : ");
+	gtk_button_set_relief(GTK_BUTTON(self->overlay), GTK_RELIEF_NONE );
+   	g_signal_connect ((gpointer) self->overlay, "clicked", G_CALLBACK (on_mystyle_overlay_clicked), self);
+	self->overlay_mystyle = gtk_combo_box_new_text();
+	
+	background_frame = gtk_frame_new( " Background : " ); 
 	
 	ASGTK_PACK_BEGIN(self->inherit_vbox);
 		ASGTK_PACK_TO_START(self->inherit_list_window, TRUE, TRUE, 0);
@@ -243,6 +297,7 @@ asgtk_mystyle_edit_new ()
 	ASGTK_TABLE_BEGIN(table);
 		ASGTK_ROW_BEGIN;
 			ASGTK_TABLE_CELL_SPAN(self->inherit_frame,2);
+			ASGTK_TABLE_CELL_SPAN2D(background_frame,2,4);
 		ASGTK_ROW_END;
 		ASGTK_ROW_BEGIN;
 			ASGTK_TABLE_CELL(ASGTK_ALIGNED_LABEL("Font : ", 1.0, 0.5));
@@ -259,6 +314,8 @@ asgtk_mystyle_edit_new ()
 		ASGTK_ROW_BEGIN;
 			ASGTK_TABLE_CELL(ASGTK_ALIGNED_LABEL("Back Color : ", 1.0, 0.5));
 			ASGTK_TABLE_CELL(self->back_color);
+			ASGTK_TABLE_CELL(self->overlay);
+			ASGTK_TABLE_CELL(self->overlay_mystyle);
 		ASGTK_ROW_END;
 	ASGTK_TABLE_END;
 
@@ -391,6 +448,7 @@ build_mystyles_panel( ASGtkMyStylesPanel *panel )
 	panel->list_window  = ASGTK_SCROLLED_WINDOW(GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC,GTK_SHADOW_IN);
 	panel->list_hbtn_box= gtk_hbutton_box_new(); 	
 	panel->mystyle_editor= asgtk_mystyle_edit_new(); 	
+	asgtk_mystyle_edit_set_mystyles_list( ASGTK_MYSTYLE_EDIT(panel->mystyle_editor), ASGTK_SIMPLE_LIST(panel->list)->tree_model ); 
 
 	asgtk_simple_list_set_sel_handling( ASGTK_SIMPLE_LIST(panel->list), G_OBJECT(panel->mystyle_editor), mystyle_panel_sel_handler ); 
 

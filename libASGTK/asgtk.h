@@ -30,6 +30,12 @@
 																					ASGTK_TABLE_ROW_TMPVAR, \
 																					ASGTK_TABLE_ROW_TMPVAR+1); \
 														ASGTK_TABLE_COL_TMPVAR+=(span_x)
+#define ASGTK_TABLE_CELL_SPAN2D(widget,span_x,span_y)   gtk_table_attach_defaults ( ASGTK_TABLE_TMPVAR, GTK_WIDGET(widget), \
+																					ASGTK_TABLE_COL_TMPVAR, \
+																					ASGTK_TABLE_COL_TMPVAR+(span_x), \
+																					ASGTK_TABLE_ROW_TMPVAR, \
+																					ASGTK_TABLE_ROW_TMPVAR+(span_y)); \
+														ASGTK_TABLE_COL_TMPVAR+=(span_x)
 
 #define ASGTK_ROW_END									++ASGTK_TABLE_ROW_TMPVAR; }while(0)
 														
