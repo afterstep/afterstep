@@ -18,6 +18,9 @@
 #define ASGTK_TABLE_BEGIN(cont_widget) 				do{ int ASGTK_TABLE_ROW_TMPVAR = 0 ; \
 														GtkTable *ASGTK_TABLE_TMPVAR = GTK_TABLE(cont_widget)
 #define ASGTK_ROW_BEGIN 							do{ int ASGTK_TABLE_COL_TMPVAR = 0;
+
+#define ASGTK_TABLE_CELL_SKIP							++ASGTK_TABLE_COL_TMPVAR
+
 #define ASGTK_TABLE_CELL(widget)						gtk_table_attach_defaults ( ASGTK_TABLE_TMPVAR, GTK_WIDGET(widget), \
 																					ASGTK_TABLE_COL_TMPVAR, \
 																					ASGTK_TABLE_COL_TMPVAR+1, \
@@ -59,6 +62,14 @@
 	do{	GtkWidget *__asgtk_tmpvar_widget = GTK_WIDGET(widget); \
 		gtk_container_add (GTK_CONTAINER (cont_widget), __asgtk_tmpvar_widget); \
 		gtk_widget_show(__asgtk_tmpvar_widget); }while(0)
+
+#define ASGTK_ALIGN(widget,xa,ya,xs,ys,pt,pb,pl,pr) \
+	({GtkWidget *__asgtk_tmpvar_widget = GTK_WIDGET(widget); \
+	  GtkWidget *__asgtk_tmpvar_alignment = gtk_alignment_new((xa),(ya),(xs),(ys)); \
+		if((pt)||(pb)||(pl)||(pr)) gtk_alignment_set_padding (GTK_ALIGNMENT (__asgtk_tmpvar_alignment),(pt),(pb),(pl),(pr)); \
+		gtk_container_add (GTK_CONTAINER (__asgtk_tmpvar_alignment), __asgtk_tmpvar_widget); \
+		gtk_widget_show(__asgtk_tmpvar_widget);(__asgtk_tmpvar_alignment);})
+
 
 #define ASGTK_CONTAINER_CONFIG(cont_widget,width,height,bw) \
 	do{ gtk_container_set_border_width(GTK_CONTAINER (cont_widget), (bw)); \

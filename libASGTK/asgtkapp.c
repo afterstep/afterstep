@@ -285,7 +285,7 @@ colorize_gtk_tree_view_window(GtkWidget *widget)
 }
 
 GtkWidget*
-asgtk_add_button_to_box( GtkBox *hbox, const char *stock, const char * label, GCallback func, gpointer user_data )
+asgtk_new_button(const char *stock, const char * label )
 {
 	GtkWidget *btn ; 
 	if( stock != NULL ) 
@@ -302,11 +302,19 @@ asgtk_add_button_to_box( GtkBox *hbox, const char *stock, const char * label, GC
 		btn = gtk_button_new_with_label (label); 
 	else
 		btn = gtk_button_new (); 
+	colorize_gtk_widget( GTK_WIDGET(btn), get_colorschemed_style_button());
+
+	return btn ;
+}
+
+GtkWidget*
+asgtk_add_button_to_box( GtkBox *hbox, const char *stock, const char * label, GCallback func, gpointer user_data )
+{
+	GtkWidget *btn = asgtk_new_button(stock, label ); 
   	gtk_widget_show (btn);
 	if( hbox )
   		gtk_box_pack_start (hbox, btn, FALSE, FALSE, 0);
   	g_signal_connect ((gpointer) btn, "clicked", G_CALLBACK (func), user_data);
-	colorize_gtk_widget( GTK_WIDGET(btn), get_colorschemed_style_button());
 	return btn;	
 }
 

@@ -24,10 +24,10 @@ typedef struct _ASGtkMyStyleEdit
 	GtkTreeModel *mystyles_list ; 
 	
 	GtkWidget 	*inherit_frame ;
-	GtkWidget 	*inherit_vbox ;
+	GtkWidget 	*inherit_box ;
 	GtkWidget 	*inherit_list ;
 	GtkWidget 	*inherit_list_window ;
-	GtkWidget 	*inherit_list_hbtn_box ;
+	GtkWidget 	*inherit_list_btn_box ;
 	
 	GtkWidget 	*inherit_list_add_btn ; 	
 	GtkWidget 	*inherit_list_del_btn ; 	
@@ -40,7 +40,36 @@ typedef struct _ASGtkMyStyleEdit
 	GtkWidget   *overlay ; 
 	GtkWidget   *overlay_mystyle ; 
 
+	GtkWidget 	*backpixmap_frame ; 
+	GtkWidget   *backpixmap_notebook ;
+	/* Pixmap page of the BackPixmap notebook :*/
+	GtkWidget *pixmap_filename;
+	GtkWidget *pixmap_browse_btn;	
+	GtkWidget *pixmap_preview;
+
+	GtkWidget *pixmap_slice_margins; /* expander */
+	GtkWidget *pixmap_slice_frame;
+	GtkObject *pixmap_slice_x_start_adj;
+	GtkWidget *pixmap_slice_x_start;
+	GtkObject *pixmap_slice_x_end_adj;
+	GtkWidget *pixmap_slice_x_end;
+	GtkObject *pixmap_slice_y_start_adj;
+	GtkWidget *pixmap_slice_y_start;
+	GtkObject *pixmap_slice_y_end_adj;
+	GtkWidget *pixmap_slice_y_end;
 	
+	GSList 	  *pixmap_pseudo_transp_group;
+	GtkWidget *pixmap_pseudo_transp;
+	GtkWidget *pixmap_shaped;
+
+	GtkWidget *pixmap_blend_type;
+
+	GtkWidget *pixmap_tiled;
+  	GSList *pixmap_tiled_group;
+  	GtkWidget *pixmap_scaled;
+  	GtkWidget *pixmap_sliced;
+
+
 }ASGtkMyStyleEdit;
 
 typedef struct _ASGtkMyStyleEditClass
@@ -71,6 +100,7 @@ struct SyntaxDef;
 
 typedef struct ASGtkMyStylesPanel
 {
+	GtkWidget *expander ;
 	GtkWidget *frame ;
 	GtkWidget *hbox ; 	
 		GtkWidget *list_vbox ; 	
