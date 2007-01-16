@@ -213,9 +213,9 @@ make_desktop_grid(int desk, int min_layer, Bool frame_only, int vx, int vy, ASWi
 //    add_canvas_grid( grid_data.grid, Scr.RootCanvas, resist, attract, vx, vy );
 
 	add_gridline( &(grid_data.grid->h_lines), 0,                   0, Scr.MyDisplayWidth,  resist, attract );
-    add_gridline( &(grid_data.grid->h_lines), Scr.MyDisplayHeight, 0, Scr.MyDisplayWidth,  resist, attract );
+    add_gridline( &(grid_data.grid->h_lines), Scr.MyDisplayHeight, 0, Scr.MyDisplayWidth,  attract, resist );
     add_gridline( &(grid_data.grid->v_lines), 0,                   0, Scr.MyDisplayHeight, resist, attract );
-    add_gridline( &(grid_data.grid->v_lines), Scr.MyDisplayWidth , 0, Scr.MyDisplayHeight, resist, attract );
+    add_gridline( &(grid_data.grid->v_lines), Scr.MyDisplayWidth , 0, Scr.MyDisplayHeight, attract, resist );
 
     /* add all the window edges for this desktop : */
     iterate_asbidirlist( Scr.Windows->clients, get_aswindow_grid_iter_func, (void*)&grid_data, NULL, False );
