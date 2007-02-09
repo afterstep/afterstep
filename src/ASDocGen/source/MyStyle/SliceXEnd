@@ -1,5 +1,5 @@
 <varlistentry id="options.SliceXEnd">
-	<term>SliceXEnd<emphasis>val</emphasis></term>
+	<term>SliceXEnd <emphasis>val</emphasis></term>
 	<listitem>
 		<para>When used with scalable BackPixmap it will make image sliced instead scaled.
 Which means that its borders will remain unchanged, but center part will get tiled to fill empty space. SliceXEnd is the left edge of the right border.</para>
