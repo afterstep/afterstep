@@ -176,6 +176,7 @@ FreeStorage2MyStyleEdit( FreeStorageElem *storage, ASGtkMyStyleEdit *self )
 	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(self->overlay), FALSE );
 	gtk_combo_box_set_active( GTK_COMBO_BOX(self->overlay_mystyle), -1 );
 	gtk_widget_set_sensitive( self->overlay_mystyle, FALSE ); 				
+//	asgtk_collapsing_frame_set_open(ASGTK_COLLAPSING_FRAME(self->backpixmap_frame), FALSE);
 
 	if( curr && curr->term->id == MYSTYLE_START_ID ) 
 		curr = curr->sub ;
@@ -217,6 +218,12 @@ FreeStorage2MyStyleEdit( FreeStorageElem *storage, ASGtkMyStyleEdit *self )
 						}while( gtk_tree_model_iter_next( self->mystyles_list, &iter ) );
 					}
 					gtk_widget_set_sensitive( self->overlay_mystyle, TRUE ); 				
+				}else if( curr->term->id == MYSTYLE_BACKPIXMAP_ID ) 
+				{
+					LOCAL_DEBUG_OUT( "item.data.string = \"%s\", index = %d", item.data.string, item.index );
+					if( item.data.string != NULL )
+						gtk_entry_set_text( GTK_ENTRY(self->pixmap_filename), item.data.string );
+					asgtk_collapsing_frame_set_open(ASGTK_COLLAPSING_FRAME(self->backpixmap_frame), TRUE);
 				}
 				item.ok_to_free = True;
 			}

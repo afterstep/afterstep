@@ -439,6 +439,9 @@ ParseSingleStyle (FreeStorageElem * storage, name_list * style)
 			 set_string_value (&(style->icon_file), item.data.string, &(style->set_data_flags), STYLE_ICON);
 			 if (strlen (style->icon_file) <= 0)
 				 clear_flags (style->set_data_flags, STYLE_ICON);
+             /* regardles of weather the file was valid - indicate that app should have an icon !!! */
+			 set_flags (style->set_flags, STYLE_ICON);
+			 set_flags (style->flags, STYLE_ICON);
 			 break;
 		 case DATABASE_FocusStyle_ID:
 		 case DATABASE_UnfocusStyle_ID:

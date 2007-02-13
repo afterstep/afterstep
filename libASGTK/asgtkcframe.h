@@ -17,6 +17,7 @@ typedef struct _ASGtkCollapsingFrame
 	GtkFrame       parent_instance;
 
 	GtkWidget      *header ; 
+	GtkWidget  	   *collapse_button ;
 	
 }ASGtkCollapsingFrame;
 
@@ -30,6 +31,7 @@ typedef struct _ASGtkCollapsingFrameClass
 GType       asgtk_collapsing_frame_get_type  (void) G_GNUC_CONST;
 
 GtkWidget * asgtk_collapsing_frame_new(const char *label, const char *hide_text );
+void asgtk_collapsing_frame_set_open(ASGtkCollapsingFrame *self, Bool open );
 
 
 

@@ -152,6 +152,7 @@ asgtk_collapsing_frame_new (const char *label, const char *hide_text )
 	g_signal_connect ((gpointer) checkbox, "clicked", G_CALLBACK (on_collapse_toggle), self);
 
 	self->header = hbox ;
+	self->collapse_button = checkbox ;
 	
 /*	colorize_gtk_tree_view_window( GTK_WIDGET(self) ); */
 /*	gtk_container_add (GTK_CONTAINER (self), GTK_WIDGET(gtk_label_new( "something or other" ))); */
@@ -162,3 +163,9 @@ asgtk_collapsing_frame_new (const char *label, const char *hide_text )
 }
 
 
+void 
+asgtk_collapsing_frame_set_open(ASGtkCollapsingFrame *self, Bool open ) 
+{ 
+	g_return_if_fail (ASGTK_IS_COLLAPSING_FRAME (self));
+	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(self->collapse_button), open?FALSE:TRUE );	
+}

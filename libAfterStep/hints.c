@@ -1414,7 +1414,14 @@ merge_asdb_hints (ASHints * clean, ASRawHints * raw, ASDatabaseRecord * db_rec, 
 	{
 		if (get_flags (db_rec->set_data_flags, STYLE_ICON))
 			set_string_value (&(clean->icon_file), mystrdup (db_rec->icon_file), &(clean->flags), AS_Icon);
-
+		/* the following should fix NoIcon handling in the database : */
+		if (get_flags (db_rec->set_flags, STYLE_ICON))
+		{
+			if (get_flags (db_rec->flags, STYLE_ICON))
+				set_flags( clean->flags, AS_Icon );
+			else
+				clear_flags( clean->flags, AS_Icon );
+		}
 		if (get_flags (db_rec->set_data_flags, STYLE_BORDER_WIDTH))
 		{
 			clean->border_width = db_rec->border_width;
@@ -2779,7 +2786,7 @@ get_client_icon_image( ScreenInfo * scr, ASHints *hints )
 						name[i] = old ;
 					}
 				}
-				LOCAL_DEBUG_OUT( "icon file = %p, default = %d", icon_file == NULL, icon_file_isDefault );
+				LOCAL_DEBUG_OUT( "icon file = %p, default = %d", icon_file, icon_file_isDefault );
 				if( de == NULL && (icon_file == NULL || icon_file_isDefault) )
 				{
 					LOCAL_DEBUG_OUT( "CombinedCategories = %p", CombinedCategories );

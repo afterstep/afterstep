@@ -315,15 +315,9 @@ ProcessMyStyleOptions (FreeStorageElem * options, MyStyleDefinition ** tail)
 		 case MYSTYLE_BACKPIXMAP_ID:
 		 	{
 				MyStyleDefinition *msd = *tail ;
-				if (options->argc > 1)
-					set_string( &(msd->back_pixmap), mystrdup (options->argv[1]) );
-				else
-				{
-					free(msd->back_pixmap);
-					msd->back_pixmap = NULL ;
-				}
+				set_string( &(msd->back_pixmap), item.data.string );
 
-				msd->texture_type = item.data.integer;
+				msd->texture_type = item.index;
 				if( msd->texture_type < TEXTURE_TEXTURED_START || msd->texture_type > TEXTURE_TEXTURED_END )
 				{
 		            show_error("Error in MyStyle \"%s\": unsupported texture type [%d] in BackPixmap setting. Assuming default of [128] instead.", msd->name, msd->texture_type);
