@@ -56,7 +56,7 @@ init_asfeel( ASFeel *feel )
 #ifdef __CYGWIN__		
     feel->flags = DoHandlePageing;
 #else
-    feel->flags = DoHandlePageing|DontAnimateBackground;
+    feel->flags = DoHandlePageing/*|DontAnimateBackground*/;
 #endif
     feel->XorValue = (((unsigned long)1) << ASDefaultScr->d_depth) - 1;
 

@@ -1232,9 +1232,7 @@ LOCAL_DEBUG_CALLER_OUT( "desk(%d)->old_desk(%d)->new_back(%p)->old_back(%p)", de
 			if( !already_transferring )
 			{	
 		 		display_progress( True, "Animating background change for better responsiveness ...");
-				LOCAL_DEBUG_OUT( "remove_desktop_cover(%s)" ,"");
 			    remove_desktop_cover();
-				LOCAL_DEBUG_OUT( "start_background_xfer(%s)","" );
 				start_background_xfer( new_im );  /* we need to do it in small steps! */
 			}
 		}else

@@ -259,7 +259,7 @@ do_anim_shrink( void *vdata )
 		XDestroyWindow (dpy, data->cover);
 		free( data );
 	}else
-		timer_new (20, do_anim_shrink, data);	   	 
+		timer_new (10, do_anim_shrink, data);	   	 
 }
 
 void

@@ -482,7 +482,7 @@ struct config main_config[] = {
     {"TitleButtonBalloons"				, SetFlag2, (char**)BALLOON_USED, (int*)&(BalloonConfig.set_flags)},
     {"TitleButton"						, SetTitleButton, (char **)1, (int *)0},
     {"KillBackgroundThreshold"			, SetInts, (char**)&(TmpLook.KillBackgroundThreshold), NULL },
-	{"DontAnimateBackground"			, SetFlag, (char**)DontAnimateBackground, &dummy},
+	{"DontAnimateBackground"			, SetFlag2, (char**)DontAnimateBackground, &dummy},
 	{"CoverAnimationSteps"				, SetInts, (char**)&(TmpFeel.desk_cover_animation_steps), NULL },
 	{"CoverAnimationType"				, SetInts, (char**)&(TmpFeel.desk_cover_animation_type), NULL },
 	{"AnimateDeskChange"				, SetFlag, (char**)AnimateDeskChange, &dummy },
