@@ -30,6 +30,8 @@
 
 #include "asinternals.h"
 
+#include <stdlib.h>
+#include <unistd.h>
 #include "../../libAfterStep/wmprops.h"
 #include "../../libAfterStep/session.h"
 #include "../../libAfterStep/moveresize.h"
@@ -946,7 +948,8 @@ start_background_xfer( ASImage *new_im )
 		/* under Windows XImage must not exceed 32K , or performance drops sagnificantly */
 		data->lines_per_iteration = 7800/new_im->width ;
 #else		
-		data->lines_per_iteration = Scr.MyDisplayHeight/90;
+		data->lines_per_iteration = min(new_im->height,Scr.MyDisplayHeight/
+					(Scr.Feel.desk_cover_animation_steps==0?1:Scr.Feel.desk_cover_animation_steps));
 #endif
 	}
 	if( data->lines_per_iteration == 0 ) 
@@ -1213,7 +1216,8 @@ LOCAL_DEBUG_CALLER_OUT( "desk(%d)->old_desk(%d)->new_back(%p)->old_back(%p)", de
 			/* can't animate if pixmap is tiled - X is slow then */
 			!get_flags( Scr.Feel.flags, DontAnimateBackground) && 
 			/* when we do this for the first time  - we better do it all at once */
-			Scr.wmprops->root_pixmap != None )
+			Scr.wmprops->root_pixmap != None 
+		   )
 		{	
 			Bool tiled = ( new_im->width < Scr.MyDisplayWidth || new_im->height < Scr.MyDisplayHeight );
 			if( old_pmap != bh->pmap )
@@ -1228,18 +1232,27 @@ LOCAL_DEBUG_CALLER_OUT( "desk(%d)->old_desk(%d)->new_back(%p)->old_back(%p)", de
 			if( !already_transferring )
 			{	
 		 		display_progress( True, "Animating background change for better responsiveness ...");
+				LOCAL_DEBUG_OUT( "remove_desktop_cover(%s)" ,"");
+			    remove_desktop_cover();
+				LOCAL_DEBUG_OUT( "start_background_xfer(%s)","" );
 				start_background_xfer( new_im );  /* we need to do it in small steps! */
 			}
 		}else
 		{	
+			int pid = -1 ;
 			if( !already_transferring )
 			{	
-        		if( !asimage2drawable( Scr.asv, bh->pmap, new_im, Scr.DrawGC, 0, 0, 0, 0, new_im->width, new_im->height, True) )
+       			if( !asimage2drawable( Scr.asv, bh->pmap, new_im, Scr.DrawGC, 0, 0, 0, 0, new_im->width, new_im->height, True) )
 					show_warning( "failed to draw root background onto pixmap");
         		flush_asimage_cache(new_im);
 			}
-        	XSetWindowBackgroundPixmap( dpy, Scr.Root, bh->pmap );
-        	XClearWindow( dpy, Scr.Root );
+			if( pid <= 0 )
+			{
+        		XSetWindowBackgroundPixmap( dpy, Scr.Root, bh->pmap );
+        		XClearWindow( dpy, Scr.Root );
+				if( pid == 0 ) 
+					_exit(0);
+			}
         	set_xrootpmap_id (Scr.wmprops, bh->pmap );
 			set_as_background(Scr.wmprops, bh->pmap );
 		}  
