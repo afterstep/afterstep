@@ -2,8 +2,6 @@
   <gradient width="$minipixmap.width" height="$minipixmap.height"
   colors="BaseDark BaseLight" angle="45"/>
 
-  <scale  tile="1" tint="#7Fffffff" width="$minipixmap.width" height="$minipixmap.height">
-	  <img src="tiles/DefenselessElsie.mini"/>
-  </scale>
+  <img  tile="1" tint="#7Fffffff" height="$minipixmap.height" src="tiles/DefenselessElsie"/>
 </composite>
 

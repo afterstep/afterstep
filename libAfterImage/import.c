@@ -264,6 +264,23 @@ file2ASImage_extra( const char *file, ASImageImportParams *iparams )
 	return im;
 }
 
+void init_asimage_import_params( ASImageImportParams *iparams ) 
+{
+	if( iparams ) 
+	{
+		iparams->flags = 0 ;
+		iparams->width = 0 ;
+		iparams->height = 0 ;
+		iparams->filter = SCL_DO_ALL ;
+		iparams->gamma = 0. ;
+		iparams->gamma_table = NULL ;
+		iparams->compression = 100 ;
+		iparams->format = ASA_ASImage ;
+		iparams->search_path = NULL;
+		iparams->subimage = 0 ;
+	}
+}
+
 ASImage *
 file2ASImage( const char *file, ASFlagType what, double gamma, unsigned int compression, ... )
 {
@@ -272,16 +289,10 @@ file2ASImage( const char *file, ASFlagType what, double gamma, unsigned int comp
 	ASImageImportParams iparams ;
 	va_list       ap;
 
-	iparams.flags = 0 ;
-	iparams.width = 0 ;
-	iparams.height = 0 ;
-	iparams.filter = SCL_DO_ALL ;
+	init_asimage_import_params( &iparams );
 	iparams.gamma = gamma ;
-	iparams.gamma_table = NULL ;
 	iparams.compression = compression ;
-	iparams.format = ASA_ASImage ;
 	iparams.search_path = &(paths[0]);
-	iparams.subimage = 0 ;
 
 	va_start (ap, compression);
 	for( i = 0 ; i < MAX_SEARCH_PATHS ; i++ )
@@ -339,17 +350,13 @@ file2pixmap(ASVisual *asv, Window root, const char *realfilename, Pixmap *mask_o
 static ASImage *
 load_image_from_path( const char *file, char **path, double gamma)
 {
-	if( path[2] == NULL )
-		return file2ASImage( file, 0xFFFFFFFF, gamma, 100, path[0], path[1], NULL );
-#if (MAX_SEARCH_PATHS!=8)
-#error "Fixme: please update file2ASImage call to match max number of search paths in ImageManager"
-#else
-	else
-		return file2ASImage( file, 0xFFFFFFFF, gamma, 100, path[0], path[1], path[2],
-			    	       path[3], path[4], path[5], path[6], path[7], NULL );
-#endif
+	ASImageImportParams iparams ;
 
-	return NULL ;
+	init_asimage_import_params( &iparams );
+	iparams.gamma = gamma ;
+	iparams.search_path = path;
+
+	return file2ASImage_extra( file, &iparams );
 }
 
 ASImage *
@@ -369,6 +376,121 @@ get_asimage( ASImageManager* imageman, const char *file, ASFlagType what, unsign
 		}
 	return im;
 }
+
+void 
+calculate_proportions( int src_w, int src_h, int *pdst_w, int *pdst_h ) 
+{
+	int dst_w = pdst_w?*pdst_w:0 ; 
+	int dst_h = pdst_h?*pdst_h:0 ; 
+	
+	if( src_w > 0 && src_w >= src_h && (dst_w > 0 || dst_h <= 0)) 
+		dst_h = (src_h*dst_w)/src_w ; 
+	else if( src_h > 0 ) 
+		dst_w = (src_w*dst_h)/src_h ; 
+
+	if( pdst_w ) *pdst_w = dst_w ; 	
+	if( pdst_h ) *pdst_h = dst_h ; 
+}
+
+ASImage *
+get_thumbnail_asimage( ASImageManager* imageman, const char *file, int thumb_width, int thumb_height, Bool proportional )
+{
+	ASImage *im = NULL ;
+	
+	if( imageman && file )
+	{
+#define AS_THUMBNAIL_NAME_FORMAT	"%s_scaled_to_%dx%d"
+		char *thumbnail_name = safemalloc( strlen(file)+sizeof(AS_THUMBNAIL_NAME_FORMAT)+32 );
+		ASImage *original_im = query_asimage(imageman, file );
+
+		if( thumb_width <= 0 && thumb_height <= 0 ) 
+		{
+			thumb_width = 48 ;
+			thumb_height = 48 ;
+		}
+
+		if( proportional ) 
+		{
+			if( original_im != NULL )		
+				calculate_proportions( original_im->width, original_im->height, &thumb_width, &thumb_height );
+		}else
+		{
+			if( thumb_width == 0 ) 
+				thumb_width = thumb_height ; 
+			if( thumb_height == 0 ) 
+				thumb_height = thumb_width ; 
+		}
+
+		if( thumb_width > 0 && thumb_height > 0 ) 
+		{
+			sprintf( thumbnail_name, AS_THUMBNAIL_NAME_FORMAT, file, thumb_width, thumb_height ) ;
+			im = fetch_asimage(imageman, thumbnail_name );
+			if( im == NULL )
+			{
+				if( original_im != NULL ) /* simply scale it down to a thumbnail size */
+				{
+					im = scale_asimage( NULL, original_im, thumb_width, thumb_height, ASA_ASImage, 100, ASIMAGE_QUALITY_FAST );
+					if( im != NULL ) 
+						store_asimage( imageman, im, thumbnail_name );
+				}
+			}
+		}
+		
+		if( im == NULL ) 	
+		{
+			ASImage *tmp ; 
+			ASImageImportParams iparams ;
+
+			init_asimage_import_params( &iparams );
+			iparams.gamma = imageman->gamma ;
+			iparams.search_path = &(imageman->search_path[0]);
+			
+			iparams.width = thumb_width ; 
+			iparams.height = thumb_height ; 
+			iparams.flags |= AS_IMPORT_RESIZED|AS_IMPORT_SCALED_BOTH|AS_IMPORT_FAST ; 
+			
+			tmp = file2ASImage_extra( file, &iparams );
+
+			if( tmp ) 
+			{
+				im = tmp ; 
+				if( tmp->width != thumb_width || tmp->height != thumb_height ) 
+				{
+					if( proportional ) 
+					{
+						calculate_proportions( tmp->width, tmp->height, &thumb_width, &thumb_height );
+						sprintf( thumbnail_name, AS_THUMBNAIL_NAME_FORMAT, file, thumb_width, thumb_height );
+						if( (im = query_asimage( imageman, thumbnail_name )) == NULL ) 
+							im = tmp ; 
+					}
+					if( im == tmp )
+						if( tmp->width != thumb_width || tmp->height != thumb_height ) 
+						{
+							im = scale_asimage( NULL, tmp, thumb_width, thumb_height, ASA_ASImage, 100, ASIMAGE_QUALITY_FAST );
+							if( im == NULL ) 
+								im = tmp ;
+						}
+				}			
+				if( im != NULL )
+				{
+					if( im->imageman == NULL )
+						store_asimage( imageman, im, thumbnail_name );
+					else
+						dup_asimage( im );
+				}
+				
+				if( im != tmp ) 
+					destroy_asimage( &tmp );				
+			}
+		
+		}
+								 
+		if( thumbnail_name ) 
+			free( thumbnail_name );
+	}
+	return im;
+}
+
 
 Bool
 reload_asimage_manager( ASImageManager *imman )
@@ -1264,6 +1386,51 @@ jpeg2ASImage( const char * path, ASImageImportParams *params )
 	/* Adjust default decompression parameters */
 	cinfo.quantize_colors = FALSE;		       /* we don't want no stinking colormaps ! */
 	cinfo.output_gamma = params->gamma;
+	
+	if( get_flags( params->flags, AS_IMPORT_SCALED_BOTH ) == AS_IMPORT_SCALED_BOTH )
+	{
+		int w = params->width ; 
+		int h = params->height ;
+		int ratio ; 
+
+		if( w == 0 )
+		{
+			if( h == 0 ) 
+			{
+				w = cinfo.image_width ; 
+				h = cinfo.image_height ; 
+			}else
+				w = (cinfo.image_width * h)/cinfo.image_height ;
+		}else if( h == 0 )
+			h = (cinfo.image_height * w)/cinfo.image_width ;
+		
+		ratio = cinfo.image_height/h ; 
+		if( ratio > cinfo.image_width/w )
+			ratio = cinfo.image_width/w ; 
+		
+		cinfo.scale_num = 1 ; 
+		/* only supported values are 1, 2, 4, and 8 */
+		cinfo.scale_denom = 1 ; 
+		if( ratio >= 2 ) 
+		{
+			if( ratio >= 4 ) 
+			{
+				if( ratio >= 8 ) 
+					cinfo.scale_denom = 8 ; 
+				else
+					cinfo.scale_denom = 4 ; 
+			}else
+				cinfo.scale_denom = 2 ; 
+		}
+	}
+	
+	if( get_flags( params->flags, AS_IMPORT_FAST ) )
+	{/* this does not really makes much of a difference */
+		cinfo.do_fancy_upsampling = FALSE ; 
+		cinfo.do_block_smoothing = FALSE ; 
+		cinfo.dct_method = JDCT_IFAST ; 
+	}
+	
 	/* Step 5: Start decompressor */
 	(void)jpeg_start_decompress (&cinfo);
 	LOCAL_DEBUG_OUT("stored image size %dx%d", cinfo.output_width,  cinfo.output_height);

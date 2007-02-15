@@ -63,6 +63,9 @@
 #include "imencdec.h"
 #include "transform.h"
 
+ASVisual __transform_fake_asv = {0};
+
+
 /* ******************************************************************************/
 /* below goes all kinds of funky stuff we can do with scanlines : 			   */
 /* ******************************************************************************/
@@ -844,7 +847,9 @@ scale_asimage( ASVisual *asv, ASImage *src, int to_width, int to_height,
 	int h_ratio ;
 	int *scales_h = NULL, *scales_v = NULL;
 	START_TIME(started);
-
+	
+	if( asv == NULL ) 	asv = &__transform_fake_asv ;
+	
 	if( !check_scale_parameters(src,src->width, src->height,&to_width,&to_height) )
 		return NULL;
 	if( (imdec = start_image_decoding(asv, src, SCL_DO_ALL, 0, 0, 0, 0, NULL)) == NULL )
@@ -924,6 +929,9 @@ scale_asimage2( ASVisual *asv, ASImage *src,
 
 	if( src == NULL ) 
 		return NULL;
+
+	if( asv == NULL ) 	asv = &__transform_fake_asv ;
+
 	if( clip_width == 0 )
 		clip_width = src->width ;
 	if( clip_height == 0 )
@@ -1004,6 +1012,8 @@ tile_asimage( ASVisual *asv, ASImage *src,
 	ASImageOutput  *imout ;
 	START_TIME(started);
 
+	if( asv == NULL ) 	asv = &__transform_fake_asv ;
+
 LOCAL_DEBUG_CALLER_OUT( "src = %p, offset_x = %d, offset_y = %d, to_width = %d, to_height = %d, tint = #%8.8lX", src, offset_x, offset_y, to_width, to_height, tint );
 	if( src== NULL || (imdec = start_image_decoding(asv, src, SCL_DO_ALL, offset_x, offset_y, to_width, 0, NULL)) == NULL )
 	{
@@ -1078,6 +1088,8 @@ LOCAL_DEBUG_CALLER_OUT( "dst_width = %d, dst_height = %d", dst_width, dst_height
 	dst = create_destination_image( dst_width, dst_height, out_format, compression_out, ARGB32_DEFAULT_BACK_COLOR );
 	if( dst == NULL )
 		return NULL;
+
+	if( asv == NULL ) 	asv = &__transform_fake_asv ;
 
 	prepare_scanline( dst_width, QUANT_ERR_BITS, &dst_line, asv->BGR_mode );
 	dst_line.flags = SCL_DO_ALL ;
@@ -1450,8 +1462,11 @@ make_gradient( ASVisual *asv, ASGradient *grad,
 	int line_len = width;
 	START_TIME(started);
 LOCAL_DEBUG_CALLER_OUT( "type = 0x%X, width=%d, height = %d, filter = 0x%lX", grad->type, width, height, filter );
-	if( asv == NULL || grad == NULL )
+	if( grad == NULL )
 		return NULL;
+
+	if( asv == NULL ) 	asv = &__transform_fake_asv ;
+
 	if( width == 0 )
 		width = 2;
  	if( height == 0 )
@@ -1533,6 +1548,8 @@ LOCAL_DEBUG_CALLER_OUT( "offset_x = %d, offset_y = %d, to_width = %d, to_height 
 	
 	filter = get_asimage_chanmask(src);
 	dst = create_destination_image( to_width, to_height, out_format, compression_out, src->back_color);
+
+	if( asv == NULL ) 	asv = &__transform_fake_asv ;
 
 #ifdef HAVE_MMX
 	mmx_init();
@@ -1649,6 +1666,8 @@ mirror_asimage( ASVisual *asv, ASImage *src,
 	LOCAL_DEBUG_CALLER_OUT( "offset_x = %d, offset_y = %d, to_width = %d, to_height = %d", offset_x, offset_y, to_width, to_height );
 	dst = create_destination_image( to_width, to_height, out_format, compression_out, src->back_color);
 
+	if( asv == NULL ) 	asv = &__transform_fake_asv ;
+
 #ifdef HAVE_MMX
 	mmx_init();
 #endif
@@ -1718,6 +1737,8 @@ LOCAL_DEBUG_CALLER_OUT( "dst_x = %d, dst_y = %d, to_width = %d, to_height = %d",
 
 	if( to_width == src->width && to_height == src->height && dst_x == 0 && dst_y == 0 )
 		return clone_asimage( src, SCL_DO_ALL );
+
+	if( asv == NULL ) 	asv = &__transform_fake_asv ;
 
 	dst = create_destination_image( to_width, to_height, out_format, compression_out, src->back_color);
 
@@ -1839,7 +1860,9 @@ Bool fill_asimage( ASVisual *asv, ASImage *im,
 	ASImageDecoder *imdec;
 	START_TIME(started);
 
-	if( asv == NULL || im == NULL )
+	if( asv == NULL ) 	asv = &__transform_fake_asv ;
+
+	if( im == NULL )
 		return False;
 	if( x < 0 )
 	{	width += x ; x = 0 ; }
@@ -1918,6 +1941,8 @@ colorize_asimage_vector( ASVisual *asv, ASImage *im,
 	if( im->alt.vector == NULL )
 		return False;
 	vector = im->alt.vector ;
+
+	if( asv == NULL ) 	asv = &__transform_fake_asv ;
 
 	if((imout = start_image_output( asv, im, out_format, QUANT_ERR_BITS, quality)) == NULL )
 		return False;
@@ -2021,6 +2046,8 @@ create_asimage_from_vector( ASVisual *asv, double *vector,
 {
 	ASImage *im = NULL;
 
+	if( asv == NULL ) 	asv = &__transform_fake_asv ;
+
 	if( vector != NULL )
 	{
 		im = create_destination_image( width, height, out_format, compression, ARGB32_DEFAULT_BACK_COLOR);
@@ -2074,6 +2101,8 @@ ASImage* blur_asimage_gauss(ASVisual* asv, ASImage* src, double horz, double ver
 	double* gauss = NULL;
 
 	if (!src) return NULL;
+
+	if( asv == NULL ) 	asv = &__transform_fake_asv ;
 
 	dst = create_destination_image( src->width, src->height, out_format, compression_out, src->back_color);
 
@@ -2184,6 +2213,8 @@ adjust_asimage_hsv( ASVisual *asv, ASImage *src,
 	ASImageDecoder *imdec ;
 	ASImageOutput  *imout ;
 	START_TIME(started);
+
+	if( asv == NULL ) 	asv = &__transform_fake_asv ;
 
 LOCAL_DEBUG_CALLER_OUT( "offset_x = %d, offset_y = %d, to_width = %d, to_height = %d, hue = %u", offset_x, offset_y, to_width, to_height, affected_hue );
 	if( src == NULL ) 
@@ -2378,6 +2409,8 @@ slice_asimage2( ASVisual *asv, ASImage *src,
 	ASImageDecoder *imdec = NULL ;
 	ASImageOutput  *imout = NULL ;
 	START_TIME(started);
+
+	if( asv == NULL ) 	asv = &__transform_fake_asv ;
 
 LOCAL_DEBUG_CALLER_OUT( "sx1 = %d, sx2 = %d, sy1 = %d, sy2 = %d, to_width = %d, to_height = %d", slice_x_start, slice_x_end, slice_y_start, slice_y_end, to_width, to_height );
 	if( src == NULL )

@@ -1,6 +1,4 @@
 <tile tint="BaseLight">
-	<scale  width="$minipixmap.width" height="$minipixmap.height"> 
-		<img src="tiles/DefenselessElsie.mini"/>
-	</scale>
+		<img src="tiles/DefenselessElsie" height="$minipixmap.height"/>
 </tile>
 

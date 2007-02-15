@@ -3,8 +3,6 @@
   colors="BaseDark BaseLight" angle="45"/>
 
 
-  	<scale  tile="1" tint="#7FFFFFFF" width="$minipixmap.width" height="$minipixmap.height">
-		<img src="tiles/LibelousPaintings.mini"/>
-	</scale>
+	<img  tile="1" tint="#7FFFFFFF" src="tiles/LibelousPaintings" height="$minipixmap.height"/>
 </composite>
 

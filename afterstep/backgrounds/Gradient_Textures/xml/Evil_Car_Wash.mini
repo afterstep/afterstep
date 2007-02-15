@@ -2,8 +2,6 @@
   <gradient width="$minipixmap.width" height="$minipixmap.height"
   colors="BaseDark BaseLight" angle="45"/>
 
-  	<scale width="$minipixmap.width" height="$minipixmap.height">
-		<img src="tiles/EvilCarWash.mini"/>
-	</scale>
+	<img src="tiles/EvilCarWash" height="$minipixmap.height"/>
 </composite>
 

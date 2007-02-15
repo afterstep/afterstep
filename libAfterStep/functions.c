@@ -798,6 +798,7 @@ reload_menu_pmaps( MenuData *menu )
 				minipixmap = curr->fdata->text;
     		
 			if( minipixmap )
+//				tmp = get_thumbnail_asimage( ASDefaultScr->image_manager, minipixmap, 0, 0, True );
             	tmp = get_asimage( ASDefaultScr->image_manager, minipixmap, ASFLAGS_EVERYTHING, 100 );
 			
 			if( tmp )				   

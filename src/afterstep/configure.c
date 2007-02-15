@@ -1134,11 +1134,13 @@ fix_menu_pin_on( MyLook *look )
         if( MenuPinOnButton < 0 || MenuPinOnButton >= TITLE_BUTTONS )
         {
             register int i = TITLE_BUTTONS ;
+
             while ( --i >= 0 )
             {
                 if( look->buttons[i].unpressed.image == NULL && look->buttons[i].pressed.image == NULL )
                     break;
             }
+			
             if( i >= 0 )
             {
                 if( GetIconFromFile (MenuPinOn, &(Scr.Look.buttons[i].unpressed), 0) )
@@ -1181,11 +1183,6 @@ fix_menu_pin_on( MyLook *look )
         }
         show_warning( "MenuPinOn setting is depreciated - instead add a Title button and bind PinMenu function to it." );
     }
-#ifdef LOCAL_DEBUG
-    LOCAL_DEBUG_OUT( "syncing %s","");
-    ASSync(False);
-#endif
-
 }
 
 void
@@ -1799,6 +1796,7 @@ LoadASConfig (int thisdesktop, ASFlagType what)
 
     if (get_flags(what, PARSE_FEEL_CONFIG))
 	{
+	    display_progress( True, "Applying Feel.");
 		check_feel_sanity( &Scr.Feel );
         ApplyFeel( &Scr.Feel );
 		asxml_var_insert(ASXMLVAR_MenuRecentSubmenuItems, Scr.Feel.recent_submenu_items );
@@ -1836,10 +1834,10 @@ LoadASConfig (int thisdesktop, ASFlagType what)
 		ReloadConfig(what);
     }
 
-
     if( get_flags(what, PARSE_BASE_CONFIG|PARSE_LOOK_CONFIG|PARSE_FEEL_CONFIG))
 	{
-        ASHashIterator  i;
+    	int count = 0 ;
+	    ASHashIterator  i;
 		ARGB32 cursor_fore = ARGB32_White ;
 		ARGB32 cursor_back = ARGB32_Black ;
 
@@ -1852,14 +1850,27 @@ LoadASConfig (int thisdesktop, ASFlagType what)
 	   		parse_argb_color( Scr.Look.CursorBack, &cursor_back );
 		recolor_feel_cursors( &Scr.Feel, cursor_fore, cursor_back );
 		XDefineCursor (dpy, Scr.Root, Scr.Feel.cursors[ASCUR_Default]);
-        
+
+	    display_progress( True, "Reloading menu pixmaps :");
 		if( start_hash_iteration (Scr.Feel.Popups, &i) )
             do
             {
-				reload_menu_pmaps( (MenuData *)curr_hash_data(&i) );
+				MenuData *md = curr_hash_data(&i);
+				{
+					char *name = md->name;
+					Bool newline = ( count%10 == 0 );
+					if( isdigit(name[0]) )
+						if( md->first != NULL && md->first->fdata->func == F_TITLE ) 
+					    	name = md->first->item;
+					display_progress( newline, newline?"    %s":"%s", name);
+					++count;
+				}
+				reload_menu_pmaps( md );
             }while( next_hash_item( &i ));
 		
+	    display_progress( True, "Advertising titlebar properties ...");
 		advertise_tbar_props();
+	    display_progress( False, "Done.");
 	}
 	   
     /* force update of window frames */

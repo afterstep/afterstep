@@ -427,8 +427,8 @@ ASImage *commit_xml_image_built( ASImageXMLState *state, char *id, ASImage *resu
 static void
 translate_tag_size(	const char *width_str, const char *height_str, ASImage *imtmp, ASImage *refimg, int *width_ret, int *height_ret )
 {
-	int width_ref = 1;
-	int height_ref = 1;
+	int width_ref = 0;
+	int height_ref = 0;
 	int width = 0, height = 0 ; 
 	LOCAL_DEBUG_OUT("width_str = \"%s\", height_str = \"%s\", imtmp = %p, refimg = %p", width_str?width_str:"(null)", height_str?height_str:"(null)", imtmp, refimg ); 
 	
@@ -865,7 +865,7 @@ handle_asxml_tag_composite( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t*
  * image to fit the location of the resulting window, if one is displayed.
  ******/
 static ASImage *
-handle_asxml_tag_img( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm)
+handle_asxml_tag_img( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm, int dst_width, int dst_height)
 {
 	ASImage *result = NULL ;
 	const char* src = NULL;
@@ -881,10 +881,24 @@ handle_asxml_tag_img( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm)
 		if (rp) {
 			get_drawable_size(rp, &width, &height);
 			result = pixmap2asimage(state->asv, rp, 0, 0, width, height, 0xFFFFFFFF, False, 100);
+			if( dst_width == 0 ) dst_width = width ; 
+			if( dst_height == 0 ) dst_height = height ; 
+			if( dst_width != width || dst_height != height ) 
+			{
+				ASImage *tmp = scale_asimage( NULL, result, dst_width, dst_height, ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT );
+				if( tmp ) 
+				{
+					safe_asimage_destroy( result );
+					result = tmp ;
+				}  	
+			}	
 		}
 	} else if (src) {
-		show_progress("Loading image [%s] using imman (%p) with search path \"%s\".", src, state->imman, state->imman?state->imman->search_path[0]:"");
-		result = get_asimage( state->imman, src, 0xFFFFFFFF, 100 );
+		show_progress("Loading image [%s] using imman (%p) with search path \"%s\" (dst_size = %dx%d).", src, state->imman, state->imman?state->imman->search_path[0]:"", dst_width, dst_height);
+		if( dst_width != 0 || dst_height != 0 ) 
+			result = get_thumbnail_asimage( state->imman, src, dst_width, dst_height, dst_width==0||dst_height==0 );
+		else
+			result = get_asimage( state->imman, src, 0xFFFFFFFF, 100 );
 	}
 	return result;
 }	
@@ -2181,8 +2195,10 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 		else if (!strcmp(doc->tag, "text")) 
 			result = handle_asxml_tag_text( &state, doc, parm );  	
 		else if (!strcmp(doc->tag, "img")) 
-			result = handle_asxml_tag_img( &state, doc, parm );
-		else if (!strcmp(doc->tag, "recall")) 
+		{
+			translate_tag_size(	width_str, height_str, NULL, refimg, &width, &height );  
+			result = handle_asxml_tag_img( &state, doc, parm, width, height );
+		}else if (!strcmp(doc->tag, "recall")) 
 			result = handle_asxml_tag_recall( &state, doc, parm );
 		else if (!strcmp(doc->tag, "release"))
 			result = handle_asxml_tag_release( &state, doc, parm );

@@ -1,9 +1,5 @@
 <composite op="tint">
-  <gradient width="$minipixmap.width" height="$minipixmap.height"
-  colors="BaseDark BaseLight" angle="45"/>
-
-  	<scale width="$minipixmap.width" height="$minipixmap.height">
-		<img src="tiles/BlurtsMichelson.mini"/>
-	</scale>
+  	<gradient width="$minipixmap.width" height="$minipixmap.height" colors="BaseDark BaseLight" angle="45"/>
+	<img src="tiles/BlurtsMichelson" height="$minipixmap.height"/>
 </composite>
 

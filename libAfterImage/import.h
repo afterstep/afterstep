@@ -113,6 +113,8 @@ typedef struct ASImageListEntry
 #define AS_IMPORT_RESIZED		(AS_IMPORT_RESIZE_V|AS_IMPORT_RESIZE_H)
 #define AS_IMPORT_SCALED_H		(0x01<<3)      /* if unset - then tile */
 #define AS_IMPORT_SCALED_V		(0x01<<4)      /* if unset - then tile */
+#define AS_IMPORT_SCALED_BOTH	(AS_IMPORT_SCALED_H|AS_IMPORT_SCALED_V)
+#define AS_IMPORT_FAST			(0x01<<5)      /* can sacrifice quality for speed */
 
 
 typedef struct ASImageImportParams
@@ -214,6 +216,7 @@ ASImage *file2ASImage( const char *file, ASFlagType what, double gamma, unsigned
 ASImage *file2ASImage_extra( const char *file, ASImageImportParams *params );
 ASImage *get_asimage( ASImageManager* imageman, const char *file, ASFlagType what, unsigned int compression );
 ASImage *get_asimage_extra( ASImageManager* imageman, const char *file, ASImageImportParams *params );
+ASImage *get_thumbnail_asimage( ASImageManager* imageman, const char *file, int thumb_width, int thumb_height, Bool proportional );
 
 ASImageFileTypes check_asimage_file_type( const char *realfilename );
 

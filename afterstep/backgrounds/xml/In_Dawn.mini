@@ -1,3 +1,1 @@
-<scale width="$minipixmap.width" height="$minipixmap.height">
-    <img src=".indawn"/>
-</scale>
+<img src=".indawn" height="$minipixmap.height"/>

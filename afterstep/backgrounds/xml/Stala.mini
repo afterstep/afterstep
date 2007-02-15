@@ -1,1 +1,1 @@
-<scale width="$minipixmap.width" height="$minipixmap.height"><img src="Stala"/></scale>
+<img src="Stala" height="$minipixmap.height"/>

@@ -2,8 +2,6 @@
   <gradient width="$minipixmap.width" height="$minipixmap.height"
   colors="BaseDark BaseLight" angle="45"/>
 
-  <scale width="$minipixmap.width" height="$minipixmap.height">
-    <img src=".StormySkies"/>
-  </scale>
+  <img src=".StormySkies" width="$minipixmap.width" height="$minipixmap.height"/>
 </composite>
 

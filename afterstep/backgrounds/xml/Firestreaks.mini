@@ -1,9 +1,7 @@
 <composite>
-  <tile width="$minipixmap.width" height="$minipixmap.height">
-    <img src="tiles/Gray"/>
-  </tile>
+  <img src="tiles/Gray" width="$minipixmap.width" height="$minipixmap.height"/>
 
   <img x="$minipixmap.width-10" clip_height="$minipixmap.height"
-  clip_width="5" src="tiles/FireStreaks"/>
+  clip_width="5" src="tiles/FireStreaks" width="5"/>
 </composite>
 

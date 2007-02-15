@@ -965,7 +965,9 @@ start_background_xfer( ASImage *new_im )
 	}
 #endif	   
 
-	do_background_xfer_iter( data );
+	timer_new (100, do_background_xfer_iter, data);	
+
+//	do_background_xfer_iter( data );
 	return data;
 }
 
@@ -1092,6 +1094,8 @@ LOCAL_DEBUG_CALLER_OUT( "desk(%d)->old_desk(%d)->new_back(%p)->old_back(%p)", de
     }
 	display_progress( True, "Releasing old background ..."); 
     release_old_background( old_desk, (desk==old_desk) );
+	display_progress( False, "Done."); 
+
 	if( new_back->loaded_pixmap ) 
 	{
 		ASBackgroundHandler *bh = Scr.RootBackground ;			
@@ -1115,6 +1119,7 @@ LOCAL_DEBUG_CALLER_OUT( "desk(%d)->old_desk(%d)->new_back(%p)->old_back(%p)", de
 			display_progress( True, "Setting background to previously generated pixmap ..."); 
 			XSetWindowBackgroundPixmap( dpy, Scr.Root, new_back->loaded_pixmap );
 			XClearWindow( dpy, Scr.Root );
+			display_progress( False, "Done."); 
 			set_xrootpmap_id (Scr.wmprops, new_back->loaded_pixmap );
 			set_as_background(Scr.wmprops, new_back->loaded_pixmap );
 			display_progress( True, "Done with background change. It may take a moment for X server to display it."); 
@@ -1124,7 +1129,7 @@ LOCAL_DEBUG_CALLER_OUT( "desk(%d)->old_desk(%d)->new_back(%p)->old_back(%p)", de
 		}
 	}		  
 
-   	display_progress( True, "Changing background for desktop #%d ...", desk);
+   	display_progress( True, "Changing background for desktop #%d :", desk);
 	
 
     if( new_back->type == MB_BackCmd )
@@ -1133,7 +1138,7 @@ LOCAL_DEBUG_CALLER_OUT( "desk(%d)->old_desk(%d)->new_back(%p)->old_back(%p)", de
     }else
         new_im = make_desktop_image( desk, new_back );
 
-	display_progress( True, "Background image generated."); 
+	display_progress( True, "     Background image generated."); 
     LOCAL_DEBUG_OUT( "im(%p)", new_im );
     if( new_im )
     {
@@ -1231,9 +1236,10 @@ LOCAL_DEBUG_CALLER_OUT( "desk(%d)->old_desk(%d)->new_back(%p)->old_back(%p)", de
 			}
 			if( !already_transferring )
 			{	
-		 		display_progress( True, "Animating background change for better responsiveness ...");
-			    remove_desktop_cover();
+		 		display_progress( True, "     Animating background change for better responsiveness ...");
+//			    remove_desktop_cover();
 				start_background_xfer( new_im );  /* we need to do it in small steps! */
+				display_progress( False, "Done."); 
 			}
 		}else
 		{	
@@ -1267,7 +1273,9 @@ LOCAL_DEBUG_CALLER_OUT( "desk(%d)->old_desk(%d)->new_back(%p)->old_back(%p)", de
 	spool_unfreed_mem (__FUNCTION__, "");
 #endif	
     LOCAL_DEBUG_OUT("done%s","" );
-    remove_desktop_cover();
+	display_progress( True, "Done changing background."); 
+
+//    remove_desktop_cover();
 }
 
 /*************************************************************************

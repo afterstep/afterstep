@@ -521,6 +521,7 @@ display_progress( Bool new_line, const char *msg_format, ... )
         y = Scr.MyDisplayHeight/5 + height * _as_progress_line ;
         _as_progress_cursor += XTextWidth( _as_desktop_cover_xfs, &buffer[0], len) + 10;
         XDrawString (dpy, _as_desktop_cover, _as_desktop_cover_gc, x, y, &buffer[0], len);
+		ASSync(False);		
     }        
 }    
 

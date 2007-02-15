@@ -1,6 +1,4 @@
 <tile tint="Base">
-	<scale  width="$minipixmap.width" height="$minipixmap.height"> 
-		<img src="tiles/NordicPowderPirate.mini"/>
-	</scale>
+		<img src="tiles/NordicPowderPirate" height="$minipixmap.height"/>
 </tile>
 
