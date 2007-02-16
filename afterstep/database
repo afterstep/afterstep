@@ -126,7 +126,8 @@ Style	"vmware-ui"		Icon Network.xpm, NoButton 2
 Style	"Xpdf"			Icon logos/PDF
 Style	"GSubEdit*"		Icon normal/MovieProjector
 Style	"subtitle editor"	Icon normal/MovieProjector
-Style	"*Worker*"		Icon logos/Worker
+Style	"Worker - *"		Icon logos/Worker
+Style	"rootWorker - *"	Icon logos/Worker
 
 #, StartsOnDesk 0
 Style	"xdos"			NoButton 2		#, StartsOnDesk 0
@@ -137,6 +138,10 @@ Style   "XFce*"			NoTitle, Sticky, BorderWidth 4, WindowListSkip, NoHandles
 Style   "XFBD*"			Sticky
 Style	"XPostit*"		Icon Text.xpm
 Style	"xkhfm@Programs"	NoTitle, Sticky, WindowListSkip
+
+# Make web browzer the last look to limit application & webpage naming conflicts
+Style	"* - Mozilla"		Icon logos/mozilla
+Style	"* - Mozilla Firefox"	Icon logos/Firefox
 
 # Open Office makes some dialogs have type Dialog and others - type Normal, 
 # causing all kinds of wierdness. So let's use power of AS to fix it ourselves :
