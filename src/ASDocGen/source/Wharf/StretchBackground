@@ -1,0 +1,7 @@
+<varlistentry id="options.StretchBackground">
+	<term>StretchBackground</term>
+	<listitem>
+		<para>This should allow for all kinds of skins where each button
+		      is just a part of large shaped figure.</para>
+	</listitem>
+</varlistentry>
