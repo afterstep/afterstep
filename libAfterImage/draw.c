@@ -648,7 +648,7 @@ clip_line( int k, int x0, int y0, int cw, int ch, int *x, int*y )
 	int new_x = *x ; 
 	int new_y = *y ;
 
-	if( new_x < 0 ) 
+	if( new_x < 0 && k != 0 ) 
 	{
 		new_x = 0 ;
 		new_y = (-x0 / k) + y0 ;
@@ -662,7 +662,7 @@ clip_line( int k, int x0, int y0, int cw, int ch, int *x, int*y )
 		return False;
 
 	/* here both new_x and new_y are non-negative */
-	if( new_x >= cw ) 
+	if( new_x >= cw && k != 0 ) 
 	{
 		new_x = cw - 1 ;
 		new_y = (new_x - x0)/k  + y0 ; 

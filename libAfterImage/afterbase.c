@@ -38,7 +38,9 @@
 #include <stdarg.h>
 #endif
 #include <sys/stat.h>
-
+#ifdef __APPLE_API_PRIVATE
+#undef __APPLE_API_PRIVATE
+#endif
 #if HAVE_DIRENT_H
 # include <dirent.h>
 # define NAMLEN(dirent) strlen((dirent)->d_name)
