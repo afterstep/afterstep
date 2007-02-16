@@ -187,8 +187,8 @@ TryExec=ASRun
 [Desktop Entry]
 Name=AfterWiki - User tips, info
 GenericName=URL Link
-Comment=http://www.assilem.org/afterwiki/
-Exec=ASRun --immidiate --cmd http://www.assilem.org/afterwiki/
+Comment=http://wiki.afterstep.org/
+Exec=ASRun --immidiate --cmd http://wiki.afterstep.org/
 Icon=normal/Info
 Terminal=false
 Type=Application
