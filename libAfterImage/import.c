@@ -2292,6 +2292,7 @@ svg2ASImage( const char * path, ASImageImportParams *params )
    	GdkPixbuf *pixbuf;
 	int channels ;
 	Bool do_alpha ; 
+	int width = -1, height = -1 ; 
  
 	START_TIME(started);
 
@@ -2303,7 +2304,13 @@ svg2ASImage( const char * path, ASImageImportParams *params )
 	   gType_inited = 1;
 	}
  
-	if( (pixbuf = rsvg_pixbuf_from_file_at_size(path, -1, -1, NULL)) == NULL )
+ 	if( get_flags( params->flags, AS_IMPORT_SCALED_H ) )
+		width = (params->width <= 0)?params->height:params->width ;
+	
+ 	if( get_flags( params->flags, AS_IMPORT_SCALED_V ) )
+		height = (params->height <= 0)?params->width:params->height ;
+		
+	if( (pixbuf = rsvg_pixbuf_from_file_at_size( path, width, height, NULL)) == NULL )
 		return NULL ;
 	
 	channels = gdk_pixbuf_get_n_channels(pixbuf) ;
