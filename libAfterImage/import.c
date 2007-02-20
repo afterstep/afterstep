@@ -293,7 +293,11 @@ file2ASImage( const char *file, ASFlagType what, double gamma, unsigned int comp
 	iparams.gamma = gamma ;
 	iparams.compression = compression ;
 	iparams.search_path = &(paths[0]);
-
+#if 0
+	iparams.width = 1024 ; 
+	iparams.height = -1 ; 	
+	iparams.flags |= AS_IMPORT_SCALED_H|AS_IMPORT_SCALED_V ;
+#endif
 	va_start (ap, compression);
 	for( i = 0 ; i < MAX_SEARCH_PATHS ; i++ )
 	{	
