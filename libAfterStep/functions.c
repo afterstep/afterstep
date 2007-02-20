@@ -781,8 +781,6 @@ void
 reload_menu_pmaps( MenuData *menu )
 {
     MenuDataItem *curr ;
-	char *scaled_name = NULL ;
-	int scaled_name_len = 0 ; 
 	
 	LOCAL_DEBUG_OUT( "menu = %p, image_manager = %p", menu, ASDefaultScr->image_manager );
 
@@ -798,14 +796,26 @@ reload_menu_pmaps( MenuData *menu )
 				minipixmap = curr->fdata->text;
     		
 			if( minipixmap )
-//				tmp = get_thumbnail_asimage( ASDefaultScr->image_manager, minipixmap, 0, 0, True );
+#if 1
+			{
+				int h = MAX_MENU_ITEM_HEIGHT ; 
+				if( get_flags( curr->flags, MD_ScaleMinipixmapDown ) )
+					h = asxml_var_get(ASXMLVAR_MenuFontSize)+8;				
+				else if( get_flags( curr->flags, MD_ScaleMinipixmapUp ) )
+					h = asxml_var_get(ASXMLVAR_MinipixmapHeight) ; 
+				tmp = get_thumbnail_asimage( ASDefaultScr->image_manager, minipixmap, 0, h, AS_THUMBNAIL_PROPORTIONAL|AS_THUMBNAIL_DONT_ENLARGE );
+			}
+			if( tmp == NULL ) 
+#else
+			{
             	tmp = get_asimage( ASDefaultScr->image_manager, minipixmap, ASFLAGS_EVERYTHING, 100 );
-			
 			if( tmp )				   
         	{
 				curr->minipixmap_image = check_scale_menu_pmap( tmp, curr->flags ); 
 				if( tmp != curr->minipixmap_image )
 				{	
+					char *scaled_name = NULL ;
+					int scaled_name_len = 0 ; 
 					int len = strlen( minipixmap ) + 64 ;
 					safe_asimage_destroy(tmp);
 					/* we also need to add our icon into the image_manager ! : */
@@ -816,14 +826,16 @@ reload_menu_pmaps( MenuData *menu )
 					}
 					sprintf( scaled_name, "%s_scaled_to_%dx%d", minipixmap, curr->minipixmap_image->width, curr->minipixmap_image->height );
 					store_asimage( ASDefaultScr->image_manager, curr->minipixmap_image, scaled_name );					 
+					if( scaled_name ) 
+						free( scaled_name );
 				}
-        	}else
+        	}
+			else
+#endif			
 			{	
 				LOCAL_DEBUG_OUT( "minipixmap = \"%s\", minipixmap_image = %p",  curr->minipixmap, curr->minipixmap_image );
 			}
 		}
-	if( scaled_name ) 
-		free( scaled_name );
 }
 
 

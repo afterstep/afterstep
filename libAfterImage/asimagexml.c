@@ -896,7 +896,7 @@ handle_asxml_tag_img( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm,
 	} else if (src) {
 		show_progress("Loading image [%s] using imman (%p) with search path \"%s\" (dst_size = %dx%d).", src, state->imman, state->imman?state->imman->search_path[0]:"", dst_width, dst_height);
 		if( dst_width != 0 || dst_height != 0 ) 
-			result = get_thumbnail_asimage( state->imman, src, dst_width, dst_height, dst_width==0||dst_height==0 );
+			result = get_thumbnail_asimage( state->imman, src, dst_width, dst_height, (dst_width==0||dst_height==0)?AS_THUMBNAIL_PROPORTIONAL:0 );
 		else
 			result = get_asimage( state->imman, src, 0xFFFFFFFF, 100 );
 	}

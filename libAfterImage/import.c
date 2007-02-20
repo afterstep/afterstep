@@ -393,7 +393,7 @@ calculate_proportions( int src_w, int src_h, int *pdst_w, int *pdst_h )
 }
 
 ASImage *
-get_thumbnail_asimage( ASImageManager* imageman, const char *file, int thumb_width, int thumb_height, Bool proportional )
+get_thumbnail_asimage( ASImageManager* imageman, const char *file, int thumb_width, int thumb_height, ASFlagType flags )
 {
 	ASImage *im = NULL ;
 	
@@ -409,7 +409,7 @@ get_thumbnail_asimage( ASImageManager* imageman, const char *file, int thumb_wid
 			thumb_height = 48 ;
 		}
 
-		if( proportional ) 
+		if( get_flags(flags, AS_THUMBNAIL_PROPORTIONAL ) ) 
 		{
 			if( original_im != NULL )		
 				calculate_proportions( original_im->width, original_im->height, &thumb_width, &thumb_height );
@@ -429,9 +429,14 @@ get_thumbnail_asimage( ASImageManager* imageman, const char *file, int thumb_wid
 			{
 				if( original_im != NULL ) /* simply scale it down to a thumbnail size */
 				{
-					im = scale_asimage( NULL, original_im, thumb_width, thumb_height, ASA_ASImage, 100, ASIMAGE_QUALITY_FAST );
-					if( im != NULL ) 
-						store_asimage( imageman, im, thumbnail_name );
+					if( (( original_im->width > thumb_width || original_im->height > thumb_height ) && !get_flags( flags, AS_THUMBNAIL_DONT_REDUCE ) ) ||
+						(( original_im->width < thumb_width || original_im->height < thumb_height ) && !get_flags( flags, AS_THUMBNAIL_DONT_ENLARGE ) ) )
+					{
+						im = scale_asimage( NULL, original_im, thumb_width, thumb_height, ASA_ASImage, 100, ASIMAGE_QUALITY_FAST );
+						if( im != NULL ) 
+							store_asimage( imageman, im, thumbnail_name );
+					}else
+						im = dup_asimage( original_im );
 				}
 			}
 		}
@@ -447,7 +452,10 @@ get_thumbnail_asimage( ASImageManager* imageman, const char *file, int thumb_wid
 			
 			iparams.width = thumb_width ; 
 			iparams.height = thumb_height ; 
-			iparams.flags |= AS_IMPORT_RESIZED|AS_IMPORT_SCALED_BOTH|AS_IMPORT_FAST ; 
+			iparams.flags |= AS_IMPORT_RESIZED|AS_IMPORT_SCALED_BOTH ; 
+			
+			if( get_flags( flags, AS_THUMBNAIL_DONT_ENLARGE ) )
+				iparams.flags |= AS_IMPORT_FAST ; 
 			
 			tmp = file2ASImage_extra( file, &iparams );
 
@@ -456,7 +464,7 @@ get_thumbnail_asimage( ASImageManager* imageman, const char *file, int thumb_wid
 				im = tmp ; 
 				if( tmp->width != thumb_width || tmp->height != thumb_height ) 
 				{
-					if( proportional ) 
+					if( get_flags(flags, AS_THUMBNAIL_PROPORTIONAL ) ) 
 					{
 						calculate_proportions( tmp->width, tmp->height, &thumb_width, &thumb_height );
 						sprintf( thumbnail_name, AS_THUMBNAIL_NAME_FORMAT, file, thumb_width, thumb_height );
@@ -464,12 +472,15 @@ get_thumbnail_asimage( ASImageManager* imageman, const char *file, int thumb_wid
 							im = tmp ; 
 					}
 					if( im == tmp )
-						if( tmp->width != thumb_width || tmp->height != thumb_height ) 
+					{
+						if( (( tmp->width > thumb_width || tmp->height > thumb_height ) && !get_flags( flags, AS_THUMBNAIL_DONT_REDUCE ) ) ||
+							(( tmp->width < thumb_width || tmp->height < thumb_height ) && !get_flags( flags, AS_THUMBNAIL_DONT_ENLARGE ) ) )
 						{
 							im = scale_asimage( NULL, tmp, thumb_width, thumb_height, ASA_ASImage, 100, ASIMAGE_QUALITY_FAST );
 							if( im == NULL ) 
 								im = tmp ;
 						}
+					}
 				}			
 				if( im != NULL )
 				{
