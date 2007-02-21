@@ -96,7 +96,7 @@ ASImage2DBI( ASVisual *asv, ASImage *im,
 		     int offset_x, int offset_y,
 			 unsigned int to_width,
 			 unsigned int to_height,
-  			 void **pBits )
+  			 void **pBits, int mask )
 {
 	BITMAPINFO *bmp_info = NULL;
 	CARD8 *bits = NULL, *curr ;
@@ -104,11 +104,14 @@ ASImage2DBI( ASVisual *asv, ASImage *im,
 	ASImageDecoder *imdec ;
 	int y, max_y = to_height;	
 	int tiling_step = 0 ;
-	CARD32 *r, *g, *b ;	
+	CARD32 *a = 0;
+   CARD32 *r = 0;
+   CARD32 *g = 0;
+   CARD32 *b = 0;	
 	START_TIME(started);
 
 LOCAL_DEBUG_CALLER_OUT( "src = %p, offset_x = %d, offset_y = %d, to_width = %d, to_height = %d", im, offset_x, offset_y, to_width, to_height );
-	if( im== NULL || (imdec = start_image_decoding(asv, im, SCL_DO_ALL, offset_x, offset_y, to_width, 0, NULL)) == NULL )
+	if( im== NULL || (imdec = start_image_decoding(asv, im, mask ? SCL_DO_ALPHA : SCL_DO_ALL, offset_x, offset_y, to_width, 0, NULL)) == NULL )
 	{
 		LOCAL_DEBUG_OUT( "failed to start image decoding%s", "");
 		return NULL;
@@ -125,20 +128,25 @@ LOCAL_DEBUG_CALLER_OUT( "src = %p, offset_x = %d, offset_y = %d, to_width = %d, 
 	bmp_info->bmiHeader.biWidth = to_width ;
 	bmp_info->bmiHeader.biHeight = to_height ;
 	bmp_info->bmiHeader.biPlanes = 1 ;
-	bmp_info->bmiHeader.biBitCount = 24 ;
+	bmp_info->bmiHeader.biBitCount = mask ? 1 : 24 ;
 	bmp_info->bmiHeader.biCompression = BI_RGB ;
 	bmp_info->bmiHeader.biSizeImage = 0 ;
 	bmp_info->bmiHeader.biClrUsed = 0 ;
 	bmp_info->bmiHeader.biClrImportant = 0 ;
 	/* allocate DIB bits : */
-	line_size = ((to_width*3+3)/4)*4;          /* DWORD aligned */
-	pad = line_size-(to_width*3) ;
+	line_size = mask ? to_width : ((to_width*3+3)/4)*4;          /* DWORD aligned */
+	pad = line_size-(to_width*(mask ? 1 : 3)) ;
 	bits = (CARD8 *)safemalloc(line_size * to_height);
 	curr = bits + line_size * to_height ;
 
-	r = imdec->buffer.red ;
-	g = imdec->buffer.green ;
-	b = imdec->buffer.blue ;
+   if (mask) {
+	   a = imdec->buffer.alpha ;
+   } else {
+	   r = imdec->buffer.red ;
+	   g = imdec->buffer.green ;
+	   b = imdec->buffer.blue ;
+   }
+
 	for( y = 0 ; y < max_y ; y++  )
 	{
 		register int x = to_width;
@@ -147,10 +155,14 @@ LOCAL_DEBUG_CALLER_OUT( "src = %p, offset_x = %d, offset_y = %d, to_width = %d, 
 		curr -= pad ;
 		while( --x >= 0 ) 
 		{
-			curr -= 3 ; 
-			curr[0] = b[x] ; 	
-			curr[1] = g[x] ; 
-			curr[2] = r[x] ; 
+			curr -= (mask ? 1 : 3) ; 
+         if (mask) {
+            curr[0] = a[x]==0 ? 0 : 1 ;
+         } else {
+			   curr[0] = b[x] ; 	
+			   curr[1] = g[x] ; 
+			   curr[2] = r[x] ;
+         }
 		}	 
 		if( tiling_step > 0 ) 
 		{
@@ -173,10 +185,11 @@ LOCAL_DEBUG_CALLER_OUT( "src = %p, offset_x = %d, offset_y = %d, to_width = %d, 
 }
 
 ASImage      *
-bitmap2asimage (unsigned char *xim, int width, int height, unsigned int compression)
+bitmap2asimage (unsigned char *xim, int width, int height, unsigned int compression, 
+                unsigned char *mask)
 {
 	ASImage      *im = NULL;
-	int           i, bpl;
+	int           i, bpl, x;
 	ASScanline    xim_buf;
 
     if( xim == NULL )
@@ -194,11 +207,18 @@ bitmap2asimage (unsigned char *xim, int width, int height, unsigned int compress
 		    bpl = (bpl+3)/4;
 	    bpl *= 4;
 		for (i = 0; i < height; i++) {
-			raw2scanline( xim, &xim_buf, 0, width, False, True);
-   		    asimage_add_line (im, IC_RED,   xim_buf.red, i);
-		    asimage_add_line (im, IC_GREEN, xim_buf.green, i);
-		    asimage_add_line (im, IC_BLUE,  xim_buf.blue, i);
-			xim += bpl;
+            if (mask) {
+               for (x = 0; x < width<<2; x += 4) {
+                  xim[3 + x] = mask[x] == 0 ? 0 : 255;
+               }
+            }
+			   raw2scanline( xim, &xim_buf, 0, width, False, True);
+            if (mask) asimage_add_line (im, IC_ALPHA, xim_buf.alpha, i);
+   		   asimage_add_line (im, IC_RED,   xim_buf.red, i);
+		      asimage_add_line (im, IC_GREEN, xim_buf.green, i);
+		      asimage_add_line (im, IC_BLUE,  xim_buf.blue, i);
+			   xim += bpl;
+            if (mask) mask += bpl;
 		}
 	}
 	free_scanline(&xim_buf, True);

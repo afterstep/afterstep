@@ -2309,10 +2309,10 @@ svg2ASImage( const char * path, ASImageImportParams *params )
 	}
  
  	if( get_flags( params->flags, AS_IMPORT_SCALED_H ) )
-		width = (params->width <= 0)?params->height:params->width ;
+		width = (params->width <= 0)?((params->height<=0)?-1:params->height):params->width ;
 	
  	if( get_flags( params->flags, AS_IMPORT_SCALED_V ) )
-		height = (params->height <= 0)?params->width:params->height ;
+		height = (params->height <= 0)?((params->width <= 0)?-1:params->width):params->height ;
 		
 	if( (pixbuf = rsvg_pixbuf_from_file_at_size( path, width, height, NULL)) == NULL )
 		return NULL ;

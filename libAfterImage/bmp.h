@@ -14,7 +14,7 @@ extern "C" {
 
 #ifndef _WINGDI_
 
-typedef struct tagRGBQUAD { // rgbq 
+typedef struct tagRGBQUAD { /* rgbq */ 
     CARD8    rgbBlue; 
     CARD8    rgbGreen; 
     CARD8    rgbRed; 
@@ -40,7 +40,7 @@ typedef struct tagBITMAPINFOHEADER
 	CARD32 biClrUsed, biClrImportant;
 }BITMAPINFOHEADER;
 
-typedef struct tagBITMAPINFO { // bmi 
+typedef struct tagBITMAPINFO { /* bmi */ 
     BITMAPINFOHEADER bmiHeader; 
     RGBQUAD          bmiColors[1]; 
 } BITMAPINFO; 
@@ -59,14 +59,14 @@ dib_data_to_scanline( ASScanline *buf,
 
 BITMAPINFO *
 ASImage2DBI( ASVisual *asv, ASImage *im, 
-		     int offset_x, int offset_y,
-			 unsigned int to_width,
-			 unsigned int to_height,
-  			 void **pBits );
+		      int offset_x, int offset_y,
+			   unsigned int to_width,
+			   unsigned int to_height,
+  			   void **pBits, int mask );
 
 ASImage      *
 bitmap2asimage (unsigned char *xim, int width, int height,
-                unsigned int compression);
+                unsigned int compression, unsigned char *mask);
 
 #ifdef __cplusplus
 }

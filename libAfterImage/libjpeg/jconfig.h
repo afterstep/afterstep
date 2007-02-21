@@ -2,6 +2,7 @@
 
 #ifdef _WIN32
 #include "../win32/config.h"
+#include <basetsd.h>
 #else
 #include "../config.h"
 #endif

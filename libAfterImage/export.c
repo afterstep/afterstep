@@ -853,7 +853,7 @@ ASImage2bmp ( ASImage *im, const char *path,  ASImageExportParams *params )
 	if ((outfile = open_writeable_image_file( path )) == NULL)
 		return False;
 
-	bmi = ASImage2DBI( get_default_asvisual(), im, 0, 0, im->width, im->height, &bmbits );
+	bmi = ASImage2DBI( get_default_asvisual(), im, 0, 0, im->width, im->height, &bmbits, 0 );
 	if( bmi == NULL || bmbits == NULL ) 
 		return False ;
  
