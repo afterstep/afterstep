@@ -798,6 +798,11 @@ reload_menu_pmaps( MenuData *menu, Bool force )
 				{
 					if( get_asimage_file_type( ASDefaultScr->image_manager, minipixmap ) != ASIT_XMLScript )
 					{
+						ASImage *im = curr->minipixmap_image ; 
+						if( im->imageman != NULL && im->imageman != ASDefaultScr->image_manager ) 
+						{/* need to engage in trickery : */
+							relocate_asimage( ASDefaultScr->image_manager, im );
+						}
 						/* fprintf( stderr, "minipixmap \"%s\" is not an XML script - skipping\n", minipixmap ); */
 						continue ;
 					}

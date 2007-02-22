@@ -651,6 +651,8 @@ void     destroy_image_manager( struct ASImageManager *imman, Bool reusable );
  * ASImageManager object itself is destroyed.
  *********/
 Bool     store_asimage( ASImageManager* imageman, ASImage *im, const char *name );
+void	 relocate_asimage( ASImageManager* to_imageman, ASImage *im );
+
 /****f* libAfterImage/asimage/fetch_asimage()
  * NAME
  * fetch_asimage()

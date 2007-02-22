@@ -476,12 +476,14 @@ store_asimage( ASImageManager* imageman, ASImage *im, const char *name )
 		if( AS_ASSERT_NOTVAL(im->magic, MAGIC_ASIMAGE) )
 			im = NULL ;
 	if( !AS_ASSERT(imageman) && !AS_ASSERT(im) && !AS_ASSERT((char*)name) )
+	{
 		if( im->imageman == NULL )
 		{
 			int hash_res ;
+			char *stored_name = mystrdup( name );
 			if( im->name ) 
 				free( im->name );
-			im->name = mystrdup( name );
+			im->name = stored_name ;
 			hash_res = add_hash_item( imageman->image_hash, AS_HASHABLE(im->name), im);
 			res = ( hash_res == ASH_Success);
 			if( !res )
@@ -494,6 +496,7 @@ store_asimage( ASImageManager* imageman, ASImage *im, const char *name )
 				im->ref_count = 1 ;
 			}
 		}
+	}
 	return res ;
 }
 
@@ -575,6 +578,33 @@ forget_asimage( ASImage *im )
 				remove_hash_item(imman->image_hash, (ASHashableValue)(char*)im->name, NULL, False);
             im->ref_count = 0;
             im->imageman = NULL;
+		}
+	}
+}
+
+void
+relocate_asimage( ASImageManager* to_imageman, ASImage *im )
+{
+	if( !AS_ASSERT(im) )
+	{
+		if( im->magic == MAGIC_ASIMAGE )
+		{
+			ASImageManager *imman = im->imageman ;
+			int ref_count = im->ref_count ; 
+			if( imman != NULL )
+			{
+				remove_hash_item(imman->image_hash, (ASHashableValue)(char*)im->name, NULL, False);
+	            im->ref_count = 0;
+    	        im->imageman = NULL;
+			}
+			if( to_imageman != NULL ) 
+			{
+				if( add_hash_item( to_imageman->image_hash, AS_HASHABLE(im->name), im) == ASH_Success ) 
+				{
+		            im->ref_count = ref_count < 1 ? 1: ref_count;
+    		        im->imageman = to_imageman ; 
+				}
+			}
 		}
 	}
 }
