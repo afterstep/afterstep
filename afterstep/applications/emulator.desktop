@@ -24,19 +24,6 @@ Categories=Emulator
 TryExec=dosbox
 
 [Desktop Entry]
-Name=Stella Atari 2600 Emulator
-GenericName=Atarti 2600 Emulator
-Comment=Multi-platform Atari 2600 VCS emulator 
-Exec=stella
-Icon=logos/Atari
-Terminal=false
-Type=Application
-Encoding=UTF-8
-Categories=Emulator
-X-AfterStep-IndexName=stella
-TryExec=stella
-
-[Desktop Entry]
 Name=Executor Mac 68k Emulator
 GenericName=Mac 68k Emulator
 Comment=Mac 68k Emulator
