@@ -1694,8 +1694,9 @@ LoadASConfig (int thisdesktop, ASFlagType what)
             }
         	if( UpdateGtkRC(Environment) ) 
 				ExecuteFunction (&gtkrc_signal_func, &dummy_event, -1);
-			if( UpdateKCSRC() ) 
-				ExecuteFunction (&kde_signal_func, &dummy_event, -1);
+			if( !get_flags(Environment->flags,ASE_NoKDEGlobalsTheming ) ) 
+				if( UpdateKCSRC() ) 
+					ExecuteFunction (&kde_signal_func, &dummy_event, -1);
 		}
         if (get_flags(what, PARSE_FEEL_CONFIG))
 		{
@@ -1782,7 +1783,8 @@ LoadASConfig (int thisdesktop, ASFlagType what)
         what = PARSE_EVERYTHING ;
 		if( UpdateGtkRC(Environment) ) 
 			ExecuteFunction (&gtkrc_signal_func, &dummy_event, -1);
-		UpdateKCSRC();
+		if( !get_flags(Environment->flags,ASE_NoKDEGlobalsTheming ) ) 
+			UpdateKCSRC();
     }
 
 	/* let's free the memory used for parsing */
