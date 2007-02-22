@@ -2357,6 +2357,15 @@ LOCAL_DEBUG_CALLER_OUT( "%p,%p", aswb, aswb->swallowed );
 }
 
 
+int make_swallow_pad( Bool pad_before, Bool pad_after, int cell_size, int tile_size )
+{
+	if( !pad_before )
+        return 0;
+    if( !pad_after )
+        return cell_size-tile_size;
+    return (cell_size-tile_size)/2;
+}
+
 
 void
 check_swallow_window( ASWindowData *wd )
@@ -2477,23 +2486,24 @@ check_swallow_window( ASWindowData *wd )
    		swidth = wd->hints.min_width;
 	if( swidth <= 2 ) 
    		swidth = aswb->desired_width;
-	else if( swidth > aswb->desired_width ) 
+/*	else if( swidth > aswb->desired_width ) 
 		swidth = aswb->desired_width ;
-    
+(otherwise AlignContents don't work */    
     sheight = aswb->swallowed->current->height ;
 	if( get_flags( wd->flags, AS_MinSize ) && sheight < wd->hints.min_height)
    		sheight = wd->hints.min_height;
 	if( sheight <= 2 ) 
    		sheight = aswb->desired_height;
-	else if( sheight > aswb->desired_height ) 
+/*	else if( sheight > aswb->desired_height ) 
 		sheight = aswb->desired_height ;
+(otherwise AlignContents don't work */
 
     moveresize_canvas( aswb->swallowed->current,
-                       make_tile_pad( get_flags(Config->AlignContents,PAD_LEFT),
-                                      get_flags(Config->AlignContents,PAD_RIGHT),
+                       make_swallow_pad( get_flags(Config->AlignContents,PAD_LEFT),
+                                         get_flags(Config->AlignContents,PAD_RIGHT),
                                       aswb->canvas->width, swidth      ),
-                       make_tile_pad( get_flags(Config->AlignContents,PAD_TOP),
-                                      get_flags(Config->AlignContents,PAD_BOTTOM),
+                       make_swallow_pad( get_flags(Config->AlignContents,PAD_TOP),
+                                   		 get_flags(Config->AlignContents,PAD_BOTTOM),
                                       aswb->canvas->height, sheight    ),
                        swidth, sheight );
 	if( !get_flags( wd->client_icon_flags, AS_ClientIcon ) ) 
