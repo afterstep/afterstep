@@ -1482,7 +1482,7 @@ etc...</property>
 		  <child>
 		    <widget class="GtkLabel" id="label37">
 		      <property name="visible">True</property>
-		      <property name="label" translatable="yes">&lt;b&gt;frame8&lt;/b&gt;</property>
+		      <property name="label" translatable="yes">&lt;b&gt;Background&lt;/b&gt;</property>
 		      <property name="use_underline">False</property>
 		      <property name="use_markup">True</property>
 		      <property name="justify">GTK_JUSTIFY_LEFT</property>
@@ -2436,6 +2436,7 @@ Horizontal Left to Right</property>
 					  <property name="active">False</property>
 					  <property name="inconsistent">False</property>
 					  <property name="draw_indicator">True</property>
+					  <property name="group">radiobutton7</property>
 					  <signal name="clicked" handler="on_radiobutton5_clicked" after="yes" last_modification_time="Wed, 21 Feb 2007 20:09:54 GMT"/>
 					  <signal name="clicked" handler="gtk_widget_hide" after="yes" object="table-backgradient" last_modification_time="Wed, 21 Feb 2007 20:10:21 GMT"/>
 					  <signal name="clicked" handler="gtk_widget_hide" after="yes" object="table-backpixmap" last_modification_time="Thu, 22 Feb 2007 04:21:40 GMT"/>
@@ -2459,6 +2460,7 @@ Horizontal Left to Right</property>
 					  <property name="active">False</property>
 					  <property name="inconsistent">False</property>
 					  <property name="draw_indicator">True</property>
+					  <property name="group">radiobutton7</property>
 					  <signal name="clicked" handler="on_radiobutton4_clicked" after="yes" last_modification_time="Thu, 22 Feb 2007 04:26:04 GMT"/>
 					  <signal name="clicked" handler="gtk_widget_hide" after="yes" object="table-backgradient" last_modification_time="Thu, 22 Feb 2007 04:33:06 GMT"/>
 					  <signal name="clicked" handler="gtk_widget_hide" after="yes" object="table-backmultigradient" last_modification_time="Thu, 22 Feb 2007 04:32:59 GMT"/>
@@ -2514,7 +2516,7 @@ Horizontal Left to Right</property>
 		  <child>
 		    <widget class="GtkLabel" id="label61">
 		      <property name="visible">True</property>
-		      <property name="label" translatable="yes">&lt;b&gt;frame8&lt;/b&gt;</property>
+		      <property name="label" translatable="yes">&lt;b&gt;Background&lt;/b&gt;</property>
 		      <property name="use_underline">False</property>
 		      <property name="use_markup">True</property>
 		      <property name="justify">GTK_JUSTIFY_LEFT</property>
@@ -3352,6 +3354,7 @@ Horizontal Left to Right</property>
 					  <property name="active">False</property>
 					  <property name="inconsistent">False</property>
 					  <property name="draw_indicator">True</property>
+					  <property name="group">radiobutton10</property>
 					  <signal name="clicked" handler="on_radiobutton5_clicked" after="yes" last_modification_time="Wed, 21 Feb 2007 20:09:54 GMT"/>
 					  <signal name="clicked" handler="gtk_widget_hide" after="yes" object="table-backgradient" last_modification_time="Wed, 21 Feb 2007 20:10:21 GMT"/>
 					  <signal name="clicked" handler="gtk_widget_hide" after="yes" object="table-backpixmap" last_modification_time="Thu, 22 Feb 2007 04:21:40 GMT"/>
@@ -3375,6 +3378,7 @@ Horizontal Left to Right</property>
 					  <property name="active">False</property>
 					  <property name="inconsistent">False</property>
 					  <property name="draw_indicator">True</property>
+					  <property name="group">radiobutton10</property>
 					  <signal name="clicked" handler="on_radiobutton4_clicked" after="yes" last_modification_time="Thu, 22 Feb 2007 04:26:04 GMT"/>
 					  <signal name="clicked" handler="gtk_widget_hide" after="yes" object="table-backgradient" last_modification_time="Thu, 22 Feb 2007 04:33:06 GMT"/>
 					  <signal name="clicked" handler="gtk_widget_hide" after="yes" object="table-backmultigradient" last_modification_time="Thu, 22 Feb 2007 04:32:59 GMT"/>
@@ -3430,7 +3434,7 @@ Horizontal Left to Right</property>
 		  <child>
 		    <widget class="GtkLabel" id="label86">
 		      <property name="visible">True</property>
-		      <property name="label" translatable="yes">&lt;b&gt;frame8&lt;/b&gt;</property>
+		      <property name="label" translatable="yes">&lt;b&gt;Background&lt;/b&gt;</property>
 		      <property name="use_underline">False</property>
 		      <property name="use_markup">True</property>
 		      <property name="justify">GTK_JUSTIFY_LEFT</property>
@@ -4438,6 +4442,7 @@ etc...</property>
 					  <property name="active">False</property>
 					  <property name="inconsistent">False</property>
 					  <property name="draw_indicator">True</property>
+					  <property name="group">radiobutton13</property>
 					  <signal name="clicked" handler="on_radiobutton5_clicked" after="yes" last_modification_time="Wed, 21 Feb 2007 20:09:54 GMT"/>
 					  <signal name="clicked" handler="gtk_widget_hide" after="yes" object="table-backgradient" last_modification_time="Wed, 21 Feb 2007 20:10:21 GMT"/>
 					  <signal name="clicked" handler="gtk_widget_hide" after="yes" object="table-backpixmap" last_modification_time="Thu, 22 Feb 2007 04:21:40 GMT"/>
@@ -4461,6 +4466,7 @@ etc...</property>
 					  <property name="active">False</property>
 					  <property name="inconsistent">False</property>
 					  <property name="draw_indicator">True</property>
+					  <property name="group">radiobutton13</property>
 					  <signal name="clicked" handler="on_radiobutton4_clicked" after="yes" last_modification_time="Thu, 22 Feb 2007 04:26:04 GMT"/>
 					  <signal name="clicked" handler="gtk_widget_hide" after="yes" object="table-backgradient" last_modification_time="Thu, 22 Feb 2007 04:33:06 GMT"/>
 					  <signal name="clicked" handler="gtk_widget_hide" after="yes" object="table-backmultigradient" last_modification_time="Thu, 22 Feb 2007 04:32:59 GMT"/>
@@ -4516,7 +4522,7 @@ etc...</property>
 		  <child>
 		    <widget class="GtkLabel" id="label111">
 		      <property name="visible">True</property>
-		      <property name="label" translatable="yes">&lt;b&gt;frame8&lt;/b&gt;</property>
+		      <property name="label" translatable="yes">&lt;b&gt;Background&lt;/b&gt;</property>
 		      <property name="use_underline">False</property>
 		      <property name="use_markup">True</property>
 		      <property name="justify">GTK_JUSTIFY_LEFT</property>
