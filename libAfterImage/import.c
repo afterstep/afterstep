@@ -173,24 +173,15 @@ const char *as_image_file_type_names[ASIT_Unknown+1] =
 	"Unknown"
 };
 
- 
-ASImage *
-file2ASImage_extra( const char *file, ASImageImportParams *iparams )
+char *locate_image_file_in_path( const char *file, ASImageImportParams *iparams ) 
 {
 	int 		  filename_len ;
-//	int 		  subimage = -1 ;
 	char 		 *realfilename = NULL, *tmp = NULL ;
 	register int i;
-
-	ASImage *im = NULL;
-	char *g_var ;
 	ASImageImportParams dummy_iparams = {0};
 
 	if( iparams == NULL )
 		iparams = &dummy_iparams ;
-
-	if( (g_var = getenv( "SCREEN_GAMMA" )) != NULL )
-		iparams->gamma = atof(g_var);
 
 	if( file )
 	{
@@ -243,21 +234,41 @@ file2ASImage_extra( const char *file, ASImageImportParams *iparams )
 		if( tmp != realfilename && tmp != NULL )
 			free( tmp );
 	}
-	if( realfilename )
+	if( realfilename == file )
+		realfilename = mystrdup(file);
+	return realfilename ;
+}
+ASImage *
+file2ASImage_extra( const char *file, ASImageImportParams *iparams )
+{
+	char *realfilename ;
+	ASImage *im = NULL;
+	ASImageImportParams dummy_iparams = {0};
+	
+	if( iparams == NULL )
+		iparams = &dummy_iparams ;
+
+	realfilename = locate_image_file_in_path( file, iparams ); 
+	
+	if( realfilename != NULL ) 
 	{
 		ASImageFileTypes file_type = check_image_type( realfilename );
+
 		if( file_type == ASIT_Unknown )
 			show_error( "Hmm, I don't seem to know anything about format of the image file \"%s\"\n.\tPlease check the manual", realfilename );
 		else if( as_image_file_loaders[file_type] )
+		{
+			char *g_var = getenv( "SCREEN_GAMMA" );
+			if( g_var != NULL )
+				iparams->gamma = atof(g_var);
 			im = as_image_file_loaders[file_type](realfilename, iparams);
-		else
+		}else
 			show_error( "Support for the format of image file \"%s\" has not been implemented yet.", realfilename );
 #ifndef NO_DEBUG_OUTPUT
 		if( im != NULL ) 
 			show_progress( "image loaded from \"%s\"", realfilename );
 #endif
-		if( realfilename != file )
-			free( realfilename );
+		free( realfilename );
 	}else
 		show_error( "I'm terribly sorry, but image file \"%s\" is nowhere to be found.", file );
 
@@ -362,6 +373,29 @@ load_image_from_path( const char *file, char **path, double gamma)
 
 	return file2ASImage_extra( file, &iparams );
 }
+
+ASImageFileTypes
+get_asimage_file_type( ASImageManager* imageman, const char *file )
+{
+	ASImageFileTypes file_type = ASIT_Unknown ;
+	if( file )
+	{
+		ASImageImportParams iparams ;
+		char *realfilename ;
+	
+		init_asimage_import_params( &iparams );
+		iparams.search_path = imageman?&(imageman->search_path[0]):NULL;
+		realfilename = locate_image_file_in_path( file, &iparams ); 
+	
+		if( realfilename != NULL ) 
+		{
+			file_type = check_image_type( realfilename );
+			free( realfilename );
+		}
+	}
+	return file_type;
+}
+
 
 ASImage *
 get_asimage( ASImageManager* imageman, const char *file, ASFlagType what, unsigned int compression )

@@ -216,6 +216,7 @@ ASImage *file2ASImage( const char *file, ASFlagType what, double gamma, unsigned
 ASImage *file2ASImage_extra( const char *file, ASImageImportParams *params );
 ASImage *get_asimage( ASImageManager* imageman, const char *file, ASFlagType what, unsigned int compression );
 ASImage *get_asimage_extra( ASImageManager* imageman, const char *file, ASImageImportParams *params );
+ASImageFileTypes get_asimage_file_type( ASImageManager* imageman, const char *file );
 
 #define AS_THUMBNAIL_PROPORTIONAL 		(0x01<<0)
 #define AS_THUMBNAIL_DONT_ENLARGE 		(0x01<<1)

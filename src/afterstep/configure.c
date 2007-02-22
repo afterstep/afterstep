@@ -1867,7 +1867,7 @@ LoadASConfig (int thisdesktop, ASFlagType what)
 					display_progress( newline, newline?"    %s":"%s", name);
 					++count;
 				}
-				reload_menu_pmaps( md );
+				reload_menu_pmaps( md, get_flags(what, PARSE_BASE_CONFIG) );
             }while( next_hash_item( &i ));
 		
 	    display_progress( True, "Advertising titlebar properties ...");

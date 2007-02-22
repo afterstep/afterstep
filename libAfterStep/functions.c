@@ -778,7 +778,7 @@ check_scale_menu_pmap( ASImage *im, ASFlagType flags )
 }
 
 void
-reload_menu_pmaps( MenuData *menu )
+reload_menu_pmaps( MenuData *menu, Bool force )
 {
     MenuDataItem *curr ;
 	
@@ -787,54 +787,71 @@ reload_menu_pmaps( MenuData *menu )
 	if( menu && ASDefaultScr->image_manager ) 
 		for( curr = menu->first ; curr != NULL ; curr = curr->next )
 		{	
-			ASImage *tmp = NULL ;
 			char *minipixmap = curr->minipixmap ;
-            if( curr->minipixmap_image )
-                safe_asimage_destroy(curr->minipixmap_image);
-			
 			if( minipixmap == NULL && curr->fdata->func == F_CHANGE_BACKGROUND_FOREIGN ) 
 				minipixmap = curr->fdata->text;
     		
-			if( minipixmap )
+
+            if( curr->minipixmap_image )
+			{
+				if( minipixmap != NULL && !force ) 
+				{
+					if( get_asimage_file_type( ASDefaultScr->image_manager, minipixmap ) != ASIT_XMLScript )
+					{
+						/* fprintf( stderr, "minipixmap \"%s\" is not an XML script - skipping\n", minipixmap ); */
+						continue ;
+					}
+				}
+                safe_asimage_destroy(curr->minipixmap_image);
+				curr->minipixmap_image = NULL ; 
+			}
+			
 #if 1
+			if( minipixmap )
 			{
 				int h = MAX_MENU_ITEM_HEIGHT ; 
 				if( get_flags( curr->flags, MD_ScaleMinipixmapDown ) )
 					h = asxml_var_get(ASXMLVAR_MenuFontSize)+8;				
 				else if( get_flags( curr->flags, MD_ScaleMinipixmapUp ) )
 					h = asxml_var_get(ASXMLVAR_MinipixmapHeight) ; 
-				tmp = get_thumbnail_asimage( ASDefaultScr->image_manager, minipixmap, 0, h, AS_THUMBNAIL_PROPORTIONAL|AS_THUMBNAIL_DONT_ENLARGE );
-			}
-			if( tmp == NULL ) 
-#else
-			{
-            	tmp = get_asimage( ASDefaultScr->image_manager, minipixmap, ASFLAGS_EVERYTHING, 100 );
-			if( tmp )				   
-        	{
-				curr->minipixmap_image = check_scale_menu_pmap( tmp, curr->flags ); 
-				if( tmp != curr->minipixmap_image )
+				curr->minipixmap_image =  get_thumbnail_asimage( ASDefaultScr->image_manager, minipixmap, 0, h, AS_THUMBNAIL_PROPORTIONAL|AS_THUMBNAIL_DONT_ENLARGE );
+				if( curr->minipixmap_image == NULL ) 
 				{	
-					char *scaled_name = NULL ;
-					int scaled_name_len = 0 ; 
-					int len = strlen( minipixmap ) + 64 ;
-					safe_asimage_destroy(tmp);
-					/* we also need to add our icon into the image_manager ! : */
-					if( len > scaled_name_len ) 
-					{
-						scaled_name = saferealloc( scaled_name, len );
-						scaled_name_len = len ;
-					}
-					sprintf( scaled_name, "%s_scaled_to_%dx%d", minipixmap, curr->minipixmap_image->width, curr->minipixmap_image->height );
-					store_asimage( ASDefaultScr->image_manager, curr->minipixmap_image, scaled_name );					 
-					if( scaled_name ) 
-						free( scaled_name );
+					LOCAL_DEBUG_OUT( "minipixmap = \"%s\", minipixmap_image = %p",  curr->minipixmap, curr->minipixmap_image );
 				}
-        	}
-			else
-#endif			
-			{	
-				LOCAL_DEBUG_OUT( "minipixmap = \"%s\", minipixmap_image = %p",  curr->minipixmap, curr->minipixmap_image );
 			}
+#else
+			if( minipixmap )
+			{
+				ASImage *tmp = NULL ;
+			
+            	tmp = get_asimage( ASDefaultScr->image_manager, minipixmap, ASFLAGS_EVERYTHING, 100 );
+				if( tmp )				   
+    	    	{
+					curr->minipixmap_image = check_scale_menu_pmap( tmp, curr->flags ); 
+					if( tmp != curr->minipixmap_image )
+					{	
+						char *scaled_name = NULL ;
+						int scaled_name_len = 0 ; 
+						int len = strlen( minipixmap ) + 64 ;
+						safe_asimage_destroy(tmp);
+						/* we also need to add our icon into the image_manager ! : */
+						if( len > scaled_name_len ) 
+						{
+							scaled_name = saferealloc( scaled_name, len );
+							scaled_name_len = len ;
+						}
+						sprintf( scaled_name, "%s_scaled_to_%dx%d", minipixmap, curr->minipixmap_image->width, curr->minipixmap_image->height );
+						store_asimage( ASDefaultScr->image_manager, curr->minipixmap_image, scaled_name );					 
+						if( scaled_name ) 
+							free( scaled_name );
+					}
+        		}else
+				{	
+					LOCAL_DEBUG_OUT( "minipixmap = \"%s\", minipixmap_image = %p",  curr->minipixmap, curr->minipixmap_image );
+				}
+			}
+#endif			
 		}
 }
 
