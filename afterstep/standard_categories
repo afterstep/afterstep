@@ -3482,6 +3482,7 @@ Name=Viewers
 X-AfterStep-IndexName=Viewer
 Categories=Graphics;Office
 Comment=Tool to view e.g. a graphic or pdf file
+icon=Folder-View
 Type=Directory
 
 [DesktopEntry]
