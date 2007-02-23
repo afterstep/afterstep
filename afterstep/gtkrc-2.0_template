@@ -9,7 +9,7 @@ style "default"
 	fg[PRELIGHT]       =    "HighInactiveText"	
 	fg[SELECTED]       =    "ActiveText"      	
 	fg[INSENSITIVE]	   =    "DisabledText"    	   	
-	bg[NORMAL]	   =	"BaseLight" #*** buttons, menu, tabs and apps background
+	bg[NORMAL]	   =	"Base" #*** buttons, menu, tabs and apps background
 	bg[ACTIVE]         =   	"Inactive2" # tabs not selected, buttons pressed but not prelight 
 	bg[PRELIGHT]       =  	"Inactive1Light" # button mouseover, just like wharf		
 	bg[SELECTED]       =  	"Active" # ???	  	
