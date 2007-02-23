@@ -183,6 +183,8 @@ void on_desk_moveresize( ASPagerDesk *d );
 void on_scroll_viewport( ASEvent *event );
 void place_separation_bars( ASPagerDesk *d );
 void DeadPipe(int);
+void request_background_image( ASPagerDesk *d );
+
 
 /***********************************************************************
  *   main - start of module
@@ -811,16 +813,18 @@ static void
 place_desk_background( ASPagerDesk *d )
 {
     int x = 0, y = 0;
-    if( !get_flags(Config->flags, LABEL_BELOW_DESK) )
-    {
-        if( get_flags(Config->flags, VERTICAL_LABEL) )
-            x = d->title_width ;
-        else
-            y = d->title_height ;
-    }
-
+    if( get_flags(Config->flags, USE_LABEL) )
+	{
+	    if( !get_flags(Config->flags, LABEL_BELOW_DESK) )
+    	{
+        	if( get_flags(Config->flags, VERTICAL_LABEL) )
+	            x = d->title_width ;
+    	    else
+        	    y = d->title_height ;
+	    }
+	}
     move_astbar( d->background, d->desk_canvas, x, y);
-    set_astbar_size( d->background, PagerState.desk_width-(x+Config->border_width), PagerState.desk_height-y-Config->border_width );
+    set_astbar_size( d->background, PagerState.desk_width-(x+Config->border_width), PagerState.desk_height-(y+Config->border_width) );
 }
 
 static Bool
@@ -1350,6 +1354,8 @@ redecorate_pager_desks()
 
 		if( just_created_background )
 			place_desk_background( d );
+		if( get_flags( d->flags, ASP_UseRootBackground ) )
+			request_background_image( d );
 
         if( d->separator_bars )
         {
@@ -2634,6 +2640,33 @@ LOCAL_DEBUG_OUT( "state(0x%X)->state&ButtonAnyMask(0x%X)", event->x.xbutton.stat
 }
 
 void
+request_background_image( ASPagerDesk *d )
+{
+	if( d->back == NULL || 
+		(d->back->width != d->background->width || 
+		 d->back->height != d->background->height )  )
+    {
+        XEvent e;
+        e.xclient.type = ClientMessage ;
+        e.xclient.message_type = _AS_BACKGROUND ;
+        e.xclient.format = 16;
+        e.xclient.window = PagerState.main_canvas->w ;
+        e.xclient.data.s[0] = PagerState.start_desk+d->desk ;
+        e.xclient.data.s[1] = 0 ;
+        e.xclient.data.s[2] = 0 ;
+        e.xclient.data.s[3] = d->background->width ;
+        e.xclient.data.s[4] = d->background->height ;
+        e.xclient.data.s[5] = 0x01 ;
+        e.xclient.data.s[6] = 0 ;
+        e.xclient.data.s[7] = 0 ;
+        e.xclient.data.s[8] = 0 ;
+        LOCAL_DEBUG_OUT( "size(%dx%d)", e.xclient.data.s[3], e.xclient.data.s[4] );
+        XSendEvent( dpy, Scr.Root, False, PropertyChangeMask, &e );
+        ASSync(False);
+    }
+}
+
+void
 on_desk_moveresize( ASPagerDesk *d )
 {
     ASFlagType changes = handle_canvas_config( d->desk_canvas );
@@ -2657,28 +2690,7 @@ on_desk_moveresize( ASPagerDesk *d )
             if( d->desk == Scr.CurrentDesk )
                 place_selection();
             if( get_flags( d->flags, ASP_UseRootBackground )  )
-            {
-                if( d->back == NULL || (d->back->width != d->background->width || d->back->height != d->background->height )  )
-                {
-                    XEvent e;
-                    e.xclient.type = ClientMessage ;
-                    e.xclient.message_type = _AS_BACKGROUND ;
-                    e.xclient.format = 16;
-                    e.xclient.window = PagerState.main_canvas->w ;
-                    e.xclient.data.s[0] = PagerState.start_desk+d->desk ;
-                    e.xclient.data.s[1] = 0 ;
-                    e.xclient.data.s[2] = 0 ;
-                    e.xclient.data.s[3] = d->background->width ;
-                    e.xclient.data.s[4] = d->background->height ;
-                    e.xclient.data.s[5] = 0x01 ;
-                    e.xclient.data.s[6] = 0 ;
-                    e.xclient.data.s[7] = 0 ;
-                    e.xclient.data.s[8] = 0 ;
-                    LOCAL_DEBUG_OUT( "size(%dx%d)", e.xclient.data.s[3], e.xclient.data.s[4] );
-                    XSendEvent( dpy, Scr.Root, False, PropertyChangeMask, &e );
-                    ASSync(False);
-                }
-            }
+				request_background_image( d );
         }
     }
     update_astbar_transparency(d->title, d->desk_canvas, False);
