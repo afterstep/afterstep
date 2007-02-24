@@ -795,12 +795,12 @@ place_desk_title( ASPagerDesk *d )
         int width = d->title_width, height = d->title_height;
         if( get_flags(Config->flags, VERTICAL_LABEL) )
         {
-            if( get_flags(Config->flags, LABEL_BELOW_DESK) )
+            if( get_flags(Config->flags, LABEL_BELOW_DESK) && !get_flags(d->flags, ASP_DeskShaded ) )
                 x = PagerState.desk_width - width - Config->border_width;
             height = PagerState.desk_height-Config->border_width ;
         }else
         {
-            if( get_flags(Config->flags, LABEL_BELOW_DESK) )
+            if( get_flags(Config->flags, LABEL_BELOW_DESK) && !get_flags(d->flags, ASP_DeskShaded ))
                 y = PagerState.desk_height - height - Config->border_width;
             width = PagerState.desk_width-Config->border_width ;
         }
@@ -813,9 +813,17 @@ static void
 place_desk_background( ASPagerDesk *d )
 {
     int x = 0, y = 0;
+	int width = PagerState.desk_width-Config->border_width ; 
+	int height = PagerState.desk_height-Config->border_width ; 	
     if( get_flags(Config->flags, USE_LABEL) )
 	{
-	    if( !get_flags(Config->flags, LABEL_BELOW_DESK) )
+       	if( get_flags(Config->flags, VERTICAL_LABEL) )
+			width -= d->title_width ; 
+		else
+			height -= d->title_height ; 
+		
+		
+	    if( !get_flags(Config->flags, LABEL_BELOW_DESK) || get_flags(d->flags, ASP_DeskShaded ))
     	{
         	if( get_flags(Config->flags, VERTICAL_LABEL) )
 	            x = d->title_width ;
@@ -824,7 +832,7 @@ place_desk_background( ASPagerDesk *d )
 	    }
 	}
     move_astbar( d->background, d->desk_canvas, x, y);
-    set_astbar_size( d->background, PagerState.desk_width-(x+Config->border_width), PagerState.desk_height-(y+Config->border_width) );
+    set_astbar_size( d->background, width, height );
 }
 
 static Bool
@@ -1638,15 +1646,16 @@ shade_desk_column( ASPagerDesk *d, Bool shade )
 void
 shade_desk_row( ASPagerDesk *d, Bool shade )
 {
-    int row_start = ((d->desk-PagerState.start_desk)/Config->columns)*Config->columns ;
+    int col_start = ((d->desk-PagerState.start_desk)/Config->columns)*Config->columns ;
     int i ;
-    for( i = row_start ; i < row_start+Config->columns ; ++i )
+    for( i = col_start ; i < col_start+Config->columns ; ++i )
     {
         if( shade )
             set_flags( PagerState.desks[i].flags, ASP_DeskShaded );
         else
             clear_flags( PagerState.desks[i].flags, ASP_DeskShaded );
     }
+	LOCAL_DEBUG_OUT( "Shading - rcol_start = %d", col_start );
     rearrange_pager_desks( False );
 }
 /*************************************************************************
@@ -1722,14 +1731,15 @@ place_client( ASPagerDesk *d, ASWindowData *wd, Bool force_redraw, Bool dont_upd
         if( height <= 0 )
             height = 1 ;
 
+		LOCAL_DEBUG_OUT( "@@@@     ###   $$$   Client \"%s\" background position is %+d%+d, client's = %+d%+d", wd->window_name, d->background->win_x, d->background->win_y, x, y );
         x += (int)d->background->win_x ;
         y += (int)d->background->win_y ;
-
         if( wd->canvas )
         {
             ASCanvas *canvas = wd->canvas ;
 			unsigned int bw = 0 ;
             get_canvas_position( canvas, NULL, &curr_x, &curr_y, &bw );
+			LOCAL_DEBUG_OUT( "current canvas at = %+d%+d", curr_x, curr_y );
             if( curr_x == x && curr_y == y && width == canvas->width && height == canvas->height  )
             {
                 if( force_redraw )
@@ -2675,23 +2685,21 @@ on_desk_moveresize( ASPagerDesk *d )
     {
         place_desk_title( d );
         place_desk_background( d );
-        if( !get_flags(d->flags, ASP_DeskShaded ) )
-        {   /* place all the grid separation windows : */
-			place_separation_bars( d );
+        /* place all the grid separation windows : */
+		place_separation_bars( d );
 
-            /* rearrange all the client windows : */
-            if( d->clients && d->clients_num > 0 )
-            {
-                register int i ;
-                i = d->clients_num ;
-                while( --i >= 0 )
-                    place_client( d, d->clients[i], False, True );
-            }
-            if( d->desk == Scr.CurrentDesk )
-                place_selection();
-            if( get_flags( d->flags, ASP_UseRootBackground )  )
-				request_background_image( d );
+        /* rearrange all the client windows : */
+        if( d->clients && d->clients_num > 0 )
+        {
+            register int i ;
+            i = d->clients_num ;
+            while( --i >= 0 )
+                place_client( d, d->clients[i], False, True );
         }
+        if( d->desk == Scr.CurrentDesk )
+            place_selection();
+        if( get_flags( d->flags, ASP_UseRootBackground )  )
+			request_background_image( d );
     }
     update_astbar_transparency(d->title, d->desk_canvas, False);
     update_astbar_transparency(d->background, d->desk_canvas, False);
