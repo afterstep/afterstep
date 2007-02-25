@@ -4,6 +4,7 @@ Name=2D Graphics
 X-AfterStep-IndexName=2DGraphics
 Categories=Graphics
 Comment=2D based graphical application
+Icon=Folder-Brushes
 Type=Directory
 
 [DesktopEntry]
@@ -433,6 +434,7 @@ Name=Audio
 X-AfterStep-IndexName=Audio
 Categories=AudioVideo
 Comment=An audio application
+icon=Folder-MusicalNote
 Type=Directory
 
 [DesktopEntry]
@@ -1194,6 +1196,7 @@ Name=File Transfer
 X-AfterStep-IndexName=FileTransfer
 Categories=Network
 Comment=Tools like FTP or P2P programs
+icon=Folder-Globe
 Type=Directory
 
 [DesktopEntry]
@@ -1577,6 +1580,7 @@ Name=Instant Messaging
 X-AfterStep-IndexName=InstantMessaging
 Categories=Network
 Comment=An instant messaging client
+icon=Folder-Chat
 Type=Directory
 
 [DesktopEntry]
@@ -2184,6 +2188,7 @@ Name=Player
 X-AfterStep-IndexName=Player
 Categories=Audio;Video;AudioVideo
 Comment=Application to play audio/video files
+icon=Folder-Headphones
 Type=Directory
 
 [DesktopEntry]
@@ -2320,6 +2325,7 @@ Name=Raster Graphics
 X-AfterStep-IndexName=RasterGraphics
 Categories=2DGraphics
 Comment=Raster based graphical application
+icon=Folder-Brushes
 Type=Directory
 
 [DesktopEntry]
@@ -2452,6 +2458,7 @@ Name=Scanning
 X-AfterStep-IndexName=Scanning
 Categories=Graphics
 Comment=Tool to scan a file/text
+icon=Folder-Scanner
 Type=Directory
 
 [DesktopEntry]
@@ -2460,6 +2467,7 @@ Name=Science
 X-AfterStep-IndexName=Science
 Categories=Education
 Comment=Scientific software
+icon=Folder-Calculator2
 Type=Directory
 Name[af]=Wetenskap
 Name[ar]=العلم
@@ -2530,6 +2538,7 @@ X-AfterStep-IndexName=Screensaver
 X-AfterStep-Aliases=ScreenSavers
 Categories=System 
 Comment=A screen saver (launching this desktop entry should activate the screen saver)
+icon=Folder-MoonInMonitor
 Type=Directory
 Name[bg]=Предпазители на екрана
 Name[bn]=স্ক্রীনসেভার
@@ -3136,6 +3145,7 @@ Name=TV
 X-AfterStep-IndexName=TV
 Categories=Video
 Comment=A TV application
+icon=Folder-TV
 Type=Directory
 
 [DesktopEntry]
@@ -3474,6 +3484,7 @@ Name=Video
 X-AfterStep-IndexName=Video
 Categories=AudioVideo
 Comment=A video application
+icon=Folder-MovieProjector
 Type=Directory
 
 [DesktopEntry]
