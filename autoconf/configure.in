@@ -798,7 +798,7 @@ afterstep/start/1_Desktop/Feel/.include \
 afterstep/start/1_Desktop/Color_Scheme/.include \
 afterstep/start/1_Desktop/Look/.include \
 afterstep/start/1_Desktop/Theme/.include \
-afterstep/start/1_Desktop/Pictures/.include \
+afterstep/start/1_Desktop/Pictures/AfterStep_Images/.include \
 afterstep/start/1_Desktop/Pictures/User_Backgrounds/.include \
 )
 
