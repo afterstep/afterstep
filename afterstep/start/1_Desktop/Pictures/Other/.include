@@ -1,10 +1,18 @@
 minipixmap mini/Folder
-keepname
-extension  .jpg
-include "/usr/share/xplanet/images" BackgroundForeign
-include "/usr/local/share/xplanet/images" BackgroundForeign
-include "$GNOMEDIR/share/nautilus/patterns" BackgroundForeign
+
+name Other Images
+
+Comment "Miscellaneous backgrounds & pictures."
+
+# xplanet images
+include include "/usr/share/xplanet/images" BackgroundForeign
+include include "/usr/local/share/xplanet/images" BackgroundForeign
+
+# odds-n-ends
 include "/usr/share/images/desktop-base" BackgroundForeign
+include "/usr/share/backgrounds/images/" BackgroundForeign
+include "/usr/share/pixmaps/backgrounds" BackgroundForeign
+include "/usr/share/backgrounds" BackgroundForeign
+include "/usr/local/share/pixmaps/backgrounds" BackgroundForeign
 
 command BackgroundForeign
-

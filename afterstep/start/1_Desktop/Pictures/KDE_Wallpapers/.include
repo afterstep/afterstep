@@ -1,7 +1,12 @@
 minipixmap mini/Folder
 keepname
-extension  .jpg
-include "$KDEDIR/share/wallpapers" BackgroundForeign
+
+Comment "KDE backgrounds & pictures."
+
+# Fedora, Debian, Mandriva, SuSE, FreeBSD (X11R7?)
+include "/usr/share/wallpapers/" BackgroundForeign
+
+# FreeBSD
+include "/usr/X11R6/share/wallpapers/" BackgroundForeign
 
 command BackgroundForeign
-

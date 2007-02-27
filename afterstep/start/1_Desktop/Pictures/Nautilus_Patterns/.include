@@ -1,0 +1,15 @@
+minipixmap mini/Folder
+keepname
+
+Comment "Nautilus-provided patterns."
+
+# Fedora, Debian, Mandriva, FreeBSD (X11R7?)
+include "/usr/share/nautilus/patterns/" BackgroundForeign
+
+# SuSE
+include "/opt/gnome/share/nautilus/patterns/" BackgroundForeign
+
+# FreeBSD
+include "/usr/X11R6/share/gnome/nautilus/patterns/" BackgroundForeign
+
+command BackgroundForeign

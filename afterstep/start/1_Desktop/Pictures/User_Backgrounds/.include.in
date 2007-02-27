@@ -1,0 +1,9 @@
+minipixmap mini/Folder
+keepname
+
+Comment "AfterStep User desktop backgrounds & pictures."
+
+# user home directory
+include "@with_afterdir@/backgrounds" BackgroundForeign
+
+command BackgroundForeign
