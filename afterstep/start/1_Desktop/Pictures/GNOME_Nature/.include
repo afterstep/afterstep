@@ -6,7 +6,7 @@ Comment "GNOME nature-themed backgrounds & pictures."
 # Fedora
 include "/usr/share/backgrounds/nature/" BackgroundForeign
 
-# Debian, Mandriva (not actually a part, but just in-case)
+# Debian, Mandriva (not actually a part, but just in-case), Slackware, Gentoo
 include "/usr/share/pixmaps/backgrounds/gnome/nature/" BackgroundForeign
 include "/usr/share/pixmaps/backgrounds/gnome/nature/" BackgroundForeign
 

@@ -6,7 +6,7 @@ Comment "GNOME translucent backgrounds & pictures."
 # Fedora
 include "/usr/share/backgrounds/translucent/" BackgroundForeign
 
-# Debian, Mandriva
+# Debian, Mandriva, Slackware, Gentoo
 include "/usr/share/pixmaps/backgrounds/gnome/translucent/" BackgroundForeign
 
 # SuSE

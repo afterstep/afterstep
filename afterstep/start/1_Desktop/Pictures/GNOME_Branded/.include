@@ -6,7 +6,7 @@ Comment "GNOME logo backgrounds & pictures."
 # Fedora
 include "/usr/share/backgrounds/images/branded/" BackgroundForeign
 
-# Debian, Mandriva
+# Debian, Mandriva, Slackware, Gentoo
 include "/usr/share/pixmaps/backgrounds/gnome/branded/" BackgroundForeign
 
 # SuSE

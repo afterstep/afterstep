@@ -3,7 +3,7 @@ keepname
 
 Comment "Nautilus-provided patterns."
 
-# Fedora, Debian, Mandriva, FreeBSD (X11R7?)
+# Fedora, Debian, Mandriva, Slackware, FreeBSD (X11R7?), Gentoo
 include "/usr/share/nautilus/patterns/" BackgroundForeign
 
 # SuSE

@@ -9,4 +9,11 @@ include "/usr/share/wallpapers/" BackgroundForeign
 # FreeBSD
 include "/usr/X11R6/share/wallpapers/" BackgroundForeign
 
+# Slackware
+include "/opt/kde/share/wallpapers/" BackgroundForeign
+
+# Gentoo (hopefully the second will accomidate future versions)
+include "/usr/kde/3.5/share/wallpapers/" BackgroundForeign
+include "/usr/kde/share/wallpapers/" BackgroundForeign
+
 command BackgroundForeign

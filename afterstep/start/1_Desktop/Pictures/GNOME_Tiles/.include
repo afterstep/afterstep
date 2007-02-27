@@ -6,7 +6,7 @@ Comment "GNOME tiles & patterns."
 # Fedora
 include "/usr/share/backgrounds/tiles/" BackgroundForeign
 
-# Debian, Mandriva
+# Debian, Mandriva, Slackware, Gentoo
 include "/usr/share/pixmaps/backgrounds/gnome/tiles/" BackgroundForeign
 
 # SuSE
