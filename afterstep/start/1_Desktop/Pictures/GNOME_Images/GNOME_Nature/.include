@@ -8,7 +8,6 @@ include "/usr/share/backgrounds/nature/" BackgroundForeign
 
 # Debian, Mandriva (not actually a part, but just in-case), Slackware, Gentoo
 include "/usr/share/pixmaps/backgrounds/gnome/nature/" BackgroundForeign
-include "/usr/share/pixmaps/backgrounds/gnome/nature/" BackgroundForeign
 
 # SuSE (not actually a part, but just in-case)
 include "/opt/gnome/share/pixmaps/backgrounds/gnome/nature/" BackgroundForeign
