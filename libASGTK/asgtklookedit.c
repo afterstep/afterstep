@@ -55,7 +55,7 @@ static void asgtk_mystyle_edit_style_set (GtkWidget *widget, GtkStyle  *prev_sty
 
 
 /*  private variables  */
-static GtkFrame *mystyle_edit_parent_class = NULL;
+static GtkVBox *mystyle_edit_parent_class = NULL;
 
 GType
 asgtk_mystyle_edit_get_type (void)
@@ -77,7 +77,7 @@ asgtk_mystyle_edit_get_type (void)
         	(GInstanceInitFunc) asgtk_mystyle_edit_init,
       	};
 
-      	id_type = g_type_register_static (	GTK_TYPE_FRAME,
+      	id_type = g_type_register_static (	GTK_TYPE_VBOX,
         	                                "ASGtkMyStyleEdit",
             	                            &id_info, 0);
     }
@@ -163,10 +163,10 @@ FreeStorage2MyStyleEdit( FreeStorageElem *storage, ASGtkMyStyleEdit *self )
 {
 	FreeStorageElem *curr = storage ;
 	ConfigItem    item;
-	ASGtkSimpleList *list = ASGTK_SIMPLE_LIST(self->inherit_list);
 
 	self->free_store = storage ; 
-
+#if 0
+	ASGtkSimpleList *list = ASGTK_SIMPLE_LIST(self->inherit_list);
 	item.memory = NULL;
 	asgtk_simple_list_purge( list );
 	gtk_combo_box_set_active( GTK_COMBO_BOX(self->text_style), AST_3DTypes );
@@ -232,7 +232,7 @@ FreeStorage2MyStyleEdit( FreeStorageElem *storage, ASGtkMyStyleEdit *self )
 		}
 		ReadConfigItem (&item, NULL);
 	}
-
+#endif
 }
 
 void 
@@ -245,7 +245,8 @@ asgtk_mystyle_edit_set_mystyles_list( ASGtkMyStyleEdit *self, GtkTreeModel *list
 		self->mystyles_list = list ; 
 		if( self->mystyles_list ) 
 			g_object_ref( self->mystyles_list ); 
-		gtk_combo_box_set_model( GTK_COMBO_BOX(self->overlay_mystyle), self->mystyles_list );
+			
+		gtk_combo_box_set_model( GTK_COMBO_BOX(self->combo_overlay_mystyle), self->mystyles_list );
 	}
 }
 
@@ -254,9 +255,14 @@ on_mystyle_overlay_clicked(GtkWidget *widget, gpointer data )
 {
   	ASGtkMyStyleEdit *self = ASGTK_MYSTYLE_EDIT (data);
 	Bool active = gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(widget));
+#if 0
 	gtk_widget_set_sensitive( self->overlay_mystyle, active ); 				
+#endif
 
 }
+
+GtkWidget*
+create_mystyle_editor_interface (GtkWidget *mystyle_editor /* assumed descendand from vbox */);
 
 
 /*  public functions  */
@@ -274,6 +280,9 @@ asgtk_mystyle_edit_new ()
 	colorize_gtk_widget( wself, get_colorschemed_style_normal() );
 
 	self->syntax = &MyStyleSyntax ;
+
+	create_mystyle_editor_interface( wself );
+#if 0
 	table = gtk_table_new( 4, 11, FALSE );
 	self->inherit_frame = gtk_frame_new( NULL );
 	self->inherit_box = gtk_hbox_new(FALSE, 5);
@@ -469,7 +478,7 @@ asgtk_mystyle_edit_new ()
 	ASGTK_CONTAINER_ADD(self, table);
 
 	gtk_widget_hide( ASGTK_IMAGE_VIEW(self->pixmap_preview)->details_frame );
-
+#endif
 
 	LOCAL_DEBUG_OUT( "created image ASGtkMyStyleEdit object %p", self );	
 	return wself;
@@ -593,14 +602,16 @@ build_mystyles_panel( ASGtkMyStylesPanel *panel )
 	panel->list 		= asgtk_simple_list_new( "Available MyStyles : " );
 	panel->list_window  = ASGTK_SCROLLED_WINDOW(GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC,GTK_SHADOW_IN);
 	panel->list_hbtn_box= gtk_hbutton_box_new(); 	
+	panel->mystyle_frame= gtk_frame_new(NULL); 	
 	panel->mystyle_editor= asgtk_mystyle_edit_new(); 	
 	asgtk_mystyle_edit_set_mystyles_list( ASGTK_MYSTYLE_EDIT(panel->mystyle_editor), ASGTK_SIMPLE_LIST(panel->list)->tree_model ); 
 
 	asgtk_simple_list_set_sel_handling( ASGTK_SIMPLE_LIST(panel->list), G_OBJECT(panel->mystyle_editor), mystyle_panel_sel_handler ); 
 
+	gtk_container_add( GTK_CONTAINER(panel->mystyle_frame), panel->mystyle_editor );
 	ASGTK_PACK_BEGIN(panel->hbox);
 		ASGTK_PACK_TO_START(panel->list_vbox, FALSE, FALSE, 5);
-		ASGTK_PACK_TO_START(panel->mystyle_editor, TRUE, TRUE, 0);
+		ASGTK_PACK_TO_START(panel->mystyle_frame, TRUE, TRUE, 0);
 	ASGTK_PACK_END;
 
 	ASGTK_PACK_BEGIN(panel->list_vbox);
