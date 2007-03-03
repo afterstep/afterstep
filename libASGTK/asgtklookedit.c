@@ -261,6 +261,46 @@ on_mystyle_overlay_clicked(GtkWidget *widget, gpointer data )
 
 }
 
+void 
+asgtk_mystyle_edit_set_name_visible(ASGtkMyStyleEdit *self, Bool visible)
+{
+	if( !visible ) 
+	{
+		if( get_flags( self->flags, ASGTK_MYSTYLE_EDIT_NAME_VISIBLE ) )
+		{
+		    gtk_container_remove (GTK_CONTAINER (self), self->hbox1_mystyle_name);
+			clear_flags( self->flags, ASGTK_MYSTYLE_EDIT_NAME_VISIBLE );
+		}
+	}else
+	{
+		if( !get_flags( self->flags, ASGTK_MYSTYLE_EDIT_NAME_VISIBLE ) )
+		{
+		  	gtk_box_pack_start (GTK_BOX(self), self->hbox1_mystyle_name, TRUE, TRUE, 0);
+			gtk_box_reorder_child(GTK_BOX(self), self->hbox1_mystyle_name, 0); 	
+			set_flags( self->flags, ASGTK_MYSTYLE_EDIT_NAME_VISIBLE );
+		}
+	}	
+}
+
+void 
+asgtk_mystyle_edit_set_background_type(ASGtkMyStyleEdit *self, int type)
+{
+	if( type == 0 ) 
+	{
+	
+	}else if( type > 0 && type <= TEXTURE_GRADIENT_END ) 
+	{
+		/* to show : hbox8_grad_details	*/
+	}else if( type >= TEXTURE_TEXTURED_START && type <= TEXTURE_TEXTURED_END )  
+	{
+		/* to show : hbox10_texture_blend_type, hbox9_texture_file, table1_texture_slicing	*/
+	}else
+	{
+	
+	}	
+}
+
+
 GtkWidget*
 create_mystyle_editor_interface (GtkWidget *mystyle_editor /* assumed descendand from vbox */);
 
@@ -278,6 +318,7 @@ asgtk_mystyle_edit_new ()
 	
 
 	colorize_gtk_widget( wself, get_colorschemed_style_normal() );
+	set_flags( self->flags, ASGTK_MYSTYLE_EDIT_ALL_VISIBLE );
 
 	self->syntax = &MyStyleSyntax ;
 
@@ -605,7 +646,8 @@ build_mystyles_panel( ASGtkMyStylesPanel *panel )
 	panel->mystyle_frame= gtk_frame_new(NULL); 	
 	panel->mystyle_editor= asgtk_mystyle_edit_new(); 	
 	asgtk_mystyle_edit_set_mystyles_list( ASGTK_MYSTYLE_EDIT(panel->mystyle_editor), ASGTK_SIMPLE_LIST(panel->list)->tree_model ); 
-
+	asgtk_mystyle_edit_set_name_visible(  ASGTK_MYSTYLE_EDIT(panel->mystyle_editor), False );
+	
 	asgtk_simple_list_set_sel_handling( ASGTK_SIMPLE_LIST(panel->list), G_OBJECT(panel->mystyle_editor), mystyle_panel_sel_handler ); 
 
 	gtk_container_add( GTK_CONTAINER(panel->mystyle_frame), panel->mystyle_editor );
@@ -630,6 +672,7 @@ build_mystyles_panel( ASGtkMyStylesPanel *panel )
 	ASGTK_CONTAINER_ADD(panel->list_window, panel->list);
 	ASGTK_CONTAINER_ADD(panel->frame, panel->hbox);
 	ASGTK_CONTAINER_ADD(panel->expander, panel->frame);
+	
 
 }
 

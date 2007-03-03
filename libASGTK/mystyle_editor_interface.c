@@ -52,7 +52,6 @@ create_mystyle_editor_interface (GtkWidget *mystyle_editor /* assumed descendand
    	/*-- hand edit end --*/
   GtkWidget *vbox;
   GtkWidget *hbox1_mystyle_name;
-  GtkWidget *tgl1_mystyle_name;
   GtkWidget *label_mystyle;
   GtkWidget *entry_mystyle_name;
   GtkWidget *hbox2_overlay;
@@ -100,7 +99,6 @@ create_mystyle_editor_interface (GtkWidget *mystyle_editor /* assumed descendand
   GtkWidget *hbox9_texture_file;
   GtkWidget *arrow2_texture_file;
   GtkWidget *label_texture_file;
-  GtkWidget *entry_texture_file;
   GtkWidget *filechooserbtn_texture_file;
   GtkWidget *hbox10_texture_blend_type;
   GtkWidget *arrow3_texture_blend_type;
@@ -139,15 +137,13 @@ create_mystyle_editor_interface (GtkWidget *mystyle_editor /* assumed descendand
   hbox1_mystyle_name = gtk_hbox_new (FALSE, 4);
   gtk_widget_show (hbox1_mystyle_name);
   gtk_box_pack_start (GTK_BOX (vbox), hbox1_mystyle_name, TRUE, TRUE, 0);
-
-  tgl1_mystyle_name = gtk_toggle_button_new_with_mnemonic ("[-]");
-  gtk_widget_show (tgl1_mystyle_name);
-  gtk_box_pack_start (GTK_BOX (hbox1_mystyle_name), tgl1_mystyle_name, FALSE, FALSE, 0);
-  gtk_button_set_relief (GTK_BUTTON (tgl1_mystyle_name), GTK_RELIEF_HALF);
+  gtk_container_set_border_width (GTK_CONTAINER (hbox1_mystyle_name), 2);
 
   label_mystyle = gtk_label_new ("MyStyle");
   gtk_widget_show (label_mystyle);
   gtk_box_pack_start (GTK_BOX (hbox1_mystyle_name), label_mystyle, FALSE, FALSE, 0);
+  gtk_label_set_justify (GTK_LABEL (label_mystyle), GTK_JUSTIFY_RIGHT);
+  gtk_misc_set_padding (GTK_MISC (label_mystyle), 5, 0);
 
   entry_mystyle_name = gtk_entry_new ();
   gtk_widget_show (entry_mystyle_name);
@@ -366,14 +362,9 @@ create_mystyle_editor_interface (GtkWidget *mystyle_editor /* assumed descendand
   gtk_widget_show (label_texture_file);
   gtk_box_pack_start (GTK_BOX (hbox9_texture_file), label_texture_file, FALSE, FALSE, 0);
 
-  entry_texture_file = gtk_entry_new ();
-  gtk_widget_show (entry_texture_file);
-  gtk_box_pack_start (GTK_BOX (hbox9_texture_file), entry_texture_file, TRUE, TRUE, 0);
-  gtk_entry_set_invisible_char (GTK_ENTRY (entry_texture_file), 9679);
-
   filechooserbtn_texture_file = gtk_file_chooser_button_new ("", GTK_FILE_CHOOSER_ACTION_OPEN);
   gtk_widget_show (filechooserbtn_texture_file);
-  gtk_box_pack_start (GTK_BOX (hbox9_texture_file), filechooserbtn_texture_file, FALSE, FALSE, 0);
+  gtk_box_pack_start (GTK_BOX (hbox9_texture_file), filechooserbtn_texture_file, TRUE, TRUE, 0);
 
   hbox10_texture_blend_type = gtk_hbox_new (FALSE, 5);
   gtk_widget_show (hbox10_texture_blend_type);
@@ -465,7 +456,6 @@ create_mystyle_editor_interface (GtkWidget *mystyle_editor /* assumed descendand
   /* GLADE_HOOKUP_OBJECT (mystyle_editor, vbox, "vbox"); */
    	/*-- hand edit end --*/
   GLADE_HOOKUP_OBJECT (mystyle_editor, hbox1_mystyle_name, "hbox1_mystyle_name");
-  GLADE_HOOKUP_OBJECT (mystyle_editor, tgl1_mystyle_name, "tgl1_mystyle_name");
   GLADE_HOOKUP_OBJECT (mystyle_editor, label_mystyle, "label_mystyle");
   GLADE_HOOKUP_OBJECT (mystyle_editor, entry_mystyle_name, "entry_mystyle_name");
   GLADE_HOOKUP_OBJECT (mystyle_editor, hbox2_overlay, "hbox2_overlay");
@@ -512,7 +502,6 @@ create_mystyle_editor_interface (GtkWidget *mystyle_editor /* assumed descendand
   GLADE_HOOKUP_OBJECT (mystyle_editor, hbox9_texture_file, "hbox9_texture_file");
   GLADE_HOOKUP_OBJECT (mystyle_editor, arrow2_texture_file, "arrow2_texture_file");
   GLADE_HOOKUP_OBJECT (mystyle_editor, label_texture_file, "label_texture_file");
-  GLADE_HOOKUP_OBJECT (mystyle_editor, entry_texture_file, "entry_texture_file");
   GLADE_HOOKUP_OBJECT (mystyle_editor, filechooserbtn_texture_file, "filechooserbtn_texture_file");
   GLADE_HOOKUP_OBJECT (mystyle_editor, hbox10_texture_blend_type, "hbox10_texture_blend_type");
   GLADE_HOOKUP_OBJECT (mystyle_editor, arrow3_texture_blend_type, "arrow3_texture_blend_type");
