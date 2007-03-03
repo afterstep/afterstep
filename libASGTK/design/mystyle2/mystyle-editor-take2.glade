@@ -30,27 +30,10 @@
 
       <child>
 	<widget class="GtkHBox" id="hbox1_mystyle_name">
+	  <property name="border_width">1</property>
 	  <property name="visible">True</property>
 	  <property name="homogeneous">False</property>
-	  <property name="spacing">4</property>
-
-	  <child>
-	    <widget class="GtkToggleButton" id="tgl1_mystyle_name">
-	      <property name="visible">True</property>
-	      <property name="can_focus">True</property>
-	      <property name="label" translatable="yes">[-]</property>
-	      <property name="use_underline">True</property>
-	      <property name="relief">GTK_RELIEF_HALF</property>
-	      <property name="focus_on_click">True</property>
-	      <property name="active">False</property>
-	      <property name="inconsistent">False</property>
-	    </widget>
-	    <packing>
-	      <property name="padding">0</property>
-	      <property name="expand">False</property>
-	      <property name="fill">False</property>
-	    </packing>
-	  </child>
+	  <property name="spacing">5</property>
 
 	  <child>
 	    <widget class="GtkLabel" id="label_mystyle">
@@ -58,12 +41,12 @@
 	      <property name="label" translatable="yes">MyStyle</property>
 	      <property name="use_underline">False</property>
 	      <property name="use_markup">False</property>
-	      <property name="justify">GTK_JUSTIFY_LEFT</property>
+	      <property name="justify">GTK_JUSTIFY_RIGHT</property>
 	      <property name="wrap">False</property>
 	      <property name="selectable">False</property>
 	      <property name="xalign">0.5</property>
 	      <property name="yalign">0.5</property>
-	      <property name="xpad">0</property>
+	      <property name="xpad">5</property>
 	      <property name="ypad">0</property>
 	      <property name="ellipsize">PANGO_ELLIPSIZE_NONE</property>
 	      <property name="width_chars">-1</property>
@@ -890,25 +873,6 @@ Tiled pseudo-transp. texture</property>
 	  </child>
 
 	  <child>
-	    <widget class="GtkEntry" id="entry_texture_file">
-	      <property name="visible">True</property>
-	      <property name="can_focus">True</property>
-	      <property name="editable">True</property>
-	      <property name="visibility">True</property>
-	      <property name="max_length">0</property>
-	      <property name="text" translatable="yes"></property>
-	      <property name="has_frame">True</property>
-	      <property name="invisible_char">●</property>
-	      <property name="activates_default">False</property>
-	    </widget>
-	    <packing>
-	      <property name="padding">0</property>
-	      <property name="expand">True</property>
-	      <property name="fill">True</property>
-	    </packing>
-	  </child>
-
-	  <child>
 	    <widget class="GtkFileChooserButton" id="filechooserbtn_texture_file">
 	      <property name="visible">True</property>
 	      <property name="title" translatable="yes"></property>
@@ -920,8 +884,8 @@ Tiled pseudo-transp. texture</property>
 	    </widget>
 	    <packing>
 	      <property name="padding">0</property>
-	      <property name="expand">False</property>
-	      <property name="fill">False</property>
+	      <property name="expand">True</property>
+	      <property name="fill">True</property>
 	    </packing>
 	  </child>
 	</widget>
