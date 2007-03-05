@@ -22,10 +22,12 @@
 
 #include "../include/afterbase.h"
 #include "../libAfterImage/afterimage.h"
+#include "../libAfterImage/asvisual.h"
 #include "../libAfterStep/asapp.h"
 #include "../libAfterStep/screen.h"
 #include "../libAfterStep/parser.h"
 #include "../libAfterStep/freestor.h"
+#include "../libAfterStep/mystyle.h"
 #include "../libAfterConf/afterconf.h"
 
 #include <unistd.h>		   
@@ -158,25 +160,56 @@ static void fill_text_style_combo_box( GtkWidget *w )
 			gtk_combo_box_append_text( cbox, MyStyleTextStyles[i++] );
 }
 
+
+void  
+color2button_image( GtkImage *btn, const char *color )
+{
+	GdkColor bg ;
+	static GdkColor gdk_white={0xFFFFFFFF, 0xFFFF, 0xFFFF, 0xFFFF };
+	static GdkColor gdk_black={0x00000000, 0x0000, 0x0000, 0x0000 };
+	GdkColor *fg = &gdk_white;
+	ARGB32 argb = 0xFFFFFFFF ;
+	CARD32 val ;
+	GtkWidget *tmp_frame ; 
+	GdkPixbuf *pb ;
+
+	if( color && color[0] != '\0')
+		parse_argb_color( color, &argb );
+
+	val = ASCS_BLACK_O_WHITE_CRITERIA16_VAL(ARGB32_RED16(argb),ARGB32_GREEN16(argb),ARGB32_BLUE16(argb));
+	if( val < 0x09FFF )
+		fg = &gdk_black ; 
+
+	pb = solid_color2GdkPixbuf( argb, 16, 16 );
+	if( pb ) 
+	{	
+		gtk_image_set_from_pixbuf( GTK_IMAGE(btn), pb );
+		gdk_pixbuf_unref( pb ); 		   
+	}
+
+//	color_name2GdkColor(color, &bg);
+//  	gtk_widget_modify_bg( GTK_WIDGET(btn), GTK_STATE_INSENSITIVE, &bg );
+	
+}	
+
 static void 
 FreeStorage2MyStyleEdit( FreeStorageElem *storage, ASGtkMyStyleEdit *self ) 
 {
 	FreeStorageElem *curr = storage ;
 	ConfigItem    item;
+	ASGtkSimpleList *list = ASGTK_SIMPLE_LIST(self->tw_inherit_list);
 
 	self->free_store = storage ; 
-#if 0
-	ASGtkSimpleList *list = ASGTK_SIMPLE_LIST(self->inherit_list);
-	item.memory = NULL;
 	asgtk_simple_list_purge( list );
-	gtk_combo_box_set_active( GTK_COMBO_BOX(self->text_style), AST_3DTypes );
-	gtk_entry_set_text( GTK_ENTRY(self->font), NULL );
-	gtk_entry_set_text( GTK_ENTRY(self->fore_color), NULL );
-	gtk_entry_set_text( GTK_ENTRY(self->back_color), NULL );
-	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(self->overlay), FALSE );
-	gtk_combo_box_set_active( GTK_COMBO_BOX(self->overlay_mystyle), -1 );
-	gtk_widget_set_sensitive( self->overlay_mystyle, FALSE ); 				
-//	asgtk_collapsing_frame_set_open(ASGTK_COLLAPSING_FRAME(self->backpixmap_frame), FALSE);
+
+	item.memory = NULL;
+	gtk_combo_box_set_active( GTK_COMBO_BOX(self->combo_shadow_type), AST_3DTypes );
+
+	gtk_button_set_label( GTK_BUTTON(self->btn_font_name), NULL );
+	gtk_button_set_label( GTK_BUTTON(self->btn_fore_color), NULL );
+	gtk_button_set_label( GTK_BUTTON(self->btn_back_color), NULL );
+	gtk_combo_box_set_active( GTK_COMBO_BOX(self->combo_overlay_mystyle), -1 );
+	gtk_widget_set_sensitive( self->combo_overlay_mystyle, FALSE ); 				
 
 	if( curr && curr->term->id == MYSTYLE_START_ID ) 
 		curr = curr->sub ;
@@ -190,20 +223,24 @@ FreeStorage2MyStyleEdit( FreeStorageElem *storage, ASGtkMyStyleEdit *self )
 				if( curr->term->id == MYSTYLE_INHERIT_ID ) 
 					asgtk_simple_list_append( list, item.data.string, curr );
 				else if( curr->term->id == MYSTYLE_FONT_ID ) 
-					gtk_entry_set_text( GTK_ENTRY(self->font), item.data.string );
+					gtk_button_set_label( GTK_BUTTON(self->btn_font_name), item.data.string );
 				else if( curr->term->id == MYSTYLE_FORECOLOR_ID ) 
-					gtk_entry_set_text( GTK_ENTRY(self->fore_color), item.data.string );
-				else if( curr->term->id == MYSTYLE_BACKCOLOR_ID ) 
-					gtk_entry_set_text( GTK_ENTRY(self->back_color), item.data.string );
-				else if( curr->term->id == MYSTYLE_TEXTSTYLE_ID ) 
+				{
+					color2button_image( GTK_IMAGE(self->img_fore_color), item.data.string );
+					gtk_button_set_label( GTK_BUTTON(self->btn_fore_color), item.data.string );
+				}else if( curr->term->id == MYSTYLE_BACKCOLOR_ID ) 
+				{
+					color2button_image( GTK_IMAGE(self->img_back_color), item.data.string );
+					gtk_button_set_label( GTK_BUTTON(self->btn_back_color), item.data.string );
+				}else if( curr->term->id == MYSTYLE_TEXTSTYLE_ID ) 
 				{
 					if( item.data.integer > AST_3DTypes ) 
 						item.data.integer = AST_3DTypes ;
-					gtk_combo_box_set_active( GTK_COMBO_BOX(self->text_style), item.data.integer );
+					gtk_combo_box_set_active( GTK_COMBO_BOX(self->combo_shadow_type), item.data.integer );
 				}else if( curr->term->id == MYSTYLE_Overlay_ID ) 
 				{
 					GtkTreeIter iter ; 
-					gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(self->overlay), TRUE );
+					// gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(self->overlay), TRUE );
 					if( gtk_tree_model_get_iter_first( self->mystyles_list, &iter ) )
 					{
 						char *tmp = NULL ; 
@@ -212,18 +249,20 @@ FreeStorage2MyStyleEdit( FreeStorageElem *storage, ASGtkMyStyleEdit *self )
 					    	gtk_tree_model_get (self->mystyles_list, &iter, 0, &tmp, -1);
 							if( mystrcasecmp( tmp, item.data.string ) == 0 ) 
 							{
-								gtk_combo_box_set_active_iter( GTK_COMBO_BOX(self->overlay_mystyle), &iter );
+								gtk_combo_box_set_active_iter( GTK_COMBO_BOX(self->combo_overlay_mystyle), &iter );
 								break ;
 							}
 						}while( gtk_tree_model_iter_next( self->mystyles_list, &iter ) );
 					}
-					gtk_widget_set_sensitive( self->overlay_mystyle, TRUE ); 				
+					gtk_widget_set_sensitive( self->combo_overlay_mystyle, TRUE ); 				
 				}else if( curr->term->id == MYSTYLE_BACKPIXMAP_ID ) 
 				{
+#if 0				
 					LOCAL_DEBUG_OUT( "item.data.string = \"%s\", index = %d", item.data.string, item.index );
 					if( item.data.string != NULL )
-						gtk_entry_set_text( GTK_ENTRY(self->pixmap_filename), item.data.string );
+						gtk_entry_set_text( GTK_ENTRY(self->filechooserbtn_texture_file), item.data.string );
 					asgtk_collapsing_frame_set_open(ASGTK_COLLAPSING_FRAME(self->backpixmap_frame), TRUE);
+#endif		
 				}
 				item.ok_to_free = True;
 			}
@@ -232,7 +271,6 @@ FreeStorage2MyStyleEdit( FreeStorageElem *storage, ASGtkMyStyleEdit *self )
 		}
 		ReadConfigItem (&item, NULL);
 	}
-#endif
 }
 
 void 

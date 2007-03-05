@@ -29,11 +29,16 @@
 #include "../libAfterConf/afterconf.h"
 #include "asgtk.h"
 #include "asgtkai.h"
+#include "asgtklistviews.h"
 
 #include "asgtklookedit.h"
 //#include "mystyle_editor_callbacks.h"
 //#include "mystyle_editor_interface.h"
 //#include "support.h"
+
+GtkWidget *asgtk_simple_list_new_no_title(){ return asgtk_simple_list_new(NULL);} 
+
+#define gtk_tree_view_new  asgtk_simple_list_new_no_title
 
 #define GLADE_HOOKUP_OBJECT(component,widget,name) \
   do {	g_object_set_data_full (G_OBJECT (component), name, \
@@ -77,8 +82,10 @@ create_mystyle_editor_interface (GtkWidget *mystyle_editor /* assumed descendand
   GtkWidget *hbox5_colors;
   GtkWidget *tgl5_colors;
   GtkWidget *label_colors_fore;
+  GtkWidget *img_fore_color;
   GtkWidget *btn_fore_color;
   GtkWidget *label_colors_back;
+  GtkWidget *img_back_color;
   GtkWidget *btn_back_color;
   GtkWidget *hbox6_shadow;
   GtkWidget *tgl5_shadow;
@@ -185,7 +192,7 @@ create_mystyle_editor_interface (GtkWidget *mystyle_editor /* assumed descendand
   gtk_widget_show (sw_inherit_list);
   gtk_box_pack_start (GTK_BOX (hbox3_inherit), sw_inherit_list, TRUE, FALSE, 0);
   gtk_widget_set_size_request (sw_inherit_list, 191, 26);
-  gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (sw_inherit_list), GTK_POLICY_NEVER, GTK_POLICY_ALWAYS);
+  gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (sw_inherit_list), GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
   gtk_scrolled_window_set_shadow_type (GTK_SCROLLED_WINDOW (sw_inherit_list), GTK_SHADOW_IN);
 
   tw_inherit_list = gtk_tree_view_new ();
@@ -228,7 +235,8 @@ create_mystyle_editor_interface (GtkWidget *mystyle_editor /* assumed descendand
 
   btn_font_name = gtk_button_new_with_mnemonic ("Font Name");
   gtk_widget_show (btn_font_name);
-  gtk_box_pack_start (GTK_BOX (hbox4_font), btn_font_name, TRUE, TRUE, 0);
+  gtk_box_pack_start (GTK_BOX (hbox4_font), btn_font_name, FALSE, TRUE, 0);
+  gtk_widget_set_size_request (btn_font_name, 150, -1);
 
   label_font_size = gtk_label_new ("of size");
   gtk_widget_show (label_font_size);
@@ -252,18 +260,30 @@ create_mystyle_editor_interface (GtkWidget *mystyle_editor /* assumed descendand
   gtk_widget_show (label_colors_fore);
   gtk_box_pack_start (GTK_BOX (hbox5_colors), label_colors_fore, FALSE, FALSE, 0);
 
+  img_fore_color = gtk_image_new ();
+  gtk_widget_show (img_fore_color);
+  gtk_box_pack_start (GTK_BOX (hbox5_colors), img_fore_color, FALSE, FALSE, 0);
+  gtk_widget_set_size_request (img_fore_color, 16, 16);
+
   btn_fore_color = gtk_button_new_with_mnemonic ("fore color");
   gtk_widget_show (btn_fore_color);
-  gtk_box_pack_start (GTK_BOX (hbox5_colors), btn_fore_color, TRUE, TRUE, 0);
+  gtk_box_pack_start (GTK_BOX (hbox5_colors), btn_fore_color, FALSE, TRUE, 0);
+  gtk_widget_set_size_request (btn_fore_color, 90, -1);
   gtk_button_set_relief (GTK_BUTTON (btn_fore_color), GTK_RELIEF_HALF);
-
+  
   label_colors_back = gtk_label_new ("over");
   gtk_widget_show (label_colors_back);
   gtk_box_pack_start (GTK_BOX (hbox5_colors), label_colors_back, FALSE, FALSE, 0);
 
+  img_back_color = gtk_image_new ();
+  gtk_widget_show (img_back_color);
+  gtk_box_pack_start (GTK_BOX (hbox5_colors), img_back_color, FALSE, FALSE, 0);
+  gtk_widget_set_size_request (img_back_color, 16, 16);
+
   btn_back_color = gtk_button_new_with_mnemonic ("back color");
   gtk_widget_show (btn_back_color);
-  gtk_box_pack_start (GTK_BOX (hbox5_colors), btn_back_color, TRUE, TRUE, 0);
+  gtk_box_pack_start (GTK_BOX (hbox5_colors), btn_back_color, FALSE, TRUE, 0);
+  gtk_widget_set_size_request (btn_back_color, 90, -1);
   gtk_button_set_relief (GTK_BUTTON (btn_back_color), GTK_RELIEF_HALF);
 
   hbox6_shadow = gtk_hbox_new (FALSE, 5);
@@ -282,9 +302,16 @@ create_mystyle_editor_interface (GtkWidget *mystyle_editor /* assumed descendand
   combo_shadow_type = gtk_combo_box_new_text ();
   gtk_widget_show (combo_shadow_type);
   gtk_box_pack_start (GTK_BOX (hbox6_shadow), combo_shadow_type, TRUE, TRUE, 0);
-  gtk_combo_box_append_text (GTK_COMBO_BOX (combo_shadow_type), "3D type 1");
-  gtk_combo_box_append_text (GTK_COMBO_BOX (combo_shadow_type), "3D type 2");
-  gtk_combo_box_append_text (GTK_COMBO_BOX (combo_shadow_type), "3D type 3");
+  gtk_combo_box_append_text (GTK_COMBO_BOX (combo_shadow_type), "Normal text");
+  gtk_combo_box_append_text (GTK_COMBO_BOX (combo_shadow_type), "Embossed 3D text");
+  gtk_combo_box_append_text (GTK_COMBO_BOX (combo_shadow_type), "Sunken 3D text");
+  gtk_combo_box_append_text (GTK_COMBO_BOX (combo_shadow_type), "Shade above the text");
+  gtk_combo_box_append_text (GTK_COMBO_BOX (combo_shadow_type), "Shade below the text");
+  gtk_combo_box_append_text (GTK_COMBO_BOX (combo_shadow_type), "Thick embossed 3D text");
+  gtk_combo_box_append_text (GTK_COMBO_BOX (combo_shadow_type), "Thick sunken 3D text");
+  gtk_combo_box_append_text (GTK_COMBO_BOX (combo_shadow_type), "Outlined upper edge");
+  gtk_combo_box_append_text (GTK_COMBO_BOX (combo_shadow_type), "Outlined bottom edge");
+  gtk_combo_box_append_text (GTK_COMBO_BOX (combo_shadow_type), "Outlined all around");
 
   hbox7_background = gtk_hbox_new (FALSE, 5);
   gtk_widget_show (hbox7_background);
@@ -381,9 +408,21 @@ create_mystyle_editor_interface (GtkWidget *mystyle_editor /* assumed descendand
   combo_texture_blend_type = gtk_combo_box_new_text ();
   gtk_widget_show (combo_texture_blend_type);
   gtk_box_pack_start (GTK_BOX (hbox10_texture_blend_type), combo_texture_blend_type, TRUE, TRUE, 0);
-  gtk_combo_box_append_text (GTK_COMBO_BOX (combo_texture_blend_type), "alpha-blended");
-  gtk_combo_box_append_text (GTK_COMBO_BOX (combo_texture_blend_type), "tinted");
-  gtk_combo_box_append_text (GTK_COMBO_BOX (combo_texture_blend_type), "allanon");
+  gtk_combo_box_append_text (GTK_COMBO_BOX (combo_texture_blend_type), "average color values");
+  gtk_combo_box_append_text (GTK_COMBO_BOX (combo_texture_blend_type), "alpha-blending");
+  gtk_combo_box_append_text (GTK_COMBO_BOX (combo_texture_blend_type), "tint");
+  gtk_combo_box_append_text (GTK_COMBO_BOX (combo_texture_blend_type), "color add");
+  gtk_combo_box_append_text (GTK_COMBO_BOX (combo_texture_blend_type), "color substruct");
+  gtk_combo_box_append_text (GTK_COMBO_BOX (combo_texture_blend_type), "color difference");
+  gtk_combo_box_append_text (GTK_COMBO_BOX (combo_texture_blend_type), "lowest color value");
+  gtk_combo_box_append_text (GTK_COMBO_BOX (combo_texture_blend_type), "highest color value");
+  gtk_combo_box_append_text (GTK_COMBO_BOX (combo_texture_blend_type), "screen");
+  gtk_combo_box_append_text (GTK_COMBO_BOX (combo_texture_blend_type), "overlay");
+  gtk_combo_box_append_text (GTK_COMBO_BOX (combo_texture_blend_type), "same hue");
+  gtk_combo_box_append_text (GTK_COMBO_BOX (combo_texture_blend_type), "saturation");
+  gtk_combo_box_append_text (GTK_COMBO_BOX (combo_texture_blend_type), "value");
+  gtk_combo_box_append_text (GTK_COMBO_BOX (combo_texture_blend_type), "colorize");
+  gtk_combo_box_append_text (GTK_COMBO_BOX (combo_texture_blend_type), "dissipate");
 
   table1_texture_slicing = gtk_table_new (2, 5, FALSE);
   gtk_widget_show (table1_texture_slicing);
@@ -480,8 +519,10 @@ create_mystyle_editor_interface (GtkWidget *mystyle_editor /* assumed descendand
   GLADE_HOOKUP_OBJECT (mystyle_editor, hbox5_colors, "hbox5_colors");
   GLADE_HOOKUP_OBJECT (mystyle_editor, tgl5_colors, "tgl5_colors");
   GLADE_HOOKUP_OBJECT (mystyle_editor, label_colors_fore, "label_colors_fore");
+  GLADE_HOOKUP_OBJECT (mystyle_editor, img_fore_color, "img_fore_color");
   GLADE_HOOKUP_OBJECT (mystyle_editor, btn_fore_color, "btn_fore_color");
   GLADE_HOOKUP_OBJECT (mystyle_editor, label_colors_back, "label_colors_back");
+  GLADE_HOOKUP_OBJECT (mystyle_editor, img_back_color, "img_back_color");
   GLADE_HOOKUP_OBJECT (mystyle_editor, btn_back_color, "btn_back_color");
   GLADE_HOOKUP_OBJECT (mystyle_editor, hbox6_shadow, "hbox6_shadow");
   GLADE_HOOKUP_OBJECT (mystyle_editor, tgl5_shadow, "tgl5_shadow");

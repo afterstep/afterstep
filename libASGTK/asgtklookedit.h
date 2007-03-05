@@ -64,8 +64,10 @@ typedef struct _ASGtkMyStyleEdit
   GtkWidget *hbox5_colors;
   GtkWidget *tgl5_colors;
   GtkWidget *label_colors_fore;
+  GtkWidget *img_fore_color;
   GtkWidget *btn_fore_color;
   GtkWidget *label_colors_back;
+  GtkWidget *img_back_color;
   GtkWidget *btn_back_color;
   GtkWidget *hbox6_shadow;
   GtkWidget *tgl5_shadow;
