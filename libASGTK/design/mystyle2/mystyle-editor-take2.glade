@@ -168,7 +168,7 @@
 	      <property name="can_focus">True</property>
 	      <property name="label" translatable="yes">[-]</property>
 	      <property name="use_underline">True</property>
-	      <property name="relief">GTK_RELIEF_HALF</property>
+	      <property name="relief">GTK_RELIEF_NONE</property>
 	      <property name="focus_on_click">True</property>
 	      <property name="active">False</property>
 	      <property name="inconsistent">False</property>
@@ -698,13 +698,15 @@ Horizontal gradient
 Vertical gradient
 Left-top to right-bottom gradient
 Right-top to left-bottom gradient
+Non-blended texture
 Tinted desktop background
 Scaled shaped texture
 Sliced shaped texture
 Tiled shaped texture
+Two-way Tinted desktop background
+Tiled pseudo-transp. texture
 Scaled pseudo-transp. texture
-Sliced pseudo-transp. texture
-Tiled pseudo-transp. texture</property>
+Sliced pseudo-transp. texture</property>
 	      <property name="add_tearoffs">False</property>
 	      <property name="focus_on_click">True</property>
 	    </widget>
