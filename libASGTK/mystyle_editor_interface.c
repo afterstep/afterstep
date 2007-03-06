@@ -143,7 +143,7 @@ create_mystyle_editor_interface (GtkWidget *mystyle_editor /* assumed descendand
 
   hbox1_mystyle_name = gtk_hbox_new (FALSE, 4);
   gtk_widget_show (hbox1_mystyle_name);
-  gtk_box_pack_start (GTK_BOX (vbox), hbox1_mystyle_name, TRUE, TRUE, 0);
+  gtk_box_pack_start (GTK_BOX (vbox), hbox1_mystyle_name, FALSE, TRUE, 0);
   gtk_container_set_border_width (GTK_CONTAINER (hbox1_mystyle_name), 2);
 
   label_mystyle = gtk_label_new ("MyStyle");
@@ -160,7 +160,7 @@ create_mystyle_editor_interface (GtkWidget *mystyle_editor /* assumed descendand
 
   hbox2_overlay = gtk_hbox_new (FALSE, 5);
   gtk_widget_show (hbox2_overlay);
-  gtk_box_pack_start (GTK_BOX (vbox), hbox2_overlay, TRUE, TRUE, 0);
+  gtk_box_pack_start (GTK_BOX (vbox), hbox2_overlay, FALSE, TRUE, 0);
 
   tgl2_overlay = gtk_toggle_button_new_with_mnemonic ("[-]");
   gtk_widget_show (tgl2_overlay);
@@ -177,7 +177,7 @@ create_mystyle_editor_interface (GtkWidget *mystyle_editor /* assumed descendand
 
   hbox3_inherit = gtk_hbox_new (FALSE, 5);
   gtk_widget_show (hbox3_inherit);
-  gtk_box_pack_start (GTK_BOX (vbox), hbox3_inherit, TRUE, TRUE, 0);
+  gtk_box_pack_start (GTK_BOX (vbox), hbox3_inherit, FALSE, TRUE, 0);
 
   tgl3_inherit = gtk_toggle_button_new_with_mnemonic ("[-]");
   gtk_widget_show (tgl3_inherit);
@@ -222,7 +222,7 @@ create_mystyle_editor_interface (GtkWidget *mystyle_editor /* assumed descendand
 
   hbox4_font = gtk_hbox_new (FALSE, 5);
   gtk_widget_show (hbox4_font);
-  gtk_box_pack_start (GTK_BOX (vbox), hbox4_font, TRUE, TRUE, 0);
+  gtk_box_pack_start (GTK_BOX (vbox), hbox4_font, FALSE, TRUE, 0);
 
   tgl4_font = gtk_toggle_button_new_with_mnemonic ("[-]");
   gtk_widget_show (tgl4_font);
@@ -249,7 +249,7 @@ create_mystyle_editor_interface (GtkWidget *mystyle_editor /* assumed descendand
 
   hbox5_colors = gtk_hbox_new (FALSE, 5);
   gtk_widget_show (hbox5_colors);
-  gtk_box_pack_start (GTK_BOX (vbox), hbox5_colors, TRUE, TRUE, 0);
+  gtk_box_pack_start (GTK_BOX (vbox), hbox5_colors, FALSE, TRUE, 0);
 
   tgl5_colors = gtk_toggle_button_new_with_mnemonic ("[-]");
   gtk_widget_show (tgl5_colors);
@@ -288,7 +288,7 @@ create_mystyle_editor_interface (GtkWidget *mystyle_editor /* assumed descendand
 
   hbox6_shadow = gtk_hbox_new (FALSE, 5);
   gtk_widget_show (hbox6_shadow);
-  gtk_box_pack_start (GTK_BOX (vbox), hbox6_shadow, TRUE, TRUE, 0);
+  gtk_box_pack_start (GTK_BOX (vbox), hbox6_shadow, FALSE, TRUE, 0);
 
   tgl5_shadow = gtk_toggle_button_new_with_mnemonic ("[-]");
   gtk_widget_show (tgl5_shadow);
@@ -315,7 +315,7 @@ create_mystyle_editor_interface (GtkWidget *mystyle_editor /* assumed descendand
 
   hbox7_background = gtk_hbox_new (FALSE, 5);
   gtk_widget_show (hbox7_background);
-  gtk_box_pack_start (GTK_BOX (vbox), hbox7_background, TRUE, TRUE, 0);
+  gtk_box_pack_start (GTK_BOX (vbox), hbox7_background, FALSE, TRUE, 0);
 
   tgl7_background = gtk_toggle_button_new_with_mnemonic ("[-]");
   gtk_widget_show (tgl7_background);
@@ -334,17 +334,20 @@ create_mystyle_editor_interface (GtkWidget *mystyle_editor /* assumed descendand
   gtk_combo_box_append_text (GTK_COMBO_BOX (combo_background_type), "Vertical gradient");
   gtk_combo_box_append_text (GTK_COMBO_BOX (combo_background_type), "Left-top to right-bottom gradient");
   gtk_combo_box_append_text (GTK_COMBO_BOX (combo_background_type), "Right-top to left-bottom gradient");
+  gtk_combo_box_append_text (GTK_COMBO_BOX (combo_background_type), "Scaled texture");
+  gtk_combo_box_append_text (GTK_COMBO_BOX (combo_background_type), "Tiled texture");
   gtk_combo_box_append_text (GTK_COMBO_BOX (combo_background_type), "Tinted desktop background");
   gtk_combo_box_append_text (GTK_COMBO_BOX (combo_background_type), "Scaled shaped texture");
   gtk_combo_box_append_text (GTK_COMBO_BOX (combo_background_type), "Sliced shaped texture");
   gtk_combo_box_append_text (GTK_COMBO_BOX (combo_background_type), "Tiled shaped texture");
+  gtk_combo_box_append_text (GTK_COMBO_BOX (combo_background_type), "Two-way Tinted desktop background");
+  gtk_combo_box_append_text (GTK_COMBO_BOX (combo_background_type), "Tiled pseudo-transp. texture");
   gtk_combo_box_append_text (GTK_COMBO_BOX (combo_background_type), "Scaled pseudo-transp. texture");
   gtk_combo_box_append_text (GTK_COMBO_BOX (combo_background_type), "Sliced pseudo-transp. texture");
-  gtk_combo_box_append_text (GTK_COMBO_BOX (combo_background_type), "Tiled pseudo-transp. texture");
 
   hbox8_grad_details = gtk_hbox_new (FALSE, 5);
   gtk_widget_show (hbox8_grad_details);
-  gtk_box_pack_start (GTK_BOX (vbox), hbox8_grad_details, TRUE, TRUE, 0);
+  gtk_box_pack_start (GTK_BOX (vbox), hbox8_grad_details, FALSE, TRUE, 0);
 
   arrow1_grad_details = gtk_arrow_new (GTK_ARROW_RIGHT, GTK_SHADOW_OUT);
   gtk_widget_show (arrow1_grad_details);
@@ -379,7 +382,7 @@ create_mystyle_editor_interface (GtkWidget *mystyle_editor /* assumed descendand
 
   hbox9_texture_file = gtk_hbox_new (FALSE, 5);
   gtk_widget_show (hbox9_texture_file);
-  gtk_box_pack_start (GTK_BOX (vbox), hbox9_texture_file, TRUE, TRUE, 0);
+  gtk_box_pack_start (GTK_BOX (vbox), hbox9_texture_file, FALSE, TRUE, 0);
 
   arrow2_texture_file = gtk_arrow_new (GTK_ARROW_RIGHT, GTK_SHADOW_OUT);
   gtk_widget_show (arrow2_texture_file);
@@ -395,7 +398,7 @@ create_mystyle_editor_interface (GtkWidget *mystyle_editor /* assumed descendand
 
   hbox10_texture_blend_type = gtk_hbox_new (FALSE, 5);
   gtk_widget_show (hbox10_texture_blend_type);
-  gtk_box_pack_start (GTK_BOX (vbox), hbox10_texture_blend_type, TRUE, TRUE, 0);
+  gtk_box_pack_start (GTK_BOX (vbox), hbox10_texture_blend_type, FALSE, TRUE, 0);
 
   arrow3_texture_blend_type = gtk_arrow_new (GTK_ARROW_RIGHT, GTK_SHADOW_OUT);
   gtk_widget_show (arrow3_texture_blend_type);
@@ -426,7 +429,7 @@ create_mystyle_editor_interface (GtkWidget *mystyle_editor /* assumed descendand
 
   table1_texture_slicing = gtk_table_new (2, 5, FALSE);
   gtk_widget_show (table1_texture_slicing);
-  gtk_box_pack_start (GTK_BOX (vbox), table1_texture_slicing, TRUE, TRUE, 0);
+  gtk_box_pack_start (GTK_BOX (vbox), table1_texture_slicing, FALSE, TRUE, 0);
   gtk_table_set_col_spacings (GTK_TABLE (table1_texture_slicing), 5);
 
   label1_texture_slicing_x = gtk_label_new ("scaled horiz. between");

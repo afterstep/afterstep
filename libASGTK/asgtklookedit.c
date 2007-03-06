@@ -164,21 +164,11 @@ static void fill_text_style_combo_box( GtkWidget *w )
 void  
 color2button_image( GtkImage *btn, const char *color )
 {
-	GdkColor bg ;
-	static GdkColor gdk_white={0xFFFFFFFF, 0xFFFF, 0xFFFF, 0xFFFF };
-	static GdkColor gdk_black={0x00000000, 0x0000, 0x0000, 0x0000 };
-	GdkColor *fg = &gdk_white;
 	ARGB32 argb = 0xFFFFFFFF ;
-	CARD32 val ;
-	GtkWidget *tmp_frame ; 
 	GdkPixbuf *pb ;
 
 	if( color && color[0] != '\0')
 		parse_argb_color( color, &argb );
-
-	val = ASCS_BLACK_O_WHITE_CRITERIA16_VAL(ARGB32_RED16(argb),ARGB32_GREEN16(argb),ARGB32_BLUE16(argb));
-	if( val < 0x09FFF )
-		fg = &gdk_black ; 
 
 	pb = solid_color2GdkPixbuf( argb, 16, 16 );
 	if( pb ) 
@@ -186,11 +176,215 @@ color2button_image( GtkImage *btn, const char *color )
 		gtk_image_set_from_pixbuf( GTK_IMAGE(btn), pb );
 		gdk_pixbuf_unref( pb ); 		   
 	}
-
-//	color_name2GdkColor(color, &bg);
-//  	gtk_widget_modify_bg( GTK_WIDGET(btn), GTK_STATE_INSENSITIVE, &bg );
-	
 }	
+
+typedef enum
+{
+	ASGtkMSO_Name = 0,
+	ASGtkMSO_Overlay,
+	ASGtkMSO_Inherits,	
+	ASGtkMSO_Font,	
+	ASGtkMSO_Colors,	
+	ASGtkMSO_Shadow,
+	ASGtkMSO_Background,
+	ASGtkMSO_Options
+}ASGtkMyStyleOptions ;
+
+void set_container_child_sensitive( GtkWidget *child, gpointer data)
+{
+	GtkWidget *to_skip = data?GTK_WIDGET(data):NULL;
+	if( child != to_skip && !GTK_IS_LABEL(child) )
+		gtk_widget_set_sensitive( child, TRUE);
+}
+
+void set_container_child_insensitive( GtkWidget *child, gpointer data)
+{
+	GtkWidget *to_skip = data?GTK_WIDGET(data):NULL;
+	if( child != to_skip && !GTK_IS_LABEL(child) )
+		gtk_widget_set_sensitive( child, FALSE);
+}
+
+void
+asgtk_mystyle_edit_set_line_enabled(ASGtkMyStyleEdit *self, ASGtkMyStyleOptions opt, Bool enabled)
+{
+
+	GtkToggleButton *toggle = NULL ; 
+	GtkContainer *container = NULL ; 
+	switch( opt ) 
+	{
+		case ASGtkMSO_Name : 		container = GTK_CONTAINER(self->hbox1_mystyle_name) ; break ;
+		case ASGtkMSO_Overlay : 	toggle = GTK_TOGGLE_BUTTON(self->tgl2_overlay) ; 
+									container = GTK_CONTAINER(self->hbox2_overlay) ; break ;
+		case ASGtkMSO_Inherits : 	toggle = GTK_TOGGLE_BUTTON(self->tgl3_inherit) ; 
+									container = GTK_CONTAINER(self->hbox3_inherit) ; break ;
+		case ASGtkMSO_Font : 		toggle = GTK_TOGGLE_BUTTON(self->tgl4_font) ; 
+									container = GTK_CONTAINER(self->hbox4_font) ; break ;
+		case ASGtkMSO_Colors : 		toggle = GTK_TOGGLE_BUTTON(self->tgl5_colors) ; 
+									container = GTK_CONTAINER(self->hbox5_colors) ; break ;
+		case ASGtkMSO_Shadow : 		toggle = GTK_TOGGLE_BUTTON(self->tgl5_shadow) ; 
+									container = GTK_CONTAINER(self->hbox6_shadow) ; break ;
+		case ASGtkMSO_Background : 	toggle = GTK_TOGGLE_BUTTON(self->tgl7_background) ; 
+									container = GTK_CONTAINER(self->hbox7_background) ; break ;
+		case ASGtkMSO_Options :
+		default : 
+			return;
+	}
+
+	if( toggle ) 
+	{
+		gtk_toggle_button_set_active( toggle, enabled );
+#if (GTK_MAJOR_VERSION>=2) && (GTK_MINOR_VERSION>=6)	   
+		gtk_button_set_label( GTK_BUTTON(toggle), "" );
+		gtk_button_set_image( GTK_BUTTON(toggle), gtk_image_new_from_stock(enabled?GTK_STOCK_YES:GTK_STOCK_NO, GTK_ICON_SIZE_BUTTON) );
+		gtk_toggle_button_set_mode( toggle, False );
+		gtk_button_set_relief (GTK_BUTTON (toggle), GTK_RELIEF_NONE);
+		
+#else
+		gtk_button_set_label( GTK_BUTTON(toggle), enabled?"[-]":"[+]" );
+#endif
+	}
+	
+	if( container ) 
+		gtk_container_forall( container, enabled?set_container_child_sensitive:set_container_child_insensitive, toggle );
+}
+
+void 
+asgtk_mystyle_edit_set_name_visible(ASGtkMyStyleEdit *self, Bool visible)
+{
+	if( !visible ) 
+	{
+		if( get_flags( self->flags, ASGTK_MYSTYLE_EDIT_NAME_VISIBLE ) )
+		{
+		    gtk_container_remove (GTK_CONTAINER (self), self->hbox1_mystyle_name);
+			clear_flags( self->flags, ASGTK_MYSTYLE_EDIT_NAME_VISIBLE );
+		}
+	}else
+	{
+		if( !get_flags( self->flags, ASGTK_MYSTYLE_EDIT_NAME_VISIBLE ) )
+		{
+		  	gtk_box_pack_start (GTK_BOX(self), self->hbox1_mystyle_name, TRUE, TRUE, 0);
+			gtk_box_reorder_child(GTK_BOX(self), self->hbox1_mystyle_name, 0); 	
+			set_flags( self->flags, ASGTK_MYSTYLE_EDIT_NAME_VISIBLE );
+		}
+	}	
+}
+
+typedef enum {
+	ASGtkMSB_SolidColor = 0,
+	ASGtkMSB_GradientH,
+	ASGtkMSB_GradientV,
+	ASGtkMSB_GradientLT2RB,
+	ASGtkMSB_GradientRT2LB,
+	ASGtkMSB_ScaledTexture,
+	ASGtkMSB_TiledTexture,
+	ASGtkMSB_Tint,
+	ASGtkMSB_ScaledShaped,
+	ASGtkMSB_SlicedShaped,
+	ASGtkMSB_TiledShaped,
+	ASGtkMSB_TintTwoWay,
+	ASGtkMSB_TiledPseudoTransp,
+	ASGtkMSB_ScaledPseudoTransp,
+	ASGtkMSB_SlicedPseudoTransp,
+	ASGtkMSB_BackgroundTypes
+}ASGtkMyStyleBackgroundTypes;
+	
+
+void 
+asgtk_mystyle_edit_set_background_type(ASGtkMyStyleEdit *self, int type)
+{
+	ASGtkMyStyleBackgroundTypes back_type = ASGtkMSB_BackgroundTypes;
+
+	gtk_widget_hide( self->hbox8_grad_details );
+	gtk_widget_hide( self->hbox9_texture_file );
+	gtk_widget_hide( self->hbox10_texture_blend_type );
+	gtk_widget_hide( self->table1_texture_slicing );
+	gtk_combo_box_set_active( GTK_COMBO_BOX(self->combo_background_type), -1 );
+
+	if( type == 0 ) 
+	{
+		back_type = ASGtkMSB_SolidColor ;
+	}else if( type > 0 && type <= TEXTURE_GRADIENT_END ) 
+	{
+		switch( type ) 
+		{
+			case     TEXTURE_GRADIENT : 	back_type = ASGtkMSB_GradientLT2RB ; break ;
+
+			case     TEXTURE_HGRADIENT :
+			case     TEXTURE_HCGRADIENT :   back_type = ASGtkMSB_GradientH ; break ;
+			case     TEXTURE_VGRADIENT :
+			case     TEXTURE_VCGRADIENT :	back_type = ASGtkMSB_GradientV ; break ;
+			
+			case     TEXTURE_GRADIENT_TL2BR	:  	back_type = ASGtkMSB_GradientLT2RB ; break ;
+			case     TEXTURE_GRADIENT_BL2TR :	back_type = ASGtkMSB_GradientRT2LB ; break ;
+			case     TEXTURE_GRADIENT_T2B	:	back_type = ASGtkMSB_GradientV ; break ;
+			case     TEXTURE_GRADIENT_L2R	:	back_type = ASGtkMSB_GradientH ; break ;
+		}
+		/* to show : hbox8_grad_details	*/
+		gtk_widget_show( self->hbox8_grad_details );
+
+	}else if( type >= TEXTURE_TEXTURED_START && type <= TEXTURE_TEXTURED_END )  
+	{
+		/* to show : hbox10_texture_blend_type, hbox9_texture_file, table1_texture_slicing	*/
+		if( type == TEXTURE_SHAPED_SCALED_PIXMAP ) 
+			back_type = get_flags( self->flags, ASGTK_MYSTYLE_SLICED)?
+							ASGtkMSB_SlicedShaped:ASGtkMSB_ScaledShaped ; 
+		else if( type == TEXTURE_SHAPED_PIXMAP ) 
+			back_type = ASGtkMSB_TiledShaped ;
+		else if( type == TEXTURE_SCALED_PIXMAP ) 
+			back_type = ASGtkMSB_TiledShaped ;
+		else if( type == TEXTURE_PIXMAP ) 
+			back_type = ASGtkMSB_TiledShaped ;
+		else if( type == TEXTURE_TRANSPARENT ) 
+			back_type = ASGtkMSB_Tint ;
+		else if( type == TEXTURE_TRANSPARENT_TWOWAY ) 
+			back_type = ASGtkMSB_TintTwoWay ;
+		else if( type >= TEXTURE_TRANSPIXMAP && type < TEXTURE_TRANSPIXMAP_END )
+			back_type = ASGtkMSB_TiledPseudoTransp ;
+		else if( type >= TEXTURE_SCALED_TRANSPIXMAP && type < TEXTURE_SCALED_TRANSPIXMAP_END )
+			back_type = get_flags( self->flags, ASGTK_MYSTYLE_SLICED)?
+							ASGtkMSB_SlicedPseudoTransp:ASGtkMSB_ScaledPseudoTransp ;
+		
+		gtk_widget_show( self->hbox9_texture_file );
+		gtk_widget_show( self->hbox10_texture_blend_type );
+		if( get_flags( self->flags, ASGTK_MYSTYLE_SLICED) );
+			gtk_widget_show( self->table1_texture_slicing );
+	}	
+
+	if( back_type < ASGtkMSB_BackgroundTypes ) 
+	{
+		asgtk_mystyle_edit_set_line_enabled(self, ASGtkMSO_Background, True);		
+		gtk_combo_box_set_active( GTK_COMBO_BOX(self->combo_background_type), back_type );
+	}
+	self->background_type = back_type ;
+
+}
+
+
+void 
+asgtk_mystyle_edit_set_sliced(ASGtkMyStyleEdit *self, Bool sliced)
+{
+	ASGtkMyStyleBackgroundTypes old_type = self->background_type ;
+	
+	if( sliced && !get_flags( self->flags, ASGTK_MYSTYLE_SLICED)) 
+	{
+		set_flags( self->flags, ASGTK_MYSTYLE_SLICED);
+		gtk_widget_show( self->table1_texture_slicing );
+		if( self->background_type == ASGtkMSB_ScaledPseudoTransp ) 
+			self->background_type =  ASGtkMSB_SlicedPseudoTransp ;
+		else if( self->background_type == ASGtkMSB_ScaledShaped ) 
+			self->background_type =  ASGtkMSB_SlicedShaped ;
+	}else if( !sliced && get_flags( self->flags, ASGTK_MYSTYLE_SLICED)) 
+	{
+		clear_flags( self->flags, ASGTK_MYSTYLE_SLICED);
+		gtk_widget_hide( self->table1_texture_slicing );
+		if( self->background_type == ASGtkMSB_SlicedPseudoTransp ) 
+			self->background_type =  ASGtkMSB_ScaledPseudoTransp ;
+		else if( self->background_type == ASGtkMSB_SlicedShaped ) 
+			self->background_type =  ASGtkMSB_ScaledShaped ;
+	}
+	if( old_type != self->background_type ) 
+		gtk_combo_box_set_active( GTK_COMBO_BOX(self->combo_background_type), self->background_type );
+}
 
 static void 
 FreeStorage2MyStyleEdit( FreeStorageElem *storage, ASGtkMyStyleEdit *self ) 
@@ -198,79 +392,116 @@ FreeStorage2MyStyleEdit( FreeStorageElem *storage, ASGtkMyStyleEdit *self )
 	FreeStorageElem *curr = storage ;
 	ConfigItem    item;
 	ASGtkSimpleList *list = ASGTK_SIMPLE_LIST(self->tw_inherit_list);
+	int i;
 
 	self->free_store = storage ; 
 	asgtk_simple_list_purge( list );
 
 	item.memory = NULL;
-	gtk_combo_box_set_active( GTK_COMBO_BOX(self->combo_shadow_type), AST_3DTypes );
 
 	gtk_button_set_label( GTK_BUTTON(self->btn_font_name), NULL );
 	gtk_button_set_label( GTK_BUTTON(self->btn_fore_color), NULL );
 	gtk_button_set_label( GTK_BUTTON(self->btn_back_color), NULL );
+	gtk_combo_box_set_active( GTK_COMBO_BOX(self->combo_shadow_type), AST_3DTypes );
 	gtk_combo_box_set_active( GTK_COMBO_BOX(self->combo_overlay_mystyle), -1 );
-	gtk_widget_set_sensitive( self->combo_overlay_mystyle, FALSE ); 				
+	for( i = 0 ; i < ASGtkMSO_Options ; ++i ) 
+		asgtk_mystyle_edit_set_line_enabled(self, i, False);		
 
-	if( curr && curr->term->id == MYSTYLE_START_ID ) 
-		curr = curr->sub ;
+	set_flags( self->flags, ASGTK_MYSTYLE_SLICED);
+	asgtk_mystyle_edit_set_sliced(self, False);	
+	asgtk_mystyle_edit_set_background_type(self, -1);	
+	
+	if( storage && storage->term->id == MYSTYLE_START_ID ) 
+		storage = storage->sub ;
 
-	if( curr ) 
+	/* first pass - handling BackPixmap : */
+	for( curr = storage ; curr != NULL ; curr = curr->next ) 
 	{
-		while( curr != NULL ) 
+		if( curr->term->id == MYSTYLE_BACKPIXMAP_ID ) 
 		{
-			if( ReadConfigItem (&item, curr) ) 
-			{
-				if( curr->term->id == MYSTYLE_INHERIT_ID ) 
-					asgtk_simple_list_append( list, item.data.string, curr );
-				else if( curr->term->id == MYSTYLE_FONT_ID ) 
-					gtk_button_set_label( GTK_BUTTON(self->btn_font_name), item.data.string );
-				else if( curr->term->id == MYSTYLE_FORECOLOR_ID ) 
-				{
-					color2button_image( GTK_IMAGE(self->img_fore_color), item.data.string );
-					gtk_button_set_label( GTK_BUTTON(self->btn_fore_color), item.data.string );
-				}else if( curr->term->id == MYSTYLE_BACKCOLOR_ID ) 
-				{
-					color2button_image( GTK_IMAGE(self->img_back_color), item.data.string );
-					gtk_button_set_label( GTK_BUTTON(self->btn_back_color), item.data.string );
-				}else if( curr->term->id == MYSTYLE_TEXTSTYLE_ID ) 
-				{
-					if( item.data.integer > AST_3DTypes ) 
-						item.data.integer = AST_3DTypes ;
-					gtk_combo_box_set_active( GTK_COMBO_BOX(self->combo_shadow_type), item.data.integer );
-				}else if( curr->term->id == MYSTYLE_Overlay_ID ) 
-				{
-					GtkTreeIter iter ; 
-					// gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(self->overlay), TRUE );
-					if( gtk_tree_model_get_iter_first( self->mystyles_list, &iter ) )
-					{
-						char *tmp = NULL ; 
-						do
-						{
-					    	gtk_tree_model_get (self->mystyles_list, &iter, 0, &tmp, -1);
-							if( mystrcasecmp( tmp, item.data.string ) == 0 ) 
-							{
-								gtk_combo_box_set_active_iter( GTK_COMBO_BOX(self->combo_overlay_mystyle), &iter );
-								break ;
-							}
-						}while( gtk_tree_model_iter_next( self->mystyles_list, &iter ) );
-					}
-					gtk_widget_set_sensitive( self->combo_overlay_mystyle, TRUE ); 				
-				}else if( curr->term->id == MYSTYLE_BACKPIXMAP_ID ) 
-				{
+			ReadConfigItem (&item, curr);
+			asgtk_mystyle_edit_set_background_type( self, item.index);
 #if 0				
-					LOCAL_DEBUG_OUT( "item.data.string = \"%s\", index = %d", item.data.string, item.index );
-					if( item.data.string != NULL )
-						gtk_entry_set_text( GTK_ENTRY(self->filechooserbtn_texture_file), item.data.string );
-					asgtk_collapsing_frame_set_open(ASGTK_COLLAPSING_FRAME(self->backpixmap_frame), TRUE);
+			LOCAL_DEBUG_OUT( "item.data.string = \"%s\", index = %d", item.data.string, item.index );
+			if( item.data.string != NULL )
+				gtk_entry_set_text( GTK_ENTRY(self->filechooserbtn_texture_file), item.data.string );
+			asgtk_collapsing_frame_set_open(ASGTK_COLLAPSING_FRAME(self->backpixmap_frame), TRUE);
 #endif		
-				}
-				item.ok_to_free = True;
-			}
-			
-			curr = curr->next ; 
+			item.ok_to_free = True;	
 		}
-		ReadConfigItem (&item, NULL);
 	}
+	/* second pass - everything else : */
+	for( curr = storage ; curr != NULL ; curr = curr->next ) 
+	{
+		if( ReadConfigItem (&item, curr) ) 
+		{
+			if( curr->term->id == MYSTYLE_INHERIT_ID ) 
+			{
+				asgtk_simple_list_append( list, item.data.string, curr );
+				asgtk_mystyle_edit_set_line_enabled(self, ASGtkMSO_Inherits, True);		
+			}else if( curr->term->id == MYSTYLE_FONT_ID ) 
+			{
+				gtk_button_set_label( GTK_BUTTON(self->btn_font_name), item.data.string );
+				asgtk_mystyle_edit_set_line_enabled(self, ASGtkMSO_Font, True);		
+			}else if( curr->term->id == MYSTYLE_FORECOLOR_ID ) 
+			{
+				color2button_image( GTK_IMAGE(self->img_fore_color), item.data.string );
+				gtk_button_set_label( GTK_BUTTON(self->btn_fore_color), item.data.string );
+				asgtk_mystyle_edit_set_line_enabled(self, ASGtkMSO_Colors, True);		
+			}else if( curr->term->id == MYSTYLE_BACKCOLOR_ID ) 
+			{
+				color2button_image( GTK_IMAGE(self->img_back_color), item.data.string );
+				gtk_button_set_label( GTK_BUTTON(self->btn_back_color), item.data.string );
+				asgtk_mystyle_edit_set_line_enabled(self, ASGtkMSO_Colors, True);		
+			}else if( curr->term->id == MYSTYLE_TEXTSTYLE_ID ) 
+			{
+				if( item.data.integer > AST_3DTypes ) 
+					item.data.integer = AST_3DTypes ;
+				gtk_combo_box_set_active( GTK_COMBO_BOX(self->combo_shadow_type), item.data.integer );
+				asgtk_mystyle_edit_set_line_enabled(self, ASGtkMSO_Shadow, True);		
+			}else if( curr->term->id == MYSTYLE_SliceXStart_ID ) 
+			{
+				gtk_spin_button_set_value( GTK_SPIN_BUTTON(self->spin_texture_slicing_x_start), item.data.integer ); 
+				asgtk_mystyle_edit_set_sliced(self, True);
+			}else if( curr->term->id == MYSTYLE_SliceXEnd_ID ) 
+			{
+				gtk_spin_button_set_value( GTK_SPIN_BUTTON(self->spin_texture_slicing_x_end), item.data.integer ); 
+				asgtk_mystyle_edit_set_sliced(self, True);
+			}else if( curr->term->id == MYSTYLE_SliceYStart_ID ) 
+			{
+				gtk_spin_button_set_value( GTK_SPIN_BUTTON(self->spin_texture_slicing_y_start), item.data.integer ); 
+				asgtk_mystyle_edit_set_sliced(self, True);
+			}else if( curr->term->id == MYSTYLE_SliceYEnd_ID ) 
+			{
+				gtk_spin_button_set_value( GTK_SPIN_BUTTON(self->spin_texture_slicing_y_end), item.data.integer ); 
+				asgtk_mystyle_edit_set_sliced(self, True);
+			}else if( curr->term->id == MYSTYLE_Overlay_ID ) 
+			{
+				GtkTreeIter iter ; 
+				// gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(self->overlay), TRUE );
+				if( gtk_tree_model_get_iter_first( self->mystyles_list, &iter ) )
+				{
+					char *tmp = NULL ; 
+					do
+					{
+					    gtk_tree_model_get (self->mystyles_list, &iter, 0, &tmp, -1);
+						if( mystrcasecmp( tmp, item.data.string ) == 0 ) 
+						{
+							gtk_combo_box_set_active_iter( GTK_COMBO_BOX(self->combo_overlay_mystyle), &iter );
+							break ;
+						}
+					}while( gtk_tree_model_iter_next( self->mystyles_list, &iter ) );
+				}
+				asgtk_mystyle_edit_set_line_enabled(self, ASGtkMSO_Overlay, True);		
+			}else if( curr->term->id == MYSTYLE_BACKPIXMAP_ID ) 
+			{
+				/* already handled in the first pass !!! */
+			}
+			item.ok_to_free = True;
+		}
+
+	}
+	ReadConfigItem (&item, NULL);
 }
 
 void 
@@ -297,45 +528,6 @@ on_mystyle_overlay_clicked(GtkWidget *widget, gpointer data )
 	gtk_widget_set_sensitive( self->overlay_mystyle, active ); 				
 #endif
 
-}
-
-void 
-asgtk_mystyle_edit_set_name_visible(ASGtkMyStyleEdit *self, Bool visible)
-{
-	if( !visible ) 
-	{
-		if( get_flags( self->flags, ASGTK_MYSTYLE_EDIT_NAME_VISIBLE ) )
-		{
-		    gtk_container_remove (GTK_CONTAINER (self), self->hbox1_mystyle_name);
-			clear_flags( self->flags, ASGTK_MYSTYLE_EDIT_NAME_VISIBLE );
-		}
-	}else
-	{
-		if( !get_flags( self->flags, ASGTK_MYSTYLE_EDIT_NAME_VISIBLE ) )
-		{
-		  	gtk_box_pack_start (GTK_BOX(self), self->hbox1_mystyle_name, TRUE, TRUE, 0);
-			gtk_box_reorder_child(GTK_BOX(self), self->hbox1_mystyle_name, 0); 	
-			set_flags( self->flags, ASGTK_MYSTYLE_EDIT_NAME_VISIBLE );
-		}
-	}	
-}
-
-void 
-asgtk_mystyle_edit_set_background_type(ASGtkMyStyleEdit *self, int type)
-{
-	if( type == 0 ) 
-	{
-	
-	}else if( type > 0 && type <= TEXTURE_GRADIENT_END ) 
-	{
-		/* to show : hbox8_grad_details	*/
-	}else if( type >= TEXTURE_TEXTURED_START && type <= TEXTURE_TEXTURED_END )  
-	{
-		/* to show : hbox10_texture_blend_type, hbox9_texture_file, table1_texture_slicing	*/
-	}else
-	{
-	
-	}	
 }
 
 
