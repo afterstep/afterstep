@@ -4,11 +4,11 @@
 
 LIB_INCS= asgtk.h asgtkapp.h asgtkai.h asgtkcframe.h asgtkcolorsel.h asgtkdirtree.h \
 		asgtkgradient.h asgtkimagebrowser.h asgtklistviews.h asgtkimagedir.h asgtkimageview.h \
-		asgtkxmleditor.h asgtkxmloptlist.h
+		asgtklookedit.h asgtkxmleditor.h asgtkxmloptlist.h
 
 LIB_OBJS= asgtkapp.o asgtkai.o asgtkcframe.o asgtkcolorsel.o asgtkdirtree.o \
 		asgtkgradient.o asgtkimagebrowser.o asgtklistviews.o asgtkimagedir.o asgtkimageview.o \
-		asgtkxmleditor.o asgtkxmloptlist.o mystyle_editor_interface.o
+		asgtklookedit.o asgtkxmleditor.o asgtkxmloptlist.o mystyle_editor_interface.o
 
 CONFIG_SCRIPT= asgtk-config
 
