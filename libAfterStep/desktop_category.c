@@ -16,7 +16,7 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#define LOCAL_DEBUG
+/* #define LOCAL_DEBUG */
 #define EVENT_TRACE
 
 #include "../configure.h"
@@ -678,9 +678,13 @@ Bool register_desktop_entry(ASCategoryTree *ct, ASDesktopEntry *de)
 			}
 			if( index_name )
 			{
-				ASDesktopEntry *ttt = fetch_desktop_entry( ct, index_name ); 
+#if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT) 	
+				{
+					ASDesktopEntry *ttt = fetch_desktop_entry( ct, index_name ); 
+					LOCAL_DEBUG_OUT( "entry %p added under non-standard index_name = \"%s\", fetch returned = %p", de, index_name, ttt ) ;
+				}
+#endif				
 				ref_desktop_entry( de );  
-				LOCAL_DEBUG_OUT( "entry %p added under non-standard index_name = \"%s\", fetch returned = %p", de, index_name, ttt ) ;
 				if( de->IndexName ) 
 					free( de->IndexName );
 				de->IndexName = index_name ; 
