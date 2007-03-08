@@ -583,7 +583,9 @@ winlist_get_free_rectangles_iter_func(void *data, void *aux_data)
     int min_vx = 0, max_vx = Scr.MyDisplayWidth ;
     int min_vy = 0, max_vy = Scr.MyDisplayHeight ;
 	
-    if( wd && wd->client != WinListState.main_window && wd->desk == Scr.CurrentDesk )
+    if( wd && wd->client != WinListState.main_window && 
+		!get_flags(wd->state_flags, AS_Shaded ) &&
+		( wd->desk == Scr.CurrentDesk || get_flags(wd->state_flags, AS_Sticky )))
     {
 		ASRectangle *r = &(wd->frame_rect);
         int x, y;
@@ -595,9 +597,17 @@ winlist_get_free_rectangles_iter_func(void *data, void *aux_data)
 		
         if( get_flags(wd->state_flags, AS_Iconic ) )
 			r = &(wd->icon_rect);
+			
+		x = r->x ; 
+		y = r->y ; 
 
-        if( r->x+(int)r->width >= min_vx && r->x < max_vx && r->y+(int)r->height >= min_vy && r->y < max_vy )
-            subtract_rectangle_from_list( list, r->x, r->y, r->x+(int)r->width, r->y+(int)r->height );
+		if( get_flags(wd->state_flags, AS_Sticky|AS_Iconic ) == 0)
+		{
+			x -= Scr.Vx ; 
+			y -= Scr.Vy ; 
+		}
+        if( x+(int)r->width >= min_vx && x < max_vx && y+(int)r->height >= min_vy && y < max_vy )
+            subtract_rectangle_from_list( list, x, y, x+(int)r->width, y+(int)r->height );
     }
 
     return True;
