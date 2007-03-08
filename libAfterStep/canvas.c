@@ -823,48 +823,12 @@ is_canvas_dirty( ASCanvas *pc )
     return pc?get_flags (pc->state, CANVAS_DIRTY|CANVAS_OUT_OF_SYNC|CANVAS_MASK_OUT_OF_SYNC):False;
 }
 
-ASFlagType 
-resize_canvas (ASCanvas * pc, unsigned int width, unsigned int height)
-{
-    ASFlagType changes = 0 ;        
-
-	if( pc == NULL ) 
-		return 0;
-
-    LOCAL_DEBUG_CALLER_OUT( "canvas(%p)->window(%lx)->geom(%ux%u)", pc, pc->w, width, height );
-    /* Setting background to None to avoid background pixmap tiling
-	 * while resizing */
-    if( width>MAX_POSITION )
-    {
-#ifdef DEBUG_ALLOCS
-        AS_ASSERT(0);
-#endif
-        width = pc->width ;
-    }else if( AS_ASSERT(width))
-        width = 1 ;
-    if( height>MAX_POSITION )
-    {
-#ifdef DEBUG_ALLOCS
-        AS_ASSERT(0);
-#endif
-        height = pc->height ;
-    }else if( AS_ASSERT(height))
-        height = 1;
-    if ((pc->width < width || pc->height < height) && !get_flags( pc->state, CANVAS_CONTAINER ))
-		XSetWindowBackgroundPixmap (dpy, pc->w, None);
-    LOCAL_DEBUG_OUT( "XResizeWindow( %lX, %dx%d );", pc->w, width, height );
-    XResizeWindow (dpy, pc->w, width, height);
-
-    if( width != pc->width ) set_flags( changes, CANVAS_WIDTH_CHANGED );
-    if( height != pc->height ) set_flags( changes, CANVAS_HEIGHT_CHANGED );
-    return changes;
-
-}
 
 ASFlagType
-moveresize_canvas (ASCanvas * pc, int x, int y, unsigned int width, unsigned int height)
+configure_canvas (ASCanvas * pc, int x, int y, unsigned int width, unsigned int height, ASFlagType mask )
 {
     ASFlagType changes = 0 ;
+	XWindowChanges xwc ; 
 	
 	if( pc == NULL ) 
 		return 0;
@@ -872,9 +836,9 @@ moveresize_canvas (ASCanvas * pc, int x, int y, unsigned int width, unsigned int
 	LOCAL_DEBUG_CALLER_OUT( "canvas(%p)->window(%lx)->geom(%ux%u%+d%+d)", pc, pc->w, width, height, x, y );
     /* Setting background to None to avoid background pixmap tiling
 	 * while resizing */
-
-
-    if( width>MAX_POSITION )
+	if( !get_flags( mask, CWWidth ) )
+		width = pc->width ; 
+	else if( width>MAX_POSITION )
     {
 #ifdef DEBUG_ALLOCS
         AS_ASSERT(0);
@@ -882,7 +846,10 @@ moveresize_canvas (ASCanvas * pc, int x, int y, unsigned int width, unsigned int
         width = pc->width ;
     }else if( AS_ASSERT(width))
         width = 1 ;
-    if( height>MAX_POSITION )
+
+	if( !get_flags( mask, CWHeight ) )
+		height = pc->height ; 
+	else if( height>MAX_POSITION )
     {
 #ifdef DEBUG_ALLOCS
         AS_ASSERT(0);
@@ -891,15 +858,43 @@ moveresize_canvas (ASCanvas * pc, int x, int y, unsigned int width, unsigned int
     }else if( AS_ASSERT(height))
         height = 1;
 
+	xwc.x = x ; 
+	xwc.y = y ; 
+	xwc.width = width ; 
+	xwc.height = height ; 
+	
     if ((pc->width < width || pc->height < height) && !get_flags( pc->state, CANVAS_CONTAINER ))
 		XSetWindowBackgroundPixmap (dpy, pc->w, None);
-    LOCAL_DEBUG_OUT( "XMoveResizeWindow( %lX, %dx%d%+d%+d );", pc->w, width, height, x, y );
-    XMoveResizeWindow (dpy, pc->w, x, y, width, height);
+    
+	LOCAL_DEBUG_OUT( "XConfigureWindow( %lX, %lX, %dx%d%+d%+d );", pc->w, mask, width, height, x, y );
+    XConfigureWindow (dpy, pc->w, mask, &xwc);
 
-    set_flags( changes, CANVAS_X_CHANGED|CANVAS_Y_CHANGED );
+	if( get_flags( mask, CWX ) )
+	    set_flags( changes, CANVAS_X_CHANGED );
+	if( get_flags( mask, CWY ) )
+	    set_flags( changes, CANVAS_Y_CHANGED );
     if( width != pc->width ) set_flags( changes, CANVAS_WIDTH_CHANGED );
     if( height != pc->height ) set_flags( changes, CANVAS_HEIGHT_CHANGED );
     return changes;
+}
+
+ASFlagType 
+resize_canvas (ASCanvas * pc, unsigned int width, unsigned int height)
+{
+	if( pc == NULL ) 
+		return 0;
+
+	return configure_canvas (pc, 0, 0, width, height, CWWidth|CWHeight );
+}
+
+
+
+ASFlagType
+moveresize_canvas (ASCanvas * pc, int x, int y, unsigned int width, unsigned int height)
+{
+	if( pc == NULL ) 
+		return 0;
+	return configure_canvas (pc, x, y, width, height, CWX|CWY|CWWidth|CWHeight );
 }
 
 

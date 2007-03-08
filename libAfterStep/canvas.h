@@ -119,6 +119,8 @@ Bool combine_canvas_shape_at (ASCanvas *parent, ASCanvas *child, int child_x, in
 ASFlagType resize_canvas( ASCanvas *pc, unsigned int width, unsigned int height );
 void move_canvas (ASCanvas * pc, int x, int y);
 ASFlagType moveresize_canvas (ASCanvas * pc, int x, int y, unsigned int width, unsigned int height);
+ASFlagType configure_canvas (ASCanvas * pc, int x, int y, unsigned int width, unsigned int height, ASFlagType mask );
+
 void map_canvas_window( ASCanvas *pc, Bool raised );
 void unmap_canvas_window( ASCanvas *pc );
 void reparent_canvas_window( ASCanvas *pc, Window dst, int x, int y );

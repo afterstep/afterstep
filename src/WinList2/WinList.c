@@ -86,6 +86,8 @@ typedef struct {
 
 	ASTBarProps *tbar_props ;
 
+    ASWindowData       *self;
+
 }ASWinListState ;
 
 ASWinListState WinListState = { 0, NULL, None, NULL, NULL };
@@ -124,6 +126,7 @@ void press_winlist_button( ASWindowData *wd );
 void release_winlist_button( ASWindowData *wd, int button );
 void update_winlist_styles();
 void DeadPipe(int);
+void switch_deskviewport( int new_desk, int new_vx, int new_vy );
 
 int
 main( int argc, char **argv )
@@ -137,6 +140,7 @@ main( int argc, char **argv )
 
     ConnectX( ASDefaultScr, EnterWindowMask );
     if( ConnectAfterStep (M_FOCUS_CHANGE |
+                      M_NEW_DESKVIEWPORT |
                       M_DESTROY_WINDOW |
                       WINDOW_CONFIG_MASK |
                       WINDOW_NAME_MASK |
@@ -317,7 +321,11 @@ process_message (send_data_type type, send_data_type *body)
     LOCAL_DEBUG_OUT( "received message %lX", type );
 	WinListState.last_message_time = time(NULL) ;
 
-	if( type == M_END_WINDOWLIST )
+	if( type == M_NEW_DESKVIEWPORT )
+	{
+    	LOCAL_DEBUG_OUT("M_NEW_DESKVIEWPORT(desk = %ld,Vx=%ld,Vy=%ld)", body[2], body[0], body[1]);
+        switch_deskviewport( body[2], body[0], body[1] );
+	}else if( type == M_END_WINDOWLIST )
 	{
 		WinListState.postpone_display = False ;
 		rearrange_winlist_window( False );
@@ -332,7 +340,9 @@ process_message (send_data_type type, send_data_type *body)
 		res = handle_window_packet( type, body, &wd );
 		if( res == WP_DataCreated )
         {
-            if( WinListState.windows_num < MAX_WINLIST_WINDOW_COUNT &&
+			if( wd->client == WinListState.main_window ) 
+				WinListState.self = wd ;
+            else if( WinListState.windows_num < MAX_WINLIST_WINDOW_COUNT &&
                 WinListState.windows_num < Config->MaxRows*Config->MaxColumns )
             {
                 if( !get_flags( Config->flags, ASWL_UseSkipList ) ||
@@ -342,7 +352,12 @@ process_message (send_data_type type, send_data_type *body)
         }else if( res == WP_DataChanged )
 			refresh_winlist_button( tbar, wd, (type == M_FOCUS_CHANGE) );
 		else if( res == WP_DataDeleted )
-            delete_winlist_button( tbar, saved_wd );
+		{
+			if( WinListState.self == saved_wd ) /* just in case */
+				WinListState.self = NULL ;
+            else 
+				delete_winlist_button( tbar, saved_wd );
+		}
 
 	}
 }
@@ -479,7 +494,7 @@ make_winlist_window()
 	Window        w;
 	XSizeHints    shints;
 	ExtendedWMHints extwm_hints ;
-	int x, y ;
+	int x =0, y = 0;
     unsigned int width = max(Config->MinSize.width,1);
     unsigned int height = max(Config->MinSize.height,1);
 
@@ -512,7 +527,7 @@ make_winlist_window()
 	shints.max_width = (Config->MaxSize.width>0)?Config->MaxSize.width:Scr.MyDisplayWidth;
 	shints.max_height = (Config->MaxSize.height>0)?Config->MaxSize.height:Scr.MyDisplayHeight;
 	shints.base_width = shints.base_height = 4;
-	shints.win_gravity = Config->gravity ;
+	shints.win_gravity = Config->gravity ; /* should be StaticGravity for some position manipulations */
 
 	extwm_hints.pid = getpid();
 	extwm_hints.flags = EXTWM_PID|EXTWM_TypeSet|EXTWM_StateSet ;
@@ -554,6 +569,164 @@ render_winlist_button( ASTBarData *tbar )
 	return False ;
 }
 
+/* collision avoidance code  (*WinListNoCollides): */
+/*************************************************************************/
+/* here we build vector of rectangles, representing one available
+ * space each :
+ */
+/*************************************************************************/
+Bool
+winlist_get_free_rectangles_iter_func(void *data, void *aux_data)
+{
+    ASVector *list = (ASVector*)aux_data ;
+    ASWindowData *wd = (ASWindowData*)data ;
+    int min_vx = 0, max_vx = Scr.MyDisplayWidth ;
+    int min_vy = 0, max_vy = Scr.MyDisplayHeight ;
+	
+    if( wd && wd->client != WinListState.main_window && wd->desk == Scr.CurrentDesk )
+    {
+		ASRectangle *r = &(wd->frame_rect);
+        int x, y;
+        unsigned int width, height;
+        if( get_flags(wd->state_flags, AS_Fullscreen ) )
+			return True;
+		
+		/* TODO : here we check the inclusions list */
+		
+        if( get_flags(wd->state_flags, AS_Iconic ) )
+			r = &(wd->icon_rect);
+
+        if( r->x+(int)r->width >= min_vx && r->x < max_vx && r->y+(int)r->height >= min_vy && r->y < max_vy )
+            subtract_rectangle_from_list( list, r->x, r->y, r->x+(int)r->width, r->y+(int)r->height );
+    }
+
+    return True;
+}
+
+static ASVector *
+winlist_build_free_space_list()
+{
+    ASVector *list = create_asvector( sizeof(XRectangle) );
+    XRectangle seed_rect ;
+
+    /* must seed the list with the single rectangle representing the area : */
+    seed_rect.x = 0 ;
+    seed_rect.y = 0 ;
+    seed_rect.width = Scr.MyDisplayWidth;
+    seed_rect.height = Scr.MyDisplayHeight ;
+
+    append_vector( list, &seed_rect, 1 );
+
+	iterate_window_data( winlist_get_free_rectangles_iter_func, (void*)list );
+
+#if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
+    print_rectangles_list( list );
+#endif
+
+    return list;
+}
+
+#define FIT_TO_RECT(p,s,rp,rs) \
+			do{ if( (p) < (int)(rp) ) (p) = (rp) ; \
+			if( (int)(p)+(int)(s)  > (int)(rp) + (int)(rs) ) { \
+				p = (int)((rp)+(rs)) - (s) ; \
+				if( p < (int)(rp) ) { s -= (int)(rp) - (p) ; p = rp ;} \
+			}}while(0)
+
+
+void
+winlist_avoid_collision( int *px, int *py, int *pmax_width, int *pmax_height )
+{
+	int x = *px ;
+	int y = *py ;
+	int w = *pmax_width ; 
+	int h = *pmax_height ; 	
+	ASVector *free_space_list = winlist_build_free_space_list(); 
+    XRectangle *rects = PVECTOR_HEAD(XRectangle,free_space_list);
+	int i = PVECTOR_USED(free_space_list); 
+	int selected = -1 ;
+	int selected_factor = 0;
+	LOCAL_DEBUG_OUT( "list contains %d rects", i );
+    if( get_flags( Config->flags, ASWL_RowsFirst ) )
+	{	/* strategy # 1 - find closest possible rectangle without changing y position */
+    	while( --i >= 0 )
+			if( rects[i].y <= y && y < rects[i].y + rects[i].height )
+				if( rects[i].width > selected_factor ) 
+				{
+					selected = i ;
+					selected_factor = rects[i].width ;
+				}
+		if( selected >= 0 ) 
+			FIT_TO_RECT(x,w,rects[selected].x,rects[selected].width);
+	}else
+	{
+		/* strategy # 2 - find closest possible rectangle without changing x position */
+    	while( --i >= 0 )
+			if( rects[i].x <= x && x < rects[i].x + rects[i].width )
+				if( rects[i].height > selected_factor ) 
+				{
+					selected = i ;
+					selected_factor = rects[i].height ;
+				}
+		if( selected >= 0 ) 
+			FIT_TO_RECT(y,h,rects[selected].y,rects[selected].height);
+	}
+	destroy_asvector( &free_space_list );
+	*px = x ; 
+	*py = y ;
+	*pmax_width = w ; 
+	*pmax_height = h ; 
+	LOCAL_DEBUG_OUT( "Final geometry %dx%d%+d%+d", w, h, x, y );
+}
+
+Bool
+moveresize_main_canvas( int width, int height )
+{
+	int tmp_height = height, tmp_width = width ; 
+	int curr_x = WinListState.main_canvas->root_x;
+	int curr_y = WinListState.main_canvas->root_y; 
+	int frame_add_h = WinListState.main_canvas->bw, frame_add_v = WinListState.main_canvas->bw;
+	int new_x, new_y ; 
+	unsigned long mask = CWWidth|CWHeight  ;
+	ASFlagType changes = 0 ;
+	
+	if( WinListState.self && Config->gravity != StaticGravity ) 
+	{
+		curr_x = WinListState.self->frame_rect.x ; 
+		curr_y = WinListState.self->frame_rect.y ; 
+		frame_add_h = WinListState.self->frame_rect.width - WinListState.main_canvas->width ; 
+		frame_add_v = WinListState.self->frame_rect.height - WinListState.main_canvas->height ; 
+		if( frame_add_h < 0 )
+			frame_add_h = 0 ;
+		if( frame_add_v < 0 )
+			frame_add_v = 0 ;
+	}
+	tmp_width += frame_add_h ; 
+	tmp_height += frame_add_v ; 
+	new_x = curr_x ; 
+	new_y = curr_y ; 
+	winlist_avoid_collision( &new_x, &new_y, &tmp_width, &tmp_height );
+
+	if( new_x != curr_x )
+	{
+		if( Config->gravity == SouthEastGravity || Config->gravity == NorthEastGravity )
+			new_x += frame_add_h ; 
+		else if( Config->gravity == CenterGravity ) 
+			new_x += frame_add_h/2 ; 
+		mask |= CWX ; 
+	}
+	if( new_y != curr_y ) 
+	{
+		mask |= CWY ; 
+		if( Config->gravity == SouthEastGravity || Config->gravity == SouthWestGravity )
+			new_y += frame_add_v ; 
+		else if( Config->gravity == CenterGravity ) 
+			new_y += frame_add_v/2 ; 
+	}
+	changes = configure_canvas( WinListState.main_canvas, new_x, new_y, width, height, mask );
+    ASSync( False );
+	return (changes !=0);
+}
 /* WE do redrawing in two steps :
   1) we need to determine the desired window size and resize it accordingly
   2) when we get StructureNotify event - we need to reposition and redraw
@@ -580,7 +753,7 @@ rearrange_winlist_window( Bool dont_resize_main_canvas )
     int row = 0, col = 0;
     unsigned int total_width = 0, total_height = 0 ;
     int y ;
-
+	
     LOCAL_DEBUG_CALLER_OUT( "%sresize canvas. windows_num = %d",
                             dont_resize_main_canvas?"Don't ":"Do ", WinListState.windows_num );
     
@@ -591,6 +764,8 @@ rearrange_winlist_window( Bool dont_resize_main_canvas )
         allowed_min_height = allowed_max_height = WinListState.main_canvas->height ;
     }else
     {
+		int dumm_x = WinListState.main_canvas->root_x; 
+		int dumm_y = WinListState.main_canvas->root_y; 
         if( allowed_max_width > Scr.MyDisplayWidth )
             allowed_max_width = Scr.MyDisplayWidth ;
         if( allowed_max_height > Scr.MyDisplayHeight )
@@ -599,20 +774,24 @@ rearrange_winlist_window( Bool dont_resize_main_canvas )
             allowed_min_width = allowed_max_width ;
         if( allowed_min_height > allowed_max_height )
             allowed_min_height = allowed_max_height ;
+		winlist_avoid_collision( &dumm_x, &dumm_y, &allowed_max_width, &allowed_max_height );
     }
 
     LOCAL_DEBUG_OUT( "allowed_min_size=%dx%d; allowed_max_size==%dx%d",
                      allowed_min_width, allowed_min_height, allowed_max_width, allowed_max_height );
-
+	
     if( WinListState.windows_num == 0 || WinListState.window_order == NULL )
     {
         if( !dont_resize_main_canvas )
         {
             int width = max(1,allowed_min_width);
             int height = max(1,allowed_min_height);
-            Bool invalid = ( height != WinListState.main_canvas->height || width != WinListState.main_canvas->width );
-            resize_canvas( WinListState.main_canvas, width, height );
-            if( invalid )
+			/* if( new_win_x != WinListState.main_canvas->root_x || new_win_y != WinListState.main_canvas->root_y ) 
+				moveresize_canvas( WinListState.main_canvas, new_win_x, new_win_y, width, height );
+			else
+	            resize_canvas( WinListState.main_canvas, width, height );
+			*/
+            if( moveresize_main_canvas( width, height ) )
                 return False;
         }
         if( allowed_min_width > 1 && allowed_min_height > 1 )
@@ -799,10 +978,15 @@ rearrange_winlist_window( Bool dont_resize_main_canvas )
     if( !dont_resize_main_canvas )
     {
         int height = max(total_height,allowed_min_height);
-        Bool invalid = ( height != WinListState.main_canvas->height || total_width != WinListState.main_canvas->width );
-        resize_canvas( WinListState.main_canvas, total_width, height );
-        ASSync( False );
-        if( invalid )
+/*		int tmp_height = height, tmp_width = total_width ; 
+
+ 		winlist_avoid_collision( &new_win_x, &new_win_y, &tmp_width, &tmp_height );
+		if( new_win_x != WinListState.main_canvas->root_x || new_win_y != WinListState.main_canvas->root_y ) 
+			moveresize_canvas( WinListState.main_canvas, new_win_x, new_win_y, total_width, height );
+		else
+	        resize_canvas( WinListState.main_canvas, total_width, height );
+*/
+        if( moveresize_main_canvas( total_width, height ) )
             return True;
     }
 
@@ -1141,9 +1325,21 @@ LOCAL_DEBUG_OUT("tbar = %p, wd = %p", tbar, wd );
           			if( calculate_astbar_width( tbar ) > WinListState.col_width[WinListState.bar_col[i]] ||
               			calculate_astbar_height( tbar ) > WinListState.max_item_height )
 					{
-	                	rearrange_winlist_window( False );
 						rearranged = True ;
+					}else
+					{
+						int x = WinListState.main_canvas->root_x, y = WinListState.main_canvas->root_y ; 
+						int w = WinListState.main_canvas->width, h = WinListState.main_canvas->height ; 
+						
+						winlist_avoid_collision( &x, &y, &w, &h );
+						rearranged = ( x != WinListState.main_canvas->root_x || 
+									   y != WinListState.main_canvas->root_y ||
+									   w != WinListState.main_canvas->width ||
+									   h != WinListState.main_canvas->height ); 
 					}
+
+					if( rearranged ) 
+	                	rearrange_winlist_window( False );
   		        }
 				if( !rearranged )
       		    	render_winlist_button( tbar );
@@ -1248,3 +1444,31 @@ update_winlist_styles()
 	}
 }
 
+
+void
+switch_deskviewport( int new_desk, int new_vx, int new_vy )
+{
+	Bool view_changed = (new_vx != Scr.Vx || new_vy != Scr.Vy) ;
+	Bool desk_changed = (new_desk != Scr.CurrentDesk) ;
+	int x = WinListState.main_canvas->root_x, y = WinListState.main_canvas->root_y ; 
+    int w = (Config->MaxSize.width==0)?Scr.MyDisplayWidth:Config->MaxSize.width ;
+	int h = (Config->MaxSize.height==0)?Scr.MyDisplayHeight:Config->MaxSize.height ;
+
+    if( w > Scr.MyDisplayWidth )
+        w = Scr.MyDisplayWidth ;
+    if( h > Scr.MyDisplayHeight )
+        h = Scr.MyDisplayHeight ;
+
+	Scr.Vx = new_vx;
+    Scr.Vy = new_vy;
+	Scr.CurrentDesk = new_desk;
+	
+	winlist_avoid_collision( &x, &y, &w, &h );
+	if( x != WinListState.main_canvas->root_x || 
+		y != WinListState.main_canvas->root_y ||
+		w != WinListState.main_canvas->width ||
+		h != WinListState.main_canvas->height )
+	{
+       	rearrange_winlist_window( False );
+	}
+}

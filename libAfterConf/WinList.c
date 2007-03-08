@@ -209,7 +209,7 @@ InitWinListConfig (ASModuleConfig *asm_config, Bool free_resources)
 		}
 		config->flags = WINLIST_ShowIcon|WINLIST_ScaleIconToTextHeight ;
     	init_asgeometry (&(config->Geometry));
-	    config->gravity = NorthWestGravity;
+	    config->gravity = StaticGravity;
 		config->MaxRows = 1;
 		config->UseName = ASN_Name;
 	    config->Align = ALIGN_CENTER;
@@ -425,7 +425,7 @@ CheckWinListConfigSanity(WinListConfig *Config, ASGeometry *default_geometry, in
 	if( default_geometry && default_geometry->flags != 0 ) 
 		Config->Geometry = *default_geometry ;
 	
-    Config->gravity = NorthWestGravity ;
+    Config->gravity = StaticGravity ;
     if( get_flags(Config->Geometry.flags, XNegative) )
         Config->gravity = get_flags(Config->Geometry.flags, YNegative)? SouthEastGravity:NorthEastGravity;
     else if( get_flags(Config->Geometry.flags, YNegative) )
