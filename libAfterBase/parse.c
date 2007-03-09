@@ -1116,6 +1116,34 @@ get_string_list_item (char *ptr, char **item_start, char **item_end, char separa
 	return ptr;
 }
 
+Bool
+match_compound_string (char *string, char separator, char *what)
+{
+	if( string == NULL && what == NULL )
+		return True;
+
+	if( what != NULL )
+	{
+		register char *ptr = string ;
+		if( ptr ) 
+		{
+			int what_len = strlen(what);
+			while(*ptr)
+			{
+				char *item_start = NULL, *item_end = NULL;
+				int item_len ;
+				if ((ptr = get_string_list_item (ptr, &item_start, &item_end, separator)) == NULL)
+					break;
+				item_len = (item_end - item_start);
+				if( item_len == what_len ) 
+					if( strncmp(item_start, what, item_len ) == 0 ) 
+						return True;
+			}
+		}
+	}
+	return False ;
+}
+
 char        **
 compound_string2string_list (char *string, char separator, Bool duplicate, int *nitems_return)
 {

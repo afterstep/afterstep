@@ -55,6 +55,7 @@ typedef struct ASWindowData
     /* some additional data that may or maynot be used by modules : */
     struct ASCanvas        *canvas;
     struct ASTBarData      *bar ;
+	ASFlagType				module_flags ;
 	void *data ;
 
 }ASWindowData;

@@ -1209,8 +1209,9 @@ void DestroyMyBackgroundConfig (MyBackgroundConfig ** head);
 #define WINLIST_IconAlign_ID	        (WINLIST_ID_START+37)
 #define WINLIST_IconSize_ID				(WINLIST_ID_START+38)
 #define WINLIST_ScaleIconToTextHeight_ID (WINLIST_ID_START+39)
+#define WINLIST_NoCollides_ID 			(WINLIST_ID_START+40)
 
-#define WINLIST_ID_END                  (WINLIST_ID_START+40)
+#define WINLIST_ID_END                  (WINLIST_ID_START+50)
 
 /* config data structure */
 
@@ -1286,6 +1287,9 @@ typedef struct WinListConfig
 	ASGeometry	 	IconSize ;
 
     char **Action[MAX_MOUSE_BUTTONS];
+	
+	char **NoCollides ;
+	int  NoCollides_nitems ;
 
     /* calculated based on geometry : */
     int anchor_x, anchor_y ;

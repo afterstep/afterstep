@@ -77,6 +77,7 @@ extern SyntaxDef AlignSyntax;
     ASCF_DEFINE_KEYWORD_S(WINLIST, 0			    , MaxColumns		, TT_INTEGER	, NULL,WinListConfig), \
     ASCF_DEFINE_KEYWORD_S(WINLIST, 0			    , MaxColWidth		, TT_INTEGER	, NULL,WinListConfig), \
     ASCF_DEFINE_KEYWORD_S(WINLIST, 0			    , MinColWidth		, TT_INTEGER	, NULL,WinListConfig), \
+    ASCF_DEFINE_KEYWORD_S(WINLIST, 0			    , MinColWidth		, TT_INTEGER	, NULL,WinListConfig), \
     ASCF_DEFINE_KEYWORD(WINLIST, TF_OBSOLETE	, MaxWidth			, TT_UINTEGER	, NULL)
 
 

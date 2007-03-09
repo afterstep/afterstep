@@ -85,6 +85,7 @@ char scan_for_hotkey (char *txt);
 char *get_string_list_item (char *ptr, char **item_start, char **item_end, char separator);
 char **compound_string2string_list (char *string, char separator, Bool duplicate, int *nitems_return);
 char *string_list2compound_string (char **list, char separator);
+Bool match_compound_string (char *string, char separator, char *what);
 
 /* below is the subcase of above where items are coma-separated
    (for compatibility with older versions) : */
