@@ -342,6 +342,11 @@ process_message (send_data_type type, send_data_type *body)
 	{
 		WinListState.postpone_display = False ;
 		rearrange_winlist_window( False );
+//		if( !get_flags( WinListState.flags, ASWL_Mapped ) )	
+		{
+			XMapRaised (dpy, WinListState.main_window);
+//			set_flags( WinListState.flags, ASWL_Mapped );
+		}
 	}else if( (type&WINDOW_PACKET_MASK) != 0 )
 	{
 		struct ASWindowData *wd = fetch_window_by_id( body[0] );
@@ -583,8 +588,6 @@ make_winlist_window()
 	set_client_hints( w, NULL, &shints, AS_DoesWmDeleteWindow, &extwm_hints );
 	set_client_cmd (w);
 
-	/* showing window to let user see that we are doing something */
-	XMapRaised (dpy, w);
 	/* final cleanup */
 	XFlush (dpy);
 	sleep (1);								   /* we have to give AS a chance to spot us */
