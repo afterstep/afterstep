@@ -91,6 +91,9 @@ typedef struct {
 
     ASWindowData       *self;
 
+	ASDatabaseRecord db_rec ; 	
+	int border_width ; 
+
 }ASWinListState ;
 
 ASWinListState WinListState = { 0, NULL, None, NULL, NULL };
@@ -548,6 +551,7 @@ make_winlist_window()
 	int x =0, y = 0;
     unsigned int width = max(Config->MinSize.width,1);
     unsigned int height = max(Config->MinSize.height,1);
+	static char *WinList_names[3] = {NULL, CLASS_WINLIST, NULL };
 
 	switch( Config->gravity )
 	{
@@ -572,6 +576,17 @@ make_winlist_window()
 
 	w = create_visual_window( Scr.asv, Scr.Root, x, y, 1, 1, 0, InputOutput, 0, NULL);
     set_client_names( w, "Window List", "Window List", CLASS_WINLIST, MyName );
+
+	WinList_names[0] = MyName ;
+
+#define APPEND_DBSTYLE_TEXT(text) 	\
+			do { if( !first ) strcat( buf, ", "); else first = False ; strcat( buf, text); } while(0)
+
+	if ( fill_asdb_record (Database, &(WinList_names[0]), &WinListState.db_rec, False) != NULL )
+	{
+		if (get_flags (WinListState.db_rec.set_data_flags, STYLE_BORDER_WIDTH))
+			WinListState.border_width = WinListState.db_rec.border_width;
+	}
 
 	shints.flags = USPosition|USSize|PMinSize|PMaxSize|PBaseSize|PWinGravity;
 	shints.min_width = shints.min_height = 4;
@@ -711,7 +726,11 @@ winlist_avoid_collision( int *px, int *py, unsigned int *pmax_width, unsigned in
 	{
 		frame_add_h = WinListState.self->frame_rect.width - WinListState.main_canvas->width ; 
 		frame_add_v = WinListState.self->frame_rect.height - WinListState.main_canvas->height ; 
+	}else
+	{
+		frame_add_h = frame_add_v = WinListState.border_width*2 ; 
 	}
+	
 	LOCAL_DEBUG_OUT( "list contains %d rects", i );
     if( get_flags( Config->flags, ASWL_RowsFirst ) )
 	{	/* strategy # 1 - find closest possible rectangle without changing y position */
@@ -793,7 +812,9 @@ moveresize_main_canvas( int width, int height )
 			frame_add_h = 0 ;
 		if( frame_add_v < 0 )
 			frame_add_v = 0 ;
-	}
+	}else
+		frame_add_h = frame_add_v = WinListState.border_width*2 ; 
+
 	tmp_width += frame_add_h ; 
 	tmp_height += frame_add_v ; 
 	new_x = curr_x ; 
@@ -804,8 +825,8 @@ moveresize_main_canvas( int width, int height )
 	{
 		if( Config->gravity == SouthEastGravity || Config->gravity == NorthEastGravity )
 			new_x += frame_add_h ; 
-		else if( Config->gravity == CenterGravity ) 
-			new_x += frame_add_h/2 ; 
+		else if( Config->gravity == CenterGravity || Config->gravity == StaticGravity ) 
+			new_x += frame_add_h/2 ; /* not particularly correct for StaticGravity */
 		mask |= CWX ; 
 	}
 	if( new_y != curr_y ) 
@@ -813,7 +834,7 @@ moveresize_main_canvas( int width, int height )
 		mask |= CWY ; 
 		if( Config->gravity == SouthEastGravity || Config->gravity == SouthWestGravity )
 			new_y += frame_add_v ; 
-		else if( Config->gravity == CenterGravity ) 
+		else if( Config->gravity == CenterGravity || Config->gravity == StaticGravity  ) 
 			new_y += frame_add_v/2 ; 
 	}
 	changes = configure_canvas( WinListState.main_canvas, new_x, new_y, width, height, mask );
