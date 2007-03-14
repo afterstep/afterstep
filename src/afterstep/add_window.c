@@ -284,8 +284,7 @@ AddWindow (Window w, Bool from_map_request)
 	if( ASWIN_HFLAGS( tmp_win, AS_AvoidCover )  )
 		enforce_avoid_cover( tmp_win );
 
-
-	send_canvas_configure_notify(tmp_win->frame_canvas, tmp_win->client_canvas);
+    /* SendConfigureNotify(tmp_win); */
 
     /*
 	 * Reparenting generates an UnmapNotify event, followed by a MapNotify.

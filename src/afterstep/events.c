@@ -1403,7 +1403,7 @@ HandleConfigureRequest ( ASEvent *event )
 		ASWIN_GET_FLAGS( asw, AS_Fullscreen ) )
 	{	
 		LOCAL_DEBUG_OUT( "Ignoring ConfigureRequest for client %p as required by hints", asw );
-		send_canvas_configure_notify(asw->frame_canvas, asw->client_canvas);
+		SendConfigureNotify(asw);
 		return;
 	}
 
@@ -1441,7 +1441,8 @@ LOCAL_DEBUG_OUT( "validated_anchor(%dx%d%+d%+d)", new_anchor.width, new_anchor.h
         asw->anchor = new_anchor ;
         on_window_anchor_changed( asw );
 		enforce_avoid_cover( asw );
-		send_canvas_configure_notify(asw->frame_canvas, asw->client_canvas);
+        if( (cre->value_mask&(CWWidth|CWHeight)) == 0 )
+			SendConfigureNotify(asw);		
     }
 }
 

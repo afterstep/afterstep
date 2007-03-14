@@ -1787,10 +1787,7 @@ bring_aswindow_on_vscreen( ASWindow *asw )
             new_y = max_y - margin_y ;
         LOCAL_DEBUG_OUT( "min_pos = (%+d%+d), max_pos = (%+d%+d), new_pos = (%+d%+d)", min_x, min_y, max_x, max_y, new_x, new_y );
         if( new_x != asw->status->x || new_y != asw->status->y )
-		{
             moveresize_aswindow_wm( asw, new_x, new_y, asw->status->width, asw->status->height, False );
-			send_canvas_configure_notify(asw->frame_canvas, asw->client_canvas);
-		}
     }
     return True;
 }
