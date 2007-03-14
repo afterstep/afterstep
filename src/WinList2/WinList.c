@@ -79,6 +79,7 @@ typedef struct {
     unsigned short col_width[MAX_WINLIST_WINDOW_COUNT];
     unsigned short col_x[MAX_WINLIST_WINDOW_COUNT];
 
+    unsigned int max_col_width ;
     unsigned int max_item_height ;
     unsigned int columns_num, rows_num;
 
@@ -709,7 +710,7 @@ winlist_build_free_space_list()
 
 
 void
-winlist_avoid_collision( int *px, int *py, unsigned int *pmax_width, unsigned int *pmax_height )
+winlist_avoid_collision( int *px, int *py, unsigned int *pmax_width, unsigned int *pmax_height, int min_width, int min_height )
 {
 	int x = *px ;
 	int y = *py ;
@@ -734,8 +735,9 @@ winlist_avoid_collision( int *px, int *py, unsigned int *pmax_width, unsigned in
 	LOCAL_DEBUG_OUT( "list contains %d rects", i );
     if( get_flags( Config->flags, ASWL_RowsFirst ) )
 	{	/* strategy # 1 - find closest possible rectangle without changing y position */
+		int max_y = y+min_height ;
     	while( --i >= 0 )
-			if( rects[i].y <= y && y < rects[i].y + rects[i].height )
+			if( rects[i].y <= y && max_y < rects[i].y + rects[i].height )
 				if( rects[i].width > selected_factor ) 
 				{
 					selected = i ;
@@ -748,9 +750,10 @@ winlist_avoid_collision( int *px, int *py, unsigned int *pmax_width, unsigned in
 		}
 	}else
 	{
+		int max_x = x+min_width ;
 		/* strategy # 2 - find closest possible rectangle without changing x position */
     	while( --i >= 0 )
-			if( rects[i].x <= x && x < rects[i].x + rects[i].width )
+			if( rects[i].x <= x && max_x < rects[i].x + rects[i].width )
 				if( rects[i].height > selected_factor ) 
 				{
 					selected = i ;
@@ -776,13 +779,18 @@ check_avoid_collision()
 	int x = WinListState.main_canvas->root_x, y = WinListState.main_canvas->root_y ; 
     unsigned int w = (Config->MaxSize.width==0)?Scr.MyDisplayWidth:Config->MaxSize.width ;
 	unsigned int h = (Config->MaxSize.height==0)?Scr.MyDisplayHeight:Config->MaxSize.height ;
-
+	int min_w = 1, min_h = 1 ;
+	if( WinListState.main_canvas->height > 1 )
+	{
+		min_h = h = WinListState.main_canvas->height ; 
+		min_w = w = WinListState.main_canvas->width ; 
+	}
     if( w > Scr.MyDisplayWidth )
         w = Scr.MyDisplayWidth ;
     if( h > Scr.MyDisplayHeight )
         h = Scr.MyDisplayHeight ;
 
-	winlist_avoid_collision( &x, &y, &w, &h );
+	winlist_avoid_collision( &x, &y, &w, &h, min_w, min_h );
 	return ( x != WinListState.main_canvas->root_x || 
 			 y != WinListState.main_canvas->root_y ||
 			 w != WinListState.main_canvas->width ||
@@ -819,7 +827,7 @@ moveresize_main_canvas( int width, int height )
 	tmp_height += frame_add_v ; 
 	new_x = curr_x ; 
 	new_y = curr_y ; 
-	winlist_avoid_collision( &new_x, &new_y, &tmp_width, &tmp_height );
+	winlist_avoid_collision( &new_x, &new_y, &tmp_width, &tmp_height, tmp_width, tmp_height );
 
 	if( new_x != curr_x )
 	{
@@ -863,6 +871,7 @@ rearrange_winlist_window( Bool dont_resize_main_canvas )
     unsigned int allowed_min_height = Config->MinSize.height;
     unsigned int max_col_width = (Config->MaxColWidth==0)?Scr.MyDisplayWidth:Config->MaxColWidth ;
     unsigned int max_item_height = 0;
+    unsigned int min_col_width = 0;
     unsigned int max_rows = 0 ;
     int row = 0, col = 0;
     unsigned int total_width = 0, total_height = 0 ;
@@ -878,13 +887,53 @@ rearrange_winlist_window( Bool dont_resize_main_canvas )
         allowed_min_height = allowed_max_height = WinListState.main_canvas->height ;
     }else
     {
-		int dumm_x = WinListState.main_canvas->root_x; 
-		int dumm_y = WinListState.main_canvas->root_y; 
         if( allowed_max_width > Scr.MyDisplayWidth )
             allowed_max_width = Scr.MyDisplayWidth ;
         if( allowed_max_height > Scr.MyDisplayHeight )
             allowed_max_height = Scr.MyDisplayHeight ;
-		winlist_avoid_collision( &dumm_x, &dumm_y, &allowed_max_width, &allowed_max_height );
+	}
+	
+	if( WinListState.windows_num != 0 && WinListState.window_order != NULL )	
+	{
+    	if( max_col_width > allowed_max_width )
+        	max_col_width = allowed_max_width ;
+
+    	/* Pass 1: determining size of each individual bar, as well as max height of any bar */
+    	for( i = 0 ; i < WinListState.windows_num ; ++i )
+		{
+        	ASTBarData   *tbar = WinListState.window_order[i]->bar ;
+        	int width, height ;
+        	if( tbar == NULL )
+        	{
+            	WinListState.bar_width[i] = 0 ;
+            	continue;
+        	}
+
+        	width = calculate_astbar_width( tbar );
+        	height = calculate_astbar_height( tbar );
+        	if( width == 0 )
+            	width = 1 ;
+        	if( height == 0 )
+            	height = 1 ;
+
+        	if( width > min_col_width )
+            	min_col_width = width ;
+        	WinListState.bar_width[i] = width ;
+        	if( height > max_item_height )
+            	max_item_height = height ;
+    	}
+		LOCAL_DEBUG_OUT( "calculated max_item_height = %d", max_item_height );
+		if( max_item_height <= 0 ) 
+			max_item_height = 1 ;
+		if( min_col_width <= 0 ) 
+			min_col_width = 1 ;
+	}
+	
+	if( !dont_resize_main_canvas )
+    {
+		int dumm_x = WinListState.main_canvas->root_x; 
+		int dumm_y = WinListState.main_canvas->root_y; 
+		winlist_avoid_collision( &dumm_x, &dumm_y, &allowed_max_width, &allowed_max_height, min_col_width, max_item_height );
         if( allowed_min_width > allowed_max_width )
             allowed_min_width = allowed_max_width ;
         if( allowed_min_height > allowed_max_height )
@@ -930,39 +979,17 @@ rearrange_winlist_window( Bool dont_resize_main_canvas )
         return False;
     }
 
-    if( max_col_width > allowed_max_width )
-        max_col_width = allowed_max_width ;
-
-    /* Pass 1: determining size of each individual bar, as well as max height of any bar */
-    for( i = 0 ; i < WinListState.windows_num ; ++i )
-	{
-        ASTBarData   *tbar = WinListState.window_order[i]->bar ;
-        int width, height ;
-        if( tbar == NULL )
-        {
-            WinListState.bar_width[i] = 0 ;
-            continue;
-        }
-
-        width = calculate_astbar_width( tbar );
-        height = calculate_astbar_height( tbar );
-        if( width == 0 )
-            width = 1 ;
-        if( height == 0 )
-            height = 1 ;
-
-        if( width > max_col_width )
-            width = max_col_width ;
-        WinListState.bar_width[i] = width ;
-        if( height > max_item_height )
-            max_item_height = height ;
-    }
-	LOCAL_DEBUG_OUT( "calculated max_item_height = %d", max_item_height );
-	if( max_item_height <= 0 ) 
-		max_item_height = 1 ;
     max_rows = (allowed_max_height + max_item_height - 1 ) / max_item_height ;
     if( max_rows > Config->MaxRows )
         max_rows = Config->MaxRows ;
+
+   	if( max_col_width > allowed_max_width )
+       	max_col_width = allowed_max_width ;
+
+   	/* Pass 1.5: limiting sizes of the bars : */
+    for( i = 0 ; i < WinListState.windows_num ; ++i )
+        if( WinListState.bar_width[i] > max_col_width )
+            WinListState.bar_width[i] = max_col_width ;
 
     /* Pass 2: we have to decide on number of rows/columns : */
     WinListState.columns_num = WinListState.rows_num = 0 ;
