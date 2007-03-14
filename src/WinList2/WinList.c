@@ -870,8 +870,8 @@ rearrange_winlist_window( Bool dont_resize_main_canvas )
     unsigned int allowed_min_width = Config->MinSize.width ;
     unsigned int allowed_min_height = Config->MinSize.height;
     unsigned int max_col_width = (Config->MaxColWidth==0)?Scr.MyDisplayWidth:Config->MaxColWidth ;
-    unsigned int max_item_height = 0;
-    unsigned int min_col_width = 0;
+    unsigned int max_item_height = 1;
+    unsigned int min_col_width = 1;
     unsigned int max_rows = 0 ;
     int row = 0, col = 0;
     unsigned int total_width = 0, total_height = 0 ;
@@ -895,9 +895,6 @@ rearrange_winlist_window( Bool dont_resize_main_canvas )
 	
 	if( WinListState.windows_num != 0 && WinListState.window_order != NULL )	
 	{
-    	if( max_col_width > allowed_max_width )
-        	max_col_width = allowed_max_width ;
-
     	/* Pass 1: determining size of each individual bar, as well as max height of any bar */
     	for( i = 0 ; i < WinListState.windows_num ; ++i )
 		{
@@ -913,8 +910,6 @@ rearrange_winlist_window( Bool dont_resize_main_canvas )
         	height = calculate_astbar_height( tbar );
         	if( width == 0 )
             	width = 1 ;
-        	if( height == 0 )
-            	height = 1 ;
 
         	if( width > min_col_width )
             	min_col_width = width ;
@@ -923,10 +918,6 @@ rearrange_winlist_window( Bool dont_resize_main_canvas )
             	max_item_height = height ;
     	}
 		LOCAL_DEBUG_OUT( "calculated max_item_height = %d", max_item_height );
-		if( max_item_height <= 0 ) 
-			max_item_height = 1 ;
-		if( min_col_width <= 0 ) 
-			min_col_width = 1 ;
 	}
 	
 	if( !dont_resize_main_canvas )

@@ -541,7 +541,7 @@ LOCAL_DEBUG_OUT( "**CONFG Client(%lx(%s))->status(%ux%u%+d%+d,%s,%s(%d>-%d))",
 
         moveresize_canvas(  asw->frame_canvas, asw->status->x, asw->status->y,
                             new_width, new_height );
-		send_canvas_configure_notify(asw->frame_canvas, asw->client_canvas); 
+/*		send_canvas_configure_notify(asw->frame_canvas, asw->client_canvas); */
     }
 	return moved;
 }
@@ -1787,7 +1787,10 @@ bring_aswindow_on_vscreen( ASWindow *asw )
             new_y = max_y - margin_y ;
         LOCAL_DEBUG_OUT( "min_pos = (%+d%+d), max_pos = (%+d%+d), new_pos = (%+d%+d)", min_x, min_y, max_x, max_y, new_x, new_y );
         if( new_x != asw->status->x || new_y != asw->status->y )
+		{
             moveresize_aswindow_wm( asw, new_x, new_y, asw->status->width, asw->status->height, False );
+			send_canvas_configure_notify(asw->frame_canvas, asw->client_canvas);
+		}
     }
     return True;
 }

@@ -1441,6 +1441,7 @@ LOCAL_DEBUG_OUT( "validated_anchor(%dx%d%+d%+d)", new_anchor.width, new_anchor.h
         asw->anchor = new_anchor ;
         on_window_anchor_changed( asw );
 		enforce_avoid_cover( asw );
+		send_canvas_configure_notify(asw->frame_canvas, asw->client_canvas);
     }
 }
 

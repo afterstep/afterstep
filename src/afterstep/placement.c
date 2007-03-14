@@ -275,6 +275,8 @@ void complete_aswindow_moveresize(struct ASMoveResizeData *data, Bool cancelled)
     		SHOW_CHECKPOINT;
             LOCAL_DEBUG_OUT( "%dx%d%+d%+d", data->curr.width, data->curr.height, data->curr.x, data->curr.y);
             moveresize_aswindow_wm( asw, data->curr.x, data->curr.y, data->curr.width, data->curr.height, False );
+			if( data->curr.width == data->start.width && data->curr.height == data->start.height ) 
+				send_canvas_configure_notify(asw->frame_canvas, asw->client_canvas);
         }
         ASWIN_CLEAR_FLAGS( asw, AS_MoveresizeInProgress );
 		asw->frame_canvas->root_x = -10000 ; 
@@ -304,7 +306,9 @@ void complete_aswindow_move(struct ASMoveResizeData *data, Bool cancelled)
     		SHOW_CHECKPOINT;
             LOCAL_DEBUG_OUT( "%dx%d%+d%+d", data->start.width, data->start.height, data->curr.x, data->curr.y);
             moveresize_aswindow_wm( asw, data->curr.x, data->curr.y, data->start.width, data->start.height, False );
+			send_canvas_configure_notify(asw->frame_canvas, asw->client_canvas);
         }
+		
         ASWIN_CLEAR_FLAGS( asw, AS_MoveresizeInProgress );
 		asw->frame_canvas->root_x = -10000 ; 
 		asw->frame_canvas->root_y = -10000;

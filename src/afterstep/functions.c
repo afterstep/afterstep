@@ -816,6 +816,9 @@ void moveresize_func_handler( FunctionData *data, ASEvent *event, int module )
 		height = new_val2;
 	}
 	moveresize_aswindow_wm( asw, x, y, width, height, False );
+		if( data->func == F_MOVE )
+			send_canvas_configure_notify(asw->frame_canvas, asw->client_canvas);
+
     }else
     {
 	ASMoveResizeData *mvrdata;
@@ -1807,6 +1810,7 @@ void wait_func_handler( FunctionData *data, ASEvent *event, int module )
 				x += Scr.Vx - asw->status->viewport_x + new_vx ;
 				y += Scr.Vy - asw->status->viewport_y + new_vy ;
 				moveresize_aswindow_wm( asw, x, y, width, height, False );
+				send_canvas_configure_notify(asw->frame_canvas, asw->client_canvas);
 			}	 
 			
 			if( get_flags (style->set_data_flags, STYLE_LAYER) && ASWIN_LAYER(asw) != style->layer )
