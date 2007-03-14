@@ -219,9 +219,12 @@ main (int argc, char **argv)
 				else
 					break;
 	    	}else if( strcmp( argv[i] , "--rows" ) == 0 && i+1 < argc &&  argv[i+1] != NULL )
-				Rows_override = atoi( argv[i+1] );
-	    	else if( strcmp( argv[i] , "--cols" ) == 0 && i+1 < argc &&  argv[i+1] != NULL )
-				Columns_override = atoi( argv[i+1] );
+			{
+				Rows_override = atoi( argv[++i] );
+	    	}else if( strcmp( argv[i] , "--cols" ) == 0 && i+1 < argc &&  argv[i+1] != NULL )
+			{
+				Columns_override = atoi( argv[++i] );
+			}
 		}
 	}
 	LOCAL_DEBUG_OUT( "desk1 = %ld, desk2 = %ld, desks = %ld, start_desk = %ld", desk1, desk2, PagerState.desks_num, PagerState.start_desk );

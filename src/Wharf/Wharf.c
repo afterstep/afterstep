@@ -254,9 +254,9 @@ main (int argc, char **argv)
 		if( argv[i] != NULL )
 		{ 	
 	    	if( strcmp( argv[i] , "--rows" ) == 0 && i+1 < argc &&  argv[i+1] != NULL )
-				Rows_override = atoi( argv[i+1] );
+				Rows_override = atoi( argv[++i] );
 	    	else if( strcmp( argv[i] , "--cols" ) == 0 && i+1 < argc &&  argv[i+1] != NULL )
-				Columns_override = atoi( argv[i+1] );
+				Columns_override = atoi( argv[++i] );
 		}
 	}
 
