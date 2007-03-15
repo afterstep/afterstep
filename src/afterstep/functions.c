@@ -263,6 +263,7 @@ void destroy_scheduled_function_handler( void *data )
 }
 #define destroy_scheduled_function(sf)  destroy_scheduled_function_handler((void*)sf)
 
+static void DoExecuteFunction ( ASScheduledFunction *sf );
 
 /***********************************************************************
  *  Procedure:
@@ -306,7 +307,11 @@ ExecuteFunctionExt (FunctionData *data, ASEvent *event, int module, Bool defered
 	if( event->widget )
 	    sf->canvas              = event->widget->w ;
     }
-    append_bidirelem( FunctionQueue, sf );
+	/* we may end up deadlocked if we wait for modules who wait for window list : */
+	if( data->func == F_SEND_WINDOW_LIST ) 
+		DoExecuteFunction ( sf );
+	else
+	    append_bidirelem( FunctionQueue, sf );
 }
 
 void

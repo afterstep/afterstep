@@ -1,0 +1,11 @@
+Popup "Custom Wharf Layouts"
+	Module "Vertical Wharf"  Wharf --cols 1 &
+	Module "Horizontal Wharf"  Wharf --rows 1 &
+	Module "2-column Wharf"  Wharf --cols 2 &
+	Module "2-row Wharf"  Wharf --rows 2 &
+	Module "Vertical Monitoring Wharf"  Wharf --myname MonitoringWharf --cols 1 &
+	Module "Horizontal Monitoring Wharf"  Wharf --myname MonitoringWharf --rows 1 &
+	Module "2-column Monitoring Wharf"  Wharf --myname MonitoringWharf --cols 2 &
+	Module "2-row Monitoring Wharf"  Wharf --myname MonitoringWharf --rows 2 &
+EndPopup
+SmallMiniPixmap "normal/Wharf"

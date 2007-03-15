@@ -391,11 +391,16 @@ add_menuitem_from_file( FILE *fp2, char *buf, dirtree_t *t, Bool show_unavailabl
 	FunctionData *fdata = NULL ;
 	FunctionData *valid_func = NULL ; 
 	FunctionData *minipixmap = NULL ;
+	if( fp2 == NULL ) 
+		return 0;
 	/* try to load a command */
+LOCAL_DEBUG_OUT( "fp2=%p, buf=%p, t=%p", fp2, buf, t);
+
 	while( fgets (buf, MAXLINELENGTH, fp2) != NULL)
 	{
 		int parse_err ; 
 		++lines_read;
+LOCAL_DEBUG_OUT( "%s", buf );
 		if( fdata == NULL ) 
 			fdata = create_named_function(F_EXEC, NULL);
 		parse_err = parse_func (buf, fdata, True);
@@ -577,7 +582,10 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf, Bool reload_submenus)
 		{
 			FILE *fp2 = fopen (t->path, "r");
 			int lines_read = add_menuitem_from_file( fp2, buf, t, get_flags(tree->flags, DIRTREE_SHOW_UNAVAILABLE), menu );
-
+if( fp2 == NULL ) 
+{
+LOCAL_DEBUG_OUT( "failed to open \"%s\"", t->path?t->path:"(NULL)" );
+}
 			fdata = NULL ; 
 			if( fp2 == NULL || lines_read == 0 )
 			{
