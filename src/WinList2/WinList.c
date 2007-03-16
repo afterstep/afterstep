@@ -79,7 +79,7 @@ typedef struct {
     unsigned short col_width[MAX_WINLIST_WINDOW_COUNT];
     unsigned short col_x[MAX_WINLIST_WINDOW_COUNT];
 
-    unsigned int max_col_width ;
+    unsigned int min_col_width ;
     unsigned int max_item_height ;
     unsigned int columns_num, rows_num;
 
@@ -732,7 +732,7 @@ winlist_avoid_collision( int *px, int *py, unsigned int *pmax_width, unsigned in
 		frame_add_h = frame_add_v = WinListState.border_width*2 ; 
 	}
 	
-	LOCAL_DEBUG_OUT( "list contains %d rects", i );
+	LOCAL_DEBUG_OUT( "requested geometry = %dx%d%+d%+d, min_size = %dx%d, frame_borders = %+d%+d", w, h, x, y, min_width, min_height, frame_add_h, frame_add_v );
     if( get_flags( Config->flags, ASWL_RowsFirst ) )
 	{	/* strategy # 1 - find closest possible rectangle without changing y position */
 		int max_y = y+min_height ;
@@ -770,7 +770,7 @@ winlist_avoid_collision( int *px, int *py, unsigned int *pmax_width, unsigned in
 	*py = y ;
 	*pmax_width = w ; 
 	*pmax_height = h ; 
-	LOCAL_DEBUG_OUT( "Final geometry %dx%d%+d%+d", w, h, x, y );
+	LOCAL_DEBUG_OUT( "Final geometry %dx%d%+d%+d, Selected area = %d", w, h, x, y, selected );
 }
 
 Bool
@@ -827,7 +827,9 @@ moveresize_main_canvas( int width, int height )
 	tmp_height += frame_add_v ; 
 	new_x = curr_x ; 
 	new_y = curr_y ; 
-	winlist_avoid_collision( &new_x, &new_y, &tmp_width, &tmp_height, tmp_width, tmp_height );
+	winlist_avoid_collision( &new_x, &new_y, &tmp_width, &tmp_height, 
+							  max(WinListState.min_col_width,tmp_width), 
+							  max(WinListState.max_item_height,tmp_height) );
 
 	if( new_x != curr_x )
 	{
@@ -919,6 +921,17 @@ rearrange_winlist_window( Bool dont_resize_main_canvas )
     	}
 		LOCAL_DEBUG_OUT( "calculated max_item_height = %d", max_item_height );
 	}
+	
+	if( min_col_width <= 1 ) 
+		min_col_width = WinListState.min_col_width ; 
+	else
+		WinListState.min_col_width = min_col_width ;
+	
+	if( max_item_height <= 1 ) 
+		max_item_height = WinListState.max_item_height ; 
+	else
+		WinListState.max_item_height = max_item_height ;
+	
 	
 	if( !dont_resize_main_canvas )
     {

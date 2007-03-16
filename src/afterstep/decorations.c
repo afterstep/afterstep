@@ -268,7 +268,7 @@ check_frame_canvas( ASWindow *asw, Bool required )
 				bw = asw->hints->border_width ;
 			asw->status->frame_border_width = bw ;
             w = create_visual_window (Scr.asv, (ASWIN_DESK(asw)==Scr.CurrentDesk)?Scr.Root:Scr.ServiceWin, 
-									  0, 0, 
+									  asw->status->x, asw->status->y, 
 									  asw->status->width, asw->status->height,
                                       bw, InputOutput, valuemask, &attributes);
 			XLowerWindow( dpy, w );
@@ -407,7 +407,7 @@ check_icon_canvas( ASWindow *asw, Bool required )
                  !get_flags(Scr.Feel.flags, KeepIconWindows))
             { /* create windows */
                 attributes.event_mask = AS_ICON_TITLE_EVENT_MASK;
-                w = create_visual_window ( Scr.asv, (ASWIN_DESK(asw)==Scr.CurrentDesk)?Scr.Root:Scr.ServiceWin, -10, -10, 1, 1, 0,
+                w = create_visual_window ( Scr.asv, (ASWIN_DESK(asw)==Scr.CurrentDesk)?Scr.Root:Scr.ServiceWin, -9000, -9000, 1, 1, 0,
                                            InputOutput, valuemask, &attributes );
                 canvas = create_ascanvas( w );
             }else
@@ -468,7 +468,7 @@ check_icon_title_canvas( ASWindow *asw, Bool required, Bool reuse_icon_canvas )
             attributes.cursor = Scr.Feel.cursors[ASCUR_Default];
             attributes.event_mask = AS_ICON_TITLE_EVENT_MASK;
             /* create windows */
-            w = create_visual_window ( Scr.asv, (ASWIN_DESK(asw)==Scr.CurrentDesk)?Scr.Root:Scr.ServiceWin, -10, -10, 1, 1, 0,
+            w = create_visual_window ( Scr.asv, (ASWIN_DESK(asw)==Scr.CurrentDesk)?Scr.Root:Scr.ServiceWin, -9010, -9010, 1, 1, 0,
                                        InputOutput, valuemask, &attributes );
 
             register_aswindow( w, asw );
