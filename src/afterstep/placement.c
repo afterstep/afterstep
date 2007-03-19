@@ -74,7 +74,7 @@ get_free_rectangles_iter_func(void *data, void *aux_data)
     {
         int x, y;
         unsigned int width, height, bw;
-        if( ASWIN_GET_FLAGS(asw, AS_Fullscreen ) )
+        if( ASWIN_GET_FLAGS(asw, AS_Fullscreen|AS_ShortLived ) )
 			return True;
 
 		if( !ASWIN_HFLAGS(asw, AS_AvoidCover) && fr_data->min_layer > ASWIN_LAYER(asw))
@@ -1360,7 +1360,7 @@ avoid_covering_aswin_iter_func(void *data, void *aux_data)
     return True;
 }
 
-void enforce_avoid_cover(ASWindow *asw )
+void do_enforce_avoid_cover(ASWindow *asw )
 {
 	if( asw && ASWIN_HFLAGS( asw, AS_AvoidCover|AS_ShortLived ) == AS_AvoidCover )
 	{
@@ -1395,6 +1395,29 @@ void enforce_avoid_cover(ASWindow *asw )
 
 	}
 }
+
+void
+delayed_enforce_avoid_cover( void* vdata )
+{
+	ASWindow *asw = (ASWindow*)vdata;
+	if( asw && asw->magic == MAGIC_ASWINDOW ) 
+		do_enforce_avoid_cover( asw );
+}
+
+void
+enforce_avoid_cover( ASWindow *asw )
+{
+	/* we do not want to enforce avoid cover right away - clients may want to reposition 
+	   themselves automatically */
+
+	if( asw ) 
+		if( ASWIN_GET_FLAGS(asw, AS_AvoidCover|AS_ShortLived) == AS_AvoidCover )
+		{
+			while( timer_remove_by_data( (void*)asw ) );
+			timer_new (500, delayed_enforce_avoid_cover, (void*)asw);	
+		}
+}
+
 
 void obey_avoid_cover(ASWindow *asw, ASStatusHints *tmp_status, XRectangle *tmp_anchor )
 {

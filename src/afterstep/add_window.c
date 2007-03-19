@@ -437,6 +437,8 @@ LOCAL_DEBUG_CALLER_OUT( "asw(%p)->internal(%p)->data(%p)", asw, asw->internal, a
 		/* otherwise we can delete window normally - there are no recursion */
 	}
 
+	while( timer_remove_by_data( (void*)asw ) );
+	
     XSync (dpy, 0);
 	SendPacket (-1, M_DESTROY_WINDOW, 3, asw->w, asw->frame, (unsigned long)asw);
 
