@@ -7,7 +7,7 @@ dnl#Copyright (c) 1998 Juergen Sawinski <Juergen.Sawinski@urz.uni-heidelberg.de>
 dnl#Copyright (c) 1997 1998 Guylhem AZNAR <guylhem@oeil.qc.ca>
 
 dnl#AC_INIT(afterstep/autoexec.in)
-AC_INIT(AfterStep,2.2.4,as-bugs@afterstep.org,AfterStep.tar)
+AC_INIT(AfterStep,2.2.5,as-bugs@afterstep.org,AfterStep.tar)
 AC_CONFIG_AUX_DIR(autoconf)
 AC_CONFIG_HEADER(config.h:autoconf/config.h.in)
 
@@ -102,7 +102,7 @@ AC_ARG_ENABLE(audit,		[  --enable-audit          memory usage audit (for debuggi
 AC_ARG_ENABLE(trace,		[  --enable-trace          some function calls tracing (see include/trace.h) (for debugging) [[no]] ],enable_trace=$enableval,enable_trace="no")
 AC_ARG_ENABLE(trace-x,		[  --enable-trace-x        trace X calls (runtime option) (for debugging) [[no]] ],enable_trace_x=$enableval,enable_trace_x="no")
 AC_ARG_ENABLE(mmx_optimization,	[  --enable-mmx-optimization  enable utilization of MMX instruction set to speed up imaging operations [[yes]] ],enable_mmx_optimization=$enableval,enable_mmx_optimization="yes")
-AC_ARG_ENABLE(send-postcard-to-developer, [  --enable-send-postcard-to-developer will enable AfterStep to send single e-mail to developers with your installation specifics.[[yes]] ],send_postcard_to_developer=$enableval,send_postcard_to_developer="yes")
+AC_ARG_ENABLE(send-postcard-to-developer, [  --enable-send-postcard-to-developer will enable AfterStep to send single e-mail to developers with your installation specifics.[[no]] ],send_postcard_to_developer=$enableval,send_postcard_to_developer="no")
 AC_ARG_ENABLE(data-reinstall,   [  --enable-data-reinstall will prevent AfterStep from reinstalling image and font files.[[yes]] ],data_reinstall=$enableval,data_reinstall="yes")
 
 AC_ARG_ENABLE(script,		[  --enable-script         compile Script module [[yes]] ], enable_script=$enableval,enable_script="yes")
@@ -806,7 +806,7 @@ afterstep/start/1_Desktop/Pictures/User_Backgrounds/.include \
 echo "
 PRIVACY NOTICE
 
-AS required by goverment regulations we now disclose all the illigal snooping 
+As required by goverment regulations we now disclose all the illigal snooping 
 activities, that AfterStep Window Manager will be performing on your 
 computer(s).
 
@@ -826,20 +826,13 @@ printed into console output. Make sure you keep it safe from all the malicious
 persons out there (and from overflowing your disk)! It is your responsibility 
 now.
 
-And finally we are coming to the fun part. AS it is the only compensation that
-developers of this lousy software get - AfterStep will automagically e-mail a 
-single message anytime ~/.afterstep directory needs to be rebuilt. This message 
-will contain such a vital information as date, time, your X server color depth, 
-number of X screens, number of xinerama screens, compiler version, kernel 
-version, and list of linked to libraries.
+We, the developers, always like to hear from you the user, and we would 
+greately appreciate if you could let us know about any questions or suggestions
+you might have. Either e-mail us at as-users at afterstep . org or come talk to us 
+on #afterstep channel at freenode.net IRC network.
 
-If you object to this e-mailing activity - please make sure and use the 
-following ./configure option : --disable-send-postcard-to-developer
-
-That is all! We will go back to your regular programming now.
-
-Oh, almost forgot -
-
+Also you could send us an automated postcard, by using configure switch of : 
+--enable-send-postcard-to-developer
 
 AfterStep $version IS NOW HOPEFULLY CONFIGURED:
 
