@@ -2304,20 +2304,36 @@ gravitate_position (int pos, unsigned int size, unsigned int scr_size, int grav,
  * we build a command line here, so we can restart an app with exactly the same
  * parameters:
  ***********************************************************************************/
-static char *format_geometry_string( int x, int y, int width, int height, int unit_width, int unit_height, int scr_width, int scr_height, int gravity )
+static char *format_geometry_string( int x, int y, int width, int height, int unit_width, int unit_height, int screen_size_x, int screen_size_y, int gravity )
 {
 	char *g = safemalloc (15+1+15+1+15+1+15+1 /* large enough */ );
+	char x_sign = '+' ;
+	char y_sign = '+' ;
+	int x2 = x+width, y2 = y + height ; 
 
+#define FGS_CHECK_SIGN(d)  do{if(d<0){d = 0;/* d##_sign = '-';*/} }while(0)
+#define FGS_APPLY_NEGATIVE_GRAV(d)  do{ d = screen_size_##d - d##2; if(d<0) d=0; d##_sign = '-' ;}while(0)
 	if( gravity == SouthWestGravity ) 
-		y = scr_height-(y+height);
-	else if( gravity == SouthEastGravity ) 
 	{
-		x = (x+width)-scr_width;
-		y = (y+height)-scr_height;
+		FGS_APPLY_NEGATIVE_GRAV(y);
+		FGS_CHECK_SIGN(x);
+	}else if( gravity == SouthEastGravity ) 
+	{
+		FGS_APPLY_NEGATIVE_GRAV(x);
+		FGS_APPLY_NEGATIVE_GRAV(y);
 	}else if( gravity == NorthEastGravity ) 
-		x = scr_width-(x+width);
-
-	sprintf ( g, "%dx%d%+d%+d ", unit_width, unit_height, x, y);
+	{
+		FGS_APPLY_NEGATIVE_GRAV(x);
+		FGS_CHECK_SIGN(y);
+	}else 
+	{
+		FGS_CHECK_SIGN(x);
+		FGS_CHECK_SIGN(y);
+	}
+#undef FGS_CHECK_SIGN
+#undef FGS_APPLY_NEGATIVE_GRAV	
+	
+	sprintf ( g, "%dx%d%c%d%c%d ", unit_width, unit_height, x_sign, x, y_sign, y);
 	return g;
 }
 
