@@ -1352,10 +1352,10 @@ void set_folder_name( ASWharfFolder *aswf, Bool withdrawn )
 	{	
 		char *withdrawn_name = safemalloc( strlen(MyName)+ 16 );
 		sprintf( withdrawn_name, "%s%s", MyName, "Withdrawn" );
-		set_client_names( aswf->canvas->w, withdrawn_name, withdrawn_name, CLASS_WHARF, withdrawn_name );
+		set_client_names( aswf->canvas->w, withdrawn_name, withdrawn_name, AS_MODULE_CLASS, CLASS_WHARF_WITHDRAWN );
 		free( withdrawn_name );
 	}else
-		set_client_names( aswf->canvas->w, MyName, MyName, CLASS_WHARF, MyName );
+		set_client_names( aswf->canvas->w, MyName, MyName, AS_MODULE_CLASS, CLASS_WHARF );
 }
 
 Bool

@@ -1307,7 +1307,10 @@ void PrintWinListConfig (WinListConfig *config);
 int WriteWinListOptions (const char *filename, char *myname, WinListConfig * config, unsigned long flags);
 WinListConfig *ParseWinListOptions (const char *filename, char *myname);
 void MergeWinListOptions ( ASModuleConfig *to, ASModuleConfig *from);
-void CheckWinListConfigSanity(WinListConfig *Config, ASGeometry *default_geometry, int default_gravity);
+ASFlagType DigestWinListAlign( WinListConfig *Config, ASFlagType align );
+void CheckWinListConfigSanity(WinListConfig *Config, 
+							  ASGeometry *default_geometry, int default_gravity,
+							  int max_columns_override, int max_rows_override );
 
 
 

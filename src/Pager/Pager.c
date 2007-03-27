@@ -741,7 +741,7 @@ make_pager_window()
 	}
     attr.event_mask = StructureNotifyMask|ButtonPressMask|ButtonReleaseMask|PointerMotionMask ;
     w = create_visual_window( Scr.asv, Scr.Root, x, y, width, height, 0, InputOutput, CWEventMask, &attr);
-    set_client_names( w, MyName, MyName, CLASS_PAGER, MyName );
+    set_client_names( w, MyName, MyName, AS_MODULE_CLASS, CLASS_PAGER );
 
     Scr.RootClipArea.x = x;
     Scr.RootClipArea.y = y;

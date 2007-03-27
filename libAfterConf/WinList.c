@@ -16,7 +16,7 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
-
+#define LOCAL_DEBUG
 
 #include "../configure.h"
 #include "../libAfterStep/asapp.h"
@@ -217,7 +217,7 @@ InitWinListConfig (ASModuleConfig *asm_config, Bool free_resources)
 	    config->HSpacing = DEFAULT_TBAR_HSPACING;
 		config->VSpacing = DEFAULT_TBAR_VSPACING;
 	    config->FBevel = config->UBevel = config->SBevel = DEFAULT_TBAR_HILITE ;
-		config->IconAlign = ALIGN_VCENTER ;
+		config->IconAlign = NO_ALIGN ;
 		config->IconLocation = 0 ;
 	}
 }
@@ -411,11 +411,52 @@ MergeWinListOptions ( ASModuleConfig *asm_to, ASModuleConfig *asm_from)
     SHOW_TIME("to parsing",option_time);
 }
 
+ASFlagType DigestWinListAlign( WinListConfig *Config, ASFlagType align )
+{
+	LOCAL_DEBUG_OUT( "Align = 0x%8.8lx, IconAlign = 0x%8.8lx, Location = %d", align, Config->IconAlign, Config->IconLocation );
+
+	if( !get_flags( Config->set_flags, WINLIST_IconLocation ) )
+	{
+		if( get_flags(align, PAD_H_MASK) == ALIGN_RIGHT ) 
+			Config->IconLocation = 6 ; 
+		else if( get_flags(align, PAD_H_MASK) == ALIGN_LEFT ) 
+			Config->IconLocation = 4 ; 
+	}		
+	if( !get_flags( Config->set_flags, WINLIST_IconAlign ) )
+	{
+		if( get_flags(align, PAD_H_MASK) == PAD_H_MASK )
+		{
+			if( Config->IconLocation == 0 || Config->IconLocation == 4  )
+			{
+				Config->IconAlign = ALIGN_RIGHT ; 
+				align = (align&(~PAD_H_MASK))|ALIGN_LEFT ; 
+			}else if( Config->IconLocation == 6  )
+			{
+				Config->IconAlign = ALIGN_LEFT ; 
+				align = (align&(~PAD_H_MASK))|ALIGN_RIGHT ; 
+			}
+		}else if( get_flags(align, PAD_H_MASK) == ALIGN_LEFT && (Config->IconLocation == 0 || Config->IconLocation == 4) )
+			Config->IconAlign = ALIGN_VCENTER ;
+		else if( get_flags(align, PAD_H_MASK) == ALIGN_RIGHT && Config->IconLocation == 6 )
+			Config->IconAlign = ALIGN_VCENTER ;
+	}
+	LOCAL_DEBUG_OUT( "Align = 0x%8.8lx, IconAlign = 0x%8.8lx, Location = %d", align, Config->IconAlign, Config->IconLocation );
+	return align ;
+
+}
+
 void
-CheckWinListConfigSanity(WinListConfig *Config, ASGeometry *default_geometry, int default_gravity)
+CheckWinListConfigSanity( WinListConfig *Config, ASGeometry *default_geometry, int default_gravity, 
+						  int max_columns_override, int max_rows_override )
 {
     if( Config == NULL )
         Config = AS_WINLIST_CONFIG(create_ASModule_config(WinListConfigClass));
+
+	if( max_columns_override > 0 ) 
+		Config->MaxColumns = max_columns_override ;
+		
+	if( max_rows_override > 0 ) 
+		Config->MaxRows = max_rows_override ;
 
     if( Config->MaxRows > MAX_WINLIST_WINDOW_COUNT || Config->MaxRows == 0  )
         Config->MaxRows = MAX_WINLIST_WINDOW_COUNT;
@@ -423,8 +464,19 @@ CheckWinListConfigSanity(WinListConfig *Config, ASGeometry *default_geometry, in
     if( Config->MaxColumns > MAX_WINLIST_WINDOW_COUNT || Config->MaxColumns == 0  )
         Config->MaxColumns = MAX_WINLIST_WINDOW_COUNT;
 
+	if( max_columns_override > 0 && max_rows_override > 0 ) 
+	{
+		if( Config->MaxColumns > Config->MaxRows )
+			set_flags( Config->flags, ASWL_RowsFirst );
+		else
+			clear_flags( Config->flags, ASWL_RowsFirst );
+	}		
+
 	if( default_geometry && default_geometry->flags != 0 ) 
 		Config->Geometry = *default_geometry ;
+
+    if( get_flags(Config->Geometry.flags, WidthValue) && Config->Geometry.width > 0 )
+        Config->MinSize.width = Config->MaxSize.width = Config->Geometry.width ;
 	
     Config->gravity = StaticGravity ;
     if( get_flags(Config->Geometry.flags, XNegative) )
@@ -432,6 +484,7 @@ CheckWinListConfigSanity(WinListConfig *Config, ASGeometry *default_geometry, in
     else if( get_flags(Config->Geometry.flags, YNegative) )
         Config->gravity = SouthWestGravity;
 
+LOCAL_DEBUG_OUT( "gravity = %d, default_gravity = %d", Config->gravity, default_gravity );
 	if(default_gravity != ForgetGravity)
     	Config->gravity = default_gravity ;
 
@@ -456,17 +509,10 @@ CheckWinListConfigSanity(WinListConfig *Config, ASGeometry *default_geometry, in
 			Config->UseName = 0; /* default - ASN_Name */
 	}
 
-	if( !get_flags( Config->set_flags, WINLIST_IconLocation ) )
-	{
-		if( get_flags(Config->Align, PAD_H_MASK) == ALIGN_RIGHT ) 
-			Config->IconLocation = 2 ; 
-	}		
-	if( !get_flags( Config->set_flags, WINLIST_IconAlign ) )
-	{
-	   	if( get_flags(Config->Align, PAD_H_MASK) == PAD_H_MASK ) 
-			if( Config->IconLocation == 0 || Config->IconLocation == 4 || Config->IconLocation == 7) 	  
-				Config->IconAlign = ALIGN_RIGHT ; 
-	}	 
+	if( get_flags( Config->flags, WINLIST_ShowIcon ) )
+		Config->Align = DigestWinListAlign( Config, Config->Align );
+
+/*	Config->IconAlign = ALIGN_VCENTER; NO_ALIGN ; */
 }
 
 

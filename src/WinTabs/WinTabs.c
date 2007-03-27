@@ -1070,6 +1070,7 @@ make_wintabs_window()
     unsigned int width = max(Config->geometry.width,1);
     unsigned int height = max(Config->geometry.height,1);
     XSetWindowAttributes attributes;
+	char *iconic_name ; 
 
 	memset( &extwm_hints, 0x00, sizeof(extwm_hints));
     attributes.background_pixmap = ParentRelative;
@@ -1096,9 +1097,18 @@ make_wintabs_window()
     LOCAL_DEBUG_OUT( "creating main window with geometry %dx%d%+d%+d", width, height, x, y );
     w = create_visual_window( Scr.asv, Scr.Root, x, y, 1, 1, 0, InputOutput, CWBackPixmap, &attributes);
     LOCAL_DEBUG_OUT( "main window created with Id %lX", w);
-    set_client_names( w, Config->title?Config->title:"WinTabs", 
-						 Config->icon_title?Config->icon_title:"WinTabs - iconic", 
-					  	 CLASS_WINTABS, MyName );
+
+	iconic_name = Config->icon_title ; 
+	if( iconic_name == NULL ) 
+	{
+		iconic_name = safemalloc( strlen(MyName)+32 );
+		sprintf( iconic_name, "%s iconic", MyName );
+	}	
+    set_client_names( w, Config->title?Config->title:MyName, 
+						 iconic_name, 
+					  	 AS_MODULE_CLASS, CLASS_WINTABS );
+	if( iconic_name != Config->icon_title ) 
+		free( iconic_name );
 
     shints.flags = USPosition|USSize|PWinGravity;
     shints.win_gravity = Config->gravity ;

@@ -27,15 +27,19 @@ Style	"Unknown"	Icon Unknown.xpm
 # Wharf and modules
 # note that only Wharf and WinList has AvoidCover set as AvoidCover causes effect of
 # moving other windows out of the way when window is resized/placed
-Style   "AskWharf"      Handles,  NoTitle, Sticky, Layer 4, CirculateSkip, WindowListSkip, NoHandles, AvoidCover, BorderWidth 0
-Style   "*Wharf"        NoTitle, Sticky, Layer 4, CirculateSkip, WindowListSkip, NoHandles, AvoidCover, BorderWidth 0
-Style   "*WharfWithdrawn"        NoTitle, Sticky, Layer 3, WindowListSkip, NoHandles, AvoidCover, ShortLiving, BorderWidth 0
+# the first record will apply to all modules, and then we selectively adjust for 
+# few modules having specific needs : 
+Style 	"ASModule"		NoTitle, Sticky, Layer 3, WindowListSkip, NoHandles, AvoidCover, BorderWidth 0
+Style 	"Ident*"		    Title, Slippery, Layer 2, Handles
+Style 	"*WharfWithdrawn"        ShortLiving
+Style 	"AskWharf"      Handles
 Style   "Banner"        NoTitle, Sticky, Layer 2, WindowListSkip, NoHandles
-Style   "WinList"       NoTitle, Sticky, Layer 3, WindowListSkip, NoHandles, AvoidCover, BorderWidth 0
-# to make sure Pager always stays open we place it into the highest used level :
-Style   "*Pager"        NoTitle, Sticky, Layer 4, WindowListSkip, NoHandles, AvoidCover, BorderWidth 0
+Style   "WinTabs"       Title, Slippery, Layer 0, Slippery, Handles
+
+# This record is for the AfterStep menu :
 Style   "ASMenu"        NoButton 1, NoButton 3
-Style   "WinTabs"       Layer 0, Slippery
+
+# Several AfterStep tools :
 Style   "ASRun		Icon logos/AfterStep
 Style	"GWCommand"	FocusOnMap
 

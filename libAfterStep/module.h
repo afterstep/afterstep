@@ -34,6 +34,7 @@ struct button_t;
 #define CLASS_PAGER         "Pager"
 #define CLASS_SCROLL        "Scroll"
 #define CLASS_WHARF         "Wharf"
+#define CLASS_WHARF_WITHDRAWN         "WharfWithdrawn"
 #define CLASS_WINCOMMAND    "WinCommand"
 #define CLASS_WINLIST       "WinList"
 #define CLASS_WINTABS       "WinTabs"

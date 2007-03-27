@@ -1894,12 +1894,11 @@ void restartmodule_func_handler( FunctionData *data, ASEvent *event, int module 
 {
 	char *cmd_line = GetModuleCmdLineByName(data->text);
 	KillModuleByName (data->text);	
-	if( cmd_line ) 
-	{
-	    UngrabEm ();
-    	ExecModule (cmd_line, event->client ? event->client->w : None, event->context);
+	
+    UngrabEm ();
+   	ExecModule (cmd_line?cmd_line:data->text, event->client ? event->client->w : None, event->context);
+	if( cmd_line )
 		free( cmd_line );
-	}	 
 }
 
 void popup_func_handler( FunctionData *data, ASEvent *event, int module )

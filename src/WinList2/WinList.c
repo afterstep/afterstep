@@ -112,6 +112,24 @@ ASWinListState WinListState = { 0, NULL, None, NULL, NULL };
  */
 
 WinListConfig *Config = NULL ;
+int MaxRows_override = 0 ;
+int MaxColumns_override = 0 ;
+
+CommandLineOpts WinList_cmdl_options[3] =
+{
+	{NULL, "max-rows","Overrides WinList MaxRows setting", NULL, handler_set_int, &MaxRows_override, 0, CMO_HasArgs },
+	{NULL, "max-cols","Overrides WinList MaxColumns setting", NULL, handler_set_int, &MaxColumns_override, 0, CMO_HasArgs },
+    {NULL, NULL, NULL, NULL, NULL, NULL, 0 }
+};
+
+void
+WinList_usage (void)
+{
+	printf (OPTION_USAGE_FORMAT " [--rows rows] [--cols cols] n m\n", MyName );
+	print_command_line_opt("standard_options are ", as_standard_cmdl_options, ASS_Restarting);
+	print_command_line_opt("additional options are ", WinList_cmdl_options, 0);
+	exit (0);
+}
 
 
 /**********************************************************************/
@@ -139,11 +157,26 @@ Bool check_avoid_collision();
 int
 main( int argc, char **argv )
 {
+	int i ;
+	
     /* Save our program name - for error messages */
 	set_DeadPipe_handler(DeadPipe);
-    InitMyApp (CLASS_WINLIST, argc, argv, NULL, NULL, 0 );
+    InitMyApp (CLASS_WINLIST, argc, argv, WinList_usage, NULL, 0 );
 	LinkAfterStepConfig();
 
+    for( i = 1 ; i< argc ; ++i)
+	{
+		LOCAL_DEBUG_OUT( "argv[%d] = \"%s\", original argv[%d] = \"%s\"", i, argv[i], i, MyArgs.saved_argv[i]);	  
+		if( argv[i] != NULL )
+		{ 	
+	    	if( strcmp( argv[i] , "--max-rows" ) == 0 && i+1 < argc &&  argv[i+1] != NULL )
+				MaxRows_override = atoi( argv[++i] );
+	    	else if( strcmp( argv[i] , "--max-cols" ) == 0 && i+1 < argc &&  argv[i+1] != NULL )
+				MaxColumns_override = atoi( argv[++i] );
+		}
+	}
+
+LOCAL_DEBUG_OUT( "Max overrides %d, %d", MaxColumns_override, MaxRows_override );
     set_signal_handler( SIGSEGV );
 
     ConnectX( ASDefaultScr, EnterWindowMask );
@@ -166,12 +199,15 @@ main( int argc, char **argv )
 	Config = AS_WINLIST_CONFIG(parse_asmodule_config_all( WinListConfigClass )/*asm_config*/);
 	
 /* 	LoadConfig ("winlist", GetOptions); */
-	CheckWinListConfigSanity(Config, &(MyArgs.geometry), MyArgs.gravity);
+	CheckWinListConfigSanity(Config, &(MyArgs.geometry), MyArgs.gravity, MaxColumns_override, MaxRows_override);
+LOCAL_DEBUG_OUT( "Max cols/rows %d, %d", Config->MaxColumns, Config->MaxRows );
+	
 	ReloadASDatabase();
 	ReloadCategories(True);
     
 	retrieve_winlist_astbar_props();
 		
+LOCAL_DEBUG_OUT( "Max cols/rows %d, %d", Config->MaxColumns, Config->MaxRows );
 	SetWinListLook();
 
     WinListState.main_window = make_winlist_window();
@@ -396,7 +432,13 @@ process_message (send_data_type type, send_data_type *body)
 				}
 				if( new_name ) free(new_name );
 			}
-
+			if( wd == WinListState.self && type == M_CONFIGURE_WINDOW ) 
+			{
+				if( Config->gravity == NorthEastGravity || Config->gravity == SouthEastGravity )
+					Config->anchor_x = wd->frame_rect.x + wd->frame_rect.width ; 
+				if( Config->gravity == SouthWestGravity || Config->gravity == SouthEastGravity )
+					Config->anchor_y = wd->frame_rect.y + wd->frame_rect.height ; 
+			}
 			if( !refresh_winlist_button( tbar, wd, (type == M_FOCUS_CHANGE) ) )
 			{
 				if(wd != WinListState.self && get_flags( wd->module_flags, ASWL_Client_NoCollides ) )
@@ -576,7 +618,7 @@ make_winlist_window()
 	}
 
 	w = create_visual_window( Scr.asv, Scr.Root, x, y, 1, 1, 0, InputOutput, 0, NULL);
-    set_client_names( w, "Window List", "Window List", CLASS_WINLIST, MyName );
+    set_client_names( w, MyName, MyName, AS_MODULE_CLASS, CLASS_WINLIST );
 
 	WinList_names[0] = MyName ;
 
@@ -595,7 +637,7 @@ make_winlist_window()
 	shints.max_height = (Config->MaxSize.height>0)?Config->MaxSize.height:Scr.MyDisplayHeight;
 	shints.base_width = shints.base_height = 4;
 	shints.win_gravity = Config->gravity ; /* should be StaticGravity for some position manipulations */
-
+LOCAL_DEBUG_OUT( "gravity = %d", Config->gravity );
 	extwm_hints.pid = getpid();
 	extwm_hints.flags = EXTWM_PID|EXTWM_TypeSet|EXTWM_StateSet ;
 	extwm_hints.state_flags = EXTWM_StateSkipTaskbar|EXTWM_StateSkipPager ;
@@ -736,8 +778,15 @@ winlist_avoid_collision( int *px, int *py, unsigned int *pmax_width, unsigned in
     if( get_flags( Config->flags, ASWL_RowsFirst ) )
 	{	/* strategy # 1 - find closest possible rectangle without changing y position */
 		int max_y = y+min_height ;
+		int min_y = y ; 
+		if( Config->gravity == SouthWestGravity || Config->gravity == SouthEastGravity )
+		{
+			max_y = Config->anchor_y ; 
+			min_y = max_y - min_height ; 
+			y = Config->anchor_y - h ; 
+		}
     	while( --i >= 0 )
-			if( rects[i].y <= y && max_y < rects[i].y + rects[i].height )
+			if( rects[i].y <= min_y && max_y <= rects[i].y + rects[i].height )
 				if( rects[i].width > selected_factor ) 
 				{
 					selected = i ;
@@ -747,13 +796,23 @@ winlist_avoid_collision( int *px, int *py, unsigned int *pmax_width, unsigned in
 		{
 			rects[selected].width -= frame_add_h ; 
 			FIT_TO_RECT(x,w,rects[selected].x,rects[selected].width);
+			if( y < rects[selected].y )
+				y = rects[selected].y ;
 		}
 	}else
 	{
-		int max_x = x+min_width ;
+		int max_x = min_width + x ;
+		int min_x = x ;
+		
+		if( Config->gravity == NorthEastGravity || Config->gravity == SouthEastGravity )
+		{
+			max_x = Config->anchor_x ; 
+			min_x = max_x - min_width ; 
+			x = Config->anchor_x - w ; 
+		}
 		/* strategy # 2 - find closest possible rectangle without changing x position */
     	while( --i >= 0 )
-			if( rects[i].x <= x && max_x < rects[i].x + rects[i].width )
+			if( rects[i].x <= x && max_x <= rects[i].x + rects[i].width )
 				if( rects[i].height > selected_factor ) 
 				{
 					selected = i ;
@@ -763,6 +822,8 @@ winlist_avoid_collision( int *px, int *py, unsigned int *pmax_width, unsigned in
 		{
 			rects[selected].height -= frame_add_v; 
 			FIT_TO_RECT(y,h,rects[selected].y,rects[selected].height);
+			if( x < rects[selected].x )
+				x = rects[selected].x ;
 		}
 	}
 	destroy_asvector( &free_space_list );
@@ -772,6 +833,16 @@ winlist_avoid_collision( int *px, int *py, unsigned int *pmax_width, unsigned in
 	*pmax_height = h ; 
 	LOCAL_DEBUG_OUT( "Final geometry %dx%d%+d%+d, Selected area = %d", w, h, x, y, selected );
 }
+
+void
+winlist_avoid_collision_trace( const char *caller, int line, int *px, int *py, unsigned int *pmax_width, unsigned int *pmax_height, int min_width, int min_height )
+{
+	LOCAL_DEBUG_OUT( "calling winlist_avoid_collision from %s:%d", caller, line );
+	winlist_avoid_collision( px, py, pmax_width, pmax_height, min_width, min_height );	
+}
+
+#define winlist_avoid_collision(px,py,pmax_width,pmax_height,min_width,min_height ) \
+	winlist_avoid_collision_trace( __FUNCTION__, __LINE__, px, py, pmax_width, pmax_height, min_width, min_height )	
 
 Bool
 check_avoid_collision()
@@ -827,24 +898,33 @@ moveresize_main_canvas( int width, int height )
 	tmp_height += frame_add_v ; 
 	new_x = curr_x ; 
 	new_y = curr_y ; 
+	
 	winlist_avoid_collision( &new_x, &new_y, &tmp_width, &tmp_height, 
-							  max(WinListState.min_col_width,tmp_width), 
-							  max(WinListState.max_item_height,tmp_height) );
+							  max(WinListState.min_col_width+frame_add_h,tmp_width), 
+							  max(WinListState.max_item_height+frame_add_v,tmp_height) );
 
 	if( new_x != curr_x )
 	{
-		if( Config->gravity == SouthEastGravity || Config->gravity == NorthEastGravity )
-			new_x += frame_add_h ; 
-		else if( Config->gravity == CenterGravity || Config->gravity == StaticGravity ) 
-			new_x += frame_add_h/2 ; /* not particularly correct for StaticGravity */
 		mask |= CWX ; 
+		if( Config->gravity == SouthEastGravity || Config->gravity == NorthEastGravity )
+		{
+			if( !get_flags( Config->flags, ASWL_RowsFirst ) ) /* should not change x position in that case */
+				mask &= ~CWX ; 
+			else		
+				new_x += frame_add_h ; 
+		}else if( Config->gravity == CenterGravity || Config->gravity == StaticGravity ) 
+			new_x += frame_add_h/2 ; /* not particularly correct for StaticGravity */
 	}
 	if( new_y != curr_y ) 
 	{
 		mask |= CWY ; 
 		if( Config->gravity == SouthEastGravity || Config->gravity == SouthWestGravity )
-			new_y += frame_add_v ; 
-		else if( Config->gravity == CenterGravity || Config->gravity == StaticGravity  ) 
+		{
+			if( get_flags( Config->flags, ASWL_RowsFirst ) ) /* should not change x position in that case */
+				mask &= ~CWY ; 
+			else		
+				new_y += frame_add_v ; 
+		}else if( Config->gravity == CenterGravity || Config->gravity == StaticGravity  ) 
 			new_y += frame_add_v/2 ; 
 	}
 	changes = configure_canvas( WinListState.main_canvas, new_x, new_y, width, height, mask );
@@ -937,7 +1017,8 @@ rearrange_winlist_window( Bool dont_resize_main_canvas )
     {
 		int dumm_x = WinListState.main_canvas->root_x; 
 		int dumm_y = WinListState.main_canvas->root_y; 
-		winlist_avoid_collision( &dumm_x, &dumm_y, &allowed_max_width, &allowed_max_height, min_col_width, max_item_height );
+		winlist_avoid_collision( &dumm_x, &dumm_y, &allowed_max_width, &allowed_max_height, 
+								 min_col_width, max_item_height );
         if( allowed_min_width > allowed_max_width )
             allowed_min_width = allowed_max_width ;
         if( allowed_min_height > allowed_max_height )
@@ -1369,7 +1450,7 @@ configure_tbar_props( ASTBarData *tbar, ASWindowData *wd, Bool focus_only )
 		if( WinListState.tbar_props )
 		{
 			if( !get_flags( Config->set_flags, WINLIST_Align ) )
-				align = WinListState.tbar_props->align ;
+				align = DigestWinListAlign( Config, WinListState.tbar_props->align );
 			else
 				align = Config->Align ;
 		    if( !get_flags( Config->set_flags, WINLIST_HSpacing) )

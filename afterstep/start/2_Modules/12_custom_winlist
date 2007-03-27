@@ -1,0 +1,13 @@
+Popup "Custom WinList Layouts"
+	Module "1 Row WinList at the top"  WinList --max-cols 1000 --max-rows 1 --geometry 10000x+0+0 &
+	Module "2 Row WinList at the top"  WinList --max-cols 1000 --max-rows 2 --geometry 10000x+0+0 &
+	Module "3 Row WinList at the top"  WinList --max-cols 1000 --max-rows 3 --geometry 10000x+0+0 &
+	Module "1 Row WinList at the bottom"  WinList --max-cols 1000 --max-rows 1 --geometry 10000x+0-0 &
+	Module "2 Row WinList at the bottom"  WinList --max-cols 1000 --max-rows 2 --geometry 10000x+0-0 &
+	Module "3 Row WinList at the bottom"  WinList --max-cols 1000 --max-rows 3 --geometry 10000x+0-0 &
+	Module "Vertical WinList on the left, growing down"  WinList --max-cols 1 --max-rows 1000 --geometry 150x10000+0+0 &
+	Module "Vertical WinList on the left, growing up"  WinList --max-cols 1 --max-rows 1000 --geometry 150x10000+0-0 &
+	Module "Vertical WinList on the right, growing down"  WinList --max-cols 1 --max-rows 1000 --geometry 150x10000-0+0 &
+	Module "Vertical WinList on the right, growing up"  WinList --max-cols 1 --max-rows 1000 --geometry 150x10000-0-0 &
+EndPopup
+SmallMiniPixmap "normal/WinList"

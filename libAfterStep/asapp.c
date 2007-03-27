@@ -571,6 +571,7 @@ InitMyApp (  const char *app_class, int argc, char **argv, void (*version_func) 
 	}
 
     as_app_args.mask = opt_mask ;
+	as_app_args.gravity = ForgetGravity ;
 #ifndef NO_DEBUG_OUTPUT
     as_app_args.verbosity_level = OUTPUT_VERBOSE_THRESHOLD ;
 #else

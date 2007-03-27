@@ -354,7 +354,7 @@ make_ident_window( int width, int height)
 	}
     attr.event_mask = StructureNotifyMask ;
     w = create_visual_window( Scr.asv, Scr.Root, x, y, width, height, 0, InputOutput, CWEventMask, &attr);
-    set_client_names( w, MyName, MyName, CLASS_IDENT, MyName );
+    set_client_names( w, MyName, MyName, AS_MODULE_CLASS, CLASS_IDENT );
 
     Scr.RootClipArea.x = x;
     Scr.RootClipArea.y = y;

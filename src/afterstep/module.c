@@ -712,7 +712,7 @@ DeadPipe (int nonsense)
 int FindModuleByName (char *name)
 {
 	int module = -1;
-	if( Modules ) 
+	if( Modules && name) 
 	{	
     	wild_reg_exp  *wrexp = compile_wild_reg_exp( name );
 
@@ -746,8 +746,6 @@ GetModuleCmdLineByName(char *name)
 		register module_t *list = MODULES_LIST ;	
 		if( list[module].cmd_line ) 
 			return mystrdup( list[module].cmd_line ) ;
-		else
-			return mystrdup( list[module].name );
 	}
 	return NULL ;
 }
