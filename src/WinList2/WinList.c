@@ -63,6 +63,9 @@ typedef struct ASWinListColumn
 #define ASWL_Client_NoCollides	(0x01<<0)
 
 typedef struct {
+
+#define ASWL_Mapped		(0x01<<0)
+	ASFlagType flags ;
     int windows_num ;
 
     ASWindowData       *focused;
@@ -210,6 +213,7 @@ LOCAL_DEBUG_OUT( "Max cols/rows %d, %d", Config->MaxColumns, Config->MaxRows );
 LOCAL_DEBUG_OUT( "Max cols/rows %d, %d", Config->MaxColumns, Config->MaxRows );
 	SetWinListLook();
 
+	clear_flags(WinListState.flags, ASWL_Mapped ); 
     WinListState.main_window = make_winlist_window();
     WinListState.main_canvas = create_ascanvas( WinListState.main_window );
     set_root_clip_area( WinListState.main_canvas );
@@ -382,10 +386,12 @@ process_message (send_data_type type, send_data_type *body)
 	{
 		WinListState.postpone_display = False ;
 		rearrange_winlist_window( False );
-//		if( !get_flags( WinListState.flags, ASWL_Mapped ) )	
+		if( !get_flags( WinListState.flags, ASWL_Mapped ) )	
 		{
 			XMapRaised (dpy, WinListState.main_window);
-//			set_flags( WinListState.flags, ASWL_Mapped );
+			set_flags( WinListState.flags, ASWL_Mapped );
+			ASSync(False);
+			sleep_a_millisec(100);
 		}
 	}else if( (type&WINDOW_PACKET_MASK) != 0 )
 	{
@@ -832,6 +838,9 @@ winlist_avoid_collision( int *px, int *py, unsigned int *pmax_width, unsigned in
 	*pmax_width = w ; 
 	*pmax_height = h ; 
 	LOCAL_DEBUG_OUT( "Final geometry %dx%d%+d%+d, Selected area = %d", w, h, x, y, selected );
+	LOCAL_DEBUG_OUT( "Current Canvas geometry %dx%d%+d%+d", WinListState.main_canvas->width, WinListState.main_canvas->height, WinListState.main_canvas->root_x, WinListState.main_canvas->root_y );
+	if( WinListState.self )
+		LOCAL_DEBUG_OUT( "Current frame geometry %dx%d%+d%+d", WinListState.self->frame_rect.width, WinListState.self->frame_rect.height,WinListState.self->frame_rect.x, WinListState.self->frame_rect.y );
 }
 
 void
@@ -908,7 +917,8 @@ moveresize_main_canvas( int width, int height )
 		mask |= CWX ; 
 		if( Config->gravity == SouthEastGravity || Config->gravity == NorthEastGravity )
 		{
-			if( !get_flags( Config->flags, ASWL_RowsFirst ) ) /* should not change x position in that case */
+			if( get_flags(WinListState.flags, ASWL_Mapped ) && 
+			    !get_flags( Config->flags, ASWL_RowsFirst ) ) /* should not change x position in that case */
 				mask &= ~CWX ; 
 			else		
 				new_x += frame_add_h ; 
@@ -920,8 +930,9 @@ moveresize_main_canvas( int width, int height )
 		mask |= CWY ; 
 		if( Config->gravity == SouthEastGravity || Config->gravity == SouthWestGravity )
 		{
-			if( get_flags( Config->flags, ASWL_RowsFirst ) ) /* should not change x position in that case */
-				mask &= ~CWY ; 
+			if( get_flags(WinListState.flags, ASWL_Mapped ) && 
+			    get_flags( Config->flags, ASWL_RowsFirst ) ) /* should not change y position in that case */
+			{	mask &= ~CWY ;  }
 			else		
 				new_y += frame_add_v ; 
 		}else if( Config->gravity == CenterGravity || Config->gravity == StaticGravity  ) 
