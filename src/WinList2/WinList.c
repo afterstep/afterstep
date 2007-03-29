@@ -98,9 +98,14 @@ typedef struct {
 	ASDatabaseRecord db_rec ; 	
 	int border_width ; 
 
+	/* this will be used instead of what we get in frame_rect from AS, 
+	   as those messages could arrive too late :*/
+	int frame_x, frame_y ;
+	unsigned int frame_width, frame_height, frame_bw ; 
+
 }ASWinListState ;
 
-ASWinListState WinListState = { 0, NULL, None, NULL, NULL };
+ASWinListState WinListState;
 
 
 #define WINLIST_BACK_URGENT		BACK_DEFAULT
@@ -161,6 +166,8 @@ int
 main( int argc, char **argv )
 {
 	int i ;
+
+	memset( &WinListState, 0x00, sizeof(WinListState));
 	
     /* Save our program name - for error messages */
 	set_DeadPipe_handler(DeadPipe);
@@ -405,8 +412,10 @@ process_message (send_data_type type, send_data_type *body)
 		if( res == WP_DataCreated )
         {
 			if( wd->client == WinListState.main_window ) 
+			{
 				WinListState.self = wd ;
-            else 
+			    XSelectInput (dpy, wd->frame, StructureNotifyMask );
+            }else 
 			{
 				if( WinListState.windows_num < MAX_WINLIST_WINDOW_COUNT &&
                 	WinListState.windows_num < Config->MaxRows*Config->MaxColumns )
@@ -437,13 +446,6 @@ process_message (send_data_type type, send_data_type *body)
 					}
 				}
 				if( new_name ) free(new_name );
-			}
-			if( wd == WinListState.self && type == M_CONFIGURE_WINDOW ) 
-			{
-				if( Config->gravity == NorthEastGravity || Config->gravity == SouthEastGravity )
-					Config->anchor_x = wd->frame_rect.x + wd->frame_rect.width ; 
-				if( Config->gravity == SouthWestGravity || Config->gravity == SouthEastGravity )
-					Config->anchor_y = wd->frame_rect.y + wd->frame_rect.height ; 
 			}
 			if( !refresh_winlist_button( tbar, wd, (type == M_FOCUS_CHANGE) ) )
 			{
@@ -485,6 +487,18 @@ DispatchEvent (ASEvent * event)
     switch (event->x.type)
     {
 	    case ConfigureNotify:
+			if( WinListState.self && event->x.xconfigure.window == WinListState.self->frame ) 
+			{
+				WinListState.frame_x = event->x.xconfigure.x ; 
+				WinListState.frame_y = event->x.xconfigure.y ; 
+				WinListState.frame_width = event->x.xconfigure.width ; 
+				WinListState.frame_height = event->x.xconfigure.height ; 
+				WinListState.frame_bw = event->x.xconfigure.border_width ; 
+				if( Config->gravity == NorthEastGravity || Config->gravity == SouthEastGravity )
+					Config->anchor_x = WinListState.frame_x + WinListState.frame_width+WinListState.frame_bw*2 ; 
+				if( Config->gravity == SouthWestGravity || Config->gravity == SouthEastGravity )
+					Config->anchor_y = WinListState.frame_y + WinListState.frame_height+WinListState.frame_bw*2 ; 
+			}else
             {
                 ASFlagType changes = handle_canvas_config( WinListState.main_canvas );
                 if( changes != 0 )
@@ -773,8 +787,8 @@ winlist_avoid_collision( int *px, int *py, unsigned int *pmax_width, unsigned in
 	
 	if( WinListState.self) 
 	{
-		frame_add_h = WinListState.self->frame_rect.width - WinListState.main_canvas->width ; 
-		frame_add_v = WinListState.self->frame_rect.height - WinListState.main_canvas->height ; 
+		frame_add_h = (int)WinListState.frame_width - (int)WinListState.frame_width + (int)WinListState.frame_bw*2 ; 
+		frame_add_v = (int)WinListState.frame_height - (int)WinListState.frame_height + (int)WinListState.frame_bw*2 ; 
 	}else
 	{
 		frame_add_h = frame_add_v = WinListState.border_width*2 ; 
@@ -840,7 +854,10 @@ winlist_avoid_collision( int *px, int *py, unsigned int *pmax_width, unsigned in
 	LOCAL_DEBUG_OUT( "Final geometry %dx%d%+d%+d, Selected area = %d", w, h, x, y, selected );
 	LOCAL_DEBUG_OUT( "Current Canvas geometry %dx%d%+d%+d", WinListState.main_canvas->width, WinListState.main_canvas->height, WinListState.main_canvas->root_x, WinListState.main_canvas->root_y );
 	if( WinListState.self )
-		LOCAL_DEBUG_OUT( "Current frame geometry %dx%d%+d%+d", WinListState.self->frame_rect.width, WinListState.self->frame_rect.height,WinListState.self->frame_rect.x, WinListState.self->frame_rect.y );
+	{
+		LOCAL_DEBUG_OUT( "Current frame geometry from AS : %lux%lu%+ld%+ld", WinListState.self->frame_rect.width, WinListState.self->frame_rect.height,WinListState.self->frame_rect.x, WinListState.self->frame_rect.y );
+		LOCAL_DEBUG_OUT( "Current frame geometry from  X : %dx%d%+d%+d", WinListState.frame_width, WinListState.frame_height,WinListState.frame_x, WinListState.frame_y );
+	}
 }
 
 void
@@ -892,10 +909,10 @@ moveresize_main_canvas( int width, int height )
 	
 	if( WinListState.self && Config->gravity != StaticGravity ) 
 	{
-		curr_x = WinListState.self->frame_rect.x ; 
-		curr_y = WinListState.self->frame_rect.y ; 
-		frame_add_h = WinListState.self->frame_rect.width - WinListState.main_canvas->width ; 
-		frame_add_v = WinListState.self->frame_rect.height - WinListState.main_canvas->height ; 
+		curr_x = WinListState.frame_x ; 
+		curr_y = WinListState.frame_y ; 
+		frame_add_h = (int)WinListState.frame_width  - (int)WinListState.main_canvas->width  + (int)WinListState.frame_bw*2 ; 
+		frame_add_v = (int)WinListState.frame_height - (int)WinListState.main_canvas->height + (int)WinListState.frame_bw*2 ; 
 		if( frame_add_h < 0 )
 			frame_add_h = 0 ;
 		if( frame_add_v < 0 )
