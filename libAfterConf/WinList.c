@@ -78,6 +78,9 @@ extern SyntaxDef AlignSyntax;
     ASCF_DEFINE_KEYWORD_S(WINLIST, 0			    , MaxColWidth		, TT_INTEGER	, NULL,WinListConfig), \
     ASCF_DEFINE_KEYWORD_S(WINLIST, 0			    , MinColWidth		, TT_INTEGER	, NULL,WinListConfig), \
     ASCF_DEFINE_KEYWORD_S(WINLIST, 0			    , MinColWidth		, TT_INTEGER	, NULL,WinListConfig), \
+    ASCF_DEFINE_KEYWORD(WINLIST, TF_DONT_SPLIT		, NoCollides	    , TT_TEXT		, NULL), \
+    ASCF_DEFINE_KEYWORD(WINLIST, TF_DONT_SPLIT		, AllowCollides	    , TT_TEXT		, NULL), \
+    ASCF_DEFINE_KEYWORD_S(WINLIST, 0			    , NoCollidesSpacing	, TT_INTEGER	, NULL,WinListConfig), \
     ASCF_DEFINE_KEYWORD(WINLIST, TF_OBSOLETE	, MaxWidth			, TT_UINTEGER	, NULL)
 
 
@@ -206,8 +209,19 @@ InitWinListConfig (ASModuleConfig *asm_config, Bool free_resources)
 
 			for (i = 0; i < MAX_MOUSE_BUTTONS; ++i)
 				if (config->Action[i])
-            		destroy_string_list(config->Action[i]);
+            		destroy_string_list(config->Action[i],0);
+			
+#define FREE_COLLIDES(type) do { \
+			destroy_string_list(&(config->type##Collides[0]),config->type##Collides_nitems); \
+			if( config->type##Collides_wrexp ) { \
+				for( i = 0 ; i < config->type##Collides_nitems ; ++i ) destroy_wild_reg_exp(config->type##Collides_wrexp[i]); \
+				free( config->type##Collides_wrexp ); \
+			}}while(0)
+			
+			if( config->NoCollides_nitems > 0 ) FREE_COLLIDES(No);
+			if( config->AllowCollides_nitems > 0 ) FREE_COLLIDES(Allow);			
 		}
+//		memset( config, 0x00, sizeof(WinListConfig));
 		config->flags = WINLIST_ShowIcon|WINLIST_ScaleIconToTextHeight ;
     	init_asgeometry (&(config->Geometry));
 	    config->gravity = StaticGravity;
@@ -219,6 +233,14 @@ InitWinListConfig (ASModuleConfig *asm_config, Bool free_resources)
 	    config->FBevel = config->UBevel = config->SBevel = DEFAULT_TBAR_HILITE ;
 		config->IconAlign = NO_ALIGN ;
 		config->IconLocation = 0 ;
+		if( !free_resources ) 
+		{
+ 	    	config->NoCollides = safecalloc(2, sizeof(char*)); ;
+			config->NoCollides[0] = mystrdup(CLASS_PAGER);
+			config->NoCollides[1] = mystrdup(CLASS_WHARF);		
+			config->NoCollides_nitems = 2 ; 
+		}
+		config->NoCollidesSpacing = 20 ; 
 	}
 }
 
@@ -267,6 +289,9 @@ PrintWinListConfig (WinListConfig * config)
 
 	for (i = 0; i < MAX_MOUSE_BUTTONS; ++i)
         ASCF_PRINT_IDX_COMPOUND_STRING_KEYWORD(stderr,WINLIST,config,Action,',',i);
+
+	ASCF_PRINT_INT_KEYWORD(stderr,WINLIST,config,NoCollidesSpacing);	
+
 }
 
 void
@@ -338,12 +363,22 @@ WinList_fs2config( ASModuleConfig *asmodule_config, FreeStorageElem *Storage )
                         }
                         if (*ptr)
                         {
-                            destroy_string_list( config->Action[action_no] );
+                            destroy_string_list( config->Action[action_no], 0 );
                             config->Action[action_no] = comma_string2list( ptr );
                         }
                         item.ok_to_free = 1;
                     }
                     break;
+
+#define HANDLE_COLLIDES_ITEM(type) \
+	if( item.data.string != NULL ) { \
+		config->type##Collides = saferealloc( config->type##Collides, (config->type##Collides_nitems+1)*sizeof(char*)); \
+		config->type##Collides[config->type##Collides_nitems] = item.data.string ; \
+		++config->type##Collides_nitems ; }	break
+
+				case WINLIST_NoCollides_ID: HANDLE_COLLIDES_ITEM(No);
+				case WINLIST_AllowCollides_ID: HANDLE_COLLIDES_ITEM(Allow);
+
 		        default:
         		    item.ok_to_free = 1;
 			}
@@ -399,14 +434,24 @@ MergeWinListOptions ( ASModuleConfig *asm_to, ASModuleConfig *asm_from)
 		ASCF_MERGE_SCALAR_KEYWORD(WINLIST, to, from, IconAlign);
 		ASCF_MERGE_SCALAR_KEYWORD(WINLIST, to, from, IconLocation);
 		ASCF_MERGE_SCALAR_KEYWORD(WINLIST, to, from, IconSize);
+		ASCF_MERGE_SCALAR_KEYWORD(WINLIST, to, from, NoCollidesSpacing);
 
     	for( i = 0 ; i < MAX_MOUSE_BUTTONS ; ++i )
         	if( from->Action[i] )
         	{
-            	destroy_string_list( to->Action[i] );
+            	destroy_string_list( to->Action[i], 0 );
             	to->Action[i] = from->Action[i];
 				from->Action[i] = NULL ;
         	}
+
+#define MERGE_COLLIDES_ITEM(type) \
+	 	do{ to->type##Collides = saferealloc( to->type##Collides, (from->type##Collides_nitems+to->type##Collides_nitems)*sizeof(char*)); \
+		memcpy(&(to->type##Collides[to->type##Collides_nitems]), from->type##Collides, from->type##Collides_nitems*sizeof(char*) ) ; \
+		to->type##Collides_nitems += from->type##Collides_nitems; \
+		from->type##Collides_nitems = 0 ; free( from->type##Collides ); from->type##Collides = NULL ; }while(0)
+
+		if( from->NoCollides_nitems > 0 )		MERGE_COLLIDES_ITEM(No);
+		if( from->AllowCollides_nitems > 0 )		MERGE_COLLIDES_ITEM(Allow);
 	}
     SHOW_TIME("to parsing",option_time);
 }
@@ -449,6 +494,8 @@ void
 CheckWinListConfigSanity( WinListConfig *Config, ASGeometry *default_geometry, int default_gravity, 
 						  int max_columns_override, int max_rows_override )
 {
+	int i ; 
+
     if( Config == NULL )
         Config = AS_WINLIST_CONFIG(create_ASModule_config(WinListConfigClass));
 
@@ -512,7 +559,14 @@ LOCAL_DEBUG_OUT( "gravity = %d, default_gravity = %d", Config->gravity, default_
 	if( get_flags( Config->flags, WINLIST_ShowIcon ) )
 		Config->Align = DigestWinListAlign( Config, Config->Align );
 
-/*	Config->IconAlign = ALIGN_VCENTER; NO_ALIGN ; */
+#define MAKE_COLLIDES_WREXP(type)	do{ \
+		Config->type##Collides_wrexp = safecalloc( Config->type##Collides_nitems, sizeof(wild_reg_exp)); \
+		for( i = 0 ; i < Config->type##Collides_nitems ; ++i ) \
+			Config->type##Collides_wrexp[i] = compile_wild_reg_exp( Config->type##Collides[i] ); \
+	}while(0)	
+
+	if( Config->NoCollides_nitems > 0 ) MAKE_COLLIDES_WREXP(No);
+	if( Config->AllowCollides_nitems > 0 ) MAKE_COLLIDES_WREXP(Allow);
 }
 
 
