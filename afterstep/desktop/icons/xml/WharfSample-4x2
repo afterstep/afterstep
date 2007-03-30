@@ -1,0 +1,11 @@
+<composite>
+  <solid width=180 height=180 color="#00000000"/>
+  <img src="normal/WharfOutline" y="44"/>
+  <img src="normal/WharfOutline" y="44" x="44"/>
+  <img src="normal/WharfOutline" y="44" x="88"/>
+  <img src="normal/WharfOutline" y="44" x="132"/>
+  <img src="normal/WharfOutline" y="88"/>
+  <img src="normal/WharfOutline" y="88" x="44"/>
+  <img src="normal/WharfOutline" y="88" x="88"/>
+  <img src="normal/WharfOutline" y="88" x="132"/>
+</composite>

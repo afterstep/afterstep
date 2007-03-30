@@ -1,11 +1,19 @@
 Popup "Custom Wharf Layouts"
 	Module "Vertical Wharf"  Wharf --cols 1 &
+		 SmallMiniPixmap "WharfSample-1x4"
 	Module "Horizontal Wharf"  Wharf --rows 1 &
+		 SmallMiniPixmap "WharfSample-4x1"
 	Module "2-column Wharf"  Wharf --cols 2 &
+		 SmallMiniPixmap "WharfSample-2x4"
 	Module "2-row Wharf"  Wharf --rows 2 &
+		 SmallMiniPixmap "WharfSample-4x2"
 	Module "Vertical Monitoring Wharf"  Wharf --myname MonitorWharf --cols 1 &
+		 SmallMiniPixmap "WharfSample-1x4"
 	Module "Horizontal Monitoring Wharf"  Wharf --myname MonitorWharf --rows 1 &
+		 SmallMiniPixmap "WharfSample-4x1"
 	Module "2-column Monitoring Wharf"  Wharf --myname MonitorWharf --cols 2 &
+		 SmallMiniPixmap "WharfSample-2x4"
 	Module "2-row Monitoring Wharf"  Wharf --myname MonitorWharf --rows 2 &
+		 SmallMiniPixmap "WharfSample-4x2"
 EndPopup
-SmallMiniPixmap "normal/Wharf"
+SmallMiniPixmap "Folder-Wharf"
