@@ -367,13 +367,30 @@ GetOptions (const char *filename)
 }
 
 Bool 
-match_NoCollides( const char *name )
+match_NoCollides( char *name )
 {
-	/* TODO : add pattern matching here */
-
-	if( mystrcmp( name, "Pager" ) == 0 || mystrcmp( name, "Wharf" ) == 0 )
-		return True;
-	return False ; 
+	int i ; 
+	Bool no_collides = False ;
+	for( i = 0 ; i < Config->NoCollides_nitems ; ++i ) 
+		if( Config->NoCollides_wrexp ) 
+			if( match_wild_reg_exp( name, Config->NoCollides_wrexp[i] ) == 0 )
+			{
+				no_collides = True ; 
+				break;
+			}	
+				
+	if( no_collides ) 
+	{
+		for( i = 0 ; i < Config->AllowCollides_nitems ; ++i ) 
+			if( Config->AllowCollides_wrexp ) 
+				if( match_wild_reg_exp( name, Config->AllowCollides_wrexp[i] ) == 0 )
+				{
+					no_collides = False ; 
+					break;
+				}	
+	}
+		
+	return no_collides ; 
 }
 
 /****************************************************************************/
@@ -814,7 +831,8 @@ winlist_avoid_collision( int *px, int *py, unsigned int *pmax_width, unsigned in
 				}
 		if( selected >= 0 ) 
 		{
-			rects[selected].width -= frame_add_h ; 
+			rects[selected].width -= frame_add_h + Config->NoCollidesSpacing*2; 
+			rects[selected].x += Config->NoCollidesSpacing ;
 			FIT_TO_RECT(x,w,rects[selected].x,rects[selected].width);
 			if( y < rects[selected].y )
 				y = rects[selected].y ;
@@ -840,7 +858,8 @@ winlist_avoid_collision( int *px, int *py, unsigned int *pmax_width, unsigned in
 				}
 		if( selected >= 0 ) 
 		{
-			rects[selected].height -= frame_add_v; 
+			rects[selected].height -= frame_add_v + Config->NoCollidesSpacing*2; 
+			rects[selected].y += Config->NoCollidesSpacing ; 
 			FIT_TO_RECT(y,h,rects[selected].y,rects[selected].height);
 			if( x < rects[selected].x )
 				x = rects[selected].x ;

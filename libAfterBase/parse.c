@@ -1251,12 +1251,12 @@ list2comma_string (char **list)
 }
 
 void
-destroy_string_list( char **list )
+destroy_string_list( char **list, int max_items )
 {
     if( list )
     {
-        register int i = -1;
-        while( list[++i] )  free( list[i] );
+        register int i = 0;
+        while( (i < max_items || max_items == 0) && list[i] )  { free( list[i] ); ++i; }
         free( list );
     }
 }

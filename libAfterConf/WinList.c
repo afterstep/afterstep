@@ -240,7 +240,7 @@ InitWinListConfig (ASModuleConfig *asm_config, Bool free_resources)
 			config->NoCollides[1] = mystrdup(CLASS_WHARF);		
 			config->NoCollides_nitems = 2 ; 
 		}
-		config->NoCollidesSpacing = 20 ; 
+		config->NoCollidesSpacing = 1 ; 
 	}
 }
 

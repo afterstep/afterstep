@@ -36,6 +36,7 @@ struct ASColorScheme;
 struct ConfigDef;
 struct FreeStorageElem;
 struct ASCategoryTree;
+struct wild_reg_exp;
 
 extern struct SyntaxDef      BevelSyntax;
 extern struct SyntaxDef      AlignSyntax;
@@ -1210,6 +1211,8 @@ void DestroyMyBackgroundConfig (MyBackgroundConfig ** head);
 #define WINLIST_IconSize_ID				(WINLIST_ID_START+38)
 #define WINLIST_ScaleIconToTextHeight_ID (WINLIST_ID_START+39)
 #define WINLIST_NoCollides_ID 			(WINLIST_ID_START+40)
+#define WINLIST_AllowCollides_ID 		(WINLIST_ID_START+41)
+#define WINLIST_NoCollidesSpacing_ID	(WINLIST_ID_START+40)
 
 #define WINLIST_ID_END                  (WINLIST_ID_START+50)
 
@@ -1248,6 +1251,7 @@ typedef struct WinListConfig
 #define WINLIST_IconAlign	    (0x01<<22)
 #define WINLIST_IconSize		(0x01<<23)
 #define WINLIST_ScaleIconToTextHeight (0x01<<24)
+#define WINLIST_NoCollidesSpacing	  (0x01<<25)
 	   
 
 #define 	ASWL_RowsFirst 				WINLIST_FillRowsFirst
@@ -1290,11 +1294,16 @@ typedef struct WinListConfig
 	
 	char **NoCollides ;
 	int  NoCollides_nitems ;
+	char **AllowCollides ;
+	int  AllowCollides_nitems ;
+
+	int NoCollidesSpacing ;
 
     /* calculated based on geometry : */
     int anchor_x, anchor_y ;
 	int gravity ;
-
+	struct wild_reg_exp **NoCollides_wrexp ;
+	struct wild_reg_exp **AllowCollides_wrexp ;
 }WinListConfig;
 
 ASModuleConfigClass *WinListConfigClass ;

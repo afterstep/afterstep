@@ -97,7 +97,7 @@ Bool match_compound_string (char *string, char separator, char *what);
 char *get_comma_item (char *ptr, char **item_start, char **item_end);
 char **comma_string2list (char *string);
 char *list2comma_string (char **list);
-void destroy_string_list( char **list );
+void destroy_string_list( char **list, int max_items );
 
 char *interpret_ascii_string( const char *str );
 
