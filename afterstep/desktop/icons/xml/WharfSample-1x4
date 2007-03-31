@@ -1,7 +1,7 @@
 <composite>
   <solid width=180 height=180 color="#00000000"/>
-  <img src="normal/WharfOutline" x="66"/>
-  <img src="normal/WharfOutline" x="66" y="44"/>
-  <img src="normal/WharfOutline" x="66" y="88"/>
-  <img src="normal/WharfOutline" x="66" y="132"/>
+  <img src="normal/OutlineBold" x="66"/>
+  <img src="normal/OutlineBold" x="66" y="44"/>
+  <img src="normal/OutlineBold" x="66" y="88"/>
+  <img src="normal/OutlineBold" x="66" y="132"/>
 </composite>

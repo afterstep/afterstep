@@ -1,13 +1,23 @@
 Popup "Custom WinList Layouts"
-	Module "1 Row WinList at the top"  WinList --max-cols 1000 --max-rows 1 --geometry 10000x+0+0 &
-	Module "2 Row WinList at the top"  WinList --max-cols 1000 --max-rows 2 --geometry 10000x+0+0 &
-	Module "3 Row WinList at the top"  WinList --max-cols 1000 --max-rows 3 --geometry 10000x+0+0 &
-	Module "1 Row WinList at the bottom"  WinList --max-cols 1000 --max-rows 1 --geometry 10000x+0-0 &
-	Module "2 Row WinList at the bottom"  WinList --max-cols 1000 --max-rows 2 --geometry 10000x+0-0 &
-	Module "3 Row WinList at the bottom"  WinList --max-cols 1000 --max-rows 3 --geometry 10000x+0-0 &
-	Module "Vertical WinList on the left, growing down"  WinList --max-cols 1 --max-rows 1000 --geometry 150x10000+0+0 &
-	Module "Vertical WinList on the left, growing up"  WinList --max-cols 1 --max-rows 1000 --geometry 150x10000+0-0 &
-	Module "Vertical WinList on the right, growing down"  WinList --max-cols 1 --max-rows 1000 --geometry 150x10000-0+0 &
-	Module "Vertical WinList on the right, growing up"  WinList --max-cols 1 --max-rows 1000 --geometry 150x10000-0-0 &
+	Module "Top, 1-Row"  WinList --max-cols 1000 --max-rows 1 --geometry 10000x+0+0 &
+		 SmallMiniPixmap "WinListSample-1Top"
+	Module "Top, 2-Row"  WinList --max-cols 1000 --max-rows 2 --geometry 10000x+0+0 &
+		 SmallMiniPixmap "WinListSample-2Top"
+	Module "Top, 3-Row"  WinList --max-cols 1000 --max-rows 3 --geometry 10000x+0+0 &
+		 SmallMiniPixmap "WinListSample-3Top"
+	Module "Bottom, 1-Row"  WinList --max-cols 1000 --max-rows 1 --geometry 10000x+0-0 &
+		 SmallMiniPixmap "WinListSample-1Bottom"
+	Module "Bottom, 2-Row"  WinList --max-cols 1000 --max-rows 2 --geometry 10000x+0-0 &
+		 SmallMiniPixmap "WinListSample-2Bottom"
+	Module "Bottom, 3-Row"  WinList --max-cols 1000 --max-rows 3 --geometry 10000x+0-0 &
+		 SmallMiniPixmap "WinListSample-3Bottom"
+	Module "Left, Vertical, Expands down"  WinList --max-cols 1 --max-rows 1000 --geometry 150x10000+0+0 &
+		 SmallMiniPixmap "WinListSample-LeftDown"
+	Module "Left, Vertical, Expands up"  WinList --max-cols 1 --max-rows 1000 --geometry 150x10000+0-0 &
+		 SmallMiniPixmap "WinListSample-LeftUp"
+	Module "Right, Vertical, Expands down"  WinList --max-cols 1 --max-rows 1000 --geometry 150x10000-0+0 &
+		 SmallMiniPixmap "WinListSample-RightDown"
+	Module "Right, Vertical, Expands up"  WinList --max-cols 1 --max-rows 1000 --geometry 150x10000-0-0 &
+		 SmallMiniPixmap "WinListSample-RightUp"
 EndPopup
 SmallMiniPixmap "normal/WinList"

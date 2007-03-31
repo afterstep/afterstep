@@ -1,0 +1,8 @@
+<composite>
+  <solid width=92 height=92 color="#00000000"/>
+  <solid width=92 height=12 color=blue y="6"/>
+  <img src="normal/OutlineBoldDesktop" y="18"/>
+  <img src="normal/OutlineBoldDesktop" y="18" x="44"/>
+  <img src="normal/OutlineBoldDesktop" y="50"/>
+  <img src="normal/OutlineBoldDesktop" y="50" x="44"/>
+</composite>

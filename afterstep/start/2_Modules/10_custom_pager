@@ -1,14 +1,25 @@
 Popup "Custom Pager Layouts"
-	Module "1x4 Pager for desks 0-3"  Pager --rows 4 --cols 1 0 3 &
-	Module "4x1 Pager for desks 0-3"  Pager --rows 1 --cols 4 0 3 &
-	Module "2x2 Pager for desks 0-3"  Pager --rows 2 --cols 2 0 3 &
-	Module "1x2 Pager for desks 0-1"  Pager --rows 2 --cols 1 0 1 &
-	Module "2x1 Pager for desks 0-1"  Pager --rows 1 --cols 2 0 1 &
-	Module "1x2 Pager for desks 2-3"  Pager --rows 2 --cols 1 2 3 &
-	Module "2x1 Pager for desks 2-3"  Pager --rows 1 --cols 2 2 3 &
-	Module "1x1 Pager for desk 0"  Pager 0 &
-	Module "1x1 Pager for desk 1"  Pager 1 &
-	Module "1x1 Pager for desk 2"  Pager 2 &
-	Module "1x1 Pager for desk 3"  Pager 3 &
+	Module "Desks 0-3, 1x4"  Pager --rows 4 --cols 1 0 3 &
+		SmallMiniPixmap "PagerSample-1x4"
+	Module "Desks 0-3, 4x1"  Pager --rows 1 --cols 4 0 3 &
+		SmallMiniPixmap "PagerSample-4x1"
+	Module "Desks 0-3, 2x2"  Pager --rows 2 --cols 2 0 3 &
+		SmallMiniPixmap "PagerSample-2x2"
+	Module "Desks 0-1, 1x2"  Pager --rows 2 --cols 1 0 1 &
+		SmallMiniPixmap "PagerSample-1x2"
+	Module "Desks 0-1, 2x1"  Pager --rows 1 --cols 2 0 1 &
+		SmallMiniPixmap "PagerSample-2x1"
+	Module "Desks 2-3, 1x2"  Pager --rows 2 --cols 1 2 3 &
+		SmallMiniPixmap "PagerSample-1x2"
+	Module "Desks 2-3, 2x1"  Pager --rows 1 --cols 2 2 3 &
+		SmallMiniPixmap "PagerSample-2x1"
+	Module "Desk 0, 1x1"  Pager 0 &
+		SmallMiniPixmap "PagerSample-1x1"
+	Module "Desk 1, 1x1"  Pager 1 &
+		SmallMiniPixmap "PagerSample-1x1"
+	Module "Desk 2, 1x1"  Pager 2 &
+		SmallMiniPixmap "PagerSample-1x1"
+	Module "Desk 3, 1x1"  Pager 3 &
+		SmallMiniPixmap "PagerSample-1x1"
 EndPopup
 SmallMiniPixmap "normal/Pager"

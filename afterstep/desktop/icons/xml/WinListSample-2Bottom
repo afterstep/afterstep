@@ -1,0 +1,5 @@
+<composite>
+  <img src="normal/OutlineBold"/>
+  <solid width=34 height=3 color=black x="7" y="32"/>
+  <solid width=34 height=3 color=black x="7" y="38"/>
+</composite>
