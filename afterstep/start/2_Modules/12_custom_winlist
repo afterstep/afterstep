@@ -20,4 +20,4 @@ Popup "Custom WinList Layouts"
 	Module "Right, Vertical, Expands up"  WinList --max-cols 1 --max-rows 1000 --geometry 150x10000-0-0 &
 		 SmallMiniPixmap "WinListSample-RightUp"
 EndPopup
-SmallMiniPixmap "normal/WinList"
+SmallMiniPixmap "Folder-WinList"

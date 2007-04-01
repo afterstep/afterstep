@@ -22,4 +22,4 @@ Popup "Custom Pager Layouts"
 	Module "Desk 3, 1x1"  Pager 3 &
 		SmallMiniPixmap "PagerSample-1x1"
 EndPopup
-SmallMiniPixmap "normal/Pager"
+SmallMiniPixmap "Folder-Pager"
