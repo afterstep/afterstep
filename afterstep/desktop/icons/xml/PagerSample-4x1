@@ -1,8 +1,8 @@
 <composite>
   <solid width=180 height=180 color="#00000000"/>
-  <solid width=180 height=24 color=blue y="60"/>
-  <img src="normal/OutlineBoldDesktop" y="84"/>
-  <img src="normal/OutlineBoldDesktop" y="84" x="44"/>
-  <img src="normal/OutlineBoldDesktop" y="84" x="88"/>
-  <img src="normal/OutlineBoldDesktop" y="84" x="132"/>
+  <img src="normal/OutlineBoldDesktop" y="82"/>
+  <img src="normal/OutlineBoldDesktop" y="82" x="44"/>
+  <img src="normal/OutlineBoldDesktop" y="82" x="88"/>
+  <img src="normal/OutlineBoldDesktop" y="82" x="132"/>
+  <solid width=180 height=24 color=blue y="62"/>
 </composite>
