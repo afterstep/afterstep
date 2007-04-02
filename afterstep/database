@@ -30,11 +30,11 @@ Style	"Unknown"	Icon Unknown.xpm
 # the first record will apply to all modules, and then we selectively adjust for 
 # few modules having specific needs : 
 Style 	"ASModule"		NoTitle, Sticky, Layer 3, WindowListSkip, NoHandles, AvoidCover, BorderWidth 0
-Style 	"Ident*"		    Title, Slippery, Layer 2, Handles
+Style 	"Ident*"		    Title, Slippery, Layer 2, Handles, AllowCover
 Style 	"*WharfWithdrawn"        ShortLiving
 Style 	"AskWharf"      Handles
 Style   "Banner"        NoTitle, Sticky, Layer 2, WindowListSkip, NoHandles
-Style   "WinTabs"       Title, Slippery, Layer 0, Slippery, Handles
+Style   "WinTabs"       Title, Slippery, Layer 0, Slippery, Handles, AllowCover 
 
 # This record is for the AfterStep menu :
 Style   "ASMenu"        NoButton 1, NoButton 3

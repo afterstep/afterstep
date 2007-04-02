@@ -103,20 +103,16 @@ build_matching_list (ASDatabase * db, char **names)
 
 	if (names && db && db->match_list)
 	{
-		register int  i, k;
-
-		while (*names)
+		register int  i = 0;
+		for (; i < db->styles_num; ++i)
 		{
-			for (i = 0; i < db->styles_num; ++i)
-			{
-				for (k = 0; k < last; ++k)	   /* little optimization */
-					if (db->match_list[k] == i)
-						break;
-				if (k >= last)
-					if (match_wild_reg_exp (*names, db->styles_table[i].regexp) == 0)
-						db->match_list[last++] = i;
-			}
-			names++;
+			register int  k = 0;
+			for(; names[k] ; ++k )
+				if (match_wild_reg_exp (names[k], db->styles_table[i].regexp) == 0)
+				{
+					db->match_list[last++] = i;
+					break;
+				}
 		}
 		db->match_list[last++] = -1;
 	}
@@ -158,7 +154,7 @@ match_flags (unsigned long *pset_flags, unsigned long *pflags, ASDatabase * db, 
 {
 	if (db && pset_flags && pflags)
 	{
-		unsigned long curr_set_flags, curr_flags;
+		unsigned long curr_set_flags, on_flags;
 		register ASDatabaseRecord *db_rec;
 		register int  i = 0;
 
@@ -166,9 +162,13 @@ match_flags (unsigned long *pset_flags, unsigned long *pflags, ASDatabase * db, 
 		{
 			db_rec = get_asdb_record (db, db->match_list[i]);
 			curr_set_flags = (type == MATCH_Buttons) ? db_rec->set_buttons : db_rec->set_flags;
-			curr_flags = (type == MATCH_Buttons) ? db_rec->buttons : db_rec->flags;
-			/* we should not touch flags that are already set */
-			set_flags (*pflags, get_flags (curr_flags, ~(*pset_flags)));
+			on_flags = (type == MATCH_Buttons) ? db_rec->buttons : db_rec->flags;
+			/* we should not touch flags that are already set - sure we do !*/
+/* 			clear_flags (*pflags, get_flags (off_flags, ~(*pset_flags)));
+			set_flags (*pflags, get_flags (on_flags, ~(*pset_flags)));
+*/
+			clear_flags (*pflags, curr_set_flags);
+			set_flags (*pflags, on_flags);
 			set_flags (*pset_flags, curr_set_flags);
 		}
 		while (db->match_list[i++] >= 0);
