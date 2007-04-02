@@ -1023,12 +1023,20 @@ HandleDestroyNotify (ASEvent *event )
  *	HandleMapRequest - MapRequest event handler
  ************************************************************************/
 void
+delayed_add_window( void* vdata )
+{
+	AddWindow ((Window)vdata, True);
+}
+
+void
 HandleMapRequest (ASEvent *event )
 {
     /* If the window has never been mapped before ... */
     if (event->client == NULL)
-    {
-        if( (event->client = AddWindow (event->w, True)) == NULL )
+    {/* lets delay handling map request in case client needs time to update its properties */
+		timer_new (200, delayed_add_window, (void*)event->w);	
+
+/*        if( (event->client = AddWindow (event->w, True)) == NULL ) */
             return;
     }else /* If no hints, or currently an icon, just "deiconify" */
         set_window_wm_state( event->client, False, True );
