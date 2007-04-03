@@ -788,10 +788,15 @@ fill_window_data()
 		add_property("Matched Styles:", "", AS_Text_ASCII, True);
 		for( i = 0 ; Database->match_list[i] >= 0 ; ++i )
 		{
-			ASDatabaseRecord *dr = &(Database->styles_table[Database->match_list[i]]) ;
+			ASDatabaseRecord *dr = 	get_asdb_record (Database, Database->match_list[i]);
 			int f ;
 			Bool first = True ;
-			sprintf( buf, "\"%s\" \t", dr->regexp->raw );
+			if( is_default_asdb_record(Database, dr) ) 
+				sprintf(buf, "\"*\" \t");
+			else if( dr->regexp ) 
+				sprintf( buf, "\"%s\" \t", dr->regexp->raw );
+			else
+				sprintf( buf, "\"(none)\" \t" );
 
 			for( f = 0 ; DatabaseFlagsList[f].name_set != NULL ; ++f ) 
 			{	

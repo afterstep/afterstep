@@ -164,6 +164,9 @@ ASDatabaseRecord *make_asdb_record ( name_list * nl, struct wild_reg_exp *regexp
 ASDatabaseRecord *fill_asdb_record (ASDatabase *db, char **names,
                                     ASDatabaseRecord *reusable_memory, Bool dup_strings);
 void destroy_asdb_record(ASDatabaseRecord *rec, Bool reusable);
+ASDatabaseRecord *get_asdb_record (ASDatabase * db, int index);
+Bool is_default_asdb_record( ASDatabase * db, ASDatabaseRecord *db_rec );
+
 
 ASDatabase* build_asdb( name_list *nl );
 void destroy_asdb( ASDatabase **db );
