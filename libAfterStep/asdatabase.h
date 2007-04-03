@@ -148,6 +148,7 @@ typedef struct ASDatabase
 
     ASDatabaseRecord *styles_table ;/* list of all available styles excluding default */
     size_t            styles_num ;  /* number of entries in above table */
+    size_t            default_styles_idx ;  /* number of entries in above table */
 
     ASDatabaseRecord  style_default;/* this one is not included in above table to speed up search */
 

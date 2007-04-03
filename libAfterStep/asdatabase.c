@@ -101,13 +101,14 @@ build_matching_list (ASDatabase * db, char **names)
 {
 	int           last = 0;
 
-	db->match_list[last++] = db->styles_num ; /* for the default style */
-	if (names && db && db->match_list)
+	if (db && names && db->match_list ) 
 	{
 		register int  i = 0;
 		for (; i < db->styles_num; ++i)
 		{
 			register int  k = 0;
+			if( i == db->default_styles_idx )
+				db->match_list[last++] = db->styles_num ; /* for the default style */
 			for(; names[k] ; ++k )
 				if (match_wild_reg_exp (names[k], db->styles_table[i].regexp) == 0)
 				{
@@ -115,7 +116,9 @@ build_matching_list (ASDatabase * db, char **names)
 					break;
 				}
 		}
-		db->match_list[last++] = -1;
+		if( i <= db->default_styles_idx )
+			db->match_list[last++] = db->styles_num ; /* for the default style */
+		db->match_list[last] = -1;
 	}
 	return (last > 0);
 }
@@ -207,6 +210,7 @@ match_int (ASDatabase * db, DBMatchType type)
 {
 	register ASDatabaseRecord *db_rec;
 	register int  i = 0;
+	int value = 0 ;
 
 	for( i = 0 ; db->match_list[i] >= 0 ; ++i ) 
 	{
@@ -216,29 +220,28 @@ match_int (ASDatabase * db, DBMatchType type)
 			switch (type)
 			{
 			 case MATCH_Desk:
-				 return db_rec->desk;
+				 value = db_rec->desk;
 			 case MATCH_layer:
-				 return db_rec->layer;
+				 value = db_rec->layer;
 			 case MATCH_ViewportX:
 				 LOCAL_DEBUG_OUT( "viewport_x = %d", db_rec->viewport_x );
-                 return db_rec->viewport_x;
+                 value = db_rec->viewport_x;
 			 case MATCH_ViewportY:
-                 return db_rec->viewport_y;
+                 value = db_rec->viewport_y;
 			 case MATCH_border_width:
-				 return db_rec->border_width;
+				 value = db_rec->border_width;
 			 case MATCH_resize_width:
-				 return db_rec->resize_width;
+				 value = db_rec->resize_width;
 			 case MATCH_gravity:
-				 return db_rec->gravity;
+				 value = db_rec->gravity;
 			 case MATCH_window_opacity:
-				 return db_rec->window_opacity;
+				 value = db_rec->window_opacity;
 			 default:
 				 break;
 			}
-			break;
 		}
 	}
-	return 0;
+	return value;
 }
 
 static void  *
@@ -246,6 +249,7 @@ match_struct (ASDatabase * db, DBMatchType type)
 {
 	register ASDatabaseRecord *db_rec;
 	register int  i = 0;
+	void  *value = NULL ; 
 
 	for( i = 0 ; db->match_list[i] >= 0 ; ++i ) 
 	{
@@ -255,14 +259,13 @@ match_struct (ASDatabase * db, DBMatchType type)
 			switch (type)
 			{
 			 case MATCH_DefaultGeometry:
-				 return &(db_rec->default_geometry);
+				 value = &(db_rec->default_geometry);
 			 default:
 				 break;
 			}
-			break;
 		}
 	}
-	return NULL;
+	return value;
 }
 
 
@@ -294,7 +297,6 @@ match_string (ASDatabase * db, DBMatchType type, unsigned int index, Bool dup_st
 			 default:
 				 break;
 			}
-			break;
 		}
 	}
 	if (res != NULL && dup_strings)
@@ -491,6 +493,7 @@ build_asdb (name_list * nl)
 			{
 				destroy_wild_reg_exp (regexp);
 				replace_record (&(db->style_default), nl, NULL);
+				db->default_styles_idx = db->styles_num ;
 			} else
 			{
 				int           where;
