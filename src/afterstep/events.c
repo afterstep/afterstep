@@ -1025,7 +1025,8 @@ HandleDestroyNotify (ASEvent *event )
 void
 delayed_add_window( void* vdata )
 {
-	AddWindow ((Window)vdata, True);
+	if( window2ASWindow((Window)vdata) == NULL )
+		AddWindow ((Window)vdata, True);
 }
 
 void
