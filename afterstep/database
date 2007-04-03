@@ -34,7 +34,7 @@ Style 	"Ident*"		    Title, Slippery, Layer 2, Handles, AllowCover
 Style 	"*WharfWithdrawn"        ShortLiving
 Style 	"AskWharf"      Handles
 Style   "Banner"        NoTitle, Sticky, Layer 2, WindowListSkip, NoHandles
-Style   "WinTabs"       Title, Slippery, Layer 0, Slippery, Handles, AllowCover 
+Style   "WinTabs"       Title, Layer 0, Slippery, Handles, AllowCover 
 
 # This record is for the AfterStep menu :
 Style   "ASMenu"        NoButton 1, NoButton 3
@@ -55,7 +55,7 @@ Style   "wmifs"         Sticky, StaysOnTop, WindowListSkip, NoHandles
 Style   "wmmail"        NoTitle, Sticky, StaysOnTop, WindowListSkip, NoHandles
 Style   "wmmixer"       NoTitle, Sticky, StaysOnTop, WindowListSkip, NoHandles
 Style   "wmrack"        NoTitle, Sticky, StaysOnTop, WindowListSkip, NoHandles
-Style   "mc - *" 	VerticalTitle, NoHandles, Icon normal/MCInMonitorShadow
+Style   "mc*-*" 	    VerticalTitle, NoHandles, Icon normal/MCInMonitorShadow
 Style   "docker"        AvoidCover, StartIconic, NoTitle, Layer 4,NoHandles
 Style   "peksystray"    AvoidCover, StartIconic, NoTitle, Layer 4,NoHandles
 Style   "wmsystray"     AvoidCover, StartIconic, NoTitle, Layer 4,NoHandles
