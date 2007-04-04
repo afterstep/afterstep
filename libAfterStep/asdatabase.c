@@ -219,23 +219,17 @@ match_int (ASDatabase * db, DBMatchType type)
 		{
 			switch (type)
 			{
-			 case MATCH_Desk:
-				 value = db_rec->desk;
-			 case MATCH_layer:
-				 value = db_rec->layer;
+			 case MATCH_Desk:		 	value = db_rec->desk; break;
+			 case MATCH_layer:		 	value = db_rec->layer; break;
 			 case MATCH_ViewportX:
-				 LOCAL_DEBUG_OUT( "viewport_x = %d", db_rec->viewport_x );
+			 	 LOCAL_DEBUG_OUT( "viewport_x = %d", db_rec->viewport_x );
                  value = db_rec->viewport_x;
-			 case MATCH_ViewportY:
-                 value = db_rec->viewport_y;
-			 case MATCH_border_width:
-				 value = db_rec->border_width;
-			 case MATCH_resize_width:
-				 value = db_rec->resize_width;
-			 case MATCH_gravity:
-				 value = db_rec->gravity;
-			 case MATCH_window_opacity:
-				 value = db_rec->window_opacity;
+				  break;
+			 case MATCH_ViewportY:   	value = db_rec->viewport_y; break;
+			 case MATCH_border_width: 	value = db_rec->border_width; break;
+			 case MATCH_resize_width: 	value = db_rec->resize_width; break;
+			 case MATCH_gravity:	 	value = db_rec->gravity; break;
+			 case MATCH_window_opacity:	value = db_rec->window_opacity; break;
 			 default:
 				 break;
 			}
@@ -258,8 +252,7 @@ match_struct (ASDatabase * db, DBMatchType type)
 		{
 			switch (type)
 			{
-			 case MATCH_DefaultGeometry:
-				 value = &(db_rec->default_geometry);
+			 case MATCH_DefaultGeometry: value = &(db_rec->default_geometry); break;
 			 default:
 				 break;
 			}
@@ -283,17 +276,11 @@ match_string (ASDatabase * db, DBMatchType type, unsigned int index, Bool dup_st
 		{
 			switch (type)
 			{
-			 case MATCH_Icon:
-				 res = db_rec->icon_file;
-				 break;
-			 case MATCH_Frame:
-				 res = db_rec->frame_name;
-				 break;
-             case MATCH_Windowbox:
-                 res = db_rec->windowbox_name;
-				 break;
-             case MATCH_MyStyle:
-				 res = db_rec->window_styles[(index < BACK_STYLES) ? index : 0];
+			 case MATCH_Icon:	 res = db_rec->icon_file;	 break;
+			 case MATCH_Frame:	 res = db_rec->frame_name;	 break;
+             case MATCH_Windowbox: res = db_rec->windowbox_name; break;
+             case MATCH_MyStyle: res = db_rec->window_styles[(index < BACK_STYLES) ? index : 0];
+				  break;
 			 default:
 				 break;
 			}
