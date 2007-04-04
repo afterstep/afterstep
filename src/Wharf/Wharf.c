@@ -941,16 +941,28 @@ build_wharf_button_tbar(WharfButton *wb)
 	{	
 		int encoding = get_flags( wb->set_flags, WHARF_BUTTON_TITLE_IS_UTF8 )?AS_Text_UTF8:AS_Text_ASCII;
 		char *comment = wb->title ;
+		Bool free_comment_mem = False; 
     	if( get_flags( Config->flags, WHARF_SHOW_LABEL ) && wb->title )
         	add_astbar_label( bar, label_col, label_row, label_flip, label_align, 2, 2, wb->title, encoding );
 
 		if( wb->comment && strlen(wb->comment) > 1) 
 		{
-			comment = wb->comment ;     	
-			encoding = get_flags( wb->set_flags, WHARF_BUTTON_COMMENT_IS_UTF8 )?AS_Text_UTF8:AS_Text_ASCII;
+			int comment_encoding = get_flags( wb->set_flags, WHARF_BUTTON_COMMENT_IS_UTF8 )?AS_Text_UTF8:AS_Text_ASCII;
+			if( comment_encoding != encoding ) 
+			{
+				comment = wb->comment ;     	
+				encoding = comment_encoding ;
+			}else
+			{
+				comment = safemalloc( strlen( wb->title ) + 3 + strlen( wb->comment ) + 1 ) ;
+				sprintf( comment, "%s - %s", wb->title, wb->comment );
+				free_comment_mem = True ;
+			}
 		}
 		if( comment && strlen(comment) > 1) 
 			set_astbar_balloon( bar, 0, comment, encoding );
+		if( free_comment_mem )
+			free( comment );
 	}
 
     LOCAL_DEBUG_OUT( "wharf bevel is %s, value 0x%lX, wharf_no_border is %s",
