@@ -1474,14 +1474,24 @@ Bool ReloadASDatabase();
 #define WHARF_FolderOffset_ID   (WHARF_ID_START+31)
 #define WHARF_OrthogonalFolderOffset_ID   (WHARF_ID_START+32)
 #define WHARF_StretchBackground_ID   (WHARF_ID_START+33)
+#define WHARF_ShowHints_ID		(WHARF_ID_START+34)
 
-#define WHARF_ID_END            (WHARF_ID_START+34)
+#define WHARF_ID_END            (WHARF_ID_START+35)
 #define WFUNC_START_ID			(WHARF_ID_END)
 
 #define WFUNC_Folders_ID		(WFUNC_START_ID)
 #define WFUNC_Swallow_ID		(WFUNC_START_ID+1)
 
 #define	WFUNC_ID_END			(WFUNC_START_ID+10)
+
+#define WHINT_START_ID			(WFUNC_ID_END)
+
+#define WHINT_Name_ID			(WHINT_START_ID)
+#define WHINT_Comment_ID		(WHINT_START_ID+1)
+#define WHINT_Exec_ID			(WHINT_START_ID+2)
+#define WHINT_GenericName_ID	(WHINT_START_ID+3)
+
+#define	WHINT_ID_END			(WHINT_START_ID+4)
 
 #define WHEV_PUSH		0
 #define WHEV_CLOSE_FOLDER	1
@@ -1491,7 +1501,7 @@ Bool ReloadASDatabase();
 #define WHEV_DROP		5
 #define WHEV_MAX_EVENTS		6
 
-#define WHEV_START_ID			(WFUNC_ID_END)
+#define WHEV_START_ID			(WHINT_ID_END)
 
 #define WHEV_Id2Code(id)		((id)-WHEV_START_ID)
 #define WHEV_Code2Id(code)		((code)+WHEV_START_ID)
@@ -1525,10 +1535,12 @@ typedef struct WharfButton
 #define WHARF_BUTTON_DISABLED		(0x01<<3)
 #define WHARF_BUTTON_TITLE_IS_UTF8		(0x01<<4)
 #define WHARF_BUTTON_COMMENT_IS_UTF8	(0x01<<5)
+#define WHARF_BUTTON_GEN_NAME_IS_UTF8	(0x01<<6)
 
   unsigned long set_flags;
   char *title;
   char *comment;
+  char *generic_name;
   unsigned int width, height;
 
   /* there could be several functions/icons assigned to the wharf button,
@@ -1544,34 +1556,36 @@ WharfButton;
 #define  WHARF_GEOMETRY         (0x01<<0)
 #define  WHARF_ROWS             (0x01<<1)
 #define  WHARF_COLUMNS			(0x01<<2)
-#define  WHARF_NO_PUSH			(0x01<<3)
-#define  WHARF_FULL_PUSH		(0x01<<4)
-#define  WHARF_NO_BORDER		(0x01<<5)
-#define  WHARF_WITHDRAW_STYLE		(0x01<<6)
-#define  WHARF_NO_WITHDRAW		(0x01<<7)
-#define  WHARF_FORCE_SIZE		(0x01<<8)
-#define  WHARF_TEXTURE_TYPE		(0x01<<9)
-#define  WHARF_MAX_COLORS		(0x01<<10)
-#define  WHARF_BG_COLOR			(0x01<<11)
-#define  WHARF_TEXTURE_COLOR		(0x01<<12)
-#define  WHARF_PIXMAP			(0x01<<13)
-#define  WHARF_ANIMATE_STEPS		(0x01<<14)
-#define  WHARF_ANIMATE_STEPS_MAIN	(0x01<<15)
-#define  WHARF_ANIMATE_DELAY		(0x01<<16)
-#define  WHARF_ANIMATE_MAIN		(0x01<<17)
-#define  WHARF_ANIMATE			(0x01<<18)
-#define  WHARF_SOUND			(0x01<<19)
-#define  WHARF_SHOW_LABEL       (0x01<<20)
-#define  WHARF_LabelLocation 	 (0x01<<21)
-#define  WHARF_FlipLabel         (0x01<<22)
-#define  WHARF_FitContents  	 (0x01<<23)
-#define  WHARF_ShapeToContents   (0x01<<24)
-#define  WHARF_AlignContents	 (0x01<<25)
-#define  WHARF_Bevel             (0x01<<26)
-#define  WHARF_CompositionMethod (0x01<<27)
-#define  WHARF_FolderOffset	 	 (0x01<<28)
-#define  WHARF_OrthogonalFolderOffset  (0x01<<29)
-#define  WHARF_StretchBackground   (0x01<<30)
+#define  WHARF_WITHDRAW_STYLE	(0x01<<3)
+#define  WHARF_FORCE_SIZE		(0x01<<4)
+#define  WHARF_ANIMATE_STEPS		(0x01<<5)
+#define  WHARF_ANIMATE_STEPS_MAIN	(0x01<<6)
+#define  WHARF_ANIMATE_DELAY		(0x01<<7)
+#define  WHARF_ANIMATE_MAIN		(0x01<<8)
+#define  WHARF_ANIMATE			(0x01<<9)
+#define  WHARF_SOUND			(0x01<<10)
+#define  WHARF_SHOW_LABEL       (0x01<<11)
+#define  WHARF_LabelLocation 	 (0x01<<12)
+#define  WHARF_FlipLabel         (0x01<<13)
+#define  WHARF_FitContents  	 (0x01<<14)
+#define  WHARF_ShapeToContents   (0x01<<15)
+#define  WHARF_AlignContents	 (0x01<<16)
+#define  WHARF_Bevel             (0x01<<17)
+#define  WHARF_ShowHints         (0x01<<18)
+#define  WHARF_CompositionMethod (0x01<<19)
+#define  WHARF_FolderOffset	 	 (0x01<<20)
+#define  WHARF_OrthogonalFolderOffset  (0x01<<21)
+#define  WHARF_StretchBackground   (0x01<<22)
+
+/* obsolete stuff - delete as neccessary : */
+#define  WHARF_TEXTURE_TYPE		(0x01<<23)
+#define  WHARF_BG_COLOR			(0x01<<24)
+#define  WHARF_TEXTURE_COLOR	(0x01<<25)
+#define  WHARF_PIXMAP			(0x01<<26)
+#define  WHARF_NO_WITHDRAW		(0x01<<27)
+#define  WHARF_NO_PUSH			(0x01<<28)
+#define  WHARF_FULL_PUSH		(0x01<<29)
+#define  WHARF_NO_BORDER		(0x01<<30)
 
 
 typedef struct
@@ -1590,7 +1604,7 @@ typedef struct
 #define WITHDRAW_ON_EDGE(c)  ((c)->withdraw_style == WITHDRAW_ON_EDGE_BUTTON || (c)->withdraw_style == WITHDRAW_ON_EDGE_BUTTON_AND_SHOW )
     unsigned int withdraw_style;
     ASGeometry force_size;
-    unsigned int texture_type, max_colors;
+    unsigned int texture_type;
     char *bg_color, *texture_color;
     char *pixmap;
     unsigned int animate_steps, animate_steps_main, animate_delay;
@@ -1603,6 +1617,13 @@ typedef struct
     ASFlagType   AlignContents;
 	ASFlagType   Bevel;
 
+#define WHARF_SHOW_HINT_Name			(0x01<<0)
+#define WHARF_SHOW_HINT_Comment			(0x01<<1)
+#define WHARF_SHOW_HINT_Exec			(0x01<<2)
+#define WHARF_SHOW_HINT_GenericName		(0x01<<3)
+#define WHARF_DEFAULT_ShowHints	(WHARF_SHOW_HINT_Name|WHARF_SHOW_HINT_Comment|WHARF_SHOW_HINT_Exec)
+	ASFlagType   ShowHints ;
+	
     balloonConfig *balloon_conf;
     MyStyleDefinition *style_defs;
 

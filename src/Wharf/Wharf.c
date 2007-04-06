@@ -867,6 +867,34 @@ create_wharf_button_canvas(ASWharfButton *aswb, ASCanvas *parent)
     return canvas;
 }
 
+
+void 
+build_wharf_button_comment( WharfButton *wb, ASTBarData *bar )
+{
+	int encoding = get_flags( wb->set_flags, WHARF_BUTTON_TITLE_IS_UTF8 )?AS_Text_UTF8:AS_Text_ASCII;
+	char *comment = wb->title ;
+	Bool free_comment_mem = False; 
+
+	if( wb->comment && strlen(wb->comment) > 1) 
+	{
+		int comment_encoding = get_flags( wb->set_flags, WHARF_BUTTON_COMMENT_IS_UTF8 )?AS_Text_UTF8:AS_Text_ASCII;
+		if( comment_encoding != encoding ) 
+		{
+			comment = wb->comment ;     	
+			encoding = comment_encoding ;
+		}else
+		{
+			comment = safemalloc( strlen( wb->title ) + 3 + strlen( wb->comment ) + 1 ) ;
+			sprintf( comment, "%s - %s", wb->title, wb->comment );
+			free_comment_mem = True ;
+		}
+	}
+	if( comment && strlen(comment) > 1) 
+		set_astbar_balloon( bar, 0, comment, encoding );
+	if( free_comment_mem )
+		free( comment );
+}
+
 ASTBarData *
 build_wharf_button_tbar(WharfButton *wb)
 {
@@ -939,30 +967,14 @@ build_wharf_button_tbar(WharfButton *wb)
 
 	if( !get_flags( wb->set_flags, WHARF_BUTTON_TRANSIENT ) )
 	{	
-		int encoding = get_flags( wb->set_flags, WHARF_BUTTON_TITLE_IS_UTF8 )?AS_Text_UTF8:AS_Text_ASCII;
-		char *comment = wb->title ;
-		Bool free_comment_mem = False; 
     	if( get_flags( Config->flags, WHARF_SHOW_LABEL ) && wb->title )
-        	add_astbar_label( bar, label_col, label_row, label_flip, label_align, 2, 2, wb->title, encoding );
-
-		if( wb->comment && strlen(wb->comment) > 1) 
 		{
-			int comment_encoding = get_flags( wb->set_flags, WHARF_BUTTON_COMMENT_IS_UTF8 )?AS_Text_UTF8:AS_Text_ASCII;
-			if( comment_encoding != encoding ) 
-			{
-				comment = wb->comment ;     	
-				encoding = comment_encoding ;
-			}else
-			{
-				comment = safemalloc( strlen( wb->title ) + 3 + strlen( wb->comment ) + 1 ) ;
-				sprintf( comment, "%s - %s", wb->title, wb->comment );
-				free_comment_mem = True ;
-			}
+        	add_astbar_label( bar, label_col, label_row, label_flip, label_align, 2, 2, 
+							  wb->title,
+							  get_flags( wb->set_flags, WHARF_BUTTON_TITLE_IS_UTF8 )?AS_Text_UTF8:AS_Text_ASCII );
+
 		}
-		if( comment && strlen(comment) > 1) 
-			set_astbar_balloon( bar, 0, comment, encoding );
-		if( free_comment_mem )
-			free( comment );
+		build_wharf_button_comment( wb, bar );
 	}
 
     LOCAL_DEBUG_OUT( "wharf bevel is %s, value 0x%lX, wharf_no_border is %s",
@@ -1069,6 +1081,9 @@ WharfButton *desktop_category2wharf_folder( WharfButton *owner, WharfButtonConte
 				ASDesktopEntry *de = entries[i].de;
 				if(  de->type != ASDE_TypeApplication && 
 					(de->type != ASDE_TypeDirectory || max_depth <= 0 ))
+					continue;
+					
+				if( get_flags(de->flags, ASDE_Unavailable ) )
 					continue;
 
 				if( de->type == ASDE_TypeApplication ) 
@@ -1366,8 +1381,27 @@ void set_folder_name( ASWharfFolder *aswf, Bool withdrawn )
 		sprintf( withdrawn_name, "%s%s", MyName, "Withdrawn" );
 		set_client_names( aswf->canvas->w, withdrawn_name, withdrawn_name, AS_MODULE_CLASS, CLASS_WHARF_WITHDRAWN );
 		free( withdrawn_name );
-	}else
+	}else if( aswf == WharfState.root_folder ) 
+	{
 		set_client_names( aswf->canvas->w, MyName, MyName, AS_MODULE_CLASS, CLASS_WHARF );
+	}else
+	{
+		
+		char *folder_name ;
+		
+		if( aswf->parent->name ) 
+		{
+#define WHARF_SUBFOLDER_TEXT	"Subfolder"		
+			folder_name = safemalloc(strlen(MyName)+sizeof( WHARF_SUBFOLDER_TEXT " - " )+ strlen(aswf->parent->name) + 1 );
+			sprintf( folder_name, "%s" WHARF_SUBFOLDER_TEXT " - %s", MyName, aswf->parent->name );
+		}else
+		{
+			folder_name = safemalloc(strlen(MyName)+sizeof(WHARF_SUBFOLDER_TEXT)+1);
+			sprintf( folder_name, "%s" WHARF_SUBFOLDER_TEXT, MyName );
+		}
+		set_client_names( aswf->canvas->w, folder_name, folder_name, AS_MODULE_CLASS, CLASS_WHARF );
+		free( folder_name );
+	}
 }
 
 Bool
@@ -1599,10 +1633,12 @@ map_wharf_folder( ASWharfFolder *aswf,
         XSetTransientForHint(dpy, aswf->canvas->w, WharfState.root_folder->canvas->w);
 		set_flags(extwm_hints.type_flags,  EXTWM_TypeDialog ) ;
     }else
+	{
         protocols = AS_DoesWmDeleteWindow ;
+		set_client_cmd (aswf->canvas->w);
+	}
 
     set_client_hints( aswf->canvas->w, NULL, &shints, AS_DoesWmDeleteWindow, &extwm_hints );
-	set_client_cmd (aswf->canvas->w);
 
 //	ASSync(False);
 //	sleep_a_millisec (10);

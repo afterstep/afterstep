@@ -418,13 +418,18 @@ place_new_record (ASDatabase * db, wild_reg_exp * regexp)
 		 * If we find exactly the same regexp - then we replace record.
 		 * Otherwise we reallocate space as needed.
 		 */
+		 /* No we fucking don't! DB entries should be stored in the same order 
+		    as they are in the file ! I can't belive I was so fucking stupid ! 
+			All we should check for is if the regexp is already in the list. */
+			
 		for (i = 0; i < db->styles_num; i++)
 		{
 			res = compare_wild_reg_exp (db->styles_table[i].regexp, regexp);
 			if (res == 0)
 				return i;
-			else if (res < 0)
+			/* see above comment else if (res < 0)
 				break;
+			 */
 		}
 
 		res = i;

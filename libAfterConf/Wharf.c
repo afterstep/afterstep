@@ -37,6 +37,57 @@
 
 #define WHARF_FOLDER_END 	"~Folder"
 
+TermDef       WharfHintsTerms[] = {
+    {TF_NO_MYNAME_PREPENDING, "Name", 4,        TT_FLAG, WHINT_Name_ID     		, NULL},
+    {TF_NO_MYNAME_PREPENDING, "Comment", 7,     TT_FLAG, WHINT_Comment_ID     	, NULL},
+    {TF_NO_MYNAME_PREPENDING, "Exec", 4,        TT_FLAG, WHINT_Exec_ID		    , NULL},
+    {TF_NO_MYNAME_PREPENDING, "GenericName", 11,TT_FLAG, WHINT_GenericName_ID   , NULL},
+    {0, NULL, 0, 0, 0}
+};
+
+SyntaxDef     WharfHintsSyntax = {
+	',',
+	'\n',
+    WharfHintsTerms,
+	0,										   /* use default hash size */
+    ' ',
+	" ",
+	"\t",
+    "Wharf Show Hints flags",
+	"Wharf Hints",
+	"",
+	NULL,
+	0
+};
+struct SyntaxDef     *WharfHintsSyntaxPtr = &WharfHintsSyntax;
+
+flag_options_xref WharfHintsFlagsXref[] = {
+    {WHARF_SHOW_HINT_Name, WHINT_Name_ID, 0},
+    {WHARF_SHOW_HINT_Comment, WHINT_Comment_ID, 0},
+    {WHARF_SHOW_HINT_Exec, WHINT_Exec_ID, 0},
+    {WHARF_SHOW_HINT_GenericName, WHINT_GenericName_ID, 0},
+    {0, 0, 0}
+};
+
+
+
+
+ASFlagType
+ParseWharfHintsOptions( FreeStorageElem * options )
+{
+    ASFlagType bevel = 0 ;
+    while( options )
+	{
+        LOCAL_DEBUG_OUT( "options(%p)->keyword(\"%s\")", options, options->term->keyword );
+        if (options->term != NULL)
+            ReadFlagItem (NULL, &bevel, options, WharfHintsFlagsXref);
+        options = options->next;
+    }
+    return bevel;
+}
+
+
+
 TermDef       WhevTerms[] = {
 	{TF_NO_MYNAME_PREPENDING | TF_SYNTAX_TERMINATOR, "push", 4, TT_FILENAME, WHEV_PUSH_ID, NULL},
 	{TF_NO_MYNAME_PREPENDING | TF_SYNTAX_TERMINATOR, "close_folder", 12, TT_FILENAME, WHEV_CLOSE_FOLDER_ID, NULL},
@@ -81,7 +132,8 @@ SyntaxDef     WhevSyntax = {
     ASCF_DEFINE_KEYWORD(WHARF, 0, Bevel				, TT_FLAG		, &BevelSyntax), \
 	ASCF_DEFINE_KEYWORD(WHARF, 0, CompositionMethod	, TT_INTEGER	, NULL), \
 	ASCF_DEFINE_KEYWORD(WHARF, 0, FolderOffset		, TT_INTEGER	, NULL), \
-	ASCF_DEFINE_KEYWORD(WHARF, 0, OrthogonalFolderOffset, TT_INTEGER	, NULL)
+	ASCF_DEFINE_KEYWORD(WHARF, 0, OrthogonalFolderOffset, TT_INTEGER	, NULL), \
+    ASCF_DEFINE_KEYWORD(WHARF, 0, ShowHints			, TT_FLAG		, &WharfHintsSyntax)
 
 
 #define WHARF_PRIVATE_TERMS \
@@ -102,7 +154,6 @@ TermDef       WharfTerms[] = {
     {TF_OBSOLETE, "NoWithdraw", 10,       TT_FLAG, WHARF_NoWithdraw_ID, NULL},
 /* TextureType, MaxColors, BgColor, TextureColor, and Pixmap are obsolete */
 	{TF_OBSOLETE, "TextureType", 11, TT_UINTEGER, WHARF_TextureType_ID, NULL},
-    {TF_OBSOLETE, "MaxColors", 9,    TT_UINTEGER, WHARF_MaxColors_ID, NULL},
     {TF_OBSOLETE, "BgColor", 7,      TT_COLOR, WHARF_BgColor_ID, NULL},
     {TF_OBSOLETE, "TextureColor", 12,TT_COLOR, WHARF_TextureColor_ID, NULL},
     {TF_OBSOLETE, "Pixmap", 6,       TT_FILENAME, WHARF_Pixmap_ID, NULL},
@@ -240,6 +291,7 @@ CreateWharfConfig ()
     config->withdraw_style = WITHDRAW_ON_EDGE_BUTTON_AND_SHOW ;
     
 	config->AlignContents = WHARF_DEFAULT_AlignContents ;
+	config->ShowHints = WHARF_DEFAULT_ShowHints ;
 
 	config->more_stuff = NULL;
 
@@ -356,6 +408,7 @@ PrintWharfConfig(WharfConfig *config )
 	ASCF_PRINT_FLAG_KEYWORD(stderr,WHARF,config,StretchBackground );
 	ASCF_PRINT_FLAGS_KEYWORD(stderr,WHARF,config,AlignContents );
 	ASCF_PRINT_FLAGS_KEYWORD(stderr,WHARF,config,Bevel );
+	ASCF_PRINT_FLAGS_KEYWORD(stderr,WHARF,config,ShowHints );
 	ASCF_PRINT_INT_KEYWORD(stderr,WHARF,config,CompositionMethod);
 	ASCF_PRINT_INT_KEYWORD(stderr,WHARF,config,FolderOffset);
 	ASCF_PRINT_INT_KEYWORD(stderr,WHARF,config,OrthogonalFolderOffset);
@@ -686,10 +739,6 @@ ParseWharfOptions (const char *filename, char *myname)
 			 set_flags (config->set_flags, WHARF_TEXTURE_TYPE);
 			 config->texture_type = item.data.integer;
 			 break;
-		 case WHARF_MaxColors_ID:
-			 set_flags (config->set_flags, WHARF_MAX_COLORS);
-			 config->max_colors = item.data.integer;
-			 break;
 		 case WHARF_BgColor_ID:
 			 set_string_value (&(config->bg_color), item.data.string, &(config->set_flags), WHARF_BG_COLOR);
 			 break;
@@ -732,6 +781,7 @@ ParseWharfOptions (const char *filename, char *myname)
 		ASCF_HANDLE_INTEGER_KEYWORD_CASE(WHARF,config,item,LabelLocation ); 
 		ASCF_HANDLE_ALIGN_KEYWORD_CASE(WHARF,config,pCurr,AlignContents ); 
 		ASCF_HANDLE_BEVEL_KEYWORD_CASE(WHARF,config,pCurr,Bevel); 
+		ASCF_HANDLE_SUBSYNTAX_KEYWORD_CASE(WHARF,config,pCurr,ShowHints,WharfHints);
 		ASCF_HANDLE_INTEGER_KEYWORD_CASE(WHARF,config,item,CompositionMethod ); 
 		ASCF_HANDLE_INTEGER_KEYWORD_CASE(WHARF,config,item,FolderOffset ); 
 		ASCF_HANDLE_INTEGER_KEYWORD_CASE(WHARF,config,item,OrthogonalFolderOffset ); 
@@ -887,9 +937,6 @@ WriteWharfOptions (const char *filename, char *myname, WharfConfig * config, uns
 	/* texture_type  */
 	if (get_flags (config->set_flags, WHARF_TEXTURE_TYPE))
         tail = Integer2FreeStorage (&WharfSyntax, tail, NULL, config->texture_type, WHARF_TextureType_ID);
-	/* max_colors */
-	if (get_flags (config->set_flags, WHARF_MAX_COLORS))
-        tail = Integer2FreeStorage (&WharfSyntax, tail, NULL, config->max_colors, WHARF_MaxColors_ID);
 	/* animate_steps */
 	if (get_flags (config->set_flags, WHARF_ANIMATE_STEPS))
         tail = Integer2FreeStorage (&WharfSyntax, tail, NULL, config->animate_steps, WHARF_AnimateSteps_ID);

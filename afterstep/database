@@ -32,6 +32,7 @@ Style	"Unknown"	Icon Unknown.xpm
 Style 	"ASModule"		NoTitle, Sticky, Layer 3, WindowListSkip, NoHandles, AvoidCover, BorderWidth 0
 Style 	"Ident*"		    Title, Slippery, Layer 2, Handles, AllowCover
 Style 	"*WharfWithdrawn"        ShortLiving
+Style 	"*WharfSubfolder*"       AllowCover
 Style 	"AskWharf"      Handles
 Style   "Banner"        NoTitle, Sticky, Layer 2, WindowListSkip, NoHandles
 Style   "WinTabs"       Title, Layer 0, Slippery, Handles, AllowCover 
