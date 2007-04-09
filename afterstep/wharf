@@ -53,6 +53,7 @@
 *WharfBalloonStyle		"*WharfBalloon"
 *WharfBalloonBorderHilite	Right,Bottom
 
+
 #-------------------------------------------------------------------------------
 # Buttons
 #
@@ -73,6 +74,9 @@
 *WharfGeometry		+5+30
 *WharfBevel		Bottom,Right,NoOutline,Extra
 
+#Use this setting to set what is show in the balloon : 
+# default is to show everything 
+#*WharfShowHints   Name, Comment, Exec
 
 #-------------------------------------------------------------------------------
 # Applications/Icons :

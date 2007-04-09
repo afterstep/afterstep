@@ -78,9 +78,9 @@ extern SyntaxDef AlignSyntax;
     ASCF_DEFINE_KEYWORD_S(WINLIST, 0			    , MaxColWidth		, TT_INTEGER	, NULL,WinListConfig), \
     ASCF_DEFINE_KEYWORD_S(WINLIST, 0			    , MinColWidth		, TT_INTEGER	, NULL,WinListConfig), \
     ASCF_DEFINE_KEYWORD_S(WINLIST, 0			    , MinColWidth		, TT_INTEGER	, NULL,WinListConfig), \
+    ASCF_DEFINE_KEYWORD_S(WINLIST, 0			    , NoCollidesSpacing	, TT_INTEGER	, NULL,WinListConfig), \
     ASCF_DEFINE_KEYWORD(WINLIST, TF_DONT_SPLIT		, NoCollides	    , TT_TEXT		, NULL), \
     ASCF_DEFINE_KEYWORD(WINLIST, TF_DONT_SPLIT		, AllowCollides	    , TT_TEXT		, NULL), \
-    ASCF_DEFINE_KEYWORD_S(WINLIST, 0			    , NoCollidesSpacing	, TT_INTEGER	, NULL,WinListConfig), \
     ASCF_DEFINE_KEYWORD(WINLIST, TF_OBSOLETE	, MaxWidth			, TT_UINTEGER	, NULL)
 
 

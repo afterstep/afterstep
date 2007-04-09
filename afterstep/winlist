@@ -39,6 +39,8 @@
 	BalloonXOffset 10
 	BalloonStyle		"*WinListBalloon"
 	BalloonBorderHilite	Right,Bottom
+	
+	NoCollidesSpacing 1
 ~Defaults
 
 # use this to disable icons in winlist :
@@ -61,6 +63,13 @@
 #*WinListAlign           Left,Right,Bottom,Top
 
 
-
+# the following are options to get WinList to automatically resize itself, 
+# so that it does not collide with any window that matches 
+# pattern in NoCollides setting. AllowCollides - ovrerwrites the NoCollides, 
+# and NoCollidesSpacing sets the spacing between NoCollides window and WinList.
+# By default WinList will avoid collision with Pager and Wharf
+#*WinListNoCollides "Nedit*"
+#*WinListAllowCollides "Pager*"
+#*WinListNoCollidesSpacing 5
 
 

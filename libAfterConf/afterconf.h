@@ -1212,7 +1212,7 @@ void DestroyMyBackgroundConfig (MyBackgroundConfig ** head);
 #define WINLIST_ScaleIconToTextHeight_ID (WINLIST_ID_START+39)
 #define WINLIST_NoCollides_ID 			(WINLIST_ID_START+40)
 #define WINLIST_AllowCollides_ID 		(WINLIST_ID_START+41)
-#define WINLIST_NoCollidesSpacing_ID	(WINLIST_ID_START+40)
+#define WINLIST_NoCollidesSpacing_ID	(WINLIST_ID_START+42)
 
 #define WINLIST_ID_END                  (WINLIST_ID_START+50)
 
