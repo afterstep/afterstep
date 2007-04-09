@@ -869,34 +869,93 @@ create_wharf_button_canvas(ASWharfButton *aswb, ASCanvas *parent)
 
 
 void 
-build_wharf_button_comment( WharfButton *wb, ASTBarData *bar )
+build_wharf_button_comment( ASWharfButton *aswb, WharfButton *wb, ASTBarData *bar )
 {
-	int encoding = get_flags( wb->set_flags, WHARF_BUTTON_TITLE_IS_UTF8 )?AS_Text_UTF8:AS_Text_ASCII;
-	char *comment = wb->title ;
-	Bool free_comment_mem = False; 
+	/* if both comment and title are present - it came from Desktop Entries and thus are 
+	   encoded in UTF-8. So we should not worry.
+	 */
+	char *hint = NULL; 
+	int hint_length = 0, exec_length = 0 ;
+	char encoding = AS_Text_UTF8 ; 
+	int i, pos ;
 
-	if( wb->comment && strlen(wb->comment) > 1) 
+	/* first we figure out what text encoding we should use : */
+	if( !get_flags( wb->set_flags, WHARF_BUTTON_TITLE_IS_UTF8 ) &&
+		get_flags( Config->ShowHints, WHARF_SHOW_HINT_Name ) ) 
 	{
-		int comment_encoding = get_flags( wb->set_flags, WHARF_BUTTON_COMMENT_IS_UTF8 )?AS_Text_UTF8:AS_Text_ASCII;
-		if( comment_encoding != encoding ) 
-		{
-			comment = wb->comment ;     	
-			encoding = comment_encoding ;
-		}else
-		{
-			comment = safemalloc( strlen( wb->title ) + 3 + strlen( wb->comment ) + 1 ) ;
-			sprintf( comment, "%s - %s", wb->title, wb->comment );
-			free_comment_mem = True ;
-		}
+		encoding = AS_Text_ASCII ; 
 	}
-	if( comment && strlen(comment) > 1) 
-		set_astbar_balloon( bar, 0, comment, encoding );
-	if( free_comment_mem )
-		free( comment );
+	/* done with encoding - now to build actuall text */
+	/* at first we determine its length : */
+	if( get_flags( Config->ShowHints, WHARF_SHOW_HINT_Name ) && wb->title ) 
+		hint_length += strlen(wb->title) + 3 ; 
+
+	if( get_flags( Config->ShowHints, WHARF_SHOW_HINT_Comment ) && wb->comment ) 
+		hint_length += strlen(wb->comment) + 1 ; 
+	
+	if( get_flags( Config->ShowHints, WHARF_SHOW_HINT_Exec ) ) 
+	{
+		for( i = 0 ; i < Button5 ; ++i ) 
+			if( aswb->fdata[i] ) 
+			{
+				exec_length += 128 ; 
+				if( aswb->fdata[i]->name ) 
+					exec_length += 1+1+strlen(aswb->fdata[i]->name)+1 ;
+				if( aswb->fdata[i]->text ) 
+					exec_length += 1+strlen(aswb->fdata[i]->text)+1 ;
+			}
+		hint_length += exec_length ; 
+	}
+	if( hint_length <= 1 ) 
+		return;
+	/* now lets compile actuall text : */
+	hint = safemalloc( hint_length );
+	pos = 0 ;
+	
+	if( get_flags( Config->ShowHints, WHARF_SHOW_HINT_Name ) && wb->title ) 
+	{
+		strcpy(&(hint[pos]), wb->title); 
+		while( hint[pos] ) ++pos;
+	}
+
+	if( get_flags( Config->ShowHints, WHARF_SHOW_HINT_Comment ) && wb->comment ) 
+	{
+		if( pos > 0 ) 
+			sprintf(&(hint[pos]), " - %s", wb->comment );
+		else	
+			strcpy(&(hint[pos]), wb->comment); 
+		while( hint[pos] ) ++pos;
+	}
+	
+	if( get_flags( Config->ShowHints, WHARF_SHOW_HINT_Exec ) && exec_length > 0 ) 
+	{
+		for( i = 0 ; i < Button5 ; ++i ) 
+			if( aswb->fdata[i] ) 
+			{
+				TermDef      *fterm;
+
+    	        fterm = func2fterm(aswb->fdata[i]->func, True);
+				sprintf (&(hint[pos]), (pos>0)?"\n%s ":"%s ", fterm->keyword);
+				while( hint[pos] ) ++pos;
+				if( aswb->fdata[i]->name ) 
+				{
+					sprintf(&(hint[pos]), "\"%s\" ", aswb->fdata[i]->name );
+					while( hint[pos] ) ++pos;
+				}
+				if( aswb->fdata[i]->text ) 
+				{
+					strcpy(&(hint[pos]), aswb->fdata[i]->text );
+					while( hint[pos] ) ++pos;
+				}
+			}
+	}
+	
+	set_astbar_balloon( bar, 0, hint, encoding );
+	free( hint );
 }
 
 ASTBarData *
-build_wharf_button_tbar(WharfButton *wb)
+build_wharf_button_tbar(ASWharfButton *aswb, WharfButton *wb)
 {
     ASTBarData *bar = create_astbar();
     int icon_row = 0, icon_col = 0;
@@ -974,7 +1033,7 @@ build_wharf_button_tbar(WharfButton *wb)
 							  get_flags( wb->set_flags, WHARF_BUTTON_TITLE_IS_UTF8 )?AS_Text_UTF8:AS_Text_ASCII );
 
 		}
-		build_wharf_button_comment( wb, bar );
+		build_wharf_button_comment( aswb, wb, bar );
 	}
 
     LOCAL_DEBUG_OUT( "wharf bevel is %s, value 0x%lX, wharf_no_border is %s",
@@ -1286,7 +1345,7 @@ LOCAL_DEBUG_OUT( "contents %d has function %p with func = %ld", i, function, fun
 			}
 
             aswb->canvas = create_wharf_button_canvas(aswb, aswf->canvas);
-            aswb->bar = build_wharf_button_tbar(wb);
+            aswb->bar = build_wharf_button_tbar(aswb, wb);
 
 			update_wharf_button_styles( aswb, ((button_no&0x01)==0));
 
