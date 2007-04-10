@@ -831,8 +831,14 @@ winlist_avoid_collision( int *px, int *py, unsigned int *pmax_width, unsigned in
 				}
 		if( selected >= 0 ) 
 		{
-			rects[selected].width -= frame_add_h + Config->NoCollidesSpacing*2; 
-			rects[selected].x += Config->NoCollidesSpacing ;
+			if( rects[selected].x+rects[selected].width < Scr.MyDisplayWidth-1 ) 
+				rects[selected].width -= Config->NoCollidesSpacing ;
+			rects[selected].width -= frame_add_h ;
+			if( rects[selected].x > 0 ) 
+			{
+				rects[selected].width -= Config->NoCollidesSpacing; 
+				rects[selected].x += Config->NoCollidesSpacing ;
+			}
 			FIT_TO_RECT(x,w,rects[selected].x,rects[selected].width);
 			if( y < rects[selected].y )
 				y = rects[selected].y ;
@@ -858,8 +864,16 @@ winlist_avoid_collision( int *px, int *py, unsigned int *pmax_width, unsigned in
 				}
 		if( selected >= 0 ) 
 		{
-			rects[selected].height -= frame_add_v + Config->NoCollidesSpacing*2; 
-			rects[selected].y += Config->NoCollidesSpacing ; 
+			
+			if( rects[selected].y+rects[selected].height < Scr.MyDisplayHeight-1 ) 
+				rects[selected].height -=  Config->NoCollidesSpacing; 
+			rects[selected].height -= frame_add_v; 
+			if( rects[selected].y > 0 ) 
+			{
+				rects[selected].height -=  Config->NoCollidesSpacing; 
+				rects[selected].y += Config->NoCollidesSpacing ; 
+			}
+			
 			FIT_TO_RECT(y,h,rects[selected].y,rects[selected].height);
 			if( x < rects[selected].x )
 				x = rects[selected].x ;
