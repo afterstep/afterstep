@@ -1475,9 +1475,9 @@ init_aswindow_status( ASWindow *t, ASStatusHints *status )
 			int width = t->status->width ;
 			int height = t->status->height ;
 			if( (!get_flags (t->status->flags, AS_StartSizeUser) && width < t->hints->min_width) || width == 1 )
-				width = min( t->hints->min_width, Scr.MyDisplayWidth );
+				width = min( t->hints->min_width, Scr.VxMax+Scr.MyDisplayWidth );
 			if( (!get_flags (t->status->flags, AS_StartSizeUser) && height < t->hints->min_height) || height == 1 )
-				width = min( t->hints->min_height, Scr.MyDisplayHeight );
+				height = min( t->hints->min_height, Scr.VyMax+Scr.MyDisplayHeight );
 			if( width != t->status->width || height != t->status->height ) 
 			{
 				int dx = 0, dy = 0 ;
@@ -1582,7 +1582,7 @@ init_aswindow_status( ASWindow *t, ASStatusHints *status )
     /* by now we have a valid position for the window: */
     set_flags( t->status->flags, AS_Position );
 
-    status2anchor( &(t->anchor), t->hints, t->status, Scr.VxMax, Scr.VyMax);
+    status2anchor( &(t->anchor), t->hints, t->status, Scr.VxMax+Scr.MyDisplayWidth, Scr.VyMax+Scr.MyDisplayHeight);
     LOCAL_DEBUG_OUT( "status->geom=%dx%d%+d%+d,status->viewport=%+d%+d,anchor=%dx%d%+d%+d",
                      t->status->width, t->status->height, t->status->x, t->status->y,
                      t->status->viewport_x, t->status->viewport_y,
@@ -2026,7 +2026,7 @@ LOCAL_DEBUG_OUT( "flags = %lx, on_flags = %lx, off_flags = %lx", flags, on_flags
 			scratch_status.height = Scr.MyDisplayHeight ;
 	 		
 			save_aswindow_anchor( asw, True, True );		   
-			status2anchor(&(asw->anchor), asw->hints, &scratch_status, Scr.VxMax, Scr.VyMax);
+			status2anchor(&(asw->anchor), asw->hints, &scratch_status, Scr.VxMax+Scr.MyDisplayWidth, Scr.VyMax+Scr.MyDisplayHeight);
 			reconfigured = True ;
 		}
 	}

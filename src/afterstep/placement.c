@@ -344,7 +344,7 @@ apply_placement_result( ASStatusHints *status, XRectangle *anchor, ASHints *hint
     if( get_flags( flags, HeightValue ) && height > 0 )
         status->height = height ;
 
-    status2anchor( anchor, hints, status, Scr.VxMax, Scr.VyMax);
+    status2anchor( anchor, hints, status, Scr.VxMax+Scr.MyDisplayWidth, Scr.VyMax+Scr.MyDisplayHeight);
 }
 
 static int
@@ -1148,11 +1148,11 @@ place_aswindow_in_windowbox( ASWindow *asw, ASWindowBox *aswbox, ASUsePlacementS
                 return False;
         }
         if( area.width <= 0 )
-            area.width = Scr.MyDisplayWidth ;
+            area.width = (Scr.VxMax + Scr.MyDisplayWidth)- area.x ;
         else if( area.x + area.width > Scr.VxMax + Scr.MyDisplayWidth )
             area.width = Scr.VxMax + Scr.MyDisplayWidth - area.x ;
         if( area.height <= 0 )
-            area.height = Scr.MyDisplayHeight ;
+            area.height = (Scr.VyMax + Scr.MyDisplayHeight)- area.y ;
         else if( area.y + area.height > Scr.VyMax + Scr.MyDisplayHeight )
             area.height = Scr.VyMax + Scr.MyDisplayHeight - area.y ;
     }
