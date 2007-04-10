@@ -141,6 +141,7 @@ typedef struct ASWharfFolder
 #define ASW_ReverseOrder    (0x01<<5)
 #define ASW_UseBoundary     (0x01<<6)
 #define ASW_AnimationPending  (0x01<<7)
+#define ASW_ReverseAnimation  (0x01<<8)
     ASFlagType  flags;
 
     ASCanvas    *canvas;
@@ -1926,11 +1927,16 @@ place_wharf_buttons( ASWharfFolder *aswf, int *total_width_return, int *total_he
 
 
 void
-clamp_animation_rect( ASWharfFolder *aswf, int from_width, int from_height, int to_width, int to_height, XRectangle *rect )
+clamp_animation_rect( ASWharfFolder *aswf, int from_width, int from_height, int to_width, int to_height, XRectangle *rect, Bool reverse )
 {
 	if( get_flags( aswf->flags, ASW_Vertical ) )
 	{	
-		if( aswf->gravity == SouthWestGravity || aswf->gravity == SouthEastGravity )
+		Bool down = (aswf->gravity == SouthWestGravity || aswf->gravity == SouthEastGravity) ;
+		
+		if( reverse ) 
+			down = !down ;
+			
+		if( down  )
 			rect->y = max(to_height,from_height) - (short)rect->height ;
 		if( rect->y < 0 ) 
 		{	
@@ -1939,7 +1945,10 @@ clamp_animation_rect( ASWharfFolder *aswf, int from_width, int from_height, int 
 		}
 	}else 
 	{	
-		if( aswf->gravity == NorthEastGravity || aswf->gravity == SouthEastGravity )
+		Bool right = (aswf->gravity == NorthEastGravity || aswf->gravity == SouthEastGravity) ;
+		if( reverse ) 
+			right = !right ;
+		if( right )
 			rect->x = max(to_width,from_width) - (short)rect->width ;
 		if( rect->x < 0 ) 
 		{	
@@ -1950,7 +1959,7 @@ clamp_animation_rect( ASWharfFolder *aswf, int from_width, int from_height, int 
 }	 
 
 void
-animate_wharf_loop(ASWharfFolder *aswf, int from_width, int from_height, int to_width, int to_height )	
+animate_wharf_loop(ASWharfFolder *aswf, int from_width, int from_height, int to_width, int to_height, Bool reverse )	
 {
 	int i, steps ;
 	XRectangle rect ;
@@ -1963,7 +1972,7 @@ animate_wharf_loop(ASWharfFolder *aswf, int from_width, int from_height, int to_
 		rect.width = get_flags( aswf->flags, ASW_Vertical )?to_width:from_width+((to_width-from_width)/steps)*(i+1) ;
 		rect.height = get_flags( aswf->flags, ASW_Vertical )?from_height+((to_height-from_height)/steps)*(i+1):to_height ;
 
-		clamp_animation_rect( aswf, from_width, from_height, to_width, to_height, &rect );
+		clamp_animation_rect( aswf, from_width, from_height, to_width, to_height, &rect, reverse );
 		
 		LOCAL_DEBUG_OUT("boundary = %dx%d%+d%+d, canvas = %dx%d\n", 
 						 rect.width, rect.height, rect.x, rect.y, 
@@ -1988,7 +1997,7 @@ animate_wharf_loop(ASWharfFolder *aswf, int from_width, int from_height, int to_
 	rect.x = rect.y = 0 ;
 	rect.width = to_width ;
 	rect.height = to_height ;
-	clamp_animation_rect( aswf, from_width, from_height, to_width, to_height, &rect );
+	clamp_animation_rect( aswf, from_width, from_height, to_width, to_height, &rect, reverse );
 	
 	LOCAL_DEBUG_OUT("boundary = %dx%d%+d%+d, canvas = %dx%d\n", 
 					rect.width, rect.height, rect.x, rect.y, aswf->canvas->width, aswf->canvas->height );
@@ -2065,6 +2074,8 @@ display_wharf_folder( ASWharfFolder *aswf, int left, int top, int right, int bot
     Bool south = get_flags( Config->geometry.flags, YNegative);
     int x, y, width = 0, height = 0;
     int total_width = 0, total_height = 0;
+	int old_x, old_y ; 
+	Bool reverse = False ; 
     if( AS_ASSERT( aswf ) ||
         (get_flags( aswf->flags, ASW_Mapped ) && !get_flags( aswf->flags, ASW_Withdrawn )) )
         return False;
@@ -2176,15 +2187,23 @@ display_wharf_folder( ASWharfFolder *aswf, int left, int top, int right, int bot
 	LOCAL_DEBUG_OUT("corrected  pos(%+d%+d)", x, y );
     LOCAL_DEBUG_OUT( "flags 0x%lX, reverse_order = %d", aswf->flags, get_flags( aswf->flags, ASW_ReverseOrder)?aswf->buttons_num-1:-1 );
 
+	old_x = aswf->canvas->root_x ; 
+	old_y = aswf->canvas->root_y ; 
 	moveresize_canvas( aswf->canvas, x, y, width, height );
 	set_wharf_clip_area( aswf, left, top );
 	
 	aswf->animate_to_w = width;
 	aswf->animate_to_h = height;
+    if( get_flags( aswf->flags, ASW_Vertical ) )
+		reverse = ((old_y > y && !south) || (old_y < y && south ));
+	else
+		reverse = ((old_x > x && !east) || (old_x < x && east ));
     
 	if( get_flags(Config->flags, WHARF_ANIMATE ) )
     {
 		set_flags(aswf->flags,ASW_UseBoundary|ASW_AnimationPending );
+		if( reverse ) 
+			set_flags( aswf->flags, ASW_ReverseAnimation );
 		aswf->animate_from_w = get_flags( aswf->flags, ASW_Vertical )?aswf->canvas->width:0; 
 		aswf->animate_from_h = get_flags( aswf->flags, ASW_Vertical )?0:aswf->canvas->height;
 		aswf->boundary.x = aswf->boundary.y = 0 ; 
@@ -2221,7 +2240,7 @@ display_wharf_folder( ASWharfFolder *aswf, int left, int top, int right, int bot
 
 	if( aswf->canvas->width == width && aswf->canvas->height == height && get_flags(Config->flags, WHARF_ANIMATE ))
 	{
-		animate_wharf_loop( aswf, aswf->animate_from_w, aswf->animate_from_h, aswf->animate_to_w, aswf->animate_to_h );
+		animate_wharf_loop( aswf, aswf->animate_from_w, aswf->animate_from_h, aswf->animate_to_w, aswf->animate_to_h, reverse );
 		clear_flags(aswf->flags,ASW_UseBoundary|ASW_AnimationPending );
 	}	 
 
@@ -2274,9 +2293,9 @@ LOCAL_DEBUG_OUT( "folder->flags(%lX)", aswf->flags );
 		aswf->boundary.height = aswf->canvas->height ;
 		
 		if( get_flags(aswf->flags,ASW_Vertical) )
-			animate_wharf_loop(aswf, aswf->canvas->width, aswf->canvas->height, aswf->canvas->width, 1 );
+			animate_wharf_loop(aswf, aswf->canvas->width, aswf->canvas->height, aswf->canvas->width, 1, False );
 		else
-			animate_wharf_loop(aswf, aswf->canvas->width, aswf->canvas->height, 1, aswf->canvas->height );
+			animate_wharf_loop(aswf, aswf->canvas->width, aswf->canvas->height, 1, aswf->canvas->height, False );
     }
 LOCAL_DEBUG_OUT( "unmapping folder %p", aswf );
     unmap_wharf_folder( aswf );
@@ -3028,8 +3047,8 @@ LOCAL_DEBUG_OUT("animation_steps = %d", aswf->animation_steps );
 				if( get_flags(aswf->flags,ASW_AnimationPending ) )
 				{	
 					LOCAL_DEBUG_OUT("animate from = %dx%d, to = %dx%d", aswf->animate_from_w, aswf->animate_from_h, aswf->animate_to_w, aswf->animate_to_h);
-					animate_wharf_loop( aswf, aswf->animate_from_w, aswf->animate_from_h, aswf->animate_to_w, aswf->animate_to_h );
-					clear_flags(aswf->flags,ASW_UseBoundary|ASW_AnimationPending );
+					animate_wharf_loop( aswf, aswf->animate_from_w, aswf->animate_from_h, aswf->animate_to_w, aswf->animate_to_h, get_flags(aswf->flags,ASW_ReverseAnimation ) );
+					clear_flags(aswf->flags,ASW_UseBoundary|ASW_AnimationPending|ASW_ReverseAnimation );
 				}else if( !withdrawn )
 				{
 					/* fprintf(stderr, "clearing or applying boundary\n");	  */
@@ -3156,6 +3175,7 @@ on_wharf_pressed( ASEvent *event )
             		{
                 		int wx = 0, wy = 0, wwidth, wheight;
                 		int i = aswf->buttons_num ;
+						Bool reverse = False ; 
                 
 						if( Config->withdraw_style < WITHDRAW_ON_ANY_BUTTON_AND_SHOW )
                     		aswb = &(aswf->buttons[0]);
@@ -3166,15 +3186,33 @@ on_wharf_pressed( ASEvent *event )
 
                 		wwidth = aswb->desired_width ;
                 		wheight = aswb->desired_height ;
-                		if( get_flags( Config->geometry.flags, XNegative ) )
-                    		wx = Scr.MyDisplayWidth - wwidth ;
-                		if( get_flags( Config->geometry.flags, YNegative ) )
-                    		wy = Scr.MyDisplayHeight - wheight ;
-
+						if( get_flags( aswf->flags, ASW_Vertical ) )
+						{
+							int dy = event->x.xbutton.y_root - aswf->canvas->root_y ; 
+							if( get_flags( Config->geometry.flags, XNegative ) )
+	                    		wx = Scr.MyDisplayWidth - wwidth ;
+							if( dy > aswf->canvas->height/2 ) 
+							{
+								wy = Scr.MyDisplayHeight - wheight ;	
+								reverse = (!get_flags( Config->geometry.flags, YNegative ));
+							}else
+								reverse = (get_flags( Config->geometry.flags, YNegative ));
+						}else
+						{
+							int dx = event->x.xbutton.x_root - aswf->canvas->root_x ; 
+                			if( get_flags( Config->geometry.flags, YNegative ) )
+                    			wy = Scr.MyDisplayHeight - wheight ;
+							if( dx > aswf->canvas->width/2 ) 
+							{
+								wx = Scr.MyDisplayWidth - wwidth ;	
+								reverse = (!get_flags( Config->geometry.flags, XNegative ));
+							}else
+								reverse = (get_flags( Config->geometry.flags, XNegative ));
+						}	
 						if( get_flags(Config->flags, WHARF_ANIMATE ) )
 						{	
 							set_flags(aswf->flags,ASW_UseBoundary );
-							animate_wharf_loop(aswf, aswf->canvas->width, aswf->canvas->height, wwidth, wheight );
+							animate_wharf_loop(aswf, aswf->canvas->width, aswf->canvas->height, wwidth, wheight, reverse );
 							clear_flags(aswf->flags,ASW_UseBoundary );
 						}
 
