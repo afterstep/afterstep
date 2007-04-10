@@ -722,6 +722,7 @@ HandleFocusIn ( ASEvent *event )
     if( get_flags( AfterStepState, ASS_WarpingMode ) )
         ChangeWarpingFocus( event->client );
 
+	LOCAL_DEBUG_OUT( "active = %p, this event for %p", Scr.Windows->focused, event->client );
     if( Scr.Windows->focused != event->client )
         Scr.Windows->focused = NULL ;
 

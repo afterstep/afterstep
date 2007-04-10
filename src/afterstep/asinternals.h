@@ -440,7 +440,9 @@ MenuData *make_desk_winlist_menu(  ASWindowList *list, int desk, int sort_order,
 
 void hide_focus();
 Bool focus_window( ASWindow *asw, Window w );
-Bool focus_aswindow( ASWindow *asw );
+#define FOCUS_ASW_CAN_AUTORAISE		False
+#define FOCUS_ASW_DONT_AUTORAISE	True
+Bool focus_aswindow( ASWindow *asw, Bool suppress_autoraise );
 Bool focus_active_window();
 void focus_next_aswindow( ASWindow *asw );     /* should be called when window is unmapped or destroyed */
 void focus_prev_aswindow( ASWindow *asw );     /* should be called when window is unmapped or destroyed */

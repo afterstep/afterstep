@@ -1442,6 +1442,8 @@ void autoraise_aswindow( void *data )
 Bool
 focus_window( ASWindow *asw, Window w )
 {
+	LOCAL_DEBUG_CALLER_OUT( "asw = %p, w = %lX", asw, w );
+
   	if( asw != NULL )
         if (get_flags(asw->hints->protocols, AS_DoesWmTakeFocus) && !ASWIN_GET_FLAGS(asw, AS_Dead))
             send_wm_protocol_request (asw->w, _XA_WM_TAKE_FOCUS, Scr.last_Timestamp);
@@ -1471,12 +1473,13 @@ focus_window( ASWindow *asw, Window w )
 
 
 Bool
-focus_aswindow( ASWindow *asw )
+focus_aswindow( ASWindow *asw, Bool suppress_autoraise )
 {
     Bool          do_hide_focus = False ;
     Bool          do_nothing = False ;
     Window        w = None;
 
+LOCAL_DEBUG_CALLER_OUT( "asw = %p", asw );
     if( asw )
     {
         if (!get_flags( AfterStepState, ASS_WarpingMode) )
@@ -1550,22 +1553,24 @@ focus_aswindow( ASWindow *asw )
         show_warning( "unable to focus window %lX that is about to be unmapped for client %lX, frame %lX", w, asw->w, asw->frame );
     else
     {
-
 		focus_window( asw, w );
 
         Scr.Windows->focused = asw ;
-        if (Scr.Feel.AutoRaiseDelay == 0)
-        {
-            RaiseWindow( asw );
-        }else if (Scr.Feel.AutoRaiseDelay > 0)
-        {
-            struct timeval tv;
-
-            gettimeofday (&tv, NULL);
-            Scr.Windows->last_focus_change_sec =  tv.tv_sec;
-            Scr.Windows->last_focus_change_usec = tv.tv_usec;
-            timer_new (Scr.Feel.AutoRaiseDelay, autoraise_aswindow, Scr.Windows->focused);
-        }
+		if( !suppress_autoraise ) 
+		{
+        	if (Scr.Feel.AutoRaiseDelay == 0)
+        	{
+            	RaiseWindow( asw );
+        	}else if (Scr.Feel.AutoRaiseDelay > 0)
+        	{
+            	struct timeval tv;
+				LOCAL_DEBUG_OUT( "setting autoraise timer for asw %p", Scr.Windows->focused );
+            	gettimeofday (&tv, NULL);
+            	Scr.Windows->last_focus_change_sec =  tv.tv_sec;
+            	Scr.Windows->last_focus_change_usec = tv.tv_usec;
+            	timer_new (Scr.Feel.AutoRaiseDelay, autoraise_aswindow, Scr.Windows->focused);
+        	}
+		}
     }
 
     XSync(dpy, False );
@@ -1581,14 +1586,14 @@ Bool
 focus_active_window()
 {
     /* don't fiddle with focus if we are in housekeeping mode !!! */
-LOCAL_DEBUG_OUT( "checking if we are in housekeeping mode (%ld)", get_flags(AfterStepState, ASS_HousekeepingMode) );
+LOCAL_DEBUG_CALLER_OUT( "checking if we are in housekeeping mode (%ld)", get_flags(AfterStepState, ASS_HousekeepingMode) );
     if( get_flags(AfterStepState, ASS_HousekeepingMode) || Scr.Windows->active == NULL )
         return False ;
 
     if( Scr.Windows->focused == Scr.Windows->active )
         return True ;                          /* already has focus */
 
-    return focus_aswindow( Scr.Windows->active );
+    return focus_aswindow( Scr.Windows->active, FOCUS_ASW_CAN_AUTORAISE );
 }
 
 /* second version of above : */

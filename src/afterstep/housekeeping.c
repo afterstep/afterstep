@@ -118,7 +118,7 @@ UngrabEm ()
         if (grabbed_screen_focus != NULL)
         {
             LOCAL_DEBUG_OUT( "grabbed_screen_focus is %p, active is %p", grabbed_screen_focus, grabbed_screen->Windows->active );
-            focus_aswindow(grabbed_screen->Windows->active);
+            focus_aswindow(grabbed_screen->Windows->active, FOCUS_ASW_DONT_AUTORAISE);
             grabbed_screen_focus = NULL ;
         }
         XSync (dpy, 0);
