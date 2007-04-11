@@ -428,7 +428,7 @@ LOCAL_DEBUG_CALLER_OUT( "new(%d%+d%+d), old(%d%+d%+d), max(%+d,%+d)", new_desk, 
                 	if( circ_list[i] != NULL && circ_list[i]->magic == MAGIC_ASWINDOW )
                     	if( ASWIN_DESK(circ_list[i]) == new_desk )
                     	{
-                        	focus_aswindow( circ_list[i] );
+                        	focus_aswindow( circ_list[i], FOCUS_ASW_CAN_AUTORAISE );
                         	break;
                     	}
         	}else
