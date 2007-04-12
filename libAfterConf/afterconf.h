@@ -115,7 +115,7 @@ extern struct SyntaxDef      PopupFuncSyntax;
 			fprintf (stream, #module "." #keyword " = %s;\n",get_flags((__config)->flags,module##_##keyword)? "On" : "Off");}while(0)
 
 #define ASCF_PRINT_FLAGS_KEYWORD(stream,module,__config,keyword) \
-	do{ if(get_flags((__config)->set_flags,module##_##keyword) ) fprintf (stream, #module "." #keyword " = 0x%lX;\n",(__config)->keyword); }while(0)
+	do{ if(get_flags((__config)->set_flags,module##_##keyword) ) fprintf (stream, "%s : " #module "." #keyword " = 0x%lX;\n", MyName, (__config)->keyword); }while(0)
 
 #define ASCF_PRINT_GEOMETRY_KEYWORD(stream,module,__config,keyword) \
 	do{ if(get_flags((__config)->set_flags,module##_##keyword) )	\

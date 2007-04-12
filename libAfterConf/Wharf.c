@@ -75,15 +75,15 @@ flag_options_xref WharfHintsFlagsXref[] = {
 ASFlagType
 ParseWharfHintsOptions( FreeStorageElem * options )
 {
-    ASFlagType bevel = 0 ;
+    ASFlagType hints = 0 ;
     while( options )
 	{
         LOCAL_DEBUG_OUT( "options(%p)->keyword(\"%s\")", options, options->term->keyword );
         if (options->term != NULL)
-            ReadFlagItem (NULL, &bevel, options, WharfHintsFlagsXref);
+            ReadFlagItem (NULL, &hints, options, WharfHintsFlagsXref);
         options = options->next;
     }
-    return bevel;
+    return hints;
 }
 
 
