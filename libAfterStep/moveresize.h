@@ -137,6 +137,7 @@ typedef struct ASMoveResizeData
     Bool stop_on_button_press; /* when true operation will complete on ButtonPress event - not on ButtonRelease */
 	Bool move_only ;
 
+	int title_north, title_west ; 
 }ASMoveResizeData;
 
 ASOutlineSegment *make_outline_segments( struct ASWidget *parent, struct MyLook *look );

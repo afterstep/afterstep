@@ -1391,7 +1391,9 @@ SetShape (ASWindow *asw, int w)
 			/* add clients shape */
 			combine_canvas_shape_at_geom (asw->frame_canvas, asw->client_canvas, child_x, child_y, width, height, bw );
 
+#ifndef NO_DEBUG_OUTPUT
 			print_shape( asw->frame_canvas->shape ) ;
+#endif
 			/* apply shape */
 			update_canvas_display_mask (asw->frame_canvas, True);
 			set_flags( asw->internal_flags, ASWF_PendingShapeRemoval );

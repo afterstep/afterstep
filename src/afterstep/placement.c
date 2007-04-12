@@ -227,6 +227,25 @@ make_desktop_grid(int desk, int min_layer, Bool frame_only, int vx, int vy, ASWi
     return grid_data.grid;
 }
 
+void setup_aswindow_moveresize(ASWindow *asw,  struct ASMoveResizeData *mvrdata )
+{
+	if( asw->frame_data && asw->tbar )
+	{
+		if( asw->frame_data->condense_titlebar != NO_ALIGN /* && mvrdata->move_only  */)  
+		{
+			if( ASWIN_HFLAGS(asw, AS_VerticalTitle ) )
+				mvrdata->title_west = asw->tbar->width ;
+			else
+				mvrdata->title_north = asw->tbar->height ;
+		}
+	}
+	raise_scren_panframes( ASDefaultScr );
+	mvrdata->below_sibling = get_lowest_panframe(ASDefaultScr);
+	set_moveresize_restrains( mvrdata, asw->hints, asw->status);
+	mvrdata->grid = make_desktop_grid(Scr.CurrentDesk, AS_LayerDesktop, False, Scr.Vx, Scr.Vy, asw);
+	Scr.moveresize_in_progress = mvrdata ;
+}
+
 void apply_aswindow_moveresize(struct ASMoveResizeData *data)
 {
     ASWindow *asw = window2ASWindow( AS_WIDGET_WINDOW(data->mr));
@@ -235,15 +254,32 @@ LOCAL_DEBUG_OUT( "%dx%d%+d%+d", data->curr.width, data->curr.height, data->curr.
     {
 		int new_width = data->curr.width ;
 		int new_height = data->curr.height ;
+		Bool server_grabbed = False ; 
         if( ASWIN_GET_FLAGS( asw, AS_Shaded ) )
 		{
 			new_width = asw->status->width ;
 			new_height = asw->status->height ;
+#if 0
+			/* lets only move us as we are in shaded state : */
+	        move_canvas(  asw->frame_canvas, data->curr.x, data->curr.y );
+		}else
+		{
+			if( data->curr.width != data->last.width || 
+			    data->curr.height != data->last.height )
+			{
+				int client_width = data->curr.width - (asw->frame_canvas->width - asw->client_canvas->width) ; 
+				int client_height = data->curr.height - (asw->frame_canvas->height - asw->client_canvas->height) ; 
+				XGrabServer(dpy);
+				server_grabbed = True ;
+				resize_canvas( asw->client_canvas, client_width, client_height);
+			}
+			moveresize_canvas(  asw->frame_canvas, data->curr.x, data->curr.y, data->curr.width, data->curr.height );
+			ASSync(False);
+#endif		
 		}
-		/* lets only move us as we maybe in shaded state : */
-        move_canvas(  asw->frame_canvas, data->curr.x, data->curr.y );
-		ASSync(False);
         moveresize_aswindow_wm( asw, data->curr.x, data->curr.y, new_width, new_height, False);
+		if( server_grabbed ) 
+			XUngrabServer(dpy);
     }
 }
 
@@ -1048,11 +1084,7 @@ static Bool do_manual_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry 
                                         complete_aswindow_move );
     if( mvrdata )
     {
-		raise_scren_panframes( ASDefaultScr );
-        mvrdata->below_sibling = get_lowest_panframe(ASDefaultScr);
-        set_moveresize_restrains( mvrdata, asw->hints, asw->status);
-        mvrdata->grid = make_desktop_grid( ASWIN_DESK(asw), ASWIN_LAYER(asw), False, Scr.Vx, Scr.Vy, asw );
-        Scr.moveresize_in_progress = mvrdata ;
+		setup_aswindow_moveresize(asw, mvrdata );
         InteractiveMoveLoop ();
     }else
         ASWIN_CLEAR_FLAGS( asw, AS_MoveresizeInProgress );

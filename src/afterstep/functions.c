@@ -824,64 +824,61 @@ void moveresize_func_handler( FunctionData *data, ASEvent *event, int module )
 
     }else
     {
-	ASMoveResizeData *mvrdata;
-	/*release_pressure(); */
-	if( data->func == F_MOVE )
-	    mvrdata = move_widget_interactively(Scr.RootCanvas,
-						asw->frame_canvas,
-						event,
-						apply_aswindow_move,
-						complete_aswindow_move );
-	else
-	{
-	    int side = 0 ;
-	    register unsigned long context = (event->context&C_FRAME);
+		ASMoveResizeData *mvrdata;
+		/*release_pressure(); */
+		if( data->func == F_MOVE )
+		{
+	    	mvrdata = move_widget_interactively(Scr.RootCanvas,
+							asw->frame_canvas,
+							event,
+							apply_aswindow_move,
+							complete_aswindow_move );
+		}else
+		{
+	    	int side = 0 ;
+	    	register unsigned long context = (event->context&C_FRAME);
 
-	    if( ASWIN_GET_FLAGS( asw, AS_Shaded ) )
-	    {
-		XBell (dpy, Scr.screen);
-		return;
-	    }
+	    	if( ASWIN_GET_FLAGS( asw, AS_Shaded ) )
+	    	{
+			XBell (dpy, Scr.screen);
+			return;
+	    	}
 
-	    while( (0x01&context) == 0 && side <= FR_SE)
-	    {
-		++side ;
-		context = context>>1 ;
-	    }
+	    	while( (0x01&context) == 0 && side <= FR_SE)
+	    	{
+			++side ;
+			context = context>>1 ;
+	    	}
 
-			if( side > FR_SE )
-			{
-				int pointer_x = 0, pointer_y = 0 ;
-				ASQueryPointerRootXY( &pointer_x, &pointer_y );
-				if( pointer_x > asw->frame_canvas->root_x + asw->frame_canvas->width/2 )
+				if( side > FR_SE )
 				{
-					if( pointer_y > asw->frame_canvas->root_y + asw->frame_canvas->height/2 )
-						side = FR_SE ;
+					int pointer_x = 0, pointer_y = 0 ;
+					ASQueryPointerRootXY( &pointer_x, &pointer_y );
+					if( pointer_x > asw->frame_canvas->root_x + asw->frame_canvas->width/2 )
+					{
+						if( pointer_y > asw->frame_canvas->root_y + asw->frame_canvas->height/2 )
+							side = FR_SE ;
+						else
+							side = FR_NE ;
+					}else if( pointer_y > asw->frame_canvas->root_y + asw->frame_canvas->height/2 )
+						side = FR_SW ;
 					else
-						side = FR_NE ;
-				}else if( pointer_y > asw->frame_canvas->root_y + asw->frame_canvas->height/2 )
-					side = FR_SW ;
-				else
-					side = FR_NW ;
-			}
+						side = FR_NW ;
+				}
 
-	    mvrdata = resize_widget_interactively(  Scr.RootCanvas,
-						    asw->frame_canvas,
-						    event,
-						    apply_aswindow_moveresize,
-						    complete_aswindow_moveresize,
-						    side );
-	}
-	if( mvrdata )
-	{
+	    	mvrdata = resize_widget_interactively(  Scr.RootCanvas,
+						    	asw->frame_canvas,
+						    	event,
+						    	apply_aswindow_moveresize,
+						    	complete_aswindow_moveresize,
+						    	side );
+		}
+		if( mvrdata )
+		{
 			mvrdata->move_only = (data->func == F_MOVE) ;
-	    raise_scren_panframes( ASDefaultScr );
-	    mvrdata->below_sibling = get_lowest_panframe(ASDefaultScr);
-	    set_moveresize_restrains( mvrdata, asw->hints, asw->status);
-	    mvrdata->grid = make_desktop_grid(Scr.CurrentDesk, AS_LayerDesktop, False, Scr.Vx, Scr.Vy, asw);
-	    Scr.moveresize_in_progress = mvrdata ;
-	    ASWIN_SET_FLAGS( asw, AS_MoveresizeInProgress );
-	}
+			setup_aswindow_moveresize(asw, mvrdata );
+	    	ASWIN_SET_FLAGS( asw, AS_MoveresizeInProgress );
+		}
     }
 }
 
