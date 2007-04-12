@@ -453,8 +453,11 @@ LOCAL_DEBUG_CALLER_OUT( "asw(%p)->internal(%p)->data(%p)", asw, asw->internal, a
         Scr.Windows->ungrabbed = NULL;
 
     if ( asw == Scr.Windows->active )
+	{
+		LOCAL_DEBUG_CALLER_OUT( "CHANGE Scr.Windows->active from %p to NULL", Scr.Windows->active );
         Scr.Windows->active = NULL;
-    if ( asw == Scr.Windows->hilited )
+    }
+	if ( asw == Scr.Windows->hilited )
         Scr.Windows->hilited = NULL;
     if ( asw == Scr.Windows->pressed )
         Scr.Windows->pressed = NULL;

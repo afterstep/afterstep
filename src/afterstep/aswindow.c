@@ -1396,6 +1396,7 @@ hide_focus()
     if (get_flags(Scr.Feel.flags, ClickToFocus) && Scr.Windows->ungrabbed != NULL)
         grab_aswindow_buttons( Scr.Windows->ungrabbed, False );
 
+	LOCAL_DEBUG_CALLER_OUT( "CHANGE Scr.Windows->focused from %p to NULL", Scr.Windows->focused );
     Scr.Windows->focused = NULL;
     Scr.Windows->ungrabbed = NULL;
     XRaiseWindow(dpy, Scr.ServiceWin);
@@ -1555,6 +1556,7 @@ LOCAL_DEBUG_CALLER_OUT( "asw = %p", asw );
     {
 		focus_window( asw, w );
 
+		LOCAL_DEBUG_CALLER_OUT( "CHANGE Scr.Windows->focused from %p to %p", Scr.Windows->focused, asw );
         Scr.Windows->focused = asw ;
 		if( !suppress_autoraise ) 
 		{

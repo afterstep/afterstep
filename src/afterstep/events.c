@@ -722,10 +722,12 @@ HandleFocusIn ( ASEvent *event )
     if( get_flags( AfterStepState, ASS_WarpingMode ) )
         ChangeWarpingFocus( event->client );
 
-	LOCAL_DEBUG_OUT( "active = %p, this event for %p", Scr.Windows->focused, event->client );
+	LOCAL_DEBUG_OUT( "focused = %p, this event for %p", Scr.Windows->focused, event->client );
     if( Scr.Windows->focused != event->client )
+	{
+		LOCAL_DEBUG_OUT( "CHANGE Scr.Windows->focused from %p to NULL", Scr.Windows->focused );
         Scr.Windows->focused = NULL ;
-
+	}
     if( event->client == NULL && get_flags(AfterStepState, ASS_HousekeepingMode))
         return;
     /* note that hilite_aswindow changes value of Scr.Hilite!!! */

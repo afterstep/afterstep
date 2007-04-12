@@ -2072,8 +2072,11 @@ LOCAL_DEBUG_OUT("current focused is %p, active is %p", Scr.Windows->focused, Scr
         GrabEm (ASDefaultScr, Scr.Feel.cursors[ASCUR_Select]);     /* to prevent Enter Notify events to
                                                       be sent to us while shifting windows around */
         if( (res = make_aswindow_visible( asw, deiconify )) )
-            Scr.Windows->active = asw ;   /* must do that prior to UngrabEm, so that window gets focused */
-        UngrabEm ();
+		{
+			LOCAL_DEBUG_OUT( "CHANGE Scr.Windows->active from %p to %p", Scr.Windows->active, asw );
+	        Scr.Windows->active = asw ;   /* must do that prior to UngrabEm, so that window gets focused */
+        }
+		UngrabEm ();
     }else
     {
         if( ASWIN_GET_FLAGS( asw, AS_Iconic ) )
@@ -2095,6 +2098,7 @@ LOCAL_DEBUG_OUT( "Window is on inactive desk - can't focus%s","");
 LOCAL_DEBUG_OUT( "Window is out of the screen - can't focus%s","");
             return False;                      /* we are out of screen - can't focus */
         }
+		LOCAL_DEBUG_OUT( "CHANGE Scr.Windows->active from %p to %p", Scr.Windows->active, asw );
         Scr.Windows->active = asw ;   /* must do that prior to UngrabEm, so that window gets focused */
         res = focus_active_window();
     }
