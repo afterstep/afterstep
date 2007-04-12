@@ -524,6 +524,7 @@ SHOW_CHECKPOINT;
 	ASCF_MERGE_SCALAR_KEYWORD(WHARF, to, from, LabelLocation);
 	ASCF_MERGE_SCALAR_KEYWORD(WHARF, to, from, AlignContents);
 	ASCF_MERGE_SCALAR_KEYWORD(WHARF, to, from, Bevel);
+	ASCF_MERGE_SCALAR_KEYWORD(WHARF, to, from, ShowHints);
 	ASCF_MERGE_SCALAR_KEYWORD(WHARF, to, from, CompositionMethod);
 	ASCF_MERGE_SCALAR_KEYWORD(WHARF, to, from, FolderOffset);
 	ASCF_MERGE_SCALAR_KEYWORD(WHARF, to, from, OrthogonalFolderOffset);
