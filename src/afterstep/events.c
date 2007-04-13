@@ -1380,6 +1380,7 @@ HandleConfigureRequest ( ASEvent *event )
     XConfigureRequestEvent *cre = &(event->x.xconfigurerequest);
     ASWindow *asw = event->client ;
     XWindowChanges xwc;
+    unsigned long xwcm;
 
     /*
 	 * According to the July 27, 1988 ICCCM draft, we should ignore size and
@@ -1392,7 +1393,6 @@ HandleConfigureRequest ( ASEvent *event )
 	cre->x, cre->y );
     if (asw == NULL)
 	{
-        unsigned long xwcm;
         xwcm = cre->value_mask & (CWX | CWY | CWWidth | CWHeight | CWBorderWidth);
 		if( xwcm == 0 ) 
 		{
@@ -1411,6 +1411,30 @@ HandleConfigureRequest ( ASEvent *event )
 		return;
 	}
 
+	if( asw->icon_canvas && event->w == asw->icon_canvas->w ) 
+	{ /* we really should ignore that ! - let's see how it will play out */
+	  /* we may need to add code to iconbox to handle custom icon geometry for client icons */
+        xwcm = cre->value_mask & (CWWidth | CWHeight);
+		if( xwcm == 0 ) 
+		{
+			LOCAL_DEBUG_OUT( "Ignoring ConfigureRequest for iconic window %lX - no supported changes detected.", (unsigned long)event->w );
+		}else
+		{
+			xwc.width = cre->width;
+			xwc.height = cre->height;
+			LOCAL_DEBUG_OUT( "Configuring iconic window %lX to %dx%d, (flags=%lX)", (unsigned long)event->w, cre->width, cre->height, xwcm );
+        	XConfigureWindow (dpy, event->w, xwcm, &xwc);
+			ASSync( False);
+		}
+		return;
+	}
+	
+	if( event->w != asw->w ) 
+	{
+		LOCAL_DEBUG_OUT( "Ignoring ConfigureRequest for window %lX. Not a client or client's icon!", (unsigned long)event->w );
+		return;
+	}
+	
 	if( ( ASWIN_HFLAGS(asw, AS_IgnoreConfigRequest ) && !get_flags(cre->value_mask, CWWidth|CWHeight))||
 		ASWIN_GET_FLAGS( asw, AS_Fullscreen ) )
 	{	

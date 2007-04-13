@@ -690,6 +690,7 @@ on_window_moveresize( ASWindow *asw, Window w )
     int i ;
     ASOrientation *od ;
     unsigned int normal_width, normal_height ;
+	Bool update_shape = False ; 
 
 LOCAL_DEBUG_CALLER_OUT( "(%p,%lx,asw->w=%lx)", asw, w, asw->w );
     if( AS_ASSERT(asw) )
@@ -706,14 +707,20 @@ LOCAL_DEBUG_CALLER_OUT( "(%p,%lx,asw->w=%lx)", asw, w, asw->w );
         if( asw->internal && asw->internal->on_moveresize )
             asw->internal->on_moveresize( asw->internal, w );
 
-        if( changes != 0 )
-        {
-            if( ASWIN_GET_FLAGS( asw, AS_Shaped|AS_ShapedDecor ) )
-                SetShape( asw, 0 );
-			else if( get_flags( asw->internal_flags, ASWF_PendingShapeRemoval ) )
-				ClearShape( asw );
-        }
-    }else if( w == asw->frame )
+		update_shape = (changes != 0 );
+		if( XPending(dpy) > 0 ) 
+		{
+			XEvent tmp ; 
+			XNextEvent(dpy, &tmp );
+			if( tmp.type == ConfigureNotify && tmp.xconfigure.window == asw->frame ) 
+				w = asw->frame ; 
+			else
+				XPutBackEvent( dpy, &tmp );
+		}		
+		
+    } 
+	
+	if( w == asw->frame )
     {/* resize canvases here :*/
         int changes = handle_canvas_config (asw->frame_canvas);
 LOCAL_DEBUG_OUT( "changes=0x%X", changes );
@@ -764,6 +771,13 @@ LOCAL_DEBUG_OUT( "changes=0x%X", changes );
 				}
 
 			}
+			if( asw->shading_steps ==  0 )
+			{	
+		        for( i = 0 ; i < FRAME_SIDES ; ++i )
+        		    if( asw->frame_sides[i] )
+						check_frame_side_config( asw, asw->frame_sides[i]->w, od );       
+			}
+			update_shape = True ; 
         }else if( get_flags( changes, CANVAS_MOVED ) )
         {
 			LOCAL_DEBUG_OUT( "window is moved but not resized %s", "");
@@ -775,20 +789,6 @@ LOCAL_DEBUG_OUT( "changes=0x%X", changes );
         if( changes != 0 )
         {
 			LOCAL_DEBUG_OUT( "resized = %X, shaped = %lX", get_flags( changes, CANVAS_RESIZED ), ASWIN_GET_FLAGS( asw, AS_ShapedDecor|AS_Shaped ) );
-            if( get_flags( changes, CANVAS_RESIZED ) )
-			{
-				if( asw->shading_steps ==  0 )
-				{	
-		        	for( i = 0 ; i < FRAME_SIDES ; ++i )
-        		    	if( asw->frame_sides[i] )
-							check_frame_side_config( asw, asw->frame_sides[i]->w, od );       
-				}
-				
-				if( ASWIN_GET_FLAGS( asw, AS_ShapedDecor|AS_Shaped ))
-                	SetShape( asw, 0 );
-				else if( get_flags( asw->internal_flags, ASWF_PendingShapeRemoval ) )
-					ClearShape( asw );
-			} 
 				
 			if( !check_window_offscreen(asw) )
             	update_window_transparency( asw, False );
@@ -832,6 +832,15 @@ LOCAL_DEBUG_OUT( "changes=0x%X", changes );
             if( asw->internal && asw->internal->on_moveresize )
                 asw->internal->on_moveresize( asw->internal, w );
     }
+
+    if( update_shape )
+	{
+		if( ASWIN_GET_FLAGS( asw, AS_ShapedDecor|AS_Shaped ))
+            SetShape( asw, 0 );
+		else if( get_flags( asw->internal_flags, ASWF_PendingShapeRemoval ) )
+			ClearShape( asw );
+	} 
+
     ASSync(False);
 }
 
