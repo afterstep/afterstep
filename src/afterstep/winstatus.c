@@ -268,7 +268,10 @@ LOCAL_DEBUG_OUT( "@@ANIM to(%d)->from(%d)->delta(%d)->step(%d)", to_size, from_s
 			/* when we shade the window - focus gets set to frame window -
 			   we need to revert it back to the client : */
 			if( Scr.Windows->focused == asw )
+			{
 				focus_window( asw, asw->w );
+				autoraise_window( asw );
+			}
             if( !ASWIN_GET_FLAGS(asw, AS_Dead) )
                 XRaiseWindow( dpy, asw->w );
             return 0;

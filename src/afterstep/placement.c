@@ -277,6 +277,32 @@ LOCAL_DEBUG_OUT( "%dx%d%+d%+d", data->curr.width, data->curr.height, data->curr.
 			ASSync(False);
 #endif		
 		}
+		if( ASWIN_GET_FLAGS( asw, AS_ShapedDecor|AS_Shaped ) && 
+			(data->curr.width > data->last.width || data->curr.height > data->last.height) )
+		{/* this greately reduces flickering on resizing of shaped windows : */
+		    XRectangle    rect;
+    		rect.x = 0;
+    		rect.y = 0;
+			moveresize_canvas(  asw->frame_canvas, data->curr.x, data->curr.y, data->curr.width, data->curr.height );
+			if( data->curr.width > data->last.width ) 
+			{
+				if( get_flags(asw->frame_data->condense_titlebar, ALIGN_LEFT) && asw->tbar )
+					rect.y = asw->tbar->height ; 
+	    		rect.width  = data->curr.width - data->last.width;
+    			rect.height = (int)data->last.height - rect.y;
+				XShapeCombineRectangles ( dpy, asw->frame, ShapeBounding,
+                                		  data->last.width, 0, &rect, 1, ShapeUnion, Unsorted);
+			}
+			if( data->curr.height > data->last.height ) 
+			{
+				if( get_flags(asw->frame_data->condense_titlebar, ALIGN_RIGHT) && asw->tbar )
+					rect.x = asw->tbar->width ; 
+	    		rect.width  = (int)data->curr.width - rect.x;
+    			rect.height = data->curr.height - data->last.height;
+				XShapeCombineRectangles ( dpy, asw->frame, ShapeBounding,
+                                		  0, data->last.height, &rect, 1, ShapeUnion, Unsorted);
+			}
+		}
         moveresize_aswindow_wm( asw, data->curr.x, data->curr.y, new_width, new_height, False);
 		if( server_grabbed ) 
 			XUngrabServer(dpy);

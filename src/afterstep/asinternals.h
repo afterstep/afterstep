@@ -440,6 +440,7 @@ MenuData *make_desk_winlist_menu(  ASWindowList *list, int desk, int sort_order,
 
 void hide_focus();
 Bool focus_window( ASWindow *asw, Window w );
+void autoraise_window( ASWindow *asw );
 #define FOCUS_ASW_CAN_AUTORAISE		False
 #define FOCUS_ASW_DONT_AUTORAISE	True
 Bool focus_aswindow( ASWindow *asw, Bool suppress_autoraise );

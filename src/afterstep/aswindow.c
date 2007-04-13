@@ -1472,6 +1472,22 @@ focus_window( ASWindow *asw, Window w )
     return (w!=None);
 }
 
+void autoraise_window( ASWindow *asw ) 
+{
+    if (Scr.Feel.AutoRaiseDelay == 0)
+    {
+        RaiseWindow( asw );
+    }else if (Scr.Feel.AutoRaiseDelay > 0)
+    {
+        struct timeval tv;
+		LOCAL_DEBUG_OUT( "setting autoraise timer for asw %p", Scr.Windows->focused );
+        gettimeofday (&tv, NULL);
+        Scr.Windows->last_focus_change_sec =  tv.tv_sec;
+        Scr.Windows->last_focus_change_usec = tv.tv_usec;
+        timer_new (Scr.Feel.AutoRaiseDelay, autoraise_aswindow, Scr.Windows->focused);
+    }
+
+}
 
 Bool
 focus_aswindow( ASWindow *asw, Bool suppress_autoraise )
@@ -1559,20 +1575,7 @@ LOCAL_DEBUG_CALLER_OUT( "asw = %p", asw );
 		LOCAL_DEBUG_CALLER_OUT( "CHANGE Scr.Windows->focused from %p to %p", Scr.Windows->focused, asw );
         Scr.Windows->focused = asw ;
 		if( !suppress_autoraise ) 
-		{
-        	if (Scr.Feel.AutoRaiseDelay == 0)
-        	{
-            	RaiseWindow( asw );
-        	}else if (Scr.Feel.AutoRaiseDelay > 0)
-        	{
-            	struct timeval tv;
-				LOCAL_DEBUG_OUT( "setting autoraise timer for asw %p", Scr.Windows->focused );
-            	gettimeofday (&tv, NULL);
-            	Scr.Windows->last_focus_change_sec =  tv.tv_sec;
-            	Scr.Windows->last_focus_change_usec = tv.tv_usec;
-            	timer_new (Scr.Feel.AutoRaiseDelay, autoraise_aswindow, Scr.Windows->focused);
-        	}
-		}
+			autoraise_window( asw ); 
     }
 
     XSync(dpy, False );
