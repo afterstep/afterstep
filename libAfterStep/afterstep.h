@@ -354,9 +354,8 @@ struct ASTBarData;
 #define AS_CANVAS_EVENT_MASK 		(ButtonPressMask 	| \
 									 ButtonReleaseMask 	| \
 									 EnterWindowMask 	| \
-									 LeaveWindowMask 	| \
-									 StructureNotifyMask| \
-									 PointerMotionMask)  /* needed to be able to switch mouse pointers */
+									 LeaveWindowMask 	| PointerMotionMask \
+									 /*| StructureNotifyMask */ )  /* needed to be able to switch mouse pointers */
 
 #define AS_ICON_TITLE_EVENT_MASK 	(ButtonPressMask 	| \
                                      ButtonReleaseMask 	| \
