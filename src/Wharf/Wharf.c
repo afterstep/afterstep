@@ -2505,7 +2505,10 @@ check_swallow_window( ASWindowData *wd )
     ASCanvas *nc ;
     int swidth, sheight ;
 	Window icon_w = None ;
-
+	int user_set_height = 0, user_set_width = 0 ; 
+	XWMHints *wm_hints ;
+	XSizeHints *wm_normal_hints;
+	
     if( wd == NULL || !get_flags( wd->state_flags, AS_Mapped))
         return;
     LOCAL_DEBUG_OUT( "name(\"%s\")->icon_name(\"%s\")->res_class(\"%s\")->res_name(\"%s\")",
@@ -2563,16 +2566,25 @@ check_swallow_window( ASWindowData *wd )
     sleep_a_millisec(100);
 	grab_swallowed_canvas_btns( nc, aswb, withdraw_btn );
 
+	wm_hints = XGetWMHints (dpy, wd->client);
+	if( (wm_normal_hints = XAllocSizeHints()) != NULL )
+	{
+		long  supplied;
+		if( XGetWMNormalHints (dpy, wd->client, wm_normal_hints, &supplied) == 0 ) 
+		{
+			XFree( wm_normal_hints );
+			wm_normal_hints = NULL;
+		}
+	}	
+
     if( get_flags( wd->client_icon_flags, AS_ClientIcon ) && !get_flags( wd->client_icon_flags, AS_ClientIconPixmap) )
 		icon_w = wd->icon ;
 	else if( get_flags( wd->flags, AS_WMDockApp ) ) 
 	{
-		XWMHints *wm_hints ;
-		if ((wm_hints = XGetWMHints (dpy, wd->client)) != NULL)
+		if (wm_hints != NULL)
 		{
 			if( get_flags (wm_hints->flags, IconWindowHint) )
 				icon_w = wm_hints->icon_window ;
-			XFree (wm_hints);
 		}	
 	}
 
@@ -2608,23 +2620,49 @@ check_swallow_window( ASWindowData *wd )
 		(Config->force_size.height == 0 && !get_flags(aswb->flags, ASW_FixedHeight)) )
         aswb->desired_height = aswb->swallowed->current->height;
 
+	if( wm_normal_hints ) 
+	{
+		LOCAL_DEBUG_OUT( "wm_normal_hints->flags = 0x%lX", wm_normal_hints->flags );
+		if( get_flags(wm_normal_hints->flags, USSize) )
+		{
+			user_set_width = wm_normal_hints->width ; 
+			user_set_height = wm_normal_hints->height ; 
+			if( user_set_width == 0 )
+				user_set_width = aswb->swallowed->current->width ;				
+			if( user_set_height == 0 )
+				user_set_height = aswb->swallowed->current->height ;				
+		}
+	}
     swidth = aswb->swallowed->current->width ;
 	if( get_flags( wd->flags, AS_MinSize ) && swidth < wd->hints.min_width)
    		swidth = wd->hints.min_width;
+	else if( user_set_width > 0 )
+		swidth = user_set_width ; 
+	else if( get_flags( wd->flags, AS_WMDockApp ) )
+		swidth = 64 ; 
+	else
+   		swidth = aswb->desired_width;
 	if( swidth <= 2 ) 
    		swidth = aswb->desired_width;
-/*	else if( swidth > aswb->desired_width ) 
-		swidth = aswb->desired_width ;
-(otherwise AlignContents don't work */    
+		
     sheight = aswb->swallowed->current->height ;
 	if( get_flags( wd->flags, AS_MinSize ) && sheight < wd->hints.min_height)
    		sheight = wd->hints.min_height;
+	else if( user_set_height > 0 )
+		sheight = user_set_height ; 
+	else if( get_flags( wd->flags, AS_WMDockApp ) )
+		sheight = 64 ; 
+	else
+   		sheight = aswb->desired_height;
 	if( sheight <= 2 ) 
    		sheight = aswb->desired_height;
-/*	else if( sheight > aswb->desired_height ) 
-		sheight = aswb->desired_height ;
-(otherwise AlignContents don't work */
 
+	LOCAL_DEBUG_OUT( "original %dx%d, user %dx%d, final %dx%d, desired %dx%d", 
+						aswb->swallowed->current->width,aswb->swallowed->current->height,
+						user_set_width, user_set_height,
+						swidth, sheight, 
+						aswb->desired_width, aswb->desired_height );
+						
     moveresize_canvas( aswb->swallowed->current,
                        make_swallow_pad( get_flags(Config->AlignContents,PAD_LEFT),
                                          get_flags(Config->AlignContents,PAD_RIGHT),
@@ -2636,7 +2674,6 @@ check_swallow_window( ASWindowData *wd )
 	if( !get_flags( wd->client_icon_flags, AS_ClientIcon ) ) 
 	{  /* workaround for broken wmdock apps that draw into icon, that is a child of a client, 
 		* and at the same time not properly sized ( Just don't ask - some ppl are wierd ) */
-		XWMHints *wm_hints = XGetWMHints (dpy, wd->client);
 		LOCAL_DEBUG_OUT( "wmfire workaround step1: wm_hints = %p", wm_hints );
 		if( wm_hints ) 
 		{
@@ -2646,9 +2683,14 @@ check_swallow_window( ASWindowData *wd )
 				LOCAL_DEBUG_OUT( "wmfire workaround step3: resizing to %dx%d", swidth, sheight );
 				XResizeWindow( dpy, wm_hints->icon_window, swidth, sheight );
 			}
-			XFree (wm_hints);			   
 		}
 	}
+
+	if( wm_normal_hints != NULL ) 
+		XFree( wm_normal_hints );
+	if( wm_hints != NULL ) 
+		XFree (wm_hints);			   
+
     map_canvas_window( aswb->swallowed->current, True );
     send_swallowed_configure_notify(aswb);
 	update_wharf_folder_size( aswf );

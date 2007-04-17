@@ -39,6 +39,7 @@
 #include "moveresize.h"
 
 #ifdef NO_DEBUG_OUTPUT
+#undef SHOW_CHECKPOINT
 #define SHOW_CHECKPOINT while(0)
 #endif
 
