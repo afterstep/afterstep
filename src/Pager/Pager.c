@@ -78,7 +78,7 @@
 typedef struct ASPagerDesk {
 
     ASFlagType flags ;
-    INT32 desk ;
+    INT32 desk ;								/* absolute value - no need to add start_desk */
     ASCanvas   *desk_canvas;
     ASTBarData *title;
     ASTBarData *background;
@@ -1132,7 +1132,8 @@ restack_desk_windows( ASPagerDesk *d )
 				clients[i]->canvas->w )
 			{
 				LOCAL_DEBUG_OUT("k = %d, w = %lX, client = %lX, wd = %p, name = \"%s\"", 
-								 k, clients[i]->canvas->w,clients[i]->client, clients[i], clients[i]->window_name );
+								 k, clients[i]->canvas->w,clients[i]->client, clients[i], 
+								 clients[i]->window_name?clients[i]->window_name:"(null)" );
                 curr[k++] = clients[i]->canvas->w ;
 			}
         }
@@ -1669,7 +1670,8 @@ set_client_name( ASWindowData *wd, Bool redraw )
 {
     if( wd->bar )
     {
-		LOCAL_DEBUG_OUT( "name_enc = %ld, name = \"%s\"", wd->window_name_encoding, wd->window_name);
+		LOCAL_DEBUG_OUT( "name_enc = %ld, name = \"%s\"", wd->window_name_encoding, 
+															wd->window_name?wd->window_name:"(null)");
         change_astbar_first_label( wd->bar, wd->window_name, wd->window_name_encoding );
         set_astbar_balloon( wd->bar, 0, wd->window_name, wd->window_name_encoding );
     }
@@ -1734,7 +1736,7 @@ place_client( ASPagerDesk *d, ASWindowData *wd, Bool force_redraw, Bool dont_upd
         if( height <= 0 )
             height = 1 ;
 
-		LOCAL_DEBUG_OUT( "@@@@     ###   $$$   Client \"%s\" background position is %+d%+d, client's = %+d%+d", wd->window_name, d->background->win_x, d->background->win_y, x, y );
+		LOCAL_DEBUG_OUT( "@@@@     ###   $$$   Client \"%s\" background position is %+d%+d, client's = %+d%+d", wd->window_name?wd->window_name:"(null)", d->background->win_x, d->background->win_y, x, y );
         x += (int)d->background->win_x ;
         y += (int)d->background->win_y ;
         if( wd->canvas )
@@ -1891,7 +1893,7 @@ void add_client( ASWindowData *wd )
 void refresh_client( INT32 old_desk, ASWindowData *wd )
 {
     ASPagerDesk *d = get_pager_desk( wd->desk );
-    LOCAL_DEBUG_OUT( "client(%lX)->name(%s)->icon_name(%s)->desk(%ld)->old_desk(%ld)", wd->client, wd->window_name, wd->icon_name, wd->desk, old_desk );
+    LOCAL_DEBUG_OUT( "client(%lX)->name(%s)->icon_name(%s)->desk(%ld)->old_desk(%ld)", wd->client, wd->window_name?wd->window_name:"(null)", wd->icon_name, wd->desk, old_desk );
     if( old_desk != wd->desk )
     {
         forget_desk_client( old_desk, wd );
@@ -1903,7 +1905,7 @@ void refresh_client( INT32 old_desk, ASWindowData *wd )
 		}
     }
     set_client_name( wd, False );
-	LOCAL_DEBUG_OUT( "client \"%s\" focused = %d", wd->window_name, wd->focused );
+	LOCAL_DEBUG_OUT( "client \"%s\" focused = %d", wd->window_name?wd->window_name:"(null)", wd->focused );
     set_astbar_focused( wd->bar, NULL, wd->focused );
 	set_client_look( wd, True );
 	LOCAL_DEBUG_OUT( "placing client%s", "" );
@@ -2023,7 +2025,7 @@ switch_deskviewport( int new_desk, int new_vx, int new_vy )
 
     if( desk_changed && IsValidDesk( new_desk ) )
     {
-        ASPagerDesk *new_d = get_pager_desk( new_desk ) ;
+		ASPagerDesk *new_d = get_pager_desk( new_desk ) ;
 
         if( PagerState.focused_desk != new_d )
         {
@@ -2050,6 +2052,13 @@ switch_deskviewport( int new_desk, int new_vx, int new_vy )
 	{
 		move_sticky_clients();
     	place_selection();
+		if( new_desk < PagerState.start_desk || new_desk >= PagerState.start_desk+PagerState.desks_num ) 
+		{
+			int i = 4;
+	        while ( --i >= 0 )
+  		        XUnmapWindow( dpy, PagerState.selection_bars[i] );
+
+		}
 	}
 }
 
@@ -2192,9 +2201,9 @@ apply_client_move(struct ASMoveResizeData *data)
                                                  PagerState.main_canvas->root_y+data->curr.y,
                                                  data->curr.width, data->curr.height,
                                                  wd->desk, &real_x, &real_y );
-    if( d && d->desk + PagerState.start_desk != wd->desk )
+    if( d && d->desk != wd->desk )
     {
-        move_client_to_desk( wd, d->desk + PagerState.start_desk );
+        move_client_to_desk( wd, d->desk );
         set_moveresize_aspect( data, PagerState.vscreen_width, d->background->width,
                                      PagerState.vscreen_height, d->background->height,
                                      d->background->root_x, d->background->root_y );
@@ -2219,9 +2228,9 @@ void complete_client_move(struct ASMoveResizeData *data, Bool cancelled)
                                    rect->height,
                                    wd->desk, &real_x, &real_y );
 
-    if( d && d->desk + PagerState.start_desk != wd->desk )
+    if( d && d->desk != wd->desk )
     {
-        move_client_to_desk( wd, d->desk + PagerState.start_desk );
+        move_client_to_desk( wd, d->desk );
         set_moveresize_aspect( data, PagerState.vscreen_width, d->background->width,
                                      PagerState.vscreen_height, d->background->height,
                                      d->background->root_x, d->background->root_y );
@@ -2664,7 +2673,7 @@ request_background_image( ASPagerDesk *d )
         e.xclient.message_type = _AS_BACKGROUND ;
         e.xclient.format = 16;
         e.xclient.window = PagerState.main_canvas->w ;
-        e.xclient.data.s[0] = PagerState.start_desk+d->desk ;
+        e.xclient.data.s[0] = d->desk ;
         e.xclient.data.s[1] = 0 ;
         e.xclient.data.s[2] = 0 ;
         e.xclient.data.s[3] = d->background->width ;
@@ -2837,7 +2846,7 @@ on_scroll_viewport( ASEvent *event )
                 int sx = (px*PagerState.vscreen_width)/d->background->width ;
                 int sy = (py*PagerState.vscreen_height)/d->background->height ;
 				
-                sprintf (command, "GotoDeskViewport %ld%+d%+d\n", d->desk + PagerState.start_desk, sx, sy);
+                sprintf (command, "GotoDeskViewport %ld%+d%+d\n", d->desk, sx, sy);
                 SendInfo ( command, 0);
 				++PagerState.wait_as_response ;
             }
@@ -2873,7 +2882,7 @@ LOCAL_DEBUG_OUT( "pointer root pos(%+d%+d)", px, py );
                     py > 0 && py < d->desk_canvas->height )
                 {
 					int new_desk, new_vx = -1, new_vy = -1 ;
-					new_desk = d->desk + PagerState.start_desk ;
+					new_desk = d->desk ;
                     px -= d->background->win_x;
                     py -= d->background->win_y;
                     if( px >= 0 && py >= 0 &&
