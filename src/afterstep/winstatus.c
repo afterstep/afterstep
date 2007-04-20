@@ -1931,24 +1931,76 @@ do_change_aswindow_desktop( ASWindow *asw, int new_desk, Bool force )
     }
 }
 
-void change_aswindow_desktop( ASWindow *asw, int new_desk, Bool force )
+static void 
+change_aswindow_desktop_nontransient( ASWindow *asw, int new_desk, Bool force )
 {
-    if( AS_ASSERT(asw) )
-        return ;
-	if( asw->transient_owner )
-		asw = asw->transient_owner ;
-	
+	ASWindow **sublist; 
+	int i ; 
+
 	if( ASWIN_GET_FLAGS(asw, AS_Sticky) ) 
 		new_desk = Scr.CurrentDesk ;
     
 	do_change_aswindow_desktop( asw, new_desk, force );
 	if( asw->transients ) 
 	{
-		int tcurr;
-		int tnum = PVECTOR_USED(asw->transients); 
-		ASWindow **tlist = PVECTOR_HEAD(ASWindow*, asw->transients);
-		for( tcurr = 0 ; tcurr < tnum ; ++tcurr ) 
-			do_change_aswindow_desktop( tlist[tcurr], new_desk, force );
+		sublist = PVECTOR_HEAD(ASWindow*,asw->transients);
+		for( i = 0 ; i < PVECTOR_USED(asw->transients) ; ++i ) 
+			do_change_aswindow_desktop( sublist[i], new_desk, force );
+	}
+}
+
+struct ChangeGroupDesktopAuxData
+{
+	Window group_lead ;
+	ASWindow *initiator ; 
+	int new_desk ; 
+	Bool force ; 
+	
+};
+
+static Bool
+change_aswindow_desktop_for_group_func(void *data, void *aux_data)
+{
+    ASWindow *asw = (ASWindow*)data;
+	struct ChangeGroupDesktopAuxData *ad = (struct ChangeGroupDesktopAuxData*)aux_data ;
+LOCAL_DEBUG_OUT( "asw = %p(w = %lX), initiator = %p, to = %p, asw->gl = %lX, gl = %lX", 
+				 asw, asw->w, ad->initiator, asw->transient_owner, asw->hints->group_lead, 
+				 ad->group_lead );
+    if( asw && asw != ad->initiator && 
+		asw->transient_owner == NULL && asw->hints->group_lead == ad->group_lead )
+		change_aswindow_desktop_nontransient( asw, ad->new_desk, ad->force );
+    return True;
+}
+
+
+void change_aswindow_desktop( ASWindow *asw, int new_desk, Bool force )
+{
+	ASWindow **sublist; 
+	int i ; 
+
+    if( AS_ASSERT(asw) )
+        return ;
+	if( asw->transient_owner )
+		asw = asw->transient_owner ;
+	
+	change_aswindow_desktop_nontransient( asw, new_desk, force );
+
+	LOCAL_DEBUG_OUT( "group_members = %p; group_lead = %lX", 
+					asw->group_members, asw->hints->group_lead );
+	if( asw->group_members ) 
+	{
+		sublist = PVECTOR_HEAD(ASWindow*,asw->group_members);
+		for( i = 0 ; i < PVECTOR_USED(asw->group_members) ; ++i ) 
+			if( sublist[i]->transient_owner == NULL ) 
+				do_change_aswindow_desktop( sublist[i], new_desk, force );
+	}else if( asw->hints->group_lead != None )
+	{/* sometimes group lead may be unmapped untracked window */
+		struct ChangeGroupDesktopAuxData ad ;
+		ad.group_lead = asw->hints->group_lead ;
+		ad.initiator = asw; 
+		ad.new_desk = new_desk; 
+		ad.force = force ; 
+        iterate_asbidirlist( Scr.Windows->clients, change_aswindow_desktop_for_group_func, &ad, NULL, False );
 	}
 }
 

@@ -422,6 +422,7 @@ if test "x$enable_staticlibs" = "xyes"; then
    WIDGETS_LIB="../Script/Widgets/libWidgets.a"
    LIBPROG='$(LIB_STATIC)'
    LIBINSTALL="install.static"
+	LIBUNINSTALL="uninstall.static"
 else
 	if test "x$CYGWIN" = "xyes" ; then
    		AFTERBASE_LIB="../../libAfterBase/libAfterBase.dll.a"
@@ -432,6 +433,7 @@ else
    		WIDGETS_LIB="../Script/Widgets/libWidgets.dll.a"
    		LIBPROG='$(LIB_SHARED_CYG)'
    		LIBINSTALL="install.cyg"
+		LIBUNINSTALL="uninstall.cyg"
 	else
    		AFTERBASE_LIB="../../libAfterBase/libAfterBase.so"
    		AFTERIMAGE_LIB="../../libAfterImage/libAfterImage.so"
@@ -441,6 +443,7 @@ else
    		WIDGETS_LIB="../Script/Widgets/libWidgets.so"
    		LIBPROG='$(LIB_SHARED)'
    		LIBINSTALL="install.dyn"
+		LIBUNINSTALL="uninstall.dyn"		
 	fi
 fi
 
@@ -675,6 +678,7 @@ AC_SUBST(ASGTK_STATIC_LIB)
 AC_SUBST(WIDGETS_STATIC_LIB)
 AC_SUBST(LIBPROG)
 AC_SUBST(LIBINSTALL)
+AC_SUBST(LIBUNINSTALL)
 AC_SUBST(with_afterdir)
 AC_SUBST(with_imageloader)
 AC_SUBST(with_soundplayer)

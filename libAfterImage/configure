@@ -9238,6 +9238,7 @@ AFTERIMAGE_LIBS="-L$libdir -lAfterImage $CLEAN_AFTERIMAGE_LIBS"
 if test "x$enable_staticlibs" = "xyes"; then
    LIBPROG='$(LIB_STATIC)'
    LIBINSTALL="install.static"
+   LIBUNINSTALL="install.static"
 else
    enable_sharedlibs="yes"
 fi
@@ -9251,6 +9252,7 @@ if test "x$enable_sharedlibs" = "xyes"; then
 	fi
    	LIBPROG="$LIBPROG $tmp"
    	LIBINSTALL="$LIBINSTALL $tmp2"
+    LIBUNINSTALL="uninstall.static un$tmp2"
 fi
 
 if test "x$enable_xlocale" = "xyes"; then

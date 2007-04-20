@@ -14,6 +14,7 @@ install.bin:	$(PROG)
 
 uninstall.bin:
 		@for p in $(PROG); do \
+			echo "$(RMF) $(AFTER_BIN_DIR)/$$p"; \
 			$(RMF) $(AFTER_BIN_DIR)/$$p; \
 		done
 

@@ -410,6 +410,7 @@ ASWindow *bookmark2ASWindow( const char *bookmark );
 ASWindow *pattern2ASWindow( const char *pattern );
 ASWindow *complex_pattern2ASWindow( char *pattern );
 ASLayer *get_aslayer( int layer, ASWindowList *list );
+ASWindow *find_group_lead_aswindow( Window id );
 void tie_aswindow( ASWindow *t );
 void untie_aswindow( ASWindow *t );
 void add_aswindow_to_layer( ASWindow *asw, int layer );

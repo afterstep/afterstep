@@ -822,6 +822,36 @@ destroy_aslayer  (ASHashableValue value, void *data)
 /********************************************************************************/
 /* ASWindow management */
 
+ASWindow*
+find_group_lead_aswindow( Window id )
+{
+	ASWindow *gl = window2ASWindow( id );
+	if( gl == NULL ) 
+	{/* let's find previous window with the same group lead */
+		ASBiDirElem *curr = LIST_START(Scr.Windows->clients);
+		while( curr )
+		{
+			ASWindow *asw = (ASWindow*)LISTELEM_DATA(curr);
+			if( asw->hints->group_lead == id ) 
+			{
+				gl = asw ; 
+				break;
+			}
+			LIST_GOTO_NEXT(curr);	
+		}	 
+	}
+	return gl;
+}
+
+static void
+add_member_to_group_lead( ASWindow *group_lead, ASWindow *member ) 
+{
+    member->group_lead = group_lead ;
+    if( group_lead->group_members == NULL )
+        group_lead->group_members = create_asvector( sizeof( ASWindow* ) );
+    vector_insert_elem( group_lead->group_members, &member, 1, NULL, True );
+}
+
 void
 tie_aswindow( ASWindow *t )
 {
@@ -838,20 +868,18 @@ tie_aswindow( ASWindow *t )
     }
     if( t->hints->group_lead != None )
     {
-        ASWindow *group_lead  = window2ASWindow( t->hints->group_lead );
-        if( group_lead != NULL )
-        {
-            t->group_lead = group_lead ;
-            if( group_lead->group_members == NULL )
-                group_lead->group_members = create_asvector( sizeof( ASWindow* ) );
-            vector_insert_elem( group_lead->group_members, &t, 1, NULL, True );
-        }
+        ASWindow *group_lead  = find_group_lead_aswindow( t->hints->group_lead );
+        if( group_lead != NULL && group_lead != t )
+			add_member_to_group_lead( group_lead, t );
     }
 }
 
 void
 untie_aswindow( ASWindow *t )
 {
+	ASWindow **sublist; 
+	int i ; 
+
     if( t->transient_owner != NULL && t->transient_owner->magic == MAGIC_ASWINDOW )
     {
         if( t->transient_owner != NULL )
@@ -860,13 +888,12 @@ untie_aswindow( ASWindow *t )
     }
 	if( t->transients && PVECTOR_USED(t->transients) > 0 )
 	{
-		ASWindow **tlist = PVECTOR_HEAD(ASWindow*,t->transients);
-		int tcurr ; 
-		for( tcurr = 0 ; tcurr < PVECTOR_USED(t->transients) ; ++tcurr ) 
-			if( tlist[tcurr] && tlist[tcurr]->magic == MAGIC_ASWINDOW && tlist[tcurr]->transient_owner == t ) 
+		sublist = PVECTOR_HEAD(ASWindow*,t->transients);
+		for( i = 0 ; i < PVECTOR_USED(t->transients) ; ++i ) 
+			if( sublist[i] && sublist[i]->magic == MAGIC_ASWINDOW && sublist[i]->transient_owner == t ) 
 			{	/* we may need to delete this windows actually */
-				tlist[tcurr]->transient_owner = NULL ;
-				add_aswindow_to_layer( tlist[tcurr], ASWIN_LAYER(tlist[tcurr]) );				
+				sublist[i]->transient_owner = NULL ;
+				add_aswindow_to_layer( sublist[i], ASWIN_LAYER(sublist[i]) );				
 			}
 	}
     if( t->group_lead && t->group_lead->magic == MAGIC_ASWINDOW )
@@ -875,6 +902,20 @@ untie_aswindow( ASWindow *t )
             vector_remove_elem( t->group_lead->group_members, &t );
         t->group_lead = NULL ;
     }
+	if( t->group_members && PVECTOR_USED(t->group_members) > 0 )
+	{
+		ASWindow *new_gl ;
+		sublist = PVECTOR_HEAD(ASWindow*,t->group_members);
+		new_gl = sublist[0] ; 
+		new_gl->group_lead = NULL ; 
+		
+		for( i = 1 ; i < PVECTOR_USED(t->group_members) ; ++i ) 
+			if( sublist[i] && sublist[i]->magic == MAGIC_ASWINDOW && sublist[i]->group_lead == t ) 
+			{
+				sublist[i]->group_lead = NULL ;
+				add_member_to_group_lead( new_gl, sublist[i] ); 				
+			}
+	}
 }
 
 void
@@ -1299,19 +1340,27 @@ is_canvas_overlaping (ASCanvas * above, ASCanvas *below)
 #define IS_OVERLAPING(a,b)    is_canvas_overlaping(a->frame_canvas,b->frame_canvas)
 
 static inline Bool 
-is_overlaping_transients( ASWindow *a, ASWindow *b )
+is_overlaping_b( ASWindow *a, ASWindow *b )
 {
+	int i ; 
+	ASWindow **sublist ;
 	if( IS_OVERLAPING(a, b) ) 
 		return True;
 	
 	if( b->transients ) 
 	{
-		int tnum = PVECTOR_USED(b->transients);
-		ASWindow **tlist = PVECTOR_HEAD(ASWindow*, b->transients);
-		int tcurr = 0 ;
-		for( tcurr = 0 ; tcurr < tnum ; ++tcurr )
-			if( !ASWIN_GET_FLAGS(tlist[tcurr], AS_Dead) ) 
-				if( IS_OVERLAPING( a, tlist[tcurr] ) ) 
+		sublist = PVECTOR_HEAD(ASWindow*, b->transients);
+		for( i = 0 ; i < PVECTOR_USED(b->transients) ; ++i )
+			if( !ASWIN_GET_FLAGS(sublist[i], AS_Dead) ) 
+				if( IS_OVERLAPING( a, sublist[i] ) ) 
+					return True ;
+	}
+	if( b->group_members ) 
+	{
+		sublist = PVECTOR_HEAD(ASWindow*, b->group_members);
+		for( i = 0 ; i < PVECTOR_USED(b->group_members) ; ++i )
+			if( !ASWIN_GET_FLAGS(sublist[i], AS_Dead) ) 
+				if( IS_OVERLAPING( a, sublist[i] ) ) 
 					return True ;
 	}
 	return False;
@@ -1320,17 +1369,25 @@ is_overlaping_transients( ASWindow *a, ASWindow *b )
 static inline Bool 
 is_overlaping( ASWindow *a, ASWindow *b )
 {
-	if( is_overlaping_transients( a, b ) ) 
+	int i ; 
+	ASWindow **sublist ;
+	if( is_overlaping_b( a, b ) ) 
 		return True ;
 	
 	if( a->transients )
 	{
-		int tnum = PVECTOR_USED(a->transients);
-		ASWindow **tlist = PVECTOR_HEAD(ASWindow*, a->transients);
-		int tcurr = 0 ;
-		for( tcurr = 0 ; tcurr < tnum ; ++tcurr )
-			if( !ASWIN_GET_FLAGS(tlist[tcurr], AS_Dead) ) 
-				if( is_overlaping_transients( tlist[tcurr], b ) ) 
+		sublist = PVECTOR_HEAD(ASWindow*, a->transients);
+		for( i = 0 ; i < PVECTOR_USED(a->transients) ; ++i )
+			if( !ASWIN_GET_FLAGS(sublist[i], AS_Dead) ) 
+				if( is_overlaping_b( sublist[i], b ) ) 
+					return True ;
+	}
+	if( a->group_members ) 
+	{
+		sublist = PVECTOR_HEAD(ASWindow*, a->group_members);
+		for( i = 0 ; i < PVECTOR_USED(a->group_members) ; ++i )
+			if( !ASWIN_GET_FLAGS(sublist[i], AS_Dead) ) 
+				if( is_overlaping_b( sublist[i], b ) ) 
 					return True ;
 	}
 	return False;	
@@ -1471,10 +1528,26 @@ LOCAL_DEBUG_CALLER_OUT( "%p,%lX,%d", t, sibling_window, stack_mode );
     if( stack_mode != Above && stack_mode != Below )
         sibling = NULL ;
 
-    if( src_layer )
-        vector_remove_elem( src_layer->members, &t );
-    if( dst_layer )
-        vector_insert_elem( dst_layer->members, &t, 1, sibling, above );
+	if( t->group_members  ) 
+	{
+	    int k;
+		int todo = 0;
+	    ASWindow **members = PVECTOR_HEAD(ASWindow*,src_layer->members);
+		ASWindow **group_members = safemalloc( PVECTOR_USED(src_layer->members)*sizeof(ASWindow*));
+	    for( k = 0 ; k < PVECTOR_USED(src_layer->members) ; k++ )
+			if( members[k] != t && members[k]->group_lead == t )
+				group_members[todo++] = members[k];
+		for( k = 0 ; k < todo ; ++k ) 
+		{
+		    vector_remove_elem( src_layer->members, &group_members[k] );
+		    vector_insert_elem( dst_layer->members, &group_members[k], 1, sibling, above );
+			if( sibling ) 
+				sibling = group_members[k];
+		}	
+		free( group_members );
+	}
+    vector_remove_elem( src_layer->members, &t );
+    vector_insert_elem( dst_layer->members, &t, 1, sibling, above );
 
     t->last_restack_time = Scr.last_Timestamp ;
     restack_window_list( ASWIN_DESK(t), False );

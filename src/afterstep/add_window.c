@@ -45,30 +45,31 @@ afterstep_parent_hints_func(Window parent, ASParentHints *dst )
 	dst->parent = parent ;
 	if( parent != Scr.Root )
 	{
-		ASWindow     *p;
+		ASWindow     *p = find_group_lead_aswindow( parent );
 
-        if ((p = window2ASWindow( parent )) == NULL) return False ;
-
-        dst->desktop = p->status->desktop ;
-		set_flags( dst->flags, AS_StartDesktop );
-
-		/* we may need to move our viewport so that the parent becomes visible : */
-        if ( !ASWIN_GET_FLAGS(p, AS_Iconic) )
+		if( p != NULL ) 
 		{
+	        dst->desktop = p->status->desktop ;
+			set_flags( dst->flags, AS_StartDesktop );
+
+			/* we may need to move our viewport so that the parent becomes visible : */
+    	    if ( !ASWIN_GET_FLAGS(p, AS_Iconic) )
+			{
 #if 0
-            int x, y ;
-            unsigned int width, height ;
-            x = p->status->x - p->decor->west ;
-            y = p->status->y - p->decor->north ;
-            width = p->status->width + p->decor->west + p->decor->east ;
-            height = p->status->height + p->decor->north + p->decor->south ;
+	            int x, y ;
+    	        unsigned int width, height ;
+        	    x = p->status->x - p->decor->west ;
+            	y = p->status->y - p->decor->north ;
+	            width = p->status->width + p->decor->west + p->decor->east ;
+    	        height = p->status->height + p->decor->north + p->decor->south ;
 
-            if( (dst->viewport_x = calculate_viewport( &x, width, p->scr->Vx, p->scr->MyDisplayWidth, p->scr->VxMax)) != p->scr->Vx )
-				set_flags( dst->flags, AS_StartViewportX );
+	            if( (dst->viewport_x = calculate_viewport( &x, width, p->scr->Vx, p->scr->MyDisplayWidth, p->scr->VxMax)) != p->scr->Vx )
+					set_flags( dst->flags, AS_StartViewportX );
 
-            if( (dst->viewport_y = calculate_viewport( &y, height, p->scr->Vy, p->scr->MyDisplayHeight, p->scr->VyMax)) != p->scr->Vy )
-				set_flags( dst->flags, AS_StartViewportY );
+	            if( (dst->viewport_y = calculate_viewport( &y, height, p->scr->Vy, p->scr->MyDisplayHeight, p->scr->VyMax)) != p->scr->Vy )
+					set_flags( dst->flags, AS_StartViewportY );
 #endif
+			}
 		}
 	}
 	return True ;

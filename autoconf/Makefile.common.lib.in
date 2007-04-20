@@ -43,10 +43,9 @@ install.man:
 
 install.script:
 
-install.dyn:
+install.dyn:	uninstall.dyn
 		@(  echo "$(INSTALL_LIB) $(LIB_SHARED).$(LIBVER) $(LIBDIR)"; \
 		$(INSTALL_LIB) $(LIB_SHARED).$(LIBVER) $(LIBDIR); \
-		$(RM) -f $(LIBDIR)/$(LIB_SHARED).$(LIBVERMAJOR) $(LIBDIR)/$(LIB_SHARED); \
 		$(LN_S) -f $(LIB_SHARED).$(LIBVER) $(LIBDIR)/$(LIB_SHARED).$(LIBVERMAJOR); \
 		$(LN_S) -f $(LIB_SHARED).$(LIBVERMAJOR) $(LIBDIR)/$(LIB_SHARED); \
 		 if test `uname` = "Linux"; then \
@@ -63,7 +62,7 @@ install.dyn:
 		 fi \
 		)
 
-install.cyg:
+install.cyg:	uninstall.cyg
 		@( echo "$(INSTALL_LIB) $(LIB_SHARED_CYG) $(AFTER_BIN_DIR)"; \
 		$(INSTALL_LIB) $(LIB_SHARED_CYG) $(AFTER_BIN_DIR); \
 		echo "$(INSTALL_LIB) $(LIB_SHARED_CYG) $(LIBDIR)"; \
@@ -74,59 +73,100 @@ install.cyg:
 
 install.inc:
 		@( \
-                if [ -f $(CONFIG_SCRIPT) ] ; then \
-			echo "$(INSTALL_SCRIPT) $(CONFIG_SCRIPT) $(AFTER_BIN_DIR)"; \
-                        $(INSTALL_SCRIPT) $(CONFIG_SCRIPT) $(AFTER_BIN_DIR); \
-                fi; \
-                 if [ -d $(AFTER_INC_DIR) ]; then \
-		    echo "$(RM) $(AFTER_INC_DIR)/*"; \
-		    $(RM) $(AFTER_INC_DIR)/*; \
-		 else \
-		    if [ -d $(INCLUDEDIR) ]; then \
-		       echo "$(MKDIR) $(AFTER_INC_DIR)"; \
-		       if $(MKDIR) $(AFTER_INC_DIR); then \
-		          echo " ">/dev/null; \
-		       else \
-		    	  echo "failed to create include directory: $(AFTER_INC_DIR)"; \
-		       fi; \
-		    else \
-		       echo "$(MKDIR) $(INCLUDEDIR)"; \
-		       if $(MKDIR) $(INCLUDEDIR); then \
-		          echo "$(MKDIR) $(AFTER_INC_DIR)"; \
-		          if $(MKDIR) $(AFTER_INC_DIR) >/dev/null; then \
-		             echo " ">/dev/null; \
-		          else \
-		             echo "failed to create include directory: $(AFTER_INC_DIR)"; \
-			  fi; \
-		       else \
-		          echo "failed to create include directory: $(INCLUDEDIR)"; \
-		       fi; \
-		    fi; \
-		 fi; \
-		 if [ -d $(AFTER_INC_DIR) ]; then \
-		    echo "installing $(LIB_NAME) headers using command - "; \
-		    echo "    \"$(INSTALL_HEADER) <header> $(AFTER_INC_DIR)\" :"; \
-		    for file in $(LIB_INCS) ; do  \
-			echo -n "$$file "; \
-			$(INSTALL_HEADER) $$file $(AFTER_INC_DIR); \
-		    done; \
-		    echo ""; echo "Done."; \
-		 fi \
+			if [ -f $(CONFIG_SCRIPT) ] ; then \
+				echo "$(INSTALL_SCRIPT) $(CONFIG_SCRIPT) $(AFTER_BIN_DIR)"; \
+                      $(INSTALL_SCRIPT) $(CONFIG_SCRIPT) $(AFTER_BIN_DIR); \
+            fi; \
+            if [ -d $(AFTER_INC_DIR) ]; then \
+		    	echo "$(RMF) $(AFTER_INC_DIR)/*"; \
+		    	$(RMF) $(AFTER_INC_DIR)/*; \
+		 	else \
+		    	if [ -d $(INCLUDEDIR) ]; then \
+		       		echo "$(MKDIR) $(AFTER_INC_DIR)"; \
+		       		if $(MKDIR) $(AFTER_INC_DIR); then \
+		          		echo " ">/dev/null; \
+		       		else \
+		    	  		echo "failed to create include directory: $(AFTER_INC_DIR)"; \
+		       		fi; \
+		    	else \
+		       		echo "$(MKDIR) $(INCLUDEDIR)"; \
+		       		if $(MKDIR) $(INCLUDEDIR); then \
+		          		echo "$(MKDIR) $(AFTER_INC_DIR)"; \
+		          		if $(MKDIR) $(AFTER_INC_DIR) >/dev/null; then \
+		      		       	echo " ">/dev/null; \
+		          		else \
+		             		echo "failed to create include directory: $(AFTER_INC_DIR)"; \
+			  			fi; \
+		       		else \
+		          		echo "failed to create include directory: $(INCLUDEDIR)"; \
+		       		fi; \
+		    	fi; \
+		 	fi; \
+		 	if [ -d $(AFTER_INC_DIR) ]; then \
+		    	echo "installing $(LIB_NAME) headers using command - "; \
+		    	echo "    \"$(INSTALL_HEADER) <header> $(AFTER_INC_DIR)\" :"; \
+		    	for file in $(LIB_INCS) ; do  \
+					echo -n "$$file "; \
+					$(INSTALL_HEADER) $$file $(AFTER_INC_DIR); \
+		    	done; \
+		    	echo ""; echo "Done."; \
+		 	fi \
 		)
 
-uninstall.bin:
+# uninstallation targets : 
+#
+STATIC_LIB_FILES=$(LIBDIR)/$(LIB_STATIC)
+DYN_LIB_FILES=$(LIBDIR)/$(LIB_SHARED).$(LIBVERMAJOR) $(LIBDIR)/$(LIB_SHARED) $(LIBDIR)/$(LIB_SHARED).$(LIBVER)
+CYGWIN_LIB_FILES=$(AFTER_BIN_DIR)/$(LIB_SHARED_CYG) $(LIBDIR)/$(LIB_SHARED_CYG) $(LIBDIR)/$(LIB_SHARED_CYG_AR)
 
-uninstall.lib:
+uninstall.static:
+		@for i in $(STATIC_LIB_FILES); do \
+			if [ -f $$i ] ; then echo $(RMF) $$i; $(RMF) $$i; fi; \
+		done
+
+uninstall.dyn:
+		@for i in $(DYN_LIB_FILES); do \
+			if [ -f $$i ] ; then echo $(RMF) $$i; $(RMF) $$i; fi; \
+		done
+		
+uninstall.cyg:
+		@for i in $(CYGWIN_LIB_FILES); do \
+			if [ -f $$i ] ; then echo $(RMF) $$i; $(RMF) $$i; fi; \
+		done
+
+
+uninstall.inc:
+		@if [ -f $(AFTER_BIN_DIR)\$(CONFIG_SCRIPT) ] ; then \
+			echo "$(RMF) $(AFTER_BIN_DIR)\$(CONFIG_SCRIPT)"; \
+            $(RMF) $(AFTER_BIN_DIR)\$(CONFIG_SCRIPT); \
+         fi; \
+         if [ -d $(AFTER_INC_DIR) ]; then \
+		    echo "$(RMF) $(AFTER_INC_DIR)/*"; \
+		    $(RMF) $(AFTER_INC_DIR)/*; \
+		 fi; \
+		 if [ -d $(INCLUDEDIR)/$(LIB_DIR_NAME) ]; then \
+		    echo "$(RMF) $(INCLUDEDIR)/$(LIB_DIR_NAME)"; \
+		    $(RMF) $(INCLUDEDIR)/$(LIB_DIR_NAME); \
+		 fi
+
+uninstall.bin:
+		@for i in $(LIB_APPS); do \
+			if [ -f $(AFTER_BIN_DIR)\$$i ] ; then echo $(RMF) $(AFTER_BIN_DIR)\$$i; $(RMF) $(AFTER_BIN_DIR)\$$i; fi; \
+		done
+
+uninstall.lib:		@LIBUNINSTALL@ uninstall.inc
 
 uninstall.man:
 
 uninstall.script:
+
 
 clean:
 		$(RMF) $(LIB_SHARED) $(LIB_SHARED_CYG) $(LIB_SHARED_CYG_AR) $(LIB_STATIC) $(LIB_APPS) *.so.* *.so *.o *~ *% *.bak \#* core
 
 distclean:
 		$(RMF) $(LIB_SHARED) $(LIB_SHARED_CYG) $(LIB_SHARED_CYG_AR) $(LIB_STATIC) $(LIB_APPS) *.o *.so.* *~ *% *.bak \#* *.orig core Makefile
+
 
 indent:
 		@SRCS=`echo "$(LIB_OBJS) " | sed "s/.o /.c /g"`; \
@@ -211,5 +251,5 @@ $(LIB_SHARED).$(LIBVER): $(LIB_OBJS) $(LIB_INCS)
 install:	install.lib install.bin
 
 
-uninstall:	uninstall.lib
+uninstall:	uninstall.lib uninstall.bin
 

@@ -227,9 +227,51 @@ install.inc:
 install.apps: install.lib
 		@(cd apps; make install || exit 1)
 
-uninstall.bin:
+# uninstallation targets : 
+#
+STATIC_LIB_FILES=$(LIBDIR)/$(LIB_STATIC)
+DYN_LIB_FILES=$(LIBDIR)/$(LIB_SHARED).$(LIBVERMAJOR) $(LIBDIR)/$(LIB_SHARED) $(LIBDIR)/$(LIB_SHARED).$(LIBVER)
+CYGWIN_LIB_FILES=$(AFTER_BIN_DIR)/$(LIB_SHARED_CYG) $(LIBDIR)/$(LIB_SHARED_CYG) $(LIBDIR)/$(LIB_SHARED_CYG_AR)
 
-uninstall.lib:
+uninstall.static:
+		@for i in $(STATIC_LIB_FILES); do \
+			if [ -f $$i ] ; then echo $(RMF) $$i; $(RMF) $$i; fi; \
+		done
+
+uninstall.dyn:
+		@for i in $(DYN_LIB_FILES); do \
+			if [ -f $$i ] ; then echo $(RMF) $$i; $(RMF) $$i; fi; \
+		done
+		
+uninstall.cyg:
+		@for i in $(CYGWIN_LIB_FILES); do \
+			if [ -f $$i ] ; then echo $(RMF) $$i; $(RMF) $$i; fi; \
+		done
+
+
+uninstall.inc:
+		@if [ -f $(AFTER_BIN_DIR)\$(CONFIG_SCRIPT) ] ; then \
+			echo "$(RMF) $(AFTER_BIN_DIR)\$(CONFIG_SCRIPT)"; \
+            $(RMF) $(AFTER_BIN_DIR)\$(CONFIG_SCRIPT); \
+         fi; \
+         if [ -d $(AFTER_INC_DIR) ]; then \
+		    echo "$(RMF) $(AFTER_INC_DIR)/*"; \
+		    $(RMF) $(AFTER_INC_DIR)/*; \
+		 fi; \
+		 if [ -d $(INCLUDEDIR)/$(LIB_DIR_NAME) ]; then \
+		    echo "$(RMF) $(INCLUDEDIR)/$(LIB_DIR_NAME)"; \
+		    $(RMF) $(INCLUDEDIR)/$(LIB_DIR_NAME); \
+		 fi
+
+uninstall.bin:
+		@for i in $(LIB_APPS); do \
+			if [ -f $(AFTER_BIN_DIR)\$$i ] ; then echo $(RMF) $(AFTER_BIN_DIR)\$$i; $(RMF) $(AFTER_BIN_DIR)\$$i; fi; \
+		done
+
+uninstall.apps:
+		@(cd apps; make uninstall || exit 1)
+
+uninstall.lib:		@LIBUNINSTALL@ uninstall.inc uninstall.apps
 
 uninstall.man:
 

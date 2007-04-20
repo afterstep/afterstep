@@ -63,7 +63,10 @@ install.man:
 		done
 
 uninstall.bin:
-		$(RMF) $(AFTER_BIN_DIR)/$(PROGS)
+		@for p in $(PROGS); do \
+			echo "$(RMF) $(BIN_DIR)/$$p"; \
+			$(RMF) $(BIN_DIR)/$$p; \
+		done
 
 uninstall.man:
 		$(RMF) $(AFTER_MAN_DIR)/$(PROGS).1x

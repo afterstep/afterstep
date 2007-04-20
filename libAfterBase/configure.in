@@ -208,6 +208,7 @@ AC_CHECK_FUNCS(uname gethostname)
 if test "x$enable_staticlibs" = "xyes"; then
    LIBPROG='$(LIB_STATIC)'
    LIBINSTALL="install.static"
+   LIBUNINSTALL="uninstall.static"
 else
    enable_sharedlibs="yes"
 fi
@@ -221,6 +222,7 @@ if test "x$enable_sharedlibs" = "xyes"; then
 	fi
    	LIBPROG="$LIBPROG $tmp"
    	LIBINSTALL="$LIBINSTALL $tmp2"
+    LIBUNINSTALL="uninstall.static un$tmp2"
 fi
 
 dnl# define X_LOCALE.  need Linux, NetBSD and etc.
@@ -256,6 +258,7 @@ AC_SUBST(x_libs)
 AC_SUBST(X_CFLAGS)
 AC_SUBST(LIBPROG)
 AC_SUBST(LIBINSTALL)
+AC_SUBST(LIBUNINSTALL)
 AC_SUBST(DEFINE_XLOCALE)
 AC_SUBST(PERL)
 
