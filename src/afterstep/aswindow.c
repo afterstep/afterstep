@@ -1038,6 +1038,58 @@ update_visibility( int desk )
 }
 #endif
 
+static int
+get_sorted_layers_vector( ASVector **layers ) 
+{
+	if( *layers == NULL ) 
+        *layers = create_asvector( sizeof(ASLayer*) );
+    if( Scr.Windows->layers->items_num > (*layers)->allocated )
+        realloc_vector( *layers, Scr.Windows->layers->items_num );
+
+	return sort_hash_items (Scr.Windows->layers, NULL, (void**)VECTOR_HEAD_RAW(**layers), 0);	
+}
+
+ASWindow*
+find_topmost_client( int desk, int root_x, int root_y )
+{
+    static ASVector *layers = NULL ;
+	int layers_in, i ;
+    ASLayer **l ;
+
+    if( !IsValidDesk(desk) )
+    {
+        if( layers )
+            destroy_asvector( &layers );
+        return NULL;
+    }
+
+    if( Scr.Windows->clients->count > 0 && 
+	    (layers_in = get_sorted_layers_vector( &layers )) > 0 )
+	{
+    	l = PVECTOR_HEAD(ASLayer*,layers);
+    	for( i = 0 ; i < layers_in ; i++ )
+    	{
+        	register int k, end_k = PVECTOR_USED(l[i]->members) ;
+        	ASWindow **members = PVECTOR_HEAD(ASWindow*,l[i]->members);
+        	LOCAL_DEBUG_OUT( "layer[%d] = %d, end_k = %d", i, l[i]->layer, end_k );
+        	for( k = 0 ; k < end_k ; k++ )
+        	{
+            	register ASWindow *asw = members[k] ;
+/*				LOCAL_DEBUG_OUT( "asw = %p, asw->desk = %d, desk = %d", asw, ASWIN_DESK(asw), desk ); 
+	*/			if( ASWIN_DESK(asw) == desk && !ASWIN_GET_FLAGS(asw, AS_Dead) )
+				{
+					register ASCanvas *fc = asw->frame_canvas;  
+					if( fc->root_x <= root_x && fc->root_y <= root_y && 
+						fc->root_x + fc->width + fc->bw*2 > root_x && 
+						fc->root_y + fc->height + fc->bw*2 > root_y ) 
+                    	return asw;
+				}
+        	}
+    	}
+	}
+	return NULL ; 
+}
+
 void
 restack_window_list( int desk, Bool send_msg_only )
 {
@@ -1060,10 +1112,8 @@ restack_window_list( int desk, Bool send_msg_only )
     if( Scr.Windows->clients->count == 0)
         return;
 
-    if( layers == NULL )
-        layers = create_asvector( sizeof(ASLayer*) );
-    if( Scr.Windows->layers->items_num > layers->allocated )
-        realloc_vector( layers, Scr.Windows->layers->items_num );
+    if( (layers_in = get_sorted_layers_vector( &layers )) == 0 )
+        return ;
 
     if( ids == NULL )
         ids = create_asvector( sizeof(Window) );
@@ -1071,9 +1121,6 @@ restack_window_list( int desk, Bool send_msg_only )
         flush_vector( ids );
     if( Scr.Windows->clients->count+1 > ids->allocated )
         realloc_vector( ids, Scr.Windows->clients->count+1 );
-
-    if( (layers_in = sort_hash_items (Scr.Windows->layers, NULL, (void**)VECTOR_HEAD_RAW(*layers), 0)) == 0 )
-        return ;
 
     l = PVECTOR_HEAD(ASLayer*,layers);
     windows = PVECTOR_HEAD(Window,ids);

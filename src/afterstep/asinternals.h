@@ -417,6 +417,7 @@ void remove_aswindow_from_layer( ASWindow *asw, int layer );
 Bool enlist_aswindow( ASWindow *t );
 void delist_aswindow( ASWindow *t );
 void save_aswindow_list( ASWindowList *list, char *file );
+ASWindow* find_topmost_client( int desk, int root_x, int root_y );
 void restack_window_list( int desk, Bool send_msg_only );
 Bool is_window_obscured (ASWindow * above, ASWindow * below);
 void restack_window( ASWindow *t, Window sibling_window, int stack_mode );

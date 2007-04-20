@@ -338,19 +338,62 @@ DigestEvent( ASEvent *event )
 {
     register int i ;
     setup_asevent_from_xevent( event );
+    event->client = NULL;
+    SHOW_EVENT_TRACE(event);
     /* in housekeeping mode we handle pointer events only as applied to root window ! */
     if( Scr.moveresize_in_progress && (event->eclass & ASE_POINTER_EVENTS) != 0)
     {
 	    event->context = C_ROOT ;
     	event->widget = Scr.RootCanvas ;
-        event->client = NULL;
         /* we have to do this at all times !!!! */
         if( event->x.type == ButtonRelease && Scr.Windows->pressed )
             release_pressure();
     }else
 	{
-		if( event->w == Scr.Root || 
-			event->w == Scr.ServiceWin ||
+	    XButtonEvent *xbtn = &(event->x.xbutton);
+
+		if( event->w == Scr.Root )
+		{
+			event->context = C_ROOT ;
+#ifndef NO_VIRTUAL
+			if((event->eclass & ASE_MousePressEvent) != 0 && xbtn->subwindow != None )
+			{
+				LOCAL_DEBUG_OUT( "subwindow = %lX", event->x.xbutton.subwindow );
+	    		for( i = 0 ; i < PAN_FRAME_SIDES ; i++ )
+	    		{
+	        		LOCAL_DEBUG_OUT("checking panframe %d, mapped %d", i, Scr.PanFrame[i].isMapped );
+	        		if( Scr.PanFrame[i].isMapped && xbtn->subwindow == Scr.PanFrame[i].win)
+        			{/* we should try and pass through this click onto any client that 
+						maybe under the pan frames */
+						LOCAL_DEBUG_OUT( "looking for client at %+d%+d", xbtn->x_root, xbtn->y_root ); 
+						if( (event->client = find_topmost_client( Scr.CurrentDesk, xbtn->x_root, xbtn->y_root )) != NULL )
+						{
+					    	LOCAL_DEBUG_OUT("underlying new client %p", event->client );
+							ASCanvas *cc = event->client->client_canvas ; 
+							if( cc && cc->root_x <= xbtn->x_root && cc->root_y <= xbtn->y_root &&
+								cc->root_x+cc->width > xbtn->x_root && cc->root_y+cc->height > xbtn->y_root )
+							{
+								event->w = xbtn->window = event->client->w ; 
+								xbtn->subwindow = None ; 
+						        XSendEvent (dpy, event->client->w, False, 
+											(xbtn->type == ButtonPress)?ButtonPressMask:ButtonReleaseMask, &(event->x));
+								xbtn->subwindow = event->client->w ; 
+								xbtn->window = Scr.Root ;
+								/* xbtn->window should still be Root, so we can proxy it down to the app */
+							}else
+							{
+								event->w = xbtn->window = event->client->frame ; 
+								xbtn->subwindow = None ;
+							}
+					    	LOCAL_DEBUG_OUT("new event window %lX", event->w );
+							event->context = C_NO_CONTEXT ;						
+						}
+						break;
+					}
+				}
+			}
+#endif
+		}else if( event->w == Scr.ServiceWin ||
 			event->w == Scr.SizeWindow )
 		{
 	    	event->context = C_ROOT ; 
@@ -361,7 +404,7 @@ DigestEvent( ASEvent *event )
 		{	
     		event->widget = Scr.RootCanvas ;
 			event->client = NULL ;
-		}else
+		}else if(event->client == NULL )
 		{
 			if( (event->eclass & ASE_POINTER_EVENTS) != 0 && is_balloon_click( &(event->x) ) != NULL  )
 			{	
