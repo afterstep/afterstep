@@ -1895,7 +1895,7 @@ change_aswindow_layer( ASWindow *asw, int layer )
 {
     if( AS_ASSERT(asw) )
         return;
-    if( ASWIN_LAYER(asw) != layer )
+    if( asw->transient_owner != NULL && ASWIN_LAYER(asw) != layer )
     {
         remove_aswindow_from_layer( asw, ASWIN_LAYER(asw));
 LOCAL_DEBUG_OUT( "changing window's layer to %d", layer );
