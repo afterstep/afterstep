@@ -13,15 +13,15 @@ AC_CONFIG_HEADER(config.h:autoconf/config.h.in)
 
 version=$PACKAGE_VERSION
 app_version=$PACKAGE_VERSION
-libafterstep_version="1.10"
+libafterstep_version="1.11"
 libafterstep_version_major="1"
 libafterstep_name="LIBAFTERSTEP"
 libafterstep_file_name="libAfterStep"
-libafterconf_version="1.10"
+libafterconf_version="1.11"
 libafterconf_version_major="1"
 libafterconf_name="LIBAFTERCONF"
 libafterconf_file_name="libAfterConf"
-libasgtk_version="1.03"
+libasgtk_version="1.04"
 libasgtk_version_major="1"
 libasgtk_name="LIBASGTK"
 libasgtk_file_name="libASGTK"
