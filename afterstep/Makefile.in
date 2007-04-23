@@ -22,11 +22,15 @@ CONFIG_FILE_LIST= CREDITS animate autoexec banner base database pager \
 nothing:
 		@echo ""
 
-install.data_reinstall:
+remove_old:
+		@if( [ -d $(AFTER_SHAREDIR)_old ]; then \
+			echo $(RMF) -r $(AFTER_SHAREDIR)_old; \
+			$(RMF) -r $(AFTER_SHAREDIR)_old; \
+		fi
+
+install.data_reinstall:		remove_old
 	@$(RMF) no_data_reinstall ; \
 	if [ -d $(AFTER_SHAREDIR) ] ; then \
-	   echo $(RMF) -r $(AFTER_SHAREDIR)_old; \
-	   $(RMF) -r $(AFTER_SHAREDIR)_old; \
 	   echo $(MV) $(AFTER_SHAREDIR) $(AFTER_SHAREDIR)_old; \
 	   $(MV) $(AFTER_SHAREDIR) $(AFTER_SHAREDIR)_old; \
 	   if [ -d $(AFTER_SHAREDIR)_old/desktop -a -d $(AFTER_SHAREDIR)_old/desktop/tiles  ] ; then \
@@ -182,6 +186,12 @@ install.man:
 
 
 install: install.data_reinstall install.data install.config install.menu install.clean_trash
+
+uninstall:		remove_old
+		@if [ -d $(AFTER_SHAREDIR) ]; then
+			echo $(RMF) -r $(AFTER_SHAREDIR); \
+			$(RMF) -r $(AFTER_SHAREDIR); \
+		fi
 
 module.clean: 
 	$(RMF) no_data_reinstall

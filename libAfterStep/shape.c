@@ -417,25 +417,39 @@ apply_shape_to_window( struct ASVector *shape, Window w )
 void
 subtract_rectangle_from_list( ASVector *list, int left, int top, int right, int bottom )
 {
-    register int i = PVECTOR_USED(list);
+	int i = PVECTOR_USED(list);
     XRectangle *rects = PVECTOR_HEAD(XRectangle,list);
     XRectangle tmp ;
     /* must trace in reverse order ! */
+	LOCAL_DEBUG_CALLER_OUT( "rect - (%d,%d)-(%d,%d)", left, top, right, bottom );
+
     while( --i >= 0 )
     {
         int r_left = rects[i].x, r_right = rects[i].x+(int)rects[i].width ;
         int r_top = rects[i].y, r_bottom = rects[i].y+(int)rects[i].height ;
         Bool disected = False ;
-        /* we can build at most 4 rectangles from each substraction : */
+		
+		LOCAL_DEBUG_OUT( "rect[%d] - (%d,%d)-(%d,%d)", i, r_left, r_top, r_right, r_bottom );
+
+		/* first we check if entire rectangle is overlapped, in which case - we simply delete it ! */
+		if( top <= r_top && bottom >= r_bottom && left <= r_left && right >= r_right ) 
+		{
+			vector_remove_index( list, i );
+	        rects = PVECTOR_HEAD(XRectangle,list); /* memory may have gotten reallocated */
+			continue;
+		}
+			 
+        /* otherwise we can build at most 4 rectangles from each substraction : */
         if( top < r_bottom && bottom > r_top )
         {   /* we may need to create 2 vertical rectangles ( left and right ) :*/
             /* left rectangle : */
             tmp.y = r_top ;
             tmp.height = r_bottom - r_top ;
-             if( left > r_left && left < r_right )
+            if( left > r_left && left < r_right )
             {
                 rects[i].x = r_left ;
                 rects[i].width = left - r_left ;
+				LOCAL_DEBUG_OUT( "adjusted rect[%d] - (%d,%d)-(%d,%d)", i, r_left, r_top, left, r_bottom );
                 /* y and height remain unchanged ! */
                 disected = True ;
             }
@@ -448,10 +462,12 @@ subtract_rectangle_from_list( ASVector *list, int left, int top, int right, int 
                 {
                     append_vector( list, &tmp, 1 );
                     rects = PVECTOR_HEAD(XRectangle,list); /* memory may have gotten reallocated */
+					LOCAL_DEBUG_OUT( "added rect - (%d,%d)-(%d,%d)",  tmp.x, tmp.y, tmp.x+tmp.width, tmp.y+tmp.height );
                 }else
                 {
                     rects[i] = tmp ;
                     disected = True ;
+					LOCAL_DEBUG_OUT( "adjusted rect[%d] - (%d,%d)-(%d,%d)", i, tmp.x, tmp.y, tmp.x+tmp.width, tmp.y+tmp.height );
                 }
             }
         }
@@ -468,10 +484,12 @@ subtract_rectangle_from_list( ASVector *list, int left, int top, int right, int 
                 {
                     append_vector( list, &tmp, 1 );
                     rects = PVECTOR_HEAD(XRectangle,list); /* memory may have gotten reallocated */
+					LOCAL_DEBUG_OUT( "added rect - (%d,%d)-(%d,%d)",  tmp.x, tmp.y, tmp.x+tmp.width, tmp.y+tmp.height );
                 }else
                 {
                     rects[i] = tmp ;
                     disected = True ;
+					LOCAL_DEBUG_OUT( "adjusted rect[%d] - (%d,%d)-(%d,%d)", i, tmp.x, tmp.y, tmp.x+tmp.width, tmp.y+tmp.height );
                 }
             }
             /* bottom rectangle */
@@ -483,10 +501,12 @@ subtract_rectangle_from_list( ASVector *list, int left, int top, int right, int 
                 {
                     append_vector( list, &tmp, 1 );
                     rects = PVECTOR_HEAD(XRectangle,list); /* memory may have gotten reallocated */
+					LOCAL_DEBUG_OUT( "added rect - (%d,%d)-(%d,%d)",  tmp.x, tmp.y, tmp.x+tmp.width, tmp.y+tmp.height );
                 }else
                 {
                     rects[i] = tmp ;
                     disected = True ;
+					LOCAL_DEBUG_OUT( "adjusted rect[%d] - (%d,%d)-(%d,%d)", i, tmp.x, tmp.y, tmp.x+tmp.width, tmp.y+tmp.height );
                 }
             }
         }
