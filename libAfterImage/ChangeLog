@@ -1,6 +1,46 @@
 
+2007-04-23  sasha
+
+	* AfterStep release v. 2.2.5
+
+2007-04-20  sasha
+
+	* implemented proper support for window groups where group leader
+	  is an unmapped unmanaged window; Added support for window groups
+	  to move all windows in the group to a proper desktop at the same
+	  time; Added support for restacking window groups so that when
+	  group leader is raised/lowered - all the members follow, but not
+	  when one of the members does the same
+
+2007-02-22  sasha
+
+	* if we don't reload menu minipixmap - we need to move it over onto
+	  new image manager
+	* added feature to be able to query filetype and only reload menu
+	  minipixmap if it is ASXML script
+
+2007-02-20  sasha
+
+	*  added functionality to export ASIUmage into mask MS DIB data,
+	  contributed by Valeriy Onuchin of the ROOT project
+	* implemented fast thumbnailing for SVG images
+	* work in progress
+
+2007-02-16  sasha
+
+	* different check for k!=0 added to clip_line()
+	* check for k!=0 added to clip_line() and small change for
+	  compilation on Apple
+
+2007-02-14  sasha
+
+	* implemented fast thumbnails loading for jpeg images; added
+	  width/height args to the <img> tag; changed all the picture
+	  minipixmaps accordingly and got rid of redundand .mini jpeg files
+
 2006-11-17  sasha
 
+	* Updated ChangeLog for 2.2.4 release
 	* AfterStep release v 2.2.4
 
 2006-11-09  sasha

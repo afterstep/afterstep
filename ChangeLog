@@ -1,6 +1,463 @@
 
+2007-04-23  sasha
+
+	* AfterStep release v. 2.2.5
+	* fixed bug in free rectangles list compilation where we failed to
+	  remove rectangles completely overlapped by the window
+
+2007-04-20  sasha
+
+	* implemented proper support for window groups where group leader
+	  is an unmapped unmanaged window; Added support for window groups
+	  to move all windows in the group to a proper desktop at the same
+	  time; Added support for restacking window groups so that when
+	  group leader is raised/lowered - all the members follow, but not
+	  when one of the members does the same
+	* implemented support for transient windows to follow the desktop
+	  of it's parent window
+	* implemented proper handling of stacking order for windows with
+	  open dialog boxes - transients. May exhibit unusual behaviour on
+	  clients that abuse transients
+	* stopped AfterStep from popping up a menu whenever clicked on one
+	  of the pan frames
+
+2007-04-19  sasha
+
+	* fixed Pager when it is started not for the first desk
+
+2007-04-17  sasha
+
+	* fixed wharf to properly resize any swallowed window that does not
+	  have User size set and is not a WMDockApp
+
+2007-04-13  sasha
+
+	* fixed AutoRaise for windows that got unshaded; Reduced flickering
+	  of shaped windows while being resized by adding extra shape
+	  rectangles to cover affected areas
+	* performance optimization by removing triggering of useless
+	  ConfigureNotify events for frame subwindows
+	* fixed handling of ImageMagick's configure requests by adding
+	  check for window actually being client's main window - it was
+	  trying to reconfigure it's icon window
+
+2007-04-12  sasha
+
+	* Fixed parsing of ShowHints in Wharf
+	* problem of windows launched from menu seems to have gone away on
+	  its own
+	* debugged window move-resizing to properly account for window
+	  increment while resizing and avoid window jumping
+
+2007-04-11  sasha
+
+	* fixed compile bug - missing second arg to focus_aswindow in
+	  pager.c
+
+2007-04-10  sasha
+
+	* added some intelligence to NoCollideSpacing in WinList - to not
+	  have empty spaces between edges of the screen and WinList
+	* fixed direction of the wharf withdrawing - it withdraws to the
+	  closer corner. If pressed on right half - to the right, left half
+	  - to the left
+	* fixed placement bug forcing windows to be no more then phisical
+	  screen's size
+	* fixed AutoRaise functionality to not re-raise the window after it
+	  was forced into background by clicking on the titlebar
+
+2007-04-09  sasha
+
+	* fixed bug crashing WinList when WinListNoCollideSpacing is set.
+	  Added samples for new options to wharf and winlist configs
+	* implemented configurable balloons in Wharf. By default all three
+	  - name, comment and Exec will be shown
+
+2007-04-06  sasha
+
+	* one more fix for database matching order; Unavailable items don't
+	  make it into Wharf no more; started coding for customizable
+	  balloons in wharf
+
+2007-04-04  sasha
+
+	* added experimental balloon formating to include both title and
+	  the comment to Wharf
+	* fixed stupid bug introduced while fixing handling of default
+	  database style, causing thick border and other crap happening
+
+2007-04-03  sasha
+
+	* fixed problem reported by born2late where default database style
+	  would overwrite all other styles
+	* fixes in database and wharf to get MidnightCommander with
+	  vertical title
+	* added check to delayed AddWindow to make sure we have not already
+	  enlisted the window
+
+2007-04-02  sasha
+
+	* added delay before MapRequest is handled to give apps some time
+	  to finish updating their properties
+	* fixed the ordering of database Styles to be always in sequence;
+	  Fixed code for properly overriding flags in subsequent styles
+
+2007-04-02  speedy
+
+	* images looked like viewports, now are desktops.
+
+2007-04-01  speedy
+
+	* added a menu space for clarity.
+	* updated menu Custom WinList, WhaRF, Pager icon setup.
+
+2007-03-30  speedy
+
+	* updated and added icons for Menu custom wharf, winlist, pager.
+
+2007-03-30  sasha
+
+	* IMplemented config options for WinList NoCollides, AllowCollides
+	  and NoCollidesSpacing
+
+2007-03-29  speedy
+
+	* added icons for Modules/Custom Wharf
+
+2007-03-29  sasha
+
+	* Changed WinList to get info about its frame geometry from X, not
+	  from AS as that is more up-to-date
+
+2007-03-28  sasha
+
+	* Fixed support in WinList for South/East gravity, enabling it only
+	  after the window is mapped
+
+2007-03-27  sasha
+
+	* Implemented support for --max-cols/rows in WinList cmdl args;
+	  Fixed align of the icons when align of the text is not
+	  explicitely stated in config and is taken for tbar props;
+	  Implemented support for East/South gravity in collision avoidance
+	  in WinList; Added menu to Modules menu to start different
+	  configurations of WinList
+
+2007-03-26  sasha
+
+	* fixed custom Wharf modules menu; Changed configure script to
+	  disable postcard sending by default and change wording of the
+	  privacy notice;
+	* fixed geometry string compilation for East and SouthEast
+	  gravities to put proper sign
+
+2007-03-19  sasha
+
+	* added delay before AvoidCover gets enforced to allow apps
+	  (WinList ) to adjust it's position and size before forcing them
+	  into it
+
+2007-03-16  sasha
+
+	* added better calculations of minimum size of WinList while
+	  avoiding collisions
+
+2007-03-15  sasha
+
+	* added menu for custom Wharf layouts; fixed segfault when one of
+	  the menu files is unreadable; fixed deadlock in waiting for
+	  winlist
+
+2007-03-14  sasha
+
+	* better distribution of sending syntetic ConfigureNotifies
+	* hopefully fixed WinList collision detection algorithm to disallow
+	  using rectangloes that are too small
+	* fixed handling of --rows and --cols by Pager and Wharf and added
+	  a submenu to Modules for starting different configurations of
+	  Pager
+	* put back syntetic configureNotify sending whever we move/resize
+	  the window
+
+2007-03-09  sasha
+
+	* added handling of border width set through the database for
+	  WinList
+	* we do not want to map WinList untill we receive the complete list
+	  of windows
+	* fixed redrawing issue with WinList where canvas size does not
+	  change
+
+2007-03-08  sasha
+
+	* fixed handling of AvoidCover and SkipWinList windows in WinList's
+	  collision avoidance code
+	* Added support for sticky windows and windows on other viewports,
+	  and excluded shaded windows from winlist collision algorithm
+	* added code to WinList to run away from windows occupying it's
+	  space - experimental DO NOT USE IN PRODUCTION YET
+	* added asgtklookedit to Makefiles
+
+2007-03-06  sasha
+
+	* Mystyle editor functionality fleshing out
+
+2007-03-05  sasha
+
+	* put some functionality behind mystyle editor design
+
+2007-03-02  sasha
+
+	* mystyle_editor changes
+	* Fixed LabelBelowDesk behaviour
+
+2007-03-02  born2late
+
+	* smaler design improvement #1
+
+2007-03-02  sasha
+
+	* implemented yet another mystyle editor interface using glade
+
+2007-02-27  speedy
+
+	* added logo-ed icons for image menu folders.
+
+2007-02-27  sasha
+
+	* Fixed LabelBelowDesk behaviour
+
+2007-02-27  speedy
+
+	* added AfterStep_Images/.include.in
+	* combined folders to shorten menu.
+
+2007-02-27  sasha
+
+	* updated configure to reflect addition of the .include files to
+	  start menu for Backgrounds
+
+2007-02-27  speedy
+
+	* updated configure.in for User_Backgrounds, reverted configure
+	  back.
+	* added User_Background .include.in for proper build.
+
+2007-02-26  speedy
+
+	* updated paths to include gentoo backgrounds too.
+	* created some folder circular logic.  Will add folders back
+	  as-needed.
+	* updated Pictures submenus for better viewing.
+	* added a new icon for chatting and comms.
+
+2007-02-24  speedy
+
+	* added path for Fedora's gnome images, /usr/share/backgrounds/
+	* added Folder icons for CategoryTree.
+
+2007-02-23  sasha
+
+	* Fixed LabelBelowDesk behaviour
+	* switched background of gtk windows to Base instead of BaseLight
+	  as it was making text ineligible
+	* fixed drawing of root minipixmap in Pager when NoDeskLabel is
+	  used and Style is not set
+
+2007-02-22  speedy
+
+	* added folder icon for "Viewers".
+
+2007-02-22  sasha
+
+	* if we don't reload menu minipixmap - we need to move it over onto
+	  new image manager
+
+2007-02-22  born2late
+
+	* last typo correction
+
+2007-02-22  sasha
+
+	* added feature to be able to query filetype and only reload menu
+	  minipixmap if it is ASXML script
+
+2007-02-22  born2late
+
+	* dialogue almost finished - still need to figure out howto
+	  correctly hide/display widgets
+
+2007-02-22  speedy
+
+	* Eliminated stella desktop entry; Stella-stable now includes its
+	  own.
+
+2007-02-21  sasha
+
+	* fixed Wharf so that swallowed apps will obey AlignContents when
+	  button is smaller then the app
+	* fixed AfterStep to obey DisableKDEGlobalsTheming flag in Base
+	  config
+
+2007-02-21  born2late
+
+	* again an improved version, all switches should be in later today
+	  or tomorrow
+
+2007-02-20  sasha
+
+	*  added functionality to export ASIUmage into mask MS DIB data,
+	  contributed by Valeriy Onuchin of the ROOT project
+	* implemented fast thumbnailing for SVG images
+	* work in progress
+
+2007-02-19  born2late
+
+	* only thing missing : back-(multi)gradient/pixmap interface part -
+	  still waiting for sasha to comment on it...
+
+2007-02-16  born2late
+
+	* minor typo - hopefully enough for today :)
+	* found that one missing - filled with mail comment from sasha
+	* initial commit for design cooperation regarding gui tools with
+	  sasha vasko
+
+2007-02-16  speedy
+
+	* updated wiki link to wiki.afterstep.org/
+
+2007-02-16  sasha
+
+	* different check for k!=0 added to clip_line()
+	* check for k!=0 added to clip_line() and small change for
+	  compilation on Apple
+
+2007-02-16  speedy
+
+	* put web browsers as last look for winlist icons.
+
+2007-02-14  sasha
+
+	* implemented fast thumbnails loading for jpeg images; added
+	  width/height args to the <img> tag; changed all the picture
+	  minipixmaps accordingly and got rid of redundand .mini jpeg files
+	* minor tweaks to desktop change animations for more pleasing
+	  effects
+
+2007-02-13  sasha
+
+	*  fixed handling of NoIcon in the database file
+
+2007-02-09  born2late
+
+	* further doc img updates
+
+2007-02-08  born2late
+
+	* missing whitespace
+	* drunken doc commit
+
+2007-01-19  born2late
+
+	* updated images for docs... html still to follow
+
+2007-01-16  sasha
+
+	* fixed Screen Edge attraction for bottom and Right sides of the
+	  screen. Thanks Kobaz.
+
+2007-01-10  sasha
+
+	* completed layout for MyStyle editor, except for BackGradient part
+
+2007-01-05  sasha
+
+	* [no log message]
+
+2007-01-04  sasha
+
+	* added several controls for MyStyle editing to the Look Editor
+	  widget
+
+2007-01-04  born2late
+
+	* more actual screenshot of afterstep, lots to fix in docs to make
+	  it usefull...
+
+2007-01-02  sasha
+
+	* added some more macros to simplify working with scrolled windows
+	  and containers (ASGTK)
+
+2006-12-29  sasha
+
+	* minor development in ASLookEditor
+
+2006-12-29  born2late
+
+	* added a more functional version of ascp gtk branch... waiting for
+	  sasha s comments as usual
+
+2006-12-18  sasha
+
+	* completed implementation of DesktopEntry AfterStep builtin - to
+	  be used primarily in Wharf
+
+2006-12-12  sasha
+
+	* added ability to Ident to spill the data into stdout
+	* Completed implementation of support for DesktopEntry in Wharf -
+	  it uses localized comments and Names now
+
+2006-12-08  sasha
+
+	* completed implementing CategoryTree in Wharf - TODO : implement
+	  proper localized titles and comments
+
+2006-12-01  sasha
+
+	* preliminary implementation of Category keyword  in Wharf - to
+	  include whole Desktop Category of items; added ability to adjust
+	  number of rows/columns if there are too many buttons in Wharf
+	  folder
+	* Wharf changes to support Category as a button function
+
+2006-11-27  sasha
+
+	* fixed Move function handling to always move relative to desktop
+	  origin - taking into consideration window's current viewport if
+	  its not sticky
+
+2006-11-24  speedy
+
+	* added IndexName to legacy entries to show WinList items, database
+	  updates.
+
+2006-11-22  sasha
+
+	* more development in look editor
+
+2006-11-21  sasha
+
+	* tuned algorithm for choosing icon for a client window to try and
+	  match window's name to desktop entry prior to deciding to use
+	  database entry
+
+2006-11-21  speedy
+
+	* added database entries for terminal-based app icons, new Pulse
+	  icon.
+
+2006-11-20  speedy
+
+	* eliminated legacy xmms entry. Most distros include an xmms
+	  .desktop entry.
+
 2006-11-17  sasha
 
+	* fixed segfault when LANG is not set
+	* Updated ChangeLog for 2.2.4 release
 	* AfterStep release v 2.2.4
 	* minor development in ASLookEditor
 
