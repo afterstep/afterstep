@@ -121,8 +121,8 @@ Style	"*.kss"			NoTitle, NoHandles, Layer 10, FullScreen
 
 # gnome panel ( contributed by Greg Norris <haphazard at kc dot rr dot com> ):
 Style   "gnome-panel"		NoTitle, Sticky, StaysOnTop, WindowListSkip, AvoidCover, NoHandles
-Style   "Top Panel"		DefaultGeometry +0+35
-Style   "Bottom Panel"		DefaultGeometry -0-0
+Style   "Top*Panel"		DefaultGeometry +0+0, Layer 3
+Style   "Bottom*Panel"		DefaultGeometry +0-0
 
 # Some other apps
 Style	"alarmd"		AvoidCover, NoTitle, NoHandles, WindowListSkip, CirculateSkip, Layer 0, Sticky
