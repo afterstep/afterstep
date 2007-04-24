@@ -23,7 +23,7 @@ nothing:
 		@echo ""
 
 remove_old:
-		@if( [ -d $(AFTER_SHAREDIR)_old ]; then \
+		@if [ -d $(AFTER_SHAREDIR)_old ] ; then \
 			echo $(RMF) -r $(AFTER_SHAREDIR)_old; \
 			$(RMF) -r $(AFTER_SHAREDIR)_old; \
 		fi
