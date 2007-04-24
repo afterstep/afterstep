@@ -490,6 +490,15 @@ publish_aswindow_list( ASWindowList *list, Bool stacking_only )
 	if( clients_num == 0 ) 
 		return;
 
+	/* we maybe called from Destroy, in which case one of the clients may be 
+	   delisted from main list, while still present in it's owner's transients list
+	   which is why we use +1 - This was happening for some clients who'd have 
+	   recursive transients ( transient of a transient of a transient ) 
+	   Since we added check to unroll that sequence in tie_aswindow - problem had gone away, 
+	   but lets keep on adding 1 just in case.
+	 */
+	clients_num += 1;
+	
 	client_list = safecalloc( clients_num, sizeof(Window));
 	if( !stacking_only ) 
 	{
@@ -530,9 +539,13 @@ publish_aswindow_list( ASWindowList *list, Bool stacking_only )
 						int tcurr ;
 						for( tcurr = 0 ; tcurr < tnum ; ++tcurr )
 					        if( !ASWIN_GET_FLAGS(t_list[tcurr], AS_Dead) )
+							{
+								LOCAL_DEBUG_OUT( "#%d: adding transient %lx", used-1, t_list[tcurr]->w );
 				            	client_list[--used] = t_list[tcurr]->w;
+							}
 					}
 				}
+				LOCAL_DEBUG_OUT( "#%d: adding client %lx", used-1, asw->w );
             	client_list[--used] = asw->w;
 			}
         }
@@ -840,6 +853,19 @@ find_group_lead_aswindow( Window id )
 			LIST_GOTO_NEXT(curr);	
 		}	 
 	}
+	if( gl )
+	{
+		while( gl->group_lead != NULL ) 
+		{
+			if( ASWIN_GET_FLAGS(gl->group_lead, AS_Dead) )
+			{
+    		    if( gl->group_lead->group_members )
+	        	    vector_remove_elem( gl->group_lead->group_members, &gl );
+				gl->group_lead = NULL ; 
+			}else
+				gl = gl->group_lead;
+		}
+	}
 	return gl;
 }
 
@@ -859,7 +885,20 @@ tie_aswindow( ASWindow *t )
     {
         ASWindow *transient_owner  = window2ASWindow(t->hints->transient_for);
         if( transient_owner != NULL )
-        {
+        {/* we want to find the topmost window */
+   			while( transient_owner->transient_owner != NULL ) 
+			{
+				if( ASWIN_GET_FLAGS(transient_owner->transient_owner, AS_Dead) )
+				{
+					ASWindow *t = transient_owner ;
+			        if( t->transient_owner->transients != NULL )
+            			vector_remove_elem( t->transient_owner->transients, &t );
+					t->transient_owner = NULL ; 
+					add_aswindow_to_layer( t, ASWIN_LAYER(t) );				
+				}else
+					transient_owner = transient_owner->transient_owner ;
+			}
+				
             t->transient_owner = transient_owner ;
             if( transient_owner->transients == NULL )
                 transient_owner->transients = create_asvector( sizeof( ASWindow* ) );
@@ -921,7 +960,7 @@ untie_aswindow( ASWindow *t )
 void
 add_aswindow_to_layer( ASWindow *asw, int layer )
 {
-    if( !AS_ASSERT(asw) )
+    if( !AS_ASSERT(asw) && asw->transient_owner == NULL )
     {
         ASLayer  *dst_layer = get_aslayer( layer, Scr.Windows );
         /* inserting window into the top of the new layer */
@@ -1220,8 +1259,8 @@ restack_window_list( int desk, Bool send_msg_only )
         ids = create_asvector( sizeof(Window) );
     else
         flush_vector( ids );
-    if( Scr.Windows->clients->count+1 > ids->allocated )
-        realloc_vector( ids, Scr.Windows->clients->count+1 );
+    if( Scr.Windows->clients->count+2 > ids->allocated )
+        realloc_vector( ids, Scr.Windows->clients->count+2 );
 
     l = PVECTOR_HEAD(ASLayer*,layers);
     LOCAL_DEBUG_OUT( "filling up array with window IDs: layers_in = %ld, Total clients = %d", layers_in, Scr.Windows->clients->count );

@@ -1297,7 +1297,7 @@ set_clients_list (ASWMProps * wmprops, Window *list, int nclients)
 
 		}
 		wmprops->clients_num = nclients ;
-		memcpy( wmprops->client_list, list, nclients );
+		memcpy( wmprops->client_list, list, nclients*sizeof(Window) );
 	}
 }
 
@@ -1315,7 +1315,7 @@ set_stacking_order (ASWMProps * wmprops, Window *list, int nclients)
 
 		}
 		wmprops->clients_num = nclients ;
-		memcpy( wmprops->stacking_order, list, nclients );
+		memcpy( wmprops->stacking_order, list, nclients*sizeof(Window) );
 	}
 }
 
