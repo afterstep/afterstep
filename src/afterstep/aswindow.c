@@ -1193,6 +1193,28 @@ find_topmost_client( int desk, int root_x, int root_y )
 	return NULL ; 
 }
 
+static void 
+stack_transients( ASWindow *asw, ASVector *ids, Bool use_frame_ids ) 
+{
+	int tnum = PVECTOR_USED(asw->transients);
+    LOCAL_DEBUG_OUT( "Client %lX has %d transients", asw->w, tnum );
+	if( tnum > 0 )
+	{/* need to collect all the transients and stick them in front of us in order of creation */
+		ASWindow **sublist = PVECTOR_HEAD(ASWindow*,asw->transients);
+		int curr ;
+		for( curr = 0 ; curr < tnum ; ++curr )
+	        if( !ASWIN_GET_FLAGS(sublist[curr], AS_Dead) )
+			{
+				Window w = use_frame_ids?get_window_frame(sublist[curr]):sublist[curr]->w;
+				if( vector_find_data(ids, &w)  >= PVECTOR_USED(ids) )
+				{
+			    	LOCAL_DEBUG_OUT( "Adding transient%s #%d - %lX", use_frame_ids?"'s frame":"", curr, w );
+					vector_insert_elem(ids, &w, 1, NULL, False);
+				}
+			}
+	}
+}
+
 static void
 stack_layer_windows( ASLayer *layer, ASVector *ids, int desk, Bool use_frame_ids ) 
 {
@@ -1205,25 +1227,23 @@ stack_layer_windows( ASLayer *layer, ASVector *ids, int desk, Bool use_frame_ids
         register ASWindow *asw = members[k] ;
         if( ASWIN_DESK(asw) == desk && !ASWIN_GET_FLAGS(asw, AS_Dead) )
 		{
-			Window w ; 
-			if( !ASWIN_HFLAGS(asw, AS_Transient) && asw->transients )
-			{
-				int tnum = PVECTOR_USED(asw->transients);
-			    LOCAL_DEBUG_OUT( "Client %lX has %d transients", asw->w, tnum );
-				if( tnum > 0 )
-				{/* need to collect all the transients and stick them in front of us in order of creation */
-					ASWindow **t_list = PVECTOR_HEAD(ASWindow*,asw->transients);
-					int tcurr ;
-					for( tcurr = 0 ; tcurr < tnum ; ++tcurr )
-				        if( !ASWIN_GET_FLAGS(t_list[tcurr], AS_Dead) )
-						{
-							w = use_frame_ids?get_window_frame(t_list[tcurr]):t_list[tcurr]->w;
-						    LOCAL_DEBUG_OUT( "Adding transient%s #%d - %lX", use_frame_ids?"'s frame":"", tcurr, w );
-							vector_insert_elem(ids, &w, 1, NULL, False);
-						}
+			Window w  = use_frame_ids?get_window_frame(asw):asw->w; 
+		    LOCAL_DEBUG_OUT( "Group Lead %p", asw->group_lead );
+			if( asw->group_lead ) 
+			{/* transients for any window in the group go on top of non-transients in the group */
+				ASWindow **sublist = PVECTOR_HEAD(ASWindow*,asw->group_lead->group_members);
+				int curr = PVECTOR_USED(asw->group_lead->group_members);
+			    LOCAL_DEBUG_OUT( "Group members %d", curr );
+				if( asw->group_lead->transients && !ASWIN_GET_FLAGS(asw->group_lead, AS_Dead) )
+					stack_transients( asw->group_lead, ids, use_frame_ids );
+				while( --curr >= 0 ) 
+				{/* most recent group member should have their transients above others */
+					if( !ASWIN_GET_FLAGS(sublist[curr], AS_Dead) && sublist[curr]->transients ) 
+						stack_transients( sublist[curr], ids, use_frame_ids );
 				}
-			}
-			w = use_frame_ids?get_window_frame(asw):asw->w;
+			}else if( asw->transients )
+				stack_transients( asw, ids, use_frame_ids );
+
 		    LOCAL_DEBUG_OUT( "Adding client%s - %lX", use_frame_ids?"'s frame":"", w );
 			vector_insert_elem(ids, &w, 1, NULL, False);
 		}
