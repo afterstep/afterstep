@@ -1,0 +1,9 @@
+minipixmap mini/Folder
+keepname
+
+Comment "Propaganda Tiles & Images - Volume 1"
+
+# Fedora, Mandriva
+include "/usr/share/pixmaps/backgrounds/Propaganda-Vol1/" BackgroundForeign
+
+command BackgroundForeign
