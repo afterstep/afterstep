@@ -1103,39 +1103,32 @@ select_client_icon_argb( CARD32 *icon,  int icon_length )
 	{
 		int width = icon[offset] ; 
 		int height = icon[offset+1] ; 
-		if( width*height  <= (icon_length - offset - 2 ) ) 
+		int len = width*height ; 
+		if( len < 0 )
+			break;
+		if( len  <= (icon_length - offset - 2 ) ) 
 			if( width == 48 && height == 48 ) 
 			{
-	   			res = safemalloc( (2+width*height)*sizeof(CARD32));
-				memcpy( res, &(icon[offset]), (2+width*height)*sizeof(CARD32));
+	   			res = safemalloc( (2+len)*sizeof(CARD32));
+				memcpy( res, &(icon[offset]), (2+len)*sizeof(CARD32));
 			}			 
-		offset += 2 + width * height ;
+		offset += 2 + len ;
 	}	 
 	offset = 0 ; 
 	while( res == NULL && offset+2 < icon_length  ) 
 	{
 		int width = icon[offset] ; 
 		int height = icon[offset+1] ; 
-		if( width*height  <= (icon_length - offset - 2 ) ) 
+		int len = width*height ; 
+		if( len < 0 )
+			break;
+		if( len  <= (icon_length - offset - 2 ) ) 
 			if( width >= 32 && height >= 32 ) 
 			{
-	   			res = safemalloc( (2+width*height)*sizeof(CARD32));
-				memcpy( res, &(icon[offset]), (2+width*height)*sizeof(CARD32));
+	   			res = safemalloc( (2+len)*sizeof(CARD32));
+				memcpy( res, &(icon[offset]), (2+len)*sizeof(CARD32));
 			}			 
-		offset += 2 + width * height ;
-	}	 
-	offset = 0 ; 
-	while( res == NULL && offset+2 < icon_length  ) 
-	{
-		int width = icon[offset] ; 
-		int height = icon[offset+1] ; 
-		if( width*height  <= (icon_length - offset - 2 ) ) 
-			if( width >= 32 && height >= 32 ) 
-			{
-	   			res = safemalloc( (2+width*height)*sizeof(CARD32));
-				memcpy( res, &(icon[offset]), (2+width*height)*sizeof(CARD32));
-			}			 
-		offset += 2 + width * height ;
+		offset += 2 + len ;
 	}	 
 	if( res == NULL ) 
 	{
@@ -1143,19 +1136,22 @@ select_client_icon_argb( CARD32 *icon,  int icon_length )
 		unsigned int height = icon[1] ; 
 		int size = width*height ;
 		icon_length -= 2 ;
-		if( size+2 > icon_length ) 
+		if( size > 0 )
 		{
-			for( width = 128 ; width > 0 ; width -= 8 ) 
-				if( icon_length  > width*width ) 
-				{	  
-					height = width  ; 
-					break ;
-				}
-		}	 
-		res = safecalloc( size+2, sizeof(CARD32));
-		memcpy( res+2, &(icon[2]), size*sizeof(CARD32));
-		res[0] = width ; 
-		res[1] = height ;
+			if( size+2 > icon_length ) 
+			{
+				for( width = 128 ; width > 0 ; width -= 8 ) 
+					if( icon_length  > width*width ) 
+					{	  
+						height = width  ; 
+						break ;
+					}
+			}	 
+			res = safecalloc( size+2, sizeof(CARD32));
+			memcpy( res+2, &(icon[2]), size*sizeof(CARD32));
+			res[0] = width ; 
+			res[1] = height ;
+		}
 	}	 
 	return res;
 }	 
