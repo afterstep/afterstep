@@ -3,7 +3,13 @@ keepname
 
 Comment "Propaganda Tiles & Images - Volume 3"
 
-# Fedora, Mandriva
+# Fedora AfterApps, Mandriva
 include "/usr/share/pixmaps/backgrounds/Propaganda-Vol3/" BackgroundForeign
+
+# Fedora Core 2 & 3, RedHat 9, CentOS 4.3, Aurox
+include "/usr/share/backgrounds/tiles/Propaganda/Vol3/" BackgroundForeign
+
+# Conectiva, ASP 7.3, RedHat 7.3, Netwinder (old)
+include "/usr/share/pixmaps/backgrounds/Propaganda/Vol3/" BackgroundForeign
 
 command BackgroundForeign
