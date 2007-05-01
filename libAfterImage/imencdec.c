@@ -54,6 +54,10 @@
 #include <stdarg.h>
 #endif
 
+#ifdef HAVE_MMX
+#include <mmintrin.h>
+#endif
+
 #ifdef _WIN32
 # include "win32/afterbase.h"
 #else
@@ -247,6 +251,14 @@ divide_component( register CARD32 *src, register CARD32 *dst, CARD16 ratio, int 
 #ifdef HAVE_MMX
 		if( asimage_use_mmx )
 		{
+#if 1
+			__m64  *vdst = (__m64*)&(dst[0]);
+			__m64  *vsrc = (__m64*)&(src[0]);
+			len = len>>1;
+			do{
+				vdst[i] = _mm_srli_pi32(vsrc[i],1);  /* psrld */
+			}while( ++i < len );
+#else
 			double *ddst = (double*)&(dst[0]);
 			double *dsrc = (double*)&(src[0]);
 			len = len>>1;
@@ -260,6 +272,7 @@ divide_component( register CARD32 *src, register CARD32 *dst, CARD16 ratio, int 
 					: "m"  (dsrc[i]) // %1
 	            );
 			}while( ++i < len );
+#endif		
 		}else
 #endif
 			do{

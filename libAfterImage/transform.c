@@ -51,6 +51,9 @@
 #endif
 #include <math.h>
 
+#ifdef HAVE_MMX
+#include <mmintrin.h>
+#endif
 
 #ifdef _WIN32
 # include "win32/afterbase.h"
@@ -321,8 +324,18 @@ add_component( CARD32 *src, CARD32 *incr, int *scales, int len )
 	int i = 0;
 
 	len += len&0x01;
-#if 1
 #ifdef HAVE_MMX
+#if 1
+	if( asimage_use_mmx )
+	{
+		__m64  *vdst = (__m64*)&(src[0]);
+		__m64  *vinc = (__m64*)&(incr[0]);
+		len = len>>1;
+		do{
+			vdst[i] = _mm_add_pi32(vdst[i],vinc[i]);  /* paddd */
+		}while( ++i < len );
+	}else
+#else
 	if( asimage_use_mmx )
 	{
 		double *ddst = (double*)&(src[0]);
@@ -887,9 +900,6 @@ scale_asimage( ASVisual *asv, ASImage *src, int to_width, int to_height,
 	  fprintf( stderr, "\n" );
 	}
 #endif
-#ifdef HAVE_MMX
-	mmx_init();
-#endif
 	if((imout = start_image_output( asv, dst, out_format, QUANT_ERR_BITS, quality )) == NULL )
 	{
         destroy_asimage( &dst );
@@ -903,9 +913,6 @@ scale_asimage( ASVisual *asv, ASImage *src, int to_width, int to_height,
 			scale_image_up( imdec, imout, h_ratio, scales_h, scales_v );
 		stop_image_output( &imout );
 	}
-#ifdef HAVE_MMX
-	mmx_off();
-#endif
 	free( scales_h );
 	free( scales_v );
 	stop_image_decoding( &imdec );
@@ -973,9 +980,6 @@ scale_asimage2( ASVisual *asv, ASImage *src,
 	  fprintf( stderr, "\n" );
 	}
 #endif
-#ifdef HAVE_MMX
-	mmx_init();
-#endif
 	if((imout = start_image_output( asv, dst, out_format, QUANT_ERR_BITS, quality )) == NULL )
 	{
         destroy_asimage( &dst );
@@ -989,9 +993,6 @@ scale_asimage2( ASVisual *asv, ASImage *src,
 			scale_image_up( imdec, imout, h_ratio, scales_h, scales_v );
 		stop_image_output( &imout );
 	}
-#ifdef HAVE_MMX
-	mmx_off();
-#endif
 	free( scales_h );
 	free( scales_v );
 	stop_image_decoding( &imdec );
@@ -1023,9 +1024,6 @@ LOCAL_DEBUG_CALLER_OUT( "src = %p, offset_x = %d, offset_y = %d, to_width = %d, 
 
 	dst = create_destination_image( to_width, to_height, out_format, compression_out, src->back_color );
 
-#ifdef HAVE_MMX
-	mmx_init();
-#endif
 	if((imout = start_image_output( asv, dst, out_format, (tint!=0)?8:0, quality)) == NULL )
 	{
 		LOCAL_DEBUG_OUT( "failed to start image output%s", "");
@@ -1058,9 +1056,6 @@ LOCAL_DEBUG_OUT("tiling actually...%s", "");
 			}
 		stop_image_output( &imout );
 	}
-#ifdef HAVE_MMX
-	mmx_off();
-#endif
 	stop_image_decoding( &imdec );
 
 	SHOW_TIME("", started);
@@ -1126,9 +1121,6 @@ LOCAL_DEBUG_CALLER_OUT( "dst_width = %d, dst_height = %d", dst_width, dst_height
 	}
 	if( i < count )
 		count = i+1 ;
-#ifdef HAVE_MMX
-	mmx_init();
-#endif
 
 	if(imdecs[0] == NULL || (imout = start_image_output( asv, dst, out_format, QUANT_ERR_BITS, quality)) == NULL )
 	{
@@ -1220,9 +1212,6 @@ LOCAL_DEBUG_OUT( "min_y = %d, max_y = %d", min_y, max_y );
 			imout->output_image_scanline( imout, &dst_line, 1);
 		stop_image_output( &imout );
 	}
-#ifdef HAVE_MMX
-	mmx_off();
-#endif
 	for( i = 0 ; i < count ; i++ )
 		if( imdecs[i] != NULL )
 		{
@@ -1551,9 +1540,6 @@ LOCAL_DEBUG_CALLER_OUT( "offset_x = %d, offset_y = %d, to_width = %d, to_height 
 
 	if( asv == NULL ) 	asv = &__transform_fake_asv ;
 
-#ifdef HAVE_MMX
-	mmx_init();
-#endif
 	if((imout = start_image_output( asv, dst, out_format, 0, quality)) == NULL )
 	{
         destroy_asimage( &dst );
@@ -1644,9 +1630,6 @@ LOCAL_DEBUG_OUT("flip-flopping actually...%s", "");
 		free_scanline( &result, True );
 		stop_image_output( &imout );
 	}
-#ifdef HAVE_MMX
-	mmx_off();
-#endif
 	SHOW_TIME("", started);
 	return dst;
 }
@@ -1668,9 +1651,6 @@ mirror_asimage( ASVisual *asv, ASImage *src,
 
 	if( asv == NULL ) 	asv = &__transform_fake_asv ;
 
-#ifdef HAVE_MMX
-	mmx_init();
-#endif
 	if((imout = start_image_output( asv, dst, out_format, 0, quality)) == NULL )
 	{
         destroy_asimage( &dst );
@@ -1710,9 +1690,6 @@ LOCAL_DEBUG_OUT("miroring actually...%s", "");
 			free_scanline( &result, True );
 		stop_image_output( &imout );
 	}
-#ifdef HAVE_MMX
-	mmx_off();
-#endif
 	SHOW_TIME("", started);
 	return dst;
 }
@@ -1758,9 +1735,6 @@ LOCAL_DEBUG_CALLER_OUT( "dst_x = %d, dst_y = %d, to_width = %d, to_height = %d",
 		return dst ;
 	}
 
-#ifdef HAVE_MMX
-	mmx_init();
-#endif
 	if((imout = start_image_output( asv, dst, out_format, 0, quality)) == NULL )
 	{
         destroy_asimage( &dst );
@@ -1842,9 +1816,6 @@ LOCAL_DEBUG_OUT( "filling %d lines with %8.8lX at the end", to_height-(start_y+c
 		}
 		stop_image_output( &imout );
 	}
-#ifdef HAVE_MMX
-	mmx_off();
-#endif
 	SHOW_TIME("", started);
 	return dst;
 }
@@ -2106,26 +2077,17 @@ ASImage* blur_asimage_gauss(ASVisual* asv, ASImage* src, double horz, double ver
 
 	dst = create_destination_image( src->width, src->height, out_format, compression_out, src->back_color);
 
-#ifdef HAVE_MMX
-	mmx_init();
-#endif
 
 	imout = start_image_output(asv, dst, out_format, 0, quality);
     if (!imout)
     {
         destroy_asimage( &dst );
-#ifdef HAVE_MMX
-		mmx_off();
-#endif
 		return NULL;
 	}
 
 	imdec = start_image_decoding(asv, src, SCL_DO_ALL, 0, 0, dst->width, dst->height, NULL);
 	if (!imdec) {
         destroy_asimage( &dst );
-#ifdef HAVE_MMX
-		mmx_off();
-#endif
 		return NULL;
 	}
 
@@ -2171,10 +2133,6 @@ ASImage* blur_asimage_gauss(ASVisual* asv, ASImage* src, double horz, double ver
 	stop_image_output(&imout);
 
 	free(gauss);
-
-#ifdef HAVE_MMX
-	mmx_off();
-#endif
 
 	return dst;
 }
@@ -2223,9 +2181,6 @@ LOCAL_DEBUG_CALLER_OUT( "offset_x = %d, offset_y = %d, to_width = %d, to_height 
 		return NULL;
 
 	dst = create_destination_image( to_width, to_height, out_format, compression_out, src->back_color);
-#ifdef HAVE_MMX
-	mmx_init();
-#endif
 	set_decoder_shift(imdec,8);
 	if((imout = start_image_output( asv, dst, out_format, 8, quality)) == NULL )
 	{
@@ -2319,9 +2274,6 @@ LOCAL_DEBUG_OUT("adjusting actually...%s", "");
 		}
 		stop_image_output( &imout );
 	}
-#ifdef HAVE_MMX
-	mmx_off();
-#endif
 	stop_image_decoding( &imdec );
 
 	SHOW_TIME("", started);
@@ -2431,9 +2383,6 @@ LOCAL_DEBUG_CALLER_OUT( "sx1 = %d, sx2 = %d, sy1 = %d, sy2 = %d, to_width = %d, 
 		slice_y_start = (slice_y_end > 0 ) ? slice_y_end-1 : 0 ;
 
 	dst = create_destination_image( to_width, to_height, out_format, compression_out, src->back_color);
-#ifdef HAVE_MMX
-	mmx_init();
-#endif
 	if((imout = start_image_output( asv, dst, out_format, 0, quality)) == NULL )
 	{
         destroy_asimage( &dst );
@@ -2597,9 +2546,6 @@ LOCAL_DEBUG_CALLER_OUT( "sx1 = %d, sx2 = %d, sy1 = %d, sy2 = %d, to_width = %d, 
 		free_scanline( out_buf, False );
 		stop_image_output( &imout );
 	}
-#ifdef HAVE_MMX
-	mmx_off();
-#endif
 	stop_image_decoding( &imdec );
 
 	SHOW_TIME("", started);

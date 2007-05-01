@@ -310,7 +310,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT LN_S build build_cpu build_vendor build_os host host_cpu host_vendor host_os INSTALL INSTALL_PROGRAM INSTALL_DATA INSTALL_LIB RANLIB RM MV CP MKDIR PERL FIND XARGS LDCONFIG LEX LEXLIB YACC INSTALL_SCRIPT ac_ct_RANLIB CPP X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS EGREP XPM_CFLAGS JPEG_CFLAGS PNG_CFLAGS GIF_CFLAGS TIFF_CFLAGS PKG_CONFIG ac_pt_PKG_CONFIG SVG_CFLAGS SVG_LIBS TTF_INCLUDES JPEG_OBJS ZLIB_OBJS PNG_OBJS UNGIF_OBJS AFTERIMAGE_LIBS_EXTERNAL AFTERBASE_INCS_PATH USE_DEFAULT_AFTERBASE HAVE_AFTERBASE_FLAG AFTERBASE_C have_afterbase AFTERIMAGE_APPS_LIBS AFTERIMAGE_TEST_LIBS AFTERIMAGE_LIB_LIBS afterimage_x_support AFTERIMAGE_LIBS image_format version version_major lib_name lib_file_name with_locale user_ldflags x_libs LIBPROG LIBINSTALL DEFINE_XLOCALE LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT LN_S build build_cpu build_vendor build_os host host_cpu host_vendor host_os INSTALL INSTALL_PROGRAM INSTALL_DATA INSTALL_LIB RANLIB RM MV CP MKDIR PERL FIND XARGS LDCONFIG LEX LEXLIB YACC INSTALL_SCRIPT ac_ct_RANLIB MMX_CFLAGS CPP X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS EGREP XPM_CFLAGS JPEG_CFLAGS PNG_CFLAGS GIF_CFLAGS TIFF_CFLAGS PKG_CONFIG ac_pt_PKG_CONFIG SVG_CFLAGS SVG_LIBS TTF_INCLUDES JPEG_OBJS ZLIB_OBJS PNG_OBJS UNGIF_OBJS AFTERIMAGE_LIBS_EXTERNAL AFTERBASE_INCS_PATH USE_DEFAULT_AFTERBASE HAVE_AFTERBASE_FLAG AFTERBASE_C have_afterbase AFTERIMAGE_APPS_LIBS AFTERIMAGE_TEST_LIBS AFTERIMAGE_LIB_LIBS afterimage_x_support AFTERIMAGE_LIBS image_format version version_major lib_name lib_file_name with_locale user_ldflags x_libs LIBPROG LIBINSTALL DEFINE_XLOCALE LIBOBJS LTLIBOBJS'
 ac_subst_files='LIBAFTERIMAGEFILES'
 
 # Initialize some variables set by options.
@@ -3192,72 +3192,74 @@ if test "x$enable_gdb" = "xno"; then
 fi
 
 
-if test "x$enable_mmx_optimization" = "xyes"; then
-  echo "$as_me:$LINENO: checking for MMX support" >&5
-echo $ECHO_N "checking for MMX support... $ECHO_C" >&6
-  if test -z "`echo $build_cpu 2>&1 | grep i*86 >/dev/null`"; then
+MMX_CFLAGS="-mmmx -Winline --param inline-unit-growth=10000 --param large-function-growth=10000"
+have_mmx_intrinsics=no
 
-if test "$cross_compiling" = yes; then
-  { { echo "$as_me:$LINENO: error: cannot run test program while cross compiling
-See \`config.log' for more details." >&5
-echo "$as_me: error: cannot run test program while cross compiling
-See \`config.log' for more details." >&2;}
-   { (exit 1); exit 1; }; }
-else
-  cat >conftest.$ac_ext <<_ACEOF
-/* confdefs.h.  */
+if test "x$enable_mmx_optimization" = "xyes"; then
+  	echo "$as_me:$LINENO: checking for MMX support" >&5
+echo $ECHO_N "checking for MMX support... $ECHO_C" >&6
+
+  	save_CFLAGS=$CFLAGS
+  	CFLAGS="$CFLAGS $MMX_CFLAGS"
+
+cat >conftest.$ac_ext <<_ACEOF
+
+#if defined(__GNUC__) && (__GNUC__ < 3 || (__GNUC__ == 3 && __GNUC_MINOR__ < 4))
+#error "Need GCC >= 3.4 for MMX intrinsics"
+#endif
+#include <mmintrin.h>
+int main () {
+    __m64 v = _mm_cvtsi32_si64 (1);
+    __m64 w = _mm_slli_si64 (v, 1);
+	v = _mm_add_pi32 (v, w);  /* paddd */
+    v = _mm_srl_pi32 (v, w);  /* psrld */
+    return _mm_cvtsi64_si32 (v);
+}
 _ACEOF
-cat confdefs.h >>conftest.$ac_ext
-cat >>conftest.$ac_ext <<_ACEOF
-/* end confdefs.h.  */
-int main() {
-                    int ebx_save;
-                    int mmx_available = 0;
-                    asm ("movl %%ebx, %1\n\t"
-                         "movl \$1, %%eax\n\t"
-                         "cpuid\n\t"
-                         "andl \$0x800000, %%edx\n\t"
-                         "movl %1, %%ebx\n\t"
-                         "movl %%edx, %0\n\t"
-                         : "=m" (mmx_available), "=m" (ebx_save)
-                         : /* no input */
-                         : "eax", "ecx", "edx"
-                        );
-                    return mmx_available != 0 ? 0 : 1;}
-_ACEOF
-rm -f conftest$ac_exeext
-if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
-  (eval $ac_link) 2>&5
+rm -f conftest.$ac_objext
+if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
+  (eval $ac_compile) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_c_werror_flag"			 || test ! -s conftest.err'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
   ac_status=$?
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } && { ac_try='./conftest$ac_exeext'
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest.$ac_objext'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); }; }; then
+  have_mmx_intrinsics=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+fi
+rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
+
+	echo "$as_me:$LINENO: result: $have_mmx_intrinsics" >&5
+echo "${ECHO_T}$have_mmx_intrinsics" >&6
+	CFLAGS=$save_CFLAGS
+fi
+
+if test $have_mmx_intrinsics = yes ; then
 
 cat >>confdefs.h <<\_ACEOF
 #define HAVE_MMX 1
 _ACEOF
- echo "$as_me:$LINENO: result: yes" >&5
-echo "${ECHO_T}yes" >&6
-else
-  echo "$as_me: program exited with status $ac_status" >&5
-echo "$as_me: failed program was:" >&5
-sed 's/^/| /' conftest.$ac_ext >&5
 
-( exit $ac_status )
-echo "$as_me:$LINENO: result: no" >&5
-echo "${ECHO_T}no" >&6
+else
+   MMX_CFLAGS=
 fi
-rm -f core *.core gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
-fi
-  else
-	  echo "$as_me:$LINENO: result: skipped" >&5
-echo "${ECHO_T}skipped" >&6
-  fi
-fi
+
 
 afterimage_x_support=yes
 if test "x$PATH_XTRA_CHECKED" != "xyes"; then
@@ -9944,6 +9946,7 @@ s,@LEXLIB@,$LEXLIB,;t t
 s,@YACC@,$YACC,;t t
 s,@INSTALL_SCRIPT@,$INSTALL_SCRIPT,;t t
 s,@ac_ct_RANLIB@,$ac_ct_RANLIB,;t t
+s,@MMX_CFLAGS@,$MMX_CFLAGS,;t t
 s,@CPP@,$CPP,;t t
 s,@X_CFLAGS@,$X_CFLAGS,;t t
 s,@X_PRE_LIBS@,$X_PRE_LIBS,;t t

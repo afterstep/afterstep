@@ -2090,7 +2090,6 @@ handle_asxml_tag_hsv( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm,
 		hue_offset = 0 ; 
 		saturation_offset = -99 ;
 	}
-	show_progress("adjusting HSV of the image by [%d,%d,%d] affected hues are %+d-%+d.result = %p", hue_offset, saturation_offset, value_offset, affected_hue-affected_radius, affected_hue+affected_radius, result);
 	if (hue_offset!=0 || saturation_offset != 0 || value_offset != 0 ) 
 	{
 		result = adjust_asimage_hsv(state->asv, imtmp, xorig, yorig, width, height,
@@ -2098,6 +2097,7 @@ handle_asxml_tag_hsv( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm,
 									hue_offset, saturation_offset, value_offset,
 				                    ASA_ASImage, 100, ASIMAGE_QUALITY_TOP);
 	}
+	show_progress("adjusted HSV of the image by [%d,%d,%d] affected hues are %+d-%+d.result = %p", hue_offset, saturation_offset, value_offset, affected_hue-affected_radius, affected_hue+affected_radius, result);
 	return result;
 }
 

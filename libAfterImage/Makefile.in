@@ -69,7 +69,7 @@ LIBVER          = 0.99
 LIBVERMAJOR     = 0
 
 CC		= @CC@
-CCFLAGS         = @CFLAGS@
+CCFLAGS         = @CFLAGS@  @MMX_CFLAGS@
 # -march=pentiumpro -mcpu=pentiumpro
 EXTRA_DEFINES	= @DEFINE_XLOCALE@
 

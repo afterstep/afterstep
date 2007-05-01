@@ -113,6 +113,7 @@ Bool asimage_use_mmx = False;
 /* ********************************************************************/
 /* initialization routines 											  */
 /* *********************************************************************/
+/* the following is depreciated - we moved to use intrinsics 	!!!!!! */
 /* ************************** MMX **************************************/
 /*inline extern*/
 int mmx_init(void)
