@@ -142,6 +142,8 @@ typedef struct ScreenInfo
     Cursor  standard_cursors[MAX_CURSORS];
 
     GC DrawGC;          /* GC to draw lines for move and resize */
+    GC RootGC;      /* GC to draw on the root window - 
+						   separate as it may have different color depth */
 
     int xinerama_screens_num ;
 	XRectangle *xinerama_screens;

@@ -245,6 +245,9 @@ typedef struct ASWindowList
      *          some other window. To do that we substitute focused pointer to new window
      *          right before UngrabEm. In this case focused != ( ungrabbed == hilited )
      */
+
+	ASVector	*stacking_order ; 		/* array of pointers to ASWindow structures */
+	
 }ASWindowList;
 
 /* Mirror Note :
@@ -419,7 +422,14 @@ Bool enlist_aswindow( ASWindow *t );
 void delist_aswindow( ASWindow *t );
 void save_aswindow_list( ASWindowList *list, char *file );
 ASWindow* find_topmost_client( int desk, int root_x, int root_y );
-void restack_window_list( int desk, Bool send_msg_only );
+void free_scratch_layers_vector();
+void free_scratch_ids_vector();
+void update_stacking_order();
+void restack_window_list( int desk);
+void send_stacking_order( int desk );
+void apply_stacking_order( int desk );
+
+
 Bool is_window_obscured (ASWindow * above, ASWindow * below);
 void restack_window( ASWindow *t, Window sibling_window, int stack_mode );
 

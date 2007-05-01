@@ -1901,7 +1901,7 @@ change_aswindow_layer( ASWindow *asw, int layer )
 LOCAL_DEBUG_OUT( "changing window's layer to %d", layer );
         ASWIN_LAYER(asw) = layer ;
         add_aswindow_to_layer( asw, layer );
-        restack_window_list( ASWIN_DESK(asw), False );
+        restack_window_list( ASWIN_DESK(asw));
         ASWIN_SET_FLAGS(asw, AS_Layer);
         set_client_state (asw->w, asw->status);
     }

@@ -863,18 +863,28 @@ Window showimage(ASImage* im, Bool looping, Window main_window, ASComposeWinProp
 #endif
 		}		   
 	}
-	
-	p = create_visual_pixmap( asv, DefaultRootWindow(dpy), im->width, im->height, 0 );
 
-	if( get_flags( asv->glx_support, ASGLX_UseForImageTx ) )
-		done = asimage2drawable_gl( asv, p, im, 0, 0, 0, 0,
-        	   						im->width, im->height, 
-			   						im->width, im->height, 
-									False );
-	
-	if( !done ) 
-		asimage2drawable( asv, p, im, NULL, 0, 0, 0, 0, im->width, im->height, True);
-	
+	if( main_window==DefaultRootWindow(dpy)	)
+	{
+		XImage *xim = create_visual_scratch_ximage( asv, im->width, im->height, DefaultDepth(dpy,DefaultScreen(dpy)) );
+		p = create_visual_pixmap( asv, DefaultRootWindow(dpy), im->width, im->height, 
+							      DefaultDepth(dpy,DefaultScreen(dpy)) );
+		if( subimage2ximage (asv, im, 0, 0, xim)	)
+		{	
+			put_ximage( asv, xim, p, DefaultGC(dpy,DefaultScreen(dpy)), 0, 0, 0, 0, im->width, im->height );	
+		}
+		XDestroyImage( xim );				   
+	}else
+	{
+		p = create_visual_pixmap( asv, DefaultRootWindow(dpy), im->width, im->height, 0 );
+		if( get_flags( asv->glx_support, ASGLX_UseForImageTx ) )
+			done = asimage2drawable_gl( asv, p, im, 0, 0, 0, 0,
+        		   						im->width, im->height, 
+				   						im->width, im->height, 
+										False );
+		if( !done ) 
+			asimage2drawable( asv, p, im, NULL, 0, 0, 0, 0, im->width, im->height, True);
+	}
 	p = set_window_background_and_free( main_window, p );
 	XSync(dpy, False);
 #if 1

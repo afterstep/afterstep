@@ -1303,14 +1303,22 @@ encode_image_scanline_xim( ASImageOutput *imout, ASScanline *to_store )
 	register XImage *xim = imout->im->alt.ximage ;
 	if( imout->next_line < xim->height && imout->next_line >= 0 )
 	{
+		unsigned char *dst = (unsigned char*)xim->data+imout->next_line*xim->bytes_per_line ;
 		if( !get_flags(to_store->flags, SCL_DO_RED) )
 			set_component( to_store->red, ARGB32_RED8(to_store->back_color), 0, to_store->width );
 		if( !get_flags(to_store->flags, SCL_DO_GREEN) )
 			set_component( to_store->green, ARGB32_GREEN8(to_store->back_color), 0, to_store->width );
 		if( !get_flags(to_store->flags, SCL_DO_BLUE) )
 			set_component( to_store->blue , ARGB32_BLUE8(to_store->back_color), 0, to_store->width );
-		PUT_SCANLINE(imout->asv, xim,to_store,imout->next_line,
-					 (unsigned char*)xim->data+imout->next_line*xim->bytes_per_line);
+		if( xim->depth == imout->asv->visual_info.depth ) 
+			PUT_SCANLINE(imout->asv, xim,to_store,imout->next_line, dst );
+		else if( xim->depth == 16 ) 
+			scanline2ximage16( imout->asv, xim, to_store,imout->next_line, dst);
+		else if( xim->depth == 24 || xim->depth == 32 ) 
+			scanline2ximage32( imout->asv, xim, to_store,imout->next_line, dst);
+		else if( xim->depth == 15 ) 
+			scanline2ximage15( imout->asv, xim, to_store,imout->next_line, dst);
+		
 
 		if( imout->tiling_step > 0 )
 			tile_ximage_line( imout->im->alt.ximage, imout->next_line,

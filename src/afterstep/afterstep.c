@@ -741,8 +741,8 @@ LOCAL_DEBUG_CALLER_OUT( "%s restart, cmd=\"%s\"", restart?"Do":"Don't", command?
     	/* pixmap references */
     	build_xpm_colormap (NULL);
 
-        restack_window_list(INVALID_DESK, True);
-
+		free_scratch_ids_vector();
+		free_scratch_layers_vector();		
         clientprops_cleanup ();
         wmprops_cleanup ();
 

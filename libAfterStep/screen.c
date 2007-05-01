@@ -467,7 +467,9 @@ init_screen_gcs(ScreenInfo *scr)
 		scr = ASDefaultScr;
 	
 	gcv.graphics_exposures = False;
-    scr->DrawGC = create_visual_gc( scr->asv, scr->Root, gcm, &gcv );
+
+    scr->RootGC = XCreateGC( dpy, scr->Root, gcm, &gcv );
+	scr->DrawGC = create_visual_gc( scr->asv, scr->Root, gcm, &gcv );
 }
 
 void
@@ -480,6 +482,11 @@ destroy_screen_gcs(ScreenInfo *scr)
 	{	
 		XFreeGC(dpy, scr->DrawGC);
 		scr->DrawGC = NULL ;
+	}
+	if( scr->RootGC )
+	{	
+		XFreeGC(dpy, scr->RootGC);
+		scr->RootGC = NULL ;
 	}
 }		
 

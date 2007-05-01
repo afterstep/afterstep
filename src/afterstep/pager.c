@@ -440,7 +440,8 @@ LOCAL_DEBUG_CALLER_OUT( "new(%d%+d%+d), old(%d%+d%+d), max(%+d,%+d)", new_desk, 
 
     	if( IsValidDesk(new_desk) )
 		{
-        	restack_window_list( new_desk, False );
+			apply_stacking_order( new_desk );
+			send_stacking_order( new_desk );
 			FlushAllQueues();              /* yield to modules */
 		}
     	/* Change the look to this desktop's one if it really changed */
@@ -960,7 +961,7 @@ start_background_xfer( ASImage *new_im )
 #ifdef XSHMIMAGE		
 	if(check_shmem_images_enabled())
 	{	
-		data->shm_ximage = create_visual_ximage( Scr.asv, new_im->width, data->lines_per_iteration, 0 );
+		data->shm_ximage = create_visual_ximage( Scr.asv, new_im->width, data->lines_per_iteration, DefaultDepth(dpy,DefaultScreen(dpy)) );
 		data->shmseg = ximage2shmseg(data->shm_ximage) ;
 	}
 #endif	   
@@ -998,13 +999,13 @@ LOCAL_DEBUG_CALLER_OUT( "%p:\"%s\", pmap %lX ", vdata, data->im_name, data->targ
 				y = (data->total_lines - (data->lines_done-data->lines_per_iteration)/2) - lines ;
 												   
 			if( xim == NULL ) 
-				xim = create_visual_scratch_ximage( Scr.asv, im->width, lines, 0 );
+				xim = create_visual_scratch_ximage( Scr.asv, im->width, lines, DefaultDepth(dpy,DefaultScreen(dpy)) );
 			LOCAL_DEBUG_OUT( "making ximage %p, starting at %d, and including %d lines", xim, data->lines_done, lines );
 			if( subimage2ximage (Scr.asv, im, 0, y, xim)	)
 			{	
 				LOCAL_DEBUG_OUT( "done, copying to pixmap at %d, (bytes_per_line = %d)", data->lines_done, xim->bytes_per_line );
 				success = put_ximage( Scr.asv, xim, data->target_pmap, 
-					           			Scr.DrawGC,  0, 0, 0, y, im->width, lines );	
+					           			Scr.RootGC,  0, 0, 0, y, im->width, lines );	
 				LOCAL_DEBUG_OUT( "%s", success?"Success":"Failure" );
 				data->lines_done += lines ;
 				++(data->step);
@@ -1179,7 +1180,7 @@ LOCAL_DEBUG_CALLER_OUT( "desk(%d)->old_desk(%d)->new_back(%p)->old_back(%p)", de
 			bh->pmap = None ;
 		if( bh->pmap == None )
 		{
-            bh->pmap = create_visual_pixmap( Scr.asv, Scr.Root, new_im->width, new_im->height, 0 );
+            bh->pmap = create_visual_pixmap( Scr.asv, Scr.Root, new_im->width, new_im->height, DefaultDepth(dpy,DefaultScreen(dpy)));
             LOCAL_DEBUG_OUT( "new root pixmap created with id %lX and size %dx%d", bh->pmap, new_im->width, new_im->height );
 		}else
 		{	
@@ -1246,8 +1247,15 @@ LOCAL_DEBUG_CALLER_OUT( "desk(%d)->old_desk(%d)->new_back(%p)->old_back(%p)", de
 			int pid = -1 ;
 			if( !already_transferring )
 			{	
-       			if( !asimage2drawable( Scr.asv, bh->pmap, new_im, Scr.DrawGC, 0, 0, 0, 0, new_im->width, new_im->height, True) )
+				XImage *xim = create_visual_scratch_ximage( Scr.asv, new_im->width, new_im->height, DefaultDepth(dpy,DefaultScreen(dpy)) );
+				Bool success = False ; 
+				if( subimage2ximage (Scr.asv, new_im, 0, 0, xim)	)
+					success = put_ximage( Scr.asv, xim, bh->pmap, Scr.RootGC, 0, 0, 0, 0, new_im->width, new_im->height );	
+				
+				if( !success ) 
 					show_warning( "failed to draw root background onto pixmap");
+
+				XDestroyImage( xim );				   
         		flush_asimage_cache(new_im);
 			}
 			if( pid <= 0 )

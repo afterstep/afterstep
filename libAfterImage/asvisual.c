@@ -23,7 +23,7 @@
 #endif
 
 #define LOCAL_DEBUG
-
+/*#define DEBUG_SL2XIMAGE */
 #include <string.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
@@ -54,40 +54,6 @@
 #endif
 
 
-CARD32 color2pixel32bgr(ASVisual *asv, CARD32 encoded_color, unsigned long *pixel);
-CARD32 color2pixel32rgb(ASVisual *asv, CARD32 encoded_color, unsigned long *pixel);
-CARD32 color2pixel24bgr(ASVisual *asv, CARD32 encoded_color, unsigned long *pixel);
-CARD32 color2pixel24rgb(ASVisual *asv, CARD32 encoded_color, unsigned long *pixel);
-CARD32 color2pixel16bgr(ASVisual *asv, CARD32 encoded_color, unsigned long *pixel);
-CARD32 color2pixel16rgb(ASVisual *asv, CARD32 encoded_color, unsigned long *pixel);
-CARD32 color2pixel15bgr(ASVisual *asv, CARD32 encoded_color, unsigned long *pixel);
-CARD32 color2pixel15rgb(ASVisual *asv, CARD32 encoded_color, unsigned long *pixel);
-CARD32 color2pixel_pseudo3bpp( ASVisual *asv, CARD32 encoded_color, unsigned long *pixel );
-CARD32 color2pixel_pseudo6bpp( ASVisual *asv, CARD32 encoded_color, unsigned long *pixel );
-CARD32 color2pixel_pseudo12bpp( ASVisual *asv, CARD32 encoded_color, unsigned long *pixel );
-
-void pixel2color32rgb(ASVisual *asv, unsigned long pixel, CARD32 *red, CARD32 *green, CARD32 *blue);
-void pixel2color32bgr(ASVisual *asv, unsigned long pixel, CARD32 *red, CARD32 *green, CARD32 *blue);
-void pixel2color24rgb(ASVisual *asv, unsigned long pixel, CARD32 *red, CARD32 *green, CARD32 *blue);
-void pixel2color24bgr(ASVisual *asv, unsigned long pixel, CARD32 *red, CARD32 *green, CARD32 *blue);
-void pixel2color16rgb(ASVisual *asv, unsigned long pixel, CARD32 *red, CARD32 *green, CARD32 *blue);
-void pixel2color16bgr(ASVisual *asv, unsigned long pixel, CARD32 *red, CARD32 *green, CARD32 *blue);
-void pixel2color15rgb(ASVisual *asv, unsigned long pixel, CARD32 *red, CARD32 *green, CARD32 *blue);
-void pixel2color15bgr(ASVisual *asv, unsigned long pixel, CARD32 *red, CARD32 *green, CARD32 *blue);
-
-void ximage2scanline32( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  register unsigned char *xim_data );
-void ximage2scanline16( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  register unsigned char *xim_data );
-void ximage2scanline15( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  register unsigned char *xim_data );
-void ximage2scanline_pseudo3bpp( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  register unsigned char *xim_data );
-void ximage2scanline_pseudo6bpp( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  register unsigned char *xim_data );
-void ximage2scanline_pseudo12bpp( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  register unsigned char *xim_data );
-
-void scanline2ximage32( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  register unsigned char *xim_data );
-void scanline2ximage16( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  register unsigned char *xim_data );
-void scanline2ximage15( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  register unsigned char *xim_data );
-void scanline2ximage_pseudo3bpp( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  register unsigned char *xim_data );
-void scanline2ximage_pseudo6bpp( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  register unsigned char *xim_data );
-void scanline2ximage_pseudo12bpp( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  register unsigned char *xim_data );
 
 #ifndef X_DISPLAY_MISSING
 static int  get_shifts (unsigned long mask);
@@ -1093,7 +1059,9 @@ create_visual_pixmap( ASVisual *asv, Window root, unsigned int width, unsigned i
 	{	
 		if( root == None ) 
 			root = RootWindow(asv->dpy,DefaultScreen(asv->dpy));
-		p = XCreatePixmap( asv->dpy, root, MAX(width,(unsigned)1), MAX(height,(unsigned)1), (depth==0)?asv->true_depth:depth );
+		if( depth==0 )
+			depth = asv->true_depth ;
+		p = XCreatePixmap( asv->dpy, root, MAX(width,(unsigned)1), MAX(height,(unsigned)1), depth );
 	}
 	return p;
 #else
@@ -1547,7 +1515,10 @@ create_visual_ximage( ASVisual *asv, unsigned int width, unsigned int height, un
 #if 0
 	unit = asv->dpy->bitmap_unit;
 #else
-	unit = (asv->true_depth+7)&0x0038;
+	if( depth == 0 ) 
+		unit = (asv->true_depth+7)&0x0038;
+	else
+		unit = (depth+7)&0x0038;
 	if( unit == 24 )
 		unit = 32 ;
 #endif
@@ -1626,7 +1597,10 @@ create_visual_scratch_ximage( ASVisual *asv, unsigned int width, unsigned int he
 #if 0
 	unit = asv->dpy->bitmap_unit;
 #else
-	unit = (asv->true_depth+7)&0x0038;
+	if( depth == 0 )
+		unit = (asv->true_depth+7)&0x0038;
+	else
+		unit = (depth+7)&0x0038;
 	if( unit == 24 )
 		unit = 32 ;
 #endif

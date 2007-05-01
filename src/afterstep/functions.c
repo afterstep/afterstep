@@ -1968,12 +1968,12 @@ void send_window_list_func_handler( FunctionData *data, ASEvent *event, int modu
     {
 		union { void *ptr ; int id; } module_id;
 		module_id.id = module ;
-	SendPacket (module, M_TOGGLE_PAGING, 1, DoHandlePageing);
-	SendPacket (module, M_NEW_DESKVIEWPORT, 3, Scr.Vx, Scr.Vy, Scr.CurrentDesk);
-	iterate_asbidirlist( Scr.Windows->clients, send_aswindow_data_iter_func, module_id.ptr, NULL, False );
-	SendPacket (module, M_END_WINDOWLIST, 0);
-	if( IsValidDesk(Scr.CurrentDesk) )
-	    restack_window_list( Scr.CurrentDesk, True );
+		SendPacket (module, M_TOGGLE_PAGING, 1, DoHandlePageing);
+		SendPacket (module, M_NEW_DESKVIEWPORT, 3, Scr.Vx, Scr.Vy, Scr.CurrentDesk);
+		iterate_asbidirlist( Scr.Windows->clients, send_aswindow_data_iter_func, module_id.ptr, NULL, False );
+		SendPacket (module, M_END_WINDOWLIST, 0);
+		if( IsValidDesk(Scr.CurrentDesk) )
+			send_stacking_order( Scr.CurrentDesk );
     }
 }
 

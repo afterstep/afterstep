@@ -366,6 +366,40 @@ typedef struct ASVisual
 #endif
 }ASVisual;
 /*******************/
+CARD32 color2pixel32bgr(ASVisual *asv, CARD32 encoded_color, unsigned long *pixel);
+CARD32 color2pixel32rgb(ASVisual *asv, CARD32 encoded_color, unsigned long *pixel);
+CARD32 color2pixel24bgr(ASVisual *asv, CARD32 encoded_color, unsigned long *pixel);
+CARD32 color2pixel24rgb(ASVisual *asv, CARD32 encoded_color, unsigned long *pixel);
+CARD32 color2pixel16bgr(ASVisual *asv, CARD32 encoded_color, unsigned long *pixel);
+CARD32 color2pixel16rgb(ASVisual *asv, CARD32 encoded_color, unsigned long *pixel);
+CARD32 color2pixel15bgr(ASVisual *asv, CARD32 encoded_color, unsigned long *pixel);
+CARD32 color2pixel15rgb(ASVisual *asv, CARD32 encoded_color, unsigned long *pixel);
+CARD32 color2pixel_pseudo3bpp( ASVisual *asv, CARD32 encoded_color, unsigned long *pixel );
+CARD32 color2pixel_pseudo6bpp( ASVisual *asv, CARD32 encoded_color, unsigned long *pixel );
+CARD32 color2pixel_pseudo12bpp( ASVisual *asv, CARD32 encoded_color, unsigned long *pixel );
+
+void pixel2color32rgb(ASVisual *asv, unsigned long pixel, CARD32 *red, CARD32 *green, CARD32 *blue);
+void pixel2color32bgr(ASVisual *asv, unsigned long pixel, CARD32 *red, CARD32 *green, CARD32 *blue);
+void pixel2color24rgb(ASVisual *asv, unsigned long pixel, CARD32 *red, CARD32 *green, CARD32 *blue);
+void pixel2color24bgr(ASVisual *asv, unsigned long pixel, CARD32 *red, CARD32 *green, CARD32 *blue);
+void pixel2color16rgb(ASVisual *asv, unsigned long pixel, CARD32 *red, CARD32 *green, CARD32 *blue);
+void pixel2color16bgr(ASVisual *asv, unsigned long pixel, CARD32 *red, CARD32 *green, CARD32 *blue);
+void pixel2color15rgb(ASVisual *asv, unsigned long pixel, CARD32 *red, CARD32 *green, CARD32 *blue);
+void pixel2color15bgr(ASVisual *asv, unsigned long pixel, CARD32 *red, CARD32 *green, CARD32 *blue);
+
+void ximage2scanline32( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  register unsigned char *xim_data );
+void ximage2scanline16( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  register unsigned char *xim_data );
+void ximage2scanline15( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  register unsigned char *xim_data );
+void ximage2scanline_pseudo3bpp( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  register unsigned char *xim_data );
+void ximage2scanline_pseudo6bpp( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  register unsigned char *xim_data );
+void ximage2scanline_pseudo12bpp( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  register unsigned char *xim_data );
+
+void scanline2ximage32( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  register unsigned char *xim_data );
+void scanline2ximage16( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  register unsigned char *xim_data );
+void scanline2ximage15( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  register unsigned char *xim_data );
+void scanline2ximage_pseudo3bpp( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  register unsigned char *xim_data );
+void scanline2ximage_pseudo6bpp( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  register unsigned char *xim_data );
+void scanline2ximage_pseudo12bpp( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  register unsigned char *xim_data );
 
 /****f* libAfterImage/query_screen_visual()
  * NAME
