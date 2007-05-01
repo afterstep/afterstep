@@ -107,8 +107,8 @@ debug_AllocColor( const char *file, const char *func, int line, ASVisual *asv, C
 {
 	Status sret ;
 	sret = XAllocColor( asv->dpy, cmap, pxcol );
-	show_progress( " XAllocColor in %s:%s():%d has %s -> cmap = %lX, pixel = %d, color = 0x%4.4lX, 0x%4.4lX, 0x%4.4lX",
-				   file, func, line, (sret==0)?"failed":"succeeded", cmap, pxcol->pixel, pxcol->red, pxcol->green, pxcol->blue );
+	show_progress( " XAllocColor in %s:%s():%d has %s -> cmap = %lX, pixel = %lu(%8.8lX), color = 0x%4.4X, 0x%4.4X, 0x%4.4X",
+				   file, func, line, (sret==0)?"failed":"succeeded", cmap, pxcol->pixel, pxcol->pixel, pxcol->red, pxcol->green, pxcol->blue );
 	return sret;
 }
 #define ASV_ALLOC_COLOR(asv,cmap,pxcol)  debug_AllocColor(__FILE__, __FUNCTION__, __LINE__, (asv),(cmap),(pxcol))
