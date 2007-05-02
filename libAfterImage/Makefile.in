@@ -352,7 +352,7 @@ test_asdraw.o:	draw.c
 test_asdraw:	test_asdraw.o
 		$(CC) test_asdraw.o $(USER_LD_FLAGS) $(LIBRARIES_TEST) $(EXTRA_LIBRARIES) -o test_asdraw
 
-test_mmx.o:	.c
+test_mmx.o:	test_mmx.c
 		$(CC) $(CCFLAGS) $(EXTRA_DEFINES) -DTEST_ASDRAW $(INCLUDES) $(EXTRA_INCLUDES) -c test_mmx.c -o test_mmx.o
 
 test_mmx:	test_mmx.o
