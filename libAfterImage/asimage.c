@@ -106,7 +106,7 @@ static ASHashTable *__as_image_registry = NULL ;
 #endif
 
 #ifdef HAVE_MMX
-Bool asimage_use_mmx = False /* True */;
+Bool asimage_use_mmx = True;
 #else
 Bool asimage_use_mmx = False;
 #endif

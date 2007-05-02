@@ -1440,7 +1440,7 @@ redecorate_aswindow_iter_func(void *data, void *aux_data)
 		redecorate_window( asw, False );
         if( asw->internal && asw->internal->on_look_feel_changed )
             asw->internal->on_look_feel_changed( asw->internal, &Scr.Feel, &Scr.Look, ASFLAGS_EVERYTHING );
-        on_window_status_changed( asw, True, True );
+        on_window_status_changed( asw, True );
 		set_flags( asw->internal_flags, ASWF_PendingShapeRemoval );
     }
     return True;

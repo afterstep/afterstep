@@ -16,7 +16,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#undef LOCAL_DEBUG
+#define LOCAL_DEBUG
 #undef DO_CLOCKING
 #undef DEBUG_HSV_ADJUSTMENT
 #define USE_64BIT_FPU
@@ -27,6 +27,7 @@
 #else
 #include "config.h"
 #endif
+//#undef HAVE_MMX
 
 #ifdef DO_CLOCKING
 #if TIME_WITH_SYS_TIME
@@ -321,19 +322,19 @@ reverse_component( register CARD32 *src, register CARD32 *dst, int *unused, int 
 static inline void
 add_component( CARD32 *src, CARD32 *incr, int *scales, int len )
 {
-	int i = 0;
-
 	len += len&0x01;
-#ifdef HAVE_MMX
+#ifdef HAVE_MMX   
 #if 1
 	if( asimage_use_mmx )
 	{
+		int i = 0;
 		__m64  *vdst = (__m64*)&(src[0]);
 		__m64  *vinc = (__m64*)&(incr[0]);
 		len = len>>1;
 		do{
 			vdst[i] = _mm_add_pi32(vdst[i],vinc[i]);  /* paddd */
-		}while( ++i < len );
+		}while( ++i  < len );
+		_mm_empty();
 	}else
 #else
 	if( asimage_use_mmx )
@@ -356,6 +357,7 @@ add_component( CARD32 *src, CARD32 *incr, int *scales, int len )
 #endif
 	{
 		register int c1, c2;
+		int i = 0;
 		do{
 			c1 = (int)src[i] + (int)incr[i] ;
 			c2 = (int)src[i+1] + (int)incr[i+1] ;

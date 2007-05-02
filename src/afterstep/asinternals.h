@@ -478,7 +478,7 @@ void on_icon_changed( ASWindow *asw );
 void on_window_title_changed( ASWindow *asw, Bool update_display );
 void on_window_hints_changed( ASWindow *asw );
 void on_window_opacity_changed( ASWindow *asw );
-void on_window_status_changed( ASWindow *asw, Bool update_display, Bool reconfigured );
+void on_window_status_changed( ASWindow *asw, Bool reconfigured );
 void on_window_hilite_changed( ASWindow *asw, Bool focused );
 void on_window_pressure_changed( ASWindow *asw, int pressed_context );
 

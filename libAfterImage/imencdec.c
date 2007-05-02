@@ -30,7 +30,6 @@
 #include "config.h"
 #endif
 
-
 #include <string.h>
 #ifdef DO_CLOCKING
 #if TIME_WITH_SYS_TIME
@@ -256,8 +255,9 @@ divide_component( register CARD32 *src, register CARD32 *dst, CARD16 ratio, int 
 			__m64  *vsrc = (__m64*)&(src[0]);
 			len = len>>1;
 			do{
-				vdst[i] = _mm_srli_pi32(vsrc[i],1);  /* psrld */
+        		vdst[i] = _mm_srli_pi32(vsrc[i],1);  /* psrld */
 			}while( ++i < len );
+ 			_mm_empty();
 #else
 			double *ddst = (double*)&(dst[0]);
 			double *dsrc = (double*)&(src[0]);

@@ -191,7 +191,7 @@ viewport_aswindow_iter_func( void *data, void *aux_data )
         asw->status->viewport_x = Scr.Vx ;
         asw->status->viewport_y = Scr.Vy ;
         if( !ASWIN_GET_FLAGS(asw,AS_Sticky) )
-            on_window_status_changed( asw, True, True );
+            on_window_status_changed( asw, True );
 
         if( ASWIN_GET_FLAGS(asw,AS_Iconic) && get_flags(Scr.Feel.flags, StickyIcons))
         {   /* we must update let all the modules know that icon viewport has changed
@@ -290,7 +290,7 @@ deskviewport_aswindow_iter_func(void *data, void *aux_data)
         	quietly_reparent_aswindow( asw, dest, True );
 		}
 		if( dvx != 0 || dvy != 0 )
-			on_window_status_changed( asw, True, True );
+			on_window_status_changed( asw, True );
     }
 	display_progress( False, ".");
     return True;

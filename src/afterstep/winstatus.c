@@ -885,7 +885,8 @@ on_window_title_changed( ASWindow *asw, Bool update_display )
 	if( asw->icon_title )
     {
         if( change_astbar_first_label( asw->icon_title, ASWIN_ICON_NAME(asw), ASWIN_ICON_NAME_ENC(asw) ) )
-            on_icon_changed( asw );
+		    if( ASWIN_GET_FLAGS(asw, AS_Iconic ) )
+	            on_icon_changed( asw );
     }
 }
 
@@ -965,7 +966,7 @@ on_window_hints_changed( ASWindow *asw )
 		status_changed = True ;
 	
 	if( status_changed) 
-	    on_window_status_changed( asw, False, True );
+	    on_window_status_changed( asw, True );
 
 	if( mystrcmp( old_hints->res_name, hints->res_name ) != 0 || 
 		mystrcmp( old_hints->res_class, hints->res_class ) != 0)
@@ -1081,7 +1082,7 @@ update_window_tbar_size(	ASWindow *asw )
 
 
 void
-on_window_status_changed( ASWindow *asw, Bool update_display, Bool reconfigured )
+on_window_status_changed( ASWindow *asw, Bool reconfigured )
 {
     char *unfocus_mystyle = NULL ;
     char *frame_unfocus_mystyle = NULL ;
@@ -1094,7 +1095,7 @@ on_window_status_changed( ASWindow *asw, Bool update_display, Bool reconfigured 
 
 /*	get_extwm_state_flags (asw->w, &i); */
 	
-LOCAL_DEBUG_CALLER_OUT( "(%p,%s Update display,%s Reconfigured)", asw, update_display?"":"Don't", reconfigured?"":"Not" );
+LOCAL_DEBUG_CALLER_OUT( "(%p,%s Reconfigured)", asw, reconfigured?"":"Not" );
 LOCAL_DEBUG_OUT( "status geometry = %dx%d%+d%+d", asw->status->width, asw->status->height, asw->status->x, asw->status->y );
     if( ASWIN_GET_FLAGS(asw, AS_Iconic ) )
     {
@@ -1103,7 +1104,7 @@ LOCAL_DEBUG_OUT( "status geometry = %dx%d%+d%+d", asw->status->width, asw->statu
                             AS_ICON_TITLE_UNFOCUS_MYSTYLE ;
         if( asw->icon_title )
             changed = set_astbar_style( asw->icon_title, BAR_STATE_UNFOCUSED, unfocus_mystyle );
-        if( changed ) /* now we need to update icon title size */
+        if( changed || reconfigured ) /* now we need to update icon title size */
             on_icon_changed( asw );
     }else
     {
@@ -1697,7 +1698,7 @@ LOCAL_DEBUG_OUT( "unmaping client window 0x%lX", (unsigned long)asw->w );
         map_canvas_window(asw->icon_canvas, True );
         if( asw->icon_canvas != asw->icon_title_canvas )
             map_canvas_window(asw->icon_title_canvas, True );
-        on_window_status_changed( asw, False, True );
+        on_window_status_changed( asw, True );
 LOCAL_DEBUG_OUT( "updating status to iconic for client %p(\"%s\")", asw, ASWIN_NAME(asw) );
     }else
     {   /* Performing transition IconicState->NormalState  */
@@ -1737,7 +1738,7 @@ LOCAL_DEBUG_OUT( "updating status to iconic for client %p(\"%s\")", asw, ASWIN_N
                 }
             }
         }
-	    on_window_status_changed( asw, True, False );
+	    on_window_status_changed( asw, False );
     }
 
     if( !get_flags(asw->wm_state_transition, ASWT_FROM_WITHDRAWN ) )
@@ -2134,7 +2135,7 @@ LOCAL_DEBUG_OUT( "flags = %lx, on_flags = %lx, off_flags = %lx", flags, on_flags
     if( need_placement )
         place_aswindow( asw );
 
-    on_window_status_changed( asw, True, reconfigured );
+    on_window_status_changed( asw, reconfigured );
     if( get_flags( flags, AS_Sticky))
 		update_window_transparency( asw, False );
 	LOCAL_DEBUG_OUT( "Window is %sticky", ASWIN_GET_FLAGS(asw,AS_Sticky)?"S":"NotS");

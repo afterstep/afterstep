@@ -1758,7 +1758,7 @@ pin_asmenu( ASMenu *menu )
         {
             clear_flags( menu->owner->hints->function_mask, AS_FuncPinMenu);
             redecorate_window( menu->owner, False );
-            on_window_status_changed( menu->owner, True, True );
+            on_window_status_changed( menu->owner, True );
             if( Scr.Windows->hilited == menu->owner )
                 on_window_hilite_changed (menu->owner, True);
         }
