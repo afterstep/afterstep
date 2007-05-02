@@ -25,6 +25,10 @@
 /*#define LOCAL_DEBUG*/
 /*#define DO_CLOCKING*/
 
+#ifdef HAVE_MMX
+#include <mmintrin.h>
+#endif
+
 #include <ctype.h>
 #ifdef _WIN32
 # include "win32/afterbase.h"
@@ -380,6 +384,7 @@ alphablend_scanlines( ASScanline *bottom, ASScanline *top, int offset )
 	while( ++i < max_i )
 	{
 		int a = ta[i] ;
+		int ca ;
 /*fprintf( stderr, "%4.4x%4.4x%4.4x%4.4x+%4.4x%4.4x%4.4x%4.4x ", ba[i], br[i], bg[i], bb[i], ta[i], tr[i], tg[i], tb[i] );*/
 		if( a >= 0x0000FF00 )
 		{
@@ -387,17 +392,42 @@ alphablend_scanlines( ASScanline *bottom, ASScanline *top, int offset )
 			bg[i] = tg[i] ;
 			bb[i] = tb[i] ;
 			ba[i] = 0x0000FF00;
-		}else if( a > 0 )
+		}else if( a > 0x000000FF )
 		{
 			a = (a>>8) ;
-			ba[i] = ((ba[i]*(255-a))>>8)+ta[i] ;
-			if( ba[i] > 0x0000FFFF )
-				ba[i] = 0x0000FFFF ;
-			br[i] = (br[i]*(255-a)+tr[i]*a)>>8 ;
-			bg[i] = (bg[i]*(255-a)+tg[i]*a)>>8 ;
-			bb[i] = (bb[i]*(255-a)+tb[i]*a)>>8 ;
+			ca = 255-a;
+#if 0 /*ndef HAVE_MMX*/
+/* MMX implementaion of alpha-blending below turns out to be 
+   30% slower then the original integer math implementation under it 
+   I'm probably stupid or something.  
+ */
+			__m64	va  = _mm_set_pi16 (ca, a, ca, a);
+			__m64	vd  = _mm_set_pi16 (br[i],tr[i],ba[i],ta[i]);
+
+			/* b=(b*ca + t*a)>>8 */
+			vd = _mm_srli_pi16( vd, 8 );
+			vd = _mm_madd_pi16( va, vd );
+			ba[i] = _mm_cvtsi64_si32( vd );
+			vd = _mm_srli_si64( vd, 32 );
+			br[i] = _mm_cvtsi64_si32( vd );
+			
+			vd = _mm_set_pi16 (bb[i],tb[i],bg[i],tg[i]);
+			vd = _mm_srli_pi16( vd, 8 );
+			vd = _mm_madd_pi16( va, vd );
+			bg[i] = _mm_cvtsi64_si32( vd );
+			vd = _mm_srli_si64( vd, 32 );
+			bb[i] = _mm_cvtsi64_si32( vd );
+			
+#else
+			ba[i] = ((ba[i]*ca)>>8)+ta[i] ;
+			br[i] = (br[i]*ca+tr[i]*a)>>8 ;
+			bg[i] = (bg[i]*ca+tg[i]*a)>>8 ;
+			bb[i] = (bb[i]*ca+tb[i]*a)>>8 ;
+#endif	
 		}
 	}
+	_mm_empty();
+	
 /*	fputc( '\n', stderr );*/
 }
 
