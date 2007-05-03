@@ -1068,58 +1068,6 @@ update_visibility( int desk )
 }
 #endif
 
-static int
-get_sorted_layers_vector( ASVector **layers ) 
-{
-	if( *layers == NULL ) 
-        *layers = create_asvector( sizeof(ASLayer*) );
-    if( Scr.Windows->layers->items_num > (*layers)->allocated )
-        realloc_vector( *layers, Scr.Windows->layers->items_num );
-
-	return sort_hash_items (Scr.Windows->layers, NULL, (void**)VECTOR_HEAD_RAW(**layers), 0);	
-}
-
-ASWindow*
-find_topmost_client( int desk, int root_x, int root_y )
-{
-    static ASVector *layers = NULL ;
-	int layers_in, i ;
-    ASLayer **l ;
-
-    if( !IsValidDesk(desk) )
-    {
-        if( layers )
-            destroy_asvector( &layers );
-        return NULL;
-    }
-
-    if( Scr.Windows->clients->count > 0 && 
-	    (layers_in = get_sorted_layers_vector( &layers )) > 0 )
-	{
-    	l = PVECTOR_HEAD(ASLayer*,layers);
-    	for( i = 0 ; i < layers_in ; i++ )
-    	{
-        	register int k, end_k = PVECTOR_USED(l[i]->members) ;
-        	ASWindow **members = PVECTOR_HEAD(ASWindow*,l[i]->members);
-        	LOCAL_DEBUG_OUT( "layer[%d] = %d, end_k = %d", i, l[i]->layer, end_k );
-        	for( k = 0 ; k < end_k ; k++ )
-        	{
-            	register ASWindow *asw = members[k] ;
-/*				LOCAL_DEBUG_OUT( "asw = %p, asw->desk = %d, desk = %d", asw, ASWIN_DESK(asw), desk ); 
-	*/			if( ASWIN_DESK(asw) == desk && !ASWIN_GET_FLAGS(asw, AS_Dead) )
-				{
-					register ASCanvas *fc = asw->frame_canvas;  
-					if( fc->root_x <= root_x && fc->root_y <= root_y && 
-						fc->root_x + fc->width + fc->bw*2 > root_x && 
-						fc->root_y + fc->height + fc->bw*2 > root_y ) 
-                    	return asw;
-				}
-        	}
-    	}
-	}
-	return NULL ; 
-}
-
 #if 0
 /********************************************************************************************/
 /* old version of code - stacking window IDs instead of pointers to ASWindow */
@@ -1254,6 +1202,17 @@ restack_window_list( int desk, Bool send_msg_only )
 /********************************************************************************************/
 /********************************************************************************************/
 /********************************************************************************************/
+static int
+get_sorted_layers_vector( ASVector **layers ) 
+{
+	if( *layers == NULL ) 
+        *layers = create_asvector( sizeof(ASLayer*) );
+    if( Scr.Windows->layers->items_num > (*layers)->allocated )
+        realloc_vector( *layers, Scr.Windows->layers->items_num );
+
+	return sort_hash_items (Scr.Windows->layers, NULL, (void**)VECTOR_HEAD_RAW(**layers), 0);	
+}
+
 static void 
 stack_transients( ASWindow *asw, ASVector *list) 
 {
@@ -1351,6 +1310,19 @@ update_stacking_order()
 		stack_layer_windows( l[i], list );
 }
 
+static ASWindow ** 
+get_stacking_orger_list(ASWindowList *list, int *stack_len_return )
+{
+	int stack_len = PVECTOR_USED(list->stacking_order);
+	if( stack_len == 0 ) 
+	{
+		update_stacking_order();	
+		stack_len = PVECTOR_USED(list->stacking_order);
+	}
+	*stack_len_return = stack_len ;
+	return PVECTOR_HEAD(ASWindow*, Scr.Windows->stacking_order);
+}
+
 static ASVector *__as_scratch_ids = NULL; 
 
 void
@@ -1380,16 +1352,10 @@ send_stacking_order( int desk )
     if( Scr.Windows->clients->count > 0)
 	{
 		int i ; 
-		ASWindow **stack;
-		int stack_len = PVECTOR_USED(Scr.Windows->stacking_order);
+		int stack_len = 0;
+		ASWindow **stack = get_stacking_orger_list(Scr.Windows, &stack_len );
 		ASVector *ids = get_scratch_ids_vector();
 		
-		if( stack_len == 0 ) 
-		{
-			update_stacking_order();	
-			stack_len = PVECTOR_USED(Scr.Windows->stacking_order);
-		}
-		stack = PVECTOR_HEAD(ASWindow*, Scr.Windows->stacking_order);
 		for( i = 0 ; i < stack_len ; ++i )
 			vector_insert_elem(ids, &(stack[i]->w), 1, NULL, False);
 
@@ -1403,22 +1369,15 @@ apply_stacking_order( int desk )
     if( Scr.Windows->clients->count > 0)
 	{
 		int i ; 
-		ASWindow **stack;
-		int stack_len = PVECTOR_USED(Scr.Windows->stacking_order);
+		int stack_len = 0;
+		ASWindow **stack = get_stacking_orger_list(Scr.Windows, &stack_len );
 		ASVector *ids = get_scratch_ids_vector();
 		Window cw = get_desktop_cover_window();
 		int windows_num ; 
 		
-		if( stack_len == 0 ) 
-		{
-			update_stacking_order();	
-			stack_len = PVECTOR_USED(Scr.Windows->stacking_order);
-		}
-
         if( cw != None )
 			vector_insert_elem(ids, &cw, 1, NULL, True);
 
-		stack = PVECTOR_HEAD(ASWindow*,Scr.Windows->stacking_order);
 		for( i = 0 ; i < stack_len ; ++i )
 			vector_insert_elem(ids, &(stack[i]->frame), 1, NULL, False);
 
@@ -1442,8 +1401,8 @@ void
 publish_aswindow_list( ASWindowList *list, Bool stacking_only )
 {
 	int i ;
-	ASWindow **stack;
-	int stack_len = PVECTOR_USED(list->stacking_order);
+	int stack_len = 0;
+	ASWindow **stack = get_stacking_orger_list(Scr.Windows, &stack_len );
 	ASVector *ids = get_scratch_ids_vector();
 	
 	/* we maybe called from Destroy, in which case one of the clients may be 
@@ -1467,13 +1426,6 @@ publish_aswindow_list( ASWindowList *list, Bool stacking_only )
         flush_vector( ids );
 	}		  
 
-
-	if( stack_len == 0 ) 
-	{
-		update_stacking_order();	
-		stack_len = PVECTOR_USED(list->stacking_order);
-	}
-	stack = PVECTOR_HEAD(ASWindow*, list->stacking_order);
 	i = stack_len ;
 	while( --i >= 0 )
 		vector_insert_elem(ids, &(stack[i]->w), 1, NULL, False);
@@ -1489,6 +1441,33 @@ restack_window_list( int desk )
 	publish_aswindow_list( Scr.Windows, True );
 	apply_stacking_order( desk );
 }
+
+ASWindow*
+find_topmost_client( int desk, int root_x, int root_y )
+{
+    if( Scr.Windows->clients->count > 0 )
+	{
+		int i ; 
+		int stack_len = 0;
+		ASWindow **stack = get_stacking_orger_list(Scr.Windows, &stack_len );
+
+		for( i = 0 ; i < stack_len ; ++i )
+		{
+           	register ASWindow *asw = stack[i] ;
+			if( ASWIN_DESK(asw) == desk && !ASWIN_GET_FLAGS(asw, AS_Dead) )
+			{
+				register ASCanvas *fc = asw->frame_canvas;  
+				if( fc->root_x <= root_x && fc->root_y <= root_y && 
+					fc->root_x + fc->width + fc->bw*2 > root_x && 
+					fc->root_y + fc->height + fc->bw*2 > root_y ) 
+                    return asw;
+			}
+		}
+	}
+	return NULL ; 
+}
+
+
 
 /*
  * we better have our own routine for changing window stacking order,
