@@ -482,85 +482,6 @@ destroy_aswindow_list( ASWindowList **list, Bool restore_root )
         }
 }
 
-void
-publish_aswindow_list( ASWindowList *list, Bool stacking_only )
-{
-	int clients_num = list->clients->count, used = 0 ;
-	Window *client_list	;
-	int i ;
-    ASLayer **layers = NULL ;
-    unsigned long layers_in ;
-	
-	if( clients_num == 0 ) 
-		return;
-
-	/* we maybe called from Destroy, in which case one of the clients may be 
-	   delisted from main list, while still present in it's owner's transients list
-	   which is why we use +1 - This was happening for some clients who'd have 
-	   recursive transients ( transient of a transient of a transient ) 
-	   Since we added check to unroll that sequence in tie_aswindow - problem had gone away, 
-	   but lets keep on adding 1 just in case.
-	 */
-	clients_num += 1;
-	
-	client_list = safecalloc( clients_num, sizeof(Window));
-	if( !stacking_only ) 
-	{
-		ASBiDirElem *curr = LIST_START(list->clients);
-		used = 0 ;
-		while( curr && used < clients_num )
-		{
-			ASWindow *asw = (ASWindow*)LISTELEM_DATA(curr);
-			client_list[used++] = asw->w ;
-			LIST_GOTO_NEXT(curr);	
-		}	 
-		LOCAL_DEBUG_OUT( "Setting Client List property to include %d windows (clients_num = %d) ", used, clients_num );
-		set_clients_list (Scr.wmprops, client_list, used);
-	}		  
-    
-    layers = safecalloc( list->layers->items_num, sizeof(ASLayer*) );
-	if( (layers_in = sort_hash_items (list->layers, NULL, (void**)layers, 0)) == 0 )
-        return ;
-
-    used = clients_num ;       /* we have to reverse the order - bottommost window comes first */
-	for( i = 0 ; i < layers_in ; i++ )
-    {
-        register int k, end_k = PVECTOR_USED(layers[i]->members) ;
-        ASWindow **members = PVECTOR_HEAD(ASWindow*,layers[i]->members);
-        if( end_k > used )
-            end_k = used ;
-        for( k = 0 ; k < end_k ; k++ )
-        {
-            register ASWindow *asw = members[k] ;
-            if( !ASWIN_GET_FLAGS(asw, AS_Dead) )
-			{
-				if( !ASWIN_HFLAGS(asw, AS_Transient) && asw->transients )
-				{
-					int tnum = PVECTOR_USED(asw->transients);
-					if( tnum > 0 )
-					{/* need to collect all the transients and stick them in front of us in reverse order */
-						ASWindow **t_list = PVECTOR_HEAD(ASWindow*,asw->transients);
-						int tcurr ;
-						for( tcurr = 0 ; tcurr < tnum ; ++tcurr )
-					        if( !ASWIN_GET_FLAGS(t_list[tcurr], AS_Dead) )
-							{
-								LOCAL_DEBUG_OUT( "#%d: adding transient %lx", used-1, t_list[tcurr]->w );
-				            	client_list[--used] = t_list[tcurr]->w;
-							}
-					}
-				}
-				LOCAL_DEBUG_OUT( "#%d: adding client %lx", used-1, asw->w );
-            	client_list[--used] = asw->w;
-			}
-        }
-    }
-	set_stacking_order (Scr.wmprops, &client_list[used], clients_num - used);
-
-	free( layers );
-	free( client_list );
-		   
-}
-
 /*************************************************************************
  * We maintain crossreference of X Window ID to ASWindow structure - that is
  * faster then using XContext since we don't have to worry about multiprocessing,
@@ -1515,6 +1436,49 @@ apply_stacking_order( int desk )
         raise_scren_panframes (ASDefaultScr);
         XRaiseWindow(dpy, Scr.ServiceWin);
 	}
+}
+
+void
+publish_aswindow_list( ASWindowList *list, Bool stacking_only )
+{
+	int i ;
+	ASWindow **stack;
+	int stack_len = PVECTOR_USED(list->stacking_order);
+	ASVector *ids = get_scratch_ids_vector();
+	
+	/* we maybe called from Destroy, in which case one of the clients may be 
+	   delisted from main list, while still present in it's owner's transients list
+	   which is why we use +1 - This was happening for some clients who'd have 
+	   recursive transients ( transient of a transient of a transient ) 
+	   Since we added check to unroll that sequence in tie_aswindow - problem had gone away, 
+	   but lets keep on adding 1 just in case.
+	 */
+	if( !stacking_only ) 
+	{
+		ASBiDirElem *curr = LIST_START(list->clients);
+		while( curr )
+		{
+			ASWindow *asw = (ASWindow*)LISTELEM_DATA(curr);
+			vector_insert_elem(ids, &(asw->w), 1, NULL, False);
+			LIST_GOTO_NEXT(curr);	
+		}	 
+		LOCAL_DEBUG_OUT( "Setting Client List property to include %d windows (clients_num = %d) ", used, clients_num );
+		set_clients_list (Scr.wmprops, PVECTOR_HEAD(Window,ids), PVECTOR_USED(ids));
+        flush_vector( ids );
+	}		  
+
+
+	if( stack_len == 0 ) 
+	{
+		update_stacking_order();	
+		stack_len = PVECTOR_USED(list->stacking_order);
+	}
+	stack = PVECTOR_HEAD(ASWindow*, list->stacking_order);
+	i = stack_len ;
+	while( --i >= 0 )
+		vector_insert_elem(ids, &(stack[i]->w), 1, NULL, False);
+
+	set_stacking_order (Scr.wmprops, PVECTOR_HEAD(Window,ids), PVECTOR_USED(ids));
 }
 
 void

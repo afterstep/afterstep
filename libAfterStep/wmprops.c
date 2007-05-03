@@ -1281,23 +1281,44 @@ flush_wmprop_data (ASWMProps * wmprops, ASFlagType what)
 	}
 }
 
+static void 
+realloc_clients_list( ASWMProps * wmprops, int nclients )
+{
+	if( nclients <= 0 ) 
+	{
+		free( wmprops->client_list );
+		free( wmprops->stacking_order );
+		wmprops->client_list = NULL;
+		wmprops->stacking_order = NULL;
+		wmprops->clients_num = 0;
+	}else
+	{
+    	if( wmprops->clients_num < nclients ) 
+		{
+			wmprops->client_list = realloc( wmprops->client_list, nclients*sizeof(Window) );
+			wmprops->stacking_order = realloc( wmprops->stacking_order, nclients*sizeof(Window) );
+		}
+		wmprops->clients_num = nclients ;
+	}
+}
 
 void
 set_clients_list (ASWMProps * wmprops, Window *list, int nclients)
 {
 	if (wmprops)
 	{
-		set_32bit_proplist (wmprops->scr->Root, _XA_NET_CLIENT_LIST, XA_WINDOW, list, nclients);
-		set_32bit_proplist (wmprops->scr->Root, _XA_WIN_CLIENT_LIST, XA_CARDINAL, list, nclients);
-		XFlush (dpy);
-    	if( wmprops->clients_num < nclients ) 
+		realloc_clients_list( wmprops, nclients );
+		if( nclients <= 0 ) 
 		{
-			wmprops->client_list = realloc( wmprops->client_list, nclients*sizeof(Window) );
-			wmprops->stacking_order = realloc( wmprops->stacking_order, nclients*sizeof(Window) );
-
+			XDeleteProperty (dpy, wmprops->scr->Root, _XA_NET_CLIENT_LIST);
+			XDeleteProperty (dpy, wmprops->scr->Root, _XA_WIN_CLIENT_LIST);
+		}else
+		{
+			set_32bit_proplist (wmprops->scr->Root, _XA_NET_CLIENT_LIST, XA_WINDOW, list, nclients);
+			set_32bit_proplist (wmprops->scr->Root, _XA_WIN_CLIENT_LIST, XA_CARDINAL, list, nclients);
+			memcpy( wmprops->client_list, list, nclients*sizeof(Window) );
 		}
-		wmprops->clients_num = nclients ;
-		memcpy( wmprops->client_list, list, nclients*sizeof(Window) );
+		XFlush (dpy);
 	}
 }
 
@@ -1306,17 +1327,16 @@ set_stacking_order (ASWMProps * wmprops, Window *list, int nclients)
 {
 	if (wmprops)
 	{
- 		set_32bit_proplist (wmprops->scr->Root, _XA_NET_CLIENT_LIST_STACKING, XA_WINDOW, list, nclients);	
-		XFlush (dpy);
-    	if( wmprops->clients_num < nclients ) 
+		realloc_clients_list( wmprops, nclients );
+		if( nclients <= 0 ) 
+			XDeleteProperty (dpy, wmprops->scr->Root, _XA_NET_CLIENT_LIST_STACKING);
+		else
 		{
-			wmprops->client_list = realloc( wmprops->client_list, nclients*sizeof(Window) );
-			wmprops->stacking_order = realloc( wmprops->stacking_order, nclients*sizeof(Window) );
-
+	 		set_32bit_proplist (wmprops->scr->Root, _XA_NET_CLIENT_LIST_STACKING, XA_WINDOW, list, nclients);	
+			memcpy( wmprops->stacking_order, list, nclients*sizeof(Window) );
 		}
-		wmprops->clients_num = nclients ;
-		memcpy( wmprops->stacking_order, list, nclients*sizeof(Window) );
-	}
+		XFlush (dpy);
+    }
 }
 
 void

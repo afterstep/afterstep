@@ -18,8 +18,8 @@
 
 
 #define LOCAL_DEBUG
-#undef DO_CLOCKING
-#ifndef NO_DEBUG_OUTPUT
+#define DO_CLOCKING
+#ifdef NO_DEBUG_OUTPUT
 #undef DEBUG_RECTS
 #undef DEBUG_RECTS2
 #endif
@@ -56,6 +56,7 @@
 
 #ifdef HAVE_MMX
 #include <mmintrin.h>
+#include <xmmintrin.h>
 #endif
 
 #ifdef _WIN32
@@ -69,14 +70,15 @@
 #include "imencdec.h"
 
 #define TEST_PADDD
+#define USE_PREFETCH
 
 #ifdef DO_CLOCKING
-#define MIN_TEST_LEN 10000000
-#define MAX_TEST_LEN 10000001
+#define MIN_TEST_LEN 15000000
+#define MAX_TEST_LEN 15000001
 #define MAX_REPS 1
 #else
 #define MIN_TEST_LEN 1
-#define MAX_TEST_LEN 100001
+#define MAX_TEST_LEN 10001
 #define MAX_REPS 1
 #endif
 
@@ -138,6 +140,9 @@ int main()
 				do{
 #ifdef TEST_PADDD				
 					vdst[i] = _mm_add_pi32(vdst[i],vinc[i]);  /* paddd */
+#ifdef USE_PREFETCH
+					_mm_prefetch( &vinc[i+16], _MM_HINT_NTA );
+#endif
 #else
 					vdst[i] = _mm_srli_pi32(vsrc[i],1);  /* psrld */
 #endif 
