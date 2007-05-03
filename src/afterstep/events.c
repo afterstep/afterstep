@@ -1477,7 +1477,18 @@ HandleConfigureRequest ( ASEvent *event )
 		LOCAL_DEBUG_OUT( "Ignoring ConfigureRequest for window %lX. Not a client or client's icon!", (unsigned long)event->w );
 		return;
 	}
-	
+
+    if (cre->value_mask & CWStackMode )
+	{
+		if( !ASWIN_HFLAGS(asw, AS_IgnoreRestackRequest ) )
+		{
+	        restack_window( asw, (cre->value_mask & CWSibling)?cre->above:None, cre->detail );
+		}else
+		{
+			LOCAL_DEBUG_OUT( "Ignoring Stacking order Request for client %p as required by hints", asw );
+		}
+	}
+
 	if( ( ASWIN_HFLAGS(asw, AS_IgnoreConfigRequest ) && !get_flags(cre->value_mask, CWWidth|CWHeight))||
 		ASWIN_GET_FLAGS( asw, AS_Fullscreen ) )
 	{	
@@ -1485,9 +1496,6 @@ HandleConfigureRequest ( ASEvent *event )
 		SendConfigureNotify(asw);
 		return;
 	}
-
-    if (cre->value_mask & CWStackMode)
-        restack_window( asw, (cre->value_mask & CWSibling)?cre->above:None, cre->detail );
 
     /* check_aswindow_shaped( asw ); */
 

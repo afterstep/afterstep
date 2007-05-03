@@ -1413,9 +1413,11 @@ void CheckWinListConfigSanity(WinListConfig *Config,
 #define DATABASE_Fullscreen_ID             (DATABASE_ID_START+67)
 #define DATABASE_NoFullscreen_ID		   (DATABASE_ID_START+68)
 #define DATABASE_WindowOpacity_ID		   (DATABASE_ID_START+69)
+#define DATABASE_IgnoreRestack_ID          (DATABASE_ID_START+70)
+#define DATABASE_HonorRestack_ID            (DATABASE_ID_START+71)
 
 
-#define DATABASE_ID_END             (DATABASE_ID_START+70)
+#define DATABASE_ID_END             (DATABASE_ID_START+72)
 
 /* we use name_list structure 1 to 1 in here, as it does not requre any
    preprocessing from us

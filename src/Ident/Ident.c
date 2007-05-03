@@ -456,6 +456,9 @@ struct
 	{STYLE_FOCUS_ON_MAP, 		"FocusOnMap", 			"NoFocusOnMap"},
 	{STYLE_LONG_LIVING,			"LongLiving",			"ShortLiving"},
 	{STYLE_IGNORE_CONFIG,  		"IgnoreConfig",			"HonorConfig"},
+	{STYLE_IGNORE_RESTACK, 		"IgnoreRestack",		"HonorRestack"},
+	{STYLE_CURRENT_VIEWPORT,    "UseCurrentViewport",   "UseAnyViewport"},
+
 	{0,NULL, NULL}};
 
 const char *Gravity2text[] =
@@ -561,6 +564,10 @@ fill_window_data()
 	SHOW_FLAG(wd->client_icon_flags,ClientIconPosition);
 	SHOW_FLAG(wd->flags,FocusOnMap);          
 	SHOW_FLAG(wd->flags,ShortLived);
+	SHOW_FLAG(wd->flags,Module);
+	SHOW_FLAG(wd->flags,IgnoreConfigRequest);
+	SHOW_FLAG(wd->flags,IgnoreRestackRequest);
+	SHOW_FLAG(wd->flags,WMDockApp);
 	
 	add_property("Current hints flags:", buf, AS_Text_ASCII, True);
 	
@@ -573,9 +580,6 @@ fill_window_data()
 	SHOW_FLAG(wd->flags,SizeInc);
 	SHOW_FLAG(wd->flags,BaseSize);
 	SHOW_FLAG(wd->flags,Gravity);
-	SHOW_FLAG(wd->flags,Module);
-	SHOW_FLAG(wd->flags,IgnoreConfigRequest);
-	SHOW_FLAG(wd->flags,WMDockApp);
 	
 	add_property("Specified hint values:", buf, AS_Text_ASCII, True);
 

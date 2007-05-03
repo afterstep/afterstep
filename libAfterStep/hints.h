@@ -90,12 +90,13 @@ struct ASImage;
 #define AS_ShortLived           (1<<22)
 #define AS_Module				(1<<23)
 #define AS_IgnoreConfigRequest  (1<<24)
-#define AS_WMDockApp			(1<<25)  /* res_class == "DockApp" and main 
+#define AS_IgnoreRestackRequest (1<<25)
+#define AS_WMDockApp			(1<<26)  /* res_class == "DockApp" and main 
 										  * window is 1x1 (just don't ask why)
 										  * usually that means that icon 
 										  * window should be animated */ 
-#define AS_UseCurrentViewport  	(1<<26)
-#define AS_WindowOpacity	   	(1<<27)
+#define AS_UseCurrentViewport  	(1<<27)
+#define AS_WindowOpacity	   	(1<<28)
 
 #define NOLOOK_HINT_FLAGS	(AS_IgnoreConfigRequest|AS_Module|AS_ShortLived| \
 							 AS_AvoidCover|AS_AcceptsFocus|AS_ClickToFocus| \

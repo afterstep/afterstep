@@ -37,6 +37,8 @@ Style 	"AskWharf"      Handles
 Style   "Banner"        NoTitle, Sticky, Layer 2, WindowListSkip, NoHandles
 Style   "WinTabs"       Title, Layer 0, Slippery, Handles, AllowCover 
 
+Style   "NEdit"         Title, Slippery, Layer 0, Handles, AllowCover 
+
 # This record is for the AfterStep menu :
 Style   "ASMenu"        NoButton 1, NoButton 3
 
@@ -65,6 +67,8 @@ Style   "wmsystray"     AvoidCover, StartIconic, NoTitle, Layer 4,NoHandles
 Style	"Mozilla-bin"		Icon logos/mozilla, IgnoreConfig	
 # , StartsOnDesk 1
 Style	"Firefox-bin"		Icon logos/Firefox, IgnoreConfig	
+# this will prevent firefox's download manager from poping on top every time:
+Style	"*Downloads"		Icon logos/Package, IgnoreRestack	
 # , StartsOnDesk 1
 Style	"Galeon"		IgnoreConfig		
 # , StartsOnDesk 1
@@ -144,13 +148,15 @@ Style   "XFBD*"			Sticky
 Style	"XPostit*"		Icon Text.xpm
 Style	"xkhfm@Programs"	NoTitle, Sticky, WindowListSkip
 
-# Make web browzer the last look to limit application & webpage naming conflicts
-Style	"* - Mozilla"		Icon logos/mozilla
-Style	"* - Mozilla Firefox"	Icon logos/Firefox
 
 # Open Office makes some dialogs have type Dialog and others - type Normal, 
 # causing all kinds of wierdness. So let's use power of AS to fix it ourselves :
 Style "VCLSalFrame"			Layer 1
 Style "VCLSalFrame.DocumentWindow*"	Layer 0
+
+# Make web browzer the last look to limit application & webpage naming conflicts
+Style	"* - Mozilla"		Icon logos/mozilla
+Style	"* - Mozilla Firefox"	Icon logos/Firefox
+
 
 ##########################################################################
