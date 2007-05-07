@@ -211,6 +211,10 @@ typedef struct ASEnvironment
   unsigned short desk_pages_h, desk_pages_v ;
   unsigned short desk_scale ;
 
+	enum{ ASE_AllowModuleNameCollision = 0,
+		  ASE_KillOldModuleOnNameCollision,	
+		  ASE_KillNewModuleOnNameCollision 
+		}module_name_collision ; 
   char *tool_command[ASTool_Count] ;
   
   char *gtkrc_path ;

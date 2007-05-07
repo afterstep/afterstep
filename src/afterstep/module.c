@@ -130,8 +130,6 @@ LOCAL_DEBUG_OUT( "module name \"%s\"", module->name );
         	free_func_data (module->ibuf.func);
         	free (module->ibuf.func);
 		}
-		
-
     	memset( module, 0x00, sizeof(module_t) );
 	}else
 	{
@@ -697,7 +695,8 @@ LOCAL_DEBUG_OUT( "module %d has %s input and %s output", channel, has_input?"":"
             else if ( res > 0 ) /* need to run command */
                 RunCommand (module->ibuf.func, channel, module->ibuf.window);
         }
-        if( has_output )
+		/* module could be killed inside RunCoimmand !*/
+        if( has_output && module->fd > 0 )
             FlushQueue( module );
 	}
 }
@@ -913,6 +912,25 @@ SendStackingOrder (int channel, send_data_type msg_type, send_data_type desk, AS
     SendBuffer( channel );
 }
 
+static void 
+check_module_name_collision( unsigned int channel, const char *name, Bool kill_new )
+{
+	register int i = MODULES_NUM;
+    register module_t *list = MODULES_LIST ;
+LOCAL_DEBUG_OUT( "pid(%d),total modules %d. name = \"%s\", kill_new = %d", getpid(), MODULES_NUM, name, kill_new );
+    while(--i >= 0 )
+		if( i != channel ) 
+		{
+			LOCAL_DEBUG_OUT( "checking module %d, name = \"%s\"", i, list[i].name?list[i].name:"(null)" );
+            if( mystrcasecmp( list[i].name, name ) == 0 )
+			{
+		        KillModule (&(list[kill_new?channel:i]), False);
+				break;
+			}	
+		}
+}
+
+
 /* this will run command received from module */
 void
 RunCommand (FunctionData * fdata, unsigned int channel, Window w)
@@ -943,6 +961,8 @@ RunCommand (FunctionData * fdata, unsigned int channel, Window w)
 	        set_string( &(module->cmd_line), fdata->text );
     	    fdata->text = NULL;
 		}
+		if( Environment->module_name_collision != ASE_AllowModuleNameCollision ) 
+			check_module_name_collision( channel, module->name, (Environment->module_name_collision == ASE_KillNewModuleOnNameCollision) );			
         break;
      case F_UNLOCK:
 		 toret = 66;

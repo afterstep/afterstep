@@ -20,6 +20,13 @@ CursorPath              @with_afterdir@/desktop/cursors:@datadir@/afterstep/desk
 # This sets the size of the virtual desktop :
 DeskTopSize @with_deskgeometry@
 
+#this will cause AfterStep to kill old instance of the module with the same name, 
+#whenever new one comes up. Allowed values are : 
+#   0 - let there be many modules with the same name  (default)
+#   1 - kill old module with the same name
+#   2 - kill new module with the same name
+NoModuleNameCollisions 1
+
 
 # Uncomment this if you run X remotely, or have issues with shared memory :
 #DisableSharedMemory

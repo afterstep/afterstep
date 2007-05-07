@@ -1680,12 +1680,13 @@ afterstep_wait_pipes_input(int timeout_sec)
         i = MIN(MODULES_NUM,Module_npipes) ;
         /* Check for module input. */
         while( --i >= 0 )
-        {
-            Bool has_input = FD_ISSET (list[i].fd, &in_fdset);
-            Bool has_output = FD_ISSET (list[i].fd, &out_fdset);
-            if( has_input || has_output )
-                HandleModuleInOut(i, has_input, has_output);
-        }
+			if( list[i].fd > 0 )
+	        {
+        	    Bool has_input = FD_ISSET (list[i].fd, &in_fdset);
+    	        Bool has_output = FD_ISSET (list[i].fd, &out_fdset);
+            	if( has_input || has_output )
+                	HandleModuleInOut(i, has_input, has_output);
+	        }
 	}
 
 	/* handle timeout events */

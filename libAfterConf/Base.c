@@ -55,6 +55,7 @@ TermDef       BaseTerms[] = {
     {TF_NO_MYNAME_PREPENDING|TF_INDEXED, "EditorCommand", 13,    TT_TEXT,     BASE_EditorCommand_ID  , NULL},
     {TF_NO_MYNAME_PREPENDING, "DisableSharedMemory", 19,   TT_FLAG,  BASE_NoSharedMemory_ID  , NULL},
     {TF_NO_MYNAME_PREPENDING, "DisableKDEGlobalsTheming", 24,   TT_FLAG,  BASE_NoKDEGlobalsTheming_ID  , NULL},
+    {TF_NO_MYNAME_PREPENDING, "NoModuleNameCollisions", 22,   TT_INTEGER,  BASE_NoModuleNameCollisions_ID  , NULL},
 	{0, NULL, 0, 0, 0}
 };
 
@@ -193,7 +194,11 @@ ParseBaseOptions (const char *filename, char *myname)
 			 if (config->desktop_scale < 1)
 				 config->desktop_scale = 1;
 			 break;
-		 case BASE_TermCommand_ID :
+		case BASE_NoModuleNameCollisions_ID :
+		 	 set_flags( config->set_flags, BASE_NoModuleNameCollisions_SET );
+			 config->NoModuleNameCollisions = item.data.integer ; 
+			 break;
+		case BASE_TermCommand_ID :
 		 	 if( item.index  < MAX_TOOL_COMMANDS && item.index >= 0 ) 
 			 {	
 			 	set_string(&(config->term_command[item.index]), item.data.string );		 	
@@ -373,6 +378,13 @@ BaseConfig2ASEnvironment( register BaseConfig *config, ASEnvironment **penv )
 	else
 		env->desk_pages_v = 0 ;
 	env->desk_scale = config->desktop_scale ;
+	
+	switch( config->NoModuleNameCollisions%3 )
+	{
+		case 0 : env->module_name_collision = ASE_AllowModuleNameCollision ; break;
+		case 1 : env->module_name_collision = ASE_KillOldModuleOnNameCollision ; break;
+		case 2 : env->module_name_collision = ASE_KillNewModuleOnNameCollision ; break;
+	}
 	
 	set_environment_tool_from_list( env, ASTool_Term, config->term_command, MAX_TOOL_COMMANDS );
 	set_environment_tool_from_list( env, ASTool_Browser, config->browser_command, MAX_TOOL_COMMANDS );

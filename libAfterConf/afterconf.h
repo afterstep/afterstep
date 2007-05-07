@@ -425,14 +425,16 @@ ASModuleConfig *parse_asmodule_config_all(ASModuleConfigClass *class );
 #define BASE_EditorCommand_ID	BASE_ID_START+13
 #define BASE_NoSharedMemory_ID	BASE_ID_START+14
 #define BASE_NoKDEGlobalsTheming_ID	BASE_ID_START+15
-#define BASE_ID_END             BASE_ID_START+16
+#define BASE_NoModuleNameCollisions_ID	BASE_ID_START+16
+#define BASE_ID_END             BASE_ID_START+17
 
 typedef struct
 {
-#define BASE_NO_SHARED_MEMORY	(0x01<<0)	
-#define BASE_NO_KDEGLOBALS_THEMING	(0x01<<1)	  
-#define BASE_DESKTOP_SIZE_SET	(0x01<<16)	  
-#define BASE_DESKTOP_SCALE_SET	(0x01<<17)	  
+#define BASE_NO_SHARED_MEMORY			(0x01<<0)	
+#define BASE_NO_KDEGLOBALS_THEMING		(0x01<<1)	  
+#define BASE_DESKTOP_SIZE_SET			(0x01<<16)	  
+#define BASE_DESKTOP_SCALE_SET			(0x01<<17)	  
+#define BASE_NoModuleNameCollisions_SET	(0x01<<18)
 	ASFlagType flags, set_flags ; 
     char *module_path;
     char *audio_path;
@@ -445,7 +447,7 @@ typedef struct
     char *gtkrc20_path;
     ASGeometry desktop_size;
     int desktop_scale;
-
+	int NoModuleNameCollisions;	
 #define MAX_TOOL_COMMANDS	8
 	char *term_command[MAX_TOOL_COMMANDS] ; 
 	char *browser_command[MAX_TOOL_COMMANDS] ; 

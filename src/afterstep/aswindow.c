@@ -1421,7 +1421,7 @@ publish_aswindow_list( ASWindowList *list, Bool stacking_only )
 			vector_insert_elem(ids, &(asw->w), 1, NULL, False);
 			LIST_GOTO_NEXT(curr);	
 		}	 
-		LOCAL_DEBUG_OUT( "Setting Client List property to include %d windows (clients_num = %d) ", used, clients_num );
+		LOCAL_DEBUG_OUT( "Setting Client List property to include %d windows ", PVECTOR_USED(ids) );
 		set_clients_list (Scr.wmprops, PVECTOR_HEAD(Window,ids), PVECTOR_USED(ids));
         flush_vector( ids );
 	}		  
