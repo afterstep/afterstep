@@ -128,6 +128,7 @@ flag_options_xref;
 /* this functions return 1 on success - 0 otherwise */
 int ReadConfigItem (ConfigItem * item, FreeStorageElem * stored);
 Bool ReadConfigItemToStruct( void *struct_ptr, ptrdiff_t set_flags_offset, FreeStorageElem * stored );
+Bool ReadCompositeFlagsConfigItem( void *struct_ptr, ptrdiff_t flags_field_offset, FreeStorageElem * stored );
 
 /* indexed flags cannot be handled by ReadFlagItem - it will return 0
    for those - handle them manually using ReadConfigItem */

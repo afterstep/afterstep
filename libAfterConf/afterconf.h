@@ -92,6 +92,10 @@ extern struct SyntaxDef      WinListFeelSyntax;
 extern struct SyntaxDef      WinTabsSyntax;
 extern struct SyntaxDef      PopupFuncSyntax;
 
+extern struct SyntaxDef      BalloonContentsSyntax;
+extern struct SyntaxDef     *BalloonContentsSyntaxPtr;
+
+
 #define ASCF_DEFINE_MODULE_FLAG_XREF(module,keyword,struct_type) \
 	{module##_##keyword,module##_##keyword##_ID,0,offsetof(struct_type,flags),offsetof(struct_type,set_flags)}	
 #define ASCF_DEFINE_MODULE_ONOFF_FLAG_XREF(module,keyword,struct_type) \
@@ -107,8 +111,12 @@ extern struct SyntaxDef      PopupFuncSyntax;
 #define ASCF_DEFINE_KEYWORD_SA(module,flags,keyword,type,subsyntax,struct_type,alias_for) \
 	{(flags),#keyword,sizeof(#keyword)-1,type,module##_##keyword##_ID,subsyntax,offsetof(struct_type,alias_for),module##_##alias_for,0}	
 
-#define ASCF_DEFINE_KEYWORD_SF(module,flags,keyword,type,subsyntax,struct_type) \
+#define ASCF_DEFINE_KEYWORD_SF(module,flags,keyword,type,subsyntax,struct_type,flags_on,flags_off) \
 	{(flags),#keyword,sizeof(#keyword)-1,type,module##_##keyword##_ID,subsyntax,offsetof(struct_type,keyword),flags_on,flags_off}	
+
+#define ASCF_DEFINE_KEYWORD_F(module,flags,keyword,subsyntax,flags_on,flags_off) \
+	{(flags),#keyword,sizeof(#keyword)-1,TT_FLAG,module##_##keyword##_ID,subsyntax,0,flags_on,flags_off}	
+
 
 #define ASCF_PRINT_FLAG_KEYWORD(stream,module,__config,keyword) \
 	do{ if(get_flags((__config)->set_flags,module##_##keyword) ) \
@@ -699,6 +707,7 @@ struct FreeStorageElem **MyStyleDefs2FreeStorage (struct SyntaxDef * syntax, str
 #define ALIGN_Center_ID     (ALIGN_ID_START+12)
 #define ALIGN_HCenter_ID    (ALIGN_ID_START+13)
 #define ALIGN_VCenter_ID    (ALIGN_ID_START+14)
+#define ALIGN_None_ID 	   (ALIGN_ID_START+15)
 #define ALIGN_ID_END        (ALIGN_ID_START+16)
 
 #define BEVEL_ID_START      (ALIGN_ID_END+1)
@@ -867,7 +876,26 @@ void myframe_parse (char *tline, FILE * fd, char **myname, int *myframe_list);
 #define BALLOON_TextPaddingY_ID     (BALLOON_ID_START+BALLOON_TextPaddingY_ID_OFFSET)
 #define BALLOON_NoBalloons_ID	 	(BALLOON_ID_START+BALLOON_NoBalloons_ID_OFFSET)
 
-#define	BALLOON_ID_END				(BALLOON_ID_START+10)
+#define BALLOON_SHOW_Name_OFFSET		0
+#define BALLOON_SHOW_IconName_OFFSET	1
+#define BALLOON_SHOW_ResClass_OFFSET	2
+#define BALLOON_SHOW_ResName_OFFSET		3
+#define BALLOON_SHOW_Comment_OFFSET		4
+#define BALLOON_SHOW_Exec_OFFSET		5
+#define BALLOON_SHOW_GenericName_OFFSET	6
+#define BALLOON_SHOW_END_OFFSET			7
+
+#define BALLOON_SHOW_ID_START		(BALLOON_ID_START+BALLOON_ID_END_OFFSET+1)
+#define BALLOON_Name_ID				(BALLOON_SHOW_ID_START+BALLOON_SHOW_Name_OFFSET)
+#define BALLOON_IconName_ID			(BALLOON_SHOW_ID_START+BALLOON_SHOW_IconName_OFFSET)
+#define BALLOON_ResClass_ID			(BALLOON_SHOW_ID_START+BALLOON_SHOW_ResClass_OFFSET)
+#define BALLOON_ResName_ID			(BALLOON_SHOW_ID_START+BALLOON_SHOW_ResName_OFFSET)
+#define BALLOON_Comment_ID			(BALLOON_SHOW_ID_START+BALLOON_SHOW_Comment_OFFSET)
+#define BALLOON_Exec_ID				(BALLOON_SHOW_ID_START+BALLOON_SHOW_Exec_OFFSET)
+#define BALLOON_GenericName_ID		(BALLOON_SHOW_ID_START+BALLOON_SHOW_GenericName_OFFSET)
+#define BALLOON_SHOW_ID_END			(BALLOON_ID_START+BALLOON_SHOW_END_OFFSET)
+
+#define	BALLOON_ID_END				(BALLOON_SHOW_ID_END+1)
 
 #define TITLE_BALLOON_ID_START  (BALLOON_ID_START+BALLOON_ID_END_OFFSET)
 #define MENU_BALLOON_ID_START   (TITLE_BALLOON_ID_START+BALLOON_ID_END_OFFSET)
@@ -902,6 +930,17 @@ void myframe_parse (char *tline, FILE * fd, char **myname, int *myframe_list);
 #define MENU_BALLOON_TERMS  	BALLOON_TERMS_O(MENU_BALLOON_ID_START,"Menu")
 
 extern int ASDefaultBalloonTypes[];
+
+/* this flags aren't really part of ballon config, and could be used by different 
+   modules in their own ways */
+#define BALLOON_SHOW_Name			(0x01<<BALLOON_SHOW_Name_OFFSET)
+#define BALLOON_SHOW_IconName		(0x01<<BALLOON_SHOW_IconName_OFFSET)
+#define BALLOON_SHOW_ResClass		(0x01<<BALLOON_SHOW_ResClass_OFFSET)
+#define BALLOON_SHOW_ResName		(0x01<<BALLOON_SHOW_ResName_OFFSET)
+#define BALLOON_SHOW_Comment		(0x01<<BALLOON_SHOW_Comment_OFFSET)
+#define BALLOON_SHOW_Exec			(0x01<<BALLOON_SHOW_Exec_OFFSET)
+#define BALLOON_SHOW_GenericName	(0x01<<BALLOON_SHOW_GenericName_OFFSET)
+
 
 typedef struct balloonConfig
 {
@@ -939,6 +978,10 @@ struct FreeStorageElem **balloon2FreeStorage (struct SyntaxDef * syntax,
 void MergeBalloonOptions ( ASModuleConfig *asm_to, ASModuleConfig *asm_from);
 struct ASBalloonLook;
 void balloon_config2look( struct MyLook *look, struct ASBalloonLook *balloon_look, balloonConfig *config, const char *default_style );
+
+ASFlagType ParseBalloonContentsOptions( struct FreeStorageElem * options );
+
+
 
 
 /***************************************************************************/
@@ -1215,6 +1258,7 @@ void DestroyMyBackgroundConfig (MyBackgroundConfig ** head);
 #define WINLIST_NoCollides_ID 			(WINLIST_ID_START+40)
 #define WINLIST_AllowCollides_ID 		(WINLIST_ID_START+41)
 #define WINLIST_NoCollidesSpacing_ID	(WINLIST_ID_START+42)
+#define WINLIST_ShowHints_ID	  		(WINLIST_ID_START+43)
 
 #define WINLIST_ID_END                  (WINLIST_ID_START+50)
 
@@ -1254,6 +1298,7 @@ typedef struct WinListConfig
 #define WINLIST_IconSize		(0x01<<23)
 #define WINLIST_ScaleIconToTextHeight (0x01<<24)
 #define WINLIST_NoCollidesSpacing	  (0x01<<25)
+#define WINLIST_ShowHints		(0x01<<26)
 	   
 
 #define 	ASWL_RowsFirst 				WINLIST_FillRowsFirst
@@ -1300,6 +1345,9 @@ typedef struct WinListConfig
 	int  AllowCollides_nitems ;
 
 	int NoCollidesSpacing ;
+
+#define WINLIST_DEFAULT_ShowHints	(BALLOON_SHOW_Name|BALLOON_SHOW_Comment)
+	int ShowHints;
 
     /* calculated based on geometry : */
     int anchor_x, anchor_y ;
@@ -1621,10 +1669,10 @@ typedef struct
     ASFlagType   AlignContents;
 	ASFlagType   Bevel;
 
-#define WHARF_SHOW_HINT_Name			(0x01<<0)
-#define WHARF_SHOW_HINT_Comment			(0x01<<1)
-#define WHARF_SHOW_HINT_Exec			(0x01<<2)
-#define WHARF_SHOW_HINT_GenericName		(0x01<<3)
+#define WHARF_SHOW_HINT_Name			BALLOON_SHOW_Name
+#define WHARF_SHOW_HINT_Comment			BALLOON_SHOW_Comment
+#define WHARF_SHOW_HINT_Exec			BALLOON_SHOW_Exec
+#define WHARF_SHOW_HINT_GenericName		BALLOON_SHOW_GenericName
 #define WHARF_DEFAULT_ShowHints	(WHARF_SHOW_HINT_Name|WHARF_SHOW_HINT_Comment|WHARF_SHOW_HINT_Exec)
 	ASFlagType   ShowHints ;
 	

@@ -417,7 +417,7 @@ alphablend_scanlines( ASScanline *bottom, ASScanline *top, int offset )
 			bg[i] = _mm_cvtsi64_si32( vd );
 			vd = _mm_srli_si64( vd, 32 );
 			bb[i] = _mm_cvtsi64_si32( vd );
-			
+			_mm_empty();
 #else
 			ba[i] = ((ba[i]*ca)>>8)+ta[i] ;
 			br[i] = (br[i]*ca+tr[i]*a)>>8 ;
@@ -426,7 +426,6 @@ alphablend_scanlines( ASScanline *bottom, ASScanline *top, int offset )
 #endif	
 		}
 	}
-	_mm_empty();
 	
 /*	fputc( '\n', stderr );*/
 }

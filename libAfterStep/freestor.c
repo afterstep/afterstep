@@ -1139,25 +1139,55 @@ ReadConfigItem (ConfigItem * item, FreeStorageElem * stored)
 	return 0;
 }
 
+Bool 
+ReadCompositeFlagsConfigItem( void *struct_ptr, ptrdiff_t flags_field_offset, FreeStorageElem * stored )
+{
+	if( struct_ptr && stored && flags_field_offset != 0 ) 
+	{
+		FreeStorageElem *pCurr = stored->sub ; 
+		ASFlagType result = 0 ; 
+
+		while( pCurr ) 
+		{
+			set_flags(result, pCurr->term->flags_on);
+			clear_flags(result, pCurr->term->flags_off);
+			pCurr = pCurr->next ; 
+		}
+		*((ASFlagType*)(struct_ptr+flags_field_offset)) = result ; 
+		return True;
+	}
+	return False;
+}
+
+
 Bool
 ReadConfigItemToStruct( void *struct_ptr, ptrdiff_t set_flags_offset, FreeStorageElem * stored ) 
 {
 	void *data_ptr = struct_ptr ;
-	
-	if( data_ptr && stored && stored->term->struct_field_offset )	
+	Bool handled = False;
+
+	if( data_ptr == NULL || stored == NULL ) 
+		return False ;
+
+	if( stored->term->type == TT_FLAG && stored->term->sub_syntax )
+	{
+		handled = ReadCompositeFlagsConfigItem( struct_ptr, stored->term->struct_field_offset, stored );		
+	}else if( stored->term->struct_field_offset != 0 )	
 	{
 		int index = 0 ;
 		Bool handled = True;
 		ConfigItem item ;
-		ASFlagType *set_flags_ptr = (set_flags_offset > 0)? struct_ptr+set_flags_offset: NULL ;
 		data_ptr += stored->term->struct_field_offset ;
 		
 		item.memory = NULL ; 
+
 		if( !ReadConfigItem( &item, stored ) )
 			return False ;
+
         if (get_flags(stored->term->flags, TF_INDEXED))
 			index =	item.index ;
-		
+	
+		handled = True ;		
 		switch (item.type)
 		{
 		 case TT_FLAG: 		((Bool*) data_ptr)[index] = item.data.flag;		 break;
@@ -1184,16 +1214,17 @@ ReadConfigItemToStruct( void *struct_ptr, ptrdiff_t set_flags_offset, FreeStorag
 		 	default : handled = False ;
         }
 		ReadConfigItem(&item, NULL);
-		
-		if( handled && set_flags_ptr ) 
-		{
-			set_flags( *set_flags_ptr, stored->term->flags_on );
-			clear_flags( *set_flags_ptr, stored->term->flags_off );
-		}
-
-		return handled ;		
 	}
-	return False ;
+
+	if( handled && set_flags_offset > 0 ) 
+	{
+		ASFlagType *set_flags_ptr = struct_ptr+set_flags_offset ;
+
+		set_flags( *set_flags_ptr, stored->term->flags_on );
+		clear_flags( *set_flags_ptr, stored->term->flags_off );
+	}
+
+	return handled ;		
 }
 
 int

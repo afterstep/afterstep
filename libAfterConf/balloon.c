@@ -31,6 +31,59 @@
 
 #include "afterconf.h"
 
+TermDef       BalloonContentsTerms[] = {
+    ASCF_DEFINE_KEYWORD_F(BALLOON, TF_NO_MYNAME_PREPENDING, Name		, NULL, BALLOON_SHOW_Name, ),
+    ASCF_DEFINE_KEYWORD_F(BALLOON, TF_NO_MYNAME_PREPENDING, IconName	, NULL, BALLOON_SHOW_IconName, ),
+    ASCF_DEFINE_KEYWORD_F(BALLOON, TF_NO_MYNAME_PREPENDING, ResClass	, NULL, BALLOON_SHOW_ResClass, ),
+    ASCF_DEFINE_KEYWORD_F(BALLOON, TF_NO_MYNAME_PREPENDING, ResName		, NULL, BALLOON_SHOW_ResName, ),
+    ASCF_DEFINE_KEYWORD_F(BALLOON, TF_NO_MYNAME_PREPENDING, Comment		, NULL, BALLOON_SHOW_Comment, ),
+    ASCF_DEFINE_KEYWORD_F(BALLOON, TF_NO_MYNAME_PREPENDING, Exec		, NULL, BALLOON_SHOW_Exec, ),
+    ASCF_DEFINE_KEYWORD_F(BALLOON, TF_NO_MYNAME_PREPENDING, GenericName	, NULL, BALLOON_SHOW_GenericName, ),
+    {0, NULL, 0, 0, 0}
+};
+
+SyntaxDef     BalloonContentsSyntax = {
+	',',
+	'\n',
+    BalloonContentsTerms,
+	0,										   /* use default hash size */
+    ' ',
+	" ",
+	"\t",
+    "Balloon Contents flags",
+	"Balloon Contents",
+	"",
+	NULL,
+	0
+};
+struct SyntaxDef     *BalloonContentsSyntaxPtr = &BalloonContentsSyntax;
+
+flag_options_xref BalloonContentsFlagsXref[] = {
+    {BALLOON_SHOW_Name, 		BALLOON_Name_ID			, 0},
+    {BALLOON_SHOW_IconName, 	BALLOON_IconName_ID		, 0},
+    {BALLOON_SHOW_ResClass, 	BALLOON_ResClass_ID		, 0},
+    {BALLOON_SHOW_ResName, 		BALLOON_ResName_ID		, 0},
+    {BALLOON_SHOW_Comment, 		BALLOON_Comment_ID		, 0},
+    {BALLOON_SHOW_Exec, 		BALLOON_Exec_ID			, 0},
+    {BALLOON_SHOW_GenericName, 	BALLOON_GenericName_ID	, 0},
+    {0, 0, 0}
+};
+
+ASFlagType
+ParseBalloonContentsOptions( FreeStorageElem * options )
+{
+    ASFlagType hints = 0 ;
+    while( options )
+	{
+        LOCAL_DEBUG_OUT( "options(%p)->keyword(\"%s\")", options, options->term->keyword );
+        if (options->term != NULL)
+            ReadFlagItem (NULL, &hints, options, BalloonContentsFlagsXref);
+        options = options->next;
+    }
+    return hints;
+}
+
+
 int ASDefaultBalloonTypes[]= { BALLOON_ID_START, 0 };
 
 /*****************************************************************************

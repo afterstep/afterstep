@@ -67,7 +67,8 @@ extern SyntaxDef AlignSyntax;
     ASCF_DEFINE_KEYWORD_S(WINLIST, 0			    , IconLocation		, TT_UINTEGER, NULL,WinListConfig), \
     ASCF_DEFINE_KEYWORD_S(WINLIST, 0			    , IconAlign			, TT_FLAG	, &AlignSyntax,WinListConfig), \
     ASCF_DEFINE_KEYWORD_S(WINLIST, 0			    , IconSize			, TT_GEOMETRY, NULL,WinListConfig), \
-    ASCF_DEFINE_KEYWORD(WINLIST, 0			    , ScaleIconToTextHeight, TT_FLAG,  NULL)
+    ASCF_DEFINE_KEYWORD(WINLIST, 0			    , ScaleIconToTextHeight, TT_FLAG,  NULL), \
+    ASCF_DEFINE_KEYWORD_S(WINLIST, 0					,ShowHints  	, TT_FLAG		, &BalloonContentsSyntax,WinListConfig)
 	
 #define WINLIST_PRIVATE_TERMS \
     ASCF_DEFINE_KEYWORD_S(WINLIST, 0			    , Geometry			, TT_GEOMETRY	, NULL,WinListConfig), \
@@ -233,6 +234,7 @@ InitWinListConfig (ASModuleConfig *asm_config, Bool free_resources)
 	    config->FBevel = config->UBevel = config->SBevel = DEFAULT_TBAR_HILITE ;
 		config->IconAlign = NO_ALIGN ;
 		config->IconLocation = 0 ;
+		config->ShowHints = WINLIST_DEFAULT_ShowHints ;
 		if( !free_resources ) 
 		{
  	    	config->NoCollides = safecalloc(2, sizeof(char*)); ;
@@ -284,6 +286,7 @@ PrintWinListConfig (WinListConfig * config)
 	ASCF_PRINT_INT_KEYWORD(stderr,WINLIST,config,IconLocation);	
 	ASCF_PRINT_FLAGS_KEYWORD(stderr,WINLIST,config,IconAlign );
 	ASCF_PRINT_SIZE_KEYWORD(stderr,WINLIST,config,IconSize);	
+	ASCF_PRINT_FLAGS_KEYWORD(stderr,WINLIST,config,ShowHints );
 	
 	fprintf (stderr, "WinListConfig.gravity = %d;\n", config->gravity);
 
@@ -435,6 +438,7 @@ MergeWinListOptions ( ASModuleConfig *asm_to, ASModuleConfig *asm_from)
 		ASCF_MERGE_SCALAR_KEYWORD(WINLIST, to, from, IconLocation);
 		ASCF_MERGE_SCALAR_KEYWORD(WINLIST, to, from, IconSize);
 		ASCF_MERGE_SCALAR_KEYWORD(WINLIST, to, from, NoCollidesSpacing);
+		ASCF_MERGE_SCALAR_KEYWORD(WINLIST, to, from, ShowHints);
 
     	for( i = 0 ; i < MAX_MOUSE_BUTTONS ; ++i )
         	if( from->Action[i] )

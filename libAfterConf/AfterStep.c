@@ -678,7 +678,7 @@ free_storage2ASModule_config( ASModuleConfigClass *class, ASModuleConfig *config
 			while( *styles_tail ) styles_tail = &(*styles_tail)->next ;
 		}
 	
-		if( get_flags( flags, ASModuleConfig_HandleBalloons ) )
+		if( get_flags( flags, ASModuleConfig_HandleBalloons ) && class != NULL )
 		{
 			int i = 0; 
 			while( class->balloon_types[i] > 0 )
@@ -694,7 +694,7 @@ free_storage2ASModule_config( ASModuleConfigClass *class, ASModuleConfig *config
 			TermDef *T = pCurr->term ;
 			if ( T != NULL)
 			{
-				if( T->id == MODULE_Defaults_ID ) 
+				if( T->id == MODULE_Defaults_ID && class != NULL ) 
 				{
 					if( pCurr->sub && get_flags( flags, ASModuleConfig_HandleDefaults )) 
 					{
@@ -725,7 +725,7 @@ free_storage2ASModule_config( ASModuleConfigClass *class, ASModuleConfig *config
 				         get_flags( flags, ASModuleConfig_HandleScalars )) 
 				{
 					ReadConfigItemToStruct( config, class->set_flags_field_offset, pCurr  );
-				}else if( T->type == TT_FLAG && class->flags_xref != NULL && 
+				}else if( T->type == TT_FLAG && class && class->flags_xref != NULL && 
 				         get_flags( flags, ASModuleConfig_HandleFlags ))
 				{
 					ReadFlagItemAuto (config, class->set_flags_field_offset, pCurr, class->flags_xref);	

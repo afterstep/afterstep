@@ -7,6 +7,7 @@ extern "C" {
 
 struct ASCanvas;
 struct ASTBarData;
+struct ASDesktopEntry;
 
 #include "module.h"
 
@@ -49,7 +50,17 @@ typedef struct ASWindowData
 	INT32		 	 window_name_encoding, window_name_matched_encoding ;
 	INT32		 	 icon_name_encoding, res_class_encoding, res_name_encoding ;
 
+	int 			 pid ;
+
     Bool             focused;
+
+	char 			*cmd_line ;
+
+    /**************************/
+    /* the following gets determined based on matching names 
+	 * agains the list of desktop entries : 
+	 */
+	struct ASDesktopEntry	*desktop_entry ;
 
     /**************************/
     /* some additional data that may or maynot be used by modules : */

@@ -37,56 +37,6 @@
 
 #define WHARF_FOLDER_END 	"~Folder"
 
-TermDef       WharfHintsTerms[] = {
-    {TF_NO_MYNAME_PREPENDING, "Name", 4,        TT_FLAG, WHINT_Name_ID     		, NULL},
-    {TF_NO_MYNAME_PREPENDING, "Comment", 7,     TT_FLAG, WHINT_Comment_ID     	, NULL},
-    {TF_NO_MYNAME_PREPENDING, "Exec", 4,        TT_FLAG, WHINT_Exec_ID		    , NULL},
-    {TF_NO_MYNAME_PREPENDING, "GenericName", 11,TT_FLAG, WHINT_GenericName_ID   , NULL},
-    {0, NULL, 0, 0, 0}
-};
-
-SyntaxDef     WharfHintsSyntax = {
-	',',
-	'\n',
-    WharfHintsTerms,
-	0,										   /* use default hash size */
-    ' ',
-	" ",
-	"\t",
-    "Wharf Show Hints flags",
-	"Wharf Hints",
-	"",
-	NULL,
-	0
-};
-struct SyntaxDef     *WharfHintsSyntaxPtr = &WharfHintsSyntax;
-
-flag_options_xref WharfHintsFlagsXref[] = {
-    {WHARF_SHOW_HINT_Name, WHINT_Name_ID, 0},
-    {WHARF_SHOW_HINT_Comment, WHINT_Comment_ID, 0},
-    {WHARF_SHOW_HINT_Exec, WHINT_Exec_ID, 0},
-    {WHARF_SHOW_HINT_GenericName, WHINT_GenericName_ID, 0},
-    {0, 0, 0}
-};
-
-
-
-
-ASFlagType
-ParseWharfHintsOptions( FreeStorageElem * options )
-{
-    ASFlagType hints = 0 ;
-    while( options )
-	{
-        LOCAL_DEBUG_OUT( "options(%p)->keyword(\"%s\")", options, options->term->keyword );
-        if (options->term != NULL)
-            ReadFlagItem (NULL, &hints, options, WharfHintsFlagsXref);
-        options = options->next;
-    }
-    return hints;
-}
-
-
 
 TermDef       WhevTerms[] = {
 	{TF_NO_MYNAME_PREPENDING | TF_SYNTAX_TERMINATOR, "push", 4, TT_FILENAME, WHEV_PUSH_ID, NULL},
@@ -133,7 +83,7 @@ SyntaxDef     WhevSyntax = {
 	ASCF_DEFINE_KEYWORD(WHARF, 0, CompositionMethod	, TT_INTEGER	, NULL), \
 	ASCF_DEFINE_KEYWORD(WHARF, 0, FolderOffset		, TT_INTEGER	, NULL), \
 	ASCF_DEFINE_KEYWORD(WHARF, 0, OrthogonalFolderOffset, TT_INTEGER	, NULL), \
-    ASCF_DEFINE_KEYWORD(WHARF, 0, ShowHints			, TT_FLAG		, &WharfHintsSyntax)
+    ASCF_DEFINE_KEYWORD(WHARF, 0, ShowHints			, TT_FLAG		, &BalloonContentsSyntax)
 
 
 #define WHARF_PRIVATE_TERMS \
@@ -781,7 +731,7 @@ ParseWharfOptions (const char *filename, char *myname)
 		ASCF_HANDLE_INTEGER_KEYWORD_CASE(WHARF,config,item,LabelLocation ); 
 		ASCF_HANDLE_ALIGN_KEYWORD_CASE(WHARF,config,pCurr,AlignContents ); 
 		ASCF_HANDLE_BEVEL_KEYWORD_CASE(WHARF,config,pCurr,Bevel); 
-		ASCF_HANDLE_SUBSYNTAX_KEYWORD_CASE(WHARF,config,pCurr,ShowHints,WharfHints);
+		ASCF_HANDLE_SUBSYNTAX_KEYWORD_CASE(WHARF,config,pCurr,ShowHints,BalloonContents);
 		ASCF_HANDLE_INTEGER_KEYWORD_CASE(WHARF,config,item,CompositionMethod ); 
 		ASCF_HANDLE_INTEGER_KEYWORD_CASE(WHARF,config,item,FolderOffset ); 
 		ASCF_HANDLE_INTEGER_KEYWORD_CASE(WHARF,config,item,OrthogonalFolderOffset ); 
