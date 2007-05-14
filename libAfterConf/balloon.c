@@ -97,18 +97,21 @@ balloonConfig *
 Create_balloonConfig ()
 {
   balloonConfig *config = (balloonConfig *) safecalloc (1, sizeof (balloonConfig));
+  config->type = CONFIG_Balloons_ID ; 
+  
   return config;
 }
 
 void
 Destroy_balloonConfig (balloonConfig * config)
 {
-  if (!config)
-	return;
-  if (config->Style)
-    free (config->Style);
-  free (config);
-  config = NULL;
+  	if (!config)
+		return;
+  	if (config->Style)
+    	free (config->Style);
+	config->type = 0 ; 
+  	free (config);
+  	config = NULL;
 }
 
 void
@@ -118,8 +121,8 @@ Print_balloonConfig (balloonConfig *config )
         fprintf( stderr, "No balloon configuration available \n");
     else
     {
-        fprintf( stderr,"set_flags = 0x%lX\n",config->set_flags);
-        fprintf( stderr,"flags = 0x%lX\n",config->flags);
+        fprintf( stderr,"BALLOON.set_flags = 0x%lX\n",config->set_flags);
+        fprintf( stderr,"BALLOON.flags = 0x%lX\n",config->flags);
 		ASCF_PRINT_FLAGS_KEYWORD(stderr,BALLOON,config,BorderHilite);
 		ASCF_PRINT_INT_KEYWORD(stderr,BALLOON,config,XOffset);
 		ASCF_PRINT_INT_KEYWORD(stderr,BALLOON,config,YOffset);
@@ -209,10 +212,13 @@ Process_balloonOptions (FreeStorageElem * options, balloonConfig *config, int id
         {
 			options->term->id = id ; 
 			if( !ReadFlagItemAuto (config, 0, options, &BalloonsFlags[0]) )
+			{
 	            switch(id )
 				{
 		            ASCF_HANDLE_BEVEL_KEYWORD_CASE(BALLOON,config,options,BorderHilite); 
 				}
+			}
+			LOCAL_DEBUG_OUT( "%s - %lX:%lX", options->term->keyword, config->set_flags, config->flags );
 			options->term->id = orig_id ;
             continue;
         }

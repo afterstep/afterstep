@@ -701,7 +701,8 @@ free_storage2ASModule_config( ASModuleConfigClass *class, ASModuleConfig *config
 						ASModuleConfig *defaults = free_storage2ASModule_config( class, NULL, pCurr->sub, 
 																					ASModuleConfig_DiscardDisabled|
 																					ASModuleConfig_HandleFlags|
-																					ASModuleConfig_HandleScalars );
+																					ASModuleConfig_HandleScalars| 
+																					ASModuleConfig_HandleBalloons );
 						if( defaults )
 						{								
 							class->free_storage2config_func( defaults, pCurr->sub );

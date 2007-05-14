@@ -1488,6 +1488,64 @@ focus_winlist_button( ASWindowData *wd )
 		render_astbar( wd->bar, WinListState.main_canvas );		
 }
 
+void 
+build_winlist_button_comment( ASTBarData *tbar, ASWindowData *wd )
+{
+	char *hint = NULL ; 
+	int hint_len = 0 ; 
+	INT32 encoding = AS_Text_ASCII ;
+
+	if( get_flags( Config->ShowHints, (BALLOON_SHOW_Name|BALLOON_SHOW_IconName)) )
+	{
+		INT32 name_encoding = AS_Text_ASCII ;
+		char *name = get_window_name(wd, get_flags( Config->ShowHints, BALLOON_SHOW_Name)?ASN_Name:ASN_IconName, &name_encoding );
+		if( name ) 
+		{
+			hint_len = strlen(name) + 1 ; 
+			hint = safemalloc( hint_len ) ;
+			strcpy( hint, name );
+			encoding = name_encoding ; 
+		}
+	}
+	
+	if( get_flags( Config->ShowHints, (BALLOON_SHOW_ResClass|BALLOON_SHOW_ResName)) )
+	{
+		char *res_class = get_flags( Config->ShowHints, BALLOON_SHOW_ResClass)?wd->res_class:NULL ; 
+		char *res_name = get_flags( Config->ShowHints, BALLOON_SHOW_ResName)?wd->res_name:NULL ; 
+		int len = 0 ; 
+		if( res_class ) 
+			len = strlen( res_class );
+		if( res_name ) 
+			len += ((len > 0)?1:0)+strlen( res_name );
+		if( len > 0 ) 
+		{
+			char *ptr ; 
+			hint = saferealloc( hint, hint_len+1 + len + 1 );
+			ptr = &hint[hint_len];
+			if( hint_len > 0  ) 
+				*(ptr-1) = '\n' ; 
+			else
+				encoding = res_class?wd->res_class_encoding:wd->res_name_encoding ; 
+			if( res_class && res_name ) 
+				sprintf( ptr, "%s:%s", res_class, res_name );
+			else
+				sprintf( ptr, "%s", res_class?res_class:res_name );
+			hint_len += 1 + len + 1 ;
+		}			
+	}
+	if( hint == NULL ) 
+	{
+		encoding = AS_Text_ASCII ;
+		hint = get_window_name(wd, Config->UseName, &encoding );
+		set_astbar_balloon( tbar, 0, hint, encoding );
+	}else
+	{
+		set_astbar_balloon( tbar, 0, hint, encoding );
+		free( hint );
+	}
+}
+
+
 static void
 configure_tbar_props( ASTBarData *tbar, ASWindowData *wd, Bool focus_only )
 {
@@ -1573,7 +1631,7 @@ configure_tbar_props( ASTBarData *tbar, ASWindowData *wd, Bool focus_only )
 		else if( get_flags( Config->flags, ASWL_ShowIcon ) )
 			configure_tbar_icon( tbar, wd );
 
-		set_astbar_balloon( tbar, 0, name, encoding );
+		build_winlist_button_comment( tbar, wd );
 	}
 	focus_winlist_button( wd );
 }

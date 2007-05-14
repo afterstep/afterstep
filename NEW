@@ -1,3 +1,7 @@
+	* Implemented ShowHints option in WinList allowing user to specify contents
+	  of displayed balloons. Supported options are : Name,IconName,ResClass,ResName
+	  or any combination of these.
+
 version 2.2.5 release
 	* new policy for window groups - if a group leader or an oldest window 
 	  in the group is raised - whole group is raised. If any window in the 

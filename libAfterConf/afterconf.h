@@ -305,8 +305,10 @@ struct FunctionData     *String2Func ( const char *string, struct FunctionData *
 #define CONFIG_PagerOptions_ID			(CONFIG_OPTIONS_IDS+13)
 #define CONFIG_WharfOptions_ID			(CONFIG_OPTIONS_IDS+14)
 #define CONFIG_WinListOptions_ID		(CONFIG_OPTIONS_IDS+15)
+#define CONFIG_Balloons_ID				(CONFIG_OPTIONS_IDS+16)
 
-#define CONFIG_SUBOPTIONS_IDS	   	    (CONFIG_OPTIONS_IDS+16)
+
+#define CONFIG_SUBOPTIONS_IDS	   	    (CONFIG_OPTIONS_IDS+17)
 #define CONFIG_flags_ID					(CONFIG_SUBOPTIONS_IDS)
 #define CONFIG_x_ID						(CONFIG_SUBOPTIONS_IDS+1)
 #define CONFIG_y_ID						(CONFIG_SUBOPTIONS_IDS+2)
@@ -944,6 +946,8 @@ extern int ASDefaultBalloonTypes[];
 
 typedef struct balloonConfig
 {
+	int type ; /* == CONFIG_Balloons_ID */
+
   unsigned long set_flags;	/* identifyes what option is set */
   unsigned long flags;	
 #define BALLOON_Balloons			(0x01<<0)

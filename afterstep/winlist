@@ -9,7 +9,7 @@
 *WinListDefaults
 	Geometry        +0+0
 	MinSize         10000    #will be truncated to thescreen size
-	MaxRows         1
+	MaxRows         3
 	FillRowsFirst
 	UseSkipList
 	
@@ -39,8 +39,12 @@
 	BalloonXOffset 10
 	BalloonStyle		"*WinListBalloon"
 	BalloonBorderHilite	Right,Bottom
+
+	# following determines what info to show in balloons : 
+	ShowHints		Name,ResClass,ResName
 	
-	NoCollidesSpacing 1
+	NoCollidesSpacing 3
+
 ~Defaults
 
 # use this to disable icons in winlist :
