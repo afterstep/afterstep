@@ -1469,9 +1469,10 @@ enforce_avoid_cover( ASWindow *asw )
 	   themselves automatically */
 
 	if( asw ) 
-		if( ASWIN_GET_FLAGS(asw, AS_AvoidCover|AS_ShortLived) == AS_AvoidCover )
+		if( ASWIN_HFLAGS(asw, AS_AvoidCover|AS_ShortLived) == AS_AvoidCover )
 		{
-			while( timer_remove_by_data( (void*)asw ) );
+/* we don't want to remove by  data as there are other functions associated wit this
+*			while( timer_remove_by_data( (void*)asw ) ); */
 			timer_new (500, delayed_enforce_avoid_cover, (void*)asw);	
 		}
 }
