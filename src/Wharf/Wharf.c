@@ -1225,8 +1225,7 @@ LOCAL_DEBUG_OUT( "contents %d has function %p with func = %ld", i, function, fun
 
 							function = wb->contents[i].function ;
 						}
-					}
-					if(func == F_CATEGORY || func == F_CATEGORY_TREE)
+					}else if(func == F_CATEGORY || func == F_CATEGORY_TREE)
 					{
 						char *cat_name = function->text?function->text:function->name ;
 						desktop_category2wharf_folder( wb, &(wb->contents[i]), cat_name, (func==F_CATEGORY)?1:5 );
