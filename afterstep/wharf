@@ -71,7 +71,7 @@
 #*WharfForceSize
 *WharfRows		1
 #*WharfColumns		1
-*WharfGeometry		+5+30
+*WharfGeometry		+1+1
 *WharfBevel		Bottom,Right,NoOutline,Extra
 
 #Use this setting to set what is show in the balloon : 
