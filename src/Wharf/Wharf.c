@@ -99,6 +99,7 @@ typedef struct ASSwallowed
 {
     ASCanvas *normal, *iconic;
     ASCanvas *current;                         /* one of the above */
+	int pid ; 
 }ASSwallowed;
 
 typedef struct ASWharfButton
@@ -1410,6 +1411,9 @@ destroy_wharf_folder( ASWharfFolder **paswf )
 				sleep_a_millisec(200);
 				XKillClient(dpy, aswb->swallowed->current->w );
 				ASSync(False);
+				sleep_a_millisec(100);
+				if( aswb->swallowed->pid > 0 ) 
+					kill( aswb->swallowed->pid, SIGKILL );
 			}
             if( aswb->name )
                 free( aswb->name );
@@ -2554,6 +2558,7 @@ check_swallow_window( ASWindowData *wd )
     /* its ok - we can swallow it now : */
     /* create swallow object : */
     aswb->swallowed = safecalloc( 1, sizeof(ASSwallowed ));
+	aswb->swallowed->pid = wd->pid ; 
     /* first thing - we reparent window and its icon if there is any */
     nc = aswb->swallowed->normal = create_ascanvas_container( wd->client );
     XReparentWindow( dpy, wd->client, aswb->canvas->w, (aswb->canvas->width - nc->width)/2, (aswb->canvas->height - nc->height)/2 );

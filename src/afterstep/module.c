@@ -801,6 +801,7 @@ SendConfig (int module, send_data_type event_type, ASWindow * t)
     send_signed_data_type 	frame_x = 0, frame_y = 0, frame_width = 0, frame_height = 0;
     send_ID_type 			icon_title_w = None, icon_pixmap_w = None ;
     send_signed_data_type 	icon_x = 0, icon_y = 0, icon_width = 0, icon_height = 0 ;
+	send_signed_data_type 	pid = -1 ; 
 	union {
 		ASWindow *asw ;
 		send_data_type id ;
@@ -836,15 +837,19 @@ SendConfig (int module, send_data_type event_type, ASWindow * t)
         }
     }
 
+    if (ASWIN_HFLAGS(t,AS_PID))
+		pid = t->hints->pid ; 
+			
 	asw_id.asw = t ;
-    SendPacket (module, event_type, 26,
+    SendPacket (module, event_type, 27,
                 t->w,                 t->frame,              asw_id.id,
                 frame_x,              frame_y,               frame_width,         frame_height,
                 ASWIN_DESK(t),        t->status->flags,      t->hints->flags,     t->hints->client_icon_flags,
                 t->hints->base_width, t->hints->base_height, t->hints->width_inc, t->hints->height_inc,
                 t->hints->min_width,  t->hints->min_height,  t->hints->max_width,  t->hints->max_height,
                 t->hints->gravity,    icon_title_w,          icon_pixmap_w,
-                icon_x,               icon_y,                icon_width,           icon_height );
+                icon_x,               icon_y,                icon_width,           icon_height, 
+				pid );
 }
 
 void

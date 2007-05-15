@@ -225,6 +225,7 @@ LOCAL_DEBUG_OUT( "name received \"%s\"", new_name );
     CHECK_CHANGE_VAL(wd->icon_rect.y        ,data[23],res);
     CHECK_CHANGE_VAL(wd->icon_rect.width    ,data[24],res);
     CHECK_CHANGE_VAL(wd->icon_rect.height   ,data[25],res);
+    CHECK_CHANGE_VAL(wd->pid   				,data[26],res);
 
 	/* returning result : */
 	res = (*pdata != wd)?WP_DataCreated:res ;
