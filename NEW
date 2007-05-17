@@ -1,3 +1,4 @@
+version 2.2.6 release
 	* Implemented ShowHints option in WinList allowing user to specify contents
 	  of displayed balloons. Supported options are : Name,IconName,ResClass,ResName
 	  or any combination of these.
