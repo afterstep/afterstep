@@ -1,6 +1,13 @@
 
+2007-05-01  sasha
+
+	* Implemented support for root window having different color depth
+	  - blacxk background on 16bpp screens should go away; temorarily
+	  disabled mmx - it seems to ruin images sometimes
+
 2007-04-23  sasha
 
+	* updated ChangeLog for 2.2.5 release
 	* AfterStep release v. 2.2.5
 
 2007-04-20  sasha

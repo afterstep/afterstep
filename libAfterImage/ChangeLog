@@ -1,6 +1,36 @@
 
+2007-05-15  sasha
+
+	* upgraded AS version in anticipation of release
+
+2007-05-11  sasha
+
+	* made ShowHints more generic option allowing iut to be used in
+	  other modules - started modifying WinList to make use of it
+
+2007-05-03  sasha
+
+	* fixed window list publishing to use new stacking_order vector
+
+2007-05-02  sasha
+
+	* minor optimization of the alpha-blending code
+	* added test container for mmx use
+	* fixed MMX usage - required _mm_empty() after each mmx intrinsics
+	  use; Optimized window title change to not regenerate icon when
+	  not in iconic mode
+
+2007-05-01  sasha
+
+	* Implemented support for root window having different color depth
+	  - blacxk background on 16bpp screens should go away; temorarily
+	  disabled mmx - it seems to ruin images sometimes
+	* fixed color printing on 64 bit system
+	* replaced mmx code to use gcc intinsics
+
 2007-04-23  sasha
 
+	* updated ChangeLog for 2.2.5 release
 	* AfterStep release v. 2.2.5
 
 2007-04-20  sasha

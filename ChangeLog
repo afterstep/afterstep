@@ -1,6 +1,92 @@
 
+2007-05-17  sasha
+
+	* AfterStep 2.2.6 relase
+
+2007-05-15  sasha
+
+	* fixed handling of AvoidCover on window move/resize
+	* changed default wharf geometry to go into upper left corner
+	* upgraded AS version in anticipation of release
+	* added ability to Wharf to kill swallowed apps by its PID. That
+	  seems to have resolved a problem with trayer app
+	* fixed bug where if DesktopEntry was not found - there would still
+	  be an emoty wharf button
+
+2007-05-14  sasha
+
+	* Fixed handling of ballons config parsing; Implemented support for
+	  ShowHints in WinList allowing for Name, IconName, ResClass,
+	  ResName
+
+2007-05-11  sasha
+
+	* made ShowHints more generic option allowing iut to be used in
+	  other modules - started modifying WinList to make use of it
+
+2007-05-07  sasha
+
+	* Implemented NoModuleNameCollisions in base config to make AS kill
+	  old instances of the module with same name
+
+2007-05-05  sasha
+
+	* fixed installation as an alternative to use proper link name
+
+2007-05-03  sasha
+
+	* cleanup of the stacking order code
+	* implemented IgnoreRestack to adde finer grain to IgnoreConfig -
+	  IgnoreRestack will only ignore Raise/Lower requests from the
+	  client
+	* fixed window list publishing to use new stacking_order vector
+
+2007-05-02  sasha
+
+	* minor optimization of the alpha-blending code
+	* added test container for mmx use
+	* fixed MMX usage - required _mm_empty() after each mmx intrinsics
+	  use; Optimized window title change to not regenerate icon when
+	  not in iconic mode
+
+2007-05-01  sasha
+
+	* Implemented support for root window having different color depth
+	  - blacxk background on 16bpp screens should go away; temorarily
+	  disabled mmx - it seems to ruin images sometimes
+	* fixed color printing on 64 bit system
+	* replaced mmx code to use gcc intinsics
+
+2007-04-29  speedy
+
+	* updated paths for Propaganda images.
+
+2007-04-27  speedy
+
+	* added folders in Menu Desktop/Pictures for Propaganda images.
+
+2007-04-27  sasha
+
+	* fixed parsing of ARGB icons supplied by applications
+
+2007-04-26  sasha
+
+	* fixed stacking order of mozilla dialogs - it creates group member
+	  dialog that is not a transient, and then it creates a transient,
+	  but transient for the main window - not the dialog, resulting in
+	  this last transient to be under first dialog
+
+2007-04-24  sasha
+
+	* [no log message]
+	* updated NEW file
+	* fixed handling of recursive transients, as is the case with
+	  mozilla - it was crashing AS and messing up stacking order
+	* [no log message]
+
 2007-04-23  sasha
 
+	* updated ChangeLog for 2.2.5 release
 	* AfterStep release v. 2.2.5
 	* fixed bug in free rectangles list compilation where we failed to
 	  remove rectangles completely overlapped by the window
