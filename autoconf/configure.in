@@ -70,8 +70,8 @@ AC_ARG_WITH(tiff,		[  --with-tiff              support TIFF image format [[yes]]
 AC_ARG_WITH(tiff_includes,  	[  --with-tiff-includes=DIR use TIFF includes in DIR], tiff_includes="$withval", tiff_includes=NO)
 AC_ARG_WITH(svg,		[  --with-svg               support SVG image format via librsvg 2.0 [[yes]]])
 
-AC_ARG_WITH(tff,		[  --with-ttf               support True Type Fonts via FreeType library [[yes]]])
-AC_ARG_WITH(tff_includes,   	[  --with-ttf-includes=DIR  use FreeType includes in DIR], ttf_includes="$withval", ttf_includes=NO)
+AC_ARG_WITH(ttf,		[  --with-ttf               support True Type Fonts via FreeType library [[yes]]])
+AC_ARG_WITH(ttf_includes,   	[  --with-ttf-includes=DIR  use FreeType includes in DIR], ttf_includes="$withval", ttf_includes=NO)
 AC_ARG_WITH(gtk,	    	[  --with-gtk               use GTK 2.0 widget libraries where possible [[yes]]])
 
 dnl# compile-time switches

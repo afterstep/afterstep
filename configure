@@ -1593,15 +1593,15 @@ if test "${with_svg+set}" = set; then
 fi;
 
 
-# Check whether --with-tff or --without-tff was given.
-if test "${with_tff+set}" = set; then
-  withval="$with_tff"
+# Check whether --with-ttf or --without-ttf was given.
+if test "${with_ttf+set}" = set; then
+  withval="$with_ttf"
 
 fi;
 
-# Check whether --with-tff_includes or --without-tff_includes was given.
-if test "${with_tff_includes+set}" = set; then
-  withval="$with_tff_includes"
+# Check whether --with-ttf_includes or --without-ttf_includes was given.
+if test "${with_ttf_includes+set}" = set; then
+  withval="$with_ttf_includes"
   ttf_includes="$withval"
 else
   ttf_includes=NO
