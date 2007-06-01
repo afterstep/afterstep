@@ -69,7 +69,7 @@ SyntaxDef     PagerDecorationSyntax = {
 #define PAGER_LOOK_TERMS \
     {0, "Align", 5, TT_FLAG, PAGER_ALIGN_ID, &AlignSyntax}, \
     {0, "SmallFont", 9, TT_FONT, PAGER_SMALL_FONT_ID, NULL}, \
-    {TF_DONT_SPLIT, "ShadeButton", 11, TT_TEXT, PAGER_SHADE_BUTTON_ID, NULL}, \
+    {TF_DONT_SPLIT, "ShadeButton", 11, TT_OPTIONAL_PATHNAME, PAGER_SHADE_BUTTON_ID, NULL}, \
     {TF_INDEXED|TF_QUOTES_OPTIONAL, "Style", 5, TT_QUOTED_TEXT, PAGER_STYLE_ID, NULL}, \
     {0, "ActiveDeskBevel", 15,   TT_FLAG, PAGER_ActiveBevel_ID   , &BevelSyntax}, \
     {0, "InActiveDeskBevel", 17, TT_FLAG, PAGER_InActiveBevel_ID , &BevelSyntax}, \
@@ -435,6 +435,8 @@ ParsePagerOptions (const char *filename, char *myname, int desk1, int desk2)
 			 	config->styles[item.index - desk1] = item.data.string;
 				 break;
 			 case PAGER_SHADE_BUTTON_ID:
+			 	 destroy_string( &(config->shade_button[0]));
+			 	 destroy_string( &(config->shade_button[1]));
 				 if (item.data.string)
 				 {
 					 register char *tmp = parse_filename (item.data.string, &(config->shade_button[0]));
@@ -444,6 +446,7 @@ ParsePagerOptions (const char *filename, char *myname, int desk1, int desk2)
 					 if (*tmp != '\0')
 						 parse_filename (tmp, &(config->shade_button[1]));
 				 }
+				 set_flags( config->set_flags, PAGER_SET_SHADE_BUTTON );
 				 break;
 			 case MYSTYLE_START_ID:
 				 styles_tail = ProcessMyStyleOptions (pCurr->sub, styles_tail);

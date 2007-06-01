@@ -382,10 +382,11 @@ retrieve_pager_astbar_props()
 
     free_button_resources( &PagerState.shade_button );
 	PagerState.shade_button.context = C_NO_CONTEXT ;
-    if( Config->shade_button[0] )
+    if( get_flags( Config->set_flags, PAGER_SET_SHADE_BUTTON ) )
     {
-        if( load_button( &PagerState.shade_button, Config->shade_button, Scr.image_manager ) )
-			PagerState.shade_button.context = C_ShadeButton ;
+		if( Config->shade_button[0] ) 
+	        if( load_button( &PagerState.shade_button, Config->shade_button, Scr.image_manager ) )
+				PagerState.shade_button.context = C_ShadeButton ;
     }else
 		button_from_astbar_props( PagerState.tbar_props, &PagerState.shade_button, C_ShadeButton, _AS_BUTTON_SHADE, _AS_BUTTON_SHADE_PRESSED );
 }	 

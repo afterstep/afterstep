@@ -672,6 +672,7 @@ free_func_hash ()
 static char *_as_known_terms[]	= 
 {	
 	"aterm",
+	"x-terminal-emulator",
 	"rxvt  -tr -fg yellow -bg black",
 	"eterm -tr -tint blue -fg yellow -bg black",
 	"xterm -fg yellow -bg blue",
@@ -689,6 +690,7 @@ static char *_as_known_browsers[]	=
 };
 static char *_as_known_editors[]	= 
 {
+	"editor",
 	"$EDITOR",
 	"nedit",
 	"xemacs",

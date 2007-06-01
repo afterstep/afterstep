@@ -1012,6 +1012,7 @@ extern char *pixmapPath;
 #define PAGER_FLAGS_MAX_SHIFT   12
 #define PAGER_FLAGS_DEFAULT	(USE_LABEL|REDRAW_BG|PAGE_SEPARATOR|SHOW_SELECTION)
 /* set/unset flags : */
+#define PAGER_SET_SHADE_BUTTON 		(1<<15)
 #define PAGER_SET_GEOMETRY  		(1<<16)
 #define PAGER_SET_ICON_GEOMETRY  	(1<<17)
 #define PAGER_SET_ALIGN 			(1<<18)
@@ -1063,7 +1064,7 @@ extern char *pixmapPath;
 #define PAGER_ID_END                (PAGER_ID_START+50)
 /* config data structure */
 
-typedef struct
+typedef struct PagerConfig
   {
     int    rows, columns;
     ASGeometry geometry, icon_geometry;
