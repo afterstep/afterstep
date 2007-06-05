@@ -715,9 +715,10 @@ gen_syntax_doc( const char *source_dir, const char *dest_dir, SyntaxDef *syntax,
 			++i ;
 			convert_xml_file( syntax_dir, StandardOptionsEntry, &state );
 		}
-		for( ; StandardSourceEntries[i] ; ++i ) 
+		for( ; StandardSourceEntries[i] ; ++i ) {
 			convert_xml_file( syntax_dir, StandardSourceEntries[i], &state );
-		
+			if ( i == 0 ) fprintf( state.dest_fp, "<hr>\n" );
+		}
 		if( get_flags( doc_class_mask, DOC_CLASS_Options ) )
 		{
 			end_doc_file( &state );	 	  
