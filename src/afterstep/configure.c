@@ -298,20 +298,20 @@ static MyLook TmpLook ;
  */
 struct config main_config[] = {
 	/* feel options */
-	{"StubbornIcons", SetFlag, (char **)StubbornIcons, (int *)0},
-	{"StubbornPlacement", SetFlag, (char **)StubbornPlacement, (int *)0},
-	{"StubbornIconPlacement", SetFlag, (char **)StubbornIconPlacement, (int *)0},
-	{"StickyIcons", SetFlag, (char **)StickyIcons, (int *)0},
-	{"IconTitle", SetFlag, (char **)IconTitle, (int *)0},
-	{"KeepIconWindows", SetFlag, (char **)KeepIconWindows, (int *)0},
-	{"NoPPosition", SetFlag, (char **)NoPPosition, (int *)0},
-	{"CirculateSkipIcons", SetFlag, (char **)CirculateSkipIcons, (int *)0},
+	{"StubbornIcons", SetFlag2, (char **)StubbornIcons, (int *)0},
+	{"StubbornPlacement", SetFlag2, (char **)StubbornPlacement, (int *)0},
+	{"StubbornIconPlacement", SetFlag2, (char **)StubbornIconPlacement, (int *)0},
+	{"StickyIcons", SetFlag2, (char **)StickyIcons, (int *)0},
+	{"IconTitle", SetFlag2, (char **)IconTitle, (int *)0},
+	{"KeepIconWindows", SetFlag2, (char **)KeepIconWindows, (int *)0},
+	{"NoPPosition", SetFlag2, (char **)NoPPosition, (int *)0},
+	{"CirculateSkipIcons", SetFlag2, (char **)CirculateSkipIcons, (int *)0},
     {"EdgeScroll", SetInts, (char **)&TmpFeel.EdgeScrollX, &TmpFeel.EdgeScrollY},
-	{"RandomPlacement", SetFlag, (char **)RandomPlacement, (int *)0},
-	{"SmartPlacement", SetFlag, (char **)SMART_PLACEMENT, (int *)0},
+	{"RandomPlacement", SetFlag2, (char **)FEEL_DEPRECATED_RandomPlacement,(int *)&(TmpFeel.deprecated_flags)},
+	{"SmartPlacement", SetFlag2, (char **)FEEL_DEPRECATED_SmartPlacement,(int *)&(TmpFeel.deprecated_flags)},
 	{"DontMoveOff", obsolete, (char **)NULL, (int *)0},
-	{"DecorateTransients", SetFlag, (char **)DecorateTransients, (int *)0},
-	{"CenterOnCirculate", SetFlag, (char **)CenterOnCirculate, (int *)0},
+	{"DecorateTransients", SetFlag2, (char **)DecorateTransients, (int *)0},
+	{"CenterOnCirculate", SetFlag2, (char **)CenterOnCirculate, (int *)0},
     {"AutoRaise", SetInts, (char **)&TmpFeel.AutoRaiseDelay, &dummy},
     {"ClickTime", SetInts, (char **)&TmpFeel.ClickTime, &dummy},
     {"OpaqueMove", SetInts, (char **)&TmpFeel.OpaqueMove, &dummy},
@@ -322,15 +322,15 @@ struct config main_config[] = {
     {"Function", ParseFunctionEntry, (char **)1, (int *)0},
 	{"Key", ParseKeyEntry, (char **)1, (int *)0},
 	{"ClickToFocus", SetFlag, (char **)ClickToFocus, (int *)EatFocusClick},
-    {"EatFocusClick", SetFlag, (char **)EatFocusClick, (int *)0},
+    {"EatFocusClick", SetFlag2, (char **)EatFocusClick, (int *)0},
     {"ClickToRaise", SetButtonList, (char **)NULL, (int *)0},
 	{"MenusHigh", obsolete, (char **)NULL, (int *)0},
-	{"SloppyFocus", SetFlag, (char **)SloppyFocus, (int *)0},
+	{"SloppyFocus", SetFlag2, (char **)SloppyFocus, (int *)0},
     {"PagingDefault", obsolete, (char **)NULL, NULL},
     {"EdgeResistance", SetInts, (char **)&TmpFeel.EdgeResistanceScroll, &TmpFeel.EdgeResistanceMove},
-	{"BackingStore", SetFlag, (char **)BackingStore, (int *)0},
-	{"AppsBackingStore", SetFlag, (char **)AppsBackingStore, (int *)0},
-	{"SaveUnders", SetFlag, (char **)SaveUnders, (int *)0},
+	{"BackingStore", SetFlag2, (char **)BackingStore, (int *)0},
+	{"AppsBackingStore", SetFlag2, (char **)AppsBackingStore, (int *)0},
+	{"SaveUnders", SetFlag2, (char **)SaveUnders, (int *)0},
     {"Xzap", SetInts, (char **)&TmpFeel.Xzap, (int *)&dummy},
     {"Yzap", SetInts, (char **)&TmpFeel.Yzap, (int *)&dummy},
     {"AutoReverse", SetInts, (char **)&TmpFeel.AutoReverse, (int *)&dummy},
@@ -482,10 +482,11 @@ struct config main_config[] = {
     {"TitleButtonBalloons"				, SetFlag2, (char**)BALLOON_USED, (int*)&(BalloonConfig.set_flags)},
     {"TitleButton"						, SetTitleButton, (char **)1, (int *)0},
     {"KillBackgroundThreshold"			, SetInts, (char**)&(TmpLook.KillBackgroundThreshold), NULL },
-	{"DontAnimateBackground"			, SetFlag2, (char**)DontAnimateBackground, &dummy},
+	{"DontAnimateBackground"			, SetFlag2, (char**)DontAnimateBackground, NULL},
 	{"CoverAnimationSteps"				, SetInts, (char**)&(TmpFeel.desk_cover_animation_steps), NULL },
 	{"CoverAnimationType"				, SetInts, (char**)&(TmpFeel.desk_cover_animation_type), NULL },
-	{"AnimateDeskChange"				, SetFlag, (char**)AnimateDeskChange, &dummy },
+	{"AnimateDeskChange"				, SetFlag2, (char**)AnimateDeskChange, NULL },
+	{"DontCoverDesktop"  				, SetFlag2, (char**)DontCoverDesktop, NULL },
 	{"ButtonIconSpacing" 				, SetInts, (char **)&TmpLook.ButtonIconSpacing, &dummy},
     {"ButtonBevel"						, bevel_parse, (char**)"afterstep", (int*)&(TmpLook.ButtonBevel)},
     {"ButtonAlign"						, align_parse, (char**)"afterstep", (int*)&(TmpLook.ButtonAlign)},
@@ -800,6 +801,7 @@ InitFeel (ASFeel *feel, Bool free_resources)
 void 
 merge_feel( ASFeel *to, ASFeel *from )
 {
+	to->deprecated_flags = from->deprecated_flags ;
     to->EdgeScrollX = from->EdgeScrollX ; 
 	to->EdgeScrollY = from->EdgeScrollY ; 
     to->AutoRaiseDelay = from->AutoRaiseDelay ; 
@@ -1906,6 +1908,8 @@ LoadASConfig (int thisdesktop, ASFlagType what)
     remove_desktop_cover();
 
 	validate_rootpmap_props(Scr.wmprops);
+	
+	LOCAL_DEBUG_OUT( "TmpFeel.flags = 0x%lX, Scr.Feel.flags = 0x%lX", TmpFeel.flags, Scr.Feel.flags );
 }
 
 /*****************************************************************************

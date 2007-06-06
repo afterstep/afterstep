@@ -146,6 +146,13 @@ AnimateDeskChange
 CoverAnimationSteps	12
 CoverAnimationType	10
 
+# The following two settings are usefull for thoise who prefered old afterstep 1.8 behaviour : 
+#To disable colored desktop cover use this : 
+#DontCoverDesktop
+
+#To disable animated root background change use this : 
+#DontAnimateBackground
+
 ##########################################################################
 # Cursor
 ##########################################################################

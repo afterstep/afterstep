@@ -58,8 +58,8 @@ flag_options_xref FeelFlagsXref[] = {
      /* placement : */
     {DontMoveOff           , FEEL_DontMoveOff_ID           , 0},
     {NoPPosition           , FEEL_NoPPosition_ID           , 0},
-    {SMART_PLACEMENT        , FEEL_SmartPlacement_ID        , 0},
-    {RandomPlacement       , FEEL_RandomPlacement_ID       , 0},
+//    {SMART_PLACEMENT        , FEEL_SmartPlacement_ID        , 0},
+//    {RandomPlacement       , FEEL_RandomPlacement_ID       , 0},
     {StubbornPlacement     , FEEL_StubbornPlacement_ID     , 0},
 //    {MenusHigh             , FEEL_MenusHigh_ID             , 0},
     {CenterOnCirculate     , FEEL_CenterOnCirculate_ID     , 0},

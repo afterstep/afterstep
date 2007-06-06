@@ -405,6 +405,9 @@ void cover_desktop()
 	Window        w;
     XGCValues       gcvalue;
 
+	if( get_flags( Scr.Feel.flags, DontCoverDesktop ) )
+		return;
+		
     ++_as_desktop_cover_recursion ;
 
     if( _as_desktop_cover != None ) 

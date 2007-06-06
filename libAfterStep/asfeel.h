@@ -55,34 +55,33 @@ typedef enum                /* feel file flags */
     ClickToFocus            = (1 << 0), /* Focus follows or click to focus */
     DecorateTransients      = (1 << 1), /* decorate transient windows? */
     DontMoveOff             = (1 << 2), /* make sure windows stay on desk */
-    RandomPlacement         = (1 << 3), /* random windows placement */
-    SuppressIcons           = (1 << 4), /* prevent generating icon win */
-    StickyIcons             = (1 << 5), /* Icons always sticky? */
-    EdgeWrapX               = (1 << 6), /* Should EdgeScroll wrap around? */
-    EdgeWrapY               = (1 << 7),
-    CenterOnCirculate       = (1 << 8), /* center window on circulate ? */
-    KeepIconWindows         = (1 << 9),
-    ClickToRaise            = (1 << 10),
-    EatFocusClick           = (1 << 11),
-    NoPPosition             = (1 << 12),
-    SMART_PLACEMENT         = (1 << 13),
-    CirculateSkipIcons      = (1 << 14),
-    StubbornIcons           = (1 << 15),
-    StubbornPlacement       = (1 << 16),
-    StubbornIconPlacement   = (1 << 17),
-    BackingStore            = (1 << 18),
-    AppsBackingStore        = (1 << 19),
-    SaveUnders              = (1 << 20),
-    SloppyFocus             = (1 << 21),
-    IconTitle               = (1 << 22),
-    FollowTitleChanges      = (1 << 23),
-    AutoTabThroughDesks     = (1 << 24),
-    DoHandlePageing         = (1 << 25),
-    DontRestoreFocus        = (1 << 26),
-	PersistentMenus			= (1 << 27),
-	DontAnimateBackground   = (1 << 28),
-	WinListHideIcons	    = (1 << 29),
-	AnimateDeskChange		= (1 << 30)
+    SuppressIcons           = (1 << 3), /* prevent generating icon win */
+    StickyIcons             = (1 << 4), /* Icons always sticky? */
+    EdgeWrapX               = (1 << 5), /* Should EdgeScroll wrap around? */
+    EdgeWrapY               = (1 << 6),
+    CenterOnCirculate       = (1 << 7), /* center window on circulate ? */
+    KeepIconWindows         = (1 << 8),
+    ClickToRaise            = (1 << 9),
+    EatFocusClick           = (1 << 10),
+    NoPPosition             = (1 << 11),
+    CirculateSkipIcons      = (1 << 12),
+    StubbornIcons           = (1 << 13),
+    StubbornPlacement       = (1 << 14),
+    StubbornIconPlacement   = (1 << 15),
+    BackingStore            = (1 << 16),
+    AppsBackingStore        = (1 << 17),
+    SaveUnders              = (1 << 18),
+    SloppyFocus             = (1 << 19),
+    IconTitle               = (1 << 20),
+    FollowTitleChanges      = (1 << 21),
+    AutoTabThroughDesks     = (1 << 22),
+    DoHandlePageing         = (1 << 23),
+    DontRestoreFocus        = (1 << 24),
+	PersistentMenus			= (1 << 25),
+	DontAnimateBackground   = (1 << 26),
+	WinListHideIcons	    = (1 << 27),
+	AnimateDeskChange		= (1 << 28),
+	DontCoverDesktop		= (1 << 29)	
 }FeelFlags;
 
 /* since we have too many feel flags  - we want another enum for
@@ -199,6 +198,11 @@ typedef struct ASFeel
 
     unsigned long set_flags;  /* what options were set by user */
     unsigned long flags;      /* feel file flags */
+
+	/* for compatibility with old configs : */
+#define FEEL_DEPRECATED_RandomPlacement (0x01 << 0)  /* random windows placement */
+#define FEEL_DEPRECATED_SmartPlacement	(0x01 << 1)  /* smart placement */
+    ASFlagType 	deprecated_flags; 
 
 	ASFlagType 	set_val_flags;                 /* see  enum FeelSetValFlags */
 

@@ -324,12 +324,12 @@ LOCAL_DEBUG_CALLER_OUT( "feel %p", feel);
         feel->default_window_box->desk = INVALID_DESK ;
         feel->default_window_box->min_layer = AS_LayerLowest;
         feel->default_window_box->max_layer = AS_LayerHighest;
-        if( get_flags( feel->flags, SMART_PLACEMENT )  )
+        if( get_flags( feel->deprecated_flags, FEEL_DEPRECATED_SmartPlacement )  )
         {
             feel->default_window_box->main_strategy = ASP_SmartPlacement ;
-            if( get_flags( feel->flags, RandomPlacement )  )
+            if( get_flags( feel->deprecated_flags, FEEL_DEPRECATED_RandomPlacement )  )
                 feel->default_window_box->backup_strategy = ASP_RandomPlacement ;
-        }else if( get_flags( feel->flags, RandomPlacement )  )
+        }else if( get_flags( feel->deprecated_flags, FEEL_DEPRECATED_RandomPlacement )  )
 		{   /* don't really want to use ManualPlacement if onlyRandomPlacement is requested */
             feel->default_window_box->main_strategy = ASP_RandomPlacement ;
             feel->default_window_box->backup_strategy = ASP_RandomPlacement ;

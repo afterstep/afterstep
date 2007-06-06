@@ -1324,24 +1324,30 @@ commit_config_change( int func )
 		if( _as_background_change_count  > 0 )
 		{
 		    MyBackground *new_back = get_desk_back_or_default( Scr.CurrentDesk, False );
-		SendPacket( -1, M_NEW_BACKGROUND, 1, 1);
+			/* we want to display selected background even if that was disabled in look,
+			   this may cause problems, since when user loads AfterStep the next time - he/she 
+			   will see what was configured in look again, and not what was selected from 
+			   the menu ! */
+			destroy_string( &(new_back->data) );
+			new_back->type = MB_BackImage ;	
 			if( new_back->loaded_im_name )
 			{
 				free( new_back->loaded_im_name );
 				new_back->loaded_im_name = NULL ;
 			}
-		change_desktop_background( Scr.CurrentDesk );
+		    change_desktop_background( Scr.CurrentDesk );
+		    SendPacket( -1, M_NEW_BACKGROUND, 1, 1);
 			_as_background_change_count = 0 ;
-	}
+	    }
 		if ( _as_config_change_count > 0 )
-	{
-		if( func == F_CHANGE_THEME )
-				QuickRestart ("theme");
-		else if( func == F_CHANGE_COLORSCHEME )
-				QuickRestart ("look");
-			else
-		QuickRestart ((func == F_CHANGE_LOOK)?"look":"feel");
-			_as_config_change_count = 0 ;
+	    {
+		    if( func == F_CHANGE_THEME )
+			    QuickRestart ("theme");
+    		else if( func == F_CHANGE_COLORSCHEME )
+	    		QuickRestart ("look");
+		    else
+		        QuickRestart ((func == F_CHANGE_LOOK)?"look":"feel");
+    		_as_config_change_count = 0 ;
 		}
     }
 }
