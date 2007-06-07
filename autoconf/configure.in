@@ -761,7 +761,6 @@ if test -d src/tools ; then AC_CONFIG_FILES([src/tools/ASFileBrowser/Makefile
 
 if test -d src/asetroot ; 	then AC_CONFIG_FILES([src/asetroot/Makefile]) fi
 if test -d src/Animate ; 	then AC_CONFIG_FILES([src/Animate/Makefile]) fi
-if test -d src/Audio ; 		then AC_CONFIG_FILES([src/Audio/Makefile]) fi
 if test -d src/ASConfig ; 	then AC_CONFIG_FILES([src/ASConfig/Makefile]) fi
 if test -d src/ASDocGen ; 	then AC_CONFIG_FILES([src/ASDocGen/Makefile]) fi
 if test -d src/Arrange ; 	then AC_CONFIG_FILES([src/Arrange/Makefile]) fi
@@ -773,7 +772,7 @@ if test -d src/Ident ; 		then AC_CONFIG_FILES([src/Ident/Makefile]) fi
 if test -d src/Pager ; 		then AC_CONFIG_FILES([src/Pager/Makefile]) fi
 if test -d src/Script ; 	then AC_CONFIG_FILES([src/Script/Makefile src/Script/Widgets/Makefile]) fi
 if test -d src/Scroll ; 	then AC_CONFIG_FILES([src/Scroll/Makefile]) fi
-if test -d src/Sound ; 		then AC_CONFIG_FILES([src/Sound/Makefile]) fi
+if test -d src/Sound2 ;		then AC_CONFIG_FILES([src/Sound2/Makefile]) fi
 if test -d src/Wharf ; 		then AC_CONFIG_FILES([src/Wharf/Makefile]) fi
 if test -d src/WinList2 ; 	then AC_CONFIG_FILES([src/WinCommand/Makefile]) fi
 if test -d src/WinList2 ; 	then AC_CONFIG_FILES([src/WinList2/Makefile]) fi
