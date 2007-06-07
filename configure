@@ -8768,8 +8768,6 @@ if test -d src/asetroot ; 	then           ac_config_files="$ac_config_files src/
  fi
 if test -d src/Animate ; 	then           ac_config_files="$ac_config_files src/Animate/Makefile"
  fi
-if test -d src/Audio ; 		then           ac_config_files="$ac_config_files src/Audio/Makefile"
- fi
 if test -d src/ASConfig ; 	then           ac_config_files="$ac_config_files src/ASConfig/Makefile"
  fi
 if test -d src/ASDocGen ; 	then           ac_config_files="$ac_config_files src/ASDocGen/Makefile"
@@ -8792,7 +8790,7 @@ if test -d src/Script ; 	then                     ac_config_files="$ac_config_fi
  fi
 if test -d src/Scroll ; 	then           ac_config_files="$ac_config_files src/Scroll/Makefile"
  fi
-if test -d src/Sound ; 		then           ac_config_files="$ac_config_files src/Sound/Makefile"
+if test -d src/Sound2 ;		then           ac_config_files="$ac_config_files src/Sound2/Makefile"
  fi
 if test -d src/Wharf ; 		then           ac_config_files="$ac_config_files src/Wharf/Makefile"
  fi
@@ -9347,7 +9345,6 @@ do
   "src/tools/ASWallpaper/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/tools/ASWallpaper/Makefile" ;;
   "src/asetroot/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/asetroot/Makefile" ;;
   "src/Animate/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/Animate/Makefile" ;;
-  "src/Audio/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/Audio/Makefile" ;;
   "src/ASConfig/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/ASConfig/Makefile" ;;
   "src/ASDocGen/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/ASDocGen/Makefile" ;;
   "src/Arrange/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/Arrange/Makefile" ;;
@@ -9361,7 +9358,7 @@ do
   "src/Script/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/Script/Makefile" ;;
   "src/Script/Widgets/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/Script/Widgets/Makefile" ;;
   "src/Scroll/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/Scroll/Makefile" ;;
-  "src/Sound/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/Sound/Makefile" ;;
+  "src/Sound2/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/Sound2/Makefile" ;;
   "src/Wharf/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/Wharf/Makefile" ;;
   "src/WinCommand/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/WinCommand/Makefile" ;;
   "src/WinList2/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/WinList2/Makefile" ;;
