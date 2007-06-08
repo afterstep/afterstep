@@ -30,11 +30,42 @@
 #include "../../libAfterStep/wmprops.h"
 #include "../../libAfterConf/afterconf.h"
 // Defines
-#define MAX_SOUNDS                      AFTERSTEP_EVENTS_NUM
+#define MAX_SOUNDS AFTERSTEP_EVENTS_NUM
 #define mask_reg MAX_MASK
 
-main (int argc, int argv[])
+// from afterconf.h ?
+AudioConfig     *Config = NULL;
+
+// asapp.h ?
+void DeadPipe (int);
+void GetBaseOptions (const char *filename/* unused */);
+void GetOptions (const char *filename);
+void HandleEvents();
+void DispatchEvent (ASEvent * event);
+void process_message (send_data_type type, send_data_type *body);
+
+// audio.c
+char         *sound_table[MAX_SOUNDS];
+
+main (int argc, int argv)
 {
+
+        set_DeadPipe_handler(DeadPipe);
+    InitMyApp (CLASS_AUDIO, argc, argv, NULL, NULL, 0 );
+        LinkAfterStepConfig();
+
+    ConnectX( ASDefaultScr, PropertyChangeMask );
+    ConnectAfterStep ( mask_reg, 0 );
+
+        Config = CreateAudioConfig();
+
+        LOCAL_DEBUG_OUT("parsing Options ...%s","");
+    LoadBaseConfig (GetBaseOptions);
+        LoadColorScheme();
+    LoadConfig ("audio", GetOptions);
+
+
+
 	int i;
 	int err;
 	short buf[128];
