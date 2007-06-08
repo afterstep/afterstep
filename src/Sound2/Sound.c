@@ -47,7 +47,7 @@ void process_message (send_data_type type, send_data_type *body);
 // audio.c
 char         *sound_table[MAX_SOUNDS];
 
-main (int argc, int argv)
+int main (int argc,char ** argv)
 {
 
         set_DeadPipe_handler(DeadPipe);
@@ -60,9 +60,9 @@ main (int argc, int argv)
         Config = CreateAudioConfig();
 
         LOCAL_DEBUG_OUT("parsing Options ...%s","");
-    LoadBaseConfig (GetBaseOptions);
+//    LoadBaseConfig (GetBaseOptions);
         LoadColorScheme();
-    LoadConfig ("audio", GetOptions);
+  //  LoadConfig ("audio", GetOptions);
 
 
 
