@@ -60,15 +60,15 @@ int main (int argc,char ** argv)
         Config = CreateAudioConfig();
 
         LOCAL_DEBUG_OUT("parsing Options ...%s","");
-//    LoadBaseConfig (GetBaseOptions);
-        LoadColorScheme();
-  //  LoadConfig ("audio", GetOptions);
+    //  LoadBaseConfig (GetBaseOptions);
+    // color scheme? why does sound care about this?
+    // (from Audio.c)
+    //  LoadColorScheme();
+    //  LoadConfig ("audio", GetOptions);
 
 
 
-	int i;
 	int err;
-	short buf[128];
 	snd_pcm_t *playback_handle;
 	snd_pcm_hw_params_t *hw_params;
 	int DEBUG1;
@@ -77,12 +77,13 @@ int main (int argc,char ** argv)
 	typedef char *String;
 	//--
 	FILE* WaveFile;
-	int result;
 	int frames;
-
+	// Vars grabbed from command line.. just for screwin around at moment..
+	SRate = argv[2];
 	DEBUG1 = argv[1];
 	
-	SRate = 22000;
+	fprintf(stdout,"ARGX: %i::%s :: %s",argc,argv[1],argv[2]);
+	
 	dir = 0;
 	String pcmDeviceID = "default";
 
@@ -131,7 +132,7 @@ int main (int argc,char ** argv)
 	// target/chosen exact value is <,=,> val following dir (-1,0,1) :: hmm
 	ret1 = snd_pcm_hw_params_set_rate_near(playback_handle,hw_params,&SRate,&dir);
 	
-	if (DEBUG1) { fprintf(stdout,"Set Sample Rate: %i :: %i\n", ret1, &dir); }
+	if (DEBUG1) { fprintf(stdout,"Set Sample Rate: %i :: %i\n", ret1, dir); }
 
 	if ((err = snd_pcm_hw_params_set_channels (playback_handle, hw_params, 2)) < 0) {
 		fprintf (stderr, "cannot set channel count (%s)\n",
