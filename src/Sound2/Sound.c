@@ -45,28 +45,20 @@ void DispatchEvent (ASEvent * event);
 void process_message (send_data_type type, send_data_type *body);
 
 // audio.c
-char         *sound_table[MAX_SOUNDS];
+//char         *sound_table[MAX_SOUNDS];
 
 int main (int argc,char ** argv)
 {
 
         set_DeadPipe_handler(DeadPipe);
-    InitMyApp (CLASS_AUDIO, argc, argv, NULL, NULL, 0 );
+        InitMyApp (CLASS_AUDIO, argc, argv, NULL, NULL, 0 );
         LinkAfterStepConfig();
 
-    ConnectX( ASDefaultScr, PropertyChangeMask );
-    ConnectAfterStep ( mask_reg, 0 );
+        ConnectX( ASDefaultScr, PropertyChangeMask );
+        ConnectAfterStep ( mask_reg, 0 );
 
+        // declared via AudioConfig *Config.... (after defines..)
         Config = CreateAudioConfig();
-
-        LOCAL_DEBUG_OUT("parsing Options ...%s","");
-    //  LoadBaseConfig (GetBaseOptions);
-    // color scheme? why does sound care about this?
-    // (from Audio.c)
-    //  LoadColorScheme();
-    //  LoadConfig ("audio", GetOptions);
-
-
 
 	int err;
 	snd_pcm_t *playback_handle;
@@ -79,10 +71,11 @@ int main (int argc,char ** argv)
 	FILE* WaveFile;
 	int frames;
 	// Vars grabbed from command line.. just for screwin around at moment..
-	SRate = argv[2];
+	//SRate = (int *) argv[2];
+	SRate = 22000;
 	DEBUG1 = argv[1];
 	
-	fprintf(stdout,"ARGX: %i::%s :: %s",argc,argv[1],argv[2]);
+	fprintf(stdout,"ARGX: %i::%s :: %s\n",argc,argv[1],argv[2]);
 	
 	dir = 0;
 	String pcmDeviceID = "default";
@@ -102,9 +95,9 @@ int main (int argc,char ** argv)
 		exit (1);
 	}
 			 
-	if (DEBUG1) { fprintf(stdout,"Allocated Params\n"); }
+	if (DEBUG1) { fprintf(stdout,"Allocated Params: %i\n",err); }
 
-	if ((err = snd_pcm_hw_params_any (playback_handle, hw_params)) < 0) {
+	if ((err = snd_pcm_hw_params_any (playback_handle,hw_params)) < 0) {
 		fprintf (stderr, "cannot initialize hardware parameter structure (%s)\n",
 			 snd_strerror (err));
 		exit (1);
@@ -112,7 +105,7 @@ int main (int argc,char ** argv)
 	
 	if (DEBUG1) { fprintf(stdout,"Init Hardware Params\n"); }
 
-	if ((err = snd_pcm_hw_params_set_access (playback_handle, hw_params, SND_PCM_ACCESS_RW_INTERLEAVED)) < 0) {
+	if ((err = snd_pcm_hw_params_set_access (playback_handle,hw_params, SND_PCM_ACCESS_RW_INTERLEAVED)) < 0) {
 		fprintf (stderr, "cannot set access type (%s)\n",
 			 snd_strerror (err));
 		exit (1);
@@ -120,7 +113,7 @@ int main (int argc,char ** argv)
 	
 	if (DEBUG1) { fprintf(stdout,"Set access Type\n"); }
 
-	if ((err = snd_pcm_hw_params_set_format (playback_handle, hw_params, SND_PCM_FORMAT_S16_LE)) < 0) {
+	if ((err = snd_pcm_hw_params_set_format (playback_handle,hw_params, SND_PCM_FORMAT_S16_LE)) < 0) {
 		fprintf (stderr, "cannot set sample format (%s)\n",
 			 snd_strerror (err));
 		exit (1);
@@ -129,20 +122,21 @@ int main (int argc,char ** argv)
 	if (DEBUG1) { fprintf(stdout,"Set Sample Format\n"); }
 
 	// Last two args for this must be pointers. else it will cause a segfault.
+	// ?: SRate wont work unless its pointer (in test app). when linked to AS,
+	//  : it cant be a pointer.
 	// target/chosen exact value is <,=,> val following dir (-1,0,1) :: hmm
-	ret1 = snd_pcm_hw_params_set_rate_near(playback_handle,hw_params,&SRate,&dir);
+	ret1 = snd_pcm_hw_params_set_rate_near(playback_handle,hw_params,SRate,&dir);
 	
 	if (DEBUG1) { fprintf(stdout,"Set Sample Rate: %i :: %i\n", ret1, dir); }
 
-	if ((err = snd_pcm_hw_params_set_channels (playback_handle, hw_params, 2)) < 0) {
-		fprintf (stderr, "cannot set channel count (%s)\n",
-			 snd_strerror (err));
+	if ((err = snd_pcm_hw_params_set_channels (playback_handle,hw_params, 2)) < 0) {
+		fprintf (stderr, "cannot set channel count (%s)\n",snd_strerror(err));
 		exit (1);
 	}
 	
 	if (DEBUG1) { fprintf(stdout,"Channel Count\n"); }
 
-	if ((err = snd_pcm_hw_params (playback_handle, hw_params)) < 0) {
+	if ((err = snd_pcm_hw_params (playback_handle,hw_params)) < 0) {
 		fprintf (stderr, "cannot set parameters (%s)\n",
 			 snd_strerror (err));
 		exit (1);
@@ -188,6 +182,43 @@ int main (int argc,char ** argv)
 	}
 // --------------------------------------
 	snd_pcm_close (playback_handle);
-	exit (0);
+	
+	HandleEvents();
+	
+//	exit (0);
+
+        return 0;
 }
 
+void HandleEvents()
+{   
+        ASEvent event;
+    Bool has_x_events = False ;
+    while (True)
+    {
+        while((has_x_events = XPending (dpy)) )
+        {
+            if( ASNextEvent (&(event.x), True) )
+            {
+                event.client = NULL ;
+                setup_asevent_from_xevent( &event );
+                DispatchEvent( &event );
+                        }
+        }
+        module_wait_pipes_input ( process_message );
+    }
+}
+
+void
+DispatchEvent (ASEvent * event)
+{
+    SHOW_EVENT_TRACE(event);
+    switch (event->x.type)
+    {
+            case PropertyNotify:
+                        handle_wmprop_event (Scr.wmprops, &(event->x));
+                        return ;
+        default:
+            return;
+    }
+} 
