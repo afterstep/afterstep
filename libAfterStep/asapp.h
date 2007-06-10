@@ -241,6 +241,9 @@ void destroy_asenvironment( ASEnvironment **penv );
 
 #define MAX_SINGLETONS_NUM 				32
 #define BACKGROUND_SINGLETON_ID 		(MAX_SINGLETONS_NUM-1)
+/* :sG:Audio: 
+  This Audio entry may need to be removed/repalced.
+    Since its related to the Audio module. and Sound2 will be replacing it. */
 #define AUDIO_SINGLETON_ID 				(MAX_SINGLETONS_NUM-2)
 #define TAR_SINGLETON_ID 				(MAX_SINGLETONS_NUM-3)
 #define MAX_USER_SINGLETONS_NUM 		(MAX_SINGLETONS_NUM-3)

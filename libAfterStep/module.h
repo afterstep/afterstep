@@ -26,7 +26,7 @@ struct button_t;
 #define CLASS_ASIMBROWSER   "ASIMBrowser"
 #define CLASS_ASWALLPAPER   "ASWallpaper"
 #define CLASS_ASETROOT		"asetroot"
-#define CLASS_AUDIO			"Audio"
+#define CLASS_SOUND			"Sound"
 #define CLASS_BANNER		"Banner"
 #define CLASS_CLEAN         "Clean"
 #define CLASS_GNOME         "Gnome"
