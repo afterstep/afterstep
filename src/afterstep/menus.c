@@ -941,7 +941,6 @@ LOCAL_DEBUG_CALLER_OUT( "%p, %d", menu, item_no );
         	int x = menu->main_canvas->root_x+(int)menu->main_canvas->bw ;
         	int y ;
         	ASQueryPointerRootXY( &x, &y );
-        	x -= 5 ;
 #if 0
         	if( x  < menu->main_canvas->root_x + (int)(menu->item_width/3) )
         	{
@@ -952,7 +951,7 @@ LOCAL_DEBUG_CALLER_OUT( "%p, %d", menu, item_no );
                 	x += max_dx ;
         	}
 #endif
-        	y = menu->main_canvas->root_y+(menu->item_height*(item_no+1-(int)menu->top_item)) - 10 ;
+        	y = menu->main_canvas->root_y+(menu->item_height*(item_no-(int)menu->top_item)) ;
 	/*	if( x > menu->main_canvas->root_x+menu->item_width-5 )
 	    	x = menu->main_canvas->root_x+menu->item_width-5 ;
 	*/      close_asmenu_submenu( menu );
@@ -1534,6 +1533,7 @@ show_asmenu( ASMenu *menu, int x, int y )
     ASRawHints raw ;
     static char *ASMenuStyleNames[2] = {"ASMenu",NULL} ;
     ASDatabaseRecord *db_rec;
+	int my_width, my_height ;
 
 	LOCAL_DEBUG_OUT( "menu(%s) - encoding set in hints is %d", hints->names[0], hints->names_encoding[0] ); 
 
@@ -1564,24 +1564,69 @@ show_asmenu( ASMenu *menu, int x, int y )
         hints->min_width  = tbar_width ;
     }
 
-    if( x <= MIN_MENU_X )
-        x = MIN_MENU_X ;
-    else if( x + menu->optimal_width + tbar_height> MAX_MENU_X )
-    {
-        x = MAX_MENU_X - menu->optimal_width ;
-        gravity = EastGravity ;
-    }else if( x + menu->optimal_width + tbar_height + menu->optimal_width> MAX_MENU_X )
-		gravity = EastGravity ;
+	my_width = menu->optimal_width + tbar_height ; 
+	my_height = menu->optimal_height + tbar_height ;
 
-    if( y <= MIN_MENU_Y )
-        y = MIN_MENU_Y ;
-    else if( y + menu->optimal_height + tbar_height> MAX_MENU_Y )
+	y -= tbar_height ;
+	x -= menu->optimal_width / 3 ;
+	
+    if( menu->supermenu ) 
+    {/* we need to make sure we would not overlay our parent completely ! */
+		ASCanvas *pc = menu->supermenu->main_canvas ; 
+		int requested_x = x, requested_y = y ; 
+		if( x + my_width > Scr.MyDisplayWidth ) 
+			x = Scr.MyDisplayWidth - my_width ; 
+		if( y + my_height > Scr.MyDisplayHeight ) 
+			y = Scr.MyDisplayHeight - my_height ; 
+		if( requested_x != x || requested_y != y ) 
+		{
+			if(   x <= pc->root_x + 10 
+			   && x + my_width >= pc->root_x + pc->width 
+			   && y <= pc->root_y + 10
+			   && y + my_height >= pc->root_y + pc->height 
+			  )
+			{
+				if( requested_y - pc->root_y > tbar_height ) 
+					y = (requested_y + pc->root_y)/2 ;
+				else
+					y = requested_y ;
+				if( y + my_height >= Scr.MyDisplayHeight ) 
+				{
+					if( pc->root_y + pc->height - requested_y < menu->item_height ) 
+						y = requested_y - my_height ; 
+					else
+						y = (pc->root_y + pc->height + requested_y)/2 - my_height ;
+				}
+			}  
+			if( requested_y != y ) 
+			{
+				if( requested_x != x ) 
+					gravity = SouthEastGravity ; 
+				else
+					gravity = SouthWestGravity ;
+			}else if( requested_x != x ) 	
+				gravity = NorthEastGravity ;
+		}      
+    }else
     {
-        y = MAX_MENU_Y - menu->optimal_height;
-        gravity = (gravity == StaticGravity)?SouthGravity:SouthEastGravity ;
-    }else if( y + menu->optimal_height + tbar_height + menu->optimal_height> MAX_MENU_Y )
-        gravity = (gravity == StaticGravity)?SouthGravity:SouthEastGravity ;
+		if( x <= MIN_MENU_X )
+		  	x = MIN_MENU_X ;
+		else if( x + menu->optimal_width + tbar_height> MAX_MENU_X )
+		{ 
+		  	x = MAX_MENU_X - menu->optimal_width ;
+		  	gravity = EastGravity ;
+		}else if( x + menu->optimal_width + tbar_height + menu->optimal_width> MAX_MENU_X )
+		  	gravity = EastGravity ;
 
+		if( y <= MIN_MENU_Y )
+		  	y = MIN_MENU_Y ;
+		else if( y + menu->optimal_height + tbar_height> MAX_MENU_Y )
+		{
+		  	y = MAX_MENU_Y - menu->optimal_height;
+		  	gravity = (gravity == StaticGravity)?SouthGravity:SouthEastGravity ;
+		}else if( y + menu->optimal_height + tbar_height + menu->optimal_height> MAX_MENU_Y )
+		  	gravity = (gravity == StaticGravity)?SouthGravity:SouthEastGravity ;
+	}
     hints->gravity = gravity ;
 
 
