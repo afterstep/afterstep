@@ -42,7 +42,9 @@ void GetBaseOptions (const char *filename/* unused */);
 void GetOptions (const char *filename);
 void HandleEvents();
 void DispatchEvent (ASEvent * event);
-void process_message (send_data_type type, send_data_type *body);
+void proc_message (send_data_type type, send_data_type *body);
+
+Bool (*audio_play) (short) = NULL;
 
 // audio.c
 //char         *sound_table[MAX_SOUNDS];
@@ -51,7 +53,7 @@ int main (int argc,char ** argv)
 {
 
         set_DeadPipe_handler(DeadPipe);
-        InitMyApp (CLASS_AUDIO, argc, argv, NULL, NULL, 0 );
+        InitMyApp (CLASS_SOUND, argc, argv, NULL, NULL, 0 );
         LinkAfterStepConfig();
 
         ConnectX( ASDefaultScr, PropertyChangeMask );
@@ -70,10 +72,8 @@ int main (int argc,char ** argv)
 	//--
 	FILE* WaveFile;
 	int frames;
-	// Vars grabbed from command line.. just for screwin around at moment..
-	//SRate = (int *) argv[2];
 	SRate = 22000;
-	DEBUG1 = argv[1];
+	DEBUG1 = *argv[1];
 	
 	fprintf(stdout,"ARGX: %i::%s :: %s\n",argc,argv[1],argv[2]);
 	
@@ -189,7 +189,29 @@ int main (int argc,char ** argv)
 
         return 0;
 }
+// ------ READ HEADER ------
+/*
+int asSound_rfileh(char *FileName)
+{
+    // Find out what kind of file we got... 
+    FILE *WaveFile;
+    char *buffer1;
+    int *Head1;
 
+    WaveFile = fopen("online.wav","rb");
+    // Alloc mem for fread.. 
+    buffer1 = (char*)malloc(4096);
+    // Read one element of 4 bytes.
+    // (the first part of wave header)
+    Head1 = fread(buffer1,4,1,WaveFile);
+    if (Head1 == "RIFF")
+    {
+        fprintf("Header is RIFF\n");
+    } else {
+        fprintf("Header is Other?\n");
+    }
+}*/
+// -------------------------
 void HandleEvents()
 {   
         ASEvent event;
@@ -205,7 +227,7 @@ void HandleEvents()
                 DispatchEvent( &event );
                         }
         }
-        module_wait_pipes_input ( process_message );
+        module_wait_pipes_input ( proc_message );
     }
 }
 
@@ -222,3 +244,97 @@ DispatchEvent (ASEvent * event)
             return;
     }
 } 
+void proc_message (send_data_type type, send_data_type *body)
+{
+        time_t        now = 0;
+        static time_t last_time = 0;
+        int code = -1 ;
+        
+    	LOCAL_DEBUG_OUT( "rcvd mssage %lX", type );
+                
+    if( type == M_PLAY_SOUND )
+    {
+                show_activity("TYPE: M_PLAY_SOUND\n");
+                CARD32 *pbuf = &(body[4]);
+        	char *new_name = deserialize_string( &pbuf, NULL );
+                SetupSoundEntry( EVENT_PlaySound, new_name);
+                free( new_name );
+                code = EVENT_PlaySound ;
+                show_activity("PLAY_SND 2: [%i]\n",code);
+    }else if( (type&WINDOW_PACKET_MASK) != 0 )
+    {
+                struct ASWindowData *wd = fetch_window_by_id( body[0] );
+                WindowPacketResult res ;
+                /* saving relevant client info since handle_window_packet could destroy the actuall structure */
+                ASFlagType old_state = wd?wd->state_flags:0 ; 
+                show_activity( "message %lX window %X data %p", type, body[0], wd );
+                res = handle_window_packet( type, body, &wd );
+                LOCAL_DEBUG_OUT( "result = %d", res );
+    if( res == WP_DataCreated )
+    {       
+                code = EVENT_WindowAdded ;
+                show_activity("WindowADD: [%i]\n",code);
+    }else if( res == WP_DataChanged ) 
+    {
+              show_activity("DATA Changed???");
+    }else if( res == WP_DataDeleted )
+    {
+                code = EVENT_WindowDestroyed ;
+                show_activity("WindowDEST: [%i]\n",code);
+    }
+    }else if( type == M_NEW_DESKVIEWPORT )
+    {
+                code = EVENT_DeskViewportChanged ;
+                // This should be returing "14" for code
+                show_activity("ViewPort CHANGE: [%i]\n",code);
+    }else if( type == M_NEW_CONFIG )
+    {
+                code = EVENT_Config ;
+                show_activity("New CONFIG: [%i]",code);
+    }else if( type == M_NEW_MODULE_CONFIG )
+    {
+                code = EVENT_ModuleConfig ;
+                show_activity("New MOD CONF: [%i]",code);
+    }
+    else if ( type == M_FOCUS_CHANGE )
+    {
+                show_activity("Focus Change");
+    }
+    
+    else if ( type == EVENT_WindowShaded )
+    {
+                code = EVENT_WindowShaded;
+                show_activity("Window SHADE: [%i]",code);
+    }
+    else if ( type == EVENT_WindowUnshaded )
+    {
+                code = EVENT_WindowUnshaded;
+                show_activity("Window UNShade: [%i]",code);
+    }
+    else if ( type == EVENT_WindowRaised )
+    {
+                code = EVENT_WindowRaised;
+                show_activity("Window Raised: [%i]",code);
+    }
+    else { show_activity("UKNOWN: %X",type); }
+    now = time (0);
+    if( code >= 0 )
+    {
+           show_activity("Code >= 0: [%i]",code);
+           if ( now >= (last_time + (time_t) Config->delay))
+           {
+                if( ply_sound( code ) ) { last_time = now; }
+           }
+    }
+}
+int ply_sound(int code)
+{
+    show_activity("Play Sound! %i\n",code);
+    
+    return 1;
+}
+Bool SetupSoundEntry(int code, char *sound)
+{
+    show_activity("SETsndENT: code [%i] SND [%c]\n",code,*sound);
+    return True;
+}

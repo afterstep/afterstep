@@ -27,6 +27,7 @@
 #include "../libAfterStep/afterstep.h"
 #include "../libAfterStep/parser.h"
 #include "../libAfterStep/hints.h"
+// :sG:!! Change to ALSA:
 #ifdef HAVE_RPLAY_H
 #include <rplay.h>
 #endif
