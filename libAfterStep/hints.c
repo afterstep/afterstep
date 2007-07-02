@@ -979,7 +979,7 @@ merge_gnome_hints (ASHints * clean, ASRawHints * raw,
 	{
 		if (get_flags (gh->flags, GNOME_LAYER))
 		{
-			status->layer = (gh->layer - WIN_LAYER_NORMAL) >> 1;
+			status->layer = gh->layer ; /*No clue why we used to do that  :  (gh->layer - WIN_LAYER_NORMAL) >> 1; */
 			set_flags (status->flags, AS_StartLayer);
 		}
 		if (get_flags (gh->flags, GNOME_WORKSPACE))
