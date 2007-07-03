@@ -182,6 +182,10 @@ typedef struct ASWindow
 #define ASWF_FirstCornerFollowsTbarSize	(0x01<<3)
 #define ASWF_LastCornerFollowsTbarSize	(0x01<<6)
 	ASFlagType internal_flags ;
+  
+  /* we use that to avoid excessive refreshes when property is updated with exact same contents */
+	XWMHints 	saved_wm_hints ; 
+  	XSizeHints 	saved_wm_normal_hints;
 }ASWindow;
 
 typedef struct ASLayer

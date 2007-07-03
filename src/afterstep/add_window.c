@@ -145,6 +145,27 @@ SelectDecor (ASWindow * t)
 }
 
 
+Bool
+collect_aswindow_hints( ASWindow *asw, ASRawHints *raw_hints )
+{
+    if( !collect_hints( ASDefaultScr, asw->w, HINT_ANY, raw_hints ) )
+        return False;
+    if( is_output_level_under_threshold(OUTPUT_LEVEL_HINTS) )
+        print_hints( NULL, NULL, raw_hints );
+
+	if( raw_hints->wm_hints == NULL ) 
+		memset( &(asw->saved_wm_hints), 0x00, sizeof(asw->saved_wm_hints) );
+	else 
+		memcpy( &(asw->saved_wm_hints), raw_hints->wm_hints, sizeof(asw->saved_wm_hints) );
+
+	if( raw_hints->wm_normal_hints == NULL ) 
+		memset( &(asw->saved_wm_normal_hints), 0x00, sizeof(asw->saved_wm_normal_hints) );
+	else 
+		memcpy( &(asw->saved_wm_normal_hints), raw_hints->wm_normal_hints, sizeof(asw->saved_wm_normal_hints) );
+		
+	return True ;
+}
+
 /***********************************************************************
  *
  *  Procedure:
@@ -185,10 +206,8 @@ AddWindow (Window w, Bool from_map_request)
 	 */
 	XSelectInput( dpy, w, AS_CLIENT_EVENT_MASK );
 		
-    if( collect_hints( ASDefaultScr, w, HINT_ANY, &raw_hints ) )
+    if( collect_aswindow_hints( tmp_win, &raw_hints ) )
     {
-        if( is_output_level_under_threshold(OUTPUT_LEVEL_HINTS) )
-            print_hints( NULL, NULL, &raw_hints );
         hints = merge_hints( &raw_hints, Database, &status, Scr.Look.supported_hints, HINT_ANY, NULL, w );
         destroy_raw_hints( &raw_hints, True );
         if( hints )

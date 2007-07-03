@@ -861,6 +861,61 @@ update_transp_iter_func(void *data, void *aux_data)
     return True;
 }
 
+static Bool 
+check_wm_hints_changed( ASWindow *asw )
+{
+	unsigned char *ptr = (unsigned char*)&(asw->saved_wm_hints) ; 
+	XWMHints *tmp = XGetWMHints (dpy, asw->w);
+	Bool changed = False ; 
+	if( tmp == NULL )
+	{
+		int i ;
+		for( i = 0 ; i < sizeof(XWMHints); ++i ) 
+			if( ptr[i] != 0 ) 
+				return True ;
+	}else
+	{
+		changed = (memcmp( tmp, ptr, sizeof(XWMHints) ) != 0);
+		XFree( tmp );
+	}
+	return changed ;
+}
+
+static Bool 
+check_wm_normal_hints_changed( ASWindow *asw )
+{
+	unsigned char *ptr = (unsigned char*)&(asw->saved_wm_normal_hints) ; 
+	XSizeHints *tmp = XAllocSizeHints();
+	unsigned char *ptr2 = (unsigned char *)tmp ;
+	Bool changed = False ; 
+	long unused ; 
+	int i ;
+
+	if( XGetWMNormalHints (dpy, asw->w, tmp, &unused) == 0 )
+	{
+		for( i = 0 ; i < sizeof(XSizeHints); ++i ) 
+			if( ptr[i] != 0 ) 
+			{	changed = True ; break ; }
+	}else
+		for( i = 0 ; i < sizeof(XSizeHints); ++i ) 
+			if( ptr[i] != ptr2[i] ) 
+			{	changed = True ; break ; }
+
+#if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
+	if( changed ) 
+	{
+		LOCAL_DEBUG_OUT( "normal hints differ at offset %d", i ); 
+		LOCAL_DEBUG_OUT( "Old hints : %s","" ); 
+		print_wm_normal_hints  ( NULL, NULL, (XSizeHints*)ptr );
+		LOCAL_DEBUG_OUT( "New hints : %s","" ); 
+		print_wm_normal_hints  ( NULL, NULL, tmp );
+	}
+#endif	
+	XFree( tmp );
+	return changed ;
+}
+
+
 void
 HandlePropertyNotify (ASEvent *event)
 {
@@ -964,6 +1019,22 @@ HandlePropertyNotify (ASEvent *event)
 	{	
 	 	if( event->context == C_WINDOW && event->w != asw->frame ) 
 			on_window_opacity_changed( asw );
+	}else if( atom == XA_WM_HINTS )
+	{
+		if( check_wm_hints_changed( asw ) ) 
+	        on_window_hints_changed( asw );
+		else
+		{
+    		LOCAL_DEBUG_OUT( "ignoring WM_HINTS change - data is the same%s","" );
+		}		
+	}else if( atom == XA_WM_NORMAL_HINTS )
+	{
+		if( check_wm_normal_hints_changed( asw ) ) 
+	        on_window_hints_changed( asw );
+		else
+		{
+    		LOCAL_DEBUG_OUT( "ignoring WM_NORMAL_HINTS change - data is the same%s","" );
+		}		
 	}else if( NeedToTrackPropChanges(atom) )
         on_window_hints_changed( asw );
 

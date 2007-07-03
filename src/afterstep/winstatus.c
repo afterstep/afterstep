@@ -811,24 +811,35 @@ LOCAL_DEBUG_OUT( "changes=0x%X", changes );
                 title_size = calculate_astbar_height( asw->icon_title );
                 move_astbar( asw->icon_title, asw->icon_canvas, 0, asw->icon_canvas->height - title_size );
                 set_astbar_size( asw->icon_title, asw->icon_canvas->width, title_size );
-                render_astbar( asw->icon_title, asw->icon_canvas );
+				if( ASWIN_GET_FLAGS(asw, AS_Iconic ) )
+				{
+                	render_astbar( asw->icon_title, asw->icon_canvas );
+				}
                 LOCAL_DEBUG_OUT( "title_size = %d", title_size );
             }
             set_astbar_size( asw->icon_button, asw->icon_canvas->width, asw->icon_canvas->height-title_size );
-            render_astbar( asw->icon_button, asw->icon_canvas );
-            update_canvas_display( asw->icon_canvas );
+		    if( ASWIN_GET_FLAGS(asw, AS_Iconic ) )
+            {
+            	render_astbar( asw->icon_button, asw->icon_canvas );
+            	update_canvas_display( asw->icon_canvas );
+            }
         }
-        broadcast_config (M_CONFIGURE_WINDOW, asw);
+		if( ASWIN_GET_FLAGS(asw, AS_Iconic ) )
+	        broadcast_config (M_CONFIGURE_WINDOW, asw);
     }else if( asw->icon_title_canvas && w == asw->icon_title_canvas->w )
     {
         if( handle_canvas_config(asw->icon_title_canvas) && asw->icon_title )
         {
             LOCAL_DEBUG_OUT( "icon_title resized to %dx%d%+d%+d", asw->icon_title_canvas->width, asw->icon_title_canvas->height, asw->icon_title_canvas->root_x, asw->icon_title_canvas->root_y );
             set_astbar_size( asw->icon_title, asw->icon_title_canvas->width, asw->icon_title->height );
-            render_astbar( asw->icon_title, asw->icon_title_canvas );
-            update_canvas_display( asw->icon_title_canvas );
+			if( ASWIN_GET_FLAGS(asw, AS_Iconic ) )
+			{
+            	render_astbar( asw->icon_title, asw->icon_title_canvas );
+	            update_canvas_display( asw->icon_title_canvas );
+			}
         }
-        broadcast_config (M_CONFIGURE_WINDOW, asw);
+		if( ASWIN_GET_FLAGS(asw, AS_Iconic ) )
+	        broadcast_config (M_CONFIGURE_WINDOW, asw);
     }else if( asw->shading_steps ==  0 ) /* one of the frame canvases :*/
     {
         if( !check_frame_side_config( asw, w, od ) )
@@ -890,6 +901,9 @@ on_window_title_changed( ASWindow *asw, Bool update_display )
     }
 }
 
+Bool
+collect_aswindow_hints( ASWindow *asw, ASRawHints *raw_hints );
+
 void
 on_window_hints_changed( ASWindow *asw )
 {
@@ -904,10 +918,8 @@ on_window_hints_changed( ASWindow *asw )
         return ;
     if( ASWIN_GET_FLAGS( asw, AS_Dead ) )
 		return;
-    if( !collect_hints( ASDefaultScr, asw->w, HINT_ANY, &raw_hints ) )
+    if( !collect_aswindow_hints( asw, &raw_hints ) )
         return ;
-    if( is_output_level_under_threshold(OUTPUT_LEVEL_HINTS) )
-        print_hints( NULL, NULL, &raw_hints );
 
 	memset( &scratch_status, 0x00, sizeof( scratch_status ) );
 			
