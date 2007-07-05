@@ -533,6 +533,8 @@ LOCAL_DEBUG_OUT( "freeing func data %p", mdi->fdata );
                 free (mdi->item);
             if (mdi->item2 != NULL)
                 free (mdi->item2);
+            if (mdi->comment != NULL)
+                free (mdi->comment);
         }
         free(mdi);
     }
@@ -564,6 +566,8 @@ destroy_menu_data( MenuData **pmd )
 LOCAL_DEBUG_CALLER_OUT( "menu_data_destroy(\"%s\", %p)", md->name?md->name:"(null)", md );
        		if( md->name )
                 free( md->name );
+       		if( md->comment )
+                free( md->comment );
 
             purge_menu_data_items(md);
             md->magic = 0 ;

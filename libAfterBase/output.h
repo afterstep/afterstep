@@ -64,7 +64,7 @@ inline void nonGNUC_debugout_stub( const char *format, ...);
 void debugout_print_linestamp(const char *file, const char *func, int line );
 
 
-char *get_caller_func();/* required by below */
+const char *get_caller_func();/* required by below */
 
 /* Some usefull debugging macros : */
 #ifdef __GNUC__

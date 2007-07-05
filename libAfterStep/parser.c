@@ -538,7 +538,7 @@ GetToNextLine (ConfigDef * config)
             if( get_flags( config->flags, CP_ReadLines ) )
             {
 LOCAL_DEBUG_OUT( "Reading Lines ...%s", "" );
-                if (!fgets (config->buffer, config->buffer_size, config->fp))
+                if (!fgets (config->buffer, config->buffer_size-1, config->fp))
                     return NULL;
                 config->bytes_in = strlen(config->buffer);
                 config->cursor = &(config->buffer[0]);
@@ -548,7 +548,7 @@ LOCAL_DEBUG_OUT( "Reading Lines ...%s", "" );
                 register char *ptr = config->buffer ;
 
 LOCAL_DEBUG_OUT( "Reading Buffer ...%s", "" );
-                config->bytes_in = read (config->fd, ptr, config->buffer_size);
+                config->bytes_in = read (config->fd, ptr, config->buffer_size-1);
                 if (config->bytes_in <= 0)
                     return NULL;
                 print_trimmed_str( "new data begins with", ptr );

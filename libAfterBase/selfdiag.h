@@ -6,7 +6,7 @@ extern "C" {
 #endif
 
 long**	get_call_list();
-char *  get_caller_func ();
+const char *  get_caller_func ();
 void	print_simple_backtrace ();
 void	set_signal_handler (int sig_num);
 

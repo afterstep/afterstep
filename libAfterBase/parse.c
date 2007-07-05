@@ -656,7 +656,7 @@ stripcomments2 (char *source, char **comments )
 			curr = i - 1;
 		}
 	}
-	do{ --curr ; }while( isspace ((int)source[curr]) && curr > start);
+	do{ --curr ; }while( curr > start && isspace ((int)source[curr]));
 	source[curr+1] = '\0';
 	return &source[start];
 }

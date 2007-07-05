@@ -538,10 +538,14 @@ done:
     return call_list;
 }
 
-char *
+
+static char _as_func_name_return[256];
+
+const char *
 get_caller_func ()
 {
     char         *func_name = unknown;
+	void         *to_free = NULL; 
 #if defined(__GNUC__) || defined(__CYGWIN__)
     int           call_no = 0;
     long         **ret_addr ;
@@ -557,6 +561,7 @@ get_caller_func ()
         if (func_name == unknown)
         {
             char **dummy = GLIBC_BACKTRACE_FUNC ((void **)&(ret_addr[call_no]), 1);
+			to_free = dummy ;
             func_name = *dummy ;
         }
 #endif
@@ -564,7 +569,12 @@ get_caller_func ()
 #endif
 	if( func_name == NULL )
 		func_name = unknown ;
-    return func_name;
+	strncpy( _as_func_name_return, func_name, 255 );
+	_as_func_name_return[255] = '\0' ;
+	if( to_free != NULL  ) 
+		free(to_free);
+	
+    return &(_as_func_name_return[0]);
 }
 
 void
