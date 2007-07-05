@@ -163,24 +163,24 @@ install.clean_trash:
 	 $(FIND) $(AFTER_SHAREDIR) -name CVS -print | $(XARGS) $(RMF) -r
 	 $(FIND) $(AFTER_SHAREDIR) -name .cvsignore -print | $(XARGS) $(RMF)
 
-install.menu:   share_dirs
-	@echo $(RMF) -r $(AFTER_SHAREDIR)/start; \
-	 $(RMF) -r $(AFTER_SHAREDIR)/start; \
-	 echo "$(MKDIR) -p $(AFTER_SHAREDIR)/start"; \
-	 $(MKDIR) -p $(AFTER_SHAREDIR)/start; \
-	 echo "$(CP) -r start/* $(AFTER_SHAREDIR)/start/"; \
-	 $(CP) -r start/* $(AFTER_SHAREDIR)/start/ 
-	@$(RMF) $(AFTER_SHAREDIR)/start/.include.in; \
-	 $(INSTALL_DATA) start/.include $(AFTER_SHAREDIR)/start/.include; \
-	 $(FIND) $(AFTER_SHAREDIR)/start -name '*.in' -print | $(XARGS) $(RMF) -r; \
-	 $(RMF) $(AFTER_SHAREDIR)/start/1_Desktop/Feel/.include.in; \
-	 $(RMF) $(AFTER_SHAREDIR)/start/1_Desktop/Color_Scheme/.include.in; \
-	 $(RMF) $(AFTER_SHAREDIR)/start/1_Desktop/Look/.include.in; \
-	 $(RMF) $(AFTER_SHAREDIR)/start/1_Desktop/Theme/.include.in; \
-	 $(RMF) $(AFTER_SHAREDIR)/start/1_Desktop/Pictures/.include.in; \
-	 $(RMF) $(AFTER_SHAREDIR)/start/2_Modules/Pager.in
-	 $(FIND) $(AFTER_SHAREDIR)/start -name CVS -print | $(XARGS) $(RMF) -r
-	 $(FIND) $(AFTER_SHAREDIR)/start -name .cvsignore -print | $(XARGS) $(RMF)
+install.menu: share_dirs
+	$(RMF) -r $(AFTER_SHAREDIR)/start
+	$(RMF) -r $(AFTER_SHAREDIR)/start
+	$(MKDIR) -p $(AFTER_SHAREDIR)/start
+	#$(CP) -r start/* $(AFTER_SHAREDIR)/start/ 
+	$(FIND) start -type d -exec $(INSTALL_SCRIPT) -d $(AFTER_SHAREDIR)/{} \;
+	$(FIND) start -type f -exec $(INSTALL_DATA) {} $(AFTER_SHAREDIR)/{} \;
+	$(RMF) $(AFTER_SHAREDIR)/start/.include.in
+	$(INSTALL_DATA) start/.include $(AFTER_SHAREDIR)/start/.include
+	$(FIND) $(AFTER_SHAREDIR)/start -name '*.in' -print | $(XARGS) $(RMF) -r
+	$(RMF) $(AFTER_SHAREDIR)/start/1_Desktop/Feel/.include.in
+	$(RMF) $(AFTER_SHAREDIR)/start/1_Desktop/Color_Scheme/.include.in
+	$(RMF) $(AFTER_SHAREDIR)/start/1_Desktop/Look/.include.in
+	$(RMF) $(AFTER_SHAREDIR)/start/1_Desktop/Theme/.include.in
+	$(RMF) $(AFTER_SHAREDIR)/start/1_Desktop/Pictures/.include.in
+	$(RMF) $(AFTER_SHAREDIR)/start/2_Modules/Pager.in
+	$(FIND) $(AFTER_SHAREDIR)/start -name CVS -print | $(XARGS) $(RMF) -r
+	$(FIND) $(AFTER_SHAREDIR)/start -name .cvsignore -print | $(XARGS) $(RMF)
 
 install.man:
 

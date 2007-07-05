@@ -1,4 +1,9 @@
 
+2007-07-05  madarche
+
+	* fixed a Makefile installation problem if the user installing is using
+	  a umask value of 077.
+
 2007-05-17  sasha
 
 	* AfterStep 2.2.6 relase
