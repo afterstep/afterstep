@@ -1011,6 +1011,20 @@ HandlePropertyNotify (ASEvent *event)
 		if( old_name )
 			free( old_name );
     	LOCAL_DEBUG_OUT( "hints flags = %lX, ShortLived ? %lX ", asw->hints->flags, ASWIN_HFLAGS( asw, AS_ShortLived ) );
+#if (defined(LOCAL_DEBUG)||defined(DEBUG)) && defined(DEBUG_ALLOCS)
+		{
+			static time_t old_t = 0 ; 
+			time_t t = time(NULL);
+			if( old_t < t ) 
+			{
+				char fname[256] ; 
+				sprintf( fname, "afterstep.allocs.name_change.%lu.log", t ); 
+//		    	spool_unfreed_mem( fname, NULL );
+				old_t = t ;
+			}
+		}
+#endif
+
 	/* otherwise we should check if this is the status property that we change ourselves : */
     }else if( atom == XA_WM_COMMAND || atom == XA_WM_CLIENT_MACHINE )
 	{
@@ -1042,6 +1056,52 @@ HandlePropertyNotify (ASEvent *event)
 }
 
 
+#ifdef NAME_CHANGE_TEST
+/* our status */
+ASFlagType AfterStepState = 0; /* default status */
+
+/* Config : */
+ASVector     *Modules       = NULL;
+int           Module_fd     = 0;
+int           Module_npipes = 8;
+
+ASBalloonState *MenuBalloons = NULL ; 
+ASBalloonState *TitlebarBalloons = NULL ; 
+
+void
+Done (Bool restart, char *command )
+{
+	    exit(0);
+}
+
+int
+main(int argc, char **argv)
+{
+	Window w ;
+	int i = 0;
+	char window_name[512] ; 
+
+    InitMyApp ("test_title_change", argc, argv, NULL, NULL, 0 );
+	
+	ConnectX(ASDefaultScr, 0);
+	
+	w =  create_visual_window( Scr.asv, Scr.Root, 0, 0, 300, 300, 0, InputOutput, 0, NULL);
+	
+	sprintf( window_name, "test title change - iter %d", i ) ;
+    set_client_names( w, window_name, window_name, "test", "test_title_change" );
+	
+	XSetWindowBackground(dpy, w, 0 );
+	XMapWindow( dpy, w );
+	while(1)
+	{
+		ASSync(False);
+		sleep_a_millisec(100);
+		sprintf( window_name, "test title change - iter %d", ++i ) ;
+	    set_client_names( w, window_name, window_name, "test", "test_title_change" );
+	}	
+	return 0;
+}
+#endif
 /***********************************************************************
  *
  *  Procedure:

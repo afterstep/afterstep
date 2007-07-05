@@ -333,11 +333,13 @@ void
 safefree (void *ptr)
 {
     if (ptr)
+	{
 #if defined(__CYGWIN__) && defined(DEBUG_ALLOCS) && !defined(NOGUARD)
 		free_guarded_memory( ptr );		   
 #else
 		free (ptr);
 #endif
+	}
 }
 
 void

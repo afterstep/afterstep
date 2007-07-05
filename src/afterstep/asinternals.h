@@ -303,8 +303,11 @@ typedef struct queue_buff_struct
 {
   struct queue_buff_struct *next;
   unsigned char            *data;
-  int                       size;
-  int                       done;
+  short                     size;
+  short                     done;
+  short 					prealloced_idx ; 
+  short 					unused;
+  /* 16 bytes total */
 }queue_buff_struct;
 
 typedef struct module_ibuf_t

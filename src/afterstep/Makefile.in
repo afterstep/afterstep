@@ -23,10 +23,16 @@ $(PROG):        $(OBJS) $(LIBS_DEPEND)
 		$(CC) $(OBJS) $(LIBS_ALL) -o $(@)
 
 AfterStepConfig.o:	configure.c
-		$(CC) $(CCFLAGS) $(EXTRA_DEFINES) -DAFTERSTEP_CONFIG_TEST $(INCLUDES) $(EXTRA_INCLUDES) -c DesktopEntry.c -o PrintDesktopEntries.o
+		$(CC) $(CCFLAGS) $(EXTRA_DEFINES) -DAFTERSTEP_CONFIG_TEST $(INCLUDES) $(EXTRA_INCLUDES) -c configure.c -o AfterStepConfig.o
 
 AfterStepConfig:	AfterStepConfig.o
 		$(CC) AfterStepConfig.o $(USER_LD_FLAGS) $(LIBS_ALL) -o AfterStepConfig
+
+test_name_change.o:	events.c
+		$(CC) $(CCFLAGS) $(EXTRA_DEFINES) -DNAME_CHANGE_TEST $(INCLUDES) $(EXTRA_INCLUDES) -c events.c -o test_name_change.o
+
+test_name_change:	test_name_change.o
+		$(CC) test_name_change.o $(USER_LD_FLAGS) $(LIBS_ALL) -o test_name_change
 
 
 module.clean:

@@ -348,16 +348,41 @@ LOCAL_DEBUG_OUT( "result(%d)", res );
     return res;
 }
 
+#define PREALLOCED_QUEUE_LEN		256
+#define PREALLOCED_QUEUE_DATA_LEN	128
+static unsigned char _as_prealloced_queue_data[PREALLOCED_QUEUE_LEN][PREALLOCED_QUEUE_DATA_LEN] ;
+static Bool _as_prealloced_init = False ; 
+static struct queue_buff_struct _as_prealloced_queue_elems[PREALLOCED_QUEUE_LEN];
+
 static void
 AddToQueue (module_t *module, send_data_type *ptr, int size, int done)
 {
     register struct queue_buff_struct *new_elem, **tail;
-
-    new_elem = safecalloc (1, sizeof (struct queue_buff_struct));
-
+	int i = 0; 
+	
+	if( !_as_prealloced_init ) 
+	{
+		memset( &_as_prealloced_queue_elems[0], 0x00, sizeof(_as_prealloced_queue_elems) );
+		_as_prealloced_init = True ; 
+	}
+	if( size < PREALLOCED_QUEUE_DATA_LEN ) 
+		while( ++i < PREALLOCED_QUEUE_LEN ) 
+			if( _as_prealloced_queue_elems[i].prealloced_idx == 0 ) 
+				break;
+			
+	if( i > 0 && i < PREALLOCED_QUEUE_LEN ) 
+	{
+		new_elem = &_as_prealloced_queue_elems[i] ; 
+		new_elem->prealloced_idx = i ;
+		new_elem->data = &_as_prealloced_queue_data[i][0] ;
+		new_elem->next = NULL ;
+	}else
+	{
+    	new_elem = safecalloc (1, sizeof (struct queue_buff_struct));
+	    new_elem->data = safemalloc (size);
+	}
     new_elem->size = size;
     new_elem->done = done;
-    new_elem->data = safemalloc (size);
     memcpy (new_elem->data, ptr, size);
 LOCAL_DEBUG_OUT( "que_buff %p: size = %d, done = %d, data = %p", new_elem, size, done, new_elem->data );
     for( tail = &(module->output_queue) ; *tail ; tail = &((*tail)->next) );
@@ -372,8 +397,12 @@ DeleteQueueBuff (module_t *module)
     {
         module->output_queue = a->next;
 LOCAL_DEBUG_OUT( "deleting buffer %p sent to module %p - next %p ", a, module, a->next );
-        free (a->data);
-        free (a);
+		if( a->prealloced_idx == 0 ) 
+		{
+        	free (a->data);
+	        free (a);
+		}else
+			a->prealloced_idx = 0 ;
     }
 }
 
