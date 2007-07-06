@@ -190,7 +190,7 @@ AC_CHECK_HEADERS(elf.h,[AC_CHECK_DECLS([ElfW],,,[#include <link.h>])
 			AC_CHECK_TYPES([Elf64_Addr, Elf32_Addr],,,[#include <elf.h>])])
 
 dnl# this is needed for self diagnostic code :
-AC_CHECK_FUNCS(backtrace_symbols)
+AC_CHECK_FUNCS(backtrace_symbols_fd backtrace_symbols backtrace)
 
 AC_CACHE_CHECK(for struct sigcontext, as_cv_struct_sigcontext,
 [AC_TRY_COMPILE([#include <signal.h>

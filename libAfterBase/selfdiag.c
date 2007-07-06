@@ -90,7 +90,7 @@ proc_tables   _ptabs;
 char         *_elf_start = (char *)0x08048000;
 
 
-void
+static void
 get_proc_tables (proc_tables * ptabs)
 {
 #ifdef HAVE_ELF_H
@@ -135,7 +135,7 @@ get_proc_tables (proc_tables * ptabs)
 #endif
 }
 
-void
+static void
 print_elf_data (proc_tables * ptabs)
 {
 #if 0
@@ -207,7 +207,7 @@ print_elf_data (proc_tables * ptabs)
 
 static char  *unknown = "unknown";
 
-char         *
+static const char*
 find_func_symbol (void *addr, long *offset)
 {
 #ifdef HAVE_ELF_H
@@ -302,7 +302,7 @@ find_func_symbol (void *addr, long *offset)
 #endif
 }
 
-void
+static void
 print_lib_list ()
 {
 #if defined(HAVE_LINK_H)
@@ -321,11 +321,11 @@ print_lib_list ()
 }
 
 #if !defined(HAVE_SIGCONTEXT)
-void
+static void
 print_signal_context (struct sigcontext *psc)
 {}
 #else
-void
+static void
 print_signal_context (struct sigcontext *psc)
 {
 	if (psc)
@@ -356,18 +356,31 @@ print_signal_context (struct sigcontext *psc)
 }
 #endif
 
-void
+static void
 print_my_backtrace (long *ebp, long *esp, long *eip)
 {
 #if defined(_ASMi386_SIGCONTEXT_H) || defined(__CYGWIN__)
 	int           frame_no = 0;
 
 	fprintf (stderr, " Stack Backtrace :\n");
+
+#   if defined(HAVE_BACKTRACE_SYMBOLS_FD) && defined(HAVE_BACKTRACE)
+	{
+#    define BACKTRACE_ARRAY_SIZE 64
+		void *array[BACKTRACE_ARRAY_SIZE];
+		size_t size;
+		size = backtrace (array, BACKTRACE_ARRAY_SIZE);
+		backtrace_symbols_fd (array, size, fileno(stderr)); /* most reliable way !!! */
+		return;
+#    undef BACKTRACE_ARRAY_SIZE		
+	}
+#   endif		
+
 	if (ebp < (long *)0x08074000			   /* stack can't possibly go below that */
 		)
 	{
 		long          offset = 0;
-		char         *func_name = NULL;
+		const char   *func_name = NULL;
 
 		fprintf (stderr, "  heh, looks like we've got corrupted stack, so no backtrace for you.\n");
 		if (eip != NULL)
@@ -380,9 +393,16 @@ print_my_backtrace (long *ebp, long *esp, long *eip)
 			else
 			{
 			    char **dummy = GLIBC_BACKTRACE_FUNC ((void **)&eip, 1);
-                func_name = *dummy ;
-				if (*func_name != '[')
-					fprintf (stderr, " in %s()", func_name);
+				if( dummy ) 
+				{
+	                func_name = *dummy ;
+					if (*func_name != '[')
+						fprintf (stderr, " in %s()", func_name);
+#   ifdef HAVE_BACKTRACE_SYMBOLS			
+					free( dummy );
+#   endif /* HAVE_BACKTRACE_SYMBOLS */
+
+				}
 			}
 #endif
 			fprintf (stderr, "\n");
@@ -395,7 +415,7 @@ print_my_backtrace (long *ebp, long *esp, long *eip)
 		)
 	{
 		long          offset = 0;
-		char         *func_name = NULL;
+		const char   *func_name = NULL;
 
 		frame_no++;
 		fprintf (stderr, "   0x%8.8lX", (unsigned long)ebp);
@@ -413,10 +433,17 @@ print_my_backtrace (long *ebp, long *esp, long *eip)
 			{
 #ifdef HAVE_EXECINFO_H
                 char **dummy = GLIBC_BACKTRACE_FUNC ((void **)&esp, 1);
-                func_name = *dummy;
-				if (*func_name != '[')
-					fprintf (stderr, "  [%s]", func_name);
-				else
+				if( dummy ) 
+				{
+                	func_name = *dummy;
+					if (*func_name != '[')
+						fprintf (stderr, "  [%s]", func_name);
+					else
+						fprintf (stderr, "  [some silly code]");
+#   ifdef HAVE_BACKTRACE_SYMBOLS			
+					free( dummy );
+#   endif /* HAVE_BACKTRACE_SYMBOLS */
+				}else
 #endif
 					fprintf (stderr, "  [some silly code]");
 			} else
@@ -431,11 +458,13 @@ print_my_backtrace (long *ebp, long *esp, long *eip)
 
 #define MAX_CALL_DEPTH 32                      /* if you change it here  - then change below as well!!! */
 
-long**
+#if !defined(HAVE_BACKTRACE) || !defined(HAVE_BACKTRACE_SYMBOLS)
+
+static long**
 get_call_list()
 {
     static long * call_list[MAX_CALL_DEPTH+1] = {NULL};
-#if (defined(__GNUC__)&& defined(_ASMi386_SIGCONTEXT_H)) || defined(__CYGWIN__)
+# if (defined(__GNUC__)&& defined(_ASMi386_SIGCONTEXT_H)) || defined(__CYGWIN__)
     if( __builtin_frame_address(0) == NULL ) goto done ;
     if( __builtin_frame_address(1) == NULL ) goto done ;
 
@@ -534,89 +563,12 @@ get_call_list()
 
     call_list[31] = NULL;
 done:
-#endif
+# endif
     return call_list;
 }
+#endif /* !defined(HAVE_BACKTRACE) || !defined(HAVE_BACKTRACE_SYMBOLS) */
 
-
-static char _as_func_name_return[256];
-
-const char *
-get_caller_func ()
-{
-    char         *func_name = unknown;
-	void         *to_free = NULL; 
-#if defined(__GNUC__) || defined(__CYGWIN__)
-    int           call_no = 0;
-    long         **ret_addr ;
-
-    ret_addr = get_call_list();
-    if(ret_addr[0] != NULL )
-    {
-		long          offset = 0;
-
-        get_proc_tables (&_ptabs);
-        func_name = find_func_symbol ((void *)ret_addr[call_no], &offset);
-#ifdef HAVE_EXECINFO_H
-        if (func_name == unknown)
-        {
-            char **dummy = GLIBC_BACKTRACE_FUNC ((void **)&(ret_addr[call_no]), 1);
-			to_free = dummy ;
-            func_name = *dummy ;
-        }
-#endif
-    }
-#endif
-	if( func_name == NULL )
-		func_name = unknown ;
-	strncpy( _as_func_name_return, func_name, 255 );
-	_as_func_name_return[255] = '\0' ;
-	if( to_free != NULL  ) 
-		free(to_free);
-	
-    return &(_as_func_name_return[0]);
-}
-
-void
-print_simple_backtrace ()
-{
-#if defined(__GNUC__)
-    int           call_no = 0;
-    long         **ret_addr ;
-
-    ret_addr = get_call_list();
-    if( ret_addr[0] == NULL )
-        return ;
-	get_proc_tables (&_ptabs);
-    fprintf (stderr, " Call Backtrace :\n");
-    fprintf (stderr, " CALL#: ADDRESS:    FUNCTION:\n");
-    while (ret_addr[call_no] != NULL )
-    {
-		long          offset = 0;
-		char         *func_name = NULL;
-
-        fprintf (stderr, " %5u  0x%8.8lX", call_no, (unsigned long)(ret_addr[call_no]) );
-
-        func_name = find_func_symbol ((void *)ret_addr[call_no], &offset);
-        if (func_name == unknown)
-        {
-#ifdef HAVE_EXECINFO_H
-		    char **dummy = GLIBC_BACKTRACE_FUNC ((void **)&(ret_addr[call_no]), 1);
-            func_name = *dummy;
-            if (*func_name != '[')
-                fprintf (stderr, "  [%s]", func_name);
-            else
-#endif
-                fprintf (stderr, "  [some silly code]");
-        } else
-            fprintf (stderr, "  [%s+0x%lX(%lu)]", func_name, offset, offset);
-        fprintf (stderr, "\n");
-        call_no++;
-    }
-#endif
-}
-
-void
+static void
 print_diag_info (struct sigcontext *psc)
 {
 	get_proc_tables (&_ptabs);
@@ -633,7 +585,7 @@ print_diag_info (struct sigcontext *psc)
 }
 
 
-void
+static void
 sigsegv_handler (int signum
 #if defined(HAVE_SIGCONTEXT)
 				 , struct sigcontext sc
@@ -674,9 +626,149 @@ sigsegv_handler (int signum
 	}
 }
 
+/********************************************************************/ 
+/********************************************************************/ 
+/********************************************************************/ 
+/*   Public Interfaces : */
+
 void
 set_signal_handler (int sig_num)
 {
 	signal (sig_num, (void *)sigsegv_handler);
+}
+
+static char _as_func_name_return[256];
+
+const char *
+get_caller_func ()
+{
+    char         *func_name = unknown;
+	void         *to_free = NULL; 
+#if defined(__GNUC__) || defined(__CYGWIN__)
+
+# if defined(HAVE_BACKTRACE) && defined(HAVE_BACKTRACE_SYMBOLS)
+	{
+#define BACKTRACE_ARRAY_SIZE 3		/* we only need previous function: 0 - us, 1 - calliee, 2 - caller */
+		void *array[BACKTRACE_ARRAY_SIZE];
+		size_t size;
+		char **strings;
+
+		size = backtrace (array, BACKTRACE_ARRAY_SIZE);
+		strings = backtrace_symbols (array, size);
+		func_name = strings[size > 1? (size>2?2:1):0]; /* we need two levels up ? */
+		to_free = strings;
+	}
+#undef BACKTRACE_ARRAY_SIZE	
+
+# else /* defined(HAVE_BACKTRACE) && defined(HAVE_BACKTRACE_SYMBOLS) */
+	{
+    	int           call_no = 0;
+    	long         **ret_addr ;
+
+    	ret_addr = get_call_list();
+    	if(ret_addr[0] != NULL )
+    	{
+			long          offset = 0;
+
+        	get_proc_tables (&_ptabs);
+        	func_name = find_func_symbol ((void *)ret_addr[call_no], &offset);
+#  ifdef HAVE_EXECINFO_H
+        	if (func_name == unknown)
+        	{
+            	char **dummy = GLIBC_BACKTRACE_FUNC ((void **)&(ret_addr[call_no]), 1);
+#   ifdef HAVE_BACKTRACE_SYMBOLS			
+				to_free = dummy ;
+#   endif /* HAVE_BACKTRACE_SYMBOLS */
+            	func_name = *dummy ;
+        	}
+#  endif /* HAVE_EXECINFO_H */
+    	}
+# endif /* defined(HAVE_BACKTRACE) && defined(HAVE_BACKTRACE_SYMBOLS) */
+#endif  /* defined(__GNUC__) || defined(__CYGWIN__) */
+
+	if( func_name == NULL )
+		func_name = unknown ;
+	strncpy( _as_func_name_return, func_name, 255 );
+	_as_func_name_return[255] = '\0' ;
+	if( to_free != NULL  ) 
+		free(to_free);
+	
+    return &(_as_func_name_return[0]);
+}
+
+void
+print_simple_backtrace ()
+{
+#if defined(__GNUC__)
+    int           call_no = 0;
+
+    fprintf (stderr, " Call Backtrace :\n");
+    fprintf (stderr, " CALL#: ADDRESS:    FUNCTION:\n");
+
+# if defined(HAVE_BACKTRACE) && defined(HAVE_BACKTRACE_SYMBOLS)
+	{
+#   define BACKTRACE_ARRAY_SIZE 64		/* we only need previous function ! */
+		void *array[BACKTRACE_ARRAY_SIZE];
+		size_t size;
+		char **strings;
+
+		size = backtrace (array, BACKTRACE_ARRAY_SIZE);
+		strings = backtrace_symbols (array, size);
+		if( strings != NULL ) 
+		{
+			for( call_no = 0 ; call_no < size ; ++call_no )
+				if( strings[call_no][0] != '[' ) 
+	        		fprintf (stderr, " %5u  %p  [%s]", call_no, array[call_no], strings[call_no] );
+				else 		
+					fprintf (stderr, " %5u  %p  %s", call_no, array[call_no], strings[call_no] );
+			free(strings);
+		}else
+		{
+#   ifdef HAVE_BACKTRACE_SYMBOLS_FD
+			backtrace_symbols_fd(array, size, fileno(stderr));
+#   endif		
+		}
+	}
+#  undef BACKTRACE_ARRAY_SIZE	
+
+# else /* defined(HAVE_BACKTRACE) && defined(HAVE_BACKTRACE_SYMBOLS) */
+	{
+	    long         **ret_addr = get_call_list();
+    	if( ret_addr[0] == NULL )
+        	return ;
+		get_proc_tables (&_ptabs);
+    	while (ret_addr[call_no] != NULL )
+    	{
+			long          offset = 0;
+			char         *func_name = NULL;
+
+        	fprintf (stderr, " %5u  0x%8.8lX", call_no, (unsigned long)(ret_addr[call_no]) );
+
+        	func_name = find_func_symbol ((void *)ret_addr[call_no], &offset);
+        	if (func_name == unknown)
+        	{
+#  ifdef HAVE_EXECINFO_H
+		    	char **dummy = GLIBC_BACKTRACE_FUNC ((void **)&(ret_addr[call_no]), 1);
+				if( dummy ) 
+				{
+	            	func_name = *dummy;
+    	        	if (*func_name != '[')
+        	        	fprintf (stderr, "  [%s]", func_name);
+            		else
+                		fprintf (stderr, "  [some silly code]");
+#   ifdef HAVE_BACKTRACE_SYMBOLS			
+					free( dummy );
+#   endif /* HAVE_BACKTRACE_SYMBOLS */
+				}else
+#  endif
+					fprintf (stderr, "  [some silly code]");				
+        	} else
+            	fprintf (stderr, "  [%s+0x%lX(%lu)]", func_name, offset, offset);
+        	fprintf (stderr, "\n");
+        	call_no++;
+    	}
+	}
+# endif /* defined(HAVE_BACKTRACE) && defined(HAVE_BACKTRACE_SYMBOLS) */
+#endif /* defined(__GNUC__) */
 }
 
