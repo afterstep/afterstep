@@ -586,7 +586,17 @@ flush_tbar_backs(ASTBarData *tbar)
     for (i = 0; i < BAR_STATE_NUM; ++i)
         if (tbar->back[i])
             destroy_asimage (&(tbar->back[i]));
+    set_flags( tbar->state, BAR_FLAGS_REND_PENDING );
 }
+
+static inline void
+flush_tbar_state_backs(ASTBarData *tbar, unsigned int state)
+{
+    if ( tbar->back[state] )
+		destroy_asimage (&(tbar->back[state]));
+    set_flags( tbar->state, BAR_FLAGS_REND_PENDING );
+}
+
 void
 destroy_astbar (ASTBarData ** ptbar)
 {
@@ -608,11 +618,8 @@ destroy_astbar (ASTBarData ** ptbar)
                 free( tbar->tiles );
             }
 
-            for (i = 0; i < BAR_STATE_NUM; ++i)
-			{
-				if (tbar->back[i])
-					destroy_asimage (&(tbar->back[i]));
-            }
+			flush_tbar_backs(tbar);
+
             if( tbar == FocusedBar )
             {
                 withdraw_balloon( NULL );
@@ -723,14 +730,7 @@ set_astbar_size (ASTBarData * tbar, unsigned int width, unsigned int height)
 		tbar->width = w;
 		tbar->height = h;
 		if (changed)
-		{
-			register int  i;
-
-			for (i = 0; i < BAR_STATE_NUM; ++i)
-				if (tbar->back[i])
-					destroy_asimage (&(tbar->back[i]));
-            set_flags( tbar->state, BAR_FLAGS_REND_PENDING );
-		}
+			flush_tbar_backs(tbar);
 	}
 	return changed;
 }
@@ -829,12 +829,7 @@ LOCAL_DEBUG_OUT( "bar(%p)->state(%d)->style_name(\"%s\")", tbar, state, style?st
             while ( --i >= 0 )
                 set_astile_styles( tbar, &(tbar->tiles[i]), state );
 
-            if( tbar->back[state] )
-            {
-                destroy_asimage (&(tbar->back[state]));
-                tbar->back[state] = NULL;
-            }
-            set_flags( tbar->state, BAR_FLAGS_REND_PENDING );
+			flush_tbar_state_backs(tbar, state);
             update_astbar_bevel_size (tbar);
         }
     }
@@ -855,12 +850,8 @@ set_astbar_flip( ASTBarData * tbar, int flip )
 /*LOCAL_DEBUG_OUT( "style(%p)->changed(%d)->tiles_num(%d)", style, changed, tbar->tiles_num );*/
         if (changed )
 		{
-			int i ;
-			set_flags(tbar->state, vert_flag);
-			for (i = 0; i < BAR_STATE_NUM; ++i)
-	            if( tbar->back[i] )
-                	destroy_asimage (&(tbar->back[i]));
-            set_flags( tbar->state, BAR_FLAGS_REND_PENDING );
+			flush_tbar_backs(tbar);
+			set_flags( tbar->state, vert_flag );
         }
     }
 	return changed;
@@ -892,12 +883,7 @@ invalidate_astbar_style (ASTBarData * tbar, int state)
 		{
 			changed = True;
 			tbar->style[state] = NULL;
-			if( tbar->back[state] )
-			{
-				destroy_asimage (&(tbar->back[state]));
-				tbar->back[state] = NULL;
-			}
-			set_flags( tbar->state, BAR_FLAGS_REND_PENDING );
+			flush_tbar_state_backs(tbar, state);
 		}
 	}
     return changed;
@@ -1064,8 +1050,8 @@ add_astbar_icon( ASTBarData * tbar, unsigned char col, unsigned char row, int fl
 
         if( flip == 0 )
         {
-            if( (tile->data.image.im = dup_asimage( icon )) == NULL )
-                    tile->data.image.im = clone_asimage( icon, 0xFFFFFFFF );
+            if( icon->imageman == NULL || (tile->data.image.im = dup_asimage( icon )) == NULL )
+            	tile->data.image.im = clone_asimage( icon, 0xFFFFFFFF );
         }else
 		{
 			int dst_width = icon->width, dst_height = icon->height ;
@@ -1203,20 +1189,12 @@ move_astbar (ASTBarData * tbar, ASCanvas * pc, int win_x, int win_y)
 		tbar->root_y = root_y;
 		if( changed )
 		{
-			Bool redraw = False ;
 			register int  i = BAR_STATE_NUM;
 			while (--i >= 0)
 			{
 				if (tbar->style[i] && TransparentMS(tbar->style[i]))
-            	{
-					if (tbar->back[i])
-						destroy_asimage (&(tbar->back[i]));
-                	if( i == ((tbar->state)&BAR_STATE_FOCUS_MASK) )
-                    	redraw = True;
-            	}
+					flush_tbar_state_backs(tbar, i);
 			}
-        	if( redraw )
-            	set_flags( tbar->state, BAR_FLAGS_REND_PENDING );
 		}
 		changed = changed || (win_x != tbar->win_x || win_y != tbar->win_y);
 		tbar->win_x = win_x;
@@ -1307,7 +1285,6 @@ update_astbar_transparency (ASTBarData * tbar, ASCanvas * pc, Bool force)
 {
 	int           root_x, root_y;
     Bool          changed = False;
-    Bool          redraw = False;
 
 	if (tbar == NULL || pc == NULL)
         return False;;
@@ -1322,19 +1299,10 @@ update_astbar_transparency (ASTBarData * tbar, ASCanvas * pc, Bool force)
 		tbar->root_y = root_y;
 
 		while (--i >= 0)
-		{
 			if (tbar->style[i] && TransparentMS(tbar->style[i]))
-            {
-				if (tbar->back[i])
-					destroy_asimage (&(tbar->back[i]));
-                if( i == ((tbar->state)&BAR_STATE_FOCUS_MASK) )
-                    redraw = True;
-            }
-		}
-        if( redraw )
-            set_flags( tbar->state, BAR_FLAGS_REND_PENDING );
+				flush_tbar_state_backs(tbar, i);
     }
-    return redraw;
+    return get_flags( tbar->state, BAR_FLAGS_REND_PENDING );
 }
 
 Bool
@@ -1394,7 +1362,7 @@ static inline Bool
 render_astbar_int (ASTBarData * tbar, ASCanvas * pc, ASImage **pcache, ASCanvas *origin_canvas)
 {
     START_TIME(started);
-    ASImage      *back;
+    ASImage      *back = NULL;
 	MyStyle      *style;
 	ASImageBevel  bevel;
     ASImageLayer *layers;
@@ -1439,18 +1407,22 @@ LOCAL_DEBUG_OUT("style(%p)->geom(%ux%u%+d%+d)->hilite(0x%X)", style, tbar->width
     v_bevel_size = bevel.top_outline+bevel.bottom_outline ;
 
     /* validating our images : */
-	if ((back = tbar->back[state]) != NULL)
+	if ( tbar->back[state] != NULL)
 	{
         if( tbar->root_x != pc->root_x + (int)pc->bw + tbar->win_x ||
             tbar->root_y != pc->root_y + (int)pc->bw + tbar->win_y )
+		{
             update_astbar_transparency( tbar, pc, False );
-
+		}
+	}
+	if( (back = tbar->back[state]) != NULL )
+	{
         if (back->width != tbar->width || back->height != tbar->height ||
 			((tbar->rendered_root_x != tbar->root_x || tbar->rendered_root_y != tbar->root_y) &&
 			 style->texture_type > TEXTURE_PIXMAP))
 		{
-			destroy_asimage (&(tbar->back[state]));
-			tbar->back[state] = back = NULL;
+			flush_tbar_state_backs(tbar, state);
+			back = NULL;
 		}
 	}
 LOCAL_DEBUG_OUT("back(%p), vertical?%s", back, get_flags( tbar->state, BAR_FLAGS_VERTICAL )?"Yes":"No" );

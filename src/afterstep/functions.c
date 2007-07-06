@@ -1515,10 +1515,11 @@ void change_config_func_handler( FunctionData *data, ASEvent *event, int module 
 	if( CopyFile (data->text, realfilename) == 0 )
 	{
 		++_as_config_change_count ;
-	if( Scr.CurrentDesk == 0 )
-	    update_default_session ( Session, data->func );
-	change_desk_session (Session, Scr.CurrentDesk, realfilename, data->func);
+		if( Scr.CurrentDesk == 0 )
+		    update_default_session ( Session, data->func );
+		change_desk_session (Session, Scr.CurrentDesk, realfilename, data->func);
 	}
+	free( realfilename );
 
 	/* theme installation may trigger recursive look and feel changes - we
 	 * don't want those to cause any restarts or config reloads.

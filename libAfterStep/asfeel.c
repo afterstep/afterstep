@@ -50,7 +50,7 @@ init_asfeel( ASFeel *feel )
     feel->EdgeAttractionWindow = 10;
     feel->OpaqueMove = 5;
     feel->OpaqueResize = 5;
-    feel->ClickTime = 150;
+    feel->ClickTime = 500; /* half a sec, for those sluggish folks */
     feel->AutoRaiseDelay = 0;
     feel->RaiseButtons = 0;
 #ifdef __CYGWIN__		

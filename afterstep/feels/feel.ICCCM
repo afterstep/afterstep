@@ -59,8 +59,9 @@ StickyIcons
 # Center the screen on the current window while circulating
 #CenterOnCirculate
 #
-# Double click period in ms
-# ClickTime 150
+# If time between Button Press and release events is short then the below 
+# value - that will be considered a click event : 
+# ClickTime 500
 #
 # Keep showing window while being moved if size<N%
 OpaqueMove 50

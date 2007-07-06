@@ -2814,8 +2814,11 @@ get_client_icon_image( ScreenInfo * scr, ASHints *hints )
 				{
 					if( de && de->ref_count > 0 && de->fulliconname ) 
 					{
-						safe_asimage_destroy( icon_file_im );
-						icon_file_im = NULL ;
+						if( icon_file_im ) 
+						{
+							safe_asimage_destroy( icon_file_im );
+							icon_file_im = NULL ;
+						}
 						icon_file = de->fulliconname ;
 					}
 				}							   

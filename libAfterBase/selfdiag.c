@@ -716,11 +716,12 @@ print_simple_backtrace ()
 		strings = backtrace_symbols (array, size);
 		if( strings != NULL ) 
 		{
-			for( call_no = 0 ; call_no < size ; ++call_no )
+			/* call_no == 0 - is ourselves - skipping it */
+			for( call_no = 1 ; call_no < size ; ++call_no )
 				if( strings[call_no][0] != '[' ) 
-	        		fprintf (stderr, " %5u  %p  [%s]", call_no, array[call_no], strings[call_no] );
+	        		fprintf (stderr, " %5u  %p  [%s]\n", call_no, array[call_no], strings[call_no] );
 				else 		
-					fprintf (stderr, " %5u  %p  %s", call_no, array[call_no], strings[call_no] );
+					fprintf (stderr, " %5u  %p  %s\n", call_no, array[call_no], strings[call_no] );
 			free(strings);
 		}else
 		{

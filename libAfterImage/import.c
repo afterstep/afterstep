@@ -264,6 +264,23 @@ file2ASImage_extra( const char *file, ASImageImportParams *iparams )
 			im = as_image_file_loaders[file_type](realfilename, iparams);
 		}else
 			show_error( "Support for the format of image file \"%s\" has not been implemented yet.", realfilename );
+		/* returned image must not be tracked by any ImageManager yet !!! */
+		if( im != NULL && im->imageman != NULL ) 
+		{
+			if( im->ref_count == 1 ) 
+			{
+				forget_asimage( im );
+			}else
+			{
+				ASImage *tmp = clone_asimage( im , 0xFFFFFFFF); 
+				if( tmp ) 
+				{
+					release_asimage( im );
+					im = tmp ;
+				}
+			}
+		}
+
 #ifndef NO_DEBUG_OUTPUT
 		if( im != NULL ) 
 			show_progress( "image loaded from \"%s\"", realfilename );
@@ -430,6 +447,7 @@ calculate_proportions( int src_w, int src_h, int *pdst_w, int *pdst_h )
 	if( pdst_h ) *pdst_h = dst_h ; 
 }
 
+void print_asimage_func (ASHashableValue value);
 ASImage *
 get_thumbnail_asimage( ASImageManager* imageman, const char *file, int thumb_width, int thumb_height, ASFlagType flags )
 {
@@ -496,7 +514,6 @@ get_thumbnail_asimage( ASImageManager* imageman, const char *file, int thumb_wid
 				iparams.flags |= AS_IMPORT_FAST ; 
 			
 			tmp = file2ASImage_extra( file, &iparams );
-
 			if( tmp ) 
 			{
 				im = tmp ; 
@@ -520,6 +537,7 @@ get_thumbnail_asimage( ASImageManager* imageman, const char *file, int thumb_wid
 						}
 					}
 				}			
+
 				if( im != NULL )
 				{
 					if( im->imageman == NULL )

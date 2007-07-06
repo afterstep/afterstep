@@ -100,7 +100,7 @@ add_window_data( ASWindowData *wd )
 		return NULL ;
 	if( _as_Winlist == NULL )
 		_as_Winlist = create_ashash( 7, NULL, NULL, window_data_destroy );
-    show_activity( "adding window %X", wd->client );
+    /* show_activity( "adding window %X", wd->client ); */
 	if( add_hash_item( _as_Winlist, AS_HASHABLE(wd->client), wd ) != ASH_Success )
 	{
 		window_data_destroy( 0, wd );

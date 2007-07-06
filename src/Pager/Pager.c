@@ -2414,7 +2414,7 @@ process_message (send_data_type type, send_data_type *body)
         if( wd && wd->canvas )
             saved_w = wd->canvas->w;
 
-        show_activity( "message %lX window %X data %p", type, body[0], wd );
+/*         show_activity( "message %lX window %X data %p", type, body[0], wd ); */
 		res = handle_window_packet( type, body, &wd );
         if( res == WP_DataCreated )
             add_client( wd );

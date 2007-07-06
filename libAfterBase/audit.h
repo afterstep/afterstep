@@ -84,6 +84,8 @@ int as_assert (void *p, const char *fname, int line, const char *call);
 #  define XGetClassHint(a, b, c) count_xgetclasshint(__FUNCTION__, __LINE__, a, b, c)
 #  define XGetAtomName(a, b) count_xgetatomname(__FUNCTION__, __LINE__, a, b)
 #  define XStringListToTextProperty(a, b, c) count_xstringlisttotextproperty(__FUNCTION__, __LINE__, a, b, c)
+#  define XShapeGetRectangles(a,b,c,d,e) count_xshape_get_rectangles (__FUNCTION__, __LINE__, a, b, c, d, e )
+
 #  define XFree(a) count_xfree(__FUNCTION__, __LINE__, a)
 
 # endif /* #ifndef X_DISPLAY_MISSING */
@@ -189,6 +191,10 @@ char *count_xgetatomname (const char *fname, int line, Display * display,
 Status count_xstringlisttotextproperty (const char *fname, int line,
 					char **list, int count,
 					void *text_prop_return);
+
+XRectangle *count_xshape_get_rectangles (const char *fname, int line, Display *dpy,
+				             Window window, int kind, int *count, int *ordering);
+
 int count_xfree (const char *fname, int line, void *data);
 
 #endif /*ifndef X_DISPLAY_MISSING */

@@ -297,6 +297,8 @@ void
 destroy_asimage( ASImage **im )
 {
 	if( im )
+	{
+
 		if( *im && !AS_ASSERT_NOTVAL((*im)->imageman,NULL))
 		{
 #ifdef TRACK_ASIMAGES
@@ -307,7 +309,13 @@ destroy_asimage( ASImage **im )
 			(*im)->magic = 0;
 			free( *im );
 			*im = NULL ;
+		}else if( *im )
+		{
+	        show_error( "Failed to destroy ASImage %p:", *im );
+			print_asimage_func (AS_HASHABLE(*im));
 		}
+
+	}
 }
 
 void print_asimage_func (ASHashableValue value)
@@ -535,13 +543,19 @@ dup_asimage( ASImage* im )
 {
 	if( !AS_ASSERT(im) )
 		if( AS_ASSERT_NOTVAL(im->magic,MAGIC_ASIMAGE) )
+		{
 			im = NULL ;
+			show_error( "ASImage %p has invalid magic number - discarding!", im );
+		}
 
 	if( !AS_ASSERT(im) && !AS_ASSERT(im->imageman) )
 	{
 /*		fprintf( stderr, __FUNCTION__" on image %p ref_count = %d\n", im, im->ref_count ); */
 		im->ref_count++ ;
 		return im;
+	}else if( im ) 
+	{
+		show_debug( __FILE__, __FUNCTION__, __LINE__, "Attempt to duplicate ASImage %p that is not tracked by any image manager!", im );
 	}
 	return NULL ;
 }

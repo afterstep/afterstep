@@ -73,6 +73,7 @@
 #undef XGetClassHint
 #undef XGetAtomName
 #undef XStringListToTextProperty
+#undef XShapeGetRectangles
 #undef XFree
 
 #endif /* #ifndef X_DISPLAY_MISSING */
@@ -85,7 +86,10 @@ int
 as_assert (void *p, const char *fname, int line, const char *call)
 {
 	if (p == NULL)
-		fprintf (stderr, "ASSERT FAILED: NULL pointer in %s, line# %d (%s())\n", fname, line, call);
+	{
+		fprintf (stderr, "ASSERT FAILED in %s, line# %d (%s())\n", fname, line, call);
+		print_simple_backtrace();
+	}
 	return (p == NULL);
 }
 
@@ -139,6 +143,7 @@ enum
     C_XGETCLASSHINT = 		(0x100<<10),
     C_XGETATOMNAME = 		(0x100<<11),
     C_XSTRINGLISTTOTEXTPROPERTY = (0x100<<12),
+    C_XSHAPEGETRECTANGLES = (0x100<<13),
 
 	C_LAST_TYPE
 };
@@ -399,6 +404,7 @@ countrealloc (const char *fname, int line, void *ptr, size_t length)
 				if( (m->type & 0xff) != C_MEM )
 				{
 					show_error( "while deallocating pointer 0x%lX discovered that it was allocated with different type", ptr );
+					print_simple_backtrace();
 #ifdef DEBUG_ALLOC_STRICT
 {	char *segv = NULL ;	*segv = 0 ;  }
 #endif
@@ -463,6 +469,7 @@ countfree (const char *fname, int line, void *ptr)
 	if (ptr == NULL)
 	{
 		show_error("countfree:attempt to free NULL memory in %s:%d", fname, line);
+		print_simple_backtrace();
 #ifdef DEBUG_ALLOC_STRICT
 {	char *segv = NULL ;	*segv = 0 ;  }
 #endif
@@ -475,6 +482,7 @@ countfree (const char *fname, int line, void *ptr)
 		if( cleanup_mode == 0 ) 
 		{
 			show_error( "countfree:attempt in %s:%d to free memory(%p) that was never allocated!", fname, line, ptr);
+			print_simple_backtrace();
 #ifdef DEBUG_ALLOC_STRICT
 {	char *segv = NULL ;	*segv = 0 ;  }
 #endif
@@ -488,6 +496,7 @@ countfree (const char *fname, int line, void *ptr)
 		fprintf (stderr, "%s:mem already freed %d time(s)!\n", __FUNCTION__, m1->freed);
 		fprintf (stderr, "%s:freed from %s:%d\n", __FUNCTION__, (*m1).fname, (*m1).line);
 		fprintf (stderr, "%s:called from %s:%d\n", __FUNCTION__, fname, line);
+		print_simple_backtrace();
 #ifdef DEBUG_ALLOC_STRICT
 {	char *segv = NULL ;	*segv = 0 ;  }
 #endif
@@ -509,7 +518,11 @@ Bool check_hash_item_reused (ASHashItem *item);
 ASHashResult
 countadd_hash_item (const char *fname, int line, struct ASHashTable *hash, ASHashableValue value, void *data )
 {
-	ASHashResult   res = add_hash_item(hash, value, data );
+	ASHashResult   res ;
+	
+	service_mode++ ;
+	res = add_hash_item(hash, value, data );
+	service_mode-- ;
 
 	show_debug(  __FILE__, __FUNCTION__, __LINE__, "add_hash_item called from %s:%d with args %p, %lX, %p", fname, line, hash, value, data );
 	if( hash != allocs_hash ) 
@@ -906,6 +919,22 @@ count_xsubimage (const char *fname, int line, XImage *img,
 	count_alloc (fname, line, (void *)image,
 				 sizeof (*image) + image->height * image->bytes_per_line, C_IMAGE | C_SUBIMAGE);
 	return image;
+}
+
+XRectangle *XShapeGetRectangles (Display *dpy,Window window,int kind,int *count,int *ordering);
+
+XRectangle       *
+count_xshape_get_rectangles (const char *fname, int line, Display *dpy,
+				             Window window, int kind, int *count, int *ordering)
+
+{
+	
+	XRectangle       *rects = XShapeGetRectangles(dpy, window, kind, count, ordering);
+
+	if (rects == NULL)
+		return NULL;
+	count_alloc (fname, line, (void *)rects, sizeof(*rects)* (*count), C_XMEM|C_XSHAPEGETRECTANGLES);
+	return rects;
 }
 
 int

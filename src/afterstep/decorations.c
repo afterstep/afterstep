@@ -502,6 +502,7 @@ LOCAL_DEBUG_OUT( "++CREAT tbar(%p)->context(%s)", *tbar, context2text(context) )
 
 		set_astbar_flip( *tbar, flip );   
 
+		invalidate_astbar_style (*tbar, -1);
         set_astbar_style( *tbar, BAR_STATE_FOCUSED, mystyle_name );
         set_astbar_style( *tbar, BAR_STATE_UNFOCUSED, "default" );
         if( img )

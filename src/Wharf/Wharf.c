@@ -669,6 +669,7 @@ void
 DispatchEvent (ASEvent * event)
 {
 	static Bool root_pointer_moved = True ;
+	
     SHOW_EVENT_TRACE(event);
 	
 	if( (event->eclass & ASE_POINTER_EVENTS) != 0 && is_balloon_click( &(event->x) ) )
