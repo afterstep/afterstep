@@ -304,7 +304,7 @@ Categories=System
 TryExec=xload
 
 [Desktop Entry]
-Name=CPU Process List
+Name=Top CPU Processes
 GenericName=Top CPU Processes
 Comment=Display top CPU processes
 Exec=top

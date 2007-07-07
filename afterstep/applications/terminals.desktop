@@ -351,7 +351,7 @@ X-AfterStep-IndexName=xterm
 TryExec=xterm
 
 [Desktop Entry]
-Name=Multilingual Terminal
+Name=Mlterm Terminal
 GenericName=Terminal Program
 Comment=Use Multi-Lingual Command Line
 Name[de]=Multilingualer Terminalemulator
@@ -360,8 +360,8 @@ GenericName[de]=Multilingualer Terminalprogramm
 GenericName[ja]=多言語端末
 Comment[de]=Multilingualer Terminalemulator
 Comment[ja]=国際化対応端末
-Exec=mlterm
-Icon=logos/Unicode
+Exec=mlterm -b MidnightBlue -f white
+Icon=mlterm-icon-gnome2.png
 Terminal=false
 Type=Application
 Encoding=UTF-8
@@ -520,3 +520,16 @@ Encoding=UTF-8
 Categories=TerminalEmulator
 X-AfterStep-IndexName=Eterm
 TryExec=Eterm
+
+[Desktop Entry]
+Name=Rxvt-Unicode Terminal
+GenericName=Terminal Program
+Comment=rxvt-unicode is a clone of the well known terminal emulator rxvt
+Exec=urxvt -tr -sh 50 -sl 2000 -fg white
+Icon=logos/Unicode
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=TerminalEmulator
+X-AfterStep-IndexName=urxvt
+TryExec=urxvt
