@@ -167,7 +167,6 @@ install.menu: share_dirs
 	$(RMF) -r $(AFTER_SHAREDIR)/start
 	$(RMF) -r $(AFTER_SHAREDIR)/start
 	$(MKDIR) -p $(AFTER_SHAREDIR)/start
-	#$(CP) -r start/* $(AFTER_SHAREDIR)/start/ 
 	$(FIND) start -type d -exec $(INSTALL_SCRIPT) -d $(AFTER_SHAREDIR)/{} \;
 	$(FIND) start -type f -exec $(INSTALL_DATA) {} $(AFTER_SHAREDIR)/{} \;
 	$(RMF) $(AFTER_SHAREDIR)/start/.include.in
