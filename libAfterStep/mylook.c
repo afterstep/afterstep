@@ -198,7 +198,8 @@ mylook_init (MyLook * look, Bool free_resources, unsigned long what_flags /*see 
 
         if( look->balloon_look && get_flags (what_flags, LL_Balloons))
         {
-            free( look->balloon_look );
+            destroy_balloon_look( look->balloon_look );
+			look->balloon_look = NULL ;
         }
 
 		if (get_flags (what_flags, LL_Misc))
@@ -325,7 +326,7 @@ mylook_init (MyLook * look, Bool free_resources, unsigned long what_flags /*see 
         look->supported_hints = NULL ;
 
     if( look->balloon_look && get_flags (what_flags, LL_Balloons))
-        look->balloon_look = NULL;
+        look->balloon_look = create_balloon_look();
 }
 
 MyLook       *

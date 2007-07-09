@@ -142,12 +142,11 @@ balloon_config2look( MyLook *look, ASBalloonLook *balloon_look, balloonConfig *c
 		if( balloon_look == NULL ) 
 		{
         	if( look->balloon_look == NULL )
-            	look->balloon_look = safecalloc( 1, sizeof(ASBalloonLook) );
+            	look->balloon_look = create_balloon_look();
 			balloon_look = look->balloon_look ;
 		}
         if( config == NULL )
 		{	
-            memset( balloon_look, 0x00, sizeof(ASBalloonLook) );
 			balloon_look->show = True ;
         	balloon_look->XOffset = 5 ;
         	balloon_look->YOffset = 5 ;

@@ -335,7 +335,11 @@ NewConfig (char *myname, SyntaxDef * syntax, ConfigDataType type, ConfigData  so
 		}
 
 	if (new_conf->fd != -1 && new_conf->fp == NULL)
+	{
         new_conf->fp = fdopen (new_conf->fd, get_flags(new_conf->flags, CP_ReadLines)?"rt":"rb");
+        set_flags( new_conf->flags, CP_NeedToFCloseFile);
+	}
+		
 
 	new_conf->myname = mystrdup(myname);
 	new_conf->current_syntax = NULL;
@@ -455,6 +459,8 @@ DestroyConfig (ConfigDef * config)
 		FreeSyntaxHash (config->syntax);
     if (get_flags(config->flags, CP_NeedToCloseFile) && config->fd != -1)
 		close (config->fd);
+    if (get_flags(config->flags, CP_NeedToFCloseFile) && config->fp != NULL)
+		fclose (config->fp);
 	free (config);
 }
 

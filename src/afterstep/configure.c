@@ -167,17 +167,22 @@ ASModuleConfigClass *AfterStepConfigClass = &_afterstep_config_class;
 void 
 ReloadConfig(ASFlagType what)
 {
-	ASBalloonLook ballon_look ; 
+	ASBalloonLook *balloon_look ; 
 
 	ASModuleConfig *config = parse_asmodule_config_all( AfterStepConfigClass );
 
 	/* apply it  */
 	Print_balloonConfig (config->balloon_configs[0] );
-    balloon_config2look( &Scr.Look, &ballon_look, config->balloon_configs[0], "TitleButtonBalloon" );
-    set_balloon_state_look( TitlebarBalloons, &ballon_look );
+	balloon_look = create_balloon_look();
+    balloon_config2look( &Scr.Look, balloon_look, config->balloon_configs[0], "TitleButtonBalloon" );
+    set_balloon_state_look( TitlebarBalloons, balloon_look );
+	destroy_balloon_look( balloon_look );
+
+	balloon_look = create_balloon_look();
 	Print_balloonConfig (config->balloon_configs[1] );
-    balloon_config2look( &Scr.Look, &ballon_look, config->balloon_configs[1], "MenuBalloon" );
-	set_balloon_state_look( MenuBalloons,  &ballon_look );
+    balloon_config2look( &Scr.Look, balloon_look, config->balloon_configs[1], "MenuBalloon" );
+	set_balloon_state_look( MenuBalloons,  balloon_look );
+	destroy_balloon_look( balloon_look );
 	
 	
 	destroy_ASModule_config( config );
@@ -1687,7 +1692,8 @@ LoadASConfig (int thisdesktop, ASFlagType what)
 				}
 #endif
 				merge_look( &Scr.Look, &TmpLook );
-			
+				destroy_string( &(BalloonConfig.Style));
+				destroy_string( &(MenuBalloonConfig.Style));
             }else
             {
                 show_warning("LOOK configuration file cannot be found!");

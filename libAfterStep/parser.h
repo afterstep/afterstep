@@ -189,6 +189,7 @@ typedef struct ConfigDef
 
 #define CP_NeedToCloseFile   (0x01<<0)
 #define CP_ReadLines         (0x01<<1)
+#define CP_NeedToFCloseFile  (0x01<<2)
 
 #define CP_IgnoreForeign	 (0x01<<8)
 #define CP_IgnorePublic		 (0x01<<9)

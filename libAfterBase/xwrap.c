@@ -72,17 +72,19 @@ is_server_grabbed()
 int
 get_drawable_size (Drawable d, unsigned int *ret_w, unsigned int *ret_h)
 {
+	int result = 0 ;
 #ifndef X_DISPLAY_MISSING
-	Window        root;
-	unsigned int  ujunk;
-	int           junk;
+	if( d != None ) 
+	{
+		Window        root;
+		unsigned int  ujunk;
+		int           junk;
+		int           (*oldXErrorHandler) (Display *, XErrorEvent *) = XSetErrorHandler (quiet_xerror_handler);
+		result = XGetGeometry (dpy, d, &root, &junk, &junk, ret_w, ret_h, &ujunk, &ujunk);
+		XSetErrorHandler (oldXErrorHandler);
+	}
 #endif
-
-	if( d == None ) return 0;
-
-#ifndef X_DISPLAY_MISSING
-	if (XGetGeometry (dpy, d, &root, &junk, &junk, ret_w, ret_h, &ujunk, &ujunk) == 0)
-#endif
+	if ( result == 0)
 	{
 		*ret_w = 0;
 		*ret_h = 0;

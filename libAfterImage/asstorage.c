@@ -534,6 +534,9 @@ compress_stored_data( ASStorage *storage, CARD8 *data, int size, ASFlagType *fla
 			storage->comp_buf_size = ((size/AS_STORAGE_PAGE_SIZE)+1)*AS_STORAGE_PAGE_SIZE ;
 			storage->comp_buf = realloc( storage->comp_buf, storage->comp_buf_size );
 			storage->diff_buf = realloc( storage->diff_buf, storage->comp_buf_size*sizeof(short) );
+#ifdef DEBUG_ALLOCS
+			show_debug( __FILE__,__FUNCTION__,__LINE__," realloced compression buffer to %d+%d*%d",storage->comp_buf_size, storage->comp_buf_size, sizeof(short) );
+#endif 
 		}
 		buffer = storage->comp_buf ;
 		buf_size = storage->comp_buf_size ;
@@ -600,6 +603,10 @@ compress_stored_data( ASStorage *storage, CARD8 *data, int size, ASFlagType *fla
 				storage->comp_buf_size = ((size/AS_STORAGE_PAGE_SIZE)+1)*AS_STORAGE_PAGE_SIZE ;
 				storage->comp_buf = realloc( storage->comp_buf, storage->comp_buf_size );
 				storage->diff_buf = realloc( storage->diff_buf, storage->comp_buf_size*sizeof(short) );
+#ifdef DEBUG_ALLOCS
+			show_debug( __FILE__,__FUNCTION__,__LINE__," realloced compression buffer to %d+%d*%d",storage->comp_buf_size, storage->comp_buf_size, sizeof(short) );
+#endif 
+
 			}
 			buffer = storage->comp_buf ;
 			if( tint != 0x000000FF ) 
@@ -626,6 +633,9 @@ compress_stored_data( ASStorage *storage, CARD8 *data, int size, ASFlagType *fla
 				storage->comp_buf_size = ((size/AS_STORAGE_PAGE_SIZE)+1)*AS_STORAGE_PAGE_SIZE ;
 				storage->comp_buf = realloc( storage->comp_buf, storage->comp_buf_size );
 				storage->diff_buf = realloc( storage->diff_buf, storage->comp_buf_size*sizeof(short) );
+#ifdef DEBUG_ALLOCS
+			show_debug( __FILE__,__FUNCTION__,__LINE__," realloced compression buffer to %d+%d*%d",storage->comp_buf_size, storage->comp_buf_size, sizeof(short) );
+#endif 
 			}
 			buffer = storage->comp_buf ;
 			for( comp_size = 0 ; comp_size < size ; ++comp_size )
@@ -671,8 +681,11 @@ add_storage_slots( ASStorageBlock *block )
 	block->slots = realloc( block->slots, size);
 	LOCAL_DEBUG_OUT( "reallocated %d slots pointers", block->slots_count );
 #else
+	if( block->slots == NULL ) 
+		show_debug( __FILE__,__FUNCTION__,__LINE__,"allocating %d slots pointers", block->slots_count );
+	else
+		show_debug( __FILE__,__FUNCTION__,__LINE__,"reallocating %d slots pointers", block->slots_count );
 	block->slots = guarded_realloc( block->slots, block->slots_count*sizeof(ASStorageSlot*));
-	LOCAL_DEBUG_OUT( "reallocated %d slots pointers", block->slots_count );
 #endif
 	UsedMemory += AS_STORAGE_SLOTS_BATCH*sizeof(ASStorageSlot*) ;
 	memset( &(block->slots[i]),	0x00, AS_STORAGE_SLOTS_BATCH*sizeof(ASStorageSlot*) );
@@ -693,7 +706,7 @@ create_asstorage_block( int useable_size )
 	ptr = malloc(allocate_size);
 #else
 	ptr = guarded_malloc(allocate_size);
-	LOCAL_DEBUG_OUT( "allocated %d files", allocate_size );
+	show_debug( __FILE__,__FUNCTION__,__LINE__,"allocated %d bytes, block = %p, total used = %d", allocate_size, ptr, UsedMemory + allocate_size );
 #endif
 	UsedMemory += allocate_size ;
 	if( ptr == NULL ) 
@@ -710,6 +723,9 @@ create_asstorage_block( int useable_size )
 	{	
 		free( ptr ); 
 		UsedMemory -= allocate_size ;
+#ifdef DEBUG_ALLOCS
+		show_debug( __FILE__,__FUNCTION__,__LINE__,"freeing block %p, size = %d, total used = %d", ptr, allocate_size, UsedMemory );
+#endif
 		return NULL;
 	}
 	block->start = (ASStorageSlot*)((unsigned char*)ptr+((sizeof(ASStorageBlock)/ASStorageSlot_SIZE)+1)*ASStorageSlot_SIZE);
@@ -731,8 +747,6 @@ create_asstorage_block( int useable_size )
 static void
 destroy_asstorage_block( ASStorageBlock *block )
 {
-	LOCAL_DEBUG_OUT( "freeing block %p, size = %d", block, block->size );
-	
 	UsedMemory -= block->slots_count * sizeof(ASStorageSlot*) ;
 	UsedMemory -= block->size + sizeof(ASStorageBlock) ;
 
@@ -740,6 +754,7 @@ destroy_asstorage_block( ASStorageBlock *block )
 	free( block->slots );
 	free( block );	  
 #else	
+	show_debug( __FILE__,__FUNCTION__,__LINE__,"freeing block %p, size = %d, total used = %d", block, block->size, UsedMemory );
 	guarded_free( block->slots );
 	guarded_free( block );
 #endif
@@ -776,7 +791,7 @@ select_storage_block( ASStorage *storage, int compressed_size, ASFlagType flags,
 		storage->blocks = realloc( storage->blocks, storage->blocks_count*sizeof(ASStorageBlock*));
 #else
 		storage->blocks = guarded_realloc( storage->blocks, storage->blocks_count*sizeof(ASStorageBlock*));
-		LOCAL_DEBUG_OUT( "reallocated %d blocks pointers", storage->blocks_count );
+		show_debug( __FILE__,__FUNCTION__,__LINE__,"reallocated %d blocks pointers", storage->blocks_count );
 #endif		   
 		UsedMemory += 16*sizeof(ASStorageBlock*) ;
 

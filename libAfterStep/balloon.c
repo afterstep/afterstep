@@ -30,8 +30,7 @@
 #include "decor.h"
 #include "balloon.h"
 
-static ASBalloonState DefaultBalloonState = { {0, 5, 5, 0, 10000, 0, NULL, 5, 5 },
-											  NULL, NULL, NULL, None, NULL};
+static ASBalloonState DefaultBalloonState = { NULL, NULL, NULL, NULL, None, NULL};
 
 static void balloon_timer_handler (void *data);
 
@@ -44,14 +43,14 @@ set_active_balloon_look( ASBalloonState *state )
 	if( state == NULL ) 
 		state = &DefaultBalloonState ;
 		
-    if( state->active_bar )
+    if( state->active_bar && state->look )
     {
         int pointer_x, pointer_y ;
         int dl, dr, du, dd ;
-		state->active_bar->h_border = state->look.TextPaddingX ;
-		state->active_bar->v_border = state->look.TextPaddingY ;
-        set_astbar_style_ptr( state->active_bar, BAR_STATE_UNFOCUSED, state->look.Style );
-        set_astbar_hilite( state->active_bar, BAR_STATE_UNFOCUSED, state->look.BorderHilite );
+		state->active_bar->h_border = state->look->TextPaddingX ;
+		state->active_bar->v_border = state->look->TextPaddingY ;
+        set_astbar_style_ptr( state->active_bar, BAR_STATE_UNFOCUSED, state->look->Style );
+        set_astbar_hilite( state->active_bar, BAR_STATE_UNFOCUSED, state->look->BorderHilite );
         width = calculate_astbar_width( state->active_bar );
         if( width > ASDefaultScrWidth )
             width = ASDefaultScrWidth ;
@@ -62,13 +61,13 @@ set_active_balloon_look( ASBalloonState *state )
         ASQueryPointerRootXY(&pointer_x, &pointer_y);
         x = pointer_x;
         y = pointer_y;
-        x += state->look.XOffset ;
+        x += state->look->XOffset ;
         if( x < 0 )
             x = 0 ;
         else if( x + width > ASDefaultScrWidth )
             x = ASDefaultScrWidth - width ;
 
-        y += state->look.YOffset ;
+        y += state->look->YOffset ;
         if( y < 0 )
             y = 0 ;
         else if( y + height > ASDefaultScrHeight )
@@ -194,8 +193,8 @@ display_active_balloon( ASBalloonState *state )
         map_canvas_window( state->active_canvas, True );
 
         state->active->timer_action = BALLOON_TIMER_CLOSE;
-        if( state->look.CloseDelay > 0 )
-            timer_new (state->look.CloseDelay, &balloon_timer_handler, (void *)state->active);
+        if( state->look->CloseDelay > 0 )
+            timer_new (state->look->CloseDelay, &balloon_timer_handler, (void *)state->active);
     }
 }
 
@@ -262,11 +261,13 @@ balloon_init_state (ASBalloonState *state, int free_resources)
             safely_destroy_window (state->active_window );
             state->active_window = None ;
         }
-    }
-    memset(&(state->look), 0x00, sizeof(ASBalloonLook));
-    state->look.CloseDelay = 10000;
-    state->look.XOffset = 5 ;
-    state->look.YOffset = 5 ;
+		destroy_balloon_look( state->look );
+		state->look = NULL ;
+    }else
+	{
+		if( state->look == NULL ) 
+			state->look = create_balloon_look();
+	}
     state->active = NULL ;
     state->active_bar = NULL ;
     state->active_canvas = NULL ;
@@ -320,21 +321,21 @@ display_balloon_int( ASBalloon *balloon, Bool ignore_delay )
 {
 	ASBalloonState *state = balloon->state ; 
 	
-    LOCAL_DEBUG_OUT( "show = %d, active = %p", state->look.show, state->active );
-    if( !state->look.show || state->active == balloon )
+    LOCAL_DEBUG_OUT( "show = %d, active = %p", state->look->show, state->active );
+    if( !state->look->show || state->active == balloon )
         return;
 
     if( state->active != NULL )
         withdraw_active_balloon_from(state);
 
     state->active = balloon ;
-    if( ignore_delay || state->look.Delay <= 0 )
+    if( ignore_delay || state->look->Delay <= 0 )
         display_active_balloon(state);
     else
     {
         while (timer_remove_by_data (balloon));
         balloon->timer_action = BALLOON_TIMER_OPEN;
-        timer_new (state->look.Delay, &balloon_timer_handler, (void *)balloon);
+        timer_new (state->look->Delay, &balloon_timer_handler, (void *)balloon);
     }
 }
 
@@ -369,14 +370,57 @@ withdraw_balloon( ASBalloon *balloon )
 	}
 }
 
+ASBalloonLook* create_balloon_look()
+{
+	ASBalloonLook *blook = safecalloc( 1, sizeof(ASBalloonLook) );
+	blook->ref_count++ ;
+    blook->CloseDelay = 2000;
+    blook->XOffset = 5 ;
+    blook->YOffset = 5 ;
+	blook->Delay = 200 ;
+
+	return blook ;
+}
+
+
+int destroy_balloon_look( ASBalloonLook *blook )
+{
+	if( blook == NULL ) 
+		return 0;
+
+	if( blook->ref_count <= 0 ) 
+		return 0;
+
+	if( (--blook->ref_count) == 0 ) 
+	{
+		free( blook );
+		return 0 ;
+	}
+	return blook->ref_count;
+}
+
+ASBalloonLook *ref_balloon_look( ASBalloonLook *blook ) 
+{
+	if( blook ) 
+		if( blook->ref_count > 0 ) 
+			blook->ref_count++;
+	return blook ;
+}
+
 void
 set_balloon_state_look( ASBalloonState *state, ASBalloonLook *blook )
 {
 	if( state == NULL ) 
 		state = &DefaultBalloonState ;
-    state->look = *blook ;
+
+	if( state->look ) 
+		destroy_balloon_look( state->look );
+    state->look = ref_balloon_look(blook) ;
+	if( state->look == NULL ) 
+		state->look = create_balloon_look();
+	
     LOCAL_DEBUG_CALLER_OUT( "state = %p, active_window = %lX", state, state->active_window );
-    if( state->look.show && state->active_window == None )
+    if( state->look->show && state->active_window == None )
     {
         XSetWindowAttributes attr ;
         attr.override_redirect = True;

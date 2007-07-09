@@ -14,13 +14,15 @@ struct ASCanvas;
 
 typedef struct ASBalloonLook
 {
-  Bool show;
-  int BorderHilite;
-  int YOffset, XOffset;
-  int Delay;
-  int CloseDelay;
-  struct MyStyle *Style;
-  int TextPaddingX, TextPaddingY;
+	
+	int ref_count ; 
+	Bool show;
+	int BorderHilite;
+	int YOffset, XOffset;
+	int Delay;
+	int CloseDelay;
+	struct MyStyle *Style;
+	int TextPaddingX, TextPaddingY;
 
 }ASBalloonLook;
 
@@ -58,7 +60,7 @@ typedef struct ASBalloon
 
 typedef struct ASBalloonState
 {
-    ASBalloonLook  look ;
+    ASBalloonLook *look ;
     ASBalloon     *active ;
     struct ASCanvas      *active_canvas;
     struct ASTBarData    *active_bar ;
@@ -78,6 +80,9 @@ void withdraw_active_balloon_from( ASBalloonState *state );
 void withdraw_active_balloon();
 void display_balloon( ASBalloon *balloon );
 void display_balloon_nodelay( ASBalloon *balloon );
+
+ASBalloonLook* create_balloon_look();
+int destroy_balloon_look( ASBalloonLook *blook );
 void set_balloon_look( ASBalloonLook *blook );
 void set_balloon_state_look( ASBalloonState *state, ASBalloonLook *blook );
 

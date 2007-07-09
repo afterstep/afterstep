@@ -99,28 +99,21 @@ void
 DestroyBaseConfig (BaseConfig * config)
 {
 	int i = MAX_TOOL_COMMANDS;
-	if (config->module_path)
-		free (config->module_path);
-	if (config->audio_path)
-		free (config->audio_path);
-	if (config->icon_path)
-		free (config->icon_path);
-	if (config->pixmap_path)
-		free (config->pixmap_path);
-	if (config->font_path)
-		free (config->font_path);
-	if (config->cursor_path)
-		free (config->cursor_path);
-	if (config->myname_path)
-		free (config->myname_path);
+	destroy_string( &(config->module_path) );
+	destroy_string( &(config->audio_path) );
+	destroy_string( &(config->icon_path) );
+	destroy_string( &(config->pixmap_path) );
+	destroy_string( &(config->font_path) );
+	destroy_string( &(config->cursor_path) );
+	destroy_string( &(config->myname_path) );
+	destroy_string( &(config->gtkrc_path) );
+	destroy_string( &(config->gtkrc20_path));
+
 	while( --i >= 0 ) 
 	{	
-		if( config->term_command[i] )
-			free( config->term_command[i] );
-		if( config->browser_command[i] )
-			free( config->browser_command[i] );
-		if( config->editor_command[i] )
-			free( config->editor_command[i] );
+		destroy_string( &( config->term_command[i] ) );
+		destroy_string( &( config->browser_command[i] ) );
+		destroy_string( &( config->editor_command[i] ) );
 	}
 	
 	DestroyFreeStorage (&(config->more_stuff));
@@ -200,22 +193,22 @@ ParseBaseOptions (const char *filename, char *myname)
 			 break;
 		case BASE_TermCommand_ID :
 		 	 if( item.index  < MAX_TOOL_COMMANDS && item.index >= 0 ) 
-			 {	
 			 	set_string(&(config->term_command[item.index]), item.data.string );		 	
-			 	break;
-			 }
+			 else				
+			 	item.ok_to_free = 1;
+			break;
     	 case BASE_BrowserCommand_ID :
 		 	 if( item.index  < MAX_TOOL_COMMANDS && item.index >= 0 ) 
-			 {	
 			 	set_string(&(config->browser_command[item.index]), item.data.string );		 	
-			 	break;
-			 }
+			 else				
+			 	item.ok_to_free = 1;
+			break;
 	   	 case BASE_EditorCommand_ID :	
 		 	 if( item.index  < MAX_TOOL_COMMANDS && item.index >= 0 ) 
-			 {	
 			 	set_string(&(config->editor_command[item.index]), item.data.string );		 	
-			 	break;
-			 }
+			 else				
+			 	item.ok_to_free = 1;
+			break;
 		 default:
 			 item.ok_to_free = 1;
 		}

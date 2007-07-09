@@ -935,7 +935,7 @@ FreeConfigItem (ConfigItem * item)
 		 break;
 
 	 case TT_BUTTON:
-#if 0
+#if 1
 		 destroy_asbutton (item->data.button, False);
 #endif
 		 break;

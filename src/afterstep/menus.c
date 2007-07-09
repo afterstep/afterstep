@@ -830,11 +830,11 @@ LOCAL_DEBUG_CALLER_OUT( "%p,%d", menu, selection );
 
 	        while (timer_remove_by_data (menu));
 			balloon_set_text (menu->item_balloon, menu->items[selection].source->comment, encoding);
-        	timer_new (MenuBalloons->look.Delay, &menu_item_balloon_timer_handler, (void *)menu);
+        	timer_new (MenuBalloons->look->Delay, &menu_item_balloon_timer_handler, (void *)menu);
 		}else if( menu->items[selection].fdata.func == F_CHANGE_BACKGROUND_FOREIGN || 
 				  menu->items[selection].fdata.func == F_CHANGE_BACKGROUND ) 
 		{
-			int delay = MenuBalloons->look.Delay ; 
+			int delay = MenuBalloons->look->Delay ; 
 			LOCAL_DEBUG_OUT( "change background func = \"%s\"", menu->items[selection].fdata.text );
 
 			if( menu->item_balloon == NULL )
