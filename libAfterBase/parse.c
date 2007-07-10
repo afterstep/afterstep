@@ -873,7 +873,7 @@ double parse_math(const char* str, char** endptr, double size) {
 	char op = '+';
 	char minus = 0;
 	char logical_not = 0;
-	const char* startptr = str;
+/*	const char* startptr = str; */
 	if( str == NULL ) 
 		return 0 ;
 

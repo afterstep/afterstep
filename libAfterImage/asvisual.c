@@ -42,15 +42,19 @@
 #endif
 #include "asvisual.h"
 
-#ifdef XSHMIMAGE
+#if defined(XSHMIMAGE) && !defined(X_DISPLAY_MISSING) 
 # include <sys/ipc.h>
 # include <sys/shm.h>
 # include <X11/extensions/XShm.h>
+#else
+# undef XSHMIMAGE
 #endif
 
-#ifdef HAVE_GLX
+#if defined(HAVE_GLX) && !defined(X_DISPLAY_MISSING) 
 # include <GL/gl.h>
 # include <GL/glx.h>
+#else
+# undef HAVE_GLX
 #endif
 
 
@@ -1781,7 +1785,6 @@ void pixel2color15rgb(ASVisual *asv, unsigned long pixel, CARD32 *red, CARD32 *g
 void pixel2color15bgr(ASVisual *asv, unsigned long pixel, CARD32 *red, CARD32 *green, CARD32 *blue)
 {}
 
-#ifndef X_DISPLAY_MISSING
 void ximage2scanline32(ASVisual *asv, XImage *xim, ASScanline *sl, int y,  register unsigned char *xim_data )
 {
 	register CARD32 *r = sl->xc1+sl->offset_x, *g = sl->xc2+sl->offset_x, *b = sl->xc3+sl->offset_x;
@@ -1867,6 +1870,8 @@ void ximage2scanline15( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  regi
 			b[i] =  (src[i]&0x001F)<<3;
 		}while( --i >= 0);
 }
+
+#ifndef X_DISPLAY_MISSING
 
 void
 ximage2scanline_pseudo3bpp( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  register unsigned char *xim_data )
@@ -1969,7 +1974,7 @@ ximage2scanline_pseudo12bpp( ASVisual *asv, XImage *xim, ASScanline *sl, int y, 
 			}
 		}while( --i >= 0);
 }
-
+#endif
 
 void scanline2ximage32( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  register unsigned char *xim_data )
 {
@@ -2131,6 +2136,7 @@ void scanline2ximage15( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  regi
 	}
 }
 
+#ifndef X_DISPLAY_MISSING
 void
 scanline2ximage_pseudo3bpp( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  register unsigned char *xim_data )
 {
@@ -2269,6 +2275,6 @@ scanline2ximage_pseudo12bpp( ASVisual *asv, XImage *xim, ASScanline *sl, int y, 
 		}while(i);
 	}
 }
-#endif /* ifndef X_DISPLAY_MISSING */
 
+#endif /* ifndef X_DISPLAY_MISSING */
 
