@@ -16,13 +16,16 @@ Bool
 l_load_font (const char *file, int line, const char *name, MyFont * font)
 #else
 Bool
-load_font (const char *name, MyFont * font)
+load_font (const char *name_in, MyFont * font)
 #endif
 {
-	char 		 *clean_name = (char*)name ;
-	
+	char *name ; 
+	char *clean_name ;
 	int font_size = asxml_var_get("font.size");				   
-	
+
+	if( font == NULL ) 
+		return False ;
+			
 	if( font_size <= 0 ) 
 		font_size = 14;
 
@@ -38,6 +41,9 @@ load_font (const char *name, MyFont * font)
 		ASDefaultScr->font_manager = create_font_manager (dpy, path, NULL);
 	}
 
+	name = name_in?(char*)name_in:font->name ; 
+	
+	clean_name = name ;
 	if( clean_name != NULL )
 	{
 		int i = 0 ;
@@ -68,10 +74,13 @@ load_font (const char *name, MyFont * font)
 		font->as_font = get_asfont (ASDefaultScr->font_manager, default_font, 0, font_size, ASF_GuessWho);
 		show_warning( "failed to load font \"%s\" - using default instead", name );
 	}
+
 	if( clean_name && clean_name != name )
 		free( clean_name );
-    if ( font->as_font != NULL )
-		font->name = mystrdup (name);
+
+    if ( font->as_font != NULL && name != font->name )
+		set_string(&(font->name), mystrdup(name));
+
 	return (font->as_font != NULL);
 }
 

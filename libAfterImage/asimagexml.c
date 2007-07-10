@@ -393,8 +393,9 @@ ASImage *commit_xml_image_built( ASImageXMLState *state, char *id, ASImage *resu
 	if (state && id && result) 
 	{
     	char* buf = NEW_ARRAY(char, strlen(id) + 1 + 6 + 1);
-		show_progress("Storing image id [%s] with image manager %p .", id, state->imman);
-        sprintf(buf, "%s.width", id);
+		if( state->verbose > 1 ) 
+			show_progress("Storing image id [%s] with image manager %p .", id, state->imman);
+    	sprintf(buf, "%s.width", id);
         asxml_var_insert(buf, result->width);
         sprintf(buf, "%s.height", id);
         asxml_var_insert(buf, result->height);
@@ -522,7 +523,8 @@ handle_asxml_tag_text( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm
 	if (text && point > 0) 
 	{
 		struct ASFont *font = NULL;
-		show_progress("Rendering text [%s] with font [%s] size [%d].", text, font_name, point);
+		if( state->verbose > 1 ) 
+			show_progress("Rendering text [%s] with font [%s] size [%d].", text, font_name, point);
 		if (state->fontman) font = get_asfont(state->fontman, font_name, 0, point, ASF_GuessWho);
 		if (font != NULL) 
 		{
@@ -550,7 +552,8 @@ handle_asxml_tag_text( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm
 			if (result && fgimage_str) {
 				ASImage* fgimage = NULL;
 				fgimage = get_asimage(state->imman, fgimage_str, 0xFFFFFFFF, 100 );
-				show_progress("Using image [%s](%p) as foreground. Text size is %dx%d", fgimage_str, fgimage, result->width, result->height);
+				if( state->verbose > 1 ) 
+					show_progress("Using image [%s](%p) as foreground. Text size is %dx%d", fgimage_str, fgimage, result->width, result->height);
 				if (fgimage) {
 					ASImage *tmp = tile_asimage(state->asv, fgimage, 0, 0, result->width, result->height, 0, ASA_ASImage, 100, ASIMAGE_QUALITY_TOP);
 					if( tmp )
@@ -828,9 +831,10 @@ handle_asxml_tag_composite( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t*
 			layers[i].clip_height = height - layers[i].dst_y;
 	}
 
-	show_progress("Compositing [%d] image(s) with op [%s].  Final geometry [%dx%d].", num, pop, width, height);
-	if (keep_trans) show_progress("  Keeping transparency.");
 	if (state->verbose > 1) {
+		show_progress("Compositing [%d] image(s) with op [%s].  Final geometry [%dx%d].", num, pop, width, height);
+		if (keep_trans) show_progress("  Keeping transparency.");
+	
 		for (i = 0 ; i < num ; i++) {
 			show_progress("  Image [%d] geometry [%dx%d+%d+%d]", i, layers[i].clip_width, layers[i].clip_height, layers[i].dst_x, layers[i].dst_y);
 			if (layers[i].tint) show_progress(" tint (#%08x)", (unsigned int)layers[i].tint);
@@ -877,7 +881,8 @@ handle_asxml_tag_img( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm,
 	if (src && !strcmp(src, "xroot:")) {
 		unsigned int width, height;
 		Pixmap rp = GetRootPixmap(None);
-		show_progress("Getting root pixmap.");
+		if( state->verbose > 1 ) 
+			show_progress("Getting root pixmap.");
 		if (rp) {
 			get_drawable_size(rp, &width, &height);
 			result = pixmap2asimage(state->asv, rp, 0, 0, width, height, 0xFFFFFFFF, False, 100);
@@ -894,7 +899,8 @@ handle_asxml_tag_img( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm,
 			}	
 		}
 	} else if (src) {
-		show_progress("Loading image [%s] using imman (%p) with search path \"%s\" (dst_size = %dx%d).", src, state->imman, state->imman?state->imman->search_path[0]:"", dst_width, dst_height);
+		if( state->verbose > 1 ) 
+			show_progress("Loading image [%s] using imman (%p) with search path \"%s\" (dst_size = %dx%d).", src, state->imman, state->imman?state->imman->search_path[0]:"", dst_width, dst_height);
 		if( dst_width != 0 || dst_height != 0 ) 
 			result = get_thumbnail_asimage( state->imman, src, dst_width, dst_height, (dst_width==0||dst_height==0)?AS_THUMBNAIL_PROPORTIONAL:0 );
 		else
@@ -923,7 +929,8 @@ handle_asxml_tag_recall( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* pa
 	{	
 		if (!strcmp(ptr->tag, "srcid"))
 		{ 
-			show_progress("Recalling image id [%s] from imman %p.", ptr->parm, state->imman);
+			if( state->verbose > 1 ) 
+				show_progress("Recalling image id [%s] from imman %p.", ptr->parm, state->imman);
 			result = fetch_asimage(state->imman, ptr->parm );
 			if (!result)
 				show_warning("Image recall failed for id [%s].", parm->parm);
@@ -935,7 +942,8 @@ handle_asxml_tag_recall( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* pa
 		for( ptr = parm ; ptr && !result ; ptr = ptr->next )
 			if (!strcmp(ptr->tag, "default_src"))
 			{ 
-				show_progress("loading default image [%s] from imman %p.", ptr->parm, state->imman);
+				if( state->verbose > 1 ) 
+					show_progress("loading default image [%s] from imman %p.", ptr->parm, state->imman);
 				result = get_asimage( state->imman, ptr->parm, 0xFFFFFFFF, 100 );
 			}
 	}
@@ -959,7 +967,8 @@ handle_asxml_tag_release( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* p
 	for (ptr = parm ; ptr ; ptr = ptr->next) 
 		if (!strcmp(ptr->tag, "srcid"))
 		{
-			show_progress("Releasing image id [%s] from imman %p.", ptr->parm, state->imman);
+			if( state->verbose > 1 ) 
+				show_progress("Releasing image id [%s] from imman %p.", ptr->parm, state->imman);
 			release_asimage_by_name(state->imman, (char*)ptr->parm );
 			break;
 		}
@@ -1018,7 +1027,8 @@ handle_asxml_tag_color( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* par
 
 
 #ifdef HAVE_AFTERBASE
-	   		show_progress("defining synonim [%s] for color value #%8.8X.", name, argb);
+	   		if( state->verbose > 1 ) 
+				show_progress("defining synonim [%s] for color value #%8.8X.", name, argb);
 	   		register_custom_color( name, argb );
 #endif
 			sprintf( tmp+vd_len, "%s.alpha", name );
@@ -1333,8 +1343,8 @@ handle_asxml_tag_gradient( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* 
 					gradient.offset[i] = 1.0 - gradient.offset[i];
 				}
 			}
-			show_progress("Generating [%dx%d] gradient with angle [%f] and npoints [%d/%d].", width, height, angle, npoints1, npoints2);
 			if (state->verbose > 1) {
+				show_progress("Generating [%dx%d] gradient with angle [%f] and npoints [%d/%d].", width, height, angle, npoints1, npoints2);
 				for (i = 0 ; i < gradient.npoints ; i++) {
 					show_progress("  Point [%d] has color [#%08x] and offset [%f].", i, (unsigned int)gradient.color[i], gradient.offset[i]);
 				}
@@ -1387,7 +1397,8 @@ handle_asxml_tag_solid( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* par
 		if (!strcmp(ptr->tag, "color")) parse_argb_color(ptr->parm, &color);
 		else if (!strcmp(ptr->tag, "opacity")) { opacity = atol(ptr->parm); opacity_set = True ; }
 	}
-	show_progress("Creating solid color [#%08x] image [%dx%d].", (unsigned int)color, width, height);
+	if( state->verbose > 1 )
+		show_progress("Creating solid color [#%08x] image [%dx%d].", (unsigned int)color, width, height);
 	result = create_asimage(width, height, ASIMAGE_QUALITY_TOP);
 	if( opacity < 0 ) opacity = 0 ;
 	else if( opacity > 100 )  opacity = 100 ;
@@ -1471,10 +1482,12 @@ handle_asxml_tag_save( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm
 	
 	if ( autoext && ext )
 		show_warning("No format given.  File extension [%s] used as format.", ext);
-	show_progress("reSaving image to file [%s].", dst?dst:"stdout");
+	if( state->verbose > 1 )
+		show_progress("reSaving image to file [%s].", dst?dst:"stdout");
 	if (result && get_flags( state->flags, ASIM_XML_ENABLE_SAVE) )
 	{
-		show_progress("Saving image to file [%s].", dst?dst:"stdout");
+		if( state->verbose > 1 )
+			show_progress("Saving image to file [%s].", dst?dst:"stdout");
 		if( !save_asimage_to_file(dst, result, ext, compress, opacity, delay, replace))
 			show_error("Unable to save image into file [%s].", dst?dst:"stdout");
 	}
@@ -1509,7 +1522,8 @@ handle_asxml_tag_background( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t
 		result = clone_asimage( imtmp, SCL_DO_ALL );
 		result->back_color = argb ;
 	}
-	show_progress( "Setting back_color for image %p to 0x%8.8X", result, argb );
+	if( state->verbose > 1 )
+		show_progress( "Setting back_color for image %p to 0x%8.8X", result, argb );
 	return result;
 }
 
@@ -1563,7 +1577,8 @@ handle_asxml_tag_blur( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm
         }
 	}
     result = blur_asimage_gauss(state->asv, imtmp, horz, vert, filter, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
-	show_progress("Blurrer image with radii %d, %d.", horz, vert);
+	if( state->verbose > 1 )	
+		show_progress("Blurrer image with radii %d, %d.", horz, vert);
 	return result;
 }
 
@@ -1654,7 +1669,8 @@ handle_asxml_tag_bevel( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* par
 		bevel.hihi_color = bevel.hi_color;
 		bevel.hilo_color = bevel.hi_color;
 		bevel.lolo_color = bevel.lo_color;
-		show_progress("Generating bevel with offsets [%d %d %d %d] and colors [#%08x #%08x].", bevel.left_inline, bevel.top_inline, bevel.right_inline, bevel.bottom_inline, (unsigned int)bevel.hi_color, (unsigned int)bevel.lo_color);
+		if( state->verbose > 1 )
+			show_progress("Generating bevel with offsets [%d %d %d %d] and colors [#%08x #%08x].", bevel.left_inline, bevel.top_inline, bevel.right_inline, bevel.bottom_inline, (unsigned int)bevel.hi_color, (unsigned int)bevel.lo_color);
 		init_image_layers( &layer, 1 );
 		layer.im = imtmp;
 		if( width <= bevel.left_outline+bevel.right_outline )
@@ -1706,7 +1722,8 @@ handle_asxml_tag_mirror( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* pa
 	result = mirror_asimage(state->asv, imtmp, 0, 0, width, height, dir,
 							ASA_ASImage, 
 							0, ASIMAGE_QUALITY_DEFAULT);
-	show_progress("Mirroring image [%sally].", dir ? "horizont" : "vertic");
+	if( state->verbose > 1 )
+		show_progress("Mirroring image [%sally].", dir ? "horizont" : "vertic");
 	return result;
 }
 
@@ -1760,7 +1777,8 @@ handle_asxml_tag_rotate( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* pa
 			height = tmp ;	
 		}	 
 		result = flip_asimage(state->asv, imtmp, 0, 0, width, height, dir, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
-		show_progress("Rotating image [%f degrees].", angle);
+		if( state->verbose > 1 )
+			show_progress("Rotating image [%f degrees].", angle);
 	} else 
 		result = imtmp;
 
@@ -1815,7 +1833,8 @@ handle_asxml_tag_scale( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* par
 		else if (!strcmp(ptr->tag, "src_width")) 	src_width = parse_math(ptr->parm, NULL, width);
 		else if (!strcmp(ptr->tag, "src_height")) 	src_height = parse_math(ptr->parm, NULL, width);
 	}	
-	show_progress("Scaling image to [%dx%d].", width, height);
+	if( state->verbose > 1 )
+		show_progress("Scaling image to [%dx%d].", width, height);
 	result = scale_asimage2( state->asv, imtmp, 
 							src_x, src_y, src_width, src_height,
 							width, height, 
@@ -1877,7 +1896,8 @@ handle_asxml_tag_slice( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* par
 		else if (!strcmp(ptr->tag, "scale")) 	scale = (ptr->parm[0] == '1');
 	}
 
-	show_progress("Slicing image to [%dx%d].", width, height);
+	if( state->verbose > 1 )
+		show_progress("Slicing image to [%dx%d].", width, height);
 	result = slice_asimage2( state->asv, imtmp, x_start, x_end, y_start, y_end, width, height, 
 							 scale, ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT);
 	return result;
@@ -1920,7 +1940,8 @@ handle_asxml_tag_crop( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm
 		else if (!strcmp(ptr->tag, "srcy")) srcy = parse_math(ptr->parm, NULL, height);
 		else if (!strcmp(ptr->tag, "tint")) parse_argb_color(ptr->parm, &tint);
 	}
-	show_progress("Cropping image to [%dx%d].", width, height);
+	if( state->verbose > 1 )
+		show_progress("Cropping image to [%dx%d].", width, height);
 	result = tile_asimage(state->asv, imtmp, srcx, srcy, width, height, tint, ASA_ASImage, 100, ASIMAGE_QUALITY_TOP);
 	return result;
 }
@@ -1991,7 +2012,8 @@ handle_asxml_tag_tile( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm
 
 		tint = MAKE_ARGB32(a, r, g, b );
 	}
-	show_progress("Tiling image to [%dx%d].", width, height);
+	if( state->verbose > 1 )
+		show_progress("Tiling image to [%dx%d].", width, height);
 	result = tile_asimage(state->asv, imtmp, xorig, yorig, width, height, tint, ASA_ASImage, 100, ASIMAGE_QUALITY_TOP);
 	return result;
 }
@@ -2097,7 +2119,8 @@ handle_asxml_tag_hsv( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm,
 									hue_offset, saturation_offset, value_offset,
 				                    ASA_ASImage, 100, ASIMAGE_QUALITY_TOP);
 	}
-	show_progress("adjusted HSV of the image by [%d,%d,%d] affected hues are %+d-%+d.result = %p", hue_offset, saturation_offset, value_offset, affected_hue-affected_radius, affected_hue+affected_radius, result);
+	if( state->verbose > 1 )
+		show_progress("adjusted HSV of the image by [%d,%d,%d] affected hues are %+d-%+d.result = %p", hue_offset, saturation_offset, value_offset, affected_hue-affected_radius, affected_hue+affected_radius, result);
 	return result;
 }
 
@@ -2141,7 +2164,8 @@ handle_asxml_tag_pad( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm,
 		else if (!strcmp(ptr->tag, "bottom")) bottom = parse_math(ptr->parm, NULL, height);
 		else if (!strcmp(ptr->tag, "color"))  parse_argb_color(ptr->parm, &color);
 	}
-	show_progress("Padding image to [%dx%d%+d%+d].", width+left+right, height+top+bottom, left, top);
+	if( state->verbose > 1 )
+		show_progress("Padding image to [%dx%d%+d%+d].", width+left+right, height+top+bottom, left, top);
 	if (left > 0 || top > 0 || right > 0 || bottom > 0 )
 		result = pad_asimage(state->asv, imtmp, left, top, width+left+right, height+top+bottom,
 					            color, ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT);

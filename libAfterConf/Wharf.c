@@ -533,8 +533,12 @@ ParseWharfItem (FreeStorageElem * storage, WharfButton **folder)
 
             if (null_icon > 0)
             {
-                if (new_icon_list[0] != NULL)
-                    free (new_icon_list[0]);
+				int i = 0 ; 
+                while(new_icon_list[i] != NULL)
+				{
+                    free (new_icon_list[i]);
+					i++ ;
+				}
                 free (new_icon_list);
                 new_icon_list = NULL;
             }

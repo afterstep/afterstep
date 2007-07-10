@@ -163,7 +163,11 @@ mystyle_get_property (ASWMProps *wmprops)
 			}
 #else
 			name = XGetAtomName (dpy, prop[i + 3]);
-			load_font (name, &style->font);
+#if 1			
+			set_string( &(style->font.name), mystrdup(name)); 
+#else
+			load_font( name, &(style->font) );
+#endif			
 			XFree (name);
             style->user_flags |= F_FONT;
             style->inherit_flags &= ~F_FONT;

@@ -524,14 +524,14 @@ countadd_hash_item (const char *fname, int line, struct ASHashTable *hash, ASHas
 	res = add_hash_item(hash, value, data );
 	service_mode-- ;
 
-	show_debug(  __FILE__, __FUNCTION__, __LINE__, "add_hash_item called from %s:%d with args %p, %lX, %p", fname, line, hash, value, data );
+	/* show_debug(  __FILE__, __FUNCTION__, __LINE__, "add_hash_item called from %s:%d with args %p, %lX, %p", fname, line, hash, value, data ); */
 	if( hash != allocs_hash ) 
 	{
 		if( res == ASH_Success )
 		{	
 			if( check_hash_item_reused (hash->most_recent) )
 			{	
-				show_debug( __FILE__, fname, line, "reused hash item %p", hash->most_recent );
+				/*show_debug( __FILE__, fname, line, "reused hash item %p", hash->most_recent );*/
 				count_alloc (fname, line, hash->most_recent, sizeof(ASHashItem), C_MEM | C_ADD_HASH_OPTIONAL_ITEM );
     		}else 
 				count_alloc (fname, line, hash->most_recent, sizeof(ASHashItem), C_MEM | C_ADD_HASH_ITEM);

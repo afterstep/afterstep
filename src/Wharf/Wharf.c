@@ -282,7 +282,13 @@ main (int argc, char **argv)
 	ReloadCategories(True);
 
     WharfState.root_folder = build_wharf_folder( Config->root_folder, NULL, (Config->columns > 0 ) );
-    if( !display_main_folder() )
+	/* no longer need that stuff : */
+	DestroyCategories(); 
+	while (Config->root_folder)
+        DestroyWharfButton (&(Config->root_folder));
+		
+	/* let's proceed now : */
+	if( !display_main_folder() )
     {
         show_error( "main folder does not have any entries or has zero size. Aborting!");
         return 1;

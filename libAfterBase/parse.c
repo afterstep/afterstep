@@ -930,7 +930,7 @@ double parse_math(const char* str, char** endptr, double size) {
 		}
 	}
 	if (endptr) *endptr = (char*)str;
-	show_debug(__FILE__,"parse_math",__LINE__,"Parsed math [%s] with reference [%.2f] into number [%.2f].", startptr, size, total);
+/* 	show_debug(__FILE__,"parse_math",__LINE__,"Parsed math [%s] with reference [%.2f] into number [%.2f].", startptr, size, total); */
 	return total;
 }
 

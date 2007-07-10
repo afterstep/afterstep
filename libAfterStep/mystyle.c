@@ -811,7 +811,7 @@ mystyle_free_resources( MyStyle *style )
 {
     if( style->magic == MAGIC_MYSTYLE )
     {
-        if (style->user_flags & F_FONT)
+        if (get_flags( style->user_flags, F_FONT))
         {
             unload_font (&style->font);
         }
@@ -1012,15 +1012,13 @@ mystyle_merge_font( MyStyle *style, MyFont *font, Bool override, Bool copy)
         if (copy == False)
         {
             style->font = *font;
-            style->user_flags &= ~F_FONT;
-            style->inherit_flags |= F_FONT;
+            clear_flags(style->user_flags, F_FONT);
+            set_flags(style->inherit_flags, F_FONT);
         } else
         {
-            if (load_font (font->name, &style->font) == True)
-            {
-                style->user_flags |= F_FONT;
-                style->inherit_flags &= ~F_FONT;
-            }
+			set_string( &(style->font.name), mystrdup(font->name));
+            set_flags(style->user_flags, F_FONT);
+            clear_flags(style->inherit_flags, F_FONT);
         }
     }
 }
@@ -1491,6 +1489,10 @@ mystyle_draw_text_image (MyStyle * style, const char *text, unsigned long encodi
 
 	if (style && text)
 	{
+		/* load fonts on demand only - no need to waste memory if ain't never gonna use it ! */
+		if ( style->font.as_font == NULL )
+			load_font( NULL, &style->font );
+
 		if (style->font.as_font)
         {
 			ASTextAttributes attr = {ASTA_VERSION_1, ASTA_UseTabStops, AST_Plain, ASCT_Char, 8, 0, NULL, 0, ARGB32_White };

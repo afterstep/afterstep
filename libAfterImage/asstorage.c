@@ -705,8 +705,12 @@ create_asstorage_block( int useable_size )
 #ifndef DEBUG_ALLOCS
 	ptr = malloc(allocate_size);
 #else
-	ptr = guarded_malloc(allocate_size);
-	show_debug( __FILE__,__FUNCTION__,__LINE__,"allocated %d bytes, block = %p, total used = %d", allocate_size, ptr, UsedMemory + allocate_size );
+	{
+		char msg[256];
+		ptr = guarded_malloc(allocate_size);
+		sprintf( msg, "allocated %d bytes, block = %p, total used = %d", allocate_size, ptr, UsedMemory + allocate_size );
+		PRINT_MEM_STATS(msg);
+	}
 #endif
 	UsedMemory += allocate_size ;
 	if( ptr == NULL ) 
@@ -754,9 +758,13 @@ destroy_asstorage_block( ASStorageBlock *block )
 	free( block->slots );
 	free( block );	  
 #else	
-	show_debug( __FILE__,__FUNCTION__,__LINE__,"freeing block %p, size = %d, total used = %d", block, block->size, UsedMemory );
-	guarded_free( block->slots );
-	guarded_free( block );
+	{
+		char msg[256];
+		sprintf( msg, "freeing block %p, size = %d, total used = %d", block, block->size, UsedMemory );
+		guarded_free( block->slots );
+		guarded_free( block );
+		PRINT_MEM_STATS(msg);
+	}
 #endif
 
 }
