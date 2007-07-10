@@ -1241,9 +1241,11 @@ FixLook( MyLook *look )
 	
 	for( i = 0 ; i < MENU_BACK_STYLES ; ++i ) 
 		if( look->MSMenu[i] )
-			if( look->MSMenu[i]->font.as_font )
-				if( look->MSMenu[i]->font.as_font->max_height > menu_font_size ) 
-					menu_font_size = look->MSMenu[i]->font.as_font->max_height ;
+		{
+			int font_size = mystyle_get_font_height( look->MSMenu[i] );
+			if( font_size > menu_font_size ) 
+					menu_font_size = font_size ;
+		}
 	asxml_var_insert(ASXMLVAR_MenuFontSize, menu_font_size);
 
 
@@ -1337,7 +1339,7 @@ FixLook( MyLook *look )
 	{
 		unsigned int width = 0;
 		unsigned int height = 0 ;
-		get_text_size( " +88888 x +88888 ", look->MSWindow[BACK_FOCUSED]->font.as_font, look->MSWindow[BACK_FOCUSED]->text_style, &width, &height );
+		mystyle_get_text_size( look->MSWindow[BACK_FOCUSED], " +88888 x +88888 ", &width, &height );
     	if( !get_flags(look->resize_move_geometry.flags, WidthValue ) )
 	        look->resize_move_geometry.width = width + SIZE_VINDENT * 2;
 

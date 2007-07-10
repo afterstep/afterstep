@@ -168,6 +168,7 @@ merge_scanlines_func mystyle_translate_texture_type( int texture_type );
 int mystyle_translate_grad_type( int type );
 ASImage *mystyle_draw_text_image( MyStyle *style, const char *text, unsigned long encoding );
 unsigned int mystyle_get_font_height( MyStyle *style );
+void mystyle_get_text_size (MyStyle * style, const char *text, unsigned int *width, unsigned int *height );
 
 void mystyle_list_fix_styles (ASHashTable *list);
 void mystyle_fix_styles (void);
@@ -183,7 +184,7 @@ MyStyle *mystyle_new_with_name (char *name);
 void mystyle_list_destroy_all( ASHashTable **plist );
 void mystyle_destroy_all();
 
-void mystyle_merge_font( MyStyle *style, MyFont *font, Bool override, Bool copy);
+void mystyle_merge_font( MyStyle *style, MyFont *font, Bool override);
 void mystyle_merge_styles (MyStyle * parent, MyStyle * child, Bool override, Bool copy);
 
 MyStyle *mystyle_list_find (struct ASHashTable *list, const char *name);

@@ -537,10 +537,10 @@ CheckConfigSanity()
         MyFont small_font ;
         if( load_font (Config->small_font_name, &small_font) )
         {
-            mystyle_merge_font( Scr.Look.MSWindow[0], &small_font, True, False );
+            mystyle_merge_font( Scr.Look.MSWindow[0], &small_font, True );
             for( i = 1 ; i < BACK_STYLES ; ++i )
                 if( Scr.Look.MSWindow[i] )
-                    mystyle_merge_font( Scr.Look.MSWindow[i], &small_font, True, True );
+                    mystyle_merge_font( Scr.Look.MSWindow[i], &small_font, True );
         }
     }
 

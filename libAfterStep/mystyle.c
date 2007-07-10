@@ -1003,23 +1003,15 @@ mystyle_find_or_default (const char *name)
  *   inherit if the parent style could go away before the child
  */
 void
-mystyle_merge_font( MyStyle *style, MyFont *font, Bool override, Bool copy)
+mystyle_merge_font( MyStyle *style, MyFont *font, Bool override)
 {
     if ((override == True) && (style->user_flags & F_FONT))
         unload_font (&style->font);
     if ((override == True) || !(style->set_flags & F_FONT))
     {
-        if (copy == False)
-        {
-            style->font = *font;
-            clear_flags(style->user_flags, F_FONT);
-            set_flags(style->inherit_flags, F_FONT);
-        } else
-        {
-			set_string( &(style->font.name), mystrdup(font->name));
-            set_flags(style->user_flags, F_FONT);
-            clear_flags(style->inherit_flags, F_FONT);
-        }
+		set_string( &(style->font.name), mystrdup(font->name));
+        set_flags(style->user_flags, F_FONT);
+        clear_flags(style->inherit_flags, F_FONT);
     }
 }
 
@@ -1029,7 +1021,7 @@ mystyle_merge_styles (MyStyle * parent, MyStyle * child, Bool override, Bool cop
 	if( parent == NULL || child == NULL ) 
 		return;
 	if (parent->set_flags & F_FONT)
-        mystyle_merge_font( child, &(parent->font), override, copy);
+        mystyle_merge_font( child, &(parent->font), override);
 
     if (parent->set_flags & F_TEXTSTYLE)
 	{
@@ -1523,7 +1515,26 @@ unsigned int
 mystyle_get_font_height (MyStyle * style)
 {
 	if (style)
+	{
+		if (style->font.as_font == NULL )
+			load_font( NULL, &style->font );
+
 		if (style->font.as_font)
 			return style->font.as_font->max_height;
+	}
 	return 1;
 }
+
+void
+mystyle_get_text_size (MyStyle * style, const char *text, unsigned int *width, unsigned int *height )
+{
+	if (style && text)
+	{
+		if (style->font.as_font == NULL )
+			load_font( NULL, &style->font );
+
+		if (style->font.as_font)
+			get_text_size( text, style->font.as_font, style->text_style, width, height );
+	}
+}
+

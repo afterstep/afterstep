@@ -418,8 +418,8 @@ mystyle_create_from_definition (MyStyleDefinition * def)
 			unload_font (&style->font);
 			clear_flags(style->user_flags, F_FONT);
 		}
-		if (load_font (def->font, &style->font))
-			set_flags(style->user_flags, F_FONT);
+		set_string(&(style->font.name), mystrdup(def->font));
+		set_flags(style->user_flags, F_FONT);
 	}
 	if( get_flags(def->flags, MYSTYLE_TEXT_STYLE_SET ) )
 	{
