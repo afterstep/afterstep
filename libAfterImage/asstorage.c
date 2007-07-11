@@ -69,6 +69,8 @@
 
 ASStorage *_as_default_storage = NULL ;
 
+#define get_default_asstorage()   (_as_default_storage?_as_default_storage:(_as_default_storage=create_asstorage()))
+
 
 /************************************************************************/
 /* Private Functions : 													*/
@@ -1490,6 +1492,24 @@ create_asstorage()
 	return storage ;
 }
 
+int 
+set_asstorage_block_size( ASStorage *storage, int new_size )
+{
+	int old_size ;
+	
+	if( storage == NULL ) 
+		storage = get_default_asstorage();
+	
+	old_size = storage->default_block_size ; 
+#if 1
+	if( new_size > AS_STORAGE_DEF_BLOCK_SIZE ) 
+		storage->default_block_size = new_size; 
+	else
+		storage->default_block_size = AS_STORAGE_DEF_BLOCK_SIZE; 
+#endif
+	return old_size;
+}
+
 void 
 destroy_asstorage(ASStorage **pstorage)
 {
@@ -1525,8 +1545,6 @@ destroy_asstorage(ASStorage **pstorage)
 		*pstorage = NULL;
 	}
 }
-
-#define get_default_asstorage()   (_as_default_storage?_as_default_storage:(_as_default_storage=create_asstorage()))
 
 void 
 flush_default_asstorage()

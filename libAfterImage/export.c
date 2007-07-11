@@ -34,9 +34,15 @@
 # endif
 #else
 #include <setjmp.h>
+# ifdef HAVE_JPEG
+#   ifdef HAVE_UNISTD_H
+#     include <unistd.h>
+#   endif
+#   include <stdio.h>
+# endif
 #endif
 #ifdef HAVE_JPEG
-/* Include file for users of png library. */
+/* Include file for users of jpg library. */
 # undef HAVE_STDLIB_H
 # ifndef X_DISPLAY_MISSING
 #  include <X11/Xmd.h>

@@ -37,7 +37,13 @@
 #  include <png.h>
 # endif
 #else
-#include <setjmp.h>
+# include <setjmp.h>
+# ifdef HAVE_JPEG
+#   ifdef HAVE_UNISTD_H
+#     include <unistd.h>
+#   endif
+#   include <stdio.h>
+# endif
 #endif
 #ifdef HAVE_JPEG
 /* Include file for users of png library. */
@@ -1086,6 +1092,8 @@ xpm_file2ASImage( ASXpmFile *xpm_file, unsigned int compression )
 			int bytes_count = im->width*4 ;
 			ASFlagType rgb_flags = ASStorage_RLEDiffCompress|ASStorage_32Bit ;
 			ASFlagType alpha_flags = ASStorage_RLEDiffCompress|ASStorage_32Bit ;
+			int old_storage_block_size = set_asstorage_block_size( NULL, xpm_file->width*xpm_file->height*3/2 );
+
 			if( !xpm_file->full_alpha ) 
 				alpha_flags |= ASStorage_Bitmap ;
 			for( line = 0 ; line < xpm_file->height ; ++line )
@@ -1104,6 +1112,7 @@ xpm_file2ASImage( ASXpmFile *xpm_file, unsigned int compression )
 				print_component( xpm_file->scl.blue, 0, xpm_file->width );
 #endif
 			}
+			set_asstorage_block_size( NULL, old_storage_block_size);
 		}
 	return im ;
 }
@@ -1193,6 +1202,7 @@ png2ASImage( const char * path, ASImageImportParams *params )
 	unsigned int  y;
 	size_t		  row_bytes, offset ;
 	static ASImage 	 *im = NULL ;
+	int old_storage_block_size;
 	START_TIME(started);
 
 	im = NULL ;
@@ -1295,6 +1305,8 @@ png2ASImage( const char * path, ASImageImportParams *params )
 
 				/* The easiest way to read the image: */
 				png_read_image (png_ptr, row_pointers);
+				
+				old_storage_block_size = set_asstorage_block_size( NULL, width*height*3/2 );
 				for (y = 0; y < height; y++)
 				{
 					if( do_alpha || !grayscale ) 
@@ -1340,6 +1352,8 @@ png2ASImage( const char * path, ASImageImportParams *params )
 						}
 					}
 				}
+				set_asstorage_block_size( NULL, old_storage_block_size );
+
 				free (row_pointers);
 				if( do_alpha || !grayscale ) 
 					free_scanline(&buf, True);
@@ -1397,6 +1411,7 @@ ASImage *
 jpeg2ASImage( const char * path, ASImageImportParams *params )
 {
 	ASImage *im ;
+	int old_storage_block_size ;
 	/* This struct contains the JPEG decompression parameters and pointers to
 	 * working space (which is allocated as needed by the JPEG library).
 	 */
@@ -1518,6 +1533,8 @@ jpeg2ASImage( const char * path, ASImageImportParams *params )
 /*	for( i = 0 ; i < im->width ; i++ )	fprintf( stderr, "%3.3d    ", i );
 	fprintf( stderr, "\n");
  */
+	old_storage_block_size = set_asstorage_block_size( NULL, im->width*im->height*3/2 );
+
  	while ( ++y < (int)cinfo.output_height )
 	{
 		/* jpeg_read_scanlines expects an array of pointers to scanlines.
@@ -1547,6 +1564,7 @@ jpeg2ASImage( const char * path, ASImageImportParams *params )
 		fprintf( stderr, "\n");
  */
 	}
+	set_asstorage_block_size( NULL, old_storage_block_size );
 	if( cinfo.output_components != 1 ) 
 		free_scanline(&buf, True);
 	SHOW_TIME("read",started);
@@ -2097,12 +2115,15 @@ gif2ASImage( const char * path, ASImageImportParams *params )
                 int interlaced = sp->ImageDesc.Interlace;
                 int image_y;
 				CARD8 		 *r = NULL, *g = NULL, *b = NULL, *a = NULL ;
+				int 	old_storage_block_size ;
 				r = safemalloc( width );	   
 				g = safemalloc( width );	   
 				b = safemalloc( width );	   
 				a = safemalloc( width );
 
 				im = create_asimage( width, height, params->compression );
+				old_storage_block_size = set_asstorage_block_size( NULL, im->width*im->height*3/2 );
+
 				for (y = 0; y < height; ++y)
 				{
 					unsigned int x ;
@@ -2130,6 +2151,7 @@ gif2ASImage( const char * path, ASImageImportParams *params )
 					if( do_alpha )
 						im->channels[IC_ALPHA][image_y]  = store_data( NULL, a, im->width, ASStorage_RLEDiffCompress|ASStorage_Bitmap, 0);
 				}
+				set_asstorage_block_size( NULL, old_storage_block_size );
 				free(a);
 				free(b);
 				free(g);
@@ -2222,10 +2244,13 @@ tiff2ASImage( const char * path, ASImageImportParams *params )
 			CARD8 		 *r = NULL, *g = NULL, *b = NULL, *a = NULL ;
 			ASFlagType store_flags = ASStorage_RLEDiffCompress	;
 			int first_row = 0 ;
+			int old_storage_block_size;
 			if( bits == 1 ) 
 				set_flags( store_flags, ASStorage_Bitmap );
 			
 			im = create_asimage( width, height, params->compression );
+			old_storage_block_size = set_asstorage_block_size( NULL, im->width*im->height*3/2 );
+			
 			if( depth == 2 || depth == 4 ) 
 				a = safemalloc( width );
 			r = safemalloc( width );	   
@@ -2276,6 +2301,8 @@ tiff2ASImage( const char * path, ASImageImportParams *params )
 				}
 				first_row += rows_per_strip ;
 		    }
+			set_asstorage_block_size( NULL, old_storage_block_size );
+
 			if( b ) free( b );
 			if( g ) free( g );
 			if( r ) free( r );
@@ -2351,7 +2378,7 @@ svg2ASImage( const char * path, ASImageImportParams *params )
 	int width = -1, height = -1 ; 
  
 	START_TIME(started);
-
+#if 1
 	/* Damn gtk mess... must init once atleast.. can we just init
 	   several times or do we bork then? */
 	if (gType_inited == 0) 
@@ -2378,6 +2405,7 @@ svg2ASImage( const char * path, ASImageImportParams *params )
 		register CARD8 *row = gdk_pixbuf_get_pixels(pixbuf);
 		int y;
 		CARD8 		 *r = NULL, *g = NULL, *b = NULL, *a = NULL ;
+		int old_storage_block_size;
 
 		width = gdk_pixbuf_get_width(pixbuf);
 		height = gdk_pixbuf_get_height(pixbuf);
@@ -2390,6 +2418,7 @@ svg2ASImage( const char * path, ASImageImportParams *params )
 
 
 		im = create_asimage(width, height, params->compression );
+		old_storage_block_size = set_asstorage_block_size( NULL, im->width*im->height*3/2 );
 		for (y = 0; y < height; ++y) 
 		{
 			int x, i = 0 ;
@@ -2414,6 +2443,7 @@ svg2ASImage( const char * path, ASImageImportParams *params )
 					}
 			row += channels*width ;
 		}
+		set_asstorage_block_size( NULL, old_storage_block_size );
 		free(r);
 		free(g);
 		free(b);
@@ -2423,7 +2453,7 @@ svg2ASImage( const char * path, ASImageImportParams *params )
 	
 	if (pixbuf)
 		gdk_pixbuf_unref(pixbuf);
-	
+#endif	
 	SHOW_TIME("image loading",started);
 
 	return im ;
@@ -2624,7 +2654,10 @@ tga2ASImage( const char * path, ASImageImportParams *params )
 		if( success && load_row_func != NULL ) 
 		{	
 			ASImageOutput  *imout ;
+			int old_storage_block_size;
 			im = create_asimage( width, height, params->compression );
+			old_storage_block_size = set_asstorage_block_size( NULL, im->width*im->height*3/2 );
+
 			if((imout = start_image_output( NULL, im, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT)) == NULL )
 			{
         		destroy_asimage( &im );
@@ -2647,6 +2680,8 @@ tga2ASImage( const char * path, ASImageImportParams *params )
 				free_scanline( &buf, True );
 				free( read_buf );
 			}   
+			set_asstorage_block_size( NULL, old_storage_block_size );
+
 		}	  
 	}	 
 	if( im == NULL )
@@ -2673,6 +2708,8 @@ convert_argb2ASImage( ASVisual *asv, int width, int height, ARGB32 *argb, CARD8 
 	{	
 		ASScanline    buf;
 		int y ;
+		int old_storage_block_size = set_asstorage_block_size( NULL, im->width*im->height*3 );
+
 		prepare_scanline( im->width, 0, &buf, True );
 		for( y = 0 ; y < height ; ++y ) 
 		{	  
@@ -2689,6 +2726,7 @@ convert_argb2ASImage( ASVisual *asv, int width, int height, ARGB32 *argb, CARD8 
 			set_flags( buf.flags, SCL_DO_RED|SCL_DO_GREEN|SCL_DO_BLUE|SCL_DO_ALPHA );
 			imout->output_image_scanline( imout, &buf, 1);
 		}
+		set_asstorage_block_size( NULL, old_storage_block_size );
 		stop_image_output( &imout );
 		free_scanline( &buf, True );
 	}   

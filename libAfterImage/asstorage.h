@@ -146,7 +146,6 @@ typedef struct ASStorage
 
 typedef CARD32 ASStorageID ;
 
-
 ASStorageID store_data(ASStorage *storage, CARD8 *data, int size, ASFlagType flags, CARD8 bitmap_threshold);
 ASStorageID store_data_tinted(ASStorage *storage, CARD8 *data, int size, ASFlagType flags, CARD8 tint);
 
@@ -174,8 +173,8 @@ ASStorageID dup_data(ASStorage *storage, ASStorageID src_id);
 /* this will provide access to default storage heap that is used whenever above functions get
  * NULL passed as ASStorage parameter :
  */
-ASStorage *get_default_asstorage();
 void flush_default_asstorage();
+int set_asstorage_block_size( ASStorage *storage, int new_size );
 
 
 #endif
