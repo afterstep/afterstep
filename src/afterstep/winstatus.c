@@ -1121,38 +1121,43 @@ LOCAL_DEBUG_OUT( "status geometry = %dx%d%+d%+d", asw->status->width, asw->statu
     }else
     {
         Bool decor_shaped = False ;
+		MyFrame *frame_data = asw->frame_data ; 
         int back_type;
         ASFlagType *frame_bevel, title_bevel ;
-        int title_cm, title_hue, title_sat ;
+        int title_cm, title_hue = -1, title_sat = -1;
 
         if( ASWIN_GET_FLAGS(asw, AS_Sticky ) )
         {
             back_type = BACK_STICKY ;
-            frame_bevel = &(asw->frame_data->part_sbevel[0]);
-            title_bevel = asw->frame_data->title_sbevel;
-            title_cm    = asw->frame_data->title_scm ;
-			title_hue   = asw->frame_data->title_shue ;
-			title_sat   = asw->frame_data->title_ssat ;
+            frame_bevel = &(frame_data->part_sbevel[0]);
+            title_bevel = frame_data->title_sbevel;
+            title_cm    = frame_data->title_scm ;
+			if( get_flags( frame_data->set_title_attr, MYFRAME_TitleSHueSet )  ) 
+				title_hue   = frame_data->title_shue ;
+			if( get_flags( frame_data->set_title_attr, MYFRAME_TitleSSatSet )  ) 
+				title_sat   = frame_data->title_ssat ;
         }else
         {
             back_type = BACK_UNFOCUSED ;
-            frame_bevel = &(asw->frame_data->part_ubevel[0]);
-            title_bevel = asw->frame_data->title_ubevel;
-            title_cm    = asw->frame_data->title_ucm;
-			title_hue   = asw->frame_data->title_uhue ;
-			title_sat   = asw->frame_data->title_usat ;
+            frame_bevel = &(frame_data->part_ubevel[0]);
+            title_bevel = frame_data->title_ubevel;
+            title_cm    = frame_data->title_ucm;
+			if( get_flags( frame_data->set_title_attr, MYFRAME_TitleUHueSet )  ) 
+				title_hue   = frame_data->title_uhue ;
+			if( get_flags( frame_data->set_title_attr, MYFRAME_TitleUSatSet )  ) 
+				title_sat   = frame_data->title_usat ;
         }
 
         unfocus_mystyle = asw->hints->mystyle_names[back_type];
-        if( asw->frame_data->title_style_names[back_type] )
-            unfocus_mystyle = asw->frame_data->title_style_names[back_type] ;
+        if( frame_data->title_style_names[back_type] )
+            unfocus_mystyle = frame_data->title_style_names[back_type] ;
         if( unfocus_mystyle == NULL )
             unfocus_mystyle = Scr.Look.MSWindow[back_type]->name ;
         if( unfocus_mystyle == NULL )
             unfocus_mystyle = Scr.Look.MSWindow[BACK_UNFOCUSED]->name ;
 
-        frame_unfocus_mystyle = (asw->frame_data->frame_style_names[back_type]==NULL)?
-                                        unfocus_mystyle : asw->frame_data->frame_style_names[back_type];
+        frame_unfocus_mystyle = (frame_data->frame_style_names[back_type]==NULL)?
+                                        unfocus_mystyle : frame_data->frame_style_names[back_type];
 
         for( i = 0 ; i < FRAME_PARTS ; ++i )
 		{

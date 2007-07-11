@@ -576,6 +576,12 @@ create_astbar ()
     tbar->rendered_root_x = tbar->rendered_root_y = 0xFFFF;
     tbar->composition_method[0] = TEXTURE_TRANSPIXMAP_ALPHA ;
     tbar->composition_method[1] = TEXTURE_TRANSPIXMAP_ALPHA ;
+	/* since saturation is allowed to take values from 0 to 100 
+	   inclusive - we use -1 to indicate absence : */
+	tbar->sat[0] = -1 ; 
+	tbar->sat[1] = -1 ; 
+	tbar->hue[0] = -1 ; 
+	tbar->hue[1] = -1 ; 
 	return tbar;
 }
 
@@ -1679,6 +1685,8 @@ LOCAL_DEBUG_OUT("back-try2(%p)", back );
 #endif
 	if( get_flags( ASDefaultVisual->glx_support, ASGLX_UseForImageTx ) )
 		fmt = ASA_ASImage ;
+
+    LOCAL_DEBUG_OUT( "fmt = %d, hue = %d, sat = %d", fmt, tbar->hue[state], tbar->sat[state] );
 	if( tbar->hue[state] > 0 || tbar->sat[state] >= 0 )
 	{
 		ASImage *tmp_im = merge_layers (ASDefaultVisual, &layers[0], good_layers, tbar->width, tbar->height, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);		

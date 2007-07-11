@@ -4,7 +4,7 @@
 #include "asvisual.h"
 #include "blender.h"
 #include "asstorage.h"
-#define TRACK_ASIMAGES
+#undef TRACK_ASIMAGES
 #ifdef __cplusplus
 extern "C" {
 #endif

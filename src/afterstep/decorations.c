@@ -1081,8 +1081,18 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
                 	C_TITLE );
 		if( asw->tbar ) 
 		{	
-			set_astbar_huesat( asw->tbar, BAR_STATE_FOCUSED, frame->title_fhue, frame->title_fsat );
-			set_astbar_huesat( asw->tbar, BAR_STATE_UNFOCUSED, frame->title_uhue, frame->title_usat );
+			int fhue = -1, fsat = -1, uhue = -1, usat = -1 ; 
+			if( get_flags( frame->set_title_attr, MYFRAME_TitleFHueSet )  ) 
+				fhue = frame->title_fhue ;
+			if( get_flags( frame->set_title_attr, MYFRAME_TitleFSatSet )  ) 
+				fsat = frame->title_fsat ;
+			if( get_flags( frame->set_title_attr, MYFRAME_TitleUHueSet )  ) 
+				uhue = frame->title_fhue ;
+			if( get_flags( frame->set_title_attr, MYFRAME_TitleUSatSet )  ) 
+				usat = frame->title_fsat ;
+				
+			set_astbar_huesat( asw->tbar, BAR_STATE_FOCUSED, fhue, fsat );
+			set_astbar_huesat( asw->tbar, BAR_STATE_UNFOCUSED, uhue, usat );
 		}
 
 		tbar_created = (asw->tbar != NULL);
