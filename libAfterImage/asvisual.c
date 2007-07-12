@@ -603,27 +603,27 @@ setup_truecolor_visual( ASVisual *asv )
 		return False;
 
 #ifdef HAVE_GLX
-	if( glXQueryExtension (dpy, NULL, NULL))
+	if( glXQueryExtension (asv->dpy, NULL, NULL))
 	{
 		int val = False;
-		glXGetConfig(dpy, vi, GLX_USE_GL, &val);		
+		glXGetConfig(asv->dpy, vi, GLX_USE_GL, &val);		
 		if( val ) 
 		{
-			asv->glx_scratch_gc_indirect = glXCreateContext (dpy, &(asv->visual_info), NULL, False);
+			asv->glx_scratch_gc_indirect = glXCreateContext (asv->dpy, &(asv->visual_info), NULL, False);
 			if( asv->glx_scratch_gc_indirect ) 
 			{	
 				set_flags( asv->glx_support, ASGLX_Available );
-				if( glXGetConfig(dpy, vi, GLX_RGBA, &val) == 0 )
+				if( glXGetConfig(asv->dpy, vi, GLX_RGBA, &val) == 0 )
 					if( val ) set_flags( asv->glx_support, ASGLX_RGBA );
-				if( glXGetConfig(dpy, vi, GLX_DOUBLEBUFFER, &val) == 0 )
+				if( glXGetConfig(asv->dpy, vi, GLX_DOUBLEBUFFER, &val) == 0 )
 					if( val ) set_flags( asv->glx_support, ASGLX_DoubleBuffer );
-				if( glXGetConfig(dpy, vi, GLX_DOUBLEBUFFER, &val) == 0 )
+				if( glXGetConfig(asv->dpy, vi, GLX_DOUBLEBUFFER, &val) == 0 )
 					if( val ) set_flags( asv->glx_support, ASGLX_DoubleBuffer );
 				
-				if( (asv->glx_scratch_gc_direct = glXCreateContext (dpy, &(asv->visual_info), NULL, True)) != NULL ) 
-					if( !glXIsDirect( dpy, asv->glx_scratch_gc_direct ) )
+				if( (asv->glx_scratch_gc_direct = glXCreateContext (asv->dpy, &(asv->visual_info), NULL, True)) != NULL ) 
+					if( !glXIsDirect( asv->dpy, asv->glx_scratch_gc_direct ) )
 					{	
-						glXDestroyContext(dpy, asv->glx_scratch_gc_direct );
+						glXDestroyContext(asv->dpy, asv->glx_scratch_gc_direct );
 						asv->glx_scratch_gc_direct = NULL ;
 					}
 #if 0                          /* that needs some more research :  */
@@ -1019,7 +1019,7 @@ LOCAL_DEBUG_OUT( "Colormap %lX, parent %lX, %ux%u%+d%+d, bw = %d, class %d",
 		** depths (such as on a Solaris box with 8bpp root window and
 		** 24bpp child windows), ParentRelative will not work. */
 		if ( get_flags(mask, CWBackPixmap) && attributes->background_pixmap == ParentRelative &&
-			 asv->visual_info.visual != DefaultVisual( dpy, DefaultScreen(dpy) ))
+			 asv->visual_info.visual != DefaultVisual( asv->dpy, DefaultScreen(asv->dpy) ))
 		{
 			clear_flags(mask, CWBackPixmap);
 		}
@@ -1152,6 +1152,7 @@ typedef struct ASXShmImage
 	int 			 ref_count ;
 	Bool			 wait_completion_event ;
 	unsigned int 	 size ;
+  ASVisual *asv ;
 }ASXShmImage;
 
 typedef struct ASShmArea
@@ -1268,7 +1269,7 @@ destroy_xshmimage_segment(ASHashableValue value, void *data)
 	if( img_data->segment != NULL )
 	{
 		LOCAL_DEBUG_OUT( "XSHMIMAGE> FREE_SEG : img_data = %p : segent to be freed: shminfo = %p ", img_data, img_data->segment );
-		XShmDetach (dpy, img_data->segment);
+		XShmDetach (img_data->asv->dpy, img_data->segment);
 		save_shm_area( img_data->segment->shmaddr, img_data->segment->shmid, img_data->size );
 		free( img_data->segment );
 		img_data->segment = NULL ;
@@ -1380,10 +1381,11 @@ ximage2shmseg( XImage *xim )
 	return 0; 
 }	 
 
-void registerXShmImage( XImage *ximage, XShmSegmentInfo* shminfo )
+void registerXShmImage( ASVisual *asv, XImage *ximage, XShmSegmentInfo* shminfo )
 {
 	ASXShmImage *data = safecalloc( 1, sizeof(ASXShmImage));
 	LOCAL_DEBUG_OUT( "XSHMIMAGE> CREATE_XIM : img_data = %p : image created: xiom = %p, shminfo = %p, segment = %d, data = %p", data, ximage, shminfo, shminfo->shmid, ximage->data );
+  data->asv = asv ;
 	data->ximage = ximage ;
 	data->segment = shminfo ;
 	data->size = ximage->bytes_per_line * ximage->height ;
@@ -1445,7 +1447,7 @@ XImage *ASGetXImage( ASVisual *asv, Drawable d,
 		Window        root;
 		unsigned int  ujunk;
 		int           junk;
-		if(XGetGeometry (dpy, d, &root, &junk, &junk, &ujunk, &ujunk, &ujunk, &depth) == 0)
+		if(XGetGeometry (asv->dpy, d, &root, &junk, &junk, &ujunk, &ujunk, &ujunk, &depth) == 0)
 			return NULL ;
 
 		xim = create_visual_ximage(asv,width,height,depth);
@@ -1557,7 +1559,7 @@ create_visual_ximage( ASVisual *asv, unsigned int width, unsigned int height, un
 			{
 				shminfo->readOnly = False;
 				XShmAttach (asv->dpy, shminfo);
-				registerXShmImage( ximage, shminfo );
+				registerXShmImage( asv, ximage, shminfo );
 			}
 		}
 	}
