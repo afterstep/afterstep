@@ -284,12 +284,17 @@ fix_desktop_entry( ASDesktopEntry *de, const char *default_category, const char 
 	if( de->Icon && icon_path ) 
 	{
 		int l = strlen(de->Icon);
-		if( l < 4 || mystrcasecmp( de->Icon+l-4, ".png") != 0 )
+		if( l < 4 || de->Icon[l-4] !='.' )
 		{
 			char *tmp = safemalloc( l+4+1 );
 			strcpy(tmp, de->Icon);
 			strcat(tmp, ".png"); 	   
 			de->fulliconname = find_file (tmp, icon_path, R_OK);
+      if( de->fulliconname == NULL ) 
+      {
+  			strcpy(tmp+l, ".svg"); 	   
+		  	de->fulliconname = find_file (tmp, icon_path, R_OK);
+      }
 			free( tmp );
 		}	 
 		if( de->fulliconname == NULL ) 
