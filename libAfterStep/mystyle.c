@@ -1005,11 +1005,16 @@ mystyle_find_or_default (const char *name)
 void
 mystyle_merge_font( MyStyle *style, MyFont *font, Bool override)
 {
-    if ((override == True) && (style->user_flags & F_FONT))
+    if ( override && get_flags(style->user_flags, F_FONT))
+	{
         unload_font (&style->font);
-    if ((override == True) || !(style->set_flags & F_FONT))
+        clear_flags(style->user_flags, F_FONT);
+        clear_flags(style->set_flags, F_FONT);
+	}
+    if ( override || !get_flags(style->set_flags, F_FONT) )
     {
 		set_string( &(style->font.name), mystrdup(font->name));
+		style->font.as_font = dup_asfont( font->as_font );
         set_flags(style->user_flags, F_FONT);
         clear_flags(style->inherit_flags, F_FONT);
     }
@@ -1357,9 +1362,10 @@ mystyle_inherit_font (MyStyle * style, MyFont * font)
 	 *       unloaded once */
 	if (style != NULL && !(style->set_flags & F_FONT))
 	{
-		style->font = *font;
-		style->inherit_flags |= F_FONT;
-		style->user_flags &= ~F_FONT;		   /* to prevent confusion */
+		set_string( &(style->font.name), font->name );
+		style->font.as_font = dup_asfont(font->as_font);
+		clear_flags(style->inherit_flags, F_FONT);
+		set_flags(style->user_flags, F_FONT);		   /* to prevent confusion */
 		style->set_flags = style->user_flags | style->inherit_flags;
 	}
 }

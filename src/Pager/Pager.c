@@ -542,6 +542,7 @@ CheckConfigSanity()
                 if( Scr.Look.MSWindow[i] )
                     mystyle_merge_font( Scr.Look.MSWindow[i], &small_font, True );
         }
+		unload_font (&small_font);
     }
 
     for( i = 0 ; i < DESK_STYLES ; ++i )
