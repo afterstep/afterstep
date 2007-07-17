@@ -686,7 +686,7 @@ make_scales( int from_size, int to_size, int tail )
 		case 1 : 	scales[0] = bigger ; break;
 		case 2 : 	scales[1] = bigger>>1 ; scales[0] = bigger - scales[1] ; break;
 		default : 
-			if( smaller <= bigger ) 
+			if( smaller == bigger ) 
 				for ( i = 0 ; i < smaller+tail ; i++ )
 					scales[i] = 1 ; 
 			else
