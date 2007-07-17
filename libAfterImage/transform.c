@@ -16,8 +16,8 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#undef LOCAL_DEBUG
-#undef DO_CLOCKING
+#define LOCAL_DEBUG
+#define DO_CLOCKING
 #undef DEBUG_HSV_ADJUSTMENT
 #define USE_64BIT_FPU
 #undef NEED_RBITSHIFT_FUNCS
@@ -672,8 +672,6 @@ make_scales( int from_size, int to_size, int tail )
         smaller-=tail;
         bigger-=tail ;
     }
-    if( smaller <= 0 )
-		smaller = 1;
     if( bigger <= 0 )
 		bigger = 1;
 	scales = safecalloc( smaller+tail, sizeof(int));
@@ -682,16 +680,27 @@ make_scales( int from_size, int to_size, int tail )
     /* now using Bresengham algoritm to fiill the scales :
 	 * since scaling is merely transformation
 	 * from 0:bigger space (x) to 0:smaller space(y)*/
-	for ( i = 0 ; i < bigger ; i++ )
+	switch( smaller ) 
 	{
-		++scales[k];
-		eps += smaller;
-        LOCAL_DEBUG_OUT( "scales[%d] = %d, i = %d, k = %d, eps %d", k, scales[k], i, k, eps );
-        if( eps+eps >= bigger )
-		{
-			++k ;
-			eps -= bigger ;
-		}
+		case 0 :
+		case 1 : 	scales[0] = bigger ; break;
+		case 2 : 	scales[1] = bigger>>1 ; scales[0] = bigger - scales[1] ; break;
+		default : 
+			if( smaller <= bigger ) 
+				for ( i = 0 ; i < smaller+tail ; i++ )
+					scales[i] = 1 ; 
+			else
+				for ( i = 0 ; i < bigger ; i++ )
+				{
+					++scales[k];
+					eps += smaller;
+        			LOCAL_DEBUG_OUT( "scales[%d] = %d, i = %d, k = %d, eps %d", k, scales[k], i, k, eps );
+        			if( eps+eps >= bigger )
+					{
+						++k ;
+						eps -= bigger ;
+					}
+				}
 	}
 	return scales;
 }
@@ -2312,6 +2321,9 @@ slice_scanline( ASScanline *dst, ASScanline *src, int start_x, int end_x, ASScan
 		CARD32 *mr = middle->red-x1 ;
 		CARD32 *mg = middle->green-x1 ;
 		CARD32 *mb = middle->blue-x1 ;
+/*		LOCAL_DEBUG_OUT( "middle->width = %d", middle->width );
+		LOCAL_DEBUG_OUT( "%d: %8.8lX %8.8lX %8.8lX %8.8lX", middle->width-1, ma[middle->width-1], mr[middle->width-1], mg[middle->width-1], mb[middle->width-1] );
+*/
 		for( ; x1 < max_x2 ; ++x1 )
 		{
 			da[x1] = ma[x1] ; 
@@ -2338,7 +2350,6 @@ slice_scanline( ASScanline *dst, ASScanline *src, int start_x, int end_x, ASScan
 	x2 = max(max_x2,start_x) ; 
 	max_x = src->width ;
 	max_x2 = dst->width ;
-	LOCAL_DEBUG_OUT( "x1 = %d, x2 = %d, max_x1 = %d, max_x2 = %d", x1, x2, max_x, max_x2 );
 	for( ; x1 < max_x && x2 < max_x2; ++x1, ++x2 )
 	{
 		da[x2] = sa[x1] ; 
@@ -2366,7 +2377,7 @@ slice_asimage2( ASVisual *asv, ASImage *src,
 
 	if( asv == NULL ) 	asv = &__transform_fake_asv ;
 
-LOCAL_DEBUG_CALLER_OUT( "sx1 = %d, sx2 = %d, sy1 = %d, sy2 = %d, to_width = %d, to_height = %d", slice_x_start, slice_x_end, slice_y_start, slice_y_end, to_width, to_height );
+LOCAL_DEBUG_CALLER_OUT( "scale = %d, sx1 = %d, sx2 = %d, sy1 = %d, sy2 = %d, to_width = %d, to_height = %d", scale, slice_x_start, slice_x_end, slice_y_start, slice_y_end, to_width, to_height );
 	if( src == NULL )
 		return NULL;
 	if( (imdec = start_image_decoding(asv, src, SCL_DO_ALL, 0, 0, src->width, 0, NULL)) == NULL )
@@ -2384,6 +2395,7 @@ LOCAL_DEBUG_CALLER_OUT( "sx1 = %d, sx2 = %d, sy1 = %d, sy2 = %d, to_width = %d, 
 	if( slice_y_start > slice_y_end ) 
 		slice_y_start = (slice_y_end > 0 ) ? slice_y_end-1 : 0 ;
 
+LOCAL_DEBUG_OUT( "sx1 = %d, sx2 = %d, sy1 = %d, sy2 = %d, to_width = %d, to_height = %d", slice_x_start, slice_x_end, slice_y_start, slice_y_end, to_width, to_height );
 	dst = create_destination_image( to_width, to_height, out_format, compression_out, src->back_color);
 	if((imout = start_image_output( asv, dst, out_format, 0, quality)) == NULL )
 	{
@@ -2401,18 +2413,13 @@ LOCAL_DEBUG_CALLER_OUT( "sx1 = %d, sx2 = %d, sy1 = %d, sy2 = %d, to_width = %d, 
 		if( scale ) 
 		{
 			ASImageDecoder *imdec_scaled ;
-			int x_middle = to_width - slice_x_start ; 
-			int y_middle = to_height - slice_y_start ;
 			ASImage *tmp ;
-
-			if( x_middle <= src->width - slice_x_end )
-				x_middle = 0 ; 
-			else
-				x_middle -= src->width - slice_x_end ;
-			if( y_middle <= src->height - slice_y_end )
-				y_middle = 0 ; 
-			else
-				y_middle -= src->height - slice_y_end ;
+			int x_middle = to_width - slice_x_start ; 
+			int x_right = src->width - (slice_x_end+1) ;
+			int y_middle = to_height - slice_y_start ;
+			int y_bottom = src->height - (slice_y_end+1) ;
+			x_middle = ( x_middle <= x_right  )? 0 : x_middle-x_right ;
+			y_middle = ( y_middle <= y_bottom )? 0 : y_middle-y_bottom ;
 			
 			if( x_middle > 0 )
 			{	
@@ -2522,7 +2529,7 @@ LOCAL_DEBUG_CALLER_OUT( "sx1 = %d, sx2 = %d, sy1 = %d, sy2 = %d, to_width = %d, 
 			/* middle portion */
 			imout->tiling_step = (int)slice_y_end - (int)slice_y_start;
 			max_y = min((int)slice_y_end, max_y2);
-			LOCAL_DEBUG_OUT( "y1 = %d, max_y = %d", y1, max_y );		   
+			LOCAL_DEBUG_OUT( "y1 = %d, max_y = %d, tiling_step = %d", y1, max_y, imout->tiling_step );
 			for( ; y1 < max_y ; ++y1 )
 			{
 				imdec->decode_image_scanline( imdec );
