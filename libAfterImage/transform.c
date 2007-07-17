@@ -667,41 +667,54 @@ make_scales( int from_size, int to_size, int tail )
 	register int i = 0, k = 0;
 	int eps;
     LOCAL_DEBUG_OUT( "from %d to %d tail %d", from_size, to_size, tail );
-	if( from_size < to_size )
-    {
-        smaller-=tail;
-        bigger-=tail ;
-    }
-    if( bigger <= 0 )
-		bigger = 1;
 	scales = safecalloc( smaller+tail, sizeof(int));
+	if( smaller <= 1 ) 
+	{
+		scales[0] = bigger ; 
+		return scales;
+	}
+#if 1
+	else if( smaller == bigger )
+	{
+		for ( i = 0 ; i < smaller ; i++ )
+			scales[i] = 1 ; 
+		return scales;	
+	}
+#endif
+	if( from_size >= to_size )
+		tail = 0 ;
+	if( tail != 0 )
+    {
+        bigger-=tail ;
+        if( (smaller-=tail) == 1 ) 
+		{
+			scales[0] = bigger ; 
+			return scales;
+		}	
+    }else if( smaller == 2 ) 
+	{
+		scales[1] = bigger/2 ; 
+		scales[0] = bigger - scales[1] ; 
+		return scales ;
+	}
+
     eps = -bigger/2;
     LOCAL_DEBUG_OUT( "smaller %d, bigger %d, eps %d", smaller, bigger, eps );
     /* now using Bresengham algoritm to fiill the scales :
 	 * since scaling is merely transformation
 	 * from 0:bigger space (x) to 0:smaller space(y)*/
-	switch( smaller ) 
+	for ( i = 0 ; i < bigger ; i++ )
 	{
-		case 0 :
-		case 1 : 	scales[0] = bigger ; break;
-		case 2 : 	scales[1] = bigger>>1 ; scales[0] = bigger - scales[1] ; break;
-		default : 
-			if( smaller == bigger ) 
-				for ( i = 0 ; i < smaller+tail ; i++ )
-					scales[i] = 1 ; 
-			else
-				for ( i = 0 ; i < bigger ; i++ )
-				{
-					++scales[k];
-					eps += smaller;
-        			LOCAL_DEBUG_OUT( "scales[%d] = %d, i = %d, k = %d, eps %d", k, scales[k], i, k, eps );
-        			if( eps+eps >= bigger )
-					{
-						++k ;
-						eps -= bigger ;
-					}
-				}
+		++scales[k];
+		eps += smaller;
+        LOCAL_DEBUG_OUT( "scales[%d] = %d, i = %d, k = %d, eps %d", k, scales[k], i, k, eps );
+        if( eps+eps >= bigger )
+		{
+			++k ;
+			eps -= bigger ;
+		}
 	}
+
 	return scales;
 }
 
@@ -767,6 +780,7 @@ scale_image_up( ASImageDecoder *imdec, ASImageOutput *imout, int h_ratio, int *s
 
 	i = 0 ;
 	max_i = imdec->out_height-1 ;
+	LOCAL_DEBUG_OUT( "i = %d, max_i = %d", i, max_i );
 	do
 	{
 		int S = scales_v[i] ;
@@ -825,18 +839,22 @@ scale_image_up_dumb( ASImageDecoder *imdec, ASImageOutput *imout, int h_ratio, i
 	ASScanline src_line;
 	int	line_len = MIN(imout->im->width, imdec->out_width);
 	int	out_width = imout->im->width;
+	int y = 0 ;
 
 	prepare_scanline( out_width, QUANT_ERR_BITS, &src_line, imout->asv->BGR_mode );
 
 	imout->tiling_step = 1 ;
-	while( imdec->next_line < (int)imdec->out_height )
+	LOCAL_DEBUG_OUT( "imdec->next_line = %d, imdec->out_height = %d", imdec->next_line, imdec->out_height );
+	while( y < (int)imdec->out_height )
 	{
 		imdec->decode_image_scanline( imdec );
 		src_line.flags = imdec->buffer.flags ;
 		CHOOSE_SCANLINE_FUNC(h_ratio,imdec->buffer,src_line,scales_h,line_len);
-		imout->tiling_range = scales_v[imdec->next_line];
+		imout->tiling_range = scales_v[y];
+		LOCAL_DEBUG_OUT( "y = %d, tiling_range = %d", y, imout->tiling_range );
 		imout->output_image_scanline( imout, &src_line, 1);
-		imout->next_line += scales_v[imdec->next_line]-1;
+		imout->next_line += scales_v[y]-1;
+		++y;
 	}
 	free_scanline(&src_line, True);
 }
@@ -899,7 +917,7 @@ scale_asimage( ASVisual *asv, ASImage *src, int to_width, int to_height,
 		++h_ratio ;
 	}
 	scales_h = make_scales( src->width, to_width, ( quality == ASIMAGE_QUALITY_POOR )?0:1 );
-	scales_v = make_scales( src->height, to_height, ( quality == ASIMAGE_QUALITY_POOR )?0:1 );
+	scales_v = make_scales( src->height, to_height, ( quality == ASIMAGE_QUALITY_POOR  || src->height <= 3)?0:1 );
 #ifdef LOCAL_DEBUG
 	{
 	  register int i ;
@@ -979,7 +997,7 @@ scale_asimage2( ASVisual *asv, ASImage *src,
 		++h_ratio ;
 	}
 	scales_h = make_scales( clip_width, to_width, ( quality == ASIMAGE_QUALITY_POOR )?0:1 );
-	scales_v = make_scales( clip_height, to_height, ( quality == ASIMAGE_QUALITY_POOR )?0:1 );
+	scales_v = make_scales( clip_height, to_height, ( quality == ASIMAGE_QUALITY_POOR  || clip_height <= 3)?0:1 );
 #ifdef LOCAL_DEBUG
 	{
 	  register int i ;
@@ -2302,7 +2320,8 @@ slice_scanline( ASScanline *dst, ASScanline *src, int start_x, int end_x, ASScan
 	int tail = (int)src->width - end_x ; 
 	int tiling_step = end_x - start_x ;
 	int x1, x2, max_x2 ;
-	
+
+	LOCAL_DEBUG_OUT( "start_x = %d, end_x = %d, tail = %d, tiling_step = %d, max_x = %d", start_x, end_x, tail, tiling_step, max_x );
 	for( x1 = 0 ; x1 < max_x ; ++x1 ) 
 	{
 		da[x1] = sa[x1] ; 
@@ -2321,9 +2340,8 @@ slice_scanline( ASScanline *dst, ASScanline *src, int start_x, int end_x, ASScan
 		CARD32 *mr = middle->red-x1 ;
 		CARD32 *mg = middle->green-x1 ;
 		CARD32 *mb = middle->blue-x1 ;
-/*		LOCAL_DEBUG_OUT( "middle->width = %d", middle->width );
-		LOCAL_DEBUG_OUT( "%d: %8.8lX %8.8lX %8.8lX %8.8lX", middle->width-1, ma[middle->width-1], mr[middle->width-1], mg[middle->width-1], mb[middle->width-1] );
-*/
+		LOCAL_DEBUG_OUT( "middle->width = %d", middle->width );
+
 		for( ; x1 < max_x2 ; ++x1 )
 		{
 			da[x1] = ma[x1] ; 
@@ -2331,6 +2349,7 @@ slice_scanline( ASScanline *dst, ASScanline *src, int start_x, int end_x, ASScan
 			dg[x1] = mg[x1] ; 
 			db[x1] = mb[x1] ;	  
 		}	 
+		LOCAL_DEBUG_OUT( "%d: %8.8lX %8.8lX %8.8lX %8.8lX", x1-1, ma[x1-1], mr[x1-1], mg[x1-1], mb[x1-1] );
 	}else
 	{	
 		for( ; x1 < max_x ; ++x1 )
@@ -2454,11 +2473,14 @@ LOCAL_DEBUG_OUT( "sx1 = %d, sx2 = %d, sy1 = %d, sy2 = %d, to_width = %d, to_heig
 								   		src->width, slice_y_end-slice_y_start,
 								   		src->width, y_middle, ASA_ASImage, 0, quality );
 				imdec_sides = start_image_decoding(asv, sides, SCL_DO_ALL, 0, 0, 0, 0, NULL) ;
+/*				print_asimage( sides, 0, __FUNCTION__, __LINE__ ); */
 				if( x_middle > 0 ) 
 				{
-					tmp = scale_asimage2( asv, src, slice_x_start, slice_y_start, 
-									   	slice_x_end-slice_x_start, slice_y_end-slice_y_start, 
+					tmp = scale_asimage2( asv, sides, slice_x_start, 0, 
+									   	slice_x_end-slice_x_start, y_middle, 
 									   	x_middle, y_middle, ASA_ASImage, 0, quality );
+/*					print_asimage( tmp, 0, __FUNCTION__, __LINE__ ); */
+
 					imdec_scaled = start_image_decoding(asv, tmp, SCL_DO_ALL, 0, 0, 0, 0, NULL) ;
 					for( y1 = 0 ; y1 < y_middle ; ++y1 ) 
 					{

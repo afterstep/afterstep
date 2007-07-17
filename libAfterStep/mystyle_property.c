@@ -183,6 +183,7 @@ mystyle_get_property (ASWMProps *wmprops)
 		style->slice_x_end = prop[i + 10];
 		style->slice_y_start = prop[i + 11];
 		style->slice_y_end = prop[i + 12];
+LOCAL_DEBUG_OUT( "style(%p:\"%s\")->slicing( x: %d to %d, y: %d to %d )", style, style->name, style->slice_x_start, style->slice_x_end, style->slice_y_start, style->slice_y_end );
 		back_pix = prop[i + 13];
 		back_mask = prop[i + 14];
 		style->tint = prop[i + 15];
