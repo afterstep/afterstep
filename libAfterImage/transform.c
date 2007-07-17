@@ -16,8 +16,8 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#define LOCAL_DEBUG
-#define DO_CLOCKING
+#undef LOCAL_DEBUG
+#undef DO_CLOCKING
 #undef DEBUG_HSV_ADJUSTMENT
 #define USE_64BIT_FPU
 #undef NEED_RBITSHIFT_FUNCS
