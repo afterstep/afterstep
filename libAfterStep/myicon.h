@@ -51,7 +51,7 @@ void icon_from_pixmaps( MyIcon *icon, Pixmap pix, Pixmap mask, Pixmap alpha );
 
 
 Bool load_icon (icon_t *icon, const char *filename, struct ASImageManager *imman );
-void free_icon_resources( icon_t icon );
+void free_icon_resources( icon_t *icon );
 void destroy_icon(icon_t **picon);
 
 void destroy_asbutton( ASButton *btn, Bool reusable );

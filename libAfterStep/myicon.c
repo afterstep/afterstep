@@ -66,7 +66,7 @@ icon_from_pixmaps( MyIcon *icon, Pixmap pix, Pixmap mask, Pixmap alpha )
 {
 	if( icon ) 
 	{
-		free_icon_resources( *icon );
+		free_icon_resources( icon );
 		icon->pix = pix ; 
 		icon->mask = mask ; 
 		icon->alpha = alpha ;
@@ -74,12 +74,8 @@ icon_from_pixmaps( MyIcon *icon, Pixmap pix, Pixmap mask, Pixmap alpha )
 		
 		if ( pix != None)
 		{
-			Window        junk_w;
-			int           junk;
-			unsigned int  ujunk, width, height;
-			
-
-			if (!XGetGeometry( dpy, pix, &junk_w, &junk, &junk, &width, &height, &ujunk, &ujunk))
+			unsigned int  width, height;
+			if (!get_drawable_size( pix, &width, &height))
 			{
 				icon->pix = None;
 				icon->width = 0;
@@ -131,18 +127,20 @@ load_icon (icon_t *icon, const char *filename, ASImageManager *imman )
 
 
 void
-free_icon_resources (icon_t icon)
+free_icon_resources (icon_t *icon)
 {
-	if (icon.pix)
-        XFreePixmap(dpy, icon.pix);
-	if (icon.mask)
-        XFreePixmap(dpy, icon.mask);
-	if (icon.alpha)
-        XFreePixmap(dpy, icon.alpha);
-    ASSync(False);
-    LOCAL_DEBUG_OUT( "icon's pixmap freed: %lX,%lX,%lX", icon.pix, icon.mask, icon.alpha );
-	if (icon.image)
-		safe_asimage_destroy (icon.image);
+	if( icon ) 
+	{
+    	LOCAL_DEBUG_OUT( "icon's pixmap to be freed: %lX,%lX,%lX", icon->pix, icon->mask, icon->alpha );
+		destroy_visual_pixmap(ASDefaultVisual, &(icon->pix));
+    	destroy_visual_pixmap(ASDefaultVisual, &(icon->mask));
+    	destroy_visual_pixmap(ASDefaultVisual, &(icon->alpha));
+		if (icon->image)
+		{
+			safe_asimage_destroy (icon->image);
+			icon->image = NULL ; 
+		}
+	}
 }
 
 void
@@ -151,16 +149,7 @@ destroy_icon(icon_t **picon)
     icon_t *pi = *picon ;
     if( pi )
     {
-        if (pi->pix)
-            XFreePixmap(dpy, pi->pix);
-        if (pi->mask)
-            XFreePixmap(dpy, pi->mask);
-        if (pi->alpha)
-            XFreePixmap(dpy, pi->alpha);
-        ASSync(False);
-        LOCAL_DEBUG_OUT( "icon's pixmap freed for icon %p: %lX,%lX,%lX", pi, pi->pix, pi->mask, pi->alpha );
-        if (pi->image)
-            safe_asimage_destroy (pi->image);
+		free_icon_resources (pi) ;
         free( pi );
         *picon = NULL ;
     }
@@ -216,7 +205,7 @@ load_button( button_t *button, char **filenames, ASImageManager *imman )
 void
 free_button_resources( button_t *button )
 {
-    free_icon_resources( button->unpressed );
-    free_icon_resources( button->pressed );
+    free_icon_resources( &(button->unpressed) );
+    free_icon_resources( &(button->pressed) );
 }
 

@@ -44,7 +44,7 @@ mystyle_free_back_icon( MyStyle *style )
             style->back_icon.alpha = None ;
         }
 
-        free_icon_resources (style->back_icon);
+        free_icon_resources (&(style->back_icon));
     }
     memset (&(style->back_icon), 0x00, sizeof (style->back_icon));
 }

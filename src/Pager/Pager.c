@@ -534,7 +534,7 @@ CheckConfigSanity()
 
     if( Config->small_font_name )
     {
-        MyFont small_font ;
+        MyFont small_font = { NULL, NULL};
         if( load_font (Config->small_font_name, &small_font) )
         {
             mystyle_merge_font( Scr.Look.MSWindow[0], &small_font, True );
