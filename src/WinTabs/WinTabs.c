@@ -153,6 +153,7 @@ char *title_override = NULL, *icon_title_override = NULL ;
 
 void CheckConfigSanity(const char *pattern_override, const char *exclude_pattern_override, 
 					   const char *title_override, const char *icon_title_override);
+void SetWinTabsLook();
 void GetBaseOptions (const char *filename);
 void GetOptions (const char *filename);
 void HandleEvents();
@@ -298,6 +299,7 @@ for( i = 1 ; i< argc ; ++i)
 	LoadColorScheme();
 	LoadConfig ("wintabs", GetOptions);
     CheckConfigSanity(pattern_override, exclude_pattern_override, title_override, icon_title_override);
+	SetWinTabsLook();
 
 	SendInfo ("Send_WindowList", 0);
 
@@ -427,13 +429,6 @@ void
 CheckConfigSanity(const char *pattern_override, const char *exclude_pattern_override, 
 				  const char *title_override, const char *icon_title_override)
 {
-    
-	int i ;
-    char *default_style = safemalloc( 1+strlen(MyName)+1);
-	
-	default_style[0] = '*' ;
-	strcpy( &(default_style[1]), MyName );
-
     if( Config == NULL )
         Config = CreateWinTabsConfig ();
 
@@ -501,6 +496,16 @@ LOCAL_DEBUG_OUT( "exclude_pattern = \"%s\"", Config->exclude_pattern );
     Config->anchor_y = get_flags( Config->geometry.flags, YValue )?Config->geometry.y:0;
     if( get_flags(Config->geometry.flags, YNegative) )
         Config->anchor_y += Scr.MyDisplayHeight ;
+}
+
+void
+SetWinTabsLook()
+{
+	int i ;
+    char *default_style = safemalloc( 1+strlen(MyName)+1);
+	
+	default_style[0] = '*' ;
+	strcpy( &(default_style[1]), MyName );
 
 	if( WinTabsState.tbar_props == NULL ) 
 	    retrieve_wintabs_astbar_props();
@@ -528,16 +533,9 @@ LOCAL_DEBUG_OUT( "exclude_pattern = \"%s\"", Config->exclude_pattern );
     }
     free( default_style );
 
-#if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
-    PrintWinTabsConfig (Config);
-    Print_balloonConfig ( Config->balloon_conf );
-#endif
-	
 	balloon_config2look( &(Scr.Look), NULL, Config->balloon_conf, "*WinTabsBalloon" );
     set_balloon_look( Scr.Look.balloon_look );
-
 }
-
 
 void
 GetBaseOptions (const char *filename)
@@ -901,7 +899,7 @@ DispatchEvent (ASEvent * event)
                 	LOCAL_DEBUG_OUT( "AS Styles updated!%s","");
 					mystyle_list_destroy_all(&(Scr.Look.styles_list));
 					LoadColorScheme();
-					CheckConfigSanity(NULL, NULL, NULL, NULL);
+					SetWinTabsLook();
 					/* now we need to update everything */
                 	while( --i >= 0 ) 
                     	set_tab_look( &(tabs[i]), False);
@@ -1401,15 +1399,21 @@ rearrange_tabs( Bool dont_resize_window )
 	{	
 		max_y = tab_height ;
 		if( !dont_resize_window )
+		{
+			LOCAL_DEBUG_OUT( "resizing main canvas to %dx%d", x, max_y ) ;
 			if( resize_canvas( WinTabsState.main_canvas, x, max_y ) != 0 ) 
 				return;
+		}
 		max_x = x = mc->width ; 
 		tab_height = mc->height ;
 	}else
 	{	
 		if( !dont_resize_window )
+		{
+			LOCAL_DEBUG_OUT( "resizing main canvas to %dx%d", WinTabsState.win_width, WinTabsState.win_height ) ;
 			if( resize_canvas( WinTabsState.main_canvas, WinTabsState.win_width, WinTabsState.win_height ) != 0 ) 
 				return;
+		}
 		max_x = WinTabsState.win_width ; 
 		max_y = WinTabsState.win_height ;
 
