@@ -794,8 +794,7 @@ select_storage_block( ASStorage *storage, int compressed_size, ASFlagType flags,
 		{	
 			if( block->total_free > compressed_size && 
 				block->total_free > AS_STORAGE_NOUSE_THRESHOLD && 
-				block->last_used+1 < AS_STORAGE_MAX_SLOTS_CNT && 
-				block->slots_count+2 < AS_STORAGE_MAX_SLOTS_CNT )
+				block->last_used+2 < AS_STORAGE_MAX_SLOTS_CNT  )
 				return i+1;
 		}else if( new_block < 0 ) 
 			new_block = i ;

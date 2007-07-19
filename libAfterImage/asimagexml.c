@@ -2212,6 +2212,13 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 			else if (strcmp(ptr->tag, "height") == 0 ) 	height_str = ptr->parm ;
 		}		
 
+		if( id ) 
+			if( (result = fetch_asimage( imman, id)) != NULL ) 
+			{
+				free( id );
+				return result ; 
+			}
+
 		if( refid ) 
 			refimg = fetch_asimage( imman, refid);
 		if (!strcmp(doc->tag, "composite")) 
