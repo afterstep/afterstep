@@ -673,9 +673,16 @@ static void
 add_storage_slots( ASStorageBlock *block )
 {
 	int i = block->slots_count ;
-	int size ; 
+	int size ;
+	int count = AS_STORAGE_SLOTS_BATCH ;  
 	LOCAL_DEBUG_OUT( "block = %p, block->slots = %p", block, block->slots );
-	block->slots_count += AS_STORAGE_SLOTS_BATCH ; 
+	if( block->slots_count + count  >= AS_STORAGE_MAX_SLOTS_CNT ) 
+	{
+		count = (int)AS_STORAGE_MAX_SLOTS_CNT - block->slots_count ; 
+		if( count < 0 ) 
+			return;
+	}
+	block->slots_count += count ; 
 	size = block->slots_count*sizeof(ASStorageSlot*)  ;
 	LOCAL_DEBUG_OUT( "block->slots_count = %d", block->slots_count );
 #ifndef DEBUG_ALLOCS
@@ -689,8 +696,8 @@ add_storage_slots( ASStorageBlock *block )
 		show_debug( __FILE__,__FUNCTION__,__LINE__,"reallocating %d slots pointers", block->slots_count );
 	block->slots = guarded_realloc( block->slots, block->slots_count*sizeof(ASStorageSlot*));
 #endif
-	UsedMemory += AS_STORAGE_SLOTS_BATCH*sizeof(ASStorageSlot*) ;
-	memset( &(block->slots[i]),	0x00, AS_STORAGE_SLOTS_BATCH*sizeof(ASStorageSlot*) );
+	UsedMemory += count*sizeof(ASStorageSlot*) ;
+	memset( &(block->slots[i]),	0x00, count*sizeof(ASStorageSlot*) );
 }
 
 
@@ -787,7 +794,8 @@ select_storage_block( ASStorage *storage, int compressed_size, ASFlagType flags,
 		{	
 			if( block->total_free > compressed_size && 
 				block->total_free > AS_STORAGE_NOUSE_THRESHOLD && 
-				block->last_used < AS_STORAGE_MAX_SLOTS_CNT )
+				block->last_used+1 < AS_STORAGE_MAX_SLOTS_CNT && 
+				block->slots_count+2 < AS_STORAGE_MAX_SLOTS_CNT )
 				return i+1;
 		}else if( new_block < 0 ) 
 			new_block = i ;
@@ -980,7 +988,8 @@ select_storage_slot( ASStorageBlock *block, int size )
 			{
 				if( slot->flags == 0 )
 				{	  
-					int size_to_match = size+ASStorageSlot_SIZE ;
+					int single_slot_size = size+ASStorageSlot_SIZE ; 
+					int size_to_match = single_slot_size+ASStorageSlot_SIZE ;
 					++empty_slots_checked ;
 					
 					do
@@ -990,7 +999,7 @@ select_storage_slot( ASStorageBlock *block, int size )
 							break;
 
 						LOCAL_DEBUG_OUT( "start = %p, slot = %p, slot->size = %ld, end = %p, size = %d, size_to_match = %d", block->start, slot, slot->size, block->end, size, size_to_match );
-						if((int)ASStorageSlot_USABLE_SIZE(slot) >= size )
+						if((int)ASStorageSlot_USABLE_SIZE(slot) >= single_slot_size )
 						{	
 							if( empty_slots_checked > 50 ) ++(block->long_searches);
 							return slot;
@@ -1065,7 +1074,7 @@ split_storage_slot( ASStorageBlock *block, ASStorageSlot *slot, int to_size )
 		LOCAL_DEBUG_OUT( "i = %d", i );
 		if( i >= max_i ) 
 		{
-			if( block->slots_count + AS_STORAGE_SLOTS_BATCH > AS_STORAGE_MAX_SLOTS_CNT )
+			if( block->slots_count >= AS_STORAGE_MAX_SLOTS_CNT )
 				return False;
 			else
 			{
@@ -1123,8 +1132,8 @@ store_data_in_block( ASStorageBlock *block, CARD8 *data, int size, int compresse
 	LOCAL_DEBUG_OUT( "block = %p", block );
 	if( !split_storage_slot( block, slot, compressed_size ) ) 
 	{
-		show_error( "storage slot split failed. Usable size = %d, desired size = %d", ASStorageSlot_USABLE_SIZE(slot), compressed_size+ASStorageSlot_SIZE );
-		return 0;
+		show_error( "failed to split storage to store data in block. Usable size = %d, desired size = %d", ASStorageSlot_USABLE_SIZE(slot), compressed_size+ASStorageSlot_SIZE );
+		return 0 ;
 	}
 	LOCAL_DEBUG_OUT( "block = %p", block );
 	block->total_free -= ASStorageSlot_FULL_SIZE(slot);
@@ -1173,8 +1182,11 @@ store_compressed_data( ASStorage *storage, CARD8* data, int size, int compressed
 			if( slot_id > 0 )	
 				id = make_asstorage_id( block_id, slot_id );
 			else
-				if( storage->blocks[block_id-1]->total_free >= compressed_size ) 
+				if( storage->blocks[block_id-1]->total_free >= compressed_size+ASStorageSlot_SIZE  ) 
+				{
+					show_error( "failed to store data in block. Total free size = %d, desired size = %d", storage->blocks[block_id-1]->total_free, compressed_size+ASStorageSlot_SIZE );
 					break;
+				}
 		}
 	}while( block_id != 0 && id == 0 );
 	return id ;		
