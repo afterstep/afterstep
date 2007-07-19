@@ -818,10 +818,13 @@ static void
 place_desk_background( ASPagerDesk *d )
 {
     int x = 0, y = 0;
-	int width = PagerState.desk_width-Config->border_width ; 
-	int height = PagerState.desk_height-Config->border_width ; 	
+	int width = PagerState.desk_width ; 
+	int height = PagerState.desk_height ; 	
     if( get_flags(Config->flags, USE_LABEL) )
 	{
+		width -= Config->border_width ; 
+		height -= Config->border_width ; 	
+
        	if( get_flags(Config->flags, VERTICAL_LABEL) )
 			width -= d->title_width ; 
 		else
