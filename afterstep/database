@@ -43,7 +43,7 @@ Style   "NEdit"         Title, Slippery, Layer 0, Handles, AllowCover
 Style   "ASMenu"        NoButton 1, NoButton 3
 
 # Several AfterStep tools :
-Style   "ASRun		Icon logos/AfterStep
+Style   "ASRun"		Icon logos/AfterStep
 Style	"GWCommand"	FocusOnMap
 
 # Wharf apps and AfterStep close apps and terms

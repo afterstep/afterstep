@@ -213,6 +213,7 @@ Window make_wharf_window();
 void GetOptions (const char *filename);
 void GetBaseOptions (const char *filename);
 void CheckConfigSanity();
+void SetWharfLook();
 
 ASWharfFolder *build_wharf_folder( WharfButton *list, ASWharfButton *parent, Bool vertical );
 Bool display_wharf_folder( ASWharfFolder *aswf, int left, int top, int right, int bottom );
@@ -279,6 +280,7 @@ main (int argc, char **argv)
     LoadConfig ("wharf", GetOptions);
 
     CheckConfigSanity();
+	SetWharfLook();
 	ReloadCategories(True);
 
     WharfState.root_folder = build_wharf_folder( Config->root_folder, NULL, (Config->columns > 0 ) );
@@ -402,9 +404,6 @@ Bool check_style_shaped(MyStyle *style)
 void
 CheckConfigSanity()
 {
-    char *buf;
-	int i ;
-
     if( Config == NULL )
         Config = CreateWharfConfig ();
 
@@ -418,7 +417,21 @@ CheckConfigSanity()
 
     if( Config->rows <= 0 && Config->columns <= 0 )
         Config->rows = 1;
+
+#if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
+    show_progress( "printing wharf config : ");
+    PrintWharfConfig(Config);
+#endif
     
+}
+
+void 
+SetWharfLook()
+{
+    char *buf;
+	int i ;
+	MyStyle *menu_folder_pixmap = NULL ;
+
 	mystyle_get_property (Scr.wmprops);
 
 	buf = safemalloc(strlen(get_application_name())+256 );
@@ -436,6 +449,18 @@ CheckConfigSanity()
 	sprintf( buf, "*%sFocusedOddTile", get_application_name() );
     Scr.Look.MSWindow[FOCUSED_ODD_TILE_STYLE] = mystyle_find( buf );
 	free( buf );
+
+	menu_folder_pixmap = mystyle_find( "menu_folder_pixmap" );
+	if( menu_folder_pixmap && menu_folder_pixmap->back_icon.image != NULL ) 
+	{
+		if( menu_folder_pixmap->back_icon.image->name == NULL ) 
+		{
+			release_asimage_by_name(Scr.image_manager, ASXMLVAR_MenuFolderPixmap );
+			store_asimage( Scr.image_manager, menu_folder_pixmap->back_icon.image, ASXMLVAR_MenuFolderPixmap ); 
+			/* and increment refcount : */
+			menu_folder_pixmap->back_icon.image = dup_asimage( menu_folder_pixmap->back_icon.image );
+		}
+	}
 
 	if( get_flags( Config->set_flags, WHARF_FORCE_SIZE ) )
     {
@@ -472,13 +497,14 @@ CheckConfigSanity()
 		}
 
 #if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
-    show_progress( "printing wharf config : ");
-    PrintWharfConfig(Config);
+    show_progress( "printing wharf look: ");
     Print_balloonConfig ( Config->balloon_conf );
 #endif
+
     balloon_config2look( &(Scr.Look), NULL, Config->balloon_conf, "*WharfBalloon" );
     set_balloon_look( Scr.Look.balloon_look );
 
+	
 }
 
 void
@@ -805,8 +831,23 @@ DispatchEvent (ASEvent * event)
 				LOCAL_DEBUG_OUT( "AS Styles updated!%s","");
 				mystyle_list_destroy_all(&(Scr.Look.styles_list));
 				LoadColorScheme();
+#ifndef NO_DEBUG_OUTPUT
+{ASImage *t = fetch_asimage( Scr.image_manager, ASXMLVAR_MenuFolderPixmap );
+LOCAL_DEBUG_OUT( "folder_pmap = %p, ref_count = %d", t, t?t->ref_count-1:0 );
+release_asimage( t );}
+#endif
+				SetWharfLook();
+#ifndef NO_DEBUG_OUTPUT
+{ASImage *t = fetch_asimage( Scr.image_manager, ASXMLVAR_MenuFolderPixmap );
+LOCAL_DEBUG_OUT( "folder_pmap = %p, ref_count = %d", t, t?t->ref_count-1:0 );
+release_asimage( t );}
+#endif
 				reload_asimage_manager( Scr.image_manager );
-				CheckConfigSanity();
+#ifndef NO_DEBUG_OUTPUT
+{ASImage *t = fetch_asimage( Scr.image_manager, ASXMLVAR_MenuFolderPixmap );
+LOCAL_DEBUG_OUT( "folder_pmap = %p, ref_count = %d", t, t?t->ref_count-1:0 );
+release_asimage( t );}
+#endif
 				/* now we need to update everything */
 				update_wharf_folder_styles( WharfState.root_folder, True );
 			}

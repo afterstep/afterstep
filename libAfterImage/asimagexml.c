@@ -933,7 +933,7 @@ handle_asxml_tag_recall( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* pa
 				show_progress("Recalling image id [%s] from imman %p.", ptr->parm, state->imman);
 			result = fetch_asimage(state->imman, ptr->parm );
 			if (!result)
-				show_warning("Image recall failed for id [%s].", parm->parm);
+				show_warning("Image recall failed for id [%s].", ptr->parm);
 		}	
 		ptr = ptr->next ;
 	}

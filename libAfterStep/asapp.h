@@ -143,6 +143,7 @@ void  handler_set_gravity( char *argv, void *trg, long param );
 #define ASXMLVAR_MenuShowUnavailable 	"menu.show_unavailable"
 #define ASXMLVAR_MenuTxtItemsInd		"menu.texture_items_individualy"
 #define ASXMLVAR_MenuRecentSubmenuItems "menu.recent_submenu_items"
+#define ASXMLVAR_MenuFolderPixmap		"menu.folder_pixmap"
 
 
 typedef struct ASProgArgs
