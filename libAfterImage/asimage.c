@@ -244,17 +244,20 @@ asimage_replace (ASImage *im, ASImage *from)
 		{
 			int ref_count = im->ref_count ;
 			ASImageManager *imageman = im->imageman ;
-			char *name = im->name ; 
+			char *name = im->name ;
+			ASFlagType  saved_flags = im->flags & (ASIM_NAME_IS_FILENAME|ASIM_NO_COMPRESSION) ;
 
 			im->name = NULL ; 
 			asimage_init (im, True);
 
 			memcpy( im, from, sizeof(ASImage) );
+			/* Assume : from->name == NULL as from->imageman == NULL (see above ) */
 			memset( from, 0x00, sizeof(ASImage) );		
 
 			im->ref_count = ref_count ; 
 			im->imageman = imageman ;
 			im->name = name ;
+			set_flags( im->flags, saved_flags );
 
 			return True ;
 		}

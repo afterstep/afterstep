@@ -831,23 +831,8 @@ DispatchEvent (ASEvent * event)
 				LOCAL_DEBUG_OUT( "AS Styles updated!%s","");
 				mystyle_list_destroy_all(&(Scr.Look.styles_list));
 				LoadColorScheme();
-#ifndef NO_DEBUG_OUTPUT
-{ASImage *t = fetch_asimage( Scr.image_manager, ASXMLVAR_MenuFolderPixmap );
-LOCAL_DEBUG_OUT( "folder_pmap = %p, ref_count = %d", t, t?t->ref_count-1:0 );
-release_asimage( t );}
-#endif
 				SetWharfLook();
-#ifndef NO_DEBUG_OUTPUT
-{ASImage *t = fetch_asimage( Scr.image_manager, ASXMLVAR_MenuFolderPixmap );
-LOCAL_DEBUG_OUT( "folder_pmap = %p, ref_count = %d", t, t?t->ref_count-1:0 );
-release_asimage( t );}
-#endif
 				reload_asimage_manager( Scr.image_manager );
-#ifndef NO_DEBUG_OUTPUT
-{ASImage *t = fetch_asimage( Scr.image_manager, ASXMLVAR_MenuFolderPixmap );
-LOCAL_DEBUG_OUT( "folder_pmap = %p, ref_count = %d", t, t?t->ref_count-1:0 );
-release_asimage( t );}
-#endif
 				/* now we need to update everything */
 				update_wharf_folder_styles( WharfState.root_folder, True );
 			}
