@@ -918,7 +918,7 @@ scale_asimage( ASVisual *asv, ASImage *src, int to_width, int to_height,
 	}
 	scales_h = make_scales( src->width, to_width, ( quality == ASIMAGE_QUALITY_POOR )?0:1 );
 	scales_v = make_scales( src->height, to_height, ( quality == ASIMAGE_QUALITY_POOR  || src->height <= 3)?0:1 );
-#ifdef LOCAL_DEBUG
+#if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
 	{
 	  register int i ;
 	  for( i = 0 ; i < MIN(src->width, to_width) ; i++ )
@@ -998,7 +998,7 @@ scale_asimage2( ASVisual *asv, ASImage *src,
 	}
 	scales_h = make_scales( clip_width, to_width, ( quality == ASIMAGE_QUALITY_POOR )?0:1 );
 	scales_v = make_scales( clip_height, to_height, ( quality == ASIMAGE_QUALITY_POOR  || clip_height <= 3)?0:1 );
-#ifdef LOCAL_DEBUG
+#if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
 	{
 	  register int i ;
 	  for( i = 0 ; i < MIN(clip_width, to_width) ; i++ )
@@ -1295,11 +1295,14 @@ LOCAL_DEBUG_CALLER_OUT( "width = %d, height = %d, filetr = 0x%lX, dither_count =
 				{
 					/* we want to do error diffusion here since in other places it only works
 						* in horisontal direction : */
-					CARD32 c = dither_lines[line].channels[color][y] + ((dither_lines[line].channels[color][y+1]&0xFF)>>1);
-					if( (c&0xFFFF0000) != 0 )
-						chan_data[line] = ( c&0x7F000000 )?0:0x0000FF00;
-					else
-						chan_data[line] = c ;
+					CARD32 c = dither_lines[line].channels[color][y] ; 
+					if( y+1 < height )
+					{
+						c += ((dither_lines[line].channels[color][y+1]&0xFF)>>1);
+						if( (c&0xFFFF0000) != 0 )
+							c = ( c&0x7F000000 )?0:0x0000FF00;
+					}
+					chan_data[line] = c ;
 
 					if( chan_data[line] != chan_data[0] )
 						dithered = True;

@@ -363,11 +363,11 @@ LOCAL_DEBUG_OUT( "item.bar(%p)->look(%p)", item->bar, look );
 
     if( get_flags( item->flags, AS_MenuItemDisabled ) )
     {
-        set_astbar_style_ptr( item->bar, BAR_STATE_UNFOCUSED, look->MSMenu[MENU_BACK_STIPPLE]);
+        set_astbar_style_ptr( item->bar, -1, look->MSMenu[MENU_BACK_STIPPLE]);
         set_astbar_style_ptr( item->bar, BAR_STATE_FOCUSED, look->MSMenu[MENU_BACK_STIPPLE] );
     }else
     {
-        set_astbar_style_ptr( item->bar, BAR_STATE_UNFOCUSED,
+        set_astbar_style_ptr( item->bar, -1,
                               look->MSMenu[get_flags( item->flags, AS_MenuItemSubitem )?MENU_BACK_SUBITEM:
                                                                                         MENU_BACK_ITEM] );
         set_astbar_style_ptr( item->bar, BAR_STATE_FOCUSED, look->MSMenu[MENU_BACK_HILITE] );
@@ -657,7 +657,7 @@ set_menu_scroll_bar_look( ASTBarData *bar, MyLook *look, Bool up )
     else
         add_astbar_label( bar, 7, 0, 0, ALIGN_CENTER, 5, 5, "...", AS_Text_ASCII );
 
-	set_astbar_style_ptr( bar, BAR_STATE_UNFOCUSED, look->MSMenu[MENU_BACK_ITEM] );
+	set_astbar_style_ptr( bar, -1, look->MSMenu[MENU_BACK_ITEM] );
     set_astbar_style_ptr( bar, BAR_STATE_FOCUSED,   look->MSMenu[MENU_BACK_HILITE] );
 
 	if( look->DrawMenuBorders == DRAW_MENU_BORDERS_ITEM )

@@ -306,7 +306,7 @@ LOCAL_DEBUG_CALLER_OUT( "file \"%s\", pathlist = \"%s\"", file, pathlist );
 			max_path = i;
 	}
 
-	path = safemalloc (max_path + 1 + len + 1 + 100);
+	path = safemalloc (max_path + 1 + len + 1);
 	strcpy( path+max_path+1, file );
 	path[max_path] = '/' ;
 

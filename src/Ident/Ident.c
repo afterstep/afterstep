@@ -998,9 +998,9 @@ add_property( const char *name, const char *value, unsigned long value_encoding,
 		IdentState.props[IdentState.used_props].label_bar = create_astbar();
 		IdentState.props[IdentState.used_props].value_bar = create_astbar();
 		set_astbar_style_ptr (	IdentState.props[IdentState.used_props].label_bar, 
-								BAR_STATE_UNFOCUSED, Scr.Look.MSWindow[BACK_UNFOCUSED] );
+								-1, Scr.Look.MSWindow[BACK_UNFOCUSED] );
 		set_astbar_style_ptr (	IdentState.props[IdentState.used_props].value_bar, 
-								BAR_STATE_UNFOCUSED, Scr.Look.MSWindow[BACK_UNFOCUSED] );
+								-1, Scr.Look.MSWindow[BACK_UNFOCUSED] );
 		
 		add_astbar_label( IdentState.props[IdentState.used_props].label_bar, 
 						  0, 0, 0, ALIGN_RIGHT, 5, 2, 

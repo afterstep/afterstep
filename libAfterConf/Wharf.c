@@ -186,7 +186,6 @@ CreateWharfButton ()
 void
 DestroyWharfButton (WharfButton **pbtn)
 {
-	register int  i;
     WharfButton *btn = *pbtn ;
 
 	if (btn == NULL)
@@ -207,11 +206,7 @@ DestroyWharfButton (WharfButton **pbtn)
 			char **icon = btn->contents[k].icon ;
 			FunctionData *function = btn->contents[k].function ;
 			if (icon != NULL)
-			{
-				for (i = 0; icon[i] != NULL; i++)
-					free (icon[i]);
-				free (icon);
-			}
+				destroy_string_list( icon, 0 );
 
 			if (function)
 			{
@@ -533,13 +528,7 @@ ParseWharfItem (FreeStorageElem * storage, WharfButton **folder)
 
             if (null_icon > 0)
             {
-				int i = 0 ; 
-                while(new_icon_list[i] != NULL)
-				{
-                    free (new_icon_list[i]);
-					i++ ;
-				}
-                free (new_icon_list);
+				destroy_string_list( new_icon_list, 0);		
                 new_icon_list = NULL;
             }
         }

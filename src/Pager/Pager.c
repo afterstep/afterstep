@@ -1315,7 +1315,7 @@ redecorate_pager_desks()
             set_astbar_hilite( d->title, BAR_STATE_UNFOCUSED, ibevel);
             set_astbar_hilite( d->title, BAR_STATE_FOCUSED,   abevel);
 
-            set_astbar_style_ptr( d->title, BAR_STATE_FOCUSED, Config->MSDeskTitle[DESK_ACTIVE] );
+            set_astbar_style_ptr( d->title, -1, Config->MSDeskTitle[DESK_ACTIVE] );
             set_astbar_style_ptr( d->title, BAR_STATE_UNFOCUSED, Config->MSDeskTitle[DESK_INACTIVE] );
             
             if( Config->labels && Config->labels[i] )
@@ -1364,7 +1364,7 @@ redecorate_pager_desks()
 			just_created_background = True ;
 		}
 
-        set_astbar_style_ptr( d->background, BAR_STATE_FOCUSED, Config->MSDeskBack[i] );
+        set_astbar_style_ptr( d->background, -1, Config->MSDeskBack[i] );
         set_astbar_style_ptr( d->background, BAR_STATE_UNFOCUSED, Config->MSDeskBack[i] );
         if( Config->styles[i] == NULL )
             set_flags( d->flags, ASP_UseRootBackground );
@@ -1773,7 +1773,7 @@ set_client_look( ASWindowData *wd, Bool redraw )
     if( wd->bar )
     {
 		int state = get_flags( wd->state_flags, AS_Sticky )?BACK_STICKY:BACK_UNFOCUSED;
-       	set_astbar_style_ptr( wd->bar, BAR_STATE_UNFOCUSED, Scr.Look.MSWindow[state] );
+       	set_astbar_style_ptr( wd->bar, -1, Scr.Look.MSWindow[state] );
         set_astbar_style_ptr( wd->bar, BAR_STATE_FOCUSED, Scr.Look.MSWindow[BACK_FOCUSED] );
     }else
 		show_warning( "NULL tbar for window data found. client = %lX", wd->client );

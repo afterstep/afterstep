@@ -596,11 +596,16 @@ flush_tbar_backs(ASTBarData *tbar)
 }
 
 static inline void
-flush_tbar_state_backs(ASTBarData *tbar, unsigned int state)
+flush_tbar_state_backs(ASTBarData *tbar, int state)
 {
-    if ( tbar->back[state] )
-		destroy_asimage (&(tbar->back[state]));
-    set_flags( tbar->state, BAR_FLAGS_REND_PENDING );
+	if( state < 0 || state > BAR_STATE_NUM ) 
+		flush_tbar_backs(tbar);
+	else
+	{
+    	if ( tbar->back[state] )
+			destroy_asimage (&(tbar->back[state]));
+	    set_flags( tbar->state, BAR_FLAGS_REND_PENDING );
+	}
 }
 
 void
@@ -820,14 +825,19 @@ set_astile_styles( ASTBarData *tbar, ASTile *tile, int state )
 }
 
 Bool
-set_astbar_style_ptr (ASTBarData * tbar, unsigned int state, MyStyle *style)
+set_astbar_style_ptr (ASTBarData * tbar, int state, MyStyle *style)
 {
 	Bool          changed = False;
 LOCAL_DEBUG_OUT( "bar(%p)->state(%d)->style_name(\"%s\")", tbar, state, style?style->name:"" );
     if (tbar && state < BAR_STATE_NUM )
 	{
-        changed = (style != tbar->style[state]);
-		tbar->style[state] = style;
+	    register int i ;
+    	for (i = 0; i < BAR_STATE_NUM; ++i)
+        	if(i == state || state == -1 )
+			{
+        		changed = changed || (style != tbar->style[i]);
+				tbar->style[i] = style;
+			}
 /*LOCAL_DEBUG_OUT( "style(%p)->changed(%d)->tiles_num(%d)", style, changed, tbar->tiles_num );*/
         if (changed )
 		{

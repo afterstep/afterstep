@@ -911,12 +911,12 @@ ParseThemeFile (const char *filename, char *myname)
         switch (pCurr->term->id)
 		{
             case FEEL_Function_ID           :
-                if( mystrncasecmp( item.data.string, THEME_INSTALL_FUNC_NAME, 12 ) == 0 )
+                if( mystrncasecmp( item.data.string, THEME_INSTALL_FUNC_NAME, sizeof(THEME_INSTALL_FUNC_NAME))== 0 )
                 {
                     if( config->install )
                         really_destroy_complex_func( config->install );
                      config->install = FreeStorage2ComplexFunction( pCurr, &item, NULL );
-                }else if( mystrncasecmp( item.data.string, THEME_APPLY_FUNC_NAME, 10 ) == 0 )
+                }else if( mystrncasecmp( item.data.string, THEME_APPLY_FUNC_NAME, sizeof(THEME_APPLY_FUNC_NAME) )== 0 )
                 {
                     if( config->apply )
                         really_destroy_complex_func( config->apply );

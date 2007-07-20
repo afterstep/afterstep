@@ -652,7 +652,7 @@ get_caller_func ()
 		void *array[BACKTRACE_ARRAY_SIZE];
 		size_t size;
 		char **strings;
-
+		memset( array, 0x00, sizeof(array) );
 		size = backtrace (array, BACKTRACE_ARRAY_SIZE);
 		strings = backtrace_symbols (array, size);
 		func_name = strings[size > 1? (size>2?2:1):0]; /* we need two levels up ? */
@@ -711,7 +711,7 @@ print_simple_backtrace ()
 		void *array[BACKTRACE_ARRAY_SIZE];
 		size_t size;
 		char **strings;
-
+		memset( array, 0x00, sizeof(array));
 		size = backtrace (array, BACKTRACE_ARRAY_SIZE);
 		strings = backtrace_symbols (array, size);
 		if( strings != NULL ) 

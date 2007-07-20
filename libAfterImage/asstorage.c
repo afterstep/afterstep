@@ -712,11 +712,11 @@ create_asstorage_block( int useable_size )
 	if( allocate_size%AS_STORAGE_PAGE_SIZE > 0 ) 
 		allocate_size = ((allocate_size/AS_STORAGE_PAGE_SIZE)+1)*AS_STORAGE_PAGE_SIZE ;
 #ifndef DEBUG_ALLOCS
-	ptr = malloc(allocate_size);
+	ptr = calloc(1,allocate_size);
 #else
 	{
 		char msg[256];
-		ptr = guarded_malloc(allocate_size);
+		ptr = guarded_calloc(1,allocate_size);
 		sprintf( msg, "allocated %d bytes, block = %p, total used = %d", allocate_size, ptr, UsedMemory + allocate_size );
 		PRINT_MEM_STATS(msg);
 	}
@@ -725,7 +725,6 @@ create_asstorage_block( int useable_size )
 	if( ptr == NULL ) 
 		return NULL;
 	block = ptr ;
-	memset( block, 0x00, sizeof(ASStorageBlock));
 	block->size = allocate_size - sizeof(ASStorageBlock) ;
 	block->total_free = block->size - ASStorageSlot_SIZE ;
 

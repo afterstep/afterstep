@@ -1113,7 +1113,7 @@ rearrange_winlist_window( Bool dont_resize_main_canvas )
                 sprintf( banner, "AfterStep v. %s", VERSION );
                 add_astbar_label( WinListState.idle_bar, 0, 0, flip, ALIGN_CENTER, 0, 0, banner, AS_Text_ASCII );
                 free( banner );
-                set_astbar_style_ptr( WinListState.idle_bar, BAR_STATE_UNFOCUSED, Scr.Look.MSWindow[BACK_UNFOCUSED] );
+                set_astbar_style_ptr( WinListState.idle_bar, -1, Scr.Look.MSWindow[BACK_UNFOCUSED] );
                 set_astbar_style_ptr( WinListState.idle_bar, BAR_STATE_FOCUSED, Scr.Look.MSWindow[BACK_FOCUSED] );
             }
             set_astbar_size( WinListState.idle_bar, allowed_min_width, allowed_min_height );
@@ -1565,7 +1565,7 @@ configure_tbar_props( ASTBarData *tbar, ASWindowData *wd, Bool focus_only )
     	delete_astbar_tile( tbar, -1 );
 		LOCAL_DEBUG_OUT( "setting bar border to %+d, %+d", tbar->h_border, tbar->v_border );
 
-    	set_astbar_style_ptr( tbar, BAR_STATE_FOCUSED, Scr.Look.MSWindow[BACK_FOCUSED] );
+    	set_astbar_style_ptr( tbar, -1, Scr.Look.MSWindow[BACK_FOCUSED] );
 		if( WinListState.tbar_props )
 		{
 			if( !get_flags( Config->set_flags, WINLIST_Align ) )
@@ -1777,7 +1777,7 @@ update_winlist_styles()
     }
 	if( WinListState.idle_bar )
 	{
-	    set_astbar_style_ptr( WinListState.idle_bar, BAR_STATE_UNFOCUSED, Scr.Look.MSWindow[BACK_UNFOCUSED] );
+	    set_astbar_style_ptr( WinListState.idle_bar, -1, Scr.Look.MSWindow[BACK_UNFOCUSED] );
         set_astbar_style_ptr( WinListState.idle_bar, BAR_STATE_FOCUSED, Scr.Look.MSWindow[BACK_FOCUSED] );
 	}
 }

@@ -1177,6 +1177,8 @@ make_frame_window( Window parent )
 void
 set_tab_look( ASWinTab *aswt, Bool no_bevel )
 {
+	set_astbar_style_ptr (aswt->bar, -1, Scr.Look.MSWindow[BACK_UNFOCUSED]);
+	set_astbar_style_ptr (aswt->bar, BAR_STATE_FOCUSED,   Scr.Look.MSWindow[BACK_FOCUSED]);
 	if( no_bevel ) 
 	{
 		set_astbar_hilite( aswt->bar, BAR_STATE_UNFOCUSED, NO_HILITE|NO_HILITE_OUTLINE );
@@ -1194,8 +1196,6 @@ set_tab_look( ASWinTab *aswt, Bool no_bevel )
 	}
 	set_astbar_composition_method( aswt->bar, BAR_STATE_UNFOCUSED, Config->ucm );
 	set_astbar_composition_method( aswt->bar, BAR_STATE_FOCUSED,   Config->fcm );
-	set_astbar_style_ptr (aswt->bar, BAR_STATE_UNFOCUSED, Scr.Look.MSWindow[BACK_UNFOCUSED]);
-	set_astbar_style_ptr (aswt->bar, BAR_STATE_FOCUSED,   Scr.Look.MSWindow[BACK_FOCUSED]);
 }
 
 void
@@ -1588,6 +1588,7 @@ do_swallow_window( ASWindowData *wd )
     char *name = NULL ;
 	INT32 encoding ;
 	ASWinTab *aswt = NULL ;
+	int gravity = NorthWestGravity ;
 
 	if( wd->client == WinTabsState.main_window )
 		return;
@@ -1635,10 +1636,32 @@ do_swallow_window( ASWindowData *wd )
     /* first thing - we reparent window and its icon if there is any */
     nc = aswt->client_canvas = create_ascanvas_container( wd->client );
 	aswt->frame_canvas = create_ascanvas_container( make_frame_window(WinTabsState.main_window) );
-	aswt->swallow_location.x = nc->root_x ; 
-	aswt->swallow_location.y = nc->root_y ; 
 	aswt->swallow_location.width = nc->width ; 
 	aswt->swallow_location.height = nc->height ; 
+	if( get_flags( wd->hints.flags, PWinGravity )  )
+		gravity = wd->hints.win_gravity ;
+#if 0	
+	aswt->swallow_location.x = nc->root_x ; 
+	aswt->swallow_location.y = nc->root_y ; 
+#else
+	if( gravity == CenterGravity ) 
+	{
+		aswt->swallow_location.x = (wd->frame_rect.x + (int)wd->frame_rect.width/2) - (int)nc->width/2 ; 
+		aswt->swallow_location.y = (wd->frame_rect.y + (int)wd->frame_rect.height/2) - (int)nc->height/2 ; 
+	}else if( gravity == StaticGravity ) 
+	{
+		aswt->swallow_location.x = nc->root_x ; 
+		aswt->swallow_location.y = nc->root_y ; 
+	}else
+	{
+		aswt->swallow_location.x = wd->frame_rect.x ;
+		aswt->swallow_location.y = wd->frame_rect.y ;
+		if( gravity == NorthEastGravity || gravity == SouthEastGravity ) 
+			aswt->swallow_location.x += (int)wd->frame_rect.width - (int)nc->width ;
+		if( gravity == SouthWestGravity || gravity == SouthEastGravity ) 
+			aswt->swallow_location.y += (int)wd->frame_rect.height - (int)nc->height ;
+	}
+#endif	
 	aswt->hints = wd->hints ;
 	aswt->hints.flags = wd->flags ;
 	check_wm_protocols( aswt );

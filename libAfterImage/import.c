@@ -938,12 +938,11 @@ open_image_file( const char *path )
 static ASImageFileTypes
 check_image_type( const char *realfilename )
 {
-	int filename_len = strlen( realfilename );
-#define FILE_HEADER_SIZE	512
-	char head[FILE_HEADER_SIZE+1] ;
-	int bytes_in = 0 ;
-	FILE *fp ;
 	ASImageFileTypes type = ASIT_Unknown ;
+	int filename_len = strlen( realfilename );
+	FILE *fp ;
+#define FILE_HEADER_SIZE	512
+
 	/* lets check if we have compressed xpm file : */
 	if( filename_len > 5 && (mystrncasecmp( realfilename+filename_len-5, ".html", 5 ) == 0 || 
 							 mystrncasecmp( realfilename+filename_len-4, ".htm", 4 ) == 0 ))
@@ -954,8 +953,10 @@ check_image_type( const char *realfilename )
 		type = ASIT_ZCompressedXpm ;
 	else if( (fp = open_image_file( realfilename )) != NULL )
 	{
+		char head[FILE_HEADER_SIZE+1] ;
+		int bytes_in = 0 ;
+		memset(&head[0], 0x00, sizeof(head));
 		bytes_in = fread( &(head[0]), sizeof(char), FILE_HEADER_SIZE, fp );
-		head[FILE_HEADER_SIZE] = '\0' ;
 		DEBUG_OUT("%s: head[0]=0x%2.2X(%d),head[2]=0x%2.2X(%d)\n", realfilename+filename_len-4, head[0], head[0], head[2], head[2] );
 /*		fprintf( stderr, " IMAGE FILE HEADER READS : [%s][%c%c%c%c%c%c%c%c][%s], bytes_in = %d\n", (char*)&(head[0]),
 						head[0], head[1], head[2], head[3], head[4], head[5], head[6], head[7], strstr ((char *)&(head[0]), "XPM"),bytes_in );

@@ -814,7 +814,6 @@ DispatchEvent (ASEvent * event)
             }
             break ;
 	    case PropertyNotify:
-			LOCAL_DEBUG_OUT( "property %s(%lX), _XROOTPMAP_ID = %lX, event->w = %lX, root = %lX", XGetAtomName(dpy, event->x.xproperty.atom), event->x.xproperty.atom, _XROOTPMAP_ID, event->w, Scr.Root );
 			handle_wmprop_event (Scr.wmprops, &(event->x));
             if( event->x.xproperty.atom == _AS_BACKGROUND )
             {
@@ -1675,7 +1674,7 @@ update_wharf_button_styles( ASWharfButton *aswb, Bool odd )
 		}
 	}
 		
-	set_astbar_style_ptr( aswb->bar, BAR_STATE_FOCUSED, focused_style );
+	set_astbar_style_ptr( aswb->bar, -1, focused_style );
 	return set_astbar_style_ptr( aswb->bar, BAR_STATE_UNFOCUSED, unfocused_style );
 }
 

@@ -347,7 +347,7 @@ asim_find_file (const char *file, const char *pathlist, int type)
 			max_path = i;
 	}
 
-	path = safemalloc (max_path + 1 + len + 1 + 100);
+	path = safemalloc (max_path + 1 + len + 1);
 	strcpy( path+max_path+1, file );
 	path[max_path] = PATH_CHAR ;
 
