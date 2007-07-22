@@ -137,6 +137,7 @@ Style	"GSubEdit*"		Icon normal/MovieProjector
 Style	"subtitle editor"	Icon normal/MovieProjector
 Style	"Worker - *"		Icon logos/Worker
 Style	"rootWorker - *"	Icon logos/Worker
+Style	"urxvt"			Icon logos/Unicode
 
 #, StartsOnDesk 0
 Style	"xdos"			NoButton 2		#, StartsOnDesk 0
