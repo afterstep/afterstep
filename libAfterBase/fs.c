@@ -630,9 +630,47 @@ my_scandir_ext ( const char *dirname, int (*filter_func) (const char *),
 /* essentially duplicates whats above, 
  * but for performance sake we don't want to merge them together :*/
 
+/* sort entries based on their type; directories come first */
+int
+direntry_compar_type (const struct direntry ** d1, const struct direntry ** d2)
+{
+	
+	return S_ISDIR ((**d2).d_mode) - S_ISDIR ((**d1).d_mode);
+}
+
+/* sort entries based on their names; A comes before Z */
+int
+direntry_compar_alpha (const struct direntry ** d1, const struct direntry ** d2)
+{
+	return strcmp ((**d1).d_name, (**d2).d_name);
+}
+
+int
+direntry_compar_type_alpha (const struct direntry ** d1, const struct direntry ** d2)
+{
+	int d = (S_ISDIR ((**d2).d_mode) - S_ISDIR ((**d1).d_mode)) ;
+	if( d == 0 ) 
+		return strcmp ((**d1).d_name, (**d2).d_name);
+	return d;
+}
+
+/* sort entries based on their mtimes; old entries before new entries */
+int
+direntry_compar_mtime (const struct direntry ** d1, const struct direntry ** d2)
+{
+	return (**d1).d_mtime - (**d2).d_mtime;
+}
+
+int
+direntry_compar_size (const struct direntry ** d1, const struct direntry ** d2)
+{
+	return (**d1).d_size - (**d2).d_size;
+}
+
+
 int
 my_scandir (char *dirname, struct direntry *(*namelist[]),
-			int (*filter_func) (const char *), int (*dcomp) (struct direntry **, struct direntry **))
+			int (*filter_func) (const char *), my_sort_f dcomp)
 {
 	DIR          *d;
 	struct dirent *e;						   /* Pointer to static struct inside readdir() */

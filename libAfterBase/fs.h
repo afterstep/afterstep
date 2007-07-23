@@ -23,14 +23,20 @@ struct direntry
     char d_name[1];
   };
 
-typedef int (*my_sort_f) (struct direntry ** d1, struct direntry ** d2);
+typedef int (*my_sort_f) (const struct direntry ** d1, const struct direntry ** d2);
+
+/* sort functions to be used as dcomp parameter to my_scandir :  */
+int direntry_compar_type (const struct direntry ** d1, const struct direntry ** d2);
+int direntry_compar_alpha (const struct direntry ** d1, const struct direntry ** d2);
+int direntry_compar_type_alpha (const struct direntry ** d1, const struct direntry ** d2);
+int direntry_compar_mtime (const struct direntry ** d1, const struct direntry ** d2);
+int direntry_compar_size (const struct direntry ** d1, const struct direntry ** d2);
 
 int
 my_scandir_ext ( const char *dirname, int (*filter_func) (const char *),
 				 Bool (*handle_direntry_func)( const char *fname, const char *fullname, struct stat *stat_info, void *aux_data), 
 				 void *aux_data);
-int my_scandir (char *, struct direntry *(*[]), int (*select) (const char *),
-		my_sort_f dcomp);
+int my_scandir (char *, struct direntry *(*[]), int (*select) (const char *), my_sort_f dcomp);
 
 int ignore_dots (const char *dname);
 int no_dots_except_include (const char *d_name);
@@ -56,9 +62,6 @@ char   *make_file_name (const char *path, const char *file);
 char   *put_file_home (const char *path_with_home);
 char   *find_file (const char *file, const char *pathlist, int type);
 int 	is_executable_in_path (const char *name);
-int		my_scandir (char *dirname, struct direntry *(*namelist[]),
-					int (*select) (const char *),
-					int (*dcomp) (struct direntry **, struct direntry **));
 
 #ifdef __cplusplus
 }
