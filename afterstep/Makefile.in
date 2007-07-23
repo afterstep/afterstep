@@ -15,8 +15,9 @@ MISC_FILES_DIR_LIST= desktop/cursors desktop/fonts desktop/sounds
 CONFIG_DIR_LIST= applications colorschemes feels looks scripts themes
 
 CONFIG_FILE_LIST= CREDITS animate autoexec banner base database pager \
-		  wharf winlist standard_categories \
-		  kcsrc_template gtkrc-2.0_template gtkrc_template
+		  standard_categories \
+		  kcsrc_template gtkrc-2.0_template gtkrc_template \
+		  wharf winlist wintabs
 
 #this is to suppress unneeded messages
 nothing:
