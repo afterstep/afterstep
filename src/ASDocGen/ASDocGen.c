@@ -631,6 +631,40 @@ check_syntax_source( const char *source_dir, SyntaxDef *syntax, Bool module )
 	free( syntax_dir );
 }	 
 
+int 
+sort_terms_by_alpha( const TermDef **t1, const TermDef **t2 )
+{
+	return strcmp((**t1).keyword, (**t2).keyword);
+}
+
+void 
+write_options_keywords(const char *source_dir, const char *syntax_dir, SyntaxDef *syntax, ASXMLInterpreterState *state )
+{
+	int i, max_i = 0 ;
+	TermDef **sorted_list ; 
+	while(syntax->terms[max_i].keyword) ++max_i;
+
+	if( max_i == 0 ) return ;
+	
+	sorted_list = safecalloc( max_i, sizeof(TermDef*));
+	for (i = 0; i < max_i; i++)
+		sorted_list[i] = &(syntax->terms[i]) ; 
+	qsort(sorted_list, max_i, sizeof(TermDef*), (int (*)())sort_terms_by_alpha );
+	for (i = 0; i < max_i; i++)
+	{	
+		SyntaxDef *sub_syntax = sorted_list[i]->sub_syntax ; 
+		if( sub_syntax == pPopupFuncSyntax ) 
+			sub_syntax = pFuncSyntax ;
+			
+		if (sub_syntax)
+			gen_syntax_doc( source_dir, state->dest_dir, sub_syntax, state->doc_type );
+		if( isalnum( sorted_list[i]->keyword[0] ) )					
+			convert_xml_file( syntax_dir, sorted_list[i]->keyword, state );
+	}
+	free( sorted_list );
+
+}
+
 /*************************************************************************/
 /*************************************************************************/
 /* Document Generation code : 											 */
@@ -735,17 +769,7 @@ gen_syntax_doc( const char *source_dir, const char *dest_dir, SyntaxDef *syntax,
 	if( syntax && state.dest_fp )
 	{	
 		write_options_header( &state );
-		for (i = 0; syntax->terms[i].keyword; i++)
-		{	
-			SyntaxDef *sub_syntax = syntax->terms[i].sub_syntax ; 
-			if( sub_syntax == pPopupFuncSyntax ) 
-				sub_syntax = pFuncSyntax ;
-			
-			if (sub_syntax)
-				gen_syntax_doc( source_dir, dest_dir, sub_syntax, doc_type );
-			if( isalnum( syntax->terms[i].keyword[0] ) )					
-				convert_xml_file( syntax_dir, syntax->terms[i].keyword, &state );
-		}
+		write_options_keywords(source_dir, syntax_dir, syntax, &state );
 		write_options_footer( &state );	  
 	}
 	LOCAL_DEBUG_OUT( "done with config_options%s", "" );

@@ -393,7 +393,7 @@ gen_data_doc( const char *source_dir, const char *dest_dir,
 	xml_state.doc->tag_id = XML_CONTAINER_ID ;
 	
 	LOCAL_DEBUG_OUT( "doc = %p, doc->child = %p", xml_state.doc, xml_state.doc->child );
-	list_len = my_scandir ((char*)source_dir, &list, ignore_dots, NULL);
+	list_len = my_scandir ((char*)source_dir, &list, ignore_dots, direntry_compar_alpha);
 	for (i = 0; i < list_len; i++)
 	{	
 		if (S_ISDIR (list[i]->d_mode) && strcasecmp(list[i]->d_name, "doc") != 0 )
