@@ -1392,7 +1392,7 @@ typedef struct ASGlyphMap
 
 static void
 apply_text_3D_type( ASText3DType type,
-                    unsigned int *width, unsigned int *height )
+                    int *width, int *height )
 {
 	switch( type )
 	{
@@ -1501,7 +1501,7 @@ name( const type *text, ASFont *font, ASGlyphMap *map, ASTextAttributes *attr, i
 			} \
 		} \
 	}while( g < map->glyphs_num );  \
-	map->width = MAX( w, (unsigned int)1 ); \
+	map->width = MAX( w, 1 ); \
 	return line_count ; \
 }
 
@@ -1532,7 +1532,7 @@ static Bool
 get_text_glyph_map( const char *text, ASFont *font, ASGlyphMap *map, ASTextAttributes *attr, int length  )
 {
 	unsigned int line_count = 0;
-	unsigned int offset_3d_x = 0, offset_3d_y = 0 ;
+	int offset_3d_x = 0, offset_3d_y = 0 ;
 	int space_size  = 0 ;
 
 	apply_text_3D_type( attr->type, &offset_3d_x, &offset_3d_y );
@@ -1831,7 +1831,7 @@ draw_text_internal( const char *text, ASFont *font, ASTextAttributes *attr, int 
 	int i = 0, offset = 0, line_height, space_size, base_line;
 	ASImage *im;
 	int pen_x = 0, pen_y = 0;
-	unsigned int offset_3d_x = 0, offset_3d_y = 0  ;
+	int offset_3d_x = 0, offset_3d_y = 0  ;
 	CARD32 back_color = 0 ;
 	CARD32 alpha_7 = 0x007F, alpha_9 = 0x009F, alpha_A = 0x00AF, alpha_C = 0x00CF, alpha_F = 0x00FF, alpha_E = 0x00EF;
 	START_TIME(started);	   
@@ -1869,7 +1869,7 @@ LOCAL_DEBUG_CALLER_OUT( "text = \"%s\", font = %p, compression = %d", text, font
 	if( map.width <= 0 ) 
 		return NULL;
 
-	apply_text_3D_type( attr->type, &(offset_3d_x), &(offset_3d_y) );
+	apply_text_3D_type( attr->type, &offset_3d_x, &offset_3d_y );
 
 	offset_3d_x += font->spacing_x ;
 	offset_3d_y += font->spacing_y ;

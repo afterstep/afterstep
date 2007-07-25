@@ -92,7 +92,7 @@ asim_set_application_name (char *argv0)
 												* CYGWIN implementation of it. */
 		asim_ApplicationName =  temp ;
 		while( temp[i] && temp[i] != '/' ) ++i ;
-		temp = temp[i] ? &(temp[i]): NULL ;
+		temp = temp[i] ? &(temp[i+1]): NULL ;
 	}while( temp != NULL );
 }
 
@@ -232,7 +232,7 @@ asim_put_file_home (const char *path_with_home)
 	}
 
 	for (i = 2; path_with_home[i]; i++);
-	str = safemalloc (home_len + i);
+	str = safecalloc (1, home_len + i);
 	for (ptr = str + home_len-1; i > 0; i--)
 		ptr[i] = path_with_home[i];
 	for (i = 0; i < home_len; i++)
@@ -255,7 +255,7 @@ asim_load_binary_file(const char* realfilename, long *file_size_return)
 	{
 		long len ; 
 		/* Read in the file. */
-		data = safemalloc(st.st_size + 1);
+		data = safecalloc(1, st.st_size + 1);
 		len = fread(data, 1, st.st_size, fp);
 		if( file_size_return ) 
 			*file_size_return = len ; 
@@ -347,7 +347,7 @@ asim_find_file (const char *file, const char *pathlist, int type)
 			max_path = i;
 	}
 
-	path = safemalloc (max_path + 1 + len + 1);
+	path = safecalloc (1, max_path + 1 + len + 1);
 	strcpy( path+max_path+1, file );
 	path[max_path] = PATH_CHAR ;
 
@@ -433,7 +433,7 @@ do_replace_envvar (char *path)
 				else
 				{
 					len += home_len;
-					tmp = safemalloc (len);
+					tmp = safecalloc (1, len);
 					strncpy (tmp, data, pos);
 					strcpy (tmp + pos, home);
 					strcpy (tmp + pos + home_len, data + pos + 1);
@@ -455,7 +455,7 @@ do_replace_envvar (char *path)
 		}
 		var_len = strlen (var);
 		len += var_len;
-		tmp = safemalloc (len);
+		tmp = safecalloc (1, len);
 		strncpy (tmp, data, pos);
 		strcpy (tmp + pos, var);
 		strcpy (tmp + pos + var_len, data + pos + end_pos + 1);
@@ -482,9 +482,8 @@ asim_mystrndup (const char *str, size_t n)
 	char         *c = NULL;
 	if (str)
 	{
-		c = malloc (n + 1);
+		c = calloc (1, n + 1);
 		strncpy (c, str, n);
-		c[n] = '\0';
 	}
 	return c;
 }
@@ -592,6 +591,77 @@ const char *asim_parse_argb_color( const char *color, CARD32 *pargb )
 	return color;
 }
 
+
+static int asim_asxml_var_nget(char* name, int n);
+
+
+/* Math expression parsing algorithm. */
+double asim_parse_math(const char* str, char** endptr, double size) {
+	double total = 0;
+	char op = '+';
+	char minus = 0;
+	char logical_not = 0;
+/*	const char* startptr = str; */
+	if( str == NULL ) 
+		return 0 ;
+
+	while (isspace((int)*str)) str++;
+	if( *str == '!' ) 
+	{
+		logical_not = 1;
+		++str ;
+	}else if( *str == '-' ) 
+	{
+		minus = 1 ;
+		++str ;
+	}
+
+	while (*str) 
+	{
+		while (isspace((int)*str)) str++;
+		if (!op) 
+		{
+			if (*str == '+' || *str == '-' || *str == '*' || *str == '/') op = *str++;
+			else if (*str == '-') { minus = 1; str++; }
+			else if (*str == '!') { logical_not = 1; str++; }
+			else if (*str == ')') { str++; break; }
+			else break;
+		} else 
+		{
+			char* ptr;
+			double num;
+			
+			if (*str == '(') 
+				num = asim_parse_math(str + 1, &ptr, size);
+            else if (*str == '$') 
+			{
+            	for (ptr = (char*)str + 1 ; *ptr && !isspace(*ptr) && *ptr != '+' && *ptr != '-' && *ptr != '*' && *ptr != '!' && *ptr != '/' && *ptr != ')' ; ptr++);
+               	num = asim_asxml_var_nget((char*)str + 1, ptr - (str + 1));
+            }else 
+				num = strtod(str, &ptr);
+			
+			if (str != ptr) 
+			{
+				if (*ptr == '%') num *= size / 100.0, ptr++;
+				if (minus) num = -num;
+				if (logical_not) num = !num;
+				
+				if (op == '+') total += num;
+				else if (op == '-') total -= num;
+				else if (op == '*') total *= num;
+				else if (op == '/' && num) total /= num;
+			} else 
+				break;
+			str = ptr;
+			op = '\0';
+			minus = logical_not = 0;
+		}
+	}
+	if (endptr) *endptr = (char*)str;
+/* 	show_debug(__FILE__,"parse_math",__LINE__,"Parsed math [%s] with reference [%.2f] into number [%.2f].", startptr, size, total); */
+	return total;
+}
+
 /*******************************************************************/
 /* from ashash,c : */
 ASHashKey asim_default_hash_func (ASHashableValue value, ASHashKey hash_size)
@@ -635,11 +705,10 @@ asim_create_ashash (ASHashKey size,
 	if (size <= 0)
 		size = 63;
 
-	hash = safemalloc (sizeof (ASHashTable));
+	hash = safecalloc (1, sizeof (ASHashTable));
 	init_ashash (hash, False);
 
-	hash->buckets = safemalloc (sizeof (ASHashBucket) * size);
-	memset (hash->buckets, 0x00, sizeof (ASHashBucket) * size);
+	hash->buckets = safecalloc (size, sizeof (ASHashBucket));
 
 	hash->size = size;
 
@@ -733,7 +802,7 @@ asim_add_hash_item (ASHashTable * hash, ASHashableValue value, void *data)
     if( deallocated_used > 0 )
         item = deallocated_mem[--deallocated_used];
     else
-        item = safemalloc (sizeof (ASHashItem));
+        item = safecalloc (1, sizeof (ASHashItem));
 
 	item->next = NULL;
 	item->value = value;
@@ -1103,7 +1172,7 @@ asim_my_scandir_ext ( const char *dirname, int (*filter_func) (const char *),
 	if (d == NULL)
 		return -1;
 
-	filename = (char *)safemalloc (strlen (dirname) + PATH_MAX + 2);
+	filename = (char *)safecalloc (1, strlen (dirname) + PATH_MAX + 2);
 	if (filename == NULL)
 	{
 		closedir (d);
@@ -1121,8 +1190,10 @@ asim_my_scandir_ext ( const char *dirname, int (*filter_func) (const char *),
 	{
 		if ((filter_func == NULL) || filter_func (&(e->d_name[0])))
 		{
+			int i = 0; 
 			/* Fill in the fields using stat() */
-			strcpy (p, e->d_name);
+			do{ p[i] = e->d_name[i]; ++i ; }while(  e->d_name[i] && i < PATH_MAX ); 
+			p[i] ='\0' ;
 			if (stat (filename, &stat_info) != -1)
 			{	
 				if( handle_direntry_func( e->d_name, filename, &stat_info, aux_data) )
@@ -1137,5 +1208,652 @@ asim_my_scandir_ext ( const char *dirname, int (*filter_func) (const char *),
 	/* Return the count of the entries */
 	return n;
 }
+
+/***************************************/
+/* from xml.c                          */
+/***************************************/
+static char* cdata_str = XML_CDATA_STR;
+static char* container_str = XML_CONTAINER_STR;
+static ASHashTable *asxml_var = NULL;
+
+void
+asim_asxml_var_init(void)
+{
+	if ( asxml_var == NULL )
+	{
+    	asxml_var = create_ashash(0, string_hash_value, string_compare, string_destroy_without_data);
+    	if (!asxml_var) return;
+#ifndef X_DISPLAY_MISSING
+    	if ( dpy != NULL )
+		{
+        	asxml_var_insert("xroot.width",  XDisplayWidth (dpy, DefaultScreen(dpy)));
+        	asxml_var_insert("xroot.height", XDisplayHeight(dpy, DefaultScreen(dpy)));
+      	}
+#endif
+	}
+}
+
+void
+asim_asxml_var_insert(const char* name, int value)
+{
+	ASHashData hdata;
+
+    if (!asxml_var) asxml_var_init();
+    if (!asxml_var) return;
+
+    /* Destroy any old data associated with this name. */
+    remove_hash_item(asxml_var, AS_HASHABLE(name), NULL, True);
+
+    show_progress("Defining var [%s] == %d.", name, value);
+
+    hdata.i = value;
+    add_hash_item(asxml_var, AS_HASHABLE(mystrdup(name)), hdata.vptr);
+}
+
+int
+asim_asxml_var_get(const char* name)
+{
+	ASHashData hdata = {0};
+
+    if (!asxml_var) asxml_var_init();
+    if (!asxml_var) return 0;
+    if( get_hash_item(asxml_var, AS_HASHABLE(name), &hdata.vptr) != ASH_Success ) 
+	{	
+		show_debug(__FILE__, "asxml_var_get", __LINE__, "Use of undefined variable [%s].", name);
+		return 0;
+	}
+    return hdata.i;
+}
+
+int
+asim_asxml_var_nget(char* name, int n) {
+      int value;
+      char oldc = name[n];
+      name[n] = '\0';
+      value = asxml_var_get(name);
+      name[n] = oldc;
+      return value;
+}
+
+void
+asim_asxml_var_cleanup(void)
+{
+	if ( asxml_var != NULL )
+    	destroy_ashash( &asxml_var );
+
+}
+
+static char* lcstring(char* str) 
+{
+	char* ptr = str;
+	for ( ; *ptr ; ptr++) if (isupper((int)*ptr)) *ptr = tolower((int)*ptr);
+	return str;
+}
+
+
+static xml_elem_t* xml_elem_new(void) {
+	xml_elem_t* elem = NEW(xml_elem_t);
+	elem->next = elem->child = NULL;
+	elem->parm = elem->tag = NULL;
+	elem->tag_id = XML_UNKNOWN_ID ;
+/*	LOCAL_DEBUG_OUT("elem = %p", elem); */
+	return elem;
+}
+
+static int 
+xml_name2id( const char *name, ASHashTable *vocabulary )
+{
+	ASHashData hdata;
+	hdata.i = 0 ;
+    get_hash_item(vocabulary, AS_HASHABLE(name), &hdata.vptr); 
+	return hdata.i;		
+}	 
+
+static xml_elem_t* xml_elem_remove(xml_elem_t** list, xml_elem_t* elem) {
+	/* Splice the element out of the list, if it's in one. */
+	if (list) {
+		if (*list == elem) {
+			*list = elem->next;
+		} else {
+			xml_elem_t* ptr;
+			for (ptr = *list ; ptr->next ; ptr = ptr->next) {
+				if (ptr->next == elem) {
+					ptr->next = elem->next;
+					break;
+				}
+			}
+		}
+	}
+	elem->next = NULL;
+	return elem;
+}
+
+static void xml_insert(xml_elem_t* parent, xml_elem_t* child) {
+	child->next = NULL;
+	if (!parent->child) {
+		parent->child = child;
+		return;
+	}
+	for (parent = parent->child ; parent->next ; parent = parent->next);
+	parent->next = child;
+}
+
+xml_elem_t* asim_xml_parse_parm(const char* parm, ASHashTable *vocabulary) {
+	xml_elem_t* list = NULL;
+	const char* eparm;
+
+	if (!parm) return NULL;
+
+	for (eparm = parm ; *eparm ; ) {
+		xml_elem_t* p;
+		const char* bname;
+		const char* ename;
+		const char* bval;
+		const char* eval;
+
+		/* Spin past any leading whitespace. */
+		for (bname = eparm ; isspace((int)*bname) ; bname++);
+
+		/* Check for a parm.  First is the parm name. */
+		for (ename = bname ; xml_tagchar((int)*ename) ; ename++);
+
+		/* No name equals no parm equals broken tag. */
+		if (!*ename) { eparm = NULL; break; }
+
+		/* No "=" equals broken tag.  We do not support HTML-style parms */
+		/* with no value.                                                */
+		for (bval = ename ; isspace((int)*bval) ; bval++);
+		if (*bval != '=') { eparm = NULL; break; }
+
+		while (isspace((int)*++bval));
+
+		/* If the next character is a quote, spin until we see another one. */
+		if (*bval == '"' || *bval == '\'') {
+			char quote = *bval;
+			bval++;
+			for (eval = bval ; *eval && *eval != quote ; eval++);
+		} else {
+			for (eval = bval ; *eval && !isspace((int)*eval) ; eval++);
+		}
+
+		for (eparm = eval ; *eparm && !isspace((int)*eparm) ; eparm++);
+
+		/* Add the parm to our list. */
+		p = xml_elem_new();
+		if (!list) list = p;
+		else { p->next = list; list = p; }
+		p->tag = lcstring(mystrndup(bname, ename - bname));
+		if( vocabulary )
+			p->tag_id = xml_name2id( p->tag, vocabulary );
+		p->parm = mystrndup(bval, eval - bval);
+	}
+
+	if (!eparm) {
+		while (list) {
+			xml_elem_t* p = list->next;
+			free(list->tag);
+			free(list->parm);
+			free(list);
+			list = p;
+		}
+	}
+
+	return list;
+}
+
+
+void asim_xml_elem_delete(xml_elem_t** list, xml_elem_t* elem) {
+/*	LOCAL_DEBUG_OUT("elem = %p", elem); */
+
+	if (list) xml_elem_remove(list, elem);
+	while (elem) {
+		xml_elem_t* ptr = elem;
+		elem = elem->next;
+		if (ptr->child) xml_elem_delete(NULL, ptr->child);
+		if (ptr->tag && ptr->tag != cdata_str && ptr->tag != container_str) free(ptr->tag);
+		if (ptr->parm) free(ptr->parm);
+		free(ptr);
+	}
+}
+
+static xml_elem_t *
+create_CDATA_tag()	
+{ 
+	xml_elem_t *cdata = xml_elem_new();
+	cdata->tag = mystrdup(XML_CDATA_STR) ;
+	cdata->tag_id = XML_CDATA_ID ;
+	return cdata;
+}
+
+static xml_elem_t *
+create_CONTAINER_tag()	
+{ 
+	xml_elem_t *container = xml_elem_new();
+	container->tag = mystrdup(XML_CONTAINER_STR) ;
+	container->tag_id = XML_CONTAINER_ID ;
+	return container;
+}
+
+
+
+xml_elem_t* asim_xml_parse_doc(const char* str, ASHashTable *vocabulary) {
+	xml_elem_t* elem = create_CONTAINER_tag();
+	xml_parse(str, elem, vocabulary);
+	return elem;
+}
+
+int asim_xml_parse(const char* str, xml_elem_t* current, ASHashTable *vocabulary) {
+	const char* ptr = str;
+
+	/* Find a tag of the form <tag opts>, </tag>, or <tag opts/>. */
+	while (*ptr) {
+		const char* oab = ptr;
+
+		/* Look for an open oab bracket. */
+		for (oab = ptr ; *oab && *oab != '<' ; oab++);
+
+		/* If there are no oab brackets left, we're done. */
+		if (*oab != '<') return oab - str;
+
+		/* Does this look like a close tag? */
+		if (oab[1] == '/') 
+		{
+			const char* etag;
+			/* Find the end of the tag. */
+			for (etag = oab + 2 ; xml_tagchar((int)*etag) ; etag++);
+
+			while (isspace((int)*etag)) ++etag;
+			/* If this is an end tag, and the tag matches the tag we're parsing, */
+			/* we're done.  If not, continue on blindly. */
+			if (*etag == '>') 
+			{
+				if (!mystrncasecmp(oab + 2, current->tag, etag - (oab + 2))) 
+				{
+					if (oab - ptr) 
+					{
+						xml_elem_t* child = create_CDATA_tag();
+						child->parm = mystrndup(ptr, oab - ptr);
+						xml_insert(current, child);
+					}
+					return (etag + 1) - str;
+				}
+			}
+
+			/* This tag isn't interesting after all. */
+			ptr = oab + 1;
+		}
+
+		/* Does this look like a start tag? */
+		if (oab[1] != '/') {
+			int empty = 0;
+			const char* btag = oab + 1;
+			const char* etag;
+			const char* bparm;
+			const char* eparm;
+
+			/* Find the end of the tag. */
+			for (etag = btag ; xml_tagchar((int)*etag) ; etag++);
+
+			/* If we reached the end of the document, continue on. */
+			if (!*etag) { ptr = oab + 1; continue; }
+
+			/* Find the beginning of the parameters, if they exist. */
+			for (bparm = etag ; isspace((int)*bparm) ; bparm++);
+
+			/* From here on, we're looking for a sequence of parms, which have
+			 * the form [a-z0-9-]+=("[^"]"|'[^']'|[^ \t\n]), followed by either
+			 * a ">" or a "/>". */
+			for (eparm = bparm ; *eparm ; ) {
+				const char* tmp;
+
+				/* Spin past any leading whitespace. */
+				for ( ; isspace((int)*eparm) ; eparm++);
+
+				/* Are we at the end of the tag? */
+				if (*eparm == '>' || (*eparm == '/' && eparm[1] == '>')) break;
+
+				/* Check for a parm.  First is the parm name. */
+				for (tmp = eparm ; xml_tagchar((int)*tmp) ; tmp++);
+
+				/* No name equals no parm equals broken tag. */
+				if (!*tmp) { eparm = NULL; break; }
+
+				/* No "=" equals broken tag.  We do not support HTML-style parms
+				   with no value. */
+				for ( ; isspace((int)*tmp) ; tmp++);
+				if (*tmp != '=') { eparm = NULL; break; }
+
+				while (isspace((int)*++tmp));
+
+				/* If the next character is a quote, spin until we see another one. */
+				if (*tmp == '"' || *tmp == '\'') {
+					char quote = *tmp;
+					for (tmp++ ; *tmp && *tmp != quote ; tmp++);
+				}
+
+				/* Now look for a space or the end of the tag. */
+				for ( ; *tmp && !isspace((int)*tmp) && *tmp != '>' && !(*tmp == '/' && tmp[1] == '>') ; tmp++);
+
+				/* If we reach the end of the string, there cannot be a '>'. */
+				if (!*tmp) { eparm = NULL; break; }
+
+				/* End of the parm.  */
+				eparm = tmp;
+				
+				if (!isspace((int)*tmp)) break; 
+				for ( ; isspace((int)*tmp) ; tmp++);
+				if( *tmp == '>' || (*tmp == '/' && tmp[1] == '>') )
+					break;
+			}
+
+			/* If eparm is NULL, the parm string is invalid, and we should
+			 * abort processing. */
+			if (!eparm) { ptr = oab + 1; continue; }
+
+			/* Save CDATA, if there is any. */
+			if (oab - ptr) {
+				xml_elem_t* child = create_CDATA_tag();
+				child->parm = mystrndup(ptr, oab - ptr);
+				xml_insert(current, child);
+			}
+
+			/* We found a tag!  Advance the pointer. */
+			for (ptr = eparm ; isspace((int)*ptr) ; ptr++);
+			empty = (*ptr == '/');
+			ptr += empty + 1;
+
+			/* Add the tag to our children and parse it. */
+			{
+				xml_elem_t* child = xml_elem_new();
+				child->tag = lcstring(mystrndup(btag, etag - btag));
+				if( vocabulary )
+					child->tag_id = xml_name2id( child->tag, vocabulary );
+				if (eparm - bparm) child->parm = mystrndup(bparm, eparm - bparm);
+				xml_insert(current, child);
+				if (!empty) ptr += xml_parse(ptr, child, vocabulary);
+			}
+		}
+	}
+	return ptr - str;
+}
+
+
+char *asim_interpret_ctrl_codes( char *text )
+{
+	register char *ptr = text ;
+	int len, curr = 0 ;
+	if( ptr == NULL )  return NULL ;	
+
+	len = strlen(ptr);
+	while( ptr[curr] != '\0' ) 
+	{
+		if( ptr[curr] == '\\' && ptr[curr+1] != '\0' ) 	
+		{
+			char subst = '\0' ;
+			switch( ptr[curr+1] ) 
+			{
+				case '\\': subst = '\\' ;  break ;	
+				case 'a' : subst = '\a' ;  break ;	 
+				case 'b' : subst = '\b' ;  break ;	 
+				case 'f' : subst = '\f' ;  break ;	 
+				case 'n' : subst = '\n' ;  break ;	 
+				case 'r' : subst = '\r' ;  break ;	
+				case 't' : subst = '\t' ;  break ;	
+				case 'v' : subst = '\v' ;  break ;	 
+			}	 
+			if( subst ) 
+			{
+				register int i = curr ; 
+				ptr[i] = subst ;
+				while( ++i < len ) 
+					ptr[i] = ptr[i+1] ; 
+				--len ; 
+			}
+		}	 
+		++curr ;
+	}	 
+	return text;
+}	 
+
+void asim_reset_xml_buffer( ASXmlBuffer *xb )
+{
+	if( xb ) 
+	{
+		xb->used = 0 ; 
+		xb->state = ASXML_Start	 ;
+		xb->level = 0 ;
+		xb->verbatim = False ;
+		xb->quoted = False ;
+		xb->tag_type = ASXML_OpeningTag ;
+		xb->tags_count = 0 ;
+	}		  
+}	 
+
+
+void 
+asim_add_xml_buffer_chars( ASXmlBuffer *xb, char *tmp, int len )
+{
+	if( xb->used + len > xb->allocated ) 
+	{	
+		xb->allocated = xb->used + (((len>>11)+1)<<11) ;	  
+		xb->buffer = realloc( xb->buffer, xb->allocated );
+	}
+	memcpy( &(xb->buffer[xb->used]), tmp, len );
+	xb->used += len ;
+}
+
+int 
+asim_spool_xml_tag( ASXmlBuffer *xb, char *tmp, int len )
+{
+	register int i = 0 ; 
+	
+	if( !xb->verbatim && !xb->quoted && 
+		(xb->state != ASXML_Start || xb->level == 0 )) 
+	{	/* skip spaces if we are not in string */
+		while( i < len && isspace( (int)tmp[i] )) ++i;
+		if( i >= len ) 
+			return i;
+	}
+	if( xb->state == ASXML_Start ) 
+	{     /* we are looking for the opening '<' */
+		if( tmp[i] != '<' ) 
+		{
+			if( xb->level == 0 ) 	  
+				xb->state = ASXML_BadStart ; 
+			else
+			{
+				int start = i ; 
+				while( i < len && tmp[i] != '<' ) ++i ;	  
+				add_xml_buffer_chars( xb, &tmp[start], i - start );
+				return i;
+			}
+		}else
+		{	
+			xb->state = ASXML_TagOpen; 	
+			xb->tag_type = ASXML_OpeningTag ;
+			add_xml_buffer_chars( xb, "<", 1 );
+			if( ++i >= len ) 
+				return i;
+		}
+	}
+	
+	if( xb->state == ASXML_TagOpen ) 
+	{     /* we are looking for the beginning of tag name  or closing tag's slash */
+		if( tmp[i] == '/' ) 
+		{
+			xb->state = ASXML_TagName; 
+			xb->verbatim = True ; 		   
+			xb->tag_type = ASXML_ClosingTag ;
+			add_xml_buffer_chars( xb, "/", 1 );
+			if( ++i >= len ) 
+				return i;
+		}else if( isalnum((int)tmp[i]) )	
+		{	 
+			xb->state = ASXML_TagName; 		   
+			xb->verbatim = True ; 		   
+		}else
+			xb->state = ASXML_BadTagName ;
+	}
+
+	if( xb->state == ASXML_TagName ) 
+	{     /* we are looking for the tag name */
+		int start = i ;
+		/* need to store attribute name in form : ' attr_name' */
+		while( i < len && isalnum((int)tmp[i]) ) ++i ;
+		if( i > start ) 
+			add_xml_buffer_chars( xb, &tmp[start], i - start );
+		if( i < len ) 
+		{	
+			if( isspace( (int)tmp[i] ) || tmp[i] == '>' ) 
+			{
+				xb->state = ASXML_TagAttrOrClose;
+				xb->verbatim = False ; 
+			}else
+				xb->state = ASXML_BadTagName ;
+		}			 
+		return i;
+	}
+
+	if( xb->state == ASXML_TagAttrOrClose ) 
+	{   /* we are looking for the atteribute or closing '/>' or '>' */
+		Bool has_slash = (xb->tag_type != ASXML_OpeningTag);
+
+		if( !has_slash && tmp[i] == '/' )
+		{	
+			xb->tag_type = ASXML_SimpleTag ;
+			add_xml_buffer_chars( xb, "/", 1 );		 			  
+			++i ;
+			has_slash = True ;
+		}
+		if( i < len ) 
+		{	
+			if( has_slash && tmp[i] != '>') 
+				xb->state = ASXML_UnexpectedSlash ;	  
+			else if( tmp[i] == '>' ) 
+			{
+				++(xb->tags_count);
+				xb->state = ASXML_Start; 	
+	 			add_xml_buffer_chars( xb, ">", 1 );		 			  
+				++i ;
+				if( xb->tag_type == ASXML_OpeningTag )
+					++(xb->level);
+				else if( xb->tag_type == ASXML_ClosingTag )					
+				{
+					if( xb->level <= 0 )
+					{
+				 		xb->state = ASXML_UnmatchedClose;
+						return i;		   
+					}else
+						--(xb->level);			
+				}		 			   
+			}else if( !isalnum( (int)tmp[i] ) )	  
+				xb->state = ASXML_BadAttrName ;
+			else
+			{	
+				xb->state = ASXML_AttrName;		 
+				xb->verbatim = True ;
+				add_xml_buffer_chars( xb, " ", 1);
+			}
+		}
+		return i;
+	}
+
+	if( xb->state == ASXML_AttrName ) 
+	{	
+		int start = i ;
+		/* need to store attribute name in form : ' attr_name' */
+		while( i < len && isalnum((int)tmp[i]) ) ++i ;
+		if( i > start ) 
+			add_xml_buffer_chars( xb, &tmp[start], i - start );
+		if( i < len ) 
+		{	
+			if( isspace( (int)tmp[i] ) || tmp[i] == '=' ) 
+			{
+				xb->state = ASXML_AttrEq;
+				xb->verbatim = False ; 
+				/* should fall down to case below */
+			}else
+				xb->state = ASXML_BadAttrName ;
+		}
+	 	return i;				 
+	}	
+
+	if( xb->state == ASXML_AttrEq )                   /* looking for '=' */
+	{
+		if( tmp[i] == '=' ) 
+		{
+			xb->state = ASXML_AttrValueStart;				
+			add_xml_buffer_chars( xb, "=", 1 );		 			  
+			++i ;
+		}else	 
+			xb->state = ASXML_MissingAttrEq ;
+		return i;
+	}	
+	
+	if( xb->state == ASXML_AttrValueStart )/*looking for attribute value:*/
+	{
+		xb->state = ASXML_AttrValue ;
+		if( tmp[i] == '"' )
+		{
+			xb->quoted = True ; 
+			add_xml_buffer_chars( xb, "\"", 1 );
+			++i ;
+		}else	 
+			xb->verbatim = True ; 
+		return i;
+	}	  
+	
+	if( xb->state == ASXML_AttrValue )  /* looking for attribute value : */
+	{
+		if( !xb->quoted && isspace((int)tmp[i]) ) 
+		{
+			add_xml_buffer_chars( xb, " ", 1 );
+			++i ;
+			xb->verbatim = False ; 
+			xb->state = ASXML_TagAttrOrClose ;
+		}else if( xb->quoted && tmp[i] == '"' ) 
+		{
+			add_xml_buffer_chars( xb, "\"", 1 );
+			++i ;
+			xb->quoted = False ; 
+			xb->state = ASXML_TagAttrOrClose ;
+		}else if( tmp[i] == '/' && !xb->quoted)
+		{
+			xb->state = ASXML_AttrSlash ;				
+			add_xml_buffer_chars( xb, "/", 1 );		 			  
+			++i ;
+		}else if( tmp[i] == '>' )
+		{
+			xb->quoted = False ; 
+			xb->verbatim = False ; 
+			xb->state = ASXML_TagAttrOrClose ;				
+		}else			
+		{
+			add_xml_buffer_chars( xb, &tmp[i], 1 );
+			++i ;
+		}
+		return i;
+	}	  
+	if( xb->state == ASXML_AttrSlash )  /* looking for attribute value : */
+	{
+		if( tmp[i] == '>' )
+		{
+			xb->tag_type = ASXML_SimpleTag ;
+			add_xml_buffer_chars( xb, ">", 1 );		 			  
+			++i ;
+			++(xb->tags_count);
+			xb->state = ASXML_Start; 	
+			xb->quoted = False ; 
+			xb->verbatim = False ; 
+		}else
+		{
+			xb->state = ASXML_AttrValue ;
+		}		 
+		return i;
+	}
+
+	return (i==0)?1:i;
+}	   
+
 
 #endif

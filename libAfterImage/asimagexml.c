@@ -207,11 +207,13 @@ compose_asimage_xml(ASVisual *asv, ASImageManager *imman, ASFontManager *fontman
     asxml_var_init();
 
 	doc = xml_parse_doc(doc_str, NULL);
+#if (HAVE_AFTERBASE_FLAG==1)
 	if (verbose > 1) 
 	{
 		xml_print(doc);
 		fprintf(stderr, "\n");
 	}
+#endif
 
 	/* Build the image(s) from the xml document structure. */
 	if (doc)
@@ -2181,8 +2183,7 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 	ASImage* result = NULL;
 	ASImageXMLState state ; 
 
-	if( doc->tag_id == XML_CDATA_ID ) 
-		return NULL ;
+	if( IsCDATA(doc) )  return NULL ;
 
 	memset( &state, 0x00, sizeof(state));
 	state.flags = flags ;

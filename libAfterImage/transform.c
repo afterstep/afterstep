@@ -2425,7 +2425,7 @@ LOCAL_DEBUG_OUT( "sx1 = %d, sx2 = %d, sy1 = %d, sy2 = %d, to_width = %d, to_heig
     }else 
 	{	
 		int y1, y2 ;
-		int max_y = min( slice_y_start, dst->height);
+		int max_y = min( slice_y_start, (int)dst->height);
 		int tail = (int)src->height - slice_y_end ; 
 		int max_y2 = (int) dst->height - tail ; 		
 		ASScanline *out_buf = prepare_scanline( to_width, 0, NULL, asv->BGR_mode );
@@ -2553,7 +2553,7 @@ LOCAL_DEBUG_OUT( "sx1 = %d, sx2 = %d, sy1 = %d, sy2 = %d, to_width = %d, to_heig
 			}	 
 			/* middle portion */
 			imout->tiling_step = (int)slice_y_end - (int)slice_y_start;
-			max_y = min((int)slice_y_end, max_y2);
+			max_y = min(slice_y_end, max_y2);
 			LOCAL_DEBUG_OUT( "y1 = %d, max_y = %d, tiling_step = %d", y1, max_y, imout->tiling_step );
 			for( ; y1 < max_y ; ++y1 )
 			{

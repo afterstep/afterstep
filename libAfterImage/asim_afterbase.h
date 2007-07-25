@@ -270,6 +270,9 @@ char   *asim_copy_replace_envvar (char *path);
 const char *asim_parse_argb_color( const char *color, CARD32 *pargb );
 #define parse_argb_color(c,p) asim_parse_argb_color((c),(p))
 
+double asim_parse_math(const char* str, char** endptr, double size);
+#define parse_math(s,e,sz)    asim_parse_math((s),(e),(sz))
+
 #ifdef __hpux
 #define PORTABLE_SELECT(w,i,o,e,t)	select((w),(int *)(i),(int *)(o),(e),(t))
 #else
@@ -397,6 +400,100 @@ void asim_wait_tick ();
 #define wait_tick 		asim_wait_tick
 
 /* TODO : add xml stuff */
+/* from xml.c  */
+
+#define xml_tagchar(a) (isalnum(a) || (a) == '-' || (a) == '_')
+
+#define XML_CDATA_STR 		"CDATA"
+#define XML_CONTAINER_STR	"CONTAINER"
+#define XML_CDATA_ID		-2
+#define XML_CONTAINER_ID	-1
+#define XML_UNKNOWN_ID		 0
+
+#define IsCDATA(pe)    		((pe) && (pe)->tag_id == XML_CDATA_ID)
+
+typedef struct xml_elem_t {
+	struct xml_elem_t* next;
+	struct xml_elem_t* child;
+	char* tag;
+	int tag_id;
+	char* parm;
+} xml_elem_t;
+
+typedef enum
+{
+	ASXML_Start 			= 0,			               
+	ASXML_TagOpen 			= 1,
+	ASXML_TagName 			= 2,
+	ASXML_TagAttrOrClose 	= 3,
+	ASXML_AttrName 			= 4,
+	ASXML_AttrEq 			= 5,
+	ASXML_AttrValueStart 	= 6,
+	ASXML_AttrValue 		= 7,
+	ASXML_AttrSlash 		= 8
+} ASXML_ParserState;
+
+typedef enum
+{
+	ASXML_BadStart = -1,
+	ASXML_BadTagName = -2,
+	ASXML_UnexpectedSlash = -3,
+	ASXML_UnmatchedClose = -4,
+	ASXML_BadAttrName = -5,
+	ASXML_MissingAttrEq = -6
+} ASXML_ParserError;
+
+typedef struct 
+{
+	char *buffer ;
+	int allocated, used ;
+
+	int state ; 
+	int level ;
+	Bool verbatim;
+	Bool quoted;
+	
+	enum
+	{
+		ASXML_OpeningTag = 0,
+		ASXML_SimpleTag,
+		ASXML_ClosingTag
+	}tag_type ;
+
+	int tags_count ;
+}ASXmlBuffer;
+
+void asim_asxml_var_insert(const char* name, int value);
+int asim_asxml_var_get(const char* name);
+void asim_asxml_var_init(void);
+void asim_asxml_var_cleanup(void);
+
+xml_elem_t* asim_xml_parse_parm(const char* parm, struct ASHashTable *vocabulary);
+
+void asim_xml_elem_delete(xml_elem_t** list, xml_elem_t* elem);
+xml_elem_t* asim_xml_parse_doc(const char* str, struct ASHashTable *vocabulary);
+int asim_xml_parse(const char* str, xml_elem_t* current, struct ASHashTable *vocabulary);
+
+void asim_reset_xml_buffer( ASXmlBuffer *xb );
+void asim_add_xml_buffer_chars( ASXmlBuffer *xb, char *tmp, int len );
+int asim_spool_xml_tag( ASXmlBuffer *xb, char *tmp, int len );
+char *asim_interpret_ctrl_codes( char *text );
+
+#define asxml_var_insert(n,v)				asim_asxml_var_insert((n),(v))
+#define asxml_var_get(n)					asim_asxml_var_get((n))
+#define asxml_var_init						asim_asxml_var_init
+#define asxml_var_cleanup					asim_asxml_var_cleanup
+
+#define xml_parse_parm(p,v)					asim_xml_parse_parm((p),(v))
+
+#define xml_elem_delete(l,e)				asim_xml_elem_delete((l),(e))
+#define xml_parse_doc(s,v)					asim_xml_parse_doc((s),(v))
+#define xml_parse(s,c,v)					asim_xml_parse((s),(c),(v))
+
+#define reset_xml_buffer(xb)				asim_reset_xml_buffer((xb))
+#define add_xml_buffer_chars(xb,t,l)		asim_add_xml_buffer_chars((xb),(t),(l))
+#define spool_xml_tag(xb,t,l)				asim_spool_xml_tag((xb),(t),(l))
+#define interpret_ctrl_codes(t) 			asim_interpret_ctrl_codes((t))
 
 #endif /* ASIM_AFTERBASE_H_HEADER_INCLUDED */
 
