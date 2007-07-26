@@ -59,7 +59,6 @@
 #endif
 #include "afterimage.h"
 #include "imencdec.h"
-#include "pixmap.h" /* for GetRootDimensions() */
 
 static char* cdata_str = XML_CDATA_STR;
 
@@ -886,7 +885,7 @@ handle_asxml_tag_img( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm,
 		if( state->verbose > 1 ) 
 			show_progress("Getting root pixmap.");
 		if (rp) {
-			get_drawable_size(rp, &width, &height);
+			get_dpy_drawable_size( state->asv->dpy, rp, &width, &height);
 			result = pixmap2asimage(state->asv, rp, 0, 0, width, height, 0xFFFFFFFF, False, 100);
 			if( dst_width == 0 ) dst_width = width ; 
 			if( dst_height == 0 ) dst_height = height ; 

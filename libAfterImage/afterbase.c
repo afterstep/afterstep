@@ -1023,7 +1023,7 @@ asim_get_drawable_size (Drawable d, unsigned int *ret_w, unsigned int *ret_h)
 	*ret_w = 0;
 	*ret_h = 0;
 #ifndef X_DISPLAY_MISSING
-	if( d )
+	if( dpy && d )
 	{
 		Window        root;
 		unsigned int  ujunk;

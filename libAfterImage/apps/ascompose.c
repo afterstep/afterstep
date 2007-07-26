@@ -829,7 +829,7 @@ Window showimage(ASImage* im, Bool looping, Window main_window, ASComposeWinProp
 					{
 						if( props->last_root_im ) 
 							safe_asimage_destroy(props->last_root_im);
-						get_drawable_size(rp, &width, &height);
+						get_dpy_drawable_size(asv->dpy, rp, &width, &height);
 						transp_im = pixmap2asimage(asv, rp, 0, 0, width, height, 0xFFFFFFFF, False, 0);
 						props->last_root_pmap = rp ;
 						props->move_resize_count = 0 ;

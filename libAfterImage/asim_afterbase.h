@@ -33,6 +33,11 @@
 
 #include <stdio.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 #ifdef __GNUC__
 
 #ifndef MIN
@@ -216,8 +221,8 @@ void asim_nonGNUC_debugout_stub( const char *format, ...);
 #define safecalloc(c,s) calloc(c,s)
 #define safefree(m)   	free(m)
 #define	NEW(a)              	((a *)malloc(sizeof(a)))
-#define	NEW_ARRAY_ZEROED(a, b)  ((a *)calloc(b, sizeof(a)))
-#define	NEW_ARRAY(a, b)     	((a *)malloc(b*sizeof(a)))
+#define	NEW_ARRAY_ZEROED(a,b)   ((a *)calloc((b), sizeof(a)))
+#define	NEW_ARRAY(a,b)     		((a *)malloc((b)*sizeof(a)))
 
 /* from libAfterBase/mystring.h : */
 #include <string.h>
@@ -494,6 +499,11 @@ char *asim_interpret_ctrl_codes( char *text );
 #define add_xml_buffer_chars(xb,t,l)		asim_add_xml_buffer_chars((xb),(t),(l))
 #define spool_xml_tag(xb,t,l)				asim_spool_xml_tag((xb),(t),(l))
 #define interpret_ctrl_codes(t) 			asim_interpret_ctrl_codes((t))
+
+#ifdef __cplusplus
+}
+#endif
+
 
 #endif /* ASIM_AFTERBASE_H_HEADER_INCLUDED */
 

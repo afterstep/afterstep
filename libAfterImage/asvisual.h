@@ -719,6 +719,10 @@ Pixmap  create_visual_pixmap( ASVisual *asv, Window root,
 							  unsigned int depth );
 void destroy_visual_pixmap( ASVisual *asv, Pixmap *ppmap );
 
+int get_dpy_drawable_size (Display *drawable_dpy, Drawable d, unsigned int *ret_w, unsigned int *ret_h);
+Bool get_dpy_window_position (Display *window_dpy, Window root, Window w, int *px, int *py, int *transparency_x, int *transparency_y);
+
+
 XImage* create_visual_ximage( ASVisual *asv,
 	                          unsigned int width, unsigned int height,
 							  unsigned int depth );

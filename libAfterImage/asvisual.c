@@ -1087,6 +1087,85 @@ destroy_visual_pixmap( ASVisual *asv, Pixmap *ppmap )
 }
 
 #ifndef X_DISPLAY_MISSING
+static int
+quiet_xerror_handler (Display * dpy, XErrorEvent * error)
+{
+    return 0;
+}
+
+#endif
+
+int
+get_dpy_drawable_size (Display *drawable_dpy, Drawable d, unsigned int *ret_w, unsigned int *ret_h)
+{
+	int result = 0 ;
+#ifndef X_DISPLAY_MISSING
+	if( d != None && drawable_dpy != NULL ) 
+	{
+		Window        root;
+		unsigned int  ujunk;
+		int           junk;
+		int           (*oldXErrorHandler) (Display *, XErrorEvent *) = XSetErrorHandler (quiet_xerror_handler);
+		result = XGetGeometry (drawable_dpy, d, &root, &junk, &junk, ret_w, ret_h, &ujunk, &ujunk);
+		XSetErrorHandler (oldXErrorHandler);
+	}
+#endif
+	if ( result == 0)
+	{
+		*ret_w = 0;
+		*ret_h = 0;
+		return 0;
+	}
+	return 1;
+}
+
+Bool
+get_dpy_window_position (Display *window_dpy, Window root, Window w, int *px, int *py, int *transparency_x, int *transparency_y)
+{
+	Bool result = False ;
+	int x = 0, y = 0, transp_x = 0, transp_y = 0 ;
+#ifndef X_DISPLAY_MISSING
+	if( window_dpy != NULL && w != None ) 
+	{
+		Window wdumm;
+		int rootHeight = XDisplayHeight(window_dpy, DefaultScreen(window_dpy) );
+		int rootWidth = XDisplayWidth(window_dpy, DefaultScreen(window_dpy) );
+
+		if( root == None ) 
+			root = RootWindow(window_dpy,DefaultScreen(window_dpy));
+			
+		result = XTranslateCoordinates (window_dpy, w, root, 0, 0, &x, &y, &wdumm);
+		if( result ) 
+		{
+			/* taking in to consideration virtual desktopping */
+			result = (x < rootWidth && y < rootHeight );
+			if( result )
+			{
+				unsigned int width = 0, height = 0;
+				get_dpy_drawable_size (window_dpy, w, &width, &height);				
+				result = (x + width > 0 && y+height > 0) ; 
+			}
+
+			for( transp_x = x ; transp_x < 0 ; transp_x += rootWidth ); 			
+			for( transp_y = y ; transp_y < 0 ; transp_y += rootHeight ); 			
+			while( transp_x > rootWidth ) transp_x -= rootWidth ; 
+			while( transp_y > rootHeight ) transp_y -= rootHeight ; 
+		}
+	}
+#endif
+	if( px ) 
+		*px = x;
+	if( py ) 
+		*py = y;
+	if( transparency_x ) 
+		*transparency_x = transp_x ; 
+	if( transparency_y ) 
+		*transparency_y = transp_y ; 
+	return result;
+}
+
+
+#ifndef X_DISPLAY_MISSING
 static unsigned char *scratch_ximage_data = NULL ;
 static int scratch_use_count = 0 ;
 static size_t scratch_ximage_allocated_size = 0;  

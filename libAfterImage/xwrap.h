@@ -69,6 +69,7 @@
 #define None 0
 #endif
 
+
 typedef struct {
 	int function;		/* logical operation */
 	unsigned long plane_mask;/* plane mask */
@@ -220,8 +221,17 @@ int XParseGeometry (  char *string,int *x,int *y,
 
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 extern Display *dpy ;
 int asim_get_drawable_size (Drawable d, unsigned int *ret_w, unsigned int *ret_h);
 #define get_drawable_size(d,w,h) asim_get_drawable_size((d),(w),(h))
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
