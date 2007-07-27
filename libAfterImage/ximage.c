@@ -73,6 +73,16 @@ picture_ximage2asimage (ASVisual *asv, XImage *xim, XImage *alpha_xim, unsigned 
 #ifdef LOCAL_DEBUG
 	CARD32       *tmp ;
 #endif
+#if 1
+  struct timeval stv;
+	gettimeofday (&stv,NULL);
+#define PRINT_BACKGROUND_OP_TIME do{ struct timeval tv;gettimeofday (&tv,NULL); tv.tv_sec-= stv.tv_sec;\
+                                     fprintf (stderr,__FILE__ "%d: elapsed  %ld usec\n",__LINE__,\
+                                              tv.tv_sec*1000000+tv.tv_usec-stv.tv_usec );}while(0)
+#else                                           
+#define PRINT_BACKGROUND_OP_TIME do{}while(0)                                          
+#endif
+
 	if( xim && alpha_xim )
 		if( xim->width != alpha_xim->width ||
 		    xim->height != alpha_xim->height )
@@ -88,7 +98,7 @@ picture_ximage2asimage (ASVisual *asv, XImage *xim, XImage *alpha_xim, unsigned 
 #ifdef LOCAL_DEBUG
 	tmp = safemalloc( width * sizeof(CARD32));
 #endif
-
+PRINT_BACKGROUND_OP_TIME;
 	if( xim )
 	{
 		bpl 	 = xim->bytes_per_line;
@@ -96,6 +106,16 @@ picture_ximage2asimage (ASVisual *asv, XImage *xim, XImage *alpha_xim, unsigned 
 
 		for (i = 0; i < height; i++)
 		{
+#if 0
+/* unfortunately this method does not seem to yield any better results performancewise: */
+			if (asv->true_depth == 32 || asv->true_depth == 24)
+			{
+				if( asv->msb_first ) 
+				{
+				}else
+					asimage_add_line_bgra (im, xim_line, i);
+			}else 
+#endif			
 			if( xim->depth == (int)asv->true_depth )
 			{
 			    GET_SCANLINE(asv,xim,&xim_buf,i,xim_line);
@@ -139,6 +159,7 @@ picture_ximage2asimage (ASVisual *asv, XImage *xim, XImage *alpha_xim, unsigned 
 			xim_line += bpl;
 		}
 	}
+PRINT_BACKGROUND_OP_TIME;
 	if( alpha_xim )
 	{
 		CARD32 *dst = xim_buf.alpha ;
@@ -169,6 +190,7 @@ picture_ximage2asimage (ASVisual *asv, XImage *xim, XImage *alpha_xim, unsigned 
 		}
 	}
 	free_scanline(&xim_buf, True);
+PRINT_BACKGROUND_OP_TIME;
 
 	return im;
 }

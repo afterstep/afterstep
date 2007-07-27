@@ -856,6 +856,35 @@ asimage_add_line (ASImage * im, ColorPart color, register CARD32 * data, unsigne
 	return im->width;
 }
 
+size_t
+asimage_add_line_bgra (ASImage * im, register CARD32 * data, unsigned int y)
+{
+	if (AS_ASSERT(im) )
+		return 0;
+	if (y >= im->height)
+		return 0;
+	if( im->channels[IC_ALPHA][y] ) 
+		forget_data( NULL, im->channels[IC_ALPHA][y] ); 
+	im->channels[IC_ALPHA][y] = store_data( NULL, (CARD8*)data, im->width*4, 
+	                                        ASStorage_24BitShift|ASStorage_Masked|
+											ASStorage_RLEDiffCompress|ASStorage_32Bit, 0);
+	if( im->channels[IC_RED][y] ) 
+		forget_data( NULL, im->channels[IC_RED][y] ); 
+	im->channels[IC_RED][y] = store_data( NULL, (CARD8*)data, im->width*4, 
+	                                        ASStorage_16BitShift|ASStorage_Masked|
+											ASStorage_RLEDiffCompress|ASStorage_32Bit, 0);
+	if( im->channels[IC_GREEN][y] ) 
+		forget_data( NULL, im->channels[IC_GREEN][y] ); 
+	im->channels[IC_GREEN][y] = store_data( NULL, (CARD8*)data, im->width*4, 
+	                                        ASStorage_8BitShift|ASStorage_Masked|
+											ASStorage_RLEDiffCompress|ASStorage_32Bit, 0);
+	if( im->channels[IC_BLUE][y] ) 
+		forget_data( NULL, im->channels[IC_BLUE][y] ); 
+	im->channels[IC_BLUE][y] = store_data( NULL, (CARD8*)data, im->width*4, 
+	                                        ASStorage_Masked|
+											ASStorage_RLEDiffCompress|ASStorage_32Bit, 0);
+	return im->width;
+}
 
 unsigned int
 asimage_print_line (ASImage * im, ColorPart color, unsigned int y, unsigned long verbosity)

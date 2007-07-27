@@ -80,8 +80,22 @@ typedef struct ASStorageSlot
 #define ASStorage_Reference			(0x01<<6)  /* data is the id of some other slot */ 
 #define ASStorage_Bitmap			(0x01<<7)  /* data is 1 bpp */ 
 #define ASStorage_32Bit				(0x01<<8)  /* data is 32 bpp with only first 8 bits being significant */ 
-#define ASStorage_8BitShift			(0x01<<9)  /* data is 32 bpp shifted left by 8 bit 
-												* (must combine with _32Bit flag )*/ 
+#define ASStorage_BitShiftFlagPos   9
+#define ASStorage_BitShift			(0x03<<ASStorage_BitShiftFlagPos)  
+#define ASStorage_8BitShift			(0x01<<ASStorage_BitShiftFlagPos)  
+												/* data is 32 bpp shifted left by 8 bit 
+												 * (must combine with _32Bit flag )*/ 
+#define ASStorage_16BitShift		(0x01<<(ASStorage_BitShiftFlagPos+1)) 
+												/* data is 32 bpp shifted left by 16 bit 
+												* (must combine with _32Bit flag )
+												* If combined with 8BitShift - results in 24 bit shift */ 
+#define ASStorage_24BitShift		(ASStorage_8BitShift|ASStorage_16BitShift)
+#define ASStorage_Flags2ShiftIdx(f) (((f)>>ASStorage_BitShiftFlagPos)&0x03)
+#define ASStorage_Flags2Shift(f) 	(ASStorage_Flags2ShiftIdx(f)*8)
+#define ASStorage_Masked			(0x01<<11) /* mask 32bit value to filter out higher 24 bits
+                                                * if combined with BitShift - bitshift is done 
+												* prior to masking */ 
+
 
 #define ASStorage_32BitRLE			(ASStorage_RLEDiffCompress|ASStorage_32Bit)
 
@@ -109,6 +123,10 @@ typedef struct ASStorageSlot
 #define ASStorage_Data(s)  ((CARD8*)((s)+1))
 
 }ASStorageSlot;
+
+typedef void (*compute_diff_func_type)(short*,CARD8*,int);
+typedef int  (*copy_data32_func_type)(CARD8*,CARD32*,int);
+typedef int  (*copy_data32_tinted_func_type)(CARD8*,CARD32*,int,short);
 
 
 typedef struct ASStorageBlock

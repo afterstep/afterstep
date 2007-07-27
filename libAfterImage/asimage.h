@@ -919,6 +919,8 @@ void destroy_image_layers( register ASImageLayer *l, int count, Bool reusable );
  *********/
 size_t asimage_add_line (ASImage * im, ColorPart color, CARD32 * data, unsigned int y);
 size_t asimage_add_line_mono (ASImage * im, ColorPart color, CARD8 value, unsigned int y);
+size_t asimage_add_line_bgra (ASImage * im, register CARD32 * data, unsigned int y);
+
 ASFlagType get_asimage_chanmask( ASImage *im);
 int check_asimage_alpha (ASVisual *asv, ASImage *im );
 int asimage_decode_line (ASImage * im, ColorPart color, CARD32 * to_buf, unsigned int y, unsigned int skip, unsigned int out_width);

@@ -1870,32 +1870,28 @@ void ximage2scanline32(ASVisual *asv, XImage *xim, ASScanline *sl, int y,  regis
 {
 	register CARD32 *r = sl->xc1+sl->offset_x, *g = sl->xc2+sl->offset_x, *b = sl->xc3+sl->offset_x;
 	register CARD32 *a = sl->alpha+sl->offset_x;
-	register int i = MIN((unsigned int)(xim->width),sl->width-sl->offset_x);
-	register CARD8 *src = (CARD8*)(xim_data+(i-1)*4) ;
+	int max_i = MIN((unsigned int)(xim->width),sl->width-sl->offset_x);
+	register CARD32 *src = (CARD32*)xim_data ;
+	register int i = 0;
 	if( asv->msb_first )
+	{
 		do
 		{
-			--i ;
-			{
-				a[i] = src[0];
-				r[i] = src[1];
-				g[i] = src[2];
-				b[i] = src[3];
-				src -= 4 ;
-			}
-		}while(i);
-	else
+			r[i] = (src[i]>>8)&0x0ff;
+			g[i] = (src[i]>>16)&0x0ff;
+			b[i] = (src[i]>>24)&0x0ff;
+			a[i] = src[i]&0x0ff;
+		}while(++i < max_i);
+	}else
+	{
 		do
 		{
-			--i ;
-			{
-				a[i] = src[3];
-				r[i] = src[2];
-				g[i] = src[1];
-				b[i] = src[0];
-				src -= 4 ;
-			}
-		}while(i);
+			r[i] = (src[i]>>16)&0x0ff;
+			g[i] = (src[i]>>8)&0x0ff;
+			b[i] =  src[i]&0x0ff;
+			a[i] = (src[i]>>24)&0x0ff;
+		}while(++i < max_i);
+	}
 }
 
 void ximage2scanline16( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  register unsigned char *xim_data )

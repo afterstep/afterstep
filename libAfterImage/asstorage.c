@@ -163,11 +163,90 @@ compute_diff32_8bitshift( register short *diff, CARD8 *data, int size )
 {
 	register int i = 0;	
 	register CARD32 *data32 = (CARD32*)data ;
-	diff[0] = data32[0]>>8 ;
+	register short dp = data32[0]>>8;
+	diff[0] = dp ;
 	while( ++i < size ) 
-		diff[i] = (short)(data32[i]>>8) - (short)(data32[i-1]>>8) ;
+	{
+		register short d = data32[i]>>8;
+		diff[i] = d - dp ;
+		dp = d;
+	}
 }	   
 
+static void
+compute_diff32_16bitshift( register short *diff, CARD8 *data, int size ) 
+{
+	register int i = 0;	
+	register CARD32 *data32 = (CARD32*)data ;
+	register short dp = data32[0]>>16;
+	diff[0] = dp ;
+	while( ++i < size ) 
+	{
+		register short d = data32[i]>>16;
+		diff[i] = d - dp ;
+		dp = d;
+	}
+}	   
+
+static void
+compute_diff32_masked( register short *diff, CARD8 *data, int size ) 
+{
+	register int i = 0;	
+	register CARD32 *data32 = (CARD32*)data ;
+	register short dp = data32[0]&0x0ff;
+	diff[0] = dp ;
+	while( ++i < size ) 
+	{
+		register short d = data32[i]&0x0ff;
+		diff[i] = d - dp ;
+		dp = d;
+	}
+}	   
+
+static void
+compute_diff32_8bitshift_masked( register short *diff, CARD8 *data, int size ) 
+{
+	register int i = 0;	
+	register CARD32 *data32 = (CARD32*)data ;
+	register short dp = (data32[0]>>8)&0x0ff;
+	diff[0] = dp ;
+	while( ++i < size ) 
+	{
+		register short d = (data32[i]>>8)&0x0ff;
+		diff[i] = d - dp ;
+		dp = d;
+	}
+}	   
+
+static void
+compute_diff32_16bitshift_masked( register short *diff, CARD8 *data, int size ) 
+{
+	register int i = 0;	
+	register CARD32 *data32 = (CARD32*)data ;
+	register short dp = (data32[0]>>16)&0x0ff;
+	diff[0] = dp ;
+	while( ++i < size ) 
+	{
+		register short d = (data32[i]>>16)&0x0ff;
+		diff[i] = d - dp ;
+		dp = d;
+	}
+}	   
+
+static void
+compute_diff32_24bitshift_masked( register short *diff, CARD8 *data, int size ) 
+{
+	register int i = 0;	
+	register CARD32 *data32 = (CARD32*)data ;
+	register short dp = (data32[0]>>24)&0x0ff;
+	diff[0] = dp ;
+	while( ++i < size ) 
+	{
+		register short d = (data32[i]>>24)&0x0ff;
+		diff[i] = d - dp ;
+		dp = d;
+	}
+}	   
 
 static int 
 rlediff_compress( CARD8 *buffer,  short *diff, int size )
@@ -514,15 +593,175 @@ rlediff_decompress( CARD8 *buffer,  CARD8* data, int size )
 }	 
 
 
+static int
+copy_data_tinted (CARD8 *buffer, CARD32 *data32, int size, short tint)
+{
+	int comp_size = 0;
+	do{	buffer[comp_size] = (data32[comp_size]*tint)>>8;}while (++comp_size < size);
+	return comp_size;
+}
+
+static int
+copy_data_tinted_8bitshift (CARD8 *buffer, CARD32 *data32, int size, short tint)
+{
+	int comp_size = 0;
+	do{	buffer[comp_size] = (data32[comp_size]*tint)>>16;}while (++comp_size < size);
+	return comp_size;
+}
+
+static int
+copy_data_tinted_16bitshift (CARD8 *buffer, CARD32 *data32, int size, short tint)
+{
+	int comp_size = 0;
+	do{	buffer[comp_size] = (data32[comp_size]*tint)>>24;}while (++comp_size < size);
+	return comp_size;
+}
+
+static int
+copy_data_tinted_masked ( CARD8 *buffer, CARD32 *data32, int size, short tint)
+{
+	int comp_size = 0;
+	do{	buffer[comp_size] = ((data32[comp_size]&0x0FF)*tint)>>8;}while (++comp_size < size);
+	return comp_size;
+}
+
+static int
+copy_data_tinted_8bitshift_masked (CARD8 *buffer, CARD32 *data32, int size, short tint)
+{
+	int comp_size = 0;
+	do{	buffer[comp_size] = (((data32[comp_size]>>8)&0x0FF)*tint)>>8;}while (++comp_size < size);
+	return comp_size;
+}
+
+
+static int
+copy_data_tinted_16bitshift_masked (CARD8 *buffer, CARD32 *data32, int size, short tint)
+{
+	int comp_size = 0;
+	do{	buffer[comp_size] = (((data32[comp_size]>>16)&0x0FF)*tint)>>8;}while (++comp_size < size);
+	return comp_size;
+}
+
+static int
+copy_data_tinted_24bitshift_masked( CARD8 *buffer, CARD32 *data32, int size, short tint)
+{
+	int comp_size = 0;
+	do{	buffer[comp_size] = (((data32[comp_size]>>24)&0x0FF)*tint)>>8;}while (++comp_size < size);
+	return comp_size;
+}
+
+static int
+copy_data32 (CARD8 *buffer, CARD32 *data32, int size)
+{
+	int comp_size = 0;
+	do{	buffer[comp_size] = data32[comp_size];}while (++comp_size < size);
+	return comp_size;
+}
+
+static int
+copy_data32_8bitshift (CARD8 *buffer, CARD32 *data32, int size)
+{
+	int comp_size = 0;
+	do{	buffer[comp_size] = data32[comp_size]>>8;}while (++comp_size < size);
+	return comp_size;
+}
+
+static int
+copy_data32_16bitshift (CARD8 *buffer, CARD32 *data32, int size)
+{
+	int comp_size = 0;
+	do{	buffer[comp_size] = data32[comp_size]>>16;}while (++comp_size < size);
+	return comp_size;
+}
+
+static int
+copy_data32_masked ( CARD8 *buffer, CARD32 *data32, int size)
+{
+	int comp_size = 0;
+	do{	buffer[comp_size] = data32[comp_size]&0x0FF;}while (++comp_size < size);
+	return comp_size;
+}
+
+static int
+copy_data32_8bitshift_masked (CARD8 *buffer, CARD32 *data32, int size)
+{
+	int comp_size = 0;
+	do{	buffer[comp_size] = (data32[comp_size]>>8)&0x0FF;}while (++comp_size < size);
+	return comp_size;
+}
+
+
+static int
+copy_data32_16bitshift_masked (CARD8 *buffer, CARD32 *data32, int size)
+{
+	int comp_size = 0;
+	do{	buffer[comp_size] = (data32[comp_size]>>16)&0x0FF;}while (++comp_size < size);
+	return comp_size;
+}
+
+static int
+copy_data32_24bitshift_masked( CARD8 *buffer, CARD32 *data32, int size)
+{
+	int comp_size = 0;
+	do{	buffer[comp_size] = (data32[comp_size]>>24)&0x0FF;}while (++comp_size < size);
+	return comp_size;
+}
+
+
 static CARD8* 
-compress_stored_data( ASStorage *storage, CARD8 *data, int size, ASFlagType *flags, int *compressed_size, 
+compress_stored_data( ASStorage *storage, CARD8 *data, int size, ASFlagType *flags, int *compressed_size,
 					  CARD32 bitmap_threshold )
 {
 	/* TODO: just a stub for now - need to implement compression */
 	int comp_size = size ;
 	CARD8  *buffer = data ;
 	size_t 	buf_size = size ; 
-	
+
+	static compute_diff_func_type compute_diff_func[2][4] = 
+	{	{
+			compute_diff32,
+			compute_diff32_8bitshift,
+			compute_diff32_16bitshift,
+			compute_diff32_24bitshift_masked /* to clear the sign bit ! */
+		},
+		{
+			compute_diff32_masked,
+			compute_diff32_8bitshift_masked,
+			compute_diff32_16bitshift_masked,
+			compute_diff32_24bitshift_masked
+		}
+	};
+
+	static copy_data32_tinted_func_type copy_data32_tinted_func[2][4] = 
+	{	{
+			copy_data_tinted,
+			copy_data_tinted_8bitshift,
+			copy_data_tinted_16bitshift,
+			copy_data_tinted_24bitshift_masked /* to clear the sign bit ! */
+		},
+		{
+			copy_data_tinted_masked,
+			copy_data_tinted_8bitshift_masked,
+			copy_data_tinted_16bitshift_masked,
+			copy_data_tinted_24bitshift_masked
+		}
+	};
+
+	static copy_data32_func_type copy_data32_func[2][4] = 
+	{	{
+			copy_data32,
+			copy_data32_8bitshift,
+			copy_data32_16bitshift,
+			copy_data32_24bitshift_masked /* to clear the sign bit ! */
+		},
+		{
+			copy_data32_masked,
+			copy_data32_8bitshift_masked,
+			copy_data32_16bitshift_masked,
+			copy_data32_24bitshift_masked
+		}
+	};
+
 	if( size < ASStorageSlot_SIZE ) 
 		clear_flags( *flags, ASStorage_RLEDiffCompress );
 
@@ -547,10 +786,10 @@ compress_stored_data( ASStorage *storage, CARD8 *data, int size, ASFlagType *fla
 			if( get_flags( *flags, ASStorage_Bitmap ) )
 			{	
 				if( get_flags( *flags, ASStorage_32Bit ) ) 
-				{	
+				{
 					uncompressed_size = size / 4 ;
-					if( get_flags( *flags, ASStorage_8BitShift ) ) 						   
-						bitmap_threshold = bitmap_threshold<<8 ;
+					if( get_flags( *flags, ASStorage_BitShift ) )
+						bitmap_threshold = bitmap_threshold<<ASStorage_Flags2Shift(*flags) ;
 					comp_size = rlediff_compress_bitmap32( buffer, data, uncompressed_size, bitmap_threshold );
 				}else
 					comp_size = rlediff_compress_bitmap8( buffer, data, uncompressed_size, bitmap_threshold );
@@ -560,10 +799,8 @@ compress_stored_data( ASStorage *storage, CARD8 *data, int size, ASFlagType *fla
 				if( get_flags( *flags, ASStorage_32Bit ) ) 
 				{	
 					uncompressed_size = size / 4 ;
-					if( get_flags( *flags, ASStorage_8BitShift ) ) 						
-						compute_diff32_8bitshift( storage->diff_buf, data, uncompressed_size ); 	  
-					else
-						compute_diff32( storage->diff_buf, data, uncompressed_size ); 	  
+					compute_diff_func[get_flags(*flags,ASStorage_Masked)?1:0]
+					                 [ASStorage_Flags2ShiftIdx(*flags)](storage->diff_buf, data, uncompressed_size );
 				}else
 					compute_diff8( storage->diff_buf, data, uncompressed_size ); 	  
 				
@@ -613,20 +850,13 @@ compress_stored_data( ASStorage *storage, CARD8 *data, int size, ASFlagType *fla
 			buffer = storage->comp_buf ;
 			if( tint != 0x000000FF ) 
 			{	
-				if( get_flags( *flags, ASStorage_8BitShift ) )
-					for( comp_size = 0 ; comp_size < size ; ++comp_size )
-						buffer[comp_size] = (data32[comp_size]*tint)>>16 ;
-				else
-					for( comp_size = 0 ; comp_size < size ; ++comp_size )
-						buffer[comp_size] = (data32[comp_size]*tint)>>8 ;
+				copy_data32_tinted_func [get_flags(*flags,ASStorage_Masked)?1:0]
+					                 	[ASStorage_Flags2ShiftIdx(*flags)](buffer, data32, size, tint);
 			}else
 			{
-				if( get_flags( *flags, ASStorage_8BitShift ) )
-					for( comp_size = 0 ; comp_size < size ; ++comp_size )
-						buffer[comp_size] = (data32[comp_size]>>8) ;
-				else
-					for( comp_size = 0 ; comp_size < size ; ++comp_size )
-						buffer[comp_size] = data32[comp_size] ;
+				copy_data32_func [get_flags(*flags,ASStorage_Masked)?1:0]
+					           	 [ASStorage_Flags2ShiftIdx(*flags)](buffer, data32, size);
+
 			}	 
 		}else if( tint != 0x000000FF ) 
 		{
