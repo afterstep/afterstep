@@ -2073,12 +2073,11 @@ create_asimage_from_vector( ASVisual *asv, double *vector,
 #undef PI
 #define PI 3.141592526
 
-static void calc_gauss(double radius, double* gauss);
-
-static int radius;
+static void calc_gauss_double(double radius, double* gauss);
+static void calc_gauss_short(double radius, short* gauss);
 
 static inline void
-gauss_component(CARD32 *src, CARD32 *dst, double* gauss, int len)
+gauss_component(CARD32 *src, CARD32 *dst, int radius, double* gauss, int len)
 {
 	int x, j, r = radius - 1;
 	for (x = 0 ; x < len ; x++) {
@@ -2092,6 +2091,68 @@ gauss_component(CARD32 *src, CARD32 *dst, double* gauss, int len)
 	}
 }
 
+static inline void
+gauss_component_short(CARD32 *src, CARD32 *dst, int radius, short* gauss, int len)
+{
+	int x, j;
+	for( x = 0 ; x < radius ; ++x )
+	{
+		register CARD32 *xsrc = &src[x];
+		register CARD32 v = 0;
+		short sum = 0 ;
+		for( j = x ; j >= 0; --j )
+		{
+			v += xsrc[-j]*gauss[j];
+			sum += gauss[j];
+		}
+		while( ++j < radius ) 
+		{
+			v += xsrc[j]*gauss[j];
+			sum += gauss[j];
+		}	
+		dst[x] = (v<<10)/sum;
+	}	
+	while( x < len-radius )
+	{
+		register CARD32 *xsrc = &src[x];
+		register CARD32 v = 0;
+		for( j = radius-1 ; j >= 0; --j ) v += xsrc[-j]*gauss[j];
+		while( ++j < radius ) v += xsrc[j]*gauss[j];
+		dst[x++] = v;
+	}
+
+	while( x < len )
+	{
+		register CARD32 *xsrc = &src[x];
+		register CARD32 v = 0;
+		short sum = 0 ;
+		for( j = radius-1 ; j >= 0; --j )
+		{
+			v += xsrc[-j]*gauss[j];
+			sum += gauss[j];
+		}
+		while( ++j < len - x ) 
+		{
+			v += xsrc[j]*gauss[j];
+			sum += gauss[j];
+		}	
+		dst[x++] = (v<<10)/sum;
+	}
+
+	for (x = 0 ; x < len ; x++) 
+	{
+#if 0	
+		register CARD32 v = 0;
+		for (j = x - r ; j <= 0 ; j++) v += src[0] * gauss[x - j];
+		for ( ; j < x ; j++) v += src[j] * gauss[x - j];
+		v += src[x] * gauss[0];
+		for (j = x + r ; j >= len ; j--) v += src[len - 1] * gauss[j - x];
+		for ( ; j > x ; j--) v += src[j] * gauss[j - x];
+#endif
+		dst[x] = (dst[x]&0x03Fc0000)?255:dst[x]>>10;
+	}
+}
+
 ASImage* blur_asimage_gauss(ASVisual* asv, ASImage* src, double horz, double vert, 
                             ASFlagType filter, 
 							ASAltImFormats out_format, unsigned int compression_out, int quality)
@@ -2102,6 +2163,16 @@ ASImage* blur_asimage_gauss(ASVisual* asv, ASImage* src, double horz, double ver
 	ASScanline result;
 	int y;
 	double* gauss = NULL;
+	short *sgauss = NULL;
+#if 1
+  struct timeval stv;
+	gettimeofday (&stv,NULL);
+#define PRINT_BACKGROUND_OP_TIME do{ struct timeval tv;gettimeofday (&tv,NULL); tv.tv_sec-= stv.tv_sec;\
+                                     fprintf (stderr,__FILE__ "%d: elapsed  %ld usec\n",__LINE__,\
+                                              tv.tv_sec*1000000+tv.tv_usec-stv.tv_usec );}while(0)
+#else                                           
+#define PRINT_BACKGROUND_OP_TIME do{}while(0)                                          
+#endif
 
 	if (!src) return NULL;
 
@@ -2122,18 +2193,26 @@ ASImage* blur_asimage_gauss(ASVisual* asv, ASImage* src, double horz, double ver
         destroy_asimage( &dst );
 		return NULL;
 	}
+	
+	if( horz > src->width/2  ) horz = (src->width==1 )?1:src->width/2 ;
+	if( vert > src->height/2 ) vert = (src->height==1)?1:src->height/2 ;
 
-	gauss = safecalloc(MAX((int)horz, (int)vert), sizeof(double));
-
+	gauss = safecalloc(MAX((int)horz, (int)vert)+1, sizeof(double));
+	sgauss= safecalloc(MAX((int)horz, (int)vert)+1, sizeof(short));
 	/* First the horizontal pass. */
-	if (horz >= 1.0) {
-		/* My version. -Ethan */
-		radius = (int)horz;
-		calc_gauss(horz, gauss);
+	if (horz >= 1.0) 
+	{
+/*		calc_gauss_double(horz, gauss); */
+		calc_gauss_short(horz, sgauss);
 	}
 
 	prepare_scanline(dst->width, 0, &result, asv->BGR_mode);
-
+#if 0
+#define GAUSS_COMPONENT(c) gauss_component( imdec->buffer.c, result.c, horz, gauss, dst->width)
+#else
+#define GAUSS_COMPONENT(c) gauss_component_short( imdec->buffer.c, result.c, horz, sgauss, dst->width)
+#endif
+	PRINT_BACKGROUND_OP_TIME;
     for (y = 0 ; y < (int)dst->height ; y++)
     {
         ASFlagType lf = imdec->buffer.flags&filter ;
@@ -2141,25 +2220,25 @@ ASImage* blur_asimage_gauss(ASVisual* asv, ASImage* src, double horz, double ver
 		result.flags = imdec->buffer.flags;
 		result.back_color = imdec->buffer.back_color;
         if( get_flags( lf, SCL_DO_RED ) )
-            gauss_component( imdec->buffer.red, result.red, gauss, dst->width);
+			GAUSS_COMPONENT(red);
         else if( get_flags( result.flags, SCL_DO_RED ) )
             copy_component( imdec->buffer.red, result.red, 0, dst->width);
         if( get_flags( lf, SCL_DO_GREEN ) )
-            gauss_component( imdec->buffer.green, result.green, gauss, dst->width);
+			GAUSS_COMPONENT(green);
         else if( get_flags( result.flags, SCL_DO_GREEN ) )
             copy_component( imdec->buffer.green, result.green, 0, dst->width);
         if( get_flags( lf, SCL_DO_BLUE ) )
-            gauss_component( imdec->buffer.blue, result.blue, gauss, dst->width);
+			GAUSS_COMPONENT(blue);
         else if( get_flags( result.flags, SCL_DO_BLUE ) )
             copy_component( imdec->buffer.blue, result.blue, 0, dst->width);
         if( get_flags( lf, SCL_DO_ALPHA ) )
-            gauss_component( imdec->buffer.alpha, result.alpha, gauss, dst->width);
+			GAUSS_COMPONENT(alpha);
         else if( get_flags( result.flags, SCL_DO_ALPHA ) )
             copy_component( imdec->buffer.alpha, result.alpha, 0, dst->width);
 
         imout->output_image_scanline(imout, &result, 1);
 	}
-
+PRINT_BACKGROUND_OP_TIME;
 	stop_image_decoding(&imdec);
 	free_scanline(&result, True);
 	stop_image_output(&imout);
@@ -2169,35 +2248,142 @@ ASImage* blur_asimage_gauss(ASVisual* asv, ASImage* src, double horz, double ver
 	return dst;
 }
 
-static void calc_gauss(double radius, double* gauss) {
+static void calc_gauss_double(double radius, double* gauss) 
+{
+	int i, mult;
+	double std_dev, sum = 0.0;
+	double g0, g_last;
+	double n, nn, nPI, nnPI;
+	if (radius <= 1.0) {
+		gauss[0] = 1.0;
+		return;
+	}
+	/* after radius of 128 - gaussian degrades into something wierd, 
+	   since our colors are only 8 bit */
+	if (radius > 128.0) radius = 128.0; 
+	std_dev = (radius - 1) * 0.3003866304;
+	do
+	{
+		sum = 0 ;
+		n = std_dev * std_dev;
+		nn = 2*n ;
+		nPI = n*PI;
+		nnPI = nn*PI;
+		sum = g0 = 1.0 / nnPI ;
+		for (i = 1 ; i < radius-1 ; i++) 
+			sum += exp((double)-i * (double)i / nn)/nPI; 
+		g_last = exp((double)-i * (double)i / nn)/nnPI; 
+		sum += g_last*2.0 ; 
+	
+		mult = (int)((1024.0+radius*0.94)/sum);
+		std_dev += 0.1 ;
+	}while( g_last*mult  < 1. );
+
+	gauss[0] = g0/sum ; 
+	gauss[(int)radius-1] = g_last/sum;
+	
+	sum *= nnPI;
+	for (i = 1 ; i < radius-1 ; i++)
+		gauss[i] = exp((double)-i * (double)i / nn)/sum;
+}
+
+
+static void calc_gauss_short(double radius, short* gauss) 
+{
 	int i;
+	double dmult;
+	double std_dev, sum = 0.0;
+	double g0, g_last;
+	double n, nn, nPI, nnPI;
+	if (radius <= 1.0) {
+		gauss[0] = 1.0;
+		return;
+	}
+	/* after radius of 128 - gaussian degrades into something wierd, 
+	   since our colors are only 8 bit */
+	if (radius > 128.0) radius = 128.0; 
+	std_dev = (radius - 1) * 0.3003866304;
+	do
+	{
+		sum = 0 ;
+		n = std_dev * std_dev;
+		nn = 2*n ;
+		nPI = n*PI;
+		nnPI = nn*PI;
+		sum = g0 = 1.0 / nnPI ;
+		for (i = 1 ; i < radius-1 ; i++) 
+			sum += exp((double)-i * (double)i / nn)/nPI; 
+		g_last = exp((double)-i * (double)i / nn)/nnPI; 
+		sum += g_last*2.0 ; 
+	
+		dmult = 1024.0/sum;
+		std_dev += 0.1 ;
+	}while( g_last*dmult  < 1. );
+	
+	gauss[0] = g0 * dmult + 0.5; 
+	gauss[(int)radius-1] = g_last * dmult + 0.5;
+	dmult /=nnPI;
+	for (i = 1 ; i < radius-1 ; i++)
+		gauss[i] = exp((double)-i * (double)i / nn)*dmult + 0.5;
+
+#if 1
+	{
+		int sum_da = 0 ;
+		fprintf(stderr, "sum = %f, dmult = %f\n", sum, dmult );
+		for (i = 0 ; i < radius ; i++)
+		{
+//			gauss[i] /= sum;
+			sum_da += gauss[i]*2 ;
+			fprintf(stderr, "discr_approx(%d) = %d\n", i, gauss[i]);
+		}
+		sum_da -= gauss[0];
+	
+		fprintf(stderr, "sum_da = %d\n", sum_da );			
+	}
+#endif	
+}
+
+#if 0 /* debug and testing code : */
+	int i, mult, sum_da = 0;
 	double n, std_dev, sum = 0.0;
 	if (radius <= 1.0) {
 		gauss[0] = 1.0;
 		return;
 	}
-/*	if (radius > 10.0) radius = 10.0; */
-#if 1
+	/* after radius of 128 - gaussian degrades into something wierd, 
+	   since our colors are only 8 bit */
+	if (radius > 128.0) radius = 128.0; 
 	std_dev = (radius - 1) * 0.3003866304;
+	do{
+	sum = 0 ;
+#if 1
+//	std_dev = 60.7;
 #else
 	std_dev = 0.84089642;
 #endif
-/*fprintf(stderr, "std_dev = %f\n", std_dev );			*/
+fprintf(stderr, "std_dev = %f\n", std_dev );			
 	n = 2 * std_dev * std_dev;
 	for (i = 0 ; i < radius ; i++) {
 		gauss[i] = exp((double)-i * (double)i / n)/(n*PI); 
 		sum += gauss[i] + gauss[i];
-/*fprintf(stderr, "gauss[%d] = %lf\n", i, gauss[i] );		*/
+//fprintf(stderr, "gauss[%d] = %lf\n", i, gauss[i] );		
 	}
-#if 1
 	sum -= gauss[0];
+	mult = (int)((1024.0+radius*0.94)/sum);
+		std_dev += 0.1 ;
+fprintf(stderr, "gauss[%d]*mult = %lf\n", i-1, gauss[i-1]*mult );		
+	}while( gauss[i-1]*mult  < 1. );
+fprintf(stderr, "sum = %f, mult = %d\n", sum, mult );			
 	for (i = 0 ; i < radius ; i++)
 	{
-		gauss[i] /= sum;
-/*		fprintf(stderr, "gauss[%d] = %lf, sum = %f\n", i, gauss[i], sum );		*/
+//		gauss[i] /= sum;
+		sum_da += gauss[i]*2 ;
+		fprintf(stderr, "gauss[%d] = %lf, discr_approx(512) = %d, discr_approx(mult) = %d, sum = %f\n", i, gauss[i], (int)(gauss[i]*512.0), (int)(gauss[i]*(double)mult), sum );		
 	}
-#endif		
+	sum_da -= (int)(gauss[0]*(double)mult);
+fprintf(stderr, "sum_da = %d\n", sum_da );			
 }
+#endif		
 
 /***********************************************************************
  * Hue,saturation and lightness adjustments.
