@@ -2176,15 +2176,27 @@ static void calc_gauss(double radius, double* gauss) {
 		gauss[0] = 1.0;
 		return;
 	}
-	if (radius > 10.0) radius = 10.0;
+/*	if (radius > 10.0) radius = 10.0; */
+#if 1
 	std_dev = (radius - 1) * 0.3003866304;
+#else
+	std_dev = 0.84089642;
+#endif
+/*fprintf(stderr, "std_dev = %f\n", std_dev );			*/
 	n = 2 * std_dev * std_dev;
 	for (i = 0 ; i < radius ; i++) {
-		gauss[i] = exp(-i * i / n);
+		gauss[i] = exp((double)-i * (double)i / n)/(n*PI); 
 		sum += gauss[i] + gauss[i];
+/*fprintf(stderr, "gauss[%d] = %lf\n", i, gauss[i] );		*/
 	}
+#if 1
 	sum -= gauss[0];
-	for (i = 0 ; i < radius ; i++) gauss[i] /= sum;
+	for (i = 0 ; i < radius ; i++)
+	{
+		gauss[i] /= sum;
+/*		fprintf(stderr, "gauss[%d] = %lf, sum = %f\n", i, gauss[i], sum );		*/
+	}
+#endif		
 }
 
 /***********************************************************************
