@@ -2073,9 +2073,10 @@ create_asimage_from_vector( ASVisual *asv, double *vector,
 #undef PI
 #define PI 3.141592526
 
-static void calc_gauss_double(double radius, double* gauss);
+/* static void calc_gauss_double(double radius, double* gauss); */
 static void calc_gauss_short(int radius, short* gauss, short* gauss_sums);
 
+#if 0
 static inline void
 gauss_component(CARD32 *src, CARD32 *dst, int radius, double* gauss, int len)
 {
@@ -2090,18 +2091,20 @@ gauss_component(CARD32 *src, CARD32 *dst, int radius, double* gauss, int len)
 		dst[x] = (CARD32)v;
 	}
 }
+#endif
 
 static inline void
 gauss_component_short(CARD32 *src, CARD32 *dst, int radius, short* gauss, short* gauss_sums, int len)
 {
 	int x, j;
+	int tail = radius;
 	for( x = 0 ; x < radius ; ++x )
 	{
 		register CARD32 *xsrc = &src[x];
 		register CARD32 v = src[x]*gauss[0];
-		for( j = x ; j > 0; --j )
+		for( j = 1 ; j <= x ; ++j )
 			v += (xsrc[-j]+xsrc[j])*gauss[j];
-		for( j = x+1 ; j < radius ; ++j ) 
+		for( ; j < radius ; ++j ) 
 			v += xsrc[j]*gauss[j];
 		dst[x] = (v<<10)/gauss_sums[x];
 	}	
@@ -2113,65 +2116,49 @@ gauss_component_short(CARD32 *src, CARD32 *dst, int radius, short* gauss, short*
 			v += (xsrc[-j]+xsrc[j])*gauss[j];
 		dst[x++] = v ;
 	}
-
-	while( x < len )
+	while( --tail > 0 )/*x < len*/
 	{
 		register CARD32 *xsrc = &src[x];
 		register CARD32 v = xsrc[0]*gauss[0];
-		int tail = len - x ;
-		for( j = radius-1 ; j > tail; --j )
-			v += xsrc[-j]*gauss[j];
 		for( j = 1 ; j < tail ; ++j ) 
 			v += (xsrc[j]+xsrc[-j])*gauss[j];
+		for( ; j <radius ; ++j )
+			v += xsrc[-j]*gauss[j];
 		dst[x++] = (v<<10)/gauss_sums[tail];
 	}
-
-	for (x = 0 ; x < len ; x++) 
-	{
-#if 0	
-		register CARD32 v = 0;
-		for (j = x - r ; j <= 0 ; j++) v += src[0] * gauss[x - j];
-		for ( ; j < x ; j++) v += src[j] * gauss[x - j];
-		v += src[x] * gauss[0];
-		for (j = x + r ; j >= len ; j--) v += src[len - 1] * gauss[j - x];
-		for ( ; j > x ; j--) v += src[j] * gauss[j - x];
-#endif
-		dst[x] = (dst[x]&0x03Fc0000)?255:dst[x]>>10;
-	}
 }
-
-#if 0
-#define GAUSS_COMPONENT(c) gauss_component( imdec->buffer.c, result->c, horz, gauss, result->width)
-#else
-#define GAUSS_COMPONENT(c) gauss_component_short( imdec->buffer.c, result->c, horz, sgauss, sgauss_sums, result->width)
-#endif
-
 
 static inline void
 load_gauss_scanline(ASScanline *result, ASImageDecoder *imdec, int horz, short *sgauss, short *sgauss_sums, ASFlagType filter )
 {
-    ASFlagType lf = imdec->buffer.flags&filter ;
+    ASFlagType lf; 
+	int x, chan;
+
 	imdec->decode_image_scanline(imdec);
+	lf = imdec->buffer.flags&filter ;
 	result->flags = imdec->buffer.flags;
 	result->back_color = imdec->buffer.back_color;
-    if( get_flags( lf, SCL_DO_RED ) )
-		GAUSS_COMPONENT(red);
-    else if( get_flags( result->flags, SCL_DO_RED ) )
-        copy_component( imdec->buffer.red, result->red, 0, result->width);
-    if( get_flags( lf, SCL_DO_GREEN ) )
-		GAUSS_COMPONENT(green);
-    else if( get_flags( result->flags, SCL_DO_GREEN ) )
-        copy_component( imdec->buffer.green, result->green, 0, result->width);
-    if( get_flags( lf, SCL_DO_BLUE ) )
-		GAUSS_COMPONENT(blue);
-    else if( get_flags( result->flags, SCL_DO_BLUE ) )
-        copy_component( imdec->buffer.blue, result->blue, 0, result->width);
-    if( get_flags( lf, SCL_DO_ALPHA ) )
-		GAUSS_COMPONENT(alpha);
-    else if( get_flags( result->flags, SCL_DO_ALPHA ) )
-        copy_component( imdec->buffer.alpha, result->alpha, 0, result->width);
-	
 
+	for( chan = 0 ; chan < IC_NUM_CHANNELS ; ++chan )
+	{
+		CARD32 *res_chan = result->channels[chan];
+		CARD32 *src_chan = imdec->buffer.channels[chan];
+		if( get_flags(lf, 0x01<<chan) )
+		{
+			if( horz == 1 ) 
+			{
+				for( x =  0 ; x < result->width ; ++x ) 
+					res_chan[x] = src_chan[x]<<10 ;
+			}else
+				gauss_component_short( src_chan, res_chan, horz, sgauss, sgauss_sums, result->width);
+	    }else if( get_flags( result->flags, 0x01<<chan ) )
+	        copy_component( src_chan, res_chan, 0, result->width);
+		else if( get_flags( filter, 0x01<<chan ) )
+		{
+			CARD32 fill = (CARD32)ARGB32_RED8(imdec->buffer.back_color)<<10;
+			for( x =  0 ; x < result->width ; ++x ) res_chan[x] = fill ;
+		}
+	}
 }
 
 
@@ -2182,18 +2169,11 @@ ASImage* blur_asimage_gauss(ASVisual* asv, ASImage* src, double dhorz, double dv
 	ASImage *dst = NULL;
 	ASImageOutput *imout;
 	ASImageDecoder *imdec;
-	ASScanline *lines;
-	ASScanline result;
-	int y;
-	short *horz_gauss = NULL;
-	short *horz_gauss_sums = NULL;
-	short *vert_gauss = NULL;
-	short *vert_gauss_sums = NULL;
-	int single_idx = 0 ; 
-	int double_idx = 0 ; 
+	int y, x, chan;
 	int horz = dhorz;
-	int vert = vert;
-#if 1
+	int vert = dvert;
+	int width, height ; 
+#if 0
 	struct timeval stv;
 	gettimeofday (&stv,NULL);
 #define PRINT_BACKGROUND_OP_TIME do{ struct timeval tv;gettimeofday (&tv,NULL); tv.tv_sec-= stv.tv_sec;\
@@ -2207,8 +2187,9 @@ ASImage* blur_asimage_gauss(ASVisual* asv, ASImage* src, double dhorz, double dv
 
 	if( asv == NULL ) 	asv = &__transform_fake_asv ;
 
-	dst = create_destination_image( src->width, src->height, out_format, compression_out, src->back_color);
-
+	width = src->width ;
+	height = src->height ;
+	dst = create_destination_image( width, height, out_format, compression_out, src->back_color);
 
 	imout = start_image_output(asv, dst, out_format, 0, quality);
     if (!imout)
@@ -2217,14 +2198,16 @@ ASImage* blur_asimage_gauss(ASVisual* asv, ASImage* src, double dhorz, double dv
 		return NULL;
 	}
 
-	imdec = start_image_decoding(asv, src, SCL_DO_ALL, 0, 0, dst->width, dst->height, NULL);
-	if (!imdec) {
+	imdec = start_image_decoding(asv, src, SCL_DO_ALL, 0, 0, src->width, src->height, NULL);
+	if (!imdec) 
+	{
+		stop_image_output(&imout);
         destroy_asimage( &dst );
 		return NULL;
 	}
 	
-	if( horz > src->width/2  ) horz = (src->width==1 )?1:src->width/2 ;
-	if( vert > src->height/2 ) vert = (src->height==1)?1:src->height/2 ;
+	if( horz > (width-1)/2  ) horz = (width==1 )?1:(width-1)/2 ;
+	if( vert > (height-1)/2 ) vert = (height==1)?1:(height-1)/2 ;
 	if (horz > 128) 
 		horz = 128;
 	else if (horz < 1) 
@@ -2234,76 +2217,249 @@ ASImage* blur_asimage_gauss(ASVisual* asv, ASImage* src, double dhorz, double dv
 	else if( vert < 1 ) 
 		vert = 1 ;
 
-PRINT_BACKGROUND_OP_TIME;
-/*	horz_gauss= safecalloc(129, sizeof(short));
-
-	for( y = 0 ; y <= 128 ; y++ )
-		calc_gauss_short( y, horz_gauss);
-*/	
-	horz_gauss= safecalloc(horz+1, sizeof(short));
-	horz_gauss_sums = safecalloc(horz+1, sizeof(short));
-	vert_gauss= safecalloc(vert+1, sizeof(short));
-	vert_gauss_sums = safecalloc(vert+1, sizeof(short));
-	calc_gauss_short(horz, horz_gauss, horz_gauss_sums);
-	calc_gauss_short(vert, vert_gauss, vert_gauss_sums);
-PRINT_BACKGROUND_OP_TIME;
-
-
-	prepare_scanline(dst->width, 0, &result, asv->BGR_mode);
-
-#if 0 /* new code : */
-	/* init */
-	lines = safecalloc( vert, sizeof(ASScanline));
-	for( y = 0 ; y < vert ; ++y ) 
+	if( vert == 1 && horz == 1 ) 
 	{
-		prepare_scanline(dst->width, 0, &lines[y], asv->BGR_mode);
-		load_gauss_scanline(&lines[y], imdec, horz, horz_gauss );
-	}
-	/* top band */
-    for (y = 0 ; y < vert ; y++)
-    {
-	}
-	/* middle band */
-	while( y < dst->height - vert)
+	    for (y = 0 ; y < dst->height ; y++)
+		{
+			imdec->decode_image_scanline(imdec);
+	        imout->output_image_scanline(imout, &(imdec->buffer), 1);
+		}
+	}else
 	{
-		++y;
-	}
-	/* bottom band */
-	while( y < dst->height)
-	{
-	
-		++y;
-	}
+		ASScanline result;
+		short *horz_gauss = NULL;
+		short *horz_gauss_sums = NULL;
 
-	/* cleanup */
-	for( y = 0 ; y < vert ; ++y ) 
-		free_scanline(&lines[y], True);
-	free( lines );
-#else
-    for (y = 0 ; y < (int)dst->height ; y++)
-    {
-		load_gauss_scanline(&result, imdec, horz, horz_gauss, horz_gauss_sums, filter );
-        imout->output_image_scanline(imout, &result, 1);
+		if( horz > 1 )
+		{
+			PRINT_BACKGROUND_OP_TIME;
+			horz_gauss = safecalloc(horz+1, sizeof(short));
+			horz_gauss_sums = safecalloc(horz+1, sizeof(short));
+			calc_gauss_short(horz, horz_gauss, horz_gauss_sums);
+			PRINT_BACKGROUND_OP_TIME;
+		}
+		prepare_scanline(width, 0, &result, asv->BGR_mode);
+		if( vert == 1 ) 
+		{
+		    for (y = 0 ; y < height ; y++)
+		    {
+				load_gauss_scanline(&result, imdec, horz, horz_gauss, horz_gauss_sums, filter );
+				for( chan = 0 ; chan < IC_NUM_CHANNELS ; ++chan )
+					if( get_flags( filter, 0x01<<chan ) )
+					{
+						CARD32 *res_chan = result.channels[chan];
+						for( x = 0 ; x < width ; ++x ) 
+							res_chan[x] = (res_chan[x]&0x03Fc0000)?255:res_chan[x]>>10;
+					}
+		        imout->output_image_scanline(imout, &result, 1);
+			}
+		}else
+		{ /* new code : */
+			short *vert_gauss = safecalloc(vert+1, sizeof(short));
+			short *vert_gauss_sums = safecalloc(vert+1, sizeof(short));
+			int lines_count = vert*2+1;
+			int first_line = 0, last_line = lines_count-1;
+			ASScanline *lines_mem = safecalloc( lines_count, sizeof(ASScanline));
+			ASScanline **lines = safecalloc( dst->height, sizeof(ASScanline*));
+
+			/* init */
+			calc_gauss_short(vert, vert_gauss, vert_gauss_sums);
+			PRINT_BACKGROUND_OP_TIME;
+
+			for( y = 0 ; y < lines_count ; ++y ) 
+			{
+				lines[y] = &lines_mem[y] ;
+				prepare_scanline(width, 0, lines[y], asv->BGR_mode);
+				load_gauss_scanline(lines[y], imdec, horz, horz_gauss, horz_gauss_sums, filter );
+			}
+
+			result.flags = 0xFFFFFFFF;
+			/* top band */
+    		for (y = 0 ; y < vert ; y++)
+    		{
+				for( chan = 0 ; chan < IC_NUM_CHANNELS ; ++chan )
+				{
+					CARD32 *res_chan = result.channels[chan];
+					if( !get_flags(filter, 0x01<<chan) )
+		        		copy_component( lines[y]->channels[chan], res_chan, 0, width);
+					else
+					{	
+						register ASScanline **ysrc = &lines[y];
+						int j = 0;
+						short g ;
+						CARD32 *src_chan1 = ysrc[0]->channels[chan];
+						for( x = 0 ; x < width ; ++x ) 
+							res_chan[x] = src_chan1[x]*vert_gauss[0];
+						while( ++j <= y )
+						{
+							CARD32 *src_chan2 = ysrc[j]->channels[chan];
+							g = vert_gauss[j];
+							src_chan1 = ysrc[-j]->channels[chan];
+							for( x = 0 ; x < width ; ++x ) 
+								res_chan[x] += (src_chan1[x]+src_chan2[x])*g;
+						}	
+						for( ; j < vert ; ++j ) 
+						{
+							g = vert_gauss[j];
+							src_chan1 = ysrc[j]->channels[chan];
+							for( x = 0 ; x < width ; ++x ) 
+								res_chan[x] += src_chan1[x]*g;
+						}
+						g = vert_gauss_sums[y];
+						for( x = 0 ; x < width ; ++x ) 
+						{
+							CARD32 v = res_chan[x]/g;
+							res_chan[x] = (v&0x03Fc0000)?255:v>>10;
+						}
+					}
+				}
+        		imout->output_image_scanline(imout, &result, 1);
+			}
+			/* middle band */
+			for( ; y < height - vert; ++y)
+			{
+				for( chan = 0 ; chan < IC_NUM_CHANNELS ; ++chan )
+				{
+					CARD32 *res_chan = result.channels[chan];
+					if( !get_flags(filter, 0x01<<chan) )
+		        		copy_component( lines[y]->channels[chan], res_chan, 0, result.width);
+					else
+					{	
+						register ASScanline **ysrc = &lines[y];
+/* surprisingly, having x loops inside y loop yields 30% to 80% better performance */
+						int j = 0;
+						CARD32 *src_chan1 = ysrc[0]->channels[chan];
+						memset( res_chan, 0x00, width*4 );
+//						for( x = 0 ; x < width ; ++x ) 
+//							res_chan[x] = src_chan1[x]*vert_gauss[0];
+						while( ++j <= vert ) 
+						{
+							CARD32 *src_chan2 = ysrc[j]->channels[chan];
+							short g = vert_gauss[j];
+							src_chan1 = ysrc[-j]->channels[chan];
+							switch( g ) 
+							{
+								case 1 :
+									for( x = 0 ; x < width ; ++x ) 
+										res_chan[x] += src_chan1[x]+src_chan2[x];
+									break;
+								case 2 :
+									for( x = 0 ; x < width ; ++x ) 
+										res_chan[x] += (src_chan1[x]+src_chan2[x])<<1;
+									break;
+#if 1
+								case 4 :
+									for( x = 0 ; x < width ; ++x ) 
+										res_chan[x] += (src_chan1[x]+src_chan2[x])<<2;
+									break;
+								case 8 :
+									for( x = 0 ; x < width ; ++x ) 
+										res_chan[x] += (src_chan1[x]+src_chan2[x])<<3;
+									break;
+								case 16 :
+									for( x = 0 ; x < width ; ++x ) 
+										res_chan[x] += (src_chan1[x]+src_chan2[x])<<4;
+									break;
+								case 32 :
+									for( x = 0 ; x < width ; ++x ) 
+										res_chan[x] += (src_chan1[x]+src_chan2[x])<<5;
+									break;
+#endif		
+								default : 									
+									for( x = 0 ; x < width ; ++x ) 
+										res_chan[x] += (src_chan1[x]+src_chan2[x])*g;
+							}
+						}
+						src_chan1 = ysrc[0]->channels[chan];
+						for( x = 0 ; x < width ; ++x ) 
+						{
+							CARD32 v = src_chan1[x]*vert_gauss[0] + res_chan[x];
+							res_chan[x] = (v&0xF0000000)?255:v>>20;
+						}
+					}
+				}
+
+        		imout->output_image_scanline(imout, &result, 1);
+				++last_line;
+				lines[last_line] = lines[first_line] ; 
+				++first_line;
+				load_gauss_scanline(lines[last_line], imdec, horz, horz_gauss, horz_gauss_sums, filter );
+			}
+			/* bottom band */
+			for( ; y < height; ++y)
+			{
+				int tail = height - y ; 
+				for( chan = 0 ; chan < IC_NUM_CHANNELS ; ++chan )
+				{
+					CARD32 *res_chan = result.channels[chan];
+					if( !get_flags(filter, 0x01<<chan) )
+		        		copy_component( lines[y]->channels[chan], res_chan, 0, result.width);
+					else
+					{	
+						register ASScanline **ysrc = &lines[y];
+						int j = 0;
+						short g ;
+						CARD32 *src_chan1 = ysrc[0]->channels[chan];
+						for( x = 0 ; x < width ; ++x ) 
+							res_chan[x] = src_chan1[x]*vert_gauss[0];
+						for( j = 1 ; j < tail ; ++j ) 
+						{
+							CARD32 *src_chan2 = ysrc[j]->channels[chan];
+							g = vert_gauss[j];
+							src_chan1 = ysrc[-j]->channels[chan];
+							for( x = 0 ; x < width ; ++x ) 
+								res_chan[x] += (src_chan1[x]+src_chan2[x])*g;
+						}
+						for( ; j < vert ; ++j )
+						{
+							g = vert_gauss[j];
+							src_chan1 = ysrc[-j]->channels[chan];
+							for( x = 0 ; x < width ; ++x ) 
+								res_chan[x] += src_chan1[x]*g;
+						}
+						g = vert_gauss_sums[tail];
+						for( x = 0 ; x < width ; ++x ) 
+						{
+							CARD32 v = res_chan[x]/g;
+							res_chan[x] = (v&0x03Fc0000)?255:v>>10;
+						}
+					}
+				}
+
+        		imout->output_image_scanline(imout, &result, 1);
+			}
+			/* cleanup */
+			for( y = 0 ; y < lines_count ; ++y ) 
+				free_scanline(&lines_mem[y], True);
+			free( lines_mem );
+			free( lines );
+			free(vert_gauss_sums);
+			free(vert_gauss);
+
+		}
+		free_scanline(&result, True);
+		if( horz_gauss_sums )
+			free(horz_gauss_sums);
+		if( horz_gauss )
+			free(horz_gauss);
 	}
-#endif
 PRINT_BACKGROUND_OP_TIME;
 
-	free_scanline(&result, True);
-	free(vert_gauss);
-	free(horz_gauss);
 	stop_image_decoding(&imdec);
 	stop_image_output(&imout);
 
 	return dst;
 }
 
+#if 0 /* unused for the time being */
 static void calc_gauss_double(double radius, double* gauss) 
 {
 	int i, mult;
 	double std_dev, sum = 0.0;
 	double g0, g_last;
 	double n, nn, nPI, nnPI;
-	if (radius <= 1.0) {
+	if (radius <= 1.0) 
+	{
 		gauss[0] = 1.0;
 		return;
 	}
@@ -2335,6 +2491,7 @@ static void calc_gauss_double(double radius, double* gauss)
 	for (i = 1 ; i < radius-1 ; i++)
 		gauss[i] = exp((double)-i * (double)i / nn)/sum;
 }
+#endif
 
 /* even though lookup tables take space - using those speeds kernel calculations tenfold */
 static const double standard_deviations[128] = 
@@ -2368,8 +2525,10 @@ static void calc_gauss_short(int radius, short* gauss, short* gauss_sums)
 	int i = radius;
 	double dmult;
 	double std_dev;
-	if (i <= 1) {
+	if (i <= 1) 
+	{
 		gauss[0] = 1024;
+		gauss_sums[0] = 1024;
 		return;
 	}
 	/* after radius of 128 - gaussian degrades into something wierd, 
@@ -2384,11 +2543,12 @@ static void calc_gauss_short(int radius, short* gauss, short* gauss_sums)
 		nn = 2*std_dev * std_dev ;
 		dmult /=nn*PI;
 		gauss[0] = dmult + 0.5 ;
-		while( --i >= 1 )
+		while( i >= 1 )
 		{
 			gauss[i] = exp((double)-i * (double)i / nn)*dmult + 0.5;
 			gauss_sums[i] = sum ; 
 			sum -= gauss[i];
+			--i;
 		}
 		gauss_sums[0] = sum; 
 	}
