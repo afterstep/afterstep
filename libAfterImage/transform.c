@@ -2074,7 +2074,7 @@ create_asimage_from_vector( ASVisual *asv, double *vector,
 #define PI 3.141592526
 
 static void calc_gauss_double(double radius, double* gauss);
-static void calc_gauss_short(double radius, short* gauss);
+static void calc_gauss_short(int radius, short* gauss, short* gauss_sums);
 
 static inline void
 gauss_component(CARD32 *src, CARD32 *dst, int radius, double* gauss, int len)
@@ -2092,51 +2092,38 @@ gauss_component(CARD32 *src, CARD32 *dst, int radius, double* gauss, int len)
 }
 
 static inline void
-gauss_component_short(CARD32 *src, CARD32 *dst, int radius, short* gauss, int len)
+gauss_component_short(CARD32 *src, CARD32 *dst, int radius, short* gauss, short* gauss_sums, int len)
 {
 	int x, j;
 	for( x = 0 ; x < radius ; ++x )
 	{
 		register CARD32 *xsrc = &src[x];
-		register CARD32 v = 0;
-		short sum = 0 ;
-		for( j = x ; j >= 0; --j )
-		{
-			v += xsrc[-j]*gauss[j];
-			sum += gauss[j];
-		}
-		for( j = 1 ; j < radius ; ++j ) 
-		{
+		register CARD32 v = src[x]*gauss[0];
+		for( j = x ; j > 0; --j )
+			v += (xsrc[-j]+xsrc[j])*gauss[j];
+		for( j = x+1 ; j < radius ; ++j ) 
 			v += xsrc[j]*gauss[j];
-			sum += gauss[j];
-		}	
-		dst[x] = (v<<10)/sum;
+		dst[x] = (v<<10)/gauss_sums[x];
 	}	
-	while( x < len-radius )
+	while( x <= len-radius )
 	{
 		register CARD32 *xsrc = &src[x];
-		register CARD32 v = 0;
+		register CARD32 v = src[x]*gauss[0];
 		for( j = 1 ; j < radius ; ++j ) 
 			v += (xsrc[-j]+xsrc[j])*gauss[j];
-		dst[x++] = v + xsrc[0]*gauss[0];
+		dst[x++] = v ;
 	}
 
 	while( x < len )
 	{
 		register CARD32 *xsrc = &src[x];
-		register CARD32 v = 0;
-		short sum = 0 ;
-		for( j = radius-1 ; j >= 0; --j )
-		{
+		register CARD32 v = xsrc[0]*gauss[0];
+		int tail = len - x ;
+		for( j = radius-1 ; j > tail; --j )
 			v += xsrc[-j]*gauss[j];
-			sum += gauss[j];
-		}
-		for( j = 1 ; j < len - x ; ++j ) 
-		{
-			v += xsrc[j]*gauss[j];
-			sum += gauss[j];
-		}	
-		dst[x++] = (v<<10)/sum;
+		for( j = 1 ; j < tail ; ++j ) 
+			v += (xsrc[j]+xsrc[-j])*gauss[j];
+		dst[x++] = (v<<10)/gauss_sums[tail];
 	}
 
 	for (x = 0 ; x < len ; x++) 
@@ -2156,12 +2143,12 @@ gauss_component_short(CARD32 *src, CARD32 *dst, int radius, short* gauss, int le
 #if 0
 #define GAUSS_COMPONENT(c) gauss_component( imdec->buffer.c, result->c, horz, gauss, result->width)
 #else
-#define GAUSS_COMPONENT(c) gauss_component_short( imdec->buffer.c, result->c, horz, sgauss, result->width)
+#define GAUSS_COMPONENT(c) gauss_component_short( imdec->buffer.c, result->c, horz, sgauss, sgauss_sums, result->width)
 #endif
 
 
 static inline void
-load_gauss_scanline(ASScanline *result, ASImageDecoder *imdec, int horz, short *sgauss, ASFlagType filter )
+load_gauss_scanline(ASScanline *result, ASImageDecoder *imdec, int horz, short *sgauss, short *sgauss_sums, ASFlagType filter )
 {
     ASFlagType lf = imdec->buffer.flags&filter ;
 	imdec->decode_image_scanline(imdec);
@@ -2188,7 +2175,7 @@ load_gauss_scanline(ASScanline *result, ASImageDecoder *imdec, int horz, short *
 }
 
 
-ASImage* blur_asimage_gauss(ASVisual* asv, ASImage* src, double horz, double vert,
+ASImage* blur_asimage_gauss(ASVisual* asv, ASImage* src, double dhorz, double dvert,
                             ASFlagType filter,
 							ASAltImFormats out_format, unsigned int compression_out, int quality)
 {
@@ -2199,7 +2186,13 @@ ASImage* blur_asimage_gauss(ASVisual* asv, ASImage* src, double horz, double ver
 	ASScanline result;
 	int y;
 	short *horz_gauss = NULL;
+	short *horz_gauss_sums = NULL;
 	short *vert_gauss = NULL;
+	short *vert_gauss_sums = NULL;
+	int single_idx = 0 ; 
+	int double_idx = 0 ; 
+	int horz = dhorz;
+	int vert = vert;
 #if 1
 	struct timeval stv;
 	gettimeofday (&stv,NULL);
@@ -2248,9 +2241,11 @@ PRINT_BACKGROUND_OP_TIME;
 		calc_gauss_short( y, horz_gauss);
 */	
 	horz_gauss= safecalloc(horz+1, sizeof(short));
+	horz_gauss_sums = safecalloc(horz+1, sizeof(short));
 	vert_gauss= safecalloc(vert+1, sizeof(short));
-	calc_gauss_short(horz, horz_gauss);
-	calc_gauss_short(vert, vert_gauss);
+	vert_gauss_sums = safecalloc(vert+1, sizeof(short));
+	calc_gauss_short(horz, horz_gauss, horz_gauss_sums);
+	calc_gauss_short(vert, vert_gauss, vert_gauss_sums);
 PRINT_BACKGROUND_OP_TIME;
 
 
@@ -2287,7 +2282,7 @@ PRINT_BACKGROUND_OP_TIME;
 #else
     for (y = 0 ; y < (int)dst->height ; y++)
     {
-		load_gauss_scanline(&result, imdec, horz, horz_gauss, filter );
+		load_gauss_scanline(&result, imdec, horz, horz_gauss, horz_gauss_sums, filter );
         imout->output_image_scanline(imout, &result, 1);
 	}
 #endif
@@ -2368,9 +2363,9 @@ static const double descr_approxim_mult[128] =
 	
 };
 
-static void calc_gauss_short(double radius, short* gauss) 
+static void calc_gauss_short(int radius, short* gauss, short* gauss_sums) 
 {
-	int i = (int)radius;
+	int i = radius;
 	double dmult;
 	double std_dev;
 	if (i <= 1) {
@@ -2383,13 +2378,19 @@ static void calc_gauss_short(double radius, short* gauss)
 #if 1
 	{
 		double nn;
+		short sum = 1024 ;
 		std_dev = standard_deviations[i-1];
 		dmult = descr_approxim_mult[i-1];
 		nn = 2*std_dev * std_dev ;
 		dmult /=nn*PI;
 		gauss[0] = dmult + 0.5 ;
 		while( --i >= 1 )
+		{
 			gauss[i] = exp((double)-i * (double)i / nn)*dmult + 0.5;
+			gauss_sums[i] = sum ; 
+			sum -= gauss[i];
+		}
+		gauss_sums[0] = sum; 
 	}
 #else 
 	double g0, g_last, sum = 0.;

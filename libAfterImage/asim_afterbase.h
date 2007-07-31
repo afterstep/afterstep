@@ -226,16 +226,16 @@ void asim_nonGNUC_debugout_stub( const char *format, ...);
 
 /* from libAfterBase/mystring.h : */
 #include <string.h>
-#define mystrdup(s)     strdup(s)
+#define mystrdup(s)     strdup(s?s:"")
 
 char   *asim_mystrndup(const char *str, size_t n);
 #define mystrndup(s,n)    	 asim_mystrndup(s,n)
 #ifdef _WIN32
-#define mystrncasecmp(s,s2,n)    _strnicmp(s,s2,n)
-#define mystrcasecmp(s,s2)       _stricmp(s,s2)
+#define mystrncasecmp(s,s2,n)    _strnicmp((s)?(s):"",(s2)?(s2):"",n)
+#define mystrcasecmp(s,s2)       _stricmp((s)?(s):"",(s2)?(s2):"")
 #else
-#define mystrncasecmp(s,s2,n)    strncasecmp(s,s2,n)
-#define mystrcasecmp(s,s2)       strcasecmp(s,s2)
+#define mystrncasecmp(s,s2,n)    strncasecmp((s)?(s):"",(s2)?(s2):"",n)
+#define mystrcasecmp(s,s2)       strcasecmp((s)?(s):"",(s2)?(s2):"")
 #endif
 
 /* from libAfterBase/fs.h : */
