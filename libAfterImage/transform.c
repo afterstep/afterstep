@@ -2105,7 +2105,7 @@ gauss_component_short(CARD32 *src, CARD32 *dst, int radius, short* gauss, int le
 			v += xsrc[-j]*gauss[j];
 			sum += gauss[j];
 		}
-		while( ++j < radius ) 
+		for( j = 1 ; j < radius ; ++j ) 
 		{
 			v += xsrc[j]*gauss[j];
 			sum += gauss[j];
@@ -2116,9 +2116,9 @@ gauss_component_short(CARD32 *src, CARD32 *dst, int radius, short* gauss, int le
 	{
 		register CARD32 *xsrc = &src[x];
 		register CARD32 v = 0;
-		for( j = radius-1 ; j >= 0; --j ) v += xsrc[-j]*gauss[j];
-		while( ++j < radius ) v += xsrc[j]*gauss[j];
-		dst[x++] = v;
+		for( j = 1 ; j < radius ; ++j ) 
+			v += (xsrc[-j]+xsrc[j])*gauss[j];
+		dst[x++] = v + xsrc[0]*gauss[0];
 	}
 
 	while( x < len )
@@ -2131,7 +2131,7 @@ gauss_component_short(CARD32 *src, CARD32 *dst, int radius, short* gauss, int le
 			v += xsrc[-j]*gauss[j];
 			sum += gauss[j];
 		}
-		while( ++j < len - x ) 
+		for( j = 1 ; j < len - x ; ++j ) 
 		{
 			v += xsrc[j]*gauss[j];
 			sum += gauss[j];
@@ -2153,19 +2153,55 @@ gauss_component_short(CARD32 *src, CARD32 *dst, int radius, short* gauss, int le
 	}
 }
 
-ASImage* blur_asimage_gauss(ASVisual* asv, ASImage* src, double horz, double vert, 
-                            ASFlagType filter, 
+#if 0
+#define GAUSS_COMPONENT(c) gauss_component( imdec->buffer.c, result->c, horz, gauss, result->width)
+#else
+#define GAUSS_COMPONENT(c) gauss_component_short( imdec->buffer.c, result->c, horz, sgauss, result->width)
+#endif
+
+
+static inline void
+load_gauss_scanline(ASScanline *result, ASImageDecoder *imdec, int horz, short *sgauss, ASFlagType filter )
+{
+    ASFlagType lf = imdec->buffer.flags&filter ;
+	imdec->decode_image_scanline(imdec);
+	result->flags = imdec->buffer.flags;
+	result->back_color = imdec->buffer.back_color;
+    if( get_flags( lf, SCL_DO_RED ) )
+		GAUSS_COMPONENT(red);
+    else if( get_flags( result->flags, SCL_DO_RED ) )
+        copy_component( imdec->buffer.red, result->red, 0, result->width);
+    if( get_flags( lf, SCL_DO_GREEN ) )
+		GAUSS_COMPONENT(green);
+    else if( get_flags( result->flags, SCL_DO_GREEN ) )
+        copy_component( imdec->buffer.green, result->green, 0, result->width);
+    if( get_flags( lf, SCL_DO_BLUE ) )
+		GAUSS_COMPONENT(blue);
+    else if( get_flags( result->flags, SCL_DO_BLUE ) )
+        copy_component( imdec->buffer.blue, result->blue, 0, result->width);
+    if( get_flags( lf, SCL_DO_ALPHA ) )
+		GAUSS_COMPONENT(alpha);
+    else if( get_flags( result->flags, SCL_DO_ALPHA ) )
+        copy_component( imdec->buffer.alpha, result->alpha, 0, result->width);
+	
+
+}
+
+
+ASImage* blur_asimage_gauss(ASVisual* asv, ASImage* src, double horz, double vert,
+                            ASFlagType filter,
 							ASAltImFormats out_format, unsigned int compression_out, int quality)
 {
 	ASImage *dst = NULL;
 	ASImageOutput *imout;
 	ASImageDecoder *imdec;
+	ASScanline *lines;
 	ASScanline result;
 	int y;
-	double* gauss = NULL;
-	short *sgauss = NULL;
+	short *horz_gauss = NULL;
+	short *vert_gauss = NULL;
 #if 1
-  struct timeval stv;
+	struct timeval stv;
 	gettimeofday (&stv,NULL);
 #define PRINT_BACKGROUND_OP_TIME do{ struct timeval tv;gettimeofday (&tv,NULL); tv.tv_sec-= stv.tv_sec;\
                                      fprintf (stderr,__FILE__ "%d: elapsed  %ld usec\n",__LINE__,\
@@ -2196,54 +2232,72 @@ ASImage* blur_asimage_gauss(ASVisual* asv, ASImage* src, double horz, double ver
 	
 	if( horz > src->width/2  ) horz = (src->width==1 )?1:src->width/2 ;
 	if( vert > src->height/2 ) vert = (src->height==1)?1:src->height/2 ;
+	if (horz > 128) 
+		horz = 128;
+	else if (horz < 1) 
+		horz = 1;
+	if( vert > 128 )
+		vert = 128 ;
+	else if( vert < 1 ) 
+		vert = 1 ;
 
-	gauss = safecalloc(MAX((int)horz, (int)vert)+1, sizeof(double));
-	sgauss= safecalloc(MAX((int)horz, (int)vert)+1, sizeof(short));
-	/* First the horizontal pass. */
-	if (horz >= 1.0) 
-	{
-/*		calc_gauss_double(horz, gauss); */
-		calc_gauss_short(horz, sgauss);
-	}
+PRINT_BACKGROUND_OP_TIME;
+/*	horz_gauss= safecalloc(129, sizeof(short));
+
+	for( y = 0 ; y <= 128 ; y++ )
+		calc_gauss_short( y, horz_gauss);
+*/	
+	horz_gauss= safecalloc(horz+1, sizeof(short));
+	vert_gauss= safecalloc(vert+1, sizeof(short));
+	calc_gauss_short(horz, horz_gauss);
+	calc_gauss_short(vert, vert_gauss);
+PRINT_BACKGROUND_OP_TIME;
+
 
 	prepare_scanline(dst->width, 0, &result, asv->BGR_mode);
-#if 0
-#define GAUSS_COMPONENT(c) gauss_component( imdec->buffer.c, result.c, horz, gauss, dst->width)
+
+#if 0 /* new code : */
+	/* init */
+	lines = safecalloc( vert, sizeof(ASScanline));
+	for( y = 0 ; y < vert ; ++y ) 
+	{
+		prepare_scanline(dst->width, 0, &lines[y], asv->BGR_mode);
+		load_gauss_scanline(&lines[y], imdec, horz, horz_gauss );
+	}
+	/* top band */
+    for (y = 0 ; y < vert ; y++)
+    {
+	}
+	/* middle band */
+	while( y < dst->height - vert)
+	{
+		++y;
+	}
+	/* bottom band */
+	while( y < dst->height)
+	{
+	
+		++y;
+	}
+
+	/* cleanup */
+	for( y = 0 ; y < vert ; ++y ) 
+		free_scanline(&lines[y], True);
+	free( lines );
 #else
-#define GAUSS_COMPONENT(c) gauss_component_short( imdec->buffer.c, result.c, horz, sgauss, dst->width)
-#endif
-	PRINT_BACKGROUND_OP_TIME;
     for (y = 0 ; y < (int)dst->height ; y++)
     {
-        ASFlagType lf = imdec->buffer.flags&filter ;
-		imdec->decode_image_scanline(imdec);
-		result.flags = imdec->buffer.flags;
-		result.back_color = imdec->buffer.back_color;
-        if( get_flags( lf, SCL_DO_RED ) )
-			GAUSS_COMPONENT(red);
-        else if( get_flags( result.flags, SCL_DO_RED ) )
-            copy_component( imdec->buffer.red, result.red, 0, dst->width);
-        if( get_flags( lf, SCL_DO_GREEN ) )
-			GAUSS_COMPONENT(green);
-        else if( get_flags( result.flags, SCL_DO_GREEN ) )
-            copy_component( imdec->buffer.green, result.green, 0, dst->width);
-        if( get_flags( lf, SCL_DO_BLUE ) )
-			GAUSS_COMPONENT(blue);
-        else if( get_flags( result.flags, SCL_DO_BLUE ) )
-            copy_component( imdec->buffer.blue, result.blue, 0, dst->width);
-        if( get_flags( lf, SCL_DO_ALPHA ) )
-			GAUSS_COMPONENT(alpha);
-        else if( get_flags( result.flags, SCL_DO_ALPHA ) )
-            copy_component( imdec->buffer.alpha, result.alpha, 0, dst->width);
-
+		load_gauss_scanline(&result, imdec, horz, horz_gauss, filter );
         imout->output_image_scanline(imout, &result, 1);
 	}
+#endif
 PRINT_BACKGROUND_OP_TIME;
-	stop_image_decoding(&imdec);
-	free_scanline(&result, True);
-	stop_image_output(&imout);
 
-	free(gauss);
+	free_scanline(&result, True);
+	free(vert_gauss);
+	free(horz_gauss);
+	stop_image_decoding(&imdec);
+	stop_image_output(&imout);
 
 	return dst;
 }
@@ -2287,21 +2341,59 @@ static void calc_gauss_double(double radius, double* gauss)
 		gauss[i] = exp((double)-i * (double)i / nn)/sum;
 }
 
+/* even though lookup tables take space - using those speeds kernel calculations tenfold */
+static const double standard_deviations[128] = 
+{
+		 0.0,       0.300387,  0.600773,  0.901160,  1.201547,  1.501933,  1.852320,  2.202706,  2.553093,  2.903480,  3.253866,  3.604253,  3.954640,  4.355026,  4.705413,  5.105799, 
+		 5.456186,  5.856573,  6.256959,  6.657346,  7.057733,  7.458119,  7.858506,  8.258892,  8.659279,  9.059666,  9.510052,  9.910439, 10.360826, 10.761212, 11.211599, 11.611986, 
+		12.062372, 12.512759, 12.963145, 13.413532, 13.863919, 14.314305, 14.764692, 15.215079, 15.665465, 16.115852, 16.566238, 17.066625, 17.517012, 18.017398, 18.467785, 18.968172, 
+		19.418558, 19.918945, 20.419332, 20.869718, 21.370105, 21.870491, 22.370878, 22.871265, 23.371651, 23.872038, 24.372425, 24.872811, 25.373198, 25.923584, 26.423971, 26.924358, 
+		27.474744, 27.975131, 28.525518, 29.025904, 29.576291, 30.126677, 30.627064, 31.177451, 31.727837, 32.278224, 32.828611, 33.378997, 33.929384, 34.479771, 35.030157, 35.580544, 
+		36.130930, 36.731317, 37.281704, 37.832090, 38.432477, 38.982864, 39.583250, 40.133637, 40.734023, 41.334410, 41.884797, 42.485183, 43.085570, 43.685957, 44.286343, 44.886730, 
+		45.487117, 46.087503, 46.687890, 47.288276, 47.938663, 48.539050, 49.139436, 49.789823, 50.390210, 50.990596, 51.640983, 52.291369, 52.891756, 53.542143, 54.192529, 54.842916, 
+		55.443303, 56.093689, 56.744076, 57.394462, 58.044849, 58.745236, 59.395622, 60.046009, 60.696396, 61.396782, 62.047169, 62.747556, 63.397942, 64.098329, 64.748715, 65.449102
+	
+};
+
+static const double descr_approxim_mult[128] = 
+{
+		 0.0,             576.033927, 1539.585724, 2313.193545, 3084.478025, 3855.885078, 4756.332754, 5657.242476, 6558.536133, 7460.139309, 8361.990613, 9264.041672, 10166.254856, 11199.615571, 12102.233350, 13136.515398, 
+		 14039.393687,  15074.393173, 16109.866931, 17145.763345, 18182.036948, 19218.647831, 20255.561010, 21292.745815, 22330.175327, 23367.825876, 24540.507339, 25578.741286, 26752.587529, 27791.291872, 28966.144174, 30005.229117, 
+		 31180.955186,  32357.252344, 33534.082488, 34711.410459, 35889.203827, 37067.432679, 38246.069415, 39425.088562, 40604.466591, 41784.181759, 42964.213952, 44284.538859, 45465.382595, 46787.130142, 47968.686878, 49291.724522, 
+		 50473.909042,  51798.119528, 53123.060725, 54306.137507, 55632.091099, 56958.688068, 58285.899344, 59613.697438, 60942.056354, 62270.951500, 63600.359608, 64930.258655, 66260.627789, 67737.102560, 69068.620203, 70400.544942, 
+		 71879.460632,  73212.395873, 74692.932606, 76026.792904, 77508.839552, 78991.791376, 80327.002820, 81811.308203, 83296.434414, 84782.353155, 86269.037314, 87756.460905, 89244.599028, 90733.427810, 92222.924365, 93713.066749, 
+		 95203.833910,  96847.414084, 98339.659244, 99832.465294, 101479.012792, 102973.158567, 104621.682880, 106117.081106, 107767.473327, 109418.953577, 110916.202212, 112569.394820, 114223.592283, 115878.766626, 117534.890826, 119191.938777, 
+		120849.885258, 122508.705901, 124168.377156, 125828.876263, 127648.916790, 129311.319925, 130974.481906, 132798.169283, 134463.087846, 136128.703019, 137955.784611, 139784.215161, 141452.370894, 143283.009733, 145114.908442, 146948.037106, 
+		148619.357599, 150454.489089, 152290.771330, 154128.177628, 155966.682058, 157971.069246, 159812.039780, 161654.030102, 163497.017214, 165507.250512, 167352.489586, 169365.683736, 171213.071546, 173229.105499, 175078.544507, 177097.303447
+	
+};
 
 static void calc_gauss_short(double radius, short* gauss) 
 {
-	int i;
+	int i = (int)radius;
 	double dmult;
-	double std_dev, sum = 0.0;
-	double g0, g_last;
-	double n, nn, nPI, nnPI;
-	if (radius <= 1.0) {
-		gauss[0] = 1.0;
+	double std_dev;
+	if (i <= 1) {
+		gauss[0] = 1024;
 		return;
 	}
 	/* after radius of 128 - gaussian degrades into something wierd, 
 	   since our colors are only 8 bit */
-	if (radius > 128.0) radius = 128.0; 
+	if (i > 128) i = 128; 
+#if 1
+	{
+		double nn;
+		std_dev = standard_deviations[i-1];
+		dmult = descr_approxim_mult[i-1];
+		nn = 2*std_dev * std_dev ;
+		dmult /=nn*PI;
+		gauss[0] = dmult + 0.5 ;
+		while( --i >= 1 )
+			gauss[i] = exp((double)-i * (double)i / nn)*dmult + 0.5;
+	}
+#else 
+	double g0, g_last, sum = 0.;
+	double n, nn, nPI, nnPI;
 	std_dev = (radius - 1) * 0.3003866304;
 	do
 	{
@@ -2317,16 +2409,29 @@ static void calc_gauss_short(double radius, short* gauss)
 		sum += g_last*2.0 ; 
 	
 		dmult = 1024.0/sum;
-		std_dev += 0.1 ;
+		std_dev += 0.05 ;
 	}while( g_last*dmult  < 1. );
-	
 	gauss[0] = g0 * dmult + 0.5; 
 	gauss[(int)radius-1] = g_last * dmult + 0.5;
 	dmult /=nnPI;
 	for (i = 1 ; i < radius-1 ; i++)
 		gauss[i] = exp((double)-i * (double)i / nn)*dmult + 0.5;
 
-#if 1
+#endif	
+
+#if 0
+	{
+		static int count = 0 ; 
+		if( ++count == 16 ) 
+		{
+			fprintf( stderr, "\n		" );
+			count = 0 ;
+		}
+			
+		fprintf(stderr, "%lf, ", dmult*nnPI );			
+	}
+#endif
+#if 0
 	{
 		int sum_da = 0 ;
 		fprintf(stderr, "sum = %f, dmult = %f\n", sum, dmult );
@@ -2343,47 +2448,6 @@ static void calc_gauss_short(double radius, short* gauss)
 #endif	
 }
 
-#if 0 /* debug and testing code : */
-	int i, mult, sum_da = 0;
-	double n, std_dev, sum = 0.0;
-	if (radius <= 1.0) {
-		gauss[0] = 1.0;
-		return;
-	}
-	/* after radius of 128 - gaussian degrades into something wierd, 
-	   since our colors are only 8 bit */
-	if (radius > 128.0) radius = 128.0; 
-	std_dev = (radius - 1) * 0.3003866304;
-	do{
-	sum = 0 ;
-#if 1
-//	std_dev = 60.7;
-#else
-	std_dev = 0.84089642;
-#endif
-fprintf(stderr, "std_dev = %f\n", std_dev );			
-	n = 2 * std_dev * std_dev;
-	for (i = 0 ; i < radius ; i++) {
-		gauss[i] = exp((double)-i * (double)i / n)/(n*PI); 
-		sum += gauss[i] + gauss[i];
-//fprintf(stderr, "gauss[%d] = %lf\n", i, gauss[i] );		
-	}
-	sum -= gauss[0];
-	mult = (int)((1024.0+radius*0.94)/sum);
-		std_dev += 0.1 ;
-fprintf(stderr, "gauss[%d]*mult = %lf\n", i-1, gauss[i-1]*mult );		
-	}while( gauss[i-1]*mult  < 1. );
-fprintf(stderr, "sum = %f, mult = %d\n", sum, mult );			
-	for (i = 0 ; i < radius ; i++)
-	{
-//		gauss[i] /= sum;
-		sum_da += gauss[i]*2 ;
-		fprintf(stderr, "gauss[%d] = %lf, discr_approx(512) = %d, discr_approx(mult) = %d, sum = %f\n", i, gauss[i], (int)(gauss[i]*512.0), (int)(gauss[i]*(double)mult), sum );		
-	}
-	sum_da -= (int)(gauss[0]*(double)mult);
-fprintf(stderr, "sum_da = %d\n", sum_da );			
-}
-#endif		
 
 /***********************************************************************
  * Hue,saturation and lightness adjustments.
