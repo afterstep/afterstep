@@ -110,44 +110,6 @@ Bool asimage_use_mmx = True;
 #else
 Bool asimage_use_mmx = False;
 #endif
-/* ********************************************************************/
-/* initialization routines 											  */
-/* *********************************************************************/
-/* the following is depreciated - we moved to use intrinsics 	!!!!!! */
-/* ************************** MMX **************************************/
-/*inline extern*/
-int mmx_init(void)
-{
-int mmx_available = 0;
-#ifdef HAVE_MMX
-	int ebx_save;
- 	asm volatile (
-                      "movl %%ebx, %1\n\t"
-                      "movl $1, %%eax\n\t"
-                      "cpuid\n\t"
-                      "andl $0x800000, %%edx\n\t"	
-                      "movl %1, %%ebx\n\t"
-                      "movl %%edx, %0\n\t"
-                      : "=m" (mmx_available), "=m" (ebx_save)
-                      : /* no input */
-                      : "eax", "ecx", "edx"
-                     );
-#endif
-	return mmx_available;
-}
-
-int mmx_off(void)
-{
-#ifdef HAVE_MMX
-	__asm__ __volatile__ (
-                      /* exit mmx state : */
-                      "emms \n\t"
-                      : /* no output */
-                      : /* no input  */
-			  );
-#endif
-	return 0;
-}
 
 /* *********************   ASImage  ************************************/
 void

@@ -479,6 +479,41 @@ ASImage* adjust_asimage_hsv( ASVisual *asv, ASImage *src,
  * SEE ALSO
  * colorize_asimage_vector(), create_asimage(), set_asimage_vector()
  *********/
+/****f* libAfterImage/transform/slice_asimage2()
+ * NAME
+ * slice_asimage2() - slice ASImage leaving its corners intact, and scaling 
+ * the middle part.
+ * SYNOPSIS
+ * ASImage*
+ * slice_asimage2( ASVisual *asv, ASImage *src,
+ *             int slice_x_start, int slice_x_end,
+ *             int slice_y_start, int slice_y_end,
+ *             int to_width,
+ *             int to_height,
+ *             Bool scaled,
+ *             ASAltImFormats out_format,
+ *             unsigned int compression_out, int quality );
+ * INPUTS
+ * asv           - pointer to valid ASVisual structure
+ * src           - source ASImage.
+ * slice_x_start - ending of the left corners
+ * slice_x_end   - begining of the right corners
+ * slice_y_start - ending of the top corners
+ * slice_y_end   - begining of the bottom corners
+ * to_width      - width of the generated image;
+ * to_height     - height of the generated image;
+ * scaled        - if True - middle part of the image will be scaled, 
+ *                 otherwise - tiled;
+ * out_format 	 - optionally describes alternative ASImage format that
+ *                 should be produced as the result - XImage, ARGB32, etc.;
+ * compression_out- compression level of resulting image in range 0-100;
+ * quality       - output quality.
+ * RETURN VALUE
+ * New ASImage  on success, NULL on failure.
+ * SEE ALSO
+ * scale_asimage(), tile_asimage()
+ *********/
+
 Bool
 colorize_asimage_vector( ASVisual *asv, ASImage *im,
 						 ASVectorPalette *palette,

@@ -439,14 +439,13 @@ typedef struct ASGradient
  * NAME 
  * ASIM_COMPRESSION_FULL defined as 100 - highest compression level.
  * Anything in between 0 and 100 will cause only part of the scanline to 
- * be compressed.
+ * be compressed. 
+ * This is obsolete. Now all images are compressed if possible.
  ********/
 #define ASIM_COMPRESSION_NONE       0
 #define ASIM_COMPRESSION_FULL	   100
 
 extern Bool asimage_use_mmx ;
-int mmx_init(void);
-int mmx_off(void);
 
 /****f* libAfterImage/asimage/asimage_init()
  * NAME 
@@ -537,6 +536,21 @@ int mmx_off(void);
  * If there was XImage attached to it - it will be deallocated as well.
  * EXAMPLE
  * asview.c: ASView.5
+ *********/
+/****f* libAfterImage/asimage/asimage_replace()
+ * NAME
+ * asimage_replace() will replace ASImage's data using data from 
+ * another ASImage
+ * SYNOPSIS
+ * Bool asimage_replace (ASImage *im, ASImage *from);
+ * INPUTS
+ * im				- pointer to valid ASImage structure.
+ * from				- pointer to ASImage from which to take the data.
+ * NOTES
+ * this function updates image without reallocating structure itself, which 
+ * means that all pointers to it will still be valid. If that function 
+ * succeeds - [from] ASImage will become unusable and should be deallocated 
+ * using free() call.
  *********/
 void asimage_init (ASImage * im, Bool free_resources);
 void flush_asimage_cache( ASImage *im );
@@ -649,6 +663,18 @@ void     destroy_image_manager( struct ASImageManager *imman, Bool reusable );
  * Adds specifyed image to the ASImageManager's list of referenced images.
  * Stored ASImage could be deallocated only by release_asimage(), or when
  * ASImageManager object itself is destroyed.
+ *********/
+/****f* libAfterImage/asimage/relocate_asimage()
+ * NAME
+ * relocate_asimage()  relocate ASImage into a different image manager.
+ * SYNOPSIS
+ * void	 relocate_asimage( ASImageManager* to_imageman, ASImage *im );
+ * INPUTS
+ * to_imageman        - pointer to valid ASImageManager object.
+ * im              - pointer to the image to be stored.
+ * DESCRIPTION
+ * Moves image from one ASImageManager's list of referenced images into 
+ * another ASImageManager. Reference count will be kept the same.
  *********/
 Bool     store_asimage( ASImageManager* imageman, ASImage *im, const char *name );
 void	 relocate_asimage( ASImageManager* to_imageman, ASImage *im );
@@ -1060,6 +1086,26 @@ typedef struct XRectangle
 }XRectangle ;
 #endif
 
+/****f* libAfterImage/asimage/get_asimage_channel_rects()
+ * NAME
+ * get_asimage_channel_rects() - translate image into a 
+ * list of rectangles.
+ * SYNOPSIS
+ * XRectangle* 
+ *     get_asimage_channel_rects( ASImage *src, int channel, 
+ *                                unsigned int threshold, 
+ *                                unsigned int *rects_count_ret ); 
+ * INPUTS
+ * src         - ASImage which will donate its channel to dst;
+ * channel     - what source image channel to copy data from;
+ * threshold   - threshold to compare channel values against;
+ * rects_count_ret - returns count of generated rectangles.
+ * DESCRIPTION
+ * This function will translate contents of selected channel 
+ * (usualy alpha) into a list of rectangles, ecompasing regions 
+ * with values above the threshold. This is usefull to generate shape
+ * of the window to be used with X Shape extention.
+ *********/
 XRectangle*
 get_asimage_channel_rects( ASImage *src, int channel, unsigned int threshold, unsigned int *rects_count_ret );
 
