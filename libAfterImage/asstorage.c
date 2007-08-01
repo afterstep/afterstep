@@ -1656,7 +1656,7 @@ card8_threshold( ASStorageDstBuffer *dst, void *src, size_t size)
 	dst->end = end ;
 }	 
 
-static inline int  
+static int  
 fetch_data_int( ASStorage *storage, ASStorageID id, ASStorageDstBuffer *buffer, int offset, int buf_size, CARD8 bitmap_value, 
 		  		data_cpy_func_type cpy_func, int *original_size)
 {

@@ -218,11 +218,12 @@ asim_put_file_home (const char *path_with_home)
 	if (path_with_home == NULL)
 		return NULL;
 	/* home dir ? */
-	if (path_with_home[0] != '~' || path_with_home[1] != '/')
-	{
-		char *t = mystrdup (path_with_home);
-		return t;
-	}
+	if ( strncmp(  path_with_home, "$HOME/", 6 ) == 0 )
+		path_with_home += 5 ;
+	else if (path_with_home[0] == '~' && path_with_home[1] == '/')
+		path_with_home += 1 ;
+	else
+		return mystrdup(path_with_home);
 
 	if (home == NULL)
 	{
@@ -231,9 +232,9 @@ asim_put_file_home (const char *path_with_home)
 		home_len = strlen (home);
 	}
 
-	for (i = 2; path_with_home[i]; i++);
-	str = safecalloc (1, home_len + i);
-	for (ptr = str + home_len-1; i > 0; i--)
+	for (i = 0; path_with_home[i]; i++);
+	str = safemalloc (home_len + i + 1);
+	for (ptr = str + home_len; i >= 0; i--)
 		ptr[i] = path_with_home[i];
 	for (i = 0; i < home_len; i++)
 		str[i] = home[i];
@@ -340,9 +341,9 @@ asim_find_file (const char *file, const char *pathlist, int type)
 	len = i ;
 	for (ptr = (char *)pathlist; *ptr; ptr += i)
 	{
-		if (*ptr == ':' || *ptr == PATH_SEPARATOR_CHAR)
+		if (*ptr == PATH_SEPARATOR_CHAR )
 			ptr++;
-		for (i = 0; ptr[i] && ptr[i] != ':' && ptr[i] != PATH_SEPARATOR_CHAR; i++);
+		for (i = 0; ptr[i] && ptr[i] != PATH_SEPARATOR_CHAR; i++);
 		if (i > max_path)
 			max_path = i;
 	}
@@ -354,20 +355,25 @@ asim_find_file (const char *file, const char *pathlist, int type)
 	ptr = (char*)&(pathlist[0]) ;
 	while( ptr[0] != '\0' )
 	{
-		for( i = 0 ; ptr[i] == ':' || ptr[i] == PATH_SEPARATOR_CHAR; ++i );
+		int skip ;
+		for( i = 0 ; ptr[i] == PATH_SEPARATOR_CHAR; ++i );
 		ptr += i ;
-		for( i = 0 ; ptr[i] != ':' && ptr[i] != PATH_SEPARATOR_CHAR && ptr[i] != '\0' ; ++i );
+		for( i = 0 ; ptr[i] != PATH_SEPARATOR_CHAR && ptr[i] != '\0'; ++i );
+		skip = i ;
+		if( i > 0 && ptr[i-1] == PATH_CHAR )
+			i-- ;
 		if( i > 0 )
 		{
-			strncpy( path+max_path-i, ptr, i );
-			if (access(path, type) == 0)
+			register char *try_path = path+max_path-i;
+			strncpy( try_path, ptr, i );
+			if (access(try_path, type) == 0)
 			{
-				char* res = mystrdup(path+max_path-i);
+				char* res = mystrdup(try_path);
 				free( path );
 				return res;
 			}
 		}
-		ptr += i ;
+		ptr += skip ;
 	}
 	free (path);
 	return NULL;

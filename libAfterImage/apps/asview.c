@@ -99,6 +99,7 @@ int main(int argc, char* argv[])
 #ifndef X_DISPLAY_MISSING
 		Window w ;
 #if 0
+		/* test example for get_asimage_channel_rects() : */
 		XRectangle *rects ;	unsigned int rects_count =0; int i ;
 		rects = get_asimage_channel_rects( im, IC_ALPHA, 10, 
 											&rects_count );
@@ -138,19 +139,15 @@ int main(int argc, char* argv[])
 			XMapRaised   (dpy, w);
 			XSync(dpy,False);
 			/* see ASView.5 : */
-			show_warning( "asimage2pmap");
 	  		p = create_visual_pixmap( asv, DefaultRootWindow(dpy), im->width, im->height, 0 );
 	
 			{
 				/*int i ;*/
 				START_TIME(started);
-				time_t t = time(NULL);
-				/* for( i = 0 ; i < 100 ; ++i )  */
-					asimage2drawable( asv, p, im, NULL, 0, 0, 0, 0, im->width, im->height, False);
+				/* for( i = 0 ; i < 100 ; ++i )  To test performance! */
+				asimage2drawable( asv, p, im, NULL, 0, 0, 0, 0, im->width, im->height, False);
 				SHOW_TIME("", started);
-				show_progress( "runtime = %d sec\n", time(NULL)-t );
 			}
-			show_warning( "asimage2pmap Done");
 			/* print_storage(NULL); */
 			destroy_asimage( &im );
 			/* see common.c:set_window_background_and_free(): */
@@ -169,11 +166,13 @@ int main(int argc, char* argv[])
 	}
 
 #ifdef DEBUG_ALLOCS
+    /* different cleanups of static memory pools : */
     flush_ashash_memory_pool();
 	asxml_var_cleanup();
 	custom_color_cleanup();
     build_xpm_colormap( NULL );
 	flush_default_asstorage();
+	/* requires libAfterBase */
 	print_unfreed_mem();
 #endif
 

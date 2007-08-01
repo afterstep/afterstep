@@ -47,8 +47,11 @@ AC_ARG_WITH(builtin_xpm,    [  --with-builtin-xpm       use builtin XPM parsing/
 AC_ARG_WITH(xpm_includes,   [  --with-xpm-includes=DIR  use libXpm includes in DIR( when builtin XPM handling is disabled )], xpm_includes="$withval", xpm_includes=NO)
 AC_ARG_WITH(jpeg,		    [  --with-jpeg              support JPEG image format [yes]])
 AC_ARG_WITH(jpeg_includes,  [  --with-jpeg-includes=DIR use JPEG includes in DIR], jpeg_includes="$withval", jpeg_includes=NO)
+AC_ARG_WITH(builtin_jpeg,   [  --with-builtin-jpeg      use included JPEG  library [no]],with_builtin_jpeg="$withval",with_builtin_jpeg=no)
 AC_ARG_WITH(png,		    [  --with-png               support PNG image format [yes]])
 AC_ARG_WITH(png_includes,   [  --with-png-includes=DIR  use PNG includes in DIR], png_includes="$withval", png_includes=NO)
+AC_ARG_WITH(builtin_png,    [  --with-builtin-png       use included PNG library [no]],with_builtin_png="$withval",with_builtin_png=no)
+AC_ARG_WITH(builtin_zlib,   [  --with-builtin-zlib      use included libZ library (needed for PNG) [no]],with_builtin_zlib="$withval",with_builtin_zlib=no)
 AC_ARG_WITH(ungif,		    [  --with-ungif             support Uncompressed GIF image format using libungif [no]],with_ungif="$withval",with_ungif=no)
 AC_ARG_WITH(gif,		    [  --with-gif               support GIF image format using libgif   [no]],with_gif="$withval",with_gif=no)
 AC_ARG_WITH(gif_includes,   [  --with-gif-includes=DIR  use GIF includes in DIR], gif_includes="$withval", gif_includes=NO)
@@ -325,12 +328,17 @@ else
 	JPEG_CFLAGS="-I$jpeg_includes"
 	CPPFLAGS="$CPPFLAGS $JPEG_CFLAGS"
   fi
-  AC_CHECK_HEADER(jpeglib.h,have_jpeg=yes)
+  if test "with_builtin_jpeg" = yes -a ! -f libjpeg/jpeglib.h; then
+  	with_builtin_jpeg=no
+  fi
+  if test "$with_builtin_jpeg" = no; then
+	  AC_CHECK_HEADER(jpeglib.h,have_jpeg=yes)
+  fi
   if test "$have_jpeg" = yes; then
 	AC_DEFINE(HAVE_JPEG,1,[Define if libjpeg is available]) 
 	AFTERIMAGE_LIBS="$AFTERIMAGE_LIBS -ljpeg"
   else
-	AC_MSG_CHECKING(using built-in JPEG library) 
+	AC_MSG_CHECKING(built-in JPEG library) 
 	if test -f libjpeg/jpeglib.h; then
 		JPEG_OBJS='$(LIBJPEG_OBJS)'
 		AC_DEFINE(HAVE_JPEG,1,[Define if libjpeg is available]) 
@@ -351,7 +359,8 @@ AC_CHECK_TYPE(unsigned short)
 AC_C_CONST
 AC_C_CHAR_UNSIGNED
 
-AC_CHECK_HEADERS(zlib.h,[have_zlib=yes],[have_zlib=no])
+have_png=no
+have_zlib=no
 
 if test "$with_png" = no; then
   have_png=disabled
@@ -361,8 +370,19 @@ else
 	PNG_CFLAGS="-I$png_includes"
 	CPPFLAGS="$CPPFLAGS $PNG_CFLAGS"
   fi
-  have_png=no
-  AC_CHECK_HEADER(png.h,have_png=yes)
+  if test "$with_builtin_png" = yes -a ! -f libpng/png.h; then 
+  	  with_builtin_png=no
+  fi
+  if test "$with_builtin_zlib" = yes -a ! -f zlib/zlib.h; then 
+  	  with_builtin_zlib=no
+  fi
+  
+  if test "$with_builtin_png" = no; then
+	  AC_CHECK_HEADER(png.h,[have_png=yes with_builtin_zlib=no])
+  fi
+  if test "$with_builtin_zlib" = no; then
+	  AC_CHECK_HEADERS(zlib.h,[have_zlib=yes],[have_zlib=no])
+  fi
   if test "$have_png" = yes; then
         AC_MSG_CHECKING(for png_get_sRGB in png.h)
         AC_EGREP_HEADER(png_get_sRGB,png.h,,have_png=no)
@@ -373,14 +393,14 @@ else
         AFTERIMAGE_LIBS="$AFTERIMAGE_LIBS -lpng"
         image_format="png"
   else 
-	AC_MSG_CHECKING(using built-in PNG libraries) 
+	AC_MSG_CHECKING(built-in PNG library) 
 	if test -f libpng/png.h; then
 		PNG_OBJS='$(LIBPNG_OBJS)'	
 	        AC_DEFINE(HAVE_PNG,1,[Define if libpng is available])
         	AC_DEFINE(HAVE_BUILTIN_PNG,1,[Define if using builtin libpng])
 		AC_MSG_RESULT(yes)	     
 		if test "$have_zlib" = no; then 
-			AC_MSG_CHECKING(using built-in ZLIB library) 
+			AC_MSG_CHECKING(built-in ZLIB library) 
 			if test -f zlib/zlib.h; then
 				ZLIB_OBJS='$(ZLIB_OBJS)'
 				AC_MSG_RESULT(yes)	     
