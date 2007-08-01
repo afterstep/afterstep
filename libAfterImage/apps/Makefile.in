@@ -40,7 +40,7 @@ MAN_DIR		= $(DESTDIR)@mandir@/man1
 AFTER_DIR	= @with_afterdir@
 
 # need this for dependancies :
-LIBAFTERIMAGE_PATH = ../../libAfterImage
+LIBAFTERIMAGE_PATH =..
 LIB_STATIC      = $(LIBAFTERIMAGE_PATH)/libAfterImage.a
 LIB_SHARED      = $(LIBAFTERIMAGE_PATH)/libAfterImage.so
 
