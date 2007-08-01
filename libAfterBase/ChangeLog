@@ -1,4 +1,59 @@
 
+2007-07-23  sasha
+
+	* added sorting keyword by alpha to doc generation
+
+2007-07-20  sasha
+
+	* fixed many valgrind messages related to uninitialized memory in
+	  libAfterImage and libAfterBase; Fixed WinTabs to take into
+	  consideration window's gravity and frame rectangle while
+	  determining where to unswallow the window.
+
+2007-07-12  sasha
+
+	* added fixes for using proper dpy (from ASVisual structure) in
+	  many cases
+
+2007-07-10  sasha
+
+	* fixed compilation without X in libAfterImage
+	* reduced modules memory usage by making fonts loading on demand,
+	  instead of on look change
+
+2007-07-09  sasha
+
+	* fixed few emory leaks (minor)
+
+2007-07-06  sasha
+
+	* fixed several critical bugs in causing double free and heap
+	  corruption, based on valgrind traces
+	* reimplemented selfdiag code using proper techniques of backtrace_
+	  functions
+
+2007-07-05  sasha
+
+	* fixed memory leak in self-diag functionality - memory returned
+	  from backtrace glibc call has to be freed. That was causing
+	  massive fragmentation of the heap, and memory abuse by AfterStep.
+	  Still need to fix same stuff in print_backtrace function
+	* added functionality to use statically allocated structs for
+	  sending modules messages - no need to bother with heap for that.
+
+2007-06-22  sasha
+
+	* Improved on location where submenus are opened, to make sure they
+	  don't completely cover parents
+
+2007-06-06  jeremy
+
+	* add alsa detection to configure
+
+2007-05-17  sasha
+
+	* updated ChangeLogs for relesae
+
 2007-05-01  sasha
 
 	* Implemented support for root window having different color depth

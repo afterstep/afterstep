@@ -306,16 +306,18 @@ LOCAL_DEBUG_CALLER_OUT( "file \"%s\", pathlist = \"%s\"", file, pathlist );
 			max_path = i;
 	}
 
-	path = safemalloc (max_path + 1 + len + 1);
+	path = safecalloc (1, max_path + 1 + len + 1);
 	strcpy( path+max_path+1, file );
 	path[max_path] = '/' ;
 
 	ptr = (char*)&(pathlist[0]) ;
 	while( ptr[0] != '\0' )
 	{
+		int skip ;
 		for( i = 0 ; ptr[i] == ':' ; ++i );
 		ptr += i ;
 		for( i = 0 ; ptr[i] != ':' && ptr[i] != '\0' ; ++i );
+		skip = i ;
 		if( i > 0 && ptr[i-1] == '/' )
 			i-- ;
 		if( i > 0 )
@@ -335,10 +337,7 @@ LOCAL_DEBUG_OUT( " found at: \"%s\"", res );
 				show_system_error(" looking for file %s:", file );
 #endif
 		}
-		if( ptr[i] == '/' )
-			ptr += i+1 ;
-		else
-			ptr += i ;
+		ptr += skip ;
 	}
 	free (path);
 	return NULL;

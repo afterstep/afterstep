@@ -1,11 +1,247 @@
 
+2007-08-01  sasha
+
+	* Updated embedded libPNG and Zlib to latest versions; Fixed bugs
+	  in find_file when compiled without libAfterBase.
+
+2007-08-01  speedy
+
+	* cleaned-up Animate module docs.
+	* updates to documentation.
+
+2007-08-01  sasha
+
+	* libAfterImage v. 1.15 release
+
+2007-07-31  sasha
+
+	* added some docs to libAfterImage
+	* Completed refactoring gaussian blur code. It now works both in
+	  vertical and horizontal direction. Maximum blur radius is 128,
+	  and its bloody fast too
+	* optimizations to gaussian blur and fixed mystrdup(NULL) in libAI
+	  standalone
+	* fixed gaussian blur at the begining and the end; added lookup
+	  tables for standard deviation and multiplier, prototyped vertical
+	  pass
+
+2007-07-30  sasha
+
+	* implemented integer math version of gaussian blur algorithm
+	* fixed blur function to not limit radius to 10 and properly
+	  calculate gaussian distribution
+
+2007-07-28  sasha
+
+	* switched timing printing off
+
+2007-07-27  sasha
+
+	* some additions to asstorage attempting to improve performance in
+	  XImage reading - unsuccessfull
+
+2007-07-26  sasha
+
+	* Cleaned up libAfterImage to compile without libAfterBase and
+	  added fiunctions to ger drawable size and window position for a
+	  specific display
+
+2007-07-25  sasha
+
+	* fixes to libAfterImage to get it compiling without libAfterBase
+	  and to reduce valgrind complaints about uninitiolized memory
+
+2007-07-23  sasha
+
+	* added sorting keyword by alpha to doc generation
+	* wintabs config should be installed
+
+2007-07-21  speedy
+
+	* added the Unicode logo to urxvt.
+
+2007-07-20  sasha
+
+	* fixed many valgrind messages related to uninitialized memory in
+	  libAfterImage and libAfterBase; Fixed WinTabs to take into
+	  consideration window's gravity and frame rectangle while
+	  determining where to unswallow the window.
+	* fixed image reloading to keep relevant flags - that was messing
+	  up wharf's support for look defined folder icon. That should also
+	  speedup repeated changes of look
+	* adding support in Wharf for look-specific folder pixmap - so far
+	  only works 2 times, then stops changing - wierd
+
+2007-07-19  sasha
+
+	* further safeguarding agains running out of storage slots in
+	  asstorage
+	* fixed Pager's layout when No Label is drawn
+
+2007-07-18  sasha
+
+	* fixed WinTabs changing its geometry on look changes
+	* fixed random segfault in Pager caused by uninitialized MyFont
+	  structure; Fixed random segfault in modules, caused by double
+	  freeing of the same ASImage in titlebar buttons refreshing code.
+
+2007-07-17  sasha
+
+	* fixed the way dumb scaling up along Y axist was screwing up
+	  slicing of the small images.
+	* fixed stupid dumb bug in make_scales introduced in porevious fix
+	* fixed a long-standing bug with slicing images getting a vertical
+	  stripe tovards the end. Thanks DrCurl for your Patience
+	* fixed a long-standing bug with slicing images geting a vertical
+	  stripe tovards the end. Thanks DrCurl for your Patience.
+
+2007-07-16  sasha
+
+	* hopefully fixed mixup with inheriting/merging fonts
+
+2007-07-13  sasha
+
+	* added a search for .svg files when icon name is missing extention
+	  make
+
+2007-07-12  sasha
+
+	* added fixes for using proper dpy (from ASVisual structure) in
+	  many cases
+
+2007-07-11  sasha
+
+	* fixed compilation without libPNG; added ability to change default
+	  asstorage block size
+	* fixed bar rendering to have proper values used for unset
+	  hue/saturation, which eliminates one extra ASImage from being
+	  rendered
+
+2007-07-10  sasha
+
+	* fixed bugs intriduced my on demand loading of MyStyle fonts -
+	  menu minipixmap size and corrupt memory due to double free
+	* fixed compilation without X in libAfterImage
+	* reduced modules memory usage by making fonts loading on demand,
+	  instead of on look change
+
+2007-07-09  speedy
+
+	* eliminated configure flags. Terms will rely on Xdefaults and
+	  config files.
+
+2007-07-09  sasha
+
+	* fixed few emory leaks (minor)
+
+2007-07-08  madarche
+
+	* M.-A. Darche :
+
+	  Removed useless commented-out line.
+
+2007-07-07  speedy
+
+	* Added urxvt to menus, cleaned-up top and mlterm.
+
+2007-07-06  sasha
+
+	* fixed several critical bugs in causing double free and heap
+	  corruption, based on valgrind traces
+	* reimplemented selfdiag code using proper techniques of backtrace_
+	  functions
+
+2007-07-05  sasha
+
+	* fixed memory leak in self-diag functionality - memory returned
+	  from backtrace glibc call has to be freed. That was causing
+	  massive fragmentation of the heap, and memory abuse by AfterStep.
+	  Still need to fix same stuff in print_backtrace function
+	* added functionality to use statically allocated structs for
+	  sending modules messages - no need to bother with heap for that.
+
 2007-07-05  madarche
 
-	* fixed a Makefile installation problem if the user installing is using
-	  a umask value of 077.
+	* M.-A. Darche :
+
+	  Fixed a Makefile installation problem if the user installing is
+	  using a umask value of 077.
+
+	  First message about this issue :
+	  http://mail.afterstep.org/pipermail/as-users/2007-May/001992.html
+
+	  Last message explaining the fix :
+	  http://mail.afterstep.org/pipermail/as-users/2007-May/002017.html
+
+2007-07-03  sasha
+
+	* eleminated excessive redraws when app resizes its icon while not
+	  being in iconic state; Eleminated excessive updates when app
+	  changes WM_HINTS midflight to exact same values (GTK apps)
+
+2007-07-02  sasha
+
+	* fixed handling on window layer set in gnome hints - should not
+	  divide by two
+
+2007-06-30  jeremy
+
+	* Audio module reading events better
+
+2007-06-22  sasha
+
+	* Improved on location where submenus are opened, to make sure they
+	  don't completely cover parents
+
+2007-06-18  born2late
+
+	* little typo correction to see if i get mail from cvs mailing list
+
+2007-06-09  jeremy
+
+	* changed Audio to Sound in module header.
+	* sound2 module able to receive event messages now
+
+2007-06-08  jeremy
+
+	* more sound2 module testing
+	* Sound2 builds.. but doesnt do anything
+
+2007-06-07  jeremy
+
+	* more Sound2 code
+	* configure really makes sound2 makefile now
+	* configure make sound2 makefile now
+
+2007-06-06  jeremy
+
+	* Added new sound module: Sound2
+	* alsa lib var to makefile
+	* add alsa detection to configure
+
+2007-06-06  sasha
+
+	* Added DontCoverDesktop feel flag and fixed handling of several
+	  flags in feel in cases where value would be specified
+
+2007-06-05  born2late
+
+	* hopefully got check right, sorry sasha !
+	* little <hr> beautification for php part (_related files)
+
+2007-06-01  sasha
+
+	* added support for x-terminal-emulator and editor from
+	  alternatives; Fixed handling of ampty ShadeButton setting in
+	  Pager config
+
+2007-05-30  sasha
+
+	* Fixed typo causing ttf configure parameteers being ignored
 
 2007-05-17  sasha
 
+	* updated ChangeLogs for relesae
 	* AfterStep 2.2.6 relase
 
 2007-05-15  sasha
