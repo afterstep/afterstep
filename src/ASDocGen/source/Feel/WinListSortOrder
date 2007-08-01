@@ -1,6 +1,6 @@
 <varlistentry id="options.WinListSortOrder">
-	<term>WinListSortOrder</term>
+	<term>WinListSortOrder <emphasis remap='I'>0/1/2/3</emphasis></term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Arranges WinList entries based-on the following qualifiers: 0 - circulations order (default), 1 - Alpha order, 2 - Stacking order (unimplemented), 3 - creation order (unimplemented).</para>
 	</listitem>
 </varlistentry>

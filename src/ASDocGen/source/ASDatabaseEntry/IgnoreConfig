@@ -1,6 +1,7 @@
 <varlistentry id="options.IgnoreConfig">
 	<term>IgnoreConfig</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>AfterStep will ignore a client's attempts to reposition its window after it has been mapped on the screen. Opposite of HonorConfig.</para>
+		<para>See Also: HonorConfig.</para>
 	</listitem>
 </varlistentry>

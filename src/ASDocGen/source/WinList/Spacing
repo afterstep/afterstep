@@ -1,6 +1,6 @@
 <varlistentry id="options.Spacing">
-	<term>Spacing</term>
+	<term>Spacing <emphasis remap='I'>pixels</emphasis></term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Based-on the WinList font height, this function adds the specified number of pixels above and below the displayed text. Note that this function will also increase the size of the icon images in WinList.</para>
 	</listitem>
 </varlistentry>

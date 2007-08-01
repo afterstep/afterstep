@@ -1,7 +1,7 @@
-<varlistentry id="options.Twist">
-	<term>Twist</term>
+<varlistentry id="options.AnimateTwist">
+	<term>AnimateTwist <emphasis remap='I'>revolutions</emphasis></term>
 	<listitem>
-		<para>Tells Animate how many revolutions to twist the iconification
-		frame.</para>
+		<para>Tells Animate how many revolutions to twist the iconification frame.</para>
+		<para>Note: The above configuration option "AnimateTwist" should not be confused with the AnimateResize mode "Twist".
 	</listitem>
 </varlistentry>

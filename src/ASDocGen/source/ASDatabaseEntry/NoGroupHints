@@ -1,6 +1,7 @@
 <varlistentry id="options.NoGroupHints">
 	<term>NoGroupHints</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>AfterStep will not utilize a group hint set on the client's window. Opposite of HonorGroupHints.</para>
+		<para>See Also: HonorGroupHints.</para>
 	</listitem>
 </varlistentry>

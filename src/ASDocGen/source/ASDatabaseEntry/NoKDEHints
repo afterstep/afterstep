@@ -1,6 +1,7 @@
 <varlistentry id="options.NoKDEHints">
 	<term>NoKDEHints</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>AfterStep will not honor KDE specific hints set on the client's window. Opposite of HonorKDEHints.</para>
+		<para>See Also: HonorKDEHints.</para>
 	</listitem>
 </varlistentry>

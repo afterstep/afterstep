@@ -1,6 +1,7 @@
 <varlistentry id="options.HonorGnomeHints">
 	<term>HonorGnomeHints</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Forces AfterStep to use the desktop, layer, and other hints data that a client sets on its window using the old, outdated GNOME window management hints. The opposite is NoGnomeHints.</para>
+		<para>See Also: NoGnomeHints.</para>
 	</listitem>
 </varlistentry>

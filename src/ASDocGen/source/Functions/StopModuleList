@@ -1,6 +1,6 @@
 <varlistentry id="options.StopModuleList">
 	<term>StopModuleList</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Stops all AfterStep modules.</para>
 	</listitem>
 </varlistentry>

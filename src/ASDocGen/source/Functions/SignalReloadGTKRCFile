@@ -1,6 +1,6 @@
 <varlistentry id="options.SignalReloadGTKRCFile">
 	<term>SignalReloadGTKRCFile</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Forces all GTK apps to reload the gtkrc files.</para>
 	</listitem>
 </varlistentry>

@@ -1,6 +1,6 @@
 <varlistentry id="options.Flip">
 	<term>Flip</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>When iconified, windows will turn-over from top to bottom while shrinking.</para>
 	</listitem>
 </varlistentry>

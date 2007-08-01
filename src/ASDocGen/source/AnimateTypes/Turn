@@ -1,6 +1,6 @@
 <varlistentry id="options.Turn">
 	<term>Turn</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>When iconified, windows will revolve from left to right while shrinking.</para>
 	</listitem>
 </varlistentry>

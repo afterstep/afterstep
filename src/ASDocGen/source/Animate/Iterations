@@ -1,5 +1,5 @@
-<varlistentry id="options.Iterations">
-	<term>Iterations</term>
+<varlistentry id="options.AnimateIterations">
+	<term>AnimateIterations <emphasis remap='I'>steps</emphasis></term>
 	<listitem>
 		<para>Tells Animate how many steps to break the animation into.</para>
 	</listitem>

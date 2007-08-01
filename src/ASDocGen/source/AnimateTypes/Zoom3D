@@ -1,6 +1,6 @@
 <varlistentry id="options.Zoom3D">
 	<term>Zoom3D</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>When iconified, windows will shrink with a 3D tunnel-effect.</para>
 	</listitem>
 </varlistentry>

@@ -1,6 +1,7 @@
 <varlistentry id="options.HonorExtWMHints">
 	<term>HonorExtWMHints</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Forces AfterStep to use extended window management hints that the client sets on its windows. These generally include window type (dialog, desktop, menu, etc), window state (minimized, maximized, shaded, etc.), desktop, icon and additional data. Note that these window-type hints cause AfterStep to apply one of its policies, which may result in missing decorations, a non-default layer, and other potential irregularities. The opposite is NoExtWMHints.</para>
+		<para>See Also: NoExtWMHints.</para>
 	</listitem>
 </varlistentry>

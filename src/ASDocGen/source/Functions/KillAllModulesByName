@@ -1,6 +1,6 @@
 <varlistentry id="options.KillAllModulesByName">
 	<term>KillAllModulesByName</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Kills AfterStep modules with a provided matching name.</para>
 	</listitem>
 </varlistentry>

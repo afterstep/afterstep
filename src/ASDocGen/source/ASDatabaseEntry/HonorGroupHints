@@ -1,6 +1,7 @@
 <varlistentry id="options.HonorGroupHints">
 	<term>HonorGroupHints</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>AfterStep will utilize a group hint set on the client's window. This will make AfterStep apply group management policies to all windows of the client. For example: when one window in the group is moved to a different desktop, all other windows will follow. Group members will usually be stacked together and utilize the layer of the member with the highest layer within the given group. Transient windows belonging to one of the members will overlay all of the members. The opposite is NoGroupHints.</para>
+		<para>See Also: NoGroupHints.</para>
 	</listitem>
 </varlistentry>

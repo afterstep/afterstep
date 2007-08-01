@@ -1,7 +1,7 @@
 <varlistentry id="options.StickyBevel">
 	<term>StickyBevel</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Style used when defining the Bevel appearance for Sticky windows (those windows tagged as Sticky that appear on all views and desktops).</para>
 		<para>See Also: <ulink url="Bevel#synopsis">Bevel flags</ulink> for further details.</para>
 	</listitem>
 </varlistentry>

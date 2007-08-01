@@ -1,5 +1,6 @@
 <section label="synopsis" id="synopsis">
 <cmdsynopsis>
-<command>Animate</command> [<ulink url="AfterStep#standard_options_list">standard options</ulink>] 
+<command>Animate</command> [<ulink url="AfterStep#standard_options_list">standard options</ulink>]
+	<para>The configuration options listed below are set in the configuration file "animate", located in $SHAREDIR/afterstep/ and copied to and edited in $HOME/.afterstep/ (~/.afterstep/).</para>
 </cmdsynopsis>
 </section>

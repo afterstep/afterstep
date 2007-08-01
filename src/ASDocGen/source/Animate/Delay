@@ -1,7 +1,6 @@
-<varlistentry id="options.Delay">
-	<term>Delay</term>
+<varlistentry id="options.AnimateDelay">
+	<term>AnimateDelay <emphasis remap='I'>milliseconds</emphasis></term>
 	<listitem>
-		<para>Tells Animate how many milliseconds to sleep between  frames  of
-		animation.</para>
+		<para>Tells Animate how many milliseconds to sleep between frames of animation.</para>
 	</listitem>
 </varlistentry>

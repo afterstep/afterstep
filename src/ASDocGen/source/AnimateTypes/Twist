@@ -1,7 +1,6 @@
 <varlistentry id="options.Twist">
-	<term>Twist <emphasis remap='I'>twist</emphasis></term>
+	<term>Twist</term>
 	<listitem>
-		<para>Tells Animate how many revolutions to twist the iconification
-		frame.</para>
+		<para>When iconified, windows will rotate counter-clockwise while shrinking.</para>
 	</listitem>
 </varlistentry>

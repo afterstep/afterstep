@@ -1,6 +1,6 @@
 <varlistentry id="options.Extra">
 	<term>Extra</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Adds extra thickness to 3D Bevel appearance.</para>
 	</listitem>
 </varlistentry>

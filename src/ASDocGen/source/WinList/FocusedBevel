@@ -1,7 +1,7 @@
 <varlistentry id="options.FocusedBevel">
 	<term>FocusedBevel</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Style used when defining the Bevel appearance for the active window.</para>
 		<para>See Also: <ulink url="Bevel#synopsis">Bevel flags</ulink> for further details.</para>
 	</listitem>
 </varlistentry>

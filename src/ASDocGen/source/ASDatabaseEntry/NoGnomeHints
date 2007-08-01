@@ -1,6 +1,7 @@
 <varlistentry id="options.NoGnomeHints">
 	<term>NoGnomeHints</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Causes AfterStep to disregard layer properties and several obsolete properties for a window. Opposite of HonorGnomeHints.</para>
+		<para>See Also: HonorGnomeHints.</para>
 	</listitem>
 </varlistentry>

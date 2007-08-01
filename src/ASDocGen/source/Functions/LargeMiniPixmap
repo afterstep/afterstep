@@ -1,6 +1,7 @@
 <varlistentry id="options.LargeMiniPixmap">
-	<term>LargeMiniPixmap</term>
+	<term>LargeMiniPixmap <emphasis remap='I'>pixmap</emphasis></term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Specifies a given pixmap to display to the left of the menu item which invokes this menu, or in the title of this menu. Used in menu entries instead of MiniPixmap when it is not desired to scale-down a pixmap image. Pixmap images are full-size. Opposite is SmallMiniPixmap.</para>
+		<para>See Also: MiniPixmap, SmallMiniPixmap, MenuMiniPixmaps.</para>
 	</listitem>
 </varlistentry>

@@ -1,6 +1,7 @@
 <varlistentry id="options.HonorMotifHints">
 	<term>HonorMotifHints</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>AfterStep will honor Motif specific hints set on the client's window. This includes any decorations that need to be drawn around it and any functions (minimize/maximize/re-size/move) that it supports. The opposite is NoMotifHints.</para>
+		<para>See Also: NoMotifHints.</para>
 	</listitem>
 </varlistentry>

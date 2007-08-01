@@ -1,7 +1,6 @@
 <varlistentry id="options.Path">
-	<term>Path</term>
+	<term>Path <emphasis remap='I'>path:path:path</emphasis></term>
 	<listitem>
-		<para>For the moment this has no meaning.</para>
-		<para>FIXME: add proper description here as soon it has.</para>
+		<para>Specifies the search paths for icons (IconPath), fonts (FontPath), pixmaps (PixmapPath), cursors (CursorPath) and scripts (ScriptPath). Multiple entries for a given search path are separated by a colon.</para>
 	</listitem>
 </varlistentry>

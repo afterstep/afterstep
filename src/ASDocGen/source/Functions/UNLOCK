@@ -1,6 +1,6 @@
 <varlistentry id="options.UNLOCK">
 	<term>UNLOCK</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Do not use. Internal function.</para>
 	</listitem>
 </varlistentry>

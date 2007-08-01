@@ -1,6 +1,7 @@
 <varlistentry id="options.LongLiving">
 	<term>LongLiving</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>A window will stay on the screen long enough to allow application of different placement policies, such as AvoidCover. Opposite of ShortLiving.</para>
+		<para>See Also: ShortLiving.</para>
 	</listitem>
 </varlistentry>

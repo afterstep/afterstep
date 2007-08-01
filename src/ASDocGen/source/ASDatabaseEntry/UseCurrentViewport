@@ -1,6 +1,7 @@
 <varlistentry id="options.UseCurrentViewport">
 	<term>UseCurrentViewport</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>AfterStep will treat an application as if it is relative to the current viewport's origin, when that application specifies its geometry at the time of mapping.</para>
+		<para>See Also: UseAnyViewport.</para>
 	</listitem>
 </varlistentry>

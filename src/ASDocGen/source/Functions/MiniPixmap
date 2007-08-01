@@ -1,7 +1,7 @@
 <varlistentry id="options.MiniPixmap">
-<term>MiniPixmap <emphasis remap='I'>pixmap</emphasis></term>
-      <listitem>
-<para>Specifies a pixmap to display to the left of the menu item which invokes
-this menu, and in the title of this menu.</para>
+<term>MiniPixmap  <emphasis remap='I'>pixmap</emphasis></term>
+ 	<listitem>
+		<para>Specifies a given pixmap to display to the left of the menu item which invokes this menu, or in the title of this menu. Default pixmap size is 24x24 pixels; this size can be adjusted in Look via MiniPixmapSize.</para>
+		<para>See Also: MinipixmapSize, LargeMiniPixmap, SmallMiniPixmap, MenuMiniPixmaps.</para>
 	</listitem>
 </varlistentry>

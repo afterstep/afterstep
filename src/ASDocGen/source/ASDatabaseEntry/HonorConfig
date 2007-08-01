@@ -1,6 +1,7 @@
 <varlistentry id="options.HonorConfig">
 	<term>HonorConfig</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Forces AfterStep to honor a client's request to reposition itself after its window has been mapped. This is a dangerous behavior as clients do not have a reliable way of determining the best position for themselves. Window positioning should be left to AfterStep as it knows better. Opposite of IgnoreConfig.</para>
+		<para>See Also: IgnoreConfig.</para>
 	</listitem>
 </varlistentry>

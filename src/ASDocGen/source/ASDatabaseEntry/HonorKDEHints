@@ -1,6 +1,7 @@
 <varlistentry id="options.HonorKDEHints">
 	<term>HonorKDEHints</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>AfterStep will honor KDE specific hints set on the client's window. This is mainly used for status bar-type applications. The opposite is NoKDEHints.</para>
+		<para>See Also: NoKDEHints.</para>
 	</listitem>
 </varlistentry>

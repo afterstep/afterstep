@@ -1,6 +1,7 @@
 <varlistentry id="options.CustomCursor">
-	<term>CustomCursor</term>
+	<term>CustomCursor <emphasis remap='I'>path</emphasis></term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Adds a custom cursor from the search paths. AfterStep searches the following paths in addition to the system Xorg/Xfree paths: ~/.afterstep/desktop/cursors/ and $SHAREDIR/afterstep/desktop/cursors/.</para>
+		<para>Note: under Xorg, this is probably depreciated. Current Xorg uses the Xcursor library to load cursor data from a single file.</para>
 	</listitem>
 </varlistentry>

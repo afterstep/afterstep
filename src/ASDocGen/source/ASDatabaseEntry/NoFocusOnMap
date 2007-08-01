@@ -1,6 +1,7 @@
 <varlistentry id="options.NoFocusOnMap">
 	<term>NoFocusOnMap</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>AfterStep will not yield a focus to the new window being mapped. This prevents things like passwords typed into popped-up IM windows. Opposite of FocusOnMap.</para>
+		<para>See Also: FocusOnMap.</para>
 	</listitem>
 </varlistentry>

@@ -1,6 +1,7 @@
 <varlistentry id="options.NoExtWMHints">
 	<term>NoExtWMHints</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>AfterStep will not use extended window management hints that the client sets on its windows. Opposite of HonorExtWMHints.</para>
+		<para>See Also: HonorExtWMHints.</para>
 	</listitem>
 </varlistentry>

@@ -1,6 +1,6 @@
 <varlistentry id="options.SET_NAME">
 	<term>SET_NAME</term>
 	<listitem>
-		<para>Used by modules to identify self to AfterStep.</para>
+		<para>Do not use. Reserved for use by AfterStep modules to identify themselves to AfterStep.</para>
 	</listitem>
 </varlistentry>

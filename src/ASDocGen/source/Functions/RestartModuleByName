@@ -1,6 +1,6 @@
 <varlistentry id="options.RestartModuleByName">
 	<term>RestartModuleByName</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Restarts AfterStep modules with a provided matching name.</para>
 	</listitem>
 </varlistentry>

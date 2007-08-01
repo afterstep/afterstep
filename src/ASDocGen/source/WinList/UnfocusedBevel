@@ -1,7 +1,7 @@
 <varlistentry id="options.UnfocusedBevel">
 	<term>UnfocusedBevel</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Style used when defining the Bevel appearance inactive active windows.</para>
 		<para>See Also: <ulink url="Bevel#synopsis">Bevel flags</ulink> for further details.</para>
 	</listitem>
 </varlistentry>

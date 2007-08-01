@@ -1,6 +1,6 @@
 <varlistentry id="options.Random">
 	<term>Random</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>When iconified, windows will shrink using a randomly selected animation type of either Flip, Turn, Twist, Zoom, or Zoom3D.</para>
 	</listitem>
 </varlistentry>

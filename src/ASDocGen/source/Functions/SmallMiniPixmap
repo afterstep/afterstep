@@ -1,6 +1,7 @@
 <varlistentry id="options.SmallMiniPixmap">
-	<term>SmallMiniPixmap</term>
+	<term>SmallMiniPixmap <emphasis remap='I'>pixmap</emphasis></term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Specifies a given pixmap to display to the left of the menu item which invokes this menu, or in the title of this menu. Used in menu entries instead of MiniPixmap; scales-down pixmap images to the smallest size. It is sized based-on the Menu font size plus eight pixels; width is calculated to keep proportionality.</para>
+		<para>See Also: MiniPixmap, LargeMiniPixmap, MenuMiniPixmaps.</para>
 	</listitem>
 </varlistentry>

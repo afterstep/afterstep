@@ -1,6 +1,6 @@
 <varlistentry id="options.SET_MASK">
 	<term>SET_MASK</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Do not use. Reserved for use by AfterStep modules.</para>
 	</listitem>
 </varlistentry>
