@@ -1,4 +1,10 @@
 
+2007-08-01  sasha
+
+	* libAfterImage v. 1.15 release
+	* Updated embedded libPNG and Zlib to latest versions; Fixed bugs
+	  in find_file when compiled without libAfterBase.
+
 2007-07-31  sasha
 
 	* added some docs to libAfterImage
@@ -36,10 +42,14 @@
 2007-07-20  sasha
 
 	* fixed many valgrind messages related to uninitialized memory in
-	  libAfterImage and libAfterBase;
+	  libAfterImage and libAfterBase; Fixed WinTabs to take into
+	  consideration window's gravity and frame rectangle while
+	  determining where to unswallow the window.
 	* fixed image reloading to keep relevant flags - that was messing
 	  up wharf's support for look defined folder icon. That should also
 	  speedup repeated changes of look
+	* adding support in Wharf for look-specific folder pixmap - so far
+	  only works 2 times, then stops changing - wierd
 
 2007-07-19  sasha
 
@@ -70,6 +80,8 @@
 2007-07-10  sasha
 
 	* fixed compilation without X in libAfterImage
+	* reduced modules memory usage by making fonts loading on demand,
+	  instead of on look change
 
 2007-07-09  sasha
 
@@ -83,10 +95,6 @@
 2007-05-30  sasha
 
 	* Fixed typo causing ttf configure parameteers being ignored
-
-2007-05-17  sasha
-
-	* updated ChangeLogs for relesae
 
 2007-05-02  sasha
 
