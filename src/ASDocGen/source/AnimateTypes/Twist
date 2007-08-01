@@ -2,5 +2,6 @@
 	<term>Twist</term>
 	<listitem>
 		<para>When iconified, windows will rotate counter-clockwise while shrinking.</para>
+		<para>Note: The above mode "Twist" should not be confused with the Animate configuration option "AnimateTwist".</para>
 	</listitem>
 </varlistentry>

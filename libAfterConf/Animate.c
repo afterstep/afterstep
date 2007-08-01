@@ -53,9 +53,9 @@ SyntaxDef     AnimateResizeSyntax = {
 	' ',
 	"",
 	"\t",
-	"Module:Animate Resize type",
+	"Module:Animate AnimateResize modes",
 	"AnimateTypes",
-	"types of the animation used in Animate module's config",
+	"animation modes used in the Animate module's config",
 	NULL,
 	0
 };

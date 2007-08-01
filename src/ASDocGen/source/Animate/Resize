@@ -2,7 +2,7 @@
 	<term>AnimateResize <emphasis remap='I'>mode</emphasis></term>
 	<listitem>
 		<para>Tells Animate what method to use to draw resizes.  The six methods currently supported are: Zoom, Zoom3D, Twist, Flip, Turn and Random.</para>
-		<para>Note: The above mode "Twist" should not be confused with the Animate configuration option "AnimateTwist".
-		<para>See Also: <ulink url="AnimateTypes#synopsis">AnimateResize</ulink> mode for further details.</para>
+		<para>Note: The above mode "Twist" should not be confused with the Animate configuration option "AnimateTwist".</para>
+		<para>See Also: <ulink url="AnimateTypes#synopsis">AnimateResize modes</ulink> for further details.</para>
 	</listitem>
 </varlistentry>
