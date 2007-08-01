@@ -226,7 +226,7 @@ void asim_nonGNUC_debugout_stub( const char *format, ...);
 
 /* from libAfterBase/mystring.h : */
 #include <string.h>
-#define mystrdup(s)     strdup(s?s:"")
+#define mystrdup(s)     ((s)?strdup(s):NULL)
 
 char   *asim_mystrndup(const char *str, size_t n);
 #define mystrndup(s,n)    	 asim_mystrndup(s,n)

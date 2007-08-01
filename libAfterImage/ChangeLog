@@ -1,4 +1,114 @@
 
+2007-07-31  sasha
+
+	* added some docs to libAfterImage
+	* Completed refactoring gaussian blur code. It now works both in
+	  vertical and horizontal direction. Maximum blur radius is 128,
+	  and its bloody fast too
+	* optimizations to gaussian blur and fixed mystrdup(NULL) in libAI
+	  standalone
+	* fixed gaussian blur at the begining and the end; added lookup
+	  tables for standard deviation and multiplier, prototyped vertical
+	  pass
+
+2007-07-30  sasha
+
+	* implemented integer math version of gaussian blur algorithm
+	* fixed blur function to not limit radius to 10 and properly
+	  calculate gaussian distribution
+
+2007-07-28  sasha
+
+	* switched timing printing off
+
+2007-07-27  sasha
+
+	* some additions to asstorage attempting to improve performance in
+	  XImage reading - unsuccessfull
+
+2007-07-26  sasha
+
+	* Cleaned up libAfterImage to compile without libAfterBase and
+	  added fiunctions to ger drawable size and window position for a
+	  specific display
+
+2007-07-25  sasha
+
+	* fixes to libAfterImage to get it compiling without libAfterBase
+	  and to reduce valgrind complaints about uninitiolized memory
+
+2007-07-20  sasha
+
+	* fixed many valgrind messages related to uninitialized memory in
+	  libAfterImage and libAfterBase; Fixed WinTabs to take into
+	  consideration window's gravity and frame rectangle while
+	  determining where to unswallow the window.
+	* fixed image reloading to keep relevant flags - that was messing
+	  up wharf's support for look defined folder icon. That should also
+	  speedup repeated changes of look
+	* adding support in Wharf for look-specific folder pixmap - so far
+	  only works 2 times, then stops changing - wierd
+
+2007-07-19  sasha
+
+	* further safeguarding agains running out of storage slots in
+	  asstorage
+
+2007-07-17  sasha
+
+	* fixed the way dumb scaling up along Y axist was screwing up
+	  slicing of the small images.
+	* fixed stupid dumb bug in make_scales introduced in porevious fix
+	* fixed a long-standing bug with slicing images getting a vertical
+	  stripe tovards the end. Thanks DrCurl for your Patience
+	* fixed a long-standing bug with slicing images geting a vertical
+	  stripe tovards the end. Thanks DrCurl for your Patience.
+
+2007-07-12  sasha
+
+	* added fixes for using proper dpy (from ASVisual structure) in
+	  many cases
+
+2007-07-11  sasha
+
+	* fixed compilation without libPNG; added ability to change default
+	  asstorage block size
+	* fixed bar rendering to have proper values used for unset
+	  hue/saturation, which eliminates one extra ASImage from being
+	  rendered
+
+2007-07-10  sasha
+
+	* fixed compilation without X in libAfterImage
+	* reduced modules memory usage by making fonts loading on demand,
+	  instead of on look change
+
+2007-07-09  sasha
+
+	* fixed few emory leaks (minor)
+
+2007-07-06  sasha
+
+	* fixed several critical bugs in causing double free and heap
+	  corruption, based on valgrind traces
+
+2007-06-22  sasha
+
+	* Improved on location where submenus are opened, to make sure they
+	  don't completely cover parents
+
+2007-06-06  jeremy
+
+	* add alsa detection to configure
+
+2007-05-30  sasha
+
+	* Fixed typo causing ttf configure parameteers being ignored
+
+2007-05-17  sasha
+
+	* updated ChangeLogs for relesae
+
 2007-05-15  sasha
 
 	* upgraded AS version in anticipation of release
