@@ -131,7 +131,12 @@ install.bin:
 
 install.lib:	@LIBPROG@ @LIBINSTALL@ install.inc
 
-install.static:
+mkdir:
+		@(if test ! -d $(AFTER_BIN_DIR); then $(MKDIR) -p $(AFTER_BIN_DIR); fi \
+		  if test ! -d $(LIBDIR); then $(MKDIR) -p $(LIBDIR); fi \
+		)
+
+install.static: 	mkdir
 		$(INSTALL_SCRIPT) afterimage-libs afterimage-config $(AFTER_BIN_DIR)
 		@(if [ -d $(LIBDIR) ] && [ -w $(LIBDIR) ]; then \
 		    echo "$(INSTALL_LIB) $(LIB_STATIC) $(LIBDIR)"; \
@@ -155,7 +160,7 @@ install.static:
 
 install.script:
 
-install.dyn:
+install.dyn:	mkdir
 		@( echo "$(INSTALL_LIB) $(LIB_SHARED).$(LIBVER) $(LIBDIR)"; \
 		$(INSTALL_LIB) $(LIB_SHARED).$(LIBVER) $(LIBDIR); \
 		$(INSTALL_SCRIPT) afterimage-libs afterimage-config $(AFTER_BIN_DIR); \
@@ -176,7 +181,7 @@ install.dyn:
 		 fi \
 		)
 
-install.cyg:
+install.cyg:	mkdir
 		@( echo "$(INSTALL_LIB) $(LIB_SHARED_CYG) $(AFTER_BIN_DIR)"; \
 		$(INSTALL_LIB) $(LIB_SHARED_CYG) $(AFTER_BIN_DIR); \
 		echo "$(INSTALL_LIB) $(LIB_SHARED_CYG) $(LIBDIR)"; \

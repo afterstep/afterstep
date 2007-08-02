@@ -49,7 +49,8 @@ all:    $(PROGS)
 
 install.bin:	$(PROGS)
 		@echo "installing libAfterImage apps using command - "; \
-		 echo "    \"$(INSTALL_PROGRAM) <app> $(BIN_DIR)\" :"; \
+		if test ! -d $(BIN_DIR); then 	$(MKDIR) -p $(BIN_DIR); fi; \
+		echo "    \"$(INSTALL_PROGRAM) <app> $(BIN_DIR)\" :"; \
 		for p in $(PROGS); do \
 			echo -n "$$p "; \
 	  		$(INSTALL_PROGRAM) $$p $(BIN_DIR); \
@@ -57,7 +58,8 @@ install.bin:	$(PROGS)
 		echo ""; echo "Done."; \
 
 install.man:
-		@for f in *.man; do \
+		@if test ! -d $(MAN_DIR); then 	$(MKDIR) -p $(MAN_DIR); fi; \
+		for f in *.man; do \
 		  echo $(INSTALL_DATA) $$f $(MAN_DIR)/`basename $$f`.1x; \
 		  $(INSTALL_DATA) $$f $(MAN_DIR)/`basename $$f`.1x; \
 		done
