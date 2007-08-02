@@ -897,7 +897,7 @@ LOCAL_DEBUG_CALLER_OUT( "im->width = %d, color = %d, y = %d, skip = %d, out_widt
         {
             int z = -1 ;
             while( ++z < i )
-                fprintf( stderr, "%lX ", to_buf[z] );
+                fprintf( stderr, "%lX ", (unsigned long)to_buf[z] );
             fprintf( stderr, "\n");
 
         }
@@ -994,7 +994,7 @@ asimage_compare_line (ASImage *im, ColorPart color, CARD32 *to_buf, CARD32 *tmp,
 		if( tmp[i] != to_buf[i] )
 		{
 			if( verbose )
-				show_error( "line %d, component %d differ at offset %d ( 0x%lX(compresed) != 0x%lX(orig) )\n", y, color, i, tmp[i], to_buf[i] );
+				show_error( "line %d, component %d differ at offset %d ( 0x%lX(compresed) != 0x%lX(orig) )\n", y, color, i, (unsigned long)tmp[i], (unsigned long)to_buf[i] );
 			return False ;
 		}
 	return True;

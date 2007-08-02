@@ -99,8 +99,8 @@ int main(int argc, char* argv[])
 						if( parse_argb_color( argv[i+1], &tint_color ) ==
 							argv[i+1] )
 							show_warning( "unable to parse tint color - "
-										  "default used: #%8.8X",
-				            			  tint_color );
+										  "default used: #%8.8lX",
+				            			  (unsigned long)tint_color );
 					    break ;
 					case 'g' :   		/* see ASTile.2 : */
 	    				geom_flags = XParseGeometry( argv[i+1],
@@ -117,7 +117,7 @@ int main(int argc, char* argv[])
 	{
 		show_warning( "no image file or tint color specified - "
 					  "defaults used: \"%s\" #%8.8lX",
-		              image_file, tint_color );
+		              image_file, (unsigned long)tint_color );
 		usage();
 	}
 
@@ -136,7 +136,7 @@ int main(int argc, char* argv[])
 	printf( "%s: tiling image \"%s\" to "
 			"%dx%d%+d%+d tinting with #%8.8lX\n",
 		    get_application_name(), image_file, tile_width, tile_height,
-			tile_x, tile_y, tint_color );
+			tile_x, tile_y, (unsigned long)tint_color );
 
 	if( im != NULL )
 	{

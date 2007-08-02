@@ -398,6 +398,7 @@ $(LIB_SHARED).$(LIBVER): $(LIB_OBJS) $(LIB_INCS) config.h
 
 install.man:
 		@if [ -d doc/man ] ; then \
+			if [ ! -d $(AFTER_MAN_DIR) ] ; then $(MKDIR) -p $(AFTER_MAN_DIR); fi; \
 			cd doc/man; \
 			for f in `ls *.man`; do \
 				page_name=`echo $$f| awk -F . '{print $$1}'`; \
@@ -409,9 +410,7 @@ install.man:
 
 install.doc:
 		@if [ -d doc/html ] ; then \
-			if [ ! -d $(AFTER_DOC_DIR)/html ] ; then \
-				$(MKDIR) -p $(AFTER_DOC_DIR)/html; \
-			fi; \
+			if [ ! -d $(AFTER_DOC_DIR)/html ] ; then $(MKDIR) -p $(AFTER_DOC_DIR)/html; fi; \
 			cd doc/html; \
 			for f in `ls *.html`; do \
 		  		echo $(INSTALL_DATA) $$f $(AFTER_DOC_DIR)/html/$$f; \

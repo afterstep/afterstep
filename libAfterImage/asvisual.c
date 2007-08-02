@@ -78,7 +78,7 @@ debug_AllocColor( const char *file, const char *func, int line, ASVisual *asv, C
 	Status sret ;
 	sret = XAllocColor( asv->dpy, cmap, pxcol );
 	show_progress( " XAllocColor in %s:%s():%d has %s -> cmap = %lX, pixel = %lu(%8.8lX), color = 0x%4.4X, 0x%4.4X, 0x%4.4X",
-				   file, func, line, (sret==0)?"failed":"succeeded", cmap, pxcol->pixel, pxcol->pixel, pxcol->red, pxcol->green, pxcol->blue );
+				   file, func, line, (sret==0)?"failed":"succeeded", (long)cmap, (unsigned long)(pxcol->pixel), (unsigned long)(pxcol->pixel), pxcol->red, pxcol->green, pxcol->blue );
 	return sret;
 }
 #define ASV_ALLOC_COLOR(asv,cmap,pxcol)  debug_AllocColor(__FILE__, __FUNCTION__, __LINE__, (asv),(cmap),(pxcol))
@@ -377,12 +377,12 @@ query_screen_visual_id( ASVisual *asv, Display *dpy, int screen, Window root, in
 	if( get_output_threshold() >= OUTPUT_VERBOSE_THRESHOLD )
 	{
 		fprintf( stderr, "Selected visual 0x%lx: depth %d, class %d\n RGB masks: 0x%lX, 0x%lX, 0x%lX, Byte Ordering: %s\n",
-				 asv->visual_info.visualid,
+				 (unsigned long)asv->visual_info.visualid,
 				 asv->visual_info.depth,
 				 asv->visual_info.class,
-				 asv->visual_info.red_mask,
-				 asv->visual_info.green_mask,
-				 asv->visual_info.blue_mask,
+				 (unsigned long)asv->visual_info.red_mask,
+				 (unsigned long)asv->visual_info.green_mask,
+				 (unsigned long)asv->visual_info.blue_mask,
 				 (ImageByteOrder(asv->dpy)==MSBFirst)?"MSBFirst":"LSBFirst" );
 	}
 #else
