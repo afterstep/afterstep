@@ -132,8 +132,8 @@ install.bin:
 install.lib:	@LIBPROG@ @LIBINSTALL@ install.inc
 
 mkdir:
-		@(if test ! -d $(AFTER_BIN_DIR); then $(MKDIR) -p $(AFTER_BIN_DIR); fi \
-		  if test ! -d $(LIBDIR); then $(MKDIR) -p $(LIBDIR); fi \
+		@(if [ ! -d $(AFTER_BIN_DIR) ] ; then $(MKDIR) -p $(AFTER_BIN_DIR); fi \
+		  if [ ! -d $(LIBDIR) ] ; then $(MKDIR) -p $(LIBDIR); fi \
 		)
 
 install.static: 	mkdir
