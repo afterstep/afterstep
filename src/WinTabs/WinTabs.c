@@ -1303,7 +1303,8 @@ delete_tab( int index )
         WinTabsState.pressed_tab = -1 ;
     }
     destroy_astbar( &(tabs[index].bar) );
-    XSelectInput (dpy, tabs[index].client, NoEventMask);
+	/* we still want to receive DestroyNotify events */
+    XSelectInput (dpy, tabs[index].client, StructureNotifyMask);
     destroy_ascanvas( &(tabs[index].client_canvas) );
 	XDestroyWindow(dpy, tabs[index].frame_canvas->w );
 	destroy_ascanvas( &(tabs[index].frame_canvas) );
