@@ -118,6 +118,7 @@ typedef struct {
 	
 	ASHashTable *unswallowed_apps ; 
 
+	unsigned long 		border_color;
 }ASWinTabsState ;
 
 ASWinTabsState WinTabsState = { 0 };
@@ -150,6 +151,7 @@ WinTabsConfig *Config = NULL ;
 char *pattern_override = NULL ;
 char *exclude_pattern_override = NULL ;
 char *title_override = NULL, *icon_title_override = NULL ;
+char *border_color_override = NULL ;
 
 void CheckConfigSanity(const char *pattern_override, const char *exclude_pattern_override, 
 					   const char *title_override, const char *icon_title_override);
@@ -195,7 +197,7 @@ void delete_tab( int index );
 
 void DeadPipe(int);
 
-CommandLineOpts WinTabs_cmdl_options[8] =
+CommandLineOpts WinTabs_cmdl_options[9] =
 {
 	{NULL, "pattern","Overrides module's inclusion pattern", NULL,
 	 handler_set_string, &pattern_override, 0, CMO_HasArgs },
@@ -215,8 +217,11 @@ CommandLineOpts WinTabs_cmdl_options[8] =
 	{NULL, "skip-transients","Disregard any transient window(dialog)", NULL, handler_set_flag,
 	 &(WinTabsState.flags), ASWT_SkipTransients, 0 },
     
-	{"tr", "transparent","keep window-background transparent", NULL, handler_set_flag,
+	{"tr", "transparent","keep window border transparent", NULL, handler_set_flag,
 	 &(WinTabsState.flags), ASWT_Transparent, 0 },
+
+	{"bc", "border-color","use color to fill border around windows", NULL, handler_set_string,
+	 &border_color_override, 0, CMO_HasArgs },
 
 	{NULL, NULL, NULL, NULL, NULL, NULL, 0, 0 }
 };
@@ -261,33 +266,32 @@ main( int argc, char **argv )
 	LinkAfterStepConfig();
 
     set_signal_handler( SIGSEGV );
-	set_flags( WinTabsState.flags, ASWT_Transparent );  /* default */
-    
 
-	
-for( i = 1 ; i< argc ; ++i)
- {
-	 LOCAL_DEBUG_OUT( "argv[%d] = \"%s\", original argv[%d] = \"%s\"", i, argv[i], i, MyArgs.saved_argv[i]);	  
-	 if( argv[i] != NULL )
-	 { 	
-		 if( ( opt = match_command_line_opt( &(argv[i][0]), WinTabs_cmdl_options ) ) < 0)
-			 continue;
-		 
-		 /* command-line-option 'opt' has been matched */
-		 
-		 if( get_flags ( WinTabs_cmdl_options[opt].flags, CMO_HasArgs) )
-			 if( ++i >= argc)
-				 continue;
-		 
-		 WinTabs_cmdl_options[opt].handler( argv[i], WinTabs_cmdl_options[opt].trg,
-						    WinTabs_cmdl_options[opt].param);
-		 
-	 }
- }
+	for( i = 1 ; i< argc ; ++i)
+	{
+		LOCAL_DEBUG_OUT( "argv[%d] = \"%s\", original argv[%d] = \"%s\"", i, argv[i], i, MyArgs.saved_argv[i]);	  
+		if( argv[i] != NULL )
+		{ 	
+			if( ( opt = match_command_line_opt( &(argv[i][0]), WinTabs_cmdl_options ) ) < 0)
+			 	continue;
+
+			/* command-line-option 'opt' has been matched */
+
+			if( get_flags ( WinTabs_cmdl_options[opt].flags, CMO_HasArgs) )
+			 	if( ++i >= argc)
+				 	continue;
+
+			WinTabs_cmdl_options[opt].handler( argv[i], WinTabs_cmdl_options[opt].trg,
+							WinTabs_cmdl_options[opt].param);
+
+		}
+	}
 
     ConnectX( ASDefaultScr, EnterWindowMask );
     ConnectAfterStep ( WINTABS_MESSAGE_MASK, 0 );               /* no AfterStep */
-	
+
+	WinTabsState.border_color = Scr.asv->black_pixel; /* default */
+		
 	signal (SIGPIPE, OnDisconnect);
     
 	signal (SIGTERM, DeadPipe);
@@ -503,6 +507,7 @@ SetWinTabsLook()
 {
 	int i ;
     char *default_style = safemalloc( 1+strlen(MyName)+1);
+	ARGB32 border_color = 0; 
 	
 	default_style[0] = '*' ;
 	strcpy( &(default_style[1]), MyName );
@@ -532,6 +537,14 @@ SetWinTabsLook()
 		}
     }
     free( default_style );
+	border_color = Scr.Look.MSWindow[BACK_FOCUSED]->colors.back;
+	if( border_color_override != NULL ) 
+		parse_argb_color( border_color_override, &border_color );
+	else if( !get_flags( WinTabsState.flags, ASWT_Transparent ) )  /* default */
+		if( TransparentMS(Scr.Look.MSWindow[BACK_FOCUSED]) )
+			set_flags( WinTabsState.flags, ASWT_Transparent );
+		
+	ARGB2PIXEL(Scr.asv,border_color,&WinTabsState.border_color);
 
 	balloon_config2look( &(Scr.Look), NULL, Config->balloon_conf, "*WinTabsBalloon" );
     set_balloon_look( Scr.Look.balloon_look );
@@ -850,7 +863,7 @@ DispatchEvent (ASEvent * event)
             on_destroy_notify(event->w);
             break;
 		case Expose :
-#if 1
+#if 0
 			{	  
                 int i = PVECTOR_USED(WinTabsState.tabs);
                 ASWinTab *tabs = PVECTOR_HEAD( ASWinTab, WinTabsState.tabs );
@@ -860,7 +873,8 @@ DispatchEvent (ASEvent * event)
 					if( event->w == tabs[i].frame_canvas->w ) 
 					{
 						XSetBackground(dpy, Scr.DrawGC, Scr.asv->black_pixel);
-						XFillRectangle(dpy, tabs[i].frame_canvas->w, Scr.DrawGC, 0, 0, tabs[i].frame_canvas->width, tabs[i].frame_canvas->height);
+						XClearWindow( dpy, tabs[i].frame_canvas->w );
+//						XFillRectangle(dpy, tabs[i].frame_canvas->w, Scr.DrawGC, 0, 0, tabs[i].frame_canvas->width, tabs[i].frame_canvas->height);
 						break;	
 					}	 
 				}
@@ -1067,11 +1081,12 @@ make_wintabs_window()
 	int x, y ;
     unsigned int width = max(Config->geometry.width,1);
     unsigned int height = max(Config->geometry.height,1);
-    XSetWindowAttributes attributes;
+    XSetWindowAttributes attr;
+	unsigned long attr_mask = 0;
 	char *iconic_name ; 
+	
 
 	memset( &extwm_hints, 0x00, sizeof(extwm_hints));
-    attributes.background_pixmap = ParentRelative;
     switch( Config->gravity )
 	{
 		case NorthEastGravity :
@@ -1093,7 +1108,19 @@ make_wintabs_window()
 			break;
 	}
     LOCAL_DEBUG_OUT( "creating main window with geometry %dx%d%+d%+d", width, height, x, y );
-    w = create_visual_window( Scr.asv, Scr.Root, x, y, 1, 1, 0, InputOutput, CWBackPixmap, &attributes);
+	if( get_flags( WinTabsState.flags, ASWT_Transparent ) )
+	{
+		attr.background_pixmap = ParentRelative;
+		attr_mask |= CWBackPixmap ;
+		attr.event_mask |= ExposureMask ;
+		LOCAL_DEBUG_OUT( "Is transparent %s", "" );
+	}else
+	{		 
+		attr.background_pixel = WinTabsState.border_color;
+		attr_mask |= CWBackPixel ;
+	}
+	
+    w = create_visual_window( Scr.asv, Scr.Root, x, y, 1, 1, 0, InputOutput, attr_mask, &attr);
     LOCAL_DEBUG_OUT( "main window created with Id %lX", w);
 
 	iconic_name = Config->icon_title ; 
@@ -1163,7 +1190,7 @@ make_frame_window( Window parent )
 		LOCAL_DEBUG_OUT( "Is transparent %s", "" );
 	}else
 	{		 
-		attr.background_pixel = Scr.asv->white_pixel;
+		attr.background_pixel = WinTabsState.border_color;
 		attr_mask |= CWBackPixel ;
 	}
     w = create_visual_window( Scr.asv, parent, 0, 0, WinTabsState.win_width, WinTabsState.win_height, 0, InputOutput, attr_mask, &attr );
@@ -1348,11 +1375,6 @@ moveresize_client( ASWinTab *aswt, int x, int y, int width, int height )
 
 	moveresize_canvas( aswt->frame_canvas, 0, y, frame_width, frame_height );    
     moveresize_canvas( aswt->client_canvas, (frame_width - width)/2, (frame_height - height)/2, width, height );
-	if( !get_flags( WinTabsState.flags, ASWT_Transparent ) )
-	{	
-		XSetWindowBackground( dpy, aswt->frame_canvas->w, Scr.asv->black_pixel );
-		XClearWindow( dpy, aswt->frame_canvas->w );
-	}
 }
 
 void
