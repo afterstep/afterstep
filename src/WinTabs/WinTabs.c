@@ -79,11 +79,13 @@ typedef struct {
 #define ASWT_StateMapped	(0x01<<0)
 #define ASWT_StateFocused	(0x01<<1)
 #define ASWT_AllDesks		(0x01<<2)
-#define ASWT_Transparent	(0x01<<3)
+#define ASWT_Transparent	 (0x01<<3)
 #define ASWT_ShutDownInProgress	(0x01<<4)
 #define ASWT_SkipTransients		(0x01<<5)
 #define ASWT_StateShaded		(0x01<<6)
 #define ASWT_StateSticky		(0x01<<7)
+#define ASWT_WantTransparent 	(0x01<<16) /* requested at command line */
+
 
 	ASFlagType flags ;
 
@@ -189,6 +191,7 @@ void update_tabs_state();
 void register_unswallowed_client( Window client );
 Bool check_unswallowed_client( Window client ); 
 void delete_tab( int index );
+void set_frame_background( ASWinTab *aswt );
 
 /* above function may also return : */
 #define BANNER_TAB_INDEX -1		   
@@ -218,7 +221,7 @@ CommandLineOpts WinTabs_cmdl_options[9] =
 	 &(WinTabsState.flags), ASWT_SkipTransients, 0 },
     
 	{"tr", "transparent","keep window border transparent", NULL, handler_set_flag,
-	 &(WinTabsState.flags), ASWT_Transparent, 0 },
+	 &(WinTabsState.flags), ASWT_WantTransparent, 0 },
 
 	{"bc", "border-color","use color to fill border around windows", NULL, handler_set_string,
 	 &border_color_override, 0, CMO_HasArgs },
@@ -311,6 +314,7 @@ main( int argc, char **argv )
 	WinTabsState.tabs = create_asvector( sizeof(ASWinTab) );
 
     WinTabsState.main_window = make_wintabs_window();
+	set_frame_background(NULL);
     WinTabsState.main_canvas = create_ascanvas_container( WinTabsState.main_window );
     WinTabsState.tabs_window = make_tabs_window( WinTabsState.main_window );
     WinTabsState.tabs_canvas = create_ascanvas( WinTabsState.tabs_window );
@@ -537,14 +541,19 @@ SetWinTabsLook()
 		}
     }
     free( default_style );
-	border_color = Scr.Look.MSWindow[BACK_FOCUSED]->colors.back;
-	if( border_color_override != NULL ) 
-		parse_argb_color( border_color_override, &border_color );
-	else if( !get_flags( WinTabsState.flags, ASWT_Transparent ) )  /* default */
-		if( TransparentMS(Scr.Look.MSWindow[BACK_FOCUSED]) )
+	if( get_flags( WinTabsState.flags, ASWT_WantTransparent ) )
+		set_flags( WinTabsState.flags, ASWT_Transparent );
+	else
+	{
+		clear_flags( WinTabsState.flags, ASWT_Transparent );
+		border_color = Scr.Look.MSWindow[BACK_FOCUSED]->colors.back;
+		if( border_color_override != NULL ) 
+			parse_argb_color( border_color_override, &border_color );
+		else if( TransparentMS(Scr.Look.MSWindow[BACK_FOCUSED]) )
 			set_flags( WinTabsState.flags, ASWT_Transparent );
+		ARGB2PIXEL(Scr.asv,border_color,&WinTabsState.border_color);
+	}
 		
-	ARGB2PIXEL(Scr.asv,border_color,&WinTabsState.border_color);
 
 	balloon_config2look( &(Scr.Look), NULL, Config->balloon_conf, "*WinTabsBalloon" );
     set_balloon_look( Scr.Look.balloon_look );
@@ -783,6 +792,8 @@ DispatchEvent (ASEvent * event)
                         {
                             handle_canvas_config( tabs[i].client_canvas );
                             send_swallowed_configure_notify(&(tabs[i]));
+							if (get_flags (WinTabsState.flags, ASWT_Transparent))
+								XClearWindow (dpy, tabs[i].frame_canvas->w);
                         }    
                     }    
                 }else if( event->w == WinTabsState.tabs_window ) 
@@ -915,8 +926,12 @@ DispatchEvent (ASEvent * event)
 					LoadColorScheme();
 					SetWinTabsLook();
 					/* now we need to update everything */
-                	while( --i >= 0 ) 
+					set_frame_background(NULL);
+	            	while( --i >= 0 ) 
+					{
+						set_frame_background(&(tabs[i]));
                     	set_tab_look( &(tabs[i]), False);
+					}
 					set_tab_look( &(WinTabsState.banner), True);
                 	rearrange_tabs(False );
             	}else if( event->x.xproperty.atom == _AS_TBAR_PROPS )
@@ -1072,6 +1087,20 @@ show_banner_buttons()
 
 }	  
 
+void
+set_frame_background( ASWinTab *aswt )
+{
+	Window w = aswt?aswt->frame_canvas->w:WinTabsState.main_window;
+	
+	if( get_flags( WinTabsState.flags, ASWT_Transparent ) )
+	{
+		XSetWindowBackgroundPixmap( dpy, w, ParentRelative);
+		LOCAL_DEBUG_OUT( "Is transparent %s", "" );
+	}else
+		XSetWindowBackground( dpy, w, WinTabsState.border_color);
+	XClearWindow( dpy, w );
+}
+
 Window
 make_wintabs_window()
 {
@@ -1081,8 +1110,6 @@ make_wintabs_window()
 	int x, y ;
     unsigned int width = max(Config->geometry.width,1);
     unsigned int height = max(Config->geometry.height,1);
-    XSetWindowAttributes attr;
-	unsigned long attr_mask = 0;
 	char *iconic_name ; 
 	
 
@@ -1108,19 +1135,8 @@ make_wintabs_window()
 			break;
 	}
     LOCAL_DEBUG_OUT( "creating main window with geometry %dx%d%+d%+d", width, height, x, y );
-	if( get_flags( WinTabsState.flags, ASWT_Transparent ) )
-	{
-		attr.background_pixmap = ParentRelative;
-		attr_mask |= CWBackPixmap ;
-		attr.event_mask |= ExposureMask ;
-		LOCAL_DEBUG_OUT( "Is transparent %s", "" );
-	}else
-	{		 
-		attr.background_pixel = WinTabsState.border_color;
-		attr_mask |= CWBackPixel ;
-	}
-	
-    w = create_visual_window( Scr.asv, Scr.Root, x, y, 1, 1, 0, InputOutput, attr_mask, &attr);
+
+    w = create_visual_window( Scr.asv, Scr.Root, x, y, 1, 1, 0, InputOutput, 0, NULL);
     LOCAL_DEBUG_OUT( "main window created with Id %lX", w);
 
 	iconic_name = Config->icon_title ; 
@@ -1182,17 +1198,6 @@ make_frame_window( Window parent )
     Window w ;
 	attr.event_mask = SubstructureRedirectMask|FocusChangeMask|KeyPressMask ;
 	attr_mask = CWEventMask ;
-	if( get_flags( WinTabsState.flags, ASWT_Transparent ) )
-	{
-		attr.background_pixmap = ParentRelative;
-		attr_mask |= CWBackPixmap ;
-		attr.event_mask |= ExposureMask ;
-		LOCAL_DEBUG_OUT( "Is transparent %s", "" );
-	}else
-	{		 
-		attr.background_pixel = WinTabsState.border_color;
-		attr_mask |= CWBackPixel ;
-	}
     w = create_visual_window( Scr.asv, parent, 0, 0, WinTabsState.win_width, WinTabsState.win_height, 0, InputOutput, attr_mask, &attr );
 	XGrabKey( dpy, WINTABS_SWITCH_KEYCODE, WINTABS_SWITCH_MOD, w, True, GrabModeAsync, GrabModeAsync);
     return w;
@@ -1658,6 +1663,8 @@ do_swallow_window( ASWindowData *wd )
     /* first thing - we reparent window and its icon if there is any */
     nc = aswt->client_canvas = create_ascanvas_container( wd->client );
 	aswt->frame_canvas = create_ascanvas_container( make_frame_window(WinTabsState.main_window) );
+	set_frame_background(aswt);
+
 	aswt->swallow_location.width = nc->width ; 
 	aswt->swallow_location.height = nc->height ; 
 	if( get_flags( wd->hints.flags, PWinGravity )  )
