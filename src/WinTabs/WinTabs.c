@@ -1793,12 +1793,15 @@ check_swallow_window( ASWindowData *wd )
 	do_swallow_window( wd );
 }
 
+void unregister_client( Window client );
 
 void 
 on_destroy_notify(Window w)
 {
     ASWinTab *tabs = PVECTOR_HEAD(ASWinTab,WinTabsState.tabs);
     int i = PVECTOR_USED(WinTabsState.tabs) ;
+
+	unregister_client(w);
     while( --i >= 0 ) 
         if( tabs[i].client == w ) 
         {
@@ -2009,6 +2012,13 @@ register_unswallowed_client( Window client )
 		WinTabsState.unswallowed_apps = create_ashash( 0, NULL, NULL, NULL ); 	 
 
 	add_hash_item( WinTabsState.unswallowed_apps, AS_HASHABLE(client), NULL );
+}
+
+void 
+unregister_client( Window client )
+{
+	if( WinTabsState.unswallowed_apps) 
+		remove_hash_item( WinTabsState.unswallowed_apps, AS_HASHABLE(client), NULL, False);
 }
 
 
