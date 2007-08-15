@@ -552,6 +552,7 @@ SetWinTabsLook()
 		else if( TransparentMS(Scr.Look.MSWindow[BACK_FOCUSED]) )
 			set_flags( WinTabsState.flags, ASWT_Transparent );
 		ARGB2PIXEL(Scr.asv,border_color,&WinTabsState.border_color);
+		XSetForeground(dpy, Scr.DrawGC, WinTabsState.border_color);
 	}
 		
 
@@ -793,7 +794,7 @@ DispatchEvent (ASEvent * event)
                             handle_canvas_config( tabs[i].client_canvas );
                             send_swallowed_configure_notify(&(tabs[i]));
 							if (get_flags (WinTabsState.flags, ASWT_Transparent))
-								XClearWindow (dpy, tabs[i].frame_canvas->w);
+								XClearArea (dpy, tabs[i].frame_canvas->w, 0, 0, 0, 0, True);
                         }    
                     }    
                 }else if( event->w == WinTabsState.tabs_window ) 
@@ -874,21 +875,18 @@ DispatchEvent (ASEvent * event)
             on_destroy_notify(event->w);
             break;
 		case Expose :
-#if 0
+#if 1
+			if ( !get_flags( WinTabsState.flags, ASWT_Transparent ) )
 			{	  
                 int i = PVECTOR_USED(WinTabsState.tabs);
                 ASWinTab *tabs = PVECTOR_HEAD( ASWinTab, WinTabsState.tabs );
-				while( ASCheckTypedWindowEvent( event->w, Expose, &(event->x) ) );
 				while( --i >= 0 ) 
-				{	
 					if( event->w == tabs[i].frame_canvas->w ) 
 					{
-						XSetBackground(dpy, Scr.DrawGC, Scr.asv->black_pixel);
-						XClearWindow( dpy, tabs[i].frame_canvas->w );
-//						XFillRectangle(dpy, tabs[i].frame_canvas->w, Scr.DrawGC, 0, 0, tabs[i].frame_canvas->width, tabs[i].frame_canvas->height);
+						XExposeEvent *xexp = &(event->x.xexpose);
+						XFillRectangle(dpy, tabs[i].frame_canvas->w, Scr.DrawGC, xexp->x, xexp->y, xexp->width, xexp->height);
 						break;	
 					}	 
-				}
 			}
 #endif
 		    break ;
@@ -1096,14 +1094,13 @@ void
 set_frame_background( ASWinTab *aswt )
 {
 	Window w = aswt?aswt->frame_canvas->w:WinTabsState.main_window;
-	
 	if( get_flags( WinTabsState.flags, ASWT_Transparent ) )
 	{
 		XSetWindowBackgroundPixmap( dpy, w, ParentRelative);
 		LOCAL_DEBUG_OUT( "Is transparent %s", "" );
-	}else
-		XSetWindowBackground( dpy, w, WinTabsState.border_color);
-	XClearWindow( dpy, w );
+	}/*else
+		XSetWindowBackground( dpy, w, WinTabsState.border_color);*/
+	XClearArea (dpy, w, 0, 0, 0, 0, True); /* generate expose events ! */
 }
 
 Window
@@ -1201,7 +1198,7 @@ make_frame_window( Window parent )
 	static XSetWindowAttributes attr ;
 	ASFlagType attr_mask ;
     Window w ;
-	attr.event_mask = SubstructureRedirectMask|FocusChangeMask|KeyPressMask ;
+	attr.event_mask = SubstructureRedirectMask|FocusChangeMask|KeyPressMask|ExposureMask ;
 	attr_mask = CWEventMask ;
     w = create_visual_window( Scr.asv, parent, 0, 0, WinTabsState.win_width, WinTabsState.win_height, 0, InputOutput, attr_mask, &attr );
 	XGrabKey( dpy, WINTABS_SWITCH_KEYCODE, WINTABS_SWITCH_MOD, w, True, GrabModeAsync, GrabModeAsync);
