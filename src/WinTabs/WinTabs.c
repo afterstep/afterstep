@@ -856,10 +856,10 @@ DispatchEvent (ASEvent * event)
         case LeaveNotify :
             break;
 		case FocusIn :
-			set_flags(WinTabsState.flags, ASWT_StateFocused );
-			update_focus();
+  			set_flags(WinTabsState.flags, ASWT_StateFocused );
 		    break ;
-		case FocusOut : clear_flags(WinTabsState.flags, ASWT_StateFocused );
+		case FocusOut : 
+        clear_flags(WinTabsState.flags, ASWT_StateFocused );
 		    break ;
         case MotionNotify :
             if( pointer_tab >= 0 && (event->x.xmotion.state&AllButtonMask) != 0) 
@@ -897,6 +897,11 @@ DispatchEvent (ASEvent * event)
 			{	
 				if( event->x.xclient.data.l[0] == _XA_WM_DELETE_WINDOW )
 			    	DeadPipe(0);
+				else if( event->x.xclient.data.l[0] == _XA_WM_TAKE_FOCUS )
+				{
+					set_flags(WinTabsState.flags, ASWT_StateFocused);
+					update_focus();
+				}
 			}
 	        break;
 	    case PropertyNotify:
@@ -1159,7 +1164,7 @@ make_wintabs_window()
 	extwm_hints.type_flags = EXTWM_TypeASModule|EXTWM_TypeNormal ;
 	
 
-	set_client_hints( w, NULL, &shints, AS_DoesWmDeleteWindow, &extwm_hints );
+	set_client_hints( w, NULL, &shints, AS_DoesWmDeleteWindow|AS_DoesWmTakeFocus, &extwm_hints );
 	set_client_cmd (w);
 
     /* we will need to wait for PropertyNotify event indicating transition
