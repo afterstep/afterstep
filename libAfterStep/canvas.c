@@ -1053,8 +1053,14 @@ LOCAL_DEBUG_CALLER_OUT( "%p,%p", parent, canvas );
 
 		if( parent )
 		{
+#if 1
+			Window wdumm;
+			XTranslateCoordinates (dpy, canvas->w, ASDefaultRoot, 0, 0, &(client_event.xconfigure.x),
+                                         &(client_event.xconfigure.y), &wdumm);
+#else /* we maybe called before parent's geometry is updated - so don't trust it! */
         	client_event.xconfigure.x += parent->root_x+(int)parent->bw;
         	client_event.xconfigure.y += parent->root_y+(int)parent->bw;
+#endif			
 	        /* Real ConfigureNotify events say we're above title window, so ... */
     	    /* what if we don't have a title ????? */
         	client_event.xconfigure.above = parent->w;
