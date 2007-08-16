@@ -829,9 +829,13 @@ configure_canvas (ASCanvas * pc, int x, int y, unsigned int width, unsigned int 
 {
     ASFlagType changes = 0 ;
 	XWindowChanges xwc ; 
+	int curr_x, curr_y;
+	unsigned int curr_width, curr_height, curr_bw ;
 	
 	if( pc == NULL ) 
 		return 0;
+
+	get_current_canvas_geometry( pc, &curr_x, &curr_y, &curr_width, &curr_height, &curr_bw );
     
 	LOCAL_DEBUG_CALLER_OUT( "canvas(%p)->window(%lx)->geom(%ux%u%+d%+d)", pc, pc->w, width, height, x, y );
     /* Setting background to None to avoid background pixmap tiling
@@ -858,6 +862,15 @@ configure_canvas (ASCanvas * pc, int x, int y, unsigned int width, unsigned int 
     }else if( AS_ASSERT(height))
         height = 1;
 
+	if( get_flags( mask, CWX ) && curr_x != x )
+	    set_flags( changes, CANVAS_X_CHANGED );
+	if( get_flags( mask, CWY ) && curr_y != y )
+	    set_flags( changes, CANVAS_Y_CHANGED );
+    if( width != curr_width ) set_flags( changes, CANVAS_WIDTH_CHANGED );
+    if( height != curr_height ) set_flags( changes, CANVAS_HEIGHT_CHANGED );
+
+	if( changes == 0 ) 
+		return 0;
 	xwc.x = x ; 
 	xwc.y = y ; 
 	xwc.width = width ; 
@@ -868,13 +881,7 @@ configure_canvas (ASCanvas * pc, int x, int y, unsigned int width, unsigned int 
     
 	LOCAL_DEBUG_OUT( "XConfigureWindow( %lX, %lX, %dx%d%+d%+d );", pc->w, mask, width, height, x, y );
     XConfigureWindow (dpy, pc->w, mask, &xwc);
-
-	if( get_flags( mask, CWX ) )
-	    set_flags( changes, CANVAS_X_CHANGED );
-	if( get_flags( mask, CWY ) )
-	    set_flags( changes, CANVAS_Y_CHANGED );
-    if( width != pc->width ) set_flags( changes, CANVAS_WIDTH_CHANGED );
-    if( height != pc->height ) set_flags( changes, CANVAS_HEIGHT_CHANGED );
+/*fprintf( stderr, "client_changes: ( %lX, %lX, %dx%d%+d%+d ); was %dx%d%+d%+d\n", pc->w, mask, width, height, x, y, curr_width, curr_height, curr_x, curr_y );*/
     return changes;
 }
 

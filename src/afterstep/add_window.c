@@ -304,8 +304,6 @@ AddWindow (Window w, Bool from_map_request)
 	if( ASWIN_HFLAGS( tmp_win, AS_AvoidCover )  )
 		enforce_avoid_cover( tmp_win );
 
-    /* SendConfigureNotify(tmp_win); */
-
     /*
 	 * Reparenting generates an UnmapNotify event, followed by a MapNotify.
 	 * Set the map state to FALSE to prevent a transition back to

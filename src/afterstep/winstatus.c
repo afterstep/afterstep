@@ -478,11 +478,12 @@ move_resize_frame_bars( ASWindow *asw, int side, ASOrientation *od, unsigned int
     return rendered;
 }
 
-static void
+static ASFlagType
 resize_frame_subwindows( ASWindow *asw, ASOrientation *od, unsigned int frame_win_width, unsigned int frame_win_height ) 
 {
     register unsigned int *frame_size = &(asw->status->frame_size[0]) ;
     unsigned int normal_width, normal_height ;
+	ASFlagType client_changes = 0;
 
 	if( od == NULL ) 
 		od = get_orientation_data(asw);
@@ -494,11 +495,11 @@ resize_frame_subwindows( ASWindow *asw, ASOrientation *od, unsigned int frame_wi
 				
 	resize_canvases( asw, od, normal_width, normal_height, frame_size );
     if( !ASWIN_GET_FLAGS(asw, AS_Shaded ) )  /* leave shaded client alone ! */
-    	moveresize_canvas( asw->client_canvas,
-                           frame_size[FR_W],
-                           frame_size[FR_N],
-                           (int)frame_win_width-(int)(frame_size[FR_W]+frame_size[FR_E]),
-                           (int)frame_win_height-(int)(frame_size[FR_N]+frame_size[FR_S]));
+    	client_changes = moveresize_canvas( asw->client_canvas,
+                         					frame_size[FR_W], frame_size[FR_N],
+				                           (int)frame_win_width-(int)(frame_size[FR_W]+frame_size[FR_E]),
+                				           (int)frame_win_height-(int)(frame_size[FR_N]+frame_size[FR_S]));
+	return client_changes;
 }
 
 
@@ -507,6 +508,8 @@ Bool
 apply_window_status_size(register ASWindow *asw, ASOrientation *od)
 {
 	Bool moved = False ;
+	Bool resized = False;
+	ASFlagType client_changes = 0;
     /* note that icons are handled by iconbox */
     if( !ASWIN_GET_FLAGS( asw, AS_Iconic ) )
 	{
@@ -534,19 +537,24 @@ LOCAL_DEBUG_OUT( "**CONFG Client(%lx(%s))->status(%ux%u%+d%+d,%s,%s(%d>-%d))",
 				new_height = step_size ;
 			}
         }
-		moved = (	asw->frame_canvas->root_x != asw->status->x ||
-					asw->frame_canvas->root_y != asw->status->y ||
-					asw->frame_canvas->width != new_width ||
+		resized = (	asw->frame_canvas->width != new_width ||
 					asw->frame_canvas->height != new_height );
-
-		if( step_size <= 0 )
-			resize_frame_subwindows( asw, od, new_width, new_height ); 
+		moved = (	asw->frame_canvas->root_x != asw->status->x ||
+					asw->frame_canvas->root_y != asw->status->y );
 
         moveresize_canvas(  asw->frame_canvas, asw->status->x, asw->status->y,
                             new_width, new_height );
-/*		send_canvas_configure_notify(asw->frame_canvas, asw->client_canvas); */
+		/* when we resize the client - our frame should already be positioned correctly ! */
+		if( step_size <= 0 )
+			client_changes = resize_frame_subwindows( asw, od, new_width, new_height ); 
+#if 0
+fprintf( stderr, "client_changes = %X, moved = %d. Called from :\n", client_changes, moved);
+print_simple_backtrace();
+#endif
+		if (moved && client_changes == 0)
+			send_canvas_configure_notify (asw->frame_canvas, asw->client_canvas);
     }
-	return moved;
+	return moved || resized || client_changes != 0;
 }
 
 static void
