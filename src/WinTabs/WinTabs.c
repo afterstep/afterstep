@@ -1663,6 +1663,11 @@ do_swallow_window( ASWindowData *wd )
 		return ;
 	}
 
+	/* if the window was previously unswallowed by us - we may get UnMapNotify
+	   after reparenting, which will make us immidiately unswallow this client.
+	   To prevent this :  */
+    XSelectInput (dpy, wd->client, NoEventMask);
+
     /* first thing - we reparent window and its icon if there is any */
     nc = aswt->client_canvas = create_ascanvas_container( wd->client );
 	aswt->frame_canvas = create_ascanvas_container( make_frame_window(WinTabsState.main_window) );
