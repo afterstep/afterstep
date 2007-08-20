@@ -674,7 +674,17 @@ check_fdata_availability( FunctionData *fdata )
 				return False;
         	}
 		}
+	}else if ( fdata->func == F_ExecInTerm )
+	{
+		char *target = strstr( fdata->text, "-e ");
+		target = target? target+3 : fdata->text;
+        if (!is_executable_in_path (target))
+        {
+			LOCAL_DEBUG_OUT( "unavailable :  \"%s\", target = \"%s\"", fdata->name?fdata->name:"nameless", target );
+			return False ;
+        }
 	}
+
 	return True;
 }
 
