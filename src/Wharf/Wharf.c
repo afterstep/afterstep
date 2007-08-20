@@ -1269,17 +1269,28 @@ LOCAL_DEBUG_OUT( "contents %d has function %p with func = %ld", i, function, fun
 						desktop_category2wharf_folder( wb, &(wb->contents[i]), cat_name, (func==F_CATEGORY)?1:5 );
 						function->func = F_Folder ;
 							
-					}else if( (func < F_ExecToolStart || func > F_ExecToolEnd) &&
-							  (IsSwallowFunc(func) || IsExecFunc(func)) )
+					}else
 					{
-			   			disabled = (!is_executable_in_path (function->text));
-						if( disabled )
+						char *target = function->text;
+						disabled = True ;
+						if( (func < F_ExecToolStart || func > F_ExecToolEnd) &&
+							  (IsSwallowFunc(func) || IsExecFunc(func)) )
+						{
+						}else if (func == F_ExecInTerm)
+				        {
+    	        			target = strstr( function->text, "-e ");
+							target = target? target+3 : function->text;
+						}else
+							disabled = False ;
+
+						if( disabled ) 
+				   			disabled = !is_executable_in_path (target);
+    					if( disabled )
 						{
 							wb->contents[i].unavailable = True ;
-							show_warning( "Application \"%s\" cannot be found in the PATH.", function->text );
+							show_warning( "Application \"%s\" cannot be found in the PATH.", target );
 						}
-					}else
-						disabled = False ;
+	      		}
 				}
 				if( !disabled )
 				{
