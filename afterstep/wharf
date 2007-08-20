@@ -167,8 +167,8 @@
 #
 # First available IRC client :
 #
+*Wharf IRC  normal/IRCTransparent Exec "XCHAT" xchat &
 *Wharf IRC	normal/IRCTransparent ExecInTerm "BitchX" -title "BitchX IRC" +sb if(aterm){-tr -sh 50 -fg white -bg black} if(Eterm){-O --shade 50 -f white -b black) if(rxvt){-tr -fg white -bg black} if(xterm){-fg white -bg black} -e BitchX irc.freenode.net &
-*Wharf IRC  	normal/IRCTransparent Exec "XCHAT" xchat &
 
 
 # subfolder full of games :
@@ -178,8 +178,8 @@
 #
 # First available Audio player :
 #
-*Wharf AudioPlayer - Swallow "wmxmms" wmxmms --single &
 *Wharf AudioPlayer logos/Xmms Exec "X Multi Media System" xmms &
+*Wharf AudioPlayer - Swallow "wmxmms" wmxmms --single &
 *Wharf AudioPlayer - Swallow "ascd" ascd &
 #
 # Mixer
