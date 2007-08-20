@@ -1030,9 +1030,14 @@ build_wharf_button_tbar(ASWharfButton *aswb, WharfButton *wb)
 	if( wb->contents )
 	{
 		char ** icon = NULL ;
+		Bool no_icon = False;
 		if( wb->selected_content >= 0 && wb->selected_content < wb->contents_num )
+		{	
 			icon = wb->contents[wb->selected_content].icon ;
-		if( icon == NULL )
+			if( icon == NULL && IsSwallowFunc(wb->contents[wb->selected_content].function->func) )
+				no_icon = True;
+		}
+		if( icon == NULL && !no_icon)
 		{
 			register int i ;
 			for( i = 0 ; i < wb->contents_num ; ++i )
