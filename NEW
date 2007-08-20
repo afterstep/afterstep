@@ -1,4 +1,8 @@
-	* Added DontCoverDesktop feel flag to disable colored cover to come up during 
+version 2.2.7 release
+  * Added -bc or --border-color cmd line option to WinTabs module to determine
+    what color to use while rendering border around swallowed windows.
+    By default the Back color of focused MyStyle will be used.
+	* Added DontCoverDesktop feel flag to disable colored cover to come up during
 	  different prolonged operations.
 
 version 2.2.6 release
@@ -7,19 +11,19 @@ version 2.2.6 release
 	  or any combination of these.
 
 version 2.2.5 release
-	* new policy for window groups - if a group leader or an oldest window 
-	  in the group is raised - whole group is raised. If any window in the 
+	* new policy for window groups - if a group leader or an oldest window
+	  in the group is raised - whole group is raised. If any window in the
 	  group get's moved to a different desktop - whole group is moved.
 	  Example of a group of a windows is GIMP and pretty much any GTK app.
-	* new policy for transients(Dialogs) handling - all transients are stacked 
-	  above its owner with newest transient on top of the others. 
-	  If any transient is raised - all other transients and the owner are 
-	  raised as well. If any transient, or an owner is moved to another desk - 
+	* new policy for transients(Dialogs) handling - all transients are stacked
+	  above its owner with newest transient on top of the others.
+	  If any transient is raised - all other transients and the owner are
+	  raised as well. If any transient, or an owner is moved to another desk -
 	  all other transients for this owner and owner will be moved as well.
 	* New ShowHints option to Wharf determining what is shown in the balloon:
 	  possible options are Name, Comment and Exec, or any combination of these.
-	* Wharf now withdraws similar to older aftersteps - 
-	  if clicked on top portion - withdraws to a top corner, if clicked on lower - 
+	* Wharf now withdraws similar to older aftersteps -
+	  if clicked on top portion - withdraws to a top corner, if clicked on lower -
 	  to bottom corner, left - left, right  - right.
 	* New options in WinList config : NoCollides, AllowCollides and NoCollidesSpacing
 	  These cause WinList to auto magically adjust it's size to avoid covering 

@@ -1,9 +1,17 @@
 
+2007-08-02  sasha
+
+	* fixed printing of CARD32 values on 64 bit CPUs as lX
+	* Fixed install targets in Makefiles to create dirs
+
 2007-08-01  sasha
 
-	* libAfterImage v. 1.15 release
+	* Fixed install targets in Makefiles to create dirs
+	* fixed configure and deps checking in apps
+	* updated ChangeLog for libAfterImage release
 	* Updated embedded libPNG and Zlib to latest versions; Fixed bugs
 	  in find_file when compiled without libAfterBase.
+	* libAfterImage v. 1.15 release
 
 2007-07-31  sasha
 
@@ -22,6 +30,10 @@
 	* implemented integer math version of gaussian blur algorithm
 	* fixed blur function to not limit radius to 10 and properly
 	  calculate gaussian distribution
+
+2007-07-28  sasha
+
+	* switched timing printing off
 
 2007-07-27  sasha
 
@@ -61,6 +73,8 @@
 	* fixed the way dumb scaling up along Y axist was screwing up
 	  slicing of the small images.
 	* fixed stupid dumb bug in make_scales introduced in porevious fix
+	* fixed a long-standing bug with slicing images getting a vertical
+	  stripe tovards the end. Thanks DrCurl for your Patience
 	* fixed a long-standing bug with slicing images geting a vertical
 	  stripe tovards the end. Thanks DrCurl for your Patience.
 
@@ -92,9 +106,35 @@
 	* fixed several critical bugs in causing double free and heap
 	  corruption, based on valgrind traces
 
+2007-06-22  sasha
+
+	* Improved on location where submenus are opened, to make sure they
+	  don't completely cover parents
+
+2007-06-06  jeremy
+
+	* add alsa detection to configure
+
 2007-05-30  sasha
 
 	* Fixed typo causing ttf configure parameteers being ignored
+
+2007-05-17  sasha
+
+	* updated ChangeLogs for relesae
+
+2007-05-15  sasha
+
+	* upgraded AS version in anticipation of release
+
+2007-05-11  sasha
+
+	* made ShowHints more generic option allowing iut to be used in
+	  other modules - started modifying WinList to make use of it
+
+2007-05-03  sasha
+
+	* fixed window list publishing to use new stacking_order vector
 
 2007-05-02  sasha
 

@@ -1,6 +1,46 @@
 
+2007-08-20  sasha
+
+	* added logic to not reuse the icon from underlaying (disabled)
+	  contexts if selected context is the swallow function
+	* [no log message]
+
+2007-08-16  sasha
+
+	* fixed syntetic ConfigNotify events to have proper root
+	  coordinates, and don't rely on cached parent's geometry
+	* Corrected problems with too many or too few syntetic configure
+	  notifes set to the clients, especially on initial map and and
+	  move/resize
+	* fixed an issue with re-swallowed clients being immidiately
+	  unswallowed again
+
+2007-08-15  sasha
+
+	* implemented proper handling of border fill for nasty terms who
+	  set parent's backgrounds to ParentRelative
+	* added missing event mask for unswallowed from WinTabs windows
+	* fixed problem with focus switching in WinTabs - it is now
+	  accepting WM_TAKE_FOCUS and only then does it switch the focus
+	  internally
+	* fixed clearing window border when in transparent mode and
+	  handling of look switches - to change border color
+	* added some fancy logic to determine what color to use to fill
+	  around windos in WinTabs
+	* fixed swallowing in WinTabs after a window was unswallowed and
+	  destroyed and a new window with the same ID is created
+
+2007-08-02  sasha
+
+	* fixed printing of CARD32 values on 64 bit CPUs as lX
+	* Fixed install targets in Makefiles to create dirs
+
 2007-08-01  sasha
 
+	* Fixed install targets in Makefiles to create dirs
+	* fixed configure and deps checking in apps
+	* updated documentation for libAfterImage
+	* updated ChangeLog for libAfterImage release
 	* Updated embedded libPNG and Zlib to latest versions; Fixed bugs
 	  in find_file when compiled without libAfterBase.
 
