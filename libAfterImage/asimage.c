@@ -520,7 +520,7 @@ dup_asimage( ASImage* im )
 		return im;
 	}else if( im ) 
 	{
-		show_debug( __FILE__, __FUNCTION__, __LINE__, "Attempt to duplicate ASImage %p that is not tracked by any image manager!", im );
+		show_debug( __FILE__, "dup_asimage", __LINE__, "Attempt to duplicate ASImage %p that is not tracked by any image manager!", im );
 	}
 	return NULL ;
 }
