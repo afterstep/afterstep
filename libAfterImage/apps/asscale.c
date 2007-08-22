@@ -146,7 +146,7 @@ int main(int argc, char* argv[])
 					scaled_im = slice_asimage2( asv, im, slice_x_start, slice_x_end, 
 											   slice_y_start, slice_y_end,
 											to_width, to_height, slice_scale,
-					                       	ASA_ASImage, 0, 
+					                       	ASA_XImage, 0, 
 										   	ASIMAGE_QUALITY_DEFAULT );
 				}					   
 				destroy_asimage( &im );

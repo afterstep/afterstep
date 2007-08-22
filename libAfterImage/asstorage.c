@@ -130,21 +130,21 @@ rlediff_compress_bitmap32( CARD8 *buffer,  CARD8* data, int size, CARD32 bitmap_
 
 
 static void
-compute_diff8( register short *diff, register CARD8 *data, int size ) 
+compute_diff8( register ASStorageDiff *diff, register CARD8 *data, int size ) 
 {
 	register int i = 0;	
 	diff[0] = data[0] ;
 /*	fprintf( stderr, "%d(%4.4X) ", diff[0], diff[0] ); */
 	while( ++i < size ) 
 	{	
-		diff[i] = (short)data[i] - (short)data[i-1] ;
+		diff[i] = (ASStorageDiff)data[i] - (ASStorageDiff)data[i-1] ;
 /*		fprintf( stderr, "%d(%4.4X) ", diff[i], diff[i] ); */
 	}
 /*	fprintf( stderr, "\n" ); */
 }	   
 
 static void
-compute_diff32( register short *diff, CARD8 *data, int size ) 
+compute_diff32( register ASStorageDiff *diff, CARD8 *data, int size ) 
 {
 	register int i = 0;	
 	register CARD32 *data32 = (CARD32*)data ;
@@ -152,104 +152,104 @@ compute_diff32( register short *diff, CARD8 *data, int size )
 /*	fprintf( stderr, "\n0:%d(%4.4X) ", diff[0], diff[0] ); */
 	while( ++i < size ) 
 	{	
-		diff[i] = (short)data32[i] - (short)data32[i-1] ;
+		diff[i] = (ASStorageDiff)data32[i] - (ASStorageDiff)data32[i-1] ;
 /*		fprintf( stderr, "%d:%d(%4.4X) ", i, diff[i], diff[i] ); */
 	}
 /*	fprintf( stderr, "\n" ); */
 }	   
 
 static void
-compute_diff32_8bitshift( register short *diff, CARD8 *data, int size ) 
+compute_diff32_8bitshift( register ASStorageDiff *diff, CARD8 *data, int size ) 
 {
 	register int i = 0;	
 	register CARD32 *data32 = (CARD32*)data ;
-	register short dp = data32[0]>>8;
+	register ASStorageDiff dp = data32[0]>>8;
 	diff[0] = dp ;
 	while( ++i < size ) 
 	{
-		register short d = data32[i]>>8;
+		register ASStorageDiff d = data32[i]>>8;
 		diff[i] = d - dp ;
 		dp = d;
 	}
 }	   
 
 static void
-compute_diff32_16bitshift( register short *diff, CARD8 *data, int size ) 
+compute_diff32_16bitshift( register ASStorageDiff *diff, CARD8 *data, int size ) 
 {
 	register int i = 0;	
 	register CARD32 *data32 = (CARD32*)data ;
-	register short dp = data32[0]>>16;
+	register ASStorageDiff dp = data32[0]>>16;
 	diff[0] = dp ;
 	while( ++i < size ) 
 	{
-		register short d = data32[i]>>16;
+		register ASStorageDiff d = data32[i]>>16;
 		diff[i] = d - dp ;
 		dp = d;
 	}
 }	   
 
 static void
-compute_diff32_masked( register short *diff, CARD8 *data, int size ) 
+compute_diff32_masked( register ASStorageDiff *diff, CARD8 *data, int size ) 
 {
 	register int i = 0;	
 	register CARD32 *data32 = (CARD32*)data ;
-	register short dp = data32[0]&0x0ff;
+	register ASStorageDiff dp = data32[0]&0x0ff;
 	diff[0] = dp ;
 	while( ++i < size ) 
 	{
-		register short d = data32[i]&0x0ff;
+		register ASStorageDiff d = data32[i]&0x0ff;
 		diff[i] = d - dp ;
 		dp = d;
 	}
 }	   
 
 static void
-compute_diff32_8bitshift_masked( register short *diff, CARD8 *data, int size ) 
+compute_diff32_8bitshift_masked( register ASStorageDiff *diff, CARD8 *data, int size ) 
 {
 	register int i = 0;	
 	register CARD32 *data32 = (CARD32*)data ;
-	register short dp = (data32[0]>>8)&0x0ff;
+	register ASStorageDiff dp = (data32[0]>>8)&0x0ff;
 	diff[0] = dp ;
 	while( ++i < size ) 
 	{
-		register short d = (data32[i]>>8)&0x0ff;
+		register ASStorageDiff d = (data32[i]>>8)&0x0ff;
 		diff[i] = d - dp ;
 		dp = d;
 	}
 }	   
 
 static void
-compute_diff32_16bitshift_masked( register short *diff, CARD8 *data, int size ) 
+compute_diff32_16bitshift_masked( register ASStorageDiff *diff, CARD8 *data, int size ) 
 {
 	register int i = 0;	
 	register CARD32 *data32 = (CARD32*)data ;
-	register short dp = (data32[0]>>16)&0x0ff;
+	register ASStorageDiff dp = (data32[0]>>16)&0x0ff;
 	diff[0] = dp ;
 	while( ++i < size ) 
 	{
-		register short d = (data32[i]>>16)&0x0ff;
+		register ASStorageDiff d = (data32[i]>>16)&0x0ff;
 		diff[i] = d - dp ;
 		dp = d;
 	}
 }	   
 
 static void
-compute_diff32_24bitshift_masked( register short *diff, CARD8 *data, int size ) 
+compute_diff32_24bitshift_masked( register ASStorageDiff *diff, CARD8 *data, int size ) 
 {
 	register int i = 0;	
 	register CARD32 *data32 = (CARD32*)data ;
-	register short dp = (data32[0]>>24)&0x0ff;
+	register ASStorageDiff dp = (data32[0]>>24)&0x0ff;
 	diff[0] = dp ;
 	while( ++i < size ) 
 	{
-		register short d = (data32[i]>>24)&0x0ff;
+		register ASStorageDiff d = (data32[i]>>24)&0x0ff;
 		diff[i] = d - dp ;
 		dp = d;
 	}
 }	   
 
 static int 
-rlediff_compress( CARD8 *buffer,  short *diff, int size )
+rlediff_compress( CARD8 *buffer,  ASStorageDiff *diff, int size )
 {
 	int comp_size = 1 ;
 	int i = 1;
@@ -594,7 +594,7 @@ rlediff_decompress( CARD8 *buffer,  CARD8* data, int size )
 
 
 static int
-copy_data_tinted (CARD8 *buffer, CARD32 *data32, int size, short tint)
+copy_data_tinted (CARD8 *buffer, CARD32 *data32, int size, CARD32 tint)
 {
 	int comp_size = 0;
 	do{	buffer[comp_size] = (data32[comp_size]*tint)>>8;}while (++comp_size < size);
@@ -602,7 +602,7 @@ copy_data_tinted (CARD8 *buffer, CARD32 *data32, int size, short tint)
 }
 
 static int
-copy_data_tinted_8bitshift (CARD8 *buffer, CARD32 *data32, int size, short tint)
+copy_data_tinted_8bitshift (CARD8 *buffer, CARD32 *data32, int size, CARD32 tint)
 {
 	int comp_size = 0;
 	do{	buffer[comp_size] = (data32[comp_size]*tint)>>16;}while (++comp_size < size);
@@ -610,7 +610,7 @@ copy_data_tinted_8bitshift (CARD8 *buffer, CARD32 *data32, int size, short tint)
 }
 
 static int
-copy_data_tinted_16bitshift (CARD8 *buffer, CARD32 *data32, int size, short tint)
+copy_data_tinted_16bitshift (CARD8 *buffer, CARD32 *data32, int size, CARD32 tint)
 {
 	int comp_size = 0;
 	do{	buffer[comp_size] = (data32[comp_size]*tint)>>24;}while (++comp_size < size);
@@ -618,7 +618,7 @@ copy_data_tinted_16bitshift (CARD8 *buffer, CARD32 *data32, int size, short tint
 }
 
 static int
-copy_data_tinted_masked ( CARD8 *buffer, CARD32 *data32, int size, short tint)
+copy_data_tinted_masked ( CARD8 *buffer, CARD32 *data32, int size, CARD32 tint)
 {
 	int comp_size = 0;
 	do{	buffer[comp_size] = ((data32[comp_size]&0x0FF)*tint)>>8;}while (++comp_size < size);
@@ -626,7 +626,7 @@ copy_data_tinted_masked ( CARD8 *buffer, CARD32 *data32, int size, short tint)
 }
 
 static int
-copy_data_tinted_8bitshift_masked (CARD8 *buffer, CARD32 *data32, int size, short tint)
+copy_data_tinted_8bitshift_masked (CARD8 *buffer, CARD32 *data32, int size, CARD32 tint)
 {
 	int comp_size = 0;
 	do{	buffer[comp_size] = (((data32[comp_size]>>8)&0x0FF)*tint)>>8;}while (++comp_size < size);
@@ -635,7 +635,7 @@ copy_data_tinted_8bitshift_masked (CARD8 *buffer, CARD32 *data32, int size, shor
 
 
 static int
-copy_data_tinted_16bitshift_masked (CARD8 *buffer, CARD32 *data32, int size, short tint)
+copy_data_tinted_16bitshift_masked (CARD8 *buffer, CARD32 *data32, int size, CARD32 tint)
 {
 	int comp_size = 0;
 	do{	buffer[comp_size] = (((data32[comp_size]>>16)&0x0FF)*tint)>>8;}while (++comp_size < size);
@@ -643,7 +643,7 @@ copy_data_tinted_16bitshift_masked (CARD8 *buffer, CARD32 *data32, int size, sho
 }
 
 static int
-copy_data_tinted_24bitshift_masked( CARD8 *buffer, CARD32 *data32, int size, short tint)
+copy_data_tinted_24bitshift_masked( CARD8 *buffer, CARD32 *data32, int size, CARD32 tint)
 {
 	int comp_size = 0;
 	do{	buffer[comp_size] = (((data32[comp_size]>>24)&0x0FF)*tint)>>8;}while (++comp_size < size);
@@ -774,9 +774,9 @@ compress_stored_data( ASStorage *storage, CARD8 *data, int size, ASFlagType *fla
 		{	
 			storage->comp_buf_size = ((size/AS_STORAGE_PAGE_SIZE)+1)*AS_STORAGE_PAGE_SIZE ;
 			storage->comp_buf = realloc( storage->comp_buf, storage->comp_buf_size );
-			storage->diff_buf = realloc( storage->diff_buf, storage->comp_buf_size*sizeof(short) );
+			storage->diff_buf = realloc( storage->diff_buf, storage->comp_buf_size*sizeof(ASStorageDiff) );
 #ifdef DEBUG_ALLOCS
-			show_debug( __FILE__,__FUNCTION__,__LINE__," realloced compression buffer to %d+%d*%d",storage->comp_buf_size, storage->comp_buf_size, sizeof(short) );
+			show_debug( __FILE__,__FUNCTION__,__LINE__," realloced compression buffer to %d+%d*%d",storage->comp_buf_size, storage->comp_buf_size, sizeof(ASStorageDiff) );
 #endif 
 		}
 		buffer = storage->comp_buf ;
@@ -795,7 +795,7 @@ compress_stored_data( ASStorage *storage, CARD8 *data, int size, ASFlagType *fla
 					comp_size = rlediff_compress_bitmap8( buffer, data, uncompressed_size, bitmap_threshold );
 			}else 
 			{
-				short tint = bitmap_threshold ;
+				ASStorageDiff tint = bitmap_threshold ;
 				if( get_flags( *flags, ASStorage_32Bit ) ) 
 				{	
 					uncompressed_size = size / 4 ;
@@ -807,7 +807,7 @@ compress_stored_data( ASStorage *storage, CARD8 *data, int size, ASFlagType *fla
 				if( tint < 255 )
 				{
 					int i;
-					short *diff = storage->diff_buf ; 
+					ASStorageDiff *diff = storage->diff_buf ; 
 					for( i = 0 ; i < uncompressed_size ; ++i ) 
 						diff[i] = (diff[i]*tint)/256 ;
 				}	 
@@ -841,9 +841,9 @@ compress_stored_data( ASStorage *storage, CARD8 *data, int size, ASFlagType *fla
 			{	
 				storage->comp_buf_size = ((size/AS_STORAGE_PAGE_SIZE)+1)*AS_STORAGE_PAGE_SIZE ;
 				storage->comp_buf = realloc( storage->comp_buf, storage->comp_buf_size );
-				storage->diff_buf = realloc( storage->diff_buf, storage->comp_buf_size*sizeof(short) );
+				storage->diff_buf = realloc( storage->diff_buf, storage->comp_buf_size*sizeof(ASStorageDiff) );
 #ifdef DEBUG_ALLOCS
-			show_debug( __FILE__,__FUNCTION__,__LINE__," realloced compression buffer to %d+%d*%d",storage->comp_buf_size, storage->comp_buf_size, sizeof(short) );
+			show_debug( __FILE__,__FUNCTION__,__LINE__," realloced compression buffer to %d+%d*%d",storage->comp_buf_size, storage->comp_buf_size, sizeof(ASStorageDiff) );
 #endif 
 
 			}
@@ -864,9 +864,9 @@ compress_stored_data( ASStorage *storage, CARD8 *data, int size, ASFlagType *fla
 			{	
 				storage->comp_buf_size = ((size/AS_STORAGE_PAGE_SIZE)+1)*AS_STORAGE_PAGE_SIZE ;
 				storage->comp_buf = realloc( storage->comp_buf, storage->comp_buf_size );
-				storage->diff_buf = realloc( storage->diff_buf, storage->comp_buf_size*sizeof(short) );
+				storage->diff_buf = realloc( storage->diff_buf, storage->comp_buf_size*sizeof(ASStorageDiff) );
 #ifdef DEBUG_ALLOCS
-			show_debug( __FILE__,__FUNCTION__,__LINE__," realloced compression buffer to %d+%d*%d",storage->comp_buf_size, storage->comp_buf_size, sizeof(short) );
+			show_debug( __FILE__,__FUNCTION__,__LINE__," realloced compression buffer to %d+%d*%d",storage->comp_buf_size, storage->comp_buf_size, sizeof(ASStorageDiff) );
 #endif 
 			}
 			buffer = storage->comp_buf ;

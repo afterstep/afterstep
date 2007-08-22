@@ -2290,7 +2290,7 @@ ASImage* blur_asimage_gauss(ASVisual* asv, ASImage* src, double dhorz, double dv
 	int horz = (int)dhorz;
 	int vert = (int)dvert;
 	int width, height ; 
-#if 0
+#if 1
 	struct timeval stv;
 	gettimeofday (&stv,NULL);
 #define PRINT_BACKGROUND_OP_TIME do{ struct timeval tv;gettimeofday (&tv,NULL); tv.tv_sec-= stv.tv_sec;\

@@ -124,9 +124,14 @@ typedef struct ASStorageSlot
 
 }ASStorageSlot;
 
-typedef void (*compute_diff_func_type)(short*,CARD8*,int);
+/* turns out there is no performance gains from using int here instead of short - 
+so save some memory if we can : */
+typedef short ASStorageDiff;
+
+
+typedef void (*compute_diff_func_type)(ASStorageDiff*,CARD8*,int);
 typedef int  (*copy_data32_func_type)(CARD8*,CARD32*,int);
-typedef int  (*copy_data32_tinted_func_type)(CARD8*,CARD32*,int,short);
+typedef int  (*copy_data32_tinted_func_type)(CARD8*,CARD32*,int,CARD32);
 
 
 typedef struct ASStorageBlock
@@ -146,7 +151,6 @@ typedef struct ASStorageBlock
 
 }ASStorageBlock;
 
-
 typedef struct ASStorage
 {
 	int default_block_size ;
@@ -155,7 +159,7 @@ typedef struct ASStorage
 	ASStorageBlock **blocks ;
 	int 			blocks_count;
 
-	short  *diff_buf ;
+	ASStorageDiff  *diff_buf ;
 	CARD8  *comp_buf ;
 	size_t 	comp_buf_size ; 
 
