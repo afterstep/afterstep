@@ -1,4 +1,14 @@
 
+2007-08-22  sasha
+
+	* compile problem on solaris fixed; Feeble attempts at increasing
+	  performance without any results
+	* compile fixes and minor optimization of the blurring code
+
+2007-08-20  sasha
+
+	* AfterStep 2.2.7 release
+
 2007-08-02  sasha
 
 	* fixed printing of CARD32 values on 64 bit CPUs as lX
