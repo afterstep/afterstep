@@ -1,0 +1,11 @@
+#!/bin/bash
+
+while true
+do
+    echo "<composite>"
+    echo "<solid width=\"60\" height=\"300\"color=\"#00000000\"/>"
+    echo "<set var=\"my_y\" val=\"0\" />"
+ cal | sed '/[0-9A-Za-z]/s!.*!<text font=DefaultBoldOblique.ttf fgcolor=#FFFFFF align=center y=$my_y point=24>&</text><set var="my_y" val="$my_y + 32" />!'
+    echo "</composite>"
+    sleep 5
+done

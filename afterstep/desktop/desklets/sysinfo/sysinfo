@@ -1,0 +1,8 @@
+#!/bin/bash
+
+while true
+do
+    echo \<text  font=DefaultBoldOblique.ttf fgcolor=#FFFFFF align=center y=26 Size=32\> `cat /proc/cpuinfo |grep name | sed 's/model name.*:.//'; echo @ ; cat /proc/acpi/thermal_zone/THRM/temperature | sed 's/temperature:.............//'`
+    echo \</text\>
+    sleep 5
+done
