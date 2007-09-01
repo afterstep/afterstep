@@ -5,7 +5,7 @@ do
     echo "<composite>"
     echo "<solid width=\"60\" height=\"300\"color=\"#00000000\"/>"
     echo "<set var=\"my_y\" val=\"0\" />"
- cal | sed '/[0-9A-Za-z]/s!.*!<text font=DefaultBoldOblique.ttf fgcolor=#FFFFFF align=center y=$my_y point=24>&</text><set var="my_y" val="$my_y + 32" />!'
+ cal | sed '/[0-9A-Za-z]/s!.*!<scale width="254" y="$my_y"><text font="DefaultBoldOblique.ttf" fgcolor=#FFFFFF align=center y=$my_y point=24>&</text></scale><set var="my_y" val="$my_y + 32" />!'
     echo "</composite>"
     sleep 5
 done
