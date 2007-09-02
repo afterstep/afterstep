@@ -230,7 +230,7 @@ Popup "Window"
         Title           "This window :"
         ToggleLayer     "Promote to Next Layer"  1
  SmallMiniPixmap "normal/Windows"
-        ToggleLayer     "Denote to Lower Layer"  -1
+        ToggleLayer     "Demote to Lower Layer"  -1
  SmallMiniPixmap "normal/WindowsBackground"
         Move            "Move"
  SmallMiniPixmap "normal/WindowsMove"
