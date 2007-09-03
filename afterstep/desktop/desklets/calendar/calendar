@@ -2,14 +2,15 @@
 
 while true
 do
-    echo "<composite>"
-    echo "<solid width=\"60\" height=\"60\"color=\"#00000000\"/>"
+    echo "<composite >"
+    echo "<solid width=\"1\" height=\"1\" color=\"#000000\" />"
     echo "<set var=\"my_y\" val=\"0\" />"
- cal | sed '/[0-9A-Za-z]/s!.*!<scale width="254" y="$my_y"><text font="DefaultBoldOblique.ttf" fgcolor=#FFFFFF align=center y=$my_y point=24>&</text></scale><set var="my_y" val="$my_y + 32" />!'
-    weekday=`date +%u`
-    temp1=`date +%e`
-    weekofmonth=`echo "(((($temp1 - $weekday)+7)/7)*32)"`
-    echo "<solid color=\"#FF0000\" opacity=\"70\" x=\"$weekday-1*254/7\" y=\"54+$weekofmonth\" width=\"254/7\" height=\"32\"/>"
+ cal | sed '/[0-9A-Za-z]/s!.*!<scale width="254" height="100%"y="$my_y"><text spacing=5 font="DefaultBoldOblique.ttf" fgcolor=#FFFFFF align=center y=$my_y point=24>&</text></scale><set var="my_y" val="$my_y + 32" />!'
+    weekofmonth=$(cal |awk "/$(date +%e)/{ print NR }")
+    temp1=`date +%a |sed 's/.$//'`
+    temp2=$(cal |sed -e '2,2!d;s/ //g' | awk "{ print index(\$0,\"$temp1\") }")
+    weekday=$(echo \($temp2/2\)+1 | bc)
+    echo "<solid color=\"#FF0000\" opacity=\"70\" x=\"$weekday-1*254/7\" y=\"32+(($weekofmonth-2)*32)\" width=\"254/7\" height=\"32\"/>"
     echo "</composite>"
     sleep 5
 done
