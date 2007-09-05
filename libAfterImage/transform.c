@@ -2100,7 +2100,31 @@ static inline void
 gauss_component_int(CARD32 *s1, CARD32 *d1, int radius, GAUSS_COEFF_TYPE* gauss, GAUSS_COEFF_TYPE* gauss_sums, int len)
 {
 	int x = 0, j;
+
 #define DEFINE_GAUS_TMP_VAR		CARD32 *xs1 = &s1[x]; CARD32 v1 = xs1[0]*gauss[0]
+	if( len < radius + radius )
+	{
+		while( x < len )
+		{
+			int tail = len - 1 - x;
+			int gauss_sum = gauss[0];
+			DEFINE_GAUS_TMP_VAR;
+			for (j = 1 ; j <= x ; ++j)
+			{
+				v1 += xs1[-j]*gauss[j];
+				gauss_sum += gauss[j];
+			}
+			for (j = 1 ; j <= tail ; ++j)
+			{
+				v1 += xs1[j]*gauss[j];
+				gauss_sum += gauss[j];
+			}
+			d1[x] = (v1<<10)/gauss_sum;
+			++x;
+		}
+		return;
+	}
+
 #define MIDDLE_STRETCH_GAUSS(j_check)	\
 	do{ for( j = 1 ; j j_check ; ++j ) v1 += (xs1[-j]+xs1[j])*gauss[j]; }while(0)
 	while( x < radius )
@@ -2290,7 +2314,7 @@ ASImage* blur_asimage_gauss(ASVisual* asv, ASImage* src, double dhorz, double dv
 	int horz = (int)dhorz;
 	int vert = (int)dvert;
 	int width, height ; 
-#if 1
+#if 0
 	struct timeval stv;
 	gettimeofday (&stv,NULL);
 #define PRINT_BACKGROUND_OP_TIME do{ struct timeval tv;gettimeofday (&tv,NULL); tv.tv_sec-= stv.tv_sec;\
@@ -2377,7 +2401,7 @@ ASImage* blur_asimage_gauss(ASVisual* asv, ASImage* src, double dhorz, double dv
 			int lines_count = vert*2+1;
 			int first_line = 0, last_line = lines_count-1;
 			ASScanline *lines_mem = safecalloc( lines_count, sizeof(ASScanline));
-			ASScanline **lines = safecalloc( dst->height, sizeof(ASScanline*));
+			ASScanline **lines = safecalloc( dst->height+1, sizeof(ASScanline*));
 
 			/* init */
 			calc_gauss_int(vert, vert_gauss, vert_gauss_sums);
@@ -2499,6 +2523,7 @@ ASImage* blur_asimage_gauss(ASVisual* asv, ASImage* src, double dhorz, double dv
 
         		imout->output_image_scanline(imout, &result, 1);
 				++last_line;
+				/* fprintf( stderr, "last_line = %d, first_line = %d, height = %d, vert = %d, y = %d\n", last_line, first_line, dst->height, vert, y ); */
 				lines[last_line] = lines[first_line] ; 
 				++first_line;
 				load_gauss_scanline(lines[last_line], imdec, horz, horz_gauss, horz_gauss_sums, filter );
