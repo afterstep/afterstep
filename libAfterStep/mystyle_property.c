@@ -38,7 +38,7 @@ mystyle_list_set_property (ASWMProps *wmprops, ASHashTable *list )
     if( !start_hash_iteration( list, &iterator ) ) return ;
 	do
 	{
-#define MYSTYLE_STATIC_ELEM_NUM (9 + 4 + 7)
+#define MYSTYLE_STATIC_ELEM_NUM (9 + 4 + 2 + 7)
         nelements += MYSTYLE_STATIC_ELEM_NUM + ((MyStyle*)curr_hash_data(&iterator))->gradient.npoints * 4;
     }while( next_hash_item(&iterator));
 
@@ -64,6 +64,8 @@ mystyle_list_set_property (ASWMProps *wmprops, ASHashTable *list )
 		prop[i++] = style->slice_x_end;
 		prop[i++] = style->slice_y_start;
 		prop[i++] = style->slice_y_end;
+		prop[i++] = style->blur_x;
+		prop[i++] = style->blur_y;
 		if( style->back_icon.pix == None ) 
 			make_icon_pixmaps( &(style->back_icon), False );
 		prop[i++] = style->back_icon.pix;
@@ -88,7 +90,7 @@ mystyle_list_set_property (ASWMProps *wmprops, ASHashTable *list )
 		}
     }while( next_hash_item(&iterator));
 	/* set the property version to 1.2 */
-    set_as_style (wmprops, nelements *  sizeof (CARD32), (1 << 8) + 4, prop );
+    set_as_style (wmprops, nelements *  sizeof (CARD32), (1 << 8) + 5, prop );
     free (prop);
 }
 
@@ -111,7 +113,7 @@ mystyle_get_property (ASWMProps *wmprops)
 	/* do we know how to handle this version? */
     version = wmprops->as_styles_version ;
     /* do we know how to handle this version? */
-	if (version != (1 << 8) + 4)
+	if (version != (1 << 8) + 5)
 	{
         show_error("style property has unknown version %d.%d", (int)version >> 8, (int)version & 0xff);
 		return;
@@ -183,23 +185,25 @@ mystyle_get_property (ASWMProps *wmprops)
 		style->slice_x_end = prop[i + 10];
 		style->slice_y_start = prop[i + 11];
 		style->slice_y_end = prop[i + 12];
+		style->blur_x = prop[i + 13];
+		style->blur_y = prop[i + 14];
 LOCAL_DEBUG_OUT( "style(%p:\"%s\")->slicing( x: %d to %d, y: %d to %d )", style, style->name, style->slice_x_start, style->slice_x_end, style->slice_y_start, style->slice_y_end );
-		back_pix = prop[i + 13];
-		back_mask = prop[i + 14];
-		style->tint = prop[i + 15];
-		back_alpha = prop[i + 16];
+		back_pix = prop[i + 15];
+		back_mask = prop[i + 16];
+		style->tint = prop[i + 17];
+		back_alpha = prop[i + 18];
         set_flags(style->user_flags, F_EXTERNAL_BACKPIX|F_EXTERNAL_BACKMASK);
-        LOCAL_DEBUG_OUT( "overlay props = %lu, 0x%lX", prop[i + 17], prop[i + 18] );
-	    style->overlay_type = prop[i + 17];
-		if( prop[i + 18] != None ) 
+        LOCAL_DEBUG_OUT( "overlay props = %lu, 0x%lX", prop[i + 19], prop[i + 20] );
+	    style->overlay_type = prop[i + 19];
+		if( prop[i + 20] != None ) 
 		{
-			name = XGetAtomName (dpy, prop[i + 18]);
+			name = XGetAtomName (dpy, prop[i + 20]);
 			style->overlay = mystyle_find (name);			
 			XFree (name);
 		}
 
  
-		style->gradient.npoints = prop[i + 19];
+		style->gradient.npoints = prop[i + 21];
 /*	  show_warning( "checking if gradient data in style \"%s\": (set flags are : 0x%X)", style->name, style->inherit_flags);
  */
 		if (style->gradient.npoints > 0 )

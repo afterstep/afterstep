@@ -593,13 +593,43 @@ mystyle_make_image_int (MyStyle * style, int root_x, int root_y, int crop_x, int
 	{
 		if (ASDefaultScr->RootImage != NULL)
 		{
-			if (style->texture_type == TEXTURE_TRANSPARENT || style->texture_type == TEXTURE_TRANSPARENT_TWOWAY)
+			ASImage *root_im = ASDefaultScr->RootImage;
+			int root_src_x = root_x - ASDefaultScr->RootClipArea.x;
+			int root_src_y = root_y - ASDefaultScr->RootClipArea.y;
+			Bool do_tint = (style->texture_type == TEXTURE_TRANSPARENT || style->texture_type == TEXTURE_TRANSPARENT_TWOWAY);
+			Bool do_blur = (get_flags (style->set_flags, F_BLUR) && (style->blur_x > 1 || style->blur_y > 1));
+			LOCAL_DEBUG_OUT( "root+im = %p, blur is %s set, size = %dx%d", root_im, get_flags (style->set_flags, F_BLUR)?"is":"not", style->blur_x, style->blur_y);
+			if ( do_tint 
+			     || (do_blur && (root_src_x != 0 || root_src_y != 0 
+			                     || width != root_im->width || height != root_im->height)))
 			{
-                im = tile_asimage ( ASDefaultVisual, ASDefaultScr->RootImage, 
-									root_x-ASDefaultScr->RootClipArea.x, root_y-ASDefaultScr->RootClipArea.y,
-									width, height, style->tint, 
-									ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
-			} else
+                ASImage *tmp = tile_asimage ( ASDefaultVisual, root_im,
+											  root_src_x, root_src_y,
+									          width, height, do_tint?style->tint:TINT_LEAVE_SAME, 
+									          ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
+				LOCAL_DEBUG_OUT( "tint result = %p", tmp );
+				if (tmp)
+				{
+					root_src_x = root_src_y = 0;
+					root_im = tmp;
+				}
+			}
+			if (do_blur)
+			{
+#if 1
+				ASImage *tmp = blur_asimage_gauss( ASDefaultVisual, root_im, style->blur_x, style->blur_y, 0xFFFFFFFF, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
+				LOCAL_DEBUG_OUT( "blur result = %p", tmp );
+				if (tmp && tmp != root_im)
+				{
+					if (root_im != ASDefaultScr->RootImage)
+						destroy_asimage (&root_im);
+					root_im = tmp;
+				}
+#endif
+			}
+			if (do_tint)
+				im = root_im;
+			else
 			{
 				 ASImageLayer  layers[2];
 				 ASImage      *scaled_im = NULL;
@@ -608,7 +638,7 @@ mystyle_make_image_int (MyStyle * style, int root_x, int root_y, int crop_x, int
 
 				 init_image_layers (&layers[0], 2);
 
-				 layers[0].im = ASDefaultScr->RootImage;
+				 layers[0].im = root_im;
 				 if (style->texture_type == TEXTURE_SHAPED_SCALED_PIXMAP &&
 					 style->texture_type == TEXTURE_SHAPED_PIXMAP)
 				 {
@@ -623,8 +653,8 @@ mystyle_make_image_int (MyStyle * style, int root_x, int root_y, int crop_x, int
 				 layers[0].merge_scanlines = mystyle_merge_scanlines_func_xref[index];
                  layers[0].dst_x = 0;
                  layers[0].dst_y = 0;
-                 layers[0].clip_x = root_x-ASDefaultScr->RootClipArea.x;
-                 layers[0].clip_y = root_y-ASDefaultScr->RootClipArea.y;
+                 layers[0].clip_x = root_src_x;
+                 layers[0].clip_y = root_src_y;
 				 layers[0].clip_width = width;
 				 layers[0].clip_height = height;
 
@@ -695,6 +725,8 @@ mystyle_make_image_int (MyStyle * style, int root_x, int root_y, int crop_x, int
 				if (scaled_im)
 					destroy_asimage (&scaled_im);
 			 }
+			 if ( root_im && root_im != ASDefaultScr->RootImage && root_im != im)
+			 	destroy_asimage( &root_im);
 		}else
 			show_warning( "MyStyle \"%s\" : failed to accure Root background image", style->name );
 	}

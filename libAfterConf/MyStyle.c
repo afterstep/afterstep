@@ -145,6 +145,7 @@ PrintMyStyleDefinitions (MyStyleDefinition * list)
 		fprintf (stderr, "\n\tSliceXEnd %d", list->slice_x_end);
 		fprintf (stderr, "\n\tSliceYStart %d", list->slice_y_start);
 		fprintf (stderr, "\n\tSliceYEnd %d", list->slice_y_end);
+		fprintf (stderr, "\n\tBlurSize %dx%d", list->BlurSize.width, list->BlurSize.height);
 		if( get_flags( list->flags, MYSTYLE_DRAW_TEXT_BACKGROUND ) )
 			fprintf (stderr, "\n\tDrawTextBackground");
 		if( list->overlay && list->overlay_type > TEXTURE_GRADIENT_END )
@@ -270,6 +271,17 @@ ProcessMyStyleOptions (FreeStorageElem * options, MyStyleDefinition ** tail)
 			(*tail)->slice_y_end = item.data.integer;
 			set_flags( (*tail)->flags, MYSTYLE_SLICE_SET );
 			break;
+		 case MYSTYLE_BlurSize_ID:
+		 	 set_flags( (*tail)->flags, MYSTYLE_BLUR_SET );
+			 (*tail)->BlurSize = item.data.geometry;
+			 /* errorneous value check */
+			 if (!((*tail)->BlurSize.flags & WidthValue))
+				 (*tail)->BlurSize.width = 1;
+			 if (!((*tail)->BlurSize.flags & HeightValue))
+				 (*tail)->BlurSize.height = (*tail)->BlurSize.width;
+			 (*tail)->BlurSize.flags = WidthValue | HeightValue;
+			 break;
+      
 		 case MYSTYLE_BACKGRADIENT_ID:
 			if( options->argc != 3 )
 				show_error( "invalid number of colors in BackGradient definition (%d)", options->argc );
@@ -434,6 +446,12 @@ mystyle_create_from_definition (MyStyleDefinition * def)
 		style->slice_y_start = def->slice_y_start;
 		style->slice_y_end = def->slice_y_end;
 	}
+	if( get_flags(def->flags, MYSTYLE_BLUR_SET ) )
+	{
+		set_flags( style->user_flags, F_BLUR );
+		style->blur_x = def->BlurSize.width;
+		style->blur_y = def->BlurSize.height;
+  	}
 	if( def->fore_color )
 	{
 		if (parse_argb_color (def->fore_color, &(style->colors.fore)) != def->fore_color)

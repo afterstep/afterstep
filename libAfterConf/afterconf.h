@@ -509,9 +509,10 @@ void DestroyBaseConfig (BaseConfig * config);
 #define MYSTYLE_SliceXEnd_ID			MYSTYLE_ID_START+11
 #define MYSTYLE_SliceYStart_ID			MYSTYLE_ID_START+12
 #define MYSTYLE_SliceYEnd_ID			MYSTYLE_ID_START+13
-#define MYSTYLE_Overlay_ID				MYSTYLE_ID_START+14
+#define MYSTYLE_BlurSize_ID				MYSTYLE_ID_START+14
+#define MYSTYLE_Overlay_ID				MYSTYLE_ID_START+15
 
-#define MYSTYLE_DONE_ID					MYSTYLE_ID_START+15
+#define MYSTYLE_DONE_ID					MYSTYLE_ID_START+16
 
 #define MYSTYLE_ID_END					MYSTYLE_ID_START+20
 
@@ -530,6 +531,7 @@ void DestroyBaseConfig (BaseConfig * config);
 {TF_NO_MYNAME_PREPENDING,"SliceXEnd",	9, TT_INTEGER, MYSTYLE_SliceXEnd_ID	, NULL},\
 {TF_NO_MYNAME_PREPENDING,"SliceYStart",	11, TT_INTEGER, MYSTYLE_SliceYStart_ID	, NULL},\
 {TF_NO_MYNAME_PREPENDING,"SliceYEnd",	9, TT_INTEGER, MYSTYLE_SliceYEnd_ID	, NULL},\
+{TF_NO_MYNAME_PREPENDING,"BlurSize",    8, TT_GEOMETRY, MYSTYLE_BlurSize_ID	, NULL},\
 {TF_NO_MYNAME_PREPENDING,"Overlay",	    7,TT_INTEGER, MYSTYLE_Overlay_ID	, NULL},\
 {TF_NO_MYNAME_PREPENDING|TF_SYNTAX_TERMINATOR,"~MyStyle", 	8, TT_FLAG, MYSTYLE_DONE_ID		, NULL}
 
@@ -543,6 +545,7 @@ typedef struct MyStyleDefinition
 #define MYSTYLE_FINISHED				(0x01<<1)
 #define MYSTYLE_TEXT_STYLE_SET			(0x01<<2)
 #define MYSTYLE_SLICE_SET				(0x01<<3)
+#define MYSTYLE_BLUR_SET				(0x01<<4)
    	ASFlagType flags;
 
 	char   *name;
@@ -563,6 +566,7 @@ typedef struct MyStyleDefinition
     char   *back_pixmap;
 
 	int slice_x_start, slice_x_end, slice_y_start, slice_y_end ;
+	ASGeometry BlurSize;
 
 	int 	overlay_type ;
     char   *overlay;

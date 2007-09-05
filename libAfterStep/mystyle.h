@@ -29,10 +29,10 @@ struct ASGradient;
  */
 
 typedef struct MyStyle
-  {
-    unsigned long magic ;
+{
+    unsigned long magic;
 
-    ASHashTable *owner ;
+    ASHashTable *owner;
 
     ASFlagType set_flags;		/* == (user_flags | inherit_flags) */
     ASFlagType user_flags;		/* options the user set */
@@ -48,19 +48,20 @@ typedef struct MyStyle
     icon_t back_icon;		/* background pixmap */
     ASGradient gradient;	/* background gradient */
     ARGB32 tint;
-	int slice_x_start, slice_x_end, slice_y_start, slice_y_end ;
-	
-	struct MyStyle *overlay ;
+	int slice_x_start, slice_x_end, slice_y_start, slice_y_end;
+	int blur_x, blur_y;
+		
+	struct MyStyle *overlay;
     int overlay_type;
-  }
-MyStyle;
+
+}MyStyle;
 
 /*
  * values < 16 are sequential control codes
  * values >= 16 are bit flags
  */
 enum				/* MyStyle options */
-  {
+{
     F_ERROR         = 0,        /* error condition */
     F_DONE          = 1,         /* done parsing body */
     F_INHERIT       = 2,      /* inherit from another style */
@@ -79,14 +80,15 @@ enum				/* MyStyle options */
 	F_TRANSPARENT		 = (1 << 16),   /* if set MyStyle is transparent, and everything that is drawn with it,
 										 * must be updated on background changes */
   
-	F_OVERLAY		     = (1 << 17)           
-  };
+	F_OVERLAY		     = (1 << 17),           
+	F_BLUR			     = (1 << 18)
+};
 
 #define TransparentMS(style)  (get_flags((style)->set_flags, F_TRANSPARENT))
 
 
-  enum				/* texture types */
-  {
+enum				/* texture types */
+{
     TEXTURE_SOLID = 0,
 
 	TEXTURE_GRADIENT_START,

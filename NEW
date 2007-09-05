@@ -1,7 +1,11 @@
+    * Added BlurSize option to MyStyles for blurring of transparent background.
+	  Use like so: BlurSize 10x20  will set horizontal blur to 10 pixels and 
+	  vertical to 20.
+   
 version 2.2.7 release
-  * Added -bc or --border-color cmd line option to WinTabs module to determine
-    what color to use while rendering border around swallowed windows.
-    By default the Back color of focused MyStyle will be used.
+    * Added -bc or --border-color cmd line option to WinTabs module to determine
+      what color to use while rendering border around swallowed windows.
+      By default the Back color of focused MyStyle will be used.
 	* Added DontCoverDesktop feel flag to disable colored cover to come up during
 	  different prolonged operations.
 
