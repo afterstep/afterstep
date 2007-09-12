@@ -860,7 +860,7 @@ handle_asxml_tag_composite( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t*
  * NAME
  * img - load image from the file.
  * SYNOPSIS
- * <img id="new_img_id" src=filename/>
+ * <img id="new_img_id" src="filename"/>
  * ATTRIBUTES
  * id     Optional.  Image will be given this name for future reference.
  * src    Required.  The filename (NOT URL) of the image file to load.
@@ -953,9 +953,9 @@ handle_asxml_tag_recall( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* pa
 
 /****** libAfterImage/asimagexml/release
  * NAME
- * release - release(destroy if possible) previously generated and named image by its id.
+ * release - release (destroy if possible) previously generated and named image by its id.
  * SYNOPSIS
- * <release srcid="image_id">
+ * <release srcid="image_id"/>
  * ATTRIBUTES
  * srcid    Required.  An image ID defined with the "id" parameter for
  *          any previously created image.
@@ -980,7 +980,7 @@ handle_asxml_tag_release( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* p
  * NAME
  * color - defines symbolic name for a color and set of variables.
  * SYNOPSIS
- * <color name="sym_name" domain="var_domain" argb=colorvalue/>
+ * <color name="sym_name" domain="var_domain" argb="colorvalue"/>
  * ATTRIBUTES
  * name   Symbolic name for the color value, to be used to refer to that color.
  * argb   8 characters hex definition of the color or other symbolic color name.
