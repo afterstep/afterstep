@@ -1,7 +1,7 @@
 <varlistentry id="options.MyStyle">
 	<term>MyStyle</term>
 	<listitem>
-		<para>Styles for different WinList properties are called from the file "winlist", and the associated MyStyle definitions are located in a selected Look file. Fonts, foreground and background colors, gradients, pixmaps, and text styles can be specified for WinList's components.</para>
-		<para>See Also: <ulink url="MyStyle#synopsis">MyStyle definition</ulink> for further details.</para>
+		<para>FIXME: add proper description here.</para>
+		<para>See Also: <ulink url="MyStyle#synopsis">Look MyStyle definition</ulink> for further details.</para>
 	</listitem>
 </varlistentry>
