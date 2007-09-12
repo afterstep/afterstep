@@ -1,0 +1,7 @@
+<varlistentry id="options.OrthogonalFolderOffset">
+	<term>OrthogonalFolderOffset <emphasis remap='I'>size</emphasis></term>
+	<listitem>
+		<para>sets the offset of an opened folder relative to its parent orthogonal to the opening direction. In
+		other words this can be used to move the opened folder parallel to its parent</para>
+	</listitem>
+</varlistentry>
