@@ -1,5 +1,5 @@
 #!/bin/sh
-pfad=~/GUI-stuff/AfterStep/desklets/
+pfad="/home/`whoami`/.afterstep/desktop/desklets/"
 self=desklet.display
 found=0
 
@@ -22,7 +22,7 @@ then
     done
     if [ $found == 1 ]
     then
-	"$pfad$1/$1" | ascompose -T ASdesklet.$1 --override -f - -q -g $x$y --timeout 5000 -I
+	"$pfad$1/$1" | ascompose -T ASdesklet.$1 --override -f - -q -g $x$y -I
     else
 	echo "$1 not found - plz enter the correct name of ASdesklet"
     fi

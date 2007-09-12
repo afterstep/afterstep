@@ -1,0 +1,102 @@
+#/bin/bash
+
+path_to_desklets="/home/`whoami`/.afterstep/desktop/desklets/"
+
+function cmd_help () {
+    echo "AfterStep Desklets v.0.1"
+    echo "usage : ASDesklets [ [-r | -t] deskletname ]"
+    echo " without parameters, start all registered desklets"
+    echo " -r (un)register desklet"
+    echo " -t testrun desklet, restart if already running"
+    echo " -l list available desklets"
+    echo " -u update all running desklets"
+}
+
+function check4applet () {
+found="0"
+    if [ -d $path_to_desklets/$1 ]
+    then
+	if [ -f "$path_to_desklets/$1/$1" ]
+	then
+	    if [ -f $path_to_desklets/$1/config ]
+	    then
+		echo "applet $1 found !"
+		found="1"
+	    else
+		echo "config file missing !"
+	    fi
+	else
+	    echo "no desklet found !"
+	fi
+    else
+	echo "applet directory does not exist !"
+    fi
+return $found
+}
+
+if [ -n "$1" ]
+then
+    if [ $1 == "-r" ]
+	then
+	echo "-r"
+	check4applet $2
+	return_val=$?
+	if [ $return_val == "1" ]
+	then
+	    touch $path_to_desklets/registered_ASDesklets
+	    return_val=$(cat $path_to_desklets/registered_ASDesklets |grep $2)
+	    echo "$return_val ...................."
+	    if [[ -z "$return_val" ]] && [[ -f "$path_to_desklets/registered_ASDesklets" ]]
+	    then
+		echo "soll jetzt schreiben..."
+		echo $2 >>$path_to_desklets/registered_ASDesklets
+	    else
+		echo "removing applet from file here..."
+		cat $path_to_desklets/registered_ASDesklets | grep -v $2 >$path_to_desklets/registered_ASDesklets
+	    fi
+	fi
+    else if [ $1 == "-t" ]
+	then
+	echo "-t"
+	check4applet $2
+	return_val=$?
+	if [ $return_val == "1" ]
+	then
+	    return_val=$(ps aux |grep ASdesklet.$2 |grep -v grep |awk '// {print $2}')
+	    if [ -n "$return_val" ]
+	    then
+		kill $return_val
+	    fi
+	    $path_to_desklets/desklet.display $2
+	fi
+    else if [ $1 == "-l" ]
+	then
+	echo "available desklets :"
+	for i in `ls -l $path_to_deklets | grep ^d |awk '// {print $8}'`
+	do
+	    echo " -> $i "
+	done
+    else if [ $1 == "-u" ]
+	then
+	echo "-u"
+	for i in `cat $path_to_desklets/registered_ASDesklets`
+	do
+	    check4applet $i
+	    return_val=$?
+	    if [ $return_val == "1" ]
+	    then
+		echo "starting desklet $i..."
+		$path_to_desklets/ASDesklets -t $i
+	    fi
+	done
+    else
+	echo "!!! watch your input !!!"
+	cmd_help
+    fi
+    fi
+    fi
+    fi
+else
+cmd_help
+fi
+# ./sysinfo | ascompose --override -f - -q -g $x$y --timeout 5000 -I

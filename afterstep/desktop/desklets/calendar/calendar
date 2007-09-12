@@ -2,20 +2,21 @@
 
 while true
 do
-    echo ""
-    echo "<composite >"
-    echo " <solid width=\"1\" height=\"1\" color=\"#000000\" />"
+    echo "<composite>"
+    echo "<release srcid=\"calendar_days\" />"
+
+    echo "<img src=\"tiles/empty\" />"
     echo " <set var=\"my_y\" val=\"0\" />"
 
- cal | awk '{ if (NR==2) {print " <text id=\"calendar_days\" spacing=5 font=\"DefaultBoldOblique.ttf\" fgcolor=\"#FFFFFF\" align=\"center\" y=\"$my_y\" point=\"24\">"$0"</text>\n <set var=\"my_y\" val=\"$my_y + 32\" />\n"}
-else if ((NR==3) || (NR==4)) { print " <scale width=\"$calendar_days.width\" height=\"100%\" y=\"$my_y\">\n  <text spacing=5 font=\"DefaultBoldOblique.ttf\" fgcolor=\"#FFFFFF\" align=\"center\" y=\"$my_y\" point=\"24\">"$0"</text>\n </scale>\n <set var=\"my_y\" val=\"$my_y + 32\" />\n"; } \
-else { printf " <text spacing=5 font=\"DefaultBoldOblique.ttf\" fgcolor=\"#FFFFFF\" align=\"center\" y=\"$my_y\" point=\"24\">"$0"</text>\n <set var=\"my_y\" val=\"$my_y + 32\" />\n"; } }'
+ cal | awk '{ if (NR==2) {print " <text id=\"calendar_days\" spacing=\"5\" font=\"DefaultBoldOblique.ttf\" fgcolor=\"#FFFFFF\" align=\"center\" y=\"$my_y\" point=\"20\">"$0"</text>\n <set var=\"my_y\" val=\"$my_y + 32\" />\n"}
+else if ((NR==3) || (NR==4)) { print " <scale width=\"$calendar_days.width\" height=\"100%\" y=\"$my_y\">\n  <text spacing=5 font=\"DefaultBoldOblique.ttf\" fgcolor=\"#FFFFFF\" align=\"center\" point=\"20\">"$0"</text>\n </scale>\n <set var=\"my_y\" val=\"$my_y + 32\" />\n"; } \
+else { printf " <text spacing=5 font=\"DefaultBoldOblique.ttf\" fgcolor=\"#FFFFFF\" align=\"center\" y=\"$my_y\" point=\"20\">"$0"</text>\n <set var=\"my_y\" val=\"$my_y + 32\" />\n"; } }'
 
     weekofmonth=$(cal |awk "/$(date +%e)/{ print NR }")
     temp1=`date +%a |sed 's/.$//'`
     temp2=$(cal |sed -e '2,2!d;s/ //g' | awk "{ print index(\$0,\"$temp1\") }")
     weekday=$(echo \($temp2/2\)+1 | bc)
-    echo " <solid color=\"#FF0000\" opacity=\"70\" x=\"$weekday-1*254/7\" y=\"32+(($weekofmonth-2)*32)\" width=\"254/7\" height=\"32\"/>"
+    echo " <solid color=\"#FF0000\" opacity=\"70\" x=\"$weekday-1*\$calendar_days.width/7\" y=\"32+(($weekofmonth-2)*32)\" width=\"\$calendar_days.width/7\" height=\"32\"/>"
     echo "</composite>"
     sleep 5
 done
