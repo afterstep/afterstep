@@ -921,6 +921,21 @@ void asim_flush_ashash_memory_pool()
 /************************************************************************/
 /* 	Some usefull implementations 					*/
 /************************************************************************/
+ASHashKey asim_pointer_hash_value (ASHashableValue value, ASHashKey hash_size)
+{
+    union
+    {
+        void *ptr;
+        ASHashKey key[2];
+    } mix;
+    register  ASHashKey key;
+
+    mix.ptr = (void*)value;
+    key = mix.key[0]^mix.key[1] ;
+    if( hash_size == 256 )
+		return (key>>4)&0x0FF;
+    return (key>>4) % hash_size;
+}
 
 /* case sensitive strings hash */
 ASHashKey

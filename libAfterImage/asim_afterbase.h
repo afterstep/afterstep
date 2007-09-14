@@ -384,6 +384,8 @@ void		 asim_string_destroy_without_data (ASHashableValue value, void *data);
 ASHashKey 	 asim_casestring_hash_value (ASHashableValue value, ASHashKey hash_size);
 long 		 asim_casestring_compare (ASHashableValue value1, ASHashableValue value2);
 
+ASHashKey asim_pointer_hash_value (ASHashableValue value, ASHashKey hash_size);
+
 #define init_ashash(h,f) 			 asim_init_ashash(h,f)
 #define create_ashash(s,h,c,d) 		 asim_create_ashash(s,h,c,d)
 #define	destroy_ashash(h) 		 	 asim_destroy_ashash(h)
@@ -393,6 +395,7 @@ long 		 asim_casestring_compare (ASHashableValue value1, ASHashableValue value2)
 #define	flush_ashash_memory_pool	 asim_flush_ashash_memory_pool
 
 #define	string_hash_value 	 	 asim_string_hash_value
+#define	pointer_hash_value 	 	 asim_pointer_hash_value
 #define	string_compare 		 	 asim_string_compare
 #define	string_destroy_without_data  asim_string_destroy_without_data
 #define	casestring_hash_value		 asim_casestring_hash_value
