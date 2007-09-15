@@ -186,6 +186,8 @@ ASImage2file( ASImage *im, const char *dir, const char *file,
 
 Bool
 ASImage2PNGBuff( ASImage *im, CARD8 **buffer, int *size, ASImageExportParams *params );
+Bool
+ASImage2xpmRawBuff( ASImage *im, CARD8 **buffer, int *size, ASImageExportParams *params );
 
 
 Bool ASImage2xpm ( ASImage *im, const char *path, ASImageExportParams *params );

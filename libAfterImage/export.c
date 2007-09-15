@@ -343,6 +343,111 @@ LOCAL_DEBUG_OUT( "(%d,%d)->%d (row_pointer %d )", x, y, idx, row_pointer[x] );
 	return True;
 }
 
+
+/****** VO ******/
+Bool
+ASImage2xpmRawBuff ( ASImage *im, CARD8 **buffer, int *size, ASImageExportParams *params )
+{
+	unsigned int y, x ;
+	int *mapped_im, *row_pointer ;
+	ASColormap         cmap;
+	ASXpmCharmap       xpm_cmap ;
+	int transp_idx = 0;
+	START_TIME(started);
+	ASXpmExportParams defaults = { ASIT_Xpm, EXPORT_ALPHA, 4, 127, 512 } ;
+	register char *ptr ;
+   char *curr;
+
+	if( params == NULL )
+		params = (ASImageExportParams *)&defaults ;
+
+    mapped_im = colormap_asimage( im, &cmap, params->xpm.max_colors, params->xpm.dither, params->xpm.opaque_threshold );
+	if( !get_flags( params->xpm.flags, EXPORT_ALPHA) )
+		cmap.has_opaque = False ;
+	else
+		transp_idx = cmap.count ;
+
+
+LOCAL_DEBUG_OUT("building charmap%s","");
+	build_xpm_charmap( &cmap, cmap.has_opaque, &xpm_cmap );
+	SHOW_TIME("charmap calculation",started);
+
+   *size = 0;
+   *buffer = 0;
+
+   /* crazy check against buffer overflow */
+   if ((im->width > 100000) || (im->height > 1000000) || 
+       (xpm_cmap.count > 100000) || (xpm_cmap.cpp > 100000)) {
+      return False;
+   }
+
+   /* estimate size*/
+   *size =  (im->width + 4)*im->height*xpm_cmap.cpp;
+   *size += cmap.count*(20 + xpm_cmap.cpp);
+   *size += 200;
+
+   curr = calloc(*size, 1);
+   *buffer = (CARD8*)curr;
+
+	sprintf(curr, "/* XPM */\nstatic char *asxpm[] = {\n/* columns rows colors chars-per-pixel */\n"
+					  "\"%d %d %d %d\",\n", im->width, im->height, xpm_cmap.count,  xpm_cmap.cpp );
+
+   curr += strlen(curr);
+
+    ptr = &(xpm_cmap.char_code[0]);
+	for( y = 0 ; y < cmap.count ; y++ )
+	{
+		sprintf(curr, "\"%s c #%2.2X%2.2X%2.2X\",\n", ptr, cmap.entries[y].red, cmap.entries[y].green, cmap.entries[y].blue );
+		ptr += xpm_cmap.cpp+1 ;
+      curr += strlen(curr);
+	}
+	if( cmap.has_opaque && y < xpm_cmap.count ) {
+		sprintf(curr, "\"%s c None\",\n", ptr );
+      curr += strlen(curr);
+   }
+	SHOW_TIME("image header writing",started);
+
+	row_pointer = mapped_im ;
+	for( y = 0 ; y < im->height ; y++ )
+	{
+		*curr = '"';
+      curr++;
+
+		for( x = 0; x < im->width ; x++ )
+		{
+			register int idx = (row_pointer[x] >= 0)? row_pointer[x] : transp_idx ;
+			register char *ptr = &(xpm_cmap.char_code[idx*(xpm_cmap.cpp+1)]) ;
+         int len = strlen(ptr);
+
+            if( idx > (int)cmap.count )
+                show_error("bad XPM color index :(%d,%d) -> %d, %d: %s", x, y, idx, row_pointer[x], ptr );
+
+         memcpy(curr, ptr, len);
+         curr += len;
+		}
+		row_pointer += im->width ;
+		*curr = '"';
+      curr++;
+		if( y < im->height-1 ) {
+		   *curr = ',';
+         curr++;
+      }
+		*curr = '\n';
+      curr++;
+	}
+	sprintf( curr, "};\n" );
+
+	destroy_xpm_charmap( &xpm_cmap, True );
+	free( mapped_im );
+	destroy_colormap( &cmap, True );
+   *size = strlen((char*)*buffer);
+
+	SHOW_TIME("total",started);
+	return True;
+}
+
+
+
 #else  			/* XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM */
 
 Bool
@@ -575,7 +680,7 @@ ASImage2PNGBuff( ASImage *im, CARD8 **buffer, int *size, ASImageExportParams *pa
 	
 	memset( &int_buff, 0x00, sizeof(ASImPNGBuffer) );
 
- 	if( ASImage2png_int ( im, &int_buff, asim_png_write_data, asim_png_flush_data, params ) )
+ 	if( ASImage2png_int ( im, &int_buff, (png_rw_ptr)asim_png_write_data, (png_flush_ptr)asim_png_flush_data, params ) )
 	{
 		*buffer	= int_buff.buffer ; 
 		*size = int_buff.used_size ; 		   
@@ -1081,7 +1186,7 @@ Bool
 ASImage2tiff( ASImage *im, const char *path, ASImageExportParams *params)
 {
 	TIFF *out;
-	ASTiffExportParams defaults = { ASIT_Tiff, 0, -1, TIFF_COMPRESSION_NONE, 100 };
+	ASTiffExportParams defaults = { ASIT_Tiff, 0, -1, TIFF_COMPRESSION_NONE, 100, 0 };
 	uint16 photometric = PHOTOMETRIC_RGB;
 	tsize_t linebytes, scanline;
 	ASImageDecoder *imdec ;
