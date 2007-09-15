@@ -1300,6 +1300,7 @@ encode_image_scanline_mask_xim( ASImageOutput *imout, ASScanline *to_store )
 void
 encode_image_scanline_xim( ASImageOutput *imout, ASScanline *to_store )
 {
+#ifndef X_DISPLAY_MISSING
 	register XImage *xim = imout->im->alt.ximage ;
 	if( imout->next_line < xim->height && imout->next_line >= 0 )
 	{
@@ -1349,6 +1350,7 @@ encode_image_scanline_xim( ASImageOutput *imout, ASScanline *to_store )
 #endif
 		imout->next_line += imout->bottom_to_top;
 	}
+#endif
 }
 
 void
