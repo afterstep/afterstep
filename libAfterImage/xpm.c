@@ -54,6 +54,7 @@
 #include <stddef.h>
 #endif
 #include <fcntl.h>
+#include <string.h>
 
 #ifdef HAVE_LIBXPM      /* XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM XPM */
 #ifdef HAVE_LIBXPM_X11
@@ -343,7 +344,8 @@ get_xpm_char( ASXpmFile *xpm_file )
 			for( i = 0 ; i < AS_XPM_BUFFER_UNDO ; i++ )
 				dst[i] = src[i];
 /*			xpm_file->bytes_in = AS_XPM_BUFFER_UNDO+fread( &(xpm_file->buffer[AS_XPM_BUFFER_UNDO]), 1, AS_XPM_BUFFER_SIZE, xpm_file->fp );*/
-			xpm_file->bytes_in = AS_XPM_BUFFER_UNDO+read( xpm_file->fd, &(xpm_file->buffer[AS_XPM_BUFFER_UNDO]), AS_XPM_BUFFER_SIZE );
+			xpm_file->bytes_in = xpm_file->data ?  AS_XPM_BUFFER_UNDO + strlen(*xpm_file->data) : 
+                                 AS_XPM_BUFFER_UNDO+read( xpm_file->fd, &(xpm_file->buffer[AS_XPM_BUFFER_UNDO]), AS_XPM_BUFFER_SIZE );
 			xpm_file->curr_byte = AS_XPM_BUFFER_UNDO ;
 		}
 		if( xpm_file->bytes_in <= AS_XPM_BUFFER_UNDO )
@@ -442,6 +444,8 @@ read_next_xpm_string( ASXpmFile *xpm_file )
 		}
 		xpm_file->str_buf[i++] = c;
 	}
+   xpm_file->curr_img_line++;
+
 	return True;
 }
 
@@ -503,12 +507,12 @@ close_xpm_file( ASXpmFile **xpm_file )
 		{
 			if( (*xpm_file)->fd )
 				close( (*xpm_file)->fd );
-			if( (*xpm_file)->str_buf )
+			if( (*xpm_file)->str_buf && !(*xpm_file)->data)
 				free( (*xpm_file)->str_buf );
 #ifdef HAVE_LIBXPM
 			XpmFreeXpmImage (&((*xpm_file)->xpmImage));
 #else
-			if( (*xpm_file)->buffer )
+			if( (*xpm_file)->buffer && !(*xpm_file)->data)
 				free( (*xpm_file)->buffer );
 #endif
 			free_scanline(&((*xpm_file)->scl), True);
@@ -548,12 +552,12 @@ open_xpm_file( const char *realfilename )
 			xpm_file->fd = fd;
 			xpm_file->parse_state = XPM_InFile ;
 			xpm_file->buffer = safemalloc(AS_XPM_BUFFER_UNDO+AS_XPM_BUFFER_SIZE+1);
+         xpm_file->data = 0;
 /*			xpm_file->bytes_in = AS_XPM_BUFFER_UNDO+fread( &(xpm_file->buffer[AS_XPM_BUFFER_UNDO]), 1, AS_XPM_BUFFER_SIZE, fp ); */
 			xpm_file->bytes_in = AS_XPM_BUFFER_UNDO+read( fd, &(xpm_file->buffer[AS_XPM_BUFFER_UNDO]),  AS_XPM_BUFFER_SIZE );
 			xpm_file->curr_byte = AS_XPM_BUFFER_UNDO ;
 			if( get_xpm_string( xpm_file ) )
 				success = parse_xpm_header( xpm_file );
-
 		}
 #else                                          /* libXpm interface : */
 		if( XpmReadFileToXpmImage ((char *)realfilename, &(xpm_file->xpmImage), NULL) == XpmSuccess)
@@ -566,9 +570,10 @@ open_xpm_file( const char *realfilename )
 			success = True;
 		}
 #endif
-		if( !success )
+		if( !success ) {
 			close_xpm_file( &xpm_file );
-		else
+         return NULL;
+		} else
 		{
 			if( xpm_file->width > MAX_IMPORT_IMAGE_SIZE )
 				xpm_file->width = MAX_IMPORT_IMAGE_SIZE ;
@@ -582,8 +587,44 @@ open_xpm_file( const char *realfilename )
 	return xpm_file ;
 }
 
+
 ASXpmFile*
 open_xpm_data( const char **data )
+{
+        ASXpmFile *xpm_file = NULL;
+        if( data )
+        {
+                Bool success = False ;
+
+                xpm_file = safecalloc( 1, sizeof(ASXpmFile));
+                xpm_file->data = (char**)data ;
+                xpm_file->parse_state = XPM_InFile ;
+                xpm_file->buffer = 0;
+                xpm_file->curr_byte = AS_XPM_BUFFER_UNDO ;
+                if( get_xpm_string( xpm_file ) ) {
+                        success = parse_xpm_header( xpm_file );
+               }
+
+                if( !success ) {
+                  close_xpm_file( &xpm_file );
+                  return NULL;
+                } else
+                {
+                        if( xpm_file->width > MAX_IMPORT_IMAGE_SIZE )
+                                xpm_file->width = MAX_IMPORT_IMAGE_SIZE ;
+                        if( xpm_file->height > MAX_IMPORT_IMAGE_SIZE )
+                                xpm_file->height = MAX_IMPORT_IMAGE_SIZE ;
+                        if( xpm_file->bpp > MAX_XPM_BPP )
+                                xpm_file->bpp = MAX_XPM_BPP;
+                        prepare_scanline( xpm_file->width, 0, &(xpm_file->scl), False );
+                }
+        }
+        return xpm_file ;
+}
+
+
+ASXpmFile*
+open_xpm_raw_data( const char *data )
 {
 	ASXpmFile *xpm_file = NULL;
 	if( data )
@@ -591,16 +632,18 @@ open_xpm_data( const char **data )
 		Bool success = False ;
 
 		xpm_file = safecalloc( 1, sizeof(ASXpmFile));
-		xpm_file->data = (char**)data ;
+		xpm_file->data = (char**)&data ;
 		xpm_file->parse_state = XPM_InFile ;
-		xpm_file->buffer = safemalloc(AS_XPM_BUFFER_UNDO+AS_XPM_BUFFER_SIZE+1);
+		xpm_file->buffer = (char*)data;
 		xpm_file->curr_byte = AS_XPM_BUFFER_UNDO ;
+      xpm_file->bytes_in = AS_XPM_BUFFER_UNDO + strlen(data);
 		if( get_xpm_string( xpm_file ) )
 			success = parse_xpm_header( xpm_file );
 
-		if( !success )
+		if( !success ) {
 			close_xpm_file( &xpm_file );
-		else
+         return NULL;
+		} else
 		{
 			if( xpm_file->width > MAX_IMPORT_IMAGE_SIZE )
 				xpm_file->width = MAX_IMPORT_IMAGE_SIZE ;
@@ -610,41 +653,43 @@ open_xpm_data( const char **data )
 				xpm_file->bpp = MAX_XPM_BPP;
 			prepare_scanline( xpm_file->width, 0, &(xpm_file->scl), False );
 		}
+      xpm_file->curr_img_line = 0;
 	}
 	return xpm_file ;
 }
 
-
 ASXpmStatus
 get_xpm_string( ASXpmFile *xpm_file )
 {
-	if( xpm_file == NULL )
-		return XPM_Error;;
-	if( xpm_file->data )
-	{
-		xpm_file->str_buf = xpm_file->data[xpm_file->curr_img_line];
-		xpm_file->str_buf_size = 0 ;
-		if( xpm_file->str_buf == NULL )
-			return XPM_EndOfFile;
-	}else
-	{
-		if( xpm_file->parse_state < XPM_InFile )
-			return XPM_EndOfFile;
-		if( xpm_file->parse_state < XPM_InImage )
-		{
-			if( !seek_next_xpm_image( xpm_file ) )
-				return XPM_EndOfFile;
-		}
-		if( !seek_next_xpm_string( xpm_file ) )
-		{
-			xpm_file->curr_img++;
-			return XPM_EndOfImage;
-		}
-		if( !read_next_xpm_string( xpm_file ))
-			return XPM_Error;
-		xpm_file->curr_img_line++;
-	}
-	return XPM_Success;
+
+   if( xpm_file == NULL )
+      return XPM_Error;;
+   if( !xpm_file->buffer )
+   {
+      xpm_file->str_buf = xpm_file->data[xpm_file->curr_img_line];
+      xpm_file->str_buf_size = 0 ;
+      xpm_file->curr_img_line++;
+      if( xpm_file->str_buf == NULL )
+         return XPM_EndOfFile;
+   }else
+   {
+      if( xpm_file->parse_state < XPM_InFile )
+         return XPM_EndOfFile;
+      if( xpm_file->parse_state < XPM_InImage )
+      {
+         if( !seek_next_xpm_image( xpm_file ) )
+            return XPM_EndOfFile;
+      }
+      if( !seek_next_xpm_string( xpm_file ) )
+      {
+         xpm_file->curr_img++;
+         return XPM_EndOfImage;
+      }
+      if( !read_next_xpm_string( xpm_file ))
+         return XPM_Error;
+      xpm_file->curr_img_line++;
+   }
+   return XPM_Success;
 }
 
 Bool

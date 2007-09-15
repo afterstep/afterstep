@@ -1140,6 +1140,7 @@ xpm2ASImage( const char * path, ASImageImportParams *params )
 }
 
 ASXpmFile *open_xpm_data(const char **data);
+ASXpmFile *open_xpm_raw_data(const char *data);
 
 ASImage *
 xpm_data2ASImage( const char **data, ASImageImportParams *params )
@@ -1150,6 +1151,27 @@ xpm_data2ASImage( const char **data, ASImageImportParams *params )
 
     LOCAL_DEBUG_CALLER_OUT ("(\"%s\", 0x%lX)", (char*)data, params->flags);
 	if( (xpm_file=open_xpm_data(data)) == NULL )
+	{
+		show_error("cannot read XPM data.");
+		return NULL;
+	}
+
+	im = xpm_file2ASImage( xpm_file, params->compression );
+	close_xpm_file( &xpm_file );
+
+	SHOW_TIME("image loading",started);
+	return im;
+}
+
+ASImage *
+xpmRawBuff2ASImage( const char *data, ASImageImportParams *params )
+{
+	ASXpmFile *xpm_file = NULL;
+	ASImage *im = NULL ;
+	START_TIME(started);
+
+    LOCAL_DEBUG_CALLER_OUT ("(\"%s\", 0x%lX)", (char*)data, params->flags);
+	if( (xpm_file=open_xpm_raw_data(data)) == NULL )
 	{
 		show_error("cannot read XPM data.");
 		return NULL;
@@ -1188,17 +1210,17 @@ apply_gamma( register CARD8* raw, register CARD8 *gamma_table, unsigned int widt
 /***********************************************************************************/
 #ifdef HAVE_PNG		/* PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG */
 ASImage *
-png2ASImage( const char * path, ASImageImportParams *params )
+png2ASImage_int( void *data, png_rw_ptr read_fn, ASImageImportParams *params )
 {
-	FILE 		 *fp ;
-    double        image_gamma = DEFAULT_PNG_IMAGE_GAMMA;
+
+   double        image_gamma = DEFAULT_PNG_IMAGE_GAMMA;
 	png_structp   png_ptr;
 	png_infop     info_ptr;
 	png_uint_32   width, height;
 	int           bit_depth, color_type, interlace_type;
 	int           intent;
 	ASScanline    buf;
-	Bool 		  do_alpha = False, grayscale = False ;
+	Bool 		     do_alpha = False, grayscale = False ;
 	png_bytep     *row_pointers, row;
 	unsigned int  y;
 	size_t		  row_bytes, offset ;
@@ -1206,9 +1228,6 @@ png2ASImage( const char * path, ASImageImportParams *params )
 	int old_storage_block_size;
 	START_TIME(started);
 
-	im = NULL ;
-	if ((fp = open_image_file(path)) == NULL)
-		return NULL;
 	/* Create and initialize the png_struct with the desired error handler
 	 * functions.  If you want to use the default stderr and longjump method,
 	 * you can supply NULL for the last three parameters.  We also supply the
@@ -1227,8 +1246,15 @@ png2ASImage( const char * path, ASImageImportParams *params )
 			if ( !setjmp (png_ptr->jmpbuf))
 			{
 				ASFlagType rgb_flags = ASStorage_RLEDiffCompress|ASStorage_32Bit ;
-				
-				png_init_io (png_ptr, fp);
+
+	         if(read_fn == NULL ) 
+	         {	
+		         png_init_io(png_ptr, (FILE*)data);
+	         }else
+	         {
+	            png_set_read_fn(png_ptr, (void*)data, (png_rw_ptr) read_fn);
+	         }	 
+
 		    	png_read_info (png_ptr, info_ptr);
 				png_get_IHDR (png_ptr, info_ptr, &width, &height, &bit_depth, &color_type, &interlace_type, NULL, NULL);
 
@@ -1284,7 +1310,10 @@ png2ASImage( const char * path, ASImageImportParams *params )
 				 * and update info structure.  REQUIRED if you are expecting libpng to
 				 * update the palette for you (ie you selected such a transform above).
 				 */
+
 				png_read_update_info (png_ptr, info_ptr);
+
+				png_get_IHDR (png_ptr, info_ptr, &width, &height, &bit_depth, &color_type, &interlace_type, NULL, NULL);
 
 				im = create_asimage( width, height, params->compression );
 				do_alpha = ((color_type & PNG_COLOR_MASK_ALPHA) != 0 );
@@ -1306,7 +1335,7 @@ png2ASImage( const char * path, ASImageImportParams *params )
 
 				/* The easiest way to read the image: */
 				png_read_image (png_ptr, row_pointers);
-				
+
 				old_storage_block_size = set_asstorage_block_size( NULL, width*height*3/2 );
 				for (y = 0; y < height; y++)
 				{
@@ -1315,7 +1344,7 @@ png2ASImage( const char * path, ASImageImportParams *params )
 						raw2scanline( row_pointers[y], &buf, NULL, buf.width, grayscale, do_alpha );
 						im->channels[IC_RED][y] = store_data( NULL, (CARD8*)buf.red, buf.width*4, rgb_flags, 0);
 					}else
-						im->channels[IC_RED][y] = store_data( NULL, row_pointers[y], im->width, rgb_flags, 0);
+						im->channels[IC_RED][y] = store_data( NULL, row_pointers[y], buf.width, rgb_flags, 0);
 					
 					if( grayscale ) 
 					{	
@@ -1367,13 +1396,53 @@ png2ASImage( const char * path, ASImageImportParams *params )
 		if (info_ptr)
 			free (info_ptr);
 	}
-	/* close the file */
-	fclose (fp);
+
 #if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
 print_asimage( im, ASFLAGS_EVERYTHING, __FUNCTION__, __LINE__ );
 #endif
 	SHOW_TIME("image loading",started);
 	return im ;
+}
+
+
+/****** VO ******/
+typedef struct ASImPNGReadBuffer
+{
+	CARD8 *buffer ; 
+		 
+} ASImPNGReadBuffer;
+
+static void asim_png_read_data(png_structp png_ptr, png_bytep data, png_size_t length)
+{
+   ASImPNGReadBuffer *buf = (ASImPNGReadBuffer *)png_ptr->io_ptr;
+   memcpy(data, buf->buffer, length);
+   buf->buffer += length;
+}
+
+ASImage *
+PNGBuff2ASimage(CARD8 *buffer, ASImageImportParams *params)
+{
+   static ASImage *im = NULL;
+   ASImPNGReadBuffer buf;
+   buf.buffer = buffer;
+   im = png2ASImage_int((void*)&buf,(png_rw_ptr)asim_png_read_data, params);
+   return im;
+}
+
+
+ASImage *
+png2ASImage( const char * path, ASImageImportParams *params )
+{
+   FILE *fp ;
+	static ASImage *im = NULL ;
+
+	if ((fp = open_image_file(path)) == NULL)
+		return NULL;
+
+   im = png2ASImage_int((void*)fp, NULL, params);
+
+	fclose(fp);
+	return im;
 }
 #else 			/* PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG */
 ASImage *
@@ -1381,6 +1450,12 @@ png2ASImage( const char * path, ASImageImportParams *params )
 {
 	show_error( "unable to load file \"%s\" - PNG image format is not supported.\n", path );
 	return NULL ;
+}
+
+ASImage *
+PNGBuff2ASimage(CARD8 *buffer, ASImageImportParams *params)
+{
+   return NULL;
 }
 
 #endif 			/* PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG PNG */

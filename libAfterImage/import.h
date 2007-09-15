@@ -138,6 +138,7 @@ extern as_image_loader_func as_image_file_loaders[ASIT_Unknown];
 
 ASImage *xpm2ASImage ( const char * path, ASImageImportParams *params );
 ASImage *xpm_data2ASImage( const char **data, ASImageImportParams *params );
+ASImage *xpmRawBuff2ASImage( const char *data, ASImageImportParams *params );
 ASImage *png2ASImage ( const char * path, ASImageImportParams *params );
 ASImage *jpeg2ASImage( const char * path, ASImageImportParams *params );
 ASImage *xcf2ASImage ( const char * path, ASImageImportParams *params );
@@ -272,6 +273,9 @@ Bool load_asimage_list_entry_data( ASImageListEntry *entry, size_t max_bytes );
  * mask Pixmap will be produced if mask_out is not NULL.
  *********/
 Pixmap file2pixmap(struct ASVisual *asv, Window root, const char *realfilename, Pixmap *mask_out);
+
+/**** VO ******/
+ASImage *PNGBuff2ASimage( CARD8 *buffer, ASImageImportParams *params );
 
 #ifdef __cplusplus
 }
