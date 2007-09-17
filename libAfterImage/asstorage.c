@@ -1369,7 +1369,7 @@ store_data_in_block( ASStorageBlock *block, CARD8 *data, int size, int compresse
 	dst = ASStorage_Data(slot);
 	LOCAL_DEBUG_OUT( "dst = %p, compressed_size = %d", dst, compressed_size );
 	memcpy( dst, data, compressed_size );
-	slot->flags = ((unsigned short)flags | ASStorage_Used) ;
+	slot->flags = (unsigned short)(flags | ASStorage_Used) ;
 	slot->ref_count = ref_count;
 	slot->size = compressed_size ;
 	slot->uncompressed_size = size ;
@@ -1537,7 +1537,7 @@ convert_slot_to_ref( ASStorage *storage, ASStorageID id )
 			/* there is a danger of us trying to reuse same block and defragmented it in between,
 			 * which will screw up the data */
 #ifndef NO_DEBUG_OUTPUT
-			fprintf( stderr, "\t\t %s DANGEROUS RELOCATION! size = %ld",  __FUNCTION__, ref_slot->size );
+			fprintf( stderr, "\t\t %s:%d DANGEROUS RELOCATION! size = %ld",  __FILE__, __LINE__, ref_slot->size );
 #endif						   
 			memcpy( storage->comp_buf, ASStorage_Data(ref_slot), ref_slot->size );
 			target_id = store_compressed_data(  storage, storage->comp_buf, 
