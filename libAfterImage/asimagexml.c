@@ -889,7 +889,7 @@ handle_asxml_tag_img( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm,
 			result = pixmap2asimage(state->asv, rp, 0, 0, width, height, 0xFFFFFFFF, False, 100);
 			if( dst_width == 0 ) dst_width = width ; 
 			if( dst_height == 0 ) dst_height = height ; 
-			if( dst_width != width || dst_height != height ) 
+			if( (int)dst_width != width || (int)dst_height != height ) 
 			{
 				ASImage *tmp = scale_asimage( NULL, result, dst_width, dst_height, ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT );
 				if( tmp ) 
@@ -1829,10 +1829,10 @@ handle_asxml_tag_scale( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* par
 	LOCAL_DEBUG_OUT("doc = %p, parm = %p, imtmp = %p, width = %d, height = %d", doc, parm, imtmp, width, height ); 
 	for (ptr = parm ; ptr ; ptr = ptr->next) 
 	{
-		if (!strcmp(ptr->tag, "src_x")) 		src_x = parse_math(ptr->parm, NULL, width);
-		else if (!strcmp(ptr->tag, "src_y")) 	src_y = parse_math(ptr->parm, NULL, width);
-		else if (!strcmp(ptr->tag, "src_width")) 	src_width = parse_math(ptr->parm, NULL, width);
-		else if (!strcmp(ptr->tag, "src_height")) 	src_height = parse_math(ptr->parm, NULL, width);
+		if (!strcmp(ptr->tag, "src_x")) 		src_x = (int)parse_math(ptr->parm, NULL, width);
+		else if (!strcmp(ptr->tag, "src_y")) 	src_y = (int)parse_math(ptr->parm, NULL, width);
+		else if (!strcmp(ptr->tag, "src_width")) 	src_width = (int)parse_math(ptr->parm, NULL, width);
+		else if (!strcmp(ptr->tag, "src_height")) 	src_height = (int)parse_math(ptr->parm, NULL, width);
 	}	
 	if( state->verbose > 1 )
 		show_progress("Scaling image to [%dx%d].", width, height);
@@ -1890,10 +1890,10 @@ handle_asxml_tag_slice( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* par
 	LOCAL_DEBUG_OUT("doc = %p, parm = %p, imtmp = %p, width = %d, height = %d", doc, parm, imtmp, width, height ); 
 	for (ptr = parm ; ptr ; ptr = ptr->next) 
 	{
-		if (!strcmp(ptr->tag, "x_start")) 		x_start = parse_math(ptr->parm, NULL, width);
-		else if (!strcmp(ptr->tag, "x_end")) 	x_end = parse_math(ptr->parm, NULL, width);
-		else if (!strcmp(ptr->tag, "y_start")) 	y_start = parse_math(ptr->parm, NULL, height);
-		else if (!strcmp(ptr->tag, "y_end")) 	y_end = parse_math(ptr->parm, NULL, height);
+		if (!strcmp(ptr->tag, "x_start")) 		x_start = (int)parse_math(ptr->parm, NULL, width);
+		else if (!strcmp(ptr->tag, "x_end")) 	x_end = (int)parse_math(ptr->parm, NULL, width);
+		else if (!strcmp(ptr->tag, "y_start")) 	y_start = (int)parse_math(ptr->parm, NULL, height);
+		else if (!strcmp(ptr->tag, "y_end")) 	y_end = (int)parse_math(ptr->parm, NULL, height);
 		else if (!strcmp(ptr->tag, "scale")) 	scale = (ptr->parm[0] == '1');
 	}
 
@@ -1937,8 +1937,8 @@ handle_asxml_tag_crop( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm
 	int srcx = 0, srcy = 0;
 	LOCAL_DEBUG_OUT("doc = %p, parm = %p, imtmp = %p, width = %d, height = %d", doc, parm, imtmp, width, height ); 
 	for (ptr = parm ; ptr ; ptr = ptr->next) {
-		if (!strcmp(ptr->tag, "srcx")) srcx = parse_math(ptr->parm, NULL, width);
-		else if (!strcmp(ptr->tag, "srcy")) srcy = parse_math(ptr->parm, NULL, height);
+		if (!strcmp(ptr->tag, "srcx")) srcx = (int)parse_math(ptr->parm, NULL, width);
+		else if (!strcmp(ptr->tag, "srcy")) srcy = (int)parse_math(ptr->parm, NULL, height);
 		else if (!strcmp(ptr->tag, "tint")) parse_argb_color(ptr->parm, &tint);
 	}
 	if( state->verbose > 1 )
@@ -1990,8 +1990,8 @@ handle_asxml_tag_tile( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm
 	char *complement_str = NULL ;
 	LOCAL_DEBUG_OUT("doc = %p, parm = %p, imtmp = %p, width = %d, height = %d", doc, parm, imtmp, width, height ); 
 	for (ptr = parm ; ptr ; ptr = ptr->next) {
-		if (!strcmp(ptr->tag, "x_origin")) xorig = parse_math(ptr->parm, NULL, width);
-		else if (!strcmp(ptr->tag, "y_origin")) yorig = parse_math(ptr->parm, NULL, height);
+		if (!strcmp(ptr->tag, "x_origin")) xorig = (int)parse_math(ptr->parm, NULL, width);
+		else if (!strcmp(ptr->tag, "y_origin")) yorig = (int)parse_math(ptr->parm, NULL, height);
 		else if (!strcmp(ptr->tag, "tint")) parse_argb_color(ptr->parm, &tint);
 		else if (!strcmp(ptr->tag, "complement")) complement_str = ptr->parm;
 	}
@@ -2085,8 +2085,8 @@ handle_asxml_tag_hsv( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm,
 	LOCAL_DEBUG_OUT("doc = %p, parm = %p, imtmp = %p, width = %d, height = %d", doc, parm, imtmp, width, height ); 
 	for (ptr = parm ; ptr ; ptr = ptr->next) 
 	{
-		if (!strcmp(ptr->tag, "x_origin")) xorig = parse_math(ptr->parm, NULL, width);
-		else if (!strcmp(ptr->tag, "y_origin")) yorig = parse_math(ptr->parm, NULL, height);
+		if (!strcmp(ptr->tag, "x_origin")) xorig = (int)parse_math(ptr->parm, NULL, width);
+		else if (!strcmp(ptr->tag, "y_origin")) yorig = (int)parse_math(ptr->parm, NULL, height);
 		else if (!strcmp(ptr->tag, "affected_hue"))
 		{
 			if( isdigit( (int)ptr->parm[0] ) )
@@ -2159,10 +2159,10 @@ handle_asxml_tag_pad( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm,
 	int left = 0, top = 0, right = 0, bottom = 0;
 	LOCAL_DEBUG_OUT("doc = %p, parm = %p, imtmp = %p, width = %d, height = %d", doc, parm, imtmp, width, height ); 
 	for (ptr = parm ; ptr ; ptr = ptr->next) {
-		if (!strcmp(ptr->tag, "left"))   left = parse_math(ptr->parm, NULL, width);
-		else if (!strcmp(ptr->tag, "top"))    top = parse_math(ptr->parm, NULL, height);
-		else if (!strcmp(ptr->tag, "right"))  right = parse_math(ptr->parm, NULL, width);
-		else if (!strcmp(ptr->tag, "bottom")) bottom = parse_math(ptr->parm, NULL, height);
+		if (!strcmp(ptr->tag, "left"))   left = (int)parse_math(ptr->parm, NULL, width);
+		else if (!strcmp(ptr->tag, "top"))    top = (int)parse_math(ptr->parm, NULL, height);
+		else if (!strcmp(ptr->tag, "right"))  right = (int)parse_math(ptr->parm, NULL, width);
+		else if (!strcmp(ptr->tag, "bottom")) bottom = (int)parse_math(ptr->parm, NULL, height);
 		else if (!strcmp(ptr->tag, "color"))  parse_argb_color(ptr->parm, &color);
 	}
 	if( state->verbose > 1 )

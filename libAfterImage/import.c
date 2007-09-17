@@ -699,6 +699,7 @@ struct ASImageListAuxData
 	ASVisual *asv;
 };
 
+#ifndef _WIN32
 Bool 
 direntry2ASImageListEntry( const char *fname, const char *fullname, 
 						   struct stat *stat_info, void *aux_data)
@@ -778,7 +779,7 @@ direntry2ASImageListEntry( const char *fname, const char *fullname,
 	}
 	return True;
 }
-
+#endif
 
 ASImageListEntry *
 get_asimage_list( ASVisual *asv, const char *dir,

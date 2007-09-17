@@ -96,8 +96,10 @@ typedef struct ASImageListEntry
 
 	ASImageFileTypes 	type;
 	ASImage 		   *preview;
-    
+
+#ifndef _WIN32
 	mode_t d_mode;
+#endif
     time_t d_mtime;
 	off_t  d_size;		/* total size, in bytes */
 
