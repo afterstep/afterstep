@@ -491,8 +491,8 @@ get_thumbnail_asimage( ASImageManager* imageman, const char *file, int thumb_wid
 			{
 				if( original_im != NULL ) /* simply scale it down to a thumbnail size */
 				{
-					if( (( original_im->width > thumb_width || original_im->height > thumb_height ) && !get_flags( flags, AS_THUMBNAIL_DONT_REDUCE ) ) ||
-						(( original_im->width < thumb_width || original_im->height < thumb_height ) && !get_flags( flags, AS_THUMBNAIL_DONT_ENLARGE ) ) )
+					if( (( (int)original_im->width > thumb_width || (int)original_im->height > thumb_height ) && !get_flags( flags, AS_THUMBNAIL_DONT_REDUCE ) ) ||
+						(( (int)original_im->width < thumb_width || (int)original_im->height < thumb_height ) && !get_flags( flags, AS_THUMBNAIL_DONT_ENLARGE ) ) )
 					{
 						im = scale_asimage( NULL, original_im, thumb_width, thumb_height, ASA_ASImage, 100, ASIMAGE_QUALITY_FAST );
 						if( im != NULL ) 
@@ -523,7 +523,7 @@ get_thumbnail_asimage( ASImageManager* imageman, const char *file, int thumb_wid
 			if( tmp ) 
 			{
 				im = tmp ; 
-				if( tmp->width != thumb_width || tmp->height != thumb_height ) 
+				if( (int)tmp->width != thumb_width || (int)tmp->height != thumb_height ) 
 				{
 					if( get_flags(flags, AS_THUMBNAIL_PROPORTIONAL ) ) 
 					{
@@ -534,8 +534,8 @@ get_thumbnail_asimage( ASImageManager* imageman, const char *file, int thumb_wid
 					}
 					if( im == tmp )
 					{
-						if( (( tmp->width > thumb_width || tmp->height > thumb_height ) && !get_flags( flags, AS_THUMBNAIL_DONT_REDUCE ) ) ||
-							(( tmp->width < thumb_width || tmp->height < thumb_height ) && !get_flags( flags, AS_THUMBNAIL_DONT_ENLARGE ) ) )
+						if( (( (int)tmp->width > thumb_width || (int)tmp->height > thumb_height ) && !get_flags( flags, AS_THUMBNAIL_DONT_REDUCE ) ) ||
+							(( (int)tmp->width < thumb_width || (int)tmp->height < thumb_height ) && !get_flags( flags, AS_THUMBNAIL_DONT_ENLARGE ) ) )
 						{
 							im = scale_asimage( NULL, tmp, thumb_width, thumb_height, ASA_ASImage, 100, ASIMAGE_QUALITY_FAST );
 							if( im == NULL ) 
@@ -842,7 +842,7 @@ load_asimage_list_entry_data( ASImageListEntry *entry, size_t max_bytes )
 		return False;
 	if( entry->buffer == NULL ) 
 		entry->buffer = safecalloc( 1, sizeof(ASImageListEntryBuffer) );
-	if( entry->buffer->size == entry->d_size || entry->buffer->size >= max_bytes )
+	if( (int)entry->buffer->size == entry->d_size || entry->buffer->size >= max_bytes )
 		return True;
 	new_buffer_size = min( max_bytes, (size_t)entry->d_size ); 
 	new_buffer = malloc( new_buffer_size );
@@ -1564,7 +1564,7 @@ jpeg2ASImage( const char * path, ASImageImportParams *params )
 			h = (cinfo.image_height * w)/cinfo.image_width ;
 		
 		ratio = cinfo.image_height/h ; 
-		if( ratio > cinfo.image_width/w )
+		if( ratio > (int)cinfo.image_width/w )
 			ratio = cinfo.image_width/w ; 
 		
 		cinfo.scale_num = 1 ; 
@@ -2610,11 +2610,11 @@ static Bool load_tga_truecolor(FILE *infile, ASTGAHeader *tga, ASTGAColorMap *cm
 	CARD32 *b = buf->blue ;
 	int bpp = (tga->ImageSpec.Depth+7)/8;
 	int bpl = buf->width*bpp;
-	if( fread( read_buf, 1, bpl, infile ) != bpl ) 		   
+	if( fread( read_buf, 1, bpl, infile ) != (unsigned int)bpl ) 		   
 		return False;
 	if( bpp == 3 ) 
 	{	
-		int i;
+		unsigned int i;
 		if( gamma_table )
 			for( i = 0 ; i < buf->width ; ++i ) 
 			{
@@ -2632,7 +2632,7 @@ static Bool load_tga_truecolor(FILE *infile, ASTGAHeader *tga, ASTGAColorMap *cm
 		set_flags( buf->flags, SCL_DO_RED|SCL_DO_GREEN|SCL_DO_BLUE );
 	}else if( bpp == 4 )
 	{
-		int i;
+		unsigned int i;
 		for( i = 0 ; i < buf->width ; ++i ) 
 		{
 			b[i] = *(read_buf++);	
@@ -2701,7 +2701,7 @@ tga2ASImage( const char * path, ASImageImportParams *params )
 			cmap->bytes_per_entry = (tga.ColormapSpec.ColorMapEntrySize+7)/8;
 			cmap->bytes_total = cmap->bytes_per_entry*tga.ColormapSpec.ColorMapLength; 
 			cmap->data = safemalloc( cmap->bytes_total);
-			success = ( fread( cmap->data, 1, cmap->bytes_total, infile ) == cmap->bytes_total );
+			success = ( fread( cmap->data, 1, cmap->bytes_total, infile ) == (unsigned int)cmap->bytes_total );
 		}else if( tga.ImageSpec.Depth != 24 && tga.ImageSpec.Depth != 32 )
 			success = False ;
 	 
@@ -2829,7 +2829,7 @@ argb2ASImage( const char *path, ASImageImportParams *params )
 	{
 		int width = ((CARD32*)argb_data)[0] ;
 		int height = ((CARD32*)argb_data)[1] ;
-		if( 2 + width*height > argb_data_len/sizeof(CARD32))
+		if( 2 + width*height > (int)(argb_data_len/sizeof(CARD32)))
 		{
 			show_error( "file \"%s\" is too small for specified image size of %dx%d.\n", path, width, height );
 		}else

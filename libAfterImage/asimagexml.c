@@ -889,7 +889,7 @@ handle_asxml_tag_img( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm,
 			result = pixmap2asimage(state->asv, rp, 0, 0, width, height, 0xFFFFFFFF, False, 100);
 			if( dst_width == 0 ) dst_width = width ; 
 			if( dst_height == 0 ) dst_height = height ; 
-			if( (int)dst_width != width || (int)dst_height != height ) 
+			if( dst_width != (int)width || dst_height != (int)height ) 
 			{
 				ASImage *tmp = scale_asimage( NULL, result, dst_width, dst_height, ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT );
 				if( tmp ) 
