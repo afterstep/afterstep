@@ -1230,6 +1230,8 @@ asim_my_scandir_ext ( const char *dirname, int (*filter_func) (const char *),
 	return n;
 }
 
+#endif /* #ifndef _WIN32 */
+
 /***************************************/
 /* from xml.c                          */
 /***************************************/
@@ -1286,7 +1288,7 @@ asim_asxml_var_get(const char* name)
     return hdata.i;
 }
 
-int
+static int
 asim_asxml_var_nget(char* name, int n) {
       int value;
       char oldc = name[n];
@@ -1876,5 +1878,3 @@ asim_spool_xml_tag( ASXmlBuffer *xb, char *tmp, int len )
 	return (i==0)?1:i;
 }	   
 
-
-#endif

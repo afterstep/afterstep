@@ -395,7 +395,11 @@
 
 #ifndef PNG_VERSION_INFO_ONLY
 /* include the compression library's header */
-#include "zlib.h"
+# ifdef _WIN32
+#  include "..\zlib\zlib.h"
+# else
+#  include "zlib.h"
+# endif
 #endif
 
 /* include all user configurable info, including optional assembler routines */
