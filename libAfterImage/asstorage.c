@@ -776,7 +776,7 @@ compress_stored_data( ASStorage *storage, CARD8 *data, int size, ASFlagType *fla
 			storage->comp_buf = realloc( storage->comp_buf, storage->comp_buf_size );
 			storage->diff_buf = realloc( storage->diff_buf, storage->comp_buf_size*sizeof(ASStorageDiff) );
 #ifdef DEBUG_ALLOCS
-			show_debug( __FILE__,__FUNCTION__,__LINE__," realloced compression buffer to %d+%d*%d",storage->comp_buf_size, storage->comp_buf_size, sizeof(ASStorageDiff) );
+			show_debug( __FILE__,"compress_stored_data",__LINE__," realloced compression buffer to %d+%d*%d",storage->comp_buf_size, storage->comp_buf_size, sizeof(ASStorageDiff) );
 #endif 
 		}
 		buffer = storage->comp_buf ;
@@ -843,7 +843,7 @@ compress_stored_data( ASStorage *storage, CARD8 *data, int size, ASFlagType *fla
 				storage->comp_buf = realloc( storage->comp_buf, storage->comp_buf_size );
 				storage->diff_buf = realloc( storage->diff_buf, storage->comp_buf_size*sizeof(ASStorageDiff) );
 #ifdef DEBUG_ALLOCS
-			show_debug( __FILE__,__FUNCTION__,__LINE__," realloced compression buffer to %d+%d*%d",storage->comp_buf_size, storage->comp_buf_size, sizeof(ASStorageDiff) );
+			show_debug( __FILE__,"compress_stored_data",__LINE__," realloced compression buffer to %d+%d*%d",storage->comp_buf_size, storage->comp_buf_size, sizeof(ASStorageDiff) );
 #endif 
 
 			}
@@ -866,7 +866,7 @@ compress_stored_data( ASStorage *storage, CARD8 *data, int size, ASFlagType *fla
 				storage->comp_buf = realloc( storage->comp_buf, storage->comp_buf_size );
 				storage->diff_buf = realloc( storage->diff_buf, storage->comp_buf_size*sizeof(ASStorageDiff) );
 #ifdef DEBUG_ALLOCS
-			show_debug( __FILE__,__FUNCTION__,__LINE__," realloced compression buffer to %d+%d*%d",storage->comp_buf_size, storage->comp_buf_size, sizeof(ASStorageDiff) );
+			show_debug( __FILE__,"compress_stored_data",__LINE__," realloced compression buffer to %d+%d*%d",storage->comp_buf_size, storage->comp_buf_size, sizeof(ASStorageDiff) );
 #endif 
 			}
 			buffer = storage->comp_buf ;
@@ -921,9 +921,9 @@ add_storage_slots( ASStorageBlock *block )
 	LOCAL_DEBUG_OUT( "reallocated %d slots pointers", block->slots_count );
 #else
 	if( block->slots == NULL ) 
-		show_debug( __FILE__,__FUNCTION__,__LINE__,"allocating %d slots pointers", block->slots_count );
+		show_debug( __FILE__,"add_storage_slots",__LINE__,"allocating %d slots pointers", block->slots_count );
 	else
-		show_debug( __FILE__,__FUNCTION__,__LINE__,"reallocating %d slots pointers", block->slots_count );
+		show_debug( __FILE__,"add_storage_slots",__LINE__,"reallocating %d slots pointers", block->slots_count );
 	block->slots = guarded_realloc( block->slots, block->slots_count*sizeof(ASStorageSlot*));
 #endif
 	UsedMemory += count*sizeof(ASStorageSlot*) ;
@@ -966,7 +966,7 @@ create_asstorage_block( int useable_size )
 		free( ptr ); 
 		UsedMemory -= allocate_size ;
 #ifdef DEBUG_ALLOCS
-		show_debug( __FILE__,__FUNCTION__,__LINE__,"freeing block %p, size = %d, total used = %d", ptr, allocate_size, UsedMemory );
+		show_debug( __FILE__,"create_asstorage_block",__LINE__,"freeing block %p, size = %d, total used = %d", ptr, allocate_size, UsedMemory );
 #endif
 		return NULL;
 	}
@@ -1037,7 +1037,7 @@ select_storage_block( ASStorage *storage, int compressed_size, ASFlagType flags,
 		storage->blocks = realloc( storage->blocks, storage->blocks_count*sizeof(ASStorageBlock*));
 #else
 		storage->blocks = guarded_realloc( storage->blocks, storage->blocks_count*sizeof(ASStorageBlock*));
-		show_debug( __FILE__,__FUNCTION__,__LINE__,"reallocated %d blocks pointers", storage->blocks_count );
+		show_debug( __FILE__,"select_storage_block",__LINE__,"reallocated %d blocks pointers", storage->blocks_count );
 #endif		   
 		UsedMemory += 16*sizeof(ASStorageBlock*) ;
 
@@ -1609,7 +1609,7 @@ card8_threshold( ASStorageDstBuffer *dst, void *src, size_t size)
 	int i = 0;
 
 #ifdef DEBUG_THRESHOLD	  
-	fprintf( stderr, __FUNCTION__ ":enter: start = %d, end = %d, runs_count = %d, size = %d\n", 
+	fprintf( stderr, "card8_threshold:enter: start = %d, end = %d, runs_count = %d, size = %d\n", 
 			 start, end, runs_count, size );
 #endif
 
@@ -1622,7 +1622,7 @@ card8_threshold( ASStorageDstBuffer *dst, void *src, size_t size)
 			start = i ;
 		}	 
 #ifdef DEBUG_THRESHOLD	  
-		fprintf( stderr, __FUNCTION__ ":1: start = %d, end = %d, i = %d\n", start, end, i );
+		fprintf( stderr, "card8_threshold:1: start = %d, end = %d, i = %d\n", start, end, i );
 #endif
 		
 		if( i < (int)size ) 
@@ -1632,7 +1632,7 @@ card8_threshold( ASStorageDstBuffer *dst, void *src, size_t size)
 			end = i-1 ;
 		}
 #ifdef DEBUG_THRESHOLD	  
-		fprintf( stderr, __FUNCTION__ ":2: start = %d, end = %d, i = %d\n", start, end, i );
+		fprintf( stderr, "card8_threshold:2: start = %d, end = %d, i = %d\n", start, end, i );
 #endif
 		
 		if( start >= 0 && end >= start )
@@ -1642,13 +1642,13 @@ card8_threshold( ASStorageDstBuffer *dst, void *src, size_t size)
 			runs[runs_count] = end ;
 			++runs_count ;
 #ifdef DEBUG_THRESHOLD	  
-			fprintf( stderr, __FUNCTION__ ":3: runs_count = %d\n", runs_count );
+			fprintf( stderr, "card8_threshold:3: runs_count = %d\n", runs_count );
 #endif
 			end = -1 ;
 		}
 	}
 #ifdef DEBUG_THRESHOLD	  
-	fprintf( stderr, __FUNCTION__ ":exit: start = %d, end = %d, runs_count = %d, size = %d\n", 
+	fprintf( stderr, "card8_threshold:exit: start = %d, end = %d, runs_count = %d, size = %d\n", 
 			 start, end, runs_count, size );
 #endif
 	dst->runs_count = runs_count ;
@@ -1913,7 +1913,7 @@ threshold_stored_data(ASStorage *storage, ASStorageID id, unsigned int *runs, in
 		buf.end = -1 ;
 		buf.runs_count = 0 ;
 #ifdef DEBUG_THRESHOLD	  
-		fprintf( stderr, __FUNCTION__ ": id = 0x%lX, width = %d, threshold = %d\n", id, width, threshold );
+		fprintf( stderr, "threshold_stored_data: id = 0x%lX, width = %d, threshold = %d\n", id, width, threshold );
 #endif
 		if( fetch_data_int( storage, id, &buf, 0, width, (CARD8)threshold, card8_threshold, &dumm) > 0 ) 
 		{
