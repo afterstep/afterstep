@@ -23,9 +23,9 @@
 #include <string.h>
 
 #ifdef __CYGWIN__
-#define XWRAP_H_HEADER_INCLUDED
-#undef BOOL
-#undef INT32
+# define XWRAP_H_HEADER_INCLUDED
+# undef BOOL
+# undef INT32
 # include <w32api/windows.h>
 # include <w32api/imagehlp.h>
 #endif
@@ -38,11 +38,11 @@
 
 #ifdef HAVE_EXECINFO_H
 # include <execinfo.h>
-#ifdef HAVE_BACKTRACE_SYMBOLS
-# define GLIBC_BACKTRACE_FUNC 	backtrace_symbols
-#else
-# define GLIBC_BACKTRACE_FUNC 	__backtrace_symbols
-#endif
+# ifdef HAVE_BACKTRACE_SYMBOLS
+#  define GLIBC_BACKTRACE_FUNC 	backtrace_symbols
+# else
+#  define GLIBC_BACKTRACE_FUNC 	__backtrace_symbols
+# endif
 #endif
 
 
@@ -94,7 +94,7 @@ static void
 get_proc_tables (proc_tables * ptabs)
 {
 #ifdef HAVE_ELF_H
-#if (defined(HAVE_ELF32_DYN_D_TAG) || defined(HAVE_ELF64_DYN_D_TAG)) && HAVE_DECL_ELFW
+# if (defined(HAVE_ELF32_DYN_D_TAG) || defined(HAVE_ELF64_DYN_D_TAG)) && HAVE_DECL_ELFW
 	ElfW (Dyn) * dyn;
 
 	memset (ptabs, 0x00, sizeof (proc_tables));
@@ -120,9 +120,9 @@ get_proc_tables (proc_tables * ptabs)
 			 break;
 			 /* debug info */
 		 case DT_DEBUG:
-#ifdef HAVE_LINK_H
+#  ifdef HAVE_LINK_H
 			 ptabs->debug = (struct r_debug *)dyn->d_un.d_ptr;
-#endif			 
+#  endif			 
 			 break;
 			 /* GOT/PLT */
 		 case DT_PLTGOT:
@@ -131,10 +131,11 @@ get_proc_tables (proc_tables * ptabs)
 		}
 	if (ptabs->sym_hash != NULL)
 		ptabs->sym_ent_num = *(ptabs->sym_hash + 1);
-#endif
-#endif
+# endif
+#endif /* HAVE_ELF_H */
 }
 
+#if defined(HAVE_SIGCONTEXT)
 static void
 print_elf_data (proc_tables * ptabs)
 {
@@ -170,7 +171,7 @@ print_elf_data (proc_tables * ptabs)
 			fprintf (stderr, "   [0x%8.8X]:[%s]\n", plm->l_addr, plm->l_name);
 		}
 	}
-#ifdef HAVE_ELF32_ADDR	 
+# ifdef HAVE_ELF32_ADDR	 
 	if (ptabs->symbols != NULL && ptabs->sym_ent_size == sizeof (Elf32_Sym))
 	{
 		int           i;
@@ -185,8 +186,8 @@ print_elf_data (proc_tables * ptabs)
 			ptr++;
 		}
 	}
-#endif
-#ifdef HAVE_ELF64_ADDR	 
+# endif
+# ifdef HAVE_ELF64_ADDR	 
 	if (ptabs->symbols != NULL && ptabs->sym_ent_size == sizeof (Elf64_Sym))
 	{
 		int           i;
@@ -200,9 +201,10 @@ print_elf_data (proc_tables * ptabs)
 			ptr++;
 		}
 	}
-#endif
+# endif
 #endif
 }
+#endif
 
 
 static char  *unknown = "unknown";
@@ -218,7 +220,7 @@ find_func_symbol (void *addr, long *offset)
 	if (_ptabs.symbols == NULL || _ptabs.strings == NULL)
 		return unknown;
 
-#if defined(HAVE_ELF64_ADDR)	 
+# if defined(HAVE_ELF64_ADDR)	 
 	if (_ptabs.sym_ent_size == sizeof (Elf64_Sym))
 	{
 		int           i;
@@ -239,7 +241,7 @@ find_func_symbol (void *addr, long *offset)
 			ptr++;
 		}
 	}
-#elif defined(HAVE_ELF32_ADDR)
+# elif defined(HAVE_ELF32_ADDR)
 	if (_ptabs.sym_ent_size == sizeof (Elf32_Sym))
 	{
 		int           i; 
@@ -260,7 +262,7 @@ find_func_symbol (void *addr, long *offset)
 			ptr++;
 		}
 	}
-#endif
+# endif
 	*offset = min_offset;
 	return selected;
 #elif defined(__CYGWIN__)
@@ -268,10 +270,10 @@ find_func_symbol (void *addr, long *offset)
 	{
 		
 		*offset = 0 ;
-#if 0
+# if 0
 		{		
 			static int imhelp_symbols_inited = FALSE ; 
-#define MAX_IMAGEHLP_SYM_NAME_LEN	128
+#  define MAX_IMAGEHLP_SYM_NAME_LEN	128
     	    static BYTE symbolBuffer[ sizeof(IMAGEHLP_SYMBOL) + MAX_IMAGEHLP_SYM_NAME_LEN + 1 ];
         	static PIMAGEHLP_SYMBOL pSymbol = (PIMAGEHLP_SYMBOL)symbolBuffer;
         	DWORD symDisplacement = 0;  // Displacement of the input address,
@@ -293,15 +295,16 @@ find_func_symbol (void *addr, long *offset)
 				return pSymbol->Name ;
         	}
 		}
-#endif		
+# endif
 		return unknown;
 	}		  
 #else
 	*offset = 0;
     return unknown;
-#endif
+#endif /* HAVE_ELF_H */
 }
 
+#if defined(HAVE_SIGCONTEXT)
 static void
 print_lib_list ()
 {
@@ -320,11 +323,6 @@ print_lib_list ()
 #endif
 }
 
-#if !defined(HAVE_SIGCONTEXT)
-static void
-print_signal_context (struct sigcontext *psc)
-{}
-#else
 static void
 print_signal_context (struct sigcontext *psc)
 {
@@ -335,7 +333,7 @@ print_signal_context (struct sigcontext *psc)
 		fprintf (stderr, " Signal Context :\n");
 		fprintf (stderr, "  Registers\n");
 		i = 0;								   /* to avoid warnings */
-#if defined(_ASMi386_SIGCONTEXT_H)
+# if defined(_ASMi386_SIGCONTEXT_H)
 		fprintf (stderr, "   EAX: 0x%8.8lX", (unsigned long)(psc->eax));
 		fprintf (stderr, "  EBX: 0x%8.8lX", (unsigned long)(psc->ebx));
 		fprintf (stderr, "  ECX: 0x%8.8lX", (unsigned long)(psc->ecx));
@@ -345,36 +343,36 @@ print_signal_context (struct sigcontext *psc)
 		fprintf (stderr, "  EIP: 0x%8.8lX\n", (unsigned long)(psc->eip));
 		fprintf (stderr, "   ESI: 0x%8.8lX", (unsigned long)(psc->esi));
 		fprintf (stderr, "  EDI: 0x%8.8lX\n", (unsigned long)(psc->edi));
-#elif defined(_ASMAXP_SIGCONTEXT_H) || defined(__ASM_MIPS_SIGCONTEXT_H) || defined(__ASM_SH_SIGCONTEXT_H)
+# elif defined(_ASMAXP_SIGCONTEXT_H) || defined(__ASM_MIPS_SIGCONTEXT_H) || defined(__ASM_SH_SIGCONTEXT_H)
 		for (; i < 32; i++)
 			fprintf (stderr, "  #%d: 0x%8.8lX\n", i, (unsigned long)(psc->sc_regs[i]));
-#elif defined(_ASM_PPC_SIGCONTEXT_H)
+# elif defined(_ASM_PPC_SIGCONTEXT_H)
 		for (; i < 32; i++)
 			fprintf (stderr, "  #%d: 0x%8.8lX\n", i, (unsigned long)(psc->regs->gpr[i]));
-#endif
+# endif
 	}
 }
 #endif
-
+#if defined(_ASMi386_SIGCONTEXT_H)
+#define HAVE_PRINT_MY_BACKTRACE
 static void
 print_my_backtrace (long *ebp, long *esp, long *eip)
 {
-#if defined(_ASMi386_SIGCONTEXT_H) || defined(__CYGWIN__)
 	int           frame_no = 0;
 
 	fprintf (stderr, " Stack Backtrace :\n");
 
-#   if defined(HAVE_BACKTRACE_SYMBOLS_FD) && defined(HAVE_BACKTRACE)
+# if defined(HAVE_BACKTRACE_SYMBOLS_FD) && defined(HAVE_BACKTRACE)
 	{
-#    define BACKTRACE_ARRAY_SIZE 64
+#  define BACKTRACE_ARRAY_SIZE 64
 		void *array[BACKTRACE_ARRAY_SIZE];
 		size_t size;
 		size = backtrace (array, BACKTRACE_ARRAY_SIZE);
 		backtrace_symbols_fd (array, size, fileno(stderr)); /* most reliable way !!! */
 		return;
-#    undef BACKTRACE_ARRAY_SIZE		
+#  undef BACKTRACE_ARRAY_SIZE		
 	}
-#   endif		
+# endif		
 
 	if (ebp < (long *)0x08074000			   /* stack can't possibly go below that */
 		)
@@ -389,7 +387,7 @@ print_my_backtrace (long *ebp, long *esp, long *eip)
 			func_name = find_func_symbol ((void *)eip, &offset);
 			if (func_name != unknown)
 				fprintf (stderr, " in [%s+0x%lX(%lu)]", func_name, offset, offset);
-#if !defined(__CYGWIN__)
+# if !defined(__CYGWIN__)
 			else
 			{
 			    char **dummy = GLIBC_BACKTRACE_FUNC ((void **)&eip, 1);
@@ -398,13 +396,13 @@ print_my_backtrace (long *ebp, long *esp, long *eip)
 	                func_name = *dummy ;
 					if (*func_name != '[')
 						fprintf (stderr, " in %s()", func_name);
-#   ifdef HAVE_BACKTRACE_SYMBOLS			
+#  ifdef HAVE_BACKTRACE_SYMBOLS			
 					free( dummy );
-#   endif /* HAVE_BACKTRACE_SYMBOLS */
+#  endif /* HAVE_BACKTRACE_SYMBOLS */
 
 				}
 			}
-#endif
+# endif
 			fprintf (stderr, "\n");
 		}
 		return;
@@ -431,7 +429,7 @@ print_my_backtrace (long *ebp, long *esp, long *eip)
 
 			if (func_name == unknown)
 			{
-#ifdef HAVE_EXECINFO_H
+# ifdef HAVE_EXECINFO_H
                 char **dummy = GLIBC_BACKTRACE_FUNC ((void **)&esp, 1);
 				if( dummy ) 
 				{
@@ -440,11 +438,11 @@ print_my_backtrace (long *ebp, long *esp, long *eip)
 						fprintf (stderr, "  [%s]", func_name);
 					else
 						fprintf (stderr, "  [some silly code]");
-#   ifdef HAVE_BACKTRACE_SYMBOLS			
+#  ifdef HAVE_BACKTRACE_SYMBOLS			
 					free( dummy );
-#   endif /* HAVE_BACKTRACE_SYMBOLS */
+#  endif /* HAVE_BACKTRACE_SYMBOLS */
 				}else
-#endif
+# endif
 					fprintf (stderr, "  [some silly code]");
 			} else
 				fprintf (stderr, "  [%s+0x%lX(%lu)]", func_name, offset, offset);
@@ -453,8 +451,8 @@ print_my_backtrace (long *ebp, long *esp, long *eip)
 		esp = (long *)*(ebp + 1);
 		ebp = (long *)*(ebp);
 	}
-#endif
 }
+#endif
 
 #define MAX_CALL_DEPTH 32                      /* if you change it here  - then change below as well!!! */
 
@@ -568,6 +566,7 @@ done:
 }
 #endif /* !defined(HAVE_BACKTRACE) || !defined(HAVE_BACKTRACE_SYMBOLS) */
 
+#if defined(HAVE_SIGCONTEXT)
 static void
 print_diag_info (struct sigcontext *psc)
 {
@@ -578,12 +577,12 @@ print_diag_info (struct sigcontext *psc)
 	if (psc)
 	{
 		print_signal_context (psc);
-#if defined(_ASMi386_SIGCONTEXT_H)
+#if defined(HAVE_PRINT_MY_BACKTRACE)
 		print_my_backtrace ((long *)(psc->ebp), (long *)(psc->esp), (long *)(psc->eip));
 #endif
 	}
 }
-
+#endif
 
 static void
 sigsegv_handler (int signum
@@ -630,7 +629,6 @@ sigsegv_handler (int signum
 /********************************************************************/ 
 /********************************************************************/ 
 /*   Public Interfaces : */
-
 void
 set_signal_handler (int sig_num)
 {
@@ -642,13 +640,13 @@ static char _as_func_name_return[256];
 const char *
 get_caller_func ()
 {
-    char         *func_name = unknown;
-	void         *to_free = NULL; 
+  const char *func_name = unknown;
+	void       *to_free = NULL; 
 #if defined(__GNUC__) || defined(__CYGWIN__)
 
 # if defined(HAVE_BACKTRACE) && defined(HAVE_BACKTRACE_SYMBOLS)
 	{
-#define BACKTRACE_ARRAY_SIZE 3		/* we only need previous function: 0 - us, 1 - calliee, 2 - caller */
+#  define BACKTRACE_ARRAY_SIZE 3		/* we only need previous function: 0 - us, 1 - calliee, 2 - caller */
 		void *array[BACKTRACE_ARRAY_SIZE];
 		size_t size;
 		char **strings;
@@ -658,7 +656,7 @@ get_caller_func ()
 		func_name = strings[size > 1? (size>2?2:1):0]; /* we need two levels up ? */
 		to_free = strings;
 	}
-#undef BACKTRACE_ARRAY_SIZE	
+#  undef BACKTRACE_ARRAY_SIZE	
 
 # else /* defined(HAVE_BACKTRACE) && defined(HAVE_BACKTRACE_SYMBOLS) */
 	{
@@ -683,6 +681,7 @@ get_caller_func ()
         	}
 #  endif /* HAVE_EXECINFO_H */
     	}
+  }
 # endif /* defined(HAVE_BACKTRACE) && defined(HAVE_BACKTRACE_SYMBOLS) */
 #endif  /* defined(__GNUC__) || defined(__CYGWIN__) */
 
@@ -695,6 +694,7 @@ get_caller_func ()
 	
     return &(_as_func_name_return[0]);
 }
+
 
 void
 print_simple_backtrace ()
@@ -731,7 +731,6 @@ print_simple_backtrace ()
 		}
 	}
 #  undef BACKTRACE_ARRAY_SIZE	
-
 # else /* defined(HAVE_BACKTRACE) && defined(HAVE_BACKTRACE_SYMBOLS) */
 	{
 	    long         **ret_addr = get_call_list();
@@ -741,7 +740,7 @@ print_simple_backtrace ()
     	while (ret_addr[call_no] != NULL )
     	{
 			long          offset = 0;
-			char         *func_name = NULL;
+			const char   *func_name = NULL;
 
         	fprintf (stderr, " %5u  0x%8.8lX", call_no, (unsigned long)(ret_addr[call_no]) );
 
