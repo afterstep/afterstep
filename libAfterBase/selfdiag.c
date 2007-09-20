@@ -220,7 +220,7 @@ find_func_symbol (void *addr, long *offset)
 	if (_ptabs.symbols == NULL || _ptabs.strings == NULL)
 		return unknown;
 
-# if defined(HAVE_ELF64_ADDR)	 
+# if defined(HAVE_ELF64_ADDR)
 	if (_ptabs.sym_ent_size == sizeof (Elf64_Sym))
 	{
 		int           i;
@@ -390,7 +390,8 @@ print_my_backtrace (long *ebp, long *esp, long *eip)
 # if !defined(__CYGWIN__)
 			else
 			{
-			    char **dummy = GLIBC_BACKTRACE_FUNC ((void **)&eip, 1);
+				void *peip = &eip;
+			    char **dummy = GLIBC_BACKTRACE_FUNC (peip, 1);
 				if( dummy ) 
 				{
 	                func_name = *dummy ;
@@ -430,7 +431,8 @@ print_my_backtrace (long *ebp, long *esp, long *eip)
 			if (func_name == unknown)
 			{
 # ifdef HAVE_EXECINFO_H
-                char **dummy = GLIBC_BACKTRACE_FUNC ((void **)&esp, 1);
+				void *pesp = &esp;
+                char **dummy = GLIBC_BACKTRACE_FUNC (pesp, 1);
 				if( dummy ) 
 				{
                 	func_name = *dummy;
