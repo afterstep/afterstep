@@ -55,6 +55,8 @@ APPS_SRCS=apps/common.c apps/ascompose.c apps/asview.c \
 
 APPS_INCS=apps/common.h
 
+APPS_DEPS=@LIBPROG@ $(LIB_OBJS) $(LIB_INCS) $(APPS_SRCS) $(APPS_INCS)
+
 # end specifics
 ################################################################
 # generic makefile stuff :
@@ -230,7 +232,7 @@ install.inc:
 		)
 
 install.apps: install.lib
-		@(cd apps; make install || exit 1)
+		@(if test -d apps; then cd apps; make install || exit 1; fi)
 
 # uninstallation targets : 
 #
@@ -274,7 +276,7 @@ uninstall.bin:
 		done
 
 uninstall.apps:
-		@(cd apps; make uninstall || exit 1)
+		@(if test -d apps; then cd apps; make uninstall || exit 1; fi)
 
 uninstall.lib:		@LIBUNINSTALL@ uninstall.inc uninstall.apps
 
@@ -285,11 +287,11 @@ uninstall.script:
 clean:
 		$(RMF) $(LIB_SHARED) $(LIB_SHARED_CYG) $(LIB_SHARED_CYG_AR) $(LIB_STATIC) *.so.* *.so *.o *~ *% *.bak \#* core ; \
 		for I in ${subdirs}; do $(RMF) $$I/*.o $$I/*.obj $$I/*.bak; done
-		@(cd apps; make clean || exit 1)
+		@(if test -d apps; then cd apps; make clean || exit 1; fi)
 
 distclean: clean
 		$(RMF) $(LIB_SHARED) $(LIB_SHARED_CYG) $(LIB_SHARED_CYG_AR) $(LIB_STATIC)  *.o *.so.* *~ *% *.bak \#* *.orig core Makefile 
-		@(cd apps; make distclean || exit 1)
+		@(if test -d apps; then cd apps; make distclean || exit 1; fi)
 
 indent:
 		@SRCS=`echo "$(AFTERIMAGE_OBJS) " | sed "s/.o /.c /g"`; \
@@ -300,7 +302,7 @@ indent:
 		    mv /tmp/$$i $$i; \
 		  fi; \
 		done ; \
-		(cd apps; make indent || exit 1)
+		(if test -d apps; then cd apps; make indent || exit 1; fi )
 
 deps:
 		@echo -n > .depend ; \
@@ -334,10 +336,10 @@ deps:
 		  echo -n '		$$('$(LIB_NAME)_PATH')'/$$f >> .shared ; \
 		done; \
 		echo "" >> .shared ; \
-		(cd apps; make deps || exit 1)
+		(if test -d apps; then cd apps; make deps || exit 1; fi)
 
-apps: 	@LIBPROG@ $(LIB_OBJS) $(LIB_INCS) $(APPS_SRCS) $(APPS_INCS)
-		@(cd apps; make )
+apps: 	@APPSDEPS@
+		@(if test -d apps; then cd apps; make; fi )
 
 
 $(LIB_STATIC):	$(LIB_OBJS) $(LIB_INCS) config.h

@@ -726,19 +726,26 @@ AC_SUBST(DEFINE_XLOCALE)
 AC_SUBST(PERL)
 
 dnl# Write results
-
-dnl# AC_CONFIG_HEADER(config.h)
-
 dnl# Common parts of the Makefile
 
 LIBAFTERIMAGEFILES=.shared
 AC_SUBST_FILE(LIBAFTERIMAGEFILES)
 
+APPSDEPS=
+if test -d apps ; 	then   
+  APPSDEPS='$(APPS_DEPS)'
+  AC_CONFIG_FILES([apps/Makefile]) 
+fi
+
+AC_SUBST(APPSDEPS)
+
 AC_OUTPUT(Makefile \
 afterbase.h \
 afterimage-libs \
-afterimage-config \
-apps/Makefile)
+afterimage-config)
+
+if test -d apps ; 	then 
+  cp config.h apps/
+fi
 
 chmod 755 afterimage-libs
-cp config.h apps/
