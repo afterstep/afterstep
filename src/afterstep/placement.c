@@ -1069,6 +1069,36 @@ static Bool do_cascade_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry
     return True;
 }
 
+static Bool do_pointer_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry *area )
+{
+    int x = area->x, y = area->y;
+
+  	ASQueryPointerRootXY( &x, &y);
+    
+fprintf( stderr, "%d: x = %d, y = %d\n", __LINE__, x, y);
+    x += Scr.Vx - (int)asw->status->width/2;
+    y += Scr.Vy - (int)asw->status->height/2;
+fprintf( stderr, "%d: x = %d, y = %d\n", __LINE__, x, y);
+    if ( x < area->x ) 
+      	x = area->x;
+    else if( x + asw->status->width > area->x+ area->width )
+      	x = (area->x+area->width - asw->status->width);
+
+    if ( y < area->y ) 
+      	y = area->y;
+	else if( y + asw->status->height > area->y+ area->height )
+        y = (area->y+area->height - asw->status->height);
+
+fprintf( stderr, "%d: x = %d, y = %d\n", __LINE__, x, y);
+    asw->status->x = x - asw->status->viewport_x ;
+    asw->status->y = y - asw->status->viewport_y ;
+
+    apply_placement_result_asw( asw, XValue|YValue, x, y, 0, 0 );
+
+    return True;
+}
+
+
 static Bool do_manual_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry *area )
 {
     ASMoveResizeData *mvrdata;
@@ -1237,6 +1267,8 @@ place_aswindow_in_windowbox( ASWindow *asw, ASWindowBox *aswbox, ASUsePlacementS
             return do_random_placement( asw, aswbox, &area, True );
         else if( aswbox->main_strategy == ASP_Tile )
             return do_tile_placement( asw, aswbox, &area );
+        else if( aswbox->main_strategy == ASP_UnderPointer )
+            res = do_pointer_placement( asw, aswbox, &area );
         if( force )
             do_tile_placement( asw, aswbox, &area );
     }else
@@ -1245,6 +1277,8 @@ place_aswindow_in_windowbox( ASWindow *asw, ASWindowBox *aswbox, ASUsePlacementS
             res = do_random_placement( asw, aswbox, &area, False );
         else if( aswbox->backup_strategy == ASP_Cascade )
             res = do_cascade_placement( asw, aswbox, &area );
+        else if( aswbox->backup_strategy == ASP_UnderPointer )
+            res = do_pointer_placement( asw, aswbox, &area );
 
 		if( aswbox->backup_strategy == ASP_Manual || (force && !res) )
             res = do_manual_placement( asw, aswbox, &area );

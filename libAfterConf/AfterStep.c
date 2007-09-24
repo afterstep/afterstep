@@ -111,6 +111,7 @@ TermDef       PlacementStrategyTerms[] =
     {TF_NO_MYNAME_PREPENDING, "RandomPlacement", 15, TT_FLAG, 	FEEL_RandomPlacement_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "Tile", 5, TT_FLAG, 				FEEL_Tile_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "Cascade", 7, TT_FLAG, 			FEEL_Cascade_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "UnderPointer", 12, TT_FLAG, 			FEEL_UnderPointer_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "Manual", 6, TT_FLAG, 			FEEL_Manual_ID, NULL},
     {0, NULL, 0, 0, 0}
 };

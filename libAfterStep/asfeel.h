@@ -115,6 +115,7 @@ typedef enum{
 	ASP_RandomPlacement,
 	ASP_Tile,
 	ASP_Cascade,
+	ASP_UnderPointer,  
 	ASP_Manual
 }ASPlacementStrategy ;
 

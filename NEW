@@ -1,4 +1,6 @@
-    * Added BlurSize option to MyStyles for blurring of transparent background.
+  * Added UnderPointer placement type to center window under mouse pointer on 
+      map.
+  * Added BlurSize option to MyStyles for blurring of transparent background.
 	  Use like so: BlurSize 10x20  will set horizontal blur to 10 pixels and 
 	  vertical to 20.
    
