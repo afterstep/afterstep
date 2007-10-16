@@ -173,7 +173,7 @@ int main(int argc, char* argv[])
 		asv = create_asvisual( dpy, screen, depth, NULL );
 
 		/* test example for fill_asimage : */
-#if 0		 
+#if 0
 		fill_asimage(asv, im, 0, 0, 50, 50, 0xFFFF0000);
 		fill_asimage(asv, im, 50, 50, 100, 50, 0xFFFF0000);
 		fill_asimage(asv, im, 0, 100, 200, 50, 0xFFFF0000);
@@ -200,7 +200,6 @@ int main(int argc, char* argv[])
 		{
 			Pixmap    p;
 			int i ;
-//			GLXContext glctx;
 
 	  		XMapRaised   (dpy, w);
 			XSync(dpy,False);
@@ -209,25 +208,30 @@ int main(int argc, char* argv[])
 			/* see ASView.5 : */
 //			show_warning( "asimage2pmap Done");
 			p = create_visual_pixmap( asv, DefaultRootWindow(dpy), im->width, im->height, 0 );
-//			glctx = glXCreateContext (dpy, &(asv->visual_info), NULL, True);
+
 			{
 				START_TIME(started);
 				time_t t = time(NULL);
 				for( i = 0 ; i < 100 ; ++i ) 
 				{
-#if 1
-# if 1
-					asimage2drawable_gl( asv, p, im, 0, 0, 0, 0, im->width, im->height,  
-										 im->width, im->height,  False );
+#define DIRECT_TO_WIN 0
+#define USEXGL 1
+
+#if USEXGL
+# if !DIRECT_TO_WIN
+					asimage2drawable_gl( asv, p, im, 0, 0, 0, 0, im->width, 127/*im->height*/, im->width, im->height,  False );
 # else										
-					asimage2drawable_gl( asv, w, im, 0, 0, 0, 0, im->width, im->height,  
-										 im->width, im->height,  True );
+					asimage2drawable_gl( asv, w, im, 0, 0, 0, 0, im->width, 128/*im->height*/, im->width, im->height,  True );
 # endif
 #else
+# if !DIRECT_TO_WIN
 					asimage2drawable( asv, p, im, NULL, 0, 0, 0, 0, im->width, im->height, False);
+# else
+					asimage2drawable( asv, w, im, NULL, 0, 0, 0, 0, im->width, im->height, False);
+# endif 						  
 #endif 						  
-//					glbuf2GLXPixmap(asv, p, glctx, im );	
 					LOCAL_DEBUG_OUT ("timestamp%s","");
+          XSync(dpy, False);
 				}
 				SHOW_TIME("", started);
 				fprintf( stderr, "runtime = %ld sec\n", time(NULL)-t );
@@ -235,8 +239,11 @@ int main(int argc, char* argv[])
 			/* print_storage(NULL); */
 			destroy_asimage( &im );
 			/* see common.c:set_window_background_and_free(): */
+# if !DIRECT_TO_WIN      
 			p = set_window_background_and_free( w, p );
-		}
+#endif		
+    }
+    
 		/* see common.c: wait_closedown() : */
 		wait_closedown(w);
 

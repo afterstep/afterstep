@@ -44,6 +44,7 @@
 #ifdef HAVE_GLX
 # include <GL/gl.h>
 # include <GL/glx.h>
+# include <GL/glu.h>
 #endif
 
 
@@ -502,16 +503,18 @@ put_ximage( ASVisual *asv, XImage *xim, Drawable d, GC gc,
 #endif
 }
 
+#define IS_POWER_OF2(i)  (((((i)>>16)&1)+(((i)>>15)&1)+(((i)>>14)&1)+(((i)>>13)&1)+(((i)>>12)&1)+(((i)>>11)&1)+(((i)>>10)&1)+(((i)>>9)&1)+(((i)>>8)&1) \
+                         +(((i)>>7)&1)+(((i)>>6)&1)+(((i)>>5)&1)+(((i)>>4)&1)+(((i)>>3)&1)+(((i)>>2)&1))==1)
+
 Bool
 asimage2drawable_gl(	ASVisual *asv, Drawable d, ASImage *im,
                   		int src_x, int src_y, int dest_x, int dest_y,
-        		  		unsigned int width, unsigned int height, 
-						unsigned int d_width, unsigned int d_height, 
+        		  		int width, int height, int d_width, int d_height, 
 						Bool force_direct )
 {
 	if( im != NULL && get_flags( asv->glx_support, ASGLX_Available ) && d != None )
 	{
-#ifdef HAVE_GLX		
+#ifdef HAVE_GLX
 		int glbuf_size = (get_flags( asv->glx_support, ASGLX_RGBA )? 4 : 3 ) * width * height;
 		CARD8 *glbuf = NULL;
 		ASImageDecoder *imdec  = NULL ;
@@ -569,70 +572,75 @@ asimage2drawable_gl(	ASVisual *asv, Drawable d, ASImage *im,
 		if( glGetError() != 0 ) 
 			return False;
 
-#if 1
+  		if ( get_flags( asv->glx_support, ASGLX_DoubleBuffer ) ) 
+   			glDrawBuffer (GL_FRONT);
+
 		glDisable(GL_BLEND);		/* optimize pixel transfer rates */
 	  	glDisable (GL_DEPTH_TEST);
 	  	glDisable (GL_DITHER);
 	  	glDisable (GL_FOG);
 	  	glDisable (GL_LIGHTING);
-	
-		if( dest_y + height >= d_height ) 
-			--dest_y ;
-		glViewport(dest_x-((int)d_width/2), ((int)d_height/2)-(dest_y+(int)height), d_width, d_height);
 
-  		if ( get_flags( asv->glx_support, ASGLX_DoubleBuffer ) ) 
-   			glDrawBuffer (GL_FRONT);
+		glViewport( 0, 0, d_width, d_height);
+		glMatrixMode (GL_PROJECTION);
+		glLoadIdentity ();
+		gluOrtho2D (0, d_width, 0, d_height);
+		glMatrixMode (GL_MODELVIEW);
+		glLoadIdentity ();
+		glTranslatef (0.375, 0.375, 0.0);
 
-		/* now put pixels on */
-		glRasterPos3i( 0, 0, 0 );
-	
-		glDrawPixels(   width, height, 
-						get_flags( asv->glx_support, ASGLX_RGBA )?GL_RGBA:GL_RGB, 
-						GL_UNSIGNED_BYTE, glbuf );
-#else
+
+#if 1
+		if( !IS_POWER_OF2(width) || !IS_POWER_OF2(height))
 		{
+			/* now put pixels on */
+			glRasterPos2i( dest_x, d_height - (dest_y+height) );
+			glDrawPixels(   width, height, 
+							get_flags( asv->glx_support, ASGLX_RGBA )?GL_RGBA:GL_RGB, 
+							GL_UNSIGNED_BYTE, glbuf );
+		}else
+#endif		
+		{ /* this stuff might be faster : */
 			GLuint texture ;
-#ifndef GL_TEXTURE_RECTANGLE_NV
-#define GL_TEXTURE_RECTANGLE_NV 0x84f5
-#endif
-#define NATIVE_PIX_FORMAT GL_BGRA
 
-/* Big endian systems require the texture know the byte order is reversed */
-#ifdef WORDS_BIGENDIAN
-#define NATIVE_PIX_UNIT   GL_UNSIGNED_INT_8_8_8_8_REV
-#else
-/* fast on vidia */
-/*#define NATIVE_PIX_UNIT   GL_UNSIGNED_INT_8_8_8_8_REV*/
-/* fast on ati compared to GL_UNSIGNED_INT_8_8_8_8_REV */
-#define NATIVE_PIX_UNIT   GL_UNSIGNED_BYTE
-#endif			
+#define TARGET_TEXTURE_ID GL_TEXTURE_2D
+
+#if TARGET_TEXTURE_ID!=GL_TEXTURE_2D
 			glEnable(GL_TEXTURE_2D);
-			glEnable(GL_TEXTURE_RECTANGLE_NV);
+#endif			
+			glEnable(TARGET_TEXTURE_ID);
 			glGenTextures(1, &texture);
-			glBindTexture(GL_TEXTURE_RECTANGLE_NV, texture);
-			/* if (smooth) {*/
-	    	glTexParameteri(GL_TEXTURE_RECTANGLE_NV, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	     	glTexParameteri(GL_TEXTURE_RECTANGLE_NV, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			/* }*/
-			
-			glTexImage2D(GL_TEXTURE_RECTANGLE_NV, 0, get_flags( asv->glx_support, ASGLX_RGBA )?GL_RGBA:GL_RGB, 
-					      width, height, 0, NATIVE_PIX_FORMAT, NATIVE_PIX_UNIT, glbuf);
+
+			glBindTexture(TARGET_TEXTURE_ID, texture);
+	    	glTexParameteri(TARGET_TEXTURE_ID, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	     	glTexParameteri(TARGET_TEXTURE_ID, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexImage2D(TARGET_TEXTURE_ID, 0, get_flags( asv->glx_support, ASGLX_RGBA )?GL_RGBA:GL_RGB, 
+					      /* width and height must be the power of 2 !!! */
+						  width, height, 
+						  0, GL_RGBA, GL_UNSIGNED_BYTE, glbuf);
 
 		 	glBegin(GL_QUADS);
-		   	glTexCoord2d(src_x, src_y); 			 glVertex2i(dest_x, dest_y );
-//		   	glTexCoord2d(src_x+width, src_y); 		 glVertex2i(dest_x + d_width, dest_y     );
-//		   	glTexCoord2d(src_x+width, src_y+height); glVertex2i(dest_x + d_width, dest_y + d_height);
-//		   	glTexCoord2d(src_x, src_y+height); 		 glVertex2i(dest_x     , dest_y + d_height); 
+			/* bottom-left */
+		   	glTexCoord2d(0., 0.); glVertex2i(dest_x, d_height - (dest_y+height) );
+			/* bottom-right */
+		   	glTexCoord2d(1.0, 0.0); glVertex2i(dest_x+width, d_height - (dest_y+height));
+			/* top-right */
+		   	glTexCoord2d(1.0, 1.0); glVertex2i(dest_x+width, d_height - dest_y);    
+			/* top-left */ 
+		   	glTexCoord2d(0.0, 1.0); glVertex2i(dest_x, d_height - dest_y);
 		   	glEnd();
+
+			glBindTexture(TARGET_TEXTURE_ID, 0);
+			glFinish();
 		}							
-#endif		
+
 		free( glbuf );
 		glXMakeCurrent (dpy, None, NULL);	  
 		if( glxp ) 
 			glXDestroyGLXPixmap( dpy, glxp);
 		glFinish(); 				   
 		return True;
-#endif
+#endif /* #ifdef HAVE_GLX */
 	}
 	{
 		static Bool warning_shown = False ; 

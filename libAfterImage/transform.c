@@ -2095,15 +2095,16 @@ gauss_component(CARD32 *src, CARD32 *dst, int radius, double* gauss, int len)
 /* static void calc_gauss_double(double radius, double* gauss); */
 static void calc_gauss_int(int radius, GAUSS_COEFF_TYPE* gauss, GAUSS_COEFF_TYPE* gauss_sums);
 
+#define gauss_data_t CARD32
+#define gauss_var_t int
 
 static inline void
-gauss_component_int(CARD32 *s1, CARD32 *d1, int radius, GAUSS_COEFF_TYPE* gauss, GAUSS_COEFF_TYPE* gauss_sums, int len)
+gauss_component_int(gauss_data_t *s1, gauss_data_t *d1, int radius, GAUSS_COEFF_TYPE* gauss, GAUSS_COEFF_TYPE* gauss_sums, int len)
 {
-	int x = 0, j;
-
 #define DEFINE_GAUS_TMP_VAR		CARD32 *xs1 = &s1[x]; CARD32 v1 = xs1[0]*gauss[0]
 	if( len < radius + radius )
 	{
+		int x = 0, j;
 		while( x < len )
 		{
 			int tail = len - 1 - x;
@@ -2126,31 +2127,70 @@ gauss_component_int(CARD32 *s1, CARD32 *d1, int radius, GAUSS_COEFF_TYPE* gauss,
 	}
 
 #define MIDDLE_STRETCH_GAUSS(j_check)	\
-	do{ for( j = 1 ; j j_check ; ++j ) v1 += (xs1[-j]+xs1[j])*gauss[j]; }while(0)
-	while( x < radius )
+	do{ for( j = 1 ; j j_check ; ++j ) v1 += (xs1[-j]*gauss[j]+xs1[j]*gauss[j]); }while(0)
+
+	/* left stretch [0, r-2] */
 	{
-		DEFINE_GAUS_TMP_VAR;
-		MIDDLE_STRETCH_GAUSS(<=x);
+		int x = 0 ;
+		for( ; x < radius-1 ; ++x )
+		{
+			int j ;
+			gauss_data_t *xs1 = &s1[x]; 
+			gauss_var_t v1 = xs1[0]*gauss[0];
+			for( j = 1 ; j <= x ; ++j )
+				v1 += (xs1[-j]*gauss[j]+xs1[j]*gauss[j]);
+
+			for( ; j < radius ; ++j ) 
+				v1 += xs1[j]*gauss[j];
+			d1[x] = (v1<<10)/gauss_sums[x];
+		}	
+	}
+
+	/* middle stretch : [r-1, l-r] */
+	if (radius-1 == len - radius)
+	{
+		gauss_data_t *xs1 = &s1[radius-1]; 
+		gauss_var_t v1 = xs1[0]*gauss[0];
+		int j = 1;
 		for( ; j < radius ; ++j ) 
-			v1 += xs1[j]*gauss[j];
-		d1[x] = (v1<<10)/gauss_sums[x];
-		++x ;
-	}	
-	while( x <= len-radius )
+			v1 += (xs1[-j]*gauss[j]+xs1[j]*gauss[j]);
+		d1[radius] = v1 ;
+	}else
 	{
-		DEFINE_GAUS_TMP_VAR;
-		MIDDLE_STRETCH_GAUSS(<radius);
-		d1[x++] = v1 ;
+		int x = radius;
+		for(; x <= len - radius + 1; x+=3)
+		{
+			gauss_data_t *xs1 = &s1[x]; 
+			gauss_var_t v1 = xs1[-1]*gauss[0];
+			gauss_var_t v2 = xs1[0]*gauss[0];
+			gauss_var_t v3 = xs1[1]*gauss[0];
+			int j = 1;
+			for( ; j < radius ; ++j ) 
+			{
+				int g = gauss[j];
+				v1 += xs1[-j-1]*g+xs1[j-1]*g;
+				v2 += xs1[-j]*g+xs1[j]*g;
+				v3 += xs1[-j+1]*g+xs1[j+1]*g;
+			}
+			d1[x-1] = v1 ; 
+			d1[x] = v2 ;
+			d1[x+1] = v3 ;
+		}
 	}
 	{
-		int tail = radius;
-		while( --tail > 0 )/*x < len*/
+		int x = 0;
+		gauss_data_t *td1 = &d1[len-1];
+		for( ; x < radius-1; ++x )
 		{
-			DEFINE_GAUS_TMP_VAR;
-			MIDDLE_STRETCH_GAUSS(<tail);
+			int j;
+			gauss_data_t *xs1 = &s1[len-1-x]; 
+			gauss_var_t v1 = xs1[0]*gauss[0];
+			for( j = 1 ; j <= x ; ++j ) 
+				v1 += (xs1[-j]*gauss[j]+xs1[j]*gauss[j]);			
+				
 			for( ; j <radius ; ++j )
 				v1 += xs1[-j]*gauss[j];
-			d1[x++] = (v1<<10)/gauss_sums[tail];
+			td1[-x] = (v1<<10)/gauss_sums[x];
 		}
 	}
 #undef 	MIDDLE_STRETCH_GAUSS
@@ -2314,7 +2354,7 @@ ASImage* blur_asimage_gauss(ASVisual* asv, ASImage* src, double dhorz, double dv
 	int horz = (int)dhorz;
 	int vert = (int)dvert;
 	int width, height ; 
-#if 0
+#if 1
 	struct timeval stv;
 	gettimeofday (&stv,NULL);
 #define PRINT_BACKGROUND_OP_TIME do{ struct timeval tv;gettimeofday (&tv,NULL); tv.tv_sec-= stv.tv_sec;\
@@ -2398,7 +2438,7 @@ ASImage* blur_asimage_gauss(ASVisual* asv, ASImage* src, double dhorz, double dv
 		{ /* new code : */
 			GAUSS_COEFF_TYPE *vert_gauss = safecalloc(vert+1, sizeof(GAUSS_COEFF_TYPE));
 			GAUSS_COEFF_TYPE *vert_gauss_sums = safecalloc(vert+1, sizeof(GAUSS_COEFF_TYPE));
-			int lines_count = vert*2+1;
+			int lines_count = vert*2-1;
 			int first_line = 0, last_line = lines_count-1;
 			ASScanline *lines_mem = safecalloc( lines_count, sizeof(ASScanline));
 			ASScanline **lines = safecalloc( dst->height+1, sizeof(ASScanline*));
@@ -2414,9 +2454,10 @@ ASImage* blur_asimage_gauss(ASVisual* asv, ASImage* src, double dhorz, double dv
 				load_gauss_scanline(lines[y], imdec, horz, horz_gauss, horz_gauss_sums, filter );
 			}
 
+			PRINT_BACKGROUND_OP_TIME;
 			result.flags = 0xFFFFFFFF;
-			/* top band */
-    		for (y = 0 ; y < vert ; y++)
+			/* top band  [0, vert-2] */
+    		for (y = 0 ; y < vert-1 ; y++)
     		{
 				for( chan = 0 ; chan < IC_NUM_CHANNELS ; ++chan )
 				{
@@ -2449,15 +2490,16 @@ ASImage* blur_asimage_gauss(ASVisual* asv, ASImage* src, double dhorz, double dv
 						g = vert_gauss_sums[y];
 						for( x = 0 ; x < width ; ++x ) 
 						{
-							CARD32 v = res_chan[x]/g;
+							gauss_var_t v = res_chan[x]/g;
 							res_chan[x] = (v&0x03Fc0000)?255:v>>10;
 						}
 					}
 				}
         		imout->output_image_scanline(imout, &result, 1);
 			}
-			/* middle band */
-			for( ; y < height - vert; ++y)
+			PRINT_BACKGROUND_OP_TIME;
+			/* middle band [vert-1, height-vert] */
+			for( ; y <= height - vert; ++y)
 			{
 				for( chan = 0 ; chan < IC_NUM_CHANNELS ; ++chan )
 				{
@@ -2474,7 +2516,7 @@ ASImage* blur_asimage_gauss(ASVisual* asv, ASImage* src, double dhorz, double dv
 /*						for( x = 0 ; x < width ; ++x ) 
 							res_chan[x] = src_chan1[x]*vert_gauss[0];
  */							
-						while( ++j <= vert ) 
+						while( ++j < vert ) 
 						{
 							CARD32 *src_chan2 = ysrc[j]->channels[chan];
 							GAUSS_COEFF_TYPE g = vert_gauss[j];
@@ -2512,12 +2554,12 @@ ASImage* blur_asimage_gauss(ASVisual* asv, ASImage* src, double dhorz, double dv
 										res_chan[x] += (src_chan1[x]+src_chan2[x])*g;
 							}
 						}
-						src_chan1 = ysrc[0]->channels[chan];
+ 						src_chan1 = ysrc[0]->channels[chan];
 						for( x = 0 ; x < width ; ++x ) 
 						{
-							CARD32 v = src_chan1[x]*vert_gauss[0] + res_chan[x];
+							gauss_var_t v = src_chan1[x]*vert_gauss[0] + res_chan[x];
 							res_chan[x] = (v&0xF0000000)?255:v>>20;
-						}
+						} 
 					}
 				}
 
@@ -2528,6 +2570,7 @@ ASImage* blur_asimage_gauss(ASVisual* asv, ASImage* src, double dhorz, double dv
 				++first_line;
 				load_gauss_scanline(lines[last_line], imdec, horz, horz_gauss, horz_gauss_sums, filter );
 			}
+			PRINT_BACKGROUND_OP_TIME;
 			/* bottom band */
 			for( ; y < height; ++y)
 			{
@@ -2563,7 +2606,7 @@ ASImage* blur_asimage_gauss(ASVisual* asv, ASImage* src, double dhorz, double dv
 						g = vert_gauss_sums[tail];
 						for( x = 0 ; x < width ; ++x ) 
 						{
-							CARD32 v = res_chan[x]/g;
+							gauss_var_t v = res_chan[x]/g;
 							res_chan[x] = (v&0x03Fc0000)?255:v>>10;
 						}
 					}
