@@ -32,9 +32,10 @@ NoModuleNameCollisions 1
 #DisableSharedMemory
 
 # Selects terminal emulator to be used by AfterStep with ExecInTerm command:
-#TermCommand 0  aterm
-#TermCommand 1  rxvt
-#TermCommand 2  xterm
+#TermCommand 0  urxvt
+#TermCommand 1  aterm
+#TermCommand 2  rxvt
+#TermCommand 3  xterm
 #
 # Selects web browser to be used by AfterStep with ExecBrowser command:
 #BrowserCommand 0  firefox
