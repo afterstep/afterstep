@@ -194,8 +194,14 @@ ASFontManager *create_generic_fontman(Display *dpy, const char *path)
 	return my_fontman;
 }
 
-ASImage *
+inline ASImage *
 compose_asimage_xml(ASVisual *asv, ASImageManager *imman, ASFontManager *fontman, char *doc_str, ASFlagType flags, int verbose, Window display_win, const char *path)
+{
+	return compose_asimage_xml_at_size(asv, imman, fontman, doc_str, flags, verbose, display_win, path, -1, -1);
+}
+
+ASImage *
+compose_asimage_xml_at_size(ASVisual *asv, ASImageManager *imman, ASFontManager *fontman, char *doc_str, ASFlagType flags, int verbose, Window display_win, const char *path, int target_width, int target_height)
 {
 	ASImage* im = NULL;
 	xml_elem_t* doc;
@@ -217,8 +223,11 @@ compose_asimage_xml(ASVisual *asv, ASImageManager *imman, ASFontManager *fontman
 	/* Build the image(s) from the xml document structure. */
 	if (doc)
 	{
+		int old_target_width = -1;
+		int old_target_height = -1;
 		xml_elem_t* ptr;
 		Bool local_dir_included = False ;
+
 		if( my_imman == NULL )
 		{	
 			if( _as_xml_image_manager == NULL )
@@ -248,12 +257,37 @@ compose_asimage_xml(ASVisual *asv, ASImageManager *imman, ASFontManager *fontman
 				_as_xml_font_manager = create_generic_fontman( asv->dpy, path );
 			my_fontman = _as_xml_font_manager ;
 		}
-		
+
+		/* save old target size to be restored at the end */		
+		old_target_width = asxml_var_get(ASXMLVAR_TargetWidth);
+		old_target_height = asxml_var_get(ASXMLVAR_TargetHeight);
+		/* set current target size */		
+		asxml_var_insert(ASXMLVAR_TargetWidth, target_width);
+		asxml_var_insert(ASXMLVAR_TargetHeight, target_height);
+
 		for (ptr = doc->child ; ptr ; ptr = ptr->next) {
 			ASImage* tmpim = build_image_from_xml(asv, my_imman, my_fontman, ptr, NULL, flags, verbose, display_win);
 			if (tmpim && im) safe_asimage_destroy(im);
 			if (tmpim) im = tmpim;
 		}
+		if (im && (target_width > 0 || target_height > 0) )
+		  {
+			int scale_width = (target_width>0)?target_width:im->width;
+			int scale_height = (target_height>0)?target_height:im->height;
+			if (im->width != scale_width || im->height != scale_height)
+			  {
+			  	ASImage *tmp = scale_asimage( asv, im, scale_width, scale_height, ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT );
+				if (tmp != NULL)
+				  {
+				  	safe_asimage_destroy(im);
+					im = tmp;
+				  }						
+			  }
+		  }
+		/* restore old target size to be restored at the end */		
+		asxml_var_insert(ASXMLVAR_TargetWidth, old_target_width);
+		asxml_var_insert(ASXMLVAR_TargetHeight, old_target_height);
+
 LOCAL_DEBUG_OUT( "result im = %p, im->imman	= %p, my_imman = %p, im->magic = %8.8lX", im, im?im->imageman:NULL, my_imman, im?im->magic:0 );
 		
 		if( my_imman_curr_dir_path_idx < MAX_SEARCH_PATHS ) 

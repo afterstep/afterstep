@@ -34,6 +34,24 @@ compose_asimage_xml(ASVisual *asv,
 					int verbose, Window display_win,
 					const char *path);
 
+
+#define ASXMLVAR_TargetWidth 		"target.width"
+#define ASXMLVAR_TargetHeight 		"target.height"
+
+
+ASImage *
+compose_asimage_xml_at_size(ASVisual *asv, 
+							struct ASImageManager *imman, 
+							struct ASFontManager *fontman, 
+							char *doc_str, 
+							ASFlagType flags, 
+							int verbose, 
+							Window display_win, 
+							const char *path, 
+							int target_width, 
+							int target_height);
+
+
 void show_asimage(ASVisual *asv, ASImage* im, Window w, long delay);
 ASImage* build_image_from_xml( ASVisual *asv,
                                struct ASImageManager *imman,

@@ -44,7 +44,7 @@
 #ifdef HAVE_GLX
 # include <GL/gl.h>
 # include <GL/glx.h>
-# include <GL/glu.h>
+/*# include <GL/glu.h> */
 #endif
 
 
@@ -584,7 +584,7 @@ asimage2drawable_gl(	ASVisual *asv, Drawable d, ASImage *im,
 		glViewport( 0, 0, d_width, d_height);
 		glMatrixMode (GL_PROJECTION);
 		glLoadIdentity ();
-		gluOrtho2D (0, d_width, 0, d_height);
+		/* gluOrtho2D (0, d_width, 0, d_height); */
 		glMatrixMode (GL_MODELVIEW);
 		glLoadIdentity ();
 		glTranslatef (0.375, 0.375, 0.0);

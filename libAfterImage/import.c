@@ -2404,8 +2404,8 @@ tiff2ASImage( const char * path, ASImageImportParams *params )
 #endif			/* TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF TIFF */
 
 
-ASImage *
-load_xml2ASImage( ASImageManager *imman, const char *path, unsigned int compression )
+static ASImage *
+load_xml2ASImage( ASImageManager *imman, const char *path, unsigned int compression, int width, int height )
 {
 	ASVisual fake_asv ;
 	char *slash, *curr_path = NULL ;
@@ -2420,7 +2420,7 @@ load_xml2ASImage( ASImageManager *imman, const char *path, unsigned int compress
 		show_error( "unable to load file \"%s\" file is either too big or is not readable.\n", path );
 	else
 	{
-		im = compose_asimage_xml(&fake_asv, imman, NULL, doc_str, 0, 0, None, curr_path);
+		im = compose_asimage_xml_at_size(&fake_asv, imman, NULL, doc_str, 0, 0, None, curr_path, width, height);
 		free( doc_str );
 	}
 
@@ -2433,10 +2433,17 @@ load_xml2ASImage( ASImageManager *imman, const char *path, unsigned int compress
 ASImage *
 xml2ASImage( const char *path, ASImageImportParams *params )
 {
+	int width = -1, height = -1 ; 
 	static ASImage 	 *im = NULL ;
 	START_TIME(started);
 
-	im = load_xml2ASImage( NULL, path, params->compression );
+ 	if( get_flags( params->flags, AS_IMPORT_SCALED_H ) )
+		width = (params->width <= 0)?((params->height<=0)?-1:params->height):params->width ;
+	
+ 	if( get_flags( params->flags, AS_IMPORT_SCALED_V ) )
+		height = (params->height <= 0)?((params->width <= 0)?-1:params->width):params->height ;
+		
+	im = load_xml2ASImage( NULL, path, params->compression, width, height );
 
 	SHOW_TIME("image loading",started);
 	return im ;
