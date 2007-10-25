@@ -671,6 +671,7 @@ free_func_hash ()
 /*********** end command line parsing **************************/
 static char *_as_known_terms[]	= 
 {	
+	"urxvt",
 	"aterm",
 	"x-terminal-emulator",
 	"rxvt  -tr -fg yellow -bg black",
