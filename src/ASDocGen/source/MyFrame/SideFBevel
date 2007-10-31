@@ -1,7 +1,7 @@
 <varlistentry id="options.SideFBevel">
 	<term>SideFBevel</term>
 	<listitem>
-		<para>Alias for SideFBevel.</para>
+		<para>Alias for SideFocusedBevel.</para>
 		<para>See Also: <ulink url="Bevel#synopsis">Bevel flags</ulink> for further details.</para>
 	</listitem>
 </varlistentry>
