@@ -1,7 +1,10 @@
 <varlistentry id="options.SideBevel">
-	<term>SideBevel</term>
+	<term>SideBevel <emphasis remap='I'>Bottom|Extra|NoInline|NoOutline|none|Left|Right|Top</emphasis></term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Sets the default bevel of a window s frame sides.</para>
+		<para>If you need different bevels for the different window states, use SideFocusedBevel, SideUnfocusedBevel, SideStickyBevel</para>
 		<para>See Also: <ulink url="Bevel#synopsis">Bevel flags</ulink> for further details.</para>
 	</listitem>
 </varlistentry>
+
+

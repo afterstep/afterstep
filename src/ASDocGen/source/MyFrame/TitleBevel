@@ -1,7 +1,8 @@
 <varlistentry id="options.TitleBevel">
 	<term>TitleBevel</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Determines the bevel to be drawn around the title bar. If you wish to have different
+		bevels, depending on the window s state, use TitleFocusedBevel, TitleUnfocusedBevel or TitleStickyBevel.</para>
 		<para>See Also: <ulink url="Bevel#synopsis">Bevel flags</ulink> for further details.</para>
 	</listitem>
 </varlistentry>
