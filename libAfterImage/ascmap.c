@@ -28,6 +28,7 @@
 #include "config.h"
 #endif
 
+#include <string.h>
 #if TIME_WITH_SYS_TIME
 # include <sys/time.h>
 # include <time.h>
@@ -452,6 +453,7 @@ print_asimage( im, ASFLAGS_EVERYTHING, __FUNCTION__, __LINE__ );
 	}
 
 	dst = mapped_im = safemalloc( im->width*im->height*sizeof(int));
+	memset(cmap, 0x00, sizeof(ASColormap));
 	cmap->hash = safecalloc( 1, sizeof(ASSortedColorHash) );
 	cmap->hash->buckets = safecalloc( buckets_num, sizeof( ASSortedColorBucket ) );
 	cmap->hash->buckets_num = buckets_num ;
