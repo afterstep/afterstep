@@ -381,50 +381,52 @@ int DGifCloseFile(GifFileType *GifFile)
 {
     GifFilePrivateType *Private;
     FILE *File;
+	int ret = GIF_OK;
 
     if (GifFile == NULL) return GIF_ERROR;
 
     Private = (GifFilePrivateType *) GifFile->Private;
 
     if (!IS_READABLE(Private)) {
-	/* This file was NOT open for reading: */
-	_GifError = D_GIF_ERR_NOT_READABLE;
-	return GIF_ERROR;
+		/* This file was NOT open for reading: */
+		_GifError = D_GIF_ERR_NOT_READABLE;
+		ret = GIF_ERROR; /* we have to free everything regardless */
     }
 
     File = Private->File;
 
     if (GifFile->Image.ColorMap)
     {
-	FreeMapObject(GifFile->Image.ColorMap);
+		FreeMapObject(GifFile->Image.ColorMap);
         GifFile->Image.ColorMap = NULL;
     }
 
     if (GifFile->SColorMap)
     {
-	FreeMapObject(GifFile->SColorMap);
-	GifFile->SColorMap = NULL;
+		FreeMapObject(GifFile->SColorMap);
+		GifFile->SColorMap = NULL;
     }
 
     if (Private)
     {
-	free((char *) Private);
-	Private = NULL;
+		free((char *) Private);
+		Private = NULL;
     }
 
     if (GifFile->SavedImages)
     {
-	FreeSavedImages(GifFile);
-	GifFile = NULL;
+		FreeSavedImages(GifFile);
+		GifFile = NULL;
     }
 
     free(GifFile);
 
-    if ( File && (fclose(File) != 0)) {
-	  _GifError = D_GIF_ERR_CLOSE_FAILED;
-	  return GIF_ERROR;
+    if ( File && (fclose(File) != 0)) 
+	{
+	  	_GifError = D_GIF_ERR_CLOSE_FAILED;
+		ret = GIF_ERROR;
     }
-    return GIF_OK;
+    return ret;
 }
 
 /******************************************************************************
