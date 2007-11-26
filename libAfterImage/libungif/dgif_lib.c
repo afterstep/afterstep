@@ -410,13 +410,13 @@ int DGifCloseFile(GifFileType *GifFile)
     if (Private)
     {
 		free((char *) Private);
-		Private = NULL;
+		GifFile->Private = NULL;
     }
 
     if (GifFile->SavedImages)
     {
 		FreeSavedImages(GifFile);
-		GifFile = NULL;
+		GifFile->SavedImages = NULL;
     }
 
     free(GifFile);
