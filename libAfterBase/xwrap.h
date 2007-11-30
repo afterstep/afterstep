@@ -50,36 +50,46 @@ extern "C" {
 # endif
 
 # ifndef XID
-#  define XID CARD32
+#  define XID XID
+   typedef CARD32 XID;
 # endif
 
 # ifndef Drawable
-#  define Drawable   XID
+#  define Drawable   Drawable
+   typedef XID Drawable;
 # endif
 # ifndef Atom
-#  define Atom       XID
+#  define Atom       Atom
+   typedef XID Atom;
 # endif
 # ifndef Window
-#  define Window     XID
+#  define Window     Window
+   typedef XID Window;
 # endif
 # ifndef Pixmap
-#  define Pixmap     XID
+#  define Pixmap     Pixmap
+   typedef XID Pixmap;
 # endif
 # ifndef Font
-#  define Font       XID
+#  define Font       Font
+   typedef XID Font;
 # endif
 # ifndef Colormap
-#  define Colormap   XID
+#  define Colormap   Colormap
+   typedef XID Colormap;
 # endif
 # ifndef Cursor
-#  define Cursor   XID
+#  define Cursor     Cursor
+   typedef XID Cursor;
 # endif
 # ifndef VisualID
-#  define VisualID   XID
+#  define VisualID   VisualID
+   typedef XID VisualID;
 # endif
 
 # ifndef GC
-#  define GC void*
+#  define GC GC
+   typedef void* GC;
 # endif
 
 # ifndef None
@@ -241,11 +251,17 @@ int XParseGeometry (  char *string,int *x,int *y,
 
 #endif                         /* X_DISPLAY_MISSING */
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 extern "C" {
-#endif
+# endif
 
 extern Display *dpy;
+# if defined(ASIM_AFTERBASE_H_HEADER_INCLUDED)
+
+int asim_get_drawable_size (Drawable d, unsigned int *ret_w, unsigned int *ret_h);
+#   define get_drawable_size(d,w,h) asim_get_drawable_size((d),(w),(h))
+
+# else
 
 int grab_server();
 int ungrab_server();
@@ -259,8 +275,10 @@ void 	 backtrace_window ( const char *file, int line, Window w );
 Window get_parent_window( Window w );
 Window get_topmost_parent( Window w, Window *desktop_w );
 
-#ifdef __cplusplus
+# endif
+
+# ifdef __cplusplus
 }
-#endif
+# endif
 
 #endif
