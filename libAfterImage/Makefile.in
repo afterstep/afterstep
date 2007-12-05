@@ -25,7 +25,7 @@ LIBPNG_OBJS = 	libpng/png.o libpng/pngset.o libpng/pngget.o libpng/pngrutil.o \
 		libpng/pngtrans.o libpng/pngwutil.o libpng/pngread.o libpng/pngrio.o \
 		libpng/pngwio.o libpng/pngwrite.o libpng/pngrtran.o \
 		libpng/pngwtran.o libpng/pngmem.o libpng/pngerror.o \
-		libpng/pngpread.o libpng/pnggccrd.o
+		libpng/pngpread.o
 
 ZLIB_OBJS = 	zlib/adler32.o 	zlib/compress.o zlib/crc32.o \
 		zlib/gzio.o 	zlib/uncompr.o 	zlib/deflate.o \

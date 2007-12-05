@@ -161,7 +161,7 @@ int main(int argc, char* argv[])
 		wait_closedown(w);
 #else
 		/* writing result into the file */
-		ASImage2file( im, NULL, "asview.jpg", ASIT_Jpeg, NULL );
+		ASImage2file( im, NULL, "asview.png", ASIT_Png, NULL );
 #endif
 	}
 
