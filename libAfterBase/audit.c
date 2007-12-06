@@ -772,7 +772,7 @@ print_unfreed_mem_stats (const char *file, const char *func, int line, const cha
 }
 
 
-#ifndef X_DISPLAY_MISSING
+#if !defined(X_DISPLAY_MISSING) && defined(DEBUG_ALLOCS)
 Pixmap
 count_xcreatepixmap (const char *fname, int line, Display * display,
 					 Drawable drawable, unsigned int width, unsigned int height, unsigned int depth)

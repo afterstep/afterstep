@@ -22,7 +22,7 @@
 
 #include "../configure.h"
 
-#include <X11/Intrinsic.h>
+/*#include <X11/Intrinsic.h>*/
 #include "asapp.h"
 #include "mystyle.h"
 #include "event.h"
