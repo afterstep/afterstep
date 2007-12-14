@@ -157,7 +157,7 @@ TermDef       MyFrameTerms[] = {
     {TF_NO_MYNAME_PREPENDING, "LeftBtnBackSlicing", 18,       TT_GEOMETRY,     MYFRAME_LeftBtnBackSlicing_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "LeftSpacerBackSlicing", 21,    TT_GEOMETRY,     MYFRAME_LeftSpacerBackSlicing_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "LeftTitleSpacerBackSlicing", 26,    TT_GEOMETRY,     MYFRAME_LTitleSpacerBackSlicing_ID, NULL},
-	{TF_NO_MYNAME_PREPENDING, "TitleBackgroundSlicing", 22,   TT_GEOMETRY,         MYFRAME_TitleBackgroundSlicing_ID, NULL},
+	{TF_NO_MYNAME_PREPENDING, "TitleBackgroundSlicing", 22,   TT_GEOMETRY,         MYFRAME_TitleBackSlicing_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "RightTitleSpacerBackSlicing", 27,   TT_GEOMETRY,     MYFRAME_RTitleSpacerBackSlicing_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "RightSpacerBackSlicing", 22,   TT_GEOMETRY,   MYFRAME_RightSpacerBackSlicing_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "RightBtnBackSlicing", 19,      TT_GEOMETRY,   MYFRAME_RightBtnBackSlicing_ID, NULL},
