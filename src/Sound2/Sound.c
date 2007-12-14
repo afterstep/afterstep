@@ -21,6 +21,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <alsa/asoundlib.h>
+// This is for the debugging.. and prolly will just remove it
+#include <time.h>
 
 // AS Includes
 #include "../../configure.h"
@@ -29,6 +31,7 @@
 #include "../../libAfterStep/event.h"
 #include "../../libAfterStep/wmprops.h"
 #include "../../libAfterConf/afterconf.h"
+#include "../../libAfterStep/clientprops.h"
 // Defines
 #define MAX_SOUNDS AFTERSTEP_EVENTS_NUM
 #define mask_reg MAX_MASK
@@ -43,6 +46,7 @@ void GetOptions (const char *filename);
 void HandleEvents();
 void DispatchEvent (ASEvent * event);
 void proc_message (send_data_type type, send_data_type *body);
+int ply_sound(int code);
 
 Bool (*audio_play) (short) = NULL;
 
@@ -158,9 +162,9 @@ int main (int argc,char ** argv)
 	
 // --------------------------------------
 
-	int size, read;
-	long r;
-	char *buffer;
+	int size;
+	//long r;
+	//char *buffer;
 
 	WaveFile = fopen("online.wav","rb");
 	if (WaveFile == NULL) { fprintf(stdout,"File Open Failed\n"); }
@@ -174,12 +178,13 @@ int main (int argc,char ** argv)
 	frames = snd_pcm_bytes_to_frames(playback_handle,size);
 	
 	fprintf(stdout,"Size: %d FRAMES: %d\n",size,frames);
-
+/*
 	buffer = (char *)malloc(size);
 	while ((read = fread(buffer,4,frames,WaveFile)) > 0)
 	{
 		r = snd_pcm_writei(playback_handle,buffer,frames);
 	}
+*/
 // --------------------------------------
 	snd_pcm_close (playback_handle);
 	
@@ -214,7 +219,7 @@ int asSound_rfileh(char *FileName)
 // -------------------------
 void HandleEvents()
 {   
-        ASEvent event;
+    ASEvent event;
     Bool has_x_events = False ;
     while (True)
     {
@@ -225,7 +230,7 @@ void HandleEvents()
                 event.client = NULL ;
                 setup_asevent_from_xevent( &event );
                 DispatchEvent( &event );
-                        }
+            }
         }
         module_wait_pipes_input ( proc_message );
     }
@@ -234,14 +239,16 @@ void HandleEvents()
 void
 DispatchEvent (ASEvent * event)
 {
+    //:show_activity("DIS_EVENT!: %i", event->x.type);
     SHOW_EVENT_TRACE(event);
     switch (event->x.type)
     {
-            case PropertyNotify:
-                        handle_wmprop_event (Scr.wmprops, &(event->x));
-                        return ;
+        case PropertyNotify:
+            handle_wmprop_event (Scr.wmprops, &(event->x));
+            break;
         default:
-            return;
+            //show_activity("DIS_EVENT: %s", event->x.type);
+            break;
     }
 } 
 void proc_message (send_data_type type, send_data_type *body)
@@ -249,78 +256,95 @@ void proc_message (send_data_type type, send_data_type *body)
         time_t        now = 0;
         static time_t last_time = 0;
         int code = -1 ;
+        //for debuggin
+        char timeBuff[128];
+        time_t curtime;
+        struct tm *loctime;
+        curtime = time(NULL);
+        loctime = localtime(&curtime);
+        strftime(timeBuff,128,"%H:%M:%S", loctime);
         
-    	LOCAL_DEBUG_OUT( "rcvd mssage %lX", type );
-                
+        // State Checking
+        int StateChange;
+        
     if( type == M_PLAY_SOUND )
     {
-                show_activity("TYPE: M_PLAY_SOUND\n");
-                CARD32 *pbuf = &(body[4]);
-        	char *new_name = deserialize_string( &pbuf, NULL );
-                SetupSoundEntry( EVENT_PlaySound, new_name);
-                free( new_name );
-                code = EVENT_PlaySound ;
-                show_activity("PLAY_SND 2: [%i]\n",code);
+        show_activity("M_PLAY_SND: proc_msg");
+               // CARD32 *pbuf = &(body[4]);
+        	//char *new_name = deserialize_string( &pbuf, NULL );
+               // SetupSoundEntry( EVENT_PlaySound, new_name);
+               // free( new_name );
+               // code = EVENT_PlaySound ;
     }else if( (type&WINDOW_PACKET_MASK) != 0 )
     {
+                // this bitwise appears to just return the type.. 
+//                show_activity("MASKING: %lX [MASK: %i]",type & WINDOW_PACKET_MASK,WINDOW_PACKET_MASK);
                 struct ASWindowData *wd = fetch_window_by_id( body[0] );
                 WindowPacketResult res ;
                 /* saving relevant client info since handle_window_packet could destroy the actuall structure */
-                ASFlagType old_state = wd?wd->state_flags:0 ; 
-                show_activity( "message %lX window %X data %p", type, body[0], wd );
+                ASFlagType old_state = wd?wd->state_flags:0;
                 res = handle_window_packet( type, body, &wd );
-                LOCAL_DEBUG_OUT( "result = %d", res );
-    if( res == WP_DataCreated )
-    {       
-                code = EVENT_WindowAdded ;
-                show_activity("WindowADD: [%i]\n",code);
-    }else if( res == WP_DataChanged ) 
-    {
-              show_activity("DATA Changed???");
-    }else if( res == WP_DataDeleted )
-    {
-                code = EVENT_WindowDestroyed ;
-                show_activity("WindowDEST: [%i]\n",code);
+                
+              // This Statement works (focus_change)..  
+              //:if (type == M_FOCUS_CHANGE)
+              //:{  show_activity("FOCUS_CHANGE"); }
+              
+              if( res == WP_DataCreated )
+              {       
+                    code = EVENT_WindowAdded ;
+                   // show_activity("WindowADD: [%i]\n",code);
+              }else if( res == WP_DataChanged ) 
+              {
+                    StateChange = wd->state_flags ^ old_state;
+                    if (StateChange)
+                    {
+                        // State has Changed!
+                        // to see if its on/off: state_flags & [MASK]
+                        if (StateChange & AS_Shaded)
+                        {
+                            show_activity("STATE: Shade");
+                        }
+                        if (StateChange & AS_Iconic)
+                        {
+                            show_activity("STATE: Iconic");
+                        }
+                        //----
+                        // AS_Withdrawn
+                        // AS_Dead
+                        // AS_Mapped
+                        // AS_IconMapped
+                        //----
+                        // AS_Sticky
+                        // AS_MaximizedX
+                        // AS_MaximizedY
+                        
+                    }
+                    else {
+                         show_activity("%s DATA Changed! [%lX]",timeBuff, wd->state_flags);
+                         show_activity("%s DATA Change O:[%lX]",timeBuff, old_state);
+                         show_activity("%s DATA XOR: %lX",timeBuff, wd->state_flags ^ old_state);
+                    }
+                    
+                    
+
+                    res = -1;
+              }else if( res == WP_DataDeleted )
+              {
+                    code = EVENT_WindowDestroyed ;
+                    //show_activity("WindowDEST: [%i]\n",code);
+              }
     }
-    }else if( type == M_NEW_DESKVIEWPORT )
-    {
-                code = EVENT_DeskViewportChanged ;
-                // This should be returing "14" for code
-                show_activity("ViewPort CHANGE: [%i]\n",code);
-    }else if( type == M_NEW_CONFIG )
-    {
-                code = EVENT_Config ;
-                show_activity("New CONFIG: [%i]",code);
-    }else if( type == M_NEW_MODULE_CONFIG )
-    {
-                code = EVENT_ModuleConfig ;
-                show_activity("New MOD CONF: [%i]",code);
-    }
-    else if ( type == M_FOCUS_CHANGE )
-    {
-                show_activity("Focus Change");
-    }
+    // Works.... (viewport change)
+    //:else if( type == M_NEW_DESKVIEWPORT )
+    //:{
+    //:          code = EVENT_DeskViewportChanged ;
+    //:          // This should be returing "14" for code
+    //:          show_activity("ViewPort CHANGE: [%i]\n",code);
+    //:}
     
-    else if ( type == EVENT_WindowShaded )
-    {
-                code = EVENT_WindowShaded;
-                show_activity("Window SHADE: [%i]",code);
-    }
-    else if ( type == EVENT_WindowUnshaded )
-    {
-                code = EVENT_WindowUnshaded;
-                show_activity("Window UNShade: [%i]",code);
-    }
-    else if ( type == EVENT_WindowRaised )
-    {
-                code = EVENT_WindowRaised;
-                show_activity("Window Raised: [%i]",code);
-    }
-    else { show_activity("UKNOWN: %X",type); }
     now = time (0);
     if( code >= 0 )
     {
-           show_activity("Code >= 0: [%i]",code);
            if ( now >= (last_time + (time_t) Config->delay))
            {
                 if( ply_sound( code ) ) { last_time = now; }
@@ -338,3 +362,4 @@ Bool SetupSoundEntry(int code, char *sound)
     show_activity("SETsndENT: code [%i] SND [%c]\n",code,*sound);
     return True;
 }
+
