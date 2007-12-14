@@ -1873,7 +1873,11 @@ void ximage2scanline32(ASVisual *asv, XImage *xim, ASScanline *sl, int y,  regis
 	int max_i = MIN((unsigned int)(xim->width),sl->width-sl->offset_x);
 	register CARD32 *src = (CARD32*)xim_data ;
 	register int i = 0;
+#ifdef WORDS_BIGENDIAN
+	if( !asv->msb_first )
+#else
 	if( asv->msb_first )
+#endif
 	{
 		do
 		{
@@ -2059,7 +2063,11 @@ void scanline2ximage32( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  regi
 	register CARD32 *a = sl->alpha+sl->offset_x;
 	register int i = MIN((unsigned int)(xim->width),sl->width-sl->offset_x);
 	register CARD8 *src = (CARD8*)(xim_data+(i-1)*4) ;
+#ifdef WORDS_BIGENDIAN
+	if( !asv->msb_first )
+#else
 	if( asv->msb_first )
+#endif
 		do
 		{
 			--i ;
