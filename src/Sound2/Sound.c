@@ -165,7 +165,7 @@ int main (int argc,char ** argv)
 	int size;
 	//long r;
 	//char *buffer;
-
+ /*
 	WaveFile = fopen("online.wav","rb");
 	if (WaveFile == NULL) { fprintf(stdout,"File Open Failed\n"); }
 	fprintf(stdout,"Wave: %p\n",WaveFile);
@@ -178,6 +178,7 @@ int main (int argc,char ** argv)
 	frames = snd_pcm_bytes_to_frames(playback_handle,size);
 	
 	fprintf(stdout,"Size: %d FRAMES: %d\n",size,frames);
+  */
 /*
 	buffer = (char *)malloc(size);
 	while ((read = fread(buffer,4,frames,WaveFile)) > 0)
