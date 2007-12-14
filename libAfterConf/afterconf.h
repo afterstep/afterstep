@@ -686,6 +686,7 @@ struct FreeStorageElem **MyStyleDefs2FreeStorage (struct SyntaxDef * syntax, str
 #define MYFRAME_RightBtnBackAlign_ID			(MYFRAME_TitleBackgroundAlign_ID_START+MYFRAME_TITLE_BACK_RBTN	 )
 #define MYFRAME_TitleBackgroundAlign_ID_END     (MYFRAME_TitleBackgroundAlign_ID_START+MYFRAME_TITLE_BACKS)
 
+
 #define MYFRAME_CondenseTitlebar_ID             (MYFRAME_TitleBackgroundAlign_ID_END+1) 
 #define MYFRAME_LeftTitlebarLayout_ID			(MYFRAME_TitleBackgroundAlign_ID_END+2)
 #define MYFRAME_RightTitlebarLayout_ID			(MYFRAME_TitleBackgroundAlign_ID_END+3)
@@ -696,7 +697,19 @@ struct FreeStorageElem **MyStyleDefs2FreeStorage (struct SyntaxDef * syntax, str
 #define MYFRAME_NoBorder_ID             		(MYFRAME_TitleBackgroundAlign_ID_END+6) 
 #define MYFRAME_AllowBorder_ID             		(MYFRAME_NoBorder_ID+1) 
 
-#define MYFRAME_ID_END      (MYFRAME_ID_START+128)
+#define MYFRAME_SideSlicing_ID             		(MYFRAME_AllowBorder_ID+1) 
+
+#define MYFRAME_TitleBackSlicing_ID_START	(MYFRAME_SideSlicing_ID+1)
+#define MYFRAME_LeftBtnBackSlicing_ID		(MYFRAME_TitleBackSlicing_ID_START+MYFRAME_TITLE_BACK_LBTN	)
+#define MYFRAME_LeftSpacerBackSlicing_ID 	(MYFRAME_TitleBackSlicing_ID_START+MYFRAME_TITLE_BACK_LSPACER)
+#define MYFRAME_LTitleSpacerBackSlicing_ID 	(MYFRAME_TitleBackSlicing_ID_START+MYFRAME_TITLE_BACK_LTITLE_SPACER)
+#define MYFRAME_TitleBackSlicing_ID      	(MYFRAME_TitleBackSlicing_ID_START+MYFRAME_TITLE_BACK_LBL	)
+#define MYFRAME_RTitleSpacerBackSlicing_ID 	(MYFRAME_TitleBackSlicing_ID_START+MYFRAME_TITLE_BACK_RTITLE_SPACER)
+#define MYFRAME_RightSpacerBackSlicing_ID 	(MYFRAME_TitleBackSlicing_ID_START+MYFRAME_TITLE_BACK_RSPACER)
+#define MYFRAME_RightBtnBackSlicing_ID   	(MYFRAME_TitleBackSlicing_ID_START+MYFRAME_TITLE_BACK_RBTN	)
+#define MYFRAME_TitleBackSlicing_ID_END     (MYFRAME_TitleBackSlicing_ID_START+MYFRAME_TITLE_BACKS)
+
+#define MYFRAME_ID_END      (MYFRAME_TitleBackSlicing_ID_END+1)
 
 #define ALIGN_ID_START      (MYFRAME_ID_END+1)
 #define ALIGN_Left_ID       (ALIGN_ID_START+1)
@@ -771,6 +784,7 @@ struct FreeStorageElem **MyStyleDefs2FreeStorage (struct SyntaxDef * syntax, str
  *     [SideFocusedBevel      North|South|East|West|Any None|[Left,Top,Right,Bottom,Extra,NoOutline]]
  *     [SideUnfocusedBevel    North|South|East|West|Any None|[Left,Top,Right,Bottom,Extra,NoOutline]]
  *     [SideStickyBevel       North|South|East|West|Any None|[Left,Top,Right,Bottom,Extra,NoOutline]]
+ *     [SideSlicing        North|South|East|West|Any <WIDTHxLENGTH+X+Y>] - pixmap will be sliced using: x,x+width,y,y+height
  *     [CornerSize      NorthEast|SouthEast|NorthWest|SouthWest|Any <WIDTHxHEIGHT>]
  *     [CornerAlign     NorthEast|SouthEast|NorthWest|SouthWest|Any Left,Top,Right,Bottom,HTiled,VTiled,HScaled,VScaled]
  *     [CornerBevel     NorthEast|SouthEast|NorthWest|SouthWest|Any None|[Left,Top,Right,Bottom,Extra,NoOutline]]
@@ -811,6 +825,7 @@ typedef struct MyFrameDefinition
     ASFlagType   set_part_size ;
     unsigned int part_width[FRAME_PARTS];
     unsigned int part_length[FRAME_PARTS];
+	ASGeometry   side_slicing[FRAME_SIDES];
     ASFlagType   set_part_bevel ;
     ASFlagType   part_fbevel[FRAME_PARTS];
     ASFlagType   part_ubevel[FRAME_PARTS];
@@ -821,6 +836,7 @@ typedef struct MyFrameDefinition
     ASFlagType   title_fbevel, title_ubevel, title_sbevel;
     ASFlagType   title_align ;
 	ASFlagType   title_backs_align[MYFRAME_TITLE_BACKS];
+	ASGeometry   title_backs_slicing[MYFRAME_TITLE_BACKS];
     int          title_fcm, title_ucm, title_scm;
 	char 		*title_fhue, *title_uhue, *title_shue; 
 	int          title_fsat, title_usat, title_ssat;

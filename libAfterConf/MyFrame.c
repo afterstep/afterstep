@@ -153,6 +153,14 @@ TermDef       MyFrameTerms[] = {
     {TF_NO_MYNAME_PREPENDING, "AllowBorder", 11,       		TT_FLAG,   MYFRAME_AllowBorder_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "LeftBtnAlign", 12,           TT_FLAG,   MYFRAME_LeftBtnAlign_ID, &AlignSyntax},
 	{TF_NO_MYNAME_PREPENDING, "RightBtnAlign", 13,          TT_FLAG,   MYFRAME_RightBtnAlign_ID, &AlignSyntax},
+    {TF_NO_MYNAME_PREPENDING|TF_DIRECTION_INDEXED|TF_NAMED, "SideSlicing", 11,       TT_GEOMETRY,    MYFRAME_SideSlicing_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "LeftBtnBackSlicing", 18,       TT_GEOMETRY,     MYFRAME_LeftBtnBackSlicing_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "LeftSpacerBackSlicing", 21,    TT_GEOMETRY,     MYFRAME_LeftSpacerBackSlicing_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "LeftTitleSpacerBackSlicing", 26,    TT_GEOMETRY,     MYFRAME_LTitleSpacerBackSlicing_ID, NULL},
+	{TF_NO_MYNAME_PREPENDING, "TitleBackgroundSlicing", 22,   TT_GEOMETRY,         MYFRAME_TitleBackgroundSlicing_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "RightTitleSpacerBackSlicing", 27,   TT_GEOMETRY,     MYFRAME_RTitleSpacerBackSlicing_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "RightSpacerBackSlicing", 22,   TT_GEOMETRY,   MYFRAME_RightSpacerBackSlicing_ID, NULL},
+    {TF_NO_MYNAME_PREPENDING, "RightBtnBackSlicing", 19,      TT_GEOMETRY,   MYFRAME_RightBtnBackSlicing_ID, NULL},
 
 	{0, NULL, 0, 0, 0}
 };
@@ -468,6 +476,9 @@ ProcessMyFrameOptions (FreeStorageElem * options, MyFrameDefinition ** tail)
                             case MYFRAME_CornerSBevel_ID :
                                 fd->part_sbevel[item.index] = ParseBevelOptions( options->sub );
                                 SetPartSBevelSet(fd,item.index );
+                                break;
+                            case MYFRAME_SideSlicing_ID :
+                                fd->side_slicing[item.index] = item.data.geometry;
                                 break;
                             default:
                                 show_warning( "Unexpected MyFrame definition keyword \"%s\" . Ignoring.", options->term->keyword );

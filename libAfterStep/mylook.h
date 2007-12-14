@@ -177,6 +177,7 @@ typedef struct MyFrame
     char             *frame_style_names[BACK_STYLES];
     char             *title_back_filenames[MYFRAME_TITLE_BACKS];
     struct icon_t    *title_backs[MYFRAME_TITLE_BACKS];
+	ASGeometry        title_back_slicing[MYFRAME_TITLE_BACKS];
     ASFlagType   set_part_size ;
     unsigned int part_width[FRAME_PARTS];
     unsigned int part_length[FRAME_PARTS];
@@ -199,6 +200,9 @@ typedef struct MyFrame
     ASFlagType   set_part_align ;
     ASFlagType   part_align[FRAME_PARTS];
     ASFlagType   set_title_attr ;
+	
+	ASGeometry   part_slicing[FRAME_SIDES];
+	
 #define MYFRAME_TitleFBevelSet      (0x01<<1)
 #define MYFRAME_TitleUBevelSet      (0x01<<2)
 #define MYFRAME_TitleSBevelSet      (0x01<<3)
