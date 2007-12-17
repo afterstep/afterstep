@@ -82,7 +82,7 @@ int main (int argc,char ** argv)
 	fprintf(stdout,"ARGX: %i::%s :: %s\n",argc,argv[1],argv[2]);
 	
 	dir = 0;
-	String pcmDeviceID = "default";
+	String pcmDeviceID = "plughw:0,0";
 
 	if ((err = snd_pcm_open (&playback_handle, pcmDeviceID, SND_PCM_STREAM_PLAYBACK, 0)) < 0) {
 		fprintf (stderr, "cannot open audio device %s (%s)\n", 
@@ -161,11 +161,10 @@ int main (int argc,char ** argv)
 	if (DEBUG1) { fprintf(stdout,"Prepare to Play!\n"); }
 	
 // --------------------------------------
+	int size, read, fcount;
+	long r;
+	char *buffer;
 
-	int size;
-	//long r;
-	//char *buffer;
- /*
 	WaveFile = fopen("online.wav","rb");
 	if (WaveFile == NULL) { fprintf(stdout,"File Open Failed\n"); }
 	fprintf(stdout,"Wave: %p\n",WaveFile);
@@ -178,14 +177,17 @@ int main (int argc,char ** argv)
 	frames = snd_pcm_bytes_to_frames(playback_handle,size);
 	
 	fprintf(stdout,"Size: %d FRAMES: %d\n",size,frames);
-  */
-/*
+
+	fcount = 0;
+
 	buffer = (char *)malloc(size);
 	while ((read = fread(buffer,4,frames,WaveFile)) > 0)
 	{
+	        fprintf(stdout,"WHILE %d\n",fcount);
 		r = snd_pcm_writei(playback_handle,buffer,frames);
+		fcount++;
 	}
-*/
+
 // --------------------------------------
 	snd_pcm_close (playback_handle);
 	
@@ -287,15 +289,24 @@ void proc_message (send_data_type type, send_data_type *body)
                 res = handle_window_packet( type, body, &wd );
                 
               // This Statement works (focus_change)..  
-              //:if (type == M_FOCUS_CHANGE)
-              //:{  show_activity("FOCUS_CHANGE"); }
+//              if (type == M_FOCUS_CHANGE)
+//              {  
+//                  show_activity("FOCUS_CHANGE: 1"); 
+//              }
               
               if( res == WP_DataCreated )
-              {       
+              {    
+                    // code = 0 :: Window/Menu created
+                    // code = 2 :: Window/Menu closed (exited)   
                     code = EVENT_WindowAdded ;
+                    
                    // show_activity("WindowADD: [%i]\n",code);
               }else if( res == WP_DataChanged ) 
               {
+                    if (type == M_FOCUS_CHANGE)
+                    { show_activity("FOC_CHANGE: 2 [%lX]:[%lX]", wd->state_flags, old_state); }
+                    
+                    
                     StateChange = wd->state_flags ^ old_state;
                     if (StateChange)
                     {
@@ -305,26 +316,43 @@ void proc_message (send_data_type type, send_data_type *body)
                         {
                             show_activity("STATE: Shade");
                         }
-                        if (StateChange & AS_Iconic)
+                        else if (StateChange & AS_Iconic)
                         {
                             show_activity("STATE: Iconic");
+                        }
+                        else if (StateChange & AS_Sticky)
+                        {
+                            show_activity("STATE: Sticky");
+                        }
+                        else if (StateChange & AS_Layer)
+                        {  show_activity("STATE: Layer"); }
+                        else if (StateChange & AS_Desktop)
+                        {  show_activity("STATE: Desktop"); }
+                        else if (StateChange & AS_Mapped)
+                        {
+                            // Same time as Iconic, Menu [open] (??)
+                            show_activity("STATE: Mapped");
+                        }
+                        else if (StateChange & AS_IconMapped)
+                        {
+                            show_activity("STATE: IconMapped");
+                        }
+                        else {
+                            show_activity("%s OTHER: [%lX]:[%lX]", timeBuff, wd->state_flags, old_state);
                         }
                         //----
                         // AS_Withdrawn
                         // AS_Dead
-                        // AS_Mapped
-                        // AS_IconMapped
                         //----
-                        // AS_Sticky
                         // AS_MaximizedX
                         // AS_MaximizedY
                         
                     }
-                    else {
-                         show_activity("%s DATA Changed! [%lX]",timeBuff, wd->state_flags);
-                         show_activity("%s DATA Change O:[%lX]",timeBuff, old_state);
-                         show_activity("%s DATA XOR: %lX",timeBuff, wd->state_flags ^ old_state);
-                    }
+                 //   else {
+                 //        show_activity("%s DATA Changed! [%lX]",timeBuff, wd->state_flags);
+                 //        show_activity("%s DATA Change O:[%lX]",timeBuff, old_state);
+                 //        show_activity("%s DATA XOR: %lX",timeBuff, wd->state_flags ^ old_state);
+                 //   }
                     
                     
 
