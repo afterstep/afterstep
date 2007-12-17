@@ -17,7 +17,8 @@
  */
 
 
-#undef LOCAL_DEBUG
+#undef NO_DEBUG_OUTPUT
+#define LOCAL_DEBUG
 #undef DO_CLOCKING
 #ifndef NO_DEBUG_OUTPUT
 #undef DEBUG_RECTS
@@ -394,6 +395,7 @@ start_image_decoding( ASVisual *asv,ASImage *im, ASFlagType filter,
 
 	prepare_scanline(out_width+imdec->bevel_h_addon, 0, &(imdec->buffer), asv->BGR_mode );
     imdec->buffer.back_color = (im != NULL)?im->back_color:ARGB32_DEFAULT_BACK_COLOR ;
+	imdec->buffer.flags = filter;
 
 	imdec->decode_asscanline = decode_asscanline_native;
 	if( im != NULL )
@@ -930,6 +932,7 @@ decode_asscanline_ximage( ASImageDecoder *imdec, unsigned int skip, int y )
 			}
 	}
 	clear_flags( scl->flags,SCL_DO_ALL);
+	fprintf( stderr, "filter = %lX\n", imdec->filter);
 	set_flags( scl->flags,imdec->filter);
 }
 
@@ -1311,6 +1314,8 @@ encode_image_scanline_xim( ASImageOutput *imout, ASScanline *to_store )
 			set_component( to_store->green, ARGB32_GREEN8(to_store->back_color), 0, to_store->width );
 		if( !get_flags(to_store->flags, SCL_DO_BLUE) )
 			set_component( to_store->blue , ARGB32_BLUE8(to_store->back_color), 0, to_store->width );
+		if( !get_flags(to_store->flags, SCL_DO_ALPHA) && (xim->depth == 24 || xim->depth == 32 ))
+			set_component( to_store->alpha , ARGB32_ALPHA8(to_store->back_color), 0, to_store->width );
 		if( xim->depth == imout->asv->visual_info.depth ) 
 			PUT_SCANLINE(imout->asv, xim,to_store,imout->next_line, dst );
 		else if( xim->depth == 16 ) 

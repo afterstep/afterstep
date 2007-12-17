@@ -309,7 +309,7 @@ LOCAL_DEBUG_OUT( "Failed to start ASImageOutput for ASImage %p and ASVisual %p",
 	started = clock ();
 #endif*/
 #if	1
-	if ((imdec = start_image_decoding(  asv, im, (xim->depth == 32)?SCL_DO_ALL:SCL_DO_COLOR, 
+	if ((imdec = start_image_decoding(  asv, im, (xim->depth >= 24)?SCL_DO_ALL:SCL_DO_COLOR, 
 										0, 0, im->width, im->height, NULL)) != NULL )
 	{	 
 		for (i = 0; i < (int)im->height; i++)

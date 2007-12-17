@@ -23,7 +23,7 @@
 #endif
 
 #define LOCAL_DEBUG
-/*#define DEBUG_SL2XIMAGE */
+#undef DEBUG_SL2XIMAGE
 #include <string.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
@@ -1873,6 +1873,7 @@ void ximage2scanline32(ASVisual *asv, XImage *xim, ASScanline *sl, int y,  regis
 	int max_i = MIN((unsigned int)(xim->width),sl->width-sl->offset_x);
 	register CARD32 *src = (CARD32*)xim_data ;
 	register int i = 0;
+	src += sl->offset_x;
 #ifdef WORDS_BIGENDIAN
 	if( !asv->msb_first )
 #else
@@ -1881,19 +1882,19 @@ void ximage2scanline32(ASVisual *asv, XImage *xim, ASScanline *sl, int y,  regis
 	{
 		do
 		{
-			r[i] = (src[i]>>8)&0x0ff;
-			g[i] = (src[i]>>16)&0x0ff;
 			b[i] = (src[i]>>24)&0x0ff;
+			g[i] = (src[i]>>16)&0x0ff;
+			r[i] = (src[i]>>8)&0x0ff;
 			a[i] = src[i]&0x0ff;
 		}while(++i < max_i);
 	}else
 	{
 		do
 		{
+			a[i] = (src[i]>>24)&0x0ff;
 			r[i] = (src[i]>>16)&0x0ff;
 			g[i] = (src[i]>>8)&0x0ff;
 			b[i] =  src[i]&0x0ff;
-			a[i] = (src[i]>>24)&0x0ff;
 		}while(++i < max_i);
 	}
 }
@@ -2062,43 +2063,24 @@ void scanline2ximage32( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  regi
 	register CARD32 *r = sl->xc1+sl->offset_x, *g = sl->xc2+sl->offset_x, *b = sl->xc3+sl->offset_x;
 	register CARD32 *a = sl->alpha+sl->offset_x;
 	register int i = MIN((unsigned int)(xim->width),sl->width-sl->offset_x);
-	register CARD8 *src = (CARD8*)(xim_data+(i-1)*4) ;
+	register CARD32 *src = (CARD32*)xim_data;
+	src += sl->offset_x ;
+
 #ifdef WORDS_BIGENDIAN
 	if( !asv->msb_first )
 #else
 	if( asv->msb_first )
 #endif
-		do
-		{
-			--i ;
-			{
-				src[0] = a[i];
-				src[1] = r[i];
- 				src[2] = g[i];
-				src[3] = b[i];
-				src -= 4 ;
-			}
-		}while(i);
+		while( --i >= 0) src[i] = (b[i]<<24)|((g[i]<<16)&0x00FF0000)|((r[i]<<8)&0x0000FF00)|a[i];
 	else
-		do
-		{
-			--i ;
-			{
-				src[3] = a[i];
-				src[2] = r[i];
-				src[1] = g[i];
-				src[0] = b[i];
-				src -= 4 ;
-			}
-		}while(i);
+		while( --i >= 0) src[i] = (a[i]<<24)|((r[i]<<16)&0x00FF0000)|((g[i]<<8)&0x0000FF00)|b[i];
+
 #ifdef DEBUG_SL2XIMAGE
 	i = MIN((unsigned int)(xim->width),sl->width-sl->offset_x);
-	src = (CARD8*)(xim_data+(i-1)*4);
-	printf( "xim->width = %d, sl->width = %d, sl->offset = %d\n", xim->width, sl->width, sl->offset_x );
-	while(--i>=0 )
-	{
-		printf( "%2.2X.%2.2X.%2.2X.%2.2X ", src[0], src[1], src[2], src[3] );
-	}
+	src = (CARD32*)xim_data;
+	src += sl->offset_x;
+	printf( "%d: xim->width = %d, sl->width = %d, sl->offset = %d: ", y, xim->width, sl->width, sl->offset_x );
+	while(--i>=0 )	printf( "%8.8lX ", src[i] );
 	printf( "\n" );
 #endif
 }
