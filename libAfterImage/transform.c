@@ -15,8 +15,8 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-#undef NO_DEBUG_OUTPUT
-#define LOCAL_DEBUG
+//#undef NO_DEBUG_OUTPUT
+#undef LOCAL_DEBUG
 #undef DO_CLOCKING
 #undef DEBUG_HSV_ADJUSTMENT
 #define USE_64BIT_FPU
@@ -1962,7 +1962,6 @@ colorize_asimage_vector( ASVisual *asv, ASImage *im,
 	buf.flags = 0 ;
 	for( y = 0 ; y < IC_NUM_CHANNELS ; ++y )
 	{
-fprintf( stderr, " pallette->channels[%d] = %p\n", y, palette->channels[y]);
 		if( palette->channels[y] )
 		{
 			multipliers[y] = safemalloc( last_point*sizeof(double));

@@ -1884,8 +1884,8 @@ void ximage2scanline32(ASVisual *asv, XImage *xim, ASScanline *sl, int y,  regis
 		{
 			b[i] = (src[i]>>24)&0x0ff;
 			g[i] = (src[i]>>16)&0x0ff;
-			r[i] = (src[i]>>8)&0x0ff;
-			a[i] = src[i]&0x0ff;
+			a[i] = (src[i]>>8)&0x0ff;
+			r[i] = src[i]&0x0ff;
 		}while(++i < max_i);
 	}else
 	{
@@ -2071,7 +2071,7 @@ void scanline2ximage32( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  regi
 #else
 	if( asv->msb_first )
 #endif
-		while( --i >= 0) src[i] = (b[i]<<24)|((g[i]<<16)&0x00FF0000)|((r[i]<<8)&0x0000FF00)|a[i];
+		while( --i >= 0) src[i] = (b[i]<<24)|((g[i]<<16)&0x00FF0000)|((a[i]<<8)&0x0000FF00)|r[i];
 	else
 		while( --i >= 0) src[i] = (a[i]<<24)|((r[i]<<16)&0x00FF0000)|((g[i]<<8)&0x0000FF00)|b[i];
 

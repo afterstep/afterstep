@@ -17,8 +17,8 @@
  */
 
 
-#undef NO_DEBUG_OUTPUT
-#define LOCAL_DEBUG
+//#undef NO_DEBUG_OUTPUT
+#undef LOCAL_DEBUG
 #undef DO_CLOCKING
 #ifndef NO_DEBUG_OUTPUT
 #undef DEBUG_RECTS
@@ -932,7 +932,6 @@ decode_asscanline_ximage( ASImageDecoder *imdec, unsigned int skip, int y )
 			}
 	}
 	clear_flags( scl->flags,SCL_DO_ALL);
-	fprintf( stderr, "filter = %lX\n", imdec->filter);
 	set_flags( scl->flags,imdec->filter);
 }
 
