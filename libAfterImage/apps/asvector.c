@@ -122,7 +122,7 @@ int main(int argc, char* argv[])
 			/* see ASView.5 : */
 			p = asimage2pixmap( asv, DefaultRootWindow(dpy), vect_im,
 					            NULL, True );
-			destroy_asimage( &vect_im );
+//			destroy_asimage( &vect_im );
 			/* see common.c: set_window_background_and_free() : */
 			p = set_window_background_and_free( w, p );
 			/* see common.c: wait_closedown() : */
@@ -130,7 +130,7 @@ int main(int argc, char* argv[])
 		}
 	    if( dpy )
   		    XCloseDisplay (dpy);
-#else
+#endif
 		{
 			CARD8 * buffer ; 
 			int size ;		   
@@ -148,7 +148,7 @@ int main(int argc, char* argv[])
 		}
 		ASImage2file( vect_im, NULL, "asvector_copy.png", ASIT_Png, NULL );
 		destroy_asimage( &vect_im );
-#endif
+//#endif
 	}
     return 0 ;
 }

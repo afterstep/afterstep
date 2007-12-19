@@ -1870,33 +1870,36 @@ void ximage2scanline32(ASVisual *asv, XImage *xim, ASScanline *sl, int y,  regis
 {
 	register CARD32 *r = sl->xc1+sl->offset_x, *g = sl->xc2+sl->offset_x, *b = sl->xc3+sl->offset_x;
 	register CARD32 *a = sl->alpha+sl->offset_x;
-	int max_i = MIN((unsigned int)(xim->width),sl->width-sl->offset_x);
+	int i = MIN((unsigned int)(xim->width),sl->width-sl->offset_x);
 	register CARD32 *src = (CARD32*)xim_data ;
-	register int i = 0;
-	src += sl->offset_x;
+/*	src += sl->offset_x; */
+/*fprintf( stderr, "%d: ", y);*/
+
 #ifdef WORDS_BIGENDIAN
 	if( !asv->msb_first )
 #else
 	if( asv->msb_first )
 #endif
 	{
-		do
+		while (--i >= 0)
 		{
 			b[i] = (src[i]>>24)&0x0ff;
 			g[i] = (src[i]>>16)&0x0ff;
-			a[i] = (src[i]>>8)&0x0ff;
-			r[i] = src[i]&0x0ff;
-		}while(++i < max_i);
+			r[i] = (src[i]>>8)&0x0ff;
+			a[i] = src[i]&0x0ff;
+/*			fprintf( stderr, "[%d->%8.8X %8.8X %8.8X %8.8X = %8.8X]", i, r[i], g[i], b[i], a[i], src[i]);*/
+		}
 	}else
 	{
-		do
+		while (--i >= 0)
 		{
 			a[i] = (src[i]>>24)&0x0ff;
 			r[i] = (src[i]>>16)&0x0ff;
 			g[i] = (src[i]>>8)&0x0ff;
 			b[i] =  src[i]&0x0ff;
-		}while(++i < max_i);
+		}
 	}
+/*fprintf( stderr, "\n");*/
 }
 
 void ximage2scanline16( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  register unsigned char *xim_data )
@@ -2064,17 +2067,21 @@ void scanline2ximage32( ASVisual *asv, XImage *xim, ASScanline *sl, int y,  regi
 	register CARD32 *a = sl->alpha+sl->offset_x;
 	register int i = MIN((unsigned int)(xim->width),sl->width-sl->offset_x);
 	register CARD32 *src = (CARD32*)xim_data;
-	src += sl->offset_x ;
-
+/*	src += sl->offset_x ; */
+/*fprintf( stderr, "%d: ", y);*/
 #ifdef WORDS_BIGENDIAN
 	if( !asv->msb_first )
 #else
 	if( asv->msb_first )
 #endif
-		while( --i >= 0) src[i] = (b[i]<<24)|((g[i]<<16)&0x00FF0000)|((a[i]<<8)&0x0000FF00)|r[i];
+		while( --i >= 0)
+		{ 
+			src[i] = (b[i]<<24)|(g[i]<<16)|(r[i]<<8)|a[i];
+/*			fprintf( stderr, "[%d->%8.8X %8.8X %8.8X %8.8X = %8.8X]", i, r[i], g[i], b[i], a[i], src[i]);  */
+		}
 	else
-		while( --i >= 0) src[i] = (a[i]<<24)|((r[i]<<16)&0x00FF0000)|((g[i]<<8)&0x0000FF00)|b[i];
-
+		while( --i >= 0) src[i] = (a[i]<<24)|(r[i]<<16)|(g[i]<<8)|b[i];
+/*fprintf( stderr, "\n");*/
 #ifdef DEBUG_SL2XIMAGE
 	i = MIN((unsigned int)(xim->width),sl->width-sl->offset_x);
 	src = (CARD32*)xim_data;
