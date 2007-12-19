@@ -28,7 +28,6 @@
 
 #include <unistd.h>
 #include <signal.h>
-#include <X11/Intrinsic.h>
 
 
 /***********************************************************************/
