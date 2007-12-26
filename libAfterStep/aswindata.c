@@ -117,7 +117,7 @@ window_data_cleanup()
 }
 
 WindowPacketResult
-handle_window_packet(CARD32 type, CARD32 *data, ASWindowData **pdata)
+handle_window_packet(send_data_type type, send_data_type *data, ASWindowData **pdata)
 {
 	ASWindowData *wd;
 	WindowPacketResult res = WP_Handled ;

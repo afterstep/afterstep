@@ -28,14 +28,14 @@ typedef struct ASWindowData
 	Window 	client;
 	Window 	frame ;
 
-	CARD32		 	ref_ptr ; /* address of the related ASWindow structure in
+	send_data_type 	ref_ptr ; /* address of the related ASWindow structure in
 	                             afterstep's own memory space - we use it as a
 							     reference, to know what object change is related to */
 	ASRectangle 	frame_rect ;
     ASRectangle     icon_rect ;
 
     long            desk ;
-    CARD32          state_flags, flags, client_icon_flags ;
+    send_data_type  state_flags, flags, client_icon_flags ;
 
     XSizeHints      hints ;       /* not sure why we need it here */
 

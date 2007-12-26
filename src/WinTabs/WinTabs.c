@@ -161,7 +161,7 @@ void SetWinTabsLook();
 void GetBaseOptions (const char *filename);
 void GetOptions (const char *filename);
 void HandleEvents();
-void process_message (unsigned long type, unsigned long *body);
+void process_message (send_data_type type, send_data_type *body);
 void DispatchEvent (ASEvent * Event);
 Window make_wintabs_window();
 Window make_tabs_window( Window parent );
@@ -650,7 +650,7 @@ send_swallowed_configure_notify(ASWinTab *aswt)
 }
 
 void
-process_message (unsigned long type, unsigned long *body)
+process_message (send_data_type type, send_data_type *body)
 {
     LOCAL_DEBUG_OUT( "received message %lX", type );
 	if( (type&WINDOW_PACKET_MASK) != 0 )
