@@ -1064,6 +1064,7 @@ add_astbar_icon( ASTBarData * tbar, unsigned char col, unsigned char row, int fl
         int idx = add_astbar_tile( tbar, AS_TileIcon, col, row, flip, align );
 		ASTile *tile = &(tbar->tiles[idx]) ;
 
+		LOCAL_DEBUG_CALLER_OUT( "col = %d, row = %d, flip = %d, align = 0x%X, im = %p, size = %dx%d", col, row, flip, align, icon, icon->width, icon->height );
         if( flip == 0 )
         {
             if( icon->imageman == NULL || (tile->data.image.im = dup_asimage( icon )) == NULL )

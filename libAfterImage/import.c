@@ -514,7 +514,8 @@ get_thumbnail_asimage( ASImageManager* imageman, const char *file, int thumb_wid
 			
 			iparams.width = thumb_width ; 
 			iparams.height = thumb_height ; 
-			iparams.flags |= AS_IMPORT_RESIZED|AS_IMPORT_SCALED_BOTH ; 
+			if( !get_flags( flags, AS_THUMBNAIL_DONT_ENLARGE|AS_THUMBNAIL_DONT_REDUCE ) )
+				iparams.flags |= AS_IMPORT_RESIZED|AS_IMPORT_SCALED_BOTH ; 
 			
 			if( get_flags( flags, AS_THUMBNAIL_DONT_ENLARGE ) )
 				iparams.flags |= AS_IMPORT_FAST ; 

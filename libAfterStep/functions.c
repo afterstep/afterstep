@@ -833,6 +833,7 @@ reload_menu_pmaps( MenuData *menu, Bool force )
 					h = asxml_var_get(ASXMLVAR_MenuFontSize)+8;				
 				else if( get_flags( curr->flags, MD_ScaleMinipixmapUp ) )
 					h = asxml_var_get(ASXMLVAR_MinipixmapHeight) ; 
+				LOCAL_DEBUG_OUT( "minipixmap target height = %d for \"%s\"", h, minipixmap);
 				curr->minipixmap_image =  get_thumbnail_asimage( ASDefaultScr->image_manager, minipixmap, 0, h, AS_THUMBNAIL_PROPORTIONAL|AS_THUMBNAIL_DONT_ENLARGE );
 				if( curr->minipixmap_image == NULL ) 
 				{	
