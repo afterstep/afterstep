@@ -58,11 +58,13 @@ dib_data_to_scanline( ASScanline *buf,
 					  CARD8 *data, CARD8 *cmap, int cmap_entry_size); 
 
 BITMAPINFO *
-ASImage2DBI( ASVisual *asv, ASImage *im, 
+ASImage2DIB( ASVisual *asv, ASImage *im, 
 		      int offset_x, int offset_y,
 			   unsigned int to_width,
 			   unsigned int to_height,
   			   void **pBits, int mask );
+/* fixing a typo : */
+#define ASImage2DBI ASImage2DIB
 
 ASImage      *
 bitmap2asimage (unsigned char *xim, int width, int height,

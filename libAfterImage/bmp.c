@@ -92,7 +92,7 @@ dib_data_to_scanline( ASScanline *buf,
 }
 
 BITMAPINFO *
-ASImage2DBI( ASVisual *asv, ASImage *im, 
+ASImage2DIB( ASVisual *asv, ASImage *im, 
 		     int offset_x, int offset_y,
 			 unsigned int to_width,
 			 unsigned int to_height,
@@ -183,6 +183,85 @@ LOCAL_DEBUG_CALLER_OUT( "src = %p, offset_x = %d, offset_y = %d, to_width = %d, 
 	*pBits = bits ;
 	return bmp_info;
 }
+
+/* stupid typo !!!!! and now we are stuck with it :( */
+#undef ASImage2DBI
+BITMAPINFO *
+ASImage2DBI( ASVisual *asv, ASImage *im, 
+		     int offset_x, int offset_y,
+			 unsigned int to_width,
+			 unsigned int to_height,
+  			 void **pBits, int mask )
+{
+	return ASImage2DIB(asv, im, offset_x, offset_y, to_width, to_height, pBits, mask );
+}
+
+
+
+ASImage *
+DIB2ASImage(BITMAPINFO *bmp_info, int compression)
+{
+  int width = bmp_info->bmiHeader.biWidth;
+  int height = bmp_info->bmiHeader.biHeight;
+  ASImage *im = NULL;
+  ASScanline buf;
+  int y;
+	CARD8 *data ;
+	CARD8 *cmap = NULL ;
+	int direction = -1 ;
+	int cmap_entries = 0, cmap_entry_size = 4, row_size ;
+
+  if (width <= 0 || height == 0 )
+    return NULL;
+
+	if( height < 0 )
+    {
+		  direction = 1 ;
+      height = -height;
+    }
+
+	if( bmp_info->bmiHeader.biBitCount < 16 )
+		cmap_entries = 0x01<<bmp_info->bmiHeader.biBitCount ;
+
+	if( bmp_info->bmiHeader.biSize != 40 )
+		cmap_entry_size = 3;
+
+	if( cmap_entries )
+    {
+		  cmap = (CARD8*)&(bmp_info->bmiColors[0]);
+    	data = cmap + cmap_entries*cmap_entry_size;
+    }
+  else
+    data = (CARD8*)&(bmp_info->bmiColors[0]);
+
+	row_size = (width*bmp_info->bmiHeader.biBitCount)>>3 ;
+	if( row_size == 0 )
+		row_size = 1 ;
+	else
+		row_size = (row_size+3)/4 ;            /* everything is aligned by 32 bits */
+	row_size *= 4 ;                            /* in bytes  */
+
+  im = create_asimage(width, height, compression);
+
+	/* Window BMP files are little endian  - we need to swap Red and Blue */
+	prepare_scanline( width, 0, &buf, True );
+
+	y =( direction == 1 )?0:height-1 ;
+	while( y >= 0 && y < (int)height)
+	{
+ 		dib_data_to_scanline(&buf, &(bmp_info->bmiHeader), NULL, data, cmap, cmap_entry_size);
+		asimage_add_line (im, IC_RED,   buf.red  , y);
+		asimage_add_line (im, IC_GREEN, buf.green, y);
+		asimage_add_line (im, IC_BLUE,  buf.blue , y);
+		y += direction ;
+    data += row_size;
+	}
+
+  free_scanline( &buf, True );
+
+  return im;
+}
+
 
 ASImage      *
 bitmap2asimage (unsigned char *xim, int width, int height, unsigned int compression, 
