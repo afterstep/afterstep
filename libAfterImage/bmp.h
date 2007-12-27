@@ -66,6 +66,10 @@ ASImage2DIB( ASVisual *asv, ASImage *im,
 /* fixing a typo : */
 #define ASImage2DBI ASImage2DIB
 
+/* DIB colormap and data should follow the header as a continuous 
+ * memory block !*/
+ASImage *DIB2ASImage(BITMAPINFO *bmp_info, int compression);
+
 ASImage      *
 bitmap2asimage (unsigned char *xim, int width, int height,
                 unsigned int compression, unsigned char *mask);
