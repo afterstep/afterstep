@@ -744,8 +744,4 @@ afterbase.h \
 afterimage-libs \
 afterimage-config)
 
-if test -d apps ; 	then 
-  cp config.h apps/
-fi
-
 chmod 755 afterimage-libs
