@@ -150,9 +150,9 @@ prepare_scanline( unsigned int width, unsigned int shift, ASScanline *reusable_m
 	/* we want to align data by 8 byte boundary (double)
 	 * to allow for code with less ifs and easier MMX/3Dnow utilization :*/
 	aligned_width = width + (width&0x00000001);
-	sl->buffer = ptr = safemalloc (((aligned_width*4)+16)*sizeof(CARD32));
+	sl->buffer = ptr = safemalloc (((aligned_width*4)+16)*sizeof(CARD32)+8);
 
-	sl->xc1 = sl->red 	= (CARD32*)(((long)ptr>>3)*8);
+	sl->xc1 = sl->red 	= (CARD32*)((((long)ptr+7)>>3)*8);
 	sl->xc2 = sl->green = sl->red   + aligned_width;
 	sl->xc3 = sl->blue 	= sl->green + aligned_width;
 	sl->alpha 	= sl->blue  + aligned_width;
