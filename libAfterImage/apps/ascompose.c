@@ -22,6 +22,7 @@
 #include "config.h"
 
 #define LOCAL_DEBUG
+#include "../../configure.h"
 
 #include <ctype.h>
 #include <errno.h>
@@ -46,6 +47,7 @@
 #include "../afterbase.h"
 #include "../afterimage.h"
 #include "common.h"
+
 
 #if defined(SHAPE) && !defined(X_DISPLAY_MISSING)
 #include <X11/extensions/shape.h>
@@ -265,6 +267,36 @@ int screen = 0, depth = 0;
 
 
 int main(int argc, char** argv) {
+
+char* ascompose_locale;
+
+    ascompose_locale = mystrdup(AFTER_LOCALE);
+    if (ascompose_locale[0] == '\0')
+    {
+	free( ascompose_locale );
+	ascompose_locale = mystrdup(getenv("LANG"));
+    }
+
+
+    if( ascompose_locale == NULL ) 
+    ascompose_locale = mystrdup("");
+    if( ascompose_locale && strlen(ascompose_locale) > 0)
+    {
+    as_set_charset( parse_charset_name( ascompose_locale ));
+#ifdef I18N
+    if (strlen(ascompose_locale) > 0)
+    if (setlocale (LC_CTYPE, ascompose_locale) == NULL)
+    {
+	show_error ("unable to set locale");
+    }
+#endif
+    }else
+    {
+#ifdef I18N
+	show_warning ("LANG environment variable is not set - use -L \"locale\" command line option to define locale");
+#endif
+    }
+
 	ASImage* im = NULL;
 	char* doc_str = default_doc_str;
 	char* doc_file = NULL;
