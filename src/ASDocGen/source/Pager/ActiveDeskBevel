@@ -4,9 +4,8 @@
 		<para>Defines how border around Pager desk representation of the current desk should be drawn.</para>
 		<para>See Also: <ulink url="Bevel#synopsis">Bevel flags</ulink> for further details.</para>
 		<example>
-		<literallayout>
-*PagerActiveDeskBevel Left,Top   # draws thick bevelled lines at the top 
-                                 # and left of the desk</literallayout>		       
+		    <literallayout>*PagerActiveDeskBevel Left,Top</literallayout>
+		    <para># draws thick bevelled lines at the top and left of the desk</para>
 		</example>
 	</listitem>
 </varlistentry>
