@@ -33,12 +33,15 @@
 #include "../../libAfterConf/afterconf.h"
 #include "../../libAfterStep/clientprops.h"
 #include "Sound.h"
+#include "../../libAfterStep/freestor.h"
 // Defines
 #define MAX_SOUNDS AFTERSTEP_EVENTS_NUM
 #define mask_reg MAX_MASK
 
 // from afterconf.h ?
 AudioConfig     *Config = NULL;
+
+const char *filename = "/home/jeremy/.afterstep/audio";
 
 // asapp.h ?
 void DeadPipe (int);
@@ -74,7 +77,12 @@ int main(int argc,char ** argv)
     
     // need to figure out what this is for...
     Config = CreateAudioConfig();
+
+    LoadBaseConfig(GetBaseOptions);
+    LoadConfig("audio",GetOptions);
     
+    fprintf(stdout,"--Audio Conf: %s",Config->playcmd);
+
     as_snd2_init_stg1(SND2devP);
     //as_snd2_init_stg2();
     
@@ -291,4 +299,42 @@ int ply_sound(int code)
     
     return 1;
 }
+void
+GetBaseOptions (const char *filename/* unused*/)
+{
+    START_TIME(started);
+        ReloadASEnvironment( NULL, NULL, NULL, False, False );
+    SHOW_TIME("BaseConfigParsingTime",started);
+}
+void
+GetOptions (const char *filename)
+{
+    AudioConfig *config = ParseAudioOptions (filename, MyName);
+        int i ;
+    START_TIME(option_time);
 
+    /* Need to merge new config with what we have already :*/
+    /* now lets check the config sanity : */
+    /* mixing set and default flags : */
+    Config->set_flags |= config->set_flags;
+
+    if( config->playcmd != NULL )
+        set_string_value( &(Config->playcmd), config->playcmd, NULL, 0 );
+        
+    for( i = 0 ; i < AFTERSTEP_EVENTS_NUM ; ++i ) 
+    if( config->sounds[i] != NULL ) 
+        set_string_value( &(Config->sounds[i]), config->sounds[i], NULL, 0 );
+    
+    if( get_flags(config->set_flags, AUDIO_SET_DELAY) )
+        Config->delay = config->delay;
+    if( get_flags(config->set_flags, AUDIO_SET_RPLAY_HOST) && config->rplay_host != NULL )
+        set_string_value( &(Config->rplay_host), config->rplay_host, NULL, 0 );   
+    if( get_flags(config->set_flags, AUDIO_SET_RPLAY_PRIORITY) )
+        Config->rplay_priority = config->rplay_priority;
+    if( get_flags(config->set_flags, AUDIO_SET_RPLAY_VOLUME) )
+        Config->rplay_volume = config->rplay_volume;
+
+    DestroyAudioConfig (config);
+    SHOW_TIME("Config parsing",option_time);
+}
+ 
