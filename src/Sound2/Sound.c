@@ -50,11 +50,17 @@ void proc_message (send_data_type type, send_data_type *body);
 int ply_sound(int code);
 
 // Sound2 Functions
-int as_snd2_init_stg1();
-int as_snd2_init_stg2();
-int as_snd2_playsound();
+int as_snd2_init_stg1(struct SND2dev * SND2devP);
+int as_snd2_init_stg2(struct SND2dev * SND2devP);
+int as_snd2_playsound(struct SND2dev * SND2devP);
 
+// ?
 Bool (*audio_play) (short) = NULL;
+
+// Global Vars
+struct SND2dev SND2devS;
+SND2devP = &SND2devS;
+       
 
 int main(int argc,char ** argv)
 {
@@ -69,7 +75,7 @@ int main(int argc,char ** argv)
     // need to figure out what this is for...
     Config = CreateAudioConfig();
     
-    as_snd2_init_stg1();
+    as_snd2_init_stg1(SND2devP);
     //as_snd2_init_stg2();
     
     //HandleEvents();
@@ -77,11 +83,11 @@ int main(int argc,char ** argv)
     return 0;
 }
 
-int as_snd2_init_stg1()
+int as_snd2_init_stg1(struct SND2dev * SND2devP)
 {
     // Stage 1 Sound2 module Init.
-    struct SND2dev SND2devS, *SND2devP;
-    SND2devP = &SND2devS;
+    //--struct SND2dev SND2devS, *SND2devP;
+    //--SND2devP = &SND2devS;
     
     typedef char *String;
     int Snd2DEBUG, stg2Ret, ret1;
@@ -231,11 +237,6 @@ void proc_message(send_data_type type, send_data_type *body)
     static time_t last_time = 0;
     int StateChange, code = -1;
     
-    struct SND2dev SND2devS, *SND2devP;
-    SND2devP = &SND2devS;
-            
-
-
     if (type == M_PLAY_SOUND) { show_activity("M_PLY_SND"); } // Need to find whats calling this type
 
     else if ((type & WINDOW_PACKET_MASK) != 0)
