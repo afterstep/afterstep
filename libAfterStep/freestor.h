@@ -139,7 +139,7 @@ int ReadFlagItemAuto (void *config_struct, ptrdiff_t default_set_flags_offset, F
 /* really defined in libAfterBase/mystring.h (unsigned long*)*/
 void set_string (char **target, char *string);
 #define set_string_value(ptarget,string,pset_flags,flag) \
-	do {set_string(ptarget,string); if(pset_flags)set_flags(*(pset_flags),(flag));}while(0)
+	do {ASFlagType *_fp_ = (pset_flags);set_string(ptarget,string); if(_fp_)set_flags(*_fp_,(flag));}while(0)
 #define set_scalar_value(ptarget,val,pset_flags,flag) \
 	do {*(ptarget)=(val); if(pset_flags)set_flags(*(pset_flags),(flag));}while(0)
 #define set_size_geometry(pw,ph,pitem,pset_flags,flag) \
