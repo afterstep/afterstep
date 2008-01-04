@@ -145,7 +145,7 @@ int as_snd2_init_stg2(struct SND2dev * SND2devP)
     if (Snd2DEBUG) { fprintf(stdout,"Setting Sample Rate...\n"); }
     
     // (PCM Handle, Config Space, Sample Rate, Sub Unit Direction)
-    snd_pcm_hw_params_set_rate_near(SND2devP->pcm_handle,SND2devP->hw_params,SRate,&dir);
+    snd_pcm_hw_params_set_rate_near(SND2devP->pcm_handle,SND2devP->hw_params,&SRate,&dir);
     
     if (Snd2DEBUG) { fprintf(stdout,"Setting Channel Count...\n"); }
     
@@ -161,11 +161,6 @@ int as_snd2_init_stg2(struct SND2dev * SND2devP)
     
     // (Config Space)
     snd_pcm_hw_params_free(SND2devP->hw_params);
-    
-    if (Snd2DEBUG) { fprintf(stdout,"Prepare To Play!...\n"); }
-    
-    // (PCM Handle)
-    snd_pcm_prepare(SND2devP->pcm_handle);
     
     if (Snd2DEBUG) { fprintf(stdout,"Stage 2 Init Complete!\n\n"); }
     
@@ -184,7 +179,9 @@ int as_snd2_playsound(struct SND2dev * SND2devP)
     
     SNDFile = fopen("online.wav","rb");
     if (SNDFile == NULL) { fprintf(stdout,"Failed to open Sound File\n"); exit(1); }
-    
+
+//    if (Snd2DEBUG) { fprintf(stdout,"Prepare To Play!...\n"); }
+    snd_pcm_prepare(SND2devP->pcm_handle);    
     
     fseek(SNDFile,0,SEEK_END); // We're trying to get the full file size here...
     SNDFileSize = ftell(SNDFile);
