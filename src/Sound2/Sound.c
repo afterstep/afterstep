@@ -81,7 +81,7 @@ int main(int argc,char ** argv)
     LoadBaseConfig(GetBaseOptions);
     LoadConfig("audio",GetOptions);
     
-    fprintf(stdout,"--Audio Conf: %s",Config->playcmd);
+    fprintf(stdout,"--Audio Conf: %i",Config->delay);
 
     as_snd2_init_stg1(SND2devP);
     //as_snd2_init_stg2();
@@ -319,16 +319,18 @@ GetOptions (const char *filename)
     Config->set_flags |= config->set_flags;
 
     if( config->playcmd != NULL )
-        set_string_value( &(Config->playcmd), config->playcmd, NULL, 0 );
+        set_string( &(Config->playcmd), config->playcmd);
         
     for( i = 0 ; i < AFTERSTEP_EVENTS_NUM ; ++i ) 
     if( config->sounds[i] != NULL ) 
-        set_string_value( &(Config->sounds[i]), config->sounds[i], NULL, 0 );
+        set_string( &(Config->sounds[i]), config->sounds[i]);
     
     if( get_flags(config->set_flags, AUDIO_SET_DELAY) )
         Config->delay = config->delay;
+
     if( get_flags(config->set_flags, AUDIO_SET_RPLAY_HOST) && config->rplay_host != NULL )
-        set_string_value( &(Config->rplay_host), config->rplay_host, NULL, 0 );   
+        set_string( &(Config->rplay_host), config->rplay_host);   
+
     if( get_flags(config->set_flags, AUDIO_SET_RPLAY_PRIORITY) )
         Config->rplay_priority = config->rplay_priority;
     if( get_flags(config->set_flags, AUDIO_SET_RPLAY_VOLUME) )
