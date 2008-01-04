@@ -1493,7 +1493,7 @@ if test "${with_xpm_includes+set}" = set; then
   withval="$with_xpm_includes"
   xpm_includes="$withval"
 else
-  xpm_includes=NO
+  xpm_includes=no
 fi;
 
 # Check whether --with-jpeg or --without-jpeg was given.
@@ -1507,7 +1507,7 @@ if test "${with_jpeg_includes+set}" = set; then
   withval="$with_jpeg_includes"
   jpeg_includes="$withval"
 else
-  jpeg_includes=NO
+  jpeg_includes=no
 fi;
 
 # Check whether --with-builtin_jpeg or --without-builtin_jpeg was given.
@@ -1529,7 +1529,7 @@ if test "${with_png_includes+set}" = set; then
   withval="$with_png_includes"
   png_includes="$withval"
 else
-  png_includes=NO
+  png_includes=no
 fi;
 
 # Check whether --with-builtin_png or --without-builtin_png was given.
@@ -1569,7 +1569,7 @@ if test "${with_gif_includes+set}" = set; then
   withval="$with_gif_includes"
   gif_includes="$withval"
 else
-  gif_includes=NO
+  gif_includes=no
 fi;
 
 # Check whether --with-builtin_ungif or --without-builtin_ungif was given.
@@ -1591,7 +1591,7 @@ if test "${with_tiff_includes+set}" = set; then
   withval="$with_tiff_includes"
   tiff_includes="$withval"
 else
-  tiff_includes=NO
+  tiff_includes=no
 fi;
 
 # Check whether --with-svg or --without-svg was given.
@@ -1612,7 +1612,7 @@ if test "${with_ttf_includes+set}" = set; then
   withval="$with_ttf_includes"
   ttf_includes="$withval"
 else
-  ttf_includes=NO
+  ttf_includes=no
 fi;
 
 
@@ -1627,7 +1627,7 @@ if test "${with_afterbase_includes+set}" = set; then
   withval="$with_afterbase_includes"
   afterbase_includes="$withval"
 else
-  afterbase_includes=NO
+  afterbase_includes=no
 fi;
 
 
@@ -6364,7 +6364,7 @@ if test "$with_xpm" = no; then
 else
   if test "$with_builtin_xpm" = no; then
   	SAVED_CFLAGS=$CPPFLAGS
-  	if test "x$xpm_includes" != "xNO"; then
+  	if test "x$xpm_includes" != "xno"; then
 		XPM_CFLAGS="-I$xpm_includes"
 		CPPFLAGS="$CPPFLAGS $XPM_CFLAGS"
   	fi
@@ -6696,7 +6696,7 @@ if test "$with_jpeg" = no; then
   have_jpeg=disabled
 else
   SAVED_CFLAGS=$CPPFLAGS
-  if test "x$jpeg_includes" != "xNO"; then
+  if test "x$jpeg_includes" != "xno"; then
 	JPEG_CFLAGS="-I$jpeg_includes"
 	CPPFLAGS="$CPPFLAGS $JPEG_CFLAGS"
   fi
@@ -7172,7 +7172,7 @@ if test "$with_png" = no; then
   have_png=disabled
 else
   SAVED_CFLAGS=$CPPFLAGS
-  if test "$png_includes" != NO; then
+  if test "$png_includes" != no; then
 	PNG_CFLAGS="-I$png_includes"
 	CPPFLAGS="$CPPFLAGS $PNG_CFLAGS"
   fi
@@ -7555,7 +7555,7 @@ if test "$with_gif$with_ungif" = nono; then
   have_gif=disabled
 else
   SAVED_CFLAGS=$CPPFLAGS
-  if test "$gif_includes" != NO; then
+  if test "$gif_includes" != no; then
 	GIF_CFLAGS="-I$gif_includes"
 	CPPFLAGS="$CPPFLAGS $GIF_CFLAGS"
   fi
@@ -7748,7 +7748,7 @@ if test "$with_tiff" = no; then
   have_tiff=disabled
 else
   SAVED_CFLAGS=$CPPFLAGS
-  if test "$tiff_includes" != NO; then
+  if test "$tiff_includes" != no; then
 	TIFF_CFLAGS="-I$tiff_includes"
 	CPPFLAGS="$CPPFLAGS $TIFF_CFLAGS"
   fi
@@ -8156,10 +8156,10 @@ AFTERIMAGE_LIBS="$AFTERIMAGE_LIBS -lm"
 
 TTF_INCLUDES=
 
-if test "x$with_ttf" = "xNO"; then
+if test "x$with_ttf" = "xno"; then
   have_ttf=disabled
 else
-  if test "x$ttf_includes" = "xNO"; then
+  if test "x$ttf_includes" = "xno"; then
     echo "$as_me:$LINENO: checking headers required by TTF support" >&5
 echo $ECHO_N "checking headers required by TTF support... $ECHO_C" >&6
     if freetype-config --cflags >/dev/null  ;then
@@ -8596,7 +8596,7 @@ if test "x$with_afterbase" != "xno"; then
   echo "$as_me:$LINENO: checking libAfterBase headers in ../libAfterBase" >&5
 echo $ECHO_N "checking libAfterBase headers in ../libAfterBase... $ECHO_C" >&6
   have_afterbase=yes
-  if test "x$afterbase_includes" = "xNO"; then
+  if test "x$afterbase_includes" = "xno"; then
 	  if test -r "../libAfterBase/astypes.h"; then
 	    echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
@@ -10541,9 +10541,5 @@ if test "$no_create" != yes; then
   $ac_cs_success || { (exit 1); exit 1; }
 fi
 
-
-if test -d apps ; 	then
-  cp config.h apps/
-fi
 
 chmod 755 afterimage-libs

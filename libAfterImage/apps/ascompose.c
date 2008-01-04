@@ -22,7 +22,6 @@
 #include "config.h"
 
 #define LOCAL_DEBUG
-#include "../../configure.h"
 
 #include <ctype.h>
 #include <errno.h>
@@ -268,35 +267,6 @@ int screen = 0, depth = 0;
 
 int main(int argc, char** argv) {
 
-char* ascompose_locale;
-
-    ascompose_locale = mystrdup(AFTER_LOCALE);
-    if (ascompose_locale[0] == '\0')
-    {
-	free( ascompose_locale );
-	ascompose_locale = mystrdup(getenv("LANG"));
-    }
-
-
-    if( ascompose_locale == NULL ) 
-    ascompose_locale = mystrdup("");
-    if( ascompose_locale && strlen(ascompose_locale) > 0)
-    {
-    as_set_charset( parse_charset_name( ascompose_locale ));
-#ifdef I18N
-    if (strlen(ascompose_locale) > 0)
-    if (setlocale (LC_CTYPE, ascompose_locale) == NULL)
-    {
-	show_error ("unable to set locale");
-    }
-#endif
-    }else
-    {
-#ifdef I18N
-	show_warning ("LANG environment variable is not set - use -L \"locale\" command line option to define locale");
-#endif
-    }
-
 	ASImage* im = NULL;
 	char* doc_str = default_doc_str;
 	char* doc_file = NULL;
@@ -315,11 +285,25 @@ char* ascompose_locale;
 	Bool endless_loop = False ; 
 	Window main_window = None ;
 	ASComposeWinProps main_window_props ;
-
+	
+	char* ascompose_locale ;
 	memset(&main_window_props, 0x00, sizeof( main_window_props));
 
 	/* see ASView.1 : */
 	set_application_name(argv[0]);
+	
+	ascompose_locale = mystrdup(getenv("LANG"));
+
+    if( ascompose_locale && strlen(ascompose_locale) > 0)
+    {
+    	as_set_charset( parse_charset_name( ascompose_locale ));
+    }else
+	{
+#ifdef I18N
+		show_warning ("LANG environment variable is not set - use -L \"locale\" command line option to define locale");
+#endif
+	}
+
 
 	/* scrap asvisual so we can work on include files ( not displaying anything ) */
 	asv = create_asvisual(NULL, 0, 32, NULL);

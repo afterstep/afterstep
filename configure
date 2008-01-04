@@ -1509,7 +1509,7 @@ if test "${with_xpm_includes+set}" = set; then
   withval="$with_xpm_includes"
   xpm_includes="$withval"
 else
-  xpm_includes=NO
+  xpm_includes=no
 fi;
 
 # Check whether --with-jpeg or --without-jpeg was given.
@@ -1523,7 +1523,7 @@ if test "${with_jpeg_includes+set}" = set; then
   withval="$with_jpeg_includes"
   jpeg_includes="$withval"
 else
-  jpeg_includes=NO
+  jpeg_includes=no
 fi;
 
 # Check whether --with-png or --without-png was given.
@@ -1537,7 +1537,7 @@ if test "${with_png_includes+set}" = set; then
   withval="$with_png_includes"
   png_includes="$withval"
 else
-  png_includes=NO
+  png_includes=no
 fi;
 
 # Check whether --with-ungif or --without-ungif was given.
@@ -1561,7 +1561,7 @@ if test "${with_gif_includes+set}" = set; then
   withval="$with_gif_includes"
   gif_includes="$withval"
 else
-  gif_includes=NO
+  gif_includes=no
 fi;
 
 # Check whether --with-tiff or --without-tiff was given.
@@ -1575,7 +1575,7 @@ if test "${with_tiff_includes+set}" = set; then
   withval="$with_tiff_includes"
   tiff_includes="$withval"
 else
-  tiff_includes=NO
+  tiff_includes=no
 fi;
 
 # Check whether --with-svg or --without-svg was given.
@@ -1596,7 +1596,7 @@ if test "${with_ttf_includes+set}" = set; then
   withval="$with_ttf_includes"
   ttf_includes="$withval"
 else
-  ttf_includes=NO
+  ttf_includes=no
 fi;
 
 # Check whether --with-gtk or --without-gtk was given.
