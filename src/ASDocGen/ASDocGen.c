@@ -50,7 +50,7 @@ SyntaxDef* TopLevelSyntaxes[] =
     &WinListSyntax,
 	&WinTabsSyntax,
     &AnimateSyntax,
-    &AudioSyntax,
+    &SoundSyntax,
 	&ArrangeSyntax,
 	&WinCommandSyntax,
 	NULL

@@ -844,8 +844,8 @@ destroy_asenvironment( ASEnvironment **penv )
 			int i ;
 			if( e->module_path )
 				free( e->module_path );
-			if( e->audio_path )
-				free( e->audio_path );
+			if( e->sound_path )
+				free( e->sound_path );
 			if( e->icon_path )
 				free( e->icon_path );
 			if( e->pixmap_path )

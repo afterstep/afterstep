@@ -38,7 +38,7 @@
 		../libAfterImage/afterimage.h \
 		afterconf.h
 
-./Audio.o : \
+./Sound.o : \
 		../configure.h \
 		../libAfterStep/asapp.h \
 		../libAfterStep/afterstep.h \

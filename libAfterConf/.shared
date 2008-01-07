@@ -3,7 +3,7 @@ LIBAFTERCONF_OBJS = \
 		$(LIBAFTERCONF_PATH)/AlignBevel.c \
 		$(LIBAFTERCONF_PATH)/Animate.c \
 		$(LIBAFTERCONF_PATH)/ASetRoot.c \
-		$(LIBAFTERCONF_PATH)/Audio.c \
+		$(LIBAFTERCONF_PATH)/Sound.c \
 		$(LIBAFTERCONF_PATH)/Base.c \
 		$(LIBAFTERCONF_PATH)/balloon.c \
 		$(LIBAFTERCONF_PATH)/Clean.c \

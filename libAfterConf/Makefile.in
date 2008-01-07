@@ -7,7 +7,7 @@ LIBS_PRIVATE      = ../libAfterConf/libAfterConf.a ../libAfterStep/libAfterStep.
 
 LIB_INCS= afterconf.h
 
-LIB_OBJS        = AfterStep.o AlignBevel.o Animate.o ASetRoot.o Audio.o \
+LIB_OBJS        = AfterStep.o AlignBevel.o Animate.o ASetRoot.o Sound.o \
 		Base.o balloon.o Clean.o Color.o Database.o DesktopEntry.o \
 		Feel.o function.o Ident.o Look.o MyFrame.o MyStyle.o \
 		Pager.o Wharf.o WinList.o WinTabs.o

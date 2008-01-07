@@ -45,7 +45,7 @@ extern struct SyntaxDef     *BevelSyntaxPtr;
 /* All top level syntax definitions are listed below : */
 extern struct SyntaxDef      ArrangeSyntax;  /* really is an empty syntax */  
 extern struct SyntaxDef      AnimateSyntax;
-extern struct SyntaxDef      AudioSyntax;
+extern struct SyntaxDef      SoundSyntax;
 extern struct SyntaxDef      BaseSyntax;
 extern struct SyntaxDef      CleanSyntax;
 extern struct SyntaxDef      ColorSyntax;
@@ -420,7 +420,7 @@ ASModuleConfig *parse_asmodule_config_all(ASModuleConfigClass *class );
 /***************************************************************************/
 #define BASE_ID_START        	(MODULE_DefaultsEnd_ID+1)
 #define BASE_MODULE_PATH_ID     BASE_ID_START
-#define BASE_AUDIO_PATH_ID      BASE_ID_START+1
+#define BASE_SOUND_PATH_ID      BASE_ID_START+1
 #define BASE_ICON_PATH_ID     	BASE_ID_START+2
 #define BASE_PIXMAP_PATH_ID     BASE_ID_START+3
 #define BASE_FONT_PATH_ID       BASE_ID_START+4
@@ -447,7 +447,7 @@ typedef struct
 #define BASE_NoModuleNameCollisions_SET	(0x01<<18)
 	ASFlagType flags, set_flags ; 
     char *module_path;
-    char *audio_path;
+    char *sound_path;
     char *icon_path;
     char *pixmap_path;
     char *font_path;
@@ -469,7 +469,7 @@ typedef struct
 BaseConfig *ParseBaseOptions (const char *filename, char *myname);
 void ExtractPath (BaseConfig * config,
 			 char **module_path,
-			 char **audio_path,
+			 char **sound_path,
 			 char **icon_path,
 			 char **pixmap_path,
 			 char **font_path,
@@ -2505,7 +2505,7 @@ void DestroyCleanConfig (CleanConfig * config);
 
 /**************************************************************************/
 /***************************************************************************/
-/*                        Audio pasring definitions                 */
+/*                        Sound pasring definitions                 */
 /***************************************************************************/
 /***************************************************************************/
 /*                        Possible AfterStep communication events :        */
@@ -2557,15 +2557,15 @@ void DestroyCleanConfig (CleanConfig * config);
 
 #define EVENT_ID_END          			(EVENT_ID_START+AFTERSTEP_EVENTS_NUM)
 
-#define AUDIO_ID_START        	(EVENT_ID_END+1)	
-#define AUDIO_PLAYCMD_ID        (AUDIO_ID_START+1)
-#define AUDIO_DELAY_ID          (AUDIO_ID_START+2)
-#define AUDIO_RPLAY_HOST_ID     (AUDIO_ID_START+3)
-#define AUDIO_RPLAY_PRI_ID      (AUDIO_ID_START+4)
-#define AUDIO_RPLAY_VOL_ID      (AUDIO_ID_START+5)
-#define AUDIO_AUDIO_ID          (AUDIO_ID_START+6)
+#define SOUND_ID_START        	(EVENT_ID_END+1)	
+#define SOUND_PLAYCMD_ID        (SOUND_ID_START+1)
+#define SOUND_DELAY_ID          (SOUND_ID_START+2)
+#define SOUND_RPLAY_HOST_ID     (SOUND_ID_START+3)
+#define SOUND_RPLAY_PRI_ID      (SOUND_ID_START+4)
+#define SOUND_RPLAY_VOL_ID      (SOUND_ID_START+5)
+#define SOUND_SOUND_ID          (SOUND_ID_START+6)
 
-#define AUDIO_ID_END            (AUDIO_ID_START+10)
+#define SOUND_ID_END            (SOUND_ID_START+10)
 
 /* config data structure */
 
@@ -2574,10 +2574,10 @@ typedef struct
 	char *playcmd;
   	char *sounds[AFTERSTEP_EVENTS_NUM] ;
 
-#define AUDIO_SET_DELAY  			(0x01<<0)
-#define AUDIO_SET_RPLAY_HOST		(0x01<<1)
-#define AUDIO_SET_RPLAY_PRIORITY  	(0x01<<2)
-#define AUDIO_SET_RPLAY_VOLUME  	(0x01<<3)
+#define SOUND_SET_DELAY  			(0x01<<0)
+#define SOUND_SET_RPLAY_HOST		(0x01<<1)
+#define SOUND_SET_RPLAY_PRIORITY  	(0x01<<2)
+#define SOUND_SET_RPLAY_VOLUME  	(0x01<<3)
   
 	ASFlagType set_flags ;
 
@@ -2587,13 +2587,13 @@ typedef struct
 	int rplay_volume;
 
 	struct FreeStorageElem *more_stuff;
-}AudioConfig;
+}SoundConfig;
 
-AudioConfig *CreateAudioConfig ();
-AudioConfig *ParseAudioOptions (const char *filename, char *myname);
-int WriteAudioOptions (const char *filename, char *myname,
-		       AudioConfig * config, unsigned long flags);
-void DestroyAudioConfig (AudioConfig * config);
+SoundConfig *CreateSoundConfig ();
+SoundConfig *ParseSoundOptions (const char *filename, char *myname);
+int WriteSoundOptions (const char *filename, char *myname,
+		       SoundConfig * config, unsigned long flags);
+void DestroySoundConfig (SoundConfig * config);
 
 /**************************************************************************/
 /***************************************************************************/
@@ -2601,7 +2601,7 @@ void DestroyAudioConfig (AudioConfig * config);
 /***************************************************************************/
 
 
-#define IDENT_ID_START        	AUDIO_ID_END
+#define IDENT_ID_START        	SOUND_ID_END
 
 #define IDENT_Geometry_ID 		(IDENT_ID_START)
 

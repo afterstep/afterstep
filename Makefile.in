@@ -33,7 +33,7 @@ subdirs		= libAfterBase libAfterImage libAfterStep libAfterConf @LIBASGTKDIR@ \
 #		  src/ascp/gtk
 
 #		  src/asetroot \
-#		  src/Audio \
+#		  src/Sound \
 #		  src/Clean \
 #		  src/Form \
 #		  src/Gnome \

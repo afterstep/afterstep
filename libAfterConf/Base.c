@@ -40,7 +40,7 @@
 
 TermDef       BaseTerms[] = {
     {TF_NO_MYNAME_PREPENDING, "ModulePath", 10,     TT_PATHNAME, BASE_MODULE_PATH_ID, NULL},
-    {TF_NO_MYNAME_PREPENDING, "AudioPath", 9,       TT_PATHNAME, BASE_AUDIO_PATH_ID , NULL},
+    {TF_NO_MYNAME_PREPENDING, "SoundPath", 9,       TT_PATHNAME, BASE_SOUND_PATH_ID , NULL},
     {TF_NO_MYNAME_PREPENDING, "IconPath", 8,        TT_PATHNAME, BASE_ICON_PATH_ID  , NULL},
     {TF_NO_MYNAME_PREPENDING, "PixmapPath", 10,     TT_PATHNAME, BASE_PIXMAP_PATH_ID, NULL},
     {TF_NO_MYNAME_PREPENDING, "FontPath", 8,        TT_PATHNAME, BASE_FONT_PATH_ID,   NULL},
@@ -100,7 +100,7 @@ DestroyBaseConfig (BaseConfig * config)
 {
 	int i = MAX_TOOL_COMMANDS;
 	destroy_string( &(config->module_path) );
-	destroy_string( &(config->audio_path) );
+	destroy_string( &(config->sound_path) );
 	destroy_string( &(config->icon_path) );
 	destroy_string( &(config->pixmap_path) );
 	destroy_string( &(config->font_path) );
@@ -146,8 +146,8 @@ ParseBaseOptions (const char *filename, char *myname)
 		 case BASE_MODULE_PATH_ID:
 			 set_string( &(config->module_path), item.data.string );
 			 break;
-		 case BASE_AUDIO_PATH_ID:
-			 set_string( &(config->audio_path), item.data.string );
+		 case BASE_SOUND_PATH_ID:
+			 set_string( &(config->sound_path), item.data.string );
 			 break;
 		 case BASE_ICON_PATH_ID:
 			 set_string( &(config->icon_path), item.data.string );
@@ -254,8 +254,8 @@ WriteBaseOptions (const char *filename, char *myname, BaseConfig * config, unsig
 	/* cursor_path */
 	tail = String2FreeStorage (&BaseSyntax, tail, config->cursor_path, BASE_CURSOR_PATH_ID);
 
-	/* audio_path */
-	tail = String2FreeStorage (&BaseSyntax, tail, config->audio_path, BASE_AUDIO_PATH_ID);
+	/* sound_path */
+	tail = String2FreeStorage (&BaseSyntax, tail, config->sound_path, BASE_SOUND_PATH_ID);
 
 	/* myname_path */
 	tail = String2FreeStorage (&BaseSyntax, tail, config->myname_path, BASE_MYNAME_PATH_ID);
@@ -286,7 +286,7 @@ WriteBaseOptions (const char *filename, char *myname, BaseConfig * config, unsig
 void
 ExtractPath (BaseConfig * config,
 			 char **module_path,
-			 char **audio_path,
+			 char **sound_path,
 			 char **icon_path,
 			 char **pixmap_path,
 			 char **font_path,
@@ -303,10 +303,10 @@ ExtractPath (BaseConfig * config,
 			tmp = copy_replace_envvar (config->module_path);
 			set_string(module_path, tmp );
 		}
-		if (audio_path && config->audio_path)
+		if (sound_path && config->sound_path)
 		{
-			tmp = copy_replace_envvar (config->audio_path);
-			set_string(audio_path, tmp );
+			tmp = copy_replace_envvar (config->sound_path);
+			set_string(sound_path, tmp );
 		}
 		if (icon_path && config->icon_path)
 		{
@@ -353,7 +353,7 @@ BaseConfig2ASEnvironment( register BaseConfig *config, ASEnvironment **penv )
 	if( env == NULL )
 		env = make_default_environment();
 	ExtractPath (config, &(env->module_path),
-		            	&(env->audio_path),
+		            	&(env->sound_path),
 						&(env->icon_path),
 						&(env->pixmap_path),
 						&(env->font_path),

@@ -797,7 +797,7 @@ tools/postcard.sh \
 \
 afterstep/applications/modules.desktop \
 afterstep/base \
-afterstep/audio \
+afterstep/sound \
 afterstep/autoexec \
 afterstep/pager \
 afterstep/start/.include \
