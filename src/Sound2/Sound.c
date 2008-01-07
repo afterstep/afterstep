@@ -33,7 +33,6 @@
 #include "../../libAfterConf/afterconf.h"
 #include "../../libAfterStep/clientprops.h"
 #include "Sound.h"
-#include "../../libAfterStep/freestor.h"
 // Defines
 #define MAX_SOUNDS AFTERSTEP_EVENTS_NUM
 #define mask_reg MAX_MASK
@@ -41,7 +40,7 @@
 // from afterconf.h ?
 AudioConfig     *Config = NULL;
 
-const char *filename = "/home/jeremy/.afterstep/audio";
+const char *filename = "/home/shadowgod/.afterstep/audio";
 
 // asapp.h ?
 void DeadPipe (int);
@@ -50,12 +49,12 @@ void GetOptions (const char *filename);
 void HandleEvents();
 void DispatchEvent (ASEvent * event);  
 void proc_message (send_data_type type, send_data_type *body);
-int ply_sound(int code);
 
 // Sound2 Functions
-int as_snd2_init_stg1(struct SND2dev * SND2devP);
-int as_snd2_init_stg2(struct SND2dev * SND2devP);
-int as_snd2_playsound(struct SND2dev * SND2devP);
+int as_snd2_init_stg1();
+int as_snd2_init_stg2();
+//int as_snd2_waveheader(char *WaveFile);
+int as_snd2_playsound(const char *SoundName);
 
 // ?
 Bool (*audio_play) (short) = NULL;
@@ -64,7 +63,6 @@ Bool (*audio_play) (short) = NULL;
 struct SND2dev SND2devS;
 SND2devP = &SND2devS;
        
-
 int main(int argc,char ** argv)
 {
     // Standard AS Stuff
@@ -81,25 +79,28 @@ int main(int argc,char ** argv)
     LoadBaseConfig(GetBaseOptions);
     LoadConfig("audio",GetOptions);
     
-    fprintf(stdout,"--Audio Conf: %i",Config->delay);
+    //fprintf(stdout,"--Audio Conf: %i",Config->delay);
 
-    as_snd2_init_stg1(SND2devP);
-    //as_snd2_init_stg2();
+    as_snd2_init_stg1();
+    as_snd2_init_stg2();
     
-    //HandleEvents();
+    as_snd2_playsound("test");
+    
+    HandleEvents();
     
     return 0;
 }
 
-int as_snd2_init_stg1(struct SND2dev * SND2devP)
+int as_snd2_init_stg1()
 {
     // Stage 1 Sound2 module Init.
     //--struct SND2dev SND2devS, *SND2devP;
     //--SND2devP = &SND2devS;
     
     typedef char *String;
-    int Snd2DEBUG, stg2Ret, ret1;
+    int Snd2DEBUG, ret1;
     String pcmDeviceID = "plughw:0,0"; // Need to make Config File opt for setting this.
+    //String pcmDeviceID = "default";
 
     Snd2DEBUG = 1;
 
@@ -111,7 +112,7 @@ int as_snd2_init_stg1(struct SND2dev * SND2devP)
     if (Snd2DEBUG) { fprintf(stdout,"Allocating Hardware Param Structure....\n"); }
     
     // (Returned Pointer)
-    ret1 = snd_pcm_hw_params_malloc(&SND2devP->hw_params);
+    ret1 = snd_pcm_hw_params_malloc(&SND2devS.hw_params);
     
     if (Snd2DEBUG) { fprintf(stdout,"Init Hardware Param Structure...\n");}
     
@@ -132,12 +133,12 @@ int as_snd2_init_stg1(struct SND2dev * SND2devP)
     
     if (Snd2DEBUG) { fprintf(stdout,"Stage 1 Init Complete!\n\n"); }
     
-    stg2Ret = as_snd2_init_stg2(SND2devP);
+    //stg2Ret = as_snd2_init_stg2(SND2devP);
     
     return 1;
 }
 
-int as_snd2_init_stg2(struct SND2dev * SND2devP)
+int as_snd2_init_stg2()
 {
     // Following Init depends on the file type.
     // since we're setting Sample rate, channel count (mono,stereo), etc.
@@ -153,31 +154,44 @@ int as_snd2_init_stg2(struct SND2dev * SND2devP)
     if (Snd2DEBUG) { fprintf(stdout,"Setting Sample Rate...\n"); }
     
     // (PCM Handle, Config Space, Sample Rate, Sub Unit Direction)
-    snd_pcm_hw_params_set_rate_near(SND2devP->pcm_handle,SND2devP->hw_params,&SRate,&dir);
+    snd_pcm_hw_params_set_rate_near(SND2devS.pcm_handle,SND2devS.hw_params,SRate,&dir);
     
     if (Snd2DEBUG) { fprintf(stdout,"Setting Channel Count...\n"); }
     
     // (PCM Handle, Config Space, Channel Count)
-    snd_pcm_hw_params_set_channels(SND2devP->pcm_handle,SND2devP->hw_params,CHcount);
+    snd_pcm_hw_params_set_channels(SND2devS.pcm_handle,SND2devS.hw_params,CHcount);
     
     if (Snd2DEBUG) { fprintf(stdout,"Apply Hardware Params...\n"); }
     
     // (PCM Handle, Config Space)
-    snd_pcm_hw_params(SND2devP->pcm_handle,SND2devP->hw_params);
+    snd_pcm_hw_params(SND2devS.pcm_handle,SND2devS.hw_params);
     
     if (Snd2DEBUG) { fprintf(stdout,"Free Hardware Space Container...\n"); }
     
     // (Config Space)
-    snd_pcm_hw_params_free(SND2devP->hw_params);
+    snd_pcm_hw_params_free(SND2devS.hw_params);
     
     if (Snd2DEBUG) { fprintf(stdout,"Stage 2 Init Complete!\n\n"); }
     
-    HandleEvents(SND2devP);
+    //HandleEvents(SND2devP);
     
     return 1;
 }
-
-int as_snd2_playsound(struct SND2dev * SND2devP)
+/*
+int as_snd2_waveheader(char *WaveFile)
+{
+    // Read Wave file header info
+    FILE *WaveFileR
+    char *headBuff;
+    int *wavHead;
+    
+    WaveFileR = fopen(WaveFile,"rb");
+    
+    headBuff = (char*)malloc(256);
+    
+}
+*/
+int as_snd2_playsound(const char *SndName)
 {
     // Lets play some sound now!
     
@@ -189,26 +203,28 @@ int as_snd2_playsound(struct SND2dev * SND2devP)
     if (SNDFile == NULL) { fprintf(stdout,"Failed to open Sound File\n"); exit(1); }
 
 //    if (Snd2DEBUG) { fprintf(stdout,"Prepare To Play!...\n"); }
-    snd_pcm_prepare(SND2devP->pcm_handle);    
+    snd_pcm_prepare(SND2devS.pcm_handle);    
+
+    fprintf(stdout,"Play Sound: %s\n",SndName);
     
     fseek(SNDFile,0,SEEK_END); // We're trying to get the full file size here...
     SNDFileSize = ftell(SNDFile);
     rewind(SNDFile); // Now that we got size, go back to beginning
     fseek(SNDFile,128,SEEK_SET); // we're skipping first 128 bytes. its unplayable (header info)
     
-    SNDFileFrames = snd_pcm_bytes_to_frames(SND2devP->pcm_handle,SNDFileSize);
+    SNDFileFrames = snd_pcm_bytes_to_frames(SND2devS.pcm_handle,SNDFileSize);
     
     SFbuffer = (char*)malloc(SNDFileSize);
     while ((SNDFileRead = fread(SFbuffer,4,SNDFileFrames,SNDFile)) > 0)
     {
-          snd_pcm_writei(SND2devP->pcm_handle,SFbuffer,SNDFileFrames);
-    }   
+          snd_pcm_writei(SND2devS.pcm_handle,SFbuffer,SNDFileFrames);
+    }
     
     return 1;
 }
 
 /* ======== STANDARD AS STUFF ============ */
-void HandleEvents(struct SND2dev * SND2devP)
+void HandleEvents()
 {   
     ASEvent event;
     Bool has_x_events = False ;
@@ -238,8 +254,6 @@ void DispatchEvent (ASEvent * event)
 }    
 void proc_message(send_data_type type, send_data_type *body)
 {
-    time_t now = 0;
-    static time_t last_time = 0;
     int StateChange, code = -1;
     
     if (type == M_PLAY_SOUND) { show_activity("M_PLY_SND"); } // Need to find whats calling this type
@@ -259,7 +273,10 @@ void proc_message(send_data_type type, send_data_type *body)
         else if (res == WP_DataChanged)
         {
             if (type == M_FOCUS_CHANGE)
-            {	show_activity("FOC_CHANGE"); }
+            {	
+                show_activity("FOC_CHANGE"); 
+                as_snd2_playsound("focus");
+            }
             
             StateChange = wd->state_flags ^ old_state;
             if (StateChange)
@@ -267,12 +284,23 @@ void proc_message(send_data_type type, send_data_type *body)
                 if (StateChange & AS_Shaded)
                 {
                     show_activity("STATE: Shade");
-                    as_snd2_playsound(SND2devP);
+                    as_snd2_playsound("shade");
                 }
                 if (StateChange & AS_Iconic)
-                {	show_activity("STATE: Iconic"); }
+                {	
+                    show_activity("STATE: Iconic"); 
+                    as_snd2_playsound("iconic");
+                }
                 if (StateChange & AS_Sticky)
-                {	show_activity("STATE: Sticky"); }
+                {	
+                    show_activity("STATE: Sticky");
+                    as_snd2_playsound("sticky");
+                }
+                if (StateChange & AS_MaximizedY);
+                {
+                    show_activity("STATE: MaximizedY");
+                    as_snd2_playsound("maximized");
+                }
             }
             res = -1;
         }
@@ -280,24 +308,11 @@ void proc_message(send_data_type type, send_data_type *body)
         {	code = EVENT_WindowDestroyed; }
         
     }
-    
-    now = time(0);
-    if (code >= 0)
+    else if (type == M_NEW_DESKVIEWPORT)
     {
-        if (now >= (last_time + (time_t)Config->delay))
-        {
-            if (ply_sound(code)) { last_time = now; }
-        }
+        show_activity("-STATE: VIEWPORT CHANGE");
+        as_snd2_playsound("viewport");
     }
-}
-
-int ply_sound(int code)
-{
-    // This function prolly needs removal
-    // (replaced with as_snd2_playsound()
-    show_activity("ply_sound %i\n",code);
-    
-    return 1;
 }
 void
 GetBaseOptions (const char *filename/* unused*/)
@@ -309,34 +324,43 @@ GetBaseOptions (const char *filename/* unused*/)
 void
 GetOptions (const char *filename)
 {
-    AudioConfig *config = ParseAudioOptions (filename, MyName);
-        int i ;
+    fprintf(stdout,"*****GETOPTIONS START******\n");
+    fprintf(stdout,"[%s]--FName: %s\n",MyName,filename);
+    AudioConfig *config = ParseAudioOptions (filename, "Audio");
+
+    int i ;
     START_TIME(option_time);
+    
+ //   fprintf(stdout,"--1DELAY: %i\n",config->delay);
+  //  fprintf(stdout,"--CMD: %s\n",config->playcmd);
+    fprintf(stdout,"--PTH: %s\n",config->sounds[15]);
 
     /* Need to merge new config with what we have already :*/
     /* now lets check the config sanity : */
     /* mixing set and default flags : */
     Config->set_flags |= config->set_flags;
 
-    if( config->playcmd != NULL )
-        set_string( &(Config->playcmd), config->playcmd);
+//    if( config->playcmd != NULL )
+//        set_string( &(Config->playcmd), config->playcmd);
         
     for( i = 0 ; i < AFTERSTEP_EVENTS_NUM ; ++i ) 
-    if( config->sounds[i] != NULL ) 
-        set_string( &(Config->sounds[i]), config->sounds[i]);
+    {
+        if( config->sounds[i] != NULL )
+        {
+            fprintf(stdout,"--SOUNDS: [%i]: %s\n",i,config->sounds[i]);
+            set_string( &(Config->sounds[i]), config->sounds[i]);
+        }
+    }
     
-    if( get_flags(config->set_flags, AUDIO_SET_DELAY) )
-        Config->delay = config->delay;
-
-    if( get_flags(config->set_flags, AUDIO_SET_RPLAY_HOST) && config->rplay_host != NULL )
-        set_string( &(Config->rplay_host), config->rplay_host);   
-
-    if( get_flags(config->set_flags, AUDIO_SET_RPLAY_PRIORITY) )
-        Config->rplay_priority = config->rplay_priority;
-    if( get_flags(config->set_flags, AUDIO_SET_RPLAY_VOLUME) )
-        Config->rplay_volume = config->rplay_volume;
+    // This delay option seems... unneeded.
+//    if( get_flags(config->set_flags, AUDIO_SET_DELAY) )
+//    {
+//        Config->delay = config->delay;
+//        fprintf(stdout,"---DELAY: %i",Config->delay);
+//    }
 
     DestroyAudioConfig (config);
     SHOW_TIME("Config parsing",option_time);
+    fprintf(stdout,"******GETOPTIONS END*****\n");
 }
  
