@@ -1,0 +1,36 @@
+#------------------------------------------------------------------------
+# Audio
+#
+*SoundPath                      @datadir@/afterstep/desktop/sounds
+#
+# This will use rplay client-server sound player :
+#*SoundPlayCmd                  builtin-rplay
+# This will stream contents of the sound file directly to 
+# /dev/audio :
+#*SoundPlayCmd                  builtin-cat
+# This will stream contents of the sound file to STDOUT
+#*SoundPlayCmd                  builtin-stdout
+# see ./configure --with-soundplayer to set your player proggy
+# here only args should go. (completely ommit if no args)
+*SoundPlayCmd                   @AUDIO_PLAY_CMD@
+
+*SoundDelay                     1
+*Sound  startup                 meepmeep.au
+*Sound  shutdown                clink.au
+*Sound  add_window              bong.au
+*Sound  raise_window            drip.au
+*Sound  lower_window            drip.au
+*Sound  focus_change            drip.au
+*Sound  destroy_window          crash.au
+*Sound  iconify                 meepmeep.au
+*Sound  deiconify               ploop.au
+*Sound  toggle_paging           fwop.au
+*Sound  new_page                beaming.au
+*Sound  new_desk                beam_trek.au
+*Sound  configure_window        huh.au
+*Sound  window_name             bong.au
+*Sound  icon_name               beep.au
+*Sound  res_class               bong.au
+*Sound  res_name                beep.au
+*Sound  end_windowlist          twang.au
+
