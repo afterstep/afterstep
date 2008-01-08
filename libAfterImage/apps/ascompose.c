@@ -201,6 +201,11 @@ void usage(void) {
 		"\n"
 		"  -C --clipboard     run ascompose waiting for data being copied into clipboard,\n" 
 		"                     and displaying/processing it, if it is xml.\n"
+		" Examples: \n"
+		" To display image.jpg on root window : \n"
+		"   ascompose -r -s \"<img src=image.jpg/>\""
+		" To display image.jpg on root window scaling it to screen size: \n"
+		"   ascompose -r -s \"<scale width=xroot.width height=proportional><img src=image.jpg/></scale>\""
 	);
 }
 
@@ -262,8 +267,6 @@ Window showimage(ASImage* im, Bool looping, Window main_window, ASComposeWinProp
 Window make_main_window(Bool on_root, ASComposeWinProps *props);	
 
 int screen = 0, depth = 0;
-
-
 
 int main(int argc, char** argv) {
 
@@ -744,6 +747,60 @@ make_main_window(Bool onroot, ASComposeWinProps *props)
 	return w;
 }
 
+Bool
+set_root_pixmap_property(long pmap) /* Must have long type to work with XChangeProp on 64 bit machines !!!*/
+{
+	Window root = DefaultRootWindow(dpy);
+	char  *names[2] = {"_XROOTPMAP_ID", "ESETROOT_PMAP_ID"};
+	Atom  atoms[2];
+	int i;
+
+	if (XInternAtoms (dpy, &(names[0]), 2, True, &(atoms[0])) != 0)
+	{
+		Pixmap pmaps[2] = {0, 0};
+	    Atom type;
+    	int format;
+	    unsigned long nitems, after;
+		union 
+		{
+			unsigned char *uc_ptr ;
+			long 		  *long_ptr ;
+		}data;
+
+		for (i = 0 ; i < 2 ; ++i)
+			if (atoms[i])
+			{
+				LOCAL_DEBUG_OUT("atoms[%d] = %X", i, atoms[i]);
+				data.long_ptr = NULL ;
+		        XGetWindowProperty(dpy, root, atoms[i], 0L, 1L, False, AnyPropertyType, &type, &format, &nitems, &after, &data.uc_ptr);
+				if (data.long_ptr == NULL)
+					break;
+				pmaps[i] = data.long_ptr[0] ;
+				LOCAL_DEBUG_OUT("pmaps[%d] = %X", i, pmaps[i]);
+				if (format != 32 || nitems == 0|| pmaps[i] == None || pmaps[i] != pmaps[0] || type != XA_PIXMAP) 
+					break;
+			}
+		if (i>= 2) 
+		{
+			LOCAL_DEBUG_OUT("killing client for pmap %X", pmaps[0]);
+           	XKillClient(dpy, pmaps[0]);
+		}
+    }
+	for (i = 0 ; i < 2 ; ++i)
+	{
+		if (!atoms[i])
+			if ( (atoms[i] = XInternAtom (dpy, names[i], False)) == None)
+				break;
+    	XChangeProperty(dpy, root, atoms[i], XA_PIXMAP, 32, PropModeReplace, (unsigned char *) &pmap, 1);
+	}
+	if (i < 2)
+		return False;
+	
+	XSetCloseDownMode(dpy, RetainPermanent);
+	return True;
+}
+
+
 Window showimage(ASImage* im, Bool looping, Window main_window, ASComposeWinProps *props ) 
 {
 #ifndef X_DISPLAY_MISSING
@@ -756,6 +813,10 @@ Window showimage(ASImage* im, Bool looping, Window main_window, ASComposeWinProp
 	unsigned int shape_rects_count = 0;
 	XRectangle *shape_rects = NULL ;
 	Bool done = False ;
+	Window root = DefaultRootWindow(dpy);
+	int screen = DefaultScreen(dpy);
+	int root_w = DisplayWidth (dpy, screen);
+	int root_h = DisplayHeight (dpy, screen);
 
 	if (im == NULL || main_window == None ) 
 		return None;
@@ -763,7 +824,7 @@ Window showimage(ASImage* im, Bool looping, Window main_window, ASComposeWinProp
 	width = im->width;
 	height = im->height;
 	   
-	if( main_window != DefaultRootWindow(dpy) )
+	if( main_window != root)
 	{	
 		Bool move = True ;
 		
@@ -774,16 +835,16 @@ Window showimage(ASImage* im, Bool looping, Window main_window, ASComposeWinProp
 		
 		if( props->center ) 
 		{	
-			x = (DisplayWidth (dpy, DefaultScreen(dpy)) - width)/2;
-			y = (DisplayHeight (dpy, DefaultScreen(dpy)) - height)/2;
+			x = (root_w - width)/2;
+			y = (root_h - height)/2;
 		}else if( get_flags( props->geom_flags, XValue|YValue) )
 		{
 	 		x = props->geom_x ;
 			y = props->geom_y ;
 			if( get_flags( props->geom_flags, XNegative ) )
-				x = DisplayWidth (dpy, DefaultScreen(dpy)) - width + x ;
+				x = root_w - width + x ;
 			if( get_flags( props->geom_flags, YNegative ) )
-				y = DisplayHeight (dpy, DefaultScreen(dpy)) - height + y ;
+				y = root_h - height + y ;
 		}else 
 			move = False ;
 
@@ -880,28 +941,37 @@ Window showimage(ASImage* im, Bool looping, Window main_window, ASComposeWinProp
 		}		   
 	}
 
-	if( main_window==DefaultRootWindow(dpy)	)
+	if (main_window==root)
 	{
-		XImage *xim = create_visual_scratch_ximage( asv, im->width, im->height, DefaultDepth(dpy,DefaultScreen(dpy)) );
-		p = create_visual_pixmap( asv, DefaultRootWindow(dpy), im->width, im->height, 
-							      DefaultDepth(dpy,DefaultScreen(dpy)) );
+		XImage *xim = create_visual_scratch_ximage( asv, im->width, im->height, DefaultDepth(dpy,screen) );
+		p = create_visual_pixmap( asv, root, im->width, im->height, DefaultDepth(dpy,screen) );
 		if( subimage2ximage (asv, im, 0, 0, xim)	)
 		{	
-			put_ximage( asv, xim, p, DefaultGC(dpy,DefaultScreen(dpy)), 0, 0, 0, 0, im->width, im->height );	
+			put_ximage( asv, xim, p, DefaultGC(dpy,screen), 0, 0, 0, 0, im->width, im->height );	
 		}
 		XDestroyImage( xim );				   
 	}else
 	{
-		p = create_visual_pixmap( asv, DefaultRootWindow(dpy), im->width, im->height, 0 );
+		p = create_visual_pixmap( asv, root, im->width, im->height, 0 );
 		if( get_flags( asv->glx_support, ASGLX_UseForImageTx ) )
-			done = asimage2drawable_gl( asv, p, im, 0, 0, 0, 0,
-        		   						im->width, im->height, 
+			done = asimage2drawable_gl( asv, p, im, 0, 0, 0, 0, 
+										im->width, im->height, 
 				   						im->width, im->height, 
 										False );
 		if( !done ) 
 			asimage2drawable( asv, p, im, NULL, 0, 0, 0, 0, im->width, im->height, True);
 	}
-	p = set_window_background_and_free( main_window, p );
+
+	if (main_window == root && !looping)
+	{	
+		set_root_pixmap_property(p);
+		XSetWindowBackgroundPixmap( dpy, root, p);
+		XClearWindow( dpy, root);
+		XSync(dpy, False);
+		return root;
+	}else
+		p = set_window_background_and_free( main_window, p );
+	
 	XSync(dpy, False);
 #if 1
 #ifdef SHAPE
@@ -967,7 +1037,7 @@ Window showimage(ASImage* im, Bool looping, Window main_window, ASComposeWinProp
 		}
 		if( do_close ) 
 		{
-			if( main_window != DefaultRootWindow(dpy) )
+			if( main_window != root )
 				XDestroyWindow( dpy, main_window );
 			XFlush( dpy );
 			main_window = None ;
