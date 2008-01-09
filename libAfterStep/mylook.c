@@ -456,6 +456,7 @@ inherit_myframe( MyFrame *frame, MyFrame *ancestor )
         int i ;
         frame->parts_mask = (frame->parts_mask&(~ancestor->set_parts))|ancestor->parts_mask ;
         frame->set_parts |= ancestor->set_parts ;
+
         for( i = 0 ; i < FRAME_PARTS ; ++i )
         {
             if( ancestor->part_filenames[i] )
@@ -474,9 +475,17 @@ inherit_myframe( MyFrame *frame, MyFrame *ancestor )
             if( get_flags(ancestor->set_part_align, 0x01<<i ) )
                 frame->part_align[i] = ancestor->part_align[i];
         }
+
+        for( i = 0 ; i < FRAME_SIDES ; ++i )
+        {
+	        if( ancestor->part_slicing[i].flags != 0 )
+    	        frame->part_slicing[i] = ancestor->part_slicing[i];
+		}
+
         frame->set_part_size |= ancestor->set_part_size ;
         frame->set_part_bevel |= ancestor->set_part_bevel ;
         frame->set_part_align |= ancestor->set_part_align ;
+
         for( i = 0 ; i < BACK_STYLES ; ++i )
         {
             if( ancestor->title_style_names )
@@ -484,12 +493,15 @@ inherit_myframe( MyFrame *frame, MyFrame *ancestor )
             if( ancestor->frame_style_names )
                 set_string( &(frame->frame_style_names[i]), mystrdup(ancestor->frame_style_names[i]) );
         }
+
 		for( i = 0 ; i < MYFRAME_TITLE_BACKS ; ++i )
 		{
         	if( ancestor->title_back_filenames[i] )
             	set_string( &(frame->title_back_filenames[i]), mystrdup(ancestor->title_back_filenames[i]) );
 	        if( get_flags( ancestor->set_title_attr, MYFRAME_TitleBackAlignSet_Start<<i ) )
     	        frame->title_backs_align[i] = ancestor->title_backs_align[i];
+	        if( ancestor->title_backs_slicing[i].flags != 0 )
+    	        frame->title_backs_slicing[i] = ancestor->title_backs_slicing[i];
 		}
 
         if( get_flags( ancestor->set_title_attr, MYFRAME_TitleFBevelSet ) )

@@ -284,9 +284,24 @@ PrintMyFrameDefinitions (MyFrameDefinition * list, int index)
 		{
 	       fprintf (stderr, "MyFrame[%d].title_backs_align[%d] = 0x%lX;\n", index, i, list->title_backs_align[i]);
 		}
+    	for( i = 0 ; i < MYFRAME_TITLE_BACKS ; ++i )
+		{
+			if (list->title_backs_slicing[i].flags != 0)
+		       fprintf (stderr, "MyFrame[%d].title_backs_slicing[%d] = 0x%X, %dx%d%+d%+d;\n", 
+			            index, i, list->title_backs_slicing[i].flags,
+						list->title_backs_slicing[i].width, list->title_backs_slicing[i].height,
+						list->title_backs_slicing[i].x, list->title_backs_slicing[i].y);
+		}
         fprintf (stderr, "MyFrame[%d].title_fcm = %d;\n", index, list->title_fcm);
         fprintf (stderr, "MyFrame[%d].title_ucm = %d;\n", index, list->title_ucm);
         fprintf (stderr, "MyFrame[%d].title_scm = %d;\n", index, list->title_scm);
+		for (i = 0; i < FRAME_SIDES ; ++i)
+			if (list->side_slicing[i].flags != 0)
+			   fprintf (stderr, "MyFrame[%d].side_slicing[%d] = 0x%X, %dx%d%+d%+d;\n", 
+				        index, i, list->side_slicing[i].flags,
+						list->side_slicing[i].width, list->side_slicing[i].height,
+						list->side_slicing[i].x, list->side_slicing[i].y);
+
         if( list->inheritance_list )
             for( i = 0 ; i < list->inheritance_num ; ++i )
                 fprintf (stderr, "MyFrame[%d].Inherit[%d] = \"%s\";\n", index, i, list->inheritance_list[i]);
@@ -378,6 +393,16 @@ ProcessMyFrameOptions (FreeStorageElem * options, MyFrameDefinition ** tail)
 						fd->title_backs_align[index] = ParseAlignOptions( options->sub );
                         set_flags( fd->set_title_attr, MYFRAME_TitleBackAlignSet_Start<<index );
 						continue;
+					}
+				}
+				if( options->term->id >= MYFRAME_TitleBackSlicing_ID_START )
+				{
+					int index = options->term->id - MYFRAME_TitleBackSlicing_ID_START ;
+					if( index < MYFRAME_TITLE_BACKS )
+					{
+                        if (!ReadConfigItem (&item, options))
+                            continue;
+						fd->title_backs_slicing[index] = item.data.geometry;
 					}
 				}
                 switch( options->term->id )

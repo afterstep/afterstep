@@ -483,13 +483,30 @@ LOCAL_DEBUG_OUT( "++CREAT Client(%lx(%s))->ICONT->canvas(%p)->window(%lx)", asw-
     return canvas;
 }
 
+/* pointers should point to valid values preset to 0, im.width, 0, im.height */
+static void
+geometry2slicing( ASGeometry g, int *pxs, int *pxe,  int *pys,  int *pye)
+{
+	if (get_flags(g.flags,XValue))
+		*pxs = get_flags(g.flags,XNegative)?*pxe+g.x:g.x; 
+	if (get_flags(g.flags,YValue))
+		*pys = get_flags(g.flags,YNegative)?*pye+g.y:g.y; 
+
+	if (get_flags(g.flags,WidthValue))
+		*pxe = *pxs + g.width; 
+	if (get_flags(g.flags,HeightValue))
+		*pye = *pys + g.height; 
+}
+
+
 static ASTBarData*
 check_tbar( ASTBarData **tbar, Bool required, const char *mystyle_name,
             ASImage *img, unsigned short back_w, unsigned short back_h,
             int flip, ASFlagType align,
             ASFlagType fbevel, ASFlagType ubevel,
             unsigned char fcm, unsigned char ucm,
-            int context )
+            int context,
+			ASGeometry *slicing )
 {
     if( required )
     {
@@ -508,7 +525,13 @@ LOCAL_DEBUG_OUT( "++CREAT tbar(%p)->context(%s)", *tbar, context2text(context) )
         if( img )
         {
             LOCAL_DEBUG_OUT("adding bar icon %p %ux%u", img, img->width, img->height );
-            add_astbar_icon( *tbar, 0, 0, flip, align, img );
+			if (slicing && slicing->flags)
+			{
+				int xs = 0, xe = 0, ys = img->width, ye = img->height;
+				geometry2slicing( *slicing, &xs, &xe, &ys, &ye);
+	            add_astbar_image( *tbar, 0, 0, flip, align, img, xs, xe, ys, ye );
+    		}else
+	            add_astbar_icon( *tbar, 0, 0, flip, align, img );
             if( back_w == 0 )
                 back_w = get_flags(flip,FLIP_VERTICAL)?img->height:img->width ;
             if( back_h == 0 )
@@ -880,7 +903,6 @@ fix_background_align( ASFlagType align )
 	return new_align;
 }
 
-
 Bool
 hints2decorations( ASWindow *asw, ASHints *old_hints )
 {
@@ -974,7 +996,7 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
                 		0, Scr.Look.ButtonAlign,
                 		Scr.Look.ButtonBevel, Scr.Look.ButtonBevel,
                 		TEXTURE_TRANSPIXMAP_ALPHA, TEXTURE_TRANSPIXMAP_ALPHA,
-                		C_IconButton );
+                		C_IconButton, False );
 			
 			if( icon_image )
     	    	safe_asimage_destroy( icon_image );
@@ -993,7 +1015,7 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
 				AS_ICON_TITLE_MYSTYLE,
   	            NULL, 0, 0, 0, ALIGN_CENTER, DEFAULT_TBAR_HILITE, DEFAULT_TBAR_HILITE,
               	TEXTURE_TRANSPIXMAP_ALPHA, TEXTURE_TRANSPIXMAP_ALPHA,
-              	C_IconTitle );
+              	C_IconTitle, False );
     
 	if( asw->icon_title )
     {
@@ -1067,18 +1089,18 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
                         	od->flip, frame->part_align[i],
                         	frame->part_fbevel[i], frame->part_ubevel[i],
                         	TEXTURE_TRANSPIXMAP_ALPHA, TEXTURE_TRANSPIXMAP_ALPHA,
-                        	frame_contexts[i] );
+                        	frame_contexts[i], (i<FRAME_SIDES)?&(frame->part_slicing[i]):NULL );
 	      	}
     	}else
         	for( i = 0 ; i < FRAME_PARTS ; ++i )
-            	check_tbar( &(asw->frame_bars[i]), False, NULL, NULL, 0, 0, 0, 0, 0, 0, 0, 0, C_NO_CONTEXT );
+            	check_tbar( &(asw->frame_bars[i]), False, NULL, NULL, 0, 0, 0, 0, 0, 0, 0, 0, C_NO_CONTEXT, NULL );
 
     	check_tbar( &(asw->tbar), has_tbar, mystyle_name, NULL, 0, 0,
 					od->flip,
 					frame->title_align,
                 	frame->title_fbevel, frame->title_ubevel,
                 	frame->title_fcm, frame->title_ucm,
-                	C_TITLE );
+                	C_TITLE, NULL );
 		if( asw->tbar ) 
 		{	
 			int fhue = -1, fsat = -1, uhue = -1, usat = -1 ; 
@@ -1174,11 +1196,22 @@ hints2decorations( ASWindow *asw, ASHints *old_hints )
 				if( frame->title_backs[i] && frame->title_backs[i]->image )
 				{
                     LOCAL_DEBUG_OUT( "Adding Title Back #%d", i );
-                    add_astbar_icon( asw->tbar,
-                             	tbar_layout_col[ASO_TBAR_ELEM_LBTN+i],
-                             	tbar_layout_row[ASO_TBAR_ELEM_LBTN+i],
-                             	od->flip, fix_background_align(frame->title_backs_align[i]),
-                             	frame->title_backs[i]->image);
+					if (frame->title_backs_slicing[i].flags != 0)
+					{
+						ASImage *im = frame->title_backs[i]->image;
+						int xs = 0, xe = 0, ys = im->width, ye = im->height;
+						geometry2slicing( frame->title_backs_slicing[i], &xs, &xe, &ys, &ye);
+                    	add_astbar_image( asw->tbar,
+                             		tbar_layout_col[ASO_TBAR_ELEM_LBTN+i],
+                             		tbar_layout_row[ASO_TBAR_ELEM_LBTN+i],
+                             		od->flip, fix_background_align(frame->title_backs_align[i]),
+                             		im, xs, xe, ys, ye);
+					}else
+                    	add_astbar_icon( asw->tbar,
+                             		tbar_layout_col[ASO_TBAR_ELEM_LBTN+i],
+                             		tbar_layout_row[ASO_TBAR_ELEM_LBTN+i],
+                             		od->flip, fix_background_align(frame->title_backs_align[i]),
+                             		frame->title_backs[i]->image);
 					if( i == MYFRAME_TITLE_BACK_RTITLE_SPACER ) 
 						rtitle_spacer_added = True ;
 					else if( i == MYFRAME_TITLE_BACK_LTITLE_SPACER ) 
@@ -1300,12 +1333,12 @@ LOCAL_DEBUG_OUT( "as?w(%p)->free_res(%d)", asw, free_resources );
     if(  free_resources || asw->hints == NULL || asw->status == NULL )
     {/* destroy window decorations here : */
      /* destruction goes in reverese order ! */
-        check_tbar( &(asw->icon_title),  False, NULL, NULL, 0, 0, 0, 0, 0, 0, 0, 0, C_NO_CONTEXT );
-        check_tbar( &(asw->icon_button), False, NULL, NULL, 0, 0, 0, 0, 0, 0, 0, 0, C_NO_CONTEXT );
-        check_tbar( &(asw->tbar),        False, NULL, NULL, 0, 0, 0, 0, 0, 0, 0, 0, C_NO_CONTEXT );
+        check_tbar( &(asw->icon_title),  False, NULL, NULL, 0, 0, 0, 0, 0, 0, 0, 0, C_NO_CONTEXT, NULL );
+        check_tbar( &(asw->icon_button), False, NULL, NULL, 0, 0, 0, 0, 0, 0, 0, 0, C_NO_CONTEXT, NULL );
+        check_tbar( &(asw->tbar),        False, NULL, NULL, 0, 0, 0, 0, 0, 0, 0, 0, C_NO_CONTEXT, NULL );
 		i = FRAME_PARTS ;
 		while( --i >= 0 )
-            check_tbar( &(asw->frame_bars[i]), False, NULL, NULL, 0, 0, 0, 0, 0, 0, 0, 0, C_NO_CONTEXT );
+            check_tbar( &(asw->frame_bars[i]), False, NULL, NULL, 0, 0, 0, 0, 0, 0, 0, 0, C_NO_CONTEXT, NULL );
 
         check_side_canvas( asw, FR_W, False );
         check_side_canvas( asw, FR_E, False );

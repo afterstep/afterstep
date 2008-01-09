@@ -246,6 +246,7 @@ typedef struct MyFrame
     int 		 title_fhue, title_uhue, title_shue; 
 	unsigned int title_fsat, title_usat, title_ssat;
 	ASFlagType   title_align, title_backs_align[MYFRAME_TITLE_BACKS];
+	ASGeometry   title_backs_slicing[MYFRAME_TITLE_BACKS];
 	ASFlagType   left_btn_align, right_btn_align ;
 
     ASFlagType   condense_titlebar ;
