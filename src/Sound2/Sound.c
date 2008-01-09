@@ -38,9 +38,7 @@
 #define mask_reg MAX_MASK
 
 // from afterconf.h ?
-AudioConfig     *Config = NULL;
-
-const char *filename = "/home/shadowgod/.afterstep/audio";
+SoundConfig     *Config = NULL;
 
 // asapp.h ?
 void DeadPipe (int);
@@ -57,7 +55,7 @@ int as_snd2_init_stg2();
 int as_snd2_playsound(const char *SoundName);
 
 // ?
-Bool (*audio_play) (short) = NULL;
+Bool (*sound_play) (short) = NULL;
 
 // Global Vars
 struct SND2dev SND2devS;
@@ -74,10 +72,10 @@ int main(int argc,char ** argv)
     ConnectAfterStep(mask_reg,0);
     
     // need to figure out what this is for...
-    Config = CreateAudioConfig();
+    Config = CreateSoundConfig();
 
     LoadBaseConfig(GetBaseOptions);
-    LoadConfig("audio",GetOptions);
+    LoadConfig("sound",GetOptions);
     
     //fprintf(stdout,"--Audio Conf: %i",Config->delay);
 
@@ -94,8 +92,6 @@ int main(int argc,char ** argv)
 int as_snd2_init_stg1()
 {
     // Stage 1 Sound2 module Init.
-    //--struct SND2dev SND2devS, *SND2devP;
-    //--SND2devP = &SND2devS;
     
     typedef char *String;
     int Snd2DEBUG, ret1;
@@ -132,8 +128,6 @@ int as_snd2_init_stg1()
     snd_pcm_hw_params_set_format(SND2devS.pcm_handle,SND2devS.hw_params,SND_PCM_FORMAT_S16_LE);
     
     if (Snd2DEBUG) { fprintf(stdout,"Stage 1 Init Complete!\n\n"); }
-    
-    //stg2Ret = as_snd2_init_stg2(SND2devP);
     
     return 1;
 }
@@ -326,14 +320,14 @@ GetOptions (const char *filename)
 {
     fprintf(stdout,"*****GETOPTIONS START******\n");
     fprintf(stdout,"[%s]--FName: %s\n",MyName,filename);
-    AudioConfig *config = ParseAudioOptions (filename, "Audio");
+    SoundConfig *config = ParseSoundOptions (filename,MyName);
 
     int i ;
     START_TIME(option_time);
     
  //   fprintf(stdout,"--1DELAY: %i\n",config->delay);
   //  fprintf(stdout,"--CMD: %s\n",config->playcmd);
-    fprintf(stdout,"--PTH: %s\n",config->sounds[15]);
+//    fprintf(stdout,"--PTH: %s\n",config->sounds[15]);
 
     /* Need to merge new config with what we have already :*/
     /* now lets check the config sanity : */
@@ -359,7 +353,7 @@ GetOptions (const char *filename)
 //        fprintf(stdout,"---DELAY: %i",Config->delay);
 //    }
 
-    DestroyAudioConfig (config);
+    DestroySoundConfig (config);
     SHOW_TIME("Config parsing",option_time);
     fprintf(stdout,"******GETOPTIONS END*****\n");
 }
