@@ -142,9 +142,8 @@ int main(int argc, char* argv[])
 	  		p = create_visual_pixmap( asv, DefaultRootWindow(dpy), im->width, im->height, 0 );
 	
 			{
-				/*int i ;*/
 				START_TIME(started);
-				/* for( i = 0 ; i < 100 ; ++i )  To test performance! */
+				/* for( int i = 0 ; i < 100 ; ++i )  To test performance! */
 				asimage2drawable( asv, p, im, NULL, 0, 0, 0, 0, im->width, im->height, False);
 				SHOW_TIME("", started);
 			}

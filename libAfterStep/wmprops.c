@@ -41,6 +41,7 @@ Atom          _XA_WM_CHANGE_STATE = None;
 
 /* from Enlightenment for compatibility with Eterm */
 Atom          _XROOTPMAP_ID = None;
+Atom          ESETROOT_PMAP_ID = None;
 
 /* Old Gnome compatibility specs : */
 Atom          _XA_WIN_SUPPORTING_WM_CHECK = None;
@@ -100,6 +101,7 @@ AtomXref  _WMPropAtoms[] = {
 
 	/* Enlightenment compatibility : */
 	{"_XROOTPMAP_ID", &_XROOTPMAP_ID},
+	{"ESETROOT_PMAP_ID", &ESETROOT_PMAP_ID},
 
 	/* KWM compatibility ? */
 
@@ -1038,6 +1040,12 @@ set_xrootpmap_id (ASWMProps * wmprops, Pixmap new_pmap)
 {
 	if (wmprops)
 	{
+        CARD32 esetroot_pmap_id = None;
+
+		if (read_32bit_property (wmprops->scr->Root, ESETROOT_PMAP_ID, &esetroot_pmap_id))
+			if (esetroot_pmap_id == wmprops->root_pixmap && wmprops->root_pixmap != None)
+	           	XKillClient(dpy, esetroot_pmap_id);
+	
         set_32bit_property (wmprops->scr->Root, _XROOTPMAP_ID, XA_PIXMAP, new_pmap);
 		XFlush (dpy);
         wmprops->root_pixmap = new_pmap;

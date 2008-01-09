@@ -205,7 +205,7 @@ void usage(void) {
 		" To display image.jpg on root window : \n"
 		"   ascompose -r -s \"<img src=image.jpg/>\""
 		" To display image.jpg on root window scaling it to screen size: \n"
-		"   ascompose -r -s \"<scale width=xroot.width height=proportional><img src=image.jpg/></scale>\""
+		"   ascompose -r -s \"<scale width=xroot.width height=proportional><img src=image.jpg/></scale>\"\n"
 	);
 }
 
@@ -777,10 +777,10 @@ set_root_pixmap_property(long pmap) /* Must have long type to work with XChangeP
 					break;
 				pmaps[i] = data.long_ptr[0] ;
 				LOCAL_DEBUG_OUT("pmaps[%d] = %X", i, pmaps[i]);
-				if (format != 32 || nitems == 0|| pmaps[i] == None || pmaps[i] != pmaps[0] || type != XA_PIXMAP) 
+				if (format != 32 || nitems == 0 || pmaps[i] != pmaps[0] || type != XA_PIXMAP) 
 					break;
 			}
-		if (i>= 2) 
+		if (i>= 2 && pmaps[0]) 
 		{
 			LOCAL_DEBUG_OUT("killing client for pmap %X", pmaps[0]);
            	XKillClient(dpy, pmaps[0]);
