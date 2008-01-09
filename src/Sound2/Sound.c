@@ -51,7 +51,7 @@ void proc_message (send_data_type type, send_data_type *body);
 // Sound2 Functions
 int as_snd2_init_stg1();
 int as_snd2_init_stg2();
-//int as_snd2_waveheader(char *WaveFile);
+int as_snd2_waveheader(char *WaveFile);
 int as_snd2_playsound(const char *SoundName);
 
 // ?
@@ -78,6 +78,8 @@ int main(int argc,char ** argv)
     LoadConfig("sound",GetOptions);
     
     //fprintf(stdout,"--Audio Conf: %i",Config->delay);
+    
+    as_snd2_waveheader("online.wav");
 
     as_snd2_init_stg1();
     as_snd2_init_stg2();
@@ -148,7 +150,7 @@ int as_snd2_init_stg2()
     if (Snd2DEBUG) { fprintf(stdout,"Setting Sample Rate...\n"); }
     
     // (PCM Handle, Config Space, Sample Rate, Sub Unit Direction)
-    snd_pcm_hw_params_set_rate_near(SND2devS.pcm_handle,SND2devS.hw_params,SRate,&dir);
+    snd_pcm_hw_params_set_rate_near(SND2devS.pcm_handle,SND2devS.hw_params,&SRate,&dir);
     
     if (Snd2DEBUG) { fprintf(stdout,"Setting Channel Count...\n"); }
     
@@ -171,20 +173,23 @@ int as_snd2_init_stg2()
     
     return 1;
 }
-/*
+
 int as_snd2_waveheader(char *WaveFile)
 {
     // Read Wave file header info
-    FILE *WaveFileR
-    char *headBuff;
-    int *wavHead;
+    FILE *WaveFileR;
+    UCHAR *headBuff;
+    int headret;
     
     WaveFileR = fopen(WaveFile,"rb");
     
-    headBuff = (char*)malloc(256);
+    headBuff = (UCHAR*)malloc(1024);
+    headret = fread(headBuff,44,1,WaveFileR);
+    fclose(WaveFileR);
     
+    return 1;
 }
-*/
+
 int as_snd2_playsound(const char *SndName)
 {
     // Lets play some sound now!
@@ -319,7 +324,6 @@ void
 GetOptions (const char *filename)
 {
     fprintf(stdout,"*****GETOPTIONS START******\n");
-    fprintf(stdout,"[%s]--FName: %s\n",MyName,filename);
     SoundConfig *config = ParseSoundOptions (filename,MyName);
 
     int i ;
