@@ -60,6 +60,7 @@ Bool (*sound_play) (short) = NULL;
 // Global Vars
 struct SND2dev SND2devS;
 SND2devP = &SND2devS;
+int SNDPlayNow;
        
 int main(int argc,char ** argv)
 {
@@ -84,7 +85,7 @@ int main(int argc,char ** argv)
     as_snd2_init_stg1();
     as_snd2_init_stg2();
     
-    as_snd2_playsound("test");
+    //as_snd2_playsound("test");
     
     HandleEvents();
     
@@ -97,8 +98,8 @@ int as_snd2_init_stg1()
     
     typedef char *String;
     int Snd2DEBUG, ret1;
-    String pcmDeviceID = "plughw:0,0"; // Need to make Config File opt for setting this.
-    //String pcmDeviceID = "default";
+    //String pcmDeviceID = "plughw:0,0"; // Need to make Config File opt for setting this.
+    String pcmDeviceID = "default";
 
     Snd2DEBUG = 1;
 
@@ -142,7 +143,7 @@ int as_snd2_init_stg2()
     int Snd2DEBUG;
     int SRate, CHcount, dir;
     
-    SRate = 22000;
+    SRate = 8000;
     CHcount = 2;
 
     Snd2DEBUG = 1;
@@ -198,6 +199,16 @@ int as_snd2_playsound(const char *SndName)
     int SNDFileSize, SNDFileFrames, SNDFileRead;
     FILE *SNDFile;
     
+    fprintf(stdout,"***SNDNow: %i\n",SNDPlayNow);
+    
+    if (SNDPlayNow == 1) 
+    { 
+        fprintf(stdout,"***Already Playing!***\n");
+        return;
+    }
+    
+    SNDPlayNow = 1;
+    
     SNDFile = fopen("online.wav","rb");
     if (SNDFile == NULL) { fprintf(stdout,"Failed to open Sound File\n"); exit(1); }
 
@@ -218,6 +229,8 @@ int as_snd2_playsound(const char *SndName)
     {
           snd_pcm_writei(SND2devS.pcm_handle,SFbuffer,SNDFileFrames);
     }
+//    SNDPlayNow = 0;
+    
     
     return 1;
 }
@@ -312,6 +325,7 @@ void proc_message(send_data_type type, send_data_type *body)
         show_activity("-STATE: VIEWPORT CHANGE");
         as_snd2_playsound("viewport");
     }
+    SNDPlayNow = 0;
 }
 void
 GetBaseOptions (const char *filename/* unused*/)
