@@ -3,18 +3,10 @@
 #
 *SoundPath                      @datadir@/afterstep/desktop/sounds
 #
-# This will use rplay client-server sound player :
-#*SoundPlayCmd                  builtin-rplay
-# This will stream contents of the sound file directly to 
-# /dev/audio :
-#*SoundPlayCmd                  builtin-cat
-# This will stream contents of the sound file to STDOUT
-#*SoundPlayCmd                  builtin-stdout
-# see ./configure --with-soundplayer to set your player proggy
-# here only args should go. (completely ommit if no args)
-*SoundPlayCmd                   @AUDIO_PLAY_CMD@
 
-*SoundDelay                     1
+# The PCM Device ID (default should be sufficient for most users)
+*SoundPcmDevice	default
+
 *Sound  startup                 meepmeep.au
 *Sound  shutdown                clink.au
 *Sound  add_window              bong.au

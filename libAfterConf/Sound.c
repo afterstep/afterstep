@@ -83,7 +83,7 @@ SyntaxDef     SoundEventsSyntax = {
 
 
 TermDef       SoundTerms[] = {
-    {TF_DONT_SPLIT, "PlayCmd", 7, TT_TEXT, SOUND_PLAYCMD_ID, NULL},
+    {TF_DONT_SPLIT, "PcmDevice", 7, TT_TEXT, SOUND_PCMDEVICE_ID, NULL},
     {0, "Delay", 5, TT_INTEGER, SOUND_DELAY_ID, NULL},
     {0, "RplayHost", 9, TT_TEXT, SOUND_RPLAY_HOST_ID, NULL},
     {0, "RplayPriority", 13, TT_INTEGER, SOUND_RPLAY_PRI_ID, NULL},
@@ -184,8 +184,8 @@ ParseSoundOptions (const char *filename, char *myname)
                             set_string( &(config->sounds[pCurr->sub->term->id-EVENT_ID_START]), mystrdup( pCurr->sub->argv[0] ));
                  }
 				 break;
-			 case SOUND_PLAYCMD_ID:
-                 set_string( &(config->playcmd), item.data.string );
+			 case SOUND_PCMDEVICE_ID:
+                 set_string( &(config->pcmdevice), item.data.string );
 				 break;
 			 case SOUND_DELAY_ID:
 			 	 set_flags( config->set_flags, SOUND_SET_DELAY );
@@ -233,8 +233,8 @@ WriteSoundOptions (const char *filename, char *myname, SoundConfig * config, uns
 	CopyFreeStorage (&Storage, config->more_stuff);
 	/* building free storage here */
 	/* playcmd */
-	if( config->playcmd )
-		tail = String2FreeStorage (&SoundSyntax, tail, config->playcmd, SOUND_PLAYCMD_ID);
+	if( config->pcmdevice )
+		tail = String2FreeStorage (&SoundSyntax, tail, config->pcmdevice, SOUND_PCMDEVICE_ID);
 	/* delay */
 	if( get_flags(config->set_flags, SOUND_SET_DELAY) )
     	tail = Integer2FreeStorage (&SoundSyntax, tail, NULL, config->delay, SOUND_DELAY_ID);

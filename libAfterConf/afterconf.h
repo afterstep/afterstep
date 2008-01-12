@@ -2558,7 +2558,7 @@ void DestroyCleanConfig (CleanConfig * config);
 #define EVENT_ID_END          			(EVENT_ID_START+AFTERSTEP_EVENTS_NUM)
 
 #define SOUND_ID_START        	(EVENT_ID_END+1)	
-#define SOUND_PLAYCMD_ID        (SOUND_ID_START+1)
+#define SOUND_PCMDEVICE_ID      (SOUND_ID_START+1)
 #define SOUND_DELAY_ID          (SOUND_ID_START+2)
 #define SOUND_RPLAY_HOST_ID     (SOUND_ID_START+3)
 #define SOUND_RPLAY_PRI_ID      (SOUND_ID_START+4)
