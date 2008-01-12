@@ -2571,7 +2571,7 @@ void DestroyCleanConfig (CleanConfig * config);
 
 typedef struct
 {
-	char *playcmd;
+	char *pcmdevice;
   	char *sounds[AFTERSTEP_EVENTS_NUM] ;
 
 #define SOUND_SET_DELAY  			(0x01<<0)

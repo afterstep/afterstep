@@ -133,8 +133,8 @@ DestroySoundConfig (SoundConfig * config)
        	  if( config->sounds[i] )
               free( config->sounds[i] );
 
-	if (config->playcmd)
-		free (config->playcmd);
+	if (config->pcmdevice)
+		free (config->pcmdevice);
 	if (config->rplay_host)
 		free (config->rplay_host);
 	DestroyFreeStorage (&(config->more_stuff));
@@ -232,7 +232,7 @@ WriteSoundOptions (const char *filename, char *myname, SoundConfig * config, uns
 		return 2;
 	CopyFreeStorage (&Storage, config->more_stuff);
 	/* building free storage here */
-	/* playcmd */
+	/* PCM Device */
 	if( config->pcmdevice )
 		tail = String2FreeStorage (&SoundSyntax, tail, config->pcmdevice, SOUND_PCMDEVICE_ID);
 	/* delay */

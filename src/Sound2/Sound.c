@@ -344,7 +344,7 @@ GetOptions (const char *filename)
     START_TIME(option_time);
     
  //   fprintf(stdout,"--1DELAY: %i\n",config->delay);
-  //  fprintf(stdout,"--CMD: %s\n",config->playcmd);
+    fprintf(stdout,"--PCMDEV: %s\n",config->pcmdevice);
 //    fprintf(stdout,"--PTH: %s\n",config->sounds[15]);
 
     /* Need to merge new config with what we have already :*/
