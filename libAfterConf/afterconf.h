@@ -2564,6 +2564,7 @@ void DestroyCleanConfig (CleanConfig * config);
 #define SOUND_RPLAY_PRI_ID      (SOUND_ID_START+4)
 #define SOUND_RPLAY_VOL_ID      (SOUND_ID_START+5)
 #define SOUND_SOUND_ID          (SOUND_ID_START+6)
+#define SOUND_PATH_ID		(SOUND_ID_START+7)
 
 #define SOUND_ID_END            (SOUND_ID_START+10)
 
@@ -2571,20 +2572,21 @@ void DestroyCleanConfig (CleanConfig * config);
 
 typedef struct
 {
+        char *path;
 	char *pcmdevice;
   	char *sounds[AFTERSTEP_EVENTS_NUM] ;
-
-#define SOUND_SET_DELAY  			(0x01<<0)
+/*
+#define SOUND_SET_DELAY  		(0x01<<0)
 #define SOUND_SET_RPLAY_HOST		(0x01<<1)
 #define SOUND_SET_RPLAY_PRIORITY  	(0x01<<2)
 #define SOUND_SET_RPLAY_VOLUME  	(0x01<<3)
-  
+*/  
 	ASFlagType set_flags ;
 
 	int delay;
-	char *rplay_host;
-	int rplay_priority;
-	int rplay_volume;
+//	char *rplay_host;
+//	int rplay_priority;
+//	int rplay_volume;
 
 	struct FreeStorageElem *more_stuff;
 }SoundConfig;

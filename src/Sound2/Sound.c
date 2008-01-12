@@ -37,8 +37,8 @@
 #define MAX_SOUNDS AFTERSTEP_EVENTS_NUM
 #define mask_reg MAX_MASK
 
-// from afterconf.h ?
-SoundConfig     *Config = NULL;
+// from libAfterConf
+SoundConfig     *CONF = NULL;
 
 // asapp.h ?
 void DeadPipe (int);
@@ -72,15 +72,15 @@ int main(int argc,char ** argv)
     ConnectX(ASDefaultScr,PropertyChangeMask);
     ConnectAfterStep(mask_reg,0);
     
-    // need to figure out what this is for...
-    Config = CreateSoundConfig();
+    // -------
+    CONF = CreateSoundConfig();
 
     LoadBaseConfig(GetBaseOptions);
     LoadConfig("sound",GetOptions);
     
-    //fprintf(stdout,"--Audio Conf: %i",Config->delay);
+    fprintf(stdout,"--Audio Conf: %s\n",CONF->pcmdevice);
     
-    as_snd2_waveheader("online.wav");
+    //as_snd2_waveheader("online.wav");
 
     as_snd2_init_stg1();
     as_snd2_init_stg2();
@@ -95,18 +95,19 @@ int main(int argc,char ** argv)
 int as_snd2_init_stg1()
 {
     // Stage 1 Sound2 module Init.
+   // fprintf(stdout,"++++PCMDEV: %s\n",CONF->pcmdevice);
     
-    typedef char *String;
+    //typedef char *String;
     int Snd2DEBUG, ret1;
     //String pcmDeviceID = "plughw:0,0"; // Need to make Config File opt for setting this.
-    String pcmDeviceID = "default";
+    //String pcmDeviceID = CONF->pcmdevice;
 
     Snd2DEBUG = 1;
 
-    if (Snd2DEBUG) { fprintf(stdout,"Opening PCM Device....\n"); }
+    if (Snd2DEBUG) { fprintf(stdout,"Opening PCM Device.... %s\n",CONF->pcmdevice); }
     
     // (Returned PCM Handle, ASCII Ident of Handle, Wanted Stream, Open Mode)
-    snd_pcm_open(&SND2devS.pcm_handle,pcmDeviceID,SND_PCM_STREAM_PLAYBACK,0);
+    snd_pcm_open(&SND2devS.pcm_handle,CONF->pcmdevice,SND_PCM_STREAM_PLAYBACK,0);
   
     if (Snd2DEBUG) { fprintf(stdout,"Allocating Hardware Param Structure....\n"); }
     
@@ -204,12 +205,15 @@ int as_snd2_playsound(const char *SndName)
     if (SNDPlayNow == 1) 
     { 
         fprintf(stdout,"***Already Playing!***\n");
-        return;
+        return 0;
     }
     
     SNDPlayNow = 1;
     
-    SNDFile = fopen("online.wav","rb");
+    // 7 = SHADE
+    //CONF->sounds[7]
+    
+    SNDFile = fopen((CONF->path,CONF->sounds[7]),"rb");
     if (SNDFile == NULL) { fprintf(stdout,"Failed to open Sound File\n"); exit(1); }
 
 //    if (Snd2DEBUG) { fprintf(stdout,"Prepare To Play!...\n"); }
@@ -350,19 +354,29 @@ GetOptions (const char *filename)
     /* Need to merge new config with what we have already :*/
     /* now lets check the config sanity : */
     /* mixing set and default flags : */
-    Config->set_flags |= config->set_flags;
+    CONF->set_flags |= config->set_flags;
 
-//    if( config->playcmd != NULL )
-//        set_string( &(Config->playcmd), config->playcmd);
+    if( config->pcmdevice != NULL )
+    {
+        CONF->pcmdevice = config->pcmdevice;
+        //set_string( &(CONF->pcmdevice), config->pcmdevice);
+    }
+    fprintf(stdout,"Cfg::PCMDEV: %s\n",CONF->pcmdevice);
+    
+    if (config->path != NULL)
+    {
+        CONF->path = config->path;
+    }
         
     for( i = 0 ; i < AFTERSTEP_EVENTS_NUM ; ++i ) 
     {
         if( config->sounds[i] != NULL )
         {
             fprintf(stdout,"--SOUNDS: [%i]: %s\n",i,config->sounds[i]);
-            set_string( &(Config->sounds[i]), config->sounds[i]);
+            set_string( &(CONF->sounds[i]), config->sounds[i]);
         }
     }
+    
     
     // This delay option seems... unneeded.
 //    if( get_flags(config->set_flags, AUDIO_SET_DELAY) )
@@ -371,7 +385,11 @@ GetOptions (const char *filename)
 //        fprintf(stdout,"---DELAY: %i",Config->delay);
 //    }
 
-    DestroySoundConfig (config);
+    // This seems to totally break the CONF/Config vars
+    //  while it appears it should only be unsetting config
+    //DestroySoundConfig (config);
+    fprintf(stdout,"Cfg::PCMDEV11: %s\n",CONF->pcmdevice);
+    fprintf(stdout,"Cfg::PTH: %s\n",CONF->path);
     SHOW_TIME("Config parsing",option_time);
     fprintf(stdout,"******GETOPTIONS END*****\n");
 }

@@ -83,6 +83,7 @@ SyntaxDef     SoundEventsSyntax = {
 
 
 TermDef       SoundTerms[] = {
+    {TF_DONT_SPLIT, "Path", 8,TT_TEXT,SOUND_PATH_ID,NULL},
     {TF_DONT_SPLIT, "PcmDevice", 7, TT_TEXT, SOUND_PCMDEVICE_ID, NULL},
     {0, "Delay", 5, TT_INTEGER, SOUND_DELAY_ID, NULL},
     {0, "RplayHost", 9, TT_TEXT, SOUND_RPLAY_HOST_ID, NULL},
@@ -116,11 +117,12 @@ CreateSoundConfig ()
     SoundConfig  *config = (SoundConfig *) safecalloc (1, sizeof (SoundConfig));
 
     /* let's initialize Sound's config with some nice values: */
+/*
 #ifdef HAVE_RPLAY_H
     config->rplay_volume = RPLAY_DEFAULT_VOLUME;
     config->rplay_priority = RPLAY_DEFAULT_PRIORITY;
 #endif
-
+*/
 	return config;
 }
 
@@ -135,8 +137,10 @@ DestroySoundConfig (SoundConfig * config)
 
 	if (config->pcmdevice)
 		free (config->pcmdevice);
+/*
 	if (config->rplay_host)
 		free (config->rplay_host);
+*/
 	DestroyFreeStorage (&(config->more_stuff));
 	free (config);
 }
@@ -185,14 +189,21 @@ ParseSoundOptions (const char *filename, char *myname)
                  }
 				 break;
 			 case SOUND_PCMDEVICE_ID:
-                 set_string( &(config->pcmdevice), item.data.string );
+				 //set_string( &(config->pcmdevice), item.data.string );
+				 config->pcmdevice = item.data.string;
 				 break;
+			 case SOUND_PATH_ID:
+			 	 config->path = item.data.string;
+			 	 break;
+/*				 
 			 case SOUND_DELAY_ID:
 			 	 set_flags( config->set_flags, SOUND_SET_DELAY );
 				 config->delay = (int)item.data.integer;
 				 break;
+	*/
+	/*
 			 case SOUND_RPLAY_HOST_ID:
-                 set_string_value( &(config->rplay_host), item.data.string, &(config->set_flags), SOUND_SET_RPLAY_HOST );
+			 	 set_string_value( &(config->rplay_host), item.data.string, &(config->set_flags), SOUND_SET_RPLAY_HOST );
 				 break;
 			 case SOUND_RPLAY_PRI_ID:
 				 set_flags( config->set_flags, SOUND_SET_RPLAY_PRIORITY );
@@ -202,6 +213,7 @@ ParseSoundOptions (const char *filename, char *myname)
 				 set_flags( config->set_flags, SOUND_SET_RPLAY_VOLUME );
 				 config->rplay_volume = (int)item.data.integer;
 				 break;
+	*/
 			 default:
 				 item.ok_to_free = 1;
 			}
@@ -236,19 +248,21 @@ WriteSoundOptions (const char *filename, char *myname, SoundConfig * config, uns
 	if( config->pcmdevice )
 		tail = String2FreeStorage (&SoundSyntax, tail, config->pcmdevice, SOUND_PCMDEVICE_ID);
 	/* delay */
+/*
 	if( get_flags(config->set_flags, SOUND_SET_DELAY) )
     	tail = Integer2FreeStorage (&SoundSyntax, tail, NULL, config->delay, SOUND_DELAY_ID);
+*/
 	/* rplay_host */
-	if (get_flags(config->set_flags, SOUND_SET_RPLAY_HOST) && config->rplay_host)
-        tail = String2FreeStorage (&SoundSyntax, tail, config->rplay_host, SOUND_RPLAY_HOST_ID);
+//	if (get_flags(config->set_flags, SOUND_SET_RPLAY_HOST) && config->rplay_host)
+//        tail = String2FreeStorage (&SoundSyntax, tail, config->rplay_host, SOUND_RPLAY_HOST_ID);
 
 	/* rplay_priority */
-	if (get_flags(config->set_flags, SOUND_SET_RPLAY_PRIORITY))
-        tail = Integer2FreeStorage (&SoundSyntax, tail, NULL, config->rplay_priority, SOUND_RPLAY_PRI_ID);
+//	if (get_flags(config->set_flags, SOUND_SET_RPLAY_PRIORITY))
+//        tail = Integer2FreeStorage (&SoundSyntax, tail, NULL, config->rplay_priority, SOUND_RPLAY_PRI_ID);
 
 	/* rplay_volume */
-	if( get_flags(config->set_flags, SOUND_SET_RPLAY_VOLUME) )
-        tail = Integer2FreeStorage (&SoundSyntax, tail, NULL, config->rplay_volume, SOUND_RPLAY_VOL_ID);
+//	if( get_flags(config->set_flags, SOUND_SET_RPLAY_VOLUME) )
+//        tail = Integer2FreeStorage (&SoundSyntax, tail, NULL, config->rplay_volume, SOUND_RPLAY_VOL_ID);
 
 	/* line structure */
     for( i = EVENT_ID_END-EVENT_ID_START-1 ; i >=0 ; i-- )
