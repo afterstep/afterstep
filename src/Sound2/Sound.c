@@ -199,6 +199,8 @@ int as_snd2_playsound(const char *SndName)
     char *SFbuffer;
     int SNDFileSize, SNDFileFrames, SNDFileRead;
     FILE *SNDFile;
+    const char *SndFname;
+    char SndFullname[200];
     
     fprintf(stdout,"***SNDNow: %i\n",SNDPlayNow);
     
@@ -208,12 +210,27 @@ int as_snd2_playsound(const char *SndName)
         return 0;
     }
     
+    if (SndName == "shade")
+    { SndFname = CONF->sounds[7]; }
+    if (SndName == "iconic")
+    { SndFname = CONF->sounds[5]; }
+    if (SndName == "sticky")
+    { SndFname = CONF->sounds[9]; }
+    
     SNDPlayNow = 1;
     
+    strcpy(SndFullname,CONF->path);
+    strcat(SndFullname,"/");
+    strcat(SndFullname,SndFname);
+    
+    fprintf(stdout,"TEST NAME: %s\n",SndFullname);
+    
+    // 5 = ICONIFIED
     // 7 = SHADE
+    // 9 = STUCK
     //CONF->sounds[7]
     
-    SNDFile = fopen((CONF->path,CONF->sounds[7]),"rb");
+    SNDFile = fopen(SndFullname,"rb");
     if (SNDFile == NULL) { fprintf(stdout,"Failed to open Sound File\n"); exit(1); }
 
 //    if (Snd2DEBUG) { fprintf(stdout,"Prepare To Play!...\n"); }
