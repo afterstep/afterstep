@@ -42,9 +42,6 @@ AC_ARG_ENABLE(glx,		[  --enable-glx            enable usage of GLX extention [no
 AC_ARG_ENABLE(mmx_optimization,
 							[  --enable-mmx-optimization  enable utilization of MMX instruction set to speed up imaging operations [yes] ],enable_mmx_optimization=$enableval,enable_mmx_optimization="yes")
 
-AC_ARG_WITH(xpm,	    	[  --with-xpm               support XPM image format [yes]])
-AC_ARG_WITH(builtin_xpm,    [  --with-builtin-xpm       use builtin XPM parsing/handling instead of libXpm [yes]])
-AC_ARG_WITH(xpm_includes,   [  --with-xpm-includes=DIR  use libXpm includes in DIR( when builtin XPM handling is disabled )], xpm_includes="$withval", xpm_includes=no)
 AC_ARG_WITH(jpeg,		    [  --with-jpeg              support JPEG image format [yes]])
 AC_ARG_WITH(jpeg_includes,  [  --with-jpeg-includes=DIR use JPEG includes in DIR], jpeg_includes="$withval", jpeg_includes=no)
 AC_ARG_WITH(builtin_jpeg,   [  --with-builtin-jpeg      use included JPEG  library [no]],with_builtin_jpeg="$withval",with_builtin_jpeg=no)
@@ -52,13 +49,25 @@ AC_ARG_WITH(png,		    [  --with-png               support PNG image format [yes]
 AC_ARG_WITH(png_includes,   [  --with-png-includes=DIR  use PNG includes in DIR], png_includes="$withval", png_includes=no)
 AC_ARG_WITH(builtin_png,    [  --with-builtin-png       use included PNG library [no]],with_builtin_png="$withval",with_builtin_png=no)
 AC_ARG_WITH(builtin_zlib,   [  --with-builtin-zlib      use included libZ library (needed for PNG) [no]],with_builtin_zlib="$withval",with_builtin_zlib=no)
-AC_ARG_WITH(ungif,		    [  --with-ungif             support Uncompressed GIF image format using libungif [no]],with_ungif="$withval",with_ungif=no)
-AC_ARG_WITH(gif,		    [  --with-gif               support GIF image format using libgif   [no]],with_gif="$withval",with_gif=no)
-AC_ARG_WITH(gif_includes,   [  --with-gif-includes=DIR  use GIF includes in DIR], gif_includes="$withval", gif_includes=no)
-AC_ARG_WITH(builtin_ungif,  [  --with-builtin-ungif             support Uncompressed GIF image format using builtin libungif [yes]],with_builtin_ungif="$withval",with_builtin_ungif=yes)
 AC_ARG_WITH(tiff,		    [  --with-tiff              support TIFF image format [yes]])
 AC_ARG_WITH(tiff_includes,  [  --with-tiff-includes=DIR use TIFF includes in DIR], tiff_includes="$withval", tiff_includes=no)
 AC_ARG_WITH(svg,		    [  --with-svg               support SVG image format via librsvg [yes]])
+
+AC_ARG_WITH(xpm,	    	[  --with-xpm               support XPM image format [yes]])
+dnl# libXPM should not be used as an obsolete software !
+with_builtin_xpm=yes
+dnl# AC_ARG_WITH(builtin_xpm,    [  --with-builtin-xpm       use builtin XPM parsing/handling instead of libXpm [yes]])
+dnl# AC_ARG_WITH(xpm_includes,   [  --with-xpm-includes=DIR  use libXpm includes in DIR( when builtin XPM handling is disabled )], xpm_includes="$withval", xpm_includes=no)
+
+dnl# standard libgif/ungif should not be used and considered obsolete!
+dnl# AC_ARG_WITH(ungif,		    [  --with-ungif             support Uncompressed GIF image format using libungif [no]],with_ungif="$withval",with_ungif=no)
+dnl# AC_ARG_WITH(gif,		    [  --with-gif               support GIF image format using libgif   [no]],with_gif="$withval",with_gif=no)
+dnl# AC_ARG_WITH(gif_includes,   [  --with-gif-includes=DIR  use GIF includes in DIR], gif_includes="$withval", gif_includes=no)
+with_ungif=no
+with_gif=no
+with_gif_includes=no
+AC_ARG_WITH(builtin_gif,    [  --with-builtin-gif               support Uncompressed GIF image format using builtin libgif [yes]],with_builtin_gif="$withval",with_builtin_gif=yes)
+
 
 AC_ARG_WITH(ttf,		    [  --with-ttf               support True Type Fonts via FreeType library [yes]])
 AC_ARG_WITH(ttf_includes,   [  --with-ttf-includes=DIR  use FreeType includes in DIR], ttf_includes="$withval", ttf_includes=no)
@@ -442,12 +451,12 @@ else
 fi
 
 if test "x$have_gif" != "xyes"; then
-	if test "x$with_builtin_ungif" = "xyes"; then
+	if test "x$with_builtin_gif" = "xyes"; then
 		AC_MSG_CHECKING(using built-in UNGIF library) 
 		if test -f libungif/gif_lib.h; then
 			UNGIF_OBJS='$(LIBUNGIF_OBJS)'	
 			AC_DEFINE(HAVE_GIF,1,[Define if libgif/ungif is available])
-        		AC_DEFINE(HAVE_BUILTIN_UNGIF,1,[Define if using builtin libungif])
+        		AC_DEFINE(HAVE_BUILTIN_UNGIF,1,[Define if using builtin libgif])
 			AC_MSG_RESULT(yes)	     
 			have_gif=yes
 		else

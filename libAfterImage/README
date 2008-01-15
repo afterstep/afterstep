@@ -15,16 +15,6 @@ Both libraries can be built and installed by simply executing :
 
 in respective directory.
 
-!!!!!!!!!!!!!!!!!!!!!!!!! MMX NOTICE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-Note:
-libAfterImage gets compiled with inline MMX assembly enabled.
-If you have CPU that does not support it - you'll
-have to manually turn that off by using --disable-mmx-optimization
-option to configure script.
-Otherwise you gonna get wierd segfaults and Illigal Instruction
-exceptions.
-!!!!!!!!!!!!!!!!!!!!!!!!! MMX NOTICE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
 libAfterImage will install itself into /usr/local/lib on most
 systems. In addition it will install afterimage-libs script to
 /usr/local/bin. This script can be used to query what libraries

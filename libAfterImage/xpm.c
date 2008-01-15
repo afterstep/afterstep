@@ -18,6 +18,8 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+#ifdef HAVE_XPM
+
 #undef LOCAL_DEBUG
 #undef DO_CLOCKING
 
@@ -987,3 +989,4 @@ void destroy_xpm_charmap( ASXpmCharmap *xpm_cmap, Bool reusable )
 	}
 }
 
+#endif /* HAVE_XPM */

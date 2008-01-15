@@ -880,9 +880,6 @@ Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
   --with-locale=LOCALE     locale name you want to use
-  --with-xpm               support XPM image format yes
-  --with-builtin-xpm       use builtin XPM parsing/handling instead of libXpm yes
-  --with-xpm-includes=DIR  use libXpm includes in DIR( when builtin XPM handling is disabled )
   --with-jpeg              support JPEG image format yes
   --with-jpeg-includes=DIR use JPEG includes in DIR
   --with-builtin-jpeg      use included JPEG  library no
@@ -890,13 +887,11 @@ Optional Packages:
   --with-png-includes=DIR  use PNG includes in DIR
   --with-builtin-png       use included PNG library no
   --with-builtin-zlib      use included libZ library (needed for PNG) no
-  --with-ungif             support Uncompressed GIF image format using libungif no
-  --with-gif               support GIF image format using libgif   no
-  --with-gif-includes=DIR  use GIF includes in DIR
-  --with-builtin-ungif             support Uncompressed GIF image format using builtin libungif yes
   --with-tiff              support TIFF image format yes
   --with-tiff-includes=DIR use TIFF includes in DIR
   --with-svg               support SVG image format via librsvg yes
+  --with-xpm               support XPM image format yes
+  --with-builtin-gif               support Uncompressed GIF image format using builtin libgif yes
   --with-ttf               support True Type Fonts via FreeType library yes
   --with-ttf-includes=DIR  use FreeType includes in DIR
   --with-afterbase               use libAfterBase library of basic functionality yes
@@ -1476,26 +1471,6 @@ else
 fi;
 
 
-# Check whether --with-xpm or --without-xpm was given.
-if test "${with_xpm+set}" = set; then
-  withval="$with_xpm"
-
-fi;
-
-# Check whether --with-builtin_xpm or --without-builtin_xpm was given.
-if test "${with_builtin_xpm+set}" = set; then
-  withval="$with_builtin_xpm"
-
-fi;
-
-# Check whether --with-xpm_includes or --without-xpm_includes was given.
-if test "${with_xpm_includes+set}" = set; then
-  withval="$with_xpm_includes"
-  xpm_includes="$withval"
-else
-  xpm_includes=no
-fi;
-
 # Check whether --with-jpeg or --without-jpeg was given.
 if test "${with_jpeg+set}" = set; then
   withval="$with_jpeg"
@@ -1548,38 +1523,6 @@ else
   with_builtin_zlib=no
 fi;
 
-# Check whether --with-ungif or --without-ungif was given.
-if test "${with_ungif+set}" = set; then
-  withval="$with_ungif"
-  with_ungif="$withval"
-else
-  with_ungif=no
-fi;
-
-# Check whether --with-gif or --without-gif was given.
-if test "${with_gif+set}" = set; then
-  withval="$with_gif"
-  with_gif="$withval"
-else
-  with_gif=no
-fi;
-
-# Check whether --with-gif_includes or --without-gif_includes was given.
-if test "${with_gif_includes+set}" = set; then
-  withval="$with_gif_includes"
-  gif_includes="$withval"
-else
-  gif_includes=no
-fi;
-
-# Check whether --with-builtin_ungif or --without-builtin_ungif was given.
-if test "${with_builtin_ungif+set}" = set; then
-  withval="$with_builtin_ungif"
-  with_builtin_ungif="$withval"
-else
-  with_builtin_ungif=yes
-fi;
-
 # Check whether --with-tiff or --without-tiff was given.
 if test "${with_tiff+set}" = set; then
   withval="$with_tiff"
@@ -1599,6 +1542,27 @@ if test "${with_svg+set}" = set; then
   withval="$with_svg"
 
 fi;
+
+
+# Check whether --with-xpm or --without-xpm was given.
+if test "${with_xpm+set}" = set; then
+  withval="$with_xpm"
+
+fi;
+with_builtin_xpm=yes
+
+with_ungif=no
+with_gif=no
+with_gif_includes=no
+
+# Check whether --with-builtin_gif or --without-builtin_gif was given.
+if test "${with_builtin_gif+set}" = set; then
+  withval="$with_builtin_gif"
+  with_builtin_gif="$withval"
+else
+  with_builtin_gif=yes
+fi;
+
 
 
 # Check whether --with-ttf or --without-ttf was given.
@@ -7716,7 +7680,7 @@ _ACEOF
 fi
 
 if test "x$have_gif" != "xyes"; then
-	if test "x$with_builtin_ungif" = "xyes"; then
+	if test "x$with_builtin_gif" = "xyes"; then
 		echo "$as_me:$LINENO: checking using built-in UNGIF library" >&5
 echo $ECHO_N "checking using built-in UNGIF library... $ECHO_C" >&6
 		if test -f libungif/gif_lib.h; then
