@@ -1549,7 +1549,7 @@ if test "${with_xpm+set}" = set; then
   withval="$with_xpm"
 
 fi;
-with_builtin_xpm=yes
+with_builtin_xpm=$with_xpm
 
 with_ungif=no
 with_gif=no

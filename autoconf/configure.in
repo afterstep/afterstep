@@ -56,15 +56,11 @@ with_desktops_1=`expr ${with_desktops} - 1`
 
 dnl# The following is passed directly to libAfterImage configure :
 AC_ARG_WITH(xpm,	    	[  --with-xpm               support XPM image format [[yes]]])
-AC_ARG_WITH(builtin_xpm,    	[  --with-builtin-xpm       use builtin XPM parsing/handling instead of libXpm [[yes]]])
-AC_ARG_WITH(xpm_includes,   	[  --with-xpm-includes=DIR  use libXpm includes in DIR( when builtin XPM handling is disabled )], xpm_includes="$withval", xpm_includes=no)
+AC_ARG_WITH(gif,	    	[  --with-gif               support GIF image format [[yes]]])
 AC_ARG_WITH(jpeg,		[  --with-jpeg              support JPEG image format [[yes]]])
 AC_ARG_WITH(jpeg_includes,  	[  --with-jpeg-includes=DIR use JPEG includes in DIR], jpeg_includes="$withval", jpeg_includes=no)
 AC_ARG_WITH(png,		[  --with-png               support PNG image format [[yes]]])
 AC_ARG_WITH(png_includes,   	[  --with-png-includes=DIR  use PNG includes in DIR], png_includes="$withval", png_includes=no)
-AC_ARG_WITH(ungif,		[  --with-ungif             compile support for gif image format using libungif [[no]] ],with_ungif=$withval,with_ungif="no")
-AC_ARG_WITH(gif,		[  --with-gif               compile support for gif image format using libgif [[no]] ],with_gif=$withval,with_gif="no")
-AC_ARG_WITH(gif_includes,   	[  --with-gif-includes=DIR  use GIF includes in DIR], gif_includes="$withval", gif_includes=no)
 AC_ARG_WITH(tiff,		[  --with-tiff              support TIFF image format [[yes]]])
 AC_ARG_WITH(tiff_includes,  	[  --with-tiff-includes=DIR use TIFF includes in DIR], tiff_includes="$withval", tiff_includes=no)
 AC_ARG_WITH(svg,		[  --with-svg               support SVG image format via librsvg 2.0 [[yes]]])
@@ -345,14 +341,12 @@ AC_CHECKING(libAfterImage)
 cd libAfterImage; \
 ./configure $_def_lib_conf_opts \
    --enable-i18n=$enable_i18n --enable-xlocale=$enable_xlocale --with-locale=$with_locale \
-   --with-xpm=$with_xpm   --with-builtin-xpm=$with_builtin_xpm  --with-xpm-includes=$xpm_includes \
+   --with-xpm=$with_xpm   --with-builtin-gif=$with_gif \
    --with-jpeg=$with_jpeg --with-jpeg-includes=$jpeg_includes \
    --with-png=$with_png   --with-png-includes=$png_includes \
-   --with-gif=$with_gif   --with-ungif=$with_ungif  --with-gif-includes=$gif_includes \
    --with-tiff=$with_tiff --with-tiff-includes=$tiff_includes --with-svg=$with_svg \
    --with-ttf=$with_ttf   --with-ttf-includes=$ttf_includes \
    --enable-mmx-optimization=$enable_mmx_optimization \
-   --with-ungif=$with_ungif --with-gif=$with_gif \
    --enable-glx=$enable_glx; \
 cd ../
 afterimage_lib=
