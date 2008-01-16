@@ -1259,14 +1259,16 @@ png2ASImage_int( void *data, png_rw_ptr read_fn, ASImageImportParams *params )
 
 		    	png_read_info (png_ptr, info_ptr);
 				png_get_IHDR (png_ptr, info_ptr, &width, &height, &bit_depth, &color_type, &interlace_type, NULL, NULL);
-
+fprintf( stderr, "bit_depth = %d, color_type = %d, width = %d, height = %d\n", 
+         bit_depth, color_type, width, height); 
 				if (bit_depth < 8)
 				{/* Extract multiple pixels with bit depths of 1, 2, and 4 from a single
 				  * byte into separate bytes (useful for paletted and grayscale images).
 				  */
 					if( bit_depth == 1 ) 
 						set_flags( rgb_flags, ASStorage_Bitmap );
-					png_set_packing (png_ptr);
+					else
+						png_set_packing (png_ptr);
 				}else if (bit_depth == 16)
 				{/* tell libpng to strip 16 bit/color files down to 8 bits/color */
 					png_set_strip_16 (png_ptr);
@@ -1321,15 +1323,15 @@ png2ASImage_int( void *data, png_rw_ptr read_fn, ASImageImportParams *params )
 				do_alpha = ((color_type & PNG_COLOR_MASK_ALPHA) != 0 );
 				grayscale = ( color_type == PNG_COLOR_TYPE_GRAY_ALPHA ||
 				              color_type == PNG_COLOR_TYPE_GRAY) ;
-/*fprintf( stderr, "do_alpha = %d, grayscale = %d, bit_depth = %d, color_type = %d, width = %d, height = %d\n", 
-         do_alpha, grayscale, bit_depth, color_type, width, height); */
+fprintf( stderr, "do_alpha = %d, grayscale = %d, bit_depth = %d, color_type = %d, width = %d, height = %d\n", 
+         do_alpha, grayscale, bit_depth, color_type, width, height); 
 				if( !do_alpha && grayscale ) 
 					clear_flags( rgb_flags, ASStorage_32Bit );
 				else
 					prepare_scanline( im->width, 0, &buf, False );
 
 				row_bytes = png_get_rowbytes (png_ptr, info_ptr);
-/*fprintf( stderr, "rowbytes = %d\n", row_bytes); */
+fprintf( stderr, "rowbytes = %d\n", row_bytes); 
 				/* allocating big chunk of memory at once, to enable mmap
 				 * that will release memory to system right after free() */
 				row_pointers = safemalloc( height * sizeof( png_bytep ) + row_bytes * height );
@@ -1348,7 +1350,7 @@ png2ASImage_int( void *data, png_rw_ptr read_fn, ASImageImportParams *params )
 						raw2scanline( row_pointers[y], &buf, NULL, buf.width, grayscale, do_alpha );
 						im->channels[IC_RED][y] = store_data( NULL, (CARD8*)buf.red, buf.width*4, rgb_flags, 0);
 					}else
-						im->channels[IC_RED][y] = store_data( NULL, row_pointers[y], width, rgb_flags, 0);
+						im->channels[IC_RED][y] = store_data( NULL, row_pointers[y], row_bytes, rgb_flags, 0);
 					
 					if( grayscale ) 
 					{	
