@@ -61,6 +61,7 @@ LIBDIR		= $(DESTDIR)@libdir@
 INCLUDEDIR	= $(DESTDIR)@includedir@
 SYSCONFDIR      = $(DESTDIR)@sysconfdir@
 SHAREDIR	= $(DESTDIR)@datadir@
+SYSSHAREDIR      = $(DESTDIR)${prefix}/usr/share
 AFTER_INC_DIR	= $(DESTDIR)@includedir@/$(LIB_DIR_NAME)
 AFTER_BIN_DIR	= $(DESTDIR)@bindir@
 AFTER_MAN_DIR	= $(DESTDIR)@mandir@/man1

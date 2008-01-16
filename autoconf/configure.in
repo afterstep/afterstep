@@ -59,8 +59,11 @@ AC_ARG_WITH(xpm,	    	[  --with-xpm               support XPM image format [[yes
 AC_ARG_WITH(gif,	    	[  --with-gif               support GIF image format [[yes]]])
 AC_ARG_WITH(jpeg,		[  --with-jpeg              support JPEG image format [[yes]]])
 AC_ARG_WITH(jpeg_includes,  	[  --with-jpeg-includes=DIR use JPEG includes in DIR], jpeg_includes="$withval", jpeg_includes=no)
+AC_ARG_WITH(builtin_jpeg,   [  --with-builtin-jpeg      use included JPEG  library [no]],with_builtin_jpeg="$withval",with_builtin_jpeg=no)
 AC_ARG_WITH(png,		[  --with-png               support PNG image format [[yes]]])
 AC_ARG_WITH(png_includes,   	[  --with-png-includes=DIR  use PNG includes in DIR], png_includes="$withval", png_includes=no)
+AC_ARG_WITH(builtin_png,    [  --with-builtin-png       use included PNG library [no]],with_builtin_png="$withval",with_builtin_png=no)
+AC_ARG_WITH(builtin_zlib,   [  --with-builtin-zlib      use included libZ library (needed for PNG) [no]],with_builtin_zlib="$withval",with_builtin_zlib=no)
 AC_ARG_WITH(tiff,		[  --with-tiff              support TIFF image format [[yes]]])
 AC_ARG_WITH(tiff_includes,  	[  --with-tiff-includes=DIR use TIFF includes in DIR], tiff_includes="$withval", tiff_includes=no)
 AC_ARG_WITH(svg,		[  --with-svg               support SVG image format via librsvg 2.0 [[yes]]])
@@ -342,8 +345,9 @@ cd libAfterImage; \
 ./configure $_def_lib_conf_opts \
    --enable-i18n=$enable_i18n --enable-xlocale=$enable_xlocale --with-locale=$with_locale \
    --with-xpm=$with_xpm   --with-builtin-gif=$with_gif \
-   --with-jpeg=$with_jpeg --with-jpeg-includes=$jpeg_includes \
+   --with-jpeg=$with_jpeg --with-jpeg-includes=$jpeg_includes --with-builtin-jpeg=$with_builtin_jpeg \
    --with-png=$with_png   --with-png-includes=$png_includes \
+   --with-builtin-png=$with_builtin_png --with-builtin-zlib=$with_builtin_zlib \
    --with-tiff=$with_tiff --with-tiff-includes=$tiff_includes --with-svg=$with_svg \
    --with-ttf=$with_ttf   --with-ttf-includes=$ttf_includes \
    --enable-mmx-optimization=$enable_mmx_optimization \

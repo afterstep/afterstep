@@ -903,8 +903,11 @@ Optional Packages:
   --with-gif               support GIF image format [yes]
   --with-jpeg              support JPEG image format [yes]
   --with-jpeg-includes=DIR use JPEG includes in DIR
+  --with-builtin-jpeg      use included JPEG  library no
   --with-png               support PNG image format [yes]
   --with-png-includes=DIR  use PNG includes in DIR
+  --with-builtin-png       use included PNG library no
+  --with-builtin-zlib      use included libZ library (needed for PNG) no
   --with-tiff              support TIFF image format [yes]
   --with-tiff-includes=DIR use TIFF includes in DIR
   --with-svg               support SVG image format via librsvg 2.0 [yes]
@@ -1514,6 +1517,14 @@ else
   jpeg_includes=no
 fi;
 
+# Check whether --with-builtin_jpeg or --without-builtin_jpeg was given.
+if test "${with_builtin_jpeg+set}" = set; then
+  withval="$with_builtin_jpeg"
+  with_builtin_jpeg="$withval"
+else
+  with_builtin_jpeg=no
+fi;
+
 # Check whether --with-png or --without-png was given.
 if test "${with_png+set}" = set; then
   withval="$with_png"
@@ -1526,6 +1537,22 @@ if test "${with_png_includes+set}" = set; then
   png_includes="$withval"
 else
   png_includes=no
+fi;
+
+# Check whether --with-builtin_png or --without-builtin_png was given.
+if test "${with_builtin_png+set}" = set; then
+  withval="$with_builtin_png"
+  with_builtin_png="$withval"
+else
+  with_builtin_png=no
+fi;
+
+# Check whether --with-builtin_zlib or --without-builtin_zlib was given.
+if test "${with_builtin_zlib+set}" = set; then
+  withval="$with_builtin_zlib"
+  with_builtin_zlib="$withval"
+else
+  with_builtin_zlib=no
 fi;
 
 # Check whether --with-tiff or --without-tiff was given.
@@ -6624,8 +6651,9 @@ cd libAfterImage; \
 ./configure $_def_lib_conf_opts \
    --enable-i18n=$enable_i18n --enable-xlocale=$enable_xlocale --with-locale=$with_locale \
    --with-xpm=$with_xpm   --with-builtin-gif=$with_gif \
-   --with-jpeg=$with_jpeg --with-jpeg-includes=$jpeg_includes \
+   --with-jpeg=$with_jpeg --with-jpeg-includes=$jpeg_includes --with-builtin-jpeg=$with_builtin_jpeg \
    --with-png=$with_png   --with-png-includes=$png_includes \
+   --with-builtin-png=$with_builtin_png --with-builtin-zlib=$with_builtin_zlib \
    --with-tiff=$with_tiff --with-tiff-includes=$tiff_includes --with-svg=$with_svg \
    --with-ttf=$with_ttf   --with-ttf-includes=$ttf_includes \
    --enable-mmx-optimization=$enable_mmx_optimization \
