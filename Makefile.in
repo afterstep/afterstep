@@ -96,14 +96,14 @@ install.desktop: AfterStep.desktop.final mkdir.share
 	@if [ -d $(SYSCONFDIR)/X11/sessions ] && [ -w $(SYSCONFDIR)/X11/sessions ] ; then \
 		echo "installing AfterStep.desktop $(SYSCONFDIR)/X11/xsessions/" ; \
 		$(INSTALL_DATA)  AfterStep.desktop.final $(SYSCONFDIR)/X11/xsessions/AfterStep.desktop ; \
-	fi \
+	fi; \
 	if [ -d $(SYSSHAREDIR)/xsessions ] && [ -w $(SYSSHAREDIR)/xsessions ] ; then \
 		echo "installing AfterStep.desktop into $(SYSSHAREDIR)/xsessions/" ; \
 		$(INSTALL_DATA)  AfterStep.desktop.final $(SYSSHAREDIR)/xsessions/AfterStep.desktop ; \
 	else if [ -d $(SHAREDIR)/xsessions ] && [ -w $(SHAREDIR)/xsessions ] ; then \
 		echo "installing AfterStep.desktop into $(SHAREDIR)/xsessions/" ; \
 		$(INSTALL_DATA)  AfterStep.desktop.final $(SHAREDIR)/xsessions/AfterStep.desktop ; \
-	else else if [ -d $(SHAREDIR) ] && [ -w $(SHAREDIR) ] ; then \
+	else if [ -d $(SHAREDIR) ] && [ -w $(SHAREDIR) ] ; then \
 		echo "mkdir $(SHAREDIR)/xsessions"; \
 		$(MKDIR) -p $(SHAREDIR)/xsessions; \
 		echo "installing AfterStep.desktop into $(SHAREDIR)/xsessions/" ; \
