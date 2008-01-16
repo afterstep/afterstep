@@ -17,8 +17,8 @@
  */
 
 
-//#undef NO_DEBUG_OUTPUT
-#undef LOCAL_DEBUG
+/*#undef NO_DEBUG_OUTPUT*/
+#define LOCAL_DEBUG
 #undef DO_CLOCKING
 #ifndef NO_DEBUG_OUTPUT
 #undef DEBUG_RECTS

@@ -19,7 +19,7 @@
  *
  */
 
-#undef LOCAL_DEBUG
+#define LOCAL_DEBUG
 /* #undef NO_DEBUG_OUTPUT */
 #ifndef NO_DEBUG_OUTPUT
 #undef DEBUG_COMPRESS
