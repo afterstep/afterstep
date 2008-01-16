@@ -1321,13 +1321,15 @@ png2ASImage_int( void *data, png_rw_ptr read_fn, ASImageImportParams *params )
 				do_alpha = ((color_type & PNG_COLOR_MASK_ALPHA) != 0 );
 				grayscale = ( color_type == PNG_COLOR_TYPE_GRAY_ALPHA ||
 				              color_type == PNG_COLOR_TYPE_GRAY) ;
-
+/*fprintf( stderr, "do_alpha = %d, grayscale = %d, bit_depth = %d, color_type = %d, width = %d, height = %d\n", 
+         do_alpha, grayscale, bit_depth, color_type, width, height); */
 				if( !do_alpha && grayscale ) 
 					clear_flags( rgb_flags, ASStorage_32Bit );
 				else
 					prepare_scanline( im->width, 0, &buf, False );
 
 				row_bytes = png_get_rowbytes (png_ptr, info_ptr);
+/*fprintf( stderr, "rowbytes = %d\n", row_bytes); */
 				/* allocating big chunk of memory at once, to enable mmap
 				 * that will release memory to system right after free() */
 				row_pointers = safemalloc( height * sizeof( png_bytep ) + row_bytes * height );
@@ -1346,7 +1348,7 @@ png2ASImage_int( void *data, png_rw_ptr read_fn, ASImageImportParams *params )
 						raw2scanline( row_pointers[y], &buf, NULL, buf.width, grayscale, do_alpha );
 						im->channels[IC_RED][y] = store_data( NULL, (CARD8*)buf.red, buf.width*4, rgb_flags, 0);
 					}else
-						im->channels[IC_RED][y] = store_data( NULL, row_pointers[y], buf.width, rgb_flags, 0);
+						im->channels[IC_RED][y] = store_data( NULL, row_pointers[y], width, rgb_flags, 0);
 					
 					if( grayscale ) 
 					{	
