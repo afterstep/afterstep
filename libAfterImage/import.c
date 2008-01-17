@@ -1222,7 +1222,9 @@ png2ASImage_int( void *data, png_rw_ptr read_fn, ASImageImportParams *params )
 	int           bit_depth, color_type, interlace_type;
 	int           intent;
 	ASScanline    buf;
-	Bool 		     do_alpha = False, grayscale = False ;
+	CARD16        value_scale_factor = 0;
+	CARD8         *upscaled_gray = NULL;
+	Bool 	      do_alpha = False, grayscale = False ;
 	png_bytep     *row_pointers, row;
 	unsigned int  y;
 	size_t		  row_bytes, offset ;
@@ -1259,21 +1261,30 @@ png2ASImage_int( void *data, png_rw_ptr read_fn, ASImageImportParams *params )
 
 		    	png_read_info (png_ptr, info_ptr);
 				png_get_IHDR (png_ptr, info_ptr, &width, &height, &bit_depth, &color_type, &interlace_type, NULL, NULL);
-fprintf( stderr, "bit_depth = %d, color_type = %d, width = %d, height = %d\n", 
+
+/*fprintf( stderr, "bit_depth = %d, color_type = %d, width = %d, height = %d\n", 
          bit_depth, color_type, width, height); 
+*/
 				if (bit_depth < 8)
 				{/* Extract multiple pixels with bit depths of 1, 2, and 4 from a single
 				  * byte into separate bytes (useful for paletted and grayscale images).
 				  */
 					if( bit_depth == 1 ) 
+					{
 						set_flags( rgb_flags, ASStorage_Bitmap );
-					else
 						png_set_packing (png_ptr);
+					}else
+					{
+						/* even though 2 and 4 bit values get expanded into a whole bytes the 
+						   values don't get scaled accordingly !!! 
+						   WE will have to take care of it ourselves :
+						*/	
+						upscaled_gray = safemalloc(width+8);
+					}
 				}else if (bit_depth == 16)
 				{/* tell libpng to strip 16 bit/color files down to 8 bits/color */
 					png_set_strip_16 (png_ptr);
 				}
-				bit_depth = 8;
 
 				/* Expand paletted colors into true RGB triplets */
 				if (color_type == PNG_COLOR_TYPE_PALETTE)
@@ -1304,11 +1315,15 @@ fprintf( stderr, "bit_depth = %d, color_type = %d, width = %d, height = %d\n",
 					color_type = PNG_COLOR_TYPE_GRAY_ALPHA ;
   */
 				if (png_get_sRGB (png_ptr, info_ptr, &intent))
+				{
                     png_set_gamma (png_ptr, params->gamma, DEFAULT_PNG_IMAGE_GAMMA);
-				else if (png_get_gAMA (png_ptr, info_ptr, &image_gamma))
+				}else if (png_get_gAMA (png_ptr, info_ptr, &image_gamma) && bit_depth >= 8)
+				{/* don't gamma-correct 1, 2, 4 bpp grays as we loose data this way */
 					png_set_gamma (png_ptr, params->gamma, image_gamma);
-				else
+				}else
+				{
                     png_set_gamma (png_ptr, params->gamma, DEFAULT_PNG_IMAGE_GAMMA);
+				}
 
 				/* Optional call to gamma correct and add the background to the palette
 				 * and update info structure.  REQUIRED if you are expecting libpng to
@@ -1323,15 +1338,16 @@ fprintf( stderr, "bit_depth = %d, color_type = %d, width = %d, height = %d\n",
 				do_alpha = ((color_type & PNG_COLOR_MASK_ALPHA) != 0 );
 				grayscale = ( color_type == PNG_COLOR_TYPE_GRAY_ALPHA ||
 				              color_type == PNG_COLOR_TYPE_GRAY) ;
-fprintf( stderr, "do_alpha = %d, grayscale = %d, bit_depth = %d, color_type = %d, width = %d, height = %d\n", 
-         do_alpha, grayscale, bit_depth, color_type, width, height); 
+
+/* fprintf( stderr, "do_alpha = %d, grayscale = %d, bit_depth = %d, color_type = %d, width = %d, height = %d\n", 
+         do_alpha, grayscale, bit_depth, color_type, width, height); */
+
 				if( !do_alpha && grayscale ) 
 					clear_flags( rgb_flags, ASStorage_32Bit );
 				else
 					prepare_scanline( im->width, 0, &buf, False );
 
 				row_bytes = png_get_rowbytes (png_ptr, info_ptr);
-fprintf( stderr, "rowbytes = %d\n", row_bytes); 
 				/* allocating big chunk of memory at once, to enable mmap
 				 * that will release memory to system right after free() */
 				row_pointers = safemalloc( height * sizeof( png_bytep ) + row_bytes * height );
@@ -1350,7 +1366,34 @@ fprintf( stderr, "rowbytes = %d\n", row_bytes);
 						raw2scanline( row_pointers[y], &buf, NULL, buf.width, grayscale, do_alpha );
 						im->channels[IC_RED][y] = store_data( NULL, (CARD8*)buf.red, buf.width*4, rgb_flags, 0);
 					}else
-						im->channels[IC_RED][y] = store_data( NULL, row_pointers[y], row_bytes, rgb_flags, 0);
+					{
+						if ( bit_depth == 2 )
+						{
+							int i, pixel_i = -1;
+							static CARD8  gray2bit_translation[4] = {0,85,170,255};
+							for ( i = 0 ; i < row_bytes ; ++i )
+							{
+								CARD8 b = row_pointers[y][i];
+								upscaled_gray[++pixel_i] = gray2bit_translation[b&0x03];
+								upscaled_gray[++pixel_i] = gray2bit_translation[(b&0xC)>>2];
+								upscaled_gray[++pixel_i] = gray2bit_translation[(b&0x30)>>4];
+								upscaled_gray[++pixel_i] = gray2bit_translation[(b&0xC0)>>6];
+							}
+							im->channels[IC_RED][y] = store_data( NULL, upscaled_gray, width, rgb_flags, 0);
+						}else if ( bit_depth == 4 )
+						{
+							int i, pixel_i = -1;
+							static CARD8  gray4bit_translation[16] = {0,17,34,51,  68,85,102,119, 136,153,170,187, 204,221,238,255};
+							for ( i = 0 ; i < row_bytes ; ++i )
+							{
+								CARD8 b = row_pointers[y][i];
+								upscaled_gray[++pixel_i] = gray4bit_translation[b&0x0F];
+								upscaled_gray[++pixel_i] = gray4bit_translation[(b&0xF0)>>4];
+							}
+							im->channels[IC_RED][y] = store_data( NULL, upscaled_gray, width, rgb_flags, 0);
+						}else
+							im->channels[IC_RED][y] = store_data( NULL, row_pointers[y], row_bytes, rgb_flags, 1);
+					}
 					
 					if( grayscale ) 
 					{	
@@ -1389,7 +1432,8 @@ fprintf( stderr, "rowbytes = %d\n", row_bytes);
 					}
 				}
 				set_asstorage_block_size( NULL, old_storage_block_size );
-
+				if (upscaled_gray)
+					free(upscaled_gray);
 				free (row_pointers);
 				if( do_alpha || !grayscale ) 
 					free_scanline(&buf, True);

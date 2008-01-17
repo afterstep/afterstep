@@ -169,7 +169,7 @@ typedef struct ASStorage
 typedef CARD32 ASStorageID ;
 
 ASStorageID store_data(ASStorage *storage, CARD8 *data, int size, ASFlagType flags, CARD8 bitmap_threshold);
-ASStorageID store_data_tinted(ASStorage *storage, CARD8 *data, int size, ASFlagType flags, CARD8 tint);
+ASStorageID store_data_tinted(ASStorage *storage, CARD8 *data, int size, ASFlagType flags, CARD16 tint);
 
 /* data will be fetched fromthe slot identified by id and placed into buffer. 
  * Data will be fetched from offset  and will count buf_size bytes if buf_size is greater then

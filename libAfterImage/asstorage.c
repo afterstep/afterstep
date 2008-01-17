@@ -19,7 +19,7 @@
  *
  */
 
-#define LOCAL_DEBUG
+#undef LOCAL_DEBUG
 /* #undef NO_DEBUG_OUTPUT */
 #ifndef NO_DEBUG_OUTPUT
 #undef DEBUG_COMPRESS
@@ -99,7 +99,8 @@ rlediff_compress_bitmap8( CARD8 *buffer,  CARD8* data, int size, CARD32 bitmap_t
 	{
 		int count = 0 ;
 		do{	
-			if( (( data[i] > bitmap_threshold )?1:0) != last_val ) 	  
+/*			LOCAL_DEBUG_OUT( "data[%d] = %d, threshold = %d\n", i, data[i], bitmap_threshold); */
+			if( (( data[i] >= bitmap_threshold )?1:0) != last_val ) 	  
 				break; 
 			++i ;
 		}while( ++count < 255 && i < size ); 	 
@@ -118,7 +119,7 @@ rlediff_compress_bitmap32( CARD8 *buffer,  CARD8* data, int size, CARD32 bitmap_
 	{
 		int count = 0 ;
 		do{	
-			if( (( data32[i] > bitmap_threshold )?1:0) != last_val ) 	  
+			if( (( data32[i] >= bitmap_threshold )?1:0) != last_val ) 	  
 				break; 
 			++i ;
 		}while( ++count < 255 && i < size ); 	 
@@ -765,6 +766,9 @@ compress_stored_data( ASStorage *storage, CARD8 *data, int size, ASFlagType *fla
 	if( size < ASStorageSlot_SIZE ) 
 		clear_flags( *flags, ASStorage_RLEDiffCompress );
 
+	if (get_flags( *flags, ASStorage_Bitmap )) /* always compress bitmaps !!!! */
+		set_flags( *flags, ASStorage_RLEDiffCompress );
+
 	if( get_flags( *flags, ASStorage_RLEDiffCompress ) )
 	{
 		int uncompressed_size = size ;
@@ -804,7 +808,7 @@ compress_stored_data( ASStorage *storage, CARD8 *data, int size, ASFlagType *fla
 				}else
 					compute_diff8( storage->diff_buf, data, uncompressed_size ); 	  
 				
-				if( tint < 255 )
+				if( tint != 255 )
 				{
 					int i;
 					ASStorageDiff *diff = storage->diff_buf ; 
@@ -1823,7 +1827,7 @@ store_data(ASStorage *storage, CARD8 *data, int size, ASFlagType flags, CARD8 bi
 }
 
 ASStorageID 
-store_data_tinted(ASStorage *storage, CARD8 *data, int size, ASFlagType flags, CARD8 tint)
+store_data_tinted(ASStorage *storage, CARD8 *data, int size, ASFlagType flags, CARD16 tint)
 {
 	int compressed_size = size ;
 	CARD8 *buffer = data;
@@ -2065,7 +2069,7 @@ dup_data(ASStorage *storage, ASStorageID id)
 	if( storage != NULL && id != 0 )
 	{	
 		ASStorageSlot *slot = find_storage_slot( find_storage_block( storage, id ), id );
-		LOCAL_DEBUG_OUT( "slot = %p, slot->index = %d, index(id) = %d", slot, slot?slot->index:-1, StorageID2SlotIdx(id) );
+		LOCAL_DEBUG_OUT( "slot = %p, slot->index = %d, index(id) = %ld", slot, slot?slot->index:-1, StorageID2SlotIdx(id) );
 		if( slot )
 		{
 			ASStorageSlot *target_slot = NULL;
