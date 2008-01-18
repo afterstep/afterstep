@@ -1222,7 +1222,6 @@ png2ASImage_int( void *data, png_rw_ptr read_fn, ASImageImportParams *params )
 	int           bit_depth, color_type, interlace_type;
 	int           intent;
 	ASScanline    buf;
-	CARD16        value_scale_factor = 0;
 	CARD8         *upscaled_gray = NULL;
 	Bool 	      do_alpha = False, grayscale = False ;
 	png_bytep     *row_pointers, row;

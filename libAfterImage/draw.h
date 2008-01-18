@@ -6,7 +6,7 @@ typedef struct ASDrawTool
 	int width;
 	int height;
 	int center_x, center_y ;
-	CARD8  *matrix ;
+	CARD32  *matrix ;
 }ASDrawTool;
 
 typedef struct ASDrawContext
@@ -17,13 +17,13 @@ typedef struct ASDrawContext
 	ASDrawTool *tool ;
 	
 	int canvas_width, canvas_height ;
-	CARD8 *canvas ;
-	CARD8 *scratch_canvas ;
+	CARD32 *canvas ;
+	CARD32 *scratch_canvas ;
 
 	int curr_x, curr_y ;
 
-	void (*apply_tool_func)( struct ASDrawContext *ctx, int curr_x, int curr_y, CARD8 ratio );
-	void (*fill_hline_func)( struct ASDrawContext *ctx, int x_from, int y, int x_to, CARD8 ratio );
+	void (*apply_tool_func)( struct ASDrawContext *ctx, int curr_x, int curr_y, CARD32 ratio );
+	void (*fill_hline_func)( struct ASDrawContext *ctx, int x_from, int y, int x_to, CARD32 ratio );
 }ASDrawContext;
 
 #define AS_DRAW_BRUSHES	3
@@ -50,6 +50,6 @@ void asim_ellips( ASDrawContext *ctx, int x, int y, int rx, int ry, int angle, B
 void asim_ellips2( ASDrawContext *ctx, int x, int y, int rx, int ry, int angle, Bool fill );
 void asim_rectangle( ASDrawContext *ctx, int x, int y, int width, int height );
 
-void asim_flood_fill( ASDrawContext *ctx, int x, int y, CARD8 min_val, CARD8 max_val );
+void asim_flood_fill( ASDrawContext *ctx, int x, int y, CARD32 min_val, CARD32 max_val );
 
 #endif /* DRAW_H_HEADER_INCLUDED */

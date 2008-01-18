@@ -16,7 +16,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#define LOCAL_DEBUG
+#undef  LOCAL_DEBUG
 
 #undef DEBUG_ELLIPS
 
@@ -24,6 +24,12 @@
 #include "win32/config.h"
 #else
 #include "config.h"
+#endif
+
+#ifdef _WIN32
+#define Long64_t __int64 
+#else
+#define Long64_t long long
 #endif
 
 /*#define LOCAL_DEBUG*/
@@ -51,23 +57,23 @@
 #define CTX_DEFAULT_FILL_THRESHOLD	126
 #define CTX_ELLIPS_FILL_THRESHOLD	140
 
-CARD8 _round1x1[1] =
+CARD32 _round1x1[1] =
 {  255 };
 
-CARD8 _round3x3[9] =
+CARD32 _round3x3[9] =
 { 64,  80,  64,
   80, 255,  80,
   64,  80,  64 };
 
 
-CARD8 _round5x5[25] =
+CARD32 _round5x5[25] =
 {  0,  24,  64,  24,   0,
   24,  64,  80,  64,  24,
   64,  80, 255,  80,  64,
   24,  64,  80,  64,  24,
    0,  24,  64,  24,   0,};
 
-CARD8 _round5x5_solid[25] =
+CARD32 _round5x5_solid[25] =
 {  0,  255,  255,  255,   0,
   255,  255, 255,  255,  255,
   255,  255, 255,  255,  255,
@@ -86,11 +92,11 @@ ASDrawTool StandardBrushes[AS_DRAW_BRUSHES] =
 /*********************************************************************************/
 
 static void
-apply_tool_2D( ASDrawContext *ctx, int curr_x, int curr_y, CARD8 ratio )
+apply_tool_2D( ASDrawContext *ctx, int curr_x, int curr_y, CARD32 ratio )
 {
 	if( ratio  !=  0 ) 
 	{	
-		CARD8 *src = ctx->tool->matrix ;
+		CARD32 *src = ctx->tool->matrix ;
 		int corner_x = curr_x - ctx->tool->center_x ; 
 		int corner_y = curr_y - ctx->tool->center_y ; 
 		int tw = ctx->tool->width ;
@@ -99,7 +105,7 @@ apply_tool_2D( ASDrawContext *ctx, int curr_x, int curr_y, CARD8 ratio )
 		int ch = ctx->canvas_height ;
 		int aw = tw ; 
 		int ah = th ;
-		CARD8 *dst = CTX_SELECT_CANVAS(ctx) ; 
+		CARD32 *dst = CTX_SELECT_CANVAS(ctx) ; 
 		int x, y ;
 
 		if( corner_x+tw <= 0 || corner_x >= cw || corner_y+th <= 0 || corner_y >= ch ) 
@@ -166,13 +172,13 @@ apply_tool_2D( ASDrawContext *ctx, int curr_x, int curr_y, CARD8 ratio )
 }	   
 
 static void
-apply_tool_point( ASDrawContext *ctx, int curr_x, int curr_y, CARD8 ratio )
+apply_tool_point( ASDrawContext *ctx, int curr_x, int curr_y, CARD32 ratio )
 {
 	int cw = ctx->canvas_width ;
 	if( ratio != 0 && curr_x >= 0 && curr_x < cw && curr_y >= 0 && curr_y < ctx->canvas_height ) 
 	{	
 		CARD32 value = (ctx->tool->matrix[0]*(CARD32)ratio)/255 ;
-		CARD8 *dst = CTX_SELECT_CANVAS(ctx) ;
+		CARD32 *dst = CTX_SELECT_CANVAS(ctx) ;
 		dst += curr_y * cw ; 
 
 		if( dst[curr_x] < value ) 
@@ -182,13 +188,13 @@ apply_tool_point( ASDrawContext *ctx, int curr_x, int curr_y, CARD8 ratio )
 
 
 static void
-fill_hline_notile( ASDrawContext *ctx, int x_from, int y, int x_to, CARD8 ratio )
+fill_hline_notile( ASDrawContext *ctx, int x_from, int y, int x_to, CARD32 ratio )
 {
 	int cw = ctx->canvas_width ;
 	if( ratio != 0 && x_to >= 0 && x_from < cw && y >= 0 && y < ctx->canvas_height ) 
 	{	
 		CARD32 value = ratio ;
-		CARD8 *dst = CTX_SELECT_CANVAS(ctx) + y * cw ; 
+		CARD32 *dst = CTX_SELECT_CANVAS(ctx) + y * cw ; 
 		int x1 = x_from, x2 = x_to ; 
 		if( x1 < 0 ) 
 			x1 = 0 ; 
@@ -546,14 +552,14 @@ typedef struct ASScanlinePart
 
 
 static void 
-ctx_flood_fill( ASDrawContext *ctx, int x_from, int y, int x_to, CARD8 min_val, CARD8 max_val )
+ctx_flood_fill( ASDrawContext *ctx, int x_from, int y, int x_to, CARD32 min_val, CARD32 max_val  )
 {
 	int ch = ctx->canvas_height ;
 	int cw = ctx->canvas_width ;
 	
 	ASScanlinePart *sstack = NULL ;
 	int sstack_size = 0, sstack_used = 0 ;
-	CARD8 *canvas = CTX_SELECT_CANVAS(ctx);
+	CARD32 *canvas = CTX_SELECT_CANVAS(ctx);
 	
 	LOCAL_DEBUG_OUT( "(%d,%d,%d)", x_from, y, x_to );
 #define ADD_ScanlinePart(X0,Y0,X1)	\
@@ -589,7 +595,7 @@ ctx_flood_fill( ASDrawContext *ctx, int x_from, int y, int x_to, CARD8 min_val, 
 			/* here we have to check for lines below and above */
 			if( y > 0 ) 
 			{
-				CARD8 *data = canvas + (y-1)*cw ; 
+				CARD32 *data = canvas + (y-1)*cw ; 
 				int xc = x_from ; 
 
 				while( xc <= x_to ) 
@@ -611,7 +617,7 @@ ctx_flood_fill( ASDrawContext *ctx, int x_from, int y, int x_to, CARD8 min_val, 
 			}	 
 			if( y < ch-1 ) 
 			{
-				CARD8 *data = canvas + (y+1)*cw ; 
+				CARD32 *data = canvas + (y+1)*cw ; 
 				int xc = x_from ; 
 
 				while( xc <= x_to ) 
@@ -651,8 +657,7 @@ clip_line( int k, int x0, int y0, int cw, int ch, int *x, int*y )
 	if( new_x < 0 ) 
 	{
 		new_x = 0 ;
-		if( k != 0 ) 
-			new_y = (-x0 / k) + y0 ;
+		new_y = (-x0 / k) + y0 ;
 	}	 
 	if( new_y < 0 ) 
 	{
@@ -697,7 +702,7 @@ create_asdraw_context( unsigned int width, unsigned int height )
 	
 	ctx->canvas_width = width == 0 ? 1 : width ; 
 	ctx->canvas_height = height == 0 ? 1 : height ;
-	ctx->canvas = safecalloc(  ctx->canvas_width*ctx->canvas_height, sizeof(CARD8));
+	ctx->canvas = safecalloc(  ctx->canvas_width*ctx->canvas_height, sizeof(CARD32));
 
 	asim_set_brush( ctx, 0 ); 
 	ctx->fill_hline_func = fill_hline_notile ;
@@ -759,14 +764,14 @@ asim_start_path( ASDrawContext *ctx )
 	{
 		if( get_flags( ctx->flags, ASDrawCTX_UsingScratch ) )
 			return False;	  
-		memset( ctx->scratch_canvas, 0x00, ctx->canvas_width*ctx->canvas_height*sizeof(CARD8) );
+		memset( ctx->scratch_canvas, 0x00, ctx->canvas_width*ctx->canvas_height*sizeof(CARD32) );
 	}else
-		ctx->scratch_canvas	 = safecalloc(  ctx->canvas_width*ctx->canvas_height, sizeof(CARD8));
+		ctx->scratch_canvas	 = safecalloc(  ctx->canvas_width*ctx->canvas_height, sizeof(CARD32));
 	set_flags( ctx->flags, ASDrawCTX_UsingScratch );
 	return True;
 }
 
-void asim_flood_fill( ASDrawContext *ctx, int x, int y, CARD8 min_val, CARD8 max_val );
+void asim_flood_fill( ASDrawContext *ctx, int x, int y, CARD32 min_val, CARD32 max_val );
 
 
 Bool
@@ -810,12 +815,21 @@ apply_asdraw_context( ASImage *im, ASDrawContext *ctx, ASFlagType filter )
 		{
 			int y;
 			register ASStorageID *rows = im->channels[chan] ;
-			register CARD8 *canvas_row = ctx->canvas ; 
+			register CARD32 *canvas_row = ctx->canvas ; 
 			for( y = 0 ; y < height ; ++y )
 			{	
+#if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
+				{
+					int i;
+					fprintf( stderr, "row %d, canvas_row = %p:", y, canvas_row );
+					for( i = 0 ; i < width ; ++i)
+						fprintf( stderr, "0x%8.8lX ", canvas_row[i] );
+					fprintf( stderr, "\n" );	
+				}
+#endif
 				if( rows[y] ) 
 					forget_data( NULL, rows[y] ); 
-				rows[y] = store_data( NULL, (CARD8*)canvas_row, width, ASStorage_RLEDiffCompress, 0);
+				rows[y] = store_data( NULL, (CARD8*)canvas_row, width*sizeof(CARD32), ASStorage_32Bit|ASStorage_RLEDiffCompress, 0);
 				canvas_row += width ; 
 			}
 		}
@@ -963,9 +977,15 @@ static inline int asim_sin( int angle )
 int 
 asim_sqrt( double sval ) 
 {
-	long long uval = (sval >= 0) ? (long long)sval:-(long long)sval ;
-	long long res = uval ; 
-	long long t = res*res ;
+#ifdef HAVE_LONG_LONG
+	Long64_t uval = (sval >= 0) ? (Long64_t)sval:-(Long64_t)sval ;
+	Long64_t res = uval ; 
+	Long64_t t = res*res ;
+#else
+   long uval = (sval >= 0) ? (long)sval:-(long)sval ;
+   long res = uval ; 
+   long t = res*res ;
+#endif
 	
 	while( t > uval ) 
 	{
@@ -973,7 +993,7 @@ asim_sqrt( double sval )
 		t = t >> 2 ;	  
 	}	 
 	if( t == uval ) 
-		return res;
+		return (int)res;
 	res = (res << 1) + 1 ;
 	t = res*res ;
 	while( t > uval ) 
@@ -981,7 +1001,7 @@ asim_sqrt( double sval )
 		t -= (res<<1)-1 ;
 		--res ;
 	}		  
-	return res;
+	return (int)res;
 }	  
 
 /*************************************************************************/
@@ -997,7 +1017,7 @@ asim_straight_ellips( ASDrawContext *ctx, int x, int y, int rx, int ry, Bool fil
 		int max_y = ry ; 
 		int orig_x = x, orig_y = y, orig_rx = rx ; 
 #ifdef HAVE_LONG_LONG						   
-		long long rx2 = rx*rx, ry2 = ry * ry, d ; 
+		Long64_t rx2 = rx*rx, ry2 = ry * ry, d ; 
 #else
 		long rx2 = rx*rx, ry2 = ry * ry, d ; 
 #endif		
@@ -1015,7 +1035,7 @@ asim_straight_ellips( ASDrawContext *ctx, int x, int y, int rx, int ry, Bool fil
 			
 			do
 			{
-				while( tx > ty ) 
+				while( tx > ty && x1 > 0 )
 				{
 					tx -= (x1<<1)+1 ;
 					--x1 ;
@@ -1074,7 +1094,7 @@ asim_straight_ellips( ASDrawContext *ctx, int x, int y, int rx, int ry, Bool fil
 				do
 				{
 					long start_tx, start_x1 ;
-					while( tx > max_ty ) 
+					while( tx > max_ty && x1 > 0 )
 					{
 						--x1; 
 						tx -= (x1<<1)+1 ;
@@ -1233,9 +1253,9 @@ asim_ellips2( ASDrawContext *ctx, int x, int y, int rx, int ry, int angle, Bool 
 		double C = -c2*sin_val*cos_val ;
 		double F = -rx2*ry2 ;
 		int yt = asim_sqrt(A);
-		int xt = -C/yt ;
+		int xt = (int)-C/yt ;
 		int xr = asim_sqrt(B);
-		int yr = -C/xr ;
+		int yr = (int)-C/xr ;
 		int x1 ; 
 		int x2 ; 
 		int line = yt; 
@@ -1247,7 +1267,7 @@ asim_ellips2( ASDrawContext *ctx, int x, int y, int rx, int ry, int angle, Bool 
 		double CC = C*(double)((line<<1)-1);
 
 
-		xt = (A-CC)/A2  ;
+		xt = (int)((A-CC)/A2)  ;
 		y1 = line*direction ;
 		BB = B*(double)line*(double)line + F - B*(double)line - (B/4.);
 		x1 = xt+1 ;
@@ -1264,8 +1284,8 @@ asim_ellips2( ASDrawContext *ctx, int x, int y, int rx, int ry, int angle, Bool 
 #endif
 			if( d < 0 ) 
 			{       
-				int aa = (double)((A-A2*(double)x1-CC)*255/A2);
-				int dd = -aa-(double)(d*255/A2)  ; 
+				int aa = (int)((A-A2*(double)x1-CC)*255/A2);
+				int dd = (int)(-aa-(double)(d*255/A2)) ; 
 				int med_dd = (dd>>1)+1; 
 	
 				if( last_med_dd1 > 0 ) 
@@ -1323,8 +1343,8 @@ asim_ellips2( ASDrawContext *ctx, int x, int y, int rx, int ry, int angle, Bool 
 #endif
 			 	if( d < 0 ) 	
 				{
-					int aa = (double)((A+A2*(double)x2+CC)*255/A2);
-					int dd = aa+(double)(d*255/A2)  ; 
+					int aa = (int)((A+A2*(double)x2+CC)*255/A2);
+					int dd = (int)(aa+(double)(d*255/A2))  ; 
 					int med_dd = dd/2 - 1; 
 
 					if( last_med_dd2 > 0 ) 
@@ -1351,7 +1371,7 @@ asim_ellips2( ASDrawContext *ctx, int x, int y, int rx, int ry, int angle, Bool 
 					{ 
 						int v ; 
 						v = ( dd >= med_dd )? dd-med_dd: med_dd-dd ;  
-						v = (med_dd == 0)?250: (v*255/-med_dd) ; 
+						v = v*255/-med_dd ; 
 						if( v < 0 || v > 255) 
 							v = 250 ;
 #ifdef DEBUG_ELLIPS					 						   
@@ -1378,8 +1398,8 @@ asim_ellips2( ASDrawContext *ctx, int x, int y, int rx, int ry, int angle, Bool 
 #endif
 				if( d > 0. )
 				{	
-					int aa = (double)((A-A2*(double)(x2)-CC)*255./A2);
-					int dd = aa+(double)(d*255./A2)  ; 
+					int aa = (int)((A-A2*(double)(x2)-CC)*255./A2);
+					int dd = (int)(aa+(double)(d*255./A2))  ; 
 					int med_dd = dd/2+1; 
 					
 					if( last_med_dd2 > 0 ) 
@@ -1451,13 +1471,13 @@ asim_ellips2( ASDrawContext *ctx, int x, int y, int rx, int ry, int angle, Bool 
 /*************************************************************************/
 
 void 
-asim_flood_fill( ASDrawContext *ctx, int x, int y, CARD8 min_val, CARD8 max_val ) 
+asim_flood_fill( ASDrawContext *ctx, int x, int y, CARD32 min_val, CARD32 max_val  ) 
 {
 	if( ctx && x >= 0 && x < ctx->canvas_width && y >= 0 && y < ctx->canvas_height )
 	{
 		int x0 = x, x1 = x ; 
 		int cw = ctx->canvas_width ;
-		CARD8 *data = CTX_SELECT_CANVAS(ctx) + y*cw ; 
+		CARD32 *data = CTX_SELECT_CANVAS(ctx) + y*cw ; 
 		while( x0 >= 0 && data[x0] <= max_val && data[x0]  >= min_val ) --x0;
 		++x0 ;
 		while( x1 < cw && data[x1] <= max_val && data[x1]  >= min_val ) ++x1;
@@ -1499,7 +1519,7 @@ int main(int argc, char **argv )
 	ASImage *drawing1 = NULL ;
 	ASImage *merged_im = NULL ;
 	ASImageLayer *layers ;
-	int layers_num = 0, i, k;
+	int layers_num = 0, i;
 	int screen = 0, depth = 0;
 
 	ASDrawContext *ctx ;
@@ -1635,7 +1655,9 @@ int main(int argc, char **argv )
 	asim_circle( ctx, 595, 550, 200, False );
 	i = 30 ;
 
-/*	for( k = 0 ; k < 100 ; ++k )  */
+	{
+/*		int k;
+		for( k = 0 ; k < 100 ; ++k )  */
 		for( i = 3 ; i < 180 ; i+=5 ) 
 		{	
 /*			asim_ellips2( ctx, 595, 550, 198, 40, i, False );
@@ -1648,11 +1670,13 @@ int main(int argc, char **argv )
 			asim_ellips( ctx, 595, 550, 198, 40, i, False ); 
  */
 		}
+	}
 #endif
 	asim_circle( ctx, 705, 275, 90, True );
+//	asim_circle( ctx, 100, 100, 90, True );
 
-
-/*	asim_circle( ctx, -40000, 500, 40500, False );
+#if 1
+	asim_circle( ctx, -40000, 500, 40500, False );
 	asim_circle( ctx, -10000, 500, 10499, False );
 
 	asim_ellips2( ctx, -1000, 500, 1500, 100, 2, False );
@@ -1661,7 +1685,7 @@ int main(int argc, char **argv )
 	asim_flood_fill( ctx, 670, 77, 0, 126 ); 
 	asim_flood_fill( ctx, 120, 80, 0, 126 ); 
 	asim_flood_fill( ctx, 300, 460, 0, 126 ); 
-*/
+#endif
 #if 1
 	/* commit drawing : */
 	apply_asdraw_context( drawing1, ctx, SCL_DO_ALPHA ); 
