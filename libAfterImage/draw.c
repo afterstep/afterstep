@@ -171,13 +171,85 @@ apply_tool_2D( ASDrawContext *ctx, int curr_x, int curr_y, CARD32 ratio )
 	}
 }	   
 
+static inline void alpha_blend_point_argb32( CARD32 *dst, CARD32 value, CARD32 ratio)
+{
+	CARD32 ta = (ARGB32_ALPHA8(value)*ratio)/255;
+
+	if (ta >= 255)
+		*dst = value|0xFF000000;
+	else
+	{
+		CARD32 aa = 256-ta; /* must be 256 or we ! */
+		CARD32 orig = *dst;
+		CARD32 res = ((orig&0xFF000000)>>8)*aa + (ta<<24);
+		/* red and blue */
+		res |= (((orig&0x00FF00FF)*aa + (value&0x00FF00FF)*ta)>>8)&0x00FF00FF;
+		/* green */
+		res |= (((orig&0x0000FF00)*aa + (value&0x0000FF00)*ta)>>8)&0x0000FF00;
+		*dst = res;
+	}
+}
+
+static void
+apply_tool_2D_colored( ASDrawContext *ctx, int curr_x, int curr_y, CARD32 ratio )
+{
+	if( ratio  !=  0 ) 
+	{	
+		CARD32 *src = ctx->tool->matrix ;
+		int corner_x = curr_x - ctx->tool->center_x ; 
+		int corner_y = curr_y - ctx->tool->center_y ; 
+		int tw = ctx->tool->width ;
+		int th = ctx->tool->height ;
+		int cw = ctx->canvas_width ;
+		int ch = ctx->canvas_height ;
+		int aw = tw ; 
+		int ah = th ;
+		CARD32 *dst = CTX_SELECT_CANVAS(ctx) ; 
+		int x, y ;
+
+		if( corner_x+tw <= 0 || corner_x >= cw || corner_y+th <= 0 || corner_y >= ch ) 
+			return ;
+		 
+		if( corner_y > 0 ) 
+			dst += corner_y * cw ;
+		else if( corner_y < 0 ) 
+		{
+			ah -= -corner_y ;
+			src += -corner_y * tw ;
+		}
+
+		if( corner_x  > 0 ) 
+			dst += corner_x ;  
+		else if( corner_x < 0 )
+		{	
+			src += -corner_x ; 
+			aw -= -corner_x ;
+		}
+	
+		if( corner_x + tw > cw ) 
+			aw = cw - corner_x;
+
+		if( corner_y + th > ch ) 
+			ah = ch - corner_y;
+		
+		for( y = 0 ; y < ah ; ++y ) 
+		{	
+			for( x = 0 ; x < aw ; ++x ) 
+				alpha_blend_point_argb32( dst+x, src[x], ratio);
+			src += tw ; 
+			dst += cw ; 
+		}
+	}
+}	   
+
+
 static void
 apply_tool_point( ASDrawContext *ctx, int curr_x, int curr_y, CARD32 ratio )
 {
 	int cw = ctx->canvas_width ;
 	if( ratio != 0 && curr_x >= 0 && curr_x < cw && curr_y >= 0 && curr_y < ctx->canvas_height ) 
 	{	
-		CARD32 value = (ctx->tool->matrix[0]*(CARD32)ratio)/255 ;
+		CARD32 value = (ctx->tool->matrix[0]*ratio)/255 ;
 		CARD32 *dst = CTX_SELECT_CANVAS(ctx) ;
 		dst += curr_y * cw ; 
 
@@ -186,6 +258,16 @@ apply_tool_point( ASDrawContext *ctx, int curr_x, int curr_y, CARD32 ratio )
 	}
 }	   
 
+
+static void 
+apply_tool_point_colored(ASDrawContext *ctx, int curr_x, int curr_y, CARD32 ratio)
+{
+	/* Apply tool point argb32. - stolen from ROOT by Valery Onuchin, with changes */
+	int cw = ctx->canvas_width;
+
+	if (curr_x >= 0 && curr_x < cw && curr_y >= 0 && curr_y < ctx->canvas_height && ratio != 0)		
+		alpha_blend_point_argb32( CTX_SELECT_CANVAS(ctx) + curr_y * cw, ctx->tool->matrix[0], ratio);
+}
 
 static void
 fill_hline_notile( ASDrawContext *ctx, int x_from, int y, int x_to, CARD32 ratio )
@@ -210,6 +292,27 @@ fill_hline_notile( ASDrawContext *ctx, int x_from, int y, int x_to, CARD32 ratio
 	}
 }
 
+static void 
+fill_hline_notile_colored(ASDrawContext *ctx, int x_from, int y, int x_to, CARD32 ratio)
+{
+	int cw = ctx->canvas_width ;
+	if( ratio != 0 && x_to >= 0 && x_from < cw && y >= 0 && y < ctx->canvas_height ) 
+	{	
+		CARD32 value = ctx->tool->matrix[0] ;
+		CARD32 *dst = CTX_SELECT_CANVAS(ctx) + y * cw ; 
+		int x1 = x_from, x2 = x_to ; 
+		if( x1 < 0 ) 
+			x1 = 0 ; 
+		if( x2 >= cw ) 
+			x2 = cw - 1 ; 
+
+		while( x1 <= x2 ) 
+		{
+			alpha_blend_point_argb32( dst+x1, value, ratio);
+			++x1 ;
+		}
+	}
+}
 
 /*********************************************************************************/
 /* drawing functions : 											 */
@@ -733,6 +836,8 @@ asim_set_brush( ASDrawContext *ctx, int brush )
 			ctx->apply_tool_func = apply_tool_point ;
 		else 
 			ctx->apply_tool_func = apply_tool_2D ; 
+
+		ctx->fill_hline_func = fill_hline_notile ;
 		return True;
 	}	 
 	return False;
@@ -748,6 +853,25 @@ asim_set_custom_brush( ASDrawContext *ctx, ASDrawTool *brush)
 			ctx->apply_tool_func = apply_tool_point ;
 		else 
 			ctx->apply_tool_func = apply_tool_2D ; 
+	
+		ctx->fill_hline_func = fill_hline_notile ;
+		return True;
+	}	 
+	return False;
+}
+
+Bool
+asim_set_custom_brush_colored( ASDrawContext *ctx, ASDrawTool *brush) 
+{
+	if( brush !=NULL && ctx != NULL ) 
+	{
+		ctx->tool = brush ;  
+		if( ctx->tool->width == 1 && ctx->tool->height == 1 ) 
+			ctx->apply_tool_func = apply_tool_point_colored ;
+		else 
+			ctx->apply_tool_func = apply_tool_2D_colored ; 
+
+		ctx->fill_hline_func = fill_hline_notile_colored ;
 		return True;
 	}	 
 	return False;
