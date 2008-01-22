@@ -215,7 +215,12 @@ int as_snd2_playsound(const char *SndName)
     if (SndName == "iconic")
     { SndFname = CONF->sounds[5]; }
     if (SndName == "sticky")
-    { SndFname = CONF->sounds[9]; }
+    { SndFname = "unmapped"; }
+    if (SndName == "viewport")
+    { SndFname = "unmapped"; }
+    if (SndName == "focus")
+    { SndFname = "unmapped"; }
+    
     
     SNDPlayNow = 1;
     
@@ -223,7 +228,7 @@ int as_snd2_playsound(const char *SndName)
     strcat(SndFullname,"/");
     strcat(SndFullname,SndFname);
     
-    fprintf(stdout,"TEST NAME: %s\n",SndFullname);
+    //fprintf(stdout,"TEST NAME: %s\n",SndFullname);
     
     // 5 = ICONIFIED
     // 7 = SHADE
@@ -231,7 +236,7 @@ int as_snd2_playsound(const char *SndName)
     //CONF->sounds[7]
     
     SNDFile = fopen(SndFullname,"rb");
-    if (SNDFile == NULL) { fprintf(stdout,"Failed to open Sound File\n"); exit(1); }
+    if (SNDFile == NULL) { fprintf(stdout,"Failed to open Sound File\n"); return 0; }
 
 //    if (Snd2DEBUG) { fprintf(stdout,"Prepare To Play!...\n"); }
     snd_pcm_prepare(SND2devS.pcm_handle);    
@@ -329,11 +334,30 @@ void proc_message(send_data_type type, send_data_type *body)
                     show_activity("STATE: Sticky");
                     as_snd2_playsound("sticky");
                 }
-                if (StateChange & AS_MaximizedY);
+                if (StateChange & AS_MaximizedY)
                 {
                     show_activity("STATE: MaximizedY");
                     as_snd2_playsound("maximized");
                 }
+                // Uncertain Flags
+                // > libAfterStep/clientprops.h
+                if (StateChange & AS_Withdrawn)
+                {
+                    show_activity("STATE: Withdrawn");
+                }
+                if (StateChange & AS_Dead)
+                {
+                    show_activity("STATE: Dead");
+                }
+                if (StateChange & AS_Layer)
+                {
+                    show_activity("STATE: Layer");
+                }
+                if (StateChange & AS_Size)
+                {
+                    show_activity("STATE: Size");
+                }
+                
             }
             res = -1;
         }
@@ -341,11 +365,19 @@ void proc_message(send_data_type type, send_data_type *body)
         {	code = EVENT_WindowDestroyed; }
         
     }
-    else if (type == M_NEW_DESKVIEWPORT)
+    if (type & M_NEW_DESKVIEWPORT)
     {
+        // Getting this message when opening new windows/terms.
         show_activity("-STATE: VIEWPORT CHANGE");
         as_snd2_playsound("viewport");
     }
+    if (type & M_STACKING_ORDER)
+    {                          
+        // Layering. This and Foc Change occur on menu opening. 
+        show_activity("-STATE[2]: Stack Order");
+    }
+                                                        
+    
     SNDPlayNow = 0;
 }
 void
@@ -364,9 +396,7 @@ GetOptions (const char *filename)
     int i ;
     START_TIME(option_time);
     
- //   fprintf(stdout,"--1DELAY: %i\n",config->delay);
     fprintf(stdout,"--PCMDEV: %s\n",config->pcmdevice);
-//    fprintf(stdout,"--PTH: %s\n",config->sounds[15]);
 
     /* Need to merge new config with what we have already :*/
     /* now lets check the config sanity : */
@@ -375,14 +405,13 @@ GetOptions (const char *filename)
 
     if( config->pcmdevice != NULL )
     {
-        CONF->pcmdevice = config->pcmdevice;
-        //set_string( &(CONF->pcmdevice), config->pcmdevice);
+        CONF->pcmdevice = mystrdup(config->pcmdevice);
     }
     fprintf(stdout,"Cfg::PCMDEV: %s\n",CONF->pcmdevice);
     
     if (config->path != NULL)
     {
-        CONF->path = config->path;
+        CONF->path = mystrdup(config->path);
     }
         
     for( i = 0 ; i < AFTERSTEP_EVENTS_NUM ; ++i ) 
@@ -390,7 +419,7 @@ GetOptions (const char *filename)
         if( config->sounds[i] != NULL )
         {
             fprintf(stdout,"--SOUNDS: [%i]: %s\n",i,config->sounds[i]);
-            set_string( &(CONF->sounds[i]), config->sounds[i]);
+            set_string( &(CONF->sounds[i]), mystrdup(config->sounds[i]));
         }
     }
     
@@ -402,11 +431,7 @@ GetOptions (const char *filename)
 //        fprintf(stdout,"---DELAY: %i",Config->delay);
 //    }
 
-    // This seems to totally break the CONF/Config vars
-    //  while it appears it should only be unsetting config
-    //DestroySoundConfig (config);
-    fprintf(stdout,"Cfg::PCMDEV11: %s\n",CONF->pcmdevice);
-    fprintf(stdout,"Cfg::PTH: %s\n",CONF->path);
+    DestroySoundConfig (config);
     SHOW_TIME("Config parsing",option_time);
     fprintf(stdout,"******GETOPTIONS END*****\n");
 }

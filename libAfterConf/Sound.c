@@ -41,27 +41,27 @@
  ****************************************************************************/
 
 TermDef       EventTerms[] = {
-    {TF_DONT_SPLIT|TF_NO_MYNAME_PREPENDING, "add_window", 10,    	TT_FILENAME, EVENT_WindowAdded_ID        , NULL},
-    {TF_DONT_SPLIT|TF_NO_MYNAME_PREPENDING, "window_names", 8,      TT_FILENAME, EVENT_WindowNames_ID        , NULL},
-    {TF_DONT_SPLIT|TF_NO_MYNAME_PREPENDING, "destroy_window", 14,   TT_FILENAME, EVENT_WindowDestroyed_ID    , NULL},
-    {TF_DONT_SPLIT|TF_NO_MYNAME_PREPENDING, "focus_change", 12,	    TT_FILENAME, EVENT_WindowActivated_ID    , NULL},
+    {TF_DONT_SPLIT|TF_NO_MYNAME_PREPENDING, "add_window", 10,		TT_FILENAME, EVENT_WindowAdded_ID        , NULL},
+    {TF_DONT_SPLIT|TF_NO_MYNAME_PREPENDING, "window_names", 8,		TT_FILENAME, EVENT_WindowNames_ID        , NULL},
+    {TF_DONT_SPLIT|TF_NO_MYNAME_PREPENDING, "destroy_window", 14,	TT_FILENAME, EVENT_WindowDestroyed_ID    , NULL},
+    {TF_DONT_SPLIT|TF_NO_MYNAME_PREPENDING, "focus_change", 12,		TT_FILENAME, EVENT_WindowActivated_ID    , NULL},
     {TF_DONT_SPLIT|TF_NO_MYNAME_PREPENDING, "raise_window", 12,  	TT_FILENAME, EVENT_WindowRaised_ID       , NULL},
     {TF_DONT_SPLIT|TF_NO_MYNAME_PREPENDING, "iconify", 7,     		TT_FILENAME, EVENT_WindowIconified_ID    , NULL},
     {TF_DONT_SPLIT|TF_NO_MYNAME_PREPENDING, "deiconify", 9,    		TT_FILENAME, EVENT_WindowDeiconified_ID  , NULL},
     {TF_DONT_SPLIT|TF_NO_MYNAME_PREPENDING, "shade", 5,     		TT_FILENAME, EVENT_WindowShaded_ID       , NULL},
     {TF_DONT_SPLIT|TF_NO_MYNAME_PREPENDING, "unshade", 7,      		TT_FILENAME, EVENT_WindowUnshaded_ID     , NULL},
-    {TF_DONT_SPLIT|TF_NO_MYNAME_PREPENDING, "stick", 5, 			TT_FILENAME, EVENT_WindowStuck_ID        , NULL},
+    {TF_DONT_SPLIT|TF_NO_MYNAME_PREPENDING, "stick", 5, 		TT_FILENAME, EVENT_WindowStuck_ID        , NULL},
     {TF_DONT_SPLIT|TF_NO_MYNAME_PREPENDING, "unstick", 7,   		TT_FILENAME, EVENT_WindowUnstuck_ID      , NULL},
-    {TF_DONT_SPLIT|TF_NO_MYNAME_PREPENDING, "maximize", 8, 			TT_FILENAME, EVENT_WindowMaximized_ID    , NULL},
+    {TF_DONT_SPLIT|TF_NO_MYNAME_PREPENDING, "maximize", 8, 		TT_FILENAME, EVENT_WindowMaximized_ID    , NULL},
     {TF_DONT_SPLIT|TF_NO_MYNAME_PREPENDING, "restore", 7,   		TT_FILENAME, EVENT_WindowRestored_ID     , NULL},
     
-	{TF_DONT_SPLIT|TF_NO_MYNAME_PREPENDING, "new_background", 14,   TT_FILENAME, EVENT_BackgroundChanged_ID  , NULL},
+    {TF_DONT_SPLIT|TF_NO_MYNAME_PREPENDING, "new_background", 14,	TT_FILENAME, EVENT_BackgroundChanged_ID  , NULL},
     {TF_DONT_SPLIT|TF_NO_MYNAME_PREPENDING, "new_viewport", 12,		TT_FILENAME, EVENT_DeskViewportChanged_ID, NULL},
-    {TF_DONT_SPLIT|TF_NO_MYNAME_PREPENDING, "startup", 7,           TT_FILENAME, EVENT_Startup_ID            , NULL},
-    {TF_DONT_SPLIT|TF_NO_MYNAME_PREPENDING, "shutdown", 8,          TT_FILENAME, EVENT_Shutdown_ID           , NULL},
+    {TF_DONT_SPLIT|TF_NO_MYNAME_PREPENDING, "startup", 7,		TT_FILENAME, EVENT_Startup_ID            , NULL},
+    {TF_DONT_SPLIT|TF_NO_MYNAME_PREPENDING, "shutdown", 8,		TT_FILENAME, EVENT_Shutdown_ID           , NULL},
     
-	{TF_DONT_SPLIT|TF_NO_MYNAME_PREPENDING, "config", 6,         	TT_FILENAME, EVENT_Config_ID             , NULL},
-	{TF_DONT_SPLIT|TF_NO_MYNAME_PREPENDING, "module_config", 13,    TT_FILENAME, EVENT_ModuleConfig_ID       , NULL},
+    {TF_DONT_SPLIT|TF_NO_MYNAME_PREPENDING, "config", 6,         	TT_FILENAME, EVENT_Config_ID             , NULL},
+    {TF_DONT_SPLIT|TF_NO_MYNAME_PREPENDING, "module_config", 13,	TT_FILENAME, EVENT_ModuleConfig_ID       , NULL},
     
 	{0, NULL, 0, 0, 0}						   /* end of structure */
 };
@@ -137,10 +137,7 @@ DestroySoundConfig (SoundConfig * config)
 
 	if (config->pcmdevice)
 		free (config->pcmdevice);
-/*
-	if (config->rplay_host)
-		free (config->rplay_host);
-*/
+
 	DestroyFreeStorage (&(config->more_stuff));
 	free (config);
 }

@@ -2510,26 +2510,26 @@ void DestroyCleanConfig (CleanConfig * config);
 /***************************************************************************/
 /*                        Possible AfterStep communication events :        */
 /***************************************************************************/
-#define	EVENT_WindowAdded			0
+#define	EVENT_WindowAdded		0
 #define	EVENT_WindowNames    		1
 #define	EVENT_WindowDestroyed		2
 #define	EVENT_WindowActivated		3
-#define	EVENT_WindowRaised			4
+#define	EVENT_WindowRaised		4
 #define	EVENT_WindowIconified		5
 #define	EVENT_WindowDeiconified		6
-#define	EVENT_WindowShaded			7
+#define	EVENT_WindowShaded		7
 #define	EVENT_WindowUnshaded		8
-#define	EVENT_WindowStuck			9 
-#define	EVENT_WindowUnstuck			10
+#define	EVENT_WindowStuck		9 
+#define	EVENT_WindowUnstuck		10
 #define	EVENT_WindowMaximized		11
 #define	EVENT_WindowRestored		12
 #define	EVENT_BackgroundChanged		13
 #define	EVENT_DeskViewportChanged	14
-#define	EVENT_Startup				15
-#define	EVENT_Shutdown				16
-#define	EVENT_Config				17
-#define	EVENT_ModuleConfig			18
-#define	EVENT_PlaySound				19
+#define	EVENT_Startup			15
+#define	EVENT_Shutdown			16
+#define	EVENT_Config			17
+#define	EVENT_ModuleConfig		18
+#define	EVENT_PlaySound			19
 #define	AFTERSTEP_EVENTS_NUM 		20
 
 
