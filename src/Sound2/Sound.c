@@ -212,15 +212,21 @@ int as_snd2_playsound(const char *SndName)
     
     if (SndName == "shade")
     { SndFname = CONF->sounds[7]; }
-    if (SndName == "iconic")
+    else if (SndName == "iconic")
     { SndFname = CONF->sounds[5]; }
+    else if (SndName == "sticky")
+    { SndFname = CONF->sounds[9]; }
+    else {
+      // No Sound for this event.
+      return 0;
+    }
+    
     if (SndName == "sticky")
     { SndFname = "unmapped"; }
     if (SndName == "viewport")
     { SndFname = "unmapped"; }
     if (SndName == "focus")
     { SndFname = "unmapped"; }
-    
     
     SNDPlayNow = 1;
     
@@ -406,6 +412,7 @@ GetOptions (const char *filename)
     if( config->pcmdevice != NULL )
     {
         CONF->pcmdevice = mystrdup(config->pcmdevice);
+        //set_string( &(CONF->pcmdevice), config->pcmdevice);
     }
     fprintf(stdout,"Cfg::PCMDEV: %s\n",CONF->pcmdevice);
     

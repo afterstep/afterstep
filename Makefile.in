@@ -22,6 +22,7 @@ subdirs		= libAfterBase libAfterImage libAfterStep libAfterConf @LIBASGTKDIR@ \
 		  src/WinList2 \
 		  src/WinTabs \
 		  src/ascp  \
+		  src/Sound2 \
 		  src/tools/ASRun \
 	    	  $(@GTK_APP_DIRS@) \
 		  afterstep \
