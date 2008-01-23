@@ -1,8 +1,33 @@
 #!/bin/bash
-
-while true
-do
-    echo \<text  font=DefaultBoldOblique.ttf fgcolor=#FFFFFF align=center y=26 Size=32\> `cat /proc/cpuinfo |grep name | sed 's/model name.*:.//'; echo @ ; cat /proc/acpi/thermal_zone/THRM/temperature | sed 's/temperature:.............//'`
-    echo \</text\>
-    sleep 5
-done
+if [ -z $1 ]
+    then
+#  no parameters set so put out normal xml for desklet use
+    while true
+    do
+#        echo "<composite>"
+#        echo "<release srcid=\"sysinfo_txt\" />"
+#	echo "<img src=\"tiles/empty\" />"
+#        echo "<text id=\"sysinfo_txt\" font=DefaultBoldOblique.ttf fgcolor=#FFFFFF point=14>"
+        echo "<text font=DefaultBoldOblique.ttf fgcolor=#FFFFFF point=14>"
+	cat /proc/cpuinfo |awk '{ \
+	    if (NR==5) { $1=""; $2=""; $3=""; sub(/^[ \t]+/, ""); "cat /proc/acpi/thermal_zone/THRM/temperature" | getline cpu_temp; \
+		close("cat /proc/acpi/thermal_zone/THRM/temperature"); printf "%s @ ",$0; $0=cpu_temp; printf "%s C\n",$2;} \
+	    if (NR==7)printf " Frequency : %1.0f %s \n",$4,$2; \
+	    if (NR==8) {printf " Cache Size : "$4" "$5 "\n"; }}'
+	free -m | awk '{ \
+	    if (NR==2) {x=100-$3*100/$2; printf "  Ram : %s/%s MB - %3.0f %% free\n",$3,$2,x;} \
+	    if (NR==4) {x=100-$3*100/$2; printf "  Swap : %s MB - %3.0f%% free\n",$2,x;}}'
+	echo "</text>"
+#	echo "</composite>"
+	sleep 5
+    done
+elif [ "$1" == "-r" ]
+    then
+# first line defines number of default params/lines to add to central config file
+    echo "Lines2Register 5"
+    echo "########## sysinfo desklet config ##########"
+    echo "Geometry +0+0"
+    echo "# Font blahblah"
+    echo "# Show cputemp - cpufreq - mem - uname]"
+    echo "############################################"
+fi
