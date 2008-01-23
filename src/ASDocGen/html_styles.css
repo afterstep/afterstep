@@ -55,6 +55,7 @@
 		font-size:13px;
 	}
 	p.dense {
+		text-align: justify;
 		margin-top: 0em;
 		padding: 0em;
 		line-height: 110%;
