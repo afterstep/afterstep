@@ -40,6 +40,7 @@
  *
  ****************************************************************************/
 
+/* number after strings here is the len of str */
 TermDef       EventTerms[] = {
     {TF_DONT_SPLIT|TF_NO_MYNAME_PREPENDING, "add_window", 10,		TT_FILENAME, EVENT_WindowAdded_ID        , NULL},
     {TF_DONT_SPLIT|TF_NO_MYNAME_PREPENDING, "window_names", 8,		TT_FILENAME, EVENT_WindowNames_ID        , NULL},
@@ -63,7 +64,7 @@ TermDef       EventTerms[] = {
     {TF_DONT_SPLIT|TF_NO_MYNAME_PREPENDING, "config", 6,         	TT_FILENAME, EVENT_Config_ID             , NULL},
     {TF_DONT_SPLIT|TF_NO_MYNAME_PREPENDING, "module_config", 13,	TT_FILENAME, EVENT_ModuleConfig_ID       , NULL},
     
-	{0, NULL, 0, 0, 0}						   /* end of structure */
+    {0, NULL, 0, 0, 0}						   /* end of structure */
 };
 
 SyntaxDef     SoundEventsSyntax = {
