@@ -17,12 +17,11 @@
  *
  */
 
+// Standard "Required" Includes
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h> 
 #include <alsa/asoundlib.h>
-// This is for the debugging.. and prolly will just remove it      
-#include <time.h>
 
 // AS Includes
 #include "../../configure.h"
@@ -61,6 +60,8 @@ Bool (*sound_play) (short) = NULL;
 struct SND2dev SND2devS;
 SND2devP = &SND2devS;
 int SNDPlayNow;
+// DEBUG GLOBAL
+int Snd2DEBUG = 1;
        
 int main(int argc,char ** argv)
 {
@@ -78,17 +79,31 @@ int main(int argc,char ** argv)
     LoadBaseConfig(GetBaseOptions);
     LoadConfig("sound",GetOptions);
     
-    fprintf(stdout,"--Audio Conf: %s\n",CONF->pcmdevice);
+    if (Snd2DEBUG) { fprintf(stdout,"--PCM Device: %s\n",CONF->pcmdevice); }
+    /*
     
-    //as_snd2_waveheader("online.wav");
-
+       Need to Read sounds into memory.
+       And also parse out headers, into a related struct
+       with the rate, size, etc.
+    
+    */
+    
     as_snd2_init_stg1();
     as_snd2_init_stg2();
     
-    //as_snd2_playsound("test");
+    /*
     
+      Add better error control in snd2_init..
+      if either error out, should unload sounds from 
+      memory before exiting.
+    
+    */
+    
+    // Start the event loop
     HandleEvents();
     
+    // prolly need additional error checking here.
+    // for what should be rare case of HandleEvents breaking.
     return 0;
 }
 
@@ -101,8 +116,6 @@ int as_snd2_init_stg1()
     int Snd2DEBUG, ret1;
     //String pcmDeviceID = "plughw:0,0"; // Need to make Config File opt for setting this.
     //String pcmDeviceID = CONF->pcmdevice;
-
-    Snd2DEBUG = 1;
 
     if (Snd2DEBUG) { fprintf(stdout,"Opening PCM Device.... %s\n",CONF->pcmdevice); }
     
@@ -146,8 +159,6 @@ int as_snd2_init_stg2()
     
     SRate = 8000;
     CHcount = 2;
-
-    Snd2DEBUG = 1;
 
     if (Snd2DEBUG) { fprintf(stdout,"Setting Sample Rate...\n"); }
     
@@ -243,6 +254,12 @@ int as_snd2_playsound(const char *SndName)
     
     SNDFile = fopen(SndFullname,"rb");
     if (SNDFile == NULL) { fprintf(stdout,"Failed to open Sound File\n"); return 0; }
+
+    /*
+      Depending on the file, 2nd stage snd_init will need to be
+      re-executed to reflect new Rate, Channels, etc.
+      BEFORE continuing here..
+    */
 
 //    if (Snd2DEBUG) { fprintf(stdout,"Prepare To Play!...\n"); }
     snd_pcm_prepare(SND2devS.pcm_handle);    
@@ -396,14 +413,12 @@ GetBaseOptions (const char *filename/* unused*/)
 void
 GetOptions (const char *filename)
 {
-    fprintf(stdout,"*****GETOPTIONS START******\n");
+    if (Snd2DEBUG) { fprintf(stdout,"*****GETOPTIONS START******\n"); }
     SoundConfig *config = ParseSoundOptions (filename,MyName);
 
     int i ;
     START_TIME(option_time);
     
-    fprintf(stdout,"--PCMDEV: %s\n",config->pcmdevice);
-
     /* Need to merge new config with what we have already :*/
     /* now lets check the config sanity : */
     /* mixing set and default flags : */
@@ -414,7 +429,7 @@ GetOptions (const char *filename)
         CONF->pcmdevice = mystrdup(config->pcmdevice);
         //set_string( &(CONF->pcmdevice), config->pcmdevice);
     }
-    fprintf(stdout,"Cfg::PCMDEV: %s\n",CONF->pcmdevice);
+    if (Snd2DEBUG) {  fprintf(stdout,"Cfg::PCMDEV: %s\n",CONF->pcmdevice); }
     
     if (config->path != NULL)
     {
@@ -425,7 +440,7 @@ GetOptions (const char *filename)
     {
         if( config->sounds[i] != NULL )
         {
-            fprintf(stdout,"--SOUNDS: [%i]: %s\n",i,config->sounds[i]);
+            if (Snd2DEBUG) { fprintf(stdout,"--SOUNDS: [%i]: %s\n",i,config->sounds[i]); }
             set_string( &(CONF->sounds[i]), mystrdup(config->sounds[i]));
         }
     }
@@ -440,6 +455,6 @@ GetOptions (const char *filename)
 
     DestroySoundConfig (config);
     SHOW_TIME("Config parsing",option_time);
-    fprintf(stdout,"******GETOPTIONS END*****\n");
+    if (Snd2DEBUG) { fprintf(stdout,"******GETOPTIONS END*****\n"); }
 }
  
