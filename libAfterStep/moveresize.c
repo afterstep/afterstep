@@ -570,11 +570,26 @@ SHOW_CHECKPOINT;
 			{
 				/* must get current pointer position as we may get late while
 				   doing all the redrawiong stuff */
-				if( !ASQueryPointerRootXY( &new_x, &new_y ) )
+/*				if( !ASQueryPointerRootXY( &new_x, &new_y ) ) */
+/* cannot do that as we tend to react to mouse movements after button release, which should not be done! */
+/* at best we can swallow couple MotionNotify events - but care should be taken even here ! */
+				new_x = event->x.xmotion.x_root ;
+				new_y = event->x.xmotion.y_root ;
+				if (event->x.type == MotionNotify)
 				{
-					new_x = event->x.xmotion.x_root ;
-					new_y = event->x.xmotion.y_root ;
-				}
+					XEvent tmp_e;
+					while (XCheckMaskEvent (dpy, 0xFFFFFFFF, &tmp_e))
+					{
+						if (tmp_e.type != MotionNotify)
+						{
+							XPutBackEvent (dpy, &tmp_e);
+							break;
+						}
+						new_x = tmp_e.xmotion.x_root ;
+						new_y = tmp_e.xmotion.y_root ;
+					}
+				}				
+
           		new_x -= data->parent->root_x;
           		new_y -= data->parent->root_y;
 LOCAL_DEBUG_OUT("new = %+d%+d, finished = %d", new_x, new_y, finished );
