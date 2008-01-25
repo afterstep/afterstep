@@ -189,10 +189,13 @@ void usage(void) {
 		"  -q --quiet	      output as little information as possible\n"
 		"  -D --debug         show everything and debug messages\n"
 		" Interactive options : \n"
-		"  -I --interactivee  run ascompose in interactive mode - tags are processed,\n" 
+		"  -I --interactive   run ascompose in interactive mode - tags are processed,\n" 
 		"                     as soon as they are closed.\n"
-		"     --timeout value time to wait inbetween displaying images\n"
+		"     --timeout value time to wait in between displaying images\n"
+		"     --click-timeout seconds\n" 
+		"                     time to wait for user click before moving on. -1 - forever.\n"
 		"     --endless       endlessly loop through file or string\n"
+		"     --dont-clear    don't clear window before displaying next image\n"
 		" Note that when -I option is used in conjunction with input from\n" 
 		" string or a file - ascompose will endlesly loop through the contents\n"
 		" untill it is killed - usefull for slideshow type of activity.\n"
@@ -250,20 +253,24 @@ typedef struct ASComposeWinProps
 
 	Bool override_redirect ;
 	int timeout ;
+	int click_timeout ;
 	Bool on_top ;
 	const char *title ;
 	Bool no_shape ; 
 
 	Bool mapped ;
+	Bool dont_clear;
 	
 	int last_x, last_y ; 
 	unsigned int last_width, last_height ;
-	int move_resize_count ;
 	Pixmap last_root_pmap ; 
 	ASImage *last_root_im ;
+	
+	Pixmap canvas;
+	int canvas_width, canvas_height;
 }ASComposeWinProps;
 
-Window showimage(ASImage* im, Bool looping, Window main_window, ASComposeWinProps *props);
+Window showimage(ASImage* im, Bool looping, Window main_window, ASComposeWinProps *props, int dst_x, int dst_y);
 Window make_main_window(Bool on_root, ASComposeWinProps *props);	
 
 int screen = 0, depth = 0;
@@ -291,6 +298,7 @@ int main(int argc, char** argv) {
 	
 	char* ascompose_locale ;
 	memset(&main_window_props, 0x00, sizeof( main_window_props));
+	main_window_props.click_timeout = -1;
 
 	/* see ASView.1 : */
 	set_application_name(argv[0]);
@@ -360,10 +368,14 @@ int main(int argc, char** argv) {
             doc_compress = argv[++i];
 		} else if (!strcmp(argv[i], "--interactive") || !strcmp(argv[i], "-I")) {
             compose_type = COMPOSE_Interactive ;
+		} else if (strcmp(argv[i], "--click-timeout") == 0 && i < argc + 1) {
+			main_window_props.click_timeout = strtod( argv[++i ], NULL );
 		} else if (strcmp(argv[i], "--timeout") == 0 && i < argc + 1) {
 			main_window_props.timeout = strtod( argv[++i ], NULL );
 		} else if (!strcmp(argv[i], "--endless")) {
             endless_loop = True ;
+		} else if (!strcmp(argv[i], "--dont-clear")) {
+            main_window_props.dont_clear = True ;
 		}
 #ifndef X_DISPLAY_MISSING
 		  else if ((!strcmp(argv[i], "--geometry") || !strcmp(argv[i], "-g")) && i < argc + 1) {
@@ -450,7 +462,7 @@ int main(int argc, char** argv) {
 		/* Display the image if desired. */
 		if (display && dpy)
 		{
-			showimage(im, False, make_main_window(onroot, &main_window_props), &main_window_props);
+			showimage(im, False, make_main_window(onroot, &main_window_props), &main_window_props, 0, 0);
 			LOCAL_DEBUG_OUT( "Image %p displayed", im );
 		}
 		/* Done with the image, finally. */
@@ -487,6 +499,7 @@ int main(int argc, char** argv) {
 				{
 					int c ;
 					show_progress("Please enter your xml text :" );
+
 					while( (c = fgetc(fp)) != EOF ) 
 					{
 						char cc = c; 
@@ -532,11 +545,34 @@ int main(int argc, char** argv) {
 				}		 
 				if( xb.state == ASXML_Start && xb.tags_count > 0 && xb.level == 0 ) 
 				{
+					int dst_x = 0, dst_y = 0;
+					xml_elem_t* doc;
+
 					if( !display || dpy == NULL || !quiet ) 
 						printf("<success tag_count=%d/>\n", xb.tags_count );
 					add_xml_buffer_chars( &xb, "", 1 );
 					LOCAL_DEBUG_OUT("buffer: [%s]", xb.buffer );
 	 				im = compose_asimage_xml(asv, my_imman, my_fontman, xb.buffer, ASFLAGS_EVERYTHING, verbose, None, NULL);					
+					
+					add_xml_buffer_chars( &xb, "", 1 );
+					LOCAL_DEBUG_OUT("buffer: [%s]", xb.buffer );
+
+					if ((doc = xml_parse_doc(xb.buffer, NULL)) != NULL)
+					{
+						xml_elem_t *tmp, *parm = doc->child?xml_parse_parm(doc->child->parm, NULL):NULL;
+						im = compose_asimage_xml_from_doc(asv, my_imman, my_fontman, doc, ASFLAGS_EVERYTHING, verbose, None, NULL, -1, -1);
+
+						if (parm)
+						{
+							for (tmp = parm ; tmp ; tmp = tmp->next)
+							{
+								if (!strcmp(tmp->tag, "x")) dst_x = parse_math(tmp->parm, NULL, 0);
+								else if (!strcmp(tmp->tag, "y")) dst_y = parse_math(tmp->parm, NULL, 0);
+							}
+							xml_elem_delete(NULL, parm);
+						}
+						xml_elem_delete(NULL, doc);
+					}
 					if( im ) 
 					{
 						/* Save the result image if desired. */
@@ -549,7 +585,7 @@ int main(int argc, char** argv) {
 						}
 						/* Display the image if desired. */
 						if (display && dpy) 
-							main_window = showimage(im, True, main_window, &main_window_props);
+							main_window = showimage(im, True, main_window, &main_window_props, dst_x, dst_y);
 						safe_asimage_destroy(im);
 						im = NULL ;
 					}					
@@ -557,7 +593,8 @@ int main(int argc, char** argv) {
 				{
 					if( !display || dpy == NULL || !quiet ) 
 						printf("<success tag_count=%d/>\n", xb.tags_count );						  
-					break;
+					if (!endless_loop)
+						break;
 				}else
 				{
 					if( !display || dpy == NULL || !quiet ) 
@@ -576,7 +613,8 @@ int main(int argc, char** argv) {
 						}
 						printf("\" level=%d tag_count=%d/>\n", xb.level ,xb.tags_count );	  
 					}
-					break;
+					if (!endless_loop)
+						break;
 				}
 			}while( !display || dpy == NULL || main_window != None);
 			if( xb.buffer )
@@ -652,9 +690,28 @@ int main(int argc, char** argv) {
 				
 				if( xb.state == ASXML_Start && xb.tags_count > 0 && xb.level == 0 ) 
 				{
+					xml_elem_t* doc;
+					int dst_x = 0, dst_y = 0;
+					
 					add_xml_buffer_chars( &xb, "", 1 );
 					LOCAL_DEBUG_OUT("buffer: [%s]", xb.buffer );
-	 				im = compose_asimage_xml(asv, my_imman, my_fontman, xb.buffer, ASFLAGS_EVERYTHING, verbose, None, NULL);					
+
+					if ((doc = xml_parse_doc(xb.buffer, NULL)) != NULL)
+					{
+						xml_elem_t *tmp, *parm = doc->child?xml_parse_parm(doc->child->parm, NULL):NULL;
+						im = compose_asimage_xml_from_doc(asv, my_imman, my_fontman, doc, ASFLAGS_EVERYTHING, verbose, None, NULL, -1, -1);
+						if (parm)
+						{
+							for (tmp = parm ; tmp ; tmp = tmp->next)
+							{
+								if (!strcmp(tmp->tag, "x")) dst_x = parse_math(tmp->parm, NULL, 0);
+								else if (!strcmp(tmp->tag, "y")) dst_y = parse_math(tmp->parm, NULL, 0);
+							}
+							xml_elem_delete(NULL, parm);
+						}
+						xml_elem_delete(NULL, doc);
+					}
+
 					if( im ) 
 					{
 						/* Save the result image if desired. */
@@ -667,7 +724,7 @@ int main(int argc, char** argv) {
 						}
 						/* Display the image if desired. */
 						if (display && dpy) 
-							main_window = showimage(im, True, main_window, &main_window_props);
+							main_window = showimage(im, True, main_window, &main_window_props, dst_x, dst_y);
 						safe_asimage_destroy(im);
 						im = NULL ;
 					}					
@@ -736,7 +793,6 @@ make_main_window(Bool onroot, ASComposeWinProps *props)
 		props->last_height = 30 ;
 		XSelectInput (dpy, w, (StructureNotifyMask|ButtonPressMask|ButtonReleaseMask));
 	}	 
-	props->move_resize_count = 4 ; 
 	props->last_root_pmap = None ;
 	if( props->last_root_im ) 
 		safe_asimage_destroy(props->last_root_im);
@@ -800,16 +856,40 @@ set_root_pixmap_property(long pmap) /* Must have long type to work with XChangeP
 	return True;
 }
 
+Bool
+wait_x_timeout(int timeout)
+{
+	if (timeout < 0) /* wait forever */
+	{
+		XEvent evt;
+		XPeekEvent(dpy, &evt);
+		return True;
+	}else if (timeout > 0)
+	{
+		fd_set        in_fdset;
+		int x_fd = XConnectionNumber (dpy);
+		struct timeval tv;
+		struct timeval *t = NULL;
+		int retval = 0 ;
+			
+		FD_ZERO (&in_fdset);
+		FD_SET (x_fd, &in_fdset);
+		tv.tv_sec = timeout/1000 ;
+		tv.tv_usec = (timeout%1000)*1000;
+		t = &tv;
+		retval = PORTABLE_SELECT(x_fd+1,&in_fdset,NULL,NULL,t);
+		return (retval > 0);
+	}
+	
+	return XPending(dpy);
+}
 
-Window showimage(ASImage* im, Bool looping, Window main_window, ASComposeWinProps *props ) 
+Window showimage(ASImage* im, Bool looping, Window main_window, ASComposeWinProps *props, int dst_x, int dst_y ) 
 {
 #ifndef X_DISPLAY_MISSING
-	Pixmap p ;
 	int x = 32, y = 32;
 	ASImage *orig_im = im ;
 	unsigned int width, height;
-	fd_set        in_fdset;
-	int x_fd = XConnectionNumber (dpy);
 	unsigned int shape_rects_count = 0;
 	XRectangle *shape_rects = NULL ;
 	Bool done = False ;
@@ -817,12 +897,13 @@ Window showimage(ASImage* im, Bool looping, Window main_window, ASComposeWinProp
 	int screen = DefaultScreen(dpy);
 	int root_w = DisplayWidth (dpy, screen);
 	int root_h = DisplayHeight (dpy, screen);
+	Pixmap saved_canvas = None;
 
 	if (im == NULL || main_window == None ) 
 		return None;
 
-	width = im->width;
-	height = im->height;
+	width = im->width + dst_x;
+	height = im->height + dst_y;
 	   
 	if( main_window != root)
 	{	
@@ -853,14 +934,14 @@ Window showimage(ASImage* im, Bool looping, Window main_window, ASComposeWinProp
 			XMoveWindow( dpy, main_window, x, y );
 			props->last_x = x ;
 			props->last_y = y ;
-			++(props->move_resize_count);
 		}
 		if( props->last_width != width || props->last_height != height )
 		{	
 			XResizeWindow( dpy, main_window, width, height );
 			props->last_width = width ;
 			props->last_height = height ;
-			++(props->move_resize_count);
+			saved_canvas = props->canvas;
+			props->canvas = None; /* force resizng the pixmap !!! */
 		}
 	
 		if( !props->mapped ) 
@@ -895,21 +976,22 @@ Window showimage(ASImage* im, Bool looping, Window main_window, ASComposeWinProp
 #endif		   
 #if 1		
 			{		
-				unsigned int width, height;
+				unsigned int root_pmap_width, root_pmap_height;
 				Pixmap rp = GetRootPixmap(None);
 				ASImage *transp_im = NULL , *tmp ;
+				int root_x, root_y ; Window wdumm;
+				XTranslateCoordinates( dpy, main_window, root, 0, 0, &root_x, &root_y, &wdumm);
+					
 				if (rp) 
 				{
-					if( props->move_resize_count > 0 ||
-						props->last_root_pmap != rp ||
+					if( props->last_root_pmap != rp ||
 						props->last_root_im == NULL )   
 					{
 						if( props->last_root_im ) 
 							safe_asimage_destroy(props->last_root_im);
-						get_dpy_drawable_size(asv->dpy, rp, &width, &height);
-						transp_im = pixmap2asimage(asv, rp, 0, 0, width, height, 0xFFFFFFFF, False, 0);
+						get_dpy_drawable_size(asv->dpy, rp, &root_pmap_width, &root_pmap_height);
+						transp_im = pixmap2asimage(asv, rp, 0, 0, root_pmap_width, root_pmap_height, 0xFFFFFFFF, False, 0);
 						props->last_root_pmap = rp ;
-						props->move_resize_count = 0 ;
 						props->last_root_im = transp_im ;   
 					}else
 					{
@@ -922,9 +1004,10 @@ Window showimage(ASImage* im, Bool looping, Window main_window, ASComposeWinProp
 				if( transp_im ) 
 				{   /* Build the layers first. */	
 					ASImageLayer *layers = create_image_layers( 2 );
+					
 					layers[0].im = transp_im ;
-					layers[0].clip_x = x;
-					layers[0].clip_y = y;
+					layers[0].clip_x = root_x+dst_x;
+					layers[0].clip_y = root_y+dst_y;
 					layers[0].clip_width = im->width ;
 					layers[0].clip_height = im->height ;
 					layers[1].im = im ;
@@ -941,45 +1024,76 @@ Window showimage(ASImage* im, Bool looping, Window main_window, ASComposeWinProp
 		}		   
 	}
 
+	if (props->canvas == None)
+	{
+		int depth = 0;
+		int pmap_width = width;
+		int pmap_height = height;
+		GC gc = NULL;
+		if (main_window==root)
+		{
+			pmap_width = dst_x+im->width;
+			pmap_height = dst_x+im->height;
+			depth = DefaultDepth(dpy,screen);
+			gc = DefaultGC(dpy, screen);
+		}
+		props->canvas = create_visual_pixmap( asv, main_window, pmap_width, pmap_height, DefaultDepth(dpy,screen));
+		if (gc == NULL)
+			gc = XCreateGC( dpy, main_window, 0, NULL);
+		
+		if (pmap_width != im->width || pmap_height != im->height)
+			XFillRectangle( dpy, props->canvas, gc, 0, 0, pmap_width, pmap_height);
+
+		if (saved_canvas)
+            XCopyArea (dpy, saved_canvas, props->canvas, gc, 
+			           0, 0, MIN(props->canvas_width,pmap_width), MIN(props->canvas_height,pmap_height), 
+					   0, 0);
+					   
+		if (gc != DefaultGC(dpy, screen))
+			XFreeGC (dpy, gc);
+
+		props->canvas_width = pmap_width;
+		props->canvas_height = pmap_height;
+	}
 	if (main_window==root)
 	{
 		XImage *xim = create_visual_scratch_ximage( asv, im->width, im->height, DefaultDepth(dpy,screen) );
-		p = create_visual_pixmap( asv, root, im->width, im->height, DefaultDepth(dpy,screen) );
 		if( subimage2ximage (asv, im, 0, 0, xim)	)
 		{	
-			put_ximage( asv, xim, p, DefaultGC(dpy,screen), 0, 0, 0, 0, im->width, im->height );	
+			put_ximage( asv, xim, props->canvas, DefaultGC(dpy,screen), 0, 0, dst_x, dst_y, im->width, im->height );	
 		}
 		XDestroyImage( xim );				   
 	}else
 	{
-		p = create_visual_pixmap( asv, root, im->width, im->height, 0 );
 		if( get_flags( asv->glx_support, ASGLX_UseForImageTx ) )
-			done = asimage2drawable_gl( asv, p, im, 0, 0, 0, 0, 
+			done = asimage2drawable_gl( asv, props->canvas, im, 0, 0, 0, 0, 
 										im->width, im->height, 
 				   						im->width, im->height, 
 										False );
 		if( !done ) 
-			asimage2drawable( asv, p, im, NULL, 0, 0, 0, 0, im->width, im->height, True);
+			asimage2drawable( asv, props->canvas, im, NULL, 0, 0, dst_x, dst_y, im->width, im->height, True);
 	}
 
+	XSetWindowBackgroundPixmap( dpy, main_window, props->canvas);
+	XClearWindow( dpy, main_window);
+	XFlush(dpy);
 	if (main_window == root && !looping)
-	{	
-		set_root_pixmap_property(p);
-		XSetWindowBackgroundPixmap( dpy, root, p);
-		XClearWindow( dpy, root);
-		XSync(dpy, False);
+		set_root_pixmap_property(props->canvas);
+	XSync(dpy,False);
+		
+	if (saved_canvas)
+		XFreePixmap( dpy, saved_canvas);
+
+	if (main_window == root && !looping)
 		return root;
-	}else
-		p = set_window_background_and_free( main_window, p );
 	
-	XSync(dpy, False);
 #if 1
 #ifdef SHAPE
 	if( shape_rects == NULL || shape_rects_count == 0 ) 
 		XShapeCombineMask( dpy, main_window, ShapeBounding, 0, 0, None, ShapeSet );
 	else
 	{	
-		XShapeCombineRectangles (dpy, main_window, ShapeBounding, 0, 0, shape_rects, shape_rects_count, ShapeSet, Unsorted);
+		XShapeCombineRectangles (dpy, main_window, ShapeBounding, 0, 0, shape_rects, shape_rects_count, ShapeUnion, Unsorted);
 		free( shape_rects );
 		shape_rects = NULL ;
 	}
@@ -996,27 +1110,20 @@ Window showimage(ASImage* im, Bool looping, Window main_window, ASComposeWinProp
   	{
     	XEvent event ;
 		Bool do_close = False ;
-		if( props->timeout > 0 ) 
+		
+		if ( props->timeout && !wait_x_timeout(props->timeout) )
 		{
-			struct timeval tv;
-			struct timeval *t = NULL;
-			int retval = 0 ;
-			
-			FD_ZERO (&in_fdset);
-			FD_SET (x_fd, &in_fdset);
-			tv.tv_sec = props->timeout/1000 ;
-			tv.tv_usec = (props->timeout%1000)*1000;
-			t = &tv;
-    		retval = PORTABLE_SELECT(x_fd,&in_fdset,NULL,NULL,t);
-			if (retval <= 0)
-			{
-				if( looping ) 
-					return main_window;
-				do_close = True ;
-			}
+			if( looping ) 
+				return main_window;
+			do_close = True ;
 		}	 
 		if( !do_close ) 
 		{	
+			if (!XPending(dpy))
+				if (!wait_x_timeout(props->click_timeout))
+					if( looping ) 
+						return main_window;
+
 	    	XNextEvent (dpy, &event);
   			switch(event.type)
 			{

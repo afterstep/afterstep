@@ -51,6 +51,16 @@ compose_asimage_xml_at_size(ASVisual *asv,
 							int target_width, 
 							int target_height);
 
+ASImage *
+compose_asimage_xml_from_doc(ASVisual *asv, 
+							 struct ASImageManager *imman, 
+							 struct ASFontManager *fontman, 
+							 struct xml_elem_t* doc, 
+							 ASFlagType flags, 
+							 int verbose, 
+							 Window display_win, 
+							 const char *path, 
+							 int target_width, int target_height);
 
 void show_asimage(ASVisual *asv, ASImage* im, Window w, long delay);
 ASImage* build_image_from_xml( ASVisual *asv,

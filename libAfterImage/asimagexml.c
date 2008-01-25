@@ -194,39 +194,30 @@ ASFontManager *create_generic_fontman(Display *dpy, const char *path)
 	return my_fontman;
 }
 
-inline ASImage *
-compose_asimage_xml(ASVisual *asv, ASImageManager *imman, ASFontManager *fontman, char *doc_str, ASFlagType flags, int verbose, Window display_win, const char *path)
-{
-	return compose_asimage_xml_at_size(asv, imman, fontman, doc_str, flags, verbose, display_win, path, -1, -1);
-}
-
 ASImage *
-compose_asimage_xml_at_size(ASVisual *asv, ASImageManager *imman, ASFontManager *fontman, char *doc_str, ASFlagType flags, int verbose, Window display_win, const char *path, int target_width, int target_height)
+compose_asimage_xml_from_doc(ASVisual *asv, ASImageManager *imman, ASFontManager *fontman, xml_elem_t* doc, ASFlagType flags, int verbose, Window display_win, const char *path, int target_width, int target_height)
 {
+	/* Build the image(s) from the xml document structure. */
 	ASImage* im = NULL;
-	xml_elem_t* doc;
 	ASImageManager *my_imman = imman, *old_as_xml_imman = _as_xml_image_manager ;
 	ASFontManager  *my_fontman = fontman, *old_as_xml_fontman = _as_xml_font_manager ;
 	int my_imman_curr_dir_path_idx = MAX_SEARCH_PATHS ;
 
-    asxml_var_init();
-
-	doc = xml_parse_doc(doc_str, NULL);
-#if (HAVE_AFTERBASE_FLAG==1)
-	if (verbose > 1) 
-	{
-		xml_print(doc);
-		fprintf(stderr, "\n");
-	}
-#endif
-
-	/* Build the image(s) from the xml document structure. */
 	if (doc)
 	{
 		int old_target_width = -1;
 		int old_target_height = -1;
 		xml_elem_t* ptr;
 		Bool local_dir_included = False ;
+
+	    asxml_var_init();
+#if (HAVE_AFTERBASE_FLAG==1)
+		if (verbose > 1) 
+		{
+			xml_print(doc);
+			fprintf(stderr, "\n");
+		}
+#endif
 
 		if( my_imman == NULL )
 		{	
@@ -309,12 +300,31 @@ LOCAL_DEBUG_OUT( "result im = %p, im->imman	= %p, my_imman = %p, im->magic = %8.
 		_as_xml_image_manager = old_as_xml_imman   ;
 		_as_xml_font_manager =  old_as_xml_fontman ;
 		
-		/* Delete the xml. */
-		xml_elem_delete(NULL, doc);
 	}
 	LOCAL_DEBUG_OUT( "returning im = %p, im->imman	= %p, im->magic = %8.8lX", im, im?im->imageman:NULL, im?im->magic:0 );
 	return im;
 }
+
+ASImage *
+compose_asimage_xml_at_size(ASVisual *asv, ASImageManager *imman, ASFontManager *fontman, char *doc_str, ASFlagType flags, int verbose, Window display_win, const char *path, int target_width, int target_height)
+{
+	xml_elem_t* doc = xml_parse_doc(doc_str, NULL);
+	ASImage *im = compose_asimage_xml_from_doc(asv, imman, fontman, doc, flags, verbose, display_win, path, target_width, target_height);
+	if (doc)
+		xml_elem_delete(NULL, doc);
+	return im;
+}
+
+inline ASImage *
+compose_asimage_xml(ASVisual *asv, ASImageManager *imman, ASFontManager *fontman, char *doc_str, ASFlagType flags, int verbose, Window display_win, const char *path)
+{
+	xml_elem_t* doc = xml_parse_doc(doc_str, NULL);
+	ASImage *im = compose_asimage_xml_from_doc(asv, imman, fontman, doc, flags, verbose, display_win, path, -1, -1);
+	if (doc)
+		xml_elem_delete(NULL, doc);
+	return im;
+}
+
 
 Bool save_asimage_to_file(const char *file2bsaved, ASImage *im,
 	           const char *strtype,
