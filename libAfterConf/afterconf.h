@@ -2562,9 +2562,10 @@ void DestroyCleanConfig (CleanConfig * config);
 #define SOUND_DELAY_ID          (SOUND_ID_START+2)
 #define SOUND_RPLAY_HOST_ID     (SOUND_ID_START+3)
 #define SOUND_RPLAY_PRI_ID      (SOUND_ID_START+4)
-#define SOUND_RPLAY_VOL_ID      (SOUND_ID_START+5)
+#define SOUND_DEBUG_ID      (SOUND_ID_START+5)
 #define SOUND_SOUND_ID          (SOUND_ID_START+6)
 #define SOUND_PATH_ID		(SOUND_ID_START+7)
+//#define SOUND_DEBUG_ID		(SOUND_ID_START+8)
 
 #define SOUND_ID_END            (SOUND_ID_START+10)
 
@@ -2584,6 +2585,7 @@ typedef struct
 	ASFlagType set_flags ;
 
 	int delay;
+	int debug;
 //	char *rplay_host;
 //	int rplay_priority;
 //	int rplay_volume;

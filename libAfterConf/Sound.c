@@ -89,7 +89,7 @@ TermDef       SoundTerms[] = {
     {0, "Delay", 5, TT_INTEGER, SOUND_DELAY_ID, NULL},
     {0, "RplayHost", 9, TT_TEXT, SOUND_RPLAY_HOST_ID, NULL},
     {0, "RplayPriority", 13, TT_INTEGER, SOUND_RPLAY_PRI_ID, NULL},
-    {0, "RplayVolume", 11, TT_INTEGER, SOUND_RPLAY_VOL_ID, NULL},
+    {0, "Debug", 11, TT_INTEGER, SOUND_DEBUG_ID, NULL},
     {0, "", 0, TT_FLAG, SOUND_SOUND_ID, &SoundEventsSyntax},
 	{0, NULL, 0, 0, 0}						   /* end of structure */
 
@@ -138,6 +138,9 @@ DestroySoundConfig (SoundConfig * config)
 
 	if (config->pcmdevice)
 		free (config->pcmdevice);
+		
+	if (config->debug)
+		free (config->debug);
 
 	DestroyFreeStorage (&(config->more_stuff));
 	free (config);
@@ -193,6 +196,10 @@ ParseSoundOptions (const char *filename, char *myname)
 			 case SOUND_PATH_ID:
 			 	 config->path = item.data.string;
 			 	 break;
+			
+			 case SOUND_DEBUG_ID:
+			 	config->debug = (int)item.data.integer;
+			 	break;
 /*				 
 			 case SOUND_DELAY_ID:
 			 	 set_flags( config->set_flags, SOUND_SET_DELAY );
@@ -245,6 +252,9 @@ WriteSoundOptions (const char *filename, char *myname, SoundConfig * config, uns
 	/* PCM Device */
 	if( config->pcmdevice )
 		tail = String2FreeStorage (&SoundSyntax, tail, config->pcmdevice, SOUND_PCMDEVICE_ID);
+		
+	if (config->debug)
+		tail = Integer2FreeStorage (&SoundSyntax, tail, NULL, config->debug, SOUND_DEBUG_ID);
 	/* delay */
 /*
 	if( get_flags(config->set_flags, SOUND_SET_DELAY) )

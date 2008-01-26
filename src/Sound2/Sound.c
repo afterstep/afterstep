@@ -52,6 +52,8 @@ int as_snd2_init_stg1();
 int as_snd2_init_stg2();
 int as_snd2_waveheader(char *WaveFile);
 int as_snd2_playsound(const char *SoundName);
+int as_snd2_segv_cb();
+void as_snd2_error();
 
 // ?
 Bool (*sound_play) (short) = NULL;
@@ -60,9 +62,7 @@ Bool (*sound_play) (short) = NULL;
 struct SND2dev SND2devS;
 SND2devP = &SND2devS;
 int SNDPlayNow;
-// DEBUG GLOBAL
-int Snd2DEBUG = 1;
-       
+
 int main(int argc,char ** argv)
 {
     // Standard AS Stuff
@@ -79,7 +79,7 @@ int main(int argc,char ** argv)
     LoadBaseConfig(GetBaseOptions);
     LoadConfig("sound",GetOptions);
     
-    if (Snd2DEBUG) { fprintf(stdout,"--PCM Device: %s\n",CONF->pcmdevice); }
+    if (CONF->debug) { fprintf(stdout,"--PCM Device: %s\n",CONF->pcmdevice); }
     /*
     
        Need to Read sounds into memory.
@@ -87,9 +87,14 @@ int main(int argc,char ** argv)
        with the rate, size, etc.
     
     */
+
+    // We're going to catch any seg fault signals from ALSA
+    signal(SIGSEGV,as_snd2_segv_cb);
+
     
     as_snd2_init_stg1();
-    as_snd2_init_stg2();
+    // Technically, Stage2 Init should Not be done here.
+    // as_snd2_init_stg2();
     
     /*
     
@@ -109,42 +114,46 @@ int main(int argc,char ** argv)
 
 int as_snd2_init_stg1()
 {
+    // We're going to catch any seg fault signals from ALSA
+//:        signal(SIGSEGV,as_snd2_segv_cb);
+        
     // Stage 1 Sound2 module Init.
-   // fprintf(stdout,"++++PCMDEV: %s\n",CONF->pcmdevice);
     
-    //typedef char *String;
-    int Snd2DEBUG, ret1;
-    //String pcmDeviceID = "plughw:0,0"; // Need to make Config File opt for setting this.
-    //String pcmDeviceID = CONF->pcmdevice;
+    int ErrRet;
 
-    if (Snd2DEBUG) { fprintf(stdout,"Opening PCM Device.... %s\n",CONF->pcmdevice); }
+    if (CONF->debug) { fprintf(stdout,"Opening PCM Device.... %s\n",CONF->pcmdevice); }
     
     // (Returned PCM Handle, ASCII Ident of Handle, Wanted Stream, Open Mode)
-    snd_pcm_open(&SND2devS.pcm_handle,CONF->pcmdevice,SND_PCM_STREAM_PLAYBACK,0);
+    ErrRet = snd_pcm_open(&SND2devS.pcm_handle,CONF->pcmdevice,SND_PCM_STREAM_PLAYBACK,0);
+    if (ErrRet <= -1) { fprintf(stdout,"ALSA Error: %i [%s] (quitting!).\n", ErrRet, snd_strerror(ErrRet)); exit(1); }
   
-    if (Snd2DEBUG) { fprintf(stdout,"Allocating Hardware Param Structure....\n"); }
+    if (CONF->debug) { fprintf(stdout,"Allocating Hardware Param Structure....\n"); }
     
     // (Returned Pointer)
-    ret1 = snd_pcm_hw_params_malloc(&SND2devS.hw_params);
+    ErrRet = snd_pcm_hw_params_malloc(&SND2devS.hw_params);
+    if (ErrRet <= -1) { fprintf(stdout,"ALSA Error: %i [%s] (quitting!).\n",ErrRet, snd_strerror(ErrRet)); exit(1);  }
     
-    if (Snd2DEBUG) { fprintf(stdout,"Init Hardware Param Structure...\n");}
+    if (CONF->debug) { fprintf(stdout,"Init Hardware Param Structure...\n");}
     
     // (PCM Handle, Config Space)
-    snd_pcm_hw_params_any(SND2devS.pcm_handle,SND2devS.hw_params);
+    ErrRet = snd_pcm_hw_params_any(SND2devS.pcm_handle,SND2devS.hw_params);
+    if (ErrRet <= -1) { fprintf(stdout,"ALSA Error: %i [%s] (quitting!).\n",ErrRet, snd_strerror(ErrRet)); exit(1);  }
     
-    if (Snd2DEBUG) { fprintf(stdout,"Setting Access Type...\n"); }
+    if (CONF->debug) { fprintf(stdout,"Setting Access Type...\n"); }
     
     // (PCM Handle, Config Space, Access Type)
-    snd_pcm_hw_params_set_access(SND2devS.pcm_handle,SND2devS.hw_params,SND_PCM_ACCESS_RW_INTERLEAVED);
+    ErrRet = snd_pcm_hw_params_set_access(SND2devS.pcm_handle,SND2devS.hw_params,SND_PCM_ACCESS_RW_INTERLEAVED);
+    if (ErrRet <= -1) { fprintf(stdout,"ALSA Error: %i [%s] (quitting!).\n",ErrRet, snd_strerror(ErrRet)); exit(1);  }
     
-    if (Snd2DEBUG) { fprintf(stdout,"Setting Sample Format...\n"); }
+    if (CONF->debug) { fprintf(stdout,"Setting Sample Format...\n"); }
     
     // (PCM Handle, Config Space, Format)
     // SND_PCM_FORMAT_S16_LE = Signed 16-bit Little Endian
     // May need to var-ize last part, and detect cpu type on configure.
-    snd_pcm_hw_params_set_format(SND2devS.pcm_handle,SND2devS.hw_params,SND_PCM_FORMAT_S16_LE);
+    ErrRet = snd_pcm_hw_params_set_format(SND2devS.pcm_handle,SND2devS.hw_params,SND_PCM_FORMAT_S16_LE);
+    if (ErrRet <= -1) { fprintf(stdout,"ALSA Error: %i [%s] (quitting!).\n",ErrRet, snd_strerror(ErrRet)); exit(1);  }
     
-    if (Snd2DEBUG) { fprintf(stdout,"Stage 1 Init Complete!\n\n"); }
+    if (CONF->debug) { fprintf(stdout,"Stage 1 Init Complete!\n\n"); }
     
     return 1;
 }
@@ -154,33 +163,32 @@ int as_snd2_init_stg2()
     // Following Init depends on the file type.
     // since we're setting Sample rate, channel count (mono,stereo), etc.
     
-    int Snd2DEBUG;
     int SRate, CHcount, dir;
     
-    SRate = 8000;
+    SRate = 22000;
     CHcount = 2;
 
-    if (Snd2DEBUG) { fprintf(stdout,"Setting Sample Rate...\n"); }
+    if (CONF->debug) { fprintf(stdout,"Setting Sample Rate...\n"); }
     
     // (PCM Handle, Config Space, Sample Rate, Sub Unit Direction)
     snd_pcm_hw_params_set_rate_near(SND2devS.pcm_handle,SND2devS.hw_params,&SRate,&dir);
     
-    if (Snd2DEBUG) { fprintf(stdout,"Setting Channel Count...\n"); }
+    if (CONF->debug) { fprintf(stdout,"Setting Channel Count...\n"); }
     
     // (PCM Handle, Config Space, Channel Count)
     snd_pcm_hw_params_set_channels(SND2devS.pcm_handle,SND2devS.hw_params,CHcount);
     
-    if (Snd2DEBUG) { fprintf(stdout,"Apply Hardware Params...\n"); }
+    if (CONF->debug) { fprintf(stdout,"Apply Hardware Params...\n"); }
     
     // (PCM Handle, Config Space)
     snd_pcm_hw_params(SND2devS.pcm_handle,SND2devS.hw_params);
     
-    if (Snd2DEBUG) { fprintf(stdout,"Free Hardware Space Container...\n"); }
+    if (CONF->debug) { fprintf(stdout,"Free Hardware Space Container...\n"); }
     
     // (Config Space)
     snd_pcm_hw_params_free(SND2devS.hw_params);
     
-    if (Snd2DEBUG) { fprintf(stdout,"Stage 2 Init Complete!\n\n"); }
+    if (CONF->debug) { fprintf(stdout,"Stage 2 Init Complete!\n\n"); }
     
     //HandleEvents(SND2devP);
     
@@ -256,12 +264,13 @@ int as_snd2_playsound(const char *SndName)
     if (SNDFile == NULL) { fprintf(stdout,"Failed to open Sound File\n"); return 0; }
 
     /*
-      Depending on the file, 2nd stage snd_init will need to be
-      re-executed to reflect new Rate, Channels, etc.
-      BEFORE continuing here..
+       Need to Grab Header info to pass into stage 2 Init:
+       Sample Rate, Channels
+       
+       THEN continue on (if no errors from stage 2.    
     */
 
-//    if (Snd2DEBUG) { fprintf(stdout,"Prepare To Play!...\n"); }
+//    if (CONF->debug) { fprintf(stdout,"Prepare To Play!...\n"); }
     snd_pcm_prepare(SND2devS.pcm_handle);    
 
     fprintf(stdout,"Play Sound: %s\n",SndName);
@@ -342,6 +351,16 @@ void proc_message(send_data_type type, send_data_type *body)
             StateChange = wd->state_flags ^ old_state;
             if (StateChange)
             {
+                /*
+                
+                  This needs to be massively simplified.
+                  Possibly generating a struct with the numbers,
+                  then match those to the sound files.
+                  
+                  Then, can just pass that number straight to the 
+                  play function, and remove a ton of IFs.
+                
+                */
                 if (StateChange & AS_Shaded)
                 {
                     show_activity("STATE: Shade");
@@ -413,7 +432,7 @@ GetBaseOptions (const char *filename/* unused*/)
 void
 GetOptions (const char *filename)
 {
-    if (Snd2DEBUG) { fprintf(stdout,"*****GETOPTIONS START******\n"); }
+    if (CONF->debug) { fprintf(stdout,"*****GETOPTIONS START******\n"); }
     SoundConfig *config = ParseSoundOptions (filename,MyName);
 
     int i ;
@@ -429,18 +448,23 @@ GetOptions (const char *filename)
         CONF->pcmdevice = mystrdup(config->pcmdevice);
         //set_string( &(CONF->pcmdevice), config->pcmdevice);
     }
-    if (Snd2DEBUG) {  fprintf(stdout,"Cfg::PCMDEV: %s\n",CONF->pcmdevice); }
+    if (CONF->debug) {  fprintf(stdout,"Cfg::PCMDEV: %s\n",CONF->pcmdevice); }
     
     if (config->path != NULL)
     {
         CONF->path = mystrdup(config->path);
+    }
+    if (config->debug != NULL)
+    {
+        CONF->debug = config->debug;
+        config->debug = NULL;
     }
         
     for( i = 0 ; i < AFTERSTEP_EVENTS_NUM ; ++i ) 
     {
         if( config->sounds[i] != NULL )
         {
-            if (Snd2DEBUG) { fprintf(stdout,"--SOUNDS: [%i]: %s\n",i,config->sounds[i]); }
+            if (CONF->debug) { fprintf(stdout,"--SOUNDS: [%i]: %s\n",i,config->sounds[i]); }
             set_string( &(CONF->sounds[i]), mystrdup(config->sounds[i]));
         }
     }
@@ -453,8 +477,21 @@ GetOptions (const char *filename)
 //        fprintf(stdout,"---DELAY: %i",Config->delay);
 //    }
 
-    DestroySoundConfig (config);
+    DestroySoundConfig(config);
     SHOW_TIME("Config parsing",option_time);
-    if (Snd2DEBUG) { fprintf(stdout,"******GETOPTIONS END*****\n"); }
+    if (CONF->debug) { fprintf(stdout,"******GETOPTIONS END*****\n"); }
 }
  
+int as_snd2_segv_cb()
+{
+    //
+    fprintf(stdout,"Looks like a Seg Fault tried to Occur\n");
+    return 1;
+}
+void as_snd2_error()
+{
+    // If we're here.. a fatal error occured.
+    
+}
+
+
