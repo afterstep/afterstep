@@ -31,6 +31,7 @@ struct SND2dev
 // in order they're read
 struct WaveHeader
 {
+    UCHAR *Name;
     UCHAR *cnkID[4];	// Byte 0-3  : Chunk ID (= "RIFF")
     uint fileSize;	// Byte 4-7  : Fize Size (minus first 8 bytes)
     UCHAR *fmtName[4];	// Byte 8-11 : Format (= "WAVE")
@@ -42,7 +43,7 @@ struct WaveHeader
     uint bRate;		// Byte 28-31: Byte Rate (???)
     uint bAlign;	// Byte 32-33: Block Align (???)
     uint bpsmpl;	// Byte 34-35: Bits Per Sample (???)
-    UCHAR *scnk2ID[4];	// Byte 36-39: SubChunk 2 ID (= ???)
+    UCHAR *scnk2ID[4];	// Byte 36-39: SubChunk 2 ID (= "data")
     uint scnk2size;	// Byte 40-43: SubChunk 2 Size
 };
 

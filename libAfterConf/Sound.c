@@ -56,6 +56,9 @@ TermDef       EventTerms[] = {
     {TF_DONT_SPLIT|TF_NO_MYNAME_PREPENDING, "maximize", 8, 		TT_FILENAME, EVENT_WindowMaximized_ID    , NULL},
     {TF_DONT_SPLIT|TF_NO_MYNAME_PREPENDING, "restore", 7,   		TT_FILENAME, EVENT_WindowRestored_ID     , NULL},
     
+    {TF_DONT_SPLIT|TF_NO_MYNAME_PREPENDING, "stuck", 5,                 TT_FILENAME, EVENT_WindowStuck_ID 	 , NULL},
+    {TF_DONT_SPLIT|TF_NO_MYNAME_PREPENDING, "unstuck", 7,               TT_FILENAME, EVENT_WindowUnstuck_ID      , NULL},
+    
     {TF_DONT_SPLIT|TF_NO_MYNAME_PREPENDING, "new_background", 14,	TT_FILENAME, EVENT_BackgroundChanged_ID  , NULL},
     {TF_DONT_SPLIT|TF_NO_MYNAME_PREPENDING, "new_viewport", 12,		TT_FILENAME, EVENT_DeskViewportChanged_ID, NULL},
     {TF_DONT_SPLIT|TF_NO_MYNAME_PREPENDING, "startup", 7,		TT_FILENAME, EVENT_Startup_ID            , NULL},
