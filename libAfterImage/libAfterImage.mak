@@ -55,7 +55,6 @@ LIB32_FLAGS=/nologo /out:"libAfterImage.lib"
 LIB32_OBJS= \
 	"$(INTDIR)\png.obj" \
 	"$(INTDIR)\pngerror.obj" \
-	"$(INTDIR)\pnggccrd.obj" \
 	"$(INTDIR)\pngget.obj" \
 	"$(INTDIR)\pngmem.obj" \
 	"$(INTDIR)\pngpread.obj" \
@@ -65,7 +64,6 @@ LIB32_OBJS= \
 	"$(INTDIR)\pngrutil.obj" \
 	"$(INTDIR)\pngset.obj" \
 	"$(INTDIR)\pngtrans.obj" \
-	"$(INTDIR)\pngvcrd.obj" \
 	"$(INTDIR)\pngwio.obj" \
 	"$(INTDIR)\pngwrite.obj" \
 	"$(INTDIR)\pngwtran.obj" \
