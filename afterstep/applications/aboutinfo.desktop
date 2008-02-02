@@ -185,11 +185,23 @@ Categories=AfterStepInfo
 TryExec=ASRun
 
 [Desktop Entry]
-Name=AfterWiki - User tips, info
+Name=AfterWiki - user tips, info
 GenericName=URL Link
 Comment=http://wiki.afterstep.org/
 Exec=ASRun --immidiate --cmd http://wiki.afterstep.org/
 Icon=normal/Info
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=AfterStepInfo
+TryExec=ASRun
+
+[Desktop Entry]
+Name=Reported bugs and issues
+GenericName=URL Link
+Comment=http://bugs.afterprojects.org
+Exec=ASRun --immidiate --cmd http://bugs.afterprojects.org
+Icon=normal/Bug
 Terminal=false
 Type=Application
 Encoding=UTF-8
