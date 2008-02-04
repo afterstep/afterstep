@@ -1198,15 +1198,14 @@ spawn_child( const char *cmd, int singleton_id, int screen, Window w, int contex
             while( display[i] ) ++i;
 
             while( i > 0 && isdigit(display[--i]) );
+            if( display[i] == '.' )
+                display[i+1] = '\0' ;
 /*
             This bit of code seems to break AS restarting
             on Fedora 8. causing DISPLAY=":0.0" to
             become DISPLAY=":0.".  -- Jeremy
-            
-            if( display[i] == '.' )
-                display[i+1] = '\0' ;
-*/
             if( screen >= 0 )
+*/
                 screen_str = string_from_int( screen );
             if( w != None )
                 w_str = string_from_int( w );
