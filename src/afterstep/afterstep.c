@@ -49,6 +49,8 @@ int           Module_npipes = 8;
 ASBalloonState *MenuBalloons = NULL ; 
 ASBalloonState *TitlebarBalloons = NULL ; 
 
+char *original_DISPLAY_string = NULL;
+
 /**************************************************************************/
 void          SetupScreen();
 void          CleanupScreen();
@@ -123,6 +125,10 @@ main (int argc, char **argv, char **envp)
 
 	_as_grab_screen_func = GrabEm;
 	_as_ungrab_screen_func = UngrabEm;
+
+	original_DISPLAY_string = getenv("DISPLAY");
+	if (original_DISPLAY_string)
+		original_DISPLAY_string = mystrdup(original_DISPLAY_string);
 
 #ifdef DEBUG_TRACE_X
 	trace_window_id2name_hook = &window_id2name;
@@ -209,7 +215,7 @@ SHOW_CHECKPOINT;
         {
             if( !get_flags(MyArgs.flags, ASS_SingleScreen) )
             {
-                int pid = spawn_child( MyName, (i<MAX_USER_SINGLETONS_NUM)?i:-1, i, None, C_NO_CONTEXT, True, True, NULL );
+                int pid = spawn_child( MyName, (i<MAX_USER_SINGLETONS_NUM)?i:-1, i, NULL, None, C_NO_CONTEXT, True, True, NULL );
                 if( pid >= 0 )
                     show_progress( "\t instance of afterstep spawned with pid %d.", pid );
                 else
@@ -660,6 +666,38 @@ Done (Bool restart, char *command )
 		already_dead = True ;
 	}
 
+    /* lets duplicate the string so we don't accidental;y delete it while closing self down */
+    if( restart )
+	{
+		int my_name_len = strlen(MyName);
+		if( command ) 
+		{
+			if( strncmp(command, MyName, my_name_len )==0 )
+				restart_self = (command[my_name_len] == ' '|| command[my_name_len] == '\0');
+			local_command = mystrdup(command);
+		}else 
+		{		  
+        	local_command = mystrdup(MyName);
+			restart_self = True ;
+	    }
+		if (!is_executable_in_path(local_command))
+		{
+			if (!restart_self || MyArgs.saved_argv[0] == NULL)
+			{
+				show_error("Cannot restart with command \"%s\" - application is not in PATH!", local_command);
+				return;
+			}
+			free(local_command);
+			if (command)
+			{
+				local_command = safemalloc(strlen(command) + 1+ strlen(MyArgs.saved_argv[0])+1);
+				sprintf( local_command, "%s %s", MyArgs.saved_argv[0], command + my_name_len);
+			}else
+				local_command = mystrdup(MyArgs.saved_argv[0]);
+		}
+	}
+
+
 #ifdef XSHMIMAGE
 	/* may not need to do that as server may still have some of the shared 
 	 * memory and work in it */
@@ -673,22 +711,6 @@ LOCAL_DEBUG_CALLER_OUT( "%s restart, cmd=\"%s\"", restart?"Do":"Don't", command?
 	FlushAllQueues(); 
 	sleep_a_millisec(1000);
 
-    /* lets duplicate the string so we don't accidental;y delete it while closing self down */
-    if( restart )
-	{
-		if( command ) 
-		{
-			int my_name_len = strlen(MyName);
-
-			if( strncmp(command, MyName, my_name_len )==0 )
-				restart_self = (command[my_name_len] == ' '|| command[my_name_len] == '\0');
-			local_command = mystrdup(command);
-		}else 
-		{		  
-        	local_command = mystrdup(MyName);
-			restart_self = True ;
-	    }
-	}
 	LOCAL_DEBUG_OUT( "local_command = \"%s\", restart_self = %s", local_command, restart_self?"Yes":"No"); 
     set_flags( AfterStepState, ASS_Shutdown );
     if( restart )
@@ -722,7 +744,7 @@ LOCAL_DEBUG_CALLER_OUT( "%s restart, cmd=\"%s\"", restart?"Do":"Don't", command?
 	if (restart)
 	{
 		set_flags( MyArgs.flags, ASS_Restarting );
-        spawn_child( local_command, -1, restart_screen,
+        spawn_child( local_command, -1, restart_screen, original_DISPLAY_string,
                      None, C_NO_CONTEXT, False, restart_self, NULL );
     } else
 	{

@@ -1082,7 +1082,7 @@ check_singleton_child (int singleton_id, Bool kill_it_to_death)
 }
 
 int
-spawn_child( const char *cmd, int singleton_id, int screen, Window w, int context, Bool do_fork, Bool pass_args, ... )
+spawn_child( const char *cmd, int singleton_id, int screen, const char *orig_display, Window w, int context, Bool do_fork, Bool pass_args, ... )
 {
     int pid = 0;
 
@@ -1166,8 +1166,8 @@ spawn_child( const char *cmd, int singleton_id, int screen, Window w, int contex
 			for( env_s = 0  ; envvars[env_s] != NULL ; ++env_s )
 				envp[env_s] = envvars[env_s] ;	
         
-		envp[env_s] = safemalloc(8+strlen(display)+1);
-		sprintf( envp[env_s], "DISPLAY=%s", display );
+		envp[env_s] = safemalloc(8+strlen(orig_display?orig_display:display)+1);
+		sprintf( envp[env_s], "DISPLAY=%s", orig_display?orig_display:display );
 		++env_s ;
 		if( Environment ) 
 		{
@@ -1204,15 +1204,15 @@ spawn_child( const char *cmd, int singleton_id, int screen, Window w, int contex
             This bit of code seems to break AS restarting
             on Fedora 8. causing DISPLAY=":0.0" to
             become DISPLAY=":0.".  -- Jeremy
-            if( screen >= 0 )
 */
+            if( screen >= 0 )
                 screen_str = string_from_int( screen );
             if( w != None )
                 w_str = string_from_int( w );
             if( context != C_NO_CONTEXT )
                 context_str = string_from_int( context );
 
-            len += 1+2+1+strlen( display );
+            len += 1+2+1+strlen( orig_display?orig_display:display );
             if( screen_str )
                 len += strlen(screen_str);
             len += 3 ;                         /* for "-s " */
@@ -1254,7 +1254,7 @@ spawn_child( const char *cmd, int singleton_id, int screen, Window w, int contex
         while(*ptr) ptr++;
         if( pass_args )
         {
-            ptr += sprintf( ptr, " -d %s%s -s", display, screen_str?screen_str:"" );
+            ptr += sprintf( ptr, " -d %s%s -s", orig_display?orig_display:display, screen_str?screen_str:"" );
             if ( get_flags( as_app_args.flags, ASS_Debugging) )
             {
                 strcpy( ptr, " --debug");

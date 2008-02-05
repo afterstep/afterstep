@@ -254,7 +254,7 @@ void destroy_asenvironment( ASEnvironment **penv );
  */
 
 int check_singleton_child (int singleton_id, Bool kill_it_to_death);
-int spawn_child( const char *cmd, int singleton_id, int screen, Window w, int context, Bool do_fork, Bool pass_args, ... );
+int spawn_child( const char *cmd, int singleton_id, int screen, const char *orig_display, Window w, int context, Bool do_fork, Bool pass_args, ... );
 
 /***********************************************************************************/
 /* GLOBALS :                                                                       */

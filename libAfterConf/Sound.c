@@ -142,9 +142,6 @@ DestroySoundConfig (SoundConfig * config)
 	if (config->pcmdevice)
 		free (config->pcmdevice);
 		
-	if (config->debug)
-		free (config->debug);
-
 	DestroyFreeStorage (&(config->more_stuff));
 	free (config);
 }
