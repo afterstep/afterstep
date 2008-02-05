@@ -1135,7 +1135,7 @@ LOCAL_DEBUG_CALLER_OUT( "desk(%d)->old_desk(%d)->new_back(%p)->old_back(%p)", de
 
     if( new_back->type == MB_BackCmd )
     {                                          /* run command */
-        Scr.RootBackground->cmd_pid = spawn_child( XIMAGELOADER, BACKGROUND_SINGLETON_ID, Scr.screen, None, C_NO_CONTEXT, True, False, new_back->data, NULL );
+        Scr.RootBackground->cmd_pid = spawn_child( XIMAGELOADER, BACKGROUND_SINGLETON_ID, Scr.screen, NULL, None, C_NO_CONTEXT, True, False, new_back->data, NULL );
     }else
         new_im = make_desktop_image( desk, new_back );
 

@@ -134,7 +134,7 @@ Bool untar_file( const char *src, const char *dst, ASThemeFileType type )
 	if( command_line )
 	{
 		LOCAL_DEBUG_OUT( "command line is \"%s\"", command_line );
-		spawn_child( command_line, TAR_SINGLETON_ID, 0, 0, 0, True, False, NULL );
+		spawn_child( command_line, TAR_SINGLETON_ID, 0, NULL, 0, 0, True, False, NULL );
 		free( command_line );
 		command_line = NULL ;
 		for( i = 3000 ; i >= 0 ; --i )
@@ -153,7 +153,7 @@ Bool untar_file( const char *src, const char *dst, ASThemeFileType type )
 		command_line = safemalloc( 7 + dst_len + 9 + tarball_len + 1 + 1 );
 		sprintf( command_line, "tar -C\"%s\" -x -f \"%s\"", dst, tarball );
 		LOCAL_DEBUG_OUT( "command line is \"%s\"", command_line );
-		spawn_child( command_line, TAR_SINGLETON_ID, 0, 0, 0, True, False, NULL );
+		spawn_child( command_line, TAR_SINGLETON_ID, 0, NULL, 0, 0, True, False, NULL );
 		free( command_line );
 		for( i = 3000 ; i >= 0 ; --i )
 		{
@@ -407,7 +407,7 @@ install_theme_file( const char *src )
             tmpdir = default_tmp_dir ;
 		themedir_len = strlen(tmpdir)+11+32;
         theme_dir = safemalloc (themedir_len+1);
-        sprintf (theme_dir, "%s/astheme.%ld", tmpdir, getuid() );
+        sprintf (theme_dir, "%s/astheme.%d", tmpdir, (int)getuid() );
 		if( mkdir( theme_dir, 0700 ) == -1 )
 		{
 			if( errno != EEXIST  )

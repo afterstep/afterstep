@@ -1155,7 +1155,7 @@ void exec_func_handler( FunctionData *data, ASEvent *event, int module )
 			      ButtonPressMask | ButtonReleaseMask,
 		  GrabModeAsync, GrabModeAsync, Scr.Root, Scr.Feel.cursors[ASCUR_Wait], CurrentTime);
     XSync (dpy, 0);
-    spawn_child( data->text, -1, -1, None, C_NO_CONTEXT, True, False, NULL );
+    spawn_child( data->text, -1, -1, NULL, None, C_NO_CONTEXT, True, False, NULL );
     XUngrabPointer (dpy, CurrentTime);
     XSync (dpy, 0);
 }
@@ -1268,7 +1268,7 @@ void exec_in_term_func_handler( FunctionData *data, ASEvent *event, int module )
 			      		ButtonPressMask | ButtonReleaseMask,
 		  		GrabModeAsync, GrabModeAsync, Scr.Root, Scr.Feel.cursors[ASCUR_Wait], CurrentTime);
     		XSync (dpy, 0);
-    		spawn_child( full_cmdl, -1, -1, None, C_NO_CONTEXT, True, False, NULL );
+    		spawn_child( full_cmdl, -1, -1, NULL, None, C_NO_CONTEXT, True, False, NULL );
     		XUngrabPointer (dpy, CurrentTime);
 			free( full_cmdl );
 		}
@@ -1288,7 +1288,7 @@ void exec_tool_func_handler( FunctionData *data, ASEvent *event, int module )
 			      		ButtonPressMask | ButtonReleaseMask,
 				  		GrabModeAsync, GrabModeAsync, Scr.Root, Scr.Feel.cursors[ASCUR_Wait], CurrentTime);
     	XSync (dpy, 0);
-    	spawn_child( full_cmdl, -1, -1, None, C_NO_CONTEXT, True, False, NULL );
+    	spawn_child( full_cmdl, -1, -1, NULL, None, C_NO_CONTEXT, True, False, NULL );
     	XUngrabPointer (dpy, CurrentTime);
 		free( full_cmdl );
     	XSync (dpy, 0);
@@ -1732,7 +1732,7 @@ void gethelp_func_handler( FunctionData *data, ASEvent *event, int module )
 			  ButtonPressMask | ButtonReleaseMask,
 			  GrabModeAsync, GrabModeAsync, Scr.Root, Scr.Feel.cursors[ASCUR_Wait], CurrentTime);
 	    XSync (dpy, 0);
-	    spawn_child( realfilename, -1, -1, None, C_NO_CONTEXT, True, False, ASWIN_RES_NAME(event->client), NULL);
+	    spawn_child( realfilename, -1, -1, NULL, None, C_NO_CONTEXT, True, False, ASWIN_RES_NAME(event->client), NULL);
 	    free (realfilename);
 	    XUngrabPointer (dpy, CurrentTime);
 	    XSync (dpy, 0);

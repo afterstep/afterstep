@@ -699,7 +699,7 @@ ExecModule (char *action, Window win, int context)
     free( module );
 
     args = stripcpy( args );
-    val = spawn_child( cmd, -1, Scr.screen, win, context, True, True, args, NULL );
+    val = spawn_child( cmd, -1, Scr.screen, NULL, win, context, True, True, args, NULL );
 
     if( args )
         free (args);
