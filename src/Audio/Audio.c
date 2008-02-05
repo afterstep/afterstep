@@ -449,7 +449,7 @@ Bool audio_player_ext(short sound)
     if( check_singleton_child(AUDIO_SINGLETON_ID,False) > 0 ) return False ;/* previous command still running */
     if( sound_table[sound] == NULL ) return False; /* nothing to do */
 
-    spawn_child( SOUNDPLAYER, AUDIO_SINGLETON_ID, -1, None, 0, True, False, Config->playcmd, sound_table[sound], NULL );
+    spawn_child( SOUNDPLAYER, AUDIO_SINGLETON_ID, -1, NULL, None, 0, True, False, Config->playcmd, sound_table[sound], NULL );
 
     return True ;
 }

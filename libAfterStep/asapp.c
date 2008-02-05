@@ -615,7 +615,7 @@ InitMyApp (  const char *app_class, int argc, char **argv, void (*version_func) 
 
     set_output_threshold( as_app_args.verbosity_level );
     if(as_app_args.log_file)
-		if( freopen( as_app_args.log_file, get_flags( as_app_args.flags, ASS_Restarting)?"a":"w", stderr ) == NULL )
+		if( freopen( as_app_args.log_file, /*get_flags( as_app_args.flags, ASS_Restarting)?*/"a"/*:"w"*/, stderr ) == NULL )
 	    	show_system_error( "failed to redirect output into file \"%s\"", as_app_args.log_file );
 
 
@@ -1254,7 +1254,10 @@ spawn_child( const char *cmd, int singleton_id, int screen, const char *orig_dis
         while(*ptr) ptr++;
         if( pass_args )
         {
-            ptr += sprintf( ptr, " -d %s%s -s", orig_display?orig_display:display, screen_str?screen_str:"" );
+			if (orig_display)
+    	        ptr += sprintf( ptr, " -d %s -s", orig_display );
+			else
+	            ptr += sprintf( ptr, " -d %s%s -s", display, screen_str?screen_str:"" );
             if ( get_flags( as_app_args.flags, ASS_Debugging) )
             {
                 strcpy( ptr, " --debug");
