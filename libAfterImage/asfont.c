@@ -1048,7 +1048,7 @@ load_glyph_freetype( ASFont *font, ASGlyph *asg, int glyph, UNICODE_CHAR uc )
 #if 0			
 			asg->step = bmap->width+face->glyph->bitmap_left ;
 #else
-			asg->step = face->glyph->advance.x>>6 ;
+			asg->step = (short)face->glyph->advance.x>>6 ;
 #endif
 				
 		/* we only want to keep lead if it was negative */
@@ -1445,7 +1445,7 @@ goto_tab_stop( ASTextAttributes *attr, unsigned int space_size, unsigned int lin
 	do{ if( (prev_gid) != 0 && font->type == ASF_Freetype && get_flags(font->flags, ASF_Monospaced|ASF_HasKerning) == ASF_HasKerning ) { \
 		FT_Vector delta; \
 		FT_Get_Kerning( font->ft_face, (prev_gid), (this_gid), FT_KERNING_DEFAULT, &delta );\
-		(var) = delta.x >> 6; \
+		(var) = (short)(delta.x >> 6); \
 	}}while(0)
 #else
 #define GET_KERNING(var,prev_gid,this_gid)	do{(var)=0;}while(0)	  
