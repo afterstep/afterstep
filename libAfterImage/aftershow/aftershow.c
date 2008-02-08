@@ -82,6 +82,19 @@ typedef struct AfterShowContext
 	
 }AfterShowContext;
 
+Bool InitContext (AfterShowContext *context, int argc, char **argv);
+Bool ConnectGUI (AfterShowContext *context);
+Bool CheckInstance (AfterShowContext *context);
+Bool SetupComms (AfterShowContext *context);
+void HandleEvents (AfterShowContext *context);
+
+void show_usage (Bool short_form)
+{
+	
+
+}
+
+
 int 
 main (int argc, char **argv)
 {
@@ -125,8 +138,71 @@ main (int argc, char **argv)
     }
 
 	HandleEvents(&context);
+   	return EXIT_SUCCESS;
 }
 
+/**********************************************************************************
+ * Implementation : 
+ **********************************************************************************/
+Bool InitContext (AfterShowContext *context, int argc, char **argv)
+{
+	int i;
+	for (i = 1 ; i < argc ; ++i) 
+	{
+		if (argv[i][0] == '-')
+		{
+			if (argv[i][1] != '-') /* short option */
+			{
+				if (argv[i][2] == '\0')
+					switch (argv[i][1])
+					{
+						case 'h': show_usage(False); return False;
+						default :
+							show_error ("unrecognized option \"%s\"", argv[i]);
+							show_usage(False); 
+							return False;
+					}
+			}else /* long option */
+			{
+				if (strcmp(&(argv[i][2]), "help") == 0)
+				{ 
+					show_usage(False); return False; 
+				}else
+				{
+					show_error ("unrecognized option \"%s\"", argv[i]);
+					show_usage(False); 
+					return False;
+				}
+			}
+		}
+	}
+	return True;
+}
+
+Bool ConnectGUI (AfterShowContext *context)
+{
+
+	return True;
+
+}
+
+Bool CheckInstance (AfterShowContext *context)
+{
+
+	return True;
+
+}
+
+Bool SetupComms (AfterShowContext *context)
+{
+
+	return True;
+}
+
+void HandleEvents (AfterShowContext *context)
+{
+
+}
 
 /* ********************************************************************************/
 /* The end !!!! 																 */
