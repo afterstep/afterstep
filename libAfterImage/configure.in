@@ -746,6 +746,10 @@ if test -d apps ; 	then
   AC_CONFIG_FILES([apps/Makefile]) 
 fi
 
+if test -d aftershow ; 	then   
+  AC_CONFIG_FILES([aftershow/Makefile]) 
+fi
+
 AC_SUBST(APPSDEPS)
 
 AC_OUTPUT(Makefile \

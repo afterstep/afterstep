@@ -9313,6 +9313,11 @@ if test -d apps ; 	then
 
 fi
 
+if test -d aftershow ; 	then
+            ac_config_files="$ac_config_files aftershow/Makefile"
+
+fi
+
 
 
                                         ac_config_files="$ac_config_files Makefile afterbase.h afterimage-libs afterimage-config"
@@ -9842,6 +9847,7 @@ do
   case "$ac_config_target" in
   # Handling of arguments.
   "apps/Makefile" ) CONFIG_FILES="$CONFIG_FILES apps/Makefile" ;;
+  "aftershow/Makefile" ) CONFIG_FILES="$CONFIG_FILES aftershow/Makefile" ;;
   "Makefile" ) CONFIG_FILES="$CONFIG_FILES Makefile" ;;
   "afterbase.h" ) CONFIG_FILES="$CONFIG_FILES afterbase.h" ;;
   "afterimage-libs" ) CONFIG_FILES="$CONFIG_FILES afterimage-libs" ;;

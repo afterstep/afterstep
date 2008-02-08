@@ -1,0 +1,4 @@
+./aftershow.o: \
+		../win32/config.h \
+		../config.h \
+		../afterimage.h
