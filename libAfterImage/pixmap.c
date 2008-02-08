@@ -1,4 +1,4 @@
-/*--------------------------------*-C-*---------------------------------*
+;/*--------------------------------*-C-*---------------------------------*
  * File:	pixmap.c
  *----------------------------------------------------------------------*
  * Copyright (c) 1999 Ethan Fischer <allanon@crystaltokyo.com>
@@ -193,8 +193,9 @@ GetRootDimensions (int *width, int *height)
 		*width = XDisplayWidth(dpy, DefaultScreen(dpy) );
 	}
 	return 1 ;
-#endif
+#else
 	return 0;
+#endif
 }
 
 int
