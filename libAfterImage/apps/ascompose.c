@@ -43,14 +43,14 @@
 # endif
 #endif
 
+#if defined(SHAPE) && !defined(X_DISPLAY_MISSING)
+#include <X11/extensions/shape.h>
+#endif /* SHAPE */
 #include "../afterbase.h"
 #include "../afterimage.h"
 #include "common.h"
 
 
-#if defined(SHAPE) && !defined(X_DISPLAY_MISSING)
-#include <X11/extensions/shape.h>
-#endif /* SHAPE */
 
 /****h* libAfterImage/ascompose
  * NAME
@@ -516,16 +516,16 @@ int main(int argc, char** argv) {
 							  xb.state < 0 ) 
 							break;
 					}		   
-					if( c == EOF && fp != stdin ) 
+					if (c == EOF)
 					{	
-						if( endless_loop ) 
+						if (fp != stdin && endless_loop) 
 						{	
 							fseek( fp, 0L, SEEK_SET );
 							char_count = 0 ;
+							if( xb.state == ASXML_Start && xb.tags_count == 0 ) 
+								continue;
 						}else if( xb.tags_count == 0 ) 
 							break;
-						if( xb.state == ASXML_Start && xb.tags_count == 0 ) 
-							continue;
 					}
 				}else
 				{
@@ -550,9 +550,6 @@ int main(int argc, char** argv) {
 
 					if( !display || dpy == NULL || !quiet ) 
 						printf("<success tag_count=%d/>\n", xb.tags_count );
-					add_xml_buffer_chars( &xb, "", 1 );
-					LOCAL_DEBUG_OUT("buffer: [%s]", xb.buffer );
-	 				im = compose_asimage_xml(asv, my_imman, my_fontman, xb.buffer, ASFLAGS_EVERYTHING, verbose, None, NULL);					
 					
 					add_xml_buffer_chars( &xb, "", 1 );
 					LOCAL_DEBUG_OUT("buffer: [%s]", xb.buffer );
@@ -586,6 +583,7 @@ int main(int argc, char** argv) {
 						/* Display the image if desired. */
 						if (display && dpy) 
 							main_window = showimage(im, True, main_window, &main_window_props, dst_x, dst_y);
+
 						safe_asimage_destroy(im);
 						im = NULL ;
 					}					
@@ -743,11 +741,15 @@ int main(int argc, char** argv) {
 	if (doc_file && doc_str && doc_str != default_doc_str) free(doc_str);
 
 #if !defined(X_DISPLAY_MISSING)    
+	if (main_window_props.canvas)
+		XFreePixmap(dpy, main_window_props.canvas); 
 	if( dpy )
         XCloseDisplay (dpy);
 #endif
 	LOCAL_DEBUG_OUT( "display Closed%s","");
 #ifdef DEBUG_ALLOCS
+	if (main_window_props.last_root_im)
+		safe_asimage_destroy(main_window_props.last_root_im);
 	asxml_var_cleanup();
 	LOCAL_DEBUG_OUT( "display Closed%s","");
 	custom_color_cleanup();
@@ -761,6 +763,7 @@ int main(int argc, char** argv) {
     flush_ashash_memory_pool();
 	LOCAL_DEBUG_OUT( "display Closed%s","");
 	print_unfreed_mem();
+	print_asimage_registry();
 #endif
 
 	return 0;
@@ -1074,6 +1077,12 @@ Window showimage(ASImage* im, Bool looping, Window main_window, ASComposeWinProp
 			asimage2drawable( asv, props->canvas, im, NULL, 0, 0, dst_x, dst_y, im->width, im->height, True);
 	}
 
+	if( im != orig_im ) 
+	{	
+		safe_asimage_destroy(im);
+		im = orig_im ;
+	}
+
 	XSetWindowBackgroundPixmap( dpy, main_window, props->canvas);
 	XClearWindow( dpy, main_window);
 	XFlush(dpy);
@@ -1100,11 +1109,6 @@ Window showimage(ASImage* im, Bool looping, Window main_window, ASComposeWinProp
 #endif		   
 #endif		   
 	XSync(dpy, False);
-	if( im != orig_im ) 
-	{	
-		safe_asimage_destroy(im);
-		im = orig_im ;
-	}
 	
 	while(main_window != None)
   	{

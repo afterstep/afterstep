@@ -281,7 +281,7 @@ compose_asimage_xml_from_doc(ASVisual *asv, ASImageManager *imman, ASFontManager
 
 LOCAL_DEBUG_OUT( "result im = %p, im->imman	= %p, my_imman = %p, im->magic = %8.8lX", im, im?im->imageman:NULL, my_imman, im?im->magic:0 );
 		
-		if( my_imman_curr_dir_path_idx < MAX_SEARCH_PATHS ) 
+		if( my_imman_curr_dir_path_idx < MAX_SEARCH_PATHS && my_imman->search_path[my_imman_curr_dir_path_idx]) 
 		{
 			free(my_imman->search_path[my_imman_curr_dir_path_idx]);
 			my_imman->search_path[my_imman_curr_dir_path_idx] = NULL ;			
