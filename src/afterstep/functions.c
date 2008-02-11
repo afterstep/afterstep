@@ -36,6 +36,7 @@
 
 #include <limits.h>
 #include <signal.h>
+#include <unistd.h>
 
 #include "../../libAfterStep/session.h"
 #include "../../libAfterStep/moveresize.h"
@@ -1268,35 +1269,71 @@ void exec_in_term_func_handler( FunctionData *data, ASEvent *event, int module )
 	}
 }
 
+int   /* return -1 - undetermined, 0 - no term, 1 - terminal requiresd */
+check_tool_needs_term(const char *tool)
+{
+	static char *known_text_mode_apps[] = {
+		"vi", "vim", "joe", "jed", "ne", "le", "moe", "elvis", "jove", "dav", "aoeui", 
+		"elinks", "lynx", 
+		NULL 
+	};
+	ASDesktopEntry *de ;
+	
+	char *name = NULL;
+	struct stat   st;
+	int res = -1;
+	int i;
+
+	parse_file_name(tool, NULL, &name);
+	LOCAL_DEBUG_OUT( "checking if \"%s\" requires term ...", name );
+	de = fetch_desktop_entry( CombinedCategories, name );
+	if (de!= NULL)
+	{
+		LOCAL_DEBUG_OUT( "DesktopEntry \"%s\" found", de->Name);
+		res = get_flags(de->flags, ASDE_Terminal)?1:0;
+	}else if (lstat (tool, &st) != -1) 
+	{	/* now we need to resolve all the symlinking */
+		
+		if ((st.st_mode & S_IFMT) == S_IFLNK)
+		{
+			char linkdst[1024];
+			int len = readlink(tool,linkdst, sizeof(linkdst)-1);
+			if ( len > 0)
+			{
+				linkdst[len] = '\0';
+				res = check_tool_needs_term(linkdst);
+				LOCAL_DEBUG_OUT( "checking symlink target \"%s\" - res = %d", linkdst, res);
+			}
+		}
+	}
+	
+	/* last resort - check hardcoded list */	
+	for( i = 0 ; res < 0 && known_text_mode_apps[i] ; ++i )
+		if (strcmp(name, known_text_mode_apps[i]) == 0 )
+			res = 1;
+
+	LOCAL_DEBUG_OUT( "\"%s\" requires term  = %d", name, res );
+
+	free (name);
+	return res;
+}
+
 void exec_tool_func_handler( FunctionData *data, ASEvent *event, int module )
 {
-	/* TODO : find a better way of doing that and apply that to the rest of the apps */
-	
-	static char *known_text_mode_apps[] = {
-		"editor", "vi", "vim", "emacs", "joe", "jed", "ne", "le", "moe", "elvis",
-		"jove",	"dav", "aoeui", 
-		"elinks", "lynx", 
-		NULL };
-		
 	ASToolType tool = (data->func == F_ExecBrowser)?ASTool_Browser:ASTool_Editor ;
 	if( Environment->tool_command[tool] != NULL && data->text != NULL ) 
 	{
-		int i;
 		char *full_cmdl = safemalloc( strlen(Environment->tool_command[tool]) +1+strlen(data->text)+1 );
 		sprintf( full_cmdl, "%s %s", Environment->tool_command[tool], data->text );
 		LOCAL_DEBUG_OUT( "full_cmdl = [%s]", full_cmdl );
 		
-		for( i = 0 ; known_text_mode_apps[i] ; ++i )
-			if (strcmp(Environment->tool_command[tool], known_text_mode_apps[i]) == 0 )
-			{
-				char * old_text = data->text;
-				data->text = full_cmdl;
-				exec_in_term_func_handler(data, event, module);			
-				data->text = old_text;
-				break;
-			}
-			
-		if (known_text_mode_apps[i] == NULL)
+		if (check_tool_needs_term(Environment->tool_command[tool]) > 0)
+		{
+			char * old_text = data->text;
+			data->text = full_cmdl;
+			exec_in_term_func_handler(data, event, module);			
+			data->text = old_text;
+		}else
 		{
 			/* no sense in grabbing Pointer here as fork will return rather fast not creating 
 	   		   much of the delay */

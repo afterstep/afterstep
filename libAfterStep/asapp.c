@@ -722,13 +722,15 @@ char *as_get_default_tool(ASToolType type)
 	for( i = 0 ; _as_known_tools[type][i] ; ++i ) 
 	{
 		char *tmp = _as_known_tools[type][i] ;
+		char *fullname = NULL ;
+		int res ;
 		if( tmp[0] == '$' ) 
 			tmp = copy_replace_envvar( tmp );
-	 	else
-			tmp = mystrdup(tmp);				   
-		if( is_executable_in_path (tmp) )
-			return tmp;
-		free( tmp );
+		res = get_executable_in_path (tmp, &fullname);
+		if (tmp != _as_known_tools[type][i])
+			free( tmp );
+		if( res > 0 )
+			return fullname;
 	}
 	return NULL;
 }
@@ -742,19 +744,17 @@ set_environment_tool_from_list( ASEnvironment *e, ASToolType type, char ** list,
 		if( list[i] )
 		{
 			char *tmp = list[i] ;
+			char *fullname = NULL ;
 			if( tmp[0] == '$' ) 
 				tmp = copy_replace_envvar( tmp );
-	 		else
-				tmp = mystrdup(tmp);				   
-			if( is_executable_in_path( tmp ) ) 
-			{	
-				e->tool_command[type] = tmp;
+			if( get_executable_in_path( tmp, &fullname ) ) 
+			{
+				e->tool_command[type] = fullname;
 				break;
 			}else
-			{
 				show_warning( "%s command %s is not in the path", _as_tools_name[type], tmp );
+			if (tmp != list[i])
 				free(tmp);	  
-			}
 		}	 
 	if( e->tool_command[type] == NULL ) 
 		e->tool_command[type] = as_get_default_tool(type);

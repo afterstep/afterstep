@@ -470,9 +470,10 @@ copy_replace_envvar (const char *path)
  * options to be passed
  */
 int
-is_executable_in_path (const char *name)
+get_executable_in_path (const char *name, char **fullname_return)
 {
 	static char  *cache = NULL;
+	static char  *cache_path = NULL;
 	static int    cache_result = 0, cache_len = 0, cache_size = 0;
 	static char  *env_path = NULL;
 	static int    max_path = 0;
@@ -484,6 +485,11 @@ is_executable_in_path (const char *name)
 		{
 			free (cache);
 			cache = NULL;
+		}
+		if (cache_path)
+		{
+			free (cache_path);
+			cache_path = NULL;
 		}
 		cache_size = 0;
 		cache_len = 0;
@@ -510,7 +516,11 @@ is_executable_in_path (const char *name)
 
 	if (cache)
 		if (i == cache_len && strncmp (cache, name, i) == 0)
+		{
+			if (cache_result && fullname_return)
+				*fullname_return = mystrdup(cache_path);
 			return cache_result;
+		}
 
 	if (i > cache_size)
 	{
@@ -524,10 +534,17 @@ is_executable_in_path (const char *name)
 	strncpy (cache, name, i);
 	cache[i] = '\0';
 	cache_len = i;
-
+	if (cache_path)
+	{
+		free(cache_path);
+		cache_path = NULL;
+	}
+		
 	if (*cache == '/')
+	{
 		cache_result = (CheckFile (cache) == 0) ? 1 : 0;
-	else
+		cache_path = mystrdup (cache);
+	}else
 	{
 		char         *ptr, *path;
 		struct stat   st;
@@ -547,7 +564,7 @@ is_executable_in_path (const char *name)
 		}
 		path = safemalloc (max_path + cache_len + 2);
 		cache_result = 0;
-		for (ptr = env_path; *ptr && cache_result == 0; ptr += i)
+		for (ptr = env_path; *ptr ; ptr += i)
 		{
 			if (*ptr == ':')
 				ptr++;
@@ -557,13 +574,29 @@ is_executable_in_path (const char *name)
 			path[i + 1] = '\0';
 			strcat (path, cache);
 			if ((stat (path, &st) != -1) && (st.st_mode & S_IXUSR))
+			{
 				cache_result = 1;
+				cache_path = path;
+				path = NULL;
+				break;
+			}
 			LOCAL_DEBUG_OUT( "%s found \"%s\"", path, cache_result?"":"not" );
 		}
-		free (path);
+		if (path)
+			free (path);
 	}
+	
+	if (cache_result && fullname_return)
+		*fullname_return = mystrdup(cache_path);
 	return cache_result;
 }
+
+int
+is_executable_in_path (const char *name)
+{
+	return get_executable_in_path (name, NULL);
+}
+
 
 
 int
