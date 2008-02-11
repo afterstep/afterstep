@@ -1276,7 +1276,7 @@ spawn_child( const char *cmd, int singleton_id, int screen, const char *orig_dis
                 ptr += sprintf( ptr, " -g %s", as_app_args.override_share );
             if( as_app_args.verbosity_level != OUTPUT_DEFAULT_THRESHOLD )
                 ptr += sprintf( ptr, " -V %d", as_app_args.verbosity_level );
-LOCAL_DEBUG_OUT( "len = %d, cmdl = \"%s\" strlen = %d, locale = \"%s\", ptr-cmdl = %d", len, cmdl, strlen(cmdl), as_app_args.locale, ptr-cmdl );
+LOCAL_DEBUG_OUT( "len = %d, cmdl = \"%s\" strlen = %d, locale = \"%s\", ptr-cmdl = %d", len, cmdl, (int)strlen(cmdl), as_app_args.locale, (int)(ptr-cmdl) );
 			if( as_app_args.locale && as_app_args.locale[0] && !isspace(as_app_args.locale[0]))
                 ptr += sprintf( ptr, " -L %s", as_app_args.locale );
 			
@@ -1296,7 +1296,7 @@ LOCAL_DEBUG_OUT( "len = %d, cmdl = \"%s\" strlen = %d, locale = \"%s\", ptr-cmdl
             *(ptr++) = ' ';
             strcpy( ptr, arg );
             while(*ptr) ptr++;
-LOCAL_DEBUG_OUT( "len = %d, cmdl = \"%s\" strlen = %d", len, cmdl, strlen(cmdl) );
+LOCAL_DEBUG_OUT( "len = %d, cmdl = \"%s\" strlen = %d", len, cmdl, (int)strlen(cmdl) );
         
 		}
         va_end(ap);
@@ -1308,7 +1308,7 @@ LOCAL_DEBUG_OUT( "len = %d, cmdl = \"%s\" strlen = %d", len, cmdl, strlen(cmdl) 
         }
 		strcpy (ptr, do_fork?" &\n":"\n");
 
-LOCAL_DEBUG_OUT( "len = %d, cmdl = \"%s\" strlen = %d", len, cmdl, strlen(cmdl) );
+LOCAL_DEBUG_OUT( "len = %d, cmdl = \"%s\" strlen = %d", len, cmdl, (int)strlen(cmdl) );
 #if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
 		{
 			FILE *fff = fopen ("/tmp/afterstep.exec.log", "a");

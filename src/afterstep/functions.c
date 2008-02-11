@@ -797,7 +797,7 @@ void moveresize_func_handler( FunctionData *data, ASEvent *event, int module )
 	int height = asw->status->height ;
 
 	new_val1 = APPLY_VALUE_UNIT(Scr.MyDisplayWidth,data->func_val[0],data->unit_val[0]);
-	LOCAL_DEBUG_OUT( "val1 = %ld, unit1 = %ld, new_val1 = %d", data->func_val[0],data->unit_val[0], new_val1 );
+	LOCAL_DEBUG_OUT( "val1 = %d, unit1 = %d, new_val1 = %d", (int)data->func_val[0], (int)data->unit_val[0], new_val1 );
 	new_val2 = APPLY_VALUE_UNIT(Scr.MyDisplayHeight,data->func_val[1],data->unit_val[1]);
 	if( data->func == F_MOVE )
 	{
@@ -971,8 +971,8 @@ void iconify_func_handler( FunctionData *data, ASEvent *event, int module )
 	if( event->client )
 	{
 
-LOCAL_DEBUG_CALLER_OUT( "function %ld (val0 = %ld), event %d, window 0x%lX, window_name \"%s\", module %d",
-			data?data->func:0, data?data->func_val[0]:0, event?event->x.type:-1, event?(unsigned long)event->w:0, event->client?ASWIN_NAME(event->client):"none", module );
+LOCAL_DEBUG_CALLER_OUT( "function %d (val0 = %d), event %d, window 0x%lX, window_name \"%s\", module %d",
+			(int)(data?data->func:0), (int)(data?data->func_val[0]:0), event?event->x.type:-1, event?(unsigned long)event->w:0, event->client?ASWIN_NAME(event->client):"none", module );
 	if (ASWIN_GET_FLAGS(event->client, AS_Iconic) )
 	{
 		if (data->func_val[0] <= 0)
@@ -1151,13 +1151,9 @@ void restart_func_handler( FunctionData *data, ASEvent *event, int module )
 
 void exec_func_handler( FunctionData *data, ASEvent *event, int module )
 {
-    XGrabPointer( dpy, Scr.Root, True,
-			      ButtonPressMask | ButtonReleaseMask,
-		  GrabModeAsync, GrabModeAsync, Scr.Root, Scr.Feel.cursors[ASCUR_Wait], CurrentTime);
-    XSync (dpy, 0);
+	/* no sense in grabbing Pointer here as fork will return rather fast not creating 
+	   much of the delay */
     spawn_child( data->text, -1, -1, NULL, None, C_NO_CONTEXT, True, False, NULL );
-    XUngrabPointer (dpy, CurrentTime);
-    XSync (dpy, 0);
 }
 
 int find_escaped_chr_pos( const char *str, char c )
@@ -1264,34 +1260,49 @@ void exec_in_term_func_handler( FunctionData *data, ASEvent *event, int module )
 		if( full_cmdl ) 
 		{	
 			LOCAL_DEBUG_OUT( "full_cmdl = [%s]", full_cmdl );
-    		XGrabPointer( dpy, Scr.Root, True,
-			      		ButtonPressMask | ButtonReleaseMask,
-		  		GrabModeAsync, GrabModeAsync, Scr.Root, Scr.Feel.cursors[ASCUR_Wait], CurrentTime);
-    		XSync (dpy, 0);
+			/* no sense in grabbing Pointer here as fork will return rather fast not creating 
+	   		   much of the delay */
     		spawn_child( full_cmdl, -1, -1, NULL, None, C_NO_CONTEXT, True, False, NULL );
-    		XUngrabPointer (dpy, CurrentTime);
 			free( full_cmdl );
 		}
-    	XSync (dpy, 0);
 	}
 }
 
 void exec_tool_func_handler( FunctionData *data, ASEvent *event, int module )
 {
+	/* TODO : find a better way of doing that and apply that to the rest of the apps */
+	
+	static char *known_text_mode_apps[] = {
+		"editor", "vi", "vim", "emacs", "joe", "jed", "ne", "le", "moe", "elvis",
+		"jove",	"dav", "aoeui", 
+		"elinks", "lynx", 
+		NULL };
+		
 	ASToolType tool = (data->func == F_ExecBrowser)?ASTool_Browser:ASTool_Editor ;
 	if( Environment->tool_command[tool] != NULL && data->text != NULL ) 
 	{
+		int i;
 		char *full_cmdl = safemalloc( strlen(Environment->tool_command[tool]) +1+strlen(data->text)+1 );
 		sprintf( full_cmdl, "%s %s", Environment->tool_command[tool], data->text );
 		LOCAL_DEBUG_OUT( "full_cmdl = [%s]", full_cmdl );
-   		XGrabPointer(  dpy, Scr.Root, True,
-			      		ButtonPressMask | ButtonReleaseMask,
-				  		GrabModeAsync, GrabModeAsync, Scr.Root, Scr.Feel.cursors[ASCUR_Wait], CurrentTime);
-    	XSync (dpy, 0);
-    	spawn_child( full_cmdl, -1, -1, NULL, None, C_NO_CONTEXT, True, False, NULL );
-    	XUngrabPointer (dpy, CurrentTime);
+		
+		for( i = 0 ; known_text_mode_apps[i] ; ++i )
+			if (strcmp(Environment->tool_command[tool], known_text_mode_apps[i]) == 0 )
+			{
+				char * old_text = data->text;
+				data->text = full_cmdl;
+				exec_in_term_func_handler(data, event, module);			
+				data->text = old_text;
+				break;
+			}
+			
+		if (known_text_mode_apps[i] == NULL)
+		{
+			/* no sense in grabbing Pointer here as fork will return rather fast not creating 
+	   		   much of the delay */
+    		spawn_child( full_cmdl, -1, -1, NULL, None, C_NO_CONTEXT, True, False, NULL );
+		}
 		free( full_cmdl );
-    	XSync (dpy, 0);
 	}
 }
 
@@ -1704,7 +1715,7 @@ void goto_page_func_handler( FunctionData *data, ASEvent *event, int module )
 #ifndef NO_VIRTUAL
     int newvx = data->func_val[0]*event->scr->MyDisplayWidth;
     int newvy = data->func_val[1]*event->scr->MyDisplayHeight;
-LOCAL_DEBUG_OUT( "val(%ld,%ld)->scr(%d,%d)->newv(%d,%d)", data->func_val[0], data->func_val[1], event->scr->MyDisplayWidth, event->scr->MyDisplayHeight, newvx, newvy );
+LOCAL_DEBUG_OUT( "val(%d,%d)->scr(%d,%d)->newv(%d,%d)", (int)data->func_val[0], (int)data->func_val[1], event->scr->MyDisplayWidth, event->scr->MyDisplayHeight, newvx, newvy );
     MoveViewport ( newvx, newvy, True);
 #endif
 }
@@ -1728,14 +1739,8 @@ void gethelp_func_handler( FunctionData *data, ASEvent *event, int module )
 		if (ASWIN_RES_NAME(event->client)!= NULL)
 		{
 		char         *realfilename = PutHome(HELPCOMMAND);
-	    XGrabPointer (dpy, Scr.Root, True,
-			  ButtonPressMask | ButtonReleaseMask,
-			  GrabModeAsync, GrabModeAsync, Scr.Root, Scr.Feel.cursors[ASCUR_Wait], CurrentTime);
-	    XSync (dpy, 0);
 	    spawn_child( realfilename, -1, -1, NULL, None, C_NO_CONTEXT, True, False, ASWIN_RES_NAME(event->client), NULL);
 	    free (realfilename);
-	    XUngrabPointer (dpy, CurrentTime);
-	    XSync (dpy, 0);
 	}
 }
 
