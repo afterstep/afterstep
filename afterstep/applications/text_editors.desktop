@@ -201,7 +201,7 @@ Comment[zh_TW]=文字編輯器
 Comment[zu]=Umhleli Wokubhaliweyo 
 Exec=emacs
 Icon=emacs
-Terminal=true
+Terminal=false
 Type=Application
 Encoding=UTF-8
 Categories=TextEditor
@@ -209,9 +209,48 @@ X-AfterStep-IndexName=emacs
 TryExec=emacs
 
 [Desktop Entry]
+Name=LE
+GenericName=LE
+Comment=LE Text Editor
+Exec=le
+Icon=normal/Pen1
+Terminal=true
+Type=Application
+Encoding=UTF-8
+Categories=TextEditor
+X-AfterStep-IndexName=le
+TryExec=le
+
+[Desktop Entry]
+Name=mcedit
+GenericName=mcedit
+Comment=Midnight Commander Text Editor
+Exec=mcedit
+Icon=normal/Pen1
+Terminal=true
+Type=Application
+Encoding=UTF-8
+Categories=TextEditor
+X-AfterStep-IndexName=mcedit
+TryExec=mcedit
+
+[Desktop Entry]
+Name=SETEDIT
+GenericName=SETEDIT
+Comment=SETEDIT Text Editor
+Exec=setedit
+Icon=normal/Pen1
+Terminal=true
+Type=Application
+Encoding=UTF-8
+Categories=TextEditor
+X-AfterStep-IndexName=setedit
+TryExec=setedit
+
+[Desktop Entry]
 Name=VI
 GenericName=VI
-Comment=VI text editor
+Comment=VI Text Editor
 Exec=vi
 Icon=logos/VIM
 Terminal=true
@@ -220,6 +259,71 @@ Encoding=UTF-8
 Categories=TextEditor
 X-AfterStep-IndexName=vi
 TryExec=vi
+
+[Desktop Entry]
+Name=VIM
+GenericName=VIM
+Comment=VIM text editor
+Exec=vim
+Icon=logos/VIM
+Terminal=true
+Type=Application
+Encoding=UTF-8
+Categories=TextEditor
+X-AfterStep-IndexName=vim
+TryExec=vim
+
+[Desktop Entry]
+Name=nvi
+GenericName=nvi
+Comment=nvi text editor
+Exec=nvi
+Icon=normal/Pen1
+Terminal=true
+Type=Application
+Encoding=UTF-8
+Categories=TextEditor
+X-AfterStep-IndexName=nvi
+TryExec=nvi
+
+[Desktop Entry]
+Name=vile
+GenericName=vile
+Comment=vile Text Editor
+Exec=vile
+Icon=normal/Pen1
+Terminal=true
+Type=Application
+Encoding=UTF-8
+Categories=TextEditor
+X-AfterStep-IndexName=vile
+TryExec=vile
+
+[Desktop Entry]
+Name=Elvis
+GenericName=Elvis
+Comment=Elvis Text Editor
+Exec=elvis
+Icon=normal/Pen1
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=TextEditor
+X-AfterStep-IndexName=elvis
+TryExec=elvis
+
+[Desktop Entry]
+Name=Diakonos
+GenericName=Diakonos
+Comment=Diakonos Text Editor
+Exec=diakonos
+Icon=normal/Pen1
+Terminal=true
+Type=Application
+Encoding=UTF-8
+Categories=TextEditor
+X-AfterStep-IndexName=diakonos
+TryExec=diakonos
 
 [Desktop Entry]
 Name=NEdit
@@ -638,3 +742,28 @@ Encoding=UTF-8
 Categories=TextEditor
 TryExec=yudit
 
+[Desktop Entry]
+Name=JED Text Editor
+GenericName=JED Text Editor
+Comment=Text Editor that makes extensive use of the S-Lang library.
+Exec=jed
+Icon=normal/Pen1
+Terminal=true
+Type=Application
+Encoding=UTF-8
+Categories=TextEditor
+X-AfterStep-IndexName=jed
+TryExec=jed
+
+[Desktop Entry]
+Name=JOE Text Editor
+GenericName=JOE Text Editor
+Comment=enhanced-WordStar style interface
+Exec=joe
+Icon=normal/Pen1
+Terminal=true
+Type=Application
+Encoding=UTF-8
+Categories=TextEditor
+X-AfterStep-IndexName=joe
+TryExec=joe
