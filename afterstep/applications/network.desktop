@@ -907,6 +907,19 @@ X-AfterStep-IndexName=nn
 TryExec=nn
 
 [Desktop Entry]
+Name=w3m Text Web Browser
+GenericName=text-based World Wide Web browser
+Comment=Text-based World Wide Web browser with IPv6 support
+Exec=w3m
+Icon=normal/WWW
+Terminal=true
+Type=Application
+Encoding=UTF-8
+Categories=Network
+X-AfterStep-IndexName=w3m
+TryExec=w3m
+
+[Desktop Entry]
 Name=slrn News Reader
 GenericName=News Reader
 Comment=slrn (s-lang read news) accesses Usenet messages
