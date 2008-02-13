@@ -75,10 +75,48 @@
 #endif
 
 
+typedef struct AfterShowXScreen
+{
+#ifndef X_DISPLAY_MISSING
+	int 		screen;
+	ASVisual   *asv;
+	Window  	root;
+	int 		root_width, root_height;
+#endif
+}AfterShowXScreen;
+
+typedef struct AfterShowXGUI
+{
+	Bool 		valid;
+#ifndef X_DISPLAY_MISSING
+	Display    *dpy;
+	int 		fd;
+	int 		screens_num;
+	AfterShowXScreen  *screens;
+#endif	
+}AfterShowXGUI;
+
+typedef struct AfterShowWin32GUI
+{
+	Bool 		valid;
+#ifdef WIN32
+	int 		root_width, root_height;
+#endif	
+}AfterShowWin32GUI;
+
+
 typedef struct AfterShowContext
 {
-#define AfterShow_DoFork	(0x01<<0)
+#define AfterShow_DoFork		(0x01<<0)
+#define AfterShow_SingleScreen	(0x01<<1)
 	ASFlagType flags;
+	
+	char *display;
+	
+	struct {
+		AfterShowXGUI  		x;
+		AfterShowWin32GUI	win32;
+	} gui;
 	
 }AfterShowContext;
 
@@ -90,8 +128,13 @@ void HandleEvents (AfterShowContext *context);
 
 void show_usage (Bool short_form)
 {
-	
-
+	printf( "AfterShow - AfterImage XML processing and display daemon.\n"
+			"Usage: aftershow [-h|--help] [-f] [-s] [-d|--display <display_string>]\n"
+			"  -h --help      - display this message;\n"
+			"  -f             - fork - go in background immidiately on startup;\n"
+			"  -s             - single screen mode - sirvice only the first screen of display;\n"
+			"  -d --display <display_string> - connect to X display specified by display_string;\n"
+			"  -V <level>     - set output verbosity level - 0 for no output;\n" );
 }
 
 
@@ -144,9 +187,10 @@ main (int argc, char **argv)
 /**********************************************************************************
  * Implementation : 
  **********************************************************************************/
-Bool InitContext (AfterShowContext *context, int argc, char **argv)
+Bool InitContext (AfterShowContext *ctx, int argc, char **argv)
 {
 	int i;
+	memset( ctx, 0x00, sizeof(AfterShowContext));
 	for (i = 1 ; i < argc ; ++i) 
 	{
 		if (argv[i][0] == '-')
@@ -156,7 +200,18 @@ Bool InitContext (AfterShowContext *context, int argc, char **argv)
 				if (argv[i][2] == '\0')
 					switch (argv[i][1])
 					{
-						case 'h': show_usage(False); return False;
+						case 'h': 	show_usage(False); return False;
+						case 'f': 	set_flags(ctx->flags, AfterShow_DoFork); break;
+						case 's': 	set_flags(ctx->flags, AfterShow_SingleScreen); break;
+						case 'V': 	if (i + 1 < argc)
+										set_output_threshold(atoi(argv[++i]));
+									break;
+						case 'd': 	if (i + 1 < argc)
+									{
+										if (ctx->display) free (ctx->display);
+										ctx->display = strdup(argv[++i]);
+									}
+									break;
 						default :
 							show_error ("unrecognized option \"%s\"", argv[i]);
 							show_usage(False); 
@@ -179,11 +234,40 @@ Bool InitContext (AfterShowContext *context, int argc, char **argv)
 	return True;
 }
 
-Bool ConnectGUI (AfterShowContext *context)
+Bool ConnectGUI (AfterShowContext *ctx)
 {
+#ifndef X_DISPLAY_MISSING
+	int i;
+	AfterShowXScreen *scr;
+	ctx->gui.x.dpy = XOpenDisplay(ctx->display);
+	if (ctx->gui.x.dpy != NULL)
+	{
+		ctx->gui.x.fd = XConnectionNumber (ctx->gui.x.dpy);
+		ctx->gui.x.screens_num = get_flags(ctx->flags, AfterShow_SingleScreen)?1:ScreenCount (ctx->gui.x.dpy);	
+		ctx->gui.x.screens = scr = safecalloc(ctx->gui.x.screens_num, sizeof(AfterShowXScreen));
 
-	return True;
+		for (i = 0; i < ctx->gui.x.screens_num; ++i)
+		{
+			scr->screen = i;
+			scr->asv = create_asvisual(ctx->gui.x.dpy, scr->screen, DefaultDepth(ctx->gui.x.dpy, scr->screen), NULL);
+			scr->root = RootWindow(ctx->gui.x.dpy, scr->screen);
+			scr->root_width = DisplayWidth (ctx->gui.x.dpy, scr->screen);
+			scr->root_height = DisplayHeight (ctx->gui.x.dpy, scr->screen);
+			++scr;
+		}
+		ctx->gui.x.valid = True;
+		show_progress( "X display \"%s\" connected. Servicing %d screens.", ctx->display?ctx->display:"", ctx->gui.x.screens_num);
+	}else
+	{
+		if (ctx->display)
+	        show_error("failed to initialize X Window session for display \"%s\"", ctx->display);
+		else
+			show_error("failed to initialize X Window session for default display");
+	}
+#endif
+  /* TODO: add win32 code */
 
+	return 	(ctx->gui.x.valid || ctx->gui.win32.valid);
 }
 
 Bool CheckInstance (AfterShowContext *context)
