@@ -85,6 +85,7 @@
 # X TErms. Note that only one of this will be displayed on Wharf, as they all
 # have same button name. Change button name ( first column after *Wharf) to make them a separate buttons :
 
+*Wharf term "-" DesktopEntry urxvt
 *Wharf term "-" DesktopEntry aterm
 
 # aterm 1.0 should pick MyStyle from look, if it does not the following is a nice alternative :
@@ -97,8 +98,7 @@
 #
 # Midnight commander file manager in the term of choice :
 #
-#*Wharf MidnightCommander normal/MCInMonitorShadow ExecInTerm "-" -g 130x35 if(aterm){-tr -tint blue -fg white -bg black} if(Eterm){-O --tint blue -f white -b black) if(rxvt){-tr -fg white -bg black} -e mc --colors directory=,default:executable=,default:link=,default:device=,default:special=,default:normal=,default:selected=,transparent:marked=yellow,default &
-*Wharf MidnightCommander normal/MCInMonitorShadow ExecInTerm "-" -g 130x35 if(aterm){-T mc-VerticalTitle -tr -tint blue -fg white -bg black} if(Eterm){-O --tint blue -f white -b black) if(rxvt){-tr -fg white -bg black} -e mc &
+*Wharf MidnightCommander normal/MCInMonitorShadow ExecInTerm "-" -g 130x35 if(urxvt){-T mc-VerticalTitle -tr -tint blue -fg white -bg black} if(aterm){-T mc-VerticalTitle -tr -tint blue -fg white -bg black} if(Eterm){-O --tint blue -f white -b black) if(rxvt){-tr -fg white -bg black} -e mc &
 
 #
 # First available GUI file manager :
