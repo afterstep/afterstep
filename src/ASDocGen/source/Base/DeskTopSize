@@ -1,8 +1,10 @@
 <varlistentry id="options.DeskTopSize">
-	<term>DeskTopSize <emphasis remap='I'>Columns x Rows</emphasis></term>
+	<term>DeskTopSize <emphasis remap='I'>W x H</emphasis></term>
 	<listitem>
-		<para>Defines the number of view Columns by the number of view Rows of
-		the  desk(s)  in proportional units, i.e. 2x1 would show 2 views
-		of one desk, one beside another.</para>
+		<para>If <emphasis remap='I'>W</emphasis> or <emphasis remap='I'>H</emphasis> 
+		are less or equal to 100 - they define number of rows and columns in virtual desktop,
+		each sized same as the screen. Otherwise <emphasis remap='I'>W</emphasis> and 
+		<emphasis remap='I'>H</emphasis> define the exact size of the virtual desktop in pixels, 
+		but to be no less then the size of the screen.</para>
 	</listitem>
 </varlistentry>

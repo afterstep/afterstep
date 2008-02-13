@@ -483,13 +483,28 @@ ReloadASEnvironment( ASImageManager **old_imageman,
         free( old_font_path );
 
 	if( e->desk_pages_h > 0 )
-		scr->VxMax = (e->desk_pages_h-1)*scr->MyDisplayWidth ;
-	else
+	{
+		if (e->desk_pages_h <= 100)
+			scr->VxMax = (e->desk_pages_h-1)*scr->MyDisplayWidth ;
+		else 
+		{
+			scr->VxMax = MAX(e->desk_pages_h,scr->MyDisplayWidth) - scr->MyDisplayWidth;
+			e->desk_pages_h = (e->desk_pages_h+scr->MyDisplayWidth-1)/scr->MyDisplayWidth;
+		}
+	}else
 		scr->VxMax = 0 ;
 	if( e->desk_pages_v > 0 )
-		scr->VyMax = (e->desk_pages_v-1)*scr->MyDisplayHeight ;
-	else
+	{
+		if( e->desk_pages_v <= 100 )
+			scr->VyMax = (e->desk_pages_v-1)*scr->MyDisplayHeight ;
+		else
+		{
+			scr->VyMax = MAX(e->desk_pages_v,scr->MyDisplayHeight) - scr->MyDisplayHeight;
+			e->desk_pages_v = (e->desk_pages_v+scr->MyDisplayHeight-1)/scr->MyDisplayHeight;
+		}
+	}else
 		scr->VyMax = 0 ;
+		
 	scr->VScale = e->desk_scale;
 	if( scr->VScale <= 1 ) 
 		scr->VScale = 2 ;

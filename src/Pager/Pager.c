@@ -698,8 +698,9 @@ GetBaseOptions (const char *filename)
 
     Scr.Vx = 0;
     Scr.Vy = 0;
-    PagerState.vscreen_width = Scr.VxMax + Scr.MyDisplayWidth;
+	PagerState.vscreen_width = Scr.VxMax + Scr.MyDisplayWidth;
     PagerState.vscreen_height = Scr.VyMax + Scr.MyDisplayHeight;
+
     PagerState.vscaled_desk_width = PagerState.vscreen_width/Scr.VScale;
     PagerState.vscaled_desk_height = PagerState.vscreen_height/Scr.VScale;
 
@@ -1157,7 +1158,8 @@ place_separation_bars( ASPagerDesk *d )
     if( wa )
     {
         register int p = PagerState.page_columns-1;
-        int pos_inc = d->background->width/PagerState.page_columns ;
+        int pos_inc = Scr.MyDisplayWidth/Scr.VScale;
+				/* d->background->width/PagerState.page_columns ; */
         int pos = d->background->win_x+p*pos_inc;
         int size = d->background->height ;
         int pos2 = d->background->win_y ;
@@ -1175,7 +1177,8 @@ place_separation_bars( ASPagerDesk *d )
         wa += PagerState.page_columns-1;
         wrecta += PagerState.page_columns-1;
         p = PagerState.page_rows-1;
-        pos_inc = d->background->height/PagerState.page_rows ;
+        pos_inc = Scr.MyDisplayHeight/Scr.VScale;
+			/* d->background->height/PagerState.page_rows ; */
         pos = d->background->win_y + p*pos_inc;
         pos2 = d->background->win_x ;
         size = d->background->width ;
