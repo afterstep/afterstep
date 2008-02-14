@@ -86,16 +86,18 @@ typedef struct AfterShowContext
 {
 #define AfterShow_DoFork		(0x01<<0)
 #define AfterShow_SingleScreen	(0x01<<1)
-	ASFlagType flags;
+	ASFlagType 	 flags;
 	
-	char *display;
+	char   		*display;
 	
 	struct {
 		AfterShowXGUI  		x;
 		AfterShowWin32GUI	win32;
 	} gui;
 
-	int fd_width;	
+	int 		 fd_width;	
+	char   		*socket_name;
+	int 		 socket_fd;
 }AfterShowContext;
 
 /***** from xutils.h */

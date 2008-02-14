@@ -318,10 +318,31 @@ Bool CheckInstance (AfterShowContext *ctx)
 	return (ctx->gui.x.serviced_screens_num>0);
 }
 
-Bool SetupComms (AfterShowContext *context)
+Bool SetupComms (AfterShowContext *ctx)
 {
+	int first_screen = 0;
+	char *path = getenv("TMPDIR");
+	if (path == NULL)
+		path = "/tmp";
 
-	return True;
+	if( access( path, W_OK ) != 0 )
+	    if( (path = getenv( "HOME" )) == NULL )
+			return False ;
+
+	if (ctx->gui.x.valid)
+	{
+		for ( first_screen = 0; first_screen < ctx->gui.x.screens_num; ++first_screen)
+			if (ctx->gui.x.screens[first_screen].do_service)
+				break;
+	}
+	
+    ctx->socket_name = safemalloc (strlen(path) + 1 + 18 + 32 + 32 + 1);
+	sprintf (ctx->socket_name, "%s/aftershow-connect.%d.%d", path, getuid(), first_screen);
+	show_progress ("Socket name set to \"%s\".", ctx->socket_name);
+	
+	ctx->socket_fd = socket_listen (ctx->socket_name);
+
+	return (ctx->socket_fd > 0);
 }
 
 /*************************************************************************** 
