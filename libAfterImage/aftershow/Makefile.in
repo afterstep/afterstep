@@ -1,6 +1,7 @@
 
 PROGS= aftershow
 
+AFTERSHOW_OBJS= aftershow.o xutil.o
 
 CC		= @CC@
 CCFLAGS         = @CFLAGS@
@@ -129,8 +130,8 @@ deps:
 		  echo $$buf >>.depend ; \
 		fi
 
-aftershow: aftershow.o @LIBPROG@
-		$(CC) aftershow.o $(LIBRARIES) $(EXTRA_LIBRARIES) -o aftershow
+aftershow: $(AFTERSHOW_OBJS) @LIBPROG@
+		$(CC) $(AFTERSHOW_OBJS) $(LIBRARIES) $(EXTRA_LIBRARIES) -o aftershow
 
 .c.o:
 		$(CC) $(CCFLAGS) $(EXTRA_DEFINES) $(INCLUDES) $(EXTRA_INCLUDES) -c $*.c

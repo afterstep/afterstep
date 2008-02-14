@@ -56,75 +56,20 @@
 #endif
 #include "../afterimage.h"
 
+#include "aftershow.h"
+
 /**********************************************************************************/
 /* main portion of AfterShow daemon                                               */
 /**********************************************************************************/
-#ifndef STDIN_FILENO
-# define STDIN_FILENO   0
-# define STDOUT_FILENO  1
-# define STDERR_FILENO  2
-#endif
-
-#if !defined (EACCESS) && defined(EAGAIN)
-# define EACCESS EAGAIN
-#endif
-
-#ifndef EXIT_SUCCESS            /* missing from <stdlib.h> */
-# define EXIT_SUCCESS           0       /* exit function success */
-# define EXIT_FAILURE           1       /* exit function failure */
-#endif
-
-
-typedef struct AfterShowXScreen
-{
-#ifndef X_DISPLAY_MISSING
-	int 		screen;
-	ASVisual   *asv;
-	Window  	root;
-	int 		root_width, root_height;
-#endif
-}AfterShowXScreen;
-
-typedef struct AfterShowXGUI
-{
-	Bool 		valid;
-#ifndef X_DISPLAY_MISSING
-	Display    *dpy;
-	int 		fd;
-	int 		screens_num;
-	AfterShowXScreen  *screens;
-#endif	
-}AfterShowXGUI;
-
-typedef struct AfterShowWin32GUI
-{
-	Bool 		valid;
-#ifdef WIN32
-	int 		root_width, root_height;
-#endif	
-}AfterShowWin32GUI;
-
-
-typedef struct AfterShowContext
-{
-#define AfterShow_DoFork		(0x01<<0)
-#define AfterShow_SingleScreen	(0x01<<1)
-	ASFlagType flags;
-	
-	char *display;
-	
-	struct {
-		AfterShowXGUI  		x;
-		AfterShowWin32GUI	win32;
-	} gui;
-	
-}AfterShowContext;
 
 Bool InitContext (AfterShowContext *context, int argc, char **argv);
 Bool ConnectGUI (AfterShowContext *context);
 Bool CheckInstance (AfterShowContext *context);
 Bool SetupComms (AfterShowContext *context);
 void HandleEvents (AfterShowContext *context);
+void ShutdownXScreen (AfterShowContext *ctx, int screen);
+void ShutdownWin32Screen (AfterShowContext *ctx, int screen);
+void Shutdown (AfterShowContext *ctx);
 
 void show_usage (Bool short_form)
 {
@@ -148,7 +93,9 @@ main (int argc, char **argv)
 	 * 3) Create UD Socket
 	 * 4) Handle Events
 	 */
-	 
+	set_application_name(argv[0]);
+	set_output_threshold(0);  /* be real quiet by default ! */
+	
 	if (!InitContext(&context, argc, argv))
 		return EXIT_FAILURE;
 
@@ -231,6 +178,18 @@ Bool InitContext (AfterShowContext *ctx, int argc, char **argv)
 			}
 		}
 	}
+	
+	/* determine max nuber of file descriptors we could have : */
+#ifdef _SC_OPEN_MAX
+	ctx->fd_width = sysconf (_SC_OPEN_MAX);
+#else
+	ctx->fd_width = getdtablesize ();
+#endif
+#ifdef FD_SETSIZE
+	if (ctx->fd_width > FD_SETSIZE)
+		ctx->fd_width = FD_SETSIZE;
+#endif
+	
 	return True;
 }
 
@@ -249,7 +208,6 @@ Bool ConnectGUI (AfterShowContext *ctx)
 		for (i = 0; i < ctx->gui.x.screens_num; ++i)
 		{
 			scr->screen = i;
-			scr->asv = create_asvisual(ctx->gui.x.dpy, scr->screen, DefaultDepth(ctx->gui.x.dpy, scr->screen), NULL);
 			scr->root = RootWindow(ctx->gui.x.dpy, scr->screen);
 			scr->root_width = DisplayWidth (ctx->gui.x.dpy, scr->screen);
 			scr->root_height = DisplayHeight (ctx->gui.x.dpy, scr->screen);
@@ -270,11 +228,94 @@ Bool ConnectGUI (AfterShowContext *ctx)
 	return 	(ctx->gui.x.valid || ctx->gui.win32.valid);
 }
 
-Bool CheckInstance (AfterShowContext *context)
+Bool CheckInstance (AfterShowContext *ctx)
 {
+#ifndef X_DISPLAY_MISSING
+	int i;
+	AfterShowXScreen *scr = ctx->gui.x.screens;
+	XEvent event;
+	
+	for (i = 0; i < ctx->gui.x.screens_num; ++i)
+	{
+		char        tmp[64];
+        CARD32      data = 0xAAAAAAAA;
+		Window      old_selection_owner = None;
+		int 		tick_count;
+		
+		/* intern selection atom */		
+		sprintf (tmp, "_AFTERSHOW_S%d", i);
+		scr->selection_window = XCreateSimpleWindow (ctx->gui.x.dpy, scr->root, 0, 0, 5, 5, 0, 0, None);
+		if (scr->selection_window)
+		{
+			scr->_XA_AFTERSHOW_S = XInternAtom (ctx->gui.x.dpy, tmp, False);
+			XSelectInput (ctx->gui.x.dpy, scr->selection_window, PropertyChangeMask);
 
-	return True;
+		   /* now we need to obtain a valid timestamp : */
 
+        	XChangeProperty (ctx->gui.x.dpy, scr->selection_window, scr->_XA_AFTERSHOW_S, scr->_XA_AFTERSHOW_S, 32, PropModeAppend, (unsigned char *)&data, 1);
+			XWindowEvent(ctx->gui.x.dpy, scr->selection_window, PropertyChangeMask, &event); 
+			scr->selection_time = event.xproperty.time;
+
+			old_selection_owner = XGetSelectionOwner (ctx->gui.x.dpy, scr->_XA_AFTERSHOW_S);
+			/* now we are ready to try and accure selection : */
+			show_progress( "Attempting to accure AfterShow selection on screen %d ...", i );
+			XSetSelectionOwner (ctx->gui.x.dpy, scr->_XA_AFTERSHOW_S, scr->selection_window, scr->selection_time);
+			XSync (ctx->gui.x.dpy, False);
+			/* give old owner 10 seconds to release selection : */
+			start_ticker(1);
+			for (tick_count = 0; tick_count < 100; tick_count++)
+			{
+    	    	Window present_owner = XGetSelectionOwner (ctx->gui.x.dpy, scr->_XA_AFTERSHOW_S);
+	        	if ( present_owner == scr->selection_window)
+				{
+					scr->do_service = True;
+					break;
+				}
+				wait_tick();
+			}
+
+			if (scr->do_service && old_selection_owner != None)
+			{
+				/* we need to wait for previous owner to shutdown, which
+				 * will be indicated by its selection window becoming invalid.
+				 */
+				tick_count = 0 ;
+				while (aftershow_validate_drawable( ctx, old_selection_owner))
+				{
+					wait_tick();
+					if (++tick_count  == 200)
+					{ /* if old owner failed to shutdown in 20 seconds -
+					   * then just kill it ! */
+						XKillClient (ctx->gui.x.dpy, old_selection_owner);
+						show_warning ("Previous AfterShow daemon failed to shutdown in allowed 60 seconds - killing it.");
+					}
+					if (tick_count > 300)
+					{
+						scr->do_service = False;
+						show_error("Previous AfterShow failed to shutdown in allowed 30 seconds - Something is terribly wrong - ignoring screen %d.", i );
+						break;
+					}
+				}
+			}
+			if (scr->do_service)
+			{
+				show_progress ("AfterShow selection on screen %d accured successfuly!", i);
+				scr->asv = create_asvisual (ctx->gui.x.dpy, scr->screen, DefaultDepth(ctx->gui.x.dpy, scr->screen), NULL);
+				ctx->gui.x.serviced_screens_num++;
+			}else
+			{
+				if (scr->selection_window)
+				{
+					XDestroyWindow (ctx->gui.x.dpy, scr->selection_window);
+					scr->selection_window = None;
+				}
+			}
+		}
+		++scr;
+	}
+#endif
+
+	return (ctx->gui.x.serviced_screens_num>0);
 }
 
 Bool SetupComms (AfterShowContext *context)
@@ -283,10 +324,155 @@ Bool SetupComms (AfterShowContext *context)
 	return True;
 }
 
-void HandleEvents (AfterShowContext *context)
+/*************************************************************************** 
+ * Window management code : 
+ **************************************************************************/
+
+AfterShowXScreen* 
+XWindow2screen (AfterShowContext *ctx, Window w)
+{
+#ifndef X_DISPLAY_MISSING
+	int i;
+	for (i = 0 ; i < ctx->gui.x.screens_num; ++i)
+		if (w == ctx->gui.x.screens[i].selection_window)
+			return &(ctx->gui.x.screens[i]);
+#endif	
+	return NULL;
+}
+
+/*************************************************************************** 
+ * IO handling code : 
+ **************************************************************************/
+void HandleXEvents (AfterShowContext *ctx);
+
+void 
+HandleEvents (AfterShowContext *ctx)
+{
+#ifndef X_DISPLAY_MISSING
+	while (ctx->gui.x.valid || ctx->gui.win32.valid)
+	{
+		fd_set        in_fdset, out_fdset;
+		int           retval;
+		/* struct timeval tv; */
+		struct timeval *t = NULL;
+    	int           max_fd = 0;
+		LOCAL_DEBUG_OUT( "waiting pipes%s", "");
+		FD_ZERO (&in_fdset);
+		FD_ZERO (&out_fdset);
+
+		if (ctx->gui.x.valid && ctx->gui.x.serviced_screens_num)
+		{
+			FD_SET (ctx->gui.x.fd, &in_fdset);
+    		max_fd = ctx->gui.x.fd ;
+		}
+	
+	    retval = PORTABLE_SELECT(min (max_fd + 1, ctx->fd_width),&in_fdset,&out_fdset,NULL,t);
+
+		if (retval > 0)
+		{	
+			if (FD_ISSET (ctx->gui.x.fd, &in_fdset))
+				HandleXEvents (ctx);
+		}
+	}
+#endif	
+}
+
+void 
+HandleXEvents (AfterShowContext *ctx)
+{
+#ifndef X_DISPLAY_MISSING
+	int events_count = XEventsQueued (ctx->gui.x.dpy, QueuedAfterReading);
+	AfterShowXScreen *scr;
+	while (events_count > 0 && ctx->gui.x.valid)
+	{
+		XEvent e;	
+		XNextEvent (ctx->gui.x.dpy, &e);
+		--events_count;
+		switch (e.type)
+		{
+			case PropertyNotify: break;
+			case SelectionClear:	
+				if ((scr = XWindow2screen (ctx, e.xselectionclear.window)) != NULL)
+				{
+					if (e.xselectionclear.window == scr->selection_window 
+						&& e.xselectionclear.selection == scr->_XA_AFTERSHOW_S)
+					{ /* we can give up selection if time of the event
+					   * after time of us accuring the selection  and WE DON'T HAVE ANY 
+					   * ACTIVE CONNECTIONS OF THAT SCREEN! */
+						if (e.xselectionclear.time > scr->selection_time 
+							&& scr->windows_num <= 0)
+						{
+							ShutdownXScreen (ctx, scr->screen);
+							if (!ctx->gui.x.valid && !ctx->gui.win32.valid)
+									Shutdown (ctx);
+							continue;
+						}
+					}
+				}
+				break;
+		} 
+	}
+#endif	
+}
+
+
+/*************************************************************************** 
+ * final cleanup code : 
+ **************************************************************************/
+void 
+ShutdownXScreen (AfterShowContext *ctx, int screen)
+{
+#ifndef X_DISPLAY_MISSING
+	if (ctx->gui.x.valid && screen >= 0 && screen < ctx->gui.x.screens_num)
+	{
+		AfterShowXScreen *scr = &(ctx->gui.x.screens[screen]);
+		if (scr->do_service)
+		{
+			/* close all windows */
+			/* unset event masks */
+			/* close selection window */
+			show_progress( "giving up AfterShow selection on screen %d. This screen is no longer serviced!", screen );
+			XSetSelectionOwner( ctx->gui.x.dpy, scr->_XA_AFTERSHOW_S, None, scr->selection_time);
+			XDestroyWindow (ctx->gui.x.dpy, scr->selection_window);
+			scr->selection_window = None;
+
+			/* destroy the visual */
+			destroy_asvisual (scr->asv, False);
+			scr->asv = NULL;
+			
+			/* mark screen as closed */
+			scr->do_service = False;
+			ctx->gui.x.serviced_screens_num--;
+			if (ctx->gui.x.serviced_screens_num <= 0)
+			{
+				ctx->gui.x.screens_num = 0;
+				ctx->gui.x.fd = -1;
+				XCloseDisplay (ctx->gui.x.dpy);
+				ctx->gui.x.dpy = NULL;
+				ctx->gui.x.valid = False;
+			}
+		}
+	}
+#endif
+}
+
+void 
+ShutdownWin32Screen (AfterShowContext *ctx, int screen)
 {
 
 }
+
+void 
+Shutdown (AfterShowContext *ctx)
+{
+	int i;
+	for (i = 0 ; i < ctx->gui.x.screens_num && ctx->gui.x.valid; ++i)
+		ShutdownXScreen (ctx, i);
+
+	for (i = 0 ; i < ctx->gui.win32.screens_num && ctx->gui.win32.valid; ++i)
+		ShutdownWin32Screen (ctx, i);
+}
+
 
 /* ********************************************************************************/
 /* The end !!!! 																 */

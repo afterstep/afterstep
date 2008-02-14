@@ -1,4 +1,14 @@
+./aftershow.h:
+
 ./aftershow.o: \
 		../win32/config.h \
 		../config.h \
-		../afterimage.h
+		../afterimage.h \
+		aftershow.h
+
+./xutil.o: \
+		../win32/config.h \
+		../config.h \
+		../afterbase.h \
+		../afterimage.h \
+		aftershow.h
