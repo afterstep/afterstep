@@ -187,7 +187,6 @@ LIB32_FLAGS=/nologo /out:"$(OUTDIR)\libAfterImage.lib"
 LIB32_OBJS= \
 	"$(INTDIR)\png.obj" \
 	"$(INTDIR)\pngerror.obj" \
-	"$(INTDIR)\pnggccrd.obj" \
 	"$(INTDIR)\pngget.obj" \
 	"$(INTDIR)\pngmem.obj" \
 	"$(INTDIR)\pngpread.obj" \
@@ -197,7 +196,6 @@ LIB32_OBJS= \
 	"$(INTDIR)\pngrutil.obj" \
 	"$(INTDIR)\pngset.obj" \
 	"$(INTDIR)\pngtrans.obj" \
-	"$(INTDIR)\pngvcrd.obj" \
 	"$(INTDIR)\pngwio.obj" \
 	"$(INTDIR)\pngwrite.obj" \
 	"$(INTDIR)\pngwtran.obj" \
@@ -346,12 +344,6 @@ SOURCE=.\libpng\pngerror.c
 	$(CPP) $(CPP_PROJ) $(SOURCE)
 
 
-SOURCE=.\libpng\pnggccrd.c
-
-"$(INTDIR)\pnggccrd.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
-
-
 SOURCE=.\libpng\pngget.c
 
 "$(INTDIR)\pngget.obj" : $(SOURCE) "$(INTDIR)"
@@ -403,12 +395,6 @@ SOURCE=.\libpng\pngset.c
 SOURCE=.\libpng\pngtrans.c
 
 "$(INTDIR)\pngtrans.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
-
-
-SOURCE=.\libpng\pngvcrd.c
-
-"$(INTDIR)\pngvcrd.obj" : $(SOURCE) "$(INTDIR)"
 	$(CPP) $(CPP_PROJ) $(SOURCE)
 
 
