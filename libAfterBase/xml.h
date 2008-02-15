@@ -74,7 +74,7 @@ enum
 } ASXML_ParserError;
 */
 
-typedef struct 
+typedef struct ASXmlBuffer
 {
 	char *buffer ;
 	int allocated, used ;

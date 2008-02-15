@@ -613,7 +613,7 @@ spool_xml_tag( ASXmlBuffer *xb, char *tmp, int len )
 	}
 
 	if( xb->state == ASXML_TagAttrOrClose ) 
-	{   /* we are looking for the atteribute or closing '/>' or '>' */
+	{   /* we are looking for the attribute or closing '/>' or '>' */
 		Bool has_slash = (xb->tag_type != ASXML_OpeningTag);
 
 		if( !has_slash && tmp[i] == '/' )

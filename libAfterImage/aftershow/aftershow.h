@@ -81,6 +81,19 @@ typedef struct AfterShowWin32GUI
 #endif	
 }AfterShowWin32GUI;
 
+struct ASXmlBuffer;
+
+typedef struct AfterShowClient
+{
+	int 				 fd;
+	struct ASXmlBuffer 	*xml_buf; 
+	struct xml_elem_t	*xml_input_head, *xml_input_tail;
+	struct xml_elem_t	*xml_output_head, *xml_output_tail;
+	
+	char 				*out_buf;
+	unsigned short		 out_buf_size, out_buf_pos;
+
+}AfterShowClient;
 
 typedef struct AfterShowContext
 {
@@ -95,9 +108,12 @@ typedef struct AfterShowContext
 		AfterShowWin32GUI	win32;
 	} gui;
 
-	int 		 fd_width;	
 	char   		*socket_name;
 	int 		 socket_fd;
+	int 		 min_fd; /* max (socket_fd, x.fd) */
+	int 		 fd_width;	
+	
+	AfterShowClient	*clients; /* array of fd_width elements */
 }AfterShowContext;
 
 /***** from xutils.h */

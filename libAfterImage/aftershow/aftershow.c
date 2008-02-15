@@ -49,6 +49,11 @@
 #include <stdarg.h>
 #endif
 
+#include <errno.h>
+#include <sys/file.h>
+#include <sys/socket.h>
+#include <sys/un.h>							   /* for struct sockaddr_un */
+
 #ifdef _WIN32
 # include "../win32/afterbase.h"
 #else
@@ -69,6 +74,7 @@ Bool SetupComms (AfterShowContext *context);
 void HandleEvents (AfterShowContext *context);
 void ShutdownXScreen (AfterShowContext *ctx, int screen);
 void ShutdownWin32Screen (AfterShowContext *ctx, int screen);
+void ShutdownClient (AfterShowContext *ctx, int channel);
 void Shutdown (AfterShowContext *ctx);
 
 void show_usage (Bool short_form)
@@ -178,17 +184,6 @@ Bool InitContext (AfterShowContext *ctx, int argc, char **argv)
 			}
 		}
 	}
-	
-	/* determine max nuber of file descriptors we could have : */
-#ifdef _SC_OPEN_MAX
-	ctx->fd_width = sysconf (_SC_OPEN_MAX);
-#else
-	ctx->fd_width = getdtablesize ();
-#endif
-#ifdef FD_SETSIZE
-	if (ctx->fd_width > FD_SETSIZE)
-		ctx->fd_width = FD_SETSIZE;
-#endif
 	
 	return True;
 }
@@ -340,8 +335,25 @@ Bool SetupComms (AfterShowContext *ctx)
 	sprintf (ctx->socket_name, "%s/aftershow-connect.%d.%d", path, getuid(), first_screen);
 	show_progress ("Socket name set to \"%s\".", ctx->socket_name);
 	
-	ctx->socket_fd = socket_listen (ctx->socket_name);
+	ctx->min_fd = ctx->socket_fd = socket_listen (ctx->socket_name);
 
+#ifndef X_DISPLAY_MISSING
+	if (ctx->gui.x.valid && ctx->gui.x.fd > ctx->socket_fd)
+		ctx->min_fd = ctx->gui.x.fd;
+#endif	
+		
+	/* determine max nuber of file descriptors we could have : */
+#ifdef _SC_OPEN_MAX
+	ctx->fd_width = sysconf (_SC_OPEN_MAX);
+#else
+	ctx->fd_width = getdtablesize ();
+#endif
+#ifdef FD_SETSIZE
+	if (ctx->fd_width > FD_SETSIZE)
+		ctx->fd_width = FD_SETSIZE;
+#endif
+
+	ctx->clients = safecalloc (ctx->fd_width, sizeof(AfterShowClient));
 	return (ctx->socket_fd > 0);
 }
 
@@ -365,37 +377,70 @@ XWindow2screen (AfterShowContext *ctx, Window w)
  * IO handling code : 
  **************************************************************************/
 void HandleXEvents (AfterShowContext *ctx);
+void AcceptConnection (AfterShowContext *ctx);
+void HandleInput (AfterShowContext *ctx, int client);
+void HandleOutput (AfterShowContext *ctx, int client);
+void HandleXML (AfterShowContext *ctx, int client);
 
 void 
 HandleEvents (AfterShowContext *ctx)
 {
-#ifndef X_DISPLAY_MISSING
 	while (ctx->gui.x.valid || ctx->gui.win32.valid)
 	{
-		fd_set        in_fdset, out_fdset;
-		int           retval;
+		fd_set  in_fdset, out_fdset;
+		int     retval;
+		int 	i = ctx->fd_width;
 		/* struct timeval tv; */
 		struct timeval *t = NULL;
-    	int           max_fd = 0;
+    	int           max_fd = ctx->min_fd;
+		AfterShowClient *clients = ctx->clients;
 		LOCAL_DEBUG_OUT( "waiting pipes%s", "");
 		FD_ZERO (&in_fdset);
 		FD_ZERO (&out_fdset);
 
+#ifndef X_DISPLAY_MISSING
 		if (ctx->gui.x.valid && ctx->gui.x.serviced_screens_num)
 		{
 			FD_SET (ctx->gui.x.fd, &in_fdset);
-    		max_fd = ctx->gui.x.fd ;
+			XSync (ctx->gui.x.dpy, False);
 		}
-	
+#endif
+		FD_SET(ctx->socket_fd, &in_fdset);
+		while (--i >= 0)
+			if (clients[i].fd > 0)
+			{
+				FD_SET(clients[i].fd, &in_fdset);
+				if (clients[i].fd > max_fd)
+					max_fd = clients[i].fd;
+				if (clients[i].out_buf || clients[i].xml_output_head)
+					FD_SET(clients[i].fd, &out_fdset);
+			}
+
 	    retval = PORTABLE_SELECT(min (max_fd + 1, ctx->fd_width),&in_fdset,&out_fdset,NULL,t);
 
 		if (retval > 0)
 		{	
+			if (FD_ISSET (ctx->socket_fd, &in_fdset))
+				AcceptConnection (ctx);
+			
+#ifndef X_DISPLAY_MISSING
 			if (FD_ISSET (ctx->gui.x.fd, &in_fdset))
 				HandleXEvents (ctx);
+#endif
+			
+			for (i = min(max_fd,ctx->fd_width); i >= 0; --i)
+			{
+				if (FD_ISSET (i, &in_fdset))
+					HandleInput (ctx, i);
+				if (FD_ISSET (i, &out_fdset))
+					HandleOutput (ctx, i);
+			}
 		}
+
+		for (i = min(max_fd,ctx->fd_width); i >= 0; --i)
+			if (clients[i].xml_input_head)
+				HandleXML (ctx, i);
 	}
-#endif	
 }
 
 void 
@@ -436,6 +481,110 @@ HandleXEvents (AfterShowContext *ctx)
 #endif	
 }
 
+void 
+AcceptConnection (AfterShowContext *ctx)
+{
+	int           fd;
+	unsigned int  len = sizeof (struct sockaddr_un);
+	struct sockaddr_un name;
+
+	fd = accept (ctx->socket_fd, (struct sockaddr *)&name, &len);
+
+	if (fd < 0 && errno != EWOULDBLOCK)
+        show_system_error("error accepting connection");
+
+	/* set non-blocking I/O mode */
+	if (fd >= 0)
+	{
+		if (fcntl (fd, F_SETFL, fcntl (fd, F_GETFL) | O_NONBLOCK) == -1)
+		{
+            show_system_error("unable to set non-blocking I/O for module socket");
+			close (fd);
+			fd = -1;
+		}
+	}
+	if (fd >= 0) 
+	{
+		if (fd < ctx->fd_width)
+		{
+			ctx->clients[fd].fd = fd;
+			ctx->clients[fd].xml_buf = safecalloc( 1, sizeof(ASXmlBuffer));
+			show_progress( "accepted new connection with fd %d.", fd );
+		}else
+        {/* this should never happen, but just in case : */
+            show_error("too many connections!");
+			close (fd);
+            fd = -1 ;
+		}
+    }
+}
+
+/* TODO : this should go into additional file xmlutils.c : */
+void 
+aftershow_add_tags_to_queue( xml_elem_t* tags, xml_elem_t **phead, xml_elem_t **ptail)
+{
+	if (*phead == NULL)
+		*ptail = *phead = tags;
+	else
+		(*ptail)->next = tags;
+	
+	while ((*ptail)->next) *ptail = (*ptail)->next;
+}
+
+void 
+HandleInput (AfterShowContext *ctx, int channel)
+{
+	AfterShowClient *client = &(ctx->clients[channel]);
+
+#define READ_BUF_SIZE	4096	
+	static char read_buf[READ_BUF_SIZE];
+	int bytes_in = read (client->fd, &(read_buf[0]), READ_BUF_SIZE);
+
+	if (bytes_in == 0 && errno != EINTR && errno != EAGAIN)
+		ShutdownClient (ctx, channel);
+	else
+	{
+		int i = 0;
+		while (i < bytes_in) 
+		{
+			struct ASXmlBuffer *xb = client->xml_buf;
+			while (xb->state >= 0)
+			{
+				int spooled_count = spool_xml_tag (xb, &read_buf[i], bytes_in - i);
+				if (spooled_count <= 0)
+					++i;
+				else
+					i += spooled_count;
+
+				if( xb->state == ASXML_Start && xb->tags_count > 0 && xb->level == 0) 
+				{
+					xml_elem_t* doc;
+
+					add_xml_buffer_chars( xb, "", 1 );
+					LOCAL_DEBUG_OUT("buffer: [%s]", xb->buffer );
+
+					if ((doc = xml_parse_doc(xb->buffer, NULL)) != NULL)
+						aftershow_add_tags_to_queue (doc, &(client->xml_input_head), &(client->xml_input_tail));
+					reset_xml_buffer( xb );
+				}
+			}
+		}		   
+	}
+}
+
+void 
+HandleOutput (AfterShowContext *ctx, int channel)
+{
+	AfterShowClient *client = &(ctx->clients[channel]);
+
+}
+
+void 
+HandleXML (AfterShowContext *ctx, int channel)
+{
+	AfterShowClient *client = &(ctx->clients[channel]);
+
+}
 
 /*************************************************************************** 
  * final cleanup code : 
@@ -482,6 +631,13 @@ ShutdownWin32Screen (AfterShowContext *ctx, int screen)
 {
 
 }
+
+void 
+ShutdownClient (AfterShowContext *ctx, int channel)
+{
+
+}
+
 
 void 
 Shutdown (AfterShowContext *ctx)
