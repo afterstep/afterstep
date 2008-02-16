@@ -1578,13 +1578,13 @@ get_text_glyph_map( const char *text, ASFont *font, ASGlyphMap *map, ASTextAttri
 	map->glyphs = safecalloc( map->glyphs_num, sizeof(ASGlyph*));
 	map->x_kerning = safecalloc( map->glyphs_num, sizeof(short));
 
-	if( attr->char_type == ASCT_Char )
-		line_count = fill_text_glyph_map_Char( text, font, map, attr, space_size, offset_3d_x );
-	else if( attr->char_type == ASCT_UTF8 )
+	if( attr->char_type == ASCT_UTF8 )
 		line_count = fill_text_glyph_map_UTF8( text, font, map, attr, space_size, offset_3d_x );
 	else if( attr->char_type == ASCT_Unicode )
 		line_count = fill_text_glyph_map_Unicode( (UNICODE_CHAR*)text, font, map, attr, space_size, offset_3d_x );
-
+	else /* assuming attr->char_type == ASCT_Char by default */
+		line_count = fill_text_glyph_map_Char( text, font, map, attr, space_size, offset_3d_x );
+	
     map->height = line_count * (font->max_height+offset_3d_y) - font->spacing_y;
 
 	if( map->height <= 0 )
