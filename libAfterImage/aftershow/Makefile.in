@@ -1,7 +1,9 @@
 
-PROGS= aftershow
+PROGS= aftershow aftershow_pipe
 
 AFTERSHOW_OBJS= aftershow.o xutil.o
+
+AFTERSHOW_PIPE_OBJS= aftershow_pipe.o xutil.o
 
 CC		= @CC@
 CCFLAGS         = @CFLAGS@
@@ -132,6 +134,11 @@ deps:
 
 aftershow: $(AFTERSHOW_OBJS) @LIBPROG@
 		$(CC) $(AFTERSHOW_OBJS) $(LIBRARIES) $(EXTRA_LIBRARIES) -o aftershow
+
+
+aftershow_pipe: $(AFTERSHOW_PIPE_OBJS) @LIBPROG@
+		$(CC) $(AFTERSHOW_PIPE_OBJS) $(LIBRARIES) $(EXTRA_LIBRARIES) -o aftershow_pipe
+
 
 .c.o:
 		$(CC) $(CCFLAGS) $(EXTRA_DEFINES) $(INCLUDES) $(EXTRA_INCLUDES) -c $*.c

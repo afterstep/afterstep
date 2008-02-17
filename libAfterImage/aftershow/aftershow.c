@@ -115,10 +115,7 @@ main (int argc, char **argv)
 	}
 		
 	if (!SetupComms(&context))
-	{
-		show_error( "Another instance is already running. Exiting!");
 		return EXIT_FAILURE;
-	}
 
 	if (get_flags(context.flags, AfterShow_DoFork))
     {
@@ -191,32 +188,7 @@ Bool InitContext (AfterShowContext *ctx, int argc, char **argv)
 Bool ConnectGUI (AfterShowContext *ctx)
 {
 #ifndef X_DISPLAY_MISSING
-	int i;
-	AfterShowXScreen *scr;
-	ctx->gui.x.dpy = XOpenDisplay(ctx->display);
-	if (ctx->gui.x.dpy != NULL)
-	{
-		ctx->gui.x.fd = XConnectionNumber (ctx->gui.x.dpy);
-		ctx->gui.x.screens_num = get_flags(ctx->flags, AfterShow_SingleScreen)?1:ScreenCount (ctx->gui.x.dpy);	
-		ctx->gui.x.screens = scr = safecalloc(ctx->gui.x.screens_num, sizeof(AfterShowXScreen));
-
-		for (i = 0; i < ctx->gui.x.screens_num; ++i)
-		{
-			scr->screen = i;
-			scr->root = RootWindow(ctx->gui.x.dpy, scr->screen);
-			scr->root_width = DisplayWidth (ctx->gui.x.dpy, scr->screen);
-			scr->root_height = DisplayHeight (ctx->gui.x.dpy, scr->screen);
-			++scr;
-		}
-		ctx->gui.x.valid = True;
-		show_progress( "X display \"%s\" connected. Servicing %d screens.", ctx->display?ctx->display:"", ctx->gui.x.screens_num);
-	}else
-	{
-		if (ctx->display)
-	        show_error("failed to initialize X Window session for display \"%s\"", ctx->display);
-		else
-			show_error("failed to initialize X Window session for default display");
-	}
+	aftershow_connect_x_gui (ctx);
 #endif
   /* TODO: add win32 code */
 
@@ -338,8 +310,19 @@ Bool SetupComms (AfterShowContext *ctx)
 	ctx->min_fd = ctx->socket_fd = socket_listen (ctx->socket_name);
 
 #ifndef X_DISPLAY_MISSING
-	if (ctx->gui.x.valid && ctx->gui.x.fd > ctx->socket_fd)
-		ctx->min_fd = ctx->gui.x.fd;
+	if (ctx->gui.x.valid)
+	{
+		int i;
+		if (ctx->gui.x.fd > ctx->socket_fd)
+			ctx->min_fd = ctx->gui.x.fd;
+		/* publish socket name as X property */
+		for ( i = 0; i < ctx->gui.x.screens_num; ++i)
+			if (ctx->gui.x.screens[i].do_service)
+				aftershow_set_string_property (	ctx, 
+												ctx->gui.x.screens[i].root, 
+												XInternAtom (ctx->gui.x.dpy, XA_AFTERSHOW_SOCKET_NAME, False), 
+												ctx->socket_name);
+	}
 #endif	
 		
 	/* determine max nuber of file descriptors we could have : */

@@ -1,12 +1,19 @@
 ./aftershow.h:
 
+./xutil.o: \
+		../win32/config.h \
+		../config.h \
+		../afterbase.h \
+		../afterimage.h \
+		aftershow.h
+
 ./aftershow.o: \
 		../win32/config.h \
 		../config.h \
 		../afterimage.h \
 		aftershow.h
 
-./xutil.o: \
+./aftershow_pipe.o: \
 		../win32/config.h \
 		../config.h \
 		../afterbase.h \

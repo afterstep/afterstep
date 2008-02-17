@@ -30,9 +30,47 @@
 
 #undef LOCAL_DEBUG
 
+#include <string.h>
+
 #include "../afterbase.h"
 #include "../afterimage.h"
 #include "aftershow.h"
+
+Bool
+aftershow_connect_x_gui(AfterShowContext *ctx)
+{
+	if (!ctx->gui.x.valid)
+	{
+		int i;
+		AfterShowXScreen *scr;
+		ctx->gui.x.dpy = XOpenDisplay(ctx->display);
+		if (ctx->gui.x.dpy != NULL)
+		{
+			ctx->gui.x.fd = XConnectionNumber (ctx->gui.x.dpy);
+			ctx->gui.x.screens_num = get_flags(ctx->flags, AfterShow_SingleScreen)?1:ScreenCount (ctx->gui.x.dpy);	
+			ctx->gui.x.screens = scr = safecalloc(ctx->gui.x.screens_num, sizeof(AfterShowXScreen));
+
+			for (i = 0; i < ctx->gui.x.screens_num; ++i)
+			{
+				scr->screen = i;
+				scr->root = RootWindow(ctx->gui.x.dpy, scr->screen);
+				scr->root_width = DisplayWidth (ctx->gui.x.dpy, scr->screen);
+				scr->root_height = DisplayHeight (ctx->gui.x.dpy, scr->screen);
+				++scr;
+			}
+			ctx->gui.x.valid = True;
+			show_progress( "X display \"%s\" connected. Servicing %d screens.", ctx->display?ctx->display:"", ctx->gui.x.screens_num);
+		}else
+		{
+			if (ctx->display)
+	        	show_error("failed to initialize X Window session for display \"%s\"", ctx->display);
+			else
+				show_error("failed to initialize X Window session for default display");
+		}
+	}
+
+	return ctx->gui.x.valid;
+}
 
 Bool
 aftershow_get_drawable_size_and_depth (AfterShowContext *ctx, Drawable d, int *width_return, int *height_return, int *depth_return)
@@ -75,6 +113,40 @@ aftershow_validate_drawable (AfterShowContext *ctx, Drawable d)
 
 	XSetErrorHandler (oldXErrorHandler);
 	return (d != None);
+}
+
+
+void
+aftershow_set_string_property (AfterShowContext *ctx, Window w, Atom property, char *data)
+{
+    if (w != None && property != None && data)
+	{
+		LOCAL_DEBUG_OUT( "setting property %lX on %lX to \"%s\"", property, w, data );
+        XChangeProperty (ctx->gui.x.dpy, w, property, XA_STRING, 8,
+                         PropModeReplace, (unsigned char *)data, strlen (data));
+    }
+}
+
+char * 
+aftershow_read_string_property (AfterShowContext *ctx, Window w, Atom property)
+{
+	char *res = NULL;
+    if (w != None && property != None)
+	{
+        int           actual_format;
+        Atom          actual_type;
+        unsigned long junk;
+		unsigned char *tmp = NULL;
+
+        if (XGetWindowProperty(ctx->gui.x.dpy, w, property, 0, ~0, False, AnyPropertyType, &actual_type,
+             &actual_format, &junk, &junk, &tmp) == Success)
+        {
+            if (actual_type == XA_STRING && actual_format == 8)
+				res = strdup((char*)tmp);
+            XFree (tmp);
+        }
+	}
+	return res;
 }
 
 #endif 

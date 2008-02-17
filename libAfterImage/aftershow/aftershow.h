@@ -118,12 +118,20 @@ typedef struct AfterShowContext
 
 /***** from xutils.h */
 #ifndef X_DISPLAY_MISSING
+
+#define XA_AFTERSHOW_SOCKET_NAME "_AFTERSHOW_SOCKET"
+
+Bool aftershow_connect_x_gui(AfterShowContext *ctx);
+
 Bool aftershow_get_drawable_size_and_depth ( AfterShowContext *ctx,
 											 Drawable d, 
 											 int *width_return, 
 											 int *height_return, 
 											 int *depth_return);
 Bool aftershow_validate_drawable (AfterShowContext *ctx, Drawable d);
+void aftershow_set_string_property (AfterShowContext *ctx, Window w, Atom property, char *data);
+char *aftershow_read_string_property (AfterShowContext *ctx, Window w, Atom property);
+
 #endif
 
 #endif /* AFTERSHOW_H_INCLUDED */
