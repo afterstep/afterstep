@@ -203,13 +203,15 @@ xml_elem_t* xml_parse_parm(const char* parm, ASHashTable *vocabulary) {
 	return list;
 }
 
+Bool xml_tags2xml_buffer( xml_elem_t *tags, ASXmlBuffer *xb, int tags_count, int depth);
+
 /* The recursive version of xml_print(), so we can indent XML. */
 static Bool xml_print_r(xml_elem_t* root, int depth) 
 {
 	xml_elem_t* child;
 	Bool new_line = False, new_line_child = False ; 
 	
-	if (!strcmp(root->tag, cdata_str)) {
+	if (root->tag_id == XML_CDATA_ID || !strcmp(root->tag, cdata_str)) {
 		char* ptr = root->parm;
 		while (isspace((int)*ptr)) ptr++;
 		fprintf(stderr, "%s", ptr);
@@ -246,8 +248,14 @@ static Bool xml_print_r(xml_elem_t* root, int depth)
 	return new_line ;
 }
 
-void xml_print(xml_elem_t* root) {
-	xml_print_r(root, 0);
+void xml_print(xml_elem_t* root) 
+{
+	ASXmlBuffer xb;
+	memset( &xb, 0x00, sizeof(xb));
+	xml_tags2xml_buffer( root, &xb, -1, 0);
+	add_xml_buffer_chars( &xb, "\0", 1 );
+	printf ("%s", xb.buffer);
+	free_xml_buffer_resources (&xb);
 }
 
 xml_elem_t* xml_elem_new(void) {
@@ -527,17 +535,99 @@ void reset_xml_buffer( ASXmlBuffer *xb )
 	}		  
 }	 
 
-
 void 
-add_xml_buffer_chars( ASXmlBuffer *xb, char *tmp, int len )
+free_xml_buffer_resources (ASXmlBuffer *xb)
+{
+	if (xb && xb->buffer)
+	{
+		free (xb->buffer);
+		xb->allocated = 0;
+		xb->used = 0;
+		xb->buffer = NULL;
+	}
+}
+
+static inline void
+realloc_xml_buffer( ASXmlBuffer *xb, int len )
 {
 	if( xb->used + len > xb->allocated ) 
 	{	
 		xb->allocated = xb->used + (((len>>11)+1)<<11) ;	  
 		xb->buffer = realloc( xb->buffer, xb->allocated );
 	}
+}
+void 
+add_xml_buffer_chars( ASXmlBuffer *xb, char *tmp, int len )
+{
+	realloc_xml_buffer (xb, len);
 	memcpy( &(xb->buffer[xb->used]), tmp, len );
 	xb->used += len ;
+}
+
+void 
+add_xml_buffer_spaces( ASXmlBuffer *xb, int len )
+{
+	realloc_xml_buffer (xb, len);
+	memset( &(xb->buffer[xb->used]), ' ', len );
+	xb->used += len ;
+}
+
+void 
+add_xml_buffer_open_tag( ASXmlBuffer *xb, xml_elem_t *tag )
+{
+	int tag_len = strlen (tag->tag);
+	int parm_len = 0;
+	xml_elem_t* parm = NULL ; 
+	
+	if (tag->parm)
+	{
+		xml_elem_t *t = parm = xml_parse_parm(tag->parm, NULL);
+		while (t)
+		{
+			parm_len += 1 + strlen(t->tag) + 1 + 1 + strlen(t->parm) + 1;
+			t = t->next;
+		}
+	}
+	realloc_xml_buffer (xb, 1+tag_len+1+parm_len+2);
+	xb->buffer[(xb->used)++] = '<';
+	memcpy (&(xb->buffer[xb->used]), tag->tag, tag_len);
+	xb->used += tag_len ;
+
+	while (parm) 
+	{
+		xml_elem_t* p = parm->next;
+		int len;
+		xb->buffer[(xb->used)++] = ' ';
+		for (len = 0 ; parm->tag[len] ; ++len)
+			xb->buffer[xb->used+len] = parm->tag[len];
+		xb->used += len ;
+		xb->buffer[(xb->used)++] = '=';
+		xb->buffer[(xb->used)++] = '\"';
+		for (len = 0 ; parm->parm[len] ; ++len)
+			xb->buffer[xb->used+len] = parm->parm[len];
+		xb->used += len ;
+		xb->buffer[(xb->used)++] = '\"';
+		free(parm->tag);
+		free(parm->parm);
+		free(parm);
+		parm = p;
+	}
+
+	if (tag->child == NULL)
+		xb->buffer[(xb->used)++] = '/';
+	xb->buffer[(xb->used)++] = '>';
+}
+
+void 
+add_xml_buffer_close_tag( ASXmlBuffer *xb, xml_elem_t *tag )
+{
+	int tag_len = strlen (tag->tag);
+	realloc_xml_buffer (xb, tag_len+3);
+	xb->buffer[(xb->used)++] = '<';
+	xb->buffer[(xb->used)++] = '/';
+	memcpy (&(xb->buffer[xb->used]), tag->tag, tag_len);
+	xb->used += tag_len ;
+	xb->buffer[(xb->used)++] = '>';
 }
 
 int 
@@ -752,6 +842,82 @@ spool_xml_tag( ASXmlBuffer *xb, char *tmp, int len )
 
 	return (i==0)?1:i;
 }	   
+
+Bool 
+xml_tags2xml_buffer( xml_elem_t *tags, ASXmlBuffer *xb, int tags_count, int depth)
+{
+	Bool new_line = False; 
+
+	while (tags && tags_count != 0) /* not a bug - negative tags_count means unlimited !*/
+	{
+		if (tags->tag_id == XML_CDATA_ID || !strcmp(tags->tag, cdata_str)) 
+		{
+			add_xml_buffer_chars( xb, tags->parm, strlen(tags->parm));
+		}else 
+		{
+			if (tags->child != NULL || tags->next != NULL  ) 
+			{
+				add_xml_buffer_chars( xb, "\n", 1);
+				add_xml_buffer_spaces( xb, depth*2);
+				new_line = True ;	  
+			}
+			add_xml_buffer_open_tag( xb, tags);
+
+			if (tags->child) 
+			{
+				if( xml_tags2xml_buffer( tags->child, xb, -1, depth+1 ))
+				{
+					add_xml_buffer_chars( xb, "\n", 1);
+					add_xml_buffer_spaces( xb, depth*2);
+				}
+				add_xml_buffer_close_tag( xb, tags);
+			}
+		}		
+		tags = tags->next;
+		--tags_count;
+	}
+	return new_line;
+}
+
+
+
+xml_elem_t *
+format_xml_buffer_state (ASXmlBuffer *xb)
+{
+	xml_elem_t *state_xml = NULL; 
+	if (xb->state < 0) 
+	{
+		state_xml = xml_elem_new();
+		state_xml->tag = mystrdup("error");
+		state_xml->parm = safemalloc (64);
+		sprintf(state_xml->parm, "code=%d level=%d tag_count=%d", xb->state, xb->level ,xb->tags_count );
+		state_xml->child = create_CDATA_tag();
+		switch( xb->state ) 
+		{
+			case ASXML_BadStart : state_xml->child->parm = mystrdup("Text encountered before opening tag bracket - not XML format"); break;
+			case ASXML_BadTagName : state_xml->child->parm = mystrdup("Invalid characters in tag name" );break;
+			case ASXML_UnexpectedSlash : state_xml->child->parm = mystrdup("Unexpected '/' encountered");break;
+			case ASXML_UnmatchedClose : state_xml->child->parm = mystrdup("Closing tag encountered without opening tag" );break;
+			case ASXML_BadAttrName : state_xml->child->parm = mystrdup("Invalid characters in attribute name" );break;
+			case ASXML_MissingAttrEq : state_xml->child->parm = mystrdup("Attribute name not followed by '=' character" );break;
+			default:
+				state_xml->child->parm = mystrdup("Premature end of the input");break;
+		}
+	}else if (xb->state == ASXML_Start)
+	{
+		if (xb->tags_count > 0)
+		{
+			state_xml = xml_elem_new();
+			state_xml->tag = mystrdup("success");
+			state_xml->parm = safemalloc(64);
+			sprintf(state_xml->parm, "tag_count=%d level=%d", xb->tags_count, xb->level );
+		}
+	}else
+	{
+		/* TODO */
+	}
+	return state_xml;
+}
 
 char 
 translate_special_sequence( const char *ptr, int len,  int *seq_len )

@@ -116,7 +116,7 @@ typedef struct AfterShowContext
 	AfterShowClient	*clients; /* array of fd_width elements */
 }AfterShowContext;
 
-/***** from xutils.h */
+/***** from xutil.c */
 #ifndef X_DISPLAY_MISSING
 
 #define XA_AFTERSHOW_SOCKET_NAME "_AFTERSHOW_SOCKET"
@@ -133,5 +133,9 @@ void aftershow_set_string_property (AfterShowContext *ctx, Window w, Atom proper
 char *aftershow_read_string_property (AfterShowContext *ctx, Window w, Atom property);
 
 #endif
+
+/***** from xmlutil.c */
+void aftershow_add_tags_to_queue( xml_elem_t* tags, xml_elem_t **phead, xml_elem_t **ptail);
+
 
 #endif /* AFTERSHOW_H_INCLUDED */

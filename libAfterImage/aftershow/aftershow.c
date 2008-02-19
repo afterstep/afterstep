@@ -16,7 +16,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#undef LOCAL_DEBUG
+#define LOCAL_DEBUG
 #undef DO_CLOCKING
 
 #ifdef _WIN32
@@ -389,9 +389,11 @@ HandleEvents (AfterShowContext *ctx)
 		}
 #endif
 		FD_SET(ctx->socket_fd, &in_fdset);
-		while (--i >= 0)
+		for ( i = ctx->fd_width; --i >= 0; )
 			if (clients[i].fd > 0)
 			{
+				LOCAL_DEBUG_OUT("setting in_fdset for client %d", clients[i].fd);
+
 				FD_SET(clients[i].fd, &in_fdset);
 				if (clients[i].fd > max_fd)
 					max_fd = clients[i].fd;
@@ -400,6 +402,7 @@ HandleEvents (AfterShowContext *ctx)
 			}
 
 	    retval = PORTABLE_SELECT(min (max_fd + 1, ctx->fd_width),&in_fdset,&out_fdset,NULL,t);
+		LOCAL_DEBUG_OUT("SELECT RETURNED %d", retval);
 
 		if (retval > 0)
 		{	
@@ -412,12 +415,13 @@ HandleEvents (AfterShowContext *ctx)
 #endif
 			
 			for (i = min(max_fd,ctx->fd_width); i >= 0; --i)
-			{
-				if (FD_ISSET (i, &in_fdset))
-					HandleInput (ctx, i);
-				if (FD_ISSET (i, &out_fdset))
-					HandleOutput (ctx, i);
-			}
+				if (i != ctx->socket_fd)
+				{
+					if (FD_ISSET (i, &in_fdset))
+						HandleInput (ctx, i);
+					if (FD_ISSET (i, &out_fdset))
+						HandleOutput (ctx, i);
+				}
 		}
 
 		for (i = min(max_fd,ctx->fd_width); i >= 0; --i)
@@ -502,18 +506,6 @@ AcceptConnection (AfterShowContext *ctx)
     }
 }
 
-/* TODO : this should go into additional file xmlutils.c : */
-void 
-aftershow_add_tags_to_queue( xml_elem_t* tags, xml_elem_t **phead, xml_elem_t **ptail)
-{
-	if (*phead == NULL)
-		*ptail = *phead = tags;
-	else
-		(*ptail)->next = tags;
-	
-	while ((*ptail)->next) *ptail = (*ptail)->next;
-}
-
 void 
 HandleInput (AfterShowContext *ctx, int channel)
 {
@@ -523,17 +515,24 @@ HandleInput (AfterShowContext *ctx, int channel)
 	static char read_buf[READ_BUF_SIZE];
 	int bytes_in = read (client->fd, &(read_buf[0]), READ_BUF_SIZE);
 
-	if (bytes_in == 0 && errno != EINTR && errno != EAGAIN)
-		ShutdownClient (ctx, channel);
-	else
+	LOCAL_DEBUG_OUT ("%d bytes read from client %d, errno = %d", bytes_in, client->fd, errno);
+
+	if (bytes_in == 0)
+	{
+		if (errno != EINTR && errno != EAGAIN)
+			ShutdownClient (ctx, channel);
+	}else
 	{
 		int i = 0;
 		while (i < bytes_in) 
 		{
 			struct ASXmlBuffer *xb = client->xml_buf;
-			while (xb->state >= 0)
+			LOCAL_DEBUG_OUT ("i = %d, state = %d", i, xb->state);
+
+			while (xb->state >= 0 && i < bytes_in)
 			{
 				int spooled_count = spool_xml_tag (xb, &read_buf[i], bytes_in - i);
+				LOCAL_DEBUG_OUT ("%d: i = %d, spooled_count = %d\n", i, spooled_count);
 				if (spooled_count <= 0)
 					++i;
 				else
@@ -550,6 +549,12 @@ HandleInput (AfterShowContext *ctx, int channel)
 						aftershow_add_tags_to_queue (doc, &(client->xml_input_head), &(client->xml_input_tail));
 					reset_xml_buffer( xb );
 				}
+			}
+			if (xb->state < 0)
+			{
+				xml_elem_t* err_xml = format_xml_buffer_state (xb);
+				aftershow_add_tags_to_queue (err_xml, &(client->xml_output_head), &(client->xml_output_tail));
+				reset_xml_buffer (xb);
 			}
 		}		   
 	}
@@ -618,7 +623,21 @@ ShutdownWin32Screen (AfterShowContext *ctx, int screen)
 void 
 ShutdownClient (AfterShowContext *ctx, int channel)
 {
+	AfterShowClient *client = &(ctx->clients[channel]);
 
+	if (client->fd)
+	{
+		show_progress( "closing connection to client with fd %d.", client->fd );
+		close (client->fd);
+	}
+
+	if (client->xml_buf)
+	{
+		free_xml_buffer_resources (client->xml_buf);
+		free (client->xml_buf);
+	}
+	
+	memset( client, 0x00, sizeof(AfterShowClient));		
 }
 
 

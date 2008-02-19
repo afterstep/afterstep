@@ -35,6 +35,7 @@
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
 #endif
+#include <errno.h>
 
 #include "../afterbase.h"
 #include "../afterimage.h"
@@ -87,13 +88,14 @@ int main (int argc, char **argv)
 
 	if (cmd_start < argc-1)
 	{
-		dup2 (context->socket_fd, 0);
-		dup2 (context->socket_fd, 1);
+		dup2 (context.socket_fd, 0);
+		dup2 (context.socket_fd, 1);
 		// do exec without fork here
 	}else
 	{	/* we have to manually redirect io */
 		HandleEvents(&context);
 	}
+	close (context.socket_fd);		
 
 	return EXIT_SUCCESS;
 }
@@ -201,42 +203,80 @@ Bool SetupComms (AfterShowContext *ctx)
 	return (ctx->socket_fd > 0);
 }
 
-#if 0
 void 
 HandleEvents (AfterShowContext *ctx)
 {
+#define IN_BUF_SIZE		16192
+#define OUT_BUF_SIZE	1024
+	char input_buf[IN_BUF_SIZE];
+	int input_size = 0;
+	Bool input_eof = False;
+	
 	while (ctx->gui.x.valid || ctx->gui.win32.valid)
 	{
 		fd_set  in_fdset, out_fdset;
 		int     retval;
-		/* struct timeval tv; */
-		struct timeval *t = NULL;
-    	int           max_fd = ctx->min_fd;
+		int i;
 		LOCAL_DEBUG_OUT( "waiting pipes%s", "");
 		FD_ZERO (&in_fdset);
 		FD_ZERO (&out_fdset);
 
+		if (input_size > 0)
+			FD_SET(ctx->socket_fd, &out_fdset);
+		else
+			FD_SET(0, &in_fdset);
+			
 		FD_SET(ctx->socket_fd, &in_fdset);
-		FD_SET(0, &in_fdset);
-
-		FD_SET(ctx->socket_fd, &out_fdset);
 
 	    retval = PORTABLE_SELECT(ctx->socket_fd+1,&in_fdset,&out_fdset,NULL,NULL);
 
 		if (retval > 0)
 		{	
-#define BUF_SIZE	1024
-			char *buf[BUF_SIZE];
+			if (FD_ISSET (ctx->socket_fd, &in_fdset))
+			{
+				char *buf[OUT_BUF_SIZE];
+				int bytes_in;
+				while ((bytes_in = read( ctx->socket_fd, &buf[0], OUT_BUF_SIZE)) > 0)
+					write( 1, &(buf[0]), bytes_in);
+				if (bytes_in == 0 && errno != EINTR && errno != EAGAIN)
+				{
+					show_progress( "AfterShow Server has closed the connection. Exiting.");
+					return;
+				}
+			}
 			if (FD_ISSET (ctx->socket_fd, &out_fdset))
 			{
-				
+				/* write input buffer out to server */
+				int bytes_out = write (ctx->socket_fd, &(input_buf[0]), input_size);
+				LOCAL_DEBUG_OUT("%d bytes sent.", bytes_out);
+
+				if (bytes_out == 0 && errno != EINTR && errno != EAGAIN)
+				{
+					show_progress( "AfterShow Server has closed the connection. Exiting.");
+					return;
+				}
+				if (bytes_out > 0)
+				{
+					for (i = 0; i < input_size-bytes_out; ++i)
+						input_buf[i] = input_buf[i+bytes_out];
+					input_size -= bytes_out;	
+					if (input_size == 0 && input_eof)
+						return;
+				}
 			}
-			
+			if (FD_ISSET (0, &in_fdset))
+			{
+				/* fill input buffer from stdin */
+				input_size = read( 0, &(input_buf[0]), IN_BUF_SIZE);
+				if (input_size == 0) /* EOF */
+					return;
+				input_eof = (input_buf[input_size-1] == EOF);
+				LOCAL_DEBUG_OUT("%d bytes read. eof = %d", input_size, input_eof);
+			}
 		}
 
 	}
 }
-#endif
 
 /*********************************************************************************
  * The end !!!! 																 

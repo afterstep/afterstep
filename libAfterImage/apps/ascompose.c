@@ -597,19 +597,12 @@ int main(int argc, char** argv) {
 				{
 					if( !display || dpy == NULL || !quiet ) 
 					{	
-						printf("<error code=%d text=\"", xb.state );	  
-						switch( xb.state ) 
+						xml_elem_t *msg = format_xml_buffer_state (&xb);
+						if (msg)
 						{
-							case ASXML_BadStart : printf( "Text encountered before opening tag bracket - not XML format" ); break;
-							case ASXML_BadTagName : printf( "Invalid characters in tag name" );break;
-							case ASXML_UnexpectedSlash : printf( "Unexpected '/' encountered");break;
-							case ASXML_UnmatchedClose : printf( "Closing tag encountered without opening tag" );break;
-							case ASXML_BadAttrName : printf( "Invalid characters in attribute name" );break;
-							case ASXML_MissingAttrEq : printf( "Attribute name not followed by '=' character" );break;
-							default:
-								printf( "Premature end of the input");break;
+							xml_print(msg);
+							xml_elem_delete(NULL, msg);
 						}
-						printf("\" level=%d tag_count=%d/>\n", xb.level ,xb.tags_count );	  
 					}
 					if (!endless_loop)
 						break;

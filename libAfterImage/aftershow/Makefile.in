@@ -1,7 +1,7 @@
 
 PROGS= aftershow aftershow_pipe
 
-AFTERSHOW_OBJS= aftershow.o xutil.o
+AFTERSHOW_OBJS= aftershow.o xmlutil.o xutil.o
 
 AFTERSHOW_PIPE_OBJS= aftershow_pipe.o xutil.o
 

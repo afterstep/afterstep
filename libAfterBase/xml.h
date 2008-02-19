@@ -77,7 +77,7 @@ enum
 typedef struct ASXmlBuffer
 {
 	char *buffer ;
-	int allocated, used ;
+	int allocated, used, current ;
 
 	int state ; 
 	int level ;
@@ -117,8 +117,10 @@ void xml_insert(xml_elem_t* parent, xml_elem_t* child);
 xml_elem_t *find_tag_by_id( xml_elem_t *chain, int id );
 
 void reset_xml_buffer( ASXmlBuffer *xb );
+void free_xml_buffer_resources (ASXmlBuffer *xb);
 void add_xml_buffer_chars( ASXmlBuffer *xb, char *tmp, int len );
 int spool_xml_tag( ASXmlBuffer *xb, char *tmp, int len );
+xml_elem_t *format_xml_buffer_state (ASXmlBuffer *xb);
 char translate_special_sequence( const char *ptr, int len,  int *seq_len );
 void append_cdata( xml_elem_t *cdata_tag, const char *line, int len );
 void append_CDATA_line( xml_elem_t *tag, const char *line, int len );
