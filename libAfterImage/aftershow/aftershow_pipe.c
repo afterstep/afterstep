@@ -59,6 +59,7 @@ void show_usage (Bool short_form)
 int main (int argc, char **argv)
 {
 	AfterShowContext context;
+	int cmd_start;
 	/* 
 	 * 1) Connect to windowing system
 	 * 2) Check for another instance running for the same user
@@ -67,7 +68,11 @@ int main (int argc, char **argv)
 	 */
 	set_application_name(argv[0]);
 	set_output_threshold(5);  /* be real quiet by default ! */
-	
+
+	for (cmd_start = 1 ; cmd_start < argc; cmd_start++)
+		if (strcmp(argv[cmd_start], "-c") ==0)
+			break;
+			
 	if (!InitContext(&context, argc, argv))
 		return EXIT_FAILURE;
 
@@ -80,7 +85,15 @@ int main (int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	HandleEvents(&context);
+	if (cmd_start < argc-1)
+	{
+		dup2 (context->socket_fd, 0);
+		dup2 (context->socket_fd, 1);
+		// do exec without fork here
+	}else
+	{	/* we have to manually redirect io */
+		HandleEvents(&context);
+	}
 
 	return EXIT_SUCCESS;
 }
@@ -188,6 +201,7 @@ Bool SetupComms (AfterShowContext *ctx)
 	return (ctx->socket_fd > 0);
 }
 
+#if 0
 void 
 HandleEvents (AfterShowContext *ctx)
 {
@@ -203,16 +217,26 @@ HandleEvents (AfterShowContext *ctx)
 		FD_ZERO (&out_fdset);
 
 		FD_SET(ctx->socket_fd, &in_fdset);
+		FD_SET(0, &in_fdset);
 
-	    retval = PORTABLE_SELECT(min (max_fd + 1, ctx->fd_width),&in_fdset,&out_fdset,NULL,t);
+		FD_SET(ctx->socket_fd, &out_fdset);
+
+	    retval = PORTABLE_SELECT(ctx->socket_fd+1,&in_fdset,&out_fdset,NULL,NULL);
 
 		if (retval > 0)
 		{	
+#define BUF_SIZE	1024
+			char *buf[BUF_SIZE];
+			if (FD_ISSET (ctx->socket_fd, &out_fdset))
+			{
+				
+			}
+			
 		}
 
 	}
 }
-
+#endif
 
 /*********************************************************************************
  * The end !!!! 																 
