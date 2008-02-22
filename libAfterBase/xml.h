@@ -120,6 +120,13 @@ void reset_xml_buffer( ASXmlBuffer *xb );
 void free_xml_buffer_resources (ASXmlBuffer *xb);
 void add_xml_buffer_chars( ASXmlBuffer *xb, char *tmp, int len );
 int spool_xml_tag( ASXmlBuffer *xb, char *tmp, int len );
+
+/* reverse transformation - xml_elem into text. 
+   If depth < 0 - no fancy formatting with identing will be added.
+   If tags_count < 0 - all tags in the chain will be converted.
+ */
+Bool xml_tags2xml_buffer( xml_elem_t *tags, ASXmlBuffer *xb, int tags_count, int depth);
+
 xml_elem_t *format_xml_buffer_state (ASXmlBuffer *xb);
 char translate_special_sequence( const char *ptr, int len,  int *seq_len );
 void append_cdata( xml_elem_t *cdata_tag, const char *line, int len );

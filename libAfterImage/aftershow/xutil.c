@@ -58,6 +58,7 @@ aftershow_connect_x_gui(AfterShowContext *ctx)
 				scr->root_height = DisplayHeight (ctx->gui.x.dpy, scr->screen);
 				++scr;
 			}
+			ctx->gui.x.first_screen = 0;
 			ctx->gui.x.valid = True;
 			show_progress( "X display \"%s\" connected. Servicing %d screens.", ctx->display?ctx->display:"", ctx->gui.x.screens_num);
 		}else

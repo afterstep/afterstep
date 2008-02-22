@@ -17,8 +17,16 @@
 #endif
 
 
+#define MAGIC_AFTERSHOW_X_LAYER		0xAF501A73
+#define MAGIC_AFTERSHOW_X_WINDOW	0xAF50814D
+#define MAGIC_AFTERSHOW_X_SCREEN	0xAF503C4E
+#define MAGIC_AFTERSHOW_X_GUI		0xAF507201
+#define MAGIC_AFTERSHOW_WIN32_GUI	0xAF507232
+
 typedef struct AfterShowXWindowLayer
 {
+
+	unsigned long magic;
 	int x, y, width, height;
 #ifndef X_DISPLAY_MISSING
 	Pixmap pmap;
@@ -28,6 +36,7 @@ typedef struct AfterShowXWindowLayer
 
 typedef struct AfterShowXWindow
 {
+	unsigned long magic;
 	int layers_num;
 	AfterShowXWindowLayer *layers;
 
@@ -41,6 +50,7 @@ typedef struct AfterShowXWindow
 
 typedef struct AfterShowXScreen
 {
+	unsigned long magic;
 	Bool 		do_service;
 	int 		screen;
 	int 		windows_num;
@@ -59,9 +69,11 @@ typedef struct AfterShowXScreen
 
 typedef struct AfterShowXGUI
 {
+	unsigned long magic;
 	Bool 		valid;
 	int 		screens_num;
 	int 		serviced_screens_num;
+	int 		first_screen;
 
 #ifndef X_DISPLAY_MISSING
 	Display    *dpy;
@@ -72,9 +84,11 @@ typedef struct AfterShowXGUI
 
 typedef struct AfterShowWin32GUI
 {
+	unsigned long magic;
 	Bool 		valid;
 	int 		screens_num;
 	int 		serviced_screens_num;
+	int 		first_screen;
 
 #ifdef WIN32
 	int 		root_width, root_height;
@@ -83,16 +97,31 @@ typedef struct AfterShowWin32GUI
 
 struct ASXmlBuffer;
 
+typedef union
+{
+	ASMagic 				*magic;
+	ASImage 				*asim;
+	AfterShowXWindowLayer	*xlayer;
+	AfterShowXWindow		*xwindow;
+	AfterShowXScreen		*xscreen;
+	AfterShowXGUI			*xgui;
+	AfterShowWin32GUI		*win32gui;
+}AfterShowMagicPtr;
+
 typedef struct AfterShowClient
 {
 	int 				 fd;
-	struct ASXmlBuffer 	*xml_buf; 
+	struct ASXmlBuffer 	*xml_input_buf; 
 	struct xml_elem_t	*xml_input_head, *xml_input_tail;
 	struct xml_elem_t	*xml_output_head, *xml_output_tail;
+	struct ASXmlBuffer 	*xml_output_buf; 
 	
-	char 				*out_buf;
-	unsigned short		 out_buf_size, out_buf_pos;
-
+	AfterShowMagicPtr 	*default_gui;		/* could be either x or win32 */
+	int 				 default_screen;
+	AfterShowMagicPtr 	*default_window;	/* could be either x or win32 */
+	AfterShowMagicPtr 	*default_layer;		/* could be either x or win32 */
+	ASImageManager 		*imman;				/* if NULL - use the shared one */
+	ASFontManager 		*fontman;			/* if NULL - use the shared one */
 }AfterShowClient;
 
 typedef struct AfterShowContext
@@ -114,6 +143,10 @@ typedef struct AfterShowContext
 	int 		 fd_width;	
 	
 	AfterShowClient	*clients; /* array of fd_width elements */
+
+	ASImageManager 	*imman;		/* shared image manager */
+	ASFontManager 	*fontman;	/* shared font manager */
+
 }AfterShowContext;
 
 /***** from xutil.c */

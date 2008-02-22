@@ -26,7 +26,7 @@
 #include "../config.h"
 #endif
 
-#undef LOCAL_DEBUG
+#define LOCAL_DEBUG
 
 #include <string.h>
 #ifdef HAVE_UNISTD_H
@@ -36,6 +36,8 @@
 #include <stdlib.h>
 #endif
 #include <errno.h>
+#include <sys/file.h>
+#include <sys/socket.h>
 
 #include "../afterbase.h"
 #include "../afterimage.h"
@@ -187,6 +189,7 @@ Bool SetupComms (AfterShowContext *ctx)
 	show_progress ("Socket name set to \"%s\".", ctx->socket_name);
 	
 	ctx->min_fd = ctx->socket_fd = socket_connect_client (ctx->socket_name);
+	fcntl (ctx->socket_fd, F_SETFL, fcntl (ctx->socket_fd, F_GETFL) | O_NONBLOCK);
 
 	/* determine max nuber of file descriptors we could have : */
 #ifdef _SC_OPEN_MAX
@@ -217,18 +220,23 @@ HandleEvents (AfterShowContext *ctx)
 		fd_set  in_fdset, out_fdset;
 		int     retval;
 		int i;
-		LOCAL_DEBUG_OUT( "waiting pipes%s", "");
 		FD_ZERO (&in_fdset);
 		FD_ZERO (&out_fdset);
 
+		LOCAL_DEBUG_OUT( "input_size = %d", input_size);
 		if (input_size > 0)
+		{
 			FD_SET(ctx->socket_fd, &out_fdset);
-		else
+		}else
+		{
 			FD_SET(0, &in_fdset);
+		}
 			
 		FD_SET(ctx->socket_fd, &in_fdset);
 
+		LOCAL_DEBUG_OUT( "waiting pipes%s", "");
 	    retval = PORTABLE_SELECT(ctx->socket_fd+1,&in_fdset,&out_fdset,NULL,NULL);
+		LOCAL_DEBUG_OUT( "result = %d", retval);
 
 		if (retval > 0)
 		{	
@@ -236,18 +244,25 @@ HandleEvents (AfterShowContext *ctx)
 			{
 				char *buf[OUT_BUF_SIZE];
 				int bytes_in;
+				errno = 0;
 				while ((bytes_in = read( ctx->socket_fd, &buf[0], OUT_BUF_SIZE)) > 0)
 					write( 1, &(buf[0]), bytes_in);
+				if (bytes_in > 0)
+					write( 1, "\n", 1);
 				if (bytes_in == 0 && errno != EINTR && errno != EAGAIN)
 				{
 					show_progress( "AfterShow Server has closed the connection. Exiting.");
 					return;
 				}
+				LOCAL_DEBUG_OUT( "bytes_in = %d, errno = %d", bytes_in, errno);				
 			}
 			if (FD_ISSET (ctx->socket_fd, &out_fdset))
 			{
 				/* write input buffer out to server */
-				int bytes_out = write (ctx->socket_fd, &(input_buf[0]), input_size);
+				int bytes_out;
+
+				errno = 0;
+				bytes_out = write (ctx->socket_fd, &(input_buf[0]), input_size);
 				LOCAL_DEBUG_OUT("%d bytes sent.", bytes_out);
 
 				if (bytes_out == 0 && errno != EINTR && errno != EAGAIN)

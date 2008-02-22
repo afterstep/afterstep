@@ -205,6 +205,7 @@ xml_elem_t* xml_parse_parm(const char* parm, ASHashTable *vocabulary) {
 
 Bool xml_tags2xml_buffer( xml_elem_t *tags, ASXmlBuffer *xb, int tags_count, int depth);
 
+#if 0 /* old version : */
 /* The recursive version of xml_print(), so we can indent XML. */
 static Bool xml_print_r(xml_elem_t* root, int depth) 
 {
@@ -247,7 +248,7 @@ static Bool xml_print_r(xml_elem_t* root, int depth)
 	}
 	return new_line ;
 }
-
+#endif
 void xml_print(xml_elem_t* root) 
 {
 	ASXmlBuffer xb;
@@ -525,7 +526,7 @@ void reset_xml_buffer( ASXmlBuffer *xb )
 {
 	if( xb ) 
 	{
-		xb->used = 0 ; 
+		xb->current = xb->used = 0 ; 
 		xb->state = ASXML_Start	 ;
 		xb->level = 0 ;
 		xb->verbatim = False ;
@@ -541,8 +542,7 @@ free_xml_buffer_resources (ASXmlBuffer *xb)
 	if (xb && xb->buffer)
 	{
 		free (xb->buffer);
-		xb->allocated = 0;
-		xb->used = 0;
+		xb->allocated = xb->current = xb->used = 0 ; 
 		xb->buffer = NULL;
 	}
 }
@@ -567,9 +567,12 @@ add_xml_buffer_chars( ASXmlBuffer *xb, char *tmp, int len )
 void 
 add_xml_buffer_spaces( ASXmlBuffer *xb, int len )
 {
-	realloc_xml_buffer (xb, len);
-	memset( &(xb->buffer[xb->used]), ' ', len );
-	xb->used += len ;
+	if (len > 0)
+	{
+		realloc_xml_buffer (xb, len);
+		memset( &(xb->buffer[xb->used]), ' ', len );
+		xb->used += len ;
+	}
 }
 
 void 
@@ -843,6 +846,7 @@ spool_xml_tag( ASXmlBuffer *xb, char *tmp, int len )
 	return (i==0)?1:i;
 }	   
 
+/* reverse transformation - put xml tags into a buffer */
 Bool 
 xml_tags2xml_buffer( xml_elem_t *tags, ASXmlBuffer *xb, int tags_count, int depth)
 {
@@ -852,10 +856,11 @@ xml_tags2xml_buffer( xml_elem_t *tags, ASXmlBuffer *xb, int tags_count, int dept
 	{
 		if (tags->tag_id == XML_CDATA_ID || !strcmp(tags->tag, cdata_str)) 
 		{
+			/* TODO : add handling for cdata with quotes, amps and gt, lt */
 			add_xml_buffer_chars( xb, tags->parm, strlen(tags->parm));
 		}else 
 		{
-			if (tags->child != NULL || tags->next != NULL  ) 
+			if (depth >= 0 && (tags->child != NULL || tags->next != NULL)) 
 			{
 				add_xml_buffer_chars( xb, "\n", 1);
 				add_xml_buffer_spaces( xb, depth*2);
@@ -865,10 +870,13 @@ xml_tags2xml_buffer( xml_elem_t *tags, ASXmlBuffer *xb, int tags_count, int dept
 
 			if (tags->child) 
 			{
-				if( xml_tags2xml_buffer( tags->child, xb, -1, depth+1 ))
+				if( xml_tags2xml_buffer( tags->child, xb, -1, (depth < 0)?-1:depth+1 ))
 				{
-					add_xml_buffer_chars( xb, "\n", 1);
-					add_xml_buffer_spaces( xb, depth*2);
+					if (depth >= 0)
+					{
+						add_xml_buffer_chars( xb, "\n", 1);
+						add_xml_buffer_spaces( xb, depth*2);
+					}
 				}
 				add_xml_buffer_close_tag( xb, tags);
 			}

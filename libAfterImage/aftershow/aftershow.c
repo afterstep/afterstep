@@ -181,7 +181,7 @@ Bool InitContext (AfterShowContext *ctx, int argc, char **argv)
 			}
 		}
 	}
-	
+
 	return True;
 }
 
@@ -192,22 +192,33 @@ Bool ConnectGUI (AfterShowContext *ctx)
 #endif
   /* TODO: add win32 code */
 
-	return 	(ctx->gui.x.valid || ctx->gui.win32.valid);
+	if (!ctx->gui.x.valid && !ctx->gui.win32.valid)
+		return False;
+
+	ctx->imman = create_generic_imageman(NULL);
+	ctx->fontman = 
+#ifndef X_DISPLAY_MISSING
+		create_generic_fontman(ctx->gui.x.dpy, NULL);
+#else
+		create_generic_fontman(NULL,NULL);
+#endif		
+	return True;
 }
 
 Bool CheckInstance (AfterShowContext *ctx)
 {
 #ifndef X_DISPLAY_MISSING
-	int i;
-	AfterShowXScreen *scr = ctx->gui.x.screens;
 	XEvent event;
-	
-	for (i = 0; i < ctx->gui.x.screens_num; ++i)
+	int i = ctx->gui.x.screens_num;
+
+	/* must count down to get correct first_screen */	
+	while ( --i >= 0 )
 	{
 		char        tmp[64];
         CARD32      data = 0xAAAAAAAA;
 		Window      old_selection_owner = None;
 		int 		tick_count;
+		AfterShowXScreen *scr = &(ctx->gui.x.screens[i]);
 		
 		/* intern selection atom */		
 		sprintf (tmp, "_AFTERSHOW_S%d", i);
@@ -269,6 +280,7 @@ Bool CheckInstance (AfterShowContext *ctx)
 				show_progress ("AfterShow selection on screen %d accured successfuly!", i);
 				scr->asv = create_asvisual (ctx->gui.x.dpy, scr->screen, DefaultDepth(ctx->gui.x.dpy, scr->screen), NULL);
 				ctx->gui.x.serviced_screens_num++;
+				ctx->gui.x.first_screen = i;
 			}else
 			{
 				if (scr->selection_window)
@@ -278,7 +290,6 @@ Bool CheckInstance (AfterShowContext *ctx)
 				}
 			}
 		}
-		++scr;
 	}
 #endif
 
@@ -287,7 +298,6 @@ Bool CheckInstance (AfterShowContext *ctx)
 
 Bool SetupComms (AfterShowContext *ctx)
 {
-	int first_screen = 0;
 	char *path = getenv("TMPDIR");
 	if (path == NULL)
 		path = "/tmp";
@@ -296,15 +306,8 @@ Bool SetupComms (AfterShowContext *ctx)
 	    if( (path = getenv( "HOME" )) == NULL )
 			return False ;
 
-	if (ctx->gui.x.valid)
-	{
-		for ( first_screen = 0; first_screen < ctx->gui.x.screens_num; ++first_screen)
-			if (ctx->gui.x.screens[first_screen].do_service)
-				break;
-	}
-	
     ctx->socket_name = safemalloc (strlen(path) + 1 + 18 + 32 + 32 + 1);
-	sprintf (ctx->socket_name, "%s/aftershow-connect.%d.%d", path, getuid(), first_screen);
+	sprintf (ctx->socket_name, "%s/aftershow-connect.%d.%d", path, getuid(), ctx->gui.x.first_screen);
 	show_progress ("Socket name set to \"%s\".", ctx->socket_name);
 	
 	ctx->min_fd = ctx->socket_fd = socket_listen (ctx->socket_name);
@@ -397,7 +400,7 @@ HandleEvents (AfterShowContext *ctx)
 				FD_SET(clients[i].fd, &in_fdset);
 				if (clients[i].fd > max_fd)
 					max_fd = clients[i].fd;
-				if (clients[i].out_buf || clients[i].xml_output_head)
+				if (clients[i].xml_output_buf->used > 0 || clients[i].xml_output_head)
 					FD_SET(clients[i].fd, &out_fdset);
 			}
 
@@ -495,7 +498,8 @@ AcceptConnection (AfterShowContext *ctx)
 		if (fd < ctx->fd_width)
 		{
 			ctx->clients[fd].fd = fd;
-			ctx->clients[fd].xml_buf = safecalloc( 1, sizeof(ASXmlBuffer));
+			ctx->clients[fd].xml_input_buf = safecalloc( 1, sizeof(ASXmlBuffer));
+			ctx->clients[fd].xml_output_buf = safecalloc( 1, sizeof(ASXmlBuffer));
 			show_progress( "accepted new connection with fd %d.", fd );
 		}else
         {/* this should never happen, but just in case : */
@@ -513,7 +517,10 @@ HandleInput (AfterShowContext *ctx, int channel)
 
 #define READ_BUF_SIZE	4096	
 	static char read_buf[READ_BUF_SIZE];
-	int bytes_in = read (client->fd, &(read_buf[0]), READ_BUF_SIZE);
+	int bytes_in;
+	
+	errno = 0;
+	bytes_in = read (client->fd, &(read_buf[0]), READ_BUF_SIZE);
 
 	LOCAL_DEBUG_OUT ("%d bytes read from client %d, errno = %d", bytes_in, client->fd, errno);
 
@@ -526,13 +533,13 @@ HandleInput (AfterShowContext *ctx, int channel)
 		int i = 0;
 		while (i < bytes_in) 
 		{
-			struct ASXmlBuffer *xb = client->xml_buf;
+			struct ASXmlBuffer *xb = client->xml_input_buf;
 			LOCAL_DEBUG_OUT ("i = %d, state = %d", i, xb->state);
 
 			while (xb->state >= 0 && i < bytes_in)
 			{
 				int spooled_count = spool_xml_tag (xb, &read_buf[i], bytes_in - i);
-				LOCAL_DEBUG_OUT ("%d: i = %d, spooled_count = %d\n", i, spooled_count);
+				LOCAL_DEBUG_OUT ("i = %d, spooled_count = %d\n", i, spooled_count);
 				if (spooled_count <= 0)
 					++i;
 				else
@@ -564,14 +571,199 @@ void
 HandleOutput (AfterShowContext *ctx, int channel)
 {
 	AfterShowClient *client = &(ctx->clients[channel]);
+	ASXmlBuffer *xb = client->xml_output_buf;
+	if (client->fd <= 0 || xb == NULL)
+		return;
+	while (client->xml_output_head || xb->used > 0)
+	{
+		xml_elem_t *tmp = client->xml_output_head;
+		if (xb->used > xb->current)
+		{
+			int bytes_out;
 
+			errno = 0;
+			bytes_out = write (client->fd, &(xb->buffer[xb->current]), xb->used - xb->current);
+			if (bytes_out == 0)
+			{
+				if (errno != EINTR && errno != EAGAIN)
+					ShutdownClient (ctx, channel);
+				return;
+			}
+			xb->current += bytes_out;
+			if (xb->used > xb->current)
+				return; /* can't write anymore - need to select to wait for data to be processed! */
+
+			reset_xml_buffer (xb);
+		}
+		if (tmp)
+		{
+			xml_tags2xml_buffer( tmp, xb, 1/* one tag at a time */, 
+								 -1/* no formatting with identing */ );
+			client->xml_output_head = tmp->next;
+			if (tmp->next == NULL || tmp == client->xml_output_tail)	
+				client->xml_output_tail = NULL;
+
+			tmp->next = NULL;
+			xml_elem_delete (NULL, tmp);		
+		}
+	}
+	
 }
+
+typedef AfterShowTagParams
+{
+	enum {AfterShowTag_Unknown = 0, AfterShowTag_Window, AfterShowTag_Layer, AfterShowTag_Image} type;
+	char *id;
+	int x, y, width, height;
+	char *window_id;
+	char *layer_id;
+}AfterShowTagParams;
+
+void ParseTagParams (xml_elem_t *tag, AfterShowTagParams *params);
+xml_elem_t *HandleWindowTag (AfterShowContext *ctx, int channel, xml_elem_t *tag, AfterShowTagParams *params);
+xml_elem_t *HandleLayerTag (AfterShowContext *ctx, int channel, xml_elem_t *tag, AfterShowTagParams *params);
+xml_elem_t *HandleImageTag (AfterShowContext *ctx, int channel, xml_elem_t *tag, AfterShowTagParams *params);
 
 void 
 HandleXML (AfterShowContext *ctx, int channel)
 {
 	AfterShowClient *client = &(ctx->clients[channel]);
 
+	/* the fun part ! */
+	while (client->xml_input_head)
+	{
+		xml_elem_t *tag = client->xml_output_head;
+		xml_elem_t *result = NULL;
+		AfterShowTagParams params;
+
+		/* remove tag from the input queue */
+
+		client->xml_input_head = tag->next;
+		if (tag->next == NULL || tag == client->xml_input_tail)	
+			client->xml_input_tail = NULL;
+		tag->next = NULL;
+
+		/* now lets handle the tag ! */
+		ParseTagParams (tag, params);
+
+		switch (params.type)
+		{
+			case AfterShowTag_Unknown : break;
+			case AfterShowTag_Window : result = HandleWindowTag (ctx, channel, tag, &params); break;
+			case AfterShowTag_Layer : result = HandleLayerTag (ctx, channel, tag, &params); break;
+			case AfterShowTag_Image : result = HandleImageTag (ctx, channel, tag, &params); break;
+		}
+
+		if (result != NULL && client->fd > 0)
+			aftershow_add_tags_to_queue (result, &(client->xml_output_head), &(client->xml_output_tail));
+
+		/* delete the tag */
+		xml_elem_delete (NULL, tag);		
+	}
+
+}
+
+void ParseTagParams (xml_elem_t *tag, AfterShowTagParams *params)
+{
+	xml_elem_t *tmp, *parm = xml_parse_parm(tag->parm, NULL):NULL;
+	memset (params, 0x00, sizeof(AfterShowParams));
+	if (parm)
+	{
+		char *x_str = NULL, y_str = NULL, width_str = NULL, height_str = NULL;
+		char *ref_id = NULL;
+		int ref_width = 0, ref_height = 0;
+		union { 
+			ASMagic *magic;
+			ASImage *im;
+			AfterShowWindow *window;
+			AfterShowLayer  *layer;
+		} ref_obj;
+		
+		for (tmp = parm ; tmp ; tmp = tmp->next)
+		{
+			if (!strcmp(tmp->tag, "x")) 			x_str = tmp->parm;
+			else if (!strcmp(tmp->tag, "y")) 		y_str = tmp->parm;
+			else if (!strcmp(tmp->tag, "width")) 	width_str = tmp->parm;
+			else if (!strcmp(tmp->tag, "height")) 	height_str = tmp->parm;
+			else if (!strcmp(tmp->tag, "refid")) 	ref_obj.magic = client_id2object(ctx, channel, tmp->parm);
+			else if (!strcmp(tmp->tag, "wid")) 		params->window_id = strdup(tmp->parm);
+			else if (!strcmp(tmp->tag, "lid")) 		params->layer_id = strdup(tmp->parm);
+			else if (!strcmp(tmp->tag, "id")) 		params->id = strdup(tmp->parm);
+		}
+		
+		if (ref_obj.magic)
+		{
+			if (ref_obj.magic->magic == MAGIC_ASIMAGE)
+			{
+				ref_width = ref_obj.im->width;
+				ref_height = ref_obj.im->height;
+			}else if (ref_obj.magic->magic == MAGIC_AFTERSHOW_WINDOW)
+			{
+				ref_width = ref_obj.window->width;
+				ref_height = ref_obj.window->height;
+			}else if (ref_obj.magic->magic == MAGIC_AFTERSHOW_LAYER)
+			{
+				ref_width = ref_obj.layer->width;
+				ref_height = ref_obj.layer->height;
+			}else
+			{
+				
+			}
+		}
+		if (x_str)	params->x = parse_math (x_str, NULL, ref_width);
+		if (y_str)	params->y = parse_math (y_str, NULL, ref_width);
+		if (width_str)	params->width = parse_math (width_str, NULL, ref_width);
+		if (height_str)	params->height = parse_math (height_str, NULL, ref_width);
+		
+		xml_elem_delete(NULL, parm);
+	}
+}
+
+xml_elem_t *
+HandleWindowTag (AfterShowContext *ctx, int channel, xml_elem_t *tag, AfterShowTagParams *params)
+{
+	xml_elem_t *result = NULL;
+	AfterShowClient *client = &(ctx->clients[channel]);
+
+	return result;
+}
+
+xml_elem_t *
+HandleLayerTag (AfterShowContext *ctx, int channel, xml_elem_t *tag, AfterShowTagParams *params)
+{
+	xml_elem_t *result = NULL;
+	AfterShowClient *client = &(ctx->clients[channel]);
+
+	return result;
+}
+
+xml_elem_t *
+HandleImageTag (AfterShowContext *ctx, int channel, xml_elem_t *tag, AfterShowTagParams *params)
+{
+	xml_elem_t *result = NULL;
+	AfterShowClient *client = &(ctx->clients[channel]);
+	ASImage *im = compose_asimage_xml_from_doc(asv, my_imman, my_fontman, doc, ASFLAGS_EVERYTHING, verbose, None, NULL, -1, -1);
+
+	if( im ) 
+	{
+		/* Save the result image if desired. */
+		if (doc_save && doc_save_type) 
+		{
+        	if(!save_asimage_to_file(doc_save, im, doc_save_type, doc_compress, NULL, 0, 1)) 
+				show_error("Save failed.");
+			else
+				show_progress("Save successful.");
+		}
+		/* Display the image if desired. */
+		if (display && dpy) 
+			main_window = showimage(im, True, main_window, &main_window_props, dst_x, dst_y);
+
+		safe_asimage_destroy(im);
+		im = NULL ;
+	}					
+		printf("<success tag_count=%d/>\n", xb.tags_count );
+
+	return result;
 }
 
 /*************************************************************************** 
@@ -631,10 +823,16 @@ ShutdownClient (AfterShowContext *ctx, int channel)
 		close (client->fd);
 	}
 
-	if (client->xml_buf)
+	if (client->xml_input_buf)
 	{
-		free_xml_buffer_resources (client->xml_buf);
-		free (client->xml_buf);
+		free_xml_buffer_resources (client->xml_input_buf);
+		free (client->xml_input_buf);
+	}
+
+	if (client->xml_output_buf)
+	{
+		free_xml_buffer_resources (client->xml_output_buf);
+		free (client->xml_output_buf);
 	}
 	
 	memset( client, 0x00, sizeof(AfterShowClient));		

@@ -1834,7 +1834,7 @@ handle_asxml_tag_rotate( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* pa
  * NAME
  * scale - scale image to arbitrary size
  * SYNOPSIS
- * <scale id="new_id" ref_id="other_imag" src_x="pixels"  src_y="pixels" 
+ * <scale id="new_id" refid="other_imag" src_x="pixels"  src_y="pixels" 
  *        src_width="pixels" src_height="pixels" 
  *        width="pixels" height="pixels">
  * ATTRIBUTES
