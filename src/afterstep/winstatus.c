@@ -1270,7 +1270,7 @@ on_window_anchor_changed( ASWindow *asw )
 }
 
 void
-validate_window_anchor( ASWindow *asw, XRectangle *new_anchor )
+validate_window_anchor( ASWindow *asw, XRectangle *new_anchor, Bool initial_placement)
 {
     if( asw ) 
     {    
@@ -1279,7 +1279,9 @@ validate_window_anchor( ASWindow *asw, XRectangle *new_anchor )
         LOCAL_DEBUG_OUT( "status geometry = %dx%d%+d%+d", status.width, status.height, status.x, status.y );
 
 		if( ASWIN_HFLAGS( asw, AS_AvoidCover|AS_ShortLived ) != AS_AvoidCover )
-        	obey_avoid_cover(asw, &status, new_anchor );
+		{
+        	obey_avoid_cover(asw, &status, new_anchor, initial_placement?AS_LayerHighest:ASWIN_LAYER(asw) );
+		}
     }
 }
 
@@ -1628,7 +1630,7 @@ init_aswindow_status( ASWindow *t, ASStatusHints *status )
 
     if( !pending_placement ) 
     {
-        validate_window_anchor( t, &(t->anchor) );    
+        validate_window_anchor( t, &(t->anchor), True );    
         anchor2status ( t->status, t->hints, &(t->anchor));
     }    
 

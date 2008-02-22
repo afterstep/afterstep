@@ -41,7 +41,8 @@ struct ASWindowGridAuxData{
 typedef struct ASFreeRectangleAuxData{
     ASVector *list;
     long    desk;
-    int     min_layer;
+    int     min_layer; /* applies only to non-AvoidCover windows */
+	int		max_layer; /* applies to all windows - including Avoid Cover */
     Bool    frame_only ;
     ASGeometry area ;
     ASWindow *to_skip ;
@@ -66,19 +67,18 @@ get_free_rectangles_iter_func(void *data, void *aux_data)
 {
     ASFreeRectangleAuxData *fr_data  = (ASFreeRectangleAuxData*)aux_data ;
     ASWindow *asw = (ASWindow*)data ;
-    int min_vx = fr_data->area.x, max_vx = fr_data->area.x+fr_data->area.width ;
-    int min_vy = fr_data->area.y, max_vy = fr_data->area.y+fr_data->area.height ;
 
-    if( asw && (!IsValidDesk(fr_data->desk) || ASWIN_DESK(asw) == fr_data->desk) &&
-        asw != fr_data->to_skip)
+    if( asw 
+		&& (!IsValidDesk(fr_data->desk) || ASWIN_DESK(asw) == fr_data->desk) 
+		&& asw != fr_data->to_skip
+		&& !ASWIN_GET_FLAGS(asw, AS_Fullscreen|AS_ShortLived ) 
+		&& fr_data->max_layer >= ASWIN_LAYER(asw)
+		&& (ASWIN_HFLAGS(asw, AS_AvoidCover) || fr_data->min_layer <= ASWIN_LAYER(asw)))
     {
+    	int min_vx = fr_data->area.x, max_vx = fr_data->area.x+fr_data->area.width ;
+	    int min_vy = fr_data->area.y, max_vy = fr_data->area.y+fr_data->area.height ;
         int x, y;
         unsigned int width, height, bw;
-        if( ASWIN_GET_FLAGS(asw, AS_Fullscreen|AS_ShortLived ) )
-			return True;
-
-		if( !ASWIN_HFLAGS(asw, AS_AvoidCover) && fr_data->min_layer > ASWIN_LAYER(asw))
-            return True;
 
         if( ASWIN_GET_FLAGS(asw, AS_Iconic ) )
         {
@@ -105,7 +105,7 @@ get_free_rectangles_iter_func(void *data, void *aux_data)
 }
 
 static ASVector *
-build_free_space_list( ASWindow *to_skip, ASGeometry *area, int min_layer )
+build_free_space_list( ASWindow *to_skip, ASGeometry *area, int min_layer, int max_layer )
 {
     ASVector *list = create_asvector( sizeof(XRectangle) );
     ASFreeRectangleAuxData aux_data ;
@@ -115,6 +115,7 @@ build_free_space_list( ASWindow *to_skip, ASGeometry *area, int min_layer )
     aux_data.list = list ;
     aux_data.desk = Scr.CurrentDesk;
     aux_data.min_layer = min_layer;
+    aux_data.max_layer = max_layer;
     aux_data.area = *area;
 
     /* must seed the list with the single rectangle representing the area : */
@@ -197,7 +198,7 @@ make_desktop_grid(int desk, int min_layer, Bool frame_only, int vx, int vy, ASWi
 
     /* even though we are not limited to free space - it is best to avoid windows with AvoidCover
      * bit set */
-    free_space_list =  build_free_space_list( target, &area, AS_LayerHighest );
+    free_space_list =  build_free_space_list( target, &area, AS_LayerHighest, AS_LayerHighest );
     rects = PVECTOR_HEAD(XRectangle,free_space_list);
 
     i = PVECTOR_USED(free_space_list);
@@ -455,7 +456,7 @@ move_placement_down( ASVector *free_space_list, int x, int y, int w, int h )
 
 static Bool do_smart_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry *area )
 {
-    ASVector *free_space_list =  build_free_space_list( asw, area, ASWIN_LAYER(asw) );
+    ASVector *free_space_list =  build_free_space_list( asw, area, ASWIN_LAYER(asw), AS_LayerHighest );
     XRectangle *rects = PVECTOR_HEAD(XRectangle,free_space_list);
     int i, selected = -1 ;
     unsigned short w = asw->status->width;
@@ -734,7 +735,7 @@ static Bool do_random_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry 
     /* even though we are not limited to free space - it is best to avoid windows with AvoidCover
      * bit set */
     free_space_list =  build_free_space_list( asw, area,
-                                              free_space_only?ASWIN_LAYER(asw):AS_LayerHighest );
+                                              free_space_only?ASWIN_LAYER(asw):AS_LayerHighest, AS_LayerHighest );
     rects = PVECTOR_HEAD(XRectangle,free_space_list);
 
     i = PVECTOR_USED(free_space_list);
@@ -818,7 +819,7 @@ do_maximized_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry *area)
 
     /* even though we are not limited to free space - it is best to avoid windows with AvoidCover
      * bit set */
-    free_space_list =  build_free_space_list( asw, area, AS_LayerHighest );
+    free_space_list =  build_free_space_list( asw, area, AS_LayerHighest, AS_LayerHighest );
     rects = PVECTOR_HEAD(XRectangle,free_space_list);
 
     i = PVECTOR_USED(free_space_list);
@@ -968,7 +969,7 @@ static Bool do_tile_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry *a
     XRectangle *rects = NULL;
     int i ;
 
-    free_space_list =  build_free_space_list( asw, area, ASWIN_LAYER(asw) );
+    free_space_list =  build_free_space_list( asw, area, ASWIN_LAYER(asw), AS_LayerHighest );
     rects = PVECTOR_HEAD(XRectangle,free_space_list);
 
     i = PVECTOR_USED(free_space_list);
@@ -1148,9 +1149,10 @@ static Bool do_manual_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry 
      return (ASWIN_GET_FLAGS(asw,AS_Dead) == 0 && !get_flags(asw->wm_state_transition, ASWT_TO_WITHDRAWN ));
 }
 
-static Bool find_closest_position( ASWindow *asw, ASWindowBox *aswbox, ASGeometry *area, ASStatusHints *status, int *closest_x, int *closest_y )
+static Bool 
+find_closest_position( ASWindow *asw, ASWindowBox *aswbox, ASGeometry *area, ASStatusHints *status, int *closest_x, int *closest_y, int max_layer )
 {
-    ASVector *free_space_list =  build_free_space_list( asw, area, AS_LayerHighest );
+    ASVector *free_space_list =  build_free_space_list( asw, area, AS_LayerHighest, max_layer );
     XRectangle *rects = PVECTOR_HEAD(XRectangle,free_space_list);
     int i, selected = -1 ;
     short x = status->x+Scr.Vx;
@@ -1201,7 +1203,7 @@ static Bool do_closest_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry
     int selected_x = 0 ;
     int selected_y = 0 ;
 
-    if( find_closest_position( asw, aswbox, area, asw->status, &selected_x, &selected_y ) )
+    if (find_closest_position (asw, aswbox, area, asw->status, &selected_x, &selected_y, AS_LayerHighest))
     {
         apply_placement_result_asw( asw, XValue|YValue, selected_x, selected_y, 0, 0 );
         LOCAL_DEBUG_OUT( "success: status(%+d%+d), anchor(%+d,%+d)", asw->status->x, asw->status->y, asw->anchor.x, asw->anchor.y );
@@ -1512,7 +1514,7 @@ enforce_avoid_cover( ASWindow *asw )
 }
 
 
-void obey_avoid_cover(ASWindow *asw, ASStatusHints *tmp_status, XRectangle *tmp_anchor )
+void obey_avoid_cover(ASWindow *asw, ASStatusHints *tmp_status, XRectangle *tmp_anchor, int max_layer )
 {
     if( asw )
 	{
@@ -1529,6 +1531,8 @@ void obey_avoid_cover(ASWindow *asw, ASStatusHints *tmp_status, XRectangle *tmp_
      *   we first try and apply main strategy to place window in the empty space for each box
      *   if all fails we apply backup strategy of the default windowbox
      */
+		LOCAL_DEBUG_OUT( "max_layer = %d", max_layer);
+
         aswbox.name = mystrdup("default");
 		if( !ASWIN_GET_FLAGS(asw, AS_Sticky))
 		{
@@ -1559,10 +1563,10 @@ void obey_avoid_cover(ASWindow *asw, ASStatusHints *tmp_status, XRectangle *tmp_
         aswbox.min_layer = AS_LayerLowest;
         aswbox.max_layer = AS_LayerHighest;
             
-        if( find_closest_position( asw, &aswbox, &(aswbox.area), tmp_status, &selected_x, &selected_y ) )
-            apply_placement_result( tmp_status, tmp_anchor, asw->hints, XValue|YValue, selected_x, selected_y, 0, 0 );            
+        if( find_closest_position (asw, &aswbox, &(aswbox.area), tmp_status, &selected_x, &selected_y, max_layer) )
+            apply_placement_result (tmp_status, tmp_anchor, asw->hints, XValue|YValue, selected_x, selected_y, 0, 0);            
 
-		free( aswbox.name );
+		free (aswbox.name);
     }
 }
 

@@ -1654,7 +1654,7 @@ HandleConfigureRequest ( ASEvent *event )
             	new_anchor.y = make_anchor_pos ( asw->status, cre->y, new_anchor.height, Scr.Vy, grav_y, Scr.VyMax+Scr.MyDisplayHeight );
 		}
 LOCAL_DEBUG_OUT( "old anchor(%dx%d%+d%+d), new_anchor(%dx%d%+d%+d)", asw->anchor.width, asw->anchor.height, asw->anchor.x, asw->anchor.y, new_anchor.width, new_anchor.height, new_anchor.x, new_anchor.y );
-        validate_window_anchor( asw, &new_anchor );
+        validate_window_anchor( asw, &new_anchor, False );
 LOCAL_DEBUG_OUT( "validated_anchor(%dx%d%+d%+d)", new_anchor.width, new_anchor.height, new_anchor.x, new_anchor.y );
         asw->anchor = new_anchor ;
         on_window_anchor_changed( asw );
