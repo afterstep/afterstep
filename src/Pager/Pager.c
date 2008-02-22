@@ -1206,8 +1206,8 @@ LOCAL_DEBUG_CALLER_OUT( "Scr.CurrentDesk(%d)->start_desk(%ld)", Scr.CurrentDesk,
   		{
       		int sel_x = sel_desk->background->win_x ;
 	        int sel_y = sel_desk->background->win_y ;
-  		    int page_width = sel_desk->background->width/PagerState.page_columns ;
-      		int page_height = sel_desk->background->height/PagerState.page_rows ;
+  		    int page_width = Scr.MyDisplayWidth/Scr.VScale ;
+      		int page_height = Scr.MyDisplayHeight/Scr.VScale ;
 	        int i = 4;
 
   		    sel_x += (Scr.Vx*page_width)/Scr.MyDisplayWidth ;
