@@ -448,10 +448,10 @@ typedef enum
 	ASXML_MissingAttrEq = -6
 } ASXML_ParserError;
 
-typedef struct 
+typedef struct ASXmlBuffer
 {
 	char *buffer ;
-	int allocated, used ;
+	int allocated, used, current ;
 
 	int state ; 
 	int level ;
@@ -480,8 +480,15 @@ xml_elem_t* asim_xml_parse_doc(const char* str, struct ASHashTable *vocabulary);
 int asim_xml_parse(const char* str, xml_elem_t* current, struct ASHashTable *vocabulary);
 
 void asim_reset_xml_buffer( ASXmlBuffer *xb );
+void asim_free_xml_buffer_resources (ASXmlBuffer *xb);
+
 void asim_add_xml_buffer_chars( ASXmlBuffer *xb, char *tmp, int len );
 int asim_spool_xml_tag( ASXmlBuffer *xb, char *tmp, int len );
+
+Bool asim_xml_tags2xml_buffer (xml_elem_t *tags, ASXmlBuffer *xb, int tags_count, int depth);
+void asim_xml_print (xml_elem_t* root);
+xml_elem_t *asim_format_xml_buffer_state (ASXmlBuffer *xb);
+
 char *asim_interpret_ctrl_codes( char *text );
 
 #define asxml_var_insert(n,v)				asim_asxml_var_insert((n),(v))
@@ -496,8 +503,15 @@ char *asim_interpret_ctrl_codes( char *text );
 #define xml_parse(s,c,v)					asim_xml_parse((s),(c),(v))
 
 #define reset_xml_buffer(xb)				asim_reset_xml_buffer((xb))
+#define free_xml_buffer_resources(xb)		asim_free_xml_buffer_resources((xb))
+
 #define add_xml_buffer_chars(xb,t,l)		asim_add_xml_buffer_chars((xb),(t),(l))
 #define spool_xml_tag(xb,t,l)				asim_spool_xml_tag((xb),(t),(l))
+
+#define xml_tags2xml_buffer(t,xb,tc,d)		asim_xml_tags2xml_buffer((t),(xb),(tc),(d))
+#define xml_print(r) 						asim_xml_print((r))
+#define format_xml_buffer_state(xb)			asim_format_xml_buffer_state((xb))
+
 #define interpret_ctrl_codes(t) 			asim_interpret_ctrl_codes((t))
 
 #ifdef __cplusplus
