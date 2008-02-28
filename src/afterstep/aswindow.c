@@ -275,6 +275,10 @@ make_aswindow_cmd_iter_func(void *data, void *aux_data)
     {
 		Bool same_host = (asw->hints->client_host == NULL || mystrcasecmp( asw->hints->client_host, swad->this_host )== 0);
 
+		/* don't want to save windows with short life span - wharf subfolders, menus, dialogs, etc. */
+		if( ASWIN_HFLAGS(asw,AS_ShortLived) ) 
+			return True;
+
 		/* don't want to save modules - those are started from autoexec anyways */
 		if( ASWIN_HFLAGS(asw,AS_Module) ) 
 		{	
