@@ -36,6 +36,51 @@
 #include "../afterimage.h"
 #include "aftershow.h"
 
+
+AfterShowXWindow* 
+aftershow_XWindowID2XWindow (AfterShowContext *ctx, Window w)
+{
+	ASHashData hdata = {0} ;
+	int i;
+	for (i = 0 ; i < ctx->gui.x.screens_num; ++i)
+	{
+        if (get_hash_item (ctx->gui.x.screens[i]->windows, AS_HASHABLE(w), &hdata.vptr) == ASH_Success)
+		    return hdata.vptr;
+	}
+}
+
+
+
+AfterShowXScreen* 
+aftershow_XWindowID2XScreen (AfterShowContext *ctx, Window w)
+{
+	int i;
+	AfterShowXWindow* window = NULL;
+	for (i = 0 ; i < ctx->gui.x.screens_num; ++i)
+		if (w == ctx->gui.x.screens[i].selection_window)
+			return &(ctx->gui.x.screens[i]);
+
+	if ((window = XWindowID2XWindow (ctx, w)) == NULL)
+		return NULL;
+		
+	return window->screen;
+}
+
+static void
+aftershow_setup_root_x_window (AfterShowContext *ctx, AfterShowXWindow *window)
+{
+	window->w = RootWindow(ctx->gui.x.dpy, window->screen->screen);
+	window->width = DisplayWidth (ctx->gui.x.dpy, window->screen->screen);
+	window->height = DisplayHeight (ctx->gui.x.dpy, window->screen->screen);
+	window->depth = DefaultDepth(ctx->gui.x.dpy, window->screen->screen);
+	
+	window->gc = DefaultGC(ctx->gui.x.dpy, window->screen->screen);
+	window->back = 
+
+	if (window->back)
+		aftershow_get_drawable_size_and_depth (ctx, window->back, &(window->back_width), &(window->back_height), NULL);
+}
+
 Bool
 aftershow_connect_x_gui(AfterShowContext *ctx)
 {
@@ -53,9 +98,10 @@ aftershow_connect_x_gui(AfterShowContext *ctx)
 			for (i = 0; i < ctx->gui.x.screens_num; ++i)
 			{
 				scr->screen = i;
-				scr->root = RootWindow(ctx->gui.x.dpy, scr->screen);
-				scr->root_width = DisplayWidth (ctx->gui.x.dpy, scr->screen);
-				scr->root_height = DisplayHeight (ctx->gui.x.dpy, scr->screen);
+				scr->root.magic = MAGIC_AFTERSHOW_X_WINDOW;
+				scr->root.screen = scr;
+				aftershow_create_root_x_window (ctx, &(scr->root));
+				scr->windows = create_ashash( 0, NULL, NULL, NULL ); 
 				++scr;
 			}
 			ctx->gui.x.first_screen = 0;
@@ -149,6 +195,116 @@ aftershow_read_string_property (AfterShowContext *ctx, Window w, Atom property)
 	}
 	return res;
 }
+
+
+AfterShowXWindow *
+aftershow_create_x_window (AfterShowContext *ctx, AfterShowXWindow *parent, int width, int height)
+{
+	AfterShowXWindow *window = safecalloc( 1, sizeof(AfterShowXWindow));
+	AfterShowXScreen *scr = parent->screen;
+	unsigned long attr_mask = CWEventMask ;
+	XSetWindowAttributes attr;
+
+	window->magic = MAGIC_AFTERSHOW_X_WINDOW;
+	window->screen = scr;
+	
+	attr.event_mask = ExposureMask;
+	
+	window->w = create_visual_window(scr->asv, parent->w, 0, 0, width, height, 0, 
+									 InputOutput, attr_mask, &attr);
+
+	add_hash_item (scr->windows, AS_HASHABLE(window->w), window);
+
+	window->width = width;
+	window->height = height;
+
+	window->back = create_visual_pixmap(scr->asv, window->w, width, height, 0);
+	window->gc = create_visual_gc(scr->asv, window->w, 0, NULL);	
+	window->depth = scr->asv->true_depth;
+	window->back_width = width;
+	window->back_height = height;
+	
+	return window;
+}
+
+AfterShowXLayer *
+aftershow_create_x_layer (AfterShowContext *ctx, AfterShowXWindow *window)
+{
+	AfterShowXLayer *layer = safecalloc( 1, sizeof(AfterShowXLayer));
+	layer->magic = MAGIC_AFTERSHOW_X_LAYER;
+	layer->width = window->width;
+	layer->height = window->height;
+	
+	return layer;
+}
+
+Bool aftershow_ASImage2XLayer ( AfterShowContext *ctx, AfterShowXWindow *window, 
+								AfterShowXLayer *layer, ASImage *im,  int dst_x, int dst_y)
+{ 
+	Bool success = False;
+	AfterShowXScreen *screen = window->screen;
+	XImage *xim = create_visual_scratch_ximage( screen->asv, im->width, im->height, window->depth);
+
+	if( subimage2ximage (screen->asv, im, 0, 0, xim)	)
+	{
+		int dst_width = im->width ;
+		int dst_height = im->height ;
+		if (layer->pmap == None)
+		{
+			layer->pmap = create_visual_pixmap(screen->asv, window->w, window->width, window->height, 0);
+			layer->pmap_width = window->width ;
+			layer->pmap_height = window->height;
+		}
+		if (dst_x < layer->pmap_width && dst_y < layer->pmap_height)
+		{
+			if (dst_width+dst_x > layer->pmap_width)
+				dst_width = layer->pmap_width - dst_x;
+			if (dst_height+dst_y > layer->pmap_height)
+				dst_height = layer->pmap_height - dst_y;
+			put_ximage( screen->asv, xim, layer->pmap, window->gc, 0, 0, dst_x, dst_y, dst_width, dst_height );	
+			success = True;
+		}
+	}
+	XDestroyImage( xim );				  
+	return success;
+}
+
+void 
+aftershow_ExposeXWindowArea (AfterShowContext *ctx, AfterShowXWindow *window, 
+						  	 int left, int top, int right, int bottom)
+{
+	int i;
+	
+	if (right > window->width)
+		right = window->width;
+	if (bottom > window->height)
+		bottom = window->height;
+	if (left >= right || top >= bottom)
+		return;
+	
+	for (i = 0 ; i < window->layers_num ; ++i)
+	{
+		AfterShowXLayer *layer = &(window->layers[i]);
+		if (layer->pmap)
+		{
+			int lx = (layer->x < left)?left - layer->x:0;
+			int ly = (layer->y < top)?top - layer->y:0;
+			int lw = layer->x + layer->width - lx - left;
+			int lh = layer->y + layer->height - ly - top;
+			if (lw > 0 && lh > 0)
+			{
+				if (left + lw > right)
+					lw = right - left;
+				if (top + lh > bottom)
+					lh = bottom - top;
+				
+				XCopyArea( ctx->gui.x.dpy, layer->pmap, window->w, window->gc, lx, ly, lw, lh, left, top);
+			}
+		}
+	}
+
+}
+
 
 #endif 
 /*********************************************************************************

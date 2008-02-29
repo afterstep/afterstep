@@ -222,7 +222,7 @@ Bool CheckInstance (AfterShowContext *ctx)
 		
 		/* intern selection atom */		
 		sprintf (tmp, "_AFTERSHOW_S%d", i);
-		scr->selection_window = XCreateSimpleWindow (ctx->gui.x.dpy, scr->root, 0, 0, 5, 5, 0, 0, None);
+		scr->selection_window = XCreateSimpleWindow (ctx->gui.x.dpy, scr->root.w, 0, 0, 5, 5, 0, 0, None);
 		if (scr->selection_window)
 		{
 			scr->_XA_AFTERSHOW_S = XInternAtom (ctx->gui.x.dpy, tmp, False);
@@ -322,7 +322,7 @@ Bool SetupComms (AfterShowContext *ctx)
 		for ( i = 0; i < ctx->gui.x.screens_num; ++i)
 			if (ctx->gui.x.screens[i].do_service)
 				aftershow_set_string_property (	ctx, 
-												ctx->gui.x.screens[i].root, 
+												ctx->gui.x.screens[i].root.w, 
 												XInternAtom (ctx->gui.x.dpy, XA_AFTERSHOW_SOCKET_NAME, False), 
 												ctx->socket_name);
 	}
@@ -346,19 +346,6 @@ Bool SetupComms (AfterShowContext *ctx)
 /*************************************************************************** 
  * Window management code : 
  **************************************************************************/
-
-AfterShowXScreen* 
-XWindow2screen (AfterShowContext *ctx, Window w)
-{
-#ifndef X_DISPLAY_MISSING
-	int i;
-	for (i = 0 ; i < ctx->gui.x.screens_num; ++i)
-		if (w == ctx->gui.x.screens[i].selection_window)
-			return &(ctx->gui.x.screens[i]);
-#endif	
-	return NULL;
-}
-
 /*************************************************************************** 
  * IO handling code : 
  **************************************************************************/
@@ -439,6 +426,7 @@ HandleXEvents (AfterShowContext *ctx)
 #ifndef X_DISPLAY_MISSING
 	int events_count = XEventsQueued (ctx->gui.x.dpy, QueuedAfterReading);
 	AfterShowXScreen *scr;
+	AfterShowXWindow *window;
 	while (events_count > 0 && ctx->gui.x.valid)
 	{
 		XEvent e;	
@@ -446,9 +434,18 @@ HandleXEvents (AfterShowContext *ctx)
 		--events_count;
 		switch (e.type)
 		{
+			case Expose :
+				if ((window = aftershow_XWindowID2XWindow (ctx, e.xexpose.window)) != NULL)
+				{
+					/* TODO: aggregate Expose events to a bigger area ! */
+					aftershow_ExposeXWindowArea (ctx, window, e.xexpose.x, e.xexpose.y,
+													e.xexpose.width + e.xexpose.x, 
+													e.xexpose.height + e.xexpose.y);
+				}
+				break;
 			case PropertyNotify: break;
 			case SelectionClear:	
-				if ((scr = XWindow2screen (ctx, e.xselectionclear.window)) != NULL)
+				if ((scr = aftershow_XWindowID2XScreen (ctx, e.xselectionclear.window)) != NULL)
 				{
 					if (e.xselectionclear.window == scr->selection_window 
 						&& e.xselectionclear.selection == scr->_XA_AFTERSHOW_S)
@@ -456,7 +453,7 @@ HandleXEvents (AfterShowContext *ctx)
 					   * after time of us accuring the selection  and WE DON'T HAVE ANY 
 					   * ACTIVE CONNECTIONS OF THAT SCREEN! */
 						if (e.xselectionclear.time > scr->selection_time 
-							&& scr->windows_num <= 0)
+							&& scr->windows->items_num <= 0)
 						{
 							ShutdownXScreen (ctx, scr->screen);
 							if (!ctx->gui.x.valid && !ctx->gui.win32.valid)
@@ -610,7 +607,23 @@ HandleOutput (AfterShowContext *ctx, int channel)
 	
 }
 
-typedef AfterShowTagParams
+/* The XML has to be in the following format : 
+ 
+ <window id="window_id" [default=0|1] [screen="screen_no"] [geometry="geom_string] [parent="parent_window_id"]>
+   	possibly 0 or more child <window> tags 
+	<layer id="layer_id" x="x" y="y" width="width" height="height">
+		single image or composite tag
+	</layer>
+   	possibly 0 or more overlaping <Layer> tags 
+ </window>
+ 
+ If encompasing <window> tag is missing - default client's window is assumed.
+ If encompasing <layer> tag is missing - first layer of the window is assumed.
+ 
+
+*/
+
+typedef struct AfterShowTagParams
 {
 	enum {AfterShowTag_Unknown = 0, AfterShowTag_Window, AfterShowTag_Layer, AfterShowTag_Image} type;
 	char *id;
@@ -619,7 +632,7 @@ typedef AfterShowTagParams
 	char *layer_id;
 }AfterShowTagParams;
 
-void ParseTagParams (xml_elem_t *tag, AfterShowTagParams *params);
+void ParseTagParams (AfterShowContext *ctx, int channel, xml_elem_t *tag, AfterShowTagParams *params);
 xml_elem_t *HandleWindowTag (AfterShowContext *ctx, int channel, xml_elem_t *tag, AfterShowTagParams *params);
 xml_elem_t *HandleLayerTag (AfterShowContext *ctx, int channel, xml_elem_t *tag, AfterShowTagParams *params);
 xml_elem_t *HandleImageTag (AfterShowContext *ctx, int channel, xml_elem_t *tag, AfterShowTagParams *params);
@@ -644,7 +657,7 @@ HandleXML (AfterShowContext *ctx, int channel)
 		tag->next = NULL;
 
 		/* now lets handle the tag ! */
-		ParseTagParams (tag, params);
+		ParseTagParams (ctx, channel, tag, &params);
 
 		switch (params.type)
 		{
@@ -663,22 +676,30 @@ HandleXML (AfterShowContext *ctx, int channel)
 
 }
 
-void ParseTagParams (xml_elem_t *tag, AfterShowTagParams *params)
+ASMagic *client_id2object(AfterShowContext *ctx, int channel, const char *id)
 {
-	xml_elem_t *tmp, *parm = xml_parse_parm(tag->parm, NULL):NULL;
-	memset (params, 0x00, sizeof(AfterShowParams));
+	/* TODO : implement object search by name */
+	return NULL;
+}
+
+void ParseTagParams (AfterShowContext *ctx, int channel, xml_elem_t *tag, AfterShowTagParams *params)
+{
+	xml_elem_t *tmp, *parm = xml_parse_parm(tag->parm, NULL);
+	memset (params, 0x00, sizeof(AfterShowTagParams));
 	if (parm)
 	{
-		char *x_str = NULL, y_str = NULL, width_str = NULL, height_str = NULL;
+		char *x_str = NULL, *y_str = NULL, *width_str = NULL, *height_str = NULL;
 		char *ref_id = NULL;
 		int ref_width = 0, ref_height = 0;
-		union { 
-			ASMagic *magic;
-			ASImage *im;
-			AfterShowWindow *window;
-			AfterShowLayer  *layer;
-		} ref_obj;
+		AfterShowMagicPtr ref_obj;
 		
+		if (strcmp(tag->tag, "window") == 0)
+			params->type = AfterShowTag_Window;
+		else if (strcmp(tag->tag, "layer") == 0)
+			params->type = AfterShowTag_Layer;
+		else
+			params->type = AfterShowTag_Image;
+						
 		for (tmp = parm ; tmp ; tmp = tmp->next)
 		{
 			if (!strcmp(tmp->tag, "x")) 			x_str = tmp->parm;
@@ -695,16 +716,16 @@ void ParseTagParams (xml_elem_t *tag, AfterShowTagParams *params)
 		{
 			if (ref_obj.magic->magic == MAGIC_ASIMAGE)
 			{
-				ref_width = ref_obj.im->width;
-				ref_height = ref_obj.im->height;
-			}else if (ref_obj.magic->magic == MAGIC_AFTERSHOW_WINDOW)
+				ref_width = ref_obj.asim->width;
+				ref_height = ref_obj.asim->height;
+			}else if (ref_obj.magic->magic == MAGIC_AFTERSHOW_X_WINDOW)
 			{
-				ref_width = ref_obj.window->width;
-				ref_height = ref_obj.window->height;
-			}else if (ref_obj.magic->magic == MAGIC_AFTERSHOW_LAYER)
+				ref_width = ref_obj.xwindow->width;
+				ref_height = ref_obj.xwindow->height;
+			}else if (ref_obj.magic->magic == MAGIC_AFTERSHOW_X_LAYER)
 			{
-				ref_width = ref_obj.layer->width;
-				ref_height = ref_obj.layer->height;
+				ref_width = ref_obj.xlayer->width;
+				ref_height = ref_obj.xlayer->height;
 			}else
 			{
 				
@@ -737,31 +758,119 @@ HandleLayerTag (AfterShowContext *ctx, int channel, xml_elem_t *tag, AfterShowTa
 	return result;
 }
 
+static inline AfterShowXScreen *GetWindowScreen (AfterShowXWindow *window) { return window->screen; };
+static inline AfterShowClient *GetClient (AfterShowContext *ctx, int channel)
+{
+	if (ctx->clients[channel].fd == 0)
+		return NULL;
+	return &(ctx->clients[channel]);
+}
+
+AfterShowXWindow *
+GetWindowForClient(AfterShowContext *ctx, AfterShowClient *client, 
+					const char *id, int default_width, int default_height)
+{
+#ifndef X_DISPLAY_MISSING
+	AfterShowXWindow *window = NULL;
+	
+	if (client->default_window.magic)
+		if (client->default_window.magic->magic == MAGIC_AFTERSHOW_X_WINDOW)
+			window = client->default_window.xwindow;
+	if (id)
+	{
+		/* try and fetch window from the list by name */
+		
+	}
+	if (window == NULL)
+	{
+		AfterShowXScreen *scr = &(ctx->gui.x.screens[client->default_screen]);
+		window = aftershow_create_x_window (ctx, &(scr->root), default_width, default_height);
+		XMapWindow( ctx->gui.x.dpy, window->w);
+		
+		if (id)
+		{
+			/* store window for future reference under the id */
+		}
+		if (client->default_window.xwindow == NULL)
+			client->default_window.xwindow = window;
+	}
+	return window;
+#else	
+	return NULL;
+#endif
+}
+
+AfterShowXLayer *
+GetLayerForClientWindow(AfterShowContext *ctx, AfterShowClient *client, 
+                        AfterShowXWindow *window, const char *id)
+{
+#ifndef X_DISPLAY_MISSING
+	AfterShowXLayer *layer = NULL;
+	
+	if (client->default_layer.magic)
+		if (client->default_layer.magic->magic == MAGIC_AFTERSHOW_X_LAYER)
+			layer = client->default_layer.xlayer;
+			
+	if (id)
+	{
+		/* try and fetch layer from the list by name */
+		
+	}
+	if (layer == NULL)
+	{
+		layer = aftershow_create_x_layer (ctx, window);
+		if (id)
+		{
+			/* store layer for future reference under the id */
+		}
+		if (client->default_layer.xlayer == NULL)
+			client->default_layer.xlayer = layer;
+	}
+	
+	return layer;
+#else	
+	return NULL;
+#endif
+}
+
+
+void RenderImage (AfterShowContext *ctx, AfterShowClient *client, ASImage *im, AfterShowTagParams *params)
+{
+#ifndef X_DISPLAY_MISSING
+	AfterShowXWindow *window = GetWindowForClient(ctx, client, params->window_id, im->width, im->height);
+	if (window != NULL)
+	{
+		AfterShowXLayer *layer = GetLayerForClientWindow(ctx, client, window, params->layer_id);
+		if (layer != NULL)
+		{
+			aftershow_ASImage2XLayer (ctx, window, layer, im, params->x, params->y);
+			/* if layer is the only one or synchronous rendering - blend it onto the window */
+			XClearArea( ctx->gui.x.dpy, window->w, 0, 0, 0, 0, True);
+		}
+	}
+#endif
+}
+
 xml_elem_t *
 HandleImageTag (AfterShowContext *ctx, int channel, xml_elem_t *tag, AfterShowTagParams *params)
 {
+	AfterShowClient *client = GetClient(ctx, channel);
 	xml_elem_t *result = NULL;
-	AfterShowClient *client = &(ctx->clients[channel]);
-	ASImage *im = compose_asimage_xml_from_doc(asv, my_imman, my_fontman, doc, ASFLAGS_EVERYTHING, verbose, None, NULL, -1, -1);
+	ASImage *im = NULL;
+
+	if (client == NULL)
+		return NULL;
+	
+	im = compose_asimage_xml_from_doc(asv, client->imman, client->fontman, tag, ASFLAGS_EVERYTHING, False, None, NULL, -1, -1);
 
 	if( im ) 
 	{
-		/* Save the result image if desired. */
-		if (doc_save && doc_save_type) 
-		{
-        	if(!save_asimage_to_file(doc_save, im, doc_save_type, doc_compress, NULL, 0, 1)) 
-				show_error("Save failed.");
-			else
-				show_progress("Save successful.");
-		}
-		/* Display the image if desired. */
-		if (display && dpy) 
-			main_window = showimage(im, True, main_window, &main_window_props, dst_x, dst_y);
+		/* Display the image. */
+		RenderImage (ctx, client, im, params);
 
 		safe_asimage_destroy(im);
-		im = NULL ;
 	}					
-		printf("<success tag_count=%d/>\n", xb.tags_count );
+	/* printf("<success tag_count=%d/>\n", xb.tags_count ); */
 
 	return result;
 }

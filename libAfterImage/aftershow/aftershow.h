@@ -23,7 +23,7 @@
 #define MAGIC_AFTERSHOW_X_GUI		0xAF507201
 #define MAGIC_AFTERSHOW_WIN32_GUI	0xAF507232
 
-typedef struct AfterShowXWindowLayer
+typedef struct AfterShowXLayer
 {
 
 	unsigned long magic;
@@ -32,19 +32,24 @@ typedef struct AfterShowXWindowLayer
 	Pixmap pmap;
 	int pmap_width, pmap_height;
 #endif
-}AfterShowXWindowLayer;
+}AfterShowXLayer;
+
+struct AfterShowXScreen;
 
 typedef struct AfterShowXWindow
 {
 	unsigned long magic;
-	int layers_num;
-	AfterShowXWindowLayer *layers;
-
+	int layers_num, default_layer;
+	AfterShowXLayer *layers;
+	struct AfterShowXScreen *screen;
+	
 #ifndef X_DISPLAY_MISSING
 	Window 	w;
+	int width, height;
 	Pixmap  back;
-	int back_width, back_height;
-	
+	GC 		gc ;	
+	int 	depth;
+	int 	back_width, back_height;
 #endif
 }AfterShowXWindow;
 
@@ -53,13 +58,13 @@ typedef struct AfterShowXScreen
 	unsigned long magic;
 	Bool 		do_service;
 	int 		screen;
-	int 		windows_num;
-	AfterShowXWindow *windows;
-	
+
+	AfterShowXWindow root; /* not part of the above list */
+
+	ASHashTable *windows;
+
 #ifndef X_DISPLAY_MISSING
 	ASVisual   *asv;
-	Window  	root;
-	int 		root_width, root_height;
 	Window 		selection_window;
 	Atom   		_XA_AFTERSHOW_S;
 	Time 		selection_time;
@@ -101,7 +106,7 @@ typedef union
 {
 	ASMagic 				*magic;
 	ASImage 				*asim;
-	AfterShowXWindowLayer	*xlayer;
+	AfterShowXLayer			*xlayer;
 	AfterShowXWindow		*xwindow;
 	AfterShowXScreen		*xscreen;
 	AfterShowXGUI			*xgui;
@@ -116,12 +121,11 @@ typedef struct AfterShowClient
 	struct xml_elem_t	*xml_output_head, *xml_output_tail;
 	struct ASXmlBuffer 	*xml_output_buf; 
 	
-	AfterShowMagicPtr 	*default_gui;		/* could be either x or win32 */
+	AfterShowMagicPtr 	 default_gui;		/* could be either x or win32 */
 	int 				 default_screen;
-	AfterShowMagicPtr 	*default_window;	/* could be either x or win32 */
-	AfterShowMagicPtr 	*default_layer;		/* could be either x or win32 */
-	ASImageManager 		*imman;				/* if NULL - use the shared one */
-	ASFontManager 		*fontman;			/* if NULL - use the shared one */
+	AfterShowMagicPtr 	 default_window;	/* could be either x or win32 */
+	ASImageManager 		 imman;				/* if NULL - use the shared one */
+	ASFontManager 		 fontman;			/* if NULL - use the shared one */
 }AfterShowClient;
 
 typedef struct AfterShowContext
@@ -154,6 +158,9 @@ typedef struct AfterShowContext
 
 #define XA_AFTERSHOW_SOCKET_NAME "_AFTERSHOW_SOCKET"
 
+AfterShowXWindow* aftershow_XWindowID2XWindow (AfterShowContext *ctx, Window w);
+AfterShowXScreen* aftershow_XWindowID2XScreen (AfterShowContext *ctx, Window w);
+
 Bool aftershow_connect_x_gui(AfterShowContext *ctx);
 
 Bool aftershow_get_drawable_size_and_depth ( AfterShowContext *ctx,
@@ -164,6 +171,11 @@ Bool aftershow_get_drawable_size_and_depth ( AfterShowContext *ctx,
 Bool aftershow_validate_drawable (AfterShowContext *ctx, Drawable d);
 void aftershow_set_string_property (AfterShowContext *ctx, Window w, Atom property, char *data);
 char *aftershow_read_string_property (AfterShowContext *ctx, Window w, Atom property);
+AfterShowXWindow *aftershow_create_x_window (AfterShowContext *ctx, AfterShowXWindow *parent, int width, int height);
+AfterShowXLayer *aftershow_create_x_layer (AfterShowContext *ctx, AfterShowXWindow *window);
+Bool aftershow_ASImage2XLayer ( AfterShowContext *ctx, AfterShowXWindow *window, 
+								AfterShowXLayer *layer, ASImage *im,  int dst_x, int dst_y);
+void aftershow_ExposeXWindowArea (AfterShowContext *ctx, AfterShowXWindow *window, int left, int top, int right, int bottom);
 
 #endif
 
