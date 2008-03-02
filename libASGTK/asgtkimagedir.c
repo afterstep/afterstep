@@ -380,6 +380,14 @@ void  asgtk_image_dir_refresh( ASGtkImageDir *id )
 			}
 			curr = curr->next ;
 		}
+		/*
+			:sG:
+			The following 3 lines make the file lists sorted by
+			the File Name, Ascending.
+		*/
+                GtkTreeSortable *sortable;
+                sortable = GTK_TREE_SORTABLE(id->tree_model);
+                gtk_tree_sortable_set_sort_column_id(sortable,ASGTK_ImageDir_Col_Name_No,GTK_SORT_ASCENDING);		
 	}		   
 	if( curr_sel ) 
 		free( curr_sel );

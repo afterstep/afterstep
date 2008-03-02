@@ -168,7 +168,7 @@ asgtk_dir_tree_expand_handler(GtkTreeView *treeview,
 
 		asgtk_dir_tree_refresh_child( GTK_TREE_STORE(model), &child_iter, fullpath, 1 );
 		gtk_tree_store_set (GTK_TREE_STORE (model), &child_iter, TREE_SCANNED, 1, -1);
-	}while(gtk_tree_model_iter_next (model, &child_iter));	 
+	}while(gtk_tree_model_iter_next (model, &child_iter));	
 }
 
 /*  public functions  */
