@@ -184,7 +184,8 @@ asgtk_color_selection_create_cs_list( ASGtkColorSelection *cs )
 	{
 		gtk_list_store_append (GTK_LIST_STORE(model), &iter);
 		gtk_list_store_set (GTK_LIST_STORE(model), &iter, 0, ASMainColorNames[i], -1);
-	}	 
+	}
+	/* :sG: if we want to sort the colors list, this is where it looks like to add code for it...*/	 
 
 	return scrolled_win;
 }

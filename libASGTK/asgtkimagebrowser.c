@@ -507,6 +507,17 @@ asgtk_image_browser_refresh( ASGtkImageBrowser *ib )
 		gtk_list_store_append (dir_store, &iter);
 		gtk_list_store_set (dir_store, &iter, 0, "/", -1);
 	}
+               /*
+                        :sG:
+                        The following 3 lines make the file lists sorted by
+                        the Directory Name, Ascending.
+
+			For general directory listing (not files)
+                */
+                GtkTreeSortable *sortable;
+                sortable = GTK_TREE_SORTABLE(dir_store);
+                gtk_tree_sortable_set_sort_column_id(sortable,0,GTK_SORT_ASCENDING);
+
 	
 }
 

@@ -384,6 +384,8 @@ void  asgtk_image_dir_refresh( ASGtkImageDir *id )
 			:sG:
 			The following 3 lines make the file lists sorted by
 			the File Name, Ascending.
+			
+			For general file listing (not dirs)
 		*/
                 GtkTreeSortable *sortable;
                 sortable = GTK_TREE_SORTABLE(id->tree_model);

@@ -365,6 +365,18 @@ void  asgtk_dir_tree_refresh( ASGtkDirTree *dt )
 			}
 			curr = curr->next ;
 		}
+                /*
+		   This section doesnt seem to be needed here... ?
+                        :sG:
+                        The following 3 lines make the file lists sorted by
+                        the File Name, Ascending.
+                        
+                        For general file listing (not dirs)
+                GtkTreeSortable *sortable;
+                sortable = GTK_TREE_SORTABLE(dt->tree_model);
+                gtk_tree_sortable_set_sort_column_id(sortable,1,GTK_SORT_ASCENDING);
+		*/
+
 	}		   
 	if( curr_sel ) 
 		free( curr_sel );
