@@ -34,6 +34,43 @@
 #include "../afterimage.h"
 #include "aftershow.h"
 
+ASHashTable *AfterShowVocabulary = NULL;
+ = create_ashash( 7, casestring_hash_value, casestring_compare, string_destroy_without_data );
+
+void 
+aftershow_init_vocabulary (Bool free_resources)
+{
+	if (free_resources)
+	{
+		if (AfterShowVocabulary)
+			destroy_ashash (&AfterShowVocabulary);
+		return;
+	}
+	if (AfterShowVocabulary == NULL)
+	{
+		AfterShowVocabulary = create_ashash (7, casestring_hash_value, casestring_compare, string_destroy_without_data);
+#define REGISTER_AFTERSHOW_TAG(tag)	add_hash_item(AfterShowVocabulary,AS_HASHABLE(#tag),AfterShow_##tag##_ID)
+		REGISTER_AFTERSHOW_TAG(x);
+		REGISTER_AFTERSHOW_TAG(y);
+		REGISTER_AFTERSHOW_TAG(id);
+		REGISTER_AFTERSHOW_TAG(layer);
+		REGISTER_AFTERSHOW_TAG(width);
+		REGISTER_AFTERSHOW_TAG(height);
+		REGISTER_AFTERSHOW_TAG(parent);
+		REGISTER_AFTERSHOW_TAG(screen);
+		REGISTER_AFTERSHOW_TAG(window);
+		REGISTER_AFTERSHOW_TAG(geometry);
+#undef REGISTER_AFTERSHOW_TAG
+	}
+}
+
+xml_elem_t *
+aftershow_parse_xml_doc (const char *doc)
+{
+	return parse_xml_doc (doc, AfterShowVocabulary);
+}
+
+
 void 
 aftershow_add_tags_to_queue( xml_elem_t* tags, xml_elem_t **phead, xml_elem_t **ptail)
 {

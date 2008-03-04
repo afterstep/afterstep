@@ -549,7 +549,7 @@ HandleInput (AfterShowContext *ctx, int channel)
 					add_xml_buffer_chars( xb, "", 1 );
 					LOCAL_DEBUG_OUT("buffer: [%s]", xb->buffer );
 
-					if ((doc = xml_parse_doc(xb->buffer, NULL)) != NULL)
+					if ((doc = aftershow_parse_xml_doc(xb->buffer)) != NULL)
 						aftershow_add_tags_to_queue (doc, &(client->xml_input_head), &(client->xml_input_tail));
 					reset_xml_buffer( xb );
 				}
@@ -632,6 +632,15 @@ typedef struct AfterShowTagParams
 	char *layer_id;
 }AfterShowTagParams;
 
+typedef struct AfterShowTagContext
+{
+	AfterShowContext 	*ctx;
+	AfterShowClient 	*client
+	
+	AfterShowMagicPtr 	*window;
+	AfterShowMagicPtr 	*layer;
+}AfterShowTagContext;
+
 void ParseTagParams (AfterShowContext *ctx, int channel, xml_elem_t *tag, AfterShowTagParams *params);
 xml_elem_t *HandleWindowTag (AfterShowContext *ctx, int channel, xml_elem_t *tag, AfterShowTagParams *params);
 xml_elem_t *HandleLayerTag (AfterShowContext *ctx, int channel, xml_elem_t *tag, AfterShowTagParams *params);
@@ -645,10 +654,11 @@ HandleXML (AfterShowContext *ctx, int channel)
 	/* the fun part ! */
 	while (client->xml_input_head)
 	{
-		xml_elem_t *tag = client->xml_output_head;
+		xml_elem_t *container, *tag;
 		xml_elem_t *result = NULL;
 		AfterShowTagParams params;
 
+		container = tag = client->xml_output_head;
 		/* remove tag from the input queue */
 
 		client->xml_input_head = tag->next;
@@ -657,21 +667,26 @@ HandleXML (AfterShowContext *ctx, int channel)
 		tag->next = NULL;
 
 		/* now lets handle the tag ! */
-		ParseTagParams (ctx, channel, tag, &params);
-
-		switch (params.type)
+		while (tag && tag->tag_id == XML_CONTAINER_ID)	tag = tag->child;
+		
+		if (tag)
 		{
-			case AfterShowTag_Unknown : break;
-			case AfterShowTag_Window : result = HandleWindowTag (ctx, channel, tag, &params); break;
-			case AfterShowTag_Layer : result = HandleLayerTag (ctx, channel, tag, &params); break;
-			case AfterShowTag_Image : result = HandleImageTag (ctx, channel, tag, &params); break;
+			AfterShowTagContext tag_ctx ; 
+			memset( &tag_ctx, 0x00, sizeof(tag_ctx));
+			tag_ctx.ctx = ctx;
+			tag_ctx.client = client;
+			
+			if (tag->tag_id != AfterShow_window_ID)
+				result = HandleWindowTag( &tag_ctx, NULL, tag);
+			else
+				result = HandleWindowTag( &tag_ctx, tag, tag->child);
+		
+			if (result != NULL && client->fd > 0)
+				aftershow_add_tags_to_queue (result, &(client->xml_output_head), &(client->xml_output_tail));
 		}
-
-		if (result != NULL && client->fd > 0)
-			aftershow_add_tags_to_queue (result, &(client->xml_output_head), &(client->xml_output_tail));
-
+		
 		/* delete the tag */
-		xml_elem_delete (NULL, tag);		
+		xml_elem_delete (NULL, container);
 	}
 
 }

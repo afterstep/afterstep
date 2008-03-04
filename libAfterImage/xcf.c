@@ -107,6 +107,7 @@ xcf_skip_string (FILE *fp)
 		fseek(fp, size, SEEK_CUR );
 	}
 }
+void print_xcf_layers( char* prompt, XcfLayer *head );
 
 XcfImage *
 read_xcf_image( FILE *fp )
@@ -184,6 +185,7 @@ print_xcf_properties( char* prompt, XcfProperty *prop )
 	register int i = 0 ;
 	while( prop )
 	{
+		fprintf( stderr, "%s.properties[%d] = %p\n", prompt, i, prop );
 		fprintf( stderr, "%s.properties[%d].id = %ld\n", prompt, i, (long)prop->id );
 		fprintf( stderr, "%s.properties[%d].size = %ld\n", prompt, i, (long)prop->len );
 		if( prop->len > 0 )
@@ -265,6 +267,7 @@ print_xcf_layers( char* prompt, XcfLayer *head )
 	char p[256] ;
 	while( head )
 	{
+		fprintf( stderr, "%s.layer[%d] = %p\n", prompt, i, head );
 		fprintf( stderr, "%s.layer[%d].offset = %ld\n", prompt, i, (long)head->offset );
 		fprintf( stderr, "%s.layer[%d].width = %ld\n", prompt, i, (long)head->width );
 		fprintf( stderr, "%s.layer[%d].height = %ld\n", prompt, i, (long)head->height );
@@ -475,19 +478,19 @@ read_xcf_layers( XcfImage *xcf_im, FILE *fp, XcfLayer *head )
 			if( prop->id ==  XCF_PROP_FLOATING_SELECTION )
 			{
 				xcf_im->floating_selection = head;
-			}else if( prop->id ==  XCF_PROP_OPACITY )
+			}else if( prop->id ==  XCF_PROP_OPACITY && pd)
 			{
 				head->opacity = as_ntohl(*pd);
-			}else if( prop->id ==  XCF_PROP_VISIBLE )
+			}else if( prop->id ==  XCF_PROP_VISIBLE && pd)
 			{
 				head->visible = ( *pd !=0);
-			}else if( prop->id ==  XCF_PROP_PRESERVE_TRANSPARENCY )
+			}else if( prop->id ==  XCF_PROP_PRESERVE_TRANSPARENCY && pd)
 			{
 				head->preserve_transparency = (*pd!=0);
-			}else if( prop->id == XCF_PROP_MODE )
+			}else if( prop->id == XCF_PROP_MODE && pd)
 			{
 				head->mode = as_ntohl(*pd);
-			}else if( prop->id == XCF_PROP_OFFSETS )
+			}else if( prop->id == XCF_PROP_OFFSETS && pd)
 			{
 				head->offset_x = as_ntohl(pd[0]);
 				head->offset_y = as_ntohl(pd[1]);
@@ -501,7 +504,6 @@ read_xcf_layers( XcfImage *xcf_im, FILE *fp, XcfLayer *head )
 				head->hierarchy_offset = 0 ;
 				head->mask_offset = 0 ;
 			}
-
 			if( head->hierarchy_offset > 0 )
 			{
 				fseek( fp, head->hierarchy_offset, SEEK_SET );
@@ -514,6 +516,7 @@ read_xcf_layers( XcfImage *xcf_im, FILE *fp, XcfLayer *head )
 				read_xcf_channels( xcf_im, fp, head->mask );
 			}
 		}
+
 		head = head->next ;
 	}
 }
@@ -593,6 +596,7 @@ read_xcf_hierarchy( XcfImage *xcf_im, FILE *fp, CARD8 opacity, ARGB32 colormask 
 	if( h->levels )
 	{
 		read_xcf_levels( xcf_im, fp, h->levels );
+
 		/* now we want to try and merge all the tiles into single ASImage */
 		if( h->levels->width == h->width && h->levels->height == h->height )
 		{ /* only first level is interesting for us : */
@@ -602,6 +606,18 @@ read_xcf_hierarchy( XcfImage *xcf_im, FILE *fp, CARD8 opacity, ARGB32 colormask 
 			ASScanline 	*buf = &(xcf_im->scanline_buf[0]) ;
 			XcfTile 		*tile = h->levels->tiles ;
 			decode_xcf_tile_func decode_func = decode_xcf_tile ;
+			CARD8 			*tile_buf = &(xcf_im->tile_buf[0]);
+			int i;
+
+			if (XCF_TILE_WIDTH < h->width)
+				tile_buf = safemalloc (h->width*XCF_TILE_HEIGHT*6);
+				
+			if (xcf_im->width < h->width)
+				for( i = 0 ; i < XCF_TILE_HEIGHT ; i++ )
+				{
+					free_scanline (&(xcf_im->scanline_buf[i]), True); 
+					prepare_scanline (h->width,0,&(xcf_im->scanline_buf[i]), False );
+				}
 
 			if( xcf_im->compression == XCF_COMPRESS_RLE )
 				decode_func = decode_xcf_tile_rle ;
@@ -616,18 +632,18 @@ read_xcf_hierarchy( XcfImage *xcf_im, FILE *fp, CARD8 opacity, ARGB32 colormask 
 			{
 				int width_left = h->width ;
 				int max_i, y ;
-				register int i ;
 				/* first - lets collect our data : */
 				while( width_left > 0 && tile )
 				{
 					fseek( fp, tile->offset, SEEK_SET );
-					decode_func(fp, tile, h->bpp, buf, &(xcf_im->tile_buf[0]),
+					decode_func(fp, tile, h->bpp, buf, tile_buf,
 							    h->width-width_left, h->height-height_left,  /* really don't need this one */
 								MIN(width_left,XCF_TILE_WIDTH), MIN(height_left,XCF_TILE_HEIGHT));
 
 					width_left -= XCF_TILE_WIDTH ;
 					tile = tile->next ;
 				}
+
 				/* now lets encode it into ASImage : */
 				max_i = MIN(height_left,XCF_TILE_HEIGHT);
 				y = h->height - height_left ;
@@ -646,6 +662,8 @@ read_xcf_hierarchy( XcfImage *xcf_im, FILE *fp, CARD8 opacity, ARGB32 colormask 
 				/* continue on to the next row : */
 				height_left -= XCF_TILE_HEIGHT ;
 			}
+			if (tile_buf != &(xcf_im->tile_buf[0]))
+				free (tile_buf);
 		}
 	}
 	return h;
@@ -707,7 +725,6 @@ store_colors( CARD8 *data, ASScanline *curr_buf, int bpp, int comp, int offset_x
 {
 	register int i ;
 	CARD32   *out = NULL;
-
 	if( comp+1 < bpp || bpp == 3 )
 	{
 		switch( comp )

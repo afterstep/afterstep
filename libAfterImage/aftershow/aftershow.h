@@ -153,6 +153,9 @@ typedef struct AfterShowContext
 
 }AfterShowContext;
 
+
+
+
 /***** from xutil.c */
 #ifndef X_DISPLAY_MISSING
 
@@ -180,7 +183,27 @@ void aftershow_ExposeXWindowArea (AfterShowContext *ctx, AfterShowXWindow *windo
 #endif
 
 /***** from xmlutil.c */
+
+typedef enum
+{
+	AfterShow_unknown_ID = 0,
+	AfterShow_x_ID,
+	AfterShow_y_ID,
+	AfterShow_id_ID,
+	AfterShow_layer_ID,
+	AfterShow_width_ID,
+	AfterShow_height_ID,
+	AfterShow_parent_ID,
+	AfterShow_screen_ID,	
+	AfterShow_window_ID,
+	AfterShow_geometry_ID,	
+	AfterShow_SUPPORTED_IDS
+
+}SupportedAfterShowXMLTagIDs;
+
 void aftershow_add_tags_to_queue( xml_elem_t* tags, xml_elem_t **phead, xml_elem_t **ptail);
+void aftershow_init_vocabulary (Bool free_resources);
+xml_elem_t *aftershow_parse_xml_doc (const char *doc);
 
 
 #endif /* AFTERSHOW_H_INCLUDED */

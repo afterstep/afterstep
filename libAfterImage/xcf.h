@@ -121,7 +121,7 @@ typedef struct XcfProperty
 	CARD32				  len;
 	CARD8	 		     *data;
 /* most properties will fit in here - save on memory allocation */
-	CARD32				  buffer[2] ;
+	CARD32				  buffer[20] ;
 
 	struct XcfProperty   *next;
 }XcfProperty;
