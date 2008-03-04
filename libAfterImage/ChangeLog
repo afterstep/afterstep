@@ -1,4 +1,238 @@
 
+2008-03-04  sasha
+
+	* AfterStep release v. 2.2.8
+
+2008-02-29  sasha
+
+	* some more brainstorming as related to aftershow design
+
+2008-02-26  sasha
+
+	* updated afterbase.c to include new stuff from libAfterBase for
+	  xml
+
+2008-02-22  sasha
+
+	* [no log message]
+
+2008-02-19  sasha
+
+	* xml manipulation code added
+
+2008-02-18  sasha
+
+	* [no log message]
+
+2008-02-16  sasha
+
+	* started implementing aftershow client to be used by shell scripts
+	  to redirect stdio to aftershow
+	* fixed asfont get_glyph_map to not confuse compilers into thinking
+	  that there might be uninitialized stuff
+
+2008-02-15  sasha
+
+	* added code to handle client connections and input to aftershow
+	* updated libAfterImage.mak
+
+2008-02-14  sasha
+
+	* added socket setup code - need to move socket.c in here in case
+	  afterbase is unavailable
+	* more X initialization code for aftershow
+
+2008-02-13  sasha
+
+	* [no log message]
+
+2008-02-08  sasha
+
+	* started implementing aftershow daemon
+	* started work on aftershow daemon
+	* fixed memory leak in ascompose processing in interactive mode
+	* compile warning on solaris in pixmap.c
+
+2008-02-07  sasha
+
+	* fixed compile warning with gcc 4.3
+
+2008-02-06  sasha
+
+	* fixed compile warnings in asfont.c in win32
+	* removed old png files from project
+	* fixed png.h to properly include zlib.h on windows and undeffed
+	  stdint.h on win32
+
+2008-02-01  sasha
+
+	* fixed makefile to not reference obsolete libong files
+
+2008-01-25  sasha
+
+	* added functionality to ascompose to allow for constantly updating
+	  display of stuff; command line should be: script.sh | ascompose
+	  -I --endless --click-timeout 0 -q -f -;
+
+2008-01-18  sasha
+
+	* implemented full color drawing in draw.c using prototypes from
+	  ROOT by Valeri Onuchin. Needs testing and and changes to
+	  aply_context()
+	* changed draw.c to use 32bit values in canvas, possibly to enable
+	  rendering in all 4 channels in future - need more work
+
+2008-01-17  sasha
+
+	* fixed handling of grayscale PNG images with bit depth < 8
+
+2008-01-16  sasha
+
+	* partially fixed segfault on loading grayscale PNG images
+	* fixed segfault on loading grayscale PNG images
+	* enabled debugging for bigendian tests
+
+2008-01-15  sasha
+
+	* moved HAVE_XPM to after config.h in libAI xpm.c; updated main
+	  configure
+	* exclude xpm.c from built when no xpm is requested; no longer
+	  support standard libgif and libxpm
+
+2008-01-09  sasha
+
+	* implemented functionality to setup slicing of frame sides and
+	  titlebar elements
+	* added code to kill Esetroot client if desktop background was set
+	  by it
+
+2008-01-08  sasha
+
+	* added functionality to ascompose to set XROOTPMAP property while
+	  changing root background
+
+2008-01-04  sasha
+
+	* removed erroneous configure.h include in ascompose
+
+2008-01-03  born2late
+
+	* added utf8 support according to sasha s instructions - seems to
+	  work
+
+2007-12-27  sasha
+
+	* removed config.h from installation script
+	* added new convinience function to convert Lead Tools like DIBs
+	  into ASImage in one call; Fixed typo in ASImage2DIB.
+	* Fixed major bug that maybe causing memory corruption on any
+	  system where malloc does not return pointer aligned on 8-byte
+	  boundary
+	* sanity fix to configure
+
+2007-12-26  sasha
+
+	* fixed logic to not enlarge icons in menus if target size is too
+	  big
+
+2007-12-19  sasha
+
+	* giving up on trying to figure out why asvector does not work on
+	  Power PC
+
+2007-12-18  sasha
+
+	* yet another try in resolving endiannes of the XImage encoding
+
+2007-12-17  sasha
+
+	* rewrote scanline2ximage32 to properly account for offset and
+	  hopefully fix byteordering issue
+
+2007-12-14  sasha
+
+	* hopefully fixed incorrect byte order while converting XImage on
+	  32 bit visuals back to ASImage on big endian machines
+	* minor cleanups in configure script to use lowercase NO
+
+2007-12-05  sasha
+
+	* updated built-in libpng to 1.2.23
+
+2007-11-30  sasha
+
+	* updated xwrap.h to be the same as in libAfterBase and fixed
+	  compilation under newer MSVC
+
+2007-11-26  sasha
+
+	* Fixed memory leak in DGifCloseFile where pointer to GifFile gets
+	  overwritten with NULL leaving dungling memory
+
+2007-11-20  sasha
+
+	* fixed memory leak in gif import code
+
+2007-11-16  sasha
+
+	* fixed missing initialization of ASColormap structure in
+	  colormap_asimage
+	* disabled performance output in transform.c
+
+2007-10-25  sasha
+
+	* added ability to load ASXML images for set size - should use
+	  .width and .height vars inside the image to calculate different
+	  sizes
+
+2007-10-16  sasha
+
+	* Implemented proper transfer of ASImage to OpenGL drawables using
+	  textures and pixel ops
+
+2007-09-21  sasha
+
+	* altered configure to make building of apps optional - if the dir
+	  is present
+
+2007-09-18  sasha
+
+	* removed __FUNCTION__ to fix compile on Solaris
+
+2007-09-17  sasha
+
+	* fixed compile errors under MSVC
+	* fixed compile errors in asstorage.c under MSVC
+
+2007-09-15  sasha
+
+	* fixed compile warnings on solaris in asvisual.c reported by ROOT
+	  project
+	* fixed compile problem under VisualStudio .Net 2005, as reported
+	  by Valeri Onuchin
+	* added functions for reading raw XPM and PNG buffers, contributed
+	  by Valeri Onuchin of ROOT project
+	* added ASImage2xpmRawBuff() contributed by Valeriy Onuchin of ROOT
+	  project
+
+2007-09-14  sasha
+
+	* fixed compile bug when building with shmimage and without
+	  libAfterBase
+
+2007-09-12  born2late
+
+	* minor typos corrected
+
+2007-09-05  sasha
+
+	* fixed one off error in blurring code	potentialy causing a
+	  segfault
+
+2007-08-23  sasha
+
+	* updated ChangeLog for release
+
 2007-08-22  sasha
 
 	* compile problem on solaris fixed; Feeble attempts at increasing

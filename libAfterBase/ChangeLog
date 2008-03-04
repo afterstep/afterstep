@@ -1,4 +1,42 @@
 
+2008-03-04  sasha
+
+	* AfterStep release v. 2.2.8
+
+2008-02-22  sasha
+
+	* [no log message]
+
+2008-02-19  sasha
+
+	* xml manipulation code added
+
+2008-02-15  sasha
+
+	* added code to handle client connections and input to aftershow
+
+2008-02-11  sasha
+
+	* implemented symlink chacking and DesktopEntry checking while
+	  determining if text editor or web browser require term to run
+
+2007-12-06  sasha
+
+	* compilation problems with missing X libs
+
+2007-11-30  sasha
+
+	* synchronised xwrap.h with libAfterImage
+
+2007-09-20  sasha
+
+	* got rid of pesky compile warnings in selfdiag code
+	* fixed compilation of self-diag code under cygwin
+
+2007-08-23  sasha
+
+	* updated ChangeLog for release
+
 2007-08-20  sasha
 
 	* AfterStep 2.2.7 release

@@ -1,6 +1,18 @@
-  * Added UnderPointer placement type to center window under mouse pointer on 
+version 2.2.8 release
+    * Implemented possibility to define exact size of the virtual desktop, 
+	  which may not be exact multiply of the screen size.
+    * Automatic detection and execution of text editors and web browsers in term
+      if they require it.
+    * Added functionality to ascompose to allow for constantly updating display 
+  	  of stuff; command line should be: 
+	  script.sh | ascompose  -I --endless --click-timeout 0 -q -f -;
+    * Implemented functionality to setup slicing of frame sides and titlebar 
+      elements.
+    * Added functionality to ascompose to set XROOTPMAP property while
+	  changing root background.
+    * Added UnderPointer placement type to center window under mouse pointer on 
       map.
-  * Added BlurSize option to MyStyles for blurring of transparent background.
+    * Added BlurSize option to MyStyles for blurring of transparent background.
 	  Use like so: BlurSize 10x20  will set horizontal blur to 10 pixels and 
 	  vertical to 20.
    

@@ -1,7 +1,472 @@
 
+2008-03-04  sasha
+
+	* AfterStep release v. 2.2.8
+
+2008-03-02  jeremy
+
+	* Additional GTK File Sorting fixes
+
+2008-03-01  jeremy
+
+	* ASGTK apps should now list files ascending order by file name.
+
+2008-02-29  sasha
+
+	* some more brainstorming as related to aftershow design
+
+2008-02-28  sasha
+
+	* fixed window list saving into workspace_state file to skip
+	  shortlived windows
+
+2008-02-26  sasha
+
+	* updated afterbase.c to include new stuff from libAfterBase for
+	  xml
+
+2008-02-22  sasha
+
+	* channged handling of configureRequests to not move window around
+	  to avoid AvoidCover windows in layers above it
+	* [no log message]
+	* fixed selection rectangle sizing when desktop is not exact
+	  multiply of screen size
+
+2008-02-19  sasha
+
+	* xml manipulation code added
+
+2008-02-18  sasha
+
+	* [no log message]
+
+2008-02-16  sasha
+
+	* started implementing aftershow client to be used by shell scripts
+	  to redirect stdio to aftershow
+	* fixed asfont get_glyph_map to not confuse compilers into thinking
+	  that there might be uninitialized stuff
+
+2008-02-15  sasha
+
+	* added code to handle client connections and input to aftershow
+	* updated libAfterImage.mak
+
+2008-02-14  sasha
+
+	* added socket setup code - need to move socket.c in here in case
+	  afterbase is unavailable
+	* more X initialization code for aftershow
+
+2008-02-13  sasha
+
+	* [no log message]
+	* implemented possibility to define exact size of the virtual
+	  desktop, which may not be exact multiply of the screen size
+
+2008-02-12  sasha
+
+	* small fixes to wharf config
+
+2008-02-11  sasha
+
+	* implemented symlink chacking and DesktopEntry checking while
+	  determining if text editor or web browser require term to run
+
+2008-02-11  speedy
+
+	* added additional text-based web browsers.
+	* added additional text editors.
+
+2008-02-10  sasha
+
+	* added check for console tools, to alunch them in the term
+
+2008-02-08  sasha
+
+	* started implementing aftershow daemon
+	* started work on aftershow daemon
+	* fixed memory leak in ascompose processing in interactive mode
+	* compile warning on solaris in pixmap.c
+
+2008-02-07  sasha
+
+	* fixed compile warning with gcc 4.3
+
+2008-02-06  sasha
+
+	* fixed compile warnings in asfont.c in win32
+	* removed old png files from project
+	* fixed png.h to properly include zlib.h on windows and undeffed
+	  stdint.h on win32
+
+2008-02-05  sasha
+
+	* changed logging to always append to log and not overwrite it
+	* fixed missing parameters for spawn_child
+	* hopefully fixed restarting functionality when running from under
+	  gdm and when AS is not in the PATH
+
+2008-02-04  sasha
+
+	* fixed previous fix for AS restart under FC
+
+2008-02-02  speedy
+
+	* added bug tracker info to About AfterStep Menu
+
+2008-02-01  jeremy
+
+	* Fix crash on restart for some newer linux distributions
+
+2008-02-01  sasha
+
+	* fixed makefile to not reference obsolete libong files
+
+2008-01-27  jeremy
+
+	* syncing up items in Sound source files
+
+2008-01-26  jeremy
+
+	* Added new sound conf option. Adding more error control to Sound2.
+
+2008-01-25  sasha
+
+	* added functionality to ascompose to allow for constantly updating
+	  display of stuff; command line should be: script.sh | ascompose
+	  -I --endless --click-timeout 0 -q -f -;
+
+2008-01-24  sasha
+
+	* fixed window move/resize where window would get resized even
+	  after button release
+
+2008-01-24  jeremy
+
+	* Additional notes added to Sound2 code, minor cleanups.
+
+2008-01-23  jeremy
+
+	* minor notes added to sound2 module files
+	* global Makefile will (attempt) to compile Sound2 module
+
+2008-01-23  born2late
+
+	* actual version - not updating - maybe sasha can help
+
+2008-01-22  born2late
+
+	* irrelevant change to make html look better
+
+2008-01-21  jeremy
+
+	* More Sound2 module changes/updates. more sound triggers
+
+2008-01-18  sasha
+
+	* implemented full color drawing in draw.c using prototypes from
+	  ROOT by Valeri Onuchin. Needs testing and and changes to
+	  aply_context()
+	* changed draw.c to use 32bit values in canvas, possibly to enable
+	  rendering in all 4 channels in future - need more work
+
+2008-01-17  sasha
+
+	* fixed handling of grayscale PNG images with bit depth < 8
+
+2008-01-16  sasha
+
+	* partially fixed segfault on loading grayscale PNG images
+	* fixed segfault on loading grayscale PNG images
+	* fixed bug in Makefile
+	* added flags to top level configure to force usage of builtin
+	  jpeg, png and zlib
+	* enabled debugging for bigendian tests
+
+2008-01-15  sasha
+
+	* moved HAVE_XPM to after config.h in libAI xpm.c; updated main
+	  configure
+	* exclude xpm.c from built when no xpm is requested; no longer
+	  support standard libgif and libxpm
+
+2008-01-13  jeremy
+
+	* Sound2 parsing out sound files better now
+
+2008-01-12  jeremy
+
+	* Removed more legacy Sound options, Sound2 reading more conf
+	  settings
+
+2008-01-11  jeremy
+
+	* unbreak AS compiling cause of sound conf changes
+	* Added pcmdevice option to sound's conf
+	* More sound2 module handling changes
+
+2008-01-10  sasha
+
+	* updated Team members
+
+2008-01-09  sasha
+
+	* implemented functionality to setup slicing of frame sides and
+	  titlebar elements
+	* added code to kill Esetroot client if desktop background was set
+	  by it
+
+2008-01-09  jeremy
+
+	* More Sound2 module updates/changes to include wave header reading
+	* Minor Sound2 header updates
+
+2008-01-08  jeremy
+
+	* Minor Sound2 updates
+
+2008-01-08  sasha
+
+	* added functionality to ascompose to set XROOTPMAP property while
+	  changing root background
+
+2008-01-07  jeremy
+
+	* make install puts in the sound config file and desktop/sounds dir
+	* Added new sound files to place Audio.c and audio.in
+	* Renamed all Audio to Sound in Makefiles, etc.
+
+2008-01-06  jeremy
+
+	* Sound2 module reads config file now
+
+2008-01-04  jeremy
+
+	* More Sound2 config updates
+
+2008-01-04  sasha
+
+	* fixed bad set_string_val macro to properly handle NULL pointer
+
+2008-01-04  jeremy
+
+	* Adding conf file support to Sound2
+	* Sound2 module plays sound on window shade
+	* More Sound2 module updates
+
+2008-01-04  sasha
+
+	* removed erroneous configure.h include in ascompose
+
+2008-01-03  born2late
+
+	* modifications to make it better work with php pages
+	* added utf8 support according to sasha s instructions - seems to
+	  work
+
+2007-12-27  sasha
+
+	* removed config.h from installation script
+	* added new convinience function to convert Lead Tools like DIBs
+	  into ASImage in one call; Fixed typo in ASImage2DIB.
+	* Fixed major bug that maybe causing memory corruption on any
+	  system where malloc does not return pointer aligned on 8-byte
+	  boundary
+	* sanity fix to configure
+
+2007-12-26  sasha
+
+	* fixed logic to not enlarge icons in menus if target size is too
+	  big
+
+2007-12-25  sasha
+
+	* fixed message processing in WinTabs to work on 64-bit systems
+
+2007-12-23  jeremy
+
+	* Added Sound2 Header file
+	* Added sample .wav for any testing of Sound2 module
+	* Rewrite of Sound2 Module.
+
+2007-12-19  sasha
+
+	* removed X Intinrsic header as unneeded
+	* giving up on trying to figure out why asvector does not work on
+	  Power PC
+
+2007-12-18  sasha
+
+	* yet another try in resolving endiannes of the XImage encoding
+
+2007-12-17  jeremy
+
+	* more sound2 module stuff
+
+2007-12-17  sasha
+
+	* rewrote scanline2ximage32 to properly account for offset and
+	  hopefully fix byteordering issue
+
+2007-12-14  sasha
+
+	* hopefully fixed incorrect byte order while converting XImage on
+	  32 bit visuals back to ASImage on big endian machines
+
+2007-12-14  jeremy
+
+	* Sound2 test code, dont try to look for and play test wav
+	* Sound2 module now does events right.. i think
+
+2007-12-14  sasha
+
+	* fixed build problem in libAC
+	* minor cleanups in configure script to use lowercase NO
+
+2007-12-06  sasha
+
+	* compilation problems with missing X libs
+
+2007-12-05  sasha
+
+	* updated built-in libpng to 1.2.23
+
+2007-11-30  sasha
+
+	* synchronised xwrap.h with libAfterImage
+	* updated xwrap.h to be the same as in libAfterBase and fixed
+	  compilation under newer MSVC
+
+2007-11-26  sasha
+
+	* Fixed memory leak in DGifCloseFile where pointer to GifFile gets
+	  overwritten with NULL leaving dungling memory
+
+2007-11-20  sasha
+
+	* fixed memory leak in gif import code
+
+2007-11-16  sasha
+
+	* fixed missing initialization of ASColormap structure in
+	  colormap_asimage
+	* disabled performance output in transform.c
+
+2007-11-12  born2late
+
+	* added docs for bevel in different parts of window frames
+
+2007-10-30  born2late
+
+	* yet another typo
+	* typo correction
+
+2007-10-25  sasha
+
+	* added ability to load ASXML images for set size - should use
+	  .width and .height vars inside the image to calculate different
+	  sizes
+
+2007-10-25  speedy
+
+	* added urxvt as an option for ExecInTerm
+	* added urxvt to list of terms (first now, followed by aterm).
+
+2007-10-16  sasha
+
+	* Implemented proper transfer of ASImage to OpenGL drawables using
+	  textures and pixel ops
+
+2007-09-30  speedy
+
+	* Cleaned-up the Unicode icon.
+
+2007-09-24  sasha
+
+	* implemented  Underpointer placement type
+
+2007-09-21  sasha
+
+	* altered configure to make building of apps optional - if the dir
+	  is present
+
+2007-09-20  sasha
+
+	* got rid of pesky compile warnings in selfdiag code
+	* fixed compilation of self-diag code under cygwin
+
+2007-09-18  sasha
+
+	* removed __FUNCTION__ to fix compile on Solaris
+
+2007-09-17  sasha
+
+	* fixed compile errors under MSVC
+	* fixed compile errors in asstorage.c under MSVC
+
+2007-09-15  sasha
+
+	* fixed compile warnings on solaris in asvisual.c reported by ROOT
+	  project
+	* fixed compile problem under VisualStudio .Net 2005, as reported
+	  by Valeri Onuchin
+	* added functions for reading raw XPM and PNG buffers, contributed
+	  by Valeri Onuchin of ROOT project
+	* added ASImage2xpmRawBuff() contributed by Valeriy Onuchin of ROOT
+	  project
+
+2007-09-14  sasha
+
+	* fixed compile bug when building with shmimage and without
+	  libAfterBase
+
+2007-09-12  born2late
+
+	* minor typos corrected
+	* just making sure all config option are in again... did not add
+	  dirs Look/obsolete Wharf\ Folders and Wharf Contents, since it
+	  looks like they are generated by error by asdocgen
+	* reverting to version 1.2
+	* upsi - that is not what i wanted... gotta remove that
+	* desklets update : now unified shell script to control with some
+	  help text output
+
+2007-09-06  born2late
+
+	* using awk instead of sed mainly now as it is way more powerfull
+
+2007-09-05  sasha
+
+	* Implemented BlurSize option in MyStyles
+	* fixed one off error in blurring code	potentialy causing a
+	  segfault
+
+2007-09-03  born2late
+
+	* hopefully now working with locale !=de/at
+	* now fully working calendar (at least with my locale), need others
+	  to check if it s really doing correctly
+
+2007-09-02  madarche
+
+	* M.-A. Darche:
+
+	  - Fixed typo Denote -> Demote in "Demote to Lower Layer".
+
+2007-09-01  born2late
+
+	* update to calendar desklet
+
+2007-08-30  born2late
+
+	* first checkin of desklets, gotta find a way to keep cpu load
+	  lower, 1% atm on my machine for both
+
 2007-08-23  sasha
 
-	* AfterStep 2.2.7 release
+	* updated ChangeLog for release
 
 2007-08-22  sasha
 
@@ -11,6 +476,7 @@
 
 2007-08-20  sasha
 
+	* AfterStep 2.2.7 release
 	* fixed bug where ExecInTerm targets wheren't properly tested for
 	  existence
 	* added logic to not reuse the icon from underlaying (disabled)
