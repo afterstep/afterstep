@@ -634,7 +634,6 @@ typedef struct AfterShowTagParams
 
 typedef struct AfterShowTagContext
 {
-	AfterShowContext 	*ctx;
 	AfterShowClient 	*client
 	
 	AfterShowMagicPtr 	*window;
@@ -642,7 +641,7 @@ typedef struct AfterShowTagContext
 }AfterShowTagContext;
 
 void ParseTagParams (AfterShowContext *ctx, int channel, xml_elem_t *tag, AfterShowTagParams *params);
-xml_elem_t *HandleWindowTag (AfterShowContext *ctx, int channel, xml_elem_t *tag, AfterShowTagParams *params);
+xml_elem_t *HandleWindowTag (AfterShowContext *ctx, AfterShowTagContext *tag_ctx, xml_elem_t *window_tag, xml_elem_t *child_tag);
 xml_elem_t *HandleLayerTag (AfterShowContext *ctx, int channel, xml_elem_t *tag, AfterShowTagParams *params);
 xml_elem_t *HandleImageTag (AfterShowContext *ctx, int channel, xml_elem_t *tag, AfterShowTagParams *params);
 
@@ -656,7 +655,6 @@ HandleXML (AfterShowContext *ctx, int channel)
 	{
 		xml_elem_t *container, *tag;
 		xml_elem_t *result = NULL;
-		AfterShowTagParams params;
 
 		container = tag = client->xml_output_head;
 		/* remove tag from the input queue */
@@ -673,13 +671,12 @@ HandleXML (AfterShowContext *ctx, int channel)
 		{
 			AfterShowTagContext tag_ctx ; 
 			memset( &tag_ctx, 0x00, sizeof(tag_ctx));
-			tag_ctx.ctx = ctx;
 			tag_ctx.client = client;
 			
 			if (tag->tag_id != AfterShow_window_ID)
-				result = HandleWindowTag( &tag_ctx, NULL, tag);
+				result = HandleWindowTag( ctx, &tag_ctx, NULL, tag);
 			else
-				result = HandleWindowTag( &tag_ctx, tag, tag->child);
+				result = HandleWindowTag( ctx, &tag_ctx, tag, tag->child);
 		
 			if (result != NULL && client->fd > 0)
 				aftershow_add_tags_to_queue (result, &(client->xml_output_head), &(client->xml_output_tail));
@@ -756,11 +753,17 @@ void ParseTagParams (AfterShowContext *ctx, int channel, xml_elem_t *tag, AfterS
 }
 
 xml_elem_t *
-HandleWindowTag (AfterShowContext *ctx, int channel, xml_elem_t *tag, AfterShowTagParams *params)
+xml_elem_t *HandleWindowTag (AfterShowContext *ctx, AfterShowTagContext *tag_ctx, xml_elem_t *window_tag, xml_elem_t *child_tag);
 {
 	xml_elem_t *result = NULL;
-	AfterShowClient *client = &(ctx->clients[channel]);
-
+	if (window_tag == NULL)
+	{/* find or create the default window for the client */
+		
+	}else
+	{
+	
+	}
+	
 	return result;
 }
 
