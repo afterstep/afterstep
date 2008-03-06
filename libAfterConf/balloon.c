@@ -51,7 +51,7 @@ SyntaxDef     BalloonContentsSyntax = {
 	" ",
 	"\t",
     "Balloon Contents flags",
-	"Balloon Contents",
+	"BalloonContents",
 	"",
 	NULL,
 	0

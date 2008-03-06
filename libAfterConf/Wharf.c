@@ -156,7 +156,7 @@ TermDef       WharfFolderTerms[] = {
 SyntaxDef WharfFeelSyntax 		= {'\n', '\0', WharfFeelTerms, 		0, '\t', "", "\t", 	"WharfFeel", 	"WharfFeel", 	"AfterStep wharf module feel", NULL, 0};
 SyntaxDef WharfLookSyntax 		= {'\n', '\0', WharfLookTerms, 		0, '\t', "", "\t", 	"WharfLook", 	"WharfLook", 	"AfterStep wharf module look", NULL, 0};
 SyntaxDef WharfPrivateSyntax 	= {'\n', '\0', WharfPrivateTerms,	0, '\t', "", "\t", 	"Wharf",     	"Wharf",     	"AfterStep wharf module", NULL,0};
-SyntaxDef WharfFolderSyntax 	= {'\n', '\0', WharfFolderTerms,	0, '\t', "", "\t", 	"Wharf Folders","Wharf Folders","AfterStep wharf module", NULL,0};
+SyntaxDef WharfFolderSyntax 	= {'\n', '\0', WharfFolderTerms,	0, '\t', "", "\t", 	"Wharf Folders","WharfFolders", "AfterStep wharf module", NULL,0};
 SyntaxDef WharfSyntax 			= {'\n', '\0', WharfTerms,			0, ' ',  "", "",	"Module:Wharf",	"Wharf",	 	"AfterStep module for launching or docking applications aka button bar",NULL,0};
 
 

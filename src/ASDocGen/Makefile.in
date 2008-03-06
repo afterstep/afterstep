@@ -17,7 +17,7 @@ do_compile:    $(OBJS) $(LIBS_DEPEND)
 
 doc_man:	do_compile
 		@echo -n "Generating man pages ..." ; ./ASDocGen -l log.man -t nroff ; echo "Done" ; touch doc_man
-		       
+
 doc_html:    	do_compile
 		@echo -n "Generating HTML docs ..." ; ./ASDocGen -l log.html -t html ; echo "Done" ; \
 		echo -n "Extracting Visualselect HTML ..." ; tar xf visualselect4html.tar -C html ; echo "Done" ; \
@@ -25,7 +25,7 @@ doc_html:    	do_compile
 
 doc_xml:	do_compile
 		@echo -n "Generating XML docs ..." ; ./ASDocGen -l log.xml -t xml ; echo "Done" ; touch doc_xml
-		       
+
 doc_text:    	do_compile
 		@echo -n "Generating Plain Text docs ..." ; ./ASDocGen -l log.text -t plain ; echo "Done" ; touch doc_text
 
@@ -41,6 +41,7 @@ data_php:  	do_compile
 		echo "Done"
 
 ASDocGen:	do_compile doc_man doc_html
+		@echo "All Done"
 
 module.clean:
 		$(RMF) do_compile doc_man doc_html doc_xml doc_text

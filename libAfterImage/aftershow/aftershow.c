@@ -760,9 +760,11 @@ xml_elem_t *HandleWindowTag (AfterShowContext *ctx, AfterShowTagContext *tag_ctx
 	{/* find or create the default window for the client */
 		
 	}else
-	{
+	{/* either find existing window or create a new one */
 	
 	}
+	if (tag_ctx->window.magic == NULL)
+		
 	
 	return result;
 }
