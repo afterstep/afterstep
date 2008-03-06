@@ -284,10 +284,10 @@ main (int argc, char **argv)
   	SendInfo ( "Nop \"\"", 0);
 #endif
 	ProcessedSyntaxes = create_ashash( 7, pointer_hash_value, NULL, NULL );
-	Glossary = create_ashash( 0, string_hash_value, string_compare, string_destroy );
-	Index = create_ashash( 0, string_hash_value, string_compare, string_destroy );
-	UserLinks = create_ashash( 0, string_hash_value, string_compare, string_destroy );
-	APILinks = create_ashash( 0, string_hash_value, string_compare, string_destroy );
+	Glossary = create_ashash( 4096, string_hash_value, string_compare, string_destroy );
+	Index = create_ashash( 4096, string_hash_value, string_compare, string_destroy );
+	UserLinks = create_ashash( 4096, string_hash_value, string_compare, string_destroy );
+	APILinks = create_ashash( 4096, string_hash_value, string_compare, string_destroy );
 
 	Links = UserLinks;
 

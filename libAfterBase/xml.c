@@ -329,6 +329,8 @@ xml_elem_t* xml_parse_doc(const char* str, ASHashTable *vocabulary) {
 
 int xml_parse(const char* str, xml_elem_t* current, ASHashTable *vocabulary) {
 	const char* ptr = str;
+	
+	xml_elem_t** tail = &(current->child);
 
 	/* Find a tag of the form <tag opts>, </tag>, or <tag opts/>. */
 	while (*ptr) {
@@ -358,7 +360,9 @@ int xml_parse(const char* str, xml_elem_t* current, ASHashTable *vocabulary) {
 					{
 						xml_elem_t* child = create_CDATA_tag();
 						child->parm = mystrndup(ptr, oab - ptr);
-						xml_insert(current, child);
+						*tail = child ; 
+						tail = &(child->next);
+						/* xml_insert(current, child); */
 					}
 					return (etag + 1) - str;
 				}
@@ -439,7 +443,9 @@ int xml_parse(const char* str, xml_elem_t* current, ASHashTable *vocabulary) {
 			if (oab - ptr) {
 				xml_elem_t* child = create_CDATA_tag();
 				child->parm = mystrndup(ptr, oab - ptr);
-				xml_insert(current, child);
+				*tail = child ; 
+				tail = &(child->next);
+				/* xml_insert(current, child); */
 			}
 
 			/* We found a tag!  Advance the pointer. */
@@ -454,7 +460,9 @@ int xml_parse(const char* str, xml_elem_t* current, ASHashTable *vocabulary) {
 				if( vocabulary )
 					child->tag_id = xml_name2id( child->tag, vocabulary );
 				if (eparm - bparm) child->parm = mystrndup(bparm, eparm - bparm);
-				xml_insert(current, child);
+				*tail = child ; 
+				tail = &(child->next);
+				/* xml_insert(current, child); */
 				if (!empty) ptr += xml_parse(ptr, child, vocabulary);
 			}
 		}

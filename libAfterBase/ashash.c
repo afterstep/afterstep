@@ -587,16 +587,15 @@ string_hash_value (ASHashableValue value, ASHashKey hash_size)
 		if( (c=string[i]) != 0)
 		{
 			hash_key += (ASHashKey) c;
-			if( (c=string[i+1]) != 0)
+			if( string[++i] != 0 && (c=string[++i]) != 0)
 			{
 				hash_key += ((ASHashKey) c)<<1;
-				if( (c=string[i+2]) != 0)
+				if( string[++i] != 0 && (c=string[++i]) != 0)
 				{
 					hash_key += ((ASHashKey) c)<<2;
-					if( (c=string[i+3]) != 0)
+					if( string[++i] != 0 && (c=string[++i]) != 0)
 					{
 						hash_key += ((ASHashKey) c)<<3;
-						i+= 4 ;
 					}
 				}
 			}

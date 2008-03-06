@@ -82,7 +82,7 @@ void init_ashash (ASHashTable * hash, Bool freeresources);
 /* Note that all parameters are optional here.
    If it is set to NULL - defaults will be used */
 
-#define DEFAULT_HASH_SIZE 51	/* random value - not too big - not too small */
+#define DEFAULT_HASH_SIZE 0x03F	/* random value - not too big - not too small - but mast be a mask to avoid % */
 /* default hash_func is long_val%hash_size */
 /* default compare_func is long_val1-long_val2 */
 
