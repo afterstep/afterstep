@@ -640,12 +640,27 @@ sort_terms_by_alpha( const TermDef **t1, const TermDef **t2 )
 void 
 write_options_keywords(const char *source_dir, const char *syntax_dir, SyntaxDef *syntax, ASXMLInterpreterState *state )
 {
+#define MAX_SYNTAX_RECURSION_LEVEL	32
+	static int syntax_recursion_level = -1;
+	static SyntaxDef* syntax_recursion_stack[MAX_SYNTAX_RECURSION_LEVEL];
+
 	int i, max_i = 0 ;
 	TermDef **sorted_list ; 
 	while(syntax->terms[max_i].keyword) ++max_i;
 
 	if( max_i == 0 ) return ;
-	
+
+	if (syntax_recursion_level+1 >= MAX_SYNTAX_RECURSION_LEVEL)
+	{
+		show_error ("Excessive recursion into nested Syntaxes. Syntax doc path = \"%s\".", syntax->doc_path );
+		return;
+	}
+	for (i = syntax_recursion_level; i >= 0 ; --i)
+		if (syntax_recursion_stack[i] == syntax) 
+			return;
+	++syntax_recursion_level;
+	syntax_recursion_stack[syntax_recursion_level] = syntax;
+
 	sorted_list = safecalloc( max_i, sizeof(TermDef*));
 	for (i = 0; i < max_i; i++)
 		sorted_list[i] = &(syntax->terms[i]) ; 
@@ -655,7 +670,7 @@ write_options_keywords(const char *source_dir, const char *syntax_dir, SyntaxDef
 		SyntaxDef *sub_syntax = sorted_list[i]->sub_syntax ; 
 		if( sub_syntax == pPopupFuncSyntax ) 
 			sub_syntax = pFuncSyntax ;
-			
+
 		if (sub_syntax)
 			gen_syntax_doc( source_dir, state->dest_dir, sub_syntax, state->doc_type );
 		if( isalnum( sorted_list[i]->keyword[0] ) )					
@@ -663,6 +678,8 @@ write_options_keywords(const char *source_dir, const char *syntax_dir, SyntaxDef
 	}
 	free( sorted_list );
 
+	syntax_recursion_stack[syntax_recursion_level] = NULL;
+	--syntax_recursion_level;
 }
 
 /*************************************************************************/

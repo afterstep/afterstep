@@ -85,7 +85,7 @@ typedef struct ASXMLInterpreterState {
 
 	ASFlagType doc_class_mask ;
 	ASDocClass doc_class ;
-
+	
 }ASXMLInterpreterState ;
 
 extern const char *HTML_CSS_File ;
