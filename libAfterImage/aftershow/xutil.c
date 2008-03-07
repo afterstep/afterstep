@@ -44,9 +44,10 @@ aftershow_XWindowID2XWindow (AfterShowContext *ctx, Window w)
 	int i;
 	for (i = 0 ; i < ctx->gui.x.screens_num; ++i)
 	{
-        if (get_hash_item (ctx->gui.x.screens[i]->windows, AS_HASHABLE(w), &hdata.vptr) == ASH_Success)
+        if (get_hash_item (ctx->gui.x.screens[i].windows, AS_HASHABLE(w), &hdata.vptr) == ASH_Success)
 		    return hdata.vptr;
 	}
+	return NULL;
 }
 
 
@@ -60,7 +61,7 @@ aftershow_XWindowID2XScreen (AfterShowContext *ctx, Window w)
 		if (w == ctx->gui.x.screens[i].selection_window)
 			return &(ctx->gui.x.screens[i]);
 
-	if ((window = XWindowID2XWindow (ctx, w)) == NULL)
+	if ((window = aftershow_XWindowID2XWindow (ctx, w)) == NULL)
 		return NULL;
 		
 	return window->screen;
@@ -75,7 +76,7 @@ aftershow_setup_root_x_window (AfterShowContext *ctx, AfterShowXWindow *window)
 	window->depth = DefaultDepth(ctx->gui.x.dpy, window->screen->screen);
 	
 	window->gc = DefaultGC(ctx->gui.x.dpy, window->screen->screen);
-	window->back = 
+	window->back = None;
 
 	if (window->back)
 		aftershow_get_drawable_size_and_depth (ctx, window->back, &(window->back_width), &(window->back_height), NULL);
@@ -100,7 +101,7 @@ aftershow_connect_x_gui(AfterShowContext *ctx)
 				scr->screen = i;
 				scr->root.magic = MAGIC_AFTERSHOW_X_WINDOW;
 				scr->root.screen = scr;
-				aftershow_create_root_x_window (ctx, &(scr->root));
+				aftershow_setup_root_x_window (ctx, &(scr->root));
 				scr->windows = create_ashash( 0, NULL, NULL, NULL ); 
 				++scr;
 			}

@@ -634,16 +634,14 @@ typedef struct AfterShowTagParams
 
 typedef struct AfterShowTagContext
 {
-	AfterShowClient 	*client
+	AfterShowClient 	*client;
 	
-	AfterShowMagicPtr 	*window;
-	AfterShowMagicPtr 	*layer;
+	AfterShowMagicPtr 	window;
+	AfterShowMagicPtr 	layer;
 }AfterShowTagContext;
 
 void ParseTagParams (AfterShowContext *ctx, int channel, xml_elem_t *tag, AfterShowTagParams *params);
 xml_elem_t *HandleWindowTag (AfterShowContext *ctx, AfterShowTagContext *tag_ctx, xml_elem_t *window_tag, xml_elem_t *child_tag);
-xml_elem_t *HandleLayerTag (AfterShowContext *ctx, int channel, xml_elem_t *tag, AfterShowTagParams *params);
-xml_elem_t *HandleImageTag (AfterShowContext *ctx, int channel, xml_elem_t *tag, AfterShowTagParams *params);
 
 void 
 HandleXML (AfterShowContext *ctx, int channel)
@@ -687,6 +685,81 @@ HandleXML (AfterShowContext *ctx, int channel)
 	}
 
 }
+
+AfterShowMagicPtr
+MakeDefaultWindowForClient(AfterShowContext *ctx, AfterShowClient *client, xml_elem_t *child_tag)
+{
+	AfterShowMagicPtr asmp = {NULL};
+#ifndef X_DISPLAY_MISSING
+	AfterShowXScreen *scr = &(ctx->gui.x.screens[client->default_screen]);
+	int default_width = 100, default_height = 100;
+	
+	asmp.xwindow = aftershow_create_x_window (ctx, &(scr->root), default_width, default_height);
+	XMapWindow( ctx->gui.x.dpy, asmp.xwindow->w);
+#endif
+	return asmp;
+}
+
+xml_elem_t *
+HandleWindowTag (AfterShowContext *ctx, AfterShowTagContext *tag_ctx, xml_elem_t *window_tag, xml_elem_t *child_tag)
+{
+	xml_elem_t *result = NULL;
+	AfterShowMagicPtr window;
+	if (window_tag == NULL)
+	{/* find or create the default window for the client */
+		if (tag_ctx->client->default_window.magic == NULL)
+			tag_ctx->client->default_window = MakeDefaultWindowForClient(ctx, tag_ctx->client, child_tag);
+			
+		window = tag_ctx->client->default_window ; 
+	}else
+	{/* either find existing window or create a new one */
+	
+	}
+	if (tag_ctx->window.magic == NULL)
+	{/* return error */
+	
+	}else		
+	{
+	
+	}
+	
+	return result;
+}
+
+#if 0
+
+xml_elem_t *
+HandleLayerTag (AfterShowContext *ctx, int channel, xml_elem_t *tag, AfterShowTagParams *params)
+{
+	xml_elem_t *result = NULL;
+	AfterShowClient *client = &(ctx->clients[channel]);
+
+	return result;
+}
+
+xml_elem_t *
+HandleImageTag (AfterShowContext *ctx, int channel, xml_elem_t *tag, AfterShowTagParams *params)
+{
+	AfterShowClient *client = GetClient(ctx, channel);
+	xml_elem_t *result = NULL;
+	ASImage *im = NULL;
+
+	if (client == NULL)
+		return NULL;
+	
+	im = compose_asimage_xml_from_doc(asv, client->imman, client->fontman, tag, ASFLAGS_EVERYTHING, False, None, NULL, -1, -1);
+
+	if( im ) 
+	{
+		/* Display the image. */
+/		RenderImage (ctx, client, im, params);
+		safe_asimage_destroy(im);
+	}					
+	/* printf("<success tag_count=%d/>\n", xb.tags_count ); */
+
+	return result;
+}
+
 
 ASMagic *client_id2object(AfterShowContext *ctx, int channel, const char *id)
 {
@@ -752,31 +825,11 @@ void ParseTagParams (AfterShowContext *ctx, int channel, xml_elem_t *tag, AfterS
 	}
 }
 
-xml_elem_t *
-xml_elem_t *HandleWindowTag (AfterShowContext *ctx, AfterShowTagContext *tag_ctx, xml_elem_t *window_tag, xml_elem_t *child_tag);
-{
-	xml_elem_t *result = NULL;
-	if (window_tag == NULL)
-	{/* find or create the default window for the client */
-		
-	}else
-	{/* either find existing window or create a new one */
-	
-	}
-	if (tag_ctx->window.magic == NULL)
-		
-	
-	return result;
-}
+AfterShowMagicPtr
+GetWindowForClient(AfterShowContext *ctx, AfterShowClient *client, 
+					const char *id, int default_width, int default_height)
 
-xml_elem_t *
-HandleLayerTag (AfterShowContext *ctx, int channel, xml_elem_t *tag, AfterShowTagParams *params)
-{
-	xml_elem_t *result = NULL;
-	AfterShowClient *client = &(ctx->clients[channel]);
 
-	return result;
-}
 
 static inline AfterShowXScreen *GetWindowScreen (AfterShowXWindow *window) { return window->screen; };
 static inline AfterShowClient *GetClient (AfterShowContext *ctx, int channel)
@@ -786,7 +839,7 @@ static inline AfterShowClient *GetClient (AfterShowContext *ctx, int channel)
 	return &(ctx->clients[channel]);
 }
 
-AfterShowXWindow *
+AfterShowMagicPtr
 GetWindowForClient(AfterShowContext *ctx, AfterShowClient *client, 
 					const char *id, int default_width, int default_height)
 {
@@ -814,7 +867,7 @@ GetWindowForClient(AfterShowContext *ctx, AfterShowClient *client,
 		if (client->default_window.xwindow == NULL)
 			client->default_window.xwindow = window;
 	}
-	return window;
+	return (AfterShowMagicPtr)window;
 #else	
 	return NULL;
 #endif
@@ -871,29 +924,7 @@ void RenderImage (AfterShowContext *ctx, AfterShowClient *client, ASImage *im, A
 #endif
 }
 
-xml_elem_t *
-HandleImageTag (AfterShowContext *ctx, int channel, xml_elem_t *tag, AfterShowTagParams *params)
-{
-	AfterShowClient *client = GetClient(ctx, channel);
-	xml_elem_t *result = NULL;
-	ASImage *im = NULL;
-
-	if (client == NULL)
-		return NULL;
-	
-	im = compose_asimage_xml_from_doc(asv, client->imman, client->fontman, tag, ASFLAGS_EVERYTHING, False, None, NULL, -1, -1);
-
-	if( im ) 
-	{
-		/* Display the image. */
-		RenderImage (ctx, client, im, params);
-
-		safe_asimage_destroy(im);
-	}					
-	/* printf("<success tag_count=%d/>\n", xb.tags_count ); */
-
-	return result;
-}
+#endif
 
 /*************************************************************************** 
  * final cleanup code : 
