@@ -2,11 +2,11 @@
 
 #define AFTERSTEP_INTERNALS
 
-#ifdef __FreeBSD__
-#include <sys/cdefs.h>
-#include <sys/syslimits.h>
-#else
-#include <limits.h>
+#ifdef HAVE_LIMITS_H
+# include <limits.h>
+#elif defined(__FreeBSD__)
+# include <sys/cdefs.h>
+# include <sys/syslimits.h>
 #endif
 
 /* we don't do interhost network communications ! WE use Unix domain sockets! */

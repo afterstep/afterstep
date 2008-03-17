@@ -179,7 +179,7 @@ Bool SetupComms (AfterShowContext *ctx)
 	{
 		/* get socket name from X property */
 	    ctx->socket_name = aftershow_read_string_property (ctx, 
-												ctx->gui.x.screens[0].root.w, 
+												ctx->gui.x.screens[0].root.wcv, 
 												XInternAtom (ctx->gui.x.dpy, XA_AFTERSHOW_SOCKET_NAME, False));
 	} 
 #endif

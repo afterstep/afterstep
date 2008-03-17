@@ -361,7 +361,7 @@ AC_C_INLINE
 
 dnl# Check for headers
 AC_HEADER_TIME
-AC_CHECK_HEADERS(sys/time.h malloc.h stdlib.h)
+AC_CHECK_HEADERS(sys/time.h malloc.h stdlib.h limits.h)
 
 AC_CHECK_HEADERS(sys/wait.h,,AC_FUNC_WAIT3)
 

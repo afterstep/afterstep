@@ -31,6 +31,9 @@
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
+/* Define to 1 if you have the <limits.h> header file. */
+#undef HAVE_LIMITS_H
+
 /* Define to 1 if you have the <malloc.h> header file. */
 #undef HAVE_MALLOC_H
 
@@ -42,9 +45,6 @@
 
 /* Support for readline library for console input */
 #undef HAVE_READLINE
-
-/* Define to 1 if you have the <rplay.h> header file. */
-#undef HAVE_RPLAY_H
 
 /* self diagnostic SIGSEGV handling (as opposed to dumping core) */
 #undef HAVE_SIGSEGV_HANDLING
