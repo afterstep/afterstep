@@ -25,6 +25,7 @@
 #include "../libAfterStep/mystyle.h"
 #include "../libAfterStep/parser.h"
 #include "../libAfterStep/screen.h"
+#include "../libAfterStep/session.h"
 
 #include "afterconf.h"
 
@@ -363,7 +364,42 @@ ProcessMyStyleOptions (FreeStorageElem * options, MyStyleDefinition ** tail)
 	return tail;
 }
 
-void          mystyle_create_from_definition (MyStyleDefinition * def);
+MyStyle *mystyle_find_or_get_from_file(const char *name)
+{
+	MyStyle      *ms;
+	if ((ms = mystyle_find (name)) == NULL)
+	{
+		char *fn = make_session_data_file  (Session, False, S_IFREG, MYSTYLES_DIR, name, NULL );
+		if (fn == NULL)
+			fn = make_session_data_file  (Session, False, S_IFREG, MYSTYLES_DIR, "mystyle.", name, NULL ); 
+		if (fn == NULL)
+			fn = make_session_data_file  (Session, True, S_IFREG, MYSTYLES_DIR, name, NULL ); 
+		if (fn == NULL)
+			fn = make_session_data_file  (Session, True, S_IFREG, MYSTYLES_DIR, "mystyle.", name, NULL ); 
+		if (fn != NULL)
+		{
+		    FreeStorageElem *Storage = NULL;
+		    MyStyleDefinition *msdef = NULL;
+
+		    Storage = file2free_storage(fn, MyName, &MyStyleSyntax, NULL, NULL );
+			if( Storage ) 
+			{
+    			ProcessMyStyleOptions (Storage, &msdef);
+				DestroyFreeStorage (&Storage);
+				if (msdef != NULL)
+				{
+					if (msdef->name == NULL)
+						msdef->name = mystrdup(name);
+					set_flags(msdef->flags, MYSTYLE_FINISHED);
+					ms = mystyle_create_from_definition (msdef);
+					DestroyMyStyleDefinitions (&msdef);
+				}
+			}
+			free (fn);
+		}
+	}
+	return ms;
+}
 
 /*
  * this function process a linked list of MyStyle definitions
@@ -391,16 +427,16 @@ ProcessMyStyleDefinitions (MyStyleDefinition ** list)
 		}
 }
 
-void
+MyStyle *
 mystyle_create_from_definition (MyStyleDefinition * def)
 {
 	int           i;
 	MyStyle      *style;
 
 	if (def == NULL)
-		return;
+		return NULL;
 	if (!get_flags(def->flags, MYSTYLE_FINISHED) || def->name == NULL)
-		return;
+		return NULL;
 
 	if ((style = mystyle_find (def->name)) == NULL)
 	{
@@ -416,7 +452,7 @@ mystyle_create_from_definition (MyStyleDefinition * def)
 			MyStyle      *parent;
 			if (def->inherit[i])
 			{
-				if ((parent = mystyle_find (def->inherit[i])) != NULL)
+				if ((parent = mystyle_find_or_get_from_file (def->inherit[i])) != NULL)
 					mystyle_merge_styles (parent, style, True, False);
 				else
 					show_error ("unknown style to inherit: %s\n", def->inherit[i]);
@@ -471,7 +507,7 @@ mystyle_create_from_definition (MyStyleDefinition * def)
 	}
 	if( def->overlay != NULL )
 	{
-		MyStyle *o = mystyle_find (def->overlay );
+		MyStyle *o = mystyle_find_or_get_from_file (def->overlay );
 		if ( o != NULL)
 		{
 			style->overlay = o;
@@ -581,6 +617,8 @@ mystyle_create_from_definition (MyStyleDefinition * def)
 
 	clear_flags(style->inherit_flags, style->user_flags );
 	style->set_flags = style->inherit_flags | style->user_flags;
+	
+	return style;
 }
 
 

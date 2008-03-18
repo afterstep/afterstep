@@ -585,7 +585,8 @@ typedef struct MyStyleDefinition
 void DestroyMyStyleDefinitions (MyStyleDefinition ** list);
 MyStyleDefinition **ProcessMyStyleOptions (struct FreeStorageElem * options, MyStyleDefinition ** tail);
 void mystyle_parse (char *tline, FILE * fd, char **myname, int *mystyle_list);
-void          mystyle_create_from_definition (MyStyleDefinition * def);
+struct MyStyle* mystyle_create_from_definition (MyStyleDefinition * def);
+struct MyStyle* mystyle_find_or_get_from_file(const char *name);
 
 void PrintMyStyleDefinitions (MyStyleDefinition * list);
 /*
