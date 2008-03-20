@@ -168,7 +168,6 @@ void
 ReloadConfig(ASFlagType what)
 {
 	ASBalloonLook *balloon_look ; 
-
 	ASModuleConfig *config = parse_asmodule_config_all( AfterStepConfigClass );
 
 	/* apply it  */
@@ -184,6 +183,7 @@ ReloadConfig(ASFlagType what)
 	set_balloon_state_look( MenuBalloons,  balloon_look );
 	destroy_balloon_look( balloon_look );
 	
+	PrintMyStyleDefinitions (config->style_defs);
 	
 	destroy_ASModule_config( config );
 }
@@ -199,6 +199,9 @@ int main(int argc, char **argv )
     ASImageManager  *old_image_manager = NULL ;
     ASFontManager   *old_font_manager  = NULL ;
     InitMyApp( CLASS_AFTERSTEP, argc, argv, NULL, NULL, 0);
+
+	AfterStepConfigClass->flags |= ASMC_HandleLookMyStyles;
+	
 	LinkAfterStepConfig();
     if( ConnectX( ASDefaultScr, 0 ) < 0  )
 	{
@@ -948,16 +951,21 @@ make_styles (MyLook *look)
 
     for( i = 0 ; i < BACK_STYLES ; ++i )
 		if( MSWindowName[i] )
-			look->MSWindow[i] = mystyle_list_find (look->styles_list, MSWindowName[i]);
+			look->MSWindow[i] = mystyle_find_or_get_from_file (look->styles_list, MSWindowName[i]);
     if (look->MSWindow[BACK_DEFAULT] == NULL)
-        look->MSWindow[BACK_DEFAULT] = mystyle_list_find_or_default (look->styles_list, "default");
+		look->MSWindow[BACK_DEFAULT] = mystyle_find_or_get_from_file (look->styles_list, "default");
+	
+	/* this is the last resort : */
+    if (look->MSWindow[BACK_DEFAULT] == NULL)
+	    look->MSWindow[BACK_DEFAULT] = mystyle_list_find_or_default (look->styles_list, "default");
+		
     for( i = 0 ; i < BACK_STYLES ; ++i )
         if (look->MSWindow[i] == NULL && style_names[i] )
             look->MSWindow[i] = mystyle_list_new (look->styles_list, style_names[i]);
 
     for( i = 0 ; i < MENU_BACK_STYLES ; ++i )
 		if( MSMenuName[i] )
-			look->MSMenu[i] = mystyle_list_find (look->styles_list, MSMenuName[i]);
+			look->MSMenu[i] = mystyle_find_or_get_from_file (look->styles_list, MSMenuName[i]);
 
     for( i = 0 ; i < MENU_BACK_STYLES ; ++i )
         if (look->MSMenu[i] == NULL)
@@ -969,18 +977,19 @@ make_styles (MyLook *look)
             else
                 look->MSMenu[i] = mystyle_list_new (look->styles_list, menu_style_names[i]);
         }
-    if (mystyle_list_find (look->styles_list, "ButtonPixmap") == NULL)
+    if (mystyle_find_or_get_from_file (look->styles_list, "ButtonPixmap") == NULL)
         mystyle_list_new (look->styles_list, "ButtonPixmap");
-    if (mystyle_list_find (look->styles_list, "ButtonTitleFocus") == NULL)
+    if (mystyle_find_or_get_from_file (look->styles_list, "ButtonTitleFocus") == NULL)
         mystyle_list_new (look->styles_list, "ButtonTitleFocus");
-    if (mystyle_list_find (look->styles_list, "ButtonTitleSticky") == NULL)
+    if (mystyle_find_or_get_from_file (look->styles_list, "ButtonTitleSticky") == NULL)
         mystyle_list_new (look->styles_list, "ButtonTitleSticky");
-    if (mystyle_list_find (look->styles_list, "ButtonTitleUnfocus") == NULL)
+    if (mystyle_find_or_get_from_file (look->styles_list, "ButtonTitleUnfocus") == NULL)
         mystyle_list_new (look->styles_list, "ButtonTitleUnfocus");
 }
 
-MyFrame *add_myframe_from_def( ASHashTable *list, MyFrameDefinition *fd, ASFlagType default_title_align )
+MyFrame *add_myframe_from_def(MyLook *look, MyFrameDefinition *fd, ASFlagType default_title_align )
 {
+	ASHashTable *list = look->FramesList;
     MyFrame *frame;
     int i ;
 
@@ -1030,9 +1039,17 @@ MyFrame *add_myframe_from_def( ASHashTable *list, MyFrameDefinition *fd, ASFlagT
     for( i = 0 ; i < BACK_STYLES ; ++i )
     {
         if( fd->title_styles[i] )
+		{
             set_string(&(frame->title_style_names[i]), mystrdup(fd->title_styles[i]) );
+			/* force load the MyStyle in question */
+			mystyle_find_or_get_from_file (look->styles_list, fd->title_styles[i]);
+		}
         if( fd->frame_styles[i] )
+		{
             set_string(&(frame->frame_style_names[i]), mystrdup(fd->frame_styles[i]) );
+			/* force load the MyStyle in question */
+			mystyle_find_or_get_from_file (look->styles_list, fd->title_styles[i]);
+		}
     }
     if( get_flags( fd->set_title_attr, MYFRAME_TitleFBevelSet ) )
         frame->title_fbevel = fd->title_fbevel;
@@ -1213,7 +1230,7 @@ FixLook( MyLook *look )
 	    for( sd = MyStyleList ; sd != NULL ; sd = sd->next )
         {
             LOCAL_DEBUG_OUT( "processing MyStyleDefinition %p", sd );
-            mystyle_create_from_definition( sd );
+            mystyle_create_from_definition( look->styles_list, sd );
         }
         DestroyMyStyleDefinitions (&MyStyleList);
 	}
@@ -1277,14 +1294,14 @@ FixLook( MyLook *look )
         for( fd = MyFrameList ; fd != NULL ; fd = fd->next )
         {
             LOCAL_DEBUG_OUT( "processing MyFrameDefinition %p", fd );
-            if( (frame = add_myframe_from_def( look->FramesList, fd, default_title_align|ALIGN_VCENTER )) != NULL ) 
+            if( (frame = add_myframe_from_def( look, fd, default_title_align|ALIGN_VCENTER )) != NULL ) 
             	myframe_load ( frame, Scr.image_manager );
         }
 		if( LegacyFrameDef )
 		{
             LOCAL_DEBUG_OUT( "processing legacy MyFrameDefinition %p", LegacyFrameDef );
 			LegacyFrameDef->name = mystrdup(look->DefaultFrameName);
-            if( (frame = add_myframe_from_def( look->FramesList, LegacyFrameDef, default_title_align|ALIGN_VCENTER )) != NULL )
+            if( (frame = add_myframe_from_def( look, LegacyFrameDef, default_title_align|ALIGN_VCENTER )) != NULL )
             	myframe_load ( frame, Scr.image_manager );
 		}
         DestroyMyFrameDefinitions (&MyFrameList);

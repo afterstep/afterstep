@@ -411,13 +411,13 @@ FreeStorage2MyStyleEdit( FreeStorageElem *storage, ASGtkMyStyleEdit *self )
 	asgtk_mystyle_edit_set_sliced(self, False);	
 	asgtk_mystyle_edit_set_background_type(self, -1);	
 	
-	if( storage && storage->term->id == MYSTYLE_START_ID ) 
+	if( storage && storage->term->id == MYSTYLE_MyStyle_ID ) 
 		storage = storage->sub ;
 
 	/* first pass - handling BackPixmap : */
 	for( curr = storage ; curr != NULL ; curr = curr->next ) 
 	{
-		if( curr->term->id == MYSTYLE_BACKPIXMAP_ID ) 
+		if( curr->term->id == MYSTYLE_BackPixmap_ID ) 
 		{
 			ReadConfigItem (&item, curr);
 			asgtk_mystyle_edit_set_background_type( self, item.index);
@@ -435,25 +435,25 @@ FreeStorage2MyStyleEdit( FreeStorageElem *storage, ASGtkMyStyleEdit *self )
 	{
 		if( ReadConfigItem (&item, curr) ) 
 		{
-			if( curr->term->id == MYSTYLE_INHERIT_ID ) 
+			if( curr->term->id == MYSTYLE_Inherit_ID ) 
 			{
 				asgtk_simple_list_append( list, item.data.string, curr );
 				asgtk_mystyle_edit_set_line_enabled(self, ASGtkMSO_Inherits, True);		
-			}else if( curr->term->id == MYSTYLE_FONT_ID ) 
+			}else if( curr->term->id == MYSTYLE_Font_ID ) 
 			{
 				gtk_button_set_label( GTK_BUTTON(self->btn_font_name), item.data.string );
 				asgtk_mystyle_edit_set_line_enabled(self, ASGtkMSO_Font, True);		
-			}else if( curr->term->id == MYSTYLE_FORECOLOR_ID ) 
+			}else if( curr->term->id == MYSTYLE_ForeColor_ID ) 
 			{
 				color2button_image( GTK_IMAGE(self->img_fore_color), item.data.string );
 				gtk_button_set_label( GTK_BUTTON(self->btn_fore_color), item.data.string );
 				asgtk_mystyle_edit_set_line_enabled(self, ASGtkMSO_Colors, True);		
-			}else if( curr->term->id == MYSTYLE_BACKCOLOR_ID ) 
+			}else if( curr->term->id == MYSTYLE_BackColor_ID ) 
 			{
 				color2button_image( GTK_IMAGE(self->img_back_color), item.data.string );
 				gtk_button_set_label( GTK_BUTTON(self->btn_back_color), item.data.string );
 				asgtk_mystyle_edit_set_line_enabled(self, ASGtkMSO_Colors, True);		
-			}else if( curr->term->id == MYSTYLE_TEXTSTYLE_ID ) 
+			}else if( curr->term->id == MYSTYLE_TextStyle_ID ) 
 			{
 				if( item.data.integer > AST_3DTypes ) 
 					item.data.integer = AST_3DTypes ;
@@ -493,7 +493,7 @@ FreeStorage2MyStyleEdit( FreeStorageElem *storage, ASGtkMyStyleEdit *self )
 					}while( gtk_tree_model_iter_next( self->mystyles_list, &iter ) );
 				}
 				asgtk_mystyle_edit_set_line_enabled(self, ASGtkMSO_Overlay, True);		
-			}else if( curr->term->id == MYSTYLE_BACKPIXMAP_ID ) 
+			}else if( curr->term->id == MYSTYLE_BackPixmap_ID ) 
 			{
 				/* already handled in the first pass !!! */
 			}
@@ -919,7 +919,7 @@ FreeStorage2MyStylesPanel( FreeStorageElem *storage, ASGtkMyStylesPanel *panel )
 	asgtk_simple_list_purge( list );
 	while( curr != NULL ) 
 	{
-		if( curr->term->id == MYSTYLE_START_ID ) 
+		if( curr->term->id == MYSTYLE_MyStyle_ID ) 
 		{
 			if (ReadConfigItem (&item, curr))
 			{

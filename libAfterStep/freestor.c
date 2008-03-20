@@ -1175,7 +1175,6 @@ ReadConfigItemToStruct( void *struct_ptr, ptrdiff_t set_flags_offset, FreeStorag
 	}else if( stored->term->struct_field_offset != 0 )	
 	{
 		int index = 0 ;
-		Bool handled = True;
 		ConfigItem item ;
 		data_ptr += stored->term->struct_field_offset ;
 		
@@ -1187,7 +1186,8 @@ ReadConfigItemToStruct( void *struct_ptr, ptrdiff_t set_flags_offset, FreeStorag
         if (get_flags(stored->term->flags, TF_INDEXED))
 			index =	item.index ;
 	
-		handled = True ;		
+		handled = True;
+
 		switch (item.type)
 		{
 		 case TT_FLAG: 		((Bool*) data_ptr)[index] = item.data.flag;		 break;
@@ -1209,13 +1209,16 @@ ReadConfigItemToStruct( void *struct_ptr, ptrdiff_t set_flags_offset, FreeStorag
          case TT_CURSOR: 	((ASCursor**)data_ptr)[index] = item.data.cursor; item.memory = NULL ; break;
 
 		 case TT_INTARRAY:	
-         case TT_BINDING :	handled = False ; break;
+         case TT_BINDING :	
+		 		handled = False ; 
+		 		break;
 
-		 	default : handled = False ;
+		 	default : 
+				handled = False ;
         }
 		ReadConfigItem(&item, NULL);
 	}
-
+/* fprintf( stderr, "handled = %d, set_flags_offset = %d, field_offset = %d\n", handled, set_flags_offset, stored->term->struct_field_offset); */
 	if( handled && set_flags_offset > 0 ) 
 	{
 		ASFlagType *set_flags_ptr = struct_ptr+set_flags_offset ;
