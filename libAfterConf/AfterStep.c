@@ -649,6 +649,64 @@ destroy_ASModule_config( ASModuleConfig *config )
 	}
 }
 
+MyStyleDefinition*
+free_storage_elem2MyStyleDefinition (FreeStorageElem *fs, const char *default_name)
+{
+	MyStyleDefinition *msd = NULL;
+	
+	if (fs == NULL)
+		return NULL;
+
+	msd = safecalloc (1, sizeof (MyStyleDefinition));
+	msd->type = CONFIG_MyStyles_ID;
+	
+	if (fs->sub)
+		fs = fs->sub;
+	for ( ;fs ; fs = fs->next)
+	{
+		TermDef *T = fs->term ;
+		
+		if (T->id < MYSTYLE_ID_START || T->id > MYSTYLE_ID_END) /* just in case */
+			continue;
+
+		if (T->struct_field_offset != 0) 
+		{
+			ReadConfigItemToStruct( msd, offsetof(MyStyleDefinition,set_flags), fs  );
+/* fprintf (stderr, "$$$$ name = %s, offset=%d,keyword =%s,flags_on=0x%X, set_flags = 0x%X\n",msd->Name, offsetof(MyStyleDefinition,set_flags), T->keyword, T->flags_on, msd->set_flags); */
+		}else if( T->type == TT_FLAG)
+		{
+			ReadFlagItemAuto (msd, offsetof(MyStyleDefinition,set_flags), fs, MyStyleFlags);	
+		}else
+			HandleMyStyleSpecialTerm (msd, fs);
+	}	
+	
+	if (msd->Name == NULL && default_name)
+		msd->Name = mystrdup (default_name);
+	
+	if (!CheckMyStyleDefinitionSanity (msd))
+		DestroyMyStyleDefinitions (&msd);
+		
+	return msd;
+}
+
+MyStyleDefinition*
+free_storage2MyStyleDefinitionsList (FreeStorageElem *fs)
+{
+	MyStyleDefinition *head = NULL;
+	MyStyleDefinition **tail = &head;
+	
+    for (; fs; fs = fs->next)
+	{
+		if (fs->term->id == MYSTYLE_MyStyle_ID)
+		{
+			*tail = free_storage_elem2MyStyleDefinition (fs->sub, NULL);
+			if (*tail)
+				tail = &((*tail)->next);
+		}	
+	}
+	return head;	
+}
+
 ASModuleConfig* 
 free_storage2ASModule_config( ASModuleConfigClass *class, ASModuleConfig *config, FreeStorageElem *Storage, ASFlagType flags )
 {
@@ -719,10 +777,12 @@ free_storage2ASModule_config( ASModuleConfigClass *class, ASModuleConfig *config
 							config = defaults ;
 						}
 					}				
-				}else if( T->id == MYSTYLE_START_ID && 
+				}else if( T->id == MYSTYLE_MyStyle_ID && 
 				          get_flags( flags, ASModuleConfig_HandleMyStyles ) )
 				{
-             		styles_tail = ProcessMyStyleOptions (pCurr->sub, styles_tail);
+             		*styles_tail = free_storage_elem2MyStyleDefinition (pCurr->sub, NULL);
+					if (*styles_tail)
+						styles_tail = &((*styles_tail)->next); 
 				}else if( T->struct_field_offset != 0  && 
 				         get_flags( flags, ASModuleConfig_HandleScalars )) 
 				{
@@ -852,3 +912,8 @@ parse_asmodule_config_all(ASModuleConfigClass *class )
 
 	return config;
 }
+
+/******************************************************************************
+ * Test cases and utilities
+ ******************************************************************************/
+

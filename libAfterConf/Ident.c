@@ -84,45 +84,21 @@ ParseIdentOptions (const char *filename, char *myname)
 	ConfigData    cd ;
 	ConfigDef    *IdentConfigReader ; 
 	IdentConfig  *config = CreateIdentConfig ();
-    MyStyleDefinition **styles_tail = &(config->style_defs);
-
-	FreeStorageElem *Storage = NULL, *pCurr;
-	ConfigItem    item;
+	FreeStorageElem *Storage = NULL;
 
 	cd.filename = filename ;
 	IdentConfigReader = InitConfigReader (myname, &IdentSyntax, CDT_Filename, cd, NULL);
 	if (!IdentConfigReader)
 		return config;
 
-	item.memory = NULL;
 	PrintConfigReader (IdentConfigReader);
 	ParseConfig (IdentConfigReader, &Storage);
 
 	/* getting rid of all the crap first */
 	StorageCleanUp (&Storage, &(config->more_stuff), CF_DISABLED_OPTION);
 
-	for (pCurr = Storage; pCurr; pCurr = pCurr->next)
-	{
-		if (pCurr->term == NULL)
-			continue;
+	config->style_defs = free_storage2MyStyleDefinitionsList (Storage);
 
-		{
-			if (!ReadConfigItem (&item, pCurr))
-				continue;
-
-			switch (pCurr->term->id)
-			{
-             case MYSTYLE_START_ID:
-                 styles_tail = ProcessMyStyleOptions (pCurr->sub, styles_tail);
-                 item.ok_to_free = 1;
-                 break;
-             default:
-				 item.ok_to_free = 1;
-			}
-		}
-	}
-
-	ReadConfigItem (&item, NULL);
 	DestroyConfig (IdentConfigReader);
 	DestroyFreeStorage (&Storage);
 	return config;

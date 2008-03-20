@@ -338,7 +338,6 @@ ParsePagerOptions (const char *filename, char *myname, int desk1, int desk2)
 
 	FreeStorageElem *Storage = NULL, *pCurr;
 	ConfigItem    item;
-	MyStyleDefinition **styles_tail = &(config->style_defs);
 
 	cd.filename = filename ;
 	PagerConfigReader = InitConfigReader (myname, &PagerSyntax, CDT_Filename, cd, NULL);
@@ -353,6 +352,7 @@ ParsePagerOptions (const char *filename, char *myname, int desk1, int desk2)
 	StorageCleanUp (&Storage, &(config->more_stuff), CF_DISABLED_OPTION);
 
     config->balloon_conf = Process_balloonOptions (Storage, NULL, BALLOON_ID_START);
+	config->style_defs = free_storage2MyStyleDefinitionsList (Storage);
 
 	for (pCurr = Storage; pCurr; pCurr = pCurr->next)
 	{
@@ -447,10 +447,6 @@ ParsePagerOptions (const char *filename, char *myname, int desk1, int desk2)
 						 parse_filename (tmp, &(config->shade_button[1]));
 				 }
 				 set_flags( config->set_flags, PAGER_SET_SHADE_BUTTON );
-				 break;
-			 case MYSTYLE_START_ID:
-				 styles_tail = ProcessMyStyleOptions (pCurr->sub, styles_tail);
-				 item.ok_to_free = 1;
 				 break;
 				 /* decoration options */
 			 case PAGER_DECORATION_ID:

@@ -346,7 +346,6 @@ ParseASetRootOptions (const char *filename, char *myname)
 	ASetRootConfig *config = CreateASetRootConfig ();
 	MyBackgroundConfig **backs_tail = &(config->my_backs);
 	DeskBackConfig **desks_tail = &(config->my_desks);
-	MyStyleDefinition **styles_tail = &(config->style_defs);
 	FreeStorageElem *Storage = NULL, *pCurr;
 	ConfigItem    item;
 
@@ -362,6 +361,8 @@ ParseASetRootOptions (const char *filename, char *myname)
 
 	/* getting rid of all the crap first */
 	StorageCleanUp (&Storage, &(config->more_stuff), CF_DISABLED_OPTION);
+	
+	config->style_defs = free_storage2MyStyleDefinitionsList (Storage);
 
 	for (pCurr = Storage; pCurr; pCurr = pCurr->next)
 	{
@@ -382,10 +383,6 @@ ParseASetRootOptions (const char *filename, char *myname)
 		 case BGR_DESK_BACK:
 			 if ((*desks_tail = ParseDeskBackOptions (&item, myname)) != NULL)
 				 desks_tail = &((*desks_tail)->next);
-			 break;
-		 case MYSTYLE_START_ID:
-			 styles_tail = ProcessMyStyleOptions (pCurr->sub, styles_tail);
-			 item.ok_to_free = 1;
 			 break;
 		 default:
 			 item.ok_to_free = 1;

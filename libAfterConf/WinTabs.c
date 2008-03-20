@@ -183,7 +183,6 @@ ParseWinTabsOptions (const char *filename, char *myname)
 
 	FreeStorageElem *Storage = NULL, *pCurr;
 	ConfigItem    item;
-	MyStyleDefinition **styles_tail = &(config->style_defs);
 
 	cd.filename = filename ;
 	ConfigReader = InitConfigReader (myname, &WinTabsSyntax, CDT_Filename, cd, NULL);
@@ -198,6 +197,7 @@ ParseWinTabsOptions (const char *filename, char *myname)
 	StorageCleanUp (&Storage, &(config->more_stuff), CF_DISABLED_OPTION);
 
     config->balloon_conf = Process_balloonOptions (Storage, NULL, BALLOON_ID_START);
+	config->style_defs = free_storage2MyStyleDefinitionsList (Storage);
 
     for (pCurr = Storage; pCurr; pCurr = pCurr->next)
 	{
@@ -285,10 +285,6 @@ ParseWinTabsOptions (const char *filename, char *myname)
                     break;
                 case WINTABS_StickyStyle_ID:
                     REPLACE_STRING (config->sticky_style, item.data.string);
-                    break;
-                case MYSTYLE_START_ID:
-                    styles_tail = ProcessMyStyleOptions (pCurr->sub, styles_tail);
-                    item.ok_to_free = 1;
                     break;
                 case WINTABS_CM_ID :
                     set_flags( config->set_flags, WINTABS_CM );

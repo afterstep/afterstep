@@ -555,7 +555,6 @@ ParseLookOptions (const char *filename, char *myname)
 	LookConfig   *config = CreateLookConfig ();
 	FreeStorageElem *Storage = NULL, *pCurr;
 	ConfigItem    item;
-	MyStyleDefinition **styles_tail = &(config->style_defs);
 	MyFrameDefinition **frames_tail = &(config->frame_defs);
 	MyBackgroundConfig **backs_tail = &(config->back_defs);
 
@@ -572,6 +571,8 @@ ParseLookOptions (const char *filename, char *myname)
 	StorageCleanUp (&Storage, &(config->more_stuff), CF_DISABLED_OPTION);
 	config->title_balloon_conf = Process_balloonOptions (Storage, NULL, TITLE_BALLOON_ID_START);
 	config->menu_balloon_conf = Process_balloonOptions (Storage, NULL, MENU_BALLOON_ID_START);
+
+	config->style_defs = free_storage2MyStyleDefinitionsList (Storage);
 
 	for (pCurr = Storage; pCurr; pCurr = pCurr->next)
 	{
@@ -676,10 +677,6 @@ ParseLookOptions (const char *filename, char *myname)
 				 set_flags (config->set_flags, LOOK_ShadeAnimationSteps);
 				 break;
 
-			 case MYSTYLE_START_ID:
-				 styles_tail = ProcessMyStyleOptions (pCurr->sub, styles_tail);
-				 item.ok_to_free = 1;
-				 break;
 			 case MYFRAME_START_ID:
 				 frames_tail = ProcessMyFrameOptions (pCurr->sub, frames_tail);
 				 item.ok_to_free = 1;
@@ -1104,3 +1101,8 @@ LookConfig2MyLook ( struct LookConfig * config, MyLook * look,
 }
 
 #endif
+
+
+/******************************************************************************
+ * Test cases and utilities
+ ******************************************************************************/

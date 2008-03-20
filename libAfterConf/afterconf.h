@@ -6,6 +6,9 @@
 #include "../libAfterStep/colorscheme.h"
 #include "../libAfterStep/mylook.h"
 #include "../libAfterStep/aswindata.h"
+#include "../libAfterStep/freestor.h"
+
+#include "keyword_macro.h"
 
 /***************************************************************************/
 /*                        ASFunction parsing definitions                   */
@@ -95,127 +98,6 @@ extern struct SyntaxDef      PopupFuncSyntax;
 extern struct SyntaxDef      BalloonContentsSyntax;
 extern struct SyntaxDef     *BalloonContentsSyntaxPtr;
 
-
-#define ASCF_DEFINE_MODULE_FLAG_XREF(module,keyword,struct_type) \
-	{module##_##keyword,module##_##keyword##_ID,0,offsetof(struct_type,flags),offsetof(struct_type,set_flags)}	
-#define ASCF_DEFINE_MODULE_ONOFF_FLAG_XREF(module,keyword,struct_type) \
-	{module##_##keyword,module##_##keyword##_ID,module##_No##keyword##_ID,offsetof(struct_type,flags),offsetof(struct_type,set_flags)}	
-
-
-#define ASCF_DEFINE_KEYWORD(module,flags,keyword,type,subsyntax) \
-	{(flags),#keyword,sizeof(#keyword)-1,type,module##_##keyword##_ID,subsyntax,0,0,0}	
-
-#define ASCF_DEFINE_KEYWORD_S(module,flags,keyword,type,subsyntax,struct_type) \
-	{(flags),#keyword,sizeof(#keyword)-1,type,module##_##keyword##_ID,subsyntax,offsetof(struct_type,keyword),module##_##keyword,0}	
-
-#define ASCF_DEFINE_KEYWORD_SA(module,flags,keyword,type,subsyntax,struct_type,alias_for) \
-	{(flags),#keyword,sizeof(#keyword)-1,type,module##_##keyword##_ID,subsyntax,offsetof(struct_type,alias_for),module##_##alias_for,0}	
-
-#define ASCF_DEFINE_KEYWORD_SF(module,flags,keyword,type,subsyntax,struct_type,flags_on,flags_off) \
-	{(flags),#keyword,sizeof(#keyword)-1,type,module##_##keyword##_ID,subsyntax,offsetof(struct_type,keyword),flags_on,flags_off}	
-
-#define ASCF_DEFINE_KEYWORD_F(module,flags,keyword,subsyntax,flags_on,flags_off) \
-	{(flags),#keyword,sizeof(#keyword)-1,TT_FLAG,module##_##keyword##_ID,subsyntax,0,flags_on,flags_off}	
-
-
-#define ASCF_PRINT_FLAG_KEYWORD(stream,module,__config,keyword) \
-	do{ if(get_flags((__config)->set_flags,module##_##keyword) ) \
-			fprintf (stream, #module "." #keyword " = %s;\n",get_flags((__config)->flags,module##_##keyword)? "On" : "Off");}while(0)
-
-#define ASCF_PRINT_FLAGS_KEYWORD(stream,module,__config,keyword) \
-	do{ if(get_flags((__config)->set_flags,module##_##keyword) ) fprintf (stream, "%s : " #module "." #keyword " = 0x%lX;\n", MyName, (__config)->keyword); }while(0)
-
-#define ASCF_PRINT_GEOMETRY_KEYWORD(stream,module,__config,keyword) \
-	do{ if(get_flags((__config)->set_flags,module##_##keyword) )	\
-		{ 	fprintf (stream, #module "." #keyword " = "); \
-			if(get_flags((__config)->keyword.flags,WidthValue))	fprintf (stream, "%u",(__config)->keyword.width); \
-			fputc( 'x', stream ); \
-			if(get_flags((__config)->keyword.flags,HeightValue))	fprintf (stream, "%u",(__config)->keyword.height); \
-			if(get_flags((__config)->keyword.flags,XValue))	fprintf (stream, "%+d",(__config)->keyword.x); \
-			else if(get_flags((__config)->keyword.flags,YValue)) fputc ('+',stream);	\
-			if(get_flags((__config)->keyword.flags,XValue))	fprintf (stream, "%+d",(__config)->keyword.y); \
-			fputc( ';', stream ); fputc( '\n', stream ); \
-		}}while(0)
-
-#define ASCF_PRINT_SIZE_KEYWORD(stream,module,__config,keyword) \
-	do{ if(get_flags((__config)->set_flags,module##_##keyword) )	\
-			fprintf (stream, #module "." #keyword " = %ux%u;\n",(__config)->keyword.width,(__config)->keyword.height); }while(0)
-
-#define ASCF_PRINT_INT_KEYWORD(stream,module,__config,keyword) \
-	do{ if(get_flags((__config)->set_flags,module##_##keyword) ) fprintf (stream, #module "." #keyword " = %d;\n",(__config)->keyword); }while(0)
-
-#define ASCF_PRINT_STRING_KEYWORD(stream,module,__config,keyword) \
-	do{ if( (__config)->keyword != NULL  ) fprintf (stream, #module "." #keyword " = \"%s\";\n",(__config)->keyword); }while(0)
-
-#define ASCF_PRINT_IDX_STRING_KEYWORD(stream,module,__config,keyword,idx) \
-	do{ if( (__config)->keyword[idx] != NULL  ) fprintf (stream, #module "." #keyword "[%d] = \"%s\";\n",idx,(__config)->keyword[idx]); }while(0)
-
-#define ASCF_PRINT_COMPOUND_STRING_KEYWORD(stream,module,__config,keyword,separator) \
-	do{ if( (__config)->keyword != NULL  ) \
-		{int __i__; \
-			fprintf (stream, #module "." #keyword " = \""); \
-			for( __i__=0; (__config)->keyword[__i__]!=NULL ; ++__i__ ) \
-				fprintf (stream, "%s%c",(__config)->keyword[__i__],separator); \
-			fputc( ';', stream ); fputc( '\n', stream ); \
-		}}while(0)
-
-#define ASCF_PRINT_IDX_COMPOUND_STRING_KEYWORD(stream,module,__config,keyword,separator,idx) \
-	do{ if( (__config)->keyword[idx] != NULL  ) \
-		{int __i__; \
-			fprintf (stream, #module "." #keyword "[%d] = \"",idx); \
-			for( __i__=0; (__config)->keyword[idx][__i__]!=NULL ; ++__i__ ) \
-				fprintf (stream, "%s%c",(__config)->keyword[idx][__i__],separator); \
-			fputc( '\"', stream ); fputc( ';', stream ); fputc( '\n', stream ); \
-		}}while(0)
-
-#define ASCF_HANDLE_SUBSYNTAX_KEYWORD_CASE(module,__config,__curr,keyword,type) \
-		case module##_##keyword##_##ID : \
-			if( __curr->sub ){ \
-				set_flags(__config->set_flags,module##_##keyword); \
-		   		__config->keyword = Parse##type##Options( __curr->sub ); }break
-
-#define ASCF_HANDLE_ALIGN_KEYWORD_CASE(module,__config,__curr,keyword) \
-		ASCF_HANDLE_SUBSYNTAX_KEYWORD_CASE(module,__config,__curr,keyword,Align)
-
-#define ASCF_HANDLE_BEVEL_KEYWORD_CASE(module,__config,__curr,keyword) \
-		ASCF_HANDLE_SUBSYNTAX_KEYWORD_CASE(module,__config,__curr,keyword,Bevel)
-			
-
-#define ASCF_HANDLE_GEOMETRY_KEYWORD_CASE(module,__config,__item,keyword) \
-		case module##_##keyword##_##ID : set_flags(__config->set_flags,module##_##keyword); \
-			__config->keyword = __item.data.geometry; break
-
-#define ASCF_HANDLE_SIZE_KEYWORD_CASE(module,__config,__item,keyword) \
-		case module##_##keyword##_##ID : set_flags(__config->set_flags,module##_##keyword); \
-			__config->keyword.width = get_flags( __item.data.geometry.flags, WidthValue )?__item.data.geometry.width:0; \
-			__config->keyword.height = get_flags( __item.data.geometry.flags, HeightValue )?__item.data.geometry.height:0; \
-			break
-			
-#define ASCF_HANDLE_INTEGER_KEYWORD_CASE(module,__config,__item,keyword) \
-		case module##_##keyword##_##ID : set_flags(__config->set_flags,module##_##keyword); \
-			__config->keyword = __item.data.integer; break
-
-#define ASCF_HANDLE_STRING_KEYWORD_CASE(module,__config,__item,keyword) \
-		case module##_##keyword##_##ID : \
-			if( __config->keyword ) free( __config->keyword ); \
-			__config->keyword = __item.data.string; break
-
-
-#define ASCF_MERGE_FLAGS(__to,__from) \
-    do{	(__to)->flags = ((__from)->flags&(__from)->set_flags)|((__to)->flags & (~(__from)->set_flags)); \
-    	(__to)->set_flags |= (__from)->set_flags;}while(0)
-
-#define ASCF_MERGE_GEOMETRY_KEYWORD(module,__to,__from,keyword) \
-	do{ if( get_flags((__from)->set_flags, module##_##keyword) )	\
-        	merge_geometry(&((__from)->keyword), &((__to)->keyword) ); }while(0)
-
-#define ASCF_MERGE_SCALAR_KEYWORD(module,__to,__from,keyword) \
-	do{ if( get_flags((__from)->set_flags, module##_##keyword) )	\
-        	(__to)->keyword = (__from)->keyword ; }while(0)
-
-#define ASCF_MERGE_STRING_KEYWORD(module,__to,__from,keyword) \
-	do{ if( (__from)->keyword )	\
-        {	set_string(	&((__to)->keyword), stripcpy2((__from)->keyword, False));}}while(0)
 
 /* misc function stuff : */
 #define FUNC_ID_START           F_NOP   /* 0 */
@@ -354,6 +236,7 @@ void LinkAfterStepConfig();
 struct FreeStorageElem;
 struct MyStyleDefinition;
 struct balloonConfig;
+struct flag_options_xref;
 
 struct ASModuleConfigClass;
 
@@ -412,6 +295,9 @@ typedef struct ASModuleConfigClass
 void destroy_ASModule_config( ASModuleConfig *config );
 ASModuleConfig* create_ASModule_config( ASModuleConfigClass *class );
 ASModuleConfig *parse_asmodule_config_all(ASModuleConfigClass *class );
+
+struct MyStyleDefinition *free_storage_elem2MyStyleDefinition (struct FreeStorageElem *fs, const char *default_name);
+struct MyStyleDefinition *free_storage2MyStyleDefinitionsList (struct FreeStorageElem *fs);
 
 
 
@@ -495,16 +381,16 @@ void DestroyBaseConfig (BaseConfig * config);
 /*                           MyStyles                                      */
 /***************************************************************************/
 #define MYSTYLE_ID_START				BASE_ID_END+1
-#define MYSTYLE_START_ID				MYSTYLE_ID_START
-#define MYSTYLE_INHERIT_ID 				MYSTYLE_ID_START+1
-#define MYSTYLE_FONT_ID					MYSTYLE_ID_START+2
-#define MYSTYLE_FORECOLOR_ID			MYSTYLE_ID_START+3
-#define MYSTYLE_BACKCOLOR_ID			MYSTYLE_ID_START+4
-#define MYSTYLE_TEXTSTYLE_ID			MYSTYLE_ID_START+5
-#define MYSTYLE_BACKGRADIENT_ID			MYSTYLE_ID_START+6
-#define MYSTYLE_BACKMULTIGRADIENT_ID	MYSTYLE_ID_START+7
-#define MYSTYLE_BACKPIXMAP_ID  			MYSTYLE_ID_START+8
-#define MYSTYLE_DRAWTEXTBACKGROUND_ID 	MYSTYLE_ID_START+9
+#define MYSTYLE_MyStyle_ID				MYSTYLE_ID_START
+#define MYSTYLE_Inherit_ID 				MYSTYLE_ID_START+1
+#define MYSTYLE_Font_ID					MYSTYLE_ID_START+2
+#define MYSTYLE_ForeColor_ID			MYSTYLE_ID_START+3
+#define MYSTYLE_BackColor_ID			MYSTYLE_ID_START+4
+#define MYSTYLE_TextStyle_ID			MYSTYLE_ID_START+5
+#define MYSTYLE_BackGradient_ID			MYSTYLE_ID_START+6
+#define MYSTYLE_BackMultiGradient_ID	MYSTYLE_ID_START+7
+#define MYSTYLE_BackPixmap_ID  			MYSTYLE_ID_START+8
+#define MYSTYLE_DrawTextBackground_ID 	MYSTYLE_ID_START+9
 #define MYSTYLE_SliceXStart_ID			MYSTYLE_ID_START+10
 #define MYSTYLE_SliceXEnd_ID			MYSTYLE_ID_START+11
 #define MYSTYLE_SliceYStart_ID			MYSTYLE_ID_START+12
@@ -513,48 +399,74 @@ void DestroyBaseConfig (BaseConfig * config);
 #define MYSTYLE_Overlay_ID				MYSTYLE_ID_START+15
 
 #define MYSTYLE_DONE_ID					MYSTYLE_ID_START+16
+#define MYSTYLE_Name_ID					MYSTYLE_ID_START+17
+#define MYSTYLE_Comment_ID				MYSTYLE_ID_START+18
 
 #define MYSTYLE_ID_END					MYSTYLE_ID_START+20
 
+#define MYSTYLE_Name					(0x01<<5)
+#define MYSTYLE_Comment					(0x01<<6)
+#define MYSTYLE_Font					(0x01<<7)
+#define MYSTYLE_ForeColor				(0x01<<8)
+#define MYSTYLE_BackColor				(0x01<<9)
+#define MYSTYLE_TextStyle				(0x01<<10)
+#define MYSTYLE_DrawTextBackground		(0x01<<11)
+#define MYSTYLE_SliceXStart				(0x01<<12)
+#define MYSTYLE_SliceXEnd				(0x01<<13)
+#define MYSTYLE_SliceYStart				(0x01<<14)
+#define MYSTYLE_SliceYEnd				(0x01<<15)
+#define MYSTYLE_BlurSize				(0x01<<16)
+#define MYSTYLE_SLICE_SET				(MYSTYLE_SliceXStart|MYSTYLE_SliceYStart|MYSTYLE_SliceXEnd|MYSTYLE_SliceYEnd)
+
+
 #define MYSTYLE_TERMS \
-{TF_NO_MYNAME_PREPENDING,"MyStyle", 	7, TT_QUOTED_TEXT, MYSTYLE_START_ID	, NULL},\
-{TF_NO_MYNAME_PREPENDING|TF_NONUNIQUE|TF_QUOTES_OPTIONAL,"Inherit", 	7, TT_QUOTED_TEXT, MYSTYLE_INHERIT_ID	, NULL},\
-{TF_NO_MYNAME_PREPENDING,"Font",    	4, TT_FONT, MYSTYLE_FONT_ID		, NULL},\
-{TF_NO_MYNAME_PREPENDING,"ForeColor",	9, TT_COLOR, MYSTYLE_FORECOLOR_ID	, NULL},\
-{TF_NO_MYNAME_PREPENDING,"BackColor",	9, TT_COLOR, MYSTYLE_BACKCOLOR_ID	, NULL},\
-{TF_NO_MYNAME_PREPENDING,"TextStyle",	9, TT_INTEGER, MYSTYLE_TEXTSTYLE_ID	, NULL},\
-{TF_NO_MYNAME_PREPENDING,"BackGradient",12, TT_INTEGER, MYSTYLE_BACKGRADIENT_ID	, NULL},\
-{TF_NO_MYNAME_PREPENDING,"BackMultiGradient", 17, TT_INTEGER, MYSTYLE_BACKMULTIGRADIENT_ID},\
-{TF_NO_MYNAME_PREPENDING|TF_INDEXED,"BackPixmap",10,TT_FILENAME, MYSTYLE_BACKPIXMAP_ID	, NULL},\
-{TF_NO_MYNAME_PREPENDING,"DrawTextBackground",18,TT_FLAG, MYSTYLE_DRAWTEXTBACKGROUND_ID, NULL},\
-{TF_NO_MYNAME_PREPENDING,"SliceXStart",	11, TT_INTEGER, MYSTYLE_SliceXStart_ID	, NULL},\
-{TF_NO_MYNAME_PREPENDING,"SliceXEnd",	9, TT_INTEGER, MYSTYLE_SliceXEnd_ID	, NULL},\
-{TF_NO_MYNAME_PREPENDING,"SliceYStart",	11, TT_INTEGER, MYSTYLE_SliceYStart_ID	, NULL},\
-{TF_NO_MYNAME_PREPENDING,"SliceYEnd",	9, TT_INTEGER, MYSTYLE_SliceYEnd_ID	, NULL},\
-{TF_NO_MYNAME_PREPENDING,"BlurSize",    8, TT_GEOMETRY, MYSTYLE_BlurSize_ID	, NULL},\
-{TF_NO_MYNAME_PREPENDING,"Overlay",	    7,TT_INTEGER, MYSTYLE_Overlay_ID	, NULL},\
-{TF_NO_MYNAME_PREPENDING|TF_SYNTAX_TERMINATOR,"~MyStyle", 	8, TT_FLAG, MYSTYLE_DONE_ID		, NULL}
+	ASCF_DEFINE_KEYWORD_SA(MYSTYLE, TF_NO_MYNAME_PREPENDING, MyStyle, TT_QUOTED_TEXT, NULL, MyStyleDefinition, Name),\
+	ASCF_DEFINE_KEYWORD_S(MYSTYLE, TF_NO_MYNAME_PREPENDING, Name, 			TT_QUOTED_TEXT, NULL, MyStyleDefinition),\
+	ASCF_DEFINE_KEYWORD_S(MYSTYLE, TF_NO_MYNAME_PREPENDING|TF_QUOTES_OPTIONAL, Comment,		TT_QUOTED_TEXT, NULL, MyStyleDefinition),\
+	ASCF_DEFINE_KEYWORD_S(MYSTYLE, TF_NO_MYNAME_PREPENDING, Font,    		TT_FONT, NULL, MyStyleDefinition),\
+	ASCF_DEFINE_KEYWORD_S(MYSTYLE, TF_NO_MYNAME_PREPENDING, ForeColor,		TT_COLOR, NULL, MyStyleDefinition),\
+	ASCF_DEFINE_KEYWORD_S(MYSTYLE, TF_NO_MYNAME_PREPENDING, BackColor,		TT_COLOR, NULL, MyStyleDefinition),\
+	ASCF_DEFINE_KEYWORD_S(MYSTYLE, TF_NO_MYNAME_PREPENDING, TextStyle,		TT_INTEGER, NULL, MyStyleDefinition),\
+	ASCF_DEFINE_KEYWORD_F(MYSTYLE, TF_NO_MYNAME_PREPENDING, DrawTextBackground, NULL,MYSTYLE_DrawTextBackground,0),\
+	ASCF_DEFINE_KEYWORD_S(MYSTYLE, TF_NO_MYNAME_PREPENDING, SliceXStart,  	TT_INTEGER,  NULL, MyStyleDefinition),\
+	ASCF_DEFINE_KEYWORD_S(MYSTYLE, TF_NO_MYNAME_PREPENDING, SliceXEnd,    	TT_INTEGER,  NULL, MyStyleDefinition),\
+	ASCF_DEFINE_KEYWORD_S(MYSTYLE, TF_NO_MYNAME_PREPENDING, SliceYStart,  	TT_INTEGER,  NULL, MyStyleDefinition),\
+	ASCF_DEFINE_KEYWORD_S(MYSTYLE, TF_NO_MYNAME_PREPENDING, SliceYEnd,		TT_INTEGER,  NULL, MyStyleDefinition),\
+	ASCF_DEFINE_KEYWORD_S(MYSTYLE, TF_NO_MYNAME_PREPENDING, BlurSize,     	TT_GEOMETRY, NULL, MyStyleDefinition),\
+	\
+	ASCF_DEFINE_KEYWORD(MYSTYLE, TF_NO_MYNAME_PREPENDING|TF_NONUNIQUE|TF_QUOTES_OPTIONAL, Inherit, TT_QUOTED_TEXT, NULL),\
+	ASCF_DEFINE_KEYWORD(MYSTYLE, TF_NO_MYNAME_PREPENDING, BackGradient, 	TT_INTEGER, NULL),\
+	ASCF_DEFINE_KEYWORD(MYSTYLE, TF_NO_MYNAME_PREPENDING, BackMultiGradient, TT_INTEGER, NULL),\
+	ASCF_DEFINE_KEYWORD(MYSTYLE, TF_NO_MYNAME_PREPENDING|TF_INDEXED, BackPixmap, TT_FILENAME, NULL),\
+	ASCF_DEFINE_KEYWORD(MYSTYLE, TF_NO_MYNAME_PREPENDING, Overlay,	    	TT_INTEGER, NULL),\
+	\
+	{TF_NO_MYNAME_PREPENDING|TF_SYNTAX_TERMINATOR,"~MyStyle", 	8, TT_FLAG, MYSTYLE_DONE_ID		, NULL}
 
 extern struct SyntaxDef MyStyleSyntax;
 /* use this in module term definition to add MyStyle parsing functionality */
-#define INCLUDE_MYSTYLE {TF_NO_MYNAME_PREPENDING,"MyStyle", 7, TT_QUOTED_TEXT, MYSTYLE_START_ID, &MyStyleSyntax}
+#define INCLUDE_MYSTYLE {TF_NO_MYNAME_PREPENDING,"MyStyle", 7, TT_QUOTED_TEXT, MYSTYLE_MyStyle_ID, &MyStyleSyntax}
+
+extern struct flag_options_xref MyStyleFlags[];
 
 typedef struct MyStyleDefinition
 {
-#define MYSTYLE_DRAW_TEXT_BACKGROUND	(0x01<<0)
-#define MYSTYLE_FINISHED				(0x01<<1)
-#define MYSTYLE_TEXT_STYLE_SET			(0x01<<2)
-#define MYSTYLE_SLICE_SET				(0x01<<3)
-#define MYSTYLE_BLUR_SET				(0x01<<4)
-   	ASFlagType flags;
+	int type ; /* any of the CONFIG_ values above */
 
-	char   *name;
+   	ASFlagType flags, set_flags;
+
+	char   *Name;
+	char   *Comment;
+	
+	char   *Font;
+    char   *ForeColor, *BackColor;
+    int 	TextStyle;
+
+	int SliceXStart, SliceXEnd, SliceYStart, SliceYEnd ;
+	ASGeometry BlurSize;
+
+	/* these options require special processing : */
     int     inherit_num;
     char  **inherit;
-
-	char   *font;
-    char   *fore_color, *back_color;
-    int 	text_style;
 
 	int 	texture_type ;
 
@@ -564,9 +476,6 @@ typedef struct MyStyleDefinition
     double *back_grad_offsets;
 
     char   *back_pixmap;
-
-	int slice_x_start, slice_x_end, slice_y_start, slice_y_end ;
-	ASGeometry BlurSize;
 
 	int 	overlay_type ;
     char   *overlay;
@@ -583,10 +492,12 @@ typedef struct MyStyleDefinition
  * [options] will be changed to point to the next non-MyStyle FreeStorageElem
  */
 void DestroyMyStyleDefinitions (MyStyleDefinition ** list);
-MyStyleDefinition **ProcessMyStyleOptions (struct FreeStorageElem * options, MyStyleDefinition ** tail);
+void HandleMyStyleSpecialTerm (MyStyleDefinition *msd, struct FreeStorageElem *fs);
+Bool CheckMyStyleDefinitionSanity (MyStyleDefinition *msd);
+
 void mystyle_parse (char *tline, FILE * fd, char **myname, int *mystyle_list);
-struct MyStyle* mystyle_create_from_definition (MyStyleDefinition * def);
-struct MyStyle* mystyle_find_or_get_from_file(const char *name);
+struct MyStyle* mystyle_create_from_definition (struct ASHashTable *list, MyStyleDefinition * def);
+struct MyStyle* mystyle_find_or_get_from_file(struct ASHashTable *list, const char *name);
 
 void PrintMyStyleDefinitions (MyStyleDefinition * list);
 /*

@@ -617,7 +617,6 @@ ParseWharfOptions (const char *filename, char *myname)
 	WharfConfig  *config = CreateWharfConfig ();
 	FreeStorageElem *Storage = NULL, *pCurr;
 	ConfigItem    item;
-	MyStyleDefinition **styles_tail = &(config->style_defs);
 	TermDef      *folder_term = func2fterm (F_Folder, False);
 
 	cd.filename = filename ;
@@ -634,6 +633,7 @@ ParseWharfOptions (const char *filename, char *myname)
 	/* getting rid of all the crap first */
 	StorageCleanUp (&Storage, &(config->more_stuff), CF_DISABLED_OPTION);
 	config->balloon_conf = Process_balloonOptions (Storage, NULL, BALLOON_ID_START);
+	config->style_defs = free_storage2MyStyleDefinitionsList (Storage);
 
 	for (pCurr = Storage; pCurr; pCurr = pCurr->next)
 	{
@@ -728,11 +728,6 @@ ParseWharfOptions (const char *filename, char *myname)
 		ASCF_HANDLE_INTEGER_KEYWORD_CASE(WHARF,config,item,CompositionMethod ); 
 		ASCF_HANDLE_INTEGER_KEYWORD_CASE(WHARF,config,item,FolderOffset ); 
 		ASCF_HANDLE_INTEGER_KEYWORD_CASE(WHARF,config,item,OrthogonalFolderOffset ); 
-         case MYSTYLE_START_ID:
-			 styles_tail = ProcessMyStyleOptions (pCurr->sub, styles_tail);
-			 item.ok_to_free = 1;
-			 break;
-
 		 default:
 			 if (pCurr->term->type != TT_FLAG)
 				 item.ok_to_free = 1;
