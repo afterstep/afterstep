@@ -35,7 +35,8 @@ typedef struct _ASGtkMyStyleEdit
 
 	struct SyntaxDef *syntax ;
 	struct FreeStorageElem  *free_store ;
-	
+
+	char *name;	
 	int background_type ; /* derived from the free_store */
 
 	GtkTreeModel *mystyles_list ;
@@ -153,6 +154,9 @@ typedef struct ASGtkMyStylesPanel
 				GtkWidget *list_add_btn ; 	
 				GtkWidget *list_del_btn ; 	
 				GtkWidget *list_rename_btn ; 	
+			GtkWidget *list_hbtn_box2 ; 	
+				GtkWidget *list_tolib_btn; 	
+				GtkWidget *list_saveas_btn; 	
 		/* end list_vbox */
 		GtkWidget *mystyle_frame ; 	
 		GtkWidget *mystyle_editor ; 	

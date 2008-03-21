@@ -304,12 +304,14 @@ CopyFreeStorage (FreeStorageElem ** to, FreeStorageElem * from)
 
 	if (to == NULL)
 		return;
+
 	for (; from; from = from->next)
 	{
 		if ((pNew = DupFreeStorageElem (from)) == NULL)
 			continue;
 		pNew->next = *to;
 		*to = pNew;
+		to = &((*to)->next);
 	}
 }
 

@@ -706,3 +706,21 @@ MyStyleDefs2FreeStorage (SyntaxDef * syntax, FreeStorageElem ** tail, MyStyleDef
 	return tail;
 }
 
+int
+WriteMyStyleStorageToFile (const char *filename, FreeStorageElem *fs, ASFlagType flags)
+{
+	ConfigDef    *MyStyleWriter = NULL;
+	ConfigData cd ;
+	
+	cd.filename = filename ;
+	if ((MyStyleWriter = InitConfigWriter ("afterstep", &MyStyleSyntax, CDT_Filename, cd)) == NULL)
+		return 2;
+
+	cd.filename = filename ;
+	/* writing config into the file */
+	WriteConfig (MyStyleWriter, fs->sub?fs->sub:fs, CDT_Filename, &cd, flags);
+	DestroyConfig (MyStyleWriter);
+
+	return 0;
+}
+

@@ -500,6 +500,8 @@ struct MyStyle* mystyle_create_from_definition (struct ASHashTable *list, MyStyl
 struct MyStyle* mystyle_find_or_get_from_file(struct ASHashTable *list, const char *name);
 
 void PrintMyStyleDefinitions (MyStyleDefinition * list);
+int WriteMyStyleStorageToFile (const char *filename, FreeStorageElem *fs, ASFlagType flags);
+
 /*
  * this function process a linked list of MyStyle definitions
  * and create MyStyle for each valid definition

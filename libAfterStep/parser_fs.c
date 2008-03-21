@@ -509,17 +509,18 @@ ScanAndWriteExistant (ConfigDef * config, FreeStorageElem ** storage, struct Wri
 /* main writing procedure ( returns size of the data written )             */
 
 long
-WriteConfig (ConfigDef * config, FreeStorageElem ** storage,
+WriteConfig (ConfigDef * config, FreeStorageElem *storage,
 			 ConfigDataType target_type, ConfigData *target, unsigned long flags)
 {
 #ifdef WITH_CONFIG_WRITER
+	FreeStorageElem *copy = NULL;
 	struct WriteBuffer t_buffer;
 	int           t_fd = -1;
 
 	if (config == NULL || storage == NULL || target == NULL)
 		return -1;
-	if (*storage == NULL)
-		return -1;
+
+	CopyFreeStorage (&copy, storage);
 
 	if (config->buffer_size <= 0)
 	{
@@ -533,10 +534,11 @@ WriteConfig (ConfigDef * config, FreeStorageElem ** storage,
 	/* scanning old file first to preserv comments */
 	if (!(flags & WF_DISCARD_COMMENTS) ||
 		!(flags & WF_DISCARD_UNKNOWN) || !(flags & WF_DISCARD_FOREIGN) || !(flags & WF_DISCARD_PUBLIC))
-		ScanAndWriteExistant (config, storage, &t_buffer, flags);
+		ScanAndWriteExistant (config, &copy, &t_buffer, flags);
 	/* now writing remaining elements */
-	WriteRemnants (config, &t_buffer, *storage);
-	DestroyFreeStorage (storage);
+	WriteRemnants (config, &t_buffer, copy);
+	
+	DestroyFreeStorage (&copy);
 
 	t_buffer.buffer[t_buffer.used] = config->syntax->file_terminator;
 	t_buffer.buffer[t_buffer.used + 1] = '\0';

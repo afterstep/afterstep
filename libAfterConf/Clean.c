@@ -144,7 +144,8 @@ WriteCleanOptions (const char *filename, char *myname, CleanConfig * config, uns
 	/* tail = String2FreeStorage (&CleanSyntax, tail, config->color, CLEAN_Clean_ID); */
 
 	/* writing config into the file */
-	WriteConfig (CleanConfigWriter, &Storage, CDT_Filename, &cd, flags);
+	WriteConfig (CleanConfigWriter, Storage, CDT_Filename, &cd, flags);
+	DestroyFreeStorage (&Storage);
 	DestroyConfig (CleanConfigWriter);
 
 	if (Storage)

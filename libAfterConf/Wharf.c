@@ -912,7 +912,8 @@ WriteWharfOptions (const char *filename, char *myname, WharfConfig * config, uns
 		tail = WharfFolder2FreeStorage (&WharfSyntax, tail, config->root_folder, True);
 
 	/* writing config into the file */
-	WriteConfig (WharfConfigWriter, &Storage, CDT_Filename, (void **)&filename, flags);
+	WriteConfig (WharfConfigWriter, Storage, CDT_Filename, (void **)&filename, flags);
+	DestroyFreeStorage (&Storage);
 	DestroyConfig (WharfConfigWriter);
 
 	if (Storage)

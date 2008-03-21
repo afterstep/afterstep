@@ -228,7 +228,8 @@ WriteAnimateOptions (const char *filename, char *myname, AnimateConfig * config,
 	}
 
 	/* writing config into the file */
-	WriteConfig (AnimateConfigWriter, &Storage, CDT_Filename, &cd, flags);
+	WriteConfig (AnimateConfigWriter, Storage, CDT_Filename, &cd, flags);
+	DestroyFreeStorage (&Storage);
 	DestroyConfig (AnimateConfigWriter);
 
 	if (Storage)

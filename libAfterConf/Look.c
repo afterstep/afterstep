@@ -802,7 +802,8 @@ WriteLookOptions (const char *filename, char *myname, LookConfig * config, unsig
 
 	/* writing config into the file */
 	cd.filename = filename ;
-	WriteConfig (ConfigWriter, &Storage, CDT_Filename, &cd, flags);
+	WriteConfig (ConfigWriter, Storage, CDT_Filename, &cd, flags);
+	DestroyFreeStorage (&Storage);
     DestroyConfig (ConfigWriter);
 
 	if (Storage)

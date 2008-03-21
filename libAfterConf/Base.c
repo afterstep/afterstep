@@ -268,15 +268,10 @@ WriteBaseOptions (const char *filename, char *myname, BaseConfig * config, unsig
 
 	cd.filename = filename ;
 	/* writing config into the file */
-	WriteConfig (BaseConfigWriter, &Storage, CDT_Filename, &cd, flags);
+	WriteConfig (BaseConfigWriter, Storage, CDT_Filename, &cd, flags);
+	DestroyFreeStorage (&Storage);
 	DestroyConfig (BaseConfigWriter);
 
-	if (Storage)
-	{
-		fprintf (stderr, "\n%s:Config Writing warning: Not all Free Storage discarded! Trying again...", myname);
-		DestroyFreeStorage (&Storage);
-		fprintf (stderr, (Storage != NULL) ? " failed." : " success.");
-	}
 	return 0;
 }
 

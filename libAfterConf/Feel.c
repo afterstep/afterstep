@@ -734,7 +734,8 @@ WriteFeelOptions (const char *filename, char *myname,
         }
 
     /* writing config into the file */
-	WriteConfig (ConfigWriter, &Storage, CDT_Filename, (void **) &filename, flags);
+	WriteConfig (ConfigWriter, Storage, CDT_Filename, (void **) &filename, flags);
+	DestroyFreeStorage (&Storage);
     DestroyConfig (ConfigWriter);
 
 	if (Storage)
@@ -849,7 +850,8 @@ WriteAutoExecOptions (const char *filename, char *myname,  AutoExecConfig * conf
 
     /* writing config into the file */
 	cd.filename = filename ; 
-	WriteConfig (ConfigWriter, &Storage, CDT_Filename, &cd, flags);
+	WriteConfig (ConfigWriter, Storage, CDT_Filename, &cd, flags);
+	DestroyFreeStorage (&Storage);
     DestroyConfig (ConfigWriter);
 
 	if (Storage)

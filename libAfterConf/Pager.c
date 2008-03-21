@@ -546,7 +546,8 @@ WritePagerOptions (const char *filename, char *myname, int desk1, int desk2, Pag
 		/* border_color */
 		d_tail = String2FreeStorage (&PagerDecorationSyntax, d_tail, config->border_color, PAGER_DECOR_BORDER_COLOR_ID);
 
-		WriteConfig (DecorConfig, &DecorStorage, CDT_Data, (void **)&Decorations, 0);
+		WriteConfig (DecorConfig, DecorStorage, CDT_Data, (void **)&Decorations, 0);
+		DestroyFreeStorage (&DecorStorage);
 		DestroyConfig (DecorConfig);
 		if (DecorStorage)
 			DestroyFreeStorage (&DecorStorage);
@@ -560,7 +561,8 @@ WritePagerOptions (const char *filename, char *myname, int desk1, int desk2, Pag
 	}
 
 	/* writing config into the file */
-	WriteConfig (PagerConfigWriter, &Storage, CDT_Filename, (void **)&filename, flags);
+	WriteConfig (PagerConfigWriter, Storage, CDT_Filename, (void **)&filename, flags);
+	DestroyFreeStorage (&Storage);
 	DestroyConfig (PagerConfigWriter);
 
 	if (Storage)

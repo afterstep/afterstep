@@ -131,7 +131,8 @@ WriteIdentOptions (const char *filename, char *myname, IdentConfig * config, uns
 	/* building free storage here */
 	/* writing config into the file */
 	cd.filename = filename ;
-	WriteConfig (IdentConfigWriter, &Storage, CDT_Filename, &cd, flags);
+	WriteConfig (IdentConfigWriter, Storage, CDT_Filename, &cd, flags);
+	DestroyFreeStorage (&Storage);
 	DestroyConfig (IdentConfigWriter);
 
 	if (Storage)

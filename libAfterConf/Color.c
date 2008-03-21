@@ -225,7 +225,8 @@ WriteColorOptions (const char *filename, char *myname, ColorConfig * config, uns
 
 	/* writing config into the file */
 	cd.filename = filename ; 
-	WriteConfig (ColorConfigWriter, &Storage, CDT_Filename, &cd, flags);
+	WriteConfig (ColorConfigWriter, Storage, CDT_Filename, &cd, flags);
+	DestroyFreeStorage (&Storage);
 	DestroyConfig (ColorConfigWriter);
 
 	if (Storage)

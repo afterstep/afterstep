@@ -25,8 +25,9 @@
     <widget class="GtkVBox" id="vbox">
       <property name="border_width">3</property>
       <property name="visible">True</property>
+      <property name="sensitive">False</property>
       <property name="homogeneous">False</property>
-      <property name="spacing">1</property>
+      <property name="spacing">5</property>
 
       <child>
 	<widget class="GtkHBox" id="hbox1_mystyle_name">

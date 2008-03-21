@@ -262,7 +262,8 @@ WriteAudioOptions (const char *filename, char *myname, AudioConfig * config, uns
         }
 
     /* writing config into the file */
-	WriteConfig (AudioConfigWriter, &Storage, CDT_Filename, &cd, flags);
+	WriteConfig (AudioConfigWriter, Storage, CDT_Filename, &cd, flags);
+	DestroyFreeStorage (&Storage);
 	DestroyConfig (AudioConfigWriter);
 
 	if (Storage)

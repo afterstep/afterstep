@@ -291,12 +291,9 @@ ConfigDef *InitConfigWriter (char *myname, SyntaxDef * syntax,
 #define WF_DISCARD_COMMENTS 	(1<<3)
 #define WF_DISCARD_UNKNOWN	(1<<4)
 #define WF_DISCARD_EVERYTHING   0xFFFFFFFF
-long WriteConfig (ConfigDef * config, FreeStorageElem ** storage,
+long WriteConfig (ConfigDef * config, FreeStorageElem * storage,
 		  ConfigDataType target_type, ConfigData *target,
 		  unsigned long flags);
-/* Note: WriteConfig discards FreeStorage if everything is fine,
- *       in which case *storage will be set to NULL
- */
 
 void DestroyConfig (ConfigDef * config);
 

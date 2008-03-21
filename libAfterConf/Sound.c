@@ -284,7 +284,8 @@ WriteSoundOptions (const char *filename, char *myname, SoundConfig * config, uns
         }
 
     /* writing config into the file */
-	WriteConfig (SoundConfigWriter, &Storage, CDT_Filename, &cd, flags);
+	WriteConfig (SoundConfigWriter, Storage, CDT_Filename, &cd, flags);
+	DestroyFreeStorage (&Storage);
 	DestroyConfig (SoundConfigWriter);
 
 	if (Storage)

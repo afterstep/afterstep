@@ -769,7 +769,8 @@ WriteDatabaseOptions (const char *filename, char *myname, struct name_list *conf
 		tail = WriteSingleStyle (config, tail);
 
 	/* writing config into the file */
-	WriteConfig (DatabaseConfigWriter, &Storage, CDT_Filename, (void **)&filename, flags);
+	WriteConfig (DatabaseConfigWriter, Storage, CDT_Filename, (void **)&filename, flags);
+	DestroyFreeStorage (&Storage);
 	DestroyConfig (DatabaseConfigWriter);
 
 	if (Storage)

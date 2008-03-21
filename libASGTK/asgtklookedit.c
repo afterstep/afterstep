@@ -39,7 +39,7 @@
 #include "asgtkcframe.h"
 
 #define MYSTYLE_LIST_WIDTH   	100
-#define MYSTYLE_LIST_HEIGHT  	200
+#define MYSTYLE_LIST_HEIGHT  	300
 #define INHERIT_LIST_WIDTH   	MYSTYLE_LIST_WIDTH
 #define INHERIT_LIST_HEIGHT  	(MYSTYLE_LIST_HEIGHT>>2)
 #define PREVIEW_WIDTH  			240
@@ -387,14 +387,18 @@ asgtk_mystyle_edit_set_sliced(ASGtkMyStyleEdit *self, Bool sliced)
 }
 
 static void 
-FreeStorage2MyStyleEdit( FreeStorageElem *storage, ASGtkMyStyleEdit *self ) 
+asgtk_mystyle_edit_set_free_store (FreeStorageElem *storage, ASGtkMyStyleEdit *self) 
 {
 	FreeStorageElem *curr = storage ;
+	FreeStorageElem *name_elem = NULL ;
 	ConfigItem    item;
 	ASGtkSimpleList *list = ASGTK_SIMPLE_LIST(self->tw_inherit_list);
 	int i;
 
 	self->free_store = storage ; 
+	if (self->name)
+		destroy_string (&(self->name));
+	
 	asgtk_simple_list_purge( list );
 
 	item.memory = NULL;
@@ -412,12 +416,17 @@ FreeStorage2MyStyleEdit( FreeStorageElem *storage, ASGtkMyStyleEdit *self )
 	asgtk_mystyle_edit_set_background_type(self, -1);	
 	
 	if( storage && storage->term->id == MYSTYLE_MyStyle_ID ) 
+	{
+		name_elem = storage;
 		storage = storage->sub ;
+	}
 
 	/* first pass - handling BackPixmap : */
 	for( curr = storage ; curr != NULL ; curr = curr->next ) 
 	{
-		if( curr->term->id == MYSTYLE_BackPixmap_ID ) 
+		if( curr->term->id == MYSTYLE_Name_ID ) 
+			name_elem = storage;
+		else if( curr->term->id == MYSTYLE_BackPixmap_ID ) 
 		{
 			ReadConfigItem (&item, curr);
 			asgtk_mystyle_edit_set_background_type( self, item.index);
@@ -430,10 +439,20 @@ FreeStorage2MyStyleEdit( FreeStorageElem *storage, ASGtkMyStyleEdit *self )
 			item.ok_to_free = True;	
 		}
 	}
+	
+	if (name_elem)
+	{
+		if (ReadConfigItem (&item, name_elem))
+		{
+			self->name = item.data.string;
+			item.ok_to_free = False;
+		}
+
+	}
 	/* second pass - everything else : */
 	for( curr = storage ; curr != NULL ; curr = curr->next ) 
 	{
-		if( ReadConfigItem (&item, curr) ) 
+		if (ReadConfigItem (&item, curr)) 
 		{
 			if( curr->term->id == MYSTYLE_Inherit_ID ) 
 			{
@@ -553,203 +572,8 @@ asgtk_mystyle_edit_new ()
 	self->syntax = &MyStyleSyntax ;
 
 	create_mystyle_editor_interface( wself );
-#if 0
-	table = gtk_table_new( 4, 11, FALSE );
-	self->inherit_frame = gtk_frame_new( NULL );
-	self->inherit_box = gtk_hbox_new(FALSE, 5);
-	self->inherit_list = asgtk_simple_list_new( "Inherited MyStyles : " );
-	self->inherit_list_window  = ASGTK_SCROLLED_WINDOW(GTK_POLICY_NEVER, GTK_POLICY_ALWAYS,GTK_SHADOW_IN);
-	self->inherit_list_btn_box= gtk_vbutton_box_new(); 	
-
-	self->font = gtk_entry_new();
-	self->fore_color = gtk_entry_new();
-	self->back_color = gtk_entry_new();
-	self->text_style = gtk_combo_box_new_text();
-	fill_text_style_combo_box( self->text_style ); 
 	
-	self->overlay = gtk_check_button_new_with_label("Overlay with : ");
-	gtk_button_set_relief(GTK_BUTTON(self->overlay), GTK_RELIEF_NONE );
-   	g_signal_connect ((gpointer) self->overlay, "clicked", G_CALLBACK (on_mystyle_overlay_clicked), self);
-	self->overlay_mystyle = gtk_combo_box_new_text();
-	
-	self->backpixmap_frame = asgtk_collapsing_frame_new(" Background texture : ","check here if no texture") ; 		
-	gtk_frame_set_shadow_type( GTK_FRAME(self->backpixmap_frame), GTK_SHADOW_IN);
-
-	self->backpixmap_notebook = gtk_notebook_new();
-
-	pixmap_table = gtk_table_new (8, 4, FALSE);
-	gtk_notebook_append_page( GTK_NOTEBOOK(self->backpixmap_notebook), pixmap_table, gtk_label_new("Pixmap"));
-	gradient_table = gtk_table_new (8, 4, FALSE);
-	gtk_notebook_append_page( GTK_NOTEBOOK(self->backpixmap_notebook), gradient_table, gtk_label_new("Gradient"));
-	gtk_widget_show_all (self->backpixmap_notebook);
-
-	self->pixmap_filename = gtk_entry_new ();
-	self->pixmap_browse_btn = asgtk_new_button(GTK_STOCK_FLOPPY, "Browse");
-
-	self->pixmap_preview = asgtk_image_view_new();
- 	gtk_widget_set_size_request (self->pixmap_preview, 128, 128);
-
-
-	self->pixmap_slice_margins = gtk_expander_new ("Slicing margins ... ");
-	self->pixmap_slice_frame = gtk_frame_new (NULL);
-	self->pixmap_slice_x_start_adj = gtk_adjustment_new (1, 0, 100, 1, 10, 10);
-	self->pixmap_slice_x_start = gtk_spin_button_new (GTK_ADJUSTMENT (self->pixmap_slice_x_start_adj), 1, 0);
-	self->pixmap_slice_x_end_adj = gtk_adjustment_new (1, 0, 100, 1, 10, 10);
-	self->pixmap_slice_x_end = gtk_spin_button_new (GTK_ADJUSTMENT (self->pixmap_slice_x_end_adj), 1, 0);
-	self->pixmap_slice_y_start_adj = gtk_adjustment_new (1, 0, 100, 1, 10, 10);
-	self->pixmap_slice_y_start = gtk_spin_button_new (GTK_ADJUSTMENT (self->pixmap_slice_y_start_adj), 1, 0);
-	self->pixmap_slice_y_end_adj = gtk_adjustment_new (1, 0, 100, 1, 10, 10);
-	self->pixmap_slice_y_end = gtk_spin_button_new (GTK_ADJUSTMENT (self->pixmap_slice_y_end_adj), 1, 0);
-	
-	self->pixmap_pseudo_transp = gtk_radio_button_new_with_mnemonic (NULL, "Pseudo-transparent");
-	gtk_button_set_focus_on_click (GTK_BUTTON (self->pixmap_pseudo_transp), FALSE);
-	self->pixmap_pseudo_transp_group = gtk_radio_button_get_group (GTK_RADIO_BUTTON (self->pixmap_pseudo_transp));
-	self->pixmap_shaped = gtk_radio_button_new_with_mnemonic (self->pixmap_pseudo_transp_group, "Shaped");
-
-	self->pixmap_blend_type = gtk_combo_box_new_text ();
-
-	self->pixmap_tiled = gtk_radio_button_new_with_mnemonic (NULL, "Tiled");
-	self->pixmap_tiled_group = gtk_radio_button_get_group (GTK_RADIO_BUTTON (self->pixmap_tiled));
-  	self->pixmap_scaled = gtk_radio_button_new_with_mnemonic (self->pixmap_tiled_group, "Scaled");
-  	self->pixmap_sliced = gtk_radio_button_new_with_mnemonic (self->pixmap_tiled_group, "Sliced");
-
-	pixmap_slice_table = gtk_table_new (6, 8, FALSE);
-	
-	ASGTK_PACK_BEGIN(self->inherit_box);
-		ASGTK_PACK_TO_START(self->inherit_list_window, TRUE, TRUE, 0);
-		ASGTK_PACK_TO_END(self->inherit_list_btn_box, FALSE, FALSE, 0);
-	ASGTK_PACK_END;
-
-	ASGTK_PACK_BEGIN(self->inherit_list_btn_box);
-		self->inherit_list_add_btn 	= asgtk_add_button_to_box( ASGTK_PACK_BOX, GTK_STOCK_ADD, "Add", G_CALLBACK(on_add_inherit_mystyle_btn_clicked), self ); 	
-		self->inherit_list_del_btn 	= asgtk_add_button_to_box( ASGTK_PACK_BOX, GTK_STOCK_DELETE, "Delete", G_CALLBACK(on_add_inherit_mystyle_btn_clicked), self ); 	
-	ASGTK_PACK_END;
-
-	ASGTK_TABLE_BEGIN(pixmap_slice_table);
-		ASGTK_ROW_BEGIN;
-			ASGTK_TABLE_CELL_SKIP;
-			ASGTK_TABLE_CELL(ASGTK_ALIGNED_LABEL("X", 0, 0.5));
-			ASGTK_TABLE_CELL(ASGTK_ALIGNED_LABEL("Start", 0, 0.5));
-			ASGTK_TABLE_CELL(self->pixmap_slice_x_start);
-			ASGTK_TABLE_CELL_SKIP;
-			ASGTK_TABLE_CELL(ASGTK_ALIGNED_LABEL("End", 0, 0.5));
-			ASGTK_TABLE_CELL(self->pixmap_slice_x_end);
-		ASGTK_ROW_END;
-		ASGTK_ROW_BEGIN;
-			ASGTK_TABLE_CELL(ASGTK_ALIGNED_LABEL("Y", 0, 0.5));
-			ASGTK_TABLE_CELL_SKIP;
-			ASGTK_TABLE_CELL(ASGTK_ALIGNED_LABEL("intact", 1, 1));
-			ASGTK_TABLE_CELL_SPAN2D(gtk_vseparator_new (),1,5);
-			ASGTK_TABLE_CELL_SPAN(ASGTK_ALIGNED_LABEL("scaled horizontally", 0, 1),2);
-			ASGTK_TABLE_CELL_SPAN2D(gtk_vseparator_new (),1,5);
-			ASGTK_TABLE_CELL(ASGTK_ALIGNED_LABEL("intact", 0, 1));
-		ASGTK_ROW_END;
-		ASGTK_ROW_BEGIN;
-			ASGTK_TABLE_CELL(ASGTK_ALIGNED_LABEL("Start", 0, 0.5));
-			ASGTK_TABLE_CELL(self->pixmap_slice_y_start);
-			ASGTK_TABLE_CELL_SPAN(gtk_hseparator_new (),6);
-		ASGTK_ROW_END;
-		ASGTK_ROW_BEGIN;
-			ASGTK_TABLE_CELL_SKIP;
-			ASGTK_TABLE_CELL_SKIP;
-			ASGTK_TABLE_CELL(ASGTK_ALIGNED_LABEL(" scaled\n vertically", 1, 0.5));
-			ASGTK_TABLE_CELL_SKIP;
-			ASGTK_TABLE_CELL_SPAN(ASGTK_ALIGNED_LABEL("scaled both ways", 0.5, 0.5),2);
-			ASGTK_TABLE_CELL_SKIP;
-			ASGTK_TABLE_CELL(ASGTK_ALIGNED_LABEL("scaled\nvertically", 0, 0.5));
-		ASGTK_ROW_END;
-		ASGTK_ROW_BEGIN;
-			ASGTK_TABLE_CELL(ASGTK_ALIGNED_LABEL("End", 0, 0.5));
-			ASGTK_TABLE_CELL(self->pixmap_slice_y_end);
-			ASGTK_TABLE_CELL_SPAN(gtk_hseparator_new (),6);
-		ASGTK_ROW_END;
-		ASGTK_ROW_BEGIN;
-			ASGTK_TABLE_CELL_SKIP;
-			ASGTK_TABLE_CELL_SKIP;
-			ASGTK_TABLE_CELL(ASGTK_ALIGNED_LABEL("intact", 1, 0));
-			ASGTK_TABLE_CELL_SKIP;
-			ASGTK_TABLE_CELL_SPAN(ASGTK_ALIGNED_LABEL("scaled horizontally", 0.5, 0),2);
-			ASGTK_TABLE_CELL_SKIP;
-			ASGTK_TABLE_CELL(ASGTK_ALIGNED_LABEL("intact", 0, 0));
-		ASGTK_ROW_END;
-	ASGTK_TABLE_END;
-
-	ASGTK_CONTAINER_ADD(self->pixmap_slice_frame, ASGTK_ALIGN(pixmap_slice_table,0.5, 0.5, 1, 1,3,0,3,0));
-	ASGTK_CONTAINER_ADD(self->pixmap_slice_margins, self->pixmap_slice_frame);
-
-	ASGTK_TABLE_BEGIN(pixmap_table);
-		ASGTK_ROW_BEGIN;
-			ASGTK_TABLE_CELL_SPAN(ASGTK_ALIGNED_LABEL("Pixmap file name :", 0, 0.5),2);
-			ASGTK_TABLE_CELL(self->pixmap_browse_btn);
-			ASGTK_TABLE_CELL_SPAN2D(self->pixmap_preview,1,7);
-		ASGTK_ROW_END;
-		ASGTK_ROW_BEGIN;
-			ASGTK_TABLE_CELL_SPAN(self->pixmap_filename,3);
-		ASGTK_ROW_END;
-		ASGTK_ROW_BEGIN;
-			ASGTK_TABLE_CELL_SPAN(gtk_hseparator_new (),3);
-		ASGTK_ROW_END;
-		ASGTK_ROW_BEGIN;
-			ASGTK_TABLE_CELL_SPAN(self->pixmap_pseudo_transp,2);
-			ASGTK_TABLE_CELL(self->pixmap_shaped);
-		ASGTK_ROW_END;
-		ASGTK_ROW_BEGIN;
-			ASGTK_TABLE_CELL(ASGTK_ALIGNED_LABEL("Blending type :", 0, 0.5));
-			ASGTK_TABLE_CELL_SPAN(self->pixmap_blend_type,2);
-		ASGTK_ROW_END;
-		ASGTK_ROW_BEGIN;
-			ASGTK_TABLE_CELL_SPAN(gtk_hseparator_new (),3);
-		ASGTK_ROW_END;
-		ASGTK_ROW_BEGIN;
-			ASGTK_TABLE_CELL(self->pixmap_tiled);
-			ASGTK_TABLE_CELL(self->pixmap_scaled);
-			ASGTK_TABLE_CELL(self->pixmap_sliced);
-		ASGTK_ROW_END;
-		ASGTK_ROW_BEGIN;
-			ASGTK_TABLE_CELL_SPAN(self->pixmap_slice_margins,4);
-		ASGTK_ROW_END;
-	ASGTK_TABLE_END;
-	
-	ASGTK_CONTAINER_ADD(self->backpixmap_frame, self->backpixmap_notebook);
-
-	ASGTK_TABLE_BEGIN(table);
-		ASGTK_ROW_BEGIN;
-			ASGTK_TABLE_CELL_SPAN(self->inherit_frame,2);
-			ASGTK_TABLE_CELL_SPAN2D(ASGTK_ALIGN(self->backpixmap_frame,0.5,0.5,1,1,0,0,5,0),2,6);
-		ASGTK_ROW_END;
-		ASGTK_ROW_BEGIN;
-			ASGTK_TABLE_CELL(ASGTK_ALIGNED_LABEL("Font : ", 1.0, 0.5));
-			ASGTK_TABLE_CELL(self->font);
-		ASGTK_ROW_END;
-		ASGTK_ROW_BEGIN;
-			ASGTK_TABLE_CELL(ASGTK_ALIGNED_LABEL("Text Style : ", 1.0, 0.5));
-			ASGTK_TABLE_CELL(self->text_style);
-		ASGTK_ROW_END;
-		ASGTK_ROW_BEGIN;
-			ASGTK_TABLE_CELL(ASGTK_ALIGNED_LABEL("Fore Color : ", 1.0, 0.5));
-			ASGTK_TABLE_CELL(self->fore_color);
-		ASGTK_ROW_END;
-		ASGTK_ROW_BEGIN;
-			ASGTK_TABLE_CELL(ASGTK_ALIGNED_LABEL("Back Color : ", 1.0, 0.5));
-			ASGTK_TABLE_CELL(self->back_color);
-		ASGTK_ROW_END;
-		ASGTK_ROW_BEGIN;
-			ASGTK_TABLE_CELL(self->overlay);
-			ASGTK_TABLE_CELL(self->overlay_mystyle);
-		ASGTK_ROW_END;
-	ASGTK_TABLE_END;
-
-//	gtk_widget_set_size_request(self->text_style,INHERIT_LIST_WIDTH,);	
-
-	ASGTK_CONTAINER_CONFIG(self->inherit_list_window, INHERIT_LIST_WIDTH, INHERIT_LIST_HEIGHT,0);
-	
-	ASGTK_CONTAINER_ADD(self->inherit_list_window, self->inherit_list);
-	ASGTK_CONTAINER_ADD(self->inherit_frame, self->inherit_box);
-	gtk_container_set_border_width( GTK_CONTAINER(table), 3 );
-	ASGTK_CONTAINER_ADD(self, table);
-
-	gtk_widget_hide( ASGTK_IMAGE_VIEW(self->pixmap_preview)->details_frame );
-#endif
+	gtk_box_set_spacing (GTK_BOX(wself), 5);
 
 	LOCAL_DEBUG_OUT( "created image ASGtkMyStyleEdit object %p", self );	
 	return wself;
@@ -850,6 +674,41 @@ on_add_mystyle_btn_clicked(GtkButton *button, gpointer user_data)
 	ASGtkLookEdit *self = ASGTK_LOOK_EDIT(user_data);
 }
 
+static void
+on_add_to_library_mystyle_btn_clicked(GtkButton *button, gpointer user_data)
+{
+	ASGtkMyStylesPanel *panel = (ASGtkMyStylesPanel *)user_data;
+	ASGtkMyStyleEdit *msedit = ASGTK_MYSTYLE_EDIT(panel->mystyle_editor);
+	FreeStorageElem *fs = msedit->free_store ; 
+	
+	if (fs)
+	{
+		char *filename;
+#if 0		
+		filename = make_session_data_file  (Session, False, 0, MYSTYLES_DIR);
+		if (filename)
+		{
+    		CheckOrCreate (filename);
+		    free (filename);
+		}
+#endif
+		filename = make_session_data_file  (Session, False, 0, MYSTYLES_DIR, msedit->name, NULL );
+		if (filename)
+		{
+			WriteMyStyleStorageToFile (filename, fs, 0);
+			free (filename);
+		}
+	}
+	
+}
+
+static void
+on_save_as_mystyle_btn_clicked(GtkButton *button, gpointer user_data)
+{
+	ASGtkLookEdit *self = ASGTK_LOOK_EDIT(user_data);
+}
+
+
 void mystyle_panel_sel_handler(GObject *selection_owner, gpointer user_data)
 {
 	ASGtkMyStyleEdit *mystyle_edit = ASGTK_MYSTYLE_EDIT(selection_owner);
@@ -858,7 +717,7 @@ void mystyle_panel_sel_handler(GObject *selection_owner, gpointer user_data)
 	if( mystyle_edit == NULL ) 
 		return ;
 	LOCAL_DEBUG_OUT( "storage = %p, edit = %p", storage, mystyle_edit );
-	FreeStorage2MyStyleEdit( storage, mystyle_edit );
+	asgtk_mystyle_edit_set_free_store (storage, mystyle_edit);
 }
 
 static void 
@@ -873,8 +732,11 @@ build_mystyles_panel( ASGtkMyStylesPanel *panel )
 	panel->list 		= asgtk_simple_list_new( "Available MyStyles : " );
 	panel->list_window  = ASGTK_SCROLLED_WINDOW(GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC,GTK_SHADOW_IN);
 	panel->list_hbtn_box= gtk_hbutton_box_new(); 	
+	panel->list_hbtn_box2= gtk_hbutton_box_new(); 	
 	panel->mystyle_frame= gtk_frame_new(NULL); 	
 	panel->mystyle_editor= asgtk_mystyle_edit_new(); 	
+
+fprintf( stderr, "$$$$$$ panel = %p, msedit = %p\n", panel, panel->mystyle_editor);
 	asgtk_mystyle_edit_set_mystyles_list( ASGTK_MYSTYLE_EDIT(panel->mystyle_editor), ASGTK_SIMPLE_LIST(panel->list)->tree_model ); 
 	asgtk_mystyle_edit_set_name_visible(  ASGTK_MYSTYLE_EDIT(panel->mystyle_editor), False );
 	
@@ -888,6 +750,7 @@ build_mystyles_panel( ASGtkMyStylesPanel *panel )
 
 	ASGTK_PACK_BEGIN(panel->list_vbox);
 		ASGTK_PACK_TO_START(panel->list_window, TRUE, TRUE, 0);
+		ASGTK_PACK_TO_END(panel->list_hbtn_box2, TRUE, FALSE, 0);
 		ASGTK_PACK_TO_END(panel->list_hbtn_box, TRUE, FALSE, 0);
 	ASGTK_PACK_END;
 
@@ -896,6 +759,11 @@ build_mystyles_panel( ASGtkMyStylesPanel *panel )
 		panel->list_del_btn 	= asgtk_add_button_to_box( ASGTK_PACK_BOX, GTK_STOCK_DELETE, "Delete", G_CALLBACK(on_add_mystyle_btn_clicked), panel ); 	
 		panel->list_rename_btn 	= asgtk_add_button_to_box( ASGTK_PACK_BOX, GTK_STOCK_PREFERENCES, "Rename", G_CALLBACK(on_add_mystyle_btn_clicked), panel );
 	ASGTK_PACK_END;
+	ASGTK_PACK_BEGIN(panel->list_hbtn_box2);
+		panel->list_tolib_btn 	= asgtk_add_button_to_box( ASGTK_PACK_BOX, GTK_STOCK_CONVERT, "Add to Library", G_CALLBACK(on_add_to_library_mystyle_btn_clicked), panel ); 	
+		panel->list_saveas_btn 	= asgtk_add_button_to_box( ASGTK_PACK_BOX, GTK_STOCK_SAVE_AS, "Save As", G_CALLBACK(on_save_as_mystyle_btn_clicked), panel ); 	
+	ASGTK_PACK_END;
+	InitSession();
 
 	ASGTK_CONTAINER_CONFIG(panel->list_window,MYSTYLE_LIST_WIDTH, MYSTYLE_LIST_HEIGHT,0);
 
