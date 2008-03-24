@@ -771,7 +771,6 @@ int
 config2tree_storage (ConfigDef * config, ASTreeStorageModel **tail)
 {
 	int           TopLevel = 0;
-	unsigned long flags;
 
 	PushStorage (config, tail);
 	/* get line */
@@ -779,8 +778,8 @@ config2tree_storage (ConfigDef * config, ASTreeStorageModel **tail)
 	{
 		while (GetNextStatement (config))
 		{									   /* untill not end of text */
-			flags = 0x00;
 			TermDef *pterm = NULL ; 
+			unsigned long flags = 0;
 
 #ifdef DEBUG_PARSER
 			fprintf (stderr, "\nSentence Found:[%.50s ...]\n,\tData=\t[%s]", config->tline, config->current_data);

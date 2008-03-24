@@ -692,8 +692,8 @@ strip_whitespace (char *str)
 char *
 tokenskip( const char *ptr, unsigned int n_tokens )
 {
-    int    tok_no = 0 ;  ;
-    register int  curr = 0 ;
+    int tok_no = 0;
+    register int curr = 0;
 
     if( ptr == NULL ) return NULL ;
     while( ++tok_no <= n_tokens && ptr[curr] != '\0' )

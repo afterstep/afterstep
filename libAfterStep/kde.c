@@ -113,9 +113,9 @@ xml_elem_t* load_KDE_config(const char* realfilename)
 			while( isspace(buffer[i]) ) ++i ;
 			if( buffer[i] == '#' )
 			{
+				++i;
  				if( (tag = make_kde_config_comment_tag()) != NULL )
 				{	
-					++i ;
 					int len = strlen( &buffer[i] ) ;
 					while( len > 0 && isspace( buffer[i+len-1] ) ) --len ;
 					if( len > 0 ) 
@@ -132,7 +132,8 @@ xml_elem_t* load_KDE_config(const char* realfilename)
 				}
 			}else if( buffer[i] == '[' ) 
 			{
-			 	if( (tag = make_kde_config_group_tag(&buffer[i+1])) != NULL )
+				++i;
+			 	if( (tag = make_kde_config_group_tag(&buffer[i])) != NULL )
 				{	
 					if( group ) 
 						group->next = tag ; 

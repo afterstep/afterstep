@@ -61,10 +61,12 @@ typedef struct ASRunState
 
 	Window kde_screensaver_window ;
 	
-	char *current_dir ; 
-	char *completion_path ; 
-	GtkTreeModel *completion_model ; 
-	GtkEntryCompletion *completion ; 
+	char *current_dir;
+	char *completion_path;
+#ifdef HAVE_GTK	
+	GtkTreeModel *completion_model;
+	GtkEntryCompletion *completion;
+#endif
 	
 }ASRunState;
 
