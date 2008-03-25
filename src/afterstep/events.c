@@ -368,8 +368,8 @@ DigestEvent( ASEvent *event )
 						LOCAL_DEBUG_OUT( "looking for client at %+d%+d", xbtn->x_root, xbtn->y_root ); 
 						if( (event->client = find_topmost_client( Scr.CurrentDesk, xbtn->x_root, xbtn->y_root )) != NULL )
 						{
-					    	LOCAL_DEBUG_OUT("underlying new client %p", event->client );
 							ASCanvas *cc = event->client->client_canvas ; 
+					    	LOCAL_DEBUG_OUT("underlying new client %p", event->client );
 							if( cc && cc->root_x <= xbtn->x_root && cc->root_y <= xbtn->y_root &&
 								cc->root_x+cc->width > xbtn->x_root && cc->root_y+cc->height > xbtn->y_root )
 							{
