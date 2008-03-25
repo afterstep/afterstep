@@ -105,8 +105,6 @@ typedef struct ASPagerState
 
     int page_rows,  page_columns ;
 	/* x and y size of desktop */
-	int vscale_h, vscale_v;
-	int vscaled_desk_width, vscaled_desk_height ;  /* calculated in accordance to Scale param in database */
 	int desk_width, desk_height ;                  /* adjusted for the size of title */
 	/* area of the main window used up by labels, borders and other garbadge :*/
 	int wasted_width, wasted_height ;
@@ -398,13 +396,6 @@ retrieve_pager_astbar_props()
  ****************************************************************************/
 
 void
-recalculate_vscale()
-{
-	PagerState.vscale_h = PagerState.vscreen_width/PagerState.desk_width ;
-	PagerState.vscale_v = PagerState.vscreen_height/PagerState.desk_height ;
-}
-
-void
 CheckConfigSanity()
 {
     int i;
@@ -448,7 +439,7 @@ CheckConfigSanity()
     if (Config->geometry.width <= Config->columns )
 		clear_flags(Config->geometry.flags, WidthValue);
     if (!get_flags(Config->geometry.flags, WidthValue) )
-		Config->geometry.width = PagerState.vscaled_desk_width*Config->columns ;
+		Config->geometry.width = (PagerState.vscreen_width*Config->columns)/Scr.VScale ;
 
 	PagerState.desk_width = Config->geometry.width/Config->columns ;
 	Config->geometry.width = PagerState.desk_width*Config->columns ;
@@ -456,13 +447,11 @@ CheckConfigSanity()
     if (Config->geometry.height <= Config->rows )
 		clear_flags(Config->geometry.flags, HeightValue);
     if (!get_flags(Config->geometry.flags, HeightValue) || Config->geometry.height <= Config->rows )
-		Config->geometry.height = PagerState.vscaled_desk_height*Config->rows ;
+		Config->geometry.height = (PagerState.vscreen_height*Config->rows)/Scr.VScale ;
 
     PagerState.desk_height = Config->geometry.height/Config->rows ;
     Config->geometry.height = PagerState.desk_height*Config->rows ;
 	
-	recalculate_vscale();
-
 	PagerState.wasted_width = PagerState.wasted_height = 0 ;
 
     if( !get_flags(Config->geometry.flags, XValue))
@@ -711,11 +700,6 @@ GetBaseOptions (const char *filename)
     Scr.Vy = 0;
 	PagerState.vscreen_width = Scr.VxMax + Scr.MyDisplayWidth;
     PagerState.vscreen_height = Scr.VyMax + Scr.MyDisplayHeight;
-
-	PagerState.vscale_h = PagerState.vscale_v = Scr.VScale;
-
-    PagerState.vscaled_desk_width = PagerState.vscreen_width/PagerState.vscale_h;
-    PagerState.vscaled_desk_height = PagerState.vscreen_height/PagerState.vscale_v;
 
     SHOW_TIME("BaseConfigParsingTime",started);
     LOCAL_DEBUG_OUT("desk_size(%dx%d),vscreen_size(%dx%d),vscale(%d)", PagerState.desk_width, PagerState.desk_height, PagerState.vscreen_width, PagerState.vscreen_height, Scr.VScale );
@@ -1171,7 +1155,7 @@ place_separation_bars( ASPagerDesk *d )
     if( wa )
     {
         register int p = PagerState.page_columns-1;
-        int pos_inc = Scr.MyDisplayWidth/PagerState.vscale_h;
+        int pos_inc = (Scr.MyDisplayWidth * d->background->width)/PagerState.vscreen_width;
 				/* d->background->width/PagerState.page_columns ; */
         int pos = d->background->win_x+p*pos_inc;
         int size = d->background->height ;
@@ -1190,7 +1174,8 @@ place_separation_bars( ASPagerDesk *d )
         wa += PagerState.page_columns-1;
         wrecta += PagerState.page_columns-1;
         p = PagerState.page_rows-1;
-        pos_inc = Scr.MyDisplayHeight/PagerState.vscale_v;
+        pos_inc =  (Scr.MyDisplayHeight * d->background->height)/PagerState.vscreen_height;
+		    /* Scr.MyDisplayHeight/PagerState.vscale_v;     */
 			/* d->background->height/PagerState.page_rows ; */
         pos = d->background->win_y + p*pos_inc;
         pos2 = d->background->win_x ;
@@ -1219,8 +1204,10 @@ LOCAL_DEBUG_CALLER_OUT( "Scr.CurrentDesk(%d)->start_desk(%ld)", Scr.CurrentDesk,
   		{
       		int sel_x = sel_desk->background->win_x ;
 	        int sel_y = sel_desk->background->win_y ;
-  		    int page_width = Scr.MyDisplayWidth/PagerState.vscale_h ;
-      		int page_height = Scr.MyDisplayHeight/PagerState.vscale_v ;
+  		    int page_width = /*Scr.MyDisplayWidth/PagerState.vscale_h ;*/
+				(Scr.MyDisplayWidth * sel_desk->background->width)/PagerState.vscreen_width;
+      		int page_height = /* Scr.MyDisplayHeight/PagerState.vscale_v ;*/
+				(Scr.MyDisplayHeight * sel_desk->background->height)/PagerState.vscreen_height;
 	        int i = 4;
 
   		    sel_x += (Scr.Vx*page_width)/Scr.MyDisplayWidth ;
@@ -1453,7 +1440,6 @@ redecorate_pager_desks()
 		{
 			PagerState.desk_width += delta ;
 			PagerState.wasted_width += delta * Config->columns  ;
-			recalculate_vscale();			
 		}
 	}
 	if( !get_flags( Config->geometry.flags, HeightValue ) )
@@ -1464,7 +1450,6 @@ redecorate_pager_desks()
 		{
 			PagerState.desk_height += delta ;
 			PagerState.wasted_height += delta * Config->rows ;
-			recalculate_vscale();
 		}
 	}
 
@@ -2772,7 +2757,6 @@ void on_pager_window_moveresize( void *client, Window w, int x, int y, unsigned 
                 {
                     PagerState.desk_width = new_desk_width;
                     PagerState.desk_height = new_desk_height;
-					recalculate_vscale();
               	}
 				
                 rearrange_pager_desks( True );
