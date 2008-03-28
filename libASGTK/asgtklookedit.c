@@ -105,7 +105,7 @@ asgtk_mystyle_edit_class_init (ASGtkMyStyleEditClass *klass)
 static void
 asgtk_mystyle_edit_init (ASGtkMyStyleEdit *self)
 {
-	self->free_store = NULL ;
+	self->style_def = NULL ;
 	self->syntax = NULL;
 }
 
@@ -387,21 +387,14 @@ asgtk_mystyle_edit_set_sliced(ASGtkMyStyleEdit *self, Bool sliced)
 }
 
 static void 
-asgtk_mystyle_edit_set_free_store (FreeStorageElem *storage, ASGtkMyStyleEdit *self) 
+asgtk_mystyle_edit_set_style_def (MyStyleDefinition *msd, ASGtkMyStyleEdit *self) 
 {
-	FreeStorageElem *curr = storage ;
-	FreeStorageElem *name_elem = NULL ;
-	ConfigItem    item;
-	ASGtkSimpleList *list = ASGTK_SIMPLE_LIST(self->tw_inherit_list);
+	ASGtkSimpleList *inherit_list = ASGTK_SIMPLE_LIST(self->tw_inherit_list);
 	int i;
 
-	self->free_store = storage ; 
-	if (self->name)
-		destroy_string (&(self->name));
+	self->style_def = msd ; 
 	
-	asgtk_simple_list_purge( list );
-
-	item.memory = NULL;
+	asgtk_simple_list_purge (inherit_list);
 
 	gtk_button_set_label( GTK_BUTTON(self->btn_font_name), NULL );
 	gtk_button_set_label( GTK_BUTTON(self->btn_fore_color), NULL );
@@ -415,112 +408,82 @@ asgtk_mystyle_edit_set_free_store (FreeStorageElem *storage, ASGtkMyStyleEdit *s
 	asgtk_mystyle_edit_set_sliced(self, False);	
 	asgtk_mystyle_edit_set_background_type(self, -1);	
 	
-	if( storage && storage->term->id == MYSTYLE_MyStyle_ID ) 
+	if (msd == NULL)
+		return;
+		
+	asgtk_mystyle_edit_set_background_type (self, msd->texture_type);
+
+	for (i = 0 ; i < msd->inherit_num; ++i)
+		asgtk_simple_list_append( inherit_list, msd->inherit[i], NULL );
+
+	if (i > 0)
+		asgtk_mystyle_edit_set_line_enabled(self, ASGtkMSO_Inherits, True);		
+
+	if (get_flags (msd->set_flags, MYSTYLE_Font))
 	{
-		name_elem = storage;
-		storage = storage->sub ;
+		gtk_button_set_label( GTK_BUTTON(self->btn_font_name), msd->Font );
+		asgtk_mystyle_edit_set_line_enabled(self, ASGtkMSO_Font, True);		
+	}		
+	if (get_flags (msd->set_flags, MYSTYLE_ForeColor))
+	{
+		char *c = msd->ForeColor?msd->ForeColor:"Inactive1Text";
+		color2button_image (GTK_IMAGE (self->img_fore_color), c);
+		gtk_button_set_label (GTK_BUTTON (self->btn_fore_color), c);
+	}		
+	if (get_flags (msd->set_flags, MYSTYLE_BackColor))
+	{
+		char *c = msd->BackColor?msd->BackColor:"Inactive1";
+		color2button_image (GTK_IMAGE (self->img_back_color), c);
+		gtk_button_set_label (GTK_BUTTON (self->btn_back_color), c);
+	}		
+
+	if (get_flags (msd->set_flags, MYSTYLE_ForeColor|MYSTYLE_BackColor))
+		asgtk_mystyle_edit_set_line_enabled(self, ASGtkMSO_Colors, True);		
+
+	if (get_flags (msd->set_flags, MYSTYLE_TextStyle))
+	{
+		gtk_combo_box_set_active( GTK_COMBO_BOX(self->combo_shadow_type), msd->TextStyle);
+		asgtk_mystyle_edit_set_line_enabled(self, ASGtkMSO_Shadow, True);		
 	}
 
-	/* first pass - handling BackPixmap : */
-	for( curr = storage ; curr != NULL ; curr = curr->next ) 
-	{
-		if( curr->term->id == MYSTYLE_Name_ID ) 
-			name_elem = storage;
-		else if( curr->term->id == MYSTYLE_BackPixmap_ID ) 
-		{
-			ReadConfigItem (&item, curr);
-			asgtk_mystyle_edit_set_background_type( self, item.index);
-#if 0				
-			LOCAL_DEBUG_OUT( "item.data.string = \"%s\", index = %d", item.data.string, item.index );
-			if( item.data.string != NULL )
-				gtk_entry_set_text( GTK_ENTRY(self->filechooserbtn_texture_file), item.data.string );
-			asgtk_collapsing_frame_set_open(ASGTK_COLLAPSING_FRAME(self->backpixmap_frame), TRUE);
-#endif		
-			item.ok_to_free = True;	
-		}
-	}
-	
-	if (name_elem)
-	{
-		if (ReadConfigItem (&item, name_elem))
-		{
-			self->name = item.data.string;
-			item.ok_to_free = False;
-		}
+	if (get_flags (msd->set_flags, MYSTYLE_SliceXStart))
+		gtk_spin_button_set_value( GTK_SPIN_BUTTON(self->spin_texture_slicing_x_start), msd->SliceXStart ); 
+	if (get_flags (msd->set_flags, MYSTYLE_SliceXEnd))
+		gtk_spin_button_set_value( GTK_SPIN_BUTTON(self->spin_texture_slicing_x_end), msd->SliceXEnd ); 
+	if (get_flags (msd->set_flags, MYSTYLE_SliceYStart))
+		gtk_spin_button_set_value( GTK_SPIN_BUTTON(self->spin_texture_slicing_y_start), msd->SliceYStart ); 
+	if (get_flags (msd->set_flags, MYSTYLE_SliceYEnd))
+		gtk_spin_button_set_value( GTK_SPIN_BUTTON(self->spin_texture_slicing_y_end), msd->SliceYEnd ); 
 
-	}
-	/* second pass - everything else : */
-	for( curr = storage ; curr != NULL ; curr = curr->next ) 
+	if (get_flags (msd->set_flags, MYSTYLE_SLICE_SET))
+		asgtk_mystyle_edit_set_sliced(self, True);
+
+	if (msd->overlay_type >= TEXTURE_TRANSPIXMAP)
 	{
-		if (ReadConfigItem (&item, curr)) 
-		{
-			if( curr->term->id == MYSTYLE_Inherit_ID ) 
+		asgtk_mystyle_edit_set_line_enabled(self, ASGtkMSO_Overlay, True);		
+
+#if 0 // TODO:
+			GtkTreeIter iter ; 
+			// gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(self->overlay), TRUE );
+			if( gtk_tree_model_get_iter_first( self->mystyles_list, &iter ) )
 			{
-				asgtk_simple_list_append( list, item.data.string, curr );
-				asgtk_mystyle_edit_set_line_enabled(self, ASGtkMSO_Inherits, True);		
-			}else if( curr->term->id == MYSTYLE_Font_ID ) 
-			{
-				gtk_button_set_label( GTK_BUTTON(self->btn_font_name), item.data.string );
-				asgtk_mystyle_edit_set_line_enabled(self, ASGtkMSO_Font, True);		
-			}else if( curr->term->id == MYSTYLE_ForeColor_ID ) 
-			{
-				color2button_image( GTK_IMAGE(self->img_fore_color), item.data.string );
-				gtk_button_set_label( GTK_BUTTON(self->btn_fore_color), item.data.string );
-				asgtk_mystyle_edit_set_line_enabled(self, ASGtkMSO_Colors, True);		
-			}else if( curr->term->id == MYSTYLE_BackColor_ID ) 
-			{
-				color2button_image( GTK_IMAGE(self->img_back_color), item.data.string );
-				gtk_button_set_label( GTK_BUTTON(self->btn_back_color), item.data.string );
-				asgtk_mystyle_edit_set_line_enabled(self, ASGtkMSO_Colors, True);		
-			}else if( curr->term->id == MYSTYLE_TextStyle_ID ) 
-			{
-				if( item.data.integer > AST_3DTypes ) 
-					item.data.integer = AST_3DTypes ;
-				gtk_combo_box_set_active( GTK_COMBO_BOX(self->combo_shadow_type), item.data.integer );
-				asgtk_mystyle_edit_set_line_enabled(self, ASGtkMSO_Shadow, True);		
-			}else if( curr->term->id == MYSTYLE_SliceXStart_ID ) 
-			{
-				gtk_spin_button_set_value( GTK_SPIN_BUTTON(self->spin_texture_slicing_x_start), item.data.integer ); 
-				asgtk_mystyle_edit_set_sliced(self, True);
-			}else if( curr->term->id == MYSTYLE_SliceXEnd_ID ) 
-			{
-				gtk_spin_button_set_value( GTK_SPIN_BUTTON(self->spin_texture_slicing_x_end), item.data.integer ); 
-				asgtk_mystyle_edit_set_sliced(self, True);
-			}else if( curr->term->id == MYSTYLE_SliceYStart_ID ) 
-			{
-				gtk_spin_button_set_value( GTK_SPIN_BUTTON(self->spin_texture_slicing_y_start), item.data.integer ); 
-				asgtk_mystyle_edit_set_sliced(self, True);
-			}else if( curr->term->id == MYSTYLE_SliceYEnd_ID ) 
-			{
-				gtk_spin_button_set_value( GTK_SPIN_BUTTON(self->spin_texture_slicing_y_end), item.data.integer ); 
-				asgtk_mystyle_edit_set_sliced(self, True);
-			}else if( curr->term->id == MYSTYLE_Overlay_ID ) 
-			{
-				GtkTreeIter iter ; 
-				// gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(self->overlay), TRUE );
-				if( gtk_tree_model_get_iter_first( self->mystyles_list, &iter ) )
+				char *tmp = NULL ; 
+				do
 				{
-					char *tmp = NULL ; 
-					do
+					gtk_tree_model_get (self->mystyles_list, &iter, 0, &tmp, -1);
+					if( mystrcasecmp( tmp, item.data.string ) == 0 ) 
 					{
-					    gtk_tree_model_get (self->mystyles_list, &iter, 0, &tmp, -1);
-						if( mystrcasecmp( tmp, item.data.string ) == 0 ) 
-						{
-							gtk_combo_box_set_active_iter( GTK_COMBO_BOX(self->combo_overlay_mystyle), &iter );
-							break ;
-						}
-					}while( gtk_tree_model_iter_next( self->mystyles_list, &iter ) );
-				}
-				asgtk_mystyle_edit_set_line_enabled(self, ASGtkMSO_Overlay, True);		
-			}else if( curr->term->id == MYSTYLE_BackPixmap_ID ) 
-			{
-				/* already handled in the first pass !!! */
+						gtk_combo_box_set_active_iter( GTK_COMBO_BOX(self->combo_overlay_mystyle), &iter );
+						break ;
+					}
+				}while( gtk_tree_model_iter_next( self->mystyles_list, &iter ) );
 			}
-			item.ok_to_free = True;
-		}
-
+#endif
 	}
-	ReadConfigItem (&item, NULL);
+	if (msd->back_pixmap) 
+	{
+		// TODO
+	}
 }
 
 void 
@@ -679,9 +642,9 @@ on_add_to_library_mystyle_btn_clicked(GtkButton *button, gpointer user_data)
 {
 	ASGtkMyStylesPanel *panel = (ASGtkMyStylesPanel *)user_data;
 	ASGtkMyStyleEdit *msedit = ASGTK_MYSTYLE_EDIT(panel->mystyle_editor);
-	FreeStorageElem *fs = msedit->free_store ; 
+	MyStyleDefinition *msd = msedit->style_def ; 
 	
-	if (fs)
+	if (msd)
 	{
 		char *filename;
 #if 0		
@@ -692,10 +655,16 @@ on_add_to_library_mystyle_btn_clicked(GtkButton *button, gpointer user_data)
 		    free (filename);
 		}
 #endif
-		filename = make_session_data_file  (Session, False, 0, MYSTYLES_DIR, msedit->name, NULL );
+		filename = make_session_data_file  (Session, False, 0, MYSTYLES_DIR, msd->Name, NULL );
 		if (filename)
 		{
-			WriteMyStyleStorageToFile (filename, fs, 0);
+			FreeStorageElem *fs = MyStyleDef2FreeStorage (&LookSyntax, msd);
+			if (fs)
+			{
+				WriteFreeStorageToFile (filename, "afterstep", &MyStyleSyntax, fs->sub, 0);
+				DestroyFreeStorage (&fs);
+			}
+			
 			free (filename);
 		}
 	}
@@ -712,12 +681,12 @@ on_save_as_mystyle_btn_clicked(GtkButton *button, gpointer user_data)
 void mystyle_panel_sel_handler(GObject *selection_owner, gpointer user_data)
 {
 	ASGtkMyStyleEdit *mystyle_edit = ASGTK_MYSTYLE_EDIT(selection_owner);
-	FreeStorageElem *storage = (FreeStorageElem*)user_data ;
+	MyStyleDefinition *style_def = (MyStyleDefinition *)user_data ;
 	
 	if( mystyle_edit == NULL ) 
 		return ;
-	LOCAL_DEBUG_OUT( "storage = %p, edit = %p", storage, mystyle_edit );
-	asgtk_mystyle_edit_set_free_store (storage, mystyle_edit);
+	LOCAL_DEBUG_OUT( "storage = %p, edit = %p", style_def, mystyle_edit );
+	asgtk_mystyle_edit_set_style_def (style_def, mystyle_edit);
 }
 
 static void 
@@ -776,29 +745,17 @@ fprintf( stderr, "$$$$$$ panel = %p, msedit = %p\n", panel, panel->mystyle_edito
 
 
 static void 
-FreeStorage2MyStylesPanel( FreeStorageElem *storage, ASGtkMyStylesPanel *panel ) 
+MyStyleDefs2MyStylesPanel( MyStyleDefinition *style_defs, ASGtkMyStylesPanel *panel ) 
 {
-	FreeStorageElem *curr = storage ;
+	MyStyleDefinition *curr = style_defs ;
 	ASGtkSimpleList *list = ASGTK_SIMPLE_LIST(panel->list);
-	ConfigItem    item;
-
-	item.memory = NULL;
 	
 	asgtk_simple_list_purge( list );
 	while( curr != NULL ) 
 	{
-		if( curr->term->id == MYSTYLE_MyStyle_ID ) 
-		{
-			if (ReadConfigItem (&item, curr))
-			{
-				asgtk_simple_list_append( list, item.data.string, curr );
-				item.ok_to_free = True;
-			}
-		}
+		asgtk_simple_list_append( list, curr->Name, curr );
 		curr = curr->next ; 
 	}
-	ReadConfigItem (&item, NULL);
-
 }
 
 /*  public functions  */
@@ -856,26 +813,21 @@ asgtk_look_edit_reload( ASGtkLookEdit *self )
 {
 	g_return_if_fail (ASGTK_IS_LOOK_EDIT (self));
 	
-	if( self->free_store != NULL ) 
- 		DestroyFreeStorage (&(self->free_store));
+	if( self->config != NULL ) 
+	{
+		MyStyleDefs2MyStylesPanel( NULL, self->mystyles );	
+ 		DestroyLookConfig (&(self->config));
+	}
 
 	if( self->configfilename != NULL ) 
 	{
-		ConfigData    cd ;
-		ConfigDef    *ConfigReader;
-
-		cd.filename = self->configfilename ;
-		ConfigReader = InitConfigReader (self->myname, self->syntax, CDT_Filename, cd, NULL);
-		if ( ConfigReader != NULL )
-		{
-			/* set_flags( ConfigReader->flags, parser_flags ); */
-			ParseConfig (ConfigReader, &(self->free_store));
-			DestroyConfig (ConfigReader);
-    	    show_progress("configuration loaded from \"%s\" ...", cd.filename);
-		}
+		self->config = ParseLookOptions (self->configfilename, self->myname);
+   	    show_progress("configuration loaded from \"%s\" ...", self->configfilename);
 	}	
-	
-	FreeStorage2MyStylesPanel( self->free_store, self->mystyles );	
+	if (self->config != NULL)
+	{
+		MyStyleDefs2MyStylesPanel (self->config->style_defs, self->mystyles);	
+	}
 }
 
 #ifdef LOOK_EDITOR_APP

@@ -294,8 +294,11 @@ ConfigDef *InitConfigWriter (char *myname, SyntaxDef * syntax,
 long WriteConfig (ConfigDef * config, FreeStorageElem * storage,
 		  ConfigDataType target_type, ConfigData *target,
 		  unsigned long flags);
-
 void DestroyConfig (ConfigDef * config);
+
+int WriteFreeStorageToFile (const char *filename, const char *myname, SyntaxDef *syntax, FreeStorageElem *fs, ASFlagType flags);
+
+
 
 /* debugging stuff */
 #ifdef DEBUG_PARSER

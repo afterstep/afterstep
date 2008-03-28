@@ -987,3 +987,21 @@ parser_add_terminator (char *ptr, char terminator)
 	return ptr;
 }
 
+
+int
+WriteFreeStorageToFile (const char *filename, const char *myname, SyntaxDef *syntax, FreeStorageElem *fs, ASFlagType flags)
+{
+	ConfigDef    *Writer = NULL;
+	ConfigData cd ;
+	
+	cd.filename = filename ;
+	if ((Writer = InitConfigWriter ((char*)myname, syntax, CDT_Filename, cd)) == NULL)
+		return 2;
+
+	cd.filename = filename ;
+	WriteConfig (Writer, fs, CDT_Filename, &cd, flags);
+	DestroyConfig (Writer);
+
+	return 0;
+}
+

@@ -608,10 +608,9 @@ ParseLookOptions (const char *filename, char *myname)
 			{
 			 case LOOK_IconBox_ID:
 				 {
-					 register int  bnum = config->icon_boxes_num % MAX_BOXES;
-
+					 register int  bnum = config->icon_boxes_num++;
+					 config->icon_boxes = saferealloc (config->icon_boxes, config->icon_boxes_num*sizeof(ASBox)) ;
 					 config->icon_boxes[bnum] = item.data.box;
-					 config->icon_boxes_num++;
 				 }
 				 break;
 #define SET_ONOFF_FLAG(i,f,sf,v) if(i)set_flags((f),(v));else clear_flags((f),(v)); set_flags((sf),(v))

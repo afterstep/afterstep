@@ -34,9 +34,9 @@ typedef struct _ASGtkMyStyleEdit
 	ASFlagType      flags ;
 
 	struct SyntaxDef *syntax ;
-	struct FreeStorageElem  *free_store ;
+	struct MyStyleDefinition *style_def;
+//	struct FreeStorageElem  *free_store ;
 
-	char *name;	
 	int background_type ; /* derived from the free_store */
 
 	GtkTreeModel *mystyles_list ;
@@ -141,6 +141,8 @@ GtkWidget * asgtk_mystyle_edit_new       ();
 struct _ASGtkLookEdit;
 struct FreeStorageElem;
 struct SyntaxDef;
+struct MyStyleDefinition;
+struct LookConfig;
 
 typedef struct ASGtkMyStylesPanel
 {
@@ -173,7 +175,7 @@ typedef struct _ASGtkLookEdit
 	char *configfilename ;
 	char *myname ;
 	struct SyntaxDef *syntax ;
-	struct FreeStorageElem  *free_store ;
+	struct LookConfig *config;
 	
 	
 	ASGtkMyStylesPanel 	*mystyles ;

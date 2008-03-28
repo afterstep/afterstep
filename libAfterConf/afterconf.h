@@ -464,7 +464,7 @@ typedef struct MyStyleDefinition
 	int SliceXStart, SliceXEnd, SliceYStart, SliceYEnd ;
 	ASGeometry BlurSize;
 
-	/* these options require special processing : */
+	/* these options require special processing , and don't require set_flags: */
     int     inherit_num;
     char  **inherit;
 
@@ -519,6 +519,8 @@ void MergeMyStyleText (MyStyleDefinition ** list, const char *name,
                   const char *new_font, const char *new_fcolor, const char *new_bcolor, int new_style);
 void MergeMyStyleTextureOld (MyStyleDefinition ** list, const char *name,
                         int type, char *color_from, char *color_to, char *pixmap);
+
+struct FreeStorageElem *MyStyleDef2FreeStorage (struct SyntaxDef * syntax, MyStyleDefinition *msd);
 struct FreeStorageElem **MyStyleDefs2FreeStorage (struct SyntaxDef * syntax, struct FreeStorageElem ** tail, MyStyleDefinition * defs);
 
 

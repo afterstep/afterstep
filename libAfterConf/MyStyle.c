@@ -652,35 +652,37 @@ MergeMyStyleTextureOld (MyStyleDefinition ** list, const char *name,
 #endif
 }
 
-FreeStorageElem **
-MyStyleDef2FreeStorage (SyntaxDef * syntax, FreeStorageElem ** tail, MyStyleDefinition * def)
+FreeStorageElem *MyStyleDef2FreeStorage (SyntaxDef *syntax, MyStyleDefinition *msd)
 {
-	FreeStorageElem **new_tail= NULL;
+	int  i;
+	FreeStorageElem *fs = NULL, **tail;
+
+	if (msd)
+		QuotedString2FreeStorage (syntax, &fs, NULL, msd->Name, MYSTYLE_MyStyle_ID);
+		
+	if (fs == NULL)
+		return NULL;
+
+	tail = &(fs->sub);
+
+	for (i = 0; i < msd->inherit_num; i++)
+		tail = QuotedString2FreeStorage (&MyStyleSyntax, tail, NULL, msd->inherit[i], MYSTYLE_Inherit_ID);
+
+	if (get_flags (msd->set_flags, MYSTYLE_Font))
+		tail = String2FreeStorage (&MyStyleSyntax, tail, msd->Font, MYSTYLE_Font_ID);
+
+	if (get_flags (msd->set_flags, MYSTYLE_ForeColor))
+		tail = String2FreeStorage (&MyStyleSyntax, tail, msd->ForeColor, MYSTYLE_ForeColor_ID);
+
+	if (get_flags (msd->set_flags, MYSTYLE_BackColor))
+		tail = String2FreeStorage (&MyStyleSyntax, tail, msd->BackColor, MYSTYLE_BackColor_ID);
+
+	if (get_flags (msd->set_flags, MYSTYLE_TextStyle))
+        tail = Integer2FreeStorage (&MyStyleSyntax, tail, NULL, msd->TextStyle, MYSTYLE_TextStyle_ID);
+
+	tail = Flag2FreeStorage (&MyStyleSyntax, tail, MYSTYLE_DONE_ID);
+
 #if 0
-	register int  i;
-	if (def == NULL)
-		return tail;
-
-	new_tail = QuotedString2FreeStorage (syntax, tail, NULL, def->name, MYSTYLE_START_ID);
-	if (new_tail == tail)
-		return tail;
-
-	tail = &((*tail)->sub);
-
-	for (i = 0; i < def->inherit_num; i++)
-		tail = QuotedString2FreeStorage (&MyStyleSyntax, tail, NULL, def->inherit[i], MYSTYLE_INHERIT_ID);
-
-	if (get_flags (def->set_flags, F_FONT))
-		tail = String2FreeStorage (&MyStyleSyntax, tail, def->font, MYSTYLE_FONT_ID);
-
-	if (get_flags (def->set_flags, F_FORECOLOR))
-		tail = String2FreeStorage (&MyStyleSyntax, tail, def->fore_color, MYSTYLE_FORECOLOR_ID);
-
-	if (get_flags (def->set_flags, F_BACKCOLOR))
-		tail = String2FreeStorage (&MyStyleSyntax, tail, def->back_color, MYSTYLE_BACKCOLOR_ID);
-
-	if (get_flags (def->set_flags, F_TEXTSTYLE))
-        tail = Integer2FreeStorage (&MyStyleSyntax, tail, NULL, def->text_style, MYSTYLE_TEXTSTYLE_ID);
 
     if (get_flags (def->set_flags, F_BACKPIXMAP))
 
@@ -689,10 +691,9 @@ MyStyleDef2FreeStorage (SyntaxDef * syntax, FreeStorageElem ** tail, MyStyleDefi
 	if (get_flags (def->set_flags, F_DRAWTEXTBACKGROUND))
        	tail = Integer2FreeStorage (&MyStyleSyntax, tail, NULL, def->draw_text_background, MYSTYLE_DRAWTEXTBACKGROUND_ID);
 
-	tail = Flag2FreeStorage (&MyStyleSyntax, tail, MYSTYLE_DONE_ID);
 #endif
 
-	return new_tail;
+	return fs;
 }
 
 FreeStorageElem **
@@ -700,27 +701,14 @@ MyStyleDefs2FreeStorage (SyntaxDef * syntax, FreeStorageElem ** tail, MyStyleDef
 {
 	while (defs)
 	{
-		tail = MyStyleDef2FreeStorage (syntax, tail, defs);
+		FreeStorageElem *ms_fs = MyStyleDef2FreeStorage (syntax, defs);
+		if (ms_fs)
+		{
+			*tail = ms_fs;
+			tail = &((*tail)->next);
+		}
 		defs = defs->next;
 	}
 	return tail;
-}
-
-int
-WriteMyStyleStorageToFile (const char *filename, FreeStorageElem *fs, ASFlagType flags)
-{
-	ConfigDef    *MyStyleWriter = NULL;
-	ConfigData cd ;
-	
-	cd.filename = filename ;
-	if ((MyStyleWriter = InitConfigWriter ("afterstep", &MyStyleSyntax, CDT_Filename, cd)) == NULL)
-		return 2;
-
-	cd.filename = filename ;
-	/* writing config into the file */
-	WriteConfig (MyStyleWriter, fs->sub?fs->sub:fs, CDT_Filename, &cd, flags);
-	DestroyConfig (MyStyleWriter);
-
-	return 0;
 }
 
