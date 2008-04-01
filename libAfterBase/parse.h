@@ -38,7 +38,9 @@ char *stripcpy3 (const char *, Bool);
 char *tokencpy (const char *source);
 char *tokenskip( const char *ptr, unsigned int n_tokens );
 struct config *find_config (struct config *, const char *);
-int quotestr (char *dest, const char *src, int maxlen);
+int make_shell_str (char *dest, const char *src, int maxlen);
+
+char *quote_str (const char *src);
 
 /* here we'll strip comments and whitespaces */
 char *stripcomments (char *source);
@@ -66,9 +68,12 @@ parse_geometry (register char *tline,
                 unsigned int *width_return,
   				unsigned int *height_return,
 				int* flags_return );
+char *
+format_geometry ( int x, int y, unsigned int width, unsigned int height, int flags);
 
 double parse_math(const char* str, char** endptr, double size);
 
+inline int unsigned_int2buffer_end (char *buffer, int buffer_size, unsigned int val);
 char *string_from_int (int param);
 char *hex_to_buffer_reverse(void *data, size_t bytes, char* buffer);
 char *hex_to_buffer(void *data, size_t bytes, char* buffer);

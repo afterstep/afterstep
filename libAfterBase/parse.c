@@ -795,7 +795,7 @@ find_config (struct config *table, const char *text)
  * src; write a maximum of maxlen chars to dest, including terminating zero
  ****************************************************************************/
 int
-quotestr (char *dest, const char *src, int maxlen)
+make_shell_str (char *dest, const char *src, int maxlen)
 {
 	int           n = maxlen;
 
@@ -815,6 +815,34 @@ quotestr (char *dest, const char *src, int maxlen)
 	}
 	*dest = '\0';
 	return maxlen - n;
+}
+
+char *
+quote_str (const char *str)
+{
+	int  len = 0, i, k;
+	char *trg;
+
+	if (str == NULL)
+		return mystrdup ("\"\"");
+	for (i = 0 ; str[i]; ++i)
+		if (str[i] == '"')
+			len++;
+	len += i;		
+		
+	trg = (char *)safemalloc (1 + len + 1 + 1);
+	k = 0;
+	trg[k++] = '"';
+	for (i = 0; str[i]; ++i) 
+	{
+		if (str[i] == '"')
+			trg[k++] = '\\';
+		trg[k++] = str[i];	
+	}
+	trg[k++] = '"';
+	trg[k] = '\0';
+	
+	return trg;
 }
 
 /* used in ParseMouse and in communication with modules */
@@ -996,31 +1024,41 @@ parse_geometry (register char *tline,
 	return tline;
 }
 
+static char _as_hex_to_char_table[] = "0123456789ABCDEF";
+
+inline int
+unsigned_int2buffer_end (char *buffer, int buffer_size, unsigned int val)
+{
+	int i = buffer_size-1 ; 
+	buffer [i--] = '\0';
+	if (val == 0)
+		buffer [i--] = '0';
+	else
+		while (val && i > 0) { buffer[i--] = _as_hex_to_char_table[val%10]; val /= 10;} 
+	return i+1;
+}
+
 char         *
 string_from_int (int param)
 {
-	char         *mem;
-	register int  i;
-	int           neg = 0;
+	char buffer[32];
+	int i;
+	int neg = 0;
 
 	if (param == 0)
-		return mystrdup ("0");
+		return strdup ("0");
 	if (param < 0)
 	{
 		param = -param;
 		neg = 1;
 	}
-	for (i = 1; param >> (i * 3); i++);
-	if (neg)
-		i++;
-	mem = safemalloc (i + 1);
-	if (neg)
-		mem[0] = '-';
-	sprintf (&(mem[neg]), "%u", param);
-	return mem;
-}
+	
+	i = unsigned_int2buffer_end (buffer, sizeof(buffer), param);
+	if (neg && i > 0)
+		buffer[--i] = '-';
 
-static char _as_hex_to_char_table[] = "0123456789ABCDEF";
+	return strdup (&buffer[i]);
+}
 
 char         *
 hex_to_buffer_reverse(void *data, size_t bytes, char* buffer)
@@ -1060,6 +1098,47 @@ hex_to_buffer(void *data, size_t bytes, char* buffer)
     }
     return p+k;
 }
+
+char *format_geometry ( int x, int y, unsigned int width, unsigned int height, int flags)
+{
+	char buffer[256];
+	int pos = 0;	
+	int val_pos;
+	
+	if (get_flags(flags, WidthValue))
+	{
+		val_pos = unsigned_int2buffer_end (&buffer[pos], sizeof(buffer)-pos, width);
+		while (buffer[val_pos])
+			buffer[pos++] = buffer[val_pos++];
+	}
+	if (get_flags(flags, HeightValue))
+	{
+		buffer[pos++] = 'x';
+		val_pos = unsigned_int2buffer_end (&buffer[pos], sizeof(buffer)-pos, height);
+		while (buffer[val_pos])
+			buffer[pos++] = buffer[val_pos++];
+	}			
+	if (get_flags(flags, XValue))
+	{
+		buffer[pos++] = (get_flags(flags, XNegative) || x < 0)?'-':'+';
+		val_pos = unsigned_int2buffer_end (&buffer[pos], sizeof(buffer)-pos, x < 0? -x : x);
+		while (buffer[val_pos])
+			buffer[pos++] = buffer[val_pos++];
+	}else if (get_flags(flags, YValue))
+		buffer[pos++] = '+';
+
+	if (get_flags(flags, YValue))
+	{
+		buffer[pos++] = (get_flags(flags, YNegative) || y < 0)?'-':'+';
+		val_pos = unsigned_int2buffer_end (&buffer[pos], sizeof(buffer)-pos, y < 0? -y : y);
+		while (buffer[val_pos])
+			buffer[pos++] = buffer[val_pos++];
+	}
+	buffer[pos] = '\0';
+	return strdup(&(buffer[0]));
+}
+
+
 
 /***********************************************************************
  * Procedure:

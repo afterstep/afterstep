@@ -985,3 +985,52 @@ print_func_data(const char *file, const char *func, int line, FunctionData *data
 
 
 
+char *format_FunctionData (FunctionData *data)
+{
+	char *buffer = NULL;
+    if (data != NULL)
+    {
+		int len = 0;
+		int pos = 0;
+		if (data->name)
+			len += 1+strlen(data->name)+1;
+		if (data->text)
+			len += 1+strlen(data->text)+1;
+		else
+			len += 64;
+		buffer = safemalloc (len);
+		
+		if (data->name)
+		{
+			int i = 0;
+			buffer[pos++] = '"';
+			while (data->name[i]) buffer[pos++] = data->name[i++];
+			buffer[pos++] = '"';
+		}
+		if (data->text)
+		{
+			int i = 0;
+			if (pos)
+				buffer[pos++] = ' ';
+			while (data->text[i]) buffer[pos++] = data->text[i++];
+		}else
+		{
+#define FORMAT_FUNC_VALUE(val,unit) \
+		do{ int i = unsigned_int2buffer_end (&buffer[pos], len-pos, ((val) < 0)? -(val) : (val)); \
+			if (val < 0) buffer[pos++] = '-'; \
+			while (buffer[i]) buffer[pos++] = buffer[i++]; \
+			if (unit)buffer[pos++] = unit; }while(0)
+	
+			if (pos)
+				buffer[pos++] = ' ';
+			FORMAT_FUNC_VALUE(data->func_val[0],data->unit[0]);
+			buffer[pos++] = ' ';
+			FORMAT_FUNC_VALUE(data->func_val[1],data->unit[1]);
+
+#undef FORMAT_FUNC_VALUE
+		}
+		buffer[pos++] = '\0';
+    }
+	
+	return buffer;
+}

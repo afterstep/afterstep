@@ -26,6 +26,8 @@
 
 #include <fcntl.h>
 #include <unistd.h>
+#include <stdlib.h>
+#include <stdarg.h>
 
 #ifdef DO_CLOCKING
 #if TIME_WITH_SYS_TIME
@@ -39,6 +41,7 @@
 # endif
 #endif
 #endif
+
 #include "asapp.h"
 #include "afterstep.h"
 #include "parser.h"
@@ -237,23 +240,100 @@ AddStringToArray (int *argc, char ***argv, char *new_string)
 /*                                     FreeStorage management                                */
 /*********************************************************************************************/
 /* Create new FreeStorage Elem and add it to the supplied storage's tail */
-FreeStorageElem *
-AddFreeStorageElem (SyntaxDef * syntax, FreeStorageElem ** tail, TermDef * pterm, int id)
+static FreeStorageElem *
+CreateFreeStorageElem (SyntaxDef * syntax, FreeStorageElem ** tail, TermDef * pterm, int id)
 {
-	FreeStorageElem *new_elem = NULL;
+	FreeStorageElem *fs = NULL;
 
 	if (pterm == NULL)
-		pterm = FindTerm (syntax, TT_ANY, id);
+		if ((pterm = FindTerm (syntax, TT_ANY, id)) == NULL)
+			return NULL;
 
-	if (pterm)
+	fs = (FreeStorageElem *) safecalloc (1, sizeof (FreeStorageElem));
+	if (fs)
 	{
-		new_elem = (FreeStorageElem *) safecalloc (1, sizeof (FreeStorageElem));
-		new_elem->term = pterm;
-		new_elem->next = *tail;
-		*tail = new_elem;
+		fs->term = pterm;
+		fs->next = *tail;
+		*tail = fs;
 	}
-	return new_elem;
+	return fs;
 }
+
+
+FreeStorageElem *
+AddFreeStorageElem (SyntaxDef * syntax, FreeStorageElem ** tail, TermDef * pterm, int id, ...)
+{
+	FreeStorageElem *fs = CreateFreeStorageElem (syntax, tail, pterm, id);
+	if (fs)
+	{
+		va_list       ap;
+		int len = 0;
+		char *v;
+
+		va_start (ap, id);
+		while ((v = va_arg(ap,char*)) != NULL)
+		{	
+			fs->argc++;
+			len += strlen(v)+1;
+		}		   
+		va_end (ap);
+
+		if (fs->argc>0)
+		{
+			char *dst;
+			int pos = 0;
+			fs->argv = safecalloc (fs->argc, sizeof(char*));
+			dst = safemalloc (len);
+
+			va_start (ap, id);
+			while ((v = va_arg(ap,char*)) != NULL)
+			{
+				int i = 0;
+				do{ dst[i] = v[i]; } while (v[i++]);
+				fs->argv[pos++] = dst;
+				dst += i; 		
+			}
+			va_end (ap);
+		}
+	}	
+	return fs;
+}
+
+FreeStorageElem *
+AddFreeStorageElem_sa (SyntaxDef * syntax, FreeStorageElem ** tail, TermDef * pterm, int id, char **strings, int count)
+{
+	FreeStorageElem *fs = CreateFreeStorageElem (syntax, tail, pterm, id);
+	if (fs)
+	{
+		int si = 0;
+		int len = 0;
+
+		for (si = 0; strings[si] != NULL && si < count; ++si)
+		{	
+			fs->argc++;
+			len += strlen(strings[si])+1;
+		}		   
+
+		if (fs->argc>0)
+		{
+			char *dst;
+			int pos = 0;
+			fs->argv = safecalloc (fs->argc, sizeof(char*));
+			dst = safemalloc (len);
+
+			for (si = 0; strings[si] != NULL && si < count; ++si)
+			{
+				int i = 0;
+				char *v = strings[si];
+				do{ dst[i] = v[i]; } while (v[i++]);
+				fs->argv[pos++] = dst;
+				dst += i; 		
+			}
+		}
+	}	
+	return fs;
+}
+
 
 /* Duplicate existing FreeStorage Elem */
 FreeStorageElem *
@@ -1317,66 +1397,33 @@ ReadFlagItemAuto (void *config_struct, ptrdiff_t default_set_flags_offset, FreeS
 
 
 /* helper functions for writing config */
-
-char         *
-MyIntToString (int value)
-{
-	int           charnum, test = value;
-	char         *string;
-
-	for (charnum = (test < 0) ? 1 : 0; test != 0 ; charnum++)
-		test /= 10;
-	if (charnum == 0)
-		charnum++;
-	charnum++;
-	string = (char *)safemalloc (charnum);
-	sprintf (string, "%d", value);
-	return string;
-}
-
 FreeStorageElem **
 Integer2FreeStorage (SyntaxDef * syntax, FreeStorageElem ** tail, int *index, int value, int id)
 {
-	FreeStorageElem *new_elem = AddFreeStorageElem (syntax, tail, NULL, id);
+	FreeStorageElem *new_elem = NULL; 
+	char *str_v = NULL, *str_i = NULL;
+	
+	if (index)
+		new_elem = AddFreeStorageElem (syntax, tail, NULL, id, 
+										(str_i = string_from_int (*index)),
+										(str_v = string_from_int (value)), NULL);
+	else
+		new_elem = AddFreeStorageElem (syntax, tail, NULL, id, 
+										(str_v = string_from_int (value)), NULL);
 
 	if (new_elem)
-	{
-        char *str[2] ;
-        int pos = 0, len = 0;
-
-        if( index )
-        {
-            str[pos++] = string_from_int (*index);
-            len = strlen(str[0]);
-        }
-        str[pos] = string_from_int (value);
-        len += strlen(str[pos++]);
-
-        new_elem->argc = pos;
-        new_elem->argv = (char **)safecalloc (pos, sizeof (char *));
-
-        new_elem->argv[0] = safemalloc(len+2);
-        strcpy( new_elem->argv[0], str[0] );
-        if( pos > 1 )
-        {
-            new_elem->argv[1] = new_elem->argv[0]+strlen(str[0])+1;
-            strcpy( new_elem->argv[1], str[1] );
-        }
-
 		tail = &(new_elem->next);
 
-	if( index )
-	    free(str[1]);
-	free(str[0]);
+	destroy_string (&str_i);
+	destroy_string (&str_v);
 
-	}
 	return tail;
 }
 
 FreeStorageElem **
 Flag2FreeStorage (SyntaxDef * syntax, FreeStorageElem ** tail, int id)
 {
-	FreeStorageElem *new_elem = AddFreeStorageElem (syntax, tail, NULL, id);
+	FreeStorageElem *new_elem = AddFreeStorageElem (syntax, tail, NULL, id, NULL);
 
 	if (new_elem)
 		tail = &(new_elem->next);
@@ -1410,40 +1457,8 @@ Strings2FreeStorage (SyntaxDef * syntax, FreeStorageElem ** tail, char **strings
 
 	if (num == 0 || strings == NULL)
 		return tail;
-	if ((new_elem = AddFreeStorageElem (syntax, tail, NULL, id)) != NULL)
-	{
-		new_elem->argc = num;
-		new_elem->argv = (char **)safemalloc (sizeof (char *) * num);
-
-		if (num == 1)
-			new_elem->argv[0] = mystrdup (*strings ? *strings : "");
-		else
-		{
-			int           len = 0;
-			register int  i;
-			register char *src, *dst;
-
-			for (i = 0; i < num; i++)
-			{
-				if (strings[i])
-					len += strlen (strings[i]);
-				len++;
-			}
-			dst = (char *)safemalloc (len);
-			for (i = 0; i < num; i++)
-			{
-				new_elem->argv[i] = dst;
-				if (strings[i])
-				{
-					src = strings[i];
-					while (*src != '\0')
-						*(dst++) = *(src++);
-				}
-				*(dst++) = '\0';
-			}
-		}
+	if ((new_elem = AddFreeStorageElem_sa (syntax, tail, NULL, id, strings, num)) != NULL)
 		tail = &(new_elem->next);
-	}
 	return tail;
 }
 
@@ -1451,72 +1466,30 @@ Strings2FreeStorage (SyntaxDef * syntax, FreeStorageElem ** tail, char **strings
 FreeStorageElem **
 QuotedString2FreeStorage (SyntaxDef * syntax, FreeStorageElem ** tail, int *index, char *string, int id)
 {
-	FreeStorageElem *new_elem;
+	FreeStorageElem *new_elem = NULL;
+	char *str_v = string, *str_i = NULL;
 
-	if ((new_elem = AddFreeStorageElem (syntax, tail, NULL, id)) != NULL)
-	{
-		int           len = 0;
-		register char *ptr, *trg;
-		char         *idx_string = NULL;
+	if (string == NULL)
+		return tail;
 
-		new_elem->argc = 1;
-		if (index)
-		{
-			idx_string = MyIntToString (*index);
-			len = strlen (idx_string);
-			new_elem->argc++;
-		}
-		new_elem->argv = (char **)safemalloc (sizeof (char *) * new_elem->argc);
+	str_v = quote_str (string);	
+		
+	if (index)
+		new_elem = AddFreeStorageElem (syntax, tail, NULL, id, 
+										(str_i = string_from_int (*index)),
+										str_v, NULL);
+	else
+		new_elem = AddFreeStorageElem (syntax, tail, NULL, id, str_v, NULL);
 
-		if (string)
-			for (ptr = string; *ptr; ptr++)
-			{
-				if (*ptr == '"')
-					len++;
-				len++;
-			}
-		new_elem->argv[0] = (char *)safemalloc (1 + 1 + len + 1 + 1);
-		trg = new_elem->argv[0];
-		if ((ptr = idx_string) != NULL)
-		{
-			while (*ptr)
-				*(trg++) = *(ptr++);
-			*(trg++) = '\0';
-			new_elem->argv[1] = trg;
-			free (idx_string);
-		}
-		*(trg++) = '"';
-		if ((ptr = string) != NULL)
-			while (*ptr)
-			{
-				if (*ptr == '"')
-					*(trg++) = '\\';
-				*(trg++) = *(ptr++);
-			}
-		*(trg++) = '"';
-		*trg = '\0';
+	destroy_string (&str_i);		
+	destroy_string (&str_v);	
 
+	if (new_elem)
 		tail = &(new_elem->next);
-	}
+
 	return tail;
 }
 
-
-void
-print_signed_value (char *ptr, int value, Bool negative)
-{
-	if (value == 0)
-	{
-		if (negative)
-			*(ptr++) = '-';
-		else
-			*(ptr++) = '+';
-		*(ptr++) = '0';
-		*ptr = '\0';
-	} else
-		sprintf (ptr, "%+d", value);
-
-}
 
 char         *
 add_sign (char *ptr, Bool negative)
@@ -1539,35 +1512,16 @@ FreeStorageElem **
 Geometry2FreeStorage (SyntaxDef * syntax, FreeStorageElem ** tail, ASGeometry * geometry, int id)
 {
 	char         *geom_string;
+	FreeStorageElem *new_elem;
 
-	if (geometry)
-	{
-		register char *ptr;
+	if (geometry == NULL)
+		return tail;
+		
+	geom_string = format_geometry (geometry->x, geometry->y, geometry->width, geometry->height, geometry->flags);
 
-		ptr = geom_string = safemalloc (128);
-		if (geometry->flags & WidthValue)
-		{
-			sprintf (ptr, "%d", geometry->width);
-			ptr += strlen (ptr);
-		}
-		if (geometry->flags & HeightValue)
-		{
-			sprintf (ptr, "x%d", geometry->height);
-			ptr += strlen (ptr);
-		}
-		if (geometry->flags & XValue)
-		{
-			print_signed_value (ptr, geometry->x, (geometry->flags & XNegative));
-			ptr += strlen (ptr);
-		}
-		if (geometry->flags & YValue)
-		{
-			print_signed_value (ptr, geometry->y, (geometry->flags & YNegative));
-			ptr += strlen (ptr);
-		}
-		tail = Strings2FreeStorage (syntax, tail, &geom_string, 1, id);
-		free (geom_string);
-	}
+	if ( (new_elem = AddFreeStorageElem (syntax, tail, NULL, id, geom_string, NULL)) != NULL)
+		tail = &(new_elem->next);
+	free (geom_string);
 	return tail;
 }
 
@@ -1577,25 +1531,18 @@ StringArray2FreeStorage (SyntaxDef * syntax, FreeStorageElem ** tail,
 {
 	FreeStorageElem *new_elem = NULL;
 	int           i;
-	char          ind_str[MAXLINELENGTH];
 	TermDef      *pterm = FindTerm (syntax, TT_ANY, id);
 
 	if (strings && pterm)
 		for (i = 0; i < index2 - index1 + 1; i++)
-		{
-			if (strings[i] == NULL)
-				continue;
-			if ((new_elem = AddFreeStorageElem (syntax, tail, pterm, id)) == NULL)
-				continue;
-			new_elem->argc = 2;
-			new_elem->argv = CreateStringArray (2);
-			sprintf (ind_str, (iformat == NULL) ? "%d" : iformat, i + index1);
-			new_elem->argv[0] = (char *)safemalloc (strlen (ind_str) + 1 + strlen (strings[i]) + 1);
-			strcpy (new_elem->argv[0], ind_str);
-			new_elem->argv[1] = new_elem->argv[0] + strlen (ind_str) + 1;
-			strcpy (new_elem->argv[1], strings[i]);
-			tail = &(new_elem->next);
-		}
+			if (strings[i])
+			{
+				char *str_i = string_from_int (i+index1);
+				if ((new_elem = AddFreeStorageElem (syntax, tail, pterm, id, 
+													str_i, strings[i], NULL)) != NULL)
+					tail = &(new_elem->next);
+				free (str_i);
+			}
 	return tail;
 }
 
@@ -1663,31 +1610,65 @@ ASButton2FreeStorage (SyntaxDef * syntax, FreeStorageElem ** tail, int index, AS
 	return tail;
 }
 
+
+char *
+format_ASBox (ASBox *box)
+{
+	char buffer[256];
+	int pos = 0;	
+	int val_pos;
+
+#define FORMAT_BOX_VALUE(val,neg_flag) \
+		do{ buffer[pos++] = (get_flags(box->flags,(neg_flag)) || (val) < 0)?'-':'+'; \
+		val_pos = unsigned_int2buffer_end (&buffer[pos], sizeof(buffer)-pos, (val) < 0? -(val) : (val)); \
+		while (buffer[val_pos])	buffer[pos++] = buffer[val_pos++];}while(0)
+	
+	if (get_flags(box->flags, LeftValue))
+	{
+		FORMAT_BOX_VALUE(box->left,LeftNegative);
+		if (get_flags(box->flags, TopValue))
+		{
+			buffer[pos++] = ' ';
+			FORMAT_BOX_VALUE(box->top,TopNegative);
+			if (get_flags(box->flags, RightValue))
+			{
+				buffer[pos++] = ' ';
+				FORMAT_BOX_VALUE(box->right,RightNegative);
+				if (get_flags(box->flags, BottomValue))
+				{
+					buffer[pos++] = ' ';
+					FORMAT_BOX_VALUE(box->bottom,BottomNegative);
+				}
+			}			
+		}	
+	}
+#undef FORMAT_BOX_VALUE	
+	buffer[pos++] = '\0';
+	return strdup (buffer);
+}
+
+char *
+format_ASButton (ASButton *button)
+{
+	return NULL;
+}
+
+char *
+format_ASCursor (ASCursor *cursor)
+{
+	return NULL;
+}
+
 FreeStorageElem **
 Box2FreeStorage (SyntaxDef * syntax, FreeStorageElem ** tail, ASBox * box, int id)
 {
-	char         *box_strings[4];
-	int           i = 0;
-
 	if (box)
 	{
-		if (box->flags & LeftValue)
-		{
-			box_strings[i++] = add_sign (string_from_int (box->left), box->flags & LeftNegative);
-			if (box->flags & TopValue)
-			{
-				box_strings[i++] = add_sign (string_from_int (box->top), box->flags & TopNegative);
-				if (box->flags & RightValue)
-				{
-					box_strings[i++] = add_sign (string_from_int (box->right), box->flags & RightNegative);
-					if (box->flags & BottomValue)
-						box_strings[i++] = add_sign (string_from_int (box->bottom), box->flags & BottomNegative);
-				}
-			}
-			tail = Strings2FreeStorage (syntax, tail, box_strings, i, id);
-			while (--i >= 0)
-				free (box_strings[i]);
-		}
+		char *str_v = format_ASBox (box);
+		FreeStorageElem *new_elem = AddFreeStorageElem (syntax, tail, NULL, id, str_v, NULL);
+		if (new_elem != NULL)
+			tail = &(new_elem->next);;
+		free (str_v);
 	}
 	return tail;
 }
@@ -1746,17 +1727,9 @@ ASCursor2FreeStorage (SyntaxDef * syntax, FreeStorageElem ** tail, int index, AS
         if (ind_str != NULL)
 		{
 			FreeStorageElem *new_elem = NULL;
-
-			if ((new_elem = AddFreeStorageElem (syntax, tail, pterm, id)) != NULL)
+			if ((new_elem = AddFreeStorageElem (syntax, tail, pterm, id, ind_str, 
+												c->image_file, c->mask_file, NULL)) != NULL)
 			{
-                new_elem->argc = 3;
-                new_elem->argv = CreateStringArray (3);
-                new_elem->argv[0] = (char *)safemalloc (strlen (ind_str) + 1 + strlen (c->image_file) + 1 + strlen (c->mask_file) + 1 );
-				strcpy (new_elem->argv[0], ind_str);
-                new_elem->argv[1] = new_elem->argv[0] + strlen (ind_str) + 1;
-                strcpy (new_elem->argv[1], c->image_file);
-                new_elem->argv[2] = new_elem->argv[1] + strlen (c->image_file) + 1;
-                strcpy (new_elem->argv[1], c->mask_file);
                 tail = &(new_elem->next);
 			}
             free (ind_str);
@@ -1768,29 +1741,8 @@ ASCursor2FreeStorage (SyntaxDef * syntax, FreeStorageElem ** tail, int index, AS
 FreeStorageElem **
 Bitlist2FreeStorage (SyntaxDef * syntax, FreeStorageElem ** tail, long bits, int id)
 {
-    TermDef      *pterm = FindTerm (syntax, TT_ANY, id);
-    FreeStorageElem *new_elem = NULL;
-    register int i ;
-    int count = 0;
-    char *ptr ;
-
-    if ((new_elem = AddFreeStorageElem (syntax, tail, pterm, id)) != NULL)
-    {
-        new_elem->argv =  safecalloc( sizeof(long)*8, sizeof( char*) );
-        ptr = safemalloc( sizeof(long)*8*3 );
-        for( i = 0 ; i < sizeof(long)*8 ; i++ )
-            if( bits & (0x01<<i) )
-            {
-                new_elem->argv[count++] = ptr ;
-                if( i > 10 )
-                    *(ptr++) = '0'+(i/10) ;
-                *(ptr++) = '0'+i%10 ;
-                *(ptr++) = '\0' ;
-            }
-       new_elem->argc = count  < sizeof(long)*8 ? count : 0 ;
-       tail = &(new_elem->next);
-    }
-    return tail;
+	/* TODO */
+    return NULL;
 }
 
 void
@@ -1799,6 +1751,91 @@ init_asgeometry (ASGeometry * geometry)
 	geometry->flags = XValue | YValue;
     geometry->x = geometry->y = 0;
     geometry->width = geometry->height = 1;
+}
+
+
+FreeStorageElem *
+StructToFreeStorage( void *struct_ptr, ptrdiff_t set_flags_offset, SyntaxDef *syntax, ASFlagType *handled_return ) 
+{
+	FreeStorageElem *storage = NULL, **tail = NULL;
+	ASFlagType set_flags = *((ASFlagType*)(struct_ptr+set_flags_offset));
+	ASFlagType handled = 0;
+	int i;
+
+	if (struct_ptr == NULL || syntax == NULL)
+		return NULL;
+
+	for (i = 0; syntax->terms[i].id; ++i)
+	{
+		TermDef *T = &(syntax->terms[i]);
+		void *data_ptr = struct_ptr + T->struct_field_offset;
+		char *val_str = NULL;
+
+		if (T->struct_field_offset == 0 
+		    || get_flags(T->flags, TF_INDEXED)
+			|| !get_flags(set_flags, T->flags_on))
+			continue;
+
+		if (T->type == TT_FLAG)
+		{
+			if (T->sub_syntax)
+			{
+				continue;
+			}
+		}	
+
+		switch (T->type)
+		{
+		 case TT_INTEGER:	val_str = string_from_int(*((int*)  data_ptr));	 break;
+		 case TT_UINTEGER:	val_str = string_from_int(*((unsigned int*)  data_ptr));	 break;
+         case TT_BITLIST :	val_str = string_from_int(*((int*)  data_ptr));	 break;
+         case TT_OPTIONAL_PATHNAME:
+         case TT_COLOR:
+		 case TT_FONT:
+		 case TT_FILENAME:
+		 case TT_TEXT:
+		 case TT_PATHNAME:  val_str = mystrdup ( *((char**)data_ptr) ); 	break;
+		 case TT_QUOTED_TEXT:
+		 					val_str = quote_str( *((char**)data_ptr) ); 	break;
+		 case TT_BOX:		
+		 					val_str = format_ASBox (((ASBox*)  data_ptr));	break;
+		 case TT_GEOMETRY:	
+		 		{ 	ASGeometry *g = (ASGeometry*)data_ptr;
+					val_str = format_geometry (g->x, g->y, g->width, g->height, g->flags);
+				}
+				break;
+		 case TT_FUNCTION:  
+		 					val_str = format_FunctionData( *((FunctionData**)data_ptr)); break;
+		 case TT_BUTTON:	val_str = format_ASButton (*((ASButton**)data_ptr));  break;
+         case TT_CURSOR: 	val_str = format_ASCursor (*((ASCursor**)data_ptr)); break;
+
+		 case TT_INTARRAY:	
+         case TT_BINDING :	
+		 		break;
+
+		 	default : ;
+        }
+		
+		if (val_str)
+		{
+			FreeStorageElem *new_elem = AddFreeStorageElem (syntax, tail, T, T->id, val_str, NULL);
+			
+			if (new_elem)
+			{
+				set_flags (handled, T->flags_on);
+				tail = &(new_elem->next);
+				if (storage == NULL)
+					storage = new_elem;
+			}
+			free (val_str);
+		}
+		
+	}
+
+	if (handled_return)
+		*handled_return = handled;		
+
+	return storage;
 }
 
 

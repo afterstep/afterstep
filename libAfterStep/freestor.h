@@ -64,7 +64,7 @@ void ReverseFreeStorageOrder (FreeStorageElem ** storage);
 FreeStorageElem *DupFreeStorageElem (FreeStorageElem * source);
 FreeStorageElem *AddFreeStorageElem (struct SyntaxDef * syntax,
 				     FreeStorageElem ** tail, struct TermDef * pterm,
-				     int id);
+				     int id, ...);
 void CopyFreeStorage (FreeStorageElem ** to, FreeStorageElem * from);
 void DestroyFreeStorage (FreeStorageElem ** storage);
 void StorageCleanUp (FreeStorageElem ** storage,

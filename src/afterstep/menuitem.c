@@ -561,7 +561,7 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf, Bool reload_submenus)
 				sprintf (fdata->text, "%s %s", t->command.text, t->path);
 				/* quote the string so the shell doesn't mangle it */
 				if (t->command.func == F_EXEC)
-                    quotestr (fdata->text + cmd_len + 1, t->path, 2 * path_len + 1);
+                    make_shell_str (fdata->text + cmd_len + 1, t->path, 2 * path_len + 1);
 			} else
 				fdata->text = mystrdup (t->path);
 						

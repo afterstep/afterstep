@@ -67,7 +67,7 @@ LOCAL_DEBUG_OUT( "checking for foreign option ...%s", "" );
 	}
 
 LOCAL_DEBUG_OUT( "adding storage ...%s", "" );
-	if ((pNext = AddFreeStorageElem (config->syntax, config->current_tail->storage, pterm, ID_ANY)) == NULL)
+	if ((pNext = AddFreeStorageElem (config->syntax, config->current_tail->storage, pterm, ID_ANY, NULL)) == NULL)
 		return;
 
 LOCAL_DEBUG_OUT( "parsing stuff ...%s", "" );

@@ -317,6 +317,7 @@ int compare_func_data_name(const void *a, const void *b);
 
 
 void print_func_data(const char *file, const char *func, int line, FunctionData *data);
+char *format_FunctionData (FunctionData *data);
 
 #define MenuDataItemFromFunc(m,f) menu_data_item_from_func((m),(f), False)
 
