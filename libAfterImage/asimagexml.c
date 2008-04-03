@@ -1948,6 +1948,55 @@ handle_asxml_tag_slice( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* par
 	return result;
 }
 
+/****** libAfterImage/asimagexml/slice
+ * NAME
+ * slice - slice image to arbitrary size leaving corners unchanged
+ * SYNOPSIS
+ * <slice id="new_id" ref_id="other_imag" width="pixels" height="pixels"
+ *        clip_x="clip_x" clip_y="clip_y"
+ *        pixel_width="pixel_width" pixel_height="pixel_height">
+ * ATTRIBUTES
+ * id       Optional. Image will be given this name for future reference.
+ * refid    Optional.  An image ID defined with the "id" parameter for
+ *          any previously created image.  If set, percentages in "width"
+ *          and "height" will be derived from the width and height of the
+ *          refid image.
+ * width    Required.  The image will be scaled to this width.
+ * height   Required.  The image will be scaled to this height.
+ * clip_x   Optional. Offset into original image.
+ * clip_y   Optional. Offset into original image.
+ * pixel_width Required. Horizontal pixelization step;
+ * pixel_height Required. Vertical pixelization step;
+ * NOTES
+ * This tag applies to the first image contained within the tag.  Any
+ * further images will be discarded.
+ * If you want to keep image proportions while resizing-use "proportional"
+ * instead of specific size for particular dimention.
+ ******/
+static ASImage *
+handle_asxml_tag_pixelize( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm, ASImage *imtmp, int width, int height)
+{
+	ASImage *result = NULL ;
+	xml_elem_t* ptr;
+	int clip_x = 0, clip_y = 0 ;
+	int pixel_width = 1, pixel_height = 1 ;
+	LOCAL_DEBUG_OUT("doc = %p, parm = %p, imtmp = %p, width = %d, height = %d", doc, parm, imtmp, width, height ); 
+	for (ptr = parm ; ptr ; ptr = ptr->next) 
+	{
+		if (!strcmp(ptr->tag, "clip_x")) 		clip_x = (int)parse_math(ptr->parm, NULL, width);
+		else if (!strcmp(ptr->tag, "clip_y")) 	clip_y = (int)parse_math(ptr->parm, NULL, height);
+		else if (!strcmp(ptr->tag, "pixel_width")) 		pixel_width = (int)parse_math(ptr->parm, NULL, width);
+		else if (!strcmp(ptr->tag, "pixel_height")) 	pixel_height = (int)parse_math(ptr->parm, NULL, height);
+	}
+
+	if( state->verbose > 1 )
+		show_progress("Pixelizing image to [%dx%d].", width, height);
+	result = pixelize_asimage (state->asv, imtmp, clip_x, clip_y, width, height,
+							   pixel_width, pixel_height,
+							   ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT);
+	return result;
+}
+
 /****** libAfterImage/asimagexml/crop
  * NAME
  * crop - crop image to arbitrary area within it.
@@ -2334,6 +2383,8 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 							result = handle_asxml_tag_hsv( &state, doc, parm, imtmp, width, height);
 						else if (!strcmp(doc->tag, "pad"))
 							result = handle_asxml_tag_pad( &state, doc, parm, imtmp, width, height);
+						else if (!strcmp(doc->tag, "pixelize"))
+							result = handle_asxml_tag_pixelize( &state, doc, parm, imtmp, width, height);
 					}		
 				}
 				

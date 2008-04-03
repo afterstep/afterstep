@@ -545,6 +545,11 @@ slice_asimage( ASVisual *asv, ASImage *src,
 			   ASAltImFormats out_format,
 			   unsigned int compression_out, int quality );
 
+ASImage *
+pixelize_asimage( ASVisual *asv, ASImage *src,
+			      int clip_x, int clip_y, int clip_width, int clip_height,
+				  int pixel_width, int pixel_height,
+				  ASAltImFormats out_format, unsigned int compression_out, int quality );
 
 #ifdef __cplusplus
 }

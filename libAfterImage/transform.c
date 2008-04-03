@@ -3208,6 +3208,139 @@ slice_asimage( ASVisual *asv, ASImage *src,
 			   			   slice_y_start, slice_y_end, to_width,  to_height,
 			   				False, out_format, compression_out, quality );
 }
+
+
+ASImage *
+pixelize_asimage( ASVisual *asv, ASImage *src,
+			      int clip_x, int clip_y, int clip_width, int clip_height,
+				  int pixel_width, int pixel_height,
+				  ASAltImFormats out_format, unsigned int compression_out, int quality )
+{
+	ASImage *dst = NULL ;
+	ASImageDecoder *imdec ;
+	ASImageOutput  *imout ;
+	START_TIME(started);
+
+	if( asv == NULL ) 	asv = &__transform_fake_asv ;
+
+	if (src== NULL)
+		return NULL;
+		
+	if (clip_width <= 0)
+		clip_width = src->width;
+	if (clip_height <= 0)
+		clip_height = src->height;
+
+	if (pixel_width <= 0)
+		pixel_width = 1;
+	else if (pixel_width > clip_width)
+		pixel_width = clip_width;
+		
+	if (pixel_height <= 0)
+		pixel_height = 1;
+	else if (pixel_height > clip_height)
+		pixel_height = clip_height;
+		
+LOCAL_DEBUG_CALLER_OUT( "src = %p, offset_x = %d, offset_y = %d, to_width = %d, to_height = %d, pixel_width = %d, pixel_height = %d", src, clip_x, clip_y, clip_width, clip_height, pixel_width, pixel_height );
+	if( (imdec = start_image_decoding(asv, src, SCL_DO_ALL, clip_x, clip_y, clip_width, 0, NULL)) == NULL )
+	{
+		LOCAL_DEBUG_OUT( "failed to start image decoding%s", "");
+		return NULL;
+	}
+
+	dst = create_destination_image( clip_width, clip_height, out_format, compression_out, src->back_color );
+
+	if((imout = start_image_output( asv, dst, out_format, 0, quality)) == NULL )
+	{
+		LOCAL_DEBUG_OUT( "failed to start image output%s", "");
+        destroy_asimage( &dst );
+    }else
+	{
+		int y, max_y = clip_height;
+LOCAL_DEBUG_OUT("pixelizing actually...%s", "");
+
+		if( pixel_width > 1 || pixel_height > 1 )
+		{
+			int pixel_h_count = (clip_width+pixel_width-1)/pixel_width;
+			ASScanline *pixels = prepare_scanline( pixel_h_count, 0, NULL, asv->BGR_mode );
+			ASScanline *out_buf = prepare_scanline( clip_width, 0, NULL, asv->BGR_mode );
+			int lines_count = 0;
+
+			out_buf->flags = SCL_DO_ALL;
+			
+			for( y = 0 ; y < max_y ; y++  )
+			{
+				int pixel_x = 0, x ;
+				ASScanline *src = &(imdec->buffer);
+				imdec->decode_image_scanline( imdec );
+				for (x = 0; x < clip_width; x += pixel_width)
+				{
+					int xx = x+pixel_width;
+					
+					if (xx > clip_width)
+						xx = clip_width;
+					
+					while ( --xx >= x)
+					{
+						pixels->red[pixel_x] += src->red[xx];
+						pixels->green[pixel_x] += src->green[xx];
+						pixels->blue[pixel_x] += src->blue[xx];
+						pixels->alpha[pixel_x] += src->alpha[xx];
+					}
+					++pixel_x;
+				}
+				if (++lines_count >= pixel_height || y == max_y-1)
+				{
+					pixel_x = 0;
+					
+					for (x = 0; x < clip_width; x += pixel_width)
+					{
+						int xx = (x + pixel_width> clip_width) ? clip_width : x + pixel_width;
+						int count = (xx - x) * lines_count;
+						CARD32 r = pixels->red [pixel_x] / count;
+						CARD32 g = pixels->green [pixel_x] / count;
+						CARD32 b = pixels->blue [pixel_x] / count;
+						CARD32 a = pixels->alpha [pixel_x] / count;
+						
+						pixels->red [pixel_x] = 0;
+						pixels->green [pixel_x] = 0;
+						pixels->blue [pixel_x] = 0;
+						pixels->alpha [pixel_x] = 0;
+
+						if (xx > clip_width)
+							xx = clip_width;
+
+						while ( --xx >= x)
+						{
+							out_buf->red[xx] 	= r;
+							out_buf->green[xx]  = g;
+							out_buf->blue[xx] 	= b;
+							out_buf->alpha[xx]  = a;
+						}
+
+						++pixel_x;
+					}
+					while (lines_count--)
+						imout->output_image_scanline( imout, out_buf, 1);
+					lines_count = 0;
+				}
+			}
+			free_scanline( out_buf, False );
+			free_scanline( pixels, False );
+		}else
+			for( y = 0 ; y < max_y ; y++  )
+			{
+				imdec->decode_image_scanline( imdec );
+				imout->output_image_scanline( imout, &(imdec->buffer), 1);
+			}
+		stop_image_output( &imout );
+	}
+	stop_image_decoding( &imdec );
+
+	SHOW_TIME("", started);
+	return dst;
+}
+
 /* ********************************************************************************/
 /* The end !!!! 																 */
 /* ********************************************************************************/
