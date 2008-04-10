@@ -3422,20 +3422,19 @@ fprintf (stderr, "color2alpha():%d: src(argb): %8.8X %8.8X %8.8X %8.8X; ", __LIN
 fprintf (stderr, "alpha: (%8.8X %8.8X %8.8X)->%8.8X; ", ar, ag, ab, a);
 #endif
 
-  					if (a >= AS_MIN_CHAN_VAL)
-					{
+					if (a == 0) a = 1;
 #if defined(USE_STUPID_GIMP_WAY_DESTROYING_COLORS)
 #define APPLY_ALPHA_TO_CHAN(chan)  ({int __s = chan; int __c = c##chan; __c += (( __s - __c)*4096)/(int)a;(__c<=0)?0:((__c>=255)?255:__c);})
 #else
 #define APPLY_ALPHA_TO_CHAN(chan)	chan	
 #endif
-	  					src->red[x] 	= APPLY_ALPHA_TO_CHAN(r);
-						src->green[x] 	= APPLY_ALPHA_TO_CHAN(g);
-	  					src->blue[x] 	= APPLY_ALPHA_TO_CHAN(b);
+	  				src->red[x] 	= APPLY_ALPHA_TO_CHAN(r);
+					src->green[x] 	= APPLY_ALPHA_TO_CHAN(g);
+		  			src->blue[x] 	= APPLY_ALPHA_TO_CHAN(b);
 #undef APPLY_ALPHA_TO_CHAN
-						a = a*aa>>12;
-	  					src->alpha[x] = a>255?255:a;
-					}
+					a = a*aa>>12;
+	  				src->alpha[x] = (a>255)?255:a;
+
 #if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)					
 fprintf (stderr, "result: %8.8X %8.8X %8.8X %8.8X.\n", src->alpha[x], src->red[x], src->green[x], src->blue[x]);
 #endif
