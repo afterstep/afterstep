@@ -92,6 +92,7 @@ int main(int argc, char* argv[])
 	/* The following could be used to dump JPEG version of the image into
 	 * stdout : */
 	/* ASImage2file( im, NULL, NULL, ASIT_Jpeg, NULL ); */
+	ASImage2file( im, NULL, "asview.png", ASIT_Png, NULL );
 
 
 	if( im != NULL )
@@ -158,6 +159,7 @@ int main(int argc, char* argv[])
 
 		/* see common.c: wait_closedown() : */
 		wait_closedown(w);
+
 #else
 		/* writing result into the file */
 		ASImage2file( im, NULL, "asview.png", ASIT_Png, NULL );

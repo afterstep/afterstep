@@ -176,6 +176,10 @@ typedef struct ASScanline
 #define SCL_DO_COLOR		(SCL_DO_RED|SCL_DO_GREEN|SCL_DO_BLUE)
 #define SCL_DO_ALL			(SCL_DO_RED|SCL_DO_GREEN|SCL_DO_BLUE| \
                              SCL_DO_ALPHA)
+#define SCL_RESERVED_MASK	0x0000FFFF
+#define SCL_CUSTOM_MASK		0xFFFF0000
+#define SCL_CUSTOM_OFFSET	16
+							 
 	CARD32	 	   flags ;   /* combination of  the above values */
 	CARD32        *buffer ;
 	CARD32        *blue, *green, *red, *alpha ;
