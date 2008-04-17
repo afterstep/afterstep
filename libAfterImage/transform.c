@@ -3379,7 +3379,7 @@ LOCAL_DEBUG_CALLER_OUT( "src = %p, offset_x = %d, offset_y = %d, to_width = %d, 
         destroy_asimage( &dst );
     }else
 	{
-		int y, max_y = min(clip_height,src->height);
+		int y, max_y = min(clip_height,(int)src->height);
 		CARD32 cr = ARGB32_RED8(color);
 		CARD32 cg = ARGB32_GREEN8(color);
 		CARD32 cb = ARGB32_BLUE8(color);
