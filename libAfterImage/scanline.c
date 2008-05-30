@@ -338,52 +338,6 @@ interpolate_channel_v_checkered_15x51 (CARD32 *dst, CARD32 **channs, int width, 
 	}
 }
 
-void
-interpolate_channel_hv_adaptive_1x1(CARD32 *dst, CARD32 **channs, int width, int offset)
-{
-	/* Assumptions :  channs is array of 5 CARD32 pointers not NULL */
-	int x = offset;
-	
-	if (offset == 0)
-	{
-		dst[0] = (channs[1][0] + channs[3][0] + channs[2][1])/3;
-		x += 2;
-	}
-
-	dst[x] = (channs[1][x] + channs[3][x] + channs[2][x-1] + channs[2][x+1])/4;
-	for (x += 2; x < width-3; ++x, ++x)
-	{
-		int v;
-		int l = channs[2][x-1], r = channs[2][x+1];
-		/* we have to operate with 14 bit values in order to avoid overflow */
-		int diff_h = (l>>2)-(r>>2);
-		int t = channs[1][x], b = channs[3][x];
-		int diff_v = (t>>2)-(b>>2);
-		
-		if ((diff_h * diff_h) < (diff_v * diff_v))
-		{
-			v = (l + r) >> 1;
-			if ((v < t && v < b) || (v > t && v > b))
-				v  = ((v << 1) + b + t) >> 2 ;
-		}else
-		{
-			v = (t + b) >> 1;
-			if ((v < l && v < r) || (v > l && v > r))
-				v  = ((v << 1) + l + r) >> 2 ;
-		}
-		dst[x] = v;
-	}
-
-	dst[x] = (channs[1][x] + channs[3][x] + channs[2][x-1] + channs[2][x+1])/4;
-
-	if (offset == 1)
-	{
-		x += 2;
-		dst[x] = (channs[1][x] + channs[3][x] + channs[2][x-1])/3;
-	}
-
-}
-
 /* vert smoothing */
 void
 smooth_channel_v_15x51 (CARD32 *dst, CARD32 **channs, int width, int offset)
@@ -531,38 +485,104 @@ fprintf( stderr, "\n");
 	return True;
 }
 
+static inline int*
+checkalloc_diff_aux_data (ASIMStrip *strip, int line) 
+{
+	if (strip->aux_data[line] == NULL)
+		strip->aux_data[line] = safemalloc(strip->lines[line]->width*2*sizeof(int));
+	return strip->aux_data[line];
+}
+
+void
+interpolate_channel_hv_adaptive_1x1(CARD32 *above, CARD32 *dst, CARD32 *below, int width, int offset)
+{
+	int x = offset;
+	
+	if (offset == 0)
+	{
+		dst[0] = (above[0] + below[0] + dst[1])/3;
+		x += 2;
+	}
+	
+	for (; x < width-1; ++x, ++x)
+	{
+		int v;
+		int l = dst[x-1], r = dst[x+1];
+		/* we have to operate with 14 bit values in order to avoid overflow */
+		int diff_h = (l>>2)-(r>>2);
+		int t = above[x], b = below[x];
+		int diff_v = (t>>2)-(b>>2);
+		if ((diff_h * diff_h) < (diff_v * diff_v))
+		{
+			v = (l + r) >> 1;
+			if ((v < t && v < b) || (v > t && v > b))
+				v  = ((v << 1) + b + t) >> 2 ;
+		}else
+		{
+			v = (t + b) >> 1;
+			if ((v < l && v < r) || (v > l && v > r))
+				v  = ((v << 1) + l + r) >> 2 ;
+		}
+		dst[x] = v;
+		
+	}
+	if (offset == 1)
+		dst[x] = (above[x] + below[x] + dst[x-1])/3;
+}
+
 Bool calculate_green_diff(ASIMStrip *strip, int line, int chan, int offset)
 {
 	int width = strip->lines[line]->width;
 	CARD32 *green = strip->lines[line]->green;
 	CARD32 *src = strip->lines[line]->channels[chan];
-	int *diff = strip->aux_data[line];
+	int *diff = checkalloc_diff_aux_data (strip, line);
 	int x = offset;
+	int v_last, v;
 	
 	if (diff == NULL)
-	{
-		strip->aux_data[line] = diff = safemalloc(width*2*sizeof(int));
-		if (diff == NULL)
-			return False;
-	}
+		return False;
+
 	if (chan == ARGB32_BLUE_CHAN)
 		diff += width;
 
-	diff[x] = (int)src[x]-(int)green[x];
-	while ((x += 2) < width)
+	v_last = (int)src[x] - (int)green[x];
+	diff[x] = v_last;
+	/* some loop unrolling for optimization purposes - 
+	   we don't want to store diff[x] untill the second pass */
+	x +=2;
+	v = (int)src[x] - (int)green[x];
+	diff[x-1] = (v + v_last)/2;
+	diff[x] = v_last = v;
+	
+	while ((x += 2) < width-2)
 	{
-		diff[x] = (int)src[x]-(int)green[x];
-		diff[x-1] = (diff[x] + diff[x-2])/2;
+		v = (int)src[x] - (int)green[x];
+
+		diff[x-1] = (v + v_last)/2;
+		v_last = v;
 	}
+
+	v = (int)src[x] - (int)green[x];
+	diff[x-1] = (v + v_last)/2;
+	diff[x] = v;
+	
+	/* border condition handling : */
 	if (offset)
 		diff[0] = diff[1];
 	else
 		diff[width-1] = diff[width-2];
 
+	/* second path - further smoothing of the difference at the points 
+	   where we are most likely to see artifacts */
+	   
+	for (x = offset + 2; x < width-2 ; ++x,++x)
+		diff[x] = (diff[x-1]+diff[x+1])/2;
+	
 	return True;	
 }
 
-Bool interpolate_green_diff(ASIMStrip *strip, int line, int chan, int offset)
+Bool 
+interpolate_green_diff(ASIMStrip *strip, int line, int chan, int offset)
 {
 	if (line > 0 && line < strip->size-1)
 	{
@@ -573,15 +593,13 @@ Bool interpolate_green_diff(ASIMStrip *strip, int line, int chan, int offset)
 		{
 			int *diff_above = strip->aux_data[line-1];
 			int *diff_below = strip->aux_data[line+1];
-			int *diff = strip->aux_data[line];
+			int *diff = checkalloc_diff_aux_data (strip, line);
 			int max_x = above->width;
 			int x = 0;
+
 			if (diff == NULL)
-			{
-				strip->aux_data[line] = diff = safemalloc(max_x*2*sizeof(int));
-				if (diff == NULL)
-					return False;
-			}
+				return False;
+
 			if (chan == ARGB32_BLUE_CHAN)
 			{
 				x = max_x;
@@ -595,7 +613,8 @@ Bool interpolate_green_diff(ASIMStrip *strip, int line, int chan, int offset)
 	return False;
 }
 
-Bool interpolate_from_green_diff(ASIMStrip *strip, int line, int chan, int offset)
+Bool 
+interpolate_from_green_diff(ASIMStrip *strip, int line, int chan, int offset)
 {
 	int width = strip->lines[line]->width;
 	CARD32 *green = strip->lines[line]->green;
@@ -667,15 +686,21 @@ interpolate_asim_strip_custom_rggb2 (ASIMStrip *strip, ASFlagType filter, Bool f
 	/* interpolation of green */
 	if ( get_flags( filter, SCL_DO_GREEN) )
 	{
-		for (line = 2 ; line < strip->size-2 ; ++line)
+		for (line = 1 ; line < strip->size-1 ; ++line)
 			if (get_flags(strip->lines[line]->flags, SCL_DO_GREEN)
 				&& !get_flags(strip->lines[line]->flags, (ASIM_SCL_InterpolatedV<<ARGB32_GREEN_CHAN)))
 			{
-				if (interpolate_asim_strip_gradients (strip, line, ARGB32_GREEN_CHAN, ARGB32_GREEN_CHAN, 
-														ASIM_IsMissingValue(strip->lines[line]->green[0])?0:1,
-														interpolate_channel_hv_adaptive_1x1))
+				if (get_flags(strip->lines[line-1]->flags, SCL_DO_GREEN)
+					&& get_flags(strip->lines[line+1]->flags, SCL_DO_GREEN))
+				{
+					interpolate_channel_hv_adaptive_1x1 (strip->lines[line-1]->green, 
+														 strip->lines[line]->green, 
+														 strip->lines[line+1]->green,
+														 strip->lines[line]->width,
+														 ASIM_IsMissingValue(strip->lines[line]->green[0])?0:1);
 					set_flags(strip->lines[line]->flags, (ASIM_SCL_InterpolatedH|ASIM_SCL_InterpolatedV)<<ARGB32_GREEN_CHAN);
 //					strip->lines[line]->flags =  SCL_DO_GREEN| ((ASIM_SCL_InterpolatedH|ASIM_SCL_InterpolatedV)<<ARGB32_GREEN_CHAN);
+				}
 			}
 	}
 #endif
