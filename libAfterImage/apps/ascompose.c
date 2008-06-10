@@ -858,6 +858,7 @@ set_root_pixmap_property(long pmap) /* Must have long type to work with XChangeP
 Bool
 wait_x_timeout(int timeout)
 {
+#ifndef X_DISPLAY_MISSING		  
 	if (timeout < 0) /* wait forever */
 	{
 		XEvent evt;
@@ -881,6 +882,8 @@ wait_x_timeout(int timeout)
 	}
 	
 	return XPending(dpy);
+#endif
+	return 0;	
 }
 
 Window showimage(ASImage* im, Bool looping, Window main_window, ASComposeWinProps *props, int dst_x, int dst_y ) 
