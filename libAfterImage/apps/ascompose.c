@@ -802,6 +802,7 @@ make_main_window(Bool onroot, ASComposeWinProps *props)
 Bool
 set_root_pixmap_property(long pmap) /* Must have long type to work with XChangeProp on 64 bit machines !!!*/
 {
+#ifndef X_DISPLAY_MISSING		  
 	Window root = DefaultRootWindow(dpy);
 	char  *names[2] = {"_XROOTPMAP_ID", "ESETROOT_PMAP_ID"};
 	Atom  atoms[2];
@@ -845,11 +846,13 @@ set_root_pixmap_property(long pmap) /* Must have long type to work with XChangeP
 				break;
     	XChangeProperty(dpy, root, atoms[i], XA_PIXMAP, 32, PropModeReplace, (unsigned char *) &pmap, 1);
 	}
-	if (i < 2)
-		return False;
-	
-	XSetCloseDownMode(dpy, RetainPermanent);
-	return True;
+	if (i >= 2)
+	{
+		XSetCloseDownMode(dpy, RetainPermanent);
+		return True;
+	}
+#endif
+	return False;
 }
 
 Bool
