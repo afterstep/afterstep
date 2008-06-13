@@ -689,6 +689,38 @@ free_storage_elem2MyStyleDefinition (FreeStorageElem *fs, const char *default_na
 	return msd;
 }
 
+FreeStorageElem *
+MyStyleDefinition2free_storage_elem (MyStyleDefinition *msd, SyntaxDef *syntax)
+{
+	FreeStorageElem *fs = NULL;
+
+	if (msd == NULL || syntax == NULL)
+		return NULL;
+
+	if (msd->Name == NULL)
+		return NULL;
+
+	QuotedString2FreeStorage (syntax, &fs, NULL, msd->Name, MYSTYLE_MyStyle_ID);
+	if (fs)
+	{
+		FreeStorageElem **tail = &(fs->sub);
+		ASFlagType auto_handled = 0, auto_handled_flags = 0;
+		TermDef *T = fs->term;
+		
+		fs->sub = StructToFreeStorage (msd, offsetof (MyStyleDefinition, set_flags), T->sub_syntax, &auto_handled);
+		ADVANCE_LINKED_LIST_TAIL(tail);
+
+		/* now we need to handle some flags : */
+		*tail = StructFlags2FreeStorage (msd, offsetof(MyStyleDefinition,set_flags), T->sub_syntax, MyStyleFlags, &auto_handled_flags);
+		ADVANCE_LINKED_LIST_TAIL(tail);
+
+		/* now we need to handle some special items : */
+		*tail = MyStyleSpecialTerms2FreeStorage (msd, T->sub_syntax);
+	}		
+	return fs;
+}
+
+
 MyStyleDefinition*
 free_storage2MyStyleDefinitionsList (FreeStorageElem *fs)
 {
@@ -700,12 +732,26 @@ free_storage2MyStyleDefinitionsList (FreeStorageElem *fs)
 		if (fs->term->id == MYSTYLE_MyStyle_ID)
 		{
 			*tail = free_storage_elem2MyStyleDefinition (fs->sub, NULL);
-			if (*tail)
-				tail = &((*tail)->next);
+			ADVANCE_LINKED_LIST_TAIL(tail);
 		}	
 	}
 	return head;	
 }
+
+FreeStorageElem *
+MyStyleDefinitionsList2free_storage (MyStyleDefinition *msd, SyntaxDef *syntax)
+{
+	FreeStorageElem *head = NULL;
+	FreeStorageElem **tail = &head;
+	
+    for (; msd; msd = msd->next)
+	{
+		*tail = MyStyleDefinition2free_storage_elem (msd, syntax);
+		ADVANCE_LINKED_LIST_TAIL(tail);
+	}
+	return head;	
+}
+
 
 ASModuleConfig* 
 free_storage2ASModule_config( ASModuleConfigClass *class, ASModuleConfig *config, FreeStorageElem *Storage, ASFlagType flags )

@@ -214,6 +214,18 @@ FreeStorageElem **ASCursor2FreeStorage (struct SyntaxDef * syntax,
 FreeStorageElem **Bitlist2FreeStorage (struct SyntaxDef * syntax,
                     FreeStorageElem ** tail,
                     long bits, int id);
+
+/* the following function automagically creates FreeStorage for the data structure and Syntax,
+   it returns created storage and flags will be set in handled_return for any item handled */
+FreeStorageElem *StructToFreeStorage (void *struct_ptr, ptrdiff_t set_flags_offset, 
+					struct SyntaxDef *syntax, ASFlagType *handled_return );
+FreeStorageElem *StructFlags2FreeStorage (void *struct_ptr, ptrdiff_t default_set_flags_offset, struct SyntaxDef *syntax, 
+					flag_options_xref * xref, ASFlagType *handled_return);
+					
+					
+#define ADVANCE_LINKED_LIST_TAIL(ptail) while (*(ptail)) (ptail) = &((*(ptail))->next)
+					
+
 #ifdef __cplusplus
 }
 #endif

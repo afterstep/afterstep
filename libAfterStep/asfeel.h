@@ -105,7 +105,9 @@ typedef enum			/* feel file set flags */
     FEEL_EdgeScroll             = (0x01<<11),
     FEEL_EdgeResistance         = (0x01<<12),
     FEEL_ShadeAnimationSteps    = (0x01<<13),
-	FEEL_ExternalMenus			= (0x01<<14)
+	FEEL_ExternalMenus			= (0x01<<14),
+    FEEL_EdgeResistanceToDragging = (0x01<<15)
+
 }FeelSetValFlags;
 
 
@@ -228,6 +230,7 @@ typedef struct ASFeel
     int EdgeAttractionScreen;      /* #pixels to scroll on screen edge */
     int EdgeAttractionWindow;      /* #pixels to scroll on screen edge */
     int EdgeResistanceMove;        /* #pixels to scroll on screen edge */
+    int EdgeResistanceDragScroll;      /* #pixels to scroll on screen edge while dragging the window */
     int ShadeAnimationSteps;
 
     struct ASHashTable *Popups ;

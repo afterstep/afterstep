@@ -59,7 +59,12 @@ HandlePaging (int HorWarpSize, int VertWarpSize, int *xl, int *yt,
 #ifndef NO_VIRTUAL
 	if (DoHandlePageing)
 	{
-        if ((Scr.Feel.EdgeResistanceScroll >= 10000) || ((HorWarpSize == 0) && (VertWarpSize == 0)))
+		int scroll = Scr.Feel.EdgeResistanceScroll;
+		
+		if (Scr.moveresize_in_progress && Scr.Feel.EdgeResistanceDragScroll >= 0)
+			scroll = Scr.Feel.EdgeResistanceDragScroll;
+		
+        if ((scroll >= 10000) || ((HorWarpSize == 0) && (VertWarpSize == 0)))
 			return;
 
 		/* need to move the viewport */
@@ -68,7 +73,7 @@ HandlePaging (int HorWarpSize, int VertWarpSize, int *xl, int *yt,
 			return;
 
 		total = 0;
-        while (total < (int)Scr.Feel.EdgeResistanceScroll)
+        while (total < scroll)
 		{
             register int i ;
 			sleep_a_millisec(10);

@@ -336,6 +336,7 @@ struct config main_config[] = {
 	{"SloppyFocus", SetFlag2, (char **)SloppyFocus, (int *)0},
     {"PagingDefault", obsolete, (char **)NULL, NULL},
     {"EdgeResistance", SetInts, (char **)&TmpFeel.EdgeResistanceScroll, &TmpFeel.EdgeResistanceMove},
+    {"EdgeResistanceToDragging", SetInts, (char **)&TmpFeel.EdgeResistanceDragScroll, NULL},
 	{"BackingStore", SetFlag2, (char **)BackingStore, (int *)0},
 	{"AppsBackingStore", SetFlag2, (char **)AppsBackingStore, (int *)0},
 	{"SaveUnders", SetFlag2, (char **)SaveUnders, (int *)0},
@@ -818,6 +819,7 @@ merge_feel( ASFeel *to, ASFeel *from )
     to->OpaqueResize = from->OpaqueResize ; 
     to->EdgeResistanceScroll = from->EdgeResistanceScroll  ; 
 	to->EdgeResistanceMove = from->EdgeResistanceMove ; 
+    to->EdgeResistanceDragScroll = from->EdgeResistanceDragScroll  ; 
     to->Xzap = from->Xzap ; 
     to->Yzap = from->Yzap ; 
     to->AutoReverse = from->AutoReverse ; 
@@ -2223,7 +2225,10 @@ SetFlag2 (char *text, FILE * fd, char **arg, int *var)
 void
 SetInts (char *text, FILE * fd, char **arg1, int *arg2)
 {
-    sscanf (text, "%d%*c%d", (int *)arg1, (int *)arg2);
+	if (arg2 == NULL)
+	    sscanf (text, "%d%", (int *)arg1);
+	else
+	    sscanf (text, "%d%*c%d", (int *)arg1, (int *)arg2);
 /*    LOCAL_DEBUG_OUT( "text=[%s], arg1=%p, Scr.Feel.Autoreverse = %p, res = %d", text, arg1, &(Scr.Feel.AutoReverse), *((int*)arg1) );*/
 }
 

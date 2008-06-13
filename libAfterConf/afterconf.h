@@ -298,6 +298,9 @@ ASModuleConfig *parse_asmodule_config_all(ASModuleConfigClass *class );
 
 struct MyStyleDefinition *free_storage_elem2MyStyleDefinition (struct FreeStorageElem *fs, const char *default_name);
 struct MyStyleDefinition *free_storage2MyStyleDefinitionsList (struct FreeStorageElem *fs);
+struct FreeStorageElem *MyStyleDefinition2free_storage_elem (struct MyStyleDefinition *msd, struct SyntaxDef *syntax);
+struct FreeStorageElem *MyStyleDefinitionsList2free_storage (struct MyStyleDefinition *msd, struct SyntaxDef *syntax);
+
 
 
 
@@ -520,9 +523,7 @@ void MergeMyStyleText (MyStyleDefinition ** list, const char *name,
 void MergeMyStyleTextureOld (MyStyleDefinition ** list, const char *name,
                         int type, char *color_from, char *color_to, char *pixmap);
 
-struct FreeStorageElem *MyStyleDef2FreeStorage (struct SyntaxDef * syntax, MyStyleDefinition *msd);
-struct FreeStorageElem **MyStyleDefs2FreeStorage (struct SyntaxDef * syntax, struct FreeStorageElem ** tail, MyStyleDefinition * defs);
-
+struct FreeStorageElem *MyStyleSpecialTerms2FreeStorage (MyStyleDefinition *msd, struct SyntaxDef *syntax);
 
 /**************************************************************************/
 /*                        MyFrame parsing definitions                     */

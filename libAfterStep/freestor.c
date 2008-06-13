@@ -253,8 +253,11 @@ CreateFreeStorageElem (SyntaxDef * syntax, FreeStorageElem ** tail, TermDef * pt
 	if (fs)
 	{
 		fs->term = pterm;
-		fs->next = *tail;
-		*tail = fs;
+		if (tail)
+		{
+			fs->next = *tail;
+			*tail = fs;
+		}
 	}
 	return fs;
 }
@@ -1490,24 +1493,6 @@ QuotedString2FreeStorage (SyntaxDef * syntax, FreeStorageElem ** tail, int *inde
 	return tail;
 }
 
-
-char         *
-add_sign (char *ptr, Bool negative)
-{
-	if (ptr && *ptr != '-' && *ptr != '+')
-	{
-		register char *src, *dst;
-
-		ptr = realloc (ptr, 1 + strlen (ptr) + 1);
-		src = ptr + strlen (ptr);
-		dst = src + 1;
-		while (src >= ptr)
-			*(dst--) = *(src--);
-		*dst = negative ? '-' : '+';
-	}
-	return ptr;
-}
-
 FreeStorageElem **
 Geometry2FreeStorage (SyntaxDef * syntax, FreeStorageElem ** tail, ASGeometry * geometry, int id)
 {
@@ -1753,11 +1738,74 @@ init_asgeometry (ASGeometry * geometry)
     geometry->width = geometry->height = 1;
 }
 
+FreeStorageElem * 
+CompositeFlags2FreeStorage (ASFlagType flags, SyntaxDef *syntax)
+{
+	FreeStorageElem *storage = NULL;
+	FreeStorageElem **tail = &storage;
+
+	if (syntax && flags != 0)
+	{
+		int i;
+
+		for (i = 0; syntax->terms[i].keyword; ++i)
+		{
+			TermDef *T = &(syntax->terms[i]);
+			if (get_flags (flags, T->flags_on) && !get_flags (flags, T->flags_off))
+			{
+				FreeStorageElem *new_elem = AddFreeStorageElem (syntax, tail, T, T->id, NULL);
+				if (new_elem)
+					tail = &(new_elem->next);
+			}							 
+		}
+	}
+
+	return storage;
+}
 
 FreeStorageElem *
-StructToFreeStorage( void *struct_ptr, ptrdiff_t set_flags_offset, SyntaxDef *syntax, ASFlagType *handled_return ) 
+StructFlags2FreeStorage (void *struct_ptr, ptrdiff_t default_set_flags_offset, SyntaxDef *syntax, flag_options_xref * xref, ASFlagType *handled_return)
 {
-	FreeStorageElem *storage = NULL, **tail = NULL;
+	FreeStorageElem *storage = NULL;
+	FreeStorageElem **tail = &storage;
+	ASFlagType handled = 0;
+
+	if (struct_ptr == NULL || syntax == NULL || xref == NULL)
+		return NULL;
+
+	while (xref->flag != 0)
+	{
+		unsigned long *flags = (xref->flag_field_offset>0)?struct_ptr+xref->flag_field_offset:NULL;
+		unsigned long *set_flags  = (xref->set_flag_field_offset>0)?struct_ptr+xref->set_flag_field_offset:
+									(default_set_flags_offset>0)?struct_ptr+default_set_flags_offset:NULL ;
+
+		if (set_flags == NULL || get_flags (*set_flags, xref->flag))
+		{
+			if (flags && get_flags (*flags, xref->flag) == xref->flag)
+			{
+				FreeStorageElem *new_elem = AddFreeStorageElem (syntax, tail, NULL, xref->id_on, NULL);
+				if (new_elem)
+				{
+					tail = &(new_elem->next);
+					set_flags(handled, xref->flag);
+				}
+			}			
+			/* TODO some handling of the flags that are off ? */
+		}
+		xref++;
+	}
+	
+	if (handled_return)
+		*handled_return = handled;
+		
+    return storage;
+}
+
+FreeStorageElem *
+StructToFreeStorage( void *struct_ptr, ptrdiff_t set_flags_offset, SyntaxDef *syntax, ASFlagType *handled_return)
+{
+	FreeStorageElem *storage = NULL;
+	FreeStorageElem **tail = &storage;
 	ASFlagType set_flags = *((ASFlagType*)(struct_ptr+set_flags_offset));
 	ASFlagType handled = 0;
 	int i;
@@ -1773,22 +1821,28 @@ StructToFreeStorage( void *struct_ptr, ptrdiff_t set_flags_offset, SyntaxDef *sy
 
 		if (T->struct_field_offset == 0 
 		    || get_flags(T->flags, TF_INDEXED)
-			|| !get_flags(set_flags, T->flags_on))
+			|| !get_flags(set_flags, T->flags_on)
+			|| get_flags(set_flags, T->flags_off))
 			continue;
 
 		if (T->type == TT_FLAG)
 		{
 			if (T->sub_syntax)
 			{
+				*tail = CompositeFlags2FreeStorage (*((ASFlagType*)data_ptr), T->sub_syntax);
+				if (*tail)
+					tail = &((*tail)->next);
+				set_flags (handled, T->flags_on);
 				continue;
 			}
 		}	
 
 		switch (T->type)
 		{
-		 case TT_INTEGER:	val_str = string_from_int(*((int*)  data_ptr));	 break;
-		 case TT_UINTEGER:	val_str = string_from_int(*((unsigned int*)  data_ptr));	 break;
-         case TT_BITLIST :	val_str = string_from_int(*((int*)  data_ptr));	 break;
+		 case TT_FLAG: 		val_str = string_from_int(*((Bool*) data_ptr)?1:0);		break;
+		 case TT_INTEGER:	val_str = string_from_int(*((int*)  data_ptr));	 		break;
+		 case TT_UINTEGER:	val_str = string_from_int(*((unsigned int*)  data_ptr));break;
+         case TT_BITLIST :	val_str = string_from_int(*((int*)  data_ptr));	 		break;
          case TT_OPTIONAL_PATHNAME:
          case TT_COLOR:
 		 case TT_FONT:
@@ -1824,8 +1878,6 @@ StructToFreeStorage( void *struct_ptr, ptrdiff_t set_flags_offset, SyntaxDef *sy
 			{
 				set_flags (handled, T->flags_on);
 				tail = &(new_elem->next);
-				if (storage == NULL)
-					storage = new_elem;
 			}
 			free (val_str);
 		}

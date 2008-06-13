@@ -652,33 +652,15 @@ MergeMyStyleTextureOld (MyStyleDefinition ** list, const char *name,
 #endif
 }
 
-FreeStorageElem *MyStyleDef2FreeStorage (SyntaxDef *syntax, MyStyleDefinition *msd)
+FreeStorageElem *
+MyStyleSpecialTerms2FreeStorage (MyStyleDefinition *msd, SyntaxDef *syntax)
 {
 	int  i;
-	FreeStorageElem *fs = NULL, **tail;
-
-	if (msd)
-		QuotedString2FreeStorage (syntax, &fs, NULL, msd->Name, MYSTYLE_MyStyle_ID);
-		
-	if (fs == NULL)
-		return NULL;
-
-	tail = &(fs->sub);
+	FreeStorageElem *fs = NULL;
+	FreeStorageElem **tail = &fs;
 
 	for (i = 0; i < msd->inherit_num; i++)
 		tail = QuotedString2FreeStorage (&MyStyleSyntax, tail, NULL, msd->inherit[i], MYSTYLE_Inherit_ID);
-
-	if (get_flags (msd->set_flags, MYSTYLE_Font))
-		tail = String2FreeStorage (&MyStyleSyntax, tail, msd->Font, MYSTYLE_Font_ID);
-
-	if (get_flags (msd->set_flags, MYSTYLE_ForeColor))
-		tail = String2FreeStorage (&MyStyleSyntax, tail, msd->ForeColor, MYSTYLE_ForeColor_ID);
-
-	if (get_flags (msd->set_flags, MYSTYLE_BackColor))
-		tail = String2FreeStorage (&MyStyleSyntax, tail, msd->BackColor, MYSTYLE_BackColor_ID);
-
-	if (get_flags (msd->set_flags, MYSTYLE_TextStyle))
-        tail = Integer2FreeStorage (&MyStyleSyntax, tail, NULL, msd->TextStyle, MYSTYLE_TextStyle_ID);
 
 	tail = Flag2FreeStorage (&MyStyleSyntax, tail, MYSTYLE_DONE_ID);
 
@@ -695,20 +677,3 @@ FreeStorageElem *MyStyleDef2FreeStorage (SyntaxDef *syntax, MyStyleDefinition *m
 
 	return fs;
 }
-
-FreeStorageElem **
-MyStyleDefs2FreeStorage (SyntaxDef * syntax, FreeStorageElem ** tail, MyStyleDefinition * defs)
-{
-	while (defs)
-	{
-		FreeStorageElem *ms_fs = MyStyleDef2FreeStorage (syntax, defs);
-		if (ms_fs)
-		{
-			*tail = ms_fs;
-			tail = &((*tail)->next);
-		}
-		defs = defs->next;
-	}
-	return tail;
-}
-

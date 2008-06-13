@@ -572,9 +572,8 @@ Bool calculate_green_diff(ASIMStrip *strip, int line, int chan, int offset)
 	else
 		diff[width-1] = diff[width-2];
 
-	/* second path - further smoothing of the difference at the points 
+	/* second pass - further smoothing of the difference at the points 
 	   where we are most likely to see artifacts */
-	   
 	for (x = offset + 2; x < width-2 ; ++x,++x)
 		diff[x] = (diff[x-1]+diff[x+1])/2;
 	
