@@ -1,6 +1,23 @@
 
+2008-04-01  sasha
+
+	* some refactoring of config writing code
+
+2008-03-24  sasha
+
+	* fixed bunch of compilation bugs showing up on old systems
+
+2008-03-17  sasha
+
+	* hopefully fixed syslimit.h warnings on FBSD
+
+2008-03-06  sasha
+
+	* minor optimization of ASDocGen
+
 2008-03-04  sasha
 
+	* updated NEW and ChangeLogs for release 2.2.8
 	* AfterStep release v. 2.2.8
 
 2008-02-22  sasha
