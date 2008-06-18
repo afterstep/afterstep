@@ -19,7 +19,7 @@
  *
  */
 
-#define LOCAL_DEBUG
+#undef LOCAL_DEBUG
 #ifdef _WIN32
 #include "win32/config.h"
 #else

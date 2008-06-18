@@ -160,6 +160,7 @@ void decode_GR_12_be (ASScanline *scl, CARD8 *data, int data_size);
 void decode_RG_12_be (ASScanline *scl, CARD8 *data, int data_size);
 void decode_GB_12_be (ASScanline *scl, CARD8 *data, int data_size);
 
+void interpolate_asim_strip_custom_rggb2 (ASIMStrip *strip, ASFlagType filter, Bool force_all);
 
 #ifdef __cplusplus
 }

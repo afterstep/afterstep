@@ -48,7 +48,7 @@ init_asfeel( ASFeel *feel )
 	feel->EdgeResistanceMove = 30 ;
     feel->EdgeAttractionScreen = 20;
     feel->EdgeAttractionWindow = 10;
-    feel->EdgeResistanceDragScroll = -1; /* by default should be same as EdgeResistanceScroll */
+    feel->EdgeResistanceDragScroll = -1; /* by default should use EdgeResistanceScroll */
     feel->OpaqueMove = 5;
     feel->OpaqueResize = 5;
     feel->ClickTime = 500; /* half a sec, for those sluggish folks */
