@@ -404,8 +404,8 @@ install.man:
 			cd doc/man; \
 			for f in `ls *.man`; do \
 				page_name=`echo $$f| awk -F . '{print $$1}'`; \
-	  			echo $(INSTALL_DATA) $$page_name.man $(AFTER_MAN_DIR)/$$page_name.1x; \
-	  			$(INSTALL_DATA) $$page_name.man $(AFTER_MAN_DIR)/$$page_name.1x; \
+	  			echo $(INSTALL_DATA) $$page_name.man $(AFTER_MAN_DIR)/$$page_name.3x; \
+	  			$(INSTALL_DATA) $$page_name.man $(AFTER_MAN_DIR)/$$page_name.3x; \
 			done; cd ../..; \
 		fi
 			

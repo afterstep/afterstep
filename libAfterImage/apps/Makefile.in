@@ -60,8 +60,8 @@ install.bin:	$(PROGS)
 install.man:
 		@if [ ! -d $(MAN_DIR) ] ; then 	$(MKDIR) -p $(MAN_DIR); fi; \
 		for f in *.man; do \
-		  echo $(INSTALL_DATA) $$f $(MAN_DIR)/`basename $$f`.1x; \
-		  $(INSTALL_DATA) $$f $(MAN_DIR)/`basename $$f`.1x; \
+		  echo $(INSTALL_DATA) $$f $(MAN_DIR)/`basename $$f`.3x; \
+		  $(INSTALL_DATA) $$f $(MAN_DIR)/`basename $$f`.3x; \
 		done
 
 uninstall.bin:
@@ -71,7 +71,7 @@ uninstall.bin:
 		done
 
 uninstall.man:
-		$(RMF) $(AFTER_MAN_DIR)/$(PROGS).1x
+		$(RMF) $(AFTER_MAN_DIR)/$(PROGS).3x
 
 clean:
 		$(RMF) $(PROGS) *.o *~ *% *.bak \#* core
