@@ -72,8 +72,8 @@ AC_ARG_WITH(builtin_gif,    [  --with-builtin-gif               support Uncompre
 AC_ARG_WITH(ttf,		    [  --with-ttf               support True Type Fonts via FreeType library [yes]])
 AC_ARG_WITH(ttf_includes,   [  --with-ttf-includes=DIR  use FreeType includes in DIR], ttf_includes="$withval", ttf_includes=no)
 
-AC_ARG_WITH(afterbase,		    [  --with-afterbase               use libAfterBase library of basic functionality [yes]])
-AC_ARG_WITH(afterbase_includes, [  --with-afterbase-includes=DIR  use libAfterBase includes in DIR], afterbase_includes="$withval", afterbase_includes=no)
+AC_ARG_WITH(afterbase,		    [  --with-afterbase               use libAfterBase library of basic functionality [no]],with_afterbase="$withval",with_afterbase=no)
+AC_ARG_WITH(afterbase_includes, [  --with-afterbase-includes=DIR  use libAfterBase includes in DIR],afterbase_includes="$withval",afterbase_includes=no)
 
 dnl# Check for compiler tools
 

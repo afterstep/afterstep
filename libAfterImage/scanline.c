@@ -639,10 +639,11 @@ interpolate_from_green_diff(ASIMStrip *strip, int line, int chan, int offset)
 
 
 void
-interpolate_asim_strip_custom_rggb2 (ASIMStrip *strip, ASFlagType filter, Bool force_all )
+interpolate_asim_strip_custom_rggb2 (ASIMStrip *strip, ASFlagType filter, Bool force_all)
 {
-	int line, chan;
+	int line;
 #if 0
+	int chan;
 	for (line = 0; line < 2 ; ++line)
 		for (chan = 0 ; chan < IC_NUM_CHANNELS ; ++chan)
 			if ( get_flags( filter, 0x01<<chan) )

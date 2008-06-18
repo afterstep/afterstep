@@ -894,7 +894,7 @@ Optional Packages:
   --with-builtin-gif               support Uncompressed GIF image format using builtin libgif yes
   --with-ttf               support True Type Fonts via FreeType library yes
   --with-ttf-includes=DIR  use FreeType includes in DIR
-  --with-afterbase               use libAfterBase library of basic functionality yes
+  --with-afterbase               use libAfterBase library of basic functionality no
   --with-afterbase-includes=DIR  use libAfterBase includes in DIR
   --with-x                use the X Window System
 
@@ -1583,7 +1583,9 @@ fi;
 # Check whether --with-afterbase or --without-afterbase was given.
 if test "${with_afterbase+set}" = set; then
   withval="$with_afterbase"
-
+  with_afterbase="$withval"
+else
+  with_afterbase=no
 fi;
 
 # Check whether --with-afterbase_includes or --without-afterbase_includes was given.
