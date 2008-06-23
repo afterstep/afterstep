@@ -1586,7 +1586,7 @@ if test "${with_afterbase+set}" = set; then
   withval="$with_afterbase"
   with_afterbase="$withval"
 else
-  with_afterbase=yes
+  with_afterbase=no
 fi;
 
 # Check whether --with-afterbase_includes or --without-afterbase_includes was given.
@@ -2534,40 +2534,6 @@ echo "${ECHO_T}no, using $LN_S" >&6
 fi
 
 
-RDYNAMIC="-rdynamic"
-
-case "$target" in
-    *i?86*OpenUNIX*)
-		RDYNAMIC="-Wl,-Bexport"
-		;;
-    *i?86*sco*)
-		RDYNAMIC="-Wl,-Bexport"
-		;;
-    *aix*)
-		RDYNAMIC="-Wl,-bexpall"
-		;;
-    *i?86*freebsd*)
-		RDYNAMIC=""
-		;;
-    hppa*)
-		RDYNAMIC="-Wl,-E"
-		;;
-    i?86*solaris*)
-		RDYNAMIC=""
-		;;
-    sparc*solaris*)
-		RDYNAMIC="-Wl,-export-dynamic"
-		;;
-    *-apple-darwin*)
-		RDYNAMIC="-Wl,-Sn"
-		;;
-    *ppc* | *powerpc*)
-		RDYNAMIC=""
-		;;
-    *)
-esac
-
-
 
 ac_aux_dir=
 for ac_dir in $srcdir $srcdir/.. $srcdir/../..; do
@@ -2682,12 +2648,42 @@ test -n "$target_alias" &&
     NONENONEs,x,x, &&
   program_prefix=${target_alias}-
 
+RDYNAMIC="-rdynamic"
+
+case "$target" in
+    *i?86*OpenUNIX*)
+		RDYNAMIC="-Wl,-Bexport"
+		;;
+    *i?86*sco*)
+		RDYNAMIC="-Wl,-Bexport"
+		;;
+    *aix*)
+		RDYNAMIC="-Wl,-bexpall"
+		;;
+    *i?86*freebsd*)
+		RDYNAMIC=""
+		;;
+    hppa*)
+		RDYNAMIC="-Wl,-E"
+		;;
+    i?86*solaris*)
+		RDYNAMIC=""
+		;;
+    sparc*solaris*)
+		RDYNAMIC="-Wl,-export-dynamic"
+		;;
+    *-apple-darwin*)
+		RDYNAMIC="-Wl,-Sn"
+		;;
+    *ppc* | *powerpc*)
+		RDYNAMIC=""
+		;;
+    *)
+esac
+
 if test "x$CYGWIN" = "xno" -a "x$GCC" = "xyes" ; then
   if test -z "`echo $CFLAGS | grep '\-fPIC' 2> /dev/null`" ; then
   	CFLAGS="$CFLAGS -fPIC"
-  fi
-  if test "x$with_afterbase" != "xno"; then
-	LDFLAGS="$LDFLAGS $RDYNAMIC"
   fi
 fi
 
@@ -8796,6 +8792,9 @@ HAVE_AFTERBASE_FLAG=0
 if test "x$have_afterbase" = "xyes"; then
     HAVE_AFTERBASE_FLAG=1
 	AFTERBASE_C=
+	if test "x$CYGWIN" = "xno" -a "x$GCC" = "xyes" ; then
+		user_ldflags="$user_ldflags $RDYNAMIC"
+  	fi
     if test "x$have_x" != "xyes" -a "x$have_gif" = "xyes"; then
     	AFTERIMAGE_LIBS="$AFTERIMAGE_LIBS -lAfterBase"
     else
