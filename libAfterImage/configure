@@ -310,7 +310,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT LN_S build build_cpu build_vendor build_os host host_cpu host_vendor host_os INSTALL INSTALL_PROGRAM INSTALL_DATA INSTALL_LIB RANLIB RM MV CP MKDIR PERL FIND XARGS LDCONFIG LEX LEXLIB YACC INSTALL_SCRIPT ac_ct_RANLIB MMX_CFLAGS CPP X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS EGREP XPM_CFLAGS JPEG_CFLAGS PNG_CFLAGS GIF_CFLAGS TIFF_CFLAGS PKG_CONFIG ac_pt_PKG_CONFIG SVG_CFLAGS SVG_LIBS TTF_INCLUDES JPEG_OBJS ZLIB_OBJS PNG_OBJS UNGIF_OBJS AFTERIMAGE_LIBS_EXTERNAL AFTERBASE_INCS_PATH USE_DEFAULT_AFTERBASE HAVE_AFTERBASE_FLAG AFTERBASE_C have_afterbase AFTERIMAGE_APPS_LIBS AFTERIMAGE_TEST_LIBS AFTERIMAGE_LIB_LIBS afterimage_x_support AFTERIMAGE_LIBS image_format version version_major lib_name lib_file_name with_locale user_ldflags x_libs LIBPROG LIBINSTALL DEFINE_XLOCALE APPSDEPS LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT LN_S build build_cpu build_vendor build_os host host_cpu host_vendor host_os target target_cpu target_vendor target_os INSTALL INSTALL_PROGRAM INSTALL_DATA INSTALL_LIB RANLIB RM MV CP MKDIR PERL FIND XARGS LDCONFIG LEX LEXLIB YACC INSTALL_SCRIPT ac_ct_RANLIB MMX_CFLAGS CPP X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS EGREP XPM_CFLAGS JPEG_CFLAGS PNG_CFLAGS GIF_CFLAGS TIFF_CFLAGS PKG_CONFIG ac_pt_PKG_CONFIG SVG_CFLAGS SVG_LIBS TTF_INCLUDES JPEG_OBJS ZLIB_OBJS PNG_OBJS UNGIF_OBJS AFTERIMAGE_LIBS_EXTERNAL AFTERBASE_INCS_PATH USE_DEFAULT_AFTERBASE HAVE_AFTERBASE_FLAG AFTERBASE_C have_afterbase AFTERIMAGE_APPS_LIBS AFTERIMAGE_TEST_LIBS AFTERIMAGE_LIB_LIBS afterimage_x_support AFTERIMAGE_LIBS image_format version version_major lib_name lib_file_name with_locale user_ldflags x_libs LIBPROG LIBINSTALL DEFINE_XLOCALE APPSDEPS LIBOBJS LTLIBOBJS'
 ac_subst_files='LIBAFTERIMAGEFILES'
 
 # Initialize some variables set by options.
@@ -851,6 +851,7 @@ X features:
 System types:
   --build=BUILD     configure for building on BUILD [guessed]
   --host=HOST       cross-compile to build programs to run on HOST [BUILD]
+  --target=TARGET   configure for building compilers for TARGET [HOST]
 _ACEOF
 fi
 
@@ -894,7 +895,7 @@ Optional Packages:
   --with-builtin-gif               support Uncompressed GIF image format using builtin libgif yes
   --with-ttf               support True Type Fonts via FreeType library yes
   --with-ttf-includes=DIR  use FreeType includes in DIR
-  --with-afterbase               use libAfterBase library of basic functionality no
+  --with-afterbase               use libAfterBase library of basic functionality yes
   --with-afterbase-includes=DIR  use libAfterBase includes in DIR
   --with-x                use the X Window System
 
@@ -2533,6 +2534,41 @@ echo "${ECHO_T}no, using $LN_S" >&6
 fi
 
 
+RDYNAMIC="-rdynamic"
+
+case "$target" in
+    *i?86*OpenUNIX*)
+		RDYNAMIC="-Wl,-Bexport"
+		;;
+    *i?86*sco*)
+		RDYNAMIC="-Wl,-Bexport"
+		;;
+    *aix*)
+		RDYNAMIC="-Wl,-bexpall"
+		;;
+    *i?86*freebsd*)
+		RDYNAMIC=""
+		;;
+    hppa*)
+		RDYNAMIC="-Wl,-E"
+		;;
+    i?86*solaris*)
+		RDYNAMIC=""
+		;;
+    sparc*solaris*)
+		RDYNAMIC="-Wl,-export-dynamic"
+		;;
+    *-apple-darwin*)
+		RDYNAMIC="-Wl,-Sn"
+		;;
+    *ppc* | *powerpc*)
+		RDYNAMIC=""
+		;;
+    *)
+esac
+
+
+
 ac_aux_dir=
 for ac_dir in $srcdir $srcdir/.. $srcdir/../..; do
   if test -f $ac_dir/install-sh; then
@@ -2617,11 +2653,42 @@ case $host_os in
 	 * ) CYGWIN=no;;
 esac
 
+echo "$as_me:$LINENO: checking target system type" >&5
+echo $ECHO_N "checking target system type... $ECHO_C" >&6
+if test "${ac_cv_target+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  ac_cv_target_alias=$target_alias
+test "x$ac_cv_target_alias" = "x" &&
+  ac_cv_target_alias=$ac_cv_host_alias
+ac_cv_target=`$ac_config_sub $ac_cv_target_alias` ||
+  { { echo "$as_me:$LINENO: error: $ac_config_sub $ac_cv_target_alias failed" >&5
+echo "$as_me: error: $ac_config_sub $ac_cv_target_alias failed" >&2;}
+   { (exit 1); exit 1; }; }
+
+fi
+echo "$as_me:$LINENO: result: $ac_cv_target" >&5
+echo "${ECHO_T}$ac_cv_target" >&6
+target=$ac_cv_target
+target_cpu=`echo $ac_cv_target | sed 's/^\([^-]*\)-\([^-]*\)-\(.*\)$/\1/'`
+target_vendor=`echo $ac_cv_target | sed 's/^\([^-]*\)-\([^-]*\)-\(.*\)$/\2/'`
+target_os=`echo $ac_cv_target | sed 's/^\([^-]*\)-\([^-]*\)-\(.*\)$/\3/'`
+
+
+# The aliases save the names the user supplied, while $host etc.
+# will get canonicalized.
+test -n "$target_alias" &&
+  test "$program_prefix$program_suffix$program_transform_name" = \
+    NONENONEs,x,x, &&
+  program_prefix=${target_alias}-
+
 if test "x$CYGWIN" = "xno" -a "x$GCC" = "xyes" ; then
   if test -z "`echo $CFLAGS | grep '\-fPIC' 2> /dev/null`" ; then
   	CFLAGS="$CFLAGS -fPIC"
   fi
-  LDFLAGS="$LDFLAGS -rdynamic"
+  if test "x$with_afterbase" != "xno"; then
+	LDFLAGS="$LDFLAGS $RDYNAMIC"
+  fi
 fi
 
 
@@ -9955,6 +10022,10 @@ s,@host@,$host,;t t
 s,@host_cpu@,$host_cpu,;t t
 s,@host_vendor@,$host_vendor,;t t
 s,@host_os@,$host_os,;t t
+s,@target@,$target,;t t
+s,@target_cpu@,$target_cpu,;t t
+s,@target_vendor@,$target_vendor,;t t
+s,@target_os@,$target_os,;t t
 s,@INSTALL@,$INSTALL,;t t
 s,@INSTALL_PROGRAM@,$INSTALL_PROGRAM,;t t
 s,@INSTALL_DATA@,$INSTALL_DATA,;t t

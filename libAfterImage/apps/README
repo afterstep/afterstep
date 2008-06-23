@@ -14,16 +14,6 @@ Both of the above steps can be accomplished by simply doing :
 
 in respective directory.
 
-!!!!!!!!!!!!!!!!!!!!!!!!! MMX NOTICE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-Note:
-libAfterImage gets compiled with inline MMX assembly enabled.
-If you have CPU that does not support it - you'll
-have to manually turn that off by using --disable-mmx-optimization
-option to configure script.
-Otherwise you gonna get wierd segfaults and Illigal Instruction
-exceptions.
-!!!!!!!!!!!!!!!!!!!!!!!!! MMX NOTICE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
 Once both libraries are installed we can proceed to compiling
 the examples. Top do that you will need to execute :
 
@@ -54,7 +44,5 @@ or any of the AfterStep mailing lists.
 ascompose
 -------------------------------------------------------------------------------
 
-ascompose uses an XML input file to compose an image and display it.  The
-possible XML tags are:
-
-please see ascompose man page for detailed documentation on tags.
+ascompose uses an XML input file to compose an image and display it. 
+For complete list of XML tags please see asimagexml man page.
