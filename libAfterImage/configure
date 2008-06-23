@@ -1586,7 +1586,7 @@ if test "${with_afterbase+set}" = set; then
   withval="$with_afterbase"
   with_afterbase="$withval"
 else
-  with_afterbase=no
+  with_afterbase=yes
 fi;
 
 # Check whether --with-afterbase_includes or --without-afterbase_includes was given.
