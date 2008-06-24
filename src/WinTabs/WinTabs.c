@@ -696,11 +696,17 @@ on_tabs_canvas_config()
 	int tabs_num  = PVECTOR_USED(WinTabsState.tabs);
     ASWinTab *tabs = PVECTOR_HEAD( ASWinTab, WinTabsState.tabs );
 	int tabs_changes = handle_canvas_config( WinTabsState.tabs_canvas );
+	ASCanvas *tc = WinTabsState.tabs_canvas;
 
     if( tabs_changes != 0 )
 	{
         int i = tabs_num ;
 		Bool rerender_tabs = False ;
+		
+		/* no need to redraw if we were moved outside of the visible viewport */
+		if (tc->root_x > Scr.MyDisplayWidth || tc->root_y > Scr.MyDisplayHeight
+			|| tc->root_x + (int)tc->width <= 0 ||	tc->root_y + (int)tc->height <= 0)
+			return 0;
 
 		safe_asimage_destroy( Scr.RootImage );	  
         set_root_clip_area(WinTabsState.tabs_canvas );

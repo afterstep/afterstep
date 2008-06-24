@@ -171,7 +171,12 @@ write_doc_header( ASXMLInterpreterState *state )
 		case DocType_NROFF :
 			fprintf( state->dest_fp, ".\\\" t\n"
 									 ".\\\" @(#)%s.%d		%s\n", state->doc_name, CurrentManType, CurrentDateShort);
+#ifndef AFTERIMAGE_DOCS
 			fprintf( state->dest_fp, ".TH %s 1 \"AfterStep v.%s\" \"%s\" \"AfterStep X11 window manager\"\n", state->doc_name, VERSION, CurrentDateLong );
+#else
+#include "../../libAfterImage/config.h"
+			fprintf( state->dest_fp, ".TH %s 1 \"libAfterImage v.%s\" \"%s\" \"libAfterImage image manipulation library\"\n", state->doc_name, PACKAGE_VERSION, CurrentDateLong );
+#endif			
 			fprintf( state->dest_fp, ".UC\n"
 									 ".SH NAME\n"
 									 "\\fB%s\\fP", state->doc_name );

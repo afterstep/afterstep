@@ -741,7 +741,11 @@ void change_aswindow_layer( ASWindow *asw, int layer );
 void quietly_reparent_aswindow( ASWindow *asw, Window dst, Bool user_root_pos );
 void change_aswindow_desktop( ASWindow *asw, int new_desk, Bool force );
 void toggle_aswindow_status( ASWindow *asw, ASFlagType flags );
-Bool check_window_offscreen( ASWindow *asw );
+Bool check_canvas_offscreen (ASCanvas *pc);
+Bool check_window_offscreen (ASWindow *asw);
+Bool check_frame_offscreen (ASWindow *asw);
+Bool check_frame_side_offscreen (ASWindow *asw, int i);
+
 
 
 void hide_hilite();                            /* unhilites currently highlited window */

@@ -852,12 +852,13 @@ Bool
 update_transp_iter_func(void *data, void *aux_data)
 {
 	ASWindow *asw = (ASWindow*)data;
+
 	if( !check_window_offscreen(asw) )
-	{	
-    	update_window_transparency( asw, True );
 		if( asw->internal && asw->internal->on_root_background_changed ) 
 			asw->internal->on_root_background_changed( asw->internal );
-	}
+
+	if( !check_frame_offscreen(asw) )
+    	update_window_transparency( asw, True );
     return True;
 }
 
