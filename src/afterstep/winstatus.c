@@ -57,6 +57,49 @@ Bool get_icon_root_geometry( ASWindow *asw, ASRectangle *geom )
     return False;
 }
 
+Bool
+check_canvas_offscreen(ASCanvas *pc)
+{
+	if (!pc)
+		return True;
+	return (pc->root_x >= Scr.MyDisplayWidth || pc->root_y >= Scr.MyDisplayHeight ||
+			pc->root_x+(int)pc->width < 0 || pc->root_y + (int)pc->height < 0);
+}	 
+
+
+Bool
+check_window_offscreen (ASWindow *asw)
+{
+	if( !ASWIN_GET_FLAGS(asw, AS_Sticky ) &&
+		ASWIN_DESK(asw) != Scr.CurrentDesk )
+		return True;
+
+	return check_canvas_offscreen(asw->client_canvas);
+}	 
+
+Bool
+check_frame_offscreen (ASWindow *asw)
+{
+	if( !ASWIN_GET_FLAGS(asw, AS_Sticky ) &&
+		ASWIN_DESK(asw) != Scr.CurrentDesk )
+		return True;
+
+	return check_canvas_offscreen(asw->frame_canvas);
+}	 
+
+Bool
+check_frame_side_offscreen (ASWindow *asw, int side)
+{
+	if( !ASWIN_GET_FLAGS(asw, AS_Sticky ) &&
+		ASWIN_DESK(asw) != Scr.CurrentDesk )
+		return True;
+
+	return check_canvas_offscreen(asw->frame_sides[side]);
+}	 
+
+
+
+
 /* this gets called when Root background changes : */
 void
 update_window_transparency( ASWindow *asw, Bool force )
@@ -67,25 +110,33 @@ update_window_transparency( ASWindow *asw, Bool force )
 
     if( !ASWIN_GET_FLAGS( asw, AS_Iconic ) )
 	{
+		ASCanvas *fc;
 		for( i = 0 ; i < FRAME_PARTS ; ++i )
 			if( asw->frame_bars[i] )
 			{
-				update_astbar_transparency (asw->frame_bars[i], asw->frame_sides[od->tbar2canvas_xref[i]], force);
-				if( DoesBarNeedsRendering(asw->frame_bars[i]) )
+				fc = asw->frame_sides[od->tbar2canvas_xref[i]];
+				if (!check_canvas_offscreen (fc))
 				{
-					ASCanvas *c = asw->frame_sides[od->tbar2canvas_xref[i]];
-					changed_canvases[od->tbar2canvas_xref[i]] = c ;
-					render_astbar( asw->frame_bars[i], c );
+					update_astbar_transparency (asw->frame_bars[i], fc, force);
+					if( DoesBarNeedsRendering(asw->frame_bars[i]) )
+					{
+						changed_canvases[od->tbar2canvas_xref[i]] = fc;
+						render_astbar( asw->frame_bars[i], fc);
+					}
 				}
 			}
 
 		if( asw->tbar )
 		{
-			update_astbar_transparency (asw->tbar, asw->frame_sides[od->tbar_side], force);
-			if( DoesBarNeedsRendering(asw->tbar) )
+			fc = asw->frame_sides[od->tbar_side];
+			if (!check_canvas_offscreen (fc))
 			{
-				changed_canvases[od->tbar_side] = asw->frame_sides[od->tbar_side] ;
-				render_astbar( asw->tbar, asw->frame_sides[od->tbar_side] );
+				update_astbar_transparency (asw->tbar, fc, force);
+				if (DoesBarNeedsRendering (asw->tbar))
+				{
+					changed_canvases[od->tbar_side] = fc ;
+					render_astbar ( asw->tbar, fc);
+				}
 			}
 		}
 	}else
@@ -575,22 +626,6 @@ on_frame_bars_moved( ASWindow *asw, unsigned int side, ASOrientation *od)
     }
 }
 
-Bool
-check_window_offscreen( ASWindow *asw )
-{
-	if( !ASWIN_GET_FLAGS(asw, AS_Sticky ) &&
-		ASWIN_DESK(asw) != Scr.CurrentDesk )
-		return True;
-
-	if( asw->client_canvas->root_x >= Scr.MyDisplayWidth || 
-		asw->client_canvas->root_y >= Scr.MyDisplayHeight ||
-		asw->client_canvas->root_x+asw->client_canvas->width < 0 || 
-		asw->client_canvas->root_y+asw->client_canvas->height < 0 )
-		return True;                /* don't redraw frame if we are moved off-screen */
-
-	return False;
-}	 
-
 void
 update_window_frame_moved( ASWindow *asw, ASOrientation *od )
 {
@@ -601,18 +636,17 @@ update_window_frame_moved( ASWindow *asw, ASOrientation *od )
 
     handle_canvas_config (asw->client_canvas);
 
-	if( check_window_offscreen( asw ) )
-		return ;
-    
-	if( asw->internal && asw->internal->on_moveresize )
-        asw->internal->on_moveresize( asw->internal, None );
+	if (!check_window_offscreen( asw ))
+		if( asw->internal && asw->internal->on_moveresize )
+    	    asw->internal->on_moveresize( asw->internal, None );
 
-    for( i = 0 ; i < FRAME_SIDES ; ++i )
-        if( asw->frame_sides[i] )
-        {   /* canvas has been resized - resize tbars!!! */
-            handle_canvas_config (asw->frame_sides[i]);
-            on_frame_bars_moved( asw, i, od);
-        }
+	if (!check_frame_offscreen (asw))
+	    for( i = 0 ; i < FRAME_SIDES ; ++i )
+    	    if(!check_frame_side_offscreen (asw, i))
+        	{   /* canvas has been resized - resize tbars!!! */
+            	handle_canvas_config (asw->frame_sides[i]);
+	            on_frame_bars_moved( asw, i, od);
+    	    }
 }
 
 void
@@ -636,7 +670,7 @@ SendConfigureNotify(ASWindow *asw)
     client_event.xconfigure.border_width = asw->status->border_width;
     /* Real ConfigureNotify events say we're above title window, so ... */
     /* what if we don't have a title ????? */
-    client_event.xconfigure.above = asw->frame_canvas[FR_N].w?asw->frame_canvas[FR_N].w:asw->frame;
+    client_event.xconfigure.above = asw->frame_sides[FR_N]->w?asw->frame_sides[FR_N]->w:asw->frame;
     client_event.xconfigure.override_redirect = False;
     XSendEvent (dpy, asw->w, False, StructureNotifyMask, &client_event);
 }
@@ -801,7 +835,7 @@ LOCAL_DEBUG_OUT( "changes=0x%X", changes );
         {
 			LOCAL_DEBUG_OUT( "resized = %X, shaped = %lX", get_flags( changes, CANVAS_RESIZED ), ASWIN_GET_FLAGS( asw, AS_ShapedDecor|AS_Shaped ) );
 				
-			if( !check_window_offscreen(asw) )
+			if( !check_frame_offscreen(asw) )
             	update_window_transparency( asw, False );
 
 			if( !ASWIN_GET_FLAGS(asw, AS_Dead|AS_MoveresizeInProgress ) )
