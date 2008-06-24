@@ -329,19 +329,13 @@ int main(int argc, char** argv) {
 			version();
 			exit(0);
 		} else if (!strcmp(argv[i], "--quiet") || !strcmp(argv[i], "-q")) {
-#if (HAVE_AFTERBASE_FLAG==1)
 			set_output_threshold(0);
-#endif
 			verbose = 0; quiet = True ;
 		} else if (!strcmp(argv[i], "--verbose") || !strcmp(argv[i], "-V")) {
-#if (HAVE_AFTERBASE_FLAG==1)
 			set_output_threshold(OUTPUT_VERBOSE_THRESHOLD);
-#endif
 			verbose++;
 		} else if (!strcmp(argv[i], "--debug") || !strcmp(argv[i], "-D")) {
-#if (HAVE_AFTERBASE_FLAG==1)
 			set_output_threshold(OUTPUT_LEVEL_DEBUG);
-#endif
 			verbose+=2;
 		} else if ((!strcmp(argv[i], "--file") || !strcmp(argv[i], "-f")) && i < argc + 1) {
 			doc_file = argv[++i];
