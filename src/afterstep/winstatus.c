@@ -670,7 +670,7 @@ SendConfigureNotify(ASWindow *asw)
     client_event.xconfigure.border_width = asw->status->border_width;
     /* Real ConfigureNotify events say we're above title window, so ... */
     /* what if we don't have a title ????? */
-    client_event.xconfigure.above = asw->frame_sides[FR_N]->w?asw->frame_sides[FR_N]->w:asw->frame;
+    client_event.xconfigure.above = asw->frame_sides[FR_N]?asw->frame_sides[FR_N]->w:asw->frame;
     client_event.xconfigure.override_redirect = False;
     XSendEvent (dpy, asw->w, False, StructureNotifyMask, &client_event);
 }
