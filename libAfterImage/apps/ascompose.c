@@ -208,7 +208,7 @@ void usage(void) {
 		" To display image.jpg on root window : \n"
 		"   ascompose -r -s \"<img src=image.jpg/>\""
 		" To display image.jpg on root window scaling it to screen size: \n"
-		"   ascompose -r -s \"<scale width=xroot.width height=proportional><img src=image.jpg/></scale>\"\n"
+		"   ascompose -r -s \"<scale width=$xroot.width height=proportional><img src=image.jpg/></scale>\"\n"
 	);
 }
 
