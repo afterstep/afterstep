@@ -642,11 +642,13 @@ update_window_frame_moved( ASWindow *asw, ASOrientation *od )
 
 	if (!check_frame_offscreen (asw))
 	    for( i = 0 ; i < FRAME_SIDES ; ++i )
+		{
+           	handle_canvas_config (asw->frame_sides[i]);
     	    if(!check_frame_side_offscreen (asw, i))
         	{   /* canvas has been resized - resize tbars!!! */
-            	handle_canvas_config (asw->frame_sides[i]);
 	            on_frame_bars_moved( asw, i, od);
     	    }
+		}
 }
 
 void
