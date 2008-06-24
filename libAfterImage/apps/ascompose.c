@@ -799,6 +799,8 @@ make_main_window(Bool onroot, ASComposeWinProps *props)
 	return w;
 }
 
+int asvisual_empty_XErrorHandler (Display * dpy, XErrorEvent * event);
+
 Bool
 set_root_pixmap_property(long pmap) /* Must have long type to work with XChangeProp on 64 bit machines !!!*/
 {
@@ -833,10 +835,14 @@ set_root_pixmap_property(long pmap) /* Must have long type to work with XChangeP
 				if (format != 32 || nitems == 0 || pmaps[i] != pmaps[0] || type != XA_PIXMAP) 
 					break;
 			}
-		if (i>= 2 && pmaps[0]) 
+		if (i>= 2 && pmaps[0] && pmaps[0] != pmap) 
 		{
+			/* XKillClient is a dangerous affair since properties may hold stale values tha are no longer valid */
+			int (*oldXErrorHandler) (Display *, XErrorEvent *) = XSetErrorHandler (asvisual_empty_XErrorHandler);
 			LOCAL_DEBUG_OUT("killing client for pmap %X", pmaps[0]);
            	XKillClient(dpy, pmaps[0]);
+			XSync(dpy, False);
+			XSetErrorHandler (oldXErrorHandler);
 		}
     }
 	for (i = 0 ; i < 2 ; ++i)
@@ -844,6 +850,7 @@ set_root_pixmap_property(long pmap) /* Must have long type to work with XChangeP
 		if (!atoms[i])
 			if ( (atoms[i] = XInternAtom (dpy, names[i], False)) == None)
 				break;
+		LOCAL_DEBUG_OUT("Changing property %X to pmap id %X", atoms[i], pmap);
     	XChangeProperty(dpy, root, atoms[i], XA_PIXMAP, 32, PropModeReplace, (unsigned char *) &pmap, 1);
 	}
 	if (i >= 2)
@@ -1026,6 +1033,8 @@ Window showimage(ASImage* im, Bool looping, Window main_window, ASComposeWinProp
 		}		   
 	}
 
+	LOCAL_DEBUG_OUT("canvas pixmap set to %lX", props->canvas);
+
 	if (props->canvas == None)
 	{
 		int depth = 0;
@@ -1040,6 +1049,8 @@ Window showimage(ASImage* im, Bool looping, Window main_window, ASComposeWinProp
 			gc = DefaultGC(dpy, screen);
 		}
 		props->canvas = create_visual_pixmap( asv, main_window, pmap_width, pmap_height, DefaultDepth(dpy,screen));
+		LOCAL_DEBUG_OUT("Created new canvas pixmap %lX", props->canvas);
+
 		if (gc == NULL)
 			gc = XCreateGC( dpy, main_window, 0, NULL);
 		
@@ -1086,11 +1097,19 @@ Window showimage(ASImage* im, Bool looping, Window main_window, ASComposeWinProp
 	XClearWindow( dpy, main_window);
 	XFlush(dpy);
 	if (main_window == root && !looping)
-		set_root_pixmap_property(props->canvas);
-	XSync(dpy,False);
+	{
+		if (set_root_pixmap_property(props->canvas))
+		{
+			props->canvas = None;
+			XSync(dpy,False);
+		}
+	}
 		
 	if (saved_canvas)
+	{
+		LOCAL_DEBUG_OUT("Freeing saved canvas pixmap %lX", saved_canvas);
 		XFreePixmap( dpy, saved_canvas);
+	}
 
 	if (main_window == root && !looping)
 		return root;
