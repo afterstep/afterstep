@@ -263,9 +263,9 @@ AddWindow (Window w, Bool from_map_request)
 
 	/* add the window into the afterstep list */
     enlist_aswindow( tmp_win );
-    redecorate_window  ( tmp_win, False );
+    redecorate_window (tmp_win, False );
     /* saving window management properties : */
-    set_client_desktop( tmp_win->w, ASWIN_DESK(tmp_win) );
+    set_client_desktop( tmp_win->w, ASWIN_DESK(tmp_win));
 
 	/* we have to set shape on frame window. If window has title - 
 	 * on_window_title_changed will take care of it - otherwise we force it
@@ -278,7 +278,9 @@ AddWindow (Window w, Bool from_map_request)
 		SetShape( tmp_win, 0 );
 	/* Must do it now or else Java will freak out !!! */
     XMapRaised (dpy, tmp_win->w);
-	RaiseWindow(tmp_win);
+    XMapRaised (dpy, tmp_win->frame);
+	RaiseWindow (tmp_win);
+	ASSync(False);
 
 /*^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ End Grab ^^^^^^^^^^^^^^^^^^^^ */
 	ungrab_server();
