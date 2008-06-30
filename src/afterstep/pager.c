@@ -60,7 +60,7 @@ HandlePaging (int HorWarpSize, int VertWarpSize, int *xl, int *yt,
 	if (DoHandlePageing)
 	{
 		int scroll = Scr.Feel.EdgeResistanceScroll;
-		
+
 		if (Scr.moveresize_in_progress && Scr.Feel.EdgeResistanceDragScroll >= 0)
 			scroll = Scr.Feel.EdgeResistanceDragScroll;
 		
@@ -169,11 +169,26 @@ HandlePaging (int HorWarpSize, int VertWarpSize, int *xl, int *yt,
 
 		if ((*delta_x != 0) || (*delta_y != 0))
 		{
+			int xroot_curr, yroot_curr;
 			if (Grab)
 				grab_server();
-			XWarpPointer (dpy, None, Scr.Root, 0, 0, 0, 0, *xl, *yt);
 			MoveViewport (Scr.Vx + *delta_x, Scr.Vy + *delta_y, False);
-            XQueryPointer (dpy, Scr.Root, &wdumm, &wdumm, xl, yt, &dumm, &dumm, &udumm);
+
+/* Pointer warping on viewport change is considered harmfull.
+Negative side effects include: 
+1) Sometime window don't get focus due to distorted sequence on EnterNotify/LeaveNotify
+2) User feels at a loss, trying to find where the god damn pointer has jumped to. 
+If they move it to the edge of the screen - they expect it to stay at the edge of the screen.
+*/
+#if 0
+			ConfigureNotifyLoop();
+fprintf (stderr, "XCROSSING: focused = %lX active = %lX\n", Scr.Windows->focused?Scr.Windows->focused->w:0, Scr.Windows->active?Scr.Windows->active->w:0); fflush(stderr);
+fprintf (stderr, "XCROSSING: curr = %+d%+d, orig = %+d%+d\n", xroot_curr, yroot_curr, xroot_orig, yroot_orig); fflush(stderr);
+fprintf (stderr, "XCROSSING: XWarpPointer to %+d%+d\n", *xl, *yt); fflush(stderr);
+			if (xroot_curr == xroot_orig && yroot_curr == yroot_orig)
+				XWarpPointer (dpy, None, Scr.Root, 0, 0, 0, 0, *xl, *yt);
+#endif
+            XQueryPointer (dpy, Scr.Root, &wdumm, &wdumm, &xroot_curr, &yroot_curr, &dumm, &dumm, &udumm);
 			if (Grab)
 				ungrab_server();
 		}

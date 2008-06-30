@@ -1462,24 +1462,29 @@ HandleEnterNotify (ASEvent *event)
 	XEvent        d;
     ASWindow *asw = event->client;
     int i ;
-
+/*fprintf (stderr, "XCROSSING: EnterNotify for window %lX\n", ewp->window); fflush(stderr);*/
 	/* look for a matching leaveNotify which would nullify this enterNotify */
     if (ewp->window != Scr.Root)
     	if (ASCheckTypedWindowEvent ( ewp->window, LeaveNotify, &d))
 		{
+/*fprintf (stderr, "XCROSSING: LeaveNotify in queue for window %lX\n", ewp->window); fflush(stderr);*/
         	on_astbar_pointer_action( NULL, 0, True, False );
         	if ((d.xcrossing.mode == NotifyNormal) && (d.xcrossing.detail != NotifyInferior))
+			{
+/*fprintf (stderr, "XCROSSING: ignoring EnterNotify for window %lX\n", ewp->window); fflush(stderr);*/
 				return;
+			}
 		}
 /* an EnterEvent in one of the PanFrameWindows activates the Paging */
 #ifndef NO_VIRTUAL
     for( i = 0 ; i < PAN_FRAME_SIDES ; i++ )
     {
-        LOCAL_DEBUG_OUT("checking panframe %d, mapped %d", i, Scr.PanFrame[i].isMapped );
+        LOCAL_DEBUG_OUT("checking panframe %d, mapped %d", i, Scr.PanFrame[i].isMapped ); fflush(stderr);
         if( Scr.PanFrame[i].isMapped && ewp->window == Scr.PanFrame[i].win)
         {
             int           delta_x = 0, delta_y = 0;
 
+/*fprintf (stderr, "XCROSSING: EnterNotify for panframe %d\n", i); fflush(stderr);*/
             /* this was in the HandleMotionNotify before, HEDU */
             HandlePaging (Scr.Feel.EdgeScrollX, Scr.Feel.EdgeScrollY,
                         &(ewp->x_root), &(ewp->y_root), &delta_x, &delta_y, True, event);
@@ -1500,8 +1505,8 @@ HandleEnterNotify (ASEvent *event)
 	/* make sure its for one of our windows */
     if (asw == NULL )
 		return;
-
-    if (ASWIN_FOCUSABLE(asw))
+/*fprintf (stderr, "XCROSSING: focused = %lX active = %lX\n", Scr.Windows->focused?Scr.Windows->focused->w:0, Scr.Windows->active?Scr.Windows->active->w:0); fflush(stderr);*/
+	if (ASWIN_FOCUSABLE(asw))
 	{
         if (!get_flags(Scr.Feel.flags, ClickToFocus) || asw->internal != NULL )
 		{
@@ -1528,6 +1533,7 @@ HandleLeaveNotify ( ASEvent *event )
 	 * another screen on a multiple screen display, and we
 	 * need to de-focus and unhighlight to make sure that we
 	 * don't end up with more than one highlighted window at a time */
+/*fprintf (stderr, "XCROSSING: LeaveNotify for window %lX\n", ewp->window); fflush(stderr);*/
     if (ewp->window == Scr.Root)
 	{
         if (ewp->mode == NotifyNormal)
