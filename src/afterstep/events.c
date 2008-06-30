@@ -1483,11 +1483,22 @@ HandleEnterNotify (ASEvent *event)
         if( Scr.PanFrame[i].isMapped && ewp->window == Scr.PanFrame[i].win)
         {
             int           delta_x = 0, delta_y = 0;
-
+			if (!get_flags(Scr.Feel.flags, ClickToFocus))
+			{
+				/* After HandlePaging the configuration of windows on screen will change and 
+				   we can no longer keep old focused window still focused, as it may be off-screen 
+				   or otherwise not under the pointer, resulting in input going into the wrong window.
+				 */
+            	if (Scr.Windows->focused != NULL)
+            		hide_focus();
+	            if (Scr.Windows->hilited != NULL)
+    	        	hide_hilite();
+			}
 /*fprintf (stderr, "XCROSSING: EnterNotify for panframe %d\n", i); fflush(stderr);*/
             /* this was in the HandleMotionNotify before, HEDU */
             HandlePaging (Scr.Feel.EdgeScrollX, Scr.Feel.EdgeScrollY,
                         &(ewp->x_root), &(ewp->y_root), &delta_x, &delta_y, True, event);
+
             return;
         }
     }
