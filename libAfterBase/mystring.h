@@ -16,7 +16,10 @@ char *mystrdup (const char *str);
 char *mystrndup (const char *str, size_t n);
 #endif
 
-#define destroy_string(ps) do{ if(ps && *(ps)){free(*(ps)); *(ps)=NULL;}}while(0) 
+/* using macro causes excessive compiler warnings. Stupid GCC 4 !!!!! */
+/* #define destroy_string(ps) do{ if(ps && *(ps)){free(*(ps)); *(ps)=NULL;}}while(0) */
+
+void destroy_string(char **ps);
 
 /* use it to set string as well as flags and deallocate memory
    referred to by the pointer */

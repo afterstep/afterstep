@@ -146,3 +146,11 @@ set_string (char **target, char *string)
 	}
 }
 
+void destroy_string(char **ps)
+{ 
+	if(ps && *(ps))
+	{
+		free(*(ps)); 
+		*(ps)=NULL;
+	}
+}
