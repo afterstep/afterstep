@@ -852,10 +852,12 @@ WriteWharfOptions (const char *filename, char *myname, WharfConfig * config, uns
 
     CopyFreeStorage (&Storage, config->more_stuff);
 
+    if (config->style_defs)
+		*tail = MyStyleDefinitionsList2free_storage (config->style_defs, &WharfSyntax);
+
 	if (config->balloon_conf)
 		tail = balloon2FreeStorage (&WharfSyntax, tail, config->balloon_conf);
-    if (config->style_defs)
-        tail = MyStyleDefs2FreeStorage (&WharfSyntax, tail, config->style_defs);
+
 	/* building free storage here */
 	/* geometry */
 	if (get_flags (config->set_flags, WHARF_GEOMETRY))

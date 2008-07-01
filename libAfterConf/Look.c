@@ -733,7 +733,8 @@ WriteLookOptions (const char *filename, char *myname, LookConfig * config, unsig
 	/* building free storage here */
 	/* MyStyles go first */
 	if (config->style_defs)
-        tail = MyStyleDefs2FreeStorage (&LookSyntax, tail, config->style_defs);
+		*tail = MyStyleDefinitionsList2free_storage (config->style_defs, &LookSyntax);
+
 	/* then MyFrames */
 	if (config->frame_defs)
 		tail = MyFrameDefs2FreeStorage (&LookSyntax, tail, config->frame_defs);
