@@ -278,7 +278,7 @@ AddWindow (Window w, Bool from_map_request)
 		SetShape( tmp_win, 0 );
 	/* Must do it now or else Java will freak out !!! */
     XMapRaised (dpy, tmp_win->w);
-    XMapRaised (dpy, tmp_win->frame);
+
 	RaiseWindow (tmp_win);
 	ASSync(False);
 
@@ -289,6 +289,9 @@ AddWindow (Window w, Bool from_map_request)
 	/* this will get called from set_window_wm_state() again just few lines below
 	   which is a bit of a excess, but we don't seem to have much choice */
     on_window_status_changed( tmp_win, True );
+
+/* We cannot map frame window at that point as it will play havoc with initial placement */
+/*    XMapRaised (dpy, tmp_win->frame); */
     if( pending_placement )
     {
         if( !place_aswindow( tmp_win ) )

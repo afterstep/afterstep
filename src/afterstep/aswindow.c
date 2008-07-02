@@ -325,7 +325,7 @@ make_aswindow_cmd_iter_func(void *data, void *aux_data)
 			}
 				
 			cmd_args = parse_token(asw->hints->client_cmd, &cmd_app );
-			if( cmd_app )  /* we want -geometry to be the first arg, so that terms could correctly launch app with -e arg */
+			if (cmd_app != NULL)  /* we want -geometry to be the first arg, so that terms could correctly launch app with -e arg */
 				clean_cmd_args = filter_out_geometry( cmd_args, &geometry_keyword, &original_size ) ;
 			
 			if( geometry_keyword == NULL ) 
@@ -339,7 +339,7 @@ make_aswindow_cmd_iter_func(void *data, void *aux_data)
 				stripreplace_geometry_size( &geom, original_size );
 			}	 
 			
-			if( cmd_app ) 
+			if (cmd_app != NULL)
 			{   
 				fprintf( swad->f, 	"\tExec \"I:%s\" %s %s %s %s &\n", app_name, cmd_app, geometry_keyword, geom, clean_cmd_args );
 				destroy_string(&cmd_app);	
