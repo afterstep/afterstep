@@ -658,7 +658,7 @@ on_add_to_library_mystyle_btn_clicked(GtkButton *button, gpointer user_data)
 		filename = make_session_data_file  (Session, False, 0, MYSTYLES_DIR, msd->Name, NULL );
 		if (filename)
 		{
-			FreeStorageElem *fs = MyStyleDef2FreeStorage (&LookSyntax, msd);
+			FreeStorageElem *fs = MyStyleDefinitionsList2free_storage (&LookSyntax, msd);
 			if (fs)
 			{
 				WriteFreeStorageToFile (filename, "afterstep", &MyStyleSyntax, fs->sub, 0);
