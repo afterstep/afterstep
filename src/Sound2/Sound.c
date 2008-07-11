@@ -60,7 +60,7 @@ Bool (*sound_play) (short) = NULL;
 
 // Global Vars
 struct SND2dev SND2devS;
-SND2devP = &SND2devS;
+//SND2devP = &SND2devS;
 int SNDPlayNow;
 
 int main(int argc,char ** argv)
@@ -245,6 +245,14 @@ int as_snd2_playsound(const char *SndName)
     if (SndName == "viewport")
     { SndFname = "unmapped"; }
     if (SndName == "focus")
+    { SndFname = "unmapped"; }
+    
+    /*
+      If a sound option isnt defined in the conf file,
+      we need to set it to something, else fopen will
+      cause a segfault.
+    */
+    if (SndFname == NULL)
     { SndFname = "unmapped"; }
     
     SNDPlayNow = 1;
@@ -486,7 +494,7 @@ int as_snd2_segv_cb()
 {
     //
     fprintf(stdout,"Looks like a Seg Fault tried to Occur\n");
-    return 1;
+    exit(0);
 }
 void as_snd2_error()
 {
