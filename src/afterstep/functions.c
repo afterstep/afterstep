@@ -70,6 +70,7 @@ void pin_menu_func_handler( FunctionData *data, ASEvent *event, int module );
 void close_func_handler( FunctionData *data, ASEvent *event, int module );
 void restart_func_handler( FunctionData *data, ASEvent *event, int module );
 void exec_func_handler( FunctionData *data, ASEvent *event, int module );
+void exec_in_dir_func_handler( FunctionData *data, ASEvent *event, int module );
 void desktop_entry_func_handler( FunctionData *data, ASEvent *event, int module );
 void exec_in_term_func_handler( FunctionData *data, ASEvent *event, int module );
 void exec_tool_func_handler( FunctionData *data, ASEvent *event, int module );
@@ -157,6 +158,8 @@ void SetupFunctionHandlers()
     function_handlers[F_EXEC] 				=
 		function_handlers[F_Swallow] 		=
 		function_handlers[F_MaxSwallow] 	= exec_func_handler ;
+
+	function_handlers[F_ExecInDir]       	= exec_in_dir_func_handler ;
 
 	function_handlers[F_ExecInTerm]       	= exec_in_term_func_handler ;
 	
@@ -1155,6 +1158,22 @@ void exec_func_handler( FunctionData *data, ASEvent *event, int module )
 	/* no sense in grabbing Pointer here as fork will return rather fast not creating 
 	   much of the delay */
     spawn_child( data->text, -1, -1, NULL, None, C_NO_CONTEXT, True, False, NULL );
+}
+
+void exec_in_dir_func_handler( FunctionData *data, ASEvent *event, int module )
+{
+	char *cmd = tokenskip (data->text, 1);
+
+	if (cmd == NULL || cmd[0] == '\0')
+		exec_func_handler (data, event, module);
+	else if( fork() == 0 )
+	{
+		char *dirname = NULL, *fulldirname = NULL;
+		parse_token (data->text, &dirname);
+		fulldirname = put_file_home (dirname);
+		chdir (fulldirname);
+	    spawn_child( cmd, -1, -1, NULL, None, C_NO_CONTEXT, False, False, NULL );
+	}
 }
 
 int find_escaped_chr_pos( const char *str, char c )

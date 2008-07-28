@@ -2226,7 +2226,7 @@ void
 SetInts (char *text, FILE * fd, char **arg1, int *arg2)
 {
 	if (arg2 == NULL)
-	    sscanf (text, "%d%", (int *)arg1);
+	    sscanf (text, "%d", (int *)arg1);
 	else
 	    sscanf (text, "%d%*c%d", (int *)arg1, (int *)arg2);
 /*    LOCAL_DEBUG_OUT( "text=[%s], arg1=%p, Scr.Feel.Autoreverse = %p, res = %d", text, arg1, &(Scr.Feel.AutoReverse), *((int*)arg1) );*/

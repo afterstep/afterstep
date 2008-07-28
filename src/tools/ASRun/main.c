@@ -48,7 +48,7 @@ typedef struct ASRunState
 {
 #define ASRUN_Persist 			(0x01<<1)
 #define ASRUN_Immidiate			(0x01<<2)
-	
+#define ASRUN_UseCWD			(0x01<<3)
 	ASFlagType flags ;
 	
 	ASRunTool  tool ;
@@ -150,7 +150,20 @@ exec_command(char **ptext, ASRunTool tool)
 			if( !is_executable_in_path( text ) ) 	
 		 		if( CheckFile( text ) == 0 )
 					tool = ASRTool_Editor ;		
+			
 		}	 
+	}
+	if( text && tool == ASRTool_Normal && get_flags (AppState.flags, ASRUN_UseCWD))
+	{
+		char cwd[PATH_MAX+1];
+		if (getcwd (cwd, PATH_MAX+1))
+		{
+			char *tmp = safemalloc( strlen(text)+1+strlen(cwd)+1 );
+			sprintf (tmp, "%s %s", cwd, text);
+			free (text) ;
+			text = *ptext = tmp ;
+		}else
+			clear_flags (AppState.flags, ASRUN_UseCWD);
 	}
 	if( text && tool == ASRTool_KDEScreenSaver ) 
 	{
@@ -231,7 +244,8 @@ exec_command(char **ptext, ASRunTool tool)
 		FunctionCode func = F_NOP ;
 		switch(tool)
 		{
-			case ASRTool_Normal : 	func = F_EXEC ; break;
+			case ASRTool_Normal : 	func = get_flags (AppState.flags, ASRUN_UseCWD)?F_ExecInDir:F_EXEC ; 
+									break;
 			case ASRTool_Term : 	func = F_ExecInTerm ; break;
 			case ASRTool_Browser : 	func = F_ExecBrowser ; break;
 			case ASRTool_Editor : 	func = F_ExecEditor ; break;
@@ -424,6 +438,8 @@ main (int argc, char *argv[])
 			set_flags( flags, ASRUN_Persist );
 		else if( mystrcasecmp( argv[i], "--immidiate" ) == 0 )
 			set_flags( flags, ASRUN_Immidiate );
+		else if( mystrcasecmp( argv[i], "--cwd" ) == 0 )
+			set_flags( flags, ASRUN_UseCWD );
 		else if( mystrcasecmp( argv[i], "--cmd" ) == 0 && argv[i+1] != NULL )
 		{
 			++i ;

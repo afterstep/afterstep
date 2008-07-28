@@ -140,6 +140,7 @@ TermDef       FuncTerms[F_FUNCTIONS_NUM + 1] = {
 	FUNC_TERM ("LargeMiniPixmap", F_SMALL_MINIPIXMAP),	/* LargeMiniPixmap "name" */
 	FUNC_TERM2 (NEED_NAME, "DesktopEntry", F_DesktopEntry),	/* DesktopEntry "name" */
 	FUNC_TERM2 (NEED_NAME | NEED_CMD, "Exec", F_EXEC),	/* Exec   "name" command */
+	FUNC_TERM2 (NEED_NAME | NEED_CMD, "ExecInDir", F_ExecInDir),	/* Exec   "name" [path command] */
 	FUNC_TERM2 (NEED_NAME | NEED_CMD, "Module", F_MODULE),	/* Module "name" command */
     FUNC_TERM2 (NEED_NAME | NEED_CMD, "ExecInTerm", F_ExecInTerm),   /* ExecInTerm   "name" command */
     FUNC_TERM2 (NEED_NAME | NEED_CMD, "ExecBrowser", F_ExecBrowser),   /* ExecBrowser   "name" url */
