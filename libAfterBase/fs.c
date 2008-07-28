@@ -2,7 +2,7 @@
  * Copyright (C) 1999 Sasha Vasko <sasha at aftercode.net>
  * merged with envvar.c originally created by :
  * Copyright (C) 1999 Ethan Fischer <allanon@crystaltokyo.com>
- * Copyright (C) 1998 Pierre Clerissi <clerissi@pratique.fr>
+ * Copyright (C) 1998 Pierre Clerissi <pierre.clerissi@gmail.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
