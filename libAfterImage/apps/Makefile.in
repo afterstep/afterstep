@@ -1,5 +1,5 @@
 
-PROGS= asview asscale astile asmerge asgrad asflip asi18n astext ascompose asvector
+PROGS= asview asscale astile asmerge asgrad asflip asi18n astext ascompose asvector ascheckttf
 
 
 CC		= @CC@
@@ -155,6 +155,9 @@ asi18n: asi18n.o common.o @LIBPROG@
 
 astext: astext.o common.o @LIBPROG@
 		$(CC) astext.o common.o $(LIBRARIES) $(EXTRA_LIBRARIES) -o astext
+
+ascheckttf: ascheckttf.o @LIBPROG@
+		$(CC) ascheckttf.o $(LIBRARIES) $(EXTRA_LIBRARIES) -o ascheckttf
 
 ascompose: ascompose.o common.o @LIBPROG@
 		$(CC) ascompose.o common.o $(LIBRARIES) $(EXTRA_LIBRARIES) -o ascompose
