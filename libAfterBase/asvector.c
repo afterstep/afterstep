@@ -22,7 +22,7 @@
 #include <string.h>
 #include <stdio.h>
 
-/*#define LOCAL_DEBUG*/
+#define LOCAL_DEBUG
 
 #include "astypes.h"
 #include "output.h"
@@ -175,11 +175,16 @@ inline void vector_move_data_up( ASVector *v, int index, int offset, int length 
     register int i ;
     /* word copying is usually faster then raw memory copying */
 	/* assuming length > 0 or == -1 && offset > 0 */
-    if( length == -1 )
+	if (offset <= 0)
+		return;
+
+    if (length < 0)
         length = v->used ;
 
-   if( offset > 0 && length > v->allocated - offset )
-	length = v->allocated - offset ;
+	if (index + offset + length > v->allocated)
+		realloc_vector (v, index + offset + length);
+LOCAL_DEBUG_OUT ("index = %d, offset = %d, length = %d", index, offset, length);
+		
     if( v->unit == sizeof(long*) )
     {   /* 4 or 8 byte pointer copying  */
         register long** src = (long**)(v->memory);
@@ -194,46 +199,49 @@ inline void vector_move_data_up( ASVector *v, int index, int offset, int length 
             trg[i] = src[i] ;
     }else
     {   /* raw copy */
-        register CARD8 *src = v->memory ;
-        register CARD8 *trg = src+(offset*v->unit) ;
         int start = index*v->unit ;
-        for( i = (length-1)*v->unit ; i >= start ; i-- )
-            trg[i] = src[i] ;
+        register CARD8 *src = v->memory + start ;
+        register CARD8 *trg = src + (offset*v->unit);
+
+		i = length*v->unit;
+		LOCAL_DEBUG_OUT ("moving %d(unit=%d) bytes up from %d to %d", 
+		                 length*v->unit, v->unit, start, trg-(CARD8*)v->memory);
+        while(--i >= 0)  trg[i] = src[i] ;
     }
-    v->used+=offset ;
 }
 
 inline void vector_move_data_down( ASVector *v, int index, int offset, int length )
 {
     register int i ;
     /* word copying is usually faster then raw memory copying */
-	/* assuming that offset  >  0 */
+	/* assuming that offset  <  0 */
     if( length == -1 )
         length = v->used ;
-    if( offset > 0 && length > v->allocated - offset )
-	length = v->allocated - offset ;
-
+	if (offset >= 0)
+		return;
+LOCAL_DEBUG_OUT ("index = %d, offset = %d, length = %d", index, offset, length);
     if( v->unit == sizeof(long*) )
     {   /* 4 or 8 byte pointer copying  */
-        register long** trg = (long**)(v->memory);
-        register long** src = trg+offset;
-        for( i = index ; i < length ; i++ )
+        register long** src = (long**)(v->memory) + index;
+        register long** trg = src + offset;
+        for( i = 0 ; i < length ; i++ )
             trg[i] = src[i] ;
     }else if( v->unit == 2 )
     {   /* 2 byte copying  */
-        register CARD16* trg = (CARD16*)(v->memory);
-        register CARD16* src = trg+offset;
-        for( i = index ; i < length ; i++ )
+        register CARD16* src = (CARD16*)(v->memory) + index;
+        register CARD16* trg = src + offset;
+        for( i = 0 ; i < length ; i++ )
             trg[i] = src[i] ;
     }else
     {   /* raw copy */
-        register CARD8 *trg = v->memory ;
-        register CARD8 *src = trg+(offset*v->unit) ;
-        int end = (length)*(v->unit);
-        for( i = index*v->unit ; i < end ; ++i )
+        register CARD8 *src = v->memory + index*v->unit ;
+        register CARD8 *trg = src + offset*v->unit;
+        int end = length*(v->unit);
+		LOCAL_DEBUG_OUT ("moving %d(unit=%d) bytes down from %d to %d",
+		                 end, v->unit, src - (CARD8*)v->memory, trg - (CARD8*)v->memory);
+        for( i = 0 ; i < end ; ++i )
             trg[i] = src[i] ;
     }
-    v->used-=offset ;
 }
 
 inline void vector_set_data( ASVector *v, void *data, int offset, int length)
@@ -297,25 +305,26 @@ LOCAL_DEBUG_CALLER_OUT("0x%lX, 0x%lX, %lu, 0x%lX, %d", (unsigned long)v, (unsign
 }
 
 int
-vector_relocate_elem( ASVector *v, void *data, unsigned int new_index )
+vector_relocate_elem( ASVector *v, unsigned int index, unsigned int new_index )
 {
-    size_t index = 0;
-
-    if( v == NULL || data == NULL )
+    if( v == NULL || index >= v->used || new_index >= v->used)
         return -1;
-
-    index = vector_find_data(v,data);
-    if( index >= v->used )
-        return -1;
+		
     if( index > new_index )
-        vector_move_data_up(v,new_index,1,index-new_index);
-    else if( index < new_index )
-        vector_move_data_down(v,new_index,1,new_index-index);
-    else
-        return index;
-
-    vector_set_data(v,data,new_index,1);
-    return index;
+	{
+LOCAL_DEBUG_OUT ("index = %d, new_index = %d, used = %d", index, new_index, v->used);
+        vector_move_data_up(v,new_index,1,v->used-new_index);
+        vector_move_data_down(v,index+1,new_index-index-1,1);
+		if (index+1 < v->used)
+			vector_move_data_down( v, index+2, -1, v->used-(index+1));
+    }else if( index < new_index )
+	{
+        vector_move_data_up(v,new_index,1, v->used-new_index);
+        vector_move_data_up(v,index,new_index-index,1);
+        vector_move_data_down(v,index+1,-1, v->used - index);
+    }
+	
+    return new_index;
 }
 
 int
@@ -337,7 +346,9 @@ vector_remove_elem( ASVector *v, void *data )
 
     if( (index = vector_find_data(v,data)) >= (int)(v->used) )
         return 0;
-    vector_move_data_down( v, index, 1, -1 );
+    if( index+1 < v->used )
+	    vector_move_data_down( v, index+1, -1, v->used-(index+1));
+	v->used--;
     return 1;
 }
 
@@ -349,7 +360,9 @@ vector_remove_index( ASVector *v, size_t index )
     if( index >= v->used )
         return 0;
 
-    vector_move_data_down( v, index, 1, -1 );
+    if( index+1 < v->used )
+	    vector_move_data_down( v, index+1, -1, v->used-(index+1) );
+	v->used--;
     return 1;
 }
 
