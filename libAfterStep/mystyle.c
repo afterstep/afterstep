@@ -717,7 +717,8 @@ mystyle_make_image_int (MyStyle * style, int root_x, int root_y, int crop_x, int
 								LOCAL_DEBUG_OUT( "copying alpha channel from %p to %p", im, tmp );
 								copy_asimage_channel(tmp, IC_ALPHA, im, IC_ALPHA);
 							}
-							safe_asimage_destroy (im);
+							 if ( im != ASDefaultScr->RootImage)
+								safe_asimage_destroy (im);
 						}
 						im = tmp ;
 					}
@@ -781,7 +782,8 @@ mystyle_make_image_int (MyStyle * style, int root_x, int root_y, int crop_x, int
 						LOCAL_DEBUG_OUT( "copying alpha channel from %p to %p", im, tmp );
 						copy_asimage_channel(tmp, IC_ALPHA, im, IC_ALPHA);
 					}
-					safe_asimage_destroy (im);
+					if ( im != ASDefaultScr->RootImage)
+						safe_asimage_destroy (im);
 				}
 				im = tmp ;
 			}
@@ -794,7 +796,7 @@ mystyle_make_image_int (MyStyle * style, int root_x, int root_y, int crop_x, int
 /* 		fprintf( stderr, "overlay_style = %p\n", style->overlay ); */
 		if( overlayed ) 
 		{
-			if( im && overlayed != im ) 
+			if( im && overlayed != im && im != ASDefaultScr->RootImage) 
 				safe_asimage_destroy (im);
 			im = overlayed ;
 		}			
@@ -810,7 +812,7 @@ mystyle_make_image_int (MyStyle * style, int root_x, int root_y, int crop_x, int
 											ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT );
 		if( cropped_im ) 
 		{
-			if( im && cropped_im != im ) 
+			if( im && cropped_im != im && im != ASDefaultScr->RootImage ) 
 				safe_asimage_destroy (im);
 			im = cropped_im ;
 		}			

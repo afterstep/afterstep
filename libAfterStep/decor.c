@@ -925,7 +925,7 @@ add_astbar_tile( ASTBarData *tbar, int type, unsigned char col, unsigned char ro
             tbar->tiles = realloc( tbar->tiles, (((tbar->tiles_num>>2)+1)<<2)*sizeof(ASTile));
         ++(tbar->tiles_num);
     }
-	LOCAL_DEBUG_CALLER_OUT( "type = %d, col = %d, row = %d, flip = %d, align_flags = 0x%lX", type, col, row, flip, align_flags );
+	LOCAL_DEBUG_CALLER_OUT( "type = %d, col = %d, row = %d, flip = %d, align_flags = 0x%lX, new_idx = %d", type, col, row, flip, align_flags, new_idx );
 
     if( get_flags( flip, FLIP_VERTICAL ) && get_flags( flip, FLIP_UPSIDEDOWN ) )
 	{
@@ -979,7 +979,7 @@ add_astbar_tile( ASTBarData *tbar, int type, unsigned char col, unsigned char ro
 			set_flags( align_flags, FIT_LABEL_WIDTH );
 	}	 
 
-	LOCAL_DEBUG_CALLER_OUT( "type = %d, flip = %d, align = 0x%X, align_flags = 0x%lX", type, flip, align, align_flags );
+	LOCAL_DEBUG_OUT( "type = %d, flip = %d, align = 0x%X, align_flags = 0x%lX, tbar->tiles = %p", type, flip, align, align_flags, tbar->tiles );
     align_flags &= (PAD_MASK|RESIZE_MASK|FIT_LABEL_SIZE);
 
     memset( &(tbar->tiles[new_idx]), 0x00, sizeof(ASTile));

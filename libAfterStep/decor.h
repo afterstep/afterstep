@@ -144,16 +144,17 @@ typedef struct ASTile {
 typedef struct ASTBarData {
 #define BAR_STATE_UNFOCUSED		0
 #define BAR_STATE_FOCUSED		(0x01<<0)
-#define IsASTBarFocused(pb) 	get_flags((pb)->state, BAR_STATE_FOCUSED )
+#define IsASTBarFocused(pb) 	((pb) && get_flags ((pb)->state, BAR_STATE_FOCUSED))
 
 #define BAR_STATE_NUM			2
 #define BAR_STATE_FOCUS_MASK	(0x01<<0)
 #define BAR_STATE_PRESSED		(0x01<<1)
 #define BAR_STATE_PRESSED_MASK	(0x01<<1)
+#define IsASTBarPressed(pb) 	((pb) && get_flags ((pb)->state, BAR_STATE_PRESSED))
 
 #define BAR_FLAGS_REND_PENDING  (0x01<<16)     /* has been moved, resized or otherwise changed and needs rerendering */
-#define DoesBarNeedsRendering(pb) get_flags((pb)->state, BAR_FLAGS_REND_PENDING )
-#define SetBarNeedsRendering(pb)  set_flags((pb)->state, BAR_FLAGS_REND_PENDING )
+#define DoesBarNeedsRendering(pb) ((pb) && get_flags((pb)->state, BAR_FLAGS_REND_PENDING))
+#define SetBarNeedsRendering(pb)  ((pb) && set_flags((pb)->state, BAR_FLAGS_REND_PENDING))
 
 #define BAR_FLAGS_VERTICAL      (0x01<<17)     /* vertical label */
 #define BAR_FLAGS_IMAGE_BACK    (0x01<<18)     /* back represents an icon instead of  */
