@@ -53,6 +53,20 @@
 /**********************************************************************/
 /*  Gadget local variables :                                         */
 /**********************************************************************/
+struct ASWinTab;
+
+typedef struct ASWinTabGroup
+{
+	Bool 	pattern_is_tail;
+	int 	pattern_length;
+	char*	pattern;
+	INT32 	pattern_encoding ;
+	Bool 	selected;		
+	
+	Window  selected_client;
+	
+}ASWinTabGroup;
+
 typedef struct ASWinTab
 {
 	char 			*name ;
@@ -72,6 +86,10 @@ typedef struct ASWinTab
 	
 	time_t      last_selected ;
 
+	ASWinTabGroup  *group;
+	Bool 			group_owner;
+
+	int calculated_width;
 }ASWinTab;
 
 typedef struct {
@@ -105,8 +123,7 @@ typedef struct {
 	int rows ;
 	int row_height ;
 
-    int selected_tab ;
-    int pressed_tab ;
+    Window selected_client;
 
 	int win_width, win_height ;
 
@@ -155,6 +172,50 @@ char *exclude_pattern_override = NULL ;
 char *title_override = NULL, *icon_title_override = NULL ;
 char *border_color_override = NULL ;
 
+static inline int 
+find_tab_for_client (Window client)
+{
+    ASWinTab *tabs = PVECTOR_HEAD(ASWinTab,WinTabsState.tabs);
+    int i = PVECTOR_USED(WinTabsState.tabs) ;
+
+	if (client)
+	    while( --i >= 0 ) if (tabs[i].client == client) return i;
+	return -1;
+}
+
+static inline int 
+find_tab_pressed ()
+{
+    ASWinTab *tabs = PVECTOR_HEAD(ASWinTab,WinTabsState.tabs);
+    int i = PVECTOR_USED(WinTabsState.tabs) ;
+
+    while( --i >= 0 ) if (IsASTBarPressed(tabs[i].bar)) return i;
+	return -1;
+}
+
+static inline int 
+find_group_owner (ASWinTabGroup *group)
+{
+    ASWinTab *tabs = PVECTOR_HEAD(ASWinTab,WinTabsState.tabs);
+    int i = PVECTOR_USED(WinTabsState.tabs) ;
+
+	if (group)
+	    while( --i >= 0 ) if (tabs[i].group == group && tabs[i].group_owner) return i;
+	return -1;
+}
+
+static inline int 
+find_tab_for_group (ASWinTabGroup *group, int after_index)
+{
+    ASWinTab *tabs = PVECTOR_HEAD(ASWinTab,WinTabsState.tabs);
+	int i = after_index;
+    int max_i = PVECTOR_USED(WinTabsState.tabs) ;
+
+	if (group)
+	    while (++i < max_i) if (tabs[i].group == group && !tabs[i].group_owner) return i;
+	return -1;
+}
+
 void CheckConfigSanity(const char *pattern_override, const char *exclude_pattern_override, 
 					   const char *title_override, const char *icon_title_override);
 void SetWinTabsLook();
@@ -192,6 +253,12 @@ void register_unswallowed_client( Window client );
 Bool check_unswallowed_client( Window client ); 
 void delete_tab( int index );
 void set_frame_background( ASWinTab *aswt );
+
+ASWinTabGroup *check_belong_to_group (ASWinTabGroup *group, const char *name, INT32 name_encoding);
+void remove_from_group (ASWinTabGroup *group, int t);
+void add_to_group (ASWinTabGroup *group, int t);
+void check_create_new_group();
+void check_tab_grouping (int t);
 
 /* above function may also return : */
 #define BANNER_TAB_INDEX -1		   
@@ -310,7 +377,7 @@ main( int argc, char **argv )
 
 	SendInfo ("Send_WindowList", 0);
 
-    WinTabsState.selected_tab = WinTabsState.pressed_tab = -1 ;
+    WinTabsState.selected_client = None ;
 	WinTabsState.tabs = create_asvector( sizeof(ASWinTab) );
 
     WinTabsState.main_window = make_wintabs_window();
@@ -708,7 +775,8 @@ on_tabs_canvas_config()
 			|| tc->root_x + (int)tc->width <= 0 ||	tc->root_y + (int)tc->height <= 0)
 			return 0;
 
-		safe_asimage_destroy( Scr.RootImage );	  
+		safe_asimage_destroy (Scr.RootImage);	  
+		Scr.RootImage = NULL;
         set_root_clip_area(WinTabsState.tabs_canvas );
 
 		rerender_tabs = update_astbar_transparency(WinTabsState.banner.bar, WinTabsState.tabs_canvas, True);
@@ -796,12 +864,13 @@ DispatchEvent (ASEvent * event)
 						rerender_tabs = on_tabs_canvas_config();
                             
                         while( --i >= 0 ) 
-                        {
-                            handle_canvas_config( tabs[i].client_canvas );
-                            send_swallowed_configure_notify(&(tabs[i]));
-							if (get_flags (WinTabsState.flags, ASWT_Transparent))
-								XClearArea (dpy, tabs[i].frame_canvas->w, 0, 0, 0, 0, True);
-                        }    
+							if (!tabs[i].group_owner)
+							{
+	                            handle_canvas_config( tabs[i].client_canvas );
+    	                        send_swallowed_configure_notify(&(tabs[i]));
+								if (get_flags (WinTabsState.flags, ASWT_Transparent) && tabs[i].frame_canvas)
+									XClearArea (dpy, tabs[i].frame_canvas->w, 0, 0, 0, 0, True);
+							}
                     }    
                 }else if( event->w == WinTabsState.tabs_window ) 
                 {
@@ -814,20 +883,19 @@ DispatchEvent (ASEvent * event)
         case KeyPress:
 			{
 				XKeyEvent *xk = &(event->x.xkey);	
+				int selected_tab = find_tab_for_client (WinTabsState.selected_client);
 				if( xk->keycode == WINTABS_SWITCH_KEYCODE && xk->state == WINTABS_SWITCH_MOD ) 
 				{	
-					if( WinTabsState.selected_tab+1 < PVECTOR_USED( WinTabsState.tabs ) )
-				 		select_tab( WinTabsState.selected_tab+1 );    		
+					if( selected_tab+1 < PVECTOR_USED( WinTabsState.tabs ) )
+				 		select_tab( selected_tab+1 );    		
 					else
 						select_tab( 0 );    		   
 					/* XBell (dpy, event->scr->screen); */
 				}else if( xk->window != WinTabsState.tabs_window ) 
 				{	
-					if( WinTabsState.selected_tab >= 0 && WinTabsState.selected_tab < PVECTOR_USED( WinTabsState.tabs ) )
+					if (selected_tab >= 0)
     				{
-        				ASWinTab *old_tab =  PVECTOR_HEAD(ASWinTab,WinTabsState.tabs)+WinTabsState.selected_tab ;
-	
-						xk->window = old_tab->client;
+						xk->window = WinTabsState.selected_client;
         	    		XSendEvent (dpy, xk->window, False, KeyPressMask, &(event->x));
 					}
 				}
@@ -887,7 +955,7 @@ DispatchEvent (ASEvent * event)
                 int i = PVECTOR_USED(WinTabsState.tabs);
                 ASWinTab *tabs = PVECTOR_HEAD( ASWinTab, WinTabsState.tabs );
 				while( --i >= 0 ) 
-					if( event->w == tabs[i].frame_canvas->w ) 
+					if( tabs[i].frame_canvas && event->w == tabs[i].frame_canvas->w ) 
 					{
 						XExposeEvent *xexp = &(event->x.xexpose);
 						XFillRectangle(dpy, tabs[i].frame_canvas->w, Scr.DrawGC, xexp->x, xexp->y, xexp->width, xexp->height);
@@ -1099,7 +1167,7 @@ show_banner_buttons()
 void
 set_frame_background( ASWinTab *aswt )
 {
-	Window w = aswt?aswt->frame_canvas->w:WinTabsState.main_window;
+	Window w = (aswt && aswt->frame_canvas)?aswt->frame_canvas->w:WinTabsState.main_window;
 	if( get_flags( WinTabsState.flags, ASWT_Transparent ) )
 	{
 		XSetWindowBackgroundPixmap( dpy, w, ParentRelative);
@@ -1244,6 +1312,7 @@ set_tab_title( ASWinTab *aswt )
 	int align = Config->name_aligment ;
 	int h_spacing = Config->h_spacing ;
 	int v_spacing = Config->v_spacing ;
+	char *display_name = aswt->name;
 
 	if( WinTabsState.tbar_props )
 	{
@@ -1256,7 +1325,24 @@ set_tab_title( ASWinTab *aswt )
 	}	 
 	
 	delete_astbar_tile( aswt->bar, 0 );
-	add_astbar_label( aswt->bar, 0, 0, 0, align, h_spacing, v_spacing, aswt->name, aswt->name_encoding);
+	if (aswt->group && !aswt->group_owner)
+	{
+		int name_len = strlen (aswt->name);
+		display_name = safemalloc (name_len);
+		name_len -= aswt->group->pattern_length;
+		if (aswt->group->pattern_is_tail)
+		{
+			strncpy (display_name, aswt->name, name_len);
+		}else
+		{
+			strcpy (display_name, aswt->name + aswt->group->pattern_length);
+		}
+		display_name[name_len] = '\0';
+	}
+
+	add_astbar_label( aswt->bar, 0, 0, 0, align, h_spacing, v_spacing, display_name, aswt->name_encoding);
+	if (display_name != aswt->name)
+		free (display_name);
 }
 
 ASWinTab *
@@ -1264,8 +1350,7 @@ add_tab( Window client, const char *name, INT32 encoding )
 {
 	ASWinTab aswt ;
 
-	if( AS_ASSERT(client) )
-		return NULL ;
+	memset (&aswt, 0x00, sizeof(aswt));
 	aswt.client = client ;
 	aswt.name = mystrdup(name);
 	aswt.name_encoding = encoding;
@@ -1285,13 +1370,17 @@ delete_tab( int index )
 {
 	int tabs_num = PVECTOR_USED(WinTabsState.tabs) ;
     ASWinTab *tabs = PVECTOR_HEAD(ASWinTab,WinTabsState.tabs);
-	int tab_to_select = -1 ; 
+	Window client_to_select = None ; 
+	int owner_index = -1;
+
 	if( index >= tabs_num ) 
 		return ;
-    if( WinTabsState.selected_tab == index ) 
+
+    if ( WinTabsState.selected_client == tabs[index].client) 
     {    
-		int i;
-        WinTabsState.selected_tab = -1 ;
+		int i, tab_to_select = -1;
+		
+        WinTabsState.selected_client = None ;
 		for( i = 0 ; i < tabs_num ; ++i ) 
 			if( i != index )
 			{
@@ -1300,52 +1389,83 @@ delete_tab( int index )
 						continue;
 				tab_to_select = i ;
 			}
-    }
-    if( WinTabsState.pressed_tab == index ) 
-    {    
-        WinTabsState.pressed_tab = -1 ;
+		client_to_select = tabs[tab_to_select].client;
     }
     destroy_astbar( &(tabs[index].bar) );
 	/* we still want to receive DestroyNotify events */
-    XSelectInput (dpy, tabs[index].client, StructureNotifyMask);
-    destroy_ascanvas( &(tabs[index].client_canvas) );
-	XDestroyWindow(dpy, tabs[index].frame_canvas->w );
-	destroy_ascanvas( &(tabs[index].frame_canvas) );
-    XRemoveFromSaveSet (dpy, tabs[index].client);
-    if( tabs[index].name ) 
-        free( tabs[index].name );
-    vector_remove_index( WinTabsState.tabs, index );
+	if (tabs[index].client)
+	{
+    	XSelectInput (dpy, tabs[index].client, StructureNotifyMask);
+	    XRemoveFromSaveSet (dpy, tabs[index].client);
+	}
+	if (tabs[index].client_canvas)
+	    destroy_ascanvas( &(tabs[index].client_canvas) );
 
+	if (tabs[index].frame_canvas)
+	{
+		XDestroyWindow(dpy, tabs[index].frame_canvas->w );
+		destroy_ascanvas( &(tabs[index].frame_canvas) );
+	}
+    if (tabs[index].name) 
+        free (tabs[index].name);
+
+	if (tabs[index].group && !tabs[index].group_owner) 
+	{
+		int i;
+		int members_left = 0;
+		for (i = 0 ; i < tabs_num ; ++i) 
+			if ( i != index && tabs[i].group == tabs[index].group)
+			{
+				if (tabs[i].group_owner)
+					owner_index = i;
+				else
+					++members_left;
+			}
+		if (members_left)
+		{
+			if (client_to_select)
+		        set_astbar_focused(tabs[owner_index].bar, WinTabsState.tabs_canvas, False);
+			owner_index = -1;
+		}
+	}
+
+    vector_remove_index (WinTabsState.tabs, index);
+	if (owner_index > index)
+		--owner_index;
+
+	if (owner_index >= 0)
+	    vector_remove_index (WinTabsState.tabs, owner_index);
+	
 	if( PVECTOR_USED(WinTabsState.tabs) == 0 )
 	{
-		if( get_module_out_fd() < 0 ) 
-			DeadPipe(0);
-		show_hint( False );
-	}else if( tab_to_select >= 0 )
-		select_tab( tab_to_select );
+		if (get_module_out_fd () < 0) 
+			DeadPipe (0);
+		show_hint (False);
+	}else if (client_to_select != None)
+		select_tab (find_tab_for_client (client_to_select));
 }    
 
 void
 place_tabs_line( ASWinTab *tabs, int x, int y, int first, int last, int spare, int max_width, int tab_height )
 {
     int i ;
-    int delta = 0;
-	
-	if( last+1 > first  ) 
-		delta = spare / (last+1-first) ;
 
     for( i = first ; i <= last ; ++i ) 
     {
-        int width  = calculate_astbar_width( tabs[i].bar );
+        int width  = tabs[i].calculated_width;
+		int delta = spare / (last+1-i) ;
+
+LOCAL_DEBUG_OUT ("i = %d, name = \"%s\", x = %d, width = %d", i, tabs[i].name, x, width );
         if( width < Config->min_tab_width ) 
             width = Config->min_tab_width ;
         if( width > max_width )
             width = max_width ;
+
+LOCAL_DEBUG_OUT ("i = %d, name = \"%s\", x = %d, width = %d", i, tabs[i].name, x, width );
         width += delta ;
         spare -= delta ; 
-        if( i < last ) 
-            delta = spare / (last - i) ;
 
+LOCAL_DEBUG_OUT ("i = %d, name = \"%s\", x = %d, width = %d", i, tabs[i].name, x, width );
         set_astbar_size( tabs[i].bar, width, tab_height );
         move_astbar( tabs[i].bar, WinTabsState.tabs_canvas, x, y );
         x += width ;
@@ -1478,11 +1598,17 @@ rearrange_tabs( Bool dont_resize_window )
     for( i = 0 ; i < tabs_num ; ++i ) 
     {    
         int width  = calculate_astbar_width( tabs[i].bar );
+		if (tabs[i].calculated_width > width)
+			width = tabs[i].calculated_width;
+		else
+			tabs[i].calculated_width = width;
+
         if( width < Config->min_tab_width ) 
             width = Config->min_tab_width ;
         if( width > max_width )
             width = max_width ;
-        if( x + width > max_x )
+
+        if (x + width > max_x || (tabs[i].group_owner && i > 1))
         {   
 			if( i  > 0 )  
             	place_tabs_line( tabs, start_x, y, start, i - 1, max_x - x, max_width, tab_height );
@@ -1551,34 +1677,61 @@ render_tabs( Bool canvas_resized )
 }
 
 void 
-select_tab( int tab )
+select_tab (int tab)
 {
-	ASWinTab *new_tab ;
+	ASWinTab *tabs = PVECTOR_HEAD(ASWinTab,WinTabsState.tabs);
 	ASStatusHints status = {0};
 	ASFlagType default_status_flags = get_flags(WinTabsState.flags,ASWT_StateShaded)?AS_Shaded:0;
+	int current_selection;
 
 	default_status_flags |= get_flags(WinTabsState.flags,ASWT_StateSticky)?AS_Sticky:0;
 
-    if( tab == WinTabsState.selected_tab ) 
-        return ; 
-    if( WinTabsState.selected_tab >= 0 && WinTabsState.selected_tab < PVECTOR_USED( WinTabsState.tabs ) )
-    {
-        ASWinTab *old_tab =  PVECTOR_HEAD(ASWinTab,WinTabsState.tabs)+WinTabsState.selected_tab ;
-		status.flags = AS_Hidden|default_status_flags ; 
-		set_client_state (old_tab->client, &status);
-        set_astbar_focused(old_tab->bar, WinTabsState.tabs_canvas, False);
-        WinTabsState.selected_tab = -1 ;
-    }    
     if( tab < 0 || tab >= PVECTOR_USED( WinTabsState.tabs ) )
 		tab = 0 ;
-		
-    new_tab = PVECTOR_HEAD(ASWinTab,WinTabsState.tabs)+tab ;
+
+	if (tabs[tab].group_owner)
+	{
+		if ((tab = find_tab_for_client (tabs[tab].group->selected_client)) < 0)
+			if ((tab = find_tab_for_group (tabs[tab].group, 0))<0)
+				return;
+	}
+	
+    if( tabs[tab].client == WinTabsState.selected_client ) 
+        return ; 
+
+	current_selection = find_tab_for_client (WinTabsState.selected_client);
+	
+    if (current_selection >= 0)
+    {
+		status.flags = AS_Hidden|default_status_flags ; 
+		set_client_state (WinTabsState.selected_client, &status);
+        set_astbar_focused(tabs[current_selection].bar, WinTabsState.tabs_canvas, False);
+        WinTabsState.selected_client = None ;
+
+		if (tabs[current_selection].group && tabs[current_selection].group != tabs[tab].group)
+		{
+			int old_group_owner = find_group_owner (tabs[current_selection].group);
+			if (old_group_owner >= 0)
+		        set_astbar_focused(tabs[old_group_owner].bar, WinTabsState.tabs_canvas, False);
+		}
+    }    
+
 	status.flags = default_status_flags ; 
-	set_client_state (new_tab->client, &status);
-    set_astbar_focused(new_tab->bar, WinTabsState.tabs_canvas, True);
-    XRaiseWindow( dpy, new_tab->frame_canvas->w );
-    WinTabsState.selected_tab = tab ;
-	new_tab->last_selected = time(NULL);
+	set_client_state (tabs[tab].client, &status);
+    set_astbar_focused(tabs[tab].bar, WinTabsState.tabs_canvas, True);
+	if (tabs[tab].frame_canvas)
+	    XRaiseWindow( dpy, tabs[tab].frame_canvas->w );
+
+    WinTabsState.selected_client = tabs[tab].client;
+
+	if (tabs[tab].group)
+	{
+		int new_group_owner = find_group_owner (tabs[tab].group);
+		tabs[tab].group->selected_client = tabs[tab].client;
+        set_astbar_focused(tabs[new_group_owner].bar, WinTabsState.tabs_canvas, True);
+	}
+
+	tabs[tab].last_selected = time(NULL);
 	ASSync(False);
 	update_focus();
 }    
@@ -1586,19 +1739,18 @@ select_tab( int tab )
 void 
 press_tab( int tab )
 {
-    if( tab == WinTabsState.pressed_tab ) 
+	int curr = find_tab_pressed ();
+
+    if (tab == curr) 
         return ; 
-    if( WinTabsState.pressed_tab >= 0 && WinTabsState.pressed_tab < PVECTOR_USED( WinTabsState.tabs ) )
+    if (curr >= 0)
     {
-        ASWinTab *old_tab =  PVECTOR_HEAD(ASWinTab,WinTabsState.tabs)+WinTabsState.pressed_tab ;
-        set_astbar_pressed(old_tab->bar, WinTabsState.tabs_canvas, False);
-        WinTabsState.pressed_tab = -1 ;
+        set_astbar_pressed(PVECTOR_HEAD(ASWinTab,WinTabsState.tabs)[curr].bar, WinTabsState.tabs_canvas, False);
     }    
     if( tab >= 0 && tab < PVECTOR_USED( WinTabsState.tabs ) )
     {
         ASWinTab *new_tab = PVECTOR_HEAD(ASWinTab,WinTabsState.tabs)+tab ;
         set_astbar_pressed(new_tab->bar, WinTabsState.tabs_canvas, True);
-        WinTabsState.pressed_tab = tab ;
     }
 }    
 
@@ -1608,11 +1760,13 @@ press_tab( int tab )
 void
 check_wm_protocols( ASWinTab *aswt )
 {
-	ASRawHints hints ;
-	memset( &hints, 0x00, sizeof(ASRawHints));
- 	read_wm_protocols ( &hints, aswt->client);
-	aswt->wm_protocols = hints.wm_protocols ;
-	
+	if (aswt->client)
+	{
+		ASRawHints hints ;
+		memset( &hints, 0x00, sizeof(ASRawHints));
+	 	read_wm_protocols ( &hints, aswt->client);
+		aswt->wm_protocols = hints.wm_protocols ;
+	}
 }
 
 void
@@ -1626,7 +1780,7 @@ do_swallow_window( ASWindowData *wd )
 	ASWinTab *aswt = NULL ;
 	int gravity = NorthWestGravity ;
 
-	if( wd->client == WinTabsState.main_window )
+	if( wd->client == WinTabsState.main_window || wd->client == None)
 		return;
 
 	/* we have a match */
@@ -1742,8 +1896,10 @@ do_swallow_window( ASWindowData *wd )
     select_tab( PVECTOR_USED(WinTabsState.tabs)-1 );
 
 	if( !handle_tab_name_change( wd->client ) )
+	{
+		check_tab_grouping (PVECTOR_USED(WinTabsState.tabs)-1);
 	    rearrange_tabs( False );
-
+	}
     ASSync(False);
     ungrab_server();
 }
@@ -1841,30 +1997,22 @@ void unregister_client( Window client );
 void 
 on_destroy_notify(Window w)
 {
-    ASWinTab *tabs = PVECTOR_HEAD(ASWinTab,WinTabsState.tabs);
-    int i = PVECTOR_USED(WinTabsState.tabs) ;
+    int i = find_tab_for_client (w);
 
 	unregister_client(w);
-    while( --i >= 0 ) 
-        if( tabs[i].client == w ) 
-        {
-            delete_tab( i );
-            rearrange_tabs( False );
-            return ; 
-        }    
+	if (i >= 0)
+    {
+    	delete_tab( i );
+        rearrange_tabs( False );
+    }    
 }    
 
 void 
 on_unmap_notify(Window w)
 {
-    ASWinTab *tabs = PVECTOR_HEAD(ASWinTab,WinTabsState.tabs);
-    int i = PVECTOR_USED(WinTabsState.tabs) ;
-    while( --i >= 0 ) 
-        if( tabs[i].client == w ) 
-        {
-			unswallow_tab( i );
-            return ; 
-        }    
+	int i = find_tab_for_client (w);
+	if (i >= 0)
+		unswallow_tab( i );
 }    
 
 
@@ -1908,11 +2056,11 @@ void send_swallow_command()
 
 void close_current_tab()
 {
-	int curr = WinTabsState.selected_tab ;
+	int curr = find_tab_for_client(WinTabsState.selected_client);
     int tabs_num  =  PVECTOR_USED(WinTabsState.tabs);
     ASWinTab *tabs = PVECTOR_HEAD(ASWinTab,WinTabsState.tabs);
 	
-	if( tabs_num > 0 && curr >= 0 && curr < tabs_num ) 
+	if( tabs_num > 0 && curr >= 0 && tabs[curr].client) 
 	{
 		if( tabs[curr].closed ) 
 			XKillClient( dpy, tabs[curr].client); 	
@@ -1929,7 +2077,7 @@ Bool unswallow_tab(int t)
     int tabs_num  =  PVECTOR_USED(WinTabsState.tabs);
     ASWinTab *tabs = PVECTOR_HEAD(ASWinTab,WinTabsState.tabs);
 	LOCAL_DEBUG_OUT( "tab = %d, tabs_num = %d", t, tabs_num );
-	if( tabs_num > 0 && t >= 0 && t < tabs_num ) 
+	if( t >= 0 && t < tabs_num && tabs[t].client) 
 	{
 		/* XGrabKey( dpy, WINTABS_SWITCH_KEYCODE, Mod1Mask|Mod2Mask, w, True, GrabModeAsync, GrabModeAsync); */
 		XDeleteProperty( dpy, tabs[t].client, _XA_NET_WM_STATE );
@@ -1947,18 +2095,17 @@ Bool unswallow_tab(int t)
 
 Bool unswallow_current_tab()
 {
-	return unswallow_tab(WinTabsState.selected_tab);
+	return unswallow_tab(find_tab_for_client(WinTabsState.selected_client));
 }	 
 
 void 
 update_focus()
 {
-	int curr = WinTabsState.selected_tab ;
-    int tabs_num  =  PVECTOR_USED(WinTabsState.tabs);
+	int curr = find_tab_for_client(WinTabsState.selected_client);
     ASWinTab *tabs = PVECTOR_HEAD(ASWinTab,WinTabsState.tabs);
 
-	LOCAL_DEBUG_OUT( "curr = %d, tabs_num = %d, focused = %ld", curr, tabs_num, get_flags(WinTabsState.flags, ASWT_StateFocused ) );	   
-	if( tabs_num > 0 && curr >= 0 && curr < tabs_num && get_flags(WinTabsState.flags, ASWT_StateFocused )) 
+	LOCAL_DEBUG_OUT( "curr = %d, tabs_num = %d, focused = %ld", curr, PVECTOR_USED(WinTabsState.tabs), get_flags(WinTabsState.flags, ASWT_StateFocused ) );	   
+	if( curr >= 0 && tabs[curr].client && get_flags(WinTabsState.flags, ASWT_StateFocused )) 
 	{
 		if( get_flags( tabs[curr].wm_protocols, AS_DoesWmTakeFocus ) )
 			send_wm_protocol_request ( tabs[curr].client, _XA_WM_TAKE_FOCUS, Scr.last_Timestamp);
@@ -1967,20 +2114,44 @@ update_focus()
 	}	
 }	 
 
+void check_tab_grouping (int t)
+{
+    ASWinTab *tabs = PVECTOR_HEAD(ASWinTab,WinTabsState.tabs);
+
+LOCAL_DEBUG_OUT ("group_owner = %d", tabs[t].group_owner);
+	if (!tabs[t].group_owner)
+	{
+		ASWinTabGroup *group = tabs[t].group;
+LOCAL_DEBUG_OUT ("group = %p", group);
+		if (group)
+		{
+			if (!check_belong_to_group (group, tabs[t].name, tabs[t].name_encoding))
+			{
+				remove_from_group (group, t);		
+				group = NULL;
+			}
+		} 
+
+LOCAL_DEBUG_OUT ("group = %p", group);
+		if (group == NULL)
+		{
+			if ((group = check_belong_to_group (NULL, tabs[t].name, tabs[t].name_encoding)) != NULL)
+			{
+				add_to_group (group, t);
+			}else 
+				check_create_new_group();
+		}
+	}
+}
+
 Bool handle_tab_name_change( Window client)
 {
     int tabs_num  =  PVECTOR_USED(WinTabsState.tabs);
     ASWinTab *tabs = PVECTOR_HEAD(ASWinTab,WinTabsState.tabs);
-	int i ;
-	Bool changed = False ;
+	int i = find_tab_for_client (client);
+	Bool changed = True ;
 
-	for( i = 0 ; i < tabs_num ; ++i ) 
-	{
-		if( tabs[i].client == client  )
-			break;	  
-	}	 
-	
-	if( i < tabs_num ) 
+	if( i >= 0 && i < tabs_num ) 
 	{
 		ASRawHints    raw;
 		ASHints       clean;
@@ -2004,9 +2175,7 @@ Bool handle_tab_name_change( Window client)
 						free( tabs[i].name );
 						tabs[i].name = mystrdup( clean.names[0] );
 						tabs[i].name_encoding = clean.names_encoding[0] ;
-						set_tab_title( &(tabs[i]) );
-						rearrange_tabs( False );
-						changed = True ;
+						changed = tabs[i].client ;
 					}	 
 				}	 
 				destroy_hints( &clean, True );
@@ -2015,6 +2184,16 @@ Bool handle_tab_name_change( Window client)
 		}
 		destroy_hints_list( &list );		
 
+LOCAL_DEBUG_OUT ("changed= %d", changed);
+		if (changed)
+		{
+			check_tab_grouping (i);
+    		tabs = PVECTOR_HEAD(ASWinTab,WinTabsState.tabs);
+			i = find_tab_for_client (client);
+			if( i >= 0  )
+				set_tab_title( &(tabs[i]) );
+			rearrange_tabs( False );
+		}
 	}	 
 	return changed ;
 }	 
@@ -2025,7 +2204,8 @@ update_tabs_desktop()
 	int i = PVECTOR_USED(WinTabsState.tabs);
     ASWinTab *tabs = PVECTOR_HEAD( ASWinTab, WinTabsState.tabs );
 	while( --i >= 0) 
-		set_client_desktop (tabs[i].client, WinTabsState.my_desktop );	
+		if (tabs[i].client)
+			set_client_desktop (tabs[i].client, WinTabsState.my_desktop );	
 }
 
 void 
@@ -2039,22 +2219,26 @@ update_tabs_state()
 	status.flags |= get_flags(WinTabsState.flags,ASWT_StateSticky)?AS_Sticky:0;
 
 	while( --i >= 0) 
-	{	
-		if( i == WinTabsState.selected_tab ) 
-			clear_flags( status.flags, AS_Hidden );
-		else
-			set_flags( status.flags, AS_Hidden );
-		set_client_state (tabs[i].client, &status);
-	}
+		if (tabs[i].client)
+		{	
+			if( tabs[i].client == WinTabsState.selected_client ) 
+				clear_flags( status.flags, AS_Hidden );
+			else
+				set_flags( status.flags, AS_Hidden );
+			set_client_state (tabs[i].client, &status);
+		}
 }
 
 void 
 register_unswallowed_client( Window client ) 
 {
-	if( WinTabsState.unswallowed_apps == NULL ) 
-		WinTabsState.unswallowed_apps = create_ashash( 0, NULL, NULL, NULL ); 	 
+	if (client)
+	{
+		if( WinTabsState.unswallowed_apps == NULL ) 
+			WinTabsState.unswallowed_apps = create_ashash( 0, NULL, NULL, NULL ); 	 
 
-	add_hash_item( WinTabsState.unswallowed_apps, AS_HASHABLE(client), NULL );
+		add_hash_item( WinTabsState.unswallowed_apps, AS_HASHABLE(client), NULL );
+	}
 }
 
 void 
@@ -2069,8 +2253,200 @@ Bool
 check_unswallowed_client( Window client ) 
 {
 	ASHashData hdata = {0} ;
-	if( WinTabsState.unswallowed_apps != NULL ) 
+
+	if( client && WinTabsState.unswallowed_apps != NULL ) 
 		return (get_hash_item( WinTabsState.unswallowed_apps, AS_HASHABLE(client), &hdata.vptr ) == ASH_Success );
 	return False;
 }
+
+/****************************************************************************/
+/* WinTab grouping API :                                                    */
+ASWinTabGroup *
+check_belong_to_group (ASWinTabGroup *group, const char *name, INT32 name_encoding)
+{
+	int tab_num = PVECTOR_USED (WinTabsState.tabs);
+    ASWinTab *tabs = PVECTOR_HEAD (ASWinTab, WinTabsState.tabs);
+	int i;
+LOCAL_DEBUG_CALLER_OUT ("group = %p, name = \"%s\"", group, name);
+	if (group == NULL)
+	{
+		for (i = 0; i < tab_num; ++i)
+			if (tabs[i].group && tabs[i].group_owner)
+				if (check_belong_to_group (tabs[i].group, name, name_encoding))
+					return tabs[i].group;
+	}else
+	{
+		int len = strlen (name);
+		if (len >= group->pattern_length)
+		{
+			if (group->pattern_is_tail)
+			{
+				if (strcmp (name + len - group->pattern_length, group->pattern) == 0)
+					return group;
+			}else if (strncmp (name, group->pattern, group->pattern_length) == 0)
+				return group;
+		}
+	}
+	return NULL;
+}
+
+void 
+remove_from_group (ASWinTabGroup *group, int t)
+{
+	int tab_num = PVECTOR_USED(WinTabsState.tabs);
+    ASWinTab *tabs = PVECTOR_HEAD( ASWinTab, WinTabsState.tabs );
+
+LOCAL_DEBUG_CALLER_OUT ("group = %p, tab = %d", group, t);
+
+	if (group && t >= 0 && t < tab_num)
+		if (tabs[t].group == group)
+		{
+			if (tabs[t].group_owner)
+			{
+				/* TODO */
+			}
+			tabs[t].group = NULL;
+		}
+}
+
+void 
+add_to_group (ASWinTabGroup *group, int t)
+{
+	int tab_num = PVECTOR_USED(WinTabsState.tabs);
+    ASWinTab *tabs = PVECTOR_HEAD( ASWinTab, WinTabsState.tabs );
+
+LOCAL_DEBUG_CALLER_OUT ("group = %p, tab = %d", group, t);
+	if (group && t >= 0 && t < tab_num)
+		if (tabs[t].group == NULL)
+		{
+			tabs[t].group = group;
+			tabs[t].calculated_width = 0;
+		}
+}
+
+
+#define MIN_MATCH_LENGTH 5
+
+int 
+find_longest_common_substring (const char *str1, int len1, const char *str2)
+{
+	int len2 = strlen (str2);
+	int min_len = (len1 < len2)? len1 : len2;
+	int start = 0, tail = 0; 
+	
+	while (start < min_len && str1[start] == str2[start]) ++start;
+	
+	str1 += len1-1;
+	str2 += len2-1;
+	
+	while (str1[tail] == str2[tail] && tail > -min_len) --tail;
+	
+	return (start+tail < 0)? tail : start;
+}
+
+void 
+check_create_new_group()
+{
+	int tab_num = PVECTOR_USED(WinTabsState.tabs);
+    ASWinTab *tabs = PVECTOR_HEAD( ASWinTab, WinTabsState.tabs );
+	int i, k;
+	int best_match = 0, bm_i = 0, bm_substr_len = 0;
+	int group_owners_count;
+
+	for (i = 0 ; i < tab_num ; ++i)
+		if (!tabs[i].group || !tabs[i].group_owner)
+			break;
+	group_owners_count = i;
+LOCAL_DEBUG_CALLER_OUT ("group_owners_count = %d", i);
+	
+	for (; i < tab_num ; ++i)
+	{
+		if (!tabs[i].group)
+		{
+			int len_i = strlen (tabs[i].name);
+			if (len_i >= MIN_MATCH_LENGTH)
+			{
+				for (k = i+1 ; k < tab_num ; ++k)
+					if (!tabs[k].group && tabs[k].name_encoding == tabs[i].name_encoding)
+					{
+						int substr_len = find_longest_common_substring (tabs[i].name, len_i, tabs[k].name);
+						int nm = substr_len*substr_len;
+						if (best_match < nm)
+						{
+							best_match = nm;
+							bm_i = i;
+							bm_substr_len = substr_len;
+						}
+					}
+			}
+		}
+	}
+LOCAL_DEBUG_OUT ( "bm_i = %d, bm_substr_len = %d", bm_i, bm_substr_len);
+	if (best_match >= MIN_MATCH_LENGTH*MIN_MATCH_LENGTH)
+	{
+		ASWinTabGroup *group = safecalloc (1, sizeof(ASWinTabGroup));
+		char *group_name;
+		int i;
+		ASWinTab *aswt;
+		if (bm_substr_len < 0)
+		{
+			int len = strlen (tabs[bm_i].name);
+			group->pattern_is_tail = True;
+			group->pattern_length = -bm_substr_len;
+LOCAL_DEBUG_OUT ( "len = %d", len);
+LOCAL_DEBUG_OUT ( "name = \"%s\"", tabs[bm_i].name);
+LOCAL_DEBUG_OUT ( "pattern = \"%s\"", tabs[bm_i].name + len +bm_substr_len);
+			group->pattern = mystrdup (tabs[bm_i].name + len +bm_substr_len);
+		}else
+		{
+			group->pattern_length = -bm_substr_len;
+			group->pattern = mystrndup (tabs[bm_i].name, bm_substr_len);
+		}
+		group->pattern_encoding = tabs[bm_i].name_encoding;
+		group_name = safemalloc (group->pattern_length + 3);
+		
+		i = 0;
+		if (group->pattern_is_tail)
+			while (isspace (group->pattern[i]) 
+					|| group->pattern[i] == '-' 
+					|| group->pattern[i] == ':' ) ++i;
+
+		sprintf (group_name, "[%s", &(group->pattern[i]));
+
+		i = group->pattern_length - i;
+		if (!group->pattern_is_tail)
+			while ( isspace(group_name[i]) 
+					|| group_name[i] == '-' 
+					|| group_name[i] == ':' 
+			       ) --i;
+
+		group_name[i+1] = ']';
+		group_name[i+2] = '\0';
+		
+		aswt = add_tab(None, group_name, group->pattern_encoding);
+		free (group_name);
+		aswt->group = group;
+		aswt->group_owner = True;
+		
+		/* somewhat crude code to have group buttons at the beginning of the list */
+		vector_relocate_elem (WinTabsState.tabs, PVECTOR_USED(WinTabsState.tabs)-1, bm_i/*group_owners_count*/);
+			
+		tabs = PVECTOR_HEAD(ASWinTab, WinTabsState.tabs);
+		tab_num = PVECTOR_USED(WinTabsState.tabs);
+		
+		/* now we need to add all applicable tabs to the new group */
+		for (i = 0 ; i < tab_num ; ++i)
+			if (!tabs[i].group && check_belong_to_group (group, tabs[i].name, tabs[i].name_encoding))
+			{
+				add_to_group (group, i);
+				set_tab_title( &(tabs[i]) );
+				if (tabs[i].client == WinTabsState.selected_client)
+				{
+					WinTabsState.selected_client = None;
+					select_tab (i);
+				}
+			}
+	}
+}
+
 
