@@ -259,6 +259,7 @@ void remove_from_group (ASWinTabGroup *group, int t);
 void add_to_group (ASWinTabGroup *group, int t);
 void check_create_new_group();
 void check_tab_grouping (int t);
+void fix_grouping_order();
 
 /* above function may also return : */
 #define BANNER_TAB_INDEX -1		   
@@ -1462,8 +1463,11 @@ LOCAL_DEBUG_OUT ("i = %d, name = \"%s\", x = %d, width = %d", i, tabs[i].name, x
             width = max_width ;
 
 LOCAL_DEBUG_OUT ("i = %d, name = \"%s\", x = %d, width = %d", i, tabs[i].name, x, width );
-        width += delta ;
-        spare -= delta ; 
+		if (!tabs[i].group_owner || delta < 0)
+		{
+        	width += delta ;
+	        spare -= delta ; 
+		}
 
 LOCAL_DEBUG_OUT ("i = %d, name = \"%s\", x = %d, width = %d", i, tabs[i].name, x, width );
         set_astbar_size( tabs[i].bar, width, tab_height );
@@ -1608,7 +1612,7 @@ rearrange_tabs( Bool dont_resize_window )
         if( width > max_width )
             width = max_width ;
 
-        if (x + width > max_x || (tabs[i].group_owner && i > 1))
+        if (x + width > max_x || (i > start+1 && tabs[i].group != tabs[i-1].group))
         {   
 			if( i  > 0 )  
             	place_tabs_line( tabs, start_x, y, start, i - 1, max_x - x, max_width, tab_height );
@@ -2129,6 +2133,7 @@ LOCAL_DEBUG_OUT ("group = %p", group);
 			{
 				remove_from_group (group, t);		
 				group = NULL;
+				fix_grouping_order();
 			}
 		} 
 
@@ -2138,6 +2143,7 @@ LOCAL_DEBUG_OUT ("group = %p", group);
 			if ((group = check_belong_to_group (NULL, tabs[t].name, tabs[t].name_encoding)) != NULL)
 			{
 				add_to_group (group, t);
+				fix_grouping_order();
 			}else 
 				check_create_new_group();
 		}
@@ -2261,6 +2267,43 @@ check_unswallowed_client( Window client )
 
 /****************************************************************************/
 /* WinTab grouping API :                                                    */
+int
+fix_grouping_order_for_group (int owner_index)
+{
+   	ASWinTab *tabs = PVECTOR_HEAD (ASWinTab, WinTabsState.tabs);
+	int tabs_num = PVECTOR_USED (WinTabsState.tabs);
+	int last = owner_index, next;
+	
+	while (++last < tabs_num && tabs[last].group == tabs[owner_index].group);
+
+	next = last;	
+	do{ 
+		if (++next >= tabs_num)
+			return last-1;
+	}while (tabs[next].group != tabs[owner_index].group);
+	
+	vector_relocate_elem (WinTabsState.tabs, next, last);
+	return -1;
+}
+
+
+void
+fix_grouping_order()
+{
+	int i;
+	int tabs_num;
+	do
+	{
+    	ASWinTab *tabs = PVECTOR_HEAD (ASWinTab, WinTabsState.tabs);
+		tabs_num = PVECTOR_USED (WinTabsState.tabs);
+
+		for (i = 0 ; i < tabs_num; ++i)
+			if (tabs[i].group_owner)
+				if ( (i = fix_grouping_order_for_group (i)) < 0)
+					break;
+	} while (i < tabs_num);
+}
+
 ASWinTabGroup *
 check_belong_to_group (ASWinTabGroup *group, const char *name, INT32 name_encoding)
 {
@@ -2351,15 +2394,15 @@ check_create_new_group()
     ASWinTab *tabs = PVECTOR_HEAD( ASWinTab, WinTabsState.tabs );
 	int i, k;
 	int best_match = 0, bm_i = 0, bm_substr_len = 0;
-	int group_owners_count;
+	int group_owners_count = -1;
 
 	for (i = 0 ; i < tab_num ; ++i)
-		if (!tabs[i].group || !tabs[i].group_owner)
-			break;
-	group_owners_count = i;
+		if (tabs[i].group_owner)
+			group_owners_count = i;
+
 LOCAL_DEBUG_CALLER_OUT ("group_owners_count = %d", i);
 	
-	for (; i < tab_num ; ++i)
+	for (i = 0; i < tab_num ; ++i)
 	{
 		if (!tabs[i].group)
 		{
@@ -2429,7 +2472,7 @@ LOCAL_DEBUG_OUT ( "pattern = \"%s\"", tabs[bm_i].name + len +bm_substr_len);
 		aswt->group_owner = True;
 		
 		/* somewhat crude code to have group buttons at the beginning of the list */
-		vector_relocate_elem (WinTabsState.tabs, PVECTOR_USED(WinTabsState.tabs)-1, bm_i/*group_owners_count*/);
+		vector_relocate_elem (WinTabsState.tabs, PVECTOR_USED(WinTabsState.tabs)-1, group_owners_count+1);
 			
 		tabs = PVECTOR_HEAD(ASWinTab, WinTabsState.tabs);
 		tab_num = PVECTOR_USED(WinTabsState.tabs);
@@ -2446,6 +2489,7 @@ LOCAL_DEBUG_OUT ( "pattern = \"%s\"", tabs[bm_i].name + len +bm_substr_len);
 					select_tab (i);
 				}
 			}
+		fix_grouping_order();
 	}
 }
 
