@@ -1446,6 +1446,14 @@ delete_tab( int index )
 		select_tab (find_tab_for_client (client_to_select));
 }    
 
+static inline int 
+get_restricted_width (ASWinTab *tab, int max_width)
+{
+    if( tab->calculated_width < Config->min_tab_width ) 
+        return Config->min_tab_width ;
+    return ( tab->calculated_width > max_width )?max_width:tab->calculated_width;
+}
+
 void
 place_tabs_line( ASWinTab *tabs, int x, int y, int first, int last, int spare, int max_width, int tab_height )
 {
@@ -1453,14 +1461,8 @@ place_tabs_line( ASWinTab *tabs, int x, int y, int first, int last, int spare, i
 
     for( i = first ; i <= last ; ++i ) 
     {
-        int width  = tabs[i].calculated_width;
 		int delta = spare / (last+1-i) ;
-
-LOCAL_DEBUG_OUT ("i = %d, name = \"%s\", x = %d, width = %d", i, tabs[i].name, x, width );
-        if( width < Config->min_tab_width ) 
-            width = Config->min_tab_width ;
-        if( width > max_width )
-            width = max_width ;
+        int width  = get_restricted_width (tabs+i, max_width);
 
 LOCAL_DEBUG_OUT ("i = %d, name = \"%s\", x = %d, width = %d", i, tabs[i].name, x, width );
 		if (!tabs[i].group_owner || delta < 0)
@@ -1527,6 +1529,7 @@ rearrange_tabs( Bool dont_resize_window )
     int max_x = mc->width ; 
     int max_y = mc->height ; 
     int max_width = Config->max_tab_width ; 
+    int max_group_owner_width = 0; 
     int start = 0, start_x ;
 
 	if( tabs_num == 0 ) 
@@ -1597,27 +1600,40 @@ rearrange_tabs( Bool dont_resize_window )
     set_astbar_size( WinTabsState.banner.bar, x, tab_height );
     move_astbar( WinTabsState.banner.bar, WinTabsState.tabs_canvas, 0, 0 );
 
+    for( i = 0 ; i < tabs_num ; ++i ) 
+	{
+		int width = calculate_astbar_width( tabs[i].bar );
+
+		if (tabs[i].calculated_width < width)
+			tabs[i].calculated_width = width;
+
+		if (max_group_owner_width < tabs[i].calculated_width && tabs[i].group_owner)
+			max_group_owner_width = tabs[i].calculated_width;
+	}
+#if 0 
+	/* having all the group tabs to be the same size turns out not to be such a great idea */       
+	if (max_group_owner_width > 0)
+	    for (i = 0 ; i < tabs_num ; ++i) 
+		{
+			if (tabs[i].group_owner)
+				tabs[i].calculated_width = max_group_owner_width;
+		}
+#endif	
+
 	start = 0 ;
 	start_x = x ;
     for( i = 0 ; i < tabs_num ; ++i ) 
     {    
-        int width  = calculate_astbar_width( tabs[i].bar );
-		if (tabs[i].calculated_width > width)
-			width = tabs[i].calculated_width;
-		else
-			tabs[i].calculated_width = width;
-
-        if( width < Config->min_tab_width ) 
-            width = Config->min_tab_width ;
-        if( width > max_width )
-            width = max_width ;
+        int width  = get_restricted_width (tabs+i, max_width);
 
         if (x + width > max_x || (i > start+1 && tabs[i].group != tabs[i-1].group))
         {   
 			if( i  > 0 )  
             	place_tabs_line( tabs, start_x, y, start, i - 1, max_x - x, max_width, tab_height );
+
             if( y + tab_height > max_y ) 
                 break;
+
             y += tab_height ; 
             x = 0 ;
 			start = i ;
@@ -1897,13 +1913,17 @@ do_swallow_window( ASWindowData *wd )
 	map_canvas_window( nc, True );
     send_swallowed_configure_notify(aswt);
     
-    select_tab( PVECTOR_USED(WinTabsState.tabs)-1 );
-
 	if( !handle_tab_name_change( wd->client ) )
 	{
 		check_tab_grouping (PVECTOR_USED(WinTabsState.tabs)-1);
 	    rearrange_tabs( False );
 	}
+
+	/* have to do that AFTER we done with grouping, 
+	 * so that group owner would get selected : 
+	 */
+    select_tab (find_tab_for_client (wd->client));
+
     ASSync(False);
     ungrab_server();
 }
