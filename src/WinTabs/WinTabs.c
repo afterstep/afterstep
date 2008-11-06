@@ -2388,7 +2388,7 @@ LOCAL_DEBUG_CALLER_OUT ("group = %p, tab = %d", group, t);
 					set_astbar_focused(tabs[go_idx].bar, WinTabsState.tabs_canvas, False);
 				}
 			}
-			vector_relocate_elem (WinTabsState.tabs, t, tab_num-1);
+			vector_relocate_elem (WinTabsState.tabs, t, tab_num-13);
 			t = find_tab_for_client (client);
 		}
 	return t;
