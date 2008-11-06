@@ -64,6 +64,7 @@ typedef struct ASWinTabGroup
 	Bool 	selected;		
 	
 	Window  selected_client;
+	int		seqno;
 	
 }ASWinTabGroup;
 
@@ -88,6 +89,7 @@ typedef struct ASWinTab
 
 	ASWinTabGroup  *group;
 	Bool 			group_owner;
+	int 			group_seqno;
 
 	int calculated_width;
 }ASWinTab;
@@ -255,7 +257,7 @@ void delete_tab( int index );
 void set_frame_background( ASWinTab *aswt );
 
 ASWinTabGroup *check_belong_to_group (ASWinTabGroup *group, const char *name, INT32 name_encoding);
-void remove_from_group (ASWinTabGroup *group, int t);
+int remove_from_group (ASWinTabGroup *group, int t);
 void add_to_group (ASWinTabGroup *group, int t);
 void check_create_new_group();
 void check_tab_grouping (int t);
@@ -1329,16 +1331,19 @@ set_tab_title( ASWinTab *aswt )
 	if (aswt->group && !aswt->group_owner)
 	{
 		int name_len = strlen (aswt->name);
-		display_name = safemalloc (name_len);
+		display_name = safemalloc (name_len + 16);
 		name_len -= aswt->group->pattern_length;
-		if (aswt->group->pattern_is_tail)
+		if (name_len == 0)
 		{
-			strncpy (display_name, aswt->name, name_len);
+			sprintf (display_name, "#%d", aswt->group_seqno);
 		}else
 		{
-			strcpy (display_name, aswt->name + aswt->group->pattern_length);
+			if (aswt->group->pattern_is_tail)
+				strncpy (display_name, aswt->name, name_len);
+			else
+				strcpy (display_name, aswt->name + aswt->group->pattern_length);
+			display_name[name_len] = '\0';
 		}
-		display_name[name_len] = '\0';
 	}
 
 	add_astbar_label( aswt->bar, 0, 0, 0, align, h_spacing, v_spacing, display_name, aswt->name_encoding);
@@ -1428,6 +1433,7 @@ delete_tab( int index )
 		        set_astbar_focused(tabs[owner_index].bar, WinTabsState.tabs_canvas, False);
 			owner_index = -1;
 		}
+		
 	}
 
     vector_remove_index (WinTabsState.tabs, index);
@@ -2151,7 +2157,7 @@ LOCAL_DEBUG_OUT ("group = %p", group);
 		{
 			if (!check_belong_to_group (group, tabs[t].name, tabs[t].name_encoding))
 			{
-				remove_from_group (group, t);		
+				t = remove_from_group (group, t);		
 				group = NULL;
 				fix_grouping_order();
 			}
@@ -2353,23 +2359,39 @@ LOCAL_DEBUG_CALLER_OUT ("group = %p, name = \"%s\"", group, name);
 	return NULL;
 }
 
-void 
+int
 remove_from_group (ASWinTabGroup *group, int t)
 {
 	int tab_num = PVECTOR_USED(WinTabsState.tabs);
     ASWinTab *tabs = PVECTOR_HEAD( ASWinTab, WinTabsState.tabs );
+	Window client = tabs[t].client;
 
 LOCAL_DEBUG_CALLER_OUT ("group = %p, tab = %d", group, t);
 
 	if (group && t >= 0 && t < tab_num)
-		if (tabs[t].group == group)
+		if (tabs[t].group == group && !tabs[t].group_owner)
 		{
-			if (tabs[t].group_owner)
-			{
-				/* TODO */
-			}
+			int go_idx = find_group_owner (group);
 			tabs[t].group = NULL;
+			if (go_idx >= 0)
+			{
+				if (find_tab_for_group (group, 0) < 0)
+				{
+					delete_tab (go_idx);
+					free (group->pattern);
+					free (group);
+					--tab_num;
+					if (t > go_idx)
+						--t;
+				}else if (tabs[t].client == WinTabsState.selected_client)
+				{
+					set_astbar_focused(tabs[go_idx].bar, WinTabsState.tabs_canvas, False);
+				}
+			}
+			vector_relocate_elem (WinTabsState.tabs, t, tab_num-1);
+			t = find_tab_for_client (client);
 		}
+	return t;
 }
 
 void 
@@ -2384,6 +2406,7 @@ LOCAL_DEBUG_CALLER_OUT ("group = %p, tab = %d", group, t);
 		{
 			tabs[t].group = group;
 			tabs[t].calculated_width = 0;
+			tabs[t].group_seqno = ++(group->seqno);
 		}
 }
 
@@ -2462,7 +2485,7 @@ LOCAL_DEBUG_OUT ( "pattern = \"%s\"", tabs[bm_i].name + len +bm_substr_len);
 			group->pattern = mystrdup (tabs[bm_i].name + len +bm_substr_len);
 		}else
 		{
-			group->pattern_length = -bm_substr_len;
+			group->pattern_length = bm_substr_len;
 			group->pattern = mystrndup (tabs[bm_i].name, bm_substr_len);
 		}
 		group->pattern_encoding = tabs[bm_i].name_encoding;
