@@ -804,8 +804,45 @@ add_member_to_group_lead( ASWindow *group_lead, ASWindow *member )
     member->group_lead = group_lead ;
     if( group_lead->group_members == NULL )
         group_lead->group_members = create_asvector( sizeof( ASWindow* ) );
+/* ATTN: Inserting pointer to a member into the beginning of the list */
     vector_insert_elem( group_lead->group_members, &member, 1, NULL, True );
 }
+
+void
+add_aswindow_to_layer( ASWindow *asw, int layer )
+{
+    if( !AS_ASSERT(asw) && asw->transient_owner == NULL )
+    {
+        ASLayer  *dst_layer = get_aslayer( layer, Scr.Windows );
+        /* inserting window into the top of the new layer */
+
+	    LOCAL_DEBUG_OUT( "adding window %p to the top of the layer %p (%d)", asw, dst_layer, layer );
+/* ATTN: Inserting pointer to a member into the beginning of the list */
+        if( !AS_ASSERT(dst_layer) )
+            vector_insert_elem( dst_layer->members, &asw, 1, NULL, True );
+    }
+}
+
+void
+remove_aswindow_from_layer( ASWindow *asw, int layer )
+{
+    if( !AS_ASSERT(asw) )
+    {
+        ASLayer  *src_layer = get_aslayer( layer, Scr.Windows );
+	    LOCAL_DEBUG_OUT( "removing window %p from layer %p (%d)", asw, src_layer, layer );
+        if( !AS_ASSERT(src_layer) )
+		{
+			LOCAL_DEBUG_OUT( "can be found at index %d", vector_find_data(	src_layer->members, &asw ) );
+		    while( vector_find_data( src_layer->members, &asw ) < src_layer->members->used )
+	    	{
+    	        vector_remove_elem( src_layer->members, &asw );
+	    	    LOCAL_DEBUG_OUT( "after deletion can be found at index %d(used%d)", vector_find_data(   src_layer->members, &asw ), src_layer->members->used );
+		    }
+		}
+    }
+}
+
+
 
 void
 tie_aswindow( ASWindow *t )
@@ -815,7 +852,8 @@ tie_aswindow( ASWindow *t )
         ASWindow *transient_owner  = window2ASWindow(t->hints->transient_for);
         if( transient_owner != NULL )
         {/* we want to find the topmost window */
-   			while( transient_owner->transient_owner != NULL ) 
+   			while( transient_owner->transient_owner != NULL &&
+				   transient_owner != transient_owner->transient_owner) 
 			{
 				if( ASWIN_GET_FLAGS(transient_owner->transient_owner, AS_Dead) )
 				{
@@ -831,6 +869,7 @@ tie_aswindow( ASWindow *t )
             t->transient_owner = transient_owner ;
             if( transient_owner->transients == NULL )
                 transient_owner->transients = create_asvector( sizeof( ASWindow* ) );
+/* ATTN: Inserting pointer to a transient into the beginning of the list */
             vector_insert_elem( transient_owner->transients, &t, 1, NULL, True );
         }
     }
@@ -857,7 +896,12 @@ untie_aswindow( ASWindow *t )
 	if( t->transients && PVECTOR_USED(t->transients) > 0 )
 	{
 		sublist = PVECTOR_HEAD(ASWindow*,t->transients);
-		for( i = 0 ; i < PVECTOR_USED(t->transients) ; ++i ) 
+
+/* ATTN: this code reverses the order if add_aswindow_to_layer inserts into the beginnig of the list !!! */
+		/*for( i = 0 ; i < PVECTOR_USED(t->transients) ; ++i ) */
+/* ATTN: this code keeps the order if add_member_to_group_lead inserts into the beginnig of the list !!! */
+		i = PVECTOR_USED(t->transients);
+		while( --i >= 0 )
 			if( sublist[i] && sublist[i]->magic == MAGIC_ASWINDOW && sublist[i]->transient_owner == t ) 
 			{	/* we may need to delete this windows actually */
 				sublist[i]->transient_owner = NULL ;
@@ -876,8 +920,12 @@ untie_aswindow( ASWindow *t )
 		sublist = PVECTOR_HEAD(ASWindow*,t->group_members);
 		new_gl = sublist[0] ; 
 		new_gl->group_lead = NULL ; 
-		
-		for( i = 1 ; i < PVECTOR_USED(t->group_members) ; ++i ) 
+
+/* ATTN: this code reverses the order if add_member_to_group_lead inserts into the beginnig of the list !!! */
+		/*for( i = 1 ; i < PVECTOR_USED(t->group_members) ; ++i ) */
+/* ATTN: this code keeps the order if add_member_to_group_lead inserts into the beginnig of the list !!! */
+		i = PVECTOR_USED(t->group_members);
+		while( --i >= 0 )
 			if( sublist[i] && sublist[i]->magic == MAGIC_ASWINDOW && sublist[i]->group_lead == t ) 
 			{
 				sublist[i]->group_lead = NULL ;
@@ -886,39 +934,6 @@ untie_aswindow( ASWindow *t )
 	}
 }
 
-void
-add_aswindow_to_layer( ASWindow *asw, int layer )
-{
-    if( !AS_ASSERT(asw) && asw->transient_owner == NULL )
-    {
-        ASLayer  *dst_layer = get_aslayer( layer, Scr.Windows );
-        /* inserting window into the top of the new layer */
-    LOCAL_DEBUG_OUT( "adding window %p to layer %p (%d)", asw, dst_layer, layer );
-        if( !AS_ASSERT(dst_layer) )
-            vector_insert_elem( dst_layer->members, &asw, 1, NULL, True );
-    }
-}
-
-void
-remove_aswindow_from_layer( ASWindow *asw, int layer )
-{
-    if( !AS_ASSERT(asw) )
-    {
-        ASLayer  *src_layer = get_aslayer( layer, Scr.Windows );
-	    LOCAL_DEBUG_OUT( "removing window %p from layer %p (%d)", asw, src_layer, layer );
-        if( !AS_ASSERT(src_layer) )
-		{
-			LOCAL_DEBUG_OUT( "can be found at index %d", vector_find_data(	src_layer->members, &asw ) );
-		    while( vector_find_data( src_layer->members, &asw ) < src_layer->members->used )
-	    	{
-    	        vector_remove_elem( src_layer->members, &asw );
-	    	    LOCAL_DEBUG_OUT( "after deletion can be found at index %d(used%d)", vector_find_data(   src_layer->members, &asw ), src_layer->members->used );
-		    }
-		}
-    }
-}
-
-
 Bool
 enlist_aswindow( ASWindow *t )
 {
@@ -926,9 +941,14 @@ enlist_aswindow( ASWindow *t )
         Scr.Windows = init_aswindow_list();
 
     append_bidirelem( Scr.Windows->clients, t );
+
+/* ATTN: Inserting pointer to a member into the beginning of the circulate list */
     vector_insert_elem( Scr.Windows->circulate_list, &t, 1, NULL, True );
 
     tie_aswindow( t );
+
+/*fprintf (stderr, "Stacking order (%s): ptr = %p, transient_owner = %p, Layer = %d\n",		 __FUNCTION__, t, t->transient_owner, ASWIN_LAYER(t));
+*/
 	if( t->transient_owner == NULL )
     	add_aswindow_to_layer( t, ASWIN_LAYER(t) );
 		
@@ -961,248 +981,6 @@ delist_aswindow( ASWindow *t )
 	publish_aswindow_list( Scr.Windows, False );	   
 }
 
-#if 0
-void
-update_visibility( int desk )
-{
-    static ASVector *ptrs = NULL ;
-    static ASVector *layers = NULL ;
-    static ASVector *rects = NULL ;
-    unsigned long layers_in ;
-    register long windows_num ;
-    ASLayer **l ;
-    ASWindow  **asws ;
-    XRectangle *vrect;
-    XRectangle srect ;
-    int i;
-
-    if( !IsValidDesk(desk) )
-    {
-        if( ptrs )
-            destroy_asvector( &ptrs );
-        if( layers )
-            destroy_asvector( &layers );
-        if( rects )
-            destroy_asvector( &rects );
-        return;
-    }
-
-    if( Scr.Windows->clients->count == 0)
-        return;
-
-    if( layers == NULL )
-        layers = create_asvector( sizeof(ASLayer*) );
-    if( Scr.Windows->layers->items_num > layers->allocated )
-        realloc_vector( layers, Scr.Windows->layers->items_num );
-
-    if( ptrs == NULL )
-        ptrs = create_asvector( sizeof(ASWindow*) );
-    else
-        flush_vector( ptrs );
-    if( Scr.Windows->clients->count > ptrs->allocated )
-        realloc_vector( ptrs, Scr.Windows->clients->count );
-
-    if( (layers_in = sort_hash_items (Scr.Windows->layers, NULL, (void**)VECTOR_HEAD_RAW(*layers), 0)) == 0 )
-        return ;
-
-    l = VECTOR_HEAD(ASLayer*,*layers);
-    asws = VECTOR_HEAD(ASWindow*,*ptrs);
-    windows_num = 0 ;
-    for( i = 0 ; i < layers_in ; i++ )
-    {
-        register int k, end_k = VECTOR_USED(*(l[i]->members)) ;
-        register ASWindow **members = VECTOR_HEAD(ASWindow*,*(l[i]->members));
-        if( end_k > ptrs->allocated )
-            end_k = ptrs->allocated ;
-        for( k = 0 ; k < end_k ; k++ )
-            if( ASWIN_DESK(members[k]) == desk && !ASWIN_GET_FLAGS(members[k], AS_Dead))
-                asws[windows_num++] = members[k];
-    }
-    VECTOR_USED(*ptrs) = windows_num ;
-
-    if( rects == NULL )
-        rects = create_asvector( sizeof(XRectangle) );
-    VECTOR_USED(*rects) = 0;
-
-    srect.x = 0;
-    srect.y = 0;
-    srect.width = Scr.MyDisplayWidth ;
-    srect.height = Scr.MyDisplayHeight ;
-
-    append_vector( rects, &srect, 1 );
-    vrect = VECTOR_HEAD(XRectangle,*rects);
-
-    for( i = 0 ; i < windows_num ; ++i )
-    {
-        ASCanvas *client = asws[i]->client_canvas ;
-        ASCanvas *frame = asws[i]->frame_canvas ;
-		int client_left, client_right, client_bottom, client_top ; 
-        int r ;
-		Bool visible = False;
-
-        if( ASWIN_GET_FLAGS( asws[i], AS_Iconic ) )
-        {
-            frame = client = asws[i]->icon_canvas ;
-            if( frame == NULL )
-                continue ;
-        }else if( ASWIN_GET_FLAGS( asws[i], AS_Shaded ) )
-            client = frame ;
-
-        ASWIN_CLEAR_FLAGS( asws[0], AS_Hidden );
-
-        r = VECTOR_USED(*rects);
-		client_left = client->root_x ;
-		client_top = client->root_y ;		
-		client_right = client_left + (int)client->width+(int)client->bw*2 ;		
-		client_bottom = client_top + (int)client->height+(int)client->bw*2 ;
-        while( --r >= 0 )
-        {
-            if( client_right  > vrect[r].x &&
-                client_left   < vrect[r].x+(int)vrect[r].width &&
-                client_bottom > vrect[r].y &&
-                client_top    < vrect[r].y+(int)vrect[r].height )
-            {
-				visible = True ;
-                break;
-            }
-        }
-		if( !visible ) 
-			ASWIN_SET_FLAGS( asws[0], AS_Hidden );
-    }
-}
-#endif
-
-#if 0
-/********************************************************************************************/
-/* old version of code - stacking window IDs instead of pointers to ASWindow */
-static void 
-stack_transients( ASWindow *asw, ASVector *ids, Bool use_frame_ids ) 
-{
-	int tnum = PVECTOR_USED(asw->transients);
-    LOCAL_DEBUG_OUT( "Client %lX has %d transients", asw->w, tnum );
-	if( tnum > 0 )
-	{/* need to collect all the transients and stick them in front of us in order of creation */
-		ASWindow **sublist = PVECTOR_HEAD(ASWindow*,asw->transients);
-		int curr ;
-		for( curr = 0 ; curr < tnum ; ++curr )
-	        if( !ASWIN_GET_FLAGS(sublist[curr], AS_Dead) )
-			{
-				Window w = use_frame_ids?get_window_frame(sublist[curr]):sublist[curr]->w;
-				if( vector_find_data(ids, &w)  >= PVECTOR_USED(ids) )
-				{
-			    	LOCAL_DEBUG_OUT( "Adding transient%s #%d - %lX", use_frame_ids?"'s frame":"", curr, w );
-					vector_insert_elem(ids, &w, 1, NULL, False);
-				}
-			}
-	}
-}
-
-static void
-stack_layer_windows( ASLayer *layer, ASVector *ids, int desk, Bool use_frame_ids ) 
-{
-    int k;
-    ASWindow **members = PVECTOR_HEAD(ASWindow*,layer->members);
-	
-    LOCAL_DEBUG_OUT( "layer %d, end_k = %d", layer->layer, PVECTOR_USED(layer->members) );
-    for( k = 0 ; k < PVECTOR_USED(layer->members) ; k++ )
-    {
-        register ASWindow *asw = members[k] ;
-        if( ASWIN_DESK(asw) == desk && !ASWIN_GET_FLAGS(asw, AS_Dead) )
-		{
-			Window w  = use_frame_ids?get_window_frame(asw):asw->w; 
-		    LOCAL_DEBUG_OUT( "Group Lead %p", asw->group_lead );
-			if( asw->group_lead ) 
-			{/* transients for any window in the group go on top of non-transients in the group */
-				ASWindow **sublist = PVECTOR_HEAD(ASWindow*,asw->group_lead->group_members);
-				int curr = PVECTOR_USED(asw->group_lead->group_members);
-			    LOCAL_DEBUG_OUT( "Group members %d", curr );
-				if( asw->group_lead->transients && !ASWIN_GET_FLAGS(asw->group_lead, AS_Dead) )
-					stack_transients( asw->group_lead, ids, use_frame_ids );
-				while( --curr >= 0 ) 
-				{/* most recent group member should have their transients above others */
-					if( !ASWIN_GET_FLAGS(sublist[curr], AS_Dead) && sublist[curr]->transients ) 
-						stack_transients( sublist[curr], ids, use_frame_ids );
-				}
-			}else if( asw->transients )
-				stack_transients( asw, ids, use_frame_ids );
-
-		    LOCAL_DEBUG_OUT( "Adding client%s - %lX", use_frame_ids?"'s frame":"", w );
-			vector_insert_elem(ids, &w, 1, NULL, False);
-		}
-    }
-}
-
-void
-restack_window_list( int desk, Bool send_msg_only )
-{
-    static ASVector *ids = NULL ;
-    unsigned long layers_in, i ;
-    ASLayer **l ;
-
-    if( !IsValidDesk(desk) )
-    {
-        if( ids )
-            destroy_asvector( &ids );
-        if( layers )
-            destroy_asvector( &layers );
-        return;
-    }
-
-    if( Scr.Windows->clients->count == 0)
-        return;
-
-    if( (layers_in = get_sorted_layers_vector( &layers )) == 0 )
-        return ;
-
-    if( ids == NULL )
-        ids = create_asvector( sizeof(Window) );
-    else
-        flush_vector( ids );
-    if( Scr.Windows->clients->count+2 > ids->allocated )
-        realloc_vector( ids, Scr.Windows->clients->count+2 );
-
-    l = PVECTOR_HEAD(ASLayer*,layers);
-    LOCAL_DEBUG_OUT( "filling up array with window IDs: layers_in = %ld, Total clients = %d", layers_in, Scr.Windows->clients->count );
-	flush_vector( ids );
-    for( i = 0 ; i < layers_in ; i++ )
-		stack_layer_windows( l[i], ids, desk, False );
-
-    LOCAL_DEBUG_OUT( "Sending stacking order: windows_num = %d, ", PVECTOR_USED(ids) );
-    SendStackingOrder (-1, M_STACKING_ORDER, desk, ids);
-
-	publish_aswindow_list( Scr.Windows, True );
-	
-    if( !send_msg_only )
-    {
-		int windows_num ; 
-		Window cw = get_desktop_cover_window();
-        l = PVECTOR_HEAD(ASLayer*,layers);
-
-		flush_vector( ids );
-        if( cw != None )
-			vector_insert_elem(ids, &cw, 1, NULL, True);
-	
-        LOCAL_DEBUG_OUT( "filling up array with window frame IDs: layers_in = %ld, ", layers_in );
-        for( i = 0 ; i < layers_in ; i++ )
-			stack_layer_windows( l[i], ids, desk, True );
-
-		windows_num = PVECTOR_USED(ids);
-        LOCAL_DEBUG_OUT( "Setting stacking order: windows_num = %d, ", windows_num );
-        if( windows_num > 0 )
-        {
-		    Window  *windows = PVECTOR_HEAD(Window,ids);
-			
-            XRaiseWindow( dpy, windows[0] );
-            if( windows_num > 1 )
-                XRestackWindows( dpy, windows, windows_num );
-            XSync(dpy, False);
-        }
-        raise_scren_panframes (ASDefaultScr);
-        XRaiseWindow(dpy, Scr.ServiceWin);
-    }
-}
-
-#endif
 /********************************************************************************************/
 /********************************************************************************************/
 /********************************************************************************************/
@@ -1213,7 +991,7 @@ get_sorted_layers_vector( ASVector **layers )
         *layers = create_asvector( sizeof(ASLayer*) );
     if( Scr.Windows->layers->items_num > (*layers)->allocated )
         realloc_vector( *layers, Scr.Windows->layers->items_num );
-
+/* Layers are sorted in descending order  (see init_winlist) */
 	return sort_hash_items (Scr.Windows->layers, NULL, (void**)VECTOR_HEAD_RAW(**layers), 0);	
 }
 
@@ -1232,6 +1010,7 @@ stack_transients( ASWindow *asw, ASVector *list)
 				if( vector_find_data(list, &sublist[curr])  >= PVECTOR_USED(list) )
 				{
 			    	LOCAL_DEBUG_OUT( "Adding transient #%d - %p, w = %lX, frame = %lX", curr, sublist[curr], sublist[curr]->w, sublist[curr]->frame );
+/* ATTN: Inserting pointer to a transient into the END of the stacking list */
 					vector_insert_elem(list, &sublist[curr], 1, NULL, False);
 				}
 			}
@@ -1258,6 +1037,8 @@ stack_layer_windows( ASLayer *layer, ASVector *list )
 			    LOCAL_DEBUG_OUT( "Group members %d", curr );
 				if( asw->group_lead->transients && !ASWIN_GET_FLAGS(asw->group_lead, AS_Dead) )
 					stack_transients( asw->group_lead, list );
+
+/* ATTN: traversing group members in reverse order ????*/
 				while( --curr >= 0 ) 
 				{/* most recent group member should have their transients above others */
 					if( !ASWIN_GET_FLAGS(sublist[curr], AS_Dead) && sublist[curr]->transients ) 
@@ -1267,7 +1048,12 @@ stack_layer_windows( ASLayer *layer, ASVector *list )
 				stack_transients( asw, list );
 
 		    LOCAL_DEBUG_OUT( "Adding client - %p, w = %lX, frame = %lX", asw, asw->w, asw->frame );
+/* ATTN: Inserting pointer to a window into the END of the stacking list */
 			vector_insert_elem(list, &asw, 1, NULL, False);
+
+/*fprintf (stderr, "\tStacking order append(%s) : id = 0x%8.8lX, ptr = %p, name = \"%s\", total = %d\n", 				 __FUNCTION__, asw->w, asw, ASWIN_NAME(asw), PVECTOR_USED(list));
+*/
+
 		}
     }
 }
@@ -1312,10 +1098,14 @@ update_stacking_order()
     l = PVECTOR_HEAD(ASLayer*,layers);
     for( i = 0 ; i < layers_in ; i++ )
 		stack_layer_windows( l[i], list );
+
+/*	fprintf (stderr, "updated Stacking order of %d windows. Clients count = %d, Layers count = %d. \n", PVECTOR_USED(list), Scr.Windows->clients->count, layers_in);
+*/
+
 }
 
 static ASWindow ** 
-get_stacking_orger_list(ASWindowList *list, int *stack_len_return )
+get_stacking_order_list(ASWindowList *list, int *stack_len_return )
 {
 	int stack_len = PVECTOR_USED(list->stacking_order);
 	if( stack_len == 0 ) 
@@ -1324,6 +1114,16 @@ get_stacking_orger_list(ASWindowList *list, int *stack_len_return )
 		stack_len = PVECTOR_USED(list->stacking_order);
 	}
 	*stack_len_return = stack_len ;
+/****
+{
+	int i;
+	ASWindow **list = PVECTOR_HEAD(ASWindow*, Scr.Windows->stacking_order);
+	fprintf (stderr, "Stacking order of %d windows: \n", stack_len);
+	for ( i = 0 ; i < stack_len; ++i)
+		fprintf (stderr, "\t%4.4d : id = 0x%8.8lX, ptr = %p, name = \"%s\"\n", 
+				 i, list[i]->w, list[i], ASWIN_NAME(list[i]));
+}	
+****/
 	return PVECTOR_HEAD(ASWindow*, Scr.Windows->stacking_order);
 }
 
@@ -1357,7 +1157,7 @@ send_stacking_order( int desk )
 	{
 		int i ; 
 		int stack_len = 0;
-		ASWindow **stack = get_stacking_orger_list(Scr.Windows, &stack_len );
+		ASWindow **stack = get_stacking_order_list(Scr.Windows, &stack_len );
 		ASVector *ids = get_scratch_ids_vector();
 		
 		for( i = 0 ; i < stack_len ; ++i )
@@ -1374,7 +1174,7 @@ apply_stacking_order( int desk )
 	{
 		int i ; 
 		int stack_len = 0;
-		ASWindow **stack = get_stacking_orger_list(Scr.Windows, &stack_len );
+		ASWindow **stack = get_stacking_order_list(Scr.Windows, &stack_len );
 		ASVector *ids = get_scratch_ids_vector();
 		Window cw = get_desktop_cover_window();
 		int windows_num ; 
@@ -1406,7 +1206,7 @@ publish_aswindow_list( ASWindowList *list, Bool stacking_only )
 {
 	int i ;
 	int stack_len = 0;
-	ASWindow **stack = get_stacking_orger_list(Scr.Windows, &stack_len );
+	ASWindow **stack = get_stacking_order_list(Scr.Windows, &stack_len );
 	ASVector *ids = get_scratch_ids_vector();
 	
 	/* we maybe called from Destroy, in which case one of the clients may be 
@@ -1453,7 +1253,7 @@ find_topmost_client( int desk, int root_x, int root_y )
 	{
 		int i ; 
 		int stack_len = 0;
-		ASWindow **stack = get_stacking_orger_list(Scr.Windows, &stack_len );
+		ASWindow **stack = get_stacking_order_list(Scr.Windows, &stack_len );
 
 		for( i = 0 ; i < stack_len ; ++i )
 		{
@@ -1846,6 +1646,8 @@ void autoraise_aswindow( void *data )
         if( exp_sec < tv.tv_sec ||
             (exp_sec == tv.tv_sec && exp_usec <= tv.tv_usec ) )
         {
+/*fprintf (stderr, "Stacking order : Autoraise ptr = %p\n", Scr.Windows->focused);
+*/
             RaiseObscuredWindow(Scr.Windows->focused);
         }
     }
@@ -1887,6 +1689,8 @@ void autoraise_window( ASWindow *asw )
 {
     if (Scr.Feel.AutoRaiseDelay == 0)
     {
+/*fprintf (stderr, "Stacking order : Autoraise ptr = %p\n", asw);
+*/
         RaiseWindow( asw );
     }else if (Scr.Feel.AutoRaiseDelay > 0)
     {

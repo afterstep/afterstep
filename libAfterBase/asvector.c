@@ -297,10 +297,10 @@ LOCAL_DEBUG_CALLER_OUT("0x%lX, 0x%lX, %lu, 0x%lX, %d", (unsigned long)v, (unsign
     }
     if( index < v->used )
         vector_move_data_up(v,index,size,-1);
-    else
-        v->used+=size ;
 
     vector_set_data(v,data,index,size);
+    v->used+=size ;
+
     return index;
 }
 
