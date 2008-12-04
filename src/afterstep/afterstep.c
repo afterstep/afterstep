@@ -43,7 +43,7 @@ ASFlagType AfterStepState = 0; /* default status */
 
 
 /* DBUS stuff is separated into dbus.c */
-int 		  ASDBus_fd = 0;
+int 		  ASDBus_fd = -1;
 
 /* Config : */
 ASVector     *Modules       = NULL;
@@ -197,7 +197,7 @@ main (int argc, char **argv, char **envp)
 		display_progress( True, "AfterStep v.%s is starting up ...", VERSION );
 	}
 
-	if (ASDBus_fd)
+	if (ASDBus_fd>=0)
     	show_progress ("Successfuly accured System DBus connection.");	
 	
 SHOW_CHECKPOINT;
@@ -749,7 +749,7 @@ LOCAL_DEBUG_CALLER_OUT( "%s restart, cmd=\"%s\"", restart?"Do":"Don't", command?
     /* Really make sure that the connection is closed and cleared! */
     XSync (dpy, 0);
 
-	if (ASDBus_fd)
+	if (ASDBus_fd>=0)
 		asdbus_shutdown();
 
 #ifdef XSHMIMAGE

@@ -1777,28 +1777,22 @@ afterstep_wait_pipes_input(int timeout_sec)
 
 	FD_SET (x_fd, &in_fdset);
     max_fd = x_fd ;
+#define AS_FD_SET(fd,fdset) \
+	do{ if (fd>=0) { FD_SET((fd),(fdset)); if ((fd)>max_fd) max_fd = (fd);}}while(0)
 
-    if (Module_fd >= 0)
-    {
-
-        FD_SET (Module_fd, &in_fdset);
-        if (max_fd < Module_fd)
-            max_fd = Module_fd;
-
-    }
+    AS_FD_SET (ASDBus_fd, &in_fdset);
+  	AS_FD_SET (Module_fd, &in_fdset);
 
     {   /* adding all the modules pipes to our wait list */
-        register int i = MIN(MODULES_NUM,Module_npipes) ;
-        register module_t *list = MODULES_LIST ;
+        register int i = MIN(MODULES_NUM,Module_npipes);
+        register module_t *list = MODULES_LIST;
         while( --i >= 0 )
         {
             if (list[i].fd >= 0)
             {
-                FD_SET (list[i].fd, &in_fdset);
+                AS_FD_SET (list[i].fd, &in_fdset);
                 if (list[i].output_queue != NULL)
                     FD_SET (list[i].fd, &out_fdset);
-                if (max_fd < list[i].fd)
-                    max_fd = list[i].fd;
             }else /* man, this modules is dead! get rid of it - it stinks! */
                 vector_remove_index( Modules, i );
         }
@@ -1836,6 +1830,9 @@ afterstep_wait_pipes_input(int timeout_sec)
             	if( has_input || has_output )
                 	HandleModuleInOut(i, has_input, has_output);
 	        }
+        if (ASDBus_fd >= 0)
+            if (FD_ISSET (ASDBus_fd, &in_fdset))
+				asdbus_process_messages ();
 	}
 
 	/* handle timeout events */

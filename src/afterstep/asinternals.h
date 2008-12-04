@@ -379,6 +379,8 @@ extern int           fd_width, x_fd;
 
 extern struct ASWindow *ColormapWin;
 
+extern int 			 ASDBus_fd;
+
 extern struct ASVector *Modules;               /* dynamically resizable array of module_t data structures */
 #define MODULES_LIST    VECTOR_HEAD(module_t,*Modules)
 #define MODULES_NUM     VECTOR_USED(*Modules)
@@ -545,6 +547,7 @@ void display_progress( Bool new_line, const char *msg_format, ... );
 /*************************** dbus.c ***************************************/
 int asdbus_init();
 void asdbus_shutdown();
+void asdbus_process_messages ();
 
 /*************************** decorations.c ********************************/
 ASOrientation* get_orientation_data( ASWindow *asw );
