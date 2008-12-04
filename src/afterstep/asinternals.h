@@ -542,7 +542,9 @@ void cover_desktop();
 void desktop_cover_cleanup();
 void display_progress( Bool new_line, const char *msg_format, ... );
 
-
+/*************************** dbus.c ***************************************/
+int asdbus_init();
+void asdbus_shutdown();
 
 /*************************** decorations.c ********************************/
 ASOrientation* get_orientation_data( ASWindow *asw );

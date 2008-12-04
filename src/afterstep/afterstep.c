@@ -41,6 +41,10 @@
 /* our status */
 ASFlagType AfterStepState = 0; /* default status */
 
+
+/* DBUS stuff is separated into dbus.c */
+int 		  ASDBus_fd = 0;
+
 /* Config : */
 ASVector     *Modules       = NULL;
 int           Module_fd     = 0;
@@ -175,6 +179,10 @@ main (int argc, char **argv, char **envp)
 		show_error( "Hostile X server encountered - unable to proceed :-(");
 		return 1;/* failed to accure window management selection - other wm is running */
 	}
+
+
+	ASDBus_fd = asdbus_init();
+
 	XSetWindowBackground( dpy, Scr.Root, Scr.asv->black_pixel );
 	Scr.Look.desktop_animation_tint = get_random_tint_color();
 
@@ -189,6 +197,9 @@ main (int argc, char **argv, char **envp)
 		display_progress( True, "AfterStep v.%s is starting up ...", VERSION );
 	}
 
+	if (ASDBus_fd)
+    	show_progress ("Successfuly accured System DBus connection.");	
+	
 SHOW_CHECKPOINT;
 	InitSession();
 SHOW_CHECKPOINT;
@@ -737,6 +748,9 @@ LOCAL_DEBUG_CALLER_OUT( "%s restart, cmd=\"%s\"", restart?"Do":"Don't", command?
     CleanupScreen();
     /* Really make sure that the connection is closed and cleared! */
     XSync (dpy, 0);
+
+	if (ASDBus_fd)
+		asdbus_shutdown();
 
 #ifdef XSHMIMAGE
 	flush_shm_cache();

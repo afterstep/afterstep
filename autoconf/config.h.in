@@ -1,4 +1,4 @@
-/* autoconf/config.h.in.  Generated from configure.in by autoheader.  */
+/* autoconf/config.h.in.  Generated from autoconf/configure.in by autoheader.  */
 
 /* Trace memory allocations and check for errors */
 #undef DEBUG_ALLOCS
@@ -17,6 +17,9 @@
 
 /* enable fixed menu entries */
 #undef FIXED_DIR
+
+/* Support for DBus-1 library for interprocess communication */
+#undef HAVE_DBUS1
 
 /* Define to 1 if you have the declaration of `environ', and to 0 if you
    don't. */

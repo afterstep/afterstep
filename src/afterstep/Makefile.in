@@ -1,5 +1,5 @@
 OBJS            = add_window.o afterstep.o aswindow.o \
-                                colormaps.o configure.o cover.o decorations.o dirtree.o \
+                                colormaps.o configure.o cover.o dbus.o decorations.o dirtree.o \
 				events.o functions.o housekeeping.o icons.o \
 				menuitem.o menus.o misc.o module.o \
                                 pager.o placement.o theme.o winstatus.o
@@ -12,8 +12,10 @@ OBJS            = add_window.o afterstep.o aswindow.o \
 
 PROG		= afterstep
 
+INCS_PRIVATE	= @DBUS1_CFLAGS@ -DDBUS_API_SUBJECT_TO_CHANGE
+
 LIBS_PRIVATE      = $(LIB_AFTERCONF) $(LIB_AFTERSTEP) \
-					$(LIB_AFTERIMAGE) $(LIB_AFTERBASE) $(LIBS_AFTERIMAGE)
+					$(LIB_AFTERIMAGE) $(LIB_AFTERBASE) $(LIBS_AFTERIMAGE) @DBUS1_LIBS@
 LIBS_DEPEND     = $(LIB_AFTERBASE) $(LIB_AFTERIMAGE) $(LIB_AFTERSTEP) \
 				  $(LIB_AFTERCONF)
 

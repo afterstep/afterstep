@@ -310,7 +310,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT CXX CXXFLAGS ac_ct_CXX LN_S build build_cpu build_vendor build_os host host_cpu host_vendor host_os INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA RANLIB ac_ct_RANLIB RM MV CP MKDIR PERL FIND XARGS LDCONFIG LEX LEXLIB LEX_OUTPUT_ROOT YACC CPP X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS EGREP x_libraries ALSA_LIBS PKG_CONFIG GTK_CFLAGS GTK_LIBS target target_cpu target_vendor target_os STRIP_BINARIES version app_version libafterstep_version libafterstep_version_major libafterstep_name libafterstep_file_name libafterwidget_version libafterwidget_version_major libafterwidget_name libafterwidget_file_name libafterconf_version libafterconf_version_major libafterconf_name libafterconf_file_name libasgtk_version libasgtk_version_major libasgtk_name libasgtk_file_name with_locale image_format ASCP_FLTK ASCP_FLTK_LIBS ASCP_FLTK_INCLUDES ASCP_GTK GTK_INCLUDES user_ldflags x_libs xine_libs xext_lib readline_libs x_includes XEXT_LIB AFTERBASE_LIB AFTERIMAGE_LIB AFTERIMAGE_LIBS AFTERSTEP_LIB AFTERCONF_LIB ASGTK_LIB WIDGETS_LIB AFTERBASE_STATIC_LIB AFTERIMAGE_STATIC_LIB AFTERSTEP_STATIC_LIB AFTERCONF_STATIC_LIB ASGTK_STATIC_LIB WIDGETS_STATIC_LIB LIBPROG LIBINSTALL LIBUNINSTALL with_afterdir with_imageloader with_soundplayer with_helpcommand with_startsort with_desktops with_desktops_1 with_deskgeometry no_data_reinstall enable_different_looknfeels enable_pagerbackground enable_i18n enable_menuwarp enable_savewindows enable_texture enable_shade enable_virtual enable_saveunders enable_windowlist enable_availability enable_fixeditems SCRIPT_DIR LIBASGTKDIR GTK_APP_DIRS GTK_WIN_COMMAND RUN_COMMAND LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT CXX CXXFLAGS ac_ct_CXX LN_S build build_cpu build_vendor build_os host host_cpu host_vendor host_os INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA RANLIB ac_ct_RANLIB RM MV CP MKDIR PERL FIND XARGS LDCONFIG LEX LEXLIB LEX_OUTPUT_ROOT YACC CPP X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS EGREP x_libraries ALSA_LIBS PKG_CONFIG DBUS1_CFLAGS DBUS1_LIBS GTK_CFLAGS GTK_LIBS target target_cpu target_vendor target_os STRIP_BINARIES version app_version libafterstep_version libafterstep_version_major libafterstep_name libafterstep_file_name libafterwidget_version libafterwidget_version_major libafterwidget_name libafterwidget_file_name libafterconf_version libafterconf_version_major libafterconf_name libafterconf_file_name libasgtk_version libasgtk_version_major libasgtk_name libasgtk_file_name with_locale image_format ASCP_FLTK ASCP_FLTK_LIBS ASCP_FLTK_INCLUDES ASCP_GTK GTK_INCLUDES user_ldflags x_libs xine_libs xext_lib readline_libs dbus1_libs x_includes XEXT_LIB AFTERBASE_LIB AFTERIMAGE_LIB AFTERIMAGE_LIBS AFTERSTEP_LIB AFTERCONF_LIB ASGTK_LIB WIDGETS_LIB AFTERBASE_STATIC_LIB AFTERIMAGE_STATIC_LIB AFTERSTEP_STATIC_LIB AFTERCONF_STATIC_LIB ASGTK_STATIC_LIB WIDGETS_STATIC_LIB LIBPROG LIBINSTALL LIBUNINSTALL with_afterdir with_imageloader with_soundplayer with_helpcommand with_startsort with_desktops with_desktops_1 with_deskgeometry no_data_reinstall enable_different_looknfeels enable_pagerbackground enable_i18n enable_menuwarp enable_savewindows enable_texture enable_shade enable_virtual enable_saveunders enable_windowlist enable_availability enable_fixeditems SCRIPT_DIR LIBASGTKDIR GTK_APP_DIRS GTK_WIN_COMMAND RUN_COMMAND LIBOBJS LTLIBOBJS'
 ac_subst_files='LIBAFTERBASEFILES LIBAFTERIMAGEFILES LIBAFTERSTEPFILES LIBAFTERCONFFILES LIBASGTKFILES MAKEFILEDEFINES MAKEFILECOMMON MAKEFILECOMMONLIB'
 
 # Initialize some variables set by options.
@@ -915,6 +915,7 @@ Optional Packages:
   --with-ttf-includes=DIR  use FreeType includes in DIR
   --with-gtk               use GTK 2.0 widget libraries where possible [yes]
   --with-locale=LOCALE    locale name you want to use
+  --with-dbus1         make use of DBus for interprocess communications[yes]
   --with-readline         make WinCommand use readline library for interactive mode[yes]
   --with-libefence        compile with libefence to debug buffer overruns [no]
   --with-x                use the X Window System
@@ -1704,6 +1705,14 @@ else
   enable_sharedlibs="no"
 fi;
 
+
+# Check whether --with-dbus1 or --without-dbus1 was given.
+if test "${with_dbus1+set}" = set; then
+  withval="$with_dbus1"
+  with_dbus1=$withval
+else
+  with_dbus1=""
+fi;
 
 # Check whether --with-readline or --without-readline was given.
 if test "${with_readline+set}" = set; then
@@ -7953,6 +7962,174 @@ fi
 
 fi
 
+if test -z "$PKG_CONFIG"; then
+   		# Extract the first word of "pkg-config", so it can be a program name with args.
+set dummy pkg-config; ac_word=$2
+echo "$as_me:$LINENO: checking for $ac_word" >&5
+echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6
+if test "${ac_cv_path_PKG_CONFIG+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  case $PKG_CONFIG in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_PKG_CONFIG="$PKG_CONFIG" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+  for ac_exec_ext in '' $ac_executable_extensions; do
+  if $as_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_PKG_CONFIG="$as_dir/$ac_word$ac_exec_ext"
+    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+done
+
+  test -z "$ac_cv_path_PKG_CONFIG" && ac_cv_path_PKG_CONFIG="no"
+  ;;
+esac
+fi
+PKG_CONFIG=$ac_cv_path_PKG_CONFIG
+
+if test -n "$PKG_CONFIG"; then
+  echo "$as_me:$LINENO: result: $PKG_CONFIG" >&5
+echo "${ECHO_T}$PKG_CONFIG" >&6
+else
+  echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+fi
+
+fi
+
+
+have_dbus1=
+if test "$with_dbus1" = no; then
+	have_dbus1=disabled
+else
+	if test "$PKG_CONFIG" = "no" ; then
+		echo "$as_me:$LINENO: checking if libdbus-1 is available" >&5
+echo $ECHO_N "checking if libdbus-1 is available... $ECHO_C" >&6
+		echo "$as_me:$LINENO: result: pkg-config is not found. Cannot check for libdbus-1" >&5
+echo "${ECHO_T}pkg-config is not found. Cannot check for libdbus-1" >&6
+		have_dbus1=no
+	else
+		have_dbus1=yes
+		pkg_modules="dbus-1 >= 0.22"
+
+
+  succeeded=no
+
+  if test -z "$PKG_CONFIG"; then
+    # Extract the first word of "pkg-config", so it can be a program name with args.
+set dummy pkg-config; ac_word=$2
+echo "$as_me:$LINENO: checking for $ac_word" >&5
+echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6
+if test "${ac_cv_path_PKG_CONFIG+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  case $PKG_CONFIG in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_PKG_CONFIG="$PKG_CONFIG" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+  for ac_exec_ext in '' $ac_executable_extensions; do
+  if $as_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_PKG_CONFIG="$as_dir/$ac_word$ac_exec_ext"
+    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+done
+
+  test -z "$ac_cv_path_PKG_CONFIG" && ac_cv_path_PKG_CONFIG="no"
+  ;;
+esac
+fi
+PKG_CONFIG=$ac_cv_path_PKG_CONFIG
+
+if test -n "$PKG_CONFIG"; then
+  echo "$as_me:$LINENO: result: $PKG_CONFIG" >&5
+echo "${ECHO_T}$PKG_CONFIG" >&6
+else
+  echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+fi
+
+  fi
+
+  if test "$PKG_CONFIG" = "no" ; then
+     echo "*** The pkg-config script could not be found. Make sure it is"
+     echo "*** in your path, or set the PKG_CONFIG environment variable"
+     echo "*** to the full path to pkg-config."
+     echo "*** Or see http://www.freedesktop.org/software/pkgconfig to get pkg-config."
+  else
+     PKG_CONFIG_MIN_VERSION=0.9.0
+     if $PKG_CONFIG --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
+        echo "$as_me:$LINENO: checking for $pkg_modules" >&5
+echo $ECHO_N "checking for $pkg_modules... $ECHO_C" >&6
+
+        if $PKG_CONFIG --exists "$pkg_modules" ; then
+            echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6
+            succeeded=yes
+
+            echo "$as_me:$LINENO: checking DBUS1_CFLAGS" >&5
+echo $ECHO_N "checking DBUS1_CFLAGS... $ECHO_C" >&6
+            DBUS1_CFLAGS=`$PKG_CONFIG --cflags "$pkg_modules"`
+            echo "$as_me:$LINENO: result: $DBUS1_CFLAGS" >&5
+echo "${ECHO_T}$DBUS1_CFLAGS" >&6
+
+            echo "$as_me:$LINENO: checking DBUS1_LIBS" >&5
+echo $ECHO_N "checking DBUS1_LIBS... $ECHO_C" >&6
+            DBUS1_LIBS=`$PKG_CONFIG --libs "$pkg_modules"`
+            echo "$as_me:$LINENO: result: $DBUS1_LIBS" >&5
+echo "${ECHO_T}$DBUS1_LIBS" >&6
+        else
+            DBUS1_CFLAGS=""
+            DBUS1_LIBS=""
+            ## If we have a custom action on failure, don't print errors, but
+            ## do set a variable so people can do so.
+            DBUS1_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "$pkg_modules"`
+
+        fi
+
+
+
+     else
+        echo "*** Your version of pkg-config is too old. You need version $PKG_CONFIG_MIN_VERSION or newer."
+        echo "*** See http://www.freedesktop.org/software/pkgconfig"
+     fi
+  fi
+
+  if test $succeeded = yes; then
+     :
+  else
+     have_dbus1=no
+  fi
+
+
+		if test "x$have_dbus1" = "xyes"; then
+
+cat >>confdefs.h <<\_ACEOF
+#define HAVE_DBUS1 1
+_ACEOF
+
+		fi
+	fi
+fi
+
+
+
+
 if test "x$enable_staticlibs" = "xyes"; then
    AFTERBASE_LIB="../../libAfterBase/libAfterBase.a"
    AFTERIMAGE_LIB="../../libAfterImage/libAfterImage.a"
@@ -8021,48 +8198,6 @@ if test "$with_gtk" = no; then
 	have_gtk=disabled
 else
 
-	if test -z "$PKG_CONFIG"; then
-    		# Extract the first word of "pkg-config", so it can be a program name with args.
-set dummy pkg-config; ac_word=$2
-echo "$as_me:$LINENO: checking for $ac_word" >&5
-echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6
-if test "${ac_cv_path_PKG_CONFIG+set}" = set; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-  case $PKG_CONFIG in
-  [\\/]* | ?:[\\/]*)
-  ac_cv_path_PKG_CONFIG="$PKG_CONFIG" # Let the user override the test with a path.
-  ;;
-  *)
-  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-  for ac_exec_ext in '' $ac_executable_extensions; do
-  if $as_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_path_PKG_CONFIG="$as_dir/$ac_word$ac_exec_ext"
-    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-done
-
-  test -z "$ac_cv_path_PKG_CONFIG" && ac_cv_path_PKG_CONFIG="no"
-  ;;
-esac
-fi
-PKG_CONFIG=$ac_cv_path_PKG_CONFIG
-
-if test -n "$PKG_CONFIG"; then
-  echo "$as_me:$LINENO: result: $PKG_CONFIG" >&5
-echo "${ECHO_T}$PKG_CONFIG" >&6
-else
-  echo "$as_me:$LINENO: result: no" >&5
-echo "${ECHO_T}no" >&6
-fi
-
-	fi
 	if test "$PKG_CONFIG" = "no" ; then
 		echo "$as_me:$LINENO: checking if gtk++ 2.0 is available" >&5
 echo $ECHO_N "checking if gtk++ 2.0 is available... $ECHO_C" >&6
@@ -8583,6 +8718,7 @@ test -n "$target_alias" &&
   test "$program_prefix$program_suffix$program_transform_name" = \
     NONENONEs,x,x, &&
   program_prefix=${target_alias}-
+
 
 
 
@@ -9471,6 +9607,8 @@ s,@EGREP@,$EGREP,;t t
 s,@x_libraries@,$x_libraries,;t t
 s,@ALSA_LIBS@,$ALSA_LIBS,;t t
 s,@PKG_CONFIG@,$PKG_CONFIG,;t t
+s,@DBUS1_CFLAGS@,$DBUS1_CFLAGS,;t t
+s,@DBUS1_LIBS@,$DBUS1_LIBS,;t t
 s,@GTK_CFLAGS@,$GTK_CFLAGS,;t t
 s,@GTK_LIBS@,$GTK_LIBS,;t t
 s,@target@,$target,;t t
@@ -9508,6 +9646,7 @@ s,@x_libs@,$x_libs,;t t
 s,@xine_libs@,$xine_libs,;t t
 s,@xext_lib@,$xext_lib,;t t
 s,@readline_libs@,$readline_libs,;t t
+s,@dbus1_libs@,$dbus1_libs,;t t
 s,@x_includes@,$x_includes,;t t
 s,@XEXT_LIB@,$XEXT_LIB,;t t
 s,@AFTERBASE_LIB@,$AFTERBASE_LIB,;t t
