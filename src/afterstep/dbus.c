@@ -71,40 +71,43 @@ int asdbus_init() /* return connection unix fd */
 {
 	DBusError error;
 	int res;
-	ASDBus.session_conn = dbus_bus_get (DBUS_BUS_SESSION, &error);
-	if (dbus_error_is_set (&error))
+
+    dbus_error_init (&error);
+
+	if (!ASDBus.session_conn)
 	{
-		show_error ("Failed to connect to Session DBus: %s", error.message);
-		dbus_error_free (&error);
-		return -1;
+		DBusConnection *session_conn = dbus_bus_get (DBUS_BUS_SESSION, &error);
+		
+		if (dbus_error_is_set (&error))
+			show_error ("Failed to connect to Session DBus: %s", error.message);
+		else
+		{
+			res = dbus_bus_request_name (session_conn,
+										 AFTERSTEP_DBUS_SERVICE_NAME,
+										 DBUS_NAME_FLAG_REPLACE_EXISTING |
+										 DBUS_NAME_FLAG_ALLOW_REPLACEMENT,
+										 &error);
+			if (dbus_error_is_set (&error))
+			{
+				show_error ("Failed to request name from DBus: %s", error.message);
+			}else if (res != DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER)
+		    {
+				show_error ("Failed to request name from DBus - not a primary owner.");
+			}else
+			{
+				dbus_connection_set_exit_on_disconnect (session_conn, FALSE);
+			    dbus_connection_register_object_path (session_conn,
+													  AFTERSTEP_DBUS_ROOT_PATH, 
+													  &ASDBusMessagesVTable, 0);
+				ASDBus.session_conn = session_conn;
+			}
+		}
 	}
 	
-	res = dbus_bus_request_name (ASDBus.session_conn,
-				 AFTERSTEP_DBUS_SERVICE_NAME,
-				 DBUS_NAME_FLAG_REPLACE_EXISTING |
-				 DBUS_NAME_FLAG_ALLOW_REPLACEMENT,
-				 &error);
+	if (ASDBus.session_conn && ASDBus.watch_fd < 0)
+		dbus_connection_get_unix_fd (ASDBus.session_conn, &(ASDBus.watch_fd));
 	
-	if (dbus_error_is_set (&error))
-	{
-		show_error ("Failed to request name from DBus: %s", error.message);
-		dbus_error_free (&error);
-		return -1;
-	}
-	
-    if (res != DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER)
-    {
-		show_error ("Failed to request name from DBus - not a primary owner.");
-		return -1;
-    }
-	
-	dbus_connection_set_exit_on_disconnect (ASDBus.session_conn, FALSE);
-	dbus_connection_get_unix_fd (ASDBus.session_conn, &(ASDBus.watch_fd));
-
-    dbus_connection_register_object_path (ASDBus.session_conn,
-										  AFTERSTEP_DBUS_ROOT_PATH, 
-										  &ASDBusMessagesVTable, 0);
-
+	dbus_error_free (&error);
 	
 	return ASDBus.watch_fd;
 }
@@ -139,5 +142,43 @@ int asdbus_init(){return -1;}
 void asdbus_shutdown(){}
 void asdbus_process_messages (){};
 
+/*****************************************************************************/
+/*****************************************************************************/
+/*****************************************************************************/
 #endif
 
+/*****************************************************************************/
+/* Gnome Session Manager's dbus Protocol : 
+
+1) send messages to org.gnome.SessionManager : 
+
+Setenv ("IMAGE_PATH", image_path)
+Setenv ("FONT_PATH", font_path)
+
+RegisterClient ( app_id, client_startup_id, object_path (returned))
+
+2) If Quit/Quit is selected, send message : 
+Logout (0);
+
+3) If Quit/Shutdown is selected : 
+Shutdown ();
+
+4) What to do if Quit/Restart? send UnregisterClient() ?
+
+Dbus calls : 
+
+dbus_message_new_method_call ("org.gnome.SessionManager", 
+							  "/org/gnome/SessionManager", 
+							  "org.gnome.SessionManager", 
+							  name_of_the_message );
+							  
+use dbus_message_append_args (msg, type1, arg1, ..., DBUS_TYPE_INVALID) if needed.
+use dbus_message_set_no_replay (msg, NULL) if no return value expected.
+
+use dbus__connection_send () to send it.
+
+*/
+
+/*****************************************************************************/
+/*****************************************************************************/
+/*****************************************************************************/
