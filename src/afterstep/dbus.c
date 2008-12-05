@@ -137,7 +137,7 @@ asdbus_process_messages ()
 
 int asdbus_init(){return -1;}
 void asdbus_shutdown(){}
-void asdbus_process_messages ();
+void asdbus_process_messages (){};
 
 #endif
 
