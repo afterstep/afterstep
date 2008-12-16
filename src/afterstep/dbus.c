@@ -26,6 +26,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+#undef HAVE_DBUS_CONTEXT
 
 #ifdef HAVE_DBUS1
 # include "dbus/dbus.h"
@@ -33,6 +34,8 @@
 #define AFTERSTEP_DBUS_SERVICE_NAME	            "org.afterstep.afterstep"
 #define AFTERSTEP_DBUS_INTERFACE			    "org.afterstep.afterstep"
 #define AFTERSTEP_DBUS_ROOT_PATH			    "/org/afterstep/afterstep"
+
+#define HAVE_DBUS_CONTEXT 1
 
 typedef struct ASDBusContext
 {
@@ -178,6 +181,16 @@ use dbus_message_set_no_replay (msg, NULL) if no return value expected.
 use dbus__connection_send () to send it.
 
 */
+
+void asdbus_RegisterSMClient(const char *sm_client_id)
+{
+#ifdef HAVE_DBUS_CONTEXT
+	if (ASDBus.session_conn)
+	{
+
+	}
+#endif
+}
 
 /*****************************************************************************/
 /*****************************************************************************/

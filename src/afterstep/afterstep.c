@@ -41,6 +41,8 @@
 /* our status */
 ASFlagType AfterStepState = 0; /* default status */
 
+#define ASSF_BypassAutoexec	(0x01<<0)
+ASFlagType AfterStepStartupFlags = 0;
 
 /* DBUS stuff is separated into dbus.c */
 int 		  ASDBus_fd = -1;
@@ -54,6 +56,8 @@ ASBalloonState *MenuBalloons = NULL ;
 ASBalloonState *TitlebarBalloons = NULL ; 
 
 char *original_DISPLAY_string = NULL;
+
+char *SMClientID_string = NULL;
 
 /**************************************************************************/
 void          SetupScreen();
@@ -94,6 +98,23 @@ const char *window_id2name (Display * dpy, Window w, int *how_to_free)
 }
 #endif
 
+CommandLineOpts AfterStep_cmdl_options[3] =
+{
+	{NULL, "bypass-autoexec","Bypass running autoexec on startup", NULL, handler_set_flag, &AfterStepStartupFlags, ASSF_BypassAutoexec, 0 },
+	{NULL, "sm-client-id","Session manager client's ID", NULL, handler_set_string, &SMClientID_string, 0, CMO_HasArgs },
+    {NULL, NULL, NULL, NULL, NULL, NULL, 0 }
+};
+
+
+void
+AfterStep_usage (void)
+{
+	printf (OPTION_USAGE_FORMAT " [additional options]\n", MyName );
+	print_command_line_opt("standard_options are ", as_standard_cmdl_options, 0);
+	print_command_line_opt("additional options are ", AfterStep_cmdl_options, 0);
+	exit (0);
+}
+
 
 /**************************************************************************/
 /**************************************************************************/
@@ -109,8 +130,6 @@ main (int argc, char **argv, char **envp)
 	int start_viewport_x = 0 ;
 	int start_viewport_y = 0 ;
 	int start_desk = 0 ;
-
-	Bool bypass_autoexec = False ;
 
 #ifdef LOCAL_DEBUG
 #if 0
@@ -142,15 +161,7 @@ main (int argc, char **argv, char **envp)
 #if !HAVE_DECL_ENVIRON
 	override_environ( envp );
 #endif
-    InitMyApp( CLASS_AFTERSTEP, argc, argv, NULL, NULL, 0);
-	for( i = 1 ; i< argc ; ++i)
-	{
-		if( argv[i] != NULL &&  strcmp(argv[i],"--bypass-autoexec") == 0 )
-		{
-			bypass_autoexec = True ;
-			break;
-	    }
-	}
+    InitMyApp( CLASS_AFTERSTEP, argc, argv, AfterStep_usage, NULL, 0);
 
 	LinkAfterStepConfig();
 
@@ -315,7 +326,7 @@ SHOW_CHECKPOINT;
     display_progress( True, "All done." );
     remove_desktop_cover();
 
-	if( !bypass_autoexec )
+	if( !get_flags(AfterStepStartupFlags, ASSF_BypassAutoexec))
     	DoAutoexec(get_flags( AfterStepState, ASS_Restarting));
 	
 	/* once all the windows are swallowed and placed in its proper desks - we cas restore proper

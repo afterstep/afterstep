@@ -549,6 +549,8 @@ int asdbus_init();
 void asdbus_shutdown();
 void asdbus_process_messages ();
 
+void asdbus_RegisterSMClient(const char *sm_client_id);
+
 /*************************** decorations.c ********************************/
 ASOrientation* get_orientation_data( ASWindow *asw );
 void grab_aswindow_buttons( ASWindow *asw, Bool focused );
