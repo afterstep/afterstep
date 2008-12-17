@@ -187,7 +187,27 @@ void asdbus_RegisterSMClient(const char *sm_client_id)
 #ifdef HAVE_DBUS_CONTEXT
 	if (ASDBus.session_conn)
 	{
-
+		DBusMessage *message = dbus_message_new_method_call("org.gnome.SessionManager", 
+							  "/org/gnome/SessionManager", 
+							  "org.gnome.SessionManager", 
+							  "RegisterClient" );
+		if (message)
+		{
+			char *app_id = "afterstep" ;
+			char *client_id = NULL;
+			dbus_uint32_t msg_serial;
+			dbus_message_append_args(message,
+                                      DBUS_TYPE_STRING, &app_id,
+                                      DBUS_TYPE_STRING, &sm_client_id,
+                                      DBUS_TYPE_INVALID
+									  // ,DBUS_TYPE_OBJECT_PATH, &client_id,DBUS_TYPE_INVALID
+									  );
+			dbus_message_set_no_reply (message, TRUE);
+			
+			dbus_connection_send (ASDBus.session_conn, message, &msg_serial);
+			dbus_message_unref (message);
+		}
+										  
 	}
 #endif
 }

@@ -209,7 +209,10 @@ main (int argc, char **argv, char **envp)
 	}
 
 	if (ASDBus_fd>=0)
+	{
     	show_progress ("Successfuly accured System DBus connection.");	
+		asdbus_RegisterSMClient(SMClientID_string);
+	}
 	
 SHOW_CHECKPOINT;
 	InitSession();
