@@ -91,8 +91,10 @@ int main(int argc, char* argv[])
 
 	/* The following could be used to dump JPEG version of the image into
 	 * stdout : */
-	/* ASImage2file( im, NULL, NULL, ASIT_Jpeg, NULL ); */
-	ASImage2file( im, NULL, "asview.png", ASIT_Png, NULL );
+	/* 	ASImage2file( im, NULL, NULL, ASIT_Jpeg, NULL ); 
+		ASImage2file( im, NULL, "asview.png", ASIT_Png, NULL );
+		ASImage2file( im, NULL, "asview.gif", ASIT_Gif, NULL );
+	*/
 
 
 	if( im != NULL )
