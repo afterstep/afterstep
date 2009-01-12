@@ -232,13 +232,27 @@ apply_tool_2D_colored( ASDrawContext *ctx, int curr_x, int curr_y, CARD32 ratio 
 		if( corner_y + th > ch ) 
 			ah = ch - corner_y;
 		
-		for( y = 0 ; y < ah ; ++y ) 
-		{	
-			for( x = 0 ; x < aw ; ++x ) 
-				alpha_blend_point_argb32( dst+x, src[x], ratio);
-			src += tw ; 
-			dst += cw ; 
-		}
+		if (get_flags(ctx->flags, ASDrawCTX_UsingScratch))
+			for( y = 0 ; y < ah ; ++y ) 
+			{	
+				for( x = 0 ; x < aw ; ++x ) 
+				{
+					CARD32 value = (ARGB32_ALPHA8(src[x])*ratio)/255 ;
+					if( dst[x] < value ) 
+						dst[x] = value ;
+				}
+				src += tw ; 
+				dst += cw ; 
+			}
+		else
+			for( y = 0 ; y < ah ; ++y ) 
+			{	
+				for( x = 0 ; x < aw ; ++x ) 
+					alpha_blend_point_argb32( dst+x, src[x], ratio);
+				src += tw ; 
+				dst += cw ; 
+			}
+		
 	}
 }	   
 
@@ -264,9 +278,21 @@ apply_tool_point_colored(ASDrawContext *ctx, int curr_x, int curr_y, CARD32 rati
 {
 	/* Apply tool point argb32. - stolen from ROOT by Valery Onuchin, with changes */
 	int cw = ctx->canvas_width;
-
 	if (curr_x >= 0 && curr_x < cw && curr_y >= 0 && curr_y < ctx->canvas_height && ratio != 0)		
-		alpha_blend_point_argb32( CTX_SELECT_CANVAS(ctx) + curr_y * cw, ctx->tool->matrix[0], ratio);
+	{
+		if (get_flags(ctx->flags, ASDrawCTX_UsingScratch))
+		{
+			CARD32 value = (ARGB32_ALPHA8(ctx->tool->matrix[0])*ratio)/255 ;
+			CARD32 *dst = CTX_SELECT_CANVAS(ctx) ;
+			dst += curr_y * cw ; 
+
+			if( dst[curr_x] < value ) 
+				dst[curr_x] = value ;
+		}		
+		else
+			alpha_blend_point_argb32( ctx->canvas + curr_y * cw + curr_x, ctx->tool->matrix[0], ratio);
+		
+	}
 }
 
 static void
@@ -838,6 +864,9 @@ asim_set_brush( ASDrawContext *ctx, int brush )
 			ctx->apply_tool_func = apply_tool_2D ; 
 
 		ctx->fill_hline_func = fill_hline_notile ;
+
+		clear_flags (ctx->flags, ASDrawCTX_ToolIsARGB);
+
 		return True;
 	}	 
 	return False;
@@ -855,6 +884,9 @@ asim_set_custom_brush( ASDrawContext *ctx, ASDrawTool *brush)
 			ctx->apply_tool_func = apply_tool_2D ; 
 	
 		ctx->fill_hline_func = fill_hline_notile ;
+
+		clear_flags (ctx->flags, ASDrawCTX_ToolIsARGB);
+
 		return True;
 	}	 
 	return False;
@@ -872,6 +904,8 @@ asim_set_custom_brush_colored( ASDrawContext *ctx, ASDrawTool *brush)
 			ctx->apply_tool_func = apply_tool_2D_colored ; 
 
 		ctx->fill_hline_func = fill_hline_notile_colored ;
+		set_flags (ctx->flags, ASDrawCTX_ToolIsARGB);
+
 		return True;
 	}	 
 	return False;
@@ -901,7 +935,6 @@ void asim_flood_fill( ASDrawContext *ctx, int x, int y, CARD32 min_val, CARD32 m
 Bool
 asim_apply_path( ASDrawContext *ctx, int start_x, int start_y, Bool fill, int fill_start_x, int fill_start_y, CARD8 fill_threshold ) 
 {
-	int i ; 
     if( ctx == NULL || !get_flags( ctx->flags, ASDrawCTX_UsingScratch )) 	
 		return False;
 	
@@ -911,13 +944,30 @@ asim_apply_path( ASDrawContext *ctx, int start_x, int start_y, Bool fill, int fi
 	/* TODO : contour tracing functionality : */
 	if( fill ) 
 		asim_flood_fill( ctx, fill_start_x, fill_start_y, 0, fill_threshold==0?CTX_DEFAULT_FILL_THRESHOLD:fill_threshold );	
-	/* actually applying scratch : */
-	i = ctx->canvas_width*ctx->canvas_height ;
-	while( --i >= 0 ) 
-		if( ctx->canvas[i] < ctx->scratch_canvas[i] )
-			ctx->canvas[i] = ctx->scratch_canvas[i] ;
-	
+
 	clear_flags( ctx->flags, ASDrawCTX_UsingScratch );	 
+
+	/* actually applying scratch : */
+	if (get_flags (ctx->flags, ASDrawCTX_CanvasIsARGB))
+	{
+		int y = ctx->canvas_height;
+		
+		while (--y >= 0)
+		{
+			int x = ctx->canvas_width;
+			CARD32 *sc = ctx->scratch_canvas + ctx->canvas_width*y ;		
+			while (--x >= 0)
+				CTX_PUT_PIXEL (ctx, x, y, sc[x]);
+		}
+	}else
+	{
+		int i = ctx->canvas_width*ctx->canvas_height ;
+	
+		while( --i >= 0 ) 
+			if( ctx->canvas[i] < ctx->scratch_canvas[i] )
+				ctx->canvas[i] = ctx->scratch_canvas[i] ;
+	}
+		
 	return True;
 }
 
@@ -1058,9 +1108,16 @@ asim_cube_bezier( ASDrawContext *ctx, int x1, int y1, int x2, int y2, int x3, in
 	{	
 		int x0 = ctx->curr_x;
 		int y0 = ctx->curr_y;
-		
+		Bool path_started = False;
+			
+		if (get_flags (ctx->flags, ASDrawCTX_CanvasIsARGB))
+			path_started = asim_start_path (ctx);
+	
 		asim_move_to( ctx, x3, y3 );
 		ctx_draw_bezier( ctx, x0<<8, y0<<8, x1<<8, y1<<8, x2<<8, y2<<8, x3<<8, y3<<8 );
+	
+		if (path_started)
+			asim_apply_path( ctx, 0, 0, False, 0, 0, 0);
 	}		
 }
 
@@ -1636,6 +1693,76 @@ asim_rectangle( ASDrawContext *ctx, int x, int y, int width, int height )
 #ifdef TEST_ASDRAW
 #include "afterimage.h"
 
+/*************************************/
+/* testing code for ROOT from CERN : */
+typedef int Int_t;
+typedef unsigned int UInt_t;
+typedef int Bool_t;
+
+static ASDrawContext *create_draw_context_argb32(ASImage *im, ASDrawTool *brush)
+{
+   // Create draw context
+
+   ASDrawContext *ctx = safecalloc (1, sizeof(ASDrawContext));
+
+   ctx->canvas_width = im->width;
+   ctx->canvas_height = im->height;
+   ctx->canvas = im->alt.argb32;
+   ctx->scratch_canvas = 0;
+
+   ctx->flags = ASDrawCTX_CanvasIsARGB;
+   asim_set_custom_brush_colored( ctx, brush);
+   return ctx;
+}
+
+
+ASImage *TASImage_DrawCircle(ASVisual *asv, ASImage *fImage, Int_t x, Int_t y, Int_t r, const char *col, Int_t thick)
+{
+   // Draw circle. If thick < 0 - draw filled circle
+
+   thick = !thick ? 1 : thick;
+   Int_t sz = thick*thick;
+   CARD32 *matrix;
+   int i;
+   ASImage *img = 0;
+   ASDrawContext *ctx;
+
+   ARGB32 color;
+   parse_argb_color(col, &color);
+   ASDrawTool brush;
+
+   matrix = malloc (sizeof(CARD32)*sz);
+
+   for (i = 0; i < sz; i++) {
+      matrix[i] = (CARD32)color;
+   }
+
+   brush.matrix = matrix;
+   brush.height = brush.width = thick > 0 ? thick : 1;
+   brush.center_y = brush.center_x = thick > 0 ? thick/2 : 0;
+
+   img = tile_asimage(asv, fImage, 0, 0, fImage->width, fImage->height,
+                            0, ASA_ARGB32, 0, ASIMAGE_QUALITY_DEFAULT);
+   
+   ctx = create_draw_context_argb32(img, &brush);
+
+   asim_circle(ctx, x,  y, r, thick < 0);
+   asim_cube_bezier(ctx, x+50, y+50, x+100, y+100, x+50, y+100);
+   asim_move_to(ctx, x, y+200);
+   asim_line_to_aa(ctx, x+200, y+100);
+   asim_line_to_aa(ctx, x+200, y+200);
+   asim_line_to_aa(ctx, x, y+200);
+
+   free (matrix);
+//   destroy_asdraw_context32(ctx);
+
+	return img;
+}
+
+// ROOT testing end
+/* testing code for ROOT from CERN   */
+/*************************************/
+
 int main(int argc, char **argv )
 {
 	ASVisual *asv ;
@@ -1829,8 +1956,12 @@ int main(int argc, char **argv )
 							  ASA_ASImage,
 							  0, ASIMAGE_QUALITY_DEFAULT );
 
-
-	ASImage2file( merged_im, NULL, "test_asdraw.png", ASIT_Png, NULL );
+	{
+		ASImage *overlayed_im = TASImage_DrawCircle(asv, merged_im, 100, 100, 50, "red", 1);
+		ASImage2file( overlayed_im, NULL, "test_asdraw.overlayed.png", ASIT_Png, NULL );
+		destroy_asimage( &overlayed_im );
+	}
+	ASImage2file( merged_im, NULL, "test_asdraw.merged.png", ASIT_Png, NULL );
 	destroy_asimage( &merged_im );
 #endif
 

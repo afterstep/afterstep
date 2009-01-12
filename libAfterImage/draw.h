@@ -12,6 +12,8 @@ typedef struct ASDrawTool
 typedef struct ASDrawContext
 {
 #define ASDrawCTX_UsingScratch	(0x01<<0)	
+#define ASDrawCTX_CanvasIsARGB	(0x01<<1)
+#define ASDrawCTX_ToolIsARGB	(0x01<<2)
 	ASFlagType flags ;
 
 	ASDrawTool *tool ;
