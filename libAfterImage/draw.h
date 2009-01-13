@@ -36,7 +36,7 @@ void destroy_asdraw_context( ASDrawContext *ctx );
 
 Bool asim_set_brush( ASDrawContext *ctx, int brush );
 Bool asim_set_custom_brush( ASDrawContext *ctx, ASDrawTool *brush);
-
+Bool asim_set_custom_brush_colored( ASDrawContext *ctx, ASDrawTool *brush);
 
 Bool asim_start_path( ASDrawContext *ctx );
 Bool asim_apply_path( ASDrawContext *ctx, int start_x, int start_y, Bool fill, int fill_start_x, int fill_start_y, CARD8 fill_threshold );
