@@ -65,6 +65,10 @@ CARD32 _round3x3[9] =
   80, 255,  80,
   64,  80,  64 };
 
+CARD32 _round3x3_solid[9] =
+{ 64,  255,  64,
+  255, 255,  255,
+  64,  255,  64 };
 
 CARD32 _round5x5[25] =
 {  0,  24,  64,  24,   0,
@@ -83,7 +87,7 @@ CARD32 _round5x5_solid[25] =
 ASDrawTool StandardBrushes[AS_DRAW_BRUSHES] = 
 {
 	{1, 1, 0, 0, _round1x1},
-	{3, 3, 1, 1, _round3x3},
+	{3, 3, 1, 1, _round3x3_solid},
 	{5, 5, 2, 2, _round5x5_solid}
 };	 
 
@@ -94,6 +98,8 @@ ASDrawTool StandardBrushes[AS_DRAW_BRUSHES] =
 static void
 apply_tool_2D( ASDrawContext *ctx, int curr_x, int curr_y, CARD32 ratio )
 {
+
+/*fprintf( stderr, "(%d,%d)- ratio = %u (0x%X)\n", curr_x, curr_y, ratio, ratio);		*/
 	if( ratio  !=  0 ) 
 	{	
 		CARD32 *src = ctx->tool->matrix ;
@@ -132,7 +138,7 @@ apply_tool_2D( ASDrawContext *ctx, int curr_x, int curr_y, CARD32 ratio )
 
 		if( corner_y + th > ch ) 
 			ah = ch - corner_y;
-		
+
 		if( ratio == 255 ) 
 		{
 			for( y = 0 ; y < ah ; ++y ) 
@@ -151,21 +157,37 @@ apply_tool_2D( ASDrawContext *ctx, int curr_x, int curr_y, CARD32 ratio )
 			}
 		}else
 		{		 
+		/* ratio, implementing anti-aliasing should be applyed to the outer layer of 
+		   the tool only ! */		
+			CARD32 *tsrc = src-tw;
+			CARD32 *tdst = dst-cw;
+
 			for( y = 0 ; y < ah ; ++y ) 
 			{	
-				for( x = 0 ; x < aw ; ++x ) 
-				{
-					CARD32 v = ratio ;
-					v = (v*src[x])/255 ;
-					if( dst[x] < v ) 
-						dst[x] = v ;
-					/*
-					register CARD32 t = (CARD32)dst[x] + (CARD32)src[x] ;
-					dst[x] = t > 255? 255 : t ;
-			 		*/
-				}
+				CARD32 v1, v2;
+				tsrc += tw ; 
+				tdst += cw ; 
+				v1 = (tsrc[0]*ratio)/255 ;
+				v2 = (tsrc[aw-1]*ratio)/255 ;
+				if( tdst[0] < v1 ) tdst[0] = v1 ;
+				if( tdst[aw-1] < v2 ) tdst[aw-1] = v2 ;
+			}
+			
+			for (x = 1 ; x < aw-1 ; ++x) 
+			{	
+				CARD32 v1 = (src[x]*ratio)/255 ;
+				CARD32 v2 = (tsrc[x]*ratio)/255 ;
+				if( dst[x] < v1 ) dst[x] = v1 ;
+				if( tdst[x] < v2 ) tdst[x] = v2 ;
+			}
+
+			for( y = 1 ; y < ah-1 ; ++y ) 
+			{	
 				src += tw ; 
 				dst += cw ; 
+				for( x = 1 ; x < aw-1 ; ++x ) 
+					if( dst[x] < src[x] ) 
+						dst[x] = src[x] ;
 			}
 		}
 	}
@@ -179,9 +201,11 @@ static inline void alpha_blend_point_argb32( CARD32 *dst, CARD32 value, CARD32 r
 		*dst = value|0xFF000000;
 	else
 	{
-		CARD32 aa = 256-ta; /* must be 256 or we ! */
+		CARD32 aa = 255-ta; /* must be 256 or we ! */
 		CARD32 orig = *dst;
-		CARD32 res = ((orig&0xFF000000)>>8)*aa + (ta<<24);
+		CARD32 res = orig&0xFF000000; //((orig&0xFF000000)>>8)*aa + (ta<<24);
+		if (res < (ta<<24))
+			res = (ta<<24);
 		/* red and blue */
 		res |= (((orig&0x00FF00FF)*aa + (value&0x00FF00FF)*ta)>>8)&0x00FF00FF;
 		/* green */
@@ -231,28 +255,70 @@ apply_tool_2D_colored( ASDrawContext *ctx, int curr_x, int curr_y, CARD32 ratio 
 
 		if( corner_y + th > ch ) 
 			ah = ch - corner_y;
+
+		/* ratio, implementing anti-aliasing should be applyed to the outer layer of 
+		   the tool only ! */		
+		{
+			CARD32 *tsrc = src-tw;
+			CARD32 *tdst = dst-cw;
 		
-		if (get_flags(ctx->flags, ASDrawCTX_UsingScratch))
-			for( y = 0 ; y < ah ; ++y ) 
-			{	
-				for( x = 0 ; x < aw ; ++x ) 
-				{
-					CARD32 value = (ARGB32_ALPHA8(src[x])*ratio)/255 ;
-					if( dst[x] < value ) 
-						dst[x] = value ;
+			if (get_flags(ctx->flags, ASDrawCTX_UsingScratch))
+			{
+				for( y = 0 ; y < ah ; ++y ) 
+				{	
+					CARD32 v1, v2;
+					tsrc += tw ; 
+					tdst += cw ; 
+					v1 = (ARGB32_ALPHA8(tsrc[0])*ratio)/255 ;
+					v2 = (ARGB32_ALPHA8(tsrc[aw-1])*ratio)/255 ;
+					if( tdst[0] < v1 ) tdst[0] = v1 ;
+					if( tdst[aw-1] < v2 ) tdst[aw-1] = v2 ;
+
 				}
-				src += tw ; 
-				dst += cw ; 
-			}
-		else
-			for( y = 0 ; y < ah ; ++y ) 
-			{	
-				for( x = 0 ; x < aw ; ++x ) 
+
+				for (x = 1 ; x < aw-1 ; ++x) 
+				{	
+					CARD32 v1 = (ARGB32_ALPHA8(src[x])*ratio)/255 ;
+					CARD32 v2 = (ARGB32_ALPHA8(tsrc[x])*ratio)/255 ;
+					if( dst[x] < v1 ) dst[x] = v1 ;
+					if( tdst[x] < v2 ) tdst[x] = v2 ;
+				}
+
+				for( y = 1 ; y < ah-1 ; ++y ) 
+				{	
+					src += tw ; 
+					dst += cw ; 
+					for( x = 1 ; x < aw-1 ; ++x ) 
+					{
+						CARD32 value = ARGB32_ALPHA8(src[x]);
+						if( dst[x] < value ) 
+							dst[x] = value ;
+					}
+				}
+			}else
+			{
+				for( y = 0 ; y < ah ; ++y ) 
+				{	
+					tsrc += tw ; 
+					tdst += cw ; 
+					alpha_blend_point_argb32( tdst, tsrc[0], ratio);
+					alpha_blend_point_argb32( tdst+aw-1, tsrc[aw-1], ratio);
+				}
+				for (x = 1 ; x < aw-1 ; ++x) 
+				{	
 					alpha_blend_point_argb32( dst+x, src[x], ratio);
-				src += tw ; 
-				dst += cw ; 
+					alpha_blend_point_argb32( tdst+x, tsrc[x], ratio);
+				}
+
+				for( y = 1 ; y < ah-1 ; ++y ) 
+				{	
+					src += tw ; 
+					dst += cw ; 
+					for( x = 1 ; x < aw-1 ; ++x ) 
+						alpha_blend_point_argb32( dst+x, src[x], 255);
+				}
 			}
-		
+		}
 	}
 }	   
 
@@ -462,7 +528,7 @@ ctx_draw_line_solid_aa( ASDrawContext *ctx, int from_x, int from_y, int to_x, in
 					case 0 :  /* 0 - 32 */ 
 						above = 128 - above ;
 						CTX_PUT_PIXEL( ctx, x, y-1, above ) ;
-						CTX_PUT_PIXEL( ctx, x, y, ~(above>>1) ) ; 
+						CTX_PUT_PIXEL( ctx, x, y, (~(above>>1))&0x00FF ) ; 
 						break ;	  
 					case 1 :  /* 32 - 64 */ 
 						{
@@ -484,7 +550,7 @@ ctx_draw_line_solid_aa( ASDrawContext *ctx, int from_x, int from_y, int to_x, in
 					case 3 :  /* 96 - 128 */ 
 						{
 							above -= ((~above)&0x7f)>>1 ;	  
-							CTX_PUT_PIXEL( ctx, x, y, ~(above>>1) ) ; 
+							CTX_PUT_PIXEL( ctx, x, y, (~(above>>1))&0x00FF ) ; 
 							CTX_PUT_PIXEL( ctx, x, y+1, above ) ;
 						}
 						break ;
@@ -528,7 +594,7 @@ ctx_draw_line_solid_aa( ASDrawContext *ctx, int from_x, int from_y, int to_x, in
 					case 0 :  /* 0 - 32 */ 
 						above = 128 - above ;
 						CTX_PUT_PIXEL( ctx, x-1, y, above ) ;
-						CTX_PUT_PIXEL( ctx, x, y, ~(above>>1) ) ; 
+						CTX_PUT_PIXEL( ctx, x, y, (~(above>>1))&0x00FF ) ; 
 						break ;	  
 					case 1 :  /* 32 - 64 */ 
 						{
@@ -550,7 +616,7 @@ ctx_draw_line_solid_aa( ASDrawContext *ctx, int from_x, int from_y, int to_x, in
 					case 3 :  /* 96 - 128 */ 
 						{
 							above -= ((~above)&0x7f)>>1 ;	  
-							CTX_PUT_PIXEL( ctx, x, y, ~(above>>1) ) ; 
+							CTX_PUT_PIXEL( ctx, x, y, (~(above>>1))&0x00FF ) ; 
 							CTX_PUT_PIXEL( ctx, x+1, y, above ) ;
 						}
 						break ;
@@ -947,26 +1013,21 @@ asim_apply_path( ASDrawContext *ctx, int start_x, int start_y, Bool fill, int fi
 	clear_flags( ctx->flags, ASDrawCTX_UsingScratch );	 
 
 	/* actually applying scratch : */
-	if (get_flags (ctx->flags, ASDrawCTX_CanvasIsARGB))
-	{
-		int y = ctx->canvas_height;
-		
-		while (--y >= 0)
-		{
-			int x = ctx->canvas_width;
-			CARD32 *sc = ctx->scratch_canvas + ctx->canvas_width*y ;		
-			while (--x >= 0)
-				CTX_PUT_PIXEL (ctx, x, y, sc[x]);
-		}
-	}else
 	{
 		int i = ctx->canvas_width*ctx->canvas_height ;
-	
-		while( --i >= 0 ) 
-			if( ctx->canvas[i] < ctx->scratch_canvas[i] )
-				ctx->canvas[i] = ctx->scratch_canvas[i] ;
-	}
-		
+		if (get_flags (ctx->flags, ASDrawCTX_CanvasIsARGB))
+		{
+			CARD32 argb = ctx->tool->matrix[ctx->tool->center_y*ctx->tool->width + ctx->tool->center_x];
+			while (--i >= 0)
+				if (ctx->scratch_canvas[i])
+					alpha_blend_point_argb32( ctx->canvas + i, argb, ctx->scratch_canvas[i]);
+		}else
+		{
+			while( --i >= 0 ) 
+				if( ctx->canvas[i] < ctx->scratch_canvas[i] )
+					ctx->canvas[i] = ctx->scratch_canvas[i] ;
+		}
+	}		
 	return True;
 }
 
@@ -1798,6 +1859,7 @@ int main(int argc, char **argv )
 	/* actuall drawing starts here */
 #if 1
 /*	for( i = 0 ; i < 50000 ; ++i ) */
+#if 1
 	asim_move_to( ctx, 0, 0 ); 
 	asim_line_to_aa( ctx, 200, 200 ); 
 	asim_line_to_aa( ctx, 100, 10 );
@@ -1821,7 +1883,13 @@ int main(int argc, char **argv )
 	asim_set_brush( ctx, 2 ); 
 	asim_line_to_aa( ctx, 220, 200 ); 
 	asim_line_to_aa( ctx, 120, 10 );
+
+#endif
+	asim_move_to(ctx, 120, 10); 	  
+	asim_set_brush( ctx, 2 ); 
+
 	asim_line_to_aa( ctx, 30, 300 );
+#if 1
 	asim_line_to_aa( ctx, 35, 400 );
 	asim_move_to(ctx, 15, 440);    
 	asim_line_to_aa( ctx, 200, 430 );
@@ -1831,6 +1899,7 @@ int main(int argc, char **argv )
 	/* non-antialiased : */
 
 	asim_move_to(ctx,  200, 0 ); 
+
 	asim_set_brush( ctx, 0 ); 
 	asim_line_to( ctx, 400, 200 ); 
 	asim_line_to( ctx, 300, 10 );
@@ -1860,27 +1929,6 @@ int main(int argc, char **argv )
 	asim_line_to( ctx, 200, 460 );
 	asim_line_to( ctx, 400, 490 );
 
-#if 0
-	asim_move_to(ctx, 10, 600); 	  
-	asim_set_brush( ctx, 0 ); 
-	asim_cube_bezier( ctx, 10, 400, 100, 570, 400, 600 ); 
-	asim_move_to(ctx, 20, 610); 	  
-	asim_set_brush( ctx, 1 ); 
-	asim_cube_bezier( ctx, 20, 410, 110, 580, 410, 610 ); 
-	asim_move_to(ctx, 30, 640); 	  
-	asim_set_brush( ctx, 2 ); 
-	asim_cube_bezier( ctx, 30, 440, 120, 610, 420, 640 ); 
-	
-	asim_move_to(ctx, 50, 660); 	  
-	asim_set_brush( ctx, 0 ); 
-	asim_cube_bezier( ctx, -20, 940, 350, 490, 300, 690 ); 
-	asim_move_to(ctx, 40, 680); 	  
-	asim_set_brush( ctx, 1 ); 
-	asim_cube_bezier( ctx, -30, 960, 340, 510, 290, 710 ); 
-	asim_move_to(ctx, 30, 700); 	  
-	asim_set_brush( ctx, 2 ); 
-	asim_cube_bezier( ctx, -40, 980, 330, 530, 280, 730 ); 
-#endif
 	asim_set_brush( ctx, 0 ); 
 	asim_circle( ctx, 600, 110, 80, False );
 	asim_circle( ctx, 600, 110, 50, False );
@@ -1922,11 +1970,9 @@ int main(int argc, char **argv )
  */
 		}
 	}
-#endif
 	asim_circle( ctx, 705, 275, 90, True );
 //	asim_circle( ctx, 100, 100, 90, True );
 
-#if 1
 	asim_circle( ctx, -40000, 500, 40500, False );
 	asim_circle( ctx, -10000, 500, 10499, False );
 
@@ -1936,6 +1982,8 @@ int main(int argc, char **argv )
 	asim_flood_fill( ctx, 670, 77, 0, 126 ); 
 	asim_flood_fill( ctx, 120, 80, 0, 126 ); 
 	asim_flood_fill( ctx, 300, 460, 0, 126 ); 
+
+#endif
 #endif
 #if 1
 	/* commit drawing : */
@@ -1956,11 +2004,13 @@ int main(int argc, char **argv )
 							  ASA_ASImage,
 							  0, ASIMAGE_QUALITY_DEFAULT );
 
+#if 1
 	{
-		ASImage *overlayed_im = TASImage_DrawCircle(asv, merged_im, 100, 100, 50, "red", -1);
+		ASImage *overlayed_im = TASImage_DrawCircle(asv, merged_im, 84, 299, 3, "blue", 5);
 		ASImage2file( overlayed_im, NULL, "test_asdraw.overlayed.png", ASIT_Png, NULL );
 		destroy_asimage( &overlayed_im );
 	}
+#endif	
 	ASImage2file( merged_im, NULL, "test_asdraw.merged.png", ASIT_Png, NULL );
 	destroy_asimage( &merged_im );
 #endif
