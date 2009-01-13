@@ -280,17 +280,16 @@ apply_tool_point_colored(ASDrawContext *ctx, int curr_x, int curr_y, CARD32 rati
 	int cw = ctx->canvas_width;
 	if (curr_x >= 0 && curr_x < cw && curr_y >= 0 && curr_y < ctx->canvas_height && ratio != 0)		
 	{
+		CARD32 *dst = CTX_SELECT_CANVAS(ctx);
+		dst += curr_y * cw + curr_x;
 		if (get_flags(ctx->flags, ASDrawCTX_UsingScratch))
 		{
 			CARD32 value = (ARGB32_ALPHA8(ctx->tool->matrix[0])*ratio)/255 ;
-			CARD32 *dst = CTX_SELECT_CANVAS(ctx) ;
-			dst += curr_y * cw ; 
-
-			if( dst[curr_x] < value ) 
-				dst[curr_x] = value ;
+			if( *dst < value ) 
+				*dst = value ;
 		}		
 		else
-			alpha_blend_point_argb32( ctx->canvas + curr_y * cw + curr_x, ctx->tool->matrix[0], ratio);
+			alpha_blend_point_argb32( dst, ctx->tool->matrix[0], ratio);
 		
 	}
 }
@@ -1202,10 +1201,11 @@ asim_straight_ellips( ASDrawContext *ctx, int x, int y, int rx, int ry, Bool fil
 #else
 		long rx2 = rx*rx, ry2 = ry * ry, d ; 
 #endif		
-		if( y + ry  > ctx->canvas_height ) 
-			max_y = ctx->canvas_height - y ; 
-		if( y - ry  < 0 && y > max_y ) 
-			max_y = y ; 
+
+#if 1
+		if (y + ry  > ctx->canvas_height && y - ry  < 0) 
+			max_y = max (y, ctx->canvas_height - y); 
+#endif			
 #if 0
 		if( fill ) 
 		{
@@ -1957,7 +1957,7 @@ int main(int argc, char **argv )
 							  0, ASIMAGE_QUALITY_DEFAULT );
 
 	{
-		ASImage *overlayed_im = TASImage_DrawCircle(asv, merged_im, 100, 100, 50, "red", 1);
+		ASImage *overlayed_im = TASImage_DrawCircle(asv, merged_im, 100, 100, 50, "red", -1);
 		ASImage2file( overlayed_im, NULL, "test_asdraw.overlayed.png", ASIT_Png, NULL );
 		destroy_asimage( &overlayed_im );
 	}
