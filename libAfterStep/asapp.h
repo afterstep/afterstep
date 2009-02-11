@@ -314,6 +314,7 @@ extern unsigned int  nonlock_mods;	/* a mask for non-locking modifiers */
 extern unsigned int  lock_mods[MAX_LOCK_MODS];  	/* all combinations of lock modifier masks */
 /* Now for each display we may have one or several screens ; */
 extern int x_fd;                                       /* descriptor of the X Windows connection  */
+extern Display *dpy;
 extern struct ScreenInfo   *ASDefaultScr;				   /* ScreenInfo for the default screen */
 #define ASDefaultRoot	 	(ASDefaultScr->Root)
 #define ASDefaultScrWidth	(ASDefaultScr->MyDisplayWidth)

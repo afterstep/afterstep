@@ -96,8 +96,8 @@ create_top_level_window( ASVisual *asv, Window root, int x, int y,
 
     class1.res_name = tmp;	/* for future use */
     class1.res_class = (char*)app_class;
-    XSetWMProtocols (dpy, w, &_XA_WM_DELETE_WINDOW, 1);
-    XSetWMProperties (dpy, w, &name, &name, NULL, 0, NULL, NULL, &class1);
+    XSetWMProtocols (asv->dpy, w, &_XA_WM_DELETE_WINDOW, 1);
+    XSetWMProperties (asv->dpy, w, &name, &name, NULL, 0, NULL, NULL, &class1);
     /* final cleanup */
     XFree ((char *) name.value);
 
@@ -133,11 +133,16 @@ set_window_background_and_free( Window w, Pixmap p )
 #ifndef X_DISPLAY_MISSING
 	if( p != None && w != None )
 	{
-		XSetWindowBackgroundPixmap( dpy, w, p );
-		XClearWindow( dpy, w );
-		XFlush( dpy );
-		XFreePixmap( dpy, p );
-		p = None ;
+		Display *dpy = get_default_asvisual()->dpy;
+
+		if (dpy)
+		{
+			XSetWindowBackgroundPixmap( dpy, w, p );
+			XClearWindow( dpy, w );
+			XFlush( dpy );
+			XFreePixmap( dpy, p );
+			p = None ;
+		}
 	}
 #endif /* X_DISPLAY_MISSING */
 	return p ;
@@ -171,32 +176,37 @@ void
 wait_closedown( Window w )
 {
 #ifndef X_DISPLAY_MISSING
-    if( dpy == NULL || w == None )
-		return ;
+	Display *dpy = get_default_asvisual()->dpy;
 
-	XSelectInput (dpy, w, ( StructureNotifyMask | 
-							ButtonPressMask|
-							ButtonReleaseMask));
-
-	while(w != None)
-  	{
-    	XEvent event ;
-	    XNextEvent (dpy, &event);
-  		switch(event.type)
+    if(dpy)
+	{
+		if (w)
 		{
-	  		case ClientMessage:
-			    if ((event.xclient.format != 32) ||
-	  			    (event.xclient.data.l[0] != _XA_WM_DELETE_WINDOW))
-					break ;
-		  	case ButtonPress:
-				XDestroyWindow( dpy, w );
-				XFlush( dpy );
-				w = None ;
-				break ;
+			XSelectInput (dpy, w, ( StructureNotifyMask | 
+									ButtonPressMask|
+									ButtonReleaseMask));
+
+			while(w != None)
+  			{
+    			XEvent event ;
+
+		    	XNextEvent (dpy, &event);
+  				switch(event.type)
+				{
+	  				case ClientMessage:
+			    		if ((event.xclient.format != 32) ||
+	  			    		(event.xclient.data.l[0] != _XA_WM_DELETE_WINDOW))
+							break ;
+			  		case ButtonPress:
+						XDestroyWindow( dpy, w );
+						XFlush( dpy );
+						w = None ;
+						break ;
+				}
+	  		}
 		}
-  	}
-    XCloseDisplay (dpy);
-	dpy = NULL ;
+    	XCloseDisplay (dpy);
+	}
 #endif
 }
 /**************/

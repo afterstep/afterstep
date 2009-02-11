@@ -45,6 +45,7 @@ int main(int argc, char* argv[])
 	int clip_x = 0, clip_y = 0, clip_width = 0, clip_height = 0 ;
 	int slice_x_start = 0, slice_x_end = 0, slice_y_start = 0, slice_y_end = 0 ;
 	Bool slice_scale = False ;
+	Display *dpy = NULL;
 
 	/* see ASView.1 : */
 	set_application_name( argv[0] );
@@ -160,6 +161,7 @@ int main(int argc, char* argv[])
 			}
 			/* see common.c: wait_closedown() : */
 			wait_closedown(w);
+			dpy = NULL;			
 		}
 #else
 		asv = create_asvisual( NULL, 0, 0, NULL );

@@ -59,6 +59,7 @@ void usage()
 
 int main(int argc, char* argv[])
 {
+	Display *dpy = NULL;
 	ASVisual *asv ;
 	int screen = 0, depth = 0;
 	int dummy, geom_flags = 0;
@@ -181,10 +182,9 @@ int main(int argc, char* argv[])
 			/* see common.c: set_window_background_and_free() : */
 			p = set_window_background_and_free( w, p );
 			/* see common.c: wait_closedown() : */
-			wait_closedown(w);
 		}
-	    if( dpy )
-  		    XCloseDisplay (dpy);
+		wait_closedown(w);
+		dpy = NULL;
 #else
 		ASImage2file( grad_im, NULL, "asgrad.jpg", ASIT_Jpeg, NULL );
 		destroy_asimage( &grad_im );

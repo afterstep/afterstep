@@ -25,7 +25,7 @@
  */
 
 #undef DEBUG
-static char *cvsident = "$Id: Gnome.c,v 1.4 2003/03/25 17:32:49 sasha Exp $";
+static char *cvsident = "$Id: Gnome.c,v 1.5 2009/02/11 23:32:03 sasha Exp $";
 
 #include <X11/Intrinsic.h>
 #include <X11/Xlib.h>
@@ -1267,6 +1267,7 @@ main (int argc, char **argv)
 	       MyName, XDisplayName (""));
       exit (1);
     }
+  set_current_X_display (dpy);
   screen = DefaultScreen (dpy);
 
   /* connect to AfterStep */

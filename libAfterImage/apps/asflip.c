@@ -42,6 +42,7 @@ void usage()
 
 int main(int argc, char* argv[])
 {
+	Display *dpy = NULL;
 	ASVisual *asv ;
 	int screen = 0 , depth = 0 ;
 	char *image_file = "rose512.jpg" ;
@@ -169,10 +170,9 @@ int main(int argc, char* argv[])
 			/* see common.c: set_window_background_and_free() : */
 			p = set_window_background_and_free( w, p );
 			/* see common.c: wait_closedown() : */
-			wait_closedown(w);
 		}
-  		if( dpy )
-	  		XCloseDisplay (dpy);
+		wait_closedown(w);
+		dpy = NULL;
 #else
 		/* writing result into the file */
 		ASImage2file( flipped_im, NULL, "asflip.jpg", ASIT_Jpeg, NULL );

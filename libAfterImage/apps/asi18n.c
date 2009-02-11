@@ -39,6 +39,7 @@ void usage()
 
 int main(int argc, char* argv[])
 {
+	Display *dpy = NULL;
 	ASVisual *asv = NULL ;
 	int screen = 0, depth = 0;
 	char *font_name = "./test.ttf";
@@ -268,10 +269,9 @@ int main(int argc, char* argv[])
 				/* see common.c: set_window_background_and_free() : */
 				p = set_window_background_and_free( w, p );
 				/* see common.c: wait_closedown() : */
-				wait_closedown(w);
 			}
-		    if( dpy )
-      			XCloseDisplay (dpy);
+			wait_closedown(w);
+			dpy = NULL;
 #else
 			/* writing result into the file */
 			ASImage2file( rendered_im, NULL, "astext.jpg", ASIT_Jpeg, NULL );

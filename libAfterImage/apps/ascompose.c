@@ -274,6 +274,7 @@ Window showimage(ASImage* im, Bool looping, Window main_window, ASComposeWinProp
 Window make_main_window(Bool on_root, ASComposeWinProps *props);	
 
 int screen = 0, depth = 0;
+Display *dpy = NULL;
 
 int main(int argc, char** argv) {
 
@@ -731,7 +732,10 @@ int main(int argc, char** argv) {
 	if (main_window_props.canvas)
 		XFreePixmap(dpy, main_window_props.canvas); 
 	if( dpy )
+	{
         XCloseDisplay (dpy);
+		dpy = NULL;
+	}
 #endif
 	LOCAL_DEBUG_OUT( "display Closed%s","");
 #ifdef DEBUG_ALLOCS

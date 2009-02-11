@@ -54,6 +54,7 @@ void usage()
 
 int main(int argc, char* argv[])
 {
+	Display *dpy = NULL;
 	ASVisual *asv ;
 	int screen = 0, depth = 0;
 	unsigned int to_width= 200, to_height = 200;
@@ -126,10 +127,9 @@ int main(int argc, char* argv[])
 			/* see common.c: set_window_background_and_free() : */
 			p = set_window_background_and_free( w, p );
 			/* see common.c: wait_closedown() : */
-			wait_closedown(w);
 		}
-	    if( dpy )
-  		    XCloseDisplay (dpy);
+		wait_closedown(w);
+		dpy = NULL;
 #endif
 		{
 			CARD8 * buffer ; 

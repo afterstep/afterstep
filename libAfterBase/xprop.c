@@ -67,7 +67,7 @@ intern_atom_list (AtomXref * list)
 			for (i = 0; i < nitems; i++)
 				names[i] = list[i].name;
 
-			res = (XInternAtoms (dpy, names, nitems, False, atoms) != 0);
+			res = (XInternAtoms (get_current_X_display(), names, nitems, False, atoms) != 0);
 			for (i = 0; i < nitems; i++)
 			{
                 LOCAL_DEBUG_OUT( "Atom \"%s\" interned as 0x%lX", list[i].name, atoms[i] );
@@ -179,7 +179,7 @@ read_32bit_proplist (Window w, Atom property, long estimate, CARD32 ** list, lon
 			estimate = 1;
 		res =
 			(XGetWindowProperty
-			 (dpy, w, property, 0, estimate, False, AnyPropertyType,
+			 (get_current_X_display(), w, property, 0, estimate, False, AnyPropertyType,
 			  &actual_type, &actual_format, &unitems, &bytes_after, &buffer.uc_ptr) == 0);
 		/* checking property sanity */
 		res = (res && unitems > 0 && actual_format == 32);
@@ -190,7 +190,7 @@ read_32bit_proplist (Window w, Atom property, long estimate, CARD32 ** list, lon
 			buffer.long_ptr = NULL ; 
 			res =
 				(XGetWindowProperty
-				 (dpy, w, property, 0, estimate + (bytes_after >> 2), False,
+				 (get_current_X_display(), w, property, 0, estimate + (bytes_after >> 2), False,
 				  actual_type, &actual_type, &actual_format, &unitems, &bytes_after, &buffer.uc_ptr) == 0);
 			res = (res && (unitems > 0));	   /* bad property */
 		}
@@ -228,7 +228,7 @@ Bool read_text_property (Window w, Atom property, XTextProperty ** trg)
 		} else
 			*trg = (XTextProperty *) safecalloc (1, sizeof (XTextProperty));
 
-		if (XGetTextProperty (dpy, w, *trg, property) == 0)
+		if (XGetTextProperty (get_current_X_display(), w, *trg, property) == 0)
 		{
 			free ((*trg));
 			*trg = NULL;
@@ -255,7 +255,7 @@ Bool read_string_property (Window w, Atom property, char **trg)
             *trg = NULL ;
         }
 
-        if (XGetWindowProperty(dpy, w, property, 0, ~0, False, AnyPropertyType, &actual_type,
+        if (XGetWindowProperty(get_current_X_display(), w, property, 0, ~0, False, AnyPropertyType, &actual_type,
              &actual_format, &junk, &junk, (unsigned char **)trg) == Success)
         {
             if (actual_type != XA_STRING || actual_format != 8)
@@ -315,7 +315,7 @@ Bool read_32bit_property (Window w, Atom property, CARD32* trg)
 		data.long_ptr = NULL ;
 		res =
 			(XGetWindowProperty
-			 (dpy, w, property, 0, 1, False, AnyPropertyType, &actual_type,
+			 (get_current_X_display(), w, property, 0, 1, False, AnyPropertyType, &actual_type,
 			  &actual_format, &nitems, &bytes_after, &data.uc_ptr) == 0);
 
 		/* checking property sanity */
@@ -345,7 +345,7 @@ text_property2string( XTextProperty *tprop)
                 int     num, res ;
 
                 tprop->nitems = strlen (tprop->value);
-                res = XmbTextPropertyToTextList (dpy, &tprop, &list, &num);
+                res = XmbTextPropertyToTextList (get_current_X_display(), &tprop, &list, &num);
                 if ( res >= Success && num > 0 && *list)
                     text = stripcpy( *list );
                 if ( res >= Success && *list)
@@ -384,7 +384,7 @@ get_as_property ( Window w, Atom property, size_t * data_size, CARD32 *version)
 	header.long_ptr = NULL ; 
 	data.long_ptr = NULL ; 
 	/* try to get the property version and data size */
-    if (XGetWindowProperty (dpy, w, property, 0, 2, False, AnyPropertyType, &actual_type,
+    if (XGetWindowProperty (get_current_X_display(), w, property, 0, 2, False, AnyPropertyType, &actual_type,
 		 &actual_format, &ujunk, &ujunk, &header.uc_ptr) != Success)
         return False;
 	if (header.long_ptr == NULL)
@@ -403,7 +403,7 @@ get_as_property ( Window w, Atom property, size_t * data_size, CARD32 *version)
 	{
 		unsigned long actual_size = 0;
 		/* try to get the actual information */
-        if (XGetWindowProperty(dpy, w, property, 2, size, False,
+        if (XGetWindowProperty(get_current_X_display(), w, property, 2, size, False,
                                AnyPropertyType, &actual_type, &actual_format, &actual_size, &ujunk, &data.uc_ptr) != Success)
 			data.uc_ptr = NULL;
 		else if( actual_size < size )          /* make sure we do not go out of bounds of returned memory */
@@ -444,7 +444,7 @@ set_32bit_property (Window w, Atom property, Atom type, CARD32 data)
 	{
 #ifndef X_DISPLAY_MISSING
 		long ldata = data ;
-        XChangeProperty (dpy, w, property, type?type:XA_CARDINAL, 32,
+        XChangeProperty (get_current_X_display(), w, property, type?type:XA_CARDINAL, 32,
                          PropModeReplace, (unsigned char *)&ldata, 1);
 #endif
     }
@@ -467,12 +467,12 @@ set_multi32bit_property (Window w, Atom property, Atom type, int items, ...)
                 data[i++] = va_arg(ap,CARD32);
             va_end(ap);
 
-            XChangeProperty (dpy, w, property, type?type:XA_CARDINAL, 32,
+            XChangeProperty (get_current_X_display(), w, property, type?type:XA_CARDINAL, 32,
                              PropModeReplace, (unsigned char *)data, items);
 			free(data);
         }else
         {
-            XChangeProperty (dpy, w, property,
+            XChangeProperty (get_current_X_display(), w, property,
                              type?type:XA_CARDINAL, 32, PropModeReplace, NULL, 0);
         }
     }
@@ -496,13 +496,13 @@ set_32bit_proplist (Window w, Atom property, Atom type, CARD32* list, long nitem
 				while( --i >= 0 )
 					buffer[i] = list[i] ;
 			}
-            XChangeProperty (dpy, w, property, type?type:XA_CARDINAL, 32,
+            XChangeProperty (get_current_X_display(), w, property, type?type:XA_CARDINAL, 32,
                	             PropModeReplace, (unsigned char *)buffer, nitems);
 			if( buffer != (long*)list )
 				free( buffer );
         }else
         {
-            XChangeProperty (dpy, w, property,
+            XChangeProperty (get_current_X_display(), w, property,
                              type?type:XA_CARDINAL, 32, PropModeReplace, NULL, 0);
         }
     }
@@ -516,7 +516,7 @@ set_string_property (Window w, Atom property, char *data)
     if (w != None && property != None && data)
 	{
 LOCAL_DEBUG_OUT( "setting property %lX on %lX to \"%s\"", property, w, data );
-        XChangeProperty (dpy, w, property, XA_STRING, 8,
+        XChangeProperty (get_current_X_display(), w, property, XA_STRING, 8,
                          PropModeReplace, (unsigned char *)data, strlen (data));
     }
 #endif
@@ -535,16 +535,16 @@ set_text_property (Window w, Atom property, char** data, int items_num, ASTextEn
             char  **list;
             int     num, res ;
 /*			static Atom _XA_UTF8_STRING = XInternAtom(dpy, "UTF8_STRING", False) ; */
-			if( XmbTextListToTextProperty(dpy, data, items_num, XUTF8String, &prop) == Success )
+			if( XmbTextListToTextProperty(get_current_X_display(), data, items_num, XUTF8String, &prop) == Success )
 			{
-				XSetTextProperty (dpy, w, &prop, property);
+				XSetTextProperty (get_current_X_display(), w, &prop, property);
 				XFree ((char *)prop.value);
 				return;
 			}
         }
 #endif
 		XStringListToTextProperty (data, items_num, &prop);
-		XSetTextProperty (dpy, w, &prop, property);
+		XSetTextProperty (get_current_X_display(), w, &prop, property);
 		XFree ((char *)prop.value);
 	}
 #endif
@@ -568,7 +568,7 @@ set_as_property ( Window w, Atom property, CARD32 *data, size_t data_size, CARD3
 	while( --i >= 0 ) 
 		buffer[i+2] = data[i] ;
 
-    XChangeProperty (dpy, w, property, XA_INTEGER, 32, PropModeReplace,
+    XChangeProperty (get_current_X_display(), w, property, XA_INTEGER, 32, PropModeReplace,
 					 (unsigned char *)buffer, buffer_size);
 	free (buffer);
 #endif

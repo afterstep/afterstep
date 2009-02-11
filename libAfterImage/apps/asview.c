@@ -47,7 +47,8 @@ int main(int argc, char* argv[])
 	char *image_file = "rose512.jpg" ;
 	ASImage *im ;
 	ASVisual *asv ;
-	int screen, depth ;
+	int screen = 0, depth = 24;
+	Display *dpy = NULL;
 
 	/* see ASView.1 : */
 	set_application_name( argv[0] );
@@ -82,10 +83,11 @@ int main(int argc, char* argv[])
 										False);
 	screen = DefaultScreen(dpy);
 	depth = DefaultDepth( dpy, screen );
+#endif	
 	/* see ASView.3 : */
 	asv = create_asvisual( dpy, screen, depth, NULL );
 	/* asv = create_asvisual_for_id( dpy, screen, depth, 0x28, None, NULL ); */
-#endif	
+
 	/* see ASView.2 : */
 	im = file2ASImage( image_file, 0xFFFFFFFF, SCREEN_GAMMA, 0, getenv("IMAGE_PATH"), NULL );
 
@@ -95,7 +97,6 @@ int main(int argc, char* argv[])
 		ASImage2file( im, NULL, "asview.png", ASIT_Png, NULL );
 		ASImage2file( im, NULL, "asview.gif", ASIT_Gif, NULL );
 	*/
-
 
 	if( im != NULL )
 	{
@@ -155,12 +156,13 @@ int main(int argc, char* argv[])
 			/* see common.c:set_window_background_and_free(): */
 			p = set_window_background_and_free( w, p );
 		}
+		/* see common.c: wait_closedown() : */
+		wait_closedown(w);
+		dpy = NULL;
+		
 		/* no longer need this - lets clean it up :*/
 		destroy_asvisual( asv, False );
 		asv = NULL ;
-
-		/* see common.c: wait_closedown() : */
-		wait_closedown(w);
 
 #else
 		/* writing result into the file */

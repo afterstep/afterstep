@@ -328,6 +328,7 @@ main (int argc, char **argv)
 		
 	    if ((dpy = XOpenDisplay (MyArgs.display_name)))
 		{
+			set_current_X_display (dpy);
 			Scr.MyDisplayWidth = DisplayWidth (dpy, Scr.screen);
 			Scr.MyDisplayHeight = DisplayHeight (dpy, Scr.screen);
 

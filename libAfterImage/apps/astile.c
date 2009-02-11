@@ -59,6 +59,7 @@ void usage()
 int main(int argc, char* argv[])
 {
 	Window w ;
+	Display *dpy = NULL;
 	ASVisual *asv ;
 	int screen = 0, depth = 0;
 	char *image_file = "rose512.jpg" ;
@@ -169,6 +170,7 @@ int main(int argc, char* argv[])
 		}
 		/* see common.c: wait_closedown() : */
 		wait_closedown(w);
+		dpy = NULL;		
 #else
 		{
 			ASImage *tinted_im ;

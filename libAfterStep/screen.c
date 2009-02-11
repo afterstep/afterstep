@@ -400,6 +400,8 @@ ConnectX (ScreenInfo * scr, unsigned long event_mask)
         show_error("Can't open display \"%s\". Exiting!", XDisplayName (MyArgs.display_name));
 		exit (1);
 	}
+	
+	set_current_X_display (dpy); /* for libAfterBase X Wrappers */
 
 	ConnectXDisplay (dpy, scr, (event_mask&SubstructureRedirectMask));
     XSelectInput (dpy, scr->Root, event_mask);

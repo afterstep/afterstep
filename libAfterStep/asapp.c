@@ -70,6 +70,7 @@ int       fd_width;
 unsigned int  nonlock_mods = 0;				   /* a mask for non-locking modifiers */
 unsigned int  lock_mods[MAX_LOCK_MODS] = {0};  /* all combinations of lock modifier masks */
 /* Now for each display we may have one or several screens ; */
+Display *dpy = NULL;
 ScreenInfo    *ASDefaultScr;					   /* ScreenInfo for the default screen */
 //#define Scr	(*DefaultScr);
 int x_fd = 0;                                  /* descriptor of the X Windows connection  */

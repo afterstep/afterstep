@@ -25,8 +25,23 @@
 #include "output.h"
 #include "parse.h"
 
-Display *dpy = NULL;
+static Display *asbase_current_dpy = NULL;
 static int DisplayGrabCount = 0 ;
+
+void set_current_X_display (Display *dpy)
+{
+	asbase_current_dpy = dpy;
+}
+
+Display *
+get_current_X_display ()
+{
+#ifndef X_DISPLAY_MISSING
+	return asbase_current_dpy;
+#else
+	return NULL;
+#endif
+}
 
 #ifndef X_DISPLAY_MISSING
 static int
@@ -41,9 +56,9 @@ int
 grab_server()
 {
 #ifndef X_DISPLAY_MISSING
-	if( dpy )
+	if( asbase_current_dpy )
 	{
-		XGrabServer( dpy );
+		XGrabServer( asbase_current_dpy );
 		++DisplayGrabCount ;
 	}
 #endif
@@ -54,9 +69,9 @@ int
 ungrab_server()
 {
 #ifndef X_DISPLAY_MISSING
-	if( dpy )
+	if( asbase_current_dpy )
 	{
-		XUngrabServer( dpy );
+		XUngrabServer( asbase_current_dpy );
 		--DisplayGrabCount ;
 	}
 #endif
@@ -74,13 +89,13 @@ get_drawable_size (Drawable d, unsigned int *ret_w, unsigned int *ret_h)
 {
 	int result = 0 ;
 #ifndef X_DISPLAY_MISSING
-	if( d != None ) 
+	if( d != None && asbase_current_dpy) 
 	{
 		Window        root;
 		unsigned int  ujunk;
 		int           junk;
 		int           (*oldXErrorHandler) (Display *, XErrorEvent *) = XSetErrorHandler (quiet_xerror_handler);
-		result = XGetGeometry (dpy, d, &root, &junk, &junk, ret_w, ret_h, &ujunk, &ujunk);
+		result = XGetGeometry (asbase_current_dpy, d, &root, &junk, &junk, ret_w, ret_h, &ujunk, &ujunk);
 		XSetErrorHandler (oldXErrorHandler);
 	}
 #endif
@@ -111,9 +126,9 @@ validate_drawable (Drawable d, unsigned int *pwidth, unsigned int *pheight)
 	if (!pheight)
 		pheight = &ujunk;
 
-	if (d != None)
+	if (d != None && asbase_current_dpy)
 	{
-		if (!XGetGeometry (dpy, d, &root, &junk, &junk, pwidth, pheight, &ujunk, &ujunk))
+		if (!XGetGeometry (asbase_current_dpy, d, &root, &junk, &junk, pwidth, pheight, &ujunk, &ujunk))
 			d = None;
 	}
 	XSetErrorHandler (oldXErrorHandler);
@@ -134,11 +149,11 @@ backtrace_window ( const char *file, int line, Window w )
 
     oldXErrorHandler = XSetErrorHandler (quiet_xerror_handler);
     fprintf (stderr, "%s(line%d): Backtracing [%lX]", file, line, w);
-	while (XQueryTree (dpy, w, &root, &parent, &children, &nchildren))
+	while (XQueryTree (asbase_current_dpy, w, &root, &parent, &children, &nchildren))
 	{
 		int x, y ;
 		unsigned int width, height, border, depth ;
-		XGetGeometry( dpy, w, &root, &x, &y, &width, &height, &border, &depth );
+		XGetGeometry( asbase_current_dpy, w, &root, &x, &y, &width, &height, &border, &depth );
 	    fprintf (stderr, "(%dx%d%+d%+d)", width, height, x, y );
 
 		if (children)
@@ -162,8 +177,8 @@ get_parent_window( Window w )
     Window        root, *children = NULL;
     unsigned int  child_count = 0;
 
-	XSync( dpy, False );
-    XQueryTree (dpy, w, &root, &parent, &children, &child_count);
+	XSync( asbase_current_dpy, False );
+    XQueryTree (asbase_current_dpy, w, &root, &parent, &children, &child_count);
     if (children)
         XFree (children);
 #endif
@@ -179,12 +194,12 @@ get_topmost_parent( Window w, Window *desktop_w )
 	Window *children = NULL;
     unsigned int  child_count;
 
-	XSync( dpy, False );
+	XSync( asbase_current_dpy, False );
 	while( w != root && w != None )
 	{
 		parent = desktop ;
 		desktop = w ;
-		XQueryTree (dpy, w, &root, &w, &children, &child_count);
+		XQueryTree (asbase_current_dpy, w, &root, &w, &children, &child_count);
     	if (children)
         	XFree (children);
 	}

@@ -494,6 +494,7 @@ const char *parse_argb_color( const char *color, CARD32 *pargb )
 			{
 #ifndef X_DISPLAY_MISSING
 				XColor xcol, xcol_scr ;
+				Display *dpy = get_current_X_display();
 				/* does not really matter here what screen to use : */
 				if( AS_ASSERT(dpy) )
 					success = False ;
