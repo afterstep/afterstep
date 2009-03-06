@@ -1,0 +1,91 @@
+#!/bin/bash
+
+#  !!! whitespace-mangling because wharf is not able to deal with witespace in (icon)name
+
+user=$(whoami)
+homedir="/home/$user"
+icon_theme="default"
+icon_dir="/usr/share/icons/$icon_theme"
+tmpcfgdir="/tmp/afterstep-$user"
+
+
+function set_icon {
+file_icon="large/Document"
+
+}
+
+
+
+for startcleanup in `ps aux |grep desktopicons|awk '{print $2;}'`
+do
+    if [ $startcleanup -ne $$ ]
+    then
+	kill -9 $startcleanup
+    fi
+done
+
+echo $tmpcfgdir
+
+if [ ! -d $tmpcfgdir ]
+then
+    mkdir $tmpcfgdir
+fi
+
+
+
+while [ 1 ]
+do
+
+ cat $homedir/4afterstep/DesktopIcons/template.desktopicons > "$tmpcfgdir/wharf.desktop"
+ i=0
+ ls -la ~/Desktop |grep ^d |awk '{if (NR > 2) {$1=""; $2=""; $3=""; $4=""; $5=""; $6=""; $7=""; $8=""; print $0;} }'| while read FILE
+ #find ~/Desktop  -maxdepth 1 -name '*' -printf %f\\n |while read FILE
+ do
+ let "i += 1"
+	tmpfile=`echo "$tmpcfgdir/$FILE.asxml"| tr " " "_"`
+	echo "<composite width=\"128\" height=\"128\">" > "$tmpfile"
+	echo '<scale width="128" height=128"><img src="tiles/empty" /></scale>'  >> "$tmpfile"	
+	echo '<scale align="center" y="10" width="96" height="proportional">' >> "$tmpfile"
+	echo "<img src=\"large/FolderAqua\" />" >> "$tmpfile"
+	echo "</scale>" >> "$tmpfile"
+	echo "<text align=\"center\" y=\"110\" font=\"DefaultBoldOblique.ttf\" fgcolor=\"#000000\" point=\"8\">$FILE</text>" >> "$tmpfile"
+	echo "</composite>" >> "$tmpfile"
+
+	echo "*DesktopWharf tile-$i $tmpfile Exec \"-\" thunar ~/Desktop/$FILE &" >> "$tmpcfgdir/wharf.desktop"
+ done
+echo $i 
+
+ ls -la ~/Desktop |grep -v ^d |awk '{if (NR > 1) {$1=""; $2=""; $3=""; $4=""; $5=""; $6=""; $7=""; $8=""; print $0;} }'| while read FILE
+ #find ~/Desktop  -maxdepth 1 -name '*' -printf %f\\n |while read FILE
+ do
+ let "j += 1"
+	file_type=`file -i -b ~/Desktop/$FILE`
+	set_icon $file_type
+	tmpfile=$tmpcfgdir"/tile2-"$j".asxml"
+	echo "<composite width=\"128\" height=\"128\">" > "$tmpfile"
+	echo '<scale width="128" height=128"><img src="tiles/empty" /></scale>'  >> "$tmpfile"	
+	echo '<scale align="center" y="10" width="96" height="proportional">' >> "$tmpfile"
+	echo "<img src=\"$file_icon\" />" >> "$tmpfile"
+	echo "</scale>" >> "$tmpfile"
+	echo "<text align=\"center\" y=\"110\" font=\"DefaultBoldOblique.ttf\" fgcolor=\"#000000\" point=\"8\">$FILE</text>" >> "$tmpfile"
+	echo "<text align=\"center\" y=\"10\" font=\"DefaultBoldOblique.ttf\" fgcolor=\"#000000\" point=\"8\">$file_type</text>" >> "$tmpfile"
+	echo "</composite>" >> "$tmpfile"
+
+
+	echo "*DesktopWharf tile2-$j `echo $tmpfile | tr " " "_"` Exec \"\" xdg-open $FILE &" >> "$tmpcfgdir/wharf.desktop"
+ done
+
+ killall DesktopWharf
+ sleep 2
+ ~/.afterstep/desktop/modules/DesktopWharf -f /tmp/afterstep-grattler/wharf.desktop &
+ inotifywait -e moved_to -e moved_from -e move -e create -e delete  --format '%:e %f' ~/Desktop/
+ sleep 2
+done
+
+
+#  file <- fuer file typ
+#  inotifywait nutzen um das dann zu schaffen...
+# DU SACK !!!!!
+#
+#
+#
