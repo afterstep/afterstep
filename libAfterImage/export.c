@@ -1193,7 +1193,7 @@ Bool ASImage2gif( ASImage *im, const char *path,  ASImageExportParams *params )
 	
 	if (outfile 
 #ifndef NO_DOUBLE_FCLOSE_AFTER_FDOPEN
-		&& !gif  /* can't do double fclose in MS CRT after VC2005 */
+		&& gif  /* can't do double fclose in MS CRT after VC2005 */
 #endif
 		&& outfile != stdout)
 	{
