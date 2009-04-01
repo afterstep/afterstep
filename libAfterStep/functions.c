@@ -792,6 +792,23 @@ check_scale_menu_pmap( ASImage *im, ASFlagType flags )
 }
 
 void
+free_menu_pmaps( MenuData *menu)
+{
+    MenuDataItem *curr ;
+
+	LOCAL_DEBUG_OUT( "menu = %p, image_manager = %p", menu, ASDefaultScr->image_manager );
+
+	for( curr = menu?menu->first:NULL ; curr != NULL ; curr = curr->next )
+	{	
+	    if( curr->minipixmap_image )
+		{
+        	safe_asimage_destroy(curr->minipixmap_image);
+			curr->minipixmap_image = NULL ; 
+		}
+	}
+}
+
+void
 reload_menu_pmaps( MenuData *menu, Bool force )
 {
     MenuDataItem *curr ;

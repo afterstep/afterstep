@@ -301,6 +301,7 @@ main (int argc, char **argv)
 	       MyName, XDisplayName (""));
       exit (1);
     }
+  set_current_X_display (dpy);
   screen = DefaultScreen (dpy);
 
   /* connect to AfterStep */

@@ -311,6 +311,7 @@ Bool check_fdata_availability( FunctionData *fdata );
 MenuDataItem * add_menu_fdata_item( MenuData *menu, FunctionData *fdata, char *minipixmap, struct ASImage *img );
 MenuDataItem * menu_data_item_from_func (MenuData * menu, FunctionData * fdata, Bool do_check_availability);
 struct ASImage *check_scale_menu_pmap( struct ASImage *im, ASFlagType flags ); 
+void free_menu_pmaps( MenuData *menu);
 void reload_menu_pmaps( MenuData *menu, Bool force  );
 
 /* usefull to qsort array of FunctionData pointers : */

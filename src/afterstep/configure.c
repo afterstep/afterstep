@@ -1882,21 +1882,26 @@ LoadASConfig (int thisdesktop, ASFlagType what)
 		recolor_feel_cursors( &Scr.Feel, cursor_fore, cursor_back );
 		XDefineCursor (dpy, Scr.Root, Scr.Feel.cursors[ASCUR_Default]);
 
-	    display_progress( True, "Reloading menu pixmaps :");
+	    display_progress( True, get_flags( Scr.Look.flags, MenuMiniPixmaps )?"Reloading menu pixmaps :":"Unloading menu pixmaps :");
 		if( start_hash_iteration (Scr.Feel.Popups, &i) )
             do
             {
 				MenuData *md = curr_hash_data(&i);
+				if (!get_flags (Scr.Look.flags, MenuMiniPixmaps))
+					free_menu_pmaps (md);
+				else
 				{
 					char *name = md->name;
 					Bool newline = ( count%10 == 0 );
 					if( isdigit(name[0]) )
 						if( md->first != NULL && md->first->fdata->func == F_TITLE ) 
-					    	name = md->first->item;
+				    		name = md->first->item;
 					display_progress( newline, newline?"    %s":"%s", name);
 					++count;
+
+					reload_menu_pmaps( md, get_flags(what, PARSE_BASE_CONFIG) );
 				}
-				reload_menu_pmaps( md, get_flags(what, PARSE_BASE_CONFIG) );
+
             }while( next_hash_item( &i ));
 		
 	    display_progress( True, "Advertising titlebar properties ...");
