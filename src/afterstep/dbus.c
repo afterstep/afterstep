@@ -127,11 +127,12 @@ void asdbus_shutdown()
 void
 asdbus_process_messages ()
 {
-    do
-    {
-		dbus_connection_read_write_dispatch (ASDBus.session_conn, 0);
-    }while (dbus_connection_get_dispatch_status (ASDBus.session_conn) 
-			== DBUS_DISPATCH_DATA_REMAINS);
+	if (ASDBus.session_conn)
+	    do
+    	{
+			dbus_connection_read_write_dispatch (ASDBus.session_conn, 0);
+	    }while (dbus_connection_get_dispatch_status (ASDBus.session_conn) 
+				== DBUS_DISPATCH_DATA_REMAINS);
 }
 
 
@@ -185,7 +186,7 @@ use dbus__connection_send () to send it.
 void asdbus_RegisterSMClient(const char *sm_client_id)
 {
 #ifdef HAVE_DBUS_CONTEXT
-	if (ASDBus.session_conn)
+	if (ASDBus.session_conn && sm_client_id)
 	{
 		DBusMessage *message = dbus_message_new_method_call("org.gnome.SessionManager", 
 							  "/org/gnome/SessionManager", 
