@@ -1,0 +1,6 @@
+<varlistentry id="options.GroupTabs">
+	<term>GroupTabs</term>
+	<listitem>
+		<para>When set it will make WinTabs attempt to group tabs together if their beginning or end of the name is the same. See also GroupNameSeparator.</para>
+	</listitem>
+</varlistentry>

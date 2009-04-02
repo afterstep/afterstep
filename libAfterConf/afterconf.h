@@ -2217,6 +2217,7 @@ Bool UpdateKCSRC();
  *  *WinTabsFBevel           None,Left,Right,Top, Bottom, NoOutline
  *  *WinTabsUBevel           None,Left,Right,Top, Bottom, NoOutline
  *  *WinTabsSBevel           None,Left,Right,Top, Bottom, NoOutline
+ *  *WinTabsGroupNameSeparator "string"
 */
 #define WINTABS_ID_START        		(COLOR_ID_END+1)
 #define WINTABS_Geometry_ID				(WINTABS_ID_START+1)
@@ -2246,6 +2247,8 @@ Bool UpdateKCSRC();
 #define WINTABS_Title_ID				(WINTABS_ID_START+25)
 #define WINTABS_IconTitle_ID	 		(WINTABS_ID_START+26)
 #define WINTABS_SkipTransients_ID		(WINTABS_ID_START+27)
+#define WINTABS_GroupNameSeparator_ID	(WINTABS_ID_START+28)
+#define WINTABS_GroupTabs_ID			(WINTABS_ID_START+29)
 
 
 #define WINTABS_BALLOONS_ID             (WINTABS_ID_START+31)
@@ -2278,6 +2281,7 @@ typedef struct WinTabsConfig
 #define WINTABS_PatternType	    (0x01<<20)
 #define WINTABS_ExcludePatternType	    (0x01<<21)
 #define WINTABS_SkipTransients	(0x01<<22)
+#define WINTABS_GroupTabs		(0x01<<23)
 
 
 #define ASWT_UseSkipList		WINTABS_UseSkipList
@@ -2303,6 +2307,8 @@ typedef struct WinTabsConfig
     int             ucm, fcm, scm;             /* composition methods */
     unsigned int    h_spacing, v_spacing ;
 	char 		   *title, *icon_title ;
+	
+	char 		*GroupNameSeparator;
 
     balloonConfig *balloon_conf;
     MyStyleDefinition *style_defs;

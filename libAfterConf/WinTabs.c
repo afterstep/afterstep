@@ -67,6 +67,9 @@ TermDef       WinTabsTerms[] = {
     {0, "Title", 5, TT_TEXT, WINTABS_Title_ID, NULL},
     {0, "IconTitle", 9, TT_TEXT, WINTABS_IconTitle_ID, NULL},
     {0, "SkipTransients", 14, TT_FLAG, WINTABS_SkipTransients_ID, NULL},
+    {0, "GroupNameSeparator", 18, TT_QUOTED_TEXT, WINTABS_GroupNameSeparator_ID, NULL},
+    {0, "GroupTabs", 9, TT_FLAG, WINTABS_GroupTabs_ID, NULL},
+
 /* including MyStyles definitions processing */
 	INCLUDE_MYSTYLE,
 
@@ -118,6 +121,8 @@ DestroyWinTabsConfig (WinTabsConfig * config)
 		free (config->focused_style);
 	if (config->sticky_style)
 		free (config->sticky_style);
+		
+	destroy_string (&(config->GroupNameSeparator));
 
     Destroy_balloonConfig (config->balloon_conf);
 	DestroyFreeStorage (&(config->more_stuff));
@@ -172,6 +177,8 @@ PrintWinTabsConfig (WinTabsConfig * config)
 	fprintf (stderr, "WinTabsConfig.SkipTransients = %s;\n",
 			 get_flags (config->flags, WINTABS_SkipTransients) ? "True" : "False");
 
+	fprintf (stderr, "WinTabsConfig.GroupNameSeparator = \"%s\";\n", config->GroupNameSeparator);
+
 }
 
 WinTabsConfig *
@@ -216,6 +223,9 @@ ParseWinTabsOptions (const char *filename, char *myname)
                     break;
                 case WINTABS_SkipTransients_ID:
                     SET_CONFIG_FLAG (config->flags, config->set_flags, WINTABS_SkipTransients);
+                    break;
+                case WINTABS_GroupTabs_ID:
+                    SET_CONFIG_FLAG (config->flags, config->set_flags, WINTABS_GroupTabs);
                     break;
                 case WINTABS_Align_ID :
                     set_flags( config->set_flags, WINTABS_Align );
@@ -319,6 +329,10 @@ ParseWinTabsOptions (const char *filename, char *myname)
                     break;
                 case WINTABS_IconTitle_ID:
 					set_string( &(config->icon_title), item.data.string );
+                    break;
+
+                case WINTABS_GroupNameSeparator_ID:
+                    REPLACE_STRING (config->GroupNameSeparator, item.data.string);
                     break;
 
                 default:

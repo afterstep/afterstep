@@ -15,3 +15,17 @@
 #*WinTabsUBevel           None,Left,Right,Top, Bottom, NoOutline
 #*WinTabsSBevel           None,Left,Right,Top, Bottom, NoOutline
 
+# following is to try and organize tabs into groups by name. 
+# If two tabs have same beginning or the end of the name - they'll be 
+# organized into group and identical portion of the name will become the group name.
+# Optional GroupNameSeparator allows to limit as to how group name and item name
+# could be separated in the name. see examples below.
+#
+#*WinTabsGroupTabs
+#*WinTabsGroupNameSeparator " "
+
+*NeditTabsGroupTabs
+*NeditTabsGroupNameSeparator  " - "
+*TermTabsGroupTabs
+*TermTabsGroupNameSeparator  ": "
+

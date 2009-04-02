@@ -1,0 +1,7 @@
+<varlistentry id="options.GroupNameSeparator">
+	<term>GroupNameSeparator</term>
+	<listitem>
+		<para>When set a substring which separates group name from the rest of the name, while doing tab grouping.
+		See also GroupTabs option.</para>
+	</listitem>
+</varlistentry>

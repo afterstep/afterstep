@@ -697,6 +697,9 @@ GetOptions (const char *filename)
     if( get_flags(config->set_flags, WINTABS_V_SPACING) )
         Config->v_spacing = config->v_spacing;
 
+    if( config->GroupNameSeparator )
+        set_string( &(Config->GroupNameSeparator), mystrdup(config->GroupNameSeparator) );
+
     if( Config->balloon_conf )
         Destroy_balloonConfig( Config->balloon_conf );
     Config->balloon_conf = config->balloon_conf ;
@@ -2148,6 +2151,9 @@ void check_tab_grouping (int t)
 {
     ASWinTab *tabs = PVECTOR_HEAD(ASWinTab,WinTabsState.tabs);
 
+	if (!get_flags (Config->flags, WINTABS_GroupTabs))
+		return;
+		
 LOCAL_DEBUG_OUT ("group_owner = %d", tabs[t].group_owner);
 	if (!tabs[t].group_owner)
 	{
@@ -2414,18 +2420,44 @@ LOCAL_DEBUG_CALLER_OUT ("group = %p, tab = %d", group, t);
 #define MIN_MATCH_LENGTH 5
 
 int 
-find_longest_common_substring (const char *str1, int len1, const char *str2)
+find_longest_common_substring (const char *str1, int len1, const char *str2, const char *token_separator)
 {
 	int len2 = strlen (str2);
 	int min_len = (len1 < len2)? len1 : len2;
 	int start = 0, tail = 0; 
-	
+	int ts_len = token_separator ? strlen (token_separator) : 0;
+	int i;
+
 	while (start < min_len && str1[start] == str2[start]) ++start;
 	
+	if (ts_len)
+	{
+		i = start-ts_len;
+		start = 0;
+		for (; i >= 0; --i)
+			if (str1[i] == token_separator[0] && strncmp (&(str1[i]), token_separator, ts_len) == 0)
+			{
+				start = i + ts_len;
+				break;
+			}
+	}
+
 	str1 += len1-1;
 	str2 += len2-1;
 	
 	while (str1[tail] == str2[tail] && tail > -min_len) --tail;
+
+	if (ts_len)
+	{
+		i = tail;
+		tail = 0;
+		for (; i <= -ts_len+1; ++i)
+			if (str1[i] == token_separator[0] && strncmp (&(str1[i]), token_separator, ts_len) == 0)
+			{
+				tail = i;
+				break;
+			}
+	}
 	
 	return (start+tail < 0)? tail : start;
 }
@@ -2455,7 +2487,7 @@ LOCAL_DEBUG_CALLER_OUT ("group_owners_count = %d", i);
 				for (k = i+1 ; k < tab_num ; ++k)
 					if (!tabs[k].group && tabs[k].name_encoding == tabs[i].name_encoding)
 					{
-						int substr_len = find_longest_common_substring (tabs[i].name, len_i, tabs[k].name);
+						int substr_len = find_longest_common_substring (tabs[i].name, len_i, tabs[k].name, Config->GroupNameSeparator);
 						int nm = substr_len*substr_len;
 						if (best_match < nm)
 						{

@@ -1,3 +1,9 @@
+version 2.2.9 release
+	* Menu  Mini Pixmaps will no longer be loaded if MenuMiniPixmaps is set 0
+	  in look.
+	* WinTabs is now capable of grouping similarly named tabs together to 
+	  eliminated repeating patterns. See GroupTabs and GroupNameSeparator options.
+
 version 2.2.8 release
     * Implemented possibility to define exact size of the virtual desktop, 
 	  which may not be exact multiply of the screen size.
