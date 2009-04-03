@@ -80,7 +80,18 @@ struct
 void ascolor_usage()
 {
 	fprintf( stdout,
-		"Usage:\n"
+		"ASColor is a simple GUI to create colorschemes for AfterStep.\n"
+		"  It writes the result into a file named colorscheme in current directory- \n"
+		"override it with -o option (see below).\n"		
+		"  There are 4 parameters to the color scheme - Angle, Hue, Saturation and Value.\n"
+		"  Pressing arrow keys in ASColor window will change the currently selected parameter.\n"
+		"  To select parameter - press 'a', 'h', 's' or 'v' keys.\n"
+		"  ASColor will also create .mini file suitable to be used as minipixmap\n"
+		"in the AfterStep menu.\n\n"
+		"  Rename and copy both colorscheme and .mini files into ~/.afterstep/colorschemes\n"
+		"directory and refresh AfterStep menu. New entry should show up.\n"
+		"Select it to apply new colorscheme.\n"
+		"\n"
 		"ascolor [-h] [-f file] [-o file] [-s string] [-t type] [-v] [-V]"
 #ifndef X_DISPLAY_MISSING
 			" [-n] [-r]"
