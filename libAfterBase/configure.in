@@ -7,7 +7,7 @@ dnl#Copyright (c) 1998 Juergen Sawinski <Juergen.Sawinski@urz.uni-heidelberg.de>
 dnl#Copyright (c) 1997 1998 Guylhem AZNAR <guylhem@oeil.qc.ca>
 
 
-AC_INIT(libAfterBase,1.12,as-bugs@afterstep.org,libAfterBase.tar)
+AC_INIT(libAfterBase,1.13,as-bugs@afterstep.org,libAfterBase.tar)
 
 version=$PACKAGE_VERSION
 version_major="1"

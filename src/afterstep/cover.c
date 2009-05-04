@@ -146,12 +146,12 @@ do_anim_shape_blocks( void *vdata )
 		data->open_height += y_dim;
 
 	tmp = data->stripes[0];
-	for (level = 0; level < LEVELS_NUM; level++)
+	for (level = 0; level < LEVELS_NUM-1; level++)
 	{
 		data->off_y[level] += y_dim;
-		if (level < LEVELS_NUM - 1)
-			data->stripes[level] = data->stripes[level + 1];
+		data->stripes[level] = data->stripes[level + 1];
 	}
+	data->off_y[LEVELS_NUM - 1] += y_dim;
 	data->stripes[LEVELS_NUM - 1] = tmp;
 	memset (tmp, 0x00, BLOCKS_NUM);
 	
