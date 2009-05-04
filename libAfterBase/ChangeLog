@@ -1,4 +1,36 @@
 
+2009-05-04  sasha
+
+	* AfterStep release v 2.2.9
+
+2009-02-11  sasha
+
+	* Got rid of dpy global variable in libAfterBase and libAfterIMage
+	  for good. Moved it into libAfterStep instead, as it incorporates
+	  screen handling functionality.
+
+2008-12-02  sasha
+
+	* fixed silly bug in asvector where inserted elems would not
+	  increase size of the vector
+
+2008-09-15  sasha
+
+	* fixed element re-location code in vector
+
+2008-07-28  sasha
+
+	* copyright update
+
+2008-07-01  sasha
+
+	* changed destroy_string to be a function instead of a macro to
+	  avoid excessive compiler warnings
+
+2008-06-18  sasha
+
+	* Updated ChangeLog for libAfterImage 1.18 release
+
 2008-04-01  sasha
 
 	* some refactoring of config writing code

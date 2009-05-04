@@ -1,6 +1,168 @@
 
+2009-05-04  sasha
+
+	* AfterStep release v 2.2.9
+
+2009-04-03  sasha
+
+	* added detailed instruction for ascolor usage
+
+2009-04-02  sasha
+
+	* cleaned up WinTabs tab grouping - added config options to switch
+	  it on and set group name separator
+
+2009-04-01  sasha
+
+	* fixed segfault in Session Manager registration when session
+	  manager is not available or sm_client_id is otherwise empty
+	* disabled minipixmap loading when MenuMiniPixmaps are off
+
+2009-03-18  sasha
+
+	* added ifdef to avoid double fclose under MSVC2005 and newer
+
+2009-03-05  born2late
+
+	* ...ooops...
+	* added ~/Desktop icons using wharf and /tmp dir for cfg files
+
+2009-03-02  born2late
+
+	* just checking if commit is working after this long time
+
+2009-02-11  sasha
+
+	* Got rid of dpy global variable in libAfterBase and libAfterIMage
+	  for good. Moved it into libAfterStep instead, as it incorporates
+	  screen handling functionality.
+
+2009-01-30  sasha
+
+	* fixed warning in jpeg2ASImage
+
+2009-01-16  sasha
+
+	* fix to fill_hline_colored to work on scratch canvas + some
+	  debugging of reported fill bugs on 64bit systems
+
+2009-01-13  sasha
+
+	* fixed aliasing for drawing with brush wider then 1x1; Fixed areas
+	  of low intensity inside solid lines
+	* fixed clipping in straight ellips drawing where y+ry > height
+	* added missing declaration of Bool asim_set_custom_brush_colored()
+
+2009-01-12  sasha
+
+	* somewhat fixed drawing with ARGB brush over ARGB canvas; Still
+	  unclear what would happen if those are different ;
+
+2008-12-17  sasha
+
+	* added RegisterClient message to dbus stuff
+	* fixed memory leak in ASImage2gif file needed to be closed even
+	  after Egif closes it too
+	* fixed Makefile to work on FBSD/Gentoo
+
+2008-12-16  sasha
+
+	* added --sm-client-id startup option to AfterStep
+
+2008-12-05  sasha
+
+	* more gnome interaction stuff
+	* compie bug fix
+
+2008-12-04  sasha
+
+	* added rudimentary dbus connectivity
+
+2008-12-02  sasha
+
+	* fixed silly bug in asvector where inserted elems would not
+	  increase size of the vector
+
+2008-11-12  sasha
+
+	* fixed references to the global variable dpy in GLX code
+
+2008-11-06  sasha
+
+	* fixed a segfault in WinTabs and tabs rearranging on removal from
+	  the group
+
+2008-09-30  sasha
+
+	* [no log message]
+
+2008-09-16  sasha
+
+	* fixed focusing of the tabs on new window swallow when it gets
+	  added to unselected group
+	* tweaks to layout of the grouped tabs
+
+2008-09-15  sasha
+
+	* [no log message]
+	* fixed element re-location code in vector
+	* implemented tab grouping functionality in WinTabs
+
+2008-08-15  sasha
+
+	* added utility to check if glyphs are available in the font for a
+	  certain char or a list of chars
+
+2008-07-28  sasha
+
+	* copyright update
+	* added new function ExecInDir <dirname> <command> to run command
+	  using dirname as current dir. Added --cwd cmd line flag to ASRun
+	  to make use of ExecInDir
+
+2008-07-11  jeremy
+
+	* Fresh updates to Sound2
+
+2008-07-02  sasha
+
+	* disabled mapping on frame sooner then later as it ruins initial
+	  placement
+	* [no log message]
+
+2008-07-01  sasha
+
+	* changed destroy_string to be a function instead of a macro to
+	  avoid excessive compiler warnings
+	* compile bugs in linAfterConf
+
+2008-06-30  sasha
+
+	* added pointer warping on viewport shifts while move-resizing
+	  windows; added focus hiding on viewport change to prevent
+	  misdirected input
+	* disabled pointer warping on viewport change
+
+2008-06-25  sasha
+
+	* tweaks to initial window mapping time
+
+2008-06-24  sasha
+
+	* fixed afterstep proper and wintabs to avoid refreshing
+	  decorations when window is offscreen
+	* [no log message]
+	* Fixed root pixmap setting - to handle XKillClient failures and
+	  not free pixmap after it was put on the root
+
+2008-06-23  sasha
+
+	* [no log message]
+
 2008-06-18  sasha
 
+	* [no log message]
+	* Updated ChangeLog for libAfterImage 1.18 release
 	* libAfterImage 1.18 release
 
 2008-06-13  sasha
