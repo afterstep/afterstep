@@ -28,6 +28,7 @@ struct wild_reg_exp;
 
 
 /* this are pure flags */
+#define STYLE_PAGER		(1 << 4)   
 #define STYLE_IGNORE_RESTACK	(1 << 5)   /* if set - client will not be able to rise/lower 
 											  the window */
 #define STYLE_FULLSCREEN		(1 << 6)
@@ -60,7 +61,7 @@ struct wild_reg_exp;
 #define STYLE_BUTTONS           (1 << 30)   /*  */
 #define STYLE_FLAGS             (1 << 31)   /*  */
 
-#define STYLE_DEFAULTS		(STYLE_TITLE|STYLE_CIRCULATE|STYLE_WINLIST| \
+#define STYLE_DEFAULTS		(STYLE_PAGER | STYLE_TITLE|STYLE_CIRCULATE|STYLE_WINLIST| \
                              STYLE_FOCUS|STYLE_FOCUS_ON_MAP|STYLE_HANDLES| \
 							 STYLE_ICON_TITLE|STYLE_PPOSITION|STYLE_GROUP_HINTS| \
 							 STYLE_TRANSIENT_HINTS|STYLE_MOTIF_HINTS|STYLE_KDE_HINTS| \

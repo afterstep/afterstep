@@ -40,7 +40,7 @@ init_ashints (ASHints * hints)
 {
 	if (hints)
 	{										   /* some defaults to start with : */
-		hints->flags = AS_Gravity | AS_AcceptsFocus | AS_Titlebar | AS_IconTitle | AS_Handles | AS_Border;
+		hints->flags = AS_HitPager | AS_Gravity | AS_AcceptsFocus | AS_Titlebar | AS_IconTitle | AS_Handles | AS_Border;
         /* can't gracefully close the window if it does not support WM_DELETE_WINDOW */
         hints->function_mask = ~(AS_FuncClose|AS_FuncPinMenu);
         hints->gravity = NorthWestGravity;
@@ -1341,6 +1341,7 @@ merge_asdb_hints (ASHints * clean, ASRawHints * raw, ASDatabaseRecord * db_rec, 
 		{STYLE_IGNORE_CONFIG, AS_IgnoreConfigRequest, 0, 0, AS_IgnoreConfigRequest},
 		{STYLE_IGNORE_RESTACK, AS_IgnoreRestackRequest, 0, 0, AS_IgnoreRestackRequest},
 		{STYLE_CURRENT_VIEWPORT, AS_UseCurrentViewport, 0, 0, AS_UseCurrentViewport},
+		{STYLE_PAGER, AS_HitPager, 0, 0, AS_HitPager},
 		{0, 0, 0, 0, 0}
 	};
 

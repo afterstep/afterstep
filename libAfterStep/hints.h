@@ -97,6 +97,7 @@ struct ASImage;
 										  * window should be animated */ 
 #define AS_UseCurrentViewport  	(1<<27)
 #define AS_WindowOpacity	   	(1<<28)
+#define AS_HitPager	   	(1<<29)
 
 #define NOLOOK_HINT_FLAGS	(AS_IgnoreConfigRequest|AS_Module|AS_ShortLived| \
 							 AS_AvoidCover|AS_AcceptsFocus|AS_ClickToFocus| \

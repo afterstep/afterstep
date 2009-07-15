@@ -2432,9 +2432,9 @@ process_message (send_data_type type, send_data_type *body)
 
 /*         show_activity( "message %lX window %X data %p", type, body[0], wd ); */
 		res = handle_window_packet( type, body, &wd );
-        if( res == WP_DataCreated )
+        if( res == WP_DataCreated && get_flags(wd->flags, AS_HitPager))
             add_client( wd );
-		else if( res == WP_DataChanged )
+		else if( res == WP_DataChanged  && get_flags(wd->flags, AS_HitPager))
 		{	
             refresh_client( saved_desk, wd );
 			new_desk = wd->desk ;
