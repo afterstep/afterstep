@@ -25,6 +25,7 @@
 #include "../libAfterImage/asvisual.h"
 #include "../libAfterStep/asapp.h"
 #include "../libAfterStep/screen.h"
+#include "../libAfterStep/session.h"
 #include "../libAfterStep/parser.h"
 #include "../libAfterStep/freestor.h"
 #include "../libAfterStep/mystyle.h"
