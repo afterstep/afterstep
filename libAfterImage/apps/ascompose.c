@@ -44,6 +44,10 @@
 #endif
 
 
+#include "../afterbase.h"
+#include "../afterimage.h"
+#include "common.h"
+
 #if !defined(X_DISPLAY_MISSING)
 int asvisual_empty_XErrorHandler (Display * dpy, XErrorEvent * event);
 
@@ -51,10 +55,6 @@ int asvisual_empty_XErrorHandler (Display * dpy, XErrorEvent * event);
 #  include <X11/extensions/shape.h>
 # endif /* SHAPE */
 #endif /* X_DISPLAY_MISSING */
-
-#include "../afterbase.h"
-#include "../afterimage.h"
-#include "common.h"
 
 
 
@@ -827,13 +827,13 @@ set_root_pixmap_property(long pmap) /* Must have long type to work with XChangeP
 		for (i = 0 ; i < 2 ; ++i)
 			if (atoms[i])
 			{
-				LOCAL_DEBUG_OUT("atoms[%d] = %X", i, atoms[i]);
+				LOCAL_DEBUG_OUT("atoms[%d] = %lX", i, atoms[i]);
 				data.long_ptr = NULL ;
 		        XGetWindowProperty(dpy, root, atoms[i], 0L, 1L, False, AnyPropertyType, &type, &format, &nitems, &after, &data.uc_ptr);
 				if (data.long_ptr == NULL)
 					break;
 				pmaps[i] = data.long_ptr[0] ;
-				LOCAL_DEBUG_OUT("pmaps[%d] = %X", i, pmaps[i]);
+				LOCAL_DEBUG_OUT("pmaps[%d] = %lX", i, pmaps[i]);
 				if (format != 32 || nitems == 0 || pmaps[i] != pmaps[0] || type != XA_PIXMAP) 
 					break;
 			}
@@ -841,7 +841,7 @@ set_root_pixmap_property(long pmap) /* Must have long type to work with XChangeP
 		{
 			/* XKillClient is a dangerous affair since properties may hold stale values tha are no longer valid */
 			int (*oldXErrorHandler) (Display *, XErrorEvent *) = XSetErrorHandler (asvisual_empty_XErrorHandler);
-			LOCAL_DEBUG_OUT("killing client for pmap %X", pmaps[0]);
+			LOCAL_DEBUG_OUT("killing client for pmap %lX", pmaps[0]);
            	XKillClient(dpy, pmaps[0]);
 			XSync(dpy, False);
 			XSetErrorHandler (oldXErrorHandler);
@@ -852,7 +852,7 @@ set_root_pixmap_property(long pmap) /* Must have long type to work with XChangeP
 		if (!atoms[i])
 			if ( (atoms[i] = XInternAtom (dpy, names[i], False)) == None)
 				break;
-		LOCAL_DEBUG_OUT("Changing property %X to pmap id %X", atoms[i], pmap);
+		LOCAL_DEBUG_OUT("Changing property %lX to pmap id %lX", atoms[i], pmap);
     	XChangeProperty(dpy, root, atoms[i], XA_PIXMAP, 32, PropModeReplace, (unsigned char *) &pmap, 1);
 	}
 	if (i >= 2)
