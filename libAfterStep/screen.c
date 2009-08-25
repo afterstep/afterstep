@@ -291,6 +291,7 @@ ConnectXDisplay (Display *display, ScreenInfo * scr, Bool as_manager)
 		return -1;
 
 	dpy = display ;
+	set_current_X_display (display); /* for libAfterBase X Wrappers */
 	
 	if( scr == NULL ) 
 	{
@@ -401,8 +402,6 @@ ConnectX (ScreenInfo * scr, unsigned long event_mask)
 		exit (1);
 	}
 	
-	set_current_X_display (dpy); /* for libAfterBase X Wrappers */
-
 	ConnectXDisplay (dpy, scr, (event_mask&SubstructureRedirectMask));
     XSelectInput (dpy, scr->Root, event_mask);
 	return x_fd;
