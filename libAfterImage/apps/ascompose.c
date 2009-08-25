@@ -43,9 +43,15 @@
 # endif
 #endif
 
-#if defined(SHAPE) && !defined(X_DISPLAY_MISSING)
-#include <X11/extensions/shape.h>
-#endif /* SHAPE */
+
+#if !defined(X_DISPLAY_MISSING)
+int asvisual_empty_XErrorHandler (Display * dpy, XErrorEvent * event);
+
+# if defined(SHAPE)
+#  include <X11/extensions/shape.h>
+# endif /* SHAPE */
+#endif /* X_DISPLAY_MISSING */
+
 #include "../afterbase.h"
 #include "../afterimage.h"
 #include "common.h"
@@ -796,8 +802,6 @@ make_main_window(Bool onroot, ASComposeWinProps *props)
 #endif	 
 	return w;
 }
-
-int asvisual_empty_XErrorHandler (Display * dpy, XErrorEvent * event);
 
 Bool
 set_root_pixmap_property(long pmap) /* Must have long type to work with XChangeProp on 64 bit machines !!!*/
