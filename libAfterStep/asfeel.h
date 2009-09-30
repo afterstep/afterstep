@@ -81,7 +81,8 @@ typedef enum                /* feel file flags */
 	DontAnimateBackground   = (1 << 26),
 	WinListHideIcons	    = (1 << 27),
 	AnimateDeskChange		= (1 << 28),
-	DontCoverDesktop		= (1 << 29)	
+	DontCoverDesktop		= (1 << 29),
+	WarpPointer		= (1 << 30)	
 }FeelFlags;
 
 /* since we have too many feel flags  - we want another enum for

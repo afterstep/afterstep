@@ -1991,9 +1991,10 @@ struct FreeStorageElem **ComplexFunction2FreeStorage( struct SyntaxDef *syntax, 
 #define FEEL_Tile_ID				  	(FEEL_PLACEMENT_START_ID+2)	
 #define FEEL_Cascade_ID				  	(FEEL_PLACEMENT_START_ID+3)	
 #define FEEL_UnderPointer_ID	  	(FEEL_PLACEMENT_START_ID+4)	
-#define FEEL_Manual_ID				  	(FEEL_PLACEMENT_START_ID+5)
+#define FEEL_WarpPointer_ID	  	(FEEL_PLACEMENT_START_ID+5)	
+#define FEEL_Manual_ID				  	(FEEL_PLACEMENT_START_ID+6)
 
-#define FEEL_ID_END                   	(FEEL_PLACEMENT_START_ID+10)
+#define FEEL_ID_END                   	(FEEL_PLACEMENT_START_ID+11)
 
 /************************************
  * WindowBox configuration may look something like this :

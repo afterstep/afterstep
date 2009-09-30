@@ -78,6 +78,7 @@ flag_options_xref FeelFlagsXref[] = {
      /* pageing */
     {DoHandlePageing       , FEEL_PagingDefault_ID         , 0},
     {AutoTabThroughDesks   , FEEL_AutoTabThroughDesks_ID   , 0},
+    {WarpPointer   	   , FEEL_WarpPointer_ID   	   , 0},
 
 	{0, 0, 0}
 };

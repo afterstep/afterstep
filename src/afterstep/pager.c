@@ -185,7 +185,7 @@ fprintf (stderr, "XCROSSING: XWarpPointer to %+d%+d\n", *xl, *yt); fflush(stderr
 			if (xroot_curr == xroot_orig && yroot_curr == yroot_orig)
 #endif
 /* only want to warp pointer while move-resizing, to keep size from jumping screenwhole */
-			if (Scr.moveresize_in_progress)
+			if (Scr.moveresize_in_progress || get_flags( Scr.Feel.flags, WarpPointer))
 				XWarpPointer (dpy, None, Scr.Root, 0, 0, 0, 0, *xl, *yt);
 
 			MoveViewport (Scr.Vx + *delta_x, Scr.Vy + *delta_y, False);

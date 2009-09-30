@@ -359,6 +359,7 @@ struct config main_config[] = {
 	{"WinListSortOrder", SetInts, (char**)&TmpFeel.winlist_sort_order, (int *)&dummy},
 	{"WinListHideIcons", SetFlag2, (char**)WinListHideIcons, NULL},
 	{"SuppressIcons", SetFlag2, (char**)SuppressIcons, NULL},
+	{"WarpPointer", SetFlag2, (char**)WarpPointer, NULL},
 
     /* look options */
 	/* obsolete stuff */
