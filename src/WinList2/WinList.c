@@ -171,7 +171,7 @@ main( int argc, char **argv )
 	
     /* Save our program name - for error messages */
 	set_DeadPipe_handler(DeadPipe);
-    InitMyApp (CLASS_WINLIST, argc, argv, WinList_usage, NULL, 0 );
+    InitMyApp (CLASS_WINLIST, argc, argv, NULL, WinList_usage, 0 );
 	LinkAfterStepConfig();
 
     for( i = 1 ; i< argc ; ++i)

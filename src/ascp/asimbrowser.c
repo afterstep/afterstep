@@ -92,7 +92,7 @@ int main(int argc, char** argv)
 	int i;
 
 	/* Save our program name - for error messages */
-    InitMyApp (CLASS_ASIMBROWSER, argc, argv, asimbrowser_usage, NULL, 0 );
+    InitMyApp (CLASS_ASIMBROWSER, argc, argv, NULL, asimbrowser_usage, 0 );
 
 	memset( &ASIMBrowserState, 0x00, sizeof(ASIMBrowserState ));
 	ASIMBrowserState.html_save = default_html_save;

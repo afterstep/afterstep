@@ -349,6 +349,8 @@ CommandLineOpts as_standard_cmdl_options[STANDARD_CMDL_OPTS_NUM] =
 void
 standard_version (void)
 {
+show_debug (__FILE__,__FUNCTION__,__LINE__, "version = \"%s\", MyVersionFunc = %p", VERSION, MyVersionFunc);
+
     if( MyVersionFunc )
         MyVersionFunc();
     else
@@ -478,7 +480,7 @@ void  handler_set_geometry( char *argv, void *trg, long param )
 
 void  handler_set_gravity( char *argv, void *trg, long param )
 {
-    register int *i = trg ;
+	    register int *i = trg ;
     *i = ForgetGravity ;
 	if( argv )
 	{
@@ -502,17 +504,20 @@ match_command_line_opt( char *argvi, CommandLineOpts *options )
 
     if( ptr == NULL )
         return -1;
+show_debug (__FILE__,__FUNCTION__,__LINE__, "ptr = \"%s\"", ptr);
     if( *ptr == '-' )
     {
         ++ptr;
         if( *ptr == '-' )
         {
             ++ptr;
+show_debug (__FILE__,__FUNCTION__,__LINE__, "ptr = \"%s\"", ptr);
             for( opt = 0 ; options[opt].handler ; ++opt )
                 if( strcmp(options[opt].long_opt, ptr ) == 0 )
                     break;
         }else
         {
+show_debug (__FILE__,__FUNCTION__,__LINE__, "ptr = \"%s\"", ptr);
             for( opt = 0 ; options[opt].handler ; ++opt )
                 if( options[opt].short_opt )
                     if( strcmp(options[opt].short_opt, ptr ) == 0 )
@@ -580,9 +585,12 @@ InitMyApp (  const char *app_class, int argc, char **argv, void (*version_func) 
     as_app_args.verbosity_level = OUTPUT_DEFAULT_THRESHOLD ;
 #endif
 
+/* Uncomment this to enable cmd line args tracing/debugging :    
+ * set_output_threshold(20); */
 
     ASDefaultScr = safecalloc(1, sizeof(ScreenInfo));
 	init_ScreenInfo(ASDefaultScr);
+show_debug (__FILE__,__FUNCTION__,__LINE__, "argc = %d", argc);
 
     if( argc > 0 && argv )
     {
@@ -598,6 +606,7 @@ InitMyApp (  const char *app_class, int argc, char **argv, void (*version_func) 
         for( i = 1 ; i < argc ; i++ )
         {
             register int opt ;
+show_debug (__FILE__,__FUNCTION__,__LINE__, "i = %d, argv[i] = 0x%p", i, argv[i]);			
             if( (opt = match_command_line_opt( &(argv[i][0]), as_standard_cmdl_options )) < 0 )
                 continue;
             if( get_flags( (0x01<<opt), as_app_args.mask) )

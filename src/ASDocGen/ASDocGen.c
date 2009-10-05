@@ -218,7 +218,7 @@ main (int argc, char **argv)
 	ASDocType target_type = DocType_Source ;
 	/* Save our program name - for error messages */
 	set_DeadPipe_handler(DeadPipe);
-    InitMyApp (CLASS_ASDOCGEN, argc, argv, asdocgen_usage, NULL, 0 );
+    InitMyApp (CLASS_ASDOCGEN, argc, argv, NULL, asdocgen_usage, 0 );
 	LinkAfterStepConfig();
 	InitSession();
     for( i = 1 ; i< argc ; ++i)

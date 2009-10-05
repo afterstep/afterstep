@@ -231,7 +231,7 @@ int main(int argc, char** argv)
 	int i;
 
 	/* Save our program name - for error messages */
-    InitMyApp (CLASS_ASCOLOR, argc, argv, ascolor_usage, NULL, 0 );
+    InitMyApp (CLASS_ASCOLOR, argc, argv, NULL, ascolor_usage, 0 );
 
 	memset( &ASColorState, 0x00, sizeof(ASColorState ));
 	ASColorState.doc_str = default_doc_str;

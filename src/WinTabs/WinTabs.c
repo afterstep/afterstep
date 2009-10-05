@@ -335,7 +335,7 @@ main( int argc, char **argv )
     register int opt;
 	/* Save our program name - for error messages */
 	set_DeadPipe_handler(DeadPipe);
-    InitMyApp (CLASS_GADGET, argc, argv, WinTabs_usage, NULL, ASS_Restarting );
+    InitMyApp (CLASS_GADGET, argc, argv, NULL, WinTabs_usage, ASS_Restarting );
 	LinkAfterStepConfig();
 
     set_signal_handler( SIGSEGV );

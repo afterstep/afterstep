@@ -197,7 +197,7 @@ main (int argc, char **argv)
 
     /* Save our program name - for error messages */
 	set_DeadPipe_handler(DeadPipe);
-    InitMyApp (CLASS_PAGER, argc, argv, pager_usage, NULL, ASS_Restarting );
+    InitMyApp (CLASS_PAGER, argc, argv, NULL, pager_usage, ASS_Restarting );
 	LinkAfterStepConfig();
 
     memset( &PagerState, 0x00, sizeof(PagerState));

@@ -161,7 +161,7 @@ main (int argc, char **argv, char **envp)
 #if !HAVE_DECL_ENVIRON
 	override_environ( envp );
 #endif
-    InitMyApp( CLASS_AFTERSTEP, argc, argv, AfterStep_usage, NULL, 0);
+    InitMyApp( CLASS_AFTERSTEP, argc, argv, NULL, AfterStep_usage, 0);
 
 	LinkAfterStepConfig();
 
