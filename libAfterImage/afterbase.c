@@ -1600,7 +1600,7 @@ int asim_xml_parse(const char* str, xml_elem_t* current, ASHashTable *vocabulary
 				for ( ; isspace((int)*tmp) ; tmp++);
 				if (*tmp != '=') { eparm = NULL; break; }
 
-				while (isspace((int)*++tmp));
+				do { ++tmp; } while (isspace((int)*tmp));
 
 				/* If the next character is a quote, spin until we see another one. */
 				if (*tmp == '"' || *tmp == '\'') {
