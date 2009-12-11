@@ -49,6 +49,8 @@ int as_assert (void *p, const char *fname, int line, const char *call);
 # define free(a) countfree(__FUNCTION__, __LINE__, a)
 
 # define add_hash_item(a,b,c) countadd_hash_item(__FUNCTION__, __LINE__,a,b,c)
+# undef strdup
+# define strdup(a) countadd_mystrdup(__FUNCTION__, __LINE__,a)
 # define mystrdup(a) countadd_mystrdup(__FUNCTION__, __LINE__,a)
 # define mystrndup(a,b) countadd_mystrndup(__FUNCTION__, __LINE__,a,b)
 

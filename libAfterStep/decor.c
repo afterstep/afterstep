@@ -115,15 +115,18 @@ void
 free_asbtn_block( ASTile* tile )
 {
     register ASBtnBlock *blk = &(tile->data.bblock);
-    register int i = blk->buttons_num ;
-    while( --i >= 0 )
-    {
-        free_tbtn_images( &(blk->buttons[i]) );
-        if( blk->buttons[i].balloon )
-                destroy_asballoon( &(blk->buttons[i].balloon) );
-    }
+	if (blk->buttons)
+	  {
+	    register int i = blk->buttons_num ;
+	    while( --i >= 0 )
+    	  {
+        	free_tbtn_images( &(blk->buttons[i]) );
+	        if( blk->buttons[i].balloon )
+              destroy_asballoon( &(blk->buttons[i].balloon) );
+    	  }
+	    free( blk->buttons );
+	  }
 
-    free( blk->buttons );
     memset( blk, 0x00, sizeof(ASBtnBlock ) );
     ASSetTileType(tile,AS_TileFreed);
 }

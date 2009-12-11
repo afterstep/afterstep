@@ -845,6 +845,10 @@ mystyle_free_resources( MyStyle *style )
 {
     if( style->magic == MAGIC_MYSTYLE )
     {
+        LOCAL_DEBUG_OUT( "style %p, style->name = \"%s\", style->font->name = \"%s\"", 
+		                  style, style->name?style->name:"(null)", 
+						  style->font.name?style->font.name:"(null)" );
+
         if (get_flags( style->user_flags, F_FONT))
         {
             unload_font (&style->font);
@@ -1396,7 +1400,7 @@ mystyle_inherit_font (MyStyle * style, MyFont * font)
 	 *       unloaded once */
 	if (style != NULL && !(style->set_flags & F_FONT))
 	{
-		set_string( &(style->font.name), font->name );
+		set_string (&(style->font.name), mystrdup(font->name));
 		style->font.as_font = dup_asfont(font->as_font);
 		clear_flags(style->inherit_flags, F_FONT);
 		set_flags(style->user_flags, F_FONT);		   /* to prevent confusion */

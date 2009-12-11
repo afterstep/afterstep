@@ -1294,8 +1294,11 @@ realloc_clients_list( ASWMProps * wmprops, int nclients )
 {
 	if( nclients <= 0 ) 
 	{
-		free( wmprops->client_list );
-		free( wmprops->stacking_order );
+		if (wmprops->client_list)
+			free (wmprops->client_list);
+		if (wmprops->stacking_order)
+			free (wmprops->stacking_order);
+			
 		wmprops->client_list = NULL;
 		wmprops->stacking_order = NULL;
 		wmprops->clients_num = 0;

@@ -507,7 +507,7 @@ countfree (const char *fname, int line, void *ptr)
 	m1->fname = fname;
 	m1->line = line;
 #else
-	/*fprintf( stderr, "%s: freeing %p at %s:%d\n", __FUNCTION__, m->ptr, fname, line );*/
+	fprintf( stderr, "%s: freeing %p at %s:%d\n", __FUNCTION__, m->ptr, fname, line );
 	safefree (m->ptr);
 	mem_destroy( (ASHashableValue)NULL, m );
 #endif

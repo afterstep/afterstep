@@ -344,6 +344,8 @@ free_func_data (FunctionData * data)
 {
 	if (data)
 	{
+        LOCAL_DEBUG_OUT( "freeing func = \"%s\"", data->name?data->name:"(null)" );
+
 		if (data->name)
 		{
 			free (data->name);
@@ -351,6 +353,7 @@ free_func_data (FunctionData * data)
 		}
 		if (data->text)
 		{
+	        LOCAL_DEBUG_OUT( "func->text = \"%s\"", data->text );
 			free (data->text);
 			data->text = NULL;
 		}

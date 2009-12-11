@@ -530,21 +530,22 @@ dirtree_make_menu2 (dirtree_t * tree, char *buf, Bool reload_submenus)
                 fdata->popup = FindPopup( t->stripped_name, True );
 
 			fdata->hotkey = scan_for_hotkey (fdata->name);
-			if (t->flags & DIRTREE_KEEPNAME)
-				fdata->text = mystrdup (t->stripped_name);
-			else
-				fdata->text = string_from_int (t->flags & DIRTREE_ID);
+			fdata->text = (t->flags & DIRTREE_KEEPNAME) ? 
+							mystrdup (t->stripped_name) 
+							: string_from_int (t->flags & DIRTREE_ID);
 
-            menu_item = menu_data_item_from_func (menu, fdata, False);
-			update_menu_item_from_dirtree( menu_item, t); 
- 			add_minipixmap_from_dirtree_item( t, menu );
+	        if ((menu_item = menu_data_item_from_func (menu, fdata, False)) != NULL)
+			  {
+				update_menu_item_from_dirtree( menu_item, t); 
+ 				add_minipixmap_from_dirtree_item( t, menu );
+			  }
 /************* Done creating Popup Title entry : ************************/
 		} else if( t->de ) 
 		{
 			if( t->de->type == ASDE_TypeApplication ) 
 			{	
 				fdata = desktop_entry2function( t->de, t->stripped_name);
-				LOCAL_DEBUG_OUT( "adding \"%s\" with function %d", t->stripped_name, fdata->func );
+				LOCAL_DEBUG_OUT( "adding \"%s\" with function %ld", t->stripped_name, fdata->func );
 
             	menu_item = menu_data_item_from_func (menu, fdata, False);
 				update_menu_item_from_dirtree( menu_item, t ); 
