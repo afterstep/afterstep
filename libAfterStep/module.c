@@ -554,12 +554,14 @@ LoadConfig (char *config_file_name, void (*read_options_func) (const char *))
 /*************************************************************************/
 /* some ASTBarProps utilities to be used by modules : 
  *************************************************************************/
-void 
+Bool 
 button_from_astbar_props( struct ASTBarProps *tbar_props, struct button_t *button, 
 						  int context, Atom kind, Atom kind_pressed )
 {
+	int found = 0;
+	
 	if( button == NULL ) 
-		return;
+		return False;
 	
 	free_button_resources( button ) ;
 	memset( button, 0x00, sizeof(MyButton));
@@ -583,6 +585,8 @@ button_from_astbar_props( struct ASTBarProps *tbar_props, struct button_t *butto
 				icon->pix = None ;
 				icon->mask = None ;
 				icon->alpha = None ;
+				if (icon->image)
+					found++;
 			}
 		}	 
 		button->width = max( button->unpressed.width, button->width );
@@ -590,6 +594,8 @@ button_from_astbar_props( struct ASTBarProps *tbar_props, struct button_t *butto
 		if( button->height > 0 && button->width > 0 )
 			button->context = context ; 
 	}
+	
+	return (found > 0 && button->height > 0 && button->width > 0 );
 }
 
 void

@@ -139,7 +139,7 @@ void SendCommand( FunctionData * pfunc, send_ID_type window);
 void LoadBaseConfig (void (*read_base_options_func) (const char *));
 void LoadConfig (char *config_file_name, void (*read_options_func) (const char *));
 
-void 
+Bool 
 button_from_astbar_props( struct ASTBarProps *tbar_props, struct button_t *button, 
 						  int context, Atom kind, Atom kind_pressed );
 void destroy_astbar_props( struct ASTBarProps **props );

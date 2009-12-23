@@ -116,7 +116,7 @@ AfterStep_fs2config( ASModuleConfig *asmodule_config, FreeStorageElem *Storage )
 void
 MergeAfterStepOptions ( ASModuleConfig *asm_to, ASModuleConfig *asm_from)
 {
-    int i ;
+    /* int i ; */
     START_TIME(option_time);
 
 	AfterStepConfig *to = AS_AFTERSTEP_CONFIG(asm_to);
@@ -1483,18 +1483,26 @@ advertise_tbar_props()
 	MouseButton  *btn;
 	int i, k ; 
 
-#define TBAR_BUTTONS_OF_CONCERN 5
+	MyButton *close_btn = NULL;
+	MyButton *maximize_btn = NULL;
+	MyButton *minimize_btn = NULL;
+	MyButton *shade_btn = NULL;
+	MyButton *menu_btn = NULL;
 	struct 
 	{
 		Atom *kind, *kind_down;
 	 	int func;
-		MyButton *btn;
-	}buttons[TBAR_BUTTONS_OF_CONCERN] = 
-	{	{ &_AS_BUTTON_CLOSE, 	&_AS_BUTTON_CLOSE_PRESSED, 		F_CLOSE, 	NULL },
-		{ &_AS_BUTTON_MAXIMIZE, &_AS_BUTTON_MAXIMIZE_PRESSED, 	F_MAXIMIZE, NULL },
-		{ &_AS_BUTTON_MINIMIZE, &_AS_BUTTON_MINIMIZE_PRESSED, 	F_ICONIFY, 	NULL },
-		{ &_AS_BUTTON_SHADE, 	&_AS_BUTTON_SHADE_PRESSED, 		F_SHADE, 	NULL },
-		{ &_AS_BUTTON_MENU, 	&_AS_BUTTON_MENU_PRESSED, 		F_POPUP, 	NULL }};
+		MyButton **pbtn;
+	}buttons[] = 
+	{	{ &_AS_BUTTON_CLOSE, 	&_AS_BUTTON_CLOSE_PRESSED, 		F_CLOSE, 	&close_btn },
+		{ &_AS_BUTTON_CLOSE, 	&_AS_BUTTON_CLOSE_PRESSED, 		F_DELETE, 	&close_btn },
+		{ &_AS_BUTTON_CLOSE, 	&_AS_BUTTON_CLOSE_PRESSED, 		F_DESTROY, 	&close_btn },
+		{ &_AS_BUTTON_MAXIMIZE, &_AS_BUTTON_MAXIMIZE_PRESSED, 	F_MAXIMIZE, &maximize_btn },
+		{ &_AS_BUTTON_MINIMIZE, &_AS_BUTTON_MINIMIZE_PRESSED, 	F_ICONIFY, 	&minimize_btn },
+		{ &_AS_BUTTON_SHADE, 	&_AS_BUTTON_SHADE_PRESSED, 		F_SHADE, 	&shade_btn },
+		{ &_AS_BUTTON_MENU, 	&_AS_BUTTON_MENU_PRESSED, 		F_POPUP, 	&menu_btn },
+		{0,0,0,NULL}};
+		
 
 	memset( &props, 0x00, sizeof(props));
 	if( get_flags( frame->set_title_attr, MYFRAME_TitleAlignSet ) )
@@ -1522,15 +1530,15 @@ advertise_tbar_props()
     for (btn = Scr.Feel.MouseButtonRoot; btn != NULL; btn = btn->NextButton)
 		if ( (btn->Context & C_TButtonAll) )
 		{
-			for( i = 0 ; i < TBAR_BUTTONS_OF_CONCERN ; ++i )
+			for( i = 0 ; buttons[i].pbtn != NULL ; ++i )
 			{
-				if( btn->fdata->func == buttons[i].func && buttons[i].btn == NULL )
+				if( btn->fdata->func == buttons[i].func && *(buttons[i].pbtn) == NULL )
 				{/* now lets find that button in look : */
 				 	for( k = 0  ; k < TITLE_BUTTONS ; ++k ) 
 						if ( Scr.Look.buttons[k].unpressed.image != NULL &&
 						     (btn->Context&Scr.Look.buttons[k].context) != 0 )
 						{
-							buttons[i].btn = &(Scr.Look.buttons[k]);
+							*(buttons[i].pbtn) = &(Scr.Look.buttons[k]);
 							break;	
 						}
 					break;	
@@ -1538,20 +1546,24 @@ advertise_tbar_props()
 			}
 		}
 	props.buttons_num = 0 ; 
-	for( i = 0 ; i < TBAR_BUTTONS_OF_CONCERN ; ++i )
-		if( buttons[i].btn != NULL ) 
+	for( i = 0 ; buttons[i].pbtn != NULL ; ++i )
+	{
+		MyButton *b = *(buttons[i].pbtn);
+		if( b ) 
 		{
 			++props.buttons_num	;
-			if( buttons[i].btn->pressed.image != NULL && 
-				buttons[i].btn->pressed.image != buttons[i].btn->unpressed.image )
+			if( b->pressed.image != NULL && b->pressed.image != b->unpressed.image )
 				++props.buttons_num	;
 		}	 
+	}
 	props.buttons = safemalloc( props.buttons_num*sizeof(struct ASButtonPropElem));
 	k = 0 ;
-	for( i = 0 ; i < TBAR_BUTTONS_OF_CONCERN ; ++i ) 
-		if( buttons[i].btn != NULL ) 
+	for( i = 0 ; buttons[i].pbtn != NULL ; ++i ) 
+	{
+		MyButton *b = *(buttons[i].pbtn);
+		if( b ) 
 		{
-			MyIcon *icon = &(buttons[i].btn->unpressed);
+			MyIcon *icon = &(b->unpressed);
 			if( icon->pix == None ) 
 				make_icon_pixmaps( icon, False );
 	
@@ -1560,10 +1572,9 @@ advertise_tbar_props()
 			props.buttons[k].mask = icon->mask;
 			props.buttons[k].alpha = icon->alpha;
 	   		++k ;
-			if( buttons[i].btn->pressed.image != NULL && 
-				buttons[i].btn->pressed.image != buttons[i].btn->unpressed.image )
+			if( b->pressed.image && b->pressed.image != b->unpressed.image )
 			{	  
-				icon = &(buttons[i].btn->pressed);
+				icon = &(b->pressed);
 				if( icon->pix == None ) 
 					make_icon_pixmaps( icon, False );
 				props.buttons[k].kind = *(buttons[i].kind_down);
@@ -1573,6 +1584,7 @@ advertise_tbar_props()
 				++k ;
 			}
 		}	 
+	}		
 
 	set_astbar_props( Scr.wmprops, &props ); 
 	free( props.buttons );
