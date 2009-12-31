@@ -1073,7 +1073,14 @@ print_extwm_hints (stream_func func, void *stream, ExtendedWMHints * hints)
 	if (get_flags (hints->flags, EXTWM_PID))
 		func (stream, "EXTWM._NET_WM_PID = %ld;\n", hints->pid);
 	if (get_flags (hints->flags, EXTWM_ICON))
+	  {
 		func (stream, "EXTWM._NET_WM_ICON.length = %ld;\n", hints->icon_length);
+		if (hints->icon_length > 2 && hints->icon)
+		  {
+			func (stream, "EXTWM._NET_WM_ICON.width = %ld;\n", hints->icon[0]);
+			func (stream, "EXTWM._NET_WM_ICON.height = %ld;\n", hints->icon[1]);
+		  }
+	  }
 	if (get_flags (hints->flags, EXTWM_WINDOW_OPACITY))
 		func (stream, "EXTWM._NET_WM_WINDOW_OPACITY = %ld;\n", hints->window_opacity);
 

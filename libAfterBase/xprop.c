@@ -181,6 +181,9 @@ read_32bit_proplist (Window w, Atom property, long estimate, CARD32 ** list, lon
 			(XGetWindowProperty
 			 (get_current_X_display(), w, property, 0, estimate, False, AnyPropertyType,
 			  &actual_type, &actual_format, &unitems, &bytes_after, &buffer.uc_ptr) == 0);
+
+        LOCAL_DEBUG_OUT( "res = %d, actual_format = %d, unitems = %d, bytes_after = %d, uc_ptr = %p", res, actual_format, unitems, bytes_after, buffer.uc_ptr );
+
 		/* checking property sanity */
 		res = (res && unitems > 0 && actual_format == 32);
 
@@ -210,6 +213,8 @@ read_32bit_proplist (Window w, Atom property, long estimate, CARD32 ** list, lon
 		}
 		if ( buffer.long_ptr )
 			XFree (buffer.long_ptr);
+
+        LOCAL_DEBUG_OUT( "list = %p, count = %ld", *list, *nitems );
 	}
 #endif
 	return res;
