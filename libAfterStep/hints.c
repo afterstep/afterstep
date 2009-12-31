@@ -1132,8 +1132,8 @@ select_client_icon_argb( CARD32 *icon,  int icon_length )
 	}	 
 	if( res == NULL ) 
 	{
-		unsigned int width = icon[0] ; 
-		unsigned int height = icon[1] ; 
+		int width = icon[0] ; 
+		int height = icon[1] ; 
 		int size = width*height ;
 		icon_length -= 2 ;
 		if( size > 0 )
@@ -1144,6 +1144,7 @@ select_client_icon_argb( CARD32 *icon,  int icon_length )
 					if( icon_length  > width*width ) 
 					{	  
 						height = width  ; 
+						size = width*width;
 						break ;
 					}
 			}	 
