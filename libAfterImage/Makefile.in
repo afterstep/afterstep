@@ -5,7 +5,8 @@
 
 subdirs = libjpeg libpng libungif zlib
 
-LIBJPEG_OBJS = 	libjpeg/jcapimin.o libjpeg/jcapistd.o libjpeg/jccoefct.o \
+LIBJPEG_OBJS = 	libjpeg/jaricom.o libjpeg/jcarith.o libjpeg/jdarith.o \
+		libjpeg/jcapimin.o libjpeg/jcapistd.o libjpeg/jccoefct.o \
 		libjpeg/jccolor.o libjpeg/jcdctmgr.o libjpeg/jchuff.o \
 		libjpeg/jcinit.o libjpeg/jcmainct.o libjpeg/jcmarker.o \
 		libjpeg/jcmaster.o libjpeg/jcomapi.o libjpeg/jcparam.o \
@@ -14,7 +15,7 @@ LIBJPEG_OBJS = 	libjpeg/jcapimin.o libjpeg/jcapistd.o libjpeg/jccoefct.o \
 		libjpeg/jdatadst.o libjpeg/jdatasrc.o libjpeg/jdcoefct.o \
 		libjpeg/jdcolor.o libjpeg/jddctmgr.o libjpeg/jdhuff.o \
 		libjpeg/jdinput.o libjpeg/jdmainct.o libjpeg/jdmarker.o \
-		libjpeg/jdmaster.o libjpeg/jdmerge.o libjpeg/jdphuff.o \
+		libjpeg/jdmaster.o libjpeg/jdmerge.o \
 		libjpeg/jdpostct.o libjpeg/jdsample.o libjpeg/jdtrans.o \
 		libjpeg/jerror.o libjpeg/jfdctflt.o libjpeg/jfdctfst.o \
 		libjpeg/jfdctint.o libjpeg/jidctflt.o libjpeg/jidctfst.o \
