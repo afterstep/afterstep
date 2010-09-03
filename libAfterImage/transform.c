@@ -1389,9 +1389,9 @@ make_gradient_diag_height( ASImageOutput *imout, ASScanline *dither_lines, int d
 		eps += smaller;
 		if( (eps << 1) >= bigger )
 		{
-			++k ;
-			if( k < width )
-				offsets[k] = offsets[k-1] ; /* seeding the offset */
+			if( ++k >= width )
+				break;
+			offsets[k] = offsets[k-1] ; /* seeding the offset */
 			eps -= bigger ;
 		}
 	}
