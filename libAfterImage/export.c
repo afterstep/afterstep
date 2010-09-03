@@ -273,8 +273,8 @@ ASImage2xpm ( ASImage *im, const char *path, ASImageExportParams *params )
 	FILE *outfile;
 	unsigned int y, x ;
 	int *mapped_im, *row_pointer ;
-	ASColormap         cmap;
-	ASXpmCharmap       xpm_cmap ;
+	ASColormap         cmap = {0};
+	ASXpmCharmap       xpm_cmap = {0};
 	int transp_idx = 0;
 	START_TIME(started);
 	static const ASXpmExportParams defaultsXPM = { ASIT_Xpm, EXPORT_ALPHA, 4, 127, 512 };
