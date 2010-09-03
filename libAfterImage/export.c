@@ -371,6 +371,8 @@ ASImage2xpmRawBuff ( ASImage *im, CARD8 **buffer, int *size, ASImageExportParams
    }
 
     mapped_im = colormap_asimage( im, &cmap, params->xpm.max_colors, params->xpm.dither, params->xpm.opaque_threshold );
+	if (mapped_im == NULL)
+		return False;
 	if( !get_flags( params->xpm.flags, EXPORT_ALPHA) )
 		cmap.has_opaque = False ;
 	else
@@ -387,6 +389,9 @@ LOCAL_DEBUG_OUT("building charmap%s","");
    /* crazy check against buffer overflow */
    if ((im->width > 100000) || (im->height > 1000000) || 
        (xpm_cmap.count > 100000) || (xpm_cmap.cpp > 100000)) {
+		destroy_xpm_charmap( &xpm_cmap, True );
+		free( mapped_im );
+		destroy_colormap( &cmap, True );
       return False;
    }
 
