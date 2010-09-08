@@ -1100,7 +1100,6 @@ merge_layers( ASVisual *asv,
 			  	int dst_height,
 			  	ASAltImFormats out_format, unsigned int compression_out, int quality )
 {
-	ASImage *fake_bg = NULL ;
 	ASImage *dst = NULL ;
 	ASImageDecoder **imdecs ;
 	ASImageOutput  *imout ;
@@ -1122,10 +1121,6 @@ LOCAL_DEBUG_CALLER_OUT( "dst_width = %d, dst_height = %d", dst_width, dst_height
 
 	imdecs = safecalloc( count+20, sizeof(ASImageDecoder*));
 
-/*  don't really know why the hell we need that ???
- *  if( pcurr->im == NULL )
-		pcurr->im = fake_bg = create_asimage( 1, 1, 0 );
- */
 	for( i = 0 ; i < count ; i++ )
 	{
 		/* all laayers but first must have valid image or solid_color ! */
@@ -1249,12 +1244,6 @@ LOCAL_DEBUG_OUT( "min_y = %d, max_y = %d", min_y, max_y );
 			stop_image_decoding( &(imdecs[i]) );
 		}
 	free( imdecs );
-	if( fake_bg )
-	{
-		if( layers[0].im == fake_bg )
-			layers[0].im = NULL ;
-		destroy_asimage( &fake_bg );
-	}
 	free_scanline( &dst_line, True );
 	SHOW_TIME("", started);
 	return dst;

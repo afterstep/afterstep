@@ -1181,7 +1181,7 @@ handle_asxml_tag_set( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm)
 		char *tmp = (char*)var ; 
 		if( var_domain && var_domain[0] != '\0' )
 		{
-			int vd_len = var_domain?strlen(var_domain):0 ;
+			int vd_len = strlen(var_domain);
 			tmp = safemalloc( vd_len + 1 + strlen(var) + 1 );
 			sprintf( tmp, ( var_domain[vd_len-1] != '.' )?"%s.%s":"%s%s", var_domain, var );
 		}
