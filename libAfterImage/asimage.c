@@ -396,7 +396,7 @@ asimage_destroy (ASHashableValue value, void *data)
 			else
 				im->imageman = NULL ;
 		}
-		if( (char*)value != im->name ) 
+		if( im == NULL || (char*)value != im->name ) 
 			free( (char*)value );/* name */
 		destroy_asimage( &im );
 	}
