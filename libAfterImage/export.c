@@ -1088,6 +1088,7 @@ Bool ASImage2gif( ASImage *im, const char *path,  ASImageExportParams *params )
 		cmap_size = cmap_size<<1 ;
 	if( (gif_cmap = MakeMapObject(cmap_size, NULL )) == NULL )
 	{
+		free( mapped_im );
 		ASIM_PrintGifError();
 		return False;
 	}
