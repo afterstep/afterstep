@@ -975,47 +975,48 @@ bmp_write16 (FILE *fp, CARD16 *data, int count)
 Bool
 ASImage2bmp ( ASImage *im, const char *path,  ASImageExportParams *params )
 {
+	Bool success = False;
 	FILE *outfile = NULL ;
-	BITMAPINFO *bmi ;
-	void *bmbits ;
-	int bits_size ;
-	BITMAPFILEHEADER bmh ;
 	START_TIME(started);
 
-	if ((outfile = open_writeable_image_file( path )) == NULL)
-		return False;
+	if ((outfile = open_writeable_image_file( path )) != NULL)
+	{
+		void *bmbits ;
+		BITMAPINFO *bmi = ASImage2DBI( get_default_asvisual(), im, 0, 0, im->width, im->height, &bmbits, 0 );
+		if( bmi != NULL && bmbits != NULL ) 
+		{
+			BITMAPFILEHEADER bmh ;
+			int bits_size = (((bmi->bmiHeader.biWidth*3+3)/4)*4)*bmi->bmiHeader.biHeight;          /* DWORD aligned */
 
-	bmi = ASImage2DBI( get_default_asvisual(), im, 0, 0, im->width, im->height, &bmbits, 0 );
-	if( bmi == NULL || bmbits == NULL ) 
-		return False ;
- 
-	bits_size = (((bmi->bmiHeader.biWidth*3+3)/4)*4)*bmi->bmiHeader.biHeight;          /* DWORD aligned */
+			bmh.bfType = BMP_SIGNATURE;
+		    bmh.bfSize = 14+bmi->bmiHeader.biSize+bits_size; /* Specifies the size, in bytes, of the bitmap file */
+		    bmh.bfReserved1 = 0;
+			bmh.bfReserved2 = 0;
+		    bmh.bfOffBits = 14+bmi->bmiHeader.biSize; /* Specifies the offset, in bytes, 
+							   * from the BITMAPFILEHEADER structure to the bitmap bits */
+			/* writing off the header */
+			bmp_write16( outfile, &bmh.bfType, 1 );
+			bmp_write32( outfile, &bmh.bfSize, 3 );
+			/* writing off the bitmapinfo : */
+			bmp_write32( outfile, &bmi->bmiHeader.biSize, 1 );
+			bmp_write32( outfile, (CARD32*)&bmi->bmiHeader.biWidth, 2 );
+			bmp_write16( outfile, &bmi->bmiHeader.biPlanes, 2 );
+			/* bmi->bmiHeader.biCompression = 0 ; */
+			bmp_write32( outfile, &bmi->bmiHeader.biCompression, 6 );
 
-	bmh.bfType = BMP_SIGNATURE;
-    bmh.bfSize = 14+bmi->bmiHeader.biSize+bits_size; /* Specifies the size, in bytes, of the bitmap file */
-    bmh.bfReserved1 = 0;
-	bmh.bfReserved2 = 0;
-    bmh.bfOffBits = 14+bmi->bmiHeader.biSize; /* Specifies the offset, in bytes, 
-					   * from the BITMAPFILEHEADER structure to the bitmap bits */
-	/* writing off the header */
-	bmp_write16( outfile, &bmh.bfType, 1 );
-	bmp_write32( outfile, &bmh.bfSize, 3 );
-	/* writing off the bitmapinfo : */
-	bmp_write32( outfile, &bmi->bmiHeader.biSize, 1 );
-	bmp_write32( outfile, (CARD32*)&bmi->bmiHeader.biWidth, 2 );
-	bmp_write16( outfile, &bmi->bmiHeader.biPlanes, 2 );
-	bmi->bmiHeader.biCompression = 1 ;
-	bmp_write32( outfile, &bmi->bmiHeader.biCompression, 6 );
-
-	/* writing off the bitmapbits */
-	fwrite( bmbits, sizeof(CARD8), bits_size, outfile );
-	free( bmbits );
-	free( bmi );
-
-	if (outfile != stdout)
-		fclose(outfile);
+			/* writing off the bitmapbits */
+			if (fwrite( bmbits, sizeof(CARD8), bits_size, outfile ) == bits_size)
+				success = True;
+				
+			free( bmbits );
+			free( bmi );
+			
+		}
+		if (outfile != stdout)
+			fclose(outfile);
+	}
 	SHOW_TIME("image export",started);
-	return False;
+	return success;
 }
 
 /***********************************************************************************/
