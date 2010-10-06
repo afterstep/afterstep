@@ -1891,7 +1891,7 @@ warp_aswindow_list ( ASWindowList *list, Bool backwards )
         list->warp_curr_dir = dir ;
     }
 
-    i = list->warp_curr_index+dir ;
+    i = (dir > 0)? 1 : end_i - 1 ; /*list->warp_curr_index + dir*/
     do
     {
 LOCAL_DEBUG_OUT("checking i(%d)->end_i(%d)->dir(%d)->AutoReverse(%d)", i, end_i, dir, Scr.Feel.AutoReverse);
