@@ -23,7 +23,7 @@ subdirs         = libAfterBase libAfterImage libAfterStep libAfterConf @LIBASGTK
                   src/WinTabs \
                   src/ascp  \
                   src/tools/ASRun \
-                  $(no_gtk_app_dirs) \
+                  $(@GTK_APP_DIRS@) \
                   afterstep \
                   src/ASDocGen \
                   doc tools
