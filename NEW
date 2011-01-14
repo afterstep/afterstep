@@ -1,6 +1,8 @@
 version 2.2.11 release
 	* new WarpPointer feel option to make pointer warping on viewport change
 	  switcheable. Contributed by Chris Nix.
+	* added SkipPager database flag to exclude windows from the Pager's
+	  view
 	
 version 2.2.9 release
 	* Menu  Mini Pixmaps will no longer be loaded if MenuMiniPixmaps is set 0

@@ -1,6 +1,21 @@
 
+2011-01-13  sasha
+
+	* Changed version to 2.2.11 and fixed build to compile ASWallpaper
+
+2009-12-31  sasha
+
+	* added more debugging to figure out how zero length icon
+	  properties crash afterstep
+
+2009-12-11  sasha
+
+	* fixed segfault in on look change where previous look has obsolete
+	  font settings
+
 2009-05-04  sasha
 
+	* updated ChangeLog for the release
 	* AfterStep release v 2.2.9
 
 2009-02-11  sasha
