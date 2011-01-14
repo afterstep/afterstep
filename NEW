@@ -1,3 +1,4 @@
+version 2.2.11 release
 	* new WarpPointer feel option to make pointer warping on viewport change
 	  switcheable. Contributed by Chris Nix.
 	
