@@ -1298,7 +1298,7 @@ typedef struct WinListConfig
 	struct wild_reg_exp **AllowCollides_wrexp ;
 }WinListConfig;
 
-ASModuleConfigClass *WinListConfigClass ;
+ASModuleConfigClass *getWinListConfigClass() ;
 
 #define AS_WINLIST_CONFIG(p) AS_MODULE_CONFIG_TYPED(p,CONFIG_WinList_ID,WinListConfig)
 

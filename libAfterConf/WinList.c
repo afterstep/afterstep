@@ -191,7 +191,7 @@ static ASModuleConfigClass _winlist_config_class =
 	ASDefaultBalloonTypes
  };
  
-ASModuleConfigClass *WinListConfigClass = &_winlist_config_class;
+ASModuleConfigClass *getWinListConfigClass() { return &_winlist_config_class; }
 
 
 static void
@@ -501,7 +501,7 @@ CheckWinListConfigSanity( WinListConfig *Config, ASGeometry *default_geometry, i
 	int i ; 
 
     if( Config == NULL )
-        Config = AS_WINLIST_CONFIG(create_ASModule_config(WinListConfigClass));
+        Config = AS_WINLIST_CONFIG(create_ASModule_config(getWinListConfigClass()));
 
 	if( max_columns_override > 0 ) 
 		Config->MaxColumns = max_columns_override ;

@@ -29,6 +29,7 @@
 #include "../libAfterStep/parser.h"
 #include "../libAfterStep/freestor.h"
 #include "../libAfterStep/mystyle.h"
+#include "../libAfterStep/session.h"
 #include "../libAfterConf/afterconf.h"
 
 #include <unistd.h>		   
@@ -659,7 +660,7 @@ on_add_to_library_mystyle_btn_clicked(GtkButton *button, gpointer user_data)
 		filename = make_session_data_file  (Session, False, 0, MYSTYLES_DIR, msd->Name, NULL );
 		if (filename)
 		{
-			FreeStorageElem *fs = MyStyleDefinitionsList2free_storage (&LookSyntax, msd);
+			FreeStorageElem *fs = MyStyleDefinitionsList2free_storage (msd, &LookSyntax);
 			if (fs)
 			{
 				WriteFreeStorageToFile (filename, "afterstep", &MyStyleSyntax, fs->sub, 0);
@@ -817,7 +818,8 @@ asgtk_look_edit_reload( ASGtkLookEdit *self )
 	if( self->config != NULL ) 
 	{
 		MyStyleDefs2MyStylesPanel( NULL, self->mystyles );	
- 		DestroyLookConfig (&(self->config));
+ 		DestroyLookConfig (self->config);
+		self->config = NULL;
 	}
 
 	if( self->configfilename != NULL ) 

@@ -435,7 +435,7 @@ void HandleEvents()
 void CheckConfigSanity()
 {
 	ARGB32 argb = ARGB32_White ;
-	long    pixel = Scr.asv->white_pixel ; 
+	unsigned long    pixel = Scr.asv->white_pixel ;
 	XGCValues gcv;
 
 	if( Config->color ) 

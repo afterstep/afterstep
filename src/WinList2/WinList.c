@@ -206,7 +206,7 @@ LOCAL_DEBUG_OUT( "Max overrides %d, %d", MaxColumns_override, MaxRows_override )
 
 	LoadColorScheme();
 //	ASModuleConfig *asm_config = parse_asmodule_config_all( WinListConfigClass );
-	Config = AS_WINLIST_CONFIG(parse_asmodule_config_all( WinListConfigClass )/*asm_config*/);
+	Config = AS_WINLIST_CONFIG(parse_asmodule_config_all( getWinListConfigClass() )/*asm_config*/);
 	
 /* 	LoadConfig ("winlist", GetOptions); */
 	CheckWinListConfigSanity(Config, &(MyArgs.geometry), MyArgs.gravity, MaxColumns_override, MaxRows_override);

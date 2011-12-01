@@ -126,7 +126,7 @@ WriteIdentOptions (const char *filename, char *myname, IdentConfig * config, uns
 
 	CopyFreeStorage (&Storage, config->more_stuff);
     if (config->style_defs)
-        *tail = MyStyleDefinitionsList2free_storage (&IdentSyntax, config->style_defs);
+        *tail = MyStyleDefinitionsList2free_storage (config->style_defs, &IdentSyntax);
 	ADVANCE_LINKED_LIST_TAIL(tail);
 
 	/* building free storage here */

@@ -16,7 +16,7 @@
 #endif
 
 #if defined(__alpha)
-#include "alpha_header.h"
+/*#include "alpha_header.h"*/
 #endif /* NEEDS_ALPHA_HEADER */
 
 /* Some people say that AIX and AIXV3 need 3 preceding underscores, other say

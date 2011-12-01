@@ -255,8 +255,8 @@ static MyStyleDefinition *MyStyleList = NULL ;
 static MyFrameDefinition *MyFrameList = NULL ;
 static MyFrameDefinition *LegacyFrameDef = NULL ;
 
-static balloonConfig BalloonConfig = {0, 0, 0, 0, 0, 0, 0, NULL, 0, 0 };
-static balloonConfig MenuBalloonConfig = {0, 0, 0, 0, 0, 0, 0, NULL, 0, 0 };
+static balloonConfig BalloonConfig = {0, 0, 0, 0, 0, 0, 0, 0, NULL, 0, 0 };
+static balloonConfig MenuBalloonConfig = {0, 0, 0, 0, 0, 0, 0, 0, NULL, 0, 0 };
 
 static char         *MSWindowName[BACK_STYLES] = {NULL};
 static char         *MSMenuName[MENU_BACK_STYLES] = {NULL };
