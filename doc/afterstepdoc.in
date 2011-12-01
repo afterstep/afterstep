@@ -9,7 +9,7 @@
 # First try standard path, then local, then other possible paths
 #
 
-for app in opera konqueror firefox mozilla netscape; do 
+for app in sensible-browser x-www-browser firefox mozilla opera konqueror netscape; do 
 	full_path=`which $app`
 	if [ "x$full_path" != "x" ] ; then
      		$app @datadir@/afterstep/doc/html/index.html & exit
