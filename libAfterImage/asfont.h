@@ -330,7 +330,7 @@ typedef struct ASTextAttributes
  * fontman  - pointer to valid ASFontManager object to be deallocated.
  * reusable - If True, then memory holding object itself will not be
  *            freed - only resources will be deallocated. That is
- *            usefull for structures created on stack.
+ *            useful for structures created on stack.
  * DESCRIPTION
  * destroy_font_manager() closes all the fonts open with this
  * ASFontManager. It will also close connection to FreeType library, and
@@ -365,8 +365,8 @@ void    destroy_font_manager( struct ASFontManager *fontman, Bool reusable );
  * open_freetype_font() will attempt to find font file in any of the
  * directories specified in ASFontManager's font_path. If it fails to do
  * so - then it will check if filename has alldigit extentions. It will
- * then try to interpret that extention as a face number, and try and
- * find the file with extention stripped off.
+ * then try to interpret that extension as a face number, and try and
+ * find the file with extension stripped off.
  * If file was found function will atempt to read it using FreeType
  * library. If requested face is not available in the font - face 0 will
  * be used.

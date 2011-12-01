@@ -6,7 +6,9 @@ This document is an ever growing set of questions, statements, ideas and complai
 AfterStep version 2.0.
 </para><para>
 You can get this FAQ at the following locations:
-<ulink url="http://www.afterstep.org/FAQ/"/>
+<ulink url="http://www.afterstep.org/">
+http://www.afterstep.org/
+</ulink>
 </para><para>
 The rest of this document assumes you are running AfterStep 2.0.  If you are running a version of AfterStep prior
 to version 2.0, this document will suggests only one thing: upgrade.

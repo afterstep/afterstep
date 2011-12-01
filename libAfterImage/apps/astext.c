@@ -394,7 +394,7 @@ int main(int argc, char* argv[])
  * SYNOPSIS
  * Step 2. Approximating rendered text size.
  * DESCRIPTION
- * Prior to actually drawing the text it is usefull to estimate the size
+ * Prior to actually drawing the text it is useful to estimate the size
  * of the image, that rendered text will occupy, So that window can be
  * created of appropriate size, and othe interface elements laid out
  * accordingly. get_text_size() could be used to obtain rendered text

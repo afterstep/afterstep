@@ -8,7 +8,7 @@
 
 <para>will force mozilla windows (or any windows that have "mozilla" in its
         name ) to have initial size 1024x500.</para>
-<para>Note that in case of mozilla its usefull to define several Styles so
+<para>Note that in case of mozilla its useful to define several Styles so
         that you will get different geometries for different dialog boxes, such
         as search/download/ etc</para>
       </listitem>

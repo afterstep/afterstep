@@ -3,7 +3,7 @@
 Also all ColorScheme colors could be used in AfterStep XML images, similarly to standard X color aliases.
 It is also possible to use different aspects of each color  - red, green, blue and alpha, hue, saturation and value individualy.
 For each color there are 6 variables defined using following sytax: $ascs.colorname.component . 
-For example $ascs.Active.hue represents hue of the Active color. This is usefull while doing transformations (tinting, hsv, etc ) in 
+For example $ascs.Active.hue represents hue of the Active color. This is useful while doing transformations (tinting, hsv, etc ) in
 AfterStep XML images.</para>
   
 </section>

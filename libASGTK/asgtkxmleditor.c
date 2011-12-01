@@ -535,7 +535,7 @@ static char *ASXMLScriptTagsHelp[MAX_ASXML_SCRIPT_TAG] =
 	"slices image to arbitrary size leaving corners unchanged.\n"
 	"Contents of the image between x_start and x_end will be tiled horizontally. "
 	"Contents of the image between y_start and y_end will be tiled vertically. "
-	"This is usefull to get background images to fit the size of the text or a widget, while preserving its borders undistorted, "
+	"This is useful to get background images to fit the size of the text or a widget, while preserving its borders undistorted, "
 	"which is the usuall result of simple scaling.\n"
 	"If you want to keep image proportions while resizing-use \"proportional\" instead of specific size for particular dimention."
 ,

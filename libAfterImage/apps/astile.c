@@ -245,7 +245,7 @@ int main(int argc, char* argv[])
  * As the result obtained ASImage will not have any data in its buffers,
  * but it will have ximage member set to point to valid XImage.
  * Subsequently we enjoy that convinience, by setting use_cached to True
- * in call to asimage2pixmap(). That ought to save us alot of processing.
+ * in call to asimage2pixmap(). That ought to save us a lot of processing.
  *
  * Tinting works in both directions - it can increase intensity of the
  * color or decrease it. If any particular channel of the tint_color is

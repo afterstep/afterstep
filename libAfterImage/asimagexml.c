@@ -1470,8 +1470,8 @@ handle_asxml_tag_solid( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* par
  * ATTRIBUTES
  * id       Optional.  Image will be given this name for future reference.
  * dst      Optional.  Name of file image will be saved to. If omitted
- *          image will be dumped into stdout - usefull for CGI apps.
- * format   Optional.  Ouput format of saved image.  Defaults to the
+ *          image will be dumped into stdout - useful for CGI apps.
+ * format   Optional.  Output format of saved image.  Defaults to the
  *          extension of the "dst" parameter.  Valid values are the
  *          standard AS image file formats: xpm, jpg, png, gif, tiff.
  * compress Optional.  Compression level if supported by output file
@@ -1917,7 +1917,7 @@ handle_asxml_tag_scale( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* par
  * further images will be discarded.
  * Contents of the image between x_start and x_end will be tiled 
  * horizontally. Contents of the image between y_start and y_end will be 
- * tiled vertically. This is usefull to get background images to fit the 
+ * tiled vertically. This is useful to get background images to fit the
  * size of the text or a widget, while preserving its borders undistorted, 
  * which is the usuall result of simple scaling.
  * If you want to keep image proportions while resizing-use "proportional"

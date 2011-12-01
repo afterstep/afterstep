@@ -141,7 +141,7 @@ void asim_nonGNUC_debugout_stub( const char *format, ...);
  * Please submit a bug report if usage of any of the following generates errors on
  * your compiler . Thanks!!! */
 
-/* Some usefull debugging macros : */
+/* Some useful debugging macros : */
 #ifdef __GNUC__
 
 #if (!defined(NO_DEBUG_OUTPUT))&&(defined(LOCAL_DEBUG)||defined(DEBUG)||defined(DEBUG_ALL))

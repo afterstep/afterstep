@@ -1,6 +1,6 @@
 <varlistentry id="options.Inactive1Light">
 	<term>Inactive1Light</term>
 	<listitem>
-		<para>Should be 10% lighter then Inactive1. Usefull for gradiented background of unfocused windows.</para>
+		<para>Should be 10% lighter then Inactive1. Useful for gradiented background of unfocused windows.</para>
 	</listitem>
 </varlistentry>

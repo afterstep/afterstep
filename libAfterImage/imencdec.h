@@ -242,7 +242,7 @@ typedef struct ASImageDecoder
  * empty scanlines while writing ASImage. If back_color of empty scanline
  * matches back_color of ASImageOutput - then particular line is erased!
  * If back_colors are same - then particular line of ASImage gets filled
- * with the back_color of ASScanline. First approach is usefull when
+ * with the back_color of ASScanline. First approach is useful when
  * resulting image will be used in subsequent call to merge_layers - in
  * such case knowing back_color of image is good enough and we don't need
  * to store lines with the same color. In case where ASImage will be

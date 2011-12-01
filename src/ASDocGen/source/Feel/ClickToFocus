@@ -5,7 +5,7 @@
 		window until a new window's TitleBar is  clicked  on,  or  gains
 		focus through Warping or de-iconification.</para>
 <para>        AfterStep will not switch focus following mouse pointer, but instead will
-        switch it when window is explicitely clicked. This is the same as before.
+        switch it when window is explicitly clicked. This is the same as before.
         The only difference is that AfterStep will not Raise window automagically,
         unless some other settings are set. Possible way to Raise window on
         focusing include:</para>

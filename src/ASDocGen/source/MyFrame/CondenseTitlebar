@@ -2,7 +2,7 @@
 	<term>CondenseTitlebar <emphasis remap='I'>Left|Right|Center</emphasis></term>
 	<listitem>
 		<para>Allows titlebars to be smaller then the size of the window.
-		The paramater defines the Alignment of the whole titlebar.</para>
+		The parameter defines the Alignment of the whole titlebar.</para>
 		<para>See Also: <ulink url="Align#synopsis">Alignment flags</ulink> for further details.</para>
 	</listitem>
 </varlistentry>

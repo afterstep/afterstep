@@ -233,7 +233,7 @@ int main(int argc, char* argv[])
  * Step 3. Preparation of the visual.
  * DESCRIPTION
  * At this point we have to obtain Visual information, as window
- * creation is highly dependant on Visual being used. In fact when X
+ * creation is highly dependent on Visual being used. In fact when X
  * creates a window it ties it to a particular Visual, and all its
  * attributes, such as colormap, pixel values, pixmaps, etc. must be
  * associated with the same Visual. Accordingly we need to acquire

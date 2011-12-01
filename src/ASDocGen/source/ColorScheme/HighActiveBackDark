@@ -1,6 +1,6 @@
 <varlistentry id="options.HighActiveBackDark">
 	<term>HighActiveBackDark</term>
 	<listitem>
-		<para>Should be 10% darker then HighActiveBack color. Usefull for gradiented background of selected menu item.</para>
+		<para>Should be 10% darker then HighActiveBack color. Useful for gradiented background of selected menu item.</para>
 	</listitem>
 </varlistentry>

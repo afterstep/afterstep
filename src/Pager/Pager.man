@@ -179,7 +179,7 @@ be overriden by \fI*PagerStyle\fP option in pager config file.
 .IP "*PagerBalloon" 
 Mini-window balloon style.
 
-This definitions are dependant on Pager's name, so if you start Pager
+This definitions are dependent on Pager's name, so if you start Pager
 as WPager - you should change all the names, like so :
 "*PagerInActiveDesk" -> "*WPagerInActiveDesk"
 
@@ -257,7 +257,7 @@ make label of all inactive desks transparent.
 Specifies a font to use to label the window names in the pager. 
 It overrides font specified in Focused/Unfocused/Sticky window style
 in look file. It also displays text on background color - which
-can be usefull if BackPixmap is specified in window style.
+can be useful if BackPixmap is specified in window style.
 Window labels seem to be fairly useless for desktop scales of 32
 or greater.
 

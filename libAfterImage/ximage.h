@@ -203,7 +203,7 @@ ASImage *pixmap2asimage (struct ASVisual *asv, Pixmap p, int x, int y,
  * im    		- source ASImage
  * bitmap       - if True resulting XImage will have depth of 1 bit -
  *                traditional X mask; otherwise it will have depth of 8
- *                (usefull for XFree86 RENDER extension)
+ *                (useful for XFree86 RENDER extension)
  * RETURN VALUE
  * On success returns newly created and encoded XImage of the depth 1 or 8.
  * NULL on failure.

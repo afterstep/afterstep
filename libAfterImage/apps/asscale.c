@@ -206,7 +206,7 @@ int main(int argc, char* argv[])
  * ASImage will not have any data in its buffers, but it will have
  * ximage member set to point to valid XImage. Subsequently we enjoy
  * that convenience, by setting use_cached to True in call to
- * asimage2pixmap. That ought to save us alot of processing.
+ * asimage2pixmap. That ought to save us a lot of processing.
  *
  * Scaling algorithm is rather sophisticated and is implementing 4 point
  * interpolation. Which basically means that we try to approximate each

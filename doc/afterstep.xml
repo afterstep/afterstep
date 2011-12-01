@@ -573,7 +573,7 @@ by <command>afterstep</command> and be placed in the desired desktop and view.</
       <varlistentry>
       <term><emphasis remap='I'>NoButton number</emphasis> | <emphasis remap='I'>Button number</emphasis></term>
       <listitem>
-<para>Specifing a <emphasis remap='I'>number</emphasis> to each use of <emphasis remap='I'>NoButton</emphasis> will cause that
+<para>Specifying a <emphasis remap='I'>number</emphasis> to each use of <emphasis remap='I'>NoButton</emphasis> will cause that
 buttons number to not be displayed in the title bar. See <emphasis remap='I'>TitleButtons</emphasis>
 above for the <emphasis remap='I'>number</emphasis> and their location on the title bar.  The default
 is to display all buttons defined in the <emphasis remap='I'>look.name</emphasis> file if the

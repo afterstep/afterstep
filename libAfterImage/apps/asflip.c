@@ -199,7 +199,7 @@ int main(int argc, char* argv[])
  * Step 2. Flipping ASImage.
  * DESCRIPTION
  * Flipping can actually be combined with offset and tiling. Original
- * image gets tiled to suplied rectangle, and then gets rotated to
+ * image gets tiled to supplied rectangle, and then gets rotated to
  * requested degree.
  * EXAMPLE
  *  	flipped_im = flip_asimage(asv, im,

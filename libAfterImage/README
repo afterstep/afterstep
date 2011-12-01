@@ -18,7 +18,7 @@ in respective directory.
 libAfterImage will install itself into /usr/local/lib on most
 systems. In addition it will install afterimage-libs script to
 /usr/local/bin. This script can be used to query what libraries
-libAfterImage is dependant on. All of this libraries has to be
+libAfterImage is dependent on. All of this libraries has to be
 linked to, while building an application utilizing libAfterImage.
 Header files for the library will be installed into
 /usr/local/include/libAfterImage on most systems.

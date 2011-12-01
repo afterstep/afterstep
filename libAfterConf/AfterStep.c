@@ -160,7 +160,7 @@ SyntaxDef     WindowBoxSyntax = {
 	"Feel WindowBox definition",
 	"FeelWindowBox",
 	"defines placement policy for certain type of windows, based on desk, window attributes, window size, etc."
-	" Usefull for xinerama configurations, where windows should not be placed in between screens.",
+	" Useful for xinerama configurations, where windows should not be placed in between screens.",
 	NULL,
 	0
 };

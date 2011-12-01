@@ -87,7 +87,7 @@ resize:
 </term>
 <listitem><para>
 
-Resize all matching windows. The two paramters width and height are
+Resize all matching windows. The two parameters width and height are
 specified using the -width and -height flags.
 
 </para></listitem></varlistentry>

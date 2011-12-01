@@ -1779,8 +1779,8 @@ LoadASConfig (int thisdesktop, ASFlagType what)
                     display_progress( True, "WORKSPACE STATE configuration loaded from \"%s\".", ws_file);
 				}else
                 {    
-                    show_progress("WORKSPACE STATE file cannot be not found!");
-                    display_progress( True, "WORKSPACE STATE file cannot be not found!");
+                    show_progress("WORKSPACE STATE file cannot be found!");
+                    display_progress( True, "WORKSPACE STATE file cannot be found!");
                 }
 				merge_feel( &Scr.Feel, &TmpFeel );
             }else

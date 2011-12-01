@@ -204,7 +204,7 @@ void usage(void) {
 		"     --dont-clear    don't clear window before displaying next image\n"
 		" Note that when -I option is used in conjunction with input from\n" 
 		" string or a file - ascompose will endlesly loop through the contents\n"
-		" untill it is killed - usefull for slideshow type of activity.\n"
+		" untill it is killed - useful for slideshow type of activity.\n"
 		" When input comes from STDIN, then ascompose will loop untill Ctrl+D\n"
 		" is received (EOF).\n"
 		"\n"

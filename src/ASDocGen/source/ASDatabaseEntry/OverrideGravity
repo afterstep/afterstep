@@ -5,7 +5,7 @@
 		<para>Some applications (notably xv) have been designed without reading widely
         accepted and used standards such as ICCCM. Gravity value is one of
         the hints that often get misplaced by applications. As the result may
-        exhibit wierd placement behaviour - such as windows moving to the
+        exhibit weird placement behaviour - such as windows moving to the
         top-left with each resize or file opened. Try specifying StaticGravity
         for such apps. Also some applications do not set gravity correctly. For
         example you start an application with geometry +10-10 which means

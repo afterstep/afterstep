@@ -30,6 +30,8 @@
 
 #define TAG_INFO_AND_ID(tagname)	#tagname, DOCBOOK_##tagname##_ID
 
+#define ASFAQ_NAME "afterstep_faq"
+
 ASDocTagHandlingInfo SupportedDocBookTagInfo[DOCBOOK_SUPPORTED_IDS] = 
 {
 	{ TAG_INFO_AND_ID(unknown), NULL, NULL },
@@ -171,6 +173,14 @@ write_doc_cdata( const char *cdata, int len, ASXMLInterpreterState *state )
 				c = cdata[i];
 			if( c == '\"' && get_flags( state->flags, ASXMLI_EscapeDQuotes) ) 
 				fputc( '\"', state->dest_fp );	
+			else if ( c == '-' && state->doc_type == DocType_NROFF ) 
+				fputc( '\\', state->dest_fp );	
+			else if ( c == '.' && state->doc_type == DocType_NROFF ) 
+				fputs( "\\&", state->dest_fp );	
+			else if ( c == '\\' && state->doc_type == DocType_NROFF ) 
+				fputc( '\\', state->dest_fp );	
+			else if ( c == '' && state->doc_type == DocType_NROFF ) 
+				c = '~';
 			fputc( c, state->dest_fp );
 		}		   
 	}	 
@@ -617,7 +627,7 @@ start_literallayout_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterStat
 	{	
 		fprintf( state->dest_fp, "<PRE>");	
 	}else if( state->doc_type == DocType_NROFF )
-		fprintf( state->dest_fp, "\n.nf\n");
+		fprintf( state->dest_fp, "\n.fi\n");
 }
 
 void 
@@ -784,6 +794,10 @@ start_section_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *sta
 		else
 			fwrite( "<UL>", 1, 4, state->dest_fp );
 	}
+	else if (state->doc_type == DocType_NROFF && !strcmp(state->doc_name, ASFAQ_NAME))
+	{
+		fprintf( state->dest_fp, state->header_depth == 2 ? "\n.SH " : "\n.SS " );
+	}		
 }
 
 void 
@@ -862,6 +876,10 @@ end_title_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state )
 		if( !get_flags( state->flags, ASXMLI_FormalPara ) )
 			fprintf( state->dest_fp, "<br>");	  
 	}
+	else if (state->doc_type == DocType_NROFF && !strcmp(state->doc_name, ASFAQ_NAME))
+	{
+	   fprintf( state->dest_fp, "\n");	   
+	}		
 	close_link(state);
 }
 
@@ -1009,7 +1027,7 @@ start_code_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state 
 		fprintf( state->dest_fp, "<P class=\"dense\">" );	   			  
 		fprintf( state->dest_fp, "<div class=\"container\">");
 	}else if( state->doc_type == DocType_NROFF )
-		fprintf( state->dest_fp, "\nSource : ");
+		fprintf( state->dest_fp, "\n.in +4n\n");
 
 }
 
@@ -1020,6 +1038,8 @@ end_code_tag( xml_elem_t *doc, xml_elem_t *parm, ASXMLInterpreterState *state )
 	{
 		fprintf( state->dest_fp, "</div><br></p>");
 	}
+	else if( state->doc_type == DocType_NROFF )
+		fprintf( state->dest_fp, "\n.in\n");
 }
 
 

@@ -30,7 +30,7 @@ extern "C" {
  * operations, thus yielding very good quality. All the transformations
  * are performed in integer math, with the result of greater speeds.
  * Optional MMX inline assembly has been incorporated into some
- * procedures, and allows to achieve considerably better performance on
+ * procedures, and allows one to achieve considerably better performance on
  * compatible CPUs.
  *
  * SEE ALSO
@@ -267,7 +267,7 @@ extern "C" {
 /****f* libAfterImage/transform/blur_asimage_gauss()
  * NAME
  * blur_asimage_gauss() Performs Gaussian blurr of the image 
- * ( usefull for drop shadows and the likes ).
+ * ( useful for drop shadows and the likes ).
  * SYNOPSIS
  * ASImage* blur_asimage_gauss( ASVisual* asv, ASImage* src,
  *                              double horz, double vert,
@@ -327,7 +327,7 @@ extern "C" {
  * to_width,
  * to_height     - size of the area of the original image to be used
  *                 for new image.
- * affected_hue  - hue in degrees in range 0-360. This allows to limit
+ * affected_hue  - hue in degrees in range 0-360. This allows one to limit
  *                 impact of color adjustment to affect only limited
  *                 range of hues.
  * affected_radius Sets the diapason of the range of affected hues.
@@ -427,7 +427,7 @@ ASImage* adjust_asimage_hsv( ASVisual *asv, ASImage *src,
 /****f* libAfterImage/transform/colorize_asimage_vector()
  * NAME
  * colorize_asimage_vector() creates ASImage from double precision indexed 
- * image data - usefull for scientific visualisation.
+ * image data - useful for scientific visualisation.
  * SYNOPSIS
  * Bool colorize_asimage_vector( ASVisual *asv, ASImage *im,
  * 		             	         ASVectorPalette *palette,
@@ -497,9 +497,9 @@ ASImage* adjust_asimage_hsv( ASVisual *asv, ASImage *src,
  * asv           - pointer to valid ASVisual structure
  * src           - source ASImage.
  * slice_x_start - ending of the left corners
- * slice_x_end   - begining of the right corners
+ * slice_x_end   - beginning of the right corners
  * slice_y_start - ending of the top corners
- * slice_y_end   - begining of the bottom corners
+ * slice_y_end   - beginning of the bottom corners
  * to_width      - width of the generated image;
  * to_height     - height of the generated image;
  * scaled        - if True - middle part of the image will be scaled, 

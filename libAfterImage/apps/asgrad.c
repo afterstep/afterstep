@@ -247,7 +247,7 @@ int main(int argc, char* argv[])
  * All that is needed to draw gradient is to call make_gradient(),
  * passing pointer to ASGradient structure, that describes gradient.
  * Naturally size of the gradient is needed too. Another parameter is
- * filter - that is a bit mask that allows to draw gradient using only a
+ * filter - that is a bit mask that allows one to draw gradient using only a
  * subset of the channels, represented by set bits. SCL_DO_ALL means
  * that all 4 channels must be rendered.
  * make_gradient() creates ASImage of requested size and fills it with

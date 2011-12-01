@@ -3,7 +3,7 @@
 	<listitem>
 		<para>Denotes that beveled borders should be drawn around
 		the window frame and titlebar. This is on by default, so this
-		option is only usefull in combination with inheriting previously defined
+		option is only useful in combination with inheriting previously defined
 		window frames.
 		</para>
 		<para>See Also: Inherit MyFrame for details.</para>

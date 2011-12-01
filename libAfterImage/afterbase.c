@@ -983,7 +983,7 @@ void asim_flush_ashash_memory_pool()
 
 /************************************************************************/
 /************************************************************************/
-/* 	Some usefull implementations 					*/
+/* 	Some useful implementations 					*/
 /************************************************************************/
 ASHashKey asim_pointer_hash_value (ASHashableValue value, ASHashKey hash_size)
 {

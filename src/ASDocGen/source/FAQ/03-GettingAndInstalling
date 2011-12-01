@@ -77,7 +77,7 @@ your operating system, if not, check <ulink url="http://www.x.org/">http://www.x
 <section><title>3.6. How the hell does one configure AfterStep?</title>
 <para>
 Configuration files are usually either in /usr(/local)/share/afterstep for
-system wide configuration and ~.afterstep for personal settings.
+system wide configuration and ~/.afterstep for personal settings.
 </para>
 <para>
 Configuration is handled in multiple files:
@@ -87,7 +87,7 @@ for module specific configuration.
 </para>
 <para>
 Just copy any file you want to modify over from /usr(/local)/share/afterstep to
-~.afterstep to override system wide defaults retaining subdirectory layout.
+~/.afterstep to override system wide defaults retaining subdirectory layout.
 </para>
 </section>
 

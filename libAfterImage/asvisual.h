@@ -340,7 +340,7 @@ void scanline2ximage_pseudo12bpp( ASVisual *asv, XImage *xim, struct ASScanline 
  * screen   	- screen number on which to query visuals.
  * root     	- root window on that screen.
  * default_depth- default colordepth of the screen.
- * visual_id    - optional ID of prefered Visual.
+ * visual_id    - optional ID of preferred Visual.
  * cmap         - optional colormap to be used.
  * RETURN VALUE
  * True on success, False on failure
@@ -433,7 +433,7 @@ void setup_as_colormap( ASVisual *asv );
  * structure, but instead will use supplied one. Useful for allocating
  * ASVisual on stack.
  * This particular function will not do any autodetection and will use
- * Visual ID supplied. That is usefull when libAfterImage is used with
+ * Visual ID supplied. That is useful when libAfterImage is used with
  * an app that has its own approach to Visual handling, and since Visuals
  * on all Windows, Pixmaps and colormaps must match, there is a need to
  * synchronise visuals used by an app and libAfterImage.

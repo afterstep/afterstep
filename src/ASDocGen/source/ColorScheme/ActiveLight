@@ -2,6 +2,6 @@
 	<term>ActiveLight</term>
 	<listitem>
 		<para>This color should have slightly higher value then Active (be 5-10% lighter).
-This is usefull when background of focused titlebar is a gradient.</para>
+This is useful when background of focused titlebar is a gradient.</para>
 	</listitem>
 </varlistentry>

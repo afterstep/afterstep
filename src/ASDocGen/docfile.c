@@ -181,7 +181,9 @@ write_doc_header( ASXMLInterpreterState *state )
 									 ".SH NAME\n"
 									 "\\fB%s\\fP", state->doc_name );
 			if( state->display_purpose[0] != '\0' )
-				fprintf( state->dest_fp, "\\ - %s", state->display_purpose );
+				fprintf( state->dest_fp, "\\ \\- %s", state->display_purpose );
+			else				
+				fprintf( state->dest_fp, "\\ \\- Afterstep %s", state->doc_name );
 			fputc( '\n', state->dest_fp );
 		    break ;
 		default:

@@ -8,11 +8,11 @@ This color names are used in defining Look and in XML images.
 By assigning different color values to teh same color names it is possible to instantly change colors throughout entire Look, 
 without altering any images or configuration files.
 </para><para>
-Not all of the Colorscheme colors have to be explicitely defined. Only the Base color is important. 
+Not all of the Colorscheme colors have to be explicitly defined. Only the Base color is important.
 AfterStep is capable of autogeneration of good-looking colorscheme, from this single color.
 Explicit color definition in colorscheme file will override any automatic choice. 
 Example of this is the NeXTish colorscheme, where all of the colors are customized.
-If grayscale color is choosen for Base - it will generate grayscale colorscheme, where different shades of gray 
+If grayscale color is chosen for Base - it will generate grayscale colorscheme, where different shades of gray
 are used for different colors.
 </para><para>
 Selected colorscheme file is loaded by all modules and afterstep proper. 
@@ -91,7 +91,7 @@ AfterStep Colorscheme color names could be separated in several categories :
 Foreground colors are used to render text, while background colors make up a backdrop for that text.
 Now there are several constraints on foreground colors - they should be contrasting with backgrounds, 
 and it is always better to constrain foreground colors to black and white, as colored text tends to "bleed" ontop background, 
-making it less eligible. Another problem with foreground being colorfull is that it increases strain on user's eyes, 
+making it less eligible. Another problem with foreground being colorful is that it increases strain on user's eyes,
 forcing them to adapt to too many different contrasting colors.
 </listitem></varlistentry>
 <varlistentry id="color_names.active_inactive">
@@ -163,7 +163,7 @@ Alters value of the given predefined color.
 </listitem></varlistentry>
 <varlistentry id="color_values.alpha">
 <term>alpha(alpha,color)</term><listitem>
-Alters alpha of the given predefined color. This is usefull to make colors from colorscheme semi-transparent.
+Alters alpha of the given predefined color. This is useful to make colors from colorscheme semi-transparent.
 </listitem></varlistentry>
 <varlistentry id="color_values.red">
 <term>red(red,color)</term><listitem>

@@ -110,7 +110,7 @@ append_gif_saved_image( SavedImage *src, SavedImage **ret, int *ret_images )
 
 /* It appears that nobody has bloody debugged giflib with multiimage files where
  * subimages have private colormaps. So it bloody fucks everything up.
- * So we bloody have to cludge it to get something usefull.
+ * So we bloody have to cludge it to get something useful.
  * Oh The pain! The pain!
  */
 int fread_gif( GifFileType *gif, GifByteType* buf, int len )

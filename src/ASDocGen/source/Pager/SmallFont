@@ -4,7 +4,7 @@
 		<para>Specifies  a font to use to label the window names in the pager.
 		It overrides font specified in  Focused/Unfocused/Sticky  window
 		style  in look file. It also displays text on background color -
-		which can be usefull if BackPixmap is specified in window style.
+		which can be useful if BackPixmap is specified in window style.
 		Window labels seem to be fairly useless for desktop scales of 32
 		or greater.</para>
 	</listitem>

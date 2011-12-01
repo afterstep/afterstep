@@ -15,7 +15,7 @@ extern "C" {
  * and then approximate remaining colors with the closest colorcell.
  *
  * Since quality of quantization is in reverse proportion to the number
- * of colors in original image, libAfterImage allows to set arbitrary
+ * of colors in original image, libAfterImage allows one to set arbitrary
  * level of downsampling of the color spectrum in the range of 8 bit per
  * channel to 1 bit per channel. Downsampling is performed by simple
  * dropping of less significant bits off of color values.
@@ -26,7 +26,7 @@ extern "C" {
  * so : R8G8B8R7G7B7...R1G1B1. That flat index is used to arrange colors
  * in ascending order, and later on to be able to find closest mapped
  * color. Simple hashing technique is used to speed up the
- * sorting/searching, as it allows to limit linked lists traversals.
+ * sorting/searching, as it allows one to limit linked lists traversals.
  *
  * SEE ALSO
  * Structures :

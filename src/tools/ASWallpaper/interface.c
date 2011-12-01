@@ -349,7 +349,7 @@ on_make_xml_clicked(GtkButton *clicked_button, gpointer user_data)
 
 	mx->tint_radio = gtk_radio_button_new_with_label( NULL, "Use Tinting (suitable for mostly grayscale images)" );
 	gtk_box_pack_start (GTK_BOX (box), mx->tint_radio, FALSE, FALSE, 0);
-	mx->hsv_radio = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(mx->tint_radio), "Use Hue rotation (suitable for colorfull images)" );
+	mx->hsv_radio = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(mx->tint_radio), "Use Hue rotation (suitable for colorful images)" );
 	gtk_box_pack_start (GTK_BOX (box), mx->hsv_radio, FALSE, FALSE, 0);
 	colorize_gtk_widget( frame, get_colorschemed_style_normal() );
 	gtk_widget_show_all (box);

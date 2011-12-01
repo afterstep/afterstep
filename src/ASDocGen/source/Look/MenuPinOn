@@ -8,8 +8,8 @@
                 belonging to menu windows. This button behaves just like any
                 other TitleButton - for example you can use TitleButtonOrder to
                 specify where it should go. Problem is you may not know what
-                context AfterStep had choosen for it. The better way would be
-                to explicitely define TitleButton, and assign PinMenu to it in
+                context AfterStep had chosen for it. The better way would be
+                to explicitly define TitleButton, and assign PinMenu to it in
                 your feel.</para>
 	</listitem>
 </varlistentry>

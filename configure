@@ -871,9 +871,9 @@ Optional Features:
   --enable-fixeditems     enable fixed menu entries [no]
   --enable-ascp           build AfterStep Control Panel [yes]
   --enable-shaping        support shaped windows [yes]
-  --enable-shmimage       support shared memory images [yes]
-  --enable-xinerama       support Xinerama Multihead extentions [yes]
-  --enable-glx            support for OpenGL extention [yes]
+  --enable-shmimage        enable usage of MIT shared memory extension for image transfer no
+  --enable-shaping        enable usage of MIT shaped windows extension yes
+  --enable-glx            enable usage of GLX extension no
   --enable-staticlibs     enable linking to libafterstep statically [yes]
   --enable-sharedlibs     enable linking to libafterstep dynamically [no]
   --enable-gdb            add gdb symbols (-g) (for debugging) [no]

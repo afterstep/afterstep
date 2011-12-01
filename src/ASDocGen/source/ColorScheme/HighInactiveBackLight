@@ -1,6 +1,6 @@
 <varlistentry id="options.HighInactiveBackLight">
 	<term>HighInactiveBackLight</term>
 	<listitem>
-		<para>Should be 10% lighter then HighInactiveBack color. Usefull for gradiented background of inactive menu item.</para>
+		<para>Should be 10% lighter then HighInactiveBack color. Useful for gradiented background of inactive menu item.</para>
 	</listitem>
 </varlistentry>

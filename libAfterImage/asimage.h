@@ -226,7 +226,7 @@ typedef struct ASImageManager
 /* Auxiliary data structures : */
 /****s* libAfterImage/ASVectorPalette
  * NAME
- * ASVectorPalette contains pallette allowing us to map double values 
+ * ASVectorPalette contains palette allowing us to map double values
  * in vector image data into actuall ARGB values.
  * SOURCE
  */
@@ -277,7 +277,7 @@ typedef struct ASVectorPalette
  * array3: [layer6(next==NULL)][layer7(next==layer7)]
  *                                ^______|
  *
- * While iterating throught such a list we check for two conditions -
+ * While iterating through such a list we check for two conditions -
  * exceeding count of layers and layer pointing to self. When any of
  * that is met - we stopping iteration.
  * SEE ALSO
@@ -640,7 +640,7 @@ ASVectorPalette* vectorize_asimage( ASImage *im, unsigned int max_colors,
  * INPUTS
  * imman           - pointer to ASImageManager object to be deallocated
  * reusable        - if True, then memory that holds object itself will
- *                   not be deallocated. Usefull when object is created
+ *                   not be deallocated. Useful when object is created
  *                   on stack.
  * DESCRIPTION
  * Destroys all the referenced images, PATH values and if reusable is False,
@@ -990,7 +990,7 @@ void copy_asimage_lines( ASImage *dst, unsigned int offset_dst,
  * DESCRIPTION
  * asimage_print_line() prints data stored in specified image scanline
  * channel. That may include simple summary of how much memory is used,
- * actual visible data, and/or RLE control codes. That helps to see
+ * actual visible data, and/or RLE control codes. That helps one to see
  * how effectively data is encoded.
  *
  * Useful mostly for debugging purposes.
@@ -1102,9 +1102,9 @@ typedef struct XRectangle
  * rects_count_ret - returns count of generated rectangles.
  * DESCRIPTION
  * This function will translate contents of selected channel 
- * (usualy alpha) into a list of rectangles, ecompasing regions 
- * with values above the threshold. This is usefull to generate shape
- * of the window to be used with X Shape extention.
+ * (usually alpha) into a list of rectangles, ecompasing regions
+ * with values above the threshold. This is useful to generate shape
+ * of the window to be used with X Shape extension.
  *********/
 XRectangle*
 get_asimage_channel_rects( ASImage *src, int channel, unsigned int threshold, unsigned int *rects_count_ret );

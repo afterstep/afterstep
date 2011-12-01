@@ -116,7 +116,7 @@
  * Note that XPM can be supported both via built-in code or via libXpm,
  * depending on compilation configuration.
  * Actuall image file format is autodetected from the file contents -
- * file name extention is not used and can be anything at all.
+ * file name extension is not used and can be anything at all.
  *
  * 6. Image export into many popular file formats. Currently implemented :
  * XPM, JPEG, PNG, GIF. Work is underway to implement support for TIFF,

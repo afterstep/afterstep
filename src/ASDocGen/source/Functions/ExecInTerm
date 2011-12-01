@@ -1,7 +1,7 @@
 <varlistentry id="options.ExecInTerm">
  <term>ExecInTerm <emphasis remap='I'>"name"</emphasis> <emphasis remap='I'>command</emphasis> [<option>-options</option>]</term>
  <listitem>
-    <para>Specifies a sub process to initiate. It is similar to Exec , though targeted at programms that need
+    <para>Specifies a sub process to initiate. It is similar to Exec , though targeted at programs that need
     a terminal to run. The following terminal emulators are tried in order: aterm, rxvt, eterm, xterm.</para>
  </listitem>
 </varlistentry>

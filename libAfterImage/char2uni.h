@@ -59,7 +59,7 @@ ASSupportedCharsets parse_charset_name( const char *name );
 
 /****d* libAfterImage/CHAR_SIZE
  * NAME 
- * CHAR_SIZE - Convinient macro so we can transparently determine the 
+ * CHAR_SIZE - Convenient macro so we can transparently determine the
  * number of bytes that character spans. It assumes UTF-8 encoding when 
  * I18N is enabled.
  * SOURCE
