@@ -85,6 +85,7 @@
 # X TErms. Note that only one of this will be displayed on Wharf, as they all
 # have same button name. Change button name ( first column after *Wharf) to make them a separate buttons :
 
+*Wharf term Monitor.xpm Exec "-" x-terminal-emulator &
 *Wharf term "-" DesktopEntry urxvt
 *Wharf term "-" DesktopEntry aterm
 
@@ -98,7 +99,7 @@
 #
 # Midnight commander file manager in the term of choice :
 #
-*Wharf MidnightCommander normal/MCInMonitorShadow ExecInTerm "-" -g 130x35 if(urxvt){-T mc-VerticalTitle -tr -tint blue -fg white -bg black} if(aterm){-T mc-VerticalTitle -tr -tint blue -fg white -bg black} if(Eterm){-O --tint blue -f white -b black) if(rxvt){-tr -fg white -bg black} -e mc &
+*Wharf MidnightCommander normal/MCInMonitorShadow ExecInTerm "-" if(urxvt){-g 130x35 -T mc-VerticalTitle -tr -tint blue -fg white -bg black} if(aterm){-g 130x35 -T mc-VerticalTitle -tr -tint blue -fg white -bg black} if(Eterm){-g 130x35 -O --tint blue -f white -b black) if(rxvt){-g 130x35 -tr -fg white -bg black} -e mc &
 
 #
 # First available GUI file manager :
@@ -118,8 +119,10 @@
 # First available GUI Web Browser :
 #
 *Wharf WebBrowser normal/WWW    Exec x-www-browser &
+*Wharf WebBrowser logos/Firefox Exec "Iceweasel" iceweasel &
 *Wharf WebBrowser logos/Firefox Exec "Firefox" firefox &
 *Wharf WebBrowser logos/Firefox Exec "Firefox2" mozilla-firefox &
+*Wharf WebBrowser logos/mozilla Exec "Iceape" iceape &
 *Wharf WebBrowser logos/mozilla Exec "Mozilla" mozilla &
 *Wharf WebBrowser logos/Opera   Exec "Opera Web Browser" opera &
 *Wharf WebBrowser normal/WWW    Exec sensible-browser &
@@ -127,11 +130,13 @@
 #
 # First available GUI e-mail client :
 #
+*Wharf Mail	logos/Thunderbird Exec "Icedove" icedove &
 *Wharf Mail	logos/Thunderbird Exec "Thunderbird" thunderbird &
 *Wharf Mail	logos/Thunderbird Exec "Thunderbird2" mozilla-thunderbird &
 *Wharf Mail	normal/MailBox2 Exec "mozilla-mail" mozilla --mail &
 *Wharf Mail	normal/MailBox2 Exec "kmail" kmail &
 *Wharf Mail	normal/MailBox2 Exec "balsa" balsa &
+*Wharf Mail	normal/MailBox2 ExecInTerm "Mutt"  -e mutt &
 *Wharf Mail	normal/MailBox2 ExecInTerm "Pine" -title "Pine e-mail and news reader" -e pine &
 
 
@@ -144,8 +149,9 @@
 #
 # First available GUI text editor :
 #
+*Wharf TextEditor medit.png Exec "medit" medit &
 *Wharf TextEditor Text.xpm Exec "NEdit" nedit &
-*Wharf TextEditor Text.xpm Exec "cooledit" cooledit --look next &
+*Wharf TextEditor Text.xpm Exec "cooledit" cooledit &
 *Wharf TextEditor logos/GNU Exec "XEmacs" xemacs &
 *Wharf TextEditor Text.xpm Exec "VIM" gvim &
 
@@ -168,7 +174,7 @@
 # First available IRC client :
 #
 *Wharf IRC  normal/IRCTransparent Exec "XCHAT" xchat &
-*Wharf IRC	normal/IRCTransparent ExecInTerm "BitchX" -title "BitchX IRC" +sb if(aterm){-tr -sh 50 -fg white -bg black} if(Eterm){-O --shade 50 -f white -b black) if(rxvt){-tr -fg white -bg black} if(xterm){-fg white -bg black} -e BitchX irc.freenode.net &
+*Wharf IRC	normal/IRCTransparent ExecInTerm "BitchX" -title "BitchX IRC" if(urxvt){-tr -fg white -bg black} if(aterm){-tr -sh 50 -fg white -bg black} if(Eterm){-O --shade 50 -f white -b black) if(rxvt){-tr -fg white -bg black} if(xterm){-fg white -bg black} -e BitchX irc.freenode.net &
 
 
 # subfolder full of games :
@@ -179,13 +185,17 @@
 # First available Audio player :
 #
 *Wharf AudioPlayer logos/Xmms Exec "X Multi Media System" xmms &
+*Wharf AudioPlayer - Swallow "wmxmms2" wmxmms2 -c blue &
 *Wharf AudioPlayer - Swallow "wmxmms" wmxmms --single &
 *Wharf AudioPlayer - Swallow "ascd" ascd &
+*MonitorWharf AudioPlayer - Swallow "wmusic" wmusic -w &
+
 #
 # Mixer
 #
-*Wharf mixer - Swallow "asmixer" asmixer -g -1-1 &
+*Wharf mixer - Swallow "AlsaMixer.app" AlsaMixer.app -1 Master -2 Master -3 Master &
 *Wharf mixer - Swallow "wmmixer" wmmixer &
+*Wharf mixer - Swallow "asmixer" asmixer -g -1-1 &
 *Wharf mixer - Swallow "asMix" asmix -shape &
 
 #
@@ -258,12 +268,12 @@
 
 
 *MonitorWharf QuitFolder normal/RedLight,dots/3_dots Folder
-*MonitorWharf 	Recycler normal/Recycle Restart "" afterstep -r
+*MonitorWharf 	Restart normal/Recycle Restart "" afterstep -r
 *MonitorWharf 	Quit normal/Stopsign Quit "" afterstep
 *MonitorWharf ~Folder
 
 *MonitorWharf asfsm - Swallow "asfsm_lite" asfsm_lite -bg Grey30 -fg Grey70 -bp None -pbg Grey40 -pfg Grey70 -pbp None -i 30 &
-*MonitorWharf loadmonitor - Swallow "asload" asload -shape -exe "aterm -e top" &
+*MonitorWharf loadmonitor - Swallow "asload" asload -shape -exe "x-terminal-emulator -e top" &
 *MonitorWharf loadmonitor - Swallow "wmavgload" wmavgload -shape -led red &
 *MonitorWharf loadmonitor - Swallow "wmcpuload" wmcpuload -bl -w &
 *MonitorWharf loadmonitor - Swallow "wmload" wmload -shape -led red &
@@ -275,7 +285,7 @@
 *MonitorWharf asmail - Swallow "asmail" asmail -geometry +0+0 &
 
 # One of the clocks - first available :
-*MonitorWharf clock - Swallow "asclock" asclock -shape -24 -position +1+1 &
+*MonitorWharf clock - Swallow "asclock" asclock -shape -24 -theme penguin -position +1+1 &
 *MonitorWharf clock - Swallow "wmclockmon" wmclockmon &
 *MonitorWharf clock - Swallow "wmitime" wmitime &
 *MonitorWharf clock - Swallow "xclock" xclock -bg gray10 -fg cyan -digital -brief &

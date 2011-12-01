@@ -9,7 +9,7 @@
 *WinListDefaults
 	Geometry        +0+0
 	MinSize         10000    #will be truncated to thescreen size
-	MaxRows         3
+	MaxRows         1
 	FillRowsFirst
 	UseSkipList
 	

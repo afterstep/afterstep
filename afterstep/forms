@@ -17,7 +17,7 @@
 *QuitFormButton   quit      "Logout"  ^M
 *QuitFormCommand  Quit
 *QuitFormButton   quit      "Cancel"  ^[
-*QuitFormCommand  Nop
+*QuitFormCommand  Nop	""
 
 
 # FTP
@@ -40,10 +40,10 @@
 *FTPFormInput           CustomTarget    20      ""
 *FTPFormLine            expand
 *FTPFormButton          quit            "Go"    ^M
-*FTPFormCommand         Exec "-" xterm -fg white -T FTP -e ftp $(CommonTarget) $(CustomTarget)
+*FTPFormCommand         Exec "-" x-terminal-emulator -T FTP -e ftp $(CommonTarget) $(CustomTarget)
 *FTPFormButton          restart         "Clear"
 *FTPFormButton          quit            "Cancel" ^[
-*FTPFormCommand         Nop
+*FTPFormCommand         Nop	""
 
 # Xgrabsc
 *XGRABSCFormWarpPointer
@@ -62,10 +62,11 @@
 *XGRABSCFormInput           SaveTarget    35      "~/screenshot.xpm"
 *XGRABSCFormLine            expand
 *XGRABSCFormButton          quit            "Go"    ^M
-*XGRABSCFormCommand         Exec "-" xgrabsc -root -o $(SaveTarget) -bm -s $(WaitTarget) 
+#*XGRABSCFormCommand         Exec "-" xgrabsc -root -o $(SaveTarget) -bm -s $(WaitTarget) 
+*XGRABSCFormCommand         Exec "-" import -delay $(WaitTarget) $(SaveTarget)
 *XGRABSCFormButton          restart         "Clear"
 *XGRABSCFormButton          quit            "Cancel" ^[
-*XGRABSCFormCommand         Nop
+*XGRABSCFormCommand         Nop	""
 
 # Xgrab
 *XGRABFormWarpPointer
@@ -88,7 +89,7 @@
 
 *XGRABFormButton          restart         "Clear"
 *XGRABFormButton          quit            "Cancel" ^[
-*XGRABFormCommand         Nop
+*XGRABFormCommand         Nop	""
 
 # Xlock
 *XLOCKFormWarpPointer
@@ -161,7 +162,7 @@
 *XLOCKFormCommand         Exec "-" xlock -nolock -mode $(CommonTarget)
 *XLOCKFormButton          restart         "Clear"
 *XLOCKFormButton          quit            "Cancel" ^[
-*XLOCKFormCommand         Nop
+*XLOCKFormCommand         Nop	""
 
 *RUNFormWarpPointer
 *RUNFormFore            Grey70
@@ -177,10 +178,10 @@
 *RUNFormInput           CustomTarget    50      ""
 *RUNFormLine            expand
 *RUNFormButton          quit            "Go"    ^M
-*RUNFormCommand         Exec "-" xterm -fg white -bg black -T Run -e $(CustomTarget)
+*RUNFormCommand         Exec "-" x-terminal-emulator -T Run -e $(CustomTarget)
 *RUNFormButton          restart         "Clear"
 *RUNFormButton          quit            "Cancel" ^[
-*RUNFormCommand         Nop
+*RUNFormCommand         Nop	""
 
 *HELPFormWarpPointer
 *HELPFormFore            Grey70
@@ -196,10 +197,10 @@
 *HELPFormInput           CustomTarget    50      ""
 *HELPFormLine            expand
 *HELPFormButton          quit            "Go"    ^M
-*HELPFormCommand         Exec "-" xterm -fg white -bg black -T Help -e man $(CustomTarget)
+*HELPFormCommand         Exec "-" x-terminal-emulator -T Help -e man $(CustomTarget)
 *HELPFormButton          restart         "Clear"
 *HELPFormButton          quit            "Cancel" ^[
-*HELPFormCommand         Nop
+*HELPFormCommand         Nop	""
 
 *FINDFormWarpPointer
 *FINDFormFore            Grey70
@@ -215,10 +216,10 @@
 *FINDFormInput           CustomTarget    50      ""
 *FINDFormLine            expand
 *FINDFormButton          quit            "Go"    ^M
-*FINDFormCommand         Exec "-" xterm -fg white -bg black -T Find -e sh -c "locate $(CustomTarget) | less"
+*FINDFormCommand         Exec "-" x-terminal-emulator -T Find -e sh -c "locate $(CustomTarget) | less"
 *FINDFormButton          restart         "Clear"
 *FINDFormButton          quit            "Cancel" ^[
-*FINDFormCommand         Nop
+*FINDFormCommand         Nop	""
 
 *ThemeCreateFormWarpPointer
 *ThemeCreateFormFore            Grey70
@@ -244,4 +245,4 @@
 *ThemeCreateFormCommand         Exec "-" makeastheme.pl $(Background!--no_background) $(Pager!--no_pager) $(Wharf!--no_wharf) $(WinList!--no_winlist) --theme $(CustomTarget)
 *ThemeCreateFormButton          restart         "Clear"
 *ThemeCreateFormButton          quit            "Cancel" ^[
-*ThemeCreateFormCommand         Nop
+*ThemeCreateFormCommand         Nop	""

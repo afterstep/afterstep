@@ -74,6 +74,8 @@ Style	"Galeon"		IgnoreConfig
 # , StartsOnDesk 1
 Style	"Netscape"		Icon netscape.xpm, IgnoreConfig	
 # , StartsOnDesk 1
+Style	"Iceape-bin"		IgnoreConfig
+Style	"Iceweasel"		IgnoreConfig
 
 # Email apps
 #Style	"Thunderbird-bin"	StartsOnDesk 2
