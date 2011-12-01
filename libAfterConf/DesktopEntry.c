@@ -144,7 +144,7 @@ char *stripcpy_localized( char *ptr )
 			break;
 		++i ;
 	}
-	if((locale[i] == '.' || locale[i] == '\0') && ptr[i] == ']' )
+	if((locale[i] == '.' || locale[i] == '_' || locale[i] == '\0') && ptr[i] == ']' )
 		return stripcpy(ptr+i+2) ;
 	return NULL ;
 }

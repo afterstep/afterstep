@@ -26,7 +26,8 @@ rm -f `find src -maxdepth 1 -type f`
 rm -f `find . -name "config.cache"`
 rm -f `find . -name "config.log"`
 rm -f `find . -name "config.status"`
-#rm -f `find . -name "*.in" -o -name ".*.in" | sed 's/.in$//'`
+rm -f `find . \( -name "*.in" -o -name ".*.in"  \) -a ! -name "configure.in" | sed 's/.in$//'`
+rm -rf src/ASDocGen/html src/ASDocGen/man src/ASDocGen/log.*
 
 # remove backups
 rm -f `find . -name "*~" -o -name ".*~"`

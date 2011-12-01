@@ -72,7 +72,7 @@ Main
     Else
     Begin
      Do {Exec "sync" sync}
-     Do {Exec "xterm" xterm -geometry 80x12+150+130 -bg grey85 -fg red -cr red -e pauseme /sbin/shutdown -h -f now}
+     Do {Exec "X terminal" x-terminal-emulator -e pauseme /sbin/shutdown -h -f now}
      Quit
     End
    End

@@ -9,6 +9,7 @@ Type=Application
 Encoding=UTF-8
 Categories=AfterStepInfo
 TryExec=ASRun
+Name[pl]=Strona domowa AfterStepa
 
 [Desktop Entry]
 Name=New in this version
@@ -21,6 +22,7 @@ Type=Application
 Encoding=UTF-8
 Categories=AfterStepInfo
 TryExec=ASRun
+Name[pl]=Nowości w tej wersji
 
 [Desktop Entry]
 Name=Supported standards
@@ -33,6 +35,7 @@ Type=Application
 Encoding=UTF-8
 Categories=AfterStepInfo
 TryExec=ASRun
+Name[pl]=Obsługiwane standardy
 
 [Desktop Entry]
 Name=libAfterImage
@@ -45,6 +48,7 @@ Type=Application
 Encoding=UTF-8
 Categories=AfterStepInfo
 TryExec=ASRun
+Name[pl]=Biblioteka libAfterImage
 
 [Desktop Entry]
 Name=AfterStep documentation
@@ -87,7 +91,7 @@ Name[nl]=Documentatie
 Name[no]=Dokumentasjon
 Name[nso]=Go dira ditokumente
 Name[pa]=ਦਸਤਾਵੇਜ਼
-Name[pl]=Dokumentacja
+Name[pl]=Dokumentacja Afterstepa
 Name[pt]=Documentação
 Name[pt_BR]=Documentação
 Name[ro]=Documentaţie
@@ -183,6 +187,7 @@ Type=Application
 Encoding=UTF-8
 Categories=AfterStepInfo
 TryExec=ASRun
+Name[pl]=Wpis w Wikipedii
 
 [Desktop Entry]
 Name=AfterWiki - user tips, info
@@ -195,6 +200,7 @@ Type=Application
 Encoding=UTF-8
 Categories=AfterStepInfo
 TryExec=ASRun
+Name[pl]=AfterWiki - wskazówki, informacje
 
 [Desktop Entry]
 Name=Reported bugs and issues
@@ -207,3 +213,4 @@ Type=Application
 Encoding=UTF-8
 Categories=AfterStepInfo
 TryExec=ASRun
+Name[pl]=Zgłoszone błędy i problemy

@@ -682,19 +682,20 @@ free_func_hash ()
 /*********** end command line parsing **************************/
 static char *_as_known_terms[]	= 
 {	
+	"x-terminal-emulator",
 	"urxvt",
 	"aterm",
-	"x-terminal-emulator",
 	"rxvt  -tr -fg yellow -bg black",
-	"eterm -tr -tint blue -fg yellow -bg black",
+	"Eterm -tr -tint blue -fg yellow -bg black",
 	"xterm -fg yellow -bg blue",
 	NULL 
 };
 static char *_as_known_browsers[]	= 
 {
 	"$BROWSER",
-	"firefox",
+	"sensible-browser",
 	"x-www-browser",           /* don't like default debian selection of konqueror */
+	"firefox",
 	"mozilla-firefox",
 	"mozilla",
 	"opera",

@@ -6,6 +6,8 @@ Categories=Graphics
 Comment=2D based graphical application
 Icon=Folder-Brushes
 Type=Directory
+Name[pl]=Grafika 2D
+Comment[pl]=Aplikacje graficzne 2D
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -14,6 +16,8 @@ X-AfterStep-IndexName=3DGraphics
 Categories=Graphics
 Comment=3D based graphical application
 Type=Directory
+Name[pl]=Grafika 3D
+Comment[pl]=Aplikacje graficzne 3D
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -162,6 +166,8 @@ Categories=Game
 Comment=An action game
 icon=Folder-Pistol
 Type=Directory
+Name[pl]=Gry zręcznościowe
+Comment[pl]=Gry zręcznościowe
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -171,6 +177,8 @@ Categories=Game
 Comment=Adventure style game
 icon=Folder-Knight
 Type=Directory
+Name[pl]=Gry przygodowe
+Comment[pl]=Gry przygodowe
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -377,7 +385,7 @@ Name[nb]=Arkade
 Name[nds]=Speelhall
 Name[nn]=Arkade
 Name[pa]=ਅਰਕਾਡੀ
-Name[pl]=Gry zręcznościowe
+Name[pl]=Automaty
 Name[pt]=Arcada
 Name[ro]=Aventuri
 Name[ru]=Аркады
@@ -402,6 +410,7 @@ Name[xh]=Umqolo wesakhiwo esiphatha ubunzima bento
 Name[zh_CN]=街机
 Name[zh_TW]=大型遊戲機遊戲
 Name[zu]=Umhhume
+Comment[pl]=Automaty do gry
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -410,6 +419,8 @@ X-AfterStep-IndexName=Archiving
 Categories= 
 Comment=A tool to archive/backup data
 Type=Directory
+Name[pl]=Archiwizacja
+Comment[pl]=Tworzenie kopii bezpieczeństwa i archiwizowanie danych
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -418,6 +429,8 @@ X-AfterStep-IndexName=Art
 Categories=Education
 Comment=Software to teach arts
 Type=Directory
+Name[pl]=Sztuka
+Comment[pl]=Oprogramowanie do uczenia się sztuki
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -426,6 +439,8 @@ X-AfterStep-IndexName=Astronomy
 Categories=Science
 Comment=Astronomy software
 Type=Directory
+Name[pl]=Astronomia
+Comment[pl]=Oprogramowanie związane z astronomią
 
 
 [DesktopEntry]
@@ -436,6 +451,8 @@ Categories=AudioVideo
 Comment=An audio application
 icon=Folder-MusicalNote
 Type=Directory
+Name[pl]=Audio
+Comment[pl]=Aplikacje audio
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -583,6 +600,8 @@ X-AfterStep-IndexName=AudioVideoEditing
 Categories=AudioVideo
 Comment=Application to edit audio/video files
 Type=Directory
+Name[pl]=Edytory multimediów
+Comment[pl]=Aplikacje do edycji plików audio i video.
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -591,6 +610,8 @@ X-AfterStep-IndexName=Biology
 Categories=Science
 Comment=Biology software
 Type=Directory
+Name[pl]=Biologia
+Comment[pl]=Oprogramowanie związane z biologią
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -693,6 +714,8 @@ X-AfterStep-IndexName=Calculator
 Categories=Utility
 Comment=A calculator
 Type=Directory
+Name[pl]=Kalkulator
+Comment[pl]=Kalkulator
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -701,6 +724,8 @@ X-AfterStep-IndexName=Calendar
 Categories=Office
 Comment=Calendar application
 Type=Directory
+Name[pl]=Kalendarz
+Comment[pl]=Kalendarz
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -795,6 +820,8 @@ X-AfterStep-IndexName=Chemistry
 Categories=Science
 Comment=Chemistry software
 Type=Directory
+Name[pl]=Chemia
+Comment[pl]=Oprogramowanie związane z chemią
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -803,6 +830,8 @@ X-AfterStep-IndexName=Clock
 Categories=Utility
 Comment=A clock application/applet
 Type=Directory
+Name[pl]=Zegar
+Comment[pl]=Zegary
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -827,6 +856,8 @@ X-AfterStep-IndexName=ContactManagement
 Categories=Office
 Comment=E.g. an address book
 Type=Directory
+Name[pl]=Zarządzanie kontaktami
+Comment[pl]=Na przykład książki adresowe
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -1189,6 +1220,7 @@ X-AfterStep-IndexName=FileManager
 Categories= 
 Comment=A file manager
 Type=Directory
+Name[pl]=Menadżery plików
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -1198,6 +1230,8 @@ Categories=Network
 Comment=Tools like FTP or P2P programs
 icon=Folder-Globe
 Type=Directory
+Name[pl]=Pobieranie plików
+Comment[pl]=Narzędzia takie jak FTP lub programy P2P
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -1206,6 +1240,9 @@ X-AfterStep-IndexName=Filesystem
 Categories=System
 Comment=A file system tool
 Type=Directory
+Name[pl]=System plików
+Comment[pl]=Narzędzia do przeglądania systemu plików
+
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -1214,6 +1251,8 @@ X-AfterStep-IndexName=Finance
 Categories=Office
 Comment=Application to manage your finance
 Type=Directory
+Name[pl]=Finanse
+Comment[pl]=Aplikacje do zarządzania finansami
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -1222,6 +1261,8 @@ X-AfterStep-IndexName=FlowChart
 Categories=Office
 Comment=A flowchart application
 Type=Directory
+Name[pl]=Schematy blokowe
+Comment[pl]=Aplikacje wspomagające tworzenie schematów blokowych
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -1230,6 +1271,8 @@ X-AfterStep-IndexName=GNOME
 Categories=
 Comment=Application based on GNOME libraries
 Type=Directory
+Name[pl]=GNOME
+Comment[pl]=Oprogramowanie oparte na bibliotekach GNOME
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -1238,6 +1281,8 @@ X-AfterStep-IndexName=GTK
 Categories= 
 Comment=Application based on GTK+ libraries
 Type=Directory
+Name[pl]=GTK
+Comment[pl]=Oprogramowanie oparte na bibliotekach GTK+
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -1246,6 +1291,8 @@ X-AfterStep-IndexName=GUIDesigner
 Categories=Development
 Comment=A GUI designer application
 Type=Directory
+Name[pl]=Projektowanie GUI
+Comment[pl]=Narzędzia wspomagające projektowanie graficznych interfejsów użytkownika
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -1392,6 +1439,8 @@ X-AfterStep-IndexName=Geology
 Categories=Science
 Comment=Geology software
 Type=Directory
+Name[pl]=Geologia
+Comment[pl]=Oprogramowanie geologiczne
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -1539,6 +1588,8 @@ X-AfterStep-IndexName=HamRadio
 Categories=Network;Audio
 Comment=HAM radio software
 Type=Directory
+Name[pl]=Krótkofalarstwo
+Comment[pl]=Oprogramowanie krótkofalarskie
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -1548,6 +1599,8 @@ X-AfterStep-Aliases=Peripherals;Information;X-KDE-Information;X-KDE-Peripherals;
 Categories=Settings
 Comment=A tool to manage hardware components, like sound cards, video cards or printers
 Type=Directory
+Name[pl]=Zarządzanie sprzętem
+Comment[pl]=Narzędzia do zarządzania sprzętem typu karty muzyczne i graficzne lub drukarki
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -1557,6 +1610,7 @@ X-AfterStep-Aliases=X-KDE-settings-components
 Categories=Settings
 Comment=
 Type=Directory
+Name[pl]=Składniki KDE
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -1565,6 +1619,8 @@ X-AfterStep-IndexName=IDE
 Categories=Development
 Comment=IDE application
 Type=Directory
+Name[pl]=IDE
+Comment[pl]=Aplikacje IDE
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -1573,6 +1629,8 @@ X-AfterStep-IndexName=IRCClient
 Categories=Network
 Comment=An IRC client
 Type=Directory
+Name[pl]=IRC
+Comment[pl]=Klienty IRC-a
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -1582,6 +1640,8 @@ Categories=Network
 Comment=An instant messaging client
 icon=Folder-Chat
 Type=Directory
+Name[pl]=Komunikatory
+Comment[pl]=Oprogramowanie klienckie komunikatorów
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -1590,6 +1650,8 @@ X-AfterStep-IndexName=Java
 Categories= 
 Comment=Application based on Java GUI libraries, such as AWT or Swing
 Type=Directory
+Name[pl]=Java
+Comment[pl]=Aplikacje oparte na bibliotekach graficznych Javy, takich jak AWT czy Swing
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -1598,6 +1660,8 @@ X-AfterStep-IndexName=KDE
 Categories=
 Comment=Application based on KDE libraries
 Type=Directory
+Name[pl]=KDE
+Comment[pl]=Aplikacje oparte na bibliotekach KDE
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -1683,6 +1747,7 @@ Name[xh]=Imidlalo Yabantwana
 Name[zh_CN]=儿童游戏
 Name[zh_TW]=小孩的遊戲
 Name[zu]=Imidlalo yabantwana
+Comment[pl]=Gry dla dzieci
 
 
 [DesktopEntry]
@@ -1692,6 +1757,8 @@ X-AfterStep-IndexName=Languages
 Categories=Education
 Comment=Software to learn foreign languages
 Type=Directory
+Name[pl]=Języki
+Comment[pl]=Oprogramowanie do nauki języków obcych
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -1775,6 +1842,7 @@ Name[xh]=Ubonakalo Nemixholo
 Name[zh_CN]=外观和主题
 Name[zh_TW]=外觀 & 主題
 Name[zu]=Ukubukeka & Izingqikithi
+Comment[pl]=Ustawienia wyglądu i motywów
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -1784,6 +1852,8 @@ Categories=Game
 Comment=Logic games like puzzles, etc
 icon=Folder-Puzzle
 Type=Directory
+Name[pl]=Gry logiczne
+Comment[pl]=Gry logiczne takie jak układanki
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -1851,6 +1921,7 @@ Name[xh]=Imathematika
 Name[zh_CN]=数学
 Name[zh_TW]=數學
 Name[zu]=Ezezibalo
+Comment[pl]=Oprogramowanie matematyczne
 
 
 [DesktopEntry]
@@ -1860,6 +1931,9 @@ X-AfterStep-IndexName=MedicalSoftware
 Categories=Science
 Comment=Medical software
 Type=Directory
+Name[pl]=Medycyna
+Comment[pl]=Oprogramowanie medyczne
+
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -1868,6 +1942,8 @@ X-AfterStep-IndexName=Midi
 Categories=Audio
 Comment=An app related to MIDI
 Type=Directory
+Name[pl]=MIDI
+Comment[pl]=Aplikacje związane z MIDI
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -1876,6 +1952,8 @@ X-AfterStep-IndexName=Mixer
 Categories=Audio
 Comment=Just a mixer
 Type=Directory
+Name[pl]=Mieszacze
+Comment[pl]=Mieszacze
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -1884,6 +1962,8 @@ X-AfterStep-IndexName=Monitor
 Categories=System
 Comment=Monitor application/applet that monitors some resource or activity
 Type=Directory
+Name[pl]=Monitorowanie
+Comment[pl]=Aplikacje lub aplety monitorujące zasoby lub działania
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -1892,6 +1972,8 @@ X-AfterStep-IndexName=Motif
 Categories= 
 Comment=Application based on Motif libraries
 Type=Directory
+Name[pl]=Motif
+Comment[pl]=Aplikacje oparte na bibliotekach Motif
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -1900,6 +1982,8 @@ X-AfterStep-IndexName=Music
 Categories=AudioVideo;Education
 Comment=Musical software
 Type=Directory
+Name[pl]=Muzyka
+Comment[pl]=Oprogramowanie muzyczne
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -1984,6 +2068,7 @@ Name[xh]=Internet & Nomsebenzi womnatha
 Name[zh_CN]=Internet 和网络
 Name[zh_TW]=網際網路 & 網路
 Name[zu]=Internet & Uxhumano olusakazekile
+Comment[pl]=Aplikacje sieciowe, takie jak przeglądarki stron WWW
 
 
 [DesktopEntry]
@@ -1993,6 +2078,8 @@ X-AfterStep-IndexName=News
 Categories= 
 Comment=A news reader or a news ticker
 Type=Directory
+Name[pl]=Usenet
+Comment[pl]=Czytniki wiadomości Usenetu
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -2001,6 +2088,8 @@ X-AfterStep-IndexName=OCR
 Categories=Scanning
 Comment=Optical character recognition application
 Type=Directory
+Name[pl]=OCR
+Comment[pl]=Oprogramowanie do rozpoznawania znaków i tekstów w plikach graficznych
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -2149,6 +2238,8 @@ X-AfterStep-IndexName=P2P
 Categories=Network
 Comment=A P2P program
 Type=Directory
+Name[pl]=P2P
+Comment[pl]=Programy P2P
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -2157,6 +2248,8 @@ X-AfterStep-IndexName=PDA
 Categories=Office
 Comment=Tool to manage your PDA
 Type=Directory
+Name[pl]=PDA
+Comment[pl]=Narzędzia do zarządzania palmtopem
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -2165,6 +2258,8 @@ X-AfterStep-IndexName=PackageManager
 Categories=Settings
 Comment=A package manager application
 Type=Directory
+Name[pl]=Zarządzanie pakietami
+Commet[pl]=Aplikacje do zarządzania pakietami
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -2173,6 +2268,8 @@ X-AfterStep-IndexName=Photography
 Categories=Graphics;Office
 Comment=Camera tools, etc.
 Type=Directory
+Name[pl]=Fotografia
+Comment[pl]=Narządzia do aparatów fotograficznych itp.
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -2181,6 +2278,8 @@ X-AfterStep-IndexName=Physics
 Categories=Science
 Comment=Physics software
 Type=Directory
+Name[pl]=Fizyka
+Comment[pl]=Aplikacje przydatne fizykom
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -2190,6 +2289,8 @@ Categories=Audio;Video;AudioVideo
 Comment=Application to play audio/video files
 icon=Folder-Headphones
 Type=Directory
+Name[pl]=Odtwarzacze
+Comment[pl]=Aplikacje do odtwarzania plików audio/video
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -2197,7 +2298,7 @@ Name=Power Control
 X-AfterStep-IndexName=PowerControl
 X-AfterStep-Aliases=X-KDE-PowerControl;X-KDE-settings-power
 Categories=Settings
-Comment=Presentation software
+Comment=Power Control software
 Type=Directory
 Name[af]=Krag Beheer
 Name[ar]=التحكّم بالطّاقة
@@ -2275,7 +2376,7 @@ Name[xh]=Ulawulo Lwamandla
 Name[zh_CN]=电源控制
 Name[zh_TW]=電源控制
 Name[zu]=Ukulawulwa kwamandla
-
+Comment[pl]=Oprogramowanie do zarządzania energią
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -2284,6 +2385,8 @@ X-AfterStep-IndexName=Presentation
 Categories=Office
 Comment=Presentation software
 Type=Directory
+Name[pl]=Prezentacje
+Comment[pl]=Oprogramowanie do tworzenia prezentacji
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -2292,6 +2395,8 @@ X-AfterStep-IndexName=Profiling
 Categories=Development
 Comment=A profiling tool
 Type=Directory
+Name[pl]=Profilery
+Comment[pl]=Narzędzia do profilowania programów
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -2300,6 +2405,8 @@ X-AfterStep-IndexName=ProjectManagement
 Categories=Office;Development
 Comment=Project management application
 Type=Directory
+Name[pl]=Zarządzanie projektami
+Comment[pl]=Aplikacje do zarządzania projektami
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -2310,6 +2417,8 @@ Categories=Game
 Comment=Puzzle game
 icon=Folder-Puzzle
 Type=Directory
+Name[pl]=Układanki
+Comment[pl]=Gry - układanki
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -2318,6 +2427,8 @@ X-AfterStep-IndexName=Qt
 Categories= 
 Comment=Application based on Qt libraries
 Type=Directory
+Name[pl]=Qt
+Comment[pl]=Aplikacje oparte na bibliotekach Qt
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -2327,6 +2438,8 @@ Categories=2DGraphics
 Comment=Raster based graphical application
 icon=Folder-Brushes
 Type=Directory
+Name[pl]=Grafika rastrowa
+Comment[pl]=Oprogramowanie do grafiki rastrowej
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -2335,6 +2448,8 @@ X-AfterStep-IndexName=Recorder
 Categories=Audio;Video;AudioVideo
 Comment=Application to record audio/video files
 Type=Directory
+Name[pl]=Nagrywanie
+Comment[pl]=Oprogramowanie służące do nagrywania plików audio/video
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -2343,6 +2458,8 @@ X-AfterStep-IndexName=RemoteAccess
 Categories=Network
 Comment=A tool to remotely manage your PC
 Type=Directory
+Name[pl]=Zdalny dostęp
+Comment[pl]=Narzędzia do zdalnego zarządzania komputerem
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -2351,6 +2468,8 @@ X-AfterStep-IndexName=RevisionControl
 Categories=Development
 Comment=Applications like cvs or subversion
 Type=Directory
+Name[pl]=Systemy kontroli wersji
+Comment[pl]=Aplikacje takie jak CVS lub Subversion
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -2407,7 +2526,7 @@ Name[nl]=Rogue-achtige spellen
 Name[nn]=Rogue-aktige spel
 Name[nso]=Dipapadi tsa Bokalatsane
 Name[pa]=ਠੱਗ-ਵਰਗੀਆਂ ਖੇਡਾਂ
-Name[pl]=Gry z rodziny Rogue
+Name[pl]=Gry w stylu Rogue
 Name[pt]=Jogos tipo Rogue
 Name[pt_BR]=Jogos parecidos com Rogue
 Name[ro]=Jocuri violente
@@ -2434,6 +2553,7 @@ Name[xh]=Imidlalo efana ne Rogue
 Name[zh_CN]=恶作剧游戏
 Name[zh_TW]=冒險類遊戲
 Name[zu]=Imidlalo enjenge-Rogue
+Comment[pl]=Gry fabularne
 
 
 [DesktopEntry]
@@ -2443,6 +2563,7 @@ X-AfterStep-IndexName=X-Red-Hat-Extra
 Categories=Application
 Comment=
 Type=Directory
+Name[pl]=Dodatki RedHata
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -2451,6 +2572,7 @@ X-AfterStep-IndexName=X-Red-Hat-Base
 Categories=Application
 Comment=
 Type=Directory
+Name[pl]=Bazowe aplikacje RedHata
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -2460,6 +2582,9 @@ Categories=Graphics
 Comment=Tool to scan a file/text
 icon=Folder-Scanner
 Type=Directory
+Name[pl]=Skanowanie
+Comment[pl]=Narzędzia do skanowania plików lub tekstów
+
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -2529,6 +2654,7 @@ Name[xh]=Inzulu lwazi
 Name[zh_CN]=科学
 Name[zh_TW]=科學
 Name[zu]=Ubuchwepheshe bezesayensi
+Comment[pl]=Oprogramowanie naukowe
 
 
 [DesktopEntry]
@@ -2708,7 +2834,7 @@ Name[xh]=Ukhuseleko & Nobunikazi
 Name[zh_CN]=安全和隐私
 Name[zh_TW]=安全性 & 私密性
 Name[zu]=Ukuvikeleka & Ingasese
-
+Comment[pl]=Narzędzia związane z bezpieczeństwem systemu
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -2717,6 +2843,9 @@ X-AfterStep-IndexName=Sequencer
 Categories=Audio
 Comment=A sequencer
 Type=Directory
+Name[pl]=Sekwencery
+Comment[pl]=Sekwencery
+
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -2792,6 +2921,7 @@ Name[vi]=Thiết lập
 Name[wa]=Apontiaedjes
 Name[zh_CN]=设置
 Name[zh_TW]=設定
+Comment[pl]=Programy do zarządzania ustawieniami
 
 
 [DesktopEntry]
@@ -2801,6 +2931,8 @@ X-AfterStep-IndexName=Shell
 Categories= 
 Comment=A shell (an actual specific shell such as bash or tcsh, not a TerminalEmulator)
 Type=Directory
+Name[pl]=Powłoki
+Comment[pl]=Powłoki (takie jak bash lub tcsh, ale nie emulatory terminala)
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -2810,6 +2942,8 @@ Categories=Game
 Comment=A simulation game
 icon=Folder-People
 Type=Directory
+Name[pl]=Symulacje
+Comment[pl]=Gry - symulacje
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -2819,6 +2953,7 @@ X-AfterStep-Aliases=Sound & Multimedia;X-KDE-Sound;X-KDE-settings-sound;Sound
 Categories=HardwareSettings
 Comment=
 Type=Directory
+Name[pl]=Ustawienia multimediów
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -2828,6 +2963,8 @@ Categories=Game
 Comment=A sports game
 icon=Folder-SoccerBall
 Type=Directory
+Name[pl]=Gry sportowe
+Comment[pl]=Gry sportowe
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -2836,6 +2973,8 @@ X-AfterStep-IndexName=Spreadsheet
 Categories=Office
 Comment=A spreadsheet
 Type=Directory
+Name[pl]=Arkusze kalkulacyjne
+Comment[pl]=Arkusze kalkulacyjne
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -2921,6 +3060,7 @@ Name[xh]=Amacebo okufumana iinjongo & Amacebo okuzoba
 Name[zh_CN]=策略游戏
 Name[zh_TW]=戰略及策略
 Name[zu]=Amaqhinga & Iplani
+Comment[pl]=Gry taktyczne i strategiczne
 
 
 [DesktopEntry]
@@ -2975,6 +3115,7 @@ Name[nds]=Systeem
 Name[nl]=Systeem
 Name[oc]=Sistemo
 Name[pa]=ਸਿਸਟਮ
+Name[pl]=Systemowe
 Name[pt]=Sistema
 Name[pt_BR]=Sistema
 Name[ro]=Sistem
@@ -3000,6 +3141,7 @@ Name[xh]=Indlela esestyenziswayo
 Name[zh_CN]=系统
 Name[zh_TW]=系統
 Name[zu]=Isistimu
+Comment[pl]=Narzędzia systemowe, takie jak przeglądarka logów lub monitor sieci
 
 
 [DesktopEntry]
@@ -3147,6 +3289,8 @@ Categories=Video
 Comment=A TV application
 icon=Folder-TV
 Type=Directory
+Name[pl]=Telewizja
+Comment[pl]=Aplikacje do oglądania TV
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -3211,7 +3355,7 @@ Name[xh]=Izixhobo Zokufundisa
 Name[zh_CN]=教学工具
 Name[zh_TW]=教學工具
 Name[zu]=Amathuluzi Okufundisa
-
+Comment[pl]=Programy dla nauczycieli
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -3220,6 +3364,8 @@ X-AfterStep-IndexName=Telephony
 Categories=Network
 Comment=Telephony via PC
 Type=Directory
+Name[pl]=Telefonia
+Comment[pl]=Telefon z komputera
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -3304,6 +3450,7 @@ Name[xh]=Izicelo Zesiphelo sendlela
 Name[zh_CN]=终端应用程序
 Name[zh_TW]=終端機程式
 Name[zu]=Abayaleli bangaphandle
+Comment[pl]=Emulatory terminala
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -3387,7 +3534,7 @@ Name[xh]=Abahleli
 Name[zh_CN]=编辑器
 Name[zh_TW]=編輯器
 Name[zu]=Abalungisi
-
+Comment[pl]=Edytory tekstu
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -3443,6 +3590,7 @@ Name[uk]=Переклад
 Name[uz]=Таржима
 Name[zh_CN]=翻译
 Name[zh_TW]=翻譯
+Comment[pl]=Narzędzia ułatwiające tłumaczenia tekstów
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -3451,6 +3599,8 @@ X-AfterStep-IndexName=TrayIcon
 Categories= 
 Comment=An application that is primarily an icon for the "system tray" or "notification area" (apps that open a normal window and just happen to have a tray icon as well should not list this category)
 Type=Directory
+Name[pl]=Ikony tacki systemowej
+Comment[pl]=Aplikacje, których są ikonami w "tacce systemowej" lub "obszarze notyfikacji" (aplikacje, które otwierają normalne okna, ale czasami pokazują też iconę w tacce systemowej, nie powinny być umieszczane w tej kategorii)
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -3459,6 +3609,8 @@ X-AfterStep-IndexName=Tuner
 Categories=Audio
 Comment=A tuner
 Type=Directory
+Name[pl]=Tunery
+Comment[pl]=Tunery
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -3469,6 +3621,8 @@ Categories=
 Comment=Small utility application, "Accessories"
 icon=Folder-Screwdriver
 Type=Directory
+Name[pl]=Akcesoria
+Comment[pl]=Aplikacje niewielkie, lecz użyteczne
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -3477,6 +3631,8 @@ X-AfterStep-IndexName=VectorGraphics
 Categories=2D Graphics
 Comment=Vector based graphical application
 Type=Directory
+Name[pl]=Grafika wektorowa
+Comment[pl]=Aplikacje grafiki wektorowej
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -3486,6 +3642,8 @@ Categories=AudioVideo
 Comment=A video application
 icon=Folder-MovieProjector
 Type=Directory
+Name[pl]=Wideo
+Comment[pl]=Aplikacje wideo
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -3495,6 +3653,8 @@ Categories=Graphics;Office
 Comment=Tool to view e.g. a graphic or pdf file
 icon=Folder-View
 Type=Directory
+Name[pl]=Przeglądarki
+Comment[pl]=Narzędzia do przeglądania zawartości np. plików graficznych lub PDF
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -3504,6 +3664,8 @@ X-AfterStep-Aliases=X-KDE-WebBrowsing;X-KDE-settings-webbrowsing
 Categories=Network
 Comment=A web browser
 Type=Directory
+Name[pl]=Przeglądarki WWW
+Comment[pl]=Przeglądarki WWW
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -3512,6 +3674,8 @@ X-AfterStep-IndexName=WebDevelopment
 Categories=Network;Development
 Comment=A tool for web developers
 Type=Directory
+Name[pl]=Tworzenie stron WWW
+Comment[pl]=Narzędzia dla autorów stron WWW
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -3520,6 +3684,8 @@ X-AfterStep-IndexName=WordProcessor
 Categories=Office
 Comment=A word processor
 Type=Directory
+Name[pl]=Przetwarzanie tesktu
+Comment[pl]=Programy do przetwarzania tektsu
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -3528,6 +3694,7 @@ X-AfterStep-IndexName=X-KDE-More
 Categories=Application
 Comment=
 Type=Directory
+Name[pl]=Więcej aplikacjie KDE
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -3537,6 +3704,8 @@ Categories=
 Comment=Search the computer or Internet for files or info.
 icon=Folder-MagnifyingGlass
 Type=Directory
+Name[pl]=Szukaj...
+Comment[pl]=Wyszukiwanie plików lub informacji w lokalnym komputerze lub Internecie
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -3551,6 +3720,8 @@ Categories=
 Comment=Configuration tool for the GUI
 icon=Folder-Desktop2
 Type=Directory
+Name[pl]=Ustawienia pulpitu
+Comment[pl]=Narzędzia konfiguracyjne interfejsu graficznego
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -3560,6 +3731,8 @@ Categories=
 Comment=Applications for use within AfterStep.
 icon=Folder-Puzzle
 Type=Directory
+Name[pl]=Moduły
+Comment[pl]=Aplikacje używane wewnętrznie przez AfterStepa
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -3569,6 +3742,8 @@ Categories=
 Comment=Password-lock a desktop and prevent monitor burn-in.
 icon=Folder-MoonInMonitor
 Type=Directory
+Name[pl]=Wygaszacze ekranu
+Comment[pl]=Wygaszacze i chronione hasłem blokady ekranu
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -3578,6 +3753,8 @@ Categories=
 Comment=Tools for manipulating AfterStep windows.
 icon=Folder-Windows
 Type=Directory
+Name[pl]=Okna
+Comment[pl]=Narzędzia do zarządzania oknami AfterStepa
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -3587,6 +3764,9 @@ Categories=
 Comment=Leave or restart an AfterStep session.
 icon=Folder-Stopsign
 Type=Directory
+Name[pl]=Zamknij
+Comment[pl]=Opuść lub uruchom ponownie sesję Afterstepa.
+
 
 [DesktopEntry]
 Encoding=UTF-8
@@ -3596,4 +3776,6 @@ Categories=
 Comment=AfterStep Documentation and useful web links.
 icon=Folder-Info
 Type=Directory
+Name[pl]=O AfterStepie
+Comment[pl]=Dokumentacja AfterStepa i przydatne linki
 

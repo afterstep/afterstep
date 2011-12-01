@@ -4,5 +4,5 @@
 	<para>Selects web browser to be used by AfterStep when using the
 	ExecBrowser command. Out of supplied list - all possibilities are checked to be present on the system,
 	and first available one will be used.</para>
-	<para>The default number/command combination is: 0 - $BROWSER, 1 - firefox,2 - x-www-browser, 3 - mozilla-firefox, 4 - mozilla, 5 - opera</para>
+	<para>The default number/command combination is: 0 - $BROWSER, 1 - sensible-browser, 2 - x-www-browser, 3 - firefox, 4 - mozilla-firefox, 5 - mozilla, 6 - opera</para>
 </varlistentry>

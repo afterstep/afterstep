@@ -3,6 +3,6 @@
      <listitem>
 	<para>Selects terminal emulator to be used by AfterStep when using the
 	ExecInTerm command, where the first matching one will be used.</para>
-	<para>The default number/command combination is: 0-aterm, 1-rxvt, 2-xterm</para>
+	<para>The default number/command combination is: 0 - x-terminal-emulator, 1-aterm, 2-rxvt, 3-eterm, 4-xterm</para>
      </listitem>
 </varlistentry>

@@ -336,6 +336,7 @@ void dirtree_fill_from_reference( dirtree_t *tree, const char *reference )
 	ASSERT_TREE(tree);
 
 	dc = name2desktop_category( reference, &ct ); 
+	if (!dc) return;
 	de = fetch_desktop_entry( ct, dc->index_name?dc->index_name:dc->name ); 
 
 	if( dup_desktop_entry_Name( de, &(tree->name) ) )
