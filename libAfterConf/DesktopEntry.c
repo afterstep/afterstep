@@ -188,9 +188,9 @@ parse_desktop_entry_line( ASDesktopEntry* de, char *ptr )
 		char *val = stripcpy_localized(ptr+8); 
 		if( val ) 
 			set_string( &(de->Comment_localized), val );
-	}else if( mystrncasecmp( ptr, "Encoding=UTF-8", 14 ) == 0 ) 
+	}else if( mystrncasecmp( ptr, "Encoding=", 9 ) == 0 && mystrncasecmp(ptr+9, "UTF-8", 5 ) != 0)
 	{	
-		set_flags( de->flags, ASDE_EncodingUTF8 );
+		set_flags( de->flags, ASDE_EncodingNonUTF8 );
 	}else
 	{
 		PARSE_ASDE_STRING_VAL(Name)

@@ -124,10 +124,6 @@
 #include "asimagexml.h"
 #include "transform.h"
 
-#ifdef jmpbuf
-#undef jmpbuf
-#endif
-
 
 /***********************************************************************************/
 /* High level interface : 														   */
@@ -457,16 +453,92 @@ calculate_proportions( int src_w, int src_h, int *pdst_w, int *pdst_h )
 	if( pdst_h ) *pdst_h = dst_h ; 
 }
 
+static char* thumbnail_dir = NULL;
+/* exported */ void set_asimage_thumbnails_cache_dir(const char* p_thumbnail_dir)
+{
+	struct stat stbuf;
+	if (thumbnail_dir && p_thumbnail_dir
+		&& !strcmp(thumbnail_dir, p_thumbnail_dir))
+		return;
+
+	if (thumbnail_dir)
+	{
+		free(thumbnail_dir);
+		thumbnail_dir = NULL;
+	}
+
+	if (p_thumbnail_dir
+		&& stat(p_thumbnail_dir, &stbuf) == 0
+		&& S_ISDIR(stbuf.st_mode))
+	{
+		thumbnail_dir = strdup(p_thumbnail_dir);
+		DEBUG_OUT("set thumbnail dir to %s", thumbnail_dir);
+	}
+}
+
+static char* get_thumbnail_dir()
+{
+	return thumbnail_dir;
+}
+
+static char* get_thumbnail_image_path(const char * file, ASImageImportParams *iparams, int * need_save)
+{
+	* need_save = 0;
+	char *th_dir = get_thumbnail_dir();
+	if (!th_dir || !*th_dir)
+		return NULL;
+
+	static char result[2048];
+	char * realfilename = locate_image_file_in_path( file, iparams );
+	if (!realfilename)
+		return NULL;
+
+	struct stat rbuf;
+	if (stat(realfilename, &rbuf) == -1)
+	{
+		DEBUG_OUT("image file %s does not exist", realfilename);
+		return NULL;
+	}
+
+	if (snprintf(result, sizeof(result), "%s/%s-%dx%d.png", th_dir, realfilename,
+							    iparams->height, iparams->width) >= sizeof(result))
+	{
+		DEBUG_OUT("thumbnail path too long for file %s", file);
+		return NULL;
+	}
+
+	char *tmp;
+	for(tmp = result + strlen(th_dir) + 1; *tmp; ++tmp)
+		if (*tmp == '/') *tmp = '_';
+
+	struct stat thbuf;
+	if (stat(result, &thbuf) == -1)
+		thbuf.st_ctime = 0;
+
+	*need_save = rbuf.st_ctime > thbuf.st_ctime;
+	return result;
+}
+
+
 void print_asimage_func (ASHashableValue value);
 ASImage *
 get_thumbnail_asimage( ASImageManager* imageman, const char *file, int thumb_width, int thumb_height, ASFlagType flags )
 {
 	ASImage *im = NULL ;
-	
-	if( imageman && file )
+#define AS_THUMBNAIL_NAME_FORMAT2	"%d_%s_%dx%dthumb%ld"
+	size_t len = strlen(file);
+	char *thumbnail_name = safemalloc( len+sizeof(AS_THUMBNAIL_NAME_FORMAT2)+80 );
+
+
+
+	if (imageman && file)
 	{
-#define AS_THUMBNAIL_NAME_FORMAT	"%s_scaled_to_%dx%d"
-		char *thumbnail_name = safemalloc( strlen(file)+sizeof(AS_THUMBNAIL_NAME_FORMAT)+32 );
+		sprintf( thumbnail_name, AS_THUMBNAIL_NAME_FORMAT2, len, file, thumb_width, thumb_height, (long) flags) ;
+		im = fetch_asimage(imageman, thumbnail_name );
+	}
+	
+	if( !im && imageman && file )
+	{
 		ASImage *original_im = query_asimage(imageman, file );
 
 		if( thumb_width <= 0 && thumb_height <= 0 ) 
@@ -489,8 +561,7 @@ get_thumbnail_asimage( ASImageManager* imageman, const char *file, int thumb_wid
 
 		if( thumb_width > 0 && thumb_height > 0 ) 
 		{
-			sprintf( thumbnail_name, AS_THUMBNAIL_NAME_FORMAT, file, thumb_width, thumb_height ) ;
-			im = fetch_asimage(imageman, thumbnail_name );
+			//im = fetch_asimage(imageman, thumbnail_name );
 			if( im == NULL )
 			{
 				if( original_im != NULL ) /* simply scale it down to a thumbnail size */
@@ -509,7 +580,7 @@ get_thumbnail_asimage( ASImageManager* imageman, const char *file, int thumb_wid
 		
 		if( im == NULL ) 	
 		{
-			ASImage *tmp ; 
+			ASImage *tmp = NULL;
 			ASImageImportParams iparams ;
 
 			init_asimage_import_params( &iparams );
@@ -523,8 +594,18 @@ get_thumbnail_asimage( ASImageManager* imageman, const char *file, int thumb_wid
 			
 			if( get_flags( flags, AS_THUMBNAIL_DONT_ENLARGE ) )
 				iparams.flags |= AS_IMPORT_FAST ; 
-			
-			tmp = file2ASImage_extra( file, &iparams );
+
+			int save_thumbnail = 0;
+			char * thumbfile = get_thumbnail_image_path(file, &iparams, &save_thumbnail);
+			if (thumbfile) thumbfile = strdup(thumbfile);
+			if (!save_thumbnail && thumbfile)
+				tmp = file2ASImage_extra( thumbfile, &iparams );
+			LOCAL_DEBUG_OUT("Thumbnail path: %s --> %s, %d , %p", file, thumbfile, save_thumbnail, tmp);
+			if (!tmp)
+			{
+				tmp = file2ASImage_extra( file, &iparams );
+				save_thumbnail = 1;
+			}
 			if( tmp ) 
 			{
 				im = tmp ; 
@@ -533,7 +614,7 @@ get_thumbnail_asimage( ASImageManager* imageman, const char *file, int thumb_wid
 					if( get_flags(flags, AS_THUMBNAIL_PROPORTIONAL ) ) 
 					{
 						calculate_proportions( tmp->width, tmp->height, &thumb_width, &thumb_height );
-						sprintf( thumbnail_name, AS_THUMBNAIL_NAME_FORMAT, file, thumb_width, thumb_height );
+						//sprintf( thumbnail_name, AS_THUMBNAIL_NAME_FORMAT, file, thumb_height );
 						if( (im = query_asimage( imageman, thumbnail_name )) == NULL ) 
 							im = tmp ; 
 					}
@@ -558,14 +639,27 @@ get_thumbnail_asimage( ASImageManager* imageman, const char *file, int thumb_wid
 				}
 				
 				if( im != tmp ) 
-					destroy_asimage( &tmp );				
+					destroy_asimage( &tmp );
+				if (save_thumbnail && thumbfile)
+				{
+					LOCAL_DEBUG_OUT("Saving thumbnail to file %s", thumbfile);
+					save_asimage_to_file(thumbfile,
+							     im,
+							     "png",
+							     NULL,
+							     NULL,
+							     0,
+							     1
+							     );
+				}
 			}
 		
+			if (thumbfile) free(thumbfile);
 		}
 								 
-		if( thumbnail_name ) 
-			free( thumbnail_name );
 	}
+	if( thumbnail_name )
+		free( thumbnail_name );
 	return im;
 }
 
@@ -1250,7 +1344,7 @@ png2ASImage_int( void *data, png_rw_ptr read_fn, ASImageImportParams *params )
 			 * the normal method of doing things with libpng).  REQUIRED unless you
 			 * set up your own error handlers in the png_create_read_struct() earlier.
 			 */
-			if ( !setjmp (png_ptr->jmpbuf))
+			if ( !setjmp (png_jmpbuf(png_ptr)))
 			{
 				ASFlagType rgb_flags = ASStorage_RLEDiffCompress|ASStorage_32Bit ;
 
@@ -1467,7 +1561,7 @@ typedef struct ASImPNGReadBuffer
 
 static void asim_png_read_data(png_structp png_ptr, png_bytep data, png_size_t length)
 {
-   ASImPNGReadBuffer *buf = (ASImPNGReadBuffer *)png_ptr->io_ptr;
+   ASImPNGReadBuffer *buf = (ASImPNGReadBuffer *)png_get_io_ptr(png_ptr);
    memcpy(data, buf->buffer, length);
    buf->buffer += length;
 }

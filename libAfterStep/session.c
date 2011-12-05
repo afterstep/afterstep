@@ -784,7 +784,8 @@ check_AfterStep_dirtree ( char * ashome, Bool create_non_conf )
 		if( f ) 
 		{
 			fprintf( f, "#!/bin/sh\n\n" );
-			fprintf( f, "xterm -e \"%s/postcard.sh\"\n", AFTER_BIN_DIR );
+			fprintf( f, "if [ -r %s/.postcard ] \nthen echo -n \nelse rm %s \nexit\nfi\n", ashome, postcard_fname );
+			fprintf( f, "x-terminal-emulator -e \"%s/tools/postcard.sh\"\n", AFTER_SHAREDIR );
 			fprintf( f, "if [ -r %s/.postcard ] \nthen echo -n \nelse rm %s \nfi\n", ashome, postcard_fname );
 			fclose( f );
 		}
@@ -792,6 +793,12 @@ check_AfterStep_dirtree ( char * ashome, Bool create_non_conf )
 		free(postcard_fname);
     }
 
+	char *cachefilename = make_file_name(ashome, "thumbnails");
+    CheckOrCreate(cachefilename);
+	extern void set_asimage_thumbnails_cache_dir(const char*);
+    set_asimage_thumbnails_cache_dir(cachefilename);
+    free( cachefilename );
+    free( fullfilename );
 }
 
 static const char *

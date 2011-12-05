@@ -245,7 +245,7 @@ $(LIB_SHARED).$(LIBVERMAJOR): $(LIB_SHARED).$(LIBVER)
 	$(LN_S) -f $(LIB_SHARED).$(LIBVER) $(LIB_SHARED).$(LIBVERMAJOR)
 
 $(LIB_SHARED).$(LIBVER): $(LIB_OBJS) $(LIB_INCS)
-	$(CC) -shared -Wl,-soname,$(LIB_SHARED).$(LIBVERMAJOR) -o $(LIB_SHARED).$(LIBVER) \
+	$(CC) -shared $(LDFLAGS) -Wl,-soname,$(LIB_SHARED).$(LIBVERMAJOR) -o $(LIB_SHARED).$(LIBVER) \
 	 $(LIB_OBJS)
 
 install:	install.lib install.bin

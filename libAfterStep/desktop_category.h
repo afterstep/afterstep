@@ -26,7 +26,7 @@ typedef struct ASDesktopEntry
 #define ASDE_Hidden				(0x01<<1)	  
 #define ASDE_Terminal			(0x01<<2)	  
 #define ASDE_StartupNotify		(0x01<<3)	  
-#define ASDE_EncodingUTF8		(0x01<<4)	  
+#define ASDE_EncodingNonUTF8		(0x01<<4)	  
 #define ASDE_KDE				(0x01<<5)	  
 #define ASDE_GNOME				(0x01<<6)	  
 #define ASDE_ASModule			(0x01<<7)	  

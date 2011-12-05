@@ -492,7 +492,7 @@ Bool dup_desktop_entry_##val( ASDesktopEntry* de, char **trg ) \
 	if( *trg ) 	free( *trg ); \
 	if( de->val##_localized ) \
 	{	*trg = mystrdup (de->val##_localized); \
-		if( get_flags( de->flags, ASDE_EncodingUTF8) ) 	return True; \
+		if( ! get_flags( de->flags, ASDE_EncodingNonUTF8) ) 	return True; \
 	}else	*trg = mystrdup (de->val); \
   }return False; \
 }
