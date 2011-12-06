@@ -798,7 +798,6 @@ check_AfterStep_dirtree ( char * ashome, Bool create_non_conf )
 	extern void set_asimage_thumbnails_cache_dir(const char*);
     set_asimage_thumbnails_cache_dir(cachefilename);
     free( cachefilename );
-    free( fullfilename );
 }
 
 static const char *

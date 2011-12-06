@@ -580,7 +580,7 @@ get_thumbnail_asimage( ASImageManager* imageman, const char *file, int thumb_wid
 		
 		if( im == NULL ) 	
 		{
-			ASImage *tmp = NULL;
+			ASImage *tmp = NULL; 
 			ASImageImportParams iparams ;
 
 			init_asimage_import_params( &iparams );
@@ -653,8 +653,8 @@ get_thumbnail_asimage( ASImageManager* imageman, const char *file, int thumb_wid
 							     );
 				}
 			}
-		
-			if (thumbfile) free(thumbfile);
+
+			if (thumbfile) free(thumbfile);	
 		}
 								 
 	}
@@ -1344,7 +1344,7 @@ png2ASImage_int( void *data, png_rw_ptr read_fn, ASImageImportParams *params )
 			 * the normal method of doing things with libpng).  REQUIRED unless you
 			 * set up your own error handlers in the png_create_read_struct() earlier.
 			 */
-			if ( !setjmp (png_jmpbuf(png_ptr)))
+			if ( !setjmp (png_jmpbuf(png_ptr)) )
 			{
 				ASFlagType rgb_flags = ASStorage_RLEDiffCompress|ASStorage_32Bit ;
 
@@ -1561,7 +1561,7 @@ typedef struct ASImPNGReadBuffer
 
 static void asim_png_read_data(png_structp png_ptr, png_bytep data, png_size_t length)
 {
-   ASImPNGReadBuffer *buf = (ASImPNGReadBuffer *)png_get_io_ptr(png_ptr);
+   ASImPNGReadBuffer *buf = (ASImPNGReadBuffer *)(png_get_io_ptr(png_ptr));
    memcpy(data, buf->buffer, length);
    buf->buffer += length;
 }
