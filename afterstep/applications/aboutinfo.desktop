@@ -51,7 +51,7 @@ TryExec=ASRun
 Name[pl]=Biblioteka libAfterImage
 
 [Desktop Entry]
-Name=AfterStep documentation
+Name=AfterStep Documentation
 Name[af]=Dokumentasie
 Name[am]=ማስረጃ
 Name[ar]=وثائق
@@ -190,7 +190,7 @@ TryExec=ASRun
 Name[pl]=Wpis w Wikipedii
 
 [Desktop Entry]
-Name=AfterWiki - user tips, info
+Name=AfterWiki - User tips, info
 GenericName=URL Link
 Comment=http://wiki.afterstep.org/
 Exec=ASRun --immidiate --cmd http://wiki.afterstep.org/
@@ -203,10 +203,10 @@ TryExec=ASRun
 Name[pl]=AfterWiki - wskazówki, informacje
 
 [Desktop Entry]
-Name=Reported bugs and issues
+Name=Report bugs and issues
 GenericName=URL Link
-Comment=http://bugs.afterprojects.org
-Exec=ASRun --immidiate --cmd http://bugs.afterprojects.org
+Comment=AfterStep SourceForge Bug Tracker
+Exec=ASRun --immidiate --cmd http://sourceforge.net/tracker/?group_id=30&atid=100030
 Icon=normal/Bug
 Terminal=false
 Type=Application
@@ -214,3 +214,4 @@ Encoding=UTF-8
 Categories=AfterStepInfo
 TryExec=ASRun
 Name[pl]=Zgłoszone błędy i problemy
+
