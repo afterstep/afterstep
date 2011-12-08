@@ -1,0 +1,6 @@
+<section label="overview" id="overview">
+<refsect1 id='description'><title>DESCRIPTION</title>
+<para>The <command>Banner</command> module displays an AfterStep Logo in the lower left of the screen for 3 seconds.</para>
+
+</refsect1>
+</section>

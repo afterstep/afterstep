@@ -1,0 +1,13 @@
+<section label="footnotes" id="footnotes">
+<refsect1 id='author'><title>AUTHOR</title>
+
+<para>Robert Depenbrock <robert@eclipse.asta.uni-essen.de></para>
+<para>Robert Nation</para>
+<para>David Mihm <dmihm@swbell.net> [Man page]</para>
+
+</refsect1>
+<refsect1 id='seealso'><title>SEE ALSO</title>
+<para>afterstep(1)</para>
+
+</refsect1>
+</section>

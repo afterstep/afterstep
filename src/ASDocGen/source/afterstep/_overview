@@ -1,0 +1,6 @@
+<section label="overview" id="overview">
+<refsect1 id='description'><title>DESCRIPTION</title>
+<para>The <command>afterstep</command> command launches the AfterStep window manager, either from the command line or a display manager.</para>
+
+</refsect1>
+</section>

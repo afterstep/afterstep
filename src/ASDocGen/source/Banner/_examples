@@ -1,0 +1,18 @@
+<section label="examples" id="examples">
+<refsect1 id='initialization'><title>INITIALIZATION</title>
+<para>During initialization, <command>Banner</command> will accept a command line parameter of the pixmap to display, i.e. <command>Banner</command> Afterstep_logo-2.xpm.</para>
+
+</refsect1>
+
+<refsect1 id='invocation'><title>INVOCATION</title>
+<para><command>Banner</command> can be invoked from the autoexec file or from binding the action "Module <command>Banner</command> [image] to a key-stroke in a feel file, or from a menu as shown in the Synopsis section above.</para>
+
+<para>AfterStep will search through the directories specified in the ModulePath configuration in the base.#bpp (where # is your colordepth) to attempt to locate <command>Banner</command>.</para>
+
+</refsect1>
+
+<refsect1 id='configurationoptions'><title>CONFIGURATION OPTIONS</title>
+<para><command>Banner</command> has no configuration file.</para>
+</refsect1>
+
+</section>

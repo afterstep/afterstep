@@ -1,0 +1,10 @@
+<section label="footnotes" id="footnotes">
+<refsect1 id='author'><title>AUTHOR</title>
+<para>Sasha Vasko <sasha at aftercode.net></para>
+
+</refsect1>
+<refsect1 id='seealso'><title>SEE ALSO</title>
+<para>AutoExec(1)</para>
+
+</refsect1>
+</section>
