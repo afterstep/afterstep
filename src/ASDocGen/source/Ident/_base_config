@@ -1,0 +1,29 @@
+<section label="config" id="config">
+<refsect1 id='options'><title>OPTIONS</title>
+<para>The following is the list of command line options supported by all AfterStep modules and applications.</para><variablelist>
+	<varlistentry>
+	<term>-f | --config_file</term>
+	<listitem>
+   <para>Use config_file instead of the default configuration file.    </para>
+   </listitem>
+	</varlistentry>
+	<varlistentry>
+	<term>-h | --help</term>
+	<listitem>
+   <para>Print a usage message and exit successfully.   </para>
+   </listitem>
+	</varlistentry>
+	<varlistentry>
+	<term>-v | --version</term>
+	<listitem>
+   <para>Print version information and exit successfully.    </para>
+   </listitem>
+	</varlistentry>
+	<varlistentry>
+	<term>-w | --window</term>
+	<listitem>
+   <para>Specifies the X resource id of the window about which information should be displayed.    </para>
+   </listitem>
+</variablelist>
+</refsect1>
+</section>

@@ -1,0 +1,5 @@
+<section label="overview" id="overview">
+<refsect1 id='description'><title>DESCRIPTION</title>
+<para>The <command>GWCommand</command> is  a GUI tool which allows you to select windows based on their name and to then manipulate them in various ways.</para>
+</refsect1>
+</section>

@@ -1,0 +1,14 @@
+<section label="footnotes" id="footnotes">
+<refsect1 id='author'><title>AUTHOR</title>
+
+<para>Robert Nation</para>
+
+<para>Nobutaka Suzuki <nobuta-s@is.aist-nara.ac.jp></para>
+<para>David Mihm <dmihm@swbell.net> [Man page]</para>
+
+</refsect1>
+<refsect1 id='seealso'><title>SEE ALSO</title>
+<para>afterstep(1)</para>
+
+</refsect1>
+</section>

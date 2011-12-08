@@ -59,9 +59,9 @@ SyntaxDef* TopLevelSyntaxes[] =
 const char *StandardSourceEntries[] = 
 {
 	"_related",	   
-	"_synopsis",	
-#define OPENING_PARTS_END   2	 
+	"_synopsis",		 
 	"_overview",	   
+#define OPENING_PARTS_END   2
 	"_examples",	   
 	"_footnotes",	   
 	NULL

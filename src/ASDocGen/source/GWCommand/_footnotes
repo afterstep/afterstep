@@ -1,0 +1,11 @@
+<section label="footnotes" id="footnotes">
+<refsect1 id='author'><title>AUTHOR</title>
+<para>Fabian Yamaguchi <fabiany at gmx.net></para>
+<para>Robert Luberda <robert@debian.org> [Man page]</para>
+
+</refsect1>
+<refsect1 id='seealso'><title>SEE ALSO</title>
+<para>afterstep(1x), WinCommand(1x)</para>
+
+</refsect1>
+</section>

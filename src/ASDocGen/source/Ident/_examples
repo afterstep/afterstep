@@ -1,0 +1,39 @@
+<section label="examples" id="examples">
+<refsect1 id='initialization'><title>INITIALIZATION</title>
+<para>During initialization, <command>Ident</command> will search a configuration file which describes the colors and font to use. This file will be the one specified by the -f option (if given). Else, the ~/GNUstep/Library/AfterStep/ident file will be used if it exists. Else, /usr/local/share/afterstep/ident will be used.</para>
+
+<para>If the <command>Ident</command> executable is linked to another name, ie 'ln -s <command>Ident</command> OtherIdentify', then another module called OtherIdentify can be started, with a completely different set of configurations than <command>Ident</command>, simply by adding *OtherIdentify options following the same *Identify configuration options below to the ident file. This way multiple Identify programs can be used.</para>
+
+</refsect1>
+
+<refsect1 id='invocation'><title>INVOCATION</title>
+<para><command>Ident</command> can be invoked from a menu item as shown in the Synopsis section above, or by binding the action 'Module <command>Ident</command>' to a key-stroke in the feel file.</para>
+
+<para>AfterStep will search through the directories specified in the ModulePath configuration in the base.#bpp (where # is your colordepth) to attempt to locate <command>Ident</command>. Although nothing keeps you from launching <command>Ident</command> at start-up time, you probably don't want to.</para>
+
+</refsect1>
+
+<refsect1 id='configurationoptions'><title>CONFIGURATION OPTIONS</title>
+<para><command>Ident</command> reads the ident file when it starts up, and looks for its configuration options:</para><variablelist>
+	<varlistentry>
+	<term>*IdentFore color</term>
+	<listitem>
+   <para>Tells the module to use color instead of black for text.    </para>
+   </listitem>
+	</varlistentry>
+	<varlistentry>
+	<term>*IdentBack color</term>
+	<listitem>
+   <para>Tells the module to use color instead of black for the window background.    </para>
+   </listitem>
+	</varlistentry>
+	<varlistentry>
+	<term>*IdentFont fontname</term>
+	<listitem>
+   <para>Tells the module to use fontname instead of fixed for text.    </para>
+   </listitem>
+	</varlistentry>
+</variablelist>
+</refsect1>
+
+</section>

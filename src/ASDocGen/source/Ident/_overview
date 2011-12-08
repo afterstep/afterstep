@@ -1,0 +1,6 @@
+<section label="overview" id="overview">
+<refsect1 id='description'><title>DESCRIPTION</title>
+<para>The <command>Ident</command> module prompts the user to select a target window, if the module was not launched from within a window context in AfterStep. After that, the <command>Ident</command> module pops up a window with information about the window which was selected.</para>
+
+</refsect1>
+</section>
