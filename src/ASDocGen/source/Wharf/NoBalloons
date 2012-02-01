@@ -1,6 +1,6 @@
 <varlistentry id="options.NoBalloons">
 	<term>NoBalloons</term>
 	<listitem>
-		<para>FIXME: add proper description here.</para>
+		<para>Do not show Balloons in Wharf.</para>
 	</listitem>
 </varlistentry>
