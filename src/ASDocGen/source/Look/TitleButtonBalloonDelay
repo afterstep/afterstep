@@ -1,6 +1,6 @@
 <varlistentry id="options.TitleButtonBalloonDelay">
 	<term>TitleButtonBalloonDelay <emphasis remap='I'>milliseconds</emphasis></term>
 	<listitem>
-		<para>Determines delay between when balloon is shown and before it disapears.</para>
+		<para>Determines the period of time to wait to show a Balloon after the mouse pointer is over a TitleButton.</para>
 	</listitem>
 </varlistentry>
