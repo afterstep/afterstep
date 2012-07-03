@@ -7,13 +7,7 @@ TODO:
         Common :
                 1. Update man pages to reflect changes in config options.
                 2. Design better default looks and module config.
-                3. Convert icons to PNG format, and include png library.
-                   If we use XCF format here - we would not need any additional libraries,
-                   but it is not as widespread as PNG, and certainly is not standardized.
                 4. Create separate package with XPM icons for those who live in the past.
-                5. Add 8 bit alpha channel to all icons to take advantage of new renedring
-                   capabilities.
-                6. Possibly supply some TTF fonts ???
                 7. Take some sweet screenshots reflecting new features, and post them on the
                    web.
                 8. Update websites afterstep.sf.net and maybe www.afterstep.org (see David Mihm).
@@ -23,14 +17,6 @@ TODO:
                    (when look does not have it).
                 3. Implement theme handling tool.
                 4. Implement support for cursor movement using the keyboard while in menus.
-                5. Add FollowTitleChanges option to the database flags.
-        asetroot :
-                1. Move background handling code into the lib from afterstep-proper/pager.c.
-                2. Change to use above-mentioned code
-                3. Add notice that it could only be used with -l options and for single desktop -
-                   background changing should be handled by afterstep-proper from now on.
-        Animate
-                1. Update to include support for new module code in the lib.
         Audio
                 1. Update to include support for new module code in the lib.
                 2. Possible backport main code from afterstep-devel
@@ -81,6 +67,19 @@ TODO:
                    for old times sake.
 
 DONE:
+                3. Convert icons to PNG format, and include png library.
+                   If we use XCF format here - we would not need any additional libraries,
+                   but it is not as widespread as PNG, and certainly is not standardized.
+                5. Add 8 bit alpha channel to all icons to take advantage of new renedring
+                   capabilities.
+                6. Possibly supply some TTF fonts ???
+        asetroot :
+                1. Move background handling code into the lib from afterstep-proper/pager.c.
+                2. Change to use above-mentioned code
+                3. Add notice that it could only be used with -l options and for single desktop -
+                   background changing should be handled by afterstep-proper from now on.
+        Animate
+                1. Update to include support for new module code in the lib.
         AfterStep-proper :
                 1. Implement proper window switching using the keyboard ( aka Alt+Tabbing )
                 2. MyFrames are now implemented and feature numerous powerfull features for
@@ -89,6 +88,7 @@ DONE:
                 3. Complete support for iconified windows
                 4. Implement window placement  in arbitrary position when NoPPosition is used.
                 5. Reimplement balloons.
+                5. Add FollowTitleChanges option to the database flags.
         WinList2
                 1. Implement all the config options support.
         Wharf
