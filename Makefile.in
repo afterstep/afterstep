@@ -7,7 +7,7 @@ confsdirs= autoconf libAfterBase libAfterImage
 
 libdirs         = libAfterBase libAfterImage libAfterStep libAfterConf @LIBASGTKDIR@
 
-gtk_app_dirs    = src/tools/ASFileBrowser src/tools/ASWallpaper src/tools/ASRun
+gtk_app_dirs    = src/tools/ASFileBrowser src/tools/ASWallpaper
 no_gtk_app_dirs =
 
 subdirs         = libAfterBase libAfterImage libAfterStep libAfterConf @LIBASGTKDIR@ \
@@ -22,6 +22,7 @@ subdirs         = libAfterBase libAfterImage libAfterStep libAfterConf @LIBASGTK
                   src/WinList2 \
                   src/WinTabs \
                   src/ascp  \
+									src/tools/ASRun \
                   $(@GTK_APP_DIRS@) \
                   afterstep \
                   src/ASDocGen \

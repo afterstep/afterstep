@@ -751,11 +751,14 @@ LIBASGTKFILES=./libASGTK/.shared
 
 if test "x$have_gtk" = "xyes"; then 
 	LIBASGTKDIR=libASGTK
+	LIBASGTKDEP='$(LIB_ASGTK)'
 	GTK_APP_DIRS=gtk_app_dirs
 	GTK_WIN_COMMAND=GWCommand
 	RUN_COMMAND="Exec \"Run ...\" ASRun --myname \"Run command using AfterStep\" &"
 else 
 	LIBASGTKDIR=
+dnl# trick to not depend on libASGTK : 
+	LIBASGTKDEP='$(LIB_AFTERCONF)'
 	GTK_APP_DIRS=no_gtk_app_dirs
 	GTK_WIN_COMMAND=
 	RUN_COMMAND="ExecInTerm \"Run ...\" -n \"Run Command\" &"
@@ -768,6 +771,7 @@ AC_SUBST_FILE(LIBAFTERCONFFILES)
 AC_SUBST_FILE(LIBASGTKFILES)
 
 AC_SUBST(LIBASGTKDIR)
+AC_SUBST(LIBASGTKDEP)
 AC_SUBST(GTK_APP_DIRS)
 AC_SUBST(GTK_WIN_COMMAND)
 AC_SUBST(RUN_COMMAND)
