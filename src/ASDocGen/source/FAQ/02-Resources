@@ -51,9 +51,9 @@ Pager man page is 'man Pager' (note the capitalization).
 <varlistentry><term>IRC</term>
 <listitem>
 <para>
-There is also #afterstep on freenode.net IRC servers. You can view current activity here : 
-<ulink url="http://www.rchitecture.com/~computer/">http://www.rchitecture.com/~computer/</ulink>
-</para>
+There is also <ulink url="irc://irc.freenode.net/afterstep">#afterstep</ulink>
+on <ulink url="http://freenode.net/irc_servers.shtml">freenode.net IRC
+servers</ulink>. Feel free to come in and have a chat with us!</para>
 </listitem></varlistentry>
 
 </variablelist>
@@ -61,40 +61,23 @@ There is also #afterstep on freenode.net IRC servers. You can view current activ
 
 <section><title>2.2. What are the AfterStep mailing lists, and where are their archives?</title>
 <para>
-There are three AfterStep mailing lists.  as-users, as-devel and as-bugs.</para>
+There currently is a mailing list for users to ask questions and get support: as-users.</para>
 <variablelist>
 <varlistentry><term>as-users.</term>
 <listitem>
 <para>
 as-users is the general AfterStep mailing list, open to all AfterStep questions, concerns
-and ideas (<emphasis>NO</emphasis> LiteSTEP, Window Maker, some-x-app questions unless it really does
-pertain to AfterStep, please).  
+and ideas.
 Subscribe by entering your e-mail at : 
-<ulink url="http://mail.afterstep.org/mailman/listinfo/as-users/">http://mail.afterstep.org/mailman/listinfo/as-users/</ulink>
-</para>
-</listitem></varlistentry>
-
-<varlistentry><term>as-devel.</term>
-<listitem>
-<para>
-as-devel is the development AfterStep mailing list.  It is used to send notices about commits to CVS repository. 
-Subscribe by entering your e-mail at : 
-<ulink url="http://mail.afterstep.org/mailman/listinfo/as-devel/">http://mail.afterstep.org/mailman/listinfo/as-devel/</ulink>
-</para>
-</listitem></varlistentry>
-
-<varlistentry><term>as-bugs.</term>
-<listitem>
-<para>
-as-bugs is the AfterStep mailing list for submiting bug reports.  It is geared toward development
-questions, ideas and complaints.  Subscribe by entering your e-mail at : 
-<ulink url="http://mail.afterstep.org/mailman/listinfo/as-bugs/">http://mail.afterstep.org/mailman/listinfo/as-bugs/</ulink>
+<ulink url="http://lists.afterstep.org/listinfo.cgi/as-users-afterstep.org">http://lists.afterstep.org/listinfo.cgi/as-users-afterstep.org</ulink>
 </para>
 </listitem></varlistentry>
 </variablelist>
 <para>
-The mailing list archives can be read at <ulink url="http://www.tigr.net/afterstep/mail/">http://www.tigr.net/afterstep/mail/</ulink>.
-</para>
-</section>
+The old mailing list archives can be read at <ulink
+url="http://www.tigr.net/afterstep/mail/">http://www.tigr.net/afterstep/mail/</ulink>,
+while current archives (registration required) can be found at <ulink
+url="http://lists.afterstep.org/private.cgi/as-users-afterstep.org/">http://lists.afterstep.org/private.cgi/as-users-afterstep.org/</ulink>.
+</para> </section>
 
 </section>
