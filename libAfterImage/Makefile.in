@@ -123,7 +123,7 @@ AFTER_INC_DIR	= $(DESTDIR)@includedir@/$(LIB_DIR_NAME)
 AFTER_BIN_DIR	= $(DESTDIR)@bindir@
 AFTER_MAN_DIR	= $(DESTDIR)@mandir@/man3
 AFTER_APP_MAN_DIR	= $(DESTDIR)@mandir@/man1
-AFTER_SHAREDIR	= $(DESTDIR)@datadir@/$(LIB_DIR_NAME)
+AFTER_SHAREDIR	= $(DESTDIR)@datarootdir@/$(LIB_DIR_NAME)
 AFTER_DOC_DIR	= $(AFTER_SHAREDIR)/doc
 
 # We want to build both static and dynamic libs, as some service apps may need 

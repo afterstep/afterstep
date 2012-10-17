@@ -3,7 +3,7 @@ SmallMiniPixmap Folder-Pallette
 Comment "Colors for AfterStep\ndesktop tools & windows."
 
 keepname
-include "@datadir@/afterstep/colorschemes" ChangeColorscheme
+include "@datarootdir@/afterstep/colorschemes" ChangeColorscheme
 include "@with_afterdir@/colorschemes" ChangeColorscheme
 extension colorscheme.
 miniextension .mini
