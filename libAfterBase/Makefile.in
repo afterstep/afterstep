@@ -80,6 +80,7 @@ INCLUDES	= $(INCS_X) $(INCS_PRIVATE)
 
 USER_LD_FLAGS	= @user_ldflags@
 LIBS_X		= @x_libs@
+LIB_EXECINFO	= @lib_execinfo@
 
 
 LIBDIR		= $(DESTDIR)@libdir@
@@ -326,7 +327,7 @@ $(LIB_SHARED).$(LIBVERMAJOR): $(LIB_SHARED).$(LIBVER)
 
 $(LIB_SHARED).$(LIBVER): $(LIB_OBJS) $(LIB_INCS)
 	$(CC) -shared -Wl,-soname,$(LIB_SHARED).$(LIBVERMAJOR) -o $(LIB_SHARED).$(LIBVER) \
-	 $(USER_LD_FLAGS) $(LIBS_X) $(LIB_OBJS)
+	$(USER_LD_FLAGS) $(LIB_OBJS) $(LIBS_X) $(LIB_EXECINFO)	
 
 install:	install.lib
 

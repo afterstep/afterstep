@@ -189,6 +189,8 @@ AC_CHECK_HEADERS(elf.h,[AC_CHECK_DECLS([ElfW],,,[#include <link.h>])
 			AC_CHECK_MEMBERS([Elf32_Dyn.d_tag, Elf64_Dyn.d_tag],,,[#include <elf.h>])
 			AC_CHECK_TYPES([Elf64_Addr, Elf32_Addr],,,[#include <elf.h>])])
 
+AC_CHECK_LIB([execinfo], [backtrace], [LIBS="$LIBS -lexecinfo"; lib_execinfo="-lexecinfo"])
+
 dnl# this is needed for self diagnostic code :
 AC_CHECK_FUNCS(backtrace_symbols_fd backtrace_symbols backtrace)
 
@@ -255,6 +257,7 @@ AC_SUBST(lib_file_name)
 AC_SUBST(with_locale)
 AC_SUBST(user_ldflags)
 AC_SUBST(x_libs)
+AC_SUBST(lib_execinfo)
 AC_SUBST(X_CFLAGS)
 AC_SUBST(LIBPROG)
 AC_SUBST(LIBINSTALL)

@@ -610,6 +610,7 @@ LIBPROG
 x_libs
 user_ldflags
 with_locale
+with_afterdir
 lib_file_name
 lib_name
 version_major
@@ -6948,6 +6949,7 @@ $as_echo "#define I18N 1" >>confdefs.h
 if test "x$enable_audit" = "xyes"; then
 $as_echo "#define DEBUG_ALLOCS 1" >>confdefs.h
  fi
+
 
 
 

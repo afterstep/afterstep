@@ -621,6 +621,7 @@ enable_menuwarp
 enable_i18n
 enable_pagerbackground
 enable_different_looknfeels
+lib_execinfo
 no_data_reinstall
 with_deskgeometry
 with_desktops_1
@@ -7443,6 +7444,47 @@ $as_echo "#define DO_SEND_POSTCARD 1" >>confdefs.h
 
 fi
 
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for backtrace in -lexecinfo" >&5
+$as_echo_n "checking for backtrace in -lexecinfo... " >&6; }
+if ${ac_cv_lib_execinfo_backtrace+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lexecinfo  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char backtrace ();
+int
+main ()
+{
+return backtrace ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_execinfo_backtrace=yes
+else
+  ac_cv_lib_execinfo_backtrace=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_execinfo_backtrace" >&5
+$as_echo "$ac_cv_lib_execinfo_backtrace" >&6; }
+if test "x$ac_cv_lib_execinfo_backtrace" = xyes; then :
+  lib_execinfo="-lexecinfo"
+fi
+
+
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking target system type" >&5
 $as_echo_n "checking target system type... " >&6; }
 if ${ac_cv_target+:} false; then :
@@ -7482,6 +7524,7 @@ test -n "$target_alias" &&
   test "$program_prefix$program_suffix$program_transform_name" = \
     NONENONEs,x,x, &&
   program_prefix=${target_alias}-
+
 
 
 
@@ -7610,7 +7653,7 @@ ac_config_files="$ac_config_files autoconf/Makefile.defines autoconf/Makefile.co
 
 if test -d src/ascp ; then ac_config_files="$ac_config_files src/ascp/Makefile src/ascp/fltk/Makefile src/ascp/gtk/Makefile"
  fi
-if test -d src/tools ; then ac_config_files="$ac_config_files src/tools/ASFileBrowser/Makefile src/tools/ASRun/Makefile src/tools/ASWallpaper/Makefile"
+if test -d src/tools ; then ac_config_files="$ac_config_files src/tools/ASFileBrowser/Makefile src/tools/ASRun/Makefile src/tools/ASMount/Makefile src/tools/ASWallpaper/Makefile"
  fi
 
 if test -d src/asetroot ; 	then ac_config_files="$ac_config_files src/asetroot/Makefile"
@@ -8371,6 +8414,7 @@ do
     "src/ascp/gtk/Makefile") CONFIG_FILES="$CONFIG_FILES src/ascp/gtk/Makefile" ;;
     "src/tools/ASFileBrowser/Makefile") CONFIG_FILES="$CONFIG_FILES src/tools/ASFileBrowser/Makefile" ;;
     "src/tools/ASRun/Makefile") CONFIG_FILES="$CONFIG_FILES src/tools/ASRun/Makefile" ;;
+    "src/tools/ASMount/Makefile") CONFIG_FILES="$CONFIG_FILES src/tools/ASMount/Makefile" ;;
     "src/tools/ASWallpaper/Makefile") CONFIG_FILES="$CONFIG_FILES src/tools/ASWallpaper/Makefile" ;;
     "src/asetroot/Makefile") CONFIG_FILES="$CONFIG_FILES src/asetroot/Makefile" ;;
     "src/Animate/Makefile") CONFIG_FILES="$CONFIG_FILES src/Animate/Makefile" ;;
