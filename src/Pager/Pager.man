@@ -179,7 +179,7 @@ be overriden by \fI*PagerStyle\fP option in pager config file.
 .IP "*PagerBalloon" 
 Mini-window balloon style.
 
-This definitions are dependent on Pager's name, so if you start Pager
+These definitions are dependent on Pager's name, so if you start Pager
 as WPager - you should change all the names, like so :
 "*PagerInActiveDesk" -> "*WPagerInActiveDesk"
 
