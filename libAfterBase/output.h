@@ -138,8 +138,8 @@ const char *get_caller_func();/* required by below */
 #define START_TIME(started)  time_t started = clock()
 #define SHOW_TIME(s,started) fprintf (stderr, "%s %s time (clocks): %lu mlsec\n", __FUNCTION__, s, ((clock () - (started))*100)/CLOCKS_PER_SEC)
 #else
-#define START_TIME(started)  unsigned long started = 0
-#define SHOW_TIME(s,started) started = 0
+#define START_TIME(started)  while(0){};
+#define SHOW_TIME(s,started) while(0){};
 #endif
 
 #ifdef __cplusplus

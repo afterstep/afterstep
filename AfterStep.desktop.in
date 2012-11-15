@@ -6,8 +6,6 @@ Name=AfterStep
 Terminal=False
 Type=Application
 Comment=AfterStep is feature rich NeXTish window manager.
-# Stolen from metacity : 
-NoDisplay=true
 # name of loadable control center module
 # X-GNOME-WMSettingsModule=
 # name we put on the WM spec check window
@@ -20,4 +18,7 @@ X-GNOME-WMName=AfterStep
 X-GNOME-Autostart-Phase=WindowManager
 X-GNOME-Provides=windowmanager
 X-GNOME-Autostart-Notify=true
+X-Ubuntu-Gettext-Domain=gnome-session-3.0
+
+TryExec=afterstep
 

@@ -403,6 +403,8 @@ parse_desktop_entry_tree( char *fullpath, const char *dirname, ASBiDirList *entr
 	 
 	
 	list_len = my_scandir (fullpath, &list, no_dots_except_directory, NULL);
+
+fprintf (stderr, "number of items in %s = %d\n", fullpath, list_len);
 	for (i = 0; i < list_len; i++)
 	{	
 		if (!S_ISDIR (list[i]->d_mode) && list[i]->d_name[0] == '.' )
@@ -444,9 +446,11 @@ parse_desktop_entry_tree( char *fullpath, const char *dirname, ASBiDirList *entr
 
 			if (S_ISDIR (list[i]->d_mode) )
 			{
+/*fprintf(stderr, "Parsing subtree %s.\n", entry_fullpath);*/
 				parse_desktop_entry_tree( entry_fullpath, list[i]->d_name, entry_list, curr_dir, icon_path, default_app_category, applnk );
 			}else if( i != curr_dir_index ) 
 			{	
+/*fprintf(stderr, "Parsing subitem %s.\n", entry_fullpath);*/
 				parse_desktop_entry_list( entry_fullpath, entry_list, dir_category?dir_category:default_app_category, ASDE_TypeApplication, icon_path, applnk);
 			}
 			free( entry_fullpath );
@@ -489,7 +493,8 @@ load_category_tree( ASCategoryTree*	ct )
 			Bool applnk = (strstr(ct->dir_list[i], "/applnk")!= NULL) ; 
 			if ( CheckDir (ct->dir_list[i]) == 0 )
 			{
-/*				fprintf( stderr, "location : \"%s\", applnk == %d\n", ct->dir_list[i], applnk ); */
+/*				fprintf( stderr, "location : \"%s\", applnk == %d\n", ct->dir_list[i], applnk ); 
+*/
 	  			parse_desktop_entry_tree(ct->dir_list[i], NULL, entry_list, NULL, ct->icon_path, ct->name, applnk );	
 			}else if ( CheckFile (ct->dir_list[i]) == 0 )
 				parse_desktop_entry_list( ct->dir_list[i], entry_list, ct->name, ASDE_TypeDirectory, ct->icon_path, applnk);
@@ -585,6 +590,7 @@ ReloadCategories(Bool cached)
 		KDECategories = create_category_tree( "KDE", KDE_APPS_PATH, KDE_ICONS_PATH, ASCT_OnlyKDE, -1 );	   
  		GNOMECategories = create_category_tree( "GNOME", GNOME_APPS_PATH, GNOME_ICONS_PATH, ASCT_OnlyGNOME, -1 );	
  		OtherCategories = create_category_tree( "OTHER", OTHER_APPS_PATH, OTHER_ICONS_PATH, ASCT_ExcludeGNOME|ASCT_ExcludeKDE, -1 );	
+
 	}	 
 
 	CombinedCategories = create_category_tree( "", NULL, NULL, 0, -1 );	 

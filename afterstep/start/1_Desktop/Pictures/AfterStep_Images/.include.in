@@ -6,6 +6,6 @@ Comment "AfterStep desktop backgrounds & pictures."
 miniextension  .mini
 
 # AfterStep-provided images & tiles"
-include "@datadir@/afterstep/backgrounds" Background
+include "@datarootdir@/afterstep/backgrounds" Background
 
 command Background
