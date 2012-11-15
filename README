@@ -1,10 +1,10 @@
 ///
-///	This is AfterStep 2.00.beta1 README
+///	This is the README file for the AfterStep 2.* series
 ///
 
 You can find translated versions of this README in doc/languages.  If there's
-no version corresponding to your language please write it and send it to me!
-If your README is too different from this one please send me patches to
+no version corresponding to your language please write it and send it to us!
+If your README is too different from this one please send us patches to
 update it.
 
  INSTALL
@@ -16,16 +16,16 @@ Please see the INSTALL file for installation notes.
 +---------+
 
 The following libraries are not necessarily required to run and enjoy
-AfterStep however, support for them is included within AfterStep and it's
+AfterStep however, support for them is included within AfterStep and its
 various Modules.
 
  o  xpm		(ftp://metalab.unc.edu/pub/Linux/libs/X/)
- o  jpeg	(ftp://ftp.uu.net/graphics/jpeg/)
- o  png 	(http://www.cdrom.com/pub/png/pngcode.html)
+ o  jpeg	(http://www.ijg.org/)
+ o  png 	(http://www.libpng.org/pub/png/libpng.html)
 
-If you use a package management system (like those provided by the distributions
+If you use a package management system (like those provided by distributions
 such as RedHat, Mandrake, Debian, etc.) you will need to get the appropriate
-<libname>-devel rpm and not the actual source code mentioned above.
+<libname>-devel package and not the actual source code mentioned above.
 
  THEMES
 +------+
@@ -41,7 +41,7 @@ Themes are a simple 3 1/2 step procedure:
  HINTS
 +------+
 
-Several "looks" (theme-ish) are included within the distribution.  Any of
+Several "looks" (theme-ish) are included with the distribution.  Any of
 these can be started by selecting the name of the look from the menu.
 
 	(startmenu)->Desktop->Looks->*
@@ -52,7 +52,7 @@ by selecting them from the menu under Desktop. But if you want to use
 *different* look & feel files for *each* desktop, just tell that to
 ./configure.
 
-If you wish to change or make additions to the startmenu, you will need to
+If you wish to change or make additions to the start menu, you will need to
 first create the file, either under the share tree or in a created start dir
 tree in the users ~/GNUstep/Library/AfterStep/start tree, then inform AfterStep
 about the menu change by.
@@ -74,44 +74,39 @@ with the releases.
 
 The "bughint" file can be run when finding and reporting bugs.  Please then
 mail this plus any other relevant info (not a complete core file, please!) to
-as-bugs@afterstep.org .
+as-users@afterstep.org, after subscribing to this list first .
 
 Both "makeasclean" and "makeaspatch" are used to clean out the source tree and
-making patches to the distribution (in a proper format). pagerconfig1_4to1_5
-is a script to translate the 1.4.x pager config files to the newer 1.5.x
-format.
+making patches to the distribution (in a proper format).
 
  FAQ
 +----+
 
 Now before asking any questions, be sure to read the FAQ that is included
 in this distribution by clicking on the top Wharf button, or selecting
-AfterStepDoc from the menu.  The doc/1.0_to_1.5 file lists several
-differences along the way to 1.5.x and the README_new.options lists new
-options.
+AfterStepDoc from the menu.
 
  SITES
 +------+
 
-More informations	:		www.afterstep.org
-New development versions:		ftp.afterstep.org
-Help			:		mail majordomo@afterstep.org
-					Body: subscribe as-users <email>
-Coders			:		mail majordomo@crystaltokyo.com
-					Body: subscribe as-devel <email>
-Bugs			:		mail as-bugs@afterstep.org
-Chat			:		#afterstep on EFNet
-Access to EFNet can be done by connecting to any efnet irc server :
-	irc.concentric.net ; irc.prison.net ; ircd.txdirect.net
+Further information	:	www.afterstep.org
+New development versions:	https://github.com/sashavasko/afterstep-devel
+Help			:	mail as-users@lists.afterstep.org
+       after subscribing:	mail as-users-request@lists.afterstep.org
+				subject: subscribe
+       or visit http://lists.afterstep.org/listinfo.cgi/as-users-afterstep.org
+Bugs			:	mail as-bugs@afterstep.org
+Chat			:	#afterstep on FreeNode
+Accessing FreeNode can be done by connecting to a random FreeNode irc server:
+	irc.freenode.net or pick one from http://freenode.net/irc_servers.shtml
 
 
  TODO
 +------+
 
-In TODO/ you'll find stuff to be put in.  Feel free to add this to this
-version : debug unreleased/ or unstable/.  You can also help Nwanua adding
-new features to ascp!  Please also translate README to your language if it
-hasn't been done yet.
+In TODO/ you'll find stuff to be put in.  Feel free to add this to this version
+: debug unreleased/ or unstable/.  Please also translate this README file to
+your language if it hasn't been done yet.
 
 
  LOBBYING
@@ -130,4 +125,4 @@ apt-get install popularity-contest
 
 Check out the TEAM file.
 
-2004
+2004-2012
