@@ -1,49 +1,38 @@
 ///
-///     This is AfterStep TEAM
+///     This is the current AfterStep TEAM
 ///
 
-coordinator, coder, web designer, carpenter, and everything else ( at the moment ):
---------------
+coordinator, coder, web designer, carpenter, and mostly everything else :
+-------------------------------------------------------------------------
 Sasha Vasko	<sasha at aftercode.net>
 
-FTP hosting and Sound module coder
--------------------
+Sound module coder :
+--------------------
 Jeremy sG (aka Shadowgod) 	<sg at hacksess dot com>
 
-documentation, user testing, design, menus and cheerleading:
---------------
+documentation, user testing, design, menus and cheerleading :
+-------------------------------------------------------------
 Jeff Krebs <rpm_speedy at yahoo dot com>
 Niklas Lunger 	<niklas at fet dot at>
 
-Web hosting and design : 
-------------------------
+Web hosting, mailing list, DNS and design : 
+-------------------------------------------
 Nathan Mahon (aka Vaevictus)	<vae at vaevictus dot net>
 
-good angel of AfterStep ( althou admittedly a lazy one ) :
-----------------------------------------------------------
-Ethan Fischer	<allanon@crystaltokyo.com>
-( also oversees development Mailing List )
+FTP hosting :
+-------------
+Remco Rijnders (aka Remmy)	<r+afterstep at r78 dot nl>
 
 IRC #afterstep maintainer :
 ---------------------------
 Sasha Vasko	<sasha at aftercode dot net>
 
-User and Bugs ML maintenance and hosting : 
----------------------------------
-Doug Alcorn (AKA Lathi) <doug@lathi.net>
-
 User ML archives and excellent apps catalog : 
 ---------------------------------------------
 Albert Dorofeev (AKA Tigr)  albert@tigr.net
 
-DNS :
------
-hostmaster@rchitecture.com (David Mihm)
-
-Hordes of suffering beta-testers, devoted users and all those who 
-helped enourmously to keep me on right track and brought this work to fruition.
-
-
+Hordes of suffering beta-testers, devoted users and all those who helped
+enormously to keep me on right track and brought this work to fruition.
 
 
 
@@ -70,6 +59,7 @@ contributors :
 NO NEWS OF asullivan@sprint.ca
 NO NEWS OF ishamael@themes.org
 NO NEWS OF ryanw@infohwy.com
+Ethan Fischer (aka allanon)	<allanon@crystaltokyo.com>
 
 C++ recoding :
 --------------
@@ -95,3 +85,8 @@ logos :
 -------
 NO NEWS OF Faical Tanarhte <faycal@anrt.net.ma>
 
+hosting :
+---------
+Doug Alcorn (aka Lathi) 	<doug@lathi.net>
+Ethan Fischer (aka allanon)	<allanon@crystaltokyo.com>
+Jeremy sG (aka Shadowgod)       <sg at hacksess dot com>
