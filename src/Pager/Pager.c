@@ -866,65 +866,10 @@ render_desk( ASPagerDesk *d, Bool force )
     if( is_canvas_dirty( d->desk_canvas) )
     {
         update_canvas_display( d->desk_canvas );
-//		update_pager_shape();
         return True;
     }
     return False;
 }
-
-#if 0
-static void
-update_desk_shape( ASPagerDesk *d )
-{
-    int i ;
-
-    if( d == NULL )
-        return;
-
-    update_canvas_display_mask (d->desk_canvas, True);
-
-    LOCAL_DEBUG_CALLER_OUT( "desk %p flags = 0x%lX", d, d->flags );
-    if( get_flags(Config->flags, SHOW_SELECTION) && d->desk == Scr.CurrentDesk )
-    {
-        XShapeCombineRectangles ( dpy, d->desk_canvas->w, ShapeBounding,
-                                  0, 0, &(PagerState.selection_bar_rects[0]), 4, ShapeUnion, Unsorted);
-        LOCAL_DEBUG_OUT( "added selection_bar_rects to shape%s","" );
-    }
-    if( get_flags(Config->flags, PAGE_SEPARATOR) )
-    {
-        XShapeCombineRectangles ( dpy, d->desk_canvas->w, ShapeBounding,
-                                  0, 0, &(d->separator_bar_rects[0]), d->separator_bars_num, ShapeUnion, Unsorted);
-        LOCAL_DEBUG_OUT( "added %d separator_bar_rects to shape", d->separator_bars_num);
-#if 0
-		i = d->separator_bars_num ;
-	    while( --i >= 0 )
-    	{
-        	LOCAL_DEBUG_OUT( "\t %dx%d%+d%+d", d->separator_bar_rects[i].width,
-            	                                d->separator_bar_rects[i].height,
-                	                            d->separator_bar_rects[i].x,
-                    	                        d->separator_bar_rects[i].y );
-	    }
-#endif
-    }
-
-    if( d->clients_num > 0 )
-    {
-        register ASWindowData **clients = d->clients ;
-        i = d->clients_num ;
-        LOCAL_DEBUG_OUT( "clients_num %d", d->clients_num );
-        while( --i >= 0 )
-        {
-            LOCAL_DEBUG_OUT( "client %d data %p", i, clients[i] );
-            if( clients[i] )
-            {
-                LOCAL_DEBUG_OUT( "combining client \"%s\"", clients[i]->icon_name );
-                combine_canvas_shape( d->desk_canvas, clients[i]->canvas, False, True );
-            }
-        }
-    }
-    clear_flags( d->flags, ASP_ShapeDirty );
-}
-#endif
 
 void
 update_pager_shape()
@@ -1175,8 +1120,6 @@ place_separation_bars( ASPagerDesk *d )
         wrecta += PagerState.page_columns-1;
         p = PagerState.page_rows-1;
         pos_inc =  (Scr.MyDisplayHeight * d->background->height)/PagerState.vscreen_height;
-		    /* Scr.MyDisplayHeight/PagerState.vscale_v;     */
-			/* d->background->height/PagerState.page_rows ; */
         pos = d->background->win_y + p*pos_inc;
         pos2 = d->background->win_x ;
         size = d->background->width ;
@@ -2793,7 +2736,6 @@ on_desk_pressure_changed( ASPagerDesk *d, ASEvent *event )
 {
     int root_x = event->x.xbutton.x_root;
     int root_y = event->x.xbutton.y_root;
-/*    int state = event->x.xbutton.state ; */
     int context = check_astbar_point( d->title, root_x, root_y );
 LOCAL_DEBUG_OUT( "root_pos(%+d%+d)->title_root_pos(%+d%+d)->context(%s)", root_x, root_y, d->title?d->title->root_x:0, d->title?d->title->root_y:0, context2text(context) );
     if( context != C_NO_CONTEXT && d->title )
