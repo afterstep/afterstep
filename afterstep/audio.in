@@ -1,7 +1,7 @@
 #------------------------------------------------------------------------
 # Audio
 #
-*AudioPath                      @datadir@/afterstep/desktop/sounds
+*AudioPath                      @datarootdir@/afterstep/desktop/sounds
 #
 # This will use rplay client-server sound player :
 #*AudioPlayCmd                  builtin-rplay

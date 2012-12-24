@@ -1239,7 +1239,7 @@ spawn_child( const char *cmd, int singleton_id, int screen, const char *orig_dis
             if ( as_app_args.override_share )
                 len += 4+strlen(as_app_args.override_share);
 
-			if ( as_app_args.locale )
+						if ( as_app_args.locale )
                 len += 4+strlen(as_app_args.locale);
 
             if( as_app_args.verbosity_level != OUTPUT_DEFAULT_THRESHOLD )
@@ -1266,11 +1266,15 @@ spawn_child( const char *cmd, int singleton_id, int screen, const char *orig_dis
         while(*ptr) ptr++;
         if( pass_args )
         {
-			if (orig_display)
-    	        ptr += sprintf( ptr, " -d %s -s", orig_display );
-			else
-	            ptr += sprintf( ptr, " -d %s%s -s", display, screen_str?screen_str:"" );
-            if ( get_flags( as_app_args.flags, ASS_Debugging) )
+						if (orig_display)
+    	    		ptr += sprintf( ptr, " -d %s -s", orig_display );
+						else if(screen_str)
+			    		ptr += sprintf( ptr, " -d %s.%s -s", display, screen_str );
+						else
+          		ptr += sprintf( ptr, " -d %s -s", display);
+							
+							
+          	if ( get_flags( as_app_args.flags, ASS_Debugging) )
             {
                 strcpy( ptr, " --debug");
                 ptr+=8 ;

@@ -33,6 +33,7 @@ test "x$prefix" = xNONE && prefix=$ac_default_prefix
 test "x$exec_prefix" = xNONE && exec_prefix="$prefix"
 eval "bindir=$bindir"
 eval "datadir=$datadir"
+eval "datarootdir=$datarootdir"
 eval "mandir=$mandir"
 eval "libdir=$libdir"
 eval "includedir=$includedir"
@@ -651,6 +652,8 @@ if test "x$send_postcard_to_developer" = "xyes"; then
 	AC_DEFINE(DO_SEND_POSTCARD,1,E-mail installation notification to AfterStep developers)
 fi
 
+AC_CHECK_LIB([execinfo],[backtrace],[lib_execinfo="-lexecinfo"])
+
 AC_CANONICAL_TARGET
 AC_SUBST(build)
 AC_SUBST(build_os)
@@ -718,6 +721,7 @@ AC_SUBST(with_desktops)
 AC_SUBST(with_desktops_1)
 AC_SUBST(with_deskgeometry)
 AC_SUBST(no_data_reinstall)
+AC_SUBST(lib_execinfo)
 dnl# old stuff :
 AC_SUBST(enable_different_looknfeels)
 AC_SUBST(enable_pagerbackground)
@@ -786,6 +790,7 @@ AC_CONFIG_FILES([autoconf/Makefile.defines autoconf/Makefile.common autoconf/Mak
 if test -d src/ascp ; then AC_CONFIG_FILES([src/ascp/Makefile src/ascp/fltk/Makefile src/ascp/gtk/Makefile ]) fi
 if test -d src/tools ; then AC_CONFIG_FILES([src/tools/ASFileBrowser/Makefile 
 					     src/tools/ASRun/Makefile
+							 src/tools/ASMount/Makefile
 					     src/tools/ASWallpaper/Makefile]) fi
 
 if test -d src/asetroot ; 	then AC_CONFIG_FILES([src/asetroot/Makefile]) fi

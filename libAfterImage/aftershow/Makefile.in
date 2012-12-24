@@ -40,7 +40,7 @@ exec_prefix     = @exec_prefix@
 LIBDIR		= $(DESTDIR)@libdir@
 BIN_DIR		= $(DESTDIR)@bindir@
 MAN_DIR		= $(DESTDIR)@mandir@/man1
-AFTER_DIR	= @with_afterdir@
+SHAREDIR	= $(DESTDIR)@datarootdir@
 
 # need this for dependancies :
 LIBAFTERIMAGE_PATH =..

@@ -1,7 +1,7 @@
 #------------------------------------------------------------------------
 # Audio
 #
-*SoundPath                      @datadir@/afterstep/desktop/sounds
+*SoundPath                      @datarootdir@/afterstep/desktop/sounds
 #
 
 # The PCM Device ID (default should be sufficient for most users)
