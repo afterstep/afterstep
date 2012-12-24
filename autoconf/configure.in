@@ -7,17 +7,17 @@ dnl#Copyright (c) 1998 Juergen Sawinski <Juergen.Sawinski@urz.uni-heidelberg.de>
 dnl#Copyright (c) 1997 1998 Guylhem AZNAR <guylhem@oeil.qc.ca>
 
 dnl#AC_INIT(afterstep/autoexec.in)
-AC_INIT(AfterStep,2.2.11,as-bugs@afterstep.org,AfterStep.tar)
+AC_INIT(AfterStep,2.2.12,as-bugs@afterstep.org,AfterStep.tar)
 AC_CONFIG_AUX_DIR(autoconf)
 AC_CONFIG_HEADER(config.h:autoconf/config.h.in)
 
 version=$PACKAGE_VERSION
 app_version=$PACKAGE_VERSION
-libafterstep_version="1.16"
+libafterstep_version="1.17"
 libafterstep_version_major="1"
 libafterstep_name="LIBAFTERSTEP"
 libafterstep_file_name="libAfterStep"
-libafterconf_version="1.16"
+libafterconf_version="1.17"
 libafterconf_version_major="1"
 libafterconf_name="LIBAFTERCONF"
 libafterconf_file_name="libAfterConf"
@@ -561,6 +561,63 @@ fi
 
 GTK_INCLUDES=$GTK_CFLAGS
 
+have_glib=
+GLIB_LIBS=
+GLIB_INCLUDES=
+
+if test "$with_glib" = no; then
+	have_glib=disabled
+else
+
+	if test "$PKG_CONFIG" = "no" ; then
+		AC_MSG_CHECKING(if glib 2.0 or better is available)
+		AC_MSG_RESULT(pkg-config is not found. Cannot check for glib 2.0.)
+		have_glib=no
+	else
+		have_glib=yes
+		pkg_modules="glib-2.0 >= 2.0.0"
+		PKG_CHECK_MODULES(GLIB, [$pkg_modules],,[have_glib=no])
+
+		if test "x$have_glib" = "xyes"; then
+			CLEAN_GLIB_LIBS=
+			CLEAN_GLIB_CFLAGS=
+	
+			AC_DEFINE(HAVE_GLIB,1,GLIB v.2.0 or higher is available )
+
+			present_libs="$LDFLAGS $LIBS $x_libs $AFTERIMAGE_LIBS";
+			for l in `echo "$GLIB_LIBS"`; do
+	  	  	lib_found=no
+	  	  	for p in `echo "$present_libs"` ; do
+			  	if test "x$l" = "x$p" ; then
+    		    	lib_found=yes;
+		  	  	fi;
+	  	  	done;
+	  	  	if test "x$lib_found" != "xyes" ; then
+		  		CLEAN_GLIB_LIBS="$CLEAN_GLIB_LIBS $l" ;
+	  	  	fi;
+			done;
+			present_incs="$CCFLAGS $x_includes";
+			for l in `echo "$GLIB_CFLAGS"` ;	do
+	  			inc_found=no
+		  		for p in `echo "$present_incs"` ; do
+					if test "x$l" = "x$p" ; then
+    		  			inc_found=yes;
+					fi;
+					if test "x$l" = "x-I$p" ; then
+    		  			inc_found=yes;
+					fi;
+	  			done;
+	  			if test "x$inc_found" != "xyes" ; then
+					CLEAN_GLIB_CFLAGS="$CLEAN_GLIB_CFLAGS $l" ;
+	  			fi;
+			done;
+			GLIB_CFLAGS=$CLEAN_GLIB_CFLAGS ;
+			GLIB_LIBS=$CLEAN_GLIB_LIBS ;
+		fi
+	fi
+fi
+
+GLIB_INCLUDES=$GLIB_CFLAGS
 
 if test "x$enable_ascp" = "xyes"; then
     AC_MSG_CHECKING(libraries required by FLTK version of ascp)
@@ -688,6 +745,9 @@ AC_SUBST(ASCP_GTK)
 AC_SUBST(GTK_LIBS)
 AC_SUBST(GTK_CFLAGS)
 AC_SUBST(GTK_INCLUDES)
+AC_SUBST(GLIB_LIBS)
+AC_SUBST(GLIB_CFLAGS)
+AC_SUBST(GLIB_INCLUDES)
 AC_SUBST(user_ldflags)
 AC_SUBST(x_libs)
 AC_SUBST(xine_libs)
@@ -768,6 +828,13 @@ dnl# trick to not depend on libASGTK :
 	RUN_COMMAND="ExecInTerm \"Run ...\" -n \"Run Command\" &"
 fi
 
+if test "x$have_glib" = "xyes"; then 
+	GLIB_APP_DIRS=glib_app_dirs
+else 
+	GLIB_APP_DIRS=no_glib_app_dirs
+fi
+
+
 AC_SUBST_FILE(LIBAFTERBASEFILES)
 AC_SUBST_FILE(LIBAFTERIMAGEFILES)
 AC_SUBST_FILE(LIBAFTERSTEPFILES)
@@ -780,6 +847,8 @@ AC_SUBST(GTK_APP_DIRS)
 AC_SUBST(GTK_WIN_COMMAND)
 AC_SUBST(RUN_COMMAND)
 
+AC_SUBST(GLIB_APP_DIRS)
+
 AC_SUBST_FILE(MAKEFILEDEFINES)
 AC_SUBST_FILE(MAKEFILECOMMON)
 AC_SUBST_FILE(MAKEFILECOMMONLIB)
@@ -790,8 +859,9 @@ AC_CONFIG_FILES([autoconf/Makefile.defines autoconf/Makefile.common autoconf/Mak
 if test -d src/ascp ; then AC_CONFIG_FILES([src/ascp/Makefile src/ascp/fltk/Makefile src/ascp/gtk/Makefile ]) fi
 if test -d src/tools ; then AC_CONFIG_FILES([src/tools/ASFileBrowser/Makefile 
 					     src/tools/ASRun/Makefile
-							 src/tools/ASMount/Makefile
 					     src/tools/ASWallpaper/Makefile]) fi
+
+if test -d src/ASMount ; then AC_CONFIG_FILES([src/ASMount/Makefile]) fi
 
 if test -d src/asetroot ; 	then AC_CONFIG_FILES([src/asetroot/Makefile]) fi
 if test -d src/Animate ; 	then AC_CONFIG_FILES([src/Animate/Makefile]) fi
