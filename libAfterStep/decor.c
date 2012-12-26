@@ -1787,7 +1787,7 @@ LOCAL_DEBUG_OUT( "bar's geometry = %dx%d%+d%+d, pointer posish = %+d%+d", tbar->
             int tmp_context ;
             int i = tbar->tiles_num;
             context = tbar->context ;
-            while (--i)
+            while (--i >= 0)
             {
                 int type = ASTileType(tbar->tiles[i]);
 
