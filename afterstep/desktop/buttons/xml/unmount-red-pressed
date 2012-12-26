@@ -1,0 +1,10 @@
+<composite>
+	<tile tint="#ff0000" x="2" y="2">
+    <img src="dots/synchronize"/>
+	</tile>
+  <scale x=10 y=10 width="16" height="16">
+    <img src="dots/x_medium"/>
+  </scale>
+</composite>
+
+
