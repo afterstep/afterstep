@@ -321,7 +321,7 @@ display_balloon_int( ASBalloon *balloon, Bool ignore_delay )
 {
 	ASBalloonState *state = balloon->state ; 
 	
-    LOCAL_DEBUG_OUT( "show = %d, active = %p", state->look->show, state->active );
+    LOCAL_DEBUG_OUT( "show = %d, active = %p, delay = %d", state->look->show, state->active, state->look->Delay);
     if( !state->look->show || state->active == balloon )
         return;
 

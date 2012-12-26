@@ -56,6 +56,7 @@ TermDef       BaseTerms[] = {
     {TF_NO_MYNAME_PREPENDING, "DisableSharedMemory", 19,   TT_FLAG,  BASE_NoSharedMemory_ID  , NULL},
     {TF_NO_MYNAME_PREPENDING, "DisableKDEGlobalsTheming", 24,   TT_FLAG,  BASE_NoKDEGlobalsTheming_ID  , NULL},
     {TF_NO_MYNAME_PREPENDING, "NoModuleNameCollisions", 22,   TT_INTEGER,  BASE_NoModuleNameCollisions_ID  , NULL},
+    {TF_NO_MYNAME_PREPENDING, "IconTheme", 9,     	TT_TEXT,     BASE_IconTheme_ID  , NULL},
 	{0, NULL, 0, 0, 0}
 };
 
@@ -108,6 +109,7 @@ DestroyBaseConfig (BaseConfig * config)
 	destroy_string( &(config->myname_path) );
 	destroy_string( &(config->gtkrc_path) );
 	destroy_string( &(config->gtkrc20_path));
+	destroy_string( &(config->IconTheme));
 
 	while( --i >= 0 ) 
 	{	
@@ -209,6 +211,9 @@ ParseBaseOptions (const char *filename, char *myname)
 			 else				
 			 	item.ok_to_free = 1;
 			break;
+		 case BASE_IconTheme_ID:
+			 set_string( &(config->IconTheme), item.data.string );
+			 break;
 		 default:
 			 item.ok_to_free = 1;
 		}
@@ -259,6 +264,9 @@ WriteBaseOptions (const char *filename, char *myname, BaseConfig * config, unsig
 
 	/* myname_path */
 	tail = String2FreeStorage (&BaseSyntax, tail, config->myname_path, BASE_MYNAME_PATH_ID);
+
+	/* IconTheme */
+	tail = String2FreeStorage (&BaseSyntax, tail, config->IconTheme, BASE_IconTheme_ID);
 
 	/* desktop_size */
 	tail = Geometry2FreeStorage (&BaseSyntax, tail, &(config->desktop_size), BASE_DESKTOP_SIZE_ID);
@@ -356,6 +364,7 @@ BaseConfig2ASEnvironment( register BaseConfig *config, ASEnvironment **penv )
 						NULL,
 						&(env->gtkrc_path),
 						&(env->gtkrc20_path));
+	set_string (&(env->IconTheme), mystrdup(config->IconTheme));
 	if (config->desktop_size.flags & WidthValue)
 		env->desk_pages_h = config->desktop_size.width ;
 	else

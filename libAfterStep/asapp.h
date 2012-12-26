@@ -66,9 +66,6 @@ struct ASDatabase;
 #define CopyFile(f1,f2)		copy_file((f1),(f2))
 
 #define replaceEnvVar(p)	replace_envvar (p)
-#define findIconFile(f,p,t)	find_file(f,p,t)
-
-
 
 #ifdef SIGNALRETURNSINT
 #define SIGNAL_T 		int
@@ -220,6 +217,7 @@ typedef struct ASEnvironment
   
   char *gtkrc_path ;
   char *gtkrc20_path ;
+	char *IconTheme;
 }ASEnvironment;
 
 /*
@@ -235,6 +233,8 @@ typedef struct ASEnvironment
 ASEnvironment *make_default_environment();
 void set_environment_tool_from_list( ASEnvironment *e, ASToolType type, char ** list, int list_len );
 void destroy_asenvironment( ASEnvironment **penv );
+struct ASImage;
+struct ASImage *load_environment_icon (const char* category, const char* name, int desired_size);
 
 /***********************************************************************************/
 /* general purpose application launcher :                                          */

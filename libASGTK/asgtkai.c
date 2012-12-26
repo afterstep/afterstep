@@ -102,3 +102,45 @@ solid_color2GdkPixbuf( ARGB32 argb, int width, int height )
 	return pb;
 }	 
 
+ASImage *
+GdkPixbuf2ASImage( GdkPixbuf *pixbuf) 
+{
+	ASImage *im = NULL ; 
+	if (pixbuf) {
+  	guchar *pixels;
+  	int width = gdk_pixbuf_get_width (pixbuf);
+  	int height = gdk_pixbuf_get_height (pixbuf);
+  	int n_channels = gdk_pixbuf_get_n_channels (pixbuf);
+		int rowstride = gdk_pixbuf_get_rowstride (pixbuf);
+		int has_alpha = gdk_pixbuf_get_has_alpha (pixbuf) ? 1 : 0;
+
+		if (gdk_pixbuf_get_colorspace (pixbuf) != GDK_COLORSPACE_RGB
+		    || gdk_pixbuf_get_bits_per_sample (pixbuf) != 8 
+				|| width <= 0 || height <= 0 || rowstride <= 0
+				|| n_channels != 3+has_alpha)
+			return NULL;
+
+  	if ((pixels = gdk_pixbuf_get_pixels (pixbuf)) != NULL) {
+			ASScanline    buf;
+			int y;
+
+			LOCAL_DEBUG_OUT("stored image size %dx%d", width,  height);
+			im = create_asimage (width,  height, 100);
+			prepare_scanline (im->width, 0, &buf, False);
+	
+			for (y = 0 ; y < height ; ++y) {
+				raw2scanline (pixels + y * rowstride, &buf, NULL, width, 
+											gdk_pixbuf_get_colorspace (pixbuf) != GDK_COLORSPACE_RGB,
+											has_alpha);
+
+				asimage_add_line (im, IC_RED,   buf.red  , y);
+				asimage_add_line (im, IC_GREEN, buf.green, y);
+				asimage_add_line (im, IC_BLUE,  buf.blue , y);
+				if (has_alpha)
+					asimage_add_line (im, IC_ALPHA,   buf.alpha, y);
+			}
+			free_scanline(&buf, True);
+		}
+	}	 
+	return im;
+}	 

@@ -865,7 +865,7 @@ reload_menu_pmaps( MenuData *menu, Bool force )
 			{
 				ASImage *tmp = NULL ;
 			
-            	tmp = get_asimage( ASDefaultScr->image_manager, minipixmap, ASFLAGS_EVERYTHING, 100 );
+            	tmp = load_environment_icon ("apps", minipixmap, 16);
 				if( tmp )				   
     	    	{
 					curr->minipixmap_image = check_scale_menu_pmap( tmp, curr->flags ); 

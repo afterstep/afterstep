@@ -292,9 +292,10 @@ file2ASImage_extra( const char *file, ASImageImportParams *iparams )
 			show_progress( "image loaded from \"%s\"", realfilename );
 #endif
 		free( realfilename );
-	}else
-		show_error( "I'm terribly sorry, but image file \"%s\" is nowhere to be found.", file );
-
+	}else if (!get_flags(iparams->flags, AS_IMPORT_IGNORE_IF_MISSING))
+		show_warning( "I'm terribly sorry, but image file \"%s\" is nowhere to be found.", file );
+	else
+		show_debug( __FILE__, __FUNCTION__, __LINE__, "Image file \"%s\" is nowhere to be found.", file );
 	return im;
 }
 
@@ -386,13 +387,15 @@ file2pixmap(ASVisual *asv, Window root, const char *realfilename, Pixmap *mask_o
 }
 
 static ASImage *
-load_image_from_path( const char *file, char **path, double gamma)
+load_image_from_path( const char *file, char **path, double gamma, int quiet)
 {
 	ASImageImportParams iparams ;
 
 	init_asimage_import_params( &iparams );
 	iparams.gamma = gamma ;
 	iparams.search_path = path;
+	if (quiet)
+		set_flags(iparams.flags, AS_IMPORT_IGNORE_IF_MISSING);
 
 	return file2ASImage_extra( file, &iparams );
 }
@@ -420,14 +423,14 @@ get_asimage_file_type( ASImageManager* imageman, const char *file )
 }
 
 
-ASImage *
-get_asimage( ASImageManager* imageman, const char *file, ASFlagType what, unsigned int compression )
+static ASImage *
+get_asimage_int( ASImageManager* imageman, const char *file, ASFlagType what, unsigned int compression, int quiet)
 {
 	ASImage *im = NULL ;
 	if( imageman && file )
 		if( (im = fetch_asimage(imageman, file )) == NULL )
 		{
-			im = load_image_from_path( file, &(imageman->search_path[0]), imageman->gamma);
+			im = load_image_from_path( file, &(imageman->search_path[0]), imageman->gamma, quiet);
 			if( im )
 			{
 				store_asimage( imageman, im, file );
@@ -436,6 +439,18 @@ get_asimage( ASImageManager* imageman, const char *file, ASFlagType what, unsign
 				
 		}
 	return im;
+}
+
+ASImage *
+get_asimage( ASImageManager* imageman, const char *file, ASFlagType what, unsigned int compression )
+{
+	return get_asimage_int(imageman, file, what, compression, 0);
+}
+
+ASImage *
+get_asimage_quiet( ASImageManager* imageman, const char *file, ASFlagType what, unsigned int compression )
+{
+	return get_asimage_int(imageman, file, what, compression, 1);
 }
 
 void 
@@ -680,7 +695,7 @@ reload_asimage_manager( ASImageManager *imman )
 				if( get_flags( im->flags, ASIM_NAME_IS_FILENAME ) )
 				{
 /*fprintf( stderr, "reloading image \"%s\" ...", im->name );*/
-					ASImage *reloaded_im = load_image_from_path( im->name, &(imman->search_path[0]), imman->gamma);
+					ASImage *reloaded_im = load_image_from_path( im->name, &(imman->search_path[0]), imman->gamma, 0);
 /*fprintf( stderr, "Done. reloaded_im = %p.\n", reloaded_im );*/					
 					if( reloaded_im ) 
 					{

@@ -59,6 +59,8 @@ char   *copy_replace_envvar (const char *path);
 
 void	parse_file_name(const char *filename, char **path, char **file);
 char   *make_file_name (const char *path, const char *file);
+char   *add_file_extension (const char *file, const char *ext);
+
 char   *put_file_home (const char *path_with_home);
 char   *find_file (const char *file, const char *pathlist, int type);
 int 	is_executable_in_path (const char *name);

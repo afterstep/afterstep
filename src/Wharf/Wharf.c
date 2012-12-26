@@ -1055,7 +1055,7 @@ build_wharf_button_tbar(ASWharfButton *aswb, WharfButton *wb)
         	{
             	ASImage *im = NULL ;
             	/* load image here */
-            	im = get_asimage( Scr.image_manager, icon[i], ASFLAGS_EVERYTHING, 100 );
+            	im = load_environment_icon ("apps", icon[i], 64 );
             	if( im )
                 	add_astbar_icon( bar, icon_col, icon_row, 0, Config->AlignContents, im );
         	}

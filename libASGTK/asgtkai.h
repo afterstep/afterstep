@@ -5,6 +5,7 @@
 
 GdkPixbuf *ASImage2GdkPixbuf( struct ASImage *im ); 
 GdkPixbuf *solid_color2GdkPixbuf( ARGB32 argb, int width, int height );
+ASImage *GdkPixbuf2ASImage( GdkPixbuf *pixbuf);
 
 
 #endif  /*  ASTHUMBBOX_H_HEADER_INCLUDED  */

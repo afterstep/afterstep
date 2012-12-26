@@ -98,6 +98,10 @@ extern struct SyntaxDef      PopupFuncSyntax;
 extern struct SyntaxDef      BalloonContentsSyntax;
 extern struct SyntaxDef     *BalloonContentsSyntaxPtr;
 
+extern struct SyntaxDef      ASMountSyntax;
+extern struct SyntaxDef      ASMountPrivateSyntax;
+extern struct SyntaxDef      ASMountLookSyntax;
+extern struct SyntaxDef      ASMountFeelSyntax;
 
 /* misc function stuff : */
 #define FUNC_ID_START           F_NOP   /* 0 */
@@ -132,9 +136,10 @@ struct FunctionData     *String2Func ( const char *string, struct FunctionData *
 #define CONFIG_Pager_ID					(CONFIG_MODULE_TYPES+1)
 #define CONFIG_Wharf_ID					(CONFIG_MODULE_TYPES+2)
 #define CONFIG_WinList_ID				(CONFIG_MODULE_TYPES+3)
+#define CONFIG_ASMount_ID				(CONFIG_MODULE_TYPES+4)
 
 
-#define CONFIG_MODULE_SPECIFIC			(CONFIG_MODULE_TYPES+4)
+#define CONFIG_MODULE_SPECIFIC			(CONFIG_MODULE_TYPES+5)
 #define CONFIG_AfterStepLook_ID			(CONFIG_MODULE_SPECIFIC)
 #define CONFIG_AfterStepFeel_ID			(CONFIG_MODULE_SPECIFIC+1)
 #define CONFIG_PagerLook_ID 			(CONFIG_MODULE_SPECIFIC+2)
@@ -144,9 +149,11 @@ struct FunctionData     *String2Func ( const char *string, struct FunctionData *
 #define CONFIG_WharfFolders_ID 			(CONFIG_MODULE_SPECIFIC+6)
 #define CONFIG_WinListLook_ID 			(CONFIG_MODULE_SPECIFIC+7)
 #define CONFIG_WinListFeel_ID 			(CONFIG_MODULE_SPECIFIC+8)
+#define CONFIG_ASMountLook_ID 			(CONFIG_MODULE_SPECIFIC+9)
+#define CONFIG_ASMountFeel_ID 			(CONFIG_MODULE_SPECIFIC+10)
 
 
-#define CONFIG_FILE_IDS			   		(CONFIG_MODULE_SPECIFIC+9)
+#define CONFIG_FILE_IDS			   		(CONFIG_MODULE_SPECIFIC+11)
 #define CONFIG_LookFile_ID				(CONFIG_FILE_IDS)
 #define CONFIG_FeelFile_ID 				(CONFIG_FILE_IDS+1)
 #define CONFIG_StartDir_ID 				(CONFIG_FILE_IDS+2)
@@ -159,9 +166,10 @@ struct FunctionData     *String2Func ( const char *string, struct FunctionData *
 #define CONFIG_ColorSchemeFile_ID		(CONFIG_FILE_IDS+9)
 #define CONFIG_DatabaseFile_ID			(CONFIG_FILE_IDS+10)
 #define CONFIG_IncludeFile_ID			(CONFIG_FILE_IDS+11)
+#define CONFIG_ASMountFile_ID 			(CONFIG_FILE_IDS+12)
 
 
-#define CONFIG_FILES_IDS			    (CONFIG_FILE_IDS+12)
+#define CONFIG_FILES_IDS			    (CONFIG_FILE_IDS+13)
 #define CONFIG_FunctionsFiles_ID		(CONFIG_FILES_IDS)
 #define CONFIG_PopupsFiles_ID			(CONFIG_FILES_IDS+1)
 #define CONFIG_LookFiles_ID				(CONFIG_FILES_IDS+2)
@@ -188,9 +196,10 @@ struct FunctionData     *String2Func ( const char *string, struct FunctionData *
 #define CONFIG_WharfOptions_ID			(CONFIG_OPTIONS_IDS+14)
 #define CONFIG_WinListOptions_ID		(CONFIG_OPTIONS_IDS+15)
 #define CONFIG_Balloons_ID				(CONFIG_OPTIONS_IDS+16)
+#define CONFIG_ASMountOptions_ID		(CONFIG_OPTIONS_IDS+17)
 
 
-#define CONFIG_SUBOPTIONS_IDS	   	    (CONFIG_OPTIONS_IDS+17)
+#define CONFIG_SUBOPTIONS_IDS	   	    (CONFIG_OPTIONS_IDS+18)
 #define CONFIG_flags_ID					(CONFIG_SUBOPTIONS_IDS)
 #define CONFIG_x_ID						(CONFIG_SUBOPTIONS_IDS+1)
 #define CONFIG_y_ID						(CONFIG_SUBOPTIONS_IDS+2)
@@ -325,7 +334,8 @@ struct FreeStorageElem *MyStyleDefinitionsList2free_storage (struct MyStyleDefin
 #define BASE_NoSharedMemory_ID	BASE_ID_START+14
 #define BASE_NoKDEGlobalsTheming_ID	BASE_ID_START+15
 #define BASE_NoModuleNameCollisions_ID	BASE_ID_START+16
-#define BASE_ID_END             BASE_ID_START+17
+#define BASE_IconTheme_ID				BASE_ID_START+17
+#define BASE_ID_END             BASE_ID_START+18
 
 typedef struct
 {
@@ -351,6 +361,7 @@ typedef struct
 	char *term_command[MAX_TOOL_COMMANDS] ; 
 	char *browser_command[MAX_TOOL_COMMANDS] ; 
 	char *editor_command[MAX_TOOL_COMMANDS] ; 
+    char *IconTheme;
 
     struct FreeStorageElem *more_stuff;
 }BaseConfig;
@@ -1313,14 +1324,86 @@ void CheckWinListConfigSanity(WinListConfig *Config,
 							  ASGeometry *default_geometry, int default_gravity,
 							  int max_columns_override, int max_rows_override );
 
+/***************************************************************************/
+/*                        ASMount config parsing definitions               */
+/***************************************************************************/
+/* ASMount config :
+ *
+ *	*ASMountTileSize		WxH
+ *  *ASMountVertical 
+ *  *ASMountUnmountedStyle 	"style"
+ *  *ASMountMountedStyle 	"style"
+ *  *ASMountAlign           Left,Right,Top,Bottom
+ *  *ASMountBevel           None,Left,Right,Top, Bottom, NoOutline
+ *  *ASMountMountedBevel           None,Left,Right,Top, Bottom, NoOutline
+ *  *ASMountUnmountedBevel           None,Left,Right,Top, Bottom, NoOutline
+ *  *ASMountShapeToContents
+ */
+#define ASMOUNT_ID_START        				(WINLIST_ID_END+1)
+#define ASMOUNT_TileSize_ID							(ASMOUNT_ID_START+3)
+#define ASMOUNT_Align_ID                (ASMOUNT_ID_START+10)
+#define ASMOUNT_Bevel_ID                (ASMOUNT_ID_START+11)
+#define ASMOUNT_MountedBevel_ID         (ASMOUNT_ID_START+12)
+#define ASMOUNT_UnmountedBevel_ID       (ASMOUNT_ID_START+13)
+#define ASMOUNT_UnmountedStyle_ID       (ASMOUNT_ID_START+14)
+#define ASMOUNT_MountedStyle_ID         (ASMOUNT_ID_START+15)
+#define ASMOUNT_ShapeToContents_ID      (ASMOUNT_ID_START+16)
+#define ASMOUNT_Vertical_ID 				    (ASMOUNT_ID_START+17)
 
+#define ASMOUNT_BALLOONS_ID             (ASMOUNT_ID_START+18)
+
+#define ASMOUNT_ShowHints_ID	  				(ASMOUNT_ID_START+19)
+
+#define ASMOUNT_ID_END                  (ASMOUNT_ID_START+30)
+
+/* config data structure */
+
+typedef struct ASMountConfig
+{
+#define ASMOUNT_TileSize				(0x01<<1)
+#define ASMOUNT_Align           (0x01<<2)
+#define ASMOUNT_MountedBevel    (0x01<<3)
+#define ASMOUNT_UnmountedBevel  (0x01<<4)
+#define ASMOUNT_Bevel           (WINLIST_FBevel|WINLIST_UBevel|WINLIST_SBevel)
+#define ASMOUNT_ShapeToContents (0x01<<5)
+#define ASMOUNT_Vertical				(0x01<<6)
+#define ASMOUNT_ShowHints				(0x01<<7)
+
+	ASModuleConfig asmodule_config;
+
+	ASFlagType	flags ;
+	ASFlagType	set_flags ;
+	
+  ASGeometry 	TileSize;
+
+/* phony flags */
+#define ASMOUNT_UnmountedStyle	0
+#define ASMOUNT_MountedStyle 	0
+	char *UnmountedStyle ;
+	char *MountedStyle ;
+
+  ASFlagType      Align ;
+  ASFlagType      MountedBevel, UnmountedBevel;
+
+}ASMountConfig;
+
+ASModuleConfigClass *getASMountConfigClass() ;
+
+#define AS_ASMOUNT_CONFIG(p) AS_MODULE_CONFIG_TYPED(p,CONFIG_ASMount_ID,ASMountConfig)
+
+ASModuleConfig *CreateASMountConfig ();
+void DestroyASMountConfig (ASModuleConfig *config);
+void PrintASMountConfig (ASMountConfig *config);
+int WriteASMountOptions (const char *filename, char *myname, WinListConfig * config, unsigned long flags);
+ASMountConfig *ParseASMountOptions (const char *filename, char *myname);
+void MergeASMountOptions ( ASModuleConfig *to, ASModuleConfig *from);
+ASFlagType DigestASMountAlign (ASMountConfig *Config, ASFlagType align );
+void CheckASMountConfigSanity(ASMountConfig *Config, ASGeometry *default_tile_size);
 
 /**************************************************************************/
 /*                        database pasring definitions                    */
 /**************************************************************************/
-
-
-#define GRAVITY_ID_START            (WINLIST_ID_END+1)
+#define GRAVITY_ID_START            (ASMOUNT_ID_END+1)
 
 #define GRAVITY_NorthWest_ID        (GRAVITY_ID_START+NorthWestGravity)
 #define GRAVITY_North_ID            (GRAVITY_ID_START+NorthGravity)
@@ -2202,7 +2285,7 @@ Bool UpdateKCSRC();
 /***************************************************************************/
 /*                        WinTabs config parsing definitions               */
 /***************************************************************************/
-/* New winlist config :
+/* New winTabs config :
  *
  *  *WinTabsGeometry         WxH+X+Y
  *  *WinTabsMinTabMaxRows    rows
@@ -2580,6 +2663,7 @@ void DestroyIdentConfig (IdentConfig * config);
 #define ASCONFIG_Wharf_ID				(ASCONFIG_ID_START+10)
 #define ASCONFIG_WinList_ID				(ASCONFIG_ID_START+11)
 #define ASCONFIG_WinTabs_ID				(ASCONFIG_ID_START+12)
+#define ASCONFIG_ASMount_ID				(ASCONFIG_ID_START+13)
 #define ASCONFIG_ID_END                 (ASCONFIG_ID_START+16)
 
 extern struct SyntaxDef ASConfigSyntax;   /* THIS SYNTAX INCLUDES ALL OTHER SYNTAXES */

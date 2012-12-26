@@ -2139,7 +2139,7 @@ SetCustomCursor (char *text, FILE * fd, char **arg, int *junk)
 		return;
 	}
 
-	path = findIconFile (f_mask, Environment->cursor_path, R_OK);
+	path = find_file(f_mask, Environment->cursor_path, R_OK);
 	if (path)
 	{
 		XReadBitmapFile (dpy, Scr.Root, path, &width, &height, &mask, &x, &y);
@@ -2150,7 +2150,7 @@ SetCustomCursor (char *text, FILE * fd, char **arg, int *junk)
 		return;
 	}
 
-	path = findIconFile (f_cursor, Environment->cursor_path, R_OK);
+	path = find_file(f_cursor, Environment->cursor_path, R_OK);
 	if (path)
 	{
 		XReadBitmapFile (dpy, Scr.Root, path, &width, &height, &cursor, &x, &y);

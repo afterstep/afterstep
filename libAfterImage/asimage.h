@@ -949,6 +949,8 @@ size_t asimage_add_line_bgra (ASImage * im, register CARD32 * data, unsigned int
 
 ASFlagType get_asimage_chanmask( ASImage *im);
 int check_asimage_alpha (ASVisual *asv, ASImage *im );
+void get_asimage_closure (ASImage *im, int *left_return, int *top_return, int *right_return, int *bottom_return, int threshold);
+
 int asimage_decode_line (ASImage * im, ColorPart color, CARD32 * to_buf, unsigned int y, unsigned int skip, unsigned int out_width);
 void move_asimage_channel( ASImage *dst, int channel_dst, ASImage *src, int channel_src );
 void copy_asimage_channel( ASImage *dst, int channel_dst, ASImage *src, int channel_src );

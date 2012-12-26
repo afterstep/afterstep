@@ -238,7 +238,6 @@ grab_root_asimage( ScreenInfo *scr, Window target, Bool screenshot )
 	XSetWindowAttributes attr ;
     XEvent event ;
     int tick_count = 0 ;
-    Bool grabbed = False ;
 	Window src;
 	ASImage *root_im = NULL ;
 	int x = scr->RootClipArea.x, y = scr->RootClipArea.y ;
@@ -300,7 +299,6 @@ grab_root_asimage( ScreenInfo *scr, Window target, Bool screenshot )
 
 	if( src == None ) return NULL ;
 	grab_server();
-	grabbed = True ;
 	XMapRaised( dpy, src );
 	XSync(dpy, False );
 	start_ticker(1);
@@ -506,7 +504,7 @@ mystyle_make_image_int (MyStyle * style, int root_x, int root_y, int crop_x, int
 		{
 			unsigned int  root_w, root_h;
 			root_pixmap = ValidatePixmap (None, 1, 1, &root_w, &root_h);
-			LOCAL_DEBUG_OUT ("obtained Root pixmap = %lX", root_pixmap);
+			show_activity ("obtained Root pixmap = %lX, size %dx%d", root_pixmap, root_w, root_h);
 			ASDefaultScr->RootImage = clip_root_pixmap( root_pixmap, root_w, root_h );
              
 			if( ASDefaultScr->RootImage == NULL )
