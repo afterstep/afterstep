@@ -190,14 +190,13 @@ get_topmost_parent( Window w, Window *desktop_w )
 {
 	Window desktop = w ;
 #ifndef X_DISPLAY_MISSING
-    Window  root = None, parent = w;
+    Window  root = None;
 	Window *children = NULL;
     unsigned int  child_count;
 
 	XSync( asbase_current_dpy, False );
 	while( w != root && w != None )
 	{
-		parent = desktop ;
 		desktop = w ;
 		XQueryTree (asbase_current_dpy, w, &root, &w, &children, &child_count);
     	if (children)

@@ -45,7 +45,6 @@ int main(int argc, char* argv[])
 	struct ASFontManager *fontman = NULL;
 	struct ASFont  *font = NULL;
 	int i ;
-	int text_margin = size/2 ;
 	char * font_path = NULL;
 	ASGlyph** glyphs = NULL;
 	
@@ -73,7 +72,6 @@ int main(int argc, char* argv[])
 				else if( strncmp( argv[i], "-s", 2 ) == 0 )
 				{
 					size = atoi(argv[i+1]);
-					text_margin = size/2 ;
 				}else if (strncmp( argv[i], "-t", 2 ) == 0)
 					text = argv[i+1] ;
 				else if (strncmp( argv[i], "--unicode", 9 ) == 0)

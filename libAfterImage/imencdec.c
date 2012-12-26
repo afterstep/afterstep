@@ -118,13 +118,10 @@ static int asimage_quality_level = ASIMAGE_QUALITY_GOOD;
 
 Bool create_image_xim( ASVisual *asv, ASImage *im, ASAltImFormats format )
 {
-	Bool scratch = False, do_alpha = False ; 
+	Bool scratch = False; 
 	XImage **dst ;
 	if( format == ASA_ScratchXImageAndAlpha ) 
-	{	
 		format = ASA_ScratchXImage ;
-		do_alpha = True ;
-	}
 
 	if( format == ASA_ScratchXImage || format == ASA_ScratchMaskXImage ) 
 	{	

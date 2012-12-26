@@ -62,7 +62,7 @@ mygetostype (void)
   if (uname (&sysname) != -1)
     str = mystrdup(sysname.sysname);
 
-  return NULL;
+  return str;
 }
 
 #else

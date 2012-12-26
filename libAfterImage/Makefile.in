@@ -343,8 +343,10 @@ deps:
 apps: 	@APPSDEPS@
 		@(if test -d apps; then cd apps; $(MAKE); fi )
 
+show_flags_cc:
+		@echo "Compiling with :$(CC) $(CCFLAGS) $(EXTRA_DEFINES) $(INCLUDES) $(EXTRA_INCLUDES)"
 
-$(LIB_STATIC):	$(LIB_OBJS) $(LIB_INCS) config.h
+$(LIB_STATIC):	show_flags_cc $(LIB_OBJS) $(LIB_INCS) config.h
 		$(RMF) $(LIB_STATIC)
 		$(AR) $(LIB_STATIC) $(LIB_OBJS)
 		$(RANLIB) $(LIB_STATIC)
@@ -369,7 +371,8 @@ test_mmx:	test_mmx.o
 
 
 .c.o:
-		$(CC) $(CCFLAGS) $(EXTRA_DEFINES) $(INCLUDES) $(EXTRA_INCLUDES) -c $*.c -o $@
+		@echo " $*.c"
+		@$(CC) $(CCFLAGS) $(EXTRA_DEFINES) $(INCLUDES) $(EXTRA_INCLUDES) -c $*.c -o $@
 
 .c.s:
 		$(CC) $(CCFLAGS) $(EXTRA_DEFINES) $(INCLUDES) $(EXTRA_INCLUDES) -S $*.c
@@ -383,7 +386,7 @@ test_mmx:	test_mmx.o
 include .depend
 #endif
 
-$(LIB_SHARED_CYG): $(LIB_OBJS) $(LIB_INCS) config.h
+$(LIB_SHARED_CYG): show_flags_cc $(LIB_OBJS) $(LIB_INCS) config.h
 	$(CC) -shared -o $(LIB_SHARED_CYG) \
     		-Wl,--out-implib=$(LIB_SHARED_CYG_AR) \
     		-Wl,--export-all-symbols -Wl,--enable-auto-import \

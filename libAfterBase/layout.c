@@ -869,7 +869,6 @@ Bool
 moveresize_layout( ASLayout *layout, unsigned int width, unsigned int height, Bool force )
 {
     register int i ;
-    int spacing_needed = 0 ;
 
     if( layout  == NULL )
 		return False;
@@ -880,7 +879,7 @@ moveresize_layout( ASLayout *layout, unsigned int width, unsigned int height, Bo
     if( width == layout->width && height == layout->height && !force )
         return False;
     /* first working on width/x position */
-    spacing_needed = collect_sizes( layout, &(as_layout_width[0]), &(as_layout_fixed_width[0]), True );
+  collect_sizes( layout, &(as_layout_width[0]), &(as_layout_fixed_width[0]), True );
 	adjust_sizes( layout->width, width, layout->dim_x, &(as_layout_width[0]), &(as_layout_fixed_width[0]) );
     apply_sizes(layout->h_spacing, layout->offset_west+layout->v_border, layout->dim_x, &(as_layout_width[0]), &(as_layout_fixed_width[0]), &(as_layout_x[0]) );
 
@@ -897,7 +896,7 @@ moveresize_layout( ASLayout *layout, unsigned int width, unsigned int height, Bo
 	fprintf( stderr, "\n" );
 #endif
     /* then working on height/y position */
-    spacing_needed = collect_sizes( layout, &(as_layout_height[0]), &(as_layout_fixed_height[0]), False );
+    collect_sizes( layout, &(as_layout_height[0]), &(as_layout_fixed_height[0]), False );
     adjust_sizes( layout->height, height, layout->dim_y, &(as_layout_height[0]), &(as_layout_fixed_height[0]) );
     apply_sizes(layout->v_spacing, layout->offset_north+layout->h_border, layout->dim_y, &(as_layout_height[0]), &(as_layout_fixed_height[0]), &(as_layout_y[0]) );
 #ifdef LOCAL_DEBUG

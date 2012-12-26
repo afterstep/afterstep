@@ -773,7 +773,6 @@ parse_short_charset_name( const char *name )
 ASSupportedCharsets
 parse_charset_name( const char *name )
 {
-	ASSupportedCharsets set = 0;
 	int i = 0;
 	if( name == NULL || name[0] == '\0' || name[1] == '\0' ) /* that includes locale "C" */
 		return CHARSET_ISO8859_1 ;
@@ -939,7 +938,7 @@ parse_charset_name( const char *name )
 				if( name[3] == 'A' || name[3] == 'a' )
 					return CHARSET_CP1252 ;
 			}
-		set = CHARSET_CP1250 ;
+		return CHARSET_CP1250 ;
 	}else if( name[0] == 'A' || name[0] == 'a' ) /* ARABIC or ASMO-708 */
 	{
 		return CHARSET_ISO8859_6 ;
@@ -956,22 +955,6 @@ parse_charset_name( const char *name )
 		return CHARSET_UTF8 ;
 	}
 
-#if 0
-	while( set < SUPPORTED_CHARSETS_NUM )
-	{
-		char **aliases =&(_as_charset_names[set][0]) ;
-		register int i = 0 ;
-		char c;
-		while( (c = aliases[i][0]) != '\0' )
-		{
-			if( c == name[1] || tolower(c) == name[0] )
-				if( strcasecmp( aliases[i], name ) == 0 )
-					return set;
-			++i ;
-		}
-		++set;
-	}
-#endif
 	return CHARSET_ISO8859_1 ;
 }
 

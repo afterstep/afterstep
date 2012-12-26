@@ -540,7 +540,7 @@ ASImage *
 get_thumbnail_asimage( ASImageManager* imageman, const char *file, int thumb_width, int thumb_height, ASFlagType flags )
 {
 	ASImage *im = NULL ;
-#define AS_THUMBNAIL_NAME_FORMAT2	"%d_%s_%dx%dthumb%ld"
+#define AS_THUMBNAIL_NAME_FORMAT2	"%ld_%s_%dx%dthumb%ld"
 	size_t len = strlen(file);
 	char *thumbnail_name = safemalloc( len+sizeof(AS_THUMBNAIL_NAME_FORMAT2)+80 );
 
@@ -2567,7 +2567,7 @@ svg2ASImage( const char * path, ASImageImportParams *params )
 	}
 	
 	if (pixbuf)
-		gdk_pixbuf_unref(pixbuf);
+		g_object_unref(pixbuf);
 #endif	
 	SHOW_TIME("image loading",started);
 

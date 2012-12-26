@@ -182,30 +182,31 @@ socket_listen (const char *socket_name)
 void
 socket_buffered_write (ASSocketBuffer *sb, const void *data, int size)
 {
-
+	int written;
+	
 	if( sb == NULL || sb->fd < 0 )
 		return;
 
 	if (data == NULL || size == 0)
 	{
-		write (sb->fd, &(sb->buffer[0]), sb->bytes_in);
-		sb->bytes_in = 0;
+		written = write (sb->fd, &(sb->buffer[0]), sb->bytes_in);
+		sb->bytes_in -= written;
 	} else if (size > AS_SOCK_BUFFER_SIZE - sb->bytes_in)
 	{
-		if (sb->bytes_in > 0)
+		while (sb->bytes_in > 0)
 		{
-			write (sb->fd, &(sb->buffer[0]), sb->bytes_in);
-			sb->bytes_in = 0;
+			written = write (sb->fd, &(sb->buffer[0]), sb->bytes_in);
+			sb->bytes_in -= written;
 		}
-		write (sb->fd, data, size);
+		written = write (sb->fd, data, size);
 	} else
 	{
 		memcpy (&(sb->buffer[sb->bytes_in]), data, size);
 		sb->bytes_in += size;
 		if (sb->bytes_in == AS_SOCK_BUFFER_SIZE)
 		{
-			write (sb->fd, &(sb->buffer[0]), sb->bytes_in);
-			sb->bytes_in = 0;
+			written = write (sb->fd, &(sb->buffer[0]), sb->bytes_in);
+			sb->bytes_in -= written;
 		}
 	}
 }

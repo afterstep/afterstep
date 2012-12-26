@@ -1039,7 +1039,6 @@ Window showimage(ASImage* im, Bool looping, Window main_window, ASComposeWinProp
 
 	if (props->canvas == None)
 	{
-		int depth = 0;
 		int pmap_width = width;
 		int pmap_height = height;
 		GC gc = NULL;

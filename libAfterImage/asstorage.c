@@ -716,7 +716,6 @@ compress_stored_data( ASStorage *storage, CARD8 *data, int size, ASFlagType *fla
 	/* TODO: just a stub for now - need to implement compression */
 	int comp_size = size ;
 	CARD8  *buffer = data ;
-	size_t 	buf_size = size ; 
 
 	static compute_diff_func_type compute_diff_func[2][4] = 
 	{	{
@@ -784,7 +783,6 @@ compress_stored_data( ASStorage *storage, CARD8 *data, int size, ASFlagType *fla
 #endif 
 		}
 		buffer = storage->comp_buf ;
-		buf_size = storage->comp_buf_size ;
 		if( buffer ) 
 		{
 			if( get_flags( *flags, ASStorage_Bitmap ) )

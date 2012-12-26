@@ -90,7 +90,7 @@ proc_tables   _ptabs;
 char         *_elf_start = (char *)0x08048000;
 
 
-static void
+void
 get_proc_tables (proc_tables * ptabs)
 {
 #ifdef HAVE_ELF_H
@@ -209,7 +209,7 @@ print_elf_data (proc_tables * ptabs)
 
 static char  *unknown = "unknown";
 
-static const char*
+const char*
 find_func_symbol (void *addr, long *offset)
 {
 #ifdef HAVE_ELF_H
