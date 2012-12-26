@@ -183,6 +183,23 @@ parse_file_name(const char *filename, char **path, char **file)
 }
 
 char         *
+add_file_extension (const char *file, const char *ext)
+{
+	char *res;
+	int fname_len;
+	if (file == NULL)
+		return NULL;
+	if (ext == NULL)
+		return mystrdup (file);
+	fname_len = strlen(file);
+	res = safemalloc (fname_len+1+strlen(ext));
+	strcpy (res, file);
+	res[fname_len] = '.';
+	strcpy (&res[fname_len+1], ext);
+	return res;
+}
+
+char         *
 make_file_name (const char *path, const char *file)
 {
 	register int  i = 0;

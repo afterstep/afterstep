@@ -191,11 +191,17 @@ make_desktop_grid(int desk, int min_layer, Bool frame_only, int vx, int vy, ASWi
     grid_data.vy = vy ;
     grid_data.ignore_avoid_cover = True ;
 	grid_data.target = target ;
+#if 0
     area.x = vx ;
     area.y = vy ;
     area.width = Scr.MyDisplayWidth ;
     area.height = Scr.MyDisplayHeight ;
-
+#else
+    area.x = 0 ;
+    area.y = 0 ;
+    area.width = Scr.VxMax + Scr.MyDisplayWidth ;
+    area.height = Scr.VyMax + Scr.MyDisplayHeight ;
+#endif
     /* even though we are not limited to free space - it is best to avoid windows with AvoidCover
      * bit set */
     free_space_list =  build_free_space_list( target, &area, AS_LayerHighest, AS_LayerHighest );
@@ -221,9 +227,9 @@ make_desktop_grid(int desk, int min_layer, Bool frame_only, int vx, int vy, ASWi
     /* add all the window edges for this desktop : */
     iterate_asbidirlist( Scr.Windows->clients, get_aswindow_grid_iter_func, (void*)&grid_data, NULL, False );
 
-#if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
+//#if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
     print_asgrid( grid_data.grid );
-#endif
+//#endif
 
     return grid_data.grid;
 }

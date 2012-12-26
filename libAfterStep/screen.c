@@ -33,6 +33,7 @@
 #include "module.h"
 #include "wmprops.h"
 #include "../libAfterImage/afterimage.h"
+#include "X11/XKBlib.h"
 #ifdef XSHMIMAGE
 # include <sys/ipc.h>
 # include <sys/shm.h>
@@ -510,7 +511,7 @@ setup_modifiers ()
 		{
 			for (i = 0; i < mm->max_keypermod; i++)
 			{
-				if ((kc = *kp++) && ((ks = XKeycodeToKeysym (dpy, kc, 0)) != NoSymbol))
+				if ((kc = *kp++) && ((ks = XkbKeycodeToKeysym (dpy, kc, 0,0)) != NoSymbol))
 				{
 					kn = XKeysymToString (ks);
 					knl = strlen (kn);

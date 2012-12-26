@@ -753,6 +753,7 @@ Bool check_window_offscreen (ASWindow *asw);
 Bool check_frame_offscreen (ASWindow *asw);
 Bool check_frame_side_offscreen (ASWindow *asw, int i);
 
+void update_window_frame_pos(ASWindow *asw);
 
 
 void hide_hilite();                            /* unhilites currently highlited window */

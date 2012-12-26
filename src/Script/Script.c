@@ -102,7 +102,7 @@ ReadConfig (char *ScriptName)
   extern FILE *yyin;
   char *s;
 
-  s = (char *) findIconFile (ScriptName, ScriptPath, 4);
+  s = (char *) find_file(ScriptName, ScriptPath, 4);
 
   yyin = fopen (s, "r");
   if (yyin == NULL)

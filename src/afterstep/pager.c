@@ -306,16 +306,17 @@ deskviewport_aswindow_iter_func(void *data, void *aux_data)
         }
     }else
     {
-		if( old_desk.id != new_desk )
+		if (old_desk.id != new_desk)
 		{	
 			Window dest = (ASWIN_DESK(asw)==new_desk)?Scr.Root:Scr.ServiceWin;
         	quietly_reparent_aswindow( asw, dest, True );
 		}
-		if( dvx != 0 || dvy != 0 )
+		update_window_frame_pos(asw);
+		if( dvx != 0 || dvy != 0 || old_desk.id != new_desk)
 			on_window_status_changed( asw, True );
     }
 	display_progress( False, ".");
-    return True;
+  return True;
 }
 
 Bool
@@ -759,7 +760,7 @@ release_old_background( int desk, Bool forget )
 void
 release_all_old_background( Bool forget )
 {
-	LOCAL_DEBUG_OUT( "as_desk_numbers = %p, as_desk_num = %ld", Scr.wmprops->as_desk_numbers, Scr.wmprops->as_desk_num );
+	LOCAL_DEBUG_OUT( "as_desk_numbers = %p, as_desk_num = %ld", Scr.wmprops->as_desk_numbers, (long)Scr.wmprops->as_desk_num );
 	if( Scr.wmprops->as_desk_numbers != NULL )
 	{
 		int i = Scr.wmprops->as_desk_num ;
@@ -1370,13 +1371,12 @@ HandleBackgroundRequest( ASEvent *event )
     ARGB32  tint        = MAKE_ARGB32(0,xcli->data.s[6],xcli->data.s[7],xcli->data.s[8]) ;
     ASImage *im ;
     MyBackground *back = get_desk_back_or_default( desk, False );
-    Bool res = False;
     Bool do_tint = True ;
 
     if( xcli->data.s[6] == xcli->data.s[7] && xcli->data.s[6] == xcli->data.s[8] )
         do_tint = !(xcli->data.s[6] == 0 || xcli->data.s[6] == 0x7F );
 
-    LOCAL_DEBUG_OUT("pmap(%lX/%lu)->clip_pos(%+d%+d)->clip_size(%dx%d)->scale(%d)->tint(%lX)->window(%lX)", p, p, clip_x, clip_y, clip_width, clip_height, flags, tint, event->x.xclient.window );
+    LOCAL_DEBUG_OUT("pmap(%lX/%lu)->clip_pos(%+d%+d)->clip_size(%dx%d)->scale(%d)->tint(%lX)->window(%lX)", p, p, clip_x, clip_y, clip_width, clip_height, flags, (unsigned long)tint, event->x.xclient.window );
 
     if( clip_width > 0 && clip_height > 0 && back != NULL && back->type != MB_BackCmd )
     {
@@ -1421,9 +1421,7 @@ HandleBackgroundRequest( ASEvent *event )
                         im = tmp_im ;
                     }
                 }
-                if( asimage2drawable( Scr.asv, p, im, Scr.DrawGC, 0, 0, 0, 0, clip_width, clip_height, True) )
-                    res = True ;
-                else
+                if( !asimage2drawable( Scr.asv, p, im, Scr.DrawGC, 0, 0, 0, 0, clip_width, clip_height, True) )
                 {
                     XFreePixmap( dpy, p );
                     p = None ;

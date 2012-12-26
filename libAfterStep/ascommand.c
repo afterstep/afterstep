@@ -417,12 +417,10 @@ ascom_do_one(const char *op, void *data, Bool last)
 void
 ascom_pop_winlist(Bool last)
 {
-	client_item *elem;
-
 	if( last )
-		elem = extract_last_bidirelem(ASCommandState.selected_wins);
+		extract_last_bidirelem(ASCommandState.selected_wins);
 	else
-		elem = extract_first_bidirelem(ASCommandState.selected_wins);
+		extract_first_bidirelem(ASCommandState.selected_wins);
 }
 
 

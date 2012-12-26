@@ -565,7 +565,9 @@ WriteConfig (ConfigDef * config, FreeStorageElem *storage,
 	}
 	if (t_fd != -1)
 	{
-		write (t_fd, t_buffer.buffer, t_buffer.used);
+		int pos = 0;
+		while (pos < t_buffer.used)	pos += write (t_fd, t_buffer.buffer+pos, t_buffer.used-pos);
+		
 		if (target_type == CDT_Filename)
 			close (t_fd);
 	}

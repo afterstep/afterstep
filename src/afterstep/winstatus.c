@@ -567,7 +567,6 @@ apply_window_status_size(register ASWindow *asw, ASOrientation *od)
         int step_size = make_shade_animation_step( asw, od );
 		int new_width = asw->status->width ;
 		int new_height = asw->status->height ;
-		Bool unshaded = True ;
 LOCAL_DEBUG_OUT( "**CONFG Client(%lx(%s))->status(%ux%u%+d%+d,%s,%s(%d>-%d))",
                  asw->w, ASWIN_NAME(asw)?ASWIN_NAME(asw):"noname",
                  asw->status->width, asw->status->height, asw->status->x, asw->status->y,
@@ -578,13 +577,9 @@ LOCAL_DEBUG_OUT( "**CONFG Client(%lx(%s))->status(%ux%u%+d%+d,%s,%s(%d>-%d))",
         {
             if( ASWIN_HFLAGS(asw, AS_VerticalTitle) )
 			{
-				if( new_width > step_size )
-					unshaded  = False ;
 				new_width = step_size ;
             }else
 			{
-				if( new_height > step_size )
-					unshaded  = False ;
 				new_height = step_size ;
 			}
         }
@@ -651,6 +646,34 @@ update_window_frame_moved( ASWindow *asw, ASOrientation *od )
     	    	}
 			}
 }
+
+void
+update_window_frame_pos(ASWindow *asw)
+{
+  if( ASWIN_GET_FLAGS(asw, AS_Dead|AS_MoveresizeInProgress ) )
+  	return;
+
+	handle_canvas_config (asw->client_canvas);
+
+/*
+	if (!check_window_offscreen( asw ))
+		if( asw->internal && asw->internal->on_moveresize )
+    	    asw->internal->on_moveresize( asw->internal, None );
+*/
+	
+	if (!check_frame_offscreen (asw))
+		{
+			int i ;
+			ASFlagType changes = 0;
+			for( i = 0 ; i < FRAME_SIDES ; ++i )
+				if (asw->frame_sides[i])
+      		changes |= handle_canvas_config (asw->frame_sides[i]);
+			
+			if (changes != 0)
+				update_window_transparency (asw, False);
+		}
+}
+
 
 void
 SendConfigureNotify(ASWindow *asw)
@@ -1242,9 +1265,9 @@ LOCAL_DEBUG_OUT( "status geometry = %dx%d%+d%+d", asw->status->width, asw->statu
         {/* now we need to update frame sizes in status */
             unsigned int *frame_size = &(asw->status->frame_size[0]) ;
             unsigned short tbar_size = 0;
-			int bw = 0 ;
+/*			int bw = 0 ;
 			if( asw->hints && get_flags(asw->hints->flags, AS_Border)) 
-				bw = asw->hints->border_width ;
+				bw = asw->hints->border_width ; */
 			tbar_size = update_window_tbar_size( asw );
             for( i = 0 ; i < FRAME_SIDES ; ++i )
             {

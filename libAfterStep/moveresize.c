@@ -230,7 +230,6 @@ Bool grab_widget_pointer( ASWidget *widget, ASEvent *trigger,
 {
     int i ;
     Window wjunk;
-    Time ttime = CurrentTime ;
     ScreenInfo *scr = ASDefaultScr ;
 
     if( widget == NULL )
@@ -239,24 +238,13 @@ Bool grab_widget_pointer( ASWidget *widget, ASEvent *trigger,
 LOCAL_DEBUG_OUT("grabbing pointer at window(%+d%+d) root(%+d%+d), mask = 0x%X, window(%lX)", *x_return, *y_return, *root_x_return, *root_y_return, *mask_return, AS_WIDGET_WINDOW(widget) );
     if( trigger )
     {
-        ttime = trigger->event_time ;;
         if( trigger->scr )
             scr =  trigger->scr ;
     }
 
 /*	XUngrabPointer( dpy, trigger->event_time ); */
-#ifdef AS_WIDGET_H_HEADER_INCLUDED
-    if( XGrabPointer( dpy, AS_WIDGET_WINDOW(widget),
-		              False,
-					  event_mask,
-					  GrabModeAsync, GrabModeAsync,
-					  None,
-					  None,
-                      ttime ) == 0 )
-#else
     if( _as_grab_screen_func == NULL ||
     	_as_grab_screen_func( scr, scr->Feel.cursors[ASCUR_Move]))
-#endif
     {
 SHOW_CHECKPOINT;
 		for( i = 0 ; i < 5 ; ++i )

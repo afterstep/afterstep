@@ -125,6 +125,20 @@ load_icon (icon_t *icon, const char *filename, ASImageManager *imman )
 	return False;
 }
 
+Bool
+scale_icon (icon_t *icon, int width, int height, ASVisual *asv)
+{
+	if (icon && icon->image && width > 0 && height > 0
+			&& (icon->image->width != width || icon->image->height != height)) {
+		ASImage *tmp = scale_asimage (asv, icon->image, width, height, ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT);
+		if (tmp) {
+			safe_asimage_destroy (icon->image);
+			asimage2icon (tmp, icon);
+			return True;
+		}
+	}
+	return False;
+}
 
 void
 free_icon_resources (icon_t *icon)
@@ -172,6 +186,27 @@ void destroy_asbutton( ASButton *btn, Bool reusable )
     }
 }
 
+static void 
+update_button_size (button_t *button)
+{
+  button->width = 0 ;
+  button->height = 0 ;
+
+  if( button->unpressed.image )
+  {
+      button->width = button->unpressed.image->width ;
+      button->height = button->unpressed.image->height ;
+  }
+  if( button->pressed.image )
+  {
+      if( button->pressed.image->width > button->width )
+          button->width = button->pressed.image->width ;
+      if( button->pressed.image->height > button->height )
+          button->height = button->pressed.image->height ;
+  }
+
+}
+
 Bool
 load_button( button_t *button, char **filenames, ASImageManager *imman )
 {
@@ -181,22 +216,20 @@ load_button( button_t *button, char **filenames, ASImageManager *imman )
             load_icon(&(button->unpressed), filenames[0], imman );
         if( filenames[1] )
             load_icon(&(button->pressed), filenames[1], imman );
+				update_button_size (button);
+        return ( button->width > 0 && button->height > 0 );
+    }
+    return False;
+}
 
-        button->width = 0 ;
-        button->height = 0 ;
-
-        if( button->unpressed.image )
-        {
-            button->width = button->unpressed.image->width ;
-            button->height = button->unpressed.image->height ;
-        }
-        if( button->pressed.image )
-        {
-            if( button->pressed.image->width > button->width )
-                button->width = button->pressed.image->width ;
-            if( button->pressed.image->height > button->height )
-                button->height = button->pressed.image->height ;
-        }
+Bool
+scale_button( button_t *button, int width, int height, ASVisual *asv)
+{
+    if( button && asv && width > 0 && height > 0 )
+    {
+        scale_icon(&(button->unpressed), width, height, asv);
+        scale_icon(&(button->pressed), width, height, asv);
+				update_button_size (button);
         return ( button->width > 0 && button->height > 0 );
     }
     return False;

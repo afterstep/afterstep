@@ -43,6 +43,7 @@ struct button_t;
 
 #define CLASS_CUSTOM		"ASCustom"
 #define CLASS_ASRUN			"ASRun"
+#define CLASS_ASMOUNT			"ASMount"
 
 #define BASE_CONFIG     	(0x01<<0)
 #define LOOK_CONFIG     	(0x01<<1)

@@ -691,7 +691,7 @@ read_kde_systray_window_for (ASRawHints * hints, Window w)
 {
 	if (hints && w != None)
 	{
-		if (read_32bit_property (w, _XA_KDE_NET_SYSTEM_TRAY_WINDOW_FOR, &hints->kde_hints.systray_window_for))
+		if (read_32bit_property (w, _XA_KDE_NET_SYSTEM_TRAY_WINDOW_FOR, (CARD32*)&hints->kde_hints.systray_window_for))
 			set_flags( hints->kde_hints.flags, KDE_SysTrayWindowFor);
 	}
 }

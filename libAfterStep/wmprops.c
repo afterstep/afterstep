@@ -1139,7 +1139,7 @@ set_desktop_num_prop (ASWMProps * wmprops, INT32 new_desk, Window vroot, Bool ad
 		set_32bit_property (wmprops->scr->Root, _XA_WIN_WORKSPACE_COUNT, XA_CARDINAL, wmprops->desktop_num);
 		set_32bit_proplist (wmprops->scr->Root, _AS_DESK_NUMBERS, XA_CARDINAL, (CARD32*)&(wmprops->as_desk_numbers[0]),
 							wmprops->as_desk_num);
-		set_32bit_proplist (wmprops->scr->Root, _XA_NET_VIRTUAL_ROOTS, XA_WINDOW, &(wmprops->virtual_roots[0]),
+		set_32bit_proplist (wmprops->scr->Root, _XA_NET_VIRTUAL_ROOTS, XA_WINDOW, (CARD32*)&(wmprops->virtual_roots[0]),
 							wmprops->desktop_num);
 		if (add && !get_flags (wmprops->set_props, WMC_ASDesks))
 		{
@@ -1325,8 +1325,8 @@ set_clients_list (ASWMProps * wmprops, Window *list, int nclients)
 			XDeleteProperty (dpy, wmprops->scr->Root, _XA_WIN_CLIENT_LIST);
 		}else
 		{
-			set_32bit_proplist (wmprops->scr->Root, _XA_NET_CLIENT_LIST, XA_WINDOW, list, nclients);
-			set_32bit_proplist (wmprops->scr->Root, _XA_WIN_CLIENT_LIST, XA_CARDINAL, list, nclients);
+			set_32bit_proplist (wmprops->scr->Root, _XA_NET_CLIENT_LIST, XA_WINDOW, (CARD32*)list, nclients);
+			set_32bit_proplist (wmprops->scr->Root, _XA_WIN_CLIENT_LIST, XA_CARDINAL, (CARD32*)list, nclients);
 			memcpy( wmprops->client_list, list, nclients*sizeof(Window) );
 		}
 		XFlush (dpy);
@@ -1343,7 +1343,7 @@ set_stacking_order (ASWMProps * wmprops, Window *list, int nclients)
 			XDeleteProperty (dpy, wmprops->scr->Root, _XA_NET_CLIENT_LIST_STACKING);
 		else
 		{
-	 		set_32bit_proplist (wmprops->scr->Root, _XA_NET_CLIENT_LIST_STACKING, XA_WINDOW, list, nclients);	
+	 		set_32bit_proplist (wmprops->scr->Root, _XA_NET_CLIENT_LIST_STACKING, XA_WINDOW, (CARD32*)list, nclients);	
 			memcpy( wmprops->stacking_order, list, nclients*sizeof(Window) );
 		}
 		XFlush (dpy);

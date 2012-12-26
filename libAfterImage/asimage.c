@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#define LOCAL_DEBUG
+#undef LOCAL_DEBUG
 #undef DO_CLOCKING
 #ifndef NO_DEBUG_OUTPUT
 #undef DEBUG_RECTS
@@ -1076,6 +1076,74 @@ check_asimage_alpha (ASVisual *asv, ASImage *im )
 	return recomended_depth;
 }
 
+static Bool 
+check_line_empty (ASImage *im, CARD32 *buf, int line, int *left_return, int *right_return, int threshold)
+{
+	int count = asimage_decode_line (im, IC_ALPHA, buf, line, 0, im->width);
+	*left_return = 0 ; 
+	*right_return = im->width-1;
+	int i;
+
+	if (count < (int)im->width) 
+		return (ARGB32_ALPHA8(im->back_color) <= threshold);
+		
+	for (i = 0 ; i < im->width ; ++i)
+		if ((int)buf[i] <= threshold)		(*left_return)++;
+		else				break;
+		
+	for (i = (int)im->width-1 ; i > *left_return ; --i)
+		if ((int)buf[i] <= threshold)		(*right_return)--;
+		else				break;
+		
+	return (*left_return >= (int)im->width-1);
+}
+
+void
+get_asimage_closure (ASImage *im, int *left_return, int *top_return, int *right_return, int *bottom_return, int threshold)
+{
+	int left = 0, top = 0;
+	int right = 0, bottom = 0;
+	
+	int left_tmp, right_tmp;
+
+	if (im != NULL) {
+		unsigned int            i;
+		ASScanline     buf;
+		bottom = im->height-1;
+		right = im->width-1;
+		
+		prepare_scanline (im->width, 0, &buf, 0);
+		buf.flags = SCL_DO_ALPHA ;
+/* top */
+		for (; top < im->height; ++top)
+			if (!check_line_empty (im, buf.alpha, top, &left_tmp, &right_tmp, threshold))
+				break;
+/* bottom */
+		for (; bottom > top; --bottom)
+			if (!check_line_empty (im, buf.alpha, bottom, &left_tmp, &right_tmp, threshold))
+				break;
+
+/* sides */
+		if (bottom < top && (left_return != NULL || right_return != NULL)) {
+			left = im->width-1;
+			right = 0;
+			for (i = top ; i <= bottom ; ++i) {
+				check_line_empty (im, buf.alpha, bottom, &left_tmp, &right_tmp, threshold);
+				if (left_tmp < left) left = left_tmp;
+				if (right_tmp > right) right = right_tmp;
+			}
+		}
+		free_scanline(&buf, True);
+	}
+	if (left_return)	
+		*left_return = left;
+	if (top_return)	
+		*top_return = top;
+	if (right_return)	
+		*right_return = right;
+	if (bottom_return)	
+		*bottom_return = bottom;
+}
 
 
 /* ********************************************************************************/

@@ -38,6 +38,7 @@
 #include "mylook.h"
 #include "wmprops.h"
 #include "desktop_category.h"
+#include "../libAfterImage/asimage.h"
 #include "../libAfterImage/xpm.h"
 #include "../libAfterImage/char2uni.h"
 
@@ -773,6 +774,63 @@ set_environment_tool_from_list( ASEnvironment *e, ASToolType type, char ** list,
 	show_progress( "%s is set to: \"%s\"", _as_tools_name[type], e->tool_command[type]?e->tool_command[type]:"none" );
 }
 
+ASImage *
+load_environment_icon (const char* category, const char* name, int desired_size)
+{
+	ASImage *icon = NULL;
+	char* png_name = NULL;
+	char *svg_name = NULL;
+	Bool add_to_man = False;
+	static char *standard_sizes[] = { "16x16", "32x32", "48x48", "64x64", "128x128", NULL };
+	desired_size = (desired_size+15)/16 - 1;
+	if (desired_size > 4 )
+		desired_size = 4;
+
+	if (name == NULL || ASDefaultScr == NULL)
+		return NULL;
+
+	icon = get_asimage_quiet (ASDefaultScr->image_manager, name, ASFLAGS_EVERYTHING, 100);
+	if (icon == NULL) {
+		add_to_man = True;
+		if (strchr (name, '.') == NULL) {
+			png_name = add_file_extension (name, "png");
+			icon = get_asimage_quiet (ASDefaultScr->image_manager, png_name, ASFLAGS_EVERYTHING, 100);
+			if (icon == NULL) {
+				svg_name = add_file_extension (name, "svg");
+				icon = get_asimage_quiet (ASDefaultScr->image_manager, svg_name, ASFLAGS_EVERYTHING, 100);
+			}
+		}
+	}
+	show_debug (__FILE__, __FUNCTION__, __LINE__, "IconTheme = %s", Environment->IconTheme);
+	if (icon == NULL && Environment && Environment->IconTheme) {
+		char *tmp = make_file_name (Environment->IconTheme, standard_sizes[desired_size]);
+		char *theme_path = make_file_name (tmp, category);
+		char *themed_name = make_file_name (theme_path, name);
+		free (tmp);
+		icon = get_asimage_quiet (ASDefaultScr->image_manager, themed_name, ASFLAGS_EVERYTHING, 100);
+		free (themed_name);
+		if (icon == NULL) {
+			themed_name = make_file_name (theme_path, png_name);
+			icon = get_asimage_quiet (ASDefaultScr->image_manager, themed_name, ASFLAGS_EVERYTHING, 100);
+			free (themed_name);
+		}
+		if (icon == NULL) {
+			themed_name = make_file_name (theme_path, svg_name);
+			icon = get_asimage_quiet (ASDefaultScr->image_manager, themed_name, ASFLAGS_EVERYTHING, 100);
+			free (themed_name);
+		}
+		free (theme_path);
+	}
+	if (icon && add_to_man && icon->ref_count == 1) {
+		forget_asimage (icon);					 
+		if (icon->imageman == NULL)
+			store_asimage( ASDefaultScr->image_manager, icon, name );					 
+	}
+	if (png_name) free (png_name);
+	if (svg_name) free (svg_name);
+	return icon;
+} 
+
 ASEnvironment *
 make_default_environment()
 {
@@ -841,7 +899,7 @@ make_default_environment()
 	/* by default - don't do overwrite gtkrc files so to not aggrave people */
 	e->gtkrc_path = NULL ;  /* make_session_rc_file(Session, GTKRC_FILE); */
   	e->gtkrc20_path = NULL ; /* make_session_rc_file(Session, GTKRC20_FILE) ; */
-
+	e->IconTheme = mystrdup("oxygen");
 	return e;
 }
 
@@ -871,6 +929,7 @@ destroy_asenvironment( ASEnvironment **penv )
 			
 			destroy_string( &(e->gtkrc_path)) ;
 			destroy_string( &(e->gtkrc20_path)) ;
+			destroy_string( &(e->IconTheme)) ;
 
 			free( e ) ;
 			*penv = NULL ;

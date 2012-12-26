@@ -141,7 +141,7 @@ build_btn_block( ASTile *tile,
     unsigned short max_width = 0, max_height = 0 ;
     register int i = count ;
     ASBtnBlock *blk = &(tile->data.bblock) ;
-    LOCAL_DEBUG_CALLER_OUT( "lm(%d),tm(%d),sp(%d),or(%d)", left_margin, top_margin, spacing, order );
+    LOCAL_DEBUG_CALLER_OUT( "count(%d),lm(%d),tm(%d),sp(%d),or(%d)", left_margin, top_margin, spacing, order );
     if( count > 0 )
         if( !AS_ASSERT( from_list ) )
             while( --i >= 0 )
@@ -155,6 +155,7 @@ build_btn_block( ASTile *tile,
                     if( from_list[i]->height > max_height )
                         max_height = from_list[i]->height ;
                 }
+		LOCAL_DEBUG_OUT ("realcount = %d, max_size = %dx%d", real_count, max_width, max_height );
     if( real_count > 0 )
     {
         int k = real_count-1 ;
@@ -1784,9 +1785,9 @@ LOCAL_DEBUG_OUT( "bar's geometry = %dx%d%+d%+d, pointer posish = %+d%+d", tbar->
              0 <= root_y && tbar->height > root_y )
         {
             int tmp_context ;
-            int i ;
+            int i = tbar->tiles_num;
             context = tbar->context ;
-            for( i = 0 ; i < tbar->tiles_num ; ++i )
+            while (--i)
             {
                 int type = ASTileType(tbar->tiles[i]);
 
@@ -1794,6 +1795,7 @@ LOCAL_DEBUG_OUT( "bar's geometry = %dx%d%+d%+d, pointer posish = %+d%+d", tbar->
                 {
                     int tile_x = root_x - tbar->tiles[i].x ;
                     int tile_y = root_y - tbar->tiles[i].y ;
+										LOCAL_DEBUG_OUT ("checking tile %d, %dx%d%+d%+d", i, tbar->tiles[i].width, tbar->tiles[i].height, tbar->tiles[i].x, tbar->tiles[i].y);
                     if( tile_x >= 0 && tile_y >= 0 && tile_x < tbar->tiles[i]. width && tile_y < tbar->tiles[i].height )
                         if( (tmp_context = ASTileTypeHandlers[type].check_point_handler( &(tbar->tiles[i]), tile_x, tile_y )) != C_NO_CONTEXT )
                         {
