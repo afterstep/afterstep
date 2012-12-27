@@ -231,7 +231,7 @@ set_asmenu_item_data( ASMenuItem *item, MenuDataItem *mdi )
         icon_im = mdi->minipixmap_image ;
     else if( mdi->minipixmap )
         icon_im = GetASImageFromFile( mdi->minipixmap );
-	else if( mdi->fdata->func == F_CHANGE_BACKGROUND_FOREIGN ) 
+	else if( mdi->fdata->func == F_CHANGE_BACKGROUND_FOREIGN && !is_web_background (mdi->fdata)) 
 		icon_im = GetASImageFromFile( mdi->fdata->text );
 
     if( icon_im )
@@ -787,7 +787,6 @@ static void menu_item_balloon_timer_handler (void *data);
 void
 select_menu_item( ASMenu *menu, int selection, Bool render )
 {
-	Bool needs_scrolling ;
 LOCAL_DEBUG_CALLER_OUT( "%p,%d", menu, selection );
 	
     if( AS_ASSERT(menu) || menu->items_num == 0 )
@@ -797,7 +796,6 @@ LOCAL_DEBUG_CALLER_OUT( "%p,%d", menu, selection );
     else if( selection >= (int)menu->items_num )
         selection = menu->items_num - 1 ;
 
-	needs_scrolling = ( selection < menu->top_item || selection >= menu->top_item + menu->visible_items_num ) ;
     if( selection != menu->selected_item )
     {
 		if( menu->item_balloon )

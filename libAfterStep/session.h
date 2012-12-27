@@ -30,6 +30,7 @@ typedef struct ASSession
   char *overriding_look, *overriding_feel, *overriding_theme, *overriding_colorscheme ;
 
   char *workspace_state ;  /* n-c/workspace_state_scr# */
+  char *webcache;  /* n-c/workspace_state_scr# */
 
   ASDeskSession *defaults;
   ASDeskSession **desks;
@@ -67,6 +68,7 @@ char *make_session_file   (ASSession * session, const char *source, Bool use_dep
 char *make_session_dir    (ASSession * session, const char *source, Bool use_depth );
 char *make_session_data_file  (ASSession * session, Bool shared, int if_mode_only, ... );
 char *make_session_rc_file( ASSession *session, const char *tmpl );
+char *make_session_webcache_file (ASSession *session, const char *url);
 
 int CheckOrCreate (const char *what);
 void check_AfterStep_dirtree ( char * ashome, Bool create_non_conf);

@@ -317,6 +317,8 @@ void reload_menu_pmaps( MenuData *menu, Bool force  );
 /* usefull to qsort array of FunctionData pointers : */
 int compare_func_data_name(const void *a, const void *b);
 
+Bool is_web_background (FunctionData *fdata);
+
 
 void print_func_data(const char *file, const char *func, int line, FunctionData *data);
 char *format_FunctionData (FunctionData *data);

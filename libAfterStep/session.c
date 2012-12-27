@@ -296,8 +296,6 @@ create_assession ( ScreenInfo *scr, char *ashome, char *asshare)
 {
     ASSession *session = (ASSession *) safecalloc (1, sizeof (ASSession));
 
-
-
 	session->scr = ( scr == NULL )?ASDefaultScr:scr ;     /* sensible default */
 
     session->colordepth = session->scr->d_depth ;
@@ -313,6 +311,8 @@ create_assession ( ScreenInfo *scr, char *ashome, char *asshare)
     session->defaults->colorscheme_file = find_default_colorscheme_file (session);
 
 	session->workspace_state = find_workspace_file(session);
+	session->webcache = make_file_name (ashome, WEBCACHE_DIR);
+
 
 	session->desks_used = 0 ;
 	session->desks_allocated = 4 ;
@@ -380,6 +380,8 @@ destroy_assession (ASSession * session)
         free( session->overriding_colorscheme );
 	if( session->workspace_state )
 		free( session->workspace_state );
+		if (session->webcache)
+			free (session->webcache);
 
 	i = session->desks_used ;
     while (--i >= 0)
@@ -769,6 +771,10 @@ check_AfterStep_dirtree ( char * ashome, Bool create_non_conf )
 	fullfilename = make_file_name (ashome, TILE_DIR);
     CheckOrCreate(fullfilename);
     free( fullfilename );
+
+	fullfilename = make_file_name (ashome, WEBCACHE_DIR);
+    CheckOrCreate(fullfilename);
+    free( fullfilename );
 	
 	if( create_non_conf )
     {
@@ -793,7 +799,7 @@ check_AfterStep_dirtree ( char * ashome, Bool create_non_conf )
 		free(postcard_fname);
     }
 
-	char *cachefilename = make_file_name(ashome, "thumbnails");
+	char *cachefilename = make_file_name(ashome, THUMBNAILS_DIR);
     CheckOrCreate(cachefilename);
 	extern void set_asimage_thumbnails_cache_dir(const char*);
     set_asimage_thumbnails_cache_dir(cachefilename);
@@ -1072,6 +1078,35 @@ char *make_session_rc_file( ASSession *session, const char *tmpl )
 		return copy_replace_envvar (tmpl);
 	
 	return make_session_data_file(session, False, 0, tmpl, NULL );
+}	 
+
+char *make_session_webcache_file (ASSession *session, const char *url)
+{
+	char *fullfilename = NULL;
+	if( url != NULL && session && session->webcache) {
+		int len = 0, i;
+		char* escapedUrl;
+		
+		for (i = 0 ; url[i] ; ++i) {
+			if (url[i] == '_') ++len;
+			++len;
+		}
+		 
+		escapedUrl = safemalloc (len +1);
+		len = 0;
+		for (i = 0 ; url[i] ; ++i) {
+			if (url[i] == '_') escapedUrl[len++] = '_';
+			if (url[i] != '.' && url[i] != '_' && !isalnum(url[i]))
+				escapedUrl[len++] = '_';
+			else
+				escapedUrl[len++] = url[i];
+		}
+		escapedUrl[len] = '\0';
+
+		fullfilename = make_file_name (session->webcache, escapedUrl);
+		free (escapedUrl);
+	}
+	return fullfilename;
 }	 
 
 

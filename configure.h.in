@@ -64,6 +64,8 @@
 #define BACK_DIR        "backgrounds"
 #define LOOK_DIR        "looks"
 #define THEME_DIR       "themes"
+#define WEBCACHE_DIR    "webcache"
+#define THUMBNAILS_DIR  "thumbnails"
 #define COLORSCHEME_DIR "colorschemes"
 #define THEME_FILE_DIR  "installed_themes"
 #define FEEL_DIR        "feels"

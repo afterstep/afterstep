@@ -653,6 +653,14 @@ assign_minipixmap( MenuDataItem *mdi, char *minipixmap )
 }
 
 Bool 
+is_web_background (FunctionData *fdata)
+{
+	return (fdata->func == F_CHANGE_BACKGROUND_FOREIGN &&
+					(strncmp (fdata->text, "http://", 7) == 0 || 
+					 strncmp (fdata->text, "ftp://", 6) == 0 ));
+}
+
+Bool 
 check_fdata_availability( FunctionData *fdata )
 {
 	if( fdata == NULL ) 
@@ -667,7 +675,7 @@ check_fdata_availability( FunctionData *fdata )
 				LOCAL_DEBUG_OUT( "unavailable :  \"%s\"", fdata->name?fdata->name:"nameless" );
 				return False ;
         	}
-    	}else if( fdata->func == F_CHANGE_BACKGROUND_FOREIGN )
+    	}else if( fdata->func == F_CHANGE_BACKGROUND_FOREIGN && !is_web_background (fdata))
 		{
 			ASImageFileTypes type = check_asimage_file_type( fdata->text );
 			LOCAL_DEBUG_OUT( "foreign back image \"%s\" has type %d", fdata->text, type );
@@ -822,11 +830,11 @@ reload_menu_pmaps( MenuData *menu, Bool force )
 		for( curr = menu->first ; curr != NULL ; curr = curr->next )
 		{	
 			char *minipixmap = curr->minipixmap ;
-			if( minipixmap == NULL && curr->fdata->func == F_CHANGE_BACKGROUND_FOREIGN ) 
+			if( minipixmap == NULL && curr->fdata->func == F_CHANGE_BACKGROUND_FOREIGN 
+			    && !is_web_background (curr->fdata)) 
 				minipixmap = curr->fdata->text;
     		
-
-            if( curr->minipixmap_image )
+           if( curr->minipixmap_image )
 			{
 				if( minipixmap != NULL && !force ) 
 				{

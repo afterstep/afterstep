@@ -1171,7 +1171,7 @@ void exec_in_dir_func_handler( FunctionData *data, ASEvent *event, int module )
 		char *dirname = NULL, *fulldirname = NULL;
 		parse_token (data->text, &dirname);
 		fulldirname = put_file_home (dirname);
-		chdir (fulldirname);
+		if (chdir (fulldirname) == 0)
 	    spawn_child( cmd, -1, -1, NULL, None, C_NO_CONTEXT, False, False, NULL );
 	}
 }
@@ -1515,14 +1515,82 @@ static void change_background_internal( FunctionData *data, Bool autoscale )
 }
 
 
+typedef struct {
+	char *url;
+	char *cachedName;
+	char *logName;
+	time_t downloadStart;
+	FunctionData fdata;
+} WebBackgroundDownloadAuxData;
+
+static WebBackgroundDownloadAuxData webBackgroundDownloadAuxData = {NULL,NULL,NULL,0,{0}};
+
+static void
+webBackgroundDownloadHandler (void *data)
+{
+	WebBackgroundDownloadAuxData *wb = (WebBackgroundDownloadAuxData*)data;
+	Bool downloadComplete = False;
+	char *log = load_file (wb->logName);
+	if (log && log[0] != '\0') {
+		int s1 = 0, s2 = 1;
+		
+		char *openBracket = strchr (log, '[');
+		LOCAL_DEBUG_OUT ("Open Bracket:%s", openBracket);
+		if (openBracket) {
+			sscanf (openBracket+1, "%d/%d", &s1, &s2);
+			LOCAL_DEBUG_OUT ("s1 = %d, s2 = %d", s1, s2);
+		}
+		free (log);
+		if (s1 > 0 && s1 == s2)
+			downloadComplete = True;
+		else {
+			show_warning ("Failed to download \"%s\", see \"%s\" for details", wb->url, wb->logName);
+			return; /* download failed */
+		}
+	}
+
+	if (downloadComplete) {
+		change_background_internal (&(wb->fdata), True );
+	}else
+	  timer_new (300, &webBackgroundDownloadHandler, data);
+}
+
 void change_background_func_handler( FunctionData *data, ASEvent *event, int module )
 {
+	timer_remove_by_data (&webBackgroundDownloadAuxData);
 	change_background_internal( data, False );
 }
 
 void change_back_foreign_func_handler( FunctionData *data, ASEvent *event, int module )
 {
-	change_background_internal( data, True );
+	timer_remove_by_data (&webBackgroundDownloadAuxData);
+
+	if (data->text != NULL && is_web_background(data)){
+		char *cachedFileName = make_session_webcache_file (Session, data->text);
+		/* cmdl: wget -b -nv -o <escaped_url>.log -O <cache_file> <url> */
+#define WGET_CMDL_HEADER "wget -b -nv -o "
+		int cacheFNLen = strlen(cachedFileName);
+		char *logFileName = safemalloc (cacheFNLen+4+1);
+		
+		sprintf (logFileName, "%s.log", cachedFileName);
+
+		set_string (&(webBackgroundDownloadAuxData.url), mystrdup(data->text));
+		set_string (&(webBackgroundDownloadAuxData.cachedName), cachedFileName);
+		set_string (&(webBackgroundDownloadAuxData.logName), logFileName);
+		webBackgroundDownloadAuxData.downloadStart = time(NULL);
+		webBackgroundDownloadAuxData.fdata = *data;		
+		webBackgroundDownloadAuxData.fdata.text = cachedFileName;
+		if (CheckFile (cachedFileName) == 0)
+			change_background_internal (&(webBackgroundDownloadAuxData.fdata), True );			
+		else {
+			char *wget_cmdl = safemalloc (sizeof(WGET_CMDL_HEADER)+cacheFNLen+4+1+2+1+cacheFNLen+1+strlen(data->text)+1);
+			sprintf (wget_cmdl, WGET_CMDL_HEADER "%s.log -O %s %s", cachedFileName, cachedFileName, data->text);
+ 			spawn_child( wget_cmdl, -1, -1, NULL, None, C_NO_CONTEXT, True, False, NULL );
+			free (wget_cmdl);
+	  	timer_new (300, &webBackgroundDownloadHandler, (void *)&webBackgroundDownloadAuxData);
+		}
+	}else
+		change_background_internal( data, True );
 }	 
 
 
