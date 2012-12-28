@@ -342,21 +342,6 @@ GetBaseOptions (const char *filename)
 void
 GetOptions (const char *filename)
 {
-#if 0
-    START_TIME(option_time);
-    WinListConfig *config = ParseWinListOptions( filename, MyName );
-
-#if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
-    PrintWinListConfig (config);
-#endif
-    /* Need to merge new config with what we have already :*/
-	MergeWinListOptions( Config, config );
-
-    if (config->asmodule_config.style_defs)
-        ProcessMyStyleDefinitions (&(config->asmodule_config.style_defs));
-	DestroyWinListConfig( config );
-    SHOW_TIME("Config parsing",option_time);
-#endif	
 }
 
 Bool 
