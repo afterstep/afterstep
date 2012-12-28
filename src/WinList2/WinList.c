@@ -75,13 +75,13 @@ typedef struct {
     ASWindowData *window_order[MAX_WINLIST_WINDOW_COUNT];
     unsigned short bar_col[MAX_WINLIST_WINDOW_COUNT];
     unsigned short bar_row[MAX_WINLIST_WINDOW_COUNT];
-    unsigned short bar_width[MAX_WINLIST_WINDOW_COUNT];
-    unsigned short col_width[MAX_WINLIST_WINDOW_COUNT];
     unsigned short col_x[MAX_WINLIST_WINDOW_COUNT];
 
     unsigned int min_col_width ;
     unsigned int max_item_height ;
-    unsigned int columns_num, rows_num;
+    unsigned int rows_num;
+    unsigned int width_wanted[MAX_WINLIST_WINDOW_COUNT];
+    unsigned int width_allocated[MAX_WINLIST_WINDOW_COUNT];
 
     ASTBarData  *pressed_bar;
 
@@ -983,19 +983,16 @@ postponed_rearrange_winlist( void *vdata )
 Bool
 rearrange_winlist_window( Bool dont_resize_main_canvas )
 {
-    int i ;
+    int i, j ;
     unsigned int allowed_max_width = (Config->MaxSize.width==0)?Scr.MyDisplayWidth:Config->MaxSize.width ;
-	unsigned int allowed_max_height = (Config->MaxSize.height==0)?Scr.MyDisplayHeight:Config->MaxSize.height ;
+    unsigned int allowed_max_height = (Config->MaxSize.height==0)?Scr.MyDisplayHeight:Config->MaxSize.height ;
     unsigned int allowed_min_width = Config->MinSize.width ;
     unsigned int allowed_min_height = Config->MinSize.height;
     unsigned int max_col_width = (Config->MaxColWidth==0)?Scr.MyDisplayWidth:Config->MaxColWidth ;
     unsigned int max_item_height = 1;
     unsigned int min_col_width = 1;
     unsigned int max_rows = 0 ;
-    int row = 0, col = 0;
-    unsigned int total_width = 0, total_height = 0 ;
-    int y ;
-	
+    
     LOCAL_DEBUG_CALLER_OUT( "%sresize canvas. windows_num = %d",
                             dont_resize_main_canvas?"Don't ":"Do ", WinListState.windows_num );
     
@@ -1010,52 +1007,52 @@ rearrange_winlist_window( Bool dont_resize_main_canvas )
             allowed_max_width = Scr.MyDisplayWidth ;
         if( allowed_max_height > Scr.MyDisplayHeight )
             allowed_max_height = Scr.MyDisplayHeight ;
-	}
-	
-	if( WinListState.windows_num != 0 && WinListState.window_order != NULL )	
-	{
-    	/* Pass 1: determining size of each individual bar, as well as max height of any bar */
-    	for( i = 0 ; i < WinListState.windows_num ; ++i )
-		{
-        	ASTBarData   *tbar = WinListState.window_order[i]->bar ;
-        	int width, height ;
-        	if( tbar == NULL )
-        	{
-            	WinListState.bar_width[i] = 0 ;
-            	continue;
-        	}
-
-        	width = calculate_astbar_width( tbar );
-        	height = calculate_astbar_height( tbar );
-        	if( width == 0 )
-            	width = 1 ;
-
-        	if( width > min_col_width )
-            	min_col_width = width ;
-        	WinListState.bar_width[i] = width ;
-        	if( height > max_item_height )
-            	max_item_height = height ;
-    	}
-		LOCAL_DEBUG_OUT( "calculated max_item_height = %d", max_item_height );
-	}
-	
-	if( min_col_width <= 1 ) 
-		min_col_width = WinListState.min_col_width ; 
-	else
-		WinListState.min_col_width = min_col_width ;
-	
-	if( max_item_height <= 1 ) 
-		max_item_height = WinListState.max_item_height ; 
-	else
-		WinListState.max_item_height = max_item_height ;
-	
-	
-	if( !dont_resize_main_canvas )
+    }
+    
+    if( WinListState.windows_num != 0 && WinListState.window_order != NULL )    
     {
-		int dumm_x = WinListState.main_canvas->root_x; 
-		int dumm_y = WinListState.main_canvas->root_y; 
-		winlist_avoid_collision( &dumm_x, &dumm_y, &allowed_max_width, &allowed_max_height, 
-								 min_col_width, max_item_height );
+        /* Pass 1: determining size of each individual bar, as well as max height of any bar */
+        for( i = 0 ; i < WinListState.windows_num ; ++i )
+        {
+            ASTBarData   *tbar = WinListState.window_order[i]->bar ;
+            int height ;
+            if( tbar == NULL )
+            {
+                WinListState.width_wanted[i] = WinListState.width_allocated[i] = 0 ;
+                continue;
+            }
+
+            WinListState.width_allocated[i] = 0 ;
+            WinListState.width_wanted[i] = calculate_astbar_width( tbar );
+            height = calculate_astbar_height( tbar );
+            if( WinListState.width_wanted[i] == 0 )
+                WinListState.width_wanted[i] = 1 ;
+
+            if( WinListState.width_wanted[i] > min_col_width )
+                min_col_width = WinListState.width_wanted[i] ;
+            if( height > max_item_height )
+                max_item_height = height ;
+        }
+        LOCAL_DEBUG_OUT( "calculated max_item_height = %d", max_item_height );
+    }
+    
+    if( min_col_width <= 1 ) 
+        min_col_width = WinListState.min_col_width ; 
+    else
+        WinListState.min_col_width = min_col_width ;
+    
+    if( max_item_height <= 1 ) 
+        max_item_height = WinListState.max_item_height ; 
+    else
+        WinListState.max_item_height = max_item_height ;
+    
+    
+    if( !dont_resize_main_canvas )
+    {
+        int dumm_x = WinListState.main_canvas->root_x; 
+        int dumm_y = WinListState.main_canvas->root_y; 
+        winlist_avoid_collision( &dumm_x, &dumm_y, &allowed_max_width, &allowed_max_height, 
+                                 min_col_width, max_item_height );
         if( allowed_min_width > allowed_max_width )
             allowed_min_width = allowed_max_width ;
         if( allowed_min_height > allowed_max_height )
@@ -1064,18 +1061,13 @@ rearrange_winlist_window( Bool dont_resize_main_canvas )
 
     LOCAL_DEBUG_OUT( "allowed_min_size=%dx%d; allowed_max_size==%dx%d",
                      allowed_min_width, allowed_min_height, allowed_max_width, allowed_max_height );
-	
+    
     if( WinListState.windows_num == 0 || WinListState.window_order == NULL )
     {
         if( !dont_resize_main_canvas )
         {
             int width = max(1,allowed_min_width);
             int height = max(1,allowed_min_height);
-			/* if( new_win_x != WinListState.main_canvas->root_x || new_win_y != WinListState.main_canvas->root_y ) 
-				moveresize_canvas( WinListState.main_canvas, new_win_x, new_win_y, width, height );
-			else
-	            resize_canvas( WinListState.main_canvas, width, height );
-			*/
             if( moveresize_main_canvas( width, height ) )
                 return False;
         }
@@ -1105,203 +1097,151 @@ rearrange_winlist_window( Bool dont_resize_main_canvas )
     if( max_rows > Config->MaxRows )
         max_rows = Config->MaxRows ;
 
-   	if( max_col_width > allowed_max_width )
-       	max_col_width = allowed_max_width ;
+    if( max_col_width > allowed_max_width )
+        max_col_width = allowed_max_width ;
 
-   	/* Pass 1.5: limiting sizes of the bars : */
-    for( i = 0 ; i < WinListState.windows_num ; ++i )
-        if( WinListState.bar_width[i] > max_col_width )
-            WinListState.bar_width[i] = max_col_width ;
-
-    /* Pass 2: we have to decide on number of rows/columns : */
-    WinListState.columns_num = WinListState.rows_num = 0 ;
-    if( get_flags( Config->flags, ASWL_RowsFirst ) )
-    { /* tricky layout policy, since column width may change when new element added/removed to it
-       * To resolve that race condition - lets try and find maximum number of columns that can fit into
-       * allowed_max_width  - we start with min(windows_num,max_columns) columns and then decrease this number untill
-       * we get a fit*/
-        int columns_num = min(WinListState.windows_num,Config->MaxColumns);
-        int max_row_width = 0;
-        int min_columns = (WinListState.windows_num + max_rows - 1)/ max_rows ;
-        if( min_columns <= 0 )
-            min_columns = 1 ;
-        while( columns_num > min_columns )
+    /* Pass 2: We have to decide on the number of rows and columns: */
+    /* For rows this is pretty simple: */
+    WinListState.rows_num = min(max_rows, WinListState.windows_num);
+    /* For columns we try to find the best way to squeeze them into
+     * the available space, which can result in a different number
+     * of items per row: */
+    int current_row = 0;
+    int windows_left_to_allocate = WinListState.windows_num;
+    int rows_left_to_fill = WinListState.rows_num;
+    int min_columns_current_row;
+    for( i = 0 ; i < WinListState.windows_num ; )
+    {
+        int width_wanted = 0;
+        int alloc_on_this_row = 0;
+        min_columns_current_row = max(windows_left_to_allocate / rows_left_to_fill, 1);
+        LOCAL_DEBUG_OUT( "buttons left to allocate: %d, want on this row: %d, max width: %d",windows_left_to_allocate,min_columns_current_row, allowed_max_width);
+        while (windows_left_to_allocate > alloc_on_this_row && 
+        (width_wanted < allowed_max_width || alloc_on_this_row < min_columns_current_row))
         {
-            int row_width = 0 ;
-            for( i = 0 ; i < WinListState.windows_num ; ++i )
+            width_wanted += WinListState.width_wanted[i+alloc_on_this_row];
+            alloc_on_this_row++;
+        }
+        /* If we used more space than available and allocated more than
+         * min_columns_current_row, we take the last one off again */
+        if (width_wanted > allowed_max_width && alloc_on_this_row > min_columns_current_row)
+        {
+        LOCAL_DEBUG_OUT("Reducing number of buttons on this row with 1: %d as %d > %d", alloc_on_this_row-1, width_wanted, allowed_max_width);
+            alloc_on_this_row--;
+            width_wanted -= WinListState.width_wanted[i+alloc_on_this_row];
+        }
+        LOCAL_DEBUG_OUT( "Final for this row: %d buttons, %d total width",alloc_on_this_row,width_wanted);
+        windows_left_to_allocate -= alloc_on_this_row;
+        LOCAL_DEBUG_OUT("%d buttons left to allocate after this", windows_left_to_allocate);
+
+        /* If we still are short on space, the size of buttons will have to shrink
+         * This is an iterative process, where we first allocate space for those things
+         * that can fit. Then we redistribute the left over space over the remaining 
+         * buttons. */
+        int left_to_allocate = alloc_on_this_row;
+        if (width_wanted > allowed_max_width)
+        {
+            int max_button_width;
+            int width_left = allowed_max_width;
+            Bool allocated_on_this_pass = False;
+            LOCAL_DEBUG_OUT( "Trying to fit %d buttons in on row %d", left_to_allocate, current_row);
+            while (left_to_allocate)
             {
-                row_width += WinListState.bar_width[i] ;
-                if( ++col >= columns_num )
+                max_button_width = width_left / left_to_allocate;
+            LOCAL_DEBUG_OUT("Max width allowed %d (%d/%d)",max_button_width,width_left,left_to_allocate);
+
+                /* First allocate everything which can fit in the allocated space: */
+                for( j = i; j < i + alloc_on_this_row; j++)
                 {
-                    col = 0 ;
-                    if( max_row_width < row_width )
-                        max_row_width = row_width ;
+                    if (!WinListState.width_allocated[j])
+                    {
+                        if (WinListState.width_wanted[j] <= max_button_width)
+                        {
+                            WinListState.width_allocated[j] = 
+                                WinListState.width_wanted[j];
+                            WinListState.bar_row[j] = current_row;
+                            WinListState.bar_col[j] = j - i;
+                            left_to_allocate--;
+                            width_left -= WinListState.width_allocated[j];
+                            allocated_on_this_pass = True;
+                        }
+                    }
                 }
+                if (!allocated_on_this_pass) /* We're out of space, divide remainder */
+                {
+                    for( j = i; j < i + alloc_on_this_row; j++)
+                    {
+                        if (!WinListState.width_allocated[j])
+                        {
+                            WinListState.width_allocated[j] = max_button_width;
+                            WinListState.bar_row[j] = current_row;
+                            WinListState.bar_col[j] = j - i;
+                            left_to_allocate--;
+                        }
+                    }
+                }
+                allocated_on_this_pass = False;
             }
-            if( max_row_width <= allowed_max_width )
-                break;
-            --columns_num;
+        } else {
+            int allocation_extra = (allowed_max_width - width_wanted) / alloc_on_this_row;
+            int allocated_extra = 0;
+            LOCAL_DEBUG_OUT("%d left to freely allocate, approx. %d per button", allowed_max_width - width_wanted, allocation_extra);
+            for( j = i; j < i + alloc_on_this_row; j++)
+            {
+                if (j == i + alloc_on_this_row-1)
+                    WinListState.width_allocated[j] = WinListState.width_wanted[j] + 
+                        allowed_max_width - width_wanted - allocated_extra;
+                else
+                    WinListState.width_allocated[j] = WinListState.width_wanted[j] + allocation_extra;
+                WinListState.bar_row[j] = current_row;
+                WinListState.bar_col[j] = j - i;
+                allocated_extra += allocation_extra;
+            }
         }
-        WinListState.columns_num = columns_num ;
-        WinListState.rows_num = (WinListState.windows_num+columns_num-1)/columns_num ;
-    }else
-    {
-        /* this layout strategy is simplier - since all the bars will have the same height -
-         * we simply use min(max_rows, windows_num) as the number of rows :*/
-        int rows_num = min(max_rows, WinListState.windows_num);
-        WinListState.columns_num = (WinListState.windows_num+rows_num-1)/rows_num ;
-        WinListState.rows_num = rows_num ;
+        i += alloc_on_this_row;
+        rows_left_to_fill--;
+        current_row++;
     }
-    LOCAL_DEBUG_OUT("max_rows = %d, rows = %d", max_rows, WinListState.rows_num );
 
-    /* Pass 3: we assign rows/columns to bars, and calculate column width */
-    row = 0 ;
-    col = 0 ;
-    /* just in case initializing entire col_width array : */
+    /* display allocations for debug purposes */
     for( i = 0 ; i < WinListState.windows_num ; ++i )
-        WinListState.col_width[i] = 0 ;
-
-    for( i = 0 ; i < WinListState.windows_num ; ++i )
     {
-        WinListState.bar_col[i] = col ;
-        WinListState.bar_row[i] = row ;
-        if( WinListState.bar_width[i] > WinListState.col_width[col] )
-            WinListState.col_width[col] = min(WinListState.bar_width[i],max_col_width);
-        if( get_flags( Config->flags, ASWL_RowsFirst ) )
-        {
-            if( ++col >= WinListState.columns_num )
-            {
-                ++row ;
-                col = 0 ;
-            }
-        }else
-        {
-            if( ++row >= WinListState.rows_num )
-            {
-                ++col;
-                row = 0 ;
-            }
-        }
+        LOCAL_DEBUG_OUT("Allocation button no %d row %d col %d width_wanted %d width_allocated %d", 
+                        i, WinListState.bar_row[i], WinListState.bar_col[i], 
+                        WinListState.width_wanted[i], WinListState.width_allocated[i]);
     }
 
-    /* Pass 4: we have to calculate overall used window size : */
-    for( i = 0 ; i < WinListState.columns_num ; ++i )
-        total_width += WinListState.col_width[i] ;
-    total_height = WinListState.rows_num * max_item_height ;
-
-    /* Pass 5: redistribute everything that remains to fit the min_size : */
-    if( total_width > allowed_max_width )
-    {
-		int total_delta = (total_width - allowed_max_width) ;
-		int applied_delta = 0 ;
-        /* in fact that will always be column 0 in the single column layout : */
-	    for( i = 0 ; i < WinListState.columns_num-1 ; ++i )
-		{
-			int delta = (total_delta*WinListState.col_width[i])/total_width ;
-			if( delta == 0 )
-				delta = 1 ;
-			if( total_delta - (applied_delta+delta) < 0 )
-				break;
-   	    	WinListState.col_width[i] -= delta ;
-			applied_delta += delta ;
-		}
-        WinListState.col_width[WinListState.columns_num-1] -= (total_delta-applied_delta) ;
-		total_width = allowed_max_width ;
-    }else if( total_width < allowed_min_width )
-    {
-        int dw = (allowed_min_width - total_width) / WinListState.columns_num ;
-        if( dw > 0 )
-        {
-            for( i = 0 ; i < WinListState.columns_num ; ++i )
-            {
-                WinListState.col_width[i] += dw ;
-                total_width += dw ;
-            }
-        }
-        if( total_width < allowed_min_width )
-		{
-            WinListState.col_width[WinListState.columns_num-1] += allowed_min_width-total_width;
-			total_width = allowed_min_width ;
-		}
-    }
-
-    if( total_height > allowed_max_height )
-    {
-        max_item_height = (allowed_max_height+WinListState.rows_num-1)/WinListState.rows_num ;
-        total_height = allowed_max_height ;
-    }else if( total_height < allowed_min_height )
-    { /* same as above, only we do not want to exceed our limits : */
-        max_item_height = (allowed_min_height)/WinListState.rows_num ;
-        total_height = max_item_height*WinListState.rows_num ;
-    }
-    WinListState.max_item_height = max_item_height ;
-
-
-    /* Pass 5: resize main canvas if we were allowed to do so : */
+    /* Pass 3: resize main canvas if we were allowed to do so : */
     if( !dont_resize_main_canvas )
     {
-        int height = max(total_height,allowed_min_height);
-/*		int tmp_height = height, tmp_width = total_width ; 
-
- 		winlist_avoid_collision( &new_win_x, &new_win_y, &tmp_width, &tmp_height );
-		if( new_win_x != WinListState.main_canvas->root_x || new_win_y != WinListState.main_canvas->root_y ) 
-			moveresize_canvas( WinListState.main_canvas, new_win_x, new_win_y, total_width, height );
-		else
-	        resize_canvas( WinListState.main_canvas, total_width, height );
-*/
-        if( moveresize_main_canvas( total_width, height ) )
+        int height = current_row * max_item_height;
+        if( moveresize_main_canvas( allowed_max_width, height ) )
             return True;
     }
 
-    /* Pass 6: calculate position of each column (for entire set - just in case)*/
-    WinListState.col_x[0] = 0 ;
-    for( i = 1 ; i < WinListState.windows_num ; ++i )
-        WinListState.col_x[i] = WinListState.col_x[i-1]+WinListState.col_width[i-1] ;
-
-    /* Pass 7: moveresize all the bars to calculated size/position */
-    col = 0;
-    row = 0;
-    y = 0 ;
+    /* Pass 4: moveresize all the bars to calculated size/position */
+    int y = 0;
+    int running_x = 0;
     for( i = 0 ; i < WinListState.windows_num ; ++i )
     {
         ASTBarData   *tbar = WinListState.window_order[i]->bar ;
         int height = max_item_height ;
-        int width = WinListState.col_width[col] ;
+        int width = WinListState.width_allocated[i] ;
         if( tbar == NULL )
             continue;
 
-        if( row == WinListState.rows_num-1 && total_height < allowed_min_height )
-            height += allowed_min_height-total_height ;
-
-        /* to fill the gap where there are no bars : */
-        if( get_flags( Config->flags, ASWL_RowsFirst ) )
+        if (i > 0)
         {
-            if( i == WinListState.windows_num - 1 )  /* last row */
-                width = total_width - WinListState.col_x[col] ;
-        }else  if( col == WinListState.columns_num - 2 )  /* one before last column */
-            if( WinListState.windows_num < i + WinListState.rows_num + 1 )
-                width += WinListState.col_width[col+1] ;
+            if (WinListState.bar_row[i] != WinListState.bar_row[i-1])
+            {
+                running_x = 0;
+                y += height;
+            } else
+                running_x += WinListState.width_allocated[i-1];
+        }
 
         set_astbar_size( tbar, width, height );
-        move_astbar( tbar, WinListState.main_canvas, WinListState.col_x[col], y );
-        if( get_flags( Config->flags, ASWL_RowsFirst ) )
-        {
-            if( ++col >= WinListState.columns_num )
-            {
-                ++row ;
-                col = 0 ;
-                y += height ;
-            }
-        }else
-        {
-            if( ++row >= WinListState.rows_num )
-            {
-                ++col;
-                row = 0 ;
-                y = 0 ;
-            }else
-                y += height ;
-        }
+        move_astbar( tbar, WinListState.main_canvas, running_x, y );
     }
 
     for( i = 0 ; i < WinListState.windows_num ; ++i )
